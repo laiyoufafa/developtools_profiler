@@ -1,0 +1,41 @@
+# Copyright (C) 2021 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos.gni")
+import("../base/config.gni")
+
+ohos_source_set("command_line") {
+  sources = [
+    "src/command_line.cpp",
+    "src/command_param.cpp",
+    "src/command_param_switch.cpp",
+    "src/command_param_text.cpp",
+  ]
+  include_dirs = [ "include" ]
+}
+ohos_executable("hiprofiler_cmd") {
+  sources = [
+    "src/main.cpp",
+  ]
+  include_dirs = [ "include" ]
+  deps = [
+    ":command_line",
+    "${OHOS_PROFILER_3RDPARTY_PROTOBUF_DIR}:protobuf",
+    "${OHOS_PROFILER_3RDPARTY_PROTOBUF_DIR}:protobuf_lite",
+    "${OHOS_PROFILER_DIR}/protos/services:profiler_services_proto",
+    "${OHOS_PROFILER_DIR}/protos/services:service_types_proto",
+  ]
+
+  install_enable = true
+  subsystem_name = "${OHOS_PROFILER_SUBSYS_NAME}"
+}

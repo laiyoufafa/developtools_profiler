@@ -1,0 +1,20 @@
+--参数 1 tids 数组，框选范围中选中的 thread id 集合
+--参数 2 leftNs 框选范围左边的时间，单位 ns
+--参数 3 rightNs 框选范围右边的时间 单位 ns
+select
+    IP.name as processName,
+    IP.pid,
+    A.name as threadName,
+    A.tid,
+    B.state,
+    sum(B.dur) as wallDuration,
+    avg(B.dur) as avgDuration,
+    count(A.tid) as occurrences
+from thread_state AS B
+left join internal_thread as A on A.id = B.utid
+left join trace_bounds AS TR
+left join internal_process AS IP on IP.id=upid
+where A.tid in (${tids})
+and not ((B.ts - TR.start_ts + B.dur < ${leftNs}) or (B.ts - TR.start_ts > ${rightNs}))
+group by IP.name, IP.pid, A.name, A.tid, B.state
+order by wallDuration desc;

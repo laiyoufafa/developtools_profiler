@@ -1,0 +1,194 @@
+#!/bin/bash
+
+#
+# Copyright (c) 2021 Huawei Device Co., Ltd.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+WORK_DIR=/data/local/tmp
+function error(){
+    echo -e "\033[1;31m$1\033[0m"
+    exit 1
+}
+process_name=$2
+
+function start_daemon() {
+    echo "start Profiler Daemon Process"
+    cd $WORK_DIR/developtools
+    start_hiprofilerd
+    sleep 1
+    start_plugins
+    echo "StartDaemonSuccess"
+    exit 0
+}
+
+function restart_daemon(){
+     local pid=$(pgrep -l .|grep hiprofilerd |grep -v grep |sed 's/^¥s*//'|sed 's/[[:space:]].*//')
+     local plugPid=$(pgrep -l .|grep hiprofiler_plug |grep -v grep |sed 's/^¥s*//'|sed 's/[[:space:]].*//')
+     if [ !$pid ]; then
+         kill -9 $pid 
+     fi	     
+     if [ !$plugPid ]; then
+	 kill -9 $plugPid
+     fi
+     start_hiprofilerd
+     sleep 1
+     start_plugins
+     echo "StartDaemonSuccess"
+     exit 0     
+}	
+
+function start_hiprofilerd() {
+    cd $WORK_DIR/developtools
+    if [ `ps -ef | grep hiprofilerd | grep -v grep | wc -l` == 0 ]; then
+        chmod +x $WORK_DIR/developtools/hiprofilerd
+        LD_LIBRARY_PATH=./ ./hiprofilerd &
+    fi
+}	
+
+function start_plugins() { 
+    cd $WORK_DIR/developtools
+    if [ `ps -ef | grep hiprofiler_plugins | grep -v grep | wc -l` == 0 ]; then
+        chmod +x $WORK_DIR/developtools/hiprofiler_plugins
+	LD_LIBRARY_PATH=./ ./hiprofiler_plugins &
+    fi
+
+}
+
+function start_v7daemon(){
+    echo "start Profiler Daemon V7 Process"
+    cd $WORK_DIR/developtools
+    if [ `ps -ef | grep hiprofilerd | grep -v grep | wc -l` == 0 ]; then
+        chmod +x $WORK_DIR/developtools/hiprofilerd
+        LD_LIBRARY_PATH=./ ./hiprofilerd &
+    fi
+    sleep 2
+    if [ `ps -ef | grep hiprofiler_plugins | grep -v grep | wc -l` == 0 ]; then
+        chmod +x $WORK_DIR/developtools/hiprofiler_plugins
+        LD_LIBRARY_PATH=./ ./hiprofiler_plugins &
+    fi
+    echo "StartDaemonSuccess"
+    exit 0
+}
+
+function start_java_heap(){
+   echo "start collect heap ${process_name}"
+   run-as ${process_name} sh -c 'cp /data/local/tmp/developtools/libagentplugin.z.so  ./'
+   #run-as ${process_name} sh -c "cp /data/local/tmp/libagentplugin.z.so  ./"
+   sh -c "cmd activity attach-agent ${process_name} /data/data/${process_name}/libagentplugin.z.so"
+   if [ "$?" == "0" ]; then
+       echo "start javaHeapSuccess"
+   else 
+       echo "failed"
+   fi
+   exit 0
+}
+
+
+function uzip_file(){
+     echo "uzip devtools file"
+     cd $WORK_DIR
+     if [ `ls $WORK_DIR | grep devtool | grep -v grep | wc -l` -eq 1 ]; then
+         tar -xf $WORK_DIR/devtool
+	 chmod +x *
+	 cp $WORK_DIR/developtools/libmemdataplugin.z.so $WORK_DIR
+	 if [ `ls ${WORK_DIR}/developtools/ | grep libbytraceplugin.z.so | grep -v grep | wc -l` -eq 1 ]; then
+	    cp $WORK_DIR/developtools/libbytraceplugin.z.so $WORK_DIR
+	 fi
+         if [ `ls ${WORK_DIR}/developtools/ | grep libptrace_plugin.z.so | grep -v grep | wc -l` -eq 1 ]; then
+            cp $WORK_DIR/developtools/libptrace_plugin.z.so $WORK_DIR
+         fi
+         if [ `ls ${WORK_DIR}/developtools/ | grep libtraceplugin.z.so | grep -v grep | wc -l` -eq 1 ]; then
+            cp $WORK_DIR/developtools/libtraceplugin.z.so $WORK_DIR
+         fi	 
+     fi
+}
+
+
+function check_server(){
+   chmod +x /data/local/tmp/developtools/hiprofiler_cmd 
+   cd /data/local/tmp/developtools/
+   if [ `ps -ef| grep hiprofiler_plugins | grep -v grep | wc -l` -eq 0 ];then
+      echo "FAIL"
+   fi	   
+   LD_LIBRARY_PATH=./  /data/local/tmp/developtools/hiprofiler_cmd -q
+}	
+
+
+function unzip_start_daemon(){
+    uzip_file  
+    start_daemon 
+    exit 0
+}
+
+function unzip_start_daemonV7(){
+    uzip_file
+    start_v7daemon
+    exit 0
+}
+
+function check_file_exits(){
+    echo "check daemon File "
+    if [ `ls $WORK_DIR | grep hiprofiler_cmd | wc -l`  == 0 ]; then
+          echo "hiprofiler_cmd is not found"
+	  exit 1
+    fi
+    chmod +x $WORK_DIR/hiprofiler_cmd
+
+    if [ `ls $WORK_DIR | grep hiprofilerd | wc -l`  == 0 ]; then
+          echo "hiprofilerd is not found"
+	  exit 2
+    fi
+    chmod +x $WORK_DIR/hiprofilerd
+
+    if [ `ls $WORK_DIR | grep hiprofiler_plugins | wc -l`  == 0 ]; then
+          echo "hiprofilerd is not found"
+	  exit 3
+    fi
+    chmod +x $WORK_DIR/hiprofiler_plugins
+} 
+
+case $1 in
+         check)
+           echo "check file"
+	   check_file_exits 
+         ;;
+         start)
+           echo "start"
+	   start_daemon
+         ;;
+	 unzipStart)
+           echo "start"
+           unzip_start_daemon
+         ;;
+         startHeap)
+	   echo "start Heap"
+	   start_java_heap
+	 ;; 
+         check_server)
+           check_server
+         ;;
+	 startV7)
+           start_v7daemon
+         ;;
+	 restart)
+           restart_daemon
+         ;;
+         unzipStartV7)
+           unzip_start_daemonV7
+         ;;
+         *)
+           echo "Ignorant"
+         ;;
+esac
