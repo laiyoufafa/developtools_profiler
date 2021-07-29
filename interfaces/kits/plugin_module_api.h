@@ -17,6 +17,7 @@
 #define PLUGIN_MODULE_API_H
 
 #include <stdbool.h>
+#include <stdint.h>
 #include <sys/types.h>
 
 #ifdef __cplusplus

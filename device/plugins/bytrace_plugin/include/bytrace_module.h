@@ -16,6 +16,7 @@
 #ifndef BYTRACE_MODULE_H
 #define BYTRACE_MODULE_H
 
+#include <stdint.h>
 #include "plugin_module_api.h"
 
 int BytracePluginSessionStart(const uint8_t* configData, const uint32_t configSize);

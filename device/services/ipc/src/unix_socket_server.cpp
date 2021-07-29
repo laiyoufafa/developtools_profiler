@@ -16,10 +16,10 @@
 #include "unix_socket_server.h"
 
 #include <cstdio>
+#include <linux/un.h>
 #include <pthread.h>
 #include <sys/epoll.h>
 #include <sys/socket.h>
-#include <sys/un.h>
 #include <unistd.h>
 
 #include "client_map.h"
