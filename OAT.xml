@@ -67,6 +67,9 @@ Note:If the text contains special characters, please escape them according to th
                 <filteritem type="filepath" name="host/ohosprofiler/src/main/resources/trace.db" desc="the binary file for host, the file is self-developed"/>
                 <filteritem type="filepath" name="host/ohosprofiler/src/main/resources/ohos/devtools.tar" desc="the binary file for host, the file is self-developed"/>
                 <filteritem type="filepath" name="host/ohosprofiler/src/test/resources/Demo.trace" desc="the binary file for host, the file is self-developed"/>
+                <filteritem type="filepath" name="host/ohosprofiler/src/main/resources/.*.png" desc="the png file for host, the file is self-developed"/>
+                <filteritem type="filepath" name="host/ohosprofiler/src/main/resources/.*.gif" desc="the gif file for host, the file is self-developed"/>
+                <filteritem type="filepath" name="figures/zh-cn_image_0000001162598155.png" desc="the png file for readme, the file is self-developed"/>
             </filefilter>
         </filefilterlist>
     </oatconfig>
