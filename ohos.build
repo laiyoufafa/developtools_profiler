@@ -4,10 +4,6 @@
     "profiler": {
       "module_list": [
         "//developtools/profiler/device:hiprofiler_targets"
-      ],
-      "test_list": [
-        "//developtools/profiler/device:unittest",
-        "//developtools/profiler/interfaces/kits/test:unittest"
       ]
     }
   }
