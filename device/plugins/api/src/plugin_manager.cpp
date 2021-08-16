@@ -210,7 +210,7 @@ bool PluginManager::StartPluginSession(const std::vector<uint32_t>& pluginIds,
         }
         if (pluginModules_[id]->GetSampleMode() == PluginModule::POLLING) {
             if (idx > config.size()) {
-                HILOG_WARN(LOG_CORE, "idx %d out of size %zu", idx, config.size());
+                HILOG_WARN(LOG_CORE, "idx %zu out of size %zu", idx, config.size());
                 return false;
             }
             uint32_t sampleInterval = config[idx].sample_interval();
