@@ -14,13 +14,9 @@
  */
 
 #include <hwext/gtest-ext.h>
-#include <hwext/gtest-tag.h>
-#include <thread>
 
-#include "client_map.h"
 #include "plugin_service.ipc.h"
 #include "service_entry.h"
-#include "socket_context.h"
 #include "unix_socket_client.h"
 #include "unix_socket_server.h"
 
@@ -40,28 +36,18 @@ protected:
  */
 HWTEST_F(ServicesIpcTest, ProtocolProc, TestSize.Level1)
 {
+    std::string s="abc";
     ServiceBase serviceBase;
     SocketContext socketContext;
-    ASSERT_FALSE(serviceBase.ProtocolProc(socketContext, 0, nullptr, 0));
-    ASSERT_TRUE(!socketContext.SendRaw(-1, nullptr, 0, 0));
+    ASSERT_FALSE(serviceBase.ProtocolProc(socketContext, 0, (const int8_t *)s.c_str(), s.size()));
+    ASSERT_TRUE(!socketContext.SendRaw(-1, (const int8_t *)s.c_str(), s.size(), 0));
+    ASSERT_TRUE(!socketContext.SendRaw(-1, (const int8_t *)s.c_str(), s.size(), -1));
+    ASSERT_TRUE(!socketContext.SendRaw(-1, (const int8_t *)s.c_str(), s.size(), 1));
+    ASSERT_TRUE(!socketContext.SendRaw(1, (const int8_t *)s.c_str(), s.size(), 1));
     ASSERT_TRUE(!socketContext.SendFileDescriptor(-1));
+    ASSERT_TRUE(!socketContext.SendFileDescriptor(1));
     ASSERT_EQ(socketContext.ReceiveFileDiscriptor(), -1);
-    ASSERT_EQ(socketContext.RawProtocolProc(-1, nullptr, -1), -1);
-}
-
-/**
- * @tc.name: Service
- * @tc.desc: Client link.
- * @tc.type: FUNC
- */
-HWTEST_F(ServicesIpcTest, ClientSocket, TestSize.Level1)
-{
-    ServiceEntry serviceEntry;
-    ClientMap::GetInstance().PutClientSocket(0, serviceEntry);
-    ASSERT_EQ(ClientMap::GetInstance().AutoRelease(), 1);
-
-    ClientConnection* clientConnection = new ClientConnection(0, serviceEntry);
-    ASSERT_EQ(clientConnection->RawProtocolProc(-1, nullptr, 0), -1);
+    ASSERT_EQ(socketContext.RawProtocolProc(1, (const int8_t *)s.c_str(), s.size()), -1);
 }
 
 /**
@@ -85,11 +71,15 @@ HWTEST_F(ServicesIpcTest, UnixSocketServer, TestSize.Level1)
 {
     UnixSocketServer unixSocketServer;
 
-    unixSocketServer.UnixSocketAccept(nullptr);
+    unixSocketServer.UnixSocketAccept();
 
     ServiceEntry serviceEntry;
-    ASSERT_TRUE(unixSocketServer.StartServer("", serviceEntry));
+    ASSERT_TRUE(unixSocketServer.StartServer("test_server_name", serviceEntry));
 }
+
+namespace {
+const int SLEEP_TIME = 30000;
+} // namespace
 
 /**
  * @tc.name: Service
@@ -104,14 +94,11 @@ HWTEST_F(ServicesIpcTest, ServiceEntry, TestSize.Level1)
     serviceEntry.RegisterService(pluginService);
     serviceEntry.FindServiceByName(pluginService.serviceName_);
 
-    usleep(30000);
-
-    GetTimeMS();
-    GetTimeUS();
-    GetTimeNS();
+    usleep(SLEEP_TIME);
 
     IPluginServiceClient pluginClient;
-    ASSERT_FALSE(pluginClient.Connect(""));
-    usleep(30000);
+    ASSERT_FALSE(pluginClient.Connect("invalid_name"));
+    ASSERT_TRUE(pluginClient.Connect("test_unix_socket_service_entry"));
+    usleep(SLEEP_TIME);
 }
 } // namespace

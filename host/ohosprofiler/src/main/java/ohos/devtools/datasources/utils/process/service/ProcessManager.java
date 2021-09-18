@@ -18,7 +18,7 @@ package ohos.devtools.datasources.utils.process.service;
 import ohos.devtools.datasources.transport.grpc.HiProfilerClient;
 import ohos.devtools.datasources.transport.grpc.service.ProfilerServiceTypes;
 import ohos.devtools.datasources.utils.common.util.DateTimeUtil;
-import ohos.devtools.datasources.utils.device.dao.DeviceUtil;
+import ohos.devtools.datasources.utils.device.dao.DeviceDao;
 import ohos.devtools.datasources.utils.device.entity.DeviceIPPortInfo;
 import ohos.devtools.datasources.utils.process.entity.ProcessInfo;
 import org.apache.commons.lang3.StringUtils;
@@ -27,15 +27,16 @@ import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * 进程数据处理对象
- *
- * @version 1.0
- * @date 2021/02/07 11:06
- **/
+ */
 public class ProcessManager {
     private static final Logger LOGGER = LogManager.getLogger(ProcessManager.class);
+    private static final String MEM_PLUGIN_NAME = "/data/local/tmp/libmemdataplugin.z.so";
+
+    private boolean isRequestProcess = false;
 
     /**
      * 单例进程对象
@@ -57,11 +58,10 @@ public class ProcessManager {
     }
 
     /**
-     * 调用接口，获取进程列表详情数据
+     * getProcessList
      *
-     * @param deviceInfo 设备对象
+     * @param deviceInfo deviceInfo
      * @return List<ProcessInfo>
-     * @date 2021/02/07 11:06
      */
     public List<ProcessInfo> getProcessList(DeviceIPPortInfo deviceInfo) {
         LOGGER.info("start to GetProcessList {}", DateTimeUtil.getNowTimeLong());
@@ -69,17 +69,18 @@ public class ProcessManager {
             return new ArrayList<ProcessInfo>();
         }
         String deviceId = deviceInfo.getDeviceID();
-        DeviceIPPortInfo deviceIPPortInfo = new DeviceUtil().getDeviceIPPortInfo(deviceId);
+        DeviceIPPortInfo deviceIPPortInfo = new DeviceDao().getDeviceIPPortInfo(deviceId).get();
         ProfilerServiceTypes.GetCapabilitiesResponse response =
             HiProfilerClient.getInstance().getCapabilities(deviceIPPortInfo.getIp(), deviceIPPortInfo.getForwardPort());
         List<ProfilerServiceTypes.ProfilerPluginCapability> capabilities = response.getCapabilitiesList();
+        Optional<ProfilerServiceTypes.ProfilerPluginCapability> libPlugin = getLibPlugin(capabilities, MEM_PLUGIN_NAME);
         List<ProcessInfo> processInfos = new ArrayList<>();
-        for (ProfilerServiceTypes.ProfilerPluginCapability profilerPluginCapability : capabilities) {
-            LOGGER.info("get Device capabilities {}", profilerPluginCapability.getName());
-            if (profilerPluginCapability.getName().contains("libmemdataplugin")) {
+        try {
+            if (libPlugin.isPresent()) {
                 LOGGER.info("process Session start", DateTimeUtil.getNowTimeLong());
+                isRequestProcess = true;
                 int sessionId = HiProfilerClient.getInstance()
-                    .requestCreateSession(deviceIPPortInfo.getForwardPort(), profilerPluginCapability.getName(), 0,
+                    .requestCreateSession(deviceIPPortInfo.getForwardPort(), libPlugin.get().getName(), 0,
                         true, deviceInfo.getDeviceType());
                 if (sessionId == -1) {
                     LOGGER.info("createSession failed");
@@ -93,20 +94,33 @@ public class ProcessManager {
                 }
                 Long stopTime = DateTimeUtil.getNowTimeLong();
                 LOGGER.info("startStopSession {}", stopTime);
-                boolean stopRes = HiProfilerClient.getInstance()
+                HiProfilerClient.getInstance()
                     .requestStopSession(deviceIPPortInfo.getIp(), deviceIPPortInfo.getForwardPort(), sessionId, false);
-
                 LOGGER.info("startStopEndSession {}", DateTimeUtil.getNowTimeLong());
-                boolean request = HiProfilerClient.getInstance()
+                HiProfilerClient.getInstance()
                     .requestDestroySession(deviceIPPortInfo.getIp(), deviceIPPortInfo.getForwardPort(), sessionId);
-                boolean res = HiProfilerClient.getInstance()
-                    .destroyProfiler(deviceIPPortInfo.getIp(), deviceIPPortInfo.getForwardPort());
-                LOGGER.info("get ProcessList is {}", processInfos);
                 return processInfos;
             }
+        } finally {
+            isRequestProcess = false;
         }
         LOGGER.info("end to GetProcessList {}", DateTimeUtil.getNowTimeLong());
         return processInfos;
     }
 
+    private Optional<ProfilerServiceTypes.ProfilerPluginCapability> getLibPlugin(
+        List<ProfilerServiceTypes.ProfilerPluginCapability> capabilities, String libDataPlugin) {
+        Optional<ProfilerServiceTypes.ProfilerPluginCapability> ability = capabilities.stream()
+            .filter(profilerPluginCapability -> profilerPluginCapability.getName().contains(libDataPlugin)).findFirst();
+        return ability;
+    }
+
+    /**
+     * isRequestProcess
+     *
+     * @return boolean boolean
+     */
+    public boolean isRequestProcess() {
+        return isRequestProcess;
+    }
 }

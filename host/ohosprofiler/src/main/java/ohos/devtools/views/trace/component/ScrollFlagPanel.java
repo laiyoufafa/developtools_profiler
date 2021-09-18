@@ -22,6 +22,7 @@ import ohos.devtools.views.trace.bean.FlagBean;
 import ohos.devtools.views.trace.listener.IFlagListener;
 import ohos.devtools.views.trace.util.Final;
 import ohos.devtools.views.trace.util.TimeUtils;
+import ohos.devtools.views.trace.util.Utils;
 
 import javax.swing.JButton;
 import javax.swing.JColorChooser;
@@ -83,8 +84,8 @@ public class ScrollFlagPanel extends BottomScrollPanel {
             public void componentResized(ComponentEvent componentEvent) {
                 super.componentResized(componentEvent);
                 Rectangle rootBounds = layer.getBounds();
-                box.setBounds(rootBounds.x + 10, rootBounds.y + 10,
-                        rootBounds.width - 20, 40);
+                box.setBounds(Utils.getX(rootBounds) + 10, Utils.getY(rootBounds) + 10,
+                    rootBounds.width - 20, 40);
             }
         });
         input.addKeyListener(new KeyAdapter() {
@@ -182,7 +183,7 @@ public class ScrollFlagPanel extends BottomScrollPanel {
          */
         public void selectColor() {
             JDialog dialog = JColorChooser.createDialog(getRootPane(), "Choose Color", true, colorChooser,
-                    actionEvent -> setCurrentColor(colorChooser.getColor()), null);
+                actionEvent -> setCurrentColor(colorChooser.getColor()), null);
             dialog.setVisible(true);
         }
 

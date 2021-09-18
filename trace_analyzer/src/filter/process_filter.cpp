@@ -23,24 +23,66 @@ using CustomPair = std::pair<uint32_t, uint32_t>;
 namespace SysTuning {
 namespace TraceStreamer {
 namespace {
-    const uint32_t INVALID_ID = std::numeric_limits<uint32_t>::max();
+const uint32_t INVALID_ID = std::numeric_limits<uint32_t>::max();
 }
 ProcessFilter::ProcessFilter(TraceDataCache* dataCache, const TraceStreamerFilters* filter)
-    :FilterBase(dataCache, filter)
+    : FilterBase(dataCache, filter)
 {
     tidMappingSet_.insert(CustomPair(0, 0));
-    pidMappingSet_.insert(CustomPair(0, 0));
+    pidToInternalPidMap_.insert(CustomPair(0, 0));
 }
 
 ProcessFilter::~ProcessFilter() {}
 
-uint32_t ProcessFilter::UpdateThreadByName(uint64_t timeStamp, uint32_t tid, std::string_view name)
+uint32_t ProcessFilter::UpdateOrCreateThreadWithName(uint64_t timeStamp, uint32_t tid, std::string_view name)
 {
     DataIndex nameIndex = traceDataCache_->GetDataIndex(name);
-    return SetThreadPid(timeStamp, tid, nameIndex);
+    return UpdateOrCreateThreadWithNameIndex(timeStamp, tid, nameIndex);
 }
 
-uint32_t ProcessFilter::SetThreadPid(uint64_t timeStamp, uint32_t tid, size_t threadNameIndex)
+uint32_t ProcessFilter::UpdateOrCreateThread(uint64_t timestamp, uint32_t tid)
+{
+    return UpdateOrCreateThreadWithNameIndex(timestamp, tid, 0);
+}
+void ProcessFilter::UpdateOrCreateThreadWithPidAndName(uint32_t tid, uint32_t pid, std::string_view name)
+{
+    uint32_t internalTid = GetOrCreateThreadWithPid(tid, pid);
+    auto thread = traceDataCache_->GetThreadData(internalTid);
+    auto nameIndex = traceDataCache_->GetDataIndex(name);
+    thread->nameIndex_ = nameIndex;
+}
+
+uint32_t ProcessFilter::GetOrCreateThreadWithPid(uint32_t tid, uint32_t pid)
+{
+    TraceStdtype::Thread* thread = nullptr;
+    uint32_t internalTid = GetInternalTid(tid, pid);
+    if (internalTid != INVALID_ID) {
+        thread = traceDataCache_->GetThreadData(internalTid);
+    } else {
+        std::tie(internalTid, thread) = NewThread(tid);
+    }
+
+    if (!thread->internalPid_) {
+        std::tie(thread->internalPid_, std::ignore) = CreateProcessMaybe(pid, thread->startT_);
+    }
+
+    return internalTid;
+}
+
+uint32_t ProcessFilter::UpdateOrCreateProcessWithName(uint32_t pid, std::string_view name)
+{
+    uint32_t internalPid = 0;
+    TraceStdtype::Process* process = nullptr;
+    std::tie(internalPid, process) = CreateProcessMaybe(pid, 0);
+    if (process) {
+        process->cmdLine_ = std::string(name);
+    }
+    // Create a main thread which thread_id equal process_id, and is the main thread
+    GetOrCreateThreadWithPid(pid, pid);
+    return internalPid;
+}
+
+uint32_t ProcessFilter::UpdateOrCreateThreadWithNameIndex(uint64_t timeStamp, uint32_t tid, DataIndex threadNameIndex)
 {
     TraceStdtype::Thread* thread = nullptr;
     uint32_t internalTid = GetInternalTid(tid);
@@ -59,59 +101,21 @@ uint32_t ProcessFilter::SetThreadPid(uint64_t timeStamp, uint32_t tid, size_t th
 
     return internalTid;
 }
-
-void ProcessFilter::SetThreadName(uint32_t tid, uint32_t pid, std::string_view name)
-{
-    uint32_t internalTid = SetThreadPid(tid, pid);
-    auto* thread = traceDataCache_->GetThreadData(internalTid);
-    auto nameIndex = traceDataCache_->GetDataIndex(name);
-    thread->nameIndex_ = nameIndex;
-}
-
-uint32_t ProcessFilter::SetThreadPid(uint32_t tid, uint32_t pid)
-{
-    TraceStdtype::Thread* thread = nullptr;
-    uint32_t internalTid = GetItidExact(tid, pid);
-    if (internalTid != INVALID_ID) {
-        thread = traceDataCache_->GetThreadData(internalTid);
-    } else {
-        std::tie(internalTid, thread) = NewThread(tid);
-    }
-
-    if (!thread->internalPid_) {
-        std::tie(thread->internalPid_, std::ignore) = CreateProcessMaybe(pid, thread->startT_);
-    }
-
-    return internalTid;
-}
-
-uint32_t ProcessFilter::UpdateProcess(uint32_t pid, std::string_view name)
-{
-    uint32_t internalPid = 0;
-    TraceStdtype::Process* process = nullptr;
-    std::tie(internalPid, process) = CreateProcessMaybe(pid, 0);
-    if (process) {
-        process->cmdLine_ = std::string(name);
-    }
-    SetThreadPid(pid, pid);
-    return internalPid;
-}
-
-uint32_t ProcessFilter::GetItidExact(uint32_t tid, uint32_t pid) const
+uint32_t ProcessFilter::GetInternalTid(uint32_t tid, uint32_t pid) const
 {
     uint32_t internalTid = INVALID_ID;
     auto tidsPair = tidMappingSet_.equal_range(tid);
     for (auto it = tidsPair.first; it != tidsPair.second; it++) {
-        uint32_t iterUtid = it->second;
-        auto* iterThread = traceDataCache_->GetThreadData(iterUtid);
+        uint32_t iterItid = it->second;
+        auto iterThread = traceDataCache_->GetThreadData(iterItid);
         if (!iterThread->internalPid_) {
-            internalTid = iterUtid;
+            internalTid = iterItid;
             break;
         }
 
         const auto& iterProcess = traceDataCache_->GetConstProcessData(iterThread->internalPid_);
         if (iterProcess.pid_ == pid) {
-            internalTid = iterUtid;
+            internalTid = iterItid;
             break;
         }
     }
@@ -129,20 +133,32 @@ uint32_t ProcessFilter::GetInternalTid(uint32_t tid) const
     return INVALID_ID;
 }
 
-uint32_t ProcessFilter::GetInternalPid(uint32_t pid) const
+InternalPid ProcessFilter::GetInternalPid(uint32_t pid) const
 {
-    auto it = pidMappingSet_.find(pid);
-    if (it != pidMappingSet_.end()) {
+    auto it = pidToInternalPidMap_.find(pid);
+    if (it != pidToInternalPidMap_.end()) {
         return it->second;
     }
     return INVALID_ID;
 }
 
+InternalTid ProcessFilter::GetOrCreateInternalPid(uint64_t timestamp, uint32_t pid)
+{
+    auto ipid = GetInternalPid(pid);
+    if (ipid != INVALID_ID) {
+        return ipid;
+    }
+
+    uint32_t internalPid = 0;
+    TraceStdtype::Process* process = nullptr;
+    std::tie(internalPid, process) = CreateProcessMaybe(pid, timestamp);
+    return internalPid;
+}
 std::tuple<uint32_t, TraceStdtype::Thread*> ProcessFilter::NewThread(uint32_t tid)
 {
-    uint32_t internalTid = traceDataCache_->GetInternalThread(tid);
+    uint32_t internalTid = traceDataCache_->NewInternalThread(tid);
     tidMappingSet_.emplace(tid, internalTid);
-    auto* thread = traceDataCache_->GetThreadData(internalTid);
+    auto thread = traceDataCache_->GetThreadData(internalTid);
 
     return std::make_tuple(internalTid, thread);
 }
@@ -150,8 +166,8 @@ std::tuple<uint32_t, TraceStdtype::Thread*> ProcessFilter::NewThread(uint32_t ti
 std::tuple<uint32_t, TraceStdtype::Process*> ProcessFilter::NewProcess(uint32_t pid)
 {
     uint32_t internalPid = traceDataCache_->GetProcessInternalPid(pid);
-    pidMappingSet_.emplace(pid, internalPid);
-    auto* process = traceDataCache_->GetProcessData(internalPid);
+    pidToInternalPidMap_.emplace(pid, internalPid);
+    auto process = traceDataCache_->GetProcessData(internalPid);
 
     return std::make_tuple(internalPid, process);
 }
@@ -160,8 +176,8 @@ std::tuple<uint32_t, TraceStdtype::Process*> ProcessFilter::CreateProcessMaybe(u
 {
     uint32_t internalPid = INVALID_ID;
     TraceStdtype::Process* process = nullptr;
-    auto it = pidMappingSet_.find(pid);
-    if (it != pidMappingSet_.end()) {
+    auto it = pidToInternalPidMap_.find(pid);
+    if (it != pidToInternalPidMap_.end()) {
         internalPid = it->second;
         process = traceDataCache_->GetProcessData(internalPid);
     } else {

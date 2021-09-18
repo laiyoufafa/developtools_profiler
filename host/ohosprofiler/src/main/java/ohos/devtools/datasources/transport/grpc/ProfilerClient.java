@@ -29,16 +29,11 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * 提供设备侧grpc接口封装
- *
- * @version 1.0
- * @date 2021/02/01 19:23
- **/
+ */
 public class ProfilerClient {
     private static final Logger LOGGER = LogManager.getLogger(ProfilerClient.class);
 
     private ManagedChannel channel;
-
-    private boolean isUsed;
 
     private String host;
 
@@ -59,8 +54,8 @@ public class ProfilerClient {
     /**
      * ProfilerClient
      *
-     * @param host    localhost
-     * @param port    port number
+     * @param host localhost
+     * @param port port number
      * @param channel channel
      */
     public ProfilerClient(String host, int port, ManagedChannel channel) {
@@ -137,7 +132,9 @@ public class ProfilerClient {
      */
     public Iterator<ProfilerServiceTypes.FetchDataResponse> fetchData(
         ProfilerServiceTypes.FetchDataRequest fetchDataRequest) throws StatusRuntimeException {
-        Iterator<ProfilerServiceTypes.FetchDataResponse> response = profilerBlockInClient.fetchData(fetchDataRequest);
+        Iterator<ProfilerServiceTypes.FetchDataResponse> response =
+            profilerBlockInClient.withMaxInboundMessageSize(Integer.MAX_VALUE)
+                .withMaxOutboundMessageSize(Integer.MAX_VALUE).fetchData(fetchDataRequest);
         return response;
     }
 
@@ -151,7 +148,7 @@ public class ProfilerClient {
     public ProfilerServiceTypes.StopSessionResponse stopSession(
         ProfilerServiceTypes.StopSessionRequest stopSessionRequest) throws StatusRuntimeException {
         ProfilerServiceTypes.StopSessionResponse response =
-            profilerBlockInClient.withDeadlineAfter(1, TimeUnit.SECONDS).stopSession(stopSessionRequest);
+            profilerBlockInClient.withDeadlineAfter(3, TimeUnit.SECONDS).stopSession(stopSessionRequest);
         return response;
     }
 
@@ -165,13 +162,26 @@ public class ProfilerClient {
     public ProfilerServiceTypes.DestroySessionResponse destroySession(
         ProfilerServiceTypes.DestroySessionRequest destroyRequest) throws StatusRuntimeException {
         ProfilerServiceTypes.DestroySessionResponse res =
-            profilerBlockInClient.withDeadlineAfter(LayoutConstants.THREE_HUNDRED, TimeUnit.MILLISECONDS)
-                .destroySession(destroyRequest);
+            profilerBlockInClient.withDeadlineAfter(1, TimeUnit.SECONDS).destroySession(destroyRequest);
         return res;
     }
 
     /**
-     * 关闭方法
+     * keepSession
+     *
+     * @param keepSessionRequest keepSessionRequest
+     * @return ProfilerServiceTypes.KeepSessionResponse
+     * @throws StatusRuntimeException
+     */
+    public ProfilerServiceTypes.KeepSessionResponse keepSession(
+        ProfilerServiceTypes.KeepSessionRequest keepSessionRequest) throws StatusRuntimeException {
+        ProfilerServiceTypes.KeepSessionResponse res =
+            profilerBlockInClient.withDeadlineAfter(1, TimeUnit.SECONDS).keepSession(keepSessionRequest);
+        return res;
+    }
+
+    /**
+     * Closing method
      */
     public void shutdown() {
         try {
@@ -179,13 +189,5 @@ public class ProfilerClient {
         } catch (InterruptedException exception) {
             LOGGER.error(exception.getMessage());
         }
-    }
-
-    public void setUsed(boolean used) {
-        isUsed = used;
-    }
-
-    public boolean isUsed() {
-        return isUsed;
     }
 }

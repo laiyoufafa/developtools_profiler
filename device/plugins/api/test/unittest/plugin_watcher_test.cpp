@@ -29,27 +29,15 @@
 using namespace testing::ext;
 
 namespace {
-static std::vector<std::string> g_cmpFileList;
-static std::vector<std::string> g_createFileList = {
-    "lib_6.so", "lib_5.so", "lib_8.so", "lib_4.so", "test1.txt"
-};
-std::vector<int> g_createFdList;
-
-static std::vector<std::string> g_addFileList = {
-    "libadd_6.so", "libadd_5.so", "libadd_8.so", "libadd_4.so", "test2.txt"
-};
-
-static std::vector<std::string> g_expectFileList = {
-    "libadd_6.so", "libadd_5.so", "libadd_8.so", "libadd_4.so",
-    "lib_6.so",    "lib_5.so",    "lib_8.so",    "lib_4.so"
-};
-
-static int g_defaultFileMode = 0777;
+constexpr int DEAFULT_FILE_MODE = 0777;
 
 #if defined(__i386__) || defined(__x86_64__)
 const static std::string DEFAULT_TEST_PATH = "./";
 #else
-const static std::string DEFAULT_TEST_PATH = "/data/local/tmp/";
+const static std::string DEFAULT_TEST_PATH_1 = "/data/local/tmp/watchertest/1/";
+const static std::string DEFAULT_TEST_PATH_2 = "/data/local/tmp/watchertest/2/";
+const static std::string DEFAULT_TEST_PATH_3 = "/data/local/tmp/watchertest/3/";
+const static std::string NO_EXIST_TEST_PATH = "/data/local/tmp/noexist/";
 #endif
 
 class PluginWatchTest : public ::testing::Test {
@@ -58,8 +46,98 @@ protected:
     static void SetUpTestCase() {}
     static void TearDownTestCase() {}
 
-    void SetUp() override {}
-    void TearDown() override {}
+    void SetUp() override
+    {
+        std::string cmd = "mkdir -p " + DEFAULT_TEST_PATH_1;
+        system(cmd.c_str());
+        cmd = "mkdir -p " + DEFAULT_TEST_PATH_2;
+        system(cmd.c_str());
+        cmd = "mkdir -p " + DEFAULT_TEST_PATH_3;
+        system(cmd.c_str());
+        sort(expectFileList.begin(), expectFileList.end());
+    }
+
+    void TearDown() override
+    {
+        cmpFileList.clear();
+    }
+
+    void OnPluginAddedStub(const std::string& path)
+    {
+        cmpFileList.push_back(path);
+        sort(cmpFileList.begin(), cmpFileList.end());
+    }
+
+    void OnPluginRemovedStub(const std::string& path)
+    {
+        for (auto iter = cmpFileList.cbegin(); iter != cmpFileList.cend(); iter++) {
+            if (*iter == path) {
+                cmpFileList.erase(iter);
+                break;
+            }
+        }
+    }
+
+    void CreateFile(std::string dirPath) const
+    {
+        for (auto it : createFileList) {
+            int fd = creat((dirPath + it).c_str(), DEAFULT_FILE_MODE);
+            close(fd);
+        }
+    }
+
+    void AddFile(std::string dirPath) const
+    {
+        for (auto it : addFileList) {
+            int fd = creat((dirPath + it).c_str(), DEAFULT_FILE_MODE);
+            if (fd < 0) {
+                return;
+            }
+            write(fd, "testcase", 1);
+            close(fd);
+        }
+    }
+
+    void DeleteFile(std::string dirPath) const
+    {
+        for (auto it : createFileList) {
+            remove((dirPath + it).c_str());
+        }
+        for (auto it : addFileList) {
+            remove((dirPath + it).c_str());
+        }
+    }
+
+    bool CheckFileList(std::string dirPath) const
+    {
+        if (cmpFileList.size() != expectFileList.size()) {
+            return false;
+        }
+
+        for (size_t i = 0; i < cmpFileList.size(); i++) {
+            if (cmpFileList.at(i) != (dirPath + expectFileList.at(i))) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+private:
+    std::vector<std::string> cmpFileList;
+
+    const std::vector<std::string> createFileList = {
+        "lib_6.so", "lib_5.so", "lib_8.so", "lib_4.so", "test1.txt"
+    };
+
+    const std::vector<std::string> addFileList = {
+        "libadd_6.so", "libadd_5.so", "libadd_8.so", "libadd_4.so", "test2.txt"
+    };
+
+    std::vector<std::string> expectFileList = {
+        "libadd_6.so", "libadd_5.so", "libadd_8.so", "libadd_4.so",
+        "lib_6.so",    "lib_5.so",    "lib_8.so",    "lib_4.so"
+    };
 };
 
 class MockPluginWatcher : public PluginWatcher {
@@ -70,82 +148,9 @@ public:
     MOCK_METHOD1(OnPluginRemoved, void(const std::string&));
 };
 
-static void OnPluginAddedStub(const std::string& path)
-{
-    g_cmpFileList.push_back(path);
-    sort(g_cmpFileList.begin(), g_cmpFileList.end());
-    return;
-}
-
-static void OnPluginRemovedStub(const std::string& path)
-{
-    for (auto iter = g_cmpFileList.cbegin(); iter != g_cmpFileList.cend(); iter++) {
-        if (*iter == path) {
-            g_cmpFileList.erase(iter);
-            break;
-        }
-    }
-
-    return;
-}
-
-static void CreateFile()
-{
-    for (auto it : g_createFileList) {
-        int fd = creat(it.c_str(), g_defaultFileMode);
-        g_createFdList.push_back(fd);
-    }
-}
-
-static void AddFile()
-{
-    for (auto it : g_addFileList) {
-        int fd = creat(it.c_str(), g_defaultFileMode);
-        if (fd < 0) {
-            return;
-        }
-        write(fd, "testcase", 1);
-        close(fd);
-    }
-
-    return;
-}
-
-static void DeleteFile()
-{
-    for (auto it : g_createFileList) {
-        for (auto fd : g_createFdList) {
-            close(fd);
-        }
-        remove(it.c_str());
-    }
-    for (auto it : g_addFileList) {
-        remove(it.c_str());
-    }
-    return;
-}
-
-static bool CheckFileList()
-{
-    sort(g_expectFileList.begin(), g_expectFileList.end());
-    if (g_expectFileList.size() != g_cmpFileList.size()) {
-        return false;
-    }
-
-    for (size_t i = 0; i < g_expectFileList.size(); i++) {
-        char fullpath[PATH_MAX + 1] = {0};
-        realpath(g_expectFileList.at(i).c_str(), fullpath);
-        if (g_cmpFileList.at(i) != fullpath) {
-            return false;
-        }
-    }
-
-    return true;
-}
-
 /**
  * @tc.name: plugin
- * @tc.desc: Monitor the plugin loading in the test directory.
+ * @tc.desc: Monitor single plugin dir.
  * @tc.type: FUNC
  */
 HWTEST_F(PluginWatchTest, SingleWatchDirTest, TestSize.Level1)
@@ -153,32 +158,81 @@ HWTEST_F(PluginWatchTest, SingleWatchDirTest, TestSize.Level1)
     auto pluginManage = std::make_shared<PluginManager>();
     MockPluginWatcher watcher(pluginManage);
 
-    EXPECT_CALL(watcher, OnPluginAdded(testing::_)).WillRepeatedly(testing::Invoke(OnPluginAddedStub));
-    EXPECT_CALL(watcher, OnPluginRemoved(testing::_)).WillRepeatedly(testing::Invoke(OnPluginRemovedStub));
+    EXPECT_CALL(watcher, OnPluginAdded(testing::_)).WillRepeatedly(
+        testing::Invoke(this, &PluginWatchTest::OnPluginAddedStub));
+    EXPECT_CALL(watcher, OnPluginRemoved(testing::_)).WillRepeatedly(
+        testing::Invoke(this, &PluginWatchTest::OnPluginRemovedStub));
+    CreateFile(DEFAULT_TEST_PATH_1);
 
-    g_createFdList.clear();
-    CreateFile();
-    watcher.ScanPlugins(DEFAULT_TEST_PATH);
-    watcher.WatchPlugins(DEFAULT_TEST_PATH);
+    EXPECT_TRUE(watcher.ScanPlugins(DEFAULT_TEST_PATH_1));
+    EXPECT_TRUE(watcher.WatchPlugins(DEFAULT_TEST_PATH_1));
     usleep(TEMP_DELAY);
-    AddFile();
+    AddFile(DEFAULT_TEST_PATH_1);
     usleep(TEMP_DELAY);
-    EXPECT_EQ(CheckFileList(), false);
-    DeleteFile();
+    EXPECT_EQ(CheckFileList(DEFAULT_TEST_PATH_1), true);
+    DeleteFile(DEFAULT_TEST_PATH_1);
     usleep(TEMP_DELAY);
-    EXPECT_EQ(g_cmpFileList.empty(), true);
+    EXPECT_EQ(cmpFileList.size(), 0);
 }
 
 /**
  * @tc.name: plugin
- * @tc.desc: Plug-in process exception test.
+ * @tc.desc: Monitor multi plugin dir.
  * @tc.type: FUNC
  */
-HWTEST_F(PluginWatchTest, OnPluginAdded, TestSize.Level1)
+HWTEST_F(PluginWatchTest, MultiWatchDirTest, TestSize.Level1)
 {
-    const auto pluginManage = std::make_shared<PluginManager>();
-    PluginWatcher pluginWatcher(pluginManage);
-    pluginWatcher.OnPluginAdded("");
-    pluginWatcher.OnPluginRemoved("");
+    auto pluginManage = std::make_shared<PluginManager>();
+    MockPluginWatcher watcher(pluginManage);
+
+    EXPECT_CALL(watcher, OnPluginAdded(testing::_)).WillRepeatedly(
+        testing::Invoke(this, &PluginWatchTest::OnPluginAddedStub));
+    EXPECT_CALL(watcher, OnPluginRemoved(testing::_)).WillRepeatedly(
+        testing::Invoke(this, &PluginWatchTest::OnPluginRemovedStub));
+    CreateFile(DEFAULT_TEST_PATH_1);
+    EXPECT_TRUE(watcher.ScanPlugins(DEFAULT_TEST_PATH_1));
+    EXPECT_TRUE(watcher.WatchPlugins(DEFAULT_TEST_PATH_1));
+    usleep(TEMP_DELAY);
+    AddFile(DEFAULT_TEST_PATH_1);
+    usleep(TEMP_DELAY);
+    EXPECT_EQ(CheckFileList(DEFAULT_TEST_PATH_1), true);
+    DeleteFile(DEFAULT_TEST_PATH_1);
+    usleep(TEMP_DELAY);
+    EXPECT_EQ(cmpFileList.size(), 0);
+
+    CreateFile(DEFAULT_TEST_PATH_2);
+    EXPECT_TRUE(watcher.ScanPlugins(DEFAULT_TEST_PATH_2));
+    EXPECT_TRUE(watcher.WatchPlugins(DEFAULT_TEST_PATH_2));
+    usleep(TEMP_DELAY);
+    AddFile(DEFAULT_TEST_PATH_2);
+    usleep(TEMP_DELAY);
+    EXPECT_EQ(CheckFileList(DEFAULT_TEST_PATH_2), true);
+    DeleteFile(DEFAULT_TEST_PATH_2);
+    usleep(TEMP_DELAY);
+    EXPECT_EQ(cmpFileList.size(), 0);
+
+    CreateFile(DEFAULT_TEST_PATH_3);
+    EXPECT_TRUE(watcher.ScanPlugins(DEFAULT_TEST_PATH_3));
+    EXPECT_TRUE(watcher.WatchPlugins(DEFAULT_TEST_PATH_3));
+    usleep(TEMP_DELAY);
+    AddFile(DEFAULT_TEST_PATH_3);
+    usleep(TEMP_DELAY);
+    EXPECT_EQ(CheckFileList(DEFAULT_TEST_PATH_3), true);
+    DeleteFile(DEFAULT_TEST_PATH_3);
+    usleep(TEMP_DELAY);
+    EXPECT_EQ(cmpFileList.size(), 0);
+}
+
+/**
+ * @tc.name: plugin
+ * @tc.desc: Exception test.
+ * @tc.type: FUNC
+ */
+HWTEST_F(PluginWatchTest, ExceptionTest, TestSize.Level1)
+{
+    auto pluginManage = std::make_shared<PluginManager>();
+    MockPluginWatcher watcher(pluginManage);
+    EXPECT_FALSE(watcher.ScanPlugins(NO_EXIST_TEST_PATH));
+    EXPECT_FALSE(watcher.WatchPlugins(NO_EXIST_TEST_PATH));
 }
 } // namespace

@@ -32,6 +32,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 
+import ohos.devtools.datasources.transport.grpc.service.HiperfCallPluginConfigOuterClass;
+import ohos.devtools.datasources.transport.grpc.service.MemoryPluginConfig;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -43,10 +45,7 @@ import ohos.devtools.views.common.LayoutConstants;
 
 /**
  * Bean object utilities class.
- *
- * @version 1.0
- * @date 2021/02/03 14:59
- **/
+ */
 public class BeanUtil {
     private static final Logger LOGGER = LogManager.getLogger(BeanUtil.class);
 
@@ -81,6 +80,44 @@ public class BeanUtil {
      * @return Returns a byte array.
      */
     public static byte[] serializeByCodedOutPutStream(TracePluginConfigOuterClass.TracePluginConfig config) {
+        byte[] dataArray = null;
+        try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+            CodedOutputStream codedOutputStream = CodedOutputStream.newInstance(outputStream);
+            config.writeTo(codedOutputStream);
+            codedOutputStream.flush();
+            dataArray = outputStream.toByteArray();
+        } catch (IOException exception) {
+            LOGGER.error("exception error {}", exception.getMessage());
+        }
+        return dataArray;
+    }
+
+    /**
+     * Serialize data by code output stream.
+     *
+     * @param config Indicates the configuration data.
+     * @return Returns a byte array.
+     */
+    public static byte[] serializeByCodedOutPutStream(HiperfCallPluginConfigOuterClass.HiperfCallPluginConfig config) {
+        byte[] dataArray = null;
+        try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+            CodedOutputStream codedOutputStream = CodedOutputStream.newInstance(outputStream);
+            config.writeTo(codedOutputStream);
+            codedOutputStream.flush();
+            dataArray = outputStream.toByteArray();
+        } catch (IOException exception) {
+            LOGGER.error("exception error {}", exception.getMessage());
+        }
+        return dataArray;
+    }
+
+    /**
+     * Serialize data by code output stream.
+     *
+     * @param config Indicates the configuration data.
+     * @return Returns a byte array.
+     */
+    public static byte[] serializeByCodedOutPutStream(MemoryPluginConfig.MemoryConfig config) {
         byte[] dataArray = null;
         try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
             CodedOutputStream codedOutputStream = CodedOutputStream.newInstance(outputStream);

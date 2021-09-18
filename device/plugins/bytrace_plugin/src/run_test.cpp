@@ -25,15 +25,15 @@ constexpr uint32_t BUFFE_SIZE = 1024;
 
 int main()
 {
-    WriterStruct writer;
-    BytraceRegisterWriterStruct(&writer);
-
     BytracePluginConfig config;
+    config.set_outfile_name("/data/local/tmp/bytrace.txt");
     config.set_clock("boot");
     config.set_time(TRACE_TIME);
     config.set_buffe_size(BUFFE_SIZE);
-    config.set_outfile_name("/data/local/tmp/bytrace.txt");
     config.add_categories("sched");
+    config.add_categories("freq");
+    config.add_categories("idle");
+    config.add_categories("workq");
 
     std::vector<char> buffer(config.ByteSizeLong());
     CHECK_TRUE(config.SerializeToArray(buffer.data(), buffer.size()), 0, "Serialize config FAILED!");

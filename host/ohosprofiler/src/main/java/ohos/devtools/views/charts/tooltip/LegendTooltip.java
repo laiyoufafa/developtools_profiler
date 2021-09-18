@@ -15,10 +15,13 @@
 
 package ohos.devtools.views.charts.tooltip;
 
+import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 
+import ohos.devtools.views.charts.model.ChartDataModel;
 import ohos.devtools.views.charts.utils.ChartUtils;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -27,6 +30,7 @@ import javax.swing.JLayeredPane;
 import javax.swing.JPanel;
 import javax.swing.JRootPane;
 import javax.swing.SwingUtilities;
+import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -37,15 +41,17 @@ import java.awt.event.MouseEvent;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import static ohos.devtools.views.common.ColorConstants.TOOLTIP;
-import static ohos.devtools.views.common.ViewConstants.NUM_2;
-
 /**
- * @Description 自定义可以跟随鼠标移动Tooltip作为图例
- * @Date 2021/1/19 21:35
- **/
+ * Customize the tooltip that can follow the mouse as a legend
+ */
 public final class LegendTooltip extends JComponent {
     private static final Logger LOGGER = LogManager.getLogger(LegendTooltip.class);
+
+    private static final int MIN_SIZE = 2;
+
+    private static final int NUM_2 = 2;
+
+    private static final int NUM_3 = 4;
 
     /**
      * 常量1，距离鼠标常量，防止鼠标遮挡
@@ -73,9 +79,29 @@ public final class LegendTooltip extends JComponent {
     private static final int DEFAULT_WIDTH = 170;
 
     /**
-     * 单例
+     * thread unspecified
      */
-    private static volatile LegendTooltip singleton;
+    private static final int THREAD_UNSPECIFIED = 0;
+
+    /**
+     * thread running
+     */
+    private static final int THREAD_RUNNING = 1;
+
+    /**
+     * thread sleeping
+     */
+    private static final int THREAD_SLEEPING = 2;
+
+    /**
+     * thread stopped
+     */
+    private static final int THREAD_STOPPED = 3;
+
+    /**
+     * thread waiting
+     */
+    private static final int THREAD_WAITING = 4;
 
     /**
      * 当前Tooltip的主面板
@@ -98,27 +124,10 @@ public final class LegendTooltip extends JComponent {
     private int rows = DEFAULT_ROWS;
 
     /**
-     * 单例，外部不允许初始化
+     * Constructor
      */
-    private LegendTooltip() {
-        super();
+    public LegendTooltip() {
         initTip();
-    }
-
-    /**
-     * 获取单例
-     *
-     * @return 单例
-     */
-    public static LegendTooltip getInstance() {
-        if (singleton == null) {
-            synchronized (LegendTooltip.class) {
-                if (singleton == null) {
-                    singleton = new LegendTooltip();
-                }
-            }
-        }
-        return singleton;
     }
 
     /**
@@ -130,7 +139,7 @@ public final class LegendTooltip extends JComponent {
         this.setOpaque(false);
         this.setVisible(false);
         mainPanel = new JPanel(new GridLayout(rows, 1));
-        mainPanel.setBackground(TOOLTIP);
+        mainPanel.setBackground(JBColor.background().darker());
     }
 
     /**
@@ -143,14 +152,15 @@ public final class LegendTooltip extends JComponent {
     /**
      * 为某个组件设置tip
      *
-     * @param parent       显示tooltip的对象
-     * @param timeline     显示的时间Tip
-     * @param totalValue   Total值
+     * @param parent 显示tooltip的对象
+     * @param timeline 显示的时间Tip
+     * @param totalValue Total值
      * @param tooltipItems 要显示的图例
-     * @param isCharting   boolean
+     * @param isCharting boolean
+     * @param axisYUnit axisYUnit
      */
     public void showTip(JComponent parent, String timeline, String totalValue, List<TooltipItem> tooltipItems,
-        boolean isCharting) {
+        boolean isCharting, String axisYUnit) {
         if (parent != null && parent.getRootPane() != null) {
             this.rows = tooltipItems.size() + NUM_2;
             // 重新组建Tooltip
@@ -161,7 +171,7 @@ public final class LegendTooltip extends JComponent {
             }
 
             // 动态添加和绘制图例
-            addLegends(timeline, totalValue, tooltipItems);
+            addLegends(timeline, totalValue, tooltipItems, axisYUnit);
             this.validate();
             this.setVisible(true);
         }
@@ -195,21 +205,23 @@ public final class LegendTooltip extends JComponent {
         // 根据传入的TooltipItem集合大小，重新创建mainPanel
         mainPanel = new JPanel(new GridLayout(rows, 1));
         mainPanel.setBorder(new LineBorder(Color.BLACK));
-        mainPanel.setBackground(TOOLTIP);
+        mainPanel.setBackground(JBColor.background().darker());
         this.add(mainPanel);
     }
 
     /**
      * Tooltip中添加图例
      *
-     * @param timeline     时间
-     * @param totalValue   Total值
+     * @param timeline 时间
+     * @param totalValue Total值
      * @param tooltipItems 图例集合
+     * @param axisYUnit axisYUnit
      */
-    private void addLegends(String timeline, String totalValue, List<TooltipItem> tooltipItems) {
+    private void addLegends(String timeline, String totalValue, List<TooltipItem> tooltipItems, String axisYUnit) {
         mainPanel.removeAll();
         // 添加时间
         JBLabel timeLabel = new JBLabel();
+        timeLabel.setBorder(new EmptyBorder(5, 5, 5, 5));
         long ms = 0;
         String pattern = "^\\d{0,20}$";
         boolean isMatch = Pattern.matches(pattern, timeline);
@@ -221,13 +233,14 @@ public final class LegendTooltip extends JComponent {
         timeLabel.setText(ChartUtils.formatTime(ms));
         timeLabel.setOpaque(false);
         mainPanel.add(timeLabel);
-
-        // 添加悬浮框的total值
-        JBLabel totalLabel = new JBLabel();
-        totalLabel.setOpaque(false);
-        totalLabel.setText("Total:" + totalValue + "MB");
-        mainPanel.add(totalLabel);
-
+        if (StringUtils.isNotBlank(totalValue)) {
+            // 添加悬浮框的total值
+            JBLabel totalLabel = new JBLabel();
+            totalLabel.setBorder(new EmptyBorder(0, 5, 5, 5));
+            totalLabel.setOpaque(false);
+            totalLabel.setText("Total:" + totalValue + axisYUnit);
+            mainPanel.add(totalLabel);
+        }
         // 添加图例
         for (TooltipItem tooltipItem : tooltipItems) {
             JPanel single = new JPanel(new FlowLayout(FlowLayout.LEFT));
@@ -255,6 +268,11 @@ public final class LegendTooltip extends JComponent {
             return;
         }
 
+        if (this.getWidth() < MIN_SIZE || this.getHeight() < MIN_SIZE) {
+            this.setVisible(false);
+            return;
+        }
+
         this.setVisible(true);
         Point screenPoint = mouseEvent.getLocationOnScreen();
         SwingUtilities.convertPointFromScreen(screenPoint, mask);
@@ -278,5 +296,87 @@ public final class LegendTooltip extends JComponent {
      */
     private void resize() {
         this.setSize(DEFAULT_WIDTH, this.rows * ROW_HEIGHT);
+    }
+
+    /**
+     * showThreadStatusTip
+     *
+     * @param parent parent
+     * @param timeline timeline
+     * @param chartDataModel chartDataModel
+     * @param isCharting isCharting
+     */
+    public void showThreadStatusTip(JComponent parent, String timeline, ChartDataModel chartDataModel,
+        boolean isCharting) {
+        if (parent != null && parent.getRootPane() != null) {
+            if (isCharting) {
+                this.rows = NUM_3;
+                rebuild(parent);
+                resize();
+                return;
+            }
+            addThreadStatusLegends(timeline, chartDataModel.getName(), chartDataModel.getValue(),
+                chartDataModel.getCpuPercent());
+            this.validate();
+            this.setVisible(true);
+        }
+    }
+
+    /**
+     * addThreadStatusLegends
+     *
+     * @param timeline timeline
+     * @param threadName threadName
+     * @param threadStatus threadStatus
+     * @param threadUsage threadUsage
+     */
+    private void addThreadStatusLegends(String timeline, String threadName, int threadStatus, double threadUsage) {
+        mainPanel.removeAll();
+        // 添加时间
+        JBLabel timeLabel = new JBLabel();
+        timeLabel.setBorder(new EmptyBorder(5, 5, 5, 5));
+        long ms = 0;
+        String pattern = "^\\d{0,20}$";
+        boolean isMatch = Pattern.matches(pattern, timeline);
+        if (isMatch) {
+            ms = Long.parseLong(timeline);
+        } else {
+            LOGGER.error("Time format error:{}", timeline);
+        }
+        timeLabel.setText(ChartUtils.formatTime(ms));
+        timeLabel.setOpaque(false);
+        mainPanel.add(timeLabel);
+
+        JBLabel nameLabel = new JBLabel();
+        nameLabel.setBorder(new EmptyBorder(0, 5, 5, 5));
+        nameLabel.setOpaque(false);
+        nameLabel.setText("Thread:" + threadName);
+        mainPanel.add(nameLabel);
+
+        JBLabel statusLabel = new JBLabel();
+        statusLabel.setBorder(new EmptyBorder(0, 5, 5, 5));
+        statusLabel.setOpaque(false);
+        switch (threadStatus) {
+            case THREAD_RUNNING:
+                statusLabel.setText("RUNNING");;
+                break;
+            case THREAD_SLEEPING:
+                statusLabel.setText("SLEEPING");;
+                break;
+            case THREAD_STOPPED:
+                statusLabel.setText("STOPPED");;
+                break;
+            case THREAD_WAITING:
+                statusLabel.setText("WAITING");;
+                break;
+            default:
+                statusLabel.setText("UNSPECIFIED");;
+        }
+        mainPanel.add(statusLabel);
+        JBLabel usageLabel = new JBLabel();
+        usageLabel.setBorder(new EmptyBorder(0, 5, 5, 5));
+        usageLabel.setOpaque(false);
+        usageLabel.setText("OccRate:" + threadUsage);
+        mainPanel.add(usageLabel);
     }
 }

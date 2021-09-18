@@ -26,10 +26,7 @@ import java.util.List;
 
 /**
  * Create the request object of the profiler Client
- *
- * @version 1.0
- * @date 2021/02/25 17:25
- **/
+ */
 public final class ProfilerServiceHelper {
     private static final Logger LOGGER = LogManager.getLogger(ProfilerServiceHelper.class);
 
@@ -39,7 +36,7 @@ public final class ProfilerServiceHelper {
     /**
      * Create a Create Session Request object for grpc request.
      *
-     * @param requestId     requestId
+     * @param requestId requestId
      * @param sessionConfig Session config
      * @param pluginConfigs Plugin configs
      * @return ProfilerServiceTypes.CreateSessionRequest
@@ -64,8 +61,8 @@ public final class ProfilerServiceHelper {
     /**
      * Create a start Session Request object for grpc request.
      *
-     * @param requestId     requestId
-     * @param sessionId     sessionId
+     * @param requestId requestId
+     * @param sessionId sessionId
      * @param pluginConfigs Plugin configs
      * @return ProfilerServiceTypes.StartSessionRequest
      */
@@ -86,8 +83,8 @@ public final class ProfilerServiceHelper {
     /**
      * Create a fetch Data Request object for grpc request
      *
-     * @param requestId   requestId
-     * @param sessionId   sessionId
+     * @param requestId requestId
+     * @param sessionId sessionId
      * @param addtionData addtionData not used temporarily, you can pass null
      * @return ProfilerServiceTypes.FetchDataRequest
      */
@@ -134,14 +131,15 @@ public final class ProfilerServiceHelper {
     /**
      * Construct Session Config object
      *
-     * @param online     online Whether it is online mode, true online false offline
+     * @param online online Whether it is online mode, true online false offline
      * @param resultFile resultFile
-     * @param pages      pages
-     * @param value      value
+     * @param pages pages
+     * @param value value
+     * @param keepTime keepTime
      * @return ProfilerServiceTypes.ProfilerSessionConfig
      */
     public static ProfilerServiceTypes.ProfilerSessionConfig profilerSessionConfig(boolean online, String resultFile,
-        int pages, ProfilerServiceTypes.ProfilerSessionConfig.BufferConfig.Policy value) {
+        int pages, ProfilerServiceTypes.ProfilerSessionConfig.BufferConfig.Policy value, int keepTime) {
         ProfilerServiceTypes.ProfilerSessionConfig.Builder builder =
             ProfilerServiceTypes.ProfilerSessionConfig.newBuilder();
         if (online) {
@@ -150,6 +148,7 @@ public final class ProfilerServiceHelper {
             builder.setSessionMode(ProfilerServiceTypes.ProfilerSessionConfig.Mode.OFFLINE);
             builder.setResultFile(resultFile);
         }
+        builder.setKeepAliveTime(keepTime);
         ProfilerServiceTypes.ProfilerSessionConfig.BufferConfig.Builder build =
             ProfilerServiceTypes.ProfilerSessionConfig.BufferConfig.newBuilder();
         if (value != null && value.getNumber() > 0) {
@@ -164,10 +163,10 @@ public final class ProfilerServiceHelper {
     /**
      * Construct profiler Plugin Config object
      *
-     * @param name           name
-     * @param pluginSha256   pluginSha256
+     * @param name name
+     * @param pluginSha256 pluginSha256
      * @param sampleInterval sampleInterval
-     * @param confData       confData Objects serialized by each plug-in
+     * @param confData confData Objects serialized by each plug-in
      * @return CommonTypes.ProfilerPluginConfig
      */
     public static CommonTypes.ProfilerPluginConfig profilerPluginConfig(String name, String pluginSha256,

@@ -15,21 +15,18 @@
 
 package ohos.devtools.datasources.databases.databasepool;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import java.lang.reflect.Field;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 /**
  * Data results help
- *
- * @version 1.0
- * @date 2021/1/23 16:31
- **/
+ */
 public class DataBaseRsHelp<T> {
     private static final Logger LOGGER = LogManager.getLogger(DataBaseRsHelp.class);
 
@@ -37,11 +34,11 @@ public class DataBaseRsHelp<T> {
      * Get the database table name by SQL.
      *
      * @param instanceClass generic paradigm
-     * @param rs            result set
+     * @param rs result set
      * @return List<T>
      * @throws IllegalAccessException IllegalAccessException
      * @throws InstantiationException InstantiationException
-     * @throws NoSuchFieldException   NoSuchFieldException
+     * @throws NoSuchFieldException NoSuchFieldException
      */
     public List<T> util(T instanceClass, ResultSet rs)
         throws IllegalAccessException, InstantiationException, NoSuchFieldException {

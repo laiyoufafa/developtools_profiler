@@ -21,10 +21,7 @@ import java.util.List;
 
 /**
  * Construct the configuration information help class of the memory plugin.
- *
- * @version 1.0
- * @date 2021/03/09 18:59
- **/
+ */
 public final class MemoryPlugHelper {
     private MemoryPlugHelper() {
     }
@@ -44,10 +41,10 @@ public final class MemoryPlugHelper {
      * The configuration object when requesting single-process memory data needs to be
      * converted into binary and passed into createSessionRequest or startSessionRequest
      *
-     * @param pid                   pid
-     * @param reportProcessTree     reportProcessTree
-     * @param reportProcessMemInfo  reportProcessMemInfo
-     * @param reportAppMemInfo      reportAppMemInfo
+     * @param pid pid
+     * @param reportProcessTree reportProcessTree
+     * @param reportProcessMemInfo reportProcessMemInfo
+     * @param reportAppMemInfo reportAppMemInfo
      * @param reportAppMemByDumpsys reportAppMemByDumpsys
      * @return MemoryPluginConfig.MemoryConfig
      */

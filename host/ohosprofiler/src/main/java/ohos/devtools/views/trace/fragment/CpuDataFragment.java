@@ -15,30 +15,29 @@
 
 package ohos.devtools.views.trace.fragment;
 
+import ohos.devtools.views.trace.Sql;
 import ohos.devtools.views.trace.bean.CpuData;
 import ohos.devtools.views.trace.component.AnalystPanel;
 import ohos.devtools.views.trace.component.ContentPanel;
-import ohos.devtools.views.trace.fragment.graph.CheckGraph;
-import ohos.devtools.views.trace.fragment.graph.FavoriteGraph;
+import ohos.devtools.views.trace.util.Db;
 import ohos.devtools.views.trace.util.Final;
-import ohos.devtools.views.trace.util.TimeUtils;
+import ohos.devtools.views.trace.util.Utils;
 
-import javax.swing.JComponent;
-import java.awt.BasicStroke;
-import java.awt.Color;
+import javax.swing.SwingUtilities;
 import java.awt.Graphics2D;
-import java.awt.Rectangle;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Rectangle2D;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
+import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * cpu data
  *
- * @version 1.0
  * @date 2021/04/22 12:25
- **/
+ */
 public class CpuDataFragment extends AbstractDataFragment<CpuData> implements CpuData.IEventListener {
     /**
      * The node that currently has focus
@@ -51,20 +50,13 @@ public class CpuDataFragment extends AbstractDataFragment<CpuData> implements Cp
     public static CpuData currentSelectedCpuData;
 
     /**
+     * If this value is not empty, select the node whose startTime is equal to this value after the data is loaded
+     */
+    public Long delayClickStartTime;
+
+    /**
      * cpu data collection
      */
-    public List<CpuData> data;
-
-    /**
-     * Favorite button
-     */
-    public FavoriteGraph favoriteGraph;
-
-    /**
-     * Select button
-     */
-    public CheckGraph checkGraph;
-
     private double x1;
 
     private double x2;
@@ -78,9 +70,7 @@ public class CpuDataFragment extends AbstractDataFragment<CpuData> implements Cp
     private int tipWidth; // Prompt message width
 
     private int index;
-
-    private final BasicStroke boldStoke = new BasicStroke(2);
-    private final BasicStroke normalStoke = new BasicStroke(1);
+    private boolean isLoading;
 
     /**
      * structure
@@ -90,11 +80,28 @@ public class CpuDataFragment extends AbstractDataFragment<CpuData> implements Cp
      * @param data  data
      */
     public CpuDataFragment(javax.swing.JComponent root, int index, List<CpuData> data) {
+        super(root, true, false);
         this.index = index;
         this.setRoot(root);
         this.data = data;
-        favoriteGraph = new FavoriteGraph(this, root);
-        checkGraph = new CheckGraph(this, root);
+    }
+
+    /**
+     * Gets the value of index .
+     *
+     * @return the value of int
+     */
+    public int getIndex() {
+        return index;
+    }
+
+    /**
+     * get cpu data list
+     *
+     * @return cpu data
+     */
+    public List<CpuData> getData() {
+        return this.data;
     }
 
     /**
@@ -111,32 +118,35 @@ public class CpuDataFragment extends AbstractDataFragment<CpuData> implements Cp
         bounds = graphics.getFontMetrics().getStringBounds("Cpu " + index, graphics);
         graphics.drawString("Cpu " + index, (int) (getDescRect().getX() + 10),
             (int) (getDescRect().getY() + (getDescRect().getHeight()) / 2 + bounds.getHeight() / 3));
-        favoriteGraph.setRightGraph(isSelected != null ? checkGraph : null);
-        checkGraph.setChecked(isSelected);
-        checkGraph.draw(graphics);
-        favoriteGraph.draw(graphics);
-        data.stream().filter(
-            cpuData -> cpuData.getStartTime() + cpuData.getDuration() > startNS && cpuData.getStartTime() < endNS)
-            .forEach(cpuGraph -> {
-                if (cpuGraph.getStartTime() < startNS) {
-                    x1 = 0;
-                } else {
-                    x1 = getXDouble(cpuGraph.getStartTime());
-                }
-                if (cpuGraph.getStartTime() + cpuGraph.getDuration() > endNS) {
-                    x2 = getDataRect().width;
-                } else {
-                    x2 = getXDouble(cpuGraph.getStartTime() + cpuGraph.getDuration());
-                }
-                cpuGraph.setRoot(getRoot());
-                double getV = x2 - x1 <= 0 ? 1 : x2 - x1;
-                cpuGraph
-                    .setRect(x1 + getDataRect().getX(), getDataRect().getY() + 5, getV, getDataRect().getHeight() - 10);
-                cpuGraph.setEventListener(CpuDataFragment.this);
-                cpuGraph.draw(graphics);
-            });
+        if (Objects.isNull(data) || data.isEmpty()) {
+            graphics.setColor(getRoot().getForeground());
+            graphics.drawString("Loading...", Utils.getX(getDataRect()), Utils.getY(getDataRect()) + 12);
+            loadData();
+        } else {
+            data.stream().filter(
+                    cpuData -> cpuData.getStartTime() + cpuData.getDuration() > startNS
+                            && cpuData.getStartTime() < endNS)
+                .forEach(cpuGraph -> {
+                    if (cpuGraph.getStartTime() < startNS) {
+                        x1 = 0;
+                    } else {
+                        x1 = getXDouble(cpuGraph.getStartTime());
+                    }
+                    if (cpuGraph.getStartTime() + cpuGraph.getDuration() > endNS) {
+                        x2 = getDataRect().width;
+                    } else {
+                        x2 = getXDouble(cpuGraph.getStartTime() + cpuGraph.getDuration());
+                    }
+                    cpuGraph.setRoot(getRoot());
+                    double getV = x2 - x1 <= 0 ? 1 : x2 - x1;
+                    cpuGraph
+                        .setRect(x1 + getDataRect().getX(), getDataRect().getY() + 5, getV,
+                            getDataRect().getHeight() - 10);
+                    cpuGraph.setEventListener(CpuDataFragment.this);
+                    cpuGraph.draw(graphics);
+                });
+        }
         drawTips(graphics);
-        drawWakeup(graphics);
     }
 
     private void drawTips(Graphics2D graphics) {
@@ -151,65 +161,10 @@ public class CpuDataFragment extends AbstractDataFragment<CpuData> implements Cp
             Rectangle2D threadBounds = graphics.getFontMetrics(Final.NORMAL_FONT).getStringBounds(thread, graphics);
             tipWidth = (int) (Math.max(processBounds.getWidth(), threadBounds.getWidth()) + 20);
             graphics.setColor(getRoot().getForeground());
-            graphics.fillRect(tipX, showTipCpuData.rect.y, tipWidth, showTipCpuData.rect.height);
+            graphics.fillRect(tipX, Utils.getY(showTipCpuData.rect), tipWidth, showTipCpuData.rect.height);
             graphics.setColor(getRoot().getBackground());
-            graphics.drawString(process, tipX + 10, showTipCpuData.rect.y + 12);
-            graphics.drawString(thread, tipX + 10, showTipCpuData.rect.y + 24);
-        }
-    }
-
-    private void drawWakeup(Graphics2D graphics) {
-        if (getRoot() instanceof ContentPanel) {
-            ContentPanel contentPanel = (ContentPanel) getRoot();
-            Optional.ofNullable(contentPanel.getWakeupBean()).ifPresent(wakeup -> {
-                int wakeupX = getX(wakeup.getWakeupTime());
-                graphics.setColor(Color.BLACK);
-                graphics.setStroke(boldStoke);
-                Rectangle visibleRect = contentPanel.getVisibleRect();
-                graphics.drawLine(wakeupX + getDataRect().x, visibleRect.y, wakeupX + getDataRect().x,
-                    visibleRect.y + visibleRect.height);
-                if (wakeup.getWakeupCpu() == index) {
-                    final int[] xs =
-                        {getDataRect().x + wakeupX, getDataRect().x + wakeupX + 6, getDataRect().x + wakeupX,
-                            getDataRect().x + wakeupX - 6};
-                    final int[] ys = {getRect().y + getRect().height / 2 - 10, getRect().y + getRect().height / 2,
-                        getRect().y + getRect().height / 2 + 10, getRect().y + getRect().height / 2};
-                    graphics.fillPolygon(xs, ys, xs.length);
-                    if (currentSelectedCpuData != null) {
-                        Rectangle rectangle = new Rectangle(wakeupX + getDataRect().x,
-                            currentSelectedCpuData.rect.y + currentSelectedCpuData.rect.height / 2,
-                            currentSelectedCpuData.rect.x - wakeupX - getDataRect().x, 30);
-                        graphics.drawLine(getDataRect().x + wakeupX,
-                            currentSelectedCpuData.rect.y + currentSelectedCpuData.rect.height - 2,
-                            currentSelectedCpuData.rect.x,
-                            currentSelectedCpuData.rect.y + currentSelectedCpuData.rect.height - 2);
-                        if (rectangle.width > 10) {
-                            drawArrow(graphics, getDataRect().x + wakeupX,
-                                currentSelectedCpuData.rect.y + currentSelectedCpuData.rect.height - 2, -1);
-                            drawArrow(graphics, currentSelectedCpuData.rect.x,
-                                currentSelectedCpuData.rect.y + currentSelectedCpuData.rect.height - 2, 1);
-                        }
-                        long offsetTime = currentSelectedCpuData.getStartTime() - wakeup.getWakeupTime();
-                        String timeString = TimeUtils.getTimeString(offsetTime);
-                        rectangle.y -= 5;
-                        drawString(graphics, rectangle, timeString, Placement.CENTER);
-                    }
-                }
-                graphics.setStroke(normalStoke);
-            });
-        }
-    }
-
-    private void drawArrow(Graphics2D graphics, int xVal, int yVal, int align) {
-        if (align == -1) {
-            final int[] xArray = {xVal, xVal + 5, xVal + 5};
-            final int[] yArray = {yVal, yVal - 5, yVal + 5};
-            graphics.fillPolygon(xArray, yArray, xArray.length);
-        }
-        if (align == 1) {
-            final int[] xArray = {xVal, xVal - 5, xVal - 5};
-            final int[] yArray = {yVal, yVal - 5, yVal + 5};
-            graphics.fillPolygon(xArray, yArray, xArray.length);
+            graphics.drawString(process, tipX + 10, Utils.getY(showTipCpuData.rect) + 12);
+            graphics.drawString(thread, tipX + 10, Utils.getY(showTipCpuData.rect) + 24);
         }
     }
 
@@ -220,17 +175,12 @@ public class CpuDataFragment extends AbstractDataFragment<CpuData> implements Cp
      */
     @Override
     public void mouseClicked(MouseEvent event) {
-        if (favoriteGraph.edgeInspect(event)) {
-            favoriteGraph.onClick(event);
-        }
-        if (checkGraph.edgeInspect(event)) {
-            checkGraph.onClick(event);
-        }
+        super.mouseClicked(event);
+        ContentPanel.clickFragment = this;
         data.stream().filter(
-            cpuData -> cpuData.getStartTime() + cpuData.getDuration() > startNS && cpuData.getStartTime() < endNS)
-            .filter(cpuData -> cpuData.edgeInspect(event)).findFirst().ifPresent(cpuData -> {
-            cpuData.onClick(event);
-        });
+                cpuData -> cpuData.getStartTime() + cpuData.getDuration() > startNS
+                        && cpuData.getStartTime() < endNS)
+            .filter(cpuData -> cpuData.edgeInspect(event)).findFirst().ifPresent(cpuData -> cpuData.onClick(event));
     }
 
     /**
@@ -263,25 +213,17 @@ public class CpuDataFragment extends AbstractDataFragment<CpuData> implements Cp
     /**
      * Mouse move event
      *
-     * @param event event
+     * @param evt evt
      */
     @Override
-    public void mouseMoved(MouseEvent event) {
-        favoriteGraph.display(edgeInspectRect(getDescRect(), event));
-        if (favoriteGraph.edgeInspect(event)) {
-            if (!favoriteGraph.flagFocus) {
-                favoriteGraph.flagFocus = true;
-                favoriteGraph.onFocus(event);
-            }
-        } else {
-            if (favoriteGraph.flagFocus) {
-                favoriteGraph.flagFocus = false;
-                favoriteGraph.onBlur(event);
-            }
-        }
+    public void mouseMoved(MouseEvent evt) {
+        MouseEvent event = getRealMouseEvent(evt);
+        super.mouseMoved(event);
+        showTipCpuData = null;
         if (edgeInspect(event)) {
             data.stream().filter(
-                cpuData -> cpuData.getStartTime() + cpuData.getDuration() > startNS && cpuData.getStartTime() < endNS)
+                    cpuData -> cpuData.getStartTime() +
+                        cpuData.getDuration() > startNS && cpuData.getStartTime() < endNS)
                 .forEach(cpuData -> {
                     cpuData.onMouseMove(event);
                     if (cpuData.edgeInspect(event)) {
@@ -291,13 +233,6 @@ public class CpuDataFragment extends AbstractDataFragment<CpuData> implements Cp
                         }
                     }
                 });
-        } else {
-            showTipCpuData = null;
-        }
-        JComponent component = getRoot();
-        if (component instanceof ContentPanel) {
-            ContentPanel root = ((ContentPanel) component);
-            root.refreshTab();
         }
     }
 
@@ -308,23 +243,44 @@ public class CpuDataFragment extends AbstractDataFragment<CpuData> implements Cp
      */
     @Override
     public void mouseReleased(MouseEvent event) {
+        data.clear();
+        repaint();
+    }
+
+    /**
+     * key released event
+     *
+     * @param event event
+     */
+    @Override
+    public void keyReleased(KeyEvent event) {
+        data.clear();
+        repaint();
     }
 
     /**
      * Click event
      *
-     * @param event event
-     * @param data  data
+     * @param evt  event
+     * @param data data
      */
     @Override
-    public void click(MouseEvent event, CpuData data) {
+    public void click(MouseEvent evt, CpuData data) {
+        MouseEvent event = getRealMouseEvent(evt);
+        clearSelected();
         if (showTipCpuData != null) {
-            clearSelected();
             showTipCpuData.select(true);
             showTipCpuData.repaint();
-            currentSelectedCpuData = data;
+            currentSelectedCpuData = CpuDataFragment.focusCpuData;
             if (AnalystPanel.iCpuDataClick != null) {
                 AnalystPanel.iCpuDataClick.click(showTipCpuData);
+            }
+        } else {
+            currentSelectedCpuData = data;
+            data.select(true);
+            data.repaint();
+            if (AnalystPanel.iCpuDataClick != null) {
+                AnalystPanel.iCpuDataClick.click(data);
             }
         }
     }
@@ -367,5 +323,36 @@ public class CpuDataFragment extends AbstractDataFragment<CpuData> implements Cp
         CpuDataFragment.focusCpuData = data;
         tipX = event.getX();
         getRoot().repaint();
+    }
+
+    private void loadData() {
+        if (!isLoading) {
+            isLoading = true;
+            CompletableFuture.runAsync(() -> {
+                List<CpuData> cpuData = new ArrayList<>() {
+                };
+                int count = Db.getInstance().queryCount(Sql.SYS_QUERY_CPU_DATA_COUNT, index, startNS, endNS);
+                if (count > Final.CAPACITY) {
+                    Db.getInstance()
+                        .query(Sql.SYS_QUERY_CPU_DATA_LIMIT, cpuData, index, startNS, endNS, Final.CAPACITY);
+                } else {
+                    Db.getInstance().query(Sql.SYS_QUERY_CPU_DATA, cpuData, index, startNS, endNS);
+                }
+                data = cpuData;
+                SwingUtilities.invokeLater(() -> {
+                    isLoading = false;
+                    repaint();
+                    if (delayClickStartTime != null) {
+                        data.stream().filter(it -> it.getStartTime() == delayClickStartTime).findFirst()
+                            .ifPresent(it -> click(null, it));
+                        delayClickStartTime = null;
+                    }
+                });
+            }, Utils.getPool()).whenComplete((unused, throwable) -> {
+                if (Objects.nonNull(throwable)) {
+                    throwable.printStackTrace();
+                }
+            });
+        }
     }
 }

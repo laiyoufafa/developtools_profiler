@@ -20,9 +20,8 @@ import ohos.devtools.views.trace.bean.FlagBean;
 /**
  * Small flag change callback
  *
- * @version 1.0
  * @date 2021/04/22 12:25
- **/
+ */
 public interface IFlagListener {
     /**
      * Remove the small flag callback.

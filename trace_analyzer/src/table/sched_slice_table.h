@@ -23,14 +23,14 @@ namespace SysTuning {
 namespace TraceStreamer {
 class SchedSliceTable : public TableBase {
 public:
-    explicit SchedSliceTable(const TraceDataCache*);
+    explicit SchedSliceTable(const TraceDataCache* dataCache);
     ~SchedSliceTable() override;
     void CreateCursor() override;
 
 private:
     class Cursor : public TableBase::Cursor {
     public:
-        explicit Cursor(const TraceDataCache*);
+        explicit Cursor(const TraceDataCache* dataCache);
         ~Cursor() override;
         int Column(int) const override;
 

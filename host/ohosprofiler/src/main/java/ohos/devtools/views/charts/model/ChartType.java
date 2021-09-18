@@ -16,28 +16,33 @@
 package ohos.devtools.views.charts.model;
 
 /**
- * Chart类型的枚举类
+ * Enumeration class of chart type
  *
  * @since 2021/2/1 9:31
  */
 public enum ChartType {
     /**
-     * 已填充的折线图
+     * Filled poly line chart
      */
     FILLED_LINE,
 
     /**
-     * 折线图
+     * Poly line chart
      */
     LINE,
 
     /**
-     * 柱状图/条形图
+     * Bar chart
      */
     BAR,
 
     /**
-     * 未知类型
+     * Bar chart
+     */
+    RECT,
+
+    /**
+     * unknown type
      */
     UNRECOGNIZED
 }

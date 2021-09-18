@@ -23,32 +23,37 @@
 namespace SysTuning {
 namespace TraceStreamer {
 using namespace TraceStdtype;
-class TraceDataCacheReader : public TraceDataCacheBase {
+class TraceDataCacheReader : virtual public TraceDataCacheBase {
 public:
     TraceDataCacheReader() = default;
     TraceDataCacheReader(const TraceDataCacheReader&) = delete;
     TraceDataCacheReader& operator=(const TraceDataCacheReader&) = delete;
     ~TraceDataCacheReader() override;
+
 public:
     const std::string& GetDataFromDict(DataIndex id) const;
     const Process& GetConstProcessData(InternalPid internalPid) const;
     const Thread& GetConstThreadData(InternalTid internalTid) const;
-    const InternalSlices& GetConstInternalSlicesData() const;
+    const CallStack& GetConstInternalSlicesData() const;
     const Filter& GetConstFilterData() const;
     const Raw& GetConstRawTableData() const;
-    const Counter& GetConstCounterData() const;
-    const ThreadCounterFilter* ThreadCounterFilterData() const;
+    const Measure& GetConstMeasureData() const;
+    const ThreadMeasureFilter& GetConstThreadMeasureFilterData() const;
     const ThreadState& GetConstThreadStateData() const;
     const SchedSlice& GetConstSchedSliceData() const;
-    const CpuCounter& GetConstCpuCounterData() const;
-    const ThreadCounterFilter& GetConstThreadFilterData() const;
+    const CpuMeasureFilter& GetConstCpuMeasureData() const;
+    const ThreadMeasureFilter& GetConstThreadFilterData() const;
     const Instants& GetConstInstantsData() const;
-    const ProcessCounterFilter& GetConstProcessFilterData() const;
-    const ProcessCounterFilter& ProcessCounterFilterData() const;
+    const ProcessMeasureFilter& GetConstProcessFilterData() const;
+    const ProcessMeasureFilter& GetConstProcessMeasureFilterData() const;
+    const ClockEventData& GetConstClockEventFilterData() const;
     const std::string& GetConstSchedStateData(uint64_t rowId) const;
-    uint64_t BoundStartTime() const;
-    uint64_t BoundEndTime() const;
+    uint64_t TraceStartTime() const;
+    uint64_t TraceEndTime() const;
+    const StatAndInfo& GetConstStatAndInfo() const;
+    const MetaData& GetConstMetaData() const;
+    const SymbolsData& GetConstSymbolsData() const;
 };
-}
-}
+} // namespace TraceStreamer
+} // namespace SysTuning
 #endif

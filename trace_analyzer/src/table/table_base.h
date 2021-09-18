@@ -26,20 +26,19 @@ namespace SysTuning {
 namespace TraceStreamer {
 class TableBase;
 constexpr int STR_DEFAULT_LEN = -1;
-using TabTemplate = std::unique_ptr<TableBase>(*)(const TraceDataCache*);
+using TabTemplate = std::unique_ptr<TableBase> (*)(const TraceDataCache* dataCache);
 class TableBase : public sqlite3_vtab {
 public:
     virtual ~TableBase();
     TableBase(const TableBase&) = delete;
     TableBase& operator=(const TableBase&) = delete;
 
-    template<typename T>
+    template <typename T>
     static void TableDeclare(sqlite3& db, TraceDataCache* dataCache, const std::string& name)
     {
-        TableRegister(db, dataCache, name,
-            [](const TraceDataCache* cache) {
-                return std::unique_ptr<TableBase>(std::make_unique<T>(cache));
-            });
+        TableRegister(db, dataCache, name, [](const TraceDataCache* cache) {
+            return std::unique_ptr<TableBase>(std::make_unique<T>(cache));
+        });
         dataCache->AppendNewTable(name);
     }
 
@@ -52,10 +51,16 @@ public:
         virtual int Next();
         virtual int Eof();
         virtual int Column(int) const = 0;
+
+    public:
         sqlite3_context* context_;
+
     protected:
         uint32_t CurrentRow() const;
+
+    protected:
         const TraceDataCache* dataCache_;
+
     private:
         uint32_t currentRow_;
         uint32_t rowsTotalNum_;
@@ -70,13 +75,16 @@ public:
 protected:
     explicit TableBase(const TraceDataCache* dataCache) : dataCache_(dataCache), cursor_(nullptr) {}
     virtual void CreateCursor() = 0;
-    std::vector<ColumnInfo> tableColumn_ {};
-    std::vector<std::string> tablePriKey_ {};
+
+protected:
+    std::vector<ColumnInfo> tableColumn_{};
+    std::vector<std::string> tablePriKey_{};
     const TraceDataCache* dataCache_;
     std::unique_ptr<Cursor> cursor_;
+
 private:
-    static void TableRegister(sqlite3& db, const TraceDataCache*, const std::string& name, TabTemplate);
-    int Open(sqlite3_vtab_cursor**);
+    static void TableRegister(sqlite3& db, const TraceDataCache* cache, const std::string& name, TabTemplate tmplate);
+    int Open(sqlite3_vtab_cursor** ppCursor);
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

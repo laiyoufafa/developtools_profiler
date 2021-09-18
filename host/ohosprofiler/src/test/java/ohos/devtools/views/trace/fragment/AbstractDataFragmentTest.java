@@ -15,10 +15,12 @@
 
 package ohos.devtools.views.trace.fragment;
 
+import ohos.devtools.views.trace.util.Utils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.awt.Rectangle;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -29,7 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
  *
  * @version 1.0
  * @date 2021/4/24 18:04
- **/
+ */
 class AbstractDataFragmentTest {
     private AbstractDataFragment abstractDataFragment;
 
@@ -38,7 +40,7 @@ class AbstractDataFragmentTest {
      */
     @BeforeEach
     void setUp() {
-        abstractDataFragment = new AbstractDataFragment() {
+        abstractDataFragment = new AbstractDataFragment(null, false, false) {
             @Override
             public void mouseClicked(MouseEvent event) {
             }
@@ -61,6 +63,10 @@ class AbstractDataFragmentTest {
 
             @Override
             public void mouseReleased(MouseEvent event) {
+            }
+
+            @Override
+            public void keyReleased(KeyEvent event) {
             }
         };
     }
@@ -128,12 +134,12 @@ class AbstractDataFragmentTest {
         Rectangle rectangle = new Rectangle();
         rectangle.width = 1000;
         rectangle.height = 100;
-        rectangle.x = 10;
-        rectangle.y = 10;
+        Utils.setX(rectangle, 10);
+        Utils.setY(rectangle, 10);
         abstractDataFragment.setRect(rectangle);
         abstractDataFragment.setRect(100, 100, 100, 100);
-        assertEquals(100, abstractDataFragment.getRect().x);
-        assertEquals(100, abstractDataFragment.getRect().y);
+        assertEquals(100, Utils.getX(abstractDataFragment.getRect()));
+        assertEquals(100, Utils.getY(abstractDataFragment.getRect()));
         assertEquals(100, abstractDataFragment.getRect().height);
         assertEquals(100, abstractDataFragment.getRect().width);
     }

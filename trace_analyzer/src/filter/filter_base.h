@@ -28,14 +28,14 @@ namespace SysTuning {
 namespace TraceStreamer {
 class FilterBase {
 public:
-    explicit FilterBase(TraceDataCache*, const TraceStreamerFilters*);
+    FilterBase(TraceDataCache* dataCache, const TraceStreamerFilters* filter);
     FilterBase(const FilterBase&) = delete;
     FilterBase& operator=(const FilterBase&) = delete;
     virtual ~FilterBase();
 
 public:
-    const TraceStreamerFilters *streamFilters_;
-    TraceDataCache *traceDataCache_;
+    const TraceStreamerFilters* streamFilters_ {};
+    TraceDataCache* traceDataCache_ {};
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

@@ -16,18 +16,16 @@
 package ohos.devtools.views.layout.chartview;
 
 import ohos.devtools.views.common.LayoutConstants;
-import ohos.devtools.views.common.ProfilerMonitorItem;
-import ohos.devtools.views.layout.swing.TaskScenePanelChart;
+import ohos.devtools.views.layout.chartview.memory.MemoryItemView;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
 import javax.swing.JPanel;
+import java.lang.reflect.InvocationTargetException;
 
 /**
  * ProfilerChartsView test
- *
- * @since 2021/2/10 10:43
  */
 public class ProfilerChartsViewTest {
     /**
@@ -94,70 +92,16 @@ public class ProfilerChartsViewTest {
      * @tc.desc: chart Memory test
      * @tc.type: functional test
      * @tc.require: SR-002-AR-001
+     * @throws InvocationTargetException InvocationTargetException
+     * @throws NoSuchMethodException NoSuchMethodException
+     * @throws InstantiationException InstantiationException
+     * @throws IllegalAccessException IllegalAccessException
      */
     @Test
-    public void addMonitorItemViewTest() {
-        view.addMonitorItemView(ProfilerMonitorItem.MEMORY);
-        Assert.assertTrue(true);
-    }
-
-    /**
-     * functional test
-     *
-     * @tc.name: view chart
-     * @tc.number: OHOS_JAVA_views_ProfilerChartsView_addMemoryStageView_0001
-     * @tc.desc: chart Memory test
-     * @tc.type: functional test
-     * @tc.require: SR-002-AR-001
-     */
-    @Test
-    public void addMemoryStageViewTest() {
-        MemoryStageView memoryStageView = view.addMemoryStageView();
-        Assert.assertNotNull(memoryStageView);
-    }
-
-    /**
-     * functional test
-     *
-     * @tc.name: view chart
-     * @tc.number: OHOS_JAVA_views_ProfilerChartsView_compRulerDrawn_0001
-     * @tc.desc: chart Memory test
-     * @tc.type: functional test
-     * @tc.require: SR-002-AR-001
-     */
-    @Test
-    public void compRulerDrawnTest() {
-        view.compRulerDrawn(new JPanel());
-        Assert.assertTrue(true);
-    }
-
-    /**
-     * functional test
-     *
-     * @tc.name: view chart
-     * @tc.number: OHOS_JAVA_views_ProfilerChartsView_resetRulerDrawStatus_0001
-     * @tc.desc: chart Memory test
-     * @tc.type: functional test
-     * @tc.require: SR-002-AR-001
-     */
-    @Test
-    public void resetRulerDrawStatusTest() {
-        view.resetRulerDrawStatus();
-        Assert.assertTrue(true);
-    }
-
-    /**
-     * functional test
-     *
-     * @tc.name: view chart
-     * @tc.number: OHOS_JAVA_views_ProfilerChartsView_refreshCompRuler_0001
-     * @tc.desc: chart Memory test
-     * @tc.type: functional test
-     * @tc.require: SR-002-AR-001
-     */
-    @Test
-    public void refreshCompRulerTest() {
-        view.refreshCompRuler();
+    public void addMonitorItemViewTest()
+        throws InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+        ProfilerMonitorItem memoryItem = new ProfilerMonitorItem(2, "Memory", MemoryItemView.class);
+        view.addMonitorItemView(memoryItem);
         Assert.assertTrue(true);
     }
 
@@ -174,20 +118,5 @@ public class ProfilerChartsViewTest {
     public void getMainPanelTest() {
         JPanel jPanel = view.getMainPanel();
         Assert.assertNotNull(jPanel);
-    }
-
-    /**
-     * functional test
-     *
-     * @tc.name: view chart
-     * @tc.number: OHOS_JAVA_views_ProfilerChartsView_getRulerXCoordinate_0001
-     * @tc.desc: chart Memory test
-     * @tc.type: functional test
-     * @tc.require: SR-002-AR-001
-     */
-    @Test
-    public void getRulerXCoordinateTest() {
-        int number = view.getRulerXCoordinate();
-        Assert.assertNotNull(number);
     }
 }

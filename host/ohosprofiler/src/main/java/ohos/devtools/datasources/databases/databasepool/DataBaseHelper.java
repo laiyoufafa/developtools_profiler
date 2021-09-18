@@ -35,22 +35,32 @@ import static ohos.devtools.views.common.LayoutConstants.THOUSAND_TWENTY_FOUR;
 
 /**
  * Used for database creation in the project, default table creation
- *
- * @version 1.0
- * @date 2021/1/25 9:45
- **/
+ */
 public class DataBaseHelper {
     private DataBaseHelper() {
     }
 
     private static final Logger LOGGER = LogManager.getLogger(DataBaseHelper.class);
     private static final String SQL_START_FLAG = "##";
+    private static final String DB_DRIVER = "driver";
+    private static final String DB_INIT_SIZE = "initialSize";
+    private static final String DB_MAX_ACTIVE = "maxActive";
+    private static final String DB_MIN_IDLE = "minIdle";
+    private static final String DB_FILTERS = "filters";
+    private static final String DB_MAX_WAIT = "maxWait";
+    private static final String DB_RUN_MILLIS = "timeBetweenEvictionRunsMillis";
+    private static final String DB_IDLE_MILLIS = "minEvictableIdleTimeMillis";
+    private static final String DB_QUERY = "validationQuery";
+    private static final String DB_TEST_IDLE = "testWhileIdle";
+    private static final String DB_TEST_BORROW = "testOnBorrow";
+    private static final String DB_TEST_RETURN = "testOnReturn";
+    private static final String JDBC_SQLITE = "jdbc:sqlite:";
 
     /**
      * Check whether the specified database exists.
      *
      * @param dataBaseUrl dataBaseUrl
-     * @return Returns true if the database exists; returns false otherwise.
+     * @return Returns true if the database exists; false otherwise.
      */
     public static boolean checkDataBaseExists(String dataBaseUrl) {
         String dbPath = getFilePath(dataBaseUrl);
@@ -62,7 +72,7 @@ public class DataBaseHelper {
      * Enter a specific path
      *
      * @param sqlPath sqlPath
-     * @return List<String>
+     * @return List <String>
      * @throws IOException IOException
      */
     public static List<String> loadSqlFileToList(String sqlPath) throws IOException {
@@ -119,11 +129,11 @@ public class DataBaseHelper {
      * @return String String
      */
     public static String getUrlByDataBaseName(String dbName) {
-        String dbPath = SessionManager.getInstance().getPluginPath();
+        String dbPath = SessionManager.getInstance().tempPath();
         if (StringUtils.isBlank(dbName)) {
-            return "jdbc:sqlite:" + dbPath + "defaultDB";
+            return JDBC_SQLITE + dbPath + "defaultDB";
         }
-        return "jdbc:sqlite:" + dbPath + dbName;
+        return JDBC_SQLITE + dbPath + dbName;
     }
 
     /**
@@ -135,19 +145,19 @@ public class DataBaseHelper {
         Properties pop = new Properties();
         try {
             pop.load(DataBaseHelper.class.getClassLoader().getResourceAsStream("db.properties"));
-            return DataBase.builder().driver(pop.getProperty("driver"))
-                .initialSize(Integer.parseInt(pop.getProperty("initialSize")))
-                .maxActive(Integer.parseInt(pop.getProperty("maxActive")))
-                .minIdle(Integer.parseInt(pop.getProperty("minIdle"))).filters(pop.getProperty("filters"))
-                .maxWait(Integer.parseInt(pop.getProperty("maxWait")))
-                .timeBetweenEvictionRunsMillis(Integer.parseInt(pop.getProperty("timeBetweenEvictionRunsMillis")))
-                .minEvictableIdleTimeMillis(Integer.parseInt(pop.getProperty("minEvictableIdleTimeMillis")))
-                .validationQuery(pop.getProperty("validationQuery"))
-                .testWhileIdle(Boolean.parseBoolean(pop.getProperty("testWhileIdle")))
-                .testOnBorrow(Boolean.parseBoolean(pop.getProperty("testOnBorrow")))
-                .testOnReturn(Boolean.parseBoolean(pop.getProperty("testOnReturn"))).build();
+            return DataBase.builder().driver(pop.getProperty(DB_DRIVER))
+                .initialSize(Integer.parseInt(pop.getProperty(DB_INIT_SIZE)))
+                .maxActive(Integer.parseInt(pop.getProperty(DB_MAX_ACTIVE)))
+                .minIdle(Integer.parseInt(pop.getProperty(DB_MIN_IDLE))).filters(pop.getProperty(DB_FILTERS))
+                .maxWait(Integer.parseInt(pop.getProperty(DB_MAX_WAIT)))
+                .timeBetweenEvictionRunsMillis(Integer.parseInt(pop.getProperty(DB_RUN_MILLIS)))
+                .minEvictableIdleTimeMillis(Integer.parseInt(pop.getProperty(DB_IDLE_MILLIS)))
+                .validationQuery(pop.getProperty(DB_QUERY))
+                .testWhileIdle(Boolean.parseBoolean(pop.getProperty(DB_TEST_IDLE)))
+                .testOnBorrow(Boolean.parseBoolean(pop.getProperty(DB_TEST_BORROW)))
+                .testOnReturn(Boolean.parseBoolean(pop.getProperty(DB_TEST_RETURN))).build();
         } catch (IOException exception) {
-            LOGGER.error("createDataBase" + exception.getMessage());
+            LOGGER.error("createDataBase ", exception);
         }
         return DataBase.builder().build();
     }
@@ -161,19 +171,19 @@ public class DataBaseHelper {
         Properties pop = new Properties();
         try {
             pop.load(DataBaseHelper.class.getClassLoader().getResourceAsStream("db.properties"));
-            return DataBase.builder().driver(pop.getProperty("driver"))
-                .initialSize(Integer.parseInt(pop.getProperty("initialSize")))
-                .maxActive(Integer.parseInt(pop.getProperty("maxActive")))
-                .minIdle(Integer.parseInt(pop.getProperty("minIdle"))).filters(pop.getProperty("filters"))
-                .maxWait(Integer.parseInt(pop.getProperty("maxWait")))
-                .timeBetweenEvictionRunsMillis(Integer.parseInt(pop.getProperty("timeBetweenEvictionRunsMillis")))
-                .minEvictableIdleTimeMillis(Integer.parseInt(pop.getProperty("minEvictableIdleTimeMillis")))
-                .validationQuery(pop.getProperty("validationQuery"))
-                .testWhileIdle(Boolean.parseBoolean(pop.getProperty("testWhileIdle")))
-                .testOnBorrow(Boolean.parseBoolean(pop.getProperty("testOnBorrow")))
-                .testOnReturn(Boolean.parseBoolean(pop.getProperty("testOnReturn"))).build();
+            return DataBase.builder().driver(pop.getProperty(DB_DRIVER))
+                .initialSize(Integer.parseInt(pop.getProperty(DB_INIT_SIZE)))
+                .maxActive(Integer.parseInt(pop.getProperty(DB_MAX_ACTIVE)))
+                .minIdle(Integer.parseInt(pop.getProperty(DB_MIN_IDLE))).filters(pop.getProperty(DB_FILTERS))
+                .maxWait(Integer.parseInt(pop.getProperty(DB_MAX_WAIT)))
+                .timeBetweenEvictionRunsMillis(Integer.parseInt(pop.getProperty(DB_RUN_MILLIS)))
+                .minEvictableIdleTimeMillis(Integer.parseInt(pop.getProperty(DB_IDLE_MILLIS)))
+                .validationQuery(pop.getProperty(DB_QUERY))
+                .testWhileIdle(Boolean.parseBoolean(pop.getProperty(DB_TEST_IDLE)))
+                .testOnBorrow(Boolean.parseBoolean(pop.getProperty(DB_TEST_BORROW)))
+                .testOnReturn(Boolean.parseBoolean(pop.getProperty(DB_TEST_RETURN))).build();
         } catch (IOException exception) {
-            LOGGER.error("createDefaultDataBase" + exception.getMessage());
+            LOGGER.error("createDefaultDataBase ", exception);
         }
         return DataBase.builder().build();
     }

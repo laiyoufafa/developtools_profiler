@@ -17,7 +17,7 @@
 
 #include "logging.h"
 #include "nocopyable.h"
-#include "writer.h"
+#include "trace_file_helper.h"
 
 #include <cstdint>
 #include <fstream>
@@ -36,13 +36,17 @@ public:
 
     long Read(MessageLite& message);
 
-    using BytePtr = int8_t *;
+    long Read(uint8_t buffer[], uint32_t bufferSize);
 
-    long Read(BytePtr data, long size);
+    bool ValidateHeader();
+
+    TraceFileHeader GetHeader() const;
 
 private:
-    std::string path_;
-    std::ifstream stream_;
+    std::string path_ {};
+    std::ifstream stream_ {};
+    TraceFileHeader header_ {};
+    TraceFileHelper helper_ {};
 
     DISALLOW_COPY_AND_MOVE(TraceFileReader);
 };

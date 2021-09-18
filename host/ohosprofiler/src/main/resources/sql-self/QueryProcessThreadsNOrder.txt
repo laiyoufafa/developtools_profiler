@@ -1,0 +1,7 @@
+select p.id as upid,
+       t.id as utid,
+       p.pid,
+       t.tid,
+       p.name as processName,
+       t.name as threadName
+       from thread t left join process p on t.ipid = p.id;

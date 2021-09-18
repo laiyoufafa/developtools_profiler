@@ -26,9 +26,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 /**
  * test Db class .
  *
- * @version 1.0
  * @date: 2021/4/24 17:52
- **/
+ */
 class DbTest {
     /**
      * test function the getDbName .
@@ -89,135 +88,6 @@ class DbTest {
     @Test
     void getSql() {
         assertEquals(true, Db.getSql("QueryTotalTime") != null);
-    }
-
-    /**
-     * test function the queryTotalTime .
-     */
-    @Test
-    void queryTotalTime() {
-        long queryTotalTime = Db.getInstance().queryTotalTime();
-        assertEquals(true, queryTotalTime > 0);
-    }
-
-    /**
-     * test function the queryCpu .
-     */
-    @Test
-    void queryCpu() {
-        assertEquals(true, Db.getInstance().queryCpu() != null);
-    }
-
-    /**
-     * test function the queryCpuFreq .
-     */
-    @Test
-    void queryCpuFreq() {
-        assertEquals(true, Db.getInstance().queryCpuFreq() != null);
-    }
-
-    /**
-     * test function the queryCpuMax .
-     */
-    @Test
-    void queryCpuMax() {
-        assertEquals(true, Db.getInstance().queryCpuMax() >= 0);
-    }
-
-    /**
-     * test function the queryCpuData .
-     */
-    @Test
-    void queryCpuData() {
-        assertEquals(true, Db.getInstance().queryCpuData(0) != null);
-    }
-
-    /**
-     * test function the queryCpuMaxFreq .
-     */
-    @Test
-    void queryCpuMaxFreq() {
-        assertEquals(true, Db.getInstance().queryCpuMaxFreq() != null);
-    }
-
-    /**
-     * test function the queryCpuFreqData .
-     */
-    @Test
-    void queryCpuFreqData() {
-        assertEquals(true, Db.getInstance().queryCpuFreqData(0) != null);
-    }
-
-    /**
-     * test function the queryProcess .
-     */
-    @Test
-    void queryProcess() {
-        assertEquals(true, Db.getInstance().queryProcess() != null);
-    }
-
-    /**
-     * test function the queryProcessThreads .
-     */
-    @Test
-    void queryProcessThreads() {
-        assertEquals(true, Db.getInstance().queryProcessThreads() != null);
-    }
-
-    /**
-     * test function the queryProcessData .
-     */
-    @Test
-    void queryProcessData() {
-        assertEquals(true, Db.getInstance().queryProcessData(0) != null);
-    }
-
-    /**
-     * test function the queryThreadData .
-     */
-    @Test
-    void queryThreadData() {
-        assertEquals(true, Db.getInstance().queryThreadData(0) != null);
-    }
-
-    /**
-     * test function the queryWakeupThread .
-     */
-    @Test
-    void queryWakeupThread() {
-        assertEquals(null, Db.getInstance().queryWakeupThread(null));
-    }
-
-    /**
-     * test function the getCpuUtilizationRate .
-     */
-    @Test
-    void getCpuUtilizationRate() {
-        assertEquals(true, Db.getInstance().getCpuUtilizationRate() != null);
-    }
-
-    /**
-     * test function the getProcessMem .
-     */
-    @Test
-    void getProcessMem() {
-        assertEquals(true, Db.getInstance().getProcessMem() != null);
-    }
-
-    /**
-     * test function the getProcessMemData .
-     */
-    @Test
-    void getProcessMemData() {
-        assertEquals(true, Db.getInstance().getProcessMemData(0) != null);
-    }
-
-    /**
-     * test function the getFunDataByTid .
-     */
-    @Test
-    void getFunDataByTid() {
-        assertEquals(true, Db.getInstance().getFunDataByTid(0) != null);
     }
 
     /**

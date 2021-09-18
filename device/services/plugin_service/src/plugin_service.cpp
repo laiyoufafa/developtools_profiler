@@ -15,6 +15,7 @@
 
 #include "plugin_service.h"
 
+#include <cinttypes>
 #include <fcntl.h>
 #include <sys/wait.h>
 #include <unistd.h>
@@ -27,34 +28,40 @@
 #include "share_memory_allocator.h"
 #include "socket_context.h"
 
-
 namespace {
 const int PAGE_BYTES = 4096;
-}
+const int DEFAULT_EVENT_POLLING_INTERVAL = 5000;
+} // namespace
 
 PluginService::PluginService()
 {
-    pluginIdAutoIncrease_ = 0;
-    waitForCommandId_ = 0;
+    pluginIdCounter_ = 0;
     StartService(DEFAULT_UNIX_SOCKET_PATH);
     pluginCommandBuilder_ = std::make_shared<PluginCommandBuilder>();
 
-    waitStopSession_.lock();
+    eventPoller_ = std::make_unique<EpollEventPoller>(DEFAULT_EVENT_POLLING_INTERVAL);
+    CHECK_NOTNULL(eventPoller_, NO_RETVAL, "create event poller FAILED!");
 
-    readShareMemoryThreadStatus_ = READ_SHARE_MEMORY_FREE;
-    readShareMemoryThreadSleep_.lock();
-
-    readShareMemoryThread_ = std::thread(&PluginService::ReadShareMemoryThread, this);
-    if (readShareMemoryThread_.get_id() == std::thread::id()) {
-        HILOG_ERROR(LOG_CORE, "CreateReadShareMemoryThread FAIL");
-    }
+    eventPoller_->Init();
+    eventPoller_->Start();
 }
 
 PluginService::~PluginService()
 {
-    readShareMemoryThreadStatus_ = READ_SHARE_MEMORY_EXIT;
-    readShareMemoryThreadSleep_.unlock();
-    readShareMemoryThread_.join();
+    if (eventPoller_) {
+        eventPoller_->Stop();
+        eventPoller_->Finalize();
+    }
+}
+
+SemaphorePtr PluginService::GetSemaphore(uint32_t id) const
+{
+    std::unique_lock<std::mutex> lock(mutex_);
+    auto it = waitSemphores_.find(id);
+    if (it != waitSemphores_.end()) {
+        return it->second;
+    }
+    return nullptr;
 }
 
 bool PluginService::StartService(const std::string& unixSocketName)
@@ -71,6 +78,14 @@ bool PluginService::StartService(const std::string& unixSocketName)
     return true;
 }
 
+static ShareMemoryBlock::ReusePolicy GetReusePolicy(const ProfilerSessionConfig::BufferConfig& bufferConfig)
+{
+    if (bufferConfig.policy() == ProfilerSessionConfig::BufferConfig::RECYCLE) {
+        return ShareMemoryBlock::DROP_OLD;
+    }
+    return ShareMemoryBlock::DROP_NONE;
+}
+
 bool PluginService::CreatePluginSession(const ProfilerPluginConfig& pluginConfig,
                                         const ProfilerSessionConfig::BufferConfig& bufferConfig,
                                         const ProfilerDataRepeaterPtr& dataRepeater)
@@ -81,21 +96,33 @@ bool PluginService::CreatePluginSession(const ProfilerPluginConfig& pluginConfig
     uint32_t idx = nameIndex_[pluginConfig.name()];
     pluginContext_[idx].profilerDataRepeater = dataRepeater;
 
-    auto gcr = pluginCommandBuilder_->BuildCreateSessionCmd(pluginConfig, bufferConfig.pages() * PAGE_BYTES);
-    CHECK_TRUE(gcr != nullptr, false, "CreatePluginSession BuildCreateSessionCmd FAIL %s", pluginConfig.name().c_str());
+    auto cmd = pluginCommandBuilder_->BuildCreateSessionCmd(pluginConfig, bufferConfig.pages() * PAGE_BYTES);
+    CHECK_TRUE(cmd != nullptr, false, "CreatePluginSession BuildCreateSessionCmd FAIL %s", pluginConfig.name().c_str());
 
     auto smb = ShareMemoryAllocator::GetInstance().CreateMemoryBlockLocal(pluginConfig.name(),
                                                                           bufferConfig.pages() * PAGE_BYTES);
     CHECK_TRUE(smb != nullptr, false, "CreateMemoryBlockLocal FAIL %s", pluginConfig.name().c_str());
 
+    auto policy = GetReusePolicy(bufferConfig);
+    HILOG_DEBUG(LOG_CORE, "CreatePluginSession policy = %d", (int)policy);
+    smb->SetReusePolicy(policy);
+
+    auto notifier = EventNotifier::Create(0, EventNotifier::NONBLOCK);
+    CHECK_NOTNULL(notifier, false, "create EventNotifier for %s failed!", pluginConfig.name().c_str());
+
     pluginContext_[idx].shareMemoryBlock = smb;
+    pluginContext_[idx].eventNotifier = notifier;
     pluginContext_[idx].profilerPluginState->set_state(ProfilerPluginState::LOADED);
 
-    pluginServiceImpl_->PushCommand(*pluginContext_[idx].context, gcr);
-    pluginContext_[idx].context->SendFileDescriptor(pluginContext_[idx].shareMemoryBlock->GetfileDescriptor());
+    pluginServiceImpl_->PushCommand(*pluginContext_[idx].context, cmd);
+    pluginContext_[idx].context->SendFileDescriptor(smb->GetfileDescriptor());
+    pluginContext_[idx].context->SendFileDescriptor(notifier->GetFd());
+
+    eventPoller_->AddFileDescriptor(notifier->GetFd(),
+                                    std::bind(&PluginService::ReadShareMemory, this, pluginContext_[idx]));
 
     HILOG_DEBUG(LOG_CORE, "pluginContext_[idx].shareMemoryBlock->GetfileDescriptor = %d",
-        pluginContext_[idx].shareMemoryBlock->GetfileDescriptor());
+                pluginContext_[idx].shareMemoryBlock->GetfileDescriptor());
     return true;
 }
 bool PluginService::CreatePluginSession(const ProfilerPluginConfig& pluginConfig,
@@ -110,12 +137,12 @@ bool PluginService::CreatePluginSession(const ProfilerPluginConfig& pluginConfig
 
     pluginContext_[idx].shareMemoryBlock = nullptr;
 
-    auto gcr = pluginCommandBuilder_->BuildCreateSessionCmd(pluginConfig, 0);
-    CHECK_TRUE(gcr != nullptr, false, "CreatePluginSession BuildCreateSessionCmd FAIL %s", pluginConfig.name().c_str());
+    auto cmd = pluginCommandBuilder_->BuildCreateSessionCmd(pluginConfig, 0);
+    CHECK_TRUE(cmd != nullptr, false, "CreatePluginSession BuildCreateSessionCmd FAIL %s", pluginConfig.name().c_str());
 
     pluginContext_[idx].profilerPluginState->set_state(ProfilerPluginState::LOADED);
 
-    pluginServiceImpl_->PushCommand(*pluginContext_[idx].context, gcr);
+    pluginServiceImpl_->PushCommand(*pluginContext_[idx].context, cmd);
     return true;
 }
 
@@ -125,16 +152,11 @@ bool PluginService::StartPluginSession(const ProfilerPluginConfig& config)
                "StartPluginSession can't find plugin name %s", config.name().c_str());
 
     uint32_t idx = nameIndex_[config.name()];
-    auto gcr = pluginCommandBuilder_->BuildStartSessionCmd(config, idx);
-    CHECK_TRUE(gcr != nullptr, false, "StartPluginSession BuildStartSessionCmd FAIL %s", config.name().c_str());
+    auto cmd = pluginCommandBuilder_->BuildStartSessionCmd(config, idx);
+    CHECK_TRUE(cmd != nullptr, false, "StartPluginSession BuildStartSessionCmd FAIL %s", config.name().c_str());
 
     pluginContext_[idx].profilerPluginState->set_state(ProfilerPluginState::IN_SESSION);
-    pluginServiceImpl_->PushCommand(*pluginContext_[idx].context, gcr);
-
-    if (readShareMemoryThreadStatus_ == READ_SHARE_MEMORY_FREE) { // Start the thread that reads shared memory
-        readShareMemoryThreadStatus_ = READ_SHARE_MEMORY_WORKING;
-        readShareMemoryThreadSleep_.unlock();
-    }
+    pluginServiceImpl_->PushCommand(*pluginContext_[idx].context, cmd);
     return true;
 }
 bool PluginService::StopPluginSession(const std::string& pluginName)
@@ -143,28 +165,26 @@ bool PluginService::StopPluginSession(const std::string& pluginName)
                pluginName.c_str());
 
     uint32_t idx = nameIndex_[pluginName];
-    auto gcr = pluginCommandBuilder_->BuildStopSessionCmd(idx);
-    CHECK_TRUE(gcr != nullptr, false, "StopPluginSession BuildStopSessionCmd FAIL %s", pluginName.c_str());
+    auto cmd = pluginCommandBuilder_->BuildStopSessionCmd(idx);
+    CHECK_TRUE(cmd != nullptr, false, "StopPluginSession BuildStopSessionCmd FAIL %s", pluginName.c_str());
 
     pluginContext_[idx].profilerPluginState->set_state(ProfilerPluginState::LOADED);
-    pluginServiceImpl_->PushCommand(*pluginContext_[idx].context, gcr);
+    pluginServiceImpl_->PushCommand(*pluginContext_[idx].context, cmd);
 
-    waitForCommandId_ = gcr->command_id();
+    auto sem = GetSemaphoreFactory().Create(0);
+    CHECK_NOTNULL(sem, false, "create Semaphore for stop %s FAILED!", pluginName.c_str());
+
+    waitSemphores_[cmd->command_id()] = sem;
     HILOG_DEBUG(LOG_CORE, "=== StopPluginSession Waiting ... ===");
     // try lock for 30000 ms.
-    if (waitStopSession_.try_lock_for(std::chrono::milliseconds(30000))) { // Received command reply，and stopsession，
-        ReadShareMemoryOneTime(); // Read the shared memory data again before exiting to avoid losing it
+    if (sem->TimedWait(30)) {
+        ReadShareMemory(pluginContext_[idx]);
         HILOG_DEBUG(LOG_CORE, "=== ShareMemory Clear ===");
     } else {
         HILOG_DEBUG(LOG_CORE, "=== StopPluginSession Waiting FAIL ===");
         return false;
     }
     HILOG_DEBUG(LOG_CORE, "=== StopPluginSession Waiting OK ===");
-
-    if (readShareMemoryThreadStatus_ == READ_SHARE_MEMORY_WORKING) { // Stop the thread reading shared memory
-        readShareMemoryThreadStatus_ = READ_SHARE_MEMORY_FREE;
-    }
-
     return true;
 }
 bool PluginService::DestroyPluginSession(const std::string& pluginName)
@@ -174,25 +194,30 @@ bool PluginService::DestroyPluginSession(const std::string& pluginName)
 
     uint32_t idx = nameIndex_[pluginName];
 
-    auto gcr = pluginCommandBuilder_->BuildDestroySessionCmd(idx);
-    CHECK_TRUE(gcr != nullptr, false, "DestroyPluginSession BuildDestroySessionCmd FAIL %s", pluginName.c_str());
+    auto cmd = pluginCommandBuilder_->BuildDestroySessionCmd(idx);
+    CHECK_TRUE(cmd != nullptr, false, "DestroyPluginSession BuildDestroySessionCmd FAIL %s", pluginName.c_str());
 
     if (pluginContext_[idx].shareMemoryBlock != nullptr) {
         ShareMemoryAllocator::GetInstance().ReleaseMemoryBlockLocal(pluginName);
         pluginContext_[idx].shareMemoryBlock = nullptr;
     }
 
+    if (pluginContext_[idx].eventNotifier) {
+        eventPoller_->RemoveFileDescriptor(pluginContext_[idx].eventNotifier->GetFd());
+        pluginContext_[idx].eventNotifier = nullptr;
+    }
+
     pluginContext_[idx].profilerPluginState->set_state(ProfilerPluginState::REGISTERED);
 
-    pluginServiceImpl_->PushCommand(*pluginContext_[idx].context, gcr);
+    pluginServiceImpl_->PushCommand(*pluginContext_[idx].context, cmd);
     return true;
 }
 
 bool PluginService::AddPluginInfo(const PluginInfo& pluginInfo)
 {
     if (nameIndex_.find(pluginInfo.name) == nameIndex_.end()) { // add new plugin
-        while (pluginContext_.find(pluginIdAutoIncrease_) != pluginContext_.end()) {
-            pluginIdAutoIncrease_++;
+        while (pluginContext_.find(pluginIdCounter_) != pluginContext_.end()) {
+            pluginIdCounter_++;
         }
 
         ProfilerPluginCapability capability;
@@ -201,19 +226,20 @@ bool PluginService::AddPluginInfo(const PluginInfo& pluginInfo)
         CHECK_TRUE(ProfilerCapabilityManager::GetInstance().AddCapability(capability), false,
                    "AddPluginInfo AddCapability FAIL");
 
-        pluginContext_[pluginIdAutoIncrease_].path = pluginInfo.path;
-        pluginContext_[pluginIdAutoIncrease_].context = pluginInfo.context;
-        pluginContext_[pluginIdAutoIncrease_].config.set_name(pluginInfo.name);
-        pluginContext_[pluginIdAutoIncrease_].config.set_plugin_sha256(pluginInfo.sha256);
-        pluginContext_[pluginIdAutoIncrease_].profilerPluginState = std::make_shared<ProfilerPluginState>();
-        pluginContext_[pluginIdAutoIncrease_].profilerPluginState->set_name(pluginInfo.name);
-        pluginContext_[pluginIdAutoIncrease_].profilerPluginState->set_state(ProfilerPluginState::REGISTERED);
+        pluginContext_[pluginIdCounter_].name = pluginInfo.name;
+        pluginContext_[pluginIdCounter_].path = pluginInfo.path;
+        pluginContext_[pluginIdCounter_].context = pluginInfo.context;
+        pluginContext_[pluginIdCounter_].config.set_name(pluginInfo.name);
+        pluginContext_[pluginIdCounter_].config.set_plugin_sha256(pluginInfo.sha256);
+        pluginContext_[pluginIdCounter_].profilerPluginState = std::make_shared<ProfilerPluginState>();
+        pluginContext_[pluginIdCounter_].profilerPluginState->set_name(pluginInfo.name);
+        pluginContext_[pluginIdCounter_].profilerPluginState->set_state(ProfilerPluginState::REGISTERED);
 
-        pluginContext_[pluginIdAutoIncrease_].sha256 = pluginInfo.sha256;
-        pluginContext_[pluginIdAutoIncrease_].bufferSizeHint = pluginInfo.bufferSizeHint;
+        pluginContext_[pluginIdCounter_].sha256 = pluginInfo.sha256;
+        pluginContext_[pluginIdCounter_].bufferSizeHint = pluginInfo.bufferSizeHint;
 
-        nameIndex_[pluginInfo.name] = pluginIdAutoIncrease_;
-        pluginIdAutoIncrease_++;
+        nameIndex_[pluginInfo.name] = pluginIdCounter_;
+        pluginIdCounter_++;
     } else { // update sha256 or bufferSizeHint
         uint32_t idx = nameIndex_[pluginInfo.name];
 
@@ -224,7 +250,26 @@ bool PluginService::AddPluginInfo(const PluginInfo& pluginInfo)
             pluginContext_[idx].bufferSizeHint = pluginInfo.bufferSizeHint;
         }
     }
+    HILOG_DEBUG(LOG_CORE, "AddPluginInfo for %s done!", pluginInfo.name.c_str());
 
+    return true;
+}
+
+bool PluginService::GetPluginInfo(const std::string& pluginName, PluginInfo& pluginInfo)
+{
+    uint32_t pluginId = 0;
+    auto itId = nameIndex_.find(pluginName);
+    CHECK_TRUE(itId != nameIndex_.end(), false, "plugin name %s not found!", pluginName.c_str());
+    pluginId = itId->second;
+
+    auto it = pluginContext_.find(pluginId);
+    CHECK_TRUE(it != pluginContext_.end(), false, "plugin id %d not found!", pluginId);
+
+    pluginInfo.id = pluginId;
+    pluginInfo.name = it->second.name;
+    pluginInfo.path = it->second.path;
+    pluginInfo.sha256 = it->second.sha256;
+    pluginInfo.bufferSizeHint = it->second.bufferSizeHint;
     return true;
 }
 
@@ -238,73 +283,52 @@ bool PluginService::RemovePluginInfo(const PluginInfo& pluginInfo)
 
     nameIndex_.erase(pluginContext_[pluginInfo.id].config.name());
     pluginContext_.erase(pluginInfo.id);
+    HILOG_DEBUG(LOG_CORE, "RemovePluginInfo for %s done!", pluginInfo.name.c_str());
     return true;
 }
 
-void PluginService::ReadShareMemoryOneTime()
+void PluginService::ReadShareMemory(PluginContext& context)
 {
-    readShareMemory_.lock();
-    for (auto it = pluginContext_.begin(); it != pluginContext_.end(); it++) {
-        PluginContext* pluginContext = &it->second;
-        if (pluginContext->shareMemoryBlock == nullptr) {
-            continue;
+    CHECK_NOTNULL(context.shareMemoryBlock, NO_RETVAL, "smb of %s is null!", context.path.c_str());
+    uint64_t value = 0;
+    if (context.eventNotifier) {
+        value = context.eventNotifier->Take();
+    }
+    HILOG_DEBUG(LOG_CORE, "ReadShareMemory for %s %" PRIu64, context.path.c_str(), value);
+    while (true) {
+        auto pluginData = std::make_shared<ProfilerPluginData>();
+        bool ret = context.shareMemoryBlock->TakeData([&](const int8_t data[], uint32_t size) -> bool {
+            int retval = pluginData->ParseFromArray(reinterpret_cast<const char*>(data), size);
+            CHECK_TRUE(retval, false, "parse %d bytes failed!", size);
+            return true;
+        });
+        if (!ret) {
+            break;
         }
-        do {
-            uint32_t size = pluginContext->shareMemoryBlock->GetDataSize();
-            if (size == 0) {
-                break;
-            }
-
-            int8_t* p = const_cast<int8_t*>(pluginContext->shareMemoryBlock->GetDataPoint());
-            auto pluginData = std::make_shared<ProfilerPluginData>();
-            pluginData->ParseFromArray(reinterpret_cast<char*>(p), size);
-            HILOG_DEBUG(LOG_CORE, "Read ShareMemory %d", size);
-            if (!pluginContext->profilerDataRepeater->PutPluginData(pluginData)) {
-            }
-            if (!pluginContext->shareMemoryBlock->Next()) {
-                break;
-            }
-        } while (true);
-    }
-    readShareMemory_.unlock();
-}
-
-void* PluginService::ReadShareMemoryThread(void* p)
-{
-    pthread_setname_np(pthread_self(), "ReadMemThread");
-
-    PluginService* pluginService = (PluginService*)p;
-    if (pluginService == nullptr) {
-        return nullptr;
-    }
-    while (pluginService->readShareMemoryThreadStatus_ != READ_SHARE_MEMORY_EXIT) {
-        // try lock for 60000000 ms.
-        if (pluginService->readShareMemoryThreadSleep_.try_lock_for(std::chrono::milliseconds(60000000))) {
-            while (pluginService->readShareMemoryThreadStatus_ == READ_SHARE_MEMORY_WORKING) {
-                pluginService->ReadShareMemoryOneTime();
-                usleep(10000); // sleep for 10000 us.
-            }
+        if (!context.profilerDataRepeater->PutPluginData(pluginData)) {
+            break;
         }
     }
-    return nullptr;
 }
+
 bool PluginService::AppendResult(NotifyResultRequest& request)
 {
     pluginCommandBuilder_->GetedCommandResponse(request.command_id());
-    if (request.command_id() == waitForCommandId_) {
-        waitStopSession_.unlock();
+    auto sem = GetSemaphore(request.command_id());
+    if (sem) {
+        sem->Post();
     }
 
     int size = request.result_size();
-    HILOG_DEBUG(LOG_CORE, "AppendResult size:%d,cmdid:%d,waitid:%d", size, request.command_id(), waitForCommandId_);
+    HILOG_DEBUG(LOG_CORE, "AppendResult size:%d, cmd id:%d", size, request.command_id());
     for (int i = 0; i < size; i++) {
         PluginResult pr = request.result(i);
         if (pr.data().size() > 0) {
             HILOG_DEBUG(LOG_CORE, "AppendResult Size : %zu", pr.data().size());
             uint32_t pluginId = pr.plugin_id();
             if (pluginContext_[pluginId].profilerDataRepeater == nullptr) {
-                HILOG_DEBUG(LOG_CORE, "AppendResult profilerDataRepeater==nullptr %s %d",
-                    pr.status().name().c_str(), pluginId);
+                HILOG_DEBUG(LOG_CORE, "AppendResult profilerDataRepeater==nullptr %s %d", pr.status().name().c_str(),
+                            pluginId);
                 return false;
             }
             auto pluginData = std::make_shared<ProfilerPluginData>();
@@ -325,7 +349,7 @@ std::vector<ProfilerPluginStatePtr> PluginService::GetPluginStatus()
 {
     std::vector<ProfilerPluginStatePtr> ret;
     std::map<uint32_t, PluginContext>::iterator iter;
-    for (iter = pluginContext_.begin(); iter != pluginContext_.end(); iter++) {
+    for (iter = pluginContext_.begin(); iter != pluginContext_.end(); ++iter) {
         ret.push_back(iter->second.profilerPluginState);
     }
     return ret;

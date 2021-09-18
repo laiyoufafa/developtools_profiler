@@ -25,9 +25,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 /**
  * test cpuData class
  *
- * @version 1.0
  * @date 2021/4/24 18:04
- **/
+ */
 class CpuDataTest {
     /**
      * test get the number of cpu .

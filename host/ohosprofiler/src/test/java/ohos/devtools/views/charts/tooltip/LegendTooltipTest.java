@@ -16,9 +16,10 @@
 package ohos.devtools.views.charts.tooltip;
 
 import com.intellij.ui.JBColor;
+import ohos.devtools.views.charts.model.ChartDataModel;
 import ohos.devtools.views.common.LayoutConstants;
 import ohos.devtools.views.layout.chartview.ProfilerChartsView;
-import ohos.devtools.views.layout.swing.TaskScenePanelChart;
+import ohos.devtools.views.layout.chartview.TaskScenePanelChart;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -28,13 +29,12 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * 自定义Tooltip的测试类
- *
- * @since 2021/3/31 15:56
+ * Custom Tooltip test class
  */
 public class LegendTooltipTest {
     private static final String TEST_TIME = "00:23:189";
     private static final String TEST_TEXT = "Java:123MB";
+    private LegendTooltip tooltip;
     private ProfilerChartsView view;
     private List<TooltipItem> tooltipItems;
 
@@ -49,22 +49,9 @@ public class LegendTooltipTest {
      */
     @Before
     public void init() {
+        tooltip = new LegendTooltip();
         view = new ProfilerChartsView(LayoutConstants.NUM_L, true, new TaskScenePanelChart());
         tooltipItems = Collections.singletonList(new TooltipItem(JBColor.GRAY, TEST_TEXT));
-    }
-
-    /**
-     * functional test
-     *
-     * @tc.name: getInstance
-     * @tc.number: OHOS_JAVA_View_LegendTooltip_getInstance_0001
-     * @tc.desc: getInstance
-     * @tc.type: functional testing
-     * @tc.require: SR000FK5SL
-     */
-    @Test
-    public void getInstanceTest() {
-        Assert.assertNotNull(LegendTooltip.getInstance());
     }
 
     /**
@@ -78,7 +65,7 @@ public class LegendTooltipTest {
      */
     @Test
     public void hideTipTest() {
-        LegendTooltip.getInstance().hideTip();
+        tooltip.hideTip();
         Assert.assertTrue(true);
     }
 
@@ -93,7 +80,7 @@ public class LegendTooltipTest {
      */
     @Test
     public void showTipTest() {
-        LegendTooltip.getInstance().showTip(view, TEST_TIME, "0", tooltipItems, true);
+        tooltip.showTip(view, TEST_TIME, "0", tooltipItems, true, "MB");
         Assert.assertTrue(true);
     }
 
@@ -109,7 +96,40 @@ public class LegendTooltipTest {
     @Test
     public void followWithMouseTest() {
         MouseEvent mouseEvent = new MouseEvent(view, 0, 1L, 0, 0, 0, 1, false);
-        LegendTooltip.getInstance().followWithMouse(mouseEvent);
+        tooltip.followWithMouse(mouseEvent);
         Assert.assertTrue(true);
+    }
+
+    /**
+     * functional test
+     *
+     * @tc.name: showThreadStatusTipTest
+     * @tc.number: OHOS_JAVA_View_LegendTooltip_showThreadStatusTipTest_0001
+     * @tc.desc: show ThreadStatus Tip Test
+     * @tc.type: functional testing
+     * @tc.require: SR000FK5SL
+     */
+    @Test
+    public void showThreadStatusTipTest() {
+        ChartDataModel chartDataModel = new ChartDataModel();
+        chartDataModel.setName("Name");
+        chartDataModel.setValue(1);
+        tooltip.showThreadStatusTip(view, TEST_TIME, chartDataModel, true);
+        Assert.assertTrue(true);
+    }
+
+    /**
+     * functional test
+     *
+     * @tc.name: LegendTooltipTest
+     * @tc.number: OHOS_JAVA_View_LegendTooltip_LegendTooltipTest_0001
+     * @tc.desc: Legend Tool tip Test
+     * @tc.type: functional testing
+     * @tc.require: SR000FK5SL
+     */
+    @Test
+    public void legendTooltipTest() {
+        LegendTooltip legendTooltip = new LegendTooltip();
+        Assert.assertNotNull(legendTooltip);
     }
 }

@@ -19,10 +19,7 @@ import java.io.Serializable;
 
 /**
  * TraceFileInfo
- *
- * @version 1.0
- * @date 2021/3/26 11:31
- **/
+ */
 public class TraceFileInfo implements Serializable {
     private static final long serialVersionUID = 6310938366918639648L;
     private String version;

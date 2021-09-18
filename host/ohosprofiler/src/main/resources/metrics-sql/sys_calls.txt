@@ -1,0 +1,9 @@
+select
+count(*) as frequency,
+min(dur) as minDur,
+max(dur) as maxDur,
+floor(avg(dur)) as avgDur,
+name as funName
+from callstack
+group by name
+order by frequency desc limit 100

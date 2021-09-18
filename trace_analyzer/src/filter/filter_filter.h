@@ -24,12 +24,12 @@ namespace TraceStreamer {
 class TraceStreamerFilters;
 class FilterFilter : private FilterBase {
 public:
-    explicit FilterFilter(TraceDataCache*, const TraceStreamerFilters*);
+    FilterFilter(TraceDataCache* dataCache, const TraceStreamerFilters* filter);
     FilterFilter(const FilterFilter&) = delete;
     FilterFilter& operator=(const FilterFilter&) = delete;
     ~FilterFilter() override;
 
-    uint32_t AddFilter(std::string type, std::string name);
+    uint32_t AddFilter(std::string type, std::string name, uint64_t arg);
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

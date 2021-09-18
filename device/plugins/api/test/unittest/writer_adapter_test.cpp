@@ -34,8 +34,8 @@ protected:
 HWTEST_F(WriterAdapterTest, Writer, TestSize.Level1)
 {
     WriterAdapter writerAdapter;
-    writerAdapter.GetWriter();
-    writerAdapter.GetStruct();
+    EXPECT_EQ(writerAdapter.GetWriter(), nullptr);
+    EXPECT_EQ(writerAdapter.GetStruct(), &writerAdapter.writerStruct_);
 }
 
 /**
@@ -46,7 +46,7 @@ HWTEST_F(WriterAdapterTest, Writer, TestSize.Level1)
 HWTEST_F(WriterAdapterTest, Func, TestSize.Level1)
 {
     WriterAdapter writerAdapter;
-    writerAdapter.WriteFunc(nullptr, nullptr, 0);
-    writerAdapter.FlushFunc(nullptr);
+    EXPECT_EQ(writerAdapter.WriteFunc(nullptr, nullptr, 0), 0);
+    EXPECT_FALSE(writerAdapter.FlushFunc(nullptr));
 }
 } // namespace

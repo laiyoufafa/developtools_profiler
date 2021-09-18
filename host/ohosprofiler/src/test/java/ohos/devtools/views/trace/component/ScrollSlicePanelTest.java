@@ -28,9 +28,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 /**
  * test ScrollSlicePanel class .
  *
- * @version 1.0
  * @date: 2021/4/24 18:03
- **/
+ */
 class ScrollSlicePanelTest {
     /**
      * test set the Data .

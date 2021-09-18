@@ -23,9 +23,9 @@ enum Index { ID = 0, STR };
 }
 DataDictTable::DataDictTable(const TraceDataCache* dataCache) : TableBase(dataCache)
 {
-        tableColumn_.push_back(TableBase::ColumnInfo("id", "UNSIGNED BIG INT"));
-        tableColumn_.push_back(TableBase::ColumnInfo("data", "STRING"));
-        tablePriKey_.push_back("id");
+    tableColumn_.push_back(TableBase::ColumnInfo("id", "UNSIGNED BIG INT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("data", "STRING"));
+    tablePriKey_.push_back("id");
 }
 
 DataDictTable::~DataDictTable() {}
@@ -53,7 +53,7 @@ int DataDictTable::Cursor::Column(int col) const
             sqlite3_result_text(context_, dataCache_->GetDataFromDict(index).c_str(), STR_DEFAULT_LEN, nullptr);
             break;
         default:
-            TUNING_LOGF("Unknown column %d", col);
+            TS_LOGF("Unknown column %d", col);
             break;
     }
     return SQLITE_OK;

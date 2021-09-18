@@ -10,7 +10,7 @@ from internal_thread A,trace_bounds D
 left join thread_track B on A.id = B.utid
 left join internal_slice C on B.id = C.track_id
 where C.ts not null
-      and A.tid in (${tids})
-      and not ((C.ts - D.start_ts + C.dur < ${leftNs}) or (C.ts - D.start_ts > ${rightNs}))
+      and A.tid in (%s)
+      and not ((C.ts - D.start_ts + C.dur < %d) or (C.ts - D.start_ts > %d))
 group by c.name
 order by wallDuration desc;

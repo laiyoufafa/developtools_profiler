@@ -1,8 +1,6 @@
--- delta value      计算规则 框选范围内 last value - first value
--- rate/s           计算规则 框选范围时间内 delta value / range time(单位换算成 s )
--- weight avg value 计算规则 以 value 在所选时间区域内 时间占比为权重，计算加权平均值
--- count            计算规则 计算选中范围内的 count 数量
--- first value      计算规则 框选区间内 first value
--- last value       计算规则 框选区间内 last value
--- min value        计算规则 框选区间内 min value
--- max value        计算规则 框选区间内 max value
+select t1.track_id as trackId,t2.name,value, t1.ts - t3.start_ts as startTime
+from counter t1
+left join process_counter_track t2 on t1.track_id = t2.id
+left join trace_bounds t3 where track_id in (%s)
+and startTime <= %d
+order by startTime asc;

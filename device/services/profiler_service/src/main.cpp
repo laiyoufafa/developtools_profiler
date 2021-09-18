@@ -15,7 +15,7 @@
 #include <memory>
 
 #include "grpc/impl/codegen/log.h"
-#include <grpcpp/health_check_service_interface.h>
+#include "grpcpp/health_check_service_interface.h"
 #include "logging.h"
 #include "plugin_service.h"
 #include "profiler_service.h"

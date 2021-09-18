@@ -26,19 +26,25 @@ enum Direction { NEED_GO = 0, NEED_CONTINUE, NEED_BREAK };
 
 class ThreadState {
 public:
-    explicit ThreadState(const std::string stateStr);
+    explicit ThreadState(const std::string& stateStr);
     ~ThreadState() {}
 
     uint32_t State() const
     {
-        TUNING_ASSERT(state_ & VALID);
         return state_ & ~VALID;
     }
 
 private:
+    void SetStat(Stat value)
+    {
+        state_ |= value;
+    }
+
+    void ProcessSate(const std::string& stateStr);
+    Direction SetStatByChar(char ch);
+
+private:
     uint32_t state_ = 0;
-    bool invalidChar_ = false;
-    bool isRunnable_ = false;
     std::map<char, Stat> statMap_ = {
         {'R', RUNNABLE},
         {'S', INTERRUPTABLESLEEP},
@@ -54,26 +60,6 @@ private:
         {'N', NOLOAD},
         {'|', VALID},
     };
-
-    void SetStatZero()
-    {
-        state_ = 0;
-    }
-    void SetStat(Stat value)
-    {
-        state_ |= value;
-    }
-    void SetInvalidChar(bool value)
-    {
-        invalidChar_ = value;
-    }
-    void SetIsRunnable(bool value)
-    {
-        isRunnable_ = value;
-    }
-
-    void ProcessSate(const std::string& stateStr);
-    Direction SetStatByChar(char ch);
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

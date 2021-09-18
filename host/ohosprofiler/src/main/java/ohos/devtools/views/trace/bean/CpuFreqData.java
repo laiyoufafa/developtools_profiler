@@ -15,8 +15,10 @@
 
 package ohos.devtools.views.trace.bean;
 
+import ohos.devtools.views.trace.DField;
 import ohos.devtools.views.trace.fragment.graph.AbstractGraph;
 import ohos.devtools.views.trace.util.ColorUtils;
+import ohos.devtools.views.trace.util.Utils;
 
 import javax.swing.JComponent;
 import java.awt.Graphics2D;
@@ -25,14 +27,16 @@ import java.awt.event.MouseEvent;
 /**
  * cpu frequency data
  *
- * @version 1.0
  * @date 2021/04/22 12:25
- **/
+ */
 public class CpuFreqData extends AbstractGraph {
+    @DField(name = "cpu")
     private int cpu;
 
+    @DField(name = "value")
     private long value;
 
+    @DField(name = "startNS")
     private long startTime;
 
     private long duration;
@@ -191,7 +195,8 @@ public class CpuFreqData extends AbstractGraph {
     public void draw(final Graphics2D graphics) {
         double drawHeight = (value * (rect.height - 5) * 1.0) / max;
         graphics.setColor(ColorUtils.MD_PALETTE[cpu]);
-        graphics.fillRect(rect.x, rect.y + rect.height - (int) drawHeight, rect.width, (int) drawHeight);
+        graphics.fillRect(Utils.getX(rect), Utils.getY(rect) + rect.height - (int) drawHeight, rect.width,
+            (int) drawHeight);
     }
 
     @Override

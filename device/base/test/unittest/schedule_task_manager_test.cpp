@@ -16,6 +16,7 @@
 #include <chrono>
 #include <hwext/gtest-ext.h>
 #include <hwext/gtest-tag.h>
+#include <sys/time.h>
 #include <thread>
 
 #include "schedule_task_manager.h"
@@ -26,7 +27,10 @@ namespace {
 class ScheduleTaskManagerTest : public testing::Test {
 protected:
     static void SetUpTestCase() {}
-    static void TearDownTestCase() {}
+    static void TearDownTestCase()
+    {
+        ScheduleTaskManager::GetInstance().Shutdown();
+    }
 };
 
 /**
@@ -55,6 +59,8 @@ HWTEST_F(ScheduleTaskManagerTest, ScheduleTaskOneshot, TestSize.Level1)
 
     std::this_thread::sleep_for(initalDelay + initalDelay);
     EXPECT_EQ(count.load(), 1);
+
+    scheduleTaskManager.Shutdown();
 }
 
 /**
@@ -72,15 +78,27 @@ HWTEST_F(ScheduleTaskManagerTest, ScheduleTaskRepeated, TestSize.Level1)
 
     ScheduleTaskManager scheduleTaskManager;
     EXPECT_TRUE(scheduleTaskManager.ScheduleTask(
-        "task-2", [&]() { count++; }, repeatInterval, initalDelay));
+        "task-2",
+        [&]() {
+            count++;
+            struct timeval tv;
+            gettimeofday(&tv, nullptr);
+            printf("[%ld.%06ld] count: %d\n", tv.tv_sec, tv.tv_usec, count.load());
+        },
+        repeatInterval, initalDelay));
 
     int expected = 0;
     std::this_thread::sleep_for(initalDelay + initalDelay);
     for (int i = 0; i < cnt; i++) {
         expected++;
+        struct timeval tv = { 0, 0 };
+        gettimeofday(&tv, nullptr);
+        printf("[%ld.%06ld] expected: %d\n", tv.tv_sec, tv.tv_usec, expected);
         EXPECT_EQ(count.load(), expected);
         std::this_thread::sleep_for(repeatInterval);
     }
+
+    scheduleTaskManager.Shutdown();
 }
 
 /**
@@ -99,19 +117,27 @@ HWTEST_F(ScheduleTaskManagerTest, UnscheduleTask, TestSize.Level1)
 
     ScheduleTaskManager scheduleTaskManager;
     EXPECT_TRUE(scheduleTaskManager.ScheduleTask(
-        taskName, [&]() { count++; }, repeatInterval));
+        taskName,
+        [&]() {
+            count++;
+            struct timeval tv;
+            gettimeofday(&tv, nullptr);
+            printf("[%ld.%06ld] count: %d\n", tv.tv_sec, tv.tv_usec, count.load());
+        },
+        repeatInterval));
 
     int expected = 0;
     std::this_thread::sleep_for(initalDelay);
     for (int i = 0; i < cnt; i++) {
         std::this_thread::sleep_for(repeatInterval);
         expected++;
+        struct timeval tv = { 0, 0 };
+        gettimeofday(&tv, nullptr);
+        printf("[%ld.%06ld] expected: %d\n", tv.tv_sec, tv.tv_usec, expected);
         EXPECT_EQ(count.load(), expected);
     }
 
     EXPECT_TRUE(scheduleTaskManager.UnscheduleTask(taskName));
     scheduleTaskManager.Shutdown();
-
-    EXPECT_EQ(count.load(), expected);
 }
 } // namespace

@@ -26,26 +26,27 @@ namespace SysTuning {
 namespace TraceStreamer {
 class ProcessFilter : private FilterBase {
 public:
-    explicit ProcessFilter(TraceDataCache*, const TraceStreamerFilters*);
+    ProcessFilter(TraceDataCache* dataCache, const TraceStreamerFilters* filter);
     ~ProcessFilter() override;
 
-    uint32_t SetThreadPid(uint64_t timestamp, uint32_t tid, DataIndex threadNameIndex);
-    uint32_t UpdateThreadByName(uint64_t timestamp, uint32_t tid, std::string_view name);
-
-    uint32_t SetThreadPid(uint32_t tid, uint32_t tgid);
-    void SetThreadName(uint32_t tid, uint32_t pid, std::string_view name);
-    uint32_t UpdateProcess(uint32_t pid, std::string_view name);
-    std::tuple<uint32_t, TraceStdtype::Process*> CreateProcessMaybe(uint32_t pid, uint64_t start_ns);
-
+    uint32_t UpdateOrCreateProcessWithName(uint32_t pid, std::string_view name);
+    uint32_t UpdateOrCreateThreadWithName(uint64_t timestamp, uint32_t tid, std::string_view name);
+    void UpdateOrCreateThreadWithPidAndName(uint32_t tid, uint32_t pid, std::string_view name);
+    uint32_t GetOrCreateThreadWithPid(uint32_t tid, uint32_t pid);
+    uint32_t UpdateOrCreateThread(uint64_t timestamp, uint32_t tid);
+    InternalPid GetInternalPid(uint32_t pid) const;
+    InternalTid GetOrCreateInternalPid(uint64_t timestamp, uint32_t pid);
 private:
+    uint32_t UpdateOrCreateThreadWithNameIndex(uint64_t timestamp, uint32_t tid, DataIndex threadNameIndex);
+    std::tuple<uint32_t, TraceStdtype::Process*> CreateProcessMaybe(uint32_t pid, uint64_t start_ns);
     std::tuple<uint32_t, TraceStdtype::Thread*> NewThread(uint32_t tid);
     std::tuple<uint32_t, TraceStdtype::Process*> NewProcess(uint32_t pid);
 
     InternalTid GetInternalTid(uint32_t tid) const;
-    InternalTid GetInternalPid(uint32_t pid) const;
-    InternalTid GetItidExact(uint32_t tid, uint32_t pid) const;
+    InternalTid GetInternalTid(uint32_t tid, uint32_t pid) const;
+private:
     std::multimap<uint32_t, uint32_t> tidMappingSet_ = {};
-    std::map<uint32_t, uint32_t> pidMappingSet_ = {};
+    std::map<uint32_t, uint32_t> pidToInternalPidMap_ = {};
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

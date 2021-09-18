@@ -16,14 +16,10 @@
 package ohos.devtools.datasources.utils.session.entity;
 
 import ohos.devtools.datasources.utils.device.entity.DeviceIPPortInfo;
-import ohos.devtools.views.common.LayoutConstants;
 
 /**
- * SessionInfo实体
- *
- * @version 1.0
- * @date 2021/2/25 10:50
- **/
+ * Session Info Entity
+ */
 public class SessionInfo {
     private static SessionInfo defaultSession;
 
@@ -57,7 +53,8 @@ public class SessionInfo {
         private long startTimestamp;
         private long endTimestamp;
         private long streamId;
-        private long pid;
+        private int pid;
+        private String processName;
         private DeviceIPPortInfo deviceIPPortInfo;
 
         private Builder() {
@@ -119,18 +116,29 @@ public class SessionInfo {
         }
 
         /**
-         * 获取pid信息方法
+         * Method for obtaining PID information
          *
          * @param pid pid
          * @return Builder
          */
-        public Builder pid(long pid) {
+        public Builder pid(int pid) {
             this.pid = pid;
             return this;
         }
 
         /**
-         * 设备IP和端口号信息
+         * Method to get process name information
+         *
+         * @param processName processName
+         * @return Builder
+         */
+        public Builder processName(String processName) {
+            this.processName = processName;
+            return this;
+        }
+
+        /**
+         * Device IP and port number information
          *
          * @param deviceIPPortInfo deviceIPPortInfo
          * @return Builder
@@ -141,7 +149,7 @@ public class SessionInfo {
         }
 
         /**
-         * build方法
+         * build method
          *
          * @return SessionInfo
          */
@@ -155,11 +163,12 @@ public class SessionInfo {
     private long startTimestamp;
     private long endTimestamp;
     private long streamId;
-    private long pid;
+    private int pid;
+    private String processName;
     private boolean startRefsh;
     private boolean offlineMode;
 
-    private DeviceIPPortInfo deviceIPPortInfo;
+    private final DeviceIPPortInfo deviceIPPortInfo;
 
     private SessionInfo(Builder builder) {
         sessionName = builder.sessionName;
@@ -168,7 +177,16 @@ public class SessionInfo {
         endTimestamp = builder.endTimestamp;
         streamId = builder.streamId;
         pid = builder.pid;
+        processName = builder.processName;
         deviceIPPortInfo = builder.deviceIPPortInfo;
+    }
+
+    public String getProcessName() {
+        return processName;
+    }
+
+    public void setProcessName(String processName) {
+        this.processName = processName;
     }
 
     public DeviceIPPortInfo getDeviceIPPortInfo() {
@@ -215,11 +233,11 @@ public class SessionInfo {
         this.streamId = streamId;
     }
 
-    public long getPid() {
+    public int getPid() {
         return pid;
     }
 
-    public void setPid(long pid) {
+    public void setPid(int pid) {
         this.pid = pid;
     }
 
@@ -231,63 +249,6 @@ public class SessionInfo {
         this.offlineMode = offlineMode;
     }
 
-    /**
-     * equals
-     *
-     * @param object object
-     * @return boolean
-     */
-    @Override
-    public boolean equals(Object object) {
-        if (this == object) {
-            return true;
-        }
-        if (!(object instanceof SessionInfo)) {
-            return false;
-        }
-        SessionInfo session = (SessionInfo) object;
-
-        if (getSessionId() != session.getSessionId()) {
-            return false;
-        }
-        if (getStartTimestamp() != session.getStartTimestamp()) {
-            return false;
-        }
-        if (getEndTimestamp() != session.getEndTimestamp()) {
-            return false;
-        }
-        if (getStreamId() != session.getStreamId()) {
-            return false;
-        }
-
-        if (getPid() != session.getPid()) {
-            return false;
-        }
-
-        return getSessionName() != null ? getSessionName().equals(session.getSessionName()) :
-            session.getSessionName() == null;
-    }
-
-    /**
-     * hashCode
-     *
-     * @return int
-     */
-    @Override
-    public int hashCode() {
-        int result = getSessionName() != null ? getSessionName().hashCode() : 0;
-        result = LayoutConstants.THIRTY_ONE * result + (int) (getSessionId() ^ (getSessionId()
-            >>> LayoutConstants.THIRTY_TWO));
-        result = LayoutConstants.THIRTY_ONE * result + (int) (getStartTimestamp() ^ (getStartTimestamp()
-            >>> LayoutConstants.THIRTY_TWO));
-        result = LayoutConstants.THIRTY_ONE * result + (int) (getEndTimestamp() ^ (getEndTimestamp()
-            >>> LayoutConstants.THIRTY_TWO));
-        result = LayoutConstants.THIRTY_ONE * result + (int) (getStreamId() ^ (getStreamId()
-            >>> LayoutConstants.THIRTY_TWO));
-        result = LayoutConstants.THIRTY_ONE * result + (int) (getPid() ^ (getPid() >>> LayoutConstants.THIRTY_TWO));
-        return result;
-    }
-
     public boolean isStartRefsh() {
         return startRefsh;
     }
@@ -295,5 +256,4 @@ public class SessionInfo {
     public void setStartRefsh(boolean startRefsh) {
         this.startRefsh = startRefsh;
     }
-
 }

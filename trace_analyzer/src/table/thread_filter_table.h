@@ -23,14 +23,14 @@ namespace SysTuning {
 namespace TraceStreamer {
 class ThreadFilterTable : public TableBase {
 public:
-    explicit ThreadFilterTable(const TraceDataCache*);
+    explicit ThreadFilterTable(const TraceDataCache* dataCache);
     ~ThreadFilterTable() override;
     void CreateCursor() override;
 
 private:
     class Cursor : public TableBase::Cursor {
     public:
-        explicit Cursor(const TraceDataCache*);
+        explicit Cursor(const TraceDataCache* dataCache);
         ~Cursor() override;
         int Column(int) const override;
     };

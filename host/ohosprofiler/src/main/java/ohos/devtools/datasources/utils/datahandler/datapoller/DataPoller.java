@@ -16,73 +16,82 @@
 package ohos.devtools.datasources.utils.datahandler.datapoller;
 
 import io.grpc.StatusRuntimeException;
-import ohos.devtools.datasources.databases.databasepool.AbstractDataStore;
-import ohos.devtools.datasources.databases.datatable.MemoryTable;
 import ohos.devtools.datasources.transport.grpc.ProfilerClient;
 import ohos.devtools.datasources.transport.grpc.ProfilerServiceHelper;
 import ohos.devtools.datasources.transport.grpc.service.CommonTypes;
 import ohos.devtools.datasources.transport.grpc.service.ProfilerServiceTypes;
 import ohos.devtools.datasources.utils.common.util.CommonUtil;
 import ohos.devtools.datasources.utils.common.util.DateTimeUtil;
+import ohos.devtools.datasources.utils.plugin.entity.PluginConf;
+import ohos.devtools.datasources.utils.plugin.service.PlugManager;
 import ohos.devtools.datasources.utils.session.service.SessionManager;
-import ohos.devtools.services.memory.ClassInfoDao;
-import ohos.devtools.services.memory.MemoryHeapDao;
-import ohos.devtools.services.memory.MemoryInstanceDao;
-import ohos.devtools.services.memory.MemoryInstanceDetailsDao;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Queue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 
-import static ohos.devtools.datasources.utils.common.Constant.JVMTI_AGENT_PLUG;
 import static ohos.devtools.datasources.utils.common.Constant.MEMORY_PLUG;
-import static ohos.devtools.datasources.utils.common.Constant.MEMORY_PLUGS_NAME;
 
 /**
  * DataPoller utilities class
- *
- * @version 1.0
- * @date 2021/02/22 15:59
- **/
+ */
 public class DataPoller extends Thread {
-    private static final Logger DATA = LogManager.getLogger("Data");
     private static final Logger LOGGER = LogManager.getLogger(DataPoller.class);
     private long localSessionId;
     private int sessionId;
     private ProfilerClient client;
-    private Map<String, AbstractDataStore> tableService;
-    private MemoryTable memoryTable;
-    private ClassInfoDao classInfoDao;
-    private MemoryInstanceDetailsDao memoryInstanceDetailsDao;
-    private MemoryInstanceDao memoryInstanceDao;
-    private MemoryHeapDao memoryHeapDao;
 
-    private MemoryHeapDataConsumer memoryHeapDataConsumer;
-    private MemoryDataConsumer memoryDataConsumer;
-
-    private Queue<CommonTypes.ProfilerPluginData> memoryDataQueue = new LinkedBlockingQueue();
-    private Queue<CommonTypes.ProfilerPluginData> memoryHeapDataQueue = new LinkedBlockingQueue();
     private boolean stopFlag = false;
     private boolean startRefresh = false;
+
+    private ExecutorService executorService = Executors.newCachedThreadPool();
+    private Map<String, Queue> queueMap = new HashMap<>();
+    private List<AbsDataConsumer> consumers = new ArrayList<>();
 
     /**
      * Data Poller
      *
      * @param localSessionId local SessionId
-     * @param sessionId      session Id
-     * @param client         client
-     * @param tableService   tableService
+     * @param sessionId session Id
+     * @param client client
      */
-    public DataPoller(Long localSessionId, int sessionId, ProfilerClient client,
-        Map<String, AbstractDataStore> tableService) {
+    public DataPoller(Long localSessionId, int sessionId, ProfilerClient client) {
         this.localSessionId = localSessionId;
         this.sessionId = sessionId;
         this.client = client;
-        this.tableService = tableService;
+        init();
+    }
+
+    private void init() {
+        List<PluginConf> items = PlugManager.getInstance().getProfilerPlugConfig(localSessionId);
+        for (PluginConf conf : items) {
+            Class<? extends AbsDataConsumer> consumerClass = conf.getConsumerClass();
+            if (Objects.isNull(consumerClass)) {
+                continue;
+            }
+            AbsDataConsumer absDataConsumer = null;
+            try {
+                absDataConsumer = consumerClass.getConstructor().newInstance();
+                LinkedBlockingQueue linkedBlockingQueue = new LinkedBlockingQueue();
+                queueMap.put(conf.getPluginDataName(), linkedBlockingQueue);
+                absDataConsumer.init(linkedBlockingQueue, sessionId, localSessionId);
+                executorService.execute(absDataConsumer);
+                consumers.add(absDataConsumer);
+            } catch (InstantiationException | IllegalAccessException | InvocationTargetException
+                | NoSuchMethodException exception) {
+                LOGGER.error("start Poll init has Exception {}", exception.getMessage());
+            }
+        }
     }
 
     /**
@@ -98,15 +107,15 @@ public class DataPoller extends Thread {
             response = client.fetchData(request);
             long startTime = DateTimeUtil.getNowTimeLong();
             LOGGER.info("start Poller fetchData02, {}", startTime);
-            while (response.hasNext()) {
-                if (stopFlag) {
-                    return;
-                }
+            while ((!stopFlag) && response.hasNext()) {
                 ProfilerServiceTypes.FetchDataResponse fetchDataResponse = response.next();
                 List<CommonTypes.ProfilerPluginData> lists = fetchDataResponse.getPluginDataList();
-                for (CommonTypes.ProfilerPluginData pluginData : lists) {
-                    handleData(pluginData);
+                if (lists.isEmpty()) {
+                    continue;
                 }
+                lists.parallelStream().forEach(pluginData -> {
+                    handleData(pluginData);
+                });
             }
         } catch (StatusRuntimeException exception) {
             SessionManager.getInstance().deleteLocalSession(localSessionId);
@@ -121,96 +130,31 @@ public class DataPoller extends Thread {
         if (pluginData.getStatus() != 0) {
             return;
         }
-
-        if (MEMORY_PLUGS_NAME.equals(pluginData.getName()) || MEMORY_PLUG.equals(pluginData.getName())) {
-            handleMemoryData(pluginData);
+        String name = pluginData.getName();
+        if (name.equals(MEMORY_PLUG)) {
+            LOGGER.debug("get Memory Date, time is {}", DateTimeUtil.getNowTimeLong());
         }
-        if (JVMTI_AGENT_PLUG.equals(pluginData.getName())) {
-            handleAgentData(pluginData);
+        Queue queue = queueMap.get(name);
+        if (Objects.nonNull(queue)) {
+            queue.offer(pluginData);
         }
-    }
-
-    private void handleMemoryData(CommonTypes.ProfilerPluginData pluginData) {
-        if (tableService.get(MEMORY_PLUG) != null && memoryTable == null) {
-            AbstractDataStore abstractDataStore = tableService.get(MEMORY_PLUG);
-            if (abstractDataStore instanceof MemoryTable) {
-                memoryTable = (MemoryTable) abstractDataStore;
-            }
-            memoryDataConsumer = new MemoryDataConsumer(memoryDataQueue, memoryTable, sessionId, localSessionId);
-            memoryDataConsumer.start();
-            offerPluginData(pluginData);
-        } else if (tableService.get(MEMORY_PLUG) == null && memoryTable == null) {
-            return;
-        } else {
-            offerPluginData(pluginData);
-        }
-    }
-
-    private void offerPluginData(CommonTypes.ProfilerPluginData pluginData) {
-        if (pluginData != null) {
-            memoryDataQueue.offer(pluginData);
-            if (!startRefresh) {
-                long timeStamp = (pluginData.getTvSec() * 1000000000L + pluginData.getTvNsec()) / 1000000;
-                SessionManager.getInstance().stopLoadingView(localSessionId, timeStamp);
-                startRefresh = true;
-            }
-        }
-    }
-
-    private void handleAgentData(CommonTypes.ProfilerPluginData pluginData) {
-        if (tableService.get(JVMTI_AGENT_PLUG) != null && classInfoDao == null) {
-            LOGGER.info("get Dao info");
-            if (tableService.get(JVMTI_AGENT_PLUG) instanceof ClassInfoDao) {
-                classInfoDao = (ClassInfoDao) tableService.get(JVMTI_AGENT_PLUG);
-            }
-
-            if (tableService.get("jvmtiagentDetails") instanceof MemoryInstanceDetailsDao) {
-                memoryInstanceDetailsDao = (MemoryInstanceDetailsDao) tableService.get("jvmtiagentDetails");
-            }
-            if (tableService.get("jvmtiagentInstance") instanceof MemoryInstanceDao) {
-                memoryInstanceDao = (MemoryInstanceDao) tableService.get("jvmtiagentInstance");
-            }
-            if (tableService.get("jvmtiagentMemoryHeap") instanceof MemoryHeapDao) {
-                memoryHeapDao = (MemoryHeapDao) tableService.get("jvmtiagentMemoryHeap");
-            }
-            memoryHeapDataConsumer =
-                new MemoryHeapDataConsumer(memoryHeapDataQueue, localSessionId, classInfoDao, memoryInstanceDetailsDao,
-                    memoryInstanceDao, memoryHeapDao);
-            memoryHeapDataConsumer.start();
-            offerHeapInfo(pluginData);
-        } else if (tableService.get(JVMTI_AGENT_PLUG) == null && classInfoDao == null) {
-            return;
-        } else {
-            offerHeapInfo(pluginData);
-        }
-    }
-
-    private void offerHeapInfo(CommonTypes.ProfilerPluginData pluginData) {
-        if (pluginData != null) {
-            memoryHeapDataQueue.offer(pluginData);
+        if (!startRefresh) {
+            long timeStamp = (pluginData.getTvSec() * 1000000000L + pluginData.getTvNsec()) / 1000000;
+            SessionManager.getInstance().stopLoadingView(localSessionId, timeStamp);
+            startRefresh = true;
         }
     }
 
     private void dataPollerEnd() {
-        if (memoryDataConsumer != null) {
-            memoryDataConsumer.shutDown();
-        }
-        if (memoryHeapDataConsumer != null) {
-            memoryHeapDataConsumer.shutDown();
-        }
-        client.setUsed(false);
+        consumers.forEach(absDataConsumer -> absDataConsumer.shutDown());
+        executorService.shutdown();
     }
 
     /**
      * shutDown
      */
     public void shutDown() {
-        if (memoryDataConsumer != null) {
-            memoryDataConsumer.shutDown();
-        }
-        if (memoryHeapDataConsumer != null) {
-            memoryHeapDataConsumer.shutDown();
-        }
+        consumers.forEach(absDataConsumer -> absDataConsumer.shutDown());
         stopFlag = true;
     }
 

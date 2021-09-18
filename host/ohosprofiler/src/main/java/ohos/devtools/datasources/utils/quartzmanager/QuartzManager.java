@@ -19,6 +19,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -26,10 +27,7 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * timed task management
- *
- * @version 1.0
- * @date 2021/2/2 19:02
- **/
+ */
 public class QuartzManager {
     /**
      * DELAY
@@ -39,7 +37,7 @@ public class QuartzManager {
     /**
      * PERIOD
      */
-    public static final int PERIOD = 500;
+    public static final int PERIOD = 3000;
     private static final Logger LOGGER = LogManager.getLogger(QuartzManager.class);
     private static final long DEFAULT_KEEPALIVE_MILLIS = 10L;
     private static volatile QuartzManager instance;
@@ -103,12 +101,15 @@ public class QuartzManager {
      * @param runName runName
      */
     public void deleteExecutor(String runName) {
-        executorHashMap.get(runName).shutdown();
-        if (runnableHashMap != null && runnableHashMap.size() != 0) {
-            runnableHashMap.remove(runName);
-        }
-        if (executorHashMap != null && executorHashMap.size() != 0) {
-            executorHashMap.remove(runName);
+        ScheduledExecutorService scheduledExecutorService = executorHashMap.get(runName);
+        if (scheduledExecutorService != null) {
+            scheduledExecutorService.shutdown();
+            if (executorHashMap != null && executorHashMap.size() != 0) {
+                executorHashMap.remove(runName);
+            }
+            if (runnableHashMap != null && runnableHashMap.size() != 0) {
+                runnableHashMap.remove(runName);
+            }
         }
     }
 
@@ -118,8 +119,20 @@ public class QuartzManager {
      * @param runName runName
      */
     public void endExecutor(String runName) {
-        LOGGER.debug("endScheduledExecutor{}", runName);
-        executorHashMap.get(runName).shutdown();
+        ScheduledExecutorService scheduledExecutorService = executorHashMap.get(runName);
+        if (scheduledExecutorService != null) {
+            scheduledExecutorService.shutdown();
+        }
     }
 
+    /**
+     * checkService
+     *
+     * @param runName runName
+     * @return ScheduledExecutorService
+     */
+    public Optional<ScheduledExecutorService> checkService(String runName) {
+        ScheduledExecutorService scheduledExecutorService = executorHashMap.get(runName);
+        return Optional.ofNullable(scheduledExecutorService);
+    }
 }

@@ -17,10 +17,7 @@ package ohos.devtools.datasources.databases.databasepool;
 
 /**
  * database objects
- *
- * @version 1.0
- * @date 2021/1/23 16:31
- **/
+ */
 public class DataBase {
     private String driver;
     private String url;
@@ -189,10 +186,7 @@ public class DataBase {
 
     /**
      * Builder
-     *
-     * @version 1.0
-     * @date 2021/1/23 16:31
-     **/
+     */
     public static class Builder {
         private String driver;
         private String url;

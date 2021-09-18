@@ -25,7 +25,43 @@ process_name=$2
 
 function start_daemon() {
     echo "start Profiler Daemon Process"
-    cd $WORK_DIR/developtools
+    if [ $(getprop ro.product.cpu.abi) == "arm64-v8a" ]; then
+      echo "run as shell"
+      if [ `ps -ef | grep hiprofilerd | grep -v grep | wc -l` -ne 0 ]; then
+          killall hiprofilerd
+      fi
+      if [ `ps -ef | grep hiprofiler_plugins | grep -v grep | wc -l` -ne 0 ]; then
+          killall hiprofiler_plugins
+      fi
+      start_hiprofilerd
+      sleep 1
+      start_plugins
+    else
+     su root <<EOF
+      if [ `ps -ef | grep hiprofilerd | grep -v grep | wc -l` -ne 0 ]; then
+          killall hiprofilerd
+      fi
+      if [ `ps -ef | grep hiprofiler_plugins | grep -v grep | wc -l` -ne 0 ]; then
+          killall hiprofiler_plugins
+      fi
+      sh /data/local/tmp/ohosprofiler start_hiprofilerd
+      sleep 1
+      sh /data/local/tmp/ohosprofiler start_plugins
+      exit 0;
+EOF
+    fi
+    echo "StartDaemonSuccess"
+    exit 0
+}
+
+function start_std_daemon() {
+    echo "start_std_daemon Profiler Daemon Process"
+    if [ `ps -ef | grep hiprofilerd | grep -v grep | wc -l` -ne 0 ]; then
+        killall hiprofilerd
+    fi
+    if [ `ps -ef | grep hiprofiler_plugins | grep -v grep | wc -l` -ne 0 ]; then
+        killall hiprofiler_plugins
+    fi
     start_hiprofilerd
     sleep 1
     start_plugins
@@ -34,71 +70,64 @@ function start_daemon() {
 }
 
 function restart_daemon(){
-     local pid=$(pgrep -l .|grep hiprofilerd |grep -v grep |sed 's/^¥s*//'|sed 's/[[:space:]].*//')
-     local plugPid=$(pgrep -l .|grep hiprofiler_plug |grep -v grep |sed 's/^¥s*//'|sed 's/[[:space:]].*//')
-     if [ !$pid ]; then
-         kill -9 $pid 
-     fi	     
-     if [ !$plugPid ]; then
-	 kill -9 $plugPid
-     fi
-     start_hiprofilerd
-     sleep 1
-     start_plugins
-     echo "StartDaemonSuccess"
-     exit 0     
-}	
+     echo "start Profiler Daemon Process"
+    if [ $(getprop ro.product.cpu.abi) == "arm64-v8a" ]; then
+      echo "run as shell"
+      if [ `ps -ef | grep hiprofilerd | grep -v grep | wc -l` -ne 0 ]; then
+          killall hiprofilerd
+      fi
+      if [ `ps -ef | grep hiprofiler_plugins | grep -v grep | wc -l` -ne 0 ]; then
+          killall hiprofiler_plugins
+      fi
+      start_hiprofilerd
+      sleep 1
+      start_plugins
+    else
+      su root <<EOF
+        if [ `ps -ef | grep hiprofilerd | grep -v grep | wc -l` -ne 0 ]; then
+            killall hiprofilerd
+        fi
+        if [ `ps -ef | grep hiprofiler_plugins | grep -v grep | wc -l` -ne 0 ]; then
+            killall hiprofiler_plugins
+      fi
+          sh /data/local/tmp/ohosprofiler start_hiprofilerd
+          sleep 1
+          sh /data/local/tmp/ohosprofiler start_plugins
+          exit 0;
+EOF
+    fi
+echo "StartDaemonSuccess"
+}
 
 function start_hiprofilerd() {
     cd $WORK_DIR/developtools
-    if [ `ps -ef | grep hiprofilerd | grep -v grep | wc -l` == 0 ]; then
-        chmod +x $WORK_DIR/developtools/hiprofilerd
-        LD_LIBRARY_PATH=./ ./hiprofilerd &
-    fi
-}	
-
-function start_plugins() { 
-    cd $WORK_DIR/developtools
-    if [ `ps -ef | grep hiprofiler_plugins | grep -v grep | wc -l` == 0 ]; then
-        chmod +x $WORK_DIR/developtools/hiprofiler_plugins
-	LD_LIBRARY_PATH=./ ./hiprofiler_plugins &
-    fi
-
+    chmod +x $WORK_DIR/developtools/hiprofilerd
+    echo "$pwd"
+    LD_LIBRARY_PATH=./ ./hiprofilerd & >> /dev/null
 }
 
-function start_v7daemon(){
-    echo "start Profiler Daemon V7 Process"
+function start_plugins() {
     cd $WORK_DIR/developtools
-    if [ `ps -ef | grep hiprofilerd | grep -v grep | wc -l` == 0 ]; then
-        chmod +x $WORK_DIR/developtools/hiprofilerd
-        LD_LIBRARY_PATH=./ ./hiprofilerd &
-    fi
-    sleep 2
-    if [ `ps -ef | grep hiprofiler_plugins | grep -v grep | wc -l` == 0 ]; then
-        chmod +x $WORK_DIR/developtools/hiprofiler_plugins
-        LD_LIBRARY_PATH=./ ./hiprofiler_plugins &
-    fi
-    echo "StartDaemonSuccess"
-    exit 0
+    chmod +x $WORK_DIR/developtools/hiprofiler_plugins
+    LD_LIBRARY_PATH=./ ./hiprofiler_plugins & >> /dev/null
 }
-
 
 function uzip_file(){
+     echo "================= $1 "
+     string=$1
+     array=(${string//,/ })
      echo "uzip devtools file"
      cd $WORK_DIR
-     if [ `ls $WORK_DIR | grep devtool | grep -v grep | wc -l` -eq 1 ]; then
-         tar -xf $WORK_DIR/devtool
-	 chmod +x *
-	 cp $WORK_DIR/developtools/libmemdataplugin.z.so $WORK_DIR
-	 if [ `ls ${WORK_DIR}/developtools/ | grep libbytraceplugin.z.so | grep -v grep | wc -l` -eq 1 ]; then
-	    cp $WORK_DIR/developtools/libbytraceplugin.z.so $WORK_DIR
-	 fi
-         if [ `ls ${WORK_DIR}/developtools/ | grep libptrace_plugin.z.so | grep -v grep | wc -l` -eq 1 ]; then
-            cp $WORK_DIR/developtools/libptrace_plugin.z.so $WORK_DIR
-         fi
-         if [ `ls ${WORK_DIR}/developtools/ | grep libtraceplugin.z.so | grep -v grep | wc -l` -eq 1 ]; then
-            cp $WORK_DIR/developtools/libtraceplugin.z.so $WORK_DIR
-         fi	 
+     if [ `ls $WORK_DIR | grep developtools | grep -v grep | wc -l` -eq 1 ]; then
+        cd developtools
+        chmod + *
+         for pluginfile in ${array[@]}
+         do
+           echo "---------------- $pluginfile"
+           if [ `ls ${WORK_DIR}/developtools/ | grep $pluginfile | grep -v grep | wc -l` -eq 1 ]; then
+               cp $WORK_DIR/developtools/$pluginfile $WORK_DIR
+           fi
+         done
      fi
 }
 
@@ -112,39 +141,35 @@ function check_server(){
    LD_LIBRARY_PATH=./  /data/local/tmp/developtools/hiprofiler_cmd -q
 }	
 
+function check_std_server(){
+   if [ `ps -ef| grep hiprofiler_plugins | grep -v grep | wc -l` -eq 0 ];then
+      echo "FAIL"
+   fi
+    if [ `ps -ef| grep hiprofilerd | grep -v grep | wc -l` -eq 0 ];then
+         echo "FAIL"
+    fi
+    echo "OK";
+}
+
 
 function unzip_start_daemon(){
-    uzip_file  
+    uzip_file $1
     start_daemon 
     exit 0
 }
 
-function unzip_start_daemonV7(){
-    uzip_file
-    start_v7daemon
+function untar_start_daemon(){
+    untar
+    uzip_file $1
+    start_std_daemon
     exit 0
 }
 
-function check_file_exits(){
-    echo "check daemon File "
-    if [ `ls $WORK_DIR | grep hiprofiler_cmd | wc -l`  == 0 ]; then
-          echo "hiprofiler_cmd is not found"
-	  exit 1
-    fi
-    chmod +x $WORK_DIR/hiprofiler_cmd
-
-    if [ `ls $WORK_DIR | grep hiprofilerd | wc -l`  == 0 ]; then
-          echo "hiprofilerd is not found"
-	  exit 2
-    fi
-    chmod +x $WORK_DIR/hiprofilerd
-
-    if [ `ls $WORK_DIR | grep hiprofiler_plugins | wc -l`  == 0 ]; then
-          echo "hiprofilerd is not found"
-	  exit 3
-    fi
-    chmod +x $WORK_DIR/hiprofiler_plugins
-} 
+function untar(){
+    cd /data/local/tmp/
+    tar -vxf developtool.tar
+    return 0
+}
 
 case $1 in
          check)
@@ -155,25 +180,33 @@ case $1 in
            echo "start"
 	   start_daemon
          ;;
-	 unzipStart)
+	     unzipStart)
            echo "start"
-           unzip_start_daemon
+           unzip_start_daemon $2
          ;;
-         startHeap)
-	   echo "start Heap"
-	   start_java_heap
-	 ;; 
+         untarStart)
+           echo "start"
+           untar_start_daemon $2
+         ;;
          check_server)
            check_server
          ;;
-	 startV7)
-           start_v7daemon
+         check_std_server)
+           check_std_server
          ;;
 	 restart)
            restart_daemon
          ;;
-         unzipStartV7)
-           unzip_start_daemonV7
+         start_std_daemon)
+           start_std_daemon
+         ;;
+         start_hiprofilerd)
+           echo "ohosprofiler"
+           start_hiprofilerd
+         ;;
+         start_plugins)
+           echo "------------"
+           start_plugins
          ;;
          *)
            echo "Ignorant"

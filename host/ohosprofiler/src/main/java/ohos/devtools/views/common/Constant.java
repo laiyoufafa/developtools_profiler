@@ -15,98 +15,41 @@
 
 package ohos.devtools.views.common;
 
+import com.intellij.ui.components.JBTabbedPane;
 import ohos.devtools.datasources.utils.device.entity.DeviceIPPortInfo;
 import ohos.devtools.datasources.utils.process.entity.ProcessInfo;
 
-import javax.swing.JTabbedPane;
 import java.util.HashMap;
 import java.util.Map;
 
 /**
- * @Description Constants
- * @version 1.0
- * @date 2021/3/4 10:55
- **/
+ * Constants
+ */
 public class Constant {
     /**
-     * Default polling frequency.
+     * develop mode
      */
-    public static final String POLLING_FREQUEBCY_DEFAULT = "0/1 * * * * ?";
+    public static final boolean IS_DEVELOP_MODE = false;
 
     /**
-     * The source file path pushed by the plugin
+     * IS_SUPPORT_NEW_HDC
      */
-    public static final String SOURCE_FILEPATH = "src/main/resources/";
-
-    /**
-     * Cpu plugin file name
-     */
-    public static final String CPU_PLUG_NAME = "Cpu";
-
-    /**
-     * Gpu plugin file name
-     */
-    public static final String GPU_PLUG_NAME = "Gpu";
-
-    /**
-     * Memory plugin file name
-     */
-    public static final String MEMORY_PLUG_NAME = "Memory";
-
-    /**
-     * Process plugin file name
-     */
-    public static final String PROCESS_PLUG_NAME = "Process";
-
-    /**
-     * The target file path of the plug-in push
-     */
-    public static final String TARGET_PLUG_PATH = "/data/local/tmp/hiprofiler/bin/";
-
-    /**
-     * File suffix pushed by the plugin
-     */
-    public static final String FILE_SUFFIX = ".so";
-
-    /**
-     * The default value of SAMPLE INTERVAL
-     */
-    public static final int SAMPLE_INTERVAL_DEFAULT = 1000;
-
-    /**
-     * STATUS
-     */
-    public static final int NORMAL_STATUS = 0;
-
-    /**
-     * Real-time scene
-     */
-    public static final int REALTIME_SCENE = 1;
-
-    /**
-     * File import scene
-     */
-    public static final int FILE_IMPORT_SCENE = 2;
-
-    /**
-     * MB
-     */
-    public static final int MB = 1024;
-
-    /**
-     * Abnormal state
-     */
-    public static final Long ABNORMAL = -1L;
+    public static final boolean IS_SUPPORT_NEW_HDC = true;
 
     /**
      * Common tab
      */
-    public static JTabbedPane jtasksTab = null;
+    public static JBTabbedPane jtasksTab = null;
 
     /**
      * Real-time refresh task name in the device selection box
      */
-    public static final String DEVICEREFRESH = "deviceRefresh";
+    public static final String DEVICE_REFRESH = "deviceRefresh";
+
+    /**
+     * Real-time refresh task name in the device selection box
+     */
+    public static final String DISTRIBUTED_REFRESH = "DistributedRefresh";
 
     /**
      * Maps stored in all process devices
@@ -119,12 +62,8 @@ public class Constant {
     public static final String TRACE_SUFFIX = ".trace";
 
     /**
-     * trace file path
+     * treeTable init count
      */
-    public static String path = "";
+    public static int MEMORY_AGENT_INIT_COUNT = 1000;
 
-    /**
-     * trace文件保存路径
-     */
-    public static String tracePath = "";
 }

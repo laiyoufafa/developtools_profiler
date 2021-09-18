@@ -16,6 +16,8 @@
 #define final // disable final keyword
 #define LOG_TAG "ProfilerServiceTest"
 
+#include <grpcpp/grpcpp.h>
+#include <grpcpp/health_check_service_interface.h>
 #include <hwext/gtest-ext.h>
 #include <hwext/gtest-tag.h>
 #include <thread>
@@ -25,10 +27,53 @@
 #include "profiler_capability_manager.h"
 #include "profiler_data_repeater.h"
 #include "profiler_service.h"
+#include "schedule_task_manager.h"
 
 using namespace testing::ext;
 
 using ProfilerServicePtr = STD_PTR(shared, ProfilerService);
+
+namespace {
+constexpr int BATCH_SIZE = 100;
+constexpr int ROUND_COUNT = 200;
+constexpr int FETCH_DATA_DELAY_US = 100 * 1000;
+constexpr int TEST_SESSION_TIMEOUT_MS = 100;
+
+class Timer {
+public:
+    using Clock = std::chrono::steady_clock;
+    using TimePoint = Clock::time_point;
+
+    Timer()
+        : startTime_(Now())
+    {
+    }
+
+    ~Timer()
+    {
+    }
+
+    long ElapsedUs()
+    {
+        auto currentTime = Now();
+        return std::chrono::duration_cast<std::chrono::microseconds>(currentTime - startTime_).count();
+    }
+
+    void Reset()
+    {
+        startTime_ = Now();
+    }
+
+protected:
+    TimePoint Now()
+    {
+        return Clock::now();
+    }
+
+private:
+    TimePoint startTime_;
+};
+
 class ProfilerServiceTest : public ::testing::Test {
 protected:
     PluginServicePtr pluginService_;
@@ -36,7 +81,7 @@ protected:
 
     PluginInfo pluginInfo;
     std::unique_ptr<grpc::ServerContext> context_;
-    std::atomic<int> requestCounter{0};
+    std::atomic<int> requestCounter = 0;
 
     static void SetUpTestCase() {}
     static void TearDownTestCase() {}
@@ -61,6 +106,15 @@ protected:
         }
         pluginService_.reset();
         ProfilerCapabilityManager::GetInstance().pluginCapabilities_.clear();
+    }
+
+    void AddPlugin(const std::string& pluginName)
+    {
+        PluginInfo pluginInfo;
+        pluginInfo.name = pluginName;
+        if (pluginService_) {
+            pluginService_->AddPluginInfo(pluginInfo);
+        }
     }
 
     grpc::Status StartSession(uint32_t sessionId)
@@ -93,7 +147,46 @@ protected:
         return service_->DestroySession(context_.get(), &request, &response);
     }
 
-    void FetchDataOnlineSet(uint32_t& sessionId);
+    uint32_t CreateOnlineSession()
+    {
+        CreateSessionRequest request;
+        CreateSessionResponse response;
+
+        auto sessionConfig = request.mutable_session_config();
+        CHECK_NOTNULL(sessionConfig, 0, "request.mutable_session_config() return nullptr!");
+
+        sessionConfig->set_session_mode(ProfilerSessionConfig::ONLINE);
+        auto pluginConfig = request.add_plugin_configs();
+        CHECK_NOTNULL(pluginConfig, 0, "request.add_plugin_configs() return nullptr!");
+
+        pluginConfig->set_name(pluginInfo.name);
+        request.set_request_id(++requestCounter);
+        auto status = service_->CreateSession(context_.get(), &request, &response);
+        CHECK_TRUE(status.error_code() == grpc::StatusCode::OK, 0, "create session FAILED!");
+
+        return response.session_id();
+    }
+
+    uint32_t CreateOfflineSession()
+    {
+        CreateSessionRequest request;
+        CreateSessionResponse response;
+
+        auto sessionConfig = request.mutable_session_config();
+        CHECK_NOTNULL(sessionConfig, 0, "request.mutable_session_config() return nullptr!");
+
+        sessionConfig->set_session_mode(ProfilerSessionConfig::OFFLINE);
+        sessionConfig->set_result_file("trace.bin");
+        auto pluginConfig = request.add_plugin_configs();
+        CHECK_NOTNULL(pluginConfig, 0, "request.add_plugin_configs() return nullptr!");
+
+        pluginConfig->set_name(pluginInfo.name);
+        request.set_request_id(++requestCounter);
+        auto status = service_->CreateSession(context_.get(), &request, &response);
+        CHECK_TRUE(status.error_code() == grpc::StatusCode::OK, 0, "create session FAILED!");
+
+        return response.session_id();
+    }
 };
 
 /**
@@ -108,7 +201,7 @@ HWTEST_F(ProfilerServiceTest, CtorDtor, TestSize.Level1)
 
 /**
  * @tc.name: server
- * @tc.desc: get plugin capabilities.
+ * @tc.desc: get plugin capabilities normal.
  * @tc.type: FUNC
  */
 HWTEST_F(ProfilerServiceTest, GetCapabilities, TestSize.Level1)
@@ -117,25 +210,152 @@ HWTEST_F(ProfilerServiceTest, GetCapabilities, TestSize.Level1)
     ASSERT_NE(context_, nullptr);
 
     GetCapabilitiesRequest request;
-    GetCapabilitiesResponse response;
+    auto response = std::make_unique<GetCapabilitiesResponse>();
+    ASSERT_NE(response, nullptr);
 
     ProfilerPluginCapability cap;
     cap.set_name("cap1");
-    ProfilerCapabilityManager::GetInstance().AddCapability(cap);
 
     request.set_request_id(++requestCounter);
-    auto status = service_->GetCapabilities(context_.get(), &request, &response);
+    auto status = service_->GetCapabilities(context_.get(), &request, response.get());
     EXPECT_EQ(status.error_code(), grpc::StatusCode::OK);
-    EXPECT_GT(response.capabilities_size(), 0);
-    HILOG_DEBUG(LOG_CORE, "GetCapabilities, capabilities_size = %d", response.capabilities_size());
+    EXPECT_EQ(response->capabilities_size(), ProfilerCapabilityManager::GetInstance().GetCapabilities().size());
+
+    int capSize = response->capabilities_size();
+    EXPECT_TRUE(ProfilerCapabilityManager::GetInstance().AddCapability(cap));
+
+    request.set_request_id(++requestCounter);
+    response = std::make_unique<GetCapabilitiesResponse>();
+    status = service_->GetCapabilities(context_.get(), &request, response.get());
+    EXPECT_EQ(status.error_code(), grpc::StatusCode::OK);
+    EXPECT_EQ(response->capabilities_size(), ProfilerCapabilityManager::GetInstance().GetCapabilities().size());
+    EXPECT_EQ(response->capabilities_size(), capSize + 1);
 }
 
 /**
  * @tc.name: server
- * @tc.desc: create session.
+ * @tc.desc: get plugin capabilities normal.
  * @tc.type: FUNC
  */
-HWTEST_F(ProfilerServiceTest, CreateSession, TestSize.Level1)
+HWTEST_F(ProfilerServiceTest, GetCapabilitiesAfterRemove, TestSize.Level1)
+{
+    ASSERT_NE(service_, nullptr);
+    ASSERT_NE(context_, nullptr);
+
+    GetCapabilitiesRequest request;
+    auto response = std::make_unique<GetCapabilitiesResponse>();
+    ASSERT_NE(response, nullptr);
+
+    ProfilerPluginCapability cap;
+    cap.set_name("cap1");
+
+    request.set_request_id(++requestCounter);
+    auto status = service_->GetCapabilities(context_.get(), &request, response.get());
+    EXPECT_EQ(status.error_code(), grpc::StatusCode::OK);
+    EXPECT_EQ(response->capabilities_size(), ProfilerCapabilityManager::GetInstance().GetCapabilities().size());
+
+    int capSize = response->capabilities_size();
+    EXPECT_TRUE(ProfilerCapabilityManager::GetInstance().AddCapability(cap));
+
+    request.set_request_id(++requestCounter);
+    response = std::make_unique<GetCapabilitiesResponse>();
+    status = service_->GetCapabilities(context_.get(), &request, response.get());
+    EXPECT_EQ(status.error_code(), grpc::StatusCode::OK);
+    EXPECT_EQ(response->capabilities_size(), capSize + 1);
+
+    EXPECT_TRUE(ProfilerCapabilityManager::GetInstance().RemoveCapability(cap.name()));
+    response = std::make_unique<GetCapabilitiesResponse>();
+    status = service_->GetCapabilities(context_.get(), &request, response.get());
+    EXPECT_EQ(status.error_code(), grpc::StatusCode::OK);
+    EXPECT_EQ(response->capabilities_size(), ProfilerCapabilityManager::GetInstance().GetCapabilities().size());
+    EXPECT_EQ(response->capabilities_size(), capSize);
+}
+
+
+/**
+ * @tc.name: server
+ * @tc.desc: get plugin capabilities batch test.
+ * @tc.type: FUNC
+ */
+HWTEST_F(ProfilerServiceTest, GetCapabilitiesBatchTest, TestSize.Level1)
+{
+    ASSERT_NE(service_, nullptr);
+    ASSERT_NE(context_, nullptr);
+
+    GetCapabilitiesRequest request;
+    auto response = std::make_unique<GetCapabilitiesResponse>();
+    ASSERT_NE(response, nullptr);
+
+    request.set_request_id(++requestCounter);
+    auto status = service_->GetCapabilities(context_.get(), &request, response.get());
+    EXPECT_EQ(status.error_code(), grpc::StatusCode::OK);
+    EXPECT_EQ(response->capabilities_size(), ProfilerCapabilityManager::GetInstance().GetCapabilities().size());
+
+    for (int i = 0; i < BATCH_SIZE; i++) {
+        ProfilerPluginCapability cap;
+        cap.set_name("cap_" + std::to_string(i));
+        EXPECT_TRUE(ProfilerCapabilityManager::GetInstance().AddCapability(cap));
+    }
+
+    Timer timer = {};
+    for (int i = 0; i < ROUND_COUNT; i++) {
+        request.set_request_id(++requestCounter);
+        response = std::make_unique<GetCapabilitiesResponse>();
+        status = service_->GetCapabilities(context_.get(), &request, response.get());
+        EXPECT_EQ(status.error_code(), grpc::StatusCode::OK);
+    }
+    auto timeCost = timer.ElapsedUs();
+    printf("GetCapabilities %d time cost %ldus.\n", ROUND_COUNT, timeCost);
+}
+
+/**
+ * @tc.name: server
+ * @tc.desc: get plugin capabilities with invalid context.
+ * @tc.type: FUNC
+ */
+HWTEST_F(ProfilerServiceTest, GetCapabilitiesWithInvalidContext, TestSize.Level1)
+{
+    ASSERT_NE(service_, nullptr);
+    ASSERT_NE(context_, nullptr);
+
+    GetCapabilitiesRequest request;
+    auto response = std::make_unique<GetCapabilitiesResponse>();
+    ASSERT_NE(response, nullptr);
+
+    auto status = service_->GetCapabilities(nullptr, &request, response.get());
+    EXPECT_NE(status.error_code(), grpc::StatusCode::OK);
+}
+
+/**
+ * @tc.name: server
+ * @tc.desc: get plugin capabilities with invalid arguments.
+ * @tc.type: FUNC
+ */
+HWTEST_F(ProfilerServiceTest, GetCapabilitiesWithInvalidArguments, TestSize.Level1)
+{
+    ASSERT_NE(service_, nullptr);
+    ASSERT_NE(context_, nullptr);
+
+    GetCapabilitiesRequest request;
+    auto response = std::make_unique<GetCapabilitiesResponse>();
+    ASSERT_NE(response, nullptr);
+
+    auto status = service_->GetCapabilities(context_.get(), nullptr, response.get());
+    EXPECT_NE(status.error_code(), grpc::StatusCode::OK);
+
+    status = service_->GetCapabilities(context_.get(), &request, nullptr);
+    EXPECT_NE(status.error_code(), grpc::StatusCode::OK);
+
+    status = service_->GetCapabilities(context_.get(), nullptr, nullptr);
+    EXPECT_NE(status.error_code(), grpc::StatusCode::OK);
+}
+
+/**
+ * @tc.name: server
+ * @tc.desc: create session without plugin config.
+ * @tc.type: FUNC
+ */
+HWTEST_F(ProfilerServiceTest, CreateSessionNoPluginConfig, TestSize.Level1)
 {
     ASSERT_NE(service_, nullptr);
     ASSERT_NE(context_, nullptr);
@@ -145,6 +365,20 @@ HWTEST_F(ProfilerServiceTest, CreateSession, TestSize.Level1)
 
     auto status = service_->CreateSession(context_.get(), &request, &response);
     EXPECT_NE(status.error_code(), grpc::StatusCode::OK);
+}
+
+/**
+ * @tc.name: server
+ * @tc.desc: create session offline test.
+ * @tc.type: FUNC
+ */
+HWTEST_F(ProfilerServiceTest, CreateSessionOffline, TestSize.Level1)
+{
+    ASSERT_NE(service_, nullptr);
+    ASSERT_NE(context_, nullptr);
+
+    CreateSessionRequest request;
+    CreateSessionResponse response;
 
     auto sessionConfig = request.mutable_session_config();
     ASSERT_NE(sessionConfig, nullptr);
@@ -156,13 +390,13 @@ HWTEST_F(ProfilerServiceTest, CreateSession, TestSize.Level1)
     pluginConfig->set_name(pluginInfo.name);
 
     request.set_request_id(++requestCounter);
-    status = service_->CreateSession(context_.get(), &request, &response);
+    auto status = service_->CreateSession(context_.get(), &request, &response);
     EXPECT_EQ(status.error_code(), grpc::StatusCode::OK);
 }
 
 /**
  * @tc.name: server
- * @tc.desc: create session online.
+ * @tc.desc: create session online test.
  * @tc.type: FUNC
  */
 HWTEST_F(ProfilerServiceTest, CreateSessionOnline, TestSize.Level1)
@@ -189,78 +423,262 @@ HWTEST_F(ProfilerServiceTest, CreateSessionOnline, TestSize.Level1)
 
 /**
  * @tc.name: server
- * @tc.desc: destroy session.
+ * @tc.desc: create session batch test.
  * @tc.type: FUNC
  */
-HWTEST_F(ProfilerServiceTest, DestroySession, TestSize.Level1)
+HWTEST_F(ProfilerServiceTest, CreateSessionBatchTest, TestSize.Level1)
 {
     ASSERT_NE(service_, nullptr);
+    ASSERT_NE(context_, nullptr);
 
-    EXPECT_NE(DestroySession(0).error_code(), grpc::StatusCode::OK);
+    CreateSessionRequest request;
+    CreateSessionResponse response;
 
-    uint32_t sessionId = 0;
-    {
-        CreateSessionRequest request;
-        CreateSessionResponse response;
+    auto sessionConfig = request.mutable_session_config();
+    ASSERT_NE(sessionConfig, nullptr);
+    sessionConfig->set_session_mode(ProfilerSessionConfig::ONLINE);
+    sessionConfig->clear_result_file();
 
-        auto sessionConfig = request.mutable_session_config();
-        ASSERT_NE(sessionConfig, nullptr);
-        sessionConfig->set_session_mode(ProfilerSessionConfig::OFFLINE);
-        sessionConfig->set_result_file("trace.bin");
-
+    Timer timer = {};
+    for (int i = 0; i < ROUND_COUNT; i++) {
         auto pluginConfig = request.add_plugin_configs();
         ASSERT_NE(pluginConfig, nullptr);
-        pluginConfig->set_name(pluginInfo.name);
+        std::string pluginName = "create_session_batch_test_" + std::to_string(i);
+        AddPlugin(pluginName);
+        pluginConfig->set_name(pluginName);
 
         request.set_request_id(++requestCounter);
         auto status = service_->CreateSession(context_.get(), &request, &response);
         EXPECT_EQ(status.error_code(), grpc::StatusCode::OK);
-        sessionId = response.session_id();
     }
+    printf("CreateSession %d time, cost %ldus.\n", ROUND_COUNT, timer.ElapsedUs());
+}
+
+/**
+ * @tc.name: server
+ * @tc.desc: create session with invalid arguments.
+ * @tc.type: FUNC
+ */
+HWTEST_F(ProfilerServiceTest, CreateSessionInvalidArguments, TestSize.Level1)
+{
+    ASSERT_NE(service_, nullptr);
+    ASSERT_NE(context_, nullptr);
+
+    CreateSessionRequest request;
+    auto response = std::make_unique<CreateSessionResponse>();
+    ASSERT_NE(response, nullptr);
+
+    auto status = service_->CreateSession(context_.get(), nullptr, response.get());
+    EXPECT_NE(status.error_code(), grpc::StatusCode::OK);
+
+    status = service_->CreateSession(context_.get(), &request, nullptr);
+    EXPECT_NE(status.error_code(), grpc::StatusCode::OK);
+
+    status = service_->CreateSession(context_.get(), nullptr, nullptr);
+    EXPECT_NE(status.error_code(), grpc::StatusCode::OK);
+}
+
+/**
+ * @tc.name: server
+ * @tc.desc: create session with invalid context.
+ * @tc.type: FUNC
+ */
+HWTEST_F(ProfilerServiceTest, CreateSessionWithInvalidContext, TestSize.Level1)
+{
+    ASSERT_NE(service_, nullptr);
+    ASSERT_NE(context_, nullptr);
+
+    CreateSessionRequest request;
+    auto response = std::make_unique<CreateSessionResponse>();
+    ASSERT_NE(response, nullptr);
+
+    auto status = service_->CreateSession(nullptr, &request, response.get());
+    EXPECT_NE(status.error_code(), grpc::StatusCode::OK);
+}
+
+
+/**
+ * @tc.name: server
+ * @tc.desc: destroy session with invalid session id.
+ * @tc.type: FUNC
+ */
+HWTEST_F(ProfilerServiceTest, DestroySessionInvalidSessionId, TestSize.Level1)
+{
+    ASSERT_NE(service_, nullptr);
+
+    EXPECT_NE(DestroySession(0).error_code(), grpc::StatusCode::OK);
+}
+
+/**
+ * @tc.name: server
+ * @tc.desc: destroy session with offline session.
+ * @tc.type: FUNC
+ */
+HWTEST_F(ProfilerServiceTest, DestroySessionOffline, TestSize.Level1)
+{
+    ASSERT_NE(service_, nullptr);
+
+    uint32_t sessionId = CreateOfflineSession();
+    EXPECT_NE(sessionId, 0);
 
     EXPECT_EQ(DestroySession(sessionId).error_code(), grpc::StatusCode::OK);
 }
 
 /**
  * @tc.name: server
- * @tc.desc: start session.
+ * @tc.desc: destroy session with online session.
  * @tc.type: FUNC
  */
-HWTEST_F(ProfilerServiceTest, StartSession, TestSize.Level1)
+HWTEST_F(ProfilerServiceTest, DestroySessionOnline, TestSize.Level1)
+{
+    ASSERT_NE(service_, nullptr);
+
+    uint32_t sessionId = CreateOnlineSession();
+    EXPECT_NE(sessionId, 0);
+
+    EXPECT_EQ(DestroySession(sessionId).error_code(), grpc::StatusCode::OK);
+}
+
+/**
+ * @tc.name: server
+ * @tc.desc: destroy session batch test.
+ * @tc.type: FUNC
+ */
+HWTEST_F(ProfilerServiceTest, DestroySessionBatchTest, TestSize.Level1)
+{
+    ASSERT_NE(service_, nullptr);
+    ASSERT_NE(context_, nullptr);
+
+    std::vector<uint32_t> sessionIds;
+    Timer timer = {};
+    for (int i = 0; i < ROUND_COUNT; i++) {
+        uint32_t sessionId = 0;
+        {
+            CreateSessionRequest request;
+            CreateSessionResponse response;
+
+            auto sessionConfig = request.mutable_session_config();
+            ASSERT_NE(sessionConfig, nullptr);
+            sessionConfig->set_session_mode(ProfilerSessionConfig::ONLINE);
+
+            auto pluginConfig = request.add_plugin_configs();
+            ASSERT_NE(pluginConfig, nullptr);
+
+            std::string pluginName = "create_session_batch_test_" + std::to_string(i);
+            AddPlugin(pluginName);
+            pluginConfig->set_name(pluginName);
+
+            request.set_request_id(++requestCounter);
+            auto status = service_->CreateSession(context_.get(), &request, &response);
+            EXPECT_EQ(status.error_code(), grpc::StatusCode::OK);
+            sessionId = response.session_id();
+        }
+        if (sessionId) {
+            sessionIds.push_back(sessionId);
+        }
+    }
+    printf("CreateSession %d time, cost %ldus.\n", ROUND_COUNT, timer.ElapsedUs());
+
+    timer.Reset();
+    for (auto sessionId : sessionIds) {
+        EXPECT_EQ(DestroySession(sessionId).error_code(), grpc::StatusCode::OK);
+    }
+    printf("DestroySession %d time, cost %ldus.\n", ROUND_COUNT, timer.ElapsedUs());
+}
+
+/**
+ * @tc.name: server
+ * @tc.desc: destroy session with invalid arguments.
+ * @tc.type: FUNC
+ */
+HWTEST_F(ProfilerServiceTest, DestroySessionInvalidArguments, TestSize.Level1)
+{
+    ASSERT_NE(service_, nullptr);
+    ASSERT_NE(context_, nullptr);
+
+    uint32_t sessionId = CreateOnlineSession();
+    EXPECT_NE(sessionId, 0);
+
+    DestroySessionRequest request;
+    auto response = std::make_unique<DestroySessionResponse>();
+    ASSERT_NE(response, nullptr);
+
+    auto status = service_->DestroySession(context_.get(), nullptr, response.get());
+    EXPECT_NE(status.error_code(), grpc::StatusCode::OK);
+
+    status = service_->DestroySession(context_.get(), &request, nullptr);
+    EXPECT_NE(status.error_code(), grpc::StatusCode::OK);
+
+    status = service_->DestroySession(context_.get(), nullptr, nullptr);
+    EXPECT_NE(status.error_code(), grpc::StatusCode::OK);
+}
+
+/**
+ * @tc.name: server
+ * @tc.desc: destroy session with invalid context.
+ * @tc.type: FUNC
+ */
+HWTEST_F(ProfilerServiceTest, DestroySessionWithInvalidContext, TestSize.Level1)
+{
+    ASSERT_NE(service_, nullptr);
+    ASSERT_NE(context_, nullptr);
+
+    uint32_t sessionId = CreateOnlineSession();
+    EXPECT_NE(sessionId, 0);
+
+    DestroySessionRequest request;
+    auto response = std::make_unique<DestroySessionResponse>();
+    ASSERT_NE(response, nullptr);
+
+    auto status = service_->DestroySession(nullptr, &request, response.get());
+    EXPECT_NE(status.error_code(), grpc::StatusCode::OK);
+}
+
+/**
+ * @tc.name: server
+ * @tc.desc: start session with invalid session id.
+ * @tc.type: FUNC
+ */
+HWTEST_F(ProfilerServiceTest, StartSessionInvalidSessionId, TestSize.Level1)
 {
     ASSERT_NE(service_, nullptr);
     ASSERT_NE(context_, nullptr);
 
     auto status = StartSession(0);
     EXPECT_NE(status.error_code(), grpc::StatusCode::OK);
+}
 
-    uint32_t sessionId = 0;
-    {
-        CreateSessionRequest request;
-        CreateSessionResponse response;
+/**
+ * @tc.name: server
+ * @tc.desc: start session with valid offline session.
+ * @tc.type: FUNC
+ */
+HWTEST_F(ProfilerServiceTest, StartSessionOffline, TestSize.Level1)
+{
+    uint32_t sessionId = CreateOfflineSession();
+    EXPECT_NE(sessionId, 0);
 
-        auto sessionConfig = request.mutable_session_config();
-        ASSERT_NE(sessionConfig, nullptr);
-        sessionConfig->set_session_mode(ProfilerSessionConfig::OFFLINE);
-        sessionConfig->set_result_file("trace.bin");
-
-        auto pluginConfig = request.add_plugin_configs();
-        ASSERT_NE(pluginConfig, nullptr);
-        pluginConfig->set_name(pluginInfo.name);
-
-        request.set_request_id(++requestCounter);
-        auto status = service_->CreateSession(context_.get(), &request, &response);
-        EXPECT_EQ(status.error_code(), grpc::StatusCode::OK);
-        sessionId = response.session_id();
-    }
-
-    status = StartSession(sessionId);
+    auto status = StartSession(sessionId);
     EXPECT_EQ(status.error_code(), grpc::StatusCode::OK);
 }
 
 /**
  * @tc.name: server
- * @tc.desc: start session by update config.
+ * @tc.desc: start session with valid online session.
+ * @tc.type: FUNC
+ */
+HWTEST_F(ProfilerServiceTest, StartSessionOnline, TestSize.Level1)
+{
+    uint32_t sessionId = CreateOnlineSession();
+    EXPECT_NE(sessionId, 0);
+
+    auto status = StartSession(sessionId);
+    EXPECT_EQ(status.error_code(), grpc::StatusCode::OK);
+}
+
+/**
+ * @tc.name: server
+ * @tc.desc: start session and update configs.
  * @tc.type: FUNC
  */
 HWTEST_F(ProfilerServiceTest, StartSessionUpdateConfigs, TestSize.Level1)
@@ -268,25 +686,8 @@ HWTEST_F(ProfilerServiceTest, StartSessionUpdateConfigs, TestSize.Level1)
     ASSERT_NE(service_, nullptr);
     ASSERT_NE(context_, nullptr);
 
-    uint32_t sessionId = 0;
-    {
-        CreateSessionRequest request;
-        CreateSessionResponse response;
-
-        auto sessionConfig = request.mutable_session_config();
-        ASSERT_NE(sessionConfig, nullptr);
-        sessionConfig->set_session_mode(ProfilerSessionConfig::OFFLINE);
-        sessionConfig->set_result_file("trace.bin");
-
-        auto pluginConfig = request.add_plugin_configs();
-        ASSERT_NE(pluginConfig, nullptr);
-        pluginConfig->set_name(pluginInfo.name);
-
-        request.set_request_id(++requestCounter);
-        auto status = service_->CreateSession(context_.get(), &request, &response);
-        EXPECT_EQ(status.error_code(), grpc::StatusCode::OK);
-        sessionId = response.session_id();
-    }
+    uint32_t sessionId = CreateOfflineSession();
+    EXPECT_NE(sessionId, 0);
 
     StartSessionRequest request;
     StartSessionResponse response;
@@ -302,52 +703,248 @@ HWTEST_F(ProfilerServiceTest, StartSessionUpdateConfigs, TestSize.Level1)
     EXPECT_EQ(status.error_code(), grpc::StatusCode::OK);
 }
 
+/**
+ * @tc.name: server
+ * @tc.desc: start session batch test.
+ * @tc.type: FUNC
+ */
+HWTEST_F(ProfilerServiceTest, StartSessionBatchTest, TestSize.Level1)
+{
+    ASSERT_NE(service_, nullptr);
+    ASSERT_NE(context_, nullptr);
+
+    std::vector<uint32_t> sessionIds;
+    Timer timer = {};
+    for (int i = 0; i < ROUND_COUNT; i++) {
+        uint32_t sessionId = 0;
+        {
+            CreateSessionRequest request;
+            CreateSessionResponse response;
+
+            auto sessionConfig = request.mutable_session_config();
+            ASSERT_NE(sessionConfig, nullptr);
+            sessionConfig->set_session_mode(ProfilerSessionConfig::ONLINE);
+
+            auto pluginConfig = request.add_plugin_configs();
+            ASSERT_NE(pluginConfig, nullptr);
+
+            std::string pluginName = "create_session_batch_test_" + std::to_string(i);
+            AddPlugin(pluginName);
+            pluginConfig->set_name(pluginName);
+
+            request.set_request_id(++requestCounter);
+            auto status = service_->CreateSession(context_.get(), &request, &response);
+            EXPECT_EQ(status.error_code(), grpc::StatusCode::OK);
+            sessionId = response.session_id();
+        }
+        if (sessionId) {
+            sessionIds.push_back(sessionId);
+        }
+    }
+    printf("CreateSession %d time, cost %ldus.\n", ROUND_COUNT, timer.ElapsedUs());
+
+    timer.Reset();
+    for (auto sessionId : sessionIds) {
+        EXPECT_EQ(StartSession(sessionId).error_code(), grpc::StatusCode::OK);
+    }
+    printf("StartSession %d time, cost %ldus.\n", ROUND_COUNT, timer.ElapsedUs());
+}
 
 /**
  * @tc.name: server
- * @tc.desc: stop session.
+ * @tc.desc: start session with invalid arguments.
  * @tc.type: FUNC
  */
-HWTEST_F(ProfilerServiceTest, StopSession, TestSize.Level1)
+HWTEST_F(ProfilerServiceTest, StartSessionInvalidArguments, TestSize.Level1)
+{
+    ASSERT_NE(service_, nullptr);
+    ASSERT_NE(context_, nullptr);
+
+    uint32_t sessionId = CreateOnlineSession();
+    EXPECT_NE(sessionId, 0);
+
+    StartSessionRequest request;
+    auto response = std::make_unique<StartSessionResponse>();
+    ASSERT_NE(response, nullptr);
+
+    auto status = service_->StartSession(context_.get(), nullptr, response.get());
+    EXPECT_NE(status.error_code(), grpc::StatusCode::OK);
+
+    status = service_->StartSession(context_.get(), &request, nullptr);
+    EXPECT_NE(status.error_code(), grpc::StatusCode::OK);
+
+    status = service_->StartSession(context_.get(), nullptr, nullptr);
+    EXPECT_NE(status.error_code(), grpc::StatusCode::OK);
+}
+
+/**
+ * @tc.name: server
+ * @tc.desc: start session with invalid context.
+ * @tc.type: FUNC
+ */
+HWTEST_F(ProfilerServiceTest, StartSessionWithInvalidContext, TestSize.Level1)
+{
+    ASSERT_NE(service_, nullptr);
+    ASSERT_NE(context_, nullptr);
+
+    uint32_t sessionId = CreateOnlineSession();
+    EXPECT_NE(sessionId, 0);
+
+    StartSessionRequest request;
+    auto response = std::make_unique<StartSessionResponse>();
+    ASSERT_NE(response, nullptr);
+
+    auto status = service_->StartSession(nullptr, &request, response.get());
+    EXPECT_NE(status.error_code(), grpc::StatusCode::OK);
+}
+
+/**
+ * @tc.name: server
+ * @tc.desc: stop session with invalid session id.
+ * @tc.type: FUNC
+ */
+HWTEST_F(ProfilerServiceTest, StopSessionInvalidSessionId, TestSize.Level1)
 {
     ASSERT_NE(service_, nullptr);
     ASSERT_NE(context_, nullptr);
 
     auto status = StopSession(0);
     EXPECT_NE(status.error_code(), grpc::StatusCode::OK);
+}
 
-    uint32_t sessionId = 0;
+/**
+ * @tc.name: server
+ * @tc.desc: stop session with offline session.
+ * @tc.type: FUNC
+ */
+HWTEST_F(ProfilerServiceTest, StopSessionOffline, TestSize.Level1)
+{
+    uint32_t sessionId = CreateOfflineSession();
+    EXPECT_NE(sessionId, 0);
+
+    auto status = StopSession(sessionId);
+    EXPECT_EQ(status.error_code(), grpc::StatusCode::OK);
+}
+
+/**
+ * @tc.name: server
+ * @tc.desc: stop session with online session.
+ * @tc.type: FUNC
+ */
+HWTEST_F(ProfilerServiceTest, StopSessionOnline, TestSize.Level1)
+{
+    uint32_t sessionId = CreateOnlineSession();
+    EXPECT_NE(sessionId, 0);
     {
-        CreateSessionRequest request;
-        CreateSessionResponse response;
-
-        auto sessionConfig = request.mutable_session_config();
-        ASSERT_NE(sessionConfig, nullptr);
-        sessionConfig->set_session_mode(ProfilerSessionConfig::OFFLINE);
-        sessionConfig->set_result_file("trace.bin");
-
-        auto pluginConfig = request.add_plugin_configs();
-        ASSERT_NE(pluginConfig, nullptr);
-        pluginConfig->set_name(pluginInfo.name);
-
-        request.set_request_id(++requestCounter);
-        auto status = service_->CreateSession(context_.get(), &request, &response);
+        auto status = StartSession(sessionId);
         EXPECT_EQ(status.error_code(), grpc::StatusCode::OK);
-
-        sessionId = response.session_id();
-        {
-            StartSessionRequest request;
-            StartSessionResponse response;
-
-            request.set_session_id(sessionId);
-            request.set_request_id(++requestCounter);
-            auto status = service_->StartSession(context_.get(), &request, &response);
-            EXPECT_EQ(status.error_code(), grpc::StatusCode::OK);
-        }
     }
 
-    status = StopSession(sessionId);
+    auto status = StopSession(sessionId);
     EXPECT_EQ(status.error_code(), grpc::StatusCode::OK);
+}
+
+/**
+ * @tc.name: server
+ * @tc.desc: stop session batch test.
+ * @tc.type: FUNC
+ */
+HWTEST_F(ProfilerServiceTest, StopSessionBatchTest, TestSize.Level1)
+{
+    ASSERT_NE(service_, nullptr);
+    ASSERT_NE(context_, nullptr);
+
+    std::vector<uint32_t> sessionIds;
+    Timer timer = {};
+    for (int i = 0; i < ROUND_COUNT; i++) {
+        uint32_t sessionId = 0;
+        {
+            CreateSessionRequest request;
+            CreateSessionResponse response;
+
+            auto sessionConfig = request.mutable_session_config();
+            ASSERT_NE(sessionConfig, nullptr);
+            sessionConfig->set_session_mode(ProfilerSessionConfig::ONLINE);
+
+            auto pluginConfig = request.add_plugin_configs();
+            ASSERT_NE(pluginConfig, nullptr);
+
+            std::string pluginName = "create_session_batch_test_" + std::to_string(i);
+            AddPlugin(pluginName);
+            pluginConfig->set_name(pluginName);
+
+            request.set_request_id(++requestCounter);
+            auto status = service_->CreateSession(context_.get(), &request, &response);
+            EXPECT_EQ(status.error_code(), grpc::StatusCode::OK);
+            sessionId = response.session_id();
+        }
+        if (sessionId) {
+            sessionIds.push_back(sessionId);
+        }
+    }
+    printf("CreateSession %d time, cost %ldus.\n", ROUND_COUNT, timer.ElapsedUs());
+
+    timer.Reset();
+    for (auto sessionId : sessionIds) {
+        EXPECT_EQ(StartSession(sessionId).error_code(), grpc::StatusCode::OK);
+    }
+    printf("StartSession %d time, cost %ldus.\n", ROUND_COUNT, timer.ElapsedUs());
+
+    timer.Reset();
+    for (auto sessionId : sessionIds) {
+        EXPECT_EQ(StopSession(sessionId).error_code(), grpc::StatusCode::OK);
+    }
+    printf("StopSession %d time, cost %ldus.\n", ROUND_COUNT, timer.ElapsedUs());
+}
+
+/**
+ * @tc.name: server
+ * @tc.desc: stop session with invalid arguments.
+ * @tc.type: FUNC
+ */
+HWTEST_F(ProfilerServiceTest, StopSessionInvalidArguments, TestSize.Level1)
+{
+    ASSERT_NE(service_, nullptr);
+    ASSERT_NE(context_, nullptr);
+
+    uint32_t sessionId = CreateOnlineSession();
+    EXPECT_NE(sessionId, 0);
+    EXPECT_EQ(StartSession(sessionId).error_code(), grpc::StatusCode::OK);
+
+    StopSessionRequest request;
+    auto response = std::make_unique<StopSessionResponse>();
+    ASSERT_NE(response, nullptr);
+
+    auto status = service_->StopSession(context_.get(), nullptr, response.get());
+    EXPECT_NE(status.error_code(), grpc::StatusCode::OK);
+
+    status = service_->StopSession(context_.get(), &request, nullptr);
+    EXPECT_NE(status.error_code(), grpc::StatusCode::OK);
+
+    status = service_->StopSession(context_.get(), nullptr, nullptr);
+    EXPECT_NE(status.error_code(), grpc::StatusCode::OK);
+}
+
+/**
+ * @tc.name: server
+ * @tc.desc: stop session with invalid context.
+ * @tc.type: FUNC
+ */
+HWTEST_F(ProfilerServiceTest, StopSessionWithInvalidContext, TestSize.Level1)
+{
+    ASSERT_NE(service_, nullptr);
+    ASSERT_NE(context_, nullptr);
+
+    uint32_t sessionId = CreateOnlineSession();
+    EXPECT_NE(sessionId, 0);
+    EXPECT_EQ(StartSession(sessionId).error_code(), grpc::StatusCode::OK);
+
+    StopSessionRequest request;
+    auto response = std::make_unique<StopSessionResponse>();
+    ASSERT_NE(response, nullptr);
+
+    auto status = service_->StopSession(nullptr, &request, response.get());
+    EXPECT_NE(status.error_code(), grpc::StatusCode::OK);
 }
 
 class FakeServerWriter : public ::grpc::ServerWriter<::FetchDataResponse> {
@@ -357,98 +954,74 @@ public:
     {
     }
     ~FakeServerWriter() = default;
+
+    uint32_t GetDataCount() const
+    {
+        return dataCount_;
+    }
+
     using grpc::internal::WriterInterface<::FetchDataResponse>::Write;
     bool Write(const ::FetchDataResponse& msg, ::grpc::WriteOptions options) override
     {
-        HILOG_DEBUG(LOG_CORE, "FakeServerWriter::Write %zu bytes!", msg.ByteSizeLong());
+        if (msg.plugin_data_size() > 0) {
+            printf("ServerWriter recv %d data!\n",msg.plugin_data_size());
+            for (int i = 0; i < msg.plugin_data_size(); i++) {
+                printf("data[%d] size = %zu\n", i, msg.plugin_data(i).ByteSizeLong());
+            }
+            dataCount_ += msg.plugin_data_size();
+        }
         return true;
     }
+
+private:
+    std::atomic<uint32_t> dataCount_ = 0;
 };
 
 /**
  * @tc.name: server
- * @tc.desc: fetch data.
+ * @tc.desc: fetch data with invalid session id.
  * @tc.type: FUNC
  */
-HWTEST_F(ProfilerServiceTest, FetchData, TestSize.Level1)
+HWTEST_F(ProfilerServiceTest, FetchDataInvalidSessionId, TestSize.Level1)
 {
     ASSERT_NE(service_, nullptr);
     ASSERT_NE(context_, nullptr);
 
     FetchDataRequest request;
-
     auto writer = std::make_unique<FakeServerWriter>(nullptr, context_.get());
 
+    request.set_session_id(0); // invalid session id
     request.set_request_id(++requestCounter);
     auto status = service_->FetchData(context_.get(), &request, writer.get());
     EXPECT_NE(status.error_code(), grpc::StatusCode::OK);
+}
 
-    uint32_t sessionId = 0;
+/**
+ * @tc.name: server
+ * @tc.desc: fetch data with offline.
+ * @tc.type: FUNC
+ */
+HWTEST_F(ProfilerServiceTest, FetchDataOffline, TestSize.Level1)
+{
+    ASSERT_NE(service_, nullptr);
+    ASSERT_NE(context_, nullptr);
+
+    uint32_t sessionId = CreateOfflineSession();
+    EXPECT_NE(sessionId, 0);
     {
-        CreateSessionRequest request;
-        CreateSessionResponse response;
-
-        auto sessionConfig = request.mutable_session_config();
-        ASSERT_NE(sessionConfig, nullptr);
-        sessionConfig->set_session_mode(ProfilerSessionConfig::OFFLINE);
-        sessionConfig->set_result_file("trace.bin");
-
-        auto pluginConfig = request.add_plugin_configs();
-        ASSERT_NE(pluginConfig, nullptr);
-        pluginConfig->set_name(pluginInfo.name);
-
-        request.set_request_id(++requestCounter);
-        auto status = service_->CreateSession(context_.get(), &request, &response);
+        auto status = StartSession(sessionId);
         EXPECT_EQ(status.error_code(), grpc::StatusCode::OK);
-
-        sessionId = response.session_id();
-        {
-            StartSessionRequest request;
-            StartSessionResponse response;
-
-            request.set_session_id(sessionId);
-            request.set_request_id(++requestCounter);
-            auto status = service_->StartSession(context_.get(), &request, &response);
-            EXPECT_EQ(status.error_code(), grpc::StatusCode::OK);
-        }
     }
 
+    FetchDataRequest request;
     request.set_session_id(sessionId);
     request.set_request_id(++requestCounter);
-    status = service_->FetchData(context_.get(), &request, writer.get());
+    auto writer = std::make_unique<FakeServerWriter>(nullptr, context_.get());
+    auto status = service_->FetchData(context_.get(), &request, writer.get());
     EXPECT_EQ(status.error_code(), grpc::StatusCode::OK);
 
     EXPECT_EQ(StopSession(sessionId).error_code(), grpc::StatusCode::OK);
     EXPECT_EQ(DestroySession(sessionId).error_code(), grpc::StatusCode::OK);
-}
-
-void ProfilerServiceTest::FetchDataOnlineSet(uint32_t& sessionId)
-{
-    CreateSessionRequest request;
-    CreateSessionResponse response;
-
-    auto sessionConfig = request.mutable_session_config();
-    ASSERT_NE(sessionConfig, nullptr);
-    sessionConfig->set_session_mode(ProfilerSessionConfig::ONLINE);
-
-    auto pluginConfig = request.add_plugin_configs();
-    ASSERT_NE(pluginConfig, nullptr);
-    pluginConfig->set_name(pluginInfo.name);
-
-    request.set_request_id(++requestCounter);
-    auto status = service_->CreateSession(context_.get(), &request, &response);
-    EXPECT_EQ(status.error_code(), grpc::StatusCode::OK);
-
-    sessionId = response.session_id();
-    {
-        StartSessionRequest request;
-        StartSessionResponse response;
-
-        request.set_session_id(sessionId);
-        request.set_request_id(++requestCounter);
-        auto status = service_->StartSession(context_.get(), &request, &response);
-        EXPECT_EQ(status.error_code(), grpc::StatusCode::OK);
-    }
 }
 
 /**
@@ -461,23 +1034,57 @@ HWTEST_F(ProfilerServiceTest, FetchDataOnline, TestSize.Level1)
     ASSERT_NE(service_, nullptr);
     ASSERT_NE(context_, nullptr);
 
+    uint32_t sessionId = CreateOnlineSession();
+    StartSession(sessionId);
+
+    auto sessionCtx = service_->GetSessionContext(sessionId);
+    ASSERT_NE(sessionCtx->dataRepeater, nullptr);
+    {
+        auto data = std::make_shared<ProfilerPluginData>();
+        ASSERT_NE(data, nullptr);
+        data->set_name(pluginInfo.name);
+        sessionCtx->dataRepeater->PutPluginData(data);
+    }
+
     FetchDataRequest request;
+    auto writer = std::make_unique<FakeServerWriter>(nullptr, context_.get());
+    request.set_session_id(sessionId);
+    request.set_request_id(++requestCounter);
+    std::thread bgThread([&] {
+        auto status = service_->FetchData(context_.get(), &request, writer.get());
+        EXPECT_EQ(status.error_code(), grpc::StatusCode::OK);
+    });
+
+    usleep(FETCH_DATA_DELAY_US);
+    sessionCtx->dataRepeater->Close();
+    bgThread.join();
+
+    EXPECT_EQ(StopSession(sessionId).error_code(), grpc::StatusCode::OK);
+    EXPECT_EQ(DestroySession(sessionId).error_code(), grpc::StatusCode::OK);
+
+    EXPECT_EQ(writer->GetDataCount(), 1);
+}
+
+/**
+ * @tc.name: server
+ * @tc.desc: fetch data online batch test.
+ * @tc.type: FUNC
+ */
+HWTEST_F(ProfilerServiceTest, FetchDataBatchTest, TestSize.Level1)
+{
+    ASSERT_NE(service_, nullptr);
+    ASSERT_NE(context_, nullptr);
 
     auto writer = std::make_unique<FakeServerWriter>(nullptr, context_.get());
 
-    request.set_request_id(++requestCounter);
-    auto status = service_->FetchData(context_.get(), &request, writer.get());
-    EXPECT_NE(status.error_code(), grpc::StatusCode::OK);
-
-    uint32_t sessionId = 0;
-    FetchDataOnlineSet(sessionId);
+    uint32_t sessionId = CreateOnlineSession();
+    StartSession(sessionId);
 
     auto sessionCtx = service_->GetSessionContext(sessionId);
     ASSERT_NE(sessionCtx->dataRepeater, nullptr);
 
-    const int pluginDataCount = 10;
     std::thread dataProducer([&]() {
-        for (int i = 0; i < pluginDataCount; i++) {
+        for (int i = 0; i < BATCH_SIZE; i++) {
             auto data = std::make_shared<ProfilerPluginData>();
             ASSERT_NE(data, nullptr);
             data->set_name(pluginInfo.name);
@@ -486,22 +1093,243 @@ HWTEST_F(ProfilerServiceTest, FetchDataOnline, TestSize.Level1)
         }
     });
 
-    request.set_session_id(sessionId);
-    request.set_request_id(++requestCounter);
-
     std::thread dataConsumer([&]() {
-        status = service_->FetchData(context_.get(), &request, writer.get());
+        FetchDataRequest request;
+        request.set_session_id(sessionId);
+        request.set_request_id(++requestCounter);
+        auto status = service_->FetchData(context_.get(), &request, writer.get());
         EXPECT_EQ(status.error_code(), grpc::StatusCode::OK);
     });
 
     dataProducer.join();
-
-    usleep(100 * 1000); // wait for reader take done!
-    sessionCtx->dataRepeater->Close();
+    sleep(1);
+    sessionCtx->dataRepeater->Close(); // make sure FetchData thread exit
     dataConsumer.join();
 
     EXPECT_EQ(StopSession(sessionId).error_code(), grpc::StatusCode::OK);
     EXPECT_EQ(DestroySession(sessionId).error_code(), grpc::StatusCode::OK);
+
+    EXPECT_EQ(writer->GetDataCount(), BATCH_SIZE);
+}
+
+/**
+ * @tc.name: server
+ * @tc.desc: fetch data with invalid arguments.
+ * @tc.type: FUNC
+ */
+HWTEST_F(ProfilerServiceTest, FetchDataInvalidArguments, TestSize.Level1)
+{
+    ASSERT_NE(service_, nullptr);
+    ASSERT_NE(context_, nullptr);
+
+    FetchDataRequest request;
+    auto writer = std::make_unique<FakeServerWriter>(nullptr, context_.get());
+    request.set_request_id(++requestCounter);
+    auto status = service_->FetchData(context_.get(), &request, writer.get());
+    EXPECT_NE(status.error_code(), grpc::StatusCode::OK);
+
+    uint32_t sessionId = CreateOnlineSession();
+
+    auto sessionCtx = service_->GetSessionContext(sessionId);
+    ASSERT_NE(sessionCtx->dataRepeater, nullptr);
+    {
+        auto data = std::make_shared<ProfilerPluginData>();
+        ASSERT_NE(data, nullptr);
+        data->set_name(pluginInfo.name);
+        sessionCtx->dataRepeater->PutPluginData(data);
+    }
+
+    status = service_->FetchData(context_.get(), nullptr, writer.get());
+    EXPECT_NE(status.error_code(), grpc::StatusCode::OK);
+
+    status = service_->FetchData(context_.get(), &request, nullptr);
+    EXPECT_NE(status.error_code(), grpc::StatusCode::OK);
+
+    status = service_->FetchData(context_.get(), nullptr, nullptr);
+    EXPECT_NE(status.error_code(), grpc::StatusCode::OK);
+}
+
+/**
+ * @tc.name: server
+ * @tc.desc: fetch data with invalid context.
+ * @tc.type: FUNC
+ */
+HWTEST_F(ProfilerServiceTest, FetchDataInvalidContext, TestSize.Level1)
+{
+    ASSERT_NE(service_, nullptr);
+    ASSERT_NE(context_, nullptr);
+
+    FetchDataRequest request;
+    auto writer = std::make_unique<FakeServerWriter>(nullptr, context_.get());
+    request.set_request_id(++requestCounter);
+    auto status = service_->FetchData(context_.get(), &request, writer.get());
+    EXPECT_NE(status.error_code(), grpc::StatusCode::OK);
+
+    uint32_t sessionId = CreateOnlineSession();
+
+    auto sessionCtx = service_->GetSessionContext(sessionId);
+    ASSERT_NE(sessionCtx->dataRepeater, nullptr);
+    {
+        auto data = std::make_shared<ProfilerPluginData>();
+        ASSERT_NE(data, nullptr);
+        data->set_name(pluginInfo.name);
+        sessionCtx->dataRepeater->PutPluginData(data);
+    }
+
+    status = service_->FetchData(nullptr, &request, writer.get());
+    EXPECT_NE(status.error_code(), grpc::StatusCode::OK);
+}
+
+/**
+ * @tc.name: server
+ * @tc.desc: keep session with invalid session id.
+ * @tc.type: FUNC
+ */
+HWTEST_F(ProfilerServiceTest, KeepSessionInvalidSessionId, TestSize.Level1)
+{
+    ASSERT_NE(service_, nullptr);
+    ASSERT_NE(context_, nullptr);
+
+    KeepSessionRequest request;
+    KeepSessionResponse response;
+
+    request.set_session_id(0);
+    request.set_request_id(++requestCounter);
+    auto status = service_->KeepSession(context_.get(), &request, &response);
+    EXPECT_NE(status.error_code(), grpc::StatusCode::OK);
+}
+
+/**
+ * @tc.name: server
+ * @tc.desc: keep session with offline session id.
+ * @tc.type: FUNC
+ */
+HWTEST_F(ProfilerServiceTest, KeepSessionWithoutAliveTime, TestSize.Level1)
+{
+    ASSERT_NE(service_, nullptr);
+    ASSERT_NE(context_, nullptr);
+
+    uint32_t sessionId = CreateOfflineSession();
+    EXPECT_NE(sessionId, 0);
+
+    KeepSessionRequest request;
+    KeepSessionResponse response;
+
+    request.set_session_id(sessionId);
+    request.set_request_id(++requestCounter);
+    auto status = service_->KeepSession(context_.get(), &request, &response);
+    EXPECT_EQ(status.error_code(), grpc::StatusCode::OK);
+}
+
+/**
+ * @tc.name: server
+ * @tc.desc: keep session with offline session id.
+ * @tc.type: FUNC
+ */
+HWTEST_F(ProfilerServiceTest, KeepSessionOffline, TestSize.Level1)
+{
+    ASSERT_NE(service_, nullptr);
+    ASSERT_NE(context_, nullptr);
+
+    uint32_t sessionId = CreateOfflineSession();
+    EXPECT_NE(sessionId, 0);
+
+    KeepSessionRequest request;
+    KeepSessionResponse response;
+
+    request.set_session_id(sessionId);
+    request.set_request_id(++requestCounter);
+    request.set_keep_alive_time(TEST_SESSION_TIMEOUT_MS);
+    auto status = service_->KeepSession(context_.get(), &request, &response);
+    EXPECT_EQ(status.error_code(), grpc::StatusCode::OK);
+
+    // make sure session expired by backgroud task
+    std::this_thread::sleep_for(std::chrono::milliseconds(TEST_SESSION_TIMEOUT_MS));
+    std::this_thread::sleep_for(std::chrono::milliseconds(TEST_SESSION_TIMEOUT_MS));
+
+    status = DestroySession(sessionId);
+    EXPECT_EQ(status.error_code(), grpc::StatusCode::OK);
+}
+
+/**
+ * @tc.name: server
+ * @tc.desc: keep session with batch test.
+ * @tc.type: FUNC
+ */
+HWTEST_F(ProfilerServiceTest, KeepSessionBatchTest, TestSize.Level1)
+{
+    ASSERT_NE(service_, nullptr);
+    ASSERT_NE(context_, nullptr);
+
+    uint32_t sessionId = CreateOfflineSession();
+    EXPECT_NE(sessionId, 0);
+
+    Timer timer = {};
+    for (int i = 0; i < ROUND_COUNT; i++) {
+        KeepSessionRequest request;
+        KeepSessionResponse response;
+
+        request.set_session_id(sessionId);
+        request.set_request_id(++requestCounter);
+        request.set_keep_alive_time(TEST_SESSION_TIMEOUT_MS);
+        auto status = service_->KeepSession(context_.get(), &request, &response);
+        EXPECT_EQ(status.error_code(), grpc::StatusCode::OK);
+    }
+    printf("KeepSession %d time, cost %ldus.\n", ROUND_COUNT, timer.ElapsedUs());
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(TEST_SESSION_TIMEOUT_MS));
+    std::this_thread::sleep_for(std::chrono::milliseconds(TEST_SESSION_TIMEOUT_MS));
+    auto status = DestroySession(sessionId);
+    EXPECT_EQ(status.error_code(), grpc::StatusCode::OK);
+}
+
+/**
+ * @tc.name: server
+ * @tc.desc: keep session with invalid arguments.
+ * @tc.type: FUNC
+ */
+HWTEST_F(ProfilerServiceTest, KeepSessionInvalidArgs, TestSize.Level1)
+{
+    ASSERT_NE(service_, nullptr);
+    ASSERT_NE(context_, nullptr);
+
+    uint32_t sessionId = CreateOfflineSession();
+    EXPECT_NE(sessionId, 0);
+
+    KeepSessionRequest request;
+    KeepSessionResponse response;
+
+    request.set_session_id(sessionId);
+    request.set_request_id(++requestCounter);
+    request.set_keep_alive_time(TEST_SESSION_TIMEOUT_MS);
+    auto status = service_->KeepSession(context_.get(), nullptr, &response);
+    EXPECT_NE(status.error_code(), grpc::StatusCode::OK);
+
+    status = service_->KeepSession(context_.get(), &request, nullptr);
+    EXPECT_NE(status.error_code(), grpc::StatusCode::OK);
+}
+
+/**
+ * @tc.name: server
+ * @tc.desc: keep session with invalid context.
+ * @tc.type: FUNC
+ */
+HWTEST_F(ProfilerServiceTest, KeepSessionInvalidContext, TestSize.Level1)
+{
+    ASSERT_NE(service_, nullptr);
+    ASSERT_NE(context_, nullptr);
+
+    uint32_t sessionId = CreateOfflineSession();
+    EXPECT_NE(sessionId, 0);
+
+    KeepSessionRequest request;
+    KeepSessionResponse response;
+
+    request.set_session_id(sessionId);
+    request.set_request_id(++requestCounter);
+    request.set_keep_alive_time(TEST_SESSION_TIMEOUT_MS);
+    auto status = service_->KeepSession(nullptr, &request, &response);
+    EXPECT_NE(status.error_code(), grpc::StatusCode::OK);
 }
 
 /**
@@ -520,4 +1348,5 @@ HWTEST_F(ProfilerServiceTest, StartService, TestSize.Level1)
 
     service->StopService();
     waiterThread.join();
+}
 }

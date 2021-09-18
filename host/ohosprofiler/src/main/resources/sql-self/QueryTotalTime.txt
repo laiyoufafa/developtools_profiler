@@ -1,0 +1,1 @@
+select end_ts-start_ts as total from trace_range;

@@ -23,7 +23,7 @@ plugins {
 }
 
 group 'ohos.devtools'
-version '1.06.210428_Ia06bb6beaf4128368ddb697bde7dd59de608ae9a'
+version '1.06.210603_I57402e91b3ca31a5e5d458a8c65d5a0a0e8e62e8'
 
 project.sourceCompatibility=1.11
 project.targetCompatibility=1.11

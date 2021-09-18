@@ -36,15 +36,15 @@ const std::string& TraceDataCacheReader::GetDataFromDict(DataIndex id) const
 }
 const Process& TraceDataCacheReader::GetConstProcessData(InternalPid internalPid) const
 {
-    TUNING_ASSERT(internalPid < internalProcessesData_.size());
+    TS_ASSERT(internalPid < internalProcessesData_.size());
     return internalProcessesData_[internalPid];
 }
 const Thread& TraceDataCacheReader::GetConstThreadData(InternalTid internalTid) const
 {
-    TUNING_ASSERT(internalTid < internalThreadsData_.size());
+    TS_ASSERT(internalTid < internalThreadsData_.size());
     return internalThreadsData_[internalTid];
 }
-const InternalSlices& TraceDataCacheReader::GetConstInternalSlicesData() const
+const CallStack& TraceDataCacheReader::GetConstInternalSlicesData() const
 {
     return internalSlicesData_;
 }
@@ -56,14 +56,14 @@ const Raw& TraceDataCacheReader::GetConstRawTableData() const
 {
     return rawData_;
 }
-const Counter& TraceDataCacheReader::GetConstCounterData() const
+const Measure& TraceDataCacheReader::GetConstMeasureData() const
 {
-    return counterData_;
+    return measureData_;
 }
 
-const ThreadCounterFilter* TraceDataCacheReader::ThreadCounterFilterData() const
+const ThreadMeasureFilter& TraceDataCacheReader::GetConstThreadMeasureFilterData() const
 {
-    return &threadCounterFilterData_;
+    return threadMeasureFilterData_;
 }
 const ThreadState& TraceDataCacheReader::GetConstThreadStateData() const
 {
@@ -73,11 +73,11 @@ const SchedSlice& TraceDataCacheReader::GetConstSchedSliceData() const
 {
     return schedSliceData_;
 }
-const CpuCounter& TraceDataCacheReader::GetConstCpuCounterData() const
+const CpuMeasureFilter& TraceDataCacheReader::GetConstCpuMeasureData() const
 {
-    return cpuCounterData_;
+    return cpuMeasureData_;
 }
-const ThreadCounterFilter& TraceDataCacheReader::GetConstThreadFilterData() const
+const ThreadMeasureFilter& TraceDataCacheReader::GetConstThreadFilterData() const
 {
     return threadFilterData_;
 }
@@ -85,26 +85,45 @@ const Instants& TraceDataCacheReader::GetConstInstantsData() const
 {
     return instantsData_;
 }
-const ProcessCounterFilter& TraceDataCacheReader::GetConstProcessFilterData() const
+const ProcessMeasureFilter& TraceDataCacheReader::GetConstProcessFilterData() const
 {
     return processFilterData_;
 }
-const ProcessCounterFilter& TraceDataCacheReader::ProcessCounterFilterData() const
+const ProcessMeasureFilter& TraceDataCacheReader::GetConstProcessMeasureFilterData() const
 {
-    return processCounterFilterData_;
+    return processMeasureFilterData_;
+}
+
+const ClockEventData& TraceDataCacheReader::GetConstClockEventFilterData() const
+{
+    return clockEventFilterData_;
 }
 const std::string& TraceDataCacheReader::GetConstSchedStateData(uint64_t rowId) const
 {
-    TUNING_ASSERT(statusString_.find(rowId) != statusString_.end());
+    TS_ASSERT(statusString_.find(rowId) != statusString_.end());
     return statusString_.at(rowId);
 }
-uint64_t TraceDataCacheReader::BoundStartTime() const
+uint64_t TraceDataCacheReader::TraceStartTime() const
 {
-    return boundtimeStart_;
+    return traceStartTime_;
 }
-uint64_t TraceDataCacheReader::BoundEndTime() const
+uint64_t TraceDataCacheReader::TraceEndTime() const
 {
-    return boundtimeEnd_;
+    return traceEndTime_;
+}
+
+const StatAndInfo& TraceDataCacheReader::GetConstStatAndInfo() const
+{
+    return stat_;
+}
+const MetaData& TraceDataCacheReader::GetConstMetaData() const
+{
+    return metaData_;
+}
+
+const SymbolsData& TraceDataCacheReader::GetConstSymbolsData() const
+{
+    return symbolsData_;
 }
 } // namespace TraceStreamer
 } // namespace SysTuning

@@ -23,7 +23,7 @@
 using namespace testing::ext;
 
 namespace {
-constexpr size_t ARRAYSIZE = 100;
+constexpr size_t ARRAYSIZE = 1024;
 
 class SharedMemoryBlockTest : public testing::Test {
 public:
@@ -41,8 +41,8 @@ public:
  */
 HWTEST_F(SharedMemoryBlockTest, ReadLock, TestSize.Level1)
 {
-    ShareMemoryBlock shareMemoryBlock;
-    ASSERT_TRUE(shareMemoryBlock.CreateBlock("testname", 1024));
+    ShareMemoryBlock shareMemoryBlock("testname", 4096);
+    ASSERT_TRUE(shareMemoryBlock.Valid());
 
     ASSERT_TRUE(shareMemoryBlock.ReleaseBlock());
 }
@@ -54,8 +54,8 @@ HWTEST_F(SharedMemoryBlockTest, ReadLock, TestSize.Level1)
  */
 HWTEST_F(SharedMemoryBlockTest, GetName, TestSize.Level1)
 {
-    ShareMemoryBlock shareMemoryBlock;
-    ASSERT_TRUE(shareMemoryBlock.CreateBlock("testname", 1024));
+    ShareMemoryBlock shareMemoryBlock("testname", 4096);
+    ASSERT_TRUE(shareMemoryBlock.Valid());
 
     shareMemoryBlock.GetName();
 
@@ -69,8 +69,8 @@ HWTEST_F(SharedMemoryBlockTest, GetName, TestSize.Level1)
  */
 HWTEST_F(SharedMemoryBlockTest, GetSize, TestSize.Level1)
 {
-    ShareMemoryBlock shareMemoryBlock;
-    ASSERT_TRUE(shareMemoryBlock.CreateBlock("testname", 1024));
+    ShareMemoryBlock shareMemoryBlock("testname", 4096);
+    ASSERT_TRUE(shareMemoryBlock.Valid());
 
     shareMemoryBlock.GetSize();
 
@@ -84,8 +84,8 @@ HWTEST_F(SharedMemoryBlockTest, GetSize, TestSize.Level1)
  */
 HWTEST_F(SharedMemoryBlockTest, GetfileDescriptor, TestSize.Level1)
 {
-    ShareMemoryBlock shareMemoryBlock;
-    ASSERT_TRUE(shareMemoryBlock.CreateBlock("testname", 1024));
+    ShareMemoryBlock shareMemoryBlock("testname", 4096);
+    ASSERT_TRUE(shareMemoryBlock.Valid());
 
     shareMemoryBlock.GetfileDescriptor();
 
@@ -99,13 +99,13 @@ HWTEST_F(SharedMemoryBlockTest, GetfileDescriptor, TestSize.Level1)
  */
 HWTEST_F(SharedMemoryBlockTest, DROP_NONE, TestSize.Level1)
 {
-    ShareMemoryBlock shareMemoryBlock;
-    ASSERT_TRUE(shareMemoryBlock.CreateBlock("testname", 1024));
+    ShareMemoryBlock shareMemoryBlock("testname", 4096);
+    ASSERT_TRUE(shareMemoryBlock.Valid());
 
-    shareMemoryBlock.SetDropType(ShareMemoryBlock::DropType::DROP_NONE);
+    shareMemoryBlock.SetReusePolicy(ShareMemoryBlock::ReusePolicy::DROP_NONE);
 
     int8_t data[ARRAYSIZE];
-    for (int i = 0; i < 20; i++) {
+    for (int i = 0; i < 5; i++) {
         *((uint32_t*)data) = i;
         shareMemoryBlock.PutRaw(data, ARRAYSIZE);
     }
@@ -126,13 +126,13 @@ HWTEST_F(SharedMemoryBlockTest, DROP_NONE, TestSize.Level1)
  */
 HWTEST_F(SharedMemoryBlockTest, DROP_OLD, TestSize.Level1)
 {
-    ShareMemoryBlock shareMemoryBlock;
-    ASSERT_TRUE(shareMemoryBlock.CreateBlock("testname", 1024));
+    ShareMemoryBlock shareMemoryBlock("testname", 4096);
+    ASSERT_TRUE(shareMemoryBlock.Valid());
 
-    shareMemoryBlock.SetDropType(ShareMemoryBlock::DropType::DROP_OLD);
+    shareMemoryBlock.SetReusePolicy(ShareMemoryBlock::ReusePolicy::DROP_OLD);
 
     int8_t data[ARRAYSIZE];
-    for (int i = 0; i < 20; i++) {
+    for (int i = 0; i < 5; i++) {
         *((uint32_t*)data) = i;
         shareMemoryBlock.PutRaw(data, ARRAYSIZE);
     }
@@ -151,17 +151,147 @@ HWTEST_F(SharedMemoryBlockTest, DROP_OLD, TestSize.Level1)
  * @tc.desc: put protobuf.
  * @tc.type: FUNC
  */
-HWTEST_F(SharedMemoryBlockTest, PutProtobuf, TestSize.Level1)
+HWTEST_F(SharedMemoryBlockTest, PutMessage, TestSize.Level1)
 {
-    ShareMemoryBlock shareMemoryBlock;
-    ASSERT_TRUE(shareMemoryBlock.CreateBlock("testname", 1024));
+    ShareMemoryBlock shareMemoryBlock("testname", 4096);
+    ASSERT_TRUE(shareMemoryBlock.Valid());
+    ASSERT_TRUE(shareMemoryBlock.GetDataSize() == 0);
 
     NotifyResultResponse response;
     response.set_status(123);
-    ASSERT_TRUE(shareMemoryBlock.PutProtobuf(response));
-    ASSERT_TRUE(shareMemoryBlock.GetDataSize() > 0);
+    ASSERT_TRUE(shareMemoryBlock.PutMessage(response));
+    EXPECT_EQ(shareMemoryBlock.GetDataSize(), response.ByteSizeLong());
     response.ParseFromArray(shareMemoryBlock.GetDataPoint(), shareMemoryBlock.GetDataSize());
     ASSERT_TRUE(response.status() == 123);
+
+    // 调用next移动指针，取值正常
+    shareMemoryBlock.Next();
+    NotifyResultResponse response2;
+    response2.set_status(2345);
+    ASSERT_TRUE(shareMemoryBlock.PutMessage(response2));
+    EXPECT_EQ(shareMemoryBlock.GetDataSize(), response2.ByteSizeLong());
+    response2.ParseFromArray(shareMemoryBlock.GetDataPoint(), shareMemoryBlock.GetDataSize());
+    EXPECT_TRUE(response2.status() == 2345);
+
+    // 调用next，设置空message
+    shareMemoryBlock.Next();
+    NotifyResultRequest request;
+    ASSERT_TRUE(shareMemoryBlock.PutMessage(request));
+    EXPECT_EQ(shareMemoryBlock.GetDataSize(), request.ByteSizeLong());
+
+    ASSERT_TRUE(shareMemoryBlock.ReleaseBlock());
+}
+
+/**
+ * @tc.name: share memory
+ * @tc.desc: Shared memory PutMessage abnormal test.
+ * @tc.type: FUNC
+ */
+HWTEST_F(SharedMemoryBlockTest, PutMessageAbnormal, TestSize.Level1)
+{
+    ShareMemoryBlock shareMemoryBlock("testname", 4096);
+    ASSERT_TRUE(shareMemoryBlock.Valid());
+    ASSERT_TRUE(shareMemoryBlock.GetDataSize() == 0);
+
+    NotifyResultResponse response;
+    response.set_status(123);
+    ASSERT_TRUE(shareMemoryBlock.PutMessage(response));
+    EXPECT_EQ(shareMemoryBlock.GetDataSize(), response.ByteSizeLong());
+    response.ParseFromArray(shareMemoryBlock.GetDataPoint(), shareMemoryBlock.GetDataSize());
+    ASSERT_TRUE(response.status() == 123);
+
+    // 不调用next无法移动指针，取值出错
+    NotifyResultResponse response2;
+    response2.set_status(2345);
+    ASSERT_TRUE(shareMemoryBlock.PutMessage(response2));
+    EXPECT_NE(shareMemoryBlock.GetDataSize(), response2.ByteSizeLong());
+    EXPECT_EQ(shareMemoryBlock.GetDataSize(), response.ByteSizeLong());
+    response2.ParseFromArray(shareMemoryBlock.GetDataPoint(), shareMemoryBlock.GetDataSize());
+    EXPECT_FALSE(response2.status() == 2345);
+    EXPECT_TRUE(response2.status() == 123);
+
+    ASSERT_TRUE(shareMemoryBlock.ReleaseBlock());
+}
+
+/**
+ * @tc.name: share memory
+ * @tc.desc: Shared memory PutRaw abnormal test.
+ * @tc.type: FUNC
+ */
+HWTEST_F(SharedMemoryBlockTest, PutRawAbnormal, TestSize.Level1)
+{
+    ShareMemoryBlock shareMemoryBlock("testname", 4096);
+    ASSERT_TRUE(shareMemoryBlock.Valid());
+
+    ASSERT_FALSE(shareMemoryBlock.PutRaw(nullptr, ARRAYSIZE));
+    ASSERT_NE(shareMemoryBlock.GetFreeMemory(ARRAYSIZE), nullptr);
+
+    int8_t data[ARRAYSIZE];
+    ASSERT_FALSE(shareMemoryBlock.PutRaw(data, 0));
+    ASSERT_NE(shareMemoryBlock.GetFreeMemory(0), nullptr);
+
+    ASSERT_FALSE(shareMemoryBlock.PutRaw(data, 4096+1));
+    ASSERT_EQ(shareMemoryBlock.GetFreeMemory(4096+1), nullptr);
+
+    ASSERT_TRUE(shareMemoryBlock.ReleaseBlock());
+}
+
+bool function(const int8_t data[], uint32_t size)
+{
+    auto pluginData = std::make_shared<ProfilerPluginData>();
+    return pluginData->ParseFromArray(reinterpret_cast<const char*>(data), 6);
+}
+
+bool functionErr(const int8_t data[], uint32_t size)
+{
+    auto pluginData = std::make_shared<ProfilerPluginData>();
+    return pluginData->ParseFromArray(reinterpret_cast<const char*>(data), 4096);
+}
+
+/**
+ * @tc.name: share memory
+ * @tc.desc: Shared memory TakeData test.
+ * @tc.type: FUNC
+ */
+HWTEST_F(SharedMemoryBlockTest, TakeData, TestSize.Level1)
+{
+    ShareMemoryBlock shareMemoryBlock("testname", 4096);
+    ASSERT_TRUE(shareMemoryBlock.Valid());
+
+    // 不匹配的空message
+    NotifyResultRequest request;
+    ASSERT_TRUE(shareMemoryBlock.PutMessage(request));
+    ASSERT_TRUE(shareMemoryBlock.GetDataSize() == 0);
+    EXPECT_FALSE(shareMemoryBlock.TakeData(function));
+
+    // 不匹配的非空message
+    shareMemoryBlock.Next();
+    NotifyResultResponse response;
+    response.set_status(123);
+    ASSERT_TRUE(shareMemoryBlock.PutMessage(response));
+    EXPECT_FALSE(shareMemoryBlock.GetDataSize() == 0);
+    EXPECT_FALSE(shareMemoryBlock.TakeData(function));
+
+    // 匹配的空message
+    shareMemoryBlock.Next();
+    ProfilerPluginData data;
+    ASSERT_TRUE(shareMemoryBlock.PutMessage(data));
+    ASSERT_TRUE(shareMemoryBlock.GetDataSize() == 0);
+    EXPECT_FALSE(shareMemoryBlock.TakeData(function));
+
+    // 匹配的非空message, 但DataSize设置为大值
+    shareMemoryBlock.Next();
+    data.set_name("test");
+    ASSERT_TRUE(shareMemoryBlock.PutMessage(data));
+    EXPECT_FALSE(shareMemoryBlock.GetDataSize() == 0);
+    EXPECT_FALSE(shareMemoryBlock.TakeData(functionErr));
+
+    // 匹配的非空message,正确的DataSize
+    shareMemoryBlock.Next();
+    data.set_name("test");
+    ASSERT_TRUE(shareMemoryBlock.PutMessage(data));
+    EXPECT_FALSE(shareMemoryBlock.GetDataSize() == 0);
+    EXPECT_TRUE(shareMemoryBlock.TakeData(function));
 
     ASSERT_TRUE(shareMemoryBlock.ReleaseBlock());
 }

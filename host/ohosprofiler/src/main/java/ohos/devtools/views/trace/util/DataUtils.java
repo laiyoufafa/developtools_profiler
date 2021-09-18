@@ -26,9 +26,8 @@ import java.io.UnsupportedEncodingException;
 /**
  * Data tools
  *
- * @version 1.0
  * @date 2021/04/22 12:25
- **/
+ */
 public final class DataUtils {
     private DataUtils() {
     }
@@ -49,5 +48,4 @@ public final class DataUtils {
         }
         return jsonObject;
     }
-
 }

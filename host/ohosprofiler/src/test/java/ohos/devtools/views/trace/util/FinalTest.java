@@ -20,6 +20,6 @@ package ohos.devtools.views.trace.util;
  *
  * @version 1.0
  * @date 2021/4/24 17:51
- **/
+ */
 class FinalTest {
 }

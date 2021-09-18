@@ -15,13 +15,15 @@
 #ifndef TRANCE_FILE_WRITER_H
 #define TRANCE_FILE_WRITER_H
 
-#include "logging.h"
-#include "nocopyable.h"
-#include "writer.h"
-
+#include <cstdint>
 #include <fstream>
 #include <google/protobuf/message_lite.h>
 #include <string>
+
+#include "logging.h"
+#include "nocopyable.h"
+#include "trace_file_helper.h"
+#include "writer.h"
 
 using google::protobuf::MessageLite;
 
@@ -31,6 +33,8 @@ public:
 
     ~TraceFileWriter();
 
+    std::string Path() const;
+
     bool Open(const std::string& path);
 
     long Write(const MessageLite& message);
@@ -39,9 +43,15 @@ public:
 
     bool Flush() override;
 
+    bool Finish();
+
 private:
-    std::string path_;
-    std::ofstream stream_;
+    std::string path_ {};
+    std::ofstream stream_ {};
+    uint64_t writeBytes_ = 0;
+    uint64_t writeCount_ = 0;
+    TraceFileHeader header_ {};
+    TraceFileHelper helper_ {};
 
     DISALLOW_COPY_AND_MOVE(TraceFileWriter);
 };

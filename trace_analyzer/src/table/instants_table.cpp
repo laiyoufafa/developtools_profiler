@@ -53,19 +53,19 @@ int InstantsTable::Cursor::Column(int column) const
             sqlite3_result_int64(context_, static_cast<int64_t>(InstantsObj_.TimeStamData()[CurrentRow()]));
             break;
         case NAME: {
-            sqlite3_result_text(context_, dataCache_->GetDataFromDict(stringIdentity).c_str(),
-                STR_DEFAULT_LEN, nullptr);
+            sqlite3_result_text(context_, dataCache_->GetDataFromDict(stringIdentity).c_str(), STR_DEFAULT_LEN,
+                                nullptr);
             break;
         }
         case REF:
             sqlite3_result_int64(context_, static_cast<int32_t>(InstantsObj_.InternalTidsData()[CurrentRow()]));
             break;
         case REF_TYPE: {
-            sqlite3_result_text(context_, "utid", STR_DEFAULT_LEN, nullptr);
+            sqlite3_result_text(context_, "itid", STR_DEFAULT_LEN, nullptr);
             break;
         }
         default:
-            TUNING_LOGF("Unregistered column : %d", column);
+            TS_LOGF("Unregistered column : %d", column);
             break;
     }
     return SQLITE_OK;

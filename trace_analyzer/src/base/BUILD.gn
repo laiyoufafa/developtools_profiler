@@ -11,16 +11,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-source_set("base") {
-  deps = [
-    "../../gn:default_deps",
-  ]
-  public_deps = [
-  "../../include:base",
-  ]
+import("//build/ohos.gni")
+import("../ts.gni")
+ohos_source_set("base") {
+  deps = []
+  public_deps = [ "../include:ibase" ]
+  include_dirs = [ "../include" ]
   sources = [
+    "codec_cov.cpp",
     "file.cpp",
     "parting_string.cpp",
   ]
+  if (enable_ts_utest) {
+    cflags = [
+      "-fprofile-arcs",
+      "-ftest-coverage",
+    ]
+    ldflags = [
+      "-fprofile-arcs",
+      "-ftest-coverage",
+      "--coverage",
+    ]
+  }
 }
-

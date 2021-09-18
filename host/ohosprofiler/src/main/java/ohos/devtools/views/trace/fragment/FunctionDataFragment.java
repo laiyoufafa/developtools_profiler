@@ -18,11 +18,11 @@ package ohos.devtools.views.trace.fragment;
 import ohos.devtools.views.trace.bean.FunctionBean;
 import ohos.devtools.views.trace.bean.ThreadData;
 import ohos.devtools.views.trace.component.AnalystPanel;
-import ohos.devtools.views.trace.component.ContentPanel;
-import ohos.devtools.views.trace.util.Final;
+import ohos.devtools.views.trace.util.Utils;
 
 import javax.swing.JComponent;
 import java.awt.Graphics2D;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
@@ -30,9 +30,8 @@ import java.util.ArrayList;
 /**
  * Method call data row
  *
- * @version 1.0
  * @date 2021/04/22 12:25
- **/
+ */
 public class FunctionDataFragment extends AbstractDataFragment<FunctionBean> implements FunctionBean.IEventListener {
     /**
      * graph event callback
@@ -44,8 +43,6 @@ public class FunctionDataFragment extends AbstractDataFragment<FunctionBean> imp
      */
     public ThreadData thread;
 
-    private final ArrayList<FunctionBean> data;
-
     /**
      * structure
      *
@@ -53,7 +50,7 @@ public class FunctionDataFragment extends AbstractDataFragment<FunctionBean> imp
      * @param functionBeans functionBeans
      */
     public FunctionDataFragment(JComponent contentPanel, ArrayList<FunctionBean> functionBeans) {
-        super();
+        super(contentPanel, true, false);
         this.setRoot(contentPanel);
         this.data = functionBeans;
     }
@@ -66,7 +63,6 @@ public class FunctionDataFragment extends AbstractDataFragment<FunctionBean> imp
     @Override
     public void draw(Graphics2D graphics) {
         super.draw(graphics);
-
         // Supplement the information on the left
         graphics.setColor(getRoot().getForeground());
         String name = thread.getThreadName() + " " + thread.getTid();
@@ -74,21 +70,23 @@ public class FunctionDataFragment extends AbstractDataFragment<FunctionBean> imp
         double wordWidth = bounds.getWidth() / name.length(); // Width per character
         double wordNum = (getDescRect().width - 40) / wordWidth; // How many characters can be displayed on each line
         if (bounds.getWidth() < getDescRect().width - 40) { // Direct line display
-            graphics.drawString(name, getDescRect().x + 10, (int) (getDescRect().y + bounds.getHeight() + 10));
+            graphics.drawString(name, Utils.getX(getDescRect()) + 10,
+                (int) (Utils.getY(getDescRect()) + bounds.getHeight() + 10));
         } else {
             String substring = name.substring((int) wordNum);
             if (substring.length() < wordNum) {
-                graphics.drawString(name.substring(0, (int) wordNum), getDescRect().x + 10,
-                    (int) (getDescRect().y + bounds.getHeight() + 8));
+                graphics.drawString(name.substring(0, (int) wordNum), Utils.getX(getDescRect()) + 10,
+                    (int) (Utils.getY(getDescRect()) + bounds.getHeight() + 8));
                 graphics
-                    .drawString(substring, getDescRect().x + 10, (int) (getDescRect().y + bounds.getHeight() * 2 + 8));
+                    .drawString(substring, Utils.getX(getDescRect()) + 10,
+                        (int) (Utils.getY(getDescRect()) + bounds.getHeight() * 2 + 8));
             } else {
-                graphics.drawString(name.substring(0, (int) wordNum), getDescRect().x + 10,
-                    (int) (getDescRect().y + bounds.getHeight() + 2));
-                graphics.drawString(substring.substring(0, (int) wordNum), getDescRect().x + 10,
-                    (int) (getDescRect().y + bounds.getHeight() * 2 + 2));
-                graphics.drawString(substring.substring((int) wordNum), getDescRect().x + 10,
-                    (int) (getDescRect().y + bounds.getHeight() * 3 + 2));
+                graphics.drawString(name.substring(0, (int) wordNum), Utils.getX(getDescRect()) + 10,
+                    (int) (Utils.getY(getDescRect()) + bounds.getHeight() + 2));
+                graphics.drawString(substring.substring(0, (int) wordNum), Utils.getX(getDescRect()) + 10,
+                    (int) (Utils.getY(getDescRect()) + bounds.getHeight() * 2 + 2));
+                graphics.drawString(substring.substring((int) wordNum), Utils.getX(getDescRect()) + 10,
+                    (int) (Utils.getY(getDescRect()) + bounds.getHeight() * 3 + 2));
             }
         }
         for (FunctionBean bean : data) {
@@ -104,7 +102,8 @@ public class FunctionDataFragment extends AbstractDataFragment<FunctionBean> imp
             } else {
                 x2 = getX(bean.getStartTime() + bean.getDuration());
             }
-            bean.setRect(x1 + getDataRect().x, getDataRect().y + 10 + 20 * bean.getDepth(), x2 - x1 <= 0 ? 1 : x2 - x1,
+            bean.setRect(x1 + Utils.getX(getDataRect()), Utils.getY(getDataRect()) + 10 + 20 * bean.getDepth(),
+                x2 - x1 <= 0 ? 1 : x2 - x1,
                 20);
             bean.root = getRoot();
             bean.setEventListener(this);
@@ -119,12 +118,13 @@ public class FunctionDataFragment extends AbstractDataFragment<FunctionBean> imp
      */
     @Override
     public void mouseClicked(MouseEvent event) {
+        super.mouseClicked(event);
         if (data != null) {
             data.stream()
                 .filter(bean -> bean.getStartTime() + bean.getDuration() > startNS && bean.getStartTime() < endNS)
                 .filter(bean -> bean.edgeInspect(event)).findFirst().ifPresent(bean -> {
-                bean.onClick(event);
-            });
+                    bean.onClick(event);
+                });
         }
     }
 
@@ -158,16 +158,13 @@ public class FunctionDataFragment extends AbstractDataFragment<FunctionBean> imp
     /**
      * Mouse moved event
      *
-     * @param event event
+     * @param evt event
      */
     @Override
-    public void mouseMoved(MouseEvent event) {
+    public void mouseMoved(MouseEvent evt) {
+        MouseEvent event = getRealMouseEvent(evt);
+        super.mouseMoved(event);
         clearFocus(event);
-        JComponent component = getRoot();
-        if (component instanceof ContentPanel) {
-            ContentPanel root = ((ContentPanel) component);
-            root.refreshTab();
-        }
     }
 
     /**
@@ -177,6 +174,15 @@ public class FunctionDataFragment extends AbstractDataFragment<FunctionBean> imp
      */
     @Override
     public void mouseReleased(MouseEvent event) {
+    }
+
+    /**
+     * key released event
+     *
+     * @param event event
+     */
+    @Override
+    public void keyReleased(KeyEvent event) {
     }
 
     /**

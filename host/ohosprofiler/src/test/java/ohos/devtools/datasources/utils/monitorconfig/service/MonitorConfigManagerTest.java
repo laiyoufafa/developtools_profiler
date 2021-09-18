@@ -30,11 +30,8 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * MonitorConfigManagerTest
- *
- * @version 1.0
- * @date 2021/03/31 10:10
- **/
+ * Monitor Config Manager Test
+ */
 public class MonitorConfigManagerTest {
     private long localSessionId = 0;
     private JSONObject jsonObject;

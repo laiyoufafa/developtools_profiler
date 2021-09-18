@@ -18,15 +18,19 @@
 namespace SysTuning {
 namespace TraceStreamer {
 namespace {
-enum Index { INTERNAL_TID = 0, INTERNAL_PID, NAME, TID };
+enum Index { ID = 0, TYPE, TID, NAME, START_TS, END_TS, INTERNAL_PID, IS_MAIN_THREAD };
 }
 ThreadTable::ThreadTable(const TraceDataCache* dataCache) : TableBase(dataCache)
 {
-    tableColumn_.push_back(TableBase::ColumnInfo("utid", "INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("upid", "INT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("id", "INT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("type", "STRING"));
+    tableColumn_.push_back(TableBase::ColumnInfo("tid", "UNSIGNED INT"));
     tableColumn_.push_back(TableBase::ColumnInfo("name", "STRING"));
-    tableColumn_.push_back(TableBase::ColumnInfo("tid", "INT"));
-    tablePriKey_.push_back("utid");
+    tableColumn_.push_back(TableBase::ColumnInfo("start_ts", "UNSIGNED BIG INT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("end_ts", "UNSIGNED BIG INT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("ipid", "UNSIGNED INT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("is_main_thread", "UNSIGNED INT"));
+    tablePriKey_.push_back("id");
 }
 
 ThreadTable::~ThreadTable() {}
@@ -45,29 +49,50 @@ ThreadTable::Cursor::~Cursor() {}
 
 int ThreadTable::Cursor::Column(int column) const
 {
-    const auto& thread = dataCache_->GetConstThreadData(CurrentRow());
     switch (column) {
-        case INTERNAL_TID: {
+        case ID: {
             sqlite3_result_int64(context_, CurrentRow());
             break;
         }
-        case INTERNAL_PID: {
-            sqlite3_result_int64(context_, thread.internalPid_);
+        case TYPE: {
+            sqlite3_result_text(context_, "thread", strlen("thread"), nullptr);
+            break;
+        }
+        case TID: {
+            const auto& process = dataCache_->GetConstThreadData(CurrentRow());
+            sqlite3_result_int64(context_, static_cast<int>(process.tid_));
             break;
         }
         case NAME: {
+            const auto& thread = dataCache_->GetConstThreadData(CurrentRow());
             const auto& name = dataCache_->GetDataFromDict(thread.nameIndex_);
             sqlite3_result_text(context_, name.c_str(), static_cast<int>(name.length()), nullptr);
             break;
         }
-        case TID: {
-            sqlite3_result_int64(context_, thread.tid_);
+        case START_TS: {
+            const auto& thread = dataCache_->GetConstThreadData(CurrentRow());
+            sqlite3_result_int64(context_, static_cast<long long>(thread.startT_));
             break;
         }
-        default: {
-            TUNING_LOGF("Unregistered column : %d", column);
+        case END_TS: {
+            const auto& thread = dataCache_->GetConstThreadData(CurrentRow());
+            sqlite3_result_int64(context_, static_cast<long long>(thread.endT_));
             break;
         }
+        case INTERNAL_PID: {
+            const auto& thread = dataCache_->GetConstThreadData(CurrentRow());
+            sqlite3_result_int(context_, static_cast<int>(thread.internalPid_));
+            break;
+        }
+        case IS_MAIN_THREAD: {
+            const auto& thread = dataCache_->GetConstThreadData(CurrentRow());
+            const auto& process = dataCache_->GetConstProcessData(thread.internalPid_);
+            sqlite3_result_int(context_, thread.tid_ == process.pid_);
+            break;
+        }
+        default:
+            TS_LOGF("Unregistered column : %d", column);
+            break;
     }
     return SQLITE_OK;
 }

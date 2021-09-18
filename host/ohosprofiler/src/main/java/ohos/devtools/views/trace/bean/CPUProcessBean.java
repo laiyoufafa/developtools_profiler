@@ -20,7 +20,7 @@ package ohos.devtools.views.trace.bean;
  *
  * @version 1.0
  * @date 2021/04/22 12:25
- **/
+ */
 public class CPUProcessBean {
     private long avgDuration;
 
@@ -35,11 +35,11 @@ public class CPUProcessBean {
     /**
      * Construction method with parameters
      *
-     * @param mAvgDuration mAvgDuration
+     * @param mAvgDuration  mAvgDuration
      * @param mWallDuration mWallDuration
-     * @param mPid mPid
-     * @param mOccurrences mOccurrences
-     * @param mProcess mProcess
+     * @param mPid          mPid
+     * @param mOccurrences  mOccurrences
+     * @param mProcess      mProcess
      */
     public CPUProcessBean(final long mAvgDuration, final long mWallDuration, final String mPid,
         final String mOccurrences, final String mProcess) {

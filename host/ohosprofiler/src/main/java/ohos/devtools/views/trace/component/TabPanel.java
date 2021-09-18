@@ -15,46 +15,57 @@
 
 package ohos.devtools.views.trace.component;
 
+import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBTabbedPane;
+import com.intellij.util.Consumer;
+import com.intellij.util.ui.JBUI;
 import ohos.devtools.views.trace.util.Final;
 import ohos.devtools.views.trace.util.Utils;
 
 import javax.imageio.ImageIO;
+import javax.swing.JLayeredPane;
+import javax.swing.SwingUtilities;
 import java.awt.Cursor;
 import java.awt.Graphics;
 import java.awt.Image;
+import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
 import java.io.IOException;
+import java.util.Objects;
 
 /**
  * tab component
  *
- * @version 1.0.1
  * @date 2021/04/20 12:12
  */
 public class TabPanel extends JBTabbedPane implements MouseMotionListener {
     private static int mHeight = 300;
     private static int barHeight;
-
     private final int iconWH = 20;
     private Rectangle topRect;
     private Rectangle bottomRect;
-    private int pressedY;
-    private Image top = null;
-    private Image bottom = null;
+    private Image topImage = null;
+    private Image bottomImage = null;
+    private Rectangle rootRect;
+
+    private Point startPoint;
+    private Point endPoint;
+    private Rectangle srcBounds;
+    private Consumer<Rectangle> boundsChangeListener;
 
     /**
-     * construct
+     * structure function
      */
     public TabPanel() {
         setFont(Final.NORMAL_FONT);
+        setBorder(JBUI.Borders.customLine(JBColor.background().darker(), 1, 0, 0, 0));
         this.addMouseMotionListener(this);
         try {
-            top = ImageIO.read(getClass().getResourceAsStream("/assets/top.png"));
-            bottom = ImageIO.read(getClass().getResourceAsStream("/assets/bottom.png"));
+            topImage = ImageIO.read(getClass().getResourceAsStream("/assets/top.png"));
+            bottomImage = ImageIO.read(getClass().getResourceAsStream("/assets/bottom.png"));
         } catch (IOException ioException) {
             ioException.printStackTrace();
         }
@@ -67,7 +78,9 @@ public class TabPanel extends JBTabbedPane implements MouseMotionListener {
 
             @Override
             public void mousePressed(final MouseEvent event) {
-                pressedY = event.getYOnScreen();
+                srcBounds = TabPanel.this.getBounds();
+                startPoint = SwingUtilities
+                    .convertPoint(TabPanel.this, event.getPoint(), TabPanel.this.getRootPane().getLayeredPane());
             }
 
             @Override
@@ -76,6 +89,26 @@ public class TabPanel extends JBTabbedPane implements MouseMotionListener {
                 setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
             }
         });
+    }
+
+    // /**
+    //  * Sets the layerRect .
+    //  * <p>You can use getLayerRect() to get the value of layerRect</p>
+    //  *
+    //  * @param rect LayerRect
+    //  */
+    // public void setLayerRect(Rectangle rect) {
+    //     this.layerRect = rect;
+    // }
+
+    /**
+     * Sets the rootRect .
+     * <p>You can use getRootRect() to get the value of rootRect</p>
+     *
+     * @param rect RootRect
+     */
+    public void setRootRect(Rectangle rect) {
+        this.rootRect = rect;
     }
 
     @Override
@@ -87,48 +120,47 @@ public class TabPanel extends JBTabbedPane implements MouseMotionListener {
         }
         topRect = new Rectangle(getWidth() - 65, (barHeight - iconWH) / 2, iconWH, iconWH);
         bottomRect = new Rectangle(getWidth() - 35, (barHeight - iconWH) / 2, iconWH, iconWH);
-        if (top != null) {
-            graphics.drawImage(top, topRect.x + 2, topRect.y + 2, iconWH - 5, iconWH - 5, null);
+        if (topImage != null) {
+            graphics.drawImage(topImage, Utils.getX(topRect) + 2, Utils.getY(topRect) + 2, iconWH - 5, iconWH - 5,
+                null);
         }
-        if (bottom != null) {
-            graphics.drawImage(bottom, bottomRect.x + 2, bottomRect.y + 2, iconWH - 5, iconWH - 5, null);
+        if (bottomImage != null) {
+            graphics.drawImage(bottomImage, Utils.getX(bottomRect) + 2, Utils.getY(bottomRect) + 2, iconWH - 5,
+                iconWH - 5, null);
         }
     }
 
     @Override
     public void mouseDragged(final MouseEvent event) {
         if (getCursor().getType() == Cursor.N_RESIZE_CURSOR) {
-            Rectangle rect = getBounds();
-            int drag = event.getYOnScreen() - pressedY;
-            pressedY = event.getYOnScreen();
-            rect.y = rect.y + drag;
-            int ph = getParent().getHeight();
-            int heightTmp = ph - rect.y;
-            if (heightTmp < barHeight) {
-                heightTmp = barHeight;
-                rect.y = ph - barHeight;
+            endPoint = SwingUtilities.convertPoint(TabPanel.this, event.getPoint(),
+                TabPanel.this.getRootPane().getLayeredPane());
+            int yPosition = Utils.getY(endPoint) - Utils.getY(startPoint);
+            if (srcBounds.height - yPosition < barHeight) {
+                return;
+            } else if (srcBounds.height - yPosition
+                > TabPanel.this.getRootPane().getLayeredPane().getHeight() - barHeight) {
+                return;
+            } else {
+                TabPanel.this.setBounds(Utils.getX(srcBounds), Utils.getY(srcBounds) + yPosition, srcBounds.width,
+                    srcBounds.height - yPosition);
+                TabPanel.this.revalidate();
+                if (boundsChangeListener != null) {
+                    boundsChangeListener.consume(TabPanel.this.getBounds());
+                }
             }
-            if (heightTmp > ph) {
-                rect.y = 0;
-                heightTmp = ph;
-            }
-            rect.height = heightTmp;
-            mHeight = rect.height;
-            setBounds(rect);
         }
     }
 
     @Override
     public void mouseMoved(final MouseEvent event) {
-        int xAxis = event.getX();
-        int yAxis = event.getY();
         int xNum = 0;
         if (getTabCount() > 0) {
             Rectangle rect = getUI().getTabBounds(this, getTabCount() - 1);
-            xNum = rect.width + rect.x + 10;
+            xNum = rect.width + Utils.getX(rect) + 10;
         }
-        if (yAxis > 0 && yAxis < barHeight && xAxis > xNum) {
-            if (Utils.pointInRect(topRect, xAxis, yAxis) || Utils.pointInRect(bottomRect, xAxis, yAxis)) {
+        if (event.getY() > 0 && event.getY() < barHeight && event.getX() > xNum) {
+            if (topRect.contains(event.getPoint()) || bottomRect.contains(event.getPoint())) {
                 setCursor(new Cursor(Cursor.HAND_CURSOR));
             } else {
                 setCursor(new Cursor(Cursor.N_RESIZE_CURSOR));
@@ -144,9 +176,11 @@ public class TabPanel extends JBTabbedPane implements MouseMotionListener {
      * @param event Mouse event
      */
     private void clickTop(final MouseEvent event) {
-        if (Utils.pointInRect(topRect, event.getX(), event.getY())) {
-            mHeight = getParent().getHeight();
-            setBounds(0, 0, getWidth(), mHeight);
+        if (topRect.contains(event.getPoint())) {
+            int bottomHeight =
+                getRootPane().getLayeredPane().getBounds().height - Utils.getY(rootRect) - rootRect.height;
+            mHeight = getRootPane().getLayeredPane().getBounds().height - bottomHeight;
+            setBounds(Utils.getX(rootRect), 0, rootRect.width, mHeight);
         }
     }
 
@@ -156,18 +190,8 @@ public class TabPanel extends JBTabbedPane implements MouseMotionListener {
      * @param event Mouse event
      */
     private void clickBottom(final MouseEvent event) {
-        if (Utils.pointInRect(bottomRect, event.getX(), event.getY())) {
+        if (bottomRect.contains(event.getPoint())) {
             hideInBottom();
-        }
-    }
-
-    /**
-     * Restore the default height of the bottom tab
-     */
-    public void recovery() {
-        if (getMyHeight() == 0) {
-            mHeight = 300;
-            setBounds(0, getParent().getHeight() - mHeight, getWidth(), mHeight);
         }
     }
 
@@ -175,37 +199,48 @@ public class TabPanel extends JBTabbedPane implements MouseMotionListener {
      * Minimize the bottom tab
      */
     public void hideInBottom() {
-        if (mHeight != barHeight && barHeight > 0) {
-            mHeight = barHeight;
-            setBounds(0, getParent().getHeight() - barHeight, getWidth(), mHeight);
-        }
+        mHeight = barHeight;
+        int bottomHeight = getRootPane().getLayeredPane().getBounds().height - Utils.getY(rootRect) - rootRect.height;
+        setBounds(Utils.getX(rootRect), getRootPane().getLayeredPane().getBounds().height - bottomHeight - mHeight,
+            getWidth(),
+            mHeight);
     }
 
     /**
      * hide bottom tab
      */
-    public void hide() {
-        if (mHeight != 0) {
-            mHeight = 0;
-            setBounds(0, getParent().getHeight(), getWidth(), mHeight);
+    public void hidden() {
+        if (Objects.nonNull(getRootPane()) && Objects.nonNull(getRootPane().getLayeredPane())) {
+            getRootPane().getLayeredPane().setLayer(this, JLayeredPane.UNDEFINED_CONDITION);
+            this.setVisible(false);
         }
     }
 
     /**
-     * Get the height of the current tab
-     *
-     * @return height
+     * display current panel
      */
-    public int getMHeight() {
-        return mHeight;
+    public void display() {
+        mHeight = rootRect.height / 5 * 3;
+        setVisible(true);
+        getRootPane().getLayeredPane().setLayer(this, JLayeredPane.DRAG_LAYER);
+        setBounds(new Rectangle(Utils.getX(rootRect), Utils.getY(rootRect) + mHeight, rootRect.width,
+            rootRect.height - mHeight));
     }
 
     /**
-     * Get the height of the current tab
+     * display current panel
      *
-     * @return height
+     * @param rectangle rectangle
      */
-    public static int getMyHeight() {
-        return mHeight == barHeight || barHeight == 0 ? 0 : mHeight;
+    public void display(Rectangle rectangle) {
+        setRootRect(rectangle);
+        mHeight = rootRect.height / 5 * 3;
+        setVisible(true);
+        if (getRootPane() != null) {
+            getRootPane().getLayeredPane().setLayer(this, JLayeredPane.DRAG_LAYER);
+            setBounds(new Rectangle(Utils.getX(rectangle), Utils.getY(rectangle) + mHeight, rectangle.width,
+                rectangle.height - mHeight));
+        }
     }
+
 }

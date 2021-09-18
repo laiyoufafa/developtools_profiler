@@ -16,13 +16,12 @@
 #ifndef BYTRACE_MODULE_H
 #define BYTRACE_MODULE_H
 
-#include <stdint.h>
 #include "plugin_module_api.h"
 
 int BytracePluginSessionStart(const uint8_t* configData, const uint32_t configSize);
 
-int BytraceRegisterWriterStruct(WriterStruct* writer);
+int BytraceRegisterWriterStruct(const WriterStruct* writer);
 
-int BytracePluginSessionStop();
+int BytracePluginSessionStop(void);
 
 #endif // BYTRACE_MODULE_H

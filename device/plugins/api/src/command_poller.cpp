@@ -17,8 +17,14 @@
 #include "plugin_manager.h"
 #include "socket_context.h"
 
-CommandPoller::CommandPoller(const PluginManagerPtr& p)
-    : requestIdAutoIncrease_(1), pluginManager_(p)
+#include <fcntl.h>
+#include <unistd.h>
+
+namespace {
+constexpr int SLEEP_TIME = 10;
+}
+
+CommandPoller::CommandPoller(const ManagerInterfacePtr& p) : requestIdAutoIncrease_(1), pluginManager_(p)
 {
     Connect(DEFAULT_UNIX_SOCKET_PATH);
 }
@@ -45,13 +51,17 @@ bool CommandPoller::OnCreateSessionCmd(const CreateSessionCmd& cmd, SocketContex
         HILOG_DEBUG(LOG_CORE, "OnCreateSessionCmd FAIL 1");
         return false;
     }
-    int fd = -1;
+    int smbFd = -1;
+    int eventFd = -1;
     if (bufferSize != 0) {
         HILOG_DEBUG(LOG_CORE, "OnCreateSessionCmd bufferSize = %d", bufferSize);
-        fd = context.ReceiveFileDiscriptor();
-        HILOG_DEBUG(LOG_CORE, "OnCreateSessionCmd fd = %d", fd);
+        smbFd = context.ReceiveFileDiscriptor();
+        eventFd = context.ReceiveFileDiscriptor();
+        int flags = fcntl(eventFd, F_GETFL);
+        HILOG_DEBUG(LOG_CORE, "OnCreateSessionCmd smbFd = %d, eventFd = %d", smbFd, eventFd);
+        HILOG_DEBUG(LOG_CORE, "eventFd flags = %X", flags);
     }
-    if (!pluginManager->CreateWriter(config.name(), bufferSize, fd)) {
+    if (!pluginManager->CreateWriter(config.name(), bufferSize, smbFd, eventFd)) {
         HILOG_DEBUG(LOG_CORE, "OnCreateSessionCmd CreateWriter FAIL");
         return false;
     }
@@ -128,7 +138,7 @@ bool CommandPoller::OnStopSessionCmd(const StopSessionCmd& cmd) const
 bool CommandPoller::OnGetCommandResponse(SocketContext& context, ::GetCommandResponse& response)
 {
     HILOG_DEBUG(LOG_CORE, "OnGetCommandResponse");
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    std::this_thread::sleep_for(std::chrono::milliseconds(SLEEP_TIME));
     NotifyResultRequest nrr;
     nrr.set_request_id(1);
     nrr.set_command_id(response.command_id());

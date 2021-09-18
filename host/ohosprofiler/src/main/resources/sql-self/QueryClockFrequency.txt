@@ -1,0 +1,5 @@
+with freq as (  select measure.filter_id, measure.ts, measure.type, measure.value from clock_event_filter
+left join measure
+where clock_event_filter.name = '%s' and clock_event_filter.type = 'clock_set_rate' and clock_event_filter.id = measure.filter_id
+order by measure.ts)
+select freq.filter_id,freq.ts - r.start_ts as ts,freq.type,freq.value from freq,trace_range r;

@@ -22,8 +22,13 @@ import java.awt.Font;
  *
  * @version 1.0
  * @date 2021/04/22 12:25
- **/
+ */
 public final class Final {
+    /**
+     * OHOS db file
+     */
+    public static final boolean OHOS = true;
+
     /**
      * Font name
      */
@@ -38,6 +43,11 @@ public final class Final {
      * Minimum font size
      */
     public static final int SMALL_FONT_SIZE = 10;
+
+    /**
+     * litter font size
+     */
+    public static final int LITTER_FONT_SIZE = 8;
 
     /**
      * Normal font size
@@ -60,6 +70,11 @@ public final class Final {
     public static final int UNINTERRUPTIBLE_SLEEP_COLOR = 0xf19d38;
 
     /**
+     * exit color
+     */
+    public static final int EXIT_COLOR = 0x795649;
+
+    /**
      * S_COLOR
      */
     public static final int S_COLOR = 0xFBFBFB;
@@ -74,5 +89,16 @@ public final class Final {
      */
     public static final Font SMALL_FONT = new Font(FONT_NAME, PLAIN_STYLE, SMALL_FONT_SIZE);
 
-    private Final() { }
+    /**
+     * LITTER_FONT
+     */
+    public static final Font LITTER_FONT = new Font(FONT_NAME, PLAIN_STYLE, LITTER_FONT_SIZE);
+
+    /**
+     * db capacity ,if row number big then capacity use async load db data
+     */
+    public static final long CAPACITY = 10000;
+
+    private Final() {
+    }
 }

@@ -21,25 +21,23 @@ import java.awt.Dimension;
 import java.awt.Graphics;
 
 /**
- * Tooltip中的图例色块
- *
- * @since 2021/1/19 21:35
+ * Legend color block in tooltip
  */
 public class TooltipColorRect extends JComponent {
     /**
-     * 图例色块大小
+     * Color block size
      */
     private static final int SIZE = 15;
 
     /**
-     * 颜色
+     * Color
      */
     private final Color color;
 
     /**
-     * 构造函数
+     * Constructor
      *
-     * @param color 图例色块的颜色
+     * @param color Color
      */
     public TooltipColorRect(Color color) {
         this.color = color;
@@ -48,7 +46,7 @@ public class TooltipColorRect extends JComponent {
     }
 
     /**
-     * 填充颜色
+     * Fill color
      */
     private void fillColor() {
         this.setPreferredSize(new Dimension(SIZE, SIZE));
@@ -57,7 +55,7 @@ public class TooltipColorRect extends JComponent {
     }
 
     /**
-     * paintComponent
+     * Paint component
      *
      * @param graphics graphics
      */

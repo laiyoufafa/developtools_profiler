@@ -15,6 +15,7 @@
 
 package ohos.devtools.views.common;
 
+import ohos.devtools.views.layout.chartview.utils.OperationUtils;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -22,8 +23,6 @@ import java.math.BigDecimal;
 
 /**
  * ViewUtils test
- *
- * @since 2021/3/31 14:13
  */
 public class OperationUtilsTest {
     private static final int[] TEST_ARRAY = {0, 10, 14, 24, 29, 32, 37, 40, 45};

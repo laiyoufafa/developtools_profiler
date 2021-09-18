@@ -17,19 +17,26 @@ package ohos.devtools.services.memory;
 
 import ohos.devtools.datasources.databases.databaseapi.DataBaseApi;
 import ohos.devtools.datasources.utils.profilerlog.ProfilerLogManager;
+import ohos.devtools.services.memory.agentbean.AgentHeapBean;
+import ohos.devtools.services.memory.agentbean.ClassInfo;
+import ohos.devtools.services.memory.agentbean.MemoryHeapInfo;
+import ohos.devtools.services.memory.agentbean.MemoryInstanceDetailsInfo;
+import ohos.devtools.services.memory.agentbean.MemoryInstanceInfo;
+import ohos.devtools.services.memory.agentdao.ClassInfoManager;
+import ohos.devtools.services.memory.agentdao.MemoryHeapManager;
+import ohos.devtools.services.memory.agentdao.MemoryInstanceDetailsManager;
+import ohos.devtools.services.memory.agentdao.MemoryInstanceManager;
 import org.apache.logging.log4j.Level;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
- * 堆数据测试
- *
- * @version 1.0
- * @date 2021/03/30 18:56
- **/
+ * Heap data test
+ */
 public class MemoryHeapTest {
     private MemoryHeapManager memoryHeapManager;
     private MemoryInstanceManager memoryInstanceManager;
@@ -81,7 +88,6 @@ public class MemoryHeapTest {
         memoryHeapInfo.setcId(1);
         memoryHeapInfo.setHeapId(1);
         memoryHeapInfo.setSessionId(1L);
-        memoryHeapInfo.setArrangeStyle("name");
         memoryHeapInfo.setAllocations(10);
         memoryHeapInfo.setDeallocations(0);
         memoryHeapInfo.setTotalCount(79);
@@ -100,7 +106,7 @@ public class MemoryHeapTest {
      */
     @Test
     public void getMemoryHeap() {
-        ArrayList<MemoryHeapInfo> memoryHeapInfos =
+        List<AgentHeapBean> memoryHeapInfos =
             memoryHeapManager.getMemoryHeapInfos(19354329L, 20210317L, 20210322L);
         Assert.assertNotNull(memoryHeapInfos);
     }
@@ -150,33 +156,4 @@ public class MemoryHeapTest {
     public void insertClassInfo() {
         classInfoManager.insertClassInfo(classInfo);
     }
-
-    /**
-     * functional test
-     *
-     * @tc.name: insertMemoryInstanceInfo
-     * @tc.number: OHOS_JAVA_Service_MemoryHeap_insertMemoryInstanceInfo_0001
-     * @tc.desc: insertMemoryInstanceInfo
-     * @tc.type: functional testing
-     * @tc.require: SR000FK61Q
-     */
-    @Test
-    public void insertMemoryInstanceInfo() {
-        memoryInstanceManager.insertMemoryInstanceInfo(memoryInstanceInfo);
-    }
-
-    /**
-     * functional test
-     *
-     * @tc.name: insertMemoryInstanceDetailsInfo
-     * @tc.number: OHOS_JAVA_Service_MemoryHeap_insertMemoryInstanceDetailsInfo_0001
-     * @tc.desc: insertMemoryInstanceDetailsInfo
-     * @tc.type: functional testing
-     * @tc.require: SR000FK61Q
-     */
-    @Test
-    public void insertMemoryInstanceDetailsInfo() {
-        memoryInstanceDetailsManager.insertMemoryInstanceDetailsInfo(memoryInstanceDetailsInfo);
-    }
-
 }

@@ -20,7 +20,7 @@
 namespace SysTuning {
 namespace TraceStreamer {
 ClockFilter::ClockFilter(TraceDataCache* dataCache, const TraceStreamerFilters* filter)
-    : FilterBase(dataCache, filter), primaryClock_(BuiltinClocks::BOOTTIME)
+    : FilterBase(dataCache, filter), primaryClock_(BuiltinClocks::TS_CLOCK_BOOTTIME)
 {
 }
 
@@ -37,6 +37,9 @@ std::string ClockFilter::GenClockKey(ClockId srcClockId, ClockId desClockId) con
 
 uint64_t ClockFilter::ToPrimaryTraceTime(ClockId srcClockId, uint64_t srcTs) const
 {
+    if (srcClockId == primaryClock_) {
+        return srcTs;
+    }
     return Convert(srcClockId, srcTs, primaryClock_);
 }
 

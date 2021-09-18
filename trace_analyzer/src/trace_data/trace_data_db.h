@@ -19,11 +19,12 @@
 #include <list>
 #include <string>
 
-extern "C" {
-struct sqlite3;
-struct sqlite3_stmt;
-extern int sqlite3_close(sqlite3*);
-extern int sqlite3_finalize(sqlite3_stmt* pStmt);
+extern "C"
+{
+    struct sqlite3;
+    struct sqlite3_stmt;
+    extern int sqlite3_close(sqlite3*);
+    extern int sqlite3_finalize(sqlite3_stmt*pStmt);
 }
 
 namespace SysTuning {
@@ -34,14 +35,22 @@ public:
     TraceDataDB(const TraceDataDB&) = delete;
     TraceDataDB& operator=(const TraceDataDB&) = delete;
     virtual ~TraceDataDB();
+    virtual void InitDB() = 0;
+
 public:
     int ExportDatabase(const std::string& outputName);
+    int SearchData(const std::string& outputName);
     void AppendNewTable(std::string tableName);
+    void EnableMetaTable(bool enabled);
+
+public:
     sqlite3* db_;
+
 private:
     void ExecuteSql(const std::string_view&);
-    std::list<std::string> internalTables_ {};
+    std::list<std::string> internalTables_{};
+    bool exportMetaTable_ = false;
 };
-}
-}
+} // namespace TraceStreamer
+} // namespace SysTuning
 #endif

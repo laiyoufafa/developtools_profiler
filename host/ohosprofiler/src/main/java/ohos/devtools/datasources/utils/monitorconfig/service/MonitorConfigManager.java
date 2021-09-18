@@ -30,21 +30,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 监控项配置管理类
- *
- * @version 1.0
- * @date 2021/2/2 19:04
- **/
+ */
 public class MonitorConfigManager {
-    /**
-     * 日志
-     */
-    private static final Logger LOGGER = LogManager.getLogger(MonitorConfigManager.class);
-
-    /**
-     * 单例
-     */
-    private static volatile MonitorConfigManager singleton;
-
     /**
      * dataMap
      */
@@ -66,6 +53,16 @@ public class MonitorConfigManager {
         return singleton;
     }
 
+    /**
+     * 日志
+     */
+    private static final Logger LOGGER = LogManager.getLogger(MonitorConfigManager.class);
+
+    /**
+     * 单例
+     */
+    private static volatile MonitorConfigManager singleton;
+
     private MonitorConfigManager() {
     }
 
@@ -73,7 +70,7 @@ public class MonitorConfigManager {
      * analyzeCharTarget
      *
      * @param localSessionId localSessionId
-     * @param jsonMonitor    jsonMonitor
+     * @param jsonMonitor jsonMonitor
      * @return Map<String, LinkedList < String>>
      */
     public Map<String, LinkedList<String>> analyzeCharTarget(long localSessionId, JSONObject jsonMonitor) {

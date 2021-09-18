@@ -238,7 +238,7 @@ void IpcGeneratorImpl::GenerateHeader(std::string& header_str)
 std::string IpcGeneratorImpl::GenHeader()
 {
     std::string header_str = BASE_HEADER_STRING;
-    std::string tmp1, tmp2;
+    std::string tmp1;
     header_str = ReplaceStr(header_str, "#HEAD_FILE_NAME#", headFileName_);
 
     if (serviceCount_ > 0) {

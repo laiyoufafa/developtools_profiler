@@ -17,6 +17,7 @@ package ohos.devtools.datasources.databases.databaseapi;
 
 import com.alibaba.druid.pool.DruidDataSource;
 import ohos.devtools.datasources.utils.session.service.SessionManager;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -28,9 +29,8 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * @version 1.0
- * @date 2021/03/22 16:07
- **/
+ * Data Base Api Test
+ */
 public class DataBaseApiTest {
     private List<String> processMemInfo;
     private List<String> processMemInfoIndex;
@@ -66,6 +66,37 @@ public class DataBaseApiTest {
     }
 
     /**
+     * get Instance Test
+     *
+     * @tc.name: init
+     * @tc.number: OHOS_JAVA_database_DataBaseApi_getInstanceTest_0001
+     * @tc.desc: get Instance Test
+     * @tc.type: functional testing
+     * @tc.require: SR-010
+     */
+    @Test
+    public void getInstanceTest01() {
+        DataBaseApi dataBaseApi = DataBaseApi.getInstance();
+        Assert.assertNotNull(dataBaseApi);
+    }
+
+    /**
+     * get Instance Test
+     *
+     * @tc.name: init
+     * @tc.number: OHOS_JAVA_database_DataBaseApi_getInstanceTest_0002
+     * @tc.desc: get Instance Test
+     * @tc.type: functional testing
+     * @tc.require: SR-010
+     */
+    @Test
+    public void getInstanceTest02() {
+        DataBaseApi dataBaseApi1 = DataBaseApi.getInstance();
+        DataBaseApi dataBaseApi2 = DataBaseApi.getInstance();
+        Assert.assertEquals(dataBaseApi1, dataBaseApi2);
+    }
+
+    /**
      * functional testing init
      *
      * @tc.name: init DataSourceManager
@@ -76,12 +107,8 @@ public class DataBaseApiTest {
      */
     @Test
     public void initDataSourceManager() {
-        try {
-            DataBaseApi.getInstance().initDataSourceManager();
-            Assert.assertTrue(true);
-        } catch (Exception exception) {
-            Assert.assertTrue(false);
-        }
+        boolean flag = DataBaseApi.getInstance().initDataSourceManager();
+        Assert.assertTrue(flag);
     }
 
     /**
@@ -95,13 +122,9 @@ public class DataBaseApiTest {
      */
     @Test
     public void initDataSourceManager02() {
-        try {
-            DataBaseApi.getInstance().initDataSourceManager();
-            DataBaseApi.getInstance().initDataSourceManager();
-            Assert.assertTrue(true);
-        } catch (Exception exception) {
-            Assert.assertTrue(false);
-        }
+        boolean flag1 = DataBaseApi.getInstance().initDataSourceManager();
+        boolean flag2 = DataBaseApi.getInstance().initDataSourceManager();
+        Assert.assertEquals(flag1, flag2);
     }
 
     /**
@@ -115,14 +138,8 @@ public class DataBaseApiTest {
      */
     @Test
     public void getDefaultDataBaseConnect01() {
-        Optional<Connection> res = null;
-        try {
-            DataBaseApi.getInstance().initDataSourceManager();
-            res = DataBaseApi.getInstance().getDefaultDataBaseConnect();
-            Assert.assertTrue(res.isPresent());
-        } catch (Exception exception) {
-            Assert.assertTrue(res.isPresent());
-        }
+        Optional<Connection> res = DataBaseApi.getInstance().getDefaultDataBaseConnect();
+        Assert.assertTrue(res.isPresent());
     }
 
     /**
@@ -136,58 +153,9 @@ public class DataBaseApiTest {
      */
     @Test
     public void getDefaultDataBaseConnect02() {
-        Optional<Connection> res = null;
-        try {
-            DataBaseApi.getInstance().initDataSourceManager();
-            res = DataBaseApi.getInstance().getDefaultDataBaseConnect();
-            Assert.assertTrue(res.isPresent());
-            Connection conn = res.get();
-            Assert.assertNotNull(conn);
-        } catch (Exception exception) {
-            Assert.assertTrue(res.isPresent());
-        }
-    }
-
-    /**
-     * functional testing get Connect
-     *
-     * @tc.name: get DefaultDataBase Connect
-     * @tc.number: OHOS_JAVA_database_DataBaseApi_getDefaultDataBaseConnect_0003
-     * @tc.desc: get DefaultDataBase Connect
-     * @tc.type: functional testing
-     * @tc.require: SR-010
-     */
-    @Test
-    public void getDefaultDataBaseConnect03() {
-        Optional<Connection> res = null;
-        try {
-            res = DataBaseApi.getInstance().getDefaultDataBaseConnect();
-            Assert.assertTrue(res.isPresent());
-        } catch (Exception exception) {
-            Assert.assertTrue(res.isPresent());
-        }
-    }
-
-    /**
-     * functional testing get Connect
-     *
-     * @tc.name: get DefaultDataBase Connect
-     * @tc.number: OHOS_JAVA_database_DataBaseApi_getDefaultDataBaseConnect_0004
-     * @tc.desc: get DefaultDataBase Connect
-     * @tc.type: functional testing
-     * @tc.require: SR-010
-     */
-    @Test
-    public void getDefaultDataBaseConnect04() {
-        Optional<Connection> res = null;
-        try {
-            res = DataBaseApi.getInstance().getDefaultDataBaseConnect();
-            Assert.assertTrue(res.isPresent());
-            Connection cc = res.get();
-            Assert.assertNotNull(cc);
-        } catch (Exception exception) {
-            Assert.assertTrue(res.isPresent());
-        }
+        Optional<Connection> res1 = DataBaseApi.getInstance().getDefaultDataBaseConnect();
+        Optional<Connection> res2 = DataBaseApi.getInstance().getDefaultDataBaseConnect();
+        Assert.assertNotEquals(res1, res2);
     }
 
     /**
@@ -201,14 +169,11 @@ public class DataBaseApiTest {
      */
     @Test
     public void getConnectByTableTest01() {
-        Optional<Connection> res = null;
-        try {
-            DataBaseApi.getInstance().initDataSourceManager();
-            res = DataBaseApi.getInstance().getConnectByTable("DeviceInfo");
-            Assert.assertTrue(res.isPresent());
-        } catch (Exception exception) {
-            Assert.assertTrue(res.isPresent());
-        }
+        boolean flag =
+            DataBaseApi.getInstance().createTable(DataBaseApi.DEFAULT_DATABASE_DBNAME, "DeviceInfo",
+                processMemInfo);
+        Optional<Connection> res = DataBaseApi.getInstance().getConnectByTable("DeviceInfo");
+        Assert.assertTrue(res.isPresent());
     }
 
     /**
@@ -222,14 +187,8 @@ public class DataBaseApiTest {
      */
     @Test
     public void getConnectByTableTest02() {
-        Optional<Connection> res = null;
-        try {
-            DataBaseApi.getInstance().initDataSourceManager();
-            res = DataBaseApi.getInstance().getConnectByTable("");
-            Assert.assertFalse(res.isPresent());
-        } catch (Exception exception) {
-            Assert.assertTrue(res.isPresent());
-        }
+        Optional<Connection> res = DataBaseApi.getInstance().getConnectByTable("");
+        Assert.assertFalse(res.isPresent());
     }
 
     /**
@@ -243,14 +202,8 @@ public class DataBaseApiTest {
      */
     @Test
     public void getConnectByTableTest03() {
-        Optional<Connection> res = null;
-        try {
-            DataBaseApi.getInstance().initDataSourceManager();
-            res = DataBaseApi.getInstance().getConnectByTable(null);
-            Assert.assertFalse(res.isPresent());
-        } catch (Exception exception) {
-            Assert.assertTrue(res.isPresent());
-        }
+        Optional<Connection> res = DataBaseApi.getInstance().getConnectByTable(null);
+        Assert.assertFalse(res.isPresent());
     }
 
     /**
@@ -264,13 +217,15 @@ public class DataBaseApiTest {
      */
     @Test
     public void getConnectByTableTest04() {
-        Optional<Connection> res = null;
-        try {
-            res = DataBaseApi.getInstance().getConnectByTable("DeviceInfo");
-            Assert.assertTrue(res.isPresent());
-        } catch (Exception exception) {
-            Assert.assertTrue(res.isPresent());
-        }
+        boolean flag1 =
+            DataBaseApi.getInstance().createTable(DataBaseApi.DEFAULT_DATABASE_DBNAME, "DeviceInfo1",
+                processMemInfo);
+        Optional<Connection> res1 = DataBaseApi.getInstance().getConnectByTable("DeviceInfo1");
+        boolean flag2 =
+            DataBaseApi.getInstance().createTable(DataBaseApi.DEFAULT_DATABASE_DBNAME, "DeviceInfo2",
+                processMemInfo);
+        Optional<Connection> res2 = DataBaseApi.getInstance().getConnectByTable("DeviceInfo2");
+        Assert.assertNotEquals(res1, res2);
     }
 
     /**
@@ -284,13 +239,12 @@ public class DataBaseApiTest {
      */
     @Test
     public void getConnectByTableTest05() {
-        Optional<Connection> res = null;
-        try {
-            res = DataBaseApi.getInstance().getConnectByTable("");
-            Assert.assertFalse(res.isPresent());
-        } catch (Exception exception) {
-            Assert.assertTrue(res.isPresent());
-        }
+        boolean flag1 =
+            DataBaseApi.getInstance().createTable(DataBaseApi.DEFAULT_DATABASE_DBNAME, "DeviceInfo",
+                processMemInfo);
+        Optional<Connection> res1 = DataBaseApi.getInstance().getConnectByTable("DeviceInfo");
+        Optional<Connection> res2 = DataBaseApi.getInstance().getConnectByTable("DeviceInfo");
+        Assert.assertNotEquals(res1, res2);
     }
 
     /**
@@ -319,13 +273,8 @@ public class DataBaseApiTest {
      */
     @Test
     public void getConnectBydbnameTest02() {
-        Optional<Connection> res = null;
-        try {
-            res = DataBaseApi.getInstance().getConnectBydbname("defaultDB");
-            Assert.assertTrue(res.isPresent());
-        } catch (Exception exception) {
-            Assert.assertTrue(res.isPresent());
-        }
+        Optional<Connection> res = DataBaseApi.getInstance().getConnectBydbname(null);
+        Assert.assertTrue(res.isPresent());
     }
 
     /**
@@ -339,13 +288,8 @@ public class DataBaseApiTest {
      */
     @Test
     public void getConnectBydbnameTest03() {
-        Optional<Connection> res = null;
-        try {
-            res = DataBaseApi.getInstance().getConnectBydbname("test");
-            Assert.assertTrue(res.isPresent());
-        } catch (Exception exception) {
-            Assert.assertTrue(res.isPresent());
-        }
+        Optional<Connection> res = DataBaseApi.getInstance().getConnectBydbname("");
+        Assert.assertTrue(res.isPresent());
     }
 
     /**
@@ -359,15 +303,9 @@ public class DataBaseApiTest {
      */
     @Test
     public void getConnectBydbnameTest04() {
-        Optional<Connection> res = null;
-        try {
-            res = DataBaseApi.getInstance().getConnectBydbname("test");
-            Assert.assertTrue(res.isPresent());
-            res = DataBaseApi.getInstance().getConnectBydbname("test");
-            Assert.assertTrue(res.isPresent());
-        } catch (Exception exception) {
-            Assert.assertTrue(res.isPresent());
-        }
+        Optional<Connection> res1 = DataBaseApi.getInstance().getConnectBydbname("test");
+        Optional<Connection> res2 = DataBaseApi.getInstance().getConnectBydbname("test");
+        Assert.assertNotEquals(res1, res2);
     }
 
     /**
@@ -381,15 +319,9 @@ public class DataBaseApiTest {
      */
     @Test
     public void getConnectBydbnameTest05() {
-        Optional<Connection> res = null;
-        try {
-            res = DataBaseApi.getInstance().getConnectBydbname("defaultDB");
-            Assert.assertTrue(res.isPresent());
-            res = DataBaseApi.getInstance().getConnectBydbname("test");
-            Assert.assertTrue(res.isPresent());
-        } catch (Exception exception) {
-            Assert.assertTrue(res.isPresent());
-        }
+        Optional<Connection> res1 = DataBaseApi.getInstance().getConnectBydbname("defaultDB");
+        Optional<Connection> res2 = DataBaseApi.getInstance().getConnectBydbname("test");
+        Assert.assertNotEquals(res1, res2);
     }
 
     /**
@@ -403,13 +335,8 @@ public class DataBaseApiTest {
      */
     @Test
     public void getPoolByDataBaseNameTest01() {
-        DataSource res = null;
-        try {
-            res = DataBaseApi.getInstance().getPoolByDataBaseName("");
-            Assert.assertNotNull(res);
-        } catch (Exception exception) {
-            Assert.assertNotNull(res);
-        }
+        DataSource res = DataBaseApi.getInstance().getPoolByDataBaseName("");
+        Assert.assertNotNull(res);
     }
 
     /**
@@ -423,13 +350,8 @@ public class DataBaseApiTest {
      */
     @Test
     public void getPoolByDataBaseNameTest02() {
-        DataSource res = null;
-        try {
-            res = DataBaseApi.getInstance().getPoolByDataBaseName(null);
-            Assert.assertNotNull(res);
-        } catch (Exception exception) {
-            Assert.assertNotNull(res);
-        }
+        DataSource res = DataBaseApi.getInstance().getPoolByDataBaseName(null);
+        Assert.assertNotNull(res);
     }
 
     /**
@@ -443,13 +365,8 @@ public class DataBaseApiTest {
      */
     @Test
     public void getPoolByDataBaseNameTest03() {
-        DataSource res = null;
-        try {
-            res = DataBaseApi.getInstance().getPoolByDataBaseName("test");
-            Assert.assertNotNull(res);
-        } catch (Exception exception) {
-            Assert.assertNotNull(res);
-        }
+        DataSource res = DataBaseApi.getInstance().getPoolByDataBaseName("test");
+        Assert.assertNotNull(res);
     }
 
     /**
@@ -463,15 +380,9 @@ public class DataBaseApiTest {
      */
     @Test
     public void getPoolByDataBaseNameTest04() {
-        DataSource res = null;
-        try {
-            res = DataBaseApi.getInstance().getPoolByDataBaseName("test");
-            Assert.assertNotNull(res);
-            res = DataBaseApi.getInstance().getPoolByDataBaseName("test");
-            Assert.assertNotNull(res);
-        } catch (Exception exception) {
-            Assert.assertNotNull(res);
-        }
+        DataSource res1 = DataBaseApi.getInstance().getPoolByDataBaseName(null);
+        DataSource res2 = DataBaseApi.getInstance().getPoolByDataBaseName("");
+        Assert.assertEquals(res1, res2);
     }
 
     /**
@@ -485,15 +396,9 @@ public class DataBaseApiTest {
      */
     @Test
     public void getPoolByDataBaseNameTest05() {
-        DataSource res = null;
-        try {
-            res = DataBaseApi.getInstance().getPoolByDataBaseName(null);
-            Assert.assertNotNull(res);
-            res = DataBaseApi.getInstance().getPoolByDataBaseName("test");
-            Assert.assertNotNull(res);
-        } catch (Exception exception) {
-            Assert.assertNotNull(res);
-        }
+        DataSource res1 = DataBaseApi.getInstance().getPoolByDataBaseName("test1");
+        DataSource res2 = DataBaseApi.getInstance().getPoolByDataBaseName("test");
+        Assert.assertNotEquals(res1, res2);
     }
 
     /**
@@ -507,12 +412,8 @@ public class DataBaseApiTest {
      */
     @Test
     public void registerTableTest01() {
-        try {
-            DataBaseApi.getInstance().registerTable("test", "ttest");
-            Assert.assertTrue(true);
-        } catch (Exception exception) {
-            Assert.assertTrue(false);
-        }
+        DataBaseApi.getInstance().registerTable("test", "ttest");
+        Assert.assertTrue(true);
     }
 
     /**
@@ -526,12 +427,8 @@ public class DataBaseApiTest {
      */
     @Test
     public void registerTableTest02() {
-        try {
-            DataBaseApi.getInstance().registerTable("", "ttest");
-            Assert.assertTrue(true);
-        } catch (Exception exception) {
-            Assert.assertTrue(false);
-        }
+        DataBaseApi.getInstance().registerTable("", "ttest");
+        Assert.assertTrue(true);
     }
 
     /**
@@ -545,12 +442,8 @@ public class DataBaseApiTest {
      */
     @Test
     public void registerTableTest03() {
-        try {
-            DataBaseApi.getInstance().registerTable("test", "");
-            Assert.assertTrue(true);
-        } catch (Exception exception) {
-            Assert.assertTrue(false);
-        }
+        DataBaseApi.getInstance().registerTable("test", "");
+        Assert.assertTrue(true);
     }
 
     /**
@@ -564,12 +457,8 @@ public class DataBaseApiTest {
      */
     @Test
     public void registerTableTest04() {
-        try {
-            DataBaseApi.getInstance().registerTable(null, null);
-            Assert.assertTrue(true);
-        } catch (Exception exception) {
-            Assert.assertTrue(false);
-        }
+        DataBaseApi.getInstance().registerTable(null, null);
+        Assert.assertTrue(true);
     }
 
     /**
@@ -583,14 +472,8 @@ public class DataBaseApiTest {
      */
     @Test
     public void registerTableTest05() {
-        try {
-            DataBaseApi.getInstance().registerTable("test", "ttest");
-            Assert.assertTrue(true);
-            DataBaseApi.getInstance().registerTable("test", "ttest");
-            Assert.assertTrue(true);
-        } catch (Exception exception) {
-            Assert.assertTrue(false);
-        }
+        DataBaseApi.getInstance().registerTable("", "");
+        Assert.assertTrue(true);
     }
 
     /**
@@ -604,12 +487,8 @@ public class DataBaseApiTest {
      */
     @Test
     public void registerDataSourceTest01() {
-        try {
-            DataBaseApi.getInstance().registerDataSource(null, null);
-            Assert.assertTrue(true);
-        } catch (Exception exception) {
-            Assert.assertTrue(false);
-        }
+        DataBaseApi.getInstance().registerDataSource(null, null);
+        Assert.assertTrue(true);
     }
 
     /**
@@ -623,12 +502,8 @@ public class DataBaseApiTest {
      */
     @Test
     public void registerDataSourceTest02() {
-        try {
-            DataBaseApi.getInstance().registerDataSource("dataBase", null);
-            Assert.assertTrue(true);
-        } catch (Exception exception) {
-            Assert.assertTrue(false);
-        }
+        DataBaseApi.getInstance().registerDataSource("dataBase", null);
+        Assert.assertTrue(true);
     }
 
     /**
@@ -642,12 +517,8 @@ public class DataBaseApiTest {
      */
     @Test
     public void registerDataSourceTest03() {
-        try {
-            DataBaseApi.getInstance().registerDataSource("dataBase", new DruidDataSource());
-            Assert.assertTrue(true);
-        } catch (Exception exception) {
-            Assert.assertTrue(false);
-        }
+        DataBaseApi.getInstance().registerDataSource("dataBase", new DruidDataSource());
+        Assert.assertTrue(true);
     }
 
     /**
@@ -661,12 +532,8 @@ public class DataBaseApiTest {
      */
     @Test
     public void registerDataSourceTest04() {
-        try {
-            DataBaseApi.getInstance().registerDataSource(null, new DruidDataSource());
-            Assert.assertTrue(true);
-        } catch (Exception exception) {
-            Assert.assertTrue(false);
-        }
+        DataBaseApi.getInstance().registerDataSource(null, new DruidDataSource());
+        Assert.assertTrue(true);
     }
 
     /**
@@ -680,14 +547,8 @@ public class DataBaseApiTest {
      */
     @Test
     public void registerDataSourceTest05() {
-        try {
-            DataBaseApi.getInstance().registerDataSource("dataBase", new DruidDataSource());
-            Assert.assertTrue(true);
-            DataBaseApi.getInstance().registerDataSource(null, new DruidDataSource());
-            Assert.assertTrue(true);
-        } catch (Exception exception) {
-            Assert.assertTrue(false);
-        }
+        DataBaseApi.getInstance().registerDataSource("", null);
+        Assert.assertTrue(true);
     }
 
     /**
@@ -701,12 +562,8 @@ public class DataBaseApiTest {
      */
     @Test
     public void createDataBaseTest01() {
-        try {
-            boolean res = DataBaseApi.getInstance().createDataBase(null);
-            Assert.assertFalse(res);
-        } catch (Exception exception) {
-            Assert.assertTrue(false);
-        }
+        boolean res = DataBaseApi.getInstance().createDataBase(null);
+        Assert.assertFalse(res);
     }
 
     /**
@@ -720,12 +577,8 @@ public class DataBaseApiTest {
      */
     @Test
     public void createDataBaseTest02() {
-        try {
-            boolean res = DataBaseApi.getInstance().createDataBase("testaa");
-            Assert.assertTrue(res);
-        } catch (Exception exception) {
-            Assert.assertTrue(false);
-        }
+        boolean res = DataBaseApi.getInstance().createDataBase("testaa");
+        Assert.assertTrue(res);
     }
 
     /**
@@ -739,14 +592,24 @@ public class DataBaseApiTest {
      */
     @Test
     public void createDataBaseTest03() {
-        try {
-            boolean res = DataBaseApi.getInstance().createDataBase("testaa");
-            Assert.assertTrue(res);
-            boolean res0 = DataBaseApi.getInstance().createDataBase("testaa");
-            Assert.assertTrue(res0);
-        } catch (Exception exception) {
-            Assert.assertTrue(false);
-        }
+        boolean res = DataBaseApi.getInstance().createDataBase("test01");
+        boolean res0 = DataBaseApi.getInstance().createDataBase("");
+        Assert.assertNotEquals(res, res0);
+    }
+
+    /**
+     * functional testing Database creation
+     *
+     * @tc.name: Database creation
+     * @tc.number: OHOS_JAVA_database_DataBaseApi_createDataBase_0004
+     * @tc.desc: Database creation
+     * @tc.type: functional testing
+     * @tc.require: SR-010
+     */
+    @Test
+    public void createDataBaseTest04() {
+        boolean res = DataBaseApi.getInstance().createDataBase("");
+        Assert.assertFalse(res);
     }
 
     /**
@@ -760,14 +623,9 @@ public class DataBaseApiTest {
      */
     @Test
     public void createDataBaseTest05() {
-        try {
-            boolean res = DataBaseApi.getInstance().createDataBase(null);
-            Assert.assertFalse(res);
-            boolean res0 = DataBaseApi.getInstance().createDataBase("testaa");
-            Assert.assertTrue(res0);
-        } catch (Exception exception) {
-            Assert.assertTrue(false);
-        }
+        boolean res = DataBaseApi.getInstance().createDataBase(null);
+        boolean res0 = DataBaseApi.getInstance().createDataBase("");
+        Assert.assertEquals(res, res0);
     }
 
     /**
@@ -781,13 +639,10 @@ public class DataBaseApiTest {
      */
     @Test
     public void createTableTest01() {
-        try {
-            boolean res =
-                DataBaseApi.getInstance().createTable(DataBaseApi.DEFAULT_DATABASE_DBNAME, "testTable", processMemInfo);
-            Assert.assertTrue(res);
-        } catch (Exception exception) {
-            Assert.assertTrue(false);
-        }
+        boolean res =
+            DataBaseApi.getInstance().createTable(DataBaseApi.DEFAULT_DATABASE_DBNAME, "testTable",
+                processMemInfo);
+        Assert.assertTrue(res);
     }
 
     /**
@@ -801,13 +656,9 @@ public class DataBaseApiTest {
      */
     @Test
     public void createTableTest02() {
-        try {
-            boolean res =
-                DataBaseApi.getInstance().createTable(DataBaseApi.DEFAULT_DATABASE_DBNAME, null, processMemInfo);
-            Assert.assertFalse(res);
-        } catch (Exception exception) {
-            Assert.assertTrue(false);
-        }
+        boolean res = DataBaseApi.getInstance().createTable(DataBaseApi.DEFAULT_DATABASE_DBNAME, null,
+            processMemInfo);
+        Assert.assertFalse(res);
     }
 
     /**
@@ -821,12 +672,8 @@ public class DataBaseApiTest {
      */
     @Test
     public void createTableTest03() {
-        try {
-            boolean res = DataBaseApi.getInstance().createTable("", null, processMemInfo);
-            Assert.assertFalse(res);
-        } catch (Exception exception) {
-            Assert.assertTrue(false);
-        }
+        boolean res = DataBaseApi.getInstance().createTable("", null, processMemInfo);
+        Assert.assertFalse(res);
     }
 
     /**
@@ -840,12 +687,8 @@ public class DataBaseApiTest {
      */
     @Test
     public void createTableTest04() {
-        try {
-            boolean res = DataBaseApi.getInstance().createTable(null, null, processMemInfo);
-            Assert.assertFalse(res);
-        } catch (Exception exception) {
-            Assert.assertTrue(false);
-        }
+        boolean res = DataBaseApi.getInstance().createTable(null, null, processMemInfo);
+        Assert.assertFalse(res);
     }
 
     /**
@@ -859,12 +702,8 @@ public class DataBaseApiTest {
      */
     @Test
     public void createTableTest05() {
-        try {
-            boolean res = DataBaseApi.getInstance().createTable(null, null, processMemInfo);
-            Assert.assertFalse(res);
-        } catch (Exception exception) {
-            Assert.assertTrue(false);
-        }
+        boolean res = DataBaseApi.getInstance().createTable("", "", processMemInfo);
+        Assert.assertFalse(res);
     }
 
     /**
@@ -878,15 +717,10 @@ public class DataBaseApiTest {
      */
     @Test
     public void createIndexTest01() {
-        try {
-            boolean res =
-                DataBaseApi.getInstance().createTable(DataBaseApi.DEFAULT_DATABASE_DBNAME, "testTable", processMemInfo);
-            Assert.assertTrue(res);
-            boolean result = DataBaseApi.getInstance().createIndex("testTable", "testIndex", processMemInfoIndex);
-            Assert.assertTrue(result);
-        } catch (Exception exception) {
-            Assert.assertTrue(false);
-        }
+        boolean res =
+            DataBaseApi.getInstance().createTable(DataBaseApi.DEFAULT_DATABASE_DBNAME, "testTable",
+                processMemInfo);
+        Assert.assertTrue(res);
     }
 
     /**
@@ -900,15 +734,9 @@ public class DataBaseApiTest {
      */
     @Test
     public void createIndexTest02() {
-        try {
-            boolean res =
-                DataBaseApi.getInstance().createTable(DataBaseApi.DEFAULT_DATABASE_DBNAME, "testTable", processMemInfo);
-            Assert.assertTrue(res);
-            boolean result = DataBaseApi.getInstance().createIndex("testTable", null, processMemInfoIndex);
-            Assert.assertFalse(result);
-        } catch (Exception exception) {
-            Assert.assertTrue(false);
-        }
+        boolean result = DataBaseApi.getInstance().createIndex("testTable", null,
+            processMemInfoIndex);
+        Assert.assertFalse(result);
     }
 
     /**
@@ -922,15 +750,8 @@ public class DataBaseApiTest {
      */
     @Test
     public void createIndexTest03() {
-        try {
-            boolean res =
-                DataBaseApi.getInstance().createTable(DataBaseApi.DEFAULT_DATABASE_DBNAME, "testTable", processMemInfo);
-            Assert.assertTrue(res);
-            boolean result = DataBaseApi.getInstance().createIndex(null, "aaa", processMemInfoIndex);
-            Assert.assertFalse(result);
-        } catch (Exception exception) {
-            Assert.assertTrue(false);
-        }
+        boolean result = DataBaseApi.getInstance().createIndex(null, "", processMemInfoIndex);
+        Assert.assertFalse(result);
     }
 
     /**
@@ -944,16 +765,8 @@ public class DataBaseApiTest {
      */
     @Test
     public void createIndexTest04() {
-        try {
-            boolean res =
-                DataBaseApi.getInstance().createTable(DataBaseApi.DEFAULT_DATABASE_DBNAME, "testTable", processMemInfo);
-            Assert.assertTrue(res);
-
-            boolean result = DataBaseApi.getInstance().createIndex(null, null, processMemInfoIndex);
-            Assert.assertFalse(result);
-        } catch (Exception exception) {
-            Assert.assertTrue(false);
-        }
+        boolean result = DataBaseApi.getInstance().createIndex(null, null, processMemInfoIndex);
+        Assert.assertFalse(result);
     }
 
     /**
@@ -967,14 +780,283 @@ public class DataBaseApiTest {
      */
     @Test
     public void createIndexTest05() {
-        try {
-            boolean res =
-                DataBaseApi.getInstance().createTable(DataBaseApi.DEFAULT_DATABASE_DBNAME, "testTable", processMemInfo);
-            Assert.assertTrue(res);
-            boolean result = DataBaseApi.getInstance().createIndex(null, null, null);
-            Assert.assertFalse(result);
-        } catch (Exception exception) {
-            Assert.assertTrue(false);
-        }
+        boolean result = DataBaseApi.getInstance().createIndex(null, null, null);
+        Assert.assertFalse(result);
+    }
+
+    /**
+     * functional testing table check
+     *
+     * @tc.name: Check Table Register
+     * @tc.number: OHOS_JAVA_database_DataBaseApi_checkTableRegister_0001
+     * @tc.desc: Check Table Register
+     * @tc.type: functional testing
+     * @tc.require: SR-010
+     */
+    @Test
+    public void checkTableRegisterTest01() {
+        String res = DataBaseApi.getInstance().checkTableRegister("");
+        Assert.assertFalse(StringUtils.isNotBlank(res));
+    }
+
+    /**
+     * functional testing table check
+     *
+     * @tc.name: Check Table Register
+     * @tc.number: OHOS_JAVA_database_DataBaseApi_checkTableRegister_0002
+     * @tc.desc: Check Table Register
+     * @tc.type: functional testing
+     * @tc.require: SR-010
+     */
+    @Test
+    public void checkTableRegisterTest02() {
+        String res = DataBaseApi.getInstance().checkTableRegister(null);
+        Assert.assertFalse(StringUtils.isNotBlank(res));
+    }
+
+    /**
+     * functional testing table check
+     *
+     * @tc.name: Check Table Register
+     * @tc.number: OHOS_JAVA_database_DataBaseApi_checkTableRegister_0003
+     * @tc.desc: Check Table Register
+     * @tc.type: functional testing
+     * @tc.require: SR-010
+     */
+    @Test
+    public void checkTableRegisterTest03() {
+        String res = DataBaseApi.getInstance().checkTableRegister("testTable");
+        Assert.assertNotNull(res);
+    }
+
+    /**
+     * functional testing table check
+     *
+     * @tc.name: Check Table Register
+     * @tc.number: OHOS_JAVA_database_DataBaseApi_checkTableRegister_0004
+     * @tc.desc: Check Table Register
+     * @tc.type: functional testing
+     * @tc.require: SR-010
+     */
+    @Test
+    public void checkTableRegisterTest04() {
+        String res1 = DataBaseApi.getInstance().checkTableRegister("tableName");
+        String res2 = DataBaseApi.getInstance().checkTableRegister("");
+        Assert.assertNotEquals(res1, res2);
+    }
+
+    /**
+     * functional testing table check
+     *
+     * @tc.name: Check Table Register
+     * @tc.number: OHOS_JAVA_database_DataBaseApi_checkTableRegister_0005
+     * @tc.desc: Check Table Register
+     * @tc.type: functional testing
+     * @tc.require: SR-010
+     */
+    @Test
+    public void checkTableRegisterTest05() {
+        String res1 = DataBaseApi.getInstance().checkTableRegister(null);
+        String res2 = DataBaseApi.getInstance().checkTableRegister("");
+        Assert.assertEquals(res1, res2);
+    }
+
+    /**
+     * functional testing index check
+     *
+     * @tc.name: Check Index Register
+     * @tc.number: OHOS_JAVA_database_DataBaseApi_checkIndexRegister_0001
+     * @tc.desc: Check Index Register
+     * @tc.type: functional testing
+     * @tc.require: SR-010
+     */
+    @Test
+    public void checkIndexRegisterTest01() {
+        boolean res = DataBaseApi.getInstance().checkIndexRegister("");
+        Assert.assertFalse(res);
+    }
+
+    /**
+     * functional testing index check
+     *
+     * @tc.name: Check Index Register
+     * @tc.number: OHOS_JAVA_database_DataBaseApi_checkIndexRegister_0002
+     * @tc.desc: Check Index Register
+     * @tc.type: functional testing
+     * @tc.require: SR-010
+     */
+    @Test
+    public void checkIndexRegisterTest02() {
+        boolean res = DataBaseApi.getInstance().checkIndexRegister(null);
+        Assert.assertFalse(res);
+    }
+
+    /**
+     * functional testing index check
+     *
+     * @tc.name: Check Index Register
+     * @tc.number: OHOS_JAVA_database_DataBaseApi_checkIndexRegister_0003
+     * @tc.desc: Check Index Register
+     * @tc.type: functional testing
+     * @tc.require: SR-010
+     */
+    @Test
+    public void checkIndexRegisterTest03() {
+        boolean res = DataBaseApi.getInstance().checkIndexRegister("testTable");
+        Assert.assertFalse(res);
+    }
+
+    /**
+     * functional testing index check
+     *
+     * @tc.name: Check Index Register
+     * @tc.number: OHOS_JAVA_database_DataBaseApi_checkIndexRegister_0004
+     * @tc.desc: Check Index Register
+     * @tc.type: functional testing
+     * @tc.require: SR-010
+     */
+    @Test
+    public void checkIndexRegisterTest04() {
+        boolean res1 = DataBaseApi.getInstance().checkIndexRegister("tableName");
+        boolean res2 = DataBaseApi.getInstance().checkIndexRegister("");
+        Assert.assertEquals(res1, res2);
+    }
+
+    /**
+     * functional testing index check
+     *
+     * @tc.name: Check Index Register
+     * @tc.number: OHOS_JAVA_database_DataBaseApi_checkIndexRegister_0005
+     * @tc.desc: Check Index Register
+     * @tc.type: functional testing
+     * @tc.require: SR-010
+     */
+    @Test
+    public void checkIndexRegisterTest05() {
+        boolean res1 = DataBaseApi.getInstance().checkIndexRegister(null);
+        boolean res2 = DataBaseApi.getInstance().checkIndexRegister("");
+        Assert.assertEquals(res1, res2);
+    }
+
+    /**
+     * functional testing index check
+     *
+     * @tc.name: Register Create Index
+     * @tc.number: OHOS_JAVA_database_DataBaseApi_registerCreateIndex_0001
+     * @tc.desc: Register Create Index
+     * @tc.type: functional testing
+     * @tc.require: SR-010
+     */
+    @Test
+    public void registerCreateIndexTest01() {
+        DataBaseApi.getInstance().registerCreateIndex("");
+        Assert.assertTrue(true);
+    }
+
+    /**
+     * functional testing index check
+     *
+     * @tc.name: Register Create Index
+     * @tc.number: OHOS_JAVA_database_DataBaseApi_registerCreateIndex_0002
+     * @tc.desc: Register Create Index
+     * @tc.type: functional testing
+     * @tc.require: SR-010
+     */
+    @Test
+    public void registerCreateIndexTest02() {
+        DataBaseApi.getInstance().registerCreateIndex(null);
+        Assert.assertTrue(true);
+    }
+
+    /**
+     * functional testing index check
+     *
+     * @tc.name: Register Create Index
+     * @tc.number: OHOS_JAVA_database_DataBaseApi_registerCreateIndex_0003
+     * @tc.desc: Register Create Index
+     * @tc.type: functional testing
+     * @tc.require: SR-010
+     */
+    @Test
+    public void registerCreateIndexTest03() {
+        DataBaseApi.getInstance().registerCreateIndex("testTable");
+        Assert.assertTrue(true);
+    }
+
+    /**
+     * functional testing table creation
+     *
+     * @tc.name: Database table creation
+     * @tc.number: OHOS_JAVA_database_DataBaseApi_createTableSql_0001
+     * @tc.desc: Database table creation
+     * @tc.type: functional testing
+     * @tc.require: SR-010
+     */
+    @Test
+    public void createTableSqlTest01() {
+        boolean res = DataBaseApi.getInstance().createTable(DataBaseApi.DEFAULT_DATABASE_DBNAME, "testTable",
+            "sql");
+        Assert.assertTrue(res);
+    }
+
+    /**
+     * functional testing table creation
+     *
+     * @tc.name: Database table creation
+     * @tc.number: OHOS_JAVA_database_DataBaseApi_createTableSql_0002
+     * @tc.desc: Database table creation
+     * @tc.type: functional testing
+     * @tc.require: SR-010
+     */
+    @Test
+    public void createTableSqlTest02() {
+        boolean res = DataBaseApi.getInstance().createTable(DataBaseApi.DEFAULT_DATABASE_DBNAME, null,
+            "");
+        Assert.assertFalse(res);
+    }
+
+    /**
+     * functional testing table creation
+     *
+     * @tc.name: Database table creation
+     * @tc.number: OHOS_JAVA_database_DataBaseApi_createTableSql_0003
+     * @tc.desc: Database table creation
+     * @tc.type: functional testing
+     * @tc.require: SR-010
+     */
+    @Test
+    public void createTableSqlTest03() {
+        boolean res = DataBaseApi.getInstance().createTable("", null, "");
+        Assert.assertFalse(res);
+    }
+
+    /**
+     * functional testing table creation
+     *
+     * @tc.name: Database table creation
+     * @tc.number: OHOS_JAVA_database_DataBaseApi_createTableSql_0004
+     * @tc.desc: Database table creation
+     * @tc.type: functional testing
+     * @tc.require: SR-010
+     */
+    @Test
+    public void createTableSqlTest04() {
+        boolean res = DataBaseApi.getInstance().createTable(null, null, "");
+        Assert.assertFalse(res);
+    }
+
+    /**
+     * functional testing table creation
+     *
+     * @tc.name: Database table creation
+     * @tc.number: OHOS_JAVA_database_DataBaseApi_createTableSql_0005
+     * @tc.desc: Database table creation
+     * @tc.type: functional testing
+     * @tc.require: SR-010
+     */
+    @Test
+    public void createTableSqlTest05() {
+        boolean res = DataBaseApi.getInstance().createTable(null, null, "sql");
+        Assert.assertFalse(res);
     }
 }

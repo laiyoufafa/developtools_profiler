@@ -25,12 +25,17 @@ import ohos.devtools.datasources.transport.grpc.service.MemoryPluginResult;
 import ohos.devtools.datasources.transport.grpc.service.ProfilerServiceTypes;
 import ohos.devtools.datasources.utils.common.util.CommonUtil;
 import ohos.devtools.datasources.utils.common.util.DateTimeUtil;
+import ohos.devtools.datasources.utils.device.entity.DeviceType;
 import ohos.devtools.datasources.utils.process.entity.ProcessInfo;
+import ohos.devtools.datasources.utils.session.service.SessionManager;
 import ohos.devtools.views.common.LayoutConstants;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -38,22 +43,21 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static ohos.devtools.datasources.utils.common.Constant.DEVICE_FULL_TYPE;
+import static ohos.devtools.datasources.utils.common.Constant.DEVTOOLS_PLUGINS_V8_PATH;
 import static ohos.devtools.datasources.utils.common.Constant.MEMORY_PLUG;
 import static ohos.devtools.datasources.utils.common.Constant.MEMORY_PLUGS_NAME;
-import static ohos.devtools.views.common.ViewConstants.NUM_2;
-import static ohos.devtools.views.common.ViewConstants.NUM_5;
+import static ohos.devtools.datasources.utils.device.entity.DeviceType.LEAN_HOS_DEVICE;
+import static ohos.devtools.views.common.Constant.IS_SUPPORT_NEW_HDC;
 
 /**
  * Provide device-side grpc interface encapsulation for each module in the application
- *
- * @version 1.0
- * @date 2021/02/01 19:23
- **/
+ */
 public final class HiProfilerClient {
     private static final Logger LOGGER = LogManager.getLogger(HiProfilerClient.class);
 
     private static final String IP = InetAddress.getLoopbackAddress().getHostAddress();
+
+    private static final int RETRY_COUNT = 2;
 
     /**
      * Used to store the created Profiler
@@ -63,10 +67,7 @@ public final class HiProfilerClient {
 
     /**
      * Singleton Class Instance
-     *
-     * @version 1.0
-     * @date 2021/02/01 19:23
-     **/
+     */
     private static class SingletonClassInstance {
         private static final HiProfilerClient INSTANCE = new HiProfilerClient();
     }
@@ -86,8 +87,8 @@ public final class HiProfilerClient {
     /**
      * Get profilerclient
      *
-     * @param ip      ip address
-     * @param port    port number
+     * @param ip ip address
+     * @param port port number
      * @param channel channel
      * @return ProfilerClient
      */
@@ -107,7 +108,7 @@ public final class HiProfilerClient {
     /**
      * get profilerClient.
      *
-     * @param ip   ip address
+     * @param ip ip address
      * @param port port number
      * @return ProfilerClient
      */
@@ -127,7 +128,7 @@ public final class HiProfilerClient {
     /**
      * Destroy profilerClient
      *
-     * @param ip   ip address
+     * @param ip ip address
      * @param port port number
      * @return boolean
      */
@@ -145,40 +146,35 @@ public final class HiProfilerClient {
     }
 
     /**
-     * requestCreateSession
+     * request Create Session
      *
-     * @param port              port number
-     * @param name              name
-     * @param pid               pid
+     * @param port port number
+     * @param name name
+     * @param pid pid
      * @param reportProcessTree report process tree
-     * @param deviceType        device Type
+     * @param deviceType DeviceType
      * @return int
      */
-    public int requestCreateSession(int port, String name, int pid, boolean reportProcessTree, String deviceType) {
+    public int requestCreateSession(int port, String name, int pid, boolean reportProcessTree, DeviceType deviceType) {
         if (port <= 0 || port > LayoutConstants.PORT) {
             return -1;
         }
         ProfilerClient client = getProfilerClient("", port);
         LOGGER.info("process Session start222", DateTimeUtil.getNowTimeLong());
-        if (client.isUsed()) {
-            LOGGER.info("process Session is Used", DateTimeUtil.getNowTimeLong());
-            return -1;
-        }
-        client.setUsed(true);
         LOGGER.info("process Session start3333", DateTimeUtil.getNowTimeLong());
-        MemoryPluginConfig.MemoryConfig plug;
-        int pages = 2;
-        if (DEVICE_FULL_TYPE.equals(deviceType)) {
-            pages = 10;
-            plug = MemoryPlugHelper.createMemRequest(pid, reportProcessTree, false, false, true);
-        } else {
-            plug = MemoryPlugHelper.createMemRequest(pid, reportProcessTree, false, false, false);
-        }
+        MemoryPluginConfig.MemoryConfig plug =
+            MemoryPlugHelper.createMemRequest(pid, reportProcessTree, false, false, false);
         ProfilerServiceTypes.ProfilerSessionConfig sessionConfig = ProfilerServiceHelper
-            .profilerSessionConfig(true, null, pages,
-                ProfilerServiceTypes.ProfilerSessionConfig.BufferConfig.Policy.RECYCLE);
+            .profilerSessionConfig(true, null, 10,
+                ProfilerServiceTypes.ProfilerSessionConfig.BufferConfig.Policy.RECYCLE, 5000);
+        String sha256;
+        if (IS_SUPPORT_NEW_HDC && deviceType == LEAN_HOS_DEVICE) {
+            sha256 = getSTDSha256("/data/local/tmp/libmemdataplugin.z.so");
+        } else {
+            sha256 = getSha256("/data/local/tmp/libmemdataplugin.z.so");
+        }
         CommonTypes.ProfilerPluginConfig plugConfig =
-            ProfilerServiceHelper.profilerPluginConfig(name, "ABDSSFDFG", 0, plug.toByteString());
+            ProfilerServiceHelper.profilerPluginConfig(name, sha256, 0, plug.toByteString());
         List<CommonTypes.ProfilerPluginConfig> plugs = new ArrayList();
         plugs.add(plugConfig);
         ProfilerServiceTypes.CreateSessionRequest request =
@@ -188,18 +184,60 @@ public final class HiProfilerClient {
             response = client.createSession(request);
             LOGGER.info("process Session start444 {} ", DateTimeUtil.getNowTimeLong());
         } catch (StatusRuntimeException exception) {
-            destroyProfiler("", port);
             return -1;
         }
-        client.setUsed(false);
         return response.getSessionId();
+    }
+
+    /**
+     * get Sha256
+     *
+     * @param pluginFileName pluginFileName
+     * @return String
+     */
+    public static String getSha256(String pluginFileName) {
+        String fileName = pluginFileName.substring(pluginFileName.lastIndexOf("/") + 1);
+        StringBuilder stringBuilder = new StringBuilder(SessionManager.getInstance().getPluginPath());
+        stringBuilder.append(DEVTOOLS_PLUGINS_V8_PATH).append(File.separator).append(fileName).toString();
+        String filePath = stringBuilder.toString();
+        File pluginFile = new File(filePath);
+        String fileSha256 = "";
+        try {
+            fileSha256 = DigestUtils.sha256Hex(new FileInputStream(pluginFile));
+            LOGGER.info("plugin pluginFileName {}, sha256Hex  {}", fileName, fileSha256);
+        } catch (IOException ioException) {
+            LOGGER.error("plugin sha256Hex IOException {}", ioException.getMessage());
+        }
+        return fileSha256;
+    }
+
+    /**
+     * getSTDSha256
+     *
+     * @param pluginFileName pluginFileName
+     * @return String
+     */
+    public static String getSTDSha256(String pluginFileName) {
+        String fileName = pluginFileName.substring(pluginFileName.lastIndexOf("/") + 1);
+        StringBuilder stringBuilder = new StringBuilder(SessionManager.getInstance().getPluginPath());
+        stringBuilder.append("stddeveloptools").append(File.separator).append(fileName).toString();
+        String filePath = stringBuilder.toString();
+        File pluginFile = new File(filePath);
+        String fileSha256 = "";
+        try {
+            fileSha256 = DigestUtils.sha256Hex(new FileInputStream(pluginFile));
+            LOGGER.info("plugin {}, sha256Hex  {}", fileName, fileSha256);
+        } catch (IOException ioException) {
+            LOGGER.error("plugin sha256Hex IOException {}", ioException.getMessage());
+        }
+        return fileSha256;
     }
 
     /**
      * Request to start session
      *
-     * @param deviceIp  deviceIp
-     * @param port      port number
+     * @param deviceIp deviceIp
+     * @param port port number
      * @param sessionId sessionId
      * @return boolean
      */
@@ -216,30 +254,24 @@ public final class HiProfilerClient {
             ProfilerServiceHelper.startSessionRequest(CommonUtil.getRequestId(), sessionId, new ArrayList<>());
         ProfilerServiceTypes.StartSessionResponse response = null;
         ProfilerClient client = getProfilerClient(deviceIp, port);
-        if (client.isUsed()) {
-            return false;
-        }
-        client.setUsed(true);
         try {
             response = client.startSession(requestStartSession);
         } catch (StatusRuntimeException exception) {
-            destroyProfiler("", port);
-            if (retryCounts > NUM_5) {
+            if (retryCounts > 5) {
                 return true;
             }
             return requestStartSession(deviceIp, port, sessionId, retryCounts);
         }
-        client.setUsed(false);
         return response.getStatus() == 0 ? true : false;
     }
 
     /**
      * requestStopSession
      *
-     * @param deviceIp  deviceIp
-     * @param port      port number
+     * @param deviceIp deviceIp
+     * @param port port number
      * @param sessionId sessionId
-     * @param isForce   isForce
+     * @param isForce isForce
      * @return boolean
      */
     public boolean requestStopSession(String deviceIp, int port, int sessionId, boolean isForce) {
@@ -251,13 +283,6 @@ public final class HiProfilerClient {
 
     private boolean requestStopSession(String deviceIp, int port, int sessionId, boolean isForce, int retryCount) {
         ProfilerClient client = getProfilerClient(deviceIp, port);
-        if (isForce) {
-            client.setUsed(false);
-        }
-        if (client.isUsed()) {
-            return false;
-        }
-        client.setUsed(true);
         ProfilerServiceTypes.StopSessionRequest stopSession =
             ProfilerServiceHelper.stopSessionRequest(CommonUtil.getRequestId(), sessionId);
         ProfilerServiceTypes.StopSessionResponse response = null;
@@ -270,21 +295,19 @@ public final class HiProfilerClient {
             LOGGER.info("startStopEndSession {}", DateTimeUtil.getNowTimeLong() - stopTime);
         } catch (StatusRuntimeException exception) {
             LOGGER.info("stopSession has Exception {}", exception.getMessage());
-            destroyProfiler(deviceIp, port);
-            if (retryCounts > NUM_2) {
+            if (retryCounts > RETRY_COUNT) {
                 return true;
             }
             return requestStopSession(deviceIp, port, sessionId, false, retryCounts);
         }
-        client.setUsed(false);
         return response.getStatus() == 0 ? true : false;
     }
 
     /**
      * request destory Session
      *
-     * @param deviceIp  deviceIp
-     * @param port      port number
+     * @param deviceIp deviceIp
+     * @param port port number
      * @param sessionId sessionId
      * @return boolean
      */
@@ -296,42 +319,33 @@ public final class HiProfilerClient {
     }
 
     private boolean requestDestroySession(String deviceIp, int port, int sessionId, int retryCount) {
-        int retryCounts = retryCount + 1;
         ProfilerClient client = getProfilerClient(deviceIp, port);
-        if (client.isUsed()) {
-            return false;
-        }
-        client.setUsed(true);
         ProfilerServiceTypes.DestroySessionRequest req =
             ProfilerServiceHelper.destroySessionRequest(CommonUtil.getRequestId(), sessionId);
         ProfilerServiceTypes.DestroySessionResponse response = null;
         try {
             response = client.destroySession(req);
         } catch (StatusRuntimeException exception) {
-            destroyProfiler(deviceIp, port);
-            if (retryCounts > NUM_2) {
+            LOGGER.error("requestDestroySession failed {}", exception.getMessage());
+            int retryCounts = retryCount + 1;
+            if (retryCounts > RETRY_COUNT) {
                 return true;
             }
             return requestDestroySession(deviceIp, port, sessionId, retryCounts);
         }
-        client.setUsed(false);
         return response.getStatus() == 0 ? true : false;
     }
 
     /**
      * Fetch process data
      *
-     * @param deviceIp  deviceIp
-     * @param port      port number
+     * @param deviceIp deviceIp
+     * @param port port number
      * @param sessionId sessionId
      * @return List <ProcessInfo>
      */
     public List<ProcessInfo> fetchProcessData(String deviceIp, int port, int sessionId) {
         ProfilerClient client = getProfilerClient(deviceIp, port);
-        if (client.isUsed()) {
-            return new ArrayList<>();
-        }
-        client.setUsed(true);
         List<ProcessInfo> processInfos = new ArrayList<>();
         ProfilerServiceTypes.FetchDataRequest fetchData =
             ProfilerServiceHelper.fetchDataRequest(CommonUtil.getRequestId(), sessionId, null);
@@ -339,7 +353,6 @@ public final class HiProfilerClient {
         try {
             res = client.fetchData(fetchData);
         } catch (StatusRuntimeException exception) {
-            destroyProfiler(deviceIp, port);
             LOGGER.info("GrpcException {}", exception.getMessage());
             return new ArrayList<>();
         }
@@ -348,17 +361,14 @@ public final class HiProfilerClient {
                 ProfilerServiceTypes.FetchDataResponse fetchDataResponse = res.next();
                 int pluginStatus = fetchDataResponse.getStatus();
                 if (pluginStatus != 0) {
-                    client.setUsed(false);
                     return new ArrayList<>();
                 }
                 List<CommonTypes.ProfilerPluginData> lists = fetchDataResponse.getPluginDataList();
                 processInfos = extractedData(lists);
             }
         } catch (StatusRuntimeException statusRuntimeException) {
-            destroyProfiler(deviceIp, port);
             LOGGER.error(" get ProcessInfo failed {}", statusRuntimeException.getMessage());
         }
-        client.setUsed(false);
         return processInfos;
     }
 
@@ -395,7 +405,7 @@ public final class HiProfilerClient {
      * Get capabilities
      *
      * @param deviceIp deviceIp
-     * @param port     port number
+     * @param port port number
      * @return ProfilerServiceTypes.GetCapabilitiesResponse
      */
     public ProfilerServiceTypes.GetCapabilitiesResponse getCapabilities(String deviceIp, int port) {
@@ -408,8 +418,8 @@ public final class HiProfilerClient {
     /**
      * Get capabilities
      *
-     * @param deviceIp   deviceIp
-     * @param port       port number
+     * @param deviceIp deviceIp
+     * @param port port number
      * @param retryCount retry Count
      * @return ProfilerServiceTypes.GetCapabilitiesResponse
      */
@@ -423,11 +433,47 @@ public final class HiProfilerClient {
                     .build());
         } catch (StatusRuntimeException exception) {
             LOGGER.info("exception Error {}", exception.getMessage());
-            destroyProfiler(deviceIp, port);
-            if (counts > NUM_2) {
+            if (counts > RETRY_COUNT) {
                 return ProfilerServiceTypes.GetCapabilitiesResponse.newBuilder().build();
             }
             return getCapabilities(deviceIp, port, counts);
+        }
+        return response;
+    }
+
+    /**
+     * keepSession
+     *
+     * @param deviceIp deviceIp
+     * @param port port number
+     * @param sessionId sessionId
+     * @return ProfilerServiceTypes.GetCapabilitiesResponse
+     * @throws StatusRuntimeException
+     */
+    public ProfilerServiceTypes.KeepSessionResponse keepSession(String deviceIp, int port, int sessionId)
+        throws StatusRuntimeException {
+        if (port <= 0 || port > LayoutConstants.PORT) {
+            return null;
+        }
+        return keepSession(deviceIp, port, sessionId, 0);
+    }
+
+    private ProfilerServiceTypes.KeepSessionResponse keepSession(String deviceIp, int port, int sessionId,
+        int retryCount) throws StatusRuntimeException {
+        int counts = retryCount + 1;
+        ProfilerClient client = getProfilerClient(deviceIp, port);
+        ProfilerServiceTypes.KeepSessionResponse response;
+        try {
+            response = client.keepSession(
+                ProfilerServiceTypes.KeepSessionRequest.newBuilder().setRequestId(CommonUtil.getRequestId())
+                    .setSessionId(sessionId).build());
+        } catch (StatusRuntimeException exception) {
+            LOGGER.info("exception Error ", exception);
+            if (counts > RETRY_COUNT) {
+                LOGGER.error("exception Error ", exception);
+                throw exception;
+            }
+            return keepSession(deviceIp, port, sessionId, counts);
         }
         return response;
     }

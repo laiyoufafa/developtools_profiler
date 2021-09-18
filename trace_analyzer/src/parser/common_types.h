@@ -16,7 +16,12 @@
 #ifndef BYTRACE_COMMON_TYPES_H
 #define BYTRACE_COMMON_TYPES_H
 
+#include <atomic>
 #include <string>
+#include <unordered_map>
+#include "services/common_types.pb.h"
+#include "types/plugins/ftrace_data/trace_plugin_result.pb.h"
+#include "types/plugins/memory_data/memory_plugin_result.pb.h"
 
 namespace SysTuning {
 namespace TraceStreamer {
@@ -37,7 +42,6 @@ enum Stat : uint32_t {
     PARKED = 512,
     NOLOAD = 1024,
     TASKNEW = 2048,
-    MAXSTAT = 2048,
     VALID = 0X8000,
 };
 
@@ -52,13 +56,32 @@ struct BytraceLine {
     std::string eventName;
     std::string argsStr;
 };
-
+enum ParseStatus {
+    Status_Init = 0,
+    Status_Seprated = 1,
+    Status_Parsing = 2,
+    Status_Parsed = 3,
+    Status_Invalid = 4
+};
+struct DataSegment {
+    std::string seg;
+    BytraceLine bufLine;
+    std::unordered_map<std::string, std::string> args;
+    uint32_t tgid;
+    std::atomic<ParseStatus> status{Status_Init};
+};
 struct TracePoint {
     char phase_ = '\0';
     uint32_t tgid_ = 0;
-    std::string name_;
-    double value_ = 0;
-    std::string categoryGroup_;
+    std::string name_ = "";
+    uint64_t value_ = 0;
+    std::string categoryGroup_ = "";
+    // Distributed Data
+    std::string chainId_ = "";
+    std::string spanId_ = "";
+    std::string parentSpanId_ = "";
+    std::string flag_ = "";
+    std::string args_ = "";
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

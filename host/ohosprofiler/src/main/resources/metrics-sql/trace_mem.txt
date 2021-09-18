@@ -1,0 +1,7 @@
+select max(value) as maxNum,min(value) as minNum,avg(value) avgNum,result.name,result.processName from measure inner join
+(
+select filter.id,filter.name,p.name as processName from process_measure_filter as filter
+left join process as p
+on filter.ipid=p.id where filter.name = "mem.rss.anon"
+) as result on result.id = filter_id
+where filter_id > 0 group by filter_id order by avgNum desc

@@ -21,7 +21,7 @@ config("hiprofiler_test_config") {
     cflags += [ "-g" ]
   }
 
-  if (enable_coverage && current_toolchain == host_toolchain) {
+  if (enable_coverage) {
     cflags += [
       # clang coverage options:
       "--coverage",
@@ -36,19 +36,26 @@ config("hiprofiler_test_config") {
 config("hiprofiler_base_config") {
   include_dirs = [
     "include",
-    "//utils/native/base/include"
+    "//utils/native/base/include",
   ]
 }
 
 ohos_source_set("hiprofiler_base") {
   sources = [
+    "src/epoll_event_poller.cpp",
+    "src/event_notifier.cpp",
+    "src/i_semaphore.cpp",
+    "src/posix_semaphore.cpp",
+    "src/pthread_semaphore.cpp",
     "src/schedule_task_manager.cpp",
+    "src/std_semaphore.cpp",
   ]
 
   public_configs = [
     ":hiprofiler_test_config",
     ":hiprofiler_base_config",
   ]
+  public_deps = [ "//utils/native/base:utilsecurec" ]
   if (current_toolchain != host_toolchain) {
     defines = [ "HAVE_HILOG" ]
     if (build_l2) {

@@ -21,14 +21,34 @@
 #include <string_view>
 #include <unistd.h>
 
+#include "codec_cov.h"
 #include "file.h"
 #include "log.h"
+#define UNUSED(expr)  \
+    do {              \
+        static_cast<void>(expr); \
+    } while (0)
 
 namespace SysTuning {
 namespace TraceStreamer {
+// sqlite defined function module
+int PrintQueryResult(void* para, int column, char** columnValue, char** columnName)
+{
+    UNUSED(para);
+    int i;
+    printf("Query results include %d column\n", column);
+    for (i = 0; i < column; i++) {
+        printf("name : %s \t value : %s\n", columnName[i], columnValue[i]);
+    }
+    printf("------------------\n");
+    return 0;
+}
+
 TraceDataDB::TraceDataDB() : db_(nullptr)
 {
-    sqlite3_open(":memory:", &db_);
+    if (sqlite3_open(":memory:", &db_)) {
+        TS_LOGF("open :memory db failed");
+    }
 }
 TraceDataDB::~TraceDataDB()
 {
@@ -38,6 +58,10 @@ TraceDataDB::~TraceDataDB()
 void TraceDataDB::AppendNewTable(std::string tableName)
 {
     internalTables_.push_back(tableName);
+}
+void TraceDataDB::EnableMetaTable(bool enabled)
+{
+    exportMetaTable_ = enabled;
 }
 int TraceDataDB::ExportDatabase(const std::string& outputName)
 {
@@ -52,13 +76,17 @@ int TraceDataDB::ExportDatabase(const std::string& outputName)
     }
 
     std::string attachSql("ATTACH DATABASE '" + outputName + "' AS systuning_export");
+#ifdef _WIN32
+    if (!base::GetCoding(reinterpret_cast<const uint8_t*>(attachSql.c_str()), attachSql.length())) {
+        attachSql = base::GbkToUtf8(attachSql.c_str());
+    }
+#endif
     ExecuteSql(attachSql);
 
     for (auto itor = internalTables_.begin(); itor != internalTables_.end(); itor++) {
         std::string exportSql("CREATE TABLE systuning_export." + *itor + " AS SELECT * FROM " + *itor);
         ExecuteSql(exportSql);
     }
-
     std::string detachSql("DETACH DATABASE systuning_export");
     ExecuteSql(detachSql);
     return 0;
@@ -81,5 +109,49 @@ void TraceDataDB::ExecuteSql(const std::string_view& sql)
 
     sqlite3_finalize(stmt);
 }
+
+int TraceDataDB::SearchData(const std::string& outputName)
+{
+    {
+        int fd(base::OpenFile(outputName, O_RDWR, 0600));
+        if (!fd) {
+            fprintf(stdout, "Failed to open file: %s", outputName.c_str());
+            return 1;
+        }
+        ftruncate(fd, 0);
+        close(fd);
+    }
+
+    std::string attachSql("ATTACH DATABASE '" + outputName + "' AS systuning_export");
+#ifdef _WIN32
+    if (!base::GetCoding(reinterpret_cast<const uint8_t*>(attachSql.c_str()), attachSql.length())) {
+        attachSql = base::GbkToUtf8(attachSql.c_str());
+    }
+#endif
+    ExecuteSql(attachSql);
+
+    int result;
+    char* errmsg = nullptr;
+    std::string line;
+    for (;;) {
+        std::cout << "> ";
+        getline(std::cin, line);
+        if (line.empty()) {
+            std::cout << "If you want to quit either type -q or press CTRL-Z" << std::endl;
+            continue;
+        }
+        if (!line.compare("-q") || !line.compare("-quit")) {
+            break;
+        } else if (!line.compare("-help") || !line.compare("-h")) {
+            std::cout << "use info" << std::endl;
+            continue;
+        }
+        result = sqlite3_exec(db_, line.c_str(), PrintQueryResult, NULL, &errmsg);
+    }
+
+    std::string detachSql("DETACH DATABASE systuning_export");
+    ExecuteSql(detachSql);
+    return 0;
 }
-}
+} // namespace TraceStreamer
+} // namespace SysTuning
