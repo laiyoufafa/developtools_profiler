@@ -32,6 +32,7 @@ ohos_source_set("hiprofiler_plugin_service") {
     "src/plugin_service.cpp",
     "src/plugin_service_impl.cpp",
   ]
+  deps = [ "../../base:hiprofiler_base" ]
   if (current_toolchain != host_toolchain) {
     if (build_l2) {
       external_deps = [ "shared_library:libhilog" ]

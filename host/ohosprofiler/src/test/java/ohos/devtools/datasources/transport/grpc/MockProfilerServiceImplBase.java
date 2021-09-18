@@ -18,8 +18,7 @@ package ohos.devtools.datasources.transport.grpc;
 import ohos.devtools.datasources.transport.grpc.service.IProfilerServiceGrpc;
 
 /**
- * @version 1.0
- * @date 2021/03/22 13:52
- **/
+ * Mock Profiler ServiceImpl Base
+ */
 public class MockProfilerServiceImplBase extends IProfilerServiceGrpc.IProfilerServiceImplBase {
 }

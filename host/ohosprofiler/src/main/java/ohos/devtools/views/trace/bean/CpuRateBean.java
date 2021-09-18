@@ -15,17 +15,21 @@
 
 package ohos.devtools.views.trace.bean;
 
+import ohos.devtools.views.trace.DField;
+
 /**
  * cup usage rate entity class
  *
- * @version 1.0
  * @date 2021/04/22 12:25
- **/
+ */
 public class CpuRateBean {
+    @DField(name = "cpu")
     private int cpu;
 
+    @DField(name = "ro")
     private int index;
 
+    @DField(name = "rate")
     private double rate;
 
     /**

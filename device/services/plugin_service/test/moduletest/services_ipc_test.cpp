@@ -65,7 +65,7 @@ HWTEST_F(ServicesIpcTest, UnixSocketServer, TestSize.Level1)
 {
     UnixSocketServer unixSocketServer;
 
-    unixSocketServer.UnixSocketAccept(nullptr);
+    unixSocketServer.UnixSocketAccept();
 
     ServiceEntry serviceEntry;
     ASSERT_TRUE(unixSocketServer.StartServer("", serviceEntry));

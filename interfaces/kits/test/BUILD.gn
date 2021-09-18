@@ -14,9 +14,9 @@
 import("//build/test.gni")
 import("../../../device/base/config.gni")
 
-module_output_path = "${OHOS_PROFILER_TEST_MODULE_OUTPUT_PATH}/interfaces/kits"
+module_output_path = "${OHOS_PROFILER_TEST_MODULE_OUTPUT_PATH}/device"
 config("module_private_config") {
-  visibility = [":*"]
+  visibility = [ ":*" ]
   if (current_toolchain != host_toolchain) {
     defines = [ "HAVE_HILOG" ]
   }
@@ -25,37 +25,39 @@ config("module_private_config") {
 ohos_unittest("plugin_module_api_ut") {
   module_out_path = module_output_path
   deps = [
-    "//third_party/googletest:gtest",
-    "${OHOS_PROFILER_DIR}/protos/types/plugins/memory_data:memory_data_cpp",
     "${OHOS_PROFILER_DIR}/device/plugins/memory_plugin:memdataplugin",
+    "${OHOS_PROFILER_DIR}/device/plugins/sample_plugin:sampleplugin",
+    "${OHOS_PROFILER_DIR}/device/plugins/stream_plugin:streamplugin",
+    "${OHOS_PROFILER_DIR}/protos/types/plugins/memory_data:memory_data_cpp",
+    "${OHOS_PROFILER_DIR}/protos/types/plugins/sample_data:sample_data_cpp",
+    "${OHOS_PROFILER_DIR}/protos/types/plugins/stream_data:stream_data_cpp",
+    "//third_party/googletest:gtest",
+    "//utils/native/base:utilsecurec",
   ]
   include_dirs = [
     "../",
     "${OHOS_PROFILER_DIR}/device/plugins/memory_plugin/include",
+    "${OHOS_PROFILER_DIR}/device/plugins/sample_plugin/include",
+    "${OHOS_PROFILER_DIR}/device/plugins/stream_plugin/include",
     "${OHOS_PROFILER_DIR}/device/plugins/api/include",
     "${OHOS_PROFILER_DIR}/device/plugins/api/src",
-    "${OHOS_PROFILER_DIR}/device/base/include/",
+    "${OHOS_PROFILER_DIR}/device/base/include",
     "//third_party/googletest/googletest/include/gtest",
+    "//utils/native/base/include",
   ]
-  sources = [
-    "unittest/plugin_module_api_test.cpp",
-  ]
+  sources = [ "unittest/plugin_module_api_test.cpp" ]
   cflags = [
     "-pthread",
     "-Wno-inconsistent-missing-override",
-    "-Dprivate=public",   #allow test code access private members
+    "-Dprivate=public",  #allow test code access private members
   ]
-  external_deps = [
-    "hiviewdfx_hilog_native:libhilog",
-  ]
+  external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
   subsystem_name = "${OHOS_PROFILER_SUBSYS_NAME}"
   configs = [ ":module_private_config" ]
-  resource_config_file = get_path_info("unittest/ohos_test.xml", "abspath")
+  resource_config_file = "${OHOS_PROFILER_DIR}/device/ohos_test.xml"
 }
 
 group("unittest") {
   testonly = true
-  deps = [
-    ":plugin_module_api_ut",
-  ]
+  deps = [ ":plugin_module_api_ut" ]
 }

@@ -11,13 +11,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-source_set("lib") {
+import("//build/ohos.gni")
+import("ts.gni")
+ohos_source_set("trace_streamer_source") {
   sources = [
+    "cfg/trace_streamer_cfg.cpp",
+    "cfg/trace_streamer_cfg.h",
     "filter/clock_filter.cpp",
     "filter/clock_filter.h",
     "filter/cpu_filter.cpp",
-    "filter/event_filter.cpp",
-    "filter/event_filter.h",
     "filter/filter_base.cpp",
     "filter/filter_base.h",
     "filter/filter_filter.cpp",
@@ -28,14 +30,23 @@ source_set("lib") {
     "filter/process_filter.h",
     "filter/slice_filter.cpp",
     "filter/slice_filter.h",
-    "parser/bytrace_parser.cpp",
-    "parser/bytrace_parser.h",
+    "filter/stat_filter.cpp",
+    "filter/stat_filter.h",
+    "filter/symbols_filter.cpp",
+    "filter/symbols_filter.h",
+    "parser/bytrace_parser/bytrace_event_parser.cpp",
+    "parser/bytrace_parser/bytrace_event_parser.h",
+    "parser/bytrace_parser/bytrace_parser.cpp",
+    "parser/bytrace_parser/bytrace_parser.h",
     "parser/common_types.h",
-    "parser/event_parser.cpp",
-    "parser/event_parser.h",
+    "parser/event_parser_base.cpp",
+    "parser/event_parser_base.h",
     "parser/thread_state.cpp",
     "parser/thread_state.h",
-    "table/bound_table.cpp",
+    "table/callstack_table.cpp",
+    "table/callstack_table.h",
+    "table/clock_event_filter_table.cpp",
+    "table/clock_event_filter_table.h",
     "table/cpu_measure_filter_table.cpp",
     "table/cpu_measure_filter_table.h",
     "table/data_dict_table.cpp",
@@ -44,23 +55,27 @@ source_set("lib") {
     "table/filter_table.h",
     "table/instants_table.cpp",
     "table/instants_table.h",
-    "table/internal_slice_table.cpp",
-    "table/internal_slice_table.h",
-    "table/internal_thread.cpp",
     "table/measure_filter_table.cpp",
     "table/measure_filter_table.h",
     "table/measure_table.cpp",
     "table/measure_table.h",
+    "table/meta_table.cpp",
+    "table/meta_table.h",
     "table/process_filter_table.cpp",
     "table/process_filter_table.h",
     "table/process_measure_filter_table.cpp",
     "table/process_measure_filter_table.h",
     "table/process_table.cpp",
     "table/process_table.h",
+    "table/range_table.cpp",
     "table/raw_table.cpp",
     "table/raw_table.h",
     "table/sched_slice_table.cpp",
     "table/sched_slice_table.h",
+    "table/stat_table.cpp",
+    "table/stat_table.h",
+    "table/symbols_table.cpp",
+    "table/symbols_table.h",
     "table/table_base.cpp",
     "table/table_base.h",
     "table/thread_filter_table.cpp",
@@ -68,7 +83,6 @@ source_set("lib") {
     "table/thread_state_table.cpp",
     "table/thread_state_table.h",
     "table/thread_table.cpp",
-    "table/thread_table.h",
     "trace_data/trace_data_cache.cpp",
     "trace_data/trace_data_cache.h",
     "trace_data/trace_data_cache_base.cpp",
@@ -81,32 +95,73 @@ source_set("lib") {
     "trace_data/trace_data_db.h",
     "trace_data/trace_stdtype.cpp",
     "trace_data/trace_stdtype.h",
-    "trace_streamer.cpp",
-    "trace_streamer.h",
-    "trace_streamer_filters.cpp",
-    "trace_streamer_filters.h",
+    "trace_streamer/trace_streamer_filters.cpp",
+    "trace_streamer/trace_streamer_filters.h",
+    "trace_streamer/trace_streamer_selector.cpp",
+    "trace_streamer/trace_streamer_selector.h",
   ]
   include_dirs = [
-    "//src/base",
-    "//src",
-    "//src/filter",
-    "//src/table",
-    "//src/trace_data",
+    "base",
+    "..",
+    "trace_streamer",
+    "filter",
+    "table",
+    "trace_data",
+    "include",
+    "./",
+    "parser",
+    "base",
+    "cfg",
+    "parser/htrace_parser",
+    "parser/htrace_parser/htrace_event_parser",
+    "parser/htrace_parser/htrace_cpu_parser",
+    "//third_party/sqlite/include",
+    "${OHOS_PROTO_GEN}/types/plugins/ftrace_data",
+    "${OHOS_PROTO_GEN}",
+    "//third_party/protobuf/src",
   ]
   deps = [
-    "../../buildtools:third_party_sqlite",
-    "../../gn:default_deps",
     "base",
+    "parser/htrace_parser:htrace_parser",
   ]
-  public_deps = [ "//src/base:base" ]
+
+  if (enable_ts_utest) {
+    cflags = [
+      "-fprofile-arcs",
+      "-ftest-coverage",
+    ]
+    ldflags = [
+      "-fprofile-arcs",
+      "-ftest-coverage",
+      "--coverage",
+    ]
+  }
+  public_deps = []
 }
 
 executable("trace_streamer") {
-  deps = [
-    ":lib",
-    "../../gn:default_deps",
+  include_dirs = [
+    "./",
+    "include",
+    "trace_data",
+    "cfg",
+    "trace_streamer",
+    "parser",
+    "cfg",
+    "parser/htrace_parser",
+    "parser/htrace_parser/htrace_event_parser",
+    "parser/htrace_parser/htrace_cpu_parser",
+    "//third_party/sqlite/include",
+    "${OHOS_PROTO_GEN}/types/plugins/ftrace_data",
+    "${OHOS_PROTO_GEN}",
+    "//third_party/protobuf/src",
     "base",
-    "//src/base:base",
+  ]
+  deps = [
+    ":trace_streamer_source",
+    "base",
+    "include:ibase",
+    "//third_party/sqlite:sqlite",
   ]
   sources = [ "main.cpp" ]
 }

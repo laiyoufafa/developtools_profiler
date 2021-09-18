@@ -16,7 +16,7 @@ import("../../../base/config.gni")
 
 module_output_path = "${OHOS_PROFILER_TEST_MODULE_OUTPUT_PATH}/device"
 config("module_private_config") {
-  visibility = [":*"]
+  visibility = [ ":*" ]
 }
 
 ohos_unittest("plugin_service_ut") {
@@ -32,19 +32,19 @@ ohos_unittest("plugin_service_ut") {
     "${OHOS_PROFILER_DIR}/protos/services:service_types_proto",
   ]
   deps = [
-    "//third_party/googletest:gtest_main",
+    "../../../base:hiprofiler_base",
     "//third_party/googletest:gtest",
+    "//third_party/googletest:gtest_main",
   ]
   include_dirs = [ "//third_party/googletest/googletest/include/gtest" ]
   cflags = [
     "-Wno-inconsistent-missing-override",
-    "-Dprivate=public",   #allow test code access private members
-    "-Dprotected=public",   #allow test code access private members
+    "-Dprivate=public",  #allow test code access private members
+    "-Dprotected=public",  #allow test code access private members
   ]
-  external_deps = [
-    "hiviewdfx_hilog_native:libhilog",
-  ]
+  external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
   subsystem_name = "${OHOS_PROFILER_SUBSYS_NAME}"
+  resource_config_file = "${OHOS_PROFILER_DIR}/device/ohos_test.xml"
 }
 
 ohos_unittest("plugin_service_module_test") {
@@ -59,25 +59,22 @@ ohos_unittest("plugin_service_module_test") {
     "${OHOS_PROFILER_DIR}/protos/services:plugin_services_proto",
     "${OHOS_PROFILER_DIR}/protos/services:service_types_proto",
   ]
-  deps = [
-    "//third_party/googletest:gtest",
-  ]
+  deps = [ "//third_party/googletest:gtest" ]
   include_dirs = [ "//third_party/googletest/googletest/include/gtest" ]
   cflags = [
     "-Wno-inconsistent-missing-override",
-    "-Dprivate=public",   #allow test code access private members
-    "-Dprotected=public",   #allow test code access private members
+    "-Dprivate=public",  #allow test code access private members
+    "-Dprotected=public",  #allow test code access private members
   ]
-  external_deps = [
-    "hiviewdfx_hilog_native:libhilog",
-  ]
+  external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
   subsystem_name = "${OHOS_PROFILER_SUBSYS_NAME}"
+  resource_config_file = "${OHOS_PROFILER_DIR}/device/ohos_test.xml"
 }
 
 group("unittest") {
   testonly = true
   deps = [
+    ":plugin_service_module_test",
     ":plugin_service_ut",
-    ":plugin_service_module_test"
   ]
 }

@@ -19,6 +19,7 @@
 #include <cstdio>
 #include <cstring>
 #include <dirent.h>
+#include <pthread.h>
 #include <sys/inotify.h>
 #include <unistd.h>
 
@@ -54,7 +55,7 @@ PluginWatcher::~PluginWatcher()
     monitorThread_.join();
 }
 
-void PluginWatcher::ScanPlugins(const std::string& pluginDir)
+bool PluginWatcher::ScanPlugins(const std::string& pluginDir)
 {
     DIR* dir = nullptr;
     struct dirent* entry = nullptr;
@@ -63,7 +64,7 @@ void PluginWatcher::ScanPlugins(const std::string& pluginDir)
     HILOG_INFO(LOG_CORE, "scan plugin from directory %s", fullpath);
     dir = opendir(fullpath);
     if (dir == nullptr) {
-        return;
+        return false;
     }
     while (true) {
         entry = readdir(dir);
@@ -80,10 +81,10 @@ void PluginWatcher::ScanPlugins(const std::string& pluginDir)
         }
     }
     closedir(dir);
-    return;
+    return true;
 }
 
-void PluginWatcher::WatchPlugins(const std::string& pluginDir)
+bool PluginWatcher::WatchPlugins(const std::string& pluginDir)
 {
     char fullpath[PATH_MAX + 1] = {0};
     realpath(pluginDir.c_str(), fullpath);
@@ -91,65 +92,79 @@ void PluginWatcher::WatchPlugins(const std::string& pluginDir)
     int wd = inotify_add_watch(inotifyFd_, fullpath, IN_ALL_EVENTS);
     if (wd < 0) {
         HILOG_INFO(LOG_CORE, "inotify_add_watch add directory %s failed", pluginDir.c_str());
-        return;
+        return false;
     }
     HILOG_INFO(LOG_CORE, "inotify_add_watch add directory %s success", fullpath);
     std::lock_guard<std::mutex> guard(mtx_);
     wdToDir_.insert(std::pair<int, std::string>(wd, std::string(fullpath)));
+    return true;
 }
 
-void PluginWatcher::Monitor()
+
+
+bool PluginWatcher::MonitorIsSet()
 {
     const struct inotify_event* event = nullptr;
     char buffer[MAX_BUF_SIZE] = {'\0'};
-    struct timeval time;
     char* ptr = nullptr;
-    int ret = 0;
 
+    ssize_t readLength = read(inotifyFd_, buffer, MAX_BUF_SIZE);
+    if (readLength == -1) {
+        return false;
+    }
+    for (ptr = buffer; ptr < buffer + readLength; ptr += sizeof(struct inotify_event) + event->len) {
+        event = reinterpret_cast<const struct inotify_event*>(ptr);
+        std::unique_lock<std::mutex> guard(mtx_, std::adopt_lock);
+        const std::string& pluginDir = wdToDir_[event->wd];
+        guard.unlock();
+        if (event->mask & IN_ISDIR) {
+            continue;
+        }
+        std::string fileName = event->name;
+        size_t pos = fileName.rfind(".so");
+        if ((pos == std::string::npos) || (pos != fileName.length() - strlen(".so"))) {
+            continue;
+        }
+        switch (event->mask) {
+            case IN_CLOSE_WRITE:
+            case IN_MOVED_TO:
+                OnPluginAdded(pluginDir + '/' + fileName);
+                break;
+            case IN_DELETE:
+            case IN_MOVED_FROM:
+                OnPluginRemoved(pluginDir + '/' + fileName);
+                break;
+            default:
+                break;
+        }
+    }
+    if (memset_s(buffer, MAX_BUF_SIZE, 0, MAX_BUF_SIZE) != 0) {
+        HILOG_ERROR(LOG_CORE, "memset_s error!");
+    }
+    return true;
+}
+
+
+
+void PluginWatcher::Monitor()
+{
+    struct timeval time;
+
+    pthread_setname_np(pthread_self(), "PluginWatcher");
     while (runMonitor_) {
         fd_set rFds;
         FD_ZERO(&rFds);
         FD_SET(inotifyFd_, &rFds);
         time.tv_sec = 1;
         time.tv_usec = 0;
-        ret = select(inotifyFd_ + 1, &rFds, nullptr, nullptr, &time);
+        int ret = select(inotifyFd_ + 1, &rFds, nullptr, nullptr, &time);
         if (ret < 0) {
             continue;
         } else if (!ret) {
             continue;
         } else if (FD_ISSET(inotifyFd_, &rFds)) {
-            ssize_t readLength = read(inotifyFd_, buffer, MAX_BUF_SIZE);
-            if (readLength == -1) {
+            if (!MonitorIsSet()) {
                 continue;
-            }
-            for (ptr = buffer; ptr < buffer + readLength; ptr += sizeof(struct inotify_event) + event->len) {
-                event = reinterpret_cast<const struct inotify_event*>(ptr);
-                std::unique_lock<std::mutex> guard(mtx_, std::adopt_lock);
-                const std::string& pluginDir = wdToDir_[event->wd];
-                guard.unlock();
-                if (event->mask & IN_ISDIR) {
-                    continue;
-                }
-                std::string fileName = event->name;
-                size_t pos = fileName.rfind(".so");
-                if (pos == std::string::npos || (pos != fileName.length() - strlen(".so"))) {
-                    continue;
-                }
-                switch (event->mask) {
-                    case IN_CLOSE_WRITE:
-                    case IN_MOVED_TO:
-                        OnPluginAdded(pluginDir + '/' + fileName);
-                        break;
-                    case IN_DELETE:
-                    case IN_MOVED_FROM:
-                        OnPluginRemoved(pluginDir + '/' + fileName);
-                        break;
-                    default:
-                        break;
-                }
-            }
-            if (memset_s(buffer, MAX_BUF_SIZE, 0, MAX_BUF_SIZE) != EOK) {
-                HILOG_ERROR(LOG_CORE, "memset_s error!");
             }
         }
     }

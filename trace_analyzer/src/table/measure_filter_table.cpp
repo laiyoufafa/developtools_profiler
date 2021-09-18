@@ -25,7 +25,7 @@ MeasureFilterTable::MeasureFilterTable(const TraceDataCache* dataCache) : TableB
     tableColumn_.push_back(TableBase::ColumnInfo("id", "UNSIGNED INT"));
     tableColumn_.push_back(TableBase::ColumnInfo("type", "STRING"));
     tableColumn_.push_back(TableBase::ColumnInfo("name", "STRING"));
-    tableColumn_.push_back(TableBase::ColumnInfo("utid", "UNSIGNED INT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("itid", "UNSIGNED INT"));
     tablePriKey_.push_back("id");
 }
 
@@ -37,7 +37,7 @@ void MeasureFilterTable::CreateCursor()
 }
 
 MeasureFilterTable::Cursor::Cursor(const TraceDataCache* dataCache)
-    : TableBase::Cursor(dataCache, 0, static_cast<uint32_t>(dataCache->ThreadCounterFilterData()->Size()))
+    : TableBase::Cursor(dataCache, 0, static_cast<uint32_t>(dataCache->GetConstThreadMeasureFilterData().Size()))
 {
 }
 
@@ -47,24 +47,26 @@ int MeasureFilterTable::Cursor::Column(int column) const
 {
     switch (column) {
         case ID:
-            sqlite3_result_int64(context_,
-                static_cast<sqlite3_int64>(dataCache_->ThreadCounterFilterData()->FilterIdData()[CurrentRow()]));
+            sqlite3_result_int64(
+                context_,
+                static_cast<sqlite3_int64>(dataCache_->GetConstThreadMeasureFilterData().FilterIdData()[CurrentRow()]));
             break;
         case TYPE:
-            sqlite3_result_text(context_, "thread_counter_track", STR_DEFAULT_LEN, nullptr);
+            sqlite3_result_text(context_, "thread_measure_filter", STR_DEFAULT_LEN, nullptr);
             break;
         case NAME: {
-            const std::string& str =
-                dataCache_->GetDataFromDict(dataCache_->ThreadCounterFilterData()->NameIndexData()[CurrentRow()]);
+            const std::string& str = dataCache_->GetDataFromDict(
+                dataCache_->GetConstThreadMeasureFilterData().NameIndexData()[CurrentRow()]);
             sqlite3_result_text(context_, str.c_str(), STR_DEFAULT_LEN, nullptr);
             break;
         }
         case INTERNAL_TID:
-            sqlite3_result_int64(context_,
-                static_cast<int32_t>(dataCache_->ThreadCounterFilterData()->InternalTidData()[CurrentRow()]));
+            sqlite3_result_int64(
+                context_,
+                static_cast<int32_t>(dataCache_->GetConstThreadMeasureFilterData().InternalTidData()[CurrentRow()]));
             break;
         default:
-            TUNING_LOGF("Unregistered column : %d", column);
+            TS_LOGF("Unregistered column : %d", column);
             break;
     }
     return SQLITE_OK;

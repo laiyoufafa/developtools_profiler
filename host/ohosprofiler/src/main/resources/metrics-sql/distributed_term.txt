@@ -1,0 +1,18 @@
+select
+    group_concat(thread.id,",") as threadId,
+    group_concat(thread.name,",") as threadName,
+    group_concat(process.id,",") as processId,
+    group_concat(process.name,",") as processName,
+    group_concat(callstack.name,",") as funName,
+    group_concat(callstack.dur,",") as dur,
+    group_concat(callstack.ts,",") as ts,
+    cast(callstack.chainId as varchar) as chainId,
+    callstack.spanId,
+    callstack.parentSpanId,
+    group_concat(callstack.flag,",") as flag,
+    (select value from meta where name="source_name") as trace_name
+from callstack
+inner join thread on callstack.callid = thread.id
+inner join process on process.id = thread.ipid
+where (callstack.flag="S" or callstack.flag="C")
+group by callstack.chainId,callstack.spanId,callstack.parentSpanId

@@ -32,32 +32,39 @@ enum FilterType {
     E_THREAD_FILTER,
     E_PROCESS_MEASURE_FILTER,
     E_PROCESS_FILTER_FILTER,
-    E_CPU_MEASURE_FILTER
+    E_CPU_MEASURE_FILTER,
+    E_CLOCK_RATE_FILTER,
+    E_CLOCK_ENABLE_FILTER,
+    E_CLOCK_DISABLE_FILTER
 };
 
 class MeasureFilter : private FilterBase {
 public:
-    explicit MeasureFilter(TraceDataCache*, const TraceStreamerFilters*, FilterType);
-    void Init(FilterType);
+    MeasureFilter(TraceDataCache* dataCache, const TraceStreamerFilters* filter, FilterType);
     MeasureFilter(const MeasureFilter&) = delete;
     MeasureFilter& operator=(const MeasureFilter&) = delete;
     ~MeasureFilter() override;
-    uint32_t GetOrCreateCertainFilterId(uint64_t internalTid, DataIndex nameIndex);
-    uint32_t GetOrCreateCertainFilterIdByCookie(uint64_t internalTid, DataIndex nameIndex, int64_t cookie);
-
+    void AppendNewMeasureData(uint64_t internalTid, DataIndex nameIndex, uint64_t timestamp, int64_t value);
 private:
+    uint32_t GetOrCreateFilterId(uint64_t internalTid, DataIndex nameIndex);
     void AddCertainFilterId(uint64_t internalTid, DataIndex nameIndex, uint64_t filterId);
     DoubleMap<uint64_t, DataIndex, uint64_t> tidStreamIdFilterIdMap_;
     DoubleMap<uint64_t, DataIndex, uint64_t> cookieFilterIdMap_;
     FilterType filterType_;
 
     const std::map<FilterType, std::string> filterTypeValue = {
-        { E_THREADMEASURE_FILTER, "thread_counter_track" },
-        { E_THREAD_FILTER, "thread_track" },
-        { E_PROCESS_MEASURE_FILTER, "process_counter_track" },
-        { E_PROCESS_FILTER_FILTER, "process_track" },
-        { E_CPU_MEASURE_FILTER, "cpu_counter_track" }
+        { E_THREADMEASURE_FILTER, "thread_measure_filter" },
+        { E_THREAD_FILTER, "thread_measure" },
+        { E_PROCESS_MEASURE_FILTER, "process_measure_filter" },
+        { E_PROCESS_FILTER_FILTER, "process_filter" },
+        { E_CPU_MEASURE_FILTER, "cpu_measure_filter" },
+        { E_CLOCK_RATE_FILTER, "clock_rate_filter" },
+        { E_CLOCK_ENABLE_FILTER, "clock_enable_filter" },
+        { E_CLOCK_DISABLE_FILTER, "clock_disable_filter" }
     };
+    DataIndex clockSetRateDataIndex_ = traceDataCache_->GetDataIndex("clock_set_rate");
+    DataIndex clockEnableDataIndex_ = traceDataCache_->GetDataIndex("clock_enable");
+    DataIndex clockDisableDataIndex_ = traceDataCache_->GetDataIndex("clock_disable");
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

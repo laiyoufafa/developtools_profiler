@@ -18,25 +18,24 @@
 
 #include "table_base.h"
 #include "trace_data_cache.h"
-#include "trace_streamer_filters.h"
 
 namespace SysTuning {
 namespace TraceStreamer {
 class ProcessFilterTable : public TableBase {
 public:
-    explicit ProcessFilterTable(const TraceDataCache*);
+    explicit ProcessFilterTable(const TraceDataCache* dataCache);
     ~ProcessFilterTable() override;
     void CreateCursor() override;
 
 private:
     class Cursor : public TableBase::Cursor {
     public:
-        explicit Cursor(const TraceDataCache*);
+        explicit Cursor(const TraceDataCache* dataCache);
         ~Cursor() override;
         int Column(int) const override;
 
     private:
-        const ProcessCounterFilter& processFilterObj_;
+        const ProcessMeasureFilter& processFilterObj_;
     };
 };
 } // namespace TraceStreamer

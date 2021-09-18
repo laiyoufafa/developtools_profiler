@@ -26,32 +26,59 @@ const uint64_t INVALID_UINT64 = std::numeric_limits<uint64_t>::max();
 const uint64_t MAX_UINT32 = std::numeric_limits<uint32_t>::max();
 const uint64_t MAX_UINT64 = std::numeric_limits<uint64_t>::max();
 const uint32_t INVALID_UINT32 = std::numeric_limits<uint32_t>::max();
+const uint32_t INVALID_INT32 = std::numeric_limits<int32_t>::max();
 const size_t MAX_SIZE_T = std::numeric_limits<size_t>::max();
+const uint32_t INVALID_ID = std::numeric_limits<uint32_t>::max();
+const uint64_t SEC_TO_NS = 1000 * 1000 * 1000;
+enum BuiltinClocks {
+    TS_CLOCK_UNKNOW = 0,
+    TS_CLOCK_BOOTTIME = 1,
+    TS_CLOCK_REALTIME = 2,
+    TS_CLOCK_REALTIME_COARSE = 3,
+    TS_MONOTONIC = 4,
+    TS_MONOTONIC_COARSE = 5,
+    TS_MONOTONIC_RAW = 6,
+};
 
 enum RefType {
     K_REF_NO_REF = 0,
-    K_REF_UTID = 1,
+    K_REF_ITID = 1,
     K_REF_CPUID = 2,
     K_REF_IRQ = 3,
     K_REF_SOFT_IRQ = 4,
-    K_REF_UPID = 5,
-    K_REF_UTID_LOOKUP_UPID = 6,
+    K_REF_IPID = 5,
+    K_REF_ITID_LOOKUP_IPID = 6,
     K_REF_MAX
 };
 
 enum EndState {
-    TASK_RUNNABLE = 0,      // R 就绪态或者运行态，进程就绪可以运行，但是不一定正在占有CPU
-    TASK_INTERRUPTIBLE = 1, // S 浅度睡眠，等待资源，可以响应信号，一般是进程主动sleep进入的状态
-    TASK_UNINTERRUPTIBLE = 2, // D 深度睡眠，等待资源，不响应信号，典型场景是进程获取信号量阻塞
-    TASK_RUNNING = 3,         // Running 线程处于运行状态
-    TASK_INTERRUPTED = 4, // I 线程处于中断状态
-    TASK_EXIT_DEAD = 16,  // X 退出状态，进程即将被销毁。
-    TASK_ZOMBIE = 32, // Z 僵尸态，进程已退出或者结束，但是父进程还不知道，没有回收时的状态
-    TASK_CLONE = 64,        // I 多线程，克隆线程
-    TASK_KILLED = 128,      // K TASK DEAD 进程被杀死
-    TASK_DK = 130,          // DK
-    TASK_WAKEKILL = 256,    // W TASK_WAKEKILL 深度睡眠进程，唤醒后直接杀死
-    TASK_FOREGROUND = 2048, // R+ 位于后台的进程组
+    // (R) ready state or running state, the process is ready to run, but not necessarily occupying the CPU
+    TASK_RUNNABLE = 0,
+    // (S) Indicates that the process is in light sleep, waiting for the resource state, and can respond to the signal.
+    // Generally, the process actively sleeps into 'S' state.
+    TASK_INTERRUPTIBLE = 1,
+    // (D) Indicates that the process is in deep sleep, waiting for resources, and does not respond to signals.
+    // Typical scenario: process acquisition semaphore blocking.
+    TASK_UNINTERRUPTIBLE = 2,
+    // (Running) Indicates that the thread is running
+    TASK_RUNNING = 3,
+    // (I) Thread in interrupt state
+    TASK_INTERRUPTED = 4,
+    // (X) Exit status, the process is about to be destroyed.
+    TASK_EXIT_DEAD = 16,
+    // (Z) Zombie state
+    TASK_ZOMBIE = 32,
+    // (I) clone thread
+    TASK_CLONE = 64,
+    // (K) Process killed
+    TASK_KILLED = 128,
+    // (DK)
+    TASK_DK = 130,
+    // (W) The process is in a deep sleep state and will be killed directly after waking up
+    TASK_WAKEKILL = 256,
+    // (R+) Process groups in the background
+    TASK_FOREGROUND = 2048,
+    TASK_MAX = 4096,
     TASK_INVALID = 9999
 };
 
@@ -60,12 +87,10 @@ enum SchedWakeType {
     SCHED_WAKEUP = 1, // sched_wakeup
 };
 
-using DataIndex = size_t;
+using DataIndex = uint64_t;
 using TableRowId = uint64_t;
 using InternalPid = uint32_t;
 using InternalTid = uint32_t;
 using InternalTime = uint64_t;
-
-#define STACK_HASK_COUNT 2
 
 #endif

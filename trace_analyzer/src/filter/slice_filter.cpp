@@ -19,112 +19,126 @@
 #include <optional>
 
 #include "common.h"
+#include "log.h"
 #include "measure_filter.h"
 #include "process_filter.h"
-#include "trace_data_cache.h"
-#include "trace_streamer_filters.h"
 
 namespace SysTuning {
 namespace TraceStreamer {
 SliceFilter::SliceFilter(TraceDataCache* dataCache, const TraceStreamerFilters* filter)
-    : FilterBase(dataCache, filter) {}
+    : FilterBase(dataCache, filter), asyncEventMap_(INVALID_UINT64), asyncEventSize_(0)
+{
+}
 
 SliceFilter::~SliceFilter() = default;
 
-void SliceFilter::BeginSlice(uint64_t timestamp, uint32_t pid, uint32_t threadGroupId, DataIndex cat, DataIndex name)
+bool SliceFilter::BeginSlice(uint64_t timestamp,
+                             uint32_t pid,
+                             uint32_t threadGroupId,
+                             DataIndex cat,
+                             DataIndex nameIndex)
 {
-    InternalTid internalTid = streamFilters_->processFilter_->SetThreadPid(pid, threadGroupId);
+    InternalTid internalTid = streamFilters_->processFilter_->GetOrCreateThreadWithPid(pid, threadGroupId);
     pidTothreadGroupId_[pid] = threadGroupId;
-    uint32_t filterId = streamFilters_->threadFilter_->GetOrCreateCertainFilterId(internalTid, 0);
-    struct SliceData sliceData = {timestamp, 0, internalTid, filterId, cat, name};
-    FinishedSliceStack(sliceData.timestamp, sliceStackMap_[sliceData.internalTid]);
-    BeginSliceInternal(sliceData);
+    struct SliceData sliceData = {timestamp, 0, internalTid, cat, nameIndex};
+    return BeginSliceInternal(sliceData);
 }
 
-void SliceFilter::AsyncBeginSlice(uint64_t timestamp, uint32_t pid,
-                                  uint32_t threadGroupId, int64_t cookie, DataIndex name)
+void SliceFilter::StartAsyncSlice(uint64_t timestamp,
+                                  uint32_t pid,
+                                  uint32_t threadGroupId,
+                                  int64_t cookie,
+                                  DataIndex nameIndex)
 {
-    UNUSED(timestamp);
-
-    InternalTid internalTid = streamFilters_->processFilter_->SetThreadPid(pid, threadGroupId);
-    auto filterId = streamFilters_->processFilterFilter_->GetOrCreateCertainFilterIdByCookie(internalTid, name, cookie);
-    UNUSED(filterId);
+    InternalPid internalPid = streamFilters_->processFilter_->GetOrCreateInternalPid(timestamp, threadGroupId);
+    auto lastFilterId = asyncEventMap_.Find(internalPid, cookie, nameIndex);
+    auto slices = traceDataCache_->GetInternalSlicesData();
+    if (lastFilterId != INVALID_UINT64) {
+        asyncEventDisMatchCount++;
+        FinishAsyncSlice(timestamp, pid, threadGroupId, cookie, nameIndex);
+    }
+    asyncEventSize_++;
+    asyncEventMap_.Insert(internalPid, cookie, nameIndex, asyncEventSize_);
+    size_t index =
+        slices->AppendInternalAsyncSlice(timestamp, 0, internalPid, INVALID_UINT64, nameIndex, 0, cookie, std::nullopt);
+    asyncEventFilterMap_.insert(std::make_pair(asyncEventSize_, AsyncEvent{timestamp, index}));
 }
 
-void SliceFilter::AsyncEndSlice(uint64_t timestamp, uint32_t pid, int64_t cookie)
+void SliceFilter::FinishAsyncSlice(uint64_t timestamp,
+                                   uint32_t pid,
+                                   uint32_t threadGroupId,
+                                   int64_t cookie,
+                                   DataIndex nameIndex)
 {
-    UNUSED(timestamp);
     UNUSED(pid);
-    UNUSED(cookie);
-}
-
-void SliceFilter::BeginSliceInternal(const SliceData& sliceData)
-{
-    auto* sliceStack = &sliceStackMap_[sliceData.internalTid];
-    auto* slices = traceDataCache_->GetInternalSlicesData();
-    const uint8_t depth = static_cast<uint8_t>(sliceStack->size());
-    if (depth >= std::numeric_limits<uint8_t>::max()) {
-        TUNING_LOGF("stack depth out of range.");
+    InternalPid internalPid = streamFilters_->processFilter_->GetOrCreateInternalPid(timestamp, threadGroupId);
+    auto lastFilterId = asyncEventMap_.Find(internalPid, cookie, nameIndex);
+    auto slices = traceDataCache_->GetInternalSlicesData();
+    if (lastFilterId == INVALID_UINT64) { // if failed
+        asyncEventDisMatchCount++;
         return;
     }
+    if (asyncEventFilterMap_.find(lastFilterId) == asyncEventFilterMap_.end()) {
+        TS_LOGE("logic error");
+        asyncEventDisMatchCount++;
+        return;
+    }
+    // update timestamp
+    asyncEventFilterMap_.at(lastFilterId).timestamp = timestamp;
+    slices->SetDuration(asyncEventFilterMap_.at(lastFilterId).row, timestamp);
+    asyncEventFilterMap_.erase(lastFilterId);
+    asyncEventMap_.Erase(internalPid, cookie, nameIndex);
+}
 
-    uint64_t parentStackId = 0;
+bool SliceFilter::BeginSliceInternal(const SliceData& sliceData)
+{
+    auto sliceStack = &sliceStackMap_[sliceData.internalTid];
+    auto slices = traceDataCache_->GetInternalSlicesData();
+    if (sliceStack->size() >= std::numeric_limits<uint8_t>::max()) {
+        TS_LOGE("stack depth out of range.");
+        return false;
+    }
+    const uint8_t depth = static_cast<uint8_t>(sliceStack->size());
     std::optional<uint64_t> parentId = std::nullopt;
     if (depth != 0) {
         size_t lastDepth = sliceStack->back();
-        parentStackId = slices->StackIdsData()[lastDepth];
         parentId = std::make_optional(slices->IdsData()[lastDepth]);
     }
 
     size_t index = slices->AppendInternalSlice(sliceData.timestamp, sliceData.duration, sliceData.internalTid,
-        sliceData.filterId, sliceData.cat, sliceData.name, depth, 0, parentStackId, parentId);
+                                               sliceData.cat, sliceData.name, depth, parentId);
     sliceStack->push_back(index);
-    slices->SetStackId(index, GenHashByStack(*sliceStack));
+    return true;
 }
 
-void SliceFilter::EndSlice(uint64_t timestamp, uint32_t pid, uint32_t threadGroupId)
+bool SliceFilter::EndSlice(uint64_t timestamp, uint32_t pid, uint32_t threadGroupId)
 {
     auto actThreadGroupIdIter = pidTothreadGroupId_.find(pid);
     if (actThreadGroupIdIter == pidTothreadGroupId_.end()) {
-        return;
+        callEventDisMatchCount++;
+        return false;
     }
 
     uint32_t actThreadGroupId = actThreadGroupIdIter->second;
     if (threadGroupId != 0 && threadGroupId != actThreadGroupId) {
-        TUNING_LOGD("pid %u mismatched thread group id %u", pid, actThreadGroupId);
+        TS_LOGD("pid %u mismatched thread group id %u", pid, actThreadGroupId);
     }
 
-    InternalTid internalTid = streamFilters_->processFilter_->SetThreadPid(pid, actThreadGroupId);
-
-    FinishedSliceStack(timestamp, sliceStackMap_[internalTid]);
+    InternalTid internalTid = streamFilters_->processFilter_->GetOrCreateThreadWithPid(pid, actThreadGroupId);
 
     const auto& stack = sliceStackMap_[internalTid];
     if (stack.empty()) {
-        return;
+        TS_LOGW("workqueue_execute_end do not match a workqueue_execute_start event");
+        callEventDisMatchCount++;
+        return false;
     }
 
-    auto* slices = traceDataCache_->GetInternalSlicesData();
+    auto slices = traceDataCache_->GetInternalSlicesData();
     size_t index = stack.back();
-    slices->SetDuration(index, timestamp - slices->TimeStamData()[index]);
+    slices->SetDuration(index, timestamp);
 
     sliceStackMap_[internalTid].pop_back();
-}
-
-void SliceFilter::FinishedSliceStack(uint64_t timestamp, StackOfSlices& sliceStack)
-{
-    const auto& slices = traceDataCache_->GetConstInternalSlicesData();
-    for (int i = static_cast<int>(sliceStack.size()) - 1; i >= 0; i--) {
-        size_t index = sliceStack[static_cast<size_t>(i)];
-        uint64_t during = slices.DursData()[index];
-        if (during == 0) {
-            continue;
-        }
-
-        uint64_t endT = slices.TimeStamData()[index] + during;
-        if (timestamp >= endT) {
-            sliceStack.pop_back();
-        }
-    }
+    return true;
 }
 
 uint64_t SliceFilter::GenHashByStack(const StackOfSlices& sliceStack) const
@@ -140,7 +154,7 @@ uint64_t SliceFilter::GenHashByStack(const StackOfSlices& sliceStack) const
     }
 
     const uint64_t stackHashMask = uint64_t(-1) >> 1;
-    return (std::hash<std::string> {}(hashStr)) & stackHashMask;
+    return (std::hash<std::string>{}(hashStr)) & stackHashMask;
 }
 } // namespace TraceStreamer
 } // namespace SysTuning

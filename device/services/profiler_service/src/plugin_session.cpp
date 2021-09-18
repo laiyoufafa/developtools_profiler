@@ -45,7 +45,9 @@ PluginSession::PluginSession(const ProfilerPluginConfig& pluginConfig,
 
 PluginSession::~PluginSession()
 {
-    Destroy();
+    if (state_ != INITIAL) {
+        Destroy();
+    }
 }
 
 bool PluginSession::Create()
@@ -55,7 +57,7 @@ bool PluginSession::Create()
     CHECK_TRUE(state_ == INITIAL, false, "plugin state %d invalid!", state_);
 
     auto pluginService = pluginService_.lock(); // promote to shared_ptr
-    CHECK_NOTNULL(pluginService, false, "PluginSession::Create pluginService null!");
+    CHECK_NOTNULL(pluginService, false, "PluginSession::%s pluginService promote failed!", __func__);
 
     bool retval = false;
     if (withBufferConfig_) {
@@ -80,7 +82,12 @@ bool PluginSession::Destroy()
     CHECK_TRUE(state_ == CREATED || state_ == STARTED, false, "plugin state %d invalid!", state_);
 
     auto pluginService = pluginService_.lock();
-    CHECK_NOTNULL(pluginService, false, "PluginSession::Create pluginService null!");
+    CHECK_NOTNULL(pluginService, false, "PluginSession::%s pluginService promote failed!", __func__);
+
+    if (state_ == STARTED) {
+        HILOG_INFO(LOG_CORE, "PluginSession::Destroy state is STARED, need stop!");
+        StopLocked();
+    }
 
     bool retval = pluginService->DestroyPluginSession(pluginConfig_.name());
     HILOG_INFO(LOG_CORE, "DestroyPluginSession for %s %s!", pluginConfig_.name().c_str(), retval ? "OK" : "FAIL");
@@ -109,7 +116,7 @@ bool PluginSession::Start()
     CHECK_TRUE(state_ == CREATED, false, "plugin state %d invalid!", state_);
 
     auto pluginService = pluginService_.lock();
-    CHECK_NOTNULL(pluginService, false, "PluginSession::Create pluginService null!");
+    CHECK_NOTNULL(pluginService, false, "PluginSession::%s pluginService promote failed!", __func__);
 
     bool retval = pluginService->StartPluginSession(pluginConfig_);
     HILOG_INFO(LOG_CORE, "StartPluginSession for %s %s!", pluginConfig_.name().c_str(), retval ? "OK" : "FAIL");
@@ -122,11 +129,16 @@ bool PluginSession::Start()
 bool PluginSession::Stop()
 {
     std::unique_lock<std::mutex> lock(mutex_);
+    return StopLocked();
+}
+
+bool PluginSession::StopLocked()
+{
     HILOG_INFO(LOG_CORE, "StopPluginSession for %s...", pluginConfig_.name().c_str());
     CHECK_TRUE(state_ == STARTED, false, "plugin state %d invalid!", state_);
 
     auto pluginService = pluginService_.lock();
-    CHECK_NOTNULL(pluginService, false, "PluginSession::Create pluginService null!");
+    CHECK_NOTNULL(pluginService, false, "PluginSession::%s pluginService promote failed!", __func__);
 
     bool retval = pluginService->StopPluginSession(pluginConfig_.name());
     HILOG_INFO(LOG_CORE, "StopPluginSession for %s %s!", pluginConfig_.name().c_str(), retval ? "OK" : "FAIL");

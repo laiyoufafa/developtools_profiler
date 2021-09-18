@@ -16,6 +16,8 @@
 package ohos.devtools.services.memory;
 
 import ohos.devtools.datasources.databases.databaseapi.DataBaseApi;
+import ohos.devtools.services.memory.agentbean.ClassInfo;
+import ohos.devtools.services.memory.agentdao.ClassInfoDao;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -24,20 +26,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * ClassInfoDaoTest
- *
- * @version 1.0
- * @date 2021/04/26 15:56
- **/
+ * ClassInfo Dao Test
+ */
 public class ClassInfoDaoTest {
-    /**
-     * ClassInfoDao
-     */
     private ClassInfoDao classInfoDao;
-
-    /**
-     * ClassInfo
-     */
     private ClassInfo classInfo;
 
     /**
@@ -72,9 +64,25 @@ public class ClassInfoDaoTest {
      * @tc.require: AR000FK61N
      */
     @Test
-    public void testGetInstance() {
+    public void testGetInstance01() {
         ClassInfoDao instance = ClassInfoDao.getInstance();
         Assert.assertNotNull(instance);
+    }
+
+    /**
+     * functional testing getInstance
+     *
+     * @tc.name: getInstance
+     * @tc.number: OHOS_JAVA_memory_ClassInfoDao_getInstance_0002
+     * @tc.desc: getInstance
+     * @tc.type: functional testing
+     * @tc.require: AR000FK61N
+     */
+    @Test
+    public void testGetInstance02() {
+        ClassInfoDao instance = ClassInfoDao.getInstance();
+        ClassInfoDao classInfoDaoInstance = ClassInfoDao.getInstance();
+        Assert.assertEquals(instance, classInfoDaoInstance);
     }
 
     /**
@@ -117,10 +125,26 @@ public class ClassInfoDaoTest {
      * @tc.require: AR000FK61N
      */
     @Test
-    public void testgetAllClassInfoData() {
+    public void testgetAllClassInfoData01() {
         List<ClassInfo> list = new ArrayList<>();
         list = classInfoDao.getAllClassInfoData(1L);
         Assert.assertNotNull(list);
+    }
+
+    /**
+     * functional testing getAllClassInfoData
+     *
+     * @tc.name: getAllClassInfoData
+     * @tc.number: OHOS_JAVA_memory_ClassInfoDao_getAllClassInfoData_0002
+     * @tc.desc: getAllClassInfoData
+     * @tc.type: functional testing
+     * @tc.require: AR000FK61N
+     */
+    @Test
+    public void testgetAllClassInfoData02() {
+        List<ClassInfo> list = classInfoDao.getAllClassInfoData(1L);
+        List<ClassInfo> classInfoList = classInfoDao.getAllClassInfoData(10L);
+        Assert.assertNotEquals(list, classInfoList);
     }
 
     /**
@@ -133,9 +157,25 @@ public class ClassInfoDaoTest {
      * @tc.require: AR000FK61N
      */
     @Test
-    public void testgetClassIdByClassName() {
+    public void testgetClassIdByClassName01() {
         int num = classInfoDao.getClassIdByClassName("className");
         Assert.assertNotNull(num);
+    }
+
+    /**
+     * functional testing getClassIdByClassName
+     *
+     * @tc.name: getClassIdByClassName
+     * @tc.number: OHOS_JAVA_memory_ClassInfoDao_getClassIdByClassName_0002
+     * @tc.desc: getClassIdByClassName
+     * @tc.type: functional testing
+     * @tc.require: AR000FK61N
+     */
+    @Test
+    public void testgetClassIdByClassName02() {
+        int num = classInfoDao.getClassIdByClassName("className");
+        int className = classInfoDao.getClassIdByClassName("className");
+        Assert.assertEquals(num, className);
     }
 
     /**
@@ -151,5 +191,4 @@ public class ClassInfoDaoTest {
     public void testgetdeleteSessionData() {
         classInfoDao.deleteSessionData(1L);
     }
-
 }

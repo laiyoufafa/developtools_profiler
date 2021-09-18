@@ -15,6 +15,7 @@
 
 package ohos.devtools.views.trace.bean;
 
+import ohos.devtools.views.trace.DField;
 import ohos.devtools.views.trace.fragment.graph.AbstractGraph;
 
 import java.awt.Graphics2D;
@@ -23,21 +24,38 @@ import java.awt.event.MouseEvent;
 /**
  * Process data
  *
- * @version 1.0
  * @date 2021/04/22 12:25
- **/
+ */
 public class ProcessData extends AbstractGraph {
+    @DField(name = "id")
     private int id;
 
+    @DField(name = "utid")
     private int utid;
 
+    @DField(name = "cpu")
     private int cpu;
 
+    @DField(name = "startTime")
     private long startTime;
 
+    @DField(name = "dur")
     private long duration;
 
+    @DField(name = "state")
     private String state;
+
+    @DField(name = "tid")
+    private int tid;
+
+    @DField(name = "pid")
+    private int pid;
+
+    @DField(name = "process")
+    private String process;
+
+    @DField(name = "thread")
+    private String thread;
 
     /**
      * Gets the value of id .
@@ -151,6 +169,82 @@ public class ProcessData extends AbstractGraph {
      */
     public void setState(final String state) {
         this.state = state;
+    }
+
+    /**
+     * Gets the value of tid .
+     *
+     * @return the value of tid .
+     */
+    public int getTid() {
+        return tid;
+    }
+
+    /**
+     * Sets the tid .
+     * <p>You can use getTid() to get the value of tid.</p>
+     *
+     * @param param .
+     */
+    public void setTid(final int param) {
+        this.tid = param;
+    }
+
+    /**
+     * Gets the value of pid .
+     *
+     * @return the value of pid .
+     */
+    public int getPid() {
+        return pid;
+    }
+
+    /**
+     * Sets the pid .
+     * <p>You can use getPid() to get the value of pid.</p>
+     *
+     * @param param .
+     */
+    public void setPid(final int param) {
+        this.pid = param;
+    }
+
+    /**
+     * Gets the value of process .
+     *
+     * @return the value of process .
+     */
+    public String getProcess() {
+        return process;
+    }
+
+    /**
+     * Sets the process .
+     * <p>You can use getProcess() to get the value of process.</p>
+     *
+     * @param param .
+     */
+    public void setProcess(final String param) {
+        this.process = param;
+    }
+
+    /**
+     * Gets the value of thread .
+     *
+     * @return the value of thread .
+     */
+    public String getThread() {
+        return thread;
+    }
+
+    /**
+     * Sets the thread .
+     * <p>You can use getThread() to get the value of thread.</p>
+     *
+     * @param param .
+     */
+    public void setThread(final String param) {
+        this.thread = param;
     }
 
     /**

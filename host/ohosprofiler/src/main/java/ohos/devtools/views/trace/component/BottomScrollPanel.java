@@ -28,7 +28,6 @@ import java.awt.event.MouseEvent;
  * Bottom scroll component
  *
  * @date 2021/04/20 12:24
- * @version 1.0.1
  */
 public class BottomScrollPanel extends JBScrollPane {
     /**
@@ -40,6 +39,7 @@ public class BottomScrollPanel extends JBScrollPane {
      * Constructor
      */
     public BottomScrollPanel() {
+        setBorder(null);
         setViewportView(box);
         addMouseListener(new MouseAdapter() {
             @Override
@@ -51,8 +51,9 @@ public class BottomScrollPanel extends JBScrollPane {
     }
 
     /**
+     * ChildPanel
+     *
      * @date 2021/04/20 12:24
-     * @version 1.0.1
      */
     public static class ChildPanel extends JBPanel {
         /**
@@ -107,8 +108,9 @@ public class BottomScrollPanel extends JBScrollPane {
     }
 
     /**
+     * ChildLineComponent
+     *
      * @date 2021/04/20 12:24
-     * @version 1.0.1
      */
     public static class ChildLineComponent extends ChildPanel {
         private static final int DEFAULT_LINE_HEIGHT = 27;
@@ -166,6 +168,7 @@ public class BottomScrollPanel extends JBScrollPane {
          *
          * @param event mouse event
          */
-        public void childMouseClicked(final MouseEvent event) { }
+        public void childMouseClicked(final MouseEvent event) {
+        }
     }
 }

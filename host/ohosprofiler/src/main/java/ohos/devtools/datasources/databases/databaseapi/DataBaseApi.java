@@ -40,9 +40,8 @@ import ohos.devtools.datasources.utils.common.util.CommonUtil;
 import static ohos.devtools.datasources.databases.databasepool.DataBaseHelper.getUrlByDataBaseName;
 
 /**
- * @Description Provides database related operations
- * @Date 2021/1/25 13:15
- **/
+ * Provides database related operations
+ */
 public class DataBaseApi {
     private static final Logger LOGGER = LogManager.getLogger(DataBaseApi.class);
 
@@ -50,6 +49,16 @@ public class DataBaseApi {
      * System main library name
      */
     public static final String DEFAULT_DATABASE_DBNAME = "defaultDB";
+
+    /**
+     * CREATE TABLE sql
+     */
+    private static final String CREATE_TABLE = "CREATE TABLE if not exists %s";
+
+    /**
+     * CREATE TABLE INDEX sql
+     */
+    private static final String CREATE_TABLE_INDEX = "CREATE INDEX IF NOT EXISTS ";
 
     /**
      * Correspondence between storage database name and database connection pool
@@ -94,7 +103,7 @@ public class DataBaseApi {
     /**
      * Create a database. If it is a system main library, create a data table in the main library.
      *
-     * @param dbName   data storage name
+     * @param dbName data storage name
      * @param appStart Whether the application just started
      * @return boolean
      */
@@ -138,7 +147,7 @@ public class DataBaseApi {
         try {
             return Optional.of(getPoolByDataBaseName(DEFAULT_DATABASE_DBNAME).getConnection());
         } catch (SQLException sqlException) {
-            LOGGER.info("getConnectByTable Exception {}", sqlException.getMessage());
+            LOGGER.info("getConnectByTable Exception ", sqlException);
             return Optional.empty();
         }
     }
@@ -159,7 +168,7 @@ public class DataBaseApi {
                 Connection conn = getPoolByDataBaseName(dbName).getConnection();
                 return Optional.of(conn);
             } catch (SQLException throwAbles) {
-                LOGGER.info("getConnectByTable Exception {}", throwAbles.getMessage());
+                LOGGER.info("getConnectByTable Exception ", throwAbles);
             }
         }
         return Optional.empty();
@@ -177,7 +186,7 @@ public class DataBaseApi {
             connection = getPoolByDataBaseName(dataBaseName).getConnection();
             return Optional.of(connection);
         } catch (SQLException throwAbles) {
-            LOGGER.info("getConnectByTable Exception {}", throwAbles.getMessage());
+            LOGGER.info("getConnectByTable Exception ", throwAbles);
         }
         return Optional.empty();
     }
@@ -217,7 +226,7 @@ public class DataBaseApi {
      * Correspondence between registered data table and database
      *
      * @param tableName tableName
-     * @param dbName    dbName
+     * @param dbName dbName
      */
     public void registerTable(String tableName, String dbName) {
         if (StringUtils.isNotBlank(tableName) && StringUtils.isNotBlank(dbName)) {
@@ -255,7 +264,7 @@ public class DataBaseApi {
      * Correspondence between registered database name and database connection pool
      *
      * @param dataBaseName dataBaseName
-     * @param dataSource   dataSource
+     * @param dataSource dataSource
      */
     public void registerDataSource(String dataBaseName, DataSource dataSource) {
         if (StringUtils.isNotBlank(dataBaseName) && dataSource != null) {
@@ -287,9 +296,9 @@ public class DataBaseApi {
     /**
      * Create table
      *
-     * @param dbName    dbName
+     * @param dbName dbName
      * @param tableName tableName
-     * @param params    params
+     * @param params params
      * @return boolean
      */
     public boolean createTable(String dbName, String tableName, List<String> params) {
@@ -300,7 +309,7 @@ public class DataBaseApi {
             return false;
         }
         StringBuffer stringBuffer = new StringBuffer();
-        stringBuffer.append(String.format(Locale.ENGLISH, "CREATE TABLE if not exists %s", tableName));
+        stringBuffer.append(String.format(Locale.ENGLISH, CREATE_TABLE, tableName));
         Optional<Connection> optionalConnection = getConnectBydbname(dbName);
         if (optionalConnection.isPresent()) {
             Connection conn = optionalConnection.get();
@@ -316,7 +325,7 @@ public class DataBaseApi {
                 registerTable(tableName, dbName);
                 return true;
             } catch (SQLException throwAbles) {
-                LOGGER.info("SQLException Error {}: ", throwAbles.getMessage());
+                LOGGER.info("SQLException Error : ", throwAbles);
                 return false;
             } finally {
                 CloseResourceUtil.closeResource(LOGGER, conn, null, statement);
@@ -328,9 +337,9 @@ public class DataBaseApi {
     /**
      * createTable
      *
-     * @param dbName    dbName
+     * @param dbName dbName
      * @param tableName tableName
-     * @param sql       sql
+     * @param sql sql
      * @return boolean
      */
     public boolean createTable(String dbName, String tableName, String sql) {
@@ -351,7 +360,7 @@ public class DataBaseApi {
                 registerTable(tableName, dbName);
                 return true;
             } catch (SQLException throwAbles) {
-                LOGGER.info("create Table Error {}", throwAbles.getMessage());
+                LOGGER.info("create Table Error ", throwAbles);
             } finally {
                 CloseResourceUtil.closeResource(LOGGER, conn, null, statm);
             }
@@ -362,8 +371,8 @@ public class DataBaseApi {
     /**
      * Create table index
      *
-     * @param tableName  tableName
-     * @param indexName  indexName
+     * @param tableName tableName
+     * @param indexName indexName
      * @param columnName columnName
      * @return boolean
      */
@@ -377,7 +386,7 @@ public class DataBaseApi {
         if (checkIndexRegister(tableName)) {
             return true;
         }
-        StringBuffer stringBuffer = new StringBuffer("CREATE INDEX IF NOT EXISTS ").append(indexName).append(" ON ");
+        StringBuffer stringBuffer = new StringBuffer(CREATE_TABLE_INDEX).append(indexName).append(" ON ");
         stringBuffer.append(tableName).append("(");
         String value = columnName.stream().collect(Collectors.joining(","));
         stringBuffer.append(value).append(")");
@@ -391,7 +400,7 @@ public class DataBaseApi {
                 registerCreateIndex(tableName);
                 return true;
             } catch (SQLException throwAbles) {
-                LOGGER.info("SQLException Error {}: ", throwAbles.getMessage());
+                LOGGER.info("SQLException Error : ", throwAbles);
                 return false;
             } finally {
                 CloseResourceUtil.closeResource(LOGGER, conn, null, statement);

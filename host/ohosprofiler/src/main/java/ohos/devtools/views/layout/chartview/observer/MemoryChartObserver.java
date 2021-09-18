@@ -15,68 +15,69 @@
 
 package ohos.devtools.views.layout.chartview.observer;
 
-import ohos.devtools.datasources.transport.grpc.service.MemoryPluginResult;
 import ohos.devtools.datasources.utils.monitorconfig.service.MonitorConfigManager;
-import ohos.devtools.services.memory.ChartDataCache;
-import ohos.devtools.services.memory.MemoryDao;
+import ohos.devtools.services.memory.memorydao.MemoryDao;
+import ohos.devtools.services.memory.memoryservice.MemoryDataCache;
 import ohos.devtools.views.charts.ProfilerChart;
 import ohos.devtools.views.charts.model.ChartDataRange;
 import ohos.devtools.views.charts.model.ChartStandard;
 import ohos.devtools.views.charts.model.ChartDataModel;
 import ohos.devtools.views.layout.chartview.event.IChartEventObserver;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
+import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
 import static ohos.devtools.views.common.ColorConstants.MEMORY;
+import static ohos.devtools.views.layout.chartview.MonitorItemDetail.MEM_CODE;
+import static ohos.devtools.views.layout.chartview.MonitorItemDetail.MEM_GRAPHICS;
+import static ohos.devtools.views.layout.chartview.MonitorItemDetail.MEM_JAVA;
+import static ohos.devtools.views.layout.chartview.MonitorItemDetail.MEM_NATIVE;
+import static ohos.devtools.views.layout.chartview.MonitorItemDetail.MEM_OTHERS;
+import static ohos.devtools.views.layout.chartview.MonitorItemDetail.MEM_STACK;
 
 /**
- * 一级界面Memory Chart的观察者
+ * Observer of memory chart
  *
  * @since 2021/3/1 14:58
  */
 public class MemoryChartObserver implements IChartEventObserver {
-    private static final Logger LOGGER = LogManager.getLogger(MemoryChartObserver.class);
-
-    /**
-     * Profiler Chart
-     */
     private final ProfilerChart chart;
 
-    private final Long sessionId;
+    private final long sessionId;
+
+    private boolean chartFold;
 
     /**
-     * 构造函数
+     * Constructor
      *
      * @param chart Profiler Chart
+     * @param sessionId Session id
+     * @param chartFold true: Chart fold/expand
      */
-    public MemoryChartObserver(ProfilerChart chart, Long sessionId) {
+    public MemoryChartObserver(ProfilerChart chart, long sessionId, boolean chartFold) {
         this.sessionId = sessionId;
         this.chart = chart;
+        this.chartFold = chartFold;
     }
 
     /**
-     * 刷新绘图标准
+     * Refresh chart drawing standard
      *
-     * @param standard       绘图标准
-     * @param startTime      startTime
-     * @param endTime        endTime
-     * @param maxDisplayTime maxDisplayTime
+     * @param startTime Start time of chart
+     * @param endTime End time of chart
+     * @param maxDisplayMillis Maximum display time on view
+     * @param minMarkInterval The minimum scale interval
      */
     @Override
-    public void refreshStandard(ChartStandard standard, int startTime, int endTime, int maxDisplayTime) {
-        // char绘制的跟随时间轴的放大缩小
-        chart.setMaxDisplayX(standard.getMaxDisplayMillis());
-        chart.setMinMarkIntervalX(standard.getMinMarkInterval());
+    public void refreshStandard(int startTime, int endTime, int maxDisplayMillis, int minMarkInterval) {
+        chart.setMaxDisplayX(maxDisplayMillis);
+        chart.setMinMarkIntervalX(minMarkInterval);
 
-        // 跟随时间线同步
         chart.setStartTime(startTime);
         chart.setEndTime(endTime);
 
@@ -85,91 +86,142 @@ public class MemoryChartObserver implements IChartEventObserver {
     }
 
     /**
-     * 刷新视图
+     * Refresh view
      *
-     * @param range          时间范围
-     * @param firstTimestamp 本次Chart首次创建并启动刷新时的时间戳
-     * @param isUseCache     是否使用缓存
+     * @param range Chart display time range
+     * @param firstTimestamp The first time stamp of this chart's data
+     * @param useCache whether or not use cache
      */
     @Override
-    public void refreshView(ChartDataRange range, long firstTimestamp, boolean isUseCache) {
-        LinkedHashMap<Integer, List<ChartDataModel>> dataMaps = new LinkedHashMap<>();
-        LinkedHashMap<Long, MemoryPluginResult.AppSummary> dataMap;
-
-        boolean isChartStop = chart.getBottomPanel().isFlagEnd() || chart.getBottomPanel().isStopFlag();
-        if (isChartStop || !isUseCache) {
-            // 点击暂停后，读取数据库的时间
-            dataMap = MemoryDao.getInstance()
-                .getData(sessionId, range.getStartTime(), range.getEndTime(), firstTimestamp, true);
+    public void refreshView(ChartDataRange range, long firstTimestamp, boolean useCache) {
+        LinkedHashMap<Integer, List<ChartDataModel>> queryResult;
+        int start = range.getStartTime();
+        int end = range.getEndTime();
+        boolean chartStop = chart.getBottomPanel().isPause() || chart.getBottomPanel().isStop();
+        if (chartStop || !useCache) {
+            queryResult = MemoryDao.getInstance().getData(sessionId, start, end, firstTimestamp, true);
         } else {
-            dataMap = ChartDataCache.getInstance()
-                .getDataCache(String.valueOf(sessionId), range.getStartTime(), range.getEndTime(), firstTimestamp);
+            queryResult = MemoryDataCache.getInstance().getData(sessionId, start, end);
         }
 
         Map<String, LinkedList<String>> configMap = MonitorConfigManager.dataMap.get(sessionId);
-        if (configMap == null) { // 存放离线采集项数据
-            LinkedList<String> offLineIterm = new LinkedList<>();
-            offLineIterm.add("Java");
-            offLineIterm.add("Native");
-            offLineIterm.add("Graphics");
-            offLineIterm.add("Stack");
-            offLineIterm.add("Code");
-            offLineIterm.add("Others");
-            // 存放memory离线采集项数据
-            Map<String, LinkedList<String>> offLineMap = new HashMap<>();
-            offLineMap.put("Memory", offLineIterm);
-            // 构建离线memory采集项的dataMap对象
-            MonitorConfigManager.dataMap.put(sessionId, offLineMap);
-            configMap = MonitorConfigManager.dataMap.get(sessionId);
+        List<String> monitorItemList = new ArrayList<>();
+        if (configMap != null) {
+            monitorItemList = configMap.get("Memory");
         }
 
-        List<String> configList = configMap.get("Memory");
-        for (Long time : dataMap.keySet()) {
-            ChartDataModel total = new ChartDataModel();
-            total.setName("Total");
-            total.setColor(MEMORY);
-            MemoryPluginResult.AppSummary app = dataMap.get(time);
-            total.setValue(calcTotalValue(app, configList));
-            long showTime = time - firstTimestamp;
-            dataMaps.put((int) showTime, Collections.singletonList(total));
+        LinkedHashMap<Integer, List<ChartDataModel>> showDataMap = new LinkedHashMap<>();
+        for (int time : queryResult.keySet()) {
+            List<ChartDataModel> dataModels = queryResult.get(time);
+            if (chartFold) {
+                ChartDataModel total = new ChartDataModel();
+                total.setName("Total");
+                total.setColor(MEMORY);
+                total.setValue(sumChosenItems(dataModels, monitorItemList));
+                showDataMap.put(time, Collections.singletonList(total));
+            } else {
+                List<ChartDataModel> chosenModels = getChosenItems(dataModels, monitorItemList);
+                showDataMap.put(time, chosenModels);
+            }
         }
-        chart.refreshChart(range.getStartTime(), range.getEndTime(), dataMaps);
+        chart.refreshChart(range.getStartTime(), end, showDataMap);
     }
 
     /**
-     * 计算一节界面的Total值，要根据界面选择的指标项，而非所有指标项的Total值
+     * Sum according to the selected memory monitor items
      *
-     * @param app        MemoryPluginResult.AppSummary
-     * @param configList List
+     * @param dataModels Data list
+     * @param monitorItemList List
      * @return int
      */
-    private int calcTotalValue(MemoryPluginResult.AppSummary app, List<String> configList) {
+    private int sumChosenItems(List<ChartDataModel> dataModels, List<String> monitorItemList) {
         int total = 0;
-        if (CollectionUtils.isEmpty(configList)) {
-            total = (int) (app.getJavaHeap() + app.getNativeHeap() + app.getGraphics() + app.getStack() + app.getCode()
-                + app.getPrivateOther());
-            return total;
-        }
+        boolean configEmpty = CollectionUtils.isEmpty(monitorItemList);
+        for (ChartDataModel model : dataModels) {
+            if (configEmpty) {
+                total += model.getValue();
+                continue;
+            }
 
-        if (configList.contains("Java")) {
-            total += (int) (app.getJavaHeap());
-        }
-        if (configList.contains("Native")) {
-            total += (int) (app.getNativeHeap());
-        }
-        if (configList.contains("Graphics")) {
-            total += (int) (app.getGraphics());
-        }
-        if (configList.contains("Stack")) {
-            total += (int) (app.getStack());
-        }
-        if (configList.contains("Code")) {
-            total += (int) (app.getCode());
-        }
-        if (configList.contains("Others")) {
-            total += (int) (app.getPrivateOther());
+            if (monitorItemList.contains(MEM_JAVA.getName()) && model.getName().equals(MEM_JAVA.getName())) {
+                total += model.getValue();
+                continue;
+            }
+            if (monitorItemList.contains(MEM_NATIVE.getName()) && model.getName().equals(MEM_NATIVE.getName())) {
+                total += model.getValue();
+                continue;
+            }
+            if (monitorItemList.contains(MEM_GRAPHICS.getName()) && model.getName().equals(MEM_GRAPHICS.getName())) {
+                total += model.getValue();
+                continue;
+            }
+            if (monitorItemList.contains(MEM_STACK.getName()) && model.getName().equals(MEM_STACK.getName())) {
+                total += model.getValue();
+                continue;
+            }
+            if (monitorItemList.contains(MEM_CODE.getName()) && model.getName().equals(MEM_CODE.getName())) {
+                total += model.getValue();
+                continue;
+            }
+            if (monitorItemList.contains(MEM_OTHERS.getName()) && model.getName().equals(MEM_OTHERS.getName())) {
+                total += model.getValue();
+            }
         }
         return total;
+    }
+
+    private List<ChartDataModel> getChosenItems(List<ChartDataModel> dataModels, List<String> monitorItemList) {
+        if (CollectionUtils.isEmpty(monitorItemList)) {
+            return dataModels;
+        }
+
+        List<ChartDataModel> result = new ArrayList<>();
+        for (ChartDataModel model : dataModels) {
+            if (monitorItemList.contains(MEM_JAVA.getName()) && model.getName().equals(MEM_JAVA.getName())) {
+                result.add(model);
+                continue;
+            }
+            if (monitorItemList.contains(MEM_NATIVE.getName()) && model.getName().equals(MEM_NATIVE.getName())) {
+                result.add(model);
+                continue;
+            }
+            if (monitorItemList.contains(MEM_GRAPHICS.getName()) && model.getName().equals(MEM_GRAPHICS.getName())) {
+                result.add(model);
+                continue;
+            }
+            if (monitorItemList.contains(MEM_STACK.getName()) && model.getName().equals(MEM_STACK.getName())) {
+                result.add(model);
+                continue;
+            }
+            if (monitorItemList.contains(MEM_CODE.getName()) && model.getName().equals(MEM_CODE.getName())) {
+                result.add(model);
+                continue;
+            }
+            if (monitorItemList.contains(MEM_OTHERS.getName()) && model.getName().equals(MEM_OTHERS.getName())) {
+                result.add(model);
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Update fold status and refresh current chart
+     *
+     * @param chartFold true: Chart fold/expand
+     */
+    public void setChartFold(boolean chartFold) {
+        this.chartFold = chartFold;
+        refreshManually();
+    }
+
+    /**
+     * Refresh current chart manually
+     */
+    public void refreshManually() {
+        ChartStandard standard = chart.getBottomPanel().getPublisher().getStandard();
+        ChartDataRange range = standard.getDisplayRange();
+        long firstTs = standard.getFirstTimestamp();
+        refreshView(range, firstTs, !chart.getBottomPanel().getPublisher().isTraceFile());
     }
 
 }

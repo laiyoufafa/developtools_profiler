@@ -16,7 +16,7 @@ import("../../../base/config.gni")
 
 module_output_path = "${OHOS_PROFILER_TEST_MODULE_OUTPUT_PATH}/device"
 config("module_private_config") {
-  visibility = [":*"]
+  visibility = [ ":*" ]
   if (current_toolchain != host_toolchain) {
     defines = [ "HAVE_HILOG" ]
   }
@@ -32,6 +32,7 @@ ohos_unittest("memdataplugin_ut") {
     "${OHOS_PROFILER_DIR}/device/plugins/memory_plugin:memdataplugin",
     "${OHOS_PROFILER_DIR}/protos/types/plugins/memory_data:memory_data_cpp",
     "//third_party/googletest:gtest_main",
+    "//utils/native/base:utilsecurec",
   ]
   include_dirs = [
     "../include",
@@ -39,22 +40,19 @@ ohos_unittest("memdataplugin_ut") {
     "${OHOS_PROFILER_DIR}/interfaces/kits",
     "${OHOS_PROFILER_DIR}/device/base/include",
     "//third_party/googletest/googletest/include/gtest",
+    "//utils/native/base/include",
   ]
   cflags = [
     "-Wno-inconsistent-missing-override",
-    "-Dprivate=public",   #allow test code access private members
+    "-Dprivate=public",  #allow test code access private members
   ]
-  external_deps = [
-    "hiviewdfx_hilog_native:libhilog",
-  ]
+  external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
   configs = [ ":module_private_config" ]
   subsystem_name = "${OHOS_PROFILER_SUBSYS_NAME}"
-  resource_config_file = get_path_info("utresources/ohos_test.xml", "abspath")
+  resource_config_file = "${OHOS_PROFILER_DIR}/device/ohos_test.xml"
 }
 
 group("unittest") {
   testonly = true
-  deps = [
-    ":memdataplugin_ut",
-  ]
+  deps = [ ":memdataplugin_ut" ]
 }

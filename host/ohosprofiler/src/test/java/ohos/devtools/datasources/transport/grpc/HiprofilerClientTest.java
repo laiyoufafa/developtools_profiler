@@ -24,32 +24,28 @@ import io.grpc.util.MutableHandlerRegistry;
 import ohos.devtools.datasources.transport.grpc.service.CommonTypes;
 import ohos.devtools.datasources.transport.grpc.service.MemoryPluginResult;
 import ohos.devtools.datasources.transport.grpc.service.ProfilerServiceTypes;
+import ohos.devtools.datasources.utils.device.entity.DeviceType;
 import ohos.devtools.datasources.utils.process.entity.ProcessInfo;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
- * 测试Hiprofiler模块
- *
- * @version 1.0
- * @date 2021/02/02 10:11
- **/
+ * test hiprofiler module
+ */
 public class HiprofilerClientTest {
     private static volatile int requestId = 1;
     private String IP;
     private int firstPort;
     private int secondPort;
-    private int thirPort;
+    private int thirdPort;
     private String serverName;
     private final MutableHandlerRegistry serviceRegistry = new MutableHandlerRegistry();
-
-    /**
-     * grpcCleanup
-     */
     private final GrpcCleanupRule grpcCleanup = new GrpcCleanupRule();
 
     /**
@@ -67,11 +63,26 @@ public class HiprofilerClientTest {
         IP = "";
         firstPort = 5001;
         secondPort = 5002;
-        thirPort = 5003;
+        thirdPort = 5003;
         serverName = InProcessServerBuilder.generateName();
         grpcCleanup.register(
             InProcessServerBuilder.forName(serverName).fallbackHandlerRegistry(serviceRegistry).directExecutor().build()
                 .start());
+    }
+
+    /**
+     * get Instance
+     *
+     * @tc.name: getInstanceTest01
+     * @tc.number: OHOS_JAVA_grpc_HiProfilerClient_getInstanceTest_0001
+     * @tc.desc: get Instance
+     * @tc.type: functional testing
+     * @tc.require: SR-005
+     */
+    @Test
+    public void getInstanceTest() {
+        HiProfilerClient instance = HiProfilerClient.getInstance();
+        Assert.assertNotNull(instance);
     }
 
     /**
@@ -85,8 +96,8 @@ public class HiprofilerClientTest {
      */
     @Test
     public void getProfilerClientTest01() {
-        ProfilerClient profierlClient = HiProfilerClient.getInstance().getProfilerClient(IP, firstPort);
-        Assert.assertNotNull(profierlClient);
+        ProfilerClient profilerClient = HiProfilerClient.getInstance().getProfilerClient(IP, firstPort);
+        Assert.assertNotNull(profilerClient);
     }
 
     /**
@@ -100,9 +111,9 @@ public class HiprofilerClientTest {
      */
     @Test
     public void getProfilerClientTest02() {
-        ProfilerClient profierlClientOne = HiProfilerClient.getInstance().getProfilerClient(IP, firstPort);
-        ProfilerClient profilerClientTWo = HiProfilerClient.getInstance().getProfilerClient(IP, secondPort);
-        Assert.assertNotEquals(profierlClientOne, profilerClientTWo);
+        ProfilerClient profilerClient = HiProfilerClient.getInstance().getProfilerClient(IP, firstPort);
+        ProfilerClient client = HiProfilerClient.getInstance().getProfilerClient(IP, secondPort);
+        Assert.assertNotEquals(profilerClient, client);
     }
 
     /**
@@ -116,9 +127,9 @@ public class HiprofilerClientTest {
      */
     @Test
     public void getProfilerClientTest03() {
-        ProfilerClient profierlClientOne = HiProfilerClient.getInstance().getProfilerClient(IP, secondPort);
-        ProfilerClient profilerClientTWo = HiProfilerClient.getInstance().getProfilerClient(IP, secondPort);
-        Assert.assertEquals(profierlClientOne, profilerClientTWo);
+        ProfilerClient profilerClient = HiProfilerClient.getInstance().getProfilerClient(IP, secondPort);
+        ProfilerClient client = HiProfilerClient.getInstance().getProfilerClient(IP, secondPort);
+        Assert.assertEquals(profilerClient, client);
     }
 
     /**
@@ -132,8 +143,8 @@ public class HiprofilerClientTest {
      */
     @Test
     public void getProfilerClientTest04() {
-        ProfilerClient profierlClient = HiProfilerClient.getInstance().getProfilerClient(IP, -1);
-        Assert.assertNull(profierlClient);
+        ProfilerClient profilerClient = HiProfilerClient.getInstance().getProfilerClient(IP, -1);
+        Assert.assertNull(profilerClient);
     }
 
     /**
@@ -147,8 +158,95 @@ public class HiprofilerClientTest {
      */
     @Test
     public void getProfilerClientTest05() {
-        ProfilerClient profierlClient = HiProfilerClient.getInstance().getProfilerClient(IP, 0);
-        Assert.assertNull(profierlClient);
+        ProfilerClient profilerClient = HiProfilerClient.getInstance().getProfilerClient(IP, 0);
+        Assert.assertNull(profilerClient);
+    }
+
+    /**
+     * get ProfilerClient
+     *
+     * @tc.name: getProfilerClient
+     * @tc.number: OHOS_JAVA_grpc_HiProfilerClient_getProfilerClientMultiParam_0001
+     * @tc.desc: get ProfilerClient
+     * @tc.type: functional testing
+     * @tc.require: SR-005
+     */
+    @Test
+    public void getProfilerClientMultiParam01() {
+        ManagedChannel channel =
+            grpcCleanup.register(InProcessChannelBuilder.forName(serverName).directExecutor().build());
+        ProfilerClient client = HiProfilerClient.getInstance().getProfilerClient(IP, 65536, channel);
+        Assert.assertNull(client);
+    }
+
+    /**
+     * get ProfilerClient
+     *
+     * @tc.name: getProfilerClient
+     * @tc.number: OHOS_JAVA_grpc_HiProfilerClient_getProfilerClientMultiParam_0002
+     * @tc.desc: get ProfilerClient
+     * @tc.type: functional testing
+     * @tc.require: SR-005
+     */
+    @Test
+    public void getProfilerClientMultiParam02() {
+        ManagedChannel channel =
+            grpcCleanup.register(InProcessChannelBuilder.forName(serverName).directExecutor().build());
+        ProfilerClient client = HiProfilerClient.getInstance().getProfilerClient(IP, firstPort, channel);
+        ProfilerClient getClient = HiProfilerClient.getInstance().getProfilerClient(IP, secondPort, channel);
+        Assert.assertNotEquals(client, getClient);
+    }
+
+    /**
+     * get ProfilerClient
+     *
+     * @tc.name: getProfilerClient
+     * @tc.number: OHOS_JAVA_grpc_HiProfilerClient_getProfilerClientMultiParam_0003
+     * @tc.desc: get ProfilerClient
+     * @tc.type: functional testing
+     * @tc.require: SR-005
+     */
+    @Test
+    public void getProfilerClientMultiParam03() {
+        ManagedChannel channel =
+            grpcCleanup.register(InProcessChannelBuilder.forName(serverName).directExecutor().build());
+        ProfilerClient client = HiProfilerClient.getInstance().getProfilerClient(IP, firstPort, channel);
+        ProfilerClient getClient = HiProfilerClient.getInstance().getProfilerClient(IP, firstPort, channel);
+        Assert.assertEquals(client, getClient);
+    }
+
+    /**
+     * get ProfilerClient
+     *
+     * @tc.name: getProfilerClient
+     * @tc.number: OHOS_JAVA_grpc_HiProfilerClient_getProfilerClientMultiParam_0004
+     * @tc.desc: get ProfilerClient
+     * @tc.type: functional testing
+     * @tc.require: SR-005
+     */
+    @Test
+    public void getProfilerClientMultiParam04() {
+        ManagedChannel channel =
+            grpcCleanup.register(InProcessChannelBuilder.forName(serverName).directExecutor().build());
+        ProfilerClient client = HiProfilerClient.getInstance().getProfilerClient(IP, 0, channel);
+        Assert.assertNull(client);
+    }
+
+    /**
+     * get ProfilerClient
+     *
+     * @tc.name: getProfilerClient
+     * @tc.number: OHOS_JAVA_grpc_HiProfilerClient_getProfilerClientMultiParam_0005
+     * @tc.desc: get ProfilerClient
+     * @tc.type: functional testing
+     * @tc.require: SR-005
+     */
+    @Test
+    public void getProfilerClientMultiParam05() {
+        ManagedChannel channel =
+            grpcCleanup.register(InProcessChannelBuilder.forName(serverName).directExecutor().build());
+        ProfilerClient client = HiProfilerClient.getInstance().getProfilerClient(IP, -1, channel);
+        Assert.assertNull(client);
     }
 
     /**
@@ -162,8 +260,6 @@ public class HiprofilerClientTest {
      */
     @Test
     public void destroyProfilerTest01() {
-        ProfilerClient profierlClient = HiProfilerClient.getInstance().getProfilerClient(IP, secondPort);
-        Assert.assertNotNull(profierlClient);
         boolean res = HiProfilerClient.getInstance().destroyProfiler(IP, secondPort);
         Assert.assertTrue(res);
     }
@@ -179,7 +275,7 @@ public class HiprofilerClientTest {
      */
     @Test
     public void destroyProfilerTest02() {
-        boolean res = HiProfilerClient.getInstance().destroyProfiler(IP, firstPort);
+        boolean res = HiProfilerClient.getInstance().destroyProfiler(null, firstPort);
         Assert.assertTrue(res);
     }
 
@@ -257,8 +353,9 @@ public class HiprofilerClientTest {
         ManagedChannel channel =
             grpcCleanup.register(InProcessChannelBuilder.forName(serverName).directExecutor().build());
         serviceRegistry.addService(getFeatureImpl);
-        ProfilerClient client = HiProfilerClient.getInstance().getProfilerClient(IP, thirPort, channel);
-        ProfilerServiceTypes.GetCapabilitiesResponse res = HiProfilerClient.getInstance().getCapabilities(IP, thirPort);
+        ProfilerClient client = HiProfilerClient.getInstance().getProfilerClient(IP, thirdPort, channel);
+        ProfilerServiceTypes.GetCapabilitiesResponse res =
+            HiProfilerClient.getInstance().getCapabilities(IP, thirdPort);
         List<ProfilerServiceTypes.ProfilerPluginCapability> caps = res.getCapabilitiesList();
         caps.forEach(profilerPluginCapability -> {
             Assert.assertEquals(profilerPluginCapability.getName(), "test0");
@@ -412,6 +509,46 @@ public class HiprofilerClientTest {
     }
 
     /**
+     * get Capabilities Overtime Test
+     *
+     * @tc.name: getCapabilitiesOvertimeTest06
+     * @tc.number: OHOS_JAVA_grpc_HiProfilerClient_getCapabilitiesOvertimeTest_0006
+     * @tc.desc: get Capabilities Overtime Test
+     * @tc.type: functional testing
+     * @tc.require: SR-005-AR-005
+     */
+    @Test
+    public void getCapabilitiesOvertimeTest06() {
+        MockProfilerServiceImplBase getFeatureImpl = new MockProfilerServiceImplBase() {
+            @Override
+            public void getCapabilities(ProfilerServiceTypes.GetCapabilitiesRequest request,
+                StreamObserver<ProfilerServiceTypes.GetCapabilitiesResponse> responseObserver) {
+                ProfilerServiceTypes.ProfilerPluginCapability pluginCapability =
+                    ProfilerServiceTypes.ProfilerPluginCapability.newBuilder(
+                        ProfilerServiceTypes.ProfilerPluginCapability.newBuilder().setName("test0")
+                            .setPath("/data/local/tmp/libmemdata.z.so").build()).build();
+                ProfilerServiceTypes.GetCapabilitiesResponse reply =
+                    ProfilerServiceTypes.GetCapabilitiesResponse.newBuilder().addCapabilities(pluginCapability)
+                        .setStatus(0).build();
+                try {
+                    TimeUnit.SECONDS.sleep(6);
+                } catch (InterruptedException exception) {
+                    exception.printStackTrace();
+                }
+                responseObserver.onNext(reply);
+                responseObserver.onCompleted();
+            }
+        };
+        ManagedChannel channel =
+            grpcCleanup.register(InProcessChannelBuilder.forName(serverName).directExecutor().build());
+        serviceRegistry.addService(getFeatureImpl);
+        ProfilerClient client = HiProfilerClient.getInstance().getProfilerClient(IP, thirdPort, channel);
+        ProfilerServiceTypes.GetCapabilitiesResponse res = HiProfilerClient.getInstance().getCapabilities(IP, 5004);
+        List<ProfilerServiceTypes.ProfilerPluginCapability> caps = res.getCapabilitiesList();
+        Assert.assertEquals(caps.size(), 0);
+    }
+
+    /**
      * functional testing requestCreateSession Normal based on reportprocesstree is true
      *
      * @tc.name: requestCreateSession
@@ -437,7 +574,7 @@ public class HiprofilerClientTest {
         serviceRegistry.addService(getFeatureImpl);
         HiProfilerClient.getInstance().getProfilerClient(IP, 10002, channel);
         int res = HiProfilerClient.getInstance()
-            .requestCreateSession(10002, "/data/local/tmp/libmemdata.z.so", 212, true, "");
+            .requestCreateSession(10002, "/data/local/tmp/libmemdata.z.so", 212, true, DeviceType.FULL_HOS_DEVICE);
         Assert.assertEquals(res, 0);
     }
 
@@ -467,7 +604,7 @@ public class HiprofilerClientTest {
         serviceRegistry.addService(getFeatureImpl);
         HiProfilerClient.getInstance().getProfilerClient(IP, 10002, channel);
         int res = HiProfilerClient.getInstance()
-            .requestCreateSession(10002, "/data/local/tmp/libmemdata.z.so", 212, false, "");
+            .requestCreateSession(10002, "/data/local/tmp/libmemdata.z.so", 212, false, DeviceType.FULL_HOS_DEVICE);
         Assert.assertEquals(res, 0);
     }
 
@@ -497,7 +634,7 @@ public class HiprofilerClientTest {
         serviceRegistry.addService(getFeatureImpl);
         HiProfilerClient.getInstance().getProfilerClient(IP, 10003, channel);
         int res = HiProfilerClient.getInstance()
-            .requestCreateSession(10003, "/data/local/tmp/libmemdata.z.so", 212, true, "");
+            .requestCreateSession(10003, "/data/local/tmp/libmemdata.z.so", 212, true, DeviceType.FULL_HOS_DEVICE);
 
         Assert.assertEquals(res, -1);
     }
@@ -527,8 +664,8 @@ public class HiprofilerClientTest {
             grpcCleanup.register(InProcessChannelBuilder.forName(serverName).directExecutor().build());
         serviceRegistry.addService(getFeatureImpl);
         HiProfilerClient.getInstance().getProfilerClient(IP, 0, channel);
-        int res =
-            HiProfilerClient.getInstance().requestCreateSession(0, "/data/local/tmp/libmemdata.z.so", 212, false, "");
+        int res = HiProfilerClient.getInstance()
+            .requestCreateSession(0, "/data/local/tmp/libmemdata.z.so", 212, false, DeviceType.FULL_HOS_DEVICE);
         Assert.assertEquals(res, -1);
     }
 
@@ -557,8 +694,43 @@ public class HiprofilerClientTest {
             grpcCleanup.register(InProcessChannelBuilder.forName(serverName).directExecutor().build());
         serviceRegistry.addService(getFeatureImpl);
         HiProfilerClient.getInstance().getProfilerClient(IP, -1, channel);
-        int res =
-            HiProfilerClient.getInstance().requestCreateSession(-1, "/data/local/tmp/libmemdata.z.so", 212, true, "");
+        int res = HiProfilerClient.getInstance()
+            .requestCreateSession(-1, "/data/local/tmp/libmemdata.z.so", 212, true, DeviceType.FULL_HOS_DEVICE);
+        Assert.assertEquals(res, -1);
+    }
+
+    /**
+     * functional testing requestCreateSession abNormal based on port is -1
+     *
+     * @tc.name: requestCreateSession
+     * @tc.number: OHOS_JAVA_grpc_HiProfilerClient_requestCreateSession_0006
+     * @tc.desc: requestCreateSession
+     * @tc.type: functional testing
+     * @tc.require: SR-005-AR-001
+     */
+    @Test
+    public void requestCreateSessionOvertimeTest06() {
+        MockProfilerServiceImplBase getFeatureImpl = new MockProfilerServiceImplBase() {
+            @Override
+            public void createSession(ProfilerServiceTypes.CreateSessionRequest request,
+                StreamObserver<ProfilerServiceTypes.CreateSessionResponse> responseObserver) {
+                ProfilerServiceTypes.CreateSessionResponse reply =
+                    ProfilerServiceTypes.CreateSessionResponse.getDefaultInstance();
+                try {
+                    TimeUnit.SECONDS.sleep(6);
+                } catch (InterruptedException exception) {
+                    exception.printStackTrace();
+                }
+                responseObserver.onNext(reply);
+                responseObserver.onCompleted();
+            }
+        };
+        ManagedChannel channel =
+            grpcCleanup.register(InProcessChannelBuilder.forName(serverName).directExecutor().build());
+        serviceRegistry.addService(getFeatureImpl);
+        HiProfilerClient.getInstance().getProfilerClient(IP, 10004, channel);
+        int res = HiProfilerClient.getInstance()
+            .requestCreateSession(10004, "/data/local/tmp/libmemdata.z.so", 212, true, DeviceType.FULL_HOS_DEVICE);
         Assert.assertEquals(res, -1);
     }
 
@@ -653,9 +825,9 @@ public class HiprofilerClientTest {
         ManagedChannel channel =
             grpcCleanup.register(InProcessChannelBuilder.forName(serverName).directExecutor().build());
         serviceRegistry.addService(getFeatureImpl);
-        ProfilerClient client = HiProfilerClient.getInstance().getProfilerClient(IP, 10004, channel);
-        boolean res = HiProfilerClient.getInstance().requestStartSession(IP, 10004, 2);
-        Assert.assertTrue(res);
+        ProfilerClient client = HiProfilerClient.getInstance().getProfilerClient(IP, 65536, channel);
+        boolean res = HiProfilerClient.getInstance().requestStartSession(IP, 65536, 2);
+        Assert.assertFalse(res);
     }
 
     /**
@@ -720,6 +892,43 @@ public class HiprofilerClientTest {
         ProfilerClient client = HiProfilerClient.getInstance().getProfilerClient(IP, -1, channel);
         boolean res = HiProfilerClient.getInstance().requestStartSession(IP, -1, 2);
         Assert.assertFalse(res);
+    }
+
+    /**
+     * functional testing requestStartSession abnormal based on port is -1
+     *
+     * @tc.name: requestStartSession
+     * @tc.number: OHOS_JAVA_grpc_HiProfilerClient_requestStartSession_0006
+     * @tc.desc: requestStartSession
+     * @tc.type: functional testing
+     * @tc.require: SR-005-AR-001
+     */
+    @Test
+    public void requestStartSessionOvertimeTest06() {
+        MockProfilerServiceImplBase getFeatureImpl = new MockProfilerServiceImplBase() {
+            @Override
+            public void startSession(ProfilerServiceTypes.StartSessionRequest request,
+                StreamObserver<ProfilerServiceTypes.StartSessionResponse> responseObserver) {
+                CommonTypes.ProfilerPluginState profilerPluginState =
+                    CommonTypes.ProfilerPluginState.newBuilder().build();
+                ProfilerServiceTypes.StartSessionResponse reply =
+                    ProfilerServiceTypes.StartSessionResponse.newBuilder().setStatus(0)
+                        .addPluginStatus(profilerPluginState).build();
+                try {
+                    TimeUnit.SECONDS.sleep(4);
+                } catch (InterruptedException exception) {
+                    exception.printStackTrace();
+                }
+                responseObserver.onNext(reply);
+                responseObserver.onCompleted();
+            }
+        };
+        ManagedChannel channel =
+            grpcCleanup.register(InProcessChannelBuilder.forName(serverName).directExecutor().build());
+        serviceRegistry.addService(getFeatureImpl);
+        ProfilerClient client = HiProfilerClient.getInstance().getProfilerClient(IP, 10003, channel);
+        boolean res = HiProfilerClient.getInstance().requestStartSession(IP, 10003, 1);
+        Assert.assertTrue(res);
     }
 
     /**
@@ -806,10 +1015,10 @@ public class HiprofilerClientTest {
         ManagedChannel channel =
             grpcCleanup.register(InProcessChannelBuilder.forName(serverName).directExecutor().build());
         serviceRegistry.addService(getFeatureImpl);
-        ProfilerClient client = HiProfilerClient.getInstance().getProfilerClient(IP, 12004, channel);
+        ProfilerClient client = HiProfilerClient.getInstance().getProfilerClient(IP, 65536, channel);
 
-        boolean res = HiProfilerClient.getInstance().requestStopSession(IP, 12004, 111, false);
-        Assert.assertTrue(res);
+        boolean res = HiProfilerClient.getInstance().requestStopSession(IP, 65536, 111, false);
+        Assert.assertFalse(res);
     }
 
     /**
@@ -828,7 +1037,7 @@ public class HiprofilerClientTest {
             public void stopSession(ProfilerServiceTypes.StopSessionRequest request,
                 StreamObserver<ProfilerServiceTypes.StopSessionResponse> responseObserver) {
                 ProfilerServiceTypes.StopSessionResponse reply =
-                    ProfilerServiceTypes.StopSessionResponse.newBuilder().setStatus(-1).build();
+                    ProfilerServiceTypes.StopSessionResponse.newBuilder().setStatus(0).build();
                 responseObserver.onNext(reply);
                 responseObserver.onCompleted();
             }
@@ -873,6 +1082,40 @@ public class HiprofilerClientTest {
     }
 
     /**
+     * functional testing requestStopSession abnormal based on port is -1
+     *
+     * @tc.name: requestStopSession
+     * @tc.number: OHOS_JAVA_grpc_HiProfilerClient_requestStopSession_0006
+     * @tc.desc: requestStopSession
+     * @tc.type: functional testing
+     * @tc.require: SR-005-AR-002
+     */
+    @Test
+    public void requestStopSessionOvertimeTest06() {
+        MockProfilerServiceImplBase getFeatureImpl = new MockProfilerServiceImplBase() {
+            @Override
+            public void stopSession(ProfilerServiceTypes.StopSessionRequest request,
+                StreamObserver<ProfilerServiceTypes.StopSessionResponse> responseObserver) {
+                ProfilerServiceTypes.StopSessionResponse reply =
+                    ProfilerServiceTypes.StopSessionResponse.newBuilder().setStatus(0).build();
+                try {
+                    TimeUnit.SECONDS.sleep(4);
+                } catch (InterruptedException exception) {
+                    exception.printStackTrace();
+                }
+                responseObserver.onNext(reply);
+                responseObserver.onCompleted();
+            }
+        };
+        ManagedChannel channel =
+            grpcCleanup.register(InProcessChannelBuilder.forName(serverName).directExecutor().build());
+        serviceRegistry.addService(getFeatureImpl);
+        ProfilerClient client = HiProfilerClient.getInstance().getProfilerClient(IP, 10004, channel);
+        boolean res = HiProfilerClient.getInstance().requestStopSession(IP, 10004, 111, false);
+        Assert.assertTrue(res);
+    }
+
+    /**
      * functional testing requestdestorySession normal based on status is 0
      *
      * @tc.name: requestdestorySession
@@ -882,7 +1125,7 @@ public class HiprofilerClientTest {
      * @tc.require: SR-005-AR-004
      */
     @Test
-    public void requestdestorySessionTest01() {
+    public void requestDestroySessionTest01() {
         MockProfilerServiceImplBase getFeatureImpl = new MockProfilerServiceImplBase() {
             @Override
             public void destroySession(ProfilerServiceTypes.DestroySessionRequest request,
@@ -911,7 +1154,7 @@ public class HiprofilerClientTest {
      * @tc.require: SR-005-AR-004
      */
     @Test
-    public void requestdestorySessionTest02() {
+    public void requestDestroySessionTest02() {
         MockProfilerServiceImplBase getFeatureImpl = new MockProfilerServiceImplBase() {
             @Override
             public void destroySession(ProfilerServiceTypes.DestroySessionRequest request,
@@ -940,7 +1183,7 @@ public class HiprofilerClientTest {
      * @tc.require: SR-005-AR-004
      */
     @Test
-    public void requestdestorySessionTest03() {
+    public void requestDestroySessionTest03() {
         MockProfilerServiceImplBase getFeatureImpl = new MockProfilerServiceImplBase() {
             @Override
             public void destroySession(ProfilerServiceTypes.DestroySessionRequest request,
@@ -954,9 +1197,9 @@ public class HiprofilerClientTest {
         ManagedChannel channel =
             grpcCleanup.register(InProcessChannelBuilder.forName(serverName).directExecutor().build());
         serviceRegistry.addService(getFeatureImpl);
-        ProfilerClient client = HiProfilerClient.getInstance().getProfilerClient(IP, 10016, channel);
-        boolean res = HiProfilerClient.getInstance().requestDestroySession(IP, 10016, 222);
-        Assert.assertTrue(res);
+        ProfilerClient client = HiProfilerClient.getInstance().getProfilerClient(IP, 65536, channel);
+        boolean res = HiProfilerClient.getInstance().requestDestroySession(IP, 65536, 222);
+        Assert.assertFalse(res);
     }
 
     /**
@@ -969,7 +1212,7 @@ public class HiprofilerClientTest {
      * @tc.require: SR-005-AR-004
      */
     @Test
-    public void requestdestorySessionTest04() {
+    public void requestDestroySessionTest04() {
         MockProfilerServiceImplBase getFeatureImpl = new MockProfilerServiceImplBase() {
             @Override
             public void destroySession(ProfilerServiceTypes.DestroySessionRequest request,
@@ -998,7 +1241,7 @@ public class HiprofilerClientTest {
      * @tc.require: SR-005-AR-004
      */
     @Test
-    public void requestdestorySessionTest05() {
+    public void requestDestroySessionTest05() {
         MockProfilerServiceImplBase getFeatureImpl = new MockProfilerServiceImplBase() {
             @Override
             public void destroySession(ProfilerServiceTypes.DestroySessionRequest request,
@@ -1015,6 +1258,40 @@ public class HiprofilerClientTest {
         ProfilerClient client = HiProfilerClient.getInstance().getProfilerClient(IP, -1, channel);
         boolean res = HiProfilerClient.getInstance().requestDestroySession(IP, -1, 222);
         Assert.assertFalse(res);
+    }
+
+    /**
+     * functional testing requestdestory
+     *
+     * @tc.name: requestDestroySessionOvertimeTest06
+     * @tc.number: OHOS_JAVA_grpc_HiProfilerClient_requestDestroySessionOvertimeTest_0006
+     * @tc.desc: request Destroy Session Overtime Test
+     * @tc.type: functional testing
+     * @tc.require: SR-005-AR-004
+     */
+    @Test
+    public void requestDestroySessionOvertimeTest06() {
+        MockProfilerServiceImplBase getFeatureImpl = new MockProfilerServiceImplBase() {
+            @Override
+            public void destroySession(ProfilerServiceTypes.DestroySessionRequest request,
+                StreamObserver<ProfilerServiceTypes.DestroySessionResponse> responseObserver) {
+                ProfilerServiceTypes.DestroySessionResponse reply =
+                    ProfilerServiceTypes.DestroySessionResponse.newBuilder().setStatus(0).build();
+                try {
+                    TimeUnit.SECONDS.sleep(2);
+                } catch (InterruptedException exception) {
+                    exception.printStackTrace();
+                }
+                responseObserver.onNext(reply);
+                responseObserver.onCompleted();
+            }
+        };
+        ManagedChannel channel =
+            grpcCleanup.register(InProcessChannelBuilder.forName(serverName).directExecutor().build());
+        serviceRegistry.addService(getFeatureImpl);
+        ProfilerClient client = HiProfilerClient.getInstance().getProfilerClient(IP, 10005, channel);
+        boolean res = HiProfilerClient.getInstance().requestDestroySession(IP, 10005, 222);
+        Assert.assertTrue(res);
     }
 
     /**
@@ -1077,6 +1354,19 @@ public class HiprofilerClientTest {
      */
     @Test
     public void fetchProcessDataTest02() {
+        MockProfilerServiceImplBase getFeatureImpl = getMockProfilerServiceImplBase();
+        ManagedChannel channel =
+            grpcCleanup.register(InProcessChannelBuilder.forName(serverName).directExecutor().build());
+        serviceRegistry.addService(getFeatureImpl);
+        ProfilerClient client = HiProfilerClient.getInstance().getProfilerClient(IP, 10008, channel);
+        List<ProcessInfo> res = HiProfilerClient.getInstance().fetchProcessData(IP, 10008, 1);
+        Assert.assertEquals(res.size(), 3);
+        List<ProcessInfo> ress = HiProfilerClient.getInstance().fetchProcessData(IP, 10008, 22);
+        Assert.assertEquals(ress.size(), 2);
+    }
+
+    @NotNull
+    private MockProfilerServiceImplBase getMockProfilerServiceImplBase() {
         MockProfilerServiceImplBase getFeatureImpl = new MockProfilerServiceImplBase() {
             @Override
             public void fetchData(ProfilerServiceTypes.FetchDataRequest request,
@@ -1087,24 +1377,7 @@ public class HiprofilerClientTest {
                         MemoryPluginResult.AppSummary.newBuilder().setJavaHeap(getIntData()).setNativeHeap(getIntData())
                             .setCode(getIntData()).setStack(getIntData()).setGraphics(getIntData())
                             .setPrivateOther(getIntData()).setSystem(0).build();
-                    MemoryPluginResult.ProcessMemoryInfo processesInfoZero =
-                        MemoryPluginResult.ProcessMemoryInfo.newBuilder().setPid(31141)
-                            .setName("com.eg.and.AlipayGphone:push").setRssShmemKb(1).setMemsummary(sss).build();
-                    MemoryPluginResult.ProcessMemoryInfo processesInfoOne =
-                        MemoryPluginResult.ProcessMemoryInfo.newBuilder().setPid(31142)
-                            .setName("com.eg.and.AlipayGphone").setRssShmemKb(2222222).build();
-                    MemoryPluginResult.ProcessMemoryInfo processesInfoTwo =
-                        MemoryPluginResult.ProcessMemoryInfo.newBuilder().setPid(31144)
-                            .setName("com.hisunflytone.and:pushservice").setRssShmemKb(3333333).build();
-                    MemoryPluginResult.MemoryData aaa =
-                        MemoryPluginResult.MemoryData.newBuilder().addProcessesinfo(processesInfoZero)
-                            .addProcessesinfo(processesInfoOne).addProcessesinfo(processesInfoTwo).build();
-                    CommonTypes.ProfilerPluginData data =
-                        CommonTypes.ProfilerPluginData.newBuilder().setName("memory-plugin").setStatus(0)
-                            .setData(aaa.toByteString()).build();
-                    ProfilerServiceTypes.FetchDataResponse fetchDataResponse =
-                        ProfilerServiceTypes.FetchDataResponse.newBuilder().setResponseId(123456789).setStatus(0)
-                            .setHasMore(false).addPluginData(data).build();
+                    ProfilerServiceTypes.FetchDataResponse fetchDataResponse = getFetchDataResponse(sss);
                     responseObserver.onNext(fetchDataResponse);
                     responseObserver.onCompleted();
                 } else {
@@ -1132,14 +1405,29 @@ public class HiprofilerClientTest {
                 }
             }
         };
-        ManagedChannel channel =
-            grpcCleanup.register(InProcessChannelBuilder.forName(serverName).directExecutor().build());
-        serviceRegistry.addService(getFeatureImpl);
-        ProfilerClient client = HiProfilerClient.getInstance().getProfilerClient(IP, 10008, channel);
-        List<ProcessInfo> res = HiProfilerClient.getInstance().fetchProcessData(IP, 10008, 1);
-        Assert.assertEquals(res.size(), 3);
-        List<ProcessInfo> ress = HiProfilerClient.getInstance().fetchProcessData(IP, 10008, 22);
-        Assert.assertEquals(ress.size(), 2);
+        return getFeatureImpl;
+    }
+
+    private ProfilerServiceTypes.FetchDataResponse getFetchDataResponse(MemoryPluginResult.AppSummary sss) {
+        MemoryPluginResult.ProcessMemoryInfo processesInfoZero =
+            MemoryPluginResult.ProcessMemoryInfo.newBuilder().setPid(31141).setName("com.eg.and.AlipayGphone:push").setRssShmemKb(1).setMemsummary(
+                sss).build();
+        MemoryPluginResult.ProcessMemoryInfo processesInfoOne =
+            MemoryPluginResult.ProcessMemoryInfo.newBuilder().setPid(31142)
+                .setName("com.eg.and.AlipayGphone").setRssShmemKb(2222222).build();
+        MemoryPluginResult.ProcessMemoryInfo processesInfoTwo =
+            MemoryPluginResult.ProcessMemoryInfo.newBuilder().setPid(31144)
+                .setName("com.hisunflytone.and:pushservice").setRssShmemKb(3333333).build();
+        MemoryPluginResult.MemoryData aaa =
+            MemoryPluginResult.MemoryData.newBuilder().addProcessesinfo(processesInfoZero)
+                .addProcessesinfo(processesInfoOne).addProcessesinfo(processesInfoTwo).build();
+        CommonTypes.ProfilerPluginData data =
+            CommonTypes.ProfilerPluginData.newBuilder().setName("memory-plugin").setStatus(0)
+                .setData(aaa.toByteString()).build();
+        ProfilerServiceTypes.FetchDataResponse fetchDataResponse =
+            ProfilerServiceTypes.FetchDataResponse.newBuilder().setResponseId(123456789).setStatus(0)
+                .setHasMore(false).addPluginData(data).build();
+        return fetchDataResponse;
     }
 
     /**

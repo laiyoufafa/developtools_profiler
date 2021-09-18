@@ -18,6 +18,11 @@
 #include <cstring>
 #include "log.h"
 
+#define UNUSED(expr)  \
+    do {              \
+        static_cast<void>(expr); \
+    } while (0)
+
 namespace SysTuning {
 namespace TraceStreamer {
 namespace {
@@ -28,17 +33,26 @@ struct TableContext {
 };
 } // namespace
 
-TableBase::~TableBase() = default;
+TableBase::~TableBase()
+{
+    dataCache_ = nullptr;
+    cursor_ = nullptr;
+}
 
-void TableBase::TableRegister(sqlite3& db, const TraceDataCache* cache,
-                              const std::string& tableName, TabTemplate tmplate)
+void TableBase::TableRegister(sqlite3& db,
+                              const TraceDataCache* cache,
+                              const std::string& tableName,
+                              TabTemplate tmplate)
 {
     std::unique_ptr<TableContext> context(std::make_unique<TableContext>());
     context->dataCache = cache;
     context->tmplate = tmplate;
     sqlite3_module& module = context->module;
 
-    auto createFn = [](sqlite3* xdb, void* arg, int, const char* const*, sqlite3_vtab** tab, char**) {
+    auto createFn = [](sqlite3* xdb, void* arg, int argc, const char* const* argv, sqlite3_vtab** tab, char** other) {
+        UNUSED(argc);
+        UNUSED(argv);
+        UNUSED(other);
         auto xdesc = static_cast<const TableContext*>(arg);
         auto table = xdesc->tmplate(xdesc->dataCache);
         std::string createStmt = table->CreateTableSql();
@@ -57,26 +71,23 @@ void TableBase::TableRegister(sqlite3& db, const TraceDataCache* cache,
 
     module.xCreate = createFn;
     module.xConnect = createFn;
-    module.xBestIndex = [](sqlite3_vtab*, sqlite3_index_info*) {
-        return SQLITE_OK;
-    };
+    module.xBestIndex = [](sqlite3_vtab*, sqlite3_index_info*) { return SQLITE_OK; };
     module.xDisconnect = destroyFn;
     module.xDestroy = destroyFn;
-    module.xOpen = [](sqlite3_vtab* t, sqlite3_vtab_cursor** c) {
-        return (static_cast<TableBase*>(t))->Open(c);
-    };
-    module.xClose = [](sqlite3_vtab_cursor*) {
+    module.xOpen = [](sqlite3_vtab* t, sqlite3_vtab_cursor** c) { return (static_cast<TableBase*>(t))->Open(c); };
+     module.xClose = [](sqlite3_vtab_cursor* c) {
+        UNUSED(c);
         return SQLITE_OK;
     };
-    module.xFilter = [](sqlite3_vtab_cursor*, int, const char*, int, sqlite3_value**) {
+    module.xFilter = [](sqlite3_vtab_cursor* c, int arg1, const char* arg2, int, sqlite3_value** sqlite) {
+        UNUSED(c);
+        UNUSED(arg1);
+        UNUSED(arg2);
+        UNUSED(sqlite);
         return SQLITE_OK;
     };
-    module.xNext = [](sqlite3_vtab_cursor* c) {
-        return static_cast<TableBase::Cursor*>(c)->Next();
-    };
-    module.xEof = [](sqlite3_vtab_cursor* c) {
-        return static_cast<TableBase::Cursor*>(c)->Eof();
-    };
+    module.xNext = [](sqlite3_vtab_cursor* c) { return static_cast<TableBase::Cursor*>(c)->Next(); };
+    module.xEof = [](sqlite3_vtab_cursor* c) { return static_cast<TableBase::Cursor*>(c)->Eof(); };
     module.xColumn = [](sqlite3_vtab_cursor* c, sqlite3_context* a, int b) {
         static_cast<TableBase::Cursor*>(c)->context_ = a;
         return static_cast<TableBase::Cursor*>(c)->Column(b);
@@ -118,6 +129,7 @@ TableBase::Cursor::Cursor(const TraceDataCache* dataCache, uint32_t row, uint32_
 TableBase::Cursor::~Cursor()
 {
     context_ = nullptr;
+    dataCache_ = nullptr;
 }
 
 int TableBase::Cursor::Next()

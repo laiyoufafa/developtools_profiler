@@ -31,10 +31,8 @@ class PluginWatcher {
 public:
     explicit PluginWatcher(const PluginManagerPtr& pluginManager);
     ~PluginWatcher();
-
-    void ScanPlugins(const std::string& pluginDir);
-
-    void WatchPlugins(const std::string& pluginDir);
+    bool ScanPlugins(const std::string& pluginDir);
+    bool WatchPlugins(const std::string& pluginDir);
 
 private:
     int inotifyFd_;
@@ -43,11 +41,10 @@ private:
     std::thread monitorThread_;
     std::mutex mtx_;
     bool runMonitor_;
-
     virtual void OnPluginAdded(const std::string& pluginPath);
     virtual void OnPluginRemoved(const std::string& pluginPath);
-    void MonitorEventName(uint32_t mask, const std::string& fileName, const std::string& pluginDir);
     void Monitor();
+    bool MonitorIsSet();
 };
 
 #endif // !PLUGIN_WATCHER_H

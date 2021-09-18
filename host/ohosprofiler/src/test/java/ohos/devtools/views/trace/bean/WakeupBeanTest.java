@@ -22,9 +22,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 /**
  * test WakeupBean class
  *
- * @version 1.0
  * @date 2021/4/24 18:05
- **/
+ */
 class WakeupBeanTest {
     /**
      * test get the WakeupTime .
@@ -91,8 +90,8 @@ class WakeupBeanTest {
      */
     @Test
     void getWakeupPid() {
-        assertEquals("WakeupPid", new WakeupBean() {{
-            setWakeupPid("WakeupPid");
+        assertEquals(0, new WakeupBean() {{
+            setWakeupPid(0);
         }}.getWakeupPid());
     }
 
@@ -101,8 +100,8 @@ class WakeupBeanTest {
      */
     @Test
     void setWakeupPid() {
-        assertEquals("WakeupPid", new WakeupBean() {{
-            setWakeupPid("WakeupPid");
+        assertEquals(0, new WakeupBean() {{
+            setWakeupPid(0);
         }}.getWakeupPid());
     }
 
@@ -131,8 +130,8 @@ class WakeupBeanTest {
      */
     @Test
     void getWakeupTid() {
-        assertEquals("WakeupTid", new WakeupBean() {{
-            setWakeupTid("WakeupTid");
+        assertEquals(0, new WakeupBean() {{
+            setWakeupTid(0);
         }}.getWakeupTid());
     }
 
@@ -141,8 +140,8 @@ class WakeupBeanTest {
      */
     @Test
     void setWakeupTid() {
-        assertEquals("WakeupTid", new WakeupBean() {{
-            setWakeupTid("WakeupTid");
+        assertEquals(0, new WakeupBean() {{
+            setWakeupTid(0);
         }}.getWakeupTid());
     }
 

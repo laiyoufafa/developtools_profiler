@@ -17,6 +17,7 @@
 #include <hwext/gtest-tag.h>
 
 #include "service_entry.h"
+#include "unix_socket_client.h"
 #include "unix_socket_server.h"
 
 using namespace testing::ext;
@@ -33,17 +34,6 @@ public:
 
 /**
  * @tc.name: Service
- * @tc.desc: Socket server receives client connection.
- * @tc.type: FUNC
- */
-HWTEST_F(UnixSocketServerTest, UnixSocketAccept, TestSize.Level1)
-{
-    UnixSocketServer unixSocketServer;
-    unixSocketServer.UnixSocketAccept(nullptr);
-}
-
-/**
- * @tc.name: Service
  * @tc.desc: Start socket server.
  * @tc.type: FUNC
  */
@@ -51,6 +41,10 @@ HWTEST_F(UnixSocketServerTest, StartServer, TestSize.Level1)
 {
     UnixSocketServer unixSocketServer;
     ServiceEntry serviceEntry;
-    ASSERT_TRUE(unixSocketServer.StartServer("", serviceEntry));
+    ASSERT_TRUE(unixSocketServer.StartServer("server_name", serviceEntry));
+
+    UnixSocketClient unixSocketClient;
+    ServiceBase serviceBase;
+    ASSERT_TRUE(unixSocketClient.Connect("server_name", serviceBase));
 }
 } // namespace

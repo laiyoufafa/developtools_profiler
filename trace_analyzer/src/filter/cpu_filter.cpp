@@ -19,8 +19,13 @@ namespace SysTuning {
 namespace TraceStreamer {
 CpuFilter::CpuFilter(TraceDataCache* dataCache, const TraceStreamerFilters* filter) : FilterBase(dataCache, filter) {}
 CpuFilter::~CpuFilter() = default;
-uint64_t CpuFilter::InsertSwitchEvent(uint64_t ts, uint64_t cpu, uint64_t prevPid, uint64_t prevPior,
-    uint64_t prevState, uint64_t nextPid, uint64_t nextPior)
+void CpuFilter::InsertSwitchEvent(uint64_t ts,
+                                  uint64_t cpu,
+                                  uint64_t prevPid,
+                                  uint64_t prevPior,
+                                  uint64_t prevState,
+                                  uint64_t nextPid,
+                                  uint64_t nextPior)
 {
     auto index = traceDataCache_->GetSchedSliceData()->AppendSchedSlice(ts, 0, cpu, nextPid, 0, nextPior);
 
@@ -33,86 +38,100 @@ uint64_t CpuFilter::InsertSwitchEvent(uint64_t ts, uint64_t cpu, uint64_t prevPi
     }
 
     if (nextPid) {
-        auto lastRow = RowOfUidUThreadState(nextPid);
+        CheckWakeingEvent(nextPid);
+        auto lastRow = RowOfInternalTidThreadState(nextPid);
         if (lastRow != INVALID_UINT64) {
             traceDataCache_->GetThreadStateData()->UpdateDuration(lastRow, ts);
         }
-        index = traceDataCache_->GetThreadStateData()->AppendThreadState(ts, 0, cpu, nextPid, TASK_RUNNING);
-        FilterUidRow(nextPid, index, TASK_RUNNING);
+        index =
+            traceDataCache_->GetThreadStateData()->AppendThreadState(ts, INVALID_UINT64, cpu, nextPid, TASK_RUNNING);
+        FilterInternalTidRow(nextPid, index, TASK_RUNNING);
         if (cpuToRowThreadState_.find(cpu) == cpuToRowThreadState_.end()) {
             cpuToRowThreadState_.insert(std::make_pair(cpu, index));
-            cpuToUtidThreadState_.insert(std::make_pair(cpu, nextPid));
         } else {
             cpuToRowThreadState_.at(cpu) = index;
-            cpuToUtidThreadState_.at(cpu) = nextPid;
         }
     }
 
     if (prevPid) {
-        auto lastRow = RowOfUidUThreadState(prevPid);
-        auto lastState = StateOfUidThreadState(prevPid);
+        CheckWakeingEvent(nextPid);
+        auto lastRow = RowOfInternalTidThreadState(prevPid);
         if (lastRow != INVALID_UINT64) {
             traceDataCache_->GetThreadStateData()->UpdateDuration(lastRow, ts);
-            auto temp = traceDataCache_->GetThreadStateData()->AppendThreadState(
-                ts, static_cast<uint64_t>(-1), static_cast<uint64_t>(-1), prevPid, prevState);
-            FilterUidRow(prevPid, temp, prevState);
+            auto temp = traceDataCache_->GetThreadStateData()->AppendThreadState(ts, INVALID_UINT64, INVALID_UINT64,
+                                                                                 prevPid, prevState);
+            FilterInternalTidRow(prevPid, temp, prevState);
         }
-        UNUSED(lastState);
     }
-    return 0;
 }
-uint64_t CpuFilter::FilterUidRow(uint64_t uid, uint64_t row, uint64_t state)
+bool CpuFilter::InsertProcessExitEvent(uint64_t ts, uint64_t cpu, uint64_t pid)
 {
-    if (uidToRowThreadState_.find(uid) != uidToRowThreadState_.end()) {
-        uidToRowThreadState_.at(uid) = TPthread {row, state};
+    UNUSED(cpu);
+    auto lastRow = RowOfInternalTidThreadState(pid);
+    if (lastRow != INVALID_UINT64) {
+        traceDataCache_->GetThreadStateData()->UpdateDuration(lastRow, ts);
+        return true;
+    }
+    return false;
+}
+uint64_t CpuFilter::FilterInternalTidRow(uint64_t uid, uint64_t row, uint64_t state)
+{
+    if (internalTidToRowThreadState_.find(uid) != internalTidToRowThreadState_.end()) {
+        internalTidToRowThreadState_.at(uid) = TPthread{row, state};
     } else {
-        uidToRowThreadState_.insert(std::make_pair(uid, TPthread {row, state}));
+        internalTidToRowThreadState_.insert(std::make_pair(uid, TPthread{row, state}));
     }
     return 0;
 }
 
-uint64_t CpuFilter::RowOfUidUThreadState(uint64_t uid) const
+uint64_t CpuFilter::RowOfInternalTidThreadState(uint64_t uid) const
 {
-    auto row = uidToRowThreadState_.find(uid);
-    if (row != uidToRowThreadState_.end()) {
+    auto row = internalTidToRowThreadState_.find(uid);
+    if (row != internalTidToRowThreadState_.end()) {
         return (*row).second.row_;
     }
     return INVALID_UINT64;
 }
 
-uint64_t CpuFilter::StateOfUidThreadState(uint64_t uid) const
+uint64_t CpuFilter::StateOfInternalTidThreadState(uint64_t uid) const
 {
-    auto row = uidToRowThreadState_.find(uid);
-    if (row != uidToRowThreadState_.end()) {
+    auto row = internalTidToRowThreadState_.find(uid);
+    if (row != internalTidToRowThreadState_.end()) {
         return (*row).second.state_;
     }
     return TASK_INVALID;
 }
 
-uint64_t CpuFilter::InsertWakeingEvent(uint64_t ts, uint64_t internalTid)
+void CpuFilter::InsertWakeingEvent(uint64_t ts, uint64_t internalTid)
 {
-    uint64_t lastrow = RowOfUidUThreadState(internalTid);
-    auto lastState = StateOfUidThreadState(internalTid);
-    if (lastrow != INVALID_UINT64) {
-        if (lastState != TASK_RUNNING) {
-            traceDataCache_->GetThreadStateData()->UpdateDuration(lastrow, ts);
-        }
+    /* repeated wakeup msg may come, we only record last wakeupmsg, and
+the wakeup will only insert to DataCache when a sched_switch comes
+*/
+    if (lastWakeUpMsg.find(internalTid) != lastWakeUpMsg.end()) {
+        lastWakeUpMsg.at(internalTid) = ts;
+    } else {
+        lastWakeUpMsg.insert(std::make_pair(internalTid, ts));
     }
-    if (lastState != TASK_RUNNING) {
-        auto index = traceDataCache_->GetThreadStateData()->AppendThreadState(
-            ts, static_cast<uint64_t>(-1), static_cast<uint64_t>(-1), internalTid, TASK_RUNNABLE);
-        FilterUidRow(internalTid, index, TASK_RUNNABLE);
-    }
-    return 0;
 }
 
-uint64_t CpuFilter::FindUtidInThreadStateTableByCpu(uint64_t cpu) const
+void CpuFilter::CheckWakeingEvent(uint64_t internalTid)
 {
-    auto row = cpuToUtidThreadState_.find(cpu);
-    if (row != cpuToUtidThreadState_.end()) {
-        return (*row).second;
+    if (lastWakeUpMsg.find(internalTid) == lastWakeUpMsg.end()) {
+        return;
     }
-    return INVALID_UINT64;
+    auto ts = lastWakeUpMsg.at(internalTid);
+    lastWakeUpMsg.erase(internalTid);
+    uint64_t lastrow = RowOfInternalTidThreadState(internalTid);
+    auto lastState = StateOfInternalTidThreadState(internalTid);
+    if (lastState == TASK_RUNNING) {
+        return;
+    }
+    if (lastrow != INVALID_UINT64) {
+        traceDataCache_->GetThreadStateData()->UpdateDuration(lastrow, ts);
+    }
+    auto index = traceDataCache_->GetThreadStateData()->AppendThreadState(ts, INVALID_UINT64, INVALID_UINT64,
+                                                                          internalTid, TASK_RUNNABLE);
+    FilterInternalTidRow(internalTid, index, TASK_RUNNABLE);
 }
 } // namespace TraceStreamer
 } // namespace SysTuning

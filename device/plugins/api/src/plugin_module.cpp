@@ -137,7 +137,7 @@ bool PluginModule::BindFunctions()
         return false;
     }
     if (structPtr_ == nullptr) {
-        structPtr_ = (PluginModuleStruct*)dlsym(handle_, "g_pluginModule");
+        structPtr_ = static_cast<PluginModuleStruct*>(dlsym(handle_, "g_pluginModule"));
         if (structPtr_ == nullptr) {
             HILOG_DEBUG(LOG_CORE, "structPtr_ == nullptr");
             return false;
@@ -165,7 +165,6 @@ bool PluginModule::StartSession(const uint8_t* buffer, uint32_t size)
         HILOG_DEBUG(LOG_CORE, "plugin not load");
         return false;
     }
-    HILOG_DEBUG(LOG_CORE, "size = %u, ", size);
 
     if (structPtr_ != nullptr && structPtr_->callbacks != nullptr) {
         if (structPtr_->callbacks->onPluginSessionStart) {
@@ -192,8 +191,6 @@ bool PluginModule::StopSession()
 
 int32_t PluginModule::ReportResult(uint8_t* buffer, uint32_t size)
 {
-    HILOG_INFO(LOG_CORE, "%s: ready!", __func__);
-    HILOG_DEBUG(LOG_CORE, "ReportResult");
     if (handle_ == nullptr) {
         HILOG_DEBUG(LOG_CORE, "plugin not open");
         return -1;
@@ -203,15 +200,11 @@ int32_t PluginModule::ReportResult(uint8_t* buffer, uint32_t size)
         first_ = false;
     } else {
         std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
-        std::chrono::duration<int, std::milli> interval =
-            std::chrono::duration_cast<std::chrono::duration<int, std::milli>>(t1 - lastTime_);
-        HILOG_DEBUG(LOG_CORE, "the id equals %u interval is %d milli seconds", size, interval.count());
         lastTime_ = t1;
     }
 
     if (structPtr_ != nullptr && structPtr_->callbacks != nullptr) {
         if (structPtr_->callbacks->onPluginReportResult != nullptr) {
-            HILOG_INFO(LOG_CORE, "%s: call plugin ready!", __func__);
             return structPtr_->callbacks->onPluginReportResult(buffer, size);
         }
     }
@@ -223,6 +216,11 @@ bool PluginModule::RegisterWriter(const BufferWriterPtr writer)
 {
     writerAdapter_ = std::make_shared<WriterAdapter>();
     writerAdapter_->SetWriter(writer);
+
+    if (writer == nullptr) {
+        HILOG_INFO(LOG_CORE, "BufferWriter is null, update WriterAdapter only!");
+        return true;
+    }
     if (structPtr_ != nullptr && structPtr_->callbacks != nullptr) {
         if (structPtr_->callbacks->onRegisterWriterStruct != nullptr) {
             return structPtr_->callbacks->onRegisterWriterStruct(writerAdapter_->GetStruct());

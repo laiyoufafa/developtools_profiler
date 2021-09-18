@@ -19,6 +19,7 @@ import ohos.devtools.views.trace.bean.FlagBean;
 import ohos.devtools.views.trace.component.AnalystPanel;
 import ohos.devtools.views.trace.util.Final;
 import ohos.devtools.views.trace.util.TimeUtils;
+import ohos.devtools.views.trace.util.Utils;
 
 import javax.swing.JComponent;
 import java.awt.AlphaComposite;
@@ -33,26 +34,28 @@ import java.util.Optional;
 /**
  * Timeline zoom size
  *
- * @version 1.0
  * @date 2021/4/22 12:25
- **/
+ */
 public class RulerFragment extends AbstractFragment implements FlagBean.IEventListener {
     private static final BasicStroke BOLD_STORE = new BasicStroke(2);
-    private long leftNS;
-    private long rightNS;
     private final long[] scales =
         new long[] {50, 100, 200, 500, 1_000, 2_000, 5_000, 10_000, 20_000, 50_000, 100_000, 200_000, 500_000,
             1_000_000, 2_000_000, 5_000_000, 10_000_000, 20_000_000, 50_000_000, 100_000_000, 200_000_000, 500_000_000,
             1_000_000_000, 2_000_000_000, 5_000_000_000L, 10_000_000_000L, 20_000_000_000L, 50_000_000_000L,
             100_000_000_000L, 200_000_000_000L, 500_000_000_000L};
-
-    // The current time selection range is based on 20 units.
-    // The zoom level obtained by the position in the scales array is 70ns if calculated
+    private long leftNS;
+    private long rightNS;
+    /**
+     * The current time selection range is based on 20 units.
+     * The zoom level obtained by the position in the scales array is 70ns if calculated
+     */
     private long min;
 
-    // Then in the middle of 50L 100L min=50L
-    // The current time selection range The position in the zoom level scales array based on 20 units.
-    // If calculated, it is 70ns
+    /**
+     * Then in the middle of 50L 100L min=50L
+     * The current time selection range The position in the zoom level scales array based on 20 units.
+     * If calculated, it is 70ns
+     */
     private long max;
 
     // Then it is in the middle of 50L 100L max = 100L
@@ -78,22 +81,9 @@ public class RulerFragment extends AbstractFragment implements FlagBean.IEventLi
     private IChange changeListener;
 
     /**
-     * time range change listener
-     */
-    public interface IChange {
-        /**
-         * Time range change monitoring
-         *
-         * @param startNS Starting time
-         * @param endNS   End Time
-         */
-        void change(long startNS, long endNS);
-    }
-
-    /**
      * Constructor
      *
-     * @param root     Parent component
+     * @param root Parent component
      * @param listener monitor
      */
     public RulerFragment(final JComponent root, final IChange listener) {
@@ -106,8 +96,8 @@ public class RulerFragment extends AbstractFragment implements FlagBean.IEventLi
     /**
      * Set time range
      *
-     * @param left   left
-     * @param right  right
+     * @param left left
+     * @param right right
      * @param center center
      */
     public void setRange(final long left, final long right, final long center) {
@@ -136,9 +126,16 @@ public class RulerFragment extends AbstractFragment implements FlagBean.IEventLi
             scale = scales[0];
         }
         for (FlagBean flag : flags) {
-            flag.rect.x = getX(flag.getNs());
+            Utils.setX(flag.rect, getX(flag.getNs()));
         }
         repaint();
+    }
+
+    /**
+     * clear the flags
+     */
+    public void recycle() {
+        flags.clear();
     }
 
     /**
@@ -148,7 +145,7 @@ public class RulerFragment extends AbstractFragment implements FlagBean.IEventLi
      */
     @Override
     public void draw(final Graphics2D graphics) {
-        getRect().width = getRoot().getWidth() - getRect().x;
+        getRect().width = getRoot().getWidth() - Utils.getX(getRect());
         graphics.setFont(Final.SMALL_FONT);
         graphics.setColor(getRoot().getForeground());
         if (rightNS - leftNS == 0) {
@@ -169,12 +166,14 @@ public class RulerFragment extends AbstractFragment implements FlagBean.IEventLi
         for (FlagBean flagBean : flags) {
             graphics.setColor(flagBean.getColor());
             graphics.setStroke(new BasicStroke(2));
-            int xAxis = flagBean.rect.x;
+            int xAxis = Utils.getX(flagBean.rect);
             if (xAxis > 0) {
-                graphics.drawLine(xAxis + getRect().x, getRect().y + getRect().height / 2, getRect().x + xAxis,
-                    getRect().y + getRect().height - 2);
-                graphics.fillRect(xAxis + getRect().x, getRect().y + getRect().height / 2, 10, 10);
-                graphics.fillRect(xAxis + getRect().x + 7, getRect().y + getRect().height / 2 + 2, 7, 7);
+                graphics.drawLine(xAxis + Utils.getX(getRect()), Utils.getY(getRect()) + getRect().height / 2,
+                    Utils.getX(getRect()) + xAxis, Utils.getY(getRect()) + getRect().height - 2);
+                graphics.fillRect(xAxis + Utils.getX(getRect()), Utils.getY(getRect()) + getRect().height / 2, 10, 10);
+                graphics
+                    .fillRect(xAxis + Utils.getX(getRect()) + 7, Utils.getY(getRect()) + getRect().height / 2 + 2, 7,
+                        7);
                 flagBean.draw(graphics);
             }
         }
@@ -185,9 +184,10 @@ public class RulerFragment extends AbstractFragment implements FlagBean.IEventLi
         graphics.setColor(getRoot().getForeground());
         final AlphaComposite alpha = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f);
         graphics.setComposite(alpha);
-        graphics.drawLine(getRect().x, getRect().y, getRect().x + getRect().width, getRect().y);
+        graphics.drawLine(Utils.getX(getRect()), Utils.getY(getRect()), Utils.getX(getRect()) + getRect().width,
+            Utils.getY(getRect()));
         long tmpNs = rightNS - leftNS;
-        startX = getRect().x + getRect().width;
+        startX = Utils.getX(getRect()) + getRect().width;
         realW = (scale * getRect().width) / (rightNS - leftNS);
         String str;
         while (tmpNs > 0) {
@@ -198,12 +198,14 @@ public class RulerFragment extends AbstractFragment implements FlagBean.IEventLi
             graphics.setColor(getRoot().getForeground());
             final AlphaComposite alpha50 = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, .5f);
             graphics.setComposite(alpha50);
-            graphics.drawLine((int) startX, getRect().y, (int) startX, getRect().y + getRect().height + extendHeight);
+            graphics.drawLine((int) startX, Utils.getY(getRect()), (int) startX,
+                Utils.getY(getRect()) + getRect().height + extendHeight);
             graphics.setColor(getRoot().getForeground());
             final AlphaComposite alphaFul = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1f);
             graphics.setComposite(alphaFul);
             graphics.drawString("+" + str, (int) startX,
-                getRect().y + (int) (graphics.getFontMetrics().getStringBounds("+" + str, graphics).getHeight()));
+                Utils.getY(getRect()) + (int) (graphics.getFontMetrics().getStringBounds("+" + str, graphics)
+                    .getHeight()));
             startX -= realW;
             tmpNs -= scale;
         }
@@ -216,7 +218,7 @@ public class RulerFragment extends AbstractFragment implements FlagBean.IEventLi
         long tmpNs = 0;
         long yu = leftNS % scale;
         realW = (scale * getRect().width) / (rightNS - leftNS);
-        startX = getRect().x;
+        startX = Utils.getX(getRect());
         if (yu != 0) {
             float firstNodeWidth = (float) ((yu * 1.0) / scale * realW);
             startX += firstNodeWidth;
@@ -224,16 +226,19 @@ public class RulerFragment extends AbstractFragment implements FlagBean.IEventLi
             graphics.setColor(getRoot().getForeground());
             final AlphaComposite alpha = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, .5f);
             graphics.setComposite(alpha);
-            graphics.drawLine((int) startX, getRect().y, (int) startX, getRect().y + getRect().height);
+            graphics
+                .drawLine((int) startX, Utils.getY(getRect()), (int) startX, Utils.getY(getRect()) + getRect().height);
         }
         graphics.setColor(getRoot().getForeground());
-        graphics.drawLine(getRect().x, getRect().y, getRect().x + getRect().width, getRect().y);
+        graphics.drawLine(Utils.getX(getRect()), Utils.getY(getRect()), Utils.getX(getRect()) + getRect().width,
+            Utils.getY(getRect()));
         String str;
         while (tmpNs < rightNS - leftNS) {
             graphics.setColor(getRoot().getForeground());
             final AlphaComposite alpha = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, .5f);
             graphics.setComposite(alpha);
-            graphics.drawLine((int) startX, getRect().y, (int) startX, getRect().y + getRect().height + extendHeight);
+            graphics.drawLine((int) startX, Utils.getY(getRect()), (int) startX,
+                Utils.getY(getRect()) + getRect().height + extendHeight);
             str = TimeUtils.getSecondFromNSecond(tmpNs);
             if (str.isEmpty()) {
                 str = "0s";
@@ -243,23 +248,25 @@ public class RulerFragment extends AbstractFragment implements FlagBean.IEventLi
             graphics.setComposite(alphaFull);
             String timS = "+" + str;
             Rectangle2D bounds = graphics.getFontMetrics(Final.SMALL_FONT).getStringBounds(timS, graphics);
-            graphics.drawString(timS, (int) startX, (int) (getRect().y + bounds.getHeight()));
+            graphics.drawString(timS, (int) startX, (int) (Utils.getY(getRect()) + bounds.getHeight()));
             startX += realW;
             tmpNs += scale;
         }
     }
 
     private void drawFocusFlag(Graphics2D graphics) {
-        if (focusFlag.isVisible()) {
+        if (focusFlag != null && focusFlag.isVisible()) {
             final int side = 10;
             graphics.setColor(focusFlag.getColor());
             graphics.setStroke(BOLD_STORE);
-            graphics.drawLine(focusFlag.rect.x + getRect().x, getRect().y + getRect().height / 2,
-                getRect().x + focusFlag.rect.x, getRect().y + getRect().height + extendHeight);
-            graphics.fillRect(focusFlag.rect.x + getRect().x, getRect().y + getRect().height / 2, side, side);
+            graphics.drawLine(Utils.getX(focusFlag.rect) + Utils.getX(getRect()),
+                Utils.getY(getRect()) + getRect().height / 2, Utils.getX(getRect()) + Utils.getX(focusFlag.rect),
+                Utils.getY(getRect()) + getRect().height + extendHeight);
+            graphics.fillRect(Utils.getX(focusFlag.rect) + Utils.getX(getRect()),
+                Utils.getY(getRect()) + getRect().height / 2, side, side);
             final int offset = 7;
-            graphics
-                .fillRect(focusFlag.rect.x + getRect().x + offset, getRect().y + getRect().height / 2 + 2, side, side);
+            graphics.fillRect(Utils.getX(focusFlag.rect) + Utils.getX(getRect()) + offset,
+                Utils.getY(getRect()) + getRect().height / 2 + 2, side, side);
         }
     }
 
@@ -280,15 +287,17 @@ public class RulerFragment extends AbstractFragment implements FlagBean.IEventLi
      */
     public void mouseMoved(final MouseEvent event) {
         final int leftW = 200;
-        if (selectY > getRect().y && selectY < getRect().y + getRect().height && event.getX() >= leftW) {
-            Optional<FlagBean> first = flags.stream().filter(bean -> event.getX() >= bean.rect.x + getRect().x
-                && event.getX() <= bean.rect.x + getRect().x + bean.rect.width).findFirst();
+        if (selectY > Utils.getY(getRect()) && selectY < Utils.getY(getRect()) + getRect().height
+            && event.getX() >= leftW) {
+            Optional<FlagBean> first = flags.stream().filter(
+                bean -> event.getX() >= Utils.getX(bean.rect) + Utils.getX(getRect())
+                    && event.getX() <= Utils.getX(bean.rect) + Utils.getX(getRect()) + bean.rect.width).findFirst();
             if (first.isPresent()) {
                 focusFlag.setVisible(false);
             } else {
                 focusFlag.setVisible(true);
-                focusFlag.rect.x = event.getX() - getRect().x;
-                focusFlag.rect.y = getRect().y + getRect().height / 2;
+                focusFlag.rect
+                    .setLocation(event.getX() - Utils.getX(getRect()), Utils.getY(getRect()) + getRect().height / 2);
                 focusFlag.rect.width = 17;
                 focusFlag.rect.height = getRect().height / 2;
             }
@@ -299,31 +308,37 @@ public class RulerFragment extends AbstractFragment implements FlagBean.IEventLi
     }
 
     /**
-     * Mouse pressed event
+     * Mouse click event
      *
      * @param event event
      */
-    public void mousePressed(final MouseEvent event) {
-        final int leftW = 200;
-        if (selectY > getRect().y && selectY < getRect().y + getRect().height && event.getX() >= leftW) {
-            Optional<FlagBean> first = flags.stream().filter(bean -> event.getX() >= bean.rect.x + getRect().x
-                && event.getX() <= bean.rect.x + getRect().x + bean.rect.width).findFirst();
-            if (first.isPresent()) {
-                FlagBean flagBean = first.get();
-                flagBean.onClick(event);
-            } else {
-                FlagBean flagBean = new FlagBean();
-                flagBean.root = getRoot();
-                flagBean.rect.x = event.getX() - getRect().x;
-                flagBean.rect.y = getRect().y + getRect().height / 2;
-                flagBean.setEventListener(this);
-                flagBean.rect.width = 17;
-                flagBean.rect.height = getRect().height / 2;
-                flagBean.setNs((long) ((rightNS - leftNS) / (getRect().width * 1.0) * flagBean.rect.x) + leftNS);
-                flagBean.setVisible(true);
-                flags.add(flagBean);
+    public void mouseClicked(final MouseEvent event) {
+        if (edgeInspect(event)) {
+            final int leftW = 200;
+            if (selectY > Utils.getY(getRect()) && selectY < Utils.getY(getRect()) + getRect().height
+                && event.getX() >= leftW) {
+                Optional<FlagBean> first = flags.stream().filter(
+                    bean -> event.getX() >= Utils.getX(bean.rect) + Utils.getX(getRect())
+                        && event.getX() <= Utils.getX(bean.rect) + Utils.getX(getRect()) + bean.rect.width).findFirst();
+                if (first.isPresent()) {
+                    FlagBean flagBean = first.get();
+                    flagBean.onClick(event);
+                } else {
+                    FlagBean flagBean = new FlagBean();
+                    flagBean.root = getRoot();
+                    flagBean.rect.setLocation(event.getX() - Utils.getX(getRect()),
+                        Utils.getY(getRect()) + getRect().height / 2);
+                    flagBean.setEventListener(this);
+                    flagBean.rect.width = 17;
+                    flagBean.rect.height = getRect().height / 2;
+                    flagBean.setNs(
+                        (long) ((rightNS - leftNS) / (getRect().width * 1.0) * Utils.getX(flagBean.rect)) + leftNS);
+                    flagBean.setVisible(true);
+                    flagBean.onClick(event);
+                    flags.add(flagBean);
+                }
+                repaint();
             }
-            repaint();
         }
     }
 
@@ -331,7 +346,7 @@ public class RulerFragment extends AbstractFragment implements FlagBean.IEventLi
      * FlagBean object click event
      *
      * @param event event
-     * @param data  data
+     * @param data data
      */
     @Override
     public void click(final MouseEvent event, final FlagBean data) {
@@ -344,7 +359,7 @@ public class RulerFragment extends AbstractFragment implements FlagBean.IEventLi
      * Loss of focus event
      *
      * @param event event
-     * @param data  data
+     * @param data data
      */
     @Override
     public void blur(final MouseEvent event, final FlagBean data) {
@@ -354,7 +369,7 @@ public class RulerFragment extends AbstractFragment implements FlagBean.IEventLi
      * Get focus event
      *
      * @param event event
-     * @param data  data
+     * @param data data
      */
     @Override
     public void focus(final MouseEvent event, final FlagBean data) {
@@ -364,7 +379,7 @@ public class RulerFragment extends AbstractFragment implements FlagBean.IEventLi
      * Mouse move event
      *
      * @param event event
-     * @param data  data
+     * @param data data
      */
     @Override
     public void mouseMove(final MouseEvent event, final FlagBean data) {
@@ -512,5 +527,18 @@ public class RulerFragment extends AbstractFragment implements FlagBean.IEventLi
      */
     public void setSelectY(final int select) {
         this.selectY = select;
+    }
+
+    /**
+     * time range change listener
+     */
+    public interface IChange {
+        /**
+         * Time range change monitoring
+         *
+         * @param startNS Starting time
+         * @param endNS End Time
+         */
+        void change(long startNS, long endNS);
     }
 }

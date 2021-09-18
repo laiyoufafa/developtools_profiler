@@ -15,8 +15,10 @@
 
 package ohos.devtools.views.trace.bean;
 
+import ohos.devtools.views.trace.DField;
 import ohos.devtools.views.trace.fragment.graph.AbstractGraph;
 import ohos.devtools.views.trace.util.ColorUtils;
+import ohos.devtools.views.trace.util.Utils;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
@@ -25,11 +27,20 @@ import java.awt.event.MouseEvent;
 /**
  * Process memory data
  *
- * @version 1.0
  * @date 2021/04/22 12:25
- **/
+ */
 public class ProcessMemData extends AbstractGraph {
     private int maxValue;
+    private int id;
+    @DField(name = "type")
+    private String type;
+    @DField(name = "track_id")
+    private int trackId;
+    @DField(name = "value")
+    private int value;
+    @DField(name = "startTime")
+    private long startTime;
+    private long duration;
 
     /**
      * Gets the value of maxValue .
@@ -49,18 +60,6 @@ public class ProcessMemData extends AbstractGraph {
     public void setMaxValue(final int max) {
         this.maxValue = max;
     }
-
-    private int id;
-
-    private String type;
-
-    private int trackId;
-
-    private int value;
-
-    private long startTime;
-
-    private long duration;
 
     /**
      * Gets the value of id .
@@ -188,7 +187,7 @@ public class ProcessMemData extends AbstractGraph {
         if (maxValue > 0) {
             height = ((rect.height - 5) * value) / maxValue;
             graphics.setColor(color);
-            graphics.fillRect(rect.x, rect.y + rect.height - height, rect.width, height);
+            graphics.fillRect(Utils.getX(rect), Utils.getY(rect) + rect.height - height, rect.width, height);
         }
     }
 

@@ -1,0 +1,11 @@
+select * from
+    ( select ts as wakeTs,start_ts from instants_view,trace_range
+       where name = 'sched_waking'
+       and ref = %s
+       and ts < start_ts + %s
+       order by ts desc limit 1) TA
+       left join
+    (select ts as preRow from sched_view,trace_range
+       where itid = %s
+       and ts < start_ts + %s
+       order by ts desc limit 1) TB

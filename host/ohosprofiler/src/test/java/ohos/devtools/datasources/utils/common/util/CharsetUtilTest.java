@@ -21,20 +21,10 @@ import org.junit.Test;
 import java.nio.charset.Charset;
 
 /**
- * CharsetUtilTest测试类
- *
- * @version 1.0
- * @date 2021/04/08 16:42
- **/
+ * Charset Util Test
+ */
 public class CharsetUtilTest {
-    /**
-     * GBK
-     */
     private String GBK = "GBK";
-
-    /**
-     * UTF-8
-     */
     private String UTF_8 = "UTF-8";
 
     /**

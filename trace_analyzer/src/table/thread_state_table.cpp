@@ -27,7 +27,7 @@ ThreadStateTable::ThreadStateTable(const TraceDataCache* dataCache) : TableBase(
     tableColumn_.push_back(TableBase::ColumnInfo("ts", "INT"));
     tableColumn_.push_back(TableBase::ColumnInfo("dur", "UNSIGNED BIG INT"));
     tableColumn_.push_back(TableBase::ColumnInfo("cpu", "UNSIGNED BIG INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("utid", "INT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("itid", "INT"));
     tableColumn_.push_back(TableBase::ColumnInfo("state", "STRING"));
     tablePriKey_.push_back("id");
 }
@@ -69,7 +69,7 @@ int ThreadStateTable::Cursor::Column(int col) const
             break;
         case INTERNAL_TID:
             sqlite3_result_int64(context_,
-                static_cast<sqlite3_int64>(threadStateObj_.InternalTidsData()[CurrentRow()]));
+                                 static_cast<sqlite3_int64>(threadStateObj_.InternalTidsData()[CurrentRow()]));
             break;
         case STATE: {
             const std::string& str = dataCache_->GetConstSchedStateData(threadStateObj_.StatesData()[CurrentRow()]);
@@ -77,7 +77,7 @@ int ThreadStateTable::Cursor::Column(int col) const
             break;
         }
         default:
-            TUNING_LOGF("Unregistered column : %d", col);
+            TS_LOGF("Unregistered column : %d", col);
             break;
     }
     return SQLITE_OK;

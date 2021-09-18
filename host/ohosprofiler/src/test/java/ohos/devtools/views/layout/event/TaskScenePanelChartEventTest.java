@@ -15,15 +15,13 @@
 
 package ohos.devtools.views.layout.event;
 
-import ohos.devtools.views.common.hoscomp.HosJButton;
-import ohos.devtools.views.layout.swing.TaskScenePanelChart;
+import ohos.devtools.views.layout.chartview.TaskScenePanelChart;
 import org.junit.Before;
 import org.junit.Test;
 
 /**
- * @Description TaskPanelEventTest
- * @Date 2021/4/3 14:35
- **/
+ * Task Panel Event Test
+ */
 public class TaskScenePanelChartEventTest {
     private TaskScenePanelChartEvent taskScenePanelChartEvent;
 
@@ -54,22 +52,4 @@ public class TaskScenePanelChartEventTest {
     public void clickDelete() {
         taskScenePanelChartEvent.clickDelete(new TaskScenePanelChart());
     }
-
-    /**
-     * functional testing
-     *
-     * @tc.name: view chart
-     * @tc.number: OHOS_JAVA_views_TaskScenePanelChartEvent_getjButtonUp_0001
-     * @tc.desc: chart Memory test
-     * @tc.type: functional testing
-     * @tc.require: SR-002-AR-001
-     */
-    @Test
-    public void getjButtonUp() {
-        TaskScenePanelChart taskScenePanelChart = new TaskScenePanelChart();
-        taskScenePanelChartEvent.clickDelete(taskScenePanelChart);
-        HosJButton jButtonDelete = taskScenePanelChart.getJButtonDelete();
-        jButtonDelete.doClick();
-    }
-
 }

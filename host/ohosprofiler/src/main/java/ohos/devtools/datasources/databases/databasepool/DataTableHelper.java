@@ -27,15 +27,12 @@ import static ohos.devtools.views.common.LayoutConstants.NEGATIVE_ONE;
 
 /**
  * Database table structure maintenance
- *
- * @version 1.0
- * @date 2021/01/27 17:11
- **/
+ */
 public class DataTableHelper {
+    private static final Logger LOGGER = LogManager.getLogger(DataTableHelper.class);
+
     private DataTableHelper() {
     }
-
-    private static final Logger LOGGER = LogManager.getLogger(DataTableHelper.class);
 
     /**
      * Get the database table name by SQL.
@@ -73,7 +70,7 @@ public class DataTableHelper {
     /**
      * Map to String
      *
-     * @param map map
+     * @param map Map<String, Object>
      * @return String
      */
     public static String getDeleteCondition(Map<String, Object> map) {
@@ -105,7 +102,7 @@ public class DataTableHelper {
     /**
      * Map to String
      *
-     * @param map map
+     * @param map Map<String, Object>
      * @return String
      */
     public static String mapToString(Map<String, Object> map) {

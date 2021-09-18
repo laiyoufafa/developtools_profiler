@@ -22,8 +22,7 @@ import java.time.format.DateTimeFormatter;
 
 /**
  * @Description Date and time utilities
- * @Date 2021/2/7 15:00
- **/
+ */
 public final class DateTimeUtil {
     private DateTimeUtil() {
     }

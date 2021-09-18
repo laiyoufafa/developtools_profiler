@@ -19,14 +19,13 @@
 namespace SysTuning {
 namespace TraceStreamer {
 namespace {
-enum Index { ID = 0, TYPE, NAME, UNIT, CPU };
+enum Index { ID = 0, TYPE, NAME, CPU };
 }
 CpuMeasureFilterTable::CpuMeasureFilterTable(const TraceDataCache* dataCache) : TableBase(dataCache)
 {
     tableColumn_.push_back(TableBase::ColumnInfo("id", "UNSIGNED INT"));
     tableColumn_.push_back(TableBase::ColumnInfo("type", "STRING"));
     tableColumn_.push_back(TableBase::ColumnInfo("name", "STRING"));
-    tableColumn_.push_back(TableBase::ColumnInfo("unit", "UNSIGNED INT"));
     tableColumn_.push_back(TableBase::ColumnInfo("cpu", "UNSIGNED INT"));
     tablePriKey_.push_back("id");
 }
@@ -39,8 +38,8 @@ void CpuMeasureFilterTable::CreateCursor()
 }
 
 CpuMeasureFilterTable::Cursor::Cursor(const TraceDataCache* dataCache)
-    : TableBase::Cursor(dataCache, 0, static_cast<uint32_t>(dataCache->GetConstCpuCounterData().Size())),
-      cpuCounterObj_(dataCache->GetConstCpuCounterData())
+    : TableBase::Cursor(dataCache, 0, static_cast<uint32_t>(dataCache->GetConstCpuMeasureData().Size())),
+      cpuMeasureObj_(dataCache->GetConstCpuMeasureData())
 {
 }
 
@@ -50,25 +49,22 @@ int CpuMeasureFilterTable::Cursor::Column(int column) const
 {
     switch (column) {
         case ID:
-            sqlite3_result_int64(context_, static_cast<int64_t>(cpuCounterObj_.IdsData()[CurrentRow()]));
+            sqlite3_result_int64(context_, static_cast<int64_t>(cpuMeasureObj_.IdsData()[CurrentRow()]));
             break;
         case TYPE:
-            sqlite3_result_text(context_, "cpu_counter_track", STR_DEFAULT_LEN, nullptr);
+            sqlite3_result_text(context_, "cpu_measure_filter", STR_DEFAULT_LEN, nullptr);
             break;
         case NAME: {
             const std::string& str =
-                dataCache_->GetDataFromDict(static_cast<size_t>(cpuCounterObj_.NameData()[CurrentRow()]));
+                dataCache_->GetDataFromDict(static_cast<size_t>(cpuMeasureObj_.NameData()[CurrentRow()]));
             sqlite3_result_text(context_, str.c_str(), STR_DEFAULT_LEN, nullptr);
             break;
         }
-        case UNIT:
-            sqlite3_result_int64(context_, static_cast<int32_t>(cpuCounterObj_.UnitData()[CurrentRow()]));
-            break;
         case CPU:
-            sqlite3_result_int64(context_, static_cast<int32_t>(cpuCounterObj_.CpuData()[CurrentRow()]));
+            sqlite3_result_int64(context_, static_cast<int32_t>(cpuMeasureObj_.CpuData()[CurrentRow()]));
             break;
         default:
-            TUNING_LOGF("Unregistered column : %d", column);
+            TS_LOGF("Unregistered column : %d", column);
             break;
     }
     return SQLITE_OK;

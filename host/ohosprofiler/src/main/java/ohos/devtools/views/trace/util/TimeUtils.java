@@ -24,14 +24,13 @@ import java.util.stream.Collectors;
 /**
  * Time formatting tool
  *
- * @version 1.0
  * @date 2021/04/22 12:25
- **/
+ */
 public final class TimeUtils {
+    private static DecimalFormat df = new DecimalFormat("#.0");
+
     private TimeUtils() {
     }
-
-    private static DecimalFormat df = new DecimalFormat("#.0");
 
     /**
      * Convert to s according to ns
@@ -50,7 +49,7 @@ public final class TimeUtils {
         } else if (ns >= millisecond1) {
             res = df.format(TimeUnit.MICROSECONDS.convert(ns, TimeUnit.NANOSECONDS) / nanosecond1) + "ms";
         } else if (ns >= microsecond1) {
-            res = df.format(ns / nanosecond1) + "us";
+            res = df.format(ns / nanosecond1) + "μs";
         } else {
             res = ns + "ns";
         }
@@ -89,7 +88,7 @@ public final class TimeUtils {
             list.add(millis + "ms");
         }
         if (micros > 0) {
-            list.add(micros + "us");
+            list.add(micros + "μs");
         }
         long nanos = ns;
         if (nanos > 0) {
@@ -97,5 +96,4 @@ public final class TimeUtils {
         }
         return list.stream().collect(Collectors.joining(" "));
     }
-
 }

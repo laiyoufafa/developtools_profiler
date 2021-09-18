@@ -13,11 +13,12 @@
  * limitations under the License.
  */
 
-#ifndef SCHEDULE_TASK_MANAGER_H
-#define SCHEDULE_TASK_MANAGER_H
+#ifndef OHOS_PROFILER_SCHEDULE_TASK_MANAGER_H
+#define OHOS_PROFILER_SCHEDULE_TASK_MANAGER_H
 
 #include <atomic>
 #include <chrono>
+#include <condition_variable>
 #include <functional>
 #include <map>
 #include <memory>
@@ -26,6 +27,7 @@
 #include <unordered_map>
 
 #include "logging.h"
+#include "nocopyable.h"
 
 class ScheduleTaskManager {
 public:
@@ -58,7 +60,7 @@ private:
         std::function<void(void)> callback;
         std::chrono::milliseconds repeatInterval;
         std::chrono::milliseconds initialDelay;
-        TimePoint lastRunTime;
+        TimePoint nextRunTime;
     };
     using SharedTask = STD_PTR(shared, Task);
     using WeakTask = STD_PTR(weak, Task);
@@ -69,15 +71,17 @@ private:
 
     void ScheduleThread();
 
-    bool TakeFront(TimePoint& time, WeakTask& task);
+    WeakTask TakeFront();
 
 private:
     mutable std::mutex taskMutex_;
     std::condition_variable taskCv_;
     std::atomic<bool> runScheduleThread_ = true;
-    std::multimap<TimePoint, WeakTask> timeMap_;
-    std::unordered_map<std::string, SharedTask> taskMap_;
+    std::multimap<TimePoint, WeakTask> timeMap_;          // schedule list
+    std::unordered_map<std::string, SharedTask> taskMap_; // task details
     std::thread scheduleThread_;
+
+    DISALLOW_COPY_AND_MOVE(ScheduleTaskManager);
 };
 
-#endif // !SCHEDULE_TASK_MANAGER_H
+#endif // !OHOS_PROFILER_SCHEDULE_TASK_MANAGER_H

@@ -28,21 +28,10 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 /**
  * test the ContentPanel class
  *
- * @version 1.0
  * @date: 2021/4/24 18:03
- **/
+ */
 class ContentPanelTest {
     private JFrame testFrame;
-
-    /**
-     * test function the refreshTab .
-     */
-    @Test
-    void refreshTab() {
-        ContentPanel contentPanel = new ContentPanel(new AnalystPanel());
-        contentPanel.refreshTab();
-        assertNotNull(contentPanel);
-    }
 
     /**
      * test function the refresh .

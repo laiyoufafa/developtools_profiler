@@ -16,6 +16,7 @@
 package ohos.devtools.views.trace.fragment.ruler;
 
 import ohos.devtools.views.trace.util.TimeUtils;
+import ohos.devtools.views.trace.util.Utils;
 
 import javax.swing.JComponent;
 import java.awt.AlphaComposite;
@@ -27,14 +28,23 @@ import static ohos.devtools.views.trace.component.AnalystPanel.DURATION;
 /**
  * The left part of the timeline display area
  *
- * @version 1.0
  * @date 2021/04/22 12:25
- **/
+ */
 public class LeftFragment extends AbstractFragment {
     private String startTimeS = "0.0s";
     private long startNS;
     private int extendHeight;
     private String logString;
+
+    /**
+     * @param root Component
+     */
+    public LeftFragment(final JComponent root) {
+        this.setRoot(root);
+        final int width = 200;
+        final int height = 134;
+        getRect().setBounds(0, 0, width, height);
+    }
 
     /**
      * Gets the value of startTimeS .
@@ -53,16 +63,6 @@ public class LeftFragment extends AbstractFragment {
      */
     public void setStartTimeS(final String time) {
         this.startTimeS = time;
-    }
-
-    /**
-     * Sets the startNS .
-     * <p>You can use getStartNS() to get the value of startNS</p>
-     *
-     * @param ns Starting time
-     */
-    public void setStartNS(final long ns) {
-        this.startNS = ns;
     }
 
     /**
@@ -104,39 +104,28 @@ public class LeftFragment extends AbstractFragment {
     }
 
     /**
-     * @param root Component
-     */
-    public LeftFragment(final JComponent root) {
-        this.setRoot(root);
-        final int width = 200;
-        final int height = 134;
-        getRect().setBounds(0, 0, width, height);
-    }
-
-    /**
      * Drawing method
      *
      * @param graphics graphics
      */
     @Override
     public void draw(final Graphics2D graphics) {
-        final int yAxis = 94;
+        final int yaxis = 94;
         final float alpha50 = 0.5f;
         graphics.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha50));
         graphics.setColor(getRoot().getForeground());
-        graphics.drawLine(0, yAxis, getRect().width, yAxis);
+        graphics.drawLine(0, yaxis, getRect().width, yaxis);
         graphics.drawLine(getRect().width, 0, getRect().width, getRect().height + extendHeight);
         final int pad = 4;
         graphics.drawLine(0, getRect().height, getRoot().getWidth(), getRect().height);
         graphics.drawLine(0, 0, 0, getRect().height + extendHeight);
-        graphics.drawRect(getRect().x, getRect().y, getRect().width, getRect().height);
+        graphics.drawRect(Utils.getX(getRect()), Utils.getY(getRect()), getRect().width, getRect().height);
         graphics.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f));
         Rectangle2D rectangle2D = graphics.getFontMetrics().getStringBounds(startTimeS, graphics);
         int strHeight = (int) rectangle2D.getHeight();
         int strWidth = (int) rectangle2D.getWidth() + pad;
-        graphics.drawString(TimeUtils.getSecondFromNSecond(DURATION), 2, yAxis + strHeight);
-        graphics.drawString(startTimeS, getRect().width - strWidth, yAxis + strHeight);
-
+        graphics.drawString(TimeUtils.getSecondFromNSecond(DURATION), 2, yaxis + strHeight);
+        graphics.drawString(startTimeS, getRect().width - strWidth, yaxis + strHeight);
         if (logString != null && !logString.isEmpty()) {
             int index = 0;
             for (String str : logString.split(System.getProperty("line.separator"))) {
@@ -164,5 +153,15 @@ public class LeftFragment extends AbstractFragment {
      */
     public long getStartNS() {
         return this.startNS;
+    }
+
+    /**
+     * Sets the startNS .
+     * <p>You can use getStartNS() to get the value of startNS</p>
+     *
+     * @param ns Starting time
+     */
+    public void setStartNS(final long ns) {
+        this.startNS = ns;
     }
 }

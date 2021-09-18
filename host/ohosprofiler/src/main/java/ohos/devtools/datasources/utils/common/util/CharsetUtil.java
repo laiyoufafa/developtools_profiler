@@ -26,8 +26,7 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 
 /**
  * @Description String utilities class
- * @Date 2021/2/7 15:01
- **/
+ */
 public class CharsetUtil {
     private static final Logger LOGGER = LogManager.getLogger(CharsetUtil.class);
 

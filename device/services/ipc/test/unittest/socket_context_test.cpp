@@ -39,6 +39,7 @@ HWTEST_F(SocketContextTest, SendFileDescriptor, TestSize.Level1)
 {
     SocketContext socketContext;
     ASSERT_TRUE(!socketContext.SendFileDescriptor(-1));
+    ASSERT_TRUE(!socketContext.SendFileDescriptor(1));
 }
 
 /**
@@ -48,8 +49,9 @@ HWTEST_F(SocketContextTest, SendFileDescriptor, TestSize.Level1)
  */
 HWTEST_F(SocketContextTest, RawProtocolProc, TestSize.Level1)
 {
+    std::string s="abc";
     SocketContext socketContext;
-    ASSERT_EQ(socketContext.RawProtocolProc(-1, nullptr, -1), -1);
+    ASSERT_EQ(socketContext.RawProtocolProc(2, (const int8_t *)s.c_str(), s.size()), -1);
 }
 
 /**
@@ -59,8 +61,14 @@ HWTEST_F(SocketContextTest, RawProtocolProc, TestSize.Level1)
  */
 HWTEST_F(SocketContextTest, SendRaw, TestSize.Level1)
 {
+    std::string s="abc";
     SocketContext socketContext;
-    ASSERT_TRUE(!socketContext.SendRaw(-1, nullptr, 0, 0));
+    ASSERT_TRUE(!socketContext.SendRaw(-1, (const int8_t *)s.c_str(), s.size(), 0));
+    ASSERT_TRUE(!socketContext.SendRaw(-1, (const int8_t *)s.c_str(), s.size(), -1));
+    ASSERT_TRUE(!socketContext.SendRaw(-1, (const int8_t *)s.c_str(), s.size(), 1));
+    ASSERT_TRUE(!socketContext.SendRaw(1, (const int8_t *)s.c_str(), s.size(), 1));
+    ASSERT_TRUE(!socketContext.SendFileDescriptor(-1));
+    ASSERT_TRUE(!socketContext.SendFileDescriptor(1));
 }
 
 /**

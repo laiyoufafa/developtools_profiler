@@ -21,7 +21,7 @@
 namespace SysTuning {
 namespace TraceStreamer {
 using namespace TraceStdtype;
-class TraceDataCacheWriter : public TraceDataCacheReader {
+class TraceDataCacheWriter : virtual public TraceDataCacheBase {
 public:
     TraceDataCacheWriter() = default;
     TraceDataCacheWriter(const TraceDataCacheWriter&) = delete;
@@ -30,22 +30,25 @@ public:
 public:
     InternalPid GetProcessInternalPid(uint32_t pid);
     Process* GetProcessData(InternalPid internalPid);
-    InternalTid GetInternalThread(uint32_t tid);
+    InternalTid NewInternalThread(uint32_t tid);
     Thread* GetThreadData(InternalTid internalTid);
-    void UpdateBoundTime(uint64_t timestamp);
-    Slices* GetSlicesData();
-    InternalSlices* GetInternalSlicesData();
+    void UpdateTraceTime(uint64_t timestamp);
+    CallStack* GetInternalSlicesData();
     Filter* GetFilterData();
     Raw* GetRawData();
-    Counter* GetCounterData();
+    Measure* GetMeasureData();
     ThreadState* GetThreadStateData();
     SchedSlice* GetSchedSliceData();
-    CpuCounter* GetCpuCountersData();
-    ThreadCounterFilter* GetThreadCounterFilterData();
-    ThreadCounterFilter* GetThreadFilterData();
+    CpuMeasureFilter* GetCpuMeasuresData();
+    ThreadMeasureFilter* GetThreadMeasureFilterData();
+    ThreadMeasureFilter* GetThreadFilterData();
     Instants* GetInstantsData();
-    ProcessCounterFilter* GetProcessFilterData();
-    ProcessCounterFilter* GetProcessCounterFilterData();
+    ProcessMeasureFilter* GetProcessFilterData();
+    ProcessMeasureFilter* GetProcessMeasureFilterData();
+    ClockEventData* GetClockEventFilterData();
+    StatAndInfo* GetStatAndInfo();
+    MetaData* GetMetaData();
+    SymbolsData* GetSymbolsData();
 };
 } // namespace TraceStreamer
 } // namespace trace_data_cache

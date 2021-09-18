@@ -18,9 +18,8 @@ package ohos.devtools.views.trace.listener;
 /**
  * Timeline range change callback listener
  *
- * @version 1.0
  * @date 2021/04/22 12:25
- **/
+ */
 public interface IRangeChangeListener {
     /**
      * Range change callback

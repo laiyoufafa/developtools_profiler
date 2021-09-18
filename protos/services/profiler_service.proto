@@ -38,4 +38,7 @@ service IProfilerService {
 
     // destroy tracing session.
     rpc DestroySession(DestroySessionRequest) returns (DestroySessionResponse);
+
+    // keep tracing session alive, call this interface will restart session expire count down task.
+    rpc KeepSession(KeepSessionRequest) returns (KeepSessionResponse);
 }

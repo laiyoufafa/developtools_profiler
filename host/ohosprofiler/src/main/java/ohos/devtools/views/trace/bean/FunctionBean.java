@@ -15,8 +15,11 @@
 
 package ohos.devtools.views.trace.bean;
 
+import ohos.devtools.views.trace.DField;
+import ohos.devtools.views.trace.component.AnalystPanel;
 import ohos.devtools.views.trace.fragment.graph.AbstractGraph;
 import ohos.devtools.views.trace.util.ColorUtils;
+import ohos.devtools.views.trace.util.Utils;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
@@ -26,36 +29,44 @@ import java.awt.event.MouseEvent;
 /**
  * Method entity class
  *
- * @version 1.0
  * @date 2021/04/22 12:25
- **/
+ */
 public class FunctionBean extends AbstractGraph {
-    private int tid;
+    @DField(name = "tid")
+    private Integer tid;
 
+    @DField(name = "threadName")
     private String threadName;
 
-    private int isMainThread;
+    @DField(name = "is_main_thread")
+    private Integer isMainThread;
 
-    private int trackId;
+    @DField(name = "track_id")
+    private Integer trackId;
 
-    private long startTime;
+    @DField(name = "startTs")
+    private Long startTime;
 
-    private long duration;
+    @DField(name = "dur")
+    private Long duration;
 
+    @DField(name = "funName")
     private String funName;
 
-    private int depth;
+    @DField(name = "depth")
+    private Integer depth;
 
     private String category;
 
     private boolean isSelected; // Whether to be selected
+    private IEventListener eventListener;
 
     /**
      * Gets the value of tid .
      *
      * @return the value of int
      */
-    public int getTid() {
+    public Integer getTid() {
         return tid;
     }
 
@@ -65,7 +76,7 @@ public class FunctionBean extends AbstractGraph {
      *
      * @param pTid pTid
      */
-    public void setTid(final int pTid) {
+    public void setTid(final Integer pTid) {
         this.tid = pTid;
     }
 
@@ -93,7 +104,7 @@ public class FunctionBean extends AbstractGraph {
      *
      * @return the value of int
      */
-    public int getIsMainThread() {
+    public Integer getIsMainThread() {
         return isMainThread;
     }
 
@@ -103,7 +114,7 @@ public class FunctionBean extends AbstractGraph {
      *
      * @param mainThread mainThread
      */
-    public void setIsMainThread(final int mainThread) {
+    public void setIsMainThread(final Integer mainThread) {
         this.isMainThread = mainThread;
     }
 
@@ -112,7 +123,7 @@ public class FunctionBean extends AbstractGraph {
      *
      * @return the value of int
      */
-    public int getTrackId() {
+    public Integer getTrackId() {
         return trackId;
     }
 
@@ -122,7 +133,7 @@ public class FunctionBean extends AbstractGraph {
      *
      * @param id id
      */
-    public void setTrackId(final int id) {
+    public void setTrackId(final Integer id) {
         this.trackId = id;
     }
 
@@ -131,7 +142,7 @@ public class FunctionBean extends AbstractGraph {
      *
      * @return the value of long
      */
-    public long getStartTime() {
+    public Long getStartTime() {
         return startTime;
     }
 
@@ -141,7 +152,7 @@ public class FunctionBean extends AbstractGraph {
      *
      * @param time time
      */
-    public void setStartTime(final long time) {
+    public void setStartTime(final Long time) {
         this.startTime = time;
     }
 
@@ -150,7 +161,7 @@ public class FunctionBean extends AbstractGraph {
      *
      * @return the value of long
      */
-    public long getDuration() {
+    public Long getDuration() {
         return duration;
     }
 
@@ -160,7 +171,7 @@ public class FunctionBean extends AbstractGraph {
      *
      * @param dur dur
      */
-    public void setDuration(final long dur) {
+    public void setDuration(final Long dur) {
         this.duration = dur;
     }
 
@@ -188,7 +199,7 @@ public class FunctionBean extends AbstractGraph {
      *
      * @return the value of int
      */
-    public int getDepth() {
+    public Integer getDepth() {
         return depth;
     }
 
@@ -198,7 +209,7 @@ public class FunctionBean extends AbstractGraph {
      *
      * @param dep dep
      */
-    public void setDepth(final int dep) {
+    public void setDepth(final Integer dep) {
         this.depth = dep;
     }
 
@@ -249,16 +260,16 @@ public class FunctionBean extends AbstractGraph {
     public void draw(final Graphics2D graphics) {
         if (isSelected) {
             graphics.setColor(Color.black);
-            graphics.fillRect(rect.x, rect.y, rect.width, rect.height);
+            graphics.fillRect(Utils.getX(rect), Utils.getY(rect), rect.width, rect.height);
             graphics.setColor(ColorUtils.FUNC_COLOR[depth % ColorUtils.FUNC_COLOR.length]);
-            graphics.fillRect(rect.x + 1, rect.y + 1, rect.width - 2, rect.height - 2);
+            graphics.fillRect(Utils.getX(rect) + 1, Utils.getY(rect) + 1, rect.width - 2, rect.height - 2);
             graphics.setColor(Color.white);
             Rectangle rectangle = new Rectangle();
             rectangle.setRect(rect.getX() + 1, rect.getY() + 1, rect.getWidth() - 2, rect.getHeight() - 2);
             drawString(graphics, rectangle, funName, Placement.CENTER_LINE);
         } else {
             graphics.setColor(ColorUtils.FUNC_COLOR[depth % ColorUtils.FUNC_COLOR.length]);
-            graphics.fillRect(rect.x, rect.y, rect.width, rect.height);
+            graphics.fillRect(Utils.getX(rect), Utils.getY(rect), rect.width, rect.height);
             graphics.setColor(Color.white);
             drawString(graphics, rect, funName, Placement.CENTER_LINE);
         }
@@ -296,6 +307,7 @@ public class FunctionBean extends AbstractGraph {
     @Override
     public void onClick(final MouseEvent event) {
         if (eventListener != null) {
+            AnalystPanel.clicked = true;
             eventListener.click(event, this);
         }
     }
@@ -313,8 +325,6 @@ public class FunctionBean extends AbstractGraph {
             }
         }
     }
-
-    private IEventListener eventListener;
 
     /**
      * Set up the event listener

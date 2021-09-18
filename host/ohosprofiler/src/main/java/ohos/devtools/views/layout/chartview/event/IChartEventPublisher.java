@@ -16,31 +16,28 @@
 package ohos.devtools.views.layout.chartview.event;
 
 /**
- * Chart事件发布者
- *
- * @ClassName: IChartEventPublisher
- * @since 2021/1/26 19:32
+ * Publisher of chart event
  */
 public interface IChartEventPublisher {
     /**
-     * 添加监听者
+     * Add observer
      *
-     * @param listener IChartEventListener
+     * @param observer Observer of chart refreshes event
      */
-    void attach(IChartEventObserver listener);
+    void attach(IChartEventObserver observer);
 
     /**
-     * 移除监听者
+     * Remove observer
      *
-     * @param listener IChartEventListener
+     * @param observer Observer of chart refreshes event
      */
-    void detach(IChartEventObserver listener);
+    void detach(IChartEventObserver observer);
 
     /**
-     * 通知刷新
+     * notify to refresh
      *
-     * @param start 开始时间
-     * @param end   结束时间
+     * @param start Start time of chart
+     * @param end   End time of chart
      */
     void notifyRefresh(int start, int end);
 }

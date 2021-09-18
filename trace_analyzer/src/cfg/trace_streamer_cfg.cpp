@@ -1,0 +1,399 @@
+/*
+ * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#include "trace_streamer_cfg.h"
+#include "log.h"
+namespace SysTuning {
+namespace TraceCfg {
+TraceStreamConfig::TraceStreamConfig()
+{
+    eventNameMap_ = {
+        { TRACE_EVENT_BINDER_TRANSACTION, TRACE_ACTION_BINDER_TRANSACTION },
+        { TRACE_EVENT_BINDER_TRANSACTION_RECEIVED, TRACE_ACTION_BINDER_TRANSACTION_RECEIVED },
+        { TRACE_EVENT_SCHED_SWITCH, TRACE_ACTION_SCHED_SWITCH },
+        { TRACE_EVENT_TASK_RENAME, TRACE_ACTION_TASK_RENAME },
+        { TRACE_EVENT_TASK_NEWTASK, TRACE_ACTION_TASK_NEWTASK },
+        { TRACE_EVENT_TRACING_MARK_WRITE, TRACE_ACTION_TRACING_MARK_WRITE },
+        { TRACE_EVENT_SCHED_WAKEUP, TRACE_ACTION_SCHED_WAKEUP },
+        { TRACE_EVENT_SCHED_WAKING, TRACE_ACTION_SCHED_WAKING },
+        { TRACE_EVENT_CPU_IDLE, TRACE_ACTION_CPU_IDLE },
+        { TRACE_EVENT_CPU_FREQUENCY, TRACE_ACTION_CPU_FREQUENCY },
+        { TRACE_EVENT_WORKQUEUE_EXECUTE_START, TRACE_ACTION_WORKQUEUE_EXECUTE_START },
+        { TRACE_EVENT_WORKQUEUE_EXECUTE_END, TRACE_ACTION_WORKQUEUE_EXECUTE_END },
+        { TRACE_EVENT_CLOCK_SET_RATE, TRACE_ACTION_CLOCK_SET_RATE },
+        { TRACE_EVENT_CLOCK_ENABLE, TRACE_ACTION_CLOCK_ENABLE },
+        { TRACE_EVENT_CLOCK_DISABLE, TRACE_ACTION_CLOCK_DISABLE },
+        { TRACE_EVENT_REGULATOR_SET_VOLTAGE, TRACE_ACTION_REGULATOR_SET_VOLTAGE },
+        { TRACE_EVENT_REGULATOR_SET_VOLTAGE_COMPLETE, TRACE_ACTION_REGULATOR_SET_VOLTAGE_COMPLETE },
+        { TRACE_EVENT_REGULATOR_DISABLE, TRACE_ACTION_REGULATOR_DISABLE },
+        { TRACE_EVENT_REGULATOR_DISABLE_COMPLETE, TRACE_ACTION_REGULATOR_DISABLE_COMPLETE },
+        { TRACE_EVENT_IPI_ENTRY, TRACE_ACTION_IPI_ENTRY },
+        { TRACE_EVENT_IPI_EXIT, TRACE_ACTION_IPI_EXIT },
+        { TRACE_EVENT_IRQ_HANDLER_ENTRY, TRACE_ACTION_IRQ_HANDLER_ENTRY },
+        { TRACE_EVENT_IRQ_HANDLER_EXIT, TRACE_ACTION_IRQ_HANDLER_EXIT },
+        { TRACE_EVENT_SOFTIRQ_RAISE, TRACE_ACTION_SOFTIRQ_RAISE },
+        { TRACE_EVENT_SOFTIRQ_ENTRY, TRACE_ACTION_SOFTIRQ_ENTRY },
+        { TRACE_EVENT_SOFTIRQ_EXIT, TRACE_ACTION_SOFTIRQ_EXIT },
+        { TRACE_EVENT_BINDER_TRANSACTION_ALLOC_BUF, TRACE_ACTION_BINDER_TRANSACTION_ALLOC_BUF },
+        { TRACE_EVENT_SCHED_WAKEUP_NEW, TRACE_ACTION_SCHED_WAKEUP_NEW },
+        { TRACE_EVENT_PROCESS_EXIT, TRACE_ACTION_PROCESS_EXIT },
+        { TRACE_EVENT_CLOCK_SYNC, TRACE_ACTION_CLOCK_SYNC },
+        { TRACE_MEMORY, TRACE_ACTION_MEMORY },
+        { TRACE_EVENT_OTHER, TRACE_ACTION_OTHER },
+    };
+    eventErrorDescMap_ = {
+        { STAT_EVENT_RECEIVED, TRACE_STAT_TYPE_RECEIVED_DESC },
+        { STAT_EVENT_DATA_LOST, TRACE_STAT_TYPE_LOST_DESC },
+        { STAT_EVENT_NOTMATCH, TRACE_STAT_TYPE_NOTMATCH_DESC },
+        { STAT_EVENT_NOTSUPPORTED, TRACE_STAT_TYPE_NOTSUPPORTED_DESC },
+        { STAT_EVENT_DATA_INVALID, TRACE_STAT_TYPE_DATA_INVALID_DESC },
+    };
+    serverityLevelDescMap_ = {
+        { STAT_SEVERITY_LEVEL_INFO, STAT_SEVERITY_LEVEL_INFO_DESC },
+        { STAT_SEVERITY_LEVEL_WARN, STAT_SEVERITY_LEVEL_WARN_DESC },
+        { STAT_SEVERITY_LEVEL_ERROR, STAT_SEVERITY_LEVEL_ERROR_DESC },
+        { STAT_SEVERITY_LEVEL_FATAL, STAT_SEVERITY_LEVEL_FATAL_DESC },
+    };
+    memNameMap_ = {
+        { MEM_VM_SIZE, MEM_INFO_VM_SIZE_DESC },
+        { MEM_VM_LOCKED, MEM_INFO_LOCKED_DESC },
+        { MEM_VM_RSS, MEM_INFO_RSS_DESC },
+        { MEM_VM_ANON, MEM_INFO_RSS_ANON_DESC },
+        { MEM_RSS_FILE, MEM_INFO_RSS_FILE_DESC },
+        { MEM_RSS_SHMEM, MEM_INFO_RSS_SCHEM_DESC },
+        { MEM_VM_SWAP, MEM_INFO_SWAP_DESC },
+        { MEM_VM_LOCKED, MEM_INFO_VIRT_DESC },
+        { MEM_VM_HWM, MEM_INFO_HWM_DESC },
+        { MEM_OOM_SCORE_ADJ, MEM_INFO_SCORE_ADJ_DESC },
+    };
+    InitSecurityMap();
+    if (eventNameMap_.size() != TRACE_EVENT_MAX) {
+        TS_LOGF("eventNameMap_.size() max be %d, logic error", TRACE_EVENT_MAX);
+    }
+    if (eventErrorDescMap_.size() != STAT_EVENT_MAX) {
+        TS_LOGF("eventErrorDescMap_.size() max be %d, logic error",
+            STAT_EVENT_MAX);
+    }
+    if (serverityLevelDescMap_.size() != STAT_SEVERITY_LEVEL_MAX) {
+        TS_LOGF("serverityLevelDescMap_.size() max be %d, logic error", STAT_SEVERITY_LEVEL_MAX);
+    }
+    if (eventParserStatSeverityDescMap_.size() != TRACE_EVENT_MAX) {
+        TS_LOGF("eventParserStatSeverityDescMap_.size() max be %d, logic error", TRACE_EVENT_MAX);
+    }
+    if (memNameMap_.size() != MEM_MAX) {
+        TS_LOGF("memNameMap_.size() max be %d, logic error", MEM_MAX);
+    }
+    for (int i = TRACE_EVENT_START; i < TRACE_EVENT_MAX; i++) {
+        if (eventParserStatSeverityDescMap_.at(static_cast<SupportedTraceEventType>(i)).size() != STAT_EVENT_MAX) {
+            TS_LOGF("every item in eventParserStatSeverityDescMap_ max be %d, logic error", STAT_EVENT_MAX);
+        }
+    }
+}
+
+void TraceStreamConfig::InitSecurityMap()
+{
+    eventParserStatSeverityDescMap_ = {
+        { TRACE_EVENT_BINDER_TRANSACTION,
+            {
+                { STAT_EVENT_RECEIVED, STAT_SEVERITY_LEVEL_INFO },
+                { STAT_EVENT_DATA_LOST, STAT_SEVERITY_LEVEL_ERROR },
+                { STAT_EVENT_NOTMATCH, STAT_SEVERITY_LEVEL_INFO },
+                { STAT_EVENT_NOTSUPPORTED, STAT_SEVERITY_LEVEL_INFO },
+                { STAT_EVENT_DATA_INVALID, STAT_SEVERITY_LEVEL_ERROR },
+            },
+        },
+        { TRACE_EVENT_BINDER_TRANSACTION_RECEIVED,
+            {
+                { STAT_EVENT_RECEIVED, STAT_SEVERITY_LEVEL_INFO },
+                { STAT_EVENT_DATA_LOST, STAT_SEVERITY_LEVEL_ERROR },
+                { STAT_EVENT_NOTMATCH, STAT_SEVERITY_LEVEL_INFO },
+                { STAT_EVENT_NOTSUPPORTED, STAT_SEVERITY_LEVEL_INFO },
+                { STAT_EVENT_DATA_INVALID, STAT_SEVERITY_LEVEL_ERROR },
+            },
+        },
+        { TRACE_EVENT_SCHED_SWITCH,
+            {
+                { STAT_EVENT_RECEIVED, STAT_SEVERITY_LEVEL_INFO },
+                { STAT_EVENT_DATA_LOST, STAT_SEVERITY_LEVEL_ERROR },
+                { STAT_EVENT_NOTMATCH, STAT_SEVERITY_LEVEL_INFO },
+                { STAT_EVENT_NOTSUPPORTED, STAT_SEVERITY_LEVEL_INFO },
+                { STAT_EVENT_DATA_INVALID, STAT_SEVERITY_LEVEL_ERROR },
+            },
+        },
+        { TRACE_EVENT_TASK_RENAME,
+            {
+                { STAT_EVENT_RECEIVED, STAT_SEVERITY_LEVEL_INFO },
+                { STAT_EVENT_DATA_LOST, STAT_SEVERITY_LEVEL_ERROR },
+                { STAT_EVENT_NOTMATCH, STAT_SEVERITY_LEVEL_INFO },
+                { STAT_EVENT_NOTSUPPORTED, STAT_SEVERITY_LEVEL_INFO },
+                { STAT_EVENT_DATA_INVALID, STAT_SEVERITY_LEVEL_ERROR },
+            },
+        },
+        { TRACE_EVENT_TASK_NEWTASK,
+            {
+                { STAT_EVENT_RECEIVED, STAT_SEVERITY_LEVEL_INFO },
+                { STAT_EVENT_DATA_LOST, STAT_SEVERITY_LEVEL_ERROR },
+                { STAT_EVENT_NOTMATCH, STAT_SEVERITY_LEVEL_INFO },
+                { STAT_EVENT_NOTSUPPORTED, STAT_SEVERITY_LEVEL_INFO },
+                { STAT_EVENT_DATA_INVALID, STAT_SEVERITY_LEVEL_ERROR },
+            },
+        },
+        { TRACE_EVENT_TRACING_MARK_WRITE,
+            {
+                { STAT_EVENT_RECEIVED, STAT_SEVERITY_LEVEL_INFO },
+                { STAT_EVENT_DATA_LOST, STAT_SEVERITY_LEVEL_ERROR },
+                { STAT_EVENT_NOTMATCH, STAT_SEVERITY_LEVEL_INFO },
+                { STAT_EVENT_NOTSUPPORTED, STAT_SEVERITY_LEVEL_INFO },
+                { STAT_EVENT_DATA_INVALID, STAT_SEVERITY_LEVEL_ERROR },
+            },
+        },
+        { TRACE_EVENT_SCHED_WAKEUP,
+            {
+                { STAT_EVENT_RECEIVED, STAT_SEVERITY_LEVEL_INFO },
+                { STAT_EVENT_DATA_LOST, STAT_SEVERITY_LEVEL_ERROR },
+                { STAT_EVENT_NOTMATCH, STAT_SEVERITY_LEVEL_INFO },
+                { STAT_EVENT_NOTSUPPORTED, STAT_SEVERITY_LEVEL_INFO },
+                { STAT_EVENT_DATA_INVALID, STAT_SEVERITY_LEVEL_ERROR },
+            },
+        },
+        { TRACE_EVENT_SCHED_WAKING,
+            {
+                { STAT_EVENT_RECEIVED, STAT_SEVERITY_LEVEL_INFO },
+                { STAT_EVENT_DATA_LOST, STAT_SEVERITY_LEVEL_ERROR },
+                { STAT_EVENT_NOTMATCH, STAT_SEVERITY_LEVEL_INFO },
+                { STAT_EVENT_NOTSUPPORTED, STAT_SEVERITY_LEVEL_INFO },
+                { STAT_EVENT_DATA_INVALID, STAT_SEVERITY_LEVEL_ERROR },
+            },
+        },
+        { TRACE_EVENT_CPU_IDLE,
+            {
+                { STAT_EVENT_RECEIVED, STAT_SEVERITY_LEVEL_INFO },
+                { STAT_EVENT_DATA_LOST, STAT_SEVERITY_LEVEL_ERROR },
+                { STAT_EVENT_NOTMATCH, STAT_SEVERITY_LEVEL_INFO },
+                { STAT_EVENT_NOTSUPPORTED, STAT_SEVERITY_LEVEL_INFO },
+                { STAT_EVENT_DATA_INVALID, STAT_SEVERITY_LEVEL_ERROR },
+            },
+        },
+        { TRACE_EVENT_CPU_FREQUENCY,
+            {
+                { STAT_EVENT_RECEIVED, STAT_SEVERITY_LEVEL_INFO },
+                { STAT_EVENT_DATA_LOST, STAT_SEVERITY_LEVEL_ERROR },
+                { STAT_EVENT_NOTMATCH, STAT_SEVERITY_LEVEL_INFO },
+                { STAT_EVENT_NOTSUPPORTED, STAT_SEVERITY_LEVEL_INFO },
+                { STAT_EVENT_DATA_INVALID, STAT_SEVERITY_LEVEL_ERROR },
+            },
+        },
+        { TRACE_EVENT_WORKQUEUE_EXECUTE_START,
+            {
+                { STAT_EVENT_RECEIVED, STAT_SEVERITY_LEVEL_INFO },
+                { STAT_EVENT_DATA_LOST, STAT_SEVERITY_LEVEL_ERROR },
+                { STAT_EVENT_NOTMATCH, STAT_SEVERITY_LEVEL_INFO },
+                { STAT_EVENT_NOTSUPPORTED, STAT_SEVERITY_LEVEL_INFO },
+                { STAT_EVENT_DATA_INVALID, STAT_SEVERITY_LEVEL_ERROR },
+            },
+        },
+        { TRACE_EVENT_WORKQUEUE_EXECUTE_END,
+            {
+                { STAT_EVENT_RECEIVED, STAT_SEVERITY_LEVEL_INFO },
+                { STAT_EVENT_DATA_LOST, STAT_SEVERITY_LEVEL_ERROR },
+                { STAT_EVENT_NOTMATCH, STAT_SEVERITY_LEVEL_INFO },
+                { STAT_EVENT_NOTSUPPORTED, STAT_SEVERITY_LEVEL_WARN },
+                { STAT_EVENT_DATA_INVALID, STAT_SEVERITY_LEVEL_ERROR },
+            },
+        },
+        { TRACE_EVENT_CLOCK_SET_RATE,
+            {
+                { STAT_EVENT_RECEIVED, STAT_SEVERITY_LEVEL_INFO },
+                { STAT_EVENT_DATA_LOST, STAT_SEVERITY_LEVEL_ERROR },
+                { STAT_EVENT_NOTMATCH, STAT_SEVERITY_LEVEL_INFO },
+                { STAT_EVENT_NOTSUPPORTED, STAT_SEVERITY_LEVEL_WARN },
+                { STAT_EVENT_DATA_INVALID, STAT_SEVERITY_LEVEL_ERROR },
+            },
+        },
+        { TRACE_EVENT_CLOCK_ENABLE,
+            {
+                { STAT_EVENT_RECEIVED, STAT_SEVERITY_LEVEL_INFO },
+                { STAT_EVENT_DATA_LOST, STAT_SEVERITY_LEVEL_ERROR },
+                { STAT_EVENT_NOTMATCH, STAT_SEVERITY_LEVEL_INFO },
+                { STAT_EVENT_NOTSUPPORTED, STAT_SEVERITY_LEVEL_WARN },
+                { STAT_EVENT_DATA_INVALID, STAT_SEVERITY_LEVEL_ERROR },
+            },
+        },
+        { TRACE_EVENT_CLOCK_DISABLE,
+            {
+                { STAT_EVENT_RECEIVED, STAT_SEVERITY_LEVEL_INFO },
+                { STAT_EVENT_DATA_LOST, STAT_SEVERITY_LEVEL_ERROR },
+                { STAT_EVENT_NOTMATCH, STAT_SEVERITY_LEVEL_INFO },
+                { STAT_EVENT_NOTSUPPORTED, STAT_SEVERITY_LEVEL_WARN },
+                { STAT_EVENT_DATA_INVALID, STAT_SEVERITY_LEVEL_ERROR },
+            },
+        },
+        { TRACE_EVENT_REGULATOR_SET_VOLTAGE,
+            {
+                { STAT_EVENT_RECEIVED, STAT_SEVERITY_LEVEL_INFO },
+                { STAT_EVENT_DATA_LOST, STAT_SEVERITY_LEVEL_ERROR },
+                { STAT_EVENT_NOTMATCH, STAT_SEVERITY_LEVEL_INFO },
+                { STAT_EVENT_NOTSUPPORTED, STAT_SEVERITY_LEVEL_WARN },
+                { STAT_EVENT_DATA_INVALID, STAT_SEVERITY_LEVEL_ERROR },
+            },
+        },
+        { TRACE_EVENT_REGULATOR_SET_VOLTAGE_COMPLETE,
+            {
+                { STAT_EVENT_RECEIVED, STAT_SEVERITY_LEVEL_INFO },
+                { STAT_EVENT_DATA_LOST, STAT_SEVERITY_LEVEL_ERROR },
+                { STAT_EVENT_NOTMATCH, STAT_SEVERITY_LEVEL_INFO },
+                { STAT_EVENT_NOTSUPPORTED, STAT_SEVERITY_LEVEL_WARN },
+                { STAT_EVENT_DATA_INVALID, STAT_SEVERITY_LEVEL_ERROR },
+            },
+        },
+        { TRACE_EVENT_REGULATOR_DISABLE,
+            {
+                { STAT_EVENT_RECEIVED, STAT_SEVERITY_LEVEL_INFO },
+                { STAT_EVENT_DATA_LOST, STAT_SEVERITY_LEVEL_ERROR },
+                { STAT_EVENT_NOTMATCH, STAT_SEVERITY_LEVEL_INFO },
+                { STAT_EVENT_NOTSUPPORTED, STAT_SEVERITY_LEVEL_WARN },
+                { STAT_EVENT_DATA_INVALID, STAT_SEVERITY_LEVEL_ERROR },
+            },
+        },
+        { TRACE_EVENT_REGULATOR_DISABLE_COMPLETE,
+            {
+                { STAT_EVENT_RECEIVED, STAT_SEVERITY_LEVEL_INFO },
+                { STAT_EVENT_DATA_LOST, STAT_SEVERITY_LEVEL_ERROR },
+                { STAT_EVENT_NOTMATCH, STAT_SEVERITY_LEVEL_INFO },
+                { STAT_EVENT_NOTSUPPORTED, STAT_SEVERITY_LEVEL_WARN },
+                { STAT_EVENT_DATA_INVALID, STAT_SEVERITY_LEVEL_ERROR },
+            },
+        },
+        { TRACE_EVENT_IPI_ENTRY,
+            {
+                { STAT_EVENT_RECEIVED, STAT_SEVERITY_LEVEL_INFO },
+                { STAT_EVENT_DATA_LOST, STAT_SEVERITY_LEVEL_ERROR },
+                { STAT_EVENT_NOTMATCH, STAT_SEVERITY_LEVEL_INFO },
+                { STAT_EVENT_NOTSUPPORTED, STAT_SEVERITY_LEVEL_WARN },
+                { STAT_EVENT_DATA_INVALID, STAT_SEVERITY_LEVEL_ERROR },
+            },
+        },
+        { TRACE_EVENT_IPI_EXIT,
+            {
+                { STAT_EVENT_RECEIVED, STAT_SEVERITY_LEVEL_INFO },
+                { STAT_EVENT_DATA_LOST, STAT_SEVERITY_LEVEL_ERROR },
+                { STAT_EVENT_NOTMATCH, STAT_SEVERITY_LEVEL_INFO },
+                { STAT_EVENT_NOTSUPPORTED, STAT_SEVERITY_LEVEL_WARN },
+                { STAT_EVENT_DATA_INVALID, STAT_SEVERITY_LEVEL_ERROR },
+            },
+        },
+        { TRACE_EVENT_IRQ_HANDLER_ENTRY,
+            {
+                { STAT_EVENT_RECEIVED, STAT_SEVERITY_LEVEL_INFO },
+                { STAT_EVENT_DATA_LOST, STAT_SEVERITY_LEVEL_ERROR },
+                { STAT_EVENT_NOTMATCH, STAT_SEVERITY_LEVEL_INFO },
+                { STAT_EVENT_NOTSUPPORTED, STAT_SEVERITY_LEVEL_WARN },
+                { STAT_EVENT_DATA_INVALID, STAT_SEVERITY_LEVEL_ERROR },
+            },
+        },
+        { TRACE_EVENT_IRQ_HANDLER_EXIT,
+            {
+                { STAT_EVENT_RECEIVED, STAT_SEVERITY_LEVEL_INFO },
+                { STAT_EVENT_DATA_LOST, STAT_SEVERITY_LEVEL_ERROR },
+                { STAT_EVENT_NOTMATCH, STAT_SEVERITY_LEVEL_INFO },
+                { STAT_EVENT_NOTSUPPORTED, STAT_SEVERITY_LEVEL_WARN },
+                { STAT_EVENT_DATA_INVALID, STAT_SEVERITY_LEVEL_ERROR },
+            },
+        },
+        { TRACE_EVENT_SOFTIRQ_RAISE,
+            {
+                { STAT_EVENT_RECEIVED, STAT_SEVERITY_LEVEL_INFO },
+                { STAT_EVENT_DATA_LOST, STAT_SEVERITY_LEVEL_ERROR },
+                { STAT_EVENT_NOTMATCH, STAT_SEVERITY_LEVEL_INFO },
+                { STAT_EVENT_NOTSUPPORTED, STAT_SEVERITY_LEVEL_WARN },
+                { STAT_EVENT_DATA_INVALID, STAT_SEVERITY_LEVEL_ERROR },
+            },
+        },
+        { TRACE_EVENT_SOFTIRQ_ENTRY,
+            {
+                { STAT_EVENT_RECEIVED, STAT_SEVERITY_LEVEL_INFO },
+                { STAT_EVENT_DATA_LOST, STAT_SEVERITY_LEVEL_ERROR },
+                { STAT_EVENT_NOTMATCH, STAT_SEVERITY_LEVEL_INFO },
+                { STAT_EVENT_NOTSUPPORTED, STAT_SEVERITY_LEVEL_WARN },
+                { STAT_EVENT_DATA_INVALID, STAT_SEVERITY_LEVEL_ERROR },
+            },
+        },
+        { TRACE_EVENT_SOFTIRQ_EXIT,
+            {
+                { STAT_EVENT_RECEIVED, STAT_SEVERITY_LEVEL_INFO },
+                { STAT_EVENT_DATA_LOST, STAT_SEVERITY_LEVEL_ERROR },
+                { STAT_EVENT_NOTMATCH, STAT_SEVERITY_LEVEL_INFO },
+                { STAT_EVENT_NOTSUPPORTED, STAT_SEVERITY_LEVEL_WARN },
+                { STAT_EVENT_DATA_INVALID, STAT_SEVERITY_LEVEL_ERROR },
+            },
+        },
+        { TRACE_EVENT_BINDER_TRANSACTION_ALLOC_BUF,
+            {
+                { STAT_EVENT_RECEIVED, STAT_SEVERITY_LEVEL_INFO },
+                { STAT_EVENT_DATA_LOST, STAT_SEVERITY_LEVEL_ERROR },
+                { STAT_EVENT_NOTMATCH, STAT_SEVERITY_LEVEL_INFO },
+                { STAT_EVENT_NOTSUPPORTED, STAT_SEVERITY_LEVEL_WARN },
+                { STAT_EVENT_DATA_INVALID, STAT_SEVERITY_LEVEL_ERROR },
+            },
+        },
+        { TRACE_EVENT_SCHED_WAKEUP_NEW,
+            {
+                { STAT_EVENT_RECEIVED, STAT_SEVERITY_LEVEL_INFO },
+                { STAT_EVENT_DATA_LOST, STAT_SEVERITY_LEVEL_ERROR },
+                { STAT_EVENT_NOTMATCH, STAT_SEVERITY_LEVEL_INFO },
+                { STAT_EVENT_NOTSUPPORTED, STAT_SEVERITY_LEVEL_WARN },
+                { STAT_EVENT_DATA_INVALID, STAT_SEVERITY_LEVEL_ERROR },
+            },
+        },
+        { TRACE_EVENT_PROCESS_EXIT,
+            {
+                { STAT_EVENT_RECEIVED, STAT_SEVERITY_LEVEL_INFO },
+                { STAT_EVENT_DATA_LOST, STAT_SEVERITY_LEVEL_ERROR },
+                { STAT_EVENT_NOTMATCH, STAT_SEVERITY_LEVEL_INFO },
+                { STAT_EVENT_NOTSUPPORTED, STAT_SEVERITY_LEVEL_WARN },
+                { STAT_EVENT_DATA_INVALID, STAT_SEVERITY_LEVEL_ERROR },
+            },
+        },
+        { TRACE_EVENT_CLOCK_SYNC,
+            {
+                { STAT_EVENT_RECEIVED, STAT_SEVERITY_LEVEL_INFO },
+                { STAT_EVENT_DATA_LOST, STAT_SEVERITY_LEVEL_ERROR },
+                { STAT_EVENT_NOTMATCH, STAT_SEVERITY_LEVEL_INFO },
+                { STAT_EVENT_NOTSUPPORTED, STAT_SEVERITY_LEVEL_WARN },
+                { STAT_EVENT_DATA_INVALID, STAT_SEVERITY_LEVEL_ERROR },
+            },
+        },
+        { TRACE_MEMORY,
+            {
+                { STAT_EVENT_RECEIVED, STAT_SEVERITY_LEVEL_INFO },
+                { STAT_EVENT_DATA_LOST, STAT_SEVERITY_LEVEL_ERROR },
+                { STAT_EVENT_NOTMATCH, STAT_SEVERITY_LEVEL_INFO },
+                { STAT_EVENT_NOTSUPPORTED, STAT_SEVERITY_LEVEL_WARN },
+                { STAT_EVENT_DATA_INVALID, STAT_SEVERITY_LEVEL_ERROR },
+            },
+        },
+        { TRACE_EVENT_OTHER,
+            {
+                { STAT_EVENT_RECEIVED, STAT_SEVERITY_LEVEL_INFO },
+                { STAT_EVENT_DATA_LOST, STAT_SEVERITY_LEVEL_ERROR },
+                { STAT_EVENT_NOTMATCH, STAT_SEVERITY_LEVEL_INFO },
+                { STAT_EVENT_NOTSUPPORTED, STAT_SEVERITY_LEVEL_WARN },
+                { STAT_EVENT_DATA_INVALID, STAT_SEVERITY_LEVEL_ERROR },
+            },
+        },
+    };
+}
+} // namespace TraceCfg
+} // namespace SysTuning

@@ -15,21 +15,25 @@
 
 package ohos.devtools.views.trace.fragment;
 
+import ohos.devtools.views.trace.Sql;
 import ohos.devtools.views.trace.bean.ProcessMem;
 import ohos.devtools.views.trace.bean.ProcessMemData;
 import ohos.devtools.views.trace.bean.ThreadData;
 import ohos.devtools.views.trace.component.AnalystPanel;
-import ohos.devtools.views.trace.component.ContentPanel;
 import ohos.devtools.views.trace.util.Db;
 import ohos.devtools.views.trace.util.Final;
+import ohos.devtools.views.trace.util.Utils;
 
 import javax.swing.JComponent;
 import javax.swing.SwingUtilities;
 import java.awt.Graphics2D;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Rectangle2D;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ForkJoinPool;
+import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 /**
@@ -37,7 +41,7 @@ import java.util.stream.Collectors;
  *
  * @version 1.0
  * @date 2021/04/22 12:25
- **/
+ */
 public class MemDataFragment extends AbstractDataFragment<ProcessMemData> implements ThreadData.IEventListener {
     /**
      * graph event callback
@@ -45,14 +49,10 @@ public class MemDataFragment extends AbstractDataFragment<ProcessMemData> implem
     public static ThreadData currentSelectedThreadData;
 
     /**
-     * Process memory data
-     */
-    public List<ProcessMemData> data;
-
-    /**
      * Process memory
      */
     public ProcessMem mem;
+
     private boolean isLoading;
     private Rectangle2D bounds;
     private int max;
@@ -64,6 +64,7 @@ public class MemDataFragment extends AbstractDataFragment<ProcessMemData> implem
      * @param mem  mem
      */
     public MemDataFragment(JComponent root, ProcessMem mem) {
+        super(root, true, false);
         this.mem = mem;
         this.setRoot(root);
     }
@@ -83,19 +84,21 @@ public class MemDataFragment extends AbstractDataFragment<ProcessMemData> implem
         double wordWidth = bounds.getWidth() / name.length(); // Width per character
         double wordNum = (getDescRect().width - 40) / wordWidth; // How many characters can be displayed on each line
         if (bounds.getWidth() < getDescRect().width - 40) { // Direct line display
-            graphics.drawString(name, getDescRect().x + 10, (int) (getDescRect().y + bounds.getHeight() + 10));
+            graphics.drawString(name, Utils.getX(getDescRect()) + 10,
+                (int) (Utils.getY(getDescRect()) + bounds.getHeight() + 10));
         } else {
             String substring = name.substring((int) wordNum);
             if (substring.length() < wordNum) {
-                graphics.drawString(name.substring(0, (int) wordNum), getDescRect().x + 10,
-                    (int) (getDescRect().y + bounds.getHeight() + 8));
+                graphics.drawString(name.substring(0, (int) wordNum), Utils.getX(getDescRect()) + 10,
+                    (int) (Utils.getY(getDescRect()) + bounds.getHeight() + 8));
                 graphics
-                    .drawString(substring, getDescRect().x + 10, (int) (getDescRect().y + bounds.getHeight() * 2 + 8));
+                    .drawString(substring, Utils.getX(getDescRect()) + 10,
+                        (int) (Utils.getY(getDescRect()) + bounds.getHeight() * 2 + 8));
             } else {
-                graphics.drawString(name.substring(0, (int) wordNum), getDescRect().x + 10,
-                    (int) (getDescRect().y + bounds.getHeight() + 2));
-                graphics.drawString(substring.substring(0, (int) wordNum), getDescRect().x + 10,
-                    (int) (getDescRect().y + bounds.getHeight() * 2 + 2));
+                graphics.drawString(name.substring(0, (int) wordNum), Utils.getX(getDescRect()) + 10,
+                    (int) (Utils.getY(getDescRect()) + bounds.getHeight() + 2));
+                graphics.drawString(substring.substring(0, (int) wordNum), Utils.getX(getDescRect()) + 10,
+                    (int) (Utils.getY(getDescRect()) + bounds.getHeight() * 2 + 2));
             }
         }
         drawData(graphics);
@@ -104,7 +107,8 @@ public class MemDataFragment extends AbstractDataFragment<ProcessMemData> implem
     private void drawData(Graphics2D graphics) {
         if (data != null) {
             List<ProcessMemData> collect = data.stream().filter(
-                memData -> memData.getStartTime() + memData.getDuration() > startNS && memData.getStartTime() < endNS)
+                    memData -> memData.getStartTime() +
+                        memData.getDuration() > startNS && memData.getStartTime() < endNS)
                 .collect(Collectors.toList());
             int x1;
             int x2;
@@ -127,13 +131,14 @@ public class MemDataFragment extends AbstractDataFragment<ProcessMemData> implem
                 }
                 memData.root = getRoot();
                 memData
-                    .setRect(x1 + getDataRect().x, getDataRect().y, x2 - x1 <= 0 ? 1 : x2 - x1, getDataRect().height);
+                    .setRect(x1 + Utils.getX(getDataRect()), Utils.getY(getDataRect()), x2 - x1 <= 0 ? 1 : x2 - x1,
+                        getDataRect().height);
                 memData.setMaxValue(max);
                 memData.draw(graphics);
             }
         } else {
             graphics.setColor(getRoot().getForeground());
-            graphics.drawString("Loading...", getDataRect().x, getDataRect().y + 12);
+            graphics.drawString("Loading...", Utils.getX(getDataRect()), Utils.getY(getDataRect()) + 12);
             loadData();
         }
     }
@@ -145,6 +150,7 @@ public class MemDataFragment extends AbstractDataFragment<ProcessMemData> implem
      */
     @Override
     public void mouseClicked(MouseEvent event) {
+        super.mouseClicked(event);
     }
 
     /**
@@ -170,24 +176,33 @@ public class MemDataFragment extends AbstractDataFragment<ProcessMemData> implem
     }
 
     @Override
-    public void mouseMoved(MouseEvent event) {
+    public void mouseMoved(MouseEvent evt) {
+        MouseEvent event = getRealMouseEvent(evt);
+        super.mouseMoved(event);
         clearFocus(event);
-        JComponent component = getRoot();
-        if (component instanceof ContentPanel) {
-            ContentPanel root = ((ContentPanel) component);
-            root.refreshTab();
-        }
     }
 
     @Override
     public void mouseReleased(MouseEvent event) {
     }
 
+    /**
+     * key released event
+     *
+     * @param event event
+     */
+    @Override
+    public void keyReleased(KeyEvent event) {
+    }
+
     private void loadData() {
         if (!isLoading) {
             isLoading = true;
-            ForkJoinPool.commonPool().submit(() -> {
-                data = Db.getInstance().getProcessMemData(mem.getTrackId());
+            CompletableFuture.runAsync(() -> {
+                List<ProcessMemData> list = new ArrayList<>() {
+                };
+                Db.getInstance().query(Sql.SYS_GET_PROCESS_MEM_DATA, list, mem.getTrackId());
+                data = list;
                 SwingUtilities.invokeLater(() -> {
                     data.stream().mapToInt(memData -> memData.getValue()).max().ifPresent(maxData -> {
                         max = maxData;
@@ -195,6 +210,10 @@ public class MemDataFragment extends AbstractDataFragment<ProcessMemData> implem
                     isLoading = false;
                     repaint();
                 });
+            }, Utils.getPool()).whenComplete((unused, throwable) -> {
+                if (Objects.nonNull(throwable)) {
+                    throwable.printStackTrace();
+                }
             });
         }
     }

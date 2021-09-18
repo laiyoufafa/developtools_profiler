@@ -10,11 +10,13 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
 syntax = "proto3";
 
 option java_package = "ohos.devtools.datasources.transport.grpc.service";
 option optimize_for = LITE_RUNTIME;
 
+// Common define for memory plug-in, imported by memory data and config proto file.
 enum SysMeminfoType {
     MEMINFO_UNSPECIFIED = 0;
     MEMINFO_MEM_TOTAL = 1;

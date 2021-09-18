@@ -31,10 +31,10 @@ import ohos.devtools.datasources.transport.grpc.ProfilerClient;
 import ohos.devtools.datasources.transport.grpc.service.CommonTypes;
 import ohos.devtools.datasources.transport.grpc.service.MemoryPluginResult;
 import ohos.devtools.datasources.transport.grpc.service.ProfilerServiceTypes;
-import ohos.devtools.datasources.utils.common.Constant;
 import ohos.devtools.datasources.utils.device.entity.DeviceIPPortInfo;
 import ohos.devtools.datasources.utils.process.entity.ProcessInfo;
 import ohos.devtools.datasources.utils.session.service.SessionManager;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -45,47 +45,20 @@ import java.util.HashMap;
 import static ohos.devtools.datasources.utils.common.Constant.MEMORY_PLUG;
 
 /**
- * DataPollerTest
- *
- * @Description DataPollerTest
- * @Date 2021/4/3 15:02
- **/
+ * Data Poller Test
+ */
 public class DataPollerTest {
-    /**
-     * requestId
-     */
     private static volatile Integer requestId = 1;
 
     /**
      * grpcCleanup
      */
     public GrpcCleanupRule grpcCleanup = new GrpcCleanupRule();
-
-    /**
-     * serverName
-     */
     private String serverName;
-
-    /**
-     * SessionManager
-     */
     private SessionManager session;
-
-    /**
-     * DeviceIPPortInfo
-     */
     private DeviceIPPortInfo device;
-
-    /**
-     * ProcessInfo
-     */
     private ProcessInfo process;
-
-    /**
-     * JSONObject
-     */
     private JSONObject jsonObject;
-
     private MutableHandlerRegistry serviceRegistry = new MutableHandlerRegistry();
 
     /**
@@ -133,6 +106,22 @@ public class DataPollerTest {
      */
     @Test
     public void dataPollerTest() {
+        MockProfilerServiceImplBase getFeatureImpl = getMockProfilerServiceImplBase();
+        ManagedChannel channel =
+            grpcCleanup.register(InProcessChannelBuilder.forName(serverName).directExecutor().build());
+        serviceRegistry.addService(getFeatureImpl);
+        SessionManager.getInstance();
+        ProfilerClient client = HiProfilerClient.getInstance().getProfilerClient("", 11007, channel);
+        long num = session.createSession(device, process);
+        HashMap<String, AbstractDataStore> map = new HashMap();
+        map.put(MEMORY_PLUG, new MemoryTable());
+        DataPoller dataPoller = new DataPoller(num, 111, client);
+        dataPoller.run();
+        Assert.assertNotNull(dataPoller);
+    }
+
+    @NotNull
+    private MockProfilerServiceImplBase getMockProfilerServiceImplBase() {
         MockProfilerServiceImplBase getFeatureImpl = new MockProfilerServiceImplBase() {
             /**
              * init createSession
@@ -158,14 +147,7 @@ public class DataPollerTest {
             @Override
             public void getCapabilities(ProfilerServiceTypes.GetCapabilitiesRequest request,
                 StreamObserver<ProfilerServiceTypes.GetCapabilitiesResponse> responseObserver) {
-                ProfilerServiceTypes.ProfilerPluginCapability pluginCapability =
-                    ProfilerServiceTypes.ProfilerPluginCapability.newBuilder(
-                        ProfilerServiceTypes.ProfilerPluginCapability.newBuilder()
-                            .setName("/data/local/tmp/libmemdataplugin.z.so")
-                            .setPath("/data/local/tmp/libmemdataplugin.z.so").build()).build();
-                ProfilerServiceTypes.GetCapabilitiesResponse reply =
-                    ProfilerServiceTypes.GetCapabilitiesResponse.newBuilder().addCapabilities(pluginCapability)
-                        .setStatus(0).build();
+                ProfilerServiceTypes.GetCapabilitiesResponse reply = getGetCapabilitiesResponse();
                 responseObserver.onNext(reply);
                 responseObserver.onCompleted();
             }
@@ -179,43 +161,50 @@ public class DataPollerTest {
             @Override
             public void fetchData(ProfilerServiceTypes.FetchDataRequest request,
                 StreamObserver<ProfilerServiceTypes.FetchDataResponse> responseObserver) {
-                MemoryPluginResult.AppSummary sss =
-                    MemoryPluginResult.AppSummary.newBuilder().setJavaHeap(getIntData()).setNativeHeap(getIntData())
-                        .setCode(getIntData()).setStack(getIntData()).setGraphics(getIntData())
-                        .setPrivateOther(getIntData()).setSystem(0).build();
-                MemoryPluginResult.ProcessMemoryInfo processesInfoOne =
-                    MemoryPluginResult.ProcessMemoryInfo.newBuilder().setPid(31141)
-                        .setName("com.eg.and.AlipayGphone:push").setRssShmemKb(1).setMemsummary(sss).build();
-                MemoryPluginResult.ProcessMemoryInfo processesInfoTwo =
-                    MemoryPluginResult.ProcessMemoryInfo.newBuilder().setPid(31142).setName("com.eg.and.AlipayGphone")
-                        .setRssShmemKb(2222222).build();
-                MemoryPluginResult.ProcessMemoryInfo processesInfoThree =
-                    MemoryPluginResult.ProcessMemoryInfo.newBuilder().setPid(31144)
-                        .setName("com.hisunflytone.and:pushservice").setRssShmemKb(3333333).build();
-                MemoryPluginResult.MemoryData aaa =
-                    MemoryPluginResult.MemoryData.newBuilder().addProcessesinfo(processesInfoOne)
-                        .addProcessesinfo(processesInfoTwo).addProcessesinfo(processesInfoThree).build();
-                CommonTypes.ProfilerPluginData data =
-                    CommonTypes.ProfilerPluginData.newBuilder().setName("memory-plugin").setStatus(0)
-                        .setData(aaa.toByteString()).build();
-                ProfilerServiceTypes.FetchDataResponse fetchDataResponse =
-                    ProfilerServiceTypes.FetchDataResponse.newBuilder().setResponseId(123456789).setStatus(0)
-                        .setHasMore(false).addPluginData(data).build();
+                ProfilerServiceTypes.FetchDataResponse fetchDataResponse = getFetchDataResponse();
                 responseObserver.onNext(fetchDataResponse);
                 responseObserver.onCompleted();
             }
         };
-        ManagedChannel channel =
-            grpcCleanup.register(InProcessChannelBuilder.forName(serverName).directExecutor().build());
-        serviceRegistry.addService(getFeatureImpl);
-        SessionManager.getInstance();
-        ProfilerClient client = HiProfilerClient.getInstance().getProfilerClient("", 11007, channel);
-        long num = session.createSession(device, process, Constant.REALTIME_SCENE, jsonObject);
-        HashMap<String, AbstractDataStore> map = new HashMap();
-        map.put(MEMORY_PLUG, new MemoryTable());
-        DataPoller dataPoller = new DataPoller(num, 111, client, map);
-        dataPoller.run();
-        Assert.assertNotNull(dataPoller);
+        return getFeatureImpl;
+    }
+
+    private ProfilerServiceTypes.GetCapabilitiesResponse getGetCapabilitiesResponse() {
+        ProfilerServiceTypes.ProfilerPluginCapability pluginCapability =
+            ProfilerServiceTypes.ProfilerPluginCapability.newBuilder(
+                ProfilerServiceTypes.ProfilerPluginCapability.newBuilder()
+                    .setName("/data/local/tmp/libmemdataplugin.z.so")
+                    .setPath("/data/local/tmp/libmemdataplugin.z.so").build()).build();
+        ProfilerServiceTypes.GetCapabilitiesResponse reply =
+            ProfilerServiceTypes.GetCapabilitiesResponse.newBuilder().addCapabilities(pluginCapability)
+                .setStatus(0).build();
+        return reply;
+    }
+
+    private ProfilerServiceTypes.FetchDataResponse getFetchDataResponse() {
+        MemoryPluginResult.AppSummary sss =
+            MemoryPluginResult.AppSummary.newBuilder().setJavaHeap(getIntData()).setNativeHeap(getIntData())
+                .setCode(getIntData()).setStack(getIntData()).setGraphics(getIntData())
+                .setPrivateOther(getIntData()).setSystem(0).build();
+        MemoryPluginResult.ProcessMemoryInfo processesInfoOne =
+            MemoryPluginResult.ProcessMemoryInfo.newBuilder().setPid(31141)
+                .setName("com.eg.and.AlipayGphone:push").setRssShmemKb(1).setMemsummary(sss).build();
+        MemoryPluginResult.ProcessMemoryInfo processesInfoTwo =
+            MemoryPluginResult.ProcessMemoryInfo.newBuilder().setPid(31142).setName("com.eg.and.AlipayGphone")
+                .setRssShmemKb(2222222).build();
+        MemoryPluginResult.ProcessMemoryInfo processesInfoThree =
+            MemoryPluginResult.ProcessMemoryInfo.newBuilder().setPid(31144)
+                .setName("com.hisunflytone.and:pushservice").setRssShmemKb(3333333).build();
+        MemoryPluginResult.MemoryData aaa =
+            MemoryPluginResult.MemoryData.newBuilder().addProcessesinfo(processesInfoOne)
+                .addProcessesinfo(processesInfoTwo).addProcessesinfo(processesInfoThree).build();
+        CommonTypes.ProfilerPluginData data =
+            CommonTypes.ProfilerPluginData.newBuilder().setName("memory-plugin").setStatus(0)
+                .setData(aaa.toByteString()).build();
+        ProfilerServiceTypes.FetchDataResponse fetchDataResponse =
+            ProfilerServiceTypes.FetchDataResponse.newBuilder().setResponseId(123456789).setStatus(0)
+                .setHasMore(false).addPluginData(data).build();
+        return fetchDataResponse;
     }
 
     /**
@@ -230,5 +219,4 @@ public class DataPollerTest {
         }
         return requestId;
     }
-
 }

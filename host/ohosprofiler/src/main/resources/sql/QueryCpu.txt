@@ -1,0 +1,1 @@
+select cpu from cpu_counter_track where name='cpuidle' order by cpu;

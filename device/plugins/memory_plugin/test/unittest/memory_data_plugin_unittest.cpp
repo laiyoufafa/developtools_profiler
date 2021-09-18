@@ -1,4 +1,4 @@
-/*
+ /*
  * Copyright (c) 2021 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -132,53 +132,23 @@ void MyPrintfProcessMemoryInfo(MemoryData memoryData)
     }
 }
 
-bool PluginStub(std::vector<int> processList, MemoryDataPlugin& memoryPlugin, MemoryData& memoryData)
+void SetPluginProcessConfig(std::vector<int> processList, MemoryConfig& protoConfig)
 {
-    MemoryConfig protoConfig;
-    int configSize;
-    int ret;
-
-    // set config
     if (processList.size() != 0) {
+        // 具体进程
         protoConfig.set_report_process_mem_info(true);
         protoConfig.set_report_app_mem_info(true);
         for (size_t i = 0; i < processList.size(); i++) {
             protoConfig.add_pid(processList.at(i));
         }
     } else {
+        // 进程树
         protoConfig.set_report_process_tree(true);
     }
-
-    // serialize
-    configSize = protoConfig.ByteSizeLong();
-    std::vector<uint8_t> configData(configSize);
-    ret = protoConfig.SerializeToArray(configData.data(), configData.size());
-
-    // start
-    ret = memoryPlugin.Start(configData.data(), configData.size());
-    if (ret < 0) {
-        return false;
-    }
-    printf("ut: serialize success start plugin ret = %d\n", ret);
-
-    // report
-    std::vector<uint8_t> bufferData(BUF_SIZE);
-    ret = memoryPlugin.Report(bufferData.data(), bufferData.size());
-    if (ret > 0) {
-        memoryData.ParseFromArray(bufferData.data(), ret);
-        MyPrintfProcessMemoryInfo(memoryData);
-        return true;
-    }
-
-    return false;
 }
 
-bool pluginMeminfoStub(MemoryDataPlugin& memoryPlugin, MemoryData& memoryData)
+void SetPluginSysMemConfig(MemoryConfig &protoConfig)
 {
-    MemoryConfig protoConfig;
-    int configSize;
-    int ret;
-
     protoConfig.set_report_sysmem_mem_info(true);
 
     protoConfig.add_sys_meminfo_counters(SysMeminfoType::MEMINFO_MEM_TOTAL);
@@ -198,88 +168,34 @@ bool pluginMeminfoStub(MemoryDataPlugin& memoryPlugin, MemoryData& memoryData)
     protoConfig.add_sys_meminfo_counters(SysMeminfoType::MEMINFO_SWAP_TOTAL);
     protoConfig.add_sys_meminfo_counters(SysMeminfoType::MEMINFO_SWAP_FREE);
     protoConfig.add_sys_meminfo_counters(SysMeminfoType::MEMINFO_DIRTY);
-
-    // serialize
-    configSize = protoConfig.ByteSizeLong();
-    std::vector<uint8_t> configData(configSize);
-    ret = protoConfig.SerializeToArray(configData.data(), configData.size());
-
-    // start
-    ret = memoryPlugin.Start(configData.data(), configData.size());
-    if (ret < 0) {
-        return false;
-    }
-    printf("ut: serialize success start plugin ret = %d\n", ret);
-
-    // report
-    std::vector<uint8_t> bufferData(BUF_SIZE);
-    ret = memoryPlugin.Report(bufferData.data(), bufferData.size());
-    if (ret > 0) {
-        memoryData.ParseFromArray(bufferData.data(), ret);
-        return true;
-    }
-
-    return false;
 }
 
-bool pluginWriteVmstat(MemoryDataPlugin& memoryPlugin, MemoryData& memoryData)
+void SetPluginDumpsysConfig(MemoryConfig& protoConfig)
 {
-    MemoryConfig protoConfig;
-    int configSize;
-    int ret;
-
-    protoConfig.set_report_sysmem_vmem_info(true);
-
-    // serialize
-    configSize = protoConfig.ByteSizeLong();
-    std::vector<uint8_t> configData(configSize);
-    ret = protoConfig.SerializeToArray(configData.data(), configData.size());
-
-    // start
-    ret = memoryPlugin.Start(configData.data(), configData.size());
-    if (ret < 0) {
-        return false;
-    }
-    printf("ut: serialize success start plugin ret = %d\n", ret);
-
-    // report
-    std::vector<uint8_t> bufferData(BUF_SIZE);
-    ret = memoryPlugin.Report(bufferData.data(), bufferData.size());
-    if (ret > 0) {
-        memoryData.ParseFromArray(bufferData.data(), ret);
-        return true;
-    }
-
-    return false;
-}
-
-bool pluginDumpsys(MemoryDataPlugin& memoryPlugin, MemoryData& memoryData)
-{
-    MemoryConfig protoConfig;
-    int configSize;
-    int ret;
-
     protoConfig.set_report_process_mem_info(true);
     protoConfig.set_report_app_mem_info(true);
     protoConfig.add_pid(1);
     protoConfig.set_report_app_mem_by_dumpsys(true);
+}
 
+bool PluginStub(MemoryDataPlugin& memoryPlugin, MemoryConfig& protoConfig, MemoryData& memoryData)
+{
     // serialize
-    configSize = protoConfig.ByteSizeLong();
+    int configSize = protoConfig.ByteSizeLong();
     std::vector<uint8_t> configData(configSize);
-    ret = protoConfig.SerializeToArray(configData.data(), configData.size());
+    int ret = protoConfig.SerializeToArray(configData.data(), configData.size());
+    CHECK_TRUE(ret > 0, false, "PluginStub::SerializeToArray fail!!!");
 
     // start
     ret = memoryPlugin.Start(configData.data(), configData.size());
-    if (ret < 0) {
-        return false;
-    }
+    CHECK_TRUE(ret == 0, false, "PluginStub::start plugin fail!!!");
+
     printf("ut: serialize success start plugin ret = %d\n", ret);
 
     // report
     std::vector<uint8_t> bufferData(BUF_SIZE);
     ret = memoryPlugin.Report(bufferData.data(), bufferData.size());
-    if (ret > 0) {
+    if (ret >= 0) {
         memoryData.ParseFromArray(bufferData.data(), ret);
         return true;
     }
@@ -346,7 +262,7 @@ void MemoryDataPluginTest::SetUpTestCase()
  * @tc.desc: Test whether the path exists.
  * @tc.type: FUNC
  */
-HWTEST_F(MemoryDataPluginTest, Testpath, TestSize.Level1)
+HWTEST_F(MemoryDataPluginTest, TestUtpath, TestSize.Level1)
 {
     EXPECT_NE(g_path, "");
     printf("g_path:%s\n", g_path.c_str());
@@ -385,19 +301,62 @@ HWTEST_F(MemoryDataPluginTest, Testpluginformeminfo, TestSize.Level1)
 {
     MemoryDataPlugin memoryPlugin;
     MemoryData memoryData;
-    memoryPlugin.SetPath(const_cast<char*>(g_path.c_str()));
-    printf("Testpluginformeminfo:setPath=%s\n", g_path.c_str());
-    EXPECT_TRUE(pluginMeminfoStub(memoryPlugin, memoryData));
+    MemoryConfig protoConfig;
 
-    int index = memoryData.meminfo().size();
-    EXPECT_EQ(16, index);
-    printf("Testpluginformeminfo:index=%d\n", index);
+    SetPluginSysMemConfig(protoConfig);
+    EXPECT_TRUE(PluginStub(memoryPlugin, protoConfig, memoryData));
+
+    EXPECT_EQ(16, memoryData.meminfo().size());
+    int index = memoryData.processesinfo_size();
     for (int i = 0; i < index; ++i) {
         EXPECT_EQ(g_meminfo[i], memoryData.meminfo(i).value());
     }
-    printf("\n");
 
-    // stop
+    memoryPlugin.Stop();
+}
+
+/**
+ * @tc.name: memory plugin
+ * @tc.desc: pid list information test for process tree.
+ * @tc.type: FUNC
+ */
+HWTEST_F(MemoryDataPluginTest, Testpluginforlist, TestSize.Level1)
+{
+    MemoryDataPlugin memoryPlugin;
+    MemoryData memoryData;
+    MemoryConfig protoConfig;
+
+    std::vector<int> cmpPidList;
+    EXPECT_EQ((size_t)0, cmpPidList.size());
+
+    memoryPlugin.SetPath(const_cast<char*>(g_path.c_str()));
+    printf("Testpluginforlist:setPath=%s\n", g_path.c_str());
+
+    SetPluginProcessConfig(cmpPidList, protoConfig);
+    EXPECT_TRUE(PluginStub(memoryPlugin, protoConfig, memoryData));
+    MyPrintfProcessMemoryInfo(memoryData);
+
+    int index = memoryData.processesinfo_size();
+    EXPECT_EQ(3, index);
+    printf("Testpluginforlist:index=%d", index);
+    for (int i = 0; i < index; ++i) {
+        ProcessMemoryInfo it = memoryData.processesinfo(i);
+        EXPECT_EQ(g_pidtarget[i].pid, it.pid());
+        printf("%d:pid=%d\r\n", i, it.pid());
+        EXPECT_EQ(g_pidtarget[i].name, it.name());
+        EXPECT_EQ(g_pidtarget[i].vm_size_kb, it.vm_size_kb());
+        EXPECT_EQ(g_pidtarget[i].vm_rss_kb, it.vm_rss_kb());
+        EXPECT_EQ(g_pidtarget[i].rss_anon_kb, it.rss_anon_kb());
+        EXPECT_EQ(g_pidtarget[i].rss_file_kb, it.rss_file_kb());
+        EXPECT_EQ(g_pidtarget[i].rss_shmem_kb, it.rss_shmem_kb());
+        EXPECT_EQ(g_pidtarget[i].vm_locked_kb, it.vm_locked_kb());
+        EXPECT_EQ(g_pidtarget[i].vm_hwm_kb, it.vm_hwm_kb());
+
+        EXPECT_EQ(g_pidtarget[i].oom_score_adj, it.oom_score_adj());
+
+        EXPECT_FALSE(it.has_memsummary());
+    }
+
     memoryPlugin.Stop();
 }
 
@@ -410,11 +369,17 @@ HWTEST_F(MemoryDataPluginTest, Testpluginforsinglepid, TestSize.Level1)
 {
     MemoryDataPlugin memoryPlugin;
     MemoryData memoryData;
-    std::vector<int> pid;
-    pid.push_back(5);
+    MemoryConfig protoConfig;
+
+    std::vector<int> pid = {5};
+
     memoryPlugin.SetPath(const_cast<char*>(g_path.c_str()));
     printf("Testpluginforsinglepid:setPath=%s\n", g_path.c_str());
-    EXPECT_TRUE(PluginStub(pid, memoryPlugin, memoryData));
+
+    SetPluginProcessConfig(pid, protoConfig);
+    EXPECT_TRUE(PluginStub(memoryPlugin, protoConfig, memoryData));
+    MyPrintfProcessMemoryInfo(memoryData);
+
     int index = memoryData.processesinfo_size();
     EXPECT_EQ(1, index);
     printf("Testpluginforsinglepid:index=%d\n", index);
@@ -442,7 +407,6 @@ HWTEST_F(MemoryDataPluginTest, Testpluginforsinglepid, TestSize.Level1)
     EXPECT_EQ(g_singlepid.graphics, app.graphics());
     EXPECT_EQ(g_singlepid.private_other, app.private_other());
 
-    // stop
     memoryPlugin.Stop();
 }
 
@@ -453,13 +417,20 @@ HWTEST_F(MemoryDataPluginTest, Testpluginforsinglepid, TestSize.Level1)
  */
 HWTEST_F(MemoryDataPluginTest, Testpluginforpids, TestSize.Level1)
 {
-    std::vector<int> cmpPidList = g_expectPidList;
-    EXPECT_NE((size_t)0, cmpPidList.size());
     MemoryDataPlugin memoryPlugin;
     MemoryData memoryData;
+    MemoryConfig protoConfig;
+
+    std::vector<int> cmpPidList = g_expectPidList;
+    EXPECT_NE((size_t)0, cmpPidList.size());
+
     memoryPlugin.SetPath(const_cast<char*>(g_path.c_str()));
     printf("Testpluginforpids:setPath=%s\n", g_path.c_str());
-    EXPECT_TRUE(PluginStub(cmpPidList, memoryPlugin, memoryData));
+
+    SetPluginProcessConfig(cmpPidList, protoConfig);
+    EXPECT_TRUE(PluginStub(memoryPlugin, protoConfig, memoryData));
+    MyPrintfProcessMemoryInfo(memoryData);
+
     int index = memoryData.processesinfo_size();
     EXPECT_EQ(3, index);
     printf("Testpluginforpids:index=%d\n", index);
@@ -480,47 +451,7 @@ HWTEST_F(MemoryDataPluginTest, Testpluginforpids, TestSize.Level1)
 
         EXPECT_TRUE(it.has_memsummary());
     }
-    // stop
-    memoryPlugin.Stop();
-}
 
-/**
- * @tc.name: memory plugin
- * @tc.desc: pid list information test for process tree.
- * @tc.type: FUNC
- */
-HWTEST_F(MemoryDataPluginTest, Testpluginforlist, TestSize.Level1)
-{
-    std::vector<int> cmpPidList = g_expectPidList;
-    EXPECT_NE((size_t)0, cmpPidList.size());
-    MemoryDataPlugin memoryPlugin;
-    std::vector<int> pid;
-    MemoryData memoryData;
-    memoryPlugin.SetPath(const_cast<char*>(g_path.c_str()));
-    printf("Testpluginforlist:setPath=%s\n", g_path.c_str());
-    EXPECT_TRUE(PluginStub(pid, memoryPlugin, memoryData));
-    int index = memoryData.processesinfo_size();
-    EXPECT_EQ(3, index);
-    printf("Testpluginforlist:index=%d, pidsize=", index);
-    std::cout << pid.size() << std::endl;
-    for (int i = 0; i < index; ++i) {
-        ProcessMemoryInfo it = memoryData.processesinfo(i);
-        EXPECT_EQ(g_pidtarget[i].pid, it.pid());
-        printf("%d:pid=%d\r\n", i, it.pid());
-        EXPECT_EQ(g_pidtarget[i].name, it.name());
-        EXPECT_EQ(g_pidtarget[i].vm_size_kb, it.vm_size_kb());
-        EXPECT_EQ(g_pidtarget[i].vm_rss_kb, it.vm_rss_kb());
-        EXPECT_EQ(g_pidtarget[i].rss_anon_kb, it.rss_anon_kb());
-        EXPECT_EQ(g_pidtarget[i].rss_file_kb, it.rss_file_kb());
-        EXPECT_EQ(g_pidtarget[i].rss_shmem_kb, it.rss_shmem_kb());
-        EXPECT_EQ(g_pidtarget[i].vm_locked_kb, it.vm_locked_kb());
-        EXPECT_EQ(g_pidtarget[i].vm_hwm_kb, it.vm_hwm_kb());
-
-        EXPECT_EQ(g_pidtarget[i].oom_score_adj, it.oom_score_adj());
-
-        EXPECT_TRUE(!it.has_memsummary());
-    }
-    // stop
     memoryPlugin.Stop();
 }
 
@@ -552,10 +483,11 @@ HWTEST_F(MemoryDataPluginTest, TestpluginWriteVmstat, TestSize.Level1)
 {
     MemoryDataPlugin memoryPlugin;
     MemoryData memoryData;
-    memoryPlugin.SetPath(const_cast<char*>(g_path.c_str()));
-    printf("Testpluginformeminfo:setPath=%s\n", g_path.c_str());
-    EXPECT_FALSE(pluginWriteVmstat(memoryPlugin, memoryData));
-    // stop
+    MemoryConfig protoConfig;
+
+    protoConfig.set_report_sysmem_vmem_info(true);
+    EXPECT_TRUE(PluginStub(memoryPlugin, protoConfig, memoryData));
+
     memoryPlugin.Stop();
 }
 
@@ -568,12 +500,23 @@ HWTEST_F(MemoryDataPluginTest, TestpluginDumpsys, TestSize.Level1)
 {
     MemoryDataPlugin memoryPlugin;
     MemoryData memoryData;
-    memoryPlugin.SetPath(const_cast<char*>(g_path.c_str()));
-    printf("Testpluginformeminfo:setPath=%s\n", g_path.c_str());
-    EXPECT_TRUE(pluginDumpsys(memoryPlugin, memoryData));
+    MemoryConfig protoConfig;
+
+    SetPluginDumpsysConfig(protoConfig);
+    EXPECT_TRUE(PluginStub(memoryPlugin, protoConfig, memoryData));
     std::string line = "01234567890";
     memoryPlugin.ParseNumber(line);
-    // stop
+
+    ProcessMemoryInfo it = memoryData.processesinfo(0);
+    EXPECT_FALSE(it.has_memsummary());
+    AppSummary app = it.memsummary();
+    EXPECT_EQ((uint64_t)0, app.java_heap());
+    EXPECT_EQ((uint64_t)0, app.native_heap());
+    EXPECT_EQ((uint64_t)0, app.code());
+    EXPECT_EQ((uint64_t)0, app.stack());
+    EXPECT_EQ((uint64_t)0, app.graphics());
+    EXPECT_EQ((uint64_t)0, app.private_other());
+
     memoryPlugin.Stop();
 }
 } // namespace

@@ -19,11 +19,8 @@ import org.junit.Assert;
 import org.junit.Test;
 
 /**
- * 定时任务管理类
- *
- * @version 1.0
- * @date 2021/04/12 10:29
- **/
+ * Timed task management
+ */
 public class QuartzManagerTest {
     /**
      * functional testing getInstance

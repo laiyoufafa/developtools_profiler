@@ -17,24 +17,39 @@ package ohos.devtools.views.trace.fragment.graph;
 
 import ohos.devtools.views.trace.fragment.AbstractDataFragment;
 import ohos.devtools.views.trace.util.ImageUtils;
+import ohos.devtools.views.trace.util.Utils;
 
 import javax.swing.JComponent;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.event.MouseEvent;
+import java.util.Objects;
 
 /**
  * Data row collection button
  *
- * @version 1.0
  * @date 2021/04/22 12:25
- **/
+ */
 public class FavoriteGraph extends AbstractGraph {
     private boolean isFavorite;
     private boolean isDisplay;
     private Image img = ImageUtils.getInstance().getStar();
     private Image imgFill = ImageUtils.getInstance().getStarFill();
     private AbstractGraph rightGraph;
+    private IGraphListener listener;
+
+    /**
+     * structure
+     *
+     * @param fragment fragment fragment
+     * @param root     root root
+     * @param listener listener
+     */
+    public FavoriteGraph(final AbstractDataFragment fragment, final JComponent root, IGraphListener listener) {
+        this.fragment = fragment;
+        this.root = root;
+        this.listener = listener;
+    }
 
     /**
      * Gets the value of rightGraph .
@@ -53,17 +68,6 @@ public class FavoriteGraph extends AbstractGraph {
      */
     public void setRightGraph(final AbstractGraph rightGraph) {
         this.rightGraph = rightGraph;
-    }
-
-    /**
-     * structure
-     *
-     * @param fragment fragment fragment
-     * @param root root root
-     */
-    public FavoriteGraph(final AbstractDataFragment fragment, final JComponent root) {
-        this.fragment = fragment;
-        this.root = root;
     }
 
     /**
@@ -118,17 +122,19 @@ public class FavoriteGraph extends AbstractGraph {
         final int padding = 10;
         rect.width = size;
         rect.height = size;
-        rect.y = fragment.getRect().y + fragment.getRect().height / 2 - yOffset;
+        Utils.setY(rect, Utils.getY(fragment.getRect()) + fragment.getRect().height / 2 - yOffset);
         if (rightGraph == null) {
-            rect.x = fragment.getDescRect().width - xOffset;
+            Utils.setX(rect, fragment.getDescRect().width - xOffset);
         } else {
-            rect.x = fragment.getDescRect().width - xOffset - size - padding;
+            Utils.setX(rect, fragment.getDescRect().width - xOffset - size - padding);
         }
         if (isFavorite) {
-            graphics.drawImage(ImageUtils.getInstance().getStarFill(), rect.x, rect.y, rect.width, rect.height, null);
+            graphics.drawImage(ImageUtils.getInstance().getStarFill(), Utils.getX(rect), Utils.getY(rect), rect.width,
+                rect.height, null);
         } else {
             if (isDisplay) {
-                graphics.drawImage(ImageUtils.getInstance().getStar(), rect.x, rect.y, rect.width, rect.height, null);
+                graphics.drawImage(ImageUtils.getInstance().getStar(), Utils.getX(rect), Utils.getY(rect), rect.width,
+                    rect.height, null);
             }
         }
     }
@@ -158,6 +164,9 @@ public class FavoriteGraph extends AbstractGraph {
      */
     @Override
     public void onClick(final MouseEvent event) {
+        if (Objects.nonNull(listener)) {
+            listener.click(event);
+        }
     }
 
     /**
@@ -167,5 +176,36 @@ public class FavoriteGraph extends AbstractGraph {
      */
     @Override
     public void onMouseMove(final MouseEvent event) {
+    }
+
+    /**
+     * Gets the value of listener .
+     *
+     * @return the value of ohos.devtools.views.trace.fragment.graph.FavoriteGraph.IGraphListener
+     */
+    public IGraphListener getListener() {
+        return listener;
+    }
+
+    /**
+     * Sets the listener .
+     * <p>You can use getListener() to get the value of listener</p>
+     *
+     * @param listener listener
+     */
+    public void setListener(IGraphListener listener) {
+        this.listener = listener;
+    }
+
+    /**
+     * IGraphListener
+     */
+    public interface IGraphListener {
+        /**
+         * click
+         *
+         * @param event event
+         */
+        void click(MouseEvent event);
     }
 }

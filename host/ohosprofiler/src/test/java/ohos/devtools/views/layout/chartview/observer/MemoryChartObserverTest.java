@@ -20,21 +20,21 @@ import ohos.devtools.datasources.utils.profilerlog.ProfilerLogManager;
 import ohos.devtools.views.charts.model.ChartDataRange;
 import ohos.devtools.views.charts.model.ChartStandard;
 import ohos.devtools.views.common.LayoutConstants;
-import ohos.devtools.views.common.ProfilerMonitorItem;
+import ohos.devtools.views.layout.chartview.ProfilerMonitorItem;
 import ohos.devtools.views.layout.chartview.ProfilerChartsView;
 import ohos.devtools.views.layout.chartview.event.IChartEventObserver;
-import ohos.devtools.views.layout.swing.TaskScenePanelChart;
+import ohos.devtools.views.layout.chartview.TaskScenePanelChart;
+import ohos.devtools.views.layout.chartview.memory.MemoryItemView;
 import org.apache.logging.log4j.Level;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
 /**
  * MemoryChartObserver test
- *
- * @since 2021/3/31 20:03
  */
 public class MemoryChartObserverTest {
     private static final int TEST_START = 0;
@@ -59,9 +59,14 @@ public class MemoryChartObserverTest {
         DataBaseApi apo = DataBaseApi.getInstance();
         apo.initDataSourceManager();
         ProfilerChartsView view = new ProfilerChartsView(LayoutConstants.NUM_L, true, new TaskScenePanelChart());
-        view.addMonitorItemView(ProfilerMonitorItem.MEMORY);
-
-        List<IChartEventObserver> observers = view.getObserver().getListeners();
+        try {
+            ProfilerMonitorItem memoryItem = new ProfilerMonitorItem(2, "Memory", MemoryItemView.class);
+            view.addMonitorItemView(memoryItem);
+        } catch (InvocationTargetException | NoSuchMethodException | InstantiationException
+            | IllegalAccessException operationException) {
+            operationException.printStackTrace();
+        }
+        List<IChartEventObserver> observers = view.getPublisher().getObservers();
         for (IChartEventObserver event : observers) {
             if (event instanceof MemoryChartObserver) {
                 observer = (MemoryChartObserver) event;
@@ -80,11 +85,29 @@ public class MemoryChartObserverTest {
      * @tc.require: SR-001-AR-003
      */
     @Test
-    public void refreshStandardTest() {
+    public void refreshStandardTest01() {
         ChartStandard newStandard = new ChartStandard(0L);
         newStandard.setMaxDisplayMillis(TEST_DISPLAY);
         newStandard.setMinMarkInterval(TEST_MARK);
-        observer.refreshStandard(newStandard, TEST_START, TEST_END, TEST_DISPLAY);
+        observer.refreshStandard(TEST_START, TEST_END, TEST_DISPLAY, newStandard.getMinMarkInterval());
+        Assert.assertTrue(true);
+    }
+
+    /**
+     * functional test
+     *
+     * @tc.name: view chart
+     * @tc.number: OHOS_JAVA_views_MemoryChartObserver_init_0002
+     * @tc.desc: chart Memory test
+     * @tc.type: functional test
+     * @tc.require: SR-001-AR-003
+     */
+    @Test
+    public void refreshStandardTest02() {
+        ChartStandard newStandard = new ChartStandard(-1L);
+        newStandard.setMaxDisplayMillis(TEST_DISPLAY);
+        newStandard.setMinMarkInterval(TEST_MARK);
+        observer.refreshStandard(TEST_START, TEST_END, TEST_DISPLAY, newStandard.getMinMarkInterval());
         Assert.assertTrue(true);
     }
 

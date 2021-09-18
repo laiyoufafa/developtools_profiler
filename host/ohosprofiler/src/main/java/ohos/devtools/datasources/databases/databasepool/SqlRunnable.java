@@ -26,10 +26,7 @@ import java.sql.Statement;
 
 /**
  * sql carried out
- *
- * @version 1.0
- * @date 2021/02/05 14:10
- **/
+ */
 public class SqlRunnable {
     private static final Logger LOGGER = LogManager.getLogger(SqlRunnable.class);
 
@@ -37,7 +34,7 @@ public class SqlRunnable {
      * method
      *
      * @param conn Connection
-     * @param sql  sql
+     * @param sql sql
      * @return boolean
      */
     public boolean execute(Connection conn, String sql) {
@@ -58,7 +55,7 @@ public class SqlRunnable {
      * executeBatch
      *
      * @param conn Connection
-     * @param ste  Prepared Statement
+     * @param ste Prepared Statement
      * @return boolean
      */
     public boolean executeBatch(Connection conn, PreparedStatement ste) {
@@ -83,7 +80,7 @@ public class SqlRunnable {
      * executeQuery
      *
      * @param stmt Statement
-     * @param sql  sql
+     * @param sql sql
      * @return ResultSet
      */
     public ResultSet executeQuery(Statement stmt, String sql) {
@@ -126,7 +123,7 @@ public class SqlRunnable {
     /**
      * close
      *
-     * @param st  Statement
+     * @param st Statement
      * @param con Connection
      */
     public void close(Statement st, Connection con) {
@@ -136,7 +133,7 @@ public class SqlRunnable {
     /**
      * close
      *
-     * @param rs  Result set
+     * @param rs Result set
      * @param con Connection
      */
     public void close(ResultSet rs, Connection con) {
@@ -146,8 +143,8 @@ public class SqlRunnable {
     /**
      * close
      *
-     * @param st  Statement
-     * @param rs  Result set
+     * @param st Statement
+     * @param rs Result set
      * @param con Connection
      */
     public void close(Statement st, ResultSet rs, Connection con) {

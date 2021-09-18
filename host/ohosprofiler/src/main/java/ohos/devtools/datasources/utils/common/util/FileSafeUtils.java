@@ -30,10 +30,7 @@ import java.util.Map;
 
 /**
  * file SHA-256
- *
- * @version 1.0
- * @date 2021/2/5 15:36
- **/
+ */
 public final class FileSafeUtils {
     /**
      * Gets a logger instance.

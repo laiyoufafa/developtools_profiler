@@ -17,18 +17,24 @@ package ohos.devtools.views.trace.util;
 
 import org.apache.commons.collections.map.HashedMap;
 
+import java.awt.Point;
 import java.awt.Rectangle;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.text.DecimalFormat;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Tools
  *
- * @version 1.0
  * @date 2021/04/22 12:25
- **/
+ */
 public final class Utils {
     private static Map<String, String> statusMap = new HashedMap();
     private static Utils instance;
+    private static ExecutorService pool = Executors.newFixedThreadPool(8);
 
     private Utils() {
         statusMap.put("D", "Uninterruptible Sleep");
@@ -46,15 +52,6 @@ public final class Utils {
         statusMap.put("W", "Waking");
         statusMap.put("P", "Parked");
         statusMap.put("N", "No Load");
-    }
-
-    /**
-     * Gets the value of statusMap .
-     *
-     * @return Get state collection
-     */
-    public Map<String, String> getStatusMap() {
-        return statusMap;
     }
 
     /**
@@ -81,7 +78,25 @@ public final class Utils {
         if (rect == null) {
             return false;
         }
-        return xAxis >= rect.x && xAxis <= rect.x + rect.width && yAxis >= rect.y && yAxis < rect.y + rect.height;
+        return xAxis >= Utils.getX(rect) && xAxis <= Utils.getX(rect) + rect.width && yAxis >= Utils.getY(rect)
+            && yAxis < Utils.getY(rect) + rect.height;
+    }
+
+    /**
+     * Calculate whether it is within the range of Rectangle according to the x and y coordinates
+     *
+     * @param rect  rect
+     * @param point event point
+     * @return boolean
+     */
+    public static boolean pointInRect(final Rectangle rect, final Point point) {
+        if (rect == null || point == null) {
+            return false;
+        }
+        int xAxis = Utils.getX(point);
+        int yAxis = Utils.getY(point);
+        return xAxis >= Utils.getX(rect) && xAxis <= Utils.getX(rect) + rect.width && yAxis >= Utils.getY(rect)
+            && yAxis < Utils.getY(rect) + rect.height;
     }
 
     /**
@@ -94,7 +109,166 @@ public final class Utils {
         if (Utils.getInstance().getStatusMap().containsKey(state)) {
             return Utils.getInstance().getStatusMap().get(state);
         } else {
+            if ("".equals(state) || state == null) {
+                return "";
+            }
             return "Unknown State";
         }
+    }
+
+    /**
+     * transform time unit ns to ms
+     *
+     * @param data time
+     * @return String
+     */
+    public static String transformTimeToMs(Number data) {
+        double ms;
+        if (data instanceof Long) {
+            ms = (Long) data / 1000000.0;
+        } else if (data instanceof Double) {
+            ms = (Double) data / 1000000.0;
+        } else {
+            ms = 0.0;
+        }
+        return new DecimalFormat("#.#######").format(ms);
+    }
+
+    /**
+     * transform str to md5
+     *
+     * @param str str
+     * @return String str to md5 string
+     */
+    public static String md5String(String str) {
+        String result = "";
+        try {
+            MessageDigest md5 = MessageDigest.getInstance("MD5");
+            byte[] digest = md5.digest(str.getBytes());
+            StringBuilder builder = new StringBuilder();
+            for (byte val : digest) {
+                builder.append(Integer.toHexString((0x000000FF & val) | 0xFFFFFF00).substring(6));
+            }
+            result = builder.toString();
+        } catch (NoSuchAlgorithmException exception) {
+            exception.printStackTrace();
+        }
+        return result;
+    }
+
+    /**
+     * get the db pool
+     *
+     * @return ExecutorService db pool
+     */
+    public static ExecutorService getPool() {
+        return pool;
+    }
+
+    /**
+     * reset the db pool
+     */
+    public static void resetPool() {
+        pool.shutdownNow();
+        pool = Executors.newFixedThreadPool(8);
+    }
+
+    /**
+     * reset the db pool
+     *
+     * @param num pool size
+     */
+    public static void resetPool(int num) {
+        pool.shutdownNow();
+        pool = Executors.newFixedThreadPool(num);
+    }
+
+    /**
+     * get rectangle x
+     *
+     * @param rectangle rectangle
+     * @return rectangleX
+     */
+    public static int getX(Rectangle rectangle) {
+        return rectangle.x;
+    }
+
+    /**
+     * get point x
+     *
+     * @param point point
+     * @return pointX
+     */
+    public static int getX(Point point) {
+        return point.x;
+    }
+
+    /**
+     * set rectangle x
+     *
+     * @param rectangle rectangle
+     * @param xVal      xVal
+     */
+    public static void setX(Rectangle rectangle, int xVal) {
+        rectangle.x = xVal;
+    }
+
+    /**
+     * set point x
+     *
+     * @param point rectangle
+     * @param xVal  xVal
+     */
+    public static void setX(Point point, int xVal) {
+        point.x = xVal;
+    }
+
+    /**
+     * set rectangle y
+     *
+     * @param rectangle rectangle
+     * @param yVal      yVal
+     */
+    public static void setY(Rectangle rectangle, int yVal) {
+        rectangle.y = yVal;
+    }
+
+    /**
+     * set point y
+     *
+     * @param point point
+     * @param yVal  yVal
+     */
+    public static void setY(Point point, int yVal) {
+        point.y = yVal;
+    }
+
+    /**
+     * get rectangle y
+     *
+     * @param rectangle rectangle
+     * @return rectangleY
+     */
+    public static int getY(Rectangle rectangle) {
+        return rectangle.y;
+    }
+
+    /**
+     * get point y
+     *
+     * @param point point
+     * @return rectangleY
+     */
+    public static int getY(Point point) {
+        return point.y;
+    }
+
+    /**
+     * Gets the value of statusMap .
+     *
+     * @return Get state collection
+     */
+    public Map<String, String> getStatusMap() {
+        return statusMap;
     }
 }

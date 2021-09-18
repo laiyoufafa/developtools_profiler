@@ -15,8 +15,11 @@
 
 package ohos.devtools.views.charts.model;
 
-import static ohos.devtools.views.common.ViewConstants.DEFAULT_MAX_MILLIS;
-import static ohos.devtools.views.common.ViewConstants.DEFAULT_TIME_UNIT;
+import java.util.HashMap;
+import java.util.Map;
+
+import static ohos.devtools.views.charts.utils.ChartConstants.DEFAULT_MAX_MILLIS;
+import static ohos.devtools.views.charts.utils.ChartConstants.DEFAULT_TIME_UNIT;
 
 /**
  * Chart绘制标准，用于统一Timeline和Chart
@@ -25,14 +28,16 @@ import static ohos.devtools.views.common.ViewConstants.DEFAULT_TIME_UNIT;
  */
 public class ChartStandard {
     /**
-     * sizeTime
-     */
-    public static int sizeTime;
-
-    /**
      * sessionId
      */
     private final long sessionId;
+
+    /**
+     * 用户框选时间范围的集合
+     *
+     * @see "Key: 区别各个Chart的key, value: 框选的时间范围"
+     */
+    private final Map<String, ChartDataRange> selectedRangeMap = new HashMap<>();
 
     /**
      * 窗体上可以展示的最大毫秒数，单位为毫秒
@@ -60,11 +65,6 @@ public class ChartStandard {
     private ChartDataRange displayRange;
 
     /**
-     * 用户框选的时间范围
-     */
-    private ChartDataRange selectedRange;
-
-    /**
      * 构造函数
      *
      * @param sessionId sessionId
@@ -73,15 +73,6 @@ public class ChartStandard {
         this.sessionId = sessionId;
         maxDisplayMillis = DEFAULT_MAX_MILLIS;
         minMarkInterval = DEFAULT_TIME_UNIT;
-    }
-
-    /**
-     * 修改Chart展示的时间刻度间隔长度
-     *
-     * @param sizeTimed 时间刻度间隔
-     */
-    public void updateSizeTime(int sizeTimed) {
-        sizeTime = sizeTimed;
     }
 
     /**
@@ -99,34 +90,59 @@ public class ChartStandard {
     }
 
     /**
+     * 根据Key获取对应的框选时间范围
+     *
+     * @param key 区别各个Chart的key
+     * @return ChartDataRange
+     */
+    public ChartDataRange getSelectedRange(String key) {
+        return selectedRangeMap.get(key);
+    }
+
+    /**
      * 更新用户框选的起始时间和坐标点
      *
+     * @param key       区别各个Chart的key
      * @param startTime 用户新框选的时间范围
      */
-    public void updateSelectedStart(int startTime) {
-        if (selectedRange == null) {
-            selectedRange = new ChartDataRange();
+    public void updateSelectedStart(String key, int startTime) {
+        ChartDataRange range = selectedRangeMap.get(key);
+        if (range == null) {
+            range = new ChartDataRange();
+            selectedRangeMap.put(key, range);
         }
-        selectedRange.setStartTime(startTime);
+        range.setStartTime(startTime);
     }
 
     /**
      * 更新用户框选的起始时间和坐标点
      *
+     * @param key     区别各个Chart的key
      * @param endTime 用户新框选的时间范围
      */
-    public void updateSelectedEnd(int endTime) {
-        if (selectedRange == null) {
-            selectedRange = new ChartDataRange();
+    public void updateSelectedEnd(String key, int endTime) {
+        ChartDataRange range = selectedRangeMap.get(key);
+        if (range == null) {
+            range = new ChartDataRange();
+            selectedRangeMap.put(key, range);
         }
-        selectedRange.setEndTime(endTime);
+        range.setEndTime(endTime);
     }
 
     /**
-     * 清空框选的时间范围
+     * 清空所有Chart的框选时间范围
      */
-    public void clearSelectedRange() {
-        selectedRange = null;
+    public void clearAllSelectedRanges() {
+        selectedRangeMap.clear();
+    }
+
+    /**
+     * 清空指定Chart的框选时间范围
+     *
+     * @param key 区别各个Chart的key
+     */
+    public void clearSelectedRange(String key) {
+        selectedRangeMap.remove(key);
     }
 
     public long getSessionId() {
@@ -167,9 +183,5 @@ public class ChartStandard {
 
     public ChartDataRange getDisplayRange() {
         return displayRange;
-    }
-
-    public ChartDataRange getSelectedRange() {
-        return selectedRange;
     }
 }

@@ -22,8 +22,6 @@ import java.math.BigDecimal;
 
 /**
  * Test class of Chart-related tool classes
- *
- * @since 2021/3/31 16:27
  */
 public class ChartUtilsTest {
     private static final int[] TEST_ARRAY = {0, 10, 14, 24, 29, 32, 37, 40, 45};

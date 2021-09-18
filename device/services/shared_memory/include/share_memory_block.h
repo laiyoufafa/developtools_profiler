@@ -18,61 +18,69 @@
 
 #include "google/protobuf/message.h"
 #include <cstdint>
-
-#define SHARE_MEMORY_HEAD_SIZE 64
-
-struct ShareMemoryStruct {
-    struct alignas(SHARE_MEMORY_HEAD_SIZE) {
-        uint32_t writeOffset;
-        uint32_t readOffset;
-        uint32_t memorySize_;
-    } head;
-    int8_t data[0];
-};
+#include <functional>
 
 class ShareMemoryBlock {
 public:
-    ShareMemoryBlock();
-    ~ShareMemoryBlock() {}
+    ShareMemoryBlock(const std::string& name, uint32_t size);
+    ShareMemoryBlock(const std::string& name, uint32_t size, int fd);
+    ~ShareMemoryBlock();
 
-    bool CreateBlock(std::string name, uint32_t size);
-    bool ReleaseBlock();
-    bool CreateBlockByFd(std::string name, uint32_t size, int fd);
-    bool ReleaseBlockRemote();
-
-    int8_t* GetFreeMemory(uint32_t size);
-    bool UseFreeMemory(int8_t* pmem, uint32_t size);
     bool PutRaw(const int8_t* data, uint32_t size);
-    bool PutProtobuf(google::protobuf::Message& pmsg);
+    bool PutMessage(const google::protobuf::Message& pmsg);
 
-    uint32_t GetDataSize();
-    const int8_t* GetDataPoint();
-    bool Next();
+    using DataHandler = std::function<bool(const int8_t*, uint32_t)>;
+    bool TakeData(const DataHandler& func);
 
     std::string GetName();
     uint32_t GetSize();
     int GetfileDescriptor();
 
-    enum DropType {
-        DROP_OLD,  // buffer满时，丢弃最老的数据
+    bool Valid() const;
+
+    enum ReusePolicy {
         DROP_NONE, // buffer满时，不丢弃老数据，不放入新数据
+        DROP_OLD,  // buffer满时，丢弃最老的数据
     };
-    void SetDropType(enum DropType dt)
+    void SetReusePolicy(enum ReusePolicy dt)
     {
-        dropType_ = dt;
+        reusePloicy_ = dt;
     }
 
 private:
+    int8_t* GetFreeMemory(uint32_t size);
+    bool UseFreeMemory(int8_t* pmem, uint32_t size);
+
+    uint32_t GetDataSize();
+    const int8_t* GetDataPoint();
+    bool Next();
+
+    struct BlockHeader {
+        struct alignas(sizeof(uintptr_t)) {
+            uint32_t writeOffset_;
+            uint32_t readOffset_;
+            uint32_t memorySize_;
+            pthread_mutex_t mutex_;
+            uint32_t bytesCount_;
+            uint32_t chunkCount_;
+        } info;
+        int8_t data[0];
+    };
+
+    ShareMemoryBlock();
     int8_t* GetCurrentFreeMemory(uint32_t size);
 
-    std::string memoryName_;
-    uint32_t memorySize_;
+    bool CreateBlock(std::string name, uint32_t size);
+    bool CreateBlockWithFd(std::string name, uint32_t size, int fd);
+    bool ReleaseBlock();
+
     int fileDescriptor_;
-
     void* memoryPoint_;
-    struct ShareMemoryStruct* pMemory_;
+    uint32_t memorySize_;
+    std::string memoryName_;
 
-    DropType dropType_;
+    BlockHeader* header_;
+    ReusePolicy reusePloicy_;
 };
 
 #endif

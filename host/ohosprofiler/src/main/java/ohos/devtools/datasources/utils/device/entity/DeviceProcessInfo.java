@@ -19,10 +19,7 @@ import java.io.Serializable;
 
 /**
  * Equipment process
- *
- * @version 1.0
- * @date 2021/2/2 19:02
- **/
+ */
 public class DeviceProcessInfo implements Serializable {
     private static final long serialVersionUID = -3815785606619485252L;
     private String deviceName;

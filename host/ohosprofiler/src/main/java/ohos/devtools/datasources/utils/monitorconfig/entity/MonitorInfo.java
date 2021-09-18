@@ -19,10 +19,7 @@ import java.util.Objects;
 
 /**
  * MonitorInfo
- *
- * @version 1.0
- * @date 2021/2/19 14:53
- **/
+ */
 public final class MonitorInfo {
     private long localSessionId;
     private String monitorType;

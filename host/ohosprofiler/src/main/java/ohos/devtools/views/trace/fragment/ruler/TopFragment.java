@@ -16,6 +16,7 @@
 package ohos.devtools.views.trace.fragment.ruler;
 
 import ohos.devtools.views.trace.util.TimeUtils;
+import ohos.devtools.views.trace.util.Utils;
 
 import javax.swing.JComponent;
 import java.awt.AlphaComposite;
@@ -24,13 +25,11 @@ import java.awt.Graphics2D;
 
 import static ohos.devtools.views.trace.component.AnalystPanel.DURATION;
 
-
 /**
  * Time axis scale
  *
- * @version 1.0
  * @date 2021/4/22 12:25
- **/
+ */
 public class TopFragment extends AbstractFragment {
     private final Font smallFont = new Font("宋体", Font.ITALIC, 10);
 
@@ -53,7 +52,7 @@ public class TopFragment extends AbstractFragment {
      */
     @Override
     public void draw(final Graphics2D graphics) {
-        int width = getRoot().getWidth() - getRect().x;
+        int width = getRoot().getWidth() - Utils.getX(getRect());
         final int height = 18;
         final double sq = 10.00; // 10 equal parts
         double wid = width / sq;
@@ -63,12 +62,12 @@ public class TopFragment extends AbstractFragment {
         final AlphaComposite alpha50 = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, .5f);
         graphics.setComposite(alpha50);
         int yAxis = 0;
-        graphics.drawLine(getRect().x, yAxis, getRect().x + width, yAxis);
+        graphics.drawLine(Utils.getX(getRect()), yAxis, Utils.getX(getRect()) + width, yAxis);
         final int num = 10;
         long second = DURATION / num;
         final AlphaComposite alpha100 = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1f);
         for (int index = 0; index <= num; index++) {
-            int tx = (int) (index * wid) + getRect().x;
+            int tx = (int) (index * wid) + Utils.getX(getRect());
             graphics.setColor(getRoot().getForeground());
             graphics.setComposite(alpha50);
             graphics.drawLine(tx, yAxis, tx, height);

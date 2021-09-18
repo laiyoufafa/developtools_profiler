@@ -25,9 +25,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 /**
  * test ScrollTablePanel class .
  *
- * @version 1.0
  * @date 2021/4/24 18:03
- **/
+ */
 class ScrollTablePanelTest {
     /**
      * test set the ColumnsAndData .

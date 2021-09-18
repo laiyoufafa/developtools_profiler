@@ -15,119 +15,115 @@
 
 package ohos.devtools.views.trace.component;
 
-import ohos.devtools.views.trace.bean.CpuData;
-import ohos.devtools.views.trace.bean.CpuFreqData;
-import ohos.devtools.views.trace.bean.FlagBean;
-import ohos.devtools.views.trace.bean.FunctionBean;
-import ohos.devtools.views.trace.bean.ProcessMem;
-import ohos.devtools.views.trace.bean.ThreadData;
-import ohos.devtools.views.trace.util.Db;
+import com.intellij.openapi.wm.IdeGlassPane;
+import com.intellij.openapi.wm.impl.IdeGlassPaneImpl;
+import ohos.devtools.Config;
+import org.fest.swing.fixture.FrameFixture;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import java.awt.AWTException;
+import java.awt.Dimension;
+import java.awt.MouseInfo;
+import java.awt.Point;
+import java.awt.Robot;
+import java.awt.event.InputEvent;
 
 /**
  * test AnalystPanel class
  *
- * @version 1.0
  * @date 2021/4/24 18:05
- **/
+ */
 class AnalystPanelTest {
-    /**
-     * test init setUp .
-     */
+    private FrameFixture frame;
+    private AnalystPanel distributedPanel;
+    private JFrame jFrame;
+    private Robot robot;
+
     @BeforeEach
     void setUp() {
-        Db.getInstance();
-        Db.setDbName("trace.db");
-        Db.load(false);
+        jFrame = new JFrame();
+        try {
+            robot = new Robot();
+            IdeGlassPane ideGlassPane = new IdeGlassPaneImpl(jFrame.getRootPane());
+            jFrame.getRootPane().setGlassPane((JPanel) ideGlassPane);
+        } catch (AWTException e) {
+            e.printStackTrace();
+        }
+        distributedPanel = new AnalystPanel();
+        jFrame.add(distributedPanel);
+        frame = new FrameFixture(jFrame);
+        // Display the frame
+        frame.show(new Dimension(1920, 1080));
+        frame.moveTo(new Point(0, 0));
+        distributedPanel.load(Config.TRACE_SYS, true);
     }
 
-    /**
-     * test add the CpuList .
-     */
-    @Test
-    void addCpuList() {
-        AnalystPanel analystPanel = new AnalystPanel();
-        ArrayList<List<CpuData>> lists = new ArrayList<>();
-        analystPanel.addCpuList(lists);
-        assertEquals(lists, AnalystPanel.cpuList);
+    @AfterEach
+    void tearDown() {
+        frame.cleanUp();
     }
 
-    /**
-     * test add the ThreadsList .
-     */
     @Test
-    void addThreadsList() {
-        AnalystPanel analystPanel = new AnalystPanel();
-        List<ThreadData> lists = new ArrayList<>();
-        List<ProcessMem> processMem = new ArrayList<>();
-        analystPanel.addThreadsList(lists, processMem);
-        assertEquals(lists, AnalystPanel.threadsList);
+    void load() {
+        delay(10000);
+        select(600, 110, 610, 110);
+        mouseClick(557, 171);//小旗帜
+        mouseClick(560, 172);//点击小旗帜
+        select(557, 212, 600, 212);//选择cpu区域
+        mouseClick(557, 212);//点击cpu切片
+        mouseClick(549, 572);//点击clock 节点
+        wheel(-600);
+        mouseClick(13, 371);
+        wheel(-200);
+        delay();
+        mouseClick(620, 272);
+        mouseClick(612, 314);
+        select(520, 253, 668, 555);
+        delay();
     }
 
-    /**
-     * test add the CpuFreqList .
-     */
-    @Test
-    void addCpuFreqList() {
-        AnalystPanel analystPanel = new AnalystPanel();
-        ArrayList<List<CpuFreqData>> lists = new ArrayList<>();
-        Map<String, Object> cpuMaxFreq = new HashMap<>();
-        analystPanel.addCpuFreqList(lists, cpuMaxFreq);
-        assertEquals(lists, AnalystPanel.cpuFreqList);
+    private void mouseClick(int x, int y) {
+        robot.delay(2000);
+        robot.mouseMove(x, y);
+        robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
+        robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
     }
 
-    /**
-     * test add the ThreadsList .
-     */
-    @Test
-    void clickFunctionData() {
-        FunctionBean functionBean = new FunctionBean();
-        functionBean.setSelected(false);
-        functionBean.setCategory("cate");
-        functionBean.setDepth(1);
-        functionBean.setFunName("functionBean");
-        functionBean.setTid(1);
-        functionBean.setDepth(1);
-        functionBean.setTrackId(1);
-        AnalystPanel analystPanel = new AnalystPanel();
-        analystPanel.clickFunctionData(functionBean);
+    private void keyClick(int keyEvent) {
+        robot.delay(2000);
+        robot.keyPress(keyEvent);
+        robot.keyRelease(keyEvent);
     }
 
-    /**
-     * test function clickThreadData .
-     */
-    @Test
-    void clickThreadData() {
-        AnalystPanel analystPanel = new AnalystPanel();
-        analystPanel.clickThreadData(new ThreadData());
-        assertEquals(10_000_000_000L, AnalystPanel.DURATION);
+    private void select(int x1, int y1, int x2, int y2) {
+        robot.delay(2000);
+        robot.mouseMove(x1, y1);
+        robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
+        robot.mouseMove(x2, y2);
+        robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
     }
 
-    /**
-     * test function clickCpuData .
-     */
-    @Test
-    void clickCpuData() {
-        AnalystPanel analystPanel = new AnalystPanel();
-        analystPanel.clickCpuData(new CpuData());
-        assertEquals(10_000_000_000L, AnalystPanel.DURATION);
+    private void wheel(int wheelAmt) {
+        robot.delay(1000);
+        robot.mouseWheel(wheelAmt);
     }
 
-    /**
-     * test function clickTimeFlag .
-     */
-    @Test
-    void clickTimeFlag() {
-        AnalystPanel analystPanel = new AnalystPanel();
-        analystPanel.clickTimeFlag(new FlagBean());
-        assertEquals(10_000_000_000L, AnalystPanel.DURATION);
+    private void delay() {
+        robot.delay(2000);
+    }
+
+    private void delay(int time) {
+        robot.delay(time);
+    }
+
+    private void inspect() {
+        while (true) {
+            Point location = MouseInfo.getPointerInfo().getLocation();
+            robot.delay(1000);
+        }
     }
 }

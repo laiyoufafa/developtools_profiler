@@ -15,6 +15,7 @@
 #ifndef RESULT_DEMUXER_H
 #define RESULT_DEMUXER_H
 
+#include <chrono>
 #include <thread>
 
 #include "logging.h"
@@ -31,6 +32,8 @@ public:
 
     void SetTraceWriter(const TraceFileWriterPtr& traceWriter);
 
+    void SetFlushInterval(std::chrono::milliseconds interval);
+
     bool StartTakeResults();
 
     bool StopTakeResults();
@@ -41,7 +44,9 @@ private:
 private:
     TraceFileWriterPtr traceWriter_ = nullptr;
     ProfilerDataRepeaterPtr dataRepeater_ = nullptr;
-    std::thread demuxerThread_;
+    std::chrono::milliseconds flushInterval_ {};
+    std::chrono::steady_clock::time_point lastFlushTime_ {};
+    std::thread demuxerThread_ {};
 
     DISALLOW_COPY_AND_MOVE(ResultDemuxer);
 };

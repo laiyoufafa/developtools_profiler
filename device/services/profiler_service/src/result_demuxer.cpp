@@ -17,21 +17,25 @@
 #include <unistd.h>
 #include "logging.h"
 
-#define CHECK_POINTER_NOTNULL(ptr)                        \
-    if (ptr == nullptr) {                                 \
+#define CHECK_POINTER_NOTNULL(ptr)                                       \
+    if (ptr == nullptr) {                                                \
         HILOG_WARN(LOG_CORE, "%s: FAILED, %s is null!", __func__, #ptr); \
-        return false;                                     \
+        return false;                                                    \
     }
 
-#define CHECK_THREAD_ID_VALID(t)                           \
-    if (t.get_id() == std::thread::id()) {                 \
+#define CHECK_THREAD_ID_VALID(t)                                          \
+    if (t.get_id() == std::thread::id()) {                                \
         HILOG_WARN(LOG_CORE, "%s: FAILED, %s id invalid!", __func__, #t); \
-        return false;                                      \
+        return false;                                                     \
     }
+
+namespace {
+constexpr auto DEFAULT_FLUSH_INTERVAL = std::chrono::milliseconds(1000);
+} // namespace
 
 ResultDemuxer::ResultDemuxer(const ProfilerDataRepeaterPtr& dataRepeater)
+    : dataRepeater_(dataRepeater), flushInterval_(DEFAULT_FLUSH_INTERVAL)
 {
-    dataRepeater_ = dataRepeater;
 }
 
 ResultDemuxer::~ResultDemuxer()
@@ -47,6 +51,11 @@ ResultDemuxer::~ResultDemuxer()
 void ResultDemuxer::SetTraceWriter(const TraceFileWriterPtr& traceWriter)
 {
     traceWriter_ = traceWriter;
+}
+
+void ResultDemuxer::SetFlushInterval(std::chrono::milliseconds interval)
+{
+    flushInterval_ = interval;
 }
 
 bool ResultDemuxer::StartTakeResults()
@@ -65,6 +74,10 @@ bool ResultDemuxer::StopTakeResults()
     CHECK_POINTER_NOTNULL(dataRepeater_);
     CHECK_THREAD_ID_VALID(demuxerThread_);
 
+    if (traceWriter_) {
+        traceWriter_->Flush();
+    }
+
     dataRepeater_->PutPluginData(nullptr);
     if (demuxerThread_.joinable()) {
         demuxerThread_.join();
@@ -79,6 +92,7 @@ void ResultDemuxer::TakeResults()
     }
 
     HILOG_INFO(LOG_CORE, "TakeResults thread %d, start!", gettid());
+    lastFlushTime_ = std::chrono::steady_clock::now();
     while (1) {
         auto pluginData = dataRepeater_->TakePluginData();
         if (!pluginData) {
@@ -87,9 +101,17 @@ void ResultDemuxer::TakeResults()
 
         if (traceWriter_) {
             traceWriter_->Write(*pluginData);
+            auto currentTime = std::chrono::steady_clock::now();
+            auto elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(currentTime - lastFlushTime_);
+            if (elapsedTime >= flushInterval_) {
+                traceWriter_->Flush();
+                lastFlushTime_ = currentTime;
+            }
         } else {
             HILOG_WARN(LOG_CORE, "no writer, drop data!");
         }
     }
+    traceWriter_->Flush();
+    traceWriter_->Finish();
     HILOG_INFO(LOG_CORE, "TakeResults thread %d, exit!", gettid());
 }

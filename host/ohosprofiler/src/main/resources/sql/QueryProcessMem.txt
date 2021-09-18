@@ -1,0 +1,7 @@
+select process_counter_track.id   as trackId,
+       process_counter_track.name as trackName,
+       upid,
+       process.pid,
+       process.name               as processName
+from process_counter_track join process using (upid)
+order by trackName;

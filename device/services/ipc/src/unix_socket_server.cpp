@@ -45,34 +45,25 @@ UnixSocketServer::~UnixSocketServer()
     }
 }
 
-void* UnixSocketServer::UnixSocketAccept(void* p)
+void UnixSocketServer::UnixSocketAccept()
 {
-    if (p == nullptr) {
-        return nullptr;
-    }
     pthread_setname_np(pthread_self(), "UnixSocketAccept");
 
-    UnixSocketServer* puss = (UnixSocketServer*)p;
-    if (puss == nullptr) {
-        return nullptr;
-    }
-    CHECK_TRUE(puss->socketHandle_ != -1, nullptr, "Unix Socket Accept socketHandle_ == -1");
+    CHECK_TRUE(socketHandle_ != -1, NO_RETVAL, "Unix Socket Accept socketHandle_ == -1");
     int epfd = epoll_create(1);
     struct epoll_event evt;
-    evt.data.fd = puss->socketHandle_;
+    evt.data.fd = socketHandle_;
     evt.events = EPOLLIN | EPOLLET;
-    CHECK_TRUE(epoll_ctl(epfd, EPOLL_CTL_ADD, puss->socketHandle_, &evt) != -1, nullptr, "Unix Socket Server Exit");
-    int nfds;
-    while (puss->socketHandle_ != -1) {
-        nfds = epoll_wait(epfd, &evt, 1, 1000); // timeout value set 1000.
+    CHECK_TRUE(epoll_ctl(epfd, EPOLL_CTL_ADD, socketHandle_, &evt) != -1, NO_RETVAL, "Unix Socket Server Exit");
+    while (socketHandle_ != -1) {
+        int nfds = epoll_wait(epfd, &evt, 1, 1000); // timeout value set 1000.
         if (nfds > 0) {
-            int clientSocket = accept(puss->socketHandle_, nullptr, nullptr);
+            int clientSocket = accept(socketHandle_, nullptr, nullptr);
             HILOG_INFO(LOG_CORE, "Accept A Client %d", clientSocket);
-            ClientMap::GetInstance().PutClientSocket(clientSocket, *puss->serviceEntry_);
+            ClientMap::GetInstance().PutClientSocket(clientSocket, *serviceEntry_);
         }
     }
     close(epfd);
-    return nullptr;
 }
 
 namespace {
@@ -90,7 +81,7 @@ bool UnixSocketServer::StartServer(const std::string& addrname, ServiceEntry& p)
         HILOG_ERROR(LOG_CORE, "memset_s error!");
     }
     addr.sun_family = AF_UNIX;
-    if (strncpy_s(addr.sun_path, UNIX_PATH_MAX, addrname.c_str(), sizeof(addr.sun_path) - 1) != EOK) {
+    if (strncpy_s(addr.sun_path, sizeof(addr.sun_path), addrname.c_str(), sizeof(addr.sun_path) - 1) != EOK) {
         HILOG_ERROR(LOG_CORE, "strncpy_s error!");
     }
     unlink(addrname.c_str());

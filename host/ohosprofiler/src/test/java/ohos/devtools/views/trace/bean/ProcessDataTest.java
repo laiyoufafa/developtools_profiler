@@ -22,9 +22,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 /**
  * test ProcessData class
  *
- * @version 1.0
  * @date 2021/4/24 18:05
- **/
+ */
 class ProcessDataTest {
     /**
      * test get the id .

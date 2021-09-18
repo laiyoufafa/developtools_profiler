@@ -20,7 +20,8 @@ select
 --                      union
 --                      select upid, utid from (
 --                        select distinct(utid) from cpu_profile_stack_sample
---                      ) join thread using(utid)  + "--                      union
+--                      ) join thread using(utid)
+--                      union
 --                      select distinct(upid) as upid, 0 as utid from heap_profile_allocation
 --                      union
 --                      select distinct(upid) as upid, 0 as utid from heap_graph_object

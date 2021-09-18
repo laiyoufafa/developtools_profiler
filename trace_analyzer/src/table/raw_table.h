@@ -24,14 +24,14 @@ namespace TraceStreamer {
 class RawTable : public TableBase {
 public:
     enum EventName : uint32_t { CPU_IDLE = 1, SCHED_WAKEUP = 2, SCHED_WAKING = 3 };
-    explicit RawTable(const TraceDataCache*);
+    explicit RawTable(const TraceDataCache* dataCache);
     ~RawTable() override;
     void CreateCursor() override;
 
 private:
     class Cursor : public TableBase::Cursor {
     public:
-        explicit Cursor(const TraceDataCache*);
+        explicit Cursor(const TraceDataCache* dataCache);
         ~Cursor() override;
         int Column(int) const override;
 

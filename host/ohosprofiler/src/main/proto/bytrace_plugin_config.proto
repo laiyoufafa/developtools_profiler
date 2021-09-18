@@ -1,4 +1,3 @@
-
 // Copyright (c) 2021 Huawei Device Co., Ltd.
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,12 +12,14 @@
 // limitations under the License.
 
 syntax = "proto3";
+option optimize_for = LITE_RUNTIME;
 option java_package = "ohos.devtools.datasources.transport.grpc.service";
 
 message BytracePluginConfig {
-    uint32 buffe_size = 1;          // size of the buffer (KB) for storing and reading traces.
+    uint32 buffe_size = 1;          // Sets the size of the buffer (KB) for storing and reading traces.
     repeated string categories = 2; // Lists available bytrace categories.
     uint32 time = 3;                // Sets the bytrace running duration in seconds (5s by default)
-    string clock = 4;               // boot (default), global, mono, uptime, or perf.
-    string outfile_name = 5;        // the name of the target file (stdout by default).
+    string clock = 4;               // Sets the clock, which can be boot (default), global, mono, uptime, or perf.
+    string outfile_name = 5;        // Sets the name of the target file (stdout by default).
+    bool is_root = 6;
 }

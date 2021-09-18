@@ -17,22 +17,23 @@ package ohos.devtools.datasources.utils.datahandler.datapoller;
 
 import ohos.devtools.datasources.databases.databasepool.AbstractDataStore;
 import ohos.devtools.datasources.databases.datatable.MemoryTable;
-import ohos.devtools.services.memory.ClassInfoDao;
-import ohos.devtools.services.memory.MemoryHeapDao;
-import ohos.devtools.services.memory.MemoryInstanceDao;
-import ohos.devtools.services.memory.MemoryInstanceDetailsDao;
+import ohos.devtools.services.memory.agentdao.ClassInfoDao;
+import ohos.devtools.services.memory.agentdao.MemoryHeapDao;
+import ohos.devtools.services.memory.agentdao.MemoryInstanceDao;
+import ohos.devtools.services.memory.agentdao.MemoryInstanceDetailsDao;
 import org.junit.Before;
 import org.junit.Test;
 import java.util.HashMap;
 import java.util.Queue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import static ohos.devtools.datasources.utils.common.Constant.JVMTI_AGENT_PLUG;
 import static ohos.devtools.datasources.utils.common.Constant.MEMORY_PLUG;
 
 /**
- * @Description MemoryDataConsumerTest
- * @Date 2021/4/23 15:02
- **/
+ * Memory Data Consumer Test
+ */
 public class MemoryDataConsumerTest {
     private long localSessionId;
     private int sessionId;
@@ -75,7 +76,9 @@ public class MemoryDataConsumerTest {
      */
     @Test
     public void handleMemoryDataTest() {
-        MemoryDataConsumer consumer = new MemoryDataConsumer(queue, memoryTable, sessionId, localSessionId);
-        consumer.start();
+        MemoryDataConsumer consumer = new MemoryDataConsumer();
+        consumer.init(queue, sessionId, localSessionId);
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+        executorService.execute(consumer);
     }
 }

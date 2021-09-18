@@ -26,22 +26,28 @@ import java.awt.event.MouseEvent;
 /**
  * Data line graphics
  *
- * @version 1.0
  * @date 2021/04/22 12:25
- **/
+ */
 public abstract class AbstractGraph extends AbstractNode {
     /**
      * fragment
      */
     public AbstractDataFragment fragment;
+
     /**
      * root
      */
     public JComponent root;
+
     /**
      * rect
      */
     public Rectangle rect = new Rectangle(0, 0, 0, 0);
+
+    /**
+     * Control the focus blur event is triggered only once, the focus blur is initiated by mouseMove
+     */
+    public boolean flagFocus;
 
     /**
      * Drawing method
@@ -79,19 +85,13 @@ public abstract class AbstractGraph extends AbstractNode {
     public abstract void onMouseMove(MouseEvent event);
 
     /**
-     * Control the focus blur event is triggered only once, the focus blur is initiated by mouseMove
-     */
-    public boolean flagFocus;
-
-    /**
      * Whether the mouse is inside the graphics area
      *
      * @param event event
      * @return boolean boolean
      */
     public boolean edgeInspect(final MouseEvent event) {
-        return event.getX() >= rect.getX() && event.getX() <= rect.getX() + rect.getWidth() && event.getY() >= rect
-            .getY() && event.getY() <= rect.getY() + rect.getHeight();
+        return rect.contains(event.getPoint());
     }
 
     /**
@@ -106,9 +106,9 @@ public abstract class AbstractGraph extends AbstractNode {
     /**
      * Set rect object
      *
-     * @param xAxis  x coordinate
-     * @param yAxis  y coordinate
-     * @param width  width
+     * @param xAxis x coordinate
+     * @param yAxis y coordinate
+     * @param width width
      * @param height height
      */
     public void setRect(final double xAxis, final double yAxis, final double width, final double height) {

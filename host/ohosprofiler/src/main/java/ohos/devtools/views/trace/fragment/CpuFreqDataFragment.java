@@ -17,45 +17,29 @@ package ohos.devtools.views.trace.fragment;
 
 import ohos.devtools.views.trace.bean.CpuData;
 import ohos.devtools.views.trace.bean.CpuFreqData;
+import ohos.devtools.views.trace.bean.CpuFreqMax;
 import ohos.devtools.views.trace.component.AnalystPanel;
-import ohos.devtools.views.trace.fragment.graph.CheckGraph;
-import ohos.devtools.views.trace.fragment.graph.FavoriteGraph;
+import ohos.devtools.views.trace.util.Utils;
 
 import javax.swing.JComponent;
 import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Rectangle2D;
 import java.util.List;
-import java.util.Map;
 
 /**
  * cpu frequency data
  *
- * @version 1.0
  * @date 2021/04/22 12:25
- **/
+ */
 public class CpuFreqDataFragment extends AbstractDataFragment<CpuFreqData> implements CpuData.IEventListener {
     /**
      * The currently selected cpu frequency data
      */
     public static CpuData currentSelectedCpuData;
-
-    /**
-     * cpu frequency data collection
-     */
-    public List<CpuFreqData> data;
-
-    /**
-     * Favorite button
-     */
-    public FavoriteGraph favoriteGraph;
-
-    /**
-     * Select button
-     */
-    public CheckGraph checkGraph;
 
     private double x1;
 
@@ -65,7 +49,7 @@ public class CpuFreqDataFragment extends AbstractDataFragment<CpuFreqData> imple
 
     private String name;
 
-    private Map<String, Object> cpuMaxFreq;
+    private CpuFreqMax cpuMaxFreq;
 
     /**
      * Construction method
@@ -75,13 +59,12 @@ public class CpuFreqDataFragment extends AbstractDataFragment<CpuFreqData> imple
      * @param cpuMaxFreq cpuMaxFreq
      * @param data       data
      */
-    public CpuFreqDataFragment(JComponent root, String name, Map<String, Object> cpuMaxFreq, List<CpuFreqData> data) {
+    public CpuFreqDataFragment(JComponent root, String name, CpuFreqMax cpuMaxFreq, List<CpuFreqData> data) {
+        super(root, true, false);
         this.name = name;
         this.setRoot(root);
         this.data = data;
         this.cpuMaxFreq = cpuMaxFreq;
-        favoriteGraph = new FavoriteGraph(this, root);
-        checkGraph = new CheckGraph(this, root);
     }
 
     /**
@@ -96,15 +79,11 @@ public class CpuFreqDataFragment extends AbstractDataFragment<CpuFreqData> imple
         // Supplement the information on the left
         graphics.setColor(getRoot().getForeground());
         bounds = graphics.getFontMetrics().getStringBounds(name, graphics);
-        graphics.drawString(name, getDescRect().x + 10,
-            (int) (getDescRect().y + (getDescRect().height) / 2 + bounds.getHeight() / 3));
-        favoriteGraph.setRightGraph(isSelected != null ? checkGraph : null);
-        checkGraph.setChecked(isSelected);
-        checkGraph.draw(graphics);
-        favoriteGraph.draw(graphics);
+        graphics.drawString(name, Utils.getX(getDescRect()) + 10,
+            (int) (Utils.getY(getDescRect()) + (getDescRect().height) / 2 + bounds.getHeight() / 3));
         graphics.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, .7f)); // transparency
-        String cupFreqName = cpuMaxFreq.get("name").toString();
-        Object value = cpuMaxFreq.get("value");
+        String cupFreqName = cpuMaxFreq.getName();
+        Object value = cpuMaxFreq.getValue();
         data.stream().filter(cpuFreqData -> cpuFreqData.getStartTime() + cpuFreqData.getDuration() > startNS
             && cpuFreqData.getStartTime() < endNS).forEach(cpuGraph -> {
             if (cpuGraph.getStartTime() <= startNS) {
@@ -121,13 +100,15 @@ public class CpuFreqDataFragment extends AbstractDataFragment<CpuFreqData> imple
                 cpuGraph.setMax((Double) value);
             }
             cpuGraph.setRoot(getRoot());
-            cpuGraph.setRect(x1 + getDataRect().x, getDataRect().y, x2 - x1 <= 0 ? 1 : x2 - x1, getDataRect().height);
+            cpuGraph.setRect(x1 + Utils.getX(getDataRect()), Utils.getY(getDataRect()), x2 - x1 <= 0 ? 1 : x2 - x1,
+                getDataRect().height);
             cpuGraph.draw(graphics);
         });
         graphics.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1f)); // transparency
         bounds = graphics.getFontMetrics().getStringBounds(cupFreqName, graphics);
         graphics.setColor(Color.lightGray);
-        graphics.drawString(cupFreqName, getDataRect().x + 2, (int) (getDataRect().y + 2 + bounds.getHeight()));
+        graphics.drawString(cupFreqName, Utils.getX(getDataRect()) + 2,
+            (int) (Utils.getY(getDataRect()) + 2 + bounds.getHeight()));
     }
 
     /**
@@ -137,12 +118,7 @@ public class CpuFreqDataFragment extends AbstractDataFragment<CpuFreqData> imple
      */
     @Override
     public void mouseClicked(MouseEvent event) {
-        if (favoriteGraph.edgeInspect(event)) {
-            favoriteGraph.onClick(event);
-        }
-        if (checkGraph.edgeInspect(event)) {
-            checkGraph.onClick(event);
-        }
+        super.mouseClicked(event);
     }
 
     /**
@@ -175,23 +151,13 @@ public class CpuFreqDataFragment extends AbstractDataFragment<CpuFreqData> imple
     /**
      * Mouse move event
      *
-     * @param event event
+     * @param evt event
      */
     @Override
-    public void mouseMoved(MouseEvent event) {
+    public void mouseMoved(MouseEvent evt) {
+        MouseEvent event = getRealMouseEvent(evt);
+        super.mouseMoved(event);
         clearFocus(event);
-        favoriteGraph.display(edgeInspectRect(getDescRect(), event));
-        if (favoriteGraph.edgeInspect(event)) {
-            if (!favoriteGraph.flagFocus) {
-                favoriteGraph.flagFocus = true;
-                favoriteGraph.onFocus(event);
-            }
-        } else {
-            if (favoriteGraph.flagFocus) {
-                favoriteGraph.flagFocus = false;
-                favoriteGraph.onBlur(event);
-            }
-        }
         if (edgeInspect(event)) {
             data.forEach(cpuFreqData -> {
                 if (cpuFreqData.edgeInspect(event)) {
@@ -216,6 +182,15 @@ public class CpuFreqDataFragment extends AbstractDataFragment<CpuFreqData> imple
      */
     @Override
     public void mouseReleased(MouseEvent event) {
+    }
+
+    /**
+     * key released event
+     *
+     * @param event event
+     */
+    @Override
+    public void keyReleased(KeyEvent event) {
     }
 
     /**

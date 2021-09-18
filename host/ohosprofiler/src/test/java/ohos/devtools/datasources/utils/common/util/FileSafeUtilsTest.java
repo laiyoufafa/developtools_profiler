@@ -23,16 +23,11 @@ import org.junit.Test;
 import java.io.File;
 
 /**
- * FileSafeUtilsTest
- *
- * @version 1.0
- * @date 2021/04/06 13:18
- **/
+ * File Safe Utils Test
+ */
 public class FileSafeUtilsTest {
     private String filepath;
-
     private String sha;
-
     private File file;
 
     /**

@@ -18,8 +18,7 @@ package ohos.devtools.views.trace.component;
 /**
  * test the BottomScrollPanel class
  *
- * @version 1.0
  * @date 2021/4/24 18:02
- **/
+ */
 class BottomScrollPanelTest {
 }

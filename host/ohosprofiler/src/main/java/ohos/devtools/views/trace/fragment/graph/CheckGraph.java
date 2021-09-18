@@ -17,6 +17,7 @@ package ohos.devtools.views.trace.fragment.graph;
 
 import ohos.devtools.views.trace.fragment.AbstractDataFragment;
 import ohos.devtools.views.trace.util.ImageUtils;
+import ohos.devtools.views.trace.util.Utils;
 
 import javax.swing.JComponent;
 import java.awt.Graphics2D;
@@ -26,13 +27,23 @@ import java.awt.event.MouseEvent;
 /**
  * Data row selection CheckBox
  *
- * @version 1.0
  * @date 2021/04/22 12:25
- **/
+ */
 public class CheckGraph extends AbstractGraph {
     private Boolean isChecked;
     private Image checkNo = ImageUtils.getInstance().getCheckNo();
     private Image checkYes = ImageUtils.getInstance().getCheckYes();
+
+    /**
+     * structure
+     *
+     * @param fragment fragment
+     * @param root     root
+     */
+    public CheckGraph(final AbstractDataFragment fragment, final JComponent root) {
+        this.fragment = fragment;
+        this.root = root;
+    }
 
     /**
      * Gets the value of isChecked .
@@ -54,17 +65,6 @@ public class CheckGraph extends AbstractGraph {
     }
 
     /**
-     * structure
-     *
-     * @param fragment fragment
-     * @param root     root
-     */
-    public CheckGraph(final AbstractDataFragment fragment, final JComponent root) {
-        this.fragment = fragment;
-        this.root = root;
-    }
-
-    /**
      * Drawing method
      *
      * @param graphics graphics
@@ -77,12 +77,12 @@ public class CheckGraph extends AbstractGraph {
             final int yOffset = 6;
             rect.width = size;
             rect.height = size;
-            rect.x = fragment.getDescRect().width - xOffset;
-            rect.y = fragment.getRect().y + fragment.getRect().height / 2 - yOffset;
+            Utils.setX(rect, fragment.getDescRect().width - xOffset);
+            Utils.setY(rect, Utils.getY(fragment.getRect()) + fragment.getRect().height / 2 - yOffset);
             if (isChecked) {
-                graphics.drawImage(checkYes, rect.x, rect.y, rect.width, rect.height, null);
+                graphics.drawImage(checkYes, Utils.getX(rect), Utils.getY(rect), rect.width, rect.height, null);
             } else {
-                graphics.drawImage(checkNo, rect.x, rect.y, rect.width, rect.height, null);
+                graphics.drawImage(checkNo, Utils.getX(rect), Utils.getY(rect), rect.width, rect.height, null);
             }
         }
     }
