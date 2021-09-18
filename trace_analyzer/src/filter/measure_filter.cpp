@@ -28,42 +28,23 @@ MeasureFilter::MeasureFilter(TraceDataCache* dataCache, const TraceStreamerFilte
 {
 }
 
-MeasureFilter::~MeasureFilter()
-{
-}
+MeasureFilter::~MeasureFilter() {}
 
-void MeasureFilter::Init(FilterType e)
+void MeasureFilter::AppendNewMeasureData(uint64_t internalTid, DataIndex nameIndex, uint64_t timestamp, int64_t value)
 {
-    filterType_ = e;
+    auto filterId = GetOrCreateFilterId(internalTid, nameIndex);
+    traceDataCache_->GetMeasureData()->AppendMeasureData(0, timestamp, value, filterId);
 }
-
-uint32_t MeasureFilter::GetOrCreateCertainFilterId(uint64_t internalTid, DataIndex nameIndex)
+uint32_t MeasureFilter::GetOrCreateFilterId(uint64_t internalTid, DataIndex nameIndex)
 {
     auto filterId = tidStreamIdFilterIdMap_.Find(internalTid, nameIndex);
     if (filterId != INVALID_UINT64) {
         return static_cast<uint32_t>(filterId);
     }
 
-    uint32_t newFilterId =
-        streamFilters_->filterFilter_->AddFilter(filterTypeValue.at(filterType_),
-            traceDataCache_->GetDataFromDict(nameIndex));
+    uint32_t newFilterId = streamFilters_->filterFilter_->AddFilter(
+        filterTypeValue.at(filterType_), traceDataCache_->GetDataFromDict(nameIndex), internalTid);
     AddCertainFilterId(internalTid, nameIndex, newFilterId);
-    return newFilterId;
-}
-
-uint32_t MeasureFilter::GetOrCreateCertainFilterIdByCookie(uint64_t internalTid, DataIndex nameIndex, int64_t cookie)
-{
-    auto filterId = cookieFilterIdMap_.Find(static_cast<uint64_t>(cookie), nameIndex);
-    if (filterId != INVALID_UINT64) {
-        return static_cast<uint32_t>(filterId);
-    }
-
-    uint32_t newFilterId =
-        streamFilters_->filterFilter_->AddFilter(filterTypeValue.at(filterType_),
-            traceDataCache_->GetDataFromDict(nameIndex));
-    cookieFilterIdMap_.Insert(static_cast<uint64_t>(cookie), nameIndex, newFilterId);
-    traceDataCache_->GetProcessFilterData()->AppendProcessFilterData(static_cast<uint32_t>(newFilterId),
-        nameIndex, static_cast<uint32_t>(internalTid));
     return newFilterId;
 }
 
@@ -72,19 +53,28 @@ void MeasureFilter::AddCertainFilterId(uint64_t internalTid, DataIndex nameIndex
     tidStreamIdFilterIdMap_.Insert(internalTid, nameIndex, filterId);
 
     if (filterType_ == E_THREADMEASURE_FILTER) {
-        traceDataCache_->GetThreadCounterFilterData()->AppendNewData(filterId,
-            static_cast<uint32_t>(nameIndex), internalTid);
+        traceDataCache_->GetThreadMeasureFilterData()->AppendNewFilter(filterId, static_cast<uint32_t>(nameIndex),
+                                                                       internalTid);
     } else if (filterType_ == E_THREAD_FILTER) {
-        traceDataCache_->GetThreadFilterData()->AppendNewData(filterId, static_cast<uint32_t>(nameIndex), internalTid);
+        traceDataCache_->GetThreadFilterData()->AppendNewFilter(filterId, static_cast<uint32_t>(nameIndex),
+                                                                internalTid);
     } else if (filterType_ == E_PROCESS_MEASURE_FILTER) {
-        traceDataCache_->GetProcessCounterFilterData()->AppendProcessCounterFilterData(static_cast<uint32_t>(filterId), 
-            static_cast<uint32_t>(nameIndex), static_cast<uint32_t>(internalTid));
+        traceDataCache_->GetProcessMeasureFilterData()->AppendNewFilter(
+            static_cast<uint32_t>(filterId), static_cast<uint32_t>(nameIndex), static_cast<uint32_t>(internalTid));
     } else if (filterType_ == E_PROCESS_FILTER_FILTER) {
-        traceDataCache_->GetProcessFilterData()->AppendProcessFilterData(static_cast<uint32_t>(filterId), 
-            static_cast<uint32_t>(nameIndex), static_cast<uint32_t>(internalTid));
+        traceDataCache_->GetProcessFilterData()->AppendNewFilter(
+            static_cast<uint32_t>(filterId), static_cast<uint32_t>(nameIndex), static_cast<uint32_t>(internalTid));
     } else if (filterType_ == E_CPU_MEASURE_FILTER) {
-        traceDataCache_->GetCpuCountersData()->AppendCpuCounter(filterId, 
-            static_cast<uint32_t>(nameIndex), internalTid);
+        traceDataCache_->GetCpuMeasuresData()->AppendNewFilter(filterId, static_cast<uint32_t>(nameIndex), internalTid);
+    } else if (filterType_ == E_CLOCK_RATE_FILTER) {
+        traceDataCache_->GetClockEventFilterData()->AppendNewFilter(filterId, clockSetRateDataIndex_,
+                                                                    static_cast<uint32_t>(nameIndex), internalTid);
+    } else if (filterType_ == E_CLOCK_ENABLE_FILTER) {
+        traceDataCache_->GetClockEventFilterData()->AppendNewFilter(filterId, clockEnableDataIndex_,
+                                                                    static_cast<uint32_t>(nameIndex), internalTid);
+    } else if (filterType_ == E_CLOCK_DISABLE_FILTER) {
+        traceDataCache_->GetClockEventFilterData()->AppendNewFilter(filterId, clockDisableDataIndex_,
+                                                                    static_cast<uint32_t>(nameIndex), internalTid);
     }
 }
 } // namespace TraceStreamer

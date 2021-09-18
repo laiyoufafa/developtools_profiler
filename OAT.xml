@@ -59,9 +59,13 @@ Note:If the text contains special characters, please escape them according to th
         <filefilterlist>
             <filefilter name="defaultPolicyFilter" desc="Filters for compatibility，license header policies">
                 <filteritem type="filepath" name="device/plugins/memory_plugin/test/utresources/proc/.*" desc="test resource file, no license header"/>
+                <filteritem type="filepath" name="device/plugins/cpu_plugin/test/resources/.*" desc="test resource file, no license header"/>
+                <filteritem type="filepath" name="trace_analyzer/prebuilts/mac/trace_streamer.app/Contents/Resources/empty.lproj" desc="auto generated resource file for mac app, no license header"/>
             </filefilter>
             <filefilter name="copyrightPolicyFilter" desc="Filters for copyright header policies" >
                 <filteritem type="filepath" name="device/plugins/memory_plugin/test/utresources/proc/.*" desc="test resource file, no copyright header"/>
+                <filteritem type="filepath" name="device/plugins/cpu_plugin/test/resources/.*" desc="test resource file, no copyright header"/>
+                <filteritem type="filepath" name="trace_analyzer/prebuilts/mac/trace_streamer.app/Contents/Resources/empty.lproj" desc="auto generated resource file for mac app, no copyright header"/>
             </filefilter>
             <filefilter name="binaryFileTypePolicyFilter" desc="Filters for binary file policies" >
                 <filteritem type="filepath" name="host/ohosprofiler/src/main/resources/trace.db" desc="the binary file for host, the file is self-developed"/>
@@ -70,6 +74,13 @@ Note:If the text contains special characters, please escape them according to th
                 <filteritem type="filepath" name="host/ohosprofiler/src/main/resources/.*.png" desc="the png file for host, the file is self-developed"/>
                 <filteritem type="filepath" name="host/ohosprofiler/src/main/resources/.*.gif" desc="the gif file for host, the file is self-developed"/>
                 <filteritem type="filepath" name="figures/zh-cn_image_0000001162598155.png" desc="the png file for readme, the file is self-developed"/>
+                <filteritem type="filepath" name="trace_analyzer/prebuilts/trace_streamer.exe" desc="the trace_streamer.exe executable file, the file is self-developed"/>
+                <filteritem type="filepath" name="trace_analyzer/test/resource/htrace.bin" desc="the trace_streamer test file, the file is self-developed"/>
+                <filteritem type="filepath" name="trace_analyzer/prebuilts/windows/trace_streamer.exe" desc="the trace_streamer.exe executable file, the file is self-developed"/>
+                <filteritem type="filepath" name="trace_analyzer/test/resource/htrace_gold.db" desc="the trace_streamer test file, the file is self-developed"/>
+                <filteritem type="filepath" name="trace_analyzer/prebuilts/mac/trace_streamer.app/Contents/MacOS/trace_streamer" desc="the trace_streamer executable file for mac, the file is self-developed"/>
+                <filteritem type="filepath" name="trace_analyzer/test/resource/ut_bytrace_input_thread_gold.db" desc="the trace_streamer test file, the file is self-developed"/>
+                <filteritem type="filepath" name="trace_analyzer/test/resource/ut_bytrace_input_full_gold.db" desc="the trace_streamer test file, the file is self-developed"/>
             </filefilter>
         </filefilterlist>
     </oatconfig>

@@ -12,9 +12,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 #include "bytrace_module.h"
 
+#include <array>
 #include <poll.h>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -27,101 +27,136 @@
 #include "securec.h"
 
 namespace {
-const std::string CMD_PATH = "/system/bin/bytrace";
-int g_processNum = -1;
 constexpr uint32_t MAX_BUFFER_SIZE = 4 * 1024 * 1024;
+constexpr uint32_t READ_BUFFER_SIZE = 4096;
+const std::string DEFAULT_FILE = "/local/data/tmp/bytrace.txt";
 
-bool RunWithConfig(const BytracePluginConfig& config)
+std::mutex g_taskMutex;
+
+struct BytraceInfo {
+    bool isRoot;
+    uint32_t buffSize;
+    uint32_t time;
+    std::string clockType;
+    std::string outFile;
+    std::vector<std::string> categoryVec;
+};
+std::unique_ptr<BytraceInfo> g_bytraceInfo = nullptr;
+
+void ParseConfig(const BytracePluginConfig& config)
 {
-    std::vector<std::string> args;
-    args.push_back("bytrace");
     if (config.buffe_size() != 0) {
-        args.push_back("-b");
-        args.push_back(std::to_string(config.buffe_size()));
+        g_bytraceInfo->buffSize = config.buffe_size();
     }
-    if (config.time() != 0) {
-        args.push_back("-t");
-        args.push_back(std::to_string(config.time()));
-    }
+    g_bytraceInfo->time =  config.time();
+    g_bytraceInfo->isRoot = config.is_root();
     if (!config.clock().empty()) {
-        args.push_back("--trace_clock");
-        args.push_back(config.clock());
+        g_bytraceInfo->clockType = config.clock();
     }
     if (!config.outfile_name().empty()) {
-        args.push_back("-o");
-        args.push_back(config.outfile_name());
+        g_bytraceInfo->outFile = config.outfile_name();
     }
     if (!config.categories().empty()) {
         for (std::string category : config.categories()) {
-            args.push_back(category);
+            g_bytraceInfo->categoryVec.push_back(category);
         }
     }
+}
 
-    std::vector<char*> params;
-    std::string cmdPrintStr = "";
-    for (std::string& it : args) {
-        cmdPrintStr += (it + " ");
-        params.push_back(const_cast<char*>(it.c_str()));
+bool RunCommand(const std::string& cmd)
+{
+    HILOG_INFO(LOG_CORE, "BytraceCall::start running commond: %s", cmd.c_str());
+    std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd.data(), "r"), pclose);
+    CHECK_TRUE(pipe, false, "BytraceCall::RunCommand: create popen FAILED!");
+
+    if (g_bytraceInfo->time == 0) {
+        return true;
     }
-    params.push_back(nullptr);
-    HILOG_INFO(LOG_CORE, "call bytrace::Run: %s", cmdPrintStr.c_str());
-
-    execv(CMD_PATH.data(), &params[0]);
+    std::array<char, READ_BUFFER_SIZE> buffer;
+    std::string result;
+    while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
+        result += buffer.data();
+    }
+    HILOG_INFO(LOG_CORE, "BytraceCall::RunCommand result: %s", result.data());
     return true;
+}
+
+bool BeginTrace()
+{
+    // two case: real-time and offline type.
+    std::string beginCmd;
+    if (g_bytraceInfo->isRoot) {
+        beginCmd = "su root ";
+    }
+    beginCmd += "bytrace ";
+    if (g_bytraceInfo->buffSize != 0) {
+        beginCmd += " -b " + std::to_string(g_bytraceInfo->buffSize);
+    }
+    if (!g_bytraceInfo->clockType.empty()) {
+        beginCmd += " --trace_clock " + g_bytraceInfo->clockType;
+    }
+    // real-time: time is set 0.
+    if (g_bytraceInfo->time == 0) {
+        // if time is not set 1s(must >= 1), bytrace tool will use 5s by dafault.
+        beginCmd += " -t 1 ";
+        beginCmd += " --trace_begin ";
+    } else {
+        beginCmd += " -t " + std::to_string(g_bytraceInfo->time);
+        beginCmd += " -o ";
+        beginCmd += g_bytraceInfo->outFile;
+        beginCmd += " ";
+    }
+    for (const std::string& category : g_bytraceInfo->categoryVec) {
+        beginCmd += category;
+        beginCmd += " ";
+    }
+    return RunCommand(beginCmd);
+}
+
+bool StopTrace()
+{
+    std::string finishCmd;
+    if (g_bytraceInfo->isRoot) {
+        finishCmd = "su root ";
+    }
+    finishCmd += "bytrace --trace_finish --trace_dump";
+    if (g_bytraceInfo->outFile.empty()) {
+        g_bytraceInfo->outFile = DEFAULT_FILE;
+    }
+    finishCmd += " -o ";
+    finishCmd += g_bytraceInfo->outFile;
+    return RunCommand(finishCmd);
 }
 } // namespace
 
 int BytracePluginSessionStart(const uint8_t* configData, const uint32_t configSize)
 {
+    std::lock_guard<std::mutex> guard(g_taskMutex);
     BytracePluginConfig config;
-    HILOG_INFO(LOG_CORE, "BytracePluginSessionStart %u", configSize);
-    CHECK_TRUE(config.ParseFromArray(configData, configSize), 0, "parse config FAILED!");
-
-    g_processNum = fork();
-    CHECK_TRUE(g_processNum >= 0, -1, "create process FAILED!");
-
-    if (g_processNum == 0) {
-        // child process
-        CHECK_TRUE(RunWithConfig(config), 0, "run bytrace FAILED!");
-        _exit(0);
-    }
-
-    return 0;
-}
-
-int BytraceRegisterWriterStruct(const WriterStruct* writer)
-{
+    int res = config.ParseFromArray(configData, configSize);
+    CHECK_TRUE(res, 0, "BytracePluginSessionStart, parse config FAILED! configSize: %u", configSize);
+    g_bytraceInfo = std::make_unique<BytraceInfo>();
+    ParseConfig(config);
+    res = BeginTrace();
+    CHECK_TRUE(res, 0, "BytracePluginSessionStart, bytrace begin FAILED!");
     return 0;
 }
 
 int BytracePluginSessionStop()
 {
-    if (g_processNum > 0) {
-        // parent process
-        int status = 0;
-        // judge if child process have exited.
-        if (waitpid(g_processNum, &status, WNOHANG) == 0) {
-            // send SIGKILL to child process.
-            if (kill(g_processNum, SIGINT)) {
-                HILOG_WARN(LOG_CORE, "BytracePluginSessionStop kill child process failed.");
-            } else {
-                HILOG_INFO(LOG_CORE, "BytracePluginSessionStop kill child process success.");
-            }
-        }
-        // report child process exit status.
-        if (WIFEXITED(status)) {
-            HILOG_INFO(LOG_CORE, "child %d exit with status %d!", g_processNum,
-                       WEXITSTATUS(static_cast<unsigned>(status)));
-        } else if (WIFSIGNALED(status)) {
-            HILOG_INFO(LOG_CORE, "child %d exit with signal %d!", g_processNum,
-                       WTERMSIG(static_cast<unsigned>(status)));
-        } else if (WIFSTOPPED(status)) {
-            HILOG_INFO(LOG_CORE, "child %d stopped by signal %d", g_processNum,
-                       WSTOPSIG(static_cast<unsigned>(status)));
-        } else {
-            HILOG_INFO(LOG_CORE, "child %d otherwise", g_processNum);
-        }
+    std::lock_guard<std::mutex> guard(g_taskMutex);
+    // real-time type nead finish trace.
+    if (g_bytraceInfo->time == 0) {
+        int res = StopTrace();
+        CHECK_TRUE(res, 0, "BytracePluginSessionStop, bytrace finish FAILED!");
     }
+    g_bytraceInfo = nullptr;
+    return 0;
+}
+
+int BytraceRegisterWriterStruct(const WriterStruct* writer)
+{
+    HILOG_INFO(LOG_CORE, "writer %p", writer);
     return 0;
 }
 

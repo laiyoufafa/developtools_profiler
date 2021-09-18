@@ -18,6 +18,7 @@
 #include <ctime>
 #include <iostream>
 #include <mutex>
+#include <pthread.h>
 
 #include "logging.h"
 #include "securec.h"
@@ -36,22 +37,27 @@ ScheduleTaskManager& ScheduleTaskManager::GetInstance()
 
 ScheduleTaskManager::ScheduleTaskManager()
 {
+    runScheduleThread_ = true;
     scheduleThread_ = std::thread(&ScheduleTaskManager::ScheduleThread, this);
 }
 
 ScheduleTaskManager::~ScheduleTaskManager()
 {
     Shutdown();
-    if (scheduleThread_.joinable()) {
-        scheduleThread_.join();
-    }
 }
 
 void ScheduleTaskManager::Shutdown()
 {
-    std::lock_guard<std::mutex> guard(taskMutex_);
-    runScheduleThread_ = false;
+    bool expect = true;
+    if (!runScheduleThread_.compare_exchange_strong(expect, false)) {
+        return;
+    }
     taskCv_.notify_one();
+    if (scheduleThread_.joinable()) {
+        scheduleThread_.join();
+    }
+    taskMap_.clear();
+    timeMap_.clear();
 }
 
 std::chrono::milliseconds ScheduleTaskManager::NormalizeInterval(std::chrono::milliseconds interval)
@@ -77,12 +83,14 @@ bool ScheduleTaskManager::ScheduleTask(const std::string& name,
                                        const std::chrono::milliseconds& repeatInterval,
                                        std::chrono::milliseconds initialDelay)
 {
+    auto currentTime = Clock::now();
     auto task = std::make_shared<Task>();
 
     task->name = name;
     task->callback = callback;
     task->initialDelay = initialDelay;
     task->repeatInterval = NormalizeInterval(repeatInterval);
+    task->nextRunTime = currentTime + initialDelay;
 
     std::lock_guard<std::mutex> guard(taskMutex_);
     if (taskMap_.count(name) > 0) {
@@ -91,26 +99,28 @@ bool ScheduleTaskManager::ScheduleTask(const std::string& name,
     }
 
     taskMap_[name] = task;
-    timeMap_.insert(std::make_pair(Clock::now() + initialDelay, task));
+    timeMap_.insert(std::make_pair(task->nextRunTime, task));
     taskCv_.notify_one();
 
-    HILOG_DEBUG(LOG_CORE, "add schedule %s, total: %zu ", name.c_str(), taskMap_.size());
+    HILOG_DEBUG(LOG_CORE, "add schedule %s done, total: %zu", name.c_str(), taskMap_.size());
     return true;
 }
 
 bool ScheduleTaskManager::UnscheduleTask(const std::string& name)
 {
-    HILOG_DEBUG(LOG_CORE, "del schedule %s, total: %zu", name.c_str(), taskMap_.size());
     std::unique_lock<std::mutex> lck(taskMutex_);
+    HILOG_DEBUG(LOG_CORE, "del schedule %s start, total: %zu", name.c_str(), taskMap_.size());
     auto it = taskMap_.find(name);
     if (it != taskMap_.end()) {
         taskMap_.erase(it);
+        HILOG_DEBUG(LOG_CORE, "del schedule %s done, remain: %zu", name.c_str(), taskMap_.size());
         return true;
     }
+    HILOG_DEBUG(LOG_CORE, "del schedule %s pass, total: %zu", name.c_str(), taskMap_.size());
     return false;
 }
 
-bool ScheduleTaskManager::TakeFront(TimePoint& time, WeakTask& task)
+ScheduleTaskManager::WeakTask ScheduleTaskManager::TakeFront()
 {
     std::unique_lock<std::mutex> lck(taskMutex_);
 
@@ -120,32 +130,42 @@ bool ScheduleTaskManager::TakeFront(TimePoint& time, WeakTask& task)
     }
 
     if (!runScheduleThread_) {
-        return false;
+        return {};
     }
 
-    time = timeMap_.begin()->first;
-    task = timeMap_.begin()->second;
+    auto task = timeMap_.begin()->second;
     timeMap_.erase(timeMap_.begin());
-    return true;
+    return task;
 }
 
 void ScheduleTaskManager::DumpTask(const SharedTask& task)
 {
     if (task) {
-        long msecs = std::chrono::duration_cast<ms>(task->lastRunTime.time_since_epoch()).count();
-        HILOG_DEBUG(LOG_CORE, "{name = %s, interval = %lld, delay = %lld, lastRun = %ld}",
-            task->name.c_str(), task->repeatInterval.count(), task->initialDelay.count(), msecs);
+        long msecs = std::chrono::duration_cast<ms>(task->nextRunTime.time_since_epoch()).count();
+        HILOG_DEBUG(LOG_CORE,
+                    "{name = %{public}s, interval = %{public}lld, delay = %{public}lld, nextRunTime = %{public}ld}",
+                    task->name.c_str(), task->repeatInterval.count(), task->initialDelay.count(), msecs);
     }
 }
 
 void ScheduleTaskManager::ScheduleThread()
 {
-    while (true) {
+    pthread_setname_np(pthread_self(), "SchedTaskMgr");
+    while (runScheduleThread_) {
         // take front task from task queue
-        TimePoint targetTime;
-        WeakTask targetTask;
-        if (!TakeFront(targetTime, targetTask)) {
+        WeakTask weakTask = TakeFront();
+        if (!runScheduleThread_) {
             break;
+        }
+
+        TimePoint targetTime;
+        {
+            auto taskTime = weakTask.lock(); // promote to shared_ptr
+            if (!taskTime) {
+                // task cancelled with UnschduleTask or not a repeat task
+                continue;
+            }
+            targetTime = taskTime->nextRunTime;
         }
 
         // delay to target time
@@ -154,20 +174,24 @@ void ScheduleTaskManager::ScheduleThread()
             std::this_thread::sleep_for(targetTime - currentTime);
         }
 
-        // promote to shared_ptr
-        auto task = targetTask.lock();
-        DumpTask(task);
+        auto taskRepeat = weakTask.lock();
+        if (!taskRepeat) {
+            // task cancelled with UnschduleTask or not a repeat task
+            continue;
+        }
 
-        if (task != nullptr) {
-            // call task callback
-            task->callback();
-            task->lastRunTime = currentTime;
+        // call task callback
+        taskRepeat->callback();
+        taskRepeat->nextRunTime = targetTime + taskRepeat->repeatInterval;
 
-            // re-insert task to map if it's a repeat task
-            if (task->repeatInterval.count() != 0) {
-                std::unique_lock<std::mutex> guard(taskMutex_);
-                timeMap_.insert(std::make_pair(targetTime + task->repeatInterval, task));
-            }
+        if (taskRepeat->repeatInterval.count() != 0) {
+            // repeat task, re-insert task to timeMap
+            std::unique_lock<std::mutex> guard(taskMutex_);
+            timeMap_.insert(std::make_pair(taskRepeat->nextRunTime, taskRepeat));
+        } else {
+            // not a repeat task.
+            std::unique_lock<std::mutex> guard(taskMutex_);
+            taskMap_.erase(taskRepeat->name);
         }
     }
 }

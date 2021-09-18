@@ -30,6 +30,15 @@ public:
     void TearDown() {}
 };
 
+namespace {
+const int MS_PER_S = 1000;
+const int US_PER_S = 1000000;
+const int NS_PER_US = 1000;
+const int NS_PER_S = 1000000000;
+const int NS_PER_MS = 1000000;
+const int SLEEP_TIME = 30000;
+} // namespace
+
 /**
  * @tc.name: Service
  * @tc.desc: Server process monitoring.
@@ -43,12 +52,12 @@ HWTEST_F(ServiceEntryTest, AllCase, TestSize.Level1)
     serviceEntry.RegisterService(pluginService);
     serviceEntry.FindServiceByName(pluginService.serviceName_);
 
-    usleep(30000);
+    usleep(SLEEP_TIME);
 
     IPluginServiceClient pluginClient;
-    ASSERT_FALSE(pluginClient.Connect(""));
+    ASSERT_TRUE(pluginClient.Connect("test_unix_socket_service_entry"));
 
-    usleep(30000);
+    usleep(SLEEP_TIME);
 }
 
 /**
@@ -58,7 +67,12 @@ HWTEST_F(ServiceEntryTest, AllCase, TestSize.Level1)
  */
 HWTEST_F(ServiceEntryTest, GetTimeMS, TestSize.Level1)
 {
-    GetTimeMS();
+    struct timespec ts;
+    clock_gettime(CLOCK_BOOTTIME, &ts);
+    long t1= ts.tv_sec * MS_PER_S + ts.tv_nsec / NS_PER_MS;
+    long t2=GetTimeMS();
+
+    ASSERT_TRUE(t2-t1>=0);
 }
 
 /**
@@ -68,7 +82,12 @@ HWTEST_F(ServiceEntryTest, GetTimeMS, TestSize.Level1)
  */
 HWTEST_F(ServiceEntryTest, GetTimeUS, TestSize.Level1)
 {
-    GetTimeUS();
+    struct timespec ts;
+    clock_gettime(CLOCK_BOOTTIME, &ts);
+    long t1= ts.tv_sec * US_PER_S + ts.tv_nsec / NS_PER_US;
+    long t2 = GetTimeUS();
+
+    ASSERT_TRUE(t2-t1>=0);
 }
 
 /**
@@ -78,6 +97,10 @@ HWTEST_F(ServiceEntryTest, GetTimeUS, TestSize.Level1)
  */
 HWTEST_F(ServiceEntryTest, GetTimeNS, TestSize.Level1)
 {
-    GetTimeNS();
+    struct timespec ts;
+    clock_gettime(CLOCK_BOOTTIME, &ts);
+    long t1 = ts.tv_sec * NS_PER_S + ts.tv_nsec;
+    long t2 = GetTimeNS();
+    ASSERT_TRUE(t2-t1>=0);
 }
 } // namespace

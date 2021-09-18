@@ -89,21 +89,30 @@ std::unique_ptr<CreateSessionRequest> MakeCreateRequest(const std::string& confi
     const std::string& keepSecond, const std::string& outputFileName)
 {
     auto request = std::make_unique<CreateSessionRequest>();
-    auto sessionConfig = request->mutable_session_config();
-    if (!request || !sessionConfig) {
+    if (!request) {
         return nullptr;
     }
 
     std::string content = ReadConfigContent(configFileName);
     if (content.empty()) {
+        printf("config file empty!");
         return nullptr;
     }
+    printf("================================\n");
+    printf("CONFIG: read %zu bytes from %s:\n%s", content.size(), configFileName.c_str(), content.c_str());
     if (!google::protobuf::TextFormat::ParseFromString(content, request.get())) {
-        printf("config file [%s] format error!\n", configFileName.c_str());
+        printf("config file [%s] parse FAILED!\n", configFileName.c_str());
         return nullptr;
     }
 
-    request->set_request_id(0);
+    auto sessionConfig = request->mutable_session_config();
+    if (!sessionConfig) {
+        return nullptr;
+    }
+
+    request->set_request_id(1);
+    printf("--------------------------------\n");
+    printf("keepSecond: %s,\noutputFileName: %s\n", keepSecond.c_str(), outputFileName.c_str());
     if (!keepSecond.empty()) {
         int ks = std::stoi(keepSecond);
         if (ks > 0) {
@@ -113,6 +122,15 @@ std::unique_ptr<CreateSessionRequest> MakeCreateRequest(const std::string& confi
     if (!outputFileName.empty()) {
         sessionConfig->set_result_file(outputFileName);
     }
+
+    content.clear();
+    if (!google::protobuf::TextFormat::PrintToString(*request.get(), &content)) {
+        printf("config message format FAILED!\n");
+        return nullptr;
+    }
+    printf("--------------------------------\n");
+    printf("CONFIG: final config content:\n%s", content.c_str());
+    printf("================================\n");
     return request;
 }
 
@@ -196,9 +214,6 @@ int main(int argc, char* argv[])
     bool isHelp = false;
     pCmdLine->AddParamSwitch("--help", "-h", isHelp, "make some help");
 
-    bool isBackground = false;
-    pCmdLine->AddParamSwitch("--background", "-d", isBackground, "run in background");
-
     std::vector<std::string> argvVector;
     for (int i = 0; i < argc; i++) {
         argvVector.push_back(argv[i]);
@@ -207,7 +222,7 @@ int main(int argc, char* argv[])
         pCmdLine->PrintHelp();
         exit(0);
     }
-    if (isGetGrpcAddr) {
+    if (isGetGrpcAddr) { // handle get port
         auto profilerStub = GetProfilerServiceStub();
         if (profilerStub == nullptr) {
             printf("FAIL\nGet profiler service stub failed!\n");
@@ -229,13 +244,13 @@ int main(int argc, char* argv[])
         return 0;
     }
 
-    if (!configFileName.empty()) {
-        // Read the configFileName，convert to protobuf object，structure 'CreateSession',Send 'StartSession' command to
-        // profilerd
-        if (StartSession(configFileName, traceKeepSecond, outputFileName)) {
-            printf("OK\ntracing...\n");
-        }
-        exit(0);
+    if (configFileName.empty()) { // normal case
+        printf("FAIL\nconfig file argument must sepcified!");
+        return 1;
+    }
+    // Read the configFileName, call 'CreateSession', and 'StartSession'
+    if (StartSession(configFileName, traceKeepSecond, outputFileName)) {
+        printf("OK\ntracing...\n");
     }
 
     return 0;

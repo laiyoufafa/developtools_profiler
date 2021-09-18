@@ -18,7 +18,7 @@
 
 #include <memory>
 
-class PluginManager;
+class ManagerInterface;
 class CreateSessionCmd;
 class DestroySessionCmd;
 class StartSessionCmd;
@@ -27,11 +27,11 @@ class StopSessionCmd;
 #include "logging.h"
 #include "plugin_service.ipc.h"
 
-using PluginManagerPtr = STD_PTR(shared, PluginManager);
+using ManagerInterfacePtr = STD_PTR(shared, ManagerInterface);
 
 class CommandPoller final : public IPluginServiceClient {
 public:
-    explicit CommandPoller(const PluginManagerPtr& p);
+    explicit CommandPoller(const ManagerInterfacePtr& p);
     ~CommandPoller();
 
     bool OnCreateSessionCmd(const CreateSessionCmd& cmd, SocketContext& context) const;
@@ -46,7 +46,7 @@ protected:
 
 private:
     uint32_t requestIdAutoIncrease_;
-    std::weak_ptr<PluginManager> pluginManager_;
+    std::weak_ptr<ManagerInterface> pluginManager_;
 };
 
 #endif // !COMMAND_POLLER_H

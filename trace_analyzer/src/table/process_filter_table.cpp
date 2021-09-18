@@ -18,14 +18,14 @@
 namespace SysTuning {
 namespace TraceStreamer {
 namespace {
-enum Index { ID = 0, TYPE, NAME, INTERNAL_PID};
+enum Index { ID = 0, TYPE, NAME, INTERNAL_PID };
 }
 ProcessFilterTable::ProcessFilterTable(const TraceDataCache* dataCache) : TableBase(dataCache)
 {
     tableColumn_.push_back(TableBase::ColumnInfo("id", "UNSIGNED INT"));
     tableColumn_.push_back(TableBase::ColumnInfo("type", "STRING"));
     tableColumn_.push_back(TableBase::ColumnInfo("name", "STRING"));
-    tableColumn_.push_back(TableBase::ColumnInfo("upid", "UNSIGNED INT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("ipid", "UNSIGNED INT"));
     tablePriKey_.push_back("id");
 }
 
@@ -51,19 +51,19 @@ int ProcessFilterTable::Cursor::Column(int col) const
             sqlite3_result_int64(context_, static_cast<sqlite3_int64>(processFilterObj_.IdsData()[CurrentRow()]));
             break;
         case TYPE:
-            sqlite3_result_text(context_, "process_track", STR_DEFAULT_LEN, nullptr);
+            sqlite3_result_text(context_, "process_filter", STR_DEFAULT_LEN, nullptr);
             break;
         case NAME: {
             DataIndex stringIdentity = static_cast<DataIndex>(processFilterObj_.NamesData()[CurrentRow()]);
-            sqlite3_result_text(context_, dataCache_->GetDataFromDict(stringIdentity).c_str(),
-                STR_DEFAULT_LEN, nullptr);
+            sqlite3_result_text(context_, dataCache_->GetDataFromDict(stringIdentity).c_str(), STR_DEFAULT_LEN,
+                                nullptr);
             break;
         }
         case INTERNAL_PID:
             sqlite3_result_int64(context_, static_cast<sqlite3_int64>(processFilterObj_.UpidsData()[CurrentRow()]));
             break;
         default:
-            TUNING_LOGF("Unregistered column : %d", col);
+            TS_LOGF("Unregistered column : %d", col);
             break;
     }
     return SQLITE_OK;

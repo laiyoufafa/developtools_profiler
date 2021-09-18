@@ -15,27 +15,26 @@
 
 package ohos.devtools.views.trace.bean;
 
+import ohos.devtools.views.trace.DField;
+
 /**
  * Wake up data
  *
- * @version 1.0
  * @date 2021/04/22 12:25
- **/
+ */
 public class WakeupBean {
     private long wakeupTime;
-
+    @DField(name = "cpu")
     private int wakeupCpu;
-
+    @DField(name = "process")
     private String wakeupProcess;
-
-    private String wakeupPid;
-
+    @DField(name = "pid")
+    private Integer wakeupPid;
+    @DField(name = "thread")
     private String wakeupThread;
-
-    private String wakeupTid;
-
+    @DField(name = "tid")
+    private Integer wakeupTid;
     private long schedulingLatency;
-
     private String schedulingDesc;
 
     /**
@@ -80,7 +79,11 @@ public class WakeupBean {
      * @return wakeup process
      */
     public String getWakeupProcess() {
-        return wakeupProcess;
+        if (wakeupProcess == null || wakeupProcess.isBlank()) {
+            return wakeupThread;
+        } else {
+            return wakeupProcess;
+        }
     }
 
     /**
@@ -97,7 +100,7 @@ public class WakeupBean {
      *
      * @return wakeup pId
      */
-    public String getWakeupPid() {
+    public Integer getWakeupPid() {
         return wakeupPid;
     }
 
@@ -106,7 +109,7 @@ public class WakeupBean {
      *
      * @param pid pid
      */
-    public void setWakeupPid(final String pid) {
+    public void setWakeupPid(final Integer pid) {
         this.wakeupPid = pid;
     }
 
@@ -133,7 +136,7 @@ public class WakeupBean {
      *
      * @return wakeup thread id
      */
-    public String getWakeupTid() {
+    public Integer getWakeupTid() {
         return wakeupTid;
     }
 
@@ -142,7 +145,7 @@ public class WakeupBean {
      *
      * @param tid tid
      */
-    public void setWakeupTid(final String tid) {
+    public void setWakeupTid(final Integer tid) {
         this.wakeupTid = tid;
     }
 

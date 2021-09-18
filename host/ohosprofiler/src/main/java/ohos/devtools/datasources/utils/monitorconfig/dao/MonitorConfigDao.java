@@ -25,10 +25,7 @@ import java.util.List;
 
 /**
  * 监控项配置数据的dao层
- *
- * @version 1.0
- * @date 2021/2/25 14:58
- **/
+ */
 public class MonitorConfigDao extends AbstractDataStore {
     // 日志
     private static final Logger LOGGER = LogManager.getLogger(MonitorConfigDao.class);

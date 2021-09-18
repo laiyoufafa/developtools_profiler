@@ -18,6 +18,7 @@
 #include <hwext/gtest-tag.h>
 #include <semaphore.h>
 #include <sys/wait.h>
+#include <sys/syscall.h>
 
 #include "client_map.h"
 #include "plugin_service.ipc.h"
@@ -67,19 +68,17 @@ public:
  */
 HWTEST_F(SharedMemoryAllocatorTest, CreateMemoryBlockLocal, TestSize.Level1)
 {
-    pid_t pid1 = fork();
-    ASSERT_TRUE(pid1 >= 0);
-    if (pid1 > 0) {
-        waitpid(pid1, nullptr, 0);
-        return;
-    }
-
+    ASSERT_TRUE(ShareMemoryAllocator::GetInstance().CreateMemoryBlockLocal("testname", 0) ==
+                nullptr); // 创建大小为0的内存块，返回空
+    ASSERT_FALSE(ShareMemoryAllocator::GetInstance().ReleaseMemoryBlockLocal("testname"));
     ASSERT_TRUE(ShareMemoryAllocator::GetInstance().CreateMemoryBlockLocal("testname", 1) ==
-                nullptr); // 创建内存块大小<1024，返回空
-    ASSERT_TRUE(ShareMemoryAllocator::GetInstance().CreateMemoryBlockLocal("testname", 1024) != nullptr); // 成功创建
-    ASSERT_TRUE(ShareMemoryAllocator::GetInstance().CreateMemoryBlockLocal("testname", 1024) ==
+                nullptr); // 创建内存块大小<4096，返回空
+    ASSERT_FALSE(ShareMemoryAllocator::GetInstance().ReleaseMemoryBlockLocal("testname"));
+    ASSERT_TRUE(ShareMemoryAllocator::GetInstance().CreateMemoryBlockLocal("testname", 4096) != nullptr); // 成功创建
+    ASSERT_TRUE(ShareMemoryAllocator::GetInstance().CreateMemoryBlockLocal("testname", 4096) ==
                 nullptr); // 创建同名内存块返回空
-    exit(0);
+    ASSERT_TRUE(ShareMemoryAllocator::GetInstance().ReleaseMemoryBlockLocal("testname"));
+    ASSERT_FALSE(ShareMemoryAllocator::GetInstance().ReleaseMemoryBlockLocal("testname"));
 }
 
 /**
@@ -87,37 +86,41 @@ HWTEST_F(SharedMemoryAllocatorTest, CreateMemoryBlockLocal, TestSize.Level1)
  * @tc.desc: Find memory block by name.
  * @tc.type: FUNC
  */
-HWTEST_F(SharedMemoryAllocatorTest, FindMBByName, TestSize.Level1)
+HWTEST_F(SharedMemoryAllocatorTest, FindMemoryBlockByName, TestSize.Level1)
 {
-    pid_t pid1 = fork();
-    ASSERT_TRUE(pid1 >= 0);
-    if (pid1 > 0) {
-        waitpid(pid1, nullptr, 0);
-        return;
-    }
-
-    ASSERT_TRUE(ShareMemoryAllocator::GetInstance().FindMBByName("err") == nullptr); // 查找不存在的内存块返回空
-
-    exit(0);
+    ASSERT_TRUE(ShareMemoryAllocator::GetInstance().FindMemoryBlockByName("err") == nullptr); // 查找不存在的内存块返回空
 }
 
 /**
  * @tc.name: Service
- * @tc.desc: Create a memory block with a nonexistent file descriptor.
+ * @tc.desc: Shared memory MemoryBlockRemote test.
  * @tc.type: FUNC
  */
-HWTEST_F(SharedMemoryAllocatorTest, CreateMemoryBlockRemote, TestSize.Level1)
+HWTEST_F(SharedMemoryAllocatorTest, MemoryBlockRemote, TestSize.Level1)
 {
-    pid_t pid1 = fork();
-    ASSERT_TRUE(pid1 >= 0);
-    if (pid1 > 0) {
-        waitpid(pid1, nullptr, 0);
-        return;
-    }
-
-    ASSERT_TRUE(ShareMemoryAllocator::GetInstance().CreateMemoryBlockRemote("err", 1024, 99) ==
+    ASSERT_TRUE(ShareMemoryAllocator::GetInstance().CreateMemoryBlockRemote("err", 4096, 99) ==
                 nullptr); // 使用不存在的文件描述符映射内存块返回空
-    exit(0);
+    ASSERT_FALSE(ShareMemoryAllocator::GetInstance().ReleaseMemoryBlockRemote("err"));
+
+    int fd = syscall(SYS_memfd_create, "testnameremote", 0);
+    EXPECT_GE(fd, 0);
+    int check = ftruncate(fd, 4096);
+    EXPECT_GE(check, 0);
+
+    ASSERT_TRUE(ShareMemoryAllocator::GetInstance().CreateMemoryBlockRemote("testnameremote", 0, fd) ==
+                nullptr); // 创建大小为0的内存块，返回空
+    ASSERT_FALSE(ShareMemoryAllocator::GetInstance().ReleaseMemoryBlockRemote("testnameremote"));
+
+    ASSERT_TRUE(ShareMemoryAllocator::GetInstance().CreateMemoryBlockRemote("testnameremote", 1, fd) ==
+                nullptr); // 创建内存块大小<4096，返回空
+    ASSERT_FALSE(ShareMemoryAllocator::GetInstance().ReleaseMemoryBlockRemote("testnameremote"));
+
+    ASSERT_FALSE(ShareMemoryAllocator::GetInstance().CreateMemoryBlockRemote("testnameremote", 4096, fd) ==
+                nullptr);
+    ASSERT_TRUE(ShareMemoryAllocator::GetInstance().CreateMemoryBlockRemote("testnameremote", 4096, fd) ==
+                nullptr); // 创建正确fd的重复内存块
+    ASSERT_TRUE(ShareMemoryAllocator::GetInstance().ReleaseMemoryBlockRemote("testnameremote"));
+    ASSERT_FALSE(ShareMemoryAllocator::GetInstance().ReleaseMemoryBlockRemote("testnameremote")); // 重复释放内存块返回-1
 }
 
 /**
@@ -127,17 +130,9 @@ HWTEST_F(SharedMemoryAllocatorTest, CreateMemoryBlockRemote, TestSize.Level1)
  */
 HWTEST_F(SharedMemoryAllocatorTest, GetDataSize, TestSize.Level1)
 {
-    pid_t pid1 = fork();
-    ASSERT_TRUE(pid1 >= 0);
-    if (pid1 > 0) {
-        waitpid(pid1, nullptr, 0);
-        return;
-    }
-
-    ASSERT_TRUE(ShareMemoryAllocator::GetInstance().CreateMemoryBlockLocal("testname", 1024) != nullptr); // 成功创建
-    ASSERT_TRUE(ShareMemoryAllocator::GetInstance().FindMBByName("testname")->GetDataSize() == 0);
-
-    exit(0);
+    ASSERT_TRUE(ShareMemoryAllocator::GetInstance().CreateMemoryBlockLocal("testname", 4096) != nullptr); // 成功创建
+    ASSERT_TRUE(ShareMemoryAllocator::GetInstance().FindMemoryBlockByName("testname")->GetDataSize() == 0);
+    ASSERT_TRUE(ShareMemoryAllocator::GetInstance().ReleaseMemoryBlockLocal("testname"));
 }
 
 /**
@@ -147,15 +142,7 @@ HWTEST_F(SharedMemoryAllocatorTest, GetDataSize, TestSize.Level1)
  */
 HWTEST_F(SharedMemoryAllocatorTest, ReleaseMemoryBlockLocal, TestSize.Level1)
 {
-    pid_t pid1 = fork();
-    ASSERT_TRUE(pid1 >= 0);
-    if (pid1 > 0) {
-        waitpid(pid1, nullptr, 0);
-        return;
-    }
-
     ASSERT_FALSE(ShareMemoryAllocator::GetInstance().ReleaseMemoryBlockLocal("or")); // 释放不存在的内存块返回-1
-    exit(0);
 }
 
 /**
@@ -165,15 +152,7 @@ HWTEST_F(SharedMemoryAllocatorTest, ReleaseMemoryBlockLocal, TestSize.Level1)
  */
 HWTEST_F(SharedMemoryAllocatorTest, ReleaseMemoryBlockRemote, TestSize.Level1)
 {
-    pid_t pid1 = fork();
-    ASSERT_TRUE(pid1 >= 0);
-    if (pid1 > 0) {
-        waitpid(pid1, nullptr, 0);
-        return;
-    }
-
     ASSERT_FALSE(ShareMemoryAllocator::GetInstance().ReleaseMemoryBlockRemote("or")); // 释放不存在的内存块返回-1
-    exit(0);
 }
 
 /**
@@ -251,8 +230,7 @@ HWTEST_F(SharedMemoryAllocatorTest, unixSocketClient, TestSize.Level1)
 HWTEST_F(SharedMemoryAllocatorTest, UnixSocketServer, TestSize.Level1)
 {
     UnixSocketServer unixSocketServer;
-
-    unixSocketServer.UnixSocketAccept(nullptr);
+    unixSocketServer.UnixSocketAccept();
 
     ServiceEntry serviceEntry;
     ASSERT_TRUE(unixSocketServer.StartServer("", serviceEntry));

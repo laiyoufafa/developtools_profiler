@@ -35,8 +35,9 @@ public:
     ServiceEntry* serviceEntry_;
 
 private:
+    void UnixSocketAccept();
+
     std::thread acceptThread_;
-    static void* UnixSocketAccept(void* p);
 };
 
 #endif

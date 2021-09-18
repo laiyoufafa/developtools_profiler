@@ -25,7 +25,6 @@ TraceDataCacheBase::TraceDataCacheBase()
 
     GetDataIndex("");
 }
-TraceDataCacheBase::~TraceDataCacheBase() {}
 DataIndex TraceDataCacheBase::GetDataIndex(std::string_view str)
 {
     return dataDict_.GetStringIndex(str);

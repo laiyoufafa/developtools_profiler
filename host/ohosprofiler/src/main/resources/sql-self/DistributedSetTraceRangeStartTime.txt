@@ -1,0 +1,1 @@
+update trace_range set start_ts=%s;

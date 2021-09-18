@@ -47,8 +47,15 @@ int main(int argc, char* argv[])
     pluginManager->SetCommandPoller(commandPoller);
 
     PluginWatcher watcher(pluginManager);
-    watcher.ScanPlugins(pluginDir);
-    watcher.WatchPlugins(pluginDir);
+    if (!watcher.ScanPlugins(pluginDir)) {
+        HILOG_DEBUG(LOG_CORE, "Scan pluginDir:%s failed!", DEFAULT_PLUGIN_PATH);
+        return 0;
+    }
+
+    if (!watcher.WatchPlugins(pluginDir)) {
+        HILOG_DEBUG(LOG_CORE, "Monitor pluginDir:%s failed!", DEFAULT_PLUGIN_PATH);
+        return 0;
+    }
 
     while (true) {
         std::this_thread::sleep_for(std::chrono::milliseconds(SLEEP_ONE_SECOND));

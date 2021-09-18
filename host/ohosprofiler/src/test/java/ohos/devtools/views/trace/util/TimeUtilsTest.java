@@ -22,9 +22,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 /**
  * test TimeUtils class .
  *
- * @version 1.0
  * @date 2021/4/24 17:03
- **/
+ */
 class TimeUtilsTest {
     /**
      * test function the getSecondFromNSecond .
@@ -32,7 +31,7 @@ class TimeUtilsTest {
     @Test
     void getSecondFromNSecond() {
         String str = TimeUtils.getSecondFromNSecond(1000L);
-        assertEquals("1.0us", str);
+        assertEquals("1.0μs", str);
     }
 
     /**
@@ -41,6 +40,6 @@ class TimeUtilsTest {
     @Test
     void getTimeString() {
         String timeString = TimeUtils.getTimeString(1000L);
-        assertEquals("1us", timeString);
+        assertEquals("1μs", timeString);
     }
 }

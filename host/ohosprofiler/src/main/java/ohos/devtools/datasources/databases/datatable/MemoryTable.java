@@ -23,37 +23,31 @@ import org.apache.logging.log4j.Logger;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Locale;
 import java.util.Optional;
-
-import static ohos.devtools.views.common.LayoutConstants.INDEX_FOUR;
-import static ohos.devtools.views.common.LayoutConstants.INDEX_ONE;
-import static ohos.devtools.views.common.LayoutConstants.INDEX_THREE;
-import static ohos.devtools.views.common.LayoutConstants.TWO;
 
 /**
  * memory数据
- *
- * @version 1.0
- * @date 2021/02/20 16:51
- **/
+ */
 public class MemoryTable extends AbstractDataStore {
     private static final Logger LOGGER = LogManager.getLogger(MemoryTable.class);
     private static final String MEMORY_DB_NAME = "memory";
 
+    /**
+     * Memory Table initialize
+     */
     public MemoryTable() {
         initialize();
     }
 
     /**
      * initialization
-     **/
+     */
     private void initialize() {
-        // processMemInfo
+        /**
+         * processMem Info
+         */
         List<String> processMemInfo = new ArrayList() {
             {
                 add("id INTEGER primary key autoincrement not null");
@@ -65,7 +59,6 @@ public class MemoryTable extends AbstractDataStore {
         };
         List<String> processMemInfoIndex = new ArrayList() {
             {
-                add("id");
                 add("sessionId");
                 add("timeStamp");
             }
@@ -88,37 +81,30 @@ public class MemoryTable extends AbstractDataStore {
         Optional<Connection> option = getConnectByTable("processMemInfo");
         if (option.isPresent()) {
             Connection conn = option.get();
+            PreparedStatement pst = null;
             try {
-                PreparedStatement pst = conn.prepareStatement(
-                    "INSERT OR IGNORE INTO processMemInfo(session, sessionId, timeStamp, Data) VALUES (?, ?, ?, ?)");
                 conn.setAutoCommit(false);
-                processMemInfos.forEach(processMemoryInfo -> {
-                    try {
-                        pst.setLong(INDEX_ONE, processMemoryInfo.getLocalSessionId());
-                        pst.setInt(TWO, processMemoryInfo.getSessionId());
-                        pst.setLong(INDEX_THREE, processMemoryInfo.getTimeStamp());
-                        pst.setBytes(INDEX_FOUR, processMemoryInfo.getData().toByteArray());
+                pst = conn.prepareStatement(
+                    "INSERT OR IGNORE INTO processMemInfo(session, sessionId, timeStamp, Data) VALUES (?, ?, ?, ?)");
+                if (processMemInfos != null && processMemInfos.size() > 0) {
+                    for (ProcessMemInfo processMemoryInfo : processMemInfos) {
+                        pst.setLong(1, processMemoryInfo.getLocalSessionId());
+                        pst.setInt(2, processMemoryInfo.getSessionId());
+                        pst.setLong(3, processMemoryInfo.getTimeStamp());
+                        if (processMemoryInfo.getData() != null) {
+                            pst.setBytes(4, processMemoryInfo.getData().toByteArray());
+                        }
                         pst.addBatch();
-                    } catch (SQLException sqlException) {
-                        LOGGER.info("insert AppInfo {}", sqlException.getMessage());
                     }
-                });
-                try {
-                    int[] results = pst.executeBatch();
+                    pst.executeBatch();
                     conn.commit();
+                    conn.setAutoCommit(true);
                     return true;
-                } catch (SQLException throwAbles) {
-                    LOGGER.info("insert AppInfo {}", throwAbles.getMessage());
-                } finally {
-                    if (pst != null) {
-                        pst.close();
-                    }
-                    if (conn != null) {
-                        conn.close();
-                    }
                 }
             } catch (SQLException exception) {
                 LOGGER.error("insert AppInfo {}", exception.getMessage());
+            } finally {
+                close(pst, conn);
             }
         }
         return false;

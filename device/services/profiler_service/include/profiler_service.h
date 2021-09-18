@@ -15,10 +15,11 @@
 #ifndef PROFILER_SERVICE_H
 #define PROFILER_SERVICE_H
 
+#include <grpcpp/grpcpp.h>
+#include <memory>
 #include "logging.h"
 #include "nocopyable.h"
 #include "profiler_service.grpc.pb.h"
-#include <memory>
 
 class PluginService;
 
@@ -66,20 +67,30 @@ public:
                                   const ::DestroySessionRequest* request,
                                   ::DestroySessionResponse* response) override;
 
+    // keep tracing session alive.
+    ::grpc::Status KeepSession(::grpc::ServerContext* context,
+                               const ::KeepSessionRequest* request,
+                               ::KeepSessionResponse* response) override;
+
+    // only used in main, for service control.
     bool StartService(const std::string& listenUri);
-
     void WaitServiceDone();
-
     void StopService();
 
 private:
-    static constexpr size_t DEFAULT_REPEATER_BUFFER_SIZE = 100;
+    static constexpr size_t DEFAULT_REPEATER_BUFFER_SIZE = 2000;
 
-    struct SessionContext {
-        uint32_t id;
-        std::mutex mutex;
+    using BufferConfig = ProfilerSessionConfig::BufferConfig;
+
+    struct SessionContext : public std::enable_shared_from_this<SessionContext> {
+        uint32_t id = 0;
+        std::string name;
+        std::string offlineTask; // offline sample task name
+        std::string timeoutTask; // session timeout task name
+        ProfilerService* service = nullptr;
+        std::mutex sessionMutex;
         ProfilerSessionConfig sessionConfig;
-        std::vector<ProfilerSessionConfig::BufferConfig> bufferConfigs;
+        std::vector<BufferConfig> bufferConfigs;
         std::vector<ProfilerPluginConfig> pluginConfigs;
         std::vector<ProfilerPluginState> pluginStatus;
         std::map<std::string, PluginSessionPtr> pluginSessions;
@@ -88,23 +99,30 @@ private:
         std::shared_ptr<ResultDemuxer> resultDemuxer;
 
         PluginSessionPtr CreatePluginSession(const PluginServicePtr& pluginService,
-                                                           const ProfilerPluginConfig& pluginConfig);
+                                             const ProfilerPluginConfig& pluginConfig);
 
         PluginSessionPtr CreatePluginSession(const PluginServicePtr& pluginService,
-                                                           const ProfilerPluginConfig& pluginConfig,
-                                                           const ProfilerSessionConfig::BufferConfig& bufferConfig);
+                                             const ProfilerPluginConfig& pluginConfig,
+                                             const BufferConfig& bufferConfig);
 
-        bool CheckBufferConfig(const ProfilerSessionConfig::BufferConfig& bufferConfig);
+        bool CheckPluginSha256(const ProfilerPluginConfig& pluginConfig);
+
+        bool CheckBufferConfig(const BufferConfig& bufferConfig);
 
         bool CreatePluginSessions(const PluginServicePtr& pluginService);
         bool RemovePluginSessions(const std::vector<std::string>& nameList);
-        bool UpdatePluginSessions(const PluginServicePtr& pluginService,
-                                  const std::vector<int>& configIndexes);
+        bool UpdatePluginSessions(const PluginServicePtr& pluginService, const std::vector<int>& configIndexes);
         std::vector<int> UpdatePluginConfigs(const std::vector<ProfilerPluginConfig>& configList);
 
         SessionContext() = default;
         ~SessionContext();
 
+        bool StartPluginSessions();
+        bool StopPluginSessions();
+
+        void SetKeepAliveTime(uint32_t timeout);
+        void StartSessionExpireTask();
+        void StopSessionExpireTask();
         DISALLOW_COPY_AND_MOVE(SessionContext);
     };
 
@@ -117,12 +135,12 @@ private:
     bool RemoveSessionContext(uint32_t sessionId);
 
 private:
-    mutable std::mutex sessionContextMutex_;
-    PluginServicePtr pluginService_;
-    std::atomic<uint32_t> sessionIdCounter_ {0};
-    std::atomic<uint32_t> responseIdCounter_ {0};
-    std::map<uint32_t, SessionContextPtr> sessionContext_;
-    std::unique_ptr<grpc_impl::Server> server_;
+    mutable std::mutex sessionContextMutex_ = {};
+    PluginServicePtr pluginService_ = nullptr;
+    std::atomic<uint32_t> sessionIdCounter_ = 0;
+    std::atomic<uint32_t> responseIdCounter_ = 0;
+    std::map<uint32_t, SessionContextPtr> sessionContext_ = {};
+    std::unique_ptr<grpc_impl::Server> server_ = nullptr;
 
     DISALLOW_COPY_AND_MOVE(ProfilerService);
 };

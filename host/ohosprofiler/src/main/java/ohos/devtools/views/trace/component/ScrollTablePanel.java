@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package ohos.devtools.views.trace.component;
 
 import com.intellij.ui.components.JBBox;
@@ -37,9 +38,9 @@ import java.util.List;
 /**
  * Scroll table component
  *
- * @version 1.0.1
  * @date 2021/04/20 12:24
  */
+@Deprecated
 public class ScrollTablePanel extends BottomScrollPanel {
     private String[] columns;
     private List<Object> dataSource = new ArrayList<>();
@@ -47,7 +48,7 @@ public class ScrollTablePanel extends BottomScrollPanel {
     /**
      * Constructor
      *
-     * @param columns    columns
+     * @param columns columns
      * @param dataSource dataSource
      */
     public ScrollTablePanel(String[] columns, ArrayList<Object> dataSource) {
@@ -61,7 +62,7 @@ public class ScrollTablePanel extends BottomScrollPanel {
     /**
      * Set up columns and data sources
      *
-     * @param columns    columns
+     * @param columns columns
      * @param dataSource dataSource
      */
     public void setColumnsAndData(String[] columns, ArrayList<Object> dataSource) {
@@ -79,7 +80,8 @@ public class ScrollTablePanel extends BottomScrollPanel {
     }
 
     /**
-     * @version 1.0.1
+     * TitleComponent
+     *
      * @date 2021/04/20 12:24
      */
     class TitleComponent extends ChildLineComponent {
@@ -125,7 +127,7 @@ public class ScrollTablePanel extends BottomScrollPanel {
                         rects[index] = new Rectangle(10 + index * width - 4, 0, width - 2, lineHeight);
                     }
                     if (index > 0) {
-                        graphics.fillRect(rects[index].x, rects[index].y, 2, rects[index].height);
+                        graphics.fillRect(Utils.getX(rects[index]), Utils.getY(rects[index]), 2, rects[index].height);
                     }
                 }
             }
@@ -148,14 +150,21 @@ public class ScrollTablePanel extends BottomScrollPanel {
     }
 
     /**
-     * @version 1.0.1
+     * LineComponent
+     *
      * @date 2021/04/20 12:24
      */
     class LineComponent extends ChildLineComponent {
+        private final int xAxis = 10;
         private Object data;
         private int columnSize = 7;
-        private final int xAxis = 10;
 
+        /**
+         * Construction
+         *
+         * @param data Bean of Cpu
+         * @param columnSize size of column size
+         */
         public LineComponent(Object data, int columnSize) {
             super();
             this.data = data;
@@ -206,10 +215,10 @@ public class ScrollTablePanel extends BottomScrollPanel {
          * draw String
          *
          * @param graphics graphics
-         * @param xAxis    xAxis
-         * @param yAxis    yAxis
-         * @param width    width
-         * @param str      string
+         * @param xAxis xAxis
+         * @param yAxis yAxis
+         * @param width width
+         * @param str string
          */
         private void drawString(Graphics graphics, int xAxis, int yAxis, int width, String str) {
             int size = width / 7;
@@ -220,5 +229,4 @@ public class ScrollTablePanel extends BottomScrollPanel {
             }
         }
     }
-
 }

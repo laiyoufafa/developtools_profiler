@@ -22,11 +22,8 @@ import java.io.IOException;
 import java.util.List;
 
 /**
- * DataBaseHelperTest
- *
- * @version 1.0
- * @date 2021/04/12 18:38
- **/
+ * Data Base Helper Test
+ */
 public class DataBaseHelperTest {
     private static String url = "jdbc:sqlite://localhost:1521";
 
@@ -126,5 +123,4 @@ public class DataBaseHelperTest {
         DataBase dataBaseDefault = DataBaseHelper.createDefaultDataBase();
         Assert.assertNotNull(dataBaseDefault);
     }
-
 }

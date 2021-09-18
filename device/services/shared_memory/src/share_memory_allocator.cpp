@@ -37,22 +37,20 @@ ShareMemoryAllocator::~ShareMemoryAllocator() {}
 
 bool ShareMemoryAllocator::ReleaseMemoryBlockLocal(std::string name)
 {
-    auto pmb = FindMBByName(name);
+    auto pmb = FindMemoryBlockByName(name);
 
     CHECK_NOTNULL(pmb, false, "FAIL %s", name.c_str());
 
-    pmb->ReleaseBlock();
     memoryBlocks.erase(name);
     return true;
 }
 
 bool ShareMemoryAllocator::ReleaseMemoryBlockRemote(std::string name)
 {
-    auto pmb = FindMBByName(name);
+    auto pmb = FindMemoryBlockByName(name);
 
     CHECK_NOTNULL(pmb, false, "FAIL %s", name.c_str());
 
-    pmb->ReleaseBlockRemote();
     memoryBlocks.erase(name);
     return true;
 }
@@ -60,28 +58,36 @@ bool ShareMemoryAllocator::ReleaseMemoryBlockRemote(std::string name)
 ShareMemoryBlockPtr ShareMemoryAllocator::CreateMemoryBlockLocal(std::string name, uint32_t size)
 {
     CHECK_TRUE(memoryBlocks.find(name) == memoryBlocks.end(), nullptr, "%s already used", name.c_str());
-
     CHECK_TRUE(size >= MIN_SHARE_MEMORY_SIZE, NULL, "%s %d size less than %d", name.c_str(), size,
                MIN_SHARE_MEMORY_SIZE);
 
-    memoryBlocks[name] = std::make_shared<ShareMemoryBlock>();
-    memoryBlocks[name]->CreateBlock(name, size);
-    return memoryBlocks[name];
+    auto block = std::make_shared<ShareMemoryBlock>(name, size);
+    if (!block->Valid()) {
+        HILOG_INFO(LOG_CORE, "CreateMemoryBlockLocal FAIL");
+        return nullptr;
+    }
+    memoryBlocks[name] = block;
+    return block;
 }
 
 ShareMemoryBlockPtr ShareMemoryAllocator::CreateMemoryBlockRemote(std::string name, uint32_t size, int fd)
 {
-    memoryBlocks[name] = std::make_shared<ShareMemoryBlock>();
-    if (memoryBlocks[name]->CreateBlockByFd(name, size, fd)) {
-        return memoryBlocks[name];
+    CHECK_TRUE(memoryBlocks.find(name) == memoryBlocks.end(), nullptr, "%s already used", name.c_str());
+    CHECK_TRUE(size >= MIN_SHARE_MEMORY_SIZE, NULL, "%s %d size less than %d", name.c_str(), size,
+               MIN_SHARE_MEMORY_SIZE);
+
+    auto block = std::make_shared<ShareMemoryBlock>(name, size, fd);
+    if (!block->Valid()) {
+        HILOG_INFO(LOG_CORE, "CreateMemoryBlockRemote FAIL");
+        return nullptr;
     }
-    memoryBlocks.erase(name);
-    HILOG_INFO(LOG_CORE, "CreateMemoryBlockRemote FAIL");
-    return nullptr;
+    memoryBlocks[name] = block;
+    return block;
 }
 
-ShareMemoryBlockPtr ShareMemoryAllocator::FindMBByName(std::string name)
+ShareMemoryBlockPtr ShareMemoryAllocator::FindMemoryBlockByName(std::string name)
 {
-    CHECK_TRUE(memoryBlocks.find(name) != memoryBlocks.end(), nullptr, "FAIL");
-    return memoryBlocks[name];
+    auto it = memoryBlocks.find(name);
+    CHECK_TRUE(it != memoryBlocks.end(), nullptr, "FAIL");
+    return it->second;
 }

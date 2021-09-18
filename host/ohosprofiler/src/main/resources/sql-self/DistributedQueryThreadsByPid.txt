@@ -1,0 +1,1 @@
+select thread.*,p.pid from thread left join process p on thread.ipid = p.id where pid = %s;

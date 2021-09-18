@@ -19,10 +19,7 @@ import org.apache.logging.log4j.Logger;
 
 /**
  * logger print
- *
- * @version 1.0
- * @date 2021/04/26 17:21
- **/
+ */
 public class PrintUtil {
     /**
      * print logging

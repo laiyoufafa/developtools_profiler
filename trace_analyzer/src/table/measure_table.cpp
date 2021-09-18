@@ -25,9 +25,9 @@ MeasureTable::MeasureTable(const TraceDataCache* dataCache) : TableBase(dataCach
     tableColumn_.push_back(TableBase::ColumnInfo("type", "STRING"));
     tableColumn_.push_back(TableBase::ColumnInfo("ts", "UNSIGNED BIG INT"));
     tableColumn_.push_back(TableBase::ColumnInfo("value", "UNSIGNED BIG INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("track_id", "UNSIGNED INT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("filter_id", "UNSIGNED INT"));
     tablePriKey_.push_back("ts");
-    tablePriKey_.push_back("track_id");
+    tablePriKey_.push_back("filter_id");
 }
 
 MeasureTable::~MeasureTable() {}
@@ -38,8 +38,8 @@ void MeasureTable::CreateCursor()
 }
 
 MeasureTable::Cursor::Cursor(const TraceDataCache* dataCache)
-    : TableBase::Cursor(dataCache, 0, static_cast<uint32_t>(dataCache->GetConstCounterData().Size())),
-      counterObj(dataCache->GetConstCounterData())
+    : TableBase::Cursor(dataCache, 0, static_cast<uint32_t>(dataCache->GetConstMeasureData().Size())),
+      measureObj(dataCache->GetConstMeasureData())
 {
 }
 
@@ -49,19 +49,19 @@ int MeasureTable::Cursor::Column(int column) const
 {
     switch (column) {
         case TYPE:
-            sqlite3_result_text(context_, "counter", STR_DEFAULT_LEN, nullptr);
+            sqlite3_result_text(context_, "measure", STR_DEFAULT_LEN, nullptr);
             break;
         case TS:
-            sqlite3_result_int64(context_, static_cast<int64_t>(counterObj.TimeStamData()[CurrentRow()]));
+            sqlite3_result_int64(context_, static_cast<int64_t>(measureObj.TimeStamData()[CurrentRow()]));
             break;
         case VALUE:
-            sqlite3_result_int64(context_, static_cast<int64_t>(counterObj.ValuesData()[CurrentRow()]));
+            sqlite3_result_int64(context_, static_cast<int64_t>(measureObj.ValuesData()[CurrentRow()]));
             break;
         case FILTER_ID:
-            sqlite3_result_int64(context_, static_cast<int32_t>(counterObj.FilterIdData()[CurrentRow()]));
+            sqlite3_result_int64(context_, static_cast<int32_t>(measureObj.FilterIdData()[CurrentRow()]));
             break;
         default:
-            TUNING_LOGF("Unregistered column : %d", column);
+            TS_LOGF("Unregistered column : %d", column);
             break;
     }
     return SQLITE_OK;

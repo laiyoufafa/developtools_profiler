@@ -10,7 +10,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 import("//build/ohos.gni")
 import("../../base/config.gni")
 
@@ -27,14 +26,13 @@ config("bytraceplugin_config") {
 
 ohos_shared_library("bytraceplugin") {
   output_name = "bytraceplugin"
-  sources = [
-    "src/bytrace_module.cpp",
-  ]
+  sources = [ "src/bytrace_module.cpp" ]
   public_configs = [ ":bytraceplugin_config" ]
   public_deps = [
-    "${OHOS_PROFILER_DIR}/protos/types/plugins/bytrace_plugin:bytrace_plugin_protos_cpp",
     "${OHOS_PROFILER_3RDPARTY_PROTOBUF_DIR}:protobuf_lite",
     "${OHOS_PROFILER_3RDPARTY_PROTOBUF_DIR}:protoc_lib",
+    "${OHOS_PROFILER_DIR}/protos/types/plugins/bytrace_plugin:bytrace_plugin_protos_cpp",
+    "//utils/native/base:utilsecurec",
   ]
   if (current_toolchain != host_toolchain) {
     defines = [ "HAVE_HILOG" ]
@@ -48,14 +46,10 @@ ohos_shared_library("bytraceplugin") {
   subsystem_name = "${OHOS_PROFILER_SUBSYS_NAME}"
 }
 
-ohos_executable("test_bytraceplugin") {
+ohos_executable("test_bytrace_plugin") {
   output_name = "test_bytraceplugin"
-  sources = [
-    "src/run_test.cpp",
-  ]
-  deps = [
-    ":bytraceplugin",
-  ]
+  sources = [ "src/run_test.cpp" ]
+  deps = [ ":bytraceplugin" ]
   install_enable = true
   subsystem_name = "${OHOS_PROFILER_SUBSYS_NAME}"
 }

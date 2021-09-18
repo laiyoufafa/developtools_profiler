@@ -18,14 +18,14 @@ package ohos.devtools.views.charts.model;
 import java.awt.Color;
 
 /**
- * Chart数据的模型
- *
- * @since 2021/3/2 11:26
+ * Chart data model
  */
 public class ChartDataModel {
     private int index;
 
     private String name;
+
+    private double cpuPercent;
 
     private Color color;
 
@@ -61,5 +61,19 @@ public class ChartDataModel {
 
     public void setValue(int value) {
         this.value = value;
+    }
+
+    public double getCpuPercent() {
+        return cpuPercent;
+    }
+
+    public void setCpuPercent(double cpuPercent) {
+        this.cpuPercent = cpuPercent;
+    }
+
+    @Override
+    public String toString() {
+        return "ChartDataModel{" + "index=" + index + ", name='" + name + '\'' + ", cpuPercent=" + cpuPercent
+            + ", color=" + color + ", value=" + value + '}';
     }
 }

@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef THREAD_TABLE_H
-#define THREAD_TABLE_H
+#ifndef SRC_THREAD_TABLE_H
+#define SRC_THREAD_TABLE_H
 
 #include "table_base.h"
 #include "trace_data_cache.h"
@@ -23,14 +23,14 @@ namespace SysTuning {
 namespace TraceStreamer {
 class ThreadTable : public TableBase {
 public:
-    explicit ThreadTable(const TraceDataCache*);
+    explicit ThreadTable(const TraceDataCache* dataCache);
     ~ThreadTable() override;
     void CreateCursor() override;
 
 private:
     class Cursor : public TableBase::Cursor {
     public:
-        explicit Cursor(const TraceDataCache*);
+        explicit Cursor(const TraceDataCache* dataCache);
         ~Cursor() override;
         int Column(int) const override;
     };
@@ -38,4 +38,4 @@ private:
 } // namespace TraceStreamer
 } // namespace SysTuning
 
-#endif // THREAD_TABLE_H
+#endif // SRC_THREAD_TABLE_H

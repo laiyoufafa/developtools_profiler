@@ -17,50 +17,27 @@ package ohos.devtools.views.trace.fragment.graph;
 
 import com.intellij.util.ui.UIUtil;
 import ohos.devtools.views.trace.fragment.AbstractDataFragment;
-import ohos.devtools.views.trace.util.Final;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import javax.swing.JPanel;
-import java.awt.Color;
-import java.awt.Composite;
-import java.awt.Font;
-import java.awt.FontMetrics;
-import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.GraphicsConfiguration;
-import java.awt.Image;
-import java.awt.Paint;
-import java.awt.Rectangle;
-import java.awt.RenderingHints;
-import java.awt.Shape;
-import java.awt.Stroke;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
-import java.awt.font.FontRenderContext;
-import java.awt.font.GlyphVector;
-import java.awt.geom.AffineTransform;
-import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
-import java.awt.image.BufferedImageOp;
-import java.awt.image.ImageObserver;
-import java.awt.image.RenderedImage;
-import java.awt.image.renderable.RenderableImage;
-import java.text.AttributedCharacterIterator;
-import java.util.Map;
 
 /**
  * test FavoriteGraph class .
  *
- * @version 1.0
  * @date 2021/4/24 17:56
- **/
+ */
 class FavoriteGraphTest {
     /**
      * test function the edgeInspect .
      */
     @Test
     void edgeInspect() {
-        FavoriteGraph graph = new FavoriteGraph(null, null);
+        FavoriteGraph graph = new FavoriteGraph(null, null, null);
         graph.setRect(0.0F, 0.0F, 100.0F, 100.0F);
         Assertions.assertEquals(100, graph.rect.width);
     }
@@ -70,7 +47,7 @@ class FavoriteGraphTest {
      */
     @Test
     void repaint() {
-        FavoriteGraph graph = new FavoriteGraph(null, null);
+        FavoriteGraph graph = new FavoriteGraph(null, null, null);
         graph.setRect(0.0F, 0.0F, 100.0F, 100.0F);
         Assertions.assertEquals(100, graph.rect.width);
     }
@@ -80,7 +57,7 @@ class FavoriteGraphTest {
      */
     @Test
     void setRect() {
-        FavoriteGraph graph = new FavoriteGraph(null, null);
+        FavoriteGraph graph = new FavoriteGraph(null, null, null);
         graph.setRect(0.0F, 0.0F, 100.0F, 100.0F);
         Assertions.assertEquals(100, graph.rect.width);
     }
@@ -90,7 +67,7 @@ class FavoriteGraphTest {
      */
     @Test
     void drawString() {
-        FavoriteGraph graph = new FavoriteGraph(null, null);
+        FavoriteGraph graph = new FavoriteGraph(null, null, null);
         graph.setRect(0.0F, 0.0F, 100.0F, 100.0F);
         Assertions.assertEquals(100, graph.rect.width);
     }
@@ -100,7 +77,7 @@ class FavoriteGraphTest {
      */
     @Test
     void getRightGraph() {
-        FavoriteGraph graph = new FavoriteGraph(null, null);
+        FavoriteGraph graph = new FavoriteGraph(null, null, null);
         graph.setRect(0.0F, 0.0F, 100.0F, 100.0F);
         Assertions.assertEquals(100, graph.rect.width);
     }
@@ -110,7 +87,7 @@ class FavoriteGraphTest {
      */
     @Test
     void setRightGraph() {
-        FavoriteGraph graph = new FavoriteGraph(null, null);
+        FavoriteGraph graph = new FavoriteGraph(null, null, null);
         graph.setRect(0.0F, 0.0F, 100.0F, 100.0F);
         Assertions.assertEquals(100, graph.rect.width);
     }
@@ -120,7 +97,7 @@ class FavoriteGraphTest {
      */
     @Test
     void isDisplay() {
-        FavoriteGraph graph = new FavoriteGraph(null, null);
+        FavoriteGraph graph = new FavoriteGraph(null, null, null);
         graph.setRect(0.0F, 0.0F, 100.0F, 100.0F);
         Assertions.assertEquals(100, graph.rect.width);
     }
@@ -130,7 +107,7 @@ class FavoriteGraphTest {
      */
     @Test
     void display() {
-        FavoriteGraph graph = new FavoriteGraph(null, null);
+        FavoriteGraph graph = new FavoriteGraph(null, null, null);
         graph.setRect(0.0F, 0.0F, 100.0F, 100.0F);
         Assertions.assertEquals(100, graph.rect.width);
     }
@@ -140,7 +117,7 @@ class FavoriteGraphTest {
      */
     @Test
     void isFavorite() {
-        FavoriteGraph graph = new FavoriteGraph(null, null);
+        FavoriteGraph graph = new FavoriteGraph(null, null, null);
         graph.setRect(0.0F, 0.0F, 100.0F, 100.0F);
         Assertions.assertEquals(100, graph.rect.width);
     }
@@ -150,17 +127,19 @@ class FavoriteGraphTest {
      */
     @Test
     void favorite() {
-        FavoriteGraph graph = new FavoriteGraph(null, null);
+        FavoriteGraph graph = new FavoriteGraph(null, null, null);
         graph.setRect(0.0F, 0.0F, 100.0F, 100.0F);
         Assertions.assertEquals(100, graph.rect.width);
     }
 
     /**
+     * 11223344556677889900--```qwertyuiop[]\asdfghjkl;'
+     * aszxcvbnm,./?AAAA
      * test function the draw .
      */
     @Test
     void draw() {
-        FavoriteGraph graph = new FavoriteGraph(new AbstractDataFragment() {
+        FavoriteGraph graph = new FavoriteGraph(new AbstractDataFragment(null, false, false) {
             @Override
             public void mouseClicked(MouseEvent event) {
             }
@@ -184,7 +163,11 @@ class FavoriteGraphTest {
             @Override
             public void mouseReleased(MouseEvent event) {
             }
-        }, null);
+
+            @Override
+            public void keyReleased(KeyEvent event) {
+            }
+        }, null, null);
         BufferedImage image = UIUtil.createImage(new JPanel(), 1, 1, BufferedImage.TYPE_INT_ARGB);
         Graphics2D graphics2D = image.createGraphics();
         graph.draw(graphics2D);
@@ -196,7 +179,7 @@ class FavoriteGraphTest {
      */
     @Test
     void onFocus() {
-        FavoriteGraph graph = new FavoriteGraph(null, null);
+        FavoriteGraph graph = new FavoriteGraph(null, null, null);
         graph.setRect(0.0F, 0.0F, 100.0F, 100.0F);
         Assertions.assertEquals(100, graph.rect.width);
     }
@@ -206,7 +189,7 @@ class FavoriteGraphTest {
      */
     @Test
     void onBlur() {
-        FavoriteGraph graph = new FavoriteGraph(null, null);
+        FavoriteGraph graph = new FavoriteGraph(null, null, null);
         graph.setRect(0.0F, 0.0F, 100.0F, 100.0F);
         Assertions.assertEquals(100, graph.rect.width);
     }
@@ -216,7 +199,7 @@ class FavoriteGraphTest {
      */
     @Test
     void onClick() {
-        FavoriteGraph graph = new FavoriteGraph(null, null);
+        FavoriteGraph graph = new FavoriteGraph(null, null, null);
         graph.setRect(0.0F, 0.0F, 100.0F, 100.0F);
         Assertions.assertEquals(100, graph.rect.width);
     }
@@ -226,7 +209,7 @@ class FavoriteGraphTest {
      */
     @Test
     void onMouseMove() {
-        FavoriteGraph graph = new FavoriteGraph(null, null);
+        FavoriteGraph graph = new FavoriteGraph(null, null, null);
         graph.setRect(0.0F, 0.0F, 100.0F, 100.0F);
         Assertions.assertEquals(100, graph.rect.width);
     }

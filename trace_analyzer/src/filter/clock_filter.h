@@ -20,43 +20,46 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include "common.h"
 #include "filter_base.h"
 #include "trace_data_cache.h"
 #include "trace_streamer_filters.h"
 
 namespace SysTuning {
 namespace TraceStreamer {
-enum BuiltinClocks {
-    REALTIME = 1,
-    REALTIME_COARSE = 2,
-    MONOTONIC = 3,
-    MONOTONIC_COARSE = 4,
-    MONOTONIC_RAW = 5,
-    BOOTTIME = 6,
-};
+/*
+ * TS_REALTIME:  A settable system-wide clock that measures real time. Its time represents seconds and nanoseconds
+ * since the Epoch.
+ * TS_REALTIME_COARSE:  A faster but less precise version of TS_REALTIME.  This clock is not settable.
+ * TS_MONOTONIC:  The number of seconds that the system has been running since it was booted.The CLOCK_MONOTONIC
+ * clock is not affected by discontinuous jumps in the system time ，but is affected by the incremental adjustments
+ * performed by adjtime(3) and  NTP. This clock does not count time that the system is  suspended.
+ * TS_MONOTONIC_COARSE:  A faster but less precise version of TS_MONOTONIC.
+ * TS_MONOTONIC_RAW:  Similar to TS_MONOTONIC, but provides access to a raw  hardware-based time that is not subject
+ * to NTP adjustments or the incremental adjustments performed by adjtime(3). This clock does not count time that the
+ * system is suspended.
+ * TS_BOOTTIME:  A nonsettable system-wide clock that is identical to TS_MONOTONIC, except that it also includes
+ * any time that the system is suspended.
+ */
 
+using ClockId = uint32_t;
+struct SnapShot {
+    ClockId clockId;
+    uint64_t ts;
+};
 class ClockFilter : private FilterBase {
 public:
-    using ClockId = uint32_t;
     using ConvertClockMap = std::map<uint64_t, int64_t>;
 
-    class SnapShot {
-    public:
-        ClockId clockId;
-        uint64_t ts;
-    };
-
-    explicit ClockFilter(TraceDataCache*, const TraceStreamerFilters*);
+    ClockFilter(TraceDataCache* dataCache, const TraceStreamerFilters* filter);
     ~ClockFilter() override;
-
-    uint64_t ToPrimaryTraceTime(ClockId srcClockId, uint64_t srcTs) const;
-    uint64_t Convert(ClockId srcClockId, uint64_t srcTs, ClockId desClockId) const;
 
     void SetPrimaryClock(ClockId primary)
     {
         primaryClock_ = primary;
     }
-
+    uint64_t ToPrimaryTraceTime(ClockId srcClockId, uint64_t srcTs) const;
+    uint64_t Convert(ClockId srcClockId, uint64_t srcTs, ClockId desClockId) const;
     void AddClockSnapshot(const std::vector<SnapShot>& snapShot);
 
 private:

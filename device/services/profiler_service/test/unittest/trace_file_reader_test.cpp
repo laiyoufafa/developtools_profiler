@@ -40,7 +40,15 @@ protected:
     std::string path = "trace.bin";
 
     static void SetUpTestCase() {}
-    static void TearDownTestCase() {}
+    static void TearDownTestCase()
+    {
+        std::string name = "325.ht";
+        std::string path = DEFAULT_TEST_PATH + name;
+
+        if (access(path.c_str(), F_OK) == 0) {
+            system(std::string("rm " + path).c_str());
+        }
+    }
 
     void SetUp() override {}
 
@@ -129,7 +137,9 @@ HWTEST_F(TraceFileReaderTest, Read, TestSize.Level1)
     std::string path = DEFAULT_TEST_PATH + name;
 
     if (access(path.c_str(), F_OK) != 0) {
-        system(std::string("touch " + path).c_str());
+        std::unique_ptr<FILE, decltype(fclose)*> fptr(fopen(path.c_str(), "wb+"), fclose);
+        TraceFileHeader header = {}; // default header data
+        fwrite(&header, sizeof(char), sizeof(header), fptr.get());
     }
     auto reader = std::make_shared<TraceFileReader>();
     ASSERT_NE(reader, nullptr);

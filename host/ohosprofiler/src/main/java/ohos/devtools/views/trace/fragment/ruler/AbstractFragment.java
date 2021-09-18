@@ -16,6 +16,7 @@
 package ohos.devtools.views.trace.fragment.ruler;
 
 import ohos.devtools.views.trace.component.AnalystPanel;
+import ohos.devtools.views.trace.util.Utils;
 
 import javax.swing.JComponent;
 import java.awt.Color;
@@ -25,16 +26,15 @@ import java.awt.event.MouseEvent;
 /**
  * basic data
  *
- * @version 1.0
  * @date 2021/04/22 12:25
- **/
+ */
 public abstract class AbstractFragment extends AbstractNode implements IFragment {
+    private final Color lineColor = new Color(255, 255, 255, 80);
+    private final Color textColor = new Color(0x999999);
     private Rectangle rect = new Rectangle(0, 0, 0, 0);
     private Rectangle descRect = new Rectangle(0, 0, 0, 0);
     private Rectangle dataRect = new Rectangle(0, 0, 0, 0);
     private JComponent root;
-    private final Color lineColor = new Color(255, 255, 255, 80);
-    private final Color textColor = new Color(0x999999);
 
     /**
      * Gets the value of rect .
@@ -146,7 +146,7 @@ public abstract class AbstractFragment extends AbstractNode implements IFragment
      * @return long time
      */
     public long x2ns(final int xValue) {
-        long ns = (xValue - rect.x) * AnalystPanel.DURATION / (root.getWidth() - rect.x);
+        long ns = (xValue - Utils.getX(rect)) * AnalystPanel.DURATION / (root.getWidth() - Utils.getX(rect));
         return ns;
     }
 
@@ -157,32 +157,32 @@ public abstract class AbstractFragment extends AbstractNode implements IFragment
      * @return int x
      */
     public int ns2x(final long ns) {
-        long xValue = ns * (root.getWidth() - rect.x) / AnalystPanel.DURATION;
-        return (int) xValue + rect.x;
+        long xValue = ns * (root.getWidth() - Utils.getX(rect)) / AnalystPanel.DURATION;
+        return (int) xValue + Utils.getX(rect);
     }
 
     /**
-
      * edge inspect
      *
      * @param event event
      * @return boolean boolean
      */
     public boolean edgeInspect(final MouseEvent event) {
-        return event.getX() >= rect.x && event.getX() <= rect.x + rect.width && event.getY() >= rect.y
-            && event.getY() <= rect.y + rect.height;
+        return event.getX() >= Utils.getX(rect) && event.getX() <= Utils.getX(rect) + rect.width
+            && event.getY() >= Utils.getY(rect)
+            && event.getY() <= Utils.getY(rect) + rect.height;
     }
 
     /**
      * edge inspect
      *
      * @param rectangle rectangle
-     * @param event event
+     * @param event     event
      * @return boolean boolean
      */
     public boolean edgeInspectRect(final Rectangle rectangle, final MouseEvent event) {
-        return event.getX() >= rectangle.x && event.getX() <= rectangle.x + rectangle.width
-            && event.getY() >= rectangle.y && event.getY() <= rectangle.y + rectangle.height;
+        return event.getX() >= Utils.getX(rectangle) && event.getX() <= Utils.getX(rectangle) + rectangle.width
+            && event.getY() >= Utils.getY(rectangle) && event.getY() <= Utils.getY(rectangle) + rectangle.height;
     }
 
 }

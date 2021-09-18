@@ -21,15 +21,14 @@ import javax.swing.JPanel;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 /**
  * test AbstractFragment class .
  *
- * @version 1.0
  * @date 2021/4/24 17:53
- **/
+ */
 class AbstractFragmentTest {
     /**
      * test function the getRect .

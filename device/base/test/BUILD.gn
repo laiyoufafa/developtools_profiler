@@ -16,7 +16,7 @@ import("../../base/config.gni")
 
 module_output_path = "${OHOS_PROFILER_TEST_MODULE_OUTPUT_PATH}/device"
 config("module_private_config") {
-  visibility = [":*"]
+  visibility = [ ":*" ]
   if (current_toolchain != host_toolchain) {
     defines = [ "HAVE_HILOG" ]
   }
@@ -28,26 +28,22 @@ ohos_unittest("hiprofiler_base_ut") {
     "../:hiprofiler_base",
     "//third_party/googletest:gtest",
   ]
-  configs = [
-    ":module_private_config"
-  ]
+  configs = [ ":module_private_config" ]
   include_dirs = [ "//third_party/googletest/googletest/include/gtest" ]
   sources = [
+    "unittest/epoll_event_poller_test.cpp",
     "unittest/schedule_task_manager_test.cpp",
+    "unittest/semaphore_test.cpp",
   ]
   cflags = [
     "-Wno-inconsistent-missing-override",
-    "-Dprivate=public",   #allow test code access private members
+    "-Dprivate=public",  #allow test code access private members
   ]
-  external_deps = [
-    "hiviewdfx_hilog_native:libhilog",
-  ]
+  external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
   subsystem_name = "${OHOS_PROFILER_SUBSYS_NAME}"
 }
 
 group("unittest") {
   testonly = true
-  deps = [
-    ":hiprofiler_base_ut",
-  ]
+  deps = [ ":hiprofiler_base_ut" ]
 }

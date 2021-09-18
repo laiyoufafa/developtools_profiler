@@ -19,9 +19,6 @@ import ohos.devtools.datasources.transport.grpc.service.MemoryPluginResult;
 
 /**
  * SysVMemInfo
- *
- * @version 1.0
- * @date 2021/02/22 10:47
- **/
+ */
 public class SysVmemInfo extends MemoryData<MemoryPluginResult.SysVMeminfo> {
 }

@@ -19,10 +19,7 @@ import ohos.devtools.views.common.LayoutConstants;
 
 /**
  * 用于单个功能工具方法的提取保存。
- *
- * @version 1.0
- * @date 2021/1/23 11:13
- **/
+ */
 public class CommonUtil {
     private CommonUtil() {
     }

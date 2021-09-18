@@ -16,6 +16,7 @@
 package ohos.devtools.datasources.utils.session.service;
 
 import com.alibaba.fastjson.JSONObject;
+import io.grpc.BindableService;
 import io.grpc.ManagedChannel;
 import io.grpc.inprocess.InProcessChannelBuilder;
 import io.grpc.inprocess.InProcessServerBuilder;
@@ -29,12 +30,13 @@ import ohos.devtools.datasources.transport.grpc.ProfilerClient;
 import ohos.devtools.datasources.transport.grpc.service.CommonTypes;
 import ohos.devtools.datasources.transport.grpc.service.MemoryPluginResult;
 import ohos.devtools.datasources.transport.grpc.service.ProfilerServiceTypes;
-import ohos.devtools.datasources.utils.common.Constant;
 import ohos.devtools.datasources.utils.device.entity.DeviceIPPortInfo;
 import ohos.devtools.datasources.utils.device.entity.DeviceProcessInfo;
 import ohos.devtools.datasources.utils.process.entity.ProcessInfo;
-import ohos.devtools.services.memory.MemoryHeapInfo;
-import ohos.devtools.services.memory.MemoryHeapManager;
+import ohos.devtools.services.memory.agentbean.MemoryHeapInfo;
+import ohos.devtools.services.memory.agentdao.MemoryHeapManager;
+import ohos.devtools.views.layout.chartview.ProfilerChartsView;
+import ohos.devtools.views.layout.chartview.TaskScenePanelChart;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -45,15 +47,11 @@ import java.io.IOException;
 import java.util.Optional;
 
 /**
- * @version 1.0
- * @date 2021/03/23 19:40
- **/
+ * Session Manager Test
+ */
 public class SessionManagerTest {
     private static volatile Integer requestId = 1;
     private final MutableHandlerRegistry serviceRegistry = new MutableHandlerRegistry();
-    /**
-     * grpcCleanup
-     */
     private final GrpcCleanupRule grpcCleanup = new GrpcCleanupRule();
     private SessionManager session;
     private DeviceIPPortInfo device;
@@ -106,7 +104,6 @@ public class SessionManagerTest {
         memoryHeapInfo.setcId(1);
         memoryHeapInfo.setHeapId(1);
         memoryHeapInfo.setSessionId(1L);
-        memoryHeapInfo.setArrangeStyle("name");
         memoryHeapInfo.setAllocations(10);
         memoryHeapInfo.setDeallocations(0);
         memoryHeapInfo.setTotalCount(79);
@@ -119,6 +116,12 @@ public class SessionManagerTest {
         } catch (IOException exception) {
             exception.printStackTrace();
         }
+        createServer();
+        channel = grpcCleanup.register(InProcessChannelBuilder.forName(serverName).directExecutor().build());
+        serviceRegistry.addService((BindableService) getFeatureImpl);
+    }
+
+    private void createServer () {
         getFeatureImpl = new MockProfilerServiceImplBase() {
             /**
              * init getCapabilities
@@ -240,10 +243,7 @@ public class SessionManagerTest {
             }
 
         };
-        channel = grpcCleanup.register(InProcessChannelBuilder.forName(serverName).directExecutor().build());
-        serviceRegistry.addService(getFeatureImpl);
     }
-
     /**
      * functional testing Instance
      *
@@ -254,25 +254,9 @@ public class SessionManagerTest {
      * @tc.require: SR000FK5S6
      */
     @Test
-    public void getInstance01() {
+    public void getInstance() {
         SessionManager sessionInstance = SessionManager.getInstance();
         Assert.assertNotNull(sessionInstance);
-    }
-
-    /**
-     * functional testing Instance
-     *
-     * @tc.name: get Instance
-     * @tc.number: OHOS_JAVA_session_SessionManager_getInstance_0002
-     * @tc.desc: get Instance
-     * @tc.type: functional testing
-     * @tc.require: SR000FK5S6
-     */
-    @Test
-    public void getInstance02() {
-        SessionManager sessionOne = SessionManager.getInstance();
-        SessionManager sessionTwo = SessionManager.getInstance();
-        Assert.assertEquals(sessionOne, sessionTwo);
     }
 
     /**
@@ -285,8 +269,8 @@ public class SessionManagerTest {
      * @tc.require: AR000FK5S7
      */
     @Test
-    public void testCreateSessionREALTIME_SCENE() {
-        long num = session.createSession(null, process, Constant.REALTIME_SCENE, jsonObject);
+    public void testCreateSessionRealTime01() {
+        long num = session.createSession(null, process);
         Assert.assertNotNull(num);
     }
 
@@ -300,9 +284,9 @@ public class SessionManagerTest {
      * @tc.require: AR000FK5S7
      */
     @Test
-    public void testCreateSessionREALTIME_SCENE01() {
-        long num = session.createSession(device, null, Constant.REALTIME_SCENE, jsonObject);
-        Assert.assertNotNull(num);
+    public void testCreateSessionRealTime02() {
+        long num = session.createSession(device, null);
+        Assert.assertEquals(-1L, num);
     }
 
     /**
@@ -315,8 +299,8 @@ public class SessionManagerTest {
      * @tc.require: AR000FK5S7
      */
     @Test
-    public void testCreateSessionREALTIME_SCENE02() {
-        long num = session.createSession(device, process, Constant.REALTIME_SCENE, null);
+    public void testCreateSessionRealTime03() {
+        long num = session.createSession(device, process);
         Assert.assertNotNull(num);
     }
 
@@ -330,10 +314,9 @@ public class SessionManagerTest {
      * @tc.require: AR000FK5S7
      */
     @Test
-    public void testCreateSessionREALTIME_SCENE03() {
-        ProfilerClient client = HiProfilerClient.getInstance().getProfilerClient("", 3333, channel);
-        long num = session.createSession(device, process, Constant.REALTIME_SCENE, jsonObject);
-        Assert.assertNotNull(num);
+    public void testCreateSession04() {
+        long num = session.createSession(null, null);
+        Assert.assertEquals(-1L, num);
     }
 
     /**
@@ -346,84 +329,9 @@ public class SessionManagerTest {
      * @tc.require: AR000FK5S7
      */
     @Test
-    public void testCreateSessionFILE_IMPORT_SCENE() {
-        long num = session.createSession(null, process, Constant.FILE_IMPORT_SCENE, jsonObject);
-        Assert.assertNotNull(num);
-    }
-
-    /**
-     * functional testing create Session
-     *
-     * @tc.name: create Session
-     * @tc.number: OHOS_JAVA_session_SessionManager_createSession_0006
-     * @tc.desc: create Session
-     * @tc.type: functional testing
-     * @tc.require: AR000FK5S7
-     */
-    @Test
-    public void testCreateSessionFILE_IMPORT_SCENE01() {
-        long num = session.createSession(device, null, Constant.FILE_IMPORT_SCENE, jsonObject);
-        Assert.assertNotNull(num);
-    }
-
-    /**
-     * functional testing create Session
-     *
-     * @tc.name: create Session
-     * @tc.number: OHOS_JAVA_session_SessionManager_createSession_0007
-     * @tc.desc: create Session
-     * @tc.type: functional testing
-     * @tc.require: AR000FK5S7
-     */
-    @Test
-    public void testCreateSessionFILE_IMPORT_SCENE02() {
-        long num = session.createSession(device, process, Constant.FILE_IMPORT_SCENE, null);
-        Assert.assertNotNull(num);
-    }
-
-    /**
-     * functional testing create Session
-     *
-     * @tc.name: create Session
-     * @tc.number: OHOS_JAVA_session_SessionManager_createSession_0008
-     * @tc.desc: create Session
-     * @tc.type: functional testing
-     * @tc.require: AR000FK5S7
-     */
-    @Test
-    public void testCreateSessionOFFLINE() {
-        long num = session.createSession(null, process, 3, jsonObject);
-        Assert.assertNotNull(num);
-    }
-
-    /**
-     * functional testing create Session
-     *
-     * @tc.name: create Session
-     * @tc.number: OHOS_JAVA_session_SessionManager_createSession_0009
-     * @tc.desc: create Session
-     * @tc.type: functional testing
-     * @tc.require: AR000FK5S7
-     */
-    @Test
-    public void testCreateSessionOFFLINE01() {
-        long num = session.createSession(device, null, 3, jsonObject);
-        Assert.assertNotNull(num);
-    }
-
-    /**
-     * functional testing create Session
-     *
-     * @tc.name: create Session
-     * @tc.number: OHOS_JAVA_session_SessionManager_createSession_0010
-     * @tc.desc: create Session
-     * @tc.type: functional testing
-     * @tc.require: AR000FK5S7
-     */
-    @Test
-    public void testCreateSessionOFFLINE02() {
-        long num = session.createSession(device, process, 3, null);
-        Assert.assertNotNull(num);
+    public void testCreateSession05() {
+        long num = session.createSession(null, process);
+        Assert.assertEquals(num, -1L);
     }
 
     /**
@@ -497,8 +405,7 @@ public class SessionManagerTest {
      */
     @Test
     public void testStart05() {
-        ProfilerClient client = HiProfilerClient.getInstance().getProfilerClient("", 3333, channel);
-        long num = session.createSession(device, process, Constant.REALTIME_SCENE, jsonObject);
+        long num = session.createSession(device, process);
         boolean flag = session.startSession(num, false);
         Assert.assertTrue(flag);
     }
@@ -529,8 +436,10 @@ public class SessionManagerTest {
      */
     @Test
     public void testFetchData02() {
-        boolean flag = session.fetchData(1L);
-        Assert.assertTrue(flag);
+        long num = session.createSession(null, process);
+        session.startSession(num, false);
+        boolean flag = session.fetchData(num);
+        Assert.assertFalse(flag);
     }
 
     /**
@@ -575,7 +484,7 @@ public class SessionManagerTest {
     @Test
     public void testFetchData05() {
         ProfilerClient client = HiProfilerClient.getInstance().getProfilerClient("", 3333, channel);
-        long num = session.createSession(device, process, Constant.REALTIME_SCENE, jsonObject);
+        long num = session.createSession(device, process);
         session.startSession(num, false);
         boolean flag = session.fetchData(num);
         Assert.assertTrue(flag);
@@ -653,7 +562,7 @@ public class SessionManagerTest {
     @Test
     public void testEndSession05() {
         ProfilerClient client = HiProfilerClient.getInstance().getProfilerClient("", 3333, channel);
-        long num = session.createSession(device, process, Constant.REALTIME_SCENE, jsonObject);
+        long num = session.createSession(device, process);
         boolean flag = session.endSession(num);
         Assert.assertTrue(flag);
     }
@@ -684,8 +593,11 @@ public class SessionManagerTest {
      */
     @Test
     public void testDeleteSession02() {
-        boolean flag = session.deleteSession(1L);
-        Assert.assertFalse(flag);
+        ProfilerClient client = HiProfilerClient.getInstance().getProfilerClient("", 3333, channel);
+        long num = session.createSession(device, process);
+        ProfilerChartsView view = new ProfilerChartsView(num, true, new TaskScenePanelChart());
+        boolean flag = session.deleteSession(num);
+        Assert.assertTrue(flag);
     }
 
     /**
@@ -729,27 +641,10 @@ public class SessionManagerTest {
      */
     @Test
     public void testDeleteSession05() {
-        boolean flag1 = session.deleteSession(-1L);
-        boolean flag2 = session.deleteSession(0L);
-        Assert.assertEquals(flag1, flag2);
-    }
-
-    /**
-     * functional testing delete Session
-     *
-     * @tc.name: delete Session
-     * @tc.number: OHOS_JAVA_session_SessionManager_deleteSession_0006
-     * @tc.desc: delete Session
-     * @tc.type: functional testing
-     * @tc.require: AR000FK5SA
-     */
-    @Test
-    public void testDelete05() {
-        ProfilerClient client = HiProfilerClient.getInstance().getProfilerClient("", 3333, channel);
-        long num = session.createSession(device, process, Constant.REALTIME_SCENE, jsonObject);
-        session.fetchData(num);
+        long num = session.createSession(device, process);
+        ProfilerChartsView view = new ProfilerChartsView(num, true, new TaskScenePanelChart());
         boolean flag = session.deleteSession(num);
-        Assert.assertTrue(flag);
+        Assert.assertFalse(flag);
     }
 
     /**
@@ -824,7 +719,7 @@ public class SessionManagerTest {
     @Test
     public void testSaveSessionDataToFile05() {
         ProfilerClient client = HiProfilerClient.getInstance().getProfilerClient("", 3333, channel);
-        long num = session.createSession(device, process, Constant.REALTIME_SCENE, jsonObject);
+        long num = session.createSession(device, process);
         session.fetchData(num);
         boolean flag = session.saveSessionDataToFile(num, deviceProcessInfo, "/");
         Assert.assertFalse(flag);
@@ -855,7 +750,7 @@ public class SessionManagerTest {
      * @tc.require: SR000FK5S6
      */
     @Test
-    public void testlocalSessionDataFromFile01() {
+    public void testLocalSessionDataFromFile01() {
         JProgressBar jProgressBar = new JProgressBar();
         Optional<DeviceProcessInfo> optional = session.localSessionDataFromFile(jProgressBar, null);
         Assert.assertFalse(optional.isPresent());
@@ -871,7 +766,7 @@ public class SessionManagerTest {
      * @tc.require: SR000FK5S6
      */
     @Test
-    public void testlocalSessionDataFromFile02() {
+    public void testLocalSessionDataFromFile02() {
         File file = new File("");
         Optional<DeviceProcessInfo> optional = session.localSessionDataFromFile(null, file);
         Assert.assertFalse(optional.isPresent());
@@ -887,7 +782,7 @@ public class SessionManagerTest {
      * @tc.require: SR000FK5S6
      */
     @Test
-    public void testlocalSessionDataFromFile03() {
+    public void testLocalSessionDataFromFile03() {
         Optional<DeviceProcessInfo> optional = session.localSessionDataFromFile(null, null);
         Assert.assertFalse(optional.isPresent());
     }
@@ -902,7 +797,7 @@ public class SessionManagerTest {
      * @tc.require: SR000FK5S6
      */
     @Test
-    public void testlocalSessionDataFromFile05() {
+    public void testLocalSessionDataFromFile05() {
         JProgressBar jProgressBar = new JProgressBar();
         File rootPath = new File(this.getClass().getResource("/Demo.trace").getFile().toString());
         Optional<DeviceProcessInfo> deviceProcessInfoNew = session.localSessionDataFromFile(jProgressBar, rootPath);
@@ -919,8 +814,9 @@ public class SessionManagerTest {
      * @tc.require: SR000FK5S6
      */
     @Test
-    public void testdeleteSessionByOffLineDivece() {
-        session.deleteSessionByOffLineDivece(device);
+    public void testDeleteSessionByOffLineDevice01() {
+        session.deleteSessionByOffLineDevice(device);
+        Assert.assertTrue(true);
     }
 
     /**
@@ -933,8 +829,9 @@ public class SessionManagerTest {
      * @tc.require: SR000FK5S6
      */
     @Test
-    public void testdeleteSessionByOffLineDivece01() {
-        session.deleteSessionByOffLineDivece(null);
+    public void testDeleteSessionByOffLineDevice02() {
+        session.deleteSessionByOffLineDevice(null);
+        Assert.assertTrue(true);
     }
 
     /**
@@ -947,10 +844,11 @@ public class SessionManagerTest {
      * @tc.require: SR000FK5S6
      */
     @Test
-    public void testdeleteLocalSession() {
+    public void testDeleteLocalSession() {
         ProfilerClient client = HiProfilerClient.getInstance().getProfilerClient("", 3333, channel);
-        long num = session.createSession(device, process, Constant.REALTIME_SCENE, jsonObject);
+        long num = session.createSession(device, process);
         session.deleteLocalSession(num);
+        Assert.assertTrue(true);
     }
 
     /**
@@ -963,11 +861,12 @@ public class SessionManagerTest {
      * @tc.require: SR000FK5S6
      */
     @Test
-    public void teststopAllSession() {
+    public void testStopAllSession() {
         ProfilerClient client = HiProfilerClient.getInstance().getProfilerClient("", 3333, channel);
-        long num = session.createSession(device, process, Constant.REALTIME_SCENE, jsonObject);
+        long num = session.createSession(device, process);
         session.startSession(num, false);
         session.stopAllSession();
+        Assert.assertTrue(true);
     }
 
     /**
@@ -980,7 +879,7 @@ public class SessionManagerTest {
      * @tc.require: SR000FK5S6
      */
     @Test
-    public void testgetPluginPath() {
+    public void testGetPluginPath() {
         String pluginPath = session.getPluginPath();
         Assert.assertNotNull(pluginPath);
     }
@@ -995,7 +894,7 @@ public class SessionManagerTest {
      * @tc.require: SR000FK5S6
      */
     @Test
-    public void testgetPluginPathFalse() {
+    public void testGetPluginPathFalse() {
         session.setDevelopMode(false);
         String pluginPath = session.getPluginPath();
         Assert.assertNotNull(pluginPath);

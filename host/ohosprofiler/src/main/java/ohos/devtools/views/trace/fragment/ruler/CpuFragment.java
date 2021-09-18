@@ -15,11 +15,13 @@
 
 package ohos.devtools.views.trace.fragment.ruler;
 
+import ohos.devtools.views.trace.Sql;
 import ohos.devtools.views.trace.bean.CpuRateBean;
 import ohos.devtools.views.trace.component.AnalystPanel;
 import ohos.devtools.views.trace.listener.IRangeChangeListener;
 import ohos.devtools.views.trace.util.ColorUtils;
 import ohos.devtools.views.trace.util.Db;
+import ohos.devtools.views.trace.util.Utils;
 
 import javax.swing.JComponent;
 import javax.swing.SwingUtilities;
@@ -31,16 +33,17 @@ import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ForkJoinPool;
+import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 /**
  * cpu graphics
  *
- * @version 1.0
  * @date 2021/04/22 12:25
- **/
+ */
 public class CpuFragment extends AbstractFragment {
+    private static Map<Integer, List<CpuRateBean>> listMap;
     private final Color shadowColor = new Color(0x99, 0x99, 0x99, 0xCE);
     private int leftX;
     private int rightX;
@@ -52,6 +55,18 @@ public class CpuFragment extends AbstractFragment {
      */
     private int centerX;
     private IRangeChangeListener rangeChangeListener;
+
+    /**
+     * CpuFragment Constructor
+     *
+     * @param root     parent
+     * @param listener listener
+     */
+    public CpuFragment(final JComponent root, final IRangeChangeListener listener) {
+        this.setRoot(root);
+        getRect().setBounds(200, 22, root.getWidth() - 200, 72);
+        this.rangeChangeListener = listener;
+    }
 
     /**
      * Gets the value of selectX .
@@ -91,24 +106,26 @@ public class CpuFragment extends AbstractFragment {
         this.selectY = selectY;
     }
 
-    private Map<Integer, List<CpuRateBean>> listMap;
-
     /**
-     * CpuFragment Constructor
-     *
-     * @param root     parent
-     * @param listener listener
+     * reload cpu usage data
      */
-    public CpuFragment(final JComponent root, final IRangeChangeListener listener) {
-        this.setRoot(root);
-        getRect().setBounds(200, 22, root.getWidth() - 200, 72);
-        this.rangeChangeListener = listener;
-        ForkJoinPool.commonPool().submit(() -> {
-            ArrayList<CpuRateBean> cpus = Db.getInstance().getCpuUtilizationRate();
+    public void reloadData() {
+        CompletableFuture.runAsync(() -> {
+            if (Objects.nonNull(listMap)) {
+                listMap.values().forEach(List::clear);
+                listMap.clear();
+            }
+            ArrayList<CpuRateBean> cpus = new ArrayList<>() {
+            };
+            Db.getInstance().query(Sql.SYS_GET_CPU_UTILIZATION_RATE, cpus);
             listMap = cpus.stream().collect(Collectors.groupingBy(cpuRateBean -> cpuRateBean.getCpu()));
             SwingUtilities.invokeLater(() -> {
                 repaint();
             });
+        }, Utils.getPool()).whenComplete((unused, throwable) -> {
+            if (Objects.nonNull(throwable)) {
+                throwable.printStackTrace();
+            }
         });
     }
 
@@ -128,9 +145,9 @@ public class CpuFragment extends AbstractFragment {
      */
     @Override
     public void draw(final Graphics2D graphics) {
-        getRect().width = getRoot().getWidth() - getRect().x;
+        getRect().width = getRoot().getWidth() - Utils.getX(getRect());
         graphics.setColor(Color.white);
-        graphics.fillRect(getRect().x, getRect().y, getRect().width, getRect().height);
+        graphics.fillRect(Utils.getX(getRect()), Utils.getY(getRect()), getRect().width, getRect().height);
         if (listMap != null && !listMap.isEmpty()) {
             int height = getRect().height / listMap.size();
             double rw = (getRect().width) / 100.00;
@@ -141,8 +158,8 @@ public class CpuFragment extends AbstractFragment {
                     graphics.setComposite(
                         AlphaComposite.getInstance(AlphaComposite.SRC_OVER, (float) cpuRateBean.getRate()));
                     graphics.setColor(ColorUtils.MD_PALETTE[map]);
-                    int side = (int) (getRect().x + rw * index);
-                    graphics.fillRect(side, getRect().y + map * height, (int) rw + 1, height);
+                    int side = (int) (Utils.getX(getRect()) + rw * index);
+                    graphics.fillRect(side, Utils.getY(getRect()) + map * height, (int) rw + 1, height);
                     graphics.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1f));
                 }
             });
@@ -150,22 +167,26 @@ public class CpuFragment extends AbstractFragment {
         if (leftX == rightX && leftX != 0) {
             rightX = leftX + 1;
         }
-        if (leftX > 0 && leftX <= getRect().x + getRect().width) {
+        if (leftX > 0 && leftX <= Utils.getX(getRect()) + getRect().width) {
             graphics.setColor(getRoot().getForeground());
-            graphics.drawLine(leftX, getRect().y, leftX, getRect().y + getRect().height);
+            graphics.drawLine(leftX, Utils.getY(getRect()), leftX, Utils.getY(getRect()) + getRect().height);
             graphics.setColor(shadowColor);
-            graphics.fillRect(getRect().x, getRect().y, leftX - getRect().x, getRect().height);
-            graphics.drawRect(getRect().x, getRect().y, leftX - getRect().x, getRect().height);
+            graphics.fillRect(Utils.getX(getRect()), Utils.getY(getRect()), leftX - Utils.getX(getRect()),
+                getRect().height);
+            graphics.drawRect(Utils.getX(getRect()), Utils.getY(getRect()), leftX - Utils.getX(getRect()),
+                getRect().height);
         }
-        if (rightX < getRoot().getWidth() && rightX >= getRect().x) {
+        if (rightX < getRoot().getWidth() && rightX >= Utils.getX(getRect())) {
             graphics.setColor(getRoot().getForeground());
-            graphics.drawLine(rightX, getRect().y, rightX, getRect().y + getRect().height);
+            graphics.drawLine(rightX, Utils.getY(getRect()), rightX, Utils.getY(getRect()) + getRect().height);
             graphics.setColor(shadowColor);
-            graphics.fillRect(rightX, getRect().y, getRect().x + getRect().width - rightX, getRect().height);
-            graphics.drawRect(rightX, getRect().y, getRect().x + getRect().width - rightX, getRect().height);
+            graphics.fillRect(rightX, Utils.getY(getRect()), Utils.getX(getRect()) + getRect().width - rightX,
+                getRect().height);
+            graphics.drawRect(rightX, Utils.getY(getRect()), Utils.getX(getRect()) + getRect().width - rightX,
+                getRect().height);
         }
         graphics.setColor(getRoot().getForeground());
-        graphics.drawRect(leftX, getRect().y, rightX - leftX, getRect().height);
+        graphics.drawRect(leftX, Utils.getY(getRect()), rightX - leftX, getRect().height);
     }
 
     /**
@@ -174,16 +195,16 @@ public class CpuFragment extends AbstractFragment {
      * @param event event
      */
     public void mouseDragged(final MouseEvent event) {
-        if (selectY > getRect().y && selectY < getRect().y + getRect().height) {
+        if (selectY > Utils.getY(getRect()) && selectY < Utils.getY(getRect()) + getRect().height) {
             if (event.getX() < selectX) {
                 rightX = selectX;
-                leftX = event.getX() <= getRect().x ? getRect().x : event.getX();
+                leftX = event.getX() <= Utils.getX(getRect()) ? Utils.getX(getRect()) : event.getX();
             } else {
                 rightX = event.getX() >= getRoot().getWidth() ? getRoot().getWidth() : event.getX();
                 leftX = selectX;
             }
             if (leftX == rightX) {
-                if (leftX == getRect().x) {
+                if (leftX == Utils.getX(getRect())) {
                     rightX = leftX + 2;
                 }
                 if (rightX == getRoot().getWidth()) {
@@ -210,8 +231,8 @@ public class CpuFragment extends AbstractFragment {
      * @param en endNs
      */
     public void setRange(final long sn, final long en) {
-        leftX = (int) (sn * getRect().width / AnalystPanel.DURATION) + getRect().x;
-        rightX = (int) (en * getRect().width / AnalystPanel.DURATION) + getRect().x;
+        leftX = (int) (sn * getRect().width / AnalystPanel.DURATION) + Utils.getX(getRect());
+        rightX = (int) (en * getRect().width / AnalystPanel.DURATION) + Utils.getX(getRect());
         repaint();
     }
 }

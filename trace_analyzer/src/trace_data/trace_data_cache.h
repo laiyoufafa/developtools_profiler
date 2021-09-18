@@ -16,20 +16,23 @@
 #ifndef TRACE_DATA_CACHE_H
 #define TRACE_DATA_CACHE_H
 
+#include "trace_data_cache_reader.h"
 #include "trace_data_cache_writer.h"
 #include "trace_data_db.h"
 
 namespace SysTuning {
 namespace TraceStreamer {
 using namespace TraceStdtype;
-class TraceDataCache : public TraceDataCacheWriter, public TraceDataDB {
+class TraceDataCache : public TraceDataCacheReader, public TraceDataCacheWriter, public TraceDataDB {
 public:
     TraceDataCache();
-    TraceDataCache(const TraceDataCache*) = delete;
-    TraceDataCache* operator=(const TraceDataCache*) = delete;
+    TraceDataCache(const TraceDataCache* dataCache) = delete;
+    TraceDataCache* operator=(const TraceDataCache* dataCache) = delete;
     ~TraceDataCache() override;
+
 private:
-    void InitDB();
+    void InitDB() override;
+    bool dbInited = false;
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

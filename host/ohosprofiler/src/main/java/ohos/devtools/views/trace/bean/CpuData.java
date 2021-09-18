@@ -15,10 +15,14 @@
 
 package ohos.devtools.views.trace.bean;
 
+import ohos.devtools.views.trace.DField;
+import ohos.devtools.views.trace.component.AnalystPanel;
 import ohos.devtools.views.trace.fragment.CpuDataFragment;
+import ohos.devtools.views.trace.fragment.ProcessDataFragment;
 import ohos.devtools.views.trace.fragment.graph.AbstractGraph;
 import ohos.devtools.views.trace.util.ColorUtils;
 import ohos.devtools.views.trace.util.Final;
+import ohos.devtools.views.trace.util.Utils;
 
 import java.awt.AlphaComposite;
 import java.awt.Color;
@@ -31,11 +35,55 @@ import java.util.ArrayList;
 /**
  * cpu data
  *
- * @version 1.0
  * @date 2021/04/22 12:25
- **/
+ */
 public class CpuData extends AbstractGraph {
+    private final int padding1 = 2;
+    private final int padding2 = 4;
+    private final float alpha90 = .9f;
+    private final float alpha60 = .6f;
+    private final int strOffsetY = 16;
+    private final int processNameControl = -2;
+    @DField(name = "cpu")
     private int cpu;
+    @DField(name = "name")
+    private String name;
+    private ArrayList<Integer> stats = new ArrayList<>();
+    @DField(name = "end_state")
+    private String endState;
+    @DField(name = "priority")
+    private int priority;
+    @DField(name = "schedId")
+    private int schedId;
+    @DField(name = "startTime")
+    private long startTime;
+    @DField(name = "dur")
+    private long duration;
+    @DField(name = "type")
+    private String type;
+    @DField(name = "id")
+    private int id;
+    @DField(name = "tid")
+    private int tid;
+    @DField(name = "processCmdLine")
+    private String processCmdLine;
+    @DField(name = "processName")
+    private String processName;
+    @DField(name = "processId")
+    private int processId;
+    private double chartWidth;
+    private double chartNum;
+    private String str;
+    private Rectangle2D bounds;
+    private javax.swing.JComponent root;
+    private boolean isSelected; // Whether to be selected
+    private IEventListener eventListener;
+
+    /**
+     * ui control extension field.
+     */
+    public CpuData() {
+    }
 
     /**
      * get the number of cpu .
@@ -55,8 +103,6 @@ public class CpuData extends AbstractGraph {
         this.cpu = cpu;
     }
 
-    private String name;
-
     /**
      * get the name .
      *
@@ -74,8 +120,6 @@ public class CpuData extends AbstractGraph {
     public void setName(final String name) {
         this.name = name;
     }
-
-    private ArrayList<Integer> stats = new ArrayList<>();
 
     /**
      * get the stats .
@@ -95,8 +139,6 @@ public class CpuData extends AbstractGraph {
         this.stats = stats;
     }
 
-    private String endState;
-
     /**
      * get the endState .
      *
@@ -114,8 +156,6 @@ public class CpuData extends AbstractGraph {
     public void setEndState(final String endState) {
         this.endState = endState;
     }
-
-    private int priority;
 
     /**
      * get the priority .
@@ -135,8 +175,6 @@ public class CpuData extends AbstractGraph {
         this.priority = priority;
     }
 
-    private int schedId;
-
     /**
      * get the schedId .
      *
@@ -154,8 +192,6 @@ public class CpuData extends AbstractGraph {
     public void setSchedId(final int schedId) {
         this.schedId = schedId;
     }
-
-    private long startTime;
 
     /**
      * get the startTime .
@@ -175,8 +211,6 @@ public class CpuData extends AbstractGraph {
         this.startTime = startTime;
     }
 
-    private long duration;
-
     /**
      * get the duration .
      *
@@ -194,8 +228,6 @@ public class CpuData extends AbstractGraph {
     public void setDuration(final long duration) {
         this.duration = duration;
     }
-
-    private String type;
 
     /**
      * get the type .
@@ -215,8 +247,6 @@ public class CpuData extends AbstractGraph {
         this.type = type;
     }
 
-    private int id;
-
     /**
      * get the id .
      *
@@ -234,8 +264,6 @@ public class CpuData extends AbstractGraph {
     public void setId(final int id) {
         this.id = id;
     }
-
-    private int tid;
 
     /**
      * get the tid .
@@ -255,8 +283,6 @@ public class CpuData extends AbstractGraph {
         this.tid = tid;
     }
 
-    private String processCmdLine;
-
     /**
      * get the processCmdLine .
      *
@@ -275,8 +301,6 @@ public class CpuData extends AbstractGraph {
         this.processCmdLine = processCmdLine;
     }
 
-    private String processName;
-
     /**
      * get the processName .
      *
@@ -294,8 +318,6 @@ public class CpuData extends AbstractGraph {
     public void setProcessName(final String processName) {
         this.processName = processName;
     }
-
-    private int processId;
 
     /**
      * get the processId .
@@ -316,22 +338,6 @@ public class CpuData extends AbstractGraph {
     }
 
     /**
-     * ui control extension field.
-     */
-    public CpuData() {
-    }
-
-    private double chartWidth;
-
-    private double chartNum;
-
-    private String str;
-
-    private Rectangle2D bounds;
-
-    private javax.swing.JComponent root;
-
-    /**
      * Get rootcomponent
      *
      * @return javax.swing.JComponent
@@ -348,18 +354,6 @@ public class CpuData extends AbstractGraph {
     public void setRoot(final javax.swing.JComponent root) {
         this.root = root;
     }
-
-    private final int padding1 = 2;
-
-    private final int padding2 = 4;
-
-    private final float alpha90 = .9f;
-
-    private final float alpha60 = .6f;
-
-    private final int strOffsetY = 16;
-
-    private final int processNameControl = -2;
 
     /**
      * Draw graphics based on attributes
@@ -402,14 +396,25 @@ public class CpuData extends AbstractGraph {
     private void drawSelect(final Graphics2D graphics) {
         graphics.setColor(Color.BLACK);
         graphics.fillRect((int) rect.getX(), (int) (rect.getY() - padding1), rect.width, rect.height + padding2);
-        if (CpuDataFragment.focusCpuData != null) {
-            if (CpuDataFragment.focusCpuData.processId != processId) {
-                graphics.setColor(Color.GRAY);
-            } else {
-                if (CpuDataFragment.focusCpuData.hashCode() != this.hashCode()) {
-                    graphics.setComposite(AlphaComposite.getInstance(java.awt.AlphaComposite.SRC_OVER, alpha60));
+        if (CpuDataFragment.focusCpuData != null || ProcessDataFragment.focusProcessData != null) {
+            if (CpuDataFragment.focusCpuData != null) {
+                if (CpuDataFragment.focusCpuData.processId != processId) {
+                    graphics.setColor(Color.GRAY);
+                } else if (CpuDataFragment.focusCpuData.getTid() != this.tid) {
+                    graphics.setComposite(java.awt.AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha60));
+                    graphics.setColor(ColorUtils.colorForTid(processId > 0 ? processId : tid));
+                } else {
+                    graphics.setColor(ColorUtils.colorForTid(processId > 0 ? processId : tid));
                 }
-                graphics.setColor(ColorUtils.colorForTid(processId > 0 ? processId : tid));
+            } else {
+                if (ProcessDataFragment.focusProcessData.getPid() != processId) {
+                    graphics.setColor(Color.GRAY);
+                } else if (ProcessDataFragment.focusProcessData.getTid() != this.tid) {
+                    graphics.setComposite(java.awt.AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha60));
+                    graphics.setColor(ColorUtils.colorForTid(processId > 0 ? processId : tid));
+                } else {
+                    graphics.setColor(ColorUtils.colorForTid(processId > 0 ? processId : tid));
+                }
             }
         } else {
             graphics.setColor(ColorUtils.colorForTid(processId > 0 ? processId : tid));
@@ -418,22 +423,31 @@ public class CpuData extends AbstractGraph {
     }
 
     private void drawNoSelect(final Graphics2D graphics) {
-        if (CpuDataFragment.focusCpuData != null) {
-            if (CpuDataFragment.focusCpuData.processId != processId) {
-                graphics.setColor(Color.GRAY);
-            } else {
-                if (CpuDataFragment.focusCpuData.hashCode() != this.hashCode()) {
+        if (CpuDataFragment.focusCpuData != null || ProcessDataFragment.focusProcessData != null) {
+            if (CpuDataFragment.focusCpuData != null) {
+                if (CpuDataFragment.focusCpuData.processId != processId) {
+                    graphics.setColor(Color.GRAY);
+                } else if (CpuDataFragment.focusCpuData.getTid() != this.tid) {
                     graphics.setComposite(java.awt.AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha60));
+                    graphics.setColor(ColorUtils.colorForTid(processId > 0 ? processId : tid));
+                } else {
+                    graphics.setColor(ColorUtils.colorForTid(processId > 0 ? processId : tid));
                 }
-                graphics.setColor(ColorUtils.colorForTid(processId > 0 ? processId : tid));
+            } else {
+                if (ProcessDataFragment.focusProcessData.getPid() != processId) {
+                    graphics.setColor(Color.GRAY);
+                } else if (ProcessDataFragment.focusProcessData.getTid() != this.tid) {
+                    graphics.setComposite(java.awt.AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha60));
+                    graphics.setColor(ColorUtils.colorForTid(processId > 0 ? processId : tid));
+                } else {
+                    graphics.setColor(ColorUtils.colorForTid(processId > 0 ? processId : tid));
+                }
             }
         } else {
             graphics.setColor(ColorUtils.colorForTid(processId > 0 ? processId : tid));
         }
         graphics.fillRect((int) rect.getX(), (int) rect.getY(), rect.width, rect.height);
     }
-
-    private boolean isSelected; // Whether to be selected
 
     /**
      * Set selected state
@@ -449,7 +463,7 @@ public class CpuData extends AbstractGraph {
      */
     public void repaint() {
         if (root != null) {
-            root.repaint(rect.x, rect.y - padding1, rect.width, rect.height + padding2);
+            root.repaint(Utils.getX(rect), Utils.getY(rect) - padding1, rect.width, rect.height + padding2);
         }
     }
 
@@ -485,6 +499,7 @@ public class CpuData extends AbstractGraph {
     @Override
     public void onClick(final MouseEvent event) {
         if (eventListener != null) {
+            AnalystPanel.clicked = true;
             eventListener.click(event, this);
         }
     }
@@ -502,8 +517,6 @@ public class CpuData extends AbstractGraph {
             }
         }
     }
-
-    private IEventListener eventListener;
 
     /**
      * Set callback event listener

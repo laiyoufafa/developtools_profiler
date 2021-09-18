@@ -21,9 +21,8 @@ import org.junit.Test;
 import java.util.HashMap;
 
 /**
- * @Description DataTableHelperTest
- * @Date 2021/04/12 17:33
- **/
+ * Data Table Helper Test
+ */
 public class DataTableHelperTest {
     /**
      * functional testing getTableNameBySql
@@ -35,9 +34,25 @@ public class DataTableHelperTest {
      * @tc.require: SR-010
      */
     @Test
-    public void getTableNameBySqlTest() {
+    public void getTableNameBySqlTest01() {
         String str = DataTableHelper.getTableNameBySql("(");
         Assert.assertNotNull(str);
+    }
+
+    /**
+     * functional testing getTableNameBySql
+     *
+     * @tc.name: getTableNameBySql
+     * @tc.number: OHOS_JAVA_database_DataBaseHelper_getTableNameBySql_0002
+     * @tc.desc: getTableNameBySql
+     * @tc.type: functional testing
+     * @tc.require: SR-010
+     */
+    @Test
+    public void getTableNameBySqlTest02() {
+        String sqlStr = DataTableHelper.getTableNameBySql("(");
+        String str = DataTableHelper.getTableNameBySql("(");
+        Assert.assertEquals(sqlStr, str);
     }
 
     /**
@@ -84,5 +99,4 @@ public class DataTableHelperTest {
         String mapStr = DataTableHelper.mapToString(new HashMap<>());
         Assert.assertNotNull(mapStr);
     }
-
 }

@@ -24,9 +24,8 @@ import org.apache.logging.log4j.core.config.Configuration;
 import org.apache.logging.log4j.core.config.LoggerConfig;
 
 /**
- * @version 1.0
- * @date 2021/03/12 12:31
- **/
+ * ProfilerLogManager
+ */
 public class ProfilerLogManager {
     private static final Logger LOGGER = LogManager.getLogger(ProcessManager.class);
 

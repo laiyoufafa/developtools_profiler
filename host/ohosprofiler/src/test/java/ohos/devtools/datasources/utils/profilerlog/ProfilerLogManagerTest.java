@@ -20,9 +20,8 @@ import org.junit.Assert;
 import org.junit.Test;
 
 /**
- * @version 1.0
- * @date 2021/03/27 15:34
- **/
+ * Profiler Log Manager Test
+ */
 public class ProfilerLogManagerTest {
     /**
      * functional testing updateLogLevel
@@ -35,13 +34,8 @@ public class ProfilerLogManagerTest {
      */
     @Test
     public void updateLogLevelTest01() {
-        boolean res = false;
-        try {
-            res = ProfilerLogManager.getSingleton().updateLogLevel(null);
-            Assert.assertFalse(res);
-        } catch (Exception exception) {
-            Assert.assertFalse(res);
-        }
+        boolean res = ProfilerLogManager.getSingleton().updateLogLevel(null);
+        Assert.assertFalse(res);
     }
 
     /**
@@ -55,13 +49,8 @@ public class ProfilerLogManagerTest {
      */
     @Test
     public void updateLogLevelTest02() {
-        boolean res = false;
-        try {
-            res = ProfilerLogManager.getSingleton().updateLogLevel(Level.OFF);
-            Assert.assertTrue(res);
-        } catch (Exception exception) {
-            Assert.assertTrue(res);
-        }
+        boolean res = ProfilerLogManager.getSingleton().updateLogLevel(Level.OFF);
+        Assert.assertTrue(res);
     }
 
     /**
@@ -75,13 +64,7 @@ public class ProfilerLogManagerTest {
      */
     @Test
     public void updateLogLevelTest03() {
-        boolean res = false;
-        try {
-            res = ProfilerLogManager.getSingleton().updateLogLevel(Level.ERROR);
-            Assert.assertTrue(res);
-        } catch (Exception exception) {
-            Assert.assertTrue(res);
-        }
+        boolean res = ProfilerLogManager.getSingleton().updateLogLevel(Level.ERROR);
+        Assert.assertTrue(res);
     }
-
 }

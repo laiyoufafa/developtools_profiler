@@ -20,17 +20,16 @@ import org.junit.jupiter.api.Test;
 import java.awt.Rectangle;
 import java.util.Map;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 /**
  * test Utils class .
  *
- * @version 1.0
  * @date 2021/4/24 17:51
- **/
+ */
 class UtilsTest {
     /**
      * test function the getStatusMap .

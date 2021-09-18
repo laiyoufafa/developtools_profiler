@@ -24,9 +24,8 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Color tool
  *
- * @version 1.0
  * @date 2021/04/22 12:25
- **/
+ */
 public final class ColorUtils {
     /**
      * Gray color object
@@ -36,34 +35,34 @@ public final class ColorUtils {
     /**
      * Color array of all current columns
      */
-    public static final Color[] MD_PALETTE = new Color[] {new Color(0xf44034), // red
-        new Color(0xe92063), // pink
-        new Color(0x9b27b0), // purple
-        new Color(0x673ab6), // deep purple
-        new Color(0x4051b5), // indigo
-        new Color(0x2094f3), // blue
-        new Color(0x02a6f2), // light blue
-        new Color(0x00bdd6), // cyan
-        new Color(0x009485), // teal
-        new Color(0x4cae4f), // green
-        new Color(0x8bc34b), // light green
-        new Color(0xcbdc38), // lime
-        new Color(0xff9105), // amber 0xffc105
-        new Color(0xff9900), // orange
-        new Color(0xff5724), // deep orange
-        new Color(0x795649), // brown
-        new Color(0x607c8a), // blue gray
-        new Color(0xbdaa00), // yellow 0xffec3d
+    public static final Color[] MD_PALETTE = new Color[] {new Color(0x3391ff), // red
+        new Color(0x0076ff), // pink
+        new Color(0x66adff), // purple
+        new Color(0x2db3aa), // deep purple
+        new Color(0x008078), // indigo
+        new Color(0x73e6de), // blue
+        new Color(0x535da6), // light blue
+        new Color(0x38428c), // cyan
+        new Color(0x7a84cc), // teal
+        new Color(0xff9201), // green
+        new Color(0xff7500), // light green
+        new Color(0xffab40), // lime
+        new Color(0x2db4e2), // amber 0xffc105
+        new Color(0x0094c6), // orange
+        new Color(0x7cdeff), // deep orange
+        new Color(0xffd44a), // brown
+        new Color(0xfbbf00), // blue gray
+        new Color(0xffe593), // yellow 0xffec3d
     };
 
     /**
      * Current method color array
      */
-    public static final Color[] FUNC_COLOR = new Color[] {new Color(0x9b27b0), // purple
-        new Color(0x317d31), new Color(0x673ab6), // deep purple
-        new Color(0xa25b57), new Color(0x4051b5), // indigo
-        new Color(0x2094f3), // blue
-        new Color(0x99ba36), new Color(0x4051b5) };
+    public static final Color[] FUNC_COLOR = new Color[] {new Color(0x3391ff), // purple
+        new Color(0x2db4e2), new Color(0x2db3aa), // deep purple
+        new Color(0xffd44a), new Color(0x535da6), // indigo
+        new Color(0x008078), // blue
+        new Color(0xff9201), new Color(0x38428c)};
 
     private static Map<Integer, Color> colorHashMap = new ConcurrentHashMap();
 
@@ -133,5 +132,4 @@ public final class ColorUtils {
         int colorIdx = hash(String.valueOf(tid), MD_PALETTE.length);
         return MD_PALETTE[colorIdx];
     }
-
 }

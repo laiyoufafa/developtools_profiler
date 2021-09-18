@@ -26,9 +26,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 /**
  * test ImageUtils class .
  *
- * @version 1.0
  * @date 2021/4/24 17:53
- **/
+ */
 class ImageUtilsTest {
     /**
      * test function the getStarFill .

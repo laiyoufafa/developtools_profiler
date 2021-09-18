@@ -27,7 +27,7 @@ RawTable::RawTable(const TraceDataCache* dataCache) : TableBase(dataCache)
     tableColumn_.push_back(TableBase::ColumnInfo("ts", "UNSIGNED BIG INT"));
     tableColumn_.push_back(TableBase::ColumnInfo("name", "STRING"));
     tableColumn_.push_back(TableBase::ColumnInfo("cpu", "UNSIGNED INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("utid", "UNSIGNED INT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("itid", "UNSIGNED INT"));
     tablePriKey_.push_back("id");
 }
 
@@ -75,7 +75,7 @@ int RawTable::Cursor::Column(int column) const
             sqlite3_result_int64(context_, static_cast<int32_t>(rawObj_.InternalTidData()[CurrentRow()]));
             break;
         default:
-            TUNING_LOGF("Unregistered column : %d", column);
+            TS_LOGF("Unregistered column : %d", column);
             break;
     }
     return SQLITE_OK;

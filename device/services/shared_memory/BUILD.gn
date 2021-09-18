@@ -21,10 +21,6 @@ config("shared_memory_config") {
     "${OHOS_PROFILER_DIR}/interfaces/innerkits",
     "//utils/native/base/include",
   ]
-  if (current_toolchain == host_toolchain) {
-    cflags += [ "-DHAVE_PTHREAD" ]
-  } else {
-  }
 }
 
 ohos_shared_library("shared_memory") {
@@ -40,7 +36,7 @@ ohos_shared_library("shared_memory") {
   public_deps = [
     "${OHOS_PROFILER_3RDPARTY_PROTOBUF_DIR}:protobuf",
     "${OHOS_PROFILER_3RDPARTY_PROTOBUF_DIR}:protobuf_lite",
-    "//utils/native/base:utilsbase",
+    "//utils/native/base:utilsecurec",
   ]
   install_enable = true
   subsystem_name = "${OHOS_PROFILER_SUBSYS_NAME}"

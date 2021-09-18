@@ -17,6 +17,7 @@
 #define SMAPS_STATS_H
 
 #include "logging.h"
+#include <array>
 #include <cinttypes>
 #include <cstdio>
 #include <fstream>
@@ -26,16 +27,71 @@
 #include <string>
 #include <sys/mman.h>
 
-struct stats_t {
-    int pss;
-    int swappablePss;
-    int rss;
-    int privateDirty;
-    int sharedDirty;
-    int privateClean;
-    int sharedClean;
-    int swappedOut;
-    int swappedOutPss;
+struct MemUsageInfo {
+    uint64_t vss;
+    uint64_t rss;
+    uint64_t pss;
+    uint64_t uss;
+
+    uint64_t swap;
+    uint64_t swapPss;
+
+    uint64_t privateClean;
+    uint64_t privateDirty;
+    uint64_t sharedClean;
+    uint64_t sharedDirty;
+};
+
+class StatsInfo {
+public:
+    int pss_;
+    int swappablePss_;
+    int rss_;
+    int privateDirty_;
+    int sharedDirty_;
+    int privateClean_;
+    int sharedClean_;
+    int swappedOut_;
+    int swappedOutPss_;
+
+    StatsInfo()
+        : pss_(0),
+        swappablePss_(0),
+        rss_(0),
+        privateDirty_(0),
+        sharedDirty_(0),
+        privateClean_(0),
+        sharedClean_(0),
+        swappedOut_(0),
+        swappedOutPss_(0)
+    {
+    }
+
+    StatsInfo(uint64_t swapablePss, const MemUsageInfo& usage)
+        : pss_(usage.pss),
+        swappablePss_(swapablePss),
+        rss_(usage.rss),
+        privateDirty_(usage.privateDirty),
+        sharedDirty_(usage.sharedDirty),
+        privateClean_(usage.privateClean),
+        sharedClean_(usage.sharedClean),
+        swappedOut_(usage.swap),
+        swappedOutPss_(usage.swapPss)
+    {
+    }
+
+    void operator+=(const StatsInfo &S)
+    {
+        pss_ += S.pss_;
+        swappablePss_ += S.swappablePss_;
+        rss_ += S.rss_;
+        privateDirty_ += S.privateDirty_;
+        sharedDirty_ += S.sharedDirty_;
+        privateClean_ += S.privateClean_;
+        sharedClean_ += S.sharedClean_;
+        swappedOut_ += S.swappedOut_;
+        swappedOutPss_ += S.swappedOutPss_;
+    }
 };
 
 enum NumType {
@@ -44,29 +100,14 @@ enum NumType {
     DEC_BASE = 10,
 };
 
-struct MapPiecesInfo_t {
-    uint64_t start_addr;
-    uint64_t end_addr;
+struct MapPiecesInfo {
+    uint64_t startAddr;
+    uint64_t endAddr;
 
     std::string name;
 };
 
-struct MemUsageInfo_t {
-    uint64_t vss;
-    uint64_t rss;
-    uint64_t pss;
-    uint64_t uss;
-
-    uint64_t swap;
-    uint64_t swap_pss;
-
-    uint64_t private_clean;
-    uint64_t private_dirty;
-    uint64_t shared_clean;
-    uint64_t shared_dirty;
-};
-
-enum vmemifoType {
+enum VmemifoType {
     VMHEAP_NULL = -2,
     VMHEAP_NEEDFIX = -1,
     VMHEAP_UNKNOWN,
@@ -113,9 +154,9 @@ enum vmemifoType {
     VMHEAP_ART_APP,
     VMHEAP_ART_BOOT,
 
-    _NUM_HEAP,
-    _NUM_EXCLUSIVE_HEAP = VMHEAP_OTHER_MEMTRACK + 1,
-    _NUM_CORE_HEAP = VMHEAP_NATIVE + 1
+    VMHEAP_NUM_HEAP,
+    VMHEAP_NUM_EXCLUSIVE_HEAP = VMHEAP_OTHER_MEMTRACK + 1,
+    VMHEAP_NUM_CORE_HEAP = VMHEAP_NATIVE + 1
 };
 
 enum OpsType {
@@ -123,86 +164,86 @@ enum OpsType {
     OPS_END,
 };
 
-struct vMeminfoAreaMapping {
+struct VmeminfoAreaMapping {
     int ops;
     const char* heapstr;
     int heapid[2];
 };
 
-constexpr vMeminfoAreaMapping vmaMemheap[] = {
-    {OpsType::OPS_START, "[heap]", {vmemifoType::VMHEAP_NATIVE, vmemifoType::VMHEAP_NULL}},
-    {OpsType::OPS_START, "[stack", {vmemifoType::VMHEAP_STACK, vmemifoType::VMHEAP_NULL}},
+constexpr VmeminfoAreaMapping g_vmaMemHeap[] = {
+    {OpsType::OPS_START, "[heap]", {VmemifoType::VMHEAP_NATIVE, VmemifoType::VMHEAP_NULL}},
+    {OpsType::OPS_START, "[stack", {VmemifoType::VMHEAP_STACK, VmemifoType::VMHEAP_NULL}},
 };
 
 // [anon:
-constexpr vMeminfoAreaMapping vmaMemanon[] = {
-    {OpsType::OPS_START, "[anon:libc_malloc]", {vmemifoType::VMHEAP_NATIVE, vmemifoType::VMHEAP_NULL}},
-    {OpsType::OPS_START, "[anon:scudo:", {vmemifoType::VMHEAP_NATIVE, vmemifoType::VMHEAP_NULL}},
-    {OpsType::OPS_START, "[anon:GWP-ASan", {vmemifoType::VMHEAP_NATIVE, vmemifoType::VMHEAP_NULL}},
-    {OpsType::OPS_START, "[anon:stack_and_tls:", {vmemifoType::VMHEAP_STACK, vmemifoType::VMHEAP_NULL}},
+constexpr VmeminfoAreaMapping g_vmaMemAnon[] = {
+    {OpsType::OPS_START, "[anon:libc_malloc]", {VmemifoType::VMHEAP_NATIVE, VmemifoType::VMHEAP_NULL}},
+    {OpsType::OPS_START, "[anon:scudo:", {VmemifoType::VMHEAP_NATIVE, VmemifoType::VMHEAP_NULL}},
+    {OpsType::OPS_START, "[anon:GWP-ASan", {VmemifoType::VMHEAP_NATIVE, VmemifoType::VMHEAP_NULL}},
+    {OpsType::OPS_START, "[anon:stack_and_tls:", {VmemifoType::VMHEAP_STACK, VmemifoType::VMHEAP_NULL}},
     {OpsType::OPS_START,
      "[anon:dalvik-LinearAlloc",
-     {vmemifoType::VMHEAP_DALVIK_OTHER, vmemifoType::VMHEAP_DALVIK_OTHER_LINEARALLOC}},
-    {OpsType::OPS_START, "[anon:dalvik-alloc space", {vmemifoType::VMHEAP_DALVIK, vmemifoType::VMHEAP_DALVIK_NORMAL}},
-    {OpsType::OPS_START, "[anon:dalvik-main space", {vmemifoType::VMHEAP_DALVIK, vmemifoType::VMHEAP_DALVIK_NORMAL}},
+     {VmemifoType::VMHEAP_DALVIK_OTHER, VmemifoType::VMHEAP_DALVIK_OTHER_LINEARALLOC}},
+    {OpsType::OPS_START, "[anon:dalvik-alloc space", {VmemifoType::VMHEAP_DALVIK, VmemifoType::VMHEAP_DALVIK_NORMAL}},
+    {OpsType::OPS_START, "[anon:dalvik-main space", {VmemifoType::VMHEAP_DALVIK, VmemifoType::VMHEAP_DALVIK_NORMAL}},
     {OpsType::OPS_START,
      "[anon:dalvik-large object space",
-     {vmemifoType::VMHEAP_DALVIK, vmemifoType::VMHEAP_DALVIK_LARGE}},
+     {VmemifoType::VMHEAP_DALVIK, VmemifoType::VMHEAP_DALVIK_LARGE}},
     {OpsType::OPS_START,
      "[anon:dalvik-free list large object space",
-     {vmemifoType::VMHEAP_DALVIK, vmemifoType::VMHEAP_DALVIK_LARGE}},
+     {VmemifoType::VMHEAP_DALVIK, VmemifoType::VMHEAP_DALVIK_LARGE}},
     {OpsType::OPS_START,
      "[anon:dalvik-non moving space",
-     {vmemifoType::VMHEAP_DALVIK, vmemifoType::VMHEAP_DALVIK_NON_MOVING}},
-    {OpsType::OPS_START, "[anon:dalvik-zygote space", {vmemifoType::VMHEAP_DALVIK, vmemifoType::VMHEAP_DALVIK_ZYGOTE}},
+     {VmemifoType::VMHEAP_DALVIK, VmemifoType::VMHEAP_DALVIK_NON_MOVING}},
+    {OpsType::OPS_START, "[anon:dalvik-zygote space", {VmemifoType::VMHEAP_DALVIK, VmemifoType::VMHEAP_DALVIK_ZYGOTE}},
     {OpsType::OPS_START,
      "[anon:dalvik-indirect ref",
-     {vmemifoType::VMHEAP_DALVIK_OTHER, vmemifoType::VMHEAP_DALVIK_OTHER_INDIRECT_REFERENCE_TABLE}},
+     {VmemifoType::VMHEAP_DALVIK_OTHER, VmemifoType::VMHEAP_DALVIK_OTHER_INDIRECT_REFERENCE_TABLE}},
     {OpsType::OPS_START,
      "[anon:dalvik-jit-code-cache",
-     {vmemifoType::VMHEAP_DALVIK_OTHER, vmemifoType::VMHEAP_DALVIK_OTHER_APP_CODE_CACHE}},
+     {VmemifoType::VMHEAP_DALVIK_OTHER, VmemifoType::VMHEAP_DALVIK_OTHER_APP_CODE_CACHE}},
     {OpsType::OPS_START,
      "[anon:dalvik-data-code-cache",
-     {vmemifoType::VMHEAP_DALVIK_OTHER, vmemifoType::VMHEAP_DALVIK_OTHER_APP_CODE_CACHE}},
+     {VmemifoType::VMHEAP_DALVIK_OTHER, VmemifoType::VMHEAP_DALVIK_OTHER_APP_CODE_CACHE}},
     {OpsType::OPS_START,
      "[anon:dalvik-CompilerMetadata",
-     {vmemifoType::VMHEAP_DALVIK_OTHER, vmemifoType::VMHEAP_DALVIK_OTHER_COMPILER_METADATA}},
+     {VmemifoType::VMHEAP_DALVIK_OTHER, VmemifoType::VMHEAP_DALVIK_OTHER_COMPILER_METADATA}},
     {OpsType::OPS_START,
      "[anon:dalvik-",
-     {vmemifoType::VMHEAP_DALVIK_OTHER, vmemifoType::VMHEAP_DALVIK_OTHER_ACCOUNTING}},
-    {OpsType::OPS_START, "[anon:", {vmemifoType::VMHEAP_UNKNOWN, vmemifoType::VMHEAP_NULL}},
+     {VmemifoType::VMHEAP_DALVIK_OTHER, VmemifoType::VMHEAP_DALVIK_OTHER_ACCOUNTING}},
+    {OpsType::OPS_START, "[anon:", {VmemifoType::VMHEAP_UNKNOWN, VmemifoType::VMHEAP_NULL}},
 };
 
-constexpr vMeminfoAreaMapping vmaMemfd[] = {
+constexpr VmeminfoAreaMapping g_vmaMemFd[] = {
     {OpsType::OPS_START,
      "/memfd:jit-cache",
-     {vmemifoType::VMHEAP_DALVIK_OTHER, vmemifoType::VMHEAP_DALVIK_OTHER_APP_CODE_CACHE}},
+     {VmemifoType::VMHEAP_DALVIK_OTHER, VmemifoType::VMHEAP_DALVIK_OTHER_APP_CODE_CACHE}},
     {OpsType::OPS_START,
      "/memfd:jit-zygote-cache",
-     {vmemifoType::VMHEAP_DALVIK_OTHER, vmemifoType::VMHEAP_DALVIK_OTHER_ZYGOTE_CODE_CACHE}},
+     {VmemifoType::VMHEAP_DALVIK_OTHER, VmemifoType::VMHEAP_DALVIK_OTHER_ZYGOTE_CODE_CACHE}},
 };
 // dev
-constexpr vMeminfoAreaMapping vmaMemdev[] = {
-    {OpsType::OPS_START, "/dev/kgsl-3d0", {vmemifoType::VMHEAP_GL_DEV, vmemifoType::VMHEAP_NULL}},
-    {OpsType::OPS_START, "/dev/ashmem/CursorWindow", {vmemifoType::VMHEAP_CURSOR, vmemifoType::VMHEAP_NULL}},
+constexpr VmeminfoAreaMapping g_vmaMemDev[] = {
+    {OpsType::OPS_START, "/dev/kgsl-3d0", {VmemifoType::VMHEAP_GL_DEV, VmemifoType::VMHEAP_NULL}},
+    {OpsType::OPS_START, "/dev/ashmem/CursorWindow", {VmemifoType::VMHEAP_CURSOR, VmemifoType::VMHEAP_NULL}},
     {OpsType::OPS_START,
      "/dev/ashmem/jit-zygote-cache",
-     {vmemifoType::VMHEAP_DALVIK_OTHER, vmemifoType::VMHEAP_DALVIK_OTHER_ZYGOTE_CODE_CACHE}},
-    {OpsType::OPS_START, "/dev/ashmem", {vmemifoType::VMHEAP_ASHMEM, vmemifoType::VMHEAP_NULL}},
-    {OpsType::OPS_START, "/dev/", {vmemifoType::VMHEAP_UNKNOWN_DEV, vmemifoType::VMHEAP_NULL}},
+     {VmemifoType::VMHEAP_DALVIK_OTHER, VmemifoType::VMHEAP_DALVIK_OTHER_ZYGOTE_CODE_CACHE}},
+    {OpsType::OPS_START, "/dev/ashmem", {VmemifoType::VMHEAP_ASHMEM, VmemifoType::VMHEAP_NULL}},
+    {OpsType::OPS_START, "/dev/", {VmemifoType::VMHEAP_UNKNOWN_DEV, VmemifoType::VMHEAP_NULL}},
 };
 
-constexpr vMeminfoAreaMapping vmaMemsuffix[] = {
-    {OpsType::OPS_END, ".so", {vmemifoType::VMHEAP_SO, vmemifoType::VMHEAP_NULL}},
-    {OpsType::OPS_END, ".jar", {vmemifoType::VMHEAP_JAR, vmemifoType::VMHEAP_NULL}},
-    {OpsType::OPS_END, ".ttf", {vmemifoType::VMHEAP_TTF, vmemifoType::VMHEAP_NULL}},
-    {OpsType::OPS_END, ".oat", {vmemifoType::VMHEAP_OAT, vmemifoType::VMHEAP_NULL}},
+constexpr VmeminfoAreaMapping g_vmaMemSuffix[] = {
+    {OpsType::OPS_END, ".so", {VmemifoType::VMHEAP_SO, VmemifoType::VMHEAP_NULL}},
+    {OpsType::OPS_END, ".jar", {VmemifoType::VMHEAP_JAR, VmemifoType::VMHEAP_NULL}},
+    {OpsType::OPS_END, ".ttf", {VmemifoType::VMHEAP_TTF, VmemifoType::VMHEAP_NULL}},
+    {OpsType::OPS_END, ".oat", {VmemifoType::VMHEAP_OAT, VmemifoType::VMHEAP_NULL}},
 
-    {OpsType::OPS_END, ".odex", {vmemifoType::VMHEAP_DEX, vmemifoType::VMHEAP_DEX_APP_DEX}},
+    {OpsType::OPS_END, ".odex", {VmemifoType::VMHEAP_DEX, VmemifoType::VMHEAP_DEX_APP_DEX}},
 
-    {OpsType::OPS_END, ".vdex", {vmemifoType::VMHEAP_DEX, vmemifoType::VMHEAP_NEEDFIX}},
-    {OpsType::OPS_END, ".art", {vmemifoType::VMHEAP_ART, vmemifoType::VMHEAP_NEEDFIX}},
-    {OpsType::OPS_END, ".art]", {vmemifoType::VMHEAP_ART, vmemifoType::VMHEAP_NEEDFIX}},
+    {OpsType::OPS_END, ".vdex", {VmemifoType::VMHEAP_DEX, VmemifoType::VMHEAP_NEEDFIX}},
+    {OpsType::OPS_END, ".art", {VmemifoType::VMHEAP_ART, VmemifoType::VMHEAP_NEEDFIX}},
+    {OpsType::OPS_END, ".art]", {VmemifoType::VMHEAP_ART, VmemifoType::VMHEAP_NEEDFIX}},
 };
 
 class SmapsStats {
@@ -220,7 +261,7 @@ public:
     int GetProcessSystem();
 
 private:
-    stats_t stats_[_NUM_HEAP] = {{0}};
+    std::array<StatsInfo, VMHEAP_NUM_HEAP> stats_;
     bool lastline_ = false;
     std::string testpath_;
 
@@ -232,20 +273,20 @@ private:
     void ReviseStatsData();
 
     bool ReadVmemareasFile(const std::string& path);
-    bool ParseMapHead(std::string& line, MapPiecesInfo_t& head);
-    bool SetMapAddrInfo(std::string& line, MapPiecesInfo_t& head);
-    bool GetMemUsageField(std::string& line, MemUsageInfo_t& memusage);
-    void CollectVmemAreasData(const MapPiecesInfo_t& mempic,
-                              const MemUsageInfo_t& memusage,
+    bool ParseMapHead(std::string& line, MapPiecesInfo& head);
+    bool SetMapAddrInfo(std::string& line, MapPiecesInfo& head);
+    bool GetMemUsageField(std::string& line, MemUsageInfo& memusage);
+    void CollectVmemAreasData(const MapPiecesInfo& mempic,
+                              const MemUsageInfo& memusage,
                               uint64_t& prevEnd,
                               int& prevHeap);
     bool GetVmaIndex(std::string name, uint32_t namesz, int32_t heapIndex[2], bool& swappable);
-    uint64_t GetSwapablepssValue(const MemUsageInfo_t& memusage, bool swappable);
-    void SetVmemAreasData(int index, uint64_t swapablePss, const MemUsageInfo_t& usage);
+    uint64_t GetSwapablepssValue(const MemUsageInfo& memusage, bool swappable);
+    void SetVmemAreasData(int index, uint64_t swapablePss, const MemUsageInfo& usage);
     void HeapIndexFix(std::string name, const char* key, int32_t heapIndex[2]);
     bool GetVMAStuId(int ops,
                      std::string name,
-                     const vMeminfoAreaMapping* vma,
+                     const VmeminfoAreaMapping vma[],
                      int count,
                      int32_t heapIndex[2],
                      bool& swappable);

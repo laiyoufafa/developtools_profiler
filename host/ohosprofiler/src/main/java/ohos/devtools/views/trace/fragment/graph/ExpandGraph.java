@@ -17,6 +17,7 @@ package ohos.devtools.views.trace.fragment.graph;
 
 import ohos.devtools.views.trace.fragment.AbstractDataFragment;
 import ohos.devtools.views.trace.util.ImageUtils;
+import ohos.devtools.views.trace.util.Utils;
 
 import javax.swing.JComponent;
 import java.awt.Graphics2D;
@@ -26,12 +27,23 @@ import java.awt.event.MouseEvent;
 /**
  * dataPanel open
  *
- * @version 1.0
  * @date 2021/04/22 12:25
- **/
+ */
 public class ExpandGraph extends AbstractGraph {
     private boolean isExpand;
     private Image image = ImageUtils.getInstance().getArrowDown();
+    private IClickListener clickListener;
+
+    /**
+     * class construct
+     *
+     * @param fragment fragment
+     * @param root     root
+     */
+    public ExpandGraph(final AbstractDataFragment fragment, final JComponent root) {
+        this.fragment = fragment;
+        this.root = root;
+    }
 
     /**
      * Gets the value of image .
@@ -72,17 +84,6 @@ public class ExpandGraph extends AbstractGraph {
     }
 
     /**
-     * class construct
-     *
-     * @param fragment fragment
-     * @param root root
-     */
-    public ExpandGraph(final AbstractDataFragment fragment, final JComponent root) {
-        this.fragment = fragment;
-        this.root = root;
-    }
-
-    /**
      * draw by graphics
      *
      * @param graphics graphics
@@ -98,7 +99,7 @@ public class ExpandGraph extends AbstractGraph {
                 image = ImageUtils.getInstance().getArrowDown();
             }
         }
-        graphics.drawImage(image, rect.x, rect.y, 12, 12, null);
+        graphics.drawImage(image, Utils.getX(rect), Utils.getY(rect), 12, 12, null);
     }
 
     /**
@@ -151,8 +152,6 @@ public class ExpandGraph extends AbstractGraph {
     @Override
     public void onMouseMove(final MouseEvent event) {
     }
-
-    private IClickListener clickListener;
 
     /**
      * setOnClickListener

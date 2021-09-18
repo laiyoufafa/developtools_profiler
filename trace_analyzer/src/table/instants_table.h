@@ -23,14 +23,14 @@ namespace SysTuning {
 namespace TraceStreamer {
 class InstantsTable : public TableBase {
 public:
-    explicit InstantsTable(const TraceDataCache*);
+    explicit InstantsTable(const TraceDataCache* dataCache);
     ~InstantsTable() override;
     void CreateCursor() override;
 
 private:
     class Cursor : public TableBase::Cursor {
     public:
-        explicit Cursor(const TraceDataCache*);
+        explicit Cursor(const TraceDataCache* dataCache);
         ~Cursor() override;
         int Column(int) const override;
 

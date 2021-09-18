@@ -24,220 +24,675 @@
 #include <vector>
 
 #include "logging.h"
-#include "memory_plugin_config.pb.h"
-#include "memory_plugin_result.pb.h"
+#include "memory_data_plugin.h"
 #include "plugin_module_api.h"
+#include "sample_plugin.h"
+#include "stream_plugin.h"
 
 using namespace testing::ext;
 
-#if defined(__i386__) || defined(__x86_64__)
-const std::string LIB_PATH = "./hos/out/hos-arm/clang_x64/devtools/devtools/libmemdataplugin.z.so";
-#else
-const std::string LIB_PATH = "/system/lib/libmemdataplugin.z.so";
-#endif
-
 namespace {
-enum NumType {
-    BIT_WIDTH = 35,
-    MS_S = 1000000,
-    ERR_PARAM = 1,
-    ERR_ADDR,
-    ERR_START,
-};
+constexpr uint32_t MAX_BUFFER_SIZE = 4 * 1024 * 1024;
+std::mutex g_taskMutex;
+std::unique_ptr<MemoryDataPlugin> memoryPlugin = nullptr;
+std::unique_ptr<StreamPlugin> streamPlugin = nullptr;
+std::unique_ptr<SamplePlugin> samplePlugin = nullptr;
 
 class PluginModuleApiTest : public ::testing::Test {
+public:
+    PluginModuleCallbacks* memoryCallbacks_;
+    PluginModuleCallbacks* sampleCallbacks_;
+    PluginModuleCallbacks* streamCallbacks_;
+
+    PluginModuleStruct memoryModule_;
+    PluginModuleStruct sampleModule_;
+    PluginModuleStruct streamModule_;
+
+    WriterStruct* writer_;
 protected:
     static void SetUpTestCase() {}
     static void TearDownTestCase() {}
 
-    void SetUp() override {}
-    void TearDown() override {}
-
-    bool MatchTail(const std::string& name, std::string str)
+    void SetUp()
     {
-        int index = name.size() - str.size();
-        if (index < 0) {
-            return false;
-        }
-        return (name.substr(index) == str);
+        memoryCallbacks_ = nullptr;
+        sampleCallbacks_ = nullptr;
+        streamCallbacks_ = nullptr;
+        memoryModule_ = {memoryCallbacks_, "memory-plugin", MAX_BUFFER_SIZE};
+        sampleModule_ = {sampleCallbacks_, "sample-plugin", MAX_BUFFER_SIZE};
+        streamModule_ = {streamCallbacks_, "stream-plugin", MAX_BUFFER_SIZE};
+        writer_ = nullptr;
     }
 
-    bool ProcessErr(int errNum, void *handle, uint8_t* dataBuffer)
-    {
-        switch (errNum) {
-            case ERR_ADDR:
-                dlclose(handle);
-                HILOG_DEBUG(LOG_CORE, "test：check addr err.");
-                break;
-            case ERR_START:
-                dlclose(handle);
-                free(dataBuffer);
-                HILOG_DEBUG(LOG_CORE, "test：start err.");
-                break;
-            default:
-                HILOG_DEBUG(LOG_CORE, "test：check param err.");
-                break;
-        }
-        return false;
-    }
+    bool PollPluginStub(MemoryDataPlugin& plugin, MemoryConfig& protoConfig, MemoryData& protoData);
+    bool StreamPluginStub(StreamPlugin& plugin, StreamConfig& protoConfig, StreamData& protoData);
+    // memory
+    static int MemDataPluginSessionStart(const uint8_t* configData, uint32_t configSize);
+    static int MemPluginReportResult(uint8_t* bufferData, uint32_t bufferSize);
+    static int MemPluginSessionStop();
 
-    bool MemoryPluginTest(MemoryConfig& protoConfig, const std::string libPath)
-    {
-        MemoryData memoryData;
-        if (!MatchTail(libPath, ".so")) {
-            return ProcessErr(ERR_PARAM, nullptr, nullptr);
-        }
+    // stream
+    static int StreamPluginSessionStart(const uint8_t* configData, uint32_t configSize);
+    static int StreamPluginSessionStop();
+    static int StreamRegisterWriterStruct(WriterStruct* writer);
+    static long Write(WriterStruct* writer, const void* data, size_t size);
+    static bool Flush(WriterStruct* writer);
 
-        void* handle = dlopen(libPath.c_str(), RTLD_LAZY);
-        if (handle == nullptr) {
-            return ProcessErr(ERR_PARAM, nullptr, nullptr);
-        }
-
-        PluginModuleStruct* memPlugin = (PluginModuleStruct*)dlsym(handle, "g_pluginModule");
-        if (memPlugin == nullptr) {
-            return ProcessErr(ERR_ADDR, handle, nullptr);
-        }
-        uint8_t* dataBuffer = (uint8_t*)malloc(memPlugin->resultBufferSizeHint);
-        if (dataBuffer == nullptr) {
-            return ProcessErr(ERR_ADDR, handle, nullptr);
-        }
-
-        int configlength = protoConfig.ByteSizeLong();
-        std::vector<uint8_t> config(configlength);
-        protoConfig.SerializeToArray(config.data(), config.size());
-
-        if (memPlugin->callbacks->onPluginSessionStart(config.data(), config.size()) < 0) {
-            return ProcessErr(ERR_START, handle, dataBuffer);
-        }
-
-        int len = memPlugin->callbacks->onPluginReportResult(dataBuffer, memPlugin->resultBufferSizeHint);
-        if (len > 0) {
-            memoryData.ParseFromArray(dataBuffer, len);
-        }
-
-        memPlugin->callbacks->onPluginSessionStop();
-        memPlugin->callbacks->onRegisterWriterStruct(nullptr);
-
-        dlclose(handle);
-        free(dataBuffer);
-        return true;
-    }
+    // sample
+    static int SamplePluginSessionStart(const uint8_t* configData, uint32_t configSize);
+    static int SamplePluginReportResult(uint8_t* bufferData, uint32_t bufferSize);
+    static int SamplePluginSessionStop();
+    void SetSampleConfig(std::vector<uint8_t>& configData, uint32_t& configSize);
+    void SetMemoryConfig(std::vector<uint8_t>& configData, uint32_t& configSize);
+    void SetStreamConfig(std::vector<uint8_t>& configData, uint32_t& configSize);
 };
 
-HWTEST_F(PluginModuleApiTest, ProtoConfigNullAndInvalidSo, TestSize.Level1)
+// memory
+int PluginModuleApiTest::MemDataPluginSessionStart(const uint8_t* configData, uint32_t configSize)
 {
-    MemoryConfig protoConfig;
-    EXPECT_FALSE(PluginModuleApiTest::MemoryPluginTest(protoConfig, "1111"));
+    std::lock_guard<std::mutex> guard(g_taskMutex);
+    memoryPlugin = std::make_unique<MemoryDataPlugin>();
+    return memoryPlugin->Start(configData, configSize);
 }
 
-HWTEST_F(PluginModuleApiTest, ProtoConfigNullAndEffectiveSo, TestSize.Level1)
+int PluginModuleApiTest::MemPluginReportResult(uint8_t* bufferData, uint32_t bufferSize)
 {
-    MemoryConfig protoConfig;
-    EXPECT_TRUE(PluginModuleApiTest::MemoryPluginTest(protoConfig, LIB_PATH));
+    std::lock_guard<std::mutex> guard(g_taskMutex);
+    return memoryPlugin->Report(bufferData, bufferSize);
 }
 
-HWTEST_F(PluginModuleApiTest, ProtoConfigMemAndInvalidSo, TestSize.Level1)
+int PluginModuleApiTest::MemPluginSessionStop()
+{
+    std::lock_guard<std::mutex> guard(g_taskMutex);
+    CHECK_TRUE(memoryPlugin != nullptr, -1, "memoryPlugin is null!!!");
+    memoryPlugin->Stop();
+    memoryPlugin = nullptr;
+    return 0;
+}
+
+// stream
+int PluginModuleApiTest::StreamPluginSessionStart(const uint8_t* configData, uint32_t configSize)
+{
+    std::lock_guard<std::mutex> guard(g_taskMutex);
+    CHECK_TRUE(streamPlugin != nullptr, -1, "PluginStub::start plugin fail!!!");
+    return streamPlugin->Start(configData, configSize);
+}
+
+int PluginModuleApiTest::StreamPluginSessionStop()
+{
+    std::lock_guard<std::mutex> guard(g_taskMutex);
+    streamPlugin->Stop();
+    streamPlugin = nullptr;
+    return 0;
+}
+
+int PluginModuleApiTest::StreamRegisterWriterStruct(WriterStruct* writer)
+{
+    std::lock_guard<std::mutex> guard(g_taskMutex);
+    streamPlugin = std::make_unique<StreamPlugin>();
+    streamPlugin->SetWriter(writer);
+    return 0;
+}
+
+// write
+long PluginModuleApiTest::Write(WriterStruct* writer, const void* data, size_t size)
+{
+    HILOG_INFO(LOG_CORE, "PluginModuleApiTest::Write no implementation !");
+    return 0;
+}
+
+bool PluginModuleApiTest::Flush(WriterStruct* writer)
+{
+    HILOG_INFO(LOG_CORE, "PluginModuleApiTest::Write no implementation !");
+    return true;
+}
+
+// sample
+int PluginModuleApiTest::SamplePluginSessionStart(const uint8_t* configData, uint32_t configSize)
+{
+    std::lock_guard<std::mutex> guard(g_taskMutex);
+    samplePlugin = std::make_unique<SamplePlugin>();
+    return samplePlugin->Start(configData, configSize);
+}
+
+int PluginModuleApiTest::SamplePluginReportResult(uint8_t* bufferData, uint32_t bufferSize)
+{
+    std::lock_guard<std::mutex> guard(g_taskMutex);
+    return samplePlugin->Report(bufferData, bufferSize);
+}
+
+int PluginModuleApiTest::SamplePluginSessionStop()
+{
+    std::lock_guard<std::mutex> guard(g_taskMutex);
+    samplePlugin->Stop();
+    samplePlugin = nullptr;
+    return 0;
+}
+
+void PluginModuleApiTest::SetSampleConfig(std::vector<uint8_t>& configData, uint32_t& configSize)
+{
+    SampleConfig protoConfig;
+    protoConfig.set_pid(1);
+    // serialize
+    protoConfig.SerializeToArray(configData.data(), configData.size());
+    configSize = protoConfig.ByteSizeLong();
+    printf("SetSampleConfig -->\n");
+    for (uint32_t i = 0; i < configSize; i++)
+        printf("0x%02x", configData[i]);
+    printf("\n");
+}
+
+void PluginModuleApiTest::SetMemoryConfig(std::vector<uint8_t>& configData, uint32_t& configSize)
 {
     MemoryConfig protoConfig;
     protoConfig.set_report_process_mem_info(true);
-    EXPECT_FALSE(PluginModuleApiTest::MemoryPluginTest(protoConfig, "1111"));
-}
-
-HWTEST_F(PluginModuleApiTest, ProtoConfigMemAndEffectiveSo, TestSize.Level1)
-{
-    MemoryConfig protoConfig;
-    protoConfig.set_report_process_mem_info(true);
-    EXPECT_TRUE(PluginModuleApiTest::MemoryPluginTest(protoConfig, LIB_PATH));
-}
-
-HWTEST_F(PluginModuleApiTest, ProtoConfigPidAndInvalidSo, TestSize.Level1)
-{
-    MemoryConfig protoConfig;
-    protoConfig.set_report_app_mem_info(true);
     protoConfig.add_pid(1);
-    EXPECT_FALSE(PluginModuleApiTest::MemoryPluginTest(protoConfig, "1111"));
+    // serialize
+    protoConfig.SerializeToArray(configData.data(), configSize);
+    configSize = protoConfig.ByteSizeLong();
+    printf("SetMemoryConfig memoryConfigData---->configLen(%d)\n", configSize);
 }
 
-HWTEST_F(PluginModuleApiTest, ProtoConfigPidAndEffectiveSo, TestSize.Level1)
+void PluginModuleApiTest::SetStreamConfig(std::vector<uint8_t>& configData, uint32_t& configSize)
 {
-    MemoryConfig protoConfig;
-    protoConfig.set_report_app_mem_info(true);
-    protoConfig.add_pid(1);
-    EXPECT_TRUE(PluginModuleApiTest::MemoryPluginTest(protoConfig, LIB_PATH));
+    StreamConfig protoConfig;
+    protoConfig.set_pid(1);
+    // serialize
+    protoConfig.SerializeToArray(configData.data(), configSize);
+    configSize = protoConfig.ByteSizeLong();
+    printf("SetStreamConfig streamConfigData---->configLen(%d)\n", configSize);
 }
 
-HWTEST_F(PluginModuleApiTest, MemoryPluginTreeAndInvalidSo, TestSize.Level1)
+// 流式调用写接口
+HWTEST_F(PluginModuleApiTest, StreamPluginRegister1, TestSize.Level1)
 {
-    MemoryConfig protoConfig;
-    protoConfig.set_report_process_tree(true);
-    EXPECT_FALSE(PluginModuleApiTest::MemoryPluginTest(protoConfig, "1111"));
+    PluginModuleCallbacks callbacks = {
+        StreamPluginSessionStart,
+        0,
+        StreamPluginSessionStop,
+        (RegisterWriterStructCallback)StreamRegisterWriterStruct,
+    };
+    streamCallbacks_ = &callbacks;
+
+    EXPECT_NE(streamCallbacks_->onRegisterWriterStruct, nullptr);
+    EXPECT_EQ(streamCallbacks_->onRegisterWriterStruct(writer_), 0);
+    EXPECT_NE(streamPlugin, nullptr);
+
+    EXPECT_EQ(streamPlugin->resultWriter_, nullptr);
 }
 
-HWTEST_F(PluginModuleApiTest, MemoryPluginTreeAndEffectiveSo, TestSize.Level1)
+// 流式调用写接口
+HWTEST_F(PluginModuleApiTest, StreamPluginRegister2, TestSize.Level1)
 {
-    MemoryConfig protoConfig;
-    protoConfig.set_report_process_tree(true);
-    EXPECT_TRUE(PluginModuleApiTest::MemoryPluginTest(protoConfig, LIB_PATH));
-}
+    PluginModuleCallbacks callbacks = {
+        StreamPluginSessionStart,
+        0,
+        StreamPluginSessionStop,
+        (RegisterWriterStructCallback)StreamRegisterWriterStruct,
+    };
+    streamCallbacks_ = &callbacks;
 
-HWTEST_F(PluginModuleApiTest, ApiCallInvalidSoAndInvalidStruct, TestSize.Level1)
-{
-    PluginModuleStruct* memPlugin = nullptr;
-    void* handle = dlopen(LIB_PATH.c_str(), RTLD_LAZY);
-    ASSERT_NE(handle, nullptr);
-
-    memPlugin = (PluginModuleStruct*)dlsym(handle, "g_pluginModule");
-    ASSERT_NE(memPlugin, nullptr);
-
-    ASSERT_EQ(memPlugin->callbacks->onPluginSessionStart(nullptr, 0), 0);
-    ASSERT_EQ(memPlugin->callbacks->onPluginReportResult(nullptr, 0), 0);
-    ASSERT_EQ(memPlugin->callbacks->onPluginSessionStop(), 0);
-    ASSERT_EQ(memPlugin->callbacks->onRegisterWriterStruct(nullptr), 0);
-}
-
-HWTEST_F(PluginModuleApiTest, ApiCallEffectiveSoAndInvalidStruct, TestSize.Level1)
-{
-    PluginModuleStruct* memPlugin = nullptr;
-    void* handle = dlopen(LIB_PATH.c_str(), RTLD_LAZY);
-    ASSERT_NE(handle, nullptr);
-
-    memPlugin = (PluginModuleStruct*)dlsym(handle, "g_pluginModule");
-    ASSERT_NE(memPlugin, nullptr);
-
-    ASSERT_EQ(memPlugin->callbacks->onPluginSessionStart(nullptr, 0), 0);
-    ASSERT_EQ(memPlugin->callbacks->onPluginReportResult(nullptr, 0), 0);
-    ASSERT_EQ(memPlugin->callbacks->onPluginSessionStop(), 0);
-    ASSERT_EQ(memPlugin->callbacks->onRegisterWriterStruct(nullptr), 0);
-}
-
-HWTEST_F(PluginModuleApiTest, ApiCallInvalidSoAndEffectiveStruct, TestSize.Level1)
-{
-    PluginModuleStruct* memPlugin = nullptr;
-    void* handle = dlopen(LIB_PATH.c_str(), RTLD_LAZY);
-    ASSERT_NE(handle, nullptr);
-
-    memPlugin = (PluginModuleStruct*)dlsym(handle, "g_pluginModule");
-    ASSERT_NE(memPlugin, nullptr);
-
+    EXPECT_NE(streamCallbacks_->onRegisterWriterStruct, nullptr);
     WriterStruct writer;
+    writer_ = &writer;
+    EXPECT_EQ(streamCallbacks_->onRegisterWriterStruct(writer_), 0);
+    EXPECT_NE(streamPlugin, nullptr);
 
-    ASSERT_EQ(memPlugin->callbacks->onPluginSessionStart(nullptr, 0), 0);
-    ASSERT_EQ(memPlugin->callbacks->onPluginSessionStop(), 0);
-    ASSERT_EQ(memPlugin->callbacks->onRegisterWriterStruct(&writer), 0);
+    EXPECT_NE(streamPlugin->resultWriter_, nullptr);
+    EXPECT_NE(streamPlugin->resultWriter_->write, nullptr);
 }
 
-HWTEST_F(PluginModuleApiTest, ApiCallEffectiveSoAndEffectiveStruct, TestSize.Level1)
+// 流式调用写接口
+HWTEST_F(PluginModuleApiTest, StreamPluginRegister3, TestSize.Level1)
 {
-    PluginModuleStruct* memPlugin = nullptr;
-    void* handle = dlopen(LIB_PATH.c_str(), RTLD_LAZY);
-    ASSERT_NE(handle, nullptr);
+    PluginModuleCallbacks callbacks = {
+        StreamPluginSessionStart,
+        0,
+        StreamPluginSessionStop,
+        (RegisterWriterStructCallback)StreamRegisterWriterStruct,
+    };
+    streamCallbacks_ = &callbacks;
 
-    memPlugin = (PluginModuleStruct*)dlsym(handle, "g_pluginModule");
-    ASSERT_NE(memPlugin, nullptr);
+    EXPECT_NE(streamCallbacks_->onRegisterWriterStruct, nullptr);
+    WriterStruct writer = {
+        Write,
+        Flush,
+    };
+    writer_ = &writer;
+    EXPECT_EQ(streamCallbacks_->onRegisterWriterStruct(writer_), 0);
+    EXPECT_NE(streamPlugin, nullptr);
 
+    EXPECT_NE(streamPlugin->resultWriter_, nullptr);
+    EXPECT_NE(streamPlugin->resultWriter_->write, nullptr);
+    EXPECT_NE(streamPlugin->resultWriter_->flush, nullptr);
+}
+
+// 轮询式调用写接口
+HWTEST_F(PluginModuleApiTest, SamplePluginRegister, TestSize.Level1)
+{
+    PluginModuleCallbacks callbacks = {
+        SamplePluginSessionStart,
+        SamplePluginReportResult,
+        SamplePluginSessionStop,
+        0,
+    };
+    sampleCallbacks_ = &callbacks;
+
+    EXPECT_EQ(sampleCallbacks_->onRegisterWriterStruct, nullptr);
+    EXPECT_EQ(samplePlugin, nullptr);
+}
+
+HWTEST_F(PluginModuleApiTest, MemPluginRegister, TestSize.Level1)
+{
+    PluginModuleCallbacks callbacks = {
+        MemDataPluginSessionStart,
+        MemPluginReportResult,
+        MemPluginSessionStop,
+        0,
+    };
+    memoryCallbacks_ = &callbacks;
+
+    EXPECT_EQ(memoryCallbacks_->onRegisterWriterStruct, nullptr);
+    EXPECT_EQ(memoryPlugin, nullptr);
+}
+
+// 流式插件正常启动
+HWTEST_F(PluginModuleApiTest, StreamPluginStartSucc, TestSize.Level1)
+{
+    PluginModuleCallbacks callbacks = {
+        StreamPluginSessionStart,
+        0,
+        StreamPluginSessionStop,
+        (RegisterWriterStructCallback)StreamRegisterWriterStruct,
+    };
+    streamCallbacks_ = &callbacks;
+
+    EXPECT_NE(streamCallbacks_->onRegisterWriterStruct, nullptr);
+    WriterStruct writer = {
+        Write,
+        Flush,
+    };
+    writer_ = &writer;
+    streamCallbacks_->onRegisterWriterStruct(writer_);
+    EXPECT_NE(streamPlugin, nullptr);
+
+    EXPECT_NE(streamCallbacks_->onPluginSessionStart, nullptr);
+    uint32_t configLen = MAX_BUFFER_SIZE;
+    std::vector<uint8_t> configData(configLen);
+    SetStreamConfig(configData, configLen);
+    EXPECT_EQ(streamCallbacks_->onPluginSessionStart(configData.data(), configLen), 0);
+
+    streamCallbacks_->onPluginSessionStop();
+}
+
+// 流式异常启动
+HWTEST_F(PluginModuleApiTest, StreamPluginStartFail, TestSize.Level1)
+{
+    PluginModuleCallbacks callbacks = {
+        StreamPluginSessionStart,
+        0,
+        StreamPluginSessionStop,
+        (RegisterWriterStructCallback)StreamRegisterWriterStruct,
+    };
+    streamCallbacks_ = &callbacks;
+
+    EXPECT_NE(streamCallbacks_->onRegisterWriterStruct, nullptr);
     WriterStruct writer;
-    ASSERT_EQ(memPlugin->callbacks->onPluginSessionStart(nullptr, 0), 0);
-    ASSERT_EQ(memPlugin->callbacks->onPluginSessionStop(), 0);
-    ASSERT_EQ(memPlugin->callbacks->onRegisterWriterStruct(&writer), 0);
+    writer_ = &writer;
+    streamCallbacks_->onRegisterWriterStruct(writer_);
+    EXPECT_NE(streamPlugin, nullptr);
+
+    EXPECT_NE(streamCallbacks_->onPluginSessionStart, nullptr);
+    std::vector<uint8_t> configData(MAX_BUFFER_SIZE);
+    EXPECT_EQ(streamCallbacks_->onPluginSessionStart(configData.data(), configData.size()), -1);
+}
+
+// 轮询式异常启动
+HWTEST_F(PluginModuleApiTest, SamplePluginStartFail, TestSize.Level1)
+{
+    PluginModuleCallbacks callbacks = {
+        SamplePluginSessionStart,
+        SamplePluginReportResult,
+        SamplePluginSessionStop,
+        0,
+    };
+    sampleCallbacks_ = &callbacks;
+
+    EXPECT_NE(sampleCallbacks_->onPluginSessionStart, nullptr);
+    EXPECT_EQ(sampleCallbacks_->onPluginSessionStart(nullptr, 0), -1);
+    EXPECT_NE(samplePlugin, nullptr);
+}
+
+// 轮询式插件正常启动
+HWTEST_F(PluginModuleApiTest, SamplePluginStartSucc, TestSize.Level1)
+{
+    PluginModuleCallbacks callbacks = {
+        SamplePluginSessionStart,
+        SamplePluginReportResult,
+        SamplePluginSessionStop,
+        0,
+    };
+    sampleCallbacks_ = &callbacks;
+
+    EXPECT_NE(sampleCallbacks_->onPluginSessionStart, nullptr);
+    uint32_t configLen = MAX_BUFFER_SIZE;
+    std::vector<uint8_t> configData(configLen); // config
+    printf("PluginModuleApiTest before---->configLen(%zu)\n", configData.size());
+    SetSampleConfig(configData, configLen);
+    printf("PluginModuleApiTest after---->configLen(%d)\n", configLen);
+    for (uint32_t i = 0; i < configLen; i++)
+        printf("0x%02x", configData[i]);
+    printf("\n");
+    EXPECT_EQ(sampleCallbacks_->onPluginSessionStart(configData.data(), configLen), 0);
+    EXPECT_NE(samplePlugin, nullptr);
+
+    sampleCallbacks_->onPluginSessionStop();
+}
+
+// 多个插件启动
+HWTEST_F(PluginModuleApiTest, MultPluginStart, TestSize.Level1)
+{
+    PluginModuleCallbacks callbacks = {
+        SamplePluginSessionStart,
+        SamplePluginReportResult,
+        SamplePluginSessionStop,
+        0,
+    };
+    PluginModuleCallbacks memCallbacks = {
+        MemDataPluginSessionStart,
+        MemPluginReportResult,
+        MemPluginSessionStop,
+        0,
+    };
+    sampleCallbacks_ = &callbacks;
+    memoryCallbacks_ = &memCallbacks;
+    uint32_t configLen = MAX_BUFFER_SIZE;
+
+    EXPECT_NE(sampleCallbacks_->onPluginSessionStart, nullptr);
+    std::vector<uint8_t> sampleConfigData(configLen);
+    SetSampleConfig(sampleConfigData, configLen);
+    EXPECT_EQ(sampleCallbacks_->onPluginSessionStart(sampleConfigData.data(), configLen), 0);
+    EXPECT_NE(samplePlugin, nullptr);
+    sampleCallbacks_->onPluginSessionStop();
+
+    EXPECT_NE(memoryCallbacks_->onPluginSessionStart, nullptr);
+    configLen = MAX_BUFFER_SIZE;
+    std::vector<uint8_t> memoryConfigData(configLen);
+    SetMemoryConfig(memoryConfigData, configLen);
+    printf("PluginModuleApiTest memoryConfigData---->configLen(%d)\n", configLen);
+    EXPECT_EQ(memoryCallbacks_->onPluginSessionStart(memoryConfigData.data(), configLen), 0);
+    EXPECT_NE(memoryPlugin, nullptr);
+    memoryCallbacks_->onPluginSessionStop();
+}
+
+// 流式上报
+HWTEST_F(PluginModuleApiTest, StreamPluginReport, TestSize.Level1)
+{
+    PluginModuleCallbacks callbacks = {
+        StreamPluginSessionStart,
+        0,
+        StreamPluginSessionStop,
+        (RegisterWriterStructCallback)StreamRegisterWriterStruct,
+    };
+    streamCallbacks_ = &callbacks;
+
+    EXPECT_EQ(streamCallbacks_->onPluginReportResult, nullptr);
+}
+
+// 轮询式上报
+HWTEST_F(PluginModuleApiTest, SamplePluginReport, TestSize.Level1)
+{
+    PluginModuleCallbacks callbacks = {
+        SamplePluginSessionStart,
+        SamplePluginReportResult,
+        SamplePluginSessionStop,
+        0,
+    };
+    sampleCallbacks_ = &callbacks;
+
+    EXPECT_NE(sampleCallbacks_->onPluginSessionStart, nullptr);
+    uint32_t configLen = MAX_BUFFER_SIZE;
+    std::vector<uint8_t> configData(configLen);
+    SetSampleConfig(configData, configLen);
+    EXPECT_EQ(sampleCallbacks_->onPluginSessionStart(configData.data(), configLen), 0);
+    EXPECT_NE(samplePlugin, nullptr);
+
+    EXPECT_NE(sampleCallbacks_->onPluginReportResult, nullptr);
+    std::vector<uint8_t> buffer(MAX_BUFFER_SIZE);
+    EXPECT_NE(sampleCallbacks_->onPluginReportResult(buffer.data(), buffer.size()), 0);
+    sampleCallbacks_->onPluginSessionStop();
+}
+
+HWTEST_F(PluginModuleApiTest, MemoryPluginReport, TestSize.Level1)
+{
+    PluginModuleCallbacks callbacks = {
+        MemDataPluginSessionStart,
+        MemPluginReportResult,
+        MemPluginSessionStop,
+        0,
+    };
+    memoryCallbacks_ = &callbacks;
+
+    EXPECT_NE(memoryCallbacks_->onPluginSessionStart, nullptr);
+    uint32_t configLen = MAX_BUFFER_SIZE;
+    std::vector<uint8_t> configData(configLen);
+    SetMemoryConfig(configData, configLen);
+    EXPECT_EQ(memoryCallbacks_->onPluginSessionStart(configData.data(), configLen), 0);
+    EXPECT_NE(memoryPlugin, nullptr);
+
+    EXPECT_NE(memoryCallbacks_->onPluginReportResult, nullptr);
+    std::vector<uint8_t> buffer(MAX_BUFFER_SIZE);
+    EXPECT_NE(memoryCallbacks_->onPluginReportResult(buffer.data(), buffer.size()), 0);
+    memoryCallbacks_->onPluginSessionStop();
+}
+
+// 多个插件上报
+HWTEST_F(PluginModuleApiTest, MultPluginReport1, TestSize.Level1)
+{
+    PluginModuleCallbacks callbacks = {
+        SamplePluginSessionStart,
+        SamplePluginReportResult,
+        SamplePluginSessionStop,
+        0,
+    };
+    sampleCallbacks_ = &callbacks;
+    uint32_t configLen = MAX_BUFFER_SIZE;
+
+    EXPECT_NE(sampleCallbacks_->onPluginSessionStart, nullptr);
+    std::vector<uint8_t> sampleConfigData(configLen);
+    SetSampleConfig(sampleConfigData, configLen);
+    EXPECT_EQ(sampleCallbacks_->onPluginSessionStart(sampleConfigData.data(), configLen), 0);
+    EXPECT_NE(samplePlugin, nullptr);
+    EXPECT_NE(sampleCallbacks_->onPluginReportResult, nullptr);
+    std::vector<uint8_t> sampleBuffer(MAX_BUFFER_SIZE);
+    EXPECT_NE(sampleCallbacks_->onPluginReportResult(sampleBuffer.data(), sampleBuffer.size()), 0);
+
+    PluginModuleCallbacks memCallbacks = {
+        MemDataPluginSessionStart,
+        MemPluginReportResult,
+        MemPluginSessionStop,
+        0,
+    };
+    memoryCallbacks_ = &memCallbacks;
+
+    configLen = MAX_BUFFER_SIZE;
+    EXPECT_NE(memoryCallbacks_->onPluginSessionStart, nullptr);
+    std::vector<uint8_t> memoryConfigData(configLen);
+    SetMemoryConfig(memoryConfigData, configLen);
+    EXPECT_EQ(memoryCallbacks_->onPluginSessionStart(memoryConfigData.data(), configLen), 0);
+    EXPECT_NE(memoryPlugin, nullptr);
+    EXPECT_NE(memoryCallbacks_->onPluginReportResult, nullptr);
+    std::vector<uint8_t> memoryBuffer(MAX_BUFFER_SIZE);
+    EXPECT_NE(memoryCallbacks_->onPluginReportResult(memoryBuffer.data(), memoryBuffer.size()), 0);
+
+    sampleCallbacks_->onPluginSessionStop();
+    memoryCallbacks_->onPluginSessionStop();
+}
+
+HWTEST_F(PluginModuleApiTest, MultPluginReport2, TestSize.Level1)
+{
+    PluginModuleCallbacks callbacks = {
+        SamplePluginSessionStart,
+        SamplePluginReportResult,
+        SamplePluginSessionStop,
+        0,
+    };
+    sampleCallbacks_ = &callbacks;
+    uint32_t configLen = MAX_BUFFER_SIZE;
+
+    EXPECT_NE(sampleCallbacks_->onPluginSessionStart, nullptr);
+    std::vector<uint8_t> sampleConfigData(configLen);
+    SetSampleConfig(sampleConfigData, configLen);
+    EXPECT_EQ(sampleCallbacks_->onPluginSessionStart(sampleConfigData.data(), configLen), 0);
+    EXPECT_NE(samplePlugin, nullptr);
+    EXPECT_NE(sampleCallbacks_->onPluginReportResult, nullptr);
+    std::vector<uint8_t> sampleBuffer(MAX_BUFFER_SIZE);
+    EXPECT_NE(sampleCallbacks_->onPluginReportResult(sampleBuffer.data(), sampleBuffer.size()), 0);
+
+    PluginModuleCallbacks streamCallbacks = {
+        StreamPluginSessionStart,
+        0,
+        StreamPluginSessionStop,
+        (RegisterWriterStructCallback)StreamRegisterWriterStruct,
+    };
+    streamCallbacks_ = &streamCallbacks;
+
+    EXPECT_NE(streamCallbacks_->onRegisterWriterStruct, nullptr);
+    WriterStruct writer = {
+        Write,
+        Flush,
+    };
+    writer_ = &writer;
+    streamCallbacks_->onRegisterWriterStruct(writer_);
+    EXPECT_NE(streamPlugin, nullptr);
+    EXPECT_NE(streamPlugin->resultWriter_, nullptr);
+    EXPECT_NE(streamPlugin->resultWriter_->write, nullptr);
+    EXPECT_NE(streamPlugin->resultWriter_->flush, nullptr);
+
+    EXPECT_NE(streamCallbacks_->onPluginSessionStart, nullptr);
+    configLen = MAX_BUFFER_SIZE;
+    std::vector<uint8_t> configData(configLen);
+    SetStreamConfig(configData, configLen);
+    EXPECT_EQ(streamCallbacks_->onPluginSessionStart(configData.data(), configLen), 0);
+
+    sampleCallbacks_->onPluginSessionStop();
+    streamCallbacks_->onPluginSessionStop();
+}
+
+// 流式插件停止
+HWTEST_F(PluginModuleApiTest, StreamPluginStop, TestSize.Level1)
+{
+    PluginModuleCallbacks callbacks = {
+        StreamPluginSessionStart,
+        0,
+        StreamPluginSessionStop,
+        (RegisterWriterStructCallback)StreamRegisterWriterStruct,
+    };
+    streamCallbacks_ = &callbacks;
+
+    EXPECT_NE(streamCallbacks_->onRegisterWriterStruct, nullptr);
+    streamCallbacks_->onRegisterWriterStruct(writer_);
+    EXPECT_NE(streamPlugin, nullptr);
+
+    EXPECT_NE(streamCallbacks_->onPluginSessionStart, nullptr);
+    std::vector<uint8_t> configData(1);
+    streamCallbacks_->onPluginSessionStart(configData.data(), configData.size());
+
+    EXPECT_NE(streamCallbacks_->onPluginSessionStop, nullptr);
+    EXPECT_EQ(streamCallbacks_->onPluginSessionStop(), 0);
+}
+
+// 轮询式插件停止
+HWTEST_F(PluginModuleApiTest, SamplePluginStop, TestSize.Level1)
+{
+    PluginModuleCallbacks callbacks = {
+        SamplePluginSessionStart,
+        SamplePluginReportResult,
+        SamplePluginSessionStop,
+        0,
+    };
+    sampleCallbacks_ = &callbacks;
+
+    EXPECT_NE(sampleCallbacks_->onPluginSessionStart, nullptr);
+    uint32_t configLen = MAX_BUFFER_SIZE;
+    std::vector<uint8_t> configData(configLen);
+    SetSampleConfig(configData, configLen);
+    EXPECT_EQ(sampleCallbacks_->onPluginSessionStart(configData.data(), configLen), 0);
+    EXPECT_NE(samplePlugin, nullptr);
+
+    EXPECT_NE(sampleCallbacks_->onPluginSessionStop, nullptr);
+    EXPECT_EQ(sampleCallbacks_->onPluginSessionStop(), 0);
+}
+
+HWTEST_F(PluginModuleApiTest, MemoryPluginStop, TestSize.Level1)
+{
+    PluginModuleCallbacks callbacks = {
+        MemDataPluginSessionStart,
+        MemPluginReportResult,
+        MemPluginSessionStop,
+        0,
+    };
+    memoryCallbacks_ = &callbacks;
+
+    EXPECT_NE(memoryCallbacks_->onPluginSessionStart, nullptr);
+    uint32_t configLen = MAX_BUFFER_SIZE;
+    std::vector<uint8_t> memoryConfigData(configLen);
+    SetMemoryConfig(memoryConfigData, configLen);
+    EXPECT_EQ(memoryCallbacks_->onPluginSessionStart(memoryConfigData.data(), configLen), 0);
+    EXPECT_NE(memoryPlugin, nullptr);
+
+    EXPECT_NE(memoryCallbacks_->onPluginSessionStop, nullptr);
+    EXPECT_EQ(memoryCallbacks_->onPluginSessionStop(), 0);
+}
+
+// 多个插件停止
+HWTEST_F(PluginModuleApiTest, MultPluginStop, TestSize.Level1)
+{
+    PluginModuleCallbacks callbacks = {
+        SamplePluginSessionStart,
+        SamplePluginReportResult,
+        SamplePluginSessionStop,
+        0,
+    };
+    PluginModuleCallbacks memCallbacks = {
+        MemDataPluginSessionStart,
+        MemPluginReportResult,
+        MemPluginSessionStop,
+        0,
+    };
+    sampleCallbacks_ = &callbacks;
+    memoryCallbacks_ = &memCallbacks;
+    uint32_t configLen = MAX_BUFFER_SIZE;
+
+    EXPECT_NE(sampleCallbacks_->onPluginSessionStart, nullptr);
+    std::vector<uint8_t> sampleConfigData(configLen);
+    SetSampleConfig(sampleConfigData, configLen);
+    EXPECT_EQ(sampleCallbacks_->onPluginSessionStart(sampleConfigData.data(), configLen), 0);
+    EXPECT_NE(samplePlugin, nullptr);
+
+    EXPECT_NE(memoryCallbacks_->onPluginSessionStart, nullptr);
+    configLen = MAX_BUFFER_SIZE;
+    std::vector<uint8_t> memoryConfigData(configLen);
+    SetMemoryConfig(memoryConfigData, configLen);
+    EXPECT_EQ(memoryCallbacks_->onPluginSessionStart(memoryConfigData.data(), configLen), 0);
+    EXPECT_NE(memoryPlugin, nullptr);
+
+    EXPECT_EQ(sampleCallbacks_->onPluginSessionStop(), 0);
+    EXPECT_EQ(memoryCallbacks_->onPluginSessionStop(), 0);
+}
+
+// 异常停止
+HWTEST_F(PluginModuleApiTest, PluginAbnormalStop, TestSize.Level1)
+{
+    PluginModuleCallbacks callbacks = {
+        MemDataPluginSessionStart,
+        MemPluginReportResult,
+        MemPluginSessionStop,
+        0,
+    };
+    memoryCallbacks_ = &callbacks;
+
+    EXPECT_NE(memoryCallbacks_->onPluginSessionStop, nullptr);
+    EXPECT_EQ(memoryCallbacks_->onPluginSessionStop(), -1);
 }
 } // namespace

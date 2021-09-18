@@ -29,13 +29,13 @@
 
 namespace SysTuning {
 namespace base {
-static ErrStatus g_status = ABNORMAL;
+static TraceParserStatus g_status = TRACE_PARSER_ABNORMAL;
 
-void SetAnalysisResult(ErrStatus stat)
+void SetAnalysisResult(TraceParserStatus stat)
 {
     g_status = stat;
 }
-ErrStatus GetAnalysisResult()
+TraceParserStatus GetAnalysisResult()
 {
     return g_status;
 }
@@ -54,7 +54,7 @@ ssize_t Read(int fd, uint8_t* dst, size_t dstSize)
 }
 int OpenFile(const std::string& path, int flags, uint32_t mode)
 {
-    TUNING_ASSERT((flags & O_CREAT) == 0 || mode != kFileModeInvalid);
+    TS_ASSERT((flags & O_CREAT) == 0 || mode != kFileModeInvalid);
 #if defined(_WIN32)
     int fd(_open(path.c_str(), flags | O_BINARY, mode));
 #else
@@ -67,7 +67,7 @@ std::string GetExecutionDirectoryPath()
 {
     char currPath[1024] = {0};
 #if defined(_WIN32)
-    ::GetModuleFileName(NULL, currPath, MAX_PATH);
+    ::GetModuleFileNameA(NULL, currPath, MAX_PATH);
     (strrchr(currPath, '\\'))[1] = 0;
 #else
     readlink("/proc/self/exe", currPath, sizeof(currPath) - 1);

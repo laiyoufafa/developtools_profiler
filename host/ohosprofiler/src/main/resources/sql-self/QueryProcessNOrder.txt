@@ -1,0 +1,1 @@
+select pid,name as processName from process;

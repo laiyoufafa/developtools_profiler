@@ -16,15 +16,14 @@
 package ohos.devtools.views.charts;
 
 import ohos.devtools.views.layout.chartview.ProfilerChartsView;
-import ohos.devtools.views.layout.swing.TaskScenePanelChart;
+import ohos.devtools.views.layout.chartview.TaskScenePanelChart;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
 /**
- * @Description FilledLineChartTest
- * @Date 2021/4/2 13:48
- **/
+ * Filled Line Chart Test
+ */
 public class FilledLineChartTest {
     private ProfilerChartsView profilerChartsView;
 
@@ -42,7 +41,7 @@ public class FilledLineChartTest {
     @Before
     public void getFilledLineChart() {
         profilerChartsView = new ProfilerChartsView(39999, true, new TaskScenePanelChart());
-        filledLineChart = new FilledLineChart(profilerChartsView);
+        filledLineChart = new FilledLineChart(profilerChartsView, "", true);
         Assert.assertNotNull(filledLineChart);
     }
 
@@ -59,5 +58,4 @@ public class FilledLineChartTest {
     public void paintComponentTest() {
         filledLineChart.revalidate();
     }
-
 }

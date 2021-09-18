@@ -17,6 +17,9 @@ package ohos.devtools.services.memory;
 
 import ohos.devtools.datasources.databases.databaseapi.DataBaseApi;
 import ohos.devtools.datasources.utils.profilerlog.ProfilerLogManager;
+import ohos.devtools.services.memory.agentbean.AgentHeapBean;
+import ohos.devtools.services.memory.agentbean.MemoryHeapInfo;
+import ohos.devtools.services.memory.agentdao.MemoryHeapDao;
 import org.apache.logging.log4j.Level;
 import org.junit.Assert;
 import org.junit.Before;
@@ -26,25 +29,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * MemoryHeapDaoTest
- *
- * @version 1.0
- * @date 2021/04/26 15:56
- **/
+ * Memory Heap Dao Test
+ */
 public class MemoryHeapDaoTest {
-    /**
-     * MemoryHeapInfo
-     */
     private MemoryHeapInfo memoryHeapInfo;
-
-    /**
-     * MemoryHeapDao
-     */
     private MemoryHeapDao memoryHeapDao;
-
-    /**
-     * MemoryHeapInfo
-     */
     private MemoryHeapInfo memoryHeap;
 
     /**
@@ -69,7 +58,6 @@ public class MemoryHeapDaoTest {
         memoryHeapInfo.setcId(1);
         memoryHeapInfo.setHeapId(1);
         memoryHeapInfo.setSessionId(1L);
-        memoryHeapInfo.setArrangeStyle("name");
         memoryHeapInfo.setAllocations(10);
         memoryHeapInfo.setDeallocations(0);
         memoryHeapInfo.setTotalCount(22);
@@ -79,7 +67,6 @@ public class MemoryHeapDaoTest {
         memoryHeap.setcId(2);
         memoryHeap.setHeapId(2);
         memoryHeap.setSessionId(1L);
-        memoryHeap.setArrangeStyle("name");
         memoryHeap.setAllocations(10);
         memoryHeap.setDeallocations(0);
         memoryHeap.setTotalCount(11);
@@ -119,8 +106,39 @@ public class MemoryHeapDaoTest {
      * @tc.require: AR000FK61N
      */
     @Test
-    public void testgetAllMemoryHeapInfos() {
+    public void testgetAllMemoryHeapInfos01() {
         List<MemoryHeapInfo> list = memoryHeapDao.getAllMemoryHeapInfos(1L);
+        Assert.assertNotNull(list);
+    }
+
+    /**
+     * functional testing getAllMemoryHeapInfos
+     *
+     * @tc.name: getAllMemoryHeapInfos
+     * @tc.number: OHOS_JAVA_memory_MemoryHeapDao_getAllMemoryHeapInfos_0002
+     * @tc.desc: getAllMemoryHeapInfos
+     * @tc.type: functional testing
+     * @tc.require: AR000FK61N
+     */
+    @Test
+    public void testgetAllMemoryHeapInfos02() {
+        List<MemoryHeapInfo> list = memoryHeapDao.getAllMemoryHeapInfos(1L);
+        ArrayList<MemoryHeapInfo> allMemoryHeapInfos = memoryHeapDao.getAllMemoryHeapInfos(1L);
+        Assert.assertNotEquals(list, allMemoryHeapInfos);
+    }
+
+    /**
+     * functional testing insertMemoryHeapInfos
+     *
+     * @tc.name: getMemoryHeapInfos
+     * @tc.number: OHOS_JAVA_memory_MemoryHeapDao_getMemoryHeapInfos_0001
+     * @tc.desc: getMemoryHeapInfos
+     * @tc.type: functional testing
+     * @tc.require: AR000FK61N
+     */
+    @Test
+    public void testgetMemoryHeapInfos01() {
+        List<AgentHeapBean> list = memoryHeapDao.getMemoryHeapInfos(1L, 0L, 4L);
         Assert.assertNotNull(list);
     }
 
@@ -134,9 +152,10 @@ public class MemoryHeapDaoTest {
      * @tc.require: AR000FK61N
      */
     @Test
-    public void testgetMemoryHeapInfos() {
-        List<MemoryHeapInfo> list = memoryHeapDao.getMemoryHeapInfos(1L, 0L, 4L);
-        Assert.assertNotNull(list);
+    public void testgetMemoryHeapInfos02() {
+        List<AgentHeapBean> list = memoryHeapDao.getMemoryHeapInfos(1L, 0L, 4L);
+        List<AgentHeapBean> memoryHeapInfos = memoryHeapDao.getMemoryHeapInfos(1L, 0L, 4L);
+        Assert.assertEquals(list, memoryHeapInfos);
     }
 
     /**
@@ -152,5 +171,4 @@ public class MemoryHeapDaoTest {
     public void testdeleteSessionData() {
         memoryHeapDao.deleteSessionData(1L);
     }
-
 }

@@ -15,31 +15,39 @@
 
 package ohos.devtools.views.layout.event;
 
+import com.intellij.icons.AllIcons;
+import com.intellij.openapi.util.IconLoader;
 import ohos.devtools.datasources.utils.session.service.SessionManager;
-import ohos.devtools.services.memory.ChartDataCache;
+import ohos.devtools.services.cpu.CpuDataCache;
+import ohos.devtools.services.memory.memoryservice.MemoryDataCache;
+import ohos.devtools.views.applicationtrace.AppTracePanel;
 import ohos.devtools.views.charts.model.ChartStandard;
 import ohos.devtools.views.charts.utils.ChartUtils;
 import ohos.devtools.views.common.ColorConstants;
 import ohos.devtools.views.common.Constant;
 import ohos.devtools.views.common.LayoutConstants;
-import ohos.devtools.views.common.hoscomp.HosDialog;
-import ohos.devtools.views.common.hoscomp.HosJButton;
-import ohos.devtools.views.common.hoscomp.HosJComboBox;
-import ohos.devtools.views.common.hoscomp.HosJLabel;
+import ohos.devtools.views.common.UtConstant;
+import ohos.devtools.views.common.customcomp.CustomComboBox;
+import ohos.devtools.views.common.customcomp.CustomJButton;
+import ohos.devtools.views.common.customcomp.CustomJLabel;
+import ohos.devtools.views.layout.chartview.PerformanceIndexPopupMenu;
+import ohos.devtools.views.layout.chartview.SubSessionListJBPanel;
 import ohos.devtools.views.layout.chartview.ProfilerChartsView;
-import ohos.devtools.views.layout.swing.CountingThread;
-import ohos.devtools.views.layout.swing.SampleDialogWrapper;
-import ohos.devtools.views.layout.swing.SaveTraceDialog;
-import ohos.devtools.views.layout.swing.TaskPanel;
-import ohos.devtools.views.layout.swing.TaskScenePanelChart;
+import ohos.devtools.views.layout.chartview.CountingThread;
+import ohos.devtools.views.layout.dialog.ExportFileChooserDialog;
+import ohos.devtools.views.layout.dialog.SampleDialog;
+import ohos.devtools.views.layout.TaskPanel;
+import ohos.devtools.views.layout.chartview.TaskScenePanelChart;
 
-import javax.swing.ImageIcon;
+import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JLayeredPane;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
+import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
@@ -50,17 +58,15 @@ import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-
-import static ohos.devtools.views.common.ViewConstants.NUM_10;
-import static ohos.devtools.views.common.ViewConstants.NUM_2;
+import java.util.List;
 
 /**
  * 任务场景面板图事件类
- *
- * @version 1.0
- * @date 2021/2/2 19:02
- **/
+ */
 public class TaskScenePanelChartEvent {
+    private static final int NUM_2 = 2;
+    private static final int NUM_10 = 10;
+    private static final Long ABNORMAL = -1L;
     private boolean flagLeft = false;
     private boolean flag = false;
     private Container obj = null;
@@ -73,23 +79,30 @@ public class TaskScenePanelChartEvent {
      * @param taskScenePanelChart taskScenePanelChart
      */
     public void clickDelete(TaskScenePanelChart taskScenePanelChart) {
-        taskScenePanelChart.getJButtonDelete().addMouseListener(new MouseAdapter() {
+        taskScenePanelChart.getJButtonDelete().addActionListener(new ActionListener() {
+            /**
+             * actionPerformed
+             *
+             * @param event event
+             */
             @Override
-            public void mouseClicked(MouseEvent mouseEvent) {
-                super.mouseClicked(mouseEvent);
+            public void actionPerformed(ActionEvent event) {
+                if (taskScenePanelChart.isGreyFlag()) {
+                    return;
+                }
                 long localSessionId = taskScenePanelChart.getJButtonDelete().getSessionId();
                 Font font = new Font("", 0, LayoutConstants.SIXTEEN);
                 UIManager.put("OptionPane.messageFont", font);
                 if (localSessionId < 0) {
-                    new SampleDialogWrapper("prompt", "Please select the task to delete first !").show();
+                    new SampleDialog("prompt", "Please select the task to delete first !").show();
                     return;
                 }
-                SampleDialogWrapper sampleDialogWrapper =
-                    new SampleDialogWrapper("prompt", "Are you sure you want to delete this task ？");
+                SampleDialog sampleDialogWrapper =
+                    new SampleDialog("prompt", "Are you sure you want to delete this task ？");
                 boolean flags = sampleDialogWrapper.showAndGet();
                 if (flags) {
                     // 调用SessionManager的删除sessionId
-                    if (!SessionManager.getInstance().deleteSession(localSessionId)) {
+                    if (!SessionManager.getInstance().endSession(localSessionId)) {
                         return;
                     }
                     CountingThread countingThread = taskScenePanelChart.getCounting();
@@ -99,16 +112,20 @@ public class TaskScenePanelChartEvent {
                     deleteSession(localSessionId, taskScenePanelChart);
                     // 删除界面char
                     deleteChart(localSessionId, taskScenePanelChart);
-                    taskScenePanelChart.getJButtonDelete().setSessionId(Constant.ABNORMAL);
+                    // After deleting the chart list, there are sub options that should be displayed
+                    List<SubSessionListJBPanel> list = taskScenePanelChart.getDumpOrHookSessionList();
+                    if (list.size() > 0) {
+                        taskScenePanelChart.showSubSessionList(list);
+                    }
+                    taskScenePanelChart.getJButtonDelete().setSessionId(ABNORMAL);
                     taskScenePanelChart.repaint();
                     // 清除sessionid，保存trace文件时根据这个判断是否可以保存
                     taskScenePanelChart.getjButtonSave().setSessionId(0);
-
-                    taskScenePanelChart.getjButtonRun().setIcon(new ImageIcon(
-                        TaskScenePanelChartEvent.class.getClassLoader().getResource("images/over.png")));
-                    taskScenePanelChart.getjButtonStop().setIcon(new ImageIcon(
-                        TaskScenePanelChartEvent.class.getClassLoader().getResource("images/suspended.png")));
+                    taskScenePanelChart.getjButtonRun()
+                        .setIcon(IconLoader.getIcon("/images/breakpoint_grey.png", getClass()));
+                    taskScenePanelChart.getjButtonStop().setIcon(AllIcons.Process.ProgressResumeHover);
                     resultDelete = true;
+                    clearTimeCounting(taskScenePanelChart);
                 }
             }
         });
@@ -117,7 +134,7 @@ public class TaskScenePanelChartEvent {
     /**
      * Delete interface chart
      *
-     * @param localSessionId      localSessionId
+     * @param localSessionId localSessionId
      * @param taskScenePanelChart taskScenePanelChart
      */
     private void deleteChart(long localSessionId, TaskScenePanelChart taskScenePanelChart) {
@@ -141,7 +158,7 @@ public class TaskScenePanelChartEvent {
     /**
      * Delete Session
      *
-     * @param localSessionId      localSessionId
+     * @param localSessionId localSessionId
      * @param taskScenePanelChart taskScenePanelChart
      */
     private void deleteSession(long localSessionId, TaskScenePanelChart taskScenePanelChart) {
@@ -152,7 +169,7 @@ public class TaskScenePanelChartEvent {
             if (inner instanceof JPanel) {
                 innerLable = ((JPanel) inner).getComponents();
                 for (Component item : innerLable) {
-                    if (item instanceof HosJLabel && localSessionId == ((HosJLabel) item).getSessionId()) {
+                    if (item instanceof CustomJLabel && localSessionId == ((CustomJLabel) item).getSessionId()) {
                         jScrollCardsPanelInner.remove(inner);
                     }
                 }
@@ -186,71 +203,152 @@ public class TaskScenePanelChartEvent {
         });
     }
 
-    private void stopTask(ProfilerChartsView profilerView, HosJButton stopButton,
+    /**
+     * saveButtonAddClick
+     *
+     * @param labelSave labelSave
+     * @param name name
+     */
+    public void saveButtonAddClick(CustomJLabel labelSave, String name) {
+        labelSave.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent mouseEvent) {
+                String fileType = "";
+                if (name.contains("Native Hook")) {
+                    fileType = "nativehook";
+                } else {
+                    fileType = "hprof";
+                }
+                ExportFileChooserDialog fileChooserDialogWrapper =
+                    new ExportFileChooserDialog("Export As", fileType);
+                boolean showAndGet = fileChooserDialogWrapper.showAndGet();
+                if (showAndGet) {
+                    String exportFileName = labelSave.getName();
+                    boolean saveResult =
+                        SessionManager.getInstance().exportDumpOrHookFile(exportFileName, fileChooserDialogWrapper);
+                    if (saveResult) {
+                        new SampleDialog("prompt", "Save Successfully !").show();
+                    } else {
+                        new SampleDialog("prompt", "Save failure !").show();
+                    }
+                }
+            }
+
+            @Override
+            public void mouseEntered(MouseEvent event) {
+                labelSave.setBorder(BorderFactory.createTitledBorder(""));
+            }
+
+            @Override
+            public void mouseExited(MouseEvent event) {
+                labelSave.setBorder(null);
+            }
+        });
+    }
+
+    /**
+     * dumpPanelAddClick
+     *
+     * @param dumpPanel dumpPanel
+     * @param taskScenePanelChart taskScenePanelChart
+     */
+    public void sessionListPanelAddClick(SubSessionListJBPanel dumpPanel, TaskScenePanelChart taskScenePanelChart) {
+        dumpPanel.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent mouseEvent) {
+                taskScenePanelChart.setButtonEnable(true, dumpPanel.getPanelName());
+                if (dumpPanel.getPanelName().contains("traceApp") || dumpPanel.getPanelName().contains("nativePerf")) {
+                    Component[] components = taskScenePanelChart.getCards().getComponents();
+                    for (Component component : components) {
+                        if (component instanceof AppTracePanel) {
+                            taskScenePanelChart.getCards().remove(component);
+                        }
+                    }
+                    if (dumpPanel.getPanelName().contains("traceApp")) {
+                        taskScenePanelChart
+                            .showAppTrace(dumpPanel.getDbPath(), taskScenePanelChart.getjButtonRun().getSessionId());
+                    }
+                    taskScenePanelChart.setButtonEnable(true, dumpPanel.getDbPath());
+                } else {
+                    taskScenePanelChart.getCardLayout().show(taskScenePanelChart.getCards(), dumpPanel.getPanelName());
+                }
+                taskScenePanelChart.setGreyFlag(true);
+                dumpPanel.setBackground(ColorConstants.SELECTED_COLOR);
+            }
+
+            @Override
+            public void mouseEntered(MouseEvent event) {
+            }
+
+            @Override
+            public void mouseExited(MouseEvent event) {
+            }
+        });
+    }
+
+    private void stopTask(ProfilerChartsView profilerView, CustomJButton stopButton,
         TaskScenePanelChart taskScenePanelChart) {
-        profilerView.getObserver().stopRefresh(false);
-        stopButton.setIcon(new ImageIcon(
-            TaskScenePanelChartEvent.class.getClassLoader().getResource("images/over.png")));
-        taskScenePanelChart.getjButtonStop().setIcon(new ImageIcon(
-            TaskScenePanelChartEvent.class.getClassLoader().getResource("images/suspended.png")));
+        profilerView.getPublisher().stopRefresh(false);
+        stopButton.setIcon(IconLoader.getIcon("/images/breakpoint.png", getClass()));
+        taskScenePanelChart.getjButtonStop().setIcon(AllIcons.Process.ProgressResumeHover);
         buttonAvailable = false;
         CountingThread countingThread = taskScenePanelChart.getCounting();
         countingThread.setStopFlag(true);
-        stopButton.setToolTipText("启动");
+        stopButton.setToolTipText("Start");
         SessionManager.getInstance().endSession(stopButton.getSessionId());
-        ChartDataCache.getInstance().clearDataCache(String.valueOf(stopButton.getSessionId()));
-        profilerView.setStopFlag(true);
-        profilerView.setFlagEnd(true);
+        // Clear cache of all monitor items
+        MemoryDataCache.getInstance().clearCacheBySession(stopButton.getSessionId());
+        CpuDataCache.getInstance().clearCacheBySession(stopButton.getSessionId());
+        profilerView.setStop(true);
+        profilerView.setPause(true);
     }
 
-    private void startTask(ProfilerChartsView profilerView, HosJButton stopButton,
+    private void startTask(ProfilerChartsView profilerView, CustomJButton stopButton,
         TaskScenePanelChart taskScenePanelChart) {
-        stopButton.setIcon(new ImageIcon(
-            TaskScenePanelChartEvent.class.getClassLoader().getResource("images/button_record.png")));
-        taskScenePanelChart.getjButtonStop().setIcon(new ImageIcon(
-            TaskScenePanelChartEvent.class.getClassLoader().getResource("images/button_stop.png")));
+        stopButton.setIcon(AllIcons.Debugger.Db_set_breakpoint);
+        taskScenePanelChart.getjButtonStop().setIcon(AllIcons.Process.ProgressPauseHover);
         buttonAvailable = true;
-        stopButton.setToolTipText("停止");
+        stopButton.setToolTipText("Stop");
         // Set the icon change after the pause button is clicked Open the session to get data
         long sessionId = stopButton.getSessionId();
         SessionManager sessionManager = SessionManager.getInstance();
         sessionManager.startSession(sessionId, true);
         sessionManager.fetchData(sessionId);
-        if (profilerView.getObserver().isScrollbarShow()) {
+        if (profilerView.getPublisher().isDisplayScrollbar()) {
             profilerView.removeScrollbar();
         }
         JLabel jTextArea = taskScenePanelChart.getjTextArea();
         CountingThread counting = new CountingThread(jTextArea);
         taskScenePanelChart.setCounting(counting);
         counting.start();
-        // The "Pause/Resume" button will change accordingly
-        profilerView.getTimeline().removeTablePanel();
-        profilerView.setFlagDown(false);
         // Clear the selected time after restarting
-        profilerView.getObserver().getStandard().clearSelectedRange();
+        profilerView.getPublisher().getStandard().clearAllSelectedRanges();
         profilerView.showLoading();
-        profilerView.setStopFlag(false);
-        profilerView.setFlagEnd(false);
+        profilerView.setStop(false);
+        profilerView.setPause(false);
     }
 
     /**
      * clickRunAndStop
      *
      * @param taskScenePanelChart taskScenePanelChart
-     * @param profilerView        profilerView
+     * @param profilerView profilerView
      */
     public void clickRunAndStop(TaskScenePanelChart taskScenePanelChart, ProfilerChartsView profilerView) {
-        HosJButton stopButton = taskScenePanelChart.getjButtonRun();
+        CustomJButton stopButton = taskScenePanelChart.getjButtonRun();
         stopButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent exception) {
+                if (taskScenePanelChart.isGreyFlag()) {
+                    return;
+                }
                 if (resultDelete) {
                     return;
                 }
                 if (profilerView.isLoading()) {
                     return;
                 }
-                if (!profilerView.isStopFlag()) {
+                if (!profilerView.isStop()) {
                     stopTask(profilerView, stopButton, taskScenePanelChart);
                 } else {
                     startTask(profilerView, stopButton, taskScenePanelChart);
@@ -264,12 +362,15 @@ public class TaskScenePanelChartEvent {
      * Pause button event
      *
      * @param taskScenePanelChart taskScenePanelChart
-     * @param profilerView        profilerView
+     * @param profilerView profilerView
      */
     private void pauseButtonEvent(TaskScenePanelChart taskScenePanelChart, ProfilerChartsView profilerView) {
         taskScenePanelChart.getjButtonStop().addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent exception) {
+                if (taskScenePanelChart.isGreyFlag()) {
+                    return;
+                }
                 if (resultDelete) {
                     return;
                 }
@@ -277,49 +378,18 @@ public class TaskScenePanelChartEvent {
                     return;
                 }
                 if (buttonAvailable) {
-                    if (!profilerView.isFlagEnd()) {
-                        taskScenePanelChart.getjButtonStop().setIcon(new ImageIcon(
-                            TaskScenePanelChartEvent.class.getClassLoader().getResource("images/suspended.png")));
-                        taskScenePanelChart.getjButtonStop().setToolTipText("开始");
-                        profilerView.getObserver().pauseRefresh();
-                        profilerView.setFlagEnd(true);
+                    if (!profilerView.isPause()) {
+                        taskScenePanelChart.getjButtonStop().setIcon(AllIcons.Process.ProgressResumeHover);
+                        taskScenePanelChart.getjButtonStop().setToolTipText("Start");
+                        profilerView.getPublisher().pauseRefresh();
+                        profilerView.setPause(true);
                     } else {
-                        taskScenePanelChart.getjButtonStop().setIcon(new ImageIcon(
-                            TaskScenePanelChartEvent.class.getClassLoader().getResource("images/button_stop.png")));
-                        taskScenePanelChart.getjButtonBottom().setIcon(new ImageIcon(
-                            TaskScenePanelChartEvent.class.getClassLoader()
-                                .getResource("images/button_bottom_bar_grey.png")));
-                        taskScenePanelChart.getjButtonStop().setToolTipText("暂停");
-                        profilerView.getObserver().restartRefresh();
-                        profilerView.getTimeline().removeTablePanel();
-                        profilerView.setFlagDown(false);
-                        profilerView.setFlagEnd(false);
-                    }
-                }
-            }
-        });
-    }
-
-    /**
-     * clickBottom
-     *
-     * @param taskScenePanelChart taskScenePanelChart
-     * @param profilerView        profilerView
-     */
-    public void clickBottom(TaskScenePanelChart taskScenePanelChart, ProfilerChartsView profilerView) {
-        taskScenePanelChart.getjButtonBottom().addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent exception) {
-                if (!profilerView.isAbleUnfoldTable()) {
-                    return;
-                }
-                if (!profilerView.isFlagDown()) {
-                    if (profilerView.isFlagEnd() && profilerView.isChartLevel()) {
-                        profilerView.getTimeline().removeTablePanel();
-                    }
-                } else {
-                    if (profilerView.isFlagEnd() && profilerView.isChartLevel()) {
-                        profilerView.getTimeline().addTablePanel();
+                        taskScenePanelChart.getjButtonStop().setIcon(AllIcons.Process.ProgressPauseHover);
+                        taskScenePanelChart.getjButtonBottom()
+                            .setIcon(IconLoader.getIcon("/images/previewDetailsVertically_grey.png", getClass()));
+                        taskScenePanelChart.getjButtonStop().setToolTipText("Suspend");
+                        profilerView.getPublisher().restartRefresh();
+                        profilerView.setPause(false);
                     }
                 }
             }
@@ -330,7 +400,7 @@ public class TaskScenePanelChartEvent {
      * splitPaneChange
      *
      * @param taskScenePanelChart taskScenePanelChart
-     * @param numberSum           numberSum
+     * @param numberSum numberSum
      */
     public void splitPaneChange(TaskScenePanelChart taskScenePanelChart, int numberSum) {
         taskScenePanelChart.getSplitPane().addPropertyChangeListener(new java.beans.PropertyChangeListener() {
@@ -347,10 +417,17 @@ public class TaskScenePanelChartEvent {
                         Object objNew = taskScenePanelChart.getJScrollCardsPanelInner().getComponentAt(0, numEvt);
                         if (objNew instanceof JPanel) {
                             jPanel = (JPanel) objNew;
-                            jPanel.setBounds(0, numEvt,
-                                LayoutConstants.RIGHT_BUN_WIDTH + Integer.parseInt(evt.getNewValue().toString())
-                                    - LayoutConstants.RIGHT_BUN_WIDTH, LayoutConstants.HEIGHT);
-                            numEvt += LayoutConstants.HEIGHT;
+                            if (Integer.parseInt(evt.getNewValue().toString())
+                                < LayoutConstants.SESSION_LIST_DIVIDER_WIDTH) {
+                                jPanel.setBounds(0, numEvt, LayoutConstants.SESSION_LIST_DIVIDER_WIDTH,
+                                    LayoutConstants.SIXTY);
+                            } else {
+                                jPanel.setBounds(0, numEvt, LayoutConstants.SESSION_LIST_DIVIDER_WIDTH + Integer
+                                    .parseInt(evt.getNewValue().toString())
+                                    - LayoutConstants.SESSION_LIST_DIVIDER_WIDTH, LayoutConstants.SIXTY);
+                            }
+
+                            numEvt += LayoutConstants.SIXTY;
                             jPanel.updateUI();
                             jPanel.repaint();
                         }
@@ -364,8 +441,9 @@ public class TaskScenePanelChartEvent {
      * clickLeft
      *
      * @param taskScenePanelChart taskScenePanelChart
+     * @param hosJLabelList hosJLabelList
      */
-    public void clickLeft(TaskScenePanelChart taskScenePanelChart) {
+    public void clickLeft(TaskScenePanelChart taskScenePanelChart, List<CustomJLabel> hosJLabelList) {
         taskScenePanelChart.getjButtonLeft().addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent exception) {
@@ -375,7 +453,12 @@ public class TaskScenePanelChartEvent {
                     taskScenePanelChart.getSplitPane().repaint();
                     flagLeft = true;
                 } else {
-                    taskScenePanelChart.getSplitPane().setDividerLocation(LayoutConstants.CHOOSE_WIDTH);
+                    if (hosJLabelList.size() > 0 && hosJLabelList.get(0).isOnline()) {
+                        taskScenePanelChart.getSplitPane()
+                            .setDividerLocation(LayoutConstants.SESSION_LIST_DIVIDER_WIDTH);
+                    } else {
+                        taskScenePanelChart.getSplitPane().setDividerLocation(LayoutConstants.NUM_200);
+                    }
                     flagLeft = false;
                     taskScenePanelChart.getSplitPane().updateUI();
                     taskScenePanelChart.getSplitPane().repaint();
@@ -408,10 +491,11 @@ public class TaskScenePanelChartEvent {
      * bindSessionId
      *
      * @param taskScenePanelChart taskScenePanelChart
-     * @param jLabelRight         jLabelRight
-     * @param jMultiplePanel      jMultiplePanel
+     * @param jLabelRight jLabelRight
+     * @param jMultiplePanel jMultiplePanel
      */
-    private void bindSessionId(TaskScenePanelChart taskScenePanelChart, HosJLabel jLabelRight, JPanel jMultiplePanel) {
+    private void bindSessionId(TaskScenePanelChart taskScenePanelChart, CustomJLabel jLabelRight,
+        JPanel jMultiplePanel) {
         taskScenePanelChart.getjButtonRun().setSessionId(jLabelRight.getSessionId());
         taskScenePanelChart.getjButtonStop().setSessionId(jLabelRight.getSessionId());
         taskScenePanelChart.getjButtonSave().setSessionId(jLabelRight.getSessionId());
@@ -420,7 +504,7 @@ public class TaskScenePanelChartEvent {
         taskScenePanelChart.getJButtonDelete().setSessionId(jLabelRight.getSessionId());
         taskScenePanelChart.getJButtonDelete().setDeviceName(jLabelRight.getDeviceName());
         taskScenePanelChart.getJButtonDelete().setProcessName(jLabelRight.getProcessName());
-        taskScenePanelChart.getjButtonInsert().setSessionId(jLabelRight.getSessionId());
+        taskScenePanelChart.getConfigButton().setSessionId(jLabelRight.getSessionId());
         taskScenePanelChart.getjButtonBottom().setSessionId(jLabelRight.getSessionId());
         taskScenePanelChart.getjButtonLeft().setSessionId(jLabelRight.getSessionId());
         taskScenePanelChart.getjComboBox().setSessionId(jLabelRight.getSessionId());
@@ -433,12 +517,12 @@ public class TaskScenePanelChartEvent {
      * clickEvery
      *
      * @param taskScenePanelChart taskScenePanelChart
-     * @param jLabelRight         jLabelRight
-     * @param numberSum           numberSum
-     * @param jLabelSelect        jLabelSelect
-     * @param jMultiplePanel      jMultiplePanel
+     * @param jLabelRight jLabelRight
+     * @param numberSum numberSum
+     * @param jLabelSelect jLabelSelect
+     * @param jMultiplePanel jMultiplePanel
      */
-    public void clickEvery(TaskScenePanelChart taskScenePanelChart, HosJLabel jLabelRight, int numberSum,
+    public void clickEvery(TaskScenePanelChart taskScenePanelChart, CustomJLabel jLabelRight, int numberSum,
         String jLabelSelect, JPanel jMultiplePanel) {
         jLabelRight.addMouseListener(new MouseAdapter() {
             @Override
@@ -464,9 +548,11 @@ public class TaskScenePanelChartEvent {
                 }
                 taskScenePanelChart.getJScrollCardsPanelInner().add(jMultiplePanel);
                 taskScenePanelChart.getJScrollCardsPanelInner().repaint();
-                jLabelRight.setBackground(ColorConstants.DEVICE_PROCESS_PANEL);
+                jLabelRight.setBackground(ColorConstants.SELECTED_COLOR);
+                if (jLabelRight.getLeft() != null) {
+                    jLabelRight.getLeft().setBackground(ColorConstants.SELECTED_COLOR);
+                }
                 jLabelRight.setForeground(Color.white);
-                taskScenePanelChart.getjLabelLeft().setBackground(ColorConstants.DEVICE_PROCESS_PANEL);
                 int numy = 0;
                 // 循环确定擦片布局显示哪个页面
                 for (int index = 0; index < numberSum; index++) {
@@ -476,11 +562,14 @@ public class TaskScenePanelChartEvent {
                         jPanel = (JPanel) innerObj;
                         numy += LayoutConstants.HEIGHT;
                         Color colorBack = jPanel.getComponent(0).getBackground();
-                        if (colorBack == Color.black) {
+                        if (colorBack == ColorConstants.SELECTED_COLOR) {
                             taskScenePanelChart.getCardLayout().show(taskScenePanelChart.getCards(), "card" + index);
+                            taskScenePanelChart.add(taskScenePanelChart.getPanelTop(), BorderLayout.NORTH);
                         }
                     }
                 }
+                taskScenePanelChart.setButtonEnable(false, "");
+                taskScenePanelChart.setGreyFlag(false);
                 // Replace the content of the tab with the content of the clicked device information
                 replaceDevicesInfo(jLabelSelect);
             }
@@ -512,10 +601,10 @@ public class TaskScenePanelChartEvent {
     /**
      * 按钮增加点击时间触发时间刻度的选择
      *
-     * @param jComboBox    jComboBox
+     * @param jComboBox jComboBox
      * @param profilerView profilerView
      */
-    public void clickZoomEvery(HosJComboBox jComboBox, ProfilerChartsView profilerView) {
+    public void clickZoomEvery(CustomComboBox jComboBox, ProfilerChartsView profilerView) {
         jComboBox.addItemListener(event -> {
             long sessionId = jComboBox.getSessionId();
             int newSizeTime = 0;
@@ -524,7 +613,7 @@ public class TaskScenePanelChartEvent {
                 String[] msTime = jComboBox.getSelectedItem().toString().split("m");
                 newSizeTime = Integer.parseInt(msTime[0]);
             }
-            ChartStandard standard = profilerView.getObserver().getStandard();
+            ChartStandard standard = profilerView.getPublisher().getStandard();
             if (standard != null) {
                 checkNewTime(standard, newSizeTime, profilerView);
             }
@@ -534,9 +623,9 @@ public class TaskScenePanelChartEvent {
     /**
      * 检查频率切换后的时间是否需要修正
      *
-     * @param standard    ChartStandard
+     * @param standard ChartStandard
      * @param newSizeTime 新的时间大小
-     * @param view        ProfilerChartsView
+     * @param view ProfilerChartsView
      */
     private void checkNewTime(ChartStandard standard, int newSizeTime, ProfilerChartsView view) {
         int oldStart = standard.getDisplayRange().getStartTime();
@@ -560,8 +649,7 @@ public class TaskScenePanelChartEvent {
             newEnd = oldStart + newMaxDisplay;
         }
 
-        standard.updateSizeTime(newSizeTime);
-        view.getObserver().msTimeZoom(newMaxDisplay, minSize, newStart, newEnd);
+        view.getPublisher().msTimeZoom(newMaxDisplay, minSize, newStart, newEnd);
         // 如果newDisplay > lastTime，这时候要隐藏滚动条
         if (newMaxDisplay > lastTime) {
             view.removeScrollbar();
@@ -578,8 +666,8 @@ public class TaskScenePanelChartEvent {
      * showSuspension
      *
      * @param taskScenePanelChart taskScenePanelChart
-     * @param jTaskPanel          jTaskPanel
-     * @param jButtonSuspen       jButtonSuspen
+     * @param jTaskPanel jTaskPanel
+     * @param jButtonSuspen jButtonSuspen
      */
     public void showSuspension(TaskScenePanelChart taskScenePanelChart, TaskPanel jTaskPanel, JButton jButtonSuspen) {
         jButtonSuspen.addActionListener(new ActionListener() {
@@ -611,7 +699,7 @@ public class TaskScenePanelChartEvent {
     /**
      * setSceneSize
      *
-     * @param jTaskPanel          jTaskPanel
+     * @param jTaskPanel jTaskPanel
      * @param taskScenePanelChart taskScenePanelChart
      */
     public void setSceneSize(TaskPanel jTaskPanel, TaskScenePanelChart taskScenePanelChart) {
@@ -633,11 +721,37 @@ public class TaskScenePanelChartEvent {
     }
 
     /**
-     * 点击保存
+     * Memory新增配置项
+     *
+     * @param taskScenePanelChart taskScenePanelChart
+     * @param profilerView profilerView
+     */
+    public void clickConfig(TaskScenePanelChart taskScenePanelChart, ProfilerChartsView profilerView) {
+        obj = taskScenePanelChart;
+    }
+
+    /**
+     * click Performance analysis index configuration
+     *
+     * @param configButton configButton
+     * @param itemMenu itemMenu
+     */
+    public void clickIndexConfig(CustomJButton configButton, PerformanceIndexPopupMenu itemMenu) {
+        configButton.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent mouseEvent) {
+                itemMenu.showItemMenu(mouseEvent);
+            }
+        });
+    }
+
+    /**
+     * click save
      *
      * @param jButton jButton
+     * @param taskScenePanelChart taskScenePanelChart
      */
-    public void clickSave(HosJButton jButton) {
+    public void clickSave(CustomJButton jButton, TaskScenePanelChart taskScenePanelChart) {
         jButton.addActionListener(new ActionListener() {
             /**
              * actionPerformed
@@ -646,31 +760,41 @@ public class TaskScenePanelChartEvent {
              */
             @Override
             public void actionPerformed(ActionEvent event) {
-                if (jButton.getSessionId() == 0) {
-                    new SampleDialogWrapper("prompt", "Please select a process record !").show();
+                if (taskScenePanelChart.isGreyFlag()) {
                     return;
                 }
-                new SaveTraceDialog().showCustomDialog(jButton);
+                if (jButton.getSessionId() == 0) {
+                    new SampleDialog("prompt", "Please select a process record !").show();
+                    return;
+                }
+                ExportFileChooserDialog fileChooserDialogWrapper =
+                    new ExportFileChooserDialog("Export As", UtConstant.FILE_TYPE_TRACE);
+                boolean showAndGet = fileChooserDialogWrapper.showAndGet();
+                if (showAndGet) {
+                    fileChooserDialogWrapper.saveDataToFile(jButton);
+                }
             }
         });
     }
 
-    /**
-     * Memory新增配置项
-     *
-     * @param taskScenePanelChart taskScenePanelChart
-     * @param profilerView        profilerView
-     */
-    public void clickConfig(TaskScenePanelChart taskScenePanelChart, ProfilerChartsView profilerView) {
-        obj = taskScenePanelChart;
-        taskScenePanelChart.getjButtonInsert().addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent exception) {
-                if (!profilerView.isAddItemFlag()) {
-                    super.mouseClicked(exception);
-                    long sessionId = taskScenePanelChart.getjButtonInsert().getSessionId();
-                    new HosDialog(sessionId, profilerView);
+    private void clearTimeCounting(TaskScenePanelChart taskScenePanelChart) {
+        JLabel jTextArea = taskScenePanelChart.getjTextArea();
+        while (taskScenePanelChart.getCounting().isAlive()) {
+            SwingUtilities.invokeLater(new Runnable() {
+                /**
+                 * run
+                 */
+                public void run() {
+                    jTextArea.setText("Run 1 of 1   |   00:00:00");
                 }
+            });
+        }
+        SwingUtilities.invokeLater(new Runnable() {
+            /**
+             * run
+             */
+            public void run() {
+                jTextArea.setText("Run 1 of 1   |   00:00:00");
             }
         });
     }

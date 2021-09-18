@@ -1,0 +1,1 @@
+select start_ts,end_ts,end_ts-start_ts as total from trace_bounds;

@@ -24,10 +24,7 @@ import java.sql.Statement;
 
 /**
  * Close Resource Util
- *
- * @version 1.0
- * @date 2021/04/26 17:21
- **/
+ */
 public class CloseResourceUtil {
     /**
      * Close Resource

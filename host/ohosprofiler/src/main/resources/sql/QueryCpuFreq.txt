@@ -1,0 +1,1 @@
+select cpu from cpu_counter_track where (name='cpufreq' or name='cpu_frequency') order by cpu;

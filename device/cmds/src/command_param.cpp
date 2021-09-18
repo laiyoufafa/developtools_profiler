@@ -28,5 +28,5 @@ void CommandParam::AddFilter(const std::string& filterName)
 bool CommandParam::IsInFilter(const std::string& filterName)
 {
     return std::any_of(paramFilter_.begin(), paramFilter_.end(),
-                       [filterName](std::string s) { return s == filterName; });
+                       [filterName](const std::string& s) { return s == filterName; });
 }

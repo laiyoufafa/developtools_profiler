@@ -1,0 +1,15 @@
+--参数 1 tids 数组，框选范围中选中的 thread id 集合
+--参数 2 leftNs 框选范围左边的时间，单位 ns
+--参数 3 rightNs 框选范围右边的时间 单位 ns
+select
+      c.name as funName,
+      sum(c.dur) as wallDuration,
+      avg(c.dur) as avgDuration,
+      count(c.name) as occurrences
+from thread A,trace_range D
+left join callstack C on A.id = C.callid
+where C.ts not null
+      and A.tid in (%s)
+      and not ((C.ts - D.start_ts + C.dur < %d) or (C.ts - D.start_ts > %d))
+group by c.name
+order by wallDuration desc;

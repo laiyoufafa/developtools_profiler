@@ -28,86 +28,117 @@
 
 namespace {
 const int HEAD_OFFSET_LEN = 4;
+#ifndef PAGE_SIZE
+constexpr uint32_t PAGE_SIZE = 4096;
+#endif
 }
+
+struct PthreadLocker {
+    explicit PthreadLocker(pthread_mutex_t& mutex) : mutex_(mutex)
+    {
+        pthread_mutex_lock(&mutex_);
+    }
+
+    ~PthreadLocker()
+    {
+        pthread_mutex_unlock(&mutex_);
+    }
+
+private:
+    pthread_mutex_t& mutex_;
+};
 
 ShareMemoryBlock::ShareMemoryBlock()
+    : fileDescriptor_(-1),
+      memoryPoint_(nullptr),
+      memorySize_(0),
+      memoryName_(),
+      header_(nullptr),
+      reusePloicy_(ReusePolicy::DROP_NONE)
 {
-    memoryPoint_ = nullptr;
-    memorySize_ = 0;
-    fileDescriptor_ = -1;
-    dropType_ = DropType::DROP_NONE;
-    pMemory_ = nullptr;
-    memoryName_ = "";
 }
 
-std::string ReplaceStr(std::string base, std::string _from, std::string _to)
+bool ShareMemoryBlock::CreateBlockWithFd(std::string name, uint32_t size, int fd)
 {
-    while (true) {
-        size_t pos = base.find(_from, 0);
-        if (pos == std::string::npos) {
-            break;
-        }
-        base.replace(pos, _from.length(), _to);
-    }
-    return base;
-}
+    CHECK_TRUE(fd >= 0, false, "CreateBlock FAIL SYS_memfd_create");
 
-bool ShareMemoryBlock::CreateBlockByFd(std::string name, uint32_t size, int fd)
-{
-    CHECK_TRUE(memorySize_ == 0, false, "%s already allocated memory", name.c_str());
-
-    fileDescriptor_ = fd;
-
-    CHECK_TRUE(fileDescriptor_ >= 0, false, "CreateBlock FAIL SYS_memfd_create");
-
-    memoryPoint_ = mmap(nullptr, size, PROT_READ | PROT_WRITE, MAP_SHARED, fileDescriptor_, 0);
-    if (memoryPoint_ == MAP_FAILED) {
-        ReleaseBlockRemote();
-
-        HILOG_ERROR(LOG_CORE, "CreateBlockByFd mmap ERR : %s", strerror(errno));
+    auto ptr = mmap(nullptr, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+    if (ptr == MAP_FAILED) {
+        HILOG_ERROR(LOG_CORE, "CreateBlockWithFd mmap ERR : %s", strerror(errno));
         return false;
     }
 
+    fileDescriptor_ = fd;
+    memoryPoint_ = ptr;
     memorySize_ = size;
 
     memoryName_ = name;
-    pMemory_ = (struct ShareMemoryStruct*)memoryPoint_;
+    header_ = reinterpret_cast<BlockHeader*>(ptr);
     return true;
 }
 
 bool ShareMemoryBlock::CreateBlock(std::string name, uint32_t size)
 {
     HILOG_INFO(LOG_CORE, "CreateBlock %s %d", name.c_str(), size);
+    CHECK_TRUE(size > sizeof(BlockHeader), false, "size %u too less!", size);
+    CHECK_TRUE(size % PAGE_SIZE == 0, false, "size %u not times of %d!", size, PAGE_SIZE);
 
-    CHECK_TRUE(memorySize_ == 0, false, "%s already allocated memory", name.c_str());
+    int fd = syscall(SYS_memfd_create, name.c_str(), 0);
+    CHECK_TRUE(fd >= 0, false, "CreateBlock FAIL SYS_memfd_create");
 
-    fileDescriptor_ = syscall(SYS_memfd_create, name.c_str(), 0);
-
-    CHECK_TRUE(fileDescriptor_ >= 0, false, "CreateBlock FAIL SYS_memfd_create");
-
-    int check = ftruncate(fileDescriptor_, size);
+    int check = ftruncate(fd, size);
     if (check < 0) {
-        ReleaseBlock();
-
+        close(fd);
         HILOG_ERROR(LOG_CORE, "CreateBlock ftruncate ERR : %s", strerror(errno));
         return false;
     }
 
-    memoryPoint_ = mmap(nullptr, size, PROT_READ | PROT_WRITE, MAP_SHARED, fileDescriptor_, 0);
-    if (memoryPoint_ == MAP_FAILED) {
-        ReleaseBlock();
+    auto ptr = mmap(nullptr, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+    if (ptr == MAP_FAILED) {
+        close(fd);
         HILOG_ERROR(LOG_CORE, "CreateBlock mmap ERR : %s", strerror(errno));
-
         return false;
     }
+
+    fileDescriptor_ = fd;
+    memoryPoint_ = ptr;
     memorySize_ = size;
 
     memoryName_ = name;
-    pMemory_ = (struct ShareMemoryStruct*)memoryPoint_;
-    pMemory_->head.readOffset = 0;
-    pMemory_->head.writeOffset = 0;
-    pMemory_->head.memorySize_ = size - SHARE_MEMORY_HEAD_SIZE;
+    header_ = reinterpret_cast<BlockHeader*>(ptr);
+
+    // initialize header infos
+    header_->info.readOffset_ = 0;
+    header_->info.writeOffset_ = 0;
+    header_->info.memorySize_ = size - sizeof(BlockHeader);
+    header_->info.bytesCount_ = 0;
+    header_->info.chunkCount_ = 0;
+
+    pthread_mutexattr_t muAttr;
+    pthread_mutexattr_init(&muAttr);
+    pthread_mutexattr_setpshared(&muAttr, PTHREAD_PROCESS_SHARED);
+    pthread_mutex_init(&header_->info.mutex_, &muAttr);
     return true;
+}
+
+bool ShareMemoryBlock::Valid() const
+{
+    return header_ != nullptr;
+}
+
+ShareMemoryBlock::ShareMemoryBlock(const std::string& name, uint32_t size) : ShareMemoryBlock()
+{
+    CreateBlock(name, size);
+}
+
+ShareMemoryBlock::ShareMemoryBlock(const std::string& name, uint32_t size, int fd) : ShareMemoryBlock()
+{
+    CreateBlockWithFd(name, size, fd);
+}
+
+ShareMemoryBlock::~ShareMemoryBlock()
+{
+    ReleaseBlock();
 }
 
 bool ShareMemoryBlock::ReleaseBlock()
@@ -124,32 +155,30 @@ bool ShareMemoryBlock::ReleaseBlock()
     }
     return true;
 }
-bool ShareMemoryBlock::ReleaseBlockRemote()
-{
-    return ReleaseBlock();
-}
 
 int8_t* ShareMemoryBlock::GetCurrentFreeMemory(uint32_t size)
 {
+    CHECK_NOTNULL(header_, nullptr, "header not ready!");
     uint32_t realSize = size + sizeof(uint32_t) + HEAD_OFFSET_LEN;
-    uint32_t wp = pMemory_->head.writeOffset;
-    if (wp + realSize > pMemory_->head.memorySize_) { // 后面部分放不下，从头开始放
-        if (pMemory_->head.readOffset == 0) {
+
+    uint32_t wp = header_->info.writeOffset_;
+    if (wp + realSize > header_->info.memorySize_) { // 后面部分放不下，从头开始放
+        if (header_->info.readOffset_ == 0) {
             return nullptr;
         }
-        *((uint32_t*)(&pMemory_->data[wp])) = 0xffffffff;
+        *((uint32_t*)(&header_->data[wp])) = 0xffffffff;
         wp = 0;
     }
-    if (wp < pMemory_->head.readOffset && pMemory_->head.readOffset < wp + realSize) { //
+    if (wp < header_->info.readOffset_ && header_->info.readOffset_ < wp + realSize) { //
         return nullptr;
     }
 
-    return &pMemory_->data[wp + sizeof(uint32_t)];
+    return &header_->data[wp + sizeof(uint32_t)];
 }
 
 int8_t* ShareMemoryBlock::GetFreeMemory(uint32_t size)
 {
-    if (dropType_ == DropType::DROP_NONE) {
+    if (reusePloicy_ == ReusePolicy::DROP_NONE) {
         return GetCurrentFreeMemory(size);
     }
     int8_t* ret = nullptr;
@@ -167,14 +196,17 @@ int8_t* ShareMemoryBlock::GetFreeMemory(uint32_t size)
 
 bool ShareMemoryBlock::UseFreeMemory(int8_t* pmem, uint32_t size)
 {
-    uint32_t wp = pmem - sizeof(uint32_t) - pMemory_->data;
-    *((int*)(&pMemory_->data[wp])) = size;
-    pMemory_->head.writeOffset = wp + sizeof(uint32_t) + size;
+    uint32_t wp = pmem - sizeof(uint32_t) - header_->data;
+    *((int*)(&header_->data[wp])) = size;
+
+    header_->info.writeOffset_ = wp + sizeof(uint32_t) + size;
     return true;
 }
 
 bool ShareMemoryBlock::PutRaw(const int8_t* data, uint32_t size)
 {
+    CHECK_NOTNULL(header_, false, "header not ready!");
+    PthreadLocker locker(header_->info.mutex_);
     int8_t* rawMemory = GetFreeMemory(size);
     if (rawMemory == nullptr) {
         HILOG_INFO(LOG_CORE, "_PutRaw not enough space [%d]", size);
@@ -182,57 +214,81 @@ bool ShareMemoryBlock::PutRaw(const int8_t* data, uint32_t size)
     }
     if (memcpy_s(rawMemory, size, data, size) != EOK) {
         HILOG_ERROR(LOG_CORE, "memcpy_s error");
+        return false;
     }
 
     UseFreeMemory(rawMemory, size);
+    HILOG_INFO(LOG_CORE, "ShareMemoryBlock::%s %d %d", __func__, header_->info.bytesCount_, header_->info.chunkCount_);
     return true;
 }
 
-bool ShareMemoryBlock::PutProtobuf(google::protobuf::Message& pmsg)
+bool ShareMemoryBlock::PutMessage(const google::protobuf::Message& pmsg)
 {
     size_t size = pmsg.ByteSizeLong();
 
+    CHECK_NOTNULL(header_, false, "header not ready!");
+    PthreadLocker locker(header_->info.mutex_);
     int8_t* rawMemory = GetFreeMemory(size);
     if (rawMemory == nullptr) {
-        HILOG_INFO(LOG_CORE, "PutProtobuf not enough space [%zu]", size);
+        HILOG_INFO(LOG_CORE, "PutMessage not enough space [%zu]", size);
         return false;
     }
 
     pmsg.SerializeToArray(rawMemory, size);
     UseFreeMemory(rawMemory, size);
+    ++header_->info.bytesCount_;
+    ++header_->info.chunkCount_;
+    return true;
+}
+
+bool ShareMemoryBlock::TakeData(const DataHandler& func)
+{
+    CHECK_NOTNULL(header_, false, "header not ready!");
+    CHECK_TRUE(static_cast<bool>(func), false, "func invalid!");
+
+    PthreadLocker locker(header_->info.mutex_);
+    auto size = GetDataSize();
+    if (size == 0) {
+        return false;
+    }
+    auto ptr = GetDataPoint();
+    CHECK_TRUE(func(ptr, size), false, "call func FAILED!");
+    CHECK_TRUE(Next(), false, "move read pointer FAILED!");
+    --header_->info.chunkCount_;
     return true;
 }
 
 uint32_t ShareMemoryBlock::GetDataSize()
 {
-    if (pMemory_->head.readOffset == pMemory_->head.writeOffset) {
+    if (header_->info.readOffset_ == header_->info.writeOffset_) {
         return 0;
     }
-    uint32_t ret = *((uint32_t*)(&pMemory_->data[pMemory_->head.readOffset]));
+    uint32_t ret = *((uint32_t*)(&header_->data[header_->info.readOffset_]));
     if (ret == 0xffffffff) {
-        ret = *((uint32_t*)(&pMemory_->data[0]));
+        ret = *((uint32_t*)(&header_->data[0]));
     }
     return ret;
 }
 
 const int8_t* ShareMemoryBlock::GetDataPoint()
 {
-    if (*((uint32_t*)(&pMemory_->data[pMemory_->head.readOffset])) == 0xffffffff) {
-        return &pMemory_->data[HEAD_OFFSET_LEN];
+    if (*((uint32_t*)(&header_->data[header_->info.readOffset_])) == 0xffffffff) {
+        return &header_->data[HEAD_OFFSET_LEN];
     }
-    return &pMemory_->data[pMemory_->head.readOffset + HEAD_OFFSET_LEN];
+    return &header_->data[header_->info.readOffset_ + HEAD_OFFSET_LEN];
 }
+
 bool ShareMemoryBlock::Next()
 {
-    if (pMemory_->head.readOffset == pMemory_->head.writeOffset) {
+    if (header_->info.readOffset_ == header_->info.writeOffset_) {
         return false;
     }
-    uint32_t size = *((uint32_t*)(&pMemory_->data[pMemory_->head.readOffset]));
+    uint32_t size = *((uint32_t*)(&header_->data[header_->info.readOffset_]));
     if (size == 0xffffffff) {
-        size = *((uint32_t*)(&pMemory_->data[0]));
-        pMemory_->head.readOffset = size + sizeof(uint32_t);
+        size = *((uint32_t*)(&header_->data[0]));
+        header_->info.readOffset_ = size + sizeof(uint32_t);
     } else {
-        pMemory_->head.readOffset += size + sizeof(uint32_t);
+        header_->info.readOffset_ += size + sizeof(uint32_t);
     }
     return true;
 }

@@ -37,7 +37,6 @@ bool SmapsStats::ParseMaps(int pid)
     if (testpath_.size() > 0) {
         smaps_path = testpath_ + std::to_string(pid) + std::string("/smaps");
     }
-    HILOG_INFO(LOG_CORE, "smaps path:%s", smaps_path.c_str());
     ReadVmemareasFile(smaps_path);
     ReviseStatsData();
     return true;
@@ -46,8 +45,8 @@ bool SmapsStats::ParseMaps(int pid)
 bool SmapsStats::ReadVmemareasFile(const std::string& path)
 {
     bool findMapHead = false;
-    MapPiecesInfo_t mappic = {0};
-    MemUsageInfo_t memusage = {0};
+    MapPiecesInfo mappic = {0};
+    MemUsageInfo memusage = {0};
     uint64_t prevEnd = 0;
     int prevHeap = 0;
     std::ifstream input(path, std::ios::in);
@@ -84,7 +83,7 @@ bool SmapsStats::ReadVmemareasFile(const std::string& path)
 
 bool SmapsStats::GetVMAStuId(int ops,
                              std::string name,
-                             const vMeminfoAreaMapping* vma,
+                             const VmeminfoAreaMapping vma[],
                              int count,
                              int32_t heapIndex[2],
                              bool& swappable)
@@ -118,34 +117,33 @@ bool SmapsStats::GetVmaIndex(std::string name, uint32_t namesz, int32_t heapInde
     switch (name[0]) {
         case '[':
             if (MatchHead(name, "[heap]") || MatchHead(name, "[stack")) {
-                int count = sizeof(vmaMemheap) / sizeof(vmaMemheap[0]);
-                return GetVMAStuId(OPS_START, name, vmaMemheap, count, heapIndex, swappable);
+                return GetVMAStuId(OPS_START, name, g_vmaMemHeap, sizeof(g_vmaMemHeap) /
+                                    sizeof(g_vmaMemHeap[0]), heapIndex, swappable);
             } else if (MatchHead(name, "[anon:")) {
-                if (MatchHead(name, "[anon:dalvik-")) {
-                    int count = sizeof(vmaMemsuffix) / sizeof(vmaMemsuffix[0]);
-                    if (GetVMAStuId(OPS_END, name, vmaMemsuffix, count, heapIndex, swappable)) {
+                if (MatchHead(name, "[anon:dalvik-") &&
+                    GetVMAStuId(OPS_END, name, g_vmaMemSuffix, sizeof(g_vmaMemSuffix) /
+                                sizeof(g_vmaMemSuffix[0]), heapIndex, swappable)) {
                         return true;
-                    }
                 }
-                int count = sizeof(vmaMemanon) / sizeof(vmaMemanon[0]);
-                return GetVMAStuId(OPS_START, name, vmaMemanon, count, heapIndex, swappable);
+                return GetVMAStuId(OPS_START, name, g_vmaMemAnon, sizeof(g_vmaMemAnon) /
+                                    sizeof(g_vmaMemAnon[0]), heapIndex, swappable);
             }
             break;
         case '/':
             if (MatchHead(name, "/memfd:")) {
-                int count = sizeof(vmaMemfd) / sizeof(vmaMemfd[0]);
-                return GetVMAStuId(OPS_START, name, vmaMemfd, count, heapIndex, swappable);
+                return GetVMAStuId(OPS_START, name, g_vmaMemFd, sizeof(g_vmaMemFd) /
+                                    sizeof(g_vmaMemFd[0]), heapIndex, swappable);
             } else if (MatchHead(name, "/dev/")) {
-                int count = sizeof(vmaMemdev) / sizeof(vmaMemdev[0]);
-                return GetVMAStuId(OPS_START, name, vmaMemdev, count, heapIndex, swappable);
+                return GetVMAStuId(OPS_START, name, g_vmaMemDev, sizeof(g_vmaMemDev) /
+                                    sizeof(g_vmaMemDev[0]), heapIndex, swappable);
             } else {
-                int count = sizeof(vmaMemsuffix) / sizeof(vmaMemsuffix[0]);
-                return GetVMAStuId(OPS_END, name, vmaMemsuffix, count, heapIndex, swappable);
+                return GetVMAStuId(OPS_END, name, g_vmaMemSuffix, sizeof(g_vmaMemSuffix) /
+                                    sizeof(g_vmaMemSuffix[0]), heapIndex, swappable);
             }
             break;
         default:
-            int count = sizeof(vmaMemsuffix) / sizeof(vmaMemsuffix[0]);
-            return GetVMAStuId(OPS_END, name, vmaMemsuffix, count, heapIndex, swappable);
+            return GetVMAStuId(OPS_END, name, g_vmaMemSuffix, sizeof(g_vmaMemSuffix) /
+                                sizeof(g_vmaMemSuffix[0]), heapIndex, swappable);
             break;
     }
     if (namesz > strlen(".dex") && strstr(name.c_str(), ".dex") != nullptr) {
@@ -157,8 +155,8 @@ bool SmapsStats::GetVmaIndex(std::string name, uint32_t namesz, int32_t heapInde
     return false;
 }
 
-void SmapsStats::CollectVmemAreasData(const MapPiecesInfo_t& mempic,
-                                      const MemUsageInfo_t& memusage,
+void SmapsStats::CollectVmemAreasData(const MapPiecesInfo& mempic,
+                                      const MemUsageInfo& memusage,
                                       uint64_t& prevEnd,
                                       int& prevHeap)
 {
@@ -176,12 +174,12 @@ void SmapsStats::CollectVmemAreasData(const MapPiecesInfo_t& mempic,
     if (!GetVmaIndex(name, namesz, heapIndex, swappable)) {
         if (namesz > 0) {
             heapIndex[0] = VMHEAP_UNKNOWN_MAP;
-        } else if (mempic.start_addr == prevEnd && prevHeap == VMHEAP_SO) {
+        } else if (mempic.startAddr == prevEnd && prevHeap == VMHEAP_SO) {
             // bss section of a shared library
             heapIndex[0] = VMHEAP_SO;
         }
     }
-    prevEnd = mempic.end_addr;
+    prevEnd = mempic.endAddr;
     prevHeap = heapIndex[0];
     swapablePss = GetSwapablepssValue(memusage, swappable);
     SetVmemAreasData(heapIndex[0], swapablePss, memusage);
@@ -193,64 +191,52 @@ void SmapsStats::CollectVmemAreasData(const MapPiecesInfo_t& mempic,
 void SmapsStats::ReviseStatsData()
 {
     // Summary data to VMHEAP_UNKNOWN
-    for (int i = _NUM_CORE_HEAP; i < _NUM_EXCLUSIVE_HEAP; i++) {
-        stats_[VMHEAP_UNKNOWN].pss += stats_[i].pss;
-        stats_[VMHEAP_UNKNOWN].swappablePss += stats_[i].swappablePss;
-        stats_[VMHEAP_UNKNOWN].rss += stats_[i].rss;
-        stats_[VMHEAP_UNKNOWN].privateDirty += stats_[i].privateDirty;
-        stats_[VMHEAP_UNKNOWN].sharedDirty += stats_[i].sharedDirty;
-        stats_[VMHEAP_UNKNOWN].privateClean += stats_[i].privateClean;
-        stats_[VMHEAP_UNKNOWN].sharedClean += stats_[i].sharedClean;
-        stats_[VMHEAP_UNKNOWN].swappedOut += stats_[i].swappedOut;
-        stats_[VMHEAP_UNKNOWN].swappedOutPss += stats_[i].swappedOutPss;
+    for (int i = VMHEAP_NUM_CORE_HEAP; i < VMHEAP_NUM_EXCLUSIVE_HEAP; i++) {
+        stats_[VMHEAP_UNKNOWN] += stats_[i];
     }
 }
 
-bool SmapsStats::SetMapAddrInfo(std::string& line, MapPiecesInfo_t& head)
+bool SmapsStats::SetMapAddrInfo(std::string& line, MapPiecesInfo& head)
 {
     const char* pStr = line.c_str();
     char* end = nullptr;
-    // start_addr
-    head.start_addr = strtoull(pStr, &end, HEX_BASE);
+    head.startAddr = strtoull(pStr, &end, HEX_BASE);
     if (end == pStr || *end != '-') {
         return false;
     }
     pStr = end + 1;
-    // end_addr
-    head.end_addr = strtoull(pStr, &end, HEX_BASE);
+    head.endAddr = strtoull(pStr, &end, HEX_BASE);
     if (end == pStr) {
         return false;
     }
     return true;
 }
 
-bool SmapsStats::ParseMapHead(std::string& line, MapPiecesInfo_t& head)
+bool SmapsStats::ParseMapHead(std::string& line, MapPiecesInfo& head)
 {
     if (!SetMapAddrInfo(line, head)) {
         return false;
     }
-    size_t newlineops = 0;
-    size_t wordsz = 0;
     std::string newline = line;
     for (int i = 0; i < FIFTH_FIELD; i++) {
         std::string word = newline;
-        wordsz = word.find(" ");
+        size_t wordsz = word.find(" ");
         if (wordsz == std::string::npos) {
             return false;
         }
         word = newline.substr(0, wordsz);
 
-        newlineops = newline.find_first_not_of(" ", wordsz);
+        size_t newlineops = newline.find_first_not_of(" ", wordsz);
         newline = newline.substr(newlineops);
     }
     head.name = newline.substr(0, newline.size() - 1);
     return true;
 }
 
-bool SmapsStats::GetMemUsageField(std::string& line, MemUsageInfo_t& memusage)
+bool SmapsStats::GetMemUsageField(std::string& line, MemUsageInfo& memusage)
 {
     char field[64];
-    int len;
+    int len = 0;
     const char* pLine = line.c_str();
 
     int ret = sscanf_s(pLine, "%63s %n", field, sizeof(field), &len);
@@ -263,11 +249,11 @@ bool SmapsStats::GetMemUsageField(std::string& line, MemUsageInfo_t& memusage)
                     memusage.pss = strtoull(c, nullptr, DEC_BASE);
                 } else if (MatchHead(strfield, "Private_Clean:")) {
                     uint64_t prcl = strtoull(c, nullptr, DEC_BASE);
-                    memusage.private_clean = prcl;
+                    memusage.privateClean = prcl;
                     memusage.uss += prcl;
                 } else if (MatchHead(strfield, "Private_Dirty:")) {
                     uint64_t prdi = strtoull(c, nullptr, DEC_BASE);
-                    memusage.private_dirty = prdi;
+                    memusage.privateDirty = prdi;
                     memusage.uss += prdi;
                 }
                 break;
@@ -275,13 +261,13 @@ bool SmapsStats::GetMemUsageField(std::string& line, MemUsageInfo_t& memusage)
                 if (MatchHead(strfield, "Size:")) {
                     memusage.vss = strtoull(c, nullptr, DEC_BASE);
                 } else if (MatchHead(strfield, "Shared_Clean:")) {
-                    memusage.shared_clean = strtoull(c, nullptr, DEC_BASE);
+                    memusage.sharedClean = strtoull(c, nullptr, DEC_BASE);
                 } else if (MatchHead(strfield, "Shared_Dirty:")) {
-                    memusage.shared_dirty = strtoull(c, nullptr, DEC_BASE);
+                    memusage.sharedDirty = strtoull(c, nullptr, DEC_BASE);
                 } else if (MatchHead(strfield, "Swap:")) {
                     memusage.swap = strtoull(c, nullptr, DEC_BASE);
                 } else if (MatchHead(strfield, "SwapPss:")) {
-                    memusage.swap_pss = strtoull(c, nullptr, DEC_BASE);
+                    memusage.swapPss = strtoull(c, nullptr, DEC_BASE);
                 }
                 break;
             case 'R':
@@ -303,32 +289,24 @@ bool SmapsStats::GetMemUsageField(std::string& line, MemUsageInfo_t& memusage)
     return false;
 }
 
-uint64_t SmapsStats::GetSwapablepssValue(const MemUsageInfo_t& memusage, bool swappable)
+uint64_t SmapsStats::GetSwapablepssValue(const MemUsageInfo& memusage, bool swappable)
 {
-    const MemUsageInfo_t& usage = memusage;
-    uint64_t swapablePss = 0;
-
-    if (swappable && (usage.pss > 0)) {
-        float sharing_proportion = 0.0f;
-        if ((usage.shared_clean > 0) || (usage.shared_dirty > 0)) {
-            sharing_proportion = (usage.pss - usage.uss) / (usage.shared_clean + usage.shared_dirty);
-        }
-        swapablePss = (sharing_proportion * usage.shared_clean) + usage.private_clean;
+    if (!swappable || (memusage.pss == 0)) {
+        return 0;
     }
-    return swapablePss;
+
+    if ((memusage.sharedClean == 0) && (memusage.sharedDirty == 0)) {
+        return memusage.privateClean;
+    }
+    float proportion = (memusage.pss - memusage.uss) / (memusage.sharedClean + memusage.sharedDirty);
+
+    return (proportion * memusage.sharedClean) + memusage.privateClean;
 }
 
-void SmapsStats::SetVmemAreasData(int index, uint64_t swapablePss, const MemUsageInfo_t& usage)
+void SmapsStats::SetVmemAreasData(int index, uint64_t swapablePss, const MemUsageInfo& usage)
 {
-    stats_[index].pss += usage.pss;
-    stats_[index].swappablePss += swapablePss;
-    stats_[index].rss += usage.rss;
-    stats_[index].privateDirty += usage.private_dirty;
-    stats_[index].sharedDirty += usage.shared_dirty;
-    stats_[index].privateClean += usage.private_clean;
-    stats_[index].sharedClean += usage.shared_clean;
-    stats_[index].swappedOut += usage.swap;
-    stats_[index].swappedOutPss += usage.swap_pss;
+    StatsInfo oobj(swapablePss, usage);
+    stats_[index] += oobj;
 }
 
 void SmapsStats::HeapIndexFix(std::string name, const char* key, int32_t heapIndex[2])
@@ -356,12 +334,12 @@ void SmapsStats::HeapIndexFix(std::string name, const char* key, int32_t heapInd
 
 int SmapsStats::GetProcessJavaHeap()
 {
-    return stats_[VMHEAP_DALVIK].privateDirty + GetPrivate(VMHEAP_ART);
+    return stats_[VMHEAP_DALVIK].privateDirty_ + GetPrivate(VMHEAP_ART);
 }
 
 int SmapsStats::GetProcessNativeHeap()
 {
-    return stats_[VMHEAP_NATIVE].privateDirty;
+    return stats_[VMHEAP_NATIVE].privateDirty_;
 }
 
 int SmapsStats::GetProcessCode()
@@ -374,7 +352,7 @@ int SmapsStats::GetProcessCode()
 
 int SmapsStats::GetProcessStack()
 {
-    return stats_[VMHEAP_STACK].privateDirty;
+    return stats_[VMHEAP_STACK].privateDirty_;
 }
 
 int SmapsStats::GetProcessGraphics()
@@ -395,28 +373,29 @@ int SmapsStats::GetProcessSystem()
 
 int SmapsStats::GetTotalPrivateClean()
 {
-    return stats_[VMHEAP_UNKNOWN].privateClean + stats_[VMHEAP_NATIVE].privateClean +
-           stats_[VMHEAP_DALVIK].privateClean;
+    return stats_[VMHEAP_UNKNOWN].privateClean_ + stats_[VMHEAP_NATIVE].privateClean_ +
+           stats_[VMHEAP_DALVIK].privateClean_;
 }
 
 int SmapsStats::GetTotalPrivateDirty()
 {
-    return stats_[VMHEAP_UNKNOWN].privateDirty + stats_[VMHEAP_NATIVE].privateDirty +
-           stats_[VMHEAP_DALVIK].privateDirty;
+    return stats_[VMHEAP_UNKNOWN].privateDirty_ + stats_[VMHEAP_NATIVE].privateDirty_ +
+           stats_[VMHEAP_DALVIK].privateDirty_;
 }
 
 int SmapsStats::GetPrivate(int type)
 {
-    return stats_[type].privateDirty + stats_[type].privateClean;
+    return stats_[type].privateDirty_ + stats_[type].privateClean_;
 }
 
 int SmapsStats::GetTotalPss()
 {
-    return stats_[VMHEAP_UNKNOWN].pss + stats_[VMHEAP_NATIVE].pss + stats_[VMHEAP_DALVIK].pss + GetTotalSwappedOutPss();
+    return stats_[VMHEAP_UNKNOWN].pss_ + stats_[VMHEAP_NATIVE].pss_ + stats_[VMHEAP_DALVIK].pss_
+            + GetTotalSwappedOutPss();
 }
 
 int SmapsStats::GetTotalSwappedOutPss()
 {
-    return stats_[VMHEAP_UNKNOWN].swappedOutPss + stats_[VMHEAP_NATIVE].swappedOutPss +
-           stats_[VMHEAP_DALVIK].swappedOutPss;
+    return stats_[VMHEAP_UNKNOWN].swappedOutPss_ + stats_[VMHEAP_NATIVE].swappedOutPss_ +
+           stats_[VMHEAP_DALVIK].swappedOutPss_;
 }

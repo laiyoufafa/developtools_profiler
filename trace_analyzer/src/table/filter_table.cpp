@@ -25,7 +25,7 @@ FilterTable::FilterTable(const TraceDataCache* dataCache) : TableBase(dataCache)
     tableColumn_.push_back(TableBase::ColumnInfo("id", "UNSIGNED INT"));
     tableColumn_.push_back(TableBase::ColumnInfo("type", "STRING"));
     tableColumn_.push_back(TableBase::ColumnInfo("name", "STRING"));
-    tableColumn_.push_back(TableBase::ColumnInfo("source_arg_set_id", "UNSIGNED INT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("source_arg_set_id", "UNSIGNED BIG INT"));
     tablePriKey_.push_back("id");
 }
 
@@ -60,7 +60,7 @@ int FilterTable::Cursor::Column(int column) const
             sqlite3_result_int64(context_, static_cast<int64_t>(filterObj_.SourceArgSetIdData()[CurrentRow()]));
             break;
         default:
-            TUNING_LOGF("Unregistered column : %d", column);
+            TS_LOGF("Unregistered column : %d", column);
             break;
     }
     return SQLITE_OK;

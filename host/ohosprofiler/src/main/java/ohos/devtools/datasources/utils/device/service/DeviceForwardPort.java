@@ -15,7 +15,6 @@
 
 package ohos.devtools.datasources.utils.device.service;
 
-import ohos.devtools.datasources.transport.hdc.HdcCommandEnum;
 import ohos.devtools.datasources.transport.hdc.HdcWrapper;
 import ohos.devtools.datasources.utils.device.entity.DeviceIPPortInfo;
 import org.apache.logging.log4j.LogManager;
@@ -23,14 +22,17 @@ import org.apache.logging.log4j.Logger;
 
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
-import java.util.Locale;
+import java.util.ArrayList;
+
+import static ohos.devtools.datasources.transport.hdc.HdcCmdList.HDC_FOR_PORT;
+import static ohos.devtools.datasources.transport.hdc.HdcStdCmdList.HDC_STD_FOR_PORT;
+import static ohos.devtools.datasources.transport.hdc.HdcWrapper.conversionCommand;
+import static ohos.devtools.datasources.utils.device.entity.DeviceType.LEAN_HOS_DEVICE;
+import static ohos.devtools.views.common.Constant.IS_SUPPORT_NEW_HDC;
 
 /**
- * 设备转发端口类
- *
- * @version 1.0
- * @date 2021/2/2 19:02
- **/
+ * device forwarding port class
+ */
 public class DeviceForwardPort {
     private static final Logger LOGGER = LogManager.getLogger(DeviceForwardPort.class);
     private static volatile DeviceForwardPort instance;
@@ -55,25 +57,26 @@ public class DeviceForwardPort {
     }
 
     /**
-     * 设置设备的IP和端口号信息
+     * forward port to local
      *
      * @param info info
-     * @return DeviceIPPortInfo
+     * @return int
      */
-    public DeviceIPPortInfo setDeviceIPPortInfo(DeviceIPPortInfo info) {
+    public int forwardDevicePort(DeviceIPPortInfo info) {
         String serialNumber = info.getDeviceID();
         while (true) {
             int forward = getForwardPort();
-            String cmdStr =
-                String.format(Locale.ENGLISH, HdcCommandEnum.HDC_FOR_PORT.getHdcCommand(), serialNumber, forward);
+            ArrayList<String> cmdStr;
+            if (IS_SUPPORT_NEW_HDC && info.getDeviceType() == LEAN_HOS_DEVICE) {
+                cmdStr = conversionCommand(HDC_STD_FOR_PORT, serialNumber, String.valueOf(forward));
+            } else {
+                cmdStr = conversionCommand(HDC_FOR_PORT, serialNumber, String.valueOf(forward));
+            }
             String res = HdcWrapper.getInstance().getHdcStringResult(cmdStr);
             if (!res.contains("cannot bind")) {
-                info.setForwardPort(forward);
-                LOGGER.info("prot is {}", res);
-                break;
+                return forward;
             }
         }
-        return info;
     }
 
     /**
@@ -84,14 +87,13 @@ public class DeviceForwardPort {
     public int getForwardPort() {
         int length = 55535;
         int off = 10000;
-        SecureRandom secureRandom = null;
+        SecureRandom secureRandom;
         try {
             secureRandom = SecureRandom.getInstanceStrong();
         } catch (NoSuchAlgorithmException noSuchAlgorithmException) {
-            LOGGER.info("create Random has Execption {}", noSuchAlgorithmException.getMessage());
+            LOGGER.info("create Random NoSuchAlgorithmException ", noSuchAlgorithmException);
             return getForwardPort();
         }
-        int anInt = secureRandom.nextInt(length) + off;
-        return anInt;
+        return secureRandom.nextInt(length) + off;
     }
 }

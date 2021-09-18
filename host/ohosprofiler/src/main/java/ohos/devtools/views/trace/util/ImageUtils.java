@@ -24,7 +24,7 @@ import java.io.IOException;
  *
  * @version 1.0
  * @date 2021/04/22 12:25
- **/
+ */
 public final class ImageUtils {
     private static ImageUtils instance;
 
@@ -44,6 +44,9 @@ public final class ImageUtils {
 
     private Image arrowUpFocus;
 
+    private Image iconUsb;
+
+    private Image iconWifi;
 
     private ImageUtils() {
         try {
@@ -55,9 +58,23 @@ public final class ImageUtils {
             arrowUpFocus = ImageIO.read(ImageUtils.class.getResourceAsStream("/assets/arrow-up-2.png"));
             arrowDown = ImageIO.read(ImageUtils.class.getResourceAsStream("/assets/arrow-down.png"));
             arrowDownFocus = ImageIO.read(ImageUtils.class.getResourceAsStream("/assets/arrow-down-2.png"));
+            iconUsb = ImageIO.read(ImageUtils.class.getResourceAsStream("/assets/icon_usb2.png"));
+            iconWifi = ImageIO.read(ImageUtils.class.getResourceAsStream("/assets/icon_wifi2.png"));
         } catch (IOException exception) {
             exception.printStackTrace();
         }
+    }
+
+    /**
+     * Get the current ImageUtils instantiation object
+     *
+     * @return ImageUtils
+     */
+    public static ImageUtils getInstance() {
+        if (instance == null) {
+            instance = new ImageUtils();
+        }
+        return instance;
     }
 
     /**
@@ -212,16 +229,11 @@ public final class ImageUtils {
         arrowUpFocus = image;
     }
 
+    public Image getIconUsb() {
+        return iconUsb;
+    }
 
-    /**
-     * Get the current ImageUtils instantiation object
-     *
-     * @return ImageUtils
-     */
-    public static ImageUtils getInstance() {
-        if (instance == null) {
-            instance = new ImageUtils();
-        }
-        return instance;
+    public Image getIconWifi() {
+        return iconWifi;
     }
 }

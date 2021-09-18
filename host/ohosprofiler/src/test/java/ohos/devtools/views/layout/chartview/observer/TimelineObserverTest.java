@@ -20,7 +20,7 @@ import ohos.devtools.views.charts.model.ChartStandard;
 import ohos.devtools.views.common.LayoutConstants;
 import ohos.devtools.views.layout.chartview.ProfilerChartsView;
 import ohos.devtools.views.layout.chartview.event.IChartEventObserver;
-import ohos.devtools.views.layout.swing.TaskScenePanelChart;
+import ohos.devtools.views.layout.chartview.TaskScenePanelChart;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -29,8 +29,6 @@ import java.util.List;
 
 /**
  * TimelineObserver test
- *
- * @since 2021/3/31 19:51
  */
 public class TimelineObserverTest {
     private static final int TEST_START = 0;
@@ -55,7 +53,7 @@ public class TimelineObserverTest {
     @Before
     public void init() {
         ProfilerChartsView view = new ProfilerChartsView(LayoutConstants.NUM_L, true, new TaskScenePanelChart());
-        List<IChartEventObserver> observers = view.getObserver().getListeners();
+        List<IChartEventObserver> observers = view.getPublisher().getObservers();
         for (IChartEventObserver event : observers) {
             if (event instanceof TimelineObserver) {
                 observer = (TimelineObserver) event;
@@ -78,7 +76,7 @@ public class TimelineObserverTest {
         ChartStandard newStandard = new ChartStandard(0L);
         newStandard.setMaxDisplayMillis(TEST_DISPLAY);
         newStandard.setMinMarkInterval(TEST_MARK);
-        observer.refreshStandard(newStandard, TEST_START, TEST_END, TEST_DISPLAY);
+        observer.refreshStandard(TEST_START, TEST_END, TEST_DISPLAY, newStandard.getMinMarkInterval());
         Assert.assertTrue(true);
     }
 

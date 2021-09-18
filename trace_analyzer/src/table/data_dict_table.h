@@ -23,14 +23,14 @@ namespace SysTuning {
 namespace TraceStreamer {
 class DataDictTable : public TableBase {
 public:
-    explicit DataDictTable(const TraceDataCache*);
+    explicit DataDictTable(const TraceDataCache* dataCache);
     ~DataDictTable() override;
     void CreateCursor() override;
 
 private:
     class Cursor : public TableBase::Cursor {
     public:
-        explicit Cursor(const TraceDataCache*);
+        explicit Cursor(const TraceDataCache* dataCache);
         ~Cursor() override;
         int Column(int) const override;
     };

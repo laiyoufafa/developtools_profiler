@@ -10,6 +10,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
 syntax = "proto3";
 
 option java_package = "ohos.devtools.datasources.transport.grpc.service";
@@ -17,6 +18,9 @@ option optimize_for = LITE_RUNTIME;
 
 import "memory_plugin_common.proto";
 
+// Data format of memory collect plug-in.
+// Various memory data count, including system level and application level.
+// Obtained from the proc file system or system service.
 message SysMeminfo {
     SysMeminfoType key = 1;
     uint64 value = 2;

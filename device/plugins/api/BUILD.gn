@@ -35,12 +35,13 @@ ohos_source_set("plugins_sources") {
     "../../base/include/",
     "${OHOS_PROFILER_DIR}/interfaces/kits",
     "//utils/native/base/include",
+    "//third_party/boringssl/src/include",
   ]
   sources = [
     "src/buffer_writer.cpp",
     "src/command_poller.cpp",
-    "src/plugin_module.cpp",
     "src/plugin_manager.cpp",
+    "src/plugin_module.cpp",
     "src/plugin_watcher.cpp",
     "src/writer_adapter.cpp",
   ]
@@ -49,7 +50,9 @@ ohos_source_set("plugins_sources") {
     "${OHOS_PROFILER_DIR}/protos/services:plugin_services_proto",
     "${OHOS_PROFILER_DIR}/protos/services:service_types_proto",
     "../../base:hiprofiler_base",
-    "//utils/native/base:utilsbase",
+    "//third_party/boringssl:crypto",
+    "//third_party/boringssl:crypto",
+    "//utils/native/base:utilsecurec",
   ]
   public_configs = [ ":hiprofiler_plugins_config" ]
   if (current_toolchain != host_toolchain) {
@@ -62,12 +65,8 @@ ohos_source_set("plugins_sources") {
 }
 
 ohos_executable("hiprofiler_plugins") {
-  deps = [
-    ":plugins_sources",
-  ]
-  sources = [
-    "src/main.cpp",
-  ]
+  deps = [ ":plugins_sources" ]
+  sources = [ "src/main.cpp" ]
   if (current_toolchain != host_toolchain) {
     defines = [ "HAVE_HILOG" ]
     if (build_l2) {

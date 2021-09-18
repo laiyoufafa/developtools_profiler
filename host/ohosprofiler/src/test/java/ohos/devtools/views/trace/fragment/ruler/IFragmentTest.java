@@ -18,8 +18,7 @@ package ohos.devtools.views.trace.fragment.ruler;
 /**
  * test IFragment class .
  *
- * @version 1.0
  * @date: 2021/4/25 22:29
- **/
+ */
 class IFragmentTest {
 }

@@ -16,6 +16,7 @@
 #ifndef PLUGIN_SERVICE_H
 #define PLUGIN_SERVICE_H
 
+#include <atomic>
 #include <map>
 #include <memory>
 #include <string>
@@ -23,6 +24,9 @@
 #include <vector>
 
 #include "common_types.pb.h"
+#include "epoll_event_poller.h"
+#include "event_notifier.h"
+#include "i_semaphore.h"
 #include "logging.h"
 #include "plugin_service_types.pb.h"
 #include "profiler_service_types.pb.h"
@@ -47,14 +51,16 @@ struct PluginInfo {
 };
 
 struct PluginContext {
+    std::string name;
     std::string path;
+    std::string sha256;
+    uint32_t bufferSizeHint;
     SocketContext* context;
     ProfilerPluginConfig config;
     ProfilerDataRepeaterPtr profilerDataRepeater;
     std::shared_ptr<ShareMemoryBlock> shareMemoryBlock;
+    EventNotifierPtr eventNotifier;
     ProfilerPluginStatePtr profilerPluginState;
-    std::string sha256;
-    uint32_t bufferSizeHint;
 };
 
 class PluginService {
@@ -65,13 +71,13 @@ public:
     bool CreatePluginSession(const ProfilerPluginConfig& pluginConfig,
                              const ProfilerSessionConfig::BufferConfig& bufferConfig,
                              const ProfilerDataRepeaterPtr& dataRepeater);
-    bool CreatePluginSession(const ProfilerPluginConfig& pluginConfig,
-                             const ProfilerDataRepeaterPtr& dataRepeater);
+    bool CreatePluginSession(const ProfilerPluginConfig& pluginConfig, const ProfilerDataRepeaterPtr& dataRepeater);
     bool StartPluginSession(const ProfilerPluginConfig& config);
     bool StopPluginSession(const std::string& pluginName);
     bool DestroyPluginSession(const std::string& pluginName);
 
     bool AddPluginInfo(const PluginInfo& pluginInfo);
+    bool GetPluginInfo(const std::string& pluginName, PluginInfo& pluginInfo);
     bool RemovePluginInfo(const PluginInfo& pluginInfo);
 
     bool AppendResult(NotifyResultRequest& request);
@@ -80,32 +86,21 @@ public:
     uint32_t GetPluginIdByName(std::string name);
 
 private:
-    std::map<uint32_t, PluginContext> pluginContext_;
     bool StartService(const std::string& unixSocketName);
 
+    SemaphorePtr GetSemaphore(uint32_t) const;
+    void ReadShareMemory(PluginContext&);
+
+    mutable std::mutex mutex_;
+    std::map<uint32_t, PluginContext> pluginContext_;
+    std::map<uint32_t, SemaphorePtr> waitSemphores_;
     std::map<std::string, uint32_t> nameIndex_;
 
-    uint32_t pluginIdAutoIncrease_;
+    std::atomic<uint32_t> pluginIdCounter_;
     std::shared_ptr<ServiceEntry> serviceEntry_;
     std::shared_ptr<PluginServiceImpl> pluginServiceImpl_;
     std::shared_ptr<PluginCommandBuilder> pluginCommandBuilder_;
-
-    std::mutex readShareMemory_;
-    void ReadShareMemoryOneTime();
-
-    enum ReadShareMemoryStatus {
-        READ_SHARE_MEMORY_FREE,
-        READ_SHARE_MEMORY_WORKING,
-        READ_SHARE_MEMORY_EXIT,
-        READ_SHARE_MEMORY_UNSPECIFIED,
-    };
-    ReadShareMemoryStatus readShareMemoryThreadStatus_; // 0空闲等待，1工作中，2线程退出
-    std::timed_mutex readShareMemoryThreadSleep_;
-    static void* ReadShareMemoryThread(void* p);
-    std::thread readShareMemoryThread_;
-
-    uint32_t waitForCommandId_;
-    std::timed_mutex waitStopSession_;
+    std::unique_ptr<EpollEventPoller> eventPoller_;
 };
 
 #endif // PLUGIN_SERVICE_H

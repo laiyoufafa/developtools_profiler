@@ -21,18 +21,10 @@ import org.junit.Before;
 import org.junit.Test;
 
 /**
- * @Description 设备转发端口类
- * @Date 2021/4/9 19:02
- **/
+ * Device forwarding port class
+ */
 public class DeviceForwardPortTest {
-    /**
-     * DeviceForwardPort
-     */
     private DeviceForwardPort deviceForwardPort;
-
-    /**
-     * DeviceIPPortInfo类
-     */
     private DeviceIPPortInfo deviceIPPortInfo;
 
     /**
@@ -62,9 +54,25 @@ public class DeviceForwardPortTest {
      * @tc.require: SR-004
      */
     @Test
-    public void getInstanceTest() {
+    public void getInstanceTest01() {
         DeviceForwardPort deviceForwardPorts = DeviceForwardPort.getInstance();
         Assert.assertNotNull(deviceForwardPorts);
+    }
+
+    /**
+     * functional testing getInstance
+     *
+     * @tc.name: getInstance
+     * @tc.number: OHOS_JAVA_device_DeviceForwardPort_getInstance_0002
+     * @tc.desc: getInstance
+     * @tc.type: functional testing
+     * @tc.require: SR-004
+     */
+    @Test
+    public void getInstanceTest02() {
+        DeviceForwardPort deviceForwardPorts = DeviceForwardPort.getInstance();
+        DeviceForwardPort deviceForward = DeviceForwardPort.getInstance();
+        Assert.assertEquals(deviceForward, deviceForwardPorts);
     }
 
     /**
@@ -77,9 +85,24 @@ public class DeviceForwardPortTest {
      * @tc.require: SR-004
      */
     @Test
-    public void setDeviceIPPortInfoTest() {
-        DeviceIPPortInfo deviceIPPortInfoNew = deviceForwardPort.setDeviceIPPortInfo(deviceIPPortInfo);
+    public void setDeviceIPPortInfoTest01() {
+        int deviceIPPortInfoNew = deviceForwardPort.forwardDevicePort(deviceIPPortInfo);
         Assert.assertNotNull(deviceIPPortInfoNew);
+    }
+
+    /**
+     * functional testing setDeviceIPPortInfo
+     *
+     * @tc.name: setDeviceIPPortInfo
+     * @tc.number: OHOS_JAVA_device_DeviceForwardPort_setDeviceIPPortInfo_0002
+     * @tc.desc: setDeviceIPPortInfo
+     * @tc.type: functional testing
+     * @tc.require: SR-004
+     */
+    @Test
+    public void setDeviceIPPortInfoTest02() {
+        int deviceIPPortInfoNew = deviceForwardPort.forwardDevicePort(deviceIPPortInfo);
+        Assert.assertNotEquals(5001, deviceIPPortInfoNew);
     }
 
     /**

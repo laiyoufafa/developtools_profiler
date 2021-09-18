@@ -17,7 +17,9 @@ package ohos.devtools.views.layout.swing;
 
 import ohos.devtools.views.common.ColorConstants;
 import ohos.devtools.views.common.LayoutConstants;
-import ohos.devtools.views.common.hoscomp.HosJButton;
+import ohos.devtools.views.common.customcomp.CustomJButton;
+import ohos.devtools.views.layout.dialog.SampleDialog;
+import ohos.devtools.views.layout.dialog.SaveTraceDialog;
 import org.junit.Test;
 import org.powermock.api.mockito.PowerMockito;
 
@@ -26,10 +28,7 @@ import java.awt.Dimension;
 
 /**
  * Save Trace Dialog Test
- *
- * @version 1.0
- * @date 2021/4/2 13:00
- **/
+ */
 public class SaveTraceDialogTest {
     /**
      * functional testing
@@ -42,16 +41,12 @@ public class SaveTraceDialogTest {
      */
     @Test
     public void getSaveTraceDialog() {
-        try {
-            JPanel fileJpanel = new JPanel(null);
-            fileJpanel.setPreferredSize(new Dimension(LayoutConstants.FOUR_HUNDRED, LayoutConstants.TWO_HUNDRED_SIXTY));
-            fileJpanel.setBackground(ColorConstants.HOME_PANE);
-            SampleDialogWrapper mock = PowerMockito.mock(SampleDialogWrapper.class);
-            PowerMockito.whenNew(SampleDialogWrapper.class).withArguments("Save The Task", fileJpanel).thenReturn(mock);
-            SaveTraceDialog saveTraceDialog = new SaveTraceDialog();
-            saveTraceDialog.showCustomDialog(new HosJButton("dd", "ddd"));
-        } catch (Exception exception) {
-            exception.printStackTrace();
-        }
+        JPanel fileJpanel = new JPanel(null);
+        fileJpanel.setPreferredSize(new Dimension(LayoutConstants.FOUR_HUNDRED, LayoutConstants.TWO_HUNDRED_SIXTY));
+        fileJpanel.setBackground(ColorConstants.HOME_PANE);
+        SampleDialog mock = PowerMockito.mock(SampleDialog.class);
+        PowerMockito.whenNew(SampleDialog.class).withArguments("Save The Task", fileJpanel).thenReturn(mock);
+        SaveTraceDialog saveTraceDialog = new SaveTraceDialog();
+        saveTraceDialog.showCustomDialog(new CustomJButton("Save", "Save Trace"), "Save The Task");
     }
 }
