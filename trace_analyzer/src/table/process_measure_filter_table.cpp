@@ -25,7 +25,7 @@ ProcessMeasureFilterTable::ProcessMeasureFilterTable(const TraceDataCache* dataC
     tableColumn_.push_back(TableBase::ColumnInfo("id", "INT"));
     tableColumn_.push_back(TableBase::ColumnInfo("type", "STRING"));
     tableColumn_.push_back(TableBase::ColumnInfo("name", "STRING"));
-    tableColumn_.push_back(TableBase::ColumnInfo("upid", "INT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("ipid", "INT"));
     tablePriKey_.push_back("id");
 }
 
@@ -37,7 +37,7 @@ void ProcessMeasureFilterTable::CreateCursor()
 }
 
 ProcessMeasureFilterTable::Cursor::Cursor(const TraceDataCache* dataCache)
-    : TableBase::Cursor(dataCache, 0, static_cast<uint32_t>(dataCache->ProcessCounterFilterData().Size()))
+    : TableBase::Cursor(dataCache, 0, static_cast<uint32_t>(dataCache->GetConstProcessMeasureFilterData().Size()))
 {
 }
 
@@ -47,23 +47,25 @@ int ProcessMeasureFilterTable::Cursor::Column(int col) const
 {
     switch (col) {
         case ID:
-            sqlite3_result_int64(context_,
-                static_cast<sqlite3_int64>(dataCache_->ProcessCounterFilterData().IdsData()[CurrentRow()]));
+            sqlite3_result_int64(context_, static_cast<sqlite3_int64>(
+                                               dataCache_->GetConstProcessMeasureFilterData().IdsData()[CurrentRow()]));
             break;
         case TYPE:
-            sqlite3_result_text(context_, "process_counter_track", STR_DEFAULT_LEN, nullptr);
+            sqlite3_result_text(context_, "process_measure_filter", STR_DEFAULT_LEN, nullptr);
             break;
         case NAME: {
-            size_t strId = static_cast<size_t>(dataCache_->ProcessCounterFilterData().NamesData()[CurrentRow()]);
+            size_t strId =
+                static_cast<size_t>(dataCache_->GetConstProcessMeasureFilterData().NamesData()[CurrentRow()]);
             sqlite3_result_text(context_, dataCache_->GetDataFromDict(strId).c_str(), STR_DEFAULT_LEN, nullptr);
             break;
         }
         case INTERNAL_PID:
-            sqlite3_result_int64(context_,
-                static_cast<sqlite3_int64>(dataCache_->ProcessCounterFilterData().UpidsData()[CurrentRow()]));
+            sqlite3_result_int64(
+                context_,
+                static_cast<sqlite3_int64>(dataCache_->GetConstProcessMeasureFilterData().UpidsData()[CurrentRow()]));
             break;
         default:
-            TUNING_LOGF("Unregistered column : %d", col);
+            TS_LOGF("Unregistered column : %d", col);
             break;
     }
     return SQLITE_OK;

@@ -17,10 +17,7 @@ package ohos.devtools.datasources.utils.common;
 
 /**
  * grpc Custom exception class
- *
- * @version 1.0
- * @date 2021/03/15 19:41
- **/
+ */
 public class GrpcException extends Exception {
     /**
      * GrpcException

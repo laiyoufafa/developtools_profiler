@@ -16,45 +16,42 @@
 package ohos.devtools.views.layout.chartview.observer;
 
 import ohos.devtools.views.charts.model.ChartDataRange;
-import ohos.devtools.views.charts.model.ChartStandard;
-import ohos.devtools.views.common.chart.ProfilerTimeline;
+import ohos.devtools.views.layout.chartview.ProfilerTimeline;
 import ohos.devtools.views.layout.chartview.event.IChartEventObserver;
 
 /**
- * Profiler时间线的观察者
+ * Observer of profiler timeline
  *
  * @since 2021/2/1 10:36
  */
 public class TimelineObserver implements IChartEventObserver {
     /**
-     * Profiler时间线
+     * Profiler timeline
      */
     private final ProfilerTimeline timeline;
 
     /**
-     * 构造函数
+     * Constructor
      *
-     * @param timeline Profiler时间线
+     * @param timeline Profiler timeline
      */
     public TimelineObserver(ProfilerTimeline timeline) {
         this.timeline = timeline;
     }
 
     /**
-     * 刷新绘图标准
+     * Refresh chart drawing standard
      *
-     * @param standard       绘图标准
-     * @param startTime      startTime
-     * @param endTime        endTime
-     * @param maxDisplayTime maxDisplayTime
+     * @param startTime        Start time of chart
+     * @param endTime          End time of chart
+     * @param maxDisplayMillis Maximum display time on view
+     * @param minMarkInterval  The minimum scale interval
      */
     @Override
-    public void refreshStandard(ChartStandard standard, int startTime, int endTime, int maxDisplayTime) {
-        // timeline绘制的缩放尺寸设置
-        timeline.setMaxDisplayTime(standard.getMaxDisplayMillis());
-        timeline.setMinMarkInterval(standard.getMinMarkInterval());
+    public void refreshStandard(int startTime, int endTime, int maxDisplayMillis, int minMarkInterval) {
+        timeline.setMaxDisplayTime(maxDisplayMillis);
+        timeline.setMinMarkInterval(minMarkInterval);
 
-        // 重新更新开始和结束时间
         timeline.setStartTime(startTime);
         timeline.setEndTime(endTime);
         timeline.repaint();
@@ -62,17 +59,16 @@ public class TimelineObserver implements IChartEventObserver {
     }
 
     /**
-     * 刷新视图
+     * Refresh view
      *
-     * @param range          时间范围
-     * @param firstTimestamp 本次Chart首次创建并启动刷新时的时间戳
-     * @param isUseCache     是否使用缓存机制
+     * @param range          Chart display time range
+     * @param firstTimestamp The first time stamp of this chart's data
+     * @param useCache       whether or not use cache
      */
     @Override
-    public void refreshView(ChartDataRange range, long firstTimestamp, boolean isUseCache) {
+    public void refreshView(ChartDataRange range, long firstTimestamp, boolean useCache) {
         timeline.setStartTime(range.getStartTime());
         timeline.setEndTime(range.getEndTime());
-
         timeline.repaint();
         timeline.revalidate();
     }

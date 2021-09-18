@@ -15,15 +15,18 @@
 
 package ohos.devtools.views.trace.bean;
 
+import ohos.devtools.views.trace.DField;
+
 /**
  * Process entity class
  *
- * @version 1.0
  * @date 2021/04/22 12:25
- **/
+ */
 public class Process {
-    private int pid;
+    @DField(name = "pid")
+    private Integer pid;
 
+    @DField(name = "processName")
     private String name;
 
     /**
@@ -31,7 +34,7 @@ public class Process {
      *
      * @return the value of int
      */
-    public int getPid() {
+    public Integer getPid() {
         return pid;
     }
 
@@ -41,7 +44,7 @@ public class Process {
      *
      * @param id id
      */
-    public void setPid(final int id) {
+    public void setPid(final Integer id) {
         this.pid = id;
     }
 
@@ -62,5 +65,10 @@ public class Process {
      */
     public void setName(final String name) {
         this.name = name;
+    }
+
+    @Override
+    public String toString() {
+        return pid + "-" + name;
     }
 }

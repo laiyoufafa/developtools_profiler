@@ -15,180 +15,169 @@
 
 package ohos.devtools.views.layout.chartview;
 
-import com.intellij.ui.components.JBLabel;
-import ohos.devtools.views.common.ProfilerMonitorItem;
-import ohos.devtools.views.common.chart.ProfilerScrollbar;
-import ohos.devtools.views.common.chart.ProfilerTimeline;
-import ohos.devtools.views.layout.chartview.observer.CacheObserver;
-import ohos.devtools.views.layout.chartview.observer.ProfilerChartsViewObserver;
+import com.intellij.icons.AllIcons;
+import com.intellij.ui.components.JBPanel;
+import com.intellij.ui.components.JBScrollPane;
+import ohos.devtools.datasources.utils.device.entity.DeviceType;
+import ohos.devtools.datasources.utils.session.entity.SessionInfo;
+import ohos.devtools.datasources.utils.session.service.SessionManager;
+import ohos.devtools.views.common.LayoutConstants;
+import ohos.devtools.views.layout.chartview.observer.ProfilerChartsViewPublisher;
 import ohos.devtools.views.layout.chartview.observer.TimelineObserver;
-import ohos.devtools.views.layout.swing.TaskScenePanelChart;
 
-import javax.swing.ImageIcon;
-import javax.swing.JComponent;
-import javax.swing.JPanel;
-import javax.swing.Spring;
-import javax.swing.SpringLayout;
-import javax.swing.SwingWorker;
+import javax.swing.Icon;
 import java.awt.BorderLayout;
-import java.awt.Component;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
-import java.net.URL;
+import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
 
-import static java.awt.Image.SCALE_DEFAULT;
-import static javax.swing.SpringLayout.Constraints;
-import static ohos.devtools.views.common.ColorConstants.CHART_BG;
-import static ohos.devtools.views.common.LayoutConstants.LOADING_SIZE;
-import static ohos.devtools.views.common.ViewConstants.NUM_2;
-import static ohos.devtools.views.common.ViewConstants.TIMELINE_HEIGHT;
-import static ohos.devtools.views.common.ViewConstants.TIMELINE_WIDTH;
+import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
+import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
+import static ohos.devtools.views.layout.chartview.utils.ChartViewConstants.TIMELINE_HEIGHT;
+import static ohos.devtools.views.layout.chartview.utils.ChartViewConstants.TIMELINE_WIDTH;
 
 /**
- * 监控界面Chart面板，包括顶部Timeline和Chart
- *
- * @since 2021/1/25 9:30
+ * Profiler Chart view main panel
  */
-public class ProfilerChartsView extends JPanel {
+public class ProfilerChartsView extends JBPanel {
     /**
-     * sessionMap
+     * Map of saving Session id and ProfilerChartsView
+     *
+     * @see "Key: Session id, value: ProfilerChartsView"
      */
     public static Map<Long, ProfilerChartsView> sessionMap = new HashMap<>();
 
     /**
-     * sessionId
+     * Session id
      */
     private final long sessionId;
 
     /**
-     * Chart显示界面的Monitor
+     * Event publisher of charts display view
      */
-    private final ProfilerChartsViewObserver observer;
+    private final ProfilerChartsViewPublisher publisher;
 
     /**
-     * 保存时间线和监控项的Pane
-     *
-     * @see "加这个Panel是由于Java heap的table之前会add到south，和滚动条位置冲突，造成两个组件闪烁"
+     * Panel to save timeline and monitor items
      */
-    private final JPanel mainPanel;
+    private final JBPanel mainPanel;
 
     /**
-     * 保存各个指标项的面板
+     * Saves the parent panel of the current view
      */
-    private final ItemViewsPanel itemsPanel;
+    private TaskScenePanelChart taskScenePanelChart;
 
     /**
-     * 需要绘制标尺的组件集合
-     *
-     * @see "Map<组件，是否已经绘制了标尺>"
+     * Panel to save all monitor items
      */
-    private final Map<JComponent, Boolean> rulerCompMap = new HashMap<>();
+    private ItemsView itemsView;
 
     /**
-     * 绘制标尺的X坐标，以Chart和Timeline起点为0点
-     */
-    private int rulerXCoordinate = 0;
-
-    /**
-     * 鼠标当前进入的组件
-     */
-    private JComponent currentEntered;
-
-    /**
-     * 自定义水平滚动条
+     * User-defined horizontal scroll bar
      */
     private ProfilerScrollbar horizontalBar;
 
     /**
-     * 暂停标志
+     * User-defined timeline
      */
-    private boolean flagEnd = false;
+    private ProfilerTimeline timeline;
 
     /**
-     * 停止标志
+     * User-defined loading panel
      */
-    private boolean stopFlag = false;
+    private JBPanel loadingPanel;
 
     /**
-     * 向下扩展标志
+     * Sign of pause
      */
-    private boolean flagDown = false;
+    private boolean pause = false;
 
     /**
-     * 新增配置项标志
+     * Sign of stop
+     */
+    private boolean stop = false;
+
+    /**
+     * Sign of add item
      */
     private boolean addItemFlag = false;
 
-    private final TaskScenePanelChart taskScenePanelChart;
-
-    private ProfilerTimeline timeline;
-
-    private JPanel loadingPanel;
+    /**
+     * Is chart loading (waiting for database to process data during initialization)
+     */
+    private boolean loading = false;
 
     /**
-     * chart界面的层级判断
+     * Constructor
      *
-     * @see "true：二级界面，false：一级界面"
+     * @param sessionId Session id
+     * @param traceFile Is track file static import mode
+     * @param taskScenePanelChart Saves the parent panel of the current view
      */
-    private boolean chartLevel = false;
-
-    /**
-     * chart界面的是否展开
-     *
-     * @see "true：二级界面，false：一级界面"
-     */
-    private boolean ableUnfoldTable = false;
-
-    /**
-     * Chart是否在加载（初始化时等待数据库处理数据）
-     */
-    private boolean isLoading = false;
-
-    /**
-     * 构造函数
-     *
-     * @param sessionId           JPanel
-     * @param isTraceFile         是否为Trace文件静态导入模式
-     * @param taskScenePanelChart 用于chart滚动条拖动，获取对象，设置暂停或者开始按钮图标
-     */
-    public ProfilerChartsView(long sessionId, boolean isTraceFile, TaskScenePanelChart taskScenePanelChart) {
+    public ProfilerChartsView(long sessionId, boolean traceFile, TaskScenePanelChart taskScenePanelChart) {
         super(true);
         this.setOpaque(true);
         this.setLayout(new BorderLayout());
-        this.setBackground(CHART_BG);
-
-        // 初始化mainPanel并add至当前View
-        this.mainPanel = new JPanel(new BorderLayout());
-        this.mainPanel.setOpaque(true);
-        this.add(mainPanel, BorderLayout.CENTER);
-
         this.sessionId = sessionId;
         this.taskScenePanelChart = taskScenePanelChart;
-        this.observer = new ProfilerChartsViewObserver(this, isTraceFile);
-        // 初始化Timeline
-        initTimeline(taskScenePanelChart);
-        // 添加
-        CacheObserver chartObserver = new CacheObserver(sessionId);
-        this.getObserver().attach(chartObserver);
-
-        // 初始化并添加保存各个指标项的布局
-        this.itemsPanel = new ItemViewsPanel(this);
-        this.mainPanel.add(itemsPanel, BorderLayout.CENTER);
+        this.mainPanel = new JBPanel(new BorderLayout());
+        this.add(mainPanel, BorderLayout.CENTER);
+        this.publisher = new ProfilerChartsViewPublisher(this, traceFile);
+        if (traceFile) {
+            initTimeline();
+            this.mainPanel.add(timeline, BorderLayout.NORTH);
+        }
+        initScrollPane();
         sessionMap.put(this.sessionId, this);
-        // 添加组件大小变化的监听器
         addResizedListener();
     }
 
     /**
-     * 添加组件大小变化的监听器
+     * Constructor
+     *
+     * @param sessionId Session id
+     * @param traceFile Is track file static import mode
+     */
+    public ProfilerChartsView(long sessionId, boolean traceFile) {
+        super(true);
+        this.setOpaque(true);
+        this.setLayout(new BorderLayout());
+        this.sessionId = sessionId;
+        this.mainPanel = new JBPanel(new BorderLayout());
+        this.add(mainPanel, BorderLayout.CENTER);
+        this.publisher = new ProfilerChartsViewPublisher(this, traceFile);
+        SessionInfo sessionInfo = SessionManager.getInstance().getSessionInfo(sessionId);
+        if (traceFile || sessionInfo.getDeviceIPPortInfo().getDeviceType() == DeviceType.LEAN_HOS_DEVICE) {
+            initTimeline();
+            this.mainPanel.add(timeline, BorderLayout.NORTH);
+        } else {
+            initTimeAndAbility();
+        }
+        initScrollPane();
+        sessionMap.put(this.sessionId, this);
+        addResizedListener();
+    }
+
+    /**
+     * init timeLine and Ability
+     */
+    private void initTimeAndAbility() {
+        JBPanel timeAbilityPanel = new JBPanel(new BorderLayout());
+        initTimeline();
+        timeAbilityPanel.add(timeline, BorderLayout.NORTH);
+        this.mainPanel.add(timeAbilityPanel, BorderLayout.NORTH);
+    }
+
+    /**
+     * Add listener for component size change
      */
     private void addResizedListener() {
         this.addComponentListener(new ComponentAdapter() {
             @Override
-            public void componentResized(ComponentEvent exception) {
-                // 组件大小变化时，要调整滚动条的大小和位置
+            public void componentResized(ComponentEvent event) {
+                // Adjust the size and position of the scroll bar when the component size changes
                 if (horizontalBar != null) {
                     horizontalBar.resizeAndReposition();
                 }
@@ -196,42 +185,44 @@ public class ProfilerChartsView extends JPanel {
         });
     }
 
-    /**
-     * 初始化Timeline
-     *
-     * @param taskScenePanelChart taskScenePanelChart
-     */
-    private void initTimeline(TaskScenePanelChart taskScenePanelChart) {
-        // 初始化时间线，这里宽高给一个预设值
-        timeline = new ProfilerTimeline(this, TIMELINE_WIDTH, TIMELINE_HEIGHT, taskScenePanelChart);
-        // 保存时间线的绘图标准
-        timeline.setMaxDisplayTime(observer.getStandard().getMaxDisplayMillis());
-        timeline.setMinMarkInterval(observer.getStandard().getMinMarkInterval());
-
-        // 创建Timeline的观察者，并注册至主界面
+    private void initTimeline() {
+        timeline = new ProfilerTimeline(TIMELINE_WIDTH, TIMELINE_HEIGHT);
+        // Save chart standard for timeline
+        timeline.setMaxDisplayTime(publisher.getStandard().getMaxDisplayMillis());
+        timeline.setMinMarkInterval(publisher.getStandard().getMinMarkInterval());
+        // Create the observer for timeline and register to the current view
         TimelineObserver timelineObserver = new TimelineObserver(timeline);
-        observer.attach(timelineObserver);
-        // Timeline需要绘制标尺，把他加入集合
-        this.addRulerComp(timeline);
+        publisher.attach(timelineObserver);
+    }
 
-        // 组件添加至mainPanel
-        this.mainPanel.add(timeline, BorderLayout.NORTH);
+    private void initScrollPane() {
+        this.itemsView = new ItemsView(this);
+        JBScrollPane itemsScroll =
+            new JBScrollPane(itemsView, VERTICAL_SCROLLBAR_AS_NEEDED, HORIZONTAL_SCROLLBAR_NEVER);
+        itemsScroll.getVerticalScrollBar().setUnitIncrement(LayoutConstants.SCROLL_UNIT_INCREMENT);
+        itemsScroll.addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentResized(ComponentEvent event) {
+                itemsView.updateShowHeight(event.getComponent().getHeight());
+            }
+        });
+        this.mainPanel.add(itemsScroll, BorderLayout.CENTER);
     }
 
     /**
-     * 初始化水平滚动条
+     * Initialize horizontal scroll bar
      */
     public void initScrollbar() {
         this.horizontalBar = new ProfilerScrollbar(this);
         this.mainPanel.add(horizontalBar, BorderLayout.SOUTH);
-        this.observer.setScrollbarShow(true);
+        this.publisher.setDisplayScrollbar(true);
     }
 
     /**
-     * 移除水平滚动条
+     * Remove horizontal scroll bar
      */
     public void removeScrollbar() {
-        this.observer.setScrollbarShow(false);
+        this.publisher.setDisplayScrollbar(false);
         if (horizontalBar != null) {
             this.mainPanel.remove(horizontalBar);
             this.horizontalBar = null;
@@ -239,188 +230,75 @@ public class ProfilerChartsView extends JPanel {
     }
 
     /**
-     * 显示Loading标识，并且禁用停止和暂停按钮事件
+     * Show Loading panel
      */
     public void showLoading() {
-        SpringLayout spring = new SpringLayout();
-        loadingPanel = new JPanel(spring);
-        loadingPanel.setBackground(CHART_BG);
-        JBLabel loadingLabel = new JBLabel();
-
-        new SwingWorker<>() {
-            @Override
-            protected Object doInBackground() {
-                URL url = ProfilerChartsView.class.getClassLoader().getResource("images/loading.gif");
-                if (url != null) {
-                    ImageIcon icon = new ImageIcon(url);
-                    icon.setImage(icon.getImage().getScaledInstance(LOADING_SIZE, LOADING_SIZE, SCALE_DEFAULT));
-                    loadingLabel.setIcon(icon);
-                }
-                loadingPanel.add(loadingLabel);
-
-                return loadingPanel;
-            }
-
-            @Override
-            protected void done() {
-                // 增加约束，保持Loading图在组件中间
-                Constraints loadingCons = spring.getConstraints(loadingLabel);
-                loadingCons.setX(Spring.constant((loadingPanel.getWidth() - LOADING_SIZE) / NUM_2));
-                loadingCons.setY(Spring.constant((loadingPanel.getHeight() - LOADING_SIZE) / NUM_2));
-                // 手动触发组件布局事件
-                loadingPanel.revalidate();
-
-                loadingPanel.addComponentListener(new ComponentAdapter() {
-                    @Override
-                    public void componentResized(ComponentEvent componentEvent) {
-                        super.componentResized(componentEvent);
-                        Constraints loadingCons = spring.getConstraints(loadingLabel);
-                        loadingCons.setX(Spring.constant((loadingPanel.getWidth() - LOADING_SIZE) / NUM_2));
-                        loadingCons.setY(Spring.constant((loadingPanel.getHeight() - LOADING_SIZE) / NUM_2));
-                        loadingPanel.revalidate();
-                    }
-                });
-
-                // Loading界面加载完成，现在开始检查Loading结果：Loading完成后启动刷新
-                observer.checkLoadingResult();
-            }
-        }.execute();
-
-        isLoading = true;
+        loadingPanel = new LoadingPanel();
+        loading = true;
         this.remove(mainPanel);
         this.add(loadingPanel, BorderLayout.CENTER);
+        // Check the loading result: start the refresh after loading
+        publisher.checkLoadingResult();
     }
 
     /**
-     * 隐藏Loading标识，并且禁用停止和暂停按钮事件
+     * Hide Loading panel and show main panel
      */
     public void hideLoading() {
         if (loadingPanel != null) {
             this.remove(loadingPanel);
         }
-        isLoading = false;
+        loading = false;
         this.add(mainPanel, BorderLayout.CENTER);
     }
 
     /**
-     * 添加一项监控的指标项视图
+     * Add a monitor item view
      *
      * @param item 指标项枚举类
+     * @throws InvocationTargetException
+     * @throws NoSuchMethodException
+     * @throws InstantiationException
+     * @throws IllegalAccessException
      */
-    public void addMonitorItemView(ProfilerMonitorItem item) {
-        itemsPanel.addMonitorItemView(item);
+    public void addMonitorItemView(ProfilerMonitorItem item)
+        throws InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+        itemsView.addMonitorItemView(item);
     }
 
     /**
-     * 添加内存信息二级视图
+     * Set pause status
      *
-     * @return MemoryStageView
+     * @param pause pause/resume
      */
-    public MemoryStageView addMemoryStageView() {
-        chartLevel = true;
-        removeMonitorItemView();
-        MemoryStageView memoryStageItem = new MemoryStageView(this);
-        this.mainPanel.add(memoryStageItem, BorderLayout.CENTER);
-        return memoryStageItem;
-    }
-
-    /**
-     * 创建二级界面时，移除一级界面的监控项视图
-     *
-     * @see "不能通过visible来实现，这样从二级界面返回一级时，itemsPanel宽高无法自适应"
-     */
-    private void removeMonitorItemView() {
-        this.mainPanel.remove(itemsPanel);
-    }
-
-    /**
-     * 移除二级界面视图
-     *
-     * @param stageView MemoryStageView
-     */
-    void removeStageView(MemoryStageView stageView) {
-        this.mainPanel.remove(stageView);
-        // Chart和Title也从标尺Map中移除
-        rulerCompMap.remove(stageView.getChart());
-        rulerCompMap.remove(stageView.getItemTitleStagePanel());
-    }
-
-    /**
-     * 返回一级界面时，重新添加监控项视图
-     */
-    void resumeMonitorItemView() {
-        // 返回一级界面时增加关闭展开
-        flagDown = false;
-        chartLevel = false;
-        for (Component comp : itemsPanel.getComponents()) {
-            if (comp instanceof AbsItemView) {
-                AbsItemView absItemView = (AbsItemView) comp;
-                absItemView.getChart().initMaxUnitY();
+    public void setPause(boolean pause) {
+        this.pause = pause;
+        Icon icon;
+        String text;
+        if (pause) {
+            icon = AllIcons.Process.ProgressResumeHover;
+            text = "Start";
+        } else {
+            icon = AllIcons.Process.ProgressPauseHover;
+            text = "Suspend";
+            if (itemsView != null) {
+                // Update the pop-up state of the table event after the left-click on all charts
+                itemsView.updateShowTableView();
             }
         }
-        this.mainPanel.add(itemsPanel);
+
+        if (taskScenePanelChart != null) {
+            taskScenePanelChart.getjButtonStop().setIcon(icon);
+            taskScenePanelChart.getjButtonStop().setToolTipText(text);
+        }
     }
 
-    /**
-     * 添加需要绘制标尺的组件
-     *
-     * @param comp JComponent
-     */
-    void addRulerComp(JComponent comp) {
-        rulerCompMap.put(comp, Boolean.FALSE);
+    public ProfilerChartsViewPublisher getPublisher() {
+        return publisher;
     }
 
-    /**
-     * 组件的标尺已绘制
-     *
-     * @param comp JComponent
-     */
-    public void compRulerDrawn(JComponent comp) {
-        rulerCompMap.put(comp, Boolean.TRUE);
-    }
-
-    /**
-     * 重置组件标尺状态为未绘制
-     */
-    public void resetRulerDrawStatus() {
-        rulerCompMap.keySet().forEach((comp -> rulerCompMap.put(comp, Boolean.FALSE)));
-    }
-
-    /**
-     * 刷新组件列表的标尺
-     */
-    public void refreshCompRuler() {
-        rulerCompMap.forEach((comp, isDrawn) -> {
-            // 如果已经绘制过，不需要再重复绘制，防止无限循环
-            if (!isDrawn) {
-                comp.repaint();
-                comp.revalidate();
-            }
-        });
-    }
-
-    public ProfilerChartsViewObserver getObserver() {
-        return observer;
-    }
-
-    public JPanel getMainPanel() {
+    public JBPanel getMainPanel() {
         return mainPanel;
-    }
-
-    public int getRulerXCoordinate() {
-        return rulerXCoordinate;
-    }
-
-    public void setRulerXCoordinate(int rulerXCoordinate) {
-        this.rulerXCoordinate = rulerXCoordinate;
-    }
-
-    public JComponent getCurrentEntered() {
-        return currentEntered;
-    }
-
-    public void setCurrentEntered(JComponent currentEntered) {
-        this.currentEntered = currentEntered;
     }
 
     public ProfilerScrollbar getHorizontalBar() {
@@ -431,28 +309,16 @@ public class ProfilerChartsView extends JPanel {
         return sessionId;
     }
 
-    public boolean isFlagEnd() {
-        return flagEnd;
+    public boolean isPause() {
+        return pause;
     }
 
-    public void setFlagEnd(boolean flagEnd) {
-        this.flagEnd = flagEnd;
+    public boolean isStop() {
+        return stop;
     }
 
-    public boolean isStopFlag() {
-        return stopFlag;
-    }
-
-    public void setStopFlag(boolean stopFlag) {
-        this.stopFlag = stopFlag;
-    }
-
-    public boolean isFlagDown() {
-        return flagDown;
-    }
-
-    public void setFlagDown(boolean flagDown) {
-        this.flagDown = flagDown;
+    public void setStop(boolean stop) {
+        this.stop = stop;
     }
 
     public boolean isAddItemFlag() {
@@ -471,19 +337,11 @@ public class ProfilerChartsView extends JPanel {
         return taskScenePanelChart;
     }
 
-    public boolean isChartLevel() {
-        return chartLevel;
-    }
-
-    public boolean isAbleUnfoldTable() {
-        return ableUnfoldTable;
-    }
-
-    public void setAbleUnfoldTable(boolean ableUnfoldTable) {
-        this.ableUnfoldTable = ableUnfoldTable;
-    }
-
     public boolean isLoading() {
-        return isLoading;
+        return loading;
+    }
+
+    public ItemsView getItemsView() {
+        return itemsView;
     }
 }

@@ -110,12 +110,10 @@ bool PluginServiceStub::GetRemoveResult()
 
 PluginService::PluginService()
 {
-    pluginIdAutoIncrease_ = 0;
+    pluginIdCounter_ = 0;
     serviceEntry_ = NULL;
     pluginServiceImpl_ = NULL;
     pluginCommandBuilder_ = NULL;
-    readShareMemoryThreadStatus_ = READ_SHARE_MEMORY_UNSPECIFIED;
-    waitForCommandId_ = 0;
 }
 
 PluginService::~PluginService() {}
@@ -181,8 +179,8 @@ bool PluginService::DestroyPluginSession(const std::string& pluginName)
 bool PluginService::AddPluginInfo(const PluginInfo& pluginInfo)
 {
     if (nameIndex_.find(pluginInfo.name) == nameIndex_.end()) { // add new plugin
-        while (pluginContext_.find(pluginIdAutoIncrease_) != pluginContext_.end()) {
-            pluginIdAutoIncrease_++;
+        while (pluginContext_.find(pluginIdCounter_) != pluginContext_.end()) {
+            pluginIdCounter_++;
         }
 
         ProfilerPluginCapability capability;
@@ -193,19 +191,19 @@ bool PluginService::AddPluginInfo(const PluginInfo& pluginInfo)
             return false;
         }
 
-        pluginContext_[pluginIdAutoIncrease_].path = pluginInfo.path;
-        pluginContext_[pluginIdAutoIncrease_].context = pluginInfo.context;
-        pluginContext_[pluginIdAutoIncrease_].config.set_name(pluginInfo.name);
-        pluginContext_[pluginIdAutoIncrease_].config.set_plugin_sha256(pluginInfo.sha256);
-        pluginContext_[pluginIdAutoIncrease_].profilerPluginState = std::make_shared<ProfilerPluginState>();
-        pluginContext_[pluginIdAutoIncrease_].profilerPluginState->set_name(pluginInfo.name);
-        pluginContext_[pluginIdAutoIncrease_].profilerPluginState->set_state(ProfilerPluginState::REGISTERED);
+        pluginContext_[pluginIdCounter_].path = pluginInfo.path;
+        pluginContext_[pluginIdCounter_].context = pluginInfo.context;
+        pluginContext_[pluginIdCounter_].config.set_name(pluginInfo.name);
+        pluginContext_[pluginIdCounter_].config.set_plugin_sha256(pluginInfo.sha256);
+        pluginContext_[pluginIdCounter_].profilerPluginState = std::make_shared<ProfilerPluginState>();
+        pluginContext_[pluginIdCounter_].profilerPluginState->set_name(pluginInfo.name);
+        pluginContext_[pluginIdCounter_].profilerPluginState->set_state(ProfilerPluginState::REGISTERED);
 
-        pluginContext_[pluginIdAutoIncrease_].sha256 = pluginInfo.sha256;
-        pluginContext_[pluginIdAutoIncrease_].bufferSizeHint = pluginInfo.bufferSizeHint;
+        pluginContext_[pluginIdCounter_].sha256 = pluginInfo.sha256;
+        pluginContext_[pluginIdCounter_].bufferSizeHint = pluginInfo.bufferSizeHint;
 
-        nameIndex_[pluginInfo.name] = pluginIdAutoIncrease_;
-        pluginIdAutoIncrease_++;
+        nameIndex_[pluginInfo.name] = pluginIdCounter_;
+        pluginIdCounter_++;
     } else { // update sha256 or bufferSizeHint
         uint32_t idx = nameIndex_[pluginInfo.name];
 
@@ -218,6 +216,25 @@ bool PluginService::AddPluginInfo(const PluginInfo& pluginInfo)
     }
 
     HILOG_DEBUG(LOG_CORE, "AddPluginInfo for %s SUCCESS!", pluginInfo.name.c_str());
+    return true;
+}
+
+bool PluginService::GetPluginInfo(const std::string& pluginName, PluginInfo& pluginInfo)
+{
+    uint32_t pluginId = 0;
+
+    auto itName = nameIndex_.find(pluginName);
+    CHECK_TRUE(itName != nameIndex_.end(), false, "plugin name %s not found!", pluginName.c_str());
+    pluginId = itName->second;
+
+    auto itId = pluginContext_.find(pluginId);
+    CHECK_TRUE(itId != pluginContext_.end(), false, "plugin id %d not found!", pluginId);
+
+    pluginInfo.id = pluginId;
+    pluginInfo.name = itId->second.name;
+    pluginInfo.path = itId->second.path;
+    pluginInfo.sha256 = itId->second.sha256;
+    pluginInfo.bufferSizeHint = itId->second.bufferSizeHint;
     return true;
 }
 

@@ -20,7 +20,7 @@ package ohos.devtools.views.trace.bean;
  *
  * @version 1.0
  * @date 2021/04/22 12:25
- **/
+ */
 public class CPUThreadBean {
     private long avgDuration;
 
@@ -39,13 +39,13 @@ public class CPUThreadBean {
     /**
      * Parametric structure
      *
-     * @param mAvgDuration mAvgDuration
+     * @param mAvgDuration  mAvgDuration
      * @param mWallDuration mWallDuration
-     * @param mPid mPid
-     * @param mTid mTid
-     * @param mOccurrences mOccurrences
-     * @param mProcess mProcess
-     * @param mThread mThread
+     * @param mPid          mPid
+     * @param mTid          mTid
+     * @param mOccurrences  mOccurrences
+     * @param mProcess      mProcess
+     * @param mThread       mThread
      */
     public CPUThreadBean(final long mAvgDuration, final long mWallDuration, final String mPid, final String mTid,
         final String mOccurrences, final String mProcess, final String mThread) {

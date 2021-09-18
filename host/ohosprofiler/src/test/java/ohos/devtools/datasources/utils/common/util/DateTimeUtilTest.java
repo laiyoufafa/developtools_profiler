@@ -22,13 +22,9 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 /**
- * @Description DateTimeUtilTest
- * @Date 2021/2/7 15:00
- **/
+ * Date Time Util Test
+ */
 public class DateTimeUtilTest {
-    /**
-     * yyyy-MM-dd HH:mm:ss
-     */
     private static DateTimeFormatter COMMON_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     /**

@@ -27,7 +27,7 @@ SchedSliceTable::SchedSliceTable(const TraceDataCache* dataCache) : TableBase(da
     tableColumn_.push_back(TableBase::ColumnInfo("ts", "INT"));
     tableColumn_.push_back(TableBase::ColumnInfo("dur", "UNSIGNED BIG INT"));
     tableColumn_.push_back(TableBase::ColumnInfo("cpu", "UNSIGNED BIG INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("utid", "UNSIGNED BIG INT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("itid", "UNSIGNED BIG INT"));
     tableColumn_.push_back(TableBase::ColumnInfo("end_state", "STRING"));
     tableColumn_.push_back(TableBase::ColumnInfo("priority", "INT"));
     tablePriKey_.push_back("id");
@@ -78,7 +78,7 @@ int SchedSliceTable::Cursor::Column(int col) const
             sqlite3_result_int64(context_, static_cast<sqlite3_int64>(schedSliceObj_.PriorityData()[CurrentRow()]));
             break;
         default:
-            TUNING_LOGF("Unregistered column : %d", col);
+            TS_LOGF("Unregistered column : %d", col);
             break;
     }
     return SQLITE_OK;

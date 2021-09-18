@@ -16,7 +16,9 @@
 #ifndef BUFFER_WRITER_H
 #define BUFFER_WRITER_H
 
+#include <atomic>
 #include <memory>
+#include "event_notifier.h"
 #include "plugin_module_api.h"
 #include "share_memory_allocator.h"
 #include "writer.h"
@@ -27,18 +29,33 @@ using CommandPollerPtr = STD_PTR(shared, CommandPoller);
 
 class BufferWriter : public Writer {
 public:
-    BufferWriter(std::string name, uint32_t size, int fd, const CommandPollerPtr& cp, uint32_t pluginId);
+    BufferWriter(std::string name,
+                 uint32_t size,
+                 int smbFd,
+                 int eventFd,
+                 uint32_t pluginId);
     ~BufferWriter();
     long Write(const void* data, size_t size) override;
     bool Flush() override;
 
-    bool WriteProtobuf(google::protobuf::Message& pmsg);
+    bool WriteMessage(const google::protobuf::Message& pmsg);
+
+private:
+    void DoStats(long bytes);
+    void Report() const;
 
 private:
     std::string pluginName_;
     std::shared_ptr<ShareMemoryBlock> shareMemoryBlock_;
-    CommandPollerPtr commandPoller_;
-    uint32_t pluginId_;
+    EventNotifierPtr eventNotifier_ = nullptr;
+    std::chrono::steady_clock::time_point lastFlushTime_;
+    std::atomic<uint64_t> bytesCount_ = 0;
+    std::atomic<uint32_t> bytesPending_ = 0;
+    std::atomic<uint64_t> writeCount_ = 0;
+    std::atomic<uint32_t> flushCount_ = 0;
+    uint32_t pluginId_ = 0;
 };
+
+using BufferWriterPtr = STD_PTR(shared, BufferWriter);
 
 #endif // BUFFER_WRITER_H

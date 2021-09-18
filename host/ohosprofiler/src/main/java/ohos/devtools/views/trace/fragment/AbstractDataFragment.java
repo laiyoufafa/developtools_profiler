@@ -16,26 +16,41 @@
 package ohos.devtools.views.trace.fragment;
 
 import ohos.devtools.views.trace.component.AnalystPanel;
+import ohos.devtools.views.trace.fragment.graph.AbstractGraph;
+import ohos.devtools.views.trace.fragment.graph.CheckGraph;
+import ohos.devtools.views.trace.fragment.graph.FavoriteGraph;
 import ohos.devtools.views.trace.fragment.ruler.AbstractFragment;
+import ohos.devtools.views.trace.util.Utils;
 
+import javax.swing.JComponent;
+import javax.swing.SwingUtilities;
 import java.awt.AlphaComposite;
 import java.awt.Font;
 import java.awt.Graphics2D;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
+import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
+
+import static java.util.Objects.nonNull;
 
 /**
  * Draw data rows
  *
  * @param <T> Plot data type
- * @version 1.0
  * @date 2021/04/22 12:25
- **/
-public abstract class AbstractDataFragment<T> extends AbstractFragment {
+ */
+public abstract class AbstractDataFragment<T extends AbstractGraph> extends AbstractFragment {
     /**
      * uuid
      */
     public String uuid = UUID.randomUUID().toString();
+
+    /**
+     * is alive
+     */
+    public boolean isAlive;
 
     /**
      * Parent node uuid
@@ -54,6 +69,27 @@ public abstract class AbstractDataFragment<T> extends AbstractFragment {
     public Font smallFont = new Font("宋体", Font.ITALIC, 10);
 
     /**
+     * ndicates whether the data row is selected.
+     * null does not display the selected state. true/false displays the sufficient selection box
+     */
+    public Boolean isSelected = false;
+
+    /**
+     * Whether to show
+     */
+    public boolean visible = true;
+
+    /**
+     * Favorite button
+     */
+    public FavoriteGraph favoriteGraph;
+
+    /**
+     * Select button
+     */
+    public CheckGraph checkGraph;
+
+    /**
      * Start event
      */
     public long startNS;
@@ -64,15 +100,31 @@ public abstract class AbstractDataFragment<T> extends AbstractFragment {
     public long endNS;
 
     /**
-     * ndicates whether the data row is selected.
-     * null does not display the selected state. true/false displays the sufficient selection box
+     * data list
      */
-    public Boolean isSelected = false;
+    protected List<T> data;
+
+    private IDataFragment dataFragmentListener;
+    private final boolean hasFavorite;
+    private final boolean hasCheck;
 
     /**
-     * Whether to show
+     * The construction method
+     *
+     * @param component component
+     * @param hasFavorite hasFavorite
+     * @param hasCheck hasCheck
      */
-    public boolean visible = true;
+    public AbstractDataFragment(JComponent component, boolean hasFavorite, boolean hasCheck) {
+        this.hasFavorite = hasFavorite;
+        this.hasCheck = hasCheck;
+        favoriteGraph = new FavoriteGraph(this, component, event -> {
+            if (nonNull(dataFragmentListener)) {
+                dataFragmentListener.collect(this);
+            }
+        });
+        checkGraph = new CheckGraph(this, component);
+    }
 
     /**
      * Set to show or hide
@@ -87,7 +139,7 @@ public abstract class AbstractDataFragment<T> extends AbstractFragment {
      * Time range interval change
      *
      * @param startNS Starting time
-     * @param endNS   End Time
+     * @param endNS End Time
      */
     public void range(long startNS, long endNS) {
         this.startNS = startNS;
@@ -99,7 +151,24 @@ public abstract class AbstractDataFragment<T> extends AbstractFragment {
      *
      * @param event event
      */
-    public abstract void mouseClicked(MouseEvent event);
+    public void mouseClicked(MouseEvent event) {
+        if (favoriteGraph.isFavorite()) {
+            MouseEvent me = SwingUtilities.convertMouseEvent(getRoot(), event, getRoot().getParent());
+            if (favoriteGraph.edgeInspect(me)) {
+                favoriteGraph.onClick(me);
+            }
+            if (checkGraph.edgeInspect(me)) {
+                checkGraph.onClick(me);
+            }
+        } else {
+            if (favoriteGraph.edgeInspect(event)) {
+                favoriteGraph.onClick(event);
+            }
+            if (checkGraph.edgeInspect(event)) {
+                checkGraph.onClick(event);
+            }
+        }
+    }
 
     /**
      * Mouse click event
@@ -127,7 +196,22 @@ public abstract class AbstractDataFragment<T> extends AbstractFragment {
      *
      * @param event event
      */
-    public abstract void mouseMoved(MouseEvent event);
+    public void mouseMoved(MouseEvent event) {
+        favoriteGraph.display(edgeInspectRect(getDescRect(), event));
+        if (hasFavorite && !visible) {
+            if (favoriteGraph.edgeInspect(event)) {
+                if (!favoriteGraph.flagFocus) {
+                    favoriteGraph.flagFocus = true;
+                    favoriteGraph.onFocus(event);
+                }
+            } else {
+                if (favoriteGraph.flagFocus) {
+                    favoriteGraph.flagFocus = false;
+                    favoriteGraph.onBlur(event);
+                }
+            }
+        }
+    }
 
     /**
      * Mouse release event
@@ -151,9 +235,19 @@ public abstract class AbstractDataFragment<T> extends AbstractFragment {
         getDataRect().width = getRoot().getWidth() - 200;
         graphics.setColor(getRoot().getForeground());
         graphics.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, .5f));
-        graphics.drawLine(getRect().x, getRect().y + getRect().height, getRoot().getWidth(),
-            getRect().y + getRect().height);
+        graphics.drawLine(Utils.getX(getRect()), Utils.getY(getRect()) + getRect().height, getRoot().getWidth(),
+            Utils.getY(getRect()) + getRect().height);
         graphics.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1f));
+        if (hasCheck) {
+            checkGraph.setChecked(isSelected);
+            checkGraph.draw(graphics);
+        }
+        if (hasFavorite) {
+            if (hasCheck) {
+                favoriteGraph.setRightGraph(isSelected != null ? checkGraph : null);
+            }
+            favoriteGraph.draw(graphics);
+        }
     }
 
     /**
@@ -211,15 +305,15 @@ public abstract class AbstractDataFragment<T> extends AbstractFragment {
      * Clear selection element
      */
     public void clearSelected() {
-        if (CpuDataFragment.currentSelectedCpuData != null) {
+        if (nonNull(CpuDataFragment.currentSelectedCpuData)) {
             CpuDataFragment.currentSelectedCpuData.select(false);
             CpuDataFragment.currentSelectedCpuData.repaint();
         }
-        if (ThreadDataFragment.currentSelectedThreadData != null) {
+        if (nonNull(ThreadDataFragment.currentSelectedThreadData)) {
             ThreadDataFragment.currentSelectedThreadData.select(false);
             ThreadDataFragment.currentSelectedThreadData.repaint();
         }
-        if (FunctionDataFragment.currentSelectedFunctionData != null) {
+        if (nonNull(FunctionDataFragment.currentSelectedFunctionData)) {
             FunctionDataFragment.currentSelectedFunctionData.setSelected(false);
             FunctionDataFragment.currentSelectedFunctionData.repaint();
         }
@@ -228,15 +322,99 @@ public abstract class AbstractDataFragment<T> extends AbstractFragment {
     /**
      * Set rect object
      *
-     * @param xSize  x coordinate
-     * @param ySize  y coordinate
-     * @param width  width
+     * @param xSize x coordinate
+     * @param ySize y coordinate
+     * @param width width
      * @param height height
      */
     public void setRect(int xSize, int ySize, int width, int height) {
-        getRect().x = xSize;
-        getRect().y = ySize;
+        getRect().setLocation(xSize, ySize);
         getRect().width = width;
         getRect().height = height;
+    }
+
+    /**
+     * Gets the value of dataFragmentListener .
+     *
+     * @return the value of ohos.devtools.views.trace.fragment.AbstractDataFragment.IDataFragment
+     */
+    public IDataFragment getDataFragmentListener() {
+        return dataFragmentListener;
+    }
+
+    /**
+     * Sets the dataFragmentListener .
+     * <p>You can use getDataFragmentListener() to get the value of dataFragmentListener</p>
+     *
+     * @param listener listener
+     */
+    public void setDataFragmentListener(IDataFragment listener) {
+        this.dataFragmentListener = listener;
+    }
+
+    /**
+     * recycle the data
+     */
+    public void recycle() {
+        if (data != null) {
+            data.clear();
+        }
+    }
+
+    /**
+     * get the real mouse event
+     *
+     * @param evt MouseEvent
+     * @return MouseEvent
+     */
+    public MouseEvent getRealMouseEvent(MouseEvent evt) {
+        MouseEvent event;
+        if (favoriteGraph.isFavorite()) {
+            event = SwingUtilities.convertMouseEvent(getRoot(), evt, getRoot().getParent());
+        } else {
+            event = evt;
+        }
+        return event;
+    }
+
+    /**
+     * key released
+     *
+     * @param event event
+     */
+    public abstract void keyReleased(KeyEvent event);
+
+    /**
+     * get the click mouse event is empty
+     *
+     * @param event MouseEvent
+     * @return return the click point is in function or thread
+     */
+    public boolean isEmptyClick(MouseEvent event) {
+        if (Objects.nonNull(data)) {
+            return data.stream().allMatch(it -> !it.rect.contains(event.getPoint()));
+        }
+        return true;
+    }
+
+    /**
+     * IDataFragment
+     *
+     * @date 2021/04/22 12:25
+     */
+    public interface IDataFragment {
+        /**
+         * collect Callback
+         *
+         * @param fgr data
+         */
+        void collect(AbstractDataFragment fgr);
+
+        /**
+         * check Callback
+         *
+         * @param fgr data
+         */
+        void check(AbstractDataFragment fgr);
     }
 }

@@ -10,12 +10,16 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
 syntax = "proto3";
 
 option java_package = "ohos.devtools.datasources.transport.grpc.service";
 
 import "profiler_service_types.proto";
 
+// RPC interface between profiler service and host service
+// Use protobuf plug-ins to convert proto define to
+// source and header files during the build process.
 service IProfilerService {
     // get all plugin infos and capabilities.
     rpc GetCapabilities(GetCapabilitiesRequest) returns (GetCapabilitiesResponse);
@@ -35,6 +39,6 @@ service IProfilerService {
     // destroy tracing session.
     rpc DestroySession(DestroySessionRequest) returns (DestroySessionResponse);
 
-    // get device time 下一轮迭代再添加相关定义
-    // rpc GetTime(GetTimeRequest) returns (GetTimeResponse);
+    // keep tracing session alive, call this interface will restart session expire count down task.
+    rpc KeepSession(KeepSessionRequest) returns (KeepSessionResponse);
 }

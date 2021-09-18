@@ -37,8 +37,9 @@ public:
  */
 HWTEST_F(ServiceBaseTest, ProtocolProc, TestSize.Level1)
 {
+    std::string s="asdf";
     ServiceBase serviceBase;
     SocketContext socketContext;
-    ASSERT_FALSE(serviceBase.ProtocolProc(socketContext, 0, nullptr, 0));
+    ASSERT_FALSE(serviceBase.ProtocolProc(socketContext, 0, (const int8_t *)s.c_str(), s.size()));
 }
 } // namespace

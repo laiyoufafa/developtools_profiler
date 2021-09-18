@@ -23,18 +23,18 @@ import ohos.devtools.views.trace.fragment.ruler.LeftFragment;
 import ohos.devtools.views.trace.fragment.ruler.RulerFragment;
 import ohos.devtools.views.trace.fragment.ruler.TopFragment;
 import ohos.devtools.views.trace.util.Final;
+import ohos.devtools.views.trace.util.Utils;
 
 import javax.swing.JComponent;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.event.MouseEvent;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * Timeline component
  *
- * @version 1.0.1
  * @date 2021/04/20 12:24
  */
 public final class TimeViewPort extends JBViewport {
@@ -66,32 +66,16 @@ public final class TimeViewPort extends JBViewport {
     /**
      * Favorite fragment list
      */
-    public List<AbstractDataFragment> favoriteFragments = new ArrayList<>();
+    public List<AbstractDataFragment> favoriteFragments = new CopyOnWriteArrayList<>();
 
     private final IRangeChangeListener rangeChangeListener;
     private final IHeightChangeListener heightChangeListener;
 
     /**
-     * Timeline interval change listener
-     */
-    @FunctionalInterface
-    public interface IRangeChangeListener {
-        void change(long startNS, long endNS);
-    }
-
-    /**
-     * Height change listener
-     */
-    @FunctionalInterface
-    public interface IHeightChangeListener {
-        void change(int height);
-    }
-
-    /**
      * Constructor。
      *
      * @param heightChangeListener Altitude change monitoring
-     * @param rangeChangeListener  Altitude change monitoring
+     * @param rangeChangeListener Altitude change monitoring
      */
     public TimeViewPort(IHeightChangeListener heightChangeListener, IRangeChangeListener rangeChangeListener) {
         this.rangeChangeListener = rangeChangeListener;
@@ -112,6 +96,18 @@ public final class TimeViewPort extends JBViewport {
     }
 
     /**
+     * mouse clicked handler
+     *
+     * @param event event
+     */
+    public void mouseClicked(MouseEvent event) {
+        for (AbstractDataFragment favoriteFragment : favoriteFragments) {
+            favoriteFragment.mouseClicked(event);
+        }
+        rulerFragment.mouseClicked(event);
+    }
+
+    /**
      * set root height
      *
      * @param rootHeight root height
@@ -127,7 +123,9 @@ public final class TimeViewPort extends JBViewport {
      * @param dataFragment fragment
      */
     public void favorite(AbstractDataFragment dataFragment) {
-        dataFragment.getRect().y = height;
+        dataFragment.setVisible(false);
+        dataFragment.favoriteGraph.favorite(true);
+        Utils.setY(dataFragment.getRect(), height);
         height += dataFragment.getRect().height;
         favoriteFragments.add(dataFragment);
         if (heightChangeListener != null) {
@@ -143,6 +141,8 @@ public final class TimeViewPort extends JBViewport {
      */
     public void cancel(AbstractDataFragment dataFragment) {
         if (favoriteFragments.contains(dataFragment)) {
+            dataFragment.setVisible(true);
+            dataFragment.favoriteGraph.favorite(false);
             height -= dataFragment.getRect().height;
             favoriteFragments.remove(dataFragment);
             if (heightChangeListener != null) {
@@ -168,6 +168,22 @@ public final class TimeViewPort extends JBViewport {
             topFragment.draw(g2);
             cpuFragment.draw(g2);
             rulerFragment.draw(g2);
+            for (int index = favoriteFragments.size() - 1; index >= 0; index--) {
+                AbstractDataFragment frg = favoriteFragments.get(index);
+                if (index == favoriteFragments.size() - 1) {
+                    Utils.setY(frg.getRect(), height - frg.getRect().height);
+                    Utils.setY(frg.getDescRect(), height - frg.getRect().height);
+                    Utils.setY(frg.getDataRect(), height - frg.getRect().height);
+                } else {
+                    Utils.setY(frg.getRect(),
+                        Utils.getY(favoriteFragments.get(index + 1).getRect()) - frg.getRect().height);
+                    Utils.setY(frg.getDescRect(),
+                        Utils.getY(favoriteFragments.get(index + 1).getRect()) - frg.getRect().height);
+                    Utils.setY(frg.getDataRect(),
+                        Utils.getY(favoriteFragments.get(index + 1).getRect()) - frg.getRect().height);
+                }
+                frg.draw(g2);
+            }
         }
     }
 
@@ -179,15 +195,16 @@ public final class TimeViewPort extends JBViewport {
     public void mousePressed(final MouseEvent event) {
         Object eventSource = event.getSource();
         if (eventSource instanceof JComponent) {
-            JComponent jComponent = ((JComponent) eventSource);
+            JComponent jComponent = (JComponent) eventSource;
             int scrollY = event.getY() + jComponent
                 .getY(); // subtract the scroll height of the parent node. After scrolling down, y is a negative number.
-            cpuFragment.setSelectX(event.getX() < cpuFragment.getRect().x ? cpuFragment.getRect().x : event.getX());
+            cpuFragment.setSelectX(
+                event.getX() < Utils.getX(cpuFragment.getRect()) ? Utils.getX(cpuFragment.getRect()) : event.getX());
             cpuFragment.setSelectY(scrollY);
-            rulerFragment
-                .setSelectX(event.getX() < rulerFragment.getRect().x ? rulerFragment.getRect().x : event.getX());
+            rulerFragment.setSelectX(
+                event.getX() < Utils.getX(rulerFragment.getRect()) ? Utils.getX(rulerFragment.getRect()) :
+                    event.getX());
             rulerFragment.setSelectY(scrollY);
-            rulerFragment.mousePressed(event);
         }
     }
 
@@ -208,16 +225,56 @@ public final class TimeViewPort extends JBViewport {
     public void mouseMoved(final MouseEvent event) {
         Object eventSource = event.getSource();
         if (eventSource instanceof JComponent) {
-            JComponent jComponent = ((JComponent) eventSource);
+            JComponent jComponent = (JComponent) eventSource;
             int scrollY = event.getY() + jComponent
                 .getY(); // Subtract the scroll height of the parent node. After scrolling down, y is a negative number.
-            cpuFragment.setSelectX(event.getX() < cpuFragment.getRect().x ? cpuFragment.getRect().x : event.getX());
+            cpuFragment.setSelectX(
+                event.getX() < Utils.getX(cpuFragment.getRect()) ? Utils.getX(cpuFragment.getRect()) : event.getX());
             cpuFragment.setSelectY(scrollY);
-            rulerFragment
-                .setSelectX(event.getX() < rulerFragment.getRect().x ? rulerFragment.getRect().x : event.getX());
+            rulerFragment.setSelectX(
+                event.getX() < Utils.getX(rulerFragment.getRect()) ? Utils.getX(rulerFragment.getRect()) :
+                    event.getX());
             rulerFragment.setSelectY(scrollY);
             CpuDataFragment.focusCpuData = null;
             rulerFragment.mouseMoved(event);
+            favoriteFragments.forEach(fragment -> fragment.mouseMoved(event));
         }
+    }
+
+    /**
+     * recycle all fragments
+     */
+    public void recycle() {
+        if (favoriteFragments != null) {
+            favoriteFragments.forEach(AbstractDataFragment::recycle);
+            favoriteFragments.clear();
+        }
+    }
+
+    /**
+     * Timeline interval change listener
+     */
+    @FunctionalInterface
+    public interface IRangeChangeListener {
+        /**
+         * change callback
+         *
+         * @param startNS start time
+         * @param endNS end time
+         */
+        void change(long startNS, long endNS);
+    }
+
+    /**
+     * Height change listener
+     */
+    @FunctionalInterface
+    public interface IHeightChangeListener {
+        /**
+         * change callback
+         *
+         * @param height height change
+         */
+        void change(int height);
     }
 }

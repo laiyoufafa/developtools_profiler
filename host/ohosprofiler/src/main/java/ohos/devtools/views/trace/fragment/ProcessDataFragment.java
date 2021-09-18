@@ -15,7 +15,7 @@
 
 package ohos.devtools.views.trace.fragment;
 
-import ohos.devtools.views.trace.bean.CpuFreqData;
+import ohos.devtools.views.trace.Sql;
 import ohos.devtools.views.trace.bean.Process;
 import ohos.devtools.views.trace.bean.ProcessData;
 import ohos.devtools.views.trace.component.AnalystPanel;
@@ -23,31 +23,45 @@ import ohos.devtools.views.trace.component.ContentPanel;
 import ohos.devtools.views.trace.fragment.graph.ExpandGraph;
 import ohos.devtools.views.trace.util.ColorUtils;
 import ohos.devtools.views.trace.util.Db;
+import ohos.devtools.views.trace.util.Final;
 import ohos.devtools.views.trace.util.ImageUtils;
+import ohos.devtools.views.trace.util.Utils;
 
 import javax.swing.JComponent;
 import javax.swing.SwingUtilities;
+import java.awt.AlphaComposite;
+import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Rectangle2D;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ForkJoinPool;
+import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * process data
  *
- * @version 1.0
  * @date 2021/04/22 12:25
- **/
-public class ProcessDataFragment extends AbstractDataFragment<CpuFreqData> implements ExpandGraph.IClickListener {
-    private final ExpandGraph expandGraph;
+ */
+public class ProcessDataFragment extends AbstractDataFragment<ProcessData> implements ExpandGraph.IClickListener {
+    /**
+     * current focus Process Data .
+     */
+    public static ProcessData focusProcessData = null;
     private final Process process;
-    private int defaultHeight;
+    private final float alpha60 = .6f;
+    private final float alpha100 = 1.0f;
+    private ExpandGraph expandGraph;
     private boolean isLoading;
     private int x1;
     private int x2;
     private Rectangle2D bounds;
+    private Color processColor;
+    private ProcessData tipProcessData = null;
+    private int tipX; // X position of the message
 
     /**
      * constructor
@@ -56,10 +70,30 @@ public class ProcessDataFragment extends AbstractDataFragment<CpuFreqData> imple
      * @param process process
      */
     public ProcessDataFragment(JComponent root, Process process) {
+        super(root, false, false);
         this.process = process;
+        processColor = ColorUtils.colorForTid(process.getPid());
         this.setRoot(root);
         expandGraph = new ExpandGraph(this, root);
         expandGraph.setOnClickListener(this);
+    }
+
+    /**
+     * Gets the value of expandGraph .
+     *
+     * @return the value of ohos.devtools.views.trace.fragment.graph.ExpandGraph
+     */
+    public ExpandGraph getExpandGraph() {
+        return expandGraph;
+    }
+
+    /**
+     * Gets the value of process .
+     *
+     * @return the value of ohos.devtools.views.trace.bean.Process
+     */
+    public Process getProcess() {
+        return process;
     }
 
     /**
@@ -70,9 +104,6 @@ public class ProcessDataFragment extends AbstractDataFragment<CpuFreqData> imple
     @Override
     public void draw(Graphics2D graphics) {
         super.draw(graphics);
-        if (AnalystPanel.cpuNum == 0) {
-            return;
-        }
         drawDefaultState(graphics);
 
         // left data info
@@ -85,59 +116,115 @@ public class ProcessDataFragment extends AbstractDataFragment<CpuFreqData> imple
         double wordWidth = bounds.getWidth() / name.length(); // Width per character
         double wordNum = (getDescRect().width - 40) / wordWidth; // How many characters can be displayed on each line
         if (bounds.getWidth() < getDescRect().width - 40) { // Direct line display
-            graphics.drawString(name, getDescRect().x + 30, (int) (getDescRect().y + bounds.getHeight() + 10));
+            graphics.drawString(name, Utils.getX(getDescRect()) + 30,
+                (int) (Utils.getY(getDescRect()) + bounds.getHeight() + 10));
         } else {
             String substring = name.substring((int) wordNum);
             if (substring.length() < wordNum) {
-                graphics.drawString(name.substring(0, (int) wordNum), getDescRect().x + 30,
-                    (int) (getDescRect().y + bounds.getHeight() + 8));
+                graphics.drawString(name.substring(0, (int) wordNum), Utils.getX(getDescRect()) + 30,
+                    (int) (Utils.getY(getDescRect()) + bounds.getHeight() + 8));
                 graphics
-                    .drawString(substring, getDescRect().x + 30, (int) (getDescRect().y + bounds.getHeight() * 2 + 8));
+                    .drawString(substring, Utils.getX(getDescRect()) + 30,
+                        (int) (Utils.getY(getDescRect()) + bounds.getHeight() * 2 + 8));
             } else {
-                graphics.drawString(name.substring(0, (int) wordNum), getDescRect().x + 30,
-                    (int) (getDescRect().y + bounds.getHeight() + 2));
-                graphics.drawString(substring.substring(0, (int) wordNum), getDescRect().x + 30,
-                    (int) (getDescRect().y + bounds.getHeight() * 2 + 2));
-                graphics.drawString(substring.substring((int) wordNum), getDescRect().x + 30,
-                    (int) (getDescRect().y + bounds.getHeight() * 3 + 2));
+                graphics.drawString(name.substring(0, (int) wordNum), Utils.getX(getDescRect()) + 30,
+                    (int) (Utils.getY(getDescRect()) + bounds.getHeight() + 2));
+                graphics.drawString(substring.substring(0, (int) wordNum), Utils.getX(getDescRect()) + 30,
+                    (int) (Utils.getY(getDescRect()) + bounds.getHeight() * 2 + 2));
+                graphics.drawString(substring.substring((int) wordNum), Utils.getX(getDescRect()) + 30,
+                    (int) (Utils.getY(getDescRect()) + bounds.getHeight() * 3 + 2));
             }
         }
-        expandGraph.setRect(getDescRect().x + 8, getRect().y + getRect().height / 2 - 6, 12, 12);
+        expandGraph.setRect(Utils.getX(getDescRect()) + 8, Utils.getY(getRect()) + getRect().height / 2 - 6, 12, 12);
         expandGraph.draw(graphics);
     }
 
     private void drawDefaultState(Graphics graphics) {
         if (!expandGraph.isExpand()) {
-            int height = (getRect().height) / AnalystPanel.cpuNum;
-            if (processData != null) {
-                for (int index = 0; index < processData.size(); index++) {
-                    ProcessData data = this.processData.get(index);
-                    if (data.getStartTime() < startNS) {
-                        x1 = getX(startNS);
-                    } else {
-                        x1 = getX(data.getStartTime());
-                    }
-                    if (data.getStartTime() + data.getDuration() > endNS) {
-                        x2 = getX(endNS);
-                    } else {
-                        x2 = getX(data.getStartTime() + data.getDuration());
-                    }
-                    graphics.setColor(ColorUtils.MD_PALETTE[process.getPid() % ColorUtils.MD_PALETTE.length]);
-                    graphics.fillRect(x1 + getDataRect().x, getDataRect().y + height * data.getCpu() + 2,
-                        x2 - x1 <= 0 ? 1 : x2 - x1, height - 4);
+            int height = (getRect().height) / (AnalystPanel.cpuNum == 0 ? 1 : AnalystPanel.cpuNum);
+            if (data != null) {
+                if (graphics instanceof Graphics2D) {
+                    data.stream()
+                        .filter(pd -> pd.getStartTime() + pd.getDuration() > startNS && pd.getStartTime() < endNS)
+                        .forEach(pd -> drawProcessData(pd, height, (Graphics2D) graphics));
+                    drawTips((Graphics2D) graphics);
                 }
             } else {
                 if (process.getPid() != 0) {
                     graphics.setColor(getRoot().getForeground());
-                    graphics.drawString("Loading...", getDataRect().x, getDataRect().y + 12);
+                    graphics.drawString("Loading...", Utils.getX(getDataRect()), Utils.getY(getDataRect()) + 12);
                     loadData();
                 }
             }
             graphics.setColor(getRoot().getForeground());
         } else {
             graphics.setColor(getRoot().getForeground());
-            graphics.fillRect(getRect().x, getRect().y, getRect().width, getRect().height);
+            graphics.fillRect(Utils.getX(getRect()), Utils.getY(getRect()), getRect().width, getRect().height);
             graphics.setColor(getRoot().getBackground());
+        }
+    }
+
+    private void drawProcessData(ProcessData pd, int height, Graphics2D graphics) {
+        if (pd.getStartTime() < startNS) {
+            x1 = getX(startNS);
+        } else {
+            x1 = getX(pd.getStartTime());
+        }
+        if (pd.getStartTime() + pd.getDuration() > endNS) {
+            x2 = getX(endNS);
+        } else {
+            x2 = getX(pd.getStartTime() + pd.getDuration());
+        }
+        graphics.setComposite(java.awt.AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha100));
+        if (CpuDataFragment.focusCpuData != null || focusProcessData != null) {
+            if (CpuDataFragment.focusCpuData != null) {
+                if (CpuDataFragment.focusCpuData.getProcessId() != pd.getPid()) {
+                    graphics.setColor(Color.GRAY);
+                } else if (CpuDataFragment.focusCpuData.getTid() != pd.getTid()) {
+                    graphics.setComposite(java.awt.AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha60));
+                    graphics.setColor(processColor);
+                } else {
+                    graphics.setColor(processColor);
+                }
+            } else {
+                if (focusProcessData.getPid() != pd.getPid()) {
+                    graphics.setColor(Color.GRAY);
+                } else if (focusProcessData.getTid() != pd.getTid()) {
+                    graphics.setComposite(java.awt.AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha60));
+                    graphics.setColor(processColor);
+                } else {
+                    graphics.setColor(processColor);
+                }
+            }
+        } else {
+            graphics.setColor(processColor);
+        }
+        pd.setRect(x1 + Utils.getX(getDataRect()), Utils.getY(getDataRect()) + height * pd.getCpu() + 2,
+            x2 - x1 <= 0 ? 1 : x2 - x1,
+            height - 4);
+        graphics.fillRect(x1 + Utils.getX(getDataRect()), Utils.getY(getDataRect()) + height * pd.getCpu() + 2,
+            x2 - x1 <= 0 ? 1 : x2 - x1,
+            height - 4);
+    }
+
+    private void drawTips(Graphics2D graphics) {
+        if (tipProcessData != null) {
+            graphics.setComposite(java.awt.AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha100));
+            graphics.setFont(Final.NORMAL_FONT);
+            if (tipProcessData.getProcess() == null || tipProcessData.getProcess().isEmpty()) {
+                tipProcessData.setProcess(tipProcessData.getThread());
+            }
+            String processName = "P:" + tipProcessData.getProcess() + " [" + tipProcessData.getPid() + "]";
+            String threadName = "T:" + tipProcessData.getThread() + " [" + tipProcessData.getTid() + "]";
+            Rectangle2D processBounds =
+                graphics.getFontMetrics(Final.NORMAL_FONT).getStringBounds(processName, graphics);
+            Rectangle2D threadBounds = graphics.getFontMetrics(Final.NORMAL_FONT).getStringBounds(threadName, graphics);
+            int tipWidth = (int) (Math.max(processBounds.getWidth(), threadBounds.getWidth()) + 20);
+            graphics.setColor(getRoot().getForeground());
+            graphics.fillRect(tipX, Utils.getY(getRect()), tipWidth, getRect().height);
+            graphics.setColor(getRoot().getBackground());
+            graphics.drawString(processName, tipX + 10, Utils.getY(getRect()) + 12);
+            graphics.drawString(threadName, tipX + 10, Utils.getY(getRect()) + 24);
         }
     }
 
@@ -148,6 +235,7 @@ public class ProcessDataFragment extends AbstractDataFragment<CpuFreqData> imple
      */
     @Override
     public void mouseClicked(MouseEvent event) {
+        super.mouseClicked(event);
         if (expandGraph.edgeInspect(event)) {
             expandGraph.onClick(event);
         }
@@ -183,11 +271,28 @@ public class ProcessDataFragment extends AbstractDataFragment<CpuFreqData> imple
     /**
      * mouse moved handler
      *
-     * @param event event
+     * @param ent event
      */
     @Override
-    public void mouseMoved(MouseEvent event) {
+    public void mouseMoved(MouseEvent ent) {
+        MouseEvent event = getRealMouseEvent(ent);
+        super.mouseMoved(event);
         clearFocus(event);
+        if (!expandGraph.isExpand()) {
+            tipProcessData = null;
+            if (edgeInspect(event) && data != null) {
+                focusProcessData = null;
+                data.stream().filter(pd -> pd.getStartTime() + pd.getDuration() > startNS && pd.getStartTime() < endNS)
+                    .forEach(pd -> {
+                        if (pd.edgeInspect(event)) {
+                            tipX = event.getX();
+                            focusProcessData = pd;
+                            tipProcessData = pd;
+                            repaint();
+                        }
+                    });
+            }
+        }
     }
 
     /**
@@ -197,6 +302,15 @@ public class ProcessDataFragment extends AbstractDataFragment<CpuFreqData> imple
      */
     @Override
     public void mouseReleased(MouseEvent event) {
+    }
+
+    /**
+     * key released event
+     *
+     * @param event event
+     */
+    @Override
+    public void keyReleased(KeyEvent event) {
     }
 
     /**
@@ -228,17 +342,48 @@ public class ProcessDataFragment extends AbstractDataFragment<CpuFreqData> imple
         }
     }
 
-    private List<ProcessData> processData;
+    /**
+     * expandThreads
+     */
+    public void expandThreads() {
+        expandGraph.setExpand(true);
+        if (this.getRoot() instanceof ContentPanel) {
+            ContentPanel contentPanel = (ContentPanel) this.getRoot();
+            if (expandGraph.isExpand()) {
+                expandGraph.setImage(ImageUtils.getInstance().getArrowUpFocus());
+                for (AbstractDataFragment dataFragment : contentPanel.fragmentList) {
+                    if (dataFragment.parentUuid.equals(uuid)) {
+                        dataFragment.visible = true;
+                    }
+                }
+            } else {
+                expandGraph.setImage(ImageUtils.getInstance().getArrowDownFocus());
+                for (AbstractDataFragment dataFragment : contentPanel.fragmentList) {
+                    if (dataFragment.parentUuid.equals(uuid)) {
+                        dataFragment.visible = false;
+                    }
+                }
+            }
+            contentPanel.refresh();
+        }
+    }
 
     private void loadData() {
         if (!isLoading) {
             isLoading = true;
-            ForkJoinPool.commonPool().submit(() -> {
-                processData = Db.getInstance().queryProcessData(process.getPid());
+            CompletableFuture.runAsync(() -> {
+                List<ProcessData> list = new ArrayList<>() {
+                };
+                Db.getInstance().query(Sql.SYS_QUERY_PROCESS_DATA, list, process.getPid());
+                data = list;
                 SwingUtilities.invokeLater(() -> {
                     isLoading = false;
                     repaint();
                 });
+            }, Utils.getPool()).whenComplete((unused, throwable) -> {
+                if (Objects.nonNull(throwable)) {
+                    throwable.printStackTrace();
+                }
             });
         }
     }

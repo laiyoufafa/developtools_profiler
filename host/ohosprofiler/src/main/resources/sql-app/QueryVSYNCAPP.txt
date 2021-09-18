@@ -1,0 +1,11 @@
+with track as (
+    select process_counter_track.id as trackId,
+                process_counter_track.name as trackName, upid, process.pid,
+                process.name as processName, process.start_ts as startTs
+                --,process.end_ts as endTs
+                from process_counter_track
+                join process using(upid)
+                where trackName='VSYNC-app'
+    order by trackName
+)
+select c.*,c.ts-tb.start_ts startTime from counter c,trace_bounds tb where track_id in (select track.trackId from track);

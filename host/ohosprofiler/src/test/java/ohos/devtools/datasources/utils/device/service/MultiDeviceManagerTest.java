@@ -17,22 +17,19 @@ package ohos.devtools.datasources.utils.device.service;
 
 import ohos.devtools.datasources.databases.databaseapi.DataBaseApi;
 import ohos.devtools.datasources.utils.device.entity.DeviceIPPortInfo;
-import ohos.devtools.datasources.utils.device.entity.DeviceInfo;
+import ohos.devtools.datasources.utils.device.entity.DeviceType;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 多设备管理测试类
- *
- * @version 1.0
- * @date 2021/2/2 19:02
- **/
+ * Multi-device management test class
+ */
 public class MultiDeviceManagerTest {
     private String serialNumber;
+    private DeviceIPPortInfo deviceIPPortInfo;
 
     /**
      * functional testing init
@@ -47,7 +44,10 @@ public class MultiDeviceManagerTest {
     public void setUp() {
         serialNumber = "emulator-5554";
         DataBaseApi.getInstance().initDataSourceManager();
-        MultiDeviceManager.getInstance().run();
+        MultiDeviceManager.getInstance().start();
+        deviceIPPortInfo  = new DeviceIPPortInfo();
+        deviceIPPortInfo.setDeviceID("1");
+        deviceIPPortInfo.setDeviceType(DeviceType.FULL_HOS_DEVICE);
     }
 
     /**
@@ -61,8 +61,8 @@ public class MultiDeviceManagerTest {
      */
     @Test
     public void pushHiprofilerCliTest1() {
-        boolean cli = MultiDeviceManager.getInstance().pushDevToolsShell(serialNumber);
-        Assert.assertTrue(cli);
+        boolean cli = MultiDeviceManager.getInstance().pushDevToolsShell(deviceIPPortInfo);
+        Assert.assertFalse(cli);
     }
 
     /**
@@ -76,38 +76,8 @@ public class MultiDeviceManagerTest {
      */
     @Test
     public void pushHiprofilerCliTest2() {
-        boolean cli = MultiDeviceManager.getInstance().pushDevToolsShell(serialNumber);
-        Assert.assertTrue(cli);
-    }
-
-    /**
-     * functional testing getDeviceIPPort
-     *
-     * @tc.name: getDeviceIPPort
-     * @tc.number: OHOS_JAVA_device_MultiDeviceManager_getDeviceIPPort_0001
-     * @tc.desc: getDeviceIPPort
-     * @tc.type: functional testing
-     * @tc.require: SR-004-AR-002
-     */
-    @Test
-    public void getDeviceIPPortTest() {
-        ArrayList<ArrayList<String>> deviceIPPortList = MultiDeviceManager.getInstance().getDeviceIPPort(serialNumber);
-        Assert.assertNotNull(deviceIPPortList);
-    }
-
-    /**
-     * functional testing getDevicesInfo
-     *
-     * @tc.name: getDevicesInfo
-     * @tc.number: OHOS_JAVA_device_MultiDeviceManager_getDevicesInfo_0001
-     * @tc.desc: getDevicesInfo
-     * @tc.type: functional testing
-     * @tc.require: SR-004-AR-002
-     */
-    @Test
-    public void getDevicesInfoTest() {
-        List<DeviceInfo> devicesInfo = MultiDeviceManager.getInstance().getDevicesInfo();
-        Assert.assertNotNull(devicesInfo);
+        boolean cli = MultiDeviceManager.getInstance().pushDevToolsShell(deviceIPPortInfo);
+        Assert.assertFalse(cli);
     }
 
     /**
@@ -121,7 +91,7 @@ public class MultiDeviceManagerTest {
      */
     @Test
     public void getAllDeviceIPPortInfosTest() {
-        List<DeviceIPPortInfo> list = MultiDeviceManager.getInstance().getAllDeviceIPPortInfos();
+        List<DeviceIPPortInfo> list = MultiDeviceManager.getInstance().getOnlineDeviceInfoList();
         Assert.assertNotNull(list);
     }
 
@@ -140,4 +110,18 @@ public class MultiDeviceManagerTest {
         Assert.assertNotNull(multiDeviceManager);
     }
 
+    /**
+     * functional testing getInstance
+     *
+     * @tc.name: pushHiprofilerToolsTest
+     * @tc.number: OHOS_JAVA_device_MultiDeviceManager_pushHiprofilerToolsTest_0001
+     * @tc.desc: push Hiprofiler Tools Test
+     * @tc.type: functional testing
+     * @tc.require: SR-004-AR-002
+     */
+    @Test
+    public void pushHiprofilerToolsTest() {
+        MultiDeviceManager.getInstance().pushHiProfilerTools(deviceIPPortInfo);
+        Assert.assertTrue(true);
+    }
 }

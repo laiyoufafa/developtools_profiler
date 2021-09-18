@@ -41,7 +41,6 @@ public:
 
     bool Start();
     bool Stop();
-    bool Destroy();
 
     bool IsAvailable() const;
 
@@ -54,6 +53,8 @@ public:
 
 private:
     bool Create();
+    bool StopLocked();
+    bool Destroy();
 
 private:
     mutable std::mutex mutex_;

@@ -15,27 +15,30 @@
 
 package ohos.devtools.datasources.utils.device.entity;
 
+import ohos.devtools.views.common.LayoutConstants;
+
 import java.io.Serializable;
 
 /**
  * Device IP and port number information
- *
- * @version 1.0
- * @date 2021/2/2 19:02
- **/
+ */
 public class DeviceIPPortInfo implements Serializable {
+    private static final long serialVersionUID = -290179609047525076L;
     private String deviceID;
     private String deviceName;
     private String ip;
     private int port;
-    private String deviceType;
+    private DeviceType deviceType;
+    private String connectType = LayoutConstants.USB;
     private int forwardPort;
+    private int deviceStatus;
+    private int retryNum;
 
-    public String getDeviceType() {
+    public DeviceType getDeviceType() {
         return deviceType;
     }
 
-    public void setDeviceType(String deviceType) {
+    public void setDeviceType(DeviceType deviceType) {
         this.deviceType = deviceType;
     }
 
@@ -79,9 +82,32 @@ public class DeviceIPPortInfo implements Serializable {
         this.forwardPort = forwardPort;
     }
 
+    public String getConnectType() {
+        return connectType;
+    }
+
+    public void setConnectType(String connectType) {
+        this.connectType = connectType;
+    }
+
+    public int getDeviceStatus() {
+        return deviceStatus;
+    }
+
+    public void setDeviceStatus(int deviceStatus) {
+        this.deviceStatus = deviceStatus;
+    }
+
+    public int getRetryNum() {
+        return retryNum;
+    }
+
+    public void setRetryNum(int retryNum) {
+        this.retryNum = retryNum;
+    }
+
     @Override
     public String toString() {
-        return "DeviceIPPortInfo{" + "deviceID='" + deviceID + '\'' + ", deviceName='" + deviceName + '\'' + ", ip='"
-            + ip + '\'' + ", port=" + port + ", deviceType=" + deviceType + ", forwardPort=" + forwardPort + '}';
+        return deviceName;
     }
 }

@@ -23,19 +23,19 @@ namespace SysTuning {
 namespace TraceStreamer {
 class MeasureTable : public TableBase {
 public:
-    explicit MeasureTable(const TraceDataCache*);
+    explicit MeasureTable(const TraceDataCache* dataCache);
     ~MeasureTable() override;
     void CreateCursor() override;
 
 private:
     class Cursor : public TableBase::Cursor {
     public:
-        explicit Cursor(const TraceDataCache*);
+        explicit Cursor(const TraceDataCache* dataCache);
         ~Cursor() override;
         int Column(int) const override;
 
     private:
-        const Counter& counterObj;
+        const Measure& measureObj;
     };
 };
 } // namespace TraceStreamer

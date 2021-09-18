@@ -16,18 +16,16 @@
 package ohos.devtools.views.charts.model;
 
 /**
- * Timeline和Chart数据的时间范围
- *
- * @since 2021/1/29 9:26
+ * Time range of chart data
  */
 public class ChartDataRange {
     /**
-     * 起始时间
+     * Start time
      */
     private int startTime = Integer.MIN_VALUE;
 
     /**
-     * 结束时间
+     * End time
      */
     private int endTime = Integer.MAX_VALUE;
 

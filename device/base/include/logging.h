@@ -13,44 +13,52 @@
  * limitations under the License.
  */
 
-#ifndef LOGGING_H
-#define LOGGING_H
+#ifndef OHOS_PROFILER_LOGGING_H
+#define OHOS_PROFILER_LOGGING_H
+
+#undef NDEBUG
 
 #ifndef LOG_TAG
-#define LOG_TAG ""
+#define LOG_TAG "Hiprofiler"
+#endif
+
+#define PROFILER_SUBSYSTEM 0x0000
+#ifndef LOG_DOMAIN
+#define LOG_DOMAIN PROFILER_SUBSYSTEM
+#endif
+
+#ifndef UNUSED_PARAMETER
+#define UNUSED_PARAMETER(x) ((void)x)
 #endif
 
 #ifdef HAVE_HILOG
 #include "hilog/log.h"
-
-#undef LOG_TAG
-#define LOG_TAG "Hiprofiler"
-
-#else
+#include <string>
+#else // HAVE_HILOG
 #include <mutex>
 #include <string>
 #include <securec.h>
-#include <sys/syscall.h>
 #include <stdarg.h>
+#include <sys/syscall.h>
 #include <time.h>
 #include <unistd.h>
 #include <vector>
 
-static inline long GetTid()
+static inline long GetTid(void)
 {
     return syscall(SYS_gettid);
 }
 
 enum {
-    HILOG_UNKNOWN = 0,
-    HILOG_DEFAULT,
-    HILOG_VERBOSE,
-    HILOG_DEBUG,
-    HILOG_INFO,
-    HILOG_WARN,
-    HILOG_ERROR,
-    HILOG_FATAL,
-    HILOG_SILENT,
+    LOG_UNKNOWN = 0,
+    LOG_DEFAULT,
+    LOG_VERBOSE,
+    LOG_DEBUG,
+    LOG_INFO,
+    LOG_WARN,
+    LOG_ERROR,
+    LOG_FATAL,
+    LOG_SILENT,
 };
 
 namespace {
@@ -66,58 +74,134 @@ static inline std::string GetTimeStr()
     localtime_r(&ts.tv_sec, &tmStruct);
     size_t used = strftime(timeStr, sizeof(timeStr), "%m-%d %H:%M:%S", &tmStruct);
     snprintf_s(&timeStr[used], sizeof(timeStr) - used, sizeof(timeStr) - used - 1, ".%03ld",
-               ts.tv_nsec / NS_PER_MS_LOG);
+        ts.tv_nsec / NS_PER_MS_LOG);
     return timeStr;
 }
 
-typedef const char *ConstCharPtr;
+typedef const char* ConstCharPtr;
 
-static inline int HiLogPrintArgs(int prio, ConstCharPtr tag, ConstCharPtr fmt, va_list vargs)
+static inline int HiLogPrintArgs(int prio, int domain, ConstCharPtr tag, ConstCharPtr fmt, va_list vargs)
 {
     static std::mutex mtx;
     static std::vector<std::string> prioNames = {"U", " ", "V", "D", "I", "W", "E", "F", "S"};
     std::unique_lock<std::mutex> lock(mtx);
-    int count =
-        fprintf(stderr, "%s %7d %7ld %5s %s ", GetTimeStr().c_str(), getpid(), GetTid(), prioNames[prio].c_str(), tag);
+    int count = fprintf(stderr, "%04x %s %7d %7ld %5s %s ", domain, GetTimeStr().c_str(), getpid(), GetTid(),
+                        prioNames[prio].c_str(), tag);
+    if (count < 0) {
+        return 0;
+    }
     count += vfprintf(stderr, fmt, vargs);
     count += fprintf(stderr, "\n");
+    fflush(stderr);
     return count;
 }
 
-static inline int __hilog_log_print(int prio, ConstCharPtr tag, ConstCharPtr fmt, ...)
+static inline int HiLogPrint(int type, int prio, int domain, ConstCharPtr tag, ConstCharPtr fmt, ...)
 {
-    int count;
+    int count = 0;
     va_list vargs;
 
+    UNUSED_PARAMETER(type);
     va_start(vargs, fmt);
-    count = HiLogPrintArgs(prio, tag, fmt, vargs);
+    count = HiLogPrintArgs(prio, domain, tag, fmt, vargs);
     va_end(vargs);
     return count;
 }
 
-#define HILOG_DEBUG(LOG_CORE, fmt, ...) __hilog_log_print(HILOG_DEBUG, LOG_TAG, fmt, ##__VA_ARGS__)
-#define HILOG_INFO(LOG_CORE, fmt, ...) __hilog_log_print(HILOG_INFO, LOG_TAG, fmt, ##__VA_ARGS__)
-#define HILOG_WARN(LOG_CORE, fmt, ...) __hilog_log_print(HILOG_WARN, LOG_TAG, fmt, ##__VA_ARGS__)
-#define HILOG_ERROR(LOG_CORE, fmt, ...) __hilog_log_print(HILOG_ERROR, LOG_TAG, fmt, ##__VA_ARGS__)
-
+#ifndef LOG_CORE
+#define LOG_CORE 0
 #endif
+
+#define HILOG_DEBUG(LOG_CORE, fmt, ...) HiLogPrint(LOG_CORE, LOG_DEBUG, LOG_DOMAIN, LOG_TAG, fmt, ##__VA_ARGS__)
+#define HILOG_INFO(LOG_CORE, fmt, ...) HiLogPrint(LOG_CORE, LOG_INFO, LOG_DOMAIN, LOG_TAG, fmt, ##__VA_ARGS__)
+#define HILOG_WARN(LOG_CORE, fmt, ...) HiLogPrint(LOG_CORE, LOG_WARN, LOG_DOMAIN, LOG_TAG, fmt, ##__VA_ARGS__)
+#define HILOG_ERROR(LOG_CORE, fmt, ...) HiLogPrint(LOG_CORE, LOG_ERROR, LOG_DOMAIN, LOG_TAG, fmt, ##__VA_ARGS__)
+
+#endif // HAVE_HILOG
+
+#ifndef NDEBUG
+#include <securec.h>
+namespace logging {
+inline void StringReplace(std::string& str, const std::string& oldStr, const std::string& newStr)
+{
+    std::string::size_type pos = 0u;
+    while ((pos = str.find(oldStr, pos)) != std::string::npos) {
+        str.replace(pos, oldStr.length(), newStr);
+        pos += newStr.length();
+    }
+}
+
+static inline std::string StringFormat(const char* fmt, ...)
+{
+    va_list vargs;
+    char buf[1024] = {0};
+    std::string format(fmt);
+    StringReplace(format, "%{public}", "%");
+
+    va_start(vargs, fmt);
+    if (vsnprintf_s(buf, sizeof(buf), sizeof(buf) - 1, format.c_str(), vargs) < 0) {
+        return nullptr;
+    }
+
+    va_end(vargs);
+    return buf;
+}
+}  // logging
+
+#ifdef HILOG_DEBUG
+#undef HILOG_DEBUG
+#endif
+
+#ifdef HILOG_INFO
+#undef HILOG_INFO
+#endif
+
+#ifdef HILOG_WARN
+#undef HILOG_WARN
+#endif
+
+#ifdef HILOG_ERROR
+#undef HILOG_ERROR
+#endif
+
+#ifdef HILOG_PRINT
+#undef HILOG_PRINT
+#endif
+
+#ifdef HAVE_HILOG
+#define HILOG_PRINT(type, level, fmt, ...) \
+    HiLogPrint(type, level, LOG_DOMAIN, LOG_TAG, "%{public}s", logging::StringFormat(fmt, ##__VA_ARGS__).c_str())
+#else
+#define HILOG_PRINT(type, level, fmt, ...) \
+    HiLogPrint(type, level, LOG_DOMAIN, LOG_TAG, "%s", logging::StringFormat(fmt, ##__VA_ARGS__).c_str())
+#endif
+
+#define HILOG_DEBUG(type, fmt, ...) HILOG_PRINT(type, LOG_DEBUG, fmt, ##__VA_ARGS__)
+#define HILOG_INFO(type, fmt, ...) HILOG_PRINT(type, LOG_INFO, fmt, ##__VA_ARGS__)
+#define HILOG_WARN(type, fmt, ...) HILOG_PRINT(type, LOG_WARN, fmt, ##__VA_ARGS__)
+#define HILOG_ERROR(type, fmt, ...) HILOG_PRINT(type, LOG_ERROR, fmt, ##__VA_ARGS__)
+#endif  // NDEBUG
 
 #define STD_PTR(K, T) std::K##_ptr<T>
 
-#define CHECK_NOTNULL(ptr, retval, fmt, ...)                                                                          \
-    do {                                                                                                              \
-        if (ptr == nullptr) {                                                                                         \
-            HILOG_WARN(LOG_CORE, "CHECK_NOTNULL(%s) in %s:%d FAILED, " fmt, #ptr, __func__, __LINE__, ##__VA_ARGS__); \
-            return retval;                                                                                            \
-        }                                                                                                             \
-    } while (0)
+#define NO_RETVAL /* retval */
 
-#define CHECK_TRUE(expr, retval, fmt, ...)                                                                          \
+#define CHECK_NOTNULL(ptr, retval, fmt, ...)                                                                        \
     do {                                                                                                            \
-        if (!(expr)) {                                                                                              \
-            HILOG_WARN(LOG_CORE, "CHECK_TRUE(%s) in %s:%d FAILED, " fmt, #expr, __func__, __LINE__, ##__VA_ARGS__); \
+        if (ptr == nullptr) {                                                                                       \
+            HILOG_WARN(LOG_CORE, "CHECK_NOTNULL(%{public}s) in %{public}s:%{public}d FAILED, " fmt, #ptr, __func__, \
+                       __LINE__, ##__VA_ARGS__);                                                                    \
             return retval;                                                                                          \
         }                                                                                                           \
+    } while (0)
+
+#define CHECK_TRUE(expr, retval, fmt, ...)                                                                        \
+    do {                                                                                                          \
+        if (!(expr)) {                                                                                            \
+            HILOG_WARN(LOG_CORE, "CHECK_TRUE(%{public}s) in %{public}s:%{public}d FAILED, " fmt, #expr, __func__, \
+                       __LINE__, ##__VA_ARGS__);                                                                  \
+            return retval;                                                                                        \
+        }                                                                                                         \
     } while (0)
 
 #define RETURN_IF(expr, retval, fmt, ...)             \

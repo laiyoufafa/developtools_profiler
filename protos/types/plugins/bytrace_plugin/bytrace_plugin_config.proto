@@ -20,4 +20,5 @@ message BytracePluginConfig {
     uint32 time = 3;                // Sets the bytrace running duration in seconds (5s by default)
     string clock = 4;               // Sets the clock, which can be boot (default), global, mono, uptime, or perf.
     string outfile_name = 5;        // Sets the name of the target file (stdout by default).
+    bool is_root = 6;
 }

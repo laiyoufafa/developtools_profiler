@@ -25,11 +25,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 监控项配置数据的dao层测试类
- *
- * @version 1.0
- * @date 2021/04/12 14:13
- **/
+ * DAO layer test class of monitoring item configuration data
+ */
 public class MonitorConfigDaoTest {
     private MonitorConfigDao monitorConfigDao;
 
@@ -52,9 +49,25 @@ public class MonitorConfigDaoTest {
      * @tc.require: AR000FK61R
      */
     @Test
-    public void getInstanceTest() {
+    public void getInstanceTest01() {
         monitorConfigDao = MonitorConfigDao.getInstance();
         Assert.assertNotNull(monitorConfigDao);
+    }
+
+    /**
+     * functional testing getInstance
+     *
+     * @tc.name: MonitorConfigDao initialization configuration
+     * @tc.number: OHOS_JAVA_monitor_MonitorConfigDao_getInstance_0002
+     * @tc.desc: MonitorConfigDao getInstance
+     * @tc.type: functional testing
+     * @tc.require: AR000FK61R
+     */
+    @Test
+    public void getInstanceTest02() {
+        monitorConfigDao = MonitorConfigDao.getInstance();
+        MonitorConfigDao configDao = MonitorConfigDao.getInstance();
+        Assert.assertEquals(monitorConfigDao, configDao);
     }
 
     /**
@@ -94,5 +107,4 @@ public class MonitorConfigDaoTest {
         boolean flag = monitorConfigDao.insertMonitorInfos(list);
         Assert.assertTrue(flag);
     }
-
 }

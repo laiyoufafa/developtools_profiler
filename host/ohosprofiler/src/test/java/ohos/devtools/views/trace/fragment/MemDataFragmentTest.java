@@ -27,9 +27,8 @@ import java.awt.event.MouseEvent;
 /**
  * test MemDataFragment class .
  *
- * @version 1.0
  * @date 2021/4/24 17:57
- **/
+ */
 class MemDataFragmentTest {
     private MemDataFragment memDataFragment;
     private JPanel jPanel;

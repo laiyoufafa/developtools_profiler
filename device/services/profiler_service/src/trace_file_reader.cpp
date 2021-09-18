@@ -27,12 +27,31 @@ TraceFileReader::~TraceFileReader()
     }
 }
 
+TraceFileHeader TraceFileReader::GetHeader() const
+{
+    return header_;
+}
+
+bool TraceFileReader::ValidateHeader()
+{
+    return helper_.Validate(header_);
+}
+
 bool TraceFileReader::Open(const std::string& path)
 {
     stream_.open(path, std::ios_base::in | std::ios_base::binary);
     CHECK_TRUE(stream_.is_open(), false, "open %s failed, %s!", path.c_str(), strerror(errno));
+
+    stream_.read(reinterpret_cast<CharPtr>(&header_), sizeof(header_));
+    CHECK_TRUE(stream_, false, "read header from %s failed!", path_.c_str());
+
     path_ = path;
     return true;
+}
+
+static size_t GetReadPos(std::ifstream& stream)
+{
+    return static_cast<size_t>(stream.tellg());
 }
 
 long TraceFileReader::Read(MessageLite& message)
@@ -42,21 +61,34 @@ long TraceFileReader::Read(MessageLite& message)
 
     uint32_t msgLen = 0;
     stream_.read(reinterpret_cast<CharPtr>(&msgLen), sizeof(msgLen));
-    CHECK_TRUE(stream_, 0, "read msg head failed!");
+    CHECK_TRUE(stream_, 0, "read msg length from %s (offset %zu) failed!", path_.c_str(), GetReadPos(stream_));
+    CHECK_TRUE(helper_.AddSegment(reinterpret_cast<uint8_t*>(&msgLen), sizeof(msgLen)),
+        0, "Add payload for message length failed!");
 
     std::vector<char> msgData(msgLen);
     stream_.read(msgData.data(), msgData.size());
-    CHECK_TRUE(stream_, 0, "read msg body failed!");
+    CHECK_TRUE(stream_, 0, "read msg bytes from %s (offset %zu) failed!", path_.c_str(), GetReadPos(stream_));
+    CHECK_TRUE(helper_.AddSegment(reinterpret_cast<uint8_t*>(msgData.data()), msgData.size()),
+        0, "Add payload for message bytes failed!");
 
     CHECK_TRUE(message.ParseFromArray(msgData.data(), msgData.size()), 0, "ParseFromArray failed!");
     return sizeof(msgLen) + msgData.size();
 }
 
-long TraceFileReader::Read(BytePtr data, long size)
+long TraceFileReader::Read(uint8_t buffer[], uint32_t bufferSize)
 {
     CHECK_TRUE(stream_.is_open(), 0, "binary file %s not open or open failed!", path_.c_str());
     CHECK_TRUE(!stream_.eof(), 0, "no more data in file %s stream", path_.c_str());
-    CHECK_TRUE(stream_.read(reinterpret_cast<CharPtr>(data), size), 0, "binary file %s write raw buffer data failed!",
-               path_.c_str());
-    return size;
+
+    uint32_t dataLen = 0;
+    stream_.read(reinterpret_cast<CharPtr>(&dataLen), sizeof(dataLen));
+    CHECK_TRUE(stream_, 0, "read data length from file %s (offset %zu) failed!", path_.c_str(), GetReadPos(stream_));
+    CHECK_TRUE(bufferSize >= dataLen, 0, "buffer size does not enough to read data bytes!");
+    CHECK_TRUE(helper_.AddSegment(reinterpret_cast<uint8_t*>(&dataLen), sizeof(dataLen)),
+        0, "Add payload for data length failed!");
+
+    stream_.read(reinterpret_cast<CharPtr>(buffer), dataLen);
+    CHECK_TRUE(stream_, 0, "read data bytes from %s (offset %zu) failed!", path_.c_str(), GetReadPos(stream_));
+    CHECK_TRUE(helper_.AddSegment(buffer, dataLen), 0, "Add payload for data bytes failed!");
+    return dataLen;
 }

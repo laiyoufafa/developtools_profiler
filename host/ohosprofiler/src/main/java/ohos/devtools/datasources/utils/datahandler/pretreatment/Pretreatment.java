@@ -17,7 +17,6 @@ package ohos.devtools.datasources.utils.datahandler.pretreatment;
 
 /**
  * @Description 预处理核心类
- * @Date 2021/2/7 13:29
- **/
+ */
 public class Pretreatment {
 }

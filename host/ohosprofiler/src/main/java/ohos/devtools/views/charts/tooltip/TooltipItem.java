@@ -31,7 +31,7 @@ public class TooltipItem {
     /**
      * 文本
      */
-    private final String text;
+    private String text;
 
     /**
      * 构造函数
@@ -44,21 +44,19 @@ public class TooltipItem {
         this.text = text;
     }
 
-    /**
-     * Getter
-     *
-     * @return Color
-     */
     public Color getColor() {
         return color;
     }
 
-    /**
-     * Getter
-     *
-     * @return String
-     */
+    public void setColor(Color color) {
+        this.color = color;
+    }
+
     public String getText() {
         return text;
+    }
+
+    public void setText(String text) {
+        this.text = text;
     }
 }

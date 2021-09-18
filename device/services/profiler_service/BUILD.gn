@@ -36,6 +36,7 @@ ohos_source_set("profiler_service") {
     "src/profiler_data_repeater.cpp",
     "src/profiler_service.cpp",
     "src/result_demuxer.cpp",
+    "src/trace_file_helper.cpp",
     "src/trace_file_reader.cpp",
     "src/trace_file_writer.cpp",
   ]
@@ -57,11 +58,10 @@ ohos_source_set("profiler_service") {
 }
 
 ohos_executable("hiprofilerd") {
-  sources = [
-    "src/main.cpp",
-  ]
+  sources = [ "src/main.cpp" ]
   deps = [
     ":profiler_service",
+    "../../base:hiprofiler_base",
     "../plugin_service:hiprofiler_plugin_service",
   ]
   if (current_toolchain != host_toolchain) {

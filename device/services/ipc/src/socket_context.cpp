@@ -136,9 +136,7 @@ bool SocketContext::CreateRecvThread()
 
 bool SocketContext::SendRaw(uint32_t pnum, const int8_t* data, uint32_t size, int sockfd)
 {
-    if (data == nullptr) {
-        return false;
-    }
+    CHECK_NOTNULL(data, false, "SendRaw data null");
     if (sockfd == -1) {
         sockfd = socketHandle_;
     }

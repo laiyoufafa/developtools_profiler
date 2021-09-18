@@ -36,32 +36,28 @@ InternalPid TraceDataCacheWriter::GetProcessInternalPid(uint32_t pid)
 }
 Process* TraceDataCacheWriter::GetProcessData(InternalPid internalPid)
 {
-    TUNING_ASSERT(internalPid < internalProcessesData_.size());
+    TS_ASSERT(internalPid < internalProcessesData_.size());
     return &internalProcessesData_[internalPid];
 }
 
-InternalTid TraceDataCacheWriter::GetInternalThread(uint32_t tid)
+InternalTid TraceDataCacheWriter::NewInternalThread(uint32_t tid)
 {
     internalThreadsData_.emplace_back(tid);
     return static_cast<InternalTid>(internalThreadsData_.size() - 1);
 }
 Thread* TraceDataCacheWriter::GetThreadData(InternalTid internalTid)
 {
-    TUNING_ASSERT(internalTid < internalThreadsData_.size());
+    TS_ASSERT(internalTid < internalThreadsData_.size());
     return &internalThreadsData_[internalTid];
 }
 
-void TraceDataCacheWriter::UpdateBoundTime(uint64_t timestamp)
+void TraceDataCacheWriter::UpdateTraceTime(uint64_t timestamp)
 {
-    boundtimeStart_ = std::min(boundtimeStart_, timestamp);
-    boundtimeEnd_ = std::max(boundtimeEnd_, timestamp);
+    traceStartTime_ = std::min(traceStartTime_, timestamp);
+    traceEndTime_ = std::max(traceEndTime_, timestamp);
 }
 
-Slices* TraceDataCacheWriter::GetSlicesData()
-{
-    return &slicesData_;
-}
-InternalSlices* TraceDataCacheWriter::GetInternalSlicesData()
+CallStack* TraceDataCacheWriter::GetInternalSlicesData()
 {
     return &internalSlicesData_;
 }
@@ -76,9 +72,9 @@ Raw* TraceDataCacheWriter::GetRawData()
     return &rawData_;
 }
 
-Counter* TraceDataCacheWriter::GetCounterData()
+Measure* TraceDataCacheWriter::GetMeasureData()
 {
-    return &counterData_;
+    return &measureData_;
 }
 
 ThreadState* TraceDataCacheWriter::GetThreadStateData()
@@ -91,17 +87,17 @@ SchedSlice* TraceDataCacheWriter::GetSchedSliceData()
     return &schedSliceData_;
 }
 
-CpuCounter* TraceDataCacheWriter::GetCpuCountersData()
+CpuMeasureFilter* TraceDataCacheWriter::GetCpuMeasuresData()
 {
-    return &cpuCounterData_;
+    return &cpuMeasureData_;
 }
 
-ThreadCounterFilter* TraceDataCacheWriter::GetThreadCounterFilterData()
+ThreadMeasureFilter* TraceDataCacheWriter::GetThreadMeasureFilterData()
 {
-    return &threadCounterFilterData_;
+    return &threadMeasureFilterData_;
 }
 
-ThreadCounterFilter* TraceDataCacheWriter::GetThreadFilterData()
+ThreadMeasureFilter* TraceDataCacheWriter::GetThreadFilterData()
 {
     return &threadFilterData_;
 }
@@ -111,14 +107,33 @@ Instants* TraceDataCacheWriter::GetInstantsData()
     return &instantsData_;
 }
 
-ProcessCounterFilter* TraceDataCacheWriter::GetProcessFilterData()
+ProcessMeasureFilter* TraceDataCacheWriter::GetProcessFilterData()
 {
     return &processFilterData_;
 }
 
-ProcessCounterFilter* TraceDataCacheWriter::GetProcessCounterFilterData()
+ProcessMeasureFilter* TraceDataCacheWriter::GetProcessMeasureFilterData()
 {
-    return &processCounterFilterData_;
+    return &processMeasureFilterData_;
+}
+
+ClockEventData* TraceDataCacheWriter::GetClockEventFilterData()
+{
+    return &clockEventFilterData_;
+}
+StatAndInfo* TraceDataCacheWriter::GetStatAndInfo()
+{
+    return &stat_;
+}
+
+MetaData* TraceDataCacheWriter::GetMetaData()
+{
+    return &metaData_;
+}
+
+SymbolsData* TraceDataCacheWriter::GetSymbolsData()
+{
+    return &symbolsData_;
 }
 } // namespace TraceStreamer
 } // namespace SysTuning

@@ -17,6 +17,7 @@ package ohos.devtools.views.trace.bean;
 
 import ohos.devtools.views.trace.fragment.graph.AbstractGraph;
 import ohos.devtools.views.trace.util.ColorUtils;
+import ohos.devtools.views.trace.util.Utils;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
@@ -25,19 +26,24 @@ import java.awt.event.MouseEvent;
 /**
  * Little Red Flag Data
  *
- * @version 1.0
  * @date 2021/04/22 12:25
- **/
+ */
 public class FlagBean extends AbstractGraph {
+    private final int defaultFuncColorIndex = 6;
     private long ns;
-
     private boolean visible;
-
     private String name;
-
     private long time;
-
     private Color color;
+    private IEventListener eventListener;
+
+    /**
+     * no parameter structure
+     */
+    public FlagBean() {
+        visible = false;
+        color = ColorUtils.FUNC_COLOR[defaultFuncColorIndex];
+    }
 
     /**
      * Gets the value of ns .
@@ -143,16 +149,6 @@ public class FlagBean extends AbstractGraph {
         }
     }
 
-    private final int defaultFuncColorIndex = 6;
-
-    /**
-     * no parameter structure
-     */
-    public FlagBean() {
-        visible = false;
-        color = ColorUtils.FUNC_COLOR[defaultFuncColorIndex];
-    }
-
     /**
      * Draw the corresponding shape according to the brush
      *
@@ -164,7 +160,7 @@ public class FlagBean extends AbstractGraph {
             graphics.setColor(color);
             final int sx = 202;
             final int xy = 4;
-            graphics.drawString(name, sx + rect.x + rect.width, rect.y + rect.height - xy);
+            graphics.drawString(name, sx + Utils.getX(rect) + rect.width, Utils.getY(rect) + rect.height - xy);
         }
     }
 
@@ -207,8 +203,6 @@ public class FlagBean extends AbstractGraph {
     public void onMouseMove(final MouseEvent event) {
     }
 
-    private IEventListener eventListener;
-
     /**
      * Set up the event listener
      *
@@ -226,7 +220,7 @@ public class FlagBean extends AbstractGraph {
          * Click event
          *
          * @param event event
-         * @param data data
+         * @param data  data
          */
         void click(MouseEvent event, FlagBean data);
 
@@ -234,7 +228,7 @@ public class FlagBean extends AbstractGraph {
          * Focus cancel event
          *
          * @param event event
-         * @param data data
+         * @param data  data
          */
         void blur(MouseEvent event, FlagBean data);
 
@@ -242,7 +236,7 @@ public class FlagBean extends AbstractGraph {
          * Focus acquisition event
          *
          * @param event event
-         * @param data data
+         * @param data  data
          */
         void focus(MouseEvent event, FlagBean data);
 
@@ -250,7 +244,7 @@ public class FlagBean extends AbstractGraph {
          * Mouse movement event
          *
          * @param event event
-         * @param data data
+         * @param data  data
          */
         void mouseMove(MouseEvent event, FlagBean data);
 

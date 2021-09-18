@@ -17,10 +17,12 @@ group("hiprofiler_targets") {
   deps = [
     "cmds:hiprofiler_cmd",
     "plugins/api:hiprofiler_plugins",
+    "plugins/bytrace_plugin:bytraceplugin",
+    "plugins/cpu_plugin:cpudataplugin",
+    "plugins/cpu_plugin:cpudataplugintest",
     "plugins/memory_plugin:memdataplugin",
     "services/profiler_service:hiprofilerd",
     "services/shared_memory:shared_memory",
-    "plugins/bytrace_plugin:bytraceplugin",
   ]
 }
 
@@ -29,6 +31,7 @@ group("unittest") {
   deps = [
     "base/test:unittest",
     "plugins/api/test:unittest",
+    "plugins/cpu_plugin/test:unittest",
     "plugins/memory_plugin/test:unittest",
     "services/ipc/test:unittest",
     "services/plugin_service/test:unittest",

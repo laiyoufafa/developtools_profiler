@@ -21,6 +21,7 @@
 #include <string>
 #include <vector>
 
+#include "manager_interface.h"
 #include "plugin_module.h"
 #include "schedule_task_manager.h"
 
@@ -28,7 +29,7 @@ class ProfilerPluginConfig;
 class PluginResult;
 class CommandPoller;
 
-class PluginManager {
+class PluginManager : public ManagerInterface {
 public:
     virtual ~PluginManager();
     bool AddPlugin(const std::string& pluginPath);
@@ -50,7 +51,7 @@ public:
 
     // for test
     virtual bool SubmitResult(const PluginResult& pluginResult);
-    bool CreateWriter(std::string pluginName, uint32_t bufferSize, int fd);
+    bool CreateWriter(std::string pluginName, uint32_t bufferSize, int smbFd, int eventFd);
     bool ResetWriter(uint32_t pluginId);
     void SetCommandPoller(const CommandPollerPtr& p);
 

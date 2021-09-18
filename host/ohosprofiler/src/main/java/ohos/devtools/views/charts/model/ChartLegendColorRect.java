@@ -15,7 +15,8 @@
 
 package ohos.devtools.views.charts.model;
 
-import javax.swing.JComponent;
+import com.intellij.ui.components.JBPanel;
+
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
@@ -25,11 +26,15 @@ import java.awt.Graphics;
  *
  * @since 2021/3/1 9:48
  */
-public class ChartLegendColorRect extends JComponent {
+public class ChartLegendColorRect extends JBPanel {
     /**
-     * legend Color Block Size
+     * legend Color Block Default Size
      */
-    private static final int SIZE = 10;
+    private static final int DEFAULT_SIZE = 10;
+
+    private int rectWidth;
+
+    private int rectHeight;
 
     /**
      * color
@@ -40,6 +45,19 @@ public class ChartLegendColorRect extends JComponent {
      * Chart Legend Color Rect
      */
     public ChartLegendColorRect() {
+        this(DEFAULT_SIZE, DEFAULT_SIZE);
+    }
+
+    /**
+     * Chart Legend Color Rect
+     *
+     * @param rectWidth rectWidth
+     * @param rectHeight rectHeight
+     */
+    public ChartLegendColorRect(int rectWidth, int rectHeight) {
+        this.rectWidth = rectWidth;
+        this.rectHeight = rectHeight;
+        this.setOpaque(false);
         fillColor();
     }
 
@@ -47,7 +65,7 @@ public class ChartLegendColorRect extends JComponent {
      * fillColor
      */
     private void fillColor() {
-        this.setPreferredSize(new Dimension(SIZE, SIZE));
+        this.setPreferredSize(new Dimension(rectWidth, rectHeight));
         super.repaint();
         super.validate();
     }
@@ -64,7 +82,7 @@ public class ChartLegendColorRect extends JComponent {
             color = Color.GRAY;
         }
         graphics.setColor(color);
-        graphics.fillRect(0, 0, SIZE, SIZE);
+        graphics.fillRect(0, 0, rectWidth, rectHeight);
     }
 
     public void setColor(Color color) {

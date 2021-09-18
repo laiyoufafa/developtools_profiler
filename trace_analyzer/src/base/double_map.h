@@ -31,8 +31,8 @@ public:
     }
     void Insert(T1 t1, T2 t2, T3 t3)
     {
-        auto streamIdHookidMap = internamMap_.find(t1);
-        if (streamIdHookidMap != internamMap_.end()) {
+        auto streamIdHookidMap = internalMap_.find(t1);
+        if (streamIdHookidMap != internalMap_.end()) {
             auto hookId = (*streamIdHookidMap).second.find(t2);
             if (hookId == (*streamIdHookidMap).second.end()) {
                 (*streamIdHookidMap).second.insert(std::make_pair(t2, t3));
@@ -43,13 +43,13 @@ public:
             std::map<T2, T3> mm = {
                 {t2, t3}
             };
-            internamMap_.insert(std::make_pair(t1, mm));
+            internalMap_.insert(std::make_pair(t1, mm));
         }
     }
     T3 Find(T1 t1, T2 t2)
     {
-        auto streamIdHookidMap = internamMap_.find(t1);
-        if (streamIdHookidMap != internamMap_.end()) {
+        auto streamIdHookidMap = internalMap_.find(t1);
+        if (streamIdHookidMap != internalMap_.end()) {
             auto hookId = (*streamIdHookidMap).second.find(t2);
             if (hookId == (*streamIdHookidMap).second.end()) {
                 return invalidValue_;
@@ -60,9 +60,26 @@ public:
             return invalidValue_;
         }
     }
+    void Erase(T1 t1)
+    {
+        auto streamIdHookidMap = internalMap_.find(t1);
+        if (streamIdHookidMap != internalMap_.end()) {
+            internalMap_.erase(streamIdHookidMap);
+        }
+    }
+    void Erase(T1 t1, T2 t2)
+    {
+        auto streamIdHookidMap = internalMap_.find(t1);
+        if (streamIdHookidMap != internalMap_.end()) {
+            auto hookId = (*streamIdHookidMap).second.find(t2);
+            if (hookId != (*streamIdHookidMap).second.end()) {
+                (*streamIdHookidMap).second.erase(hookId);
+            }
+        }
+    }
 
 private:
-    std::map<T1, std::map<T2, T3>> internamMap_;
+    std::map<T1, std::map<T2, T3>> internalMap_;
     T3 invalidValue_;
 };
 

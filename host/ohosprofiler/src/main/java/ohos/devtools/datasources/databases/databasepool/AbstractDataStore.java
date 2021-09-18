@@ -36,10 +36,8 @@ import static ohos.devtools.datasources.databases.databasepool.DataTableHelper.m
 import static ohos.devtools.datasources.databases.databasepool.DataTableHelper.sqlPlaceholder;
 
 /**
- * @param <T>
- * @Description Provides common data table operations
- * @Date 2021/1/26 13:15
- **/
+ * Provides common data table operations
+ */
 public abstract class AbstractDataStore<T> extends SqlRunnable {
     private static final Logger LOGGER = LogManager.getLogger(AbstractDataStore.class);
     private static final String TYPE = "type";
@@ -49,7 +47,7 @@ public abstract class AbstractDataStore<T> extends SqlRunnable {
      * Data insertion
      *
      * @param dataObject dataObject
-     * @param <T>        <T>
+     * @param <T> <T>
      * @return boolean
      */
     @SuppressWarnings("checkstyle:JavadocMethod")
@@ -187,10 +185,10 @@ public abstract class AbstractDataStore<T> extends SqlRunnable {
     /**
      * update
      *
-     * @param clazz     clazz
+     * @param clazz clazz
      * @param condition condition
-     * @param setValue  setValue
-     * @param <T>       <T>
+     * @param setValue setValue
+     * @param <T> <T>
      * @return boolean
      */
     public <T> boolean update(Class<T> clazz, Map<String, Object> condition, Map<String, Object> setValue) {
@@ -204,10 +202,10 @@ public abstract class AbstractDataStore<T> extends SqlRunnable {
     /**
      * Inquire
      *
-     * @param clazz     clazz
-     * @param value     value
+     * @param clazz clazz
+     * @param value value
      * @param condition condition
-     * @param <T>       <T>
+     * @param <T> <T>
      * @return List<T>
      */
     public <T> List<T> select(Class<T> clazz, Map<String, Object> value, Map<String, Object> condition) {
@@ -229,13 +227,13 @@ public abstract class AbstractDataStore<T> extends SqlRunnable {
             rs = executeQuery(stmt, selectSql.toString());
             return new DataBaseRsHelp<T>().util(clazz.newInstance(), rs);
         } catch (SQLException exe) {
-            LOGGER.error("SQLException: " + exe.getMessage());
+            LOGGER.error("SQLException: ", exe);
         } catch (IllegalAccessException exception) {
-            LOGGER.error("IllegalAccessException: " + exception.getMessage());
+            LOGGER.error("IllegalAccessException: ", exception);
         } catch (InstantiationException exception) {
-            LOGGER.error("InstantiationException: " + exception.getMessage());
+            LOGGER.error("InstantiationException: ", exception);
         } catch (NoSuchFieldException exception) {
-            LOGGER.error("NoSuchFieldException: " + exception.getMessage());
+            LOGGER.error("NoSuchFieldException: ", exception);
         } finally {
             close(rs, connection);
         }
@@ -245,9 +243,9 @@ public abstract class AbstractDataStore<T> extends SqlRunnable {
     /**
      * Create a table in the specified database
      *
-     * @param dbName    db Name
+     * @param dbName db Name
      * @param tableName table Name
-     * @param params    params
+     * @param params params
      * @return boolean
      */
     public boolean createTable(String dbName, String tableName, List<String> params) {
@@ -258,9 +256,9 @@ public abstract class AbstractDataStore<T> extends SqlRunnable {
     /**
      * Create a table in the specified database
      *
-     * @param dbName    db Name
+     * @param dbName db Name
      * @param tableName table Name
-     * @param sql       sql
+     * @param sql sql
      * @return boolean
      */
     public boolean createTable(String dbName, String tableName, String sql) {
@@ -273,7 +271,7 @@ public abstract class AbstractDataStore<T> extends SqlRunnable {
      *
      * @param tableName table Name
      * @param indexName index Name
-     * @param params    params
+     * @param params params
      * @return boolean
      */
     public boolean createIndex(String tableName, String indexName, List<String> params) {

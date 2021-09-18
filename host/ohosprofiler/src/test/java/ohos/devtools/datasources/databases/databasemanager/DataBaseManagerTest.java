@@ -26,9 +26,8 @@ import static ohos.devtools.datasources.databases.databaseapi.DataBaseApi.DEFAUL
 import static ohos.devtools.datasources.databases.databasepool.DataBaseHelper.getUrlByDataBaseName;
 
 /**
- * @version 1.0
- * @date 2021/03/26 11:06
- **/
+ * Data Base Manager Test
+ */
 public class DataBaseManagerTest {
     /**
      * functional testing init
@@ -45,6 +44,37 @@ public class DataBaseManagerTest {
     }
 
     /**
+     * get Instance Test
+     *
+     * @tc.name: init
+     * @tc.number: OHOS_JAVA_database_DataBaseManager_getInstanceTest_0001
+     * @tc.desc: get Instance Test
+     * @tc.type: functional testing
+     * @tc.require: SR-010
+     */
+    @Test
+    public void getInstanceTest01() {
+        DataBaseManager dataBaseManager = DataBaseManager.getInstance();
+        Assert.assertNotNull(dataBaseManager);
+    }
+
+    /**
+     * get Instance Test
+     *
+     * @tc.name: init
+     * @tc.number: OHOS_JAVA_database_DataBaseManager_getInstanceTest_0002
+     * @tc.desc: get Instance Test
+     * @tc.type: functional testing
+     * @tc.require: SR-010
+     */
+    @Test
+    public void getInstanceTest02() {
+        DataBaseManager dataBaseManager1 = DataBaseManager.getInstance();
+        DataBaseManager dataBaseManager2 = DataBaseManager.getInstance();
+        Assert.assertEquals(dataBaseManager1, dataBaseManager2);
+    }
+
+    /**
      * functional testing DefaultDataBase
      *
      * @tc.name: init DefaultDataBase
@@ -55,14 +85,10 @@ public class DataBaseManagerTest {
      */
     @Test
     public void initDefaultDataBaseTest01() {
-        try {
-            DataBase dataBase = DataBaseHelper.createDefaultDataBase();
-            dataBase.setUrl(getUrlByDataBaseName(DEFAULT_DATABASE_DBNAME));
-            boolean res = DataBaseManager.getInstance().initDefaultDataBase(dataBase);
-            Assert.assertTrue(res);
-        } catch (Exception exception) {
-            Assert.assertTrue(false);
-        }
+        DataBase dataBase = DataBaseHelper.createDefaultDataBase();
+        dataBase.setUrl(getUrlByDataBaseName(DEFAULT_DATABASE_DBNAME));
+        boolean res = DataBaseManager.getInstance().initDefaultDataBase(dataBase);
+        Assert.assertTrue(res);
     }
 
     /**
@@ -76,16 +102,58 @@ public class DataBaseManagerTest {
      */
     @Test
     public void initDefaultDataBaseTest02() {
-        try {
-            DataBase dataBase = DataBaseHelper.createDefaultDataBase();
-            dataBase.setUrl(getUrlByDataBaseName(DEFAULT_DATABASE_DBNAME));
-            boolean res = DataBaseManager.getInstance().initDefaultDataBase(dataBase);
-            Assert.assertTrue(res);
-            boolean res01 = DataBaseManager.getInstance().initDefaultDataBase(dataBase);
-            Assert.assertTrue(res01);
-        } catch (Exception exception) {
-            Assert.assertTrue(false);
-        }
+        DataBase dataBase = DataBaseHelper.createDefaultDataBase();
+        dataBase.setUrl(getUrlByDataBaseName(null));
+        boolean res = DataBaseManager.getInstance().initDefaultDataBase(dataBase);
+        Assert.assertTrue(res);
+    }
+
+    /**
+     * functional testing DefaultDataBase
+     *
+     * @tc.name: init DefaultDataBase
+     * @tc.number: OHOS_JAVA_database_DataBaseManager_initDefaultDataBase_0003
+     * @tc.desc: init DefaultDataBase
+     * @tc.type: functional testing
+     * @tc.require: SR-010
+     */
+    @Test
+    public void initDefaultDataBaseTest03() {
+        DataBase dataBase = DataBaseHelper.createDefaultDataBase();
+        boolean res = DataBaseManager.getInstance().initDefaultDataBase(dataBase);
+        Assert.assertFalse(res);
+    }
+
+    /**
+     * functional testing DefaultDataBase
+     *
+     * @tc.name: init DefaultDataBase
+     * @tc.number: OHOS_JAVA_database_DataBaseManager_initDefaultDataBase_0004
+     * @tc.desc: init DefaultDataBase
+     * @tc.type: functional testing
+     * @tc.require: SR-010
+     */
+    @Test
+    public void initDefaultDataBaseTest04() {
+        DataBase dataBase = DataBaseHelper.createDefaultDataBase();
+        dataBase.setUrl(getUrlByDataBaseName("defaultDB2"));
+        boolean res = DataBaseManager.getInstance().initDefaultDataBase(dataBase);
+        Assert.assertTrue(res);
+    }
+
+    /**
+     * functional testing DefaultDataBase
+     *
+     * @tc.name: init DefaultDataBase
+     * @tc.number: OHOS_JAVA_database_DataBaseManager_initDefaultDataBase_0005
+     * @tc.desc: init DefaultDataBase
+     * @tc.type: functional testing
+     * @tc.require: SR-010
+     */
+    @Test
+    public void initDefaultDataBaseTest05() {
+        boolean res = DataBaseManager.getInstance().initDefaultDataBase(null);
+        Assert.assertFalse(res);
     }
 
     /**
@@ -99,14 +167,10 @@ public class DataBaseManagerTest {
      */
     @Test
     public void initDefaultSqlTest01() {
-        try {
-            DataBase dataBase = DataBaseHelper.createDefaultDataBase();
-            dataBase.setUrl(getUrlByDataBaseName(DEFAULT_DATABASE_DBNAME));
-            boolean result = DataBaseManager.getInstance().initDefaultSql(dataBase);
-            Assert.assertTrue(result);
-        } catch (Exception exception) {
-            Assert.assertTrue(false);
-        }
+        DataBase dataBase = DataBaseHelper.createDefaultDataBase();
+        dataBase.setUrl(getUrlByDataBaseName(DEFAULT_DATABASE_DBNAME));
+        boolean result = DataBaseManager.getInstance().initDefaultSql(dataBase);
+        Assert.assertTrue(result);
     }
 
     /**
@@ -120,16 +184,58 @@ public class DataBaseManagerTest {
      */
     @Test
     public void initDefaultSqlTest02() {
-        try {
-            DataBase dataBase = DataBaseHelper.createDefaultDataBase();
-            dataBase.setUrl(getUrlByDataBaseName(DEFAULT_DATABASE_DBNAME));
-            boolean res = DataBaseManager.getInstance().initDefaultDataBase(dataBase);
-            Assert.assertTrue(res);
-            boolean result = DataBaseManager.getInstance().initDefaultSql(dataBase);
-            Assert.assertTrue(result);
-        } catch (Exception exception) {
-            Assert.assertTrue(false);
-        }
+        DataBase dataBase = DataBaseHelper.createDefaultDataBase();
+        dataBase.setUrl(getUrlByDataBaseName(null));
+        boolean res = DataBaseManager.getInstance().initDefaultDataBase(dataBase);
+        Assert.assertTrue(res);
+    }
+
+    /**
+     * functional testing initDefaultSql
+     *
+     * @tc.name: init DefaultSql
+     * @tc.number: OHOS_JAVA_database_DataBaseManager_initDefaultSql_0003
+     * @tc.desc: init DefaultSql
+     * @tc.type: functional testing
+     * @tc.require: SR-010
+     */
+    @Test
+    public void initDefaultSqlTest03() {
+        DataBase dataBase = DataBaseHelper.createDefaultDataBase();
+        boolean result = DataBaseManager.getInstance().initDefaultSql(dataBase);
+        Assert.assertFalse(result);
+    }
+
+    /**
+     * functional testing initDefaultSql
+     *
+     * @tc.name: init DefaultSql
+     * @tc.number: OHOS_JAVA_database_DataBaseManager_initDefaultSql_0004
+     * @tc.desc: init DefaultSql
+     * @tc.type: functional testing
+     * @tc.require: SR-010
+     */
+    @Test
+    public void initDefaultSqlTest04() {
+        boolean result = DataBaseManager.getInstance().initDefaultSql(null);
+        Assert.assertFalse(result);
+    }
+
+    /**
+     * functional testing initDefaultSql
+     *
+     * @tc.name: init DefaultSql
+     * @tc.number: OHOS_JAVA_database_DataBaseManager_initDefaultSql_0005
+     * @tc.desc: init DefaultSql
+     * @tc.type: functional testing
+     * @tc.require: SR-010
+     */
+    @Test
+    public void initDefaultSqlTest05() {
+        DataBase dataBase = DataBaseHelper.createDefaultDataBase();
+        dataBase.setUrl(getUrlByDataBaseName("defaultDB2"));
+        boolean result = DataBaseManager.getInstance().initDefaultSql(dataBase);
+        Assert.assertTrue(result);
     }
 
     /**
@@ -143,12 +249,8 @@ public class DataBaseManagerTest {
      */
     @Test
     public void createDataBaseTest01() {
-        try {
-            boolean res = DataBaseManager.getInstance().createDataBase("test01");
-            Assert.assertTrue(res);
-        } catch (Exception exception) {
-            Assert.assertTrue(false);
-        }
+        boolean res = DataBaseManager.getInstance().createDataBase("test01");
+        Assert.assertTrue(res);
     }
 
     /**
@@ -162,12 +264,8 @@ public class DataBaseManagerTest {
      */
     @Test
     public void createDataBaseTest02() {
-        try {
-            boolean res = DataBaseManager.getInstance().createDataBase(null);
-            Assert.assertTrue(res);
-        } catch (Exception exception) {
-            Assert.assertTrue(false);
-        }
+        boolean res = DataBaseManager.getInstance().createDataBase(null);
+        Assert.assertTrue(res);
     }
 
     /**
@@ -181,12 +279,39 @@ public class DataBaseManagerTest {
      */
     @Test
     public void createDataBaseTest03() {
-        try {
-            boolean res = DataBaseManager.getInstance().createDataBase("");
-            Assert.assertTrue(res);
-        } catch (Exception exception) {
-            Assert.assertTrue(false);
-        }
+        boolean res = DataBaseManager.getInstance().createDataBase("");
+        Assert.assertTrue(res);
+    }
+
+    /**
+     * functional testing createDataBase
+     *
+     * @tc.name: create DataBase
+     * @tc.number: OHOS_JAVA_database_DataBaseManager_createDataBase_0004
+     * @tc.desc: create DataBase
+     * @tc.type: functional testing
+     * @tc.require: SR-010
+     */
+    @Test
+    public void createDataBaseTest04() {
+        boolean res1 = DataBaseManager.getInstance().createDataBase("test11");
+        boolean res2 = DataBaseManager.getInstance().createDataBase("test01");
+        Assert.assertEquals(res1, res2);
+    }
+
+    /**
+     * functional testing createDataBase
+     *
+     * @tc.name: create DataBase
+     * @tc.number: OHOS_JAVA_database_DataBaseManager_createDataBase_0005
+     * @tc.desc: create DataBase
+     * @tc.type: functional testing
+     * @tc.require: SR-010
+     */
+    @Test
+    public void createDataBaseTest05() {
+        boolean res1 = DataBaseManager.getInstance().createDataBase("defaultDB");
+        Assert.assertTrue(res1);
     }
 
     /**
@@ -200,17 +325,10 @@ public class DataBaseManagerTest {
      */
     @Test
     public void createDruidConnectionPoolTest01() {
-        DataSource result = null;
-        try {
-            boolean res = DataBaseManager.getInstance().createDataBase("test01");
-            Assert.assertTrue(res);
-            DataBase dataBase = DataBaseHelper.createDataBase();
-            dataBase.setUrl(getUrlByDataBaseName("test01"));
-            result = DataBaseManager.getInstance().createDruidConnectionPool(dataBase);
-            Assert.assertNotNull(result);
-        } catch (Exception exception) {
-            Assert.assertNotNull(result);
-        }
+        DataBase dataBase = DataBaseHelper.createDataBase();
+        dataBase.setUrl(getUrlByDataBaseName(DEFAULT_DATABASE_DBNAME));
+        DataSource result = DataBaseManager.getInstance().createDruidConnectionPool(dataBase);
+        Assert.assertNotNull(result);
     }
 
     /**
@@ -224,15 +342,10 @@ public class DataBaseManagerTest {
      */
     @Test
     public void createDruidConnectionPoolTest02() {
-        DataSource result = null;
-        try {
-            DataBase dataBase = DataBaseHelper.createDataBase();
-            dataBase.setUrl(getUrlByDataBaseName("test02"));
-            result = DataBaseManager.getInstance().createDruidConnectionPool(dataBase);
-            Assert.assertNotNull(result);
-        } catch (Exception exception) {
-            Assert.assertNotNull(result);
-        }
+        DataBase dataBase = DataBaseHelper.createDataBase();
+        dataBase.setUrl(getUrlByDataBaseName(null));
+        DataSource result = DataBaseManager.getInstance().createDruidConnectionPool(dataBase);
+        Assert.assertNotNull(result);
     }
 
     /**
@@ -246,13 +359,10 @@ public class DataBaseManagerTest {
      */
     @Test
     public void createDruidConnectionPoolTest03() {
-        DataSource result = null;
-        try {
-            result = DataBaseManager.getInstance().createDruidConnectionPool(null);
-            Assert.assertNull(result);
-        } catch (Exception exception) {
-            Assert.assertNull(result);
-        }
+        DataBase dataBase = DataBaseHelper.createDataBase();
+        dataBase.setUrl(getUrlByDataBaseName(""));
+        DataSource result = DataBaseManager.getInstance().createDruidConnectionPool(dataBase);
+        Assert.assertNotNull(result);
     }
 
     /**
@@ -266,19 +376,23 @@ public class DataBaseManagerTest {
      */
     @Test
     public void createDruidConnectionPoolTest04() {
-        DataSource result = null;
-        try {
-            boolean res = DataBaseManager.getInstance().createDataBase("test01");
-            Assert.assertTrue(res);
-            DataBase dataBase = DataBaseHelper.createDataBase();
-            dataBase.setUrl(getUrlByDataBaseName("test01"));
-            result = DataBaseManager.getInstance().createDruidConnectionPool(dataBase);
-            DataBase dataBas2 = DataBaseHelper.createDataBase();
-            dataBas2.setUrl(getUrlByDataBaseName("test01"));
-            result = DataBaseManager.getInstance().createDruidConnectionPool(dataBase);
-            Assert.assertNotNull(result);
-        } catch (Exception exception) {
-            Assert.assertNotNull(result);
-        }
+        DataSource result = DataBaseManager.getInstance().createDruidConnectionPool(null);
+        Assert.assertNull(result);
+    }
+
+    /**
+     * functional testing createDruidConnectionPool
+     *
+     * @tc.name: create DruidConnection Pool
+     * @tc.number: OHOS_JAVA_database_DataBaseManager_createDruidConnectionPool_0005
+     * @tc.desc: create DruidConnection Pool
+     * @tc.type: functional testing
+     * @tc.require: SR-010
+     */
+    @Test
+    public void createDruidConnectionPoolTest05() {
+        DataBase dataBase = DataBaseHelper.createDataBase();
+        DataSource result = DataBaseManager.getInstance().createDruidConnectionPool(dataBase);
+        Assert.assertNull(result);
     }
 }

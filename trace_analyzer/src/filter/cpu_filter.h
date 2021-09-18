@@ -32,36 +32,36 @@ namespace TraceStreamer {
 class TraceStreamerFilters;
 class CpuFilter : private FilterBase {
 public:
-    explicit CpuFilter(TraceDataCache*, const TraceStreamerFilters*);
+    CpuFilter(TraceDataCache* dataCache, const TraceStreamerFilters* filter);
     CpuFilter(const CpuFilter&) = delete;
     CpuFilter& operator=(const CpuFilter&) = delete;
     ~CpuFilter() override;
 
 public:
-    uint64_t FindUtidInThreadStateTableByCpu(uint64_t cpu) const;
-    uint64_t InsertSwitchEvent(uint64_t ts,
-                               uint64_t cpu,
-                               uint64_t prevPid,
-                               uint64_t prevPior,
-                               uint64_t prevState,
-                               uint64_t nextPid,
-                               uint64_t nextPior);
-    uint64_t InsertWakeingEvent(uint64_t ts, uint64_t internalTid);
-
+    void InsertSwitchEvent(uint64_t ts,
+                           uint64_t cpu,
+                           uint64_t prevPid,
+                           uint64_t prevPior,
+                           uint64_t prevState,
+                           uint64_t nextPid,
+                           uint64_t nextPior);
+    void InsertWakeingEvent(uint64_t ts, uint64_t internalTid);
+    bool InsertProcessExitEvent(uint64_t ts, uint64_t cpu, uint64_t pid);
 private:
-    uint64_t FilterUidRow(uint64_t uid, uint64_t row, uint64_t state = TASK_INVALID);
-    uint64_t RowOfUidUThreadState(uint64_t uid) const;
-    uint64_t StateOfUidThreadState(uint64_t uid) const;
+    void CheckWakeingEvent(uint64_t internalTid);
+    uint64_t FilterInternalTidRow(uint64_t uid, uint64_t row, uint64_t state = TASK_INVALID);
+    uint64_t RowOfInternalTidThreadState(uint64_t uid) const;
+    uint64_t StateOfInternalTidThreadState(uint64_t uid) const;
 
     std::map<uint64_t, uint64_t> cpuToRowThreadState_ = {};
-    std::map<uint64_t, uint64_t> cpuToUtidThreadState_ = {};
     std::map<uint64_t, uint64_t> cpuToRowSched_ = {};
+    std::map<uint64_t, uint64_t> lastWakeUpMsg = {};
 
     struct TPthread {
         uint64_t row_;
         uint64_t state_;
     };
-    std::map<uint64_t, TPthread> uidToRowThreadState_ = {};
+    std::map<uint64_t, TPthread> internalTidToRowThreadState_ = {};
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

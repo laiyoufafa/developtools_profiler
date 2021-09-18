@@ -91,10 +91,10 @@ HWTEST_F(TraceFileWriterTest, Flush, TestSize.Level1)
 
     // check file length
     fin.seekg(0, std::ios_base::end);
-    EXPECT_EQ(fin.tellg(), sizeof(msgLen) + testData.size());
+    EXPECT_EQ(fin.tellg(), TraceFileHeader::HEADER_SIZE + sizeof(msgLen) + testData.size());
 
     // check msg length
-    fin.seekg(0, std::ios_base::beg);
+    fin.seekg(TraceFileHeader::HEADER_SIZE, std::ios_base::beg); // skip file header
     fin.read(reinterpret_cast<char*>(&msgLen), sizeof(msgLen));
     EXPECT_EQ(msgLen, testData.size());
 

@@ -24,9 +24,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 /**
  * test FlagBean class
  *
- * @version 1.0
  * @date 2021/4/24 18:05
- **/
+ */
 class FlagBeanTest {
     /**
      * test get the ns .

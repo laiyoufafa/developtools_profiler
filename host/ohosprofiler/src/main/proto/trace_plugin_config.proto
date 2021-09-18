@@ -18,16 +18,9 @@ message TracePluginConfig {
   repeated string ftrace_events = 1;
   repeated string bytrace_categories = 2;
   repeated string bytrace_apps = 3;
-  uint32 buffer_size_kb = 4;  /*cpu buffer_size*/
-  uint32 trace_period_ms = 5;
-  bool symbolize_ksyms = 6;  /*Enables symbol /proc/kallsyms.*/
-  string clock = 7;
-  ExtractSchedConfig extract_sched = 8;
-  repeated string debug_outfile_name = 9; /*1: file 2:binary file*/
-  bool debug_enable = 10;
-  string debug_fifo_path = 11;
-}
-
-message ExtractSchedConfig {
-    bool enabled = 1;
+  uint32 buffer_size_kb = 4;   // for ftrace procfs
+  uint32 flush_interval_ms = 5;
+  uint32 flush_threshold_kb = 6;
+  bool parse_ksyms = 7;  // enable /proc/kallsyms parser
+  string clock = 8;
 }

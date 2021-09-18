@@ -31,7 +31,9 @@ public:
     ~ProfilerDataRepeater();
 
     bool PutPluginData(const ProfilerPluginDataPtr& pluginData);
+
     ProfilerPluginDataPtr TakePluginData();
+
     int TakePluginData(std::vector<ProfilerPluginDataPtr>& pluginDataVec);
 
     void Close();

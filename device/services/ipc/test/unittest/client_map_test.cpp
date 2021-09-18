@@ -39,8 +39,7 @@ public:
 HWTEST_F(ClientMapTest, ClientSocket, TestSize.Level1)
 {
     ServiceEntry serviceEntry;
-    ClientMap::GetInstance();
-    ClientMap::GetInstance().PutClientSocket(0, serviceEntry);
+    ASSERT_EQ(ClientMap::GetInstance().PutClientSocket(1, serviceEntry), 1);
     ASSERT_EQ(ClientMap::GetInstance().AutoRelease(), 1);
 }
 } // namespace

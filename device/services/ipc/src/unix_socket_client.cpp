@@ -45,7 +45,7 @@ bool UnixSocketClient::Connect(const std::string addrname, ServiceBase& serviceB
         HILOG_ERROR(LOG_CORE, "memset_s error!");
     }
     addr.sun_family = AF_UNIX;
-    if (strncpy_s(addr.sun_path, UNIX_PATH_MAX, addrname.c_str(), sizeof(addr.sun_path) - 1) != EOK) {
+    if (strncpy_s(addr.sun_path, sizeof(addr.sun_path), addrname.c_str(), sizeof(addr.sun_path) - 1) != EOK) {
         HILOG_ERROR(LOG_CORE, "strncpy_s error!");
     }
 

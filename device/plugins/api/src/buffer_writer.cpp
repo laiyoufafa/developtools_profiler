@@ -15,50 +15,89 @@
 
 #include "buffer_writer.h"
 #include "command_poller.h"
+#include "common_types.pb.h"
 #include "logging.h"
 #include "plugin_service_types.pb.h"
 #include "share_memory_allocator.h"
 
+#include <algorithm>
+#include <cinttypes>
+#include <thread>
+#include <unistd.h>
+
 BufferWriter::BufferWriter(std::string name,
                            uint32_t size,
-                           int fd,
-                           const CommandPollerPtr& cp,
+                           int smbFd,
+                           int eventFd,
                            uint32_t pluginId)
     : pluginName_(name)
 {
-    HILOG_DEBUG(LOG_CORE, "CreateMemoryBlockRemote %s %d %d", name.c_str(), size, fd);
-    shareMemoryBlock_ = ShareMemoryAllocator::GetInstance().CreateMemoryBlockRemote(name, size, fd);
+    HILOG_INFO(LOG_CORE, "BufferWriter %s %d [%d] [%d]", name.c_str(), size, smbFd, eventFd);
+    shareMemoryBlock_ = ShareMemoryAllocator::GetInstance().CreateMemoryBlockRemote(name, size, smbFd);
     if (shareMemoryBlock_ == nullptr) {
-        HILOG_DEBUG(LOG_CORE, "shareMemoryBlock_ == nullptr=");
+        HILOG_DEBUG(LOG_CORE, "create shareMemoryBlock_ failed!");
     }
-    commandPoller_ = cp;
+    eventNotifier_ = EventNotifier::CreateWithFd(eventFd);
     pluginId_ = pluginId;
+    lastFlushTime_ = std::chrono::steady_clock::now();
 }
 
 BufferWriter::~BufferWriter()
 {
+    HILOG_DEBUG(LOG_CORE, "BufferWriter destroy eventfd = %d!", eventNotifier_ ? eventNotifier_->GetFd() : -1);
+    eventNotifier_ = nullptr;
     ShareMemoryAllocator::GetInstance().ReleaseMemoryBlockRemote(pluginName_);
+}
+
+void BufferWriter::Report() const
+{
+    HILOG_DEBUG(LOG_CORE, "BufferWriter stats B: %" PRIu64 ", P: %d, W:%" PRIu64 ", F: %d",
+        bytesCount_.load(), bytesPending_.load(), writeCount_.load(), flushCount_.load());
+}
+
+void BufferWriter::DoStats(long bytes)
+{
+    ++writeCount_;
+    bytesCount_ += bytes;
+    bytesPending_ += bytes;
 }
 
 long BufferWriter::Write(const void* data, size_t size)
 {
-    if (shareMemoryBlock_ == nullptr) {
+    if (shareMemoryBlock_ == nullptr || data == nullptr || size == 0) {
         return false;
     }
-    HILOG_DEBUG(LOG_CORE, "BufferWriter Write %zu", size);
-    return shareMemoryBlock_->PutRaw(reinterpret_cast<const int8_t*>(data), static_cast<uint32_t>(size));
+
+    ProfilerPluginData pluginData;
+    pluginData.set_name(pluginName_);
+    pluginData.set_status(0);
+    pluginData.set_data(data, size);
+
+    struct timespec ts = { 0, 0 };
+    clock_gettime(CLOCK_REALTIME, &ts);
+
+    pluginData.set_clock_id(ProfilerPluginData::CLOCKID_REALTIME);
+    pluginData.set_tv_sec(ts.tv_sec);
+    pluginData.set_tv_nsec(ts.tv_nsec);
+
+    DoStats(pluginData.ByteSizeLong());
+    return shareMemoryBlock_->PutMessage(pluginData);
 }
 
-bool BufferWriter::WriteProtobuf(google::protobuf::Message& pmsg)
+bool BufferWriter::WriteMessage(const google::protobuf::Message& pmsg)
 {
     if (shareMemoryBlock_ == nullptr) {
         return false;
     }
-    HILOG_DEBUG(LOG_CORE, "BufferWriter Write %zu", pmsg.ByteSizeLong());
-    return shareMemoryBlock_->PutProtobuf(pmsg);
+    DoStats(pmsg.ByteSizeLong());
+    return shareMemoryBlock_->PutMessage(pmsg);
 }
 
 bool BufferWriter::Flush()
 {
+    ++flushCount_;
+    eventNotifier_->Post(flushCount_.load());
+    lastFlushTime_ = std::chrono::steady_clock::now();
+    bytesPending_ = 0;
     return true;
 }

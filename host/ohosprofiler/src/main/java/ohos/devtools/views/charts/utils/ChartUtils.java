@@ -22,12 +22,10 @@ import static ohos.devtools.views.charts.utils.ChartConstants.NUM_1000;
 import static ohos.devtools.views.charts.utils.ChartConstants.NUM_60;
 import static ohos.devtools.views.charts.utils.ChartConstants.NUM_24;
 import static ohos.devtools.views.charts.utils.ChartConstants.DECIMAL_COUNTS;
-import static ohos.devtools.views.common.ViewConstants.INITIAL_VALUE;
+import static ohos.devtools.views.common.LayoutConstants.INITIAL_VALUE;
 
 /**
  * Chart相关的工具类
- *
- * @since 2021/3/3 10:41
  */
 public final class ChartUtils {
     /**
@@ -157,7 +155,6 @@ public final class ChartUtils {
      *
      * @param ms 处理的毫秒数
      * @return java.lang.String 转换为 分:秒:毫秒的格式
-     * @date 2021/3/17 15:24
      */
     public static String formatTime(Long ms) {
         int ss = NUM_1000;

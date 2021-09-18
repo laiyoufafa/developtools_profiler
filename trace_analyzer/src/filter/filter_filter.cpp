@@ -22,15 +22,16 @@
 namespace SysTuning {
 namespace TraceStreamer {
 FilterFilter::FilterFilter(TraceDataCache* dataCache, const TraceStreamerFilters* filter)
-    : FilterBase(dataCache, filter) {}
+    : FilterBase(dataCache, filter)
+{
+}
 
 FilterFilter::~FilterFilter() = default;
 
-uint32_t FilterFilter::AddFilter(std::string type, std::string name)
+uint32_t FilterFilter::AddFilter(std::string type, std::string name, uint64_t arg)
 {
-    uint32_t sourceArgSetId = 0;
-    auto* hook = traceDataCache_->GetFilterData();
-    size_t id = hook->AppendNewFilterData(type, name, sourceArgSetId);
+    auto filter = traceDataCache_->GetFilterData();
+    size_t id = filter->AppendNewFilterData(type, name, arg);
     return static_cast<uint32_t>(id);
 }
 } // namespace TraceStreamer

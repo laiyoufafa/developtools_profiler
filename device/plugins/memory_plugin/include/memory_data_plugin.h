@@ -135,7 +135,8 @@ private:
     /* data */
     MemoryConfig protoConfig_;
 
-    void* buffer_;
+    std::unique_ptr<uint8_t[]> buffer_;
+
     int meminfoFd_;
     int vmstatFd_;
     std::map<std::string, int> meminfoCounters_;

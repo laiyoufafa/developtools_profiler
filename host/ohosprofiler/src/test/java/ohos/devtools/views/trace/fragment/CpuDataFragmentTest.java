@@ -17,7 +17,6 @@ package ohos.devtools.views.trace.fragment;
 
 import com.intellij.util.ui.UIUtil;
 import ohos.devtools.views.trace.bean.CpuData;
-import ohos.devtools.views.trace.util.Final;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -25,40 +24,17 @@ import org.junit.jupiter.api.Test;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
-import java.awt.Color;
-import java.awt.Composite;
-import java.awt.Font;
-import java.awt.FontMetrics;
-import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.GraphicsConfiguration;
-import java.awt.Image;
-import java.awt.Paint;
-import java.awt.Rectangle;
-import java.awt.RenderingHints;
-import java.awt.Shape;
-import java.awt.Stroke;
 import java.awt.event.MouseEvent;
-import java.awt.font.FontRenderContext;
-import java.awt.font.GlyphVector;
-import java.awt.geom.AffineTransform;
-import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
-import java.awt.image.BufferedImageOp;
-import java.awt.image.ImageObserver;
-import java.awt.image.RenderedImage;
-import java.awt.image.renderable.RenderableImage;
-import java.text.AttributedCharacterIterator;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 /**
  * test CpuDataFragment class .
  *
- * @version 1.0
  * @date 2021/4/24 17:57
- **/
+ */
 class CpuDataFragmentTest {
     private CpuDataFragment cpuDataFragment;
     private JPanel jPanel;

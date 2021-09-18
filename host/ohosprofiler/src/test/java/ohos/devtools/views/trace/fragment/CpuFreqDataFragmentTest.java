@@ -18,47 +18,23 @@ package ohos.devtools.views.trace.fragment;
 import com.intellij.util.ui.UIUtil;
 import ohos.devtools.views.trace.bean.CpuData;
 import ohos.devtools.views.trace.bean.CpuFreqData;
-import ohos.devtools.views.trace.util.Final;
+import ohos.devtools.views.trace.bean.CpuFreqMax;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import javax.swing.JPanel;
-import java.awt.Color;
-import java.awt.Composite;
-import java.awt.Font;
-import java.awt.FontMetrics;
-import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.GraphicsConfiguration;
-import java.awt.Image;
-import java.awt.Paint;
-import java.awt.Rectangle;
-import java.awt.RenderingHints;
-import java.awt.Shape;
-import java.awt.Stroke;
 import java.awt.event.MouseEvent;
-import java.awt.font.FontRenderContext;
-import java.awt.font.GlyphVector;
-import java.awt.geom.AffineTransform;
-import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
-import java.awt.image.BufferedImageOp;
-import java.awt.image.ImageObserver;
-import java.awt.image.RenderedImage;
-import java.awt.image.renderable.RenderableImage;
-import java.text.AttributedCharacterIterator;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * test CpuFreqDataFragment class .
  *
- * @version 1.0
  * @date: 2021/4/24 17:57
- **/
+ */
 class CpuFreqDataFragmentTest {
     private CpuFreqDataFragment cpuFreqDataFragment;
     private JPanel jPanel;
@@ -69,12 +45,11 @@ class CpuFreqDataFragmentTest {
     @BeforeEach
     void setUp() {
         List<CpuFreqData> list = new ArrayList<>();
-        Map<String, Object> map = new HashMap<>() {{
-            put("name", "100");
-            put("value", "2.5GHZ");
-        }};
+        CpuFreqMax cpuFreqMax = new CpuFreqMax();
+        cpuFreqMax.setName("100");
+        cpuFreqMax.setValue(2.5);
         jPanel = new JPanel();
-        cpuFreqDataFragment = new CpuFreqDataFragment(jPanel, "name", map, list);
+        cpuFreqDataFragment = new CpuFreqDataFragment(jPanel, "name", cpuFreqMax, list);
     }
 
     /**

@@ -25,9 +25,8 @@ import static org.junit.Assert.assertEquals;
 /**
  * test ColorUtils class .
  *
- * @version 1.0
  * @date 2021/4/24 17:01
- **/
+ */
 class ColorUtilsTest {
     /**
      * test function the testGetColor .

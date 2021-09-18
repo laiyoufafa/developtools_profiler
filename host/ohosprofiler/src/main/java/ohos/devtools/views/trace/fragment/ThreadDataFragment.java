@@ -15,50 +15,50 @@
 
 package ohos.devtools.views.trace.fragment;
 
-import ohos.devtools.views.trace.bean.CpuFreqData;
+import ohos.devtools.views.trace.Sql;
 import ohos.devtools.views.trace.bean.FunctionBean;
 import ohos.devtools.views.trace.bean.ThreadData;
 import ohos.devtools.views.trace.component.AnalystPanel;
 import ohos.devtools.views.trace.component.ContentPanel;
 import ohos.devtools.views.trace.util.Db;
+import ohos.devtools.views.trace.util.Utils;
 
 import javax.swing.JComponent;
 import javax.swing.SwingUtilities;
 import java.awt.Graphics2D;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ForkJoinPool;
+import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Thread data row
  *
  * @version 1.0
  * @date 2021/04/22 12:25
- **/
-public class ThreadDataFragment extends AbstractDataFragment<CpuFreqData> implements ThreadData.IEventListener {
+ */
+public class ThreadDataFragment extends AbstractDataFragment<ThreadData> implements ThreadData.IEventListener {
     /**
      * graph event callback
      */
     public static ThreadData currentSelectedThreadData;
 
     /**
-     * Thread data collection
-     */
-    public List<ThreadData> data;
-
-    /**
      * Thread object
      */
     public ThreadData thread;
 
+    /**
+     * delayClickStartTime
+     */
+    public Long delayClickStartTime;
+
     private int x1;
-
     private int x2;
-
     private Rectangle2D bounds;
-
     private boolean isLoading;
 
     /**
@@ -68,9 +68,18 @@ public class ThreadDataFragment extends AbstractDataFragment<CpuFreqData> implem
      * @param thread thread
      */
     public ThreadDataFragment(JComponent root, ThreadData thread) {
+        super(root, true, false);
         this.thread = thread;
         this.setRoot(root);
-        this.data = data;
+    }
+
+    /**
+     * getData
+     *
+     * @return List<ThreadData>
+     */
+    public List<ThreadData> getData() {
+        return this.data;
     }
 
     /**
@@ -96,7 +105,7 @@ public class ThreadDataFragment extends AbstractDataFragment<CpuFreqData> implem
             if (substring.length() < wordNum) {
                 graphics.drawString(name.substring(0, (int) wordNum), (int) (getDescRect().getX() + 10),
                     (int) (getDescRect().getY() + bounds.getHeight() + 8));
-                graphics.drawString(substring, getDescRect().x + 10,
+                graphics.drawString(substring, Utils.getX(getDescRect()) + 10,
                     (int) (getDescRect().getY() + bounds.getHeight() * 2 + 8));
             } else {
                 graphics.drawString(name.substring(0, (int) wordNum), (int) (getDescRect().getX() + 10),
@@ -124,7 +133,8 @@ public class ThreadDataFragment extends AbstractDataFragment<CpuFreqData> implem
                 } else {
                     x2 = getX(threadData.getStartTime() + threadData.getDuration());
                 }
-                threadData.setRect(x1 + getDataRect().x, getDataRect().y + 5, x2 - x1 <= 0 ? 1 : x2 - x1,
+                threadData.setRect(x1 + Utils.getX(getDataRect()), Utils.getY(getDataRect()) + 5,
+                    x2 - x1 <= 0 ? 1 : x2 - x1,
                     getDataRect().height - 10);
                 threadData.root = getRoot();
                 threadData.setEventListener(this);
@@ -132,7 +142,7 @@ public class ThreadDataFragment extends AbstractDataFragment<CpuFreqData> implem
             });
         } else {
             graphics.setColor(getRoot().getForeground());
-            graphics.drawString("Loading...", getDataRect().x, getDataRect().y + 12);
+            graphics.drawString("Loading...", Utils.getX(getDataRect()), Utils.getY(getDataRect()) + 12);
             loadData();
         }
     }
@@ -144,10 +154,13 @@ public class ThreadDataFragment extends AbstractDataFragment<CpuFreqData> implem
      */
     @Override
     public void mouseClicked(MouseEvent event) {
+        super.mouseClicked(event);
         if (data != null) {
             data.stream().filter(threadData -> threadData.getStartTime() + threadData.getDuration() > startNS
-                && threadData.getStartTime() < endNS).filter(threadData -> threadData.edgeInspect(event)).findFirst()
+                    && threadData.getStartTime() < endNS).filter(threadData -> threadData.edgeInspect(event)).findFirst()
                 .ifPresent(threadData -> {
+                    threadData.setProcessName(thread.getProcessName());
+                    threadData.setThreadName(thread.getThreadName());
                     threadData.onClick(event);
                 });
         }
@@ -183,35 +196,32 @@ public class ThreadDataFragment extends AbstractDataFragment<CpuFreqData> implem
     /**
      * Mouse moved event
      *
-     * @param event event
+     * @param evt event
      */
     @Override
-    public void mouseMoved(MouseEvent event) {
+    public void mouseMoved(MouseEvent evt) {
+        MouseEvent event = getRealMouseEvent(evt);
+        super.mouseMoved(event);
         clearFocus(event);
         if (edgeInspect(event)) {
             if (data != null) {
                 data.stream().filter(threadData -> threadData.getStartTime() + threadData.getDuration() > startNS
-                    && threadData.getStartTime() < endNS).filter(threadData -> threadData.edgeInspect(event))
+                        && threadData.getStartTime() < endNS).filter(threadData -> threadData.edgeInspect(event))
                     .findFirst().ifPresent(filter -> {
-                    filter.onMouseMove(event);
-                    if (filter.edgeInspect(event)) {
-                        if (!filter.flagFocus) {
-                            filter.flagFocus = true;
-                            filter.onFocus(event);
+                        filter.onMouseMove(event);
+                        if (filter.edgeInspect(event)) {
+                            if (!filter.flagFocus) {
+                                filter.flagFocus = true;
+                                filter.onFocus(event);
+                            }
+                        } else {
+                            if (filter.flagFocus) {
+                                filter.flagFocus = false;
+                                filter.onBlur(event);
+                            }
                         }
-                    } else {
-                        if (filter.flagFocus) {
-                            filter.flagFocus = false;
-                            filter.onBlur(event);
-                        }
-                    }
-                });
+                    });
             }
-        }
-        JComponent component = getRoot();
-        if (component instanceof ContentPanel) {
-            ContentPanel root = ((ContentPanel) component);
-            root.refreshTab();
         }
     }
 
@@ -224,12 +234,26 @@ public class ThreadDataFragment extends AbstractDataFragment<CpuFreqData> implem
     public void mouseReleased(MouseEvent event) {
     }
 
+    /**
+     * key released event
+     *
+     * @param event event
+     */
+    @Override
+    public void keyReleased(KeyEvent event) {
+    }
+
     private void loadData() {
         if (!isLoading) {
             isLoading = true;
-            ForkJoinPool.commonPool().submit(() -> {
-                data = Db.getInstance().queryThreadData(thread.getTid());
-                ArrayList<FunctionBean> functionBeans = Db.getInstance().getFunDataByTid(thread.getTid());
+            CompletableFuture.runAsync(() -> {
+                List<ThreadData> list = new ArrayList<>() {
+                };
+                Db.getInstance().query(Sql.SYS_QUERY_THREAD_DATA, list, thread.getTid());
+                data = list;
+                ArrayList<FunctionBean> functionBeans = new ArrayList<>() {
+                };
+                Db.getInstance().query(Sql.SYS_GET_FUN_DATA_BY_TID, functionBeans, thread.getTid());
                 SwingUtilities.invokeLater(() -> {
                     isLoading = false;
                     if (!functionBeans.isEmpty()) {
@@ -250,7 +274,18 @@ public class ThreadDataFragment extends AbstractDataFragment<CpuFreqData> implem
                     } else {
                         repaint();
                     }
+                    if (delayClickStartTime != null) {
+                        data.stream().filter(it -> it.getStartTime() == delayClickStartTime).findFirst()
+                            .ifPresent(it -> {
+                                click(null, it);
+                                delayClickStartTime = null;
+                            });
+                    }
                 });
+            }, Utils.getPool()).whenComplete((unused, throwable) -> {
+                if (Objects.nonNull(throwable)) {
+                    throwable.printStackTrace();
+                }
             });
         }
     }

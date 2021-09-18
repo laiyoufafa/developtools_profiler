@@ -21,11 +21,8 @@ import org.junit.Test;
 import java.awt.Color;
 
 /**
- * TooltipColorRectTest
- *
- * @version 1.0
- * @Date 2021/4/3 21:10
- **/
+ * Tool tip Color Rect Test
+ */
 public class TooltipColorRectTest {
     /**
      * functional test

@@ -16,8 +16,10 @@
 package ohos.devtools.services.memory;
 
 import java.util.ArrayList;
-import java.util.List;
 
+import ohos.devtools.services.memory.agentbean.MemoryInstanceInfo;
+import ohos.devtools.services.memory.agentdao.MemoryInstanceDao;
+import ohos.devtools.services.memory.agentdao.MemoryUpdateInfo;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -25,11 +27,8 @@ import org.junit.Test;
 import ohos.devtools.datasources.utils.session.service.SessionManager;
 
 /**
- * MemoryInstanceDaoTest
- *
- * @version 1.0
- * @date 2021/04/05 17:12
- **/
+ * Memory Instance Dao Test
+ */
 public class MemoryInstanceDaoTest {
     private MemoryInstanceDao memoryInstanceDao;
     private MemoryInstanceInfo memoryInstanceInfo;
@@ -84,52 +83,6 @@ public class MemoryInstanceDaoTest {
     }
 
     /**
-     * functional testing insertMemoryInstanceInfo
-     *
-     * @tc.name: insertMemoryInstanceInfo
-     * @tc.number: OHOS_JAVA_Service_MemoryInstanceDao_insertMemoryInstanceInfo_0001
-     * @tc.desc: insertMemoryInstanceInfo
-     * @tc.type: functional testing
-     * @tc.require: AR000FK61M
-     */
-    @Test
-    public void testInsertMemoryInstanceInfo() {
-        memoryInstanceDao.insertMemoryInstanceInfo(memoryInstanceInfo);
-    }
-
-    /**
-     * functional testing insertMemoryInstanceInfos
-     *
-     * @tc.name: insertMemoryInstanceInfos
-     * @tc.number: OHOS_JAVA_Service_MemoryInstanceDao_insertMemoryInstanceInfos_0001
-     * @tc.desc: insertMemoryInstanceInfos
-     * @tc.type: functional testing
-     * @tc.require: AR000FK61M
-     */
-    @Test
-    public void testInsertMemoryInstanceInfos() {
-        List<MemoryInstanceInfo> list = new ArrayList<>();
-        list.add(memoryInstanceInfo);
-        memoryInstanceDao.insertMemoryInstanceInfos(list);
-    }
-
-    /**
-     * functional testing getMemoryInstanceInfos
-     *
-     * @tc.name: getMemoryInstanceInfos
-     * @tc.number: OHOS_JAVA_Service_MemoryInstanceDao_getMemoryInstanceInfos_0001
-     * @tc.desc: getMemoryInstanceInfos
-     * @tc.type: functional testing
-     * @tc.require: AR000FK61M
-     */
-    @Test
-    public void testGetMemoryInstanceInfos() {
-        List<MemoryInstanceInfo> list = new ArrayList<>();
-        list = memoryInstanceDao.getMemoryInstanceInfos(1, 0L, 5L);
-        Assert.assertEquals(1, list.size());
-    }
-
-    /**
      * functional testing getAllMemoryInstanceInfos
      *
      * @tc.name: getAllMemoryInstanceInfos
@@ -140,22 +93,8 @@ public class MemoryInstanceDaoTest {
      */
     @Test
     public void testGetAllMemoryInstanceInfos() {
-        ArrayList<MemoryInstanceInfo> allMemoryInstanceInfos = memoryInstanceDao.getAllMemoryInstanceInfos();
+        ArrayList<MemoryUpdateInfo> allMemoryInstanceInfos = memoryInstanceDao.getAllMemoryInstanceInfos();
         Assert.assertNotNull(allMemoryInstanceInfos);
-    }
-
-    /**
-     * functional testing updateInstanceInfos
-     *
-     * @tc.name: updateInstanceInfos
-     * @tc.number: OHOS_JAVA_Service_MemoryInstanceDao_updateInstanceInfos_0001
-     * @tc.desc: updateInstanceInfos
-     * @tc.type: functional testing
-     * @tc.require: AR000FK61M
-     */
-    @Test
-    public void testUpdateInstanceInfos() {
-        memoryInstanceDao.updateInstanceInfos(13L, 2);
     }
 
     /**
@@ -171,5 +110,4 @@ public class MemoryInstanceDaoTest {
     public void testDeleteSessionData() {
         memoryInstanceDao.deleteSessionData(1);
     }
-
 }

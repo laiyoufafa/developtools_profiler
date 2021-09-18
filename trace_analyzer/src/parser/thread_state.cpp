@@ -21,16 +21,8 @@ Direction ThreadState::SetStatByChar(char ch)
 {
     if (ch == 'R') {
         if (state_ == 0) {
-            SetIsRunnable(true);
             return NEED_CONTINUE;
         }
-
-        SetInvalidChar(true);
-        return NEED_BREAK;
-    }
-
-    if (ch == '|') {
-        return NEED_CONTINUE;
     }
 
     if (statMap_.find(ch) == statMap_.end()) {
@@ -44,39 +36,24 @@ Direction ThreadState::SetStatByChar(char ch)
 void ThreadState::ProcessSate(const std::string& stateStr)
 {
     for (size_t i = 0; i < stateStr.size(); i++) {
-        if (state_ & MAXSTAT) {
-            SetInvalidChar(true);
-            break;
-        } else if (stateStr[i] == '+') {
-            SetStat(MAXSTAT);
+        if (stateStr[i] == '+') {
+            SetStat(TASKNEW);
             continue;
-        }
-
-        if (isRunnable_) {
-            SetInvalidChar(true);
-            break;
         }
 
         Direction ret = SetStatByChar(stateStr[i]);
         if (ret == NEED_CONTINUE) {
             continue;
         } else if (ret == NEED_BREAK) {
-            SetInvalidChar(true);
+            TS_LOGE("Un supported state:%c", stateStr[i]);
             break;
         }
     }
 }
 
-ThreadState::ThreadState(const std::string stateStr)
+ThreadState::ThreadState(const std::string& stateStr)
 {
     ProcessSate(stateStr);
-
-    bool noState = ((!isRunnable_) && (state_ == 0));
-    if (invalidChar_ || noState || state_ > MAXSTAT) {
-        SetStatZero();
-    } else {
-        SetStat(VALID);
-    }
 }
 } // namespace TraceStreamer
 } // namespace SysTuning

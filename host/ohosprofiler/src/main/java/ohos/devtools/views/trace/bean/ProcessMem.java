@@ -15,21 +15,27 @@
 
 package ohos.devtools.views.trace.bean;
 
+import ohos.devtools.views.trace.DField;
+
 /**
  * Process memory directory
  *
- * @version 1.0
  * @date 2021/04/22 12:25
- **/
+ */
 public class ProcessMem {
+    @DField(name = "trackId")
     private int trackId;
 
+    @DField(name = "processName")
     private String processName;
 
+    @DField(name = "pid")
     private int pid;
 
+    @DField(name = "upid")
     private int upid;
 
+    @DField(name = "trackName")
     private String trackName;
 
     /**

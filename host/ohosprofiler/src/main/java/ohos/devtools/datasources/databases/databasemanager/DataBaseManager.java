@@ -43,12 +43,13 @@ import static ohos.devtools.datasources.databases.databasepool.DataBaseHelper.lo
 import static ohos.devtools.datasources.databases.databasepool.DataTableHelper.getTableNameBySql;
 
 /**
- * @Description Database creation class
- * @Date 2021/2/2 11:28
- **/
+ * Database creation class
+ */
 public class DataBaseManager {
     private static final Logger LOGGER = LogManager.getLogger(DataBaseManager.class);
-
+    private static final String DEFAULT_SQL = "defaultSql";
+    private static final String DEFAULT_DB_PROPER = "db.properties";
+    private static final String DEFAULT_DB_DRIVER = "org.sqlite.JDBC";
     private static Set<String> dbLists = new HashSet<>();
 
     private static class SingletonClassInstance {
@@ -89,28 +90,30 @@ public class DataBaseManager {
         Statement statement = null;
         Connection connection = null;
         try {
-            properties.load(DataBaseManager.class.getClassLoader().getResourceAsStream("db.properties"));
-            String initPath = properties.getProperty("defaultSql");
+            properties.load(DataBaseManager.class.getClassLoader().getResourceAsStream(DEFAULT_DB_PROPER));
+            String initPath = properties.getProperty(DEFAULT_SQL);
             if (StringUtils.isNotBlank(initPath)) {
                 String sqlConfigPath = SessionManager.getInstance().getPluginPath() + initPath;
                 List<String> sqlList = loadSqlFileToList(sqlConfigPath);
                 DataSource dataSource = createDruidConnectionPool(dataBase);
-                DataBaseApi.getInstance().registerDataSource(DEFAULT_DATABASE_DBNAME, dataSource);
-                connection = dataSource.getConnection();
-                statement = connection.createStatement();
-                for (String sql : sqlList) {
-                    String tableName = getTableNameBySql(sql);
-                    String dbName = DataBaseApi.getInstance().checkTableRegister(tableName);
-                    if (DEFAULT_DATABASE_DBNAME.equals(dbName)) {
-                        continue;
+                if (dataSource != null) {
+                    DataBaseApi.getInstance().registerDataSource(DEFAULT_DATABASE_DBNAME, dataSource);
+                    connection = dataSource.getConnection();
+                    statement = connection.createStatement();
+                    for (String sql : sqlList) {
+                        String tableName = getTableNameBySql(sql);
+                        String dbName = DataBaseApi.getInstance().checkTableRegister(tableName);
+                        if (DEFAULT_DATABASE_DBNAME.equals(dbName)) {
+                            continue;
+                        }
+                        statement.execute(sql);
+                        DataBaseApi.getInstance().registerTable(tableName, DEFAULT_DATABASE_DBNAME);
                     }
-                    statement.execute(sql);
-                    DataBaseApi.getInstance().registerTable(tableName, DEFAULT_DATABASE_DBNAME);
+                    return true;
                 }
-                return true;
             }
         } catch (IOException | SQLException exception) {
-            LOGGER.error("create Table Exception {}", exception.getMessage());
+            LOGGER.error("create Table Exception ", exception);
             return false;
         } finally {
             if (statement != null) {
@@ -150,7 +153,7 @@ public class DataBaseManager {
      * @return boolean
      */
     private boolean createDataBase(DataBase dataBase) {
-        if (dataBase.getUrl() == null || StringUtils.isBlank(dataBase.getUrl())) {
+        if (dataBase == null || dataBase.getUrl() == null || StringUtils.isBlank(dataBase.getUrl())) {
             return false;
         }
         String dbPath = getFilePath(dataBase.getUrl());
@@ -164,14 +167,14 @@ public class DataBaseManager {
                 LOGGER.error("delete Error");
             }
         } else {
-            LOGGER.error("File Error");
+            LOGGER.error("DB file not exit");
         }
         File parent = dbFile.getParentFile();
-        if (parent == null) {
+        if (parent != null) {
             parent.mkdirs();
         }
         try {
-            Class.forName("org.sqlite.JDBC");
+            Class.forName(DEFAULT_DB_DRIVER);
             DriverManager.getConnection(dataBase.getUrl());
             dbLists.add(dataBase.getUrl());
             return true;

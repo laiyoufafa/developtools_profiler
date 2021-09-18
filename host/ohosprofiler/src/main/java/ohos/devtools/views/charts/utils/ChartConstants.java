@@ -15,7 +15,7 @@
 
 package ohos.devtools.views.charts.utils;
 
-import java.awt.Color;
+import com.intellij.ui.JBColor;
 
 /**
  * Chart相关的常量类
@@ -24,19 +24,9 @@ import java.awt.Color;
  */
 public final class ChartConstants {
     /**
-     * 初始值
-     */
-    public static final int INITIAL_VALUE = -1;
-
-    /**
      * 默认半透明度的值
      */
     public static final float TRANSLUCENT_VALUE = 0.8F;
-
-    /**
-     * 不透明时的值
-     */
-    public static final float OPAQUE_VALUE = 1.0F;
 
     /**
      * Chart绘制区域离顶部的偏移量（页眉高度）
@@ -59,29 +49,14 @@ public final class ChartConstants {
     public static final int Y_AXIS_STR_OFFSET_Y = 5;
 
     /**
-     * KB，MB转换时的单位
-     */
-    public static final int UNIT = 1024;
-
-    /**
      * 默认Chart绘制颜色
      */
-    public static final Color DEFAULT_CHART_COLOR = Color.GRAY;
+    public static final JBColor DEFAULT_CHART_COLOR = JBColor.GRAY;
 
     /**
      * 折线图线条默认宽度
      */
     public static final int DEFAULT_LINE_WIDTH = 3;
-
-    /**
-     * 数字
-     */
-    public static final int NUM_2 = 2;
-
-    /**
-     * 数字
-     */
-    public static final int NUM_3 = 3;
 
     /**
      * 数字
@@ -99,14 +74,34 @@ public final class ChartConstants {
     public static final int NUM_1000 = 1000;
 
     /**
-     * 数字
-     */
-    public static final int NUM_1024 = 1024;
-
-    /**
      * 计算时默认保留的小数位数
      */
     public static final int DECIMAL_COUNTS = 5;
+
+    /**
+     * Default time range selected after clicking chart
+     */
+    public static final int DEFAULT_SELECT = 10;
+
+    /**
+     * Chart的Y轴最大单位
+     */
+    public static final int CHART_MAX_Y = 2;
+
+    /**
+     * Chart的Y轴坐标刻度分段数量
+     */
+    public static final int CHART_SECTION_NUM_Y = 2;
+
+    /**
+     * 时间线上的默认最大毫秒数
+     */
+    public static final int DEFAULT_MAX_MILLIS = 10000;
+
+    /**
+     * 时间线上的默认最小时间单位，单位为毫秒
+     */
+    public static final int DEFAULT_TIME_UNIT = 200;
 
     /**
      * 构造函数

@@ -31,7 +31,7 @@ public:
     bool ReleaseMemoryBlockLocal(std::string name);
     bool ReleaseMemoryBlockRemote(std::string name);
 
-    ShareMemoryBlockPtr FindMBByName(std::string name);
+    ShareMemoryBlockPtr FindMemoryBlockByName(std::string name);
 
 private:
     ShareMemoryAllocator();

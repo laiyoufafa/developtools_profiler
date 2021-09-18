@@ -25,7 +25,7 @@ using GetCommandResponsePtr = STD_PTR(shared, ::GetCommandResponse);
 
 class PluginServiceImpl final : public IPluginServiceServer {
 public:
-    PluginServiceImpl(PluginService& p);
+    explicit PluginServiceImpl(PluginService& p);
     ~PluginServiceImpl();
     bool RegisterPlugin(SocketContext& context,
                         ::RegisterPluginRequest& request,

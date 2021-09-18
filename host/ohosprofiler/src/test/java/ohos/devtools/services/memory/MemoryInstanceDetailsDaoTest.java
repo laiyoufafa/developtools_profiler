@@ -17,6 +17,8 @@ package ohos.devtools.services.memory;
 
 import ohos.devtools.datasources.databases.databaseapi.DataBaseApi;
 import ohos.devtools.datasources.utils.profilerlog.ProfilerLogManager;
+import ohos.devtools.services.memory.agentbean.MemoryInstanceDetailsInfo;
+import ohos.devtools.services.memory.agentdao.MemoryInstanceDetailsDao;
 import org.apache.logging.log4j.Level;
 import org.junit.Assert;
 import org.junit.Before;
@@ -26,20 +28,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * MemoryInstanceDetailsDaoTest
- *
- * @version 1.0
- * @date 2021/04/26 15:56
- **/
+ * Memory Instance Details Dao Test
+ */
 public class MemoryInstanceDetailsDaoTest {
-    /**
-     * MemoryInstanceDetailsInfo
-     */
     private MemoryInstanceDetailsInfo memoryInstanceDetailsInfo;
-
-    /**
-     * MemoryInstanceDetailsDao
-     */
     private MemoryInstanceDetailsDao memoryInstanceDetailsDao;
 
     /**
@@ -81,20 +73,6 @@ public class MemoryInstanceDetailsDaoTest {
     public void testGetInstance() {
         MemoryInstanceDetailsDao instance = MemoryInstanceDetailsDao.getInstance();
         Assert.assertNotNull(instance);
-    }
-
-    /**
-     * functional testing insertMemoryInstanceDetailsInfo
-     *
-     * @tc.name: insertMemoryInstanceDetailsInfo
-     * @tc.number: OHOS_JAVA_memory_MemoryInstanceDetailsDao_insertMemoryInstanceDetailsInfo_0001
-     * @tc.desc: insertMemoryInstanceDetailsInfo
-     * @tc.type: functional testing
-     * @tc.require: AR000FK61N
-     */
-    @Test
-    public void testinsertMemoryInstanceDetailsInfo() {
-        memoryInstanceDetailsDao.insertMemoryInstanceDetailsInfo(memoryInstanceDetailsInfo);
     }
 
     /**
@@ -156,5 +134,4 @@ public class MemoryInstanceDetailsDaoTest {
     public void testdeleteSessionData() {
         memoryInstanceDetailsDao.deleteSessionData(1L);
     }
-
 }

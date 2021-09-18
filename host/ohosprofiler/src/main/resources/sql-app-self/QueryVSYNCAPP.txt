@@ -1,0 +1,10 @@
+with tracks as (
+    select process_measure_filter.id as trackId,
+                process_measure_filter.name as trackName, ipid, process_view.pid,
+                process_view.name as processName, process_view.start_ts as startTs
+                from process_measure_filter
+                join process_view using(ipid)
+                where trackName='VSYNC-app'
+    order by trackName
+)
+select c.*,c.filter_id as track_id,c.ts-tb.start_ts startTime from measure c,trace_range tb where filter_id in (select tracks.trackId from tracks);

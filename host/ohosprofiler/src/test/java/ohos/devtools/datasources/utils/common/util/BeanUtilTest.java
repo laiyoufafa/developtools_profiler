@@ -16,6 +16,7 @@
 package ohos.devtools.datasources.utils.common.util;
 
 import ohos.devtools.datasources.utils.device.entity.DeviceIPPortInfo;
+import ohos.devtools.datasources.utils.device.entity.DeviceType;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -24,18 +25,10 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * @Description BeanUtilTest
- * @Date 2021/4/8 13:15
- **/
+ * Bean Util
+ */
 public class BeanUtilTest {
-    /**
-     * DeviceIPPortInfo
-     */
     private DeviceIPPortInfo deviceIPPortInfo;
-
-    /**
-     * serializes
-     */
     private byte[] serializes;
 
     /**
@@ -54,7 +47,7 @@ public class BeanUtilTest {
         deviceIPPortInfo.setIp("");
         deviceIPPortInfo.setDeviceName("");
         deviceIPPortInfo.setDeviceID("");
-        deviceIPPortInfo.setDeviceType("");
+        deviceIPPortInfo.setDeviceType(DeviceType.FULL_HOS_DEVICE);
         serializes = BeanUtil.serialize(deviceIPPortInfo);
     }
 
@@ -177,5 +170,4 @@ public class BeanUtilTest {
         String objectName = BeanUtil.getObjectName(deviceIPPortInfo);
         Assert.assertNotNull(objectName);
     }
-
 }

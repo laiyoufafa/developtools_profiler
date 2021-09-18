@@ -19,27 +19,27 @@ import ohos.devtools.views.charts.model.ChartDataRange;
 import ohos.devtools.views.charts.model.ChartStandard;
 
 /**
- * Chart刷新事件观察者
+ * Observer of chart refreshes event
  *
  * @since 2021/1/26 19:28
  */
 public interface IChartEventObserver {
     /**
-     * 刷新绘图标准
+     * Refresh chart drawing standard
      *
-     * @param standard       绘图标准
-     * @param startTime      开始时间
-     * @param endTime        结束时间
-     * @param maxDisplayTime 最大显示时间
+     * @param startTime        Start time of chart
+     * @param endTime          End time of chart
+     * @param maxDisplayMillis Maximum display time on view
+     * @param minMarkInterval  The minimum scale interval
      */
-    void refreshStandard(ChartStandard standard, int startTime, int endTime, int maxDisplayTime);
+    void refreshStandard(int startTime, int endTime, int maxDisplayMillis, int minMarkInterval);
 
     /**
-     * 刷新视图
+     * Refresh view
      *
-     * @param range          时间范围
-     * @param firstTimestamp 本次Chart首次创建并启动刷新时的时间戳
-     * @param isUseCache     是否使用缓存机制
+     * @param range          Chart display time range
+     * @param firstTimestamp The first time stamp of this chart's data
+     * @param useCache       whether or not use cache
      */
-    void refreshView(ChartDataRange range, long firstTimestamp, boolean isUseCache);
+    void refreshView(ChartDataRange range, long firstTimestamp, boolean useCache);
 }

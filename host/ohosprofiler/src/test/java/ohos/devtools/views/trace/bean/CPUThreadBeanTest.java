@@ -22,9 +22,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 /**
  * test CPUThreadBean class
  *
- * @version 1.0
  * @date 2021/4/24 18:04
- **/
+ */
 class CPUThreadBeanTest {
     /**
      * test get the avgDuration .

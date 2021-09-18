@@ -16,24 +16,18 @@
 package ohos.devtools.datasources.utils.common;
 
 /**
- * @Description constant
- * @Date 2021/3/4 15:58
- **/
+ * constant
+ */
 public class Constant {
-    /**
-     * Destination path
-     */
-    public static final String DEST_PATH = "/data/local/tmp";
-
     /**
      * Devtools plug-in (V8) path
      */
-    public static final String DEVTOOLS_PLUGINS_V8_PATH = "devtools.tar";
+    public static final String DEVTOOLS_PLUGINS_V8_PATH = "developtools";
 
     /**
      * Devtools plug-in (V7) path
      */
-    public static final String DEVTOOLS_PLUGINS_V7_PATH = "devtools.tar";
+    public static final String DEVTOOLS_PLUGINS_V7_PATH = "developtool.tar";
 
     /**
      * Unzip shell plug-in path
@@ -46,54 +40,24 @@ public class Constant {
     public static final String FILE_NAME = "hiprofilerd";
 
     /**
-     * Plug-in name
-     */
-    public static final String HIPRO_FILER_NAME = "hiprofiler_cmd";
-
-    /**
-     * Plug-in name
-     */
-    public static final String PLUGINS_NAME = "hiprofiler_plugins";
-
-    /**
-     * HIPRO filer command name
-     */
-    public static final String HIPRO_FILER_CMDNAME = "hiprofiler_cmd -q";
-
-    /**
      * HIPRO filer result: OK
      */
-    public static final String HIPRO_FILER_RESULT_OK = "OK";
+    public static final String PLUGIN_RESULT_OK  = "OK";
 
     /**
-     * Installation result: success
+     * need to update Version
      */
-    public static final String INSTALL_SUCCESS = "Success";
+    public static final String UPDATE_PLUGIN = "UPDATE PLUGIN";
 
     /**
-     * Device state: online
+     * Device state: not found
      */
-    public static final String DEVICE_STAT_ONLINE = "device";
+    public static final String PLUGIN_NOT_FOUND = "not found";
 
     /**
      * Device SATA state: pushed
      */
     public static final String DEVICE_SATA_STAT_PUSHED = "pushed";
-
-    /**
-     * Device state: error
-     */
-    public static final String DEVICE_STAT_ERROR = "error";
-
-    /**
-     * Device state: closed
-     */
-    public static final String DEVICE_STAT_CLOSED = "closed";
-
-    /**
-     * Device state: not found
-     */
-    public static final String DEVICE_STAT_NOT_FOUND = "not found";
 
     /**
      * Device state: FAIL
@@ -106,74 +70,9 @@ public class Constant {
     public static final String DEVICE_STAT_OFFLINE = "offline";
 
     /**
-     * Device state: unauthorized
-     */
-    public static final String DEVICE_STST_UNAUTHORIZED = "unauthorized";
-
-    /**
-     * Device full type
-     */
-    public static final String DEVICE_FULL_TYPE = "arm64-v8a";
-
-    /**
-     * Device lean type
-     */
-    public static final String DEVICE_LEAN_TYPE = "arm64-v7a";
-
-    /**
-     * Memory plug-in file name source file path of plug-in push
-     */
-    public static final String SOURCE_FILEPATH = "src/main/resources/plugins/";
-
-    /**
-     * Cpu plug-in file name
-     */
-    public static final String CPU_PLUG_NAME = "Cpu";
-
-    /**
-     * Gpu plug-in file name
-     */
-    public static final String GPU_PLUG_NAME = "Gpu";
-
-    /**
-     * Process plug in file name
-     */
-    public static final String PROCESS_PLUG_NAME = "Process";
-
-    /**
-     * Target file path of plug-in push
-     */
-    public static final String TARGET_PLUG_PATH = "/data/local/tmp/";
-
-    /**
-     * File suffix pushed by plug-in
-     */
-    public static final String FILE_SUFFIX = ".so";
-
-    /**
-     * default sampling interval
-     */
-    public static final int SAMPLE_INTERVAL_DEFAULT = 1000;
-
-    /**
      * Radix for conversion from BigInteger to string
      */
     public static final int RADIX = 16;
-
-    /**
-     * End side return to normal flag
-     */
-    public static final int NORMAL_STATUS = 0;
-
-    /**
-     * File importing scene (1: real-time)
-     */
-    public static final int REALTIME_SCENE = 1;
-
-    /**
-     * File importing scene (2: real-time)
-     */
-    public static final int FILE_IMPORT_SCENE = 2;
 
     /**
      * size
@@ -204,6 +103,21 @@ public class Constant {
      * memory plug name
      */
     public static final String MEMORY_PLUGS = "libmemdataplugin";
+
+    /**
+     * cpu plug
+     */
+    public static final String CPU_PLUGS_NAME = "/data/local/tmp/libcpudataplugin.z.so";
+
+    /**
+     * Cpu plug-in
+     */
+    public static final String CPU_PLUG = "cpu-plugin";
+
+    /**
+     * cpu plug
+     */
+    public static final String ENERGY_PLUGS_NAME = "/data/local/tmp/libcpudataplugin.z.so";
 
     private Constant() {
     }

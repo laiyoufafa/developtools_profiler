@@ -43,7 +43,6 @@ import java.util.List;
 /**
  * bottom Slice panel
  *
- * @version 1.0.1
  * @date 2021/04/20 12:24
  */
 public class ScrollSlicePanel extends BottomScrollPanel {
@@ -54,9 +53,25 @@ public class ScrollSlicePanel extends BottomScrollPanel {
     private IScrollSliceLinkListener listener;
 
     /**
+     * create table line data
+     *
+     * @param key key
+     * @param value value
+     * @param linkable link
+     * @return SliceData data
+     */
+    public static SliceData createSliceData(String key, String value, boolean linkable) {
+        SliceData data = new SliceData();
+        data.key = key;
+        data.value = value;
+        data.linkable = linkable;
+        return data;
+    }
+
+    /**
      * set component data source
      *
-     * @param title      table title
+     * @param title table title
      * @param dataSource table data source
      * @param wakeupBean wakeup data information
      */
@@ -100,23 +115,8 @@ public class ScrollSlicePanel extends BottomScrollPanel {
     }
 
     /**
-     * create table line data
+     * SliceData
      *
-     * @param key      key
-     * @param value    value
-     * @param linkable link
-     * @return SliceData data
-     */
-    public static SliceData createSliceData(String key, String value, boolean linkable) {
-        SliceData data = new SliceData();
-        data.key = key;
-        data.value = value;
-        data.linkable = linkable;
-        return data;
-    }
-
-    /**
-     * @version 1.0.1
      * @date 2021/04/20 12:24
      */
     public static class SliceData {
@@ -137,7 +137,8 @@ public class ScrollSlicePanel extends BottomScrollPanel {
     }
 
     /**
-     * @version 1.0.1
+     * RightPanel
+     *
      * @date 2021/04/20 12:24
      */
     class RightPanel extends ChildPanel {
@@ -209,7 +210,8 @@ public class ScrollSlicePanel extends BottomScrollPanel {
     }
 
     /**
-     * @version 1.0.1
+     * TitlePanel
+     *
      * @date 2021/04/20 12:24
      */
     class TitlePanel extends ChildLineComponent {
@@ -237,30 +239,28 @@ public class ScrollSlicePanel extends BottomScrollPanel {
     }
 
     /**
-     * @version 1.0.1
+     * LineComponent
+     *
      * @date 2021/04/20 12:24
      */
     class LineComponent extends ChildLineComponent {
+        private final int leftW = 200;
+
         /**
          * linkable
          */
         public boolean linkable;
 
         private String key;
-
         private String value;
-
         private IScrollSliceLinkListener listener;
-
         private Rectangle linkRect;
-
-        private final int leftW = 200;
 
         /**
          * LineComponent constructor
          *
-         * @param key      key
-         * @param value    value
+         * @param key key
+         * @param value value
          * @param linkable linkable
          */
         public LineComponent(String key, String value, boolean linkable) {
@@ -344,7 +344,7 @@ public class ScrollSlicePanel extends BottomScrollPanel {
                         Rectangle2D bounds = graphics.getFontMetrics(font).getStringBounds(value, graphics);
                         linkRect = new Rectangle((int) (202 + bounds.getWidth() + 5), (lineHeight - 20) / 2, 20, 20);
                         Image link = ImageIO.read(getClass().getResourceAsStream("/assets/link.png"));
-                        graphics.drawImage(link, linkRect.x + 2, linkRect.y + 3, 15, 15, null);
+                        graphics.drawImage(link, Utils.getX(linkRect) + 2, Utils.getY(linkRect) + 3, 15, 15, null);
                     }
                 } catch (IOException ioException) {
                     ioException.printStackTrace();
