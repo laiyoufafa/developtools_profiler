@@ -24,7 +24,7 @@ import java.util.Map;
  * @param <K> k
  * @param <V> v
  */
-public class CacheMap<K,V> extends LinkedHashMap<K,V> {
+public class CacheMap<K, V> extends LinkedHashMap<K, V> {
     /**
      * Cache max size
      *

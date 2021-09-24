@@ -270,7 +270,6 @@ public class ClockData extends AbstractGraph {
     private void drawNoSelect(final Graphics2D graphics) {
         Color color = ColorUtils.colorForTid(maxValue.intValue());
         graphics.setColor(color);
-        //        int offset = rect.height/5;//value 为max的话 y = offset
         double tmpHeight = rect.height * value * 1.0 / maxValue;
         if (tmpHeight <= 0) {
             tmpHeight = 1;

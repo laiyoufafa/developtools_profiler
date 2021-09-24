@@ -39,18 +39,30 @@ public class Func extends AppFunc {
      * parent blood id
      */
     protected String parentBloodId = "";
-    @DField(name = "stack_id") private long stackId;
-    @DField(name = "parent_stack_id") private long parentStackId;
-    @DField(name = "id") private Integer id;
-    @DField(name = "parent_id") private Integer parentId;
-    @DField(name = "is_main_thread") private Integer isMainThread;
-    @DField(name = "track_id") private Integer trackId;
-    @DField(name = "funName") private String funcName = "";
-    @DField(name = "tid") private Integer tid;
-    @DField(name = "depth") private Integer depth = 0;
-    @DField(name = "threadName") private String threadName = "";
-    @DField(name = "startTs") private long startTs;
-    @DField(name = "dur") private long dur;
+    @DField(name = "stack_id")
+    private long stackId;
+    @DField(name = "parent_stack_id")
+    private long parentStackId;
+    @DField(name = "id")
+    private Integer id;
+    @DField(name = "parent_id")
+    private Integer parentId;
+    @DField(name = "is_main_thread")
+    private Integer isMainThread;
+    @DField(name = "track_id")
+    private Integer trackId;
+    @DField(name = "funName")
+    private String funcName = "";
+    @DField(name = "tid")
+    private Integer tid;
+    @DField(name = "depth")
+    private Integer depth = 0;
+    @DField(name = "threadName")
+    private String threadName = "";
+    @DField(name = "startTs")
+    private long startTs;
+    @DField(name = "dur")
+    private long dur;
     private String category;
     private long running;
     private long idle;

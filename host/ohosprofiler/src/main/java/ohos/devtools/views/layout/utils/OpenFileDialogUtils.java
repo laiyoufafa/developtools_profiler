@@ -363,9 +363,9 @@ public class OpenFileDialogUtils {
         /**
          * ChooseTraceTypeDialogWrapper
          *
-         * @param optionJPanelContent
-         * @param selectedFile
-         * @param optionJPanel
+         * @param optionJPanelContent optionJPanelContent
+         * @param selectedFile selectedFile
+         * @param optionJPanel optionJPanel
          */
         ChooseTraceTypeDialogWrapper(JBPanel optionJPanelContent, File selectedFile, JBPanel optionJPanel) {
             super(true);

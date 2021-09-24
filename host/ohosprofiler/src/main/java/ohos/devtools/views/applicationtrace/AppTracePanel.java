@@ -101,8 +101,8 @@ public class AppTracePanel extends JBPanel {
         });
         addComponentListener(new ComponentAdapter() {
             @Override
-            public void componentHidden(ComponentEvent e) {
-                super.componentHidden(e);
+            public void componentHidden(ComponentEvent event) {
+                super.componentHidden(event);
                 tip.hidden();
             }
         });

@@ -263,29 +263,6 @@ public abstract class ProfilerChart extends JBPanel implements MouseListener, Mo
     }
 
     /**
-     * Constructor
-     *
-     * @param bottomPanel ProfilerChartsView
-     * @param name chart name
-     */
-    ProfilerChart(ProfilerChartsView bottomPanel, String name, ArrayList yAxisList) {
-        this.bottomPanel = bottomPanel;
-        this.chartName = name;
-        this.yAxisList = yAxisList;
-        // Set transparent display
-        this.setOpaque(false);
-        this.setLayout(new BorderLayout());
-        this.addMouseListener(this);
-        this.addMouseMotionListener(this);
-        this.tooltip = new LegendTooltip();
-        // 添加图例组件的布局
-        legends = new JBPanel(new FlowLayout(FlowLayout.RIGHT));
-        legends.setOpaque(false);
-        initLegends();
-        this.add(legends, BorderLayout.NORTH);
-    }
-
-    /**
      * Init legends
      */
     protected abstract void initLegends();

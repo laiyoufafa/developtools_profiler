@@ -166,8 +166,6 @@ public class MetricsPanel extends JBPanel {
      */
     private static final int OTHER_HEIGHT = 100;
 
-
-
     private JBLabel previousButton;
     private JBPanel optionJPanel;
     private JBPanel topJPanel;

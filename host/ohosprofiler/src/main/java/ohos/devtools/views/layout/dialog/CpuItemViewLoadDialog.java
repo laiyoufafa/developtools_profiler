@@ -38,7 +38,9 @@ import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.Locale;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import static ohos.devtools.datasources.transport.hdc.HdcCmdList.HDC_GET_TRACE_FILE;
 import static ohos.devtools.datasources.transport.hdc.HdcCmdList.HDC_GET_TRACE_FILE_INFO;
@@ -55,7 +57,8 @@ import static ohos.devtools.views.common.Constant.IS_SUPPORT_NEW_HDC;
 public class CpuItemViewLoadDialog implements ActionListener {
     private static final Logger LOGGER = LogManager.getLogger(CpuItemViewLoadDialog.class);
 
-    ExecutorService executorAnalysis = Executors.newSingleThreadExecutor();
+    ExecutorService executorAnalysis =
+        new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>())
 
     private int bytraceFileSize;
     private int hoursLoading = 0;
@@ -103,9 +106,9 @@ public class CpuItemViewLoadDialog implements ActionListener {
     /**
      * CpuItemViewLoadDialog
      *
-     * @param bottomPanelParam
-     * @param typeParam
-     * @param sessionIdParam
+     * @param bottomPanelParam bottomPanelParam
+     * @param typeParam typeParam
+     * @param sessionIdParam sessionIdParam
      */
     public CpuItemViewLoadDialog(ProfilerChartsView bottomPanelParam, boolean typeParam, String sessionIdParam) {
         this.bottomPanel = bottomPanelParam;
@@ -154,7 +157,8 @@ public class CpuItemViewLoadDialog implements ActionListener {
      * @param sessionIdParam sessionIdParam
      */
     public void stopAndDestroySession(DeviceIPPortInfo deviceIPPortInfoParam, String sessionIdParam) {
-        ExecutorService executorCancel = Executors.newSingleThreadExecutor();
+        ExecutorService executorCancel =
+            new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>());
         executorCancel.execute(new Runnable() {
             @Override
             public void run() {
@@ -170,7 +174,8 @@ public class CpuItemViewLoadDialog implements ActionListener {
      * @param sessionIdParam sessionIdParam
      */
     public void cancelActionDestroySession(DeviceIPPortInfo deviceIPPortInfoParam, String sessionIdParam) {
-        ExecutorService executorCancel = Executors.newSingleThreadExecutor();
+        ExecutorService executorCancel =
+            new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>());
         executorCancel.execute(new Runnable() {
             @Override
             public void run() {

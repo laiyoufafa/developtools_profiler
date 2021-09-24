@@ -156,14 +156,14 @@ public class DistributeTerm {
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) {
+    public boolean equals(Object obj) {
+        if (this == obj) {
             return true;
         }
-        if (o == null || getClass() != o.getClass()) {
+        if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
-        DistributeTerm that = (DistributeTerm) o;
+        DistributeTerm that = (DistributeTerm) obj;
         return spanId == that.spanId && parentSpanId == that.parentSpanId && Objects.equals(threadId, that.threadId)
             && Objects.equals(threadName, that.threadName) && Objects.equals(processId, that.processId) && Objects
             .equals(processName, that.processName) && Objects.equals(funName, that.funName) && Objects

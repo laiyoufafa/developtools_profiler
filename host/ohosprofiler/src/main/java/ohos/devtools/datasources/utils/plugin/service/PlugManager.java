@@ -103,7 +103,10 @@ public class PlugManager {
                         config = pluginConfigPackage.getConstructor().newInstance();
                         config.registerPlugin();
                     }
-                } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException exception) {
+                } catch (InstantiationException |
+                    IllegalAccessException |
+                    InvocationTargetException |
+                    NoSuchMethodException exception) {
                     LOGGER.error("registerPlugin exception {}", exception.getMessage());
                     continue;
                 }
@@ -123,7 +126,10 @@ public class PlugManager {
                 config = pluginConfig.getConstructor().newInstance();
                 config.registerPlugin();
             }
-        } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException exception) {
+        } catch (InstantiationException |
+            IllegalAccessException |
+            InvocationTargetException |
+            NoSuchMethodException exception) {
             LOGGER.error("registerPlugin exception {}", exception.getMessage());
         }
     }

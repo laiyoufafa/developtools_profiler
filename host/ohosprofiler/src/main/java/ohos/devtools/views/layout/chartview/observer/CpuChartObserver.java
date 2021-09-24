@@ -30,7 +30,10 @@ import ohos.devtools.views.layout.chartview.ProfilerChartsView;
 import ohos.devtools.views.layout.chartview.event.IChartEventObserver;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 
 /**

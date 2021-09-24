@@ -45,7 +45,9 @@ class AppTracePanelTest {
             robot = new Robot();
             robot.setAutoDelay(2000);
             IdeGlassPane ideGlassPane = new IdeGlassPaneImpl(jFrame.getRootPane());
-            jFrame.getRootPane().setGlassPane((JPanel) ideGlassPane);
+            if(ideGlassPane instanceof JPanel){
+                jFrame.getRootPane().setGlassPane((JPanel) ideGlassPane);
+            }
         } catch (AWTException e) {
             e.printStackTrace();
         }
@@ -74,9 +76,9 @@ class AppTracePanelTest {
         delay();
     }
 
-    private void mouseClick(int x, int y) {
+    private void mouseClick(int pointX, int pointY) {
         robot.delay(2000);
-        robot.mouseMove(x, y);
+        robot.mouseMove(pointX, pointY);
         robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
         robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
     }

@@ -234,7 +234,8 @@ public final class MetricsDb {
                 }
                 res.add(data);
             }
-        } catch (ClassNotFoundException | SQLException | InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException exception) {
+        } catch (ClassNotFoundException | SQLException | InstantiationException | IllegalAccessException |
+            InvocationTargetException | NoSuchMethodException exception) {
             exception.printStackTrace();
         } finally {
             release(rs, stat, conn);

@@ -115,13 +115,14 @@ public class SessionManagerTest {
                     .build().start());
         } catch (IOException exception) {
             exception.printStackTrace();
-        }
-        createServer();
+        } createServer();
         channel = grpcCleanup.register(InProcessChannelBuilder.forName(serverName).directExecutor().build());
-        serviceRegistry.addService((BindableService) getFeatureImpl);
+        if (getFeatureImpl instanceof BindableService) {
+            serviceRegistry.addService((BindableService) getFeatureImpl);
+        }
     }
 
-    private void createServer () {
+    private void createServer() {
         getFeatureImpl = new MockProfilerServiceImplBase() {
             /**
              * init getCapabilities
@@ -241,9 +242,9 @@ public class SessionManagerTest {
                 responseObserver.onNext(reply);
                 responseObserver.onCompleted();
             }
-
         };
     }
+
     /**
      * functional testing Instance
      *

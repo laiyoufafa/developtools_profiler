@@ -19,7 +19,8 @@ import ohos.devtools.views.common.LayoutConstants;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import javax.swing.*;
+import javax.swing.JLabel;
+import javax.swing.SwingUtilities;
 import java.util.Locale;
 
 /**
@@ -36,7 +37,7 @@ public class CountingThread extends Thread {
     /**
      * CountingThread
      *
-     * @param jTextArea
+     * @param jTextArea jTextArea
      */
     public CountingThread(JLabel jTextArea) {
         this.jTextArea = jTextArea;

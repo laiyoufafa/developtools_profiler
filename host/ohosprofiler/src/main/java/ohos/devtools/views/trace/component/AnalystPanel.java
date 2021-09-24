@@ -49,6 +49,7 @@ import ohos.devtools.views.trace.listener.IFlagListener;
 import ohos.devtools.views.trace.util.Db;
 import ohos.devtools.views.trace.util.TimeUtils;
 import ohos.devtools.views.trace.util.Utils;
+import org.apache.commons.compress.utils.Lists;
 
 import javax.swing.JLayeredPane;
 import javax.swing.JOptionPane;
@@ -462,7 +463,7 @@ public final class AnalystPanel extends JBPanel
         };
         Db.getInstance().query(Sql.SYS_QUERY_CPU_MAX, cpuMaxes);
         if (cpuMaxes.isEmpty()) {
-            return null;
+            return Lists.newArrayList();
         }
         int cpuMax = cpuMaxes.get(0).getCpu();
         List<List<CpuData>> list = new ArrayList<>();

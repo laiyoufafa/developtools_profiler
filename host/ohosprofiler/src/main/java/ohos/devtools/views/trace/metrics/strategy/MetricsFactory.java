@@ -24,9 +24,7 @@ import java.util.Map;
  * MetadataStrategy
  */
 public class MetricsFactory {
-    private static final MetricsFactory factory = new MetricsFactory();
     private static final MetricsFactory METRICS_FACTORY = new MetricsFactory();
-
     private final Map<MetricsSql, Strategy> strategyMap = new HashMap<>();
 
     private MetricsFactory() {

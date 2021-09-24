@@ -98,19 +98,23 @@ public class DataPanel extends EventPanel {
             }
         } else {
             if (analysisTab.getTabCount() == 3) {
-                if (analysisTab.getComponentAt(analysisTab.getTabCount() - 1) instanceof OtherFunctionPanel) {
-                    analysisTab.remove(analysisTab.getTabCount() - 1);
-                    analysisTab.addTab(createTabName(threadIds), otherThreadPanel);
-                } else {
-                    if (!threadIds.equals(currentTids)) {
-                        analysisTab.setTitleAt(analysisTab.getTabCount() - 1, createTabName(threadIds));
-                    }
-                }
+                next(threadIds);
             } else {
                 analysisTab.addTab(createTabName(threadIds), otherThreadPanel);
             }
         }
         analysisTab.setSelectedIndex(analysisTab.getTabCount() - 1);
+    }
+
+    private void next(List<Integer> threadIds) {
+        if (analysisTab.getComponentAt(analysisTab.getTabCount() - 1) instanceof OtherFunctionPanel) {
+            analysisTab.remove(analysisTab.getTabCount() - 1);
+            analysisTab.addTab(createTabName(threadIds), otherThreadPanel);
+        } else {
+            if (!threadIds.equals(currentTids)) {
+                analysisTab.setTitleAt(analysisTab.getTabCount() - 1, createTabName(threadIds));
+            }
+        }
     }
 
     @Override

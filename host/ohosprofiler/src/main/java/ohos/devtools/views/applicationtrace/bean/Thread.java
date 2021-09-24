@@ -47,16 +47,26 @@ public class Thread extends AbstractNode {
     private final Integer padding1 = 5;
     private final Integer padding2 = 10;
     private final float alpha2 = 0.02f;
-    @DField(name = "upid") private Integer uPid;
-    @DField(name = "utid") private Integer uTid;
-    @DField(name = "pid") private Integer pid; // Process id
-    @DField(name = "tid") private Integer tid; // Thread id
-    @DField(name = "processName") private String processName;
-    @DField(name = "threadName") private String threadName;
-    @DField(name = "state") private String state;
-    @DField(name = "startTime") private Long startTime;
-    @DField(name = "dur") private Long duration;
-    @DField(name = "cpu") private Integer cpu;
+    @DField(name = "upid")
+    private Integer uPid;
+    @DField(name = "utid")
+    private Integer uTid;
+    @DField(name = "pid")
+    private Integer pid; // Process id
+    @DField(name = "tid")
+    private Integer tid; // Thread id
+    @DField(name = "processName")
+    private String processName;
+    @DField(name = "threadName")
+    private String threadName;
+    @DField(name = "state")
+    private String state;
+    @DField(name = "startTime")
+    private Long startTime;
+    @DField(name = "dur")
+    private Long duration;
+    @DField(name = "cpu")
+    private Integer cpu;
     private boolean isSelected; // Whether to be selected
 
     /**
