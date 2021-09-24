@@ -106,14 +106,14 @@ public class SysCallsTop {
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) {
+    public boolean equals(Object obj) {
+        if (this == obj) {
             return true;
         }
-        if (o == null || getClass() != o.getClass()) {
+        if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
-        SysCallsTop that = (SysCallsTop) o;
+        SysCallsTop that = (SysCallsTop) obj;
         return tid == that.tid && pid == that.pid && minDur == that.minDur && avgDur == that.avgDur
             && maxDur == that.maxDur && Objects.equals(funName, that.funName) && Objects
             .equals(processName, that.processName) && Objects.equals(threadName, that.threadName);

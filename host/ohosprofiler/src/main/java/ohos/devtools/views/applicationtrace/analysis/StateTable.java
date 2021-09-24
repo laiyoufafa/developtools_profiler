@@ -48,11 +48,6 @@ import java.util.stream.Collectors;
  * @date: 2021/5/12 16:34
  */
 public class StateTable extends EventPanel {
-    /**
-     * table data source
-     */
-    public List<ThreadStateBean> dataSource = new ArrayList<>();
-
     private static final Map<String, String> STATUS_MAP = new HashedMap() {{
         put("D", "Waiting");
         put("S", "Sleeping");
@@ -67,9 +62,13 @@ public class StateTable extends EventPanel {
         put("P", "Parked");
         put("N", "No Load");
     }};
+
+    /**
+     * table data source
+     */
+    public List<ThreadStateBean> dataSource = new ArrayList<>();
     private final int RowHeight = 25;
     private final int RowHeadHeight = 30;
-
     private List<EventTable.Col<ThreadStateBean>> columnNames = new ArrayList<>() {{
         add(new EventTable.Col<>("Thread State", ThreadStateBean::getState));
         add(new EventTable.Col<>("Duration", ThreadStateBean::getDuration));

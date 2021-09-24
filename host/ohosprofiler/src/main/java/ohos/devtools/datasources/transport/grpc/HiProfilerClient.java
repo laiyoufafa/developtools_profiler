@@ -159,7 +159,6 @@ public final class HiProfilerClient {
         if (port <= 0 || port > LayoutConstants.PORT) {
             return -1;
         }
-        ProfilerClient client = getProfilerClient("", port);
         LOGGER.info("process Session start222", DateTimeUtil.getNowTimeLong());
         LOGGER.info("process Session start3333", DateTimeUtil.getNowTimeLong());
         MemoryPluginConfig.MemoryConfig plug =
@@ -180,6 +179,7 @@ public final class HiProfilerClient {
         ProfilerServiceTypes.CreateSessionRequest request =
             ProfilerServiceHelper.createSessionRequest(CommonUtil.getRequestId(), sessionConfig, plugs);
         ProfilerServiceTypes.CreateSessionResponse response = null;
+        ProfilerClient client = getProfilerClient("", port);
         try {
             response = client.createSession(request);
             LOGGER.info("process Session start444 {} ", DateTimeUtil.getNowTimeLong());

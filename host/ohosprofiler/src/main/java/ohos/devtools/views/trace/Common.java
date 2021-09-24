@@ -16,6 +16,8 @@
 package ohos.devtools.views.trace;
 
 import ohos.devtools.views.trace.util.Utils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.awt.AlphaComposite;
 import java.awt.Graphics;
@@ -33,6 +35,7 @@ import static ohos.devtools.views.trace.TracePanel.startNS;
  * @date: 2021/5/13 16:40
  */
 public class Common {
+    private static final Logger LOGGER = LogManager.getLogger(Common.class);
     private static final int LEN = 3;
     private static final int LEFT_PADDING = 2;
     private static final int RIGHT_PADDING = 2;
@@ -217,6 +220,8 @@ public class Common {
             } else if (chartNum > 1 && chartNum < LEN) {
                 g2.drawString(str.substring(0, 1), Utils.getX(rect),
                     (float) (Utils.getY(rect) + rect.height / 2 + bounds.getHeight() / 2 - 3));
+            }else {
+                LOGGER.info("drawStringMiddleHeight error");
             }
         }
     }

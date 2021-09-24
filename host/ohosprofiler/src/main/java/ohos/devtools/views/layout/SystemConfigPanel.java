@@ -15,22 +15,13 @@
 
 package ohos.devtools.views.layout;
 
-import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Locale;
-import java.util.Vector;
-
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.ui.JBColor;
-import com.intellij.ui.components.*;
+import com.intellij.ui.components.JBCheckBox;
+import com.intellij.ui.components.JBLabel;
+import com.intellij.ui.components.JBPanel;
+import com.intellij.ui.components.JBRadioButton;
+import com.intellij.ui.components.JBTabbedPane;
 import net.miginfocom.swing.MigLayout;
 import ohos.devtools.datasources.transport.grpc.SystemTraceHelper;
 import ohos.devtools.datasources.utils.common.GrpcException;
@@ -42,9 +33,28 @@ import ohos.devtools.views.layout.dialog.SampleDialog;
 import ohos.devtools.views.layout.dialog.TraceRecordDialog;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.*;
+import javax.swing.BorderFactory;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.JButton;
+import javax.swing.JSeparator;
+import javax.swing.JSlider;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Locale;
+import java.util.Vector;
 
 import static ohos.devtools.views.common.Constant.DEVICE_REFRESH;
 
@@ -216,7 +226,7 @@ public class SystemConfigPanel extends JBPanel implements MouseListener, ItemLis
     /**
      * SystemConfigPanel
      *
-     * @param taskPanel
+     * @param taskPanel taskPanel
      */
     public SystemConfigPanel(TaskPanel taskPanel) {
         contentPanel = taskPanel;
@@ -518,10 +528,8 @@ public class SystemConfigPanel extends JBPanel implements MouseListener, ItemLis
     private boolean hTraceUserspaceCheckBoxAllSelected() {
         if (hTraceAudio.isSelected() && hTraceCamera.isSelected()) {
             if (hTraceDatabase.isSelected() && hTraceGraphics.isSelected()) {
-                if (hTraceInput.isSelected() && hTraceNetWork.isSelected()) {
-                    if (hTraceVideo.isSelected()) {
-                        return true;
-                    }
+                if (hTraceInput.isSelected() && hTraceNetWork.isSelected() && hTraceVideo.isSelected()) {
+                    return true;
                 }
             }
         }
@@ -705,8 +713,7 @@ public class SystemConfigPanel extends JBPanel implements MouseListener, ItemLis
                 if (chooseMode) {
                     eventStr = eventStr + ";sched";
                     sessionId = new SystemTraceHelper()
-                        .createSessionByTraceRequest(deviceIPPortInfo, eventStr, maxDuration, inMemoryValue,
-                            "/data/local/tmp/hiprofiler_data.bytrace", false);
+                        .createSessionByTraceRequest(deviceIPPortInfo, eventStr, maxDuration, inMemoryValue, false);
                 } else {
                     ArrayList<ArrayList<String>> eventsList = new ArrayList();
                     ArrayList<ArrayList<String>> hTraceEventsList = new ArrayList();

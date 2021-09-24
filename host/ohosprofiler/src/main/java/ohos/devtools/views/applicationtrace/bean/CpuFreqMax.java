@@ -24,7 +24,8 @@ import ohos.devtools.views.trace.DField;
  */
 public class CpuFreqMax {
     private final String[] units = new String[] {"", "K", "M", "G", "T", "E"};
-    @DField(name = "maxFreq") private Integer maxFreq;
+    @DField(name = "maxFreq")
+    private Integer maxFreq;
     private String name = "0 Ghz";
     private Double value = 0D;
 

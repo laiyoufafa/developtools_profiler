@@ -51,8 +51,8 @@ public class TraceTaskStrategy implements Strategy {
             builder.append("    process_name: ")
                 .append(StringUtils.isEmpty(item.getProcessName()) ? null : item.getProcessName())
                 .append(System.lineSeparator());
-            String[] thread_names = item.getThreadName().split(SEPARATOR);
-            for (String str : thread_names) {
+            String[] threadNames = item.getThreadName().split(SEPARATOR);
+            for (String str : threadNames) {
                 builder.append("    thread_name: ").append("\"").append(str).append("\"")
                     .append(System.lineSeparator());
             }

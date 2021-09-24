@@ -28,8 +28,9 @@ import org.junit.Test;
 import java.util.HashMap;
 import java.util.Queue;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import static ohos.devtools.datasources.utils.common.Constant.JVMTI_AGENT_PLUG;
 import static ohos.devtools.datasources.utils.common.Constant.MEMORY_PLUG;
@@ -82,7 +83,8 @@ public class AgentDataConsumerTest {
     public void handleMemoryHeapHandleTest() {
         AgentDataConsumer agentDataConsumer = new AgentDataConsumer();
         agentDataConsumer.init(queue, 1, localSessionId);
-        ExecutorService executorService = Executors.newSingleThreadExecutor();
+        ExecutorService executorService =
+            new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>());
         executorService.execute(agentDataConsumer);
     }
 }

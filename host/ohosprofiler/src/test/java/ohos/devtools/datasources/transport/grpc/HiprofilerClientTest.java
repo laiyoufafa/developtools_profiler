@@ -1410,14 +1410,14 @@ public class HiprofilerClientTest {
 
     private ProfilerServiceTypes.FetchDataResponse getFetchDataResponse(MemoryPluginResult.AppSummary sss) {
         MemoryPluginResult.ProcessMemoryInfo processesInfoZero =
-            MemoryPluginResult.ProcessMemoryInfo.newBuilder().setPid(31141).setName("com.eg.and.AlipayGphone:push").setRssShmemKb(1).setMemsummary(
-                sss).build();
+            MemoryPluginResult.ProcessMemoryInfo.newBuilder().setPid(31141).setName("com.eg.and.AlipayGphone:push")
+                .setRssShmemKb(1).setMemsummary(sss).build();
         MemoryPluginResult.ProcessMemoryInfo processesInfoOne =
-            MemoryPluginResult.ProcessMemoryInfo.newBuilder().setPid(31142)
-                .setName("com.eg.and.AlipayGphone").setRssShmemKb(2222222).build();
+            MemoryPluginResult.ProcessMemoryInfo.newBuilder().setPid(31142).setName("com.eg.and.AlipayGphone")
+                .setRssShmemKb(2222222).build();
         MemoryPluginResult.ProcessMemoryInfo processesInfoTwo =
-            MemoryPluginResult.ProcessMemoryInfo.newBuilder().setPid(31144)
-                .setName("com.hisunflytone.and:pushservice").setRssShmemKb(3333333).build();
+            MemoryPluginResult.ProcessMemoryInfo.newBuilder().setPid(31144).setName("com.hisunflytone.and:pushservice")
+                .setRssShmemKb(3333333).build();
         MemoryPluginResult.MemoryData aaa =
             MemoryPluginResult.MemoryData.newBuilder().addProcessesinfo(processesInfoZero)
                 .addProcessesinfo(processesInfoOne).addProcessesinfo(processesInfoTwo).build();
@@ -1425,8 +1425,8 @@ public class HiprofilerClientTest {
             CommonTypes.ProfilerPluginData.newBuilder().setName("memory-plugin").setStatus(0)
                 .setData(aaa.toByteString()).build();
         ProfilerServiceTypes.FetchDataResponse fetchDataResponse =
-            ProfilerServiceTypes.FetchDataResponse.newBuilder().setResponseId(123456789).setStatus(0)
-                .setHasMore(false).addPluginData(data).build();
+            ProfilerServiceTypes.FetchDataResponse.newBuilder().setResponseId(123456789).setStatus(0).setHasMore(false)
+                .addPluginData(data).build();
         return fetchDataResponse;
     }
 

@@ -31,13 +31,20 @@ import java.awt.event.MouseEvent;
  * @date: 2021/6/29 10:55
  */
 public class AsyncEvent extends AbstractGraph {
-    @DField(name = "id") private Integer id;
-    @DField(name = "startTime") private Long startTime;
-    @DField(name = "dur") private Long duration;
-    @DField(name = "pid") private Integer pid;
-    @DField(name = "name") private String name;
-    @DField(name = "cookie") private Integer cookie;
-    @DField(name = "depth") private Integer depth;
+    @DField(name = "id")
+    private Integer id;
+    @DField(name = "startTime")
+    private Long startTime;
+    @DField(name = "dur")
+    private Long duration;
+    @DField(name = "pid")
+    private Integer pid;
+    @DField(name = "name")
+    private String name;
+    @DField(name = "cookie")
+    private Integer cookie;
+    @DField(name = "depth")
+    private Integer depth;
 
     /**
      * Gets the value of depth .

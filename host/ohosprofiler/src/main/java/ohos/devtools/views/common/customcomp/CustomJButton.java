@@ -69,7 +69,7 @@ public class CustomJButton extends JButton {
     /**
      * setSessionInfo
      *
-     * @param sessionInfo
+     * @param sessionInfo sessionInfo
      */
     public void setSessionInfo(SessionInfo sessionInfo) {
         this.sessionInfo = sessionInfo;
@@ -123,7 +123,7 @@ public class CustomJButton extends JButton {
     /**
      * setProcessName
      *
-     * @param processName
+     * @param processName processName
      */
     public void setProcessName(String processName) {
         this.processName = processName;

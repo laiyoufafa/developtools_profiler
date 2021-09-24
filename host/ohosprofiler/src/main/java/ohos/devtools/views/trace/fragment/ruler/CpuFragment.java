@@ -30,6 +30,7 @@ import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.event.MouseEvent;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -150,7 +151,7 @@ public class CpuFragment extends AbstractFragment {
         graphics.fillRect(Utils.getX(getRect()), Utils.getY(getRect()), getRect().width, getRect().height);
         if (listMap != null && !listMap.isEmpty()) {
             int height = getRect().height / listMap.size();
-            double rw = (getRect().width) / 100.00;
+            BigDecimal rw = new BigDecimal(getRect().width / 100) ;
             listMap.forEach((map, beanList) -> {
                 for (int index = 0, len = beanList.size(); index < len; index++) {
                     CpuRateBean cpuRateBean = beanList.get(index);
@@ -158,8 +159,8 @@ public class CpuFragment extends AbstractFragment {
                     graphics.setComposite(
                         AlphaComposite.getInstance(AlphaComposite.SRC_OVER, (float) cpuRateBean.getRate()));
                     graphics.setColor(ColorUtils.MD_PALETTE[map]);
-                    int side = (int) (Utils.getX(getRect()) + rw * index);
-                    graphics.fillRect(side, Utils.getY(getRect()) + map * height, (int) rw + 1, height);
+                    int side = Utils.getX(getRect()) + (rw.intValue() * index);
+                    graphics.fillRect(side, Utils.getY(getRect()) + map * height, rw.intValue() + 1, height);
                     graphics.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1f));
                 }
             });

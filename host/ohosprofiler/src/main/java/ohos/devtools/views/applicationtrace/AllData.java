@@ -178,7 +178,7 @@ public class AllData {
     public static List<DefaultMutableTreeNode> getFuncTreeByFuncBottomUp(Func func) {
         ArrayList<DefaultMutableTreeNode> nodes = new ArrayList<>();
         List<Func> collect = funcMap.get(func.getTid()).stream().filter(
-                item -> TimeUtils.isRangeCross(func.getStartTs(), func.getEndTs(), item.getStartTs(), item.getEndTs()))
+            item -> TimeUtils.isRangeCross(func.getStartTs(), func.getEndTs(), item.getStartTs(), item.getEndTs()))
             .collect(Collectors.toList());
         Map<String, List<Long>> nameToId = new HashMap<>();
         Map<Long, TreeTableBean> treeNodeMap = funcGroupByStackId(func, collect, nameToId);
@@ -236,9 +236,8 @@ public class AllData {
                     .getIntersection(func.getStartTs(), func.getEndTs(), mapper.getStartTs(), mapper.getEndTs())).sum();
                 uniteBean.setTotalNum(childrenTotal);
                 uniteBean.setChildrenNS(entry.getValue().stream().mapToLong(mapper -> TimeUtils
-                        .getNanoIntersection(func.getStartTs(), func.getEndTs(),
-                                mapper.getStartTs(), mapper.getEndTs()))
-                        .sum());
+                    .getNanoIntersection(func.getStartTs(), func.getEndTs(), mapper.getStartTs(), mapper.getEndTs()))
+                    .sum());
                 return uniteBean;
             }));
         return map;
@@ -268,8 +267,7 @@ public class AllData {
                         }
                     }
                     long childrenTotal = a1.getValue().stream().mapToLong(mapper -> TimeUtils
-                            .getIntersection(startNS, endNS, mapper.getStartTs(),
-                                mapper.getStartTs() + mapper.getDur()))
+                        .getIntersection(startNS, endNS, mapper.getStartTs(), mapper.getStartTs() + mapper.getDur()))
                         .sum();
                     uniteBean.setTotalNum(childrenTotal);
                     uniteBean.setChildrenNS(a1.getValue().stream().mapToLong(mapper -> TimeUtils
@@ -307,14 +305,15 @@ public class AllData {
             if (parentId == 0) { // Leaf node
                 recursionNodeLeaf(threadName, rootNode, topBean, timeBean);
             } else { // Non-leaf nodes
-                recursionNodeNonLeaf(threadName, rootNode, timeBean, treeNodeMap, id, parentId);
+                recursionNodeNonLeaf(threadName, rootNode, treeNodeMap, id, parentId);
             }
         }
     }
 
-    private static void recursionNodeLeaf(String threadName, DefaultMutableTreeNode rootNode,
-        TreeTableBean topBean, TreeTableBean timeBean){
-        if (rootNode.getChildCount() == 0) { // The child node is thread and there are currently no child nodes
+    private static void recursionNodeLeaf(String threadName, DefaultMutableTreeNode rootNode, TreeTableBean topBean,
+        TreeTableBean timeBean) {
+        if (rootNode.getChildCount() == 0) {
+            // The child node is thread and there are currently no child nodes
             TreeTableBean bean = new TreeTableBean(topBean.getThreadDur());
             bean.setName(threadName);
             bean.setTotalNum(timeBean.getTotalNum());
@@ -322,7 +321,8 @@ public class AllData {
             bean.setSelfNum(timeBean.getSelfNum());
             DefaultMutableTreeNode node = new DefaultMutableTreeNode(bean);
             rootNode.add(node);
-        } else { // Merge leaf nodes
+        } else {
+            // Merge leaf nodes
             TreeNode tNode = rootNode.getChildAt(rootNode.getChildCount() - 1);
             if (tNode instanceof DefaultMutableTreeNode) {
                 DefaultMutableTreeNode leafNode = (DefaultMutableTreeNode) tNode;
@@ -330,8 +330,7 @@ public class AllData {
                     TreeTableBean leafNodeUserObject = (TreeTableBean) leafNode.getUserObject();
                     leafNodeUserObject.setTotalNum(leafNodeUserObject.getTotalNum() + timeBean.getTotalNum());
                     leafNodeUserObject.setSelfNum(leafNodeUserObject.getSelfNum() + timeBean.getTotalNum());
-                    leafNodeUserObject
-                            .setChildrenNum(leafNodeUserObject.getSelfNum() + timeBean.getChildrenNum());
+                    leafNodeUserObject.setChildrenNum(leafNodeUserObject.getSelfNum() + timeBean.getChildrenNum());
                     leafNode.setUserObject(leafNodeUserObject);
                 }
             }
@@ -339,7 +338,8 @@ public class AllData {
     }
 
     private static void recursionNodeNonLeaf(String threadName, DefaultMutableTreeNode rootNode,
-        TreeTableBean timeBean, Map<Long, TreeTableBean> treeNodeMap, long id, long parentId) {
+        Map<Long, TreeTableBean> treeNodeMap, long id, long parentId) {
+        TreeTableBean timeBean = treeNodeMap.get(id);
         final TreeTableBean idBean = treeNodeMap.get(parentId);
         boolean sameName = false;
         Enumeration<TreeNode> enumeration = rootNode.children();
