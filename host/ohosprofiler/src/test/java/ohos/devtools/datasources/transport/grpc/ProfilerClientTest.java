@@ -81,6 +81,7 @@ public class ProfilerClientTest {
                 responseObserver.onNext(reply);
                 responseObserver.onCompleted();
             }
+
             @Override
             public void createSession(ProfilerServiceTypes.CreateSessionRequest request,
                 StreamObserver<ProfilerServiceTypes.CreateSessionResponse> responseObserver) {
@@ -88,6 +89,7 @@ public class ProfilerClientTest {
                 responseObserver.onNext(reply);
                 responseObserver.onCompleted();
             }
+
             @Override
             public void startSession(ProfilerServiceTypes.StartSessionRequest request,
                 StreamObserver<ProfilerServiceTypes.StartSessionResponse> responseObserver) {
@@ -95,6 +97,7 @@ public class ProfilerClientTest {
                 responseObserver.onNext(reply);
                 responseObserver.onCompleted();
             }
+
             @Override
             public void stopSession(ProfilerServiceTypes.StopSessionRequest request,
                 StreamObserver<ProfilerServiceTypes.StopSessionResponse> responseObserver) {
@@ -103,6 +106,7 @@ public class ProfilerClientTest {
                 responseObserver.onNext(reply);
                 responseObserver.onCompleted();
             }
+
             @Override
             public void destroySession(ProfilerServiceTypes.DestroySessionRequest request,
                 StreamObserver<ProfilerServiceTypes.DestroySessionResponse> responseObserver) {
@@ -111,6 +115,7 @@ public class ProfilerClientTest {
                 responseObserver.onNext(reply);
                 responseObserver.onCompleted();
             }
+
             @Override
             public void fetchData(ProfilerServiceTypes.FetchDataRequest request,
                 StreamObserver<ProfilerServiceTypes.FetchDataResponse> responseObserver) {
@@ -125,11 +130,10 @@ public class ProfilerClientTest {
     }
 
     private ProfilerServiceTypes.StartSessionResponse getStartSessionResponse() {
-        CommonTypes.ProfilerPluginState profilerPluginState =
-            CommonTypes.ProfilerPluginState.newBuilder().build();
+        CommonTypes.ProfilerPluginState profilerPluginState = CommonTypes.ProfilerPluginState.newBuilder().build();
         ProfilerServiceTypes.StartSessionResponse reply =
-            ProfilerServiceTypes.StartSessionResponse.newBuilder().setStatus(0)
-                .addPluginStatus(profilerPluginState).build();
+            ProfilerServiceTypes.StartSessionResponse.newBuilder().setStatus(0).addPluginStatus(profilerPluginState)
+                .build();
         return reply;
     }
 
@@ -140,13 +144,12 @@ public class ProfilerClientTest {
     }
 
     private ProfilerServiceTypes.GetCapabilitiesResponse getGetCapabilitiesResponse() {
-        ProfilerServiceTypes.ProfilerPluginCapability pluginCapability =
-            ProfilerServiceTypes.ProfilerPluginCapability.newBuilder(
-                ProfilerServiceTypes.ProfilerPluginCapability.newBuilder().setName("test0")
-                    .setPath("/data/local/tmp/libmemdata.z.so").build()).build();
+        ProfilerServiceTypes.ProfilerPluginCapability pluginCapability = ProfilerServiceTypes.ProfilerPluginCapability
+            .newBuilder(ProfilerServiceTypes.ProfilerPluginCapability.newBuilder().setName("test0")
+                .setPath("/data/local/tmp/libmemdata.z.so").build()).build();
         ProfilerServiceTypes.GetCapabilitiesResponse reply =
-            ProfilerServiceTypes.GetCapabilitiesResponse.newBuilder().addCapabilities(pluginCapability)
-                .setStatus(0).build();
+            ProfilerServiceTypes.GetCapabilitiesResponse.newBuilder().addCapabilities(pluginCapability).setStatus(0)
+                .build();
         return reply;
     }
 
@@ -609,8 +612,7 @@ public class ProfilerClientTest {
     @Test
     public void stopSessionTest04() {
         ProfilerClient profilerClient = new ProfilerClient(ip, port, channel);
-        ProfilerServiceTypes.StopSessionRequest stopSession =
-            ProfilerServiceHelper.stopSessionRequest(-1, 1);
+        ProfilerServiceTypes.StopSessionRequest stopSession = ProfilerServiceHelper.stopSessionRequest(-1, 1);
         ProfilerServiceTypes.StopSessionResponse stopSessionResponse = profilerClient.stopSession(stopSession);
         Assert.assertNotNull(stopSessionResponse);
     }
@@ -627,8 +629,7 @@ public class ProfilerClientTest {
     @Test
     public void stopSessionTest05() {
         ProfilerClient profilerClient = new ProfilerClient(null, -1, channel);
-        ProfilerServiceTypes.StopSessionRequest stopSession =
-            ProfilerServiceHelper.stopSessionRequest(-1, -1);
+        ProfilerServiceTypes.StopSessionRequest stopSession = ProfilerServiceHelper.stopSessionRequest(-1, -1);
         ProfilerServiceTypes.StopSessionResponse stopSessionResponse = profilerClient.stopSession(stopSession);
         Assert.assertTrue(true);
     }
@@ -697,8 +698,7 @@ public class ProfilerClientTest {
     @Test
     public void destroySessionTest04() {
         ProfilerClient profilerClient = new ProfilerClient(ip, port, channel);
-        ProfilerServiceTypes.DestroySessionRequest req =
-            ProfilerServiceHelper.destroySessionRequest(-1, 1);
+        ProfilerServiceTypes.DestroySessionRequest req = ProfilerServiceHelper.destroySessionRequest(-1, 1);
         ProfilerServiceTypes.DestroySessionResponse destroySessionResponse = profilerClient.destroySession(req);
         Assert.assertNotNull(destroySessionResponse);
     }

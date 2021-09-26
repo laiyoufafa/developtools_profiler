@@ -49,7 +49,9 @@ class AnalystPanelTest {
         try {
             robot = new Robot();
             IdeGlassPane ideGlassPane = new IdeGlassPaneImpl(jFrame.getRootPane());
-            jFrame.getRootPane().setGlassPane((JPanel) ideGlassPane);
+            if (ideGlassPane instanceof JPanel) {
+                jFrame.getRootPane().setGlassPane((JPanel) ideGlassPane);
+            }
         } catch (AWTException e) {
             e.printStackTrace();
         }
@@ -71,11 +73,11 @@ class AnalystPanelTest {
     void load() {
         delay(10000);
         select(600, 110, 610, 110);
-        mouseClick(557, 171);//小旗帜
-        mouseClick(560, 172);//点击小旗帜
-        select(557, 212, 600, 212);//选择cpu区域
-        mouseClick(557, 212);//点击cpu切片
-        mouseClick(549, 572);//点击clock 节点
+        mouseClick(557, 171);// 小旗帜
+        mouseClick(560, 172);// 点击小旗帜
+        select(557, 212, 600, 212);// 选择cpu区域
+        mouseClick(557, 212);// 点击cpu切片
+        mouseClick(549, 572);// 点击clock 节点
         wheel(-600);
         mouseClick(13, 371);
         wheel(-200);
@@ -86,9 +88,9 @@ class AnalystPanelTest {
         delay();
     }
 
-    private void mouseClick(int x, int y) {
+    private void mouseClick(int pointX, int pointY) {
         robot.delay(2000);
-        robot.mouseMove(x, y);
+        robot.mouseMove(pointX, pointY);
         robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
         robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
     }

@@ -44,7 +44,9 @@ import java.util.ArrayList;
 import java.util.Locale;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import static ohos.devtools.datasources.transport.hdc.HdcCmdList.HDC_GET_TRACE_FILE;
 import static ohos.devtools.datasources.transport.hdc.HdcCmdList.HDC_GET_TRACE_FILE_INFO;
@@ -127,7 +129,8 @@ public class TraceRecordDialog {
         if (exitCode == 0) {
             this.loading();
             if (chooseMode) {
-                ExecutorService executorCancel = Executors.newSingleThreadExecutor();
+                ExecutorService executorCancel =
+                    new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>());
                 executorCancel.execute(new Runnable() {
                     @Override
                     public void run() {
@@ -191,9 +194,11 @@ public class TraceRecordDialog {
                 String filePath = "/data/local/tmp/hiprofiler_data" + fileExtension;
                 ArrayList<String> getBytraceFileInfoCmd;
                 if (IS_SUPPORT_NEW_HDC && deviceIPPortInfo.getDeviceType() == DeviceType.LEAN_HOS_DEVICE) {
-                    getBytraceFileInfoCmd = conversionCommand(HDC_STD_GET_TRACE_FILE_INFO, deviceIPPortInfo.getDeviceID(), filePath);
+                    getBytraceFileInfoCmd =
+                        conversionCommand(HDC_STD_GET_TRACE_FILE_INFO, deviceIPPortInfo.getDeviceID(), filePath);
                 } else {
-                    getBytraceFileInfoCmd = conversionCommand(HDC_GET_TRACE_FILE_INFO, deviceIPPortInfo.getDeviceID(), filePath);
+                    getBytraceFileInfoCmd =
+                        conversionCommand(HDC_GET_TRACE_FILE_INFO, deviceIPPortInfo.getDeviceID(), filePath);
                 }
                 String bytraceFileInfo = HdcWrapper.getInstance().getHdcStringResult(getBytraceFileInfoCmd);
                 if (bytraceFileInfo != null && bytraceFileInfo.length() > 0) {
@@ -218,7 +223,8 @@ public class TraceRecordDialog {
      * pull and analysis bytrace file
      */
     public void pullAndAnalysisBytraceFile() {
-        ExecutorService executor = Executors.newSingleThreadExecutor();
+        ExecutorService executor =
+            new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>());
         executor.execute(new Runnable() {
             @Override
             public void run() {

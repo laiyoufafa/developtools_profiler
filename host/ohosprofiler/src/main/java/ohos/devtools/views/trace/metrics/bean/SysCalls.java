@@ -66,14 +66,14 @@ public class SysCalls {
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) {
+    public boolean equals(Object obj) {
+        if (this == obj) {
             return true;
         }
-        if (o == null || getClass() != o.getClass()) {
+        if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
-        SysCalls sysCalls = (SysCalls) o;
+        SysCalls sysCalls = (SysCalls) obj;
         return minDur == sysCalls.minDur && avgDur == sysCalls.avgDur && maxDur == sysCalls.maxDur && Objects
             .equals(funName, sysCalls.funName);
     }

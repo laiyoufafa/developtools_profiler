@@ -24,8 +24,8 @@ import net.miginfocom.swing.MigLayout;
 import ohos.devtools.views.common.Constant;
 import ohos.devtools.views.common.UtConstant;
 
-import javax.swing.*;
-import java.awt.*;
+import javax.swing.SwingConstants;
+import java.awt.Font;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 

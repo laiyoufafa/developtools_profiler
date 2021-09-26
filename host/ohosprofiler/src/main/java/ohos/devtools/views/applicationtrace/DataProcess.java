@@ -181,13 +181,14 @@ public class DataProcess {
             if (parentId.isEmpty()) { // Leaf node
                 recursionNodeLeaf(rootNode, timeBean);
             } else { // Non-leaf nodes
-                recursionNodeNonLeaf(rootNode, timeBean, topBean, treeNodeMap, parentId, id);
+                recursionNodeNonLeaf(rootNode, topBean, treeNodeMap, parentId, id);
             }
         }
     }
 
-    private static void recursionNodeNonLeaf(DefaultMutableTreeNode rootNode, TreeTableBean timeBean,
-        TreeTableBean topBean, Map<String, TreeTableBean> treeNodeMap, String parentId, String id) {
+    private static void recursionNodeNonLeaf(DefaultMutableTreeNode rootNode, TreeTableBean topBean,
+        Map<String, TreeTableBean> treeNodeMap, String parentId, String id) {
+        TreeTableBean timeBean = treeNodeMap.get(id);
         final TreeTableBean idBean = treeNodeMap.get(parentId);
         boolean sameName = false;
         Enumeration<TreeNode> enumeration = rootNode.children();

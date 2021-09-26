@@ -235,17 +235,6 @@ public class CustomListFilerModel<E> extends AbstractListModel<E> {
     }
 
     /**
-     * toArray
-     *
-     * @return Object[]
-     */
-    public Object[] toArray() {
-        Object[] rv = new Object[items.size()];
-        items.copyInto(rv);
-        return rv;
-    }
-
-    /**
      * get
      *
      * @param index index
@@ -276,14 +265,14 @@ public class CustomListFilerModel<E> extends AbstractListModel<E> {
     /**
      * addAll
      *
-     * @param c c
+     * @param collection collection
      */
-    public void addAll(Collection<? extends E> c) {
-        if (c.isEmpty()) {
+    public void addAll(Collection<? extends E> collection) {
+        if (collection.isEmpty()) {
             return;
         }
         int startIndex = getSize();
-        items.addAll(c);
+        items.addAll(collection);
         fireIntervalAdded(this, startIndex, getSize() - 1);
     }
 
@@ -291,17 +280,17 @@ public class CustomListFilerModel<E> extends AbstractListModel<E> {
      * addAll
      *
      * @param index index
-     * @param c c
+     * @param collection collection
      */
-    public void addAll(int index, Collection<? extends E> c) {
+    public void addAll(int index, Collection<? extends E> collection) {
         if (index < 0 || index > getSize()) {
             throw new ArrayIndexOutOfBoundsException("index out of range: " + index);
         }
-        if (c.isEmpty()) {
+        if (collection.isEmpty()) {
             return;
         }
-        items.addAll(index, c);
-        fireIntervalAdded(this, index, index + c.size() - 1);
+        items.addAll(index, collection);
+        fireIntervalAdded(this, index, index + collection.size() - 1);
     }
 
     /**

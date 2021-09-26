@@ -106,7 +106,6 @@ public class HdcWrapper {
      */
     public String execCmdBy(ArrayList<String> hdcCmd) {
         Process process;
-        String line;
         StringBuilder cmdStrResult = new StringBuilder();
         try {
             process = new ProcessBuilder(hdcCmd).start();
@@ -119,6 +118,7 @@ public class HdcWrapper {
                 errorStream = process.getErrorStream();
                 brInputStream = new BufferedReader(new InputStreamReader(inputStream, Charset.forName("gbk")));
                 brErrorStream = new BufferedReader(new InputStreamReader(errorStream));
+                String line;
                 while ((line = brInputStream.readLine()) != null || (line = brErrorStream.readLine()) != null) {
                     LOGGER.info("cmd result line {}", line);
                     cmdStrResult.append(line);
@@ -152,7 +152,6 @@ public class HdcWrapper {
             return "";
         }
         Process process;
-        String line;
         StringBuilder cmdStrResult = new StringBuilder();
         try {
             process = new ProcessBuilder(hdcCmd).start();
@@ -166,6 +165,7 @@ public class HdcWrapper {
                 errorStream = process.getErrorStream();
                 brInputStream = new BufferedReader(new InputStreamReader(inputStream, Charset.forName("gbk")));
                 brErrorStream = new BufferedReader(new InputStreamReader(errorStream));
+                String line;
                 while ((line = brInputStream.readLine()) != null || (line = brErrorStream.readLine()) != null) {
                     LOGGER.info("cmd result line {}", line);
                     cmdStrResult.append(line);
@@ -289,7 +289,6 @@ public class HdcWrapper {
         String temp;
         ArrayList<ArrayList<String>> devices = new ArrayList<>();
         // Number of rows read to return value
-        int lines = 0;
         try {
             Process process = new ProcessBuilder(hdcStr).start();
             InputStream inputStream = null;
@@ -301,6 +300,7 @@ public class HdcWrapper {
                 brInput = new BufferedReader(new InputStreamReader(inputStream));
                 errorStream = process.getErrorStream();
                 brError = new BufferedReader(new InputStreamReader(errorStream));
+                int lines = 0;
                 while ((temp = brInput.readLine()) != null || (temp = brError.readLine()) != null) {
                     temp = temp.trim();
                     if (lines > 0 && !"".equals(temp)) {

@@ -24,7 +24,9 @@ import java.security.NoSuchAlgorithmException;
 import java.text.DecimalFormat;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Tools
@@ -34,7 +36,8 @@ import java.util.concurrent.Executors;
 public final class Utils {
     private static Map<String, String> statusMap = new HashedMap();
     private static Utils instance;
-    private static ExecutorService pool = Executors.newFixedThreadPool(8);
+    private static ExecutorService pool =
+        new ThreadPoolExecutor(8, 8, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>());
 
     private Utils() {
         statusMap.put("D", "Uninterruptible Sleep");
@@ -69,7 +72,7 @@ public final class Utils {
     /**
      * Calculate whether it is within the range of Rectangle according to the x and y coordinates
      *
-     * @param rect  rect
+     * @param rect rect
      * @param xAxis xAxis
      * @param yAxis yAxis
      * @return boolean
@@ -85,7 +88,7 @@ public final class Utils {
     /**
      * Calculate whether it is within the range of Rectangle according to the x and y coordinates
      *
-     * @param rect  rect
+     * @param rect rect
      * @param point event point
      * @return boolean
      */
@@ -170,7 +173,7 @@ public final class Utils {
      */
     public static void resetPool() {
         pool.shutdownNow();
-        pool = Executors.newFixedThreadPool(8);
+        pool = new ThreadPoolExecutor(8, 8, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>());
     }
 
     /**
@@ -180,7 +183,7 @@ public final class Utils {
      */
     public static void resetPool(int num) {
         pool.shutdownNow();
-        pool = Executors.newFixedThreadPool(num);
+        pool = new ThreadPoolExecutor(num, num, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>());
     }
 
     /**
@@ -190,7 +193,7 @@ public final class Utils {
      * @return rectangleX
      */
     public static int getX(Rectangle rectangle) {
-        return rectangle.x;
+        return (int) rectangle.getX();
     }
 
     /**
@@ -200,14 +203,14 @@ public final class Utils {
      * @return pointX
      */
     public static int getX(Point point) {
-        return point.x;
+        return (int) point.getX();
     }
 
     /**
      * set rectangle x
      *
      * @param rectangle rectangle
-     * @param xVal      xVal
+     * @param xVal xVal
      */
     public static void setX(Rectangle rectangle, int xVal) {
         rectangle.x = xVal;
@@ -217,7 +220,7 @@ public final class Utils {
      * set point x
      *
      * @param point rectangle
-     * @param xVal  xVal
+     * @param xVal xVal
      */
     public static void setX(Point point, int xVal) {
         point.x = xVal;
@@ -227,7 +230,7 @@ public final class Utils {
      * set rectangle y
      *
      * @param rectangle rectangle
-     * @param yVal      yVal
+     * @param yVal yVal
      */
     public static void setY(Rectangle rectangle, int yVal) {
         rectangle.y = yVal;
@@ -237,7 +240,7 @@ public final class Utils {
      * set point y
      *
      * @param point point
-     * @param yVal  yVal
+     * @param yVal yVal
      */
     public static void setY(Point point, int yVal) {
         point.y = yVal;
@@ -250,7 +253,7 @@ public final class Utils {
      * @return rectangleY
      */
     public static int getY(Rectangle rectangle) {
-        return rectangle.y;
+        return (int) rectangle.getY();
     }
 
     /**
@@ -260,7 +263,7 @@ public final class Utils {
      * @return rectangleY
      */
     public static int getY(Point point) {
-        return point.y;
+        return (int) point.getY();
     }
 
     /**

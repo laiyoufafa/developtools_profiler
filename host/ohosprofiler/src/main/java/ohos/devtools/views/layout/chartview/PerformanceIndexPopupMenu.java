@@ -191,34 +191,40 @@ public class PerformanceIndexPopupMenu {
                     itemsView.itemFoldOrExpend(false, item);
                 }
                 // Get the index of the item displayed in the interface through enumeration
-                for (int index = 0; index < items.size(); index++) {
-                    for (ProfilerMonitorItem monitorItem : profilerMonitorItemMap) {
-                        if (monitorItem.getClazz().isInstance(items.get(index))) {
-                            // The selected one is smaller than the first one and is added to the 0 position
-                            if (selectIndex < monitorItem.getIndex() && index == 0) {
-                                items.add(0, item);
-                                itemsView.itemFoldOrExpend(false, item);
-                                return;
-                            }
-                            // The selected one is larger than the last one, so add it directly
-                            if (selectIndex > monitorItem.getIndex() && index == items.size() - 1) {
-                                items.add(item);
-                                itemsView.itemFoldOrExpend(false, item);
-                                return;
-                            }
-                            // add Intermediate item
-                            if (selectIndex < monitorItem.getIndex()) {
-                                items.add(index, item);
-                                itemsView.itemFoldOrExpend(false, item);
-                                return;
-                            }
-                        }
-                    }
-                }
+                addItemViewByIndex(itemsView, profilerMonitorItemMap, item, selectIndex);
             }
         }
         if (items.size() == 1) {
             items.get(0).setPreferredSize(new Dimension(items.get(0).getWidth(), itemsView.getHeight() - ITEM_HEIGHT));
+        }
+    }
+
+    private void addItemViewByIndex(ItemsView itemsView, List<ProfilerMonitorItem> profilerMonitorItemMap,
+        MonitorItemView item, int selectIndex) {
+        List<MonitorItemView> items = profilerView.getItemsView().getItems();
+        for (int index = 0; index < items.size(); index++) {
+            for (ProfilerMonitorItem monitorItem : profilerMonitorItemMap) {
+                if (monitorItem.getClazz().isInstance(items.get(index))) {
+                    // The selected one is smaller than the first one and is added to the 0 position
+                    if (selectIndex < monitorItem.getIndex() && index == 0) {
+                        items.add(0, item);
+                        itemsView.itemFoldOrExpend(false, item);
+                        return;
+                    }
+                    // The selected one is larger than the last one, so add it directly
+                    if (selectIndex > monitorItem.getIndex() && index == items.size() - 1) {
+                        items.add(item);
+                        itemsView.itemFoldOrExpend(false, item);
+                        return;
+                    }
+                    // add Intermediate item
+                    if (selectIndex < monitorItem.getIndex()) {
+                        items.add(index, item);
+                        itemsView.itemFoldOrExpend(false, item);
+                        return;
+                    }
+                }
+            }
         }
     }
 

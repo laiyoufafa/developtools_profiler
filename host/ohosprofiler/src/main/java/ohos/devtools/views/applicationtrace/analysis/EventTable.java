@@ -47,11 +47,11 @@ import java.util.stream.Collectors;
  * @date: 2021/5/24 12:22
  */
 public class EventTable extends JBPanel {
-    private final int RowHeight = 25;
     /**
      * event data source
      */
     public List<EventBean> dataSource = new ArrayList<>();
+    private final int RowHeight = 25;
     private final int RowHeadHeight = 30;
     private List<Col<EventBean>> columnNames = new ArrayList<>();
     private JBScrollPane jScrollPane;

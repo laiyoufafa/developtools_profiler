@@ -206,7 +206,7 @@ public class SessionManager {
             }
             if (conf.isSpecialStart()) {
                 boolean startResult = handleSpecialStartPlug(conf, device, process, plugs, sessionConfigBuilder);
-                if(startResult) {
+                if (startResult) {
                     PlugManager.getInstance().addPluginStartSuccess(localSessionID, conf);
                 }
             } else {

@@ -135,9 +135,10 @@ public abstract class AbstractRow extends JBPanel {
 
     /**
      * isCollapsed
+     *
      * @return isCollapsed
      */
-    public boolean isCollapsed(){
+    public boolean isCollapsed() {
         return myIsCollapsed;
     }
 
@@ -220,6 +221,7 @@ public abstract class AbstractRow extends JBPanel {
 
     /**
      * Set whether to expand
+     *
      * @param isCollapsed isCollapsed
      * @param finish null
      */
@@ -228,10 +230,10 @@ public abstract class AbstractRow extends JBPanel {
         if (Objects.nonNull(finish)) {
             addComponentListener(new ComponentAdapter() {
                 @Override
-                public void componentResized(ComponentEvent e) {
-                    super.componentResized(e);
-                    if (defHeight != e.getComponent().getBounds().height) {
-                        finish.consume(e.getComponent().getBounds());
+                public void componentResized(ComponentEvent event) {
+                    super.componentResized(event);
+                    if (defHeight != event.getComponent().getBounds().height) {
+                        finish.consume(event.getComponent().getBounds());
                     }
                 }
             });

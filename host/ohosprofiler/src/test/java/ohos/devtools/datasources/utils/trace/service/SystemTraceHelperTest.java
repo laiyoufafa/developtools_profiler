@@ -270,9 +270,7 @@ public class SystemTraceHelperTest {
     public void createSessionByTraceRequestTest() throws GrpcException {
         SystemTraceHelper systemTraceHelper = SystemTraceHelper.getSingleton();
         ProfilerClient client = HiProfilerClient.getInstance().getProfilerClient("", 5001, channel);
-        String sessionId = systemTraceHelper
-            .createSessionByTraceRequest(deviceIPPortInfo, "idle", 5,
-                10, "/data/local/tmp/hiprofiler_data.bytrace",true);
+        String sessionId = systemTraceHelper.createSessionByTraceRequest(deviceIPPortInfo, "idle", 5, 10, true);
         Assert.assertNotNull(sessionId);
     }
 
@@ -290,9 +288,7 @@ public class SystemTraceHelperTest {
     public void stopAndDestroySessionTest() throws GrpcException {
         SystemTraceHelper systemTraceHelper = SystemTraceHelper.getSingleton();
         ProfilerClient client = HiProfilerClient.getInstance().getProfilerClient("", 5001, channel);
-        String sessionId = systemTraceHelper
-            .createSessionByTraceRequest(deviceIPPortInfo, "idle", 5,
-                10, "/data/local/tmp/hiprofiler_data.bytrace", true);
+        String sessionId = systemTraceHelper.createSessionByTraceRequest(deviceIPPortInfo, "idle", 5, 10, true);
         systemTraceHelper.stopAndDestroySession(deviceIPPortInfo, sessionId);
     }
 }

@@ -58,7 +58,6 @@ public class ExpandTreeTable extends JBTreeTable {
                 }
                 if (event.getPath() != null && expandRowList.contains(getTree().getRowForPath(event.getPath()))) {
                     expandRowList.remove(Integer.valueOf(getTree().getRowForPath(event.getPath())));
-
                 }
             }
         });

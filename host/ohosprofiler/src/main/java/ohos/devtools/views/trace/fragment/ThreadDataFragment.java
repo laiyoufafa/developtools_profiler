@@ -157,7 +157,7 @@ public class ThreadDataFragment extends AbstractDataFragment<ThreadData> impleme
         super.mouseClicked(event);
         if (data != null) {
             data.stream().filter(threadData -> threadData.getStartTime() + threadData.getDuration() > startNS
-                    && threadData.getStartTime() < endNS).filter(threadData -> threadData.edgeInspect(event)).findFirst()
+                && threadData.getStartTime() < endNS).filter(threadData -> threadData.edgeInspect(event)).findFirst()
                 .ifPresent(threadData -> {
                     threadData.setProcessName(thread.getProcessName());
                     threadData.setThreadName(thread.getThreadName());

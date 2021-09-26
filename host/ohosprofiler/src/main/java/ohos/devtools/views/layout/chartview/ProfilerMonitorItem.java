@@ -26,9 +26,9 @@ public class ProfilerMonitorItem {
     /**
      * ProfilerMonitorItem
      *
-     * @param index
-     * @param name
-     * @param clazz
+     * @param index index
+     * @param name name
+     * @param clazz clazz
      */
     public ProfilerMonitorItem(int index, String name, Class<? extends MonitorItemView> clazz) {
         this.index = index;
@@ -48,7 +48,7 @@ public class ProfilerMonitorItem {
     /**
      * getClazz
      *
-     * @return Class
+     * @return Class <MonitorItemView>
      */
     public Class<? extends MonitorItemView> getClazz() {
         return clazz;
@@ -57,7 +57,7 @@ public class ProfilerMonitorItem {
     /**
      * getIndex
      *
-     * @return
+     * @return int
      */
     public int getIndex() {
         return index;
