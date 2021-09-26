@@ -100,8 +100,6 @@ bool PluginWatcher::WatchPlugins(const std::string& pluginDir)
     return true;
 }
 
-
-
 bool PluginWatcher::MonitorIsSet()
 {
     const struct inotify_event* event = nullptr;
@@ -143,8 +141,6 @@ bool PluginWatcher::MonitorIsSet()
     }
     return true;
 }
-
-
 
 void PluginWatcher::Monitor()
 {

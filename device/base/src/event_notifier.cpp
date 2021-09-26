@@ -50,7 +50,7 @@ EventNotifier::EventNotifier(unsigned int initValue, unsigned int mask) : fd_(-1
     HILOG_DEBUG(LOG_CORE, "EventNotifier create eventfd %d done!", fd_);
 }
 
-EventNotifier::EventNotifier(int fd) : fd_(fd)
+EventNotifier::EventNotifier(int fd) : fd_(fd), flags_(0)
 {
     int flags = fcntl(fd_, F_GETFL);
     CHECK_TRUE(flags >= 0, NO_RETVAL, "get flags of fd %d FAILED, %s", fd, strerror(errno));

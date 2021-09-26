@@ -1,5 +1,5 @@
-12c00000-2ac00000 rw-p 00000000 00:00 0                                  [anon:dalvik-main space (region space)]
-Name:           [anon:dalvik-main space (region space)]
+12c00000-2ac00000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-main space (region space)]
+Name:           [anon:sensitive_vm-main space (region space)]
 Size:             393216 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -138,8 +138,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-702f2000-704cf000 rw-p 00000000 00:00 0                                  [anon:dalvik-/apex/com.art/javalib/boot.art]
-Name:           [anon:dalvik-/apex/com.art/javalib/boot.art]
+702f2000-704cf000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-/apex/com.art/javalib/boot.art]
+Name:           [anon:sensitive_vm-/apex/com.art/javalib/boot.art]
 Size:               1908 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -162,8 +162,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-704cf000-70512000 rw-p 00000000 00:00 0                                  [anon:dalvik-/apex/com.art/javalib/boot-core-libart.art]
-Name:           [anon:dalvik-/apex/com.art/javalib/boot-core-libart.art]
+704cf000-70512000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-/apex/com.art/javalib/boot-core-libart.art]
+Name:           [anon:sensitive_vm-/apex/com.art/javalib/boot-core-libart.art]
 Size:                268 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -186,8 +186,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-70512000-705b0000 rw-p 00000000 00:00 0                                  [anon:dalvik-/apex/com.art/javalib/boot-core-icu4j.art]
-Name:           [anon:dalvik-/apex/com.art/javalib/boot-core-icu4j.art]
+70512000-705b0000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-/apex/com.art/javalib/boot-core-icu4j.art]
+Name:           [anon:sensitive_vm-/apex/com.art/javalib/boot-core-icu4j.art]
 Size:                632 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -210,8 +210,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-705b0000-705d9000 rw-p 00000000 00:00 0                                  [anon:dalvik-/apex/com.art/javalib/boot-okhttp.art]
-Name:           [anon:dalvik-/apex/com.art/javalib/boot-okhttp.art]
+705b0000-705d9000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-/apex/com.art/javalib/boot-okhttp.art]
+Name:           [anon:sensitive_vm-/apex/com.art/javalib/boot-okhttp.art]
 Size:                164 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -234,8 +234,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-705d9000-7060f000 rw-p 00000000 00:00 0                                  [anon:dalvik-/apex/com.art/javalib/boot-bouncycastle.art]
-Name:           [anon:dalvik-/apex/com.art/javalib/boot-bouncycastle.art]
+705d9000-7060f000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-/apex/com.art/javalib/boot-bouncycastle.art]
+Name:           [anon:sensitive_vm-/apex/com.art/javalib/boot-bouncycastle.art]
 Size:                216 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -258,8 +258,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-7060f000-7061a000 rw-p 00000000 00:00 0                                  [anon:dalvik-/apex/com.art/javalib/boot-apache-xml.art]
-Name:           [anon:dalvik-/apex/com.art/javalib/boot-apache-xml.art]
+7060f000-7061a000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-/apex/com.art/javalib/boot-apache-xml.art]
+Name:           [anon:sensitive_vm-/apex/com.art/javalib/boot-apache-xml.art]
 Size:                 44 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -1069,8 +1069,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-70b11000-71418000 rw-p 00000000 00:00 0                                  [anon:dalvik-/system/framework/boot-framework.art]
-Name:           [anon:dalvik-/system/framework/boot-framework.art]
+70b11000-71418000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-/system/framework/boot-framework.art]
+Name:           [anon:sensitive_vm-/system/framework/boot-framework.art]
 Size:               9244 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -1093,8 +1093,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-71418000-71449000 rw-p 00000000 00:00 0                                  [anon:dalvik-/system/framework/boot-ext.art]
-Name:           [anon:dalvik-/system/framework/boot-ext.art]
+71418000-71449000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-/system/framework/boot-ext.art]
+Name:           [anon:sensitive_vm-/system/framework/boot-ext.art]
 Size:                196 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -1117,8 +1117,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-71449000-71575000 rw-p 00000000 00:00 0                                  [anon:dalvik-/system/framework/boot-telephony-common.art]
-Name:           [anon:dalvik-/system/framework/boot-telephony-common.art]
+71449000-71575000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-/system/framework/boot-telephony-common.art]
+Name:           [anon:sensitive_vm-/system/framework/boot-telephony-common.art]
 Size:               1200 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -1141,8 +1141,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-71575000-715f8000 rw-p 00000000 00:00 0                                  [anon:dalvik-/system/framework/boot-voip-common.art]
-Name:           [anon:dalvik-/system/framework/boot-voip-common.art]
+71575000-715f8000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-/system/framework/boot-voip-common.art]
+Name:           [anon:sensitive_vm-/system/framework/boot-voip-common.art]
 Size:                524 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -1165,8 +1165,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-715f8000-71615000 rw-p 00000000 00:00 0                                  [anon:dalvik-/system/framework/boot-ims-common.art]
-Name:           [anon:dalvik-/system/framework/boot-ims-common.art]
+715f8000-71615000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-/system/framework/boot-ims-common.art]
+Name:           [anon:sensitive_vm-/system/framework/boot-ims-common.art]
 Size:                116 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -1189,8 +1189,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-71615000-71618000 rw-p 00000000 00:00 0                                  [anon:dalvik-/system/framework/boot-framework-atb-backward-compatibility.art]
-Name:           [anon:dalvik-/system/framework/boot-framework-atb-backward-compatibility.art]
+71615000-71618000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-/system/framework/boot-framework-atb-backward-compatibility.art]
+Name:           [anon:sensitive_vm-/system/framework/boot-framework-atb-backward-compatibility.art]
 Size:                 12 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -1904,8 +1904,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-72160000-72458000 rw-p 00000000 00:00 0                                  [anon:dalvik-zygote space]
-Name:           [anon:dalvik-zygote space]
+72160000-72458000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-zygote space]
+Name:           [anon:sensitive_vm-zygote space]
 Size:               3040 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -1928,8 +1928,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-72458000-72459000 rw-p 00000000 00:00 0                                  [anon:dalvik-non moving space]
-Name:           [anon:dalvik-non moving space]
+72458000-72459000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-non moving space]
+Name:           [anon:sensitive_vm-non moving space]
 Size:                  4 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -1952,8 +1952,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-72459000-72461000 rw-p 00000000 00:00 0                                  [anon:dalvik-non moving space]
-Name:           [anon:dalvik-non moving space]
+72459000-72461000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-non moving space]
+Name:           [anon:sensitive_vm-non moving space]
 Size:                 32 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -1976,8 +1976,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-72461000-75961000 ---p 00000000 00:00 0                                  [anon:dalvik-non moving space]
-Name:           [anon:dalvik-non moving space]
+72461000-75961000 ---p 00000000 00:00 0                                  [anon:sensitive_vm-non moving space]
+Name:           [anon:sensitive_vm-non moving space]
 Size:              54272 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -2000,8 +2000,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: mr mw me ac 
-75961000-76160000 rw-p 00000000 00:00 0                                  [anon:dalvik-non moving space]
-Name:           [anon:dalvik-non moving space]
+75961000-76160000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-non moving space]
+Name:           [anon:sensitive_vm-non moving space]
 Size:               8188 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -4993,8 +4993,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: mr mw me nr 
-c9141000-c9142000 ---p 00000000 00:00 0                                  [anon:dalvik-Jit thread pool worker thread 0]
-Name:           [anon:dalvik-Jit thread pool worker thread 0]
+c9141000-c9142000 ---p 00000000 00:00 0                                  [anon:sensitive_vm-Jit thread pool worker thread 0]
+Name:           [anon:sensitive_vm-Jit thread pool worker thread 0]
 Size:                  4 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -5017,8 +5017,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: mr mw me ac 
-c9142000-c9143000 ---p 00000000 00:00 0                                  [anon:dalvik-Jit thread pool worker thread 0]
-Name:           [anon:dalvik-Jit thread pool worker thread 0]
+c9142000-c9143000 ---p 00000000 00:00 0                                  [anon:sensitive_vm-Jit thread pool worker thread 0]
+Name:           [anon:sensitive_vm-Jit thread pool worker thread 0]
 Size:                  4 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -5041,8 +5041,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: mr mw me ac 
-c9143000-c9242000 rw-p 00000000 00:00 0                                  [anon:dalvik-Jit thread pool worker thread 0]
-Name:           [anon:dalvik-Jit thread pool worker thread 0]
+c9143000-c9242000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-Jit thread pool worker thread 0]
+Name:           [anon:sensitive_vm-Jit thread pool worker thread 0]
 Size:               1020 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -6150,8 +6150,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd mr mw me ac 
-d57e7000-d5807000 rw-p 00000000 00:00 0                                  [anon:dalvik-CompilerMetadata]
-Name:           [anon:dalvik-CompilerMetadata]
+d57e7000-d5807000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-CompilerMetadata]
+Name:           [anon:sensitive_vm-CompilerMetadata]
 Size:                128 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -6243,8 +6243,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd mr mw me ac 
-d5825000-d5845000 rw-p 00000000 00:00 0                                  [anon:dalvik-CompilerMetadata]
-Name:           [anon:dalvik-CompilerMetadata]
+d5825000-d5845000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-CompilerMetadata]
+Name:           [anon:sensitive_vm-CompilerMetadata]
 Size:                128 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -6359,8 +6359,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-d586b000-d588b000 rw-p 00000000 00:00 0                                  [anon:dalvik-CompilerMetadata]
-Name:           [anon:dalvik-CompilerMetadata]
+d586b000-d588b000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-CompilerMetadata]
+Name:           [anon:sensitive_vm-CompilerMetadata]
 Size:                128 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -6475,8 +6475,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-d58b9000-d58d9000 rw-p 00000000 00:00 0                                  [anon:dalvik-CompilerMetadata]
-Name:           [anon:dalvik-CompilerMetadata]
+d58b9000-d58d9000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-CompilerMetadata]
+Name:           [anon:sensitive_vm-CompilerMetadata]
 Size:                128 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -6660,8 +6660,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd mr mw me ac 
-d59d0000-d5a10000 rw-p 00000000 00:00 0                                  [anon:dalvik-CompilerMetadata]
-Name:           [anon:dalvik-CompilerMetadata]
+d59d0000-d5a10000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-CompilerMetadata]
+Name:           [anon:sensitive_vm-CompilerMetadata]
 Size:                256 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -6823,8 +6823,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-d5a42000-d5a62000 rw-p 00000000 00:00 0                                  [anon:dalvik-LinearAlloc]
-Name:           [anon:dalvik-LinearAlloc]
+d5a42000-d5a62000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-LinearAlloc]
+Name:           [anon:sensitive_vm-LinearAlloc]
 Size:                128 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -7264,8 +7264,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-d5c87000-d5ca7000 rw-p 00000000 00:00 0                                  [anon:dalvik-LinearAlloc]
-Name:           [anon:dalvik-LinearAlloc]
+d5c87000-d5ca7000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-LinearAlloc]
+Name:           [anon:sensitive_vm-LinearAlloc]
 Size:                128 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -7637,8 +7637,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: mr mw me nr 
-d5d16000-d5d36000 rw-p 00000000 00:00 0                                  [anon:dalvik-CompilerMetadata]
-Name:           [anon:dalvik-CompilerMetadata]
+d5d16000-d5d36000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-CompilerMetadata]
+Name:           [anon:sensitive_vm-CompilerMetadata]
 Size:                128 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -7753,8 +7753,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-d5d3f000-d5d5f000 rw-p 00000000 00:00 0                                  [anon:dalvik-CompilerMetadata]
-Name:           [anon:dalvik-CompilerMetadata]
+d5d3f000-d5d5f000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-CompilerMetadata]
+Name:           [anon:sensitive_vm-CompilerMetadata]
 Size:                128 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -7869,8 +7869,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-d5d78000-d5d98000 rw-p 00000000 00:00 0                                  [anon:dalvik-CompilerMetadata]
-Name:           [anon:dalvik-CompilerMetadata]
+d5d78000-d5d98000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-CompilerMetadata]
+Name:           [anon:sensitive_vm-CompilerMetadata]
 Size:                128 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -7985,8 +7985,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-d5dae000-d5dce000 rw-p 00000000 00:00 0                                  [anon:dalvik-LinearAlloc]
-Name:           [anon:dalvik-LinearAlloc]
+d5dae000-d5dce000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-LinearAlloc]
+Name:           [anon:sensitive_vm-LinearAlloc]
 Size:                128 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -8194,8 +8194,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-d7faa000-d7fca000 rw-p 00000000 00:00 0                                  [anon:dalvik-LinearAlloc]
-Name:           [anon:dalvik-LinearAlloc]
+d7faa000-d7fca000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-LinearAlloc]
+Name:           [anon:sensitive_vm-LinearAlloc]
 Size:                128 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -8381,8 +8381,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-d8233000-d8253000 rw-p 00000000 00:00 0                                  [anon:dalvik-LinearAlloc]
-Name:           [anon:dalvik-LinearAlloc]
+d8233000-d8253000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-LinearAlloc]
+Name:           [anon:sensitive_vm-LinearAlloc]
 Size:                128 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -8591,8 +8591,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-d8317000-d8337000 rw-p 00000000 00:00 0                                  [anon:dalvik-LinearAlloc]
-Name:           [anon:dalvik-LinearAlloc]
+d8317000-d8337000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-LinearAlloc]
+Name:           [anon:sensitive_vm-LinearAlloc]
 Size:                128 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -9214,8 +9214,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-d849d000-d84dd000 rw-p 00000000 00:00 0                                  [anon:dalvik-LinearAlloc]
-Name:           [anon:dalvik-LinearAlloc]
+d849d000-d84dd000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-LinearAlloc]
+Name:           [anon:sensitive_vm-LinearAlloc]
 Size:                256 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -9401,8 +9401,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-d85d3000-d8643000 rw-p 00000000 00:00 0                                  [anon:dalvik-large object space allocation]
-Name:           [anon:dalvik-large object space allocation]
+d85d3000-d8643000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-large object space allocation]
+Name:           [anon:sensitive_vm-large object space allocation]
 Size:                448 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -11169,8 +11169,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: mr mw me nr 
-de31f000-de414000 rw-p 00000000 00:00 0                                  [anon:dalvik-allocspace non moving space mark-bitmap 1]
-Name:           [anon:dalvik-allocspace non moving space mark-bitmap 1]
+de31f000-de414000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-allocspace non moving space mark-bitmap 1]
+Name:           [anon:sensitive_vm-allocspace non moving space mark-bitmap 1]
 Size:                980 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -11193,8 +11193,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-de414000-de509000 rw-p 00000000 00:00 0                                  [anon:dalvik-allocspace non moving space live-bitmap 1]
-Name:           [anon:dalvik-allocspace non moving space live-bitmap 1]
+de414000-de509000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-allocspace non moving space live-bitmap 1]
+Name:           [anon:sensitive_vm-allocspace non moving space live-bitmap 1]
 Size:                980 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -12325,8 +12325,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-e8348000-e834a000 rw-p 00000000 00:00 0                                  [anon:dalvik-indirect ref table]
-Name:           [anon:dalvik-indirect ref table]
+e8348000-e834a000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-indirect ref table]
+Name:           [anon:sensitive_vm-indirect ref table]
 Size:                  8 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -12768,8 +12768,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-e843e000-e8440000 rw-p 00000000 00:00 0                                  [anon:dalvik-indirect ref table]
-Name:           [anon:dalvik-indirect ref table]
+e843e000-e8440000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-indirect ref table]
+Name:           [anon:sensitive_vm-indirect ref table]
 Size:                  8 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -12955,8 +12955,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd mr mw me ac 
-e8452000-e8454000 rw-p 00000000 00:00 0                                  [anon:dalvik-indirect ref table]
-Name:           [anon:dalvik-indirect ref table]
+e8452000-e8454000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-indirect ref table]
+Name:           [anon:sensitive_vm-indirect ref table]
 Size:                  8 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -13071,8 +13071,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-e8498000-e849a000 rw-p 00000000 00:00 0                                  [anon:dalvik-indirect ref table]
-Name:           [anon:dalvik-indirect ref table]
+e8498000-e849a000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-indirect ref table]
+Name:           [anon:sensitive_vm-indirect ref table]
 Size:                  8 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -13095,8 +13095,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-e849a000-e84d8000 rw-p 00000000 00:00 0                                  [anon:dalvik-large object space allocation]
-Name:           [anon:dalvik-large object space allocation]
+e849a000-e84d8000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-large object space allocation]
+Name:           [anon:sensitive_vm-large object space allocation]
 Size:                248 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -13421,8 +13421,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd mr mw me ac 
-e850f000-e8513000 rw-p 00000000 00:00 0                                  [anon:dalvik-indirect ref table]
-Name:           [anon:dalvik-indirect ref table]
+e850f000-e8513000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-indirect ref table]
+Name:           [anon:sensitive_vm-indirect ref table]
 Size:                 16 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -13468,8 +13468,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd mr me ms 
-e8522000-e8542000 rw-p 00000000 00:00 0                                  [anon:dalvik-LinearAlloc]
-Name:           [anon:dalvik-LinearAlloc]
+e8522000-e8542000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-LinearAlloc]
+Name:           [anon:sensitive_vm-LinearAlloc]
 Size:                128 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -13561,8 +13561,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd mr mw me ac 
-e8548000-e854a000 rw-p 00000000 00:00 0                                  [anon:dalvik-indirect ref table]
-Name:           [anon:dalvik-indirect ref table]
+e8548000-e854a000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-indirect ref table]
+Name:           [anon:sensitive_vm-indirect ref table]
 Size:                  8 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -13702,8 +13702,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd mr me ms 
-e8576000-e8582000 rw-p 00000000 00:00 0                                  [anon:dalvik-large object space allocation]
-Name:           [anon:dalvik-large object space allocation]
+e8576000-e8582000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-large object space allocation]
+Name:           [anon:sensitive_vm-large object space allocation]
 Size:                 48 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -13818,8 +13818,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-e85b3000-e85b5000 rw-p 00000000 00:00 0                                  [anon:dalvik-indirect ref table]
-Name:           [anon:dalvik-indirect ref table]
+e85b3000-e85b5000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-indirect ref table]
+Name:           [anon:sensitive_vm-indirect ref table]
 Size:                  8 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -13912,8 +13912,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: mr mw me nr 
-e85c8000-e85ec000 rw-p 00000000 00:00 0                                  [anon:dalvik-large object space allocation]
-Name:           [anon:dalvik-large object space allocation]
+e85c8000-e85ec000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-large object space allocation]
+Name:           [anon:sensitive_vm-large object space allocation]
 Size:                144 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -14028,8 +14028,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-e85f8000-e85fa000 rw-p 00000000 00:00 0                                  [anon:dalvik-indirect ref table]
-Name:           [anon:dalvik-indirect ref table]
+e85f8000-e85fa000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-indirect ref table]
+Name:           [anon:sensitive_vm-indirect ref table]
 Size:                  8 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -14099,8 +14099,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-e85ff000-e8603000 rw-p 00000000 00:00 0                                  [anon:dalvik-large object space allocation]
-Name:           [anon:dalvik-large object space allocation]
+e85ff000-e8603000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-large object space allocation]
+Name:           [anon:sensitive_vm-large object space allocation]
 Size:                 16 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -14215,8 +14215,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-e863e000-e8648000 rw-p 00000000 00:00 0                                  [anon:dalvik-large object space allocation]
-Name:           [anon:dalvik-large object space allocation]
+e863e000-e8648000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-large object space allocation]
+Name:           [anon:sensitive_vm-large object space allocation]
 Size:                 40 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -14239,8 +14239,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-e8648000-e864c000 rw-p 00000000 00:00 0                                  [anon:dalvik-indirect ref table]
-Name:           [anon:dalvik-indirect ref table]
+e8648000-e864c000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-indirect ref table]
+Name:           [anon:sensitive_vm-indirect ref table]
 Size:                 16 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -14470,8 +14470,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-e8701000-e8703000 rw-p 00000000 00:00 0                                  [anon:dalvik-indirect ref table]
-Name:           [anon:dalvik-indirect ref table]
+e8701000-e8703000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-indirect ref table]
+Name:           [anon:sensitive_vm-indirect ref table]
 Size:                  8 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -14680,8 +14680,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-e8960000-e8974000 rw-p 00000000 00:00 0                                  [anon:dalvik-large object space allocation]
-Name:           [anon:dalvik-large object space allocation]
+e8960000-e8974000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-large object space allocation]
+Name:           [anon:sensitive_vm-large object space allocation]
 Size:                 80 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -14866,8 +14866,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-e89bf000-e89c3000 rw-p 00000000 00:00 0                                  [anon:dalvik-large object space allocation]
-Name:           [anon:dalvik-large object space allocation]
+e89bf000-e89c3000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-large object space allocation]
+Name:           [anon:sensitive_vm-large object space allocation]
 Size:                 16 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -15307,8 +15307,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-e8bbf000-e8bc1000 rw-p 00000000 00:00 0                                  [anon:dalvik-indirect ref table]
-Name:           [anon:dalvik-indirect ref table]
+e8bbf000-e8bc1000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-indirect ref table]
+Name:           [anon:sensitive_vm-indirect ref table]
 Size:                  8 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -15331,8 +15331,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-e8bc1000-e8bc5000 rw-p 00000000 00:00 0                                  [anon:dalvik-large object space allocation]
-Name:           [anon:dalvik-large object space allocation]
+e8bc1000-e8bc5000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-large object space allocation]
+Name:           [anon:sensitive_vm-large object space allocation]
 Size:                 16 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -15355,8 +15355,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-e8bc5000-e8bc9000 rw-p 00000000 00:00 0                                  [anon:dalvik-indirect ref table]
-Name:           [anon:dalvik-indirect ref table]
+e8bc5000-e8bc9000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-indirect ref table]
+Name:           [anon:sensitive_vm-indirect ref table]
 Size:                 16 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -15379,8 +15379,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-e8bc9000-e8bcd000 rw-p 00000000 00:00 0                                  [anon:dalvik-large object space allocation]
-Name:           [anon:dalvik-large object space allocation]
+e8bc9000-e8bcd000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-large object space allocation]
+Name:           [anon:sensitive_vm-large object space allocation]
 Size:                 16 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -15589,8 +15589,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-e8cc0000-e8cc2000 rw-p 00000000 00:00 0                                  [anon:dalvik-indirect ref table]
-Name:           [anon:dalvik-indirect ref table]
+e8cc0000-e8cc2000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-indirect ref table]
+Name:           [anon:sensitive_vm-indirect ref table]
 Size:                  8 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -15613,8 +15613,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-e8cc2000-e8cda000 rw-p 00000000 00:00 0                                  [anon:dalvik-large object space allocation]
-Name:           [anon:dalvik-large object space allocation]
+e8cc2000-e8cda000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-large object space allocation]
+Name:           [anon:sensitive_vm-large object space allocation]
 Size:                 96 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -15684,8 +15684,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-e8f40000-e8f45000 rw-p 00000000 00:00 0                                  [anon:dalvik-large object space allocation]
-Name:           [anon:dalvik-large object space allocation]
+e8f40000-e8f45000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-large object space allocation]
+Name:           [anon:sensitive_vm-large object space allocation]
 Size:                 20 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -15708,8 +15708,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-e8f45000-e90d5000 rw-p 00000000 00:00 0                                  [anon:dalvik-indirect ref table]
-Name:           [anon:dalvik-indirect ref table]
+e8f45000-e90d5000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-indirect ref table]
+Name:           [anon:sensitive_vm-indirect ref table]
 Size:               1600 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -15732,8 +15732,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-e90d5000-ea0d5000 rw-p 00000000 00:00 0                                  [anon:dalvik-region-space inter region ref bitmap]
-Name:           [anon:dalvik-region-space inter region ref bitmap]
+e90d5000-ea0d5000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-region-space inter region ref bitmap]
+Name:           [anon:sensitive_vm-region-space inter region ref bitmap]
 Size:              16384 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -15756,8 +15756,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-ea0d5000-ea2d5000 rw-p 00000000 00:00 0                                  [anon:dalvik-rb copying gc mark stack]
-Name:           [anon:dalvik-rb copying gc mark stack]
+ea0d5000-ea2d5000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-rb copying gc mark stack]
+Name:           [anon:sensitive_vm-rb copying gc mark stack]
 Size:               2048 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -15780,8 +15780,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-ea2d5000-eb2d5000 rw-p 00000000 00:00 0                                  [anon:dalvik-concurrent copying gc mark stack]
-Name:           [anon:dalvik-concurrent copying gc mark stack]
+ea2d5000-eb2d5000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-concurrent copying gc mark stack]
+Name:           [anon:sensitive_vm-concurrent copying gc mark stack]
 Size:              16384 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -15804,8 +15804,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-eb2d5000-ebad6000 rw-p 00000000 00:00 0                                  [anon:dalvik-live stack]
-Name:           [anon:dalvik-live stack]
+eb2d5000-ebad6000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-live stack]
+Name:           [anon:sensitive_vm-live stack]
 Size:               8196 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -15828,8 +15828,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-ebad6000-ebad7000 ---p 00000000 00:00 0                                  [anon:dalvik-Sentinel fault page]
-Name:           [anon:dalvik-Sentinel fault page]
+ebad6000-ebad7000 ---p 00000000 00:00 0                                  [anon:sensitive_vm-Sentinel fault page]
+Name:           [anon:sensitive_vm-Sentinel fault page]
 Size:                  4 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -15852,8 +15852,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: mr mw me 
-ebad7000-ebadd000 rw-p 00000000 00:00 0                                  [anon:dalvik-large object space allocation]
-Name:           [anon:dalvik-large object space allocation]
+ebad7000-ebadd000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-large object space allocation]
+Name:           [anon:sensitive_vm-large object space allocation]
 Size:                 24 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -16039,8 +16039,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd mr me ms 
-ebbb8000-ebcb8000 rw-p 00000000 00:00 0                                  [anon:dalvik-non-moving-space inter region ref bitmap]
-Name:           [anon:dalvik-non-moving-space inter region ref bitmap]
+ebbb8000-ebcb8000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-non-moving-space inter region ref bitmap]
+Name:           [anon:sensitive_vm-non-moving-space inter region ref bitmap]
 Size:               1024 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -16063,8 +16063,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-ebcb8000-ebeb8000 rw-p 00000000 00:00 0                                  [anon:dalvik-rb copying gc mark stack]
-Name:           [anon:dalvik-rb copying gc mark stack]
+ebcb8000-ebeb8000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-rb copying gc mark stack]
+Name:           [anon:sensitive_vm-rb copying gc mark stack]
 Size:               2048 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -16087,8 +16087,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-ebeb8000-ec6b9000 rw-p 00000000 00:00 0                                  [anon:dalvik-allocation stack]
-Name:           [anon:dalvik-allocation stack]
+ebeb8000-ec6b9000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-allocation stack]
+Name:           [anon:sensitive_vm-allocation stack]
 Size:               8196 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -16111,8 +16111,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-ec6b9000-ecaba000 rw-p 00000000 00:00 0                                  [anon:dalvik-card table]
-Name:           [anon:dalvik-card table]
+ec6b9000-ecaba000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-card table]
+Name:           [anon:sensitive_vm-card table]
 Size:               4100 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -16135,8 +16135,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-ecaba000-edaba000 rw-p 00000000 00:00 0                                  [anon:dalvik-region space live bitmap]
-Name:           [anon:dalvik-region space live bitmap]
+ecaba000-edaba000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-region space live bitmap]
+Name:           [anon:sensitive_vm-region space live bitmap]
 Size:              16384 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -16159,8 +16159,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-edaba000-edbba000 rw-p 00000000 00:00 0                                  [anon:dalvik-allocspace zygote / non moving space mark-bitmap 0]
-Name:           [anon:dalvik-allocspace zygote / non moving space mark-bitmap 0]
+edaba000-edbba000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-allocspace zygote / non moving space mark-bitmap 0]
+Name:           [anon:sensitive_vm-allocspace zygote / non moving space mark-bitmap 0]
 Size:               1024 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -16183,8 +16183,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-edbba000-edcba000 rw-p 00000000 00:00 0                                  [anon:dalvik-allocspace zygote / non moving space live-bitmap 0]
-Name:           [anon:dalvik-allocspace zygote / non moving space live-bitmap 0]
+edbba000-edcba000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-allocspace zygote / non moving space live-bitmap 0]
+Name:           [anon:sensitive_vm-allocspace zygote / non moving space live-bitmap 0]
 Size:               1024 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -16277,8 +16277,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-ee141000-ee14d000 rw-p 00000000 00:00 0                                  [anon:dalvik-large object space allocation]
-Name:           [anon:dalvik-large object space allocation]
+ee141000-ee14d000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-large object space allocation]
+Name:           [anon:sensitive_vm-large object space allocation]
 Size:                 48 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -16301,8 +16301,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-ee14d000-ee14f000 rw-p 00000000 00:00 0                                  [anon:dalvik-indirect ref table]
-Name:           [anon:dalvik-indirect ref table]
+ee14d000-ee14f000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-indirect ref table]
+Name:           [anon:sensitive_vm-indirect ref table]
 Size:                  8 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -16788,8 +16788,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-f0a0c000-f0a0e000 rw-p 00000000 00:00 0                                  [anon:dalvik-indirect ref table]
-Name:           [anon:dalvik-indirect ref table]
+f0a0c000-f0a0e000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-indirect ref table]
+Name:           [anon:sensitive_vm-indirect ref table]
 Size:                  8 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -16904,8 +16904,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd mr mw me ac 
-f0a7c000-f0a87000 rw-p 00000000 00:00 0                                  [anon:dalvik-large object space allocation]
-Name:           [anon:dalvik-large object space allocation]
+f0a7c000-f0a87000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-large object space allocation]
+Name:           [anon:sensitive_vm-large object space allocation]
 Size:                 44 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -16928,8 +16928,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-f0a87000-f0a89000 rw-p 00000000 00:00 0                                  [anon:dalvik-indirect ref table]
-Name:           [anon:dalvik-indirect ref table]
+f0a87000-f0a89000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-indirect ref table]
+Name:           [anon:sensitive_vm-indirect ref table]
 Size:                  8 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -17044,8 +17044,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd mr mw me ac 
-f0a98000-f0aa8000 rw-p 00000000 00:00 0                                  [anon:dalvik-large object space allocation]
-Name:           [anon:dalvik-large object space allocation]
+f0a98000-f0aa8000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-large object space allocation]
+Name:           [anon:sensitive_vm-large object space allocation]
 Size:                 64 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -17322,8 +17322,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd mr mw me ac 
-f0b7f000-f0b8a000 rw-p 00000000 00:00 0                                  [anon:dalvik-large object space allocation]
-Name:           [anon:dalvik-large object space allocation]
+f0b7f000-f0b8a000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-large object space allocation]
+Name:           [anon:sensitive_vm-large object space allocation]
 Size:                 44 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -17555,8 +17555,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd mr mw me ac 
-f137b000-f1381000 rw-p 00000000 00:00 0                                  [anon:dalvik-large object space allocation]
-Name:           [anon:dalvik-large object space allocation]
+f137b000-f1381000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-large object space allocation]
+Name:           [anon:sensitive_vm-large object space allocation]
 Size:                 24 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -17671,8 +17671,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-f13bc000-f13c0000 rw-p 00000000 00:00 0                                  [anon:dalvik-large object space allocation]
-Name:           [anon:dalvik-large object space allocation]
+f13bc000-f13c0000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-large object space allocation]
+Name:           [anon:sensitive_vm-large object space allocation]
 Size:                 16 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -17810,8 +17810,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-f13d3000-f13da000 rw-p 00000000 00:00 0                                  [anon:dalvik-large object space allocation]
-Name:           [anon:dalvik-large object space allocation]
+f13d3000-f13da000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-large object space allocation]
+Name:           [anon:sensitive_vm-large object space allocation]
 Size:                 28 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -17996,8 +17996,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-f1498000-f14a4000 rw-p 00000000 00:00 0                                  [anon:dalvik-large object space allocation]
-Name:           [anon:dalvik-large object space allocation]
+f1498000-f14a4000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-large object space allocation]
+Name:           [anon:sensitive_vm-large object space allocation]
 Size:                 48 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -18067,8 +18067,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-f1601000-f1603000 rw-p 00000000 00:00 0                                  [anon:dalvik-indirect ref table]
-Name:           [anon:dalvik-indirect ref table]
+f1601000-f1603000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-indirect ref table]
+Name:           [anon:sensitive_vm-indirect ref table]
 Size:                  8 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -18091,8 +18091,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-f1603000-f160e000 rw-p 00000000 00:00 0                                  [anon:dalvik-large object space allocation]
-Name:           [anon:dalvik-large object space allocation]
+f1603000-f160e000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-large object space allocation]
+Name:           [anon:sensitive_vm-large object space allocation]
 Size:                 44 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -18207,8 +18207,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-f163b000-f163d000 rw-p 00000000 00:00 0                                  [anon:dalvik-indirect ref table]
-Name:           [anon:dalvik-indirect ref table]
+f163b000-f163d000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-indirect ref table]
+Name:           [anon:sensitive_vm-indirect ref table]
 Size:                  8 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -18484,8 +18484,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-f1799000-f179e000 rw-p 00000000 00:00 0                                  [anon:dalvik-large object space allocation]
-Name:           [anon:dalvik-large object space allocation]
+f1799000-f179e000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-large object space allocation]
+Name:           [anon:sensitive_vm-large object space allocation]
 Size:                 20 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -18646,8 +18646,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-f17f2000-f17f9000 rw-p 00000000 00:00 0                                  [anon:dalvik-large object space allocation]
-Name:           [anon:dalvik-large object space allocation]
+f17f2000-f17f9000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-large object space allocation]
+Name:           [anon:sensitive_vm-large object space allocation]
 Size:                 28 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -18808,8 +18808,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-f183f000-f1841000 rw-p 00000000 00:00 0                                  [anon:dalvik-indirect ref table]
-Name:           [anon:dalvik-indirect ref table]
+f183f000-f1841000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-indirect ref table]
+Name:           [anon:sensitive_vm-indirect ref table]
 Size:                  8 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -19318,8 +19318,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-f1a32000-f1a36000 rw-p 00000000 00:00 0                                  [anon:dalvik-large object space allocation]
-Name:           [anon:dalvik-large object space allocation]
+f1a32000-f1a36000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-large object space allocation]
+Name:           [anon:sensitive_vm-large object space allocation]
 Size:                 16 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -19756,8 +19756,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-f1b7a000-f1b7c000 rw-p 00000000 00:00 0                                  [anon:dalvik-indirect ref table]
-Name:           [anon:dalvik-indirect ref table]
+f1b7a000-f1b7c000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-indirect ref table]
+Name:           [anon:sensitive_vm-indirect ref table]
 Size:                  8 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -19918,8 +19918,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-f1bb4000-f1bb6000 rw-p 00000000 00:00 0                                  [anon:dalvik-indirect ref table]
-Name:           [anon:dalvik-indirect ref table]
+f1bb4000-f1bb6000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-indirect ref table]
+Name:           [anon:sensitive_vm-indirect ref table]
 Size:                  8 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -20425,8 +20425,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-f1c94000-f1c96000 rw-p 00000000 00:00 0                                  [anon:dalvik-indirect ref table]
-Name:           [anon:dalvik-indirect ref table]
+f1c94000-f1c96000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-indirect ref table]
+Name:           [anon:sensitive_vm-indirect ref table]
 Size:                  8 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -20610,8 +20610,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-f1cf7000-f1cf9000 rw-p 00000000 00:00 0                                  [anon:dalvik-indirect ref table]
-Name:           [anon:dalvik-indirect ref table]
+f1cf7000-f1cf9000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-indirect ref table]
+Name:           [anon:sensitive_vm-indirect ref table]
 Size:                  8 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -21096,8 +21096,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-f1d9d000-f1d9f000 rw-p 00000000 00:00 0                                  [anon:dalvik-indirect ref table]
-Name:           [anon:dalvik-indirect ref table]
+f1d9d000-f1d9f000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-indirect ref table]
+Name:           [anon:sensitive_vm-indirect ref table]
 Size:                  8 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -21212,8 +21212,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd mr mw me ac 
-f1df3000-f1df5000 rw-p 00000000 00:00 0                                  [anon:dalvik-indirect ref table]
-Name:           [anon:dalvik-indirect ref table]
+f1df3000-f1df5000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-indirect ref table]
+Name:           [anon:sensitive_vm-indirect ref table]
 Size:                  8 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -21489,8 +21489,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-f1e55000-f1e57000 rw-p 00000000 00:00 0                                  [anon:dalvik-indirect ref table]
-Name:           [anon:dalvik-indirect ref table]
+f1e55000-f1e57000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-indirect ref table]
+Name:           [anon:sensitive_vm-indirect ref table]
 Size:                  8 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -21674,8 +21674,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-f1eb4000-f1eb6000 rw-p 00000000 00:00 0                                  [anon:dalvik-indirect ref table]
-Name:           [anon:dalvik-indirect ref table]
+f1eb4000-f1eb6000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-indirect ref table]
+Name:           [anon:sensitive_vm-indirect ref table]
 Size:                  8 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -21974,8 +21974,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-f1f27000-f1f29000 rw-p 00000000 00:00 0                                  [anon:dalvik-indirect ref table]
-Name:           [anon:dalvik-indirect ref table]
+f1f27000-f1f29000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-indirect ref table]
+Name:           [anon:sensitive_vm-indirect ref table]
 Size:                  8 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -22274,8 +22274,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-f2005000-f2007000 rw-p 00000000 00:00 0                                  [anon:dalvik-indirect ref table]
-Name:           [anon:dalvik-indirect ref table]
+f2005000-f2007000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-indirect ref table]
+Name:           [anon:sensitive_vm-indirect ref table]
 Size:                  8 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -29619,8 +29619,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd mr me ms 
-f4630000-f4650000 rw-p 00000000 00:00 0                                  [anon:dalvik-CompilerMetadata]
-Name:           [anon:dalvik-CompilerMetadata]
+f4630000-f4650000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-CompilerMetadata]
+Name:           [anon:sensitive_vm-CompilerMetadata]
 Size:                128 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -30587,8 +30587,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd mr me ms 
-f496c000-f498c000 rw-p 00000000 00:00 0                                  [anon:dalvik-CompilerMetadata]
-Name:           [anon:dalvik-CompilerMetadata]
+f496c000-f498c000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-CompilerMetadata]
+Name:           [anon:sensitive_vm-CompilerMetadata]
 Size:                128 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -31211,8 +31211,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd mr me ms 
-f4b37000-f4b57000 rw-p 00000000 00:00 0                                  [anon:dalvik-CompilerMetadata]
-Name:           [anon:dalvik-CompilerMetadata]
+f4b37000-f4b57000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-CompilerMetadata]
+Name:           [anon:sensitive_vm-CompilerMetadata]
 Size:                128 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -31488,8 +31488,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd mr me ms 
-f4bc7000-f4be7000 rw-p 00000000 00:00 0                                  [anon:dalvik-CompilerMetadata]
-Name:           [anon:dalvik-CompilerMetadata]
+f4bc7000-f4be7000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-CompilerMetadata]
+Name:           [anon:sensitive_vm-CompilerMetadata]
 Size:                128 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -31765,8 +31765,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd mr me ms 
-f4c36000-f4c56000 rw-p 00000000 00:00 0                                  [anon:dalvik-LinearAlloc]
-Name:           [anon:dalvik-LinearAlloc]
+f4c36000-f4c56000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-LinearAlloc]
+Name:           [anon:sensitive_vm-LinearAlloc]
 Size:                128 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -31996,8 +31996,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-f4cda000-f4d1a000 rw-p 00000000 00:00 0                                  [anon:dalvik-LinearAlloc]
-Name:           [anon:dalvik-LinearAlloc]
+f4cda000-f4d1a000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-LinearAlloc]
+Name:           [anon:sensitive_vm-LinearAlloc]
 Size:                256 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -32135,8 +32135,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd mr me ms 
-f4d39000-f4d59000 rw-p 00000000 00:00 0                                  [anon:dalvik-LinearAlloc]
-Name:           [anon:dalvik-LinearAlloc]
+f4d39000-f4d59000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-LinearAlloc]
+Name:           [anon:sensitive_vm-LinearAlloc]
 Size:                128 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -32895,8 +32895,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd mr me ms 
-f4e6c000-f4e8c000 rw-p 00000000 00:00 0                                  [anon:dalvik-LinearAlloc]
-Name:           [anon:dalvik-LinearAlloc]
+f4e6c000-f4e8c000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-LinearAlloc]
+Name:           [anon:sensitive_vm-LinearAlloc]
 Size:                128 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -33034,8 +33034,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd mr me ms 
-f4e98000-f4ed8000 rw-p 00000000 00:00 0                                  [anon:dalvik-LinearAlloc]
-Name:           [anon:dalvik-LinearAlloc]
+f4e98000-f4ed8000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-LinearAlloc]
+Name:           [anon:sensitive_vm-LinearAlloc]
 Size:                256 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -34026,8 +34026,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-f5056000-f505a000 rw-p 00000000 00:00 0                                  [anon:dalvik-indirect ref table]
-Name:           [anon:dalvik-indirect ref table]
+f5056000-f505a000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-indirect ref table]
+Name:           [anon:sensitive_vm-indirect ref table]
 Size:                 16 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -34606,8 +34606,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd mr mw me ac 
-f514b000-f5150000 rw-p 00000000 00:00 0                                  [anon:dalvik-large object space allocation]
-Name:           [anon:dalvik-large object space allocation]
+f514b000-f5150000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-large object space allocation]
+Name:           [anon:sensitive_vm-large object space allocation]
 Size:                 20 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -34770,8 +34770,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: mr mw me nr 
-f5185000-f518d000 rw-p 00000000 00:00 0                                  [anon:dalvik-thread local mark stack]
-Name:           [anon:dalvik-thread local mark stack]
+f5185000-f518d000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-thread local mark stack]
+Name:           [anon:sensitive_vm-thread local mark stack]
 Size:                 32 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -34956,8 +34956,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd mr me ms 
-f5195000-f51d1000 rw-p 00000000 00:00 0                                  [anon:dalvik-thread local mark stack]
-Name:           [anon:dalvik-thread local mark stack]
+f5195000-f51d1000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-thread local mark stack]
+Name:           [anon:sensitive_vm-thread local mark stack]
 Size:                240 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -35095,8 +35095,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd mr me ms 
-f51fe000-f5202000 rw-p 00000000 00:00 0                                  [anon:dalvik-thread local mark stack]
-Name:           [anon:dalvik-thread local mark stack]
+f51fe000-f5202000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-thread local mark stack]
+Name:           [anon:sensitive_vm-thread local mark stack]
 Size:                 16 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -35188,8 +35188,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd mr mw me ac 
-f5206000-f526a000 rw-p 00000000 00:00 0                                  [anon:dalvik-thread local mark stack]
-Name:           [anon:dalvik-thread local mark stack]
+f5206000-f526a000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-thread local mark stack]
+Name:           [anon:sensitive_vm-thread local mark stack]
 Size:                400 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -35327,8 +35327,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd mr me ms 
-f52ac000-f52ec000 rw-p 00000000 00:00 0                                  [anon:dalvik-thread local mark stack]
-Name:           [anon:dalvik-thread local mark stack]
+f52ac000-f52ec000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-thread local mark stack]
+Name:           [anon:sensitive_vm-thread local mark stack]
 Size:                256 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -35420,8 +35420,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd mr mw me ac 
-f52f5000-f532d000 rw-p 00000000 00:00 0                                  [anon:dalvik-thread local mark stack]
-Name:           [anon:dalvik-thread local mark stack]
+f52f5000-f532d000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-thread local mark stack]
+Name:           [anon:sensitive_vm-thread local mark stack]
 Size:                224 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -35559,8 +35559,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd mr me ms 
-f5333000-f535b000 rw-p 00000000 00:00 0                                  [anon:dalvik-thread local mark stack]
-Name:           [anon:dalvik-thread local mark stack]
+f5333000-f535b000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-thread local mark stack]
+Name:           [anon:sensitive_vm-thread local mark stack]
 Size:                160 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -35698,8 +35698,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-f53ff000-f541b000 rw-p 00000000 00:00 0                                  [anon:dalvik-thread local mark stack]
-Name:           [anon:dalvik-thread local mark stack]
+f53ff000-f541b000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-thread local mark stack]
+Name:           [anon:sensitive_vm-thread local mark stack]
 Size:                112 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -35814,8 +35814,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd mr mw me ac 
-f5422000-f544a000 rw-p 00000000 00:00 0                                  [anon:dalvik-thread local mark stack]
-Name:           [anon:dalvik-thread local mark stack]
+f5422000-f544a000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-thread local mark stack]
+Name:           [anon:sensitive_vm-thread local mark stack]
 Size:                160 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -35953,8 +35953,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd mr me ms 
-f5481000-f54b9000 rw-p 00000000 00:00 0                                  [anon:dalvik-thread local mark stack]
-Name:           [anon:dalvik-thread local mark stack]
+f5481000-f54b9000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-thread local mark stack]
+Name:           [anon:sensitive_vm-thread local mark stack]
 Size:                224 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -36069,8 +36069,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd mr me ms 
-f54bd000-f54e1000 rw-p 00000000 00:00 0                                  [anon:dalvik-thread local mark stack]
-Name:           [anon:dalvik-thread local mark stack]
+f54bd000-f54e1000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-thread local mark stack]
+Name:           [anon:sensitive_vm-thread local mark stack]
 Size:                144 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -36209,8 +36209,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-f5533000-f5547000 rw-p 00000000 00:00 0                                  [anon:dalvik-thread local mark stack]
-Name:           [anon:dalvik-thread local mark stack]
+f5533000-f5547000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-thread local mark stack]
+Name:           [anon:sensitive_vm-thread local mark stack]
 Size:                 80 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -36325,8 +36325,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-f554c000-f5594000 rw-p 00000000 00:00 0                                  [anon:dalvik-thread local mark stack]
-Name:           [anon:dalvik-thread local mark stack]
+f554c000-f5594000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-thread local mark stack]
+Name:           [anon:sensitive_vm-thread local mark stack]
 Size:                288 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -36487,8 +36487,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd mr me ms 
-f55be000-f55ce000 rw-p 00000000 00:00 0                                  [anon:dalvik-thread local mark stack]
-Name:           [anon:dalvik-thread local mark stack]
+f55be000-f55ce000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-thread local mark stack]
+Name:           [anon:sensitive_vm-thread local mark stack]
 Size:                 64 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -36626,8 +36626,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd mr me ms 
-f55ef000-f560f000 rw-p 00000000 00:00 0                                  [anon:dalvik-thread local mark stack]
-Name:           [anon:dalvik-thread local mark stack]
+f55ef000-f560f000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-thread local mark stack]
+Name:           [anon:sensitive_vm-thread local mark stack]
 Size:                128 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -36765,8 +36765,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd mr me ms 
-f5622000-f564e000 rw-p 00000000 00:00 0                                  [anon:dalvik-thread local mark stack]
-Name:           [anon:dalvik-thread local mark stack]
+f5622000-f564e000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-thread local mark stack]
+Name:           [anon:sensitive_vm-thread local mark stack]
 Size:                176 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -36928,8 +36928,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd mr me ms 
-f567c000-f5684000 rw-p 00000000 00:00 0                                  [anon:dalvik-thread local mark stack]
-Name:           [anon:dalvik-thread local mark stack]
+f567c000-f5684000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-thread local mark stack]
+Name:           [anon:sensitive_vm-thread local mark stack]
 Size:                 32 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -37045,8 +37045,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-f5696000-f56ca000 rw-p 00000000 00:00 0                                  [anon:dalvik-thread local mark stack]
-Name:           [anon:dalvik-thread local mark stack]
+f5696000-f56ca000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-thread local mark stack]
+Name:           [anon:sensitive_vm-thread local mark stack]
 Size:                208 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -37161,8 +37161,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-f56ff000-f5703000 rw-p 00000000 00:00 0                                  [anon:dalvik-thread local mark stack]
-Name:           [anon:dalvik-thread local mark stack]
+f56ff000-f5703000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-thread local mark stack]
+Name:           [anon:sensitive_vm-thread local mark stack]
 Size:                 16 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -37300,8 +37300,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd mr me ms 
-f5781000-f57a5000 rw-p 00000000 00:00 0                                  [anon:dalvik-thread local mark stack]
-Name:           [anon:dalvik-thread local mark stack]
+f5781000-f57a5000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-thread local mark stack]
+Name:           [anon:sensitive_vm-thread local mark stack]
 Size:                144 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -37393,8 +37393,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd mr mw me ac 
-f57b4000-f57c4000 rw-p 00000000 00:00 0                                  [anon:dalvik-thread local mark stack]
-Name:           [anon:dalvik-thread local mark stack]
+f57b4000-f57c4000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-thread local mark stack]
+Name:           [anon:sensitive_vm-thread local mark stack]
 Size:                 64 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -37486,8 +37486,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd mr mw me ac 
-f57e1000-f582d000 rw-p 00000000 00:00 0                                  [anon:dalvik-thread local mark stack]
-Name:           [anon:dalvik-thread local mark stack]
+f57e1000-f582d000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-thread local mark stack]
+Name:           [anon:sensitive_vm-thread local mark stack]
 Size:                304 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -37602,8 +37602,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd mr me ms 
-f583a000-f5872000 rw-p 00000000 00:00 0                                  [anon:dalvik-thread local mark stack]
-Name:           [anon:dalvik-thread local mark stack]
+f583a000-f5872000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-thread local mark stack]
+Name:           [anon:sensitive_vm-thread local mark stack]
 Size:                224 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -37764,8 +37764,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd mr me ms 
-f587c000-f5890000 rw-p 00000000 00:00 0                                  [anon:dalvik-thread local mark stack]
-Name:           [anon:dalvik-thread local mark stack]
+f587c000-f5890000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-thread local mark stack]
+Name:           [anon:sensitive_vm-thread local mark stack]
 Size:                 80 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -37926,8 +37926,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd mr me ms 
-f58a8000-f58c4000 rw-p 00000000 00:00 0                                  [anon:dalvik-thread local mark stack]
-Name:           [anon:dalvik-thread local mark stack]
+f58a8000-f58c4000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-thread local mark stack]
+Name:           [anon:sensitive_vm-thread local mark stack]
 Size:                112 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -38042,8 +38042,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-f5968000-f5980000 rw-p 00000000 00:00 0                                  [anon:dalvik-thread local mark stack]
-Name:           [anon:dalvik-thread local mark stack]
+f5968000-f5980000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-thread local mark stack]
+Name:           [anon:sensitive_vm-thread local mark stack]
 Size:                 96 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -38205,8 +38205,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd mr me ms 
-f59dc000-f5a0c000 rw-p 00000000 00:00 0                                  [anon:dalvik-thread local mark stack]
-Name:           [anon:dalvik-thread local mark stack]
+f59dc000-f5a0c000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-thread local mark stack]
+Name:           [anon:sensitive_vm-thread local mark stack]
 Size:                192 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -38460,8 +38460,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-f5a7c000-f5aa8000 rw-p 00000000 00:00 0                                  [anon:dalvik-thread local mark stack]
-Name:           [anon:dalvik-thread local mark stack]
+f5a7c000-f5aa8000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-thread local mark stack]
+Name:           [anon:sensitive_vm-thread local mark stack]
 Size:                176 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -38576,8 +38576,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-f5aaf000-f5ac3000 rw-p 00000000 00:00 0                                  [anon:dalvik-thread local mark stack]
-Name:           [anon:dalvik-thread local mark stack]
+f5aaf000-f5ac3000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-thread local mark stack]
+Name:           [anon:sensitive_vm-thread local mark stack]
 Size:                 80 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -38692,8 +38692,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-f5b00000-f5b04000 rw-p 00000000 00:00 0                                  [anon:dalvik-thread local mark stack]
-Name:           [anon:dalvik-thread local mark stack]
+f5b00000-f5b04000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-thread local mark stack]
+Name:           [anon:sensitive_vm-thread local mark stack]
 Size:                 16 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -38855,8 +38855,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd mr me ms 
-f5b37000-f5b57000 rw-p 00000000 00:00 0                                  [anon:dalvik-thread local mark stack]
-Name:           [anon:dalvik-thread local mark stack]
+f5b37000-f5b57000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-thread local mark stack]
+Name:           [anon:sensitive_vm-thread local mark stack]
 Size:                128 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -38994,8 +38994,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-f5b71000-f5bad000 rw-p 00000000 00:00 0                                  [anon:dalvik-thread local mark stack]
-Name:           [anon:dalvik-thread local mark stack]
+f5b71000-f5bad000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-thread local mark stack]
+Name:           [anon:sensitive_vm-thread local mark stack]
 Size:                240 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -39156,8 +39156,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd mr me ms 
-f5bc2000-f5be2000 rw-p 00000000 00:00 0                                  [anon:dalvik-thread local mark stack]
-Name:           [anon:dalvik-thread local mark stack]
+f5bc2000-f5be2000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-thread local mark stack]
+Name:           [anon:sensitive_vm-thread local mark stack]
 Size:                128 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -39295,8 +39295,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd mr me ms 
-f5bea000-f5c32000 rw-p 00000000 00:00 0                                  [anon:dalvik-thread local mark stack]
-Name:           [anon:dalvik-thread local mark stack]
+f5bea000-f5c32000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-thread local mark stack]
+Name:           [anon:sensitive_vm-thread local mark stack]
 Size:                288 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -39411,8 +39411,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd mr me ms 
-f5c3d000-f5c41000 rw-p 00000000 00:00 0                                  [anon:dalvik-thread local mark stack]
-Name:           [anon:dalvik-thread local mark stack]
+f5c3d000-f5c41000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-thread local mark stack]
+Name:           [anon:sensitive_vm-thread local mark stack]
 Size:                 16 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -39550,8 +39550,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd mr me ms 
-f5ce1000-f5d1d000 rw-p 00000000 00:00 0                                  [anon:dalvik-thread local mark stack]
-Name:           [anon:dalvik-thread local mark stack]
+f5ce1000-f5d1d000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-thread local mark stack]
+Name:           [anon:sensitive_vm-thread local mark stack]
 Size:                240 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -39689,8 +39689,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd mr me ms 
-f5d3e000-f5d6e000 rw-p 00000000 00:00 0                                  [anon:dalvik-thread local mark stack]
-Name:           [anon:dalvik-thread local mark stack]
+f5d3e000-f5d6e000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-thread local mark stack]
+Name:           [anon:sensitive_vm-thread local mark stack]
 Size:                192 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -39828,8 +39828,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd mr me ms 
-f5db2000-f5dea000 rw-p 00000000 00:00 0                                  [anon:dalvik-thread local mark stack]
-Name:           [anon:dalvik-thread local mark stack]
+f5db2000-f5dea000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-thread local mark stack]
+Name:           [anon:sensitive_vm-thread local mark stack]
 Size:                224 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -39967,8 +39967,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd mr me ms 
-f5dfc000-f5e00000 rw-p 00000000 00:00 0                                  [anon:dalvik-thread local mark stack]
-Name:           [anon:dalvik-thread local mark stack]
+f5dfc000-f5e00000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-thread local mark stack]
+Name:           [anon:sensitive_vm-thread local mark stack]
 Size:                 16 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -40106,8 +40106,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd mr me ms 
-f5e80000-f5e98000 rw-p 00000000 00:00 0                                  [anon:dalvik-thread local mark stack]
-Name:           [anon:dalvik-thread local mark stack]
+f5e80000-f5e98000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-thread local mark stack]
+Name:           [anon:sensitive_vm-thread local mark stack]
 Size:                 96 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -40222,8 +40222,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd mr me ms 
-f5eb7000-f5ebb000 rw-p 00000000 00:00 0                                  [anon:dalvik-thread local mark stack]
-Name:           [anon:dalvik-thread local mark stack]
+f5eb7000-f5ebb000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-thread local mark stack]
+Name:           [anon:sensitive_vm-thread local mark stack]
 Size:                 16 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -40246,8 +40246,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-f5ebb000-f5efb000 rw-p 00000000 00:00 0                                  [anon:dalvik-mark stack]
-Name:           [anon:dalvik-mark stack]
+f5ebb000-f5efb000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-mark stack]
+Name:           [anon:sensitive_vm-mark stack]
 Size:                256 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -40454,8 +40454,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd mr me ms 
-f5f3e000-f5f46000 rw-p 00000000 00:00 0                                  [anon:dalvik-thread local mark stack]
-Name:           [anon:dalvik-thread local mark stack]
+f5f3e000-f5f46000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-thread local mark stack]
+Name:           [anon:sensitive_vm-thread local mark stack]
 Size:                 32 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -40570,8 +40570,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-f5f56000-f5f86000 rw-p 00000000 00:00 0                                  [anon:dalvik-thread local mark stack]
-Name:           [anon:dalvik-thread local mark stack]
+f5f56000-f5f86000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-thread local mark stack]
+Name:           [anon:sensitive_vm-thread local mark stack]
 Size:                192 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -40686,8 +40686,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd mr me ms 
-f5f8a000-f5fa2000 rw-p 00000000 00:00 0                                  [anon:dalvik-thread local mark stack]
-Name:           [anon:dalvik-thread local mark stack]
+f5f8a000-f5fa2000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-thread local mark stack]
+Name:           [anon:sensitive_vm-thread local mark stack]
 Size:                 96 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -40802,8 +40802,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd mr mw me ac 
-f5feb000-f6013000 rw-p 00000000 00:00 0                                  [anon:dalvik-thread local mark stack]
-Name:           [anon:dalvik-thread local mark stack]
+f5feb000-f6013000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-thread local mark stack]
+Name:           [anon:sensitive_vm-thread local mark stack]
 Size:                160 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -40895,8 +40895,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd mr mw me ac 
-f6016000-f604e000 rw-p 00000000 00:00 0                                  [anon:dalvik-thread local mark stack]
-Name:           [anon:dalvik-thread local mark stack]
+f6016000-f604e000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-thread local mark stack]
+Name:           [anon:sensitive_vm-thread local mark stack]
 Size:                224 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -41034,8 +41034,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd mr me ms 
-f6080000-f6084000 rw-p 00000000 00:00 0                                  [anon:dalvik-thread local mark stack]
-Name:           [anon:dalvik-thread local mark stack]
+f6080000-f6084000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-thread local mark stack]
+Name:           [anon:sensitive_vm-thread local mark stack]
 Size:                 16 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -41150,8 +41150,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-f60a7000-f60d7000 rw-p 00000000 00:00 0                                  [anon:dalvik-thread local mark stack]
-Name:           [anon:dalvik-thread local mark stack]
+f60a7000-f60d7000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-thread local mark stack]
+Name:           [anon:sensitive_vm-thread local mark stack]
 Size:                192 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -41266,8 +41266,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-f60ee000-f6122000 rw-p 00000000 00:00 0                                  [anon:dalvik-thread local mark stack]
-Name:           [anon:dalvik-thread local mark stack]
+f60ee000-f6122000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-thread local mark stack]
+Name:           [anon:sensitive_vm-thread local mark stack]
 Size:                208 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -41428,8 +41428,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd mr me ms 
-f612b000-f6147000 rw-p 00000000 00:00 0                                  [anon:dalvik-thread local mark stack]
-Name:           [anon:dalvik-thread local mark stack]
+f612b000-f6147000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-thread local mark stack]
+Name:           [anon:sensitive_vm-thread local mark stack]
 Size:                112 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -41728,8 +41728,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd mr me ms 
-f61f5000-f6201000 rw-p 00000000 00:00 0                                  [anon:dalvik-thread local mark stack]
-Name:           [anon:dalvik-thread local mark stack]
+f61f5000-f6201000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-thread local mark stack]
+Name:           [anon:sensitive_vm-thread local mark stack]
 Size:                 48 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -41752,8 +41752,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-f6201000-f6221000 rw-p 00000000 00:00 0                                  [anon:dalvik-large marked objects]
-Name:           [anon:dalvik-large marked objects]
+f6201000-f6221000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-large marked objects]
+Name:           [anon:sensitive_vm-large marked objects]
 Size:                128 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -42052,8 +42052,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-f6278000-f6284000 rw-p 00000000 00:00 0                                  [anon:dalvik-thread local mark stack]
-Name:           [anon:dalvik-thread local mark stack]
+f6278000-f6284000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-thread local mark stack]
+Name:           [anon:sensitive_vm-thread local mark stack]
 Size:                 48 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -42191,8 +42191,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd mr me ms 
-f628a000-f62a2000 rw-p 00000000 00:00 0                                  [anon:dalvik-thread local mark stack]
-Name:           [anon:dalvik-thread local mark stack]
+f628a000-f62a2000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-thread local mark stack]
+Name:           [anon:sensitive_vm-thread local mark stack]
 Size:                 96 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -42215,8 +42215,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-f62a2000-f62c2000 rw-p 00000000 00:00 0                                  [anon:dalvik-large live objects]
-Name:           [anon:dalvik-large live objects]
+f62a2000-f62c2000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-large live objects]
+Name:           [anon:sensitive_vm-large live objects]
 Size:                128 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -42423,8 +42423,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd mr mw me ac 
-f632f000-f6343000 rw-p 00000000 00:00 0                                  [anon:dalvik-thread local mark stack]
-Name:           [anon:dalvik-thread local mark stack]
+f632f000-f6343000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-thread local mark stack]
+Name:           [anon:sensitive_vm-thread local mark stack]
 Size:                 80 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -42748,8 +42748,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd mr me ms 
-f64c2000-f64c6000 rw-p 00000000 00:00 0                                  [anon:dalvik-thread local mark stack]
-Name:           [anon:dalvik-thread local mark stack]
+f64c2000-f64c6000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-thread local mark stack]
+Name:           [anon:sensitive_vm-thread local mark stack]
 Size:                 16 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -42910,8 +42910,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd mr me ms 
-f6528000-f652a000 rw-p 00000000 00:00 0                                  [anon:dalvik-indirect ref table]
-Name:           [anon:dalvik-indirect ref table]
+f6528000-f652a000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-indirect ref table]
+Name:           [anon:sensitive_vm-indirect ref table]
 Size:                  8 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -42934,8 +42934,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-f652a000-f653a000 rw-p 00000000 00:00 0                                  [anon:dalvik-thread local mark stack]
-Name:           [anon:dalvik-thread local mark stack]
+f652a000-f653a000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-thread local mark stack]
+Name:           [anon:sensitive_vm-thread local mark stack]
 Size:                 64 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -43212,8 +43212,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-f663e000-f6656000 rw-p 00000000 00:00 0                                  [anon:dalvik-thread local mark stack]
-Name:           [anon:dalvik-thread local mark stack]
+f663e000-f6656000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-thread local mark stack]
+Name:           [anon:sensitive_vm-thread local mark stack]
 Size:                 96 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -43328,8 +43328,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-f666c000-f6680000 rw-p 00000000 00:00 0                                  [anon:dalvik-thread local mark stack]
-Name:           [anon:dalvik-thread local mark stack]
+f666c000-f6680000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-thread local mark stack]
+Name:           [anon:sensitive_vm-thread local mark stack]
 Size:                 80 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -43467,8 +43467,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd mr me ms 
-f66bd000-f66c9000 rw-p 00000000 00:00 0                                  [anon:dalvik-thread local mark stack]
-Name:           [anon:dalvik-thread local mark stack]
+f66bd000-f66c9000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-thread local mark stack]
+Name:           [anon:sensitive_vm-thread local mark stack]
 Size:                 48 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -43606,8 +43606,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd mr me ms 
-f6755000-f6769000 rw-p 00000000 00:00 0                                  [anon:dalvik-thread local mark stack]
-Name:           [anon:dalvik-thread local mark stack]
+f6755000-f6769000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-thread local mark stack]
+Name:           [anon:sensitive_vm-thread local mark stack]
 Size:                 80 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -43791,8 +43791,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd mr me ms 
-f6828000-f6840000 rw-p 00000000 00:00 0                                  [anon:dalvik-thread local mark stack]
-Name:           [anon:dalvik-thread local mark stack]
+f6828000-f6840000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-thread local mark stack]
+Name:           [anon:sensitive_vm-thread local mark stack]
 Size:                 96 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -43839,8 +43839,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-f6980000-f6982000 rw-p 00000000 00:00 0                                  [anon:dalvik-indirect ref table]
-Name:           [anon:dalvik-indirect ref table]
+f6980000-f6982000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-indirect ref table]
+Name:           [anon:sensitive_vm-indirect ref table]
 Size:                  8 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -43863,8 +43863,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-f6982000-f6986000 rw-p 00000000 00:00 0                                  [anon:dalvik-thread local mark stack]
-Name:           [anon:dalvik-thread local mark stack]
+f6982000-f6986000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-thread local mark stack]
+Name:           [anon:sensitive_vm-thread local mark stack]
 Size:                 16 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -43957,8 +43957,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd mr me ms 
-f69a8000-f69b0000 rw-p 00000000 00:00 0                                  [anon:dalvik-thread local mark stack]
-Name:           [anon:dalvik-thread local mark stack]
+f69a8000-f69b0000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-thread local mark stack]
+Name:           [anon:sensitive_vm-thread local mark stack]
 Size:                 32 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -44004,7 +44004,7 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd mr me ms 
-f69d0000-f69f0000 r--s 00000000 00:11 7226                               /dev/__properties__/u:object_r:dalvik_prop:s0
+f69d0000-f69f0000 r--s 00000000 00:11 7226                               /dev/__properties__/u:object_r:sensitive_vm_prop:s0
 Size:                128 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -44097,8 +44097,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-f69f3000-f69f4000 rw-p 00000000 00:00 0                                  [anon:dalvik-mod union bitmap]
-Name:           [anon:dalvik-mod union bitmap]
+f69f3000-f69f4000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-mod union bitmap]
+Name:           [anon:sensitive_vm-mod union bitmap]
 Size:                  4 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -44121,8 +44121,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-f69f4000-f6a00000 rw-p 00000000 00:00 0                                  [anon:dalvik-thread local mark stack]
-Name:           [anon:dalvik-thread local mark stack]
+f69f4000-f6a00000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-thread local mark stack]
+Name:           [anon:sensitive_vm-thread local mark stack]
 Size:                 48 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -44238,8 +44238,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd mr me ms 
-f6b43000-f6b4f000 rw-p 00000000 00:00 0                                  [anon:dalvik-thread local mark stack]
-Name:           [anon:dalvik-thread local mark stack]
+f6b43000-f6b4f000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-thread local mark stack]
+Name:           [anon:sensitive_vm-thread local mark stack]
 Size:                 48 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -44332,8 +44332,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-f6b80000-f6b82000 rw-p 00000000 00:00 0                                  [anon:dalvik-indirect ref table]
-Name:           [anon:dalvik-indirect ref table]
+f6b80000-f6b82000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-indirect ref table]
+Name:           [anon:sensitive_vm-indirect ref table]
 Size:                  8 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -44356,8 +44356,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-f6b82000-f6b83000 rw-p 00000000 00:00 0                                  [anon:dalvik-concurrent copying sweep array free buffer]
-Name:           [anon:dalvik-concurrent copying sweep array free buffer]
+f6b82000-f6b83000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-concurrent copying sweep array free buffer]
+Name:           [anon:sensitive_vm-concurrent copying sweep array free buffer]
 Size:                  4 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -44380,8 +44380,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-f6b83000-f6ba3000 rw-p 00000000 00:00 0                                  [anon:dalvik-LinearAlloc]
-Name:           [anon:dalvik-LinearAlloc]
+f6b83000-f6ba3000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-LinearAlloc]
+Name:           [anon:sensitive_vm-LinearAlloc]
 Size:                128 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -44404,7 +44404,7 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-f6ba3000-f6bc3000 r--s 00000000 00:11 7259                               /dev/__properties__/u:object_r:exported_dalvik_prop:s0
+f6ba3000-f6bc3000 r--s 00000000 00:11 7259                               /dev/__properties__/u:object_r:exported_sensitive_vm_prop:s0
 Size:                128 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -44451,8 +44451,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-f6bc4000-f6bcc000 rw-p 00000000 00:00 0                                  [anon:dalvik-thread local mark stack]
-Name:           [anon:dalvik-thread local mark stack]
+f6bc4000-f6bcc000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-thread local mark stack]
+Name:           [anon:sensitive_vm-thread local mark stack]
 Size:                 32 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB
@@ -44731,8 +44731,8 @@ SwapPss:               0 kB
 Locked:                0 kB
 THPeligible:		0
 VmFlags: rd wr mr mw me ac 
-f7080000-f7081000 rw-p 00000000 00:00 0                                  [anon:dalvik-concurrent copying sweep array free buffer]
-Name:           [anon:dalvik-concurrent copying sweep array free buffer]
+f7080000-f7081000 rw-p 00000000 00:00 0                                  [anon:sensitive_vm-concurrent copying sweep array free buffer]
+Name:           [anon:sensitive_vm-concurrent copying sweep array free buffer]
 Size:                  4 kB
 KernelPageSize:        4 kB
 MMUPageSize:           4 kB

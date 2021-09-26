@@ -90,20 +90,17 @@ static inline int HiLogPrintArgs(int prio, int domain, ConstCharPtr tag, ConstCh
     if (count < 0) {
         return 0;
     }
-    count += vfprintf(stderr, fmt, vargs);
-    count += fprintf(stderr, "\n");
+    count = count + vfprintf(stderr, fmt, vargs) + fprintf(stderr, "\n");
     fflush(stderr);
     return count;
 }
 
 static inline int HiLogPrint(int type, int prio, int domain, ConstCharPtr tag, ConstCharPtr fmt, ...)
 {
-    int count = 0;
     va_list vargs;
-
     UNUSED_PARAMETER(type);
     va_start(vargs, fmt);
-    count = HiLogPrintArgs(prio, domain, tag, fmt, vargs);
+    int count = HiLogPrintArgs(prio, domain, tag, fmt, vargs);
     va_end(vargs);
     return count;
 }
@@ -135,6 +132,10 @@ static inline std::string StringFormat(const char* fmt, ...)
 {
     va_list vargs;
     char buf[1024] = {0};
+
+    if (fmt == nullptr) {
+        return nullptr;
+    }
     std::string format(fmt);
     StringReplace(format, "%{public}", "%");
 

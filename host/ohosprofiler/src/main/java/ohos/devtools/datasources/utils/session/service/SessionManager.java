@@ -129,7 +129,7 @@ public class SessionManager {
     /**
      * developMode
      */
-    private boolean developMode = true;
+    private boolean developMode = false;
 
     private Project project;
 
