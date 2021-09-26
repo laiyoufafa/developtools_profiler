@@ -127,10 +127,16 @@ int32_t CpuDataPlugin::ReadFile(std::string& fileName)
 {
     int fd = -1;
     ssize_t bytesRead = 0;
+    char realPath[PATH_MAX + 1] = {0};
 
-    fd = open(fileName.c_str(), O_RDONLY | O_CLOEXEC);
+    if (realpath(fileName.c_str(), realPath) == nullptr) {
+        HILOG_ERROR(LOG_CORE, "ReadFile:realpath failed, errno=%d", errno);
+        return RET_FAIL;
+    }
+
+    fd = open(realPath, O_RDONLY | O_CLOEXEC);
     if (fd == -1) {
-        HILOG_ERROR(LOG_CORE, "Failed to open(%s), errno=%d", fileName.c_str(), errno);
+        HILOG_ERROR(LOG_CORE, "Failed to open(%s), errno=%d", realPath, errno);
         err_ = errno;
         return RET_FAIL;
     }
@@ -143,7 +149,7 @@ int32_t CpuDataPlugin::ReadFile(std::string& fileName)
     bytesRead = read(fd, buffer_, READ_BUFFER_SIZE - 1);
     if (bytesRead <= 0) {
         close(fd);
-        HILOG_ERROR(LOG_CORE, "Failed to read(%s), errno=%d", fileName.c_str(), errno);
+        HILOG_ERROR(LOG_CORE, "Failed to read(%s), errno=%d", realPath, errno);
         err_ = errno;
         return RET_FAIL;
     }
@@ -249,7 +255,7 @@ int CpuDataPlugin::GetCpuCoreSize()
             coreSize++;
         }
     }
-
+    closedir(procDir);
     return coreSize;
 }
 

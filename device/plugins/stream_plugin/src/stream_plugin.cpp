@@ -26,7 +26,7 @@ constexpr int INTERVAL_TIME_STEP = 2;       // 间隔步长
 constexpr int BYTE_BUFFER_SIZE = 128;
 constexpr int MS_PER_S = 1000;
 constexpr int NS_PER_MS = 1000000;
-}//namespace
+} // namespace
 
 StreamPlugin::StreamPlugin() {}
 

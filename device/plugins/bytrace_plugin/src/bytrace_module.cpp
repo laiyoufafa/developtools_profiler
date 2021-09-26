@@ -69,9 +69,6 @@ bool RunCommand(const std::string& cmd)
     std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd.data(), "r"), pclose);
     CHECK_TRUE(pipe, false, "BytraceCall::RunCommand: create popen FAILED!");
 
-    if (g_bytraceInfo->time == 0) {
-        return true;
-    }
     std::array<char, READ_BUFFER_SIZE> buffer;
     std::string result;
     while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {

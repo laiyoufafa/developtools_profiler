@@ -61,6 +61,18 @@ constexpr Proto2StrMapping meminfoMapping[] = {
     {SysMeminfoType::MEMINFO_ANON_PAGES, "AnonPages"},
     {SysMeminfoType::MEMINFO_MAPPED, "Mapped"},
     {SysMeminfoType::MEMINFO_SHMEM, "Shmem"},
+    {SysMeminfoType::MEMINFO_SLAB, "Slab"},
+    {SysMeminfoType::MEMINFO_SLAB_RECLAIMABLE, "SReclaimable"},
+    {SysMeminfoType::MEMINFO_SLAB_UNRECLAIMABLE, "SUnreclaim"},
+    {SysMeminfoType::MEMINFO_KERNEL_STACK, "KernelStack"},
+    {SysMeminfoType::MEMINFO_PAGE_TABLES, "PageTables"},
+    {SysMeminfoType::MEMINFO_COMMIT_LIMIT, "CommitLimit"},
+    {SysMeminfoType::MEMINFO_COMMITED_AS, "Committed_AS"},
+    {SysMeminfoType::MEMINFO_VMALLOC_TOTAL, "VmallocTotal"},
+    {SysMeminfoType::MEMINFO_VMALLOC_USED, "VmallocUsed"},
+    {SysMeminfoType::MEMINFO_VMALLOC_CHUNK, "VmallocChunk"},
+    {SysMeminfoType::MEMINFO_CMA_TOTAL, "CmaTotal"},
+    {SysMeminfoType::MEMINFO_CMA_FREE, "CmaFree"},
 };
 
 struct ProcStatusMapping {

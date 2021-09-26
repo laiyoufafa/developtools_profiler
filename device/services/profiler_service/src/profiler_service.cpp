@@ -593,7 +593,7 @@ Status ProfilerService::DestroySession(ServerContext* context,
 class LoggingInterceptor : public grpc::experimental::Interceptor {
 public:
     explicit LoggingInterceptor(grpc::experimental::ServerRpcInfo* info) : info_(info) {}
-
+    ~LoggingInterceptor() {}
     void Intercept(experimental::InterceptorBatchMethods* methods) override
     {
         const char* method = info_->method();
