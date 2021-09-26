@@ -362,10 +362,4 @@ public class MemoryHeapDao extends AbstractDataStore {
             + "ORDER BY shallowSize DESC";
         return str1;
     }
-
-
-
-
-
-
 }

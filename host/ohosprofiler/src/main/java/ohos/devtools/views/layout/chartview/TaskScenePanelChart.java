@@ -405,7 +405,10 @@ public class TaskScenePanelChart extends JBPanel {
         profilerMonitorItems.forEach(item -> {
             try {
                 profilerView.addMonitorItemView(item);
-            } catch (InvocationTargetException | NoSuchMethodException | InstantiationException | IllegalAccessException exception) {
+            } catch (InvocationTargetException
+                | NoSuchMethodException
+                | InstantiationException
+                | IllegalAccessException exception) {
                 LOGGER.error("addMonitorItemView failed {} ", item.getName());
             }
         });
@@ -775,7 +778,7 @@ public class TaskScenePanelChart extends JBPanel {
     /**
      * handleFailed
      *
-     * @param sessionListPanel
+     * @param sessionListPanel sessionListPanel
      */
     public void handleFailed(SubSessionListJBPanel sessionListPanel) {
         if (sessionListPanel != null && sessionList.size() >= 1) {
@@ -1003,7 +1006,7 @@ public class TaskScenePanelChart extends JBPanel {
     /**
      * setCounting
      *
-     * @param counting
+     * @param counting counting
      */
     public void setCounting(CountingThread counting) {
         this.counting = counting;
@@ -1030,7 +1033,7 @@ public class TaskScenePanelChart extends JBPanel {
     /**
      * setGreyFlag
      *
-     * @param greyFlag
+     * @param greyFlag greyFlag
      */
     public void setGreyFlag(boolean greyFlag) {
         this.greyFlag = greyFlag;
@@ -1057,7 +1060,7 @@ public class TaskScenePanelChart extends JBPanel {
     /**
      * setPanelTop
      *
-     * @param panelTop
+     * @param panelTop panelTop
      */
     public void setPanelTop(JBPanel panelTop) {
         this.panelTop = panelTop;
@@ -1066,7 +1069,7 @@ public class TaskScenePanelChart extends JBPanel {
     /**
      * getDumpOrHookSessionList
      *
-     * @return
+     * @return List <SubSessionListJBPanel>
      */
     public List<SubSessionListJBPanel> getDumpOrHookSessionList() {
         return dumpOrHookSessionList;

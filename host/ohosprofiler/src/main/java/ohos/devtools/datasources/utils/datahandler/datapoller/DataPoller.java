@@ -37,8 +37,10 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Queue;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import static ohos.devtools.datasources.utils.common.Constant.MEMORY_PLUG;
 
@@ -50,11 +52,11 @@ public class DataPoller extends Thread {
     private long localSessionId;
     private int sessionId;
     private ProfilerClient client;
-
     private boolean stopFlag = false;
     private boolean startRefresh = false;
-
-    private ExecutorService executorService = Executors.newCachedThreadPool();
+    private ExecutorService executorService = new ThreadPoolExecutor(0, Integer.MAX_VALUE,
+        60L, TimeUnit.SECONDS,
+        new SynchronousQueue<Runnable>());
     private Map<String, Queue> queueMap = new HashMap<>();
     private List<AbsDataConsumer> consumers = new ArrayList<>();
 

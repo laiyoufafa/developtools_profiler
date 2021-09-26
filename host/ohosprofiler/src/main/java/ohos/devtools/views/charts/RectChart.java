@@ -19,7 +19,7 @@ import com.intellij.ui.JBColor;
 import ohos.devtools.views.charts.model.ChartDataModel;
 import ohos.devtools.views.layout.chartview.ProfilerChartsView;
 
-import java.awt.*;
+import java.awt.Graphics;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;

@@ -264,12 +264,14 @@ public class TraceThreadRow<T extends AbstractNode, R extends AbstractNode> exte
 
     /**
      * interface IRender
+     *
      * @param <T> T
      * @param <R> R
      */
     public interface IRender<T, R> {
         /**
          * paint
+         *
          * @param g2 Graphics2D
          * @param data data
          * @param data2 data2

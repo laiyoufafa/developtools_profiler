@@ -188,13 +188,12 @@ public class SystemTraceHelper {
      * @param userCheckBoxForPerfettoStr userCheckBoxForPerfettoStr
      * @param maxDurationParam maxDurationParam
      * @param inMemoryValue inMemoryValue
-     * @param outFileName outFileName
      * @param isRoot isRoot
      * @return String
      * @throws GrpcException GrpcException
      */
     public String createSessionByTraceRequest(DeviceIPPortInfo deviceIPPortInfo, String userCheckBoxForPerfettoStr,
-        int maxDurationParam, int inMemoryValue, String outFileName, boolean isRoot) throws GrpcException {
+        int maxDurationParam, int inMemoryValue, boolean isRoot) throws GrpcException {
         BytracePluginConfigOuterClass.BytracePluginConfig.Builder build =
             BytracePluginConfigOuterClass.BytracePluginConfig.newBuilder();
         build.setBuffeSize(inMemoryValue * MEMORY_MB_TO_KB);
@@ -208,7 +207,7 @@ public class SystemTraceHelper {
         }
         build.setIsRoot(isRoot);
         build.setTime(maxDurationParam);
-        build.setOutfileName(outFileName);
+        build.setOutfileName("/data/local/tmp/hiprofiler_data.bytrace");
         BytracePluginConfigOuterClass.BytracePluginConfig config = build.build();
         byte[] configByte = BeanUtil.serializeByCodedOutPutStream(config);
         ProfilerServiceTypes.ProfilerSessionConfig.BufferConfig bf =

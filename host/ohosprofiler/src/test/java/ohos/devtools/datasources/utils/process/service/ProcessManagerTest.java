@@ -187,6 +187,7 @@ public class ProcessManagerTest {
             responseObserver.onCompleted();
         }
     }
+
     private ProfilerServiceTypes.DestroySessionResponse getDestroySessionResponse() {
         ProfilerServiceTypes.DestroySessionResponse reply =
             ProfilerServiceTypes.DestroySessionResponse.newBuilder().setStatus(0).build();
@@ -194,11 +195,10 @@ public class ProcessManagerTest {
     }
 
     private ProfilerServiceTypes.StartSessionResponse getStartSessionResponse() {
-        CommonTypes.ProfilerPluginState profilerPluginState =
-            CommonTypes.ProfilerPluginState.newBuilder().build();
+        CommonTypes.ProfilerPluginState profilerPluginState = CommonTypes.ProfilerPluginState.newBuilder().build();
         ProfilerServiceTypes.StartSessionResponse reply =
-            ProfilerServiceTypes.StartSessionResponse.newBuilder().setStatus(0)
-                .addPluginStatus(profilerPluginState).build();
+            ProfilerServiceTypes.StartSessionResponse.newBuilder().setStatus(0).addPluginStatus(profilerPluginState)
+                .build();
         return reply;
     }
 
@@ -209,30 +209,29 @@ public class ProcessManagerTest {
     }
 
     private ProfilerServiceTypes.GetCapabilitiesResponse getGetCapabilitiesResponse() {
-        ProfilerServiceTypes.ProfilerPluginCapability pluginCapability =
-            ProfilerServiceTypes.ProfilerPluginCapability.newBuilder(
-                ProfilerServiceTypes.ProfilerPluginCapability.newBuilder().setName("test0")
-                    .setPath("/data/local/tmp/libmemdata.z.so").build()).build();
+        ProfilerServiceTypes.ProfilerPluginCapability pluginCapability = ProfilerServiceTypes.ProfilerPluginCapability
+            .newBuilder(ProfilerServiceTypes.ProfilerPluginCapability.newBuilder().setName("test0")
+                .setPath("/data/local/tmp/libmemdata.z.so").build()).build();
         ProfilerServiceTypes.GetCapabilitiesResponse reply =
-            ProfilerServiceTypes.GetCapabilitiesResponse.newBuilder().addCapabilities(pluginCapability)
-                .setStatus(0).build();
+            ProfilerServiceTypes.GetCapabilitiesResponse.newBuilder().addCapabilities(pluginCapability).setStatus(0)
+                .build();
         return reply;
     }
 
     private ProfilerServiceTypes.FetchDataResponse getFetchDataResponse() {
         MemoryPluginResult.AppSummary sss =
             MemoryPluginResult.AppSummary.newBuilder().setJavaHeap(getIntData()).setNativeHeap(getIntData())
-                .setCode(getIntData()).setStack(getIntData()).setGraphics(getIntData())
-                .setPrivateOther(getIntData()).setSystem(0).build();
+                .setCode(getIntData()).setStack(getIntData()).setGraphics(getIntData()).setPrivateOther(getIntData())
+                .setSystem(0).build();
         MemoryPluginResult.ProcessMemoryInfo processesInfoZero =
             MemoryPluginResult.ProcessMemoryInfo.newBuilder().setPid(31141).setName("rcu_gp").setRssShmemKb(1)
                 .setMemsummary(sss).build();
         MemoryPluginResult.ProcessMemoryInfo processesInfoOne =
-            MemoryPluginResult.ProcessMemoryInfo.newBuilder().setPid(31142).setName("rcu_bh")
-                .setRssShmemKb(2222222).build();
+            MemoryPluginResult.ProcessMemoryInfo.newBuilder().setPid(31142).setName("rcu_bh").setRssShmemKb(2222222)
+                .build();
         MemoryPluginResult.ProcessMemoryInfo processesInfoTwo =
-            MemoryPluginResult.ProcessMemoryInfo.newBuilder().setPid(31144).setName("netns")
-                .setRssShmemKb(3333333).build();
+            MemoryPluginResult.ProcessMemoryInfo.newBuilder().setPid(31144).setName("netns").setRssShmemKb(3333333)
+                .build();
         MemoryPluginResult.MemoryData aaa =
             MemoryPluginResult.MemoryData.newBuilder().addProcessesinfo(processesInfoZero)
                 .addProcessesinfo(processesInfoOne).addProcessesinfo(processesInfoTwo).build();
@@ -240,8 +239,8 @@ public class ProcessManagerTest {
             CommonTypes.ProfilerPluginData.newBuilder().setName("memory-plugin").setStatus(0)
                 .setData(aaa.toByteString()).build();
         ProfilerServiceTypes.FetchDataResponse fetchDataResponse =
-            ProfilerServiceTypes.FetchDataResponse.newBuilder().setResponseId(123456789).setStatus(0)
-                .setHasMore(false).addPluginData(data).build();
+            ProfilerServiceTypes.FetchDataResponse.newBuilder().setResponseId(123456789).setStatus(0).setHasMore(false)
+                .addPluginData(data).build();
         return fetchDataResponse;
     }
 
@@ -259,6 +258,7 @@ public class ProcessManagerTest {
         ProcessManager processManager = ProcessManager.getInstance();
         Assert.assertNotNull(processManager);
     }
+
     /**
      * functional testing getInstance
      *

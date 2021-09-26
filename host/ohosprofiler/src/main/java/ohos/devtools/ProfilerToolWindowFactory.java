@@ -60,7 +60,6 @@ public class ProfilerToolWindowFactory implements ToolWindowFactory {
         List<Class<? extends IPluginConfig>> plugConfigList = new ArrayList();
         plugConfigList.add(AgentConfig.class);
         plugConfigList.add(BytraceConfig.class);
-        // plugConfigList.add(FtraceConfig.class);
         plugConfigList.add(CpuConfig.class);
         plugConfigList.add(MemoryConfig.class);
         PlugManager.getInstance().loadingPlugs(plugConfigList);

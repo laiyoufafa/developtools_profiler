@@ -17,7 +17,7 @@ package ohos.devtools.views.common.customcomp;
 
 import ohos.devtools.datasources.utils.session.entity.SessionInfo;
 
-import javax.swing.*;
+import javax.swing.JComboBox;
 
 /**
  * CustomComboBox

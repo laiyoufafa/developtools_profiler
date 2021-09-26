@@ -25,8 +25,9 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.components.JBPanel;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
-import java.awt.*;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import java.awt.Dimension;
 
 /**
  * ImportFileChooserDialog
