@@ -964,7 +964,7 @@ public:
     bool Write(const ::FetchDataResponse& msg, ::grpc::WriteOptions options) override
     {
         if (msg.plugin_data_size() > 0) {
-            printf("ServerWriter recv %d data!\n",msg.plugin_data_size());
+            printf("ServerWriter recv %d data!\n", msg.plugin_data_size());
             for (int i = 0; i < msg.plugin_data_size(); i++) {
                 printf("data[%d] size = %zu\n", i, msg.plugin_data(i).ByteSizeLong());
             }

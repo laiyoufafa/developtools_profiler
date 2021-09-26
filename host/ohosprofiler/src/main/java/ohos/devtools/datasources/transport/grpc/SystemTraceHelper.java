@@ -244,6 +244,7 @@ public class SystemTraceHelper {
         String fileStorePath = "/data/local/tmp/hiprofiler_data";
         fileStorePath = fileStorePath.concat(fileSuffixTimestampParam).concat(".bytrace");
         if (IS_SUPPORT_NEW_HDC && deviceIPPortInfo.getDeviceType() == DeviceType.LEAN_HOS_DEVICE) {
+            build.addCategories("sched");
             build.addCategories("freq");
             build.addCategories("idle");
             build.addCategories("workq");

@@ -79,6 +79,7 @@ public:
         swappedOutPss_(usage.swapPss)
     {
     }
+    ~StatsInfo() {}
 
     void operator+=(const StatsInfo &S)
     {
@@ -111,10 +112,10 @@ enum VmemifoType {
     VMHEAP_NULL = -2,
     VMHEAP_NEEDFIX = -1,
     VMHEAP_UNKNOWN,
-    VMHEAP_DALVIK,
+    VMHEAP_SENSITIVE_VM,
     VMHEAP_NATIVE,
 
-    VMHEAP_DALVIK_OTHER,
+    VMHEAP_SENSITIVE_VM_OTHER,
     VMHEAP_STACK,
     VMHEAP_CURSOR,
     VMHEAP_ASHMEM,
@@ -123,7 +124,7 @@ enum VmemifoType {
     VMHEAP_SO,
     VMHEAP_JAR,
     VMHEAP_TTF,
-    VMHEAP_DEX,
+    VMHEAP_SENSITIVE_JVBIN,
     VMHEAP_OAT,
     VMHEAP_ART,
     VMHEAP_UNKNOWN_MAP,
@@ -132,23 +133,22 @@ enum VmemifoType {
     VMHEAP_OTHER_MEMTRACK,
 
     // Dalvik extra sections (heap).
-    VMHEAP_DALVIK_NORMAL,
-    VMHEAP_DALVIK_LARGE,
-    VMHEAP_DALVIK_ZYGOTE,
-    VMHEAP_DALVIK_NON_MOVING,
+    VMHEAP_SENSITIVE_VM_NORMAL,
+    VMHEAP_SENSITIVE_VM_LARGE,
+    VMHEAP_SENSITIVE_VM_ZYGOTE,
+    VMHEAP_SENSITIVE_VM_NON_MOVING,
 
     // Dalvik other extra sections.
-    VMHEAP_DALVIK_OTHER_LINEARALLOC,
-    VMHEAP_DALVIK_OTHER_ACCOUNTING,
-    VMHEAP_DALVIK_OTHER_ZYGOTE_CODE_CACHE,
-    VMHEAP_DALVIK_OTHER_APP_CODE_CACHE,
-    VMHEAP_DALVIK_OTHER_COMPILER_METADATA,
-    VMHEAP_DALVIK_OTHER_INDIRECT_REFERENCE_TABLE,
+    VMHEAP_SENSITIVE_VM_OTHER_LINEARALLOC,
+    VMHEAP_SENSITIVE_VM_OTHER_ACCOUNTING,
+    VMHEAP_SENSITIVE_VM_OTHER_ZYGOTE_CODE_CACHE,
+    VMHEAP_SENSITIVE_VM_OTHER_APP_CODE_CACHE,
+    VMHEAP_SENSITIVE_VM_OTHER_COMPILER_METADATA,
+    VMHEAP_SENSITIVE_VM_OTHER_INDIRECT_REFERENCE_TABLE,
 
-    // Boot vdex / app dex / app vdex
-    VMHEAP_DEX_BOOT_VDEX,
-    VMHEAP_DEX_APP_DEX,
-    VMHEAP_DEX_APP_VDEX,
+    VMHEAP_SENSITIVE_JVBIN_BOOT_VDEX,
+    VMHEAP_SENSITIVE_JVBIN_APP_SENSITIVE_JVBIN,
+    VMHEAP_SENSITIVE_JVBIN_APP_VDEX,
 
     // App art, boot art.
     VMHEAP_ART_APP,
@@ -182,45 +182,48 @@ constexpr VmeminfoAreaMapping g_vmaMemAnon[] = {
     {OpsType::OPS_START, "[anon:GWP-ASan", {VmemifoType::VMHEAP_NATIVE, VmemifoType::VMHEAP_NULL}},
     {OpsType::OPS_START, "[anon:stack_and_tls:", {VmemifoType::VMHEAP_STACK, VmemifoType::VMHEAP_NULL}},
     {OpsType::OPS_START,
-     "[anon:dalvik-LinearAlloc",
-     {VmemifoType::VMHEAP_DALVIK_OTHER, VmemifoType::VMHEAP_DALVIK_OTHER_LINEARALLOC}},
-    {OpsType::OPS_START, "[anon:dalvik-alloc space", {VmemifoType::VMHEAP_DALVIK, VmemifoType::VMHEAP_DALVIK_NORMAL}},
-    {OpsType::OPS_START, "[anon:dalvik-main space", {VmemifoType::VMHEAP_DALVIK, VmemifoType::VMHEAP_DALVIK_NORMAL}},
+     "[anon:sensitive_vm-LinearAlloc",
+     {VmemifoType::VMHEAP_SENSITIVE_VM_OTHER, VmemifoType::VMHEAP_SENSITIVE_VM_OTHER_LINEARALLOC}},
     {OpsType::OPS_START,
-     "[anon:dalvik-large object space",
-     {VmemifoType::VMHEAP_DALVIK, VmemifoType::VMHEAP_DALVIK_LARGE}},
+     "[anon:sensitive_vm-alloc space", {VmemifoType::VMHEAP_SENSITIVE_VM, VmemifoType::VMHEAP_SENSITIVE_VM_NORMAL}},
     {OpsType::OPS_START,
-     "[anon:dalvik-free list large object space",
-     {VmemifoType::VMHEAP_DALVIK, VmemifoType::VMHEAP_DALVIK_LARGE}},
+     "[anon:sensitive_vm-main space", {VmemifoType::VMHEAP_SENSITIVE_VM, VmemifoType::VMHEAP_SENSITIVE_VM_NORMAL}},
     {OpsType::OPS_START,
-     "[anon:dalvik-non moving space",
-     {VmemifoType::VMHEAP_DALVIK, VmemifoType::VMHEAP_DALVIK_NON_MOVING}},
-    {OpsType::OPS_START, "[anon:dalvik-zygote space", {VmemifoType::VMHEAP_DALVIK, VmemifoType::VMHEAP_DALVIK_ZYGOTE}},
+     "[anon:sensitive_vm-large object space",
+     {VmemifoType::VMHEAP_SENSITIVE_VM, VmemifoType::VMHEAP_SENSITIVE_VM_LARGE}},
     {OpsType::OPS_START,
-     "[anon:dalvik-indirect ref",
-     {VmemifoType::VMHEAP_DALVIK_OTHER, VmemifoType::VMHEAP_DALVIK_OTHER_INDIRECT_REFERENCE_TABLE}},
+     "[anon:sensitive_vm-free list large object space",
+     {VmemifoType::VMHEAP_SENSITIVE_VM, VmemifoType::VMHEAP_SENSITIVE_VM_LARGE}},
     {OpsType::OPS_START,
-     "[anon:dalvik-jit-code-cache",
-     {VmemifoType::VMHEAP_DALVIK_OTHER, VmemifoType::VMHEAP_DALVIK_OTHER_APP_CODE_CACHE}},
+     "[anon:sensitive_vm-non moving space",
+     {VmemifoType::VMHEAP_SENSITIVE_VM, VmemifoType::VMHEAP_SENSITIVE_VM_NON_MOVING}},
     {OpsType::OPS_START,
-     "[anon:dalvik-data-code-cache",
-     {VmemifoType::VMHEAP_DALVIK_OTHER, VmemifoType::VMHEAP_DALVIK_OTHER_APP_CODE_CACHE}},
+     "[anon:sensitive_vm-zygote space", {VmemifoType::VMHEAP_SENSITIVE_VM, VmemifoType::VMHEAP_SENSITIVE_VM_ZYGOTE}},
     {OpsType::OPS_START,
-     "[anon:dalvik-CompilerMetadata",
-     {VmemifoType::VMHEAP_DALVIK_OTHER, VmemifoType::VMHEAP_DALVIK_OTHER_COMPILER_METADATA}},
+     "[anon:sensitive_vm-indirect ref",
+     {VmemifoType::VMHEAP_SENSITIVE_VM_OTHER, VmemifoType::VMHEAP_SENSITIVE_VM_OTHER_INDIRECT_REFERENCE_TABLE}},
     {OpsType::OPS_START,
-     "[anon:dalvik-",
-     {VmemifoType::VMHEAP_DALVIK_OTHER, VmemifoType::VMHEAP_DALVIK_OTHER_ACCOUNTING}},
+     "[anon:sensitive_vm-jit-code-cache",
+     {VmemifoType::VMHEAP_SENSITIVE_VM_OTHER, VmemifoType::VMHEAP_SENSITIVE_VM_OTHER_APP_CODE_CACHE}},
+    {OpsType::OPS_START,
+     "[anon:sensitive_vm-data-code-cache",
+     {VmemifoType::VMHEAP_SENSITIVE_VM_OTHER, VmemifoType::VMHEAP_SENSITIVE_VM_OTHER_APP_CODE_CACHE}},
+    {OpsType::OPS_START,
+     "[anon:sensitive_vm-CompilerMetadata",
+     {VmemifoType::VMHEAP_SENSITIVE_VM_OTHER, VmemifoType::VMHEAP_SENSITIVE_VM_OTHER_COMPILER_METADATA}},
+    {OpsType::OPS_START,
+     "[anon:sensitive_vm-",
+     {VmemifoType::VMHEAP_SENSITIVE_VM_OTHER, VmemifoType::VMHEAP_SENSITIVE_VM_OTHER_ACCOUNTING}},
     {OpsType::OPS_START, "[anon:", {VmemifoType::VMHEAP_UNKNOWN, VmemifoType::VMHEAP_NULL}},
 };
 
 constexpr VmeminfoAreaMapping g_vmaMemFd[] = {
     {OpsType::OPS_START,
      "/memfd:jit-cache",
-     {VmemifoType::VMHEAP_DALVIK_OTHER, VmemifoType::VMHEAP_DALVIK_OTHER_APP_CODE_CACHE}},
+     {VmemifoType::VMHEAP_SENSITIVE_VM_OTHER, VmemifoType::VMHEAP_SENSITIVE_VM_OTHER_APP_CODE_CACHE}},
     {OpsType::OPS_START,
      "/memfd:jit-zygote-cache",
-     {VmemifoType::VMHEAP_DALVIK_OTHER, VmemifoType::VMHEAP_DALVIK_OTHER_ZYGOTE_CODE_CACHE}},
+     {VmemifoType::VMHEAP_SENSITIVE_VM_OTHER, VmemifoType::VMHEAP_SENSITIVE_VM_OTHER_ZYGOTE_CODE_CACHE}},
 };
 // dev
 constexpr VmeminfoAreaMapping g_vmaMemDev[] = {
@@ -228,7 +231,7 @@ constexpr VmeminfoAreaMapping g_vmaMemDev[] = {
     {OpsType::OPS_START, "/dev/ashmem/CursorWindow", {VmemifoType::VMHEAP_CURSOR, VmemifoType::VMHEAP_NULL}},
     {OpsType::OPS_START,
      "/dev/ashmem/jit-zygote-cache",
-     {VmemifoType::VMHEAP_DALVIK_OTHER, VmemifoType::VMHEAP_DALVIK_OTHER_ZYGOTE_CODE_CACHE}},
+     {VmemifoType::VMHEAP_SENSITIVE_VM_OTHER, VmemifoType::VMHEAP_SENSITIVE_VM_OTHER_ZYGOTE_CODE_CACHE}},
     {OpsType::OPS_START, "/dev/ashmem", {VmemifoType::VMHEAP_ASHMEM, VmemifoType::VMHEAP_NULL}},
     {OpsType::OPS_START, "/dev/", {VmemifoType::VMHEAP_UNKNOWN_DEV, VmemifoType::VMHEAP_NULL}},
 };
@@ -239,9 +242,10 @@ constexpr VmeminfoAreaMapping g_vmaMemSuffix[] = {
     {OpsType::OPS_END, ".ttf", {VmemifoType::VMHEAP_TTF, VmemifoType::VMHEAP_NULL}},
     {OpsType::OPS_END, ".oat", {VmemifoType::VMHEAP_OAT, VmemifoType::VMHEAP_NULL}},
 
-    {OpsType::OPS_END, ".odex", {VmemifoType::VMHEAP_DEX, VmemifoType::VMHEAP_DEX_APP_DEX}},
+    {OpsType::OPS_END,
+     ".odex", {VmemifoType::VMHEAP_SENSITIVE_JVBIN, VmemifoType::VMHEAP_SENSITIVE_JVBIN_APP_SENSITIVE_JVBIN}},
 
-    {OpsType::OPS_END, ".vdex", {VmemifoType::VMHEAP_DEX, VmemifoType::VMHEAP_NEEDFIX}},
+    {OpsType::OPS_END, ".vdex", {VmemifoType::VMHEAP_SENSITIVE_JVBIN, VmemifoType::VMHEAP_NEEDFIX}},
     {OpsType::OPS_END, ".art", {VmemifoType::VMHEAP_ART, VmemifoType::VMHEAP_NEEDFIX}},
     {OpsType::OPS_END, ".art]", {VmemifoType::VMHEAP_ART, VmemifoType::VMHEAP_NEEDFIX}},
 };

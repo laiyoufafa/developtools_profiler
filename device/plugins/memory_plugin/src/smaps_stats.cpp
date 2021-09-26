@@ -120,7 +120,7 @@ bool SmapsStats::GetVmaIndex(std::string name, uint32_t namesz, int32_t heapInde
                 return GetVMAStuId(OPS_START, name, g_vmaMemHeap, sizeof(g_vmaMemHeap) /
                                     sizeof(g_vmaMemHeap[0]), heapIndex, swappable);
             } else if (MatchHead(name, "[anon:")) {
-                if (MatchHead(name, "[anon:dalvik-") &&
+                if (MatchHead(name, "[anon:sensitive_vm-") &&
                     GetVMAStuId(OPS_END, name, g_vmaMemSuffix, sizeof(g_vmaMemSuffix) /
                                 sizeof(g_vmaMemSuffix[0]), heapIndex, swappable)) {
                         return true;
@@ -146,9 +146,9 @@ bool SmapsStats::GetVmaIndex(std::string name, uint32_t namesz, int32_t heapInde
                                 sizeof(g_vmaMemSuffix[0]), heapIndex, swappable);
             break;
     }
-    if (namesz > strlen(".dex") && strstr(name.c_str(), ".dex") != nullptr) {
-        heapIndex[0] = VMHEAP_DEX;
-        heapIndex[1] = VMHEAP_DEX_APP_DEX;
+    if (namesz > strlen(".sensitive_jvbin") && strstr(name.c_str(), ".sensitive_jvbin") != nullptr) {
+        heapIndex[0] = VMHEAP_SENSITIVE_JVBIN;
+        heapIndex[1] = VMHEAP_SENSITIVE_JVBIN_APP_SENSITIVE_JVBIN;
         swappable = true;
         return true;
     }
@@ -298,7 +298,7 @@ uint64_t SmapsStats::GetSwapablepssValue(const MemUsageInfo& memusage, bool swap
     if ((memusage.sharedClean == 0) && (memusage.sharedDirty == 0)) {
         return memusage.privateClean;
     }
-    float proportion = (memusage.pss - memusage.uss) / (memusage.sharedClean + memusage.sharedDirty);
+    int proportion = (memusage.pss - memusage.uss) / (memusage.sharedClean + memusage.sharedDirty);
 
     return (proportion * memusage.sharedClean) + memusage.privateClean;
 }
@@ -314,11 +314,11 @@ void SmapsStats::HeapIndexFix(std::string name, const char* key, int32_t heapInd
     if (!strncmp(key, ".vdex", sizeof(".vdex"))) {
         if ((strstr(name.c_str(), "@boot") != nullptr) || (strstr(name.c_str(), "/boot") != nullptr) ||
             (strstr(name.c_str(), "/apex") != nullptr)) {
-            heapIndex[0] = VMHEAP_DEX;
-            heapIndex[1] = VMHEAP_DEX_BOOT_VDEX;
+            heapIndex[0] = VMHEAP_SENSITIVE_JVBIN;
+            heapIndex[1] = VMHEAP_SENSITIVE_JVBIN_BOOT_VDEX;
         } else {
-            heapIndex[0] = VMHEAP_DEX;
-            heapIndex[1] = VMHEAP_DEX_APP_VDEX;
+            heapIndex[0] = VMHEAP_SENSITIVE_JVBIN;
+            heapIndex[1] = VMHEAP_SENSITIVE_JVBIN_APP_VDEX;
         }
     } else if (!strncmp(key, ".art", sizeof(".art")) || !strncmp(key, ".art]", sizeof(".art]"))) {
         if ((strstr(name.c_str(), "@boot") != nullptr) || (strstr(name.c_str(), "/boot") != nullptr) ||
@@ -334,7 +334,7 @@ void SmapsStats::HeapIndexFix(std::string name, const char* key, int32_t heapInd
 
 int SmapsStats::GetProcessJavaHeap()
 {
-    return stats_[VMHEAP_DALVIK].privateDirty_ + GetPrivate(VMHEAP_ART);
+    return stats_[VMHEAP_SENSITIVE_VM].privateDirty_ + GetPrivate(VMHEAP_ART);
 }
 
 int SmapsStats::GetProcessNativeHeap()
@@ -345,9 +345,9 @@ int SmapsStats::GetProcessNativeHeap()
 int SmapsStats::GetProcessCode()
 {
     return GetPrivate(VMHEAP_SO) + GetPrivate(VMHEAP_JAR) + GetPrivate(VMHEAP_TTF) +
-           GetPrivate(VMHEAP_DEX) + GetPrivate(VMHEAP_OAT) +
-           GetPrivate(VMHEAP_DALVIK_OTHER_ZYGOTE_CODE_CACHE) +
-           GetPrivate(VMHEAP_DALVIK_OTHER_APP_CODE_CACHE);
+           GetPrivate(VMHEAP_SENSITIVE_JVBIN) + GetPrivate(VMHEAP_OAT) +
+           GetPrivate(VMHEAP_SENSITIVE_VM_OTHER_ZYGOTE_CODE_CACHE) +
+           GetPrivate(VMHEAP_SENSITIVE_VM_OTHER_APP_CODE_CACHE);
 }
 
 int SmapsStats::GetProcessStack()
@@ -374,13 +374,13 @@ int SmapsStats::GetProcessSystem()
 int SmapsStats::GetTotalPrivateClean()
 {
     return stats_[VMHEAP_UNKNOWN].privateClean_ + stats_[VMHEAP_NATIVE].privateClean_ +
-           stats_[VMHEAP_DALVIK].privateClean_;
+           stats_[VMHEAP_SENSITIVE_VM].privateClean_;
 }
 
 int SmapsStats::GetTotalPrivateDirty()
 {
     return stats_[VMHEAP_UNKNOWN].privateDirty_ + stats_[VMHEAP_NATIVE].privateDirty_ +
-           stats_[VMHEAP_DALVIK].privateDirty_;
+           stats_[VMHEAP_SENSITIVE_VM].privateDirty_;
 }
 
 int SmapsStats::GetPrivate(int type)
@@ -390,12 +390,12 @@ int SmapsStats::GetPrivate(int type)
 
 int SmapsStats::GetTotalPss()
 {
-    return stats_[VMHEAP_UNKNOWN].pss_ + stats_[VMHEAP_NATIVE].pss_ + stats_[VMHEAP_DALVIK].pss_
+    return stats_[VMHEAP_UNKNOWN].pss_ + stats_[VMHEAP_NATIVE].pss_ + stats_[VMHEAP_SENSITIVE_VM].pss_
             + GetTotalSwappedOutPss();
 }
 
 int SmapsStats::GetTotalSwappedOutPss()
 {
     return stats_[VMHEAP_UNKNOWN].swappedOutPss_ + stats_[VMHEAP_NATIVE].swappedOutPss_ +
-           stats_[VMHEAP_DALVIK].swappedOutPss_;
+           stats_[VMHEAP_SENSITIVE_VM].swappedOutPss_;
 }

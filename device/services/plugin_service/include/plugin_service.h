@@ -47,7 +47,7 @@ struct PluginInfo {
     std::string path;
     std::string sha256;
     uint32_t bufferSizeHint;
-    SocketContext* context;
+    SocketContext* context = nullptr;
 };
 
 struct PluginContext {
@@ -55,7 +55,7 @@ struct PluginContext {
     std::string path;
     std::string sha256;
     uint32_t bufferSizeHint;
-    SocketContext* context;
+    SocketContext* context = nullptr;
     ProfilerPluginConfig config;
     ProfilerDataRepeaterPtr profilerDataRepeater;
     std::shared_ptr<ShareMemoryBlock> shareMemoryBlock;
