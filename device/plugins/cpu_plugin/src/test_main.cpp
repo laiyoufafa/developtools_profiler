@@ -86,6 +86,9 @@ int main()
     }
     std::cout << "test:handle = " << handle << std::endl;
     PluginModuleStruct* cpuPlugin = (PluginModuleStruct*)dlsym(handle, "g_pluginModule");
+    if (cpuPlugin == nullptr) {
+        return 0;
+    }
     std::cout << "test:name = " << cpuPlugin->name << std::endl;
     std::cout << "test:buffer size = " << cpuPlugin->resultBufferSizeHint << std::endl;
 

@@ -86,9 +86,7 @@ void* SocketContext::UnixSocketRecv(void* pp)
     uint32_t head_size = sizeof(struct ProtocolHead);
 
     CHECK_TRUE(pssr->socketHandle_ != -1, nullptr, "UnixSocketRecv pssr->socketHandle_ ==-1");
-    struct timeval timeout = {1, 0};
-    CHECK_TRUE(setsockopt(pssr->socketHandle_, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout)) == 0, nullptr,
-               "setsockopt %s", strerror(errno));
+
     while (pssr->socketHandle_ >= 0) {
         if (!ReceiveData(pssr->socketHandle_, buf.data(), head_size)) {
             HILOG_DEBUG(LOG_CORE, "====== IPC LOST CONNECT ======");

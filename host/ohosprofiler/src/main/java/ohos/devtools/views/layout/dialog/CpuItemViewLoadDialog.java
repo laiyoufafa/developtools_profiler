@@ -58,7 +58,7 @@ public class CpuItemViewLoadDialog implements ActionListener {
     private static final Logger LOGGER = LogManager.getLogger(CpuItemViewLoadDialog.class);
 
     ExecutorService executorAnalysis =
-        new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>())
+        new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>());
 
     private int bytraceFileSize;
     private int hoursLoading = 0;

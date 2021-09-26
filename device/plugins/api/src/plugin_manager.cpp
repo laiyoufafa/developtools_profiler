@@ -67,7 +67,7 @@ void PluginManager::SetCommandPoller(const CommandPollerPtr& p)
 
 bool PluginManager::AddPlugin(const std::string& pluginPath)
 {
-    PluginModuleInfo info = {0};
+    PluginModuleInfo info = {"", 0};
 
     if (pluginIds_.find(pluginPath) != pluginIds_.end()) {
         HILOG_DEBUG(LOG_CORE, "already add");
