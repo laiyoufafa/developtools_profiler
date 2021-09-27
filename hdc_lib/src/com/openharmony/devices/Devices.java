@@ -97,6 +97,8 @@ public class Devices {
 
     /**
      * set connect client
+     *
+     * @param hdc HarmonyDebugConnector
      */
     protected void setClient(HarmonyDebugConnector hdc) {
         mClient = new Client(getSerialNumber(), hdc);
@@ -131,6 +133,8 @@ public class Devices {
 
     /**
      * set connect status value
+     *
+     * @param state device state
      */
     protected void setState(DeviceState state) {
         this.mState = state;
@@ -147,6 +151,8 @@ public class Devices {
 
     /**
      * set ro.boot.selinux value
+     *
+     * @param mSelinux Selinux
      */
     protected void setSelinux(String mSelinux) {
         this.mSelinux = mSelinux;
@@ -163,6 +169,8 @@ public class Devices {
 
     /**
      * set ro.build.date value
+     *
+     * @param mBuildDate BuildDate
      */
     protected void setBuildDate(String mBuildDate) {
         this.mBuildDate = mBuildDate;
@@ -179,6 +187,8 @@ public class Devices {
 
     /**
      * set ro.build.fingerprint value
+     *
+     * @param mFingerprint Fingerprint
      */
     protected void setFingerprint(String mFingerprint) {
         this.mFingerprint = mFingerprint;
@@ -195,6 +205,8 @@ public class Devices {
 
     /**
      * set ro.build.version.sdk value
+     *
+     * @param mSdkVersion SdkVersion
      */
     protected void setSdkVersion(String mSdkVersion) {
         this.mSdkVersion = mSdkVersion;
@@ -211,6 +223,8 @@ public class Devices {
 
     /**
      * set ro.build.type value
+     *
+     * @param mBuildType BuildType
      */
     protected void setBuildType(String mBuildType) {
         this.mBuildType = mBuildType;
@@ -227,6 +241,8 @@ public class Devices {
 
     /**
      * set ro.debuggable value
+     *
+     * @param mDebuggable Debuggable
      */
     protected void setDebuggable(String mDebuggable) {
         this.mDebuggable = mDebuggable;
@@ -243,6 +259,8 @@ public class Devices {
 
     /**
      * set ro.vndk.version value
+     *
+     * @param mVndkVersion VndkVersion
      */
     protected void setVndkVersion(String mVndkVersion) {
         this.mVndkVersion = mVndkVersion;
@@ -259,6 +277,8 @@ public class Devices {
 
     /**
      * set ro.secure value
+     *
+     * @param mSecure Secure
      */
     protected void setSecure(String mSecure) {
         this.mSecure = mSecure;
@@ -275,6 +295,8 @@ public class Devices {
 
     /**
      * set ro.build.version.security_patch value
+     *
+     * @param mSecurityPatch SecurityPatch
      */
     protected void setSecurityPatch(String mSecurityPatch) {
         this.mSecurityPatch = mSecurityPatch;
@@ -291,6 +313,8 @@ public class Devices {
 
     /**
      * set ro.product.manufacturer value
+     *
+     * @param mManufacturer Manufacturer name
      */
     protected void setManufacturer(String mManufacturer) {
         this.mManufacturer = mManufacturer;
@@ -307,6 +331,8 @@ public class Devices {
 
     /**
      * set ro.product.brand value
+     *
+     * @param mProductBrand Brand name
      */
     protected void setProductBrand(String mProductBrand) {
         this.mProductBrand = mProductBrand;
@@ -323,6 +349,8 @@ public class Devices {
 
     /**
      * set ro.product.board value
+     *
+     * @param mProductBoard Board name
      */
     protected void setProductBoard(String mProductBoard) {
         this.mProductBoard = mProductBoard;
@@ -339,6 +367,8 @@ public class Devices {
 
     /**
      * set ro.product.model value
+     *
+     * @param mProductModel Model name
      */
     protected void setProductModel(String mProductModel) {
         this.mProductModel = mProductModel;
@@ -354,7 +384,9 @@ public class Devices {
     }
 
     /**
-     * set ro.product.device value
+     * set Product Device name
+     *
+     * @param mProductDevice device name
      */
     protected void setProductDevice(String mProductDevice) {
         this.mProductDevice = mProductDevice;

@@ -23,6 +23,7 @@ final class DevicePreferences {
      * DEFAULT_EMPTY
      */
     public static final String DEFAULT_EMPTY = "NoValue"; // no values
+
     /**
      * DEFAULT_PROP device will get
      */

@@ -51,7 +51,7 @@ public class LocalCommand {
      */
     protected String sendLocalCommand(String command) {
         if (command.isEmpty()) {
-            Hilog.e(TAG, "empty command");
+            Hilog.error(TAG, "empty command");
             return Command.EMPTY_RESP;
         }
         return sendCommand(command);
@@ -59,23 +59,22 @@ public class LocalCommand {
 
     private String sendCommand(String command) {
         HdcResponse ohos = null;
-        mHdcConnection = getHdcSocketChannel(mHdcConnection, mHdc);
-        // Hilog.e(TAG, "start connect hdc server : " + command);
+        setHdcSocketChannel(mHdc);
         // we will get OHOS HDC
         ohos = getHeadResponse(mHdcConnection);
         if (ohos != null && ohos.okay) {
-            Hilog.d(TAG, "get ohos............");
+            Hilog.debug(TAG, "get ohos............");
             sendHeadRequest("");
         } else {
-            Hilog.d(TAG, "not get ohos............");
+            Hilog.debug(TAG, "not get ohos............");
             return Command.VERIFY_ERROR_RESP;
         }
         // we will get OHOS HDC end
         if (mHdcConnection != null) {
-            Hilog.d(TAG, "sendDeviceListMonitoringRequest");
+            Hilog.debug(TAG, "sendDeviceListMonitoringRequest");
             sendRequest(command);
         } else {
-            Hilog.d(TAG, "HdcConnection is null");
+            Hilog.debug(TAG, "HdcConnection is null");
         }
         return getIncomingData();
     }
@@ -84,18 +83,17 @@ public class LocalCommand {
         try {
             ClientHelper.write(mHdcConnection, ChannelHandShake.getCommandByte(command));
         } catch (TimeoutException | IOException error) {
-            Hilog.e(TAG, error);
+            Hilog.error(TAG, error);
         }
     }
 
-    private SocketChannel getHdcSocketChannel(SocketChannel channel, HarmonyDebugConnector hdc) {
+    private void setHdcSocketChannel(HarmonyDebugConnector hdc) {
         try {
-            channel = SocketChannel.open(hdc.getSocketAddress());
-            channel.socket().setTcpNoDelay(true);
+            mHdcConnection = SocketChannel.open(hdc.getSocketAddress());
+            mHdcConnection.socket().setTcpNoDelay(true);
         } catch (IOException error) {
-            Hilog.e(TAG, "openHdcConnection failed :" + error);
+            Hilog.error(TAG, "openHdcConnection failed :" + error);
         }
-        return channel;
     }
 
     private HdcResponse getHeadResponse(SocketChannel channel) {
@@ -103,7 +101,7 @@ public class LocalCommand {
         try {
             resp = ClientHelper.readHdcResponse(channel);
         } catch (TimeoutException | IOException error) {
-            Hilog.e(TAG, error);
+            Hilog.error(TAG, error);
         }
         return resp;
     }
@@ -112,25 +110,26 @@ public class LocalCommand {
         try {
             ClientHelper.write(mHdcConnection, ChannelHandShake.getHeadData(connectKey));
         } catch (TimeoutException | IOException error) {
-            Hilog.e(TAG, error);
+            Hilog.error(TAG, error);
         }
     }
 
     private String getIncomingData() {
         String result = "";
+        String encoding = "ISO-8859-1";
         do {
             byte[] bufferSize = new byte[4];
             try {
                 String size = ClientHelper.readServer(mHdcConnection, bufferSize);
                 String temp = ClientHelper.readServer(mHdcConnection,
-                        new byte[FormatUtil.asciiStringToInt(size.getBytes())]);
+                        new byte[FormatUtil.asciiStringToInt(size.getBytes(encoding))]);
                 result += temp;
                 if (temp.isEmpty()) {
                     mHdcConnection.close();
                     break;
                 }
             } catch (IOException error) {
-                Hilog.e(TAG, error);
+                Hilog.error(TAG, error);
             }
         } while (true);
         return result.trim();
