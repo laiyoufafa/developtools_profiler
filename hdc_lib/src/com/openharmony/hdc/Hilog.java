@@ -81,7 +81,7 @@ public final class Hilog {
      * @param tag TAG
      * @param message print log
      */
-    public static void v(String tag, String message) {
+    public static void verbose(String tag, String message) {
         println(LogLevel.VERBOSE, tag, message);
     }
 
@@ -91,7 +91,7 @@ public final class Hilog {
      * @param tag TAG
      * @param message print log
      */
-    public static void d(String tag, String message) {
+    public static void debug(String tag, String message) {
         println(LogLevel.DEBUG, tag, message);
     }
 
@@ -101,7 +101,7 @@ public final class Hilog {
      * @param tag TAG
      * @param message print log
      */
-    public static void i(String tag, String message) {
+    public static void info(String tag, String message) {
         println(LogLevel.INFO, tag, message);
     }
 
@@ -111,7 +111,7 @@ public final class Hilog {
      * @param tag TAG
      * @param message print log
      */
-    public static void w(String tag, String message) {
+    public static void warn(String tag, String message) {
         println(LogLevel.WARN, tag, message);
     }
 
@@ -121,7 +121,7 @@ public final class Hilog {
      * @param tag TAG
      * @param message print log
      */
-    public static void e(String tag, String message) {
+    public static void error(String tag, String message) {
         println(LogLevel.ERROR, tag, message);
     }
 
@@ -131,7 +131,7 @@ public final class Hilog {
      * @param tag TAG
      * @param throwable exception
      */
-    public static void e(String tag, Throwable throwable) {
+    public static void error(String tag, Throwable throwable) {
         if (throwable != null) {
             StringWriter sw = new StringWriter();
             PrintWriter pw = new PrintWriter(sw);
@@ -159,8 +159,8 @@ public final class Hilog {
     }
 
     private static String getLogFormatString(LogLevel logLevel, String tag, String message) {
-        SimpleDateFormat formatter = new SimpleDateFormat("hh:mm:ss", Locale.getDefault());
-        return String.format("%s %c/%s: %s\n", formatter.format(new Date()), logLevel.getPriorityLetter(), tag,
-                message);
+        SimpleDateFormat mat = new SimpleDateFormat("hh:mm:ss", Locale.getDefault());
+        String out = "%s %c/%s: %s\n";
+        return String.format(Locale.ENGLISH, out, mat.format(new Date()), logLevel.getPriorityLetter(), tag, message);
     }
 }

@@ -48,7 +48,7 @@ public final class DeviceMonitor {
      */
     public DeviceMonitor(HarmonyDebugConnector hdc, boolean isTestMode) {
         if (hdc == null) {
-            Hilog.e(TAG, "hdc is null");
+            Hilog.error(TAG, "hdc is null");
         }
         if (isTestMode) {
             mIsTestMode = true;
@@ -56,7 +56,7 @@ public final class DeviceMonitor {
         } else {
             mIsStart = false;
             mHdc = hdc;
-            Hilog.d(TAG, "init DeviceMonitor");
+            Hilog.debug(TAG, "init DeviceMonitor");
         }
     }
 
@@ -121,26 +121,24 @@ public final class DeviceMonitor {
     }
 
     private void deviceMonitorLoop() {
-        Hilog.d(TAG, "deviceMonitorLoop IsStart is :" + mIsStart);
-        mHdcConnection = getHdcSocketChannel(mHdcConnection, mHdc);
-        Hilog.d(TAG, "start connect hdc server ");
+        setHdcSocketChannel(mHdc);
         // we will get OHOS HDC
         HdcResponse ohos = null;
         ohos = getHeadResponse(mHdcConnection);
         if (ohos != null && ohos.okay) {
-            Hilog.d(TAG, "get ohos............");
+            Hilog.debug(TAG, "get ohos");
             sendHeadRequest("");
         } else {
-            Hilog.d(TAG, "not get ohos............");
+            Hilog.debug(TAG, "not get ohos");
             return;
         }
         while (mIsStart) {
             threadSleep(1); // keep socket connect
             if (mHdcConnection != null) {
-                Hilog.d(TAG, "sendDeviceListMonitoringRequest");
+                Hilog.debug(TAG, "sendDeviceListMonitoringRequest");
                 sendDeviceListMonitoringRequest(true);
             } else {
-                Hilog.d(TAG, "HdcConnection is null");
+                Hilog.debug(TAG, "HdcConnection is null");
             }
             if (mIsStart) {
                 getIncomingDeviceData();
@@ -151,37 +149,37 @@ public final class DeviceMonitor {
             try {
                 mHdcConnection.close();
             } catch (IOException error) {
-                Hilog.e(TAG, error);
+                Hilog.error(TAG, error);
             }
         }
     }
 
-    private SocketChannel getHdcSocketChannel(SocketChannel channel, HarmonyDebugConnector hdc) {
+    private void setHdcSocketChannel(HarmonyDebugConnector hdc) {
         try {
-            channel = SocketChannel.open(hdc.getSocketAddress());
-            channel.socket().setTcpNoDelay(true);
+            mHdcConnection = SocketChannel.open(hdc.getSocketAddress());
+            mHdcConnection.socket().setTcpNoDelay(true);
         } catch (IOException error) {
-            Hilog.e(TAG, "openHdcConnection failed :" + error);
+            Hilog.error(TAG, "openHdcConnection failed :" + error);
         }
-        return channel;
     }
 
     private void getIncomingDeviceData() {
         byte[] bufferSize = new byte[4];
+        String encoding = "ISO-8859-1";
         try {
             String size = DeviceHelper.readServer(mHdcConnection, bufferSize);
-            Hilog.d(TAG, size);
+            Hilog.debug(TAG, size);
             String result = DeviceHelper.readServer(mHdcConnection,
-                    new byte[FormatUtil.asciiStringToInt(size.getBytes())]);
+                    new byte[FormatUtil.asciiStringToInt(size.getBytes(encoding))]);
             updateDeviceList(result);
         } catch (IOException error) {
-            Hilog.e(TAG, error);
+            Hilog.error(TAG, error);
         }
     }
 
     private void updateDeviceList(String result) {
         if (result.indexOf("Empty") > 0) {
-            Hilog.d(TAG, "no devices");
+            Hilog.debug(TAG, "no devices");
             return;
         }
 
@@ -222,9 +220,9 @@ public final class DeviceMonitor {
                             if (device.getState().getAddress().equals(newDevice.getState().getAddress())
                                     && device.getState().getStatus().equals(newDevice.getState().getStatus())
                                     && device.getState().getConnection().equals(newDevice.getState().getConnection())) {
-                                Hilog.d(TAG, "device not change.........................................");
+                                Hilog.debug(TAG, "device not change");
                             } else {
-                                Hilog.d(TAG, "device change.........................................");
+                                Hilog.debug(TAG, "device change");
                                 mHdc.deviceChanged(newDevice);
                                 device.setState(newDevice.getState());
                                 updateDeviceProp(newDevice);
@@ -249,14 +247,13 @@ public final class DeviceMonitor {
                 }
             }
         }
-
     }
 
     private void threadSleep(int second) {
         try {
             Thread.sleep(1000 * second);
         } catch (InterruptedException error) {
-            Hilog.e(TAG, error);
+            Hilog.error(TAG, error);
         }
     }
 
@@ -264,7 +261,7 @@ public final class DeviceMonitor {
         try {
             DeviceHelper.write(mHdcConnection, ChannelHandShake.getHeadData(connectKey));
         } catch (TimeoutException | IOException error) {
-            Hilog.e(TAG, error);
+            Hilog.error(TAG, error);
         }
     }
 
@@ -273,7 +270,7 @@ public final class DeviceMonitor {
         try {
             DeviceHelper.write(mHdcConnection, ChannelHandShake.getCommandByte(command));
         } catch (TimeoutException | IOException error) {
-            Hilog.e(TAG, error);
+            Hilog.error(TAG, error);
         }
     }
 
@@ -282,7 +279,7 @@ public final class DeviceMonitor {
         try {
             resp = DeviceHelper.readHdcResponse(channel);
         } catch (TimeoutException | IOException error) {
-            Hilog.e(TAG, error);
+            Hilog.error(TAG, error);
         }
         return resp;
     }
@@ -333,7 +330,7 @@ public final class DeviceMonitor {
                 case "ro.product.device":
                     device.setProductDevice(getDeviceProp(device, temp));
                     break;
-                default: Hilog.e(TAG, "this prop not in device");
+                default: Hilog.error(TAG, "this prop not in device");
             }
         }
     }

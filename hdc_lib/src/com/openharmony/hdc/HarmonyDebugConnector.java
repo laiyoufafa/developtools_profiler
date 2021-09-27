@@ -29,40 +29,40 @@ import com.openharmony.devices.Devices;
  */
 public class HarmonyDebugConnector {
     private static final String TAG = "HarmonyDebugConnector";
-    private static final String DEFAULT_HDC_HOST = "127.0.0.1"; // Where to find the HDC PORT.
-    private static final int DEFAULT_HDC_PORT = 8710; // const string DEFAULT_SERVER_ADDR = "127.0.0.1:8710";
+    private static final String DEFAULT_HDC_HOST = "127.0.0.1";
+    private static final int DEFAULT_HDC_PORT = 8710;
 
-    private static String mHdcLocation; // full path of hdc, D:\hos_ide\hdc.exe
-    private static InetAddress mHostAddr;
-    private static InetSocketAddress mSocketAddr;
+    private static String memHdcLocation;
+    private static InetAddress memHostAddr;
+    private static InetSocketAddress memSocketAddr;
 
-    private static boolean mInitialized;
-    private static boolean mIsHdcServerStarted;
-    private static boolean mIsDeviceMonitorRun;
+    private static boolean memInitialized;
+    private static boolean memIsHdcServerStarted;
+    private static boolean memIsDeviceMonitorRun;
 
-    private static HarmonyDebugConnector mThis;
-    private static HdcCommand mHdcCommand;
-    private static Object mLock = new Object();
+    private static HarmonyDebugConnector memThis;
+    private static HdcCommand memHdcCommand;
+    private static Object memLock = new Object();
 
-    private static ArrayList<IDeviceChangeListener> mDeviceListeners = new ArrayList<IDeviceChangeListener>();
-    private static ArrayList<IFileClientListener> mFileListeners = new ArrayList<IFileClientListener>();
-    private static ArrayList<IHilogClientListener> mHilogListeners = new ArrayList<IHilogClientListener>();
-    private static ArrayList<IShellClientListener> mShellListeners = new ArrayList<IShellClientListener>();
-    private static ArrayList<IConnectorChangeListener> mConnectorListeners =  new ArrayList<IConnectorChangeListener>();
+    private static ArrayList<IDeviceChangeListener> memDeviceListeners = new ArrayList<IDeviceChangeListener>();
+    private static ArrayList<IFileClientListener> memFileListeners = new ArrayList<IFileClientListener>();
+    private static ArrayList<IHilogClientListener> memHilogListeners = new ArrayList<IHilogClientListener>();
+    private static ArrayList<IShellClientListener> memShellListeners = new ArrayList<IShellClientListener>();
+    private static ArrayList<IConnectorChangeListener> memHdcListeners =  new ArrayList<IConnectorChangeListener>();
 
     private DeviceMonitor mDeviceMonitor;
 
     private HarmonyDebugConnector() {
-        Hilog.d(TAG, "init HDC lib");
+        Hilog.debug(TAG, "init HDC lib");
     }
 
     private HarmonyDebugConnector(String binLocation) throws InvalidParameterException {
-        Hilog.d(TAG, "init HDC lib with " + binLocation);
+        Hilog.debug(TAG, "init HDC lib with " + binLocation);
         if (binLocation == null || binLocation.isEmpty()) {
             throw new InvalidParameterException("HarmonyDebugConnect value error");
         }
-        mHdcLocation = binLocation;
-        mHdcCommand = new HdcCommand(mHdcLocation);
+        memHdcLocation = binLocation;
+        memHdcCommand = new HdcCommand(memHdcLocation);
     }
 
     /**
@@ -71,7 +71,7 @@ public class HarmonyDebugConnector {
      * @throws IllegalStateException HarmonyDebugConnect has already been init
      */
     public void initIfNeeded() {
-        if (mInitialized) {
+        if (memInitialized) {
             throw new IllegalStateException("HarmonyDebugConnect has already been init");
         }
         init();
@@ -83,12 +83,12 @@ public class HarmonyDebugConnector {
      * @return whether hdc server running
      */
     public boolean isHdcServerRun() {
-        return mIsHdcServerStarted;
+        return memIsHdcServerStarted;
     }
 
     private static boolean isHdcBin() {
-        if (mHdcCommand != null) {
-            return mHdcCommand.isCorrectVersion(mHdcLocation);
+        if (memHdcCommand != null) {
+            return memHdcCommand.isCorrectVersion(memHdcLocation);
         } else {
             return false;
         }
@@ -96,32 +96,32 @@ public class HarmonyDebugConnector {
 
     private void init() {
         initHdcSocketAddr();
-        mInitialized = true;
+        memInitialized = true;
 
-        if (mThis != null) {
-            mThis.startHdcServer();
+        if (memThis != null) {
+            memThis.startHdcServer();
         }
         waitForHdcService();
     }
 
     private boolean waitForHdcService() {
         int timeOut = 5;
-        while (!mIsHdcServerStarted) {
+        while (!memIsHdcServerStarted) {
             try {
                 stopHdcServer();
                 Thread.sleep(1000);
                 timeOut--;
                 startHdcServer();
                 if (timeOut < 0) {
-                    Hilog.e(TAG, "wait for hdc server start time out");
+                    Hilog.error(TAG, "wait for hdc server start time out");
                     break;
                 }
             } catch (InterruptedException error) {
-                Hilog.d(TAG, "wait for hdc server start" + error.getMessage());
+                Hilog.debug(TAG, "wait for hdc server start" + error.getMessage());
                 break;
             }
         }
-        return mIsHdcServerStarted;
+        return memIsHdcServerStarted;
     }
 
     /**
@@ -146,12 +146,14 @@ public class HarmonyDebugConnector {
          * @param device device
          */
         void deviceConnected(Devices device);
+
         /**
          * deviceDisconnected
          *
          * @param device device
          */
         void deviceDisconnected(Devices device);
+
         /**
          * deviceChanged
          *
@@ -170,6 +172,7 @@ public class HarmonyDebugConnector {
          * @param resp send result
          */
         void sendFileResult(String resp);
+
         /**
          * recvFileResult
          *
@@ -184,6 +187,8 @@ public class HarmonyDebugConnector {
     public interface IHilogClientListener {
         /**
          * after send hilog command,recv holog at callback
+         *
+         * @param resp hilog Recv result
          */
         void hilogRecv(String resp);
     }
@@ -207,7 +212,7 @@ public class HarmonyDebugConnector {
      */
     public void sendFileResult(String result) {
         IFileClientListener[] listeners = null;
-        listeners = mFileListeners.toArray(new IFileClientListener[mFileListeners.size()]);
+        listeners = memFileListeners.toArray(new IFileClientListener[memFileListeners.size()]);
         // Notify the listeners
         for (IFileClientListener listener : listeners) {
             listener.sendFileResult(result);
@@ -221,7 +226,7 @@ public class HarmonyDebugConnector {
      */
     public void recvFileResult(String result) {
         IFileClientListener[] listeners = null;
-        listeners = mFileListeners.toArray(new IFileClientListener[mFileListeners.size()]);
+        listeners = memFileListeners.toArray(new IFileClientListener[memFileListeners.size()]);
         // Notify the listeners
         for (IFileClientListener listener : listeners) {
             listener.recvFileResult(result);
@@ -235,7 +240,7 @@ public class HarmonyDebugConnector {
      */
     public void getHilogResult(String result) {
         IHilogClientListener[] listeners = null;
-        listeners = mHilogListeners.toArray(new IHilogClientListener[mHilogListeners.size()]);
+        listeners = memHilogListeners.toArray(new IHilogClientListener[memHilogListeners.size()]);
         // Notify the listeners
         for (IHilogClientListener listener : listeners) {
             listener.hilogRecv(result);
@@ -249,7 +254,7 @@ public class HarmonyDebugConnector {
      */
     public void getShellResult(String result) {
         IShellClientListener[] listeners = null;
-        listeners = mShellListeners.toArray(new IShellClientListener[mShellListeners.size()]);
+        listeners = memShellListeners.toArray(new IShellClientListener[memShellListeners.size()]);
         // Notify the listeners
         for (IShellClientListener listener : listeners) {
             listener.shellRecv(result);
@@ -263,8 +268,8 @@ public class HarmonyDebugConnector {
      */
     public void deviceConnected(Devices device) {
         IDeviceChangeListener[] listeners = null;
-        synchronized (mLock) {
-            listeners = mDeviceListeners.toArray(new IDeviceChangeListener[mDeviceListeners.size()]);
+        synchronized (memLock) {
+            listeners = memDeviceListeners.toArray(new IDeviceChangeListener[memDeviceListeners.size()]);
         }
         // Notify the listeners
         for (IDeviceChangeListener listener : listeners) {
@@ -279,8 +284,8 @@ public class HarmonyDebugConnector {
      */
     public void deviceDisconnected(Devices device) {
         IDeviceChangeListener[] listenersCopy = null;
-        synchronized (mLock) {
-            listenersCopy = mDeviceListeners.toArray(new IDeviceChangeListener[mDeviceListeners.size()]);
+        synchronized (memLock) {
+            listenersCopy = memDeviceListeners.toArray(new IDeviceChangeListener[memDeviceListeners.size()]);
         }
         // Notify the listeners
         for (IDeviceChangeListener listener : listenersCopy) {
@@ -295,8 +300,8 @@ public class HarmonyDebugConnector {
      */
     public void deviceChanged(Devices device) {
         IDeviceChangeListener[] listenersCopy = null;
-        synchronized (mLock) {
-            listenersCopy = mDeviceListeners.toArray(new IDeviceChangeListener[mDeviceListeners.size()]);
+        synchronized (memLock) {
+            listenersCopy = memDeviceListeners.toArray(new IDeviceChangeListener[memDeviceListeners.size()]);
         }
         // Notify the listeners
         for (IDeviceChangeListener listener : listenersCopy) {
@@ -310,11 +315,11 @@ public class HarmonyDebugConnector {
      * @param listener IDeviceChangeListener
      */
     public static void addDeviceChangeListener(IDeviceChangeListener listener) {
-        synchronized (mLock) {
-            if (!mDeviceListeners.contains(listener)) {
-                mDeviceListeners.add(listener);
+        synchronized (memLock) {
+            if (!memDeviceListeners.contains(listener)) {
+                memDeviceListeners.add(listener);
             } else {
-                Hilog.e(TAG, "already add " + listener);
+                Hilog.error(TAG, "already add " + listener);
             }
         }
     }
@@ -325,11 +330,11 @@ public class HarmonyDebugConnector {
      * @param listener IDeviceChangeListener
      */
     public static void removeDeviceChangeListener(IDeviceChangeListener listener) {
-        synchronized (mLock) {
-            if (mDeviceListeners.contains(listener)) {
-                mDeviceListeners.remove(listener);
+        synchronized (memLock) {
+            if (memDeviceListeners.contains(listener)) {
+                memDeviceListeners.remove(listener);
             } else {
-                Hilog.e(TAG, listener + " is not contain");
+                Hilog.error(TAG, listener + " is not contain");
             }
         }
     }
@@ -339,8 +344,8 @@ public class HarmonyDebugConnector {
      *
      * @return DeviceListeners list
      */
-    public static ArrayList<IDeviceChangeListener> getDeviceChangeListener() {
-        return mDeviceListeners;
+    public ArrayList<IDeviceChangeListener> getDeviceChangeListener() {
+        return memDeviceListeners;
     }
 
     /**
@@ -349,11 +354,11 @@ public class HarmonyDebugConnector {
      * @param listener IFileClientListener
      */
     public static void addFileSendRecvListener(IFileClientListener listener) {
-        synchronized (mLock) {
-            if (!mFileListeners.contains(listener)) {
-                mFileListeners.add(listener);
+        synchronized (memLock) {
+            if (!memFileListeners.contains(listener)) {
+                memFileListeners.add(listener);
             } else {
-                Hilog.e(TAG, "already add " + listener);
+                Hilog.error(TAG, "already add " + listener);
             }
         }
     }
@@ -364,11 +369,11 @@ public class HarmonyDebugConnector {
      * @param listener IFileClientListener
      */
     public static void removeFileSendRecvListener(IFileClientListener listener) {
-        synchronized (mLock) {
-            if (mFileListeners.contains(listener)) {
-                mFileListeners.remove(listener);
+        synchronized (memLock) {
+            if (memFileListeners.contains(listener)) {
+                memFileListeners.remove(listener);
             } else {
-                Hilog.e(TAG, listener + " is not contain");
+                Hilog.error(TAG, listener + " is not contain");
             }
         }
     }
@@ -378,8 +383,8 @@ public class HarmonyDebugConnector {
      *
      * @return FileListeners list
      */
-    public static ArrayList<IFileClientListener> getFileClientListener() {
-        return mFileListeners;
+    public ArrayList<IFileClientListener> getFileClientListener() {
+        return memFileListeners;
     }
 
     /**
@@ -388,11 +393,11 @@ public class HarmonyDebugConnector {
      * @param listener IFileClientListener
      */
     public static void addHilogRecvListener(IHilogClientListener listener) {
-        synchronized (mLock) {
-            if (!mHilogListeners.contains(listener)) {
-                mHilogListeners.add(listener);
+        synchronized (memLock) {
+            if (!memHilogListeners.contains(listener)) {
+                memHilogListeners.add(listener);
             } else {
-                Hilog.e(TAG, "already add " + listener);
+                Hilog.error(TAG, "already add " + listener);
             }
         }
     }
@@ -403,11 +408,11 @@ public class HarmonyDebugConnector {
      * @param listener IHilogClientListener
      */
     public static void removeHilogRecvListener(IHilogClientListener listener) {
-        synchronized (mLock) {
-            if (mHilogListeners.contains(listener)) {
-                mHilogListeners.remove(listener);
+        synchronized (memLock) {
+            if (memHilogListeners.contains(listener)) {
+                memHilogListeners.remove(listener);
             } else {
-                Hilog.e(TAG, listener + " is not contain");
+                Hilog.error(TAG, listener + " is not contain");
             }
         }
     }
@@ -417,8 +422,8 @@ public class HarmonyDebugConnector {
      *
      * @return HilogListeners list
      */
-    public static ArrayList<IHilogClientListener> getHilogClientListener() {
-        return mHilogListeners;
+    public ArrayList<IHilogClientListener> getHilogClientListener() {
+        return memHilogListeners;
     }
 
     /**
@@ -427,11 +432,11 @@ public class HarmonyDebugConnector {
      * @param listener IShellClientListener
      */
     public static void addShellRecvListener(IShellClientListener listener) {
-        synchronized (mLock) {
-            if (!mShellListeners.contains(listener)) {
-                mShellListeners.add(listener);
+        synchronized (memLock) {
+            if (!memShellListeners.contains(listener)) {
+                memShellListeners.add(listener);
             } else {
-                Hilog.e(TAG, "already add " + listener);
+                Hilog.error(TAG, "already add " + listener);
             }
         }
     }
@@ -442,11 +447,11 @@ public class HarmonyDebugConnector {
      * @param listener IShellClientListener
      */
     public static void removeShellRecvListener(IShellClientListener listener) {
-        synchronized (mLock) {
-            if (mShellListeners.contains(listener)) {
-                mShellListeners.remove(listener);
+        synchronized (memLock) {
+            if (memShellListeners.contains(listener)) {
+                memShellListeners.remove(listener);
             } else {
-                Hilog.e(TAG, listener + " is not contain");
+                Hilog.error(TAG, listener + " is not contain");
             }
         }
     }
@@ -456,8 +461,8 @@ public class HarmonyDebugConnector {
      *
      * @return ShellListeners list
      */
-    public static ArrayList<IShellClientListener> getShellClientListener() {
-        return mShellListeners;
+    public ArrayList<IShellClientListener> getShellClientListener() {
+        return memShellListeners;
     }
 
     /**
@@ -466,11 +471,11 @@ public class HarmonyDebugConnector {
      * @param listener IConnectorChangeListener
      */
     public static void addConnectorChangeListener(IConnectorChangeListener listener) {
-        synchronized (mLock) {
-            if (!mConnectorListeners.contains(listener)) {
-                mConnectorListeners.add(listener);
+        synchronized (memLock) {
+            if (!memHdcListeners.contains(listener)) {
+                memHdcListeners.add(listener);
             } else {
-                Hilog.e(TAG, "already add " + listener);
+                Hilog.error(TAG, "already add " + listener);
             }
         }
     }
@@ -481,11 +486,11 @@ public class HarmonyDebugConnector {
      * @param listener IConnectorChangeListener
      */
     public static void removeConnectorChangeListener(IConnectorChangeListener listener) {
-        synchronized (mLock) {
-            if (mConnectorListeners.contains(listener)) {
-                mConnectorListeners.remove(listener);
+        synchronized (memLock) {
+            if (memHdcListeners.contains(listener)) {
+                memHdcListeners.remove(listener);
             } else {
-                Hilog.e(TAG, listener + " is not contain");
+                Hilog.error(TAG, listener + " is not contain");
             }
         }
     }
@@ -495,8 +500,8 @@ public class HarmonyDebugConnector {
      *
      * @return ConnetorListener list
      */
-    public static ArrayList<IConnectorChangeListener> getConnetorListener() {
-        return mConnectorListeners;
+    public ArrayList<IConnectorChangeListener> getConnetorListener() {
+        return memHdcListeners;
     }
 
     /**
@@ -507,40 +512,40 @@ public class HarmonyDebugConnector {
      *  @return Instantiated HarmonyDebugConnector
      */
     public static HarmonyDebugConnector createConnect(String binLocation, boolean forceStart) {
-        synchronized (mLock) {
-            Hilog.d(TAG, "start HarmonyDebugConnector createConnect");
+        synchronized (memLock) {
+            Hilog.debug(TAG, "start HarmonyDebugConnector createConnect");
             if (binLocation == null) {
-                Hilog.d(TAG, "HarmonyDebugConnector createConnect");
-                return mThis;
+                Hilog.debug(TAG, "HarmonyDebugConnector createConnect");
+                return memThis;
             }
-            if (mThis != null) {
-                if (mThis.mHdcLocation != null && mThis.mHdcLocation.equals(binLocation) && !forceStart) {
-                    return mThis;
+            if (memThis != null) {
+                if (memThis.memHdcLocation != null && memThis.memHdcLocation.equals(binLocation) && !forceStart) {
+                    return memThis;
                 }
             }
 
             try {
-                mThis = new HarmonyDebugConnector(binLocation);
+                memThis = new HarmonyDebugConnector(binLocation);
                 if (isHdcBin()) {
-                    Hilog.d(TAG, "Hdc Version right");
+                    Hilog.debug(TAG, "Hdc Version right");
                 } else {
-                    mThis = null;
-                    Hilog.e(TAG, "Not Hdc Bin or Hdc version older");
+                    memThis = null;
+                    Hilog.error(TAG, "Not Hdc Bin or Hdc version older");
                 }
             } catch (InvalidParameterException error) {
-                Hilog.e(TAG, error);
-                mThis = null;
+                Hilog.error(TAG, error);
+                memThis = null;
             }
 
-            if (mThis != null) {
-                IConnectorChangeListener[] listenersCopy = mConnectorListeners.toArray(
-                        new IConnectorChangeListener[mConnectorListeners.size()]);
+            if (memThis != null) {
+                IConnectorChangeListener[] listenersCopy = memHdcListeners.toArray(
+                        new IConnectorChangeListener[memHdcListeners.size()]);
 
                 for (IConnectorChangeListener listener : listenersCopy) {
-                        listener.connectorChanged(mThis);
+                    listener.connectorChanged(memThis);
                 }
             }
-            return mThis;
+            return memThis;
         }
     }
 
@@ -548,33 +553,33 @@ public class HarmonyDebugConnector {
      * destroy connect
      */
     public void destroyConnect() {
-        synchronized (mLock) {
+        synchronized (memLock) {
             stopDevicesMonitor();
             stopHdcServer();
-            mInitialized = false;
-            mIsHdcServerStarted = false;
-            mDeviceListeners.clear();
-            mShellListeners.clear();
-            mFileListeners.clear();
-            mHilogListeners.clear();
-            if (mThis != null) {
-                IConnectorChangeListener[] listenersCopy = mConnectorListeners.toArray(
-                        new IConnectorChangeListener[mConnectorListeners.size()]);
+            memInitialized = false;
+            memIsHdcServerStarted = false;
+            memDeviceListeners.clear();
+            memShellListeners.clear();
+            memFileListeners.clear();
+            memHilogListeners.clear();
+            if (memThis != null) {
+                IConnectorChangeListener[] listenersCopy = memHdcListeners.toArray(
+                        new IConnectorChangeListener[memHdcListeners.size()]);
 
                 for (IConnectorChangeListener listener : listenersCopy) {
-                        listener.connectorChanged(mThis);
+                    listener.connectorChanged(memThis);
                 }
             }
-            mThis = null;
+            memThis = null;
         }
     }
 
     private static void initHdcSocketAddr() {
         try {
-            mHostAddr = InetAddress.getByName(DEFAULT_HDC_HOST);
-            mSocketAddr = new InetSocketAddress(mHostAddr, DEFAULT_HDC_PORT);
+            memHostAddr = InetAddress.getByName(DEFAULT_HDC_HOST);
+            memSocketAddr = new InetSocketAddress(memHostAddr, DEFAULT_HDC_PORT);
         } catch (UnknownHostException error) {
-            Hilog.d(TAG, "Socket error :" + error);
+            Hilog.debug(TAG, "Socket error :" + error);
         }
     }
 
@@ -585,7 +590,7 @@ public class HarmonyDebugConnector {
      */
     public InetSocketAddress getSocketAddress() {
         startHdcServer(); // if we want to connect,we must keep server running
-        return mSocketAddr;
+        return memSocketAddr;
     }
 
     /**
@@ -594,12 +599,12 @@ public class HarmonyDebugConnector {
      * @return HarmonyDebugConnector
      */
     public HarmonyDebugConnector getHdcConnector() {
-        return mThis;
+        return memThis;
     }
 
     @Override
     public String toString() {
-        return "HDC Bin Path is : " + mThis.mHdcLocation + "HDC default port is : " + DEFAULT_HDC_PORT;
+        return "HDC Bin Path is : " + memThis.memHdcLocation + "HDC default port is : " + DEFAULT_HDC_PORT;
     }
 
     /**
@@ -609,13 +614,13 @@ public class HarmonyDebugConnector {
      * @return whether start Devices Monitor successfully
      */
     public boolean startDevicesMonitor() {
-        if (!mIsDeviceMonitorRun) {
+        if (!memIsDeviceMonitorRun) {
             mDeviceMonitor = new DeviceMonitor(this, false);
             mDeviceMonitor.start();
-            mIsDeviceMonitorRun = true;
+            memIsDeviceMonitorRun = true;
             return true;
         } else {
-            Hilog.e(TAG, "Device Monitor already run");
+            Hilog.error(TAG, "Device Monitor already run");
             return false;
         }
     }
@@ -627,15 +632,15 @@ public class HarmonyDebugConnector {
      */
     public boolean stopDevicesMonitor() {
         // if we haven't started we return false;
-        if (!mIsDeviceMonitorRun) {
-            Hilog.e(TAG, "Device Monitor already stop");
+        if (!memIsDeviceMonitorRun) {
+            Hilog.error(TAG, "Device Monitor already stop");
             return false;
         }
         // kill the monitoring services
         if (mDeviceMonitor != null) {
             mDeviceMonitor.stop();
         }
-        mIsDeviceMonitorRun = false;
+        memIsDeviceMonitorRun = false;
         return true;
     }
 
@@ -645,7 +650,7 @@ public class HarmonyDebugConnector {
      * @return Devices Monitor is running
      */
     public boolean isDeviceMonitorRun() {
-        return mIsDeviceMonitorRun;
+        return memIsDeviceMonitorRun;
     }
 
     /**
@@ -656,7 +661,6 @@ public class HarmonyDebugConnector {
     public DeviceMonitor getDeviceMonitor() {
         return mDeviceMonitor;
     }
-    // Devices Monitor end
 
     /**
      * get current devices array
@@ -664,7 +668,7 @@ public class HarmonyDebugConnector {
      * @return device array with device base info
      */
     public Devices[] getDevices() {
-        synchronized (mLock) {
+        synchronized (memLock) {
             if (mDeviceMonitor != null) {
                 return mDeviceMonitor.getDevices();
             }
@@ -678,18 +682,18 @@ public class HarmonyDebugConnector {
      * @return current lock static
      */
     public static Object getLock() {
-        return mLock;
+        return memLock;
     }
 
     private void startHdcServer() {
-        if (mHdcCommand.executeHdcCommand("start")) {
-            mIsHdcServerStarted = true;
+        if (memHdcCommand.executeHdcCommand("start")) {
+            memIsHdcServerStarted = true;
         }
     }
 
     private void stopHdcServer() {
-        if (mHdcCommand.executeHdcCommand("kill")) {
-            mIsHdcServerStarted = false;
+        if (memHdcCommand.executeHdcCommand("kill")) {
+            memIsHdcServerStarted = false;
         }
     }
 }

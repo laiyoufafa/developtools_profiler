@@ -15,25 +15,29 @@
 
 package com.openharmony.client;
 
+import java.io.UnsupportedEncodingException;
+
 /**
  * hdc server format ¡¢create at 20210912
  */
 class ChannelHandShake {
+    private static final String DEFAULT_ENCODING = "ISO-8859-1";
+
     /**
      * Respond to server-side message,if connectKey is "",just get list target command
      * 4(length) + 12(command) + 32(device id)
      *
      * @param connectKey device ID
      * @return Send check byte stream
+     * @throws UnsupportedEncodingException UnsupportedEncodingException when we get head data
      */
-    public static byte[] getHeadData(String connectKey) {
+    public static byte[] getHeadData(String connectKey) throws UnsupportedEncodingException {
         String head = "OHOS HDC";
         byte[] headBuff = new byte[48];
         String nread = "" + (char) (headBuff.length - 4);
-        System.arraycopy(nread.getBytes(), 0, headBuff, 3, 1);
-        System.arraycopy(head.getBytes(), 0, headBuff, 4, head.length());
-        System.arraycopy(connectKey.getBytes(), 0, headBuff, 16, connectKey.length());
-
+        System.arraycopy(nread.getBytes(DEFAULT_ENCODING), 0, headBuff, 3, 1);
+        System.arraycopy(head.getBytes(DEFAULT_ENCODING), 0, headBuff, 4, head.length());
+        System.arraycopy(connectKey.getBytes(DEFAULT_ENCODING), 0, headBuff, 16, connectKey.length());
         return headBuff;
     }
 
@@ -42,12 +46,13 @@ class ChannelHandShake {
      *
      * @param command we want to send
      * @return Send command byte stream
+     * @throws UnsupportedEncodingException UnsupportedEncodingException when we get command data
      */
-    public static byte[] getCommandByte(String command) {
+    public static byte[] getCommandByte(String command) throws UnsupportedEncodingException {
         byte[] buff = new byte[command.length() + 4 + 1];
         String nread = "" + (char) (command.length() + 1);
-        System.arraycopy(nread.getBytes(), 0, buff, 3, 1);
-        System.arraycopy(command.getBytes(), 0, buff, 4, command.length());
+        System.arraycopy(nread.getBytes(DEFAULT_ENCODING), 0, buff, 3, 1);
+        System.arraycopy(command.getBytes(DEFAULT_ENCODING), 0, buff, 4, command.length());
         return buff;
     }
 }

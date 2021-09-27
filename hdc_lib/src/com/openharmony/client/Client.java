@@ -38,7 +38,7 @@ public class Client {
      *
      * @param serialNumber device id
      * @param hdc Instantiated HarmonyDebugConnector
-     * @throws  InvalidParameterException value error
+     * @throws InvalidParameterException value error
      */
     public Client(String serialNumber, HarmonyDebugConnector hdc) {
         if (serialNumber == null || isUnValid(serialNumber) || hdc == null) {
@@ -89,7 +89,7 @@ public class Client {
         if (result != null && result.contains(Command.INSTALL_SUCCESS)) {
             return true;
         } else {
-            Hilog.e(TAG, "install Hap error:" + result);
+            Hilog.error(TAG, "install Hap error:" + result);
             return false;
         }
     }
@@ -107,7 +107,7 @@ public class Client {
         if (result != null && result.contains(Command.UNINSTALL_SUCCESS)) {
             return true;
         } else {
-            Hilog.e(TAG, "uninstall Hap error:" + result);
+            Hilog.error(TAG, "uninstall Hap error:" + result);
             return false;
         }
     }
@@ -127,7 +127,7 @@ public class Client {
         if (result != null && result.contains(Command.START_SUCCESS)) {
             return true;
         } else {
-            Hilog.e(TAG, "start hap error:" + result);
+            Hilog.error(TAG, "start hap error:" + result);
             return false;
         }
     }
@@ -187,7 +187,7 @@ public class Client {
         }
         if (sync) {
             mShellCommand.sendSequentialShellCommand(shellCommand);
-        }else {
+        } else {
             mShellCommand.sendImmediateShellCommand(shellCommand);
         }
     }
@@ -199,7 +199,7 @@ public class Client {
      */
     public String root() {
         if (getProp(Command.DEBUGABLE_COMMAND, "0").equals("0")) {
-            Hilog.e(TAG, "This version can't root");
+            Hilog.error(TAG, "This version can't root");
             return Command.ROOT_ERROR_RESP;
         }
         String temp = mRemoteCommand.sendRemoteCommand(Command.ROOT_COMMAND);
@@ -217,7 +217,7 @@ public class Client {
      */
     public String remount() {
         if (getProp(Command.DEBUGABLE_COMMAND, "0").equals("0")) {
-            Hilog.e(TAG, "Please root first");
+            Hilog.error(TAG, "Please root first");
             return Command.REMOUNT_ERROR_RESP;
         }
         String temp = mRemoteCommand.sendRemoteCommand(Command.REMOUNT_COMMAND);
@@ -236,9 +236,9 @@ public class Client {
      * @return command exec result
      */
     public String setRemoteConnect(String ip, String port) {
-        String ip_format = Command.CONN_COMMAND + Command.BLANK + ip;
-        String port_format = Command.COLON_COMMAND + port;
-        return mLocalCommand.sendLocalCommand(ip_format + port_format);
+        String ipFormat = Command.CONN_COMMAND + Command.BLANK + ip;
+        String portFormat = Command.COLON_COMMAND + port;
+        return mLocalCommand.sendLocalCommand(ipFormat + portFormat);
     }
 
     /**
@@ -249,9 +249,9 @@ public class Client {
      * @return command exec result
      */
     public String removeRemoteConnect(String ip, String port) {
-        String ip_format = Command.CONN_COMMAND + Command.BLANK + ip;
-        String port_format = Command.COLON_COMMAND + port;
-        return mLocalCommand.sendLocalCommand(ip_format + port_format + Command.BLANK + Command.CONN_RM_COMMAND);
+        String ipFormat = Command.CONN_COMMAND + Command.BLANK + ip;
+        String portFormat = Command.COLON_COMMAND + port;
+        return mLocalCommand.sendLocalCommand(ipFormat + portFormat + Command.BLANK + Command.CONN_RM_COMMAND);
     }
 
     /**
@@ -328,21 +328,21 @@ public class Client {
      * send GC command
      */
     public void sendGC() {
-        Hilog.e(TAG, "SendGC is not support");
+        Hilog.error(TAG, "SendGC is not support");
     }
 
     /**
      * send Propfiler command
      */
     public void getPropfiler() {
-        Hilog.e(TAG, "GetPropfiler is not support");
+        Hilog.error(TAG, "GetPropfiler is not support");
     }
 
     /**
      * get Screenshot
      */
     public void getScreenshot() {
-        Hilog.e(TAG, "GetScreenshot is not support");
+        Hilog.error(TAG, "GetScreenshot is not support");
     }
 
     private boolean illegalWindowFile(String file) {

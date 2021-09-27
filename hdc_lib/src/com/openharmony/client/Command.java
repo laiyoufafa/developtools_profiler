@@ -77,7 +77,7 @@ class Command {
     /**
      * DEBUGABLE COMMAND
      */
-    protected static final String DEBUGABLE_COMMAND = "ro.debuggable"; // ROOT ?
+    protected static final String DEBUGABLE_COMMAND = "ro.debuggable";
 
     /**
      * ROOT COMMAND

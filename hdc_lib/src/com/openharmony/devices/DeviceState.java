@@ -101,7 +101,7 @@ public class DeviceState {
     /**
      * get device connect address
      *
-     * @return adress
+     * @return adress device connect address
      */
     public String getAddress() {
         return address;
@@ -110,7 +110,7 @@ public class DeviceState {
     /**
      * set address
      *
-     * @param address
+     * @param address device connect address
      */
     protected void setAddress(String address) {
         this.address = address;
@@ -118,6 +118,8 @@ public class DeviceState {
 
     /**
      * state toString
+     *
+     * @return adress device info
      */
     @Override
     public String toString() {
