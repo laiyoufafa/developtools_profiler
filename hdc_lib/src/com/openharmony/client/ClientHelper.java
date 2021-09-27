@@ -41,7 +41,6 @@ final class ClientHelper {
      * @throws IOException IO error
      */
     public static void write(SocketChannel chan, byte[] data) throws TimeoutException, IOException {
-        Hilog.d("HdcHelper", "Write SocketChannel is :" + chan.socket());
         write(chan, data, -1, DEFAULT_TIMEOUT);
     }
 
@@ -54,17 +53,17 @@ final class ClientHelper {
             int count;
             count = chan.write(buf);
             if (count < 0) {
-                Hilog.d("HdcHelper", "write: channel EOF");
+                Hilog.debug("HdcHelper", "write: channel EOF");
             } else if (count == 0) {
                 if (timeout != 0 && timeout < numWaits * WAIT_TIME) {
-                    Hilog.e(TAG, "write error");
+                    Hilog.error(TAG, "write error");
                     throw new TimeoutException();
                 }
                 // non-blocking spin
                 try {
                     Thread.sleep(WAIT_TIME);
                 } catch (InterruptedException error) {
-                    Hilog.e(TAG, "write error");
+                    Hilog.error(TAG, "write error");
                 }
                 numWaits++;
             } else {
@@ -92,7 +91,7 @@ final class ClientHelper {
                 try {
                     Thread.sleep(WAIT_TIME);
                 } catch (InterruptedException error) {
-                    Hilog.e(TAG, error);
+                    Hilog.error(TAG, error);
                 }
                 numWaits++;
             } else {
@@ -112,11 +111,11 @@ final class ClientHelper {
     public static String readServer(SocketChannel socket, byte[] buffer) throws IOException {
         ByteBuffer buf = ByteBuffer.wrap(buffer, 0, buffer.length);
         while (buf.position() != buf.limit()) {
-            Hilog.d(TAG, "read Incoming Device EOF");
+            Hilog.debug(TAG, "read Incoming Device EOF");
             int count;
             count = socket.read(buf);
             if (count < 0) {
-                Hilog.d(TAG, "read Incoming Device EOF");
+                Hilog.debug(TAG, "read Incoming Device EOF");
                 break;
             }
         }
@@ -124,7 +123,7 @@ final class ClientHelper {
         try {
             return new String(buffer, 0, buf.position(), DEFAULT_ENCODING);
         } catch (UnsupportedEncodingException error) {
-            Hilog.e(TAG, "read Incoming Device Data error : " + error);
+            Hilog.error(TAG, "read Incoming Device Data error : " + error);
         }
         return "";
     }

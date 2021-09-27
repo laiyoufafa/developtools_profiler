@@ -23,7 +23,7 @@ public class FormatUtil {
      * AsciiString to int ,such as "*" is 43 .
      *
      * @param array byte
-     * @return  Int of ascii string
+     * @return Int of ascii string
      */
     public static int asciiStringToInt(byte[] array) {
         int count = 0;

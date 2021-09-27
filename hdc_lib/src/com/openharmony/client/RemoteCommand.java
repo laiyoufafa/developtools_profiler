@@ -52,7 +52,7 @@ class RemoteCommand {
      */
     protected String sendRemoteCommand(String command) {
         if (command.isEmpty()) {
-            Hilog.e(TAG, "empty command");
+            Hilog.error(TAG, "empty command");
             return Command.EMPTY_RESP;
         }
         return sendCommand(command);
@@ -64,15 +64,14 @@ class RemoteCommand {
             isNeedCallBack = true;
         }
         HdcResponse ohos = null;
-        mHdcConnection = getHdcSocketChannel(mHdcConnection, mHdc);
-        // Hilog.e(TAG, "start connect hdc server : " + command);
+        setHdcSocketChannel(mHdc);
         // we will get OHOS HDC
         ohos = getHeadResponse(mHdcConnection);
         if (ohos != null && ohos.okay) {
-            Hilog.d(TAG, "get ohos............");
+            Hilog.debug(TAG, "get ohos............");
             sendHeadRequest(mDevicesId);
         } else {
-            Hilog.d(TAG, "not get ohos............");
+            Hilog.debug(TAG, "not get ohos............");
             return Command.VERIFY_ERROR_RESP;
         }
         // we will get OHOS HDC end
@@ -83,7 +82,7 @@ class RemoteCommand {
                 sendRequest(command);
             }
         } else {
-            Hilog.d(TAG, "HdcConnection is null");
+            Hilog.debug(TAG, "HdcConnection is null");
         }
         if (isNeedCallBack) {
             getIncomingDataAndSend(command.substring(Command.BACK_FLAG.length()));
@@ -93,21 +92,20 @@ class RemoteCommand {
         }
     }
 
-    private SocketChannel getHdcSocketChannel(SocketChannel channel, HarmonyDebugConnector hdc) {
+    private void setHdcSocketChannel(HarmonyDebugConnector hdc) {
         try {
-            channel = SocketChannel.open(hdc.getSocketAddress());
-            channel.socket().setTcpNoDelay(true);
+            mHdcConnection = SocketChannel.open(hdc.getSocketAddress());
+            mHdcConnection.socket().setTcpNoDelay(true);
         } catch (IOException error) {
-            Hilog.e(TAG, "openHdcConnection failed :" + error);
+            Hilog.error(TAG, "openHdcConnection failed :" + error);
         }
-        return channel;
     }
 
     private void sendRequest(String command) {
         try {
             ClientHelper.write(mHdcConnection, ChannelHandShake.getCommandByte(command));
         } catch (TimeoutException | IOException error) {
-            Hilog.e(TAG, error);
+            Hilog.error(TAG, error);
         }
     }
 
@@ -116,7 +114,7 @@ class RemoteCommand {
         try {
             resp = ClientHelper.readHdcResponse(channel);
         } catch (TimeoutException | IOException error) {
-            Hilog.e(TAG, error);
+            Hilog.error(TAG, error);
         }
         return resp;
     }
@@ -125,25 +123,26 @@ class RemoteCommand {
         try {
             ClientHelper.write(mHdcConnection, ChannelHandShake.getHeadData(connectKey));
         } catch (TimeoutException | IOException error) {
-            Hilog.e(TAG, error);
+            Hilog.error(TAG, error);
         }
     }
 
     private String getIncomingData() {
         String result = "";
+        String encoding = "ISO-8859-1";
         do {
             byte[] bufferSize = new byte[4];
             try {
                 String size = ClientHelper.readServer(mHdcConnection, bufferSize);
                 String temp = ClientHelper.readServer(mHdcConnection,
-                        new byte[FormatUtil.asciiStringToInt(size.getBytes())]);
+                        new byte[FormatUtil.asciiStringToInt(size.getBytes(encoding))]);
                 result += temp;
                 if (temp.isEmpty()) {
                     mHdcConnection.close();
                     break;
                 }
             } catch (IOException error) {
-                Hilog.e(TAG, error);
+                Hilog.error(TAG, error);
             }
         } while (true);
         return result.trim();
@@ -152,10 +151,11 @@ class RemoteCommand {
     private void getIncomingDataAndSend(String command) {
         do {
             byte[] bufferSize = new byte[4];
+            String encoding = "ISO-8859-1";
             try {
                 String size = ClientHelper.readServer(mHdcConnection, bufferSize);
                 String temp = ClientHelper.readServer(mHdcConnection,
-                        new byte[FormatUtil.asciiStringToInt(size.getBytes())]);
+                        new byte[FormatUtil.asciiStringToInt(size.getBytes(encoding))]);
                 if (temp.isEmpty()) {
                     mHdcConnection.close();
                     break;
@@ -170,10 +170,10 @@ class RemoteCommand {
                 } else if (command.startsWith("file recv")) {
                     mHdc.recvFileResult(temp);
                 } else {
-                    Hilog.d(TAG, "other command" + command);
+                    Hilog.debug(TAG, "other command" + command);
                 }
             } catch (IOException error) {
-                Hilog.e(TAG, error);
+                Hilog.error(TAG, error);
             }
         } while (true);
     }
