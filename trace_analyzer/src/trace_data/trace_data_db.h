@@ -24,7 +24,7 @@ extern "C"
     struct sqlite3;
     struct sqlite3_stmt;
     extern int sqlite3_close(sqlite3*);
-    extern int sqlite3_finalize(sqlite3_stmt*pStmt);
+    extern int sqlite3_finalize(sqlite3_stmt* pStmt);
 }
 
 namespace SysTuning {

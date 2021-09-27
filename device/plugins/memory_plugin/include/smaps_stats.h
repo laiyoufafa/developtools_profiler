@@ -132,13 +132,13 @@ enum VmemifoType {
     VMHEAP_GL,
     VMHEAP_OTHER_MEMTRACK,
 
-    // Dalvik extra sections (heap).
+    // extra sections (heap).
     VMHEAP_SENSITIVE_VM_NORMAL,
     VMHEAP_SENSITIVE_VM_LARGE,
     VMHEAP_SENSITIVE_VM_ZYGOTE,
     VMHEAP_SENSITIVE_VM_NON_MOVING,
 
-    // Dalvik other extra sections.
+    // other extra sections.
     VMHEAP_SENSITIVE_VM_OTHER_LINEARALLOC,
     VMHEAP_SENSITIVE_VM_OTHER_ACCOUNTING,
     VMHEAP_SENSITIVE_VM_OTHER_ZYGOTE_CODE_CACHE,
