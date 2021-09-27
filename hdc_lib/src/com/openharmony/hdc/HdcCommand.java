@@ -45,7 +45,7 @@ class HdcCommand {
      * @param path bin path
      */
     protected HdcCommand(String path) {
-        Hilog.d(TAG, "init HdcCommand");
+        Hilog.debug(TAG, "init HdcCommand");
         mHdcPath = path;
     }
 
@@ -56,7 +56,7 @@ class HdcCommand {
      * @return whether execute successfully
      */
     protected boolean executeHdcCommand(String command) {
-        Hilog.d(TAG, "command is :" + command);
+        Hilog.debug(TAG, "command is :" + command);
         if (command != null) {
             return processCommand(getHdcCommand(command));
         } else {
@@ -92,9 +92,9 @@ class HdcCommand {
             mProcess = processBuilder.start();
             status = getProcessOutput(mProcess, errorOutput, stdOutput);
         } catch (IOException error) {
-            Hilog.d(TAG, "processBuilder error " + error);
+            Hilog.debug(TAG, "processBuilder error " + error);
         } catch (InterruptedException ie) {
-            Hilog.e(TAG, "Unable to run 'hdc': " + ie.getMessage());
+            Hilog.error(TAG, "Unable to run 'hdc': " + ie.getMessage());
         }
 
         if (strings.length == 2 && strings[1].equals(VERSION)) {
@@ -106,10 +106,10 @@ class HdcCommand {
         }
 
         if (status != 0) {
-            Hilog.e(TAG, "exec " + processBuilder.command().toString() + " failed -- run manually if necessary");
+            Hilog.error(TAG, "exec " + processBuilder.command().toString() + " failed -- run manually if necessary");
             return false;
         } else {
-            Hilog.d(TAG, "exec " + processBuilder.command().toString() + "succeeded");
+            Hilog.debug(TAG, "exec " + processBuilder.command().toString() + "succeeded");
             return true;
         }
     }
@@ -132,7 +132,7 @@ class HdcCommand {
                         }
                     }
                 } catch (IOException error) {
-                    Hilog.e(TAG, error);
+                    Hilog.error(TAG, error);
                 } finally {
                     close(is, errReader);
                 }
@@ -153,7 +153,7 @@ class HdcCommand {
                         }
                     }
                 } catch (IOException error) {
-                    Hilog.e(TAG, error);
+                    Hilog.error(TAG, error);
                 } finally {
                     close(is, outReader);
                 }

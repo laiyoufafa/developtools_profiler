@@ -15,7 +15,9 @@
 
 package test.com.openharmony.utils;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+
+import java.io.UnsupportedEncodingException;
 
 import org.junit.Test;
 
@@ -27,61 +29,76 @@ import com.openharmony.utils.FormatUtil;
 public class FormatUtilTest {
     /**
      * test a Ascii to int
+     *
+     * @throws UnsupportedEncodingException UnsupportedEncodingException when we test
      */
     @Test
-    public void testAsciiStringToInt01() {
+    public void testAsciiStringToInt01() throws UnsupportedEncodingException {
         String ascii = ":";
-        byte[] byte_ascii = new byte[4];
-        System.arraycopy(ascii.getBytes(), 0, byte_ascii, 0, ascii.length());
-        int format = FormatUtil.asciiStringToInt(byte_ascii);
+        String encoding = "ISO-8859-1";
+        byte[] byteAscii = new byte[4];
+        System.arraycopy(ascii.getBytes(encoding), 0, byteAscii, 0, ascii.length());
+        int format = FormatUtil.asciiStringToInt(byteAscii);
         assertEquals(58, format);
     }
 
     /**
      * test two Ascii to int
+     *
+     * @throws UnsupportedEncodingException UnsupportedEncodingException when we test
      */
     @Test
-    public void testAsciiStringToInt02() {
+    public void testAsciiStringToInt02() throws UnsupportedEncodingException {
         String ascii = "::";
-        byte[] byte_ascii = new byte[4];
-        System.arraycopy(ascii.getBytes(), 0, byte_ascii, 0, ascii.length());
-        int format = FormatUtil.asciiStringToInt(byte_ascii);
+        String encoding = "ISO-8859-1";
+        byte[] byteAscii = new byte[4];
+        System.arraycopy(ascii.getBytes(encoding), 0, byteAscii, 0, ascii.length());
+        int format = FormatUtil.asciiStringToInt(byteAscii);
         assertEquals(116, format);
     }
 
     /**
      * test three Ascii to int
+     *
+     * @throws UnsupportedEncodingException UnsupportedEncodingException when we test
      */
     @Test
-    public void testAsciiStringToInt03() {
+    public void testAsciiStringToInt03() throws UnsupportedEncodingException {
         String ascii = ":::";
-        byte[] byte_ascii = new byte[4];
-        System.arraycopy(ascii.getBytes(), 0, byte_ascii, 0, ascii.length());
-        int format = FormatUtil.asciiStringToInt(byte_ascii);
+        String encoding = "ISO-8859-1";
+        byte[] byteAscii = new byte[4];
+        System.arraycopy(ascii.getBytes(encoding), 0, byteAscii, 0, ascii.length());
+        int format = FormatUtil.asciiStringToInt(byteAscii);
         assertEquals(174, format);
     }
 
     /**
      * test four Ascii to int
+     *
+     * @throws UnsupportedEncodingException UnsupportedEncodingException when we test
      */
     @Test
-    public void testAsciiStringToInt04() {
+    public void testAsciiStringToInt04() throws UnsupportedEncodingException {
         String ascii = "::::";
-        byte[] byte_ascii = new byte[4];
-        System.arraycopy(ascii.getBytes(), 0, byte_ascii, 0, ascii.length());
-        int format = FormatUtil.asciiStringToInt(byte_ascii);
+        String encoding = "ISO-8859-1";
+        byte[] byteAscii = new byte[4];
+        System.arraycopy(ascii.getBytes(encoding), 0, byteAscii, 0, ascii.length());
+        int format = FormatUtil.asciiStringToInt(byteAscii);
         assertEquals(232, format);
     }
 
     /**
      * test empty Ascii to int
+     *
+     * @throws UnsupportedEncodingException UnsupportedEncodingException when we test
      */
     @Test
-    public void testAsciiStringToInt05() {
+    public void testAsciiStringToInt05() throws UnsupportedEncodingException {
         String ascii = "";
-        byte[] byte_ascii = new byte[4];
-        System.arraycopy(ascii.getBytes(), 0, byte_ascii, 0, ascii.length());
-        int format = FormatUtil.asciiStringToInt(byte_ascii);
+        String encoding = "ISO-8859-1";
+        byte[] byteAscii = new byte[4];
+        System.arraycopy(ascii.getBytes(encoding), 0, byteAscii, 0, ascii.length());
+        int format = FormatUtil.asciiStringToInt(byteAscii);
         assertEquals(0, format);
     }
 }
