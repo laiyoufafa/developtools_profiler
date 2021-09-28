@@ -315,6 +315,5 @@ HWTEST_F(HtraceEventParserTest, ParseDataItem11, TestSize.Level1)
         stream_.traceDataCache_->GetConstStatAndInfo().GetValue(TRACE_EVENT_WORKQUEUE_EXECUTE_END, STAT_EVENT_RECEIVED);
     EXPECT_TRUE(1 == eventCount);
 }
-
 } // namespace TraceStreamer
 } // namespace SysTuning
