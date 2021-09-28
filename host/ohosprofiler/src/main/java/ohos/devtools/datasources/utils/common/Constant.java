@@ -42,7 +42,7 @@ public class Constant {
     /**
      * HIPRO filer result: OK
      */
-    public static final String PLUGIN_RESULT_OK  = "OK";
+    public static final String PLUGIN_RESULT_OK = "OK";
 
     /**
      * need to update Version

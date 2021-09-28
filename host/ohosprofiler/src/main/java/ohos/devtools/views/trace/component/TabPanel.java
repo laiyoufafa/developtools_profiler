@@ -93,6 +93,7 @@ public class TabPanel extends JBTabbedPane implements MouseMotionListener {
 
     /**
      * Sets the rootRect .
+     *
      * <p>You can use getRootRect() to get the value of rootRect</p>
      *
      * @param rect RootRect

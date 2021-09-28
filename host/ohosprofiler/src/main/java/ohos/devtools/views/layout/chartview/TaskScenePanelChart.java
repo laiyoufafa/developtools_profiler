@@ -703,44 +703,8 @@ public class TaskScenePanelChart extends JBPanel {
                 for (Component item : innerLable) {
                     if (item instanceof CustomJLabel && ((CustomJLabel) item).getSessionId() == sessionId) {
                         // 添加Dump
-                        CustomJLabel nameLable = new CustomJLabel(name);
-                        nameLable.setPreferredSize(new Dimension(DUMP_LABLE_WIDTH, LayoutConstants.THIRTY));
-                        String btnStr = "Save Heap Dump";
-                        if (name.contains("Native Hook")) {
-                            btnStr = "Save Native Hook Recording";
-                        }
                         sessionListPanel = new SubSessionListJBPanel();
-                        MigLayout layout = new MigLayout();
-                        sessionListPanel.setLayout(layout);
-                        if (name.contains(LayoutConstants.TRACE_SYSTEM_CALLS)) {
-                            nameLable.setIcon(IconLoader.getIcon("/images/cpu.png", getClass()));
-                            sessionListPanel.add(nameLable, "gapleft 15,wrap 5");
-                        } else {
-                            nameLable.setIcon(IconLoader.getIcon("/images/icon_heap_dump_normal.png", getClass()));
-                            labelSave = new CustomJLabel();
-                            labelSave.setIcon(IconLoader.getIcon("/images/menu-saveall.png", getClass()));
-                            labelSave.setToolTipText(btnStr);
-                            sessionListPanel.add(nameLable, "gapleft 15");
-                            sessionListPanel.add(labelSave, "wrap 5,width 15:15:15,height 15:15:15");
-                            taskScenePanelChartEvent.saveButtonAddClick(labelSave, name);
-                        }
-                        CustomJLabel timeLabel = new CustomJLabel(" " + startTime);
-                        timeLabel.setBounds(LayoutConstants.TIMELABLE_XY, LayoutConstants.TIMELABLE_XY,
-                            LayoutConstants.HUNDRED_EIGHTY, LayoutConstants.THIRTY);
-                        Font font = new Font(Font.DIALOG, Font.PLAIN, LayoutConstants.OPTION_FONT);
-                        timeLabel.setFont(font);
-                        sessionListPanel.add(timeLabel, "gapleft 28");
-                        sessionListPanel.setHosJLabel(nameLable);
-                        sessionListPanel.setStartTime(startTime);
-                        dumpOrHookSessionList.add(sessionListPanel);
-                        sessionListPanel.setBounds(0, number, SESSION_LIST_WIDTH, SESSION_LIST_HEIGHT);
-                        jScrollCardsPanelSession.add(sessionListPanel);
-                        if (number > LayoutConstants.LEFT_TOP_WIDTH) {
-                            jScrollCardsPanelSession
-                                .setPreferredSize(new Dimension(SESSION_LIST_WIDTH, number + SESSION_LIST_HEIGHT));
-                        }
-                        taskScenePanelChartEvent.sessionListPanelAddClick(sessionListPanel, this);
-                        number += SESSION_LIST_HEIGHT;
+                        addDump(name, startTime, labelSave, sessionListPanel, jScrollCardsPanelSession);
                     }
                 }
             }
@@ -758,6 +722,55 @@ public class TaskScenePanelChart extends JBPanel {
         // set Button disabled
         greyFlag = true;
         setButtonEnable(greyFlag, cardName);
+    }
+
+    /**
+     * addDump
+     *
+     * @param name name
+     * @param startTime startTime
+     * @param labelSave labelSave
+     * @param sessionListPanel sessionListPanel
+     * @param jScrollCardsPanelSession jScrollCardsPanelSession
+     */
+    public void addDump(String name, String startTime, CustomJLabel labelSave, SubSessionListJBPanel sessionListPanel, JBPanel jScrollCardsPanelSession) {
+        CustomJLabel nameLable = new CustomJLabel(name);
+        nameLable.setPreferredSize(new Dimension(DUMP_LABLE_WIDTH, LayoutConstants.THIRTY));
+        String btnStr = "Save Heap Dump";
+        if (name.contains("Native Hook")) {
+            btnStr = "Save Native Hook Recording";
+        }
+        MigLayout layout = new MigLayout();
+        sessionListPanel.setLayout(layout);
+        if (name.contains(LayoutConstants.TRACE_SYSTEM_CALLS)) {
+            nameLable.setIcon(IconLoader.getIcon("/images/cpu.png", getClass()));
+            sessionListPanel.add(nameLable, "gapleft 15,wrap 5");
+        } else {
+            nameLable.setIcon(IconLoader.getIcon("/images/icon_heap_dump_normal.png", getClass()));
+            labelSave = new CustomJLabel();
+            labelSave.setIcon(IconLoader.getIcon("/images/menu-saveall.png", getClass()));
+            labelSave.setToolTipText(btnStr);
+            sessionListPanel.add(nameLable, "gapleft 15");
+            sessionListPanel.add(labelSave, "wrap 5,width 15:15:15,height 15:15:15");
+            taskScenePanelChartEvent.saveButtonAddClick(labelSave, name);
+        }
+        CustomJLabel timeLabel = new CustomJLabel(" " + startTime);
+        timeLabel.setBounds(LayoutConstants.TIMELABLE_XY, LayoutConstants.TIMELABLE_XY,
+                LayoutConstants.HUNDRED_EIGHTY, LayoutConstants.THIRTY);
+        Font font = new Font(Font.DIALOG, Font.PLAIN, LayoutConstants.OPTION_FONT);
+        timeLabel.setFont(font);
+        sessionListPanel.add(timeLabel, "gapleft 28");
+        sessionListPanel.setHosJLabel(nameLable);
+        sessionListPanel.setStartTime(startTime);
+        dumpOrHookSessionList.add(sessionListPanel);
+        sessionListPanel.setBounds(0, number, SESSION_LIST_WIDTH, SESSION_LIST_HEIGHT);
+        jScrollCardsPanelSession.add(sessionListPanel);
+        if (number > LayoutConstants.LEFT_TOP_WIDTH) {
+            jScrollCardsPanelSession
+                    .setPreferredSize(new Dimension(SESSION_LIST_WIDTH, number + SESSION_LIST_HEIGHT));
+        }
+        taskScenePanelChartEvent.sessionListPanelAddClick(sessionListPanel, this);
+        number += SESSION_LIST_HEIGHT;
     }
 
     /**

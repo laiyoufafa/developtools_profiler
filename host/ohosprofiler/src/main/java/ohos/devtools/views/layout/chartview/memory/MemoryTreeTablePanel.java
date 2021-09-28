@@ -211,7 +211,6 @@ public class MemoryTreeTablePanel extends JBPanel {
                         .removeMouseMotionListener(memoryAgentHeapInfoPanel.mouseMotionAdapter);
                 }
             }
-
             @Override
             public void focusLost(FocusEvent focusEvent) {
                 if (search.getText().length() < 1) {
@@ -224,101 +223,13 @@ public class MemoryTreeTablePanel extends JBPanel {
         search.getDocument().addDocumentListener(new DocumentListener() {
             @Override
             public void insertUpdate(DocumentEvent event) {
-                String text = search.getText();
-                ExpandTreeTable treeTable = memoryAgentHeapInfoPanel.getTreeTable();
-                TreeTableModel model = treeTable.getModel();
-                if (model instanceof ListTreeTableModelOnColumns) {
-                    SwingUtilities.invokeLater(new Runnable() {
-                        @Override
-                        public void run() {
-                            ListTreeTableModelOnColumns tableModel = (ListTreeTableModelOnColumns) model;
-                            DefaultMutableTreeNode root = null;
-                            Object tableModelRoot = tableModel.getRoot();
-                            if (tableModelRoot instanceof DefaultMutableTreeNode) {
-                                root = (DefaultMutableTreeNode) tableModelRoot;
-                                List<AgentHeapBean> datas = memoryAgentHeapInfoPanel.allAgentDatas.stream()
-                                    .filter(agentDataNode -> agentDataNode.getAgentClazzName().contains(text))
-                                    .collect(Collectors.toList());
-                                root.removeAllChildren();
-                                int totalAllocations = 0;
-                                int totalDeallocations = 0;
-                                int totalTotalCount = 0;
-                                long totalShallowSize = 0;
-                                for (AgentHeapBean agentHeapBean : datas) {
-                                    totalAllocations = totalAllocations + agentHeapBean.getAgentAllocationsCount();
-                                    totalDeallocations =
-                                        totalDeallocations + agentHeapBean.getAgentDeAllocationsCount();
-                                    totalTotalCount = totalTotalCount + agentHeapBean.getAgentTotalInstanceCount();
-                                    totalShallowSize = totalShallowSize + agentHeapBean.getAgentTotalshallowSize();
-                                    root.add(new DefaultMutableTreeNode(agentHeapBean));
-                                }
-                                AgentHeapBean userObject = null;
-                                Object rootUserObject = root.getUserObject();
-                                if (rootUserObject instanceof AgentHeapBean) {
-                                    userObject = (AgentHeapBean) rootUserObject;
-                                    userObject.setAgentAllocationsCount(totalAllocations);
-                                    userObject.setAgentDeAllocationsCount(totalDeallocations);
-                                    userObject.setAgentTotalInstanceCount(totalTotalCount);
-                                    userObject.setAgentTotalshallowSize(totalShallowSize);
-                                    root.setUserObject(userObject);
-                                }
-                            }
-                            tableModel.reload();
-                            memoryAgentHeapInfoPanel.getTreeTable().getVerticalScrollBar().setValue(0);
-                        }
-                    });
-                }
+                searchInsertUpdate(search);
             }
-
             @Override
             public void removeUpdate(DocumentEvent event) {
                 // search
-                String text = search.getText();
-                ExpandTreeTable treeTable = memoryAgentHeapInfoPanel.getTreeTable();
-                TreeTableModel model = treeTable.getModel();
-                if (model instanceof ListTreeTableModelOnColumns) {
-                    SwingUtilities.invokeLater(new Runnable() {
-                        @Override
-                        public void run() {
-                            ListTreeTableModelOnColumns tableModel = (ListTreeTableModelOnColumns) model;
-                            DefaultMutableTreeNode root = null;
-                            Object tableModelRoot = tableModel.getRoot();
-                            if (tableModelRoot instanceof DefaultMutableTreeNode) {
-                                root = (DefaultMutableTreeNode) tableModelRoot;
-                                List<AgentHeapBean> datas = memoryAgentHeapInfoPanel.allAgentDatas.stream()
-                                    .filter(agentDataNode -> agentDataNode.getAgentClazzName().contains(text))
-                                    .collect(Collectors.toList());
-                                root.removeAllChildren();
-                                int totalAllocations = 0;
-                                int totalDeallocations = 0;
-                                int totalTotalCount = 0;
-                                long totalShallowSize = 0;
-                                for (AgentHeapBean agentHeapBean : datas) {
-                                    totalAllocations = totalAllocations + agentHeapBean.getAgentAllocationsCount();
-                                    totalDeallocations =
-                                        totalDeallocations + agentHeapBean.getAgentDeAllocationsCount();
-                                    totalTotalCount = totalTotalCount + agentHeapBean.getAgentTotalInstanceCount();
-                                    totalShallowSize = totalShallowSize + agentHeapBean.getAgentTotalshallowSize();
-                                    root.add(new DefaultMutableTreeNode(agentHeapBean));
-                                }
-                                AgentHeapBean userObject = null;
-                                Object rootUserObject = root.getUserObject();
-                                if (rootUserObject instanceof AgentHeapBean) {
-                                    userObject = (AgentHeapBean) rootUserObject;
-                                    userObject.setAgentAllocationsCount(totalAllocations);
-                                    userObject.setAgentDeAllocationsCount(totalDeallocations);
-                                    userObject.setAgentTotalInstanceCount(totalTotalCount);
-                                    userObject.setAgentTotalshallowSize(totalShallowSize);
-                                    root.setUserObject(userObject);
-                                }
-                            }
-                            tableModel.reload();
-                            memoryAgentHeapInfoPanel.getTreeTable().getVerticalScrollBar().setValue(0);
-                        }
-                    });
-                }
+                searchRemoveUpdate(search);
             }
-
             /**
              * Gives notification that an attribute or set of attributes changed.
              *
@@ -328,6 +239,110 @@ public class MemoryTreeTablePanel extends JBPanel {
             public void changedUpdate(DocumentEvent documentEvent) {
             }
         });
+    }
+
+    /**
+     * searchRemoveUpdate
+     *
+     * @param search search
+     */
+    public void searchRemoveUpdate(CustomJBTextField search) {
+        String text = search.getText();
+        ExpandTreeTable treeTable = memoryAgentHeapInfoPanel.getTreeTable();
+        TreeTableModel model = treeTable.getModel();
+        if (model instanceof ListTreeTableModelOnColumns) {
+            SwingUtilities.invokeLater(new Runnable() {
+                @Override
+                public void run() {
+                    ListTreeTableModelOnColumns tableModel = (ListTreeTableModelOnColumns) model;
+                    DefaultMutableTreeNode root = null;
+                    Object tableModelRoot = tableModel.getRoot();
+                    if (tableModelRoot instanceof DefaultMutableTreeNode) {
+                        root = (DefaultMutableTreeNode) tableModelRoot;
+                        List<AgentHeapBean> datas = memoryAgentHeapInfoPanel.allAgentDatas.stream()
+                                .filter(agentDataNode -> agentDataNode.getAgentClazzName().contains(text))
+                                .collect(Collectors.toList());
+                        root.removeAllChildren();
+                        int totalAllocations = 0;
+                        int totalDeallocations = 0;
+                        int totalTotalCount = 0;
+                        long totalShallowSize = 0;
+                        for (AgentHeapBean agentHeapBean : datas) {
+                            totalAllocations = totalAllocations + agentHeapBean.getAgentAllocationsCount();
+                            totalDeallocations =
+                                    totalDeallocations + agentHeapBean.getAgentDeAllocationsCount();
+                            totalTotalCount = totalTotalCount + agentHeapBean.getAgentTotalInstanceCount();
+                            totalShallowSize = totalShallowSize + agentHeapBean.getAgentTotalshallowSize();
+                            root.add(new DefaultMutableTreeNode(agentHeapBean));
+                        }
+                        AgentHeapBean userObject = null;
+                        Object rootUserObject = root.getUserObject();
+                        if (rootUserObject instanceof AgentHeapBean) {
+                            userObject = (AgentHeapBean) rootUserObject;
+                            userObject.setAgentAllocationsCount(totalAllocations);
+                            userObject.setAgentDeAllocationsCount(totalDeallocations);
+                            userObject.setAgentTotalInstanceCount(totalTotalCount);
+                            userObject.setAgentTotalshallowSize(totalShallowSize);
+                            root.setUserObject(userObject);
+                        }
+                    }
+                    tableModel.reload();
+                    memoryAgentHeapInfoPanel.getTreeTable().getVerticalScrollBar().setValue(0);
+                }
+            });
+        }
+    }
+
+    /**
+     * searchInsertUpdate
+     *
+     * @param search search
+     */
+    public void searchInsertUpdate(CustomJBTextField search) {
+        String text = search.getText();
+        ExpandTreeTable treeTable = memoryAgentHeapInfoPanel.getTreeTable();
+        TreeTableModel model = treeTable.getModel();
+        if (model instanceof ListTreeTableModelOnColumns) {
+            SwingUtilities.invokeLater(new Runnable() {
+                @Override
+                public void run() {
+                    ListTreeTableModelOnColumns tableModel = (ListTreeTableModelOnColumns) model;
+                    DefaultMutableTreeNode root = null;
+                    Object tableModelRoot = tableModel.getRoot();
+                    if (tableModelRoot instanceof DefaultMutableTreeNode) {
+                        root = (DefaultMutableTreeNode) tableModelRoot;
+                        List<AgentHeapBean> datas = memoryAgentHeapInfoPanel.allAgentDatas.stream()
+                                .filter(agentDataNode -> agentDataNode.getAgentClazzName().contains(text))
+                                .collect(Collectors.toList());
+                        root.removeAllChildren();
+                        int totalAllocations = 0;
+                        int totalDeallocations = 0;
+                        int totalTotalCount = 0;
+                        long totalShallowSize = 0;
+                        for (AgentHeapBean agentHeapBean : datas) {
+                            totalAllocations = totalAllocations + agentHeapBean.getAgentAllocationsCount();
+                            totalDeallocations =
+                                    totalDeallocations + agentHeapBean.getAgentDeAllocationsCount();
+                            totalTotalCount = totalTotalCount + agentHeapBean.getAgentTotalInstanceCount();
+                            totalShallowSize = totalShallowSize + agentHeapBean.getAgentTotalshallowSize();
+                            root.add(new DefaultMutableTreeNode(agentHeapBean));
+                        }
+                        AgentHeapBean userObject = null;
+                        Object rootUserObject = root.getUserObject();
+                        if (rootUserObject instanceof AgentHeapBean) {
+                            userObject = (AgentHeapBean) rootUserObject;
+                            userObject.setAgentAllocationsCount(totalAllocations);
+                            userObject.setAgentDeAllocationsCount(totalDeallocations);
+                            userObject.setAgentTotalInstanceCount(totalTotalCount);
+                            userObject.setAgentTotalshallowSize(totalShallowSize);
+                            root.setUserObject(userObject);
+                        }
+                    }
+                    tableModel.reload();
+                    memoryAgentHeapInfoPanel.getTreeTable().getVerticalScrollBar().setValue(0);
+                }
+            });
+        }
     }
 
     public MemoryAgentHeapInfoPanel getMemoryAgentHeapInfoPanel() {

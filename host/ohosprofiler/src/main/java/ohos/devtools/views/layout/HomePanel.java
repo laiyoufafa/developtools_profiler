@@ -46,16 +46,16 @@ import static ohos.devtools.views.common.LayoutConstants.WINDOW_WIDTH;
  * HomePanel
  */
 public class HomePanel extends JBPanel implements ActionListener, MouseListener {
-    private static final String LOG_SWITCH_STR  = "Path to Log";
-    private static final String FILE_MENU_STR  = "  File  ";
-    private static final String NEW_TASK_STR  = "New Task";
-    private static final String OPEN_FILE_STR  = "Open File";
-    private static final String SAVE_AS_STR  = "Save as";
-    private static final String QUIT_STR  = "Quit";
-    private static final String SETTING_STR  = "Setting";
-    private static final String HILOG  = "HiLog";
+    private static final String LOG_SWITCH_STR = "Path to Log";
+    private static final String FILE_MENU_STR = "  File  ";
+    private static final String NEW_TASK_STR = "New Task";
+    private static final String OPEN_FILE_STR = "Open File";
+    private static final String SAVE_AS_STR = "Save as";
+    private static final String QUIT_STR = "Quit";
+    private static final String SETTING_STR = "Setting";
+    private static final String HILOG = "HiLog";
     private static final String HELP = "Help";
-    private static final String ABOUT  = "About";
+    private static final String ABOUT = "About";
     private JBPanel menuPanel;
     private WelcomePanel welcomePanel;
     private JBPanel containerPanel;

@@ -358,19 +358,19 @@ public final class LegendTooltip extends JComponent {
         statusLabel.setOpaque(false);
         switch (threadStatus) {
             case THREAD_RUNNING:
-                statusLabel.setText("RUNNING");;
+                statusLabel.setText("RUNNING");
                 break;
             case THREAD_SLEEPING:
-                statusLabel.setText("SLEEPING");;
+                statusLabel.setText("SLEEPING");
                 break;
             case THREAD_STOPPED:
-                statusLabel.setText("STOPPED");;
+                statusLabel.setText("STOPPED");
                 break;
             case THREAD_WAITING:
-                statusLabel.setText("WAITING");;
+                statusLabel.setText("WAITING");
                 break;
             default:
-                statusLabel.setText("UNSPECIFIED");;
+                statusLabel.setText("UNSPECIFIED");
         }
         mainPanel.add(statusLabel);
         JBLabel usageLabel = new JBLabel();

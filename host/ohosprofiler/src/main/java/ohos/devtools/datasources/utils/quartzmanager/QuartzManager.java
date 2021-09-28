@@ -66,7 +66,7 @@ public class QuartzManager {
     /**
      * execution
      *
-     * @param runName  runName
+     * @param runName runName
      * @param runnable runnable
      */
     public void addExecutor(String runName, Runnable runnable) {
@@ -80,8 +80,8 @@ public class QuartzManager {
      * begin Execution
      *
      * @param runName runName
-     * @param delay   delay
-     * @param period  period
+     * @param delay delay
+     * @param period period
      */
     public void startExecutor(String runName, long delay, long period) {
         ScheduledExecutorService scheduled = executorHashMap.get(runName);

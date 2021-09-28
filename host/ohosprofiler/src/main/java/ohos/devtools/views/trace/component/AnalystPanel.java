@@ -50,6 +50,7 @@ import ohos.devtools.views.trace.util.Db;
 import ohos.devtools.views.trace.util.TimeUtils;
 import ohos.devtools.views.trace.util.Utils;
 import org.apache.commons.compress.utils.Lists;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.JLayeredPane;
 import javax.swing.JOptionPane;
@@ -264,7 +265,7 @@ public final class AnalystPanel extends JBPanel
     /**
      * add cpu freg data list
      *
-     * @param list       source
+     * @param list source
      * @param cpuMaxFreq cpu size
      */
     public void addCpuFreqList(final List<List<CpuFreqData>> list, final CpuFreqMax cpuMaxFreq) {
@@ -289,26 +290,13 @@ public final class AnalystPanel extends JBPanel
     /**
      * add thread data list
      *
-     * @param list        thread list
-     * @param processMem  process list
+     * @param list thread list
+     * @param processMem process list
      * @param asyncEvents asyncEvents
      */
     public void addThreadsList(final List<ThreadData> list, final List<ProcessMem> processMem,
         List<AsyncEvent> asyncEvents) {
-        /*
-         * If the list has no data (obtained by memory sorting),
-         * then directly query the process and thread tables to find the data
-         */
-        if (list.isEmpty()) {
-            Db.getInstance().query(Sql.SYS_QUERY_PROCESS_THREADS_NORDER, list);
-        }
-        threadsList = list;
-        List<Process> processes = new ArrayList<>() {
-        };
-        Db.getInstance().query(Sql.SYS_QUERY_PROCESS, processes);
-        if (processes.isEmpty()) {
-            Db.getInstance().query(Sql.SYS_QUERY_PROCESS_NORDER, processes);
-        }
+        List<Process> processes = getProcesses(list);
         for (Process process : processes) {
             if (process.getPid() == 0) {
                 continue;
@@ -351,6 +339,23 @@ public final class AnalystPanel extends JBPanel
         }
     }
 
+    @NotNull
+    private List<Process> getProcesses(List<ThreadData> list) {
+        // If the list has no data (obtained by memory sorting)
+        if (list.isEmpty()) {
+            // then directly query the process and thread tables to find the data
+            Db.getInstance().query(Sql.SYS_QUERY_PROCESS_THREADS_NORDER, list);
+        }
+        threadsList = list;
+        List<Process> processes = new ArrayList<>() {
+        };
+        Db.getInstance().query(Sql.SYS_QUERY_PROCESS, processes);
+        if (processes.isEmpty()) {
+            Db.getInstance().query(Sql.SYS_QUERY_PROCESS_NORDER, processes);
+        }
+        return processes;
+    }
+
     private void addThreadsList2(List<ThreadData> list) {
         list.stream().filter(data -> data.getProcessName() == null || data.getProcessName().isEmpty())
             .forEach(threadData -> {
@@ -387,7 +392,7 @@ public final class AnalystPanel extends JBPanel
     /**
      * load database
      *
-     * @param name    db name
+     * @param name db name
      * @param isLocal is local db
      */
     public void load(final String name, final boolean isLocal) {
@@ -491,11 +496,11 @@ public final class AnalystPanel extends JBPanel
     /**
      * The bottom tab is displayed when the select event is clicked.
      *
-     * @param cpus      select cpu list（）
+     * @param cpus select cpu list（）
      * @param threadIds select thread id list
-     * @param trackIds  select mem track id list
-     * @param ns        select start time ns and end time ns
-     * @param funTids   funTids
+     * @param trackIds select mem track id list
+     * @param ns select start time ns and end time ns
+     * @param funTids funTids
      */
     public void boxSelection(final List<Integer> cpus, final List<Integer> threadIds, final List<Integer> trackIds,
         final List<Integer> funTids, final LeftRightNS ns) {

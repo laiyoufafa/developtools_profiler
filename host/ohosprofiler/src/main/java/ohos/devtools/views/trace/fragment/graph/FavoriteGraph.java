@@ -42,7 +42,7 @@ public class FavoriteGraph extends AbstractGraph {
      * structure
      *
      * @param fragment fragment fragment
-     * @param root     root root
+     * @param root root root
      * @param listener listener
      */
     public FavoriteGraph(final AbstractDataFragment fragment, final JComponent root, IGraphListener listener) {

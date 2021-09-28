@@ -79,8 +79,7 @@ public class TimeUtils {
         if (micros > 0) {
             ns = ns - TimeUnit.MICROSECONDS.toNanos(micros);
             BigDecimal divide = new BigDecimal(ns).divide(new BigDecimal(1000D), 0, ROUND_HALF_UP);
-            long nanos = divide.longValue();
-            if (nanos > 0) {
+            if (divide.longValue() > 0) {
                 micros++;
             }
             time.append(micros).append("μs");

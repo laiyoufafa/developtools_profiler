@@ -61,7 +61,7 @@ public class MemDataFragment extends AbstractDataFragment<ProcessMemData> implem
      * structure
      *
      * @param root root
-     * @param mem  mem
+     * @param mem mem
      */
     public MemDataFragment(JComponent root, ProcessMem mem) {
         super(root, true, false);
@@ -222,7 +222,7 @@ public class MemDataFragment extends AbstractDataFragment<ProcessMemData> implem
      * Mouse click event
      *
      * @param event event
-     * @param data  data
+     * @param data data
      */
     @Override
     public void click(MouseEvent event, ThreadData data) {
@@ -239,7 +239,7 @@ public class MemDataFragment extends AbstractDataFragment<ProcessMemData> implem
      * Mouse blur event
      *
      * @param event event
-     * @param data  data
+     * @param data data
      */
     @Override
     public void blur(MouseEvent event, ThreadData data) {
@@ -249,7 +249,7 @@ public class MemDataFragment extends AbstractDataFragment<ProcessMemData> implem
      * Mouse focus event
      *
      * @param event event
-     * @param data  data
+     * @param data data
      */
     @Override
     public void focus(MouseEvent event, ThreadData data) {
@@ -259,7 +259,7 @@ public class MemDataFragment extends AbstractDataFragment<ProcessMemData> implem
      * Mouse move event
      *
      * @param event event
-     * @param data  data
+     * @param data data
      */
     @Override
     public void mouseMove(MouseEvent event, ThreadData data) {

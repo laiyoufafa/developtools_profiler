@@ -19,7 +19,6 @@ import ohos.devtools.views.trace.DField;
 
 /**
  * Memory data
- *
  */
 public class Memory {
     @DField(name = "maxNum")

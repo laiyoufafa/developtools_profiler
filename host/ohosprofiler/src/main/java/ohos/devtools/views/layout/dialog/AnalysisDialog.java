@@ -31,7 +31,7 @@ import java.awt.BorderLayout;
  */
 public class AnalysisDialog extends DialogWrapper {
     private JPanel filePanel;
-    private JBLabel timeJLabel ;
+    private JBLabel timeJLabel;
     private TaskPanel jTaskPanel;
     private Timer timer;
     private DeviceIPPortInfo deviceIPPortInfo;

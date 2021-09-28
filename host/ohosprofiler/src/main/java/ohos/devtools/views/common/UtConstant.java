@@ -22,7 +22,7 @@ public class UtConstant {
     /**
      * New task button
      */
-    public static final String  UT_WELCOME_PANEL_NEW_TASK_BTN = "newTaskBtn";
+    public static final String UT_WELCOME_PANEL_NEW_TASK_BTN = "newTaskBtn";
 
     /**
      * connect Type ComboBox
@@ -80,27 +80,27 @@ public class UtConstant {
     public static final String UT_TASK_SCENE_PANEL_CHART_CONFIG = "configButton";
 
     /**
-     *  Button stop
+     * Button stop
      */
     public static final String UT_TASK_SCENE_PANEL_CHART_STOP_BUTTON = "jButtonStop";
 
     /**
-     *  Button run
+     * Button run
      */
     public static final String UT_TASK_SCENE_PANEL_CHART_RUN_BUTTON = "jButtonRun";
 
     /**
-     *  Button save
+     * Button save
      */
     public static final String UT_TASK_SCENE_PANEL_CHART_SAVE_BUTTON = "jButtonSave";
 
     /**
-     *  Button delete
+     * Button delete
      */
     public static final String UT_TASK_SCENE_PANEL_CHART_DELETE_BUTTON = "jButtonDelete";
 
     /**
-     *  export file dialog
+     * export file dialog
      */
     public static final String UT_EXPORT_FILE_FILE_NAME = "fileName";
 

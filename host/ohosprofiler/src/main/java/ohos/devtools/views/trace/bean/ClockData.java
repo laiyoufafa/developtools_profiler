@@ -367,7 +367,7 @@ public class ClockData extends AbstractGraph {
          * Mouse click event
          *
          * @param event event
-         * @param data  data
+         * @param data data
          */
         void click(MouseEvent event, ClockData data);
 
@@ -375,7 +375,7 @@ public class ClockData extends AbstractGraph {
          * Mouse blur event
          *
          * @param event event
-         * @param data  data
+         * @param data data
          */
         void blur(MouseEvent event, ClockData data);
 
@@ -383,7 +383,7 @@ public class ClockData extends AbstractGraph {
          * Mouse focus event
          *
          * @param event event
-         * @param data  data
+         * @param data data
          */
         void focus(MouseEvent event, ClockData data);
 
@@ -391,7 +391,7 @@ public class ClockData extends AbstractGraph {
          * Mouse move event
          *
          * @param event event
-         * @param data  data
+         * @param data data
          */
         void mouseMove(MouseEvent event, ClockData data);
     }

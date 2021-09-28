@@ -415,8 +415,8 @@ public abstract class ProfilerChart extends JBPanel implements MouseListener, Mo
             String str = null;
             if (yAxisList.size() > 0 && index < yAxisList.size()) {
                 str = yAxisList.get(index);
-                index ++;
-            }else {
+                index++;
+            } else {
                 str = getYaxisLabelStr(value);
             }
             graphics.setColor(JBColor.foreground());

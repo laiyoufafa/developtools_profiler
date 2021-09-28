@@ -39,7 +39,7 @@ public class ProfilerMonitorItem {
     /**
      * getName
      *
-     * @return String
+     * @return String name
      */
     public String getName() {
         return name;
@@ -57,7 +57,7 @@ public class ProfilerMonitorItem {
     /**
      * getIndex
      *
-     * @return int
+     * @return int index
      */
     public int getIndex() {
         return index;

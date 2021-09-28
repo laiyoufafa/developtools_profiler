@@ -32,7 +32,6 @@ import javax.swing.tree.TreePath;
 import java.awt.Component;
 import java.util.Vector;
 
-
 /**
  * ExpandTreeTable
  */

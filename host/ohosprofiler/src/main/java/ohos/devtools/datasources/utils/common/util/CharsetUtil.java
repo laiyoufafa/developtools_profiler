@@ -86,7 +86,7 @@ public class CharsetUtil {
     /**
      * Parses a Charset object.
      *
-     * @param charsetName    Indicates the Charset to be used if the parsing fails.
+     * @param charsetName Indicates the Charset to be used if the parsing fails.
      * @param defaultCharset 解析失败使用的默认编码
      * @return Returns the parsed Charset if the parsing is successful; returns the default Charset otherwise.
      */
@@ -108,8 +108,8 @@ public class CharsetUtil {
     /**
      * Convert Charset of a given string.
      *
-     * @param source      Sting to be converted.
-     * @param srcCharset  Source Charset, which is GBK by default.
+     * @param source Sting to be converted.
+     * @param srcCharset Source Charset, which is GBK by default.
      * @param destCharset Target Charset, which is UTF-8 by default.
      * @return New Charset after the conversion.
      */
@@ -120,8 +120,8 @@ public class CharsetUtil {
     /**
      * Convert Charset of a given string.
      *
-     * @param source      Sting to be converted.
-     * @param srcCharset  Source Charset, which is GBK by default.
+     * @param source Sting to be converted.
+     * @param srcCharset Source Charset, which is GBK by default.
      * @param destCharset Target Charset, which is UTF-8 by default.
      * @return New Charset after the conversion.
      */

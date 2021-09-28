@@ -220,7 +220,7 @@ public class FlagBean extends AbstractGraph {
          * Click event
          *
          * @param event event
-         * @param data  data
+         * @param data data
          */
         void click(MouseEvent event, FlagBean data);
 
@@ -228,7 +228,7 @@ public class FlagBean extends AbstractGraph {
          * Focus cancel event
          *
          * @param event event
-         * @param data  data
+         * @param data data
          */
         void blur(MouseEvent event, FlagBean data);
 
@@ -236,7 +236,7 @@ public class FlagBean extends AbstractGraph {
          * Focus acquisition event
          *
          * @param event event
-         * @param data  data
+         * @param data data
          */
         void focus(MouseEvent event, FlagBean data);
 
@@ -244,7 +244,7 @@ public class FlagBean extends AbstractGraph {
          * Mouse movement event
          *
          * @param event event
-         * @param data  data
+         * @param data data
          */
         void mouseMove(MouseEvent event, FlagBean data);
 
@@ -255,5 +255,4 @@ public class FlagBean extends AbstractGraph {
          */
         void delete(FlagBean data);
     }
-
 }

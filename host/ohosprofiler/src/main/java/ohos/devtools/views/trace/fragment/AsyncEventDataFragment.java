@@ -50,8 +50,8 @@ public class AsyncEventDataFragment extends AbstractDataFragment<AsyncEvent> {
     /**
      * structure
      *
-     * @param root        root
-     * @param obj         mem
+     * @param root root
+     * @param obj mem
      * @param asyncEvents asyncEvents
      */
     public AsyncEventDataFragment(JComponent root, AsyncEvent obj, List<AsyncEvent> asyncEvents) {

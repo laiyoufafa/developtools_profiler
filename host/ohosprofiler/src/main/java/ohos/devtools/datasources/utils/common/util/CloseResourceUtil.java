@@ -29,9 +29,9 @@ public class CloseResourceUtil {
     /**
      * Close Resource
      *
-     * @param logger    Logger
-     * @param conn      Connection
-     * @param ps        PreparedStatement
+     * @param logger Logger
+     * @param conn Connection
+     * @param ps PreparedStatement
      * @param statement Statement
      */
     public static void closeResource(Logger logger, Connection conn, PreparedStatement ps, Statement statement) {
