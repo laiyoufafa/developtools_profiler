@@ -52,7 +52,7 @@ public class CommonUtil {
      * Generates a session name.
      *
      * @param deviceName Indicates the device name.
-     * @param pid        Indicates the process ID.
+     * @param pid Indicates the process ID.
      * @return String
      */
     public static String generateSessionName(String deviceName, int pid) {

@@ -38,7 +38,7 @@ public class CheckGraph extends AbstractGraph {
      * structure
      *
      * @param fragment fragment
-     * @param root     root
+     * @param root root
      */
     public CheckGraph(final AbstractDataFragment fragment, final JComponent root) {
         this.fragment = fragment;

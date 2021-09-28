@@ -39,7 +39,7 @@ public class GrpcException extends Exception {
      * GrpcException
      *
      * @param message Grpc message
-     * @param cause   Throwable cause
+     * @param cause Throwable cause
      */
     public GrpcException(String message, Throwable cause) {
         super(message, cause);

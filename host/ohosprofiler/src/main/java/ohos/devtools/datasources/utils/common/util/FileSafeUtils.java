@@ -43,7 +43,7 @@ public final class FileSafeUtils {
     /**
      * Gets the MD5 code of the file. Available algorithmType options include MD5, SHA1, SHA-256, SHA-384, and SHA-512.
      *
-     * @param file          Indicates the file to obtain the MD5 code.
+     * @param file Indicates the file to obtain the MD5 code.
      * @param algorithmType Indicates the algorithm type.
      * @return Returns a string of the MD5 code.
      */
@@ -98,7 +98,7 @@ public final class FileSafeUtils {
     /**
      * Sets whether to recursively search files in the sub-directories for the MD code of files.
      *
-     * @param dirFile   Indicates the files in the sub-directories.
+     * @param dirFile Indicates the files in the sub-directories.
      * @param algorithm Indicates the algorithm.
      * @param listChild Indicates whether to recursively search files in the sub-directories.
      * @return Returns Map<String, String>
@@ -127,7 +127,7 @@ public final class FileSafeUtils {
     /**
      * Compares the Hash values in two files.
      *
-     * @param foreFileMD5  Indicates the MD5 code of the source file.
+     * @param foreFileMD5 Indicates the MD5 code of the source file.
      * @param laterFileMD5 Indicates the MD5 code of the target file.
      * @return Returns true if the MD5 codes are the same; returns false otherwise.
      */
@@ -138,8 +138,8 @@ public final class FileSafeUtils {
     /**
      * Checks for file changes.
      *
-     * @param foreFile      Indicates the original file.
-     * @param laterFile     Indicates the new file.
+     * @param foreFile Indicates the original file.
+     * @param laterFile Indicates the new file.
      * @param algorithmType Indicates the algorithm type.
      * @return Returns true if there is no change in the file; returns false otherwise.
      */

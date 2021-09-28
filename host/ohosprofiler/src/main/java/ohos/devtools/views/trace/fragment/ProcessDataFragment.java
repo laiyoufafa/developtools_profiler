@@ -66,7 +66,7 @@ public class ProcessDataFragment extends AbstractDataFragment<ProcessData> imple
     /**
      * constructor
      *
-     * @param root    root
+     * @param root root
      * @param process process
      */
     public ProcessDataFragment(JComponent root, Process process) {

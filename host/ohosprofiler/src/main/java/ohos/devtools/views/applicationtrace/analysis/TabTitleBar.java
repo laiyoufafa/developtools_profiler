@@ -52,7 +52,7 @@ public class TabTitleBar extends JPanel {
     /**
      * add tab
      *
-     * @param tabName      tabName
+     * @param tabName tabName
      * @param currentIndex currentIndex
      */
     public void addTab(String tabName, int currentIndex) {

@@ -43,7 +43,7 @@ public class LineChart extends ProfilerChart {
      * Constructor
      *
      * @param bottomPanel ProfilerChartsView
-     * @param name        chart name
+     * @param name chart name
      */
     public LineChart(ProfilerChartsView bottomPanel, String name) {
         super(bottomPanel, name);
@@ -52,7 +52,6 @@ public class LineChart extends ProfilerChart {
 
     /**
      * Init legends
-     *
      */
     @Override
     protected void initLegends() {
@@ -100,7 +99,7 @@ public class LineChart extends ProfilerChart {
     /**
      * Paint poly line
      *
-     * @param index    index of line chart
+     * @param index index of line chart
      * @param graphics Graphics
      */
     private void paintLine(int index, Graphics graphics) {
@@ -134,9 +133,9 @@ public class LineChart extends ProfilerChart {
     /**
      * Build tooltip content
      *
-     * @param showKey   Key to show
+     * @param showKey Key to show
      * @param actualKey The actual value of the key in the data map
-     * @param newChart  Is it a new chart
+     * @param newChart Is it a new chart
      */
     @Override
     protected void buildTooltip(int showKey, int actualKey, boolean newChart) {

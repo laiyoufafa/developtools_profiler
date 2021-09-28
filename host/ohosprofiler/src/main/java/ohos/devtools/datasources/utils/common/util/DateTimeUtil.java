@@ -80,7 +80,7 @@ public final class DateTimeUtil {
     /**
      * Converts the date and time to a string.
      *
-     * @param dateTime  Indicates the date and time to be converted.
+     * @param dateTime Indicates the date and time to be converted.
      * @param formatter Indicates the formatter used for formatting.
      * @return Returns the date and time converted from the given string.
      */
@@ -92,7 +92,7 @@ public final class DateTimeUtil {
     /**
      * Converts a string to date and time.
      *
-     * @param dateStr   Indicates the string to be converted to date and time.
+     * @param dateStr Indicates the string to be converted to date and time.
      * @param formatter Indicates the formatter used for formatting.
      * @return Returns the date and time converted from the given string.
      */

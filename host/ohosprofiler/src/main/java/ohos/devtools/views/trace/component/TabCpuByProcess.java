@@ -65,8 +65,8 @@ public class TabCpuByProcess extends JBPanel {
     /**
      * loadTabData
      *
-     * @param cpus    cpus
-     * @param leftNs  leftNs
+     * @param cpus cpus
+     * @param leftNs leftNs
      * @param rightNs rightNs
      */
     public void loadTabData(final List<Integer> cpus, long leftNs, long rightNs) {

@@ -79,7 +79,7 @@ public class ChartStandard {
      * 修改Chart展示的时间范围
      *
      * @param start 开始时间
-     * @param end   结束时间
+     * @param end 结束时间
      */
     public void updateDisplayTimeRange(int start, int end) {
         if (displayRange == null) {
@@ -102,7 +102,7 @@ public class ChartStandard {
     /**
      * 更新用户框选的起始时间和坐标点
      *
-     * @param key       区别各个Chart的key
+     * @param key 区别各个Chart的key
      * @param startTime 用户新框选的时间范围
      */
     public void updateSelectedStart(String key, int startTime) {
@@ -117,7 +117,7 @@ public class ChartStandard {
     /**
      * 更新用户框选的起始时间和坐标点
      *
-     * @param key     区别各个Chart的key
+     * @param key 区别各个Chart的key
      * @param endTime 用户新框选的时间范围
      */
     public void updateSelectedEnd(String key, int endTime) {

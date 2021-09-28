@@ -419,7 +419,7 @@ public class ThreadData extends AbstractGraph {
          * Mouse click event
          *
          * @param event event
-         * @param data  data
+         * @param data data
          */
         void click(MouseEvent event, ThreadData data);
 
@@ -427,7 +427,7 @@ public class ThreadData extends AbstractGraph {
          * Mouse blur event
          *
          * @param event event
-         * @param data  data
+         * @param data data
          */
         void blur(MouseEvent event, ThreadData data);
 
@@ -435,7 +435,7 @@ public class ThreadData extends AbstractGraph {
          * Mouse focus event
          *
          * @param event event
-         * @param data  data
+         * @param data data
          */
         void focus(MouseEvent event, ThreadData data);
 
@@ -443,9 +443,8 @@ public class ThreadData extends AbstractGraph {
          * Mouse move event
          *
          * @param event event
-         * @param data  data
+         * @param data data
          */
         void mouseMove(MouseEvent event, ThreadData data);
     }
 }
-

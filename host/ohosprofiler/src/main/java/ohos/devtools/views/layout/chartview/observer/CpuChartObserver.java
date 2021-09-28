@@ -52,11 +52,11 @@ public class CpuChartObserver implements IChartEventObserver {
     /**
      * Constructor
      *
-     * @param chart     Profiler Chart
+     * @param chart Profiler Chart
      * @param chartFold true: Chart fold/expand
      */
     public CpuChartObserver(ProfilerChart chart, JBPanel threadInfoPanel, ProfilerChartsView bottomPanel,
-                            boolean chartFold, JBLabel threadLabel) {
+        boolean chartFold, JBLabel threadLabel) {
         this.bottomPanel = bottomPanel;
         this.sessionId = bottomPanel.getSessionId();
         this.chart = chart;
@@ -68,10 +68,10 @@ public class CpuChartObserver implements IChartEventObserver {
     /**
      * Refresh chart drawing standard
      *
-     * @param startTime        Start time of chart
-     * @param endTime          End time of chart
+     * @param startTime Start time of chart
+     * @param endTime End time of chart
      * @param maxDisplayMillis Maximum display time on view
-     * @param minMarkInterval  The minimum scale interval
+     * @param minMarkInterval The minimum scale interval
      */
     @Override
     public void refreshStandard(int startTime, int endTime, int maxDisplayMillis, int minMarkInterval) {
@@ -94,9 +94,9 @@ public class CpuChartObserver implements IChartEventObserver {
     /**
      * Refresh view
      *
-     * @param range          Chart display time range
+     * @param range Chart display time range
      * @param firstTimestamp The first time stamp of this chart's data
-     * @param useCache       whether or not use cache
+     * @param useCache whether or not use cache
      */
     @Override
     public void refreshView(ChartDataRange range, long firstTimestamp, boolean useCache) {
@@ -119,7 +119,7 @@ public class CpuChartObserver implements IChartEventObserver {
                 ChartDataModel total = new ChartDataModel();
                 total.setName("System");
                 total.setColor(ColorConstants.CPU);
-                total.setValue((int)sumChosenItems(dataModels));
+                total.setValue((int) sumChosenItems(dataModels));
                 total.setCpuPercent(sumChosenItems(dataModels));
                 showDataMap.put(time, Collections.singletonList(total));
             } else {
@@ -133,7 +133,7 @@ public class CpuChartObserver implements IChartEventObserver {
     /**
      * Sum according to the selected cpu monitor items
      *
-     * @param dataModels      Data list
+     * @param dataModels Data list
      * @return int
      */
     private double sumChosenItems(List<ChartDataModel> dataModels) {

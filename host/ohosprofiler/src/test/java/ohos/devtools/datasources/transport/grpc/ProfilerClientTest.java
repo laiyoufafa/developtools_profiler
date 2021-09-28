@@ -119,14 +119,18 @@ public class ProfilerClientTest {
             @Override
             public void fetchData(ProfilerServiceTypes.FetchDataRequest request,
                 StreamObserver<ProfilerServiceTypes.FetchDataResponse> responseObserver) {
-                ProfilerServiceTypes.FetchDataResponse fetchDataResponse =
-                    ProfilerServiceTypes.FetchDataResponse.newBuilder().setResponseId(1).setStatus(-1).setHasMore(false)
-                        .build();
-                responseObserver.onNext(fetchDataResponse);
-                responseObserver.onCompleted();
+                fetchDataResponseObserver(responseObserver);
             }
         };
         return getFeatureImpl;
+    }
+
+    public void fetchDataResponseObserver(StreamObserver<ProfilerServiceTypes.FetchDataResponse> responseObserver) {
+        ProfilerServiceTypes.FetchDataResponse fetchDataResponse =
+                ProfilerServiceTypes.FetchDataResponse.newBuilder().setResponseId(1).setStatus(-1).setHasMore(false)
+                        .build();
+        responseObserver.onNext(fetchDataResponse);
+        responseObserver.onCompleted();
     }
 
     private ProfilerServiceTypes.StartSessionResponse getStartSessionResponse() {

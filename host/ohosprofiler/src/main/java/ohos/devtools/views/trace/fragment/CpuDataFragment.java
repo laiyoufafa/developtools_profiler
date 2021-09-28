@@ -75,9 +75,9 @@ public class CpuDataFragment extends AbstractDataFragment<CpuData> implements Cp
     /**
      * structure
      *
-     * @param root  root
+     * @param root root
      * @param index index
-     * @param data  data
+     * @param data data
      */
     public CpuDataFragment(javax.swing.JComponent root, int index, List<CpuData> data) {
         super(root, true, false);
@@ -261,7 +261,7 @@ public class CpuDataFragment extends AbstractDataFragment<CpuData> implements Cp
     /**
      * Click event
      *
-     * @param evt  event
+     * @param evt event
      * @param data data
      */
     @Override
@@ -289,7 +289,7 @@ public class CpuDataFragment extends AbstractDataFragment<CpuData> implements Cp
      * Loss of focus event
      *
      * @param event event
-     * @param data  data
+     * @param data data
      */
     @Override
     public void blur(MouseEvent event, CpuData data) {
@@ -302,7 +302,7 @@ public class CpuDataFragment extends AbstractDataFragment<CpuData> implements Cp
      * Get focus event
      *
      * @param event event
-     * @param data  data
+     * @param data data
      */
     @Override
     public void focus(MouseEvent event, CpuData data) {
@@ -315,7 +315,7 @@ public class CpuDataFragment extends AbstractDataFragment<CpuData> implements Cp
      * Mouse movement event
      *
      * @param event event
-     * @param data  data
+     * @param data data
      */
     @Override
     public void mouseMove(MouseEvent event, CpuData data) {

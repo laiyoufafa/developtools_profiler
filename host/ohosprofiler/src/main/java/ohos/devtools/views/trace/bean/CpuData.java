@@ -535,7 +535,7 @@ public class CpuData extends AbstractGraph {
          * Mouse click event
          *
          * @param event event
-         * @param data  data
+         * @param data data
          */
         void click(MouseEvent event, CpuData data);
 
@@ -543,7 +543,7 @@ public class CpuData extends AbstractGraph {
          * Mouse blur event
          *
          * @param event event
-         * @param data  data
+         * @param data data
          */
         void blur(MouseEvent event, CpuData data);
 
@@ -551,7 +551,7 @@ public class CpuData extends AbstractGraph {
          * Mouse focus event
          *
          * @param event event
-         * @param data  data
+         * @param data data
          */
         void focus(MouseEvent event, CpuData data);
 
@@ -559,7 +559,7 @@ public class CpuData extends AbstractGraph {
          * Mouse move event
          *
          * @param event event
-         * @param data  data
+         * @param data data
          */
         void mouseMove(MouseEvent event, CpuData data);
     }

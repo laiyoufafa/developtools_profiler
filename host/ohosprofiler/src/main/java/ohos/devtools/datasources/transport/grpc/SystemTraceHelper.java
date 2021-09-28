@@ -49,10 +49,6 @@ import static ohos.devtools.views.common.Constant.IS_SUPPORT_NEW_HDC;
  */
 public class SystemTraceHelper {
     private static final Logger LOGGER = LogManager.getLogger(ProcessManager.class);
-    private static final String SYSTEM_PROBES_KIND_IN_MEMORY = "inMemoryValue";
-    private static final String SYSTEM_PROBES_KIND_MAX_DURATION = "maxDuration";
-    private static final String SYSTEM_PROBES_KIND_FTRACE_EVENT = "ftrace_events";
-    private static final String SYSTEM_PROBES_KIND_ATRACE_APPS = "atrace_apps";
     private static final int SECOND_TO_MS = 1000;
     private static final int MEMORY_MB_TO_KB = 1024;
 

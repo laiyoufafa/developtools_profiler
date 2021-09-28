@@ -115,7 +115,8 @@ public class SessionManagerTest {
                     .build().start());
         } catch (IOException exception) {
             exception.printStackTrace();
-        } createServer();
+        }
+        createServer();
         channel = grpcCleanup.register(InProcessChannelBuilder.forName(serverName).directExecutor().build());
         if (getFeatureImpl instanceof BindableService) {
             serviceRegistry.addService((BindableService) getFeatureImpl);
