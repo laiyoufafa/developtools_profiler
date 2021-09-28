@@ -61,11 +61,15 @@ Note:If the text contains special characters, please escape them according to th
                 <filteritem type="filepath" name="device/plugins/memory_plugin/test/utresources/proc/.*" desc="test resource file, no license header"/>
                 <filteritem type="filepath" name="device/plugins/cpu_plugin/test/resources/.*" desc="test resource file, no license header"/>
                 <filteritem type="filepath" name="trace_analyzer/prebuilts/mac/trace_streamer.app/Contents/Resources/empty.lproj" desc="auto generated resource file for mac app, no license header"/>
+                <filteritem type="filepath" name="trace_analyzer/prebuilts/mac/trace_streamer.app/Contents/PkgInfo" desc="auto generated resource file for mac app, no license header"/>
+                <filteritem type="filepath" name="trace_analyzer/test/resource/.*" desc="test resource file, no license header"/>
             </filefilter>
             <filefilter name="copyrightPolicyFilter" desc="Filters for copyright header policies" >
                 <filteritem type="filepath" name="device/plugins/memory_plugin/test/utresources/proc/.*" desc="test resource file, no copyright header"/>
                 <filteritem type="filepath" name="device/plugins/cpu_plugin/test/resources/.*" desc="test resource file, no copyright header"/>
                 <filteritem type="filepath" name="trace_analyzer/prebuilts/mac/trace_streamer.app/Contents/Resources/empty.lproj" desc="auto generated resource file for mac app, no copyright header"/>
+                <filteritem type="filepath" name="trace_analyzer/prebuilts/mac/trace_streamer.app/Contents/PkgInfo" desc="auto generated resource file for mac app, no copyright header"/>
+                <filteritem type="filepath" name="trace_analyzer/test/resource/.*" desc="test resource file, no copyright header"/>
             </filefilter>
             <filefilter name="binaryFileTypePolicyFilter" desc="Filters for binary file policies" >
                 <filteritem type="filepath" name="host/ohosprofiler/src/main/resources/trace.db" desc="the binary file for host, the file is self-developed"/>

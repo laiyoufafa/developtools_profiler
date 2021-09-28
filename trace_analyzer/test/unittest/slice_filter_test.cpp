@@ -257,6 +257,5 @@ HWTEST_F(SliceFilterTest, BeginSliceMulti5, TestSize.Level1)
     EXPECT_TRUE(slices->DursData()[4] == 168758682476000 - 168758679313000); // slice 4
     EXPECT_TRUE(slices->DursData()[5] == 168758689323000 - 168758679323000); // slice 5
 }
-
 }
 }
