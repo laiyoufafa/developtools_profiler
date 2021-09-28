@@ -134,14 +134,14 @@ static inline std::string StringFormat(const char* fmt, ...)
     char buf[1024] = {0};
 
     if (fmt == nullptr) {
-        return nullptr;
+        return "";
     }
     std::string format(fmt);
     StringReplace(format, "%{public}", "%");
 
     va_start(vargs, fmt);
     if (vsnprintf_s(buf, sizeof(buf), sizeof(buf) - 1, format.c_str(), vargs) < 0) {
-        return nullptr;
+        return "";
     }
 
     va_end(vargs);
