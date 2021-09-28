@@ -25,8 +25,8 @@ public class PrintUtil {
      * print logging
      *
      * @param logger logging
-     * @param str    logging message
-     * @param state  logging state
+     * @param str logging message
+     * @param state logging state
      */
     public static void print(Logger logger, String str, int state) {
         if (state == 0) {

@@ -64,7 +64,7 @@ public class ThreadDataFragment extends AbstractDataFragment<ThreadData> impleme
     /**
      * structure
      *
-     * @param root   root
+     * @param root root
      * @param thread thread
      */
     public ThreadDataFragment(JComponent root, ThreadData thread) {
@@ -294,7 +294,7 @@ public class ThreadDataFragment extends AbstractDataFragment<ThreadData> impleme
      * click event
      *
      * @param event event
-     * @param data  data
+     * @param data data
      */
     @Override
     public void click(MouseEvent event, ThreadData data) {
@@ -311,7 +311,7 @@ public class ThreadDataFragment extends AbstractDataFragment<ThreadData> impleme
      * Mouse blur event
      *
      * @param event event
-     * @param data  data
+     * @param data data
      */
     @Override
     public void blur(MouseEvent event, ThreadData data) {
@@ -321,7 +321,7 @@ public class ThreadDataFragment extends AbstractDataFragment<ThreadData> impleme
      * Mouse focus event
      *
      * @param event event
-     * @param data  data
+     * @param data data
      */
     @Override
     public void focus(MouseEvent event, ThreadData data) {
@@ -331,7 +331,7 @@ public class ThreadDataFragment extends AbstractDataFragment<ThreadData> impleme
      * Mouse move event
      *
      * @param event event
-     * @param data  data
+     * @param data data
      */
     @Override
     public void mouseMove(MouseEvent event, ThreadData data) {

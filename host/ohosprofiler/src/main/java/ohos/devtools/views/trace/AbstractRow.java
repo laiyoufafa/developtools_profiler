@@ -101,8 +101,8 @@ public abstract class AbstractRow extends JBPanel {
     /**
      * fresh the Notify data by startNS and endNS
      *
-     * @param name          name
-     * @param hasExpand     hasExpand
+     * @param name name
+     * @param hasExpand hasExpand
      * @param defaultExpand defaultExpand
      */
     public AbstractRow(String name, boolean hasExpand, boolean defaultExpand) {
@@ -136,7 +136,7 @@ public abstract class AbstractRow extends JBPanel {
     /**
      * isCollapsed
      *
-     * @return isCollapsed
+     * @return boolean isCollapsed
      */
     public boolean isCollapsed() {
         return myIsCollapsed;
@@ -173,7 +173,7 @@ public abstract class AbstractRow extends JBPanel {
      * fresh the row data by startNS and endNS
      *
      * @param startNS startNS
-     * @param endNS   endNS
+     * @param endNS endNS
      */
     public void refresh(long startNS, long endNS) {
         this.startNS = startNS;
@@ -350,7 +350,7 @@ public abstract class AbstractRow extends JBPanel {
      * get the func is in this row
      *
      * @param func func
-     * @return return the row is contains func
+     * @return boolean the row is contains func
      */
     public boolean contains(Func func) {
         return func.getStartTs() + func.getDur() > getStartNS() && func.getStartTs() < getEndNS();
@@ -360,7 +360,7 @@ public abstract class AbstractRow extends JBPanel {
      * get the threadData is in this row
      *
      * @param threadData threadData
-     * @return return the row is contains threadData
+     * @return boolean the row is contains threadData
      */
     public boolean contains(Thread threadData) {
         return threadData.getStartTime() + threadData.getDuration() > getStartNS()
@@ -371,7 +371,7 @@ public abstract class AbstractRow extends JBPanel {
      * get the cpu is in this row
      *
      * @param cpu cpu
-     * @return return the row is contains Cpu
+     * @return boolean the row is contains Cpu
      */
     public boolean contains(Cpu cpu) {
         return cpu.getStartTime() + cpu.getDuration() > getStartNS() && cpu.getStartTime() < getEndNS();
@@ -381,7 +381,7 @@ public abstract class AbstractRow extends JBPanel {
      * get the CpuFreq is in this row
      *
      * @param item item
-     * @return return the row is contains CpuFreq
+     * @return boolean the row is contains CpuFreq
      */
     public boolean contains(CpuFreq item) {
         return item.getStartTime() + item.getDuration() > getStartNS() && item.getStartTime() < getEndNS();
@@ -391,7 +391,7 @@ public abstract class AbstractRow extends JBPanel {
      * get the VsyncAppBean is in this row
      *
      * @param item item
-     * @return return the row is contains VsyncAppBean
+     * @return boolean the row is contains VsyncAppBean
      */
     public boolean contains(VsyncAppBean item) {
         return item.getStartTime() + item.getDuration() > getStartNS() && item.getStartTime() < getEndNS();
@@ -401,7 +401,7 @@ public abstract class AbstractRow extends JBPanel {
      * get the Frame is in this row
      *
      * @param item item
-     * @return return the row is contains Frame
+     * @return boolean the row is contains Frame
      */
     public boolean contains(Frame item) {
         return item.getStartNs() + item.getDur() > getStartNS() && item.getStartNs() < getEndNS();
@@ -411,7 +411,7 @@ public abstract class AbstractRow extends JBPanel {
      * get the Object is in this row
      *
      * @param obj obj
-     * @return return the row is contains obj
+     * @return boolean the row is contains obj
      */
     public boolean contains(Object obj) {
         if (obj instanceof CpuFreq) {
@@ -434,9 +434,9 @@ public abstract class AbstractRow extends JBPanel {
     /**
      * get the Rectangle by Cpu node
      *
-     * @param node    node
+     * @param node node
      * @param padding Rectangle padding
-     * @return return Rectangle
+     * @return Rectangle
      */
     public Rectangle getRectByNode(Cpu node, int padding) {
         double x1;
@@ -460,9 +460,9 @@ public abstract class AbstractRow extends JBPanel {
     /**
      * get the Rectangle by Thread node
      *
-     * @param node   node
+     * @param node node
      * @param height Rectangle height
-     * @return return Rectangle
+     * @return Rectangle
      */
     public Rectangle getRectByNode(Thread node, int height) {
         double x1;
@@ -485,10 +485,10 @@ public abstract class AbstractRow extends JBPanel {
     /**
      * get the Rectangle by Func node
      *
-     * @param node       node
-     * @param height     Rectangle height
+     * @param node node
+     * @param height Rectangle height
      * @param paddingTop Rectangle paddingTop
-     * @return return Rectangle
+     * @return Rectangle
      */
     public Rectangle getRectByNode(Func node, int paddingTop, int height) {
         double x1;
@@ -514,7 +514,7 @@ public abstract class AbstractRow extends JBPanel {
      * get the Rectangle by CpuFreq node
      *
      * @param node node
-     * @return return Rectangle
+     * @return Rectangle
      */
     public Rectangle getRectByNode(CpuFreq node) {
         double x1;
@@ -539,7 +539,7 @@ public abstract class AbstractRow extends JBPanel {
      * get the Rectangle by VsyncAppBean node
      *
      * @param node node
-     * @return return Rectangle
+     * @return Rectangle
      */
     public Rectangle getRectByNode(VsyncAppBean node) {
         double x1;
@@ -563,9 +563,9 @@ public abstract class AbstractRow extends JBPanel {
     /**
      * get the Rectangle by Frame node
      *
-     * @param node   node
+     * @param node node
      * @param height Rectangle height
-     * @return return Rectangle
+     * @return Rectangle
      */
     public Rectangle getRectByNode(Frame node, int height) {
         double x1;
@@ -588,7 +588,7 @@ public abstract class AbstractRow extends JBPanel {
     /**
      * get the maxDept
      *
-     * @return maxDept maxDept
+     * @return int maxDept
      */
     public int getMaxDept() {
         return this.maxDept;

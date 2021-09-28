@@ -64,8 +64,8 @@ public class TabSlices extends JBPanel {
     /**
      * loadTabData
      *
-     * @param ids     ids
-     * @param leftNs  leftNs
+     * @param ids ids
+     * @param leftNs leftNs
      * @param rightNs rightNs
      */
     public void loadTabData(final List<Integer> ids, long leftNs, long rightNs) {

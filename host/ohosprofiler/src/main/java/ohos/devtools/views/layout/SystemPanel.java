@@ -130,7 +130,6 @@ public class SystemPanel extends JBPanel {
     private JBPanel optionJPanel;
     private AnalystPanel analystPanel;
 
-
     /**
      * device name drop down box
      */

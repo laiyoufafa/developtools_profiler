@@ -497,48 +497,52 @@ public class AppTracePanel extends JBPanel {
             row.setSupplier2(() -> {
                 List<Func> funcs = new ArrayList<>() {
                 };
-                Db.getInstance().query(Sql.GET_FUN_DATA_BY_TID, funcs, thread.getTid());
-                if (AllData.threadMap.containsKey(thread.getTid())) {
-                    List<Thread> threadList = AllData.threadMap.get(thread.getTid());
-                    setFuncIdel(funcs, threadList);
-                    Func threadFunc = new Func();
-                    threadFunc.setFuncName(thread.getThreadName());
-                    threadFunc.setThreadName(thread.getThreadName());
-                    threadFunc.setTid(thread.getTid());
-                    threadFunc.setDepth(-1);
-                    threadFunc.setBloodId(Utils.md5String(thread.getThreadName()));
-                    threadFunc.setStartTs(0);
-                    threadFunc.setEndTs(TracePanel.END_TS - TracePanel.START_TS);
-                    funcs.add(threadFunc);
-                    List<Func> sortedList = funcs.stream().filter((item) -> item.getDepth() != -1)
-                        .sorted(Comparator.comparingInt(Func::getDepth)).collect(Collectors.toList());
-                    Map<Integer, Func> map = funcs.stream().collect(Collectors.toMap(Func::getId, func -> func));
-                    sortedList.forEach((func) -> {
-                        func.setThreadName(thread.getThreadName());
-                        if (func.getDepth() != 0) {
-                            func.setParentBloodId(map.get(func.getParentId()).getBloodId());
-                        }
-                        func.setEndTs(func.getStartTs() + func.getDur());
-                        func.createBloodId();
-                    });
-                }
-                AllData.funcMap.put(thread.getTid(), funcs);
-                int maxDept = funcs.stream().mapToInt(Func::getDepth).max().orElse(0) + 1;
-                int maxHeight = maxDept * row.getFuncHeight() + row.getFuncHeight();
-                if (maxHeight < 30) {
-                    maxHeight = 30;
-                }
-                row.setMaxDept(maxDept);
-                if (panel.getContent().getLayout() instanceof MigLayout) {
-                    ((MigLayout) panel.getContent().getLayout())
-                        .setComponentConstraints(row, "growx,pushx,h " + maxHeight + "!");
-                }
-                row.updateUI();
+                setFunc(panel, thread, row, funcs);
                 return funcs;
             });
             panel.addTraceRow(row);
         }
         tracePanel.getContentPanel().add(panel, "pushx,growx");
+    }
+
+    private void setFunc(ExpandPanel panel, Thread thread, TraceThreadRow<Thread, Func> row, List<Func> funcs) {
+        Db.getInstance().query(Sql.GET_FUN_DATA_BY_TID, funcs, thread.getTid());
+        if (AllData.threadMap.containsKey(thread.getTid())) {
+            List<Thread> threadList = AllData.threadMap.get(thread.getTid());
+            setFuncIdel(funcs, threadList);
+            Func threadFunc = new Func();
+            threadFunc.setFuncName(thread.getThreadName());
+            threadFunc.setThreadName(thread.getThreadName());
+            threadFunc.setTid(thread.getTid());
+            threadFunc.setDepth(-1);
+            threadFunc.setBloodId(Utils.md5String(thread.getThreadName()));
+            threadFunc.setStartTs(0);
+            threadFunc.setEndTs(TracePanel.END_TS - TracePanel.START_TS);
+            funcs.add(threadFunc);
+            List<Func> sortedList = funcs.stream().filter((item) -> item.getDepth() != -1)
+                .sorted(Comparator.comparingInt(Func::getDepth)).collect(Collectors.toList());
+            Map<Integer, Func> map = funcs.stream().collect(Collectors.toMap(Func::getId, func -> func));
+            sortedList.forEach((func) -> {
+                func.setThreadName(thread.getThreadName());
+                if (func.getDepth() != 0) {
+                    func.setParentBloodId(map.get(func.getParentId()).getBloodId());
+                }
+                func.setEndTs(func.getStartTs() + func.getDur());
+                func.createBloodId();
+            });
+        }
+        AllData.funcMap.put(thread.getTid(), funcs);
+        int maxDept = funcs.stream().mapToInt(Func::getDepth).max().orElse(0) + 1;
+        int maxHeight = maxDept * row.getFuncHeight() + row.getFuncHeight();
+        if (maxHeight < 30) {
+            maxHeight = 30;
+        }
+        row.setMaxDept(maxDept);
+        if (panel.getContent().getLayout() instanceof MigLayout) {
+            ((MigLayout) panel.getContent().getLayout())
+                .setComponentConstraints(row, "growx,pushx,h " + maxHeight + "!");
+        }
+        row.updateUI();
     }
 
     private void setFuncIdel(List<Func> funcList, List<Thread> threadList) {

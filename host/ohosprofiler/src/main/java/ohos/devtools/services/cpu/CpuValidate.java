@@ -34,7 +34,6 @@ public class CpuValidate extends Validate {
 
     /**
      * CpuValidate
-     *
      */
     public CpuValidate() {
     }

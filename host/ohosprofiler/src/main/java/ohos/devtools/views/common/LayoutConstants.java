@@ -580,7 +580,6 @@ public final class LayoutConstants {
      */
     public static final int NUM_4 = 4;
 
-
     /**
      * description number
      */
@@ -859,7 +858,7 @@ public final class LayoutConstants {
     /**
      * Instance list label height
      */
-    public static  final  int LABEL_HEIGHT = 22;
+    public static final int LABEL_HEIGHT = 22;
 
     /**
      * CPU grap data kind button , init y coordinate

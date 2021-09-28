@@ -38,7 +38,7 @@ public class ExpandGraph extends AbstractGraph {
      * class construct
      *
      * @param fragment fragment
-     * @param root     root
+     * @param root root
      */
     public ExpandGraph(final AbstractDataFragment fragment, final JComponent root) {
         this.fragment = fragment;

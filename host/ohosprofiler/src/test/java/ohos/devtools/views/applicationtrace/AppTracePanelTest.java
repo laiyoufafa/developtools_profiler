@@ -45,7 +45,7 @@ class AppTracePanelTest {
             robot = new Robot();
             robot.setAutoDelay(2000);
             IdeGlassPane ideGlassPane = new IdeGlassPaneImpl(jFrame.getRootPane());
-            if(ideGlassPane instanceof JPanel){
+            if (ideGlassPane instanceof JPanel) {
                 jFrame.getRootPane().setGlassPane((JPanel) ideGlassPane);
             }
         } catch (AWTException e) {
