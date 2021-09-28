@@ -373,7 +373,7 @@ public class MemoryItemView extends MonitorItemView {
     /**
      * Initialize a map of full memory legends
      *
-     * @return Map<Monitor item, component of legend>
+     * @return Map <Monitor item, component of legend>
      */
     private Map<MonitorItemDetail, List<JComponent>> initItemLegends() {
         Map<MonitorItemDetail, List<JComponent>> map = new HashMap<>();

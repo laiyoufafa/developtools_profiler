@@ -20,7 +20,7 @@ import java.io.Serializable;
 /**
  * cpu data
  */
-public class CpuData <T> implements Serializable {
+public class CpuData<T> implements Serializable {
     private static final long serialVersionUID = -8106428244173195592L;
     long localSessionId;
     int sessionId;

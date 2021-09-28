@@ -52,7 +52,7 @@ public class BeanUtil {
     /**
      * Serializes object data.
      *
-     * @param <T>  <T>
+     * @param <T> <T>
      * @param data Indicates the data to be deserialized.
      * @return byte[]
      */
@@ -252,9 +252,9 @@ public class BeanUtil {
     /**
      * Get the attribute value by attribute name.
      *
-     * @param <T>       <T>
+     * @param <T> <T>
      * @param fieldName fieldName
-     * @param object    Indicates the object.
+     * @param object Indicates the object.
      * @return Object Returns the object value.
      */
     private static <T> Optional getFieldValueByName(String fieldName, T object) {
@@ -279,7 +279,7 @@ public class BeanUtil {
      * Gets the value of a given object.
      *
      * @param object object
-     * @param <T>    <T>
+     * @param <T> <T>
      * @return List <String>
      */
     public static <T> List<String> getObjectValue(T object) {
@@ -318,7 +318,7 @@ public class BeanUtil {
      * Get the object name.
      *
      * @param object Indicates the object.
-     * @param <T>    <T>
+     * @param <T> <T>
      * @return String
      */
     public static <T> String getObjectName(T object) {
@@ -327,5 +327,4 @@ public class BeanUtil {
         }
         return "";
     }
-
 }

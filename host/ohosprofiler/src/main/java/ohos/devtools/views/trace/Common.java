@@ -220,7 +220,7 @@ public class Common {
             } else if (chartNum > 1 && chartNum < LEN) {
                 g2.drawString(str.substring(0, 1), Utils.getX(rect),
                     (float) (Utils.getY(rect) + rect.height / 2 + bounds.getHeight() / 2 - 3));
-            }else {
+            } else {
                 LOGGER.info("drawStringMiddleHeight error");
             }
         }

@@ -84,12 +84,12 @@ public class FolderPanel extends JPanel {
     /**
      * structure
      *
-     * @param content              content
+     * @param content content
      * @param collapseButtonAtLeft collapseButtonAtLeft
-     * @param isCollapsed          isCollapsed
-     * @param collapseIcon         collapseIcon
-     * @param expandIcon           expandIcon
-     * @param title                title
+     * @param isCollapsed isCollapsed
+     * @param collapseIcon collapseIcon
+     * @param expandIcon expandIcon
+     * @param title title
      */
     public FolderPanel(JComponent content, boolean collapseButtonAtLeft, boolean isCollapsed, Icon collapseIcon,
         Icon expandIcon, String title) {
@@ -145,7 +145,7 @@ public class FolderPanel extends JPanel {
     /**
      * structure
      *
-     * @param content              content
+     * @param content content
      * @param collapseButtonAtLeft collapseButtonAtLeft
      */
     public FolderPanel(JComponent content, boolean collapseButtonAtLeft) {

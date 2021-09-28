@@ -177,7 +177,7 @@ public abstract class AbstractFragment extends AbstractNode implements IFragment
      * edge inspect
      *
      * @param rectangle rectangle
-     * @param event     event
+     * @param event event
      * @return boolean boolean
      */
     public boolean edgeInspectRect(final Rectangle rectangle, final MouseEvent event) {

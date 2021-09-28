@@ -27,19 +27,19 @@ public interface IChartEventObserver {
     /**
      * Refresh chart drawing standard
      *
-     * @param startTime        Start time of chart
-     * @param endTime          End time of chart
+     * @param startTime Start time of chart
+     * @param endTime End time of chart
      * @param maxDisplayMillis Maximum display time on view
-     * @param minMarkInterval  The minimum scale interval
+     * @param minMarkInterval The minimum scale interval
      */
     void refreshStandard(int startTime, int endTime, int maxDisplayMillis, int minMarkInterval);
 
     /**
      * Refresh view
      *
-     * @param range          Chart display time range
+     * @param range Chart display time range
      * @param firstTimestamp The first time stamp of this chart's data
-     * @param useCache       whether or not use cache
+     * @param useCache whether or not use cache
      */
     void refreshView(ChartDataRange range, long firstTimestamp, boolean useCache);
 }

@@ -19,7 +19,6 @@ import ohos.devtools.views.trace.DField;
 
 /**
  * cpu data
- *
  */
 public class Cpu {
     @DField(name = "tid")

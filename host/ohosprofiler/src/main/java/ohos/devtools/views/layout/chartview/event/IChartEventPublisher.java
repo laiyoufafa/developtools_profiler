@@ -37,7 +37,7 @@ public interface IChartEventPublisher {
      * notify to refresh
      *
      * @param start Start time of chart
-     * @param end   End time of chart
+     * @param end End time of chart
      */
     void notifyRefresh(int start, int end);
 }

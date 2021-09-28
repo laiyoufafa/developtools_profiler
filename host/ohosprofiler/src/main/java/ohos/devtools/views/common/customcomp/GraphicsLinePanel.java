@@ -27,8 +27,7 @@ import java.awt.geom.Line2D;
  */
 public class GraphicsLinePanel extends JBPanel {
     /**
-     * GraphicsJpanel
-     *
+     * Graphics panel
      */
     public GraphicsLinePanel() {
         this.setOpaque(false);

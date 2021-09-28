@@ -75,7 +75,7 @@ public class ClockDataFragment extends AbstractDataFragment<ClockData> implement
     /**
      * structure
      *
-     * @param root  root
+     * @param root root
      * @param clock clock
      */
     public ClockDataFragment(javax.swing.JComponent root, Clock clock) {
@@ -242,7 +242,7 @@ public class ClockDataFragment extends AbstractDataFragment<ClockData> implement
     /**
      * Click event
      *
-     * @param evt  event
+     * @param evt event
      * @param data data
      */
     @Override
@@ -263,7 +263,7 @@ public class ClockDataFragment extends AbstractDataFragment<ClockData> implement
      * Loss of focus event
      *
      * @param event event
-     * @param data  data
+     * @param data data
      */
     @Override
     public void blur(MouseEvent event, ClockData data) {
@@ -279,7 +279,7 @@ public class ClockDataFragment extends AbstractDataFragment<ClockData> implement
      * Get focus event
      *
      * @param event event
-     * @param data  data
+     * @param data data
      */
     @Override
     public void focus(MouseEvent event, ClockData data) {
@@ -293,7 +293,7 @@ public class ClockDataFragment extends AbstractDataFragment<ClockData> implement
      * Mouse movement event
      *
      * @param event event
-     * @param data  data
+     * @param data data
      */
     @Override
     public void mouseMove(MouseEvent event, ClockData data) {

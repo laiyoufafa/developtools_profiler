@@ -329,7 +329,7 @@ public class TimeShaft extends JBPanel implements KeyListener, MouseListener, Mo
      * put Rate Map
      *
      * @param xPoint xPoint
-     * @param rate   rate
+     * @param rate rate
      */
     public void putRateMap(int xPoint, double rate) {
         rateMap.put(xPoint, rate);
@@ -339,7 +339,7 @@ public class TimeShaft extends JBPanel implements KeyListener, MouseListener, Mo
      * set the current range
      *
      * @param mStartNS mStartNS
-     * @param mEndNS   mEndNS
+     * @param mEndNS mEndNS
      */
     public void setRange(long mStartNS, long mEndNS) {
         startX = (int) (mStartNS * getWidth() * 1.0 / DURATION);

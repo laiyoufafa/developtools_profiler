@@ -20,7 +20,6 @@ import org.apache.commons.lang.StringUtils;
 
 /**
  * Process entity class
- *
  */
 public class ProcessThread {
     @DField(name = "pid")

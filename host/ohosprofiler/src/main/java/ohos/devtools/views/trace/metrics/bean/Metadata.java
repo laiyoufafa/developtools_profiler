@@ -19,7 +19,6 @@ import ohos.devtools.views.trace.DField;
 
 /**
  * Metadata bean
- *
  */
 public class Metadata {
     @DField(name = "name")

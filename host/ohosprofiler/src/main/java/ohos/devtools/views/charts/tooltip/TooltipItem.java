@@ -37,7 +37,7 @@ public class TooltipItem {
      * 构造函数
      *
      * @param color Tooltip中图例色块的颜色
-     * @param text  tips文本
+     * @param text tips文本
      */
     public TooltipItem(Color color, String text) {
         this.color = color;

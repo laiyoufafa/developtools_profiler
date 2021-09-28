@@ -19,7 +19,6 @@ import ohos.devtools.views.trace.DField;
 
 /**
  * Mem Agg
- *
  */
 public class MemAgg {
     @DField(name = "value")

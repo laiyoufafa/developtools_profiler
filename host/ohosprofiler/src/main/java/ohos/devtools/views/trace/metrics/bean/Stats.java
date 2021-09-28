@@ -19,7 +19,6 @@ import ohos.devtools.views.trace.DField;
 
 /**
  * Metadata bean
- *
  */
 public class Stats {
     @DField(name = "event_name")

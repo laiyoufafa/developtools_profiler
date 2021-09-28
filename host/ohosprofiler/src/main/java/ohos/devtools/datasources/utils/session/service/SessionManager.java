@@ -263,6 +263,7 @@ public class SessionManager {
         }
         return false;
     }
+
     private CommonTypes.ProfilerPluginConfig getProfilerPluginConfig(PluginConf conf,
         ProfilerServiceTypes.ProfilerPluginCapability plug, HiProfilerPluginConfig pluginConfig,
         DeviceIPPortInfo device) {

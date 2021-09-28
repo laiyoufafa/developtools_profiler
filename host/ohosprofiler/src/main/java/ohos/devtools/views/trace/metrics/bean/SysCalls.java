@@ -21,7 +21,6 @@ import java.util.Objects;
 
 /**
  * Sys Calls
- *
  */
 public class SysCalls {
     @DField(name = "minDur")

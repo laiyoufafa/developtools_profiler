@@ -21,7 +21,6 @@ import java.util.Objects;
 
 /**
  * Sys Calls Top
- *
  */
 public class SysCallsTop {
     @DField(name = "tid")

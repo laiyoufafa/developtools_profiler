@@ -54,10 +54,10 @@ public class CpuFreqDataFragment extends AbstractDataFragment<CpuFreqData> imple
     /**
      * Construction method
      *
-     * @param root       root
-     * @param name       name
+     * @param root root
+     * @param name name
      * @param cpuMaxFreq cpuMaxFreq
-     * @param data       data
+     * @param data data
      */
     public CpuFreqDataFragment(JComponent root, String name, CpuFreqMax cpuMaxFreq, List<CpuFreqData> data) {
         super(root, true, false);
@@ -196,7 +196,7 @@ public class CpuFreqDataFragment extends AbstractDataFragment<CpuFreqData> imple
     /**
      * Click event
      *
-     * @param event   event
+     * @param event event
      * @param cpuData cpuData
      */
     @Override
@@ -217,7 +217,7 @@ public class CpuFreqDataFragment extends AbstractDataFragment<CpuFreqData> imple
      * Loss of focus event
      *
      * @param event event
-     * @param data  data
+     * @param data data
      */
     @Override
     public void blur(MouseEvent event, CpuData data) {
@@ -227,7 +227,7 @@ public class CpuFreqDataFragment extends AbstractDataFragment<CpuFreqData> imple
      * Get focus event
      *
      * @param event event
-     * @param data  data
+     * @param data data
      */
     @Override
     public void focus(MouseEvent event, CpuData data) {
@@ -237,7 +237,7 @@ public class CpuFreqDataFragment extends AbstractDataFragment<CpuFreqData> imple
      * Mouse move event
      *
      * @param event event
-     * @param data  data
+     * @param data data
      */
     @Override
     public void mouseMove(MouseEvent event, CpuData data) {

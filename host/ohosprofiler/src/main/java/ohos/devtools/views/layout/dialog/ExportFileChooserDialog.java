@@ -125,7 +125,7 @@ public class ExportFileChooserDialog extends DialogWrapper {
     }
 
     /**
-     *  save as trace file
+     * save as trace file
      *
      * @param jButton jButton
      */
