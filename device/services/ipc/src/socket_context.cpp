@@ -54,14 +54,14 @@ int SocketContext::RawProtocolProc(uint32_t pnum, const int8_t* buf, const uint3
     return -1;
 }
 
-bool ReceiveData(int sock, uint8_t* databuf, uint32_t size)
+bool SocketContext::ReceiveData(int sock, uint8_t* databuf, uint32_t size, int noWait)
 {
     uint32_t p = 0;
     if (sock < 0) {
         return false;
     }
     while (p < size) {
-        int ret = recv(sock, &databuf[p], size - p, 0);
+        int ret = recv(sock, &databuf[p], size - p, noWait);
         if (ret <= 0) {
             if (ret == -1 && errno == EAGAIN) {
                 continue;
@@ -85,10 +85,17 @@ void* SocketContext::UnixSocketRecv(void* pp)
     struct ProtocolHead* pph = (struct ProtocolHead*)buf.data();
     uint32_t head_size = sizeof(struct ProtocolHead);
 
+    int noWaitEnv = 0;
+    char *envValue = getenv("RECV_NO_WAIT");
+    if (envValue != nullptr) {
+        noWaitEnv = (strcmp(envValue, "1") == 0) ? MSG_DONTWAIT : 0;
+    }
+
+    HILOG_DEBUG(LOG_CORE, "noWaitEnv = %d ", noWaitEnv);
     CHECK_TRUE(pssr->socketHandle_ != -1, nullptr, "UnixSocketRecv pssr->socketHandle_ ==-1");
 
     while (pssr->socketHandle_ >= 0) {
-        if (!ReceiveData(pssr->socketHandle_, buf.data(), head_size)) {
+        if (!ReceiveData(pssr->socketHandle_, buf.data(), head_size, noWaitEnv)) {
             HILOG_DEBUG(LOG_CORE, "====== IPC LOST CONNECT ======");
             break;
         }
@@ -102,7 +109,7 @@ void* SocketContext::UnixSocketRecv(void* pp)
             pph = (struct ProtocolHead*)buf.data();
         }
 
-        if (!ReceiveData(pssr->socketHandle_, buf.data() + head_size, pph->protoSize - head_size)) {
+        if (!ReceiveData(pssr->socketHandle_, buf.data() + head_size, pph->protoSize - head_size, noWaitEnv)) {
             HILOG_DEBUG(LOG_CORE, "====== IPC LOST CONNECT ======");
             break;
         }

@@ -54,8 +54,14 @@ public:
 
 class SharedMemoryAllocatorTest : public testing::Test {
 public:
-    static void SetUpTestCase() {}
-    static void TearDownTestCase() {}
+    static void SetUpTestCase()
+    {
+        setenv("RECV_NO_WAIT", "1", 0);
+    }
+    static void TearDownTestCase()
+    {
+        unsetenv("RECV_NO_WAIT");
+    }
 
     void SetUp() {}
     void TearDown() {}

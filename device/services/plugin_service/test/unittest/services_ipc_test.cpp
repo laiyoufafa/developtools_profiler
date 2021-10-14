@@ -25,8 +25,14 @@ using namespace testing::ext;
 namespace {
 class ServicesIpcTest : public ::testing::Test {
 protected:
-    static void SetUpTestCase() {}
-    static void TearDownTestCase() {}
+    static void SetUpTestCase()
+    {
+        setenv("RECV_NO_WAIT", "1", 0);
+    }
+    static void TearDownTestCase()
+    {
+        unsetenv("RECV_NO_WAIT");
+    }
 };
 
 /**
