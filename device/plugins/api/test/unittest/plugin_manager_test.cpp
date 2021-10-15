@@ -44,6 +44,7 @@ protected:
     static constexpr auto TEMP_DELAY = std::chrono::milliseconds(20);
     static void SetUpTestCase()
     {
+        setenv("RECV_NO_WAIT", "1", 0);
 #if defined(__i386__) || defined(__x86_64__)
         char pluginDir[PATH_MAX + 1] = {0};
         if (readlink("/proc/self/exe", pluginDir, PATH_MAX) > 0) {
@@ -78,6 +79,7 @@ protected:
 
     static void TearDownTestCase()
     {
+        unsetenv("RECV_NO_WAIT");
         std::string stopCmd = "kill " + std::to_string(g_hiprofilerProcessNum);
         std::cout << "stop command : " << stopCmd << std::endl;
         std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(stopCmd.c_str(), "r"), pclose);

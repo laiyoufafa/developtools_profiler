@@ -52,7 +52,6 @@ public:
     bool SendProtobuf(uint32_t pnum, google::protobuf::Message& pmsg);
     bool SendFileDescriptor(int fd);
     int ReceiveFileDiscriptor();
-
 protected:
     friend class ClientMap;
     int socketHandle_;
@@ -65,6 +64,7 @@ protected:
     virtual int RawProtocolProc(uint32_t pnum, const int8_t* buf, const uint32_t size);
 
 private:
+    static bool ReceiveData(int sock, uint8_t* databuf, uint32_t size, int noWait);
     static void* UnixSocketRecv(void* pp);
     std::thread recvThread_;
 };
