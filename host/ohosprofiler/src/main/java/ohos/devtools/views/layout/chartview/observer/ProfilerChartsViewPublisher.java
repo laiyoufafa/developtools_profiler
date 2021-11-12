@@ -18,6 +18,7 @@ package ohos.devtools.views.layout.chartview.observer;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.util.IconLoader;
 import ohos.devtools.datasources.utils.common.util.DateTimeUtil;
+import ohos.devtools.datasources.utils.profilerlog.ProfilerLogManager;
 import ohos.devtools.datasources.utils.quartzmanager.QuartzManager;
 import ohos.devtools.datasources.utils.session.entity.SessionInfo;
 import ohos.devtools.datasources.utils.session.service.SessionManager;
@@ -48,9 +49,6 @@ import static ohos.devtools.views.layout.chartview.utils.ChartViewConstants.REFR
  * 监控界面保存Chart的面板的事件发布者
  */
 public class ProfilerChartsViewPublisher implements IChartEventPublisher {
-    /**
-     * 日志
-     */
     private static final Logger LOGGER = LogManager.getLogger(ProfilerChartsViewPublisher.class);
 
     /**
@@ -139,7 +137,9 @@ public class ProfilerChartsViewPublisher implements IChartEventPublisher {
                     try {
                         TimeUnit.MILLISECONDS.sleep(LayoutConstants.FIVE_HUNDRED);
                     } catch (InterruptedException exception) {
-                        LOGGER.error("Asynchronous initialization scrollbar failed!", exception);
+                        if (ProfilerLogManager.isErrorEnabled()) {
+                            LOGGER.error("Asynchronous initialization scrollbar failed!", exception);
+                        }
                     }
                     return new Object();
                 }
@@ -167,7 +167,9 @@ public class ProfilerChartsViewPublisher implements IChartEventPublisher {
                     try {
                         TimeUnit.MILLISECONDS.sleep(NUM_10);
                     } catch (InterruptedException exception) {
-                        LOGGER.info("InterruptedException");
+                        if (ProfilerLogManager.isErrorEnabled()) {
+                            LOGGER.error("checkLoadingResult InterruptedException", exception);
+                        }
                     }
                     info = SessionManager.getInstance().getSessionInfo(standard.getSessionId());
                 }
@@ -221,7 +223,9 @@ public class ProfilerChartsViewPublisher implements IChartEventPublisher {
                 int start = end > standard.getMaxDisplayMillis() ? end - standard.getMaxDisplayMillis() : 0;
                 notifyRefresh(start, end);
             } catch (Exception exception) {
-                LOGGER.error("Exception", exception);
+                if (ProfilerLogManager.isErrorEnabled()) {
+                    LOGGER.error("Exception", exception);
+                }
             }
         });
         // 刷新间隔暂定30ms
@@ -234,6 +238,10 @@ public class ProfilerChartsViewPublisher implements IChartEventPublisher {
                 standard.setLastTimestamp(DateTimeUtil.getNowTimeLong() - startOffset - CHART_START_DELAY);
                 int end = (int) (standard.getLastTimestamp() - standard.getFirstTimestamp());
                 int start = end > standard.getMaxDisplayMillis() ? end - standard.getMaxDisplayMillis() : 0;
+                if (view.getAbilitySlice() != null) {
+                    // Set the last time of the chart
+                    view.getAbilitySlice().setLastTimestamp(end);
+                }
                 // 当end大于最大展示时间时，且滚动条未显示时，初始化显示滚动条，并把isScrollbarShow置为true
                 if (end > standard.getMaxDisplayMillis() && !displayScrollbar) {
                     // isScrollbarShow判断必须保留，否则会导致Scrollbar重复初始化，频繁闪烁
@@ -253,7 +261,7 @@ public class ProfilerChartsViewPublisher implements IChartEventPublisher {
      */
     public void pauseRefresh() {
         if (refreshing) {
-            QuartzManager.getInstance().endExecutor(RUN_NAME);
+            QuartzManager.getInstance().deleteExecutor(RUN_NAME);
             refreshing = false;
             view.setPause(true);
         }
@@ -265,15 +273,15 @@ public class ProfilerChartsViewPublisher implements IChartEventPublisher {
      * @param isOffline 设备是否断连
      */
     public void stopRefresh(boolean isOffline) {
-        QuartzManager.getInstance().endExecutor(RUN_NAME);
-        QuartzManager.getInstance().endExecutor(RUN_NAME_SCROLLBAR);
+        QuartzManager.getInstance().deleteExecutor(RUN_NAME);
+        QuartzManager.getInstance().deleteExecutor(RUN_NAME_SCROLLBAR);
         refreshing = false;
         view.setStop(true);
         view.setPause(true);
         if (isOffline) {
             CustomJButton buttonRun = view.getTaskScenePanelChart().getjButtonRun();
             CustomJButton buttonStop = view.getTaskScenePanelChart().getjButtonStop();
-            buttonRun.setIcon(IconLoader.getIcon("/images/breakpoint.png", getClass()));
+            buttonRun.setIcon(IconLoader.getIcon("/images/breakpoint_grey.png", getClass()));
             buttonRun.setEnabled(true);
             ActionListener[] actionListenersRun = buttonRun.getActionListeners();
             for (ActionListener listener : actionListenersRun) {

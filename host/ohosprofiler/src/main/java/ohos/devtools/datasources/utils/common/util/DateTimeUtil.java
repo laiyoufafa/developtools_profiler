@@ -15,15 +15,21 @@
 
 package ohos.devtools.datasources.utils.common.util;
 
+import ohos.devtools.datasources.utils.profilerlog.ProfilerLogManager;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 
 /**
- * @Description Date and time utilities
+ * Date and time utilities
  */
 public final class DateTimeUtil {
+    private static final Logger LOGGER = LogManager.getLogger(DateTimeUtil.class);
+
     private DateTimeUtil() {
     }
 
@@ -53,6 +59,9 @@ public final class DateTimeUtil {
      * @return Returns a string converted from the date and time.
      */
     public static String dateToString(LocalDateTime dateTime) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("dateToString");
+        }
         assert dateTime != null;
         return COMMON_FORMATTER.format(dateTime);
     }
@@ -64,6 +73,9 @@ public final class DateTimeUtil {
      * @return Returns the date and time converted from the given string.
      */
     public static LocalDateTime stringToDate(String dateStr) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("stringToDate");
+        }
         assert dateStr != null;
         return LocalDateTime.parse(dateStr, COMMON_FORMATTER);
     }
@@ -74,6 +86,9 @@ public final class DateTimeUtil {
      * @return Returns the curernt date and time.
      */
     public static LocalDateTime getNowTime() {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("getNowTime");
+        }
         return LocalDateTime.now();
     }
 
@@ -85,6 +100,9 @@ public final class DateTimeUtil {
      * @return Returns the date and time converted from the given string.
      */
     public static String dateToString(LocalDateTime dateTime, DateTimeFormatter formatter) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("dateToString");
+        }
         assert dateTime != null;
         return formatter.format(dateTime);
     }
@@ -97,6 +115,9 @@ public final class DateTimeUtil {
      * @return Returns the date and time converted from the given string.
      */
     public static LocalDateTime stringToDate(String dateStr, DateTimeFormatter formatter) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("stringToDate");
+        }
         assert dateStr != null;
         return LocalDateTime.parse(dateStr, formatter);
     }
@@ -108,6 +129,9 @@ public final class DateTimeUtil {
      * @return Returns a long string representing the Epoch time.
      */
     public static long dateToTimeMillis(LocalDateTime dateTime) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("dateToTimeMillis");
+        }
         assert dateTime != null;
         return dateTime.toInstant(DEFAULT_ZONE_OFFSET).toEpochMilli();
     }
@@ -119,6 +143,9 @@ public final class DateTimeUtil {
      * @return Returns the date and time converted from the given Epoch time.
      */
     public static LocalDateTime timeMillisToDate(long timeMills) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("timeMillisToDate");
+        }
         Instant instant = Instant.ofEpochMilli(timeMills);
         return LocalDateTime.ofInstant(instant, DEFAULT_ZONE_OFFSET);
     }
@@ -130,6 +157,9 @@ public final class DateTimeUtil {
      * @return Returns a string representing the date and time in the specified pattern.
      */
     public static String getNowTimeString(String pattern) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("getNowTimeString");
+        }
         LocalDateTime now = LocalDateTime.now();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern(pattern);
         return now.format(formatter);

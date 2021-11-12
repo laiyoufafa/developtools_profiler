@@ -35,12 +35,18 @@ import java.util.List;
 
 /**
  * MemoryChartObserver test
+ *
+ * @since 2021/2/1 9:31
  */
 public class MemoryChartObserverTest {
     private static final int TEST_START = 0;
+
     private static final int TEST_END = 9000;
+
     private static final int TEST_DISPLAY = 10000;
+
     private static final int TEST_MARK = 1000;
+
     private MemoryChartObserver observer;
 
     /**

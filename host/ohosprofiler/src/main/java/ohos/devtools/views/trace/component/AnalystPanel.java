@@ -16,8 +16,11 @@
 package ohos.devtools.views.trace.component;
 
 import com.intellij.ui.AncestorListenerAdapter;
+import com.intellij.ui.IdeBorderFactory;
+import com.intellij.ui.SideBorder;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.util.ui.JBInsets;
 import net.miginfocom.swing.MigLayout;
 import ohos.devtools.views.trace.Sql;
 import ohos.devtools.views.trace.bean.AsyncEvent;
@@ -49,8 +52,6 @@ import ohos.devtools.views.trace.listener.IFlagListener;
 import ohos.devtools.views.trace.util.Db;
 import ohos.devtools.views.trace.util.TimeUtils;
 import ohos.devtools.views.trace.util.Utils;
-import org.apache.commons.compress.utils.Lists;
-import org.jetbrains.annotations.NotNull;
 
 import javax.swing.JLayeredPane;
 import javax.swing.JOptionPane;
@@ -90,7 +91,7 @@ import static java.awt.event.KeyEvent.VK_W;
 /**
  * Analysis component
  *
- * @date 2021/04/20 12:24
+ * @since 2021/04/20 12:24
  */
 public final class AnalystPanel extends JBPanel
     implements MouseWheelListener, KeyListener, MouseListener, MouseMotionListener {
@@ -155,6 +156,11 @@ public final class AnalystPanel extends JBPanel
     public static JLayeredPane layeredPane;
 
     /**
+     * function click listener
+     */
+    private static IAsyncFunctionDataClick iAsyncFunctionDataClick;
+
+    /**
      * bottom tab
      */
     public TabPanel tab;
@@ -173,6 +179,7 @@ public final class AnalystPanel extends JBPanel
     private Cursor eCursor = new Cursor(Cursor.E_RESIZE_CURSOR);
     private Cursor handCursor = new Cursor(Cursor.HAND_CURSOR);
     private Cursor defaultCursor = new Cursor(Cursor.DEFAULT_CURSOR);
+    private TabLogTable tabLogTable = new TabLogTable();
 
     /**
      * Constructor
@@ -185,6 +192,7 @@ public final class AnalystPanel extends JBPanel
              * the contentPanel is notified that all data is refreshed according to the time axis
              */
             contentPanel.rangeChange(sn, en);
+            tabLogTable.rangeChange(sn, en);
         });
         setBorder(null);
         contentPanel = new ContentPanel(this);
@@ -195,6 +203,8 @@ public final class AnalystPanel extends JBPanel
         tab = new TabPanel();
         tab.setFocusable(true);
         tab.setVisible(false);
+        tab.setBorder(IdeBorderFactory.createBorder(SideBorder.NONE));
+        tab.setTabComponentInsets(JBInsets.create(0, 0));
         addAncestorListener(new AncestorListenerAdapter() {
             @Override
             public void ancestorAdded(AncestorEvent event) {
@@ -238,6 +248,7 @@ public final class AnalystPanel extends JBPanel
         iFunctionDataClick = fun -> clickFunctionData(fun);
         iClockDataClick = clock -> clickClockData(clock);
         iFlagClick = flag -> clickTimeFlag(flag);
+        iAsyncFunctionDataClick = data -> clickAsyncFunctionData(data);
     }
 
     static <T> Predicate<T> distinctByKey(Function<? super T, ?> keyExtractor) {
@@ -265,7 +276,7 @@ public final class AnalystPanel extends JBPanel
     /**
      * add cpu freg data list
      *
-     * @param list source
+     * @param list       source
      * @param cpuMaxFreq cpu size
      */
     public void addCpuFreqList(final List<List<CpuFreqData>> list, final CpuFreqMax cpuMaxFreq) {
@@ -290,13 +301,26 @@ public final class AnalystPanel extends JBPanel
     /**
      * add thread data list
      *
-     * @param list thread list
-     * @param processMem process list
+     * @param list        thread list
+     * @param processMem  process list
      * @param asyncEvents asyncEvents
      */
     public void addThreadsList(final List<ThreadData> list, final List<ProcessMem> processMem,
         List<AsyncEvent> asyncEvents) {
-        List<Process> processes = getProcesses(list);
+        /*
+         * If the list has no data (obtained by memory sorting),
+         * then directly query the process and thread tables to find the data
+         */
+        if (list.isEmpty()) {
+            Db.getInstance().query(Sql.SYS_QUERY_PROCESS_THREADS_NORDER, list);
+        }
+        threadsList = list;
+        List<Process> processes = new ArrayList<>() {
+        };
+        Db.getInstance().query(Sql.SYS_QUERY_PROCESS, processes);
+        if (processes.isEmpty()) {
+            Db.getInstance().query(Sql.SYS_QUERY_PROCESS_NORDER, processes);
+        }
         for (Process process : processes) {
             if (process.getPid() == 0) {
                 continue;
@@ -339,23 +363,6 @@ public final class AnalystPanel extends JBPanel
         }
     }
 
-    @NotNull
-    private List<Process> getProcesses(List<ThreadData> list) {
-        // If the list has no data (obtained by memory sorting)
-        if (list.isEmpty()) {
-            // then directly query the process and thread tables to find the data
-            Db.getInstance().query(Sql.SYS_QUERY_PROCESS_THREADS_NORDER, list);
-        }
-        threadsList = list;
-        List<Process> processes = new ArrayList<>() {
-        };
-        Db.getInstance().query(Sql.SYS_QUERY_PROCESS, processes);
-        if (processes.isEmpty()) {
-            Db.getInstance().query(Sql.SYS_QUERY_PROCESS_NORDER, processes);
-        }
-        return processes;
-    }
-
     private void addThreadsList2(List<ThreadData> list) {
         list.stream().filter(data -> data.getProcessName() == null || data.getProcessName().isEmpty())
             .forEach(threadData -> {
@@ -364,6 +371,9 @@ public final class AnalystPanel extends JBPanel
                 process.setName(threadData.getThreadName());
                 ProcessDataFragment processDataFragment = new ProcessDataFragment(contentPanel, process);
                 contentPanel.addDataFragment(processDataFragment);
+                if (process.getName() == null) {
+                    process.setName("Process");
+                }
                 if (!process.getName().startsWith("swapper") && process.getPid() != 0) {
                     ThreadDataFragment fgr = new ThreadDataFragment(contentPanel, threadData);
                     fgr.defaultHeight = defaultFragmentHeight;
@@ -392,7 +402,7 @@ public final class AnalystPanel extends JBPanel
     /**
      * load database
      *
-     * @param name db name
+     * @param name    db name
      * @param isLocal is local db
      */
     public void load(final String name, final boolean isLocal) {
@@ -410,6 +420,7 @@ public final class AnalystPanel extends JBPanel
             Db.getInstance().query(Sql.SYS_GET_PROCESS_MEM, processMem);
             List<AsyncEvent> asyncEvents = new ArrayList<>() {
             };
+            Db.getInstance().query(Sql.SYS_GET_ASYNC_EVENTS, asyncEvents);
             // Add thread information
             List<ThreadData> processThreads = new ArrayList<>() {
             };
@@ -433,6 +444,15 @@ public final class AnalystPanel extends JBPanel
                 addClock(clocks);
                 addThreadsList(processThreads, processMem, asyncEvents); // The memory information of the process and
                 // The thread information of the process is displayed together
+                // load logs
+                Rectangle b3 =
+                    SwingUtilities.convertRectangle(scrollPane, scrollPane.getBounds(), layeredPane);
+                tab.removeAll();
+                tab.display(b3);
+                tab.add("Logs", tabLogTable);
+                tab.hideInBottom();
+                tabLogTable.query(true);
+                tabLogTable.requestFocusInWindow();
                 contentPanel.refresh();
             });
         }, Utils.getPool()).whenComplete((unused, throwable) -> {
@@ -468,7 +488,7 @@ public final class AnalystPanel extends JBPanel
         };
         Db.getInstance().query(Sql.SYS_QUERY_CPU_MAX, cpuMaxes);
         if (cpuMaxes.isEmpty()) {
-            return Lists.newArrayList();
+            return new ArrayList<>();
         }
         int cpuMax = cpuMaxes.get(0).getCpu();
         List<List<CpuData>> list = new ArrayList<>();
@@ -496,11 +516,11 @@ public final class AnalystPanel extends JBPanel
     /**
      * The bottom tab is displayed when the select event is clicked.
      *
-     * @param cpus select cpu list（）
+     * @param cpus      select cpu list（）
      * @param threadIds select thread id list
-     * @param trackIds select mem track id list
-     * @param ns select start time ns and end time ns
-     * @param funTids funTids
+     * @param trackIds  select mem track id list
+     * @param ns        select start time ns and end time ns
+     * @param funTids   funTids
      */
     public void boxSelection(final List<Integer> cpus, final List<Integer> threadIds, final List<Integer> trackIds,
         final List<Integer> funTids, final LeftRightNS ns) {
@@ -536,6 +556,8 @@ public final class AnalystPanel extends JBPanel
                 counterTab.loadTabData(trackIds, ns.getLeftNs(), ns.getRightNs());
                 tab.add("Counters", counterTab);
             }
+            tab.add("Logs", tabLogTable);
+            tabLogTable.query(true);
         });
     }
 
@@ -561,6 +583,35 @@ public final class AnalystPanel extends JBPanel
             ScrollSlicePanel ssp = new ScrollSlicePanel();
             ssp.setData("Slice Details", dataSource, null);
             tab.add("Current Selection", ssp);
+            tab.add("Logs", tabLogTable);
+            tabLogTable.query(true);
+        });
+    }
+
+    /**
+     * The bottom tab is displayed when the method event is clicked.
+     *
+     * @param bean function
+     */
+    public void clickAsyncFunctionData(final AsyncEvent bean) {
+        cancelRangeSelect();
+        ArrayList<ScrollSlicePanel.SliceData> dataSource = new ArrayList<>();
+        dataSource.add(ScrollSlicePanel.createSliceData("Name", bean.getName(), false));
+        dataSource.add(ScrollSlicePanel.createSliceData("Cookie", bean.getCookie().toString(), false));
+        dataSource.add(ScrollSlicePanel.createSliceData("StartTime",
+            TimeUtils.getTimeString(bean.getStartTime()) + "", false));
+        dataSource.add(ScrollSlicePanel.createSliceData("Duration",
+            TimeUtils.getTimeString(bean.getDuration()) + "", false));
+        SwingUtilities.invokeLater(() -> {
+            Rectangle b3 =
+                SwingUtilities.convertRectangle(scrollPane, scrollPane.getBounds(), layeredPane);
+            tab.display(b3);
+            tab.removeAll();
+            ScrollSlicePanel ssp = new ScrollSlicePanel();
+            ssp.setData("Slice Details", dataSource, null);
+            tab.add("Current Selection", ssp);
+            tab.add("Logs", tabLogTable);
+            tabLogTable.query(true);
         });
     }
 
@@ -588,6 +639,8 @@ public final class AnalystPanel extends JBPanel
             ScrollSlicePanel ssp = new ScrollSlicePanel();
             ssp.setData("Counter Details", dataSource, null);
             tab.add("Current Selection", ssp);
+            tab.add("Logs", tabLogTable);
+            tabLogTable.query(true);
         });
     }
 
@@ -626,6 +679,8 @@ public final class AnalystPanel extends JBPanel
                 contentPanel.scrollToCpu(threadData.getCpu(), threadData.getStartTime());
             });
             tab.add("Current Selection", ssp);
+            tab.add("Logs", tabLogTable);
+            tabLogTable.query(true);
         });
     }
 
@@ -667,6 +722,8 @@ public final class AnalystPanel extends JBPanel
                     contentPanel.scrollToThread(cpu.getProcessId(), cpu.getTid(), cpu.getStartTime(), tab.getHeight());
                 });
                 tab.add("Current Selection", ssp);
+                tab.add("Logs", tabLogTable);
+                tabLogTable.query(true);
                 repaint();
             });
         }, Utils.getPool()).whenComplete((unused, throwable) -> {
@@ -738,7 +795,7 @@ public final class AnalystPanel extends JBPanel
         });
         SwingUtilities.invokeLater(() -> {
             Rectangle b3 =
-                SwingUtilities.convertRectangle(AnalystPanel.this, AnalystPanel.this.getBounds(), layeredPane);
+                SwingUtilities.convertRectangle(scrollPane, scrollPane.getBounds(), layeredPane);
             tab.display(b3);
             tab.removeAll();
             tab.add("Current Selection", flagPanel);
@@ -793,8 +850,8 @@ public final class AnalystPanel extends JBPanel
             }
             String keyword = Optional.ofNullable(JOptionPane
                     .showInputDialog(null, "Search for pid uid name",
-                            "Search", JOptionPane.PLAIN_MESSAGE, null, null,
-                            ""))
+                        "Search", JOptionPane.PLAIN_MESSAGE, null, null,
+                        ""))
                 .map(it -> it.toString().trim()).orElse("");
             if (keyword == null || keyword.isEmpty()) {
                 keyPressedVKFEmptyKeyword();
@@ -853,6 +910,7 @@ public final class AnalystPanel extends JBPanel
                     isUserInteraction = false;
                     contentPanel.removeMouseWheelListener(this);
                     contentPanel.fragmentList.forEach(it -> it.keyReleased(event));
+                    contentPanel.fragmentList.forEach(it -> it.drawFrame());
                 }
                 break;
             default:
@@ -907,6 +965,10 @@ public final class AnalystPanel extends JBPanel
                 .forEach(fragment -> fragment.mouseReleased(event));
         } else {
             contentPanel.fragmentList.forEach(it -> it.mouseReleased(event));
+            if (isUserInteraction) {
+                isUserInteraction = false;
+                contentPanel.fragmentList.forEach(it -> it.drawFrame());
+            }
         }
         if (Objects.nonNull(contentPanel.startPoint) && Objects.nonNull(contentPanel.endPoint)) {
             if (contentPanel.startPoint.getX() > contentPanel.endPoint.getX()) {
@@ -935,6 +997,11 @@ public final class AnalystPanel extends JBPanel
     @Override
     public void mouseDragged(final MouseEvent event) {
         viewport.mouseDragged(event);
+        isUserInteraction = true;
+        /**
+         * If the drag range is in the area below the time axis,
+         * the range selection function appears,and the tab box pops up
+         */
         if (SwingUtilities.convertMouseEvent(contentPanel, event, AnalystPanel.this).getY() > TimeViewPort.height) {
             Rectangle rect = new Rectangle(0, 0, viewport.getWidth(), TimeViewPort.height);
             if (!rect.contains(event.getPoint()) && Utils.getX(event.getPoint()) > 200) {
@@ -1146,6 +1213,14 @@ public final class AnalystPanel extends JBPanel
         contentPanel.endPoint = null;
     }
 
+    public static IAsyncFunctionDataClick getiAsyncFunctionDataClick() {
+        return iAsyncFunctionDataClick;
+    }
+
+    public static void setiAsyncFunctionDataClick(IAsyncFunctionDataClick iAsyncFunctionDataClick) {
+        AnalystPanel.iAsyncFunctionDataClick = iAsyncFunctionDataClick;
+    }
+
     /**
      * cpu data click callback
      */
@@ -1180,6 +1255,18 @@ public final class AnalystPanel extends JBPanel
          * @param data function
          */
         void click(FunctionBean data);
+    }
+
+    /**
+     * async function data click callback
+     */
+    public interface IAsyncFunctionDataClick {
+        /**
+         * function data click callback
+         *
+         * @param data function
+         */
+        void click(AsyncEvent data);
     }
 
     /**
@@ -1223,8 +1310,7 @@ public final class AnalystPanel extends JBPanel
         }
 
         /**
-         * Sets the leftNs .
-         * <p>You can use getLeftNs() to get the value of leftNs</p>
+         * Sets the leftNs .You can use getLeftNs() to get the value of leftNs
          *
          * @param leftNs leftNs
          */
@@ -1242,8 +1328,7 @@ public final class AnalystPanel extends JBPanel
         }
 
         /**
-         * Sets the rightNs .
-         * <p>You can use getRightNs() to get the value of rightNs</p>
+         * Sets the rightNs .You can use getRightNs() to get the value of rightNs
          *
          * @param rightNs rightNs
          */

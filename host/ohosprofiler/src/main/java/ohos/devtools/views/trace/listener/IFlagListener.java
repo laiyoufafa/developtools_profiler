@@ -20,7 +20,7 @@ import ohos.devtools.views.trace.bean.FlagBean;
 /**
  * Small flag change callback
  *
- * @date 2021/04/22 12:25
+ * @since 2021/04/22 12:25
  */
 public interface IFlagListener {
     /**

@@ -24,8 +24,10 @@ import java.util.List;
 
 /**
  * Metadata Strategy
+ *
  */
 public class MetadataStrategy implements Strategy {
+
     /**
      * get Query Metadata Result
      *

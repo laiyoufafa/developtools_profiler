@@ -28,7 +28,7 @@ import static ohos.devtools.views.trace.component.AnalystPanel.DURATION;
 /**
  * The left part of the timeline display area
  *
- * @date 2021/04/22 12:25
+ * @since 2021/04/22 12:25
  */
 public class LeftFragment extends AbstractFragment {
     private String startTimeS = "0.0s";

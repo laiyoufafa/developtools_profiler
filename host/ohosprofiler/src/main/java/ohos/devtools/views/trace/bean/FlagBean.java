@@ -26,7 +26,7 @@ import java.awt.event.MouseEvent;
 /**
  * Little Red Flag Data
  *
- * @date 2021/04/22 12:25
+ * @since 2021/04/22 12:25
  */
 public class FlagBean extends AbstractGraph {
     private final int defaultFuncColorIndex = 6;
@@ -55,8 +55,7 @@ public class FlagBean extends AbstractGraph {
     }
 
     /**
-     * Sets the ns .
-     * <p>You can use getNs() to get the value of ns</p>
+     * Sets the ns .You can use getNs() to get the value of ns
      *
      * @param ns Nanoseconds
      */
@@ -74,8 +73,7 @@ public class FlagBean extends AbstractGraph {
     }
 
     /**
-     * Sets the visible .
-     * <p>You can use getVisible() to get the value of visible</p>
+     * Sets the visible .You can use getVisible() to get the value of visible
      *
      * @param visible Whether to show
      */
@@ -93,8 +91,7 @@ public class FlagBean extends AbstractGraph {
     }
 
     /**
-     * Sets the name .
-     * <p>You can use getName() to get the value of name</p>
+     * Sets the name .You can use getName() to get the value of name
      *
      * @param name name
      */
@@ -112,8 +109,7 @@ public class FlagBean extends AbstractGraph {
     }
 
     /**
-     * Sets the time .
-     * <p>You can use getTime() to get the value of time</p>
+     * Sets the time .You can use getTime() to get the value of time
      *
      * @param time time
      */
@@ -131,8 +127,7 @@ public class FlagBean extends AbstractGraph {
     }
 
     /**
-     * Sets the color .
-     * <p>You can use getColor() to get the value of color</p>
+     * Sets the color .You can use getColor() to get the value of color
      *
      * @param color color
      */
@@ -255,4 +250,5 @@ public class FlagBean extends AbstractGraph {
          */
         void delete(FlagBean data);
     }
+
 }

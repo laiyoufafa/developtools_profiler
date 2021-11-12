@@ -15,25 +15,33 @@
 
 package ohos.devtools.views.layout;
 
-import com.alibaba.fastjson.JSONObject;
 import com.intellij.ui.JBColor;
-import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBPanel;
-import com.intellij.ui.components.JBScrollPane;
 import net.miginfocom.swing.MigLayout;
+import ohos.devtools.datasources.utils.common.Constant;
 import ohos.devtools.datasources.utils.device.entity.DeviceIPPortInfo;
+import ohos.devtools.datasources.utils.device.service.MultiDeviceManager;
+import ohos.devtools.datasources.utils.plugin.entity.AnalysisType;
 import ohos.devtools.datasources.utils.process.entity.ProcessInfo;
+import ohos.devtools.datasources.utils.process.service.ProcessManager;
+import ohos.devtools.datasources.utils.profilerlog.ProfilerLogManager;
 import ohos.devtools.datasources.utils.quartzmanager.QuartzManager;
 import ohos.devtools.datasources.utils.session.service.SessionManager;
-import ohos.devtools.views.common.Constant;
 import ohos.devtools.views.common.LayoutConstants;
 import ohos.devtools.views.common.UtConstant;
 import ohos.devtools.views.common.customcomp.CustomJLabel;
+import ohos.devtools.views.common.customcomp.SelectedTextFileLister;
 import ohos.devtools.views.layout.chartview.TaskScenePanelChart;
 import ohos.devtools.views.layout.dialog.SampleDialog;
+import ohos.devtools.views.layout.utils.EventTrackUtils;
+import org.apache.commons.lang.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.swing.JButton;
+import javax.swing.SwingUtilities;
+import javax.swing.SwingWorker;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.event.FocusEvent;
@@ -42,28 +50,23 @@ import java.awt.event.ItemListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.util.ArrayList;
-import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
+import java.util.Objects;
+import java.util.Vector;
+import java.util.concurrent.ExecutionException;
 
 import static ohos.devtools.views.common.Constant.DEVICE_REFRESH;
 
 /**
- * TaskScenePanel
+ * ApplicationConfigPanel
+ *
+ * @since : 2021/10/25
  */
 public class ApplicationConfigPanel extends JBPanel implements MouseListener, ItemListener {
+    private static final Logger LOGGER = LogManager.getLogger(ApplicationConfigPanel.class);
     private static final String SCENE_TITLE_STR = "Devices & Applications";
     private static final String SCENE_DES_STR = "Task scene: Application tuning";
-    private static final String ADD_DEVICE_STR = "Add Device";
-    private static final String MONITOR_ITEMS_STR = "Monitor Items";
-    private static final String MEMORY_STR = "Memory";
-    private static final String CHECKBOX_ALL_STR = "Select All";
-    private static final String CHECKBOX_JAVA_STR = "Java";
-    private static final String CHECKBOX_NATIVE_STR = "Native";
-    private static final String CHECKBOX_GRAPHICS_STR = "Graphics";
-    private static final String CHECKBOX_STACK_STR = "Stack";
-    private static final String CHECKBOX_CODE_STR = "Code";
-    private static final String CHECKBOX_OTHER_STR = "Others";
     private static final String LAST_STEP_BTN_STR = "Last Step";
     private static final String START_TASK_BTN_STR = "Start Task";
 
@@ -72,32 +75,10 @@ public class ApplicationConfigPanel extends JBPanel implements MouseListener, It
     private JBLabel sceneTitlePanel;
     private JBLabel sceneDesPanel;
     private JBPanel centerPanel;
-    private JBPanel deviceConnectPanel;
-    private DeviceProcessPanel deviceProcessPanel;
-    private JButton addDeviceBtn;
-    private JBPanel dataSourceConfigPanel;
-    private JBCheckBox[] memoryCheckBoxItems;
-    private JBCheckBox allCheckBox;
-    private JBCheckBox memoryJavaCheckBox;
-    private JBCheckBox memoryNativeCheckBox;
-    private JBCheckBox memoryGraphicsCheckBox;
-    private JBCheckBox memoryStackCheckBox;
-    private JBCheckBox memoryCodeCheckBox;
-    private JBCheckBox memoryOthersCheckBox;
-    private JBPanel scrollContainer;
-    private JBScrollPane deviceConfigScrollPane;
     private JBPanel southPanel;
     private JButton lastStepBtn;
     private JButton startTaskBtn;
-
-    private int deviceNum = 1;
-    private int scrollContainerHeight = 0;
-
-    /**
-     * Task Scene Panel
-     */
-    public ApplicationConfigPanel() {
-    }
+    private DistributedDeviceProcessPanel deviceProcess;
 
     /**
      * TaskScenePanel
@@ -105,6 +86,7 @@ public class ApplicationConfigPanel extends JBPanel implements MouseListener, It
      * @param taskPanel taskPanel
      */
     public ApplicationConfigPanel(TaskPanel taskPanel) {
+        EventTrackUtils.getInstance().trackApplicationConfigPage();
         this.taskPanel = taskPanel;
         initComponents();
         addEventListener();
@@ -114,6 +96,9 @@ public class ApplicationConfigPanel extends JBPanel implements MouseListener, It
      * initComponents
      */
     private void initComponents() {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("initComponents");
+        }
         this.setLayout(new MigLayout("insets 0", "15[grow,fill]",
                 "15[fill,fill]"));
         // init northPanel
@@ -130,102 +115,53 @@ public class ApplicationConfigPanel extends JBPanel implements MouseListener, It
      * initCenterPanelItems
      */
     private void initNorthPanelItems() {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("initNorthPanelItems");
+        }
         northPanel = new JBPanel(new MigLayout("insets 0"));
         sceneTitlePanel = new JBLabel(SCENE_TITLE_STR);
         sceneTitlePanel.setFont(new Font(Font.DIALOG, Font.BOLD, 24));
         sceneTitlePanel.setForeground(JBColor.foreground().brighter());
         sceneDesPanel = new JBLabel(SCENE_DES_STR);
         sceneDesPanel.setFont(new Font(Font.DIALOG, Font.PLAIN, 14));
+        northPanel.setOpaque(false);
+        northPanel.add(sceneTitlePanel);
+        northPanel.add(sceneDesPanel, "gap 5");
     }
 
     /**
      * initCenterPanelItems
      */
     private void initCenterPanelItems() {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("initCenterPanelItems");
+        }
         centerPanel = new JBPanel(new MigLayout("insets 0", "[grow,fill]20",
             "[fill,fill]"));
-        scrollContainer = new JBPanel(new MigLayout("insets 0", "[grow,fill]",
-            "[fill,fill]"));
-        scrollContainer.setOpaque(false);
-        scrollContainer.setBackground(JBColor.background());
-        deviceConfigScrollPane = new JBScrollPane(scrollContainer, JBScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
-            JBScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-        deviceConfigScrollPane.setBorder(null);
-        // set the scroll rat
-        deviceConfigScrollPane.getVerticalScrollBar().setUnitIncrement(LayoutConstants.SCROLL_UNIT_INCREMENT);
-        deviceConnectPanel = new JBPanel(new MigLayout("insets 0", "[grow,fill]",
-            "[fill,fill]"));
-        deviceConnectPanel.setOpaque(false);
-        deviceConnectPanel.add(deviceConfigScrollPane, "wrap, span");
-        deviceConnectPanel.setBackground(JBColor.background());
-        addDeviceBtn = new JButton(ADD_DEVICE_STR);
-        addDeviceBtn.setName(ADD_DEVICE_STR);
-        addDeviceBtn.setFont(new Font(Font.DIALOG, Font.PLAIN, LayoutConstants.OPTION_FONT));
-        addDeviceBtn.setOpaque(false);
-        addDeviceBtn.setPreferredSize(new Dimension(140, 40));
-        deviceProcessPanel = new DeviceProcessPanel(scrollContainer, deviceNum, scrollContainerHeight);
-        scrollContainer.add(deviceProcessPanel, "wrap, span");
-        initDataSourceConfig();
-    }
-
-    /**
-     * initDataSourceConfig
-     */
-    private void initDataSourceConfig() {
-        dataSourceConfigPanel = new JBPanel(new MigLayout("insets 0", "20[]80[]",
-            "20[]14[]14[]14[]14[]"));
-        dataSourceConfigPanel.setOpaque(false);
-        dataSourceConfigPanel.setPreferredSize(new Dimension(400, 450));
-        dataSourceConfigPanel.setBackground(JBColor.background());
-        allCheckBox = new JBCheckBox(CHECKBOX_ALL_STR);
-        memoryJavaCheckBox = new JBCheckBox(CHECKBOX_JAVA_STR);
-        memoryNativeCheckBox = new JBCheckBox(CHECKBOX_NATIVE_STR);
-        memoryGraphicsCheckBox = new JBCheckBox(CHECKBOX_GRAPHICS_STR);
-        memoryStackCheckBox = new JBCheckBox(CHECKBOX_STACK_STR);
-        memoryCodeCheckBox = new JBCheckBox(CHECKBOX_CODE_STR);
-        memoryOthersCheckBox = new JBCheckBox(CHECKBOX_OTHER_STR);
-        JBLabel monitorTitleLabel = new JBLabel(MONITOR_ITEMS_STR);
-        monitorTitleLabel.setFont(new Font(Font.DIALOG, Font.PLAIN, 16));
-        monitorTitleLabel.setForeground(JBColor.foreground().brighter());
-        memoryCheckBoxItems = new JBCheckBox[LayoutConstants.INDEX_SEVEN];
-        memoryCheckBoxItems[LayoutConstants.INDEX_ZERO] = allCheckBox;
-        memoryCheckBoxItems[LayoutConstants.INDEX_ONE] = memoryJavaCheckBox;
-        memoryCheckBoxItems[LayoutConstants.INDEX_TWO] = memoryNativeCheckBox;
-        memoryCheckBoxItems[LayoutConstants.INDEX_THREE] = memoryGraphicsCheckBox;
-        memoryCheckBoxItems[LayoutConstants.INDEX_FOUR] = memoryStackCheckBox;
-        memoryCheckBoxItems[LayoutConstants.INDEX_FIVE] = memoryCodeCheckBox;
-        memoryCheckBoxItems[LayoutConstants.INDEX_SIX] = memoryOthersCheckBox;
-        // select all
-        allCheckBox.setSelected(true);
-        memoryJavaCheckBox.setSelected(true);
-        memoryNativeCheckBox.setSelected(true);
-        memoryGraphicsCheckBox.setSelected(true);
-        memoryStackCheckBox.setSelected(true);
-        memoryCodeCheckBox.setSelected(true);
-        memoryOthersCheckBox.setSelected(true);
-        allCheckBox.setOpaque(false);
-        memoryJavaCheckBox.setOpaque(false);
-        memoryNativeCheckBox.setOpaque(false);
-        memoryGraphicsCheckBox.setOpaque(false);
-        memoryStackCheckBox.setOpaque(false);
-        memoryCodeCheckBox.setOpaque(false);
-        memoryOthersCheckBox.setOpaque(false);
-        dataSourceConfigPanel.add(monitorTitleLabel, "wrap");
-        JBLabel memoryTitleLabel = new JBLabel(MEMORY_STR);
-        dataSourceConfigPanel.add(memoryTitleLabel, "wrap");
-        dataSourceConfigPanel.add(allCheckBox);
-        dataSourceConfigPanel.add(memoryJavaCheckBox, "wrap");
-        dataSourceConfigPanel.add(memoryNativeCheckBox);
-        dataSourceConfigPanel.add(memoryGraphicsCheckBox, "wrap");
-        dataSourceConfigPanel.add(memoryStackCheckBox);
-        dataSourceConfigPanel.add(memoryCodeCheckBox,  "wrap");
-        dataSourceConfigPanel.add(memoryOthersCheckBox);
+        List<DeviceIPPortInfo> deviceInfoList = MultiDeviceManager.getInstance().getOnlineDeviceInfoList();
+        if (deviceInfoList.isEmpty()) {
+            deviceProcess = new DistributedDeviceProcessPanel(1);
+        } else {
+            List<ProcessInfo> processInfoList = ProcessManager.getInstance().getProcessList(deviceInfoList.get(0));
+            if (processInfoList.isEmpty()) {
+                deviceProcess = new DistributedDeviceProcessPanel(1);
+            } else {
+                deviceProcess = new DistributedDeviceProcessPanel(1, deviceInfoList.get(0), processInfoList.get(0));
+            }
+        }
+        deviceProcess.setForeground(JBColor.foreground().brighter());
+        centerPanel.setOpaque(true);
+        deviceProcess.setForeground(JBColor.foreground().brighter());
+        centerPanel.add(deviceProcess, "span");
     }
 
     /**
      * southPanelItems
      */
     private void initSouthPanelItems() {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("initSouthPanelItems");
+        }
         southPanel = new JBPanel(new MigLayout("insets 0", "push[]20[]20",
             "[fill,fill]"));
         southPanel.setPreferredSize(new Dimension(1200, 40));
@@ -241,23 +177,18 @@ public class ApplicationConfigPanel extends JBPanel implements MouseListener, It
         startTaskBtn.setOpaque(false);
         startTaskBtn.setFocusPainted(false);
         startTaskBtn.setPreferredSize(new Dimension(140, 40));
+        southPanel.setOpaque(false);
+        southPanel.add(lastStepBtn);
+        southPanel.add(startTaskBtn);
     }
 
     /**
      * add panels
      */
     private void addPanels() {
-        northPanel.setOpaque(false);
-        northPanel.add(sceneTitlePanel);
-        northPanel.add(sceneDesPanel, "gap 5");
-        centerPanel.setOpaque(false);
-        centerPanel.add(deviceConnectPanel, "width max(100, 100%)");
-        southPanel.setOpaque(false);
-        southPanel.add(lastStepBtn);
-        southPanel.add(startTaskBtn);
         this.add(northPanel, "wrap");
         this.add(centerPanel, "wrap");
-        this.add(southPanel, "wrap");
+        this.add(southPanel, "gaptop 100");
         this.setBackground(JBColor.background().darker());
         this.setOpaque(true);
     }
@@ -266,85 +197,208 @@ public class ApplicationConfigPanel extends JBPanel implements MouseListener, It
      * addEventListener
      */
     private void addEventListener() {
-        allCheckBox.addItemListener(this);
         lastStepBtn.addMouseListener(this);
         startTaskBtn.addMouseListener(this);
-        addDeviceBtn.addMouseListener(this);
+        deviceProcess.getSearchComBox().setSelectedTextFileListener(new SelectedTextFileLister() {
+            @Override
+            public void textFileClick() {
+                DeviceIPPortInfo item = deviceProcess.getDeviceComboBox().getItem();
+                ProcessManager instance = ProcessManager.getInstance();
+                if (!instance.isRequestProcess()) {
+                    new SwingWorker<List<String>, Integer>() {
+                        @Override
+                        protected List<String> doInBackground() {
+                            List<ProcessInfo> processInfos = ProcessManager.getInstance().getProcessList(item);
+                            List<String> processNames = new ArrayList<>();
+                            for (int index = 0; index < processInfos.size(); index++) {
+                                ProcessInfo processInfo = processInfos.get(index);
+                                processNames
+                                    .add(processInfo.getProcessName() + "(" + processInfo.getProcessId() + ")");
+                            }
+                            return processNames;
+                        }
+
+                        @Override
+                        protected void done() {
+                            try {
+                                List<String> vector = get();
+                                deviceProcess.getSearchComBox().refreshProcess(vector);
+                            } catch (InterruptedException | ExecutionException exception) {
+                                exception.printStackTrace();
+                            }
+                        }
+                    }.execute();
+                }
+            }
+        });
+        deviceProcess.getDeviceComboBox().addItemListener(new ItemListener() {
+            @Override
+            public void itemStateChanged(ItemEvent itemEvent) {
+                deviceProcess.getSearchComBox().clearSelectedName();
+            }
+        });
+        addRefreshDeviceList();
     }
 
     /**
      * obtainMap
      *
-     * @param jTaskPanel jTaskPanel
-     * @return List<HosJLabel>
+     * @param taskPanel taskPanel
+     * @param deviceInfo deviceInfo
+     * @param processName processName
+     * @return List <HosJLabel>
      */
-    public List<CustomJLabel> obtainMap(TaskPanel jTaskPanel) {
-        SessionManager sessionManager = SessionManager.getInstance();
-        Collection<Map<DeviceIPPortInfo, ProcessInfo>> selectMaps = Constant.map.values();
-        if (selectMaps.isEmpty()) {
-            return new ArrayList<>();
+    public List<CustomJLabel> startCollecting(TaskPanel taskPanel, DeviceIPPortInfo deviceInfo, String processName) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("startCollecting");
         }
         ArrayList<CustomJLabel> hosJLabels = new ArrayList<>();
-        for (Map<DeviceIPPortInfo, ProcessInfo> seMap : selectMaps) {
-            for (Map.Entry<DeviceIPPortInfo, ProcessInfo> entry : seMap.entrySet()) {
-                DeviceIPPortInfo mapKey = null;
-                DeviceIPPortInfo keyObj = entry.getKey();
-                if (keyObj != null) {
-                    mapKey = keyObj;
-                }
-                ProcessInfo mapValue = null;
-                ProcessInfo valueObj = entry.getValue();
-                if (valueObj != null) {
-                    mapValue = valueObj;
-                }
-                if (mapKey != null && mapValue != null) {
-                    Long localSessionID = sessionManager.createSession(mapKey, mapValue);
-                    if (localSessionID.equals(ohos.devtools.datasources.utils.common.Constant.ABNORMAL)) {
-                        return new ArrayList<>();
-                    }
-                    jTaskPanel.setLocalSessionId(localSessionID);
-                    CustomJLabel hosJLabel = new CustomJLabel();
-                    hosJLabel.setSessionId(localSessionID);
-                    hosJLabel.setDeviceName(mapKey.getDeviceName());
-                    hosJLabel.setProcessName(mapValue.getProcessName() + "(" + mapValue.getProcessId() + ")");
-                    hosJLabel.setConnectType(mapKey.getConnectType());
-                    // start session
-                    sessionManager.startSession(localSessionID, false);
-                    // get the data
-                    sessionManager.fetchData(localSessionID);
-                    hosJLabels.add(hosJLabel);
-                }
-            }
+        SessionManager sessionManager = SessionManager.getInstance();
+        String pid = processName.substring(processName.lastIndexOf("(") + 1, processName.lastIndexOf(")"));
+        ProcessInfo process = new ProcessInfo();
+        process.setProcessName(processName.substring(0, processName.lastIndexOf("(")));
+        process.setProcessId(Integer.parseInt(pid));
+        Long localSessionID = sessionManager.createSession(deviceInfo, process, AnalysisType.APPLICATION_TYPE);
+        if (localSessionID.equals(Constant.ABNORMAL)) {
+            return new ArrayList<>();
         }
+        taskPanel.setLocalSessionId(localSessionID);
+        CustomJLabel hosJLabel = new CustomJLabel();
+        hosJLabel.setSessionId(localSessionID);
+        hosJLabel.setDeviceName(deviceInfo.getDeviceName());
+        hosJLabel.setProcessName(processName);
+        hosJLabel.setConnectType(deviceInfo.getConnectType());
+        // start session
+        sessionManager.startSession(localSessionID, false);
+        // get the data
+        sessionManager.fetchData(localSessionID);
+        hosJLabels.add(hosJLabel);
         return hosJLabels;
     }
 
     /**
-     * Get the value of the drop-down box
-     *
-     * @return JSONObject
+     * addRefreshDeviceList
      */
-    private JSONObject getCheckBoxJson() {
-        JSONObject memoryObject = new JSONObject();
-        memoryObject.put(memoryCheckBoxItems[LayoutConstants.INDEX_ONE].getText(),
-                memoryCheckBoxItems[LayoutConstants.INDEX_ONE].isSelected());
-        memoryObject.put(memoryCheckBoxItems[LayoutConstants.INDEX_TWO].getText(),
-                memoryCheckBoxItems[LayoutConstants.INDEX_TWO].isSelected());
-        memoryObject.put(memoryCheckBoxItems[LayoutConstants.INDEX_THREE].getText(),
-                memoryCheckBoxItems[LayoutConstants.INDEX_THREE].isSelected());
-        memoryObject.put(memoryCheckBoxItems[LayoutConstants.INDEX_FOUR].getText(),
-                memoryCheckBoxItems[LayoutConstants.INDEX_FOUR].isSelected());
-        memoryObject.put(memoryCheckBoxItems[LayoutConstants.INDEX_FIVE].getText(),
-                memoryCheckBoxItems[LayoutConstants.INDEX_FIVE].isSelected());
-        memoryObject.put(memoryCheckBoxItems[LayoutConstants.INDEX_SIX].getText(),
-                memoryCheckBoxItems[LayoutConstants.INDEX_SIX].isSelected());
-        JSONObject jsonObject = new JSONObject();
-        jsonObject.put("Memory", memoryObject);
-        return jsonObject;
+    private void addRefreshDeviceList() {
+        QuartzManager.getInstance().addExecutor(DEVICE_REFRESH, new Runnable() {
+            @Override
+            public void run() {
+                List<DeviceIPPortInfo> deviceInfos = MultiDeviceManager.getInstance().getOnlineDeviceInfoList();
+                if (!deviceInfos.isEmpty()) {
+                    Vector<DeviceIPPortInfo> items = new Vector<DeviceIPPortInfo>();
+                    for (DeviceIPPortInfo deviceIPPortInfo : deviceInfos) {
+                        items.add(deviceIPPortInfo);
+                    }
+                    Vector<DeviceIPPortInfo> oldDevice = deviceProcess.getVector();
+                    if (!compareVector(oldDevice, items)) {
+                        SwingUtilities.invokeLater(new Runnable() {
+                            @Override
+                            public void run() {
+                                deviceProcess.refreshDeviceItem(items);
+                            }
+                        });
+                    }
+                } else {
+                    SwingUtilities.invokeLater(new Runnable() {
+                        @Override
+                        public void run() {
+                            Vector<DeviceIPPortInfo> items = new Vector<>();
+                            deviceProcess.refreshDeviceItem(items);
+                            deviceProcess.getSearchComBox().clearSelectedName();
+                        }
+                    });
+                }
+            }
+        });
+        QuartzManager.getInstance().startExecutor(DEVICE_REFRESH, 0, LayoutConstants.THOUSAND);
+    }
+
+    /**
+     * compareVector
+     *
+     * @param first first
+     * @param second second
+     * @return boolean
+     */
+    private boolean compareVector(Vector<DeviceIPPortInfo> first, Vector<DeviceIPPortInfo> second) {
+        if (Objects.isNull(first) && Objects.isNull(second)) {
+            return true;
+        }
+        if (Objects.isNull(first) || Objects.isNull(second)) {
+            return false;
+        }
+        if (first.size() == second.size()) {
+            return compareWithVector(first, second);
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * compareWithVector
+     *
+     * @param oldVector oldVector
+     * @param newVector newVector
+     * @return boolean
+     */
+    private boolean compareWithVector(Vector<DeviceIPPortInfo> oldVector, Vector<DeviceIPPortInfo> newVector) {
+        StringBuilder builder = new StringBuilder();
+        Iterator<DeviceIPPortInfo> iterator = oldVector.iterator();
+        while (iterator.hasNext()) {
+            DeviceIPPortInfo deviceIPPortInfo = iterator.next();
+            builder.append(deviceIPPortInfo.getDeviceName()).append("_").append(deviceIPPortInfo.getDeviceID());
+        }
+        int count = 0;
+        String firstString = builder.toString();
+        Iterator<DeviceIPPortInfo> newIterator = newVector.iterator();
+        while (newIterator.hasNext()) {
+            DeviceIPPortInfo deviceIPPortInfo = newIterator.next();
+            String map1KeyVal = deviceIPPortInfo.getDeviceName() + "_" + deviceIPPortInfo.getDeviceID();
+            boolean contains = firstString.contains(map1KeyVal);
+            if (contains) {
+                count++;
+            }
+        }
+        if (newVector.size() == count) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     @Override
     public void mouseClicked(MouseEvent event) {
+        String name = event.getComponent().getName();
+        if (name.equals(LAST_STEP_BTN_STR)) {
+            taskPanel.getTabContainer().remove(this);
+            taskPanel.getTabItem().setVisible(true);
+            taskPanel.getTabContainer().repaint();
+            QuartzManager.getInstance().deleteExecutor(DEVICE_REFRESH);
+        }
+        if (name.equals(START_TASK_BTN_STR)) {
+            startTaskBtn.dispatchEvent(new FocusEvent(startTaskBtn, FocusEvent.FOCUS_GAINED, true));
+            startTaskBtn.requestFocusInWindow();
+            DeviceIPPortInfo item = deviceProcess.getDeviceComboBox().getItem();
+            if (Objects.isNull(item)) {
+                new SampleDialog("prompt", "Device list is empty !").show();
+                return;
+            }
+            String processName = deviceProcess.getSearchComBox().getSelectedProcessName();
+            if (StringUtils.isBlank(processName)) {
+                new SampleDialog("prompt", "The selection process cannot be empty !").show();
+                return;
+            }
+            // get the process map
+            List<CustomJLabel> hosJLabels = startCollecting(taskPanel, item, processName);
+            if (!hosJLabels.isEmpty()) {
+                taskPanel.getTabContainer().removeAll();
+                QuartzManager.getInstance().deleteExecutor(DEVICE_REFRESH);
+                taskPanel.getTabContainer().add(new TaskScenePanelChart(taskPanel, hosJLabels));
+                taskPanel.getTabContainer().setOpaque(true);
+                taskPanel.getTabContainer().setBackground(JBColor.background());
+                taskPanel.getTabContainer().repaint();
+            }
+        }
     }
 
     @Override
@@ -353,53 +407,6 @@ public class ApplicationConfigPanel extends JBPanel implements MouseListener, It
 
     @Override
     public void mouseReleased(MouseEvent event) {
-        String name = event.getComponent().getName();
-        if (name.equals(LAST_STEP_BTN_STR)) {
-            taskPanel.getTabContainer().remove(this);
-            taskPanel.getTabItem().setVisible(true);
-            taskPanel.getTabContainer().repaint();
-        }
-        if (name.equals(START_TASK_BTN_STR)) {
-            startTaskBtn.dispatchEvent(new FocusEvent(startTaskBtn, FocusEvent.FOCUS_GAINED, true));
-            startTaskBtn.requestFocusInWindow();
-            int itemCount = deviceProcessPanel.getDeviceNameComboBox().getItemCount();
-            if (itemCount == 0) {
-                new SampleDialog("prompt", "Device list is empty !").show();
-                return;
-            }
-            if ("Please select the device process !"
-                    .equals(deviceProcessPanel.getSelectedProcessName().getText())) {
-                new SampleDialog("prompt", "Please select the device process !").show();
-                return;
-            }
-            boolean isSelected = memoryJavaCheckBox.isSelected() || memoryNativeCheckBox.isSelected() ||
-                    memoryGraphicsCheckBox.isSelected() || memoryStackCheckBox.isSelected() ||
-                    memoryCodeCheckBox.isSelected() || memoryOthersCheckBox.isSelected();
-            if (!isSelected) {
-                new SampleDialog("prompt", "please choose Monitor Items !").show();
-                return;
-            }
-            // get the process map
-            List<CustomJLabel> hosJLabels = obtainMap(taskPanel);
-            if (!hosJLabels.isEmpty()) {
-                taskPanel.getTabContainer().removeAll();
-                QuartzManager.getInstance().endExecutor(DEVICE_REFRESH);
-                taskPanel.getTabContainer().add(new TaskScenePanelChart(taskPanel, hosJLabels));
-                taskPanel.getTabContainer().setOpaque(true);
-                taskPanel.getTabContainer().setBackground(JBColor.background());
-                taskPanel.getTabContainer().repaint();
-            }
-        }
-        if (name.equals(ADD_DEVICE_STR)) {
-            deviceNum++;
-            scrollContainerHeight += 450;
-            DeviceProcessPanel addDeviceProcessPanel =
-                    new DeviceProcessPanel(scrollContainer, deviceNum, scrollContainerHeight);
-            scrollContainer.add(addDeviceProcessPanel.getGraphicsLine(), "wrap, gapy 15, gapx 12 12, height 30!, span");
-            scrollContainer.add(addDeviceProcessPanel, "wrap, span");
-            scrollContainer
-                .setPreferredSize(new Dimension(LayoutConstants.DEVICE_PRO_WIDTH, 450 + scrollContainerHeight));
-        }
     }
 
     @Override
@@ -412,20 +419,5 @@ public class ApplicationConfigPanel extends JBPanel implements MouseListener, It
 
     @Override
     public void itemStateChanged(ItemEvent event) {
-        if (allCheckBox.isSelected()) {
-            memoryJavaCheckBox.setSelected(true);
-            memoryNativeCheckBox.setSelected(true);
-            memoryGraphicsCheckBox.setSelected(true);
-            memoryStackCheckBox.setSelected(true);
-            memoryCodeCheckBox.setSelected(true);
-            memoryOthersCheckBox.setSelected(true);
-        } else {
-            memoryJavaCheckBox.setSelected(false);
-            memoryNativeCheckBox.setSelected(false);
-            memoryGraphicsCheckBox.setSelected(false);
-            memoryStackCheckBox.setSelected(false);
-            memoryCodeCheckBox.setSelected(false);
-            memoryOthersCheckBox.setSelected(false);
-        }
     }
 }

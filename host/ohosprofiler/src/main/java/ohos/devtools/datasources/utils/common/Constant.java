@@ -27,7 +27,7 @@ public class Constant {
     /**
      * Devtools plug-in (V7) path
      */
-    public static final String DEVTOOLS_PLUGINS_V7_PATH = "developtool.tar";
+    public static final String DEVTOOLS_PLUGINS_V7_PATH = "stddeveloptools.tar";
 
     /**
      * Unzip shell plug-in path
@@ -105,6 +105,11 @@ public class Constant {
     public static final String MEMORY_PLUGS = "libmemdataplugin";
 
     /**
+     * JNATIVE_HOOK_DB
+     */
+    public static final String NATIVE_HOOK_DB = "nativeHook";
+
+    /**
      * cpu plug
      */
     public static final String CPU_PLUGS_NAME = "/data/local/tmp/libcpudataplugin.z.so";
@@ -115,9 +120,51 @@ public class Constant {
     public static final String CPU_PLUG = "cpu-plugin";
 
     /**
+     * diskIo plug
+     */
+    public static final String DISK_IO_PLUG = "diskio-plugin";
+
+    /**
+     * network plug-in
+     */
+    public static final String NETWORK_PLUG = "libnetworkplugin";
+
+    /**
+     * network plug-in name
+     */
+    public static final String NETWORK_PLUG_NAME = "network-plugin";
+
+    /**
+     * network plug name
+     */
+    public static final String NETWORK_PLUGS_NAME = "/data/local/tmp/libnetworkplugin.z.so";
+
+    /**
      * cpu plug
      */
     public static final String ENERGY_PLUGS_NAME = "/data/local/tmp/libcpudataplugin.z.so";
+
+    /**
+     * Cpu plug-in
+     */
+    public static final String ENERGY_PLUG = "energy-plugin";
+
+    /**
+     * energy plug name
+     */
+    public static final String ENERGY_PLUGS = "libenergydataplugin";
+
+
+    /**
+     * process plug
+     */
+    public static final String PROCESS_PLUGS_NAME = "/data/local/tmp/libprocessplugin.z.so";
+
+    /**
+     * process plug name
+     */
+    public static final String PROCESS_PLUGS = "process-plugin";
+
 
     private Constant() {
     }

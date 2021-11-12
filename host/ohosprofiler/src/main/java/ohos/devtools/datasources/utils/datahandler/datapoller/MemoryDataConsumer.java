@@ -23,6 +23,7 @@ import ohos.devtools.datasources.transport.grpc.service.CommonTypes;
 import ohos.devtools.datasources.transport.grpc.service.MemoryPluginResult;
 import ohos.devtools.datasources.utils.common.util.CommonUtil;
 import ohos.devtools.datasources.utils.common.util.DateTimeUtil;
+import ohos.devtools.datasources.utils.profilerlog.ProfilerLogManager;
 import ohos.devtools.services.memory.memoryservice.MemoryDataCache;
 import ohos.devtools.views.charts.model.ChartDataModel;
 import ohos.devtools.views.layout.chartview.MonitorItemDetail;
@@ -48,10 +49,6 @@ import static ohos.devtools.views.layout.chartview.MonitorItemDetail.MEM_STACK;
 public class MemoryDataConsumer extends AbsDataConsumer {
     private static final Logger DATA = LogManager.getLogger("Data");
     private static final Logger LOGGER = LogManager.getLogger(MemoryDataConsumer.class);
-
-    /**
-     * Interval for saving data to the database, in ms.
-     */
     private static final long SAVE_FREQ = 1000;
     private List<ProcessMemInfo> processMemInfoList = new ArrayList<>();
     private Queue<CommonTypes.ProfilerPluginData> queue;
@@ -61,10 +58,6 @@ public class MemoryDataConsumer extends AbsDataConsumer {
     private int logIndex = 0;
     private boolean stopFlag = false;
     private boolean isInsert = false;
-
-    /**
-     * Time reference variable for saving data to the in-memory database at the interval specified by SAVE_FREQ.
-     */
     private long flagTime = DateTimeUtil.getNowTimeLong();
 
     /**
@@ -95,6 +88,9 @@ public class MemoryDataConsumer extends AbsDataConsumer {
 
     @Override
     public void init(Queue queue, int sessionId, long localSessionId) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("init");
+        }
         this.queue = queue;
         this.memoryTable = new MemoryTable();
         this.sessionId = sessionId;
@@ -105,10 +101,16 @@ public class MemoryDataConsumer extends AbsDataConsumer {
      * shutDown
      */
     public void shutDown() {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("shutDown");
+        }
         stopFlag = true;
     }
 
     private void handleMemoryData(CommonTypes.ProfilerPluginData memoryData) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("handleMemoryData");
+        }
         MemoryPluginResult.MemoryData.Builder builder = MemoryPluginResult.MemoryData.newBuilder();
         MemoryPluginResult.MemoryData memorydata = null;
         try {
@@ -123,9 +125,8 @@ public class MemoryDataConsumer extends AbsDataConsumer {
             procMemInfo.setData(app);
             procMemInfo.setSession(localSessionId);
             procMemInfo.setSessionId(sessionId);
-            long timeStamp = (memoryData.getTvSec() * 1000000000L + memoryData.getTvNsec()) / 1000000;
+            long timeStamp = getAgentTime(memoryData.getTvSec(), memoryData.getTvNsec());
             procMemInfo.setTimeStamp(timeStamp);
-            LOGGER.debug("TimeStamp {}, AppSummary {}", timeStamp, app);
             processMemInfoList.add(procMemInfo);
             addDataToCache(procMemInfo);
             isInsert = false;
@@ -141,6 +142,9 @@ public class MemoryDataConsumer extends AbsDataConsumer {
      * @return long
      */
     private long getAgentTime(long tvSec, long tvnsec) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("getAgentTime");
+        }
         return (tvSec * 1000000000L + tvnsec) / 1000000;
     }
 
@@ -150,6 +154,9 @@ public class MemoryDataConsumer extends AbsDataConsumer {
      * @param procMemInfo ProcessMemInfo
      */
     private void addDataToCache(ProcessMemInfo procMemInfo) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("addDataToCache");
+        }
         List<ChartDataModel> dataModels = processAppSummary(procMemInfo.getData());
         MemoryDataCache.getInstance().addDataModel(localSessionId, procMemInfo.getTimeStamp(), dataModels);
     }
@@ -158,9 +165,12 @@ public class MemoryDataConsumer extends AbsDataConsumer {
      * Process MemoryPluginResult.AppSummary into chart needed
      *
      * @param app MemoryPluginResult.AppSummary
-     * @return List<ChartDataModel>
+     * @return List <ChartDataModel>
      */
     public static List<ChartDataModel> processAppSummary(MemoryPluginResult.AppSummary app) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("processAppSummary");
+        }
         List<ChartDataModel> list = new ArrayList<>();
 
         ChartDataModel memJava = buildChartDataModel(MEM_JAVA);
@@ -198,6 +208,9 @@ public class MemoryDataConsumer extends AbsDataConsumer {
      * @return ChartDataModel
      */
     private static ChartDataModel buildChartDataModel(MonitorItemDetail monitorItemDetail) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("buildChartDataModel");
+        }
         ChartDataModel memoryData = new ChartDataModel();
         memoryData.setIndex(monitorItemDetail.getIndex());
         memoryData.setColor(monitorItemDetail.getColor());
@@ -206,6 +219,9 @@ public class MemoryDataConsumer extends AbsDataConsumer {
     }
 
     private void insertMemoryData() {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("insertMemoryData");
+        }
         if (!isInsert) {
             long now = DateTimeUtil.getNowTimeLong();
             if (now - flagTime > SAVE_FREQ) {

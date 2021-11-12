@@ -35,15 +35,15 @@ import static java.util.stream.Collectors.groupingBy;
 /**
  * DataProcess
  *
- * @date: 2021/5/12 16:34
+ * @since 2021/5/12 16:34
  */
 public class DataProcess {
     /**
      * get the get TopDown FuncTree by startNS、endNS and threadIds
      *
-     * @param funcMap funcMap
-     * @param startNS startNS
-     * @param endNS endNS
+     * @param funcMap   funcMap
+     * @param startNS   startNS
+     * @param endNS     endNS
      * @param threadIds threadIds
      * @return list <DefaultMutableTreeNode> nodes
      */
@@ -79,9 +79,9 @@ public class DataProcess {
     /**
      * get the get BottomUp FuncTree by startNS、endNS and threadIds
      *
-     * @param funcMap funcMap
-     * @param startNS startNS
-     * @param endNS endNS
+     * @param funcMap   funcMap
+     * @param startNS   startNS
+     * @param endNS     endNS
      * @param threadIds threadIds
      * @return list <DefaultMutableTreeNode> nodes
      */
@@ -158,7 +158,7 @@ public class DataProcess {
      * Set up presentation data
      *
      * @param map map
-     * @return list <TreeTableBean> TreeTableBean
+     * @return list <TreeTableBean>
      */
     private static List<TreeTableBean> setNumForNodes(Map<String, TreeTableBean> map) {
         List<TreeTableBean> treeNodes = new ArrayList<>(map.values()); // Sort the array
@@ -181,15 +181,17 @@ public class DataProcess {
             if (parentId.isEmpty()) { // Leaf node
                 recursionNodeLeaf(rootNode, timeBean);
             } else { // Non-leaf nodes
-                recursionNodeNonLeaf(rootNode, topBean, treeNodeMap, parentId, id);
+                Map<String, String> idMap = new HashMap<>();
+                idMap.put("parentId", parentId);
+                idMap.put("id", id);
+                recursionNodeNonLeaf(rootNode, timeBean, topBean, treeNodeMap, idMap);
             }
         }
     }
 
-    private static void recursionNodeNonLeaf(DefaultMutableTreeNode rootNode, TreeTableBean topBean,
-        Map<String, TreeTableBean> treeNodeMap, String parentId, String id) {
-        TreeTableBean timeBean = treeNodeMap.get(id);
-        final TreeTableBean idBean = treeNodeMap.get(parentId);
+    private static void recursionNodeNonLeaf(DefaultMutableTreeNode rootNode, TreeTableBean timeBean,
+        TreeTableBean topBean, Map<String, TreeTableBean> treeNodeMap, Map<String, String> idMap) {
+        final TreeTableBean idBean = treeNodeMap.get(idMap.get("parentId"));
         boolean sameName = false;
         Enumeration<TreeNode> enumeration = rootNode.children();
         while (enumeration.hasMoreElements()) {
@@ -200,11 +202,13 @@ public class DataProcess {
                 if (nextElement.getUserObject() instanceof TreeTableBean) {
                     TreeTableBean nextElementUserObject = (TreeTableBean) nextElement.getUserObject();
                     if (nextElementUserObject.getName().equals(idBean.getName())) { // The merge time difference
-                        nextElementUserObject.setSelfNum(nextElementUserObject.getSelfNum() + timeBean.getSelfNum());
                         nextElementUserObject
-                            .setChildrenNum(nextElementUserObject.getChildrenNum() + timeBean.getChildrenNum());
-                        nextElementUserObject.setTotalNum(nextElementUserObject.getTotalNum() + timeBean.getTotalNum());
-                        recursionNode(nextElement, idBean.getPrefParentStackId(), treeNodeMap, id);
+                                .setSelfNum(nextElementUserObject.getSelfNum() + timeBean.getSelfNum());
+                        nextElementUserObject
+                                .setChildrenNum(nextElementUserObject.getChildrenNum() + timeBean.getChildrenNum());
+                        nextElementUserObject
+                                .setTotalNum(nextElementUserObject.getTotalNum() + timeBean.getTotalNum());
+                        recursionNode(nextElement, idBean.getPrefParentStackId(), treeNodeMap, idMap.get("id"));
                         sameName = true;
                     }
                 }
@@ -220,7 +224,7 @@ public class DataProcess {
                 }});
             }};
             rootNode.add(addNode);
-            recursionNode(addNode, idBean.getPrefParentStackId(), treeNodeMap, id);
+            recursionNode(addNode, idBean.getPrefParentStackId(), treeNodeMap, idMap.get("id"));
         }
     }
 
@@ -233,7 +237,8 @@ public class DataProcess {
                     TreeTableBean leafNodeUserObject = (TreeTableBean) leafNode.getUserObject();
                     leafNodeUserObject.setTotalNum(leafNodeUserObject.getTotalNum() + timeBean.getTotalNum());
                     leafNodeUserObject.setSelfNum(leafNodeUserObject.getSelfNum() + timeBean.getTotalNum());
-                    leafNodeUserObject.setChildrenNum(leafNodeUserObject.getSelfNum() + timeBean.getChildrenNum());
+                    leafNodeUserObject
+                            .setChildrenNum(leafNodeUserObject.getSelfNum() + timeBean.getChildrenNum());
                     leafNode.setUserObject(leafNodeUserObject);
                 }
             }

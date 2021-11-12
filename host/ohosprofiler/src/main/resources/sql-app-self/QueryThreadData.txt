@@ -1,6 +1,0 @@
-select A.*,A.ipid as upid,B.itid as utid, B.cpu, B.ts-TR.start_ts AS startTime,B.dur,B.state,IP.pid,IP.name as processName
-                from thread_state AS B
-                left join thread as A
-                left join trace_range AS TR
-                left join process AS IP on IP.id=A.ipid
-                where A.id=B.itid and tid = %s;

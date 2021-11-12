@@ -17,19 +17,19 @@ package ohos.devtools.views.trace.metrics;
 
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.util.IconLoader;
+import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBPanel;
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
 import net.miginfocom.swing.MigLayout;
-import ohos.devtools.views.common.ColorConstants;
 import ohos.devtools.views.trace.component.AnalystPanel;
 import ohos.devtools.views.trace.metrics.bean.Metadata;
 import ohos.devtools.views.trace.metrics.bean.Stats;
 import ohos.devtools.views.trace.util.Db;
 
-import javax.swing.JButton;
-import javax.swing.JLabel;
-import javax.swing.JScrollPane;
-import javax.swing.JTable;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableRowSorter;
@@ -124,13 +124,13 @@ public class InfoStatsPanel extends JBPanel {
         Font font = new Font("PingFang SC", Font.PLAIN, FONT_SIZE);
         previousButton.setFont(font);
         previousButton.setIcon(AllIcons.Actions.Play_back);
-        topJPanel.setBackground(ColorConstants.ABILITY_COLOR);
+        topJPanel.setBackground(JBColor.background().darker());
         topJPanel.add(previousButton, "gapleft 10");
-        centerJPanel.setBackground(ColorConstants.ABILITY_COLOR);
+        centerJPanel.setBackground(JBColor.background().darker());
         this.setPreferredSize(new Dimension(optionJPanel.getWidth(), optionJPanel.getHeight() / HALF));
         centerLabel.setFont(font);
         centerLabel.setText("System info and metadata");
-        bottomJPanel.setBackground(ColorConstants.ABILITY_COLOR);
+        bottomJPanel.setBackground(JBColor.background().darker());
         bottomLabel.setFont(font);
         bottomLabel.setText("Debugging stats");
     }
@@ -183,17 +183,13 @@ public class InfoStatsPanel extends JBPanel {
         DefaultTableCellRenderer hr = new DefaultTableCellRenderer();
         hr.setHorizontalAlignment(JLabel.LEFT);
         table.getTableHeader().setDefaultRenderer(hr);
+        table.setBackground(JBColor.background().darker());
         bottomScrollPane.setViewportView(table);
         table.setRowSorter(new TableRowSorter<DefaultTableModel>(tableModel));
         bottomJPanel.add(bottomScrollPane, "gapleft 12,width " + (optionJPanel.getWidth() - MARGIN_RIGHT) + ",height "
             + (optionJPanel.getHeight() - MARGIN_BOTTOM) / HALF);
     }
 
-    /**
-     * addTableListener
-     *
-     * @param table table
-     */
     private void addTableListener(JTable table) {
         table.addMouseMotionListener(new MouseAdapter() {
             /**
@@ -237,6 +233,7 @@ public class InfoStatsPanel extends JBPanel {
         DefaultTableCellRenderer hr = new DefaultTableCellRenderer();
         hr.setHorizontalAlignment(JLabel.LEFT);
         table.getTableHeader().setDefaultRenderer(hr);
+        table.setBackground(JBColor.background().darker());
         centerScrollPane.setViewportView(table);
         table.setRowSorter(new TableRowSorter<DefaultTableModel>(tableModel));
         centerJPanel.add(centerScrollPane, "gapleft 12,width " + (optionJPanel.getWidth() - MARGIN_RIGHT) + ",height "

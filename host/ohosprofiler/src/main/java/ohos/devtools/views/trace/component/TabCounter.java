@@ -43,7 +43,7 @@ import java.util.stream.Collectors;
 /**
  * TabCounter
  *
- * @date: 2021/5/12 16:34
+ * @since 2021/5/12 16:34
  */
 public class TabCounter extends JBPanel {
     private JBTable table = new JBTable();
@@ -75,8 +75,8 @@ public class TabCounter extends JBPanel {
      * set TabData
      *
      * @param trackIds trackIds
-     * @param leftNs   leftNs
-     * @param rightNs  rightNs
+     * @param leftNs leftNs
+     * @param rightNs rightNs
      */
     public void loadTabData(final List<Integer> trackIds, long leftNs, long rightNs) {
         this.leftNs = leftNs;

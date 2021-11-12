@@ -29,8 +29,7 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 /**
  * test AbstractDataFragment class .
  *
- * @version 1.0
- * @date 2021/4/24 18:04
+ * @since 2021/4/24 18:04
  */
 class AbstractDataFragmentTest {
     private AbstractDataFragment abstractDataFragment;

@@ -20,14 +20,14 @@ import java.util.Comparator;
 /**
  * ComparatorUtils
  *
- * @date: 2021/5/27 12:29
+ * @since 2021/5/27 12:29
  */
 public class ComparatorUtils {
     /**
      * generate Comparator Ruler
      *
      * @param filter filter the row when row value equals filter
-     * @return Comparator <Object>
+     * @return Comparator
      */
     public static Comparator<Object> generateComparator(String filter) {
         Comparator<Object> comparator = (str1, str2) -> {

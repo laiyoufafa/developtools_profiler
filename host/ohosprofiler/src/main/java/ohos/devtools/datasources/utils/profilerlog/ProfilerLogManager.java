@@ -15,25 +15,27 @@
 
 package ohos.devtools.datasources.utils.profilerlog;
 
-import ohos.devtools.datasources.utils.process.service.ProcessManager;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.core.LoggerContext;
-import org.apache.logging.log4j.core.config.Configuration;
-import org.apache.logging.log4j.core.config.LoggerConfig;
 
 /**
  * ProfilerLogManager
  */
 public class ProfilerLogManager {
-    private static final Logger LOGGER = LogManager.getLogger(ProcessManager.class);
+    private static final Logger LOGGER = LogManager.getLogger(ProfilerLogManager.class);
+    private static Level nowLogLevel = Level.ERROR;
 
     /**
      * 单例进程对象
      */
     private static ProfilerLogManager singleton = null;
 
+    /**
+     * getSingleton
+     *
+     * @return ProfilerLogManager
+     */
     public static ProfilerLogManager getSingleton() {
         if (singleton == null) {
             synchronized (ProfilerLogManager.class) {
@@ -45,31 +47,54 @@ public class ProfilerLogManager {
         return singleton;
     }
 
-    private Level nowLogLevel = Level.ERROR;
-
     /**
      * 修改日志等级
      *
      * @param logLevel loglevel
      * @return boolean
      */
-    public boolean updateLogLevel(Level logLevel) {
+    public static boolean updateLogLevel(Level logLevel) {
         if (logLevel == null) {
             return false;
         }
-        org.apache.logging.log4j.spi.LoggerContext context = LogManager.getContext(false);
-        LoggerContext loggerContext = null;
-        if (context instanceof LoggerContext) {
-            loggerContext = (LoggerContext) context;
-        } else {
-            return false;
-        }
-        Configuration config = loggerContext.getConfiguration();
-        LoggerConfig loggerConfig = config.getLoggerConfig(LogManager.ROOT_LOGGER_NAME);
-        loggerConfig.setLevel(logLevel);
-        loggerContext.updateLoggers();
         nowLogLevel = logLevel;
         return true;
+    }
+
+    /**
+     * isInfoEnabled
+     *
+     * @return boolean
+     */
+    public static boolean isInfoEnabled() {
+        return nowLogLevel.intLevel() >= Level.INFO.intLevel();
+    }
+
+    /**
+     * isErrorEnabled
+     *
+     * @return boolean
+     */
+    public static boolean isErrorEnabled() {
+        return nowLogLevel.intLevel() >= Level.ERROR.intLevel();
+    }
+
+    /**
+     * isDebugEnabled
+     *
+     * @return boolean
+     */
+    public static boolean isDebugEnabled() {
+        return nowLogLevel.intLevel() >= Level.DEBUG.intLevel();
+    }
+
+    /**
+     * isWarnEnabled
+     *
+     * @return boolean
+     */
+    public static boolean isWarnEnabled() {
+        return nowLogLevel.intLevel() >= Level.WARN.intLevel();
     }
 
     /**
@@ -77,7 +102,10 @@ public class ProfilerLogManager {
      *
      * @return Level
      */
-    public Level getNowLogLevel() {
+    public static Level getNowLogLevel() {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("getNowLogLevel");
+        }
         return nowLogLevel;
     }
 }

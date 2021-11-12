@@ -155,6 +155,11 @@ public class UtConstant {
     public static final String UT_TASK_PANEL_APPLICATION = "Application Tuning";
 
     /**
+     * task scene
+     */
+    public static final String UT_TASK_PANEL_SYSTEM = "System Tuning";
+
+    /**
      * task scene choose button
      */
     public static final String UT_TASK_PANEL_CHOOSE = "Choose";
@@ -220,9 +225,19 @@ public class UtConstant {
     public static final String UT_NETWORK_ITEM_VIEW = "NetworkItemView";
 
     /**
+     * diskIo Item View
+     */
+    public static final String UT_DISK_IO_ITEM_VIEW = "DiskIoItemView";
+
+    /**
      * view Box
      */
     public static final String UT_MEMORY_TREE_TABLE_VIEW = "viewBox";
+
+    /**
+     * energy view Box
+     */
+    public static final String UT_ENERGY_VIEW_BOX = "energyViewBox";
 
     /**
      * arrange Box
@@ -263,4 +278,39 @@ public class UtConstant {
      * heap Dump Search
      */
     public static final String UT_FILTER_HEAPS_SEARCH = "heapDumpSearch";
+
+    /**
+     * heap dump close table button
+     */
+    public static final String UT_HEAP_TABLE_CLOSE_BUTTON = "closeLabel";
+
+    /**
+     * heap dump close third panel
+     */
+    public static final String UT_HEAP_DUMP_THIRD_PANEL_CLOSE = "closeThirdPanel";
+
+    /**
+     * system tuning device name combobox
+     */
+    public static final String UT_SYSTEM_TUNING_DEVICE_NAME = "deviceComboBox";
+
+    /**
+     * system tuning connect type combobox
+     */
+    public static final String UT_SYSTEM_TUNING_CONNECT_TYPE = "connectTypeComboBox";
+
+    /**
+     * metric Select
+     */
+    public static final String UT_METRICS_PANEL_SELECT = "metricSelect";
+
+    /**
+     * ability Slice
+     */
+    public static final String UT_PROFILER_ABILITY_SLICE = "abilitySlice";
+
+    /**
+     * hiLog tab close
+     */
+    public static final String UT_HILOG_TAB_CLOSE = "tabClose";
 }

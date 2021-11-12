@@ -30,7 +30,7 @@ import java.util.ArrayList;
 /**
  * Method call data row
  *
- * @date 2021/04/22 12:25
+ * @since 2021/04/22 12:25
  */
 public class FunctionDataFragment extends AbstractDataFragment<FunctionBean> implements FunctionBean.IEventListener {
     /**
@@ -46,7 +46,7 @@ public class FunctionDataFragment extends AbstractDataFragment<FunctionBean> imp
     /**
      * structure
      *
-     * @param contentPanel  contentPanel
+     * @param contentPanel contentPanel
      * @param functionBeans functionBeans
      */
     public FunctionDataFragment(JComponent contentPanel, ArrayList<FunctionBean> functionBeans) {
@@ -189,7 +189,7 @@ public class FunctionDataFragment extends AbstractDataFragment<FunctionBean> imp
      * Click event
      *
      * @param event event
-     * @param data  data
+     * @param data data
      */
     @Override
     public void click(MouseEvent event, FunctionBean data) {
@@ -206,7 +206,7 @@ public class FunctionDataFragment extends AbstractDataFragment<FunctionBean> imp
      * Loss of focus event
      *
      * @param event event
-     * @param data  data
+     * @param data data
      */
     @Override
     public void blur(MouseEvent event, FunctionBean data) {
@@ -216,7 +216,7 @@ public class FunctionDataFragment extends AbstractDataFragment<FunctionBean> imp
      * Get focus event
      *
      * @param event event
-     * @param data  data
+     * @param data data
      */
     @Override
     public void focus(MouseEvent event, FunctionBean data) {
@@ -226,7 +226,7 @@ public class FunctionDataFragment extends AbstractDataFragment<FunctionBean> imp
      * Mouse move event
      *
      * @param event event
-     * @param data  data
+     * @param data data
      */
     @Override
     public void mouseMove(MouseEvent event, FunctionBean data) {

@@ -25,6 +25,7 @@ import org.apache.logging.log4j.Logger;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Font;
+
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
@@ -41,12 +42,13 @@ public class HelpDialog {
     private static final int ICON_X = 15;
     private static final int TEXT_X = 70;
     private static final int THIRTY = 30;
-    private static final int LICENSE_X = 500;
+    private static final int LICENSE_X = 465;
     private static final int LICENSE_Y = 90;
     private static final int LICENSE_WIDTH = 150;
     private static final int COPY_RIGHT_Y = 56;
     private static final int COPY_RIGHT_WIDTH = 330;
     private static final int VERSION_WIDTH = 590;
+
     private CustomDialog sampleDialog;
     private JBPanel jPanel;
     private JBLabel toolVersionNumber;

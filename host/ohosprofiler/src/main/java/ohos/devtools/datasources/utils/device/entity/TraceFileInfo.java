@@ -16,6 +16,7 @@
 package ohos.devtools.datasources.utils.device.entity;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * TraceFileInfo
@@ -48,5 +49,29 @@ public class TraceFileInfo implements Serializable {
 
     public void setCreateTime(long createTime) {
         this.createTime = createTime;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return super.equals(obj);
+    }
+
+    @Override
+    protected Object clone() throws CloneNotSupportedException {
+        return super.clone();
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(version, recordNum, createTime);
+    }
+
+    @Override
+    public String toString() {
+        return "TraceFileInfo{"
+                + "version='" + version + '\''
+                + ", recordNum=" + recordNum
+                + ", createTime=" + createTime
+                + '}';
     }
 }

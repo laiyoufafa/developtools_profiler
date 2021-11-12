@@ -18,6 +18,7 @@ package ohos.devtools.datasources.utils.device.entity;
 import ohos.devtools.views.common.LayoutConstants;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * Device IP and port number information
@@ -104,6 +105,22 @@ public class DeviceIPPortInfo implements Serializable {
 
     public void setRetryNum(int retryNum) {
         this.retryNum = retryNum;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return super.equals(obj);
+    }
+
+    @Override
+    protected Object clone() throws CloneNotSupportedException {
+        return super.clone();
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects
+            .hash(deviceID, deviceName, ip, port, deviceType, connectType, forwardPort, deviceStatus, retryNum);
     }
 
     @Override

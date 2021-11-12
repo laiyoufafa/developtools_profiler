@@ -20,12 +20,11 @@ import javax.swing.SortOrder;
 /**
  * interface tree table sort change listener
  *
- * @date: 2021/5/27 12:01
+ * @since 2021/5/27 12:01
  */
 public interface ITreeTableSortChangeListener {
     /**
      * sort Callback
-     *
      * @param columns table column index
      * @param sortOrder type of sort
      */

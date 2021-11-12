@@ -18,7 +18,7 @@ package ohos.devtools.views.trace;
 /**
  * sql text file path
  *
- * @date: 2021/5/27 12:03
+ * @since 2021/5/27 12:03
  */
 public enum Sql {
     QUERY_TOTAL_TIME("QueryTotalTime"),
@@ -53,6 +53,8 @@ public enum Sql {
     SYS_GET_CPU_UTILIZATION_RATE("GetCpuUtilizationRate"),
     SYS_QUERY_THREAD_DATA("QueryThreadData"),
     SYS_QUERY_PROCESS_DATA("QueryProcessData"),
+    SYS_QUERY_PROCESS_DATA_LIMIT("QueryProcessDataLimit"),
+    SYS_QUERY_PROCESS_DATA_COUNT("QueryProcessDataCount"),
     SYS_QUERY_PROCESS_THREADS("QueryProcessThreads"),
     SYS_QUERY_PROCESS_THREADS_NORDER("QueryProcessThreadsNOrder"),
     SYS_QUERY_PROCESS("QueryProcess"),
@@ -70,6 +72,8 @@ public enum Sql {
     SYS_QUERY_CLOCK_FREQUENCY("QueryClockFrequency"),
     SYS_QUERY_CLOCK_STATE("QueryClockState"),
     SYS_QUERY_SCREEN_STATE("QueryScreenState"),
+    SYS_QUERY_LOGS("QueryLogs"),
+    SYS_QUERY_LOGS_COUNT("QueryLogsCount"),
 
     DISTRIBUTED_QUERY_TOTAL_TIME("DistributedQueryTotalTime"),
     DISTRIBUTED_QUERY_THREADS_BY_PID("DistributedQueryThreadsByPid"),

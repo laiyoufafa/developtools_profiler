@@ -18,6 +18,7 @@ package ohos.devtools.views.trace.fragment;
 import com.intellij.util.ui.UIUtil;
 import ohos.devtools.views.trace.bean.FunctionBean;
 import ohos.devtools.views.trace.bean.ThreadData;
+import ohos.devtools.views.trace.component.AnalystPanel;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -31,7 +32,7 @@ import java.util.ArrayList;
 /**
  * test FunctionDataFragment class .
  *
- * @date: 2021/4/24 17:57
+ * @since 2021/4/24 17:57
  */
 class FunctionDataFragmentTest {
     private FunctionDataFragment functionDataFragment;
@@ -70,16 +71,6 @@ class FunctionDataFragmentTest {
     }
 
     /**
-     * test function the mouseMoved .
-     */
-    @Test
-    void mouseMoved() {
-        MouseEvent mouseEvent = new MouseEvent(jPanel, 1, 1, 1, 1, 1, 1, true, 1);
-        functionDataFragment.mouseMoved(mouseEvent);
-        Assertions.assertNotNull(functionDataFragment);
-    }
-
-    /**
      * test function the click .
      */
     @Test
@@ -88,6 +79,7 @@ class FunctionDataFragmentTest {
         FunctionBean functionBean = new FunctionBean();
         functionBean.setStartTime(1L);
         functionBean.setDuration(1L);
+        AnalystPanel.iFunctionDataClick = null;
         functionDataFragment.click(mouseEvent, functionBean);
         Assertions.assertNotNull(functionDataFragment);
     }

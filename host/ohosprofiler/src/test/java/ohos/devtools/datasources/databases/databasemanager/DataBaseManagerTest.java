@@ -17,32 +17,20 @@ package ohos.devtools.datasources.databases.databasemanager;
 
 import ohos.devtools.datasources.databases.databasepool.DataBase;
 import ohos.devtools.datasources.databases.databasepool.DataBaseHelper;
-import ohos.devtools.datasources.utils.session.service.SessionManager;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
+
 import javax.sql.DataSource;
+
 import static ohos.devtools.datasources.databases.databaseapi.DataBaseApi.DEFAULT_DATABASE_DBNAME;
 import static ohos.devtools.datasources.databases.databasepool.DataBaseHelper.getUrlByDataBaseName;
 
 /**
  * Data Base Manager Test
+ *
+ * @since 2021/2/1 9:31
  */
 public class DataBaseManagerTest {
-    /**
-     * functional testing init
-     *
-     * @tc.name: setUp
-     * @tc.number: OHOS_JAVA_database_DataBaseManager_setUp_0001
-     * @tc.desc: setUp
-     * @tc.type: functional testing
-     * @tc.require: SR-010
-     */
-    @Before
-    public void setUp() {
-        SessionManager.getInstance().setDevelopMode(true);
-    }
-
     /**
      * get Instance Test
      *

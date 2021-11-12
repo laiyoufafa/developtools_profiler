@@ -34,7 +34,7 @@ public class ProfilerLogManagerTest {
      */
     @Test
     public void updateLogLevelTest01() {
-        boolean res = ProfilerLogManager.getSingleton().updateLogLevel(null);
+        boolean res = ProfilerLogManager.updateLogLevel(null);
         Assert.assertFalse(res);
     }
 
@@ -49,7 +49,7 @@ public class ProfilerLogManagerTest {
      */
     @Test
     public void updateLogLevelTest02() {
-        boolean res = ProfilerLogManager.getSingleton().updateLogLevel(Level.OFF);
+        boolean res = ProfilerLogManager.updateLogLevel(Level.OFF);
         Assert.assertTrue(res);
     }
 
@@ -64,7 +64,7 @@ public class ProfilerLogManagerTest {
      */
     @Test
     public void updateLogLevelTest03() {
-        boolean res = ProfilerLogManager.getSingleton().updateLogLevel(Level.ERROR);
+        boolean res = ProfilerLogManager.updateLogLevel(Level.ERROR);
         Assert.assertTrue(res);
     }
 }

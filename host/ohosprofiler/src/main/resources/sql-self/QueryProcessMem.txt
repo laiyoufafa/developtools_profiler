@@ -1,7 +1,0 @@
-select process_measure_filter.id   as trackId,
-       process_measure_filter.name as trackName,
-       ipid as upid,
-       process_view.pid,
-       process_view.name               as processName
-from process_measure_filter join process_view using (ipid)
-order by trackName;

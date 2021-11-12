@@ -24,6 +24,7 @@ import ohos.devtools.views.layout.chartview.ProfilerMonitorItem;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * PluginConf
@@ -43,6 +44,7 @@ public final class PluginConf {
     private ISpecialStartPlugMethod ISpecialStartPlugMethod;
     private boolean isAlwaysAdd;
     private boolean operationStart = false;
+    private List<AnalysisType> analysisTypes = new ArrayList<>();
     private List<DeviceType> supportDeviceTypes = new ArrayList<>();
 
     /**
@@ -64,16 +66,16 @@ public final class PluginConf {
     }
 
     /**
-     * get PluginMode
+     * getPluginMode
      *
-     * @return pluginMode
+     * @return PluginMode
      */
     public PluginMode getPluginMode() {
         return pluginMode;
     }
 
     /**
-     * set PluginMode
+     * setPluginMode
      *
      * @param pluginMode pluginMode
      */
@@ -82,16 +84,16 @@ public final class PluginConf {
     }
 
     /**
-     * get MonitorItem
+     * getMonitorItem
      *
-     * @return monitorItem
+     * @return ProfilerMonitorItem
      */
     public ProfilerMonitorItem getMonitorItem() {
         return monitorItem;
     }
 
     /**
-     * set MonitorItem
+     * setMonitorItem
      *
      * @param monitorItem monitorItem
      */
@@ -100,16 +102,16 @@ public final class PluginConf {
     }
 
     /**
-     * is ChartPlugin
+     * isChartPlugin
      *
-     * @return isChartPlugin
+     * @return boolean
      */
     public boolean isChartPlugin() {
         return isChartPlugin;
     }
 
     /**
-     * set ChartPlugin
+     * setChartPlugin
      *
      * @param chartPlugin chartPlugin
      */
@@ -118,7 +120,7 @@ public final class PluginConf {
     }
 
     /**
-     * get PluginBufferConfig
+     * getPluginBufferConfig
      *
      * @return PluginBufferConfig
      */
@@ -130,7 +132,7 @@ public final class PluginConf {
     }
 
     /**
-     * set PluginBufferConfig
+     * setPluginBufferConfig
      *
      * @param pluginBufferConfig pluginBufferConfig
      */
@@ -139,7 +141,7 @@ public final class PluginConf {
     }
 
     /**
-     * ICreatePluginConfig
+     * getICreatePluginConfig
      *
      * @return ICreatePluginConfig
      */
@@ -148,7 +150,7 @@ public final class PluginConf {
     }
 
     /**
-     * set ICreatePluginConfig
+     * setICreatePluginConfig
      *
      * @param ICreatePluginConfig ICreatePluginConfig
      */
@@ -157,7 +159,7 @@ public final class PluginConf {
     }
 
     /**
-     * get PluginFileName
+     * getPluginFileName
      *
      * @return String
      */
@@ -166,7 +168,7 @@ public final class PluginConf {
     }
 
     /**
-     * set PluginFileName
+     * setPluginFileName
      *
      * @param pluginFileName pluginFileName
      */
@@ -175,7 +177,7 @@ public final class PluginConf {
     }
 
     /**
-     * get PluginDataName
+     * getPluginDataName
      *
      * @return String
      */
@@ -193,7 +195,7 @@ public final class PluginConf {
     }
 
     /**
-     * set SpecialStart
+     * setSpecialStart
      *
      * @param specialStart specialStart
      */
@@ -231,7 +233,7 @@ public final class PluginConf {
     /**
      * isEnable
      *
-     * @return boolean boolean
+     * @return boolean
      */
     public boolean isEnable() {
         return isEnable;
@@ -334,5 +336,61 @@ public final class PluginConf {
      */
     public void setOperationStart(boolean operationStart) {
         this.operationStart = operationStart;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
+        PluginConf that = (PluginConf) obj;
+        return pluginFileName.equals(that.pluginFileName);
+    }
+
+    /**
+     * get AnalysisTypes
+     *
+     * @return List<AnalysisType>
+     */
+    public List<AnalysisType> getAnalysisTypes() {
+        return analysisTypes;
+    }
+
+    /**
+     * add AnalysisTypes
+     *
+     * @param analysisType analysisType
+     */
+    public void addAnalysisTypes(AnalysisType analysisType) {
+        this.analysisTypes.add(analysisType);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(pluginFileName);
+    }
+
+    @Override
+    public String toString() {
+        return "PluginConf{"
+            + "pluginFileName='" + pluginFileName + '\''
+            + ", pluginDataName='" + pluginDataName + '\''
+            + ", IGetPluginName=" + IGetPluginName
+            + ", isEnable=" + isEnable
+            + ", pluginMode=" + pluginMode
+            + ", consumerClass=" + consumerClass
+            + ", isChartPlugin=" + isChartPlugin
+            + ", monitorItem=" + monitorItem
+            + ", pluginBufferConfig=" + pluginBufferConfig
+            + ", ICreatePluginConfig=" + ICreatePluginConfig
+            + ", isSpecialStart=" + isSpecialStart
+            + ", ISpecialStartPlugMethod=" + ISpecialStartPlugMethod
+            + ", isAlwaysAdd=" + isAlwaysAdd
+            + ", operationStart=" + operationStart
+            + ", supportDeviceTypes=" + supportDeviceTypes
+            + '}';
     }
 }

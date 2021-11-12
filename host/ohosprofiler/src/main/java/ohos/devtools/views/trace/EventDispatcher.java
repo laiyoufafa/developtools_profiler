@@ -23,7 +23,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 /**
  * event dispatcher class
  *
- * @date: 2021/5/24 12:00
+ * @since 2021/5/24 12:00
  */
 public class EventDispatcher {
     private static List<IFuncClick> clickEvents = new CopyOnWriteArrayList<>();
@@ -73,7 +73,7 @@ public class EventDispatcher {
      *
      * @param startNS startNS
      * @param endNS endNS
-     * @param threadIds List<Integer>
+     * @param threadIds threadIds
      */
     public static void dispatcherThreadRange(long startNS, long endNS, List<Integer> threadIds) {
         Iterator<IThreadRange> iterator = threadEvents.iterator();
@@ -97,7 +97,7 @@ public class EventDispatcher {
     }
 
     /**
-     * add Range Listener
+     * addRangeListener
      *
      * @param listener listener
      */
@@ -108,7 +108,7 @@ public class EventDispatcher {
     }
 
     /**
-     * add Thread Range Listener
+     * addThreadRangeListener
      *
      * @param listener listener
      */
@@ -119,7 +119,7 @@ public class EventDispatcher {
     }
 
     /**
-     * add Click Listener
+     * addClickListener
      *
      * @param listener listener
      */
@@ -130,7 +130,7 @@ public class EventDispatcher {
     }
 
     /**
-     * clear Data
+     * clearData
      */
     public static void clearData() {
         if (Objects.nonNull(clickEvents)) {

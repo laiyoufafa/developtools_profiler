@@ -43,7 +43,7 @@ import java.util.List;
 /**
  * bottom Slice panel
  *
- * @date 2021/04/20 12:24
+ * @since 2021/04/20 12:24
  */
 public class ScrollSlicePanel extends BottomScrollPanel {
     private Font font = getFont();
@@ -117,7 +117,7 @@ public class ScrollSlicePanel extends BottomScrollPanel {
     /**
      * SliceData
      *
-     * @date 2021/04/20 12:24
+     * @since 2021/04/20 12:24
      */
     public static class SliceData {
         /**
@@ -139,7 +139,7 @@ public class ScrollSlicePanel extends BottomScrollPanel {
     /**
      * RightPanel
      *
-     * @date 2021/04/20 12:24
+     * @since 2021/04/20 12:24
      */
     class RightPanel extends ChildPanel {
         private final int[][] pointX = {{11, 2, 11, 20}, {13, 13, 18, 20, 15, 20, 18}, {103, 103, 98, 96, 101, 96, 98}};
@@ -212,7 +212,7 @@ public class ScrollSlicePanel extends BottomScrollPanel {
     /**
      * TitlePanel
      *
-     * @date 2021/04/20 12:24
+     * @since 2021/04/20 12:24
      */
     class TitlePanel extends ChildLineComponent {
         private String title;
@@ -241,18 +241,20 @@ public class ScrollSlicePanel extends BottomScrollPanel {
     /**
      * LineComponent
      *
-     * @date 2021/04/20 12:24
+     * @since 2021/04/20 12:24
      */
     class LineComponent extends ChildLineComponent {
+
         /**
          * linkable
          */
         public boolean linkable;
-        private final int leftW = 200;
+
         private String key;
         private String value;
         private IScrollSliceLinkListener listener;
         private Rectangle linkRect;
+        private final int leftW = 200;
 
         /**
          * LineComponent constructor

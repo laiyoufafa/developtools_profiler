@@ -18,20 +18,21 @@ package ohos.devtools.views.trace.bean;
 import ohos.devtools.views.trace.DField;
 
 /**
- * Cpu FreqMax
+ * CpuFreqMax
  *
- * @date: 2021/5/27 12:29
+ * @since 2021/5/27 12:29
  */
 public class CpuFreqMax {
     private final String[] units = new String[] {"", "K", "M", "G", "T", "E"};
-    @DField(name = "maxFreq") private Integer maxFreq;
+    @DField(name = "maxFreq")
+    private Integer maxFreq;
     private String name = "0 Ghz";
     private Double value = 0D;
 
     /**
      * Gets the value of name .
      *
-     * @return String
+     * @return the value of java.lang.String
      */
     public String getName() {
         return name;
@@ -50,7 +51,7 @@ public class CpuFreqMax {
     /**
      * Gets the value of value .
      *
-     * @return Double
+     * @return the value of java.lang.Long
      */
     public Double getValue() {
         return value;
@@ -69,7 +70,7 @@ public class CpuFreqMax {
     /**
      * Gets the value of maxFreq .
      *
-     * @return Integer
+     * @return the value of java.lang.Integer
      */
     public Integer getMaxFreq() {
         return maxFreq;

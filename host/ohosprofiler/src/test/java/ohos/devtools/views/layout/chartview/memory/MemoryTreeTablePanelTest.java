@@ -15,11 +15,14 @@
 
 package ohos.devtools.views.layout.chartview.memory;
 
+import ohos.devtools.views.layout.chartview.memory.javaagent.MemoryTreeTablePanel;
 import org.junit.Assert;
 import org.junit.Test;
 
 /**
  * MemoryTreeTablePanelTest
+ *
+ * @since 2021/2/1 9:31
  */
 public class MemoryTreeTablePanelTest {
     /**
@@ -33,8 +36,7 @@ public class MemoryTreeTablePanelTest {
      */
     @Test
     public void getMemoryTreeTablePanelTest01() {
-        MemoryTreeTablePanel memoryTreeTablePanel =
-                new MemoryTreeTablePanel(new MemoryItemView(), 10L, "chartName");
+        MemoryTreeTablePanel memoryTreeTablePanel = new MemoryTreeTablePanel(new MemoryItemView(), 10L, "chartName");
         Assert.assertNotNull(memoryTreeTablePanel);
     }
 }

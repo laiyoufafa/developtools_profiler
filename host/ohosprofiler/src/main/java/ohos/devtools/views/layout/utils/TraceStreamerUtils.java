@@ -54,6 +54,21 @@ public class TraceStreamerUtils {
     }
 
     /**
+     * getBaseDir
+     *
+     * @return String
+     */
+    public String getCreateFileDir() {
+        String pluginPath = SessionManager.getInstance().tempPath();
+        String path = pluginPath + DIR_STR;
+        File tmpPath = new File(path);
+        if (!tmpPath.exists()) {
+            tmpPath.mkdirs();
+        }
+        return path;
+    }
+
+    /**
      * getLogPath
      *
      * @return String
@@ -70,7 +85,7 @@ public class TraceStreamerUtils {
      * @return String
      */
     public String getDbPath() {
-        String dbPath = getBaseDir() + DB_NAME;
+        String dbPath = getCreateFileDir() + DB_NAME;
         return dbPath;
     }
 
@@ -81,7 +96,7 @@ public class TraceStreamerUtils {
      * @return String
      */
     public String getDbPath(String dbName) {
-        String dbPath = getBaseDir() + dbName;
+        String dbPath = getCreateFileDir() + dbName;
         return dbPath;
     }
 

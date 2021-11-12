@@ -18,6 +18,7 @@ package ohos.devtools.services.memory.agentdao;
 import ohos.devtools.datasources.databases.databaseapi.DataBaseApi;
 import ohos.devtools.datasources.databases.databasepool.AbstractDataStore;
 import ohos.devtools.datasources.utils.common.util.CloseResourceUtil;
+import ohos.devtools.datasources.utils.profilerlog.ProfilerLogManager;
 import ohos.devtools.services.memory.agentbean.AgentHeapBean;
 import ohos.devtools.services.memory.agentbean.MemoryHeapInfo;
 import org.apache.logging.log4j.LogManager;
@@ -68,6 +69,9 @@ public class MemoryHeapDao extends AbstractDataStore {
      * @return Connection
      */
     private Connection getConnection(String tableName) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("getConnection");
+        }
         Optional<Connection> optionalConnection = getConnectByTable(tableName);
         Connection conn = null;
         if (optionalConnection.isPresent()) {
@@ -82,32 +86,39 @@ public class MemoryHeapDao extends AbstractDataStore {
      * @return boolean
      */
     public boolean createMemoryHeapInfo() {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("createMemoryHeapInfo");
+        }
         boolean createResult = false;
         String dbName = JVMTI_AGENT_PLUG;
         String memoryHeapInfoTable = "MemoryHeapInfo";
-        String sql = "CREATE TABLE MemoryHeapInfo ("
-            + "cId int(100) not null, "
-            + "heapId       int(100) not null, "
-            + "instanceId     int(100) not null, "
-            + "sessionId    Long(100) not null, "
-            + "allocations    int(100) not null, "
-            + "deallocations  int(100) not null, "
-            + "totalCount   int(100) not null, "
-            + "shallowSize    int(100) not null, "
-            + "createTime   int(200) not null, "
-            + "updateTime  int(200) DEFAULT -1"
+        String sql = "CREATE TABLE "
+            + "MemoryHeapInfo "
+            + "(cId int(100) not null, "
+            + "heapId int(100) not null, "
+            + "instanceId int(100) not null, "
+            + "sessionId Long(100) not null, "
+            + "allocations int(100) not null, "
+            + "deallocations int(100) not null, "
+            + "totalCount int(100) not null, "
+            + "shallowSize int(100) not null, "
+            + "createTime int(200) not null, "
+            + "updateTime int(200) DEFAULT -1"
             + ");";
         createResult = createTable(dbName, memoryHeapInfoTable, sql);
         return createResult;
     }
 
     /**
-     * insert MemoryHeapInfos
+     * insert Memory HeapInfos
      *
-     * @param memoryHeapInfos 堆实例
+     * @param memoryHeapInfos memoryHeapInfos
      * @return boolean
      */
     public boolean insertMemoryHeapInfos(List<MemoryHeapInfo> memoryHeapInfos) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("insertMemoryHeapInfos");
+        }
         if (memoryHeapInfos.isEmpty()) {
             return false;
         }
@@ -116,99 +127,143 @@ public class MemoryHeapDao extends AbstractDataStore {
         try {
             conn = getConnection("MemoryHeapInfo");
             conn.setAutoCommit(false);
-            String sql = "insert into MemoryHeapInfo(cId,heapId,sessionId,allocations,"
-                + "deallocations,totalCount,shallowSize,createTime,instanceId)values(?,?,?,?,?,?,?,?,?)";
+            String sql = "insert into "
+                + "MemoryHeapInfo("
+                + "cId, "
+                + "heapId, "
+                + "sessionId, "
+                + "allocations, "
+                + "deallocations, "
+                + "totalCount, "
+                + "shallowSize, "
+                + "createTime, "
+                + "instanceId) "
+                + "values(?,?,?,?,?,?,?,?,?)";
             ps = conn.prepareStatement(sql);
-            for (MemoryHeapInfo memoryHeapInfo : memoryHeapInfos) {
-                try {
-                    ps.setInt(1, memoryHeapInfo.getcId());
-                    ps.setInt(2, memoryHeapInfo.getHeapId());
-                    ps.setLong(3, memoryHeapInfo.getSessionId());
-                    ps.setLong(4, memoryHeapInfo.getAllocations());
-                    ps.setLong(5, memoryHeapInfo.getDeallocations());
-                    ps.setInt(6, memoryHeapInfo.getTotalCount());
-                    ps.setLong(7, memoryHeapInfo.getShallowSize());
-                    ps.setLong(8, memoryHeapInfo.getCreateTime());
-                    ps.setLong(9, memoryHeapInfo.getInstanceId());
-                    ps.addBatch();
-                } catch (SQLException sqlException) {
-                    LOGGER.info("insert AppInfo {}", sqlException.getMessage());
-                }
-            }
+            setPreparedStatement(memoryHeapInfos, ps);
             ps.executeBatch();
             conn.commit();
             conn.setAutoCommit(true);
             ps.clearParameters();
             return true;
-        } catch (SQLException throwables) {
-            LOGGER.info("insert MemoryHeap {}", throwables.getMessage());
+        } catch (SQLException sqlException) {
+            if (ProfilerLogManager.isErrorEnabled()) {
+                LOGGER.error("insert MemoryHeap {}", sqlException.getMessage());
+            }
             return false;
         } finally {
             CloseResourceUtil.closeResource(LOGGER, conn, ps, null);
         }
     }
 
+    private void setPreparedStatement(List<MemoryHeapInfo> memoryHeapInfoList, PreparedStatement ps) {
+        for (MemoryHeapInfo memoryHeapInfo : memoryHeapInfoList) {
+            try {
+                ps.setInt(1, memoryHeapInfo.getcId());
+                ps.setInt(2, memoryHeapInfo.getHeapId());
+                ps.setLong(3, memoryHeapInfo.getSessionId());
+                ps.setLong(4, memoryHeapInfo.getAllocations());
+                ps.setLong(5, memoryHeapInfo.getDeallocations());
+                ps.setInt(6, memoryHeapInfo.getTotalCount());
+                ps.setLong(7, memoryHeapInfo.getShallowSize());
+                ps.setLong(8, memoryHeapInfo.getCreateTime());
+                ps.setLong(9, memoryHeapInfo.getInstanceId());
+                ps.addBatch();
+            } catch (SQLException sqlException) {
+                LOGGER.info("insert AppInfo {}", sqlException.getMessage());
+            }
+        }
+    }
+
     /**
-     * get All MemoryHeapInfos
+     * get All MemoryHeapInfos by sessionId
      *
      * @param sessionId sessionId
-     * @return ArrayList<MemoryHeapInfo>
+     * @return ArrayList <MemoryHeapInfo>
      */
     public ArrayList<MemoryHeapInfo> getAllMemoryHeapInfos(Long sessionId) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("getAllMemoryHeapInfos");
+        }
         Connection conn = getConnection("MemoryHeapInfo");
         PreparedStatement ps = null;
         ArrayList<MemoryHeapInfo> memoryHeapInfos = new ArrayList<>();
         try {
-            String sql = "select cId,heapId,sessionId,allocations,deallocations,totalCount,"
-                + "shallowSize,createTime,instanceId, updateTime from MemoryHeapInfo where sessionId = ?";
+            String sql =
+                "select "
+                    + "cId, "
+                    + "heapId, "
+                    + "sessionId, "
+                    + "allocations, "
+                    + "deallocations, "
+                    + "totalCount, "
+                    + "shallowSize, "
+                    + "createTime, "
+                    + "instanceId, "
+                    + "updateTime "
+                    + "from "
+                    + "MemoryHeapInfo "
+                    + "where "
+                    + "sessionId = ?";
             ps = conn.prepareStatement(sql);
             ps.setLong(1, sessionId);
             ResultSet rs = ps.executeQuery();
             MemoryHeapInfo memoryHeapInfo = null;
-            while (rs.next()) {
-                memoryHeapInfo = new MemoryHeapInfo();
-                Integer cId = rs.getInt("cId");
-                Integer heapId = rs.getInt("heapId");
-                Long msessionId = rs.getLong("sessionId");
-                Integer allocations = rs.getInt("allocations");
-                Integer deallocations = rs.getInt("deallocations");
-                Integer totalCount = rs.getInt("totalCount");
-                Long shallowSize = rs.getLong("shallowSize");
-                Long createTime = rs.getLong("createTime");
-                Integer instanceId = rs.getInt("instanceId");
-                Long updateTime = rs.getLong("updateTime");
-                memoryHeapInfo.setHeapId(heapId);
-                memoryHeapInfo.setcId(cId);
-                memoryHeapInfo.setSessionId(msessionId);
-                memoryHeapInfo.setSessionId(sessionId);
-                memoryHeapInfo.setAllocations(allocations);
-                memoryHeapInfo.setDeallocations(deallocations);
-                memoryHeapInfo.setTotalCount(totalCount);
-                memoryHeapInfo.setShallowSize(shallowSize);
-                memoryHeapInfo.setCreateTime(createTime);
-                memoryHeapInfo.setInstanceId(instanceId);
-                memoryHeapInfo.setUpdateTime(updateTime);
-                memoryHeapInfos.add(memoryHeapInfo);
-            }
+            getMemoryHeapData(sessionId, memoryHeapInfos, rs);
             ps.clearParameters();
             return memoryHeapInfos;
-        } catch (SQLException throwables) {
-            LOGGER.info("memoryHeapInfo Exception {}", throwables.getMessage());
+        } catch (SQLException sqlException) {
+            if (ProfilerLogManager.isErrorEnabled()) {
+                LOGGER.error("memoryHeapInfo Exception {}", sqlException.getMessage());
+            }
         } finally {
             CloseResourceUtil.closeResource(LOGGER, conn, ps, null);
         }
         return memoryHeapInfos;
     }
 
+    private void getMemoryHeapData(Long sessionId, ArrayList<MemoryHeapInfo> memoryHeapInfos, ResultSet rs)
+        throws SQLException {
+        MemoryHeapInfo memoryHeapInfo;
+        while (rs.next()) {
+            memoryHeapInfo = new MemoryHeapInfo();
+            Integer cId = rs.getInt("cId");
+            Integer heapId = rs.getInt("heapId");
+            Long msessionId = rs.getLong("sessionId");
+            Integer allocations = rs.getInt("allocations");
+            Integer deallocations = rs.getInt("deallocations");
+            Integer totalCount = rs.getInt("totalCount");
+            Long shallowSize = rs.getLong("shallowSize");
+            Long createTime = rs.getLong("createTime");
+            Integer instanceId = rs.getInt("instanceId");
+            Long updateTime = rs.getLong("updateTime");
+            memoryHeapInfo.setHeapId(heapId);
+            memoryHeapInfo.setcId(cId);
+            memoryHeapInfo.setSessionId(msessionId);
+            memoryHeapInfo.setSessionId(sessionId);
+            memoryHeapInfo.setAllocations(allocations);
+            memoryHeapInfo.setDeallocations(deallocations);
+            memoryHeapInfo.setTotalCount(totalCount);
+            memoryHeapInfo.setShallowSize(shallowSize);
+            memoryHeapInfo.setCreateTime(createTime);
+            memoryHeapInfo.setInstanceId(instanceId);
+            memoryHeapInfo.setUpdateTime(updateTime);
+            memoryHeapInfos.add(memoryHeapInfo);
+        }
+    }
+
     /**
      * get MemoryHeapInfos
      *
      * @param sessionId sessionId
-     * @param startTime 开始时间
-     * @param endTime 结束时间
-     * @return ArrayList<MemoryHeapInfo>
+     * @param startTime startTime
+     * @param endTime endTime
+     * @return ArrayList <MemoryHeapInfo>
      */
     public List<AgentHeapBean> getMemoryHeapInfos(Long sessionId, Long startTime, Long endTime) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("getMemoryHeapInfos");
+        }
         Connection conn = getConnection("MemoryHeapInfo");
         PreparedStatement ps = null;
         List<AgentHeapBean> memoryHeapInfos = new ArrayList<>();
@@ -238,8 +293,10 @@ public class MemoryHeapDao extends AbstractDataStore {
             }
             ps.clearParameters();
             return memoryHeapInfos;
-        } catch (SQLException throwAbles) {
-            LOGGER.info("memoryHeapInfo Exception {}", throwAbles.getMessage());
+        } catch (SQLException sqlException) {
+            if (ProfilerLogManager.isErrorEnabled()) {
+                LOGGER.error("memoryHeapInfo Exception {}", sqlException.getMessage());
+            }
         } finally {
             CloseResourceUtil.closeResource(LOGGER, conn, ps, null);
         }
@@ -247,7 +304,7 @@ public class MemoryHeapDao extends AbstractDataStore {
     }
 
     /**
-     * set PreparedStatement Data
+     * setPreparedStatementData
      *
      * @param sessionId sessionId
      * @param startTime startTime
@@ -257,6 +314,9 @@ public class MemoryHeapDao extends AbstractDataStore {
      */
     private void setPreparedStatementData(Long sessionId, Long startTime, Long endTime, PreparedStatement ps)
         throws SQLException {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("setPreparedStatementData");
+        }
         ps.setLong(1, sessionId);
         ps.setLong(2, startTime);
         ps.setLong(3, endTime);
@@ -283,12 +343,15 @@ public class MemoryHeapDao extends AbstractDataStore {
     }
 
     /**
-     * delete SessionData by sessionId
+     * delete by SessionData
      *
      * @param sessionId sessionId
      * @return boolean
      */
     public boolean deleteSessionData(long sessionId) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("deleteSessionData");
+        }
         StringBuffer deleteSql = new StringBuffer("DELETE FROM ");
         deleteSql.append("MemoryHeapInfo").append(" WHERE sessionId = ").append(sessionId);
         Connection connection = DataBaseApi.getInstance().getConnectByTable("MemoryHeapInfo").get();
@@ -302,6 +365,9 @@ public class MemoryHeapDao extends AbstractDataStore {
      * @return boolean
      */
     public boolean updateMemoryHeapInfoList(List<MemoryUpdateInfo> memoryUpdateInfos) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("updateMemoryHeapInfoList");
+        }
         if (memoryUpdateInfos.isEmpty()) {
             return true;
         }
@@ -310,7 +376,13 @@ public class MemoryHeapDao extends AbstractDataStore {
         try {
             conn.setAutoCommit(false);
             ps = conn.prepareStatement(
-                "UPDATE MemoryHeapInfo SET deallocations = 1, updateTime = ?  where instanceId = ? ");
+                "UPDATE "
+                    + "MemoryHeapInfo "
+                    + "SET "
+                    + "deallocations = 1, "
+                    + "updateTime = ?  "
+                    + "where "
+                    + "instanceId = ? ");
             for (MemoryUpdateInfo memoryUpdateInfo : memoryUpdateInfos) {
                 ps.setLong(1, memoryUpdateInfo.getUpdateTime());
                 ps.setLong(2, memoryUpdateInfo.getInstanceId());
@@ -321,7 +393,10 @@ public class MemoryHeapDao extends AbstractDataStore {
             conn.setAutoCommit(true);
             ps.clearParameters();
             return true;
-        } catch (SQLException throwables) {
+        } catch (SQLException sqlException) {
+            if (ProfilerLogManager.isErrorEnabled()) {
+                LOGGER.error("memoryHeapInfo Exception {}", sqlException.getMessage());
+            }
             return false;
         } finally {
             close(ps, conn);
@@ -337,8 +412,8 @@ public class MemoryHeapDao extends AbstractDataStore {
             + "sum( IFNULL( heaptable.deallocations, 0 ) ) AS deallocations FROM ClassInfo c LEFT JOIN "
             + "(SELECT m.cId,m.heapId,m.instanceId,m.sessionId,m.allocations,m.totalCount,m.shallowSize,m.createTime,"
             + "instance.deallocTime,1 AS deallocations FROM MemoryHeapInfo m LEFT JOIN MemoryInstanceInfo instance ON"
-            + " instance.instanceId = m.instanceId WHERE m.sessionId = ? "
-            + "AND (( m.createTime >= ? AND m.createTime <= ? ) "
+            + " instance.instanceId = m.instanceId WHERE m.sessionId = ? AND "
+            + "(( m.createTime >= ? AND m.createTime <= ? ) "
             + "AND ( instance.deallocTime >= ? AND instance.deallocTime <= ? ) ) UNION "
             + "SELECT m.cId,m.heapId,m.instanceId,m.sessionId,m.allocations,m.totalCount,m.shallowSize,m.createTime,"
             + "IFNULL( instance.deallocTime, 0 ) AS deallocTime,0 AS deallocations FROM MemoryHeapInfo m LEFT JOIN "
@@ -351,8 +426,8 @@ public class MemoryHeapDao extends AbstractDataStore {
             + "IFNULL( instance.deallocTime, 0 ) AS deallocTime,1 AS deallocations FROM MemoryHeapInfo m "
             + "LEFT JOIN MemoryInstanceInfo instance ON instance.instanceId = m.instanceId "
             + "WHERE m.sessionId = ? AND ( ( instance.deallocTime >= ? AND instance.deallocTime <= ? ) ) "
-            + "AND m.instanceId NOT IN (SELECT m.instanceId FROM MemoryHeapInfo m LEFT"
-            + " JOIN MemoryInstanceInfo instance "
+            + "AND m.instanceId NOT IN (SELECT m.instanceId FROM MemoryHeapInfo m LEFT JOIN "
+            + "MemoryInstanceInfo instance "
             + "ON instance.instanceId = m.instanceId WHERE m.sessionId = ? "
             + "AND (( m.createTime >= ? AND m.createTime <= ? ) AND ( instance.deallocTime >= ? "
             + "AND instance.deallocTime <= ? ) ) ) ) AS heaptable ON c.cId = heaptable.cId GROUP BY c.cId ) "

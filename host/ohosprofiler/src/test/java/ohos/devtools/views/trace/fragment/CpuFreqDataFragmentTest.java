@@ -33,7 +33,7 @@ import java.util.List;
 /**
  * test CpuFreqDataFragment class .
  *
- * @date: 2021/4/24 17:57
+ * @since 2021/4/24 17:57
  */
 class CpuFreqDataFragmentTest {
     private CpuFreqDataFragment cpuFreqDataFragment;

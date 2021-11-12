@@ -28,7 +28,6 @@ import ohos.devtools.datasources.transport.grpc.service.ProfilerServiceTypes;
 import ohos.devtools.datasources.utils.common.util.BeanUtil;
 import ohos.devtools.datasources.utils.common.util.CommonUtil;
 import ohos.devtools.views.common.LayoutConstants;
-import org.jetbrains.annotations.NotNull;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -39,6 +38,8 @@ import java.util.Iterator;
 
 /**
  * Profiler Client Test
+ *
+ * @since 2021/2/1 9:31
  */
 public class ProfilerClientTest {
     private String ip;
@@ -66,95 +67,78 @@ public class ProfilerClientTest {
         grpcCleanup.register(
             InProcessServerBuilder.forName(serverName).fallbackHandlerRegistry(serviceRegistry).directExecutor().build()
                 .start());
-        MockProfilerServiceImplBase getFeatureImpl = getMockProfilerServiceImplBase();
+        MockProfilerServiceImplBase getFeatureImpl = new ProfilerClientTestMock();
         channel = grpcCleanup.register(InProcessChannelBuilder.forName(serverName).directExecutor().build());
         serviceRegistry.addService(getFeatureImpl);
     }
 
-    @NotNull
-    private MockProfilerServiceImplBase getMockProfilerServiceImplBase() {
-        MockProfilerServiceImplBase getFeatureImpl = new MockProfilerServiceImplBase() {
-            @Override
-            public void getCapabilities(ProfilerServiceTypes.GetCapabilitiesRequest request,
-                StreamObserver<ProfilerServiceTypes.GetCapabilitiesResponse> responseObserver) {
-                ProfilerServiceTypes.GetCapabilitiesResponse reply = getGetCapabilitiesResponse();
-                responseObserver.onNext(reply);
-                responseObserver.onCompleted();
-            }
-
-            @Override
-            public void createSession(ProfilerServiceTypes.CreateSessionRequest request,
-                StreamObserver<ProfilerServiceTypes.CreateSessionResponse> responseObserver) {
-                ProfilerServiceTypes.CreateSessionResponse reply = getCreateSessionResponse();
-                responseObserver.onNext(reply);
-                responseObserver.onCompleted();
-            }
-
-            @Override
-            public void startSession(ProfilerServiceTypes.StartSessionRequest request,
-                StreamObserver<ProfilerServiceTypes.StartSessionResponse> responseObserver) {
-                ProfilerServiceTypes.StartSessionResponse reply = getStartSessionResponse();
-                responseObserver.onNext(reply);
-                responseObserver.onCompleted();
-            }
-
-            @Override
-            public void stopSession(ProfilerServiceTypes.StopSessionRequest request,
-                StreamObserver<ProfilerServiceTypes.StopSessionResponse> responseObserver) {
-                ProfilerServiceTypes.StopSessionResponse reply =
-                    ProfilerServiceTypes.StopSessionResponse.newBuilder().setStatus(0).build();
-                responseObserver.onNext(reply);
-                responseObserver.onCompleted();
-            }
-
-            @Override
-            public void destroySession(ProfilerServiceTypes.DestroySessionRequest request,
-                StreamObserver<ProfilerServiceTypes.DestroySessionResponse> responseObserver) {
-                ProfilerServiceTypes.DestroySessionResponse reply =
-                    ProfilerServiceTypes.DestroySessionResponse.newBuilder().setStatus(0).build();
-                responseObserver.onNext(reply);
-                responseObserver.onCompleted();
-            }
-
-            @Override
-            public void fetchData(ProfilerServiceTypes.FetchDataRequest request,
-                StreamObserver<ProfilerServiceTypes.FetchDataResponse> responseObserver) {
-                fetchDataResponseObserver(responseObserver);
-            }
-        };
-        return getFeatureImpl;
+    private class ProfilerClientTestMock extends MockProfilerServiceImplBase {
+        @Override
+        public void getCapabilities(ProfilerServiceTypes.GetCapabilitiesRequest request,
+            StreamObserver<ProfilerServiceTypes.GetCapabilitiesResponse> responseObserver) {
+            ProfilerServiceTypes.ProfilerPluginCapability pluginCapability =
+                ProfilerServiceTypes.ProfilerPluginCapability.newBuilder(
+                    ProfilerServiceTypes.ProfilerPluginCapability.newBuilder().setName("test0")
+                        .setPath("/data/local/tmp/libmemdata.z.so").build()).build();
+            ProfilerServiceTypes.GetCapabilitiesResponse reply =
+                ProfilerServiceTypes.GetCapabilitiesResponse.newBuilder().addCapabilities(pluginCapability)
+                    .setStatus(0).build();
+            responseObserver.onNext(reply);
+            responseObserver.onCompleted();
+        }
+        @Override
+        public void createSession(ProfilerServiceTypes.CreateSessionRequest request,
+            StreamObserver<ProfilerServiceTypes.CreateSessionResponse> responseObserver) {
+            ProfilerServiceTypes.CreateSessionResponse reply =
+                ProfilerServiceTypes.CreateSessionResponse.getDefaultInstance();
+            responseObserver.onNext(reply);
+            responseObserver.onCompleted();
+        }
+        @Override
+        public void startSession(ProfilerServiceTypes.StartSessionRequest request,
+            StreamObserver<ProfilerServiceTypes.StartSessionResponse> responseObserver) {
+            CommonTypes.ProfilerPluginState profilerPluginState =
+                CommonTypes.ProfilerPluginState.newBuilder().build();
+            ProfilerServiceTypes.StartSessionResponse reply =
+                ProfilerServiceTypes.StartSessionResponse.newBuilder().setStatus(0)
+                    .addPluginStatus(profilerPluginState).build();
+            responseObserver.onNext(reply);
+            responseObserver.onCompleted();
+        }
+        @Override
+        public void stopSession(ProfilerServiceTypes.StopSessionRequest request,
+            StreamObserver<ProfilerServiceTypes.StopSessionResponse> responseObserver) {
+            ProfilerServiceTypes.StopSessionResponse reply =
+                ProfilerServiceTypes.StopSessionResponse.newBuilder().setStatus(0).build();
+            responseObserver.onNext(reply);
+            responseObserver.onCompleted();
+        }
+        @Override
+        public void destroySession(ProfilerServiceTypes.DestroySessionRequest request,
+            StreamObserver<ProfilerServiceTypes.DestroySessionResponse> responseObserver) {
+            ProfilerServiceTypes.DestroySessionResponse reply =
+                ProfilerServiceTypes.DestroySessionResponse.newBuilder().setStatus(0).build();
+            responseObserver.onNext(reply);
+            responseObserver.onCompleted();
+        }
+        @Override
+        public void fetchData(ProfilerServiceTypes.FetchDataRequest request,
+            StreamObserver<ProfilerServiceTypes.FetchDataResponse> responseObserver) {
+            fetchDataResponseObserver(responseObserver);
+        }
     }
 
+    /**
+     * fetch Data Response Observer
+     *
+     * @param responseObserver responseObserver
+     */
     public void fetchDataResponseObserver(StreamObserver<ProfilerServiceTypes.FetchDataResponse> responseObserver) {
         ProfilerServiceTypes.FetchDataResponse fetchDataResponse =
                 ProfilerServiceTypes.FetchDataResponse.newBuilder().setResponseId(1).setStatus(-1).setHasMore(false)
                         .build();
         responseObserver.onNext(fetchDataResponse);
         responseObserver.onCompleted();
-    }
-
-    private ProfilerServiceTypes.StartSessionResponse getStartSessionResponse() {
-        CommonTypes.ProfilerPluginState profilerPluginState = CommonTypes.ProfilerPluginState.newBuilder().build();
-        ProfilerServiceTypes.StartSessionResponse reply =
-            ProfilerServiceTypes.StartSessionResponse.newBuilder().setStatus(0).addPluginStatus(profilerPluginState)
-                .build();
-        return reply;
-    }
-
-    private ProfilerServiceTypes.CreateSessionResponse getCreateSessionResponse() {
-        ProfilerServiceTypes.CreateSessionResponse reply =
-            ProfilerServiceTypes.CreateSessionResponse.getDefaultInstance();
-        return reply;
-    }
-
-    private ProfilerServiceTypes.GetCapabilitiesResponse getGetCapabilitiesResponse() {
-        ProfilerServiceTypes.ProfilerPluginCapability pluginCapability = ProfilerServiceTypes.ProfilerPluginCapability
-            .newBuilder(ProfilerServiceTypes.ProfilerPluginCapability.newBuilder().setName("test0")
-                .setPath("/data/local/tmp/libmemdata.z.so").build()).build();
-        ProfilerServiceTypes.GetCapabilitiesResponse reply =
-            ProfilerServiceTypes.GetCapabilitiesResponse.newBuilder().addCapabilities(pluginCapability).setStatus(0)
-                .build();
-        return reply;
     }
 
     /**
@@ -616,7 +600,8 @@ public class ProfilerClientTest {
     @Test
     public void stopSessionTest04() {
         ProfilerClient profilerClient = new ProfilerClient(ip, port, channel);
-        ProfilerServiceTypes.StopSessionRequest stopSession = ProfilerServiceHelper.stopSessionRequest(-1, 1);
+        ProfilerServiceTypes.StopSessionRequest stopSession =
+            ProfilerServiceHelper.stopSessionRequest(-1, 1);
         ProfilerServiceTypes.StopSessionResponse stopSessionResponse = profilerClient.stopSession(stopSession);
         Assert.assertNotNull(stopSessionResponse);
     }
@@ -633,7 +618,8 @@ public class ProfilerClientTest {
     @Test
     public void stopSessionTest05() {
         ProfilerClient profilerClient = new ProfilerClient(null, -1, channel);
-        ProfilerServiceTypes.StopSessionRequest stopSession = ProfilerServiceHelper.stopSessionRequest(-1, -1);
+        ProfilerServiceTypes.StopSessionRequest stopSession =
+            ProfilerServiceHelper.stopSessionRequest(-1, -1);
         ProfilerServiceTypes.StopSessionResponse stopSessionResponse = profilerClient.stopSession(stopSession);
         Assert.assertTrue(true);
     }
@@ -702,7 +688,8 @@ public class ProfilerClientTest {
     @Test
     public void destroySessionTest04() {
         ProfilerClient profilerClient = new ProfilerClient(ip, port, channel);
-        ProfilerServiceTypes.DestroySessionRequest req = ProfilerServiceHelper.destroySessionRequest(-1, 1);
+        ProfilerServiceTypes.DestroySessionRequest req =
+            ProfilerServiceHelper.destroySessionRequest(-1, 1);
         ProfilerServiceTypes.DestroySessionResponse destroySessionResponse = profilerClient.destroySession(req);
         Assert.assertNotNull(destroySessionResponse);
     }

@@ -52,8 +52,7 @@ import static ohos.devtools.views.trace.TracePanel.startNS;
 /**
  * The timescale
  *
- * @version 1.0
- * @date: 2021/5/12 16:39
+ * @since 2021/5/12 16:39
  */
 public class TimeShaft extends JBPanel implements KeyListener, MouseListener, MouseMotionListener {
     private static final int SELECT_BORDER_WIDTH = 3;

@@ -18,8 +18,7 @@ package ohos.devtools.views.trace.bean;
 /**
  * cpu process data
  *
- * @version 1.0
- * @date 2021/04/22 12:25
+ * @since 2021/04/22 12:25
  */
 public class CPUProcessBean {
     private long avgDuration;

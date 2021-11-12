@@ -16,7 +16,6 @@
 package ohos.devtools.views.layout.chartview.event;
 
 import ohos.devtools.views.charts.model.ChartDataRange;
-import ohos.devtools.views.charts.model.ChartStandard;
 
 /**
  * Observer of chart refreshes event

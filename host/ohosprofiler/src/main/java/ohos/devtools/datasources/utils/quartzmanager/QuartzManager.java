@@ -15,6 +15,7 @@
 
 package ohos.devtools.datasources.utils.quartzmanager;
 
+import ohos.devtools.datasources.utils.profilerlog.ProfilerLogManager;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -30,17 +31,19 @@ import java.util.concurrent.TimeUnit;
  */
 public class QuartzManager {
     /**
-     * DELAY
+     * DELAY 0
      */
     public static final int DELAY = 0;
 
     /**
-     * PERIOD
+     * PERIOD 3000
      */
     public static final int PERIOD = 3000;
     private static final Logger LOGGER = LogManager.getLogger(QuartzManager.class);
-    private static final long DEFAULT_KEEPALIVE_MILLIS = 10L;
     private static volatile QuartzManager instance;
+
+    private Map<String, Runnable> runnableHashMap = new ConcurrentHashMap<>();
+    private Map<String, ScheduledExecutorService> executorHashMap = new ConcurrentHashMap<>();
 
     /**
      * getInstance
@@ -58,11 +61,6 @@ public class QuartzManager {
         return instance;
     }
 
-    private Map<String, Runnable> runnableHashMap = new ConcurrentHashMap<String, Runnable>();
-
-    private Map<String, ScheduledExecutorService> executorHashMap =
-        new ConcurrentHashMap<String, ScheduledExecutorService>();
-
     /**
      * execution
      *
@@ -70,7 +68,9 @@ public class QuartzManager {
      * @param runnable runnable
      */
     public void addExecutor(String runName, Runnable runnable) {
-        LOGGER.debug("add scheduleWithFixedDelay{}", runName);
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("addExecutor", runName);
+        }
         ScheduledExecutorService scheduled = new ScheduledThreadPoolExecutor(1);
         executorHashMap.put(runName, scheduled);
         runnableHashMap.put(runName, runnable);
@@ -84,13 +84,14 @@ public class QuartzManager {
      * @param period period
      */
     public void startExecutor(String runName, long delay, long period) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("startExecutor");
+        }
         ScheduledExecutorService scheduled = executorHashMap.get(runName);
         Runnable runnable = runnableHashMap.get(runName);
         if (delay > 0) {
-            LOGGER.debug("scheduleWithFixedDelay start {}", delay);
             scheduled.scheduleWithFixedDelay(runnable, delay, period, TimeUnit.MILLISECONDS);
         } else {
-            LOGGER.debug("scheduleAtFixedRate start {}", delay);
             scheduled.scheduleAtFixedRate(runnable, 0, period, TimeUnit.MILLISECONDS);
         }
     }
@@ -101,6 +102,9 @@ public class QuartzManager {
      * @param runName runName
      */
     public void deleteExecutor(String runName) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("deleteExecutor");
+        }
         ScheduledExecutorService scheduledExecutorService = executorHashMap.get(runName);
         if (scheduledExecutorService != null) {
             scheduledExecutorService.shutdown();
@@ -114,24 +118,15 @@ public class QuartzManager {
     }
 
     /**
-     * endExecutor
-     *
-     * @param runName runName
-     */
-    public void endExecutor(String runName) {
-        ScheduledExecutorService scheduledExecutorService = executorHashMap.get(runName);
-        if (scheduledExecutorService != null) {
-            scheduledExecutorService.shutdown();
-        }
-    }
-
-    /**
      * checkService
      *
      * @param runName runName
      * @return ScheduledExecutorService
      */
     public Optional<ScheduledExecutorService> checkService(String runName) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("checkService");
+        }
         ScheduledExecutorService scheduledExecutorService = executorHashMap.get(runName);
         return Optional.ofNullable(scheduledExecutorService);
     }

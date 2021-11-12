@@ -22,6 +22,7 @@ import com.intellij.ui.components.JBLayeredPane;
 import com.intellij.ui.components.JBPanel;
 import net.miginfocom.swing.MigLayout;
 import ohos.devtools.datasources.utils.plugin.service.PlugManager;
+import ohos.devtools.datasources.utils.profilerlog.ProfilerLogManager;
 import ohos.devtools.datasources.utils.quartzmanager.QuartzManager;
 import ohos.devtools.datasources.utils.session.service.SessionManager;
 import ohos.devtools.views.common.Constant;
@@ -29,6 +30,7 @@ import ohos.devtools.views.common.LayoutConstants;
 import ohos.devtools.views.common.UtConstant;
 import ohos.devtools.views.common.customcomp.GraphicsLinePanel;
 import ohos.devtools.views.layout.chartview.ProfilerChartsView;
+import ohos.devtools.views.layout.utils.EventTrackUtils;
 import ohos.devtools.views.layout.utils.OpenFileDialogUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -62,15 +64,12 @@ public class TaskPanel extends JBLayeredPane implements MouseListener {
     private static final String APPLICATION_TITLE_STR = "Application Tuning";
     private static final String SYSTEM_TITLE_STR = "System Tuning";
     private static final String DISTRIBUTED_TITLE_STR = "Distributed Scenario";
-    private static final String GPU_TITLE_STR = "GPU Counter";
     private static final String APPLICATION_TIP_STR = "<html>Application Tuning<br/><br/>" +
         "Use the performance profiler to check the CPU,memory,network and energy status of the application</html>";
     private static final String SYSTEM_TIP_STR = "<html>System Tuning<br/><br/>" +
         "Collect system-wide performance traces from Harmony devices from a variety of data sources</html>";
     private static final String DISTRIBUTED_TIP_STR = "<html>Distributed Scenario<br/><br/>" +
         "Collect performance data for distributed scenarios</html>";
-    private static final String GPU_TIP_STR = "<html>GPU Counter<br/><br/>" +
-            "Collect performance data for GPU Counter</html>";
 
     private JBPanel parentPanel;
     private JBPanel welcomePanel;
@@ -86,6 +85,7 @@ public class TaskPanel extends JBLayeredPane implements MouseListener {
     private JBLabel taskSceneLabelTip;
     private JBLabel applicationBtn;
     private JBLabel systemBtn;
+    private JBLabel distributedBtn;
     private JBLabel tipIconLabel;
     private JBLabel tipInfoLabel;
     private JButton chooseBtn;
@@ -108,6 +108,7 @@ public class TaskPanel extends JBLayeredPane implements MouseListener {
      * @param welcomePanel WelcomePanel
      */
     public TaskPanel(JBPanel containerPanel, WelcomePanel welcomePanel) {
+        EventTrackUtils.getInstance().trackTaskPage();
         parentPanel = containerPanel;
         this.welcomePanel = welcomePanel;
         initComponents();
@@ -120,6 +121,9 @@ public class TaskPanel extends JBLayeredPane implements MouseListener {
      * initComponents
      */
     private void initComponents() {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("initComponents");
+        }
         // init tabPanel
         tabPanel = new JBPanel();
         tabLeftPanel = new JBPanel();
@@ -138,6 +142,7 @@ public class TaskPanel extends JBLayeredPane implements MouseListener {
         taskSceneLabelTip = new JBLabel(TASK_SCENE_TIP_STR);
         applicationBtn = new JBLabel(IconLoader.getIcon("/images/application_tuning.png", getClass()));
         systemBtn = new JBLabel(IconLoader.getIcon("/images/system_tuning.png", getClass()));
+        distributedBtn = new JBLabel(IconLoader.getIcon("/images/distributed_scenario.png", getClass()));
         tipIconLabel = new JBLabel(IconLoader.getIcon("/images/application_tuning.png", getClass()));
         tipInfoLabel = new JBLabel(APPLICATION_TIP_STR);
         graphicsLineUp = new GraphicsLinePanel();
@@ -152,6 +157,9 @@ public class TaskPanel extends JBLayeredPane implements MouseListener {
      * @param containerPanel containerPanel
      */
     private void initTab(JBPanel containerPanel) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("initTab");
+        }
         setPanelData();
         containerPanel.setLayout(new BorderLayout());
         tabAddBtn.setFont(new Font(Font.DIALOG, Font.PLAIN, LayoutConstants.DEVICES_HEIGHT));
@@ -184,6 +192,9 @@ public class TaskPanel extends JBLayeredPane implements MouseListener {
      * setPanelData
      */
     private void setPanelData() {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("setPanelData");
+        }
         tabItem.setLayout(new MigLayout("insets 0", "[grow,fill]",
                 "15[fill,fill]20[]push[][][]20[]"));
         tabPanel.setOpaque(false);
@@ -219,9 +230,20 @@ public class TaskPanel extends JBLayeredPane implements MouseListener {
      * init TaskScene Items
      */
     private void initTaskSceneItems() {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("initTaskSceneItems");
+        }
         setButtonAttr();
         setApplicationBtnData();
         setSystemBtnData();
+        distributedBtn.setText(DISTRIBUTED_TITLE_STR);
+        distributedBtn.setName(DISTRIBUTED_TITLE_STR);
+        distributedBtn.setPreferredSize(new Dimension(210, 155));
+        distributedBtn.setFont(new Font(Font.DIALOG, Font.PLAIN, 14));
+        distributedBtn.setVerticalTextPosition(JBLabel.BOTTOM);
+        distributedBtn.setHorizontalTextPosition(JBLabel.CENTER);
+        distributedBtn.setOpaque(true);
+        distributedBtn.setBackground(JBColor.background());
         JBPanel taskScenePanel = new JBPanel(new MigLayout("insets 0"));
         taskScenePanel.setOpaque(false);
         taskScenePanel.add(taskSceneLabel, "gap 15");
@@ -230,6 +252,7 @@ public class TaskPanel extends JBLayeredPane implements MouseListener {
         sceneButtonPanel.add(applicationBtn, "gap 15");
         sceneButtonPanel.add(systemBtn, "gap 15");
         sceneButtonPanel.setOpaque(false);
+        sceneButtonPanel.add(distributedBtn, "gap 15");
         JBPanel tipPanel = new JBPanel(new MigLayout("insets 0"));
         tipPanel.add(tipIconLabel, "gap 30");
         tipPanel.add(tipInfoLabel);
@@ -253,8 +276,11 @@ public class TaskPanel extends JBLayeredPane implements MouseListener {
      * setSystemBtnData
      */
     private void setSystemBtnData() {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("setSystemBtnData");
+        }
         systemBtn.setText(SYSTEM_TITLE_STR);
-        systemBtn.setName(SYSTEM_TITLE_STR);
+        systemBtn.setName(UtConstant.UT_TASK_PANEL_SYSTEM);
         systemBtn.setPreferredSize(new Dimension(210, 155));
         systemBtn.setFont(new Font(Font.DIALOG, Font.PLAIN, 14));
         systemBtn.setVerticalTextPosition(JBLabel.BOTTOM);
@@ -267,6 +293,9 @@ public class TaskPanel extends JBLayeredPane implements MouseListener {
      * setApplicationBtnData
      */
     private void setApplicationBtnData() {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("setApplicationBtnData");
+        }
         taskSceneLabel.setFont(new Font(Font.DIALOG, Font.BOLD, 24));
         taskSceneLabel.setForeground(JBColor.foreground().brighter());
         taskSceneLabelTip.setFont(new Font(Font.DIALOG, Font.PLAIN, 14));
@@ -289,6 +318,7 @@ public class TaskPanel extends JBLayeredPane implements MouseListener {
         tabCloseBtn.addMouseListener(this);
         applicationBtn.addMouseListener(this);
         systemBtn.addMouseListener(this);
+        distributedBtn.addMouseListener(this);
         openFileBtn.addMouseListener(this);
         chooseBtn.addMouseListener(this);
     }
@@ -325,16 +355,30 @@ public class TaskPanel extends JBLayeredPane implements MouseListener {
             tipIconLabel.setIcon(IconLoader.getIcon("/images/application_tuning.png", getClass()));
             applicationBtn.setBorder(BorderFactory.createLineBorder(new Color(0, 117, 255), 2));
             systemBtn.setBorder(null);
+            distributedBtn.setBorder(null);
             applicationBtn.setForeground(JBColor.foreground().brighter());
             systemBtn.setForeground(JBColor.foreground());
+            distributedBtn.setForeground(JBColor.foreground());
         }
         if (name.equals(SYSTEM_TITLE_STR)) {
             tipInfoLabel.setText(SYSTEM_TIP_STR);
             tipIconLabel.setIcon(IconLoader.getIcon("/images/system_tuning.png", getClass()));
             applicationBtn.setBorder(null);
             systemBtn.setBorder(BorderFactory.createLineBorder(new Color(0, 117, 255), 2));
+            distributedBtn.setBorder(null);
             applicationBtn.setForeground(JBColor.foreground());
             systemBtn.setForeground(JBColor.foreground().brighter());
+            distributedBtn.setForeground(JBColor.foreground());
+        }
+        if (name.equals(DISTRIBUTED_TITLE_STR)) {
+            tipInfoLabel.setText(DISTRIBUTED_TIP_STR);
+            tipIconLabel.setIcon(IconLoader.getIcon("/images/distributed_scenario.png", getClass()));
+            applicationBtn.setBorder(null);
+            systemBtn.setBorder(null);
+            distributedBtn.setBorder(BorderFactory.createLineBorder(new Color(0, 117, 255), 2));
+            applicationBtn.setForeground(JBColor.foreground());
+            systemBtn.setForeground(JBColor.foreground());
+            distributedBtn.setForeground(JBColor.foreground().brighter());
         }
         mouseReleasedExtra(name);
     }
@@ -371,7 +415,7 @@ public class TaskPanel extends JBLayeredPane implements MouseListener {
                 Constant.jtasksTab = null;
                 welcomePanel.setVisible(true);
             }
-            QuartzManager.getInstance().endExecutor(DEVICE_REFRESH);
+            QuartzManager.getInstance().deleteExecutor(DEVICE_REFRESH);
             PlugManager.getInstance().clearProfilerMonitorItemMap();
             ProfilerChartsView profilerChartsView = ProfilerChartsView.sessionMap.get(localSessionId);
             if (Objects.nonNull(profilerChartsView)) {
@@ -392,6 +436,12 @@ public class TaskPanel extends JBLayeredPane implements MouseListener {
             tabContainer.add(taskScenePanel);
         } else if (tipInfoLabel.getText().contains(SYSTEM_TITLE_STR)) {
             SystemConfigPanel configPanel = new SystemConfigPanel(this);
+            tabContainer.setLayout(new BorderLayout());
+            tabContainer.setOpaque(true);
+            tabContainer.setBackground(JBColor.background().darker());
+            tabContainer.add(configPanel);
+        } else if (tipInfoLabel.getText().contains(DISTRIBUTED_TITLE_STR)) {
+            DistributedConfigPanel configPanel = new DistributedConfigPanel(this);
             tabContainer.setLayout(new BorderLayout());
             tabContainer.setOpaque(true);
             tabContainer.setBackground(JBColor.background().darker());

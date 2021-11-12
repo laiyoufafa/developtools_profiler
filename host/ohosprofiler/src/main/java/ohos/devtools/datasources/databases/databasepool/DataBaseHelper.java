@@ -15,6 +15,7 @@
 
 package ohos.devtools.datasources.databases.databasepool;
 
+import ohos.devtools.datasources.utils.profilerlog.ProfilerLogManager;
 import ohos.devtools.datasources.utils.session.service.SessionManager;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -35,11 +36,10 @@ import static ohos.devtools.views.common.LayoutConstants.THOUSAND_TWENTY_FOUR;
 
 /**
  * Used for database creation in the project, default table creation
+ *
+ * @since 2021/10/22 16:30
  */
 public class DataBaseHelper {
-    private DataBaseHelper() {
-    }
-
     private static final Logger LOGGER = LogManager.getLogger(DataBaseHelper.class);
     private static final String SQL_START_FLAG = "##";
     private static final String DB_DRIVER = "driver";
@@ -56,13 +56,19 @@ public class DataBaseHelper {
     private static final String DB_TEST_RETURN = "testOnReturn";
     private static final String JDBC_SQLITE = "jdbc:sqlite:";
 
+    private DataBaseHelper() {
+    }
+
     /**
      * Check whether the specified database exists.
      *
      * @param dataBaseUrl dataBaseUrl
-     * @return Returns true if the database exists; false otherwise.
+     * @return Returns true if the database exists; returns false otherwise.
      */
     public static boolean checkDataBaseExists(String dataBaseUrl) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("checkDataBaseExists");
+        }
         String dbPath = getFilePath(dataBaseUrl);
         File dbFile = new File(dbPath);
         return dbFile.exists();
@@ -76,6 +82,9 @@ public class DataBaseHelper {
      * @throws IOException IOException
      */
     public static List<String> loadSqlFileToList(String sqlPath) throws IOException {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("loadSqlFileToList");
+        }
         File file = new File(sqlPath);
         if (!file.exists() || file.isDirectory()) {
             return new ArrayList<>();
@@ -118,8 +127,10 @@ public class DataBaseHelper {
      * @return String
      */
     public static String getFilePath(String url) {
-        String filePath = url.replace("jdbc:sqlite:", "");
-        return filePath;
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("getFilePath");
+        }
+        return url.replace("jdbc:sqlite:", "");
     }
 
     /**
@@ -129,6 +140,9 @@ public class DataBaseHelper {
      * @return String String
      */
     public static String getUrlByDataBaseName(String dbName) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("getUrlByDataBaseName");
+        }
         String dbPath = SessionManager.getInstance().tempPath();
         if (StringUtils.isBlank(dbName)) {
             return JDBC_SQLITE + dbPath + "defaultDB";
@@ -142,6 +156,9 @@ public class DataBaseHelper {
      * @return DataBase
      */
     public static DataBase createDataBase() {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("createDataBase");
+        }
         Properties pop = new Properties();
         try {
             pop.load(DataBaseHelper.class.getClassLoader().getResourceAsStream("db.properties"));
@@ -157,7 +174,9 @@ public class DataBaseHelper {
                 .testOnBorrow(Boolean.parseBoolean(pop.getProperty(DB_TEST_BORROW)))
                 .testOnReturn(Boolean.parseBoolean(pop.getProperty(DB_TEST_RETURN))).build();
         } catch (IOException exception) {
-            LOGGER.error("createDataBase ", exception);
+            if (ProfilerLogManager.isErrorEnabled()) {
+                LOGGER.error("createDataBase ", exception);
+            }
         }
         return DataBase.builder().build();
     }
@@ -168,6 +187,9 @@ public class DataBaseHelper {
      * @return DataBase
      */
     public static DataBase createDefaultDataBase() {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("createDefaultDataBase");
+        }
         Properties pop = new Properties();
         try {
             pop.load(DataBaseHelper.class.getClassLoader().getResourceAsStream("db.properties"));
@@ -183,7 +205,9 @@ public class DataBaseHelper {
                 .testOnBorrow(Boolean.parseBoolean(pop.getProperty(DB_TEST_BORROW)))
                 .testOnReturn(Boolean.parseBoolean(pop.getProperty(DB_TEST_RETURN))).build();
         } catch (IOException exception) {
-            LOGGER.error("createDefaultDataBase ", exception);
+            if (ProfilerLogManager.isErrorEnabled()) {
+                LOGGER.error("createDefaultDataBase ", exception);
+            }
         }
         return DataBase.builder().build();
     }

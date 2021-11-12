@@ -18,6 +18,8 @@ package ohos.devtools.views.layout.chartview.observer;
 import ohos.devtools.views.charts.model.ChartDataRange;
 import ohos.devtools.views.layout.chartview.ProfilerTimeline;
 import ohos.devtools.views.layout.chartview.event.IChartEventObserver;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Observer of profiler timeline
@@ -25,6 +27,8 @@ import ohos.devtools.views.layout.chartview.event.IChartEventObserver;
  * @since 2021/2/1 10:36
  */
 public class TimelineObserver implements IChartEventObserver {
+    private static final Logger LOGGER = LogManager.getLogger(TimelineObserver.class);
+
     /**
      * Profiler timeline
      */
@@ -51,7 +55,6 @@ public class TimelineObserver implements IChartEventObserver {
     public void refreshStandard(int startTime, int endTime, int maxDisplayMillis, int minMarkInterval) {
         timeline.setMaxDisplayTime(maxDisplayMillis);
         timeline.setMinMarkInterval(minMarkInterval);
-
         timeline.setStartTime(startTime);
         timeline.setEndTime(endTime);
         timeline.repaint();

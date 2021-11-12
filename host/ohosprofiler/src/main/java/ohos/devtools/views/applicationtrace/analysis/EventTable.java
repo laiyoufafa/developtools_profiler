@@ -27,6 +27,8 @@ import ohos.devtools.views.applicationtrace.DataPanel;
 import ohos.devtools.views.applicationtrace.bean.EventBean;
 import ohos.devtools.views.applicationtrace.bean.Func;
 import ohos.devtools.views.applicationtrace.util.TimeUtils;
+import ohos.devtools.views.perftrace.PerfData;
+import ohos.devtools.views.perftrace.bean.PrefFunc;
 
 import javax.annotation.Nullable;
 import javax.swing.ListSelectionModel;
@@ -44,20 +46,22 @@ import java.util.stream.Collectors;
 /**
  * EventTable
  *
- * @date: 2021/5/24 12:22
+ * @since 2021/5/24 12:22
  */
 public class EventTable extends JBPanel {
     /**
      * event data source
      */
     public List<EventBean> dataSource = new ArrayList<>();
+
     private final int RowHeight = 25;
     private final int RowHeadHeight = 30;
-    private List<Col<EventBean>> columnNames = new ArrayList<>();
     private JBScrollPane jScrollPane;
     private EventTableModel tableColumnModel;
     private JBTable jbTable;
     private ITableSizeChangeListener listener;
+    private List<Col<EventBean>> columnNames = new ArrayList<>();
+
 
     /**
      * Constructor
@@ -140,10 +144,10 @@ public class EventTable extends JBPanel {
             long cpuDuration = func.getRunning();
             if (collect.containsKey(func.getStackId())) {
                 selfTime = func.getDur() - collect.get(func.getStackId()).stream().filter(func1 -> TimeUtils
-                    .isRangeCross(func.getStartTs(), func.getEndTs(), func1.getStartTs(), func1.getEndTs()))
+                        .isRangeCross(func.getStartTs(), func.getEndTs(), func1.getStartTs(), func1.getEndTs()))
                     .mapToLong(Func::getDur).sum();
                 cupSelfTime = cpuDuration - collect.get(func.getStackId()).stream().filter(func1 -> TimeUtils
-                    .isRangeCross(func.getStartTs(), func.getEndTs(), func1.getStartTs(), func1.getEndTs()))
+                        .isRangeCross(func.getStartTs(), func.getEndTs(), func1.getStartTs(), func1.getEndTs()))
                     .mapToLong(Func::getRunning).sum();
             } else {
                 cupSelfTime = func.getRunning();
@@ -159,16 +163,43 @@ public class EventTable extends JBPanel {
         }).collect(Collectors.toList());
     }
 
+    private void getPerfData(long startNS, long endNS, List<Integer> threadIds) {
+        List<PrefFunc> funcList = new ArrayList<>();
+        threadIds.forEach(threadId -> {
+            if (PerfData.FUNC_MAP.containsKey(threadId)) {
+                funcList.addAll(PerfData.FUNC_MAP.get(threadId).stream().filter(
+                        func -> func.getDepth() != -1 && TimeUtils
+                            .isRangeCross(startNS, endNS, func.getStartTs(), func.getEndTs()))
+                    .collect(Collectors.toList()));
+            }
+        });
+        dataSource =
+            funcList.stream().sorted(Comparator.comparingLong(PrefFunc::getDur).reversed()).limit(10).map(func -> {
+                EventBean eventBean = new EventBean();
+                long selfTime = func.getDur() - func.getChildrenNodes().stream().mapToLong(PrefFunc::getDur).sum();
+                long duration = func.getDur();
+                eventBean.setName(func.getFuncName());
+                eventBean.setCpuDuration(duration);
+                eventBean.setSelfTime(selfTime);
+                eventBean.setWallDuration(duration);
+                eventBean.setCpuSelfTime(selfTime);
+                eventBean.setStartTime(func.getStartTs());
+                return eventBean;
+            }).collect(Collectors.toList());
+    }
+
     /**
      * getData
      *
-     * @param startNS startNS
-     * @param endNS endNS
+     * @param startNS   startNS
+     * @param endNS     endNS
      * @param threadIds threadIds
      */
     public void getData(long startNS, long endNS, List<Integer> threadIds) {
-        if (DataPanel.analysisEnum.equals(AnalysisEnum.APP)) {
+        if (AnalysisEnum.APP.equals(DataPanel.analysisEnum)) {
             getAppData(startNS, endNS, threadIds);
+        } else {
+            getPerfData(startNS, endNS, threadIds);
         }
         if (listener != null) {
             if (dataSource.size() == 10) {
@@ -210,6 +241,7 @@ public class EventTable extends JBPanel {
      * Col Class
      *
      * @param <T> T type
+     * @since 2021/5/24 12:22
      */
     public static class Col<T> {
         /**
@@ -225,7 +257,7 @@ public class EventTable extends JBPanel {
         /**
          * Constructor
          *
-         * @param name name
+         * @param name     name
          * @param callable callable
          */
         public Col(String name, Function<T, Object> callable) {
@@ -237,7 +269,7 @@ public class EventTable extends JBPanel {
     /**
      * EventTableModel
      *
-     * @date: 2021/5/24 12:22
+     * @since 2021/5/24 12:22
      */
     public class EventTableModel extends AbstractTableModel {
         @Override
@@ -269,5 +301,7 @@ public class EventTable extends JBPanel {
         public Class<?> getColumnClass(int columnIndex) {
             return super.getColumnClass(columnIndex);
         }
+
     }
+
 }

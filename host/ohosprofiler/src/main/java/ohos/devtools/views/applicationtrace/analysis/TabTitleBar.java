@@ -29,6 +29,8 @@ import java.awt.event.MouseListener;
 
 /**
  * TabThreadStatesBean
+ *
+ * @since 2021/5/13 13:06
  */
 public class TabTitleBar extends JPanel {
     private String title;
@@ -52,7 +54,7 @@ public class TabTitleBar extends JPanel {
     /**
      * add tab
      *
-     * @param tabName tabName
+     * @param tabName      tabName
      * @param currentIndex currentIndex
      */
     public void addTab(String tabName, int currentIndex) {

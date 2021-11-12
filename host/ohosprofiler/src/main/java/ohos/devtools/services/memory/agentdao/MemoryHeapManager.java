@@ -22,17 +22,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * MemoryHeapManager
+ * Memory Heap Manager
  */
 public class MemoryHeapManager {
     private final MemoryHeapDao memoryHeapDao = MemoryHeapDao.getInstance();
 
     /**
-     * get MemoryHeapInfos
+     * Get the data in the selected time period and provide it to the heap information query interface of the UI
      *
      * @param sessionId sessionId
      * @param startTime startTime
-     * @param endTime endTime
+     * @param endTime   endTime
      * @return ArrayList <MemoryHeapInfo>
      */
     public List<AgentHeapBean> getMemoryHeapInfos(Long sessionId, Long startTime, Long endTime) {

@@ -42,8 +42,7 @@ import java.awt.event.MouseEvent;
 /**
  * flag component
  *
- * @version 1.0.1
- * @date 2021/04/20 12:24
+ * @since 2021/04/20 12:24
  */
 public class ScrollFlagPanel extends BottomScrollPanel {
     private FlagBean flag;
@@ -78,14 +77,14 @@ public class ScrollFlagPanel extends BottomScrollPanel {
         box.add(remove);
         layer.add(box);
         input.setText(flag.getName());
+        input.transferFocus();
         colorPanel.setCurrentColor(flag.getColor());
         layer.addComponentListener(new ComponentAdapter() {
             @Override
             public void componentResized(ComponentEvent componentEvent) {
                 super.componentResized(componentEvent);
                 Rectangle rootBounds = layer.getBounds();
-                box.setBounds(Utils.getX(rootBounds) + 10, Utils.getY(rootBounds) + 10,
-                    rootBounds.width - 20, 40);
+                box.setBounds(Utils.getX(rootBounds) + 10, Utils.getY(rootBounds) + 10, rootBounds.width - 20, 40);
             }
         });
         input.addKeyListener(new KeyAdapter() {
@@ -129,8 +128,9 @@ public class ScrollFlagPanel extends BottomScrollPanel {
     }
 
     /**
-     * @version 1.0.1
-     * @date 2021/04/20 12:24
+     * ColorPanel
+     *
+     * @since 2021/04/20 12:24
      */
     class ColorPanel extends ChildPanel {
         private Color currentColor;

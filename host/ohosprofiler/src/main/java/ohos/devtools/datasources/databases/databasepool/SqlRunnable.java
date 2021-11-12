@@ -15,6 +15,7 @@
 
 package ohos.devtools.datasources.databases.databasepool;
 
+import ohos.devtools.datasources.utils.profilerlog.ProfilerLogManager;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -26,6 +27,8 @@ import java.sql.Statement;
 
 /**
  * sql carried out
+ *
+ * @since 2021/10/22 16:30
  */
 public class SqlRunnable {
     private static final Logger LOGGER = LogManager.getLogger(SqlRunnable.class);
@@ -38,13 +41,18 @@ public class SqlRunnable {
      * @return boolean
      */
     public boolean execute(Connection conn, String sql) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("execute");
+        }
         boolean result = false;
         Statement stmt = null;
         try {
             stmt = conn.createStatement();
             result = stmt.executeUpdate(sql) > 0 ? true : false;
         } catch (SQLException throwAbles) {
-            LOGGER.error(throwAbles.getMessage());
+            if (ProfilerLogManager.isErrorEnabled()) {
+                LOGGER.error(throwAbles.getMessage());
+            }
         } finally {
             close(stmt, conn);
         }
@@ -59,6 +67,9 @@ public class SqlRunnable {
      * @return boolean
      */
     public boolean executeBatch(Connection conn, PreparedStatement ste) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("executeBatch");
+        }
         try {
             conn.setAutoCommit(false);
             int[] result = ste.executeBatch();
@@ -68,6 +79,9 @@ public class SqlRunnable {
             try {
                 conn.rollback();
             } catch (SQLException exception) {
+                if (ProfilerLogManager.isErrorEnabled()) {
+                    LOGGER.error(exception.getMessage());
+                }
                 return false;
             }
         } finally {
@@ -84,11 +98,16 @@ public class SqlRunnable {
      * @return ResultSet
      */
     public ResultSet executeQuery(Statement stmt, String sql) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("executeQuery");
+        }
         ResultSet rs = null;
         try {
             rs = stmt.executeQuery(sql);
         } catch (SQLException throwAbles) {
-            LOGGER.error(throwAbles.getMessage());
+            if (ProfilerLogManager.isErrorEnabled()) {
+                LOGGER.error(throwAbles.getMessage());
+            }
         }
         return rs;
     }
@@ -99,6 +118,9 @@ public class SqlRunnable {
      * @param st Statement
      */
     public void close(Statement st) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("close");
+        }
         close(st, null, null);
     }
 
@@ -108,6 +130,9 @@ public class SqlRunnable {
      * @param rs Result set
      */
     public void close(ResultSet rs) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("close");
+        }
         close(null, rs, null);
     }
 
@@ -117,6 +142,9 @@ public class SqlRunnable {
      * @param con Connection
      */
     public void close(Connection con) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("close");
+        }
         close(null, null, con);
     }
 
@@ -127,6 +155,9 @@ public class SqlRunnable {
      * @param con Connection
      */
     public void close(Statement st, Connection con) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("close");
+        }
         close(st, null, con);
     }
 
@@ -137,6 +168,9 @@ public class SqlRunnable {
      * @param con Connection
      */
     public void close(ResultSet rs, Connection con) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("close");
+        }
         close(null, rs, con);
     }
 
@@ -148,25 +182,34 @@ public class SqlRunnable {
      * @param con Connection
      */
     public void close(Statement st, ResultSet rs, Connection con) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("close");
+        }
         if (st != null) {
             try {
                 st.close();
             } catch (SQLException exception) {
-                LOGGER.error(exception.getMessage());
+                if (ProfilerLogManager.isErrorEnabled()) {
+                    LOGGER.error(exception.getMessage());
+                }
             }
         }
         if (rs != null) {
             try {
                 rs.close();
             } catch (SQLException exception) {
-                LOGGER.error(exception.getMessage());
+                if (ProfilerLogManager.isErrorEnabled()) {
+                    LOGGER.error(exception.getMessage());
+                }
             }
         }
         if (con != null) {
             try {
                 con.close();
             } catch (SQLException exception) {
-                LOGGER.error(exception.getMessage());
+                if (ProfilerLogManager.isErrorEnabled()) {
+                    LOGGER.error(exception.getMessage());
+                }
             }
         }
     }

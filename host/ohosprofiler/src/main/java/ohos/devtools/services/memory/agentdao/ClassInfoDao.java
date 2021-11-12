@@ -18,6 +18,7 @@ package ohos.devtools.services.memory.agentdao;
 import ohos.devtools.datasources.databases.databaseapi.DataBaseApi;
 import ohos.devtools.datasources.databases.databasepool.AbstractDataStore;
 import ohos.devtools.datasources.utils.common.util.CloseResourceUtil;
+import ohos.devtools.datasources.utils.profilerlog.ProfilerLogManager;
 import ohos.devtools.services.memory.agentbean.ClassInfo;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -63,13 +64,10 @@ public class ClassInfoDao extends AbstractDataStore {
         createClassInfo();
     }
 
-    /**
-     * get database connection
-     *
-     * @param tableName TableName
-     * @return Connection
-     */
     private Connection getConnection(String tableName) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("getConnection");
+        }
         Optional<Connection> optionalConnection = getConnectByTable(tableName);
         Connection conn = null;
         if (optionalConnection.isPresent()) {
@@ -79,11 +77,14 @@ public class ClassInfoDao extends AbstractDataStore {
     }
 
     /**
-     * create ClassInfo
+     * createClassInfo
      *
      * @return boolean
      */
     public boolean createClassInfo() {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("createClassInfo");
+        }
         boolean createResult = false;
         String dbName = JVMTI_AGENT_PLUG;
         String classInfoTable = "ClassInfo";
@@ -94,11 +95,14 @@ public class ClassInfoDao extends AbstractDataStore {
     }
 
     /**
-     * insert ClassInfo
+     * insertClassInfo
      *
      * @param classInfo classInfo
      */
     public void insertClassInfo(ClassInfo classInfo) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("insertClassInfo");
+        }
         Connection conn = null;
         PreparedStatement ps = null;
         try {
@@ -109,19 +113,24 @@ public class ClassInfoDao extends AbstractDataStore {
             ps.setString(2, classInfo.getClassName());
             ps.executeUpdate();
         } catch (SQLException throwables) {
-            throwables.printStackTrace();
+            if (ProfilerLogManager.isErrorEnabled()) {
+                LOGGER.error("memoryHeapInfo Exception {}", throwables.getMessage());
+            }
         } finally {
             CloseResourceUtil.closeResource(LOGGER, conn, ps, null);
         }
     }
 
     /**
-     * insert ClassInfos
+     * insertClassInfos
      *
      * @param classInfos List<ClassInfo>
      * @return boolean
      */
     public boolean insertClassInfos(List<ClassInfo> classInfos) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("insertClassInfos");
+        }
         if (classInfos.isEmpty()) {
             return false;
         }
@@ -141,7 +150,9 @@ public class ClassInfoDao extends AbstractDataStore {
             conn.commit();
             return true;
         } catch (SQLException throwables) {
-            LOGGER.error("SQLException error: " + throwables.getMessage());
+            if (ProfilerLogManager.isErrorEnabled()) {
+                LOGGER.error("memoryHeapInfo Exception {}", throwables.getMessage());
+            }
             return false;
         } finally {
             CloseResourceUtil.closeResource(LOGGER, conn, ps, null);
@@ -149,12 +160,15 @@ public class ClassInfoDao extends AbstractDataStore {
     }
 
     /**
-     * get All ClassInfoData.
+     * get all class info data.
      *
      * @param sessionId sessionId
      * @return List <ClassInfo>
      */
     public List<ClassInfo> getAllClassInfoData(Long sessionId) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("getAllClassInfoData");
+        }
         Connection conn = getConnection("ClassInfo");
         PreparedStatement ps = null;
         ArrayList<ClassInfo> classInfos = new ArrayList<>();
@@ -173,7 +187,9 @@ public class ClassInfoDao extends AbstractDataStore {
             }
             return classInfos;
         } catch (SQLException throwables) {
-            LOGGER.info("memoryHeapInfo Exception {}", throwables.getMessage());
+            if (ProfilerLogManager.isErrorEnabled()) {
+                LOGGER.error("memoryHeapInfo Exception {}", throwables.getMessage());
+            }
         } finally {
             CloseResourceUtil.closeResource(LOGGER, conn, ps, null);
         }
@@ -181,12 +197,15 @@ public class ClassInfoDao extends AbstractDataStore {
     }
 
     /**
-     * get all class info data.
+     * get all class info data by classname
      *
      * @param className className
      * @return int cid
      */
     public int getClassIdByClassName(String className) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("getClassIdByClassName");
+        }
         Connection conn = getConnection("ClassInfo");
         PreparedStatement ps = null;
         int cId = 0;
@@ -199,7 +218,9 @@ public class ClassInfoDao extends AbstractDataStore {
             }
             return cId;
         } catch (SQLException throwables) {
-            LOGGER.info("memoryHeapInfo Exception {}", throwables.getMessage());
+            if (ProfilerLogManager.isErrorEnabled()) {
+                LOGGER.error("memoryHeapInfo Exception {}", throwables.getMessage());
+            }
         } finally {
             CloseResourceUtil.closeResource(LOGGER, conn, ps, null);
         }
@@ -213,6 +234,9 @@ public class ClassInfoDao extends AbstractDataStore {
      * @return boolean
      */
     public boolean deleteSessionData(long sessionId) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("deleteSessionData");
+        }
         StringBuffer deleteSql = new StringBuffer("DELETE FROM ClassInfo");
         Connection connection = DataBaseApi.getInstance().getConnectByTable("ClassInfo").get();
         return execute(connection, deleteSql.toString());

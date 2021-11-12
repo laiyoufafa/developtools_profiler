@@ -27,8 +27,7 @@ import java.util.List;
 /**
  * VsyncAppBean
  *
- * @version 1.0
- * @date: 2021/5/26 15:38
+ * @since 2021/5/26 15:38
  */
 public class VsyncAppBean extends AbstractNode {
     @DField(name = "id")

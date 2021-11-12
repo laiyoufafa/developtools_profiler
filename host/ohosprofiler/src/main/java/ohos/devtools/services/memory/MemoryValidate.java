@@ -48,9 +48,6 @@ public class MemoryValidate extends Validate {
     private MemoryInstanceDao memoryInstanceDao;
     private MemoryInstanceDetailsDao memoryInstanceDetailsDao;
 
-    /**
-     * MemoryValidate Constructor
-     */
     public MemoryValidate() {
         processMemInfoList = new ArrayList();
         classInfos = new ArrayList<>();
@@ -124,7 +121,7 @@ public class MemoryValidate extends Validate {
     }
 
     /**
-     * get MenInfo Size
+     * getMenInfoSize
      *
      * @return int
      */

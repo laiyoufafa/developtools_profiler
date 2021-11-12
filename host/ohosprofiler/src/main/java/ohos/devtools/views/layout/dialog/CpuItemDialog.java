@@ -30,6 +30,8 @@ import java.util.Locale;
 
 /**
  * CpuItemDialog
+ *
+ * @since : 2021/10/25
  */
 public class CpuItemDialog extends DialogWrapper {
     private JPanel filePanel;
@@ -111,7 +113,6 @@ public class CpuItemDialog extends DialogWrapper {
      * @param recordingJLabelParam recordingJLabelParam
      * @param timeJLabelParam timeJLabelParam
      * @param typeJLabelParam typeJLabelParam
-     * @param typeValueJLabelParam typeValueJLabelParam
      */
     public void setLabelAttribute(JLabel statusJLabelParam, JLabel durationJLabelParam, JLabel recordingJLabelParam,
         JLabel timeJLabelParam, JLabel typeJLabelParam) {

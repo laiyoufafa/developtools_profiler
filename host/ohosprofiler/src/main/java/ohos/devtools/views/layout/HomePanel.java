@@ -25,9 +25,14 @@ import ohos.devtools.datasources.utils.profilerlog.ProfilerLogManager;
 import ohos.devtools.views.common.Constant;
 import ohos.devtools.views.common.LayoutConstants;
 import ohos.devtools.views.common.UtConstant;
+import ohos.devtools.views.hilog.HiLogPanel;
+import ohos.devtools.views.layout.dialog.HelpContentsDialog;
 import ohos.devtools.views.layout.dialog.HelpDialog;
+import ohos.devtools.views.layout.utils.EventTrackUtils;
 import ohos.devtools.views.layout.utils.OpenFileDialogUtils;
 import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
@@ -39,6 +44,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 
+import static ohos.devtools.datasources.utils.profilerlog.ProfilerLogManager.isInfoEnabled;
 import static ohos.devtools.views.common.LayoutConstants.WINDOW_HEIGHT;
 import static ohos.devtools.views.common.LayoutConstants.WINDOW_WIDTH;
 
@@ -46,6 +52,7 @@ import static ohos.devtools.views.common.LayoutConstants.WINDOW_WIDTH;
  * HomePanel
  */
 public class HomePanel extends JBPanel implements ActionListener, MouseListener {
+    private static final Logger LOGGER = LogManager.getLogger(HomePanel.class);
     private static final String LOG_SWITCH_STR = "Path to Log";
     private static final String FILE_MENU_STR = "  File  ";
     private static final String NEW_TASK_STR = "New Task";
@@ -56,23 +63,28 @@ public class HomePanel extends JBPanel implements ActionListener, MouseListener 
     private static final String HILOG = "HiLog";
     private static final String HELP = "Help";
     private static final String ABOUT = "About";
+    private static final String HELP_CONTENTS = "Help Contents";
+
     private JBPanel menuPanel;
     private WelcomePanel welcomePanel;
     private JBPanel containerPanel;
     private JMenu fileMenu;
     private JMenu settingMenu;
+    private JMenu hiLogMenu;
     private JMenu helpMenu;
     private JBMenuItem newTaskItem;
     private JBMenuItem openFileItem;
     private JBMenuItem saveAsItem;
     private JBMenuItem quitItem;
     private JBMenuItem logSwitchItem;
-    private JBMenuItem helpItem;
+    private JBMenuItem aboutItem;
+    private JBMenuItem helpContentsItem;
 
     /**
      * HomePanel
      */
     public HomePanel() {
+        EventTrackUtils.getInstance().trackWelcomePage();
         initComponents();
     }
 
@@ -80,6 +92,9 @@ public class HomePanel extends JBPanel implements ActionListener, MouseListener 
      * init Components
      */
     private void initComponents() {
+        if (isInfoEnabled()) {
+            LOGGER.info("initComponents");
+        }
         setLayout(new BorderLayout());
         setPreferredSize(new Dimension(WINDOW_WIDTH, WINDOW_HEIGHT));
         menuPanel = new JBPanel(new BorderLayout());
@@ -101,15 +116,21 @@ public class HomePanel extends JBPanel implements ActionListener, MouseListener 
         settingMenu = new JMenu(SETTING_STR);
         settingMenu.setIcon(AllIcons.Actions.InlayGear);
         logSwitchItem = new JBMenuItem(LOG_SWITCH_STR);
-        helpItem = new JBMenuItem(ABOUT);
+        aboutItem = new JBMenuItem(ABOUT);
+        helpContentsItem = new JBMenuItem(HELP_CONTENTS);
+        hiLogMenu = new JMenu(HILOG);
+        hiLogMenu.setIcon(AllIcons.Actions.Copy);
+        hiLogMenu.setName(UtConstant.UT_HOME_PANEL_HILOG_MENU);
         helpMenu = new JMenu(HELP);
         helpMenu.setIcon(IconLoader.getIcon("/images/help.png", getClass()));
         helpMenu.setName(UtConstant.UT_HOME_PANEL_HELP_MENU);
         JMenuBar settingMenuBar = new JMenuBar();
+        settingMenuBar.add(hiLogMenu);
         settingMenuBar.add(settingMenu);
         settingMenuBar.add(helpMenu);
         settingMenu.add(logSwitchItem);
-        helpMenu.add(helpItem);
+        helpMenu.add(aboutItem);
+        helpMenu.add(helpContentsItem);
         // MenuPanel set
         menuPanel.add(settingMenuBar);
         menuPanel.setPreferredSize(new Dimension(LayoutConstants.WINDOW_WIDTH, LayoutConstants.THIRTY));
@@ -119,7 +140,9 @@ public class HomePanel extends JBPanel implements ActionListener, MouseListener 
         logSwitchItem.addActionListener(this);
         newTaskItem.addActionListener(this);
         openFileItem.addActionListener(this);
-        helpItem.addActionListener(this);
+        aboutItem.addActionListener(this);
+        helpContentsItem.addActionListener(this);
+        hiLogMenu.addMouseListener(this);
     }
 
     @Override
@@ -127,12 +150,13 @@ public class HomePanel extends JBPanel implements ActionListener, MouseListener 
         String actionCommand = actionEvent.getActionCommand();
         // switch log
         if (actionCommand.equals(LOG_SWITCH_STR)) {
-            Level logLevel = ProfilerLogManager.getSingleton().getNowLogLevel();
+            EventTrackUtils.getInstance().trackLogSwitch();
+            Level logLevel = ProfilerLogManager.getNowLogLevel();
             if (Level.ERROR.equals(logLevel)) {
-                ProfilerLogManager.getSingleton().updateLogLevel(Level.DEBUG);
+                ProfilerLogManager.updateLogLevel(Level.DEBUG);
                 logSwitchItem.setIcon(AllIcons.Actions.Commit);
             } else {
-                ProfilerLogManager.getSingleton().updateLogLevel(Level.ERROR);
+                ProfilerLogManager.updateLogLevel(Level.ERROR);
                 logSwitchItem.setIcon(null);
             }
         }
@@ -154,7 +178,12 @@ public class HomePanel extends JBPanel implements ActionListener, MouseListener 
             welcomePanel.setVisible(false);
         }
         if (actionCommand.equals(ABOUT)) {
+            EventTrackUtils.getInstance().trackHelp();
             new HelpDialog();
+        }
+        // help contents
+        if (actionCommand.equals(HELP_CONTENTS)) {
+            new HelpContentsDialog().show();
         }
     }
 
@@ -177,6 +206,10 @@ public class HomePanel extends JBPanel implements ActionListener, MouseListener 
         if (event.getComponent().getName().equals(UtConstant.UT_HOME_PANEL_HILOG_MENU)) {
             if (Constant.jtasksTab == null || (Constant.jtasksTab != null && Constant.jtasksTab.getTabCount() == 0)) {
                 Constant.jtasksTab = new JBTabbedPane();
+            }
+            if (!HiLogPanel.isIsOpen()) {
+                new HiLogPanel(containerPanel, welcomePanel);
+                welcomePanel.setVisible(false);
             }
         }
     }

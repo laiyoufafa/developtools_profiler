@@ -1,5 +1,0 @@
-select cast(name as varchar) as name,cast(value as varchar) as value from meta
-UNION
-select 'start_ts',cast(start_ts as varchar) from trace_range
-UNION
-select 'end_ts',cast(end_ts as varchar) from trace_range

@@ -38,7 +38,7 @@ public class TraceLoadDialog extends DialogWrapper {
     private static final Logger LOGGER = LogManager.getLogger(TraceLoadDialog.class);
     private static final int MINUTE_TO_S = 60;
     private JPanel filePanel;
-    private JBLabel timeJLabel ;
+    private JBLabel timeJLabel;
     private Timer timer;
 
     private int maxDurationParam = 0;

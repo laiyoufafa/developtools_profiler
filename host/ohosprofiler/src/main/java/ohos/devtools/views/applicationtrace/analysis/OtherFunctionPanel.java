@@ -22,12 +22,14 @@ import com.intellij.util.ui.JBUI;
 import net.miginfocom.swing.MigLayout;
 import ohos.devtools.views.applicationtrace.AllData;
 import ohos.devtools.views.applicationtrace.bean.Func;
+import ohos.devtools.views.perftrace.PerfData;
+import ohos.devtools.views.perftrace.bean.PrefFunc;
 import ohos.devtools.views.trace.EventDispatcher;
 
 /**
  * The OtherFunctionPanel
  *
- * @date 2021/04/22 12:25
+ * @since 2021/04/22 12:25
  */
 public class OtherFunctionPanel extends JBPanel {
     private JBTabbedPane otherFunctionTab;
@@ -57,6 +59,13 @@ public class OtherFunctionPanel extends JBPanel {
                 topBottomPanel.freshTreeData(AllData.getFuncTreeByFuncTopDown(func));
                 bottomUpPanel.freshTreeData(AllData.getFuncTreeByFuncBottomUp(func));
                 flameSearchChart.freshData(AllData.getFuncTreeFlameChart(func), func.getDur());
+            } else {
+                if (node instanceof PrefFunc) {
+                    PrefFunc func = (PrefFunc) node;
+                    topBottomPanel.freshTreeData(PerfData.getFuncTreeByFuncTopDown(func));
+                    bottomUpPanel.freshTreeData(PerfData.getFuncTreeByFuncBottomUp(func));
+                    flameSearchChart.freshData(PerfData.getFuncTreeFlameChart(func), func.getDur());
+                }
             }
         });
     }

@@ -46,7 +46,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 /**
  * Database operation class class
  *
- * @date 2021/04/22 12:25
+ * @since 2021/04/22 12:25
  */
 public final class Db {
     private static boolean isLocal;
@@ -140,10 +140,15 @@ public final class Db {
      * @return String sql
      */
     public static String getSql(String sqlName) {
-        String tmp = Final.OHOS ? "-self/" : "/";
-        String path = "sql" + tmp + sqlName + ".txt";
+        String tmp = Final.IS_RESOURCE_SQL ? "-self/" : "/";
+        String path = "sql" + tmp + sqlName + ".sql";
         try (InputStream STREAM = DataUtils.class.getClassLoader().getResourceAsStream(path)) {
-            return IOUtils.toString(STREAM, Charset.forName("UTF-8"));
+            String sqlFile = IOUtils.toString(STREAM, Charset.forName("UTF-8"));
+            if (sqlFile.startsWith("/*")) {
+                return sqlFile.trim().substring(sqlFile.indexOf("*/") + 2);
+            } else {
+                return IOUtils.toString(STREAM, Charset.forName("UTF-8"));
+            }
         } catch (UnsupportedEncodingException exception) {
             exception.printStackTrace();
         } catch (IOException ioException) {
@@ -255,9 +260,9 @@ public final class Db {
     /**
      * Read the sql directory under resource
      *
-     * @param sql sql
      * @param res res
-     * @param <T> T
+     * @param sql sql
+     * @param <T> return type
      */
     public <T> void query(String sql, List<T> res) {
         Statement stat = null;
@@ -313,7 +318,8 @@ public final class Db {
             declaredField.set(data, rs.getDouble(annotation.name()));
         } else if (declaredField.getType() == Float.class || declaredField.getType() == float.class) {
             declaredField.set(data, rs.getFloat(annotation.name()));
-        } else if (declaredField.getType() == Boolean.class || declaredField.getType() == boolean.class) {
+        } else if (declaredField.getType() == Boolean.class
+            || declaredField.getType() == boolean.class) {
             declaredField.set(data, rs.getBoolean(annotation.name()));
         } else if (declaredField.getType() == Blob.class) {
             declaredField.set(data, rs.getBlob(annotation.name()));

@@ -51,8 +51,7 @@ import static java.awt.event.KeyEvent.VK_W;
 /**
  * FlameChart
  *
- * @version 1.0
- * @date: 2021/5/24 11:57
+ * @since 2021/5/24 11:57
  */
 public class FlameChart extends EventPanel implements KeyListener, MouseListener, MouseMotionListener {
     private static final int ROW_HEIGHT = 16;
@@ -79,7 +78,7 @@ public class FlameChart extends EventPanel implements KeyListener, MouseListener
     /**
      * constructor with listener
      *
-     * @param iAllThreadDataListener all thread data listener
+     * @param iAllThreadDataListener   all thread data listener
      * @param iOtherThreadDataListener other thread data listener
      */
     public FlameChart(IAllThreadDataListener iAllThreadDataListener,
@@ -141,7 +140,7 @@ public class FlameChart extends EventPanel implements KeyListener, MouseListener
      * set all node in flame chart
      *
      * @param datasource datasource
-     * @param dur dur
+     * @param dur        dur
      */
     public void setAllNode(List<DefaultMutableTreeNode> datasource, long dur) {
         duration = dur;

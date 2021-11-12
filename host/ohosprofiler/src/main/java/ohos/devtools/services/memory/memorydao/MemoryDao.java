@@ -21,6 +21,7 @@ import ohos.devtools.datasources.databases.databasepool.AbstractDataStore;
 import ohos.devtools.datasources.databases.datatable.enties.ProcessMemInfo;
 import ohos.devtools.datasources.transport.grpc.service.MemoryPluginResult;
 import ohos.devtools.datasources.utils.datahandler.datapoller.MemoryDataConsumer;
+import ohos.devtools.datasources.utils.profilerlog.ProfilerLogManager;
 import ohos.devtools.views.charts.model.ChartDataModel;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -46,7 +47,6 @@ import static ohos.devtools.services.memory.memorydao.MemoryDao.MemorySelectStat
  */
 public class MemoryDao extends AbstractDataStore {
     private static final Logger LOGGER = LogManager.getLogger(MemoryDao.class);
-
     private static volatile MemoryDao singleton;
 
     /**
@@ -72,17 +72,59 @@ public class MemoryDao extends AbstractDataStore {
      */
     public enum MemorySelectStatements {
         SELECT_APP_MEM_INFO(
-            "SELECT timeStamp, Data from processMemInfo where session = ? and timeStamp > ? and timeStamp < ?"),
+            "SELECT "
+                + "timeStamp, "
+                + "Data "
+                + "from "
+                + "processMemInfo "
+                + "where "
+                + "session = ? "
+                + "and "
+                + "timeStamp > ? "
+                + "and "
+                + "timeStamp < ?"),
 
-        SELECT_ALL_APP_MEM_INFO("SELECT timeStamp, Data from processMemInfo where session = ?"),
+        SELECT_ALL_APP_MEM_INFO(
+            "SELECT "
+                + "timeStamp, "
+                + "Data "
+                + "from "
+                + "processMemInfo "
+                + "where "
+                + "session = ?"),
 
-        DELETE_APP_MEM_INFO("delete from processMemInfo where session = ?"),
+        DELETE_APP_MEM_INFO("delete from "
+            + "processMemInfo "
+            + "where "
+            + "session = ?"),
 
-        SELECT_BEFORE_HEAD("SELECT timeStamp, Data from processMemInfo where session ="
-            + " ? and timeStamp < ? order by timeStamp desc limit 1"),
+        SELECT_BEFORE_HEAD(
+            "SELECT "
+                + "timeStamp, "
+                + "Data "
+                + "from "
+                + "processMemInfo "
+                + "where session = ? "
+                + "and "
+                + "timeStamp < ? "
+                + "order by "
+                + "timeStamp "
+                + "desc limit 1"),
 
-        SELECT_AFTER_TAIL("SELECT timeStamp, Data from processMemInfo where session ="
-            + " ? and timeStamp > ? order by timeStamp asc limit 1");
+        SELECT_AFTER_TAIL(
+            "SELECT "
+                + "timeStamp, "
+                + "Data "
+                + "from "
+                + "processMemInfo "
+                + "where "
+                + "session = ? "
+                + "and "
+                + "timeStamp > ? "
+                + "order by "
+                + "timeStamp "
+                + "asc "
+                + "limit 1");
 
         private final String sqlStatement;
 
@@ -113,6 +155,9 @@ public class MemoryDao extends AbstractDataStore {
     }
 
     private void createPrePareStatements() {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("createPrePareStatements");
+        }
         MemorySelectStatements[] values = MemorySelectStatements.values();
         for (MemorySelectStatements sta : values) {
             PreparedStatement psmt = null;
@@ -120,18 +165,23 @@ public class MemoryDao extends AbstractDataStore {
                 psmt = conn.prepareStatement(sta.getStatement());
                 memorySelectMap.put(sta, psmt);
             } catch (SQLException throwAbles) {
-                LOGGER.error(" SQLException {}", throwAbles.getMessage());
+                if (ProfilerLogManager.isErrorEnabled()) {
+                    LOGGER.error(" SQLException {}", throwAbles.getMessage());
+                }
             }
         }
     }
 
     /**
-     * get AllData
+     * get All Data
      *
      * @param sessionId sessionId
      * @return List <ProcessMemInfo>
      */
     public List<ProcessMemInfo> getAllData(long sessionId) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("getAllData");
+        }
         PreparedStatement pst = memorySelectMap.get(SELECT_ALL_APP_MEM_INFO);
         List<ProcessMemInfo> result = new ArrayList<>();
         try {
@@ -154,7 +204,9 @@ public class MemoryDao extends AbstractDataStore {
                 }
             }
         } catch (SQLException | InvalidProtocolBufferException throwables) {
-            LOGGER.error(" SQLException {}", throwables.getMessage());
+            if (ProfilerLogManager.isErrorEnabled()) {
+                LOGGER.error(" SQLException {}", throwables.getMessage());
+            }
         }
         return result;
     }
@@ -171,6 +223,9 @@ public class MemoryDao extends AbstractDataStore {
      */
     public LinkedHashMap<Integer, List<ChartDataModel>> getData(long sessionId, int min, int max, long startTimeStamp,
         boolean isNeedHeadTail) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("getData");
+        }
         PreparedStatement pst = memorySelectMap.get(SELECT_APP_MEM_INFO);
         LinkedHashMap<Integer, List<ChartDataModel>> result = new LinkedHashMap<>();
         if (pst == null) {
@@ -198,7 +253,9 @@ public class MemoryDao extends AbstractDataStore {
                 }
             }
         } catch (SQLException | InvalidProtocolBufferException throwAbles) {
-            throwAbles.printStackTrace();
+            if (ProfilerLogManager.isErrorEnabled()) {
+                LOGGER.error(" SQLException {}", throwAbles.getMessage());
+            }
         }
 
         // 取最后一个点的后一个点用于Chart绘制，填充空白，解决边界闪烁
@@ -219,6 +276,9 @@ public class MemoryDao extends AbstractDataStore {
      */
     private LinkedHashMap<Integer, List<ChartDataModel>> getTargetData(long sessionId, int offset, long startTs,
         boolean beforeHead) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("getTargetData");
+        }
         PreparedStatement pst;
         if (beforeHead) {
             pst = memorySelectMap.get(SELECT_BEFORE_HEAD);
@@ -247,18 +307,23 @@ public class MemoryDao extends AbstractDataStore {
                 }
             }
         } catch (SQLException | InvalidProtocolBufferException throwAbles) {
-            LOGGER.error(" SQLException {}", throwAbles.getMessage());
+            if (ProfilerLogManager.isErrorEnabled()) {
+                LOGGER.error(" SQLException {}", throwAbles.getMessage());
+            }
         }
         return result;
     }
 
     /**
-     * delete SessionData by sessionId
+     * deleteSessionData
      *
      * @param sessionId sessionId
      * @return boolean
      */
     public boolean deleteSessionData(long sessionId) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("deleteSessionData");
+        }
         StringBuffer deleteSql = new StringBuffer("DELETE FROM ");
         deleteSql.append("processMemInfo").append(" WHERE session = ").append(sessionId);
         Optional<Connection> processMemInfo = DataBaseApi.getInstance().getConnectByTable("processMemInfo");

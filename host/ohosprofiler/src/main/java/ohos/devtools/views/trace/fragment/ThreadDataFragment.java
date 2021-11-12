@@ -37,8 +37,7 @@ import java.util.concurrent.CompletableFuture;
 /**
  * Thread data row
  *
- * @version 1.0
- * @date 2021/04/22 12:25
+ * @since 2021/04/22 12:25
  */
 public class ThreadDataFragment extends AbstractDataFragment<ThreadData> implements ThreadData.IEventListener {
     /**
@@ -206,21 +205,21 @@ public class ThreadDataFragment extends AbstractDataFragment<ThreadData> impleme
         if (edgeInspect(event)) {
             if (data != null) {
                 data.stream().filter(threadData -> threadData.getStartTime() + threadData.getDuration() > startNS
-                        && threadData.getStartTime() < endNS).filter(threadData -> threadData.edgeInspect(event))
+                    && threadData.getStartTime() < endNS).filter(threadData -> threadData.edgeInspect(event))
                     .findFirst().ifPresent(filter -> {
-                        filter.onMouseMove(event);
-                        if (filter.edgeInspect(event)) {
-                            if (!filter.flagFocus) {
-                                filter.flagFocus = true;
-                                filter.onFocus(event);
-                            }
-                        } else {
-                            if (filter.flagFocus) {
-                                filter.flagFocus = false;
-                                filter.onBlur(event);
-                            }
+                    filter.onMouseMove(event);
+                    if (filter.edgeInspect(event)) {
+                        if (!filter.flagFocus) {
+                            filter.flagFocus = true;
+                            filter.onFocus(event);
                         }
-                    });
+                    } else {
+                        if (filter.flagFocus) {
+                            filter.flagFocus = false;
+                            filter.onBlur(event);
+                        }
+                    }
+                });
             }
         }
     }

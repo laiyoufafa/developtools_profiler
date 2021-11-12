@@ -21,8 +21,11 @@ import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBTabbedPane;
 import net.miginfocom.swing.MigLayout;
+import ohos.devtools.datasources.utils.profilerlog.ProfilerLogManager;
 import ohos.devtools.views.common.Constant;
 import ohos.devtools.views.common.UtConstant;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.swing.SwingConstants;
 import java.awt.Font;
@@ -31,8 +34,11 @@ import java.awt.event.MouseListener;
 
 /**
  * WelcomePanel class
+ *
+ * @Since 2021/10/25
  */
 public class WelcomePanel extends JBPanel implements MouseListener {
+    private static final Logger LOGGER = LogManager.getLogger(WelcomePanel.class);
     private static final String NEW_BUTTON_STR = " + New Task";
     private static final String WELCOME_TITLE_STR = "Welcome HosProfiler";
     private static final String WELCOME_TIP_STR = "Click New Task Button to process or load a capture";
@@ -54,7 +60,9 @@ public class WelcomePanel extends JBPanel implements MouseListener {
      * initComponents
      */
     private void initComponents() {
-        // init
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("initComponents");
+        }
         setLayout(new MigLayout("inset 0", "[grow,fill]",
             "[fill,fill]push[]push"));
         // init newTaskBtn

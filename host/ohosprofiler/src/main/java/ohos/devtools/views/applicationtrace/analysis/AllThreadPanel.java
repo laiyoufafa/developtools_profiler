@@ -21,13 +21,14 @@ import com.intellij.ui.components.JBTabbedPane;
 import com.intellij.util.ui.JBUI;
 import net.miginfocom.swing.MigLayout;
 import ohos.devtools.views.applicationtrace.AllData;
+import ohos.devtools.views.perftrace.PerfData;
 
 import java.util.Objects;
 
 /**
  * app data all thread show panel
  *
- * @date: 2021/5/20 18:00
+ * @since 2021/5/20 18:00
  */
 public class AllThreadPanel extends JBPanel {
     private JBTabbedPane allThreadTab;
@@ -54,6 +55,13 @@ public class AllThreadPanel extends JBPanel {
                 (startNS, endNS, scale) -> AllData.getFuncTreeBottomUp(startNS, endNS), null);
             flameSearchChart = new FlameSearchChart(
                 (startNS, endNS, scale) -> AllData.getFuncTreeFlameChart(startNS, endNS), null);
+        } else {
+            topDownPanel = new TopBottomPanel(
+                (startNS, endNS, scale) -> PerfData.getFuncTreeTopDown(startNS, endNS), null);
+            bottomUpPanel = new TopBottomPanel(
+                (startNS, endNS, scale) -> PerfData.getFuncTreeBottomUp(startNS, endNS), null);
+            flameSearchChart = new FlameSearchChart(
+                (startNS, endNS, scale) -> PerfData.getFuncTreeFlameChart(startNS, endNS), null);
         }
         allThreadTab.addTab("Summary", allThreadSummaryPanel);
         allThreadTab.addTab("Top Down", topDownPanel);

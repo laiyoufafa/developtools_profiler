@@ -24,6 +24,8 @@ import ohos.devtools.views.charts.model.ChartStandard;
 import ohos.devtools.views.charts.model.ChartDataModel;
 import ohos.devtools.views.layout.chartview.event.IChartEventObserver;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -46,10 +48,9 @@ import static ohos.devtools.views.layout.chartview.MonitorItemDetail.MEM_STACK;
  * @since 2021/3/1 14:58
  */
 public class MemoryChartObserver implements IChartEventObserver {
+    private static final Logger LOGGER = LogManager.getLogger(MemoryChartObserver.class);
     private final ProfilerChart chart;
-
     private final long sessionId;
-
     private boolean chartFold;
 
     /**
@@ -77,10 +78,8 @@ public class MemoryChartObserver implements IChartEventObserver {
     public void refreshStandard(int startTime, int endTime, int maxDisplayMillis, int minMarkInterval) {
         chart.setMaxDisplayX(maxDisplayMillis);
         chart.setMinMarkIntervalX(minMarkInterval);
-
         chart.setStartTime(startTime);
         chart.setEndTime(endTime);
-
         chart.repaint();
         chart.revalidate();
     }
@@ -142,7 +141,6 @@ public class MemoryChartObserver implements IChartEventObserver {
                 total += model.getValue();
                 continue;
             }
-
             if (monitorItemList.contains(MEM_JAVA.getName()) && model.getName().equals(MEM_JAVA.getName())) {
                 total += model.getValue();
                 continue;

@@ -20,7 +20,7 @@ import java.util.List;
 /**
  * IThreadRange
  *
- * @date: 2021/5/27 16:18
+ * @since 2021/5/27 16:18
  */
 @FunctionalInterface
 public interface IThreadRange {

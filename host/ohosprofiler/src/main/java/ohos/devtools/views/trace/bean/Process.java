@@ -20,7 +20,7 @@ import ohos.devtools.views.trace.DField;
 /**
  * Process entity class
  *
- * @date 2021/04/22 12:25
+ * @since 2021/04/22 12:25
  */
 public class Process {
     @DField(name = "pid")

@@ -20,7 +20,7 @@ import ohos.devtools.views.trace.DField;
 /**
  * CpuFreqMax
  *
- * @date: 2021/5/27 12:29
+ * @since 2021/5/27 12:29
  */
 public class CpuFreqMax {
     private final String[] units = new String[] {"", "K", "M", "G", "T", "E"};
@@ -32,7 +32,7 @@ public class CpuFreqMax {
     /**
      * Gets the value of name .
      *
-     * @return the value of java.lang.String
+     * @return String
      */
     public String getName() {
         return name;
@@ -51,7 +51,7 @@ public class CpuFreqMax {
     /**
      * Gets the value of value .
      *
-     * @return the value of java.lang.Long
+     * @return Long
      */
     public Double getValue() {
         return value;
@@ -70,14 +70,15 @@ public class CpuFreqMax {
     /**
      * Gets the value of maxFreq .
      *
-     * @return the value of java.lang.Integer
+     * @return Integer
      */
     public Integer getMaxFreq() {
         return maxFreq;
     }
 
     /**
-     * Sets the maxFreq .You can use getMaxFreq() to get the value of maxFreq
+     * Sets the maxFreq .
+     * <p>You can use getMaxFreq() to get the value of maxFreq</p>
      *
      * @param maxFreq maxFreq
      */

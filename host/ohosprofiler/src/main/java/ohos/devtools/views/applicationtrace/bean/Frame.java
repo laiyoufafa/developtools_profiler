@@ -29,8 +29,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * Frame chart node
  *
- * @version 1.0
- * @date: 2021/5/18 23:18
+ * @since 2021/5/18 23:18
  */
 public class Frame extends AbstractNode {
     /**

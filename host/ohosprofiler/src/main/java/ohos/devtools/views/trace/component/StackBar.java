@@ -38,14 +38,13 @@ import java.util.stream.Collectors;
 /**
  * StackBar
  *
- * @date: 2021/5/27 12:03
+ * @since 2021/5/27 12:03
  */
 public class StackBar extends JPanel {
     private List<StateValue> source = new ArrayList<>();
     private long totalWallDuration;
     private StateValue current;
-    private BigDecimal charW = BigDecimal.valueOf(getFontMetrics(getFont().deriveFont(11.0f)).charWidth('a') )
-        .subtract(new BigDecimal( 0.2));
+    private BigDecimal charW = BigDecimal.valueOf(getFontMetrics(getFont().deriveFont(11.0f)).charWidth('a') - 0.2);
     private int drawX = 0;
 
     /**

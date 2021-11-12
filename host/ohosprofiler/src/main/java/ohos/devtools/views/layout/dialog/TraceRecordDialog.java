@@ -22,9 +22,14 @@ import ohos.devtools.datasources.transport.grpc.SystemTraceHelper;
 import ohos.devtools.datasources.transport.hdc.HdcWrapper;
 import ohos.devtools.datasources.utils.device.entity.DeviceIPPortInfo;
 import ohos.devtools.datasources.utils.device.entity.DeviceType;
+import ohos.devtools.datasources.utils.quartzmanager.QuartzManager;
+import ohos.devtools.services.distribute.DistributedManager;
 import ohos.devtools.views.common.LayoutConstants;
+import ohos.devtools.views.distributed.DistributedPanel;
+import ohos.devtools.views.distributed.bean.DistributedParams;
 import ohos.devtools.views.layout.SystemPanel;
 import ohos.devtools.views.layout.TaskPanel;
+import ohos.devtools.views.layout.utils.EventTrackUtils;
 import ohos.devtools.views.layout.utils.TraceStreamerUtils;
 import ohos.devtools.views.trace.component.AnalystPanel;
 import org.apache.logging.log4j.LogManager;
@@ -42,6 +47,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -54,10 +60,13 @@ import static ohos.devtools.datasources.transport.hdc.HdcCmdList.TRACE_STREAMER_
 import static ohos.devtools.datasources.transport.hdc.HdcStdCmdList.HDC_STD_GET_TRACE_FILE;
 import static ohos.devtools.datasources.transport.hdc.HdcStdCmdList.HDC_STD_GET_TRACE_FILE_INFO;
 import static ohos.devtools.datasources.transport.hdc.HdcWrapper.conversionCommand;
+import static ohos.devtools.views.common.Constant.DISTRIBUTED_REFRESH;
 import static ohos.devtools.views.common.Constant.IS_SUPPORT_NEW_HDC;
 
 /**
  * TraceRecordDialog
+ *
+ * @since 2021/10/25
  */
 public class TraceRecordDialog {
     private static final Logger LOGGER = LogManager.getLogger(TraceRecordDialog.class);
@@ -69,6 +78,8 @@ public class TraceRecordDialog {
     private Boolean analysisState = false;
     private Boolean pullBytraceFileState = false;
     private Boolean chooseMode;
+    private DistributedManager distributedManager;
+
     private JBLabel statusAnalysisJLabel = new JBLabel("Status");
     private JBLabel durationAnalysisJLabel = new JBLabel("Duration");
     private JBLabel loadingJLabel = new JBLabel("Loading");
@@ -109,7 +120,6 @@ public class TraceRecordDialog {
             public void actionPerformed(ActionEvent actionEvent) {
                 traceLoadDialog.getTimer().stop();
                 traceLoadDialog.doCancelAction();
-                new SystemTraceHelper().cancelActionDestroySession(deviceIPPortInfo, sessionId);
             }
         });
         countPanel.setPreferredSize(new Dimension(300, 150));
@@ -128,21 +138,191 @@ public class TraceRecordDialog {
         traceLoadDialog.getTimer().stop();
         if (exitCode == 0) {
             this.loading();
-            if (chooseMode) {
-                ExecutorService executorCancel =
-                    new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>());
-                executorCancel.execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        new SystemTraceHelper().stopSession(deviceIPPortInfo, sessionId);
-                    }
-                });
-            }
+            ExecutorService executorCancel =
+                new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>());
+            executorCancel.execute(new Runnable() {
+                @Override
+                public void run() {
+                    new SystemTraceHelper().stopAndDestroySession(deviceIPPortInfo, sessionId);
+                }
+            });
         } else {
-            if (chooseMode) {
-                new SystemTraceHelper().cancelActionDestroySession(deviceIPPortInfo, sessionId);
+            new SystemTraceHelper().stopAndDestroySession(deviceIPPortInfo, sessionId);
+        }
+    }
+
+    /**
+     * load
+     *
+     * @param taskPanel taskPanel
+     * @param distributedManager distributedManager
+     * @param chooseMode chooseMode
+     */
+    public void load(TaskPanel taskPanel, DistributedManager distributedManager, boolean chooseMode) {
+        this.taskPanel = taskPanel;
+        this.chooseMode = chooseMode;
+        this.distributedManager = distributedManager;
+        timeJLabel.setText(" 00:00:00");
+        this.fileExtension = chooseMode ? ".bytrace" : ".htrace";
+        traceLoadDialog = new TraceLoadDialog(countPanel, timeJLabel, distributedManager.getMaxDurationParam());
+        stopJButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                traceLoadDialog.getTimer().stop();
+                traceLoadDialog.doCancelAction();
+                distributedManager.cancelCollection();
+            }
+        });
+        countPanel.setPreferredSize(new Dimension(300, 150));
+        statusJLabel.setForeground(Color.white);
+        durationJLabel.setForeground(Color.white);
+        recordingJLabel.setForeground(Color.white);
+        timeJLabel.setForeground(Color.white);
+        traceLoadDialog.setLableAttribute(statusJLabel, durationJLabel, recordingJLabel, timeJLabel, stopJButton);
+        countPanel.add(statusJLabel);
+        countPanel.add(durationJLabel);
+        countPanel.add(recordingJLabel);
+        countPanel.add(timeJLabel);
+        countPanel.add(stopJButton);
+        traceLoadDialog.show();
+        int exitCode = traceLoadDialog.getExitCode();
+        traceLoadDialog.getTimer().stop();
+        if (exitCode == 0) {
+            distributedLoading();
+            ExecutorService executorCancel =
+                new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>());
+            executorCancel.execute(new Runnable() {
+                @Override
+                public void run() {
+                    distributedManager.stopCollection();
+                }
+            });
+        } else {
+            distributedManager.cancelCollection();
+        }
+    }
+
+    /**
+     * loading
+     */
+    public void distributedLoading() {
+        pullBytraceFileState = true;
+        analysisDialogEvent = new AnalysisDialog(null, countPanel) {
+            @Override
+            public void doCancelAction() {
+                super.doCancelAction();
+                if (Objects.nonNull(timerLoading)) {
+                    timerLoading.stop();
+                }
+            }
+        };
+        timerLoading = new Timer(LayoutConstants.NUMBER_THREAD, this::distributedActionPerformedLoading);
+        countPanel.setPreferredSize(new Dimension(300, 150));
+        statusAnalysisJLabel.setForeground(Color.white);
+        durationAnalysisJLabel.setForeground(Color.white);
+        loadingJLabel.setForeground(Color.white);
+        loadingInitTimeJLabel.setForeground(Color.white);
+        traceLoadDialog
+            .setLableAttribute(statusAnalysisJLabel, durationAnalysisJLabel, loadingJLabel, loadingInitTimeJLabel,
+                null);
+        countPanel.removeAll();
+        countPanel.add(statusAnalysisJLabel);
+        countPanel.add(durationAnalysisJLabel);
+        countPanel.add(loadingJLabel);
+        countPanel.add(loadingInitTimeJLabel);
+        countPanel.repaint();
+        timerLoading.start();
+        analysisDialogEvent.show();
+    }
+
+    /**
+     * actionLoadingPerformed
+     *
+     * @param actionEvent actionEvent
+     */
+    public void distributedActionPerformedLoading(ActionEvent actionEvent) {
+        if (secondsLoading <= LayoutConstants.NUMBER_SECONDS) {
+            loadingInitTimeJLabel.setText(" " + String.format(Locale.ENGLISH, "%02d", hoursLoading) + ":" + String
+                .format(Locale.ENGLISH, "%02d", minutesLoading) + ":" + String
+                .format(Locale.ENGLISH, "%02d", secondsLoading));
+            secondsLoading++;
+            if (secondsLoading > LayoutConstants.NUMBER_SECONDS) {
+                secondsLoading = 0;
+                minutesLoading++;
+                if (minutesLoading > LayoutConstants.NUMBER_SECONDS) {
+                    minutesLoading = 0;
+                    hoursLoading++;
+                }
+            }
+            int num = secondsLoading % 2;
+            if (pullBytraceFileState && num == 0) {
+                boolean has = distributedManager.hasFile();
+                if (has) {
+                    pullBytraceFileState = false;
+                    distributedPullAndAnalysisFile();
+                }
             }
         }
+        if (analysisState) {
+            timerLoading.stop();
+            analysisDialogEvent.close(1);
+        }
+    }
+
+    /**
+     * pull and analysis bytrace file
+     */
+    public void distributedPullAndAnalysisFile() {
+        ExecutorService executor =
+            new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>());
+        executor.execute(new Runnable() {
+            @Override
+            public void run() {
+                new SwingWorker<Boolean, Object>() {
+                    @Override
+                    protected Boolean doInBackground() {
+                        boolean result = distributedManager.pullTraceFile();
+                        if (result) {
+                            return distributedManager.analysisFileTraceFile();
+                        }
+                        return false;
+                    }
+
+                    @Override
+                    protected void done() {
+                        SwingUtilities.invokeLater(new Runnable() {
+                            @Override
+                            public void run() {
+                                try {
+                                    if (get()) {
+                                        analysisState = true;
+                                        if (chooseMode) {
+                                            distributedManager.cancelCollection();
+                                        }
+                                        if (analysisDialogEvent.isShowing()) {
+                                            JBPanel tabContainer = taskPanel.getTabContainer();
+                                            tabContainer.removeAll();
+                                            DistributedPanel component = new DistributedPanel();
+                                            DistributedParams distributedParams =
+                                                    distributedManager.getDistributedParams();
+                                            component.load(distributedParams);
+                                            EventTrackUtils.getInstance().trackDistributedPage();
+                                            tabContainer.setBackground(JBColor.background());
+                                            tabContainer.add(component, BorderLayout.CENTER);
+                                            taskPanel.getTabContainer().add(component, BorderLayout.CENTER);
+                                            taskPanel.repaint();
+                                        }
+                                    }
+                                } catch (InterruptedException | ExecutionException exception) {
+                                    LOGGER.error(" ExecutionException {}", exception.getMessage());
+                                }
+                            }
+                        });
+                    }
+                }.execute();
+            }
+        });
+        QuartzManager.getInstance().deleteExecutor(DISTRIBUTED_REFRESH);
     }
 
     /**
@@ -150,7 +330,15 @@ public class TraceRecordDialog {
      */
     public void loading() {
         pullBytraceFileState = true;
-        analysisDialogEvent = new AnalysisDialog(deviceIPPortInfo, countPanel);
+        analysisDialogEvent = new AnalysisDialog(deviceIPPortInfo, countPanel) {
+            @Override
+            public void doCancelAction() {
+                super.doCancelAction();
+                if (Objects.nonNull(timerLoading)) {
+                    timerLoading.stop();
+                }
+            }
+        };
         timerLoading = new Timer(LayoutConstants.NUMBER_THREAD, this::actionPerformedLoading);
         countPanel.setPreferredSize(new Dimension(300, 150));
         statusAnalysisJLabel.setForeground(Color.white);
@@ -192,7 +380,7 @@ public class TraceRecordDialog {
             int num = secondsLoading % 2;
             if (pullBytraceFileState && num == 0) {
                 String filePath = "/data/local/tmp/hiprofiler_data" + fileExtension;
-                ArrayList<String> getBytraceFileInfoCmd;
+                ArrayList getBytraceFileInfoCmd;
                 if (IS_SUPPORT_NEW_HDC && deviceIPPortInfo.getDeviceType() == DeviceType.LEAN_HOS_DEVICE) {
                     getBytraceFileInfoCmd =
                         conversionCommand(HDC_STD_GET_TRACE_FILE_INFO, deviceIPPortInfo.getDeviceID(), filePath);
@@ -215,7 +403,6 @@ public class TraceRecordDialog {
         }
         if (analysisState) {
             timerLoading.stop();
-            analysisDialogEvent.close(1);
         }
     }
 
@@ -233,7 +420,8 @@ public class TraceRecordDialog {
                     protected String doInBackground() {
                         getBytraceFile();
                         String baseDir = TraceStreamerUtils.getInstance().getBaseDir();
-                        String dir = baseDir + "hiprofiler_data" + fileExtension;
+                        String fileDir = TraceStreamerUtils.getInstance().getCreateFileDir();
+                        String dir = fileDir + "hiprofiler_data" + fileExtension;
                         String dbPath = TraceStreamerUtils.getInstance().getDbPath();
                         ArrayList arrayList = conversionCommand(TRACE_STREAMER_LOAD,
                             baseDir + TraceStreamerUtils.getInstance().getTraceStreamerApp(), dir, dbPath);
@@ -248,9 +436,7 @@ public class TraceRecordDialog {
                             public void run() {
                                 try {
                                     analysisState = true;
-                                    if (chooseMode) {
-                                        new SystemTraceHelper().cancelActionDestroySession(deviceIPPortInfo, sessionId);
-                                    }
+                                    analysisDialogEvent.close(1);
                                     JBPanel tabContainer = taskPanel.getTabContainer();
                                     tabContainer.removeAll();
                                     AnalystPanel component = new AnalystPanel();
@@ -281,10 +467,10 @@ public class TraceRecordDialog {
         ArrayList cmd;
         if (IS_SUPPORT_NEW_HDC && deviceIPPortInfo.getDeviceType() == DeviceType.LEAN_HOS_DEVICE) {
             cmd = conversionCommand(HDC_STD_GET_TRACE_FILE, deviceIPPortInfo.getDeviceID(), filePath,
-                TraceStreamerUtils.getInstance().getBaseDir());
+                TraceStreamerUtils.getInstance().getCreateFileDir());
         } else {
             cmd = conversionCommand(HDC_GET_TRACE_FILE, deviceIPPortInfo.getDeviceID(), filePath,
-                TraceStreamerUtils.getInstance().getBaseDir());
+                TraceStreamerUtils.getInstance().getCreateFileDir());
         }
         HdcWrapper.getInstance().execCmdBy(cmd);
         LOGGER.info(cmd);

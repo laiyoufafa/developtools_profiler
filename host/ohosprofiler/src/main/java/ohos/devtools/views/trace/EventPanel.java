@@ -23,11 +23,11 @@ import javax.swing.event.AncestorListener;
 /**
  * EventPanel
  *
- * @date: 2021/5/24 12:22
+ * @since 2021/5/24 12:22
  */
 public abstract class EventPanel extends JBPanel implements ITimeRange, IThreadRange, AncestorListener {
     /**
-     * EventPanel
+     * EventPanel constructor
      */
     public EventPanel() {
         addAncestorListener(this);

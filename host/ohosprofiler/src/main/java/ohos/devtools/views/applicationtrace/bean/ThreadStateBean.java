@@ -16,9 +16,9 @@
 package ohos.devtools.views.applicationtrace.bean;
 
 /**
- * Tab Thread States
+ * TabThreadStates
  *
- * @date 2021/04/20 12:12
+ * @since 2021/04/20 12:12
  */
 public class ThreadStateBean {
     private String state;

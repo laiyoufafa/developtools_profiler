@@ -20,7 +20,6 @@ import ohos.devtools.datasources.databases.databaseapi.DataBaseApi;
 import ohos.devtools.datasources.utils.device.entity.DeviceIPPortInfo;
 import ohos.devtools.datasources.utils.monitorconfig.entity.MonitorInfo;
 import ohos.devtools.datasources.utils.process.entity.ProcessInfo;
-import ohos.devtools.datasources.utils.session.service.SessionManager;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -31,9 +30,11 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Monitor Config Manager Test
+ *
+ * @since 2021/2/1 9:31
  */
 public class MonitorConfigManagerTest {
-    private long localSessionId = 0;
+    private long localSessionId = 0L;
     private JSONObject jsonObject;
     private DeviceIPPortInfo device;
     private ProcessInfo processInfo;
@@ -51,7 +52,6 @@ public class MonitorConfigManagerTest {
      */
     @Before
     public void setAnalyzeJson() {
-        SessionManager.getInstance().setDevelopMode(true);
         localSessionId = 1000L;
         jsonObject = new JSONObject();
         JSONObject memoryObject = new JSONObject();

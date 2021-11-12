@@ -17,6 +17,7 @@ package ohos.devtools.datasources.databases.datatable;
 
 import ohos.devtools.datasources.databases.databasepool.AbstractDataStore;
 import ohos.devtools.datasources.databases.datatable.enties.ProcessMemInfo;
+import ohos.devtools.datasources.utils.profilerlog.ProfilerLogManager;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -28,7 +29,9 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * memory数据
+ * memory data
+ *
+ * @since 2021/10/22 15:55
  */
 public class MemoryTable extends AbstractDataStore {
     private static final Logger LOGGER = LogManager.getLogger(MemoryTable.class);
@@ -45,9 +48,9 @@ public class MemoryTable extends AbstractDataStore {
      * initialization
      */
     private void initialize() {
-        /**
-         * processMem Info
-         */
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("initialize");
+        }
         List<String> processMemInfo = new ArrayList() {
             {
                 add("id INTEGER primary key autoincrement not null");
@@ -78,14 +81,23 @@ public class MemoryTable extends AbstractDataStore {
     }
 
     private boolean insertAppInfoBatch(List<ProcessMemInfo> processMemInfos) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("insertAppInfoBatch");
+        }
         Optional<Connection> option = getConnectByTable("processMemInfo");
         if (option.isPresent()) {
             Connection conn = option.get();
             PreparedStatement pst = null;
             try {
                 conn.setAutoCommit(false);
-                pst = conn.prepareStatement(
-                    "INSERT OR IGNORE INTO processMemInfo(session, sessionId, timeStamp, Data) VALUES (?, ?, ?, ?)");
+                pst = conn.prepareStatement("INSERT OR IGNORE "
+                    + "INTO "
+                    + "processMemInfo("
+                    + "session, "
+                    + "sessionId, "
+                    + "timeStamp, "
+                    + "Data) "
+                    + "VALUES (?, ?, ?, ?)");
                 if (processMemInfos != null && processMemInfos.size() > 0) {
                     for (ProcessMemInfo processMemoryInfo : processMemInfos) {
                         pst.setLong(1, processMemoryInfo.getLocalSessionId());
@@ -102,7 +114,9 @@ public class MemoryTable extends AbstractDataStore {
                     return true;
                 }
             } catch (SQLException exception) {
-                LOGGER.error("insert AppInfo {}", exception.getMessage());
+                if (ProfilerLogManager.isErrorEnabled()) {
+                    LOGGER.error("insert AppInfo {}", exception.getMessage());
+                }
             } finally {
                 close(pst, conn);
             }

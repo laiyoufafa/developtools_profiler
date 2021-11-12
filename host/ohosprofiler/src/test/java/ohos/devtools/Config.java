@@ -18,36 +18,38 @@ package ohos.devtools;
 /**
  * Config
  *
- * @date 2021/09/03 11:25
+ * @since 2021/09/03 11:25
  */
 public class Config {
     /**
      * TRACE SYS
      */
-    public static final String TRACE_SYS = "/Users/fangzhen/Downloads/trace_db/trace_sys.db";
+    public static final String TRACE_SYS = Config.class.getResource("/trace_db/trace_sys.db").getFile();
 
     /**
      * TRACE APP
      */
-    public static final String TRACE_APP = "/Users/fangzhen/Downloads/trace_db/trace_app.db";
+    public static final String TRACE_APP = Config.class.getResource("/trace_db/trace_app.db").getFile();
 
     /**
      * TRACE CPU
      */
-    public static final String TRACE_CPU = "/Users/fangzhen/Downloads/trace_db/trace_cpu.db";
+    public static final String TRACE_CPU = Config.class.getResource("/trace_db/trace_cpu.db").getFile();
 
     /**
      * TRACE PREF
      */
-    public static final String TRACE_PREF = "/Users/fangzhen/Downloads/trace_db/trace_pref.db";
+    public static final String TRACE_PREF = Config.class.getResource("/trace_db/trace_pref.db").getFile();
 
     /**
      * TRACE DISTRIBUTED A
      */
-    public static final String TRACE_DISTRIBUTED_A = "/Users/fangzhen/Downloads/trace_db/trace_distributed_deviceA.db";
+    public static final String TRACE_DISTRIBUTED_A = Config
+        .class.getResource("/trace_db/trace_distributed_deviceA.db").getFile();
 
     /**
      * TRACE DISTRIBUTED B
      */
-    public static final String TRACE_DISTRIBUTED_B = "/Users/fangzhen/Downloads/trace_db/trace_distributed_deviceB.db";
+    public static final String TRACE_DISTRIBUTED_B = Config
+        .class.getResource("/trace_db/trace_distributed_deviceB.db").getFile();
 }

@@ -17,6 +17,7 @@ package ohos.devtools.datasources.databases.databasepool;
 
 import ohos.devtools.datasources.databases.databaseapi.DataBaseApi;
 import ohos.devtools.datasources.utils.common.util.BeanUtil;
+import ohos.devtools.datasources.utils.profilerlog.ProfilerLogManager;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -37,6 +38,8 @@ import static ohos.devtools.datasources.databases.databasepool.DataTableHelper.s
 
 /**
  * Provides common data table operations
+ *
+ * @since: 2021/10/22 16:00
  */
 public abstract class AbstractDataStore<T> extends SqlRunnable {
     private static final Logger LOGGER = LogManager.getLogger(AbstractDataStore.class);
@@ -52,6 +55,9 @@ public abstract class AbstractDataStore<T> extends SqlRunnable {
      */
     @SuppressWarnings("checkstyle:JavadocMethod")
     public <T> boolean insert(T dataObject) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("insert");
+        }
         if (dataObject instanceof List) {
             return insertInDateBaseBatch((List) dataObject);
         }
@@ -65,8 +71,10 @@ public abstract class AbstractDataStore<T> extends SqlRunnable {
      * @return Optional<Connection>
      */
     protected Optional<Connection> getConnectByTable(String tableName) {
-        Optional<Connection> connection = DataBaseApi.getInstance().getConnectByTable(tableName);
-        return connection;
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("getConnectByTable");
+        }
+        return DataBaseApi.getInstance().getConnectByTable(tableName);
     }
 
     /**
@@ -76,8 +84,10 @@ public abstract class AbstractDataStore<T> extends SqlRunnable {
      * @return Optional<Connection>
      */
     protected Optional<Connection> getConnectBydbName(String dbName) {
-        Optional<Connection> connection = DataBaseApi.getInstance().getConnectBydbname(dbName);
-        return connection;
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("getConnectBydbName");
+        }
+        return DataBaseApi.getInstance().getConnectBydbname(dbName);
     }
 
     /**
@@ -87,6 +97,9 @@ public abstract class AbstractDataStore<T> extends SqlRunnable {
      * @return boolean
      */
     private boolean insertInDateBaseBatch(List<T> dataObject) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("insertInDateBaseBatch");
+        }
         Object obj = dataObject.get(0);
         String tableName = BeanUtil.getObjectName(obj);
         Connection connection = DataBaseApi.getInstance().getConnectByTable(tableName).get();
@@ -103,12 +116,17 @@ public abstract class AbstractDataStore<T> extends SqlRunnable {
             }
             return executeBatch(connection, psmt);
         } catch (SQLException throwAbles) {
-            LOGGER.error(throwAbles.getMessage());
+            if (ProfilerLogManager.isErrorEnabled()) {
+                LOGGER.error(throwAbles.getMessage());
+            }
         }
         return false;
     }
 
     private <T> void applyParams(PreparedStatement statement, T data) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("applyParams");
+        }
         List<Map> list = BeanUtil.getFieldsInfo(data);
         try {
             for (int index = 0; index < list.size(); index++) {
@@ -139,11 +157,16 @@ public abstract class AbstractDataStore<T> extends SqlRunnable {
                 }
             }
         } catch (SQLException exception) {
-            LOGGER.error(exception.getMessage());
+            if (ProfilerLogManager.isErrorEnabled()) {
+                LOGGER.error(exception.getMessage());
+            }
         }
     }
 
     private <T> boolean insertInDataBase(T dataObject) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("insertInDataBase");
+        }
         String tableName = BeanUtil.getObjectName(dataObject);
         StringBuffer insertSql = new StringBuffer("INSERT OR IGNORE INTO ");
         List<Map<String, Object>> objectInfos = BeanUtil.getFields(dataObject);
@@ -170,10 +193,16 @@ public abstract class AbstractDataStore<T> extends SqlRunnable {
      * @return boolean
      */
     public boolean delete(T dataObject) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("delete");
+        }
         return deleteInDataBase(dataObject);
     }
 
     private <T> boolean deleteInDataBase(T dataObject) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("deleteInDataBase");
+        }
         String tableName = BeanUtil.getObjectName(dataObject);
         StringBuffer deleteSql = new StringBuffer("DELETE FROM ");
         Map<String, Object> beanMap = BeanUtil.getFiledsInfos(dataObject);
@@ -192,6 +221,9 @@ public abstract class AbstractDataStore<T> extends SqlRunnable {
      * @return boolean
      */
     public <T> boolean update(Class<T> clazz, Map<String, Object> condition, Map<String, Object> setValue) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("update");
+        }
         StringBuffer updateSql = new StringBuffer("UPDATE ");
         String tableName = clazz.getSimpleName();
         updateSql.append(tableName).append("SET").append(mapToString(setValue)).append("WHERE ").append(condition);
@@ -205,10 +237,13 @@ public abstract class AbstractDataStore<T> extends SqlRunnable {
      * @param clazz clazz
      * @param value value
      * @param condition condition
-     * @param <T> <T>
-     * @return List<T>
+     * @param <T> T
+     * @return List <T>
      */
     public <T> List<T> select(Class<T> clazz, Map<String, Object> value, Map<String, Object> condition) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("select");
+        }
         StringBuffer selectSql = new StringBuffer("SELECT ");
         if (value == null || value.isEmpty()) {
             selectSql.append("*");
@@ -249,6 +284,9 @@ public abstract class AbstractDataStore<T> extends SqlRunnable {
      * @return boolean
      */
     public boolean createTable(String dbName, String tableName, List<String> params) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("createTable");
+        }
         DataBaseApi dataSource = DataBaseApi.getInstance();
         return dataSource.createTable(dbName, tableName, params);
     }
@@ -262,6 +300,9 @@ public abstract class AbstractDataStore<T> extends SqlRunnable {
      * @return boolean
      */
     public boolean createTable(String dbName, String tableName, String sql) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("createTable");
+        }
         DataBaseApi dataSource = DataBaseApi.getInstance();
         return dataSource.createTable(dbName, tableName, sql);
     }
@@ -275,6 +316,9 @@ public abstract class AbstractDataStore<T> extends SqlRunnable {
      * @return boolean
      */
     public boolean createIndex(String tableName, String indexName, List<String> params) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("createIndex");
+        }
         DataBaseApi dataSource = DataBaseApi.getInstance();
         return dataSource.createIndex(tableName, indexName, params);
     }

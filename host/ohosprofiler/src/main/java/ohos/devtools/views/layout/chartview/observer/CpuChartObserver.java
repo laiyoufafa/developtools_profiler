@@ -29,6 +29,8 @@ import ohos.devtools.views.common.ColorConstants;
 import ohos.devtools.views.layout.chartview.ProfilerChartsView;
 import ohos.devtools.views.layout.chartview.event.IChartEventObserver;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -40,6 +42,7 @@ import java.util.List;
  * Observer of cpu chart
  */
 public class CpuChartObserver implements IChartEventObserver {
+    private static final Logger LOGGER = LogManager.getLogger(CpuChartObserver.class);
     private final ProfilerChart chart;
     private final long sessionId;
     private boolean chartFold;
@@ -120,11 +123,12 @@ public class CpuChartObserver implements IChartEventObserver {
                 total.setName("System");
                 total.setColor(ColorConstants.CPU);
                 total.setValue((int) sumChosenItems(dataModels));
-                total.setCpuPercent(sumChosenItems(dataModels));
+                total.setDoubleValue(sumChosenItems(dataModels));
                 showDataMap.put(time, Collections.singletonList(total));
             } else {
                 showDataMap.put(time, dataModels);
             }
+
         }
         chart.refreshChart(range.getStartTime(), end, showDataMap);
         refreshThreadPanel(range.getStartTime(), end, threadResult);
@@ -138,12 +142,10 @@ public class CpuChartObserver implements IChartEventObserver {
      */
     private double sumChosenItems(List<ChartDataModel> dataModels) {
         double total = 0;
-        if (dataModels.size() > 0) {
+        if (dataModels != null && dataModels.size() > 0) {
             ChartDataModel systemChartDataModel =
                 dataModels.stream().filter(each -> StringUtils.equals(each.getName(), "System")).findFirst().get();
-            if (systemChartDataModel != null) {
-                return systemChartDataModel.getCpuPercent();
-            }
+            return systemChartDataModel.getDoubleValue();
         }
         return total;
     }

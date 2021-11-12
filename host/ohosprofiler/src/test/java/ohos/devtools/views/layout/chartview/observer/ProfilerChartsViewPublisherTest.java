@@ -291,7 +291,7 @@ public class ProfilerChartsViewPublisherTest {
      * @tc.require: SR-001-AR-003
      */
     private void destroy() {
-        QuartzManager.getInstance().endExecutor(RUN_NAME);
-        QuartzManager.getInstance().endExecutor(RUN_NAME_SCROLLBAR);
+        QuartzManager.getInstance().deleteExecutor(RUN_NAME);
+        QuartzManager.getInstance().deleteExecutor(RUN_NAME_SCROLLBAR);
     }
 }

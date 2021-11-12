@@ -24,9 +24,9 @@ import java.awt.event.MouseEvent;
 import java.util.List;
 
 /**
- * Abstract Node
+ * AbstractNode
  *
- * @date: 2021/5/14 14:54
+ * @since 2021/5/14 14:54
  */
 public abstract class AbstractNode {
     /**

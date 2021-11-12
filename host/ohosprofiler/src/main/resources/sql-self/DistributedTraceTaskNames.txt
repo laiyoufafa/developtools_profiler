@@ -1,6 +1,0 @@
-select P.id,
-       P.pid,
-       P.name as process_name,
-       group_concat(T.name,",") as thread_name
-from process as P left join thread as T where P.id = T.ipid
-group by pid

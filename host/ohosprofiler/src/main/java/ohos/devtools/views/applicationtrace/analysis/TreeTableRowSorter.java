@@ -17,6 +17,7 @@ package ohos.devtools.views.applicationtrace.analysis;
 
 import ohos.devtools.views.applicationtrace.bean.TreeTableBean;
 import ohos.devtools.views.applicationtrace.listener.ITreeTableSortChangeListener;
+import ohos.devtools.views.distributed.bean.DetailBean;
 
 import javax.swing.DefaultRowSorter;
 import javax.swing.JTree;
@@ -37,14 +38,17 @@ import java.util.stream.Collectors;
  * class of tree table row sorter
  *
  * @param <M> model
- * @version 1.0
- * @date: 2021/5/27 12:01
+ * @since 2021/5/27 12:01
  */
 public class TreeTableRowSorter<M extends TableModel> extends DefaultRowSorter<M, Integer> {
     private static Comparator<DefaultMutableTreeNode> nameComparator = (node1, node2) -> {
         if (node1.getUserObject() instanceof TreeTableBean && node2.getUserObject() instanceof TreeTableBean) {
             TreeTableBean userObject1 = (TreeTableBean) node1.getUserObject();
             TreeTableBean userObject2 = (TreeTableBean) node2.getUserObject();
+            return Integer.compare(userObject1.getContainType(), userObject2.getContainType());
+        } else if (node1.getUserObject() instanceof DetailBean && node2.getUserObject() instanceof DetailBean) {
+            DetailBean userObject1 = (DetailBean) node1.getUserObject();
+            DetailBean userObject2 = (DetailBean) node2.getUserObject();
             return Integer.compare(userObject1.getContainType(), userObject2.getContainType());
         } else {
             return 0;
@@ -70,9 +74,9 @@ public class TreeTableRowSorter<M extends TableModel> extends DefaultRowSorter<M
     /**
      * sort desc tree
      *
-     * @param root root node
+     * @param root      root node
      * @param condition sort condition
-     * @param jtree tree
+     * @param jtree     tree
      */
     public static void sortDescTree(DefaultMutableTreeNode root, Comparator<TreeNode> condition, JTree jtree) {
         Consumer<DefaultMutableTreeNode> sort = parent -> {
@@ -106,9 +110,9 @@ public class TreeTableRowSorter<M extends TableModel> extends DefaultRowSorter<M
     /**
      * sort tree
      *
-     * @param root root node
+     * @param root      root node
      * @param condition sort condition
-     * @param jtree tree
+     * @param jtree     tree
      */
     public static void sortTree(DefaultMutableTreeNode root, Comparator<TreeNode> condition, JTree jtree) {
         Consumer<DefaultMutableTreeNode> sort = parent -> {

@@ -1,9 +1,0 @@
-select perf_callchain.callchain_id,
-sample.sample_id,
-sample.thread_id,
-sample.timestamp,
-perf_callchain.file_id,
-perf_callchain.symbol_id
-     ,perf_callchain.vaddr_in_file
-     from perf_callchain inner join (select * from perf_sample where thread_id = %s) as sample
-    on sample.sample_id = perf_callchain.sample_id order by sample.id,perf_callchain.callchain_id desc ;

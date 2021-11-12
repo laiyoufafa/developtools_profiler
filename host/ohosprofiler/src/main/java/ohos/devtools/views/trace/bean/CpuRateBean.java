@@ -20,7 +20,7 @@ import ohos.devtools.views.trace.DField;
 /**
  * cup usage rate entity class
  *
- * @date 2021/04/22 12:25
+ * @since 2021/04/22 12:25
  */
 public class CpuRateBean {
     @DField(name = "cpu")
@@ -42,8 +42,7 @@ public class CpuRateBean {
     }
 
     /**
-     * Sets the cpu .
-     * <p>You can use getCpu() to get the value of cpu</p>
+     * Sets the cpu .You can use getCpu() to get the value of cpu
      *
      * @param cpu cpu
      */
@@ -61,8 +60,7 @@ public class CpuRateBean {
     }
 
     /**
-     * Sets the index .
-     * <p>You can use getIndex() to get the value of index</p>
+     * Sets the index .You can use getIndex() to get the value of index
      *
      * @param index index
      */
@@ -80,8 +78,7 @@ public class CpuRateBean {
     }
 
     /**
-     * Sets the rate .
-     * <p>You can use getRate() to get the value of rate</p>
+     * Sets the rate .You can use getRate() to get the value of rate
      *
      * @param rate rate
      */

@@ -23,6 +23,7 @@ import ohos.devtools.datasources.utils.process.entity.ProcessInfo;
  * ICreatePluginConfig
  */
 public interface ICreatePluginConfig {
+
     /**
      * createPluginConfig
      *

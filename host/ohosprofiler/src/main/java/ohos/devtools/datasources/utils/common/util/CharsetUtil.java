@@ -15,6 +15,7 @@
 
 package ohos.devtools.datasources.utils.common.util;
 
+import ohos.devtools.datasources.utils.profilerlog.ProfilerLogManager;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -91,6 +92,9 @@ public class CharsetUtil {
      * @return Returns the parsed Charset if the parsing is successful; returns the default Charset otherwise.
      */
     public static Charset parse(String charsetName, Charset defaultCharset) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("parse");
+        }
         if (isBlank(charsetName)) {
             return defaultCharset;
         }
@@ -114,6 +118,9 @@ public class CharsetUtil {
      * @return New Charset after the conversion.
      */
     public static String convert(String source, String srcCharset, String destCharset) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("convert");
+        }
         return convert(source, Charset.forName(srcCharset), Charset.forName(destCharset));
     }
 
@@ -126,6 +133,9 @@ public class CharsetUtil {
      * @return New Charset after the conversion.
      */
     public static String convert(String source, Charset srcCharset, Charset destCharset) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("convert");
+        }
         Charset srcSet = srcCharset;
         if (srcSet == null) {
             srcSet = CHARSET_GBK;

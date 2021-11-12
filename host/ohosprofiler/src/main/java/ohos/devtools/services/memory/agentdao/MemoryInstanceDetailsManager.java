@@ -21,15 +21,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * MemoryInstanceDetailsManager
+ * Memory Instance DetailsManager
  */
 public class MemoryInstanceDetailsManager {
     private final MemoryInstanceDetailsDao memoryInstanceDetailsDao = MemoryInstanceDetailsDao.getInstance();
 
     /**
-     * get MemoryInstanceDetailsInfos
+     * Find the call information corresponding to instance in the database according
+     * to the instanceid and provide it to the query interface of the UI
      *
-     * @param instanceId instance Id
+     * @param instanceId instanceId
      * @return ArrayList <MemoryInstanceDetailsInfo>
      */
     public ArrayList<MemoryInstanceDetailsInfo> getMemoryInstanceDetailsInfos(Integer instanceId) {
@@ -37,9 +38,9 @@ public class MemoryInstanceDetailsManager {
     }
 
     /**
-     * get All MemoryInstanceDetails
+     * Find the call information corresponding to instance in the database according to instanceid
      *
-     * @return List <MemoryInstanceDetailsInfo>
+     * @return ArrayList <MemoryInstanceDetailsInfo>
      */
     public List<MemoryInstanceDetailsInfo> getAllMemoryInstanceDetails() {
         return memoryInstanceDetailsDao.getAllMemoryInstanceDetails();

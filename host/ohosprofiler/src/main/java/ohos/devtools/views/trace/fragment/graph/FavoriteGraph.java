@@ -28,7 +28,7 @@ import java.util.Objects;
 /**
  * Data row collection button
  *
- * @date 2021/04/22 12:25
+ * @since 2021/04/22 12:25
  */
 public class FavoriteGraph extends AbstractGraph {
     private boolean isFavorite;
@@ -198,7 +198,9 @@ public class FavoriteGraph extends AbstractGraph {
     }
 
     /**
-     * IGraphListener
+     * IGraphListener .
+     *
+     * @since 2021/04/22 12:25
      */
     public interface IGraphListener {
         /**

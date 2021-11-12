@@ -16,7 +16,6 @@
 package ohos.devtools.datasources.databases.databaseapi;
 
 import com.alibaba.druid.pool.DruidDataSource;
-import ohos.devtools.datasources.utils.session.service.SessionManager;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Assert;
 import org.junit.Before;
@@ -30,6 +29,8 @@ import java.util.Optional;
 
 /**
  * Data Base Api Test
+ *
+ * @since 2021/2/1 9:31
  */
 public class DataBaseApiTest {
     private List<String> processMemInfo;
@@ -62,7 +63,6 @@ public class DataBaseApiTest {
                 add("timeStamp");
             }
         };
-        SessionManager.getInstance().setDevelopMode(true);
     }
 
     /**
@@ -170,8 +170,7 @@ public class DataBaseApiTest {
     @Test
     public void getConnectByTableTest01() {
         boolean flag =
-            DataBaseApi.getInstance().createTable(DataBaseApi.DEFAULT_DATABASE_DBNAME, "DeviceInfo",
-                processMemInfo);
+            DataBaseApi.getInstance().createTable(DataBaseApi.DEFAULT_DATABASE_DBNAME, "DeviceInfo", processMemInfo);
         Optional<Connection> res = DataBaseApi.getInstance().getConnectByTable("DeviceInfo");
         Assert.assertTrue(res.isPresent());
     }
@@ -218,12 +217,10 @@ public class DataBaseApiTest {
     @Test
     public void getConnectByTableTest04() {
         boolean flag1 =
-            DataBaseApi.getInstance().createTable(DataBaseApi.DEFAULT_DATABASE_DBNAME, "DeviceInfo1",
-                processMemInfo);
+            DataBaseApi.getInstance().createTable(DataBaseApi.DEFAULT_DATABASE_DBNAME, "DeviceInfo1", processMemInfo);
         Optional<Connection> res1 = DataBaseApi.getInstance().getConnectByTable("DeviceInfo1");
         boolean flag2 =
-            DataBaseApi.getInstance().createTable(DataBaseApi.DEFAULT_DATABASE_DBNAME, "DeviceInfo2",
-                processMemInfo);
+            DataBaseApi.getInstance().createTable(DataBaseApi.DEFAULT_DATABASE_DBNAME, "DeviceInfo2", processMemInfo);
         Optional<Connection> res2 = DataBaseApi.getInstance().getConnectByTable("DeviceInfo2");
         Assert.assertNotEquals(res1, res2);
     }
@@ -240,8 +237,7 @@ public class DataBaseApiTest {
     @Test
     public void getConnectByTableTest05() {
         boolean flag1 =
-            DataBaseApi.getInstance().createTable(DataBaseApi.DEFAULT_DATABASE_DBNAME, "DeviceInfo",
-                processMemInfo);
+            DataBaseApi.getInstance().createTable(DataBaseApi.DEFAULT_DATABASE_DBNAME, "DeviceInfo", processMemInfo);
         Optional<Connection> res1 = DataBaseApi.getInstance().getConnectByTable("DeviceInfo");
         Optional<Connection> res2 = DataBaseApi.getInstance().getConnectByTable("DeviceInfo");
         Assert.assertNotEquals(res1, res2);
@@ -640,8 +636,7 @@ public class DataBaseApiTest {
     @Test
     public void createTableTest01() {
         boolean res =
-            DataBaseApi.getInstance().createTable(DataBaseApi.DEFAULT_DATABASE_DBNAME, "testTable",
-                processMemInfo);
+            DataBaseApi.getInstance().createTable(DataBaseApi.DEFAULT_DATABASE_DBNAME, "testTable", processMemInfo);
         Assert.assertTrue(res);
     }
 
@@ -656,8 +651,7 @@ public class DataBaseApiTest {
      */
     @Test
     public void createTableTest02() {
-        boolean res = DataBaseApi.getInstance().createTable(DataBaseApi.DEFAULT_DATABASE_DBNAME, null,
-            processMemInfo);
+        boolean res = DataBaseApi.getInstance().createTable(DataBaseApi.DEFAULT_DATABASE_DBNAME, null, processMemInfo);
         Assert.assertFalse(res);
     }
 
@@ -718,8 +712,7 @@ public class DataBaseApiTest {
     @Test
     public void createIndexTest01() {
         boolean res =
-            DataBaseApi.getInstance().createTable(DataBaseApi.DEFAULT_DATABASE_DBNAME, "testTable",
-                processMemInfo);
+            DataBaseApi.getInstance().createTable(DataBaseApi.DEFAULT_DATABASE_DBNAME, "testTable", processMemInfo);
         Assert.assertTrue(res);
     }
 
@@ -734,8 +727,7 @@ public class DataBaseApiTest {
      */
     @Test
     public void createIndexTest02() {
-        boolean result = DataBaseApi.getInstance().createIndex("testTable", null,
-            processMemInfoIndex);
+        boolean result = DataBaseApi.getInstance().createIndex("testTable", null, processMemInfoIndex);
         Assert.assertFalse(result);
     }
 
@@ -994,8 +986,7 @@ public class DataBaseApiTest {
      */
     @Test
     public void createTableSqlTest01() {
-        boolean res = DataBaseApi.getInstance().createTable(DataBaseApi.DEFAULT_DATABASE_DBNAME, "testTable",
-            "sql");
+        boolean res = DataBaseApi.getInstance().createTable(DataBaseApi.DEFAULT_DATABASE_DBNAME, "testTable", "sql");
         Assert.assertTrue(res);
     }
 
@@ -1010,8 +1001,7 @@ public class DataBaseApiTest {
      */
     @Test
     public void createTableSqlTest02() {
-        boolean res = DataBaseApi.getInstance().createTable(DataBaseApi.DEFAULT_DATABASE_DBNAME, null,
-            "");
+        boolean res = DataBaseApi.getInstance().createTable(DataBaseApi.DEFAULT_DATABASE_DBNAME, null, "");
         Assert.assertFalse(res);
     }
 

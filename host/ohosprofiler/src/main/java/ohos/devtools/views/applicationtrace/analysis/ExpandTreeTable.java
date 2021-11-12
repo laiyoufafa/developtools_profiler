@@ -27,7 +27,7 @@ import java.util.Vector;
 /**
  * ExpandTreeTable
  *
- * @date: 2021/5/19 16:39
+ * @since 2021/5/19 16:39
  */
 public class ExpandTreeTable extends JBTreeTable {
     private Vector<TreePath> expandList = new Vector();
@@ -58,6 +58,7 @@ public class ExpandTreeTable extends JBTreeTable {
                 }
                 if (event.getPath() != null && expandRowList.contains(getTree().getRowForPath(event.getPath()))) {
                     expandRowList.remove(Integer.valueOf(getTree().getRowForPath(event.getPath())));
+
                 }
             }
         });

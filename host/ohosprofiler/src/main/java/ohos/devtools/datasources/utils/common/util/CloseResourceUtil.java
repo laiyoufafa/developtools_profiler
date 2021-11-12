@@ -15,6 +15,8 @@
 
 package ohos.devtools.datasources.utils.common.util;
 
+import ohos.devtools.datasources.utils.profilerlog.ProfilerLogManager;
+import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.sql.Connection;
@@ -26,6 +28,8 @@ import java.sql.Statement;
  * Close Resource Util
  */
 public class CloseResourceUtil {
+    private static final Logger LOGGER = LogManager.getLogger(CloseResourceUtil.class);
+
     /**
      * Close Resource
      *
@@ -35,11 +39,16 @@ public class CloseResourceUtil {
      * @param statement Statement
      */
     public static void closeResource(Logger logger, Connection conn, PreparedStatement ps, Statement statement) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("closeResource");
+        }
         if (ps != null) {
             try {
                 ps.close();
             } catch (SQLException exception) {
-                logger.error("SQLException error: " + exception.getMessage());
+                if (ProfilerLogManager.isErrorEnabled()) {
+                    LOGGER.error("SQLException error: " + exception.getMessage());
+                }
             }
         }
 
@@ -47,7 +56,9 @@ public class CloseResourceUtil {
             try {
                 conn.close();
             } catch (SQLException exception) {
-                logger.error("SQLException error: " + exception.getMessage());
+                if (ProfilerLogManager.isErrorEnabled()) {
+                    LOGGER.error("SQLException error: " + exception.getMessage());
+                }
             }
         }
 
@@ -55,7 +66,9 @@ public class CloseResourceUtil {
             try {
                 statement.close();
             } catch (SQLException exception) {
-                logger.error("SQLException error: " + exception.getMessage());
+                if (ProfilerLogManager.isErrorEnabled()) {
+                    LOGGER.error("SQLException error: " + exception.getMessage());
+                }
             }
         }
     }

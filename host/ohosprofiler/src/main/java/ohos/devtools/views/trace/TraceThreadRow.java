@@ -35,7 +35,7 @@ import static java.util.Objects.nonNull;
 /**
  * TraceThreadRow
  *
- * @date: 2021/5/18 13:56
+ * @since 2021/5/18 13:56
  */
 public class TraceThreadRow<T extends AbstractNode, R extends AbstractNode> extends AbstractRow {
     private final Integer tid;
@@ -264,9 +264,6 @@ public class TraceThreadRow<T extends AbstractNode, R extends AbstractNode> exte
 
     /**
      * interface IRender
-     *
-     * @param <T> T
-     * @param <R> R
      */
     public interface IRender<T, R> {
         /**

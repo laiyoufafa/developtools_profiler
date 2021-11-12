@@ -18,7 +18,7 @@ package ohos.devtools.views.trace.listener;
 /**
  * Scroll distance change listener
  *
- * @date 2021/04/22 12:25
+ * @since 2021/04/22 12:25
  */
 public interface IScrollSliceLinkListener {
     /**

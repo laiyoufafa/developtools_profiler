@@ -16,9 +16,12 @@
 package ohos.devtools.services.memory.agentdao;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * MemoryUpdateInfo
+ *
+ * @since 2021/9/20
  */
 public class MemoryUpdateInfo implements Serializable {
     private static final long serialVersionUID = 1679168310864454754L;
@@ -70,5 +73,28 @@ public class MemoryUpdateInfo implements Serializable {
      */
     public void setInstanceId(long instanceId) {
         this.instanceId = instanceId;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return super.equals(obj);
+    }
+
+    @Override
+    protected Object clone() throws CloneNotSupportedException {
+        return super.clone();
+    }
+
+    @Override
+    public String toString() {
+        return "MemoryUpdateInfo{"
+            + "updateTime=" + updateTime
+            + ", instanceId=" + instanceId
+            + '}';
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(updateTime, instanceId);
     }
 }

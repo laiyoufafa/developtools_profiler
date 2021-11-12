@@ -45,7 +45,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 /**
  * Database operation class
  *
- * @date 2021/04/22 12:25
+ * @since 2021/04/22 12:25
  */
 public final class Db {
     private static boolean isLocal;
@@ -60,14 +60,15 @@ public final class Db {
     /**
      * Gets the value of dbName .
      *
-     * @return String
+     * @return the value of java.lang.String
      */
     public static String getDbName() {
         return dbName;
     }
 
     /**
-     * Sets the dbName.You can use getDbName() to get the value of dbName</p>
+     * Sets the dbName .
+     * <p>You can use getDbName() to get the value of dbName</p>
      *
      * @param dbName dbName
      */
@@ -135,10 +136,15 @@ public final class Db {
      * @return String sql
      */
     public static String getSql(String sqlName) {
-        String tmp = Final.OHOS ? "-self/" : "/";
-        String path = "sql-app" + tmp + sqlName + ".txt";
+        String tmp = Final.IS_RESOURCE_SQL ? "-self/" : "/";
+        String path = "sql-app" + tmp + sqlName + ".sql";
         try (InputStream STREAM = DataUtils.class.getClassLoader().getResourceAsStream(path)) {
-            return IOUtils.toString(STREAM, Charset.forName("UTF-8"));
+            String sqlFile = IOUtils.toString(STREAM, Charset.forName("UTF-8"));
+            if (sqlFile.startsWith("/*")) {
+                return sqlFile.trim().substring(sqlFile.indexOf("*/") + 2);
+            } else {
+                return IOUtils.toString(STREAM, Charset.forName("UTF-8"));
+            }
         } catch (IOException exception) {
             exception.printStackTrace();
         }
@@ -156,6 +162,11 @@ public final class Db {
             connection = pool.take();
         } catch (InterruptedException exception) {
             exception.printStackTrace();
+            try {
+                connection.close();
+            } catch (SQLException sqlException) {
+                sqlException.getMessage();
+            }
         }
         return connection;
     }
@@ -184,6 +195,11 @@ public final class Db {
             }
         } catch (SQLException exception) {
             exception.printStackTrace();
+            try {
+                conn.close();
+            } catch (SQLException sqlException) {
+                sqlException.getMessage();
+            }
         }
         return Optional.ofNullable(conn);
     }
@@ -279,8 +295,7 @@ public final class Db {
                 res.add(data);
             }
         } catch (ClassNotFoundException | SQLException | InstantiationException
-            | IllegalAccessException | InvocationTargetException
-            | NoSuchMethodException exception) {
+            | IllegalAccessException | InvocationTargetException | NoSuchMethodException exception) {
             exception.printStackTrace();
         } finally {
             release(rs, stat, conn);
@@ -315,8 +330,7 @@ public final class Db {
         if (pt == null) {
             return clazz;
         }
-        Type argument = pt.getActualTypeArguments()[0];
-        return argument;
+        return pt.getActualTypeArguments()[0];
     }
 
     private void release(ResultSet rs, Statement stat, Connection conn) {

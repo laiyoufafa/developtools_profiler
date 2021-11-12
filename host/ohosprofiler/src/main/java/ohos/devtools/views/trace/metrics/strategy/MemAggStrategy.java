@@ -49,7 +49,7 @@ public class MemAggStrategy implements Strategy {
             String[] names = item.getName().split(",");
             String[] values = item.getValue().split(",");
             String[] times = item.getTime().split(",");
-            long anonTs = 0;
+            long anonTs = 0L;
             int anonValue = 0;
             int swapValue = 0;
             int oomScoreValue = getOomScoreValue(names, values);

@@ -27,7 +27,7 @@ import java.util.List;
 /**
  * app data all thread summary panel
  *
- * @date: 2021/5/20 18:00
+ * @since 2021/5/20 18:00
  */
 public class AllThreadSummaryPanel extends EventPanel {
     private JBLabel timeRange = new JBLabel();

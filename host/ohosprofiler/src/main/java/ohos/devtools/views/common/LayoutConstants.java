@@ -661,6 +661,11 @@ public final class LayoutConstants {
     public static final String TRACE_SYSTEM_CALLS_TIPS = "System Trace";
 
     /**
+     * Drop down options Sample Perf Data
+     */
+    public static final String SAMPLE_PERF_DATA = "Sample Perf Data";
+
+    /**
      * Sample Perf Data Recording tips
      */
     public static final String SAMPLE_PERF_DATA_TIPS = "Sample Perf Data";

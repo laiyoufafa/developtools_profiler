@@ -17,6 +17,7 @@ package ohos.devtools.views.trace.fragment;
 
 import com.intellij.util.ui.UIUtil;
 import ohos.devtools.views.trace.bean.ThreadData;
+import ohos.devtools.views.trace.component.AnalystPanel;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -29,7 +30,7 @@ import java.awt.image.BufferedImage;
 /**
  * test ThreadDataFragment class .
  *
- * @date 2021/4/24 17:58
+ * @since 2021/4/24 17:58
  */
 class ThreadDataFragmentTest {
     private ThreadDataFragment threadDataFragment;
@@ -81,6 +82,7 @@ class ThreadDataFragmentTest {
      */
     @Test
     void click() {
+        AnalystPanel.iThreadDataClick = null;
         MouseEvent mouseEvent = new MouseEvent(jPanel, 1, 1, 1, 1, 1, 1, true, 1);
         threadDataFragment.click(mouseEvent, new ThreadData());
         Assertions.assertNotNull(threadDataFragment);

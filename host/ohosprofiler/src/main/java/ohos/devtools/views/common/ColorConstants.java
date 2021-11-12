@@ -78,7 +78,7 @@ public final class ColorConstants {
     /**
      * Font color
      */
-    public static final Color FONT_COLOR = new Color(0xFFE6E6E6, true);
+    public static final JBColor FONT_COLOR = new JBColor(Color.white, Color.white);
 
     /**
      * 1st level interface memory item chart color

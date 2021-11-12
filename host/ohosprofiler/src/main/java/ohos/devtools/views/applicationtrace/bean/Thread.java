@@ -36,7 +36,7 @@ import static ohos.devtools.views.trace.TracePanel.root;
 /**
  * Thread
  *
- * @date: 2021/5/17 12:25
+ * @since 2021/5/17 12:25
  */
 public class Thread extends AbstractNode {
     private static Color runningColor = new Color(Final.RUNNING_COLOR);
@@ -79,7 +79,8 @@ public class Thread extends AbstractNode {
     }
 
     /**
-     * Sets the uPid .You can use getuPid() to get the value of uPid.
+     * Sets the uPid .
+     * <p>You can use getuPid() to get the value of uPid.</p>
      *
      * @param param param.
      */
@@ -97,9 +98,10 @@ public class Thread extends AbstractNode {
     }
 
     /**
-     * Sets the uTid . You can use getuTid() to get the value of uTid.</p>
+     * Sets the uTid .
+     * <p>You can use getuTid() to get the value of uTid.</p>
      *
-     * @param param param
+     * @param param .
      */
     public void setuTid(final Integer param) {
         this.uTid = param;
@@ -118,7 +120,7 @@ public class Thread extends AbstractNode {
      * Sets the pid .
      * <p>You can use getPid() to get the value of pid.</p>
      *
-     * @param param param
+     * @param param .
      */
     public void setPid(final Integer param) {
         this.pid = param;
@@ -137,7 +139,7 @@ public class Thread extends AbstractNode {
      * Sets the tid .
      * <p>You can use getTid() to get the value of tid.</p>
      *
-     * @param param param
+     * @param param .
      */
     public void setTid(final Integer param) {
         this.tid = param;
@@ -156,7 +158,7 @@ public class Thread extends AbstractNode {
      * Sets the processName .
      * <p>You can use getProcessName() to get the value of processName.</p>
      *
-     * @param param param
+     * @param param .
      */
     public void setProcessName(final String param) {
         this.processName = param;
@@ -261,7 +263,8 @@ public class Thread extends AbstractNode {
     }
 
     /**
-     * Sets the isSelected .You can use getSelected() to get the value of isSelected.
+     * Sets the isSelected .
+     * <p>You can use getSelected() to get the value of isSelected.</p>
      *
      * @param param param
      */
@@ -364,9 +367,12 @@ public class Thread extends AbstractNode {
 
     @Override
     public List<String> getStringList(String time) {
-        return Arrays.asList(time,
+        return Arrays.asList(
+            time,
             "Thread: " + (threadName == null || threadName.isEmpty() ? AllData.threadNames.get(tid) : threadName),
-            Utils.getEndState(state), TimeUtils.getTimeWithUnit(duration));
+            Utils.getEndState(state),
+            TimeUtils.getTimeWithUnit(duration)
+        );
     }
 
     @Override

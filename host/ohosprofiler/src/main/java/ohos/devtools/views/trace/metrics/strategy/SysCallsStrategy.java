@@ -17,7 +17,6 @@ package ohos.devtools.views.trace.metrics.strategy;
 
 import ohos.devtools.views.trace.metrics.MetricsDb;
 import ohos.devtools.views.trace.metrics.MetricsSql;
-import ohos.devtools.views.trace.metrics.bean.Memory;
 import ohos.devtools.views.trace.metrics.bean.SysCalls;
 
 import java.util.ArrayList;

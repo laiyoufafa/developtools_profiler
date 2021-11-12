@@ -1,7 +1,0 @@
-select TB.tid,TB.name as thread ,TA.cpu,TC.pid,TC.name as process
-from sched TA
-left join internal_thread TB on TA.utid = TB.id
-left join internal_process TC on TB.upid = TC.id
-where utid = (select utid from raw where name = 'sched_waking' and ts = %d )
-    and TA.ts < %d
-    and Ta.ts + Ta.dur >= %d

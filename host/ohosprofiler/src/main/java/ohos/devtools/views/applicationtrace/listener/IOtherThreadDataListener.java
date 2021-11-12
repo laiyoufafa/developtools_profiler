@@ -21,12 +21,11 @@ import java.util.List;
 /**
  * interface other thread listener
  *
- * @date: 2021/5/27 12:01
+ * @since 2021/5/27 12:01
  */
 public interface IOtherThreadDataListener {
     /**
      * getOtherThreadData Callback
-     *
      * @param startNS start time
      * @param endNS end time
      * @param threadIds thread id

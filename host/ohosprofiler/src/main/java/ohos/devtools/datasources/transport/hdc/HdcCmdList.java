@@ -31,7 +31,7 @@ public class HdcCmdList {
     /**
      * HDC LIST TARGETS STR
      */
-    public static ArrayList<String> HDC_LIST_TARGETS_STR = new ArrayList<>() {
+    public static final ArrayList<String> HDC_LIST_TARGETS_STR = new ArrayList<>() {
         private static final long serialVersionUID = -2441056417543656558L;
         {
             add(PLUGIN_PATH);
@@ -44,7 +44,7 @@ public class HdcCmdList {
     /**
      * HDC GET TYPE
      */
-    public static ArrayList<String> HDC_GET_TYPE = new ArrayList<>() {
+    public static final ArrayList<String> HDC_GET_TYPE = new ArrayList<>() {
         private static final long serialVersionUID = -2394024522865456503L;
         {
             add(PLUGIN_PATH);
@@ -59,7 +59,7 @@ public class HdcCmdList {
     /**
      * HDC RUN OHOS
      */
-    public static ArrayList<String> HDC_RUN_OHOS = new ArrayList<>() {
+    public static final ArrayList<String> HDC_RUN_OHOS = new ArrayList<>() {
         private static final long serialVersionUID = -103210883565193436L;
         {
             add(PLUGIN_PATH);
@@ -83,7 +83,7 @@ public class HdcCmdList {
     /**
      * hdc start profilerd
      */
-    public static ArrayList<String> HDC_START_PROFILERD = new ArrayList<>() {
+    public static final ArrayList<String> HDC_START_PROFILERD = new ArrayList<>() {
         private static final long serialVersionUID = -6892425692255758759L;
         {
             add(PLUGIN_PATH);
@@ -106,7 +106,7 @@ public class HdcCmdList {
     /**
      * hdc start javaHeap
      */
-    public static ArrayList<String> HDC_START_JAVAHEAP = new ArrayList<>() {
+    public static final ArrayList<String> HDC_START_JAVAHEAP = new ArrayList<>() {
         private static final long serialVersionUID = -7953946430216933650L;
         {
             add(PLUGIN_PATH);
@@ -130,7 +130,7 @@ public class HdcCmdList {
     /**
      * HDC CHECK SERVER
      */
-    public static ArrayList<String> HDC_CHECK_SERVER = new ArrayList<>() {
+    public static final ArrayList<String> HDC_CHECK_SERVER = new ArrayList<>() {
         private static final long serialVersionUID = -6734438879494283706L;
         {
             add(PLUGIN_PATH);
@@ -153,7 +153,7 @@ public class HdcCmdList {
     /**
      * HDC PUSH OHOS SHELL
      */
-    public static ArrayList<String> HDC_PUSH_OHOS_SHELL = new ArrayList<>() {
+    public static final ArrayList<String> HDC_PUSH_OHOS_SHELL = new ArrayList<>() {
         private static final long serialVersionUID = 7407520677035151364L;
 
         {
@@ -170,7 +170,7 @@ public class HdcCmdList {
     /**
      * HDC PUSH FILE SHELL
      */
-    public static ArrayList<String> HDC_PUSH_FILE_SHELL = new ArrayList<>() {
+    public static final ArrayList<String> HDC_PUSH_FILE_SHELL = new ArrayList<>() {
         private static final long serialVersionUID = 118323663337186414L;
         {
             add(PLUGIN_PATH);
@@ -186,7 +186,7 @@ public class HdcCmdList {
     /**
      * HDC FOR PORT
      */
-    public static ArrayList<String> HDC_FOR_PORT = new ArrayList<>() {
+    public static final ArrayList<String> HDC_FOR_PORT = new ArrayList<>() {
         private static final long serialVersionUID = -3646030545566427790L;
         {
             add(PLUGIN_PATH);
@@ -201,7 +201,7 @@ public class HdcCmdList {
     /**
      * HDC PUSH CMD
      */
-    public static ArrayList<String> HDC_PUSH_CMD = new ArrayList<>() {
+    public static final ArrayList<String> HDC_PUSH_CMD = new ArrayList<>() {
         private static final long serialVersionUID = 7249365681950995900L;
         {
             add(PLUGIN_PATH);
@@ -217,7 +217,7 @@ public class HdcCmdList {
     /**
      * HDC CLEAR CMD
      */
-    public static ArrayList<String> HDC_CLEAR_CMD = new ArrayList<>() {
+    public static final ArrayList<String> HDC_CLEAR_CMD = new ArrayList<>() {
         private static final long serialVersionUID = 7563399100805170044L;
         {
             add(PLUGIN_PATH);
@@ -231,9 +231,25 @@ public class HdcCmdList {
     };
 
     /**
+     * HDC CLEAR HTRACE COMMAND FILE
+     */
+    public static final ArrayList<String> HDC_CLEAR_COMMAND_CMD = new ArrayList<>() {
+        private static final long serialVersionUID = 7563399100805170044L;
+        {
+            add(PLUGIN_PATH);
+            add("-t");
+            add("%s");
+            add("shell");
+            add("rm");
+            add("-f");
+            add("/data/local/tmp/command*.txt");
+        }
+    };
+
+    /**
      * HDC ROOT CLEAR CMD
      */
-    public static ArrayList<String> HDC_ROOT_CLEAR_CMD = new ArrayList<>() {
+    public static final ArrayList<String> HDC_ROOT_CLEAR_CMD = new ArrayList<>() {
         private static final long serialVersionUID = 471178417841389616L;
         {
             add(PLUGIN_PATH);
@@ -247,7 +263,7 @@ public class HdcCmdList {
     /**
      * HDC GET PLUGIN MD5S
      */
-    public static ArrayList<String> HDC_GET_PLUGIN_MD5S = new ArrayList<>() {
+    public static final ArrayList<String> HDC_GET_PLUGIN_MD5S = new ArrayList<>() {
         private static final long serialVersionUID = 5290498389644237835L;
         {
             add(PLUGIN_PATH);
@@ -264,7 +280,7 @@ public class HdcCmdList {
     /**
      * hdc create heapDump
      */
-    public static ArrayList<String> HDC_CREATE_HEAPDUMP = new ArrayList<>() {
+    public static final ArrayList<String> HDC_CREATE_HEAPDUMP = new ArrayList<>() {
         private static final long serialVersionUID = 7647678596290819135L;
         {
             add(PLUGIN_PATH);
@@ -284,7 +300,7 @@ public class HdcCmdList {
     /**
      * hdc recV heapDump
      */
-    public static ArrayList<String> HDC_RECV_HEAPDUMP = new ArrayList<>() {
+    public static final ArrayList<String> HDC_RECV_HEAPDUMP = new ArrayList<>() {
         private static final long serialVersionUID = -8073939164877060309L;
         {
             add(PLUGIN_PATH);
@@ -300,7 +316,7 @@ public class HdcCmdList {
     /**
      * HDC GET TIME
      */
-    public static ArrayList<String> HDC_GET_TIME = new ArrayList<>() {
+    public static final ArrayList<String> HDC_GET_TIME = new ArrayList<>() {
         private static final long serialVersionUID = -564370535864629715L;
         {
             add(PLUGIN_PATH);
@@ -315,7 +331,7 @@ public class HdcCmdList {
     /**
      * HDC HAS TRACE FILE INFO
      */
-    public static ArrayList<String> HDC_HAS_TRACE_FILE_INFO = new ArrayList<>() {
+    public static final ArrayList<String> HDC_HAS_TRACE_FILE_INFO = new ArrayList<>() {
         private static final long serialVersionUID = -6669823431200909892L;
         {
             add(PLUGIN_PATH);
@@ -330,7 +346,7 @@ public class HdcCmdList {
     /**
      * HDC PULL TRACE FILE
      */
-    public static ArrayList<String> HDC_PULL_TRACE_FILE = new ArrayList<>() {
+    public static final ArrayList<String> HDC_PULL_TRACE_FILE = new ArrayList<>() {
         private static final long serialVersionUID = -827799272692157779L;
         {
             add(PLUGIN_PATH);
@@ -346,7 +362,7 @@ public class HdcCmdList {
     /**
      * HDC CHMOD PROC
      */
-    public static ArrayList<String> HDC_CHMOD_PROC = new ArrayList<>() {
+    public static final ArrayList<String> HDC_CHMOD_PROC = new ArrayList<>() {
         private static final long serialVersionUID = -7606240047012790952L;
         {
             add(PLUGIN_PATH);
@@ -360,7 +376,7 @@ public class HdcCmdList {
     /**
      * HDC GET SimPERF FILE INFO
      */
-    public static ArrayList<String> HDC_GET_SIMPER_FILE_INFO = new ArrayList<>() {
+    public static final ArrayList<String> HDC_GET_SIMPER_FILE_INFO = new ArrayList<>() {
         private static final long serialVersionUID = -7258927152502785089L;
         {
             add(PLUGIN_PATH);
@@ -375,7 +391,7 @@ public class HdcCmdList {
     /**
      * HDC GET SimPERF FILE
      */
-    public static ArrayList<String> HDC_GET_SIMPER_FILE = new ArrayList<>() {
+    public static final ArrayList<String> HDC_GET_SIMPER_FILE = new ArrayList<>() {
         private static final long serialVersionUID = -4007861967368888669L;
         {
             add(PLUGIN_PATH);
@@ -391,7 +407,7 @@ public class HdcCmdList {
     /**
      * HDC GET TRACE FILE INFO
      */
-    public static ArrayList<String> HDC_GET_TRACE_FILE_INFO = new ArrayList<>() {
+    public static final ArrayList<String> HDC_GET_TRACE_FILE_INFO = new ArrayList<>() {
         private static final long serialVersionUID = -6950108406906264163L;
         {
             add(PLUGIN_PATH);
@@ -406,7 +422,7 @@ public class HdcCmdList {
     /**
      * HDC GET TRACE FILE
      */
-    public static ArrayList<String> HDC_GET_TRACE_FILE = new ArrayList<>() {
+    public static final ArrayList<String> HDC_GET_TRACE_FILE = new ArrayList<>() {
         private static final long serialVersionUID = -1592462036082926191L;
         {
             add(PLUGIN_PATH);
@@ -422,7 +438,7 @@ public class HdcCmdList {
     /**
      * HDC SHELL HiLOG
      */
-    public static ArrayList<String> HDC_SHELL_HILOG = new ArrayList<>() {
+    public static final ArrayList<String> HDC_SHELL_HILOG = new ArrayList<>() {
         private static final long serialVersionUID = 2078981290462881684L;
         {
             add(PLUGIN_PATH);
@@ -436,7 +452,7 @@ public class HdcCmdList {
     /**
      * HDC HiLOG
      */
-    public static ArrayList<String> HDC_HILOG = new ArrayList<>() {
+    public static final ArrayList<String> HDC_HILOG = new ArrayList<>() {
         private static final long serialVersionUID = -5609660539341002374L;
         {
             add(PLUGIN_PATH);
@@ -449,7 +465,7 @@ public class HdcCmdList {
     /**
      * HDC HiLOG C
      */
-    public static ArrayList<String> HDC_HILOG_C = new ArrayList<>() {
+    public static final ArrayList<String> HDC_HILOG_C = new ArrayList<>() {
         private static final long serialVersionUID = 8580129953374994618L;
         {
             add(PLUGIN_PATH);
@@ -464,7 +480,7 @@ public class HdcCmdList {
     /**
      * HDC HiLOG R
      */
-    public static ArrayList<String> HDC_HILOG_R = new ArrayList<>() {
+    public static final ArrayList<String> HDC_HILOG_R = new ArrayList<>() {
         private static final long serialVersionUID = 370115372353170396L;
         {
             add(PLUGIN_PATH);
@@ -479,7 +495,7 @@ public class HdcCmdList {
     /**
      * TRACE STREAMER LOAD
      */
-    public static ArrayList<String> TRACE_STREAMER_LOAD = new ArrayList<>() {
+    public static final ArrayList<String> TRACE_STREAMER_LOAD = new ArrayList<>() {
         private static final long serialVersionUID = -3159139340525115732L;
         {
             add("%s");
@@ -492,7 +508,7 @@ public class HdcCmdList {
     /**
      * Add permissions
      */
-    public static ArrayList<String> CHMOD_TO_OHOS = new ArrayList<>() {
+    public static final ArrayList<String> CHMOD_TO_OHOS = new ArrayList<>() {
         private static final long serialVersionUID = -8550606962513461794L;
         {
             add("chmod");

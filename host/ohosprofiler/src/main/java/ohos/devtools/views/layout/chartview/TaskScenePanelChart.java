@@ -32,7 +32,10 @@ import ohos.devtools.views.common.customcomp.CustomComboBox;
 import ohos.devtools.views.common.customcomp.CustomJButton;
 import ohos.devtools.views.common.customcomp.CustomJLabel;
 import ohos.devtools.views.layout.TaskPanel;
+import ohos.devtools.views.layout.chartview.memory.nativehook.NativeHookPanel;
 import ohos.devtools.views.layout.event.TaskScenePanelChartEvent;
+import ohos.devtools.views.layout.utils.EventTrackUtils;
+import ohos.devtools.views.perftrace.PerfTracePanel;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -59,6 +62,8 @@ import static ohos.devtools.datasources.utils.common.Constant.DEVICE_STAT_OFFLIN
 
 /**
  * TaskScenePanelChart
+ *
+ * @since: 2021/10/25
  */
 public class TaskScenePanelChart extends JBPanel {
     private static final Logger LOGGER = LogManager.getLogger(TaskScenePanelChart.class);
@@ -217,17 +222,29 @@ public class TaskScenePanelChart extends JBPanel {
      * 用于jPanelMiddleLeft布局和内容显示
      */
     private int number;
+
     private int numberJlabel;
+
     private TaskScenePanelChartEvent taskScenePanelChartEvent;
+
     private CountingThread counting;
+
     private ProfilerChartsView profilerView;
+
     private JBPanel jPanelSuspension;
+
     private JBPanel jpanelSupen;
+
     private CustomComboBox jComboBox;
+
     private CustomComboBox timeJComboBox;
+
     private int sumInt;
+
     private boolean greyFlag;
+
     private List<CustomJLabel> sessionList;
+
     private List<SubSessionListJBPanel> dumpOrHookSessionList;
 
     /**
@@ -251,6 +268,7 @@ public class TaskScenePanelChart extends JBPanel {
      * @param hosJLabelList hosJLabelList
      */
     public TaskScenePanelChart(TaskPanel jTaskPanel, List<CustomJLabel> hosJLabelList) {
+        EventTrackUtils.getInstance().trackApplicationChartPage();
         init();
         getCardLayout(cards);
         // 整体页面布局设置
@@ -383,8 +401,13 @@ public class TaskScenePanelChart extends JBPanel {
             // 添加chart
             profilerView = new ProfilerChartsView(hosJLabel.getSessionId(), true, this);
             jcardsPanel.add(profilerView);
-            addMonitorItem(hosJLabel.getSessionId());
-            profilerView.getPublisher().showTraceResult(hosJLabel.getStartTime(), hosJLabel.getEndTime());
+            if (hosJLabel.getFileType().equals("nativehook")) {
+                createNativeHook(hosJLabel.getSessionId(), null, hosJLabel.isOnline(),
+                    "nativeHook" + hosJLabel.getSessionId(), hosJLabel.getMessage());
+            } else {
+                addMonitorItem(hosJLabel.getSessionId());
+                profilerView.getPublisher().showTraceResult(hosJLabel.getStartTime(), hosJLabel.getEndTime());
+            }
             taskScenePanelChartEvent.clickZoomEvery(timeJComboBox, profilerView);
         } else {
             // 添加chart
@@ -406,9 +429,9 @@ public class TaskScenePanelChart extends JBPanel {
             try {
                 profilerView.addMonitorItemView(item);
             } catch (InvocationTargetException
-                | NoSuchMethodException
-                | InstantiationException
-                | IllegalAccessException exception) {
+                    | NoSuchMethodException
+                    | InstantiationException
+                    | IllegalAccessException exception) {
                 LOGGER.error("addMonitorItemView failed {} ", item.getName());
             }
         });
@@ -496,7 +519,7 @@ public class TaskScenePanelChart extends JBPanel {
     public void judge(int index, JBLabel jLabelRight, CustomJLabel hosJLabel) {
         if (index == 0) {
             jLabelRight.setBackground(ColorConstants.SELECTED_COLOR);
-            jLabelRight.setForeground(JBColor.WHITE);
+            jLabelRight.setForeground(ColorConstants.FONT_COLOR);
             jLabelRight.setPreferredSize(new Dimension(LayoutConstants.SESSION_LIST_WIDTH, LayoutConstants.SIXTY));
             if (!hosJLabel.isOnline()) {
                 jLabelRight.setPreferredSize(new Dimension(LayoutConstants.NUM_200, LayoutConstants.SIXTY));
@@ -695,7 +718,8 @@ public class TaskScenePanelChart extends JBPanel {
         JBPanel jScrollCardsPanelSession = this.getJScrollCardsPanelInner();
         Component[] innerPanel = jScrollCardsPanelSession.getComponents();
         SubSessionListJBPanel sessionListPanel = null;
-        CustomJLabel labelSave = null;
+        CustomJLabel labelSave = new CustomJLabel();
+        labelSave.setIcon(IconLoader.getIcon("/images/menu-saveall.png", getClass()));
         for (Component inner : innerPanel) {
             Component[] innerLable;
             if (inner instanceof JBPanel) {
@@ -712,12 +736,24 @@ public class TaskScenePanelChart extends JBPanel {
         if (sessionListPanel != null) {
             sessionListPanel.setBackground(ColorConstants.SELECTED_COLOR);
         }
-        String cardName = "";
+        String cardName;
         if (name.contains(LayoutConstants.TRACE_SYSTEM_CALLS)) {
             cardName = "traceApp" + startTime;
             Objects.requireNonNull(sessionListPanel).setPanelName(cardName);
             sessionListPanel.setDbPath(dbPath);
             showAppTrace(dbPath, sessionId);
+        } else if (name.contains(LayoutConstants.SAMPLE_PERF_DATA)) {
+            cardName = "nativePerf" + startTime;
+            Objects.requireNonNull(sessionListPanel).setPanelName(cardName);
+            sessionListPanel.setDbPath(dbPath);
+            showPerfTrace(dbPath);
+        } else if (name.contains("Native Hook")) {
+            // load Native Hook
+            cardName = "nativeHook" + startTime;
+            Objects.requireNonNull(sessionListPanel).setPanelName(cardName);
+            createNativeHook(sessionId, labelSave, true, cardName, "");
+        } else {
+            cardName = "";
         }
         // set Button disabled
         greyFlag = true;
@@ -733,7 +769,8 @@ public class TaskScenePanelChart extends JBPanel {
      * @param sessionListPanel sessionListPanel
      * @param jScrollCardsPanelSession jScrollCardsPanelSession
      */
-    public void addDump(String name, String startTime, CustomJLabel labelSave, SubSessionListJBPanel sessionListPanel, JBPanel jScrollCardsPanelSession) {
+    public void addDump(String name, String startTime, CustomJLabel labelSave,
+                        SubSessionListJBPanel sessionListPanel, JBPanel jScrollCardsPanelSession) {
         CustomJLabel nameLable = new CustomJLabel(name);
         nameLable.setPreferredSize(new Dimension(DUMP_LABLE_WIDTH, LayoutConstants.THIRTY));
         String btnStr = "Save Heap Dump";
@@ -745,10 +782,11 @@ public class TaskScenePanelChart extends JBPanel {
         if (name.contains(LayoutConstants.TRACE_SYSTEM_CALLS)) {
             nameLable.setIcon(IconLoader.getIcon("/images/cpu.png", getClass()));
             sessionListPanel.add(nameLable, "gapleft 15,wrap 5");
+        } else if (name.contains(LayoutConstants.SAMPLE_PERF_DATA)) {
+            nameLable.setIcon(IconLoader.getIcon("/images/cpu.png", getClass()));
+            sessionListPanel.add(nameLable, "gapleft 15,wrap 5");
         } else {
             nameLable.setIcon(IconLoader.getIcon("/images/icon_heap_dump_normal.png", getClass()));
-            labelSave = new CustomJLabel();
-            labelSave.setIcon(IconLoader.getIcon("/images/menu-saveall.png", getClass()));
             labelSave.setToolTipText(btnStr);
             sessionListPanel.add(nameLable, "gapleft 15");
             sessionListPanel.add(labelSave, "wrap 5,width 15:15:15,height 15:15:15");
@@ -762,6 +800,7 @@ public class TaskScenePanelChart extends JBPanel {
         sessionListPanel.add(timeLabel, "gapleft 28");
         sessionListPanel.setHosJLabel(nameLable);
         sessionListPanel.setStartTime(startTime);
+        sessionListPanel.setTimeJLabel(timeLabel);
         dumpOrHookSessionList.add(sessionListPanel);
         sessionListPanel.setBounds(0, number, SESSION_LIST_WIDTH, SESSION_LIST_HEIGHT);
         jScrollCardsPanelSession.add(sessionListPanel);
@@ -789,18 +828,30 @@ public class TaskScenePanelChart extends JBPanel {
     }
 
     /**
-     * handleFailed
+     * showPerfTrace
      *
-     * @param sessionListPanel sessionListPanel
+     * @param dbPathParam dbPathParam
      */
-    public void handleFailed(SubSessionListJBPanel sessionListPanel) {
-        if (sessionListPanel != null && sessionList.size() >= 1) {
-            this.getJScrollCardsPanelInner().remove(sessionListPanel);
-            cardLayout.show(cards, "card0");
-            sessionList.get(0).setBackground(ColorConstants.SELECTED_COLOR);
-            number -= SESSION_LIST_HEIGHT;
+    public void showPerfTrace(String dbPathParam) {
+        PerfTracePanel component = new PerfTracePanel();
+        this.remove(panelTop);
+        component.load(dbPathParam, SessionManager.getInstance().tempPath() + "cpuDb", true);
+        cards.add(component, dbPathParam);
+        cardLayout.show(cards, dbPathParam);
+    }
+
+    private void createNativeHook(long sessionId, CustomJLabel labelSave, boolean isOnline, String cardName,
+        String filePath) {
+        NativeHookPanel nativeHookPanel = new NativeHookPanel(this);
+        nativeHookPanel.load(sessionId, labelSave, isOnline, filePath);
+        if (!isOnline) {
+            profilerView.add(nativeHookPanel);
+        } else {
+            cards.add(nativeHookPanel, cardName);
+            cardLayout.show(cards, cardName);
         }
     }
+
 
     /**
      * showSubSessionList

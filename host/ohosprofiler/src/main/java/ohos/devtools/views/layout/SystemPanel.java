@@ -19,13 +19,16 @@ import com.intellij.openapi.util.IconLoader;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBPanel;
-
+import ohos.devtools.datasources.utils.profilerlog.ProfilerLogManager;
 import ohos.devtools.views.common.LayoutConstants;
 import ohos.devtools.views.common.customcomp.CustomTextField;
+import ohos.devtools.views.layout.utils.EventTrackUtils;
 import ohos.devtools.views.trace.component.AnalystPanel;
 import ohos.devtools.views.trace.metrics.InfoStatsPanel;
 import ohos.devtools.views.trace.metrics.MetricsPanel;
 import ohos.devtools.views.trace.metrics.QuerySqlPanel;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.swing.JButton;
 import java.awt.BorderLayout;
@@ -40,84 +43,22 @@ import java.awt.event.MouseEvent;
  * SystemTuningPanel
  */
 public class SystemPanel extends JBPanel {
-    /**
-     * QUERY BUTTON WIDTH
-     */
+    private static final Logger LOGGER = LogManager.getLogger(SystemPanel.class);
     private static final int QUERY_BUTTON_WIDTH = 110;
-
-    /**
-     * INFO BUTTON WIDTH
-     */
     private static final int INFO_BUTTON_WIDTH = 126;
-
-    /**
-     * BUTTON HEIGHT
-     */
     private static final int BUTTON_HEIGHT = 30;
-
-    /**
-     * button margin top
-     */
     private static final int BUTTON_MARGIN_TOP = 11;
-
-    /**
-     * save button margin right
-     */
     private static final int SAVE_MARGIN_LEFT = 375;
-
-    /**
-     * gc margin left
-     */
     private static final int GC_MARGIN_LEFT = 400;
-
-    /**
-     * btn width or height
-     */
     private static final int BTN_WIDTH_HEIGHT = 20;
-
-    /**
-     * INFO X
-     */
     private static final int INFO_X = 236;
-
-    /**
-     * search margin right
-     */
     private static final int SEARCH_MARGIN_RIGHT = 530;
-
-    /**
-     * down margin right
-     */
     private static final int DOWN_MARGIN_RIGHT = 65;
-
-    /**
-     * left margin right
-     */
     private static final int LEFT_MARGIN_RIGHT = 40;
-
-    /**
-     * top panel height
-     */
     private static final int TOP_PANEL_HEIGHT = 34;
-
-    /**
-     * margin x
-     */
     private static final int MARGIN_Y = 2;
-
-    /**
-     * margin x
-     */
     private static final int SEARCH_MARGIN_Y = 4;
-
-    /**
-     * METRICS X
-     */
     private static final int METRICS_X = 126;
-
-    /**
-     * margin
-     */
     private static final int MARGIN = 20;
 
     private JButton queryButton;
@@ -139,6 +80,7 @@ public class SystemPanel extends JBPanel {
      * System Tuning Panel
      */
     public SystemPanel(JBPanel optionJPanel, AnalystPanel analystPanel) {
+        EventTrackUtils.getInstance().trackSystemTrace();
         this.optionJPanel = optionJPanel;
         this.analystPanel = analystPanel;
         this.setPreferredSize(new Dimension(optionJPanel.getWidth() - MARGIN, TOP_PANEL_HEIGHT));
@@ -153,6 +95,9 @@ public class SystemPanel extends JBPanel {
      * initComponents
      */
     private void initComponents() {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("initComponents");
+        }
         queryButton = new JButton();
         queryButton.setText("Query(SQL)");
         queryButton.setIcon(IconLoader.getIcon("/images/preview_normal.png", getClass()));
@@ -178,6 +123,9 @@ public class SystemPanel extends JBPanel {
     }
 
     private void setAttributes() {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("setAttributes");
+        }
         this.setLayout(null);
         this.setOpaque(true);
         this.setBackground(JBColor.background().darker());

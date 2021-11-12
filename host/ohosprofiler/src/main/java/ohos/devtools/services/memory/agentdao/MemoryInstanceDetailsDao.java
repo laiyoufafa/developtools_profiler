@@ -18,6 +18,7 @@ package ohos.devtools.services.memory.agentdao;
 import ohos.devtools.datasources.databases.databaseapi.DataBaseApi;
 import ohos.devtools.datasources.databases.databasepool.AbstractDataStore;
 import ohos.devtools.datasources.utils.common.util.CloseResourceUtil;
+import ohos.devtools.datasources.utils.profilerlog.ProfilerLogManager;
 import ohos.devtools.services.memory.agentbean.MemoryInstanceDetailsInfo;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -33,11 +34,10 @@ import java.util.Optional;
 import static ohos.devtools.datasources.utils.common.Constant.JVMTI_AGENT_PLUG;
 
 /**
- * Memory InstanceDetailsDao
+ * Memory Instance Details Dao
  */
 public class MemoryInstanceDetailsDao extends AbstractDataStore {
     private static final Logger LOGGER = LogManager.getLogger(MemoryInstanceDetailsDao.class);
-
     private static volatile MemoryInstanceDetailsDao singleton;
 
     /**
@@ -57,7 +57,7 @@ public class MemoryInstanceDetailsDao extends AbstractDataStore {
     }
 
     /**
-     * Memory InstanceDetails Dao
+     * Memory InstanceDetailsDao
      */
     public MemoryInstanceDetailsDao() {
         createMemoryInstanceDetails();
@@ -70,6 +70,9 @@ public class MemoryInstanceDetailsDao extends AbstractDataStore {
      * @return Connection
      */
     private Connection getConnection(String tableName) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("getConnection");
+        }
         Optional<Connection> optionalConnection = getConnectByTable(tableName);
         Connection conn = null;
         if (optionalConnection.isPresent()) {
@@ -84,22 +87,32 @@ public class MemoryInstanceDetailsDao extends AbstractDataStore {
      * @return boolean
      */
     public boolean createMemoryInstanceDetails() {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("createMemoryInstanceDetails");
+        }
         String dbName = JVMTI_AGENT_PLUG;
         String memoryInstanceDetailsInfoTable = "MemoryInstanceDetailsInfo";
-        String sql = "CREATE TABLE MemoryInstanceDetailsInfo " + "( "
-            + "    instanceId     int(100) not null, " + "    frameId        int(100) not null, "
-            + "    className      varchar(200) not null, " + "    methodName     varchar(200) not null, "
-            + "    fieldName      varchar(200) not null, " + "    lineNumber     int(100)    " + ");";
+        String sql = "CREATE TABLE "
+            + "MemoryInstanceDetailsInfo "
+            + "(instanceId int(100) not null, "
+            + "frameId int(100) not null, "
+            + "className varchar(200) not null, "
+            + "methodName varchar(200) not null, "
+            + "fieldName varchar(200) not null, "
+            + "lineNumber int(100));";
         return createTable(dbName, memoryInstanceDetailsInfoTable, sql);
     }
 
     /**
-     * insert MemoryInstanceDetailsInfo
+     * insert Memory InstanceDetailsInfo
      *
      * @param memoryInstanceDetailsInfos memoryInstanceDetailsInfos
      * @return boolean
      */
     public boolean insertMemoryInstanceDetailsInfo(List<MemoryInstanceDetailsInfo> memoryInstanceDetailsInfos) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("insertMemoryInstanceDetailsInfo");
+        }
         if (memoryInstanceDetailsInfos.isEmpty()) {
             return false;
         }
@@ -108,8 +121,15 @@ public class MemoryInstanceDetailsDao extends AbstractDataStore {
         try {
             conn = getConnection("MemoryInstanceDetailsInfo");
             conn.setAutoCommit(false);
-            String sql = "insert into MemoryInstanceDetailsInfo(instanceId,frameId,className,methodName,fieldName,"
-                + "lineNumber) values(?,?,?,?,?,?)";
+            String sql = "insert into "
+                + "MemoryInstanceDetailsInfo("
+                + "instanceId, "
+                + "frameId, "
+                + "className, "
+                + "methodName, "
+                + "fieldName, "
+                + "lineNumber) "
+                + "values(?,?,?,?,?,?)";
             ps = conn.prepareStatement(sql);
             for (MemoryInstanceDetailsInfo memoryInstanceDetailsInfo : memoryInstanceDetailsInfos) {
                 try {
@@ -121,7 +141,9 @@ public class MemoryInstanceDetailsDao extends AbstractDataStore {
                     ps.setInt(6, memoryInstanceDetailsInfo.getLineNumber());
                     ps.addBatch();
                 } catch (SQLException sqlException) {
-                    LOGGER.info("insert AppInfo {}", sqlException.getMessage());
+                    if (ProfilerLogManager.isErrorEnabled()) {
+                        LOGGER.error("insert AppInfo {}", sqlException.getMessage());
+                    }
                 }
             }
             ps.executeBatch();
@@ -130,7 +152,9 @@ public class MemoryInstanceDetailsDao extends AbstractDataStore {
             ps.clearParameters();
             return true;
         } catch (SQLException throwables) {
-            LOGGER.error("insert Exception {}", throwables.getMessage());
+            if (ProfilerLogManager.isErrorEnabled()) {
+                LOGGER.error("insert Exception {}", throwables.getMessage());
+            }
             return false;
         } finally {
             CloseResourceUtil.closeResource(LOGGER, conn, ps, null);
@@ -138,17 +162,25 @@ public class MemoryInstanceDetailsDao extends AbstractDataStore {
     }
 
     /**
-     * get MemoryInstanceDetails
+     * get Memory InstanceDetails
      *
      * @param instanceId instanceId
-     * @return ArrayList<MemoryInstanceDetailsInfo>
+     * @return ArrayList <MemoryInstanceDetailsInfo>
      */
     public ArrayList<MemoryInstanceDetailsInfo> getMemoryInstanceDetails(Integer instanceId) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("getMemoryInstanceDetails");
+        }
         Connection conn = getConnection("MemoryInstanceDetailsInfo");
         PreparedStatement ps = null;
         ArrayList<MemoryInstanceDetailsInfo> memoryInstanceDetailsInfos = new ArrayList<>();
         try {
-            String sql = "select * from MemoryInstanceDetailsInfo where instanceId = ?";
+            String sql = "select "
+                + "* "
+                + "from "
+                + "MemoryInstanceDetailsInfo "
+                + "where "
+                + "instanceId = ?";
             ps = conn.prepareStatement(sql);
             ps.setInt(1, instanceId);
             ResultSet rs = ps.executeQuery();
@@ -170,8 +202,10 @@ public class MemoryInstanceDetailsDao extends AbstractDataStore {
             }
             ps.clearParameters();
             return memoryInstanceDetailsInfos;
-        } catch (SQLException throwables) {
-            throwables.printStackTrace();
+        } catch (SQLException sqlException) {
+            if (ProfilerLogManager.isErrorEnabled()) {
+                LOGGER.error(sqlException.getMessage());
+            }
         } finally {
             CloseResourceUtil.closeResource(LOGGER, conn, ps, null);
         }
@@ -179,17 +213,27 @@ public class MemoryInstanceDetailsDao extends AbstractDataStore {
     }
 
     /**
-     * get All MemoryInstanceDetails
+     * get All Memory InstanceDetails
      *
-     * @return ArrayList<MemoryInstanceDetailsInfo>
+     * @return ArrayList <MemoryInstanceDetailsInfo>
      */
     public List<MemoryInstanceDetailsInfo> getAllMemoryInstanceDetails() {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("getAllMemoryInstanceDetails");
+        }
         Connection conn = getConnection("MemoryInstanceDetailsInfo");
         PreparedStatement ps = null;
         ArrayList<MemoryInstanceDetailsInfo> memoryInstanceDetailsInfos = new ArrayList<>();
         try {
-            String sql = "select instanceId,frameId,className,methodName,fieldName,"
-                + "lineNumber from MemoryInstanceDetailsInfo";
+            String sql = "select "
+                + "instanceId, "
+                + "frameId, "
+                + "className, "
+                + "methodName, "
+                + "fieldName, "
+                + "lineNumber "
+                + "from "
+                + "MemoryInstanceDetailsInfo";
             ps = conn.prepareStatement(sql);
             ResultSet rs = ps.executeQuery();
             MemoryInstanceDetailsInfo memoryInstanceDetailsInfo = null;
@@ -212,7 +256,9 @@ public class MemoryInstanceDetailsDao extends AbstractDataStore {
             ps.clearParameters();
             return memoryInstanceDetailsInfos;
         } catch (SQLException throwables) {
-            throwables.printStackTrace();
+            if (ProfilerLogManager.isErrorEnabled()) {
+                LOGGER.error(throwables.getMessage());
+            }
         } finally {
             CloseResourceUtil.closeResource(LOGGER, conn, ps, null);
         }
@@ -220,12 +266,15 @@ public class MemoryInstanceDetailsDao extends AbstractDataStore {
     }
 
     /**
-     * delete SessionData by sessionId
+     * delete Session Data by sessionId
      *
      * @param sessionId sessionId
      * @return boolean
      */
     public boolean deleteSessionData(long sessionId) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("deleteSessionData");
+        }
         StringBuffer deleteSql = new StringBuffer("DELETE FROM MemoryInstanceDetailsInfo");
         Connection connection = DataBaseApi.getInstance().getConnectByTable("MemoryInstanceDetailsInfo").get();
         return execute(connection, deleteSql.toString());

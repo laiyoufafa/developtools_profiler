@@ -25,6 +25,7 @@ import org.junit.jupiter.api.Test;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import java.awt.Graphics2D;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
@@ -33,7 +34,7 @@ import java.util.List;
 /**
  * test CpuDataFragment class .
  *
- * @date 2021/4/24 17:57
+ * @since 2021/4/24 17:57
  */
 class CpuDataFragmentTest {
     private CpuDataFragment cpuDataFragment;
@@ -58,67 +59,210 @@ class CpuDataFragmentTest {
     void mouseClicked() {
         MouseEvent mouseEvent = new MouseEvent(jPanel, 1, 1, 1, 1, 1, 1, true, 1);
         cpuDataFragment.mouseClicked(mouseEvent);
-        Assertions.assertNotNull(cpuDataFragment.favoriteGraph);
+        Assertions.assertNotNull(cpuDataFragment);
     }
 
-    /**
-     * test function the mousePressed .
-     */
     @Test
-    void mousePressed() {
-        MouseEvent mouseEvent = new MouseEvent(jPanel, 1, 1, 1, 1, 1, 1, true, 1);
-        cpuDataFragment.mousePressed(mouseEvent);
-        Assertions.assertNotNull(cpuDataFragment.favoriteGraph);
+    void mouseClickedMax() {
+        MouseEvent mouseEvent = new MouseEvent(jPanel, 1, 1, 1, Integer.MAX_VALUE, Integer.MAX_VALUE, 2, true, 1);
+        cpuDataFragment.mouseClicked(mouseEvent);
+        Assertions.assertNotNull(cpuDataFragment);
     }
 
-    /**
-     * test function the mouseExited .
-     */
     @Test
-    void mouseExited() {
-        MouseEvent mouseEvent = new MouseEvent(jPanel, 1, 1, 1, 1, 1, 1, true, 1);
-        cpuDataFragment.mouseExited(mouseEvent);
-        Assertions.assertNotNull(cpuDataFragment.favoriteGraph);
+    void mouseClickedMin() {
+        MouseEvent mouseEvent = new MouseEvent(jPanel, 1, 1, 1, Integer.MIN_VALUE, Integer.MIN_VALUE, 2, true, 1);
+        cpuDataFragment.mouseClicked(mouseEvent);
+        Assertions.assertNotNull(cpuDataFragment);
     }
 
-    /**
-     * test function the mouseEntered .
-     */
     @Test
-    void mouseEntered() {
-        MouseEvent mouseEvent = new MouseEvent(jPanel, 1, 1, 1, 1, 1, 1, true, 1);
-        cpuDataFragment.mouseEntered(mouseEvent);
-        Assertions.assertNotNull(cpuDataFragment.favoriteGraph);
+    void mouseClickedzero() {
+        MouseEvent mouseEvent = new MouseEvent(jPanel, 1, 1, 1, 0, 0, 2, true, 1);
+        cpuDataFragment.mouseClicked(mouseEvent);
+        Assertions.assertNotNull(cpuDataFragment);
     }
 
-    /**
-     * test function the mouseMoved .
-     */
     @Test
-    void mouseMoved() {
-        MouseEvent mouseEvent = new MouseEvent(jPanel, 1, 1, 1, 1, 1, 1, true, 1);
-        cpuDataFragment.mouseMoved(mouseEvent);
-        Assertions.assertNotNull(cpuDataFragment.favoriteGraph);
+    void mouseClickedNegative() {
+        MouseEvent mouseEvent = new MouseEvent(jPanel, 1, 1, 1, -2, -2, 2, true, 1);
+        cpuDataFragment.mouseClicked(mouseEvent);
+        Assertions.assertNotNull(cpuDataFragment);
     }
 
-    /**
-     * test function the mouseReleased .
-     */
     @Test
     void mouseReleased() {
         MouseEvent mouseEvent = new MouseEvent(jPanel, 1, 1, 1, 1, 1, 1, true, 1);
         cpuDataFragment.mouseReleased(mouseEvent);
-        Assertions.assertNotNull(cpuDataFragment.favoriteGraph);
+        Assertions.assertNotNull(cpuDataFragment);
     }
 
-    /**
-     * test function the click .
-     */
     @Test
-    void click() {
+    void mouseReleasedMax() {
+        MouseEvent mouseEvent = new MouseEvent(jPanel, 1, 1, 1, Integer.MAX_VALUE, Integer.MAX_VALUE, 2, true, 1);
+        cpuDataFragment.mouseReleased(mouseEvent);
+        Assertions.assertNotNull(cpuDataFragment);
+    }
+
+    @Test
+    void mouseReleasedMin() {
+        MouseEvent mouseEvent = new MouseEvent(jPanel, 1, 1, 1, Integer.MIN_VALUE, Integer.MIN_VALUE, 2, true, 1);
+        cpuDataFragment.mouseReleased(mouseEvent);
+        Assertions.assertNotNull(cpuDataFragment);
+    }
+
+    @Test
+    void mouseReleasedzero() {
+        MouseEvent mouseEvent = new MouseEvent(jPanel, 1, 1, 1, 0, 0, 2, true, 1);
+        cpuDataFragment.mouseReleased(mouseEvent);
+        Assertions.assertNotNull(cpuDataFragment);
+    }
+
+    @Test
+    void mouseReleasedNegative() {
+        MouseEvent mouseEvent = new MouseEvent(jPanel, 1, 1, 1, -2, -2, 2, true, 1);
+        cpuDataFragment.mouseReleased(mouseEvent);
+        Assertions.assertNotNull(cpuDataFragment);
+    }
+
+    @Test
+    void mouseEntered() {
         MouseEvent mouseEvent = new MouseEvent(jPanel, 1, 1, 1, 1, 1, 1, true, 1);
-        cpuDataFragment.click(mouseEvent, new CpuData());
-        Assertions.assertNotNull(cpuDataFragment.favoriteGraph);
+        cpuDataFragment.mouseEntered(mouseEvent);
+        Assertions.assertNotNull(cpuDataFragment);
+    }
+
+    @Test
+    void mouseEnteredMax() {
+        MouseEvent mouseEvent = new MouseEvent(jPanel, 1, 1, 1, Integer.MAX_VALUE, Integer.MAX_VALUE, 2, true, 1);
+        cpuDataFragment.mouseEntered(mouseEvent);
+        Assertions.assertNotNull(cpuDataFragment);
+    }
+
+    @Test
+    void mouseEnteredMin() {
+        MouseEvent mouseEvent = new MouseEvent(jPanel, 1, 1, 1, Integer.MIN_VALUE, Integer.MIN_VALUE, 2, true, 1);
+        cpuDataFragment.mouseEntered(mouseEvent);
+        Assertions.assertNotNull(cpuDataFragment);
+    }
+
+    @Test
+    void mouseEnteredzero() {
+        MouseEvent mouseEvent = new MouseEvent(jPanel, 1, 1, 1, 0, 0, 2, true, 1);
+        cpuDataFragment.mouseEntered(mouseEvent);
+        Assertions.assertNotNull(cpuDataFragment);
+    }
+
+    @Test
+    void mouseEnteredNegative() {
+        MouseEvent mouseEvent = new MouseEvent(jPanel, 1, 1, 1, -2, -2, 2, true, 1);
+        cpuDataFragment.mouseEntered(mouseEvent);
+        Assertions.assertNotNull(cpuDataFragment);
+    }
+
+    @Test
+    void mouseExited() {
+        MouseEvent mouseEvent = new MouseEvent(jPanel, 1, 1, 1, 1, 1, 1, true, 1);
+        cpuDataFragment.mouseExited(mouseEvent);
+        Assertions.assertNotNull(cpuDataFragment);
+    }
+
+    @Test
+    void mouseExitedMax() {
+        MouseEvent mouseEvent = new MouseEvent(jPanel, 1, 1, 1, Integer.MAX_VALUE, Integer.MAX_VALUE, 2, true, 1);
+        cpuDataFragment.mouseExited(mouseEvent);
+        Assertions.assertNotNull(cpuDataFragment);
+    }
+
+    @Test
+    void mouseExitedMin() {
+        MouseEvent mouseEvent = new MouseEvent(jPanel, 1, 1, 1, Integer.MIN_VALUE, Integer.MIN_VALUE, 2, true, 1);
+        cpuDataFragment.mouseExited(mouseEvent);
+        Assertions.assertNotNull(cpuDataFragment);
+    }
+
+    @Test
+    void mouseExitedzero() {
+        MouseEvent mouseEvent = new MouseEvent(jPanel, 1, 1, 1, 0, 0, 2, true, 1);
+        cpuDataFragment.mouseExited(mouseEvent);
+        Assertions.assertNotNull(cpuDataFragment);
+    }
+
+    @Test
+    void mouseExitedNegative() {
+        MouseEvent mouseEvent = new MouseEvent(jPanel, 1, 1, 1, -2, -2, 2, true, 1);
+        cpuDataFragment.mouseExited(mouseEvent);
+        Assertions.assertNotNull(cpuDataFragment);
+    }
+
+    @Test
+    void mouseMoved() {
+        MouseEvent mouseEvent = new MouseEvent(jPanel, 1, 1, 1, 1, 1, 1, true, 1);
+        cpuDataFragment.mouseMoved(mouseEvent);
+        Assertions.assertNotNull(cpuDataFragment);
+    }
+
+    @Test
+    void mouseMovedMax() {
+        MouseEvent mouseEvent = new MouseEvent(jPanel, 1, 1, 1, Integer.MAX_VALUE, Integer.MAX_VALUE, 2, true, 1);
+        cpuDataFragment.mouseMoved(mouseEvent);
+        Assertions.assertNotNull(cpuDataFragment);
+    }
+
+    @Test
+    void mouseMovedMin() {
+        MouseEvent mouseEvent = new MouseEvent(jPanel, 1, 1, 1, Integer.MIN_VALUE, Integer.MIN_VALUE, 2, true, 1);
+        cpuDataFragment.mouseMoved(mouseEvent);
+        Assertions.assertNotNull(cpuDataFragment);
+    }
+
+    @Test
+    void mouseMovedzero() {
+        MouseEvent mouseEvent = new MouseEvent(jPanel, 1, 1, 1, 0, 0, 2, true, 1);
+        cpuDataFragment.mouseMoved(mouseEvent);
+        Assertions.assertNotNull(cpuDataFragment);
+    }
+
+    @Test
+    void mouseMovedNegative() {
+        MouseEvent mouseEvent = new MouseEvent(jPanel, 1, 1, 1, -2, -2, 2, true, 1);
+        cpuDataFragment.mouseMoved(mouseEvent);
+        Assertions.assertNotNull(cpuDataFragment);
+    }
+
+    @Test
+    void keyReleased() {
+        KeyEvent keyEvent = new KeyEvent(jPanel, 1, 1L, 1, KeyEvent.KEY_PRESSED, 'A', 1);
+        cpuDataFragment.keyReleased(keyEvent);
+        Assertions.assertNotNull(cpuDataFragment);
+    }
+
+    @Test
+    void keyReleasedMax() {
+        KeyEvent keyEvent = new KeyEvent(jPanel, 1, Integer.MAX_VALUE, 1, KeyEvent.KEY_PRESSED, 'A', 1);
+        cpuDataFragment.keyReleased(keyEvent);
+        Assertions.assertNotNull(cpuDataFragment);
+    }
+
+    @Test
+    void keyReleasedMin() {
+        KeyEvent keyEvent = new KeyEvent(jPanel, 1, Integer.MIN_VALUE, 1, KeyEvent.KEY_PRESSED, 'A', 1);
+        cpuDataFragment.keyReleased(keyEvent);
+        Assertions.assertNotNull(cpuDataFragment);
+    }
+
+    @Test
+    void keyReleasedZero() {
+        KeyEvent keyEvent = new KeyEvent(jPanel, 1, 0, 1, KeyEvent.KEY_PRESSED, 'A', 1);
+        cpuDataFragment.keyReleased(keyEvent);
+        Assertions.assertNotNull(cpuDataFragment);
+    }
+
+    @Test
+    void keyReleasedNegative() {
+        KeyEvent keyEvent = new KeyEvent(jPanel, 1, -1, 1, KeyEvent.KEY_PRESSED, 'A', 1);
+        cpuDataFragment.keyReleased(keyEvent);
+        Assertions.assertNotNull(cpuDataFragment);
     }
 
     /**

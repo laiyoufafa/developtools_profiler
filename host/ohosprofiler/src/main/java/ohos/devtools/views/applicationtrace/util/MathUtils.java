@@ -20,13 +20,13 @@ import java.util.List;
 /**
  * The MathUtils
  *
- * @date 2021/04/22 12:25
+ * @since 2021/04/22 12:25
  */
 public class MathUtils {
     /**
      * Incoming a series x calculates the average
      *
-     * @param doubles List<Double> calculates x
+     * @param doubles x calculates
      * @return average value
      */
     public static double average(List<Double> doubles) {
@@ -39,8 +39,8 @@ public class MathUtils {
      * Pass in a series x to calculate variance
      * Variance s^2=[（x1-x）^2+（x2-x）^2+......（xn-x）^2]/（n） (x is average)
      *
-     * @param doubles List<Double> The number of columns to calculate
-     * @return variance variance
+     * @param doubles The number of columns to calculate
+     * @return variance
      */
     public static double variance(List<Double> doubles) {
         int size = doubles.size(); // The number of column elements
@@ -53,7 +53,7 @@ public class MathUtils {
      * Pass in a number of columns x to calculate the standard deviation
      * The standard deviation σ sqrt (s)2), which is the square root of the standard deviation s/a variance
      *
-     * @param doubles List<Double> The number of columns to calculate
+     * @param doubles The number of columns to calculate
      * @return standard deviation
      */
     public static double standardDiviation(List<Double> doubles) {

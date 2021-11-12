@@ -26,12 +26,15 @@ import ohos.devtools.datasources.utils.device.entity.DeviceIPPortInfo;
 import ohos.devtools.datasources.utils.device.service.MultiDeviceManager;
 import ohos.devtools.datasources.utils.process.entity.ProcessInfo;
 import ohos.devtools.datasources.utils.process.service.ProcessManager;
+import ohos.devtools.datasources.utils.profilerlog.ProfilerLogManager;
 import ohos.devtools.views.common.Constant;
 import ohos.devtools.views.common.LayoutConstants;
 import ohos.devtools.views.common.UtConstant;
 import ohos.devtools.views.common.customcomp.CustomTextField;
 import ohos.devtools.views.common.customcomp.GraphicsLinePanel;
 import ohos.devtools.views.layout.event.DeviceProcessPanelEvent;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.swing.BorderFactory;
 import javax.swing.JComboBox;
@@ -49,8 +52,11 @@ import java.util.Vector;
 
 /**
  * DeviceProcessPanel
+ *
+ * @since: 2021/10/25
  */
 public class DeviceProcessPanel extends JBPanel {
+    private static final Logger LOGGER = LogManager.getLogger(DeviceProcessPanel.class);
     private JBLabel currentDeviceNum;
     private JBLabel deviceLabel;
     private ComboBox<String> connectTypeComboBox;
@@ -77,6 +83,7 @@ public class DeviceProcessPanel extends JBPanel {
         this.deviceNum = deviceNum;
         this.scrollContainerHeight = scrollContainerHeight;
         initComponents();
+        addComponents();
         initDeviceList();
         initProcessList(deviceInfoList.get(0));
         addEvent(deviceConnectScrollPane);
@@ -86,6 +93,9 @@ public class DeviceProcessPanel extends JBPanel {
      * initComponents
      */
     private void initComponents() {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("initComponents");
+        }
         this.setLayout(new MigLayout("insets 0", "[grow,fill]", "[fill,fill]"));
         this.setOpaque(false);
         this.setBounds(10, scrollContainerHeight, 800, 500);
@@ -130,6 +140,9 @@ public class DeviceProcessPanel extends JBPanel {
         processScrollPane.setBackground(JBColor.background());
         processScrollPane.setOpaque(true);
         graphicsLine = new GraphicsLinePanel();
+    }
+
+    private void addComponents() {
         this.add(currentDeviceNum, "wrap, gapx 16, gapy 16");
         this.add(deviceLabel, "wrap, gapx 16");
         this.add(connectTypeComboBox, "gapx 16, width 30%");
@@ -143,6 +156,9 @@ public class DeviceProcessPanel extends JBPanel {
      * get the deviceData
      */
     private void initDeviceList() {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("initDeviceList");
+        }
         deviceInfoList = MultiDeviceManager.getInstance().getOnlineDeviceInfoList();
         if (deviceInfoList.isEmpty()) {
             deviceInfoList.add(new DeviceIPPortInfo());
@@ -163,7 +179,9 @@ public class DeviceProcessPanel extends JBPanel {
      * @param deviceInfo deviceInfo
      */
     public void initProcessList(DeviceIPPortInfo deviceInfo) {
-        selectedProcessName.setName(UtConstant.UT_DEVICE_PROCESS_PANEL_PROCESS_NAME);
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("initProcessList");
+        }
         if (!processInfoList.isEmpty()) {
             selectedProcessName.setText(processInfoList.get(0).getProcessName() +
                     "(" + processInfoList.get(0).getProcessId() + ")");
@@ -192,6 +210,9 @@ public class DeviceProcessPanel extends JBPanel {
     }
 
     private void renderProcessTable(Vector processNames, Vector columnNames) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("renderProcessTable");
+        }
         DefaultTableModel model = new DefaultTableModel(processNames, columnNames);
         processTable.setName(UtConstant.UT_DEVICE_PROCESS_PANEL_TABLE);
         processTable.setModel(model);
@@ -251,7 +272,7 @@ public class DeviceProcessPanel extends JBPanel {
     /**
      * getDeviceInfoList
      *
-     * @return List<DeviceIPPortInfo>
+     * @return List <DeviceIPPortInfo>
      */
     public List<DeviceIPPortInfo> getDeviceInfoList() {
         return deviceInfoList;
@@ -260,7 +281,7 @@ public class DeviceProcessPanel extends JBPanel {
     /**
      * getProcessInfoList
      *
-     * @return List<ProcessInfo>
+     * @return List <ProcessInfo>
      */
     public List<ProcessInfo> getProcessInfoList() {
         return processInfoList;

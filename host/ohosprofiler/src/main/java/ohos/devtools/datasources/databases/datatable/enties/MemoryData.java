@@ -16,11 +16,17 @@
 package ohos.devtools.datasources.databases.datatable.enties;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * @param <T> <T>
+ *
+ * @since 2021/10/22 16:00
  */
 public class MemoryData<T> implements Serializable {
+    /**
+     * serialVersionUID
+     */
     private static final long serialVersionUID = -8106428244173195592L;
     long localSessionId;
     int sessionId;
@@ -115,5 +121,30 @@ public class MemoryData<T> implements Serializable {
      */
     public void setTimeStamp(long timeStamp) {
         this.timeStamp = timeStamp;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return super.equals(obj);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(localSessionId, sessionId, timeStamp, data);
+    }
+
+    @Override
+    protected Object clone() throws CloneNotSupportedException {
+        return super.clone();
+    }
+
+    @Override
+    public String toString() {
+        return "MemoryData{"
+            + "localSessionId=" + localSessionId
+            + ", sessionId=" + sessionId
+            + ", timeStamp=" + timeStamp
+            + ", data=" + data
+            + '}';
     }
 }

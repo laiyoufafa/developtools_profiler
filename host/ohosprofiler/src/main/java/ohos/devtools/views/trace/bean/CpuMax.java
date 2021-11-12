@@ -20,8 +20,7 @@ import ohos.devtools.views.trace.DField;
 /**
  * CpuMax
  *
- * @version 1.0
- * @date: 2021/5/27 12:22
+ * @since 2021/5/27 12:22
  */
 public class CpuMax {
     @DField(name = "cpu")
@@ -37,8 +36,7 @@ public class CpuMax {
     }
 
     /**
-     * Sets the cpu .
-     * <p>You can use getCpu() to get the value of cpu</p>
+     * Sets the cpu .You can use getCpu() to get the value of cpu
      *
      * @param cpu cpu
      */

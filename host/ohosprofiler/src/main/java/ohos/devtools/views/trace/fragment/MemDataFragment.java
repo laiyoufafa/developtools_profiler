@@ -39,8 +39,7 @@ import java.util.stream.Collectors;
 /**
  * Memory data line
  *
- * @version 1.0
- * @date 2021/04/22 12:25
+ * @since 2021/04/22 12:25
  */
 public class MemDataFragment extends AbstractDataFragment<ProcessMemData> implements ThreadData.IEventListener {
     /**
@@ -107,8 +106,8 @@ public class MemDataFragment extends AbstractDataFragment<ProcessMemData> implem
     private void drawData(Graphics2D graphics) {
         if (data != null) {
             List<ProcessMemData> collect = data.stream().filter(
-                    memData -> memData.getStartTime() +
-                        memData.getDuration() > startNS && memData.getStartTime() < endNS)
+                    memData -> memData.getStartTime() + memData.getDuration() > startNS
+                            && memData.getStartTime() < endNS)
                 .collect(Collectors.toList());
             int x1;
             int x2;

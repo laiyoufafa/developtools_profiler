@@ -16,11 +16,14 @@
 package ohos.devtools.datasources.utils.session.service;
 
 import com.intellij.ide.plugins.PluginManager;
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.project.Project;
 import io.grpc.StatusRuntimeException;
+import ohos.devtools.datasources.databases.datatable.AbilityTable;
 import ohos.devtools.datasources.databases.datatable.MemoryTable;
+import ohos.devtools.datasources.databases.datatable.enties.DiskIOData;
 import ohos.devtools.datasources.databases.datatable.enties.ProcessCpuData;
 import ohos.devtools.datasources.databases.datatable.enties.ProcessMemInfo;
 import ohos.devtools.datasources.transport.grpc.HiProfilerClient;
@@ -32,24 +35,29 @@ import ohos.devtools.datasources.transport.hdc.HdcWrapper;
 import ohos.devtools.datasources.utils.common.Constant;
 import ohos.devtools.datasources.utils.common.util.CommonUtil;
 import ohos.devtools.datasources.utils.common.util.DateTimeUtil;
-import ohos.devtools.datasources.utils.common.util.PrintUtil;
 import ohos.devtools.datasources.utils.common.util.Validate;
 import ohos.devtools.datasources.utils.datahandler.datapoller.DataPoller;
 import ohos.devtools.datasources.utils.device.entity.DeviceIPPortInfo;
 import ohos.devtools.datasources.utils.device.entity.DeviceProcessInfo;
 import ohos.devtools.datasources.utils.device.entity.DeviceType;
 import ohos.devtools.datasources.utils.device.entity.TraceFileInfo;
+import ohos.devtools.datasources.utils.plugin.entity.AnalysisType;
 import ohos.devtools.datasources.utils.plugin.entity.HiProfilerPluginConfig;
 import ohos.devtools.datasources.utils.plugin.entity.PluginBufferConfig;
 import ohos.devtools.datasources.utils.plugin.entity.PluginConf;
 import ohos.devtools.datasources.utils.plugin.entity.PluginMode;
 import ohos.devtools.datasources.utils.plugin.service.PlugManager;
 import ohos.devtools.datasources.utils.process.entity.ProcessInfo;
+import ohos.devtools.datasources.utils.profilerlog.ProfilerLogManager;
 import ohos.devtools.datasources.utils.quartzmanager.QuartzManager;
 import ohos.devtools.datasources.utils.session.KeepSession;
 import ohos.devtools.datasources.utils.session.entity.SessionInfo;
+import ohos.devtools.services.ability.AbilityService;
 import ohos.devtools.services.cpu.CpuDao;
+import ohos.devtools.services.cpu.CpuService;
 import ohos.devtools.services.cpu.CpuValidate;
+import ohos.devtools.services.diskio.DiskIoService;
+import ohos.devtools.services.diskio.DiskIoValidate;
 import ohos.devtools.services.memory.MemoryValidate;
 import ohos.devtools.services.memory.agentbean.ClassInfo;
 import ohos.devtools.services.memory.agentbean.MemoryHeapInfo;
@@ -71,6 +79,8 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.jetbrains.annotations.Nullable;
+
 import javax.swing.JProgressBar;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -85,37 +95,43 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import static ohos.devtools.datasources.transport.hdc.HdcCmdList.CHMOD_TO_OHOS;
 import static ohos.devtools.datasources.transport.hdc.HdcCmdList.HDC_CHMOD_PROC;
 import static ohos.devtools.datasources.transport.hdc.HdcStdCmdList.HDC_STD_CHMOD_PROC;
 import static ohos.devtools.datasources.transport.hdc.HdcWrapper.conversionCommand;
 import static ohos.devtools.datasources.utils.common.Constant.DEVTOOLS_PLUGINS_V8_PATH;
 import static ohos.devtools.datasources.utils.device.entity.DeviceType.LEAN_HOS_DEVICE;
 import static ohos.devtools.datasources.utils.plugin.entity.PluginBufferConfig.Policy.RECYCLE;
-import static ohos.devtools.views.common.Constant.IS_DEVELOP_MODE;
 import static ohos.devtools.views.common.Constant.IS_SUPPORT_NEW_HDC;
 
 /**
  * session Management core class
  */
 public class SessionManager {
-    /**
-     * Global log
-     */
     private static final Logger LOGGER = LogManager.getLogger(SessionManager.class);
     private static final int KEEP_SESSION_TIME = 3000;
     private static final int KEEP_SESSION_REQUEST_TIME = 2500;
     private static final String STD_DEVELOPTOOLS = "stddeveloptools";
-
-    /**
-     * Singleton session.
-     */
     private static final SessionManager SINGLETON = new SessionManager();
+
+    private Project project;
+    private HashMap<Long, SessionInfo> profilingSessions;
+    private HashMap<Long, DataPoller> dataPollerHashMap = new HashMap<>();
+    private MemoryTable memoTable;
+    private ClassInfoDao classInfoDao;
+    private MemoryHeapDao memoryHeapDao;
+    private MemoryInstanceDao memoryInstanceDao;
+    private MemoryInstanceDetailsDao memoryInstanceDetailsDao;
+    private AbilityTable abilityTable;
+
+    private SessionManager() {
+        profilingSessions = new HashMap<>();
+    }
 
     /**
      * getInstance
@@ -127,37 +143,21 @@ public class SessionManager {
     }
 
     /**
-     * developMode
-     */
-    private boolean developMode = false;
-
-    private Project project;
-
-    /**
-     * Analyzed Sessions
-     */
-    private HashMap<Long, SessionInfo> profilingSessions;
-    private HashMap<Long, DataPoller> dataPollerHashMap = new HashMap<>();
-    private MemoryTable memoTable;
-    private ClassInfoDao classInfoDao;
-    private MemoryHeapDao memoryHeapDao;
-    private MemoryInstanceDao memoryInstanceDao;
-    private MemoryInstanceDetailsDao memoryInstanceDetailsDao;
-
-    private SessionManager() {
-        profilingSessions = new HashMap<>();
-    }
-
-    /**
      * Clear session Id directly, use with caution
      *
      * @param localSessionId localSessionId
      */
     public void deleteLocalSession(Long localSessionId) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("deleteLocalSession");
+        }
         if (profilingSessions != null) {
             ProfilerChartsView profilerChartsView = ProfilerChartsView.sessionMap.get(localSessionId);
             if (profilerChartsView != null) {
                 profilerChartsView.getPublisher().stopRefresh(true);
+                if (profilerChartsView.getAbilitySlice() != null) {
+                    profilerChartsView.getAbilitySlice().refreshActivityEndStatus(false);
+                }
             }
             SessionInfo sessionInfo = profilingSessions.get(localSessionId);
             if (Objects.nonNull(sessionInfo)) {
@@ -165,8 +165,17 @@ public class SessionManager {
                     getKeepSessionName(sessionInfo.getDeviceIPPortInfo(), sessionInfo.getSessionId());
                 QuartzManager.getInstance().deleteExecutor(keepSessionName);
             }
-            profilingSessions.remove(localSessionId);
+            removeLocalSessionData(localSessionId);
         }
+    }
+
+    private void removeLocalSessionData(long localSessionId) {
+        CpuService.getInstance().deleteSessionData(localSessionId);
+        MemoryService.getInstance().deleteSessionData(localSessionId);
+        DiskIoService.getInstance().deleteSessionData(localSessionId);
+        AbilityService.getInstance().deleteSessionData(localSessionId);
+        deleteAllAgentData(localSessionId, true);
+        profilingSessions.remove(localSessionId);
     }
 
     public Project getProject() {
@@ -182,117 +191,147 @@ public class SessionManager {
      *
      * @param device device
      * @param process process
+     * @param analysisType analysisType
      * @return Long sessionId
      */
-    public Long createSession(DeviceIPPortInfo device, ProcessInfo process) {
-        if (device == null || process == null || device.getForwardPort() == 0) {
+    public Long createSession(DeviceIPPortInfo device, ProcessInfo process, AnalysisType analysisType) {
+        if (device == null || process == null) {
             return Constant.ABNORMAL;
         }
-        ProfilerServiceTypes.ProfilerSessionConfig.Builder sessionConfigBuilder = getSessionConfigBuilder();
+        long localSessionID = CommonUtil.getLocalSessionId();
+        if (analysisType == AnalysisType.GPU_CONFIG_TYPE) {
+            return handleGpuConfig(device, process, analysisType, localSessionID);
+        }
         List<ProfilerServiceTypes.ProfilerPluginCapability> capability = getProfilerPluginCapabilities(device);
         if (capability == null || capability.size() == 0) {
             return Constant.ABNORMAL;
         }
-        long localSessionID = CommonUtil.getLocalSessionId();
+        ProfilerServiceTypes.ProfilerSessionConfig.Builder sessionConfigBuilder = getSessionConfigBuilder();
         List<CommonTypes.ProfilerPluginConfig> plugs = new ArrayList();
-        List<PluginConf> configs = PlugManager.getInstance().getPluginConfig(device.getDeviceType(), PluginMode.ONLINE);
+        List<PluginConf> configs =
+            PlugManager.getInstance().getPluginConfig(device.getDeviceType(), PluginMode.ONLINE, analysisType);
         for (PluginConf conf : configs) {
-            if (conf.isAlwaysAdd()) {
-                PlugManager.getInstance().addPluginStartSuccess(localSessionID, conf);
-                continue;
-            }
-            if (conf.isOperationStart()) {
+            if (handlespecailconfig(localSessionID, conf)) {
                 continue;
             }
             if (conf.isSpecialStart()) {
-                boolean startResult = handleSpecialStartPlug(conf, device, process, plugs, sessionConfigBuilder);
-                if (startResult) {
+                boolean startResult = conf.getSpecialStartPlugMethod().specialStartPlugMethod(device, process);
+                try {
+                    TimeUnit.MILLISECONDS.sleep(3500);
+                } catch (InterruptedException interruptedException) {
+                    LOGGER.error("sleep");
+                }
+                List<ProfilerServiceTypes.ProfilerPluginCapability> caps = getProfilerPluginCapabilities(device);
+                Optional<ProfilerServiceTypes.ProfilerPluginCapability> plug =
+                    getLibPlugin(caps, conf.getGetPluginName().getPluginName(device, process));
+                if (startResult && plug.isPresent()) {
+                    sessionConfigBuilder.addBuffers(getBufferConfig(conf));
+                    HiProfilerPluginConfig config = conf.getICreatePluginConfig().createPluginConfig(device, process);
+                    plugs.add(getAgentPluginConfig(conf, plug.get(), config));
                     PlugManager.getInstance().addPluginStartSuccess(localSessionID, conf);
                 }
             } else {
                 Optional<ProfilerServiceTypes.ProfilerPluginCapability> plug =
                     getLibPlugin(capability, conf.getPluginFileName());
                 if (plug.isPresent()) {
-                    ProfilerServiceTypes.ProfilerPluginCapability profilerPluginCapability = plug.get();
                     sessionConfigBuilder.addBuffers(getBufferConfig(conf));
-                    HiProfilerPluginConfig hiPluginConfig =
-                        conf.getICreatePluginConfig().createPluginConfig(device, process);
-                    CommonTypes.ProfilerPluginConfig pluginConfig =
-                        getProfilerPluginConfig(conf, profilerPluginCapability, hiPluginConfig, device);
+                    CommonTypes.ProfilerPluginConfig pluginConfig = getProfilerPluginConfig(conf, plug.get(),
+                        conf.getICreatePluginConfig().createPluginConfig(device, process), device);
                     plugs.add(pluginConfig);
                     PlugManager.getInstance().addPluginStartSuccess(localSessionID, conf);
                 }
             }
         }
-        ProfilerServiceTypes.CreateSessionResponse res = createSessionResponse(device, sessionConfigBuilder, plugs);
-        if (res.getSessionId() > 0) {
-            startKeepLiveSession(device, res.getSessionId(), localSessionID);
-            profilingSessions.put(localSessionID, createSessionInfo(device, process, res.getSessionId()));
-            PrintUtil.print(LOGGER, "Task with Session created successfully.", 0);
-            return localSessionID;
-        } else {
-            LOGGER.error("Failed to create task with Session!");
-            return Constant.ABNORMAL;
-        }
+        return resultCreateSesion(device, process, localSessionID, sessionConfigBuilder, plugs);
     }
 
-    private boolean handleSpecialStartPlug(PluginConf conf, DeviceIPPortInfo device,
-        ProcessInfo process, List<CommonTypes.ProfilerPluginConfig> plugs,
-        ProfilerServiceTypes.ProfilerSessionConfig.Builder sessionConfigBuilder) {
-        boolean startResult = conf.getSpecialStartPlugMethod().specialStartPlugMethod(device, process);
-        try {
-            TimeUnit.SECONDS.sleep(1);
-        } catch (InterruptedException e) {
-            LOGGER.error("sleep");
+    private boolean handlespecailconfig(long localSessionID, PluginConf conf) {
+        if (conf.isAlwaysAdd()) {
+            PlugManager.getInstance().addPluginStartSuccess(localSessionID, conf);
+            return true;
         }
-        List<ProfilerServiceTypes.ProfilerPluginCapability> caps = getProfilerPluginCapabilities(device);
-        Optional<ProfilerServiceTypes.ProfilerPluginCapability> plug =
-            getLibPlugin(caps, conf.getGetPluginName().getPluginName(device, process));
-        LOGGER.info("plug : {}", plug);
-        if (startResult && plug.isPresent()) {
-            ProfilerServiceTypes.ProfilerSessionConfig.BufferConfig bufferConfig = getBufferConfig(conf);
-            LOGGER.info("BufferConfig {}", bufferConfig);
-            sessionConfigBuilder.addBuffers(bufferConfig);
-            HiProfilerPluginConfig pluginConfig =
-                conf.getICreatePluginConfig().createPluginConfig(device, process);
-            CommonTypes.ProfilerPluginConfig profilerPluginConfig =
-                getAgentProfilerPluginConfig(conf, plug.get(), pluginConfig);
-            LOGGER.info("profilerPluginConfig : {}", profilerPluginConfig);
-            plugs.add(profilerPluginConfig);
+        if (conf.isOperationStart()) {
             return true;
         }
         return false;
     }
 
+    @Nullable
+    private Long resultCreateSesion(DeviceIPPortInfo device, ProcessInfo process, long localSessionID,
+        ProfilerServiceTypes.ProfilerSessionConfig.Builder sessionConfigBuilder,
+        List<CommonTypes.ProfilerPluginConfig> plugs) {
+        if (!plugs.isEmpty()) {
+            ProfilerServiceTypes.CreateSessionResponse res = createSessionResponse(device, sessionConfigBuilder, plugs);
+            if (res.getSessionId() > 0) {
+                startKeepLiveSession(device, res.getSessionId(), localSessionID);
+                profilingSessions.put(localSessionID, createSessionInfo(device, process, res.getSessionId()));
+                if (ProfilerLogManager.isInfoEnabled()) {
+                    if (ProfilerLogManager.isInfoEnabled()) {
+                        LOGGER.info("Task with Session created successfully");
+                    }
+                }
+                return localSessionID;
+            }
+        }
+        if (ProfilerLogManager.isErrorEnabled()) {
+            LOGGER.error("Failed to create task with Session!");
+        }
+        return Constant.ABNORMAL;
+    }
+
+    private long handleGpuConfig(DeviceIPPortInfo device, ProcessInfo process, AnalysisType analysisType,
+        long localSessionID) {
+        List<PluginConf> configs =
+            PlugManager.getInstance().getPluginConfig(device.getDeviceType(), PluginMode.ONLINE, analysisType);
+        for (PluginConf conf : configs) {
+            if (conf.isAlwaysAdd()) {
+                PlugManager.getInstance().addPluginStartSuccess(localSessionID, conf);
+                continue;
+            }
+        }
+        profilingSessions.put(localSessionID, createSessionInfo(device, process, Integer.MAX_VALUE));
+        return localSessionID;
+    }
+
     private CommonTypes.ProfilerPluginConfig getProfilerPluginConfig(PluginConf conf,
         ProfilerServiceTypes.ProfilerPluginCapability plug, HiProfilerPluginConfig pluginConfig,
         DeviceIPPortInfo device) {
-        LOGGER.info("pluginConfig is{}", pluginConfig);
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("getProfilerPluginConfig", pluginConfig);
+        }
         String pluginFileName = conf.getPluginFileName();
         String fileName = pluginFileName.substring(pluginFileName.lastIndexOf("/") + 1);
-        StringBuilder stringBuilder = new StringBuilder(SessionManager.getInstance().getPluginPath());
+        StringBuilder stringBuilder = new StringBuilder();
         if (IS_SUPPORT_NEW_HDC && device.getDeviceType() == LEAN_HOS_DEVICE) {
-            stringBuilder.append(STD_DEVELOPTOOLS).append(File.separator).append(fileName);
+            stringBuilder.append(SessionManager.getInstance().tempPath()).append(STD_DEVELOPTOOLS)
+                .append(File.separator).append(fileName);
         } else {
-            stringBuilder.append(DEVTOOLS_PLUGINS_V8_PATH).append(File.separator).append(fileName);
+            stringBuilder.append(SessionManager.getInstance().getPluginPath()).append(DEVTOOLS_PLUGINS_V8_PATH)
+                .append(File.separator).append(fileName);
         }
         String filePath = stringBuilder.toString();
         File pluginFile = new File(filePath);
         try {
             String fileSha256 = DigestUtils.sha256Hex(new FileInputStream(pluginFile));
-            LOGGER.error("plugin sha256Hex  {}", fileSha256);
+            if (ProfilerLogManager.isInfoEnabled()) {
+                LOGGER.info("plugin sha256Hex  {}", fileSha256);
+            }
             return ProfilerServiceHelper
                 .profilerPluginConfig(plug.getName(), fileSha256, pluginConfig.getSampleInterval(),
                     pluginConfig.getConfData());
         } catch (IOException ioException) {
-            LOGGER.error("plugin sha256Hex fail {}", fileName);
+            if (ProfilerLogManager.isErrorEnabled()) {
+                LOGGER.error("plugin sha256Hex fail {}", fileName);
+            }
             return CommonTypes.ProfilerPluginConfig.getDefaultInstance();
         }
     }
 
-    private CommonTypes.ProfilerPluginConfig getAgentProfilerPluginConfig(PluginConf conf,
+    private CommonTypes.ProfilerPluginConfig getAgentPluginConfig(PluginConf conf,
         ProfilerServiceTypes.ProfilerPluginCapability plug, HiProfilerPluginConfig pluginConfig) {
-        LOGGER.info("pluginConfig is{}", pluginConfig);
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("getAgentProfilerPluginConfig", pluginConfig);
+        }
         String pluginFileName = conf.getPluginFileName();
         String fileName = pluginFileName.substring(pluginFileName.lastIndexOf("/") + 1);
         StringBuilder stringBuilder = new StringBuilder(SessionManager.getInstance().getPluginPath());
@@ -301,16 +340,23 @@ public class SessionManager {
         File pluginFile = new File(filePath);
         try {
             String fileSha256 = DigestUtils.sha256Hex(new FileInputStream(pluginFile));
-            LOGGER.error("plugin sha256Hex  {}", fileSha256);
+            if (ProfilerLogManager.isInfoEnabled()) {
+                LOGGER.info("plugin sha256Hex  {}", fileSha256);
+            }
             return ProfilerServiceHelper
                 .profilerPluginConfig(plug.getName(), "", pluginConfig.getSampleInterval(), pluginConfig.getConfData());
         } catch (IOException ioException) {
-            LOGGER.error("plugin sha256Hex fail {}", fileName);
+            if (ProfilerLogManager.isErrorEnabled()) {
+                LOGGER.error("plugin sha256Hex fail {}", fileName);
+            }
             return CommonTypes.ProfilerPluginConfig.getDefaultInstance();
         }
     }
 
     private ProfilerServiceTypes.ProfilerSessionConfig.BufferConfig getBufferConfig(PluginConf conf) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("getBufferConfig");
+        }
         PluginBufferConfig pluginBufferConfig = conf.getPluginBufferConfig();
         ProfilerServiceTypes.ProfilerSessionConfig.BufferConfig.Builder builder =
             ProfilerServiceTypes.ProfilerSessionConfig.BufferConfig.newBuilder();
@@ -319,35 +365,42 @@ public class SessionManager {
         } else {
             builder.setPolicy(ProfilerServiceTypes.ProfilerSessionConfig.BufferConfig.Policy.FLATTEN);
         }
-        ProfilerServiceTypes.ProfilerSessionConfig.BufferConfig bufferConfig =
-            builder.setPages(pluginBufferConfig.getPages()).build();
-        return bufferConfig;
+        return builder.setPages(pluginBufferConfig.getPages()).build();
     }
 
     private ProfilerServiceTypes.CreateSessionResponse createSessionResponse(DeviceIPPortInfo device,
         ProfilerServiceTypes.ProfilerSessionConfig.Builder sessionConfigBuilder,
         List<CommonTypes.ProfilerPluginConfig> plugs) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("createSessionResponse");
+        }
         ProfilerServiceTypes.CreateSessionRequest request =
             ProfilerServiceHelper.createSessionRequest(CommonUtil.getRequestId(), sessionConfigBuilder.build(), plugs);
-        ProfilerClient createSessionClient =
-            HiProfilerClient.getInstance().getProfilerClient(device.getIp(), device.getForwardPort());
-        ProfilerServiceTypes.CreateSessionResponse response = null;
-        try {
-            response = createSessionClient.createSession(request);
-        } catch (StatusRuntimeException statusRuntimeException) {
-            LOGGER.error("status RuntimeException getStatus:{}", statusRuntimeException.getStatus());
-            return ProfilerServiceTypes.CreateSessionResponse.newBuilder().setSessionId(-1).build();
-        }
-        return response;
+        return HiProfilerClient.getInstance().requestCreateSession(device.getIp(), device.getForwardPort(), request);
     }
 
     private List<ProfilerServiceTypes.ProfilerPluginCapability> getProfilerPluginCapabilities(DeviceIPPortInfo device) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("getProfilerPluginCapabilities");
+        }
+        if (device.getForwardPort() == 0) {
+            ArrayList<ProfilerServiceTypes.ProfilerPluginCapability> capabilities =
+                    new ArrayList<ProfilerServiceTypes.ProfilerPluginCapability>();
+            capabilities.add(ProfilerServiceTypes.ProfilerPluginCapability.newBuilder().build());
+            return capabilities;
+        }
         ProfilerServiceTypes.GetCapabilitiesResponse capabilitiesRes =
             HiProfilerClient.getInstance().getCapabilities(device.getIp(), device.getForwardPort());
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("capability {}", capabilitiesRes.getCapabilitiesList());
+        }
         return capabilitiesRes.getCapabilitiesList();
     }
 
     private ProfilerServiceTypes.ProfilerSessionConfig.Builder getSessionConfigBuilder() {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("getSessionConfigBuilder");
+        }
         ProfilerServiceTypes.ProfilerSessionConfig.Builder sessionConfigBuilder =
             ProfilerServiceTypes.ProfilerSessionConfig.newBuilder().setKeepAliveTime(KEEP_SESSION_TIME)
                 .setSessionMode(ProfilerServiceTypes.ProfilerSessionConfig.Mode.ONLINE);
@@ -355,6 +408,9 @@ public class SessionManager {
     }
 
     private void startKeepLiveSession(DeviceIPPortInfo deviceIPPortInfo, int sessionId, long localSessionId) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("startKeepLiveSession");
+        }
         String keepSessionName = getKeepSessionName(deviceIPPortInfo, sessionId);
         QuartzManager.getInstance()
             .addExecutor(keepSessionName, new KeepSession(localSessionId, sessionId, deviceIPPortInfo));
@@ -369,6 +425,9 @@ public class SessionManager {
      * @return String
      */
     public String getKeepSessionName(DeviceIPPortInfo deviceIPPortInfo, int sessionId) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("getKeepSessionName");
+        }
         if (Objects.nonNull(deviceIPPortInfo)) {
             return "KEEP" + deviceIPPortInfo.getDeviceName() + sessionId;
         } else {
@@ -377,18 +436,27 @@ public class SessionManager {
     }
 
     private SessionInfo createSessionInfo(DeviceIPPortInfo device, ProcessInfo process, int sessionId) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("createSessionInfo");
+        }
         String deviceId = device.getDeviceID();
         String sessionName = CommonUtil.generateSessionName(deviceId, process.getProcessId());
         SessionInfo session =
             SessionInfo.builder().sessionId(sessionId).sessionName(sessionName).pid(process.getProcessId())
-                .processName(process.getProcessName()).deviceIPPortInfo(device).build();
+                .processName(process.getProcessName()).deviceIPPortInfo(device).processInfo(process).build();
         return session;
     }
 
     private Optional<ProfilerServiceTypes.ProfilerPluginCapability> getLibPlugin(
         List<ProfilerServiceTypes.ProfilerPluginCapability> capabilities, String libDataPlugin) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("getLibPlugin");
+        }
         Optional<ProfilerServiceTypes.ProfilerPluginCapability> ability = capabilities.stream()
             .filter(profilerPluginCapability -> profilerPluginCapability.getName().contains(libDataPlugin)).findFirst();
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("plug : {}", ability);
+        }
         return ability;
     }
 
@@ -400,20 +468,28 @@ public class SessionManager {
      * @return boolean
      */
     public boolean startSession(Long localSessionId, boolean restartFlag) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("startSession");
+        }
         if (localSessionId == null) {
             return false;
         }
         SessionInfo session = profilingSessions.get(localSessionId);
-        if (session == null) {
+        if (session == null || session.getSessionId() == Integer.MAX_VALUE) {
             return true;
         }
         if (restartFlag) {
             // Click start, delete the previous data first
+            CpuService.getInstance().deleteSessionData(localSessionId);
             MemoryService.getInstance().deleteSessionData(localSessionId);
+            DiskIoService.getInstance().deleteSessionData(localSessionId);
+            AbilityService.getInstance().deleteSessionData(localSessionId);
             deleteAllAgentData(localSessionId, false);
         }
         int sessionId = session.getSessionId();
-        LOGGER.info("startSession sessionId {}", sessionId);
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("startSession sessionId {}", sessionId);
+        }
         DeviceIPPortInfo device = session.getDeviceIPPortInfo();
         return HiProfilerClient.getInstance().requestStartSession(device.getIp(), device.getForwardPort(), sessionId);
     }
@@ -425,6 +501,9 @@ public class SessionManager {
      * @return boolean Turn on polling
      */
     public boolean fetchData(Long localSessionId) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("fetchData");
+        }
         if (localSessionId == null || localSessionId <= 0) {
             return false;
         }
@@ -450,14 +529,20 @@ public class SessionManager {
             DeviceIPPortInfo device = session.getDeviceIPPortInfo();
             ProfilerClient client =
                 HiProfilerClient.getInstance().getProfilerClient(device.getIp(), device.getForwardPort());
-            LOGGER.info("start new DataPoller {}", DateTimeUtil.getNowTimeLong());
+            if (ProfilerLogManager.isInfoEnabled()) {
+                LOGGER.info("start new DataPoller {}", DateTimeUtil.getNowTimeLong());
+            }
             int sessionId = session.getSessionId();
             DataPoller dataPoller = new DataPoller(localSessionId, sessionId, client);
-            dataPoller.start();
+            if (sessionId != Integer.MAX_VALUE && sessionId > 0) {
+                dataPoller.start();
+            }
             dataPollerHashMap.put(localSessionId, dataPoller);
             return true;
         } catch (Exception exception) {
-            LOGGER.error(exception.getMessage());
+            if (ProfilerLogManager.isErrorEnabled()) {
+                LOGGER.error(exception.getMessage());
+            }
             return false;
         }
     }
@@ -469,6 +554,9 @@ public class SessionManager {
      * @return boolean
      */
     public SessionInfo getSessionInfo(Long localSessionId) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("getSessionInfo");
+        }
         return profilingSessions.get(localSessionId);
     }
 
@@ -479,6 +567,9 @@ public class SessionManager {
      * @return DeviceIPPortInfo
      */
     public DeviceIPPortInfo getDeviceInfoBySessionId(long localSessionId) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("getDeviceInfoBySessionId");
+        }
         return profilingSessions.get(localSessionId).getDeviceIPPortInfo();
     }
 
@@ -489,6 +580,9 @@ public class SessionManager {
      * @param firstTimeStamp first Time Stamp
      */
     public void stopLoadingView(Long localSession, long firstTimeStamp) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("stopLoadingView");
+        }
         SessionInfo sessionInfo = profilingSessions.get(localSession);
         if (sessionInfo != null) {
             sessionInfo.setStartTimestamp(firstTimeStamp);
@@ -504,6 +598,9 @@ public class SessionManager {
      * @return boolean Stop success indicator
      */
     public boolean endSession(Long localSessionId) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("endSession");
+        }
         if (localSessionId == null || localSessionId <= 0) {
             return false;
         }
@@ -522,9 +619,13 @@ public class SessionManager {
             if (dataPoller != null) {
                 dataPoller.shutDown();
             }
-            PrintUtil.print(LOGGER, "Task with Session stopped successfully.", 0);
+            if (ProfilerLogManager.isInfoEnabled()) {
+                LOGGER.info("Task with Session stopped successfully.");
+            }
         } else {
-            LOGGER.error("Failed to stop task with Session!");
+            if (ProfilerLogManager.isErrorEnabled()) {
+                LOGGER.error("Failed to stop task with Session!");
+            }
         }
         return stopSessionRes;
     }
@@ -536,6 +637,9 @@ public class SessionManager {
      * @return boolean Is the deletion successful
      */
     public boolean deleteSession(Long localSessionId) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("deleteSession");
+        }
         try {
             if (localSessionId == null || localSessionId <= 0) {
                 return false;
@@ -544,45 +648,56 @@ public class SessionManager {
             if (session == null) {
                 return false;
             }
+            if (session.getSessionId() == Integer.MAX_VALUE) {
+                return true;
+            }
             String keepSessionName = getKeepSessionName(session.getDeviceIPPortInfo(), session.getSessionId());
             QuartzManager.getInstance().deleteExecutor(keepSessionName);
-            // Delete session information in local memory
-            profilingSessions.remove(localSessionId);
-            // Delete the data information related to the session of the database
-            MemoryService.getInstance().deleteSessionData(localSessionId);
-            deleteAllAgentData(localSessionId, true);
+            removeLocalSessionData(localSessionId);
             if (session.isOfflineMode()) {
                 return true;
             }
             int sessionId = session.getSessionId();
-            LOGGER.info("deleteSession sessionId {}", sessionId);
+            if (ProfilerLogManager.isInfoEnabled()) {
+                LOGGER.info("deleteSession sessionId {}", sessionId);
+            }
             DeviceIPPortInfo device = session.getDeviceIPPortInfo();
             boolean stopSessionRes = HiProfilerClient.getInstance()
                 .requestStopSession(device.getIp(), device.getForwardPort(), sessionId, true);
-            // Delete collection item
             if (stopSessionRes) {
                 boolean destroySessionRes = false;
                 try {
-                    destroySessionRes = HiProfilerClient.getInstance()
-                        .requestDestroySession(device.getIp(), device.getForwardPort(), sessionId);
-                    if (destroySessionRes) {
-                        DataPoller dataPoller = dataPollerHashMap.get(localSessionId);
-                        if (dataPoller != null) {
-                            dataPoller.shutDown();
-                        }
-                    }
+                    destroySessionRes = isDestroySessionRes(localSessionId, sessionId, device);
                 } catch (StatusRuntimeException exception) {
-                    LOGGER.error(exception.getMessage());
+                    if (ProfilerLogManager.isErrorEnabled()) {
+                        LOGGER.error(exception);
+                    }
                 }
-                PrintUtil.print(LOGGER, "Task with Session deleted successfully.", 0);
+                if (ProfilerLogManager.isInfoEnabled()) {
+                    LOGGER.info("Task with Session deleted successfully.");
+                }
                 return destroySessionRes;
             } else {
-                LOGGER.error("Failed to delete task with Session ");
+                if (ProfilerLogManager.isErrorEnabled()) {
+                    LOGGER.error("Failed to delete task with Session ");
+                }
                 return false;
             }
         } finally {
             doDeleteSessionData(localSessionId);
         }
+    }
+
+    private boolean isDestroySessionRes(Long localSessionId, int sessionId, DeviceIPPortInfo device) {
+        boolean destroySessionRes =
+            HiProfilerClient.getInstance().requestDestroySession(device.getIp(), device.getForwardPort(), sessionId);
+        if (destroySessionRes) {
+            DataPoller dataPoller = dataPollerHashMap.get(localSessionId);
+            if (dataPoller != null) {
+                dataPoller.shutDown();
+            }
+        }
+        return destroySessionRes;
     }
 
     /**
@@ -591,16 +706,25 @@ public class SessionManager {
      * @param localSessionId localSessionId
      */
     private void doDeleteSessionData(Long localSessionId) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("doDeleteSessionData");
+        }
         if (localSessionId != null && localSessionId > 0) {
             boolean traceFile = ProfilerChartsView.sessionMap.get(localSessionId).getPublisher().isTraceFile();
             if (!traceFile) {
+                CpuService.getInstance().deleteSessionData(localSessionId);
                 MemoryService.getInstance().deleteSessionData(localSessionId);
+                DiskIoService.getInstance().deleteSessionData(localSessionId);
+                AbilityService.getInstance().deleteSessionData(localSessionId);
                 deleteAllAgentData(localSessionId, true);
             }
         }
     }
 
     private void deleteAllAgentData(Long localSessionId, boolean deleteClassInfo) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("deleteAllAgentData");
+        }
         if (memoTable == null) {
             memoTable = new MemoryTable();
         }
@@ -628,6 +752,9 @@ public class SessionManager {
      * Used to notify the end side to close all session connections after the IDE is closed.
      */
     public void stopAllSession() {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("stopAllSession");
+        }
         if (profilingSessions.isEmpty()) {
             return;
         }
@@ -653,6 +780,9 @@ public class SessionManager {
      * @return boolean
      */
     public boolean saveSessionDataToFile(long sessionId, DeviceProcessInfo deviceProcessInfo, String pathname) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("saveSessionDataToFile");
+        }
         if (sessionId <= 0 || deviceProcessInfo == null || StringUtils.isEmpty(pathname)) {
             return false;
         }
@@ -661,7 +791,9 @@ public class SessionManager {
         List<MemoryHeapInfo> memoryHeapInfos = new MemoryHeapManager().getAllMemoryHeapInfos(sessionId);
         List<MemoryInstanceDetailsInfo> detailsInfos = new MemoryInstanceDetailsManager().getAllMemoryInstanceDetails();
         ArrayList<MemoryUpdateInfo> memoryInstanceInfos = new MemoryInstanceManager().getAllMemoryInstanceInfos();
+        List<DiskIOData> sysDiskIoInfoList = DiskIoService.getInstance().getAllData(sessionId);
         List<ProcessCpuData> cpuInfoList = CpuDao.getInstance().getAllData(sessionId);
+
         FileOutputStream fileOutputStream = null;
         ObjectOutputStream objectOutputStream = null;
         try {
@@ -671,7 +803,7 @@ public class SessionManager {
             // Start importing the number of meminfo in an object record file
             TraceFileInfo startObj = new TraceFileInfo();
             int recordNum = memInfoList.size() + classInfos.size() + memoryHeapInfos.size() + detailsInfos.size()
-                + memoryInstanceInfos.size() + cpuInfoList.size();
+                + memoryInstanceInfos.size() + sysDiskIoInfoList.size() + cpuInfoList.size();
             startObj.setRecordNum(recordNum);
             startObj.setCreateTime(new Date().getTime());
             // Set the trace file version, the subsequent file save content format changes and is not compatible with
@@ -682,13 +814,21 @@ public class SessionManager {
             for (int index = 0; index < memInfoList.size(); index++) {
                 setDeviceProcessInfo(deviceProcessInfo, memInfoList, objectOutputStream, index);
             }
+            for (DiskIOData sysDiskIoInfo : sysDiskIoInfoList) {
+                objectOutputStream.writeObject(sysDiskIoInfo);
+            }
             for (ProcessCpuData processCpuData : cpuInfoList) {
                 objectOutputStream.writeObject(processCpuData);
             }
             writeCollectionData(objectOutputStream, classInfos, memoryHeapInfos, detailsInfos, memoryInstanceInfos);
             objectOutputStream.writeObject(deviceProcessInfo);
-            PrintUtil.print(LOGGER, "Task with Session ID {} Save To File successfully.", 0);
+            if (ProfilerLogManager.isInfoEnabled()) {
+                LOGGER.info("Task with Session ID {} Save To File successfully.");
+            }
         } catch (IOException exception) {
+            if (ProfilerLogManager.isErrorEnabled()) {
+                LOGGER.error(exception.getMessage());
+            }
             return false;
         } finally {
             closeIoStream(null, null, fileOutputStream, objectOutputStream);
@@ -707,6 +847,9 @@ public class SessionManager {
      */
     private void setDeviceProcessInfo(DeviceProcessInfo deviceProcessInfo, List<ProcessMemInfo> memInfoList,
         ObjectOutputStream objectOutputStream, int index) throws IOException {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("setDeviceProcessInfo");
+        }
         ProcessMemInfo memObject = memInfoList.get(index);
         objectOutputStream.writeObject(memObject);
         if (index == 0) {
@@ -720,6 +863,9 @@ public class SessionManager {
     private void writeCollectionData(ObjectOutputStream objectOutputStream, List<ClassInfo> classInfos,
         List<MemoryHeapInfo> memoryHeapInfos, List<MemoryInstanceDetailsInfo> detailsInfos,
         ArrayList<MemoryUpdateInfo> memoryInstanceInfos) throws IOException {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("writeCollectionData");
+        }
         for (ClassInfo classInfo : classInfos) {
             objectOutputStream.writeObject(classInfo);
         }
@@ -744,6 +890,9 @@ public class SessionManager {
      * @return Optional<DeviceProcessInfo>
      */
     public Optional<DeviceProcessInfo> localSessionDataFromFile(JProgressBar jProgressBar, File file) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("localSessionDataFromFile");
+        }
         if (jProgressBar == null || file == null) {
             return Optional.ofNullable(null);
         }
@@ -773,7 +922,9 @@ public class SessionManager {
                 }
                 return Optional.empty();
             }
-            LOGGER.error("load Data Error {}", exception.getMessage());
+            if (ProfilerLogManager.isErrorEnabled()) {
+                LOGGER.error("load Data Error {}", exception.getMessage());
+            }
             return Optional.empty();
         } finally {
             closeIoStream(fileInputStream, objectInputStream, null, null);
@@ -788,9 +939,13 @@ public class SessionManager {
 
     private DeviceProcessInfo loadFileInDataBase(JProgressBar jProgressBar, TraceFileInfo traceFileInfo,
         ObjectInputStream objectInputStream) throws IOException, ClassNotFoundException {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("loadFileInDataBase");
+        }
         long objNum = traceFileInfo.getRecordNum() + 1;
         long currentNum = 0;
-        Validate[] validates = {new CpuValidate(), new MemoryValidate()};
+        intDbDao();
+        Validate[] validates = {new CpuValidate(), new MemoryValidate(), new DiskIoValidate()};
         while (true) {
             Object object = objectInputStream.readObject();
             for (Validate item : validates) {
@@ -821,7 +976,19 @@ public class SessionManager {
         }
     }
 
+    private void intDbDao() {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("intDbDao");
+        }
+        if (abilityTable == null) {
+            abilityTable = new AbilityTable();
+        }
+    }
+
     private void loadPercentage(JProgressBar jProgressBar, long objNum, long currentNum) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("loadPercentage");
+        }
         int progress = (int) (currentNum * LayoutConstants.HUNDRED / objNum);
         double result = progress % 25;
         if (result == 0) {
@@ -831,32 +998,43 @@ public class SessionManager {
 
     private void closeIoStream(FileInputStream fileInputStream, ObjectInputStream objectInputStream,
         FileOutputStream fileOutputStream, ObjectOutputStream objectOutputStream) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("closeIoStream");
+        }
         if (fileInputStream != null) {
             try {
                 fileInputStream.close();
             } catch (IOException exception) {
-                LOGGER.error("exception:{}", exception.getMessage());
+                if (ProfilerLogManager.isErrorEnabled()) {
+                    LOGGER.error("exception:{}", exception.getMessage());
+                }
             }
         }
         if (objectInputStream != null) {
             try {
                 objectInputStream.close();
             } catch (IOException exception) {
-                LOGGER.error("exception:{}", exception.getMessage());
+                if (ProfilerLogManager.isErrorEnabled()) {
+                    LOGGER.error("exception:{}", exception.getMessage());
+                }
             }
         }
         if (fileOutputStream != null) {
             try {
                 fileOutputStream.close();
             } catch (IOException exception) {
-                LOGGER.error("exception:{}", exception.getMessage());
+                if (ProfilerLogManager.isErrorEnabled()) {
+                    LOGGER.error("exception:{}", exception.getMessage());
+                }
             }
         }
         if (objectOutputStream != null) {
             try {
                 objectOutputStream.close();
             } catch (IOException exception) {
-                LOGGER.error("exception:{}", exception.getMessage());
+                if (ProfilerLogManager.isErrorEnabled()) {
+                    LOGGER.error("exception:{}", exception.getMessage());
+                }
             }
         }
     }
@@ -867,6 +1045,9 @@ public class SessionManager {
      * @param device device
      */
     public void deleteSessionByOffLineDevice(DeviceIPPortInfo device) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("deleteSessionByOffLineDevice");
+        }
         if (profilingSessions.isEmpty() || device == null) {
             return;
         }
@@ -881,7 +1062,7 @@ public class SessionManager {
                     QuartzManager.getInstance().deleteExecutor(keepSessionName);
                     // 停止chart刷新
                     ProfilerChartsView.sessionMap.get(session).getPublisher().stopRefresh(true);
-                    profilingSessions.remove(session);
+                    removeLocalSessionData(session);
                 }
             }
         }
@@ -893,17 +1074,18 @@ public class SessionManager {
      * @return String plugin Path
      */
     public String getPluginPath() {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("getPluginPath");
+        }
         String pluginPath = "";
-        if (IS_DEVELOP_MODE || developMode) {
-            pluginPath = "C:\\ohos\\";
-        } else {
-            PluginId plugin = PluginManager.getPluginByClassName(this.getClass().getName());
-            if (plugin != null) {
-                File path = PluginManager.getPlugin(plugin).getPath();
-                try {
-                    pluginPath = path.getCanonicalPath() + File.separator + "ohos" + File.separator;
-                } catch (IOException ioException) {
-                    LOGGER.error("ioException ", ioException);
+        PluginId plugin = PluginManager.getPluginByClassName(this.getClass().getName());
+        if (plugin != null) {
+            File path = PluginManager.getPlugin(plugin).getPath();
+            try {
+                pluginPath = path.getCanonicalPath() + File.separator + "ohos" + File.separator;
+            } catch (IOException ioException) {
+                if (ProfilerLogManager.isErrorEnabled()) {
+                    LOGGER.error("exception:{}", ioException.getMessage());
                 }
             }
         }
@@ -916,13 +1098,7 @@ public class SessionManager {
      * @return String temp Path
      */
     public String tempPath() {
-        String pluginPath = "";
-        if (IS_DEVELOP_MODE || developMode) {
-            pluginPath = "C:\\ohos\\";
-        } else {
-            pluginPath = PathManager.getTempPath() + File.separator + "ohos" + File.separator;
-        }
-        return pluginPath;
+        return PathManager.getTempPath() + File.separator + "ohos" + File.separator;
     }
 
     /**
@@ -931,10 +1107,14 @@ public class SessionManager {
      * @return String
      */
     public String getHdcPath() {
-        if (System.getProperty("os.name").toLowerCase(Locale.ROOT).contains("mac")) {
-            return getPluginPath() + "macHdc" + File.separator + "hdc";
+        String value = PropertiesComponent.getInstance().getValue("huawei.sdk.location");
+        if (StringUtils.isBlank(value)) {
+            if (ProfilerLogManager.isInfoEnabled()) {
+                LOGGER.info("sdk path is null");
+            }
+            return "hdc";
         } else {
-            return getPluginPath() + "winHdc" + File.separator + "hdc";
+            return value + File.separator + "toolchains" + File.separator + "hdc";
         }
     }
 
@@ -944,10 +1124,14 @@ public class SessionManager {
      * @return String
      */
     public String getHdcStdPath() {
-        if (System.getProperty("os.name").toLowerCase(Locale.ROOT).contains("mac")) {
-            return getPluginPath() + "macHdc" + File.separator + "hdc_std";
+        String value = PropertiesComponent.getInstance().getValue("oh.sdk.location");
+        if (StringUtils.isBlank(value)) {
+            if (ProfilerLogManager.isInfoEnabled()) {
+                LOGGER.info("sdk path is null");
+            }
+            return "hdc_std";
         } else {
-            return getPluginPath() + "winHdc" + File.separator + "hdc_std.exe";
+            return value + File.separator + "toolchains" + File.separator + "hdc_std";
         }
     }
 
@@ -975,10 +1159,6 @@ public class SessionManager {
         return "";
     }
 
-    public void setDevelopMode(boolean developMode) {
-        this.developMode = developMode;
-    }
-
     /**
      * export File
      *
@@ -987,6 +1167,9 @@ public class SessionManager {
      * @return boolean
      */
     public boolean exportDumpOrHookFile(String exportFileName, ExportFileChooserDialog fileChooserDialog) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("exportDumpOrHookFile");
+        }
         // not get from device
         int line;
         boolean result = true;
@@ -996,8 +1179,8 @@ public class SessionManager {
         try {
             // Excuting an order
             fileOut = new FileOutputStream(
-                fileChooserDialog.getExportFilePath() + File.separator + fileChooserDialog.getExportFileName()
-                    + "." + fileChooserDialog.getFileType());
+                fileChooserDialog.getExportFilePath() + File.separator + fileChooserDialog.getExportFileName() + "."
+                    + fileChooserDialog.getFileType());
             dataOut = new BufferedOutputStream(fileOut);
             try (InputStream inputStream = new FileInputStream(file);
                 BufferedInputStream brInputStream = new BufferedInputStream(inputStream);) {
@@ -1005,11 +1188,15 @@ public class SessionManager {
                     dataOut.write(line);
                 }
             } catch (IOException exception) {
-                LOGGER.error("exception {}", exception.getMessage());
+                if (ProfilerLogManager.isErrorEnabled()) {
+                    LOGGER.error("exception {}", exception.getMessage());
+                }
                 result = false;
             }
         } catch (IOException exception) {
-            LOGGER.error("exception {}", exception.getMessage());
+            if (ProfilerLogManager.isErrorEnabled()) {
+                LOGGER.error("exception {}", exception.getMessage());
+            }
             result = false;
         } finally {
             try {
@@ -1018,7 +1205,9 @@ public class SessionManager {
                     fileOut.close();
                 }
             } catch (IOException exception) {
-                LOGGER.error("exception {}", exception.getMessage());
+                if (ProfilerLogManager.isErrorEnabled()) {
+                    LOGGER.error("exception {}", exception.getMessage());
+                }
                 result = false;
             }
         }
@@ -1032,10 +1221,26 @@ public class SessionManager {
      * @return DeviceType
      */
     public DeviceType getDeviceType(long sessionId) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("getDeviceType");
+        }
         SessionInfo sessionInfo = profilingSessions.get(sessionId);
         if (sessionInfo == null || sessionInfo.getDeviceIPPortInfo() == null) {
             return LEAN_HOS_DEVICE;
         }
         return sessionInfo.getDeviceIPPortInfo().getDeviceType();
+    }
+
+    /**
+     * Setting Permissions
+     */
+    public void settingPermissions() {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("settingPermissions");
+        }
+        if (System.getProperty("os.name").toLowerCase().contains("mac")) {
+            String pluginPath = getPluginPath();
+            HdcWrapper.getInstance().execCmdBy(conversionCommand(CHMOD_TO_OHOS, pluginPath));
+        }
     }
 }

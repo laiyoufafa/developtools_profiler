@@ -20,16 +20,15 @@ import com.intellij.openapi.util.IconLoader;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBPanel;
-import net.miginfocom.swing.MigLayout;
-import ohos.devtools.views.common.ColorConstants;
-import ohos.devtools.views.trace.component.AnalystPanel;
-import ohos.devtools.views.trace.util.Db;
-
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
+import net.miginfocom.swing.MigLayout;
+import ohos.devtools.views.trace.component.AnalystPanel;
+import ohos.devtools.views.trace.util.Db;
+
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableRowSorter;
@@ -197,14 +196,14 @@ public class QuerySqlPanel extends JBPanel {
         previousButton.setIcon(AllIcons.Actions.Play_back);
         previousButton.setBounds(BUTTON_X, 0, PREVIOUS_BUTTON_WIDTH, PREVIOUS_BUTTON_HEIGHT);
         topJPanel.setBounds(0, 0, optionJPanel.getWidth(), TOP_HEIGHT);
-        topJPanel.setBackground(ColorConstants.ABILITY_COLOR);
+        topJPanel.setBackground(JBColor.background().darker());
         topJPanel.add(previousButton);
         inputLabel.setFont(font);
         inputLabel.setText("Enter query and press cmd/ctrl + Enter");
         inputLabel.setBounds(MARGIN_X, INPUT_Y, LABEL_WIDTH, LABEL_HEIGHT);
         textField.setBounds(MARGIN_X, TEXT_FIELD_Y, optionJPanel.getWidth() - 100, TEXT_FIELD_HEIGHT);
         centerJPanel.setBounds(PANEL_MARGIN_X, CENTER_Y, optionJPanel.getWidth(), CENTER_HEIGHT);
-        centerJPanel.setBackground(ColorConstants.ABILITY_COLOR);
+        centerJPanel.setBackground(JBColor.background().darker());
         bottomLabel.setFont(font);
         bottomLabel.setText("");
         errorLabel.setFont(font);
@@ -212,7 +211,7 @@ public class QuerySqlPanel extends JBPanel {
         errorLabel.setForeground(errorColor);
         errorLabel.setText("");
         bottomJPanel.setBounds(PANEL_MARGIN_X, BOTTOM_Y, optionJPanel.getWidth(), BOTTOM_HEIGHT);
-        bottomJPanel.setBackground(ColorConstants.ABILITY_COLOR);
+        bottomJPanel.setBackground(JBColor.background().darker());
         this.setPreferredSize(new Dimension(optionJPanel.getWidth(), optionJPanel.getHeight() / HALF));
     }
 

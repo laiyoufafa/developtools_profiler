@@ -36,7 +36,7 @@ import java.util.concurrent.CompletableFuture;
 /**
  * cpu data
  *
- * @date 2021/04/22 12:25
+ * @since 2021/04/22 12:25
  */
 public class CpuDataFragment extends AbstractDataFragment<CpuData> implements CpuData.IEventListener {
     /**
@@ -221,18 +221,20 @@ public class CpuDataFragment extends AbstractDataFragment<CpuData> implements Cp
         super.mouseMoved(event);
         showTipCpuData = null;
         if (edgeInspect(event)) {
-            data.stream().filter(
-                    cpuData -> cpuData.getStartTime() +
-                        cpuData.getDuration() > startNS && cpuData.getStartTime() < endNS)
-                .forEach(cpuData -> {
-                    cpuData.onMouseMove(event);
-                    if (cpuData.edgeInspect(event)) {
-                        if (!cpuData.flagFocus) {
-                            cpuData.flagFocus = true;
-                            cpuData.onFocus(event);
+            if (data != null) {
+                data.stream().filter(
+                        cpuData -> cpuData.getStartTime() + cpuData.getDuration() > startNS
+                            && cpuData.getStartTime() < endNS)
+                    .forEach(cpuData -> {
+                        cpuData.onMouseMove(event);
+                        if (cpuData.edgeInspect(event)) {
+                            if (!cpuData.flagFocus) {
+                                cpuData.flagFocus = true;
+                                cpuData.onFocus(event);
+                            }
                         }
-                    }
-                });
+                    });
+            }
         }
     }
 
@@ -243,8 +245,6 @@ public class CpuDataFragment extends AbstractDataFragment<CpuData> implements Cp
      */
     @Override
     public void mouseReleased(MouseEvent event) {
-        data.clear();
-        repaint();
     }
 
     /**
@@ -254,12 +254,10 @@ public class CpuDataFragment extends AbstractDataFragment<CpuData> implements Cp
      */
     @Override
     public void keyReleased(KeyEvent event) {
-        data.clear();
-        repaint();
     }
 
     /**
-     * Click event
+     * click event
      *
      * @param evt event
      * @param data data

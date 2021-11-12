@@ -17,6 +17,7 @@ package ohos.devtools.datasources.databases.datatable;
 
 import ohos.devtools.datasources.databases.databasepool.AbstractDataStore;
 import ohos.devtools.datasources.databases.datatable.enties.ProcessCpuData;
+import ohos.devtools.datasources.utils.profilerlog.ProfilerLogManager;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -29,6 +30,8 @@ import java.util.Optional;
 
 /**
  * Cpu table
+ *
+ * @since 2021/10/22 15:55
  */
 public class CpuTable extends AbstractDataStore {
     private static final Logger LOGGER = LogManager.getLogger(CpuTable.class);
@@ -45,6 +48,9 @@ public class CpuTable extends AbstractDataStore {
      * initialization
      */
     private void initialize() {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("initialize");
+        }
         // processCpuInfo
         List<String> processCpuInfo = new ArrayList() {
             {
@@ -72,17 +78,29 @@ public class CpuTable extends AbstractDataStore {
      * @return boolean
      */
     public boolean insertProcessCpuInfo(List<ProcessCpuData> processCpuData) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("insertProcessCpuInfo");
+        }
         return insertAppInfoBatch(processCpuData);
     }
 
     private boolean insertAppInfoBatch(List<ProcessCpuData> processCpuDataList) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("insertAppInfoBatch");
+        }
         Optional<Connection> option = getConnectByTable("processCpuInfo");
         if (option.isPresent()) {
             Connection conn = option.get();
             PreparedStatement pst = null;
             try {
-                pst = conn.prepareStatement(
-                    "INSERT OR IGNORE INTO processCpuInfo(session, sessionId, timeStamp, Data) VALUES (?, ?, ?, ?)");
+                pst = conn.prepareStatement("INSERT OR IGNORE "
+                    + "INTO "
+                    + "processCpuInfo("
+                    + "session, "
+                    + "sessionId, "
+                    + "timeStamp, "
+                    + "Data) "
+                    + "VALUES (?, ?, ?, ?)");
                 conn.setAutoCommit(false);
                 if (processCpuDataList != null && processCpuDataList.size() > 0) {
                     for (ProcessCpuData processCpuData : processCpuDataList) {
@@ -98,7 +116,9 @@ public class CpuTable extends AbstractDataStore {
                     return true;
                 }
             } catch (SQLException exception) {
-                LOGGER.error("insert CPU data {}", exception.getMessage());
+                if (ProfilerLogManager.isErrorEnabled()) {
+                    LOGGER.error("insert CPU data {}", exception.getMessage());
+                }
             } finally {
                 close(pst, conn);
             }

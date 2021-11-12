@@ -19,15 +19,17 @@ import com.intellij.ui.JBColor;
 import ohos.devtools.views.applicationtrace.DataPanel;
 import ohos.devtools.views.applicationtrace.analysis.AnalysisEnum;
 import ohos.devtools.views.applicationtrace.util.TimeUtils;
+import ohos.devtools.views.perftrace.PerfColorUtil;
+import ohos.devtools.views.perftrace.bean.PrefSample;
 import ohos.devtools.views.trace.AbstractNode;
 import ohos.devtools.views.trace.Common;
 import ohos.devtools.views.trace.util.Final;
 import ohos.devtools.views.trace.util.Utils;
 
-import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
+import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -35,8 +37,6 @@ import java.util.List;
 /**
  * TreeTableBean
  *
- * @version 1.0
- * @date: 2021/5/26 15:38
  */
 public class TreeTableBean extends AbstractNode {
     /**
@@ -52,19 +52,19 @@ public class TreeTableBean extends AbstractNode {
     private String prefParentStackId;
     private String name;
     private String total;
-    private long totalNum = 0;
+    private long totalNum = 0L;
     private double totalPercentNum = 0;
-    private long selfNum = 0;
+    private long selfNum = 0L;
     private String selfPercent = "0";
     private double selfPercentNum = 0;
-    private long childrenNum = 0;
+    private long childrenNum = 0L;
     private double childrenPercentNum = 0;
     private long childrenNS;
     private String childrenPercent;
     private boolean isUserWrite = false;
     private int containType = 0; // 0 OK 1 There are keywords 2 children there are keywords 3 there are no keywords
     private List<Integer> childrens = new ArrayList<>();
-    private long threadDur = 0;
+    private long threadDur = 0L;
 
     /**
      * constructor
@@ -449,7 +449,15 @@ public class TreeTableBean extends AbstractNode {
             }
         }
         if (DataPanel.analysisEnum.equals(AnalysisEnum.APP)) {
-            paint.setColor(PERF_FLAME_VENDOR);
+            paint.setColor(PerfColorUtil.PERF_FLAME_VENDOR);
+        } else {
+            if (name.contains("(") || name.contains(PrefSample.KERNEL) || name.contains(".so")) {
+                paint.setColor(PerfColorUtil.getPerfMethod(this));
+            } else if (name.contains(".")) {
+                paint.setColor(PerfColorUtil.getJavaMethod(this));
+            } else {
+                paint.setColor(PerfColorUtil.getPerfMethod(this));
+            }
         }
         paint.fillRect(Utils.getX(rect), Utils.getY(rect), rect.width, rect.height);
         if (rect.width > 1) {

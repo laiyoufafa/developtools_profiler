@@ -235,6 +235,17 @@ public class CustomListFilerModel<E> extends AbstractListModel<E> {
     }
 
     /**
+     * toArray
+     *
+     * @return Object[]
+     */
+    public Object[] toArray() {
+        Object[] rv = new Object[items.size()];
+        items.copyInto(rv);
+        return rv;
+    }
+
+    /**
      * get
      *
      * @param index index

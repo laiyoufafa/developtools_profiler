@@ -28,7 +28,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 /**
  * test the ContentPanel class
  *
- * @date: 2021/4/24 18:03
+ * @since 2021/4/24 18:03
  */
 class ContentPanelTest {
     private JFrame testFrame;

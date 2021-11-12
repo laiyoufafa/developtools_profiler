@@ -29,13 +29,15 @@ import java.util.List;
  */
 public class CpuValidate extends Validate {
     private boolean registerCpu;
-    private CpuTable cpuTable = new CpuTable();
-    private List<ProcessCpuData> cpuList = new ArrayList<>();
+    private CpuTable cpuTable;
+    private List<ProcessCpuData> cpuList;
 
     /**
      * CpuValidate
      */
     public CpuValidate() {
+        cpuTable = new CpuTable();
+        cpuList = new ArrayList();
     }
 
     @Override

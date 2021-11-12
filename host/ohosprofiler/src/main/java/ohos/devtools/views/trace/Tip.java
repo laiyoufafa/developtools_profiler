@@ -35,9 +35,9 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * Tip Panel
+ * Tip
  *
- * @date: 2021/5/28 19:32
+ * @since 2021/5/28 19:32
  */
 public class Tip extends JBPanel {
     private static final int LEFT_PADDING = 10;
@@ -113,7 +113,7 @@ public class Tip extends JBPanel {
      *
      * @param source source
      * @param point point
-     * @param stringList List<String>
+     * @param stringList stringList
      */
     public void display(Component source, Point point, List<String> stringList) {
         if (Objects.isNull(stringList)) {
@@ -135,7 +135,7 @@ public class Tip extends JBPanel {
      * display current tip
      *
      * @param event event
-     * @param stringList List<String>
+     * @param stringList stringList
      */
     public void display(MouseEvent event, List<String> stringList) {
         display(event.getComponent(), event.getPoint(), stringList);

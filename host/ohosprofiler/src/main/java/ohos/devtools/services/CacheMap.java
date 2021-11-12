@@ -25,12 +25,13 @@ import java.util.Map;
  * @param <V> v
  */
 public class CacheMap<K, V> extends LinkedHashMap<K, V> {
+
     /**
      * Cache max size
      *
      * @see "Cache about 40 seconds of data"
      */
-    private static final int CACHE_MAX_SIZE = 1000;
+    private static final int CACHE_MAX_SIZE = 1500;
 
     /**
      * Map default load factor

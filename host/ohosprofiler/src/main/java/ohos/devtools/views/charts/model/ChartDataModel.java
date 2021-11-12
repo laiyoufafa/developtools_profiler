@@ -25,7 +25,7 @@ public class ChartDataModel {
 
     private String name;
 
-    private double cpuPercent;
+    private double doubleValue;
 
     private Color color;
 
@@ -63,17 +63,17 @@ public class ChartDataModel {
         this.value = value;
     }
 
-    public double getCpuPercent() {
-        return cpuPercent;
+    public double getDoubleValue() {
+        return doubleValue;
     }
 
-    public void setCpuPercent(double cpuPercent) {
-        this.cpuPercent = cpuPercent;
+    public void setDoubleValue(double cpuPercent) {
+        this.doubleValue = cpuPercent;
     }
 
     @Override
     public String toString() {
-        return "ChartDataModel{" + "index=" + index + ", name='" + name + '\'' + ", cpuPercent=" + cpuPercent
+        return "ChartDataModel{" + "index=" + index + ", name='" + name + '\'' + ", doubleValue=" + doubleValue
             + ", color=" + color + ", value=" + value + '}';
     }
 }
