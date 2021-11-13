@@ -16,6 +16,7 @@
 package ohos.devtools.services.memory.agentbean;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * Memory Heap Info
@@ -67,6 +68,7 @@ public class MemoryHeapInfo implements Serializable {
      * The total size of all instances in the heap memory (array lengthobject size at the corresponding end)
      */
     private Long shallowSize;
+
     /**
      * createTime
      */
@@ -296,5 +298,39 @@ public class MemoryHeapInfo implements Serializable {
      */
     public void setUpdateTime(long updateTime) {
         this.updateTime = updateTime;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return super.equals(obj);
+    }
+
+    @Override
+    protected Object clone() throws CloneNotSupportedException {
+        return super.clone();
+    }
+
+    @Override
+    public String toString() {
+        return "MemoryHeapInfo{"
+            + "id=" + id
+            + ", cId=" + cId
+            + ", heapId=" + heapId
+            + ", sessionId=" + sessionId
+            + ", className='" + className + '\''
+            + ", allocations=" + allocations
+            + ", deallocations=" + deallocations
+            + ", totalCount=" + totalCount
+            + ", shallowSize=" + shallowSize
+            + ", createTime=" + createTime
+            + ", instanceId=" + instanceId
+            + ", updateTime=" + updateTime
+            + '}';
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, cId, heapId, sessionId, className, allocations, deallocations, totalCount, shallowSize,
+            createTime, instanceId, updateTime);
     }
 }

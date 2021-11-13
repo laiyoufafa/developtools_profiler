@@ -18,8 +18,7 @@ package ohos.devtools.views.trace.bean;
 /**
  * cup thread entity class
  *
- * @version 1.0
- * @date 2021/04/22 12:25
+ * @since 2021/04/22 12:25
  */
 public class CPUThreadBean {
     private long avgDuration;
@@ -68,8 +67,7 @@ public class CPUThreadBean {
     }
 
     /**
-     * Sets the avgDuration .
-     * <p>You can use getAvgDuration() to get the value of avgDuration</p>
+     * Sets the avgDuration .You can use getAvgDuration() to get the value of avgDuration
      *
      * @param avgDuration avgDuration
      */
@@ -87,8 +85,7 @@ public class CPUThreadBean {
     }
 
     /**
-     * Sets the wallDuration .
-     * <p>You can use getWallDuration() to get the value of wallDuration</p>
+     * Sets the wallDuration .You can use getWallDuration() to get the value of wallDuration
      *
      * @param wallDuration wallDuration
      */
@@ -106,8 +103,7 @@ public class CPUThreadBean {
     }
 
     /**
-     * Sets the pid .
-     * <p>You can use getPid() to get the value of pid</p>
+     * Sets the pid .You can use getPid() to get the value of pid
      *
      * @param pid pid
      */
@@ -125,8 +121,7 @@ public class CPUThreadBean {
     }
 
     /**
-     * Sets the tid .
-     * <p>You can use getTid() to get the value of tid</p>
+     * Sets the tid .You can use getTid() to get the value of tid
      *
      * @param tid tid
      */
@@ -144,8 +139,7 @@ public class CPUThreadBean {
     }
 
     /**
-     * Sets the occurrences .
-     * <p>You can use getOccurrences() to get the value of occurrences</p>
+     * Sets the occurrences .You can use getOccurrences() to get the value of occurrences
      *
      * @param occurrences occurrences
      */
@@ -163,8 +157,7 @@ public class CPUThreadBean {
     }
 
     /**
-     * Sets the process .
-     * <p>You can use getProcess() to get the value of process</p>
+     * Sets the process .You can use getProcess() to get the value of process
      *
      * @param process process
      */
@@ -182,8 +175,7 @@ public class CPUThreadBean {
     }
 
     /**
-     * Sets the thread .
-     * <p>You can use getThread() to get the value of thread</p>
+     * Sets the thread .You can use getThread() to get the value of thread
      *
      * @param thread thread
      */

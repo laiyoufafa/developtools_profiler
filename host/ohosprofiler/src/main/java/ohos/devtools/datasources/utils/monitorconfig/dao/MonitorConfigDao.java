@@ -16,8 +16,8 @@
 package ohos.devtools.datasources.utils.monitorconfig.dao;
 
 import ohos.devtools.datasources.databases.databasepool.AbstractDataStore;
-import ohos.devtools.datasources.utils.common.util.PrintUtil;
 import ohos.devtools.datasources.utils.monitorconfig.entity.MonitorInfo;
+import ohos.devtools.datasources.utils.profilerlog.ProfilerLogManager;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -27,7 +27,6 @@ import java.util.List;
  * 监控项配置数据的dao层
  */
 public class MonitorConfigDao extends AbstractDataStore {
-    // 日志
     private static final Logger LOGGER = LogManager.getLogger(MonitorConfigDao.class);
     private static volatile MonitorConfigDao singleton;
 
@@ -57,12 +56,19 @@ public class MonitorConfigDao extends AbstractDataStore {
      * @return boolean
      */
     public boolean insertMonitorInfo(MonitorInfo monitorInfo) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("insertMonitorInfo");
+        }
         boolean result = false;
         result = insert(monitorInfo);
         if (result) {
-            PrintUtil.print(LOGGER, "local session Data written to the table successfully", 1);
+            if (ProfilerLogManager.isInfoEnabled()) {
+                LOGGER.info("local session Data written to the table successfully");
+            }
         } else {
-            PrintUtil.print(LOGGER, "local session Failed to write data to table", 1);
+            if (ProfilerLogManager.isInfoEnabled()) {
+                LOGGER.info("local session Failed to write data to table");
+            }
         }
         return true;
     }

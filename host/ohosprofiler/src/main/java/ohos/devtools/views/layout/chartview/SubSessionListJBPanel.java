@@ -26,6 +26,8 @@ public class SubSessionListJBPanel extends JBPanel {
 
     private CustomJLabel hosJLabel;
 
+    private CustomJLabel timeJLabel;
+
     private String panelName;
 
     private String dbPath;
@@ -36,6 +38,14 @@ public class SubSessionListJBPanel extends JBPanel {
 
     public void setHosJLabel(CustomJLabel hosJLabel) {
         this.hosJLabel = hosJLabel;
+    }
+
+    public CustomJLabel getTimeJLabel() {
+        return timeJLabel;
+    }
+
+    public void setTimeJLabel(CustomJLabel timeJLabel) {
+        this.timeJLabel = timeJLabel;
     }
 
     public String getStartTime() {

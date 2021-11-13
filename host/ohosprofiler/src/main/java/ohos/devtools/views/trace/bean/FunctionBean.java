@@ -29,7 +29,7 @@ import java.awt.event.MouseEvent;
 /**
  * Method entity class
  *
- * @date 2021/04/22 12:25
+ * @since 2021/04/22 12:25
  */
 public class FunctionBean extends AbstractGraph {
     @DField(name = "tid")
@@ -71,8 +71,7 @@ public class FunctionBean extends AbstractGraph {
     }
 
     /**
-     * Sets the tid .
-     * <p>You can use getTid() to get the value of tid</p>
+     * Sets the tid .You can use getTid() to get the value of tid
      *
      * @param pTid pTid
      */
@@ -90,8 +89,7 @@ public class FunctionBean extends AbstractGraph {
     }
 
     /**
-     * Sets the threadName .
-     * <p>You can use getThreadName() to get the value of threadName</p>
+     * Sets the threadName .You can use getThreadName() to get the value of threadName
      *
      * @param name name
      */
@@ -109,8 +107,7 @@ public class FunctionBean extends AbstractGraph {
     }
 
     /**
-     * Sets the isMainThread .
-     * <p>You can use getIsMainThread() to get the value of isMainThread</p>
+     * Sets the isMainThread .You can use getIsMainThread() to get the value of isMainThread
      *
      * @param mainThread mainThread
      */
@@ -128,8 +125,7 @@ public class FunctionBean extends AbstractGraph {
     }
 
     /**
-     * Sets the trackId .
-     * <p>You can use getTrackId() to get the value of trackId</p>
+     * Sets the trackId .You can use getTrackId() to get the value of trackId
      *
      * @param id id
      */
@@ -147,8 +143,7 @@ public class FunctionBean extends AbstractGraph {
     }
 
     /**
-     * Sets the startTime .
-     * <p>You can use getStartTime() to get the value of startTime</p>
+     * Sets the startTime .You can use getStartTime() to get the value of startTime
      *
      * @param time time
      */
@@ -343,7 +338,7 @@ public class FunctionBean extends AbstractGraph {
          * Click event
          *
          * @param event event
-         * @param data  data
+         * @param data data
          */
         void click(MouseEvent event, FunctionBean data);
 
@@ -351,7 +346,7 @@ public class FunctionBean extends AbstractGraph {
          * Focus cancel event
          *
          * @param event event
-         * @param data  data
+         * @param data data
          */
         void blur(MouseEvent event, FunctionBean data);
 
@@ -359,7 +354,7 @@ public class FunctionBean extends AbstractGraph {
          * Focus acquisition event
          *
          * @param event event
-         * @param data  data
+         * @param data data
          */
         void focus(MouseEvent event, FunctionBean data);
 
@@ -367,9 +362,8 @@ public class FunctionBean extends AbstractGraph {
          * Mouse movement event
          *
          * @param event event
-         * @param data  data
+         * @param data data
          */
         void mouseMove(MouseEvent event, FunctionBean data);
     }
-
 }

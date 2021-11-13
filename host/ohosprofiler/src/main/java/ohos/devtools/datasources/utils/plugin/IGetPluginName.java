@@ -19,9 +19,10 @@ import ohos.devtools.datasources.utils.device.entity.DeviceIPPortInfo;
 import ohos.devtools.datasources.utils.process.entity.ProcessInfo;
 
 /**
- * GetPluginName Interface
+ * IGetPluginName
  */
 public interface IGetPluginName {
+
     /**
      * getPluginName
      *

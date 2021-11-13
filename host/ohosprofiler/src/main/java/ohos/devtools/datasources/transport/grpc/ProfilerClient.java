@@ -20,6 +20,7 @@ import io.grpc.ManagedChannelBuilder;
 import io.grpc.StatusRuntimeException;
 import ohos.devtools.datasources.transport.grpc.service.IProfilerServiceGrpc;
 import ohos.devtools.datasources.transport.grpc.service.ProfilerServiceTypes;
+import ohos.devtools.datasources.utils.profilerlog.ProfilerLogManager;
 import ohos.devtools.views.common.LayoutConstants;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -59,9 +60,12 @@ public class ProfilerClient {
      * @param channel channel
      */
     public ProfilerClient(String host, int port, ManagedChannel channel) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("ProfilerClient");
+        }
         this.host = host;
         this.port = port;
-        if (channel == null) {
+        if (channel == null || channel.isShutdown() || channel.isTerminated()) {
             this.channel = ManagedChannelBuilder.forAddress(host, port).usePlaintext().build();
         } else {
             this.channel = channel;
@@ -75,6 +79,9 @@ public class ProfilerClient {
      * @return IProfilerServiceGrpc.IProfilerServiceBlockingStub
      */
     public IProfilerServiceGrpc.IProfilerServiceBlockingStub getProfilerClient() {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("getProfilerClient");
+        }
         return profilerBlockInClient;
     }
 
@@ -87,6 +94,9 @@ public class ProfilerClient {
      */
     public ProfilerServiceTypes.GetCapabilitiesResponse getCapabilities(
         ProfilerServiceTypes.GetCapabilitiesRequest getCapabilitiesRequest) throws StatusRuntimeException {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("getProfilerClient");
+        }
         ProfilerServiceTypes.GetCapabilitiesResponse res =
             profilerBlockInClient.withDeadlineAfter(LayoutConstants.FIVE, TimeUnit.SECONDS)
                 .getCapabilities(getCapabilitiesRequest);
@@ -102,6 +112,9 @@ public class ProfilerClient {
      */
     public ProfilerServiceTypes.CreateSessionResponse createSession(
         ProfilerServiceTypes.CreateSessionRequest createSessionRequest) throws StatusRuntimeException {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("createSession");
+        }
         ProfilerServiceTypes.CreateSessionResponse response =
             profilerBlockInClient.withDeadlineAfter(LayoutConstants.FIVE, TimeUnit.SECONDS)
                 .createSession(createSessionRequest);
@@ -117,6 +130,9 @@ public class ProfilerClient {
      */
     public ProfilerServiceTypes.StartSessionResponse startSession(
         ProfilerServiceTypes.StartSessionRequest startSessionRequest) throws StatusRuntimeException {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("startSession");
+        }
         ProfilerServiceTypes.StartSessionResponse response =
             profilerBlockInClient.withDeadlineAfter(LayoutConstants.THREE, TimeUnit.SECONDS)
                 .startSession(startSessionRequest);
@@ -132,6 +148,9 @@ public class ProfilerClient {
      */
     public Iterator<ProfilerServiceTypes.FetchDataResponse> fetchData(
         ProfilerServiceTypes.FetchDataRequest fetchDataRequest) throws StatusRuntimeException {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("fetchData");
+        }
         Iterator<ProfilerServiceTypes.FetchDataResponse> response =
             profilerBlockInClient.withMaxInboundMessageSize(Integer.MAX_VALUE)
                 .withMaxOutboundMessageSize(Integer.MAX_VALUE).fetchData(fetchDataRequest);
@@ -147,6 +166,9 @@ public class ProfilerClient {
      */
     public ProfilerServiceTypes.StopSessionResponse stopSession(
         ProfilerServiceTypes.StopSessionRequest stopSessionRequest) throws StatusRuntimeException {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("stopSession");
+        }
         ProfilerServiceTypes.StopSessionResponse response =
             profilerBlockInClient.withDeadlineAfter(3, TimeUnit.SECONDS).stopSession(stopSessionRequest);
         return response;
@@ -161,6 +183,9 @@ public class ProfilerClient {
      */
     public ProfilerServiceTypes.DestroySessionResponse destroySession(
         ProfilerServiceTypes.DestroySessionRequest destroyRequest) throws StatusRuntimeException {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("destroySession");
+        }
         ProfilerServiceTypes.DestroySessionResponse res =
             profilerBlockInClient.withDeadlineAfter(1, TimeUnit.SECONDS).destroySession(destroyRequest);
         return res;
@@ -175,8 +200,11 @@ public class ProfilerClient {
      */
     public ProfilerServiceTypes.KeepSessionResponse keepSession(
         ProfilerServiceTypes.KeepSessionRequest keepSessionRequest) throws StatusRuntimeException {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("keepSession");
+        }
         ProfilerServiceTypes.KeepSessionResponse res =
-            profilerBlockInClient.withDeadlineAfter(1, TimeUnit.SECONDS).keepSession(keepSessionRequest);
+            profilerBlockInClient.keepSession(keepSessionRequest);
         return res;
     }
 
@@ -185,9 +213,23 @@ public class ProfilerClient {
      */
     public void shutdown() {
         try {
+            if (ProfilerLogManager.isInfoEnabled()) {
+                LOGGER.info("shutdown");
+            }
             channel.shutdown().awaitTermination(1, TimeUnit.SECONDS);
         } catch (InterruptedException exception) {
-            LOGGER.error(exception.getMessage());
+            if (ProfilerLogManager.isErrorEnabled()) {
+                LOGGER.error(exception.getMessage());
+            }
         }
+    }
+
+    /**
+     * get ManagedChannel
+     *
+     * @return ManagedChannel
+     */
+    public ManagedChannel getChannel() {
+        return channel;
     }
 }

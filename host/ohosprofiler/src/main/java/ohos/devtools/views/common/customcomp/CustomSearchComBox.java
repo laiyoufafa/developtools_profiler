@@ -19,6 +19,7 @@ import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
+import ohos.devtools.views.common.UtConstant;
 import org.apache.commons.lang.StringUtils;
 
 import javax.swing.BorderFactory;
@@ -36,7 +37,7 @@ import java.util.List;
  * CustomSearchComBox
  */
 public class CustomSearchComBox extends JBPanel {
-    private CustomTextField selectedProcessName;
+    private CustomTextField selectedProcessTextField;
     private CustomTextField searchField;
     private JBList processList;
     private JBScrollPane processScrollPane;
@@ -48,13 +49,14 @@ public class CustomSearchComBox extends JBPanel {
      */
     public CustomSearchComBox() {
         this.setLayout(new BorderLayout());
-        selectedProcessName = new CustomTextField("device");
-        selectedProcessName.setBackground(JBColor.background());
-        selectedProcessName.setOpaque(true);
-        selectedProcessName.setForeground(JBColor.foreground().brighter());
-        selectedProcessName.setEditable(false);
-        selectedProcessName.setBorder(BorderFactory.createLineBorder(JBColor.background().darker(), 1));
-        this.add(selectedProcessName, BorderLayout.NORTH);
+        selectedProcessTextField = new CustomTextField("device");
+        selectedProcessTextField.setName(UtConstant.UT_DEVICE_PROCESS_PANEL_PROCESS_NAME);
+        selectedProcessTextField.setBackground(JBColor.background());
+        selectedProcessTextField.setOpaque(true);
+        selectedProcessTextField.setForeground(JBColor.foreground().brighter());
+        selectedProcessTextField.setEditable(false);
+        selectedProcessTextField.setBorder(BorderFactory.createLineBorder(JBColor.background().darker(), 1));
+        this.add(selectedProcessTextField, BorderLayout.NORTH);
         searchField = new CustomTextField("press");
         searchField.setBackground(JBColor.background());
         searchField.setOpaque(true);
@@ -70,7 +72,7 @@ public class CustomSearchComBox extends JBPanel {
         processScrollPane = new JBScrollPane(processList);
         processScrollPane.setVisible(false);
         this.add(processScrollPane, BorderLayout.SOUTH);
-        selectedProcessName.addMouseListener(new MouseAdapter() {
+        selectedProcessTextField.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent mouseEvent) {
                 if (mouseEvent.getClickCount() == 1) {
@@ -113,7 +115,7 @@ public class CustomSearchComBox extends JBPanel {
                 if (selectedValue instanceof String) {
                     String value = (String) selectedValue;
                     if (StringUtils.isNotBlank(value)) {
-                        selectedProcessName.setText(value);
+                        selectedProcessTextField.setText(value);
                         hidden();
                     }
                 }
@@ -169,14 +171,23 @@ public class CustomSearchComBox extends JBPanel {
      * @return String
      */
     public String getSelectedProcessName() {
-        return selectedProcessName.getText();
+        return selectedProcessTextField.getText();
+    }
+
+    /**
+     * getSelectedProcessTextFiled
+     *
+     * @return String
+     */
+    public CustomTextField getSelectedProcessTextFiled() {
+        return selectedProcessTextField;
     }
 
     /**
      * clearSelectedName
      */
     public void clearSelectedName() {
-        selectedProcessName.setText("");
+        selectedProcessTextField.setText("");
         if (!myListModel.isEmpty()) {
             myListModel.clear();
         }

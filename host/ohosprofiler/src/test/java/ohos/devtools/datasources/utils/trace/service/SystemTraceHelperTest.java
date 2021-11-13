@@ -30,7 +30,6 @@ import ohos.devtools.datasources.transport.grpc.service.MemoryPluginResult;
 import ohos.devtools.datasources.transport.grpc.service.ProfilerServiceTypes;
 import ohos.devtools.datasources.utils.common.GrpcException;
 import ohos.devtools.datasources.utils.device.entity.DeviceIPPortInfo;
-import ohos.devtools.datasources.utils.session.service.SessionManager;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -39,6 +38,8 @@ import java.io.IOException;
 
 /**
  * get Trace Data Test Class
+ *
+ * @since 2021/2/1 9:31
  */
 public class SystemTraceHelperTest {
     private static volatile Integer requestId = 1;
@@ -46,7 +47,7 @@ public class SystemTraceHelperTest {
     /**
      * grpcCleanup
      */
-    public GrpcCleanupRule grpcCleanup = new GrpcCleanupRule();
+    private GrpcCleanupRule grpcCleanup = new GrpcCleanupRule();
     private DeviceIPPortInfo deviceIPPortInfo;
     private ManagedChannel channel;
     private String serverName;
@@ -65,7 +66,6 @@ public class SystemTraceHelperTest {
      */
     @Before
     public void initObj() throws IOException {
-        SessionManager.getInstance().setDevelopMode(true);
         setDeviceInfo();
         getFeatureImpl = new MockProfilerServiceImplBase() {
             /**
@@ -200,11 +200,8 @@ public class SystemTraceHelperTest {
                 ProfilerServiceTypes.ProfilerPluginCapability.newBuilder()
                     .setName("/data/local/tmp/libptrace_plugin.z.so").setPath("/data/local/tmp/libptrace_plugin.z.so")
                     .build()).build();
-
-        ProfilerServiceTypes.GetCapabilitiesResponse reply =
-            ProfilerServiceTypes.GetCapabilitiesResponse.newBuilder().addCapabilities(pluginCapability)
-                .addCapabilities(pluginCapabilityPtrace).setStatus(0).build();
-        return reply;
+        return ProfilerServiceTypes.GetCapabilitiesResponse.newBuilder().addCapabilities(pluginCapability)
+            .addCapabilities(pluginCapabilityPtrace).setStatus(0).build();
     }
 
     private ProfilerServiceTypes.FetchDataResponse getFetchDataResponse() {
@@ -227,25 +224,8 @@ public class SystemTraceHelperTest {
         CommonTypes.ProfilerPluginData data =
             CommonTypes.ProfilerPluginData.newBuilder().setName("memory-plugin").setStatus(0)
                 .setData(aaa.toByteString()).build();
-        ProfilerServiceTypes.FetchDataResponse fetchDataResponse =
-            ProfilerServiceTypes.FetchDataResponse.newBuilder().setResponseId(123456789).setStatus(0).setHasMore(false)
-                .addPluginData(data).build();
-        return fetchDataResponse;
-    }
-
-    /**
-     * TraceManager get Singleton
-     *
-     * @tc.name: TraceManager getSingleton
-     * @tc.number: OHOS_JAVA_trace_TraceManager_getSingleton_0001
-     * @tc.desc: TraceManager getSingleton
-     * @tc.type: functional testing
-     * @tc.require: SR-032
-     */
-    @Test
-    public void getSingletonTest() {
-        SystemTraceHelper systemTraceHelper = SystemTraceHelper.getSingleton();
-        Assert.assertNotNull(systemTraceHelper);
+        return ProfilerServiceTypes.FetchDataResponse.newBuilder().setResponseId(123456789).setStatus(0)
+            .setHasMore(false).addPluginData(data).build();
     }
 
     private int getIntData() {
@@ -268,9 +248,11 @@ public class SystemTraceHelperTest {
      */
     @Test
     public void createSessionByTraceRequestTest() throws GrpcException {
-        SystemTraceHelper systemTraceHelper = SystemTraceHelper.getSingleton();
+        SystemTraceHelper systemTraceHelper = new SystemTraceHelper();
         ProfilerClient client = HiProfilerClient.getInstance().getProfilerClient("", 5001, channel);
-        String sessionId = systemTraceHelper.createSessionByTraceRequest(deviceIPPortInfo, "idle", 5, 10, true);
+        String sessionId = systemTraceHelper
+            .createSessionByTraceRequest(deviceIPPortInfo, "idle", 5, 10, "/data/local/tmp/hiprofiler_data.bytrace",
+                true);
         Assert.assertNotNull(sessionId);
     }
 
@@ -286,9 +268,11 @@ public class SystemTraceHelperTest {
      */
     @Test
     public void stopAndDestroySessionTest() throws GrpcException {
-        SystemTraceHelper systemTraceHelper = SystemTraceHelper.getSingleton();
+        SystemTraceHelper systemTraceHelper = new SystemTraceHelper();
         ProfilerClient client = HiProfilerClient.getInstance().getProfilerClient("", 5001, channel);
-        String sessionId = systemTraceHelper.createSessionByTraceRequest(deviceIPPortInfo, "idle", 5, 10, true);
+        String sessionId = systemTraceHelper
+            .createSessionByTraceRequest(deviceIPPortInfo, "idle", 5, 10, "/data/local/tmp/hiprofiler_data.bytrace",
+                true);
         systemTraceHelper.stopAndDestroySession(deviceIPPortInfo, sessionId);
     }
 }

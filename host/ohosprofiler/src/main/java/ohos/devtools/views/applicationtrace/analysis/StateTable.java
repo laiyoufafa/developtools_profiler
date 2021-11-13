@@ -44,8 +44,6 @@ import java.util.stream.Collectors;
 /**
  * StateTable
  *
- * @version 1.0
- * @date: 2021/5/12 16:34
  */
 public class StateTable extends EventPanel {
     private static final Map<String, String> STATUS_MAP = new HashedMap() {{
@@ -67,18 +65,19 @@ public class StateTable extends EventPanel {
      * table data source
      */
     public List<ThreadStateBean> dataSource = new ArrayList<>();
+
     private final int RowHeight = 25;
     private final int RowHeadHeight = 30;
+    private JBScrollPane jScrollPane;
+    private StateTableModel tableColumnModel;
+    private JBTable jbTable;
+    private TableRowSorter<StateTableModel> rowSorter;
     private List<EventTable.Col<ThreadStateBean>> columnNames = new ArrayList<>() {{
         add(new EventTable.Col<>("Thread State", ThreadStateBean::getState));
         add(new EventTable.Col<>("Duration", ThreadStateBean::getDuration));
         add(new EventTable.Col<>("%", ThreadStateBean::getPercent));
         add(new EventTable.Col<>("Occurrences", ThreadStateBean::getOccurrences));
     }};
-    private JBScrollPane jScrollPane;
-    private StateTableModel tableColumnModel;
-    private JBTable jbTable;
-    private TableRowSorter<StateTableModel> rowSorter;
 
     /**
      * structure function
@@ -130,7 +129,7 @@ public class StateTable extends EventPanel {
             if (AllData.threadMap.containsKey(threadId)) {
                 threads.addAll(AllData.threadMap.get(threadId).stream().filter(thread -> TimeUtils
                         .isRangeCross(startNS, endNS, thread.getStartTime(),
-                            thread.getStartTime() + thread.getDuration()))
+                                thread.getStartTime() + thread.getDuration()))
                     .collect(Collectors.toList()));
             }
         });

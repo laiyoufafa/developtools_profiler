@@ -32,7 +32,7 @@ import java.util.List;
 /**
  * FlameSearchChart
  *
- * @date 2021/04/22 12:25
+ * @since 2021/04/22 12:25
  */
 public class FlameSearchChart extends JBPanel {
     private JBScrollPane scrollPane;
@@ -50,7 +50,7 @@ public class FlameSearchChart extends JBPanel {
     /**
      * structure with listener
      *
-     * @param iAllThreadDataListener all thread listener
+     * @param iAllThreadDataListener   all thread listener
      * @param iOtherThreadDataListener other thread listener
      */
     public FlameSearchChart(IAllThreadDataListener iAllThreadDataListener,
@@ -93,7 +93,7 @@ public class FlameSearchChart extends JBPanel {
      * fresh current data
      *
      * @param datasource datasource
-     * @param dur dur
+     * @param dur        dur
      */
     public void freshData(List<DefaultMutableTreeNode> datasource, long dur) {
         flameChart.setAllNode(datasource, dur);

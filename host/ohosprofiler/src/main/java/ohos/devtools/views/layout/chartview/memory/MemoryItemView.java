@@ -26,7 +26,9 @@ import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.table.JBTable;
 import com.intellij.ui.treeStructure.treetable.ListTreeTableModelOnColumns;
 import net.miginfocom.swing.MigLayout;
+import ohos.devtools.datasources.transport.hdc.HdcWrapper;
 import ohos.devtools.datasources.utils.device.entity.DeviceType;
+import ohos.devtools.datasources.utils.profilerlog.ProfilerLogManager;
 import ohos.devtools.datasources.utils.session.entity.SessionInfo;
 import ohos.devtools.datasources.utils.session.service.SessionManager;
 import ohos.devtools.services.memory.agentbean.AgentHeapBean;
@@ -42,17 +44,26 @@ import ohos.devtools.views.charts.model.ChartLegendColorRect;
 import ohos.devtools.views.charts.model.ChartStandard;
 import ohos.devtools.views.charts.tooltip.TooltipItem;
 import ohos.devtools.views.common.LayoutConstants;
-import ohos.devtools.views.layout.chartview.MonitorItemDetail;
-import ohos.devtools.views.layout.chartview.ProfilerMonitorItem;
 import ohos.devtools.views.common.UtConstant;
 import ohos.devtools.views.common.customcomp.DottedLine;
 import ohos.devtools.views.common.treetable.ExpandTreeTable;
 import ohos.devtools.views.layout.chartview.ItemsView;
+import ohos.devtools.views.layout.chartview.MonitorItemDetail;
 import ohos.devtools.views.layout.chartview.MonitorItemView;
 import ohos.devtools.views.layout.chartview.ProfilerChartsView;
+import ohos.devtools.views.layout.chartview.ProfilerMonitorItem;
+import ohos.devtools.views.layout.chartview.memory.javaagent.AgentTreeTableRowSorter;
+import ohos.devtools.views.layout.chartview.memory.javaagent.MemoryAgentHeapInfoPanel;
+import ohos.devtools.views.layout.chartview.memory.javaagent.MemoryTreeTablePanel;
 import ohos.devtools.views.layout.chartview.observer.MemoryChartObserver;
+import ohos.devtools.views.layout.dialog.NativeRecordDialog;
+import ohos.devtools.views.layout.utils.EventTrackUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
+import javax.swing.BorderFactory;
 import javax.swing.BoundedRangeModel;
+import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -68,6 +79,7 @@ import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
 import javax.swing.tree.DefaultMutableTreeNode;
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
@@ -85,10 +97,12 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Vector;
 import java.util.concurrent.TimeUnit;
 
-import static ohos.devtools.views.layout.chartview.utils.ChartViewConstants.NUM_1024;
+import static ohos.devtools.datasources.transport.hdc.HdcStdCmdList.HDC_STD_START_NATIVE_HOOK;
+import static ohos.devtools.datasources.transport.hdc.HdcWrapper.conversionCommand;
 import static ohos.devtools.views.charts.utils.ChartUtils.divide;
 import static ohos.devtools.views.layout.chartview.MonitorItemDetail.MEM_CODE;
 import static ohos.devtools.views.layout.chartview.MonitorItemDetail.MEM_GRAPHICS;
@@ -96,11 +110,21 @@ import static ohos.devtools.views.layout.chartview.MonitorItemDetail.MEM_JAVA;
 import static ohos.devtools.views.layout.chartview.MonitorItemDetail.MEM_NATIVE;
 import static ohos.devtools.views.layout.chartview.MonitorItemDetail.MEM_OTHERS;
 import static ohos.devtools.views.layout.chartview.MonitorItemDetail.MEM_STACK;
+import static ohos.devtools.views.layout.chartview.utils.ChartViewConstants.NUM_1024;
 
 /**
  * Memory monitor item view
+ *
+ * @since : 2021/10/25
  */
 public class MemoryItemView extends MonitorItemView {
+    /**
+     * memory tootle Legend color
+     */
+    public static final Color MEMORY_FIRST_PANEL_COLOR = new JBColor(new Color(65, 155, 249), new Color(65, 155, 249));
+
+    private static final Logger LOGGER = LogManager.getLogger(MemoryItemView.class);
+
     /**
      * Splitter PROPORTION
      */
@@ -162,6 +186,7 @@ public class MemoryItemView extends MonitorItemView {
      */
     public JBSplitter instanceAndDetailSplitter = new JBSplitter(false, PROPORTION_SEGMENT_HEAP);
     private final JBLabel totalLabel = new JBLabel();
+    private final ChartLegendColorRect totalColor = new ChartLegendColorRect();
     private final JBLabel javaLabel = new JBLabel();
     private final ChartLegendColorRect javaColor = new ChartLegendColorRect();
     private final JBLabel nativeLabel = new JBLabel();
@@ -213,6 +238,9 @@ public class MemoryItemView extends MonitorItemView {
     }
 
     private void initLegendsComp() {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("initLegendsComp");
+        }
         totalLabel.setOpaque(false);
         totalLabel.setOpaque(false);
         javaLabel.setOpaque(false);
@@ -248,6 +276,9 @@ public class MemoryItemView extends MonitorItemView {
      * Add chart panel
      */
     private void addChart() {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("addChart");
+        }
         chart = generateChart();
         // Register the chart observer to the ProfilerChartsView and listen to the refresh events of the main interface
         chartObserver = new MemoryChartObserver(chart, bottomPanel.getSessionId(), true);
@@ -315,6 +346,10 @@ public class MemoryItemView extends MonitorItemView {
      * @param legends legends
      */
     private void initChartLegends(JBPanel legends) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("initChartLegends");
+        }
+        checkAndAdd(legends, totalColor);
         checkAndAdd(legends, totalLabel);
         checkAndAdd(legends, javaColor);
         checkAndAdd(legends, javaLabel);
@@ -331,6 +366,9 @@ public class MemoryItemView extends MonitorItemView {
     }
 
     private void checkAndAdd(JBPanel legends, Component component) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("checkAndAdd");
+        }
         boolean contain = false;
         for (Component legend : legends.getComponents()) {
             if (legend.equals(component)) {
@@ -352,9 +390,14 @@ public class MemoryItemView extends MonitorItemView {
                 BigDecimal totalMB = divide(new BigDecimal(chart.getListSum(lastModels, 0)), new BigDecimal(NUM_1024));
                 String totalText;
                 if (fold) {
-                    totalText = totalMB + chart.getAxisLabelY();
+                    String total = totalMB + chart.getAxisLabelY();
+                    totalText = String.format(Locale.ENGLISH, "Total:%s%s", total, chart.getAxisLabelY());
+                    totalColor.setColor(MEMORY_FIRST_PANEL_COLOR);
+                    totalColor.setOpaque(false);
+                    totalColor.setVisible(true);
                 } else {
                     totalText = String.format(Locale.ENGLISH, "Total:%s%s", totalMB, chart.getAxisLabelY());
+                    totalColor.setVisible(false);
                 }
                 totalLabel.setText(totalText);
                 totalLabel.setVisible(true);
@@ -376,6 +419,9 @@ public class MemoryItemView extends MonitorItemView {
      * @return Map <Monitor item, component of legend>
      */
     private Map<MonitorItemDetail, List<JComponent>> initItemLegends() {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("initItemLegends");
+        }
         Map<MonitorItemDetail, List<JComponent>> map = new HashMap<>();
         map.put(MEM_JAVA, Arrays.asList(javaColor, javaLabel));
         map.put(MEM_NATIVE, Arrays.asList(nativeColor, nativeLabel));
@@ -441,6 +487,9 @@ public class MemoryItemView extends MonitorItemView {
      * @param model data
      */
     private void refreshColorText(ChartLegendColorRect colorRect, JBLabel label, ChartDataModel model) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("refreshColorText");
+        }
         String showValue = divide(model.getValue(), NUM_1024).toString();
         String text = String.format(Locale.ENGLISH, "%s:%s%s", model.getName(), showValue, chart.getAxisLabelY());
         colorRect.setColor(model.getColor());
@@ -457,6 +506,9 @@ public class MemoryItemView extends MonitorItemView {
      * @return Total值
      */
     private String calcTotal(int time, LinkedHashMap<Integer, List<ChartDataModel>> dataMap) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("calcTotal");
+        }
         List<ChartDataModel> models = dataMap.get(time);
         if (models == null || models.size() == 0) {
             return "";
@@ -474,6 +526,9 @@ public class MemoryItemView extends MonitorItemView {
      * @return List
      */
     private List<TooltipItem> buildTooltipItems(int time, LinkedHashMap<Integer, List<ChartDataModel>> dataMap) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("buildTooltipItems");
+        }
         List<TooltipItem> tooltipItems = new ArrayList<>();
         if (dataMap == null || dataMap.size() == 0 || dataMap.get(time) == null) {
             return tooltipItems;
@@ -491,6 +546,9 @@ public class MemoryItemView extends MonitorItemView {
      * chartLeftMouseClick
      */
     private void chartLeftMouseClick() {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("chartLeftMouseClick");
+        }
         long sessionId = this.bottomPanel.getSessionId();
         SessionInfo sessionInfo = SessionManager.getInstance().getSessionInfo(sessionId);
         if (!sessionInfo.isOfflineMode()
@@ -524,6 +582,9 @@ public class MemoryItemView extends MonitorItemView {
         SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
+                if (ProfilerLogManager.isInfoEnabled()) {
+                    LOGGER.info("refreshAgentHeapInfo");
+                }
                 if (memoryTreeTablePanel != null) {
                     MemoryAgentHeapInfoPanel memoryAgentHeapInfoPanel =
                         memoryTreeTablePanel.getMemoryAgentHeapInfoPanel();
@@ -535,9 +596,9 @@ public class MemoryItemView extends MonitorItemView {
                         agentTreeTable.setModel(tableModelOnColumns);
                         JScrollBar scrollBar = agentTreeTable.getVerticalScrollBar();
                         scrollBar.setValue(0);
-                        scrollBar.removeMouseMotionListener(memoryAgentHeapInfoPanel.mouseMotionAdapter);
+                        scrollBar.removeMouseMotionListener(memoryAgentHeapInfoPanel.getMouseMotionAdapter());
                         createMouseMotionAdapter(memoryAgentHeapInfoPanel, tableModelOnColumns, agentTreeTable);
-                        scrollBar.addMouseMotionListener(memoryAgentHeapInfoPanel.mouseMotionAdapter);
+                        scrollBar.addMouseMotionListener(memoryAgentHeapInfoPanel.getMouseListener());
                         AgentTreeTableRowSorter sorter =
                             new AgentTreeTableRowSorter(agentTreeTable.getTable().getModel());
                         sorter.setListener((columnIndex, sortOrder) -> {
@@ -563,7 +624,7 @@ public class MemoryItemView extends MonitorItemView {
 
     private void createMouseMotionAdapter(MemoryAgentHeapInfoPanel memoryAgentHeapInfoPanel,
         ListTreeTableModelOnColumns tableModelOnColumns, ExpandTreeTable agentTreeTable) {
-        memoryAgentHeapInfoPanel.mouseMotionAdapter = new MouseMotionAdapter() {
+        MouseMotionAdapter mouseMotionAdapter = new MouseMotionAdapter() {
             @Override
             public void mouseDragged(MouseEvent mouseEvent) {
                 JScrollBar jScrollBar = null;
@@ -580,16 +641,16 @@ public class MemoryItemView extends MonitorItemView {
                             Object rootObject = nodeModel.getRoot();
                             if (rootObject instanceof DefaultMutableTreeNode) {
                                 rootNode = (DefaultMutableTreeNode) rootObject;
-                                int index = memoryAgentHeapInfoPanel.allAgentDatas
-                                    .indexOf(memoryAgentHeapInfoPanel.lastDataNode);
+                                int index = memoryAgentHeapInfoPanel.getAllAgentDatas()
+                                    .indexOf(memoryAgentHeapInfoPanel.getLastDataNode());
                                 List<AgentHeapBean> list = memoryAgentHeapInfoPanel
-                                    .listCopy(memoryAgentHeapInfoPanel.allAgentDatas, index, index + 20);
+                                    .listCopy(memoryAgentHeapInfoPanel.getAllAgentDatas(), index, index + 20);
                                 for (AgentHeapBean agentDataNode : list) {
                                     DefaultMutableTreeNode defaultMutableTreeNode =
                                         new DefaultMutableTreeNode(agentDataNode);
                                     tableModelOnColumns
                                         .insertNodeInto(defaultMutableTreeNode, rootNode, rootNode.getChildCount());
-                                    memoryAgentHeapInfoPanel.lastDataNode = agentDataNode;
+                                    memoryAgentHeapInfoPanel.setLastDataNode(agentDataNode);
                                 }
                             }
                         }
@@ -597,6 +658,7 @@ public class MemoryItemView extends MonitorItemView {
                 }
             }
         };
+        memoryAgentHeapInfoPanel.setMouseMotionAdapter(mouseMotionAdapter);
     }
 
     /**
@@ -609,6 +671,9 @@ public class MemoryItemView extends MonitorItemView {
      * @return JBPanel
      */
     public JBPanel setSecondLevelTreeTable(long sessionId, int clazzId, String className, String chartName) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("setSecondLevelTreeTable");
+        }
         agentHeapSplitter.setProportion(LayoutConstants.PROPORTION_SEGMENT);
         // instance Table panel
         JBPanel instanceView = new JBPanel();
@@ -659,6 +724,9 @@ public class MemoryItemView extends MonitorItemView {
      * @param chartName chartName
      */
     public void initData(DefaultTableModel model, Integer cId, String className, long sessionId, String chartName) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("initData");
+        }
         MemoryInstanceManager memoryInstanceManager = new MemoryInstanceManager();
         ChartStandard standard = ProfilerChartsView.sessionMap.get(sessionId).getPublisher().getStandard();
         long firstTime = standard.getFirstTimestamp();
@@ -693,6 +761,9 @@ public class MemoryItemView extends MonitorItemView {
      * @return String
      */
     public String getSemiSimplifiedClockString(long micro) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("getSemiSimplifiedClockString");
+        }
         long micros = Math.max(0, micro);
         String result = getFullClockString(micros);
         return result;
@@ -706,6 +777,9 @@ public class MemoryItemView extends MonitorItemView {
      * @return String
      */
     public String getFullClockString(long micro) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("getFullClockString");
+        }
         long micros = Math.max(0, micro);
         long milli = TimeUnit.MICROSECONDS.toMillis(micros) % TimeUnit.SECONDS.toMillis(1);
         long sec = TimeUnit.MICROSECONDS.toSeconds(micros) % TimeUnit.MINUTES.toSeconds(1);
@@ -715,6 +789,9 @@ public class MemoryItemView extends MonitorItemView {
     }
 
     private void setExtracted(DefaultTableModel model, JBTable table) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("setExtracted");
+        }
         table.getTableHeader().setFont(new Font("PingFang SC", Font.PLAIN, LayoutConstants.FONT_SIZE));
         table.setFont(new Font("PingFang SC", Font.PLAIN, LayoutConstants.TWELVE));
         table.setOpaque(true);
@@ -735,6 +812,9 @@ public class MemoryItemView extends MonitorItemView {
      * @return JBPanel
      */
     public JBPanel setThirdLevelTreeTable(long sessionId, int instanceId, String name) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("setThirdLevelTreeTable");
+        }
         agentHeapSplitter.setProportion(PROPORTION_SEGMENT_VIEW);
         instanceAndDetailSplitter.setProportion(PROPORTION_SEGMENT_HEAP);
         // Reserved Tree Table panel
@@ -792,6 +872,9 @@ public class MemoryItemView extends MonitorItemView {
     }
 
     private void setTitleStyle(String name, JBPanel viewStyle, int status) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("setTitleStyle");
+        }
         JBLabel jbLabel = new JBLabel();
         if (status == 0) {
             jbLabel.setText("  Instance Details-" + name);
@@ -857,6 +940,9 @@ public class MemoryItemView extends MonitorItemView {
         }
 
         private void initFixedComps() {
+            if (ProfilerLogManager.isInfoEnabled()) {
+                LOGGER.info("initFixedComps");
+            }
             foldBtn = new JBLabel();
             foldBtn.setName(UtConstant.UT_MEMORY_ITEM_VIEW_FOLD);
             foldBtn.setIcon(AllIcons.General.ArrowRight);
@@ -872,6 +958,9 @@ public class MemoryItemView extends MonitorItemView {
         }
 
         private void foldBtnClick() {
+            if (ProfilerLogManager.isInfoEnabled()) {
+                LOGGER.info("foldBtnClick");
+            }
             fold = !fold;
             // Item fold, buttons hide
             hiddenComp.setVisible(!fold);
@@ -889,6 +978,7 @@ public class MemoryItemView extends MonitorItemView {
                     memoryTreeTablePanel = null;
                 }
             } else {
+                EventTrackUtils.getInstance().trackApplicationMemory();
                 // Uncheck the box after re-expanding
                 bottomPanel.getPublisher().getStandard().clearSelectedRange(item.getName());
                 chart.setFold(false);
@@ -902,20 +992,24 @@ public class MemoryItemView extends MonitorItemView {
         }
 
         private void initHiddenComponents() {
+            if (ProfilerLogManager.isInfoEnabled()) {
+                LOGGER.info("initHiddenComponents");
+            }
             hiddenComp = new JBPanel(new FlowLayout(FlowLayout.LEFT));
             hiddenComp.setBackground(JBColor.background().brighter());
             this.add(hiddenComp);
             // Add components
             hiddenComp.add(new DottedLine());
             initDetailCfgBtn();
-            initTrackingLabel();
-            initCollectBox();
             hiddenComp.add(new DottedLine());
             // The initial state is folded and hiddenComp needs to be hidden
             hiddenComp.setVisible(false);
         }
 
         private void initDetailCfgBtn() {
+            if (ProfilerLogManager.isInfoEnabled()) {
+                LOGGER.info("initDetailCfgBtn");
+            }
             detailCfgBtn = new JBLabel(IconLoader.getIcon("/images/icon_dataselection_normal.png", getClass()));
             detailCfgBtn.setName(UtConstant.UT_MEMORY_ITEM_VIEW_DETAIL);
             hiddenComp.add(detailCfgBtn);
@@ -928,15 +1022,67 @@ public class MemoryItemView extends MonitorItemView {
             });
         }
 
+        private void initHeapDumpBtn() {
+            if (ProfilerLogManager.isInfoEnabled()) {
+                LOGGER.info("initHeapDumpBtn");
+            }
+            heapDumpBtn = new JBLabel();
+            heapDumpBtn.setName(UtConstant.UT_MEMORY_ITEM_VIEW_HEAP_DUMP);
+            heapDumpBtn.setToolTipText("Memory heap dump");
+            Icon icon = IconLoader.getIcon("/images/icon_heap_dump_grey.png", getClass());
+            heapDumpBtn.setIcon(icon);
+            hiddenComp.add(heapDumpBtn);
+        }
+
         private void initTrackingLabel() {
+            if (ProfilerLogManager.isInfoEnabled()) {
+                LOGGER.info("initTrackingLabel");
+            }
             hiddenComp.add(new JBLabel("Allocation tracking"));
         }
 
         private void initCollectBox() {
+            if (ProfilerLogManager.isInfoEnabled()) {
+                LOGGER.info("initCollectBox");
+            }
             ComboBox<String> collectBox = new ComboBox<>();
             collectBox.setName(UtConstant.UT_MEMORY_ITEM_VIEW_COLLECT_BOX);
             collectBox.addItem("Full");
             hiddenComp.add(collectBox);
+        }
+
+        private void initNativeBtn() {
+            if (ProfilerLogManager.isInfoEnabled()) {
+                LOGGER.info("initNativeBtn");
+            }
+            nativeBtn = new JButton(" Record native allocations ");
+            DeviceType deviceType = SessionManager.getInstance().getDeviceType(bottomPanel.getSessionId());
+            if (deviceType == DeviceType.FULL_HOS_DEVICE) {
+                nativeBtn.setEnabled(false);
+                nativeBtn.setBackground(JBColor.background().brighter());
+            } else {
+                nativeBtn.setEnabled(true);
+                nativeBtn.setName("nativeBtn");
+                nativeBtn.setOpaque(false);
+                nativeBtn.addMouseListener(new MouseAdapter() {
+                    @Override
+                    public void mouseClicked(MouseEvent mouseEvent) {
+                        super.mouseClicked(mouseEvent);
+                        long sessionId = bottomPanel.getSessionId();
+                        SessionInfo sessionInfo = SessionManager.getInstance().getSessionInfo(sessionId);
+                        if (Objects.isNull(sessionInfo)) {
+                            ArrayList cmd =
+                                conversionCommand(HDC_STD_START_NATIVE_HOOK,
+                                        sessionInfo.getDeviceIPPortInfo().getDeviceID(),
+                                    String.valueOf(sessionInfo.getPid()));
+                            HdcWrapper.getInstance().execCmdBy(cmd);
+                            new NativeRecordDialog(bottomPanel, sessionId);
+                        }
+                    }
+                });
+                nativeBtn.setBorder(BorderFactory.createEmptyBorder());
+            }
+            hiddenComp.add(nativeBtn);
         }
     }
 

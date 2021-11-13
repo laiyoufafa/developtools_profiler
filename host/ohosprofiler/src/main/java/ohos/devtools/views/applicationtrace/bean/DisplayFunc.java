@@ -27,8 +27,7 @@ import java.util.List;
 /**
  * DisplayFunc
  *
- * @version 1.0
- * @date: 2021/5/13 13:22
+ * @since 2021/5/13 13:22
  */
 public class DisplayFunc extends Func {
     /**

@@ -16,6 +16,9 @@
 package ohos.devtools.datasources.transport.grpc;
 
 import ohos.devtools.datasources.transport.grpc.service.CpuPluginConfig;
+import ohos.devtools.datasources.utils.profilerlog.ProfilerLogManager;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.List;
 
@@ -23,6 +26,8 @@ import java.util.List;
  * cpu plug helper
  */
 public final class CpuPlugHelper {
+    private static final Logger LOGGER = LogManager.getLogger(CpuPlugHelper.class);
+
     private CpuPlugHelper() {
     }
 
@@ -32,6 +37,9 @@ public final class CpuPlugHelper {
      * @return MemoryConfig MemoryPluginConfig
      */
     public static CpuPluginConfig.CpuConfig createProcessRequest() {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("createProcessRequest");
+        }
         CpuPluginConfig.CpuConfig.Builder builder = CpuPluginConfig.CpuConfig.newBuilder();
         return builder.build();
     }
@@ -44,6 +52,9 @@ public final class CpuPlugHelper {
      * @return MemoryConfig MemoryPluginConfig
      */
     public static CpuPluginConfig.CpuConfig createCpuRequest(int pid) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("createCpuRequest");
+        }
         CpuPluginConfig.CpuConfig.Builder builder = CpuPluginConfig.CpuConfig.newBuilder();
         if (pid > 0) {
             builder.setPid(pid);
@@ -59,6 +70,9 @@ public final class CpuPlugHelper {
      * @return MemoryConfig MemoryPluginConfig
      */
     public static CpuPluginConfig.CpuConfig createCpuRequest(List<Integer> pids) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("createCpuRequest");
+        }
         CpuPluginConfig.CpuConfig.Builder builder = CpuPluginConfig.CpuConfig.newBuilder();
         return builder.build();
     }

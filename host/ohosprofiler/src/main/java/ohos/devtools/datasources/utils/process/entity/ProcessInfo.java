@@ -15,6 +15,8 @@
 
 package ohos.devtools.datasources.utils.process.entity;
 
+import java.util.Objects;
+
 /**
  * 进程实体
  */
@@ -84,9 +86,24 @@ public class ProcessInfo {
     }
 
     @Override
+    public boolean equals(Object obj) {
+        return super.equals(obj);
+    }
+
+    @Override
+    protected Object clone() throws CloneNotSupportedException {
+        return super.clone();
+    }
+
+    @Override
     public String toString() {
         return "ProcessInfo{" + "deviceId='" + deviceId + '\'' + ", processId=" + processId + ", processName='"
             + processName + '\'' + ", state=" + state + ", startTime=" + startTime + ", arch='" + arch + '\''
             + ", agentStatus='" + agentStatus + '\'' + '}';
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(deviceId, processId, processName, state, startTime, arch, agentStatus);
     }
 }

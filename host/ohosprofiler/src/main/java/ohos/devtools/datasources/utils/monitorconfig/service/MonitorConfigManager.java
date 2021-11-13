@@ -16,9 +16,9 @@
 package ohos.devtools.datasources.utils.monitorconfig.service;
 
 import com.alibaba.fastjson.JSONObject;
-import ohos.devtools.datasources.utils.common.util.PrintUtil;
 import ohos.devtools.datasources.utils.monitorconfig.dao.MonitorConfigDao;
 import ohos.devtools.datasources.utils.monitorconfig.entity.MonitorInfo;
+import ohos.devtools.datasources.utils.profilerlog.ProfilerLogManager;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -29,13 +29,16 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * 监控项配置管理类
+ * MonitorConfigManager
  */
 public class MonitorConfigManager {
+    private static final Logger LOGGER = LogManager.getLogger(MonitorConfigManager.class);
+
     /**
      * dataMap
      */
     public static ConcurrentHashMap<Long, Map<String, LinkedList<String>>> dataMap = new ConcurrentHashMap<>();
+    private static volatile MonitorConfigManager singleton;
 
     /**
      * getInstance
@@ -53,16 +56,6 @@ public class MonitorConfigManager {
         return singleton;
     }
 
-    /**
-     * 日志
-     */
-    private static final Logger LOGGER = LogManager.getLogger(MonitorConfigManager.class);
-
-    /**
-     * 单例
-     */
-    private static volatile MonitorConfigManager singleton;
-
     private MonitorConfigManager() {
     }
 
@@ -70,10 +63,13 @@ public class MonitorConfigManager {
      * analyzeCharTarget
      *
      * @param localSessionId localSessionId
-     * @param jsonMonitor jsonMonitor
+     * @param jsonMonitor    jsonMonitor
      * @return Map<String, LinkedList < String>>
      */
     public Map<String, LinkedList<String>> analyzeCharTarget(long localSessionId, JSONObject jsonMonitor) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("analyzeCharTarget");
+        }
         // 写表的实体对象传递
         MonitorInfo monitorInfo = null;
         LinkedList<MonitorInfo> monitorInfos = new LinkedList<>();
@@ -111,7 +107,9 @@ public class MonitorConfigManager {
         dataMap.put(localSessionId, monitors);
         // 解析后的数据先写表
         MonitorConfigDao.getInstance().insertMonitorInfos(monitorInfos);
-        PrintUtil.print(LOGGER, "analyze Chart Target success", 1);
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("analyze Chart Target success");
+        }
         // 返回界面所有配置(true)的指标项
         return monitors;
     }

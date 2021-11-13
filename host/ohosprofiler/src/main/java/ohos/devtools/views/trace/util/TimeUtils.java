@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
 /**
  * Time formatting tool
  *
- * @date 2021/04/22 12:25
+ * @since 2021/04/22 12:25
  */
 public final class TimeUtils {
     private static DecimalFormat df = new DecimalFormat("#.0");

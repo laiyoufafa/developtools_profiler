@@ -20,16 +20,21 @@ import ohos.devtools.views.layout.chartview.ItemsView;
 import ohos.devtools.views.layout.chartview.ProfilerChartsView;
 import ohos.devtools.views.layout.chartview.ProfilerMonitorItem;
 import ohos.devtools.views.layout.chartview.TaskScenePanelChart;
+import ohos.devtools.views.layout.chartview.memory.javaagent.MemoryAgentHeapInfoPanel;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
 /**
  * Memory Agent Heap Info Panel Test
+ *
+ * @since 2021/2/1 9:31
  */
 public class MemoryAgentHeapInfoPanelTest {
     private static final int TEST_START = 0;
+
     private static final int TEST_END = 1000;
+
     private MemoryItemView memoryItemView;
     private MemoryAgentHeapInfoPanel memoryAgentHeapInfoPanel;
     private ProfilerChartsView view;

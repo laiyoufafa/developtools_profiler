@@ -39,6 +39,7 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.TreeExpansionEvent;
 import javax.swing.event.TreeWillExpandListener;
+import javax.swing.table.JTableHeader;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.ExpandVetoException;
@@ -54,7 +55,7 @@ import java.util.Objects;
 /**
  * TopBottomPanel
  *
- * @date: 2021/5/24 11:57
+ * @since 2021/5/24 11:57
  */
 public class TopBottomPanel extends EventPanel {
     private JBTextField search = new JBTextField();
@@ -63,44 +64,50 @@ public class TopBottomPanel extends EventPanel {
     private int currentSortKey = 1;
     private SortOrder currentOrder = SortOrder.DESCENDING;
     private String searchText = "";
-    private ColumnInfo[] columns = new ColumnInfo[] {new TreeColumnInfo("Name"),
+    private ColumnInfo[] columns = new ColumnInfo[] {
+        new TreeColumnInfo("Name"),
         new TreeTableColumn<>("Total(µs)", TreeTableBean.class, Long.class) {
             @Override
             @NotNull
             Long getCompareValue(TreeTableBean nodeData) {
                 return nodeData.getTotalNum();
             }
-        }, new TreeTableColumn<>("%", TreeTableBean.class, Double.class) {
-        @Override
-        @NotNull
-        Double getCompareValue(TreeTableBean nodeData) {
-            return nodeData.getTotalPercentNum();
-        }
-    }, new TreeTableColumn<>("Self(µs)", TreeTableBean.class, Long.class) {
-        @Override
-        @NotNull
-        Long getCompareValue(TreeTableBean nodeData) {
-            return nodeData.getSelfNum();
-        }
-    }, new TreeTableColumn<>("%", TreeTableBean.class, Double.class) {
-        @Override
-        @NotNull
-        Double getCompareValue(TreeTableBean nodeData) {
-            return nodeData.getSelfPercentNum();
-        }
-    }, new TreeTableColumn<>("Children(µs)", TreeTableBean.class, Long.class) {
-        @Override
-        @NotNull
-        Long getCompareValue(TreeTableBean nodeData) {
-            return nodeData.getChildrenNum();
-        }
-    }, new TreeTableColumn<>("%", TreeTableBean.class, Double.class) {
-        @Override
-        @NotNull
-        Double getCompareValue(TreeTableBean nodeData) {
-            return nodeData.getChildrenPercentNum();
-        }
-    }};
+        },
+        new TreeTableColumn<>("%", TreeTableBean.class, Double.class) {
+            @Override
+            @NotNull
+            Double getCompareValue(TreeTableBean nodeData) {
+                return nodeData.getTotalPercentNum();
+            }
+        },
+        new TreeTableColumn<>("Self(µs)", TreeTableBean.class, Long.class) {
+            @Override
+            @NotNull
+            Long getCompareValue(TreeTableBean nodeData) {
+                return nodeData.getSelfNum();
+            }
+        },
+        new TreeTableColumn<>("%", TreeTableBean.class, Double.class) {
+            @Override
+            @NotNull
+            Double getCompareValue(TreeTableBean nodeData) {
+                return nodeData.getSelfPercentNum();
+            }
+        },
+        new TreeTableColumn<>("Children(µs)", TreeTableBean.class, Long.class) {
+            @Override
+            @NotNull
+            Long getCompareValue(TreeTableBean nodeData) {
+                return nodeData.getChildrenNum();
+            }
+        },
+        new TreeTableColumn<>("%", TreeTableBean.class, Double.class) {
+            @Override
+            @NotNull
+            Double getCompareValue(TreeTableBean nodeData) {
+                return nodeData.getChildrenPercentNum();
+            }
+        }};
     private ExpandTreeTable jbTreeTable;
     private IAllThreadDataListener iAllThreadDataListener;
     private IOtherThreadDataListener iOtherThreadDataListener;
@@ -115,7 +122,7 @@ public class TopBottomPanel extends EventPanel {
     /**
      * constructor with listener
      *
-     * @param iAllThreadDataListener all thread listener
+     * @param iAllThreadDataListener   all thread listener
      * @param iOtherThreadDataListener other thread listener
      */
     public TopBottomPanel(IAllThreadDataListener iAllThreadDataListener,
@@ -129,13 +136,14 @@ public class TopBottomPanel extends EventPanel {
      * get node contains keyword
      * Set node type 0 OK 1 based on keywords There are keywords 2 children there keywords 3 no keywords
      *
-     * @param node node
+     * @param node       node
      * @param searchText keyword
      * @return getNodeContainSearch
      */
-    public static boolean getNodeContainSearch(DefaultMutableTreeNode node, String searchText) {
+    public static boolean getNodeContainSearch(DefaultMutableTreeNode node,
+        String searchText) {
         boolean hasKeyWord = false;
-        if (searchText.isEmpty()) {
+        if (searchText == null || searchText.isEmpty()) {
             return false;
         }
         if (!node.isLeaf()) {
@@ -154,7 +162,8 @@ public class TopBottomPanel extends EventPanel {
                         } else {
                             bean.setContainType(3);
                         }
-                        if (nextElement.getUserObject().toString().toLowerCase(Locale.ENGLISH).contains(searchText)) {
+                        if (nextElement.getUserObject().toString()
+                                .toLowerCase(Locale.ENGLISH).contains(searchText)) {
                             hasKeyWord = true;
                             bean.setContainType(1);
                         }
@@ -198,7 +207,7 @@ public class TopBottomPanel extends EventPanel {
         search.setTextToTriggerEmptyTextStatus("Search");
         search.getDocument().addDocumentListener(new DocumentListener() {
             @Override
-            public void insertUpdate(DocumentEvent e) {
+            public void insertUpdate(DocumentEvent documentEvent) {
                 searchText = search.getText().toLowerCase(Locale.ENGLISH);
                 getNodeContainSearch(root, searchText);
                 treeResort(root);
@@ -207,7 +216,7 @@ public class TopBottomPanel extends EventPanel {
             }
 
             @Override
-            public void removeUpdate(DocumentEvent e) {
+            public void removeUpdate(DocumentEvent documentEvent) {
                 searchText = search.getText().toLowerCase(Locale.ENGLISH);
                 if (searchText.isEmpty()) {
                     resetAllNode(root);
@@ -220,7 +229,7 @@ public class TopBottomPanel extends EventPanel {
             }
 
             @Override
-            public void changedUpdate(DocumentEvent e) {
+            public void changedUpdate(DocumentEvent documentEvent) {
             }
         });
         add(search, "wrap");
@@ -231,6 +240,7 @@ public class TopBottomPanel extends EventPanel {
     private void initTree() {
         tableModelOnColumns = new ListTreeTableModelOnColumns(root, columns);
         jbTreeTable = new ExpandTreeTable(tableModelOnColumns);
+        jbTreeTable.getTable().setTableHeader(new JTableHeader(jbTreeTable.getTable().getColumnModel()));
         jbTreeTable.setColumnProportion(0.12F);
         jbTreeTable.getTree().addTreeWillExpandListener(new TreeWillExpandListener() {
             @Override

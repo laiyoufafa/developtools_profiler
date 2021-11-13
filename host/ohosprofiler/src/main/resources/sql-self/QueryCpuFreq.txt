@@ -1,1 +1,0 @@
-select cpu from cpu_measure_filter where (name='cpufreq' or name='cpu_frequency') order by cpu;

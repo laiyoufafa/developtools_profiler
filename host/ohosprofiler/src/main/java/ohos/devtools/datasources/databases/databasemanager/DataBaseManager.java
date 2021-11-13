@@ -19,6 +19,7 @@ import com.alibaba.druid.pool.DruidDataSource;
 import ohos.devtools.datasources.databases.databaseapi.DataBaseApi;
 import ohos.devtools.datasources.databases.databasepool.DataBase;
 import ohos.devtools.datasources.databases.databasepool.DataBaseHelper;
+import ohos.devtools.datasources.utils.profilerlog.ProfilerLogManager;
 import ohos.devtools.datasources.utils.session.service.SessionManager;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -44,17 +45,21 @@ import static ohos.devtools.datasources.databases.databasepool.DataTableHelper.g
 
 /**
  * Database creation class
+ *
+ * @since 2021/10/22 16:30
  */
 public class DataBaseManager {
     private static final Logger LOGGER = LogManager.getLogger(DataBaseManager.class);
-    private static final String DEFAULT_SQL = "defaultSql";
-    private static final String DEFAULT_DB_PROPER = "db.properties";
-    private static final String DEFAULT_DB_DRIVER = "org.sqlite.JDBC";
-    private static Set<String> dbLists = new HashSet<>();
 
-    private static class SingletonClassInstance {
-        private static final DataBaseManager INSTANCE = new DataBaseManager();
-    }
+    private static final String DEFAULT_SQL = "defaultSql";
+
+    private static final String DEFAULT_DB_PROPER = "db.properties";
+
+    private static final String DEFAULT_DB_DRIVER = "org.sqlite.JDBC";
+
+    private static final DataBaseManager INSTANCE = new DataBaseManager();
+
+    private static Set<String> dbLists = new HashSet<>();
 
     /**
      * getInstance
@@ -62,7 +67,10 @@ public class DataBaseManager {
      * @return DataBaseApi
      */
     public static DataBaseManager getInstance() {
-        return DataBaseManager.SingletonClassInstance.INSTANCE;
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("getInstance");
+        }
+        return DataBaseManager.INSTANCE;
     }
 
     private DataBaseManager() {
@@ -75,6 +83,9 @@ public class DataBaseManager {
      * @return boolean
      */
     public boolean initDefaultDataBase(DataBase dataBase) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("initDefaultDataBase");
+        }
         return createDataBase(dataBase);
     }
 
@@ -86,6 +97,9 @@ public class DataBaseManager {
      * @return boolean
      */
     public boolean initDefaultSql(DataBase dataBase) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("initDefaultSql");
+        }
         Properties properties = new Properties();
         Statement statement = null;
         Connection connection = null;
@@ -113,21 +127,21 @@ public class DataBaseManager {
                 }
             }
         } catch (IOException | SQLException exception) {
-            LOGGER.error("create Table Exception ", exception);
+            if (ProfilerLogManager.isErrorEnabled()) {
+                LOGGER.error(exception.getMessage());
+            }
             return false;
         } finally {
-            if (statement != null) {
-                try {
+            try {
+                if (statement != null) {
                     statement.close();
-                } catch (SQLException exception) {
-                    LOGGER.error(exception.getMessage());
                 }
-            }
-            if (connection != null) {
-                try {
+                if (connection != null) {
                     connection.close();
-                } catch (SQLException exception) {
-                    LOGGER.error(exception.getMessage());
+                }
+            } catch (SQLException sqlException) {
+                if (ProfilerLogManager.isErrorEnabled()) {
+                    LOGGER.error(sqlException.getMessage());
                 }
             }
         }
@@ -141,6 +155,9 @@ public class DataBaseManager {
      * @return boolean
      */
     public boolean createDataBase(String dbName) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("createDataBase");
+        }
         DataBase dataBase = DataBaseHelper.createDataBase();
         dataBase.setUrl(getUrlByDataBaseName(dbName));
         return createDataBase(dataBase);
@@ -153,6 +170,9 @@ public class DataBaseManager {
      * @return boolean
      */
     private boolean createDataBase(DataBase dataBase) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("createDataBase");
+        }
         if (dataBase == null || dataBase.getUrl() == null || StringUtils.isBlank(dataBase.getUrl())) {
             return false;
         }
@@ -162,12 +182,16 @@ public class DataBaseManager {
         }
         File dbFile = new File(dbPath);
         if (dbFile.exists()) {
-            boolean deletResult = dbFile.delete();
-            if (!deletResult) {
-                LOGGER.error("delete Error");
+            boolean deleteResult = dbFile.delete();
+            if (!deleteResult) {
+                if (ProfilerLogManager.isErrorEnabled()) {
+                    LOGGER.error("delete Error");
+                }
             }
         } else {
-            LOGGER.error("DB file not exit");
+            if (ProfilerLogManager.isErrorEnabled()) {
+                LOGGER.error("DB file not exit");
+            }
         }
         File parent = dbFile.getParentFile();
         if (parent != null) {
@@ -179,7 +203,9 @@ public class DataBaseManager {
             dbLists.add(dataBase.getUrl());
             return true;
         } catch (SQLException | ClassNotFoundException throwAbles) {
-            LOGGER.error("create DataBase failed {}", throwAbles.getMessage());
+            if (ProfilerLogManager.isErrorEnabled()) {
+                LOGGER.error("create DataBase failed {}", throwAbles.getMessage());
+            }
             return false;
         }
     }
@@ -191,6 +217,9 @@ public class DataBaseManager {
      * @return DataSource
      */
     public DataSource createDruidConnectionPool(DataBase dataBase) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("createDruidConnectionPool");
+        }
         boolean base = createDataBase(dataBase);
         if (!base) {
             return null;
@@ -209,7 +238,9 @@ public class DataBaseManager {
             dataSource.setTestOnBorrow(dataBase.isTestOnBorrow());
             dataSource.setTestOnReturn(dataBase.isTestOnReturn());
         } catch (SQLException throwAbles) {
-            LOGGER.error("create ConnectPoll {}", throwAbles.getMessage());
+            if (ProfilerLogManager.isErrorEnabled()) {
+                LOGGER.error("create ConnectPoll {}", throwAbles.getMessage());
+            }
         }
         return dataSource;
     }

@@ -15,12 +15,17 @@
 
 package ohos.devtools.datasources.utils.common.util;
 
+import ohos.devtools.datasources.utils.profilerlog.ProfilerLogManager;
 import ohos.devtools.views.common.LayoutConstants;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * 用于单个功能工具方法的提取保存。
  */
 public class CommonUtil {
+    private static final Logger LOGGER = LogManager.getLogger(CommonUtil.class);
+
     private CommonUtil() {
     }
 
@@ -33,6 +38,9 @@ public class CommonUtil {
      * @return Returns the initial collection size.
      */
     public static int collectionSize(int size) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("collectionSize");
+        }
         return (size <= 0) ? LayoutConstants.SIXTEEN : (int) (size / LayoutConstants.LOAD_FACTOR + 1.0F);
     }
 
@@ -42,6 +50,9 @@ public class CommonUtil {
      * @return Returns the initial collection size.
      */
     public static int getRequestId() {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("getRequestId");
+        }
         if (requestId == Integer.MAX_VALUE) {
             requestId = 1;
         }
@@ -56,6 +67,9 @@ public class CommonUtil {
      * @return String
      */
     public static String generateSessionName(String deviceName, int pid) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("generateSessionName");
+        }
         return deviceName + pid;
     }
 
@@ -65,6 +79,9 @@ public class CommonUtil {
      * @return Long
      */
     public static Long getLocalSessionId() {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("getLocalSessionId");
+        }
         return System.currentTimeMillis();
     }
 }

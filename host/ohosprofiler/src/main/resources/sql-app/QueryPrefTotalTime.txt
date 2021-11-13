@@ -1,1 +1,0 @@
-select max(timestamp) as endTime,min(timestamp) as startTime from perf_sample;

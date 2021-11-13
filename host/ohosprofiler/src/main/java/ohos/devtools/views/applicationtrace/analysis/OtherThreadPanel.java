@@ -21,13 +21,14 @@ import com.intellij.ui.components.JBTabbedPane;
 import com.intellij.util.ui.JBUI;
 import net.miginfocom.swing.MigLayout;
 import ohos.devtools.views.applicationtrace.AllData;
+import ohos.devtools.views.perftrace.PerfData;
 
 import java.util.Objects;
 
 /**
  * The OtherThreadPanel
  *
- * @date 2021/04/22 12:25
+ * @since 2021/04/22 12:25
  */
 public class OtherThreadPanel extends JBPanel {
     private JBTabbedPane otherThreadTab;
@@ -48,6 +49,10 @@ public class OtherThreadPanel extends JBPanel {
             topBottomPanel = new TopBottomPanel(null, AllData::getFuncTreeTopDown);
             bottomUpPanel = new TopBottomPanel(null, AllData::getFuncTreeBottomUp);
             flameSearchChart = new FlameSearchChart(null, AllData::getFuncTreeFlameChart);
+        } else {
+            topBottomPanel = new TopBottomPanel(null, PerfData::getFuncTreeTopDown);
+            bottomUpPanel = new TopBottomPanel(null, PerfData::getFuncTreeBottomUp);
+            flameSearchChart = new FlameSearchChart(null, PerfData::getFuncTreeFlameChart);
         }
         setBorder(JBUI.Borders.empty(5, 8));
         otherThreadTab.addTab("Summary", new OtherThreadSummaryPanel());

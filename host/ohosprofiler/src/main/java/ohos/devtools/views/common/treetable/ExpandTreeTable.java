@@ -27,7 +27,6 @@ import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
 import javax.swing.event.TreeExpansionEvent;
 import javax.swing.event.TreeExpansionListener;
-import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreePath;
 import java.awt.Component;
 import java.util.Vector;
@@ -39,10 +38,7 @@ public class ExpandTreeTable extends JBTreeTable {
     private static final Logger LOGGER = LogManager.getLogger(ExpandTreeTable.class);
     private final Vector<TreePath> expandList = new Vector<>();
     private final Vector<Integer> expandRowList = new Vector<>();
-    private long firstTime;
     private JScrollBar verticalScrollBar;
-    private int count = 100;
-    private int nextIndex = 0;
 
     /**
      * ExpandTreeTable
@@ -86,7 +82,6 @@ public class ExpandTreeTable extends JBTreeTable {
                         expandRowList.remove((Integer) rowForPathObject);
                     }
                 }
-                loadNodeCollapse(event);
             }
         });
     }
@@ -100,7 +95,6 @@ public class ExpandTreeTable extends JBTreeTable {
      */
     public void freshTreeExpand() {
         // Two executions are not allowed within 200 ms
-        firstTime = System.currentTimeMillis();
         expandList.forEach(item -> {
             if (!getTree().isExpanded(item)) {
                 getTree().expandPath(item);
@@ -140,23 +134,5 @@ public class ExpandTreeTable extends JBTreeTable {
                 }
             }
         });
-    }
-
-    /**
-     * loadNodeCollapse
-     *
-     * @param event event
-     */
-    private void loadNodeCollapse(TreeExpansionEvent event) {
-        DefaultMutableTreeNode currentNode = null;
-        Object lastPathComponentObject = event.getPath().getLastPathComponent();
-        if (lastPathComponentObject instanceof DefaultMutableTreeNode) {
-            currentNode = (DefaultMutableTreeNode) lastPathComponentObject;
-            Object userObj = currentNode.getUserObject();
-            currentNode.removeAllChildren();
-            // add None to proved node can expand
-            currentNode.add(new DefaultMutableTreeNode());
-            count = 0;
-        }
     }
 }

@@ -23,15 +23,16 @@ import ohos.devtools.datasources.databases.databaseapi.DataBaseApi;
 import ohos.devtools.datasources.utils.device.service.MultiDeviceManager;
 import ohos.devtools.datasources.utils.plugin.IPluginConfig;
 import ohos.devtools.datasources.utils.plugin.service.PlugManager;
-import ohos.devtools.datasources.utils.profilerlog.ProfilerLogManager;
 import ohos.devtools.datasources.utils.session.service.SessionManager;
 import ohos.devtools.pluginconfig.AgentConfig;
 import ohos.devtools.pluginconfig.BytraceConfig;
 import ohos.devtools.pluginconfig.CpuConfig;
 import ohos.devtools.pluginconfig.FtraceConfig;
+import ohos.devtools.pluginconfig.HilogConfig;
+import ohos.devtools.pluginconfig.HiperfConfig;
 import ohos.devtools.pluginconfig.MemoryConfig;
+import ohos.devtools.pluginconfig.ProcessConfig;
 import ohos.devtools.views.layout.HomePanel;
-import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -54,12 +55,17 @@ public class ProfilerToolWindowFactory implements ToolWindowFactory {
     @Override
     public void createToolWindowContent(@NotNull Project project, @NotNull ToolWindow toolWindow) {
         LOGGER.error("ohos Profiler Start OS is {}", System.getProperty("os.name"));
-        ProfilerLogManager.getSingleton().updateLogLevel(Level.ERROR);
+        SessionManager.getInstance().settingPermissions();
+        PlugManager.getInstance().unzipStdDevelopTools();
         DataBaseApi.getInstance().initDataSourceManager();
         MultiDeviceManager.getInstance().start();
         List<Class<? extends IPluginConfig>> plugConfigList = new ArrayList();
+        plugConfigList.add(ProcessConfig.class);
         plugConfigList.add(AgentConfig.class);
         plugConfigList.add(BytraceConfig.class);
+        plugConfigList.add(FtraceConfig.class);
+        plugConfigList.add(HilogConfig.class);
+        plugConfigList.add(HiperfConfig.class);
         plugConfigList.add(CpuConfig.class);
         plugConfigList.add(MemoryConfig.class);
         PlugManager.getInstance().loadingPlugs(plugConfigList);

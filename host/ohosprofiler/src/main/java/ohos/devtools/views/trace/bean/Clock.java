@@ -20,7 +20,7 @@ import ohos.devtools.views.trace.DField;
 /**
  * Clock
  *
- * @date 2021/08/25 00:31
+ * @since 2021/08/25 00:31
  */
 public class Clock {
     @DField(name = "name")

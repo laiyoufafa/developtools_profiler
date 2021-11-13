@@ -39,7 +39,7 @@ import static java.util.Objects.nonNull;
  * Draw data rows
  *
  * @param <T> Plot data type
- * @date 2021/04/22 12:25
+ * @since 2021/04/22 12:25
  */
 public abstract class AbstractDataFragment<T extends AbstractGraph> extends AbstractFragment {
     /**
@@ -302,6 +302,17 @@ public abstract class AbstractDataFragment<T extends AbstractGraph> extends Abst
     }
 
     /**
+     * The control component is drawn once
+     */
+    public void drawFrame() {
+        if (data != null) {
+            data.clear();
+            data = null;
+            repaint();
+        }
+    }
+
+    /**
      * Clear selection element
      */
     public void clearSelected() {
@@ -400,7 +411,7 @@ public abstract class AbstractDataFragment<T extends AbstractGraph> extends Abst
     /**
      * IDataFragment
      *
-     * @date 2021/04/22 12:25
+     * @since 2021/04/22 12:25
      */
     public interface IDataFragment {
         /**

@@ -51,7 +51,7 @@ import java.util.stream.Collectors;
 /**
  * Rolling container
  *
- * @date 2021/04/20 12:24
+ * @since 2021/04/20 12:24
  */
 public final class ContentPanel extends JBPanel implements AbstractDataFragment.IDataFragment {
     /**
@@ -211,6 +211,9 @@ public final class ContentPanel extends JBPanel implements AbstractDataFragment.
                     List<AbstractDataFragment> rangeFragments =
                         fragmentList.stream().filter(it -> range.intersects(it.getDataRect()))
                             .collect(Collectors.toList());
+
+                    // Draw after dragging
+                    rangeFragments.forEach(it -> it.drawFrame());
                     List<AbstractDataFragment> process = new ArrayList<>();
                     rangeFragments.stream().filter(it -> it instanceof ProcessDataFragment)
                         .map(it -> (ProcessDataFragment) it).forEach(it -> {
@@ -249,7 +252,7 @@ public final class ContentPanel extends JBPanel implements AbstractDataFragment.
     /**
      * add data line
      *
-     * @param index    line index
+     * @param index line index
      * @param fragment data fragment
      */
     public void addDataFragment(int index, AbstractDataFragment fragment) {
@@ -299,7 +302,7 @@ public final class ContentPanel extends JBPanel implements AbstractDataFragment.
      * time range change will call this
      *
      * @param startNS range start ns
-     * @param endNS   range end ns
+     * @param endNS range end ns
      */
     public void rangeChange(long startNS, long endNS) {
         this.startNS = startNS;
@@ -447,7 +450,7 @@ public final class ContentPanel extends JBPanel implements AbstractDataFragment.
     /**
      * Jump to the cpu line and select the node where startTime starts
      *
-     * @param cpu       cpu
+     * @param cpu cpu
      * @param startTime startTime
      */
     public void scrollToCpu(int cpu, long startTime) {
@@ -470,9 +473,9 @@ public final class ContentPanel extends JBPanel implements AbstractDataFragment.
     /**
      * Jump to the specified location
      *
-     * @param processId    processId
-     * @param tid          tid
-     * @param startTime    startTime
+     * @param processId processId
+     * @param tid tid
+     * @param startTime startTime
      * @param offsetHeight tab height
      */
     public void scrollToThread(int processId, int tid, long startTime, int offsetHeight) {

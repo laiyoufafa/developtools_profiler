@@ -33,6 +33,7 @@ import java.awt.Rectangle;
  * Hos JBComboBox
  */
 public class CustomJBComboBoxUI extends BasicComboBoxUI {
+
     /**
      * createUI
      *

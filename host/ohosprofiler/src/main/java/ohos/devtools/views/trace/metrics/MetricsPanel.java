@@ -17,10 +17,18 @@ package ohos.devtools.views.trace.metrics;
 
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.util.IconLoader;
+import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBPanel;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+import javax.swing.SwingUtilities;
+import javax.swing.SwingWorker;
+import ohos.devtools.views.common.UtConstant;
 import ohos.devtools.views.layout.SystemPanel;
-
 import ohos.devtools.views.layout.chartview.TaskScenePanelChart;
 import ohos.devtools.views.trace.component.AnalystPanel;
 import ohos.devtools.views.trace.metrics.strategy.MetricsContext;
@@ -29,14 +37,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JComboBox;
-import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
-import javax.swing.SwingUtilities;
-import javax.swing.SwingWorker;
-import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -220,23 +220,25 @@ public class MetricsPanel extends JBPanel {
         previousButton.setFont(font);
         previousButton.setIcon(AllIcons.Actions.Play_back);
         previousButton.setBounds(BUTTON_X, 0, PREVIOUS_BUTTON_WIDTH, PREVIOUS_BUTTON_HEIGHT);
-        Color color = new Color(0xFF494E52, true);
         topJPanel.setBounds(0, 0, optionJPanel.getWidth(), TOP_PANEL_HEIGHT);
-        topJPanel.setBackground(color);
+        topJPanel.setBackground(JBColor.background().darker());
         topJPanel.add(previousButton);
         inputLabel.setFont(font);
         inputLabel.setText("Select a metric");
         inputLabel.setBounds(0, 0, LABEL_WIDTH, LABEL_HEIGHT);
         metricSelect.setBounds(0, SELECT_Y, optionJPanel.getWidth() / QUARTER, RUN_BUTTON_HEIGHT);
+        metricSelect.setName(UtConstant.UT_METRICS_PANEL_SELECT);
         addSelectItem();
         runButton.setFont(font);
         runButton.setText("Run");
         runButton.setBounds(optionJPanel.getWidth() / QUARTER + RUN_BUTTON_MARGIN_LEFT, SELECT_Y, RUN_BUTTON_WIDTH,
             RUN_BUTTON_HEIGHT);
         centerJPanel.setBounds(CENTER_PANEL_X, CENTER_PANEL_Y, optionJPanel.getWidth(), CENTER_PANEL_HEIGHT);
+        centerJPanel.setBackground(JBColor.background().darker());
         resultTextArea.setFont(font);
         resultTextArea.setText("");
         resultTextArea.setEditable(false);
+        resultTextArea.setBackground(JBColor.background().darker());
         resultScroll = new JScrollPane(resultTextArea);
         resultScroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         resultScroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
@@ -244,7 +246,6 @@ public class MetricsPanel extends JBPanel {
         resultScroll.setBounds(0, 0, optionJPanel.getWidth() - BOTTOM_PANEL_MARGIN_RIGHT, bottomHeight);
         bottomJPanel
             .setBounds(BOTTOM_X, BOTTOM_Y, optionJPanel.getWidth() - BOTTOM_PANEL_MARGIN_RIGHT, bottomHeight);
-        bottomJPanel.setBackground(color);
         this.setPreferredSize(new Dimension(optionJPanel.getWidth(), optionJPanel.getHeight() / HALF));
     }
 

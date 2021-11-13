@@ -31,7 +31,7 @@ import java.util.function.Supplier;
 /**
  * TraceSimpleRow
  *
- * @date: 2021/5/18 13:56
+ * @since 2021/5/18 13:56
  */
 public class TraceSimpleRow<T extends AbstractNode> extends AbstractRow {
     private IRender render;
@@ -135,8 +135,6 @@ public class TraceSimpleRow<T extends AbstractNode> extends AbstractRow {
 
     /**
      * interface IRender
-     *
-     * @param <T> T
      */
     public interface IRender<T> {
         /**

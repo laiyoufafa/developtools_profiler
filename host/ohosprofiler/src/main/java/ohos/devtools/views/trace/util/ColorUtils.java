@@ -24,7 +24,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Color tool
  *
- * @date 2021/04/22 12:25
+ * @since 2021/04/22 12:25
  */
 public final class ColorUtils {
     /**
@@ -35,7 +35,8 @@ public final class ColorUtils {
     /**
      * Color array of all current columns
      */
-    public static final Color[] MD_PALETTE = new Color[] {new Color(0x3391ff), // red
+    public static final Color[] MD_PALETTE = new Color[] {
+        new Color(0x3391ff), // red
         new Color(0x0076ff), // pink
         new Color(0x66adff), // purple
         new Color(0x2db3aa), // deep purple

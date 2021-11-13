@@ -29,7 +29,7 @@ import static org.junit.Assert.assertEquals;
 /**
  * test CpuFragment class .
  *
- * @date 2021/4/24 17:54
+ * @since 2021/4/24 17:54
  */
 class CpuFragmentTest {
     /**

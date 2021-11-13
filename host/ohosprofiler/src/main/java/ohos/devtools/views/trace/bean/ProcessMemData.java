@@ -27,7 +27,7 @@ import java.awt.event.MouseEvent;
 /**
  * Process memory data
  *
- * @date 2021/04/22 12:25
+ * @since 2021/04/22 12:25
  */
 public class ProcessMemData extends AbstractGraph {
     private int maxValue;

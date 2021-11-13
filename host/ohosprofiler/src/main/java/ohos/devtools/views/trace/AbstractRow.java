@@ -28,6 +28,9 @@ import ohos.devtools.views.applicationtrace.bean.Func;
 import ohos.devtools.views.applicationtrace.bean.Thread;
 import ohos.devtools.views.applicationtrace.bean.VsyncAppBean;
 import ohos.devtools.views.applicationtrace.util.TimeUtils;
+import ohos.devtools.views.distributed.bean.DistributedFuncBean;
+import ohos.devtools.views.distributed.util.DistributedCommon;
+import ohos.devtools.views.perftrace.bean.PrefFunc;
 
 import javax.swing.Icon;
 import javax.swing.JButton;
@@ -45,7 +48,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * AbstractRow
  *
- * @date: 2021/5/20 15:50
  */
 public abstract class AbstractRow extends JBPanel {
     /**
@@ -136,7 +138,7 @@ public abstract class AbstractRow extends JBPanel {
     /**
      * isCollapsed
      *
-     * @return boolean isCollapsed
+     * @return isCollapsed
      */
     public boolean isCollapsed() {
         return myIsCollapsed;
@@ -230,10 +232,10 @@ public abstract class AbstractRow extends JBPanel {
         if (Objects.nonNull(finish)) {
             addComponentListener(new ComponentAdapter() {
                 @Override
-                public void componentResized(ComponentEvent event) {
-                    super.componentResized(event);
-                    if (defHeight != event.getComponent().getBounds().height) {
-                        finish.consume(event.getComponent().getBounds());
+                public void componentResized(ComponentEvent componentEvent) {
+                    super.componentResized(componentEvent);
+                    if (defHeight != componentEvent.getComponent().getBounds().height) {
+                        finish.consume(componentEvent.getComponent().getBounds());
                     }
                 }
             });
@@ -350,7 +352,7 @@ public abstract class AbstractRow extends JBPanel {
      * get the func is in this row
      *
      * @param func func
-     * @return boolean the row is contains func
+     * @return return the row is contains func
      */
     public boolean contains(Func func) {
         return func.getStartTs() + func.getDur() > getStartNS() && func.getStartTs() < getEndNS();
@@ -360,7 +362,7 @@ public abstract class AbstractRow extends JBPanel {
      * get the threadData is in this row
      *
      * @param threadData threadData
-     * @return boolean the row is contains threadData
+     * @return return the row is contains threadData
      */
     public boolean contains(Thread threadData) {
         return threadData.getStartTime() + threadData.getDuration() > getStartNS()
@@ -371,7 +373,7 @@ public abstract class AbstractRow extends JBPanel {
      * get the cpu is in this row
      *
      * @param cpu cpu
-     * @return boolean the row is contains Cpu
+     * @return return the row is contains Cpu
      */
     public boolean contains(Cpu cpu) {
         return cpu.getStartTime() + cpu.getDuration() > getStartNS() && cpu.getStartTime() < getEndNS();
@@ -381,7 +383,7 @@ public abstract class AbstractRow extends JBPanel {
      * get the CpuFreq is in this row
      *
      * @param item item
-     * @return boolean the row is contains CpuFreq
+     * @return return the row is contains CpuFreq
      */
     public boolean contains(CpuFreq item) {
         return item.getStartTime() + item.getDuration() > getStartNS() && item.getStartTime() < getEndNS();
@@ -391,7 +393,7 @@ public abstract class AbstractRow extends JBPanel {
      * get the VsyncAppBean is in this row
      *
      * @param item item
-     * @return boolean the row is contains VsyncAppBean
+     * @return return the row is contains VsyncAppBean
      */
     public boolean contains(VsyncAppBean item) {
         return item.getStartTime() + item.getDuration() > getStartNS() && item.getStartTime() < getEndNS();
@@ -401,20 +403,42 @@ public abstract class AbstractRow extends JBPanel {
      * get the Frame is in this row
      *
      * @param item item
-     * @return boolean the row is contains Frame
+     * @return return the row is contains Frame
      */
     public boolean contains(Frame item) {
         return item.getStartNs() + item.getDur() > getStartNS() && item.getStartNs() < getEndNS();
     }
 
     /**
+     * get the PrefFunc is in this row
+     *
+     * @param func func
+     * @return return the row is contains PrefFunc
+     */
+    public boolean contains(PrefFunc func) {
+        return func.getEndTs() > getStartNS() && func.getStartTs() < getEndNS();
+    }
+
+    /**
+     * get the PrefFunc is in this row
+     *
+     * @param func func
+     * @return return the row is contains PrefFunc
+     */
+    public boolean contains(DistributedFuncBean func) {
+        return func.getEndTs() > getStartNS() && func.getStartTs() < getEndNS();
+    }
+
+    /**
      * get the Object is in this row
      *
      * @param obj obj
-     * @return boolean the row is contains obj
+     * @return return the row is contains obj
      */
     public boolean contains(Object obj) {
-        if (obj instanceof CpuFreq) {
+        if (obj instanceof PrefFunc) {
+            return contains((PrefFunc) obj);
+        } else if (obj instanceof CpuFreq) {
             return contains((CpuFreq) obj);
         } else if (obj instanceof Cpu) {
             return contains((Cpu) obj);
@@ -426,6 +450,8 @@ public abstract class AbstractRow extends JBPanel {
             return contains((VsyncAppBean) obj);
         } else if (obj instanceof Frame) {
             return contains((Frame) obj);
+        } else if (obj instanceof DistributedFuncBean) {
+            return contains((DistributedFuncBean) obj);
         } else {
             return false;
         }
@@ -436,7 +462,7 @@ public abstract class AbstractRow extends JBPanel {
      *
      * @param node node
      * @param padding Rectangle padding
-     * @return Rectangle
+     * @return return Rectangle
      */
     public Rectangle getRectByNode(Cpu node, int padding) {
         double x1;
@@ -462,7 +488,7 @@ public abstract class AbstractRow extends JBPanel {
      *
      * @param node node
      * @param height Rectangle height
-     * @return Rectangle
+     * @return return Rectangle
      */
     public Rectangle getRectByNode(Thread node, int height) {
         double x1;
@@ -483,12 +509,40 @@ public abstract class AbstractRow extends JBPanel {
     }
 
     /**
+     * get the Rectangle by PrefFunc node
+     *
+     * @param node node
+     * @param height Rectangle height
+     * @param paddingTop Rectangle paddingTop
+     * @return return Rectangle
+     */
+    public Rectangle getRectByNode(PrefFunc node, int paddingTop, int height) {
+        double x1;
+        double x2;
+        if (node.getStartTs() < getStartNS()) {
+            x1 = Common.ns2x(getStartNS(), getContentBounds());
+        } else {
+            x1 = Common.ns2x(node.getStartTs(), getContentBounds());
+        }
+        if (node.getEndTs() > getEndNS()) {
+            x2 = Common.ns2x(getEndNS(), getContentBounds());
+        } else {
+            x2 = Common.ns2x(node.getEndTs(), getContentBounds());
+        }
+        double getV = x2 - x1 <= 1 ? 1 : x2 - x1;
+        Rectangle rectangle =
+            new Rectangle((int) x1, (int) (getContentBounds().getY() + node.getDepth() * height + paddingTop),
+                (int) getV, height);
+        return rectangle;
+    }
+
+    /**
      * get the Rectangle by Func node
      *
      * @param node node
      * @param height Rectangle height
      * @param paddingTop Rectangle paddingTop
-     * @return Rectangle
+     * @return return Rectangle
      */
     public Rectangle getRectByNode(Func node, int paddingTop, int height) {
         double x1;
@@ -511,10 +565,38 @@ public abstract class AbstractRow extends JBPanel {
     }
 
     /**
+     * get the Rectangle by FuncBean node
+     *
+     * @param node node
+     * @param height Rectangle height
+     * @param paddingTop Rectangle paddingTop
+     * @return return Rectangle
+     */
+    public Rectangle getRectByNode(DistributedFuncBean node, int paddingTop, int height) {
+        double x1;
+        double x2;
+        if (node.getStartTs() < getStartNS()) {
+            x1 = DistributedCommon.ns2x(getStartNS(), getContentBounds());
+        } else {
+            x1 = DistributedCommon.ns2x(node.getStartTs(), getContentBounds());
+        }
+        if (node.getStartTs() + node.getDur() > getEndNS()) {
+            x2 = DistributedCommon.ns2x(getEndNS(), getContentBounds());
+        } else {
+            x2 = DistributedCommon.ns2x(node.getStartTs() + node.getDur(), getContentBounds());
+        }
+        double getV = x2 - x1 <= 1 ? 1 : x2 - x1;
+        Rectangle rectangle =
+            new Rectangle((int) x1, (int) (getContentBounds().getY() + node.getDepth() * height + paddingTop),
+                (int) getV, height);
+        return rectangle;
+    }
+
+    /**
      * get the Rectangle by CpuFreq node
      *
      * @param node node
-     * @return Rectangle
+     * @return return Rectangle
      */
     public Rectangle getRectByNode(CpuFreq node) {
         double x1;
@@ -539,7 +621,7 @@ public abstract class AbstractRow extends JBPanel {
      * get the Rectangle by VsyncAppBean node
      *
      * @param node node
-     * @return Rectangle
+     * @return return Rectangle
      */
     public Rectangle getRectByNode(VsyncAppBean node) {
         double x1;
@@ -565,7 +647,7 @@ public abstract class AbstractRow extends JBPanel {
      *
      * @param node node
      * @param height Rectangle height
-     * @return Rectangle
+     * @return return Rectangle
      */
     public Rectangle getRectByNode(Frame node, int height) {
         double x1;
@@ -588,7 +670,7 @@ public abstract class AbstractRow extends JBPanel {
     /**
      * get the maxDept
      *
-     * @return int maxDept
+     * @return maxDept maxDept
      */
     public int getMaxDept() {
         return this.maxDept;

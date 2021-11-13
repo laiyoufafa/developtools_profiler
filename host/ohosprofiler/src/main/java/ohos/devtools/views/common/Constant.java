@@ -26,6 +26,7 @@ import java.util.Map;
  * Constants
  */
 public class Constant {
+
     /**
      * develop mode
      */

@@ -22,11 +22,13 @@ import ohos.devtools.datasources.transport.hdc.HdcWrapper;
 import ohos.devtools.datasources.utils.datahandler.datapoller.AgentDataConsumer;
 import ohos.devtools.datasources.utils.device.entity.DeviceIPPortInfo;
 import ohos.devtools.datasources.utils.plugin.IPluginConfig;
+import ohos.devtools.datasources.utils.plugin.entity.AnalysisType;
 import ohos.devtools.datasources.utils.plugin.entity.DPlugin;
 import ohos.devtools.datasources.utils.plugin.entity.PluginConf;
 import ohos.devtools.datasources.utils.plugin.entity.HiProfilerPluginConfig;
 import ohos.devtools.datasources.utils.plugin.entity.PluginBufferConfig;
 import ohos.devtools.datasources.utils.plugin.entity.PluginMode;
+import ohos.devtools.datasources.utils.profilerlog.ProfilerLogManager;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -39,9 +41,10 @@ import static ohos.devtools.datasources.transport.hdc.HdcCmdList.HDC_START_JAVAH
 import static ohos.devtools.datasources.transport.hdc.HdcWrapper.conversionCommand;
 import static ohos.devtools.datasources.utils.common.Constant.JVMTI_AGENT_PLUG;
 import static ohos.devtools.datasources.utils.device.entity.DeviceType.FULL_HOS_DEVICE;
+import static ohos.devtools.datasources.utils.device.entity.DeviceType.LEAN_HOS_DEVICE;
 
 /**
- * Agent Config
+ * AgentConfig
  */
 @DPlugin
 public class AgentConfig extends IPluginConfig {
@@ -50,11 +53,15 @@ public class AgentConfig extends IPluginConfig {
 
     @Override
     public PluginConf createConfig() {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("createConfig");
+        }
         PluginConf agentConfig =
             new PluginConf(AGENT_PLUGIN_NAME, JVMTI_AGENT_PLUG, AgentDataConsumer.class, false, null);
         agentConfig.setICreatePluginConfig((deviceIPPortInfo, processInfo) -> {
             AgentPluginConfig.AgentConfig agent =
-                AgentPluginConfig.AgentConfig.newBuilder().setPid(processInfo.getProcessId()).build();
+                AgentPluginConfig.AgentConfig.newBuilder().setPid(processInfo.getProcessId()).setStackDepth(20).build();
+            LOGGER.error("agent {}", agent.toString());
             return new HiProfilerPluginConfig(40, agent.toByteString());
         });
         agentConfig.setPluginBufferConfig(new PluginBufferConfig(3000, PluginBufferConfig.Policy.RECYCLE));
@@ -64,15 +71,26 @@ public class AgentConfig extends IPluginConfig {
             return agentPlug;
         });
         agentConfig.setSpecialStartPlugMethod((deviceIPPortInfo, processInfo) -> {
+            if (deviceIPPortInfo.getDeviceType() == LEAN_HOS_DEVICE) {
+                return false;
+            }
             String pluginName = agentConfig.getGetPluginName().getPluginName(deviceIPPortInfo, processInfo);
             boolean startJavaHeap = isStartJavaHeap(deviceIPPortInfo, pluginName);
+            if (ProfilerLogManager.isErrorEnabled()) {
+                LOGGER.error("Agent ready " + startJavaHeap);
+            }
             String proc = processInfo.getProcessName();
             if (StringUtils.isNotBlank(proc) && (!startJavaHeap)) {
+                if (ProfilerLogManager.isErrorEnabled()) {
+                    LOGGER.error("start Agent " + startJavaHeap);
+                }
                 if (deviceIPPortInfo.getDeviceType() == FULL_HOS_DEVICE) {
                     ArrayList cmd = conversionCommand(HDC_START_JAVAHEAP, deviceIPPortInfo.getDeviceID(), proc);
                     String res = HdcWrapper.getInstance().getHdcStringResult(cmd);
                     if (res.contains("javaHeapSuccess")) {
-                        LOGGER.info("start Agent Success");
+                        if (ProfilerLogManager.isInfoEnabled()) {
+                            LOGGER.info("start Agent Success");
+                        }
                         startJavaHeap = true;
                     }
                 }
@@ -81,10 +99,14 @@ public class AgentConfig extends IPluginConfig {
         });
         agentConfig.setPluginMode(PluginMode.ONLINE);
         agentConfig.addSupportDeviceTypes(FULL_HOS_DEVICE);
+        agentConfig.addAnalysisTypes(AnalysisType.APPLICATION_TYPE);
         return agentConfig;
     }
 
     private boolean isStartJavaHeap(DeviceIPPortInfo device, String agentPlugName) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("isStartJavaHeap");
+        }
         boolean startJavaHeap = false;
         ProfilerServiceTypes.GetCapabilitiesResponse response =
             HiProfilerClient.getInstance().getCapabilities(device.getIp(), device.getForwardPort());
@@ -99,6 +121,9 @@ public class AgentConfig extends IPluginConfig {
 
     private List<ProfilerServiceTypes.ProfilerPluginCapability> getLibDataPlugin(
         List<ProfilerServiceTypes.ProfilerPluginCapability> capabilities, String libDataPlugin) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("getLibDataPlugin");
+        }
         return capabilities.stream()
             .filter(profilerPluginCapability -> profilerPluginCapability.getName().contains(libDataPlugin))
             .collect(Collectors.toList());

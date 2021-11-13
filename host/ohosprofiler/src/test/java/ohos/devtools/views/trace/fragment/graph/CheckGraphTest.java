@@ -26,7 +26,7 @@ import java.awt.image.BufferedImage;
 /**
  * test CheckGraph class .
  *
- * @date 2021/4/24 17:55
+ * @since 2021/4/24 17:55
  */
 class CheckGraphTest {
     /**

@@ -27,6 +27,8 @@ import ohos.devtools.views.applicationtrace.bean.EventBean;
 import ohos.devtools.views.applicationtrace.bean.Func;
 import ohos.devtools.views.applicationtrace.util.MathUtils;
 import ohos.devtools.views.applicationtrace.util.TimeUtils;
+import ohos.devtools.views.perftrace.PerfData;
+import ohos.devtools.views.perftrace.bean.PrefFunc;
 import ohos.devtools.views.trace.EventDispatcher;
 import ohos.devtools.views.trace.EventPanel;
 import ohos.devtools.views.trace.ExpandPanel;
@@ -39,7 +41,7 @@ import java.util.stream.Collectors;
 /**
  * The OtherFunctionSummaryPanel
  *
- * @date 2021/04/22 12:25
+ * @since 2021/04/22 12:25
  */
 public class OtherFunctionSummaryPanel extends EventPanel {
     private JBLabel timeRange = new JBLabel();
@@ -129,6 +131,17 @@ public class OtherFunctionSummaryPanel extends EventPanel {
                 selectEventTable.dataSource.add(initAppBean(appFunc));
                 selectEventTable.freshData();
             }
+        } else {
+            if (obj instanceof PrefFunc) {
+                PrefFunc prefFunc = (PrefFunc) obj;
+                getPerfData(prefFunc);
+                timeRange.setText(TimeUtils.getTimeFormatString(prefFunc.getStartTs()) + " - " + TimeUtils
+                    .getTimeFormatString(prefFunc.getEndTs()));
+                dataType.setText("Stack Frame");
+                selectEventTable.dataSource.clear();
+                selectEventTable.dataSource.add(initPerfBean(prefFunc));
+                selectEventTable.freshData();
+            }
         }
     }
 
@@ -147,6 +160,20 @@ public class OtherFunctionSummaryPanel extends EventPanel {
         funcTable.freshData();
     }
 
+    private void getPerfData(PrefFunc prefFunc) {
+        List<PrefFunc> collect = PerfData.FUNC_MAP.get(Long.valueOf(prefFunc.getTid()).intValue()).stream()
+            .filter(filter -> filter.getDepth() != -1 && filter.getFuncName().equals(prefFunc.getFuncName()))
+            .sorted(Comparator.comparingLong(PrefFunc::getDur).reversed()).collect(Collectors.toList());
+        List<Long> longs = collect.stream().map(PrefFunc::getDur).collect(Collectors.toList());
+        setStatisticsData(longs);
+        List<EventBean> dataSource = new ArrayList<>();
+        collect.stream().limit(10).forEach(item -> {
+            dataSource.add(initPerfBean(item));
+        });
+        funcTable.dataSource = dataSource;
+        funcTable.freshData();
+    }
+
     private EventBean initAppBean(Func func) {
         EventBean eventBean = new EventBean();
         eventBean.setName(func.getFuncName());
@@ -159,6 +186,18 @@ public class OtherFunctionSummaryPanel extends EventPanel {
         eventBean.setCpuSelfTime(func.getRunning() - AllData.funcMap.get(func.getTid()).stream()
             .filter(filter -> filter.getDepth() != -1 && filter.getParentId().equals(func.getId()))
             .mapToLong(Func::getRunning).sum());
+        return eventBean;
+    }
+
+    private EventBean initPerfBean(PrefFunc prefFunc) {
+        EventBean eventBean = new EventBean();
+        eventBean.setName(prefFunc.getFuncName());
+        eventBean.setStartTime(prefFunc.getStartTs());
+        eventBean.setWallDuration(prefFunc.getDur());
+        long selfTime = prefFunc.getDur() - prefFunc.getChildrenNodes().stream().mapToLong(PrefFunc::getDur).sum();
+        eventBean.setSelfTime(selfTime);
+        eventBean.setCpuDuration(prefFunc.getDur());
+        eventBean.setCpuSelfTime(selfTime);
         return eventBean;
     }
 

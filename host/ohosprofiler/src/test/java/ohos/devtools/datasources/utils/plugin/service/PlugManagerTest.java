@@ -19,10 +19,11 @@ import ohos.devtools.datasources.databases.databaseapi.DataBaseApi;
 import ohos.devtools.datasources.utils.device.entity.DeviceIPPortInfo;
 import ohos.devtools.datasources.utils.device.entity.DeviceType;
 import ohos.devtools.datasources.utils.plugin.IPluginConfig;
+import ohos.devtools.datasources.utils.plugin.entity.AnalysisType;
 import ohos.devtools.datasources.utils.plugin.entity.PluginConf;
 import ohos.devtools.datasources.utils.plugin.entity.PluginMode;
-import ohos.devtools.datasources.utils.session.service.SessionManager;
 import ohos.devtools.pluginconfig.CpuConfig;
+import ohos.devtools.pluginconfig.DiskIoConfig;
 import ohos.devtools.pluginconfig.MemoryConfig;
 import ohos.devtools.views.layout.chartview.ProfilerMonitorItem;
 import ohos.devtools.views.layout.chartview.memory.MemoryItemView;
@@ -35,6 +36,8 @@ import java.util.List;
 
 /**
  * PlugManagerTest
+ *
+ * @since 2021/2/1 9:31
  */
 public class PlugManagerTest {
     private DeviceIPPortInfo deviceInfo;
@@ -52,7 +55,6 @@ public class PlugManagerTest {
     @Before
     public void setDeviceInfo() {
         pluginConf = new PluginConf("", "", null, false, null);
-        SessionManager.getInstance().setDevelopMode(true);
         String serialNumber = "emulator-5554";
         deviceInfo = new DeviceIPPortInfo();
         deviceInfo.setDeviceID(serialNumber);
@@ -101,7 +103,7 @@ public class PlugManagerTest {
      */
     @Test
     public void getPluginConfigTest01() {
-        List<PluginConf> list = PlugManager.getInstance().getPluginConfig(null, null);
+        List<PluginConf> list = PlugManager.getInstance().getPluginConfig(null, null, null);
         int num = list.size();
         Assert.assertEquals(0, num);
     }
@@ -117,7 +119,8 @@ public class PlugManagerTest {
      */
     @Test
     public void getPluginConfigTest02() {
-        List<PluginConf> list = PlugManager.getInstance().getPluginConfig(DeviceType.FULL_HOS_DEVICE, null);
+        List<PluginConf> list =
+            PlugManager.getInstance().getPluginConfig(DeviceType.FULL_HOS_DEVICE, null, AnalysisType.GPU_CONFIG_TYPE);
         int num = list.size();
         Assert.assertEquals(0, num);
     }
@@ -133,7 +136,8 @@ public class PlugManagerTest {
      */
     @Test
     public void getPluginConfigTest03() {
-        List<PluginConf> list = PlugManager.getInstance().getPluginConfig(null, PluginMode.ONLINE);
+        List<PluginConf> list =
+            PlugManager.getInstance().getPluginConfig(null, PluginMode.ONLINE, AnalysisType.GPU_CONFIG_TYPE);
         int num = list.size();
         Assert.assertEquals(0, num);
     }
@@ -151,8 +155,8 @@ public class PlugManagerTest {
     public void getPluginConfigTest04() {
         pluginConf.setPluginMode(PluginMode.ONLINE);
         PlugManager.getInstance().registerPlugin(pluginConf);
-        List<PluginConf> list =
-            PlugManager.getInstance().getPluginConfig(DeviceType.FULL_HOS_DEVICE, PluginMode.ONLINE);
+        List<PluginConf> list = PlugManager.getInstance()
+            .getPluginConfig(DeviceType.FULL_HOS_DEVICE, PluginMode.ONLINE, AnalysisType.GPU_CONFIG_TYPE);
         int num = list.size();
         Assert.assertNotEquals(0, num);
     }
@@ -171,8 +175,8 @@ public class PlugManagerTest {
         PlugManager.getInstance().clearPluginConfList();
         pluginConf.setPluginMode(PluginMode.OFFLINE);
         PlugManager.getInstance().registerPlugin(pluginConf);
-        List<PluginConf> list =
-            PlugManager.getInstance().getPluginConfig(DeviceType.FULL_HOS_DEVICE, PluginMode.ONLINE);
+        List<PluginConf> list = PlugManager.getInstance()
+            .getPluginConfig(DeviceType.FULL_HOS_DEVICE, PluginMode.ONLINE, AnalysisType.GPU_CONFIG_TYPE);
         int num = list.size();
         Assert.assertEquals(0, num);
     }
@@ -221,6 +225,7 @@ public class PlugManagerTest {
     public void loadingPlugsTest03() {
         List<Class<? extends IPluginConfig>> plugConfigList = new ArrayList();
         plugConfigList.add(CpuConfig.class);
+        plugConfigList.add(DiskIoConfig.class);
         plugConfigList.add(MemoryConfig.class);
         PlugManager.getInstance().loadingPlugs(plugConfigList);
         Assert.assertTrue(true);
@@ -256,6 +261,7 @@ public class PlugManagerTest {
     public void loadingPlugsTest05() {
         List<Class<? extends IPluginConfig>> plugConfigList = new ArrayList();
         plugConfigList.add(null);
+        plugConfigList.add(DiskIoConfig.class);
         PlugManager.getInstance().loadingPlugs(plugConfigList);
         Assert.assertTrue(true);
     }
@@ -333,6 +339,7 @@ public class PlugManagerTest {
     public void loadingPlugTest05() {
         List<Class<? extends IPluginConfig>> plugConfigList = new ArrayList();
         plugConfigList.add(null);
+        plugConfigList.add(DiskIoConfig.class);
         PlugManager.getInstance().loadingPlug(plugConfigList.get(1));
         Assert.assertTrue(true);
     }
@@ -350,8 +357,8 @@ public class PlugManagerTest {
     public void registerPluginTest01() {
         pluginConf.setPluginMode(PluginMode.ONLINE);
         PlugManager.getInstance().registerPlugin(pluginConf);
-        List<PluginConf> list =
-            PlugManager.getInstance().getPluginConfig(DeviceType.FULL_HOS_DEVICE, PluginMode.ONLINE);
+        List<PluginConf> list = PlugManager.getInstance()
+            .getPluginConfig(DeviceType.FULL_HOS_DEVICE, PluginMode.ONLINE, AnalysisType.GPU_CONFIG_TYPE);
         int num = list.size();
         Assert.assertNotEquals(0, num);
     }
@@ -370,8 +377,8 @@ public class PlugManagerTest {
         PlugManager.getInstance().clearPluginConfList();
         pluginConf.setPluginMode(PluginMode.OFFLINE);
         PlugManager.getInstance().registerPlugin(pluginConf);
-        List<PluginConf> list =
-            PlugManager.getInstance().getPluginConfig(DeviceType.FULL_HOS_DEVICE, PluginMode.ONLINE);
+        List<PluginConf> list = PlugManager.getInstance()
+            .getPluginConfig(DeviceType.FULL_HOS_DEVICE, PluginMode.ONLINE, AnalysisType.GPU_CONFIG_TYPE);
         int num = list.size();
         Assert.assertEquals(0, num);
     }
@@ -404,8 +411,8 @@ public class PlugManagerTest {
     public void registerPluginTest04() {
         PlugManager.getInstance().clearPluginConfList();
         PlugManager.getInstance().registerPlugin(pluginConf);
-        List<PluginConf> list =
-            PlugManager.getInstance().getPluginConfig(DeviceType.FULL_HOS_DEVICE, PluginMode.ONLINE);
+        List<PluginConf> list = PlugManager.getInstance()
+            .getPluginConfig(DeviceType.FULL_HOS_DEVICE, PluginMode.ONLINE, AnalysisType.GPU_CONFIG_TYPE);
         int num = list.size();
         Assert.assertEquals(0, num);
     }
@@ -423,8 +430,8 @@ public class PlugManagerTest {
     public void registerPluginTest05() {
         PlugManager.getInstance().clearPluginConfList();
         PlugManager.getInstance().registerPlugin(new PluginConf("pluginFileName", "", null, true, null));
-        List<PluginConf> list =
-            PlugManager.getInstance().getPluginConfig(DeviceType.FULL_HOS_DEVICE, PluginMode.ONLINE);
+        List<PluginConf> list = PlugManager.getInstance()
+            .getPluginConfig(DeviceType.FULL_HOS_DEVICE, PluginMode.ONLINE, AnalysisType.GPU_CONFIG_TYPE);
         int num = list.size();
         Assert.assertEquals(0, num);
     }
@@ -820,8 +827,8 @@ public class PlugManagerTest {
         pluginConf.setPluginMode(PluginMode.ONLINE);
         PlugManager.getInstance().registerPlugin(pluginConf);
         PlugManager.getInstance().clearPluginConfList();
-        List<PluginConf> list =
-            PlugManager.getInstance().getPluginConfig(DeviceType.FULL_HOS_DEVICE, PluginMode.ONLINE);
+        List<PluginConf> list = PlugManager.getInstance()
+            .getPluginConfig(DeviceType.FULL_HOS_DEVICE, PluginMode.ONLINE, AnalysisType.GPU_CONFIG_TYPE);
         int num = list.size();
         Assert.assertEquals(0, num);
     }
@@ -841,8 +848,8 @@ public class PlugManagerTest {
         PlugManager.getInstance().clearPluginConfList();
         pluginConf.setPluginMode(PluginMode.ONLINE);
         PlugManager.getInstance().registerPlugin(pluginConf);
-        List<PluginConf> list =
-            PlugManager.getInstance().getPluginConfig(DeviceType.FULL_HOS_DEVICE, PluginMode.ONLINE);
+        List<PluginConf> list = PlugManager.getInstance()
+            .getPluginConfig(DeviceType.FULL_HOS_DEVICE, PluginMode.ONLINE, AnalysisType.GPU_CONFIG_TYPE);
         int num = list.size();
         Assert.assertNotEquals(0, num);
     }
@@ -862,8 +869,8 @@ public class PlugManagerTest {
         PlugManager.getInstance().registerPlugin(pluginConf);
         PlugManager.getInstance().registerPlugin(pluginConf);
         PlugManager.getInstance().clearPluginConfList();
-        List<PluginConf> list =
-            PlugManager.getInstance().getPluginConfig(DeviceType.FULL_HOS_DEVICE, PluginMode.ONLINE);
+        List<PluginConf> list = PlugManager.getInstance()
+            .getPluginConfig(DeviceType.FULL_HOS_DEVICE, PluginMode.ONLINE, AnalysisType.GPU_CONFIG_TYPE);
         int num = list.size();
         Assert.assertEquals(0, num);
     }
@@ -883,8 +890,8 @@ public class PlugManagerTest {
         pluginConfNew.setPluginMode(PluginMode.ONLINE);
         PlugManager.getInstance().registerPlugin(pluginConfNew);
         PlugManager.getInstance().clearPluginConfList();
-        List<PluginConf> list =
-            PlugManager.getInstance().getPluginConfig(DeviceType.FULL_HOS_DEVICE, PluginMode.ONLINE);
+        List<PluginConf> list = PlugManager.getInstance()
+            .getPluginConfig(DeviceType.FULL_HOS_DEVICE, PluginMode.ONLINE, AnalysisType.GPU_CONFIG_TYPE);
         int num = list.size();
         Assert.assertEquals(0, num);
     }
@@ -905,8 +912,8 @@ public class PlugManagerTest {
         PlugManager.getInstance().clearPluginConfList();
         pluginConf.setPluginMode(PluginMode.ONLINE);
         PlugManager.getInstance().registerPlugin(pluginConf);
-        List<PluginConf> list =
-            PlugManager.getInstance().getPluginConfig(DeviceType.FULL_HOS_DEVICE, PluginMode.OFFLINE);
+        List<PluginConf> list = PlugManager.getInstance()
+            .getPluginConfig(DeviceType.FULL_HOS_DEVICE, PluginMode.OFFLINE, AnalysisType.GPU_CONFIG_TYPE);
         int num = list.size();
         Assert.assertEquals(0, num);
     }

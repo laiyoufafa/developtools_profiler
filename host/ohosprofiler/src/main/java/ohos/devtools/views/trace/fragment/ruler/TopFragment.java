@@ -28,7 +28,7 @@ import static ohos.devtools.views.trace.component.AnalystPanel.DURATION;
 /**
  * Time axis scale
  *
- * @date 2021/4/22 12:25
+ * @since 2021/4/22 12:25
  */
 public class TopFragment extends AbstractFragment {
     private final Font smallFont = new Font("宋体", Font.ITALIC, 10);

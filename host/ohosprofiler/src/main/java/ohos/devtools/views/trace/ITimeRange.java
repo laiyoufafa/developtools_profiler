@@ -18,7 +18,7 @@ package ohos.devtools.views.trace;
 /**
  * ITimeRange
  *
- * @date: 2021/5/24 12:11
+ * @since 2021/5/24 12:11
  */
 @FunctionalInterface
 public interface ITimeRange {

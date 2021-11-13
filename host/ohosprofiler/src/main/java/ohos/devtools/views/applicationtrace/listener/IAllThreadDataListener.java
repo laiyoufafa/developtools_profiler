@@ -21,16 +21,15 @@ import java.util.List;
 /**
  * interface all thread listener
  *
- * @date: 2021/5/27 12:01
+ * @since 2021/5/27 12:01
  */
 public interface IAllThreadDataListener {
     /**
      * getAllThreadData Calllback
-     *
      * @param startNS start time
      * @param endNS end time
      * @param scale scale level
-     * @return List <DefaultMutableTreeNode> tree node
+     * @return tree node
      */
     List<DefaultMutableTreeNode> getAllThreadData(long startNS, long endNS, long scale);
 }

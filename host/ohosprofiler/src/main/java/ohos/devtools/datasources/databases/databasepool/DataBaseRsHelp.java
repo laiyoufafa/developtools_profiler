@@ -15,6 +15,7 @@
 
 package ohos.devtools.datasources.databases.databasepool;
 
+import ohos.devtools.datasources.utils.profilerlog.ProfilerLogManager;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -26,6 +27,8 @@ import java.util.List;
 
 /**
  * Data results help
+ *
+ * @since 2021/10/22 17:00
  */
 public class DataBaseRsHelp<T> {
     private static final Logger LOGGER = LogManager.getLogger(DataBaseRsHelp.class);
@@ -35,13 +38,16 @@ public class DataBaseRsHelp<T> {
      *
      * @param instanceClass generic paradigm
      * @param rs result set
-     * @return List<T>
+     * @return List <T> T
      * @throws IllegalAccessException IllegalAccessException
      * @throws InstantiationException InstantiationException
      * @throws NoSuchFieldException NoSuchFieldException
      */
     public List<T> util(T instanceClass, ResultSet rs)
         throws IllegalAccessException, InstantiationException, NoSuchFieldException {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("util");
+        }
         List<T> list = new ArrayList<T>();
         Class aClass = instanceClass.getClass();
         Field[] fs = aClass.getDeclaredFields();

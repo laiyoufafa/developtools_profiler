@@ -22,8 +22,12 @@ import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBPanel;
 import ohos.devtools.datasources.transport.hdc.HdcWrapper;
+import ohos.devtools.datasources.utils.common.util.CommonUtil;
 import ohos.devtools.datasources.utils.device.entity.DeviceProcessInfo;
 import ohos.devtools.datasources.utils.session.service.SessionManager;
+import ohos.devtools.services.hiperf.HiperfParse;
+import ohos.devtools.services.hiperf.ParsePerf;
+import ohos.devtools.services.hiperf.PerfDAO;
 import ohos.devtools.views.applicationtrace.AppTracePanel;
 import ohos.devtools.views.common.LayoutConstants;
 import ohos.devtools.views.common.UtConstant;
@@ -34,6 +38,7 @@ import ohos.devtools.views.layout.TaskPanel;
 import ohos.devtools.views.layout.chartview.TaskScenePanelChart;
 import ohos.devtools.views.layout.dialog.ImportFileChooserDialog;
 import ohos.devtools.views.layout.dialog.SampleDialog;
+import ohos.devtools.views.perftrace.PerfTracePanel;
 import ohos.devtools.views.trace.component.AnalystPanel;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -55,23 +60,30 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.RandomAccessFile;
 import java.io.UnsupportedEncodingException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
 import static ohos.devtools.datasources.transport.hdc.HdcCmdList.TRACE_STREAMER_LOAD;
 import static ohos.devtools.datasources.transport.hdc.HdcWrapper.conversionCommand;
+import static ohos.devtools.datasources.utils.common.Constant.DEVICE_STAT_OFFLINE;
 
 /**
  * OpenFileDialogUtil
+ *
+ * @since : 2021/10/25
  */
 public class OpenFileDialogUtils {
     private static OpenFileDialogUtils instance = new OpenFileDialogUtils();
     private static TaskPanel taskPanel;
     private static CustomProgressBar progressBar;
     private static final Logger LOGGER = LogManager.getLogger(OpenFileDialogUtils.class);
+    private static final String HI_PERF_TYPE_VALUE = "HIPERF";
     private static final String BYTRACE_TYPE_VALUE = "TRACE";
+    private static final String BYTRACE_TYPE_FLAG_VALUE = "tracer";
     private static final String HTRACE_TYPE_VALUE = "OHOSPROF";
     private static final String TRACE_FILE = "TraceFileInfo";
     private Boolean traceAnalysisResult = true;
@@ -156,13 +168,53 @@ public class OpenFileDialogUtils {
      * @param selectedFile selectedFile
      */
     private void loadOfflineFiles(JBPanel tabItem, String readLineStr, File selectedFile) {
-        if (readLineStr.contains(BYTRACE_TYPE_VALUE) || readLineStr.contains(HTRACE_TYPE_VALUE)) {
+        if (readLineStr.contains(HI_PERF_TYPE_VALUE)) {
+            loadPerf(selectedFile, taskPanel.getTabContainer(), readLineStr);
+        } else if (readLineStr.contains(BYTRACE_TYPE_VALUE) || readLineStr.contains(HTRACE_TYPE_VALUE)
+                || readLineStr.contains(BYTRACE_TYPE_FLAG_VALUE)) {
             loadOfflineFile(tabItem, taskPanel, selectedFile, taskPanel.getTabContainer());
         } else if (readLineStr.contains(TRACE_FILE)) {
             loadOfflineFile(tabItem, taskPanel, selectedFile, taskPanel.getTabContainer());
+        } else if (readLineStr.contains("malloc") || readLineStr.contains("free")) {
+            loadOfflineFileNativeHook(selectedFile, taskPanel, taskPanel.getTabContainer());
         } else {
             showWarningDialog(tabItem);
         }
+    }
+
+    /**
+     * loadOfflineFileNativeHook
+     *
+     * @param selectedFile selectedFile
+     * @param taskPanel taskPanel
+     * @param optionJPanel optionJPanel
+     */
+    public void loadOfflineFileNativeHook(File selectedFile, TaskPanel taskPanel, JBPanel optionJPanel) {
+        SimpleDateFormat formatter = new SimpleDateFormat("HH:mm");
+        Date currentTime = new Date();
+        String time = formatter.format(currentTime);
+        String absolutePath = null;
+        try {
+            absolutePath = selectedFile.getCanonicalPath();
+        } catch (IOException ioException) {
+            LOGGER.error(ioException.getMessage());
+        }
+        long sessionId = CommonUtil.getLocalSessionId();
+        CustomJLabel hosJLabel = new CustomJLabel();
+        hosJLabel.setProcessName(time + ";" + selectedFile.getName() + ";" + "NativeHook");
+        hosJLabel.setDeviceName("");
+        hosJLabel.setOnline(false);
+        hosJLabel.setConnectType(DEVICE_STAT_OFFLINE);
+        hosJLabel.setSessionId(sessionId);
+        hosJLabel.setFileType("nativehook");
+        hosJLabel.setMessage(absolutePath);
+        ArrayList<CustomJLabel> hosJLabels = new ArrayList<CustomJLabel>();
+        hosJLabels.add(hosJLabel);
+        optionJPanel.removeAll();
+        TaskScenePanelChart taskScenePanelChart = new TaskScenePanelChart(taskPanel, hosJLabels);
+        taskPanel.getTabContainer().setBackground(JBColor.background());
+        taskPanel.setLocalSessionId(sessionId);
+        optionJPanel.add(taskScenePanelChart);
     }
 
     /**
@@ -179,7 +231,7 @@ public class OpenFileDialogUtils {
             /**
              * doInBackground
              *
-             * @return Optional <DeviceProcessInfo>
+             * @return Optional<DeviceProcessInfo>
              */
             @Override
             protected Optional<DeviceProcessInfo> doInBackground() {
@@ -222,6 +274,49 @@ public class OpenFileDialogUtils {
                             optionJPanelContent.add(taskPanel.getBtnPanel());
                             optionJPanelContent.repaint();
                         }
+                    }
+                } catch (InterruptedException | ExecutionException exception) {
+                    exception.printStackTrace();
+                }
+            }
+        };
+        task.execute();
+    }
+
+    /**
+     * loadHiPerf
+     *  @param selectedFile selectedFile
+     * @param optionJPanel optionJPanel
+     * @param readLineStr readLineStr
+     */
+    public void loadPerf(File selectedFile, JBPanel optionJPanel, String readLineStr) {
+        SwingWorker<String, Object> task = new SwingWorker<>() {
+            @Override
+            protected String doInBackground() {
+                progressBar.setValue(30);
+                ParsePerf traceParser = new HiperfParse();
+                try {
+                    traceParser.parseFile(selectedFile);
+                    PerfDAO.getInstance().createTable(null);
+                    traceParser.insertSample();
+                } catch (IOException exception) {
+                    exception.printStackTrace();
+                }
+                progressBar.setValue(LayoutConstants.HUNDRED);
+                return SessionManager.getInstance().tempPath() + "perf.db";
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    String dbPath = get();
+                    if (dbPath != null) {
+                        optionJPanel.removeAll();
+                        taskPanel.getTabContainer().setBackground(JBColor.background());
+                        PerfTracePanel component = new PerfTracePanel();
+                        component.load(dbPath, null, true);
+                        progressBar.setValue(LayoutConstants.HUNDRED);
+                        optionJPanel.add(component);
                     }
                 } catch (InterruptedException | ExecutionException exception) {
                     exception.printStackTrace();

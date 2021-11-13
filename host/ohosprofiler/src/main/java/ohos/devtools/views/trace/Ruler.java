@@ -26,7 +26,7 @@ import java.awt.RenderingHints;
 /**
  * PrefSample from db file
  *
- * @date: 2021/5/12 16:34
+ * @since 2021/5/12 16:34
  */
 public class Ruler extends JBPanel {
     private final long duration;

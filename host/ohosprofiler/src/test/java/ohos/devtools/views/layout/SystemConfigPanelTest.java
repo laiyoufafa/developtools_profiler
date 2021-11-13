@@ -27,6 +27,7 @@ import java.util.ArrayList;
  * SystemConfigPanelTest
  */
 public class SystemConfigPanelTest {
+
     /**
      * get Instance addActionListenerTest
      *

@@ -1,5 +1,0 @@
-select cpu,value,ts-tb.start_ts as startNS
-from counter c ,trace_bounds tb
-inner join cpu_counter_track t on c.track_id = t.id
-where (name = 'cpufreq' or name='cpu_frequency') and cpu= %d
-order by ts;

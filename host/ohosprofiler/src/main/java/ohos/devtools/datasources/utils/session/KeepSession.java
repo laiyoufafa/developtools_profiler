@@ -19,6 +19,7 @@ import io.grpc.StatusRuntimeException;
 import ohos.devtools.datasources.transport.grpc.HiProfilerClient;
 import ohos.devtools.datasources.transport.grpc.service.ProfilerServiceTypes;
 import ohos.devtools.datasources.utils.device.entity.DeviceIPPortInfo;
+import ohos.devtools.datasources.utils.profilerlog.ProfilerLogManager;
 import ohos.devtools.datasources.utils.quartzmanager.QuartzManager;
 import ohos.devtools.datasources.utils.session.service.SessionManager;
 import org.apache.logging.log4j.LogManager;
@@ -52,10 +53,11 @@ public class KeepSession implements Runnable {
             ProfilerServiceTypes.KeepSessionResponse keepSessionResponse = HiProfilerClient.getInstance()
                 .keepSession(deviceIPPortInfo.getIp(), deviceIPPortInfo.getForwardPort(), sessionId);
         } catch (StatusRuntimeException exception) {
-            LOGGER.error("KeepSession StatusRuntimeException ", exception);
+            if (ProfilerLogManager.isErrorEnabled()) {
+                LOGGER.error("KeepSession StatusRuntimeException ", exception);
+            }
             String keepSessionName = SessionManager.getInstance().getKeepSessionName(deviceIPPortInfo, sessionId);
             QuartzManager.getInstance().deleteExecutor(keepSessionName);
-            SessionManager.getInstance().deleteLocalSession(localSessionId);
         }
     }
 }

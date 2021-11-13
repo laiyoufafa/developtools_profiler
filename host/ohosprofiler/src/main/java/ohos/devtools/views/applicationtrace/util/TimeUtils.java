@@ -15,19 +15,16 @@
 
 package ohos.devtools.views.applicationtrace.util;
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import static java.math.BigDecimal.ROUND_HALF_UP;
-
 /**
  * TimeUtils
  *
- * @date: 2021/5/13 13:06
+ * @since 2021/5/13 13:06
  */
 public class TimeUtils {
     /**
@@ -48,10 +45,7 @@ public class TimeUtils {
         long second;
         if (minute > 0) {
             ns = ns - TimeUnit.MINUTES.toNanos(minute);
-            long longTime = TimeUnit.NANOSECONDS.toMillis(ns);
-            BigDecimal value = new BigDecimal(longTime)
-                .divide(new BigDecimal(6D), 0, ROUND_HALF_UP).multiply(new BigDecimal(10));
-            second = value.longValue();
+            second = Math.round(TimeUnit.NANOSECONDS.toSeconds(ns) / 6D * 10);
             time.append(minute).append(".").append(String.format(Locale.ENGLISH, "%02d", second)).append("m");
             return time.toString();
         }
@@ -59,9 +53,9 @@ public class TimeUtils {
         second = TimeUnit.NANOSECONDS.toSeconds(ns);
         if (second > 0) {
             ns = ns - TimeUnit.SECONDS.toNanos(second);
-            long longTime = TimeUnit.NANOSECONDS.toMillis(ns);
-            BigDecimal divide = new BigDecimal(longTime).divide(new BigDecimal(10D), 0, ROUND_HALF_UP);
-            millis = divide.longValue();
+            long round = Math.round(TimeUnit.NANOSECONDS.toMillis(ns) / 10D);
+            millis =
+                round >= 100L ? Double.valueOf(Math.floor(TimeUnit.NANOSECONDS.toMillis(ns) / 10D)).longValue() : round;
             time.append(second).append(".").append(String.format(Locale.ENGLISH, "%02d", millis)).append("s");
             return time.toString();
         }
@@ -69,17 +63,17 @@ public class TimeUtils {
         millis = TimeUnit.NANOSECONDS.toMillis(ns);
         if (millis > 0) {
             ns = ns - TimeUnit.MILLISECONDS.toNanos(millis);
-            long longTime = TimeUnit.NANOSECONDS.toMicros(ns);
-            BigDecimal divide = new BigDecimal(longTime).divide(new BigDecimal(10D), 0, ROUND_HALF_UP);
-            micros = divide.longValue();
+            long round = Math.round(TimeUnit.NANOSECONDS.toMicros(ns) / 10D);
+            micros =
+                round >= 100L ? Double.valueOf(Math.floor(TimeUnit.NANOSECONDS.toMicros(ns) / 10D)).longValue() : round;
             time.append(millis).append(".").append(String.format(Locale.ENGLISH, "%02d", micros)).append("ms");
             return time.toString();
         }
         micros = TimeUnit.NANOSECONDS.toMicros(ns);
         if (micros > 0) {
             ns = ns - TimeUnit.MICROSECONDS.toNanos(micros);
-            BigDecimal divide = new BigDecimal(ns).divide(new BigDecimal(1000D), 0, ROUND_HALF_UP);
-            if (divide.longValue() > 0) {
+            long nanos = Math.round(ns / 1000D);
+            if (nanos > 0) {
                 micros++;
             }
             time.append(micros).append("μs");
@@ -91,11 +85,11 @@ public class TimeUtils {
     /**
      * get the time range is in other range function
      *
-     * @param startNs startNs
-     * @param endNs endNs
+     * @param startNs  startNs
+     * @param endNs    endNs
      * @param startRNs startRNs
-     * @param endLNs endLNs
-     * @return boolean
+     * @param endLNs   endLNs
+     * @return String time
      */
     public static boolean isInRange(long startNs, long endNs, long startRNs, long endLNs) {
         return endLNs >= startNs && startRNs <= endNs;
@@ -104,11 +98,11 @@ public class TimeUtils {
     /**
      * get the time range is cross function
      *
-     * @param startNs startNs
-     * @param endNs endNs
+     * @param startNs  startNs
+     * @param endNs    endNs
      * @param startRNs startRNs
-     * @param endLNs endLNs
-     * @return boolean
+     * @param endLNs   endLNs
+     * @return String time
      */
     public static boolean isRangeCross(long startNs, long endNs, long startRNs, long endLNs) {
         long leftMin = Math.max(startNs, startRNs);
@@ -144,14 +138,14 @@ public class TimeUtils {
      * get Intersection function
      *
      * @param fStartNs fStartNs
-     * @param fEndNs fEndNs
+     * @param fEndNs   fEndNs
      * @param sStartNs sStartNs
-     * @param sEndNs sEndNs
+     * @param sEndns   sEndns
      * @return long time
      */
-    public static long getIntersection(long fStartNs, long fEndNs, long sStartNs, long sEndNs) {
+    public static long getIntersection(long fStartNs, long fEndNs, long sStartNs, long sEndns) {
         long leftMin = Math.max(fStartNs, sStartNs);
-        long rightMax = Math.min(fEndNs, sEndNs);
+        long rightMax = Math.min(fEndNs, sEndns);
         if (rightMax > leftMin) {
             return TimeUnit.NANOSECONDS.toMicros(rightMax) - TimeUnit.NANOSECONDS.toMicros(leftMin);
         }
@@ -162,14 +156,14 @@ public class TimeUtils {
      * get Intersection unit nanos function
      *
      * @param fStartNs fStartNs
-     * @param fEndNs fEndNs
+     * @param fEndNs   fEndNs
      * @param sStartNs sStartNs
-     * @param sEndNs sEndNs
+     * @param sEndns   sEndns
      * @return long time
      */
-    public static long getNanoIntersection(long fStartNs, long fEndNs, long sStartNs, long sEndNs) {
+    public static long getNanoIntersection(long fStartNs, long fEndNs, long sStartNs, long sEndns) {
         long leftMin = Math.max(fStartNs, sStartNs);
-        long rightMax = Math.min(fEndNs, sEndNs);
+        long rightMax = Math.min(fEndNs, sEndns);
         if (rightMax > leftMin) {
             return rightMax - leftMin;
         }
@@ -221,7 +215,7 @@ public class TimeUtils {
      * get time ns by time string
      *
      * @param timeStr time string
-     * @return long
+     * @return ns
      */
     public static long getNSByTimeString(final String timeStr) {
         try {

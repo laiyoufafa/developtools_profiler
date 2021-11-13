@@ -48,7 +48,7 @@ import java.util.Collection;
 /**
  * FolderPanel
  *
- * @date: 2021/5/18 23:18
+ * @since 2021/5/18 23:18
  */
 public class FolderPanel extends JPanel {
     /**
@@ -349,8 +349,7 @@ public class FolderPanel extends JPanel {
     /**
      * CollapsingListener
      *
-     * @version 1.0
-     * @date: 2021/5/18 23:18
+     * @since 2021/5/18 23:18
      */
     public interface CollapsingListener {
         /**

@@ -16,8 +16,6 @@
 package ohos.devtools.views.trace;
 
 import ohos.devtools.views.trace.util.Utils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import java.awt.AlphaComposite;
 import java.awt.Graphics;
@@ -32,10 +30,9 @@ import static ohos.devtools.views.trace.TracePanel.startNS;
 /**
  * Common util
  *
- * @date: 2021/5/13 16:40
+ * @since 2021/5/13 16:40
  */
 public class Common {
-    private static final Logger LOGGER = LogManager.getLogger(Common.class);
     private static final int LEN = 3;
     private static final int LEFT_PADDING = 2;
     private static final int RIGHT_PADDING = 2;
@@ -45,7 +42,7 @@ public class Common {
      *
      * @param str str
      * @param graphics graphics
-     * @return Rectangle2D
+     * @return int
      */
     public static Rectangle2D getStringRect(Graphics graphics, String str) {
         Rectangle2D bounds = graphics.getFontMetrics(graphics.getFont()).getStringBounds(str, graphics);
@@ -53,18 +50,18 @@ public class Common {
     }
 
     /**
-     * x coordinate to time (unit ns)
+     * x coordinate  to time (unit ns)
      *
      * @param coordX coordX
      * @param rect rect
-     * @return long time
+     * @return time
      */
     public static long x2ns(final int coordX, Rectangle rect) {
         return x2ns(coordX, rect, DURATION);
     }
 
     /**
-     * x coordinate to time (unit ns)
+     * x coordinate  to time (unit ns)
      *
      * @param coordX coordX
      * @param rect rect
@@ -81,7 +78,7 @@ public class Common {
      *
      * @param ns ns
      * @param rect rect
-     * @return double x coordinate
+     * @return x coordinate
      */
     public static double ns2x(long ns, Rectangle rect) {
         return ns2x(ns, rect, DURATION);
@@ -93,7 +90,7 @@ public class Common {
      * @param ns ns
      * @param rect rect
      * @param duration duration
-     * @return double x coordinate
+     * @return x coordinate
      */
     public static double ns2x(long ns, Rectangle rect, long duration) {
         if (endNS == 0) {
@@ -115,7 +112,7 @@ public class Common {
      * @param ns ns
      * @param rect rect
      * @param duration duration
-     * @return double x coordinate
+     * @return x coordinate
      */
     public static double nsToXByDur(long ns, Rectangle rect, long duration) {
         double xSize = ns * rect.getWidth() / duration;
@@ -146,8 +143,8 @@ public class Common {
      * @param rectangle rectangle
      */
     public static void drawStringCenter(Graphics2D graphics, String str, final Rectangle rectangle) {
-        Rectangle2D minBound =
-            graphics.getFontMetrics(graphics.getFont()).getStringBounds("m...", graphics); // show string min rect
+        Rectangle2D minBound = graphics.getFontMetrics(graphics.getFont())
+            .getStringBounds("m...", graphics); // show string min rect
         if (rectangle.width < minBound.getWidth() || rectangle.height < minBound.getHeight()) {
             return;
         }
@@ -160,8 +157,9 @@ public class Common {
         if (chartNum >= str.length()) {
             graphics.drawString(str, (int) (rectangle.getX() + (rectangle.width - bounds.getWidth()) / 2), mY);
         } else if (chartNum >= LEN + 1) {
-            graphics.drawString(str.substring(0, (int) chartNum - LEN) + "...", (int) (rectangle.getX() + LEFT_PADDING),
-                mY);
+            graphics
+                .drawString(str.substring(0, (int) chartNum - LEN) + "...", (int) (rectangle.getX() + LEFT_PADDING),
+                    mY);
         } else if (chartNum > 1 && chartNum < LEN) { // If only one character can be displayed
             graphics.drawString(str.substring(0, 1), (int) (rectangle.getX() + LEFT_PADDING), mY);
         } else {
@@ -189,8 +187,9 @@ public class Common {
         if (chartNum >= str.length()) {
             graphics.drawString(str, (int) (rectangle.getX() + (rectangle.width - bounds.getWidth()) / 2), mY);
         } else if (chartNum >= LEN + 1) {
-            graphics.drawString(str.substring(0, (int) chartNum - LEN) + "...", (int) (rectangle.getX() + LEFT_PADDING),
-                mY);
+            graphics
+                .drawString(str.substring(0, (int) chartNum - LEN) + "...", (int) (rectangle.getX() + LEFT_PADDING),
+                    mY);
         } else if (chartNum > 1 && chartNum < LEN) { // If only one character can be displayed
             graphics.drawString(str.substring(0, 1), (int) (rectangle.getX() + LEFT_PADDING), mY);
         } else {
@@ -221,7 +220,7 @@ public class Common {
                 g2.drawString(str.substring(0, 1), Utils.getX(rect),
                     (float) (Utils.getY(rect) + rect.height / 2 + bounds.getHeight() / 2 - 3));
             } else {
-                LOGGER.info("drawStringMiddleHeight error");
+                rect.getWidth();
             }
         }
     }

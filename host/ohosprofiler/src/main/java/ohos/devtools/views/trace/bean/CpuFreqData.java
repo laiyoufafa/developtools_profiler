@@ -27,7 +27,7 @@ import java.awt.event.MouseEvent;
 /**
  * cpu frequency data
  *
- * @date 2021/04/22 12:25
+ * @since 2021/04/22 12:25
  */
 public class CpuFreqData extends AbstractGraph {
     @DField(name = "cpu")

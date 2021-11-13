@@ -35,7 +35,7 @@ import java.util.ArrayList;
 /**
  * cpu data
  *
- * @date 2021/04/22 12:25
+ * @since 2021/04/22 12:25
  */
 public class CpuData extends AbstractGraph {
     private final int padding1 = 2;

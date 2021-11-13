@@ -36,6 +36,19 @@ message KeyEvent {
     bool is_down = 2;
 }
 
+message TouchEvent {
+    int32 touch_type = 1;
+}
+
+message MouseEvent {
+    int32 action_type = 1;
+    int32 action_button = 2;
+}
+
+message RotationEvent {
+    float value = 1;
+}
+
 message AgentAbilityEvent {
     // timestamp obtained by CLOCK_REALTIME
     uint64 tv_sec = 1;
@@ -44,6 +57,9 @@ message AgentAbilityEvent {
     oneof event {
         AbilityStateInfo ability_state = 3;
         KeyEvent key_event = 4;
+        TouchEvent touch_event = 5;
+        MouseEvent mouse_event = 6;
+        RotationEvent rotation_event = 7;
     }
 }
 

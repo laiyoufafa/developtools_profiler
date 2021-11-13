@@ -181,7 +181,12 @@ public final class MetricsDb {
     public static String getSql(String sqlName) {
         String path = "metrics-sql/" + sqlName + ".txt";
         try (InputStream STREAM = DataUtils.class.getClassLoader().getResourceAsStream(path)) {
-            return IOUtils.toString(STREAM, Charset.forName("UTF-8"));
+            String sqlFile = IOUtils.toString(STREAM, Charset.forName("UTF-8"));
+            if (sqlFile.startsWith("/*")) {
+                return sqlFile.trim().substring(sqlFile.indexOf("*/") + 2);
+            } else {
+                return IOUtils.toString(STREAM, Charset.forName("UTF-8"));
+            }
         } catch (IOException exception) {
             exception.printStackTrace();
         }
@@ -234,8 +239,8 @@ public final class MetricsDb {
                 }
                 res.add(data);
             }
-        } catch (ClassNotFoundException | SQLException | InstantiationException | IllegalAccessException |
-            InvocationTargetException | NoSuchMethodException exception) {
+        } catch (ClassNotFoundException | SQLException | InstantiationException | IllegalAccessException
+                | InvocationTargetException | NoSuchMethodException exception) {
             exception.printStackTrace();
         } finally {
             release(rs, stat, conn);
@@ -293,7 +298,8 @@ public final class MetricsDb {
             declaredField.set(data, rs.getDouble(annotation.name()));
         } else if (declaredField.getType() == Float.class || declaredField.getType() == float.class) {
             declaredField.set(data, rs.getFloat(annotation.name()));
-        } else if (declaredField.getType() == Boolean.class || declaredField.getType() == boolean.class) {
+        } else if (declaredField.getType() == Boolean.class
+            || declaredField.getType() == boolean.class) {
             declaredField.set(data, rs.getBoolean(annotation.name()));
         } else if (declaredField.getType() == Blob.class) {
             declaredField.set(data, rs.getBytes(annotation.name()));

@@ -35,7 +35,7 @@ public class ClassInfoManager {
     }
 
     /**
-     * get All ClassInfoData
+     * Get all data to file
      *
      * @param sessionId sessionId
      * @return List <ClassInfo>

@@ -31,7 +31,6 @@ import ohos.devtools.datasources.utils.device.entity.DeviceIPPortInfo;
 import ohos.devtools.datasources.utils.device.entity.DeviceType;
 import ohos.devtools.datasources.utils.process.entity.ProcessInfo;
 import ohos.devtools.datasources.utils.profilerlog.ProfilerLogManager;
-import ohos.devtools.datasources.utils.session.service.SessionManager;
 import org.apache.logging.log4j.Level;
 import org.junit.Assert;
 import org.junit.Before;
@@ -42,9 +41,12 @@ import java.util.List;
 
 /**
  * process Unit Test
+ *
+ * @since 2021/2/1 9:31
  */
 public class ProcessManagerTest {
     private static volatile Integer requestId = 1;
+
     private ProcessInfo processInfo;
     private String processName;
     private DeviceIPPortInfo deviceIPPortInfo;
@@ -69,7 +71,6 @@ public class ProcessManagerTest {
      */
     @Before
     public void initObj() throws IOException {
-        SessionManager.getInstance().setDevelopMode(true);
         // 应用初始化 Step1 初始化数据中心
         ProfilerLogManager.getSingleton().updateLogLevel(Level.ERROR);
         DataBaseApi apo = DataBaseApi.getInstance();
@@ -90,7 +91,7 @@ public class ProcessManagerTest {
         IP = "";
         firstPort = 5001;
         serverName = InProcessServerBuilder.generateName();
-        getFeatureImpl = new GrpcMockServer();
+        getFeatureImpl = new ProcessMock();
         grpcCleanup.register(
             InProcessServerBuilder.forName(serverName).fallbackHandlerRegistry(serviceRegistry).directExecutor().build()
                 .start());
@@ -98,10 +99,7 @@ public class ProcessManagerTest {
         serviceRegistry.addService(getFeatureImpl);
     }
 
-    /**
-     * GrpcMockServer
-     */
-    private class GrpcMockServer extends MockProfilerServiceImplBase {
+    private class ProcessMock extends MockProfilerServiceImplBase {
         /**
          * init getCapabilities
          *
@@ -111,7 +109,13 @@ public class ProcessManagerTest {
         @Override
         public void getCapabilities(ProfilerServiceTypes.GetCapabilitiesRequest request,
             StreamObserver<ProfilerServiceTypes.GetCapabilitiesResponse> responseObserver) {
-            ProfilerServiceTypes.GetCapabilitiesResponse reply = getGetCapabilitiesResponse();
+            ProfilerServiceTypes.ProfilerPluginCapability pluginCapability =
+                ProfilerServiceTypes.ProfilerPluginCapability.newBuilder(
+                    ProfilerServiceTypes.ProfilerPluginCapability.newBuilder().setName("test0")
+                        .setPath("/data/local/tmp/libmemdata.z.so").build()).build();
+            ProfilerServiceTypes.GetCapabilitiesResponse reply =
+                ProfilerServiceTypes.GetCapabilitiesResponse.newBuilder().addCapabilities(pluginCapability)
+                    .setStatus(0).build();
             responseObserver.onNext(reply);
             responseObserver.onCompleted();
         }
@@ -125,7 +129,8 @@ public class ProcessManagerTest {
         @Override
         public void createSession(ProfilerServiceTypes.CreateSessionRequest request,
             StreamObserver<ProfilerServiceTypes.CreateSessionResponse> responseObserver) {
-            ProfilerServiceTypes.CreateSessionResponse reply = getCreateSessionResponse();
+            ProfilerServiceTypes.CreateSessionResponse reply =
+                ProfilerServiceTypes.CreateSessionResponse.newBuilder().setSessionId(1).setStatus(0).build();
             responseObserver.onNext(reply);
             responseObserver.onCompleted();
         }
@@ -139,7 +144,11 @@ public class ProcessManagerTest {
         @Override
         public void startSession(ProfilerServiceTypes.StartSessionRequest request,
             StreamObserver<ProfilerServiceTypes.StartSessionResponse> responseObserver) {
-            ProfilerServiceTypes.StartSessionResponse reply = getStartSessionResponse();
+            CommonTypes.ProfilerPluginState profilerPluginState =
+                CommonTypes.ProfilerPluginState.newBuilder().build();
+            ProfilerServiceTypes.StartSessionResponse reply =
+                ProfilerServiceTypes.StartSessionResponse.newBuilder().setStatus(0)
+                    .addPluginStatus(profilerPluginState).build();
             responseObserver.onNext(reply);
             responseObserver.onCompleted();
         }
@@ -153,7 +162,28 @@ public class ProcessManagerTest {
         @Override
         public void fetchData(ProfilerServiceTypes.FetchDataRequest request,
             StreamObserver<ProfilerServiceTypes.FetchDataResponse> responseObserver) {
-            ProfilerServiceTypes.FetchDataResponse fetchDataResponse = getFetchDataResponse();
+            MemoryPluginResult.AppSummary sss =
+                MemoryPluginResult.AppSummary.newBuilder().setJavaHeap(getIntData()).setNativeHeap(getIntData())
+                    .setCode(getIntData()).setStack(getIntData()).setGraphics(getIntData())
+                    .setPrivateOther(getIntData()).setSystem(0).build();
+            MemoryPluginResult.ProcessMemoryInfo processesInfoZero =
+                MemoryPluginResult.ProcessMemoryInfo.newBuilder().setPid(31141).setName("rcu_gp").setRssShmemKb(1)
+                    .setMemsummary(sss).build();
+            MemoryPluginResult.ProcessMemoryInfo processesInfoOne =
+                MemoryPluginResult.ProcessMemoryInfo.newBuilder().setPid(31142).setName("rcu_bh")
+                    .setRssShmemKb(2222222).build();
+            MemoryPluginResult.ProcessMemoryInfo processesInfoTwo =
+                MemoryPluginResult.ProcessMemoryInfo.newBuilder().setPid(31144).setName("netns")
+                    .setRssShmemKb(3333333).build();
+            MemoryPluginResult.MemoryData aaa =
+                MemoryPluginResult.MemoryData.newBuilder().addProcessesinfo(processesInfoZero)
+                    .addProcessesinfo(processesInfoOne).addProcessesinfo(processesInfoTwo).build();
+            CommonTypes.ProfilerPluginData data =
+                CommonTypes.ProfilerPluginData.newBuilder().setName("memory-plugin").setStatus(0)
+                    .setData(aaa.toByteString()).build();
+            ProfilerServiceTypes.FetchDataResponse fetchDataResponse =
+                ProfilerServiceTypes.FetchDataResponse.newBuilder().setResponseId(123456789).setStatus(0)
+                    .setHasMore(false).addPluginData(data).build();
             responseObserver.onNext(fetchDataResponse);
             responseObserver.onCompleted();
         }
@@ -182,66 +212,11 @@ public class ProcessManagerTest {
         @Override
         public void destroySession(ProfilerServiceTypes.DestroySessionRequest request,
             StreamObserver<ProfilerServiceTypes.DestroySessionResponse> responseObserver) {
-            ProfilerServiceTypes.DestroySessionResponse reply = getDestroySessionResponse();
+            ProfilerServiceTypes.DestroySessionResponse reply =
+                ProfilerServiceTypes.DestroySessionResponse.newBuilder().setStatus(0).build();
             responseObserver.onNext(reply);
             responseObserver.onCompleted();
         }
-    }
-
-    private ProfilerServiceTypes.DestroySessionResponse getDestroySessionResponse() {
-        ProfilerServiceTypes.DestroySessionResponse reply =
-            ProfilerServiceTypes.DestroySessionResponse.newBuilder().setStatus(0).build();
-        return reply;
-    }
-
-    private ProfilerServiceTypes.StartSessionResponse getStartSessionResponse() {
-        CommonTypes.ProfilerPluginState profilerPluginState = CommonTypes.ProfilerPluginState.newBuilder().build();
-        ProfilerServiceTypes.StartSessionResponse reply =
-            ProfilerServiceTypes.StartSessionResponse.newBuilder().setStatus(0).addPluginStatus(profilerPluginState)
-                .build();
-        return reply;
-    }
-
-    private ProfilerServiceTypes.CreateSessionResponse getCreateSessionResponse() {
-        ProfilerServiceTypes.CreateSessionResponse reply =
-            ProfilerServiceTypes.CreateSessionResponse.newBuilder().setSessionId(1).setStatus(0).build();
-        return reply;
-    }
-
-    private ProfilerServiceTypes.GetCapabilitiesResponse getGetCapabilitiesResponse() {
-        ProfilerServiceTypes.ProfilerPluginCapability pluginCapability = ProfilerServiceTypes.ProfilerPluginCapability
-            .newBuilder(ProfilerServiceTypes.ProfilerPluginCapability.newBuilder().setName("test0")
-                .setPath("/data/local/tmp/libmemdata.z.so").build()).build();
-        ProfilerServiceTypes.GetCapabilitiesResponse reply =
-            ProfilerServiceTypes.GetCapabilitiesResponse.newBuilder().addCapabilities(pluginCapability).setStatus(0)
-                .build();
-        return reply;
-    }
-
-    private ProfilerServiceTypes.FetchDataResponse getFetchDataResponse() {
-        MemoryPluginResult.AppSummary sss =
-            MemoryPluginResult.AppSummary.newBuilder().setJavaHeap(getIntData()).setNativeHeap(getIntData())
-                .setCode(getIntData()).setStack(getIntData()).setGraphics(getIntData()).setPrivateOther(getIntData())
-                .setSystem(0).build();
-        MemoryPluginResult.ProcessMemoryInfo processesInfoZero =
-            MemoryPluginResult.ProcessMemoryInfo.newBuilder().setPid(31141).setName("rcu_gp").setRssShmemKb(1)
-                .setMemsummary(sss).build();
-        MemoryPluginResult.ProcessMemoryInfo processesInfoOne =
-            MemoryPluginResult.ProcessMemoryInfo.newBuilder().setPid(31142).setName("rcu_bh").setRssShmemKb(2222222)
-                .build();
-        MemoryPluginResult.ProcessMemoryInfo processesInfoTwo =
-            MemoryPluginResult.ProcessMemoryInfo.newBuilder().setPid(31144).setName("netns").setRssShmemKb(3333333)
-                .build();
-        MemoryPluginResult.MemoryData aaa =
-            MemoryPluginResult.MemoryData.newBuilder().addProcessesinfo(processesInfoZero)
-                .addProcessesinfo(processesInfoOne).addProcessesinfo(processesInfoTwo).build();
-        CommonTypes.ProfilerPluginData data =
-            CommonTypes.ProfilerPluginData.newBuilder().setName("memory-plugin").setStatus(0)
-                .setData(aaa.toByteString()).build();
-        ProfilerServiceTypes.FetchDataResponse fetchDataResponse =
-            ProfilerServiceTypes.FetchDataResponse.newBuilder().setResponseId(123456789).setStatus(0).setHasMore(false)
-                .addPluginData(data).build();
-        return fetchDataResponse;
     }
 
     /**

@@ -37,7 +37,7 @@ import java.util.concurrent.CompletableFuture;
 /**
  * cpu data
  *
- * @date 2021/04/22 12:25
+ * @since 2021/04/22 12:25
  */
 public class ClockDataFragment extends AbstractDataFragment<ClockData> implements ClockData.IEventListener {
     /**
@@ -82,7 +82,6 @@ public class ClockDataFragment extends AbstractDataFragment<ClockData> implement
         super(root, true, false);
         this.clock = clock;
         this.setRoot(root);
-        this.data = data;
     }
 
     /**

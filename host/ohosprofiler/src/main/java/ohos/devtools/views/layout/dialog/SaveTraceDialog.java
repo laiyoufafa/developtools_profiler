@@ -16,6 +16,7 @@
 package ohos.devtools.views.layout.dialog;
 
 import com.intellij.openapi.util.IconLoader;
+import ohos.devtools.datasources.utils.device.entity.DeviceIPPortInfo;
 import ohos.devtools.datasources.utils.device.entity.DeviceProcessInfo;
 import ohos.devtools.datasources.utils.session.service.SessionManager;
 import ohos.devtools.views.common.ColorConstants;
@@ -42,23 +43,25 @@ import java.io.IOException;
 
 /**
  * SaveTraceDialog
+ *
+ * @since  2021/10/25
  */
 public class SaveTraceDialog {
     /**
-     * Global log
+     * 全局日志
      */
     private static final Logger LOGGER = LogManager.getLogger(SaveTraceDialog.class);
 
     /**
-     * trace file save path
+     * trace文件保存路径
      */
     private String tracePath = "";
 
     /**
-     * Displays a custom dialog box
+     * 显示一个自定义的对话框
      *
-     * @param btn Parent component of dialog box
-     * @param title Dialog of title
+     * @param btn 对话框的父级组件
+     * @param title 对话框的title
      */
     public void showCustomDialog(CustomJButton btn, String title) {
         // 创建一个模态对话框
@@ -141,10 +144,13 @@ public class SaveTraceDialog {
             }
             // 查询数据保存到file
             String pathName = filePath + File.separator + fileName + Constant.TRACE_SUFFIX;
+            DeviceIPPortInfo deviceIPPortInfo =
+                    SessionManager.getInstance().getDeviceInfoBySessionId(btn.getSessionId());
             DeviceProcessInfo deviceProcessInfo = new DeviceProcessInfo();
             deviceProcessInfo.setDeviceName(btn.getDeviceName());
             deviceProcessInfo.setProcessName(btn.getProcessName());
             deviceProcessInfo.setLocalSessionId(btn.getSessionId());
+            deviceProcessInfo.setDeviceType(deviceIPPortInfo.getDeviceType().toString());
             boolean saveResult =
                 SessionManager.getInstance().saveSessionDataToFile(btn.getSessionId(), deviceProcessInfo, pathName);
             if (saveResult) {

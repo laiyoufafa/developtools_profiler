@@ -17,6 +17,8 @@ package ohos.devtools.views.trace;
 
 /**
  * IFuncClick
+ *
+ * @since 2021/5/13 16:40
  */
 @FunctionalInterface
 public interface IFuncChange {

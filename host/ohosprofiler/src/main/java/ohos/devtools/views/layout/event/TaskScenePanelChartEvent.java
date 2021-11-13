@@ -18,7 +18,9 @@ package ohos.devtools.views.layout.event;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.util.IconLoader;
 import ohos.devtools.datasources.utils.session.service.SessionManager;
+import ohos.devtools.services.ability.AbilityDataCache;
 import ohos.devtools.services.cpu.CpuDataCache;
+import ohos.devtools.services.diskio.DiskIoDataCache;
 import ohos.devtools.services.memory.memoryservice.MemoryDataCache;
 import ohos.devtools.views.applicationtrace.AppTracePanel;
 import ohos.devtools.views.charts.model.ChartStandard;
@@ -38,6 +40,7 @@ import ohos.devtools.views.layout.dialog.ExportFileChooserDialog;
 import ohos.devtools.views.layout.dialog.SampleDialog;
 import ohos.devtools.views.layout.TaskPanel;
 import ohos.devtools.views.layout.chartview.TaskScenePanelChart;
+import ohos.devtools.views.perftrace.PerfTracePanel;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -72,6 +75,7 @@ public class TaskScenePanelChartEvent {
     private Container obj = null;
     private boolean buttonAvailable = true;
     private boolean resultDelete = false;
+    private long stopTime = -1;
 
     /**
      * 点击删除
@@ -260,7 +264,7 @@ public class TaskScenePanelChartEvent {
                 if (dumpPanel.getPanelName().contains("traceApp") || dumpPanel.getPanelName().contains("nativePerf")) {
                     Component[] components = taskScenePanelChart.getCards().getComponents();
                     for (Component component : components) {
-                        if (component instanceof AppTracePanel) {
+                        if (component instanceof AppTracePanel || component instanceof PerfTracePanel) {
                             taskScenePanelChart.getCards().remove(component);
                         }
                     }
@@ -268,12 +272,17 @@ public class TaskScenePanelChartEvent {
                         taskScenePanelChart
                             .showAppTrace(dumpPanel.getDbPath(), taskScenePanelChart.getjButtonRun().getSessionId());
                     }
+                    if (dumpPanel.getPanelName().contains("nativePerf")) {
+                        taskScenePanelChart.showPerfTrace(dumpPanel.getDbPath());
+                    }
                     taskScenePanelChart.setButtonEnable(true, dumpPanel.getDbPath());
                 } else {
                     taskScenePanelChart.getCardLayout().show(taskScenePanelChart.getCards(), dumpPanel.getPanelName());
                 }
                 taskScenePanelChart.setGreyFlag(true);
                 dumpPanel.setBackground(ColorConstants.SELECTED_COLOR);
+                dumpPanel.getHosJLabel().setForeground(ColorConstants.FONT_COLOR);
+                dumpPanel.getTimeJLabel().setForeground(ColorConstants.FONT_COLOR);
             }
 
             @Override
@@ -289,16 +298,27 @@ public class TaskScenePanelChartEvent {
     private void stopTask(ProfilerChartsView profilerView, CustomJButton stopButton,
         TaskScenePanelChart taskScenePanelChart) {
         profilerView.getPublisher().stopRefresh(false);
+        // Re-refresh the status of the app after stopping
+        if (profilerView.getAbilitySlice() != null) {
+            profilerView.getAbilitySlice().refreshActivityEndStatus(false);
+        }
         stopButton.setIcon(IconLoader.getIcon("/images/breakpoint.png", getClass()));
         taskScenePanelChart.getjButtonStop().setIcon(AllIcons.Process.ProgressResumeHover);
         buttonAvailable = false;
         CountingThread countingThread = taskScenePanelChart.getCounting();
         countingThread.setStopFlag(true);
         stopButton.setToolTipText("Start");
-        SessionManager.getInstance().endSession(stopButton.getSessionId());
+        boolean endFlag = SessionManager.getInstance().endSession(stopButton.getSessionId());
+        if (!endFlag) {
+            stopButton.setIcon(IconLoader.getIcon("/images/breakpoint_grey.png", getClass()));
+            new SampleDialog("prompt", "Failed to stop this session. Exit and try again.").show();
+            return;
+        }
         // Clear cache of all monitor items
         MemoryDataCache.getInstance().clearCacheBySession(stopButton.getSessionId());
         CpuDataCache.getInstance().clearCacheBySession(stopButton.getSessionId());
+        DiskIoDataCache.getInstance().clearCacheBySession(stopButton.getSessionId());
+        AbilityDataCache.getInstance().clearCacheBySession(stopButton.getSessionId());
         profilerView.setStop(true);
         profilerView.setPause(true);
     }
@@ -312,7 +332,12 @@ public class TaskScenePanelChartEvent {
         // Set the icon change after the pause button is clicked Open the session to get data
         long sessionId = stopButton.getSessionId();
         SessionManager sessionManager = SessionManager.getInstance();
-        sessionManager.startSession(sessionId, true);
+        boolean startFlag = sessionManager.startSession(sessionId, true);
+        if (!startFlag) {
+            stopButton.setIcon(IconLoader.getIcon("/images/breakpoint_grey.png", getClass()));
+            new SampleDialog("prompt", "Failed to start this session. Exit and try again.").show();
+            return;
+        }
         sessionManager.fetchData(sessionId);
         if (profilerView.getPublisher().isDisplayScrollbar()) {
             profilerView.removeScrollbar();
@@ -323,6 +348,10 @@ public class TaskScenePanelChartEvent {
         counting.start();
         // Clear the selected time after restarting
         profilerView.getPublisher().getStandard().clearAllSelectedRanges();
+        if (profilerView.getAbilitySlice() != null) {
+            // Re-refresh the status of the app after restart
+            profilerView.getAbilitySlice().refreshActivityEndStatus(true);
+        }
         profilerView.showLoading();
         profilerView.setStop(false);
         profilerView.setPause(false);
@@ -350,8 +379,11 @@ public class TaskScenePanelChartEvent {
                 }
                 if (!profilerView.isStop()) {
                     stopTask(profilerView, stopButton, taskScenePanelChart);
+                    stopTime = System.currentTimeMillis();
                 } else {
-                    startTask(profilerView, stopButton, taskScenePanelChart);
+                    if (System.currentTimeMillis() - stopTime >= 1000) {
+                        startTask(profilerView, stopButton, taskScenePanelChart);
+                    }
                 }
             }
         });

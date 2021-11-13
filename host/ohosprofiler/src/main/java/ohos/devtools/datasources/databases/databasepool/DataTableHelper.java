@@ -15,6 +15,7 @@
 
 package ohos.devtools.datasources.databases.databasepool;
 
+import ohos.devtools.datasources.utils.profilerlog.ProfilerLogManager;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -27,6 +28,8 @@ import static ohos.devtools.views.common.LayoutConstants.NEGATIVE_ONE;
 
 /**
  * Database table structure maintenance
+ *
+ * @since 2021/10/22 17:00
  */
 public class DataTableHelper {
     private static final Logger LOGGER = LogManager.getLogger(DataTableHelper.class);
@@ -41,6 +44,9 @@ public class DataTableHelper {
      * @return String
      */
     public static String getTableNameBySql(String sql) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("getTableNameBySql");
+        }
         int tableIndex = sql.indexOf("TABLE");
         if (tableIndex != NEGATIVE_ONE) {
             String tableName = sql.substring(tableIndex + INDEX_FIVE, sql.indexOf("("));
@@ -56,6 +62,9 @@ public class DataTableHelper {
      * @return String
      */
     public static String sqlPlaceholder(int size) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("sqlPlaceholder");
+        }
         StringBuffer stringBuffer = new StringBuffer();
         for (int i = 0; i < size; i++) {
             if (i == (size - 1)) {
@@ -74,6 +83,9 @@ public class DataTableHelper {
      * @return String
      */
     public static String getDeleteCondition(Map<String, Object> map) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("getDeleteCondition");
+        }
         Set<String> keySet = map.keySet();
         // Convert set collection to array
         String[] keyArray = keySet.toArray(new String[keySet.size()]);
@@ -106,6 +118,9 @@ public class DataTableHelper {
      * @return String
      */
     public static String mapToString(Map<String, Object> map) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("mapToString");
+        }
         Set<String> keySet = map.keySet();
         // Convert set collection to array
         String[] keyArray = keySet.toArray(new String[keySet.size()]);

@@ -15,15 +15,20 @@
 
 package ohos.devtools.datasources.utils.plugin.service;
 
+import ohos.devtools.datasources.utils.common.util.FileUtils;
 import ohos.devtools.datasources.utils.device.entity.DeviceType;
 import ohos.devtools.datasources.utils.plugin.IPluginConfig;
+import ohos.devtools.datasources.utils.plugin.entity.AnalysisType;
 import ohos.devtools.datasources.utils.plugin.entity.PluginConf;
 import ohos.devtools.datasources.utils.plugin.entity.PluginMode;
+import ohos.devtools.datasources.utils.profilerlog.ProfilerLogManager;
+import ohos.devtools.datasources.utils.session.service.SessionManager;
 import ohos.devtools.views.layout.chartview.ProfilerMonitorItem;
 import org.apache.commons.collections.map.MultiValueMap;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -38,11 +43,11 @@ import java.util.stream.Collectors;
 public class PlugManager {
     private static final Logger LOGGER = LogManager.getLogger(PlugManager.class);
     private static volatile PlugManager singleton;
-    private MultiValueMap profilerConfigMap = new MultiValueMap();
-    private List<PluginConf> confLists = new ArrayList<>();
+    private final MultiValueMap profilerConfigMap = new MultiValueMap();
+    private final List<PluginConf> confLists = new ArrayList<>();
 
     /**
-     * get Instance
+     * getInstance
      *
      * @return PlugManager
      */
@@ -61,15 +66,26 @@ public class PlugManager {
     }
 
     /**
-     * get Plugin Config
+     * get PluginConfig
      *
      * @param deviceType deviceType
      * @param pluginMode pluginMode
+     * @param analysisType analysisType
      * @return List <PluginConf>
      */
-    public List<PluginConf> getPluginConfig(DeviceType deviceType, PluginMode pluginMode) {
+    public List<PluginConf> getPluginConfig(DeviceType deviceType, PluginMode pluginMode, AnalysisType analysisType) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("getPluginConfig");
+        }
+        List<PluginConf> collect;
+        if (Objects.nonNull(analysisType)) {
+            collect = confLists.stream().filter(pluginConf -> pluginConf.getAnalysisTypes().contains(analysisType))
+                    .collect(Collectors.toList());
+        } else {
+            collect = confLists;
+        }
         if (Objects.isNull(pluginMode)) {
-            return confLists.stream().filter(hiProfilerPluginConf -> {
+            return collect.stream().filter(hiProfilerPluginConf -> {
                 List<DeviceType> supportDeviceTypes = hiProfilerPluginConf.getSupportDeviceTypes();
                 if (supportDeviceTypes.isEmpty()) {
                     return hiProfilerPluginConf.isEnable();
@@ -78,7 +94,7 @@ public class PlugManager {
                 }
             }).collect(Collectors.toList());
         }
-        return confLists.stream().filter(hiProfilerPluginConf -> {
+        return collect.stream().filter(hiProfilerPluginConf -> {
             List<DeviceType> supportDeviceTypes = hiProfilerPluginConf.getSupportDeviceTypes();
             if (supportDeviceTypes.isEmpty()) {
                 return hiProfilerPluginConf.isEnable() && hiProfilerPluginConf.getPluginMode() == pluginMode;
@@ -95,6 +111,9 @@ public class PlugManager {
      * @param pluginConfigs pluginConfigs
      */
     public void loadingPlugs(List<Class<? extends IPluginConfig>> pluginConfigs) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("loadingPlugs");
+        }
         if (pluginConfigs != null && pluginConfigs.size() > 0) {
             for (Class<? extends IPluginConfig> pluginConfigPackage : pluginConfigs) {
                 IPluginConfig config;
@@ -107,7 +126,9 @@ public class PlugManager {
                     IllegalAccessException |
                     InvocationTargetException |
                     NoSuchMethodException exception) {
-                    LOGGER.error("registerPlugin exception {}", exception.getMessage());
+                    if (ProfilerLogManager.isErrorEnabled()) {
+                        LOGGER.error("loadingPlugs exception {}", exception.getMessage());
+                    }
                     continue;
                 }
             }
@@ -120,6 +141,9 @@ public class PlugManager {
      * @param pluginConfig pluginConfig
      */
     public void loadingPlug(Class<? extends IPluginConfig> pluginConfig) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("loadingPlug");
+        }
         IPluginConfig config;
         try {
             if (pluginConfig != null) {
@@ -130,7 +154,9 @@ public class PlugManager {
             IllegalAccessException |
             InvocationTargetException |
             NoSuchMethodException exception) {
-            LOGGER.error("registerPlugin exception {}", exception.getMessage());
+            if (ProfilerLogManager.isErrorEnabled()) {
+                LOGGER.error("loadingPlug exception {}", exception.getMessage());
+            }
         }
     }
 
@@ -140,6 +166,12 @@ public class PlugManager {
      * @param pluginConf pluginConf
      */
     public void registerPlugin(PluginConf pluginConf) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("registerPlugin");
+        }
+        if (confLists.contains(pluginConf)) {
+            return;
+        }
         confLists.add(pluginConf);
     }
 
@@ -150,6 +182,13 @@ public class PlugManager {
      * @param pluginConf hiProfilerPluginConf
      */
     public void addPluginStartSuccess(long sessionId, PluginConf pluginConf) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("addPluginStartSuccess");
+        }
+        boolean isRegister = profilerConfigMap.containsValue(sessionId, pluginConf);
+        if (isRegister) {
+            return;
+        }
         profilerConfigMap.put(sessionId, pluginConf);
     }
 
@@ -160,11 +199,14 @@ public class PlugManager {
      * @return List <PluginConf>
      */
     public List<PluginConf> getProfilerPlugConfig(long sessionId) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("getProfilerPlugConfig");
+        }
         Collection<PluginConf> collection = profilerConfigMap.getCollection(sessionId);
         if (Objects.nonNull(collection)) {
-            return collection.stream().collect(Collectors.toList());
+            return new ArrayList<>(collection);
         }
-        return new ArrayList();
+        return new ArrayList<>();
     }
 
     /**
@@ -174,18 +216,36 @@ public class PlugManager {
      * @return List <ProfilerMonitorItem>
      */
     public List<ProfilerMonitorItem> getProfilerMonitorItemList(long sessionId) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("getProfilerMonitorItemList");
+        }
         Collection<PluginConf> collection = profilerConfigMap.getCollection(sessionId);
         if (Objects.nonNull(collection)) {
             List<ProfilerMonitorItem> itemList = collection.stream().filter(
                 hiProfilerPluginConf -> hiProfilerPluginConf.isChartPlugin() && Objects
-                    .nonNull(hiProfilerPluginConf.getMonitorItem()))
-                .map(hiProfilerPluginConf -> hiProfilerPluginConf.getMonitorItem()).collect(Collectors.toList());
-            if (Objects.nonNull(itemList)) {
-                return itemList.stream().sorted(Comparator.comparingInt(ProfilerMonitorItem::getIndex))
-                    .collect(Collectors.toList());
-            }
+                    .nonNull(hiProfilerPluginConf.getMonitorItem())).map(PluginConf::getMonitorItem)
+                .collect(Collectors.toList());
+            return itemList.stream().sorted(Comparator.comparingInt(ProfilerMonitorItem::getIndex))
+                .collect(Collectors.toList());
         }
         return new ArrayList<>();
+    }
+
+    /**
+     * unzip StdDevelopTools
+     *
+     * @return boolean
+     */
+    public boolean unzipStdDevelopTools() {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("unzipStdDevelopTools");
+        }
+        String pluginPath = SessionManager.getInstance().getPluginPath() + "stddeveloptools.tar";
+        File stdFile = new File(pluginPath);
+        if (stdFile.exists()) {
+            return FileUtils.unzipTarFile(stdFile).size() > 0;
+        }
+        return false;
     }
 
     /**

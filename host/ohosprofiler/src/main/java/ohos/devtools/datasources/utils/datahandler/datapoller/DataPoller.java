@@ -24,6 +24,7 @@ import ohos.devtools.datasources.utils.common.util.CommonUtil;
 import ohos.devtools.datasources.utils.common.util.DateTimeUtil;
 import ohos.devtools.datasources.utils.plugin.entity.PluginConf;
 import ohos.devtools.datasources.utils.plugin.service.PlugManager;
+import ohos.devtools.datasources.utils.profilerlog.ProfilerLogManager;
 import ohos.devtools.datasources.utils.session.service.SessionManager;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -54,9 +55,8 @@ public class DataPoller extends Thread {
     private ProfilerClient client;
     private boolean stopFlag = false;
     private boolean startRefresh = false;
-    private ExecutorService executorService = new ThreadPoolExecutor(0, Integer.MAX_VALUE,
-        60L, TimeUnit.SECONDS,
-        new SynchronousQueue<Runnable>());
+    private ExecutorService executorService =
+        new ThreadPoolExecutor(0, Integer.MAX_VALUE, 60L, TimeUnit.SECONDS, new SynchronousQueue<Runnable>());
     private Map<String, Queue> queueMap = new HashMap<>();
     private List<AbsDataConsumer> consumers = new ArrayList<>();
 
@@ -68,6 +68,9 @@ public class DataPoller extends Thread {
      * @param client client
      */
     public DataPoller(Long localSessionId, int sessionId, ProfilerClient client) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("DataPoller");
+        }
         this.localSessionId = localSessionId;
         this.sessionId = sessionId;
         this.client = client;
@@ -89,8 +92,15 @@ public class DataPoller extends Thread {
                 absDataConsumer.init(linkedBlockingQueue, sessionId, localSessionId);
                 executorService.execute(absDataConsumer);
                 consumers.add(absDataConsumer);
-            } catch (InstantiationException | IllegalAccessException | InvocationTargetException
-                | NoSuchMethodException exception) {
+                if (sessionId == Integer.MAX_VALUE) {
+                    if (!startRefresh) {
+                        long timeStamp = DateTimeUtil.getNowTimeLong();
+                        SessionManager.getInstance().stopLoadingView(localSessionId, timeStamp);
+                        startRefresh = true;
+                    }
+                }
+            } catch (InstantiationException | IllegalAccessException
+                | InvocationTargetException | NoSuchMethodException exception) {
                 LOGGER.error("start Poll init has Exception {}", exception.getMessage());
             }
         }
@@ -100,15 +110,21 @@ public class DataPoller extends Thread {
      * Starts polling.
      */
     private void startPoll() {
-        LOGGER.info("start Poller DeviceInfo, {}", DateTimeUtil.getNowTimeLong());
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("startPoll");
+        }
         ProfilerServiceTypes.FetchDataRequest request =
             ProfilerServiceHelper.fetchDataRequest(CommonUtil.getRequestId(), sessionId, null);
         Iterator<ProfilerServiceTypes.FetchDataResponse> response = null;
         try {
-            LOGGER.info("start Poller fetchData01, {}", DateTimeUtil.getNowTimeLong());
+            if (ProfilerLogManager.isInfoEnabled()) {
+                LOGGER.info("start Poller fetchData01, {}", DateTimeUtil.getNowTimeLong());
+            }
             response = client.fetchData(request);
             long startTime = DateTimeUtil.getNowTimeLong();
-            LOGGER.info("start Poller fetchData02, {}", startTime);
+            if (ProfilerLogManager.isInfoEnabled()) {
+                LOGGER.info("start Poller fetchData02, {}", startTime);
+            }
             while ((!stopFlag) && response.hasNext()) {
                 ProfilerServiceTypes.FetchDataResponse fetchDataResponse = response.next();
                 List<CommonTypes.ProfilerPluginData> lists = fetchDataResponse.getPluginDataList();
@@ -120,8 +136,10 @@ public class DataPoller extends Thread {
                 });
             }
         } catch (StatusRuntimeException exception) {
+            if (ProfilerLogManager.isErrorEnabled()) {
+                LOGGER.error("start Poll has Exception", exception);
+            }
             SessionManager.getInstance().deleteLocalSession(localSessionId);
-            LOGGER.error("start Poll has Exception {}", exception.getMessage());
             return;
         } finally {
             dataPollerEnd();
@@ -129,12 +147,17 @@ public class DataPoller extends Thread {
     }
 
     private void handleData(CommonTypes.ProfilerPluginData pluginData) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("handleData");
+        }
         if (pluginData.getStatus() != 0) {
             return;
         }
         String name = pluginData.getName();
         if (name.equals(MEMORY_PLUG)) {
-            LOGGER.debug("get Memory Date, time is {}", DateTimeUtil.getNowTimeLong());
+            if (ProfilerLogManager.isInfoEnabled()) {
+                LOGGER.info("get Memory Date, time is {}", DateTimeUtil.getNowTimeLong());
+            }
         }
         Queue queue = queueMap.get(name);
         if (Objects.nonNull(queue)) {
@@ -148,6 +171,9 @@ public class DataPoller extends Thread {
     }
 
     private void dataPollerEnd() {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("dataPollerEnd");
+        }
         consumers.forEach(absDataConsumer -> absDataConsumer.shutDown());
         executorService.shutdown();
     }
@@ -156,6 +182,9 @@ public class DataPoller extends Thread {
      * shutDown
      */
     public void shutDown() {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("shutDown");
+        }
         consumers.forEach(absDataConsumer -> absDataConsumer.shutDown());
         stopFlag = true;
     }
@@ -168,7 +197,9 @@ public class DataPoller extends Thread {
         try {
             startPoll();
         } catch (StatusRuntimeException exception) {
-            LOGGER.error("exception error{}", exception.getMessage());
+            if (ProfilerLogManager.isErrorEnabled()) {
+                LOGGER.error("exception error{}", exception.getMessage());
+            }
         }
     }
 }

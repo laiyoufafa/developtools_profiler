@@ -45,7 +45,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 /**
  * CpuDb data
  *
- * @date 2021/04/22 12:25
+ * @since 2021/04/22 12:25
  */
 public final class CpuDb {
     private static boolean isLocal;
@@ -138,9 +138,14 @@ public final class CpuDb {
      * @return String sql
      */
     public static String getSql(String sqlName) {
-        String path = "sql-app/" + sqlName + ".txt";
+        String path = "sql-app/" + sqlName + ".sql";
         try (InputStream STREAM = DataUtils.class.getClassLoader().getResourceAsStream(path)) {
-            return IOUtils.toString(STREAM, Charset.forName("UTF-8"));
+            String sqlFile = IOUtils.toString(STREAM, Charset.forName("UTF-8"));
+            if (sqlFile.startsWith("/*")) {
+                return sqlFile.trim().substring(sqlFile.indexOf("*/") + 2);
+            } else {
+                return IOUtils.toString(STREAM, Charset.forName("UTF-8"));
+            }
         } catch (UnsupportedEncodingException exception) {
             exception.printStackTrace();
         } catch (IOException ioException) {
@@ -195,8 +200,8 @@ public final class CpuDb {
     /**
      * query data by sql str
      *
-     * @param em   em
-     * @param res  res
+     * @param em em
+     * @param res res
      * @param args args
      * @param <T> T
      */
@@ -238,8 +243,8 @@ public final class CpuDb {
                 }
                 res.add(data);
             }
-        } catch (ClassNotFoundException | SQLException | InstantiationException
-            | IllegalAccessException | InvocationTargetException | NoSuchMethodException exception) {
+        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException
+            | InvocationTargetException | NoSuchMethodException | SQLException exception) {
             exception.printStackTrace();
         } finally {
             release(rs, stat, conn);
@@ -256,7 +261,8 @@ public final class CpuDb {
             declaredField.set(data, rs.getDouble(annotation.name()));
         } else if (declaredField.getType() == Float.class || declaredField.getType() == float.class) {
             declaredField.set(data, rs.getFloat(annotation.name()));
-        } else if (declaredField.getType() == Boolean.class || declaredField.getType() == boolean.class) {
+        } else if (declaredField.getType() == Boolean.class
+            || declaredField.getType() == boolean.class) {
             declaredField.set(data, rs.getBoolean(annotation.name()));
         } else if (declaredField.getType() == Blob.class) {
             declaredField.set(data, rs.getBytes(annotation.name()));

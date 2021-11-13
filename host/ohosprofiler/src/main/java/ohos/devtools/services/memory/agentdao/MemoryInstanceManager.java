@@ -20,15 +20,16 @@ import ohos.devtools.services.memory.agentbean.MemoryInstanceInfo;
 import java.util.ArrayList;
 
 /**
- * Memory InstanceManager
+ * Memory Instance Manager
  */
 public class MemoryInstanceManager {
     /**
-     * get MemoryInstanceInfos
+     * Find the corresponding instance information in the database according
+     * to the class ID and provide it to the UI query interface
      *
-     * @param cId parent Id
-     * @param startTime start time
-     * @param endTime end time
+     * @param cId 父Id
+     * @param startTime startTime
+     * @param endTime endTime
      * @return ArrayList <MemoryInstanceInfo>
      */
     public ArrayList<MemoryInstanceInfo> getMemoryInstanceInfos(Integer cId, Long startTime, Long endTime) {
@@ -37,7 +38,7 @@ public class MemoryInstanceManager {
     }
 
     /**
-     * get All MemoryInstanceInfos
+     * Check the instance information according to the class
      *
      * @return ArrayList <MemoryInstanceInfo>
      */

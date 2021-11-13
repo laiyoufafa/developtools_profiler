@@ -31,8 +31,7 @@ import java.util.List;
 /**
  * Cpu
  *
- * @version 1.0
- * @date: 2021/5/14 15:52
+ * @since: 2021/5/14 15:52
  */
 public class Cpu extends AbstractNode {
     @DField(name = "cpu")

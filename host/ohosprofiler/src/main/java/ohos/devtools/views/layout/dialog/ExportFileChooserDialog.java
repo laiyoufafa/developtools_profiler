@@ -23,6 +23,7 @@ import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.components.JBPanel;
+import ohos.devtools.datasources.utils.device.entity.DeviceIPPortInfo;
 import ohos.devtools.datasources.utils.device.entity.DeviceProcessInfo;
 import ohos.devtools.datasources.utils.session.service.SessionManager;
 import ohos.devtools.views.common.Constant;
@@ -41,6 +42,8 @@ import java.io.File;
 
 /**
  * ExportFileChooserDialog
+ *
+ * @Since 2021/10/25
  */
 public class ExportFileChooserDialog extends DialogWrapper {
     private TextFieldWithBrowseButton textFieldWithBrowseButton;
@@ -132,10 +135,13 @@ public class ExportFileChooserDialog extends DialogWrapper {
     public void saveDataToFile(CustomJButton jButton) {
         // 查询数据保存到file
         String pathName = exportFilePath + File.separator + exportFileName + Constant.TRACE_SUFFIX;
+        DeviceIPPortInfo deviceIPPortInfo =
+                SessionManager.getInstance().getDeviceInfoBySessionId(jButton.getSessionId());
         DeviceProcessInfo deviceProcessInfo = new DeviceProcessInfo();
         deviceProcessInfo.setDeviceName(jButton.getDeviceName());
         deviceProcessInfo.setProcessName(jButton.getProcessName());
         deviceProcessInfo.setLocalSessionId(jButton.getSessionId());
+        deviceProcessInfo.setDeviceType(deviceIPPortInfo.getDeviceType().toString());
         boolean saveResult =
             SessionManager.getInstance().saveSessionDataToFile(jButton.getSessionId(), deviceProcessInfo, pathName);
         if (saveResult) {

@@ -24,10 +24,10 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import ohos.devtools.datasources.utils.session.service.SessionManager;
-
 /**
  * Memory Instance Dao Test
+ *
+ * @since 2021/2/1 9:31
  */
 public class MemoryInstanceDaoTest {
     private MemoryInstanceDao memoryInstanceDao;
@@ -45,7 +45,6 @@ public class MemoryInstanceDaoTest {
      */
     @Before
     public void getInstance() {
-        SessionManager.getInstance().setDevelopMode(true);
         memoryInstanceDao = MemoryInstanceDao.getInstance();
         memoryInstanceInfo = new MemoryInstanceInfo();
         memoryInstanceInfo.setId(1);
@@ -77,7 +76,6 @@ public class MemoryInstanceDaoTest {
      */
     @Test
     public void createMemoryInstance() {
-        SessionManager.getInstance().setDevelopMode(true);
         boolean createMemoryResult = memoryInstanceDao.createMemoryInstance();
         Assert.assertTrue(createMemoryResult);
     }

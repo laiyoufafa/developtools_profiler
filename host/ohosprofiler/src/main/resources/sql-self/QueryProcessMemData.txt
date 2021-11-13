@@ -1,5 +1,0 @@
-select c.type,
-    ts, value,
-    filter_id as track_id,
-    c.ts-tb.start_ts startTime
-from measure c,trace_range tb where filter_id = %d;

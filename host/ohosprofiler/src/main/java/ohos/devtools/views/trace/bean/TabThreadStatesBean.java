@@ -20,7 +20,7 @@ import ohos.devtools.views.trace.DField;
 /**
  * TabThreadStatesBean
  *
- * @date: 2021/5/13 13:06
+ * @since 2021/5/13 13:06
  */
 public class TabThreadStatesBean {
     /**

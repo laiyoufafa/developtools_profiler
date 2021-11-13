@@ -32,6 +32,9 @@ import java.awt.Point;
 import java.awt.Robot;
 import java.awt.event.InputEvent;
 
+/**
+ * App Trace Panel Test
+ */
 class AppTracePanelTest {
     private FrameFixture frame;
     private AppTracePanel panel;
@@ -45,9 +48,7 @@ class AppTracePanelTest {
             robot = new Robot();
             robot.setAutoDelay(2000);
             IdeGlassPane ideGlassPane = new IdeGlassPaneImpl(jFrame.getRootPane());
-            if (ideGlassPane instanceof JPanel) {
-                jFrame.getRootPane().setGlassPane((JPanel) ideGlassPane);
-            }
+            jFrame.getRootPane().setGlassPane((JPanel) ideGlassPane);
         } catch (AWTException e) {
             e.printStackTrace();
         }
@@ -66,19 +67,24 @@ class AppTracePanelTest {
 
     @Test
     void load() {
-        panel.load(Config.TRACE_APP,
-            Config.TRACE_CPU, 8593, true);
+        panel.load(Config.TRACE_APP, Config.TRACE_CPU, 8593, true);
         panel.updateUI();
 
         delay(10000);
         mouseClick(317, 373);
         select(494, 367, 584, 467);
+        // select(419, 369, 500, 469);
+        // mouseClick(1290, 96);
+        // mouseClick(315, 535);
+        // mouseClick(1290, 96);
+        // mouseClick(52, 437);
+        // mouseClick(1386, 97);
         delay();
     }
 
-    private void mouseClick(int pointX, int pointY) {
+    private void mouseClick(int level, int vertical) {
         robot.delay(2000);
-        robot.mouseMove(pointX, pointY);
+        robot.mouseMove(level, vertical);
         robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
         robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
     }

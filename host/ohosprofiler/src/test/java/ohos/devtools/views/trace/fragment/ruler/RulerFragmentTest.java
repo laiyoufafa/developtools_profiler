@@ -29,7 +29,7 @@ import static org.junit.Assert.assertNotNull;
 /**
  * test RulerFragment class .
  *
- * @date 2021/4/24 17:55
+ * @since 2021/4/24 17:55
  */
 class RulerFragmentTest {
     /**

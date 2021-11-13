@@ -30,8 +30,7 @@ import java.awt.event.MouseEvent;
 /**
  * Thread data
  *
- * @version 1.0
- * @date 2021/04/22 12:25
+ * @since 2021/04/22 12:25
  */
 public class ThreadData extends AbstractGraph {
     private static Color runningColor = new Color(Final.RUNNING_COLOR);
@@ -448,3 +447,4 @@ public class ThreadData extends AbstractGraph {
         void mouseMove(MouseEvent event, ThreadData data);
     }
 }
+

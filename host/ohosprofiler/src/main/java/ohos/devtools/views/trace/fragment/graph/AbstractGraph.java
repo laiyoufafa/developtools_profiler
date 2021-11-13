@@ -26,7 +26,7 @@ import java.awt.event.MouseEvent;
 /**
  * Data line graphics
  *
- * @date 2021/04/22 12:25
+ * @since 2021/04/22 12:25
  */
 public abstract class AbstractGraph extends AbstractNode {
     /**

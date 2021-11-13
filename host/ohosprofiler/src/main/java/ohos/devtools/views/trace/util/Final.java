@@ -20,14 +20,13 @@ import java.awt.Font;
 /**
  * Font color information tool
  *
- * @version 1.0
- * @date 2021/04/22 12:25
+ * @since 2021/04/22 12:25
  */
 public final class Final {
     /**
-     * OHOS db file
+     * is resource sql db file
      */
-    public static final boolean OHOS = true;
+    public static final boolean IS_RESOURCE_SQL = true;
 
     /**
      * Font name
@@ -97,7 +96,7 @@ public final class Final {
     /**
      * db capacity ,if row number big then capacity use async load db data
      */
-    public static final long CAPACITY = 10000;
+    public static final long CAPACITY = 5000L;
 
     private Final() {
     }

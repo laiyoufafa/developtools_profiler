@@ -33,13 +33,30 @@ import static ohos.devtools.views.layout.chartview.utils.ChartViewConstants.TIME
  * User-defined timeline component of Profiler
  */
 public class ProfilerTimeline extends JBPanel {
-    private static final int NUM_5 = 5;
+    /**
+     * Offset in point
+     */
+    private static final int OFFSET_POINT = 5;
 
-    private static final int NUM_6 = 6;
+    /**
+     * draw line top border
+     */
+    private static final int TOP_BORDER = 6;
 
-    private static final int NUM_10 = 10;
+    /**
+     * Offset in seconds
+     */
+    private static final int OFFSET_SECONDS = 10;
 
-    private static final int NUM_1000 = 1000;
+    /**
+     * Unit value of minutes converted to seconds
+     */
+    private static final int SECONDS_UNIT = 60;
+
+    /**
+     * Conversion rate for time conversion
+     */
+    private static final int CONVERSION_RATE = 1000;
 
     /**
      * The maximum time that can be displayed on the timeline
@@ -183,9 +200,9 @@ public class ProfilerTimeline extends JBPanel {
                 // Time after conversion
                 String str = millisecondToTime(showTime);
                 graphics.setColor(JBColor.foreground());
-                graphics.drawString(str, pointX + NUM_5, y0 - NUM_10);
+                graphics.drawString(str, pointX + OFFSET_POINT, y0 - OFFSET_SECONDS);
             } else {
-                graphics.drawLine(pointX, top, pointX, top + NUM_6);
+                graphics.drawLine(pointX, top, pointX, top + TOP_BORDER);
             }
         }
     }
@@ -202,26 +219,24 @@ public class ProfilerTimeline extends JBPanel {
         int minute;
         int second;
         int millisecond;
-        int num60 = NUM_6 * NUM_10;
         if (time <= 0) {
-            return "0s";
+            return "0";
         } else {
-            second = time / NUM_1000;
-            minute = second / num60;
-            millisecond = time % NUM_1000;
-            if (second < num60) {
-                timeStr = secondFormat(second) + "." + millisecondFormat(millisecond) + "s";
-            } else if (minute < num60) {
-                second = second % num60;
-                timeStr =
-                    secondFormat(minute) + ":" + secondFormat(second) + "." + millisecondFormat(millisecond) + "s";
+            second = time / CONVERSION_RATE;
+            minute = second / SECONDS_UNIT;
+            millisecond = time % CONVERSION_RATE;
+            if (second < SECONDS_UNIT) {
+                timeStr = secondFormat(second) + "." + millisecondFormat(millisecond);
+            } else if (minute < SECONDS_UNIT) {
+                second = second % SECONDS_UNIT;
+                timeStr = secondFormat(minute) + ":" + secondFormat(second) + "." + millisecondFormat(millisecond);
             } else {
-                hour = minute / num60;
-                minute = minute % num60;
-                int num3600 = num60 * num60;
-                second = second - hour * num3600 - minute * num60;
+                hour = minute / SECONDS_UNIT;
+                minute = minute % SECONDS_UNIT;
+                int num3600 = SECONDS_UNIT * SECONDS_UNIT;
+                second = second - hour * num3600 - minute * SECONDS_UNIT;
                 timeStr = secondFormat(hour) + ":" + secondFormat(minute) + ":" + secondFormat(second) + "."
-                    + millisecondFormat(millisecond) + "s";
+                    + millisecondFormat(millisecond);
             }
         }
         return timeStr;
@@ -234,15 +249,15 @@ public class ProfilerTimeline extends JBPanel {
      * @return String
      */
     private String secondFormat(int secondTime) {
-        String retStr;
+        String formatTime;
         if (secondTime == 0) {
-            retStr = "00";
-        } else if (secondTime > 0 && secondTime < NUM_10) {
-            retStr = Integer.toString(secondTime);
+            formatTime = "00";
+        } else if (secondTime > 0 && secondTime < OFFSET_SECONDS) {
+            formatTime = Integer.toString(secondTime);
         } else {
-            retStr = "" + secondTime;
+            formatTime = "" + secondTime;
         }
-        return retStr;
+        return formatTime;
     }
 
     /**
@@ -252,17 +267,17 @@ public class ProfilerTimeline extends JBPanel {
      * @return String
      */
     private String millisecondFormat(int millisecondTime) {
-        String retStr;
+        String formatTime;
         if (millisecondTime == 0) {
-            retStr = "000";
-        } else if (millisecondTime > 0 && millisecondTime < NUM_10) {
-            retStr = Integer.toString(millisecondTime);
-        } else if (millisecondTime >= NUM_10 && millisecondTime < NUM_10 * NUM_10) {
-            retStr = Integer.toString(millisecondTime);
+            formatTime = "000";
+        } else if (millisecondTime > 0 && millisecondTime < OFFSET_SECONDS) {
+            formatTime = Integer.toString(millisecondTime);
+        } else if (millisecondTime >= OFFSET_SECONDS && millisecondTime < OFFSET_SECONDS * OFFSET_SECONDS) {
+            formatTime = Integer.toString(millisecondTime);
         } else {
-            retStr = "" + millisecondTime;
+            formatTime = "" + millisecondTime;
         }
-        return retStr;
+        return formatTime;
     }
 
     /**

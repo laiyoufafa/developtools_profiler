@@ -25,7 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 /**
  * test ScrollTablePanel class .
  *
- * @date 2021/4/24 18:03
+ * @since 2021/4/24 18:03
  */
 class ScrollTablePanelTest {
     /**

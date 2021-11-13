@@ -18,6 +18,7 @@ package ohos.devtools.services.memory.agentdao;
 import ohos.devtools.datasources.databases.databaseapi.DataBaseApi;
 import ohos.devtools.datasources.databases.databasepool.AbstractDataStore;
 import ohos.devtools.datasources.utils.common.util.CloseResourceUtil;
+import ohos.devtools.datasources.utils.profilerlog.ProfilerLogManager;
 import ohos.devtools.services.memory.agentbean.MemoryInstanceInfo;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -40,7 +41,7 @@ public class MemoryInstanceDao extends AbstractDataStore {
     private static volatile MemoryInstanceDao singleton;
 
     /**
-     * get Instance
+     * getInstance
      *
      * @return MemoryInstanceDao
      */
@@ -69,6 +70,9 @@ public class MemoryInstanceDao extends AbstractDataStore {
      * @return Connection
      */
     private Connection getConnection(String tableName) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("getConnection");
+        }
         Optional<Connection> optionalConnection = getConnectByTable(tableName);
         Connection conn = null;
         if (optionalConnection.isPresent()) {
@@ -78,14 +82,21 @@ public class MemoryInstanceDao extends AbstractDataStore {
     }
 
     /**
-     * INSTANCE OBJECT TABLE CREATION
+     * create Memory Instance
      *
      * @return boolean
      */
     public boolean createMemoryInstance() {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("createMemoryInstance");
+        }
         String dbName = JVMTI_AGENT_PLUG;
         String memoryInstanceInfoTable = "MemoryInstanceInfo";
-        String sql = "CREATE TABLE MemoryInstanceInfo (instanceId  int(100) not null, deallocTime int(100));";
+        String sql =
+            "CREATE TABLE "
+                + "MemoryInstanceInfo "
+                + "(instanceId int(100) not null, "
+                + "deallocTime int(100));";
         return createTable(dbName, memoryInstanceInfoTable, sql);
     }
 
@@ -95,29 +106,41 @@ public class MemoryInstanceDao extends AbstractDataStore {
      * @param memoryUpdateInfo memoryUpdateInfo
      */
     public void insertMemoryInstanceInfo(MemoryUpdateInfo memoryUpdateInfo) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("insertMemoryInstanceInfo");
+        }
         Connection conn = null;
         PreparedStatement ps = null;
         try {
             conn = getConnection("MemoryInstanceInfo");
-            String sql = "insert into MemoryInstanceInfo(instanceId,deallocTime) values (?,?)";
+            String sql = "insert into "
+                + "MemoryInstanceInfo("
+                + "instanceId, "
+                + "deallocTime) "
+                + "values (?,?)";
             ps = conn.prepareStatement(sql);
             ps.setLong(1, memoryUpdateInfo.getInstanceId());
             ps.setLong(2, memoryUpdateInfo.getUpdateTime());
             ps.executeUpdate();
         } catch (SQLException throwAbles) {
-            LOGGER.error("SQLException error: " + throwAbles.getMessage());
+            if (ProfilerLogManager.isErrorEnabled()) {
+                LOGGER.error("SQLException error: " + throwAbles.getMessage());
+            }
         } finally {
             CloseResourceUtil.closeResource(LOGGER, conn, ps, null);
         }
     }
 
     /**
-     * insert MemoryInstanceInfos
+     * insertMemoryInstanceInfos
      *
      * @param memoryUpdateInfos memoryInstanceInfos
      * @return boolean
      */
     public boolean insertMemoryInstanceInfos(List<MemoryUpdateInfo> memoryUpdateInfos) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("insertMemoryInstanceInfos");
+        }
         if (memoryUpdateInfos.isEmpty()) {
             return false;
         }
@@ -126,7 +149,11 @@ public class MemoryInstanceDao extends AbstractDataStore {
         try {
             conn = getConnection("MemoryInstanceInfo");
             conn.setAutoCommit(false);
-            String sql = "insert into MemoryInstanceInfo(instanceId,deallocTime) values (?,?)";
+            String sql = "insert into "
+                + "MemoryInstanceInfo("
+                + "instanceId, "
+                + "deallocTime) "
+                + "values (?,?)";
             ps = conn.prepareStatement(sql);
             for (MemoryUpdateInfo memoryInstanceInfo : memoryUpdateInfos) {
                 try {
@@ -134,7 +161,9 @@ public class MemoryInstanceDao extends AbstractDataStore {
                     ps.setLong(2, memoryInstanceInfo.getUpdateTime());
                     ps.addBatch();
                 } catch (SQLException sqlException) {
-                    LOGGER.info("insert AppInfo {}", sqlException.getMessage());
+                    if (ProfilerLogManager.isErrorEnabled()) {
+                        LOGGER.error("insert AppInfo {}", sqlException.getMessage());
+                    }
                 }
             }
             ps.executeBatch();
@@ -142,8 +171,10 @@ public class MemoryInstanceDao extends AbstractDataStore {
             conn.setAutoCommit(true);
             ps.clearParameters();
             return true;
-        } catch (SQLException throwables) {
-            LOGGER.error("SQLException error: " + throwables.getMessage());
+        } catch (SQLException sqlException) {
+            if (ProfilerLogManager.isErrorEnabled()) {
+                LOGGER.error("SQLException error: " + sqlException.getMessage());
+            }
             return false;
         } finally {
             CloseResourceUtil.closeResource(LOGGER, conn, ps, null);
@@ -151,24 +182,38 @@ public class MemoryInstanceDao extends AbstractDataStore {
     }
 
     /**
-     * get MemoryInstanceInfos by cId
+     * 根据该实例的父Id(对应的类对象hId)，从数据库获取具体的实例信息
      *
-     * @param cId cId
-     * @param startTime startTime
-     * @param endTime endTime
-     * @return ArrayList<MemoryInstanceInfo>
+     * @param cId 父cd
+     * @param startTime 开始时间
+     * @param endTime 结束时间
+     * @return ArrayList <MemoryInstanceInfo>
      */
     public ArrayList<MemoryInstanceInfo> getMemoryInstanceInfos(Integer cId, Long startTime, Long endTime) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("getMemoryInstanceInfos");
+        }
         Connection conn = getConnection("MemoryHeapInfo");
         PreparedStatement ps = null;
         ArrayList<MemoryInstanceInfo> memoryInstanceInfos = new ArrayList<>();
         try {
-            String sql = "select memory.instanceId," + "memory.createTime," + "memory.cid,"
-                + "IFNULL( instance.deallocTime , 0 ) AS deallocTime" + " from MemoryHeapInfo as memory "
-                + "LEFT JOIN MemoryInstanceInfo AS instance "
-                + "ON instance.instanceId = memory.instanceId "
-                + "WHERE  memory.cid = ? and ((createTime >= ? and createTime <= ?) or (deallocTime  >= ? "
-                + "and deallocTime  <= ?))";
+            String sql = "select "
+                + "memory.instanceId, "
+                + "memory.createTime, "
+                + "memory.cid, "
+                + "IFNULL( instance.deallocTime , 0 ) AS deallocTime "
+                + "from "
+                + "MemoryHeapInfo as memory "
+                + "LEFT JOIN "
+                + "MemoryInstanceInfo AS instance "
+                + "ON "
+                + "instance.instanceId = memory.instanceId "
+                + "WHERE "
+                + "memory.cid = ? "
+                + "and "
+                + "((createTime >= ? and createTime <= ?) "
+                + "or "
+                + "(deallocTime  >= ? and deallocTime  <= ?))";
             ps = conn.prepareStatement(sql);
             ps.setInt(1, cId);
             ps.setLong(2, startTime);
@@ -176,40 +221,54 @@ public class MemoryInstanceDao extends AbstractDataStore {
             ps.setLong(4, startTime);
             ps.setLong(5, endTime);
             ResultSet rs = ps.executeQuery();
-            MemoryInstanceInfo memoryInstanceInfo = null;
-            while (rs.next()) {
-                memoryInstanceInfo = new MemoryInstanceInfo();
-                Integer instanceId = rs.getInt("instanceId");
-                Long allocTime = rs.getLong("createTime");
-                Long deallocTime = rs.getLong("deallocTime");
-                memoryInstanceInfo.setInstanceId(instanceId);
-                memoryInstanceInfo.setcId(cId);
-                memoryInstanceInfo.setAllocTime(allocTime);
-                memoryInstanceInfo.setDeallocTime(deallocTime);
-                memoryInstanceInfo.setCreateTime(allocTime);
-                memoryInstanceInfos.add(memoryInstanceInfo);
-            }
+            getMemoryInstanceInfo(cId, memoryInstanceInfos, rs);
             ps.clearParameters();
             return memoryInstanceInfos;
         } catch (SQLException throwAbles) {
-            LOGGER.error(throwAbles.getMessage());
+            if (ProfilerLogManager.isErrorEnabled()) {
+                LOGGER.error(throwAbles.getMessage());
+            }
         } finally {
             CloseResourceUtil.closeResource(LOGGER, conn, ps, null);
         }
         return memoryInstanceInfos;
     }
 
+    private void getMemoryInstanceInfo(Integer cId, ArrayList<MemoryInstanceInfo> memoryInstanceInfos, ResultSet rs)
+        throws SQLException {
+        MemoryInstanceInfo memoryInstanceInfo = null;
+        while (rs.next()) {
+            memoryInstanceInfo = new MemoryInstanceInfo();
+            Integer instanceId = rs.getInt("instanceId");
+            Long allocTime = rs.getLong("createTime");
+            Long deallocTime = rs.getLong("deallocTime");
+            memoryInstanceInfo.setInstanceId(instanceId);
+            memoryInstanceInfo.setcId(cId);
+            memoryInstanceInfo.setAllocTime(allocTime);
+            memoryInstanceInfo.setDeallocTime(deallocTime);
+            memoryInstanceInfo.setCreateTime(allocTime);
+            memoryInstanceInfos.add(memoryInstanceInfo);
+        }
+    }
+
     /**
-     * get All Memory InstanceInfos
+     * 从数据库获取全部的实例信息
      *
-     * @return ArrayList<MemoryUpdateInfo>
+     * @return ArrayList <MemoryUpdateInfo>
      */
     public ArrayList<MemoryUpdateInfo> getAllMemoryInstanceInfos() {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("getAllMemoryInstanceInfos");
+        }
         Connection conn = getConnection("MemoryInstanceInfo");
         PreparedStatement ps = null;
         ArrayList<MemoryUpdateInfo> memoryInstanceInfos = new ArrayList<>();
         try {
-            String sql = "select instanceId,deallocTime from MemoryInstanceInfo";
+            String sql = "select "
+                + "instanceId, "
+                + "deallocTime "
+                + "from "
+                + "MemoryInstanceInfo";
             ps = conn.prepareStatement(sql);
             ResultSet rs = ps.executeQuery();
             MemoryUpdateInfo memoryInstanceInfo = null;
@@ -222,7 +281,9 @@ public class MemoryInstanceDao extends AbstractDataStore {
             ps.clearParameters();
             return memoryInstanceInfos;
         } catch (SQLException throwAbles) {
-            LOGGER.error(throwAbles.getMessage());
+            if (ProfilerLogManager.isErrorEnabled()) {
+                LOGGER.error(throwAbles.getMessage());
+            }
         } finally {
             CloseResourceUtil.closeResource(LOGGER, conn, ps, null);
         }
@@ -236,6 +297,9 @@ public class MemoryInstanceDao extends AbstractDataStore {
      * @return boolean
      */
     public boolean deleteSessionData(long sessionId) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("deleteSessionData");
+        }
         StringBuffer deleteSql = new StringBuffer("DELETE FROM MemoryInstanceInfo");
         Optional<Connection> connection = DataBaseApi.getInstance().getConnectByTable("MemoryInstanceInfo");
         if (connection.isPresent()) {
@@ -243,5 +307,4 @@ public class MemoryInstanceDao extends AbstractDataStore {
         }
         return true;
     }
-
 }

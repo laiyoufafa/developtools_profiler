@@ -24,7 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 /**
  * test FlagBean class
  *
- * @date 2021/4/24 18:05
+ * @since 2021/4/24 18:05
  */
 class FlagBeanTest {
     /**

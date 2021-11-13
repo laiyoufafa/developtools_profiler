@@ -17,6 +17,7 @@ package ohos.devtools.datasources.utils.device.service;
 
 import ohos.devtools.datasources.transport.hdc.HdcWrapper;
 import ohos.devtools.datasources.utils.device.entity.DeviceIPPortInfo;
+import ohos.devtools.datasources.utils.profilerlog.ProfilerLogManager;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -31,7 +32,7 @@ import static ohos.devtools.datasources.utils.device.entity.DeviceType.LEAN_HOS_
 import static ohos.devtools.views.common.Constant.IS_SUPPORT_NEW_HDC;
 
 /**
- * device forwarding port class
+ * 设备转发端口类
  */
 public class DeviceForwardPort {
     private static final Logger LOGGER = LogManager.getLogger(DeviceForwardPort.class);
@@ -43,6 +44,9 @@ public class DeviceForwardPort {
      * @return DeviceForwardPort
      */
     public static DeviceForwardPort getInstance() {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("getInstance");
+        }
         if (instance == null) {
             synchronized (MultiDeviceManager.class) {
                 if (instance == null) {
@@ -63,6 +67,9 @@ public class DeviceForwardPort {
      * @return int
      */
     public int forwardDevicePort(DeviceIPPortInfo info) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("forwardDevicePort");
+        }
         String serialNumber = info.getDeviceID();
         while (true) {
             int forward = getForwardPort();
@@ -85,13 +92,18 @@ public class DeviceForwardPort {
      * @return int
      */
     public int getForwardPort() {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("getForwardPort");
+        }
         int length = 55535;
         int off = 10000;
         SecureRandom secureRandom;
         try {
             secureRandom = SecureRandom.getInstanceStrong();
         } catch (NoSuchAlgorithmException noSuchAlgorithmException) {
-            LOGGER.info("create Random NoSuchAlgorithmException ", noSuchAlgorithmException);
+            if (ProfilerLogManager.isErrorEnabled()) {
+                LOGGER.error("create Random NoSuchAlgorithmException ", noSuchAlgorithmException.getMessage());
+            }
             return getForwardPort();
         }
         return secureRandom.nextInt(length) + off;

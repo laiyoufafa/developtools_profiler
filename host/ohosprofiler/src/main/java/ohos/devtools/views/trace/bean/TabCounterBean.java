@@ -18,7 +18,7 @@ package ohos.devtools.views.trace.bean;
 /**
  * TabCounterBean
  *
- * @date: 2021/5/12 16:34
+ * @since 2021/5/12 16:34
  */
 public class TabCounterBean {
     private Integer trackId;

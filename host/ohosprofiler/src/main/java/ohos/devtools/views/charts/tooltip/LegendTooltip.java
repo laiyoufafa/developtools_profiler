@@ -316,7 +316,7 @@ public final class LegendTooltip extends JComponent {
                 return;
             }
             addThreadStatusLegends(timeline, chartDataModel.getName(), chartDataModel.getValue(),
-                chartDataModel.getCpuPercent());
+                chartDataModel.getDoubleValue());
             this.validate();
             this.setVisible(true);
         }
@@ -378,5 +378,54 @@ public final class LegendTooltip extends JComponent {
         usageLabel.setOpaque(false);
         usageLabel.setText("OccRate:" + threadUsage);
         mainPanel.add(usageLabel);
+    }
+
+    /**
+     * showGpuTip
+     *
+     * @param parent parent
+     * @param timeline timeline
+     * @param tooltipItems tooltipItems
+     * @param isCharting isCharting
+     */
+    public void showGpuTip(JComponent parent, String timeline, List<TooltipItem> tooltipItems, boolean isCharting) {
+        if (parent != null && parent.getRootPane() != null) {
+            this.rows = tooltipItems.size() + 1;
+            if (isCharting) {
+                rebuild(parent);
+                resize();
+                return;
+            }
+
+            addGpuLegends(timeline, tooltipItems);
+            this.validate();
+            this.setVisible(true);
+        }
+    }
+
+    private void addGpuLegends(String timeline, List<TooltipItem> tooltipItems) {
+        mainPanel.removeAll();
+        JBLabel timeLabel = new JBLabel();
+        timeLabel.setBorder(new EmptyBorder(5, 5, 5, 5));
+        long ms = 0L;
+        String pattern = "^\\d{0,20}$";
+        boolean isMatch = Pattern.matches(pattern, timeline);
+        if (isMatch) {
+            ms = Long.parseLong(timeline);
+        } else {
+            LOGGER.error("Time format error:{}", timeline);
+        }
+        timeLabel.setText(ChartUtils.formatTime(ms));
+        timeLabel.setOpaque(false);
+        mainPanel.add(timeLabel);
+        for (TooltipItem tooltipItem : tooltipItems) {
+            JPanel single = new JPanel(new FlowLayout(FlowLayout.LEFT));
+            single.setOpaque(false);
+            JBLabel nameLabel = new JBLabel();
+            nameLabel.setOpaque(false);
+            nameLabel.setText("Value : " + tooltipItem.getText());
+            single.add(nameLabel);
+            mainPanel.add(single);
+        }
     }
 }

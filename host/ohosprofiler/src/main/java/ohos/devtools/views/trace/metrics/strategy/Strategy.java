@@ -19,8 +19,11 @@ import ohos.devtools.views.trace.metrics.MetricsSql;
 
 /**
  * Strategy
+ *
+ * @since 2021/04/22 12:25
  */
 public interface Strategy {
+
     /**
      * get Query Result
      *

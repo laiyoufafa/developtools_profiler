@@ -1,1 +1,0 @@
-select cpu from cpu_measure_filter where name='cpuidle' order by cpu;

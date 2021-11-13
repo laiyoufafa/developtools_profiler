@@ -27,7 +27,7 @@ import java.awt.event.MouseEvent;
 /**
  * Bottom scroll component
  *
- * @date 2021/04/20 12:24
+ * @since 2021/04/20 12:24
  */
 public class BottomScrollPanel extends JBScrollPane {
     /**
@@ -53,7 +53,7 @@ public class BottomScrollPanel extends JBScrollPane {
     /**
      * ChildPanel
      *
-     * @date 2021/04/20 12:24
+     * @since 2021/04/20 12:24
      */
     public static class ChildPanel extends JBPanel {
         /**
@@ -110,7 +110,7 @@ public class BottomScrollPanel extends JBScrollPane {
     /**
      * ChildLineComponent
      *
-     * @date 2021/04/20 12:24
+     * @since 2021/04/20 12:24
      */
     public static class ChildLineComponent extends ChildPanel {
         private static final int DEFAULT_LINE_HEIGHT = 27;

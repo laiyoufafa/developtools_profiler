@@ -18,10 +18,10 @@ package ohos.devtools.views.charts.utils;
 import java.math.BigDecimal;
 
 import static java.math.BigDecimal.ROUND_HALF_UP;
-import static ohos.devtools.views.charts.utils.ChartConstants.NUM_1000;
-import static ohos.devtools.views.charts.utils.ChartConstants.NUM_60;
-import static ohos.devtools.views.charts.utils.ChartConstants.NUM_24;
 import static ohos.devtools.views.charts.utils.ChartConstants.DECIMAL_COUNTS;
+import static ohos.devtools.views.charts.utils.ChartConstants.NUM_1000;
+import static ohos.devtools.views.charts.utils.ChartConstants.NUM_24;
+import static ohos.devtools.views.charts.utils.ChartConstants.NUM_60;
 import static ohos.devtools.views.common.LayoutConstants.INITIAL_VALUE;
 
 /**
@@ -47,7 +47,7 @@ public final class ChartUtils {
     /**
      * 在有序数组中找到与目标值最接近的值的index
      *
-     * @param arr   有序数组
+     * @param arr 有序数组
      * @param value 目标值
      * @return 数组中与目标值最接近的值的index
      */

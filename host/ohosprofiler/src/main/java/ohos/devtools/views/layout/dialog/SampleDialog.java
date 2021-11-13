@@ -85,6 +85,15 @@ public class SampleDialog extends DialogWrapper {
     protected JComponent createCenterPanel() {
         JPanel dialogPanel = new JPanel(new BorderLayout());
         if (!StringUtils.isEmpty(message)) {
+            if (message.contains(System.lineSeparator())) {
+                String[] messageArr = message.split("\n\\,");
+                String showStr = "<html>";
+                for (String str : messageArr) {
+                    showStr = showStr + "<p>" + str + "</p>";
+                }
+                showStr = showStr + "</html>";
+                message = showStr;
+            }
             JLabel label = new JLabel(message);
             label.setPreferredSize(new Dimension(LayoutConstants.DEVICES_WIDTH, LayoutConstants.MONITOR_PANEL_HEIGHT));
             dialogPanel.add(label, BorderLayout.CENTER);

@@ -27,7 +27,7 @@ import java.awt.image.BufferedImage;
 /**
  * test AbstractGraph class .
  *
- * @date: 2021/4/24 17:55
+ * @since 2021/4/24 17:55
  */
 class AbstractGraphTest {
     /**

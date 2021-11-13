@@ -22,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 /**
  * test TimeUtils class .
  *
- * @date 2021/4/24 17:03
+ * @since 2021/4/24 17:03
  */
 class TimeUtilsTest {
     /**

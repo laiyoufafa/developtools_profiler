@@ -32,7 +32,7 @@ import java.util.List;
 /**
  * Func
  *
- * @date: 2021/5/20 15:24
+ * @since 2021/5/20 15:24
  */
 public class Func extends AppFunc {
     /**

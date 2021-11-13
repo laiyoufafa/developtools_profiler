@@ -24,7 +24,7 @@ import java.awt.geom.Rectangle2D;
 /**
  * all of data node graph node
  *
- * @date 2021/4/26 14:33
+ * @since 2021/4/26 14:33
  */
 public abstract class AbstractNode {
     /**

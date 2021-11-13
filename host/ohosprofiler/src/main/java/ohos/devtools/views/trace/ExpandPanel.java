@@ -33,7 +33,7 @@ import java.awt.event.ActionListener;
 /**
  * ExpandPanel
  *
- * @date: 2021/5/19 16:39
+ * @since 2021/5/19 16:39
  */
 public class ExpandPanel extends JBPanel {
     private JComponent myContent;

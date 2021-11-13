@@ -31,13 +31,14 @@ import java.util.concurrent.TimeUnit;
 /**
  * Tools
  *
- * @date 2021/04/22 12:25
+ * @since 2021/04/22 12:25
  */
 public final class Utils {
     private static Map<String, String> statusMap = new HashedMap();
     private static Utils instance;
     private static ExecutorService pool =
-        new ThreadPoolExecutor(8, 8, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>());
+        new ThreadPoolExecutor(8, 8,
+            0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>());
 
     private Utils() {
         statusMap.put("D", "Uninterruptible Sleep");
@@ -173,7 +174,8 @@ public final class Utils {
      */
     public static void resetPool() {
         pool.shutdownNow();
-        pool = new ThreadPoolExecutor(8, 8, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>());
+        pool = new ThreadPoolExecutor(8, 8,
+            0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>());
     }
 
     /**
@@ -183,7 +185,8 @@ public final class Utils {
      */
     public static void resetPool(int num) {
         pool.shutdownNow();
-        pool = new ThreadPoolExecutor(num, num, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>());
+        pool = new ThreadPoolExecutor(num, num,
+            0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>());
     }
 
     /**
@@ -193,7 +196,7 @@ public final class Utils {
      * @return rectangleX
      */
     public static int getX(Rectangle rectangle) {
-        return (int) rectangle.getX();
+        return rectangle.x;
     }
 
     /**
@@ -203,7 +206,7 @@ public final class Utils {
      * @return pointX
      */
     public static int getX(Point point) {
-        return (int) point.getX();
+        return point.x;
     }
 
     /**
@@ -253,7 +256,7 @@ public final class Utils {
      * @return rectangleY
      */
     public static int getY(Rectangle rectangle) {
-        return (int) rectangle.getY();
+        return rectangle.y;
     }
 
     /**
@@ -263,7 +266,7 @@ public final class Utils {
      * @return rectangleY
      */
     public static int getY(Point point) {
-        return (int) point.getY();
+        return point.y;
     }
 
     /**

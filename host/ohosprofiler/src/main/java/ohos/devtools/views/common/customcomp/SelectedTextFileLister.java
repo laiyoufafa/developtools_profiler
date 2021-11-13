@@ -19,6 +19,7 @@ package ohos.devtools.views.common.customcomp;
  * SelectedTextFileLister
  */
 public interface SelectedTextFileLister {
+
     /**
      * textFileClick
      */

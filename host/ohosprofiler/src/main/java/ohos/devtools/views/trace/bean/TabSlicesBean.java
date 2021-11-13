@@ -20,8 +20,7 @@ import ohos.devtools.views.trace.DField;
 /**
  * TabSlicesBean
  *
- * @version 1.0.1
- * @date 2021/04/20 12:12
+ * @since 2021/04/20 12:12
  */
 public class TabSlicesBean {
     /**

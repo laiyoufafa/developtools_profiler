@@ -20,7 +20,6 @@ import ohos.devtools.datasources.utils.device.entity.DeviceIPPortInfo;
 import ohos.devtools.datasources.utils.device.entity.DeviceType;
 import ohos.devtools.datasources.utils.process.entity.ProcessInfo;
 import ohos.devtools.datasources.utils.profilerlog.ProfilerLogManager;
-import ohos.devtools.datasources.utils.session.service.SessionManager;
 import org.apache.logging.log4j.Level;
 import org.junit.Assert;
 import org.junit.Before;
@@ -31,6 +30,8 @@ import java.util.List;
 
 /**
  * Device Util Test
+ *
+ * @since 2021/2/1 9:31
  */
 public class DeviceUtilTest {
     private ProcessInfo processInfo;
@@ -49,7 +50,6 @@ public class DeviceUtilTest {
      */
     @Before
     public void init() {
-        SessionManager.getInstance().setDevelopMode(true);
         // 应用初始化 Step1 初始化数据中心
         ProfilerLogManager.getSingleton().updateLogLevel(Level.ERROR);
         DataBaseApi apo = DataBaseApi.getInstance();

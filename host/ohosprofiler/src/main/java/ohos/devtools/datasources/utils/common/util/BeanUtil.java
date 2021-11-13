@@ -32,8 +32,10 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 
+import ohos.devtools.datasources.transport.grpc.service.HilogPluginConfig;
 import ohos.devtools.datasources.transport.grpc.service.HiperfCallPluginConfigOuterClass;
 import ohos.devtools.datasources.transport.grpc.service.MemoryPluginConfig;
+import ohos.devtools.datasources.utils.profilerlog.ProfilerLogManager;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -57,6 +59,9 @@ public class BeanUtil {
      * @return byte[]
      */
     public static <T> byte[] serialize(T data) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("serialize");
+        }
         byte[] dataArray = null;
         // 1. Create an OutputStream object.
         // 2. Create an OutputStream wrapper object named ObjectOutputStream,
@@ -68,7 +73,9 @@ public class BeanUtil {
             // 4. Convert OutputStream to a byte array.
             dataArray = outPutStream.toByteArray();
         } catch (IOException exception) {
-            LOGGER.error("exception error {}", exception.getMessage());
+            if (ProfilerLogManager.isErrorEnabled()) {
+                LOGGER.error("exception error {}", exception.getMessage());
+            }
         }
         return dataArray;
     }
@@ -80,6 +87,9 @@ public class BeanUtil {
      * @return Returns a byte array.
      */
     public static byte[] serializeByCodedOutPutStream(TracePluginConfigOuterClass.TracePluginConfig config) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("serializeByCodedOutPutStream");
+        }
         byte[] dataArray = null;
         try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
             CodedOutputStream codedOutputStream = CodedOutputStream.newInstance(outputStream);
@@ -87,7 +97,9 @@ public class BeanUtil {
             codedOutputStream.flush();
             dataArray = outputStream.toByteArray();
         } catch (IOException exception) {
-            LOGGER.error("exception error {}", exception.getMessage());
+            if (ProfilerLogManager.isErrorEnabled()) {
+                LOGGER.error("exception error {}", exception.getMessage());
+            }
         }
         return dataArray;
     }
@@ -99,6 +111,9 @@ public class BeanUtil {
      * @return Returns a byte array.
      */
     public static byte[] serializeByCodedOutPutStream(HiperfCallPluginConfigOuterClass.HiperfCallPluginConfig config) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("serializeByCodedOutPutStream");
+        }
         byte[] dataArray = null;
         try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
             CodedOutputStream codedOutputStream = CodedOutputStream.newInstance(outputStream);
@@ -106,7 +121,9 @@ public class BeanUtil {
             codedOutputStream.flush();
             dataArray = outputStream.toByteArray();
         } catch (IOException exception) {
-            LOGGER.error("exception error {}", exception.getMessage());
+            if (ProfilerLogManager.isErrorEnabled()) {
+                LOGGER.error("exception error {}", exception.getMessage());
+            }
         }
         return dataArray;
     }
@@ -118,6 +135,9 @@ public class BeanUtil {
      * @return Returns a byte array.
      */
     public static byte[] serializeByCodedOutPutStream(MemoryPluginConfig.MemoryConfig config) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("serializeByCodedOutPutStream");
+        }
         byte[] dataArray = null;
         try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
             CodedOutputStream codedOutputStream = CodedOutputStream.newInstance(outputStream);
@@ -125,7 +145,33 @@ public class BeanUtil {
             codedOutputStream.flush();
             dataArray = outputStream.toByteArray();
         } catch (IOException exception) {
-            LOGGER.error("exception error {}", exception.getMessage());
+            if (ProfilerLogManager.isErrorEnabled()) {
+                LOGGER.error("exception error {}", exception.getMessage());
+            }
+        }
+        return dataArray;
+    }
+
+    /**
+     * Serialize data by code output stream.
+     *
+     * @param config Indicates the configuration data.
+     * @return Returns a byte array.
+     */
+    public static byte[] serializeByCodedOutPutStream(HilogPluginConfig.HilogConfig config) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("serializeByCodedOutPutStream");
+        }
+        byte[] dataArray = null;
+        try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+            CodedOutputStream codedOutputStream = CodedOutputStream.newInstance(outputStream);
+            config.writeTo(codedOutputStream);
+            codedOutputStream.flush();
+            dataArray = outputStream.toByteArray();
+        } catch (IOException exception) {
+            if (ProfilerLogManager.isErrorEnabled()) {
+                LOGGER.error("exception error {}", exception.getMessage());
+            }
         }
         return dataArray;
     }
@@ -137,6 +183,9 @@ public class BeanUtil {
      * @return Returns a byte array.
      */
     public static byte[] serializeByCodedOutPutStream(BytracePluginConfigOuterClass.BytracePluginConfig config) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("serializeByCodedOutPutStream");
+        }
         byte[] dataArray = null;
         com.google.protobuf.CodedOutputStream codedOutputStream = null;
         try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
@@ -145,7 +194,9 @@ public class BeanUtil {
             codedOutputStream.flush();
             dataArray = outputStream.toByteArray();
         } catch (IOException exception) {
-            LOGGER.error("exception error {}", exception.getMessage());
+            if (ProfilerLogManager.isErrorEnabled()) {
+                LOGGER.error("exception error {}", exception.getMessage());
+            }
         }
         return dataArray;
     }
@@ -157,12 +208,17 @@ public class BeanUtil {
      * @return Object Returns the object value.
      */
     public static Object deserialize(byte[] data) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("deserialize");
+        }
         Object object = null;
         try (ByteArrayInputStream inputStream = new ByteArrayInputStream(data);
             ObjectInputStream objectInputStream = new ObjectInputStream(inputStream)) {
             object = objectInputStream.readObject();
         } catch (IOException | ClassNotFoundException exception) {
-            LOGGER.error("exception error {}", exception.getMessage());
+            if (ProfilerLogManager.isErrorEnabled()) {
+                LOGGER.error("exception error {}", exception.getMessage());
+            }
         }
         return object;
     }
@@ -175,6 +231,9 @@ public class BeanUtil {
      * @return List Map
      */
     public static <T> List<Map> getFieldsInfo(T obj) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("getFieldsInfo");
+        }
         Field[] fields = obj.getClass().getDeclaredFields();
         List list = new ArrayList();
         Map infoMap = null;
@@ -198,6 +257,9 @@ public class BeanUtil {
      * @return List Map
      */
     public static <T> List<Map<String, Object>> getFields(T obj) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("getFields");
+        }
         Field[] fields = obj.getClass().getDeclaredFields();
         List list = new ArrayList();
         Map infoMap = null;
@@ -222,6 +284,9 @@ public class BeanUtil {
      * @return Returns a list of fields.
      */
     public static <T> Map<String, Object> getFiledsInfos(T obj) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("getFiledsInfos");
+        }
         Field[] fields = obj.getClass().getDeclaredFields();
         Map infoMap = new HashMap(CommonUtil.collectionSize(LayoutConstants.SIXTEEN));
         for (int index = 0; index < fields.length; index++) {
@@ -241,6 +306,9 @@ public class BeanUtil {
      * @return Returns a list of attribute names.
      */
     public static <T> List<String> getObjectAttributeNames(T obj) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("getObjectAttributeNames");
+        }
         Field[] fields = obj.getClass().getDeclaredFields();
         List list = new ArrayList();
         for (int index = 0; index < fields.length; index++) {
@@ -258,6 +326,9 @@ public class BeanUtil {
      * @return Object Returns the object value.
      */
     private static <T> Optional getFieldValueByName(String fieldName, T object) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("getFieldValueByName");
+        }
         String firstLetter = fieldName.substring(0, 1).toUpperCase(Locale.ENGLISH);
         String getter = "get" + firstLetter + fieldName.substring(1);
         if ("getSerialVersionUID".equals(getter)) {
@@ -269,7 +340,9 @@ public class BeanUtil {
             method = object.getClass().getMethod(getter, new Class[] {});
             value = method.invoke(object, new Object[] {});
         } catch (InvocationTargetException | IllegalAccessException | NoSuchMethodException exception) {
-            LOGGER.error(exception.getMessage());
+            if (ProfilerLogManager.isErrorEnabled()) {
+                LOGGER.error(exception.getMessage());
+            }
         }
 
         return Optional.of(value);
@@ -283,6 +356,9 @@ public class BeanUtil {
      * @return List <String>
      */
     public static <T> List<String> getObjectValue(T object) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("getObjectValue");
+        }
         if (object != null && object instanceof Serializable) {
             Class<?> objectClass = object.getClass();
             Field[] declaredFields = objectClass.getDeclaredFields();
@@ -322,6 +398,9 @@ public class BeanUtil {
      * @return String
      */
     public static <T> String getObjectName(T object) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("getObjectName");
+        }
         if (object != null) {
             return object.getClass().getSimpleName();
         }

@@ -28,7 +28,7 @@ import java.awt.event.MouseEvent;
 /**
  * AsyncEvent
  *
- * @date: 2021/6/29 10:55
+ * @since 2021/6/29 10:55
  */
 public class AsyncEvent extends AbstractGraph {
     @DField(name = "id")
@@ -45,6 +45,7 @@ public class AsyncEvent extends AbstractGraph {
     private Integer cookie;
     @DField(name = "depth")
     private Integer depth;
+    private IEventListener eventListener;
 
     /**
      * Gets the value of depth .
@@ -181,7 +182,7 @@ public class AsyncEvent extends AbstractGraph {
 
     @Override
     public void draw(Graphics2D graphics) {
-        graphics.setColor(ColorUtils.colorForTid(cookie));
+        graphics.setColor(ColorUtils.colorForTid(pid));
         Rectangle rectangle = new Rectangle(Utils.getX(rect), Utils.getY(rect), rect.width, rect.height);
         graphics.fillRect(Utils.getX(rectangle), Utils.getY(rectangle), rectangle.width, rectangle.height);
         graphics.setColor(Color.WHITE);
@@ -198,9 +199,58 @@ public class AsyncEvent extends AbstractGraph {
 
     @Override
     public void onClick(MouseEvent event) {
+        if (this.eventListener != null) {
+            eventListener.click(event, this);
+        }
     }
 
     @Override
     public void onMouseMove(MouseEvent event) {
+    }
+
+    /**
+     * Set up the event listener
+     *
+     * @param listener listener
+     */
+    public void setEventListener(final IEventListener listener) {
+        this.eventListener = listener;
+    }
+
+    /**
+     * listener
+     */
+    public interface IEventListener {
+        /**
+         * Click event
+         *
+         * @param event event
+         * @param data data
+         */
+        void click(MouseEvent event, AsyncEvent data);
+
+        /**
+         * Focus cancel event
+         *
+         * @param event event
+         * @param data data
+         */
+        void blur(MouseEvent event, AsyncEvent data);
+
+        /**
+         * Focus acquisition event
+         *
+         * @param event event
+         * @param data data
+         */
+        void focus(MouseEvent event, AsyncEvent data);
+
+        /**
+         * Mouse movement event
+         *
+         * @param event event
+         * @param data data
+         */
+        void mouseMove(MouseEvent event, AsyncEvent data);
     }
 }

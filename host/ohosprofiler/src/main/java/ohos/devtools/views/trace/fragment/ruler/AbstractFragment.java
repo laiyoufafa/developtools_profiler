@@ -26,7 +26,7 @@ import java.awt.event.MouseEvent;
 /**
  * basic data
  *
- * @date 2021/04/22 12:25
+ * @since 2021/04/22 12:25
  */
 public abstract class AbstractFragment extends AbstractNode implements IFragment {
     private final Color lineColor = new Color(255, 255, 255, 80);
@@ -46,8 +46,7 @@ public abstract class AbstractFragment extends AbstractNode implements IFragment
     }
 
     /**
-     * Sets the rect .
-     * <p>You can use getRect() to get the value of rect</p>
+     * Sets the rect .You can use getRect() to get the value of rect
      *
      * @param rect rect
      */
@@ -169,8 +168,7 @@ public abstract class AbstractFragment extends AbstractNode implements IFragment
      */
     public boolean edgeInspect(final MouseEvent event) {
         return event.getX() >= Utils.getX(rect) && event.getX() <= Utils.getX(rect) + rect.width
-            && event.getY() >= Utils.getY(rect)
-            && event.getY() <= Utils.getY(rect) + rect.height;
+            && event.getY() >= Utils.getY(rect) && event.getY() <= Utils.getY(rect) + rect.height;
     }
 
     /**

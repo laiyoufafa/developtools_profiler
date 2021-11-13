@@ -36,7 +36,7 @@ import java.util.concurrent.CompletableFuture;
 /**
  * TabSlices
  *
- * @date 2021/04/20 12:12
+ * @since 2021/04/20 12:12
  */
 public class TabSlices extends JBPanel {
     private JBTable table = new JBTable();

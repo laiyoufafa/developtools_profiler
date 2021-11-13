@@ -21,6 +21,7 @@ import ohos.devtools.datasources.databases.databasepool.AbstractDataStore;
 import ohos.devtools.datasources.databases.datatable.enties.ProcessCpuData;
 import ohos.devtools.datasources.transport.grpc.service.CpuPluginResult;
 import ohos.devtools.datasources.utils.datahandler.datapoller.CpuDataConsumer;
+import ohos.devtools.datasources.utils.profilerlog.ProfilerLogManager;
 import ohos.devtools.views.charts.model.ChartDataModel;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -42,7 +43,7 @@ import static ohos.devtools.services.cpu.CpuDao.CpuSelectStatements.SELECT_APP_C
 import static ohos.devtools.services.cpu.CpuDao.CpuSelectStatements.SELECT_BEFORE_HEAD;
 
 /**
- * Cpu Dao
+ * CpuDao
  */
 public class CpuDao extends AbstractDataStore {
     private static final Logger LOGGER = LogManager.getLogger(CpuDao.class);
@@ -71,14 +72,60 @@ public class CpuDao extends AbstractDataStore {
      * Cpu Select Statements
      */
     public enum CpuSelectStatements {
-        SELECT_APP_CPU_INFO("SELECT timeStamp, Data from processCpuInfo where " +
-                "session = ? and timeStamp > ? and timeStamp < ?"),
-        SELECT_ALL_APP_CPU_INFO("SELECT timeStamp, Data from processCpuInfo where session = ?"),
-        DELETE_APP_CPU_INFO("delete from processCpuInfo where session = ?"),
-        SELECT_BEFORE_HEAD("SELECT timeStamp, Data from processCpuInfo where " +
-                "session = ? and timeStamp < ? order by timeStamp desc limit 1"),
-        SELECT_AFTER_TAIL("SELECT timeStamp, Data from processCpuInfo where " +
-                "session = ? and timeStamp > ? order by timeStamp asc limit 1");
+        SELECT_APP_CPU_INFO(
+            "SELECT "
+                + "timeStamp, "
+                + "Data "
+                + "from "
+                + "processCpuInfo "
+                + "where "
+                + "session = ? "
+                + "and "
+                + "timeStamp > ? "
+                + "and "
+                + "timeStamp < ?"),
+        SELECT_ALL_APP_CPU_INFO(
+            "SELECT "
+                + "timeStamp, "
+                + "Data "
+                + "from "
+                + "processCpuInfo "
+                + "where "
+                + "session = ?"),
+        DELETE_APP_CPU_INFO(
+            "delete "
+                + "from "
+                + "processCpuInfo "
+                + "where "
+                + "session = ?"),
+        SELECT_BEFORE_HEAD(
+            "SELECT "
+                + "timeStamp, "
+                + "Data "
+                + "from "
+                + "processCpuInfo "
+                + "where "
+                + "session = ? "
+                + "and "
+                + "timeStamp < ? "
+                + "order by "
+                + "timeStamp "
+                + "desc "
+                + "limit 1"),
+        SELECT_AFTER_TAIL(
+            "SELECT "
+                + "timeStamp, "
+                + "Data "
+                + "from "
+                + "processCpuInfo "
+                + "where "
+                + "session = ? "
+                + "and "
+                + "timeStamp > ? "
+                + "order by "
+                + "timeStamp "
+                + "asc "
+                + "limit 1");
 
         CpuSelectStatements(String sqlStatement) {
             this.sqlStatement = sqlStatement;
@@ -107,6 +154,9 @@ public class CpuDao extends AbstractDataStore {
     }
 
     private void createPrePareStatements() {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("createPrePareStatements");
+        }
         CpuDao.CpuSelectStatements[] values = CpuDao.CpuSelectStatements.values();
         for (CpuDao.CpuSelectStatements sta : values) {
             PreparedStatement psmt = null;
@@ -115,18 +165,23 @@ public class CpuDao extends AbstractDataStore {
                 cpuSelectMap.put(sta, psmt);
                 threadSelectMap.put(sta, psmt);
             } catch (SQLException throwAbles) {
-                LOGGER.error(" SQLException {}", throwAbles.getMessage());
+                if (ProfilerLogManager.isErrorEnabled()) {
+                    LOGGER.error(" SQLException {}", throwAbles.getMessage());
+                }
             }
         }
     }
 
     /**
-     * getAllData
+     * get All Data
      *
      * @param sessionId sessionId
      * @return List <ProcessCpuInfo>
      */
     public List<ProcessCpuData> getAllData(long sessionId) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("getAllData");
+        }
         PreparedStatement pst = cpuSelectMap.get(SELECT_ALL_APP_CPU_INFO);
         List<ProcessCpuData> result = new ArrayList<>();
         try {
@@ -149,13 +204,15 @@ public class CpuDao extends AbstractDataStore {
                 }
             }
         } catch (SQLException | InvalidProtocolBufferException throwables) {
-            LOGGER.error(" SQLException {}", throwables.getMessage());
+            if (ProfilerLogManager.isErrorEnabled()) {
+                LOGGER.error(" SQLException {}", throwables.getMessage());
+            }
         }
         return result;
     }
 
     /**
-     * get CpuData
+     * get Cpu Data
      *
      * @param sessionId sessionId
      * @param min min
@@ -166,6 +223,9 @@ public class CpuDao extends AbstractDataStore {
      */
     public LinkedHashMap<Integer, List<ChartDataModel>> getCpuData(long sessionId, int min, int max,
         long startTimeStamp, boolean isNeedHeadTail) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("getCpuData");
+        }
         PreparedStatement pst = cpuSelectMap.get(SELECT_APP_CPU_INFO);
         LinkedHashMap<Integer, List<ChartDataModel>> result = new LinkedHashMap<>();
         if (pst == null) {
@@ -193,7 +253,9 @@ public class CpuDao extends AbstractDataStore {
                 }
             }
         } catch (SQLException | InvalidProtocolBufferException throwAbles) {
-            throwAbles.printStackTrace();
+            if (ProfilerLogManager.isErrorEnabled()) {
+                LOGGER.error(" SQLException {}", throwAbles.getMessage());
+            }
         }
         // 取最后一个点的后一个点用于Chart绘制，填充空白，解决边界闪烁
         if (isNeedHeadTail) {
@@ -203,7 +265,7 @@ public class CpuDao extends AbstractDataStore {
     }
 
     /**
-     * getThreadData
+     * get ThreadData
      *
      * @param sessionId sessionId
      * @param min min
@@ -214,6 +276,9 @@ public class CpuDao extends AbstractDataStore {
      */
     public LinkedHashMap<Integer, List<ChartDataModel>> getThreadData(long sessionId, int min, int max,
         long startTimeStamp, boolean isNeedHeadTail) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("getThreadData");
+        }
         PreparedStatement pst = threadSelectMap.get(SELECT_APP_CPU_INFO);
         LinkedHashMap<Integer, List<ChartDataModel>> result = new LinkedHashMap<>();
         if (pst == null) {
@@ -241,7 +306,9 @@ public class CpuDao extends AbstractDataStore {
                 }
             }
         } catch (SQLException | InvalidProtocolBufferException throwAbles) {
-            throwAbles.printStackTrace();
+            if (ProfilerLogManager.isErrorEnabled()) {
+                LOGGER.error(" SQLException {}", throwAbles.getMessage());
+            }
         }
         // 取最后一个点的后一个点用于Chart绘制，填充空白，解决边界闪烁
         if (isNeedHeadTail) {
@@ -261,6 +328,9 @@ public class CpuDao extends AbstractDataStore {
      */
     private LinkedHashMap<Integer, List<ChartDataModel>> getCpuTargetData(long sessionId, int offset, long startTs,
         boolean beforeHead) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("getCpuTargetData");
+        }
         PreparedStatement pst;
         if (beforeHead) {
             pst = cpuSelectMap.get(SELECT_BEFORE_HEAD);
@@ -288,7 +358,9 @@ public class CpuDao extends AbstractDataStore {
                 }
             }
         } catch (SQLException | InvalidProtocolBufferException throwAbles) {
-            LOGGER.error(" SQLException {}", throwAbles.getMessage());
+            if (ProfilerLogManager.isErrorEnabled()) {
+                LOGGER.error(" SQLException {}", throwAbles.getMessage());
+            }
         }
         return result;
     }
@@ -304,6 +376,9 @@ public class CpuDao extends AbstractDataStore {
      */
     private LinkedHashMap<Integer, List<ChartDataModel>> getThreadTargetData(long sessionId, int offset, long startTs,
         boolean beforeHead) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("getThreadTargetData");
+        }
         PreparedStatement pst;
         if (beforeHead) {
             pst = cpuSelectMap.get(SELECT_BEFORE_HEAD);
@@ -331,21 +406,30 @@ public class CpuDao extends AbstractDataStore {
                 }
             }
         } catch (SQLException | InvalidProtocolBufferException throwAbles) {
-            LOGGER.error(" SQLException {}", throwAbles.getMessage());
+            if (ProfilerLogManager.isErrorEnabled()) {
+                LOGGER.error(" SQLException {}", throwAbles.getMessage());
+            }
         }
         return result;
     }
 
     /**
-     * deleteSessionData
+     * delete SessionData by sessionId
      *
      * @param sessionId sessionId
      * @return boolean
      */
     public boolean deleteSessionData(long sessionId) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("deleteSessionData");
+        }
         StringBuffer deleteSql = new StringBuffer("DELETE FROM ");
         deleteSql.append("processCpuInfo").append(" WHERE session = ").append(sessionId);
-        Connection connection = DataBaseApi.getInstance().getConnectByTable("processCpuInfo").get();
-        return execute(connection, deleteSql.toString());
+        Optional<Connection> processCpuInfo = DataBaseApi.getInstance().getConnectByTable("processCpuInfo");
+        if (processCpuInfo.isPresent()) {
+            Connection connection = processCpuInfo.get();
+            return execute(connection, deleteSql.toString());
+        }
+        return true;
     }
 }

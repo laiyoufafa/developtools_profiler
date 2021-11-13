@@ -27,6 +27,7 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
+import ohos.devtools.datasources.utils.profilerlog.ProfilerLogManager;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -41,6 +42,8 @@ import static ohos.devtools.datasources.databases.databasepool.DataBaseHelper.ge
 
 /**
  * Provides database related operations
+ *
+ * @since 2021/10/22 16:30
  */
 public class DataBaseApi {
     private static final Logger LOGGER = LogManager.getLogger(DataBaseApi.class);
@@ -71,13 +74,14 @@ public class DataBaseApi {
     private static List<String> tableIndex = new ArrayList<>(CommonUtil.collectionSize(0));
 
     /**
+     * INSTANCE
+     */
+    private static final DataBaseApi INSTANCE = new DataBaseApi();
+
+    /**
      * Correspondence between storage table name and database name
      */
     private static Map<String, String> groupTables = new ConcurrentHashMap(CommonUtil.collectionSize(0));
-
-    private static class SingletonClassInstance {
-        private static final DataBaseApi INSTANCE = new DataBaseApi();
-    }
 
     /**
      * getInstance
@@ -85,7 +89,10 @@ public class DataBaseApi {
      * @return DataBaseApi
      */
     public static DataBaseApi getInstance() {
-        return DataBaseApi.SingletonClassInstance.INSTANCE;
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("getInstance");
+        }
+        return DataBaseApi.INSTANCE;
     }
 
     private DataBaseApi() {
@@ -97,6 +104,9 @@ public class DataBaseApi {
      * @return boolean
      */
     public boolean initDataSourceManager() {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("initDataSourceManager");
+        }
         return createDataBase(null, true);
     }
 
@@ -108,6 +118,9 @@ public class DataBaseApi {
      * @return boolean
      */
     private boolean createDataBase(String dbName, boolean appStart) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("createDataBase");
+        }
         if (appStart) {
             if (StringUtils.isBlank(dbName) || DEFAULT_DATABASE_DBNAME.equals(dbName)) {
                 DataBaseManager dataBaseManager = DataBaseManager.getInstance();
@@ -145,9 +158,14 @@ public class DataBaseApi {
      */
     public Optional<Connection> getDefaultDataBaseConnect() {
         try {
+            if (ProfilerLogManager.isInfoEnabled()) {
+                LOGGER.info("getDefaultDataBaseConnect");
+            }
             return Optional.of(getPoolByDataBaseName(DEFAULT_DATABASE_DBNAME).getConnection());
         } catch (SQLException sqlException) {
-            LOGGER.info("getConnectByTable Exception ", sqlException);
+            if (ProfilerLogManager.isErrorEnabled()) {
+                LOGGER.error("getConnectByTable Exception ", sqlException.toString());
+            }
             return Optional.empty();
         }
     }
@@ -159,16 +177,22 @@ public class DataBaseApi {
      * @return Optional <Connection>
      */
     public Optional<Connection> getConnectByTable(String tableName) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("getConnectByTable");
+        }
         if (StringUtils.isBlank(tableName)) {
             return Optional.empty();
         }
+        Connection conn = null;
         String dbName = groupTables.get(tableName.toUpperCase(Locale.ENGLISH));
         if (StringUtils.isNotBlank(dbName)) {
             try {
-                Connection conn = getPoolByDataBaseName(dbName).getConnection();
+                conn = getPoolByDataBaseName(dbName).getConnection();
                 return Optional.of(conn);
-            } catch (SQLException throwAbles) {
-                LOGGER.info("getConnectByTable Exception ", throwAbles);
+            } catch (SQLException sqlException) {
+                if (ProfilerLogManager.isErrorEnabled()) {
+                    LOGGER.error("getConnectByTable Exception ", sqlException);
+                }
             }
         }
         return Optional.empty();
@@ -181,12 +205,17 @@ public class DataBaseApi {
      * @return Optional <Connection>
      */
     public Optional<Connection> getConnectBydbname(String dataBaseName) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("getConnectBydbname");
+        }
         Connection connection;
         try {
             connection = getPoolByDataBaseName(dataBaseName).getConnection();
             return Optional.of(connection);
-        } catch (SQLException throwAbles) {
-            LOGGER.info("getConnectByTable Exception ", throwAbles);
+        } catch (SQLException sqlException) {
+            if (ProfilerLogManager.isErrorEnabled()) {
+                LOGGER.error("getConnectBydbname Exception ", sqlException);
+            }
         }
         return Optional.empty();
     }
@@ -198,6 +227,9 @@ public class DataBaseApi {
      * @return DataSource
      */
     public DataSource getPoolByDataBaseName(String dataBaseName) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("getPoolByDataBaseName");
+        }
         DataSource dataSource;
         if (StringUtils.isBlank(dataBaseName)) {
             dataSource = dataSourcePooleMap.get(DEFAULT_DATABASE_DBNAME);
@@ -229,6 +261,9 @@ public class DataBaseApi {
      * @param dbName dbName
      */
     public void registerTable(String tableName, String dbName) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("registerTable");
+        }
         if (StringUtils.isNotBlank(tableName) && StringUtils.isNotBlank(dbName)) {
             groupTables.put(tableName.toUpperCase(Locale.ENGLISH), dbName);
         }
@@ -241,6 +276,9 @@ public class DataBaseApi {
      * @return String
      */
     public String checkTableRegister(String tableName) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("checkTableRegister");
+        }
         if (StringUtils.isNotBlank(tableName)) {
             return groupTables.get(tableName.toUpperCase(Locale.ENGLISH));
         }
@@ -254,6 +292,9 @@ public class DataBaseApi {
      * @return String
      */
     public boolean checkIndexRegister(String tableName) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("checkIndexRegister");
+        }
         if (StringUtils.isNotBlank(tableName)) {
             return tableIndex.contains(tableName);
         }
@@ -267,6 +308,9 @@ public class DataBaseApi {
      * @param dataSource dataSource
      */
     public void registerDataSource(String dataBaseName, DataSource dataSource) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("registerDataSource");
+        }
         if (StringUtils.isNotBlank(dataBaseName) && dataSource != null) {
             dataSourcePooleMap.put(dataBaseName, dataSource);
         }
@@ -278,6 +322,9 @@ public class DataBaseApi {
      * @param tableName tableName
      */
     public void registerCreateIndex(String tableName) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("registerCreateIndex");
+        }
         if (StringUtils.isNotBlank(tableName)) {
             tableIndex.add(tableName);
         }
@@ -290,6 +337,9 @@ public class DataBaseApi {
      * @return boolean
      */
     public boolean createDataBase(String dbName) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("createDataBase");
+        }
         return createDataBase(dbName, false);
     }
 
@@ -302,6 +352,9 @@ public class DataBaseApi {
      * @return boolean
      */
     public boolean createTable(String dbName, String tableName, List<String> params) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("createTable");
+        }
         if (StringUtils.isBlank(tableName) || StringUtils.isBlank(dbName)) {
             return false;
         }
@@ -324,8 +377,10 @@ public class DataBaseApi {
                 statement.execute(String.format(Locale.ENGLISH, "%s ( %s )", stringBuffer, value));
                 registerTable(tableName, dbName);
                 return true;
-            } catch (SQLException throwAbles) {
-                LOGGER.info("SQLException Error : ", throwAbles);
+            } catch (SQLException sqlException) {
+                if (ProfilerLogManager.isErrorEnabled()) {
+                    LOGGER.error("SQLException Error : ", sqlException);
+                }
                 return false;
             } finally {
                 CloseResourceUtil.closeResource(LOGGER, conn, null, statement);
@@ -343,6 +398,9 @@ public class DataBaseApi {
      * @return boolean
      */
     public boolean createTable(String dbName, String tableName, String sql) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("createTable");
+        }
         if (StringUtils.isBlank(tableName) || StringUtils.isBlank(dbName) || StringUtils.isBlank(sql)) {
             return false;
         }
@@ -359,8 +417,10 @@ public class DataBaseApi {
                 statm.execute(sql);
                 registerTable(tableName, dbName);
                 return true;
-            } catch (SQLException throwAbles) {
-                LOGGER.info("create Table Error ", throwAbles);
+            } catch (SQLException sqlException) {
+                if (ProfilerLogManager.isErrorEnabled()) {
+                    LOGGER.error("create Table Error", sqlException);
+                }
             } finally {
                 CloseResourceUtil.closeResource(LOGGER, conn, null, statm);
             }
@@ -377,6 +437,9 @@ public class DataBaseApi {
      * @return boolean
      */
     public boolean createIndex(String tableName, String indexName, List<String> columnName) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("createIndex");
+        }
         if (StringUtils.isBlank(tableName) || StringUtils.isBlank(indexName)) {
             return false;
         }
@@ -399,8 +462,10 @@ public class DataBaseApi {
                 statement.execute(stringBuffer.toString());
                 registerCreateIndex(tableName);
                 return true;
-            } catch (SQLException throwAbles) {
-                LOGGER.info("SQLException Error : ", throwAbles);
+            } catch (SQLException sqlException) {
+                if (ProfilerLogManager.isErrorEnabled()) {
+                    LOGGER.error("SQLException Error :", sqlException);
+                }
                 return false;
             } finally {
                 CloseResourceUtil.closeResource(LOGGER, conn, null, statement);

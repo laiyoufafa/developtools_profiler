@@ -39,10 +39,10 @@ import java.util.Objects;
 /**
  * tab component
  *
- * @date 2021/04/20 12:12
+ * @since 2021/04/20 12:12
  */
 public class TabPanel extends JBTabbedPane implements MouseMotionListener {
-    private static int middleHeight = 300;
+    private static int mHeight = 300;
     private static int barHeight;
     private final int iconWH = 20;
     private Rectangle topRect;
@@ -91,9 +91,18 @@ public class TabPanel extends JBTabbedPane implements MouseMotionListener {
         });
     }
 
+    // /**
+    //  * Sets the layerRect .
+    //  * <p>You can use getLayerRect() to get the value of layerRect</p>
+    //  *
+    //  * @param rect LayerRect
+    //  */
+    // public void setLayerRect(Rectangle rect) {
+    //     this.layerRect = rect;
+    // }
+
     /**
      * Sets the rootRect .
-     *
      * <p>You can use getRootRect() to get the value of rootRect</p>
      *
      * @param rect RootRect
@@ -127,10 +136,10 @@ public class TabPanel extends JBTabbedPane implements MouseMotionListener {
             endPoint = SwingUtilities.convertPoint(TabPanel.this, event.getPoint(),
                 TabPanel.this.getRootPane().getLayeredPane());
             int yPosition = Utils.getY(endPoint) - Utils.getY(startPoint);
-            int height = TabPanel.this.getRootPane().getLayeredPane().getHeight() - barHeight;
             if (srcBounds.height - yPosition < barHeight) {
                 return;
-            } else if (srcBounds.height - yPosition > height) {
+            } else if (srcBounds.height - yPosition
+                > TabPanel.this.getRootPane().getLayeredPane().getHeight() - barHeight) {
                 return;
             } else {
                 TabPanel.this.setBounds(Utils.getX(srcBounds), Utils.getY(srcBounds) + yPosition, srcBounds.width,
@@ -170,8 +179,8 @@ public class TabPanel extends JBTabbedPane implements MouseMotionListener {
         if (topRect.contains(event.getPoint())) {
             int bottomHeight =
                 getRootPane().getLayeredPane().getBounds().height - Utils.getY(rootRect) - rootRect.height;
-            middleHeight = getRootPane().getLayeredPane().getBounds().height - bottomHeight;
-            setBounds(Utils.getX(rootRect), 0, rootRect.width, middleHeight);
+            mHeight = getRootPane().getLayeredPane().getBounds().height - bottomHeight;
+            setBounds(Utils.getX(rootRect), 0, rootRect.width, mHeight);
         }
     }
 
@@ -190,10 +199,16 @@ public class TabPanel extends JBTabbedPane implements MouseMotionListener {
      * Minimize the bottom tab
      */
     public void hideInBottom() {
-        middleHeight = barHeight;
-        int bottomHeight = getRootPane().getLayeredPane().getBounds().height - Utils.getY(rootRect) - rootRect.height;
-        setBounds(Utils.getX(rootRect), getRootPane().getLayeredPane().getBounds().height - bottomHeight - middleHeight,
-            getWidth(), middleHeight);
+        mHeight = barHeight;
+        try {
+            int bottomHeight =
+                    getRootPane().getLayeredPane().getBounds().height - Utils.getY(rootRect) - rootRect.height;
+            setBounds(Utils.getX(rootRect), getRootPane().getLayeredPane().getBounds().height - bottomHeight - mHeight,
+                    getWidth(),
+                    mHeight);
+        } catch (NullPointerException npe) {
+            npe.printStackTrace();
+        }
     }
 
     /**
@@ -210,11 +225,11 @@ public class TabPanel extends JBTabbedPane implements MouseMotionListener {
      * display current panel
      */
     public void display() {
-        middleHeight = rootRect.height / 5 * 3;
+        mHeight = rootRect.height / 5 * 3;
         setVisible(true);
         getRootPane().getLayeredPane().setLayer(this, JLayeredPane.DRAG_LAYER);
-        setBounds(new Rectangle(Utils.getX(rootRect), Utils.getY(rootRect) + middleHeight, rootRect.width,
-            rootRect.height - middleHeight));
+        setBounds(new Rectangle(Utils.getX(rootRect), Utils.getY(rootRect) + mHeight, rootRect.width,
+            rootRect.height - mHeight));
     }
 
     /**
@@ -224,12 +239,12 @@ public class TabPanel extends JBTabbedPane implements MouseMotionListener {
      */
     public void display(Rectangle rectangle) {
         setRootRect(rectangle);
-        middleHeight = rootRect.height / 5 * 3;
+        mHeight = rootRect.height / 5 * 3;
         setVisible(true);
         if (getRootPane() != null) {
             getRootPane().getLayeredPane().setLayer(this, JLayeredPane.DRAG_LAYER);
-            setBounds(new Rectangle(Utils.getX(rectangle), Utils.getY(rectangle) + middleHeight, rectangle.width,
-                rectangle.height - middleHeight));
+            setBounds(new Rectangle(Utils.getX(rectangle), Utils.getY(rectangle) + mHeight, rectangle.width,
+                rectangle.height - mHeight));
         }
     }
 

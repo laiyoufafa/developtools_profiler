@@ -1,8 +1,0 @@
-with state as (
-select filter_id, ts, endts, endts-ts as dur, type, value from
-(select measure.filter_id, measure.ts, lead(ts, 1, null) over( order by measure.ts) endts, measure.type, measure.value from clock_event_filter,trace_range
-left join measure
-where clock_event_filter.name = '%s' and clock_event_filter.type != 'clock_set_rate' and clock_event_filter.id = measure.filter_id
-order by measure.ts))
--- select * from state;
-select s.filter_id,s.ts-r.start_ts as ts,s.type,s.value,s.dur from state s,trace_range r;

@@ -1,1 +1,0 @@
-select c.*,c.ts-tb.start_ts startTime from counter c,trace_bounds tb where track_id = %d;

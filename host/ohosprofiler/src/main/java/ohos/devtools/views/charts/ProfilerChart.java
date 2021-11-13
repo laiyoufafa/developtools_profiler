@@ -49,8 +49,6 @@ import static java.awt.AlphaComposite.SRC_OVER;
 import static java.awt.BasicStroke.CAP_BUTT;
 import static java.awt.BasicStroke.JOIN_ROUND;
 import static ohos.devtools.views.charts.utils.ChartConstants.CHART_HEADER_HEIGHT;
-import static ohos.devtools.views.charts.utils.ChartConstants.CHART_MAX_Y;
-import static ohos.devtools.views.charts.utils.ChartConstants.CHART_SECTION_NUM_Y;
 import static ohos.devtools.views.charts.utils.ChartConstants.DEFAULT_CHART_COLOR;
 import static ohos.devtools.views.charts.utils.ChartConstants.DEFAULT_SELECT;
 import static ohos.devtools.views.charts.utils.ChartConstants.SCALE_LINE_LEN;
@@ -63,6 +61,8 @@ import static ohos.devtools.views.charts.utils.ChartUtils.multiply;
 import static ohos.devtools.views.common.ColorConstants.TIMELINE_SCALE;
 import static ohos.devtools.views.common.LayoutConstants.FLOAT_VALUE;
 import static ohos.devtools.views.common.LayoutConstants.INITIAL_VALUE;
+import static ohos.devtools.views.charts.utils.ChartConstants.CHART_MAX_Y;
+import static ohos.devtools.views.charts.utils.ChartConstants.CHART_SECTION_NUM_Y;
 
 /**
  * Abstract parent  class of all charts
@@ -187,11 +187,6 @@ public abstract class ProfilerChart extends JBPanel implements MouseListener, Mo
     protected final ProfilerChartsView bottomPanel;
 
     /**
-     * YAxisLable
-     */
-    protected ArrayList<String> yAxisList = new ArrayList<>();
-
-    /**
      * Data map
      *
      * @see "Key: time, Value: The values of chart at this point in time>"
@@ -224,11 +219,9 @@ public abstract class ProfilerChart extends JBPanel implements MouseListener, Mo
     protected BigDecimal pixelPerY;
 
     /**
-     * Update when mouse moved
-     *
-     * @see "Use function getMousePosition() will be null sometime."
+     * YAxisLable
      */
-    private Point mousePoint;
+    ArrayList<String> yAxisList = new ArrayList<>();
 
     /**
      * Whether the chart can be dragged or not
@@ -239,6 +232,13 @@ public abstract class ProfilerChart extends JBPanel implements MouseListener, Mo
      * Whether the chart is being dragged or not
      */
     private boolean dragging = false;
+
+    /**
+     * Update when mouse moved
+     *
+     * @see "Use function getMousePosition() will be null sometime."
+     */
+    private Point mousePoint;
 
     /**
      * Constructor
@@ -263,6 +263,30 @@ public abstract class ProfilerChart extends JBPanel implements MouseListener, Mo
     }
 
     /**
+     * Constructor
+     *
+     * @param bottomPanel ProfilerChartsView
+     * @param name chart name
+     * @param yAxisList yAxisList
+     */
+    ProfilerChart(ProfilerChartsView bottomPanel, String name, ArrayList yAxisList) {
+        this.bottomPanel = bottomPanel;
+        this.chartName = name;
+        this.yAxisList = yAxisList;
+        // Set transparent display
+        this.setOpaque(false);
+        this.setLayout(new BorderLayout());
+        this.addMouseListener(this);
+        this.addMouseMotionListener(this);
+        this.tooltip = new LegendTooltip();
+        // 添加图例组件的布局
+        legends = new JBPanel(new FlowLayout(FlowLayout.RIGHT));
+        legends.setOpaque(false);
+        initLegends();
+        this.add(legends, BorderLayout.NORTH);
+    }
+
+    /**
      * Init legends
      */
     protected abstract void initLegends();
@@ -271,6 +295,7 @@ public abstract class ProfilerChart extends JBPanel implements MouseListener, Mo
      * Build legends of chart
      *
      * @param lastModels Data on the far right side of the panel
+     * @see "The legend shows the y value corresponding to the rightmost X axis, not the mouse hover position"
      */
     protected abstract void buildLegends(List<ChartDataModel> lastModels);
 
@@ -438,6 +463,8 @@ public abstract class ProfilerChart extends JBPanel implements MouseListener, Mo
      * Draw the box selection area
      *
      * @param graphics Graphics
+     * @see "In fact, two translucent rectangles are drawn here, which are covered on the chart. With the mouse drag,
+     * the size of the rectangle is changed to realize the box selection"
      */
     protected void paintSelectedArea(Graphics graphics) {
         if (this.bottomPanel.getPublisher().getStandard().getSelectedRange(chartName) == null) {

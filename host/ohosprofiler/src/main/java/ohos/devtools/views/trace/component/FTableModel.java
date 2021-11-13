@@ -23,7 +23,7 @@ import java.util.List;
  * FTableModel
  *
  * @param <T> obj
- * @date: 2021/5/24 11:57
+ * @since 2021/5/24 11:57
  */
 public class FTableModel<T extends Object> extends AbstractTableModel {
     private List<Column<T>> columnNames;
@@ -81,7 +81,7 @@ public class FTableModel<T extends Object> extends AbstractTableModel {
      * Column
      *
      * @param <T> obj
-     * @date: 2021/5/24 11:57
+     * @since 2021/5/24 11:57
      */
     public static class Column<T extends Object> {
         /**

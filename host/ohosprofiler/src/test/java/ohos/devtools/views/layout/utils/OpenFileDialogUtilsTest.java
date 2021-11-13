@@ -74,6 +74,21 @@ public class OpenFileDialogUtilsTest {
     }
 
     /**
+     * get Instance loadSimplePerfTest
+     *
+     * @tc.name: loadSimplePerfTest
+     * @tc.number: OHOS_JAVA_layout_OpenFileDialogUtils_loadSimplePerfTest_0001
+     * @tc.desc: loadSimplePerfTest
+     * @tc.type: functional testing
+     * @tc.require: SR-010
+     */
+    @Test
+    public void loadPerfTest01() {
+        openFileDialogUtils.loadPerf(new File(""), new JBPanel(), "");
+        Assert.assertTrue(true);
+    }
+
+    /**
      * get Instance loadTraceTest
      *
      * @tc.name: loadTraceTest

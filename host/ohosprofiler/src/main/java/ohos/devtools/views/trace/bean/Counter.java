@@ -20,7 +20,7 @@ import ohos.devtools.views.trace.DField;
 /**
  * Counter
  *
- * @date 2021/04/20 12:24
+ * @since 2021/04/20 12:24
  */
 public class Counter {
     /**
@@ -63,8 +63,7 @@ public class Counter {
     }
 
     /**
-     * Sets the id .
-     * <p>You can use getId() to get the value of id.</p>
+     * Sets the id .You can use getId() to get the value of id.
      *
      * @param param .
      */
@@ -82,8 +81,7 @@ public class Counter {
     }
 
     /**
-     * Sets the trackId .
-     * <p>You can use getTrackId() to get the value of trackId.</p>
+     * Sets the trackId .You can use getTrackId() to get the value of trackId.
      *
      * @param param .
      */
@@ -101,8 +99,7 @@ public class Counter {
     }
 
     /**
-     * Sets the value .
-     * <p>You can use getValue() to get the value of value.</p>
+     * Sets the value .You can use getValue() to get the value of value.
      *
      * @param param .
      */
@@ -120,8 +117,7 @@ public class Counter {
     }
 
     /**
-     * Sets the startTime .
-     * <p>You can use getStartTime() to get the value of startTime.</p>
+     * Sets the startTime You can use getStartTime() to get the value of startTime.
      *
      * @param param .
      */
@@ -139,8 +135,7 @@ public class Counter {
     }
 
     /**
-     * Sets the name .
-     * <p>You can use getName() to get the value of name.</p>
+     * Sets the name .You can use getName() to get the value of name.
      *
      * @param param .
      */

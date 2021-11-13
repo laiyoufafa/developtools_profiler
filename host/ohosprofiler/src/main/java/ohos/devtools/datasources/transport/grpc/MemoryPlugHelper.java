@@ -16,6 +16,8 @@
 package ohos.devtools.datasources.transport.grpc;
 
 import ohos.devtools.datasources.transport.grpc.service.MemoryPluginConfig;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.List;
 
@@ -23,6 +25,8 @@ import java.util.List;
  * Construct the configuration information help class of the memory plugin.
  */
 public final class MemoryPlugHelper {
+    private static final Logger LOGGER = LogManager.getLogger(MemoryPlugHelper.class);
+
     private MemoryPlugHelper() {
     }
 

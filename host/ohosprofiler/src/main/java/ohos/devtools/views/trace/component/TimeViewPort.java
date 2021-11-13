@@ -35,7 +35,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 /**
  * Timeline component
  *
- * @date 2021/04/20 12:24
+ * @since 2021/04/20 12:24
  */
 public final class TimeViewPort extends JBViewport {
     /**
@@ -201,9 +201,9 @@ public final class TimeViewPort extends JBViewport {
             cpuFragment.setSelectX(
                 event.getX() < Utils.getX(cpuFragment.getRect()) ? Utils.getX(cpuFragment.getRect()) : event.getX());
             cpuFragment.setSelectY(scrollY);
-            rulerFragment.setSelectX(
-                event.getX() < Utils.getX(rulerFragment.getRect()) ? Utils.getX(rulerFragment.getRect()) :
-                    event.getX());
+            rulerFragment
+                .setSelectX(event.getX() < Utils.getX(rulerFragment.getRect()) ? Utils.getX(rulerFragment.getRect())
+                        : event.getX());
             rulerFragment.setSelectY(scrollY);
         }
     }
@@ -231,9 +231,9 @@ public final class TimeViewPort extends JBViewport {
             cpuFragment.setSelectX(
                 event.getX() < Utils.getX(cpuFragment.getRect()) ? Utils.getX(cpuFragment.getRect()) : event.getX());
             cpuFragment.setSelectY(scrollY);
-            rulerFragment.setSelectX(
-                event.getX() < Utils.getX(rulerFragment.getRect()) ? Utils.getX(rulerFragment.getRect()) :
-                    event.getX());
+            rulerFragment
+                .setSelectX(event.getX() < Utils.getX(rulerFragment.getRect()) ? Utils.getX(rulerFragment.getRect())
+                        : event.getX());
             rulerFragment.setSelectY(scrollY);
             CpuDataFragment.focusCpuData = null;
             rulerFragment.mouseMoved(event);

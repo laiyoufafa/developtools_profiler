@@ -18,8 +18,7 @@ package ohos.devtools.views.applicationtrace.bean;
 /**
  * EventBean
  *
- * @version 1.0
- * @date: 2021/5/27 12:01
+ * @since 2021/5/27 12:01
  */
 public class EventBean {
     private long startTime;

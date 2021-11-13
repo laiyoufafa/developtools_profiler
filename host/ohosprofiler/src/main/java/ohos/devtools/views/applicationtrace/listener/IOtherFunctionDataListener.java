@@ -23,14 +23,13 @@ import java.util.List;
 /**
  * interface other function data listener
  *
- * @date: 2021/5/27 12:01
+ * @since 2021/5/27 12:01
  */
 public interface IOtherFunctionDataListener<T extends Func> {
     /**
      * getOtherFunctionData Callback
-     *
      * @param func function
-     * @return List <DefaultMutableTreeNode> tree node
+     * @return tree node
      */
     List<DefaultMutableTreeNode> getOtherFunctionData(T func);
 }

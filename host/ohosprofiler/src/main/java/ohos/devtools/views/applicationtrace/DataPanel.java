@@ -26,6 +26,8 @@ import ohos.devtools.views.applicationtrace.analysis.AnalysisEnum;
 import ohos.devtools.views.applicationtrace.analysis.OtherFunctionPanel;
 import ohos.devtools.views.applicationtrace.analysis.OtherThreadPanel;
 import ohos.devtools.views.applicationtrace.bean.Func;
+import ohos.devtools.views.perftrace.PerfData;
+import ohos.devtools.views.perftrace.bean.PrefFunc;
 import ohos.devtools.views.trace.EventDispatcher;
 import ohos.devtools.views.trace.EventPanel;
 import ohos.devtools.views.trace.TracePanel;
@@ -36,8 +38,7 @@ import java.util.List;
 /**
  * DataPanel
  *
- * @version 1.0
- * @date: 2021/5/13 13:22
+ * @since 2021/5/13 13:22
  */
 public class DataPanel extends EventPanel {
     /**
@@ -78,6 +79,10 @@ public class DataPanel extends EventPanel {
             String tabName = "";
             if (node instanceof Func) {
                 tabName = ((Func) node).getFuncName();
+            } else {
+                if (node instanceof PrefFunc) {
+                    tabName = ((PrefFunc) node).getFuncName();
+                }
             }
             if (tabName != null && tabName.length() > 20) {
                 tabName = tabName.substring(0, 20) + "...";
@@ -98,23 +103,19 @@ public class DataPanel extends EventPanel {
             }
         } else {
             if (analysisTab.getTabCount() == 3) {
-                next(threadIds);
+                if (analysisTab.getComponentAt(analysisTab.getTabCount() - 1) instanceof OtherFunctionPanel) {
+                    analysisTab.remove(analysisTab.getTabCount() - 1);
+                    analysisTab.addTab(createTabName(threadIds), otherThreadPanel);
+                } else {
+                    if (!threadIds.equals(currentTids)) {
+                        analysisTab.setTitleAt(analysisTab.getTabCount() - 1, createTabName(threadIds));
+                    }
+                }
             } else {
                 analysisTab.addTab(createTabName(threadIds), otherThreadPanel);
             }
         }
         analysisTab.setSelectedIndex(analysisTab.getTabCount() - 1);
-    }
-
-    private void next(List<Integer> threadIds) {
-        if (analysisTab.getComponentAt(analysisTab.getTabCount() - 1) instanceof OtherFunctionPanel) {
-            analysisTab.remove(analysisTab.getTabCount() - 1);
-            analysisTab.addTab(createTabName(threadIds), otherThreadPanel);
-        } else {
-            if (!threadIds.equals(currentTids)) {
-                analysisTab.setTitleAt(analysisTab.getTabCount() - 1, createTabName(threadIds));
-            }
-        }
     }
 
     @Override
@@ -130,6 +131,10 @@ public class DataPanel extends EventPanel {
             if (analysisEnum.equals(AnalysisEnum.APP)) {
                 if (AllData.threadNames != null) {
                     name = AllData.threadNames.get(ids.get(0));
+                }
+            } else {
+                if (PerfData.THREAD_NAMES != null) {
+                    name = PerfData.THREAD_NAMES.get(ids.get(0));
                 }
             }
             if (name != null && name.length() > 20) {

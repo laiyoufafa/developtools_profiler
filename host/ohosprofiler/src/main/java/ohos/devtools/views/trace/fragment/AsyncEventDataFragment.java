@@ -17,6 +17,7 @@ package ohos.devtools.views.trace.fragment;
 
 import ohos.devtools.views.trace.bean.AsyncEvent;
 import ohos.devtools.views.trace.bean.ThreadData;
+import ohos.devtools.views.trace.component.AnalystPanel;
 import ohos.devtools.views.trace.util.Final;
 import ohos.devtools.views.trace.util.Utils;
 
@@ -31,9 +32,9 @@ import java.util.stream.Collectors;
 /**
  * Memory data line
  *
- * @date 2021/04/22 12:25
+ * @since 2021/04/22 12:25
  */
-public class AsyncEventDataFragment extends AbstractDataFragment<AsyncEvent> {
+public class AsyncEventDataFragment extends AbstractDataFragment<AsyncEvent> implements AsyncEvent.IEventListener {
     /**
      * graph event callback
      */
@@ -99,8 +100,8 @@ public class AsyncEventDataFragment extends AbstractDataFragment<AsyncEvent> {
     private void drawData(Graphics2D graphics) {
         if (data != null) {
             List<AsyncEvent> collect = data.stream().filter(
-                    memData -> memData.getStartTime()
-                        + memData.getDuration() > startNS && memData.getStartTime() < endNS)
+                    memData -> memData.getStartTime() + memData.getDuration() > startNS
+                            && memData.getStartTime() < endNS)
                 .collect(Collectors.toList());
             int x1;
             int x2;
@@ -117,6 +118,7 @@ public class AsyncEventDataFragment extends AbstractDataFragment<AsyncEvent> {
                     x2 = getX(asyncEvent.getStartTime() + asyncEvent.getDuration());
                 }
                 asyncEvent.root = getRoot();
+                asyncEvent.setEventListener(this);
                 asyncEvent.setRect(x1 + Utils.getX(getDataRect()),
                     Utils.getY(getDataRect()) + asyncEvent.getDepth() * 20 + 10,
                     x2 - x1 <= 0 ? 1 : x2 - x1, 20);
@@ -137,6 +139,13 @@ public class AsyncEventDataFragment extends AbstractDataFragment<AsyncEvent> {
     @Override
     public void mouseClicked(MouseEvent event) {
         super.mouseClicked(event);
+        if (data != null) {
+            data.stream()
+                .filter(bean -> bean.getStartTime() + bean.getDuration() > startNS && bean.getStartTime() < endNS)
+                .filter(bean -> bean.edgeInspect(event)).findFirst().ifPresent(bean -> {
+                    bean.onClick(event);
+                });
+        }
     }
 
     /**
@@ -182,5 +191,27 @@ public class AsyncEventDataFragment extends AbstractDataFragment<AsyncEvent> {
     }
 
     private void loadData() {
+    }
+
+    @Override
+    public void click(MouseEvent event, AsyncEvent data) {
+        if (AnalystPanel.getiAsyncFunctionDataClick() != null) {
+            AnalystPanel.getiAsyncFunctionDataClick().click(data);
+        }
+    }
+
+    @Override
+    public void blur(MouseEvent event, AsyncEvent data) {
+
+    }
+
+    @Override
+    public void focus(MouseEvent event, AsyncEvent data) {
+
+    }
+
+    @Override
+    public void mouseMove(MouseEvent event, AsyncEvent data) {
+
     }
 }

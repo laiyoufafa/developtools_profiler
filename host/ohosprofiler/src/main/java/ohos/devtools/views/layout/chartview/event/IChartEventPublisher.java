@@ -19,6 +19,7 @@ package ohos.devtools.views.layout.chartview.event;
  * Publisher of chart event
  */
 public interface IChartEventPublisher {
+
     /**
      * Add observer
      *

@@ -44,7 +44,7 @@ import java.util.concurrent.CompletableFuture;
 /**
  * process data
  *
- * @date 2021/04/22 12:25
+ * @since 2021/04/22 12:25
  */
 public class ProcessDataFragment extends AbstractDataFragment<ProcessData> implements ExpandGraph.IClickListener {
     /**
@@ -66,7 +66,7 @@ public class ProcessDataFragment extends AbstractDataFragment<ProcessData> imple
     /**
      * constructor
      *
-     * @param root root
+     * @param root    root
      * @param process process
      */
     public ProcessDataFragment(JComponent root, Process process) {
@@ -374,7 +374,16 @@ public class ProcessDataFragment extends AbstractDataFragment<ProcessData> imple
             CompletableFuture.runAsync(() -> {
                 List<ProcessData> list = new ArrayList<>() {
                 };
-                Db.getInstance().query(Sql.SYS_QUERY_PROCESS_DATA, list, process.getPid());
+                int count =
+                    Db.getInstance().queryCount(Sql.SYS_QUERY_PROCESS_DATA_COUNT, process.getPid(), startNS, endNS);
+                if (count > Final.CAPACITY) {
+                    Db.getInstance()
+                        .query(Sql.SYS_QUERY_PROCESS_DATA_LIMIT, list, process.getPid(), startNS, endNS,
+                            Final.CAPACITY);
+                } else {
+                    Db.getInstance().query(Sql.SYS_QUERY_PROCESS_DATA, list, process.getPid(), startNS, endNS);
+                }
+
                 data = list;
                 SwingUtilities.invokeLater(() -> {
                     isLoading = false;

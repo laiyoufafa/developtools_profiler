@@ -19,6 +19,7 @@ import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.Consumer;
 import net.miginfocom.swing.MigLayout;
+import ohos.devtools.views.perftrace.bean.PrefFunc;
 import ohos.devtools.views.trace.util.Utils;
 
 import javax.swing.SwingUtilities;
@@ -40,7 +41,6 @@ import java.util.stream.Collectors;
 /**
  * TracePanel
  *
- * @date: 2021/5/13 13:06
  */
 public class TracePanel extends JBPanel {
     /**
@@ -153,6 +153,7 @@ public class TracePanel extends JBPanel {
             @Override
             public void mouseClicked(MouseEvent event) {
                 super.mouseClicked(event);
+                PrefFunc.resetSelectedPrefFunc();
                 mouseClickThreadRow(event);
             }
 
@@ -171,6 +172,7 @@ public class TracePanel extends JBPanel {
             @Override
             public void mouseDragged(MouseEvent event) {
                 super.mouseDragged(event);
+                PrefFunc.resetSelectedPrefFunc();
                 mouseDraggedThreadRow(event);
             }
 
@@ -239,7 +241,7 @@ public class TracePanel extends JBPanel {
      * structure function
      *
      * @param startNS startNS
-     * @param endNS   endNS
+     * @param endNS endNS
      */
     public void setRange(long startNS, long endNS) {
         Optional.ofNullable(timeShaft).ifPresent(tf -> tf.setRange(startNS, endNS));
@@ -326,14 +328,14 @@ public class TracePanel extends JBPanel {
     private void mousePressedThreadRow(MouseEvent event) {
         if (Objects.isNull(componentList)) {
             componentList = Arrays.stream(contentPanel.getComponents()).filter(component -> {
-                    if (component instanceof ExpandPanel) {
-                        ExpandPanel ep = (ExpandPanel) component;
-                        if (!ep.getTitle().startsWith("Display") && !ep.getTitle().startsWith("CPU")) {
-                            return true;
-                        }
+                if (component instanceof ExpandPanel) {
+                    ExpandPanel ep = (ExpandPanel) component;
+                    if (!ep.getTitle().startsWith("Display") && !ep.getTitle().startsWith("CPU")) {
+                        return true;
                     }
-                    return false;
-                }).flatMap(component -> Arrays.stream(((ExpandPanel) component).getContent().getComponents()))
+                }
+                return false;
+            }).flatMap(component -> Arrays.stream(((ExpandPanel) component).getContent().getComponents()))
                 .collect(Collectors.toList());
         }
         if (componentList.size() > 0) {

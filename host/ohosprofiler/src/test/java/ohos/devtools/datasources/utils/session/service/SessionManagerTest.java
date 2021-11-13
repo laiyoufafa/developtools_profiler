@@ -16,7 +16,6 @@
 package ohos.devtools.datasources.utils.session.service;
 
 import com.alibaba.fastjson.JSONObject;
-import io.grpc.BindableService;
 import io.grpc.ManagedChannel;
 import io.grpc.inprocess.InProcessChannelBuilder;
 import io.grpc.inprocess.InProcessServerBuilder;
@@ -37,6 +36,7 @@ import ohos.devtools.services.memory.agentbean.MemoryHeapInfo;
 import ohos.devtools.services.memory.agentdao.MemoryHeapManager;
 import ohos.devtools.views.layout.chartview.ProfilerChartsView;
 import ohos.devtools.views.layout.chartview.TaskScenePanelChart;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -48,9 +48,12 @@ import java.util.Optional;
 
 /**
  * Session Manager Test
+ *
+ * @since 2021/2/1 9:31
  */
 public class SessionManagerTest {
     private static volatile Integer requestId = 1;
+
     private final MutableHandlerRegistry serviceRegistry = new MutableHandlerRegistry();
     private final GrpcCleanupRule grpcCleanup = new GrpcCleanupRule();
     private SessionManager session;
@@ -61,7 +64,7 @@ public class SessionManagerTest {
     private String serverName;
     private MemoryHeapInfo memoryHeapInfo;
     private MemoryHeapManager memoryHeapManager;
-    private MockProfilerServiceImplBase getFeatureImpl;
+    private SessionTestServiceMock getFeatureImpl;
     private ManagedChannel channel;
 
     /**
@@ -76,18 +79,10 @@ public class SessionManagerTest {
     @Before
     public void init() {
         session = SessionManager.getInstance();
-        session.setDevelopMode(true);
         DataBaseApi apo = DataBaseApi.getInstance();
         apo.initDataSourceManager();
         jsonObject = new JSONObject();
-        JSONObject memoryObject = new JSONObject();
-        memoryObject.put("Select All", true);
-        memoryObject.put("Java", true);
-        memoryObject.put("Native", true);
-        memoryObject.put("Graphics", true);
-        memoryObject.put("Stack", true);
-        memoryObject.put("Code", true);
-        memoryObject.put("Others", true);
+        JSONObject memoryObject = getJsonObject();
         jsonObject.put("Memory", memoryObject);
         device = new DeviceIPPortInfo();
         device.setIp("");
@@ -116,134 +111,142 @@ public class SessionManagerTest {
         } catch (IOException exception) {
             exception.printStackTrace();
         }
-        createServer();
+        getFeatureImpl = new SessionTestServiceMock();
         channel = grpcCleanup.register(InProcessChannelBuilder.forName(serverName).directExecutor().build());
-        if (getFeatureImpl instanceof BindableService) {
-            serviceRegistry.addService((BindableService) getFeatureImpl);
-        }
+        serviceRegistry.addService(getFeatureImpl);
     }
 
-    private void createServer() {
-        getFeatureImpl = new MockProfilerServiceImplBase() {
-            /**
-             * init getCapabilities
-             *
-             * @param request request
-             * @param responseObserver responseObserver
-             */
-            @Override
-            public void getCapabilities(ProfilerServiceTypes.GetCapabilitiesRequest request,
-                StreamObserver<ProfilerServiceTypes.GetCapabilitiesResponse> responseObserver) {
-                ProfilerServiceTypes.ProfilerPluginCapability pluginCapability =
-                    ProfilerServiceTypes.ProfilerPluginCapability.newBuilder(
-                        ProfilerServiceTypes.ProfilerPluginCapability.newBuilder()
-                            .setName("/data/local/tmp/libmemdataplugin.z.so")
-                            .setPath("/data/local/tmp/libmemdataplugin.z.so").build()).build();
-                ProfilerServiceTypes.GetCapabilitiesResponse reply =
-                    ProfilerServiceTypes.GetCapabilitiesResponse.newBuilder().addCapabilities(pluginCapability)
-                        .setStatus(0).build();
-                responseObserver.onNext(reply);
-                responseObserver.onCompleted();
-            }
+    class SessionTestServiceMock extends MockProfilerServiceImplBase {
+        /**
+         * init getCapabilities
+         *
+         * @param request request
+         * @param responseObserver responseObserver
+         */
+        @Override
+        public void getCapabilities(ProfilerServiceTypes.GetCapabilitiesRequest request,
+            StreamObserver<ProfilerServiceTypes.GetCapabilitiesResponse> responseObserver) {
+            ProfilerServiceTypes.ProfilerPluginCapability pluginCapability =
+                ProfilerServiceTypes.ProfilerPluginCapability.newBuilder(
+                    ProfilerServiceTypes.ProfilerPluginCapability.newBuilder()
+                        .setName("/data/local/tmp/libmemdataplugin.z.so")
+                        .setPath("/data/local/tmp/libmemdataplugin.z.so").build()).build();
+            ProfilerServiceTypes.GetCapabilitiesResponse reply =
+                ProfilerServiceTypes.GetCapabilitiesResponse.newBuilder().addCapabilities(pluginCapability)
+                    .setStatus(0).build();
+            responseObserver.onNext(reply);
+            responseObserver.onCompleted();
+        }
 
-            /**
-             * init createSession
-             *
-             * @param request request
-             * @param responseObserver responseObserver
-             */
-            @Override
-            public void createSession(ProfilerServiceTypes.CreateSessionRequest request,
-                StreamObserver<ProfilerServiceTypes.CreateSessionResponse> responseObserver) {
-                ProfilerServiceTypes.CreateSessionResponse reply =
-                    ProfilerServiceTypes.CreateSessionResponse.newBuilder().setSessionId(1).setStatus(0).build();
-                responseObserver.onNext(reply);
-                responseObserver.onCompleted();
-            }
+        /**
+         * init createSession
+         *
+         * @param request request
+         * @param responseObserver responseObserver
+         */
+        @Override
+        public void createSession(ProfilerServiceTypes.CreateSessionRequest request,
+            StreamObserver<ProfilerServiceTypes.CreateSessionResponse> responseObserver) {
+            ProfilerServiceTypes.CreateSessionResponse reply =
+                ProfilerServiceTypes.CreateSessionResponse.newBuilder().setSessionId(1).setStatus(0).build();
+            responseObserver.onNext(reply);
+            responseObserver.onCompleted();
+        }
 
-            /**
-             * init startSession
-             *
-             * @param request request
-             * @param responseObserver responseObserver
-             */
-            @Override
-            public void startSession(ProfilerServiceTypes.StartSessionRequest request,
-                StreamObserver<ProfilerServiceTypes.StartSessionResponse> responseObserver) {
-                CommonTypes.ProfilerPluginState profilerPluginState =
-                    CommonTypes.ProfilerPluginState.newBuilder().build();
-                ProfilerServiceTypes.StartSessionResponse reply =
-                    ProfilerServiceTypes.StartSessionResponse.newBuilder().setStatus(0)
-                        .addPluginStatus(profilerPluginState).build();
-                responseObserver.onNext(reply);
-                responseObserver.onCompleted();
-            }
+        /**
+         * init startSession
+         *
+         * @param request request
+         * @param responseObserver responseObserver
+         */
+        @Override
+        public void startSession(ProfilerServiceTypes.StartSessionRequest request,
+            StreamObserver<ProfilerServiceTypes.StartSessionResponse> responseObserver) {
+            CommonTypes.ProfilerPluginState profilerPluginState =
+                CommonTypes.ProfilerPluginState.newBuilder().build();
+            ProfilerServiceTypes.StartSessionResponse reply =
+                ProfilerServiceTypes.StartSessionResponse.newBuilder().setStatus(0)
+                    .addPluginStatus(profilerPluginState).build();
+            responseObserver.onNext(reply);
+            responseObserver.onCompleted();
+        }
 
-            /**
-             * init fetchData
-             *
-             * @param request request
-             * @param responseObserver responseObserver
-             */
-            @Override
-            public void fetchData(ProfilerServiceTypes.FetchDataRequest request,
-                StreamObserver<ProfilerServiceTypes.FetchDataResponse> responseObserver) {
-                MemoryPluginResult.AppSummary sss =
-                    MemoryPluginResult.AppSummary.newBuilder().setJavaHeap(getIntData()).setNativeHeap(getIntData())
-                        .setCode(getIntData()).setStack(getIntData()).setGraphics(getIntData())
-                        .setPrivateOther(getIntData()).setSystem(0).build();
-                MemoryPluginResult.ProcessMemoryInfo processesInfoZero =
-                    MemoryPluginResult.ProcessMemoryInfo.newBuilder().setPid(31141).setName("rcu_gp").setRssShmemKb(1)
-                        .setMemsummary(sss).build();
-                MemoryPluginResult.ProcessMemoryInfo processesInfoOne =
-                    MemoryPluginResult.ProcessMemoryInfo.newBuilder().setPid(31142).setName("rcu_bh")
-                        .setRssShmemKb(2222222).build();
-                MemoryPluginResult.ProcessMemoryInfo processesInfoTwo =
-                    MemoryPluginResult.ProcessMemoryInfo.newBuilder().setPid(31144).setName("netns")
-                        .setRssShmemKb(3333333).build();
-                MemoryPluginResult.MemoryData aaa =
-                    MemoryPluginResult.MemoryData.newBuilder().addProcessesinfo(processesInfoZero)
-                        .addProcessesinfo(processesInfoOne).addProcessesinfo(processesInfoTwo).build();
-                CommonTypes.ProfilerPluginData data =
-                    CommonTypes.ProfilerPluginData.newBuilder().setName("memory-plugin").setStatus(0)
-                        .setData(aaa.toByteString()).build();
-                ProfilerServiceTypes.FetchDataResponse fetchDataResponse =
-                    ProfilerServiceTypes.FetchDataResponse.newBuilder().setResponseId(123456789).setStatus(0)
-                        .setHasMore(false).addPluginData(data).build();
-                responseObserver.onNext(fetchDataResponse);
-                responseObserver.onCompleted();
-            }
+        /**
+         * init fetchData
+         *
+         * @param request request
+         * @param responseObserver responseObserver
+         */
+        @Override
+        public void fetchData(ProfilerServiceTypes.FetchDataRequest request,
+            StreamObserver<ProfilerServiceTypes.FetchDataResponse> responseObserver) {
+            MemoryPluginResult.AppSummary sss =
+                MemoryPluginResult.AppSummary.newBuilder().setJavaHeap(getIntData()).setNativeHeap(getIntData())
+                    .setCode(getIntData()).setStack(getIntData()).setGraphics(getIntData())
+                    .setPrivateOther(getIntData()).setSystem(0).build();
+            MemoryPluginResult.ProcessMemoryInfo processesInfoZero =
+                MemoryPluginResult.ProcessMemoryInfo.newBuilder().setPid(31141).setName("rcu_gp").setRssShmemKb(1)
+                    .setMemsummary(sss).build();
+            MemoryPluginResult.ProcessMemoryInfo processesInfoOne =
+                MemoryPluginResult.ProcessMemoryInfo.newBuilder().setPid(31142).setName("rcu_bh")
+                    .setRssShmemKb(2222222).build();
+            MemoryPluginResult.ProcessMemoryInfo processesInfoTwo =
+                MemoryPluginResult.ProcessMemoryInfo.newBuilder().setPid(31144).setName("netns")
+                    .setRssShmemKb(3333333).build();
+            MemoryPluginResult.MemoryData aaa =
+                MemoryPluginResult.MemoryData.newBuilder().addProcessesinfo(processesInfoZero)
+                    .addProcessesinfo(processesInfoOne).addProcessesinfo(processesInfoTwo).build();
+            CommonTypes.ProfilerPluginData data =
+                CommonTypes.ProfilerPluginData.newBuilder().setName("memory-plugin").setStatus(0)
+                    .setData(aaa.toByteString()).build();
+            ProfilerServiceTypes.FetchDataResponse fetchDataResponse =
+                ProfilerServiceTypes.FetchDataResponse.newBuilder().setResponseId(123456789).setStatus(0)
+                    .setHasMore(false).addPluginData(data).build();
+            responseObserver.onNext(fetchDataResponse);
+            responseObserver.onCompleted();
+        }
 
-            /**
-             * init stopSession
-             *
-             * @param request request
-             * @param responseObserver responseObserver
-             */
-            @Override
-            public void stopSession(ProfilerServiceTypes.StopSessionRequest request,
-                StreamObserver<ProfilerServiceTypes.StopSessionResponse> responseObserver) {
-                ProfilerServiceTypes.StopSessionResponse reply =
-                    ProfilerServiceTypes.StopSessionResponse.newBuilder().build();
-                responseObserver.onNext(reply);
-                responseObserver.onCompleted();
-            }
+        /**
+         * init stopSession
+         *
+         * @param request request
+         * @param responseObserver responseObserver
+         */
+        @Override
+        public void stopSession(ProfilerServiceTypes.StopSessionRequest request,
+            StreamObserver<ProfilerServiceTypes.StopSessionResponse> responseObserver) {
+            ProfilerServiceTypes.StopSessionResponse reply =
+                ProfilerServiceTypes.StopSessionResponse.newBuilder().build();
+            responseObserver.onNext(reply);
+            responseObserver.onCompleted();
+        }
 
-            /**
-             * init destroySession
-             *
-             * @param request request
-             * @param responseObserver responseObserver
-             */
-            @Override
-            public void destroySession(ProfilerServiceTypes.DestroySessionRequest request,
-                StreamObserver<ProfilerServiceTypes.DestroySessionResponse> responseObserver) {
-                ProfilerServiceTypes.DestroySessionResponse reply =
-                    ProfilerServiceTypes.DestroySessionResponse.newBuilder().setStatus(0).build();
-                responseObserver.onNext(reply);
-                responseObserver.onCompleted();
-            }
-        };
+        /**
+         * init destroySession
+         *
+         * @param request request
+         * @param responseObserver responseObserver
+         */
+        @Override
+        public void destroySession(ProfilerServiceTypes.DestroySessionRequest request,
+            StreamObserver<ProfilerServiceTypes.DestroySessionResponse> responseObserver) {
+            ProfilerServiceTypes.DestroySessionResponse reply =
+                ProfilerServiceTypes.DestroySessionResponse.newBuilder().setStatus(0).build();
+            responseObserver.onNext(reply);
+            responseObserver.onCompleted();
+        }
+    }
+    @NotNull
+    private JSONObject getJsonObject() {
+        JSONObject memoryObject = new JSONObject();
+        memoryObject.put("Select All", true);
+        memoryObject.put("Java", true);
+        memoryObject.put("Native", true);
+        memoryObject.put("Graphics", true);
+        memoryObject.put("Stack", true);
+        memoryObject.put("Code", true);
+        memoryObject.put("Others", true);
+        return memoryObject;
     }
 
     /**
@@ -272,7 +275,7 @@ public class SessionManagerTest {
      */
     @Test
     public void testCreateSessionRealTime01() {
-        long num = session.createSession(null, process);
+        long num = session.createSession(null, process, null);
         Assert.assertNotNull(num);
     }
 
@@ -287,7 +290,7 @@ public class SessionManagerTest {
      */
     @Test
     public void testCreateSessionRealTime02() {
-        long num = session.createSession(device, null);
+        long num = session.createSession(device, null, null);
         Assert.assertEquals(-1L, num);
     }
 
@@ -302,7 +305,7 @@ public class SessionManagerTest {
      */
     @Test
     public void testCreateSessionRealTime03() {
-        long num = session.createSession(device, process);
+        long num = session.createSession(device, process, null);
         Assert.assertNotNull(num);
     }
 
@@ -317,7 +320,7 @@ public class SessionManagerTest {
      */
     @Test
     public void testCreateSession04() {
-        long num = session.createSession(null, null);
+        long num = session.createSession(null, null, null);
         Assert.assertEquals(-1L, num);
     }
 
@@ -332,7 +335,7 @@ public class SessionManagerTest {
      */
     @Test
     public void testCreateSession05() {
-        long num = session.createSession(null, process);
+        long num = session.createSession(null, process, null);
         Assert.assertEquals(num, -1L);
     }
 
@@ -407,7 +410,7 @@ public class SessionManagerTest {
      */
     @Test
     public void testStart05() {
-        long num = session.createSession(device, process);
+        long num = session.createSession(device, process, null);
         boolean flag = session.startSession(num, false);
         Assert.assertTrue(flag);
     }
@@ -438,7 +441,7 @@ public class SessionManagerTest {
      */
     @Test
     public void testFetchData02() {
-        long num = session.createSession(null, process);
+        long num = session.createSession(null, process, null);
         session.startSession(num, false);
         boolean flag = session.fetchData(num);
         Assert.assertFalse(flag);
@@ -486,7 +489,7 @@ public class SessionManagerTest {
     @Test
     public void testFetchData05() {
         ProfilerClient client = HiProfilerClient.getInstance().getProfilerClient("", 3333, channel);
-        long num = session.createSession(device, process);
+        long num = session.createSession(device, process, null);
         session.startSession(num, false);
         boolean flag = session.fetchData(num);
         Assert.assertTrue(flag);
@@ -564,7 +567,7 @@ public class SessionManagerTest {
     @Test
     public void testEndSession05() {
         ProfilerClient client = HiProfilerClient.getInstance().getProfilerClient("", 3333, channel);
-        long num = session.createSession(device, process);
+        long num = session.createSession(device, process, null);
         boolean flag = session.endSession(num);
         Assert.assertTrue(flag);
     }
@@ -596,7 +599,7 @@ public class SessionManagerTest {
     @Test
     public void testDeleteSession02() {
         ProfilerClient client = HiProfilerClient.getInstance().getProfilerClient("", 3333, channel);
-        long num = session.createSession(device, process);
+        long num = session.createSession(device, process, null);
         ProfilerChartsView view = new ProfilerChartsView(num, true, new TaskScenePanelChart());
         boolean flag = session.deleteSession(num);
         Assert.assertTrue(flag);
@@ -643,7 +646,7 @@ public class SessionManagerTest {
      */
     @Test
     public void testDeleteSession05() {
-        long num = session.createSession(device, process);
+        long num = session.createSession(device, process, null);
         ProfilerChartsView view = new ProfilerChartsView(num, true, new TaskScenePanelChart());
         boolean flag = session.deleteSession(num);
         Assert.assertFalse(flag);
@@ -721,7 +724,7 @@ public class SessionManagerTest {
     @Test
     public void testSaveSessionDataToFile05() {
         ProfilerClient client = HiProfilerClient.getInstance().getProfilerClient("", 3333, channel);
-        long num = session.createSession(device, process);
+        long num = session.createSession(device, process, null);
         session.fetchData(num);
         boolean flag = session.saveSessionDataToFile(num, deviceProcessInfo, "/");
         Assert.assertFalse(flag);
@@ -848,7 +851,7 @@ public class SessionManagerTest {
     @Test
     public void testDeleteLocalSession() {
         ProfilerClient client = HiProfilerClient.getInstance().getProfilerClient("", 3333, channel);
-        long num = session.createSession(device, process);
+        long num = session.createSession(device, process, null);
         session.deleteLocalSession(num);
         Assert.assertTrue(true);
     }
@@ -865,7 +868,7 @@ public class SessionManagerTest {
     @Test
     public void testStopAllSession() {
         ProfilerClient client = HiProfilerClient.getInstance().getProfilerClient("", 3333, channel);
-        long num = session.createSession(device, process);
+        long num = session.createSession(device, process, null);
         session.startSession(num, false);
         session.stopAllSession();
         Assert.assertTrue(true);
@@ -897,7 +900,6 @@ public class SessionManagerTest {
      */
     @Test
     public void testGetPluginPathFalse() {
-        session.setDevelopMode(false);
         String pluginPath = session.getPluginPath();
         Assert.assertNotNull(pluginPath);
     }

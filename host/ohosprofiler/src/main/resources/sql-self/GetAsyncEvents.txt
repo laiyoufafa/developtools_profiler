@@ -1,2 +1,0 @@
-select *,p.pid as pid,c.ts - t.start_ts as "startTime"
-from callstack c,trace_range t left join process p on c.callid = p.id where cookie is not null;

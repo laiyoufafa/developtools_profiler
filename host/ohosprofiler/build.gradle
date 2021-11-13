@@ -23,15 +23,18 @@ plugins {
 }
 
 group 'ohos.devtools'
-version '1.06.210603_I57402e91b3ca31a5e5d458a8c65d5a0a0e8e62e8'
+version '3.07.211021_Ia1ed1303974563b64db30257247eb41b3140ea5a'
 
 project.sourceCompatibility=1.11
 project.targetCompatibility=1.11
 
 repositories {
     mavenCentral()
+    maven { url = "https://packages.jetbrains.team/maven/p/ij/intellij-dependencies" }
+    flatDir { dir("libs")}
 }
 
+def remoteRobotVersion = "0.11.6"
 dependencies {
     compile "org.xerial:sqlite-jdbc:3.34.0"
     implementation 'io.grpc:grpc-netty-shaded:1.36.0'
@@ -43,12 +46,15 @@ dependencies {
     implementation group: 'com.alibaba', name: 'druid', version: '1.1.6'
     implementation group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.14.0'
     implementation group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.14.0'
-    implementation group: 'org.easytesting', name: 'fest-swing', version: '1.2'
+    testImplementation group: 'org.easytesting', name: 'fest-swing', version: '1.2'
     testImplementation group: 'io.grpc', name: 'grpc-testing', version: '1.36.0'
+    testImplementation 'com.intellij.remoterobot:remote-robot:'+remoteRobotVersion
+    testImplementation 'com.intellij.remoterobot:remote-fixtures:'+remoteRobotVersion
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.6.0'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
     testImplementation group: 'org.powermock', name: 'powermock-module-junit4', version: '2.0.9'
     testImplementation group: 'org.powermock', name: 'powermock-api-mockito2', version: '2.0.9'
+    implementation group: 'com.huawei.deveco', name: 'common-trace', version: '2.2.0.200'
 }
 
 // See https://github.com/JetBrains/gradle-intellij-plugin/
@@ -69,12 +75,21 @@ tasks.withType(JavaCompile) {
     options.encoding = "UTF-8"
 }
 
-
+copy() {
+    CopySpec copySpec ->
+        from file("/LICENSE")
+        into "/src/main/resources/"
+}
 tasks.withType(PrepareSandboxTask) {
-    from("src/main/resources/ohos") {
+    from("src/main/resources/ohosresource") {
         into("ohosprofiler/ohos")
         include("**")
     }
+}
+
+jar {
+    exclude "**/*.proto"
+    exclude "ohosresource"
 }
 
 protobuf {
@@ -103,5 +118,25 @@ patchPluginXml {
       <em>most HTML tags may be used</em>"""
     version = project.version
     sinceBuild = '202'
-    untilBuild = '203.*'
+    untilBuild = '211.*'
+}
+
+processResources {
+    filesMatching('**/hosprofiler.properties') {
+        filter {
+            it.replace('%APP_VERSION%', version)
+
+        }
+
+        runIdeForUiTests {
+            systemProperty "robot-server.port", "8082"
+            systemProperty "ide.mac.message.dialogs.as.sheets", "false"
+            systemProperty "jb.privacy.policy.text", "<!--999.999-->"
+            systemProperty "jb.consents.confirmation.enabled", "false"
+        }
+
+        test {
+            useJUnitPlatform()
+        }
+    }
 }

@@ -16,6 +16,7 @@
 package ohos.devtools.datasources.utils.device.entity;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * Equipment process
@@ -135,5 +136,32 @@ public class DeviceProcessInfo implements Serializable {
      */
     public void setEndTime(long endTime) {
         this.endTime = endTime;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return super.equals(obj);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(deviceName, processName, localSessionId, deviceType, startTime, endTime);
+    }
+
+    @Override
+    protected Object clone() throws CloneNotSupportedException {
+        return super.clone();
+    }
+
+    @Override
+    public String toString() {
+        return "DeviceProcessInfo{"
+                + "deviceName='" + deviceName + '\''
+                + ", processName='" + processName + '\''
+                + ", localSessionId=" + localSessionId
+                + ", deviceType='" + deviceType + '\''
+                + ", startTime=" + startTime
+                + ", endTime=" + endTime
+                + '}';
     }
 }

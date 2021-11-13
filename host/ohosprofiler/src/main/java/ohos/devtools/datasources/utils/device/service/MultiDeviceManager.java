@@ -24,6 +24,7 @@ import ohos.devtools.datasources.utils.device.entity.DeviceStatus;
 import ohos.devtools.datasources.utils.device.entity.DeviceType;
 import ohos.devtools.datasources.utils.plugin.entity.PluginConf;
 import ohos.devtools.datasources.utils.plugin.service.PlugManager;
+import ohos.devtools.datasources.utils.profilerlog.ProfilerLogManager;
 import ohos.devtools.datasources.utils.quartzmanager.QuartzManager;
 import ohos.devtools.datasources.utils.session.service.SessionManager;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -80,12 +81,12 @@ public class MultiDeviceManager {
     private static final Logger LOGGER = LogManager.getLogger(MultiDeviceManager.class);
     private static final int MAX_RETRY_COUNT = 3;
     private static final String PUSH_DEVICES = "StarPUsh";
-    private static boolean logFindDevice = true;
-    private final DeviceDao deviceDao = new DeviceDao();
 
-    private static class SingletonClassInstance {
-        private static final MultiDeviceManager INSTANCE = new MultiDeviceManager();
-    }
+    private static final MultiDeviceManager INSTANCE = new MultiDeviceManager();
+
+    private static boolean logFindDevice = false;
+
+    private final DeviceDao deviceDao = new DeviceDao();
 
     /**
      * getInstance
@@ -93,7 +94,7 @@ public class MultiDeviceManager {
      * @return MultiDeviceManager
      */
     public static MultiDeviceManager getInstance() {
-        return MultiDeviceManager.SingletonClassInstance.INSTANCE;
+        return MultiDeviceManager.INSTANCE;
     }
 
     private MultiDeviceManager() {
@@ -103,6 +104,9 @@ public class MultiDeviceManager {
      * Start managing devices
      */
     public void start() {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("start");
+        }
         Optional<ScheduledExecutorService> scheduledExecutorService =
             QuartzManager.getInstance().checkService(PUSH_DEVICES);
         if (scheduledExecutorService.isPresent()) {
@@ -117,7 +121,15 @@ public class MultiDeviceManager {
     }
 
     private void startDevicePoller() {
-        QuartzManager.getInstance().addExecutor(PUSH_DEVICES, this::devicePool);
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("startDevicePoller");
+        }
+        QuartzManager.getInstance().addExecutor(PUSH_DEVICES, new Runnable() {
+            @Override
+            public void run() {
+                devicePool();
+            }
+        });
         QuartzManager.getInstance().startExecutor(PUSH_DEVICES, QuartzManager.DELAY, QuartzManager.PERIOD);
     }
 
@@ -125,14 +137,23 @@ public class MultiDeviceManager {
      * stop managing devices
      */
     public void shutDown() {
-        QuartzManager.getInstance().endExecutor(PUSH_DEVICES);
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("shutDown");
+        }
+        QuartzManager.getInstance().deleteExecutor(PUSH_DEVICES);
     }
 
     /**
      * main Methods Of Equipment Management Logic
      */
     private void devicePool() {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("devicePool");
+        }
         List<DeviceIPPortInfo> connectDevices = getConnectDevices();
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("connectDevices {}", connectDevices);
+        }
         List<DeviceIPPortInfo> deviceIPPortInfoList = deviceDao.selectOfflineDevice(connectDevices);
         deviceIPPortInfoList.forEach(this::handleOfflineDevices);
         for (DeviceIPPortInfo deviceIPPortInfo : connectDevices) {
@@ -159,7 +180,9 @@ public class MultiDeviceManager {
                     handleRestartDevice(deviceIPPortInfo);
                     break;
                 default:
-                    LOGGER.error("An unknown situation has occurred");
+                    if (ProfilerLogManager.isErrorEnabled()) {
+                        LOGGER.error("An unknown situation has occurred");
+                    }
                     break;
             }
         }
@@ -171,6 +194,9 @@ public class MultiDeviceManager {
      * @param deviceIPPortInfo deviceIPPortInfo
      */
     private void handleRestartDevice(DeviceIPPortInfo deviceIPPortInfo) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("handleRestartDevice");
+        }
         if (deviceIPPortInfo.getRetryNum() >= MAX_RETRY_COUNT) {
             return;
         }
@@ -197,7 +223,9 @@ public class MultiDeviceManager {
      * @param deviceIPPortInfo deviceIPPortInfo
      */
     private void handleOfflineDevices(DeviceIPPortInfo deviceIPPortInfo) {
-        LOGGER.info("handle offline Device {}", deviceIPPortInfo.getDeviceID());
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("handleOfflineDevices", deviceIPPortInfo.getDeviceID());
+        }
         deviceDao.deleteOfflineDeviceIPPort(deviceIPPortInfo);
         SessionManager.getInstance().deleteSessionByOffLineDevice(deviceIPPortInfo);
     }
@@ -208,10 +236,15 @@ public class MultiDeviceManager {
      * @param deviceIPPortInfo deviceIPPortInfo
      */
     private void pushPluginAndRun(DeviceIPPortInfo deviceIPPortInfo) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("pushPluginAndRun");
+        }
         if (pushHiProfilerTools(deviceIPPortInfo)) {
             boolean pushShellResult = pushDevToolsShell(deviceIPPortInfo);
             if (pushShellResult) {
+                pushHiPerfFIle(deviceIPPortInfo);
                 pushDevTools(deviceIPPortInfo);
+                pushtrace(deviceIPPortInfo);
             }
             String cap = isServiceCapability(deviceIPPortInfo, false);
             if (PLUGIN_RESULT_OK.equals(cap)) {
@@ -219,17 +252,22 @@ public class MultiDeviceManager {
                 logFindDevice(deviceIPPortInfo, false);
             }
         } else {
-            LOGGER.debug("Device: {} push hiprofiler_cli failed", deviceIPPortInfo.getDeviceID());
+            if (ProfilerLogManager.isErrorEnabled()) {
+                LOGGER.error("Device: {} push hiprofiler_cli failed", deviceIPPortInfo.getDeviceID());
+            }
         }
     }
 
     /**
-     * push Hi profiler Tools
+     * pushHiprofilerTools
      *
      * @param info info
      * @return boolean
      */
     public boolean pushHiProfilerTools(DeviceIPPortInfo info) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("pushHiProfilerTools");
+        }
         ArrayList<String> cmdStr;
         if (IS_SUPPORT_NEW_HDC && info.getDeviceType() == LEAN_HOS_DEVICE) {
             String devToolsPath = SessionManager.getInstance().getPluginPath() + DEVTOOLS_PLUGINS_V7_PATH;
@@ -251,12 +289,32 @@ public class MultiDeviceManager {
     }
 
     /**
-     * push Dev Tools
+     * pushHiPerfFIle
+     *
+     * @param info info
+     */
+    public void pushHiPerfFIle(DeviceIPPortInfo info) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("pushHiperfFIle");
+        }
+        if (IS_SUPPORT_NEW_HDC && info.getDeviceType() == DeviceType.LEAN_HOS_DEVICE) {
+            String hiPerfPath = SessionManager.getInstance().getPluginPath() + "hiperf" + File.separator + "hiperf";
+            ArrayList<String> cmdStr =
+                conversionCommand(HDC_STD_PUSH_FILE_SHELL, info.getDeviceID(), hiPerfPath, "/data/local/tmp/");
+            HdcWrapper.getInstance().execCmdBy(cmdStr);
+        }
+    }
+
+    /**
+     * pushDevTools
      *
      * @param info info
      */
     public void pushDevTools(DeviceIPPortInfo info) {
-        List<PluginConf> pluginConfig = PlugManager.getInstance().getPluginConfig(info.getDeviceType(), null);
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("pushDevTools");
+        }
+        List<PluginConf> pluginConfig = PlugManager.getInstance().getPluginConfig(info.getDeviceType(), null, null);
         String plugFiles = pluginConfig.stream().map(pluginConf -> {
             String pluginFileName = pluginConf.getPluginFileName();
             return pluginFileName.substring(pluginFileName.lastIndexOf("/") + 1);
@@ -271,11 +329,14 @@ public class MultiDeviceManager {
     }
 
     /**
-     * push trace
+     * pushtrace
      *
      * @param info info
      */
-    public void pushTrace(DeviceIPPortInfo info) {
+    public void pushtrace(DeviceIPPortInfo info) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("pushtrace");
+        }
         String pluginPath = SessionManager.getInstance().getPluginPath() + "fbs_dev_1.trace";
         String pluginPath2 = SessionManager.getInstance().getPluginPath() + "fbs_dev_2.trace";
         ArrayList<String> cmdStr;
@@ -293,6 +354,7 @@ public class MultiDeviceManager {
         }
         HdcWrapper.getInstance().execCmdBy(cmdStr);
         HdcWrapper.getInstance().execCmdBy(cmdStr2);
+
     }
 
     /**
@@ -302,6 +364,9 @@ public class MultiDeviceManager {
      * @return boolean
      */
     public boolean pushDevToolsShell(DeviceIPPortInfo deviceIPPortInfo) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("pushDevToolsShell");
+        }
         String pluginPath = SessionManager.getInstance().getPluginPath() + UNZIP_SHELL_PLUGINS_PATH;
         ArrayList<String> cmdStr;
         String deviceID = deviceIPPortInfo.getDeviceID();
@@ -322,10 +387,13 @@ public class MultiDeviceManager {
      * @return List <DeviceIPPortInfo>
      */
     private List<DeviceIPPortInfo> getConnectDevices() {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("getConnectDevices");
+        }
         List<DeviceIPPortInfo> deviceIPPortInfoList = new ArrayList<>();
         ArrayList<ArrayList<String>> devices = HdcWrapper.getInstance().getListResult(HDC_LIST_TARGETS_STR);
         for (List<String> deviceInfo : devices) {
-            if (!deviceInfo.contains(Constant.DEVICE_STAT_OFFLINE)) {
+            if (deviceInfo.contains("device")) {
                 String deviceId = deviceInfo.get(0);
                 ArrayList<String> getProtoCmd = conversionCommand(HDC_GET_TYPE, deviceId);
                 String result = HdcWrapper.getInstance().getHdcStringResult(getProtoCmd);
@@ -335,19 +403,29 @@ public class MultiDeviceManager {
                 } else {
                     info = buildDeviceInfo(deviceInfo, LEAN_HOS_DEVICE);
                 }
+                info.setConnectType("USB");
                 deviceIPPortInfoList.add(info);
                 logFindDevice(info, true);
             }
         }
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("deviceIPPortInfoList {} ", deviceIPPortInfoList);
+        }
         if (IS_SUPPORT_NEW_HDC) {
             ArrayList<ArrayList<String>> deviceList =
                 HdcWrapper.getInstance().getListHdcStdResult(HDC_STD_LIST_TARGETS_STR);
+            if (ProfilerLogManager.isInfoEnabled()) {
+                LOGGER.info("deviceList {} ", deviceList);
+            }
             for (List<String> deviceInfo : deviceList) {
                 if (deviceInfo.contains("Connected")) {
                     DeviceIPPortInfo info = buildHdcStdDeviceInfo(deviceInfo);
                     deviceIPPortInfoList.add(info);
                 }
             }
+        }
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("deviceIPPortInfoList {} ", deviceIPPortInfoList);
         }
         return deviceIPPortInfoList;
     }
@@ -360,6 +438,9 @@ public class MultiDeviceManager {
      * @return String
      */
     private String isServiceCapability(DeviceIPPortInfo deviceIPPortInfo, boolean checkUpdate) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("isServiceCapability");
+        }
         String serialNumber = deviceIPPortInfo.getDeviceID();
         ArrayList<String> cmdStr;
         if (IS_SUPPORT_NEW_HDC && deviceIPPortInfo.getDeviceType() == LEAN_HOS_DEVICE) {
@@ -410,6 +491,9 @@ public class MultiDeviceManager {
      * @return boolean
      */
     private boolean updateVersion(DeviceIPPortInfo deviceIPPortInfo) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("updateVersion");
+        }
         String devToolsPath = SessionManager.getInstance().getPluginPath() + DEVTOOLS_PLUGINS_V8_PATH;
         File devtoolsPath = new File(devToolsPath);
         Map<String, String> cmdResultMap;
@@ -427,7 +511,9 @@ public class MultiDeviceManager {
                 String pluginMd5 = DigestUtils.md5Hex(new FileInputStream(plugin));
                 resultMap.put(plugin.getName(), pluginMd5);
             } catch (IOException ioException) {
-                LOGGER.info("get plugin MD5 sum Failed {}", ioException.getMessage());
+                if (ProfilerLogManager.isErrorEnabled()) {
+                    LOGGER.error("get plugin MD5 sum Failed {}", ioException.getMessage());
+                }
                 return true;
             }
         }
@@ -442,6 +528,9 @@ public class MultiDeviceManager {
      * @return boolean
      */
     private boolean compareWithMap(Map<String, String> parentMap, Map<String, String> childMap) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("compareWithMap");
+        }
         StringBuilder builder = new StringBuilder();
         for (Map.Entry<String, String> entry : parentMap.entrySet()) {
             builder.append(entry.getKey()).append("_").append(entry.getValue());
@@ -465,6 +554,9 @@ public class MultiDeviceManager {
      * @return DeviceIPPortInfo
      */
     private DeviceIPPortInfo buildDeviceInfo(List<String> deviceInfo, DeviceType deviceType) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("buildDeviceInfo");
+        }
         DeviceIPPortInfo info = new DeviceIPPortInfo();
         info.setDeviceID(deviceInfo.get(0));
         info.setDeviceType(deviceType);
@@ -485,7 +577,15 @@ public class MultiDeviceManager {
      * @return DeviceIPPortInfo
      */
     private DeviceIPPortInfo buildHdcStdDeviceInfo(List<String> deviceInfo) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("buildHdcStdDeviceInfo");
+        }
         DeviceIPPortInfo info = new DeviceIPPortInfo();
+        if (deviceInfo.contains("USB")) {
+            info.setConnectType("USB");
+        } else {
+            info.setConnectType("WLAN");
+        }
         String deviceId = deviceInfo.get(0);
         info.setDeviceID(deviceId);
         info.setDeviceType(LEAN_HOS_DEVICE);
@@ -522,9 +622,12 @@ public class MultiDeviceManager {
     /**
      * getAllDeviceIPPortInfos
      *
-     * @return List <DeviceIPPortInfo><DeviceIPPortInfo>
+     * @return List <DeviceIPPortInfo>
      */
     public List<DeviceIPPortInfo> getOnlineDeviceInfoList() {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("getOnlineDeviceInfoList");
+        }
         return deviceDao.getOnlineDeviceInfoList();
     }
 
@@ -533,18 +636,28 @@ public class MultiDeviceManager {
      *
      * @return List <DeviceIPPortInfo>
      */
-    public List<DeviceIPPortInfo> getHiLogDeviceInfoList() {
+    public List<DeviceIPPortInfo> getDeviceInfoList() {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("getHiLogDeviceInfoList");
+        }
         return getConnectDevices();
     }
 
     private void logFindDevice(DeviceIPPortInfo deviceIPPortInfo, boolean find) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("logFindDevice");
+        }
         if (logFindDevice) {
             if (find) {
-                LOGGER
-                    .debug("find device {}, time is {}", deviceIPPortInfo.getDeviceID(), DateTimeUtil.getNowTimeLong());
+                if (ProfilerLogManager.isInfoEnabled()) {
+                    LOGGER.info("find device {}, time is {}", deviceIPPortInfo.getDeviceID(),
+                        DateTimeUtil.getNowTimeLong());
+                }
             } else {
-                LOGGER.debug("Device is OK {}, Time is {}", deviceIPPortInfo.getDeviceID(),
-                    DateTimeUtil.getNowTimeLong());
+                if (ProfilerLogManager.isInfoEnabled()) {
+                    LOGGER.info("Device is OK {}, Time is {}", deviceIPPortInfo.getDeviceID(),
+                        DateTimeUtil.getNowTimeLong());
+                }
                 logFindDevice = false;
             }
         }

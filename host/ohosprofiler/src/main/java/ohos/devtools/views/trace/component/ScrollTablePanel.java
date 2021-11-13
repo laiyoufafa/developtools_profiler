@@ -38,7 +38,7 @@ import java.util.List;
 /**
  * Scroll table component
  *
- * @date 2021/04/20 12:24
+ * @since 2021/04/20 12:24
  */
 @Deprecated
 public class ScrollTablePanel extends BottomScrollPanel {
@@ -82,7 +82,7 @@ public class ScrollTablePanel extends BottomScrollPanel {
     /**
      * TitleComponent
      *
-     * @date 2021/04/20 12:24
+     * @since 2021/04/20 12:24
      */
     class TitleComponent extends ChildLineComponent {
         private Rectangle[] rects = new Rectangle[columns.length];
@@ -152,7 +152,7 @@ public class ScrollTablePanel extends BottomScrollPanel {
     /**
      * LineComponent
      *
-     * @date 2021/04/20 12:24
+     * @since 2021/04/20 12:24
      */
     class LineComponent extends ChildLineComponent {
         private final int xAxis = 10;
@@ -229,4 +229,5 @@ public class ScrollTablePanel extends BottomScrollPanel {
             }
         }
     }
+
 }

@@ -23,7 +23,6 @@ import ohos.devtools.services.memory.agentdao.MemoryInstanceDao;
 import ohos.devtools.services.memory.agentdao.MemoryInstanceDetailsDao;
 import org.junit.Before;
 import org.junit.Test;
-
 import java.util.HashMap;
 import java.util.Queue;
 import java.util.concurrent.ExecutorService;
@@ -36,6 +35,8 @@ import static ohos.devtools.datasources.utils.common.Constant.MEMORY_PLUG;
 
 /**
  * Memory Data Consumer Test
+ *
+ * @since 2021/2/1 9:31
  */
 public class MemoryDataConsumerTest {
     private long localSessionId;
@@ -81,9 +82,8 @@ public class MemoryDataConsumerTest {
     public void handleMemoryDataTest() {
         MemoryDataConsumer consumer = new MemoryDataConsumer();
         consumer.init(queue, sessionId, localSessionId);
-        ExecutorService executorService = new ThreadPoolExecutor(1, 1,
-            0L, TimeUnit.MILLISECONDS,
-            new LinkedBlockingQueue<Runnable>());
+        ExecutorService executorService =
+            new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>());
         executorService.execute(consumer);
     }
 }

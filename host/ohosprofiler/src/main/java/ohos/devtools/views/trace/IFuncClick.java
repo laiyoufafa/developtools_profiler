@@ -18,7 +18,7 @@ package ohos.devtools.views.trace;
 /**
  * IFuncClick
  *
- * @date: 2021/5/13 16:40
+ * @since 2021/5/13 16:40
  */
 @FunctionalInterface
 public interface IFuncClick {

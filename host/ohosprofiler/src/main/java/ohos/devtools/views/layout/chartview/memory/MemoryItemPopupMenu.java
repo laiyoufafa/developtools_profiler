@@ -20,9 +20,12 @@ import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBPanel;
 import ohos.devtools.datasources.utils.monitorconfig.service.MonitorConfigManager;
+import ohos.devtools.datasources.utils.profilerlog.ProfilerLogManager;
 import ohos.devtools.views.common.UtConstant;
 import ohos.devtools.views.layout.chartview.MonitorItemDetail;
 import ohos.devtools.views.layout.chartview.observer.MemoryChartObserver;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.swing.AbstractButton;
 import java.awt.Dimension;
@@ -37,11 +40,11 @@ import java.util.stream.Collectors;
 
 /**
  * MemoryPopupMenu
+ *
+ * @since 2021/10/25
  */
 class MemoryItemPopupMenu {
-    /**
-     * Number of memory monitoring items
-     */
+    private static final Logger LOGGER = LogManager.getLogger(MemoryItemPopupMenu.class);
     private static final int CHECK_BOX_AMOUNT = 6;
     private static final int H_GAP = 15;
     private static final int V_GAP = 13;
@@ -51,6 +54,7 @@ class MemoryItemPopupMenu {
     private static final int MEMORY_ITEM_PANEL_HEIGHT = 275;
     private static final int POPUP_OFFSET = 15;
     private static final String MEMORY_NAME = "Memory";
+
     private final long sessionId;
     private final MemoryChartObserver chartObserver;
     private final JBPopupMenu popupMenu = new JBPopupMenu();
@@ -81,6 +85,9 @@ class MemoryItemPopupMenu {
     }
 
     private void initCheckBoxes() {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("initCheckBoxes");
+        }
         checkBoxSelectAll.setSelected(true);
         checkBoxSelectAll.setEnabled(false);
         checkBoxes.add(checkBoxMemoryJava);
@@ -94,6 +101,9 @@ class MemoryItemPopupMenu {
     }
 
     private void initCheckItems() {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("initCheckItems");
+        }
         JBPanel checkItemPanel = new JBPanel(new FlowLayout(FlowLayout.LEADING, H_GAP, V_GAP));
         checkItemPanel.add(memoryLabel);
         memoryLabel.setPreferredSize(new Dimension(ITEM_WIDTH, ITEM_HEIGHT));
@@ -108,6 +118,9 @@ class MemoryItemPopupMenu {
     }
 
     private void initSelectedItems() {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("initSelectedItems");
+        }
         configMap = MonitorConfigManager.dataMap.get(sessionId);
         if (configMap == null || configMap.get(MEMORY_NAME) == null) {
             configMap = initFullItems();
@@ -124,6 +137,9 @@ class MemoryItemPopupMenu {
     }
 
     private Map<String, LinkedList<String>> initFullItems() {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("initFullItems");
+        }
         LinkedList<String> items = new LinkedList<>();
         items.add(MonitorItemDetail.MEM_JAVA.getName());
         items.add(MonitorItemDetail.MEM_NATIVE.getName());
@@ -157,6 +173,9 @@ class MemoryItemPopupMenu {
     }
 
     private void filterItemList() {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("filterItemList");
+        }
         List<JBCheckBox> selectedList =
             checkBoxes.stream().filter(AbstractButton::isSelected).collect(Collectors.toList());
         // Increase the judgment of the selected number of Check Boxes
@@ -193,6 +212,9 @@ class MemoryItemPopupMenu {
      * @param event event
      */
     void showMemoryItems(JBLabel detailCfgBtn, MouseEvent event) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("showMemoryItems");
+        }
         popupMenu.show(detailCfgBtn, event.getX(), event.getY() + POPUP_OFFSET);
     }
 }

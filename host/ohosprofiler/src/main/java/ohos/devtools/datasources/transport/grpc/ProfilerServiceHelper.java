@@ -18,6 +18,7 @@ package ohos.devtools.datasources.transport.grpc;
 import com.google.protobuf.ByteString;
 import ohos.devtools.datasources.transport.grpc.service.CommonTypes;
 import ohos.devtools.datasources.transport.grpc.service.ProfilerServiceTypes;
+import ohos.devtools.datasources.utils.profilerlog.ProfilerLogManager;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -44,6 +45,9 @@ public final class ProfilerServiceHelper {
     public static ProfilerServiceTypes.CreateSessionRequest createSessionRequest(int requestId,
         ProfilerServiceTypes.ProfilerSessionConfig sessionConfig,
         List<CommonTypes.ProfilerPluginConfig> pluginConfigs) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("createSessionRequest");
+        }
         ProfilerServiceTypes.CreateSessionRequest.Builder createBuilder =
             ProfilerServiceTypes.CreateSessionRequest.newBuilder();
         createBuilder.setRequestId(requestId);
@@ -68,6 +72,9 @@ public final class ProfilerServiceHelper {
      */
     public static ProfilerServiceTypes.StartSessionRequest startSessionRequest(int requestId, int sessionId,
         List<CommonTypes.ProfilerPluginConfig> pluginConfigs) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("startSessionRequest");
+        }
         ProfilerServiceTypes.StartSessionRequest.Builder startBuilder =
             ProfilerServiceTypes.StartSessionRequest.newBuilder();
         startBuilder.setRequestId(requestId);
@@ -90,6 +97,9 @@ public final class ProfilerServiceHelper {
      */
     public static ProfilerServiceTypes.FetchDataRequest fetchDataRequest(int requestId, int sessionId,
         ByteString addtionData) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("fetchDataRequest");
+        }
         ProfilerServiceTypes.FetchDataRequest.Builder builder = ProfilerServiceTypes.FetchDataRequest.newBuilder();
         builder.setRequestId(requestId);
         builder.setSessionId(sessionId);
@@ -107,6 +117,9 @@ public final class ProfilerServiceHelper {
      * @return ProfilerServiceTypes.StopSessionRequest
      */
     public static ProfilerServiceTypes.StopSessionRequest stopSessionRequest(int requestId, int sessionId) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("stopSessionRequest");
+        }
         ProfilerServiceTypes.StopSessionRequest.Builder builder = ProfilerServiceTypes.StopSessionRequest.newBuilder();
         builder.setRequestId(requestId);
         builder.setSessionId(sessionId);
@@ -121,6 +134,9 @@ public final class ProfilerServiceHelper {
      * @return ProfilerServiceTypes.DestroySessionRequest
      */
     public static ProfilerServiceTypes.DestroySessionRequest destroySessionRequest(int requestId, int sessionId) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("destroySessionRequest");
+        }
         ProfilerServiceTypes.DestroySessionRequest.Builder builder =
             ProfilerServiceTypes.DestroySessionRequest.newBuilder();
         builder.setRequestId(requestId);
@@ -140,6 +156,9 @@ public final class ProfilerServiceHelper {
      */
     public static ProfilerServiceTypes.ProfilerSessionConfig profilerSessionConfig(boolean online, String resultFile,
         int pages, ProfilerServiceTypes.ProfilerSessionConfig.BufferConfig.Policy value, int keepTime) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("profilerSessionConfig");
+        }
         ProfilerServiceTypes.ProfilerSessionConfig.Builder builder =
             ProfilerServiceTypes.ProfilerSessionConfig.newBuilder();
         if (online) {
@@ -171,6 +190,9 @@ public final class ProfilerServiceHelper {
      */
     public static CommonTypes.ProfilerPluginConfig profilerPluginConfig(String name, String pluginSha256,
         int sampleInterval, ByteString confData) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("profilerPluginConfig");
+        }
         CommonTypes.ProfilerPluginConfig.Builder builder = CommonTypes.ProfilerPluginConfig.newBuilder();
         if (StringUtils.isNotBlank(name)) {
             builder.setName(name);
@@ -186,5 +208,4 @@ public final class ProfilerServiceHelper {
         }
         return builder.build();
     }
-
 }
