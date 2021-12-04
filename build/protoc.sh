@@ -19,8 +19,8 @@ PROJECT_TOP=$(realpath $THIS_DIR/../../..)
 
 OHOS_X64_OUT=$PROJECT_TOP/$2/clang_x64
 LIBCXX_X64_OUT=$PROJECT_TOP/$1/ndk/libcxx/linux_x86_64
-SUBSYS_X64_OUT=$PROJECT_TOP/$2/clang_x64/developtools/developtools
-PROTOC=$PROJECT_TOP/$2/clang_x64/developtools/developtools/protoc
+SUBSYS_X64_OUT=$PROJECT_TOP/$2/clang_x64/developtools/profiler
+PROTOC=$PROJECT_TOP/$2/clang_x64/developtools/profiler/protoc
 
 PARAMS=$*
 PARAMS_FILTER="$1 $2"

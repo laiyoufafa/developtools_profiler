@@ -62,4 +62,5 @@ ohos_executable("protoc_gen_ipc") {
     "${OHOS_PROFILER_3RDPARTY_PROTOBUF_DIR}:protoc_lib",
   ]
   subsystem_name = "${OHOS_PROFILER_SUBSYS_NAME}"
+  part_name = "${OHOS_PROFILER_PART_NAME}"
 }
