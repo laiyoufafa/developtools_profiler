@@ -46,6 +46,7 @@ ohos_unittest("hilogplugin_ut") {
   external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
   configs = [ ":module_private_config" ]
   subsystem_name = "${OHOS_PROFILER_SUBSYS_NAME}"
+  part_name = "${OHOS_PROFILER_PART_NAME}"
   resource_config_file = "${OHOS_PROFILER_DIR}/device/ohos_test.xml"
 }
 

@@ -40,6 +40,7 @@ ohos_shared_library("shared_memory") {
   ]
   install_enable = true
   subsystem_name = "${OHOS_PROFILER_SUBSYS_NAME}"
+  part_name = "${OHOS_PROFILER_PART_NAME}"
 
   if (current_toolchain != host_toolchain) {
     defines = [ "HAVE_HILOG" ]

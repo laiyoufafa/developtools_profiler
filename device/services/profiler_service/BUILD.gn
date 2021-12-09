@@ -72,4 +72,5 @@ ohos_executable("hiprofilerd") {
   }
   install_enable = true
   subsystem_name = "${OHOS_PROFILER_SUBSYS_NAME}"
+  part_name = "${OHOS_PROFILER_PART_NAME}"
 }

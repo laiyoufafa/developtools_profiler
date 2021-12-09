@@ -44,12 +44,14 @@ ohos_shared_library("bytraceplugin") {
   }
   install_enable = true
   subsystem_name = "${OHOS_PROFILER_SUBSYS_NAME}"
+  part_name = "${OHOS_PROFILER_PART_NAME}"
 }
 
 ohos_executable("test_bytrace_plugin") {
   output_name = "test_bytraceplugin"
   sources = [ "src/run_test.cpp" ]
   deps = [ ":bytraceplugin" ]
-  install_enable = true
+  install_enable = false
   subsystem_name = "${OHOS_PROFILER_SUBSYS_NAME}"
+  part_name = "${OHOS_PROFILER_PART_NAME}"
 }
