@@ -21,12 +21,20 @@ HtraceSymbolsDetailParser::HtraceSymbolsDetailParser(TraceDataCache* dataCache, 
     : streamFilters_(ctx), traceDataCache_(dataCache)
 {
     UNUSED(traceDataCache_);
+    if (!streamFilters_) {
+        TS_LOGE("streamFilters_ should not be null");
+        return;
+    }
 }
 
 HtraceSymbolsDetailParser::~HtraceSymbolsDetailParser() = default;
 void HtraceSymbolsDetailParser::Parse(const TracePluginResult& tracePacket)
 {
     if (!tracePacket.symbols_detail_size()) {
+        return;
+    }
+    if (!streamFilters_) {
+        TS_LOGE("streamFilters_ should not be null");
         return;
     }
     for (int i = 0; i < tracePacket.symbols_detail_size(); i++) {

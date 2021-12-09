@@ -20,6 +20,7 @@
 
 #include "common_types.h"
 #include "event_parser_base.h"
+#include "print_event_parser.h"
 #include "trace_data_cache.h"
 #include "trace_streamer_cfg.h"
 #include "trace_streamer_filters.h"
@@ -59,31 +60,19 @@ private:
     bool SoftIrqRaiseEvent(const ArgsMap& args, const BytraceLine& line) const;
     bool SoftIrqEntryEvent(const ArgsMap& args, const BytraceLine& line) const;
     bool SoftIrqExitEvent(const ArgsMap& args, const BytraceLine& line) const;
+    bool BinderTransaction(const ArgsMap& args, const BytraceLine& line) const;
+    bool BinderTransactionReceived(const ArgsMap& args, const BytraceLine& line) const;
     bool BinderTransactionAllocBufEvent(const ArgsMap& args, const BytraceLine& line) const;
-
-    void ParsePrintEvent(uint64_t ts, uint32_t pid, std::string_view event) const;
-    void ParseTracePoint(uint64_t ts, uint32_t pid, TracePoint point) const;
-    ParseResult GetTracePoint(std::string_view str, TracePoint& out) const;
-    ParseResult CheckTracePoint(std::string_view pointStr) const;
-    uint32_t GetThreadGroupId(std::string_view pointStr, size_t& length) const;
-    std::string_view GetPointNameForBegin(std::string_view pointStr, size_t tGidlength) const;
-    ParseResult HandlerB(std::string_view pointStr, TracePoint& outPoint, size_t tGidlength) const;
-    ParseResult HandlerE(void) const;
-    ParseResult HandlerCSF(std::string_view pointStr, TracePoint& outPoint, size_t tGidlength) const;
-    size_t GetNameLength(std::string_view pointStr, size_t nameIndex) const;
-    size_t GetValueLength(std::string_view pointStr, size_t valueIndex) const;
-
 private:
     const DataIndex ioWaitId_;
     const DataIndex workQueueId_;
     const DataIndex schedWakeupId_;
     const DataIndex schedBlockedReasonId_;
-    const uint32_t pointLength_;
-    const uint32_t maxPointLength_;
     const int byHex_;
-    std::map<std::string, FuncCall> eventToFunctionMap_{};
+    std::map<std::string, FuncCall> eventToFunctionMap_ = {};
     const unsigned int MIN_SCHED_ARGS_COUNT = 6;
     const unsigned int MIN_SCHED_WAKEUP_ARGS_COUNT = 2;
+    PrintEventParser printEventParser_;
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

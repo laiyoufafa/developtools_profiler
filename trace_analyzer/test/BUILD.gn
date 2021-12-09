@@ -27,13 +27,20 @@ config("module_private_config") {
 ohos_unittest("hiprofiler_ts_ut") {
   module_out_path = module_output_path
   sources = [
+    "unittest/binder_filter_test.cpp",
     "unittest/bytrace_parser_test.cpp",
     "unittest/clock_filter_test.cpp",
     "unittest/cpu_filter_test.cpp",
     "unittest/event_parser_test.cpp",
     "unittest/filter_filter_test.cpp",
+    "unittest/hilog_parser_test.cpp",
+    "unittest/htrace_binder_event_test.cpp",
     "unittest/htrace_event_parser_test.cpp",
+    "unittest/htrace_irq_event_test.cpp",
     "unittest/htrace_mem_parser_test.cpp",
+    "unittest/htrace_sys_mem_parser_test.cpp",
+    "unittest/htrace_sys_vmem_parser_test.cpp",
+    "unittest/irq_filter_test.cpp",
     "unittest/measure_filter_test.cpp",
     "unittest/parser_test.cpp",
     "unittest/process_filter_test.cpp",
@@ -94,4 +101,12 @@ ohos_unittest("hiprofiler_ts_ut") {
 group("unittest") {
   testonly = true
   deps = [ ":hiprofiler_ts_ut" ]
+}
+group("fuzztest") {
+  testonly = true
+  deps = [
+    "test_fuzzer/bytrace_fuzzer:fuzztest",
+    "test_fuzzer/htrace_fuzzer:fuzztest",
+    "test_fuzzer/selector_fuzzer:fuzztest",
+  ]
 }

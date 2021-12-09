@@ -28,6 +28,7 @@ enum Index {
     DEPTH,
     COOKIE_ID,
     PARENT_ID,
+    ARGSET,
     CHAIN_ID,
     SPAN_ID,
     PARENT_SPAN_ID,
@@ -46,6 +47,7 @@ CallStackTable::CallStackTable(const TraceDataCache* dataCache) : TableBase(data
     tableColumn_.push_back(TableBase::ColumnInfo("depth", "UNSIGNED INT"));
     tableColumn_.push_back(TableBase::ColumnInfo("cookie", "UNSIGNED BIG INT"));
     tableColumn_.push_back(TableBase::ColumnInfo("parent_id", "UNSIGNED INT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("argsetid", "UNSIGNED INT"));
     tableColumn_.push_back(TableBase::ColumnInfo("chainId", "STRING"));
     tableColumn_.push_back(TableBase::ColumnInfo("spanId", "STRING"));
     tableColumn_.push_back(TableBase::ColumnInfo("parentSpanId", "STRING"));
@@ -116,6 +118,11 @@ int CallStackTable::Cursor::Column(int column) const
             }
             break;
         }
+        case ARGSET:
+            if (slicesObj_.ArgSetIdsData()[CurrentRow()] != INVALID_UINT32) {
+                sqlite3_result_int64(context_, static_cast<int64_t>(slicesObj_.ArgSetIdsData()[CurrentRow()]));
+            }
+            break;
         case CHAIN_ID:
             sqlite3_result_text(context_, dataCache_->GetConstInternalSlicesData().ChainIds()[CurrentRow()].c_str(),
                                 STR_DEFAULT_LEN, nullptr);

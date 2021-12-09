@@ -17,18 +17,20 @@
 #define SOCKET_CONTEXT_H
 
 #include <cstdint>
+#ifndef NO_PROTOBUF
 #include <google/protobuf/message.h>
+#endif
 #include <thread>
 
 #if defined(__i386__) || defined(__x86_64__)
 const static char DEFAULT_UNIX_SOCKET_PATH[] = "hiprofiler_unix_socket";
 #else
 const static char DEFAULT_UNIX_SOCKET_PATH[] = "/data/local/tmp/hiprofiler_unix_socket";
+const static char DEFAULT_UNIX_SOCKET_HOOK_PATH[] = "/data/local/tmp/hook_unix_socket";
 #endif
 
 class SocketContext;
 class ServiceBase;
-class ClientMap;
 
 enum ClientState {
     CLIENT_STAT_WORKING,
@@ -49,11 +51,14 @@ public:
     virtual ~SocketContext();
 
     bool SendRaw(uint32_t pnum, const int8_t* data, uint32_t size, int sockfd = -1);
+#ifndef NO_PROTOBUF
     bool SendProtobuf(uint32_t pnum, google::protobuf::Message& pmsg);
+#endif
     bool SendFileDescriptor(int fd);
+    bool SendHookConfig(uint64_t value);
     int ReceiveFileDiscriptor();
+    enum ClientState GetClientState() { return clientState_; }
 protected:
-    friend class ClientMap;
     int socketHandle_;
     bool CreateRecvThread();
     enum ClientState clientState_;
@@ -64,7 +69,7 @@ protected:
     virtual int RawProtocolProc(uint32_t pnum, const int8_t* buf, const uint32_t size);
 
 private:
-    static bool ReceiveData(int sock, uint8_t* databuf, uint32_t size, int noWait);
+    static bool ReceiveData(int sock, uint8_t* databuf, uint32_t size);
     static void* UnixSocketRecv(void* pp);
     std::thread recvThread_;
 };

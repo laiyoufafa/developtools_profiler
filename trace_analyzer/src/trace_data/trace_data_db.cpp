@@ -24,17 +24,11 @@
 #include "codec_cov.h"
 #include "file.h"
 #include "log.h"
-#define UNUSED(expr)  \
-    do {              \
-        static_cast<void>(expr); \
-    } while (0)
 
 namespace SysTuning {
 namespace TraceStreamer {
-// sqlite defined function module
 int PrintQueryResult(void* para, int column, char** columnValue, char** columnName)
 {
-    UNUSED(para);
     int i;
     printf("Query results include %d column\n", column);
     for (i = 0; i < column; i++) {
@@ -84,9 +78,21 @@ int TraceDataDB::ExportDatabase(const std::string& outputName)
     ExecuteSql(attachSql);
 
     for (auto itor = internalTables_.begin(); itor != internalTables_.end(); itor++) {
-        std::string exportSql("CREATE TABLE systuning_export." + *itor + " AS SELECT * FROM " + *itor);
-        ExecuteSql(exportSql);
+        if (*itor == "meta") {
+            if (exportMetaTable_) {
+                std::string exportSql("CREATE TABLE systuning_export." + *itor + " AS SELECT * FROM " + *itor);
+                ExecuteSql(exportSql);
+            }
+        } else {
+            std::string exportSql("CREATE TABLE systuning_export." + *itor + " AS SELECT * FROM " + *itor);
+            ExecuteSql(exportSql);
+        }
     }
+    std::string createArgsView =
+        "create view systuning_export.args_view AS select A.argset, V2.data as keyName, A.id, D.desc, (case when "
+        "A.datatype==1 then V.data else A.value end) as strValue from args as A left join data_type as D on (D.typeId "
+        "= A.datatype) left join data_dict as V on V.id = A.value left join data_dict as V2 on V2.id = A.key";
+    ExecuteSql(createArgsView);
     std::string detachSql("DETACH DATABASE systuning_export");
     ExecuteSql(detachSql);
     return 0;

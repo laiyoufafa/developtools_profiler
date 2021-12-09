@@ -52,7 +52,37 @@ ohos_unittest("memdataplugin_ut") {
   resource_config_file = "${OHOS_PROFILER_DIR}/device/ohos_test.xml"
 }
 
+ohos_unittest("smaps_stats_ut") {
+  module_out_path = module_output_path
+  sources = [ "unittest/smaps_stats_unittest.cpp" ]
+  deps = [
+    "${OHOS_PROFILER_DIR}/device/plugins/memory_plugin:memdataplugin",
+    "${OHOS_PROFILER_DIR}/protos/types/plugins/memory_data:memory_data_cpp",
+    "//third_party/googletest:gtest_main",
+    "//utils/native/base:utilsecurec",
+  ]
+  include_dirs = [
+    "../include",
+    "../../api/include",
+    "${OHOS_PROFILER_DIR}/interfaces/kits",
+    "${OHOS_PROFILER_DIR}/device/base/include",
+    "//third_party/googletest/googletest/include/gtest",
+    "//utils/native/base/include",
+  ]
+  cflags = [
+    "-Wno-inconsistent-missing-override",
+    "-Dprivate=public",  #allow test code access private members
+  ]
+  external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
+  configs = [ ":module_private_config" ]
+  subsystem_name = "${OHOS_PROFILER_SUBSYS_NAME}"
+  resource_config_file = "${OHOS_PROFILER_DIR}/device/ohos_test.xml"
+}
+
 group("unittest") {
   testonly = true
-  deps = [ ":memdataplugin_ut" ]
+  deps = [
+    ":memdataplugin_ut",
+    ":smaps_stats_ut",
+  ]
 }

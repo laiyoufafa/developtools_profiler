@@ -27,16 +27,16 @@
 #include <unordered_map>
 #include <vector>
 
-#include "base/common.h"
 #include "cfg/trace_streamer_cfg.h"
 #include "log.h"
+#include "ts_common.h"
 
 namespace SysTuning {
 namespace TraceStdtype {
 using namespace SysTuning::TraceCfg;
+using namespace SysTuning::TraceStreamer;
 class CacheBase {
 public:
-    virtual ~CacheBase() = default;
     size_t Size() const
     {
         return std::max(timeStamps_.size(), ids_.size());
@@ -55,14 +55,13 @@ public:
     }
 
 public:
-    std::deque<InternalTid> internalTids_;
-    std::deque<uint64_t> timeStamps_;
-    std::deque<uint32_t> ids_;
+    std::deque<InternalTid> internalTids_ = {};
+    std::deque<uint64_t> timeStamps_ = {};
+    std::deque<uint32_t> ids_ = {};
 };
 
 class CpuCacheBase {
 public:
-    virtual ~CpuCacheBase() = default;
     const std::deque<uint64_t>& DursData() const
     {
         return durs_;
@@ -109,7 +108,7 @@ public:
     }
 
 private:
-    std::deque<DataIndex> states_;
+    std::deque<DataIndex> states_ = {};
 };
 
 class SchedSlice : public CacheBase, public CpuCacheBase {
@@ -134,8 +133,8 @@ public:
     }
 
 private:
-    std::deque<uint64_t> endStates_;
-    std::deque<uint64_t> priority_;
+    std::deque<uint64_t> endStates_ = {};
+    std::deque<uint64_t> priority_ = {};
 };
 
 class CallStack : public CacheBase, public CpuCacheBase {
@@ -160,8 +159,10 @@ public:
                               const std::string& parentSpanId,
                               const std::string& flag,
                               const std::string& args);
+    void AppendArgSet(uint32_t argSetId);
     void AppendDistributeInfo();
     void SetDuration(size_t index, uint64_t timestamp);
+    void SetDurationAndArg(size_t index, uint64_t timestamp, uint32_t argSetId);
     void SetTimeStamp(size_t index, uint64_t timestamp);
 
     const std::deque<std::optional<uint64_t>>& ParentIdData() const;
@@ -175,6 +176,7 @@ public:
     const std::deque<std::string>& ParentSpanIds() const;
     const std::deque<std::string>& Flags() const;
     const std::deque<std::string>& ArgsData() const;
+    const std::deque<uint32_t>& ArgSetIdsData() const;
 
 private:
     void AppendCommonInfo(uint64_t startT, uint64_t durationNs, InternalTid internalTid);
@@ -182,17 +184,18 @@ private:
 
 private:
     std::deque<std::optional<uint64_t>> parentIds_;
-    std::deque<DataIndex> cats_;
-    std::deque<uint64_t> cookies_;
-    std::deque<uint64_t> callIds_;
-    std::deque<DataIndex> names_;
-    std::deque<uint8_t> depths_;
+    std::deque<DataIndex> cats_ = {};
+    std::deque<uint64_t> cookies_ = {};
+    std::deque<uint64_t> callIds_ = {};
+    std::deque<DataIndex> names_ = {};
+    std::deque<uint8_t> depths_ = {};
 
-    std::deque<std::string> chainIds_;
-    std::deque<std::string> spanIds_;
-    std::deque<std::string> parentSpanIds_;
-    std::deque<std::string> flags_;
-    std::deque<std::string> args_;
+    std::deque<std::string> chainIds_ = {};
+    std::deque<std::string> spanIds_ = {};
+    std::deque<std::string> parentSpanIds_ = {};
+    std::deque<std::string> flags_ = {};
+    std::deque<std::string> args_ = {};
+    std::deque<uint32_t> argSet_ = {};
 };
 
 class Filter : public CacheBase {
@@ -212,9 +215,9 @@ public:
     }
 
 private:
-    std::deque<std::string> nameDeque_;
-    std::deque<std::string> typeDeque_;
-    std::deque<uint64_t> sourceArgSetId_;
+    std::deque<std::string> nameDeque_ = {};
+    std::deque<std::string> typeDeque_ = {};
+    std::deque<uint64_t> sourceArgSetId_ = {};
 };
 
 class Measure : public CacheBase {
@@ -234,9 +237,9 @@ public:
     }
 
 private:
-    std::deque<uint32_t> typeDeque_;
-    std::deque<int64_t> valuesDeque_;
-    std::deque<uint32_t> filterIdDeque_;
+    std::deque<uint32_t> typeDeque_ = {};
+    std::deque<int64_t> valuesDeque_ = {};
+    std::deque<uint32_t> filterIdDeque_ = {};
 };
 
 class Raw : public CacheBase {
@@ -256,9 +259,9 @@ public:
     }
 
 private:
-    std::deque<uint32_t> nameDeque_;
-    std::deque<uint32_t> cpuDeque_;
-    std::deque<uint32_t> itidDeque_;
+    std::deque<uint32_t> nameDeque_ = {};
+    std::deque<uint32_t> cpuDeque_ = {};
+    std::deque<uint32_t> itidDeque_ = {};
 };
 
 class ThreadMeasureFilter {
@@ -282,9 +285,9 @@ public:
     }
 
 private:
-    std::deque<uint64_t> filterId_;
-    std::deque<uint64_t> internalTids_;
-    std::deque<uint32_t> nameIndex_;
+    std::deque<uint64_t> filterId_ = {};
+    std::deque<uint64_t> internalTids_ = {};
+    std::deque<uint32_t> nameIndex_ = {};
 };
 
 class CpuMeasureFilter : public CacheBase {
@@ -313,9 +316,9 @@ public:
     }
 
 private:
-    std::deque<uint64_t> cpu_;
-    std::deque<DataIndex> type_;
-    std::deque<DataIndex> name_;
+    std::deque<uint64_t> cpu_ = {};
+    std::deque<DataIndex> type_ = {};
+    std::deque<DataIndex> name_ = {};
 };
 
 class Instants : public CacheBase {
@@ -346,8 +349,8 @@ public:
     }
 
 private:
-    std::deque<uint32_t> internalPids_;
-    std::deque<DataIndex> names_;
+    std::deque<uint32_t> internalPids_ = {};
+    std::deque<DataIndex> names_ = {};
 };
 class ClockEventData : public CacheBase {
 public:
@@ -368,9 +371,118 @@ public:
     }
 
 private:
-    std::deque<uint64_t> cpus_; // in clock_set_rate event, it save cpu
+    std::deque<uint64_t> cpus_ = {}; // in clock_set_rate event, it save cpu
+    std::deque<DataIndex> names_ = {};
+    std::deque<DataIndex> types_ = {};
+};
+class ClkEventData : public CacheBase {
+public:
+    size_t AppendNewFilter(uint64_t id, uint64_t rate, DataIndex name, uint64_t cpu);
+
+    const std::deque<DataIndex>& NamesData() const
+    {
+        return names_;
+    }
+    const std::deque<uint64_t>& RatesData() const
+    {
+        return rates_;
+    }
+    const std::deque<uint64_t>& CpusData() const
+    {
+        return cpus_;
+    }
+
+private:
     std::deque<DataIndex> names_;
-    std::deque<DataIndex> types_;
+    std::deque<uint64_t> rates_;
+    std::deque<uint64_t> cpus_;
+};
+class SysCall : public CacheBase {
+public:
+    size_t AppendSysCallData(int64_t sysCallNum, DataIndex type, uint64_t ipid, uint64_t timestamp, int64_t ret);
+    const std::deque<int64_t>& SysCallsData() const
+    {
+        return sysCallNums_;
+    }
+    const std::deque<DataIndex>& TypesData() const
+    {
+        return types_;
+    }
+    const std::deque<uint64_t>& IpidsData() const
+    {
+        return ipids_;
+    }
+    const std::deque<uint64_t>& RetsData() const
+    {
+        return rets_;
+    }
+
+private:
+    std::deque<int64_t> sysCallNums_ = {};
+    std::deque<DataIndex> types_ = {};
+    std::deque<uint64_t> ipids_ = {};
+    std::deque<uint64_t> rets_ = {};
+};
+class ArgSet : public CacheBase {
+public:
+    size_t AppendNewArg(DataIndex nameId, BaseDataType dataType, int64_t value, size_t argSet);
+    const std::deque<BaseDataType>& DataTypes() const;
+    const std::deque<int64_t>& ValuesData() const;
+    const std::deque<uint64_t>& ArgsData() const;
+    const std::deque<DataIndex>& NamesData() const;
+
+private:
+    std::deque<uint64_t> names_ = {};
+    std::deque<BaseDataType> dataTypes_ = {};
+    std::deque<int64_t> values_ = {};
+    std::deque<uint64_t> argset_ = {};
+};
+class SysMeasureFilter : public CacheBase {
+public:
+    size_t AppendNewFilter(uint64_t filterId, DataIndex type, DataIndex nameId);
+    const std::deque<DataIndex>& NamesData() const;
+    const std::deque<DataIndex>& TypesData() const;
+
+private:
+    std::deque<DataIndex> types_ = {};
+    std::deque<DataIndex> names_ = {};
+};
+class DataType : public CacheBase {
+public:
+    size_t AppendNewDataType(BaseDataType dataType, DataIndex dataDescIndex);
+    const std::deque<BaseDataType>& DataTypes() const;
+    const std::deque<DataIndex>& DataDesc() const;
+
+private:
+    std::deque<BaseDataType> dataTypes_ = {};
+    std::deque<DataIndex> descs_ = {};
+};
+class LogInfo : public CacheBase {
+public:
+    size_t AppendNewLogInfo(uint64_t seq,
+                            uint64_t timestamp,
+                            uint32_t pid,
+                            uint32_t tid,
+                            DataIndex level,
+                            DataIndex tag,
+                            DataIndex context,
+                            uint64_t originTs);
+    const std::deque<uint64_t>& HilogLineSeqs() const;
+    const std::deque<uint32_t>& Pids() const;
+    const std::deque<uint32_t>& Tids() const;
+    const std::deque<DataIndex>& Levels() const;
+    const std::deque<DataIndex>& Tags() const;
+    const std::deque<DataIndex>& Contexts() const;
+    const std::deque<uint64_t>& OriginTimeStamData() const;
+
+private:
+    std::deque<uint64_t> hilogLineSeqs_ = {};
+    std::deque<uint32_t> pids_ = {};
+    std::deque<uint32_t> tids_ = {};
+    std::deque<DataIndex> levels_ = {};
+    std::deque<DataIndex> tags_ = {};
+    std::deque<DataIndex> contexts_ = {};
+    std::deque<uint64_t> originTs_ = {};
 };
 class StatAndInfo {
 public:
@@ -401,8 +513,8 @@ public:
     const std::deque<uint64_t>& GetConstAddrs() const;
 
 private:
-    std::deque<uint64_t> addrs_;
-    std::deque<DataIndex> funcName_;
+    std::deque<uint64_t> addrs_ = {};
+    std::deque<DataIndex> funcName_ = {};
 };
 class MetaData {
 public:
@@ -414,6 +526,7 @@ public:
     void SetParserToolVersion(const std::string& version);
     void SetParserToolPublishDateTime(const std::string& datetime);
     void SetTraceDataSize(uint64_t dataSize);
+    void SetTraceDuration(uint64_t dur);
     const std::string& Value(uint64_t row) const;
     const std::string& Name(uint64_t row) const;
 
@@ -425,10 +538,11 @@ private:
     const std::string METADATA_ITEM_SOURCE_FILENAME_COLNAME = "source_name";
     const std::string METADATA_ITEM_OUTPUT_FILENAME_COLNAME = "output_name";
     const std::string METADATA_ITEM_PARSERTIME_COLNAME = "runtime";
+    const std::string METADATA_ITEM_TRACE_DURATION_COLNAME = "trace_duration";
     const std::string METADATA_ITEM_SOURCE_DATETYPE_COLNAME = "source_type";
 
-    std::deque<std::string> columnNames_;
-    std::deque<std::string> values_;
+    std::deque<std::string> columnNames_ = {};
+    std::deque<std::string> values_ = {};
 };
 class DataDict {
 public:

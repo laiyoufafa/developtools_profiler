@@ -14,15 +14,18 @@
  */
 
 #include "trace_streamer_filters.h"
-
+#include "args_filter.h"
+#include "binder_filter.h"
 #include "clock_filter.h"
 #include "cpu_filter.h"
 #include "filter_filter.h"
+#include "irq_filter.h"
 #include "measure_filter.h"
 #include "process_filter.h"
 #include "slice_filter.h"
 #include "stat_filter.h"
 #include "symbols_filter.h"
+#include "system_event_measure_filter.h"
 
 namespace SysTuning {
 namespace TraceStreamer {

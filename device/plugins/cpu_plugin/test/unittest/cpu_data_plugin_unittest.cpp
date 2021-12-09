@@ -23,14 +23,9 @@
 using namespace testing::ext;
 
 namespace {
-#if defined(__i386__) || defined(__x86_64__)
-const std::string DEFAULT_TEST_PATH = "./resources";
-#else
 const std::string DEFAULT_TEST_PATH = "/data/local/tmp/resources";
-#endif
-
-constexpr uint32_t BUF_SIZE = 4 * 1024 * 1024;
 const std::string SO_PATH = "/system/lib/libcpudataplugin.z.so";
+constexpr uint32_t BUF_SIZE = 4 * 1024 * 1024;
 constexpr int TEST_PID = 1;
 
 std::string g_path;
@@ -39,6 +34,8 @@ std::vector<int> g_tidList = {1872, 1965, 1966, 1967, 1968, 1995, 1996};
 
 constexpr int CORE_NUM = 6;
 constexpr int THREAD_NUM = 7;
+constexpr int FIRST_THREAD_NUM = 5;
+constexpr int SECOND_THREAD_NUM = 6;
 
 struct TestSystemStat {
     int32_t core;
@@ -81,8 +78,28 @@ TestSystemStat g_systemStat[CORE_NUM + 1] = {
     {4, 4566158, 601107, 2305309, 197166395, 929594, 0, 1007959, 0},
     {5, 5395826, 658673, 2882028, 197791346, 738811, 0, 49496, 0},
 };
+TestSystemStat g_systemStat1[CORE_NUM + 1] = {
+    {-1, 1234567, 2345678, 1111111, 1193291234, 3546789, 0, 2345678, 0},
+    {0, 2345678, 662862, 1966195, 1111111, 3571925, 0, 817371, 0},
+    {1, 3861506, 2345678, 1702753, 199535158, 1752008, 0, 401639, 0},
+    {2, 3549890, 1111111, 2345678, 1234567, 1133743, 0, 205972, 0},
+    {3, 3336646, 676939, 1458898, 2345678, 854578, 0, 2345678, 0},
+    {4, 1111111, 601107, 2305309, 3546789, 929594, 0, 1007959, 0},
+    {5, 3546789, 658673, 1234567, 197791346, 738811, 0, 49496, 0},
+};
+TestSystemStat g_systemStat2[CORE_NUM + 1] = {
+    {-1, 3546789, 2345678, 1111111, 1193291234, 3546789, 0, 2345678, 0},
+    {0, 3546789, 662862, 1966195, 2345678, 3571925, 0, 817371, 0},
+    {1, 3861506, 1111111, 1702753, 199535158, 1752008, 0, 401639, 0},
+    {2, 3549890, 2345678, 2345678, 3546789, 1111111, 0, 205972, 0},
+    {3, 3336646, 676939, 1458898, 2345678, 854578, 0, 2345678, 0},
+    {4, 2345678, 601107, 2305309, 3546789, 929594, 0, 1111111, 0},
+    {5, 3546789, 658673, 3546789, 197791346, 738811, 0, 49496, 0},
+};
 
 TestStat g_pidStat = {60, 10, 20, 30};
+TestStat g_pidStat1 = {50, 10, 40, 10};
+TestStat g_pidStat2 = {70, 0, 10, 20};
 
 TestTidStat g_tidStat[THREAD_NUM] = {
     {1872, "ibus-x11", THREAD_RUNNING, {17, 5, 10, 10}},
@@ -92,6 +109,21 @@ TestTidStat g_tidStat[THREAD_NUM] = {
     {1968, "ibus-x1:disk$3", THREAD_STOPPED, {7, 0, 0, 0}},
     {1995, "gmain", THREAD_SLEEPING, {15, 3, 0, 4}},
     {1996, "gdbus", THREAD_WAITING, {5, 0, 0, 0}},
+};
+TestTidStat g_tidStat1[THREAD_NUM] = {
+    {1209, "skytone:service", THREAD_RUNNING, {22, 8, 0, 0}},
+    {1646, "Jit thread pool", THREAD_UNSPECIFIED, {2, 1, 0, 0}},
+    {1654, "Signal Catcher", THREAD_STOPPED, {1, 0, 0, 0}},
+    {1655, "HeapTaskDaemon", THREAD_SLEEPING, {3, 0, 0, 0}},
+    {1656, "ReferenceQueueD", THREAD_WAITING, {0, 0, 0, 0}},
+};
+TestTidStat g_tidStat2[THREAD_NUM] = {
+    {1662, "FinalizerDaemon", THREAD_STOPPED, {0, 0, 0, 0}},
+    {1663, "FinalizerWatchd", THREAD_RUNNING, {0, 0, 0, 0}},
+    {1666, "Binder:1209_1", THREAD_RUNNING, {0, 0, 0, 0}},
+    {1679, "Binder:1209_2", THREAD_UNSPECIFIED, {0, 0, 0, 0}},
+    {1680, "Binder:1209_3", THREAD_WAITING, {54, 8, 0, 0}},
+    {1681, "Binder:1209_4", THREAD_SLEEPING, {0, 0, 0, 0}},
 };
 
 TestFreq g_Freq[CORE_NUM + 1] = {
@@ -137,33 +169,6 @@ std::string GetFullPath(std::string path)
     }
     return path;
 }
-
-#if defined(__i386__) || defined(__x86_64__)
-bool CreatTestResource(std::string path, std::string exepath)
-{
-    std::string str = "cp -r " + path + " " + exepath;
-    printf("CreatTestResource:%s\n", str.c_str());
-
-    pid_t status = system(str.c_str());
-    if (-1 == status) {
-        printf("system error!");
-    } else {
-        printf("exit status value = [0x%x]\n", status);
-        if (WIFEXITED(status)) {
-            if (WEXITSTATUS(status) == 0) {
-                return true;
-            } else {
-                printf("run shell script fail, script exit code: %d\n", WEXITSTATUS(status));
-                return false;
-            }
-        } else {
-            printf("exit status = [%d]\n", WEXITSTATUS(status));
-            return true;
-        }
-    }
-    return false;
-}
-#endif
 
 bool CheckTid(std::vector<int>& tidListTmp)
 {
@@ -211,7 +216,7 @@ bool PluginCpuinfoStub(CpuDataPlugin& cpuPlugin, CpuData& cpuData, int pid, bool
 void GetSystemCpuTime(TestSystemStat& stat, int64_t Hz, int64_t& usageTime, int64_t& time)
 {
     usageTime = (stat.user + stat.nice + stat.system + stat.irq + stat.softirq + stat.steal) * Hz;
-    time = (usageTime + stat.idle + stat.iowait) * Hz;
+    time = usageTime + (stat.idle + stat.iowait) * Hz;
 }
 
 /**
@@ -225,14 +230,6 @@ HWTEST_F(CpuDataPluginTest, TestPath, TestSize.Level1)
     g_testPath = g_path;
     printf("g_path:%s\n", g_path.c_str());
     EXPECT_NE("", g_path);
-
-#if defined(__i386__) || defined(__x86_64__)
-    if (DEFAULT_TEST_PATH != g_path) {
-        if ((access(g_path.c_str(), F_OK) != 0) && (access(DEFAULT_TEST_PATH.c_str(), F_OK) == 0)) {
-            EXPECT_TRUE(CreatTestResource(DEFAULT_TEST_PATH, g_path));
-        }
-    }
-#endif
 }
 
 /**
@@ -391,9 +388,496 @@ HWTEST_F(CpuDataPluginTest, TestPluginRegister, TestSize.Level1)
     std::vector<uint8_t> dataBuffer(cpuPlugin->resultBufferSizeHint);
     EXPECT_EQ(cpuPlugin->callbacks->onPluginSessionStart(configBuffer.data(), configLength), RET_SUCC);
     ASSERT_GT(cpuPlugin->callbacks->onPluginReportResult(dataBuffer.data(), cpuPlugin->resultBufferSizeHint), 0);
-    EXPECT_EQ(cpuPlugin->callbacks->onPluginSessionStop(), 0);
+    EXPECT_EQ(cpuPlugin->callbacks->onPluginSessionStop(), RET_SUCC);
 
     // 反序列化失败导致的start失败
     EXPECT_EQ(cpuPlugin->callbacks->onPluginSessionStart(configBuffer.data(), configLength+1), RET_FAIL);
+}
+
+
+/**
+ * @tc.name: cpu plugin
+ * @tc.desc: a part of cpu process information test.
+ * @tc.type: FUNC
+ */
+HWTEST_F(CpuDataPluginTest, TestPluginProcessInfo, TestSize.Level1)
+{
+    CpuData cpuData;
+    CpuDataPlugin cpuPlugin;
+    int64_t Hz = cpuPlugin.GetUserHz();
+    std::string proStr1 = "2000 (ibus-x11) S 1 1865 1780 1025 1780 4194304 3233 0 457 0 50 10 40 10 20 0 7";
+    std::string proStr2 = "2000 (ibus-x12) R 1 1865 1780 1025 1780 4194304 3233 0 457 0 70 0 10 20 20 0 7";
+    int64_t processCpuTime1 = (g_pidStat1.utime + g_pidStat1.stime + g_pidStat1.cutime + g_pidStat1.cstime) * Hz;
+    int64_t processCpuTime2 = (g_pidStat2.utime + g_pidStat2.stime + g_pidStat2.cutime + g_pidStat2.cstime) * Hz;
+
+    // 存入proStr1
+    auto* cpuUsageInfo = cpuData.mutable_cpu_usage_info();
+    cpuPlugin.WriteProcessCpuUsage(*cpuUsageInfo, proStr1.c_str(), proStr1.length());
+    CpuUsageInfo cpuUsageInfo1 = cpuData.cpu_usage_info();
+    EXPECT_EQ(cpuUsageInfo1.prev_process_cpu_time_ms(), 0);
+    EXPECT_EQ(cpuUsageInfo1.process_cpu_time_ms(), processCpuTime1);
+
+    // 存入proStr2
+    cpuUsageInfo = cpuData.mutable_cpu_usage_info();
+    cpuPlugin.WriteProcessCpuUsage(*cpuUsageInfo, proStr2.c_str(), proStr2.length());
+    CpuUsageInfo cpuUsageInfo2 = cpuData.cpu_usage_info();
+    EXPECT_EQ(cpuUsageInfo2.prev_process_cpu_time_ms(), processCpuTime1);
+    EXPECT_EQ(cpuUsageInfo2.process_cpu_time_ms(), processCpuTime2);
+
+    // 重复存入proStr2
+    cpuUsageInfo = cpuData.mutable_cpu_usage_info();
+    cpuPlugin.WriteProcessCpuUsage(*cpuUsageInfo, proStr2.c_str(), proStr2.length());
+    CpuUsageInfo cpuUsageInfo3 = cpuData.cpu_usage_info();
+    EXPECT_EQ(cpuUsageInfo3.prev_process_cpu_time_ms(), processCpuTime2);
+    EXPECT_EQ(cpuUsageInfo3.process_cpu_time_ms(), processCpuTime2);
+}
+
+/**
+ * @tc.name: cpu plugin
+ * @tc.desc: cpu process information test for abnormal parameters.
+ * @tc.type: FUNC
+ */
+HWTEST_F(CpuDataPluginTest, TestPluginProcessBoundary, TestSize.Level1)
+{
+    CpuData cpuData;
+    CpuDataPlugin cpuPlugin;
+    std::string proStr;
+    int64_t Hz = cpuPlugin.GetUserHz();
+    int64_t processCpuTime = (g_pidStat1.utime + g_pidStat1.stime + g_pidStat1.cutime + g_pidStat1.cstime) * Hz;
+
+    // 空字符串
+    proStr = "";
+    auto* cpuUsageInfo = cpuData.mutable_cpu_usage_info();
+    cpuPlugin.WriteProcessCpuUsage(*cpuUsageInfo, proStr.c_str(), proStr.length());
+    CpuUsageInfo cpuUsageInfo1 = cpuData.cpu_usage_info();
+    EXPECT_EQ(cpuUsageInfo1.prev_process_cpu_time_ms(), 0);
+    EXPECT_EQ(cpuUsageInfo1.process_cpu_time_ms(), 0);
+
+    // 空格字符串
+    proStr = " ";
+    cpuUsageInfo = cpuData.mutable_cpu_usage_info();
+    cpuPlugin.WriteProcessCpuUsage(*cpuUsageInfo, proStr.c_str(), proStr.length());
+    cpuUsageInfo1 = cpuData.cpu_usage_info();
+    EXPECT_EQ(cpuUsageInfo1.prev_process_cpu_time_ms(), 0);
+    EXPECT_EQ(cpuUsageInfo1.process_cpu_time_ms(), 0);
+
+    // 数据错误
+    proStr = "2000";
+    cpuUsageInfo = cpuData.mutable_cpu_usage_info();
+    cpuPlugin.WriteProcessCpuUsage(*cpuUsageInfo, proStr.c_str(), proStr.length());
+    cpuUsageInfo1 = cpuData.cpu_usage_info();
+    EXPECT_EQ(cpuUsageInfo1.prev_process_cpu_time_ms(), 0);
+    EXPECT_EQ(cpuUsageInfo1.process_cpu_time_ms(), 0);
+
+    // 数据不够（"2000 (ibus-x11) S 1 1865 1780 1025 1780 4194304 3233 0 457 0 50 10 40 10 20 0 7"需要的字符串是50 10 40 10）
+    proStr = "2000 (ibus-x11) S 1 1865 1780 1025 1780 4194304 3233 0 457 0 50 10";
+    cpuUsageInfo = cpuData.mutable_cpu_usage_info();
+    cpuPlugin.WriteProcessCpuUsage(*cpuUsageInfo, proStr.c_str(), proStr.length());
+    cpuUsageInfo1 = cpuData.cpu_usage_info();
+    EXPECT_EQ(cpuUsageInfo1.prev_process_cpu_time_ms(), 0);
+    EXPECT_EQ(cpuUsageInfo1.process_cpu_time_ms(), 0);
+
+    // 多个空格，可以取出正确数据
+    proStr = "2000 (ibus-x11) S 1 1865 1780 1025 1780 4194304 3233 0 457    0 50   10 40 10 20     ";
+    cpuUsageInfo = cpuData.mutable_cpu_usage_info();
+    cpuPlugin.WriteProcessCpuUsage(*cpuUsageInfo, proStr.c_str(), proStr.length());
+    cpuUsageInfo1 = cpuData.cpu_usage_info();
+    EXPECT_EQ(cpuUsageInfo1.prev_process_cpu_time_ms(), 0);
+    EXPECT_EQ(cpuUsageInfo1.process_cpu_time_ms(), processCpuTime);
+
+    // 最后一个数据之后没有空格，可以取出正确数据
+    proStr = "2000 (ibus-x11) S 1 1865 1780 1025 1780 4194304 3233 0 457 0 50 10 40 10 20";
+    cpuUsageInfo = cpuData.mutable_cpu_usage_info();
+    cpuPlugin.WriteProcessCpuUsage(*cpuUsageInfo, proStr.c_str(), proStr.length());
+    cpuUsageInfo1 = cpuData.cpu_usage_info();
+    EXPECT_EQ(cpuUsageInfo1.prev_process_cpu_time_ms(), processCpuTime);
+    EXPECT_EQ(cpuUsageInfo1.process_cpu_time_ms(), processCpuTime);
+}
+
+/**
+ * @tc.name: cpu plugin
+ * @tc.desc: a part of cpu system information test.
+ * @tc.type: FUNC
+ */
+HWTEST_F(CpuDataPluginTest, TestPluginSystemInfo, TestSize.Level1)
+{
+    std::string sysStr1 = "cpu  1234567 2345678 1111111 1193291234 3546789 0 2345678 0 0\n"
+                          "cpu0 2345678 662862 1966195 1111111 3571925 0 817371 0 0\n"
+                          "cpu1 3861506 2345678 1702753 199535158 1752008 0 401639 0 0\n"
+                          "cpu2 3549890 1111111 2345678 1234567 1133743 0 205972 0 0\n"
+                          "cpu3 3336646 676939 1458898 2345678 854578 0 2345678 0 0\n"
+                          "cpu4 1111111 601107 2305309 3546789 929594 0 1007959 0 0\n"
+                          "cpu5 3546789 658673 1234567 197791346 738811 0 49496 0 0\n";
+    std::string sysStr2 = "cpu  3546789 2345678 1111111 1193291234 3546789 0 2345678 0 0\n"
+                          "cpu0 3546789 662862 1966195 2345678 3571925 0 817371 0 0\n"
+                          "cpu1 3861506 1111111 1702753 199535158 1752008 0 401639 0 0\n"
+                          "cpu2 3549890 2345678 2345678 3546789 1111111 0 205972 0 0\n"
+                          "cpu3 3336646 676939 1458898 2345678 854578 0 2345678 0 0\n"
+                          "cpu4 2345678 601107 2305309 3546789 929594 0 1111111 0 0\n"
+                          "cpu5 3546789 658673 3546789 197791346 738811 0 49496 0 0\n";
+    CpuData cpuData;
+    CpuDataPlugin cpuPlugin;
+    int64_t Hz = cpuPlugin.GetUserHz();
+
+    // 存入sysStr1
+    int64_t systemCpuTime1 = 0;
+    int64_t systemBootTime1 = 0;
+    GetSystemCpuTime(g_systemStat1[0], Hz, systemCpuTime1, systemBootTime1);
+    auto* cpuUsageInfo = cpuData.mutable_cpu_usage_info();
+    cpuPlugin.WriteSystemCpuUsage(*cpuUsageInfo, sysStr1.c_str(), sysStr1.length());
+    CpuUsageInfo cpuUsageInfo1 = cpuData.cpu_usage_info();
+    EXPECT_EQ(cpuUsageInfo1.prev_system_cpu_time_ms(), 0);
+    EXPECT_EQ(cpuUsageInfo1.prev_system_boot_time_ms(), 0);
+    EXPECT_EQ(cpuUsageInfo1.system_cpu_time_ms(), systemCpuTime1);
+    EXPECT_EQ(cpuUsageInfo1.system_boot_time_ms(), systemBootTime1);
+    ASSERT_EQ(cpuUsageInfo1.cores_size(), CORE_NUM);
+    std::vector<int64_t> systemCpuTimeVec1(CORE_NUM);
+    std::vector<int64_t> systemBootTimeVec1(CORE_NUM);
+    for (int i = 1; i <= CORE_NUM; i++) {
+        CpuCoreUsageInfo cpuCoreUsageInfo1 = cpuUsageInfo1.cores()[i - 1];
+        GetSystemCpuTime(g_systemStat1[i], Hz, systemCpuTimeVec1[i-1], systemBootTimeVec1[i-1]);
+        EXPECT_EQ(cpuCoreUsageInfo1.cpu_core(), i-1);
+        EXPECT_EQ(cpuCoreUsageInfo1.prev_system_cpu_time_ms(), 0);
+        EXPECT_EQ(cpuCoreUsageInfo1.prev_system_boot_time_ms(), 0);
+        EXPECT_EQ(cpuCoreUsageInfo1.system_cpu_time_ms(), systemCpuTimeVec1[i-1]);
+        EXPECT_EQ(cpuCoreUsageInfo1.system_boot_time_ms(), systemBootTimeVec1[i-1]);
+    }
+
+    // 存入sysStr2
+    int64_t systemCpuTime2 = 0;
+    int64_t systemBootTime2 = 0;
+    GetSystemCpuTime(g_systemStat2[0], Hz, systemCpuTime2, systemBootTime2);
+    cpuUsageInfo = cpuData.mutable_cpu_usage_info();
+    cpuPlugin.WriteSystemCpuUsage(*cpuUsageInfo, sysStr2.c_str(), sysStr2.length());
+    CpuUsageInfo cpuUsageInfo2 = cpuData.cpu_usage_info();
+    EXPECT_EQ(cpuUsageInfo2.prev_system_cpu_time_ms(), systemCpuTime1);
+    EXPECT_EQ(cpuUsageInfo2.prev_system_boot_time_ms(), systemBootTime1);
+    EXPECT_EQ(cpuUsageInfo2.system_cpu_time_ms(), systemCpuTime2);
+    EXPECT_EQ(cpuUsageInfo2.system_boot_time_ms(), systemBootTime2);
+    ASSERT_EQ(cpuUsageInfo2.cores_size(), CORE_NUM*2);
+    std::vector<int64_t> systemCpuTimeVec2(CORE_NUM);
+    std::vector<int64_t> systemBootTimeVec2(CORE_NUM);
+    for (int i = 1; i <= CORE_NUM; i++) {
+        CpuCoreUsageInfo cpuCoreUsageInfo2 = cpuUsageInfo2.cores()[CORE_NUM+i-1];
+        GetSystemCpuTime(g_systemStat2[i], Hz, systemCpuTimeVec2[i-1], systemBootTimeVec2[i-1]);
+        EXPECT_EQ(cpuCoreUsageInfo2.cpu_core(), i-1);
+        EXPECT_EQ(cpuCoreUsageInfo2.prev_system_cpu_time_ms(), systemCpuTimeVec1[i-1]);
+        EXPECT_EQ(cpuCoreUsageInfo2.prev_system_boot_time_ms(), systemBootTimeVec1[i-1]);
+        EXPECT_EQ(cpuCoreUsageInfo2.system_cpu_time_ms(), systemCpuTimeVec2[i-1]);
+        EXPECT_EQ(cpuCoreUsageInfo2.system_boot_time_ms(), systemBootTimeVec2[i-1]);
+    }
+
+    // 重复存入sysStr2
+    cpuUsageInfo = cpuData.mutable_cpu_usage_info();
+    cpuPlugin.WriteSystemCpuUsage(*cpuUsageInfo, sysStr2.c_str(), sysStr2.length());
+    CpuUsageInfo cpuUsageInfo3 = cpuData.cpu_usage_info();
+    EXPECT_EQ(cpuUsageInfo3.prev_system_cpu_time_ms(), systemCpuTime2);
+    EXPECT_EQ(cpuUsageInfo3.prev_system_boot_time_ms(), systemBootTime2);
+    EXPECT_EQ(cpuUsageInfo3.system_cpu_time_ms(), systemCpuTime2);
+    EXPECT_EQ(cpuUsageInfo3.system_boot_time_ms(), systemBootTime2);
+    ASSERT_EQ(cpuUsageInfo3.cores_size(), CORE_NUM*3);
+    std::vector<int64_t> systemCpuTimeVec3(CORE_NUM);
+    std::vector<int64_t> systemBootTimeVec3(CORE_NUM);
+    for (int i = 1; i <= CORE_NUM; i++) {
+        CpuCoreUsageInfo cpuCoreUsageInfo3 = cpuUsageInfo3.cores()[CORE_NUM*2+i-1];
+        GetSystemCpuTime(g_systemStat2[i], Hz, systemCpuTimeVec3[i-1], systemBootTimeVec3[i-1]);
+        EXPECT_EQ(cpuCoreUsageInfo3.cpu_core(), i-1);
+        EXPECT_EQ(cpuCoreUsageInfo3.prev_system_cpu_time_ms(), systemCpuTimeVec2[i-1]);
+        EXPECT_EQ(cpuCoreUsageInfo3.prev_system_boot_time_ms(), systemBootTimeVec2[i-1]);
+        EXPECT_EQ(cpuCoreUsageInfo3.system_cpu_time_ms(), systemCpuTimeVec3[i-1]);
+        EXPECT_EQ(cpuCoreUsageInfo3.system_boot_time_ms(), systemBootTimeVec3[i-1]);
+    }
+}
+
+/**
+ * @tc.name: cpu plugin
+ * @tc.desc: cpu system information test for abnormal parameters.
+ * @tc.type: FUNC
+ */
+HWTEST_F(CpuDataPluginTest, TestPluginSystemBoundary, TestSize.Level1)
+{
+    CpuData cpuData;
+    CpuDataPlugin cpuPlugin;
+    std::string sysStr;
+    int64_t Hz = cpuPlugin.GetUserHz();
+    int64_t systemCpuTime = 0;
+    int64_t systemBootTime = 0;
+    GetSystemCpuTime(g_systemStat1[0], Hz, systemCpuTime, systemBootTime);
+    // 空字符串
+    sysStr = "";
+    auto* cpuUsageInfo = cpuData.mutable_cpu_usage_info();
+    cpuPlugin.WriteSystemCpuUsage(*cpuUsageInfo, sysStr.c_str(), sysStr.length());
+    CpuUsageInfo cpuUsageInfo1 = cpuData.cpu_usage_info();
+    EXPECT_EQ(cpuUsageInfo1.prev_system_cpu_time_ms(), 0);
+    EXPECT_EQ(cpuUsageInfo1.prev_system_boot_time_ms(), 0);
+    EXPECT_EQ(cpuUsageInfo1.system_cpu_time_ms(), 0);
+    EXPECT_EQ(cpuUsageInfo1.system_boot_time_ms(), 0);
+    ASSERT_EQ(cpuUsageInfo1.cores_size(), 0);
+
+    // 空格字符串
+    sysStr = " ";
+    cpuUsageInfo = cpuData.mutable_cpu_usage_info();
+    cpuPlugin.WriteSystemCpuUsage(*cpuUsageInfo, sysStr.c_str(), sysStr.length());
+    cpuUsageInfo1 = cpuData.cpu_usage_info();
+    EXPECT_EQ(cpuUsageInfo1.prev_system_cpu_time_ms(), 0);
+    EXPECT_EQ(cpuUsageInfo1.prev_system_boot_time_ms(), 0);
+    EXPECT_EQ(cpuUsageInfo1.system_cpu_time_ms(), 0);
+    EXPECT_EQ(cpuUsageInfo1.system_boot_time_ms(), 0);
+    ASSERT_EQ(cpuUsageInfo1.cores_size(), 0);
+
+    // 数据错误
+    sysStr = "1000";
+    cpuUsageInfo = cpuData.mutable_cpu_usage_info();
+    cpuPlugin.WriteSystemCpuUsage(*cpuUsageInfo, sysStr.c_str(), sysStr.length());
+    cpuUsageInfo1 = cpuData.cpu_usage_info();
+    EXPECT_EQ(cpuUsageInfo1.prev_system_cpu_time_ms(), 0);
+    EXPECT_EQ(cpuUsageInfo1.prev_system_boot_time_ms(), 0);
+    EXPECT_EQ(cpuUsageInfo1.system_cpu_time_ms(), 0);
+    EXPECT_EQ(cpuUsageInfo1.system_boot_time_ms(), 0);
+    ASSERT_EQ(cpuUsageInfo1.cores_size(), 0);
+
+    // 数据不够
+    sysStr = "cpu  1234567 2345678 1111111 1193291234 3546789\n"
+             "cpu0 2345678 662862 1966195 1111111 3571925\n"
+             "cpu1 3861506 2345678 1702753 199535158 1752008\n"
+             "cpu2 3549890 1111111 2345678 1234567 1133743\n"
+             "cpu3 3336646 676939 1458898 2345678 854578\n"
+             "cpu4 1111111 601107 2305309 3546789 929594\n"
+             "cpu5 3546789 658673 1234567 197791346 738811\n";
+    cpuUsageInfo = cpuData.mutable_cpu_usage_info();
+    cpuPlugin.WriteSystemCpuUsage(*cpuUsageInfo, sysStr.c_str(), sysStr.length());
+    cpuUsageInfo1 = cpuData.cpu_usage_info();
+    EXPECT_EQ(cpuUsageInfo1.prev_system_cpu_time_ms(), 0);
+    EXPECT_EQ(cpuUsageInfo1.prev_system_boot_time_ms(), 0);
+    EXPECT_EQ(cpuUsageInfo1.system_cpu_time_ms(), 0);
+    EXPECT_EQ(cpuUsageInfo1.system_boot_time_ms(), 0);
+    ASSERT_EQ(cpuUsageInfo1.cores_size(), 0);
+
+    // 多个空格，可以取出正确数据
+    sysStr = "cpu  1234567 2345678 1111111    1193291234 3546789 0 2345678 0 0\n"
+             "cpu0 2345678    662862 1966195 1111111 3571925 0 817371 0 0\n"
+             "cpu1 3861506 2345678 1702753   199535158     1752008 0 401639 0 0\n"
+             "cpu2 3549890    1111111  2345678 1234567 1133743 0 205972     0 0\n"
+             "cpu3 3336646 676939     1458898 2345678 854578 0 2345678 0 0\n"
+             "cpu4 1111111   601107 2305309 3546789 929594     0 1007959 0 0\n"
+             "cpu5 3546789 658673 1234567     197791346 738811 0 49496 0 0\n";
+    cpuUsageInfo = cpuData.mutable_cpu_usage_info();
+    cpuPlugin.WriteSystemCpuUsage(*cpuUsageInfo, sysStr.c_str(), sysStr.length());
+    cpuUsageInfo1 = cpuData.cpu_usage_info();
+    EXPECT_EQ(cpuUsageInfo1.prev_system_cpu_time_ms(), 0);
+    EXPECT_EQ(cpuUsageInfo1.prev_system_boot_time_ms(), 0);
+    EXPECT_EQ(cpuUsageInfo1.system_cpu_time_ms(), systemCpuTime);
+    EXPECT_EQ(cpuUsageInfo1.system_boot_time_ms(), systemBootTime);
+    ASSERT_EQ(cpuUsageInfo1.cores_size(), CORE_NUM);
+    std::vector<int64_t> systemCpuTimeVec1(CORE_NUM);
+    std::vector<int64_t> systemBootTimeVec1(CORE_NUM);
+    for (int i = 1; i <= CORE_NUM; i++) {
+        CpuCoreUsageInfo cpuCoreUsageInfo = cpuUsageInfo1.cores()[i - 1];
+        GetSystemCpuTime(g_systemStat1[i], Hz, systemCpuTimeVec1[i-1], systemBootTimeVec1[i-1]);
+        EXPECT_EQ(cpuCoreUsageInfo.cpu_core(), i-1);
+        EXPECT_EQ(cpuCoreUsageInfo.prev_system_cpu_time_ms(), 0);
+        EXPECT_EQ(cpuCoreUsageInfo.prev_system_boot_time_ms(), 0);
+        EXPECT_EQ(cpuCoreUsageInfo.system_cpu_time_ms(), systemCpuTimeVec1[i-1]);
+        EXPECT_EQ(cpuCoreUsageInfo.system_boot_time_ms(), systemBootTimeVec1[i-1]);
+    }
+
+    // 最后一个数据之后没有空格，可以取出正确数据
+    sysStr = "cpu  1234567 2345678 1111111 1193291234 3546789 0 2345678 0 0\n"
+             "cpu0 2345678 662862 1966195 1111111 3571925 0 817371 0 0\n"
+             "cpu1 3861506 2345678 1702753 199535158 1752008 0 401639 0 0\n"
+             "cpu2 3549890 1111111 2345678 1234567 1133743 0 205972 0 0\n"
+             "cpu3 3336646 676939 1458898 2345678 854578 0 2345678 0 0\n"
+             "cpu4 1111111 601107 2305309 3546789 929594 0 1007959 0 0\n"
+             "cpu5 3546789 658673 1234567 197791346 738811 0 49496 0 0\n";
+    cpuUsageInfo = cpuData.mutable_cpu_usage_info();
+    cpuPlugin.WriteSystemCpuUsage(*cpuUsageInfo, sysStr.c_str(), sysStr.length());
+    cpuUsageInfo1 = cpuData.cpu_usage_info();
+    EXPECT_EQ(cpuUsageInfo1.prev_system_cpu_time_ms(), systemCpuTime);
+    EXPECT_EQ(cpuUsageInfo1.prev_system_boot_time_ms(), systemBootTime);
+    EXPECT_EQ(cpuUsageInfo1.system_cpu_time_ms(), systemCpuTime);
+    EXPECT_EQ(cpuUsageInfo1.system_boot_time_ms(), systemBootTime);
+    ASSERT_EQ(cpuUsageInfo1.cores_size(), CORE_NUM*2);
+    std::vector<int64_t> systemCpuTimeVec2(CORE_NUM);
+    std::vector<int64_t> systemBootTimeVec2(CORE_NUM);
+    for (int i = 1; i <= CORE_NUM; i++) {
+        CpuCoreUsageInfo cpuCoreUsageInfo = cpuUsageInfo1.cores()[CORE_NUM+i-1];
+        GetSystemCpuTime(g_systemStat1[i], Hz, systemCpuTimeVec2[i-1], systemBootTimeVec2[i-1]);
+        EXPECT_EQ(cpuCoreUsageInfo.cpu_core(), i-1);
+        EXPECT_EQ(cpuCoreUsageInfo.prev_system_cpu_time_ms(), systemCpuTimeVec1[i-1]);
+        EXPECT_EQ(cpuCoreUsageInfo.prev_system_boot_time_ms(), systemBootTimeVec1[i-1]);
+        EXPECT_EQ(cpuCoreUsageInfo.system_cpu_time_ms(), systemCpuTimeVec2[i-1]);
+        EXPECT_EQ(cpuCoreUsageInfo.system_boot_time_ms(), systemBootTimeVec2[i-1]);
+    }
+}
+
+/**
+ * @tc.name: cpu plugin
+ * @tc.desc: a part of cpu thread information test.
+ * @tc.type: FUNC
+ */
+HWTEST_F(CpuDataPluginTest, TestPluginThreadInfo, TestSize.Level1)
+{
+    std::vector<std::string> threadVec1;
+    threadVec1.push_back("1209 (skytone:service) R 1746 1746 0 0 -1 1077936448 10399 0 1 0 22 8 0 0 20 0 19 0");
+    threadVec1.push_back("1646 (Jit thread pool) L 1746 1746 0 0 -1 1077936192 1831 0 0 0 2 1 0 0 20 0 19 0");
+    threadVec1.push_back("1654 (Signal Catcher) T 1746 1746 0 0 -1 1077936192 588 0 0 0 1 0 0 0 20 0 19 0");
+    threadVec1.push_back("1655 (HeapTaskDaemon) S 1746 1746 0 0 -1 1077936192 1515 0 0 0 3 0 0 0 24 4 19 0");
+    threadVec1.push_back("1656 (ReferenceQueueD) D 1746 1746 0 0 -1 1077936192 24 0 0 0 0 0 0 0 24 4 19 0");
+
+    std::vector<std::string> threadVec2;
+    threadVec2.push_back("1662 (FinalizerDaemon) T 1746 1746 0 0 -1 1077936192 18 0 0 0 0 0 0 0 24 4 19 0");
+    threadVec2.push_back("1663 (FinalizerWatchd) R 1746 1746 0 0 -1 1077936192 5 0 0 0 0 0 0 0 24 4 19 0");
+    threadVec2.push_back("1666 (Binder:1209_1) R 1746 1746 0 0 -1 1077936192 412 0 0 0 0 0 0 0 20 0 19 0");
+    threadVec2.push_back("1679 (Binder:1209_2) O 1746 1746 0 0 -1 1077936192 14 0 0 0 0 0 0 0 20 0 19 0");
+    threadVec2.push_back("1680 (Binder:1209_3) D 1746 1746 0 0 -1 1077936192 11513 0 4 0 54 8 0 0 20 0 49 0");
+    threadVec2.push_back("1681 (Binder:1209_4) S 1751 1751 0 0 -1 1077936192 17 0 0 0 0 0 0 0 20 0 24 0");
+    CpuData cpuData;
+    CpuDataPlugin cpuPlugin;
+    int64_t Hz = cpuPlugin.GetUserHz();
+
+    // 存入threadVec0-4
+    int32_t tid;
+    for (int i = 0; i < FIRST_THREAD_NUM; i++) {
+        auto* threadInfo = cpuData.add_thread_info();
+        tid = atoi(threadVec1[i].substr(0, threadVec1[i].find(" ")).c_str());
+        cpuPlugin.WriteThread(*threadInfo, threadVec1[i].c_str(), threadVec1[i].length(), tid);
+    }
+    ASSERT_EQ(cpuData.thread_info_size(), FIRST_THREAD_NUM);
+    int64_t threadCpuTime1;
+    for (int i = 0; i < FIRST_THREAD_NUM; i++) {
+        threadCpuTime1 = (g_tidStat1[i].stat.utime + g_tidStat1[i].stat.stime +
+            g_tidStat1[i].stat.cutime + g_tidStat1[i].stat.cstime) * Hz;
+        ThreadInfo threadInfo1 = cpuData.thread_info()[i];
+        EXPECT_EQ(threadInfo1.tid(), g_tidStat1[i].tid);
+        EXPECT_STREQ(threadInfo1.thread_name().c_str(), g_tidStat1[i].name.c_str());
+        EXPECT_EQ(threadInfo1.thread_state(), g_tidStat1[i].state);
+        EXPECT_EQ(threadInfo1.prev_thread_cpu_time_ms(), 0);
+        EXPECT_EQ(threadInfo1.thread_cpu_time_ms(), threadCpuTime1);
+    }
+
+    // 存入threadVec5-10
+    for (int i = 0; i < SECOND_THREAD_NUM; i++) {
+        auto* threadInfo = cpuData.add_thread_info();
+        tid = atoi(threadVec2[i].substr(0, threadVec2[i].find(" ")).c_str());
+        cpuPlugin.WriteThread(*threadInfo, threadVec2[i].c_str(), threadVec2[i].length(), tid);
+    }
+    ASSERT_EQ(cpuData.thread_info_size(), FIRST_THREAD_NUM+SECOND_THREAD_NUM);
+    std::vector<int64_t> threadCpuTime2;
+    for (int i = 0; i < SECOND_THREAD_NUM; i++) {
+        threadCpuTime2.push_back((g_tidStat2[i].stat.utime + g_tidStat2[i].stat.stime +
+            g_tidStat2[i].stat.cutime + g_tidStat2[i].stat.cstime) * Hz);
+        ThreadInfo threadInfo2 = cpuData.thread_info()[i+FIRST_THREAD_NUM];
+        EXPECT_EQ(threadInfo2.tid(), g_tidStat2[i].tid);
+        EXPECT_STREQ(threadInfo2.thread_name().c_str(), g_tidStat2[i].name.c_str());
+        EXPECT_EQ(threadInfo2.thread_state(), g_tidStat2[i].state);
+        EXPECT_EQ(threadInfo2.prev_thread_cpu_time_ms(), 0);
+        EXPECT_EQ(threadInfo2.thread_cpu_time_ms(), threadCpuTime2[i]);
+    }
+
+    // 重复存入threadVec5-10
+    for (int i = 0; i < SECOND_THREAD_NUM; i++) {
+        auto* threadInfo = cpuData.add_thread_info();
+        tid = atoi(threadVec2[i].substr(0, threadVec2[i].find(" ")).c_str());
+        cpuPlugin.WriteThread(*threadInfo, threadVec2[i].c_str(), threadVec2[i].length(), tid);
+    }
+
+    ASSERT_EQ(cpuData.thread_info_size(), FIRST_THREAD_NUM+SECOND_THREAD_NUM*2);
+    int64_t threadCpuTime3;
+    for (int i = 0; i < SECOND_THREAD_NUM; i++) {
+        threadCpuTime3 = (g_tidStat2[i].stat.utime + g_tidStat2[i].stat.stime +
+            g_tidStat2[i].stat.cutime + g_tidStat2[i].stat.cstime) * Hz;
+        ThreadInfo threadInfo3 = cpuData.thread_info()[i+FIRST_THREAD_NUM+SECOND_THREAD_NUM];
+        EXPECT_EQ(threadInfo3.tid(), g_tidStat2[i].tid);
+        EXPECT_STREQ(threadInfo3.thread_name().c_str(), g_tidStat2[i].name.c_str());
+        EXPECT_EQ(threadInfo3.thread_state(), g_tidStat2[i].state);
+        EXPECT_EQ(threadInfo3.prev_thread_cpu_time_ms(), threadCpuTime2[i]);
+        EXPECT_EQ(threadInfo3.thread_cpu_time_ms(), threadCpuTime3);
+    }
+}
+
+/**
+ * @tc.name: cpu plugin
+ * @tc.desc: cpu thread information test for abnormal parameters.
+ * @tc.type: FUNC
+ */
+HWTEST_F(CpuDataPluginTest, TestPluginThreadBoundary, TestSize.Level1)
+{
+    CpuData cpuData;
+    CpuDataPlugin cpuPlugin;
+    std::string threadStr;
+    int thread_info_count = 0;
+    int64_t Hz = cpuPlugin.GetUserHz();
+    int64_t threadCpuTime = (g_tidStat1[0].stat.utime + g_tidStat1[0].stat.stime + g_tidStat1[0].stat.cutime
+                                + g_tidStat1[0].stat.cstime) * Hz;
+
+    // 空字符串
+    threadStr = "";
+    auto* threadInfo = cpuData.add_thread_info();
+    thread_info_count++;
+    cpuPlugin.WriteThread(*threadInfo, threadStr.c_str(), threadStr.length(), 0);
+    ASSERT_EQ(cpuData.thread_info_size(), thread_info_count);
+
+    // 空格字符串
+    threadStr = " ";
+    threadInfo = cpuData.add_thread_info();
+    thread_info_count++;
+    cpuPlugin.WriteThread(*threadInfo, threadStr.c_str(), threadStr.length(), 0);
+    ASSERT_EQ(cpuData.thread_info_size(), thread_info_count);
+
+    // 数据错误
+    threadStr = "1000";
+    threadInfo = cpuData.add_thread_info();
+    thread_info_count++;
+    cpuPlugin.WriteThread(*threadInfo, threadStr.c_str(), threadStr.length(), 0);
+    ASSERT_EQ(cpuData.thread_info_size(), thread_info_count);
+
+    // 数据不够
+    threadStr = "1209 (skytone:service) R 1746 1746 0 0 -1 1077936448 10399 0 1 0 22 8";
+    threadInfo = cpuData.add_thread_info();
+    thread_info_count++;
+    cpuPlugin.WriteThread(*threadInfo, threadStr.c_str(), threadStr.length(), 0);
+    ASSERT_EQ(cpuData.thread_info_size(), thread_info_count);
+
+    // 线程名缺失左括号
+    threadStr = "1209 skytone:service) R 1746 1746 0 0 -1 1077936448 10399 0 1 0 22 8 0 0 20 0 19 0";
+    int32_t tid = atoi(threadStr.substr(0, threadStr.find(" ")).c_str());
+    threadInfo = cpuData.add_thread_info();
+    thread_info_count++;
+    cpuPlugin.WriteThread(*threadInfo, threadStr.c_str(), threadStr.length(), tid);
+    ASSERT_EQ(cpuData.thread_info_size(), thread_info_count);
+    ThreadInfo threadInfo1 = cpuData.thread_info()[thread_info_count-1];
+    EXPECT_EQ(threadInfo1.tid(), g_tidStat1[0].tid);
+    EXPECT_STRNE(threadInfo1.thread_name().c_str(), g_tidStat1[0].name.c_str());
+    EXPECT_EQ(threadInfo1.thread_state(), g_tidStat1[0].state);
+    EXPECT_EQ(threadInfo1.prev_thread_cpu_time_ms(), 0);
+    EXPECT_EQ(threadInfo1.thread_cpu_time_ms(), threadCpuTime);
+
+    // 多个空格，可以取出正确数据
+    threadStr = "1209 (skytone:service)    R 1746 1746 0 0  -1 1077936448   10399 0 1 0 22 8 0 0    20 0 19   0";
+    tid = atoi(threadStr.substr(0, threadStr.find(" ")).c_str());
+    threadInfo = cpuData.add_thread_info();
+    thread_info_count++;
+    cpuPlugin.WriteThread(*threadInfo, threadStr.c_str(), threadStr.length(), tid);
+    ASSERT_EQ(cpuData.thread_info_size(), thread_info_count);
+    threadInfo1 = cpuData.thread_info()[thread_info_count-1];
+    EXPECT_EQ(threadInfo1.tid(), g_tidStat1[0].tid);
+    EXPECT_STREQ(threadInfo1.thread_name().c_str(), g_tidStat1[0].name.c_str());
+    EXPECT_EQ(threadInfo1.thread_state(), g_tidStat1[0].state);
+    EXPECT_EQ(threadInfo1.prev_thread_cpu_time_ms(), threadCpuTime);
+    EXPECT_EQ(threadInfo1.thread_cpu_time_ms(), threadCpuTime);
+
+    // 最后一个数据之后没有空格，可以取出正确数据
+    threadStr = "1209 (skytone:service) R 1746 1746 0 0 -1 1077936448 10399 0 1 0 22 8 0 0 20";
+    tid = atoi(threadStr.substr(0, threadStr.find(" ")).c_str());
+    threadInfo = cpuData.add_thread_info();
+    thread_info_count++;
+    cpuPlugin.WriteThread(*threadInfo, threadStr.c_str(), threadStr.length(), tid);
+    ASSERT_EQ(cpuData.thread_info_size(), thread_info_count);
+    threadInfo1 = cpuData.thread_info()[thread_info_count-1];
+    EXPECT_EQ(threadInfo1.tid(), g_tidStat1[0].tid);
+    EXPECT_STREQ(threadInfo1.thread_name().c_str(), g_tidStat1[0].name.c_str());
+    EXPECT_EQ(threadInfo1.thread_state(), g_tidStat1[0].state);
+    EXPECT_EQ(threadInfo1.prev_thread_cpu_time_ms(), threadCpuTime);
+    EXPECT_EQ(threadInfo1.thread_cpu_time_ms(), threadCpuTime);
 }
 } // namespace

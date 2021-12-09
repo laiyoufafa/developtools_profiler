@@ -68,7 +68,7 @@ private:
     int64_t GetUserHz();
     int64_t GetCpuUsageTime(std::vector<std::string>& cpuUsageVec);
     void WriteProcessCpuUsage(CpuUsageInfo& cpuUsageInfo, const char* pFile, uint32_t fileLen);
-    void GetSystemCpuTime(std::vector<std::string>& cpuUsageVec, int64_t& usageTime, int64_t& time);
+    bool GetSystemCpuTime(std::vector<std::string>& cpuUsageVec, int64_t& usageTime, int64_t& time);
     void WriteSystemCpuUsage(CpuUsageInfo& cpuUsageInfo, const char* pFile, uint32_t fileLen);
     void WriteCpuUsageInfo(CpuData& data);
 

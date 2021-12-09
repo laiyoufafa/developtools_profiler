@@ -23,7 +23,6 @@ PluginServiceImpl::PluginServiceImpl(PluginService& p)
 
 PluginServiceImpl::~PluginServiceImpl() {}
 
-
 bool PluginServiceImpl::RegisterPlugin(SocketContext& context,
                                        ::RegisterPluginRequest& request,
                                        ::RegisterPluginResponse& response)

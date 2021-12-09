@@ -56,23 +56,6 @@ HWTEST_F(SocketContextTest, RawProtocolProc, TestSize.Level1)
 
 /**
  * @tc.name: Service
- * @tc.desc: Socket sending test.
- * @tc.type: FUNC
- */
-HWTEST_F(SocketContextTest, SendRaw, TestSize.Level1)
-{
-    std::string s="abc";
-    SocketContext socketContext;
-    ASSERT_TRUE(!socketContext.SendRaw(-1, (const int8_t *)s.c_str(), s.size(), 0));
-    ASSERT_TRUE(!socketContext.SendRaw(-1, (const int8_t *)s.c_str(), s.size(), -1));
-    ASSERT_TRUE(!socketContext.SendRaw(-1, (const int8_t *)s.c_str(), s.size(), 1));
-    ASSERT_TRUE(!socketContext.SendRaw(1, (const int8_t *)s.c_str(), s.size(), 1));
-    ASSERT_TRUE(!socketContext.SendFileDescriptor(-1));
-    ASSERT_TRUE(!socketContext.SendFileDescriptor(1));
-}
-
-/**
- * @tc.name: Service
  * @tc.desc: Socket receiving test.
  * @tc.type: FUNC
  */

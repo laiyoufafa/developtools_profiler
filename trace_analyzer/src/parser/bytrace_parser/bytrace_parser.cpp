@@ -15,6 +15,8 @@
 
 #include "bytrace_parser.h"
 #include <unistd.h>
+#include "binder_filter.h"
+#include "cpu_filter.h"
 #include "parting_string.h"
 #include "stat_filter.h"
 namespace SysTuning {
@@ -30,12 +32,14 @@ BytraceParser::~BytraceParser() = default;
 
 void BytraceParser::WaitForParserEnd()
 {
-    if (matchLineThreadStarted || parsingDataItemThreadStarted_) {
+    if (parseThreadStarted_ || filterThreadStarted_) {
         toExit_ = true;
         while (!exited_) {
             usleep(sleepDur_ * sleepDur_);
         }
     }
+    streamFilters_->cpuFilter_->FinishCpuEvent();
+    streamFilters_->binderFilter_->FinishBinderEvent();
 }
 void BytraceParser::ParseTraceDataSegment(std::unique_ptr<uint8_t[]> bufferStr, size_t size)
 {
@@ -84,25 +88,25 @@ void BytraceParser::ParseTraceDataSegment(std::unique_ptr<uint8_t[]> bufferStr, 
 void BytraceParser::ParseTraceDataItem(const std::string& buffer)
 {
     while (!toExit_) {
-        int head = seprateHead_;
-        if (dataSegArray[head].status.load() != Status_Init) {
-            TS_LOGD("seprateHead_:\t%d, matchHead_:\t%d, parseHead_:\t%d\n", seprateHead_, matchHead_, parseHead_);
+        int head = rawDataHead_;
+        if (dataSegArray[head].status.load() != TS_PARSE_STATUS_INIT) {
+            TS_LOGD("rawDataHead_:\t%d, parseHead_:\t%d, filterHead_:\t%d\n", rawDataHead_, parseHead_, filterHead_);
             usleep(sleepDur_);
             continue;
         }
         dataSegArray[head].seg = std::move(buffer);
-        dataSegArray[head].status = Status_Seprated;
-        seprateHead_ = (seprateHead_ + 1) % MAX_SEG_ARRAY_SIZE;
+        dataSegArray[head].status = TS_PARSE_STATUS_SEPRATED;
+        rawDataHead_ = (rawDataHead_ + 1) % MAX_SEG_ARRAY_SIZE;
         break;
     }
-    if (!matchLineThreadStarted) {
-        matchLineThreadStarted = true;
+    if (!parseThreadStarted_) {
+        parseThreadStarted_ = true;
         int tmp = maxThread_;
         while (tmp--) {
             parserThreadCount_++;
-            std::thread MatchLineThread(&BytraceParser::MatchLine, this);
+            std::thread MatchLineThread(&BytraceParser::ParseThread, this);
             MatchLineThread.detach();
-            fprintf(stdout, "parser Thread:%d/%d start working ...\n", maxThread_ - tmp, maxThread_);
+            TS_LOGI("parser Thread:%d/%d start working ...\n", maxThread_ - tmp, maxThread_);
         }
     }
     return;
@@ -111,30 +115,30 @@ int BytraceParser::GetNextSegment()
 {
     int head;
     dataSegMux_.lock();
-    head = matchHead_;
+    head = parseHead_;
     DataSegment& seg = dataSegArray[head];
-    if (seg.status.load() != Status_Seprated) {
+    if (seg.status.load() != TS_PARSE_STATUS_SEPRATED) {
         if (toExit_) {
             parserThreadCount_--;
-            fprintf(stdout, "exiting parser, parserThread Count:%d\n", parserThreadCount_);
+            TS_LOGI("exiting parser, parserThread Count:%d\n", parserThreadCount_);
             dataSegMux_.unlock();
-            if (!parserThreadCount_ && !parsingDataItemThreadStarted_) {
+            if (!parserThreadCount_ && !filterThreadStarted_) {
                 exited_ = true;
             }
             return ERROR_CODE_EXIT;
         }
-        if (seg.status == Status_Parsing) {
-            matchHead_ = (matchHead_ + 1) % MAX_SEG_ARRAY_SIZE;
+        if (seg.status == TS_PARSE_STATUS_PARSING) {
             dataSegMux_.unlock();
+            usleep(sleepDur_);
             return ERROR_CODE_NODATA;
         }
         dataSegMux_.unlock();
-        TS_LOGD("MatchLine watting:\t%d, matchHead_:\t%d, parseHead_:\t%d\n", seprateHead_, matchHead_, parseHead_);
+        TS_LOGD("ParseThread watting:\t%d, parseHead_:\t%d, filterHead_:\t%d\n", rawDataHead_, parseHead_, filterHead_);
         usleep(sleepDur_);
         return ERROR_CODE_NODATA;
     }
-    matchHead_ = (matchHead_ + 1) % MAX_SEG_ARRAY_SIZE;
-    seg.status = Status_Parsing;
+    parseHead_ = (parseHead_ + 1) % MAX_SEG_ARRAY_SIZE;
+    seg.status = TS_PARSE_STATUS_PARSING;
     dataSegMux_.unlock();
     return head;
 }
@@ -146,7 +150,7 @@ void BytraceParser::GetDataSegAttr(DataSegment& seg, const std::smatch& matcheLi
     std::optional<uint32_t> optionalPid = base::StrToUInt32(pidStr);
     if (!optionalPid.has_value()) {
         TS_LOGD("Illegal pid: %s", pidStr.c_str());
-        seg.status = Status_Invalid;
+        seg.status = TS_PARSE_STATUS_INVALID;
         return;
     }
 
@@ -155,14 +159,14 @@ void BytraceParser::GetDataSegAttr(DataSegment& seg, const std::smatch& matcheLi
     std::optional<uint32_t> optionalCpu = base::StrToUInt32(cpuStr);
     if (!optionalCpu.has_value()) {
         TS_LOGD("Illegal cpu %s", cpuStr.c_str());
-        seg.status = Status_Invalid;
+        seg.status = TS_PARSE_STATUS_INVALID;
         return;
     }
     std::string timeStr = matcheLine[++index].str();
     std::optional<double> optionalTime = base::StrToDouble(timeStr);
     if (!optionalTime.has_value()) {
         TS_LOGD("Illegal ts %s", timeStr.c_str());
-        seg.status = Status_Invalid;
+        seg.status = TS_PARSE_STATUS_INVALID;
         return;
     }
     std::string eventName = matcheLine[++index].str();
@@ -174,14 +178,16 @@ void BytraceParser::GetDataSegAttr(DataSegment& seg, const std::smatch& matcheLi
     seg.bufLine.tGidStr = tGidStr;
     seg.bufLine.eventName = eventName;
     GetDataSegArgs(seg);
-    seg.status = Status_Parsed;
+    seg.status = TS_PARSE_STATUS_PARSED;
 }
 
 void BytraceParser::GetDataSegArgs(DataSegment& seg) const
 {
     seg.args.clear();
-    if (!seg.bufLine.tGidStr.empty() && seg.bufLine.tGidStr != "-----") {
+    if (seg.bufLine.tGidStr != "-----") {
         seg.tgid = base::StrToUInt32(seg.bufLine.tGidStr).value_or(0);
+    } else {
+        seg.tgid = 0;
     }
 
     for (base::PartingString ss(seg.bufLine.argsStr, ' '); ss.Next();) {
@@ -203,7 +209,7 @@ void BytraceParser::GetDataSegArgs(DataSegment& seg) const
         seg.args.emplace(std::move(key), std::move(value));
     }
 }
-void BytraceParser::MatchLine()
+void BytraceParser::ParseThread()
 {
     while (1) {
         int head = GetNextSegment();
@@ -211,8 +217,7 @@ void BytraceParser::MatchLine()
             if (head == ERROR_CODE_NODATA) {
                 continue;
             }
-            matchLineThreadStarted = false;
-            if (!parsingDataItemThreadStarted_) {
+            if (!filterThreadStarted_) {
                 exited_ = true;
             }
             return;
@@ -221,35 +226,35 @@ void BytraceParser::MatchLine()
         std::smatch matcheLine;
         if (!std::regex_search(seg.seg, matcheLine, bytraceMatcher_)) {
             TS_LOGD("Not support this event (line: %s)", seg.seg.c_str());
-            seg.status = Status_Invalid;
+            seg.status = TS_PARSE_STATUS_INVALID;
             parsedTraceInvalidLines_++;
             continue;
         } else {
             parsedTraceValidLines_++;
         }
         GetDataSegAttr(seg, matcheLine);
-        if (!parsingDataItemThreadStarted_) {
-            parsingDataItemThreadStarted_ = true;
-            std::thread ParserThread(&BytraceParser::ParseLine, this);
+        if (!filterThreadStarted_) {
+            filterThreadStarted_ = true;
+            std::thread ParserThread(&BytraceParser::FilterThread, this);
             ParserThread.detach();
         }
     }
 }
-void BytraceParser::ParseLine()
+void BytraceParser::FilterThread()
 {
     while (1) {
-        DataSegment& seg = dataSegArray[parseHead_];
-        if (seg.status.load() == Status_Invalid) {
-            seg.status = Status_Init;
-            parseHead_ = (parseHead_ + 1) % MAX_SEG_ARRAY_SIZE;
+        DataSegment& seg = dataSegArray[filterHead_];
+        if (seg.status.load() == TS_PARSE_STATUS_INVALID) {
+            seg.status = TS_PARSE_STATUS_INIT;
+            filterHead_ = (filterHead_ + 1) % MAX_SEG_ARRAY_SIZE;
             streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_OTHER, STAT_EVENT_DATA_INVALID);
             continue;
         }
-        if (seg.status.load() != Status_Parsed) {
+        if (seg.status.load() != TS_PARSE_STATUS_PARSED) {
             if (toExit_ && !parserThreadCount_) {
-                fprintf(stdout, "exiting ParseLine Thread\n");
+                TS_LOGI("exiting FilterThread Thread\n");
                 exited_ = true;
-                parsingDataItemThreadStarted_ = false;
+                filterThreadStarted_ = false;
                 return;
             }
             usleep(sleepDur_);
@@ -258,8 +263,8 @@ void BytraceParser::ParseLine()
         BytraceLine line = seg.bufLine;
         uint32_t tgid = seg.tgid;
         eventParser_->ParseDataItem(line, seg.args, tgid);
-        parseHead_ = (parseHead_ + 1) % MAX_SEG_ARRAY_SIZE;
-        seg.status = Status_Init;
+        filterHead_ = (filterHead_ + 1) % MAX_SEG_ARRAY_SIZE;
+        seg.status = TS_PARSE_STATUS_INIT;
     }
 }
 

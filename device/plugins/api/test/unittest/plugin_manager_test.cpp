@@ -34,7 +34,7 @@ using namespace testing::ext;
 namespace {
 constexpr int DEFAULT_BUFFER_SIZE = 4096;
 constexpr int DEFAULT_SLEEP_TIME = 1000;
-const static std::string SUCCESS_PLUGIN_NAME = "libmemdataplugin.z.so";
+const std::string SUCCESS_PLUGIN_NAME = "libmemdataplugin.z.so";
 std::string g_testPluginDir("/system/lib/");
 int g_hiprofilerProcessNum = -1;
 const std::string DEFAULT_HIPROFILERD_PATH("/system/lib/hiprofilerd");
@@ -44,7 +44,6 @@ protected:
     static constexpr auto TEMP_DELAY = std::chrono::milliseconds(20);
     static void SetUpTestCase()
     {
-        setenv("RECV_NO_WAIT", "1", 0);
 #if defined(__i386__) || defined(__x86_64__)
         char pluginDir[PATH_MAX + 1] = {0};
         if (readlink("/proc/self/exe", pluginDir, PATH_MAX) > 0) {
@@ -79,7 +78,6 @@ protected:
 
     static void TearDownTestCase()
     {
-        unsetenv("RECV_NO_WAIT");
         std::string stopCmd = "kill " + std::to_string(g_hiprofilerProcessNum);
         std::cout << "stop command : " << stopCmd << std::endl;
         std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(stopCmd.c_str(), "r"), pclose);
@@ -99,7 +97,7 @@ HWTEST_F(PluginManagerTest, SuccessPlugin, TestSize.Level1)
 
     const uint8_t configData[] = {0x30, 0x01, 0x38, 0x01, 0x42, 0x01, 0x01};
     ProfilerPluginConfig config;
-    const std::vector<uint32_t> pluginIdsVector = {1};
+    const std::vector<uint32_t> pluginIdsVector = {2};
     config.set_name(g_testPluginDir + SUCCESS_PLUGIN_NAME);
     config.set_config_data((const void*)configData, 7);
     config.set_sample_interval(DEFAULT_SLEEP_TIME);

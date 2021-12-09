@@ -24,7 +24,6 @@
 #include <unordered_map>
 #include <vector>
 #include "log.h"
-
 namespace SysTuning {
 namespace TraceStreamer {
 using namespace TraceStdtype;
@@ -47,7 +46,9 @@ InternalTid TraceDataCacheWriter::NewInternalThread(uint32_t tid)
 }
 Thread* TraceDataCacheWriter::GetThreadData(InternalTid internalTid)
 {
-    TS_ASSERT(internalTid < internalThreadsData_.size());
+    if (internalTid >= internalThreadsData_.size()) {
+        return nullptr;
+    }
     return &internalThreadsData_[internalTid];
 }
 
@@ -57,6 +58,22 @@ void TraceDataCacheWriter::UpdateTraceTime(uint64_t timestamp)
     traceEndTime_ = std::max(traceEndTime_, timestamp);
 }
 
+void TraceDataCacheWriter::MixTraceTime(uint64_t timestampMin, uint64_t timestampMax)
+{
+    if (timestampMin == std::numeric_limits<uint64_t>::max() || timestampMax == 0) {
+        return;
+    }
+    if (traceStartTime_ != std::numeric_limits<uint64_t>::max()) {
+        traceStartTime_ = std::max(traceStartTime_, timestampMin);
+    } else {
+        traceStartTime_ = timestampMin;
+    }
+    if (traceEndTime_) {
+        traceEndTime_ = std::min(traceEndTime_, timestampMax);
+    } else {
+        traceEndTime_ = timestampMax;
+    }
+}
 CallStack* TraceDataCacheWriter::GetInternalSlicesData()
 {
     return &internalSlicesData_;
@@ -121,6 +138,11 @@ ClockEventData* TraceDataCacheWriter::GetClockEventFilterData()
 {
     return &clockEventFilterData_;
 }
+
+ClkEventData* TraceDataCacheWriter::GetClkEventFilterData()
+{
+    return &clkEventFilterData_;
+}
 StatAndInfo* TraceDataCacheWriter::GetStatAndInfo()
 {
     return &stat_;
@@ -134,6 +156,28 @@ MetaData* TraceDataCacheWriter::GetMetaData()
 SymbolsData* TraceDataCacheWriter::GetSymbolsData()
 {
     return &symbolsData_;
+}
+SysCall* TraceDataCacheWriter::GetSysCallData()
+{
+    return &sysCallData_;
+}
+LogInfo* TraceDataCacheWriter::GetHilogData()
+{
+    return &hilogData_;
+}
+ArgSet* TraceDataCacheWriter::GetArgSetData()
+{
+    return &argSet_;
+}
+
+DataType* TraceDataCacheWriter::GetDataTypeData()
+{
+    return &dataType_;
+}
+
+SysMeasureFilter* TraceDataCacheWriter::GetSysMeasureFilterData()
+{
+    return &sysEvent_;
 }
 } // namespace TraceStreamer
 } // namespace SysTuning

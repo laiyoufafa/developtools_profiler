@@ -23,9 +23,9 @@ enum Index { ID = 0, STR };
 }
 DataDictTable::DataDictTable(const TraceDataCache* dataCache) : TableBase(dataCache)
 {
-    tableColumn_.push_back(TableBase::ColumnInfo("id", "UNSIGNED BIG INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("data", "STRING"));
-    tablePriKey_.push_back("id");
+        tableColumn_.push_back(TableBase::ColumnInfo("id", "UNSIGNED BIG INT"));
+        tableColumn_.push_back(TableBase::ColumnInfo("data", "STRING"));
+        tablePriKey_.push_back("id");
 }
 
 DataDictTable::~DataDictTable() {}

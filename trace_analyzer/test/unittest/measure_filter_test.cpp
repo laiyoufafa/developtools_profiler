@@ -45,9 +45,14 @@ public:
     void TearDown() {}
 
 public:
-    SysTuning::TraceStreamer::TraceStreamerSelector stream_;
+    SysTuning::TraceStreamer::TraceStreamerSelector stream_ = {};
 };
 
+/**
+ * @tc.name: ThreadMeasureFilter
+ * @tc.desc: Test whether the GetOrCreateFilterId interface generated filterid and threadmeasure Info is correct
+ * @tc.type: FUNC
+ */
 HWTEST_F(MeasureFilterTest, ThreadMeasureFilter, TestSize.Level1)
 {
     TS_LOGI("test8-1");
@@ -71,6 +76,11 @@ HWTEST_F(MeasureFilterTest, ThreadMeasureFilter, TestSize.Level1)
     EXPECT_TRUE(threadMeasureTable->InternalTidData()[1] == INTERNAL_THREAD_ID_1);
 }
 
+/**
+ * @tc.name: ThreadFilter
+ * @tc.desc: Test whether the GetOrCreateFilterId interface generated filterid and thread Info is correct
+ * @tc.type: FUNC
+ */
 HWTEST_F(MeasureFilterTest, ThreadFilter, TestSize.Level1)
 {
     TS_LOGI("test8-2");
@@ -93,6 +103,11 @@ HWTEST_F(MeasureFilterTest, ThreadFilter, TestSize.Level1)
     EXPECT_TRUE(threadTable->InternalTidData()[1] == INTERNAL_THREAD_ID_1);
 }
 
+/**
+ * @tc.name: CpuFilter
+ * @tc.desc: Test GetOrCreateFilterId interface of class CpuFilter
+ * @tc.type: FUNC
+ */
 HWTEST_F(MeasureFilterTest, CpuFilter, TestSize.Level1)
 {
     TS_LOGI("test8-3");
@@ -115,6 +130,11 @@ HWTEST_F(MeasureFilterTest, CpuFilter, TestSize.Level1)
     EXPECT_TRUE(cpuMeasureTable->CpuData()[1] == CPU_ID_1);
 }
 
+/**
+ * @tc.name: ProcessFilter
+ * @tc.desc: Test GetOrCreateFilterId interface of class ProcessFilter
+ * @tc.type: FUNC
+ */
 HWTEST_F(MeasureFilterTest, ProcessFilter, TestSize.Level1)
 {
     TS_LOGI("test8-4");
@@ -134,6 +154,11 @@ HWTEST_F(MeasureFilterTest, ProcessFilter, TestSize.Level1)
     EXPECT_TRUE(processFilterTable->Size() == 2);
 }
 
+/**
+ * @tc.name: ClockRateFilter
+ * @tc.desc: Test GetOrCreateFilterId interface of class ClockRateFilter
+ * @tc.type: FUNC
+ */
 HWTEST_F(MeasureFilterTest, ClockRateFilter, TestSize.Level1)
 {
     TS_LOGI("test8-5");
@@ -156,6 +181,11 @@ HWTEST_F(MeasureFilterTest, ClockRateFilter, TestSize.Level1)
     EXPECT_TRUE(clockEventTable->NamesData()[1] == nameIndex_1);
 }
 
+/**
+ * @tc.name: ClockEnableFilter
+ * @tc.desc: Test GetOrCreateFilterId interface of class ClockEnableFilter
+ * @tc.type: FUNC
+ */
 HWTEST_F(MeasureFilterTest, ClockEnableFilter, TestSize.Level1)
 {
     TS_LOGI("test8-6");
@@ -178,6 +208,11 @@ HWTEST_F(MeasureFilterTest, ClockEnableFilter, TestSize.Level1)
     EXPECT_TRUE(clockEventTable->NamesData()[1] == nameIndex_1);
 }
 
+/**
+ * @tc.name: ClockDisableFilter
+ * @tc.desc: Test GetOrCreateFilterId interface of class ClockDisableFilter
+ * @tc.type: FUNC
+ */
 HWTEST_F(MeasureFilterTest, ClockDisableFilter, TestSize.Level1)
 {
     TS_LOGI("test8-7");
@@ -200,9 +235,14 @@ HWTEST_F(MeasureFilterTest, ClockDisableFilter, TestSize.Level1)
     EXPECT_TRUE(clockEventTable->NamesData()[1] == nameIndex_1);
 }
 
+/**
+ * @tc.name: MeasureFilterTest
+ * @tc.desc: Test GetOrCreateFilterId interface of class MeasureFilterTest
+ * @tc.type: FUNC
+ */
 HWTEST_F(MeasureFilterTest, MeasureFilterTest, TestSize.Level1)
 {
-    TS_LOGI("test8-7");
+    TS_LOGI("test8-8");
     uint64_t itid = 1;
     const std::string_view MEASURE_ITEM_NAME = "mem_rss";
     auto nameIndex0 = stream_.traceDataCache_->GetDataIndex(MEASURE_ITEM_NAME);
@@ -211,9 +251,15 @@ HWTEST_F(MeasureFilterTest, MeasureFilterTest, TestSize.Level1)
     EXPECT_TRUE(stream_.traceDataCache_->GetConstMeasureData().Size() == 1);
 }
 
-HWTEST_F(MeasureFilterTest, MeasureFilterTest2, TestSize.Level1)
+/**
+ * @tc.name: MeasureFilterAddMultiMemToSingleThread
+ * @tc.desc: Test GetOrCreateFilterId interface of class MeasureFilterTest, Adding multiple memory information tests to
+ * the same thread
+ * @tc.type: FUNC
+ */
+HWTEST_F(MeasureFilterTest, MeasureFilterAddMultiMemToSingleThread, TestSize.Level1)
 {
-    TS_LOGI("test8-7");
+    TS_LOGI("test8-9");
     uint64_t itid = 1;
     auto threadMeasureFilter = stream_.streamFilters_->processMeasureFilter_.get();
     const std::string_view MEASURE_ITEM_NAME = "mem_rss";
@@ -225,9 +271,15 @@ HWTEST_F(MeasureFilterTest, MeasureFilterTest2, TestSize.Level1)
     EXPECT_TRUE(stream_.traceDataCache_->GetConstMeasureData().Size() == 2);
 }
 
-HWTEST_F(MeasureFilterTest, MeasureFilterTest3, TestSize.Level1)
+/**
+ * @tc.name: MeasureFilterAddMultiMemToMultiThread
+ * @tc.desc: Test GetOrCreateFilterId interface of class MeasureFilterTest, Adding multiple memory information to multi
+ * thread
+ * @tc.type: FUNC
+ */
+HWTEST_F(MeasureFilterTest, MeasureFilterAddMultiMemToMultiThread, TestSize.Level1)
 {
-    TS_LOGI("test8-7");
+    TS_LOGI("test8-10");
     uint64_t itid = 1;
     uint64_t itid2 = 2;
     auto threadMeasureFilter = stream_.streamFilters_->processMeasureFilter_.get();
@@ -242,9 +294,14 @@ HWTEST_F(MeasureFilterTest, MeasureFilterTest3, TestSize.Level1)
     EXPECT_TRUE(stream_.traceDataCache_->GetConstMeasureData().ValuesData()[1] == 9200);
 }
 
-HWTEST_F(MeasureFilterTest, MeasureFilterTest4, TestSize.Level1)
+/**
+ * @tc.name: MeasureFilterAddPerfclLfMux
+ * @tc.desc: Add perfcl_ lf_mux status test
+ * @tc.type: FUNC
+ */
+HWTEST_F(MeasureFilterTest, MeasureFilterAddPerfclLfMux, TestSize.Level1)
 {
-    TS_LOGI("test8-7");
+    TS_LOGI("test8-11");
     uint64_t cpuId = 1;
     int64_t state = 0;
     auto threadMeasureFilter = stream_.streamFilters_->clockDisableFilter_.get();
@@ -255,9 +312,14 @@ HWTEST_F(MeasureFilterTest, MeasureFilterTest4, TestSize.Level1)
     EXPECT_TRUE(stream_.traceDataCache_->GetConstMeasureData().ValuesData()[0] == state);
 }
 
-HWTEST_F(MeasureFilterTest, MeasureFilterTest5, TestSize.Level1)
+/**
+ * @tc.name: MeasureFilterAddPerfclLfMux
+ * @tc.desc: Add perfcl_pll status test
+ * @tc.type: FUNC
+ */
+HWTEST_F(MeasureFilterTest, MeasureFilterAddPerfclPll, TestSize.Level1)
 {
-    TS_LOGI("test8-7");
+    TS_LOGI("test8-12");
     uint64_t cpuId = 1;
     int64_t state = 1747200000;
     auto threadMeasureFilter = stream_.streamFilters_->clockRateFilter_.get();

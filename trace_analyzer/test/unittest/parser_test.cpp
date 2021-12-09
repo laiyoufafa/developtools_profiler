@@ -13,10 +13,9 @@
  * limitations under the License.
  */
 
+#include <fcntl.h>
 #include <hwext/gtest-ext.h>
 #include <hwext/gtest-tag.h>
-
-#include <fcntl.h>
 #include <iostream>
 #include <string>
 #include <unistd.h>
@@ -36,20 +35,24 @@ protected:
     static void TearDownTestCase() {}
 };
 
+/**
+ * @tc.name: BytraceParserTest
+ * @tc.desc: Test bytrace parsing TXT file to export database
+ * @tc.type: FUNC
+ */
 HWTEST_F(ParserTest, BytraceParserTest, TestSize.Level1)
 {
     TS_LOGI("test9-1");
-    const char tracePath[] = "/data/resource/ut_bytrace_input_full.txt";
-    const char utGoldDb[] = "/data/resource/ut_bytrace_input_full_gold.db";
-    const char dbPath[] = "/data/resource/out1.db";
+    const std::string tracePath = "/data/resource/ut_bytrace_input_full.txt";
+    const std::string utGoldDb = "/data/resource/ut_bytrace_input_full_gold.db";
+    const std::string dbPath = "/data/resource/out_db1.db";
     constexpr size_t readSize = 1024 * 1024;
     constexpr uint32_t lineLength = 256;
 
-    if (access(tracePath, F_OK) == 0) {
-        std::string traceFilePath(tracePath);
+    if (access(tracePath.c_str(), F_OK) == 0) {
         std::unique_ptr<SysTuning::TraceStreamer::TraceStreamerSelector> ta =
             std::make_unique<SysTuning::TraceStreamer::TraceStreamerSelector>();
-        int fd(base::OpenFile(traceFilePath, O_RDONLY, G_FILE_PERMISSION));
+        int fd(base::OpenFile(tracePath, O_RDONLY, G_FILE_PERMISSION));
         while (true) {
             std::unique_ptr<uint8_t[]> buf = std::make_unique<uint8_t[]>(std::move(readSize));
             auto rsize = base::Read(fd, buf.get(), readSize);
@@ -66,24 +69,23 @@ HWTEST_F(ParserTest, BytraceParserTest, TestSize.Level1)
         }
         ta->WaitForParserEnd();
         close(fd);
-        ta->ExportDatabase(std::string(dbPath));
-        EXPECT_TRUE(access(dbPath, F_OK) == 0);
+        ta->ExportDatabase(dbPath);
+        EXPECT_TRUE(access(dbPath.c_str(), F_OK) == 0);
     } else {
         EXPECT_TRUE(false);
     }
 
-    if (access(utGoldDb, F_OK) == 0) {
+    if (access(utGoldDb.c_str(), F_OK) == 0) {
         FILE* file1 = nullptr;
         FILE* file2 = nullptr;
         char line1[lineLength];
         char line2[lineLength];
-        const char command1[] = "md5sum /data/resource/ut_bytrace_input_full_gold.db";
-        const char command2[] = "md5sum /data/resource/out1.db";
-        file1 = popen(command1, "r");
-        file2 = popen(command2, "r");
+        const std::string command1 = "md5sum /data/resource/ut_bytrace_input_full_gold.db";
+        const std::string md5DbPath = "md5sum "+ dbPath;
+        file1 = popen(command1.c_str(), "r");
+        file2 = popen(md5DbPath.c_str(), "r");
         if (file1 && file2) {
-            if (fgets(line1, lineLength, file1) != nullptr &&
-                fgets(line2, lineLength, file2) != nullptr) {
+            if (fgets(line1, lineLength, file1) != nullptr && fgets(line2, lineLength, file2) != nullptr) {
                 std::string str1(line1);
                 std::string str2(line2);
                 str1 = str1.substr(0, str1.find_first_of(' '));
@@ -95,25 +97,29 @@ HWTEST_F(ParserTest, BytraceParserTest, TestSize.Level1)
         EXPECT_TRUE(false);
     }
 
-    if (access(dbPath, F_OK) == 0) {
-        remove(dbPath);
+    if (access(dbPath.c_str(), F_OK) == 0) {
+        remove(dbPath.c_str());
     }
 }
 
+/**
+ * @tc.name: HtraceParserTest
+ * @tc.desc: Test htrace parsing binary file export database
+ * @tc.type: FUNC
+ */
 HWTEST_F(ParserTest, HtraceParserTest, TestSize.Level1)
 {
     TS_LOGI("test9-2");
-    const char tracePath[] = "/data/resource/htrace.bin";
-    const char utGoldDb[] = "/data/resource/htrace_gold.db";
-    const char dbPath[] = "/data/resource/out2.db";
+    const std::string tracePath = "/data/resource/htrace.bin";
+    const std::string utGoldDb = "/data/resource/htrace_gold.db";
+    const std::string dbPath = "/data/resource/out_db2.db";
     constexpr size_t readSize = 1024;
     constexpr uint32_t lineLength = 256;
 
-    if (access(tracePath, F_OK) == 0) {
-        std::string traceFilePath(tracePath);
+    if (access(tracePath.c_str(), F_OK) == 0) {
         std::unique_ptr<SysTuning::TraceStreamer::TraceStreamerSelector> ta =
             std::make_unique<SysTuning::TraceStreamer::TraceStreamerSelector>();
-        int fd(base::OpenFile(traceFilePath, O_RDONLY, G_FILE_PERMISSION));
+        int fd(base::OpenFile(tracePath, O_RDONLY, G_FILE_PERMISSION));
         while (true) {
             std::unique_ptr<uint8_t[]> buf = std::make_unique<uint8_t[]>(std::move(readSize));
             auto rsize = base::Read(fd, buf.get(), readSize);
@@ -131,24 +137,23 @@ HWTEST_F(ParserTest, HtraceParserTest, TestSize.Level1)
         }
         ta->WaitForParserEnd();
         close(fd);
-        ta->ExportDatabase(std::string(dbPath));
-        EXPECT_TRUE(access(dbPath, F_OK) == 0);
+        ta->ExportDatabase(dbPath);
+        EXPECT_TRUE(access(dbPath.c_str(), F_OK) == 0);
     } else {
         EXPECT_TRUE(false);
     }
 
-    if (access(utGoldDb, F_OK) == 0) {
+    if (access(utGoldDb.c_str(), F_OK) == 0) {
         FILE* file1 = nullptr;
         FILE* file2 = nullptr;
         char line1[lineLength];
         char line2[lineLength];
-        const char command1[] = "md5sum /data/resource/htrace_gold.db";
-        const char command2[] = "md5sum /data/resource/out2.db";
-        file1 = popen(command1, "r");
-        file2 = popen(command2, "r");
+        const std::string command1 = "md5sum /data/resource/htrace_gold.db";
+        const std::string md5DbPath = "md5sum "+ dbPath;
+        file1 = popen(command1.c_str(), "r");
+        file2 = popen(md5DbPath.c_str(), "r");
         if (file1 && file2) {
-            if (fgets(line1, lineLength, file1) != nullptr &&
-                fgets(line2, lineLength, file2) != nullptr) {
+            if (fgets(line1, lineLength, file1) != nullptr && fgets(line2, lineLength, file2) != nullptr) {
                 std::string str1(line1);
                 std::string str2(line2);
                 str1 = str1.substr(0, str1.find_first_of(' '));
@@ -160,9 +165,9 @@ HWTEST_F(ParserTest, HtraceParserTest, TestSize.Level1)
         EXPECT_TRUE(false);
     }
 
-    if (access(dbPath, F_OK) == 0) {
-        remove(dbPath);
+    if (access(dbPath.c_str(), F_OK) == 0) {
+        remove(dbPath.c_str());
     }
 }
-}
-}
+} // namespace TraceStreamer
+} // namespace SysTuning

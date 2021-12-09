@@ -16,13 +16,12 @@
 #include "unix_socket_server.h"
 
 #include <cstdio>
-#include <linux/un.h>
 #include <pthread.h>
 #include <sys/epoll.h>
 #include <sys/socket.h>
 #include <unistd.h>
+#include <linux/un.h>
 
-#include "client_map.h"
 #include "logging.h"
 #include "securec.h"
 
@@ -36,31 +35,64 @@ UnixSocketServer::UnixSocketServer()
 UnixSocketServer::~UnixSocketServer()
 {
     if (socketHandle_ != 1) {
+        HILOG_DEBUG(LOG_CORE, "close UnixSocketServer");
         close(socketHandle_);
         socketHandle_ = -1;
         unlink(sAddrName_.c_str());
     }
+
     if (acceptThread_.joinable()) {
         acceptThread_.join();
+    }
+    HILOG_DEBUG(LOG_CORE, "acceptThread finish");
+    if (socketClients_.size() > 0) {
+        HILOG_DEBUG(LOG_CORE, "socketClients_.size() = %zu delete map", socketClients_.size());
+        socketClients_.clear();
     }
 }
 
 void UnixSocketServer::UnixSocketAccept()
 {
     pthread_setname_np(pthread_self(), "UnixSocketAccept");
-
     CHECK_TRUE(socketHandle_ != -1, NO_RETVAL, "Unix Socket Accept socketHandle_ == -1");
     int epfd = epoll_create(1);
     struct epoll_event evt;
     evt.data.fd = socketHandle_;
-    evt.events = EPOLLIN | EPOLLET;
+    evt.events = EPOLLIN | EPOLLET | EPOLLHUP;
     CHECK_TRUE(epoll_ctl(epfd, EPOLL_CTL_ADD, socketHandle_, &evt) != -1, NO_RETVAL, "Unix Socket Server Exit");
     while (socketHandle_ != -1) {
-        int nfds = epoll_wait(epfd, &evt, 1, 1000); // timeout value set 1000.
+        struct epoll_event events[10];
+        int nfds = epoll_wait(epfd, &events[0], 1, 1000);  // timeout value set 1000.
+
         if (nfds > 0) {
-            int clientSocket = accept(socketHandle_, nullptr, nullptr);
-            HILOG_INFO(LOG_CORE, "Accept A Client %d", clientSocket);
-            ClientMap::GetInstance().PutClientSocket(clientSocket, *serviceEntry_);
+            if (events[0].events & EPOLLIN) {
+                int clientSocket = accept(socketHandle_, nullptr, nullptr);
+                HILOG_INFO(LOG_CORE, "Accept A Client %d", clientSocket);
+
+                struct epoll_event clientEvt;
+                clientEvt.data.fd = clientSocket;
+                clientEvt.events = EPOLLHUP;
+                epoll_ctl(epfd, EPOLL_CTL_ADD, clientSocket, &clientEvt);
+
+                if (socketClients_.find(clientSocket) == socketClients_.end()) {
+                    HILOG_DEBUG(LOG_CORE, "new socketClients_ socketClients_.size() = %zu", socketClients_.size());
+                    socketClients_[clientSocket] = std::make_shared<ClientConnection>(clientSocket, *serviceEntry_);
+                } else {
+                    HILOG_ERROR(LOG_CORE, "Client %d exist", clientSocket);
+                }
+            } else if (events[0].events & EPOLLHUP) {
+                struct epoll_event delEvt;
+                delEvt.data.fd = events[0].data.fd;
+                delEvt.events = EPOLLHUP;
+                epoll_ctl(epfd, EPOLL_CTL_DEL, events[0].data.fd, &delEvt);
+
+                if (socketClients_.find(events[0].data.fd) != socketClients_.end()) {
+                    HILOG_DEBUG(LOG_CORE, "socketClients disconnect socketClients_.size() = %zu", socketClients_.size());
+                    socketClients_.erase(events[0].data.fd);
+                } else {
+                    HILOG_ERROR(LOG_CORE, "Client %d not exist", events[0].data.fd);
+                }
+            }
         }
     }
     close(epfd);
@@ -72,6 +104,7 @@ const int UNIX_SOCKET_LISTEN_COUNT = 5;
 bool UnixSocketServer::StartServer(const std::string& addrname, ServiceEntry& p)
 {
     CHECK_TRUE(socketHandle_ == -1, false, "StartServer FAIL socketHandle_ != -1");
+
 
     struct sockaddr_un addr;
     int sock = socket(AF_UNIX, SOCK_STREAM, 0);

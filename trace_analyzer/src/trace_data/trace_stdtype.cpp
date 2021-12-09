@@ -65,12 +65,12 @@ size_t SchedSlice::AppendSchedSlice(uint64_t ts,
                                     uint64_t endState,
                                     uint64_t priority)
 {
-    internalTids_.emplace_back(internalTid);
-    endStates_.emplace_back(endState);
-    priority_.emplace_back(priority);
     timeStamps_.emplace_back(ts);
     durs_.emplace_back(dur);
     cpus_.emplace_back(cpu);
+    internalTids_.emplace_back(internalTid);
+    endStates_.emplace_back(endState);
+    priority_.emplace_back(priority);
     return Size() - 1;
 }
 
@@ -141,6 +141,7 @@ void CallStack::AppendDistributeInfo(const std::string& chainId,
     parentSpanIds_.emplace_back(parentSpanId);
     flags_.emplace_back(flag);
     args_.emplace_back(args);
+    argSet_.emplace_back(INVALID_UINT32);
 }
 void CallStack::AppendDistributeInfo()
 {
@@ -149,10 +150,26 @@ void CallStack::AppendDistributeInfo()
     parentSpanIds_.emplace_back("");
     flags_.emplace_back("");
     args_.emplace_back("");
+    argSet_.emplace_back(INVALID_UINT32);
+}
+void CallStack::AppendArgSet(uint32_t argSetId)
+{
+    chainIds_.emplace_back("");
+    spanIds_.emplace_back("");
+    parentSpanIds_.emplace_back("");
+    flags_.emplace_back("");
+    args_.emplace_back("");
+    argSet_.emplace_back(argSetId);
 }
 void CallStack::SetDuration(size_t index, uint64_t timestamp)
 {
     durs_[index] = timestamp - timeStamps_[index];
+}
+
+void CallStack::SetDurationAndArg(size_t index, uint64_t timestamp, uint32_t argSetId)
+{
+    SetTimeStamp(index, timestamp);
+    argSet_[index] = argSetId;
 }
 void CallStack::SetTimeStamp(size_t index, uint64_t timestamp)
 {
@@ -203,7 +220,69 @@ const std::deque<std::string>& CallStack::ArgsData() const
 {
     return args_;
 }
+const std::deque<uint32_t>& CallStack::ArgSetIdsData() const
+{
+    return argSet_;
+}
 
+size_t ArgSet::AppendNewArg(DataIndex nameId, BaseDataType dataType, int64_t value, size_t argSet)
+{
+    dataTypes_.emplace_back(dataType);
+    argset_.emplace_back(argSet);
+    ids_.emplace_back(Size());
+    values_.emplace_back(value);
+    names_.emplace_back(nameId);
+    return Size() - 1;
+}
+const std::deque<BaseDataType>& ArgSet::DataTypes() const
+{
+    return dataTypes_;
+}
+const std::deque<int64_t>& ArgSet::ValuesData() const
+{
+    return values_;
+}
+const std::deque<uint64_t>& ArgSet::ArgsData() const
+{
+    return argset_;
+}
+const std::deque<DataIndex>& ArgSet::NamesData() const
+{
+    return names_;
+}
+
+size_t SysMeasureFilter::AppendNewFilter(uint64_t filterId, DataIndex type, DataIndex nameId)
+{
+    ids_.emplace_back(filterId);
+    names_.emplace_back(nameId);
+    types_.emplace_back(type);
+    return ids_.size() - 1;
+}
+const std::deque<DataIndex>& SysMeasureFilter::NamesData() const
+{
+    return names_;
+}
+
+const std::deque<DataIndex>& SysMeasureFilter::TypesData() const
+{
+    return types_;
+}
+size_t DataType::AppendNewDataType(BaseDataType dataType, DataIndex dataDescIndex)
+{
+    ids_.emplace_back(Size());
+    dataTypes_.emplace_back(dataType);
+    descs_.emplace_back(dataDescIndex);
+    return Size() - 1;
+}
+
+const std::deque<BaseDataType>& DataType::DataTypes() const
+{
+    return dataTypes_;
+}
+const std::deque<DataIndex>& DataType::DataDesc() const
+{
+    return descs_;
+}
 size_t Filter::AppendNewFilterData(std::string type, std::string name, uint64_t sourceArgSetId)
 {
     nameDeque_.emplace_back(name);
@@ -247,7 +326,53 @@ size_t Instants::AppendInstantEventData(uint64_t timestamp, DataIndex nameIndex,
     NameIndexs_.emplace_back(nameIndex);
     return Size() - 1;
 }
-
+size_t LogInfo::AppendNewLogInfo(uint64_t seq,
+                                 uint64_t timestamp,
+                                 uint32_t pid,
+                                 uint32_t tid,
+                                 DataIndex level,
+                                 DataIndex tag,
+                                 DataIndex context,
+                                 uint64_t originTs)
+{
+    hilogLineSeqs_.emplace_back(seq);
+    timeStamps_.emplace_back(timestamp);
+    pids_.emplace_back(pid);
+    tids_.emplace_back(tid);
+    levels_.emplace_back(level);
+    tags_.emplace_back(tag);
+    contexts_.emplace_back(context);
+    originTs_.emplace_back(originTs);
+    return Size() - 1;
+}
+const std::deque<uint64_t>& LogInfo::HilogLineSeqs() const
+{
+    return hilogLineSeqs_;
+}
+const std::deque<uint32_t>& LogInfo::Pids() const
+{
+    return pids_;
+}
+const std::deque<uint32_t>& LogInfo::Tids() const
+{
+    return tids_;
+}
+const std::deque<DataIndex>& LogInfo::Levels() const
+{
+    return levels_;
+}
+const std::deque<DataIndex>& LogInfo::Tags() const
+{
+    return tags_;
+}
+const std::deque<DataIndex>& LogInfo::Contexts() const
+{
+    return contexts_;
+}
+const std::deque<uint64_t>& LogInfo::OriginTimeStamData() const
+{
+    return originTs_;
+}
 size_t ProcessMeasureFilter::AppendNewFilter(uint64_t id, DataIndex name, uint32_t internalPid)
 {
     internalPids_.emplace_back(internalPid);
@@ -261,6 +386,23 @@ size_t ClockEventData::AppendNewFilter(uint64_t id, DataIndex type, DataIndex na
     ids_.emplace_back(id);
     types_.emplace_back(type);
     names_.emplace_back(name);
+    return Size() - 1;
+}
+size_t ClkEventData::AppendNewFilter(uint64_t id, uint64_t rate, DataIndex name, uint64_t cpu)
+{
+    ids_.emplace_back(id);
+    rates_.emplace_back(rate);
+    names_.emplace_back(name);
+    cpus_.emplace_back(cpu);
+    return Size() - 1;
+}
+size_t SysCall::AppendSysCallData(int64_t sysCallNum, DataIndex type, uint64_t ipid, uint64_t timestamp, int64_t ret)
+{
+    sysCallNums_.emplace_back(sysCallNum);
+    types_.emplace_back(type);
+    ipids_.emplace_back(ipid);
+    timeStamps_.emplace_back(timestamp);
+    rets_.emplace_back(ret);
     return Size() - 1;
 }
 StatAndInfo::StatAndInfo()
@@ -344,6 +486,7 @@ MetaData::MetaData()
     columnNames_[METADATA_ITEM_SOURCE_FILENAME] = METADATA_ITEM_SOURCE_FILENAME_COLNAME;
     columnNames_[METADATA_ITEM_OUTPUT_FILENAME] = METADATA_ITEM_OUTPUT_FILENAME_COLNAME;
     columnNames_[METADATA_ITEM_PARSERTIME] = METADATA_ITEM_PARSERTIME_COLNAME;
+    columnNames_[METADATA_ITEM_TRACE_DURATION] = METADATA_ITEM_TRACE_DURATION_COLNAME;
     columnNames_[METADATA_ITEM_SOURCE_DATETYPE] = METADATA_ITEM_SOURCE_DATETYPE_COLNAME;
     values_[METADATA_ITEM_PARSETOOL_NAME] = "trace_streamer";
 }
@@ -378,6 +521,10 @@ void MetaData::SetTraceDataSize(uint64_t dataSize)
     void(time(&rawtime));
     timeinfo = localtime(&rawtime);
     values_[METADATA_ITEM_PARSERTIME] = asctime(timeinfo);
+}
+void MetaData::SetTraceDuration(uint64_t dur)
+{
+    values_[METADATA_ITEM_TRACE_DURATION] = std::to_string(dur) + " s";
 }
 const std::string& MetaData::Value(uint64_t row) const
 {

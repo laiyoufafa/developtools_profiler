@@ -53,7 +53,7 @@ CpuDataPlugin::CpuDataPlugin()
 
 CpuDataPlugin::~CpuDataPlugin()
 {
-    HILOG_INFO(LOG_CORE, "plugin:~CpuDataPlugin!");
+    HILOG_INFO(LOG_CORE, "%s:~CpuDataPlugin!", __func__);
     if (buffer_ != nullptr) {
         free(buffer_);
         buffer_ = nullptr;
@@ -71,22 +71,22 @@ int CpuDataPlugin::Start(const uint8_t* configData, uint32_t configSize)
 {
     buffer_ = malloc(READ_BUFFER_SIZE);
     if (buffer_ == nullptr) {
-        HILOG_ERROR(LOG_CORE, "plugin:malloc buffer_ fail");
+        HILOG_ERROR(LOG_CORE, "%s:malloc buffer_ failed!", __func__);
         return RET_FAIL;
     }
 
     if (protoConfig_.ParseFromArray(configData, configSize) <= 0) {
-        HILOG_ERROR(LOG_CORE, "plugin:ParseFromArray failed");
+        HILOG_ERROR(LOG_CORE, "%s:parseFromArray failed!", __func__);
         return RET_FAIL;
     }
 
     if (protoConfig_.pid() > 0) {
         pid_ = protoConfig_.pid();
     } else {
-        HILOG_ERROR(LOG_CORE, "plugin:Invalid pid");
+        HILOG_ERROR(LOG_CORE, "%s:invalid pid", __func__);
         return RET_FAIL;
     }
-    HILOG_INFO(LOG_CORE, "plugin:start success!");
+    HILOG_INFO(LOG_CORE, "%s:start success!", __func__);
     return RET_SUCC;
 }
 
@@ -119,7 +119,7 @@ int CpuDataPlugin::Stop()
     prevThreadCpuTimeMap_.clear();
     prevCoreSystemCpuTimeMap_.clear();
     prevCoreSystemBootTimeMap_.clear();
-    HILOG_INFO(LOG_CORE, "plugin:stop success!");
+    HILOG_INFO(LOG_CORE, "%s:stop success!", __func__);
     return 0;
 }
 
@@ -127,21 +127,26 @@ int32_t CpuDataPlugin::ReadFile(std::string& fileName)
 {
     int fd = -1;
     ssize_t bytesRead = 0;
+    char filePath[PATH_MAX + 1] = {0};
     char realPath[PATH_MAX + 1] = {0};
 
-    if (realpath(fileName.c_str(), realPath) == nullptr) {
-        HILOG_ERROR(LOG_CORE, "ReadFile:realpath failed, errno=%d", errno);
+    if (snprintf_s(filePath, sizeof(filePath), sizeof(filePath) - 1, "%s", fileName.c_str()) < 0) {
+        HILOG_ERROR(LOG_CORE, "snprintf_s(%s) error, errno(%d:%s)", fileName.c_str(), errno, strerror(errno));
+        return RET_FAIL;
+    }
+    if (realpath(filePath, realPath) == nullptr) {
+        HILOG_ERROR(LOG_CORE, "realpath(%s) failed, errno(%d:%s)", fileName.c_str(), errno, strerror(errno));
         return RET_FAIL;
     }
 
     fd = open(realPath, O_RDONLY | O_CLOEXEC);
     if (fd == -1) {
-        HILOG_ERROR(LOG_CORE, "Failed to open(%s), errno=%d", realPath, errno);
+        HILOG_ERROR(LOG_CORE, "%s:failed to open(%s), errno(%d:%s)", __func__, realPath, errno, strerror(errno));
         err_ = errno;
         return RET_FAIL;
     }
     if (buffer_ == nullptr) {
-        HILOG_ERROR(LOG_CORE, "%s:Empty address, buffer_ is NULL", __func__);
+        HILOG_ERROR(LOG_CORE, "%s:empty address, buffer_ is NULL", __func__);
         err_ = RET_NULL_ADDR;
         close(fd);
         return RET_FAIL;
@@ -149,7 +154,7 @@ int32_t CpuDataPlugin::ReadFile(std::string& fileName)
     bytesRead = read(fd, buffer_, READ_BUFFER_SIZE - 1);
     if (bytesRead <= 0) {
         close(fd);
-        HILOG_ERROR(LOG_CORE, "Failed to read(%s), errno=%d", realPath, errno);
+        HILOG_ERROR(LOG_CORE, "%s:failed to read(%s), errno=%d", __func__, realPath, errno);
         err_ = errno;
         return RET_FAIL;
     }
@@ -215,7 +220,7 @@ void CpuDataPlugin::WriteProcessCpuUsage(CpuUsageInfo& cpuUsageInfo, const char*
 
     // 获取到的数据不包含utime、stime、cutime、cstime四个数值时返回
     if (cpuUsageVec.size() != PROCESS_UNSPECIFIED) {
-        HILOG_ERROR(LOG_CORE, "Failed to get process cpu usage, size=%d", cpuUsageVec.size());
+        HILOG_ERROR(LOG_CORE, "%s:failed to get process cpu usage, size=%zu", __func__, cpuUsageVec.size());
         return;
     }
 
@@ -229,9 +234,7 @@ int32_t CpuDataPlugin::GetCpuFrequency(std::string fileName)
 {
     int32_t frequency = 0;
     int32_t ret = ReadFile(fileName);
-    if (ret == RET_FAIL) {
-        HILOG_ERROR(LOG_CORE, "read %s file failed", fileName.c_str());
-    } else {
+    if (ret != RET_FAIL) {
         frequency = atoi((char*)buffer_);
     }
     return frequency;
@@ -243,7 +246,6 @@ int CpuDataPlugin::GetCpuCoreSize()
     DIR* procDir = nullptr;
     procDir = OpenDestDir(freqPath_);
     if (procDir == nullptr) {
-        HILOG_ERROR(LOG_CORE, "procDir is nullptr");
         return -1;
     }
 
@@ -310,12 +312,12 @@ void CpuDataPlugin::SetCpuFrequency(CpuCoreUsageInfo& cpuCore, int32_t coreNum)
     frequency->set_cur_frequency_khz(curFrequency);
 }
 
-void CpuDataPlugin::GetSystemCpuTime(std::vector<std::string>& cpuUsageVec, int64_t& usageTime, int64_t& time)
+bool CpuDataPlugin::GetSystemCpuTime(std::vector<std::string>& cpuUsageVec, int64_t& usageTime, int64_t& time)
 {
     // 获取到的数据不包含user, nice, system, idle, iowait, irq, softirq, steal八个数值时返回
     if (cpuUsageVec.size() != SYSTEM_UNSPECIFIED) {
-        HILOG_ERROR(LOG_CORE, "Failed to get system cpu usage, size=%d", cpuUsageVec.size());
-        return;
+        HILOG_ERROR(LOG_CORE, "%s:failed to get system cpu usage, size=%zu", __func__, cpuUsageVec.size());
+        return false;
     }
 
     int64_t user, nice, system, idle, iowait, irq, softirq, steal;
@@ -329,19 +331,21 @@ void CpuDataPlugin::GetSystemCpuTime(std::vector<std::string>& cpuUsageVec, int6
     steal = atoi(cpuUsageVec[SYSTEM_STEAL].c_str());
 
     usageTime = (user + nice + system + irq + softirq + steal) * GetUserHz();
-    time = (usageTime + idle + iowait) * GetUserHz();
+    time = usageTime + (idle + iowait) * GetUserHz();
+    return true;
 }
 
 void CpuDataPlugin::WriteSystemCpuUsage(CpuUsageInfo& cpuUsageInfo, const char* pFile, uint32_t fileLen)
 {
     BufferSplitter totalbuffer(const_cast<char*>(pFile), fileLen + 1);
     std::vector<std::string> cpuUsageVec;
-    int64_t usageTime, time;
+    int64_t usageTime = 0;
+    int64_t time = 0;
     size_t cpuLength = strlen("cpu");
 
     do {
         totalbuffer.NextWord(' ');
-        if (strncmp(totalbuffer.CurWord(), "cpu", cpuLength) != 0) {
+        if (!totalbuffer.CurWord() || strncmp(totalbuffer.CurWord(), "cpu", cpuLength) != 0) {
             return;
         }
 
@@ -354,7 +358,11 @@ void CpuDataPlugin::WriteSystemCpuUsage(CpuUsageInfo& cpuUsageInfo, const char* 
             totalbuffer.NextWord(' ');
         }
 
-        GetSystemCpuTime(cpuUsageVec, usageTime, time);
+        // 获取数据失败返回
+        if (!GetSystemCpuTime(cpuUsageVec, usageTime, time)) {
+            return;
+        }
+
         if (strcmp(cpuUsageVec[0].c_str(), "cpu") == 0) {
             cpuUsageInfo.set_prev_system_cpu_time_ms(prevSystemCpuTime_);
             cpuUsageInfo.set_prev_system_boot_time_ms(prevSystemBootTime_);
@@ -394,11 +402,9 @@ void CpuDataPlugin::WriteCpuUsageInfo(CpuData& data)
     std::string fileName = path_ + std::to_string(pid_) + "/stat";
     int32_t ret = ReadFile(fileName);
     if (ret == RET_FAIL) {
-        HILOG_ERROR(LOG_CORE, "read /proc/pid/stat file failed");
         return;
     }
     if ((buffer_ == nullptr) || (ret == 0)) {
-        HILOG_ERROR(LOG_CORE, "%s:invalid params, read buffer_ is NULL", __func__);
         return;
     }
     auto* cpuUsageInfo = data.mutable_cpu_usage_info();
@@ -408,11 +414,9 @@ void CpuDataPlugin::WriteCpuUsageInfo(CpuData& data)
     fileName = path_ + "stat";
     ret = ReadFile(fileName);
     if (ret == RET_FAIL) {
-        HILOG_ERROR(LOG_CORE, "read /proc/stat file failed");
         return;
     }
     if ((buffer_ == nullptr) || (ret == 0)) {
-        HILOG_ERROR(LOG_CORE, "%s:invalid params, read buffer_ is NULL", __func__);
         return;
     }
     WriteSystemCpuUsage(*cpuUsageInfo, (char*)buffer_, ret);
@@ -438,7 +442,7 @@ DIR* CpuDataPlugin::OpenDestDir(std::string& dirPath)
 
     destDir = opendir(dirPath.c_str());
     if (destDir == nullptr) {
-        HILOG_ERROR(LOG_CORE, "Failed to opendir(%s), errno=%d", dirPath.c_str(), errno);
+        HILOG_ERROR(LOG_CORE, "%s:failed to opendir(%s), errno=%d", __func__, dirPath.c_str(), errno);
     }
 
     return destDir;
@@ -490,13 +494,18 @@ void CpuDataPlugin::WriteThread(ThreadInfo& threadInfo, const char* pFile, uint3
     BufferSplitter totalbuffer(const_cast<char*>(pFile), fileLen + 1);
     std::vector<std::string> cpuUsageVec;
     for (int i = 0; i < STAT_COUNT; i++) {
-        totalbuffer.NextWord(' ');
+        if (i == THREAD_NAME_POS) { // 线程名是')'作为结束符
+            totalbuffer.NextWord(')');
+        } else {
+            totalbuffer.NextWord(' ');
+        }
+
         if (!totalbuffer.CurWord()) {
             return;
         }
 
         if (i == THREAD_NAME_POS) {
-            std::string curWord = std::string(totalbuffer.CurWord() + 1, totalbuffer.CurWordSize() - sizeof(")"));
+            std::string curWord = std::string(totalbuffer.CurWord() + 1, totalbuffer.CurWordSize() - 1);
             threadInfo.set_thread_name(curWord);
         } else if (i == THREAD_STATE_POS) {
             std::string curWord = std::string(totalbuffer.CurWord(), totalbuffer.CurWordSize());
@@ -510,7 +519,7 @@ void CpuDataPlugin::WriteThread(ThreadInfo& threadInfo, const char* pFile, uint3
 
     // 获取到的数据不包含utime、stime、cutime、cstime四个数值时返回
     if (cpuUsageVec.size() != PROCESS_UNSPECIFIED) {
-        HILOG_ERROR(LOG_CORE, "Failed to get thread cpu usage, size=%d", cpuUsageVec.size());
+        HILOG_ERROR(LOG_CORE, "%s:failed to get thread cpu usage, size=%zu", __func__, cpuUsageVec.size());
         return;
     }
 
@@ -534,11 +543,9 @@ void CpuDataPlugin::WriteSingleThreadInfo(CpuData& data, int32_t tid)
     std::string fileName = path_ + std::to_string(pid_) + "/task/" + std::to_string(tid) + "/stat";
     int32_t ret = ReadFile(fileName);
     if (ret == RET_FAIL) {
-        HILOG_ERROR(LOG_CORE, "%s:read tid file failed", fileName.c_str());
         return;
     }
     if ((buffer_ == nullptr) || (ret == 0)) {
-        HILOG_ERROR(LOG_CORE, "%s:invalid params, read buffer_ is NULL", __func__);
         return;
     }
     auto* threadInfo = data.add_thread_info();

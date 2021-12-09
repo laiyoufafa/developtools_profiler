@@ -33,7 +33,7 @@ private:
     public:
         explicit Cursor(const TraceDataCache* dataCache);
         ~Cursor() override;
-        int Column(int) const override;
+        int Column(int column) const override;
 
     private:
         const Raw& rawObj_;

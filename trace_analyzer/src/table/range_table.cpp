@@ -42,10 +42,10 @@ int RangeTable::Cursor::Column(int column) const
 {
     switch (column) {
         case START_TS:
-            sqlite3_result_int64(context_, static_cast<long long>(dataCache_->TraceStartTime()));
+            sqlite3_result_int64(context_, static_cast<int64_t>(dataCache_->TraceStartTime()));
             break;
         case END_TS:
-            sqlite3_result_int64(context_, static_cast<long long>(dataCache_->TraceEndTime()));
+            sqlite3_result_int64(context_, static_cast<int64_t>(dataCache_->TraceEndTime()));
             break;
         default:
             TS_LOGF("Unregistered column : %d", column);

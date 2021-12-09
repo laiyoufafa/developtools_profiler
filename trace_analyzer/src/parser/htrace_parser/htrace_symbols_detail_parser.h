@@ -14,6 +14,7 @@
  */
 #ifndef HTRACE_SYMBOLS_DETAIL_PARSER_H
 #define HTRACE_SYMBOLS_DETAIL_PARSER_H
+
 #include <cstdint>
 #include <limits>
 #include <map>
@@ -22,7 +23,6 @@
 #include "trace_data/trace_data_cache.h"
 #include "trace_streamer_filters.h"
 #include "types/plugins/ftrace_data/trace_plugin_result.pb.h"
-
 namespace SysTuning {
 namespace TraceStreamer {
 class HtraceSymbolsDetailParser {

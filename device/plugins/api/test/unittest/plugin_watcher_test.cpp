@@ -32,12 +32,12 @@ namespace {
 constexpr int DEAFULT_FILE_MODE = 0777;
 
 #if defined(__i386__) || defined(__x86_64__)
-const static std::string DEFAULT_TEST_PATH = "./";
+const std::string DEFAULT_TEST_PATH = "./";
 #else
-const static std::string DEFAULT_TEST_PATH_1 = "/data/local/tmp/watchertest/1/";
-const static std::string DEFAULT_TEST_PATH_2 = "/data/local/tmp/watchertest/2/";
-const static std::string DEFAULT_TEST_PATH_3 = "/data/local/tmp/watchertest/3/";
-const static std::string NO_EXIST_TEST_PATH = "/data/local/tmp/noexist/";
+const std::string DEFAULT_TEST_PATH_1 = "/data/local/tmp/watchertest/1/";
+const std::string DEFAULT_TEST_PATH_2 = "/data/local/tmp/watchertest/2/";
+const std::string DEFAULT_TEST_PATH_3 = "/data/local/tmp/watchertest/3/";
+const std::string NO_EXIST_TEST_PATH = "/data/local/tmp/noexist/";
 #endif
 
 class PluginWatchTest : public ::testing::Test {
@@ -101,10 +101,16 @@ protected:
     void DeleteFile(std::string dirPath) const
     {
         for (auto it : createFileList) {
-            remove((dirPath + it).c_str());
+            if (remove((dirPath + it).c_str()) != 0) {
+                std::cout << "createFileList remove failed, errno=" << errno << std::endl;
+                return;
+            }
         }
         for (auto it : addFileList) {
-            remove((dirPath + it).c_str());
+            if (remove((dirPath + it).c_str()) != 0) {
+                std::cout << "addFileList remove failed, errno=" << errno << std::endl;
+                return;
+            }
         }
     }
 

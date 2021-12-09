@@ -16,17 +16,15 @@
 #ifndef TRACE_DATA_CACHE_BASE_H
 #define TRACE_DATA_CACHE_BASE_H
 
+
 #include <array>
 #include <deque>
 #include <limits>
 #include <map>
-#include <optional>
 #include <stdexcept>
 #include <string>
-#include <unordered_map>
 #include <vector>
 #include "trace_stdtype.h"
-
 namespace SysTuning {
 namespace TraceStreamer {
 using namespace TraceStdtype;
@@ -36,28 +34,41 @@ public:
     TraceDataCacheBase(const TraceDataCacheBase&) = delete;
     TraceDataCacheBase& operator=(const TraceDataCacheBase&) = delete;
     virtual ~TraceDataCacheBase() = default;
+
 public:
     size_t ThreadSize() const
     {
-        return internalThreadsData_.size() - 1;
+        return internalThreadsData_.size();
     }
     size_t ProcessSize() const
     {
-        return internalProcessesData_.size() - 1;
+        return internalProcessesData_.size();
     }
 
     size_t DataDictSize() const
     {
         return dataDict_.Size();
     }
+    void UpdateTraceRange()
+    {
+        metaData_.SetTraceDuration((traceEndTime_ - traceStartTime_) / SEC_TO_NS);
+    }
     DataIndex GetDataIndex(std::string_view str);
-    std::map<uint64_t, std::string> statusString_ = {
-        {TASK_RUNNABLE, "R"},    {TASK_INTERRUPTIBLE, "S"}, {TASK_UNINTERRUPTIBLE, "D"}, {TASK_RUNNING, "Running"},
-        {TASK_INTERRUPTED, "I"}, {TASK_EXIT_DEAD, "X"},     {TASK_ZOMBIE, "Z"},          {TASK_KILLED, "I"},
-        {TASK_WAKEKILL, "R"},    {TASK_INVALID, "U"},       {TASK_CLONE, "I"},           {TASK_DK, "DK"},
-        {TASK_FOREGROUND, "R+"}, {TASK_MAX, "S"}
-    };
-
+    std::map<uint64_t, std::string> statusString_ = {{TASK_RUNNABLE, "R"},
+                                                     {TASK_INTERRUPTIBLE, "S"},
+                                                     {TASK_UNINTERRUPTIBLE, "D"},
+                                                     {TASK_RUNNING, "Running"},
+                                                     {TASK_INTERRUPTED, "I"},
+                                                     {TASK_EXIT_DEAD, "X"},
+                                                     {TASK_ZOMBIE, "Z"},
+                                                     {TASK_KILLED, "I"},
+                                                     {TASK_WAKEKILL, "R"},
+                                                     {TASK_INVALID, "U"},
+                                                     {TASK_CLONE, "I"},
+                                                     {TASK_DK, "DK"},
+                                                     {TASK_TRACED_KILL, "TK"},
+                                                     {TASK_FOREGROUND, "R+"},
+                                                     {TASK_MAX, "S"}};
     uint64_t traceStartTime_ = std::numeric_limits<uint64_t>::max();
     uint64_t traceEndTime_ = 0;
 
@@ -68,6 +79,7 @@ public:
     Filter filterData_;
     ProcessMeasureFilter processMeasureFilterData_;
     ClockEventData clockEventFilterData_;
+    ClkEventData clkEventFilterData_;
     ProcessMeasureFilter processFilterData_;
     ThreadMeasureFilter threadMeasureFilterData_;
     ThreadMeasureFilter threadFilterData_;
@@ -75,9 +87,10 @@ public:
 
     SchedSlice schedSliceData_;
     CallStack internalSlicesData_;
+    LogInfo hilogData_;
 
-    std::deque<Process> internalProcessesData_ {};
-    std::deque<Thread> internalThreadsData_ {};
+    std::deque<Process> internalProcessesData_ = {};
+    std::deque<Thread> internalThreadsData_ = {};
 
     Measure measureData_;
     CpuMeasureFilter cpuMeasureData_;
@@ -85,8 +98,12 @@ public:
     StatAndInfo stat_;
     MetaData metaData_;
     SymbolsData symbolsData_;
+    SysCall sysCallData_;
+    ArgSet argSet_;
+    DataType dataType_;
+    SysMeasureFilter sysEvent_;
 };
-} // namespace trace_data_cache_base
+} // namespace TraceStreamer
 } // namespace SysTuning
 
 #endif // TRACE_DATA_CACHE_BASE_H

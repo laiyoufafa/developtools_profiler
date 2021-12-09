@@ -21,9 +21,9 @@
 #include "smaps_stats.h"
 
 namespace {
-static const char* CMD_FORMAT = "dumpsys meminfo --local ";
+const char* CMD_FORMAT = "dumpsys meminfo --local ";
 constexpr size_t READ_BUFFER_SIZE = 1024 * 16;
-static const int BUF_MAX_LEN = 2048;
+constexpr int BUF_MAX_LEN = 2048;
 } // namespace
 
 MemoryDataPlugin::MemoryDataPlugin()
@@ -35,7 +35,7 @@ MemoryDataPlugin::MemoryDataPlugin()
 
 MemoryDataPlugin::~MemoryDataPlugin()
 {
-    HILOG_INFO(LOG_CORE, "plugin:~MemoryDataPlugin!");
+    HILOG_INFO(LOG_CORE, "%s:~MemoryDataPlugin!", __func__);
 
     buffer_ = nullptr;
 
@@ -68,50 +68,99 @@ void MemoryDataPlugin::InitProto2StrVector()
     for (unsigned int i = 0; i < sizeof(meminfoMapping) / sizeof(meminfoMapping[0]); i++) {
         meminfoStrList_[meminfoMapping[i].protobufid] = meminfoMapping[i].procstr;
     }
+
+    maxprotobufid = 0;
+    for (unsigned int i = 0; i < sizeof(vmeminfoMapping) / sizeof(vmeminfoMapping[0]); i++) {
+        maxprotobufid = std::max(vmeminfoMapping[i].protobufid, maxprotobufid);
+    }
+    vmstatStrList_.resize(maxprotobufid + 1);
+
+    for (unsigned int i = 0; i < sizeof(vmeminfoMapping) / sizeof(vmeminfoMapping[0]); i++) {
+        vmstatStrList_[vmeminfoMapping[i].protobufid] = vmeminfoMapping[i].procstr;
+    }
+
     return;
+}
+
+int MemoryDataPlugin::InitMemVmemFd()
+{
+    if (protoConfig_.report_sysmem_mem_info()) {
+        char fileName[PATH_MAX + 1] = {0};
+        char realPath[PATH_MAX + 1] = {0};
+        if (snprintf_s(fileName, sizeof(fileName), sizeof(fileName) - 1, "%s/meminfo", testpath_) < 0) {
+            HILOG_ERROR(LOG_CORE, "%s:snprintf_s error", __func__);
+            return RET_FAIL;
+        }
+        if (realpath(fileName, realPath) == nullptr) {
+            HILOG_ERROR(LOG_CORE, "%s:realpath failed, errno(%d:%s)", __func__, errno, strerror(errno));
+            return RET_FAIL;
+        }
+        meminfoFd_ = open(realPath, O_RDONLY | O_CLOEXEC);
+        if (meminfoFd_ == -1) {
+            HILOG_ERROR(LOG_CORE, "%s:open failed, fileName, errno(%d:%s)", __func__, errno, strerror(errno));
+            return RET_FAIL;
+        }
+    }
+
+    if (protoConfig_.report_sysmem_vmem_info()) {
+        char fileName[PATH_MAX + 1] = {0};
+        char realPath[PATH_MAX + 1] = {0};
+        if (snprintf_s(fileName, sizeof(fileName), sizeof(fileName) - 1, "%s/vmstat", testpath_) < 0) {
+            HILOG_ERROR(LOG_CORE, "%s:snprintf_s error", __func__);
+            return RET_FAIL;
+        }
+        if (realpath(fileName, realPath) == nullptr) {
+            HILOG_ERROR(LOG_CORE, "%s:realpath failed, errno(%d:%s)", __func__, errno, strerror(errno));
+            return RET_FAIL;
+        }
+        vmstatFd_ = open(realPath, O_RDONLY | O_CLOEXEC);
+        if (vmstatFd_ == -1) {
+            HILOG_ERROR(LOG_CORE, "%s:failed to open(/proc/vmstat), errno(%d:%s)", __func__, errno, strerror(errno));
+            return RET_FAIL;
+        }
+    }
+
+    return RET_SUCC;
 }
 
 int MemoryDataPlugin::Start(const uint8_t* configData, uint32_t configSize)
 {
     if (buffer_ == nullptr) {
-        HILOG_ERROR(LOG_CORE, "buffer_ = null");
+        HILOG_ERROR(LOG_CORE, "%s:buffer_ == null", __func__);
         return RET_FAIL;
     }
 
     if (protoConfig_.ParseFromArray(configData, configSize) <= 0) {
-        HILOG_ERROR(LOG_CORE, "plugin:ParseFromArray failed");
+        HILOG_ERROR(LOG_CORE, "%s:parseFromArray failed!", __func__);
         return RET_FAIL;
     }
 
-    if (protoConfig_.report_sysmem_mem_info()) {
-        char fileName[PATH_MAX + 1] = {0};
-        char realPath[PATH_MAX + 1] = {0};
-        if (snprintf_s(fileName, sizeof(fileName), sizeof(fileName) - 1, "%s/meminfo", testpath_) < 0) {
-            HILOG_ERROR(LOG_CORE, "snprintf_s error");
-        }
-        if (realpath(fileName, realPath) == nullptr) {
-            HILOG_ERROR(LOG_CORE, "plugin:realpath failed, errno=%d", errno);
-            return RET_FAIL;
-        }
-        meminfoFd_ = open(realPath, O_RDONLY | O_CLOEXEC);
-        if (meminfoFd_ == -1) {
-            HILOG_ERROR(LOG_CORE, "plugin:open failed, fileName, errno=%d", errno);
-            return RET_FAIL;
-        }
-    }
-    if (protoConfig_.report_sysmem_vmem_info()) {
-        vmstatFd_ = open("/proc/vmstat", O_RDONLY | O_CLOEXEC);
-        if (vmstatFd_ == -1) {
-            HILOG_ERROR(LOG_CORE, "plugin:Failed to open(/proc/vmstat), errno=%d", errno);
-            return RET_FAIL;
-        }
+    if (InitMemVmemFd() != RET_SUCC) {
+        return RET_FAIL;
     }
 
     if (protoConfig_.sys_meminfo_counters().size() > 0) {
         for (int i = 0; i < protoConfig_.sys_meminfo_counters().size(); i++) {
+            if ((size_t)protoConfig_.sys_meminfo_counters(i) >= meminfoStrList_.size()) {
+                HILOG_ERROR(LOG_CORE, "%s:sys meminfo counter index invalid!", __func__);
+                return RET_FAIL;
+            }
             if (meminfoStrList_[protoConfig_.sys_meminfo_counters(i)]) {
                 meminfoCounters_.emplace(meminfoStrList_[protoConfig_.sys_meminfo_counters(i)],
                                          protoConfig_.sys_meminfo_counters(i));
+            }
+        }
+    }
+
+    if (protoConfig_.sys_vmeminfo_counters().size() > 0) {
+        for (int i = 0; i < protoConfig_.sys_vmeminfo_counters().size(); i++) {
+            if ((size_t)protoConfig_.sys_vmeminfo_counters(i) >= vmstatStrList_.size()) {
+                HILOG_ERROR(LOG_CORE, "%s:vmstat counter index invalid!", __func__);
+                return RET_FAIL;
+            }
+            if (vmstatStrList_[protoConfig_.sys_vmeminfo_counters(i)]) {
+                vmstatCounters_.emplace(vmstatStrList_[protoConfig_.sys_vmeminfo_counters(i)],
+                                        protoConfig_.sys_vmeminfo_counters(i));
             }
         }
     }
@@ -123,7 +172,7 @@ int MemoryDataPlugin::Start(const uint8_t* configData, uint32_t configSize)
         }
     }
 
-    HILOG_INFO(LOG_CORE, "plugin:start success!");
+    HILOG_INFO(LOG_CORE, "%s:start success!", __func__);
     return RET_SUCC;
 }
 
@@ -131,7 +180,6 @@ void MemoryDataPlugin::WriteMeminfo(MemoryData& data)
 {
     int readsize = ReadFile(meminfoFd_);
     if (readsize == RET_FAIL) {
-        HILOG_ERROR(LOG_CORE, "%s:read meminfoFd fail!", __func__);
         return;
     }
     BufferSplitter totalbuffer((const char*)buffer_.get(), readsize);
@@ -162,6 +210,33 @@ void MemoryDataPlugin::WriteMeminfo(MemoryData& data)
 
 void MemoryDataPlugin::WriteVmstat(MemoryData& data)
 {
+    int readsize = ReadFile(vmstatFd_);
+    if (readsize == RET_FAIL) {
+        return;
+    }
+    BufferSplitter totalbuffer((const char*)buffer_.get(), readsize);
+
+    do {
+        if (!totalbuffer.NextWord(' ')) {
+            continue;
+        }
+        const_cast<char *>(totalbuffer.CurWord())[totalbuffer.CurWordSize()] = '\0';
+        auto it = vmstatCounters_.find(totalbuffer.CurWord());
+        if (it == vmstatCounters_.end()) {
+            continue;
+        }
+
+        int counter_id = it->second;
+        char* valuestr = const_cast<char *>(totalbuffer.CurWord() + totalbuffer.CurWordSize() + 1);
+        valuestr[totalbuffer.CurLineSize() - (valuestr - totalbuffer.CurLine())] = '\0';
+
+        auto value = static_cast<uint64_t>(strtoll(valuestr, nullptr, DEC_BASE));
+        auto* vmeminfo = data.add_vmeminfo();
+
+        vmeminfo->set_key(static_cast<SysVMeminfoType>(counter_id));
+        vmeminfo->set_value(value);
+    } while (totalbuffer.NextLine());
+
     return;
 }
 
@@ -237,7 +312,7 @@ bool MemoryDataPlugin::GetMemInfoByDumpsys(uint32_t pid, ProcessMemoryInfo* memo
     std::unique_ptr<uint8_t[]> buffer {new (std::nothrow) uint8_t[BUF_MAX_LEN]};
     std::unique_ptr<FILE, int (*)(FILE*)> fp(popen(fullCmd.c_str(), "r"), pclose);
     if (!fp) {
-        HILOG_ERROR(LOG_CORE, "popen error");
+        HILOG_ERROR(LOG_CORE, "%s:popen error", __func__);
         return false;
     }
 
@@ -253,17 +328,17 @@ int MemoryDataPlugin::Report(uint8_t* data, uint32_t dataSize)
     uint32_t length;
 
     if (protoConfig_.report_process_tree()) {
-        HILOG_DEBUG(LOG_CORE, "plugin:report process list");
+        HILOG_DEBUG(LOG_CORE, "%s:report process list", __func__);
         WriteProcesseList(dataProto);
     }
 
     if (protoConfig_.report_sysmem_mem_info()) {
-        HILOG_DEBUG(LOG_CORE, "plugin:report system mem_info list");
+        HILOG_DEBUG(LOG_CORE, "%s:report system mem_info list", __func__);
         WriteMeminfo(dataProto);
     }
 
     if (protoConfig_.report_sysmem_vmem_info()) {
-        HILOG_DEBUG(LOG_CORE, "plugin:report system vmem_info list");
+        HILOG_DEBUG(LOG_CORE, "%s:report system vmem_info list", __func__);
         WriteVmstat(dataProto);
     }
 
@@ -311,10 +386,11 @@ int MemoryDataPlugin::Stop()
         for (int i = FILE_STATUS; i <= FILE_SMAPS; i++) {
             if (it->second[i] != -1) {
                 close(it->second[i]);
+                it->second[i] = -1;
             }
         }
     }
-    HILOG_INFO(LOG_CORE, "plugin:stop success!");
+    HILOG_INFO(LOG_CORE, "%s:stop success!", __func__);
     return 0;
 }
 
@@ -330,7 +406,7 @@ void MemoryDataPlugin::WriteProcinfoByPidfds(ProcessMemoryInfo* processinfo, int
         SetEmptyProcessInfo(processinfo);
     }
     if (ReadFile(pidFds_[pid][FILE_OOM]) != RET_FAIL) {
-        processinfo->set_oom_score_adj(strtol((char*)buffer_.get(), &end, DEC_BASE));
+        processinfo->set_oom_score_adj(static_cast<int64_t>(strtol((char*)buffer_.get(), &end, DEC_BASE)));
     } else {
         processinfo->set_oom_score_adj(0);
     }
@@ -340,12 +416,11 @@ void MemoryDataPlugin::WriteProcinfoByPidfds(ProcessMemoryInfo* processinfo, int
 int32_t MemoryDataPlugin::ReadFile(int fd)
 {
     if ((buffer_.get() == nullptr) || (fd == -1)) {
-        HILOG_ERROR(LOG_CORE, "%s:Empty address, or invalid fd", __func__);
         return RET_FAIL;
     }
     int readsize = pread(fd, buffer_.get(), READ_BUFFER_SIZE - 1, 0);
     if (readsize <= 0) {
-        HILOG_ERROR(LOG_CORE, "Failed to read(%d), errno=%d", fd, errno);
+        HILOG_ERROR(LOG_CORE, "%s:failed to read(%d), errno(%d:%s)", __func__, fd, errno, strerror(errno));
         err_ = errno;
         return RET_FAIL;
     }
@@ -362,14 +437,14 @@ std::vector<int> MemoryDataPlugin::OpenProcPidFiles(int32_t pid)
     for (int i = 0; i < count; i++) {
         if (snprintf_s(fileName, sizeof(fileName), sizeof(fileName) - 1,
             "%s/%d/%s", testpath_, pid, procfdMapping[i].file) < 0) {
-            HILOG_ERROR(LOG_CORE, "snprintf_s error");
+            HILOG_ERROR(LOG_CORE, "%s:snprintf_s error", __func__);
         }
         if (realpath(fileName, realPath) == nullptr) {
-            HILOG_ERROR(LOG_CORE, "plugin:realpath failed, errno=%d", errno);
+            HILOG_ERROR(LOG_CORE, "%s:realpath failed, errno(%d:%s)", __func__, errno, strerror(errno));
         }
         int fd = open(realPath, O_RDONLY | O_CLOEXEC);
         if (fd == -1) {
-            HILOG_ERROR(LOG_CORE, "Failed to open(%s), errno=%d", fileName, errno);
+            HILOG_ERROR(LOG_CORE, "%s:failed to open(%s), errno(%d:%s)", __func__, fileName, errno, strerror(errno));
         }
         profds.emplace(profds.begin() + i, fd);
     }
@@ -382,7 +457,7 @@ DIR* MemoryDataPlugin::OpenDestDir(const char* dirPath)
 
     destDir = opendir(dirPath);
     if (destDir == nullptr) {
-        HILOG_ERROR(LOG_CORE, "Failed to opendir(%s), errno=%d", dirPath, errno);
+        HILOG_ERROR(LOG_CORE, "%s:failed to opendir(%s), errno(%d:%s)", __func__, dirPath, errno, strerror(errno));
     }
 
     return destDir;
@@ -412,28 +487,29 @@ int32_t MemoryDataPlugin::ReadProcPidFile(int32_t pid, const char* pFileName)
     ssize_t bytesRead = 0;
 
     if (snprintf_s(fileName, sizeof(fileName), sizeof(fileName) - 1, "%s/%d/%s", testpath_, pid, pFileName) < 0) {
-        HILOG_ERROR(LOG_CORE, "snprintf_s error");
+        HILOG_ERROR(LOG_CORE, "%s:snprintf_s error", __func__);
+        return RET_FAIL;
     }
     if (realpath(fileName, realPath) == nullptr) {
-        HILOG_ERROR(LOG_CORE, "plugin:realpath failed, errno=%d", errno);
+        HILOG_ERROR(LOG_CORE, "%s:realpath failed, errno(%d:%s)", __func__, errno, strerror(errno));
         return RET_FAIL;
     }
     fd = open(realPath, O_RDONLY | O_CLOEXEC);
     if (fd == -1) {
-        HILOG_INFO(LOG_CORE, "Failed to open(%s), errno=%d", fileName, errno);
+        HILOG_INFO(LOG_CORE, "%s:failed to open(%s), errno(%d:%s)", __func__, fileName, errno, strerror(errno));
         err_ = errno;
         return RET_FAIL;
     }
     if (buffer_.get() == nullptr) {
-        HILOG_INFO(LOG_CORE, "%s:Empty address, buffer_ is NULL", __func__);
+        HILOG_INFO(LOG_CORE, "%s:empty address, buffer_ is NULL", __func__);
         err_ = RET_NULL_ADDR;
         close(fd);
         return RET_FAIL;
     }
     bytesRead = read(fd, buffer_.get(), READ_BUFFER_SIZE - 1);
-    if (bytesRead <= 0) {
+    if (bytesRead < 0) {
         close(fd);
-        HILOG_INFO(LOG_CORE, "Failed to read(%s), errno=%d", fileName, errno);
+        HILOG_INFO(LOG_CORE, "%s:failed to read(%s), errno(%d:%s)", __func__, fileName, errno, strerror(errno));
         err_ = errno;
         return RET_FAIL;
     }
@@ -477,37 +553,56 @@ int MemoryDataPlugin::GetProcStatusId(const char* src, int srcLen)
     return RET_FAIL;
 }
 
-void MemoryDataPlugin::SetProcessInfo(ProcessMemoryInfo* processinfo, int key, const char* word)
+bool MemoryDataPlugin::StringToUll(const char* word, uint64_t& value)
 {
     char* end = nullptr;
+    errno = 0;
+    value = strtoull(word, &end, DEC_BASE);
+    if ((errno == ERANGE && (value == ULLONG_MAX)) || (errno != 0 && value == 0)) {
+        return false;
+    } else if (end == word && (*word >= '0' && *word <= '9')) {
+        return false;
+    }
+
+    return true;
+}
+
+void MemoryDataPlugin::SetProcessInfo(ProcessMemoryInfo* processinfo, int key, const char* word)
+{
+    uint64_t value;
+
+    if ((key >= PRO_TGID && key <= PRO_VMHWM && key != PRO_NAME) && !StringToUll(word, value)) {
+        HILOG_ERROR(LOG_CORE, "MemoryDataPlugin:%s, strtoull failed, key(%d), word(%s)", __func__, key, word);
+        return;
+    }
 
     switch (key) {
         case PRO_TGID:
-            processinfo->set_pid(strtoul(word, &end, DEC_BASE));
+            processinfo->set_pid(static_cast<int32_t>(value));
             break;
         case PRO_VMSIZE:
-            processinfo->set_vm_size_kb(strtoul(word, &end, DEC_BASE));
+            processinfo->set_vm_size_kb(value);
             break;
         case PRO_VMRSS:
-            processinfo->set_vm_rss_kb(strtoul(word, &end, DEC_BASE));
+            processinfo->set_vm_rss_kb(value);
             break;
         case PRO_RSSANON:
-            processinfo->set_rss_anon_kb(strtoul(word, &end, DEC_BASE));
+            processinfo->set_rss_anon_kb(value);
             break;
         case PRO_RSSFILE:
-            processinfo->set_rss_file_kb(strtoul(word, &end, DEC_BASE));
+            processinfo->set_rss_file_kb(value);
             break;
         case PRO_RSSSHMEM:
-            processinfo->set_rss_shmem_kb(strtoul(word, &end, DEC_BASE));
+            processinfo->set_rss_shmem_kb(value);
             break;
         case PRO_VMSWAP:
-            processinfo->set_vm_swap_kb(strtoul(word, &end, DEC_BASE));
+            processinfo->set_vm_swap_kb(value);
             break;
         case PRO_VMLCK:
-            processinfo->set_vm_locked_kb(strtoul(word, &end, DEC_BASE));
+            processinfo->set_vm_locked_kb(value);
             break;
         case PRO_VMHWM:
-            processinfo->set_vm_hwm_kb(strtoul(word, &end, DEC_BASE));
+            processinfo->set_vm_hwm_kb(value);
             break;
         default:
             break;
@@ -570,7 +665,7 @@ void MemoryDataPlugin::WriteOomInfo(ProcessMemoryInfo* processinfo, int32_t pid)
         HILOG_ERROR(LOG_CORE, "%s:invalid params, read buffer_ is NULL", __func__);
         return;
     }
-    processinfo->set_oom_score_adj(strtol((char*)buffer_.get(), &end, DEC_BASE));
+    processinfo->set_oom_score_adj(static_cast<int64_t>(strtol((char*)buffer_.get(), &end, DEC_BASE)));
 }
 
 void MemoryDataPlugin::WriteProcessInfo(MemoryData& data, int32_t pid)
@@ -581,7 +676,6 @@ void MemoryDataPlugin::WriteProcessInfo(MemoryData& data, int32_t pid)
         return;
     }
     if ((buffer_.get() == nullptr) || (ret == 0)) {
-        HILOG_ERROR(LOG_CORE, "%s:invalid params, read buffer_ is NULL", __func__);
         return;
     }
     auto* processinfo = data.add_processesinfo();

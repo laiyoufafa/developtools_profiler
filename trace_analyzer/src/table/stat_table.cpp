@@ -53,20 +53,19 @@ int StatTable::Cursor::Column(int column) const
     switch (column) {
         case EVENT_NAME:
             sqlite3_result_text(context_, dataCache_->GetConstStatAndInfo().GetEvent(eventType).c_str(),
-                                STR_DEFAULT_LEN, nullptr);
+                STR_DEFAULT_LEN, nullptr);
             break;
         case STAT_EVENT_TYPE:
-            sqlite3_result_text(context_, dataCache_->GetConstStatAndInfo().GetStat(statType).c_str(), STR_DEFAULT_LEN,
-                                nullptr);
+            sqlite3_result_text(context_, dataCache_->GetConstStatAndInfo().GetStat(statType).c_str(),
+                STR_DEFAULT_LEN, nullptr);
             break;
         case COUNT:
-            sqlite3_result_int64(
-                context_, static_cast<long long>(dataCache_->GetConstStatAndInfo().GetValue(eventType, statType)));
+            sqlite3_result_int64(context_, static_cast<int64_t>(dataCache_->GetConstStatAndInfo().GetValue(eventType,
+                statType)));
             break;
         case SEVERITY:
-            sqlite3_result_text(context_,
-                                dataCache_->GetConstStatAndInfo().GetSeverityDesc(eventType, statType).c_str(),
-                                STR_DEFAULT_LEN, nullptr);
+            sqlite3_result_text(context_, dataCache_->GetConstStatAndInfo().GetSeverityDesc(eventType,
+                statType).c_str(), STR_DEFAULT_LEN, nullptr);
             break;
         case SOURCE:
             sqlite3_result_text(context_, "trace", STR_DEFAULT_LEN, nullptr);

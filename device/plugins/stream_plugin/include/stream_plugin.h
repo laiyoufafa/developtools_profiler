@@ -45,8 +45,6 @@ private:
     std::mutex mutex_;
     std::thread writeThread_;
     std::atomic<bool> running_ = true;
-
-    int32_t nbyte_ = 0;
 };
 
 #endif // STREAM_PLUGIN_H

@@ -21,10 +21,7 @@ config("module_private_config") {
 
 ohos_unittest("plugin_service_ut") {
   module_out_path = module_output_path
-  sources = [
-    "unittest/plugin_service_test.cpp",
-    "unittest/services_ipc_test.cpp",
-  ]
+  sources = [ "unittest/plugin_service_test.cpp" ]
   public_deps = [
     "${OHOS_PROFILER_DIR}/device/services/plugin_service:hiprofiler_plugin_service",
     "${OHOS_PROFILER_DIR}/device/services/shared_memory:shared_memory",
@@ -49,10 +46,7 @@ ohos_unittest("plugin_service_ut") {
 
 ohos_unittest("plugin_service_module_test") {
   module_out_path = module_output_path
-  sources = [
-    "moduletest/plugin_service_test.cpp",
-    "moduletest/services_ipc_test.cpp",
-  ]
+  sources = [ "moduletest/plugin_service_test.cpp" ]
   public_deps = [
     "${OHOS_PROFILER_DIR}/device/services/plugin_service:hiprofiler_plugin_service",
     "${OHOS_PROFILER_DIR}/device/services/shared_memory:shared_memory",

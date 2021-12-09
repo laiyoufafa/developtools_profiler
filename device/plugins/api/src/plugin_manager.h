@@ -29,6 +29,8 @@ class ProfilerPluginConfig;
 class PluginResult;
 class CommandPoller;
 
+using CommandPollerPtr = STD_PTR(shared, CommandPoller);
+
 class PluginManager : public ManagerInterface {
 public:
     virtual ~PluginManager();

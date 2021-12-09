@@ -28,7 +28,10 @@ class FilterFilter;
 class ClockFilter;
 class SymbolsFilter;
 class StatFilter;
-
+class BinderFilter;
+class ArgsFilter;
+class IrqFilter;
+class SystemEventMeasureFilter;
 class TraceStreamerFilters {
 public:
     TraceStreamerFilters();
@@ -49,6 +52,14 @@ public:
     std::unique_ptr<MeasureFilter> clockRateFilter_;
     std::unique_ptr<MeasureFilter> clockEnableFilter_;
     std::unique_ptr<MeasureFilter> clockDisableFilter_;
+    std::unique_ptr<MeasureFilter> clkRateFilter_;
+    std::unique_ptr<MeasureFilter> clkEnableFilter_;
+    std::unique_ptr<MeasureFilter> clkDisableFilter_;
+    std::unique_ptr<BinderFilter> binderFilter_;
+    std::unique_ptr<ArgsFilter> argsFilter_;
+    std::unique_ptr<IrqFilter> irqFilter_;
+    std::unique_ptr<SystemEventMeasureFilter> sysEventMemMeasureFilter_;
+    std::unique_ptr<SystemEventMeasureFilter> sysEventVMemMeasureFilter_;
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

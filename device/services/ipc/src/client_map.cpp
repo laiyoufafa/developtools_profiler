@@ -39,11 +39,17 @@ int ClientMap::PutClientSocket(int socketFileDescriptor, ServiceEntry& p)
     return -1;
 }
 
+int ClientMap::ClearClientSocket()
+{
+    socketClients_.clear();
+    return 0;
+}
+
 int ClientMap::AutoRelease()
 {
     for (auto iter = socketClients_.begin(); iter != socketClients_.end(); ++iter) {
         auto p = iter->second;
-        switch (p->clientState_) {
+        switch (p->GetClientState()) {
             case CLIENT_STAT_WORKING:
                 break;
             case CLIENT_STAT_WAIT_THREAD_EXIT:

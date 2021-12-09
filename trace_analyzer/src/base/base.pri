@@ -13,10 +13,11 @@
 
 INCLUDEPATH +=$$PWD
 HEADERS += \
-    $$PWD/common.h \
+    $$PWD/ts_common.h \
     $$PWD/double_map.h
 
 SOURCES += \
     $$PWD/codec_cov.cpp \
     $$PWD/file.cpp \
-    $$PWD/parting_string.cpp
+    $$PWD/parting_string.cpp \
+    $$PWD/log.cpp

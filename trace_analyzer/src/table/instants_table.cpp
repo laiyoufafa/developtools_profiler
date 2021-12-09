@@ -53,8 +53,8 @@ int InstantsTable::Cursor::Column(int column) const
             sqlite3_result_int64(context_, static_cast<int64_t>(InstantsObj_.TimeStamData()[CurrentRow()]));
             break;
         case NAME: {
-            sqlite3_result_text(context_, dataCache_->GetDataFromDict(stringIdentity).c_str(), STR_DEFAULT_LEN,
-                                nullptr);
+            sqlite3_result_text(context_, dataCache_->GetDataFromDict(stringIdentity).c_str(),
+                STR_DEFAULT_LEN, nullptr);
             break;
         }
         case REF:

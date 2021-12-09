@@ -75,3 +75,25 @@ ohos_static_library("shared_memory_static") {
     }
   }
 }
+
+ohos_static_library("shared_memory_lite") {
+  sources = [
+    "src/share_memory_allocator.cpp",
+    "src/share_memory_block.cpp",
+  ]
+  public_configs = [
+    ":shared_memory_config",
+    "../../base:hiprofiler_test_config",
+  ]
+
+  defines = [ "NO_PROTOBUF" ]
+
+  if (current_toolchain != host_toolchain) {
+    defines += [ "HAVE_HILOG" ]
+    if (build_l2) {
+      external_deps = [ "shared_library::libhilog" ]
+    } else {
+      external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
+    }
+  }
+}

@@ -47,12 +47,18 @@ public:
     const ProcessMeasureFilter& GetConstProcessFilterData() const;
     const ProcessMeasureFilter& GetConstProcessMeasureFilterData() const;
     const ClockEventData& GetConstClockEventFilterData() const;
+    const ClkEventData& GetConstClkEventFilterData() const;
     const std::string& GetConstSchedStateData(uint64_t rowId) const;
     uint64_t TraceStartTime() const;
     uint64_t TraceEndTime() const;
     const StatAndInfo& GetConstStatAndInfo() const;
     const MetaData& GetConstMetaData() const;
     const SymbolsData& GetConstSymbolsData() const;
+    const SysCall& GetConstSysCallData() const;
+    const LogInfo& GetConstHilogData() const;
+    const ArgSet& GetConstArgSetData() const;
+    const DataType& GetConstDataTypeData() const;
+    const SysMeasureFilter& GetConstSysMeasureFilterData() const;
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

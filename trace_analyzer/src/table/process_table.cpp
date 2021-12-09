@@ -58,11 +58,15 @@ int ProcessTable::Cursor::Column(int column) const
             sqlite3_result_int64(context_, process.pid_);
             break;
         case NAME:
-            sqlite3_result_text(context_, process.cmdLine_.c_str(), static_cast<int>(process.cmdLine_.length()),
-                                nullptr);
+            if (process.cmdLine_.size()) {
+                sqlite3_result_text(context_, process.cmdLine_.c_str(), static_cast<int>(process.cmdLine_.length()),
+                                    nullptr);
+            }
             break;
         case START_TS:
-            sqlite3_result_int64(context_, static_cast<int64_t>(process.startT_));
+            if (process.startT_) {
+                sqlite3_result_int64(context_, static_cast<int64_t>(process.startT_));
+            }
             break;
         default:
             TS_LOGF("Unregistered column : %d", column);

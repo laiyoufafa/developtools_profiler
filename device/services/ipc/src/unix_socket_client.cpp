@@ -16,10 +16,10 @@
 #include "unix_socket_client.h"
 
 #include <cstdio>
-#include <linux/un.h>
 #include <pthread.h>
 #include <sys/socket.h>
 #include <unistd.h>
+#include <linux/un.h>
 
 #include "logging.h"
 #include "securec.h"
@@ -35,6 +35,7 @@ UnixSocketClient::~UnixSocketClient() {}
 
 bool UnixSocketClient::Connect(const std::string addrname, ServiceBase& serviceBase)
 {
+    HILOG_ERROR(LOG_CORE, "UnixSocketClient connect");
     CHECK_TRUE(socketHandle_ == -1, false, "socketHandle_ != -1 Already Connected");
 
     int sock = socket(AF_UNIX, SOCK_STREAM, 0);
@@ -62,7 +63,8 @@ bool UnixSocketClient::Connect(const std::string addrname, ServiceBase& serviceB
     CHECK_TRUE(
         SendRaw(RAW_PROTOCOL_POINTTO_SERVICE, reinterpret_cast<int8_t*>(&rrs), sizeof(struct RawPointToService), sock),
         close(sock) != 0, "Unix Socket SendRaw FAIL");
-    CHECK_TRUE(CreateRecvThread(), close(sock) != 0, "Unix Socket Create Recv Thread FAIL");
     socketHandle_ = sock;
+    CHECK_TRUE(CreateRecvThread(), close(sock) != 0, "Unix Socket Create Recv Thread FAIL");
+
     return true;
 }

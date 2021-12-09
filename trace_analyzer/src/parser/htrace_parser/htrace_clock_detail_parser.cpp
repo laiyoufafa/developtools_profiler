@@ -25,9 +25,8 @@ HtraceClockDetailParser::HtraceClockDetailParser(TraceDataCache* dataCache, cons
     : streamFilters_(ctx), traceDataCache_(dataCache)
 {
     for (auto i = 0; i < MEM_MAX; i++) {
-        memNameDictMap_.insert(
-            std::make_pair(static_cast<MemInfoType>(i),
-                           traceDataCache_->GetDataIndex(config_.memNameMap_.at(static_cast<MemInfoType>(i)))));
+        memNameDictMap_.insert(std::make_pair(static_cast<MemInfoType>(i),
+            traceDataCache_->GetDataIndex(config_.memNameMap_.at(static_cast<MemInfoType>(i)))));
     }
 }
 
@@ -38,8 +37,11 @@ void HtraceClockDetailParser::Parse(TracePluginResult& tracePacket) const
         return;
     }
     std::vector<SnapShot> snapShot;
+    TS_LOGI("got clock snapshot");
     for (int i = 0; i < tracePacket.clocks_detail_size(); i++) {
         auto clockInfo = tracePacket.mutable_clocks_detail(i);
+        TS_LOGI("clockid:%d, ts:%llu", clockInfo->id(),
+                static_cast<unsigned long long>(clockInfo->time().tv_nsec() + clockInfo->time().tv_sec() * SEC_TO_NS));
         snapShot.push_back(SnapShot{static_cast<ClockId>(clockInfo->id()),
                                     clockInfo->time().tv_nsec() + clockInfo->time().tv_sec() * SEC_TO_NS});
         streamFilters_->clockFilter_->AddClockSnapshot(snapShot);

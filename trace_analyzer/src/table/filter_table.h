@@ -31,9 +31,9 @@ public:
 private:
     class Cursor : public TableBase::Cursor {
     public:
-        explicit Cursor(const TraceDataCache*);
+        explicit Cursor(const TraceDataCache* dataCache);
         ~Cursor() override;
-        int Column(int) const override;
+        int Column(int column) const override;
 
     private:
         const Filter& filterObj_;

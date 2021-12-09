@@ -14,9 +14,11 @@
  */
 #define LOG_TAG "ProfilerService"
 #include "profiler_service.h"
+#include <algorithm>
 #include "logging.h"
 #include "plugin_service.h"
 #include "plugin_session.h"
+#include "plugin_session_manager.h"
 #include "profiler_capability_manager.h"
 #include "profiler_data_repeater.h"
 #include "result_demuxer.h"
@@ -25,29 +27,40 @@
 
 using namespace ::grpc;
 
-#define CHECK_REQUEST_RESPONSE(context, requst, response)   \
-    CHECK_POINTER_NOTNULL(context, "context ptr invalid!"); \
-    CHECK_POINTER_NOTNULL(requst, "request ptr invalid!");  \
-    CHECK_POINTER_NOTNULL(response, "response ptr invalid!")
+#define CHECK_REQUEST_RESPONSE(context, requst, response)         \
+    do {                                                          \
+        CHECK_POINTER_NOTNULL(context, "context ptr invalid!");   \
+        CHECK_POINTER_NOTNULL(requst, "request ptr invalid!");    \
+        CHECK_POINTER_NOTNULL(response, "response ptr invalid!"); \
+    } while (0)
 
-#define CHECK_POINTER_NOTNULL(ptr, errorMessage)                          \
-    if (ptr == nullptr) {                                                 \
-        HILOG_ERROR(LOG_CORE, "%s: FAILED, %s is null!", __func__, #ptr); \
-        return {StatusCode::INTERNAL, errorMessage};                      \
-    }
+#define CHECK_POINTER_NOTNULL(ptr, errorMessage)                              \
+    do {                                                                      \
+        if (ptr == nullptr) {                                                 \
+            HILOG_ERROR(LOG_CORE, "%s: FAILED, %s is null!", __func__, #ptr); \
+            return {StatusCode::INTERNAL, errorMessage};                      \
+        }                                                                     \
+    } while (0)
 
-#define CHECK_EXPRESSION_TRUE(expr, errorMessage)                        \
-    if (!(expr)) {                                                       \
-        HILOG_ERROR(LOG_CORE, "%s: FAILED, %s", __func__, errorMessage); \
-        return {StatusCode::INTERNAL, (errorMessage)};                   \
-    }
+#define CHECK_EXPRESSION_TRUE(expr, errorMessage)                            \
+    do {                                                                     \
+        if (!(expr)) {                                                       \
+            HILOG_ERROR(LOG_CORE, "%s: FAILED, %s", __func__, errorMessage); \
+            return {StatusCode::INTERNAL, (errorMessage)};                   \
+        }                                                                    \
+    } while (0)
 
 namespace {
 constexpr int MIN_SESSION_TIMEOUT_MS = 1000;
-constexpr int MAX_SESSION_TIMEOUT_MS = 1000 * 600;
+constexpr int MAX_SESSION_TIMEOUT_MS = 1000 * 3600;
+constexpr int DEFAULT_KEEP_ALIVE_DELTA = 3000;
 } // namespace
 
-ProfilerService::ProfilerService(const PluginServicePtr& pluginService) : pluginService_(pluginService) {}
+ProfilerService::ProfilerService(const PluginServicePtr& pluginService)
+    : pluginService_(pluginService), pluginSessionManager_(std::make_shared<PluginSessionManager>(pluginService))
+{
+    pluginService_->SetPluginSessionManager(pluginSessionManager_);
+}
 
 ProfilerService::~ProfilerService() {}
 
@@ -58,6 +71,7 @@ ProfilerService::SessionContext::~SessionContext()
         ScheduleTaskManager::GetInstance().UnscheduleTask(offlineTask);
     }
     StopSessionExpireTask();
+    service->pluginSessionManager_->RemovePluginSessions(pluginNames);
 }
 
 Status ProfilerService::GetCapabilities(ServerContext* context,
@@ -78,123 +92,35 @@ Status ProfilerService::GetCapabilities(ServerContext* context,
     return Status::OK;
 }
 
-PluginSessionPtr ProfilerService::SessionContext::CreatePluginSession(const PluginServicePtr& pluginService,
-                                                                      const ProfilerPluginConfig& pluginConfig)
+size_t ProfilerService::SessionContext::UpdatePluginConfigs(const std::vector<ProfilerPluginConfig>& newPluginConfigs)
 {
-    auto name = pluginConfig.name();
-    CHECK_TRUE(pluginSessions.count(name) == 0, nullptr, "plugin name %s exists!", name.c_str());
-    CHECK_TRUE(CheckPluginSha256(pluginConfig), nullptr, "SHA256 check failed!");
-
-    auto session = std::make_shared<PluginSession>(pluginConfig, pluginService, dataRepeater);
-    CHECK_NOTNULL(session, nullptr, "allocate plugin session for %s failed!", name.c_str());
-    CHECK_TRUE(session->IsAvailable(), nullptr, "config plugin for %s failed!", name.c_str());
-    return session;
-}
-
-namespace {
-constexpr uint32_t MAX_BUFFER_PAGES = 512 * 1024 * 1024 / 4096;
-}
-
-bool ProfilerService::SessionContext::CheckPluginSha256(const ProfilerPluginConfig& pluginConfig)
-{
-    std::string reqSha = pluginConfig.plugin_sha256();
-    if (reqSha.size() > 0) { // only check when SHA256 provided in request
-        CHECK_NOTNULL(service, false, "profiler service null!");
-        auto pluginSvc = service->pluginService_;
-        CHECK_NOTNULL(pluginSvc, false, "plugin service null!");
-
-        PluginInfo info = {};
-        std::string name = pluginConfig.name();
-        CHECK_TRUE(pluginSvc->GetPluginInfo(name, info), false, "get plugin info %s failed!", name.c_str());
-
-        std::string devSha = info.sha256;
-        CHECK_TRUE(devSha == reqSha, false, "SHA256 mismatch: %s, %s!", devSha.c_str(), reqSha.c_str());
-    }
-    return true;
-}
-
-bool ProfilerService::SessionContext::CheckBufferConfig(const BufferConfig& bufferConfig)
-{
-    const uint32_t pages = bufferConfig.pages();
-    const auto policy = bufferConfig.policy();
-    return (pages > 0 && pages <= MAX_BUFFER_PAGES) &&
-           (policy == BufferConfig::RECYCLE || policy == BufferConfig::FLATTEN);
-}
-
-PluginSessionPtr ProfilerService::SessionContext::CreatePluginSession(const PluginServicePtr& pluginService,
-                                                                      const ProfilerPluginConfig& pluginConfig,
-                                                                      const BufferConfig& bufferConfig)
-{
-    auto name = pluginConfig.name();
-    CHECK_TRUE(pluginSessions.count(name) == 0, nullptr, "plugin name %s exists!", name.c_str());
-    CHECK_TRUE(CheckBufferConfig(bufferConfig), nullptr, "buffer config invalid!");
-    CHECK_TRUE(CheckPluginSha256(pluginConfig), nullptr, "SHA256 check failed!");
-
-    auto session = std::make_shared<PluginSession>(pluginConfig, bufferConfig, pluginService, dataRepeater);
-    CHECK_NOTNULL(session, nullptr, "allocate plugin session for %s failed!", name.c_str());
-    CHECK_TRUE(session->IsAvailable(), nullptr, "config plugin for %s failed!", name.c_str());
-    return session;
-}
-
-bool ProfilerService::SessionContext::CreatePluginSessions(const PluginServicePtr& pluginService)
-{
+    std::unordered_map<std::string, size_t> nameIndex;
     for (size_t i = 0; i < pluginConfigs.size(); i++) {
-        PluginSessionPtr session;
-        if (bufferConfigs.size() > 0) {
-            session = CreatePluginSession(pluginService, pluginConfigs[i], bufferConfigs[i]);
-        } else {
-            session = CreatePluginSession(pluginService, pluginConfigs[i]);
-        }
-        CHECK_NOTNULL(session, false, "create plugin-%zu session failed!", i);
-        pluginSessions[pluginConfigs[i].name()] = session;
-    }
-    return true;
-}
-
-bool ProfilerService::SessionContext::UpdatePluginSessions(const PluginServicePtr& pluginService,
-                                                           const std::vector<int>& configIndexes)
-{
-    for (auto index : configIndexes) {
-        auto config = pluginConfigs[index];
-        auto session = CreatePluginSession(pluginService, config);
-        CHECK_NOTNULL(session, false, "create plugin session failed!");
-        pluginSessions[config.name()] = session;
-    }
-    return true;
-}
-
-bool ProfilerService::SessionContext::RemovePluginSessions(const std::vector<std::string>& nameList)
-{
-    if (nameList.empty()) {
-        return false;
+        nameIndex[pluginConfigs[i].name()] = i;
     }
 
-    for (auto& name : nameList) {
-        auto it = pluginSessions.find(name);
-        if (it != pluginSessions.end()) {
-            pluginSessions.erase(it);
+    size_t updateCount = 0;
+    for (auto& cfg : newPluginConfigs) {
+        auto it = nameIndex.find(cfg.name());
+        if (it != nameIndex.end()) {
+            int index = it->second;
+            pluginConfigs[index] = cfg;
+            updateCount++;
         }
     }
-    return true;
+    return updateCount;
 }
 
-std::vector<int> ProfilerService::SessionContext::UpdatePluginConfigs(
-    const std::vector<ProfilerPluginConfig>& profilerPluginConfigList)
+bool ProfilerService::SessionContext::CreatePluginSessions()
 {
-    std::map<std::string, size_t> targetIndex;
-    for (size_t i = 0; i < pluginConfigs.size(); i++) {
-        targetIndex[pluginConfigs[i].name()] = i;
+    if (bufferConfigs.size() > 0) { // with buffer configs
+        CHECK_TRUE(service->pluginSessionManager_->CreatePluginSessions(pluginConfigs, bufferConfigs, dataRepeater),
+                   false, "create plugin sessions with buffer configs failed!");
+    } else { // without buffer configs
+        CHECK_TRUE(service->pluginSessionManager_->CreatePluginSessions(pluginConfigs, dataRepeater), false,
+                   "create plugin sessions without buffer configs failed!");
     }
-
-    std::vector<int> updates;
-    for (auto& cfg : profilerPluginConfigList) {
-        auto it = targetIndex.find(cfg.name());
-        if (it != targetIndex.end()) {
-            pluginConfigs[it->second] = cfg;
-            updates.push_back(it->second);
-        }
-    }
-    return updates;
+    return true;
 }
 
 bool ProfilerService::SessionContext::StartPluginSessions()
@@ -227,18 +153,14 @@ bool ProfilerService::SessionContext::StartPluginSessions()
             // keep_alive_time not set by client, but the sample_duration setted
             if (sessionConfig.keep_alive_time() == 0) {
                 // use sample_duration add a little time to set keep_alive_time
-                SetKeepAliveTime(sampleDuration + MIN_SESSION_TIMEOUT_MS);
+                SetKeepAliveTime(sampleDuration + DEFAULT_KEEP_ALIVE_DELTA);
                 StartSessionExpireTask();
             }
         }
     }
 
     // start each plugin sessions
-    for (auto sessionEntry : pluginSessions) {
-        if (sessionEntry.second) {
-            sessionEntry.second->Start();
-        }
-    }
+    service->pluginSessionManager_->StartPluginSessions(pluginNames);
     return true;
 }
 
@@ -246,11 +168,7 @@ bool ProfilerService::SessionContext::StopPluginSessions()
 {
     std::unique_lock<std::mutex> lock(sessionMutex);
     // stop each plugin sessions
-    for (auto sessionEntry : pluginSessions) {
-        if (sessionEntry.second) {
-            sessionEntry.second->Stop();
-        }
-    }
+    service->pluginSessionManager_->StopPluginSessions(pluginNames);
 
     // stop demuxer take result thread
     if (resultDemuxer && sessionConfig.session_mode() == ProfilerSessionConfig::OFFLINE) {
@@ -267,15 +185,23 @@ bool ProfilerService::SessionContext::StopPluginSessions()
     return true;
 }
 
+namespace {
+bool IsValidKeepAliveTime(uint32_t timeout)
+{
+    if (timeout < MIN_SESSION_TIMEOUT_MS) {
+        return false;
+    }
+    if (timeout > MAX_SESSION_TIMEOUT_MS) {
+        return false;
+    }
+    return true;
+}
+}  // namespace
+
 void ProfilerService::SessionContext::SetKeepAliveTime(uint32_t timeout)
 {
     if (timeout > 0) {
         timeoutTask = "timeout-session-" + std::to_string(id);
-        if (timeout < MIN_SESSION_TIMEOUT_MS) {
-            timeout = MIN_SESSION_TIMEOUT_MS;
-        } else if (timeout > MAX_SESSION_TIMEOUT_MS) {
-            timeout = MAX_SESSION_TIMEOUT_MS;
-        }
         sessionConfig.set_keep_alive_time(timeout);
     }
 }
@@ -321,16 +247,22 @@ Status ProfilerService::CreateSession(ServerContext* context,
         // if only one buffer config provided, all plugin use the same buffer config
         bufferConfigs.resize(nConfigs, sessionConfig.buffers(0));
     } else if (nBuffers > 0) {
+        // if more than one buffer config provided, the number of buffer configs must equals number of plugin configs
         bufferConfigs.assign(sessionConfig.buffers().begin(), sessionConfig.buffers().end());
     }
     HILOG_INFO(LOG_CORE, "bufferConfigs: %zu", bufferConfigs.size());
 
     // copy plugin configs from request
-    std::vector<ProfilerPluginConfig> pluginConfigsList;
-    pluginConfigsList.reserve(nConfigs);
+    std::vector<ProfilerPluginConfig> pluginConfigs;
+    pluginConfigs.reserve(nConfigs);
     for (int i = 0; i < nConfigs; i++) {
-        pluginConfigsList.push_back(request->plugin_configs(i));
+        pluginConfigs.push_back(request->plugin_configs(i));
     }
+
+    std::vector<std::string> pluginNames;
+    std::transform(pluginConfigs.begin(), pluginConfigs.end(), std::back_inserter(pluginNames),
+                   [](ProfilerPluginConfig& config) { return config.name(); });
+    std::sort(pluginNames.begin(), pluginNames.end());
 
     // create ProfilerDataRepeater
     auto dataRepeater = std::make_shared<ProfilerDataRepeater>(DEFAULT_REPEATER_BUFFER_SIZE);
@@ -360,10 +292,12 @@ Status ProfilerService::CreateSession(ServerContext* context,
     ctx->resultDemuxer = resultDemuxer;
     ctx->traceFileWriter = traceWriter;
     ctx->sessionConfig = sessionConfig;
-    ctx->pluginConfigs = std::move(pluginConfigsList);
+    ctx->pluginNames = std::move(pluginNames);
+    ctx->pluginConfigs = std::move(pluginConfigs);
     ctx->bufferConfigs = std::move(bufferConfigs);
-    CHECK_EXPRESSION_TRUE(ctx->CreatePluginSessions(pluginService_), "create sessions failed!");
 
+    // create plugin sessions
+    CHECK_EXPRESSION_TRUE(ctx->CreatePluginSessions(), "create plugin sessions failed!");
     // alloc new session id
     uint32_t sessionId = ++sessionIdCounter_;
     ctx->id = sessionId;
@@ -372,9 +306,12 @@ Status ProfilerService::CreateSession(ServerContext* context,
     // add {sessionId, ctx} to map
     CHECK_EXPRESSION_TRUE(AddSessionContext(sessionId, ctx), "sessionId conflict!");
 
-    if (sessionConfig.keep_alive_time()) {
+    // create session expire schedule task
+    auto keepAliveTime = sessionConfig.keep_alive_time();
+    if (keepAliveTime) {
+        CHECK_EXPRESSION_TRUE(IsValidKeepAliveTime(keepAliveTime), "keep_alive_time invalid!");
         // create schedule task for session timeout feature
-        ctx->SetKeepAliveTime(sessionConfig.keep_alive_time());
+        ctx->SetKeepAliveTime(keepAliveTime);
         ctx->StartSessionExpireTask();
     }
 
@@ -382,7 +319,7 @@ Status ProfilerService::CreateSession(ServerContext* context,
     response->set_status(0);
     response->set_session_id(sessionId);
 
-    HILOG_INFO(LOG_CORE, "CreateSession %d %{public}u done!", request->request_id(), sessionId);
+    HILOG_INFO(LOG_CORE, "CreateSession %d %u done!", request->request_id(), sessionId);
     return Status::OK;
 }
 
@@ -430,35 +367,45 @@ Status ProfilerService::StartSession(ServerContext* context,
     HILOG_INFO(LOG_CORE, "StartSession from '%s'", context->peer().c_str());
 
     uint32_t sessionId = request->session_id();
-    HILOG_INFO(LOG_CORE, "StartSession %d %{public}u start", request->request_id(), sessionId);
+    HILOG_INFO(LOG_CORE, "StartSession %d %u start", request->request_id(), sessionId);
 
     // copy plugin configs from request
-    std::vector<ProfilerPluginConfig> pluginConfigsList;
-    pluginConfigsList.reserve(request->update_configs_size());
+    std::vector<ProfilerPluginConfig> newPluginConfigs;
+    newPluginConfigs.reserve(request->update_configs_size());
     for (int i = 0; i < request->update_configs_size(); i++) {
         HILOG_INFO(LOG_CORE, "update_configs %d, name = %s", i, request->update_configs(i).name().c_str());
-        pluginConfigsList.push_back(request->update_configs(i));
+        newPluginConfigs.push_back(request->update_configs(i));
     }
 
-    std::vector<std::string> nameList;
-    std::transform(pluginConfigsList.begin(), pluginConfigsList.end(), std::back_inserter(nameList),
+    // get plugin names in request
+    std::vector<std::string> requestNames;
+    std::transform(newPluginConfigs.begin(), newPluginConfigs.end(), std::back_inserter(requestNames),
                    [](auto& config) { return config.name(); });
+    std::sort(requestNames.begin(), requestNames.end());
 
     auto ctx = GetSessionContext(sessionId);
     CHECK_POINTER_NOTNULL(ctx, "session_id invalid!");
 
-    // remove old plugin sessions
-    ctx->RemovePluginSessions(nameList);
+    // get intersection set of requestNames and pluginNames
+    std::vector<std::string> updateNames;
+    std::set_intersection(requestNames.begin(), requestNames.end(), ctx->pluginNames.begin(), ctx->pluginNames.end(),
+                          std::back_inserter(updateNames));
 
-    // update plugin configs
-    auto updates = ctx->UpdatePluginConfigs(pluginConfigsList);
+    if (updateNames.size() > 0) {
+        // remove old plugin sessions
+        pluginSessionManager_->RemovePluginSessions(updateNames);
 
-    // update plugin sessions
-    CHECK_EXPRESSION_TRUE(ctx->UpdatePluginSessions(pluginService_, updates), "update sessions failed!");
+        // update plugin configs
+        size_t updates = ctx->UpdatePluginConfigs(newPluginConfigs);
+
+        // re-create plugin sessions
+        CHECK_EXPRESSION_TRUE(ctx->CreatePluginSessions(), "refresh sessions failed!");
+        HILOG_INFO(LOG_CORE, "StartSession %zu plugin config updated!", updates);
+    }
 
     // start plugin sessions with configs
     CHECK_EXPRESSION_TRUE(ctx->StartPluginSessions(), "start plugin sessions failed!");
-    HILOG_INFO(LOG_CORE, "StartSession %d %{public}u done!", request->request_id(), sessionId);
+    HILOG_INFO(LOG_CORE, "StartSession %d %u done!", request->request_id(), sessionId);
     return Status::OK;
 }
 
@@ -475,25 +422,23 @@ Status ProfilerService::FetchData(ServerContext* context,
     CHECK_POINTER_NOTNULL(writer, "writer invalid!");
 
     uint32_t sessionId = request->session_id();
-    HILOG_INFO(LOG_CORE, "FetchData %d %{public}u start", request->request_id(), sessionId);
+    HILOG_INFO(LOG_CORE, "FetchData %d %u start", request->request_id(), sessionId);
 
     auto ctx = GetSessionContext(sessionId);
     CHECK_POINTER_NOTNULL(ctx, "session_id invalid!");
 
     // check each plugin session states
-    for (auto sessionEntry : ctx->pluginSessions) {
-        if (sessionEntry.second) {
-            CHECK_EXPRESSION_TRUE(sessionEntry.second->GetState() == PluginSession::STARTED,
-                                  "plugin session state invalid");
-            HILOG_INFO(LOG_CORE, "check plugin session %s OK!", sessionEntry.first.c_str());
-        }
-    }
+    CHECK_EXPRESSION_TRUE(pluginSessionManager_->CheckStatus(ctx->pluginNames, PluginSession::STARTED),
+                          "session status invalid!");
 
     if (ctx->sessionConfig.session_mode() == ProfilerSessionConfig::ONLINE) {
         auto dataRepeater = ctx->dataRepeater;
         CHECK_POINTER_NOTNULL(dataRepeater, "repeater invalid!");
 
         while (1) {
+            ctx = GetSessionContext(sessionId);
+            CHECK_POINTER_NOTNULL(ctx, "session_id invalid!");
+
             FetchDataResponse response;
             response.set_status(StatusCode::OK);
             response.set_response_id(++responseIdCounter_);
@@ -507,9 +452,7 @@ Status ProfilerService::FetchData(ServerContext* context,
                     CHECK_POINTER_NOTNULL(data, "new plugin data invalid");
                     CHECK_POINTER_NOTNULL(pluginDataVec[i], "plugin data invalid");
                     *data = *pluginDataVec[i];
-                    HILOG_INFO(LOG_CORE, "add plugin %s data to response", pluginDataVec[i]->name().c_str());
                 }
-                HILOG_INFO(LOG_CORE, "fill %d data to response-%d", count, response.response_id());
             } else {
                 response.set_has_more(false);
                 HILOG_INFO(LOG_CORE, "no more data need to fill to response!");
@@ -523,7 +466,7 @@ Status ProfilerService::FetchData(ServerContext* context,
         }
     }
 
-    HILOG_INFO(LOG_CORE, "FetchData %d %{public}u done!", request->request_id(), sessionId);
+    HILOG_INFO(LOG_CORE, "FetchData %d %u done!", request->request_id(), sessionId);
     return Status::OK;
 }
 
@@ -535,13 +478,13 @@ Status ProfilerService::StopSession(ServerContext* context,
     HILOG_INFO(LOG_CORE, "StopSession from '%s'", context->peer().c_str());
 
     uint32_t sessionId = request->session_id();
-    HILOG_INFO(LOG_CORE, "StopSession %d %{public}u start", request->request_id(), sessionId);
+    HILOG_INFO(LOG_CORE, "StopSession %d %u start", request->request_id(), sessionId);
 
     auto ctx = GetSessionContext(sessionId);
     CHECK_POINTER_NOTNULL(ctx, "session_id invalid!");
 
     CHECK_EXPRESSION_TRUE(ctx->StopPluginSessions(), "stop plugin sessions failed!");
-    HILOG_INFO(LOG_CORE, "StopSession %d %{public}u done!", request->request_id(), sessionId);
+    HILOG_INFO(LOG_CORE, "StopSession %d %u done!", request->request_id(), sessionId);
     return Status::OK;
 }
 
@@ -553,13 +496,15 @@ Status ProfilerService::DestroySession(ServerContext* context,
     HILOG_INFO(LOG_CORE, "DestroySession from '%s'", context->peer().c_str());
 
     uint32_t sessionId = request->session_id();
-    HILOG_INFO(LOG_CORE, "DestroySession %d %{public}u start", request->request_id(), sessionId);
+    HILOG_INFO(LOG_CORE, "DestroySession %d %u start", request->request_id(), sessionId);
 
     auto ctx = GetSessionContext(sessionId);
     CHECK_POINTER_NOTNULL(ctx, "session_id invalid!");
 
     CHECK_EXPRESSION_TRUE(RemoveSessionContext(sessionId), "remove session FAILED!");
-    HILOG_INFO(LOG_CORE, "DestroySession %d %{public}u done!", request->request_id(), sessionId);
+    CHECK_EXPRESSION_TRUE(pluginSessionManager_->RemovePluginSessions(ctx->pluginNames),
+                          "remove plugin session FAILED!");
+    HILOG_INFO(LOG_CORE, "DestroySession %d %u done!", request->request_id(), sessionId);
     return Status::OK;
 }
 
@@ -571,14 +516,16 @@ Status ProfilerService::DestroySession(ServerContext* context,
     HILOG_INFO(LOG_CORE, "KeepSession from '%s'", context->peer().c_str());
 
     uint32_t sessionId = request->session_id();
-    HILOG_INFO(LOG_CORE, "KeepSession %d %{public}u start", request->request_id(), sessionId);
+    HILOG_INFO(LOG_CORE, "KeepSession %d %u start", request->request_id(), sessionId);
 
     auto ctx = GetSessionContext(sessionId);
     CHECK_POINTER_NOTNULL(ctx, "session_id invalid!");
 
     // update keep alive time if keep_alive_time parameter provided
-    if (request->keep_alive_time()) {
-        ctx->SetKeepAliveTime(request->keep_alive_time());
+    auto keepAliveTime = request->keep_alive_time();
+    if (keepAliveTime) {
+        CHECK_EXPRESSION_TRUE(IsValidKeepAliveTime(keepAliveTime), "keep_alive_time invalid!");
+        ctx->SetKeepAliveTime(keepAliveTime);
     }
 
     // reschedule session timeout task
@@ -586,14 +533,14 @@ Status ProfilerService::DestroySession(ServerContext* context,
         ctx->StopSessionExpireTask();
         ctx->StartSessionExpireTask();
     }
-    HILOG_INFO(LOG_CORE, "KeepSession %d %{public}u done!", request->request_id(), sessionId);
+    HILOG_INFO(LOG_CORE, "KeepSession %d %u done!", request->request_id(), sessionId);
     return Status::OK;
 }
 
-class LoggingInterceptor : public grpc::experimental::Interceptor {
+struct LoggingInterceptor : public grpc::experimental::Interceptor {
 public:
     explicit LoggingInterceptor(grpc::experimental::ServerRpcInfo* info) : info_(info) {}
-    ~LoggingInterceptor() {}
+
     void Intercept(experimental::InterceptorBatchMethods* methods) override
     {
         const char* method = info_->method();
@@ -624,11 +571,11 @@ bool ProfilerService::StartService(const std::string& listenUri)
         return false;
     }
 
-    std::vector<std::unique_ptr<grpc::experimental::ServerInterceptorFactoryInterface>> interceptorFactories;
-    interceptorFactories.emplace_back(std::make_unique<InterceptorFactory>());
+    //std::vector<std::unique_ptr<grpc::experimental::ServerInterceptorFactoryInterface>> interceptorFactories;
+    //interceptorFactories.emplace_back(std::make_unique<InterceptorFactory>());
 
     ServerBuilder builder;
-    builder.experimental().SetInterceptorCreators(std::move(interceptorFactories));
+    //builder.experimental().SetInterceptorCreators(std::move(interceptorFactories));
     builder.AddListeningPort(listenUri, grpc::InsecureServerCredentials());
     builder.RegisterService(this);
 

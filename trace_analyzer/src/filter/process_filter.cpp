@@ -55,14 +55,19 @@ void ProcessFilter::UpdateOrCreateThreadWithPidAndName(uint32_t tid, uint32_t pi
 uint32_t ProcessFilter::GetOrCreateThreadWithPid(uint32_t tid, uint32_t pid)
 {
     TraceStdtype::Thread* thread = nullptr;
-    uint32_t internalTid = GetInternalTid(tid, pid);
+    uint32_t internalTid = INVALID_ID;
+    if (pid == 0) {
+        internalTid = GetInternalTid(tid);
+    } else {
+        internalTid = GetInternalTid(tid, pid);
+    }
     if (internalTid != INVALID_ID) {
         thread = traceDataCache_->GetThreadData(internalTid);
     } else {
         std::tie(internalTid, thread) = NewThread(tid);
     }
 
-    if (!thread->internalPid_) {
+    if (!thread->internalPid_ && pid != 0) {
         std::tie(thread->internalPid_, std::ignore) = CreateProcessMaybe(pid, thread->startT_);
     }
 
@@ -77,8 +82,12 @@ uint32_t ProcessFilter::UpdateOrCreateProcessWithName(uint32_t pid, std::string_
     if (process) {
         process->cmdLine_ = std::string(name);
     }
-    // Create a main thread which thread_id equal process_id, and is the main thread
-    GetOrCreateThreadWithPid(pid, pid);
+    // update main thread name
+    auto internalTid = GetInternalTid(pid, pid);
+    if (internalTid != INVALID_ID) {
+        auto thread = traceDataCache_->GetThreadData(internalTid);
+        thread->nameIndex_ = traceDataCache_->GetDataIndex(name);
+    }
     return internalPid;
 }
 
@@ -110,7 +119,7 @@ uint32_t ProcessFilter::GetInternalTid(uint32_t tid, uint32_t pid) const
         auto iterThread = traceDataCache_->GetThreadData(iterItid);
         if (!iterThread->internalPid_) {
             internalTid = iterItid;
-            break;
+            continue;
         }
 
         const auto& iterProcess = traceDataCache_->GetConstProcessData(iterThread->internalPid_);
@@ -182,6 +191,7 @@ std::tuple<uint32_t, TraceStdtype::Process*> ProcessFilter::CreateProcessMaybe(u
         process = traceDataCache_->GetProcessData(internalPid);
     } else {
         std::tie(internalPid, process) = NewProcess(pid);
+        void(GetOrCreateThreadWithPid(pid,pid));
     }
 
     if (process->startT_ == 0) {

@@ -38,7 +38,11 @@ uint32_t CommandPoller::GetRequestId()
 
 bool CommandPoller::OnCreateSessionCmd(const CreateSessionCmd& cmd, SocketContext& context) const
 {
-    HILOG_DEBUG(LOG_CORE, "OnCreateSessionCmd PROC");
+    HILOG_DEBUG(LOG_CORE, "%s:proc", __func__);
+    if (cmd.buffer_sizes().size() == 0 || cmd.plugin_configs().size() == 0) {
+        HILOG_ERROR(LOG_CORE, "%s:cmd invalid!", __func__);
+        return false;
+    }
     uint32_t bufferSize = cmd.buffer_sizes(0);
     ProfilerPluginConfig config = cmd.plugin_configs(0);
     std::vector<ProfilerPluginConfig> configVec;
@@ -48,34 +52,38 @@ bool CommandPoller::OnCreateSessionCmd(const CreateSessionCmd& cmd, SocketContex
     CHECK_NOTNULL(pluginManager, false, "promote FAILED!");
 
     if (!pluginManager->LoadPlugin(config.name())) {
-        HILOG_DEBUG(LOG_CORE, "OnCreateSessionCmd FAIL 1");
+        HILOG_DEBUG(LOG_CORE, "%s:fail 1", __func__);
         return false;
     }
     int smbFd = -1;
     int eventFd = -1;
     if (bufferSize != 0) {
-        HILOG_DEBUG(LOG_CORE, "OnCreateSessionCmd bufferSize = %d", bufferSize);
+        HILOG_DEBUG(LOG_CORE, "%s:bufferSize = %d", __func__, bufferSize);
         smbFd = context.ReceiveFileDiscriptor();
         eventFd = context.ReceiveFileDiscriptor();
         int flags = fcntl(eventFd, F_GETFL);
-        HILOG_DEBUG(LOG_CORE, "OnCreateSessionCmd smbFd = %d, eventFd = %d", smbFd, eventFd);
-        HILOG_DEBUG(LOG_CORE, "eventFd flags = %X", flags);
+        HILOG_DEBUG(LOG_CORE, "%s:smbFd = %d, eventFd = %d", __func__, smbFd, eventFd);
+        HILOG_DEBUG(LOG_CORE, "%s:eventFd flags = %X", __func__, flags);
     }
     if (!pluginManager->CreateWriter(config.name(), bufferSize, smbFd, eventFd)) {
-        HILOG_DEBUG(LOG_CORE, "OnCreateSessionCmd CreateWriter FAIL");
+        HILOG_DEBUG(LOG_CORE, "%s:createWriter failed!", __func__);
         return false;
     }
     if (!pluginManager->CreatePluginSession(configVec)) {
-        HILOG_DEBUG(LOG_CORE, "OnCreateSessionCmd CreatePluginSession FAIL");
+        HILOG_DEBUG(LOG_CORE, "%s:createPluginSession failed!", __func__);
         return false;
     }
-    HILOG_DEBUG(LOG_CORE, "OnCreateSessionCmd OK");
+    HILOG_DEBUG(LOG_CORE, "%s:ok", __func__);
     return true;
 }
 
 bool CommandPoller::OnDestroySessionCmd(const DestroySessionCmd& cmd) const
 {
-    HILOG_DEBUG(LOG_CORE, "OnDestroySessionCmd PROC");
+    HILOG_DEBUG(LOG_CORE, "%s:proc", __func__);
+    if (cmd.plugin_ids().size() == 0) {
+        HILOG_ERROR(LOG_CORE, "%s:cmd invalid!", __func__);
+        return false;
+    }
     uint32_t pluginId = cmd.plugin_ids(0);
     std::vector<uint32_t> pluginIdVec;
     pluginIdVec.push_back(pluginId);
@@ -84,24 +92,28 @@ bool CommandPoller::OnDestroySessionCmd(const DestroySessionCmd& cmd) const
     CHECK_NOTNULL(pluginManager, false, "promote FAILED!");
 
     if (!pluginManager->DestroyPluginSession(pluginIdVec)) {
-        HILOG_DEBUG(LOG_CORE, "OnDestroySessionCmd DestroyPluginSession FAIL");
+        HILOG_DEBUG(LOG_CORE, "%s:destroyPluginSession failed!", __func__);
         return false;
     }
     if (!pluginManager->ResetWriter(pluginId)) {
-        HILOG_DEBUG(LOG_CORE, "OnDestroySessionCmd ResetWriter FAIL");
+        HILOG_DEBUG(LOG_CORE, "%s:resetWriter failed!", __func__);
         return false;
     }
     if (!pluginManager->UnloadPlugin(pluginId)) {
-        HILOG_DEBUG(LOG_CORE, "OnDestroySessionCmd UnloadPlugin FAIL");
+        HILOG_DEBUG(LOG_CORE, "%s:unloadPlugin failed!", __func__);
         return false;
     }
-    HILOG_DEBUG(LOG_CORE, "OnDestroySessionCmd OK");
+    HILOG_DEBUG(LOG_CORE, "%s:ok", __func__);
     return true;
 }
 
 bool CommandPoller::OnStartSessionCmd(const StartSessionCmd& cmd) const
 {
-    HILOG_DEBUG(LOG_CORE, "OnStartSessionCmd PROC");
+    HILOG_DEBUG(LOG_CORE, "%s:proc", __func__);
+    if (cmd.plugin_ids().size() == 0 || cmd.plugin_configs().size() == 0) {
+        HILOG_ERROR(LOG_CORE, "%s:cmd invalid!", __func__);
+        return false;
+    }
     std::vector<uint32_t> pluginIds;
     pluginIds.push_back(cmd.plugin_ids(0));
     std::vector<ProfilerPluginConfig> configVec;
@@ -111,16 +123,20 @@ bool CommandPoller::OnStartSessionCmd(const StartSessionCmd& cmd) const
     CHECK_NOTNULL(pluginManager, false, "promote FAILED!");
 
     if (!pluginManager->StartPluginSession(pluginIds, configVec)) {
-        HILOG_DEBUG(LOG_CORE, "OnStartSessionCmd FAIL");
+        HILOG_DEBUG(LOG_CORE, "%s:start Session failed!", __func__);
         return false;
     }
-    HILOG_DEBUG(LOG_CORE, "OnStartSessionCmd OK");
+    HILOG_DEBUG(LOG_CORE, "%s:OK", __func__);
     return true;
 }
 
 bool CommandPoller::OnStopSessionCmd(const StopSessionCmd& cmd) const
 {
-    HILOG_DEBUG(LOG_CORE, "OnStopSessionCmd PROC");
+    HILOG_DEBUG(LOG_CORE, "%s:proc", __func__);
+    if (cmd.plugin_ids().size() == 0) {
+        HILOG_ERROR(LOG_CORE, "%s:cmd invalid!", __func__);
+        return false;
+    }
     std::vector<uint32_t> pluginIds;
     pluginIds.push_back(cmd.plugin_ids(0));
 
@@ -128,16 +144,16 @@ bool CommandPoller::OnStopSessionCmd(const StopSessionCmd& cmd) const
     CHECK_NOTNULL(pluginManager, false, "promote FAILED!");
 
     if (!pluginManager->StopPluginSession(pluginIds)) {
-        HILOG_DEBUG(LOG_CORE, "OnStopSessionCmd FAIL");
+        HILOG_DEBUG(LOG_CORE, "%s:stop Session failed!", __func__);
         return false;
     }
-    HILOG_DEBUG(LOG_CORE, "OnStopSessionCmd OK");
+    HILOG_DEBUG(LOG_CORE, "%s:ok", __func__);
     return true;
 }
 
 bool CommandPoller::OnGetCommandResponse(SocketContext& context, ::GetCommandResponse& response)
 {
-    HILOG_DEBUG(LOG_CORE, "OnGetCommandResponse");
+    HILOG_DEBUG(LOG_CORE, "%s:proc", __func__);
     std::this_thread::sleep_for(std::chrono::milliseconds(SLEEP_TIME));
     NotifyResultRequest nrr;
     nrr.set_request_id(1);
@@ -170,10 +186,10 @@ bool CommandPoller::OnGetCommandResponse(SocketContext& context, ::GetCommandRes
             status->set_state(ProfilerPluginState::IN_SESSION);
         }
     } else {
-        HILOG_DEBUG(LOG_CORE, "OnGetCommandResponse FAIL");
+        HILOG_DEBUG(LOG_CORE, "%s:command Response failed!", __func__);
         return false;
     }
-    HILOG_DEBUG(LOG_CORE, "OnGetCommandResponse OK %d", nrr.command_id());
+    HILOG_DEBUG(LOG_CORE, "%s:ok id = %d", __func__, nrr.command_id());
     NotifyResult(nrr);
     return true;
 }

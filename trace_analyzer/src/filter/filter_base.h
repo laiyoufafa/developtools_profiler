@@ -34,8 +34,8 @@ public:
     virtual ~FilterBase();
 
 public:
-    const TraceStreamerFilters* streamFilters_ {};
-    TraceDataCache* traceDataCache_ {};
+    const TraceStreamerFilters* streamFilters_ = {};
+    TraceDataCache* traceDataCache_ = {};
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

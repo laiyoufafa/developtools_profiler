@@ -23,14 +23,8 @@ using namespace testing::ext;
 namespace {
 class ServiceEntryTest : public testing::Test {
 public:
-    static void SetUpTestCase()
-    {
-        setenv("RECV_NO_WAIT", "1", 0);
-    }
-    static void TearDownTestCase()
-    {
-        unsetenv("RECV_NO_WAIT");
-    }
+    static void SetUpTestCase() {}
+    static void TearDownTestCase() {}
     void SetUp() {}
     void TearDown() {}
 };

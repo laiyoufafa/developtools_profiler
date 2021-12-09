@@ -20,6 +20,7 @@ ohos_source_set("base") {
   sources = [
     "codec_cov.cpp",
     "file.cpp",
+    "log.cpp",
     "parting_string.cpp",
   ]
   if (enable_ts_utest) {

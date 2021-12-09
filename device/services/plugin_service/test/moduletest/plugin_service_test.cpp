@@ -57,14 +57,12 @@ class ModuleTestPluginService : public testing::Test {
 public:
     static void SetUpTestCase()
     {
-        setenv("RECV_NO_WAIT", "1", 0);
         g_pluginClient = std::make_unique<PluginClient>();
-        ASSERT_FALSE(g_pluginClient->Connect(""));
+        ASSERT_FALSE(g_pluginClient->Connect("test"));
     }
 
     static void TearDownTestCase()
     {
-        unsetenv("RECV_NO_WAIT");
         usleep(1000000); // sleep 1000000 us.
         g_pluginClient = nullptr;
     }

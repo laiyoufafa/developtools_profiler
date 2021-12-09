@@ -19,4 +19,5 @@ option optimize_for = LITE_RUNTIME;
 
 message AgentConfig {
     int32 pid = 1;
+    int32 stack_depth = 2;
 }

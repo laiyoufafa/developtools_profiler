@@ -20,10 +20,10 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
-#include "common.h"
 #include "filter_base.h"
 #include "trace_data_cache.h"
 #include "trace_streamer_filters.h"
+#include "ts_common.h"
 
 namespace SysTuning {
 namespace TraceStreamer {

@@ -27,12 +27,14 @@ public:
     TraceDataCacheWriter(const TraceDataCacheWriter&) = delete;
     TraceDataCacheWriter& operator=(const TraceDataCacheWriter&) = delete;
     ~TraceDataCacheWriter() override;
+
 public:
     InternalPid GetProcessInternalPid(uint32_t pid);
     Process* GetProcessData(InternalPid internalPid);
     InternalTid NewInternalThread(uint32_t tid);
     Thread* GetThreadData(InternalTid internalTid);
     void UpdateTraceTime(uint64_t timestamp);
+    void MixTraceTime(uint64_t timestampMin, uint64_t timestampMax);
     CallStack* GetInternalSlicesData();
     Filter* GetFilterData();
     Raw* GetRawData();
@@ -46,10 +48,16 @@ public:
     ProcessMeasureFilter* GetProcessFilterData();
     ProcessMeasureFilter* GetProcessMeasureFilterData();
     ClockEventData* GetClockEventFilterData();
+    ClkEventData* GetClkEventFilterData();
     StatAndInfo* GetStatAndInfo();
     MetaData* GetMetaData();
     SymbolsData* GetSymbolsData();
+    SysCall* GetSysCallData();
+    LogInfo* GetHilogData();
+    ArgSet* GetArgSetData();
+    DataType* GetDataTypeData();
+    SysMeasureFilter* GetSysMeasureFilterData();
 };
 } // namespace TraceStreamer
-} // namespace trace_data_cache
+} // namespace SysTuning
 #endif

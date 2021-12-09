@@ -36,183 +36,357 @@ public:
     TraceDataCache traceDataCache_;
 };
 
+/**
+ * @tc.name: UpdateOrCreateThread
+ * @tc.desc: Test UpdateOrCreateThread interface
+ * @tc.type: FUNC
+ */
 HWTEST_F(ProcessFilterTest, UpdateOrCreateThread, TestSize.Level1)
 {
     TS_LOGI("test10-1");
-    uint32_t iTid0 = streamFilters_.processFilter_->UpdateOrCreateThread(168758662877000, 2716);
+    uint64_t ts = 168758662877000;
+    uint32_t tid = 2716;
+    uint32_t iTid0 = streamFilters_.processFilter_->UpdateOrCreateThread(ts, tid);
     EXPECT_TRUE(iTid0 == 1);
 
-    uint32_t iTid1 = streamFilters_.processFilter_->UpdateOrCreateThread(2716, 2519);
+    uint32_t tid2 = 2519;
+    uint32_t iTid1 = streamFilters_.processFilter_->UpdateOrCreateThread(0, 2519);
     EXPECT_TRUE(iTid1 == 2);
 
     Thread* thread = traceDataCache_.GetThreadData(iTid0);
-    EXPECT_TRUE(thread->tid_ == 2716);
-    EXPECT_TRUE(thread->startT_ == 168758662877000);
+    EXPECT_TRUE(thread->tid_ == tid);
+    EXPECT_TRUE(thread->startT_ == ts);
 
     thread = traceDataCache_.GetThreadData(iTid1);
-    EXPECT_TRUE(thread->tid_ == 2519);
+    EXPECT_TRUE(thread->tid_ == tid2);
     EXPECT_TRUE(thread->internalPid_ == 0);
 }
 
+/**
+ * @tc.name: UpdateOrCreateProcessWithName
+ * @tc.desc: Test UpdateOrCreateProcessWithName interface
+ * @tc.type: FUNC
+ */
 HWTEST_F(ProcessFilterTest, UpdateOrCreateProcessWithName, TestSize.Level1)
 {
-    TS_LOGI("test10-1");
-    uint32_t iPid0 = streamFilters_.processFilter_->UpdateOrCreateProcessWithName(8629, "RenderThread");
+    TS_LOGI("test10-2");
+    uint32_t pid = 8629;
+    std::string_view processName = "RenderThread";
+    uint32_t iPid0 = streamFilters_.processFilter_->UpdateOrCreateProcessWithName(pid, processName);
     EXPECT_TRUE(iPid0 == 1);
 
-    uint32_t iPid1 = streamFilters_.processFilter_->UpdateOrCreateProcessWithName(8709, "RenderThread");
+    uint32_t pid2 = 8709;
+    uint32_t iPid1 = streamFilters_.processFilter_->UpdateOrCreateProcessWithName(pid2, processName);
     EXPECT_TRUE(iPid1 == 2);
 
     Process* process = traceDataCache_.GetProcessData(iPid0);
-    EXPECT_TRUE(process->pid_ == 8629);
+    EXPECT_TRUE(process->pid_ == pid);
 
     process = traceDataCache_.GetProcessData(iPid1);
-    EXPECT_TRUE(process->pid_ == 8709);
+    EXPECT_TRUE(process->pid_ == pid2);
 }
-HWTEST_F(ProcessFilterTest, UpdateOrCreateProcessWithName2, TestSize.Level1)
+
+/**
+ * @tc.name: UpdateOrCreateProcessWithNameSingleIpid
+ * @tc.desc: Test whether the internal PID of the generated single process is as expected.
+ * @tc.type: FUNC
+ */
+HWTEST_F(ProcessFilterTest, UpdateOrCreateProcessWithNameSingleIpid, TestSize.Level1)
 {
-    TS_LOGI("test10-1");
-    uint32_t iPid0 = streamFilters_.processFilter_->UpdateOrCreateProcessWithName(8629, "RenderThread");
+    TS_LOGI("test10-3");
+    uint32_t pid = 8629;
+    std::string_view processName = "RenderThread";
+    uint32_t iPid0 = streamFilters_.processFilter_->UpdateOrCreateProcessWithName(pid, processName);
     EXPECT_TRUE(iPid0 == 1);
 }
-HWTEST_F(ProcessFilterTest, UpdateOrCreateProcessWithName3, TestSize.Level1)
+
+/**
+ * @tc.name: UpdateOrCreateProcessWithNameMultiIpid
+ * @tc.desc: Test genarated multi ipid with UpdateOrCreateProcessWithName interface
+ * @tc.type: FUNC
+ */
+HWTEST_F(ProcessFilterTest, UpdateOrCreateProcessWithNameMultiIpid, TestSize.Level1)
 {
-    TS_LOGI("test10-1");
-    uint32_t iPid0 = streamFilters_.processFilter_->UpdateOrCreateProcessWithName(8629, "RenderThread");
+    TS_LOGI("test10-4");
+    uint32_t pid = 8629;
+    std::string_view processName = "RenderThread";
+    uint32_t iPid0 = streamFilters_.processFilter_->UpdateOrCreateProcessWithName(pid, processName);
     EXPECT_TRUE(iPid0 == 1);
 
-    uint32_t iPid1 = streamFilters_.processFilter_->UpdateOrCreateProcessWithName(8709, "RenderThread");
+    uint32_t pid2 = 8709;
+    uint32_t iPid1 = streamFilters_.processFilter_->UpdateOrCreateProcessWithName(pid2, processName);
     EXPECT_TRUE(iPid1 == 2);
 }
-HWTEST_F(ProcessFilterTest, UpdateOrCreateProcessWithName4, TestSize.Level1)
+
+/**
+ * @tc.name: UpdateOrCreateProcessWithNameSinglePid
+ * @tc.desc: Test genarated single pid with UpdateOrCreateProcessWithName interface
+ * @tc.type: FUNC
+ */
+HWTEST_F(ProcessFilterTest, UpdateOrCreateProcessWithNameSinglePid, TestSize.Level1)
 {
-    TS_LOGI("test10-1");
-    uint32_t iPid0 = streamFilters_.processFilter_->UpdateOrCreateProcessWithName(8629, "RenderThread");
+    TS_LOGI("test10-5");
+    uint32_t pid = 8629;
+    std::string_view processName = "RenderThread";
+    uint32_t iPid0 = streamFilters_.processFilter_->UpdateOrCreateProcessWithName(pid, processName);
     EXPECT_TRUE(iPid0 == 1);
 
     Process* process = traceDataCache_.GetProcessData(iPid0);
-    EXPECT_TRUE(process->pid_ == 8629);
+    EXPECT_TRUE(process->pid_ == pid);
 }
-HWTEST_F(ProcessFilterTest, UpdateOrCreateProcessWithName5, TestSize.Level1)
+
+/**
+ * @tc.name: UpdateOrCreateProcessWithNameMultiPid
+ * @tc.desc: est genarated multi pid with UpdateOrCreateProcessWithName interface
+ * @tc.type: FUNC
+ */
+HWTEST_F(ProcessFilterTest, UpdateOrCreateProcessWithNameMultiPid, TestSize.Level1)
 {
-    TS_LOGI("test10-1");
-    uint32_t iPid0 = streamFilters_.processFilter_->UpdateOrCreateProcessWithName(8629, "RenderThread");
+    TS_LOGI("test10-6");
+    uint32_t pid = 8629;
+    std::string_view processName = "RenderThread";
+    uint32_t iPid0 = streamFilters_.processFilter_->UpdateOrCreateProcessWithName(pid, processName);
     EXPECT_TRUE(iPid0 == 1);
 
-    uint32_t iPid1 = streamFilters_.processFilter_->UpdateOrCreateProcessWithName(8709, "RenderThread");
+    uint32_t pid2 = 8709;
+    uint32_t iPid1 = streamFilters_.processFilter_->UpdateOrCreateProcessWithName(pid2, processName);
     EXPECT_TRUE(iPid1 == 2);
 
-    uint32_t iPid2 = streamFilters_.processFilter_->UpdateOrCreateProcessWithName(87091, "RenderThread");
+    uint32_t pid3 = 87091;
+    uint32_t iPid2 = streamFilters_.processFilter_->UpdateOrCreateProcessWithName(87091, processName);
     EXPECT_TRUE(iPid2 == 3);
 
     Process* process = traceDataCache_.GetProcessData(iPid0);
-    EXPECT_TRUE(process->pid_ == 8629);
+    EXPECT_TRUE(process->pid_ == pid);
 
     process = traceDataCache_.GetProcessData(iPid1);
-    EXPECT_TRUE(process->pid_ == 8709);
+    EXPECT_TRUE(process->pid_ == pid2);
 
     process = traceDataCache_.GetProcessData(iPid2);
-    EXPECT_TRUE(process->pid_ == 87091);
+    EXPECT_TRUE(process->pid_ == pid3);
 }
 
+/**
+ * @tc.name: UpdateOrCreateThreadWithName
+ * @tc.desc: Test UpdateOrCreateThreadWithName interface
+ * @tc.type: FUNC
+ */
 HWTEST_F(ProcessFilterTest, UpdateOrCreateThreadWithName, TestSize.Level1)
 {
-    TS_LOGI("test10-1");
-    uint32_t iTid0 =streamFilters_.processFilter_->UpdateOrCreateThreadWithName(168758662957020, 123, "RenderThread");
+    TS_LOGI("test10-7");
+    uint64_t ts = 168758662957020;
+    uint32_t tid = 123;
+    std::string_view threadName = "RenderThread";
+    uint32_t iTid0 = streamFilters_.processFilter_->UpdateOrCreateThreadWithName(ts, tid, threadName);
     EXPECT_TRUE(iTid0 == 1);
-    uint32_t iTid1 = streamFilters_.processFilter_->UpdateOrCreateThreadWithName(168758663957020, 2519,
-        "RenderThread2");
+    uint64_t ts2 = 168758663957020;
+    uint32_t tid2 = 2519;
+    std::string_view threadName2 = "RenderThread2";
+    uint32_t iTid1 = streamFilters_.processFilter_->UpdateOrCreateThreadWithName(ts2, tid2, threadName2);
     EXPECT_TRUE(iTid1 == 2);
 
     Thread* thread = traceDataCache_.GetThreadData(iTid0);
-    EXPECT_TRUE(thread->tid_ == 123);
-    EXPECT_TRUE(thread->startT_ == 168758662957020);
-    EXPECT_TRUE(thread->nameIndex_ == traceDataCache_.GetDataIndex("RenderThread"));
+    EXPECT_TRUE(thread->tid_ == tid);
+    EXPECT_TRUE(thread->startT_ == ts);
+    EXPECT_TRUE(thread->nameIndex_ == traceDataCache_.GetDataIndex(threadName));
 
     thread = traceDataCache_.GetThreadData(iTid1);
-    EXPECT_TRUE(thread->tid_ == 2519);
+    EXPECT_TRUE(thread->tid_ == tid2);
     EXPECT_TRUE(thread->internalPid_ == 0);
-    EXPECT_TRUE(thread->nameIndex_ == traceDataCache_.GetDataIndex("RenderThread2"));
+    EXPECT_TRUE(thread->nameIndex_ == traceDataCache_.GetDataIndex(threadName2));
 }
-HWTEST_F(ProcessFilterTest, UpdateOrCreateThreadWithName2, TestSize.Level1)
+
+/**
+ * @tc.name: UpdateOrCreateThreadWithNameSingleItid
+ * @tc.desc: Test genarated single itid with UpdateOrCreateThreadWithName
+ * @tc.type: FUNC
+ */
+HWTEST_F(ProcessFilterTest, UpdateOrCreateThreadWithNameSingleItid, TestSize.Level1)
 {
-    TS_LOGI("test10-1");
-    uint32_t iTid0 =streamFilters_.processFilter_->UpdateOrCreateThreadWithName(168758662957020, 123, "RenderThread");
+    TS_LOGI("test10-8");
+    uint64_t ts = 168758662957020;
+    uint32_t tid = 123;
+    std::string_view threadName = "RenderThread";
+    uint32_t iTid0 = streamFilters_.processFilter_->UpdateOrCreateThreadWithName(ts, tid, threadName);
     EXPECT_TRUE(iTid0 == 1);
 }
 
-HWTEST_F(ProcessFilterTest, UpdateOrCreateThreadWithName3, TestSize.Level1)
+/**
+ * @tc.name: UpdateOrCreateThreadWithNameGenarateTidAndItid
+ * @tc.desc: Test genarated single itid and tid with UpdateOrCreateThreadWithName
+ * @tc.type: FUNC
+ */
+HWTEST_F(ProcessFilterTest, UpdateOrCreateThreadWithNameGenarateTidAndItid, TestSize.Level1)
 {
-    TS_LOGI("test10-1");
-    uint32_t iTid0 =streamFilters_.processFilter_->UpdateOrCreateThreadWithName(168758662957020, 123, "RenderThread2");
+    TS_LOGI("test10-9");
+    uint64_t ts = 168758662957020;
+    uint32_t tid = 123;
+    std::string_view threadName = "RenderThread2";
+    uint32_t iTid0 = streamFilters_.processFilter_->UpdateOrCreateThreadWithName(ts, tid, threadName);
     EXPECT_TRUE(iTid0 == 1);
     Thread* thread = traceDataCache_.GetThreadData(iTid0);
-    EXPECT_TRUE(thread->tid_ == 123);
-    EXPECT_TRUE(thread->startT_ == 168758662957020);
-    EXPECT_TRUE(thread->nameIndex_ == traceDataCache_.GetDataIndex("RenderThread2"));
-}
-HWTEST_F(ProcessFilterTest, UpdateOrCreateThreadWithName4, TestSize.Level1)
-{
-    TS_LOGI("test10-1");
-    uint32_t iTid0 =streamFilters_.processFilter_->UpdateOrCreateThreadWithName(168758662957020, 123, "RenderThread");
-    EXPECT_TRUE(iTid0 == 1);
-    uint32_t iTid1 = streamFilters_.processFilter_->UpdateOrCreateThreadWithName(168758663957020, 2519,
-        "RenderThread2");
-    EXPECT_TRUE(iTid1 == 2);
-    auto thread = traceDataCache_.GetThreadData(iTid1);
-    EXPECT_TRUE(thread->tid_ == 2519);
-    EXPECT_TRUE(thread->internalPid_ == 0);
-    EXPECT_TRUE(thread->nameIndex_ == traceDataCache_.GetDataIndex("RenderThread2"));
-}
-HWTEST_F(ProcessFilterTest, UpdateOrCreateThreadWithName5, TestSize.Level1)
-{
-    TS_LOGI("test10-1");
-    uint32_t iTid0 =streamFilters_.processFilter_->UpdateOrCreateThreadWithName(168758662957020, 123, "RenderThread");
-    EXPECT_TRUE(iTid0 == 1);
-    uint32_t iTid1 = streamFilters_.processFilter_->UpdateOrCreateThreadWithName(168758663957020, 2519,
-        "RenderThread2");
-    EXPECT_TRUE(iTid1 == 2);
-    uint32_t iTid2 = streamFilters_.processFilter_->UpdateOrCreateThreadWithName(168758663957020, 25191,
-        "RenderThread3");
-    EXPECT_TRUE(iTid2 == 3);
-    auto thread = traceDataCache_.GetThreadData(iTid2);
-    EXPECT_TRUE(thread->tid_ == 25191);
-    EXPECT_TRUE(thread->internalPid_ == 0);
-    EXPECT_TRUE(thread->nameIndex_ == traceDataCache_.GetDataIndex("RenderThread3"));
+    EXPECT_TRUE(thread->tid_ == tid);
+    EXPECT_TRUE(thread->startT_ == ts);
+    EXPECT_TRUE(thread->nameIndex_ == traceDataCache_.GetDataIndex(threadName));
 }
 
+/**
+ * @tc.name: UpdateOrCreateThreadWithNameMultiItid
+ * @tc.desc: Test genarate double itid with UpdateOrCreateThreadWithName interface
+ * @tc.type: FUNC
+ */
+HWTEST_F(ProcessFilterTest, UpdateOrCreateThreadWithNameDoubleItid, TestSize.Level1)
+{
+    TS_LOGI("test10-10");
+    uint64_t ts = 168758662957020;
+    uint32_t tid = 123;
+    std::string_view threadName = "RenderThread";
+    uint32_t iTid0 = streamFilters_.processFilter_->UpdateOrCreateThreadWithName(ts, tid, threadName);
+    EXPECT_TRUE(iTid0 == 1);
+    uint64_t ts2 = 168758663957020;
+    uint32_t tid2 = 2519;
+    std::string_view threadName2 = "RenderThread2";
+    uint32_t iTid1 = streamFilters_.processFilter_->UpdateOrCreateThreadWithName(ts2, tid2, threadName2);
+    EXPECT_TRUE(iTid1 == 2);
+    auto thread = traceDataCache_.GetThreadData(iTid1);
+    EXPECT_TRUE(thread->tid_ == tid2);
+    EXPECT_TRUE(thread->internalPid_ == 0);
+    EXPECT_TRUE(thread->nameIndex_ == traceDataCache_.GetDataIndex(threadName2));
+}
+
+/**
+ * @tc.name: UpdateOrCreateThreadWithNameTripleItid
+ * @tc.desc:  Test genarate triple itid with UpdateOrCreateThreadWithName interface
+ * @tc.type: FUNC
+ */
+HWTEST_F(ProcessFilterTest, UpdateOrCreateThreadWithNameTripleItid, TestSize.Level1)
+{
+    TS_LOGI("test10-11");
+    uint64_t ts = 168758662957020;
+    uint32_t tid = 123;
+    std::string_view threadName = "RenderThread";
+    uint32_t iTid0 = streamFilters_.processFilter_->UpdateOrCreateThreadWithName(ts, tid, threadName);
+    EXPECT_TRUE(iTid0 == 1);
+    uint64_t ts2 = 168758663957020;
+    uint32_t tid2 = 2519;
+    std::string_view threadName2 = "RenderThread2";
+    uint32_t iTid1 = streamFilters_.processFilter_->UpdateOrCreateThreadWithName(ts2, tid2, threadName2);
+    EXPECT_TRUE(iTid1 == 2);
+    uint64_t ts3 = 168758663957020;
+    uint32_t tid3 = 25191;
+    std::string_view threadName3 = "RenderThread3";
+    uint32_t iTid2 = streamFilters_.processFilter_->UpdateOrCreateThreadWithName(ts3, tid3, threadName3);
+    EXPECT_TRUE(iTid2 == 3);
+    auto thread = traceDataCache_.GetThreadData(iTid2);
+    EXPECT_TRUE(thread->tid_ == tid3);
+    EXPECT_TRUE(thread->internalPid_ == 0);
+    EXPECT_TRUE(thread->nameIndex_ == traceDataCache_.GetDataIndex(threadName3));
+}
+
+/**
+ * @tc.name: UpdateOrCreateThreadWithPidAndName
+ * @tc.desc: Test UpdateOrCreateThreadWithPidAndName interface
+ * @tc.type: FUNC
+ */
 HWTEST_F(ProcessFilterTest, UpdateOrCreateThreadWithPidAndName, TestSize.Level1)
 {
-    TS_LOGI("test10-1");
-    streamFilters_.processFilter_->UpdateOrCreateThreadWithPidAndName(869, 123, "RenderThread");
-    auto itid = streamFilters_.processFilter_->GetInternalTid(869);
+    TS_LOGI("test10-12");
+    uint32_t tid = 869;
+    uint32_t pid = 123;
+    std::string_view threadName = "RenderThread";
+    streamFilters_.processFilter_->UpdateOrCreateThreadWithPidAndName(tid, pid, threadName);
+    auto itid = streamFilters_.processFilter_->GetInternalTid(tid);
     EXPECT_TRUE(itid != INVALID_ID);
 
     Thread* thread = traceDataCache_.GetThreadData(itid);
-    EXPECT_TRUE(thread->nameIndex_ == traceDataCache_.GetDataIndex("RenderThread"));
+    EXPECT_TRUE(thread->nameIndex_ == traceDataCache_.GetDataIndex(threadName));
 }
-HWTEST_F(ProcessFilterTest, UpdateOrCreateThreadWithPidAndName2, TestSize.Level1)
+
+/**
+ * @tc.name: UpdateOrCreateThreadWithPidAndNameAbnomal
+ * @tc.desc: Test UpdateOrCreateThreadWithPidAndName interface
+ * @tc.type: FUNC
+ */
+HWTEST_F(ProcessFilterTest, UpdateOrCreateThreadWithPidAndNameAbnomal, TestSize.Level1)
 {
-    TS_LOGI("test10-1");
-    streamFilters_.processFilter_->UpdateOrCreateThreadWithPidAndName(869, 123, "RenderThread");
-    auto itid = streamFilters_.processFilter_->GetInternalTid(969);
+    TS_LOGI("test10-13");
+    uint32_t tid = 869;
+    uint32_t pid = 123;
+    std::string_view threadName = "RenderThread";
+    streamFilters_.processFilter_->UpdateOrCreateThreadWithPidAndName(tid, pid, threadName);
+    uint32_t tid2 = 969;
+    auto itid = streamFilters_.processFilter_->GetInternalTid(tid2);
     EXPECT_TRUE(itid == INVALID_ID);
 }
 
-HWTEST_F(ProcessFilterTest, UpdateOrCreateThreadWithPidAndName3, TestSize.Level1)
+/**
+ * @tc.name: UpdateOrCreateThreadWithPidAndNameSingleItid
+ * @tc.desc: Test UpdateOrCreateThreadWithPidAndName interface
+ * @tc.type: FUNC
+ */
+HWTEST_F(ProcessFilterTest, UpdateOrCreateThreadWithPidAndNameSingleItid, TestSize.Level1)
 {
-    TS_LOGI("test10-1");
-    streamFilters_.processFilter_->UpdateOrCreateThreadWithPidAndName(869, 123, "RenderThread");
-    auto itid = streamFilters_.processFilter_->GetInternalPid(123);
+    TS_LOGI("test10-14");
+    uint32_t tid = 869;
+    uint32_t pid = 123;
+    std::string_view threadName = "RenderThread";
+    streamFilters_.processFilter_->UpdateOrCreateThreadWithPidAndName(tid, pid, threadName);
+    auto itid = streamFilters_.processFilter_->GetInternalPid(pid);
     EXPECT_TRUE(itid != INVALID_ID);
 }
 
-HWTEST_F(ProcessFilterTest, UpdateOrCreateThreadWithPidAndName4, TestSize.Level1)
+/**
+ * @tc.name: UpdateOrCreateThreadWithPidAndNameAbnomalPid
+ * @tc.desc: Test UpdateOrCreateThreadWithPidAndName interface
+ * @tc.type: FUNC
+ */
+HWTEST_F(ProcessFilterTest, UpdateOrCreateThreadWithPidAndNameAbnomalPid, TestSize.Level1)
 {
-    TS_LOGI("test10-1");
-    streamFilters_.processFilter_->UpdateOrCreateThreadWithPidAndName(869, 123, "RenderThread");
-    auto itid = streamFilters_.processFilter_->GetInternalPid(124);
+    TS_LOGI("test10-15");
+    uint32_t tid = 869;
+    uint32_t pid = 123;
+    std::string_view threadName = "RenderThread";
+    streamFilters_.processFilter_->UpdateOrCreateThreadWithPidAndName(tid, pid, threadName);
+    uint32_t pid2 = 124;
+    auto itid = streamFilters_.processFilter_->GetInternalPid(pid2);
     EXPECT_TRUE(itid == INVALID_ID);
 }
+
+/**
+ * @tc.name: UpdateThreadWithName
+ * @tc.desc: Test update thread name
+ * @tc.type: FUNC
+ */
+HWTEST_F(ProcessFilterTest, UpdateThreadWithName, TestSize.Level1)
+{
+    TS_LOGI("test10-16");
+    uint32_t tid = 869;
+    uint64_t timestamp = 168758662957020;
+    std::string_view threadName = "RenderThread";
+    streamFilters_.processFilter_->UpdateOrCreateThread(timestamp, tid);
+    streamFilters_.processFilter_->UpdateOrCreateThreadWithName(timestamp, tid, threadName);
+    auto itid = streamFilters_.processFilter_->GetInternalTid(tid);
+    EXPECT_TRUE(itid != INVALID_ID);
+    Thread* thread = traceDataCache_.GetThreadData(itid);
+    EXPECT_TRUE(thread->nameIndex_ == traceDataCache_.GetDataIndex(threadName));
 }
+
+/**
+ * @tc.name: UpdateProcessWithName
+ * @tc.desc: Test update process name
+ * @tc.type: FUNC
+ */
+HWTEST_F(ProcessFilterTest, UpdateProcessWithName, TestSize.Level1)
+{
+    TS_LOGI("test10-17");
+    uint32_t pid = 869;
+    uint64_t timestamp = 168758662957020;
+    std::string_view processName = "RenderProcess";
+    auto ipid = streamFilters_.processFilter_->GetOrCreateInternalPid(timestamp, pid);
+    EXPECT_TRUE(ipid != INVALID_ID);
+    streamFilters_.processFilter_->UpdateOrCreateProcessWithName(pid, processName);
+    Process* process = traceDataCache_.GetProcessData(ipid);
+    EXPECT_TRUE(process->cmdLine_ == processName);
 }
+} // namespace TraceStreamer
+} // namespace SysTuning

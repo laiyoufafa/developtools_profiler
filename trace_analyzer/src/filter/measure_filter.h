@@ -35,7 +35,10 @@ enum FilterType {
     E_CPU_MEASURE_FILTER,
     E_CLOCK_RATE_FILTER,
     E_CLOCK_ENABLE_FILTER,
-    E_CLOCK_DISABLE_FILTER
+    E_CLOCK_DISABLE_FILTER,
+    E_CLK_RATE_FILTER,
+    E_CLK_ENABLE_FILTER,
+    E_CLK_DISABLE_FILTER
 };
 
 class MeasureFilter : private FilterBase {
@@ -45,8 +48,8 @@ public:
     MeasureFilter& operator=(const MeasureFilter&) = delete;
     ~MeasureFilter() override;
     void AppendNewMeasureData(uint64_t internalTid, DataIndex nameIndex, uint64_t timestamp, int64_t value);
-private:
     uint32_t GetOrCreateFilterId(uint64_t internalTid, DataIndex nameIndex);
+private:
     void AddCertainFilterId(uint64_t internalTid, DataIndex nameIndex, uint64_t filterId);
     DoubleMap<uint64_t, DataIndex, uint64_t> tidStreamIdFilterIdMap_;
     DoubleMap<uint64_t, DataIndex, uint64_t> cookieFilterIdMap_;
@@ -60,11 +63,17 @@ private:
         { E_CPU_MEASURE_FILTER, "cpu_measure_filter" },
         { E_CLOCK_RATE_FILTER, "clock_rate_filter" },
         { E_CLOCK_ENABLE_FILTER, "clock_enable_filter" },
-        { E_CLOCK_DISABLE_FILTER, "clock_disable_filter" }
+        { E_CLOCK_DISABLE_FILTER, "clock_disable_filter" },
+        { E_CLK_RATE_FILTER, "clk_rate_filter" },
+        { E_CLK_ENABLE_FILTER, "clk_enable_filter" },
+        { E_CLK_DISABLE_FILTER, "clk_disable_filter" }
     };
     DataIndex clockSetRateDataIndex_ = traceDataCache_->GetDataIndex("clock_set_rate");
     DataIndex clockEnableDataIndex_ = traceDataCache_->GetDataIndex("clock_enable");
     DataIndex clockDisableDataIndex_ = traceDataCache_->GetDataIndex("clock_disable");
+    DataIndex clkSetRateDataIndex_ = traceDataCache_->GetDataIndex("clk_set_rate");
+    DataIndex clkEnableDataIndex_ = traceDataCache_->GetDataIndex("clk_enable");
+    DataIndex clkDisableDataIndex_ = traceDataCache_->GetDataIndex("clk_disable");
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

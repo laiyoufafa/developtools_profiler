@@ -22,8 +22,11 @@ HEADERS += \
     $$PWD/process_filter.h \
     $$PWD/slice_filter.h \
     $$PWD/symbols_filter.h \
-    $$PWD/stat_filter.h
-
+    $$PWD/stat_filter.h \
+    $$PWD/binder_filter.h \
+    $$PWD/args_filter.h \
+    $$PWD/irq_filter.h \
+    $$PWD/system_event_measure_filter.h
 SOURCES += \
     $$PWD/clock_filter.cpp \
     $$PWD/cpu_filter.cpp \
@@ -33,4 +36,8 @@ SOURCES += \
     $$PWD/process_filter.cpp \
     $$PWD/slice_filter.cpp \
     $$PWD/symbols_filter.cpp \
-    $$PWD/stat_filter.cpp
+    $$PWD/stat_filter.cpp \
+    $$PWD/binder_filter.cpp \
+    $$PWD/args_filter.cpp \
+    $$PWD/irq_filter.cpp \
+    $$PWD/system_event_measure_filter.cpp

@@ -15,7 +15,11 @@ import("//build/ohos.gni")
 import("../../../protos.gni")
 
 agent_sources = [
+  "./agent_plugin_app_data.proto",
   "./agent_plugin_config.proto",
+  "./agent_plugin_energy_data.proto",
+  "./agent_plugin_java_heap.proto",
+  "./agent_plugin_network_data.proto",
   "./agent_plugin_result.proto",
 ]
 

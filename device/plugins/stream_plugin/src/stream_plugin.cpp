@@ -19,15 +19,6 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-namespace {
-constexpr int INTERVAL_TIME_BASE = 10000;  // 间隔时间base
-constexpr int INTERVAL_TIME_MAX = 9;       // 最大间隔
-constexpr int INTERVAL_TIME_STEP = 2;       // 间隔步长
-constexpr int BYTE_BUFFER_SIZE = 128;
-constexpr int MS_PER_S = 1000;
-constexpr int NS_PER_MS = 1000000;
-} // namespace
-
 StreamPlugin::StreamPlugin() {}
 
 StreamPlugin::~StreamPlugin() {}
@@ -36,7 +27,7 @@ int StreamPlugin::Start(const uint8_t* configData, uint32_t configSize)
 {
     // 反序列化
     if (protoConfig_.ParseFromArray(configData, configSize) <= 0) {
-        HILOG_ERROR(LOG_CORE, "StreamPlugin: ParseFromArray failed");
+        HILOG_ERROR(LOG_CORE, "%s:parseFromArray failed!", __func__);
         return -1;
     }
     // 启动线程写数据
@@ -55,7 +46,7 @@ int StreamPlugin::Stop()
     if (writeThread_.joinable()) {
         writeThread_.join();
     }
-    HILOG_INFO(LOG_CORE, "StreamPlugin: stop success!");
+    HILOG_INFO(LOG_CORE, "%s:stop success!", __func__);
     return 0;
 }
 
@@ -67,6 +58,8 @@ int StreamPlugin::SetWriter(WriterStruct* writer)
 
 uint64_t StreamPlugin::GetTimeMS()
 {
+    const int MS_PER_S = 1000;
+    const int NS_PER_MS = 1000000;
     struct timespec ts;
     clock_gettime(CLOCK_BOOTTIME, &ts);
     return ts.tv_sec * MS_PER_S + ts.tv_nsec / NS_PER_MS;
@@ -74,35 +67,23 @@ uint64_t StreamPlugin::GetTimeMS()
 
 void StreamPlugin::Loop(void)
 {
-    HILOG_INFO(LOG_CORE, "StreamPlugin thread %{public}d start !!!!!", gettid());
-    uint32_t i = 1;
+    HILOG_INFO(LOG_CORE, "%s:transporter thread %d start !!!!!", __func__, gettid());
+    uint32_t index = 0;
     while (running_) {
         StreamData dataProto;
-        uint64_t tm = GetTimeMS();
-        dataProto.set_time_ms(tm);
-
-        // 序列化
+        dataProto.set_intdata(index);
+        dataProto.set_stringdata(std::to_string(index));
         buffer_.resize(dataProto.ByteSizeLong());
         dataProto.SerializeToArray(buffer_.data(), buffer_.size());
 
-        usleep(i * INTERVAL_TIME_BASE); // 间隔时间不固定
-
-        if (i < INTERVAL_TIME_MAX) {
-            i += INTERVAL_TIME_STEP;
-        } else {
-            i = 1;
+        if (index < 50) {
+            if (resultWriter_->write != nullptr) {
+                resultWriter_->write(resultWriter_, buffer_.data(), buffer_.size());
+                resultWriter_->flush(resultWriter_);
+            }
         }
-
-        if (resultWriter_->write != nullptr) {
-            resultWriter_->write(resultWriter_, buffer_.data(), buffer_.size());
-        }
-
-        nbyte_ += buffer_.size();
-        if (nbyte_ >= BYTE_BUFFER_SIZE) {
-            resultWriter_->flush(resultWriter_);
-            nbyte_ = 0;
-        }
+        index++;
     }
     resultWriter_->flush(resultWriter_);
-    HILOG_INFO(LOG_CORE, "Transporter thread %{public}d exit !!!!!", gettid());
+    HILOG_INFO(LOG_CORE, "%s:transporter thread %d exit !!!!!", __func__, gettid());
 }
