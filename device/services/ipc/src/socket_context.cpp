@@ -19,6 +19,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <vector>
+#include <fcntl.h>
 
 #include "logging.h"
 #include "securec.h"
@@ -41,12 +42,22 @@ SocketContext::SocketContext()
 SocketContext::~SocketContext()
 {
     if (socketHandle_ >= 0) {
-        close(socketHandle_);
+        HILOG_ERROR(LOG_CORE, "SocketContext socketHandle_ = %d", socketHandle_);
+
+        int ret = shutdown(socketHandle_, SHUT_RDWR);
+        if (ret < 0) {
+            HILOG_ERROR(LOG_CORE, "shutdown socket err = %d %s", errno, strerror(errno));
+        }
+        ret = close(socketHandle_);
+        if (ret < 0) {
+            HILOG_ERROR(LOG_CORE, "close socket err = %d %s", errno, strerror(errno));
+        }
         socketHandle_ = -1;
     }
     if (recvThread_.joinable()) {
         recvThread_.join();
     }
+    HILOG_ERROR(LOG_CORE, "recvThread join success");
 }
 
 int SocketContext::RawProtocolProc(uint32_t pnum, const int8_t* buf, const uint32_t size)
@@ -54,14 +65,14 @@ int SocketContext::RawProtocolProc(uint32_t pnum, const int8_t* buf, const uint3
     return -1;
 }
 
-bool SocketContext::ReceiveData(int sock, uint8_t* databuf, uint32_t size, int noWait)
+bool SocketContext::ReceiveData(int sock, uint8_t* databuf, uint32_t size)
 {
     uint32_t p = 0;
     if (sock < 0) {
         return false;
     }
     while (p < size) {
-        int ret = recv(sock, &databuf[p], size - p, noWait);
+        int ret = recv(sock, &databuf[p], size - p, 0);
         if (ret <= 0) {
             if (ret == -1 && errno == EAGAIN) {
                 continue;
@@ -85,17 +96,9 @@ void* SocketContext::UnixSocketRecv(void* pp)
     struct ProtocolHead* pph = (struct ProtocolHead*)buf.data();
     uint32_t head_size = sizeof(struct ProtocolHead);
 
-    int noWaitEnv = 0;
-    char *envValue = getenv("RECV_NO_WAIT");
-    if (envValue != nullptr) {
-        noWaitEnv = (strcmp(envValue, "1") == 0) ? MSG_DONTWAIT : 0;
-    }
-
-    HILOG_DEBUG(LOG_CORE, "noWaitEnv = %d ", noWaitEnv);
     CHECK_TRUE(pssr->socketHandle_ != -1, nullptr, "UnixSocketRecv pssr->socketHandle_ ==-1");
-
     while (pssr->socketHandle_ >= 0) {
-        if (!ReceiveData(pssr->socketHandle_, buf.data(), head_size, noWaitEnv)) {
+        if (!ReceiveData(pssr->socketHandle_, buf.data(), head_size)) {
             HILOG_DEBUG(LOG_CORE, "====== IPC LOST CONNECT ======");
             break;
         }
@@ -109,7 +112,7 @@ void* SocketContext::UnixSocketRecv(void* pp)
             pph = (struct ProtocolHead*)buf.data();
         }
 
-        if (!ReceiveData(pssr->socketHandle_, buf.data() + head_size, pph->protoSize - head_size, noWaitEnv)) {
+        if (!ReceiveData(pssr->socketHandle_, buf.data() + head_size, pph->protoSize - head_size)) {
             HILOG_DEBUG(LOG_CORE, "====== IPC LOST CONNECT ======");
             break;
         }
@@ -129,6 +132,7 @@ void* SocketContext::UnixSocketRecv(void* pp)
         }
     }
     pssr->clientState_ = CLIENT_STAT_THREAD_EXITED;
+    HILOG_DEBUG(LOG_CORE, "UnixSocketRecv thread exit");
     return nullptr;
 }
 
@@ -155,6 +159,7 @@ bool SocketContext::SendRaw(uint32_t pnum, const int8_t* data, uint32_t size, in
     return true;
 }
 
+#ifndef NO_PROTOBUF
 bool SocketContext::SendProtobuf(uint32_t pnum, google::protobuf::Message& pmsg)
 {
     int size = pmsg.ByteSizeLong();
@@ -170,6 +175,18 @@ bool SocketContext::SendProtobuf(uint32_t pnum, google::protobuf::Message& pmsg)
     send(socketHandle_, data, size, 0);
 
     free(data);
+    return true;
+}
+#endif
+
+bool SocketContext::SendHookConfig(uint64_t config)
+{
+    struct ProtocolHead phead;
+    phead.protoType = PROTOCOL_TYPE_PROTOBUF;
+    phead.protoSize = sizeof(config) + sizeof(struct ProtocolHead);
+    send(socketHandle_, reinterpret_cast<int8_t*>(&phead), sizeof(struct ProtocolHead), 0);
+    send(socketHandle_, &config , sizeof(config), 0);
+
     return true;
 }
 
@@ -210,7 +227,6 @@ int SocketContext::ReceiveFileDiscriptor()
     msg.msg_controllen = sizeof(buf);
 
     CHECK_TRUE(recvmsg(socketHandle_, &msg, 0) != -1, -1, "ReceiveFileDiscriptor FAIL");
-
     cmsg = CMSG_FIRSTHDR(&msg);
 
     return cmsg ? *(int*)CMSG_DATA(cmsg) : -1;

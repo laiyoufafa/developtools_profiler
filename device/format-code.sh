@@ -23,6 +23,8 @@ GN_DIR=$TOP/prebuilts/build-tools/linux-x86/bin
 
 export PATH=$CLANG_DIR:$GN_DIR:$PATH
 echo "formatting C/C++ code ..."
+find $@ -name '*.h' -o -name '*.cpp' | xargs dos2unix
+find $@ -name '*.h' -o -name '*.cpp' | xargs chmod -x
 find $@ -name '*.h' -o -name '*.cpp' | xargs clang-format --verbose -i
 
 echo "formatting GN code ..."

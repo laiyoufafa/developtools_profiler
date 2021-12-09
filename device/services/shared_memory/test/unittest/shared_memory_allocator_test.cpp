@@ -54,14 +54,8 @@ public:
 
 class SharedMemoryAllocatorTest : public testing::Test {
 public:
-    static void SetUpTestCase()
-    {
-        setenv("RECV_NO_WAIT", "1", 0);
-    }
-    static void TearDownTestCase()
-    {
-        unsetenv("RECV_NO_WAIT");
-    }
+    static void SetUpTestCase() {}
+    static void TearDownTestCase() {}
 
     void SetUp() {}
     void TearDown() {}
@@ -159,110 +153,5 @@ HWTEST_F(SharedMemoryAllocatorTest, ReleaseMemoryBlockLocal, TestSize.Level1)
 HWTEST_F(SharedMemoryAllocatorTest, ReleaseMemoryBlockRemote, TestSize.Level1)
 {
     ASSERT_FALSE(ShareMemoryAllocator::GetInstance().ReleaseMemoryBlockRemote("or")); // 释放不存在的内存块返回-1
-}
-
-/**
- * @tc.name: Service
- * @tc.desc: Get command.
- * @tc.type: FUNC
- */
-HWTEST_F(SharedMemoryAllocatorTest, GetCommand, TestSize.Level1)
-{
-    SocketContext socketContext;
-    GetCommandRequest request;
-    GetCommandResponse commandResponse;
-    PluginServiceTest pluginServiceTest;
-    ASSERT_FALSE(pluginServiceTest.GetCommand(socketContext, request, commandResponse));
-}
-
-/**
- * @tc.name: Service
- * @tc.desc: Socket send/recv interface.
- * @tc.type: FUNC
- */
-HWTEST_F(SharedMemoryAllocatorTest, ProtocolProc, TestSize.Level1)
-{
-    ServiceBase serviceBase;
-    SocketContext socketContext;
-    ASSERT_FALSE(serviceBase.ProtocolProc(socketContext, 0, nullptr, 0));
-}
-
-/**
- * @tc.name: Service
- * @tc.desc:  Abnormal socket detection.
- * @tc.type: FUNC
- */
-HWTEST_F(SharedMemoryAllocatorTest, RawProtocolProc, TestSize.Level1)
-{
-    ServiceEntry serviceEntry;
-    ClientConnection* clientConnection = new ClientConnection(0, serviceEntry);
-    ASSERT_EQ(clientConnection->RawProtocolProc(-1, nullptr, 0), -1);
-
-    SocketContext socketContext;
-    ASSERT_EQ(socketContext.RawProtocolProc(-1, nullptr, -1), -1);
-    ASSERT_TRUE(!socketContext.SendRaw(-1, nullptr, 0, 0));
-}
-
-/**
- * @tc.name: Service
- * @tc.desc: Client link.
- * @tc.type: FUNC
- */
-HWTEST_F(SharedMemoryAllocatorTest, ClientSocket, TestSize.Level1)
-{
-    ServiceEntry serviceEntry;
-    ClientMap::GetInstance();
-    ClientMap::GetInstance().PutClientSocket(0, serviceEntry);
-    ASSERT_EQ(ClientMap::GetInstance().AutoRelease(), 1);
-}
-
-/**
- * @tc.name: Service
- * @tc.desc: Abnormal client link.
- * @tc.type: FUNC
- */
-HWTEST_F(SharedMemoryAllocatorTest, unixSocketClient, TestSize.Level1)
-{
-    UnixSocketClient unixSocketClient;
-    ServiceBase serviceBase;
-    ASSERT_TRUE(!unixSocketClient.Connect("asdf", serviceBase));
-}
-
-/**
- * @tc.name: Service
- * @tc.desc: Start unixSocket Server.
- * @tc.type: FUNC
- */
-HWTEST_F(SharedMemoryAllocatorTest, UnixSocketServer, TestSize.Level1)
-{
-    UnixSocketServer unixSocketServer;
-    unixSocketServer.UnixSocketAccept();
-
-    ServiceEntry serviceEntry;
-    ASSERT_TRUE(unixSocketServer.StartServer("", serviceEntry));
-}
-
-/**
- * @tc.name: Service
- * @tc.desc: Server process monitoring.
- * @tc.type: FUNC
- */
-HWTEST_F(SharedMemoryAllocatorTest, ServiceEntry, TestSize.Level1)
-{
-    ServiceEntry serviceEntry;
-    IPluginServiceServer pluginService;
-    serviceEntry.StartServer("test_unix_socket_service_entry");
-    serviceEntry.RegisterService(pluginService);
-    serviceEntry.FindServiceByName(pluginService.serviceName_);
-
-    usleep(30000);
-
-    GetTimeMS();
-    GetTimeUS();
-    GetTimeNS();
-
-    IPluginServiceClient pluginClient;
-    ASSERT_FALSE(pluginClient.Connect(""));
-    usleep(30000);
 }
 } // namespace

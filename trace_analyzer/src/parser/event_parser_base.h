@@ -24,11 +24,11 @@ using namespace SysTuning::TraceCfg;
 class EventParserBase {
 public:
     EventParserBase(TraceDataCache* dataCache, const TraceStreamerFilters* filter);
+    virtual ~EventParserBase() = default;
 
 public:
     const TraceStreamerFilters* streamFilters_;
     TraceDataCache* traceDataCache_;
-
 protected:
     TraceStreamConfig config_;
 };

@@ -12,13 +12,13 @@
      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
      See the License for the specific language governing permissions and
      limitations under the License.
-     
+
      Notes:
-     This is project config file for OpenHarmony OSS Audit Tool, if you have any questions or concerns, please email chenyaxun@huawei.com.   
---> 
+     This is project config file for OpenHarmony OSS Audit Tool, if you have any questions or concerns, please email chenyaxun@huawei.com.
+-->
 <!-- OAT(OSS Audit Tool) configuration guide:
 basedir: Root dir, the basedir + project path is the real source file location.
-licensefile: 
+licensefile:
 1.If the project don't have "LICENSE" in root dir, please define all the license files in this project in , OAT will check license files according to this rule.
 
 tasklist(only for batch mode):
@@ -33,15 +33,15 @@ policyList:
 1. policy: All policyitems will be merged to default OAT.xml rules, the name of policy doesn't affect OAT check process.
 2. policyitem: The fields type, name, path, desc is required, and the fields rule, group, filefilter is optional,the default value is:
 <policyitem type="" name="" path="" desc="" rule="may" group="defaultGroup" filefilter="defaultPolicyFilter"/>
-3. policyitem type: 
-    "compatibility" is used to check license compatibility in the specified path; 
+3. policyitem type:
+    "compatibility" is used to check license compatibility in the specified path;
     "license" is used to check source license header in the specified path;
     "copyright" is used to check source copyright header in the specified path;
     "import" is used to check source dependency in the specified path, such as import ... ,include ...
     "filetype" is used to check file type in the specified path, supported file types: archive, binary
     "filename" is used to check whether the specified file exists in the specified path(support projectroot in default OAT.xml), supported file names: LICENSE, README, README.OpenSource
 
-4. policyitem name: This field is used for define the license, copyright, "*" means match all, the "!" prefix means could not match this value. For example, "!GPL" means can not use GPL license. 
+4. policyitem name: This field is used for define the license, copyright, "*" means match all, the "!" prefix means could not match this value. For example, "!GPL" means can not use GPL license.
 5. policyitem path: This field is used for define the source file scope to apply this policyitem, the "!" prefix means exclude the files. For example, "!.*/lib/.*" means files in lib dir will be exclude while process this policyitem.
 6. policyitem rule and group: These two fields are used together to merge policy results. "may" policyitems in the same group means any one in this group passed, the result will be passed.
 7. policyitem filefilter: Used to bind filefilter which define filter rules.
@@ -55,20 +55,52 @@ Note:If the text contains special characters, please escape them according to th
 > == &gt;
 -->
 <configuration>
-    <oatconfig> 
+    <oatconfig>
         <filefilterlist>
             <filefilter name="defaultPolicyFilter" desc="Filters for compatibility，license header policies">
                 <filteritem type="filepath" name="device/plugins/memory_plugin/test/utresources/proc/.*" desc="test resource file, no license header"/>
                 <filteritem type="filepath" name="device/plugins/cpu_plugin/test/resources/.*" desc="test resource file, no license header"/>
-                <filteritem type="filepath" name="trace_analyzer/prebuilts/mac/trace_streamer.app/Contents/Resources/empty.lproj" desc="auto generated resource file for mac app, no license header"/>
-                <filteritem type="filepath" name="trace_analyzer/prebuilts/mac/trace_streamer.app/Contents/PkgInfo" desc="auto generated resource file for mac app, no license header"/>
+                <filteritem type="filepath" name="device/plugins/diskio_plugin/test/resources/.*" desc="test resource file, no license header"/>
+                <filteritem type="filepath" name="device/plugins/network_plugin/test/utresources/.*" desc="test resource file, no license header"/>
+                <filteritem type="filepath" name="device/plugins/api/test/fuzztest/plugindestroysessioncmd_fuzzer/corpus/init" desc="test resource file, no license header"/>
+                <filteritem type="filepath" name="device/plugins/api/test/fuzztest/pluginstartsessioncmd_fuzzer/corpus/init" desc="test resource file, no license header"/>
+                <filteritem type="filepath" name="device/plugins/api/test/fuzztest/plugincreatesessioncmd_fuzzer/corpus/init" desc="test resource file, no license header"/>
+                <filteritem type="filepath" name="device/plugins/api/test/fuzztest/pluginstopsessioncmd_fuzzer/corpus/init" desc="test resource file, no license header"/>
+                <filteritem type="filepath" name="device/plugins/hilog_plugin/test/fuzztest/hilogstartplugin_fuzzer/corpus/init" desc="test resource file, no license header"/>
+                <filteritem type="filepath" name="device/plugins/cpu_plugin/test/fuzztest/cpustartplugin_fuzzer/corpus/init" desc="test resource file, no license header"/>
+                <filteritem type="filepath" name="device/plugins/diskio_plugin/test/fuzztest/diskiostartplugin_fuzzer/corpus/init" desc="test resource file, no license header"/>
+                <filteritem type="filepath" name="device/plugins/memory_plugin/test/fuzztest/memorystartplugin_fuzzer/corpus/init" desc="test resource file, no license header"/>
+                <filteritem type="filepath" name="device/plugins/network_plugin/test/fuzztest/networkstartplugin_fuzzer/corpus/init" desc="test resource file, no license header"/>
+                <filteritem type="filepath" name="device/services/profiler_service/test/fuzztest/profilerstopsession_fuzzer/corpus/init" desc="test resource file, no license header"/>
+                <filteritem type="filepath" name="device/services/profiler_service/test/fuzztest/profilerkeepsession_fuzzer/corpus/init" desc="test resource file, no license header"/>
+                <filteritem type="filepath" name="device/services/profiler_service/test/fuzztest/profilerfetchdata_fuzzer/corpus/init" desc="test resource file, no license header"/>
+                <filteritem type="filepath" name="device/services/profiler_service/test/fuzztest/profilercreatesession_fuzzer/corpus/init" desc="test resource file, no license header"/>
+                <filteritem type="filepath" name="device/services/profiler_service/test/fuzztest/profilerstartsession_fuzzer/corpus/init" desc="test resource file, no license header"/>
+                <filteritem type="filepath" name="device/services/profiler_service/test/fuzztest/profilergetcapabilities_fuzzer/corpus/init" desc="test resource file, no license header"/>
+                <filteritem type="filepath" name="device/services/profiler_service/test/fuzztest/profilerdestroysession_fuzzer/corpus/init" desc="test resource file, no license header"/>
                 <filteritem type="filepath" name="trace_analyzer/test/resource/.*" desc="test resource file, no license header"/>
             </filefilter>
             <filefilter name="copyrightPolicyFilter" desc="Filters for copyright header policies" >
                 <filteritem type="filepath" name="device/plugins/memory_plugin/test/utresources/proc/.*" desc="test resource file, no copyright header"/>
                 <filteritem type="filepath" name="device/plugins/cpu_plugin/test/resources/.*" desc="test resource file, no copyright header"/>
-                <filteritem type="filepath" name="trace_analyzer/prebuilts/mac/trace_streamer.app/Contents/Resources/empty.lproj" desc="auto generated resource file for mac app, no copyright header"/>
-                <filteritem type="filepath" name="trace_analyzer/prebuilts/mac/trace_streamer.app/Contents/PkgInfo" desc="auto generated resource file for mac app, no copyright header"/>
+                <filteritem type="filepath" name="device/plugins/diskio_plugin/test/resources/.*" desc="test resource file, no copyright header"/>
+                <filteritem type="filepath" name="device/plugins/network_plugin/test/utresources/.*" desc="test resource file, no copyright header"/>
+                <filteritem type="filepath" name="device/plugins/api/test/fuzztest/plugindestroysessioncmd_fuzzer/corpus/init" desc="test resource file, no copyright header"/>
+                <filteritem type="filepath" name="device/plugins/api/test/fuzztest/pluginstartsessioncmd_fuzzer/corpus/init" desc="test resource file, no copyright header"/>
+                <filteritem type="filepath" name="device/plugins/api/test/fuzztest/plugincreatesessioncmd_fuzzer/corpus/init" desc="test resource file, no copyright header"/>
+                <filteritem type="filepath" name="device/plugins/api/test/fuzztest/pluginstopsessioncmd_fuzzer/corpus/init" desc="test resource file, no copyright header"/>
+                <filteritem type="filepath" name="device/plugins/hilog_plugin/test/fuzztest/hilogstartplugin_fuzzer/corpus/init" desc="test resource file, no copyright header"/>
+                <filteritem type="filepath" name="device/plugins/cpu_plugin/test/fuzztest/cpustartplugin_fuzzer/corpus/init" desc="test resource file, no copyright header"/>
+                <filteritem type="filepath" name="device/plugins/diskio_plugin/test/fuzztest/diskiostartplugin_fuzzer/corpus/init" desc="test resource file, no copyright header"/>
+                <filteritem type="filepath" name="device/plugins/memory_plugin/test/fuzztest/memorystartplugin_fuzzer/corpus/init" desc="test resource file, no copyright header"/>
+                <filteritem type="filepath" name="device/plugins/network_plugin/test/fuzztest/networkstartplugin_fuzzer/corpus/init" desc="test resource file, no copyright header"/>
+                <filteritem type="filepath" name="device/services/profiler_service/test/fuzztest/profilerstopsession_fuzzer/corpus/init" desc="test resource file, no copyright header"/>
+                <filteritem type="filepath" name="device/services/profiler_service/test/fuzztest/profilerkeepsession_fuzzer/corpus/init" desc="test resource file, no copyright header"/>
+                <filteritem type="filepath" name="device/services/profiler_service/test/fuzztest/profilerfetchdata_fuzzer/corpus/init" desc="test resource file, no copyright header"/>
+                <filteritem type="filepath" name="device/services/profiler_service/test/fuzztest/profilercreatesession_fuzzer/corpus/init" desc="test resource file, no copyright header"/>
+                <filteritem type="filepath" name="device/services/profiler_service/test/fuzztest/profilerstartsession_fuzzer/corpus/init" desc="test resource file, no copyright header"/>
+                <filteritem type="filepath" name="device/services/profiler_service/test/fuzztest/profilergetcapabilities_fuzzer/corpus/init" desc="test resource file, no copyright header"/>
+                <filteritem type="filepath" name="device/services/profiler_service/test/fuzztest/profilerdestroysession_fuzzer/corpus/init" desc="test resource file, no copyright header"/>
                 <filteritem type="filepath" name="trace_analyzer/test/resource/.*" desc="test resource file, no copyright header"/>
             </filefilter>
             <filefilter name="binaryFileTypePolicyFilter" desc="Filters for binary file policies" >
@@ -78,11 +110,11 @@ Note:If the text contains special characters, please escape them according to th
                 <filteritem type="filepath" name="host/ohosprofiler/src/main/resources/.*.png" desc="the png file for host, the file is self-developed"/>
                 <filteritem type="filepath" name="host/ohosprofiler/src/main/resources/.*.gif" desc="the gif file for host, the file is self-developed"/>
                 <filteritem type="filepath" name="figures/zh-cn_image_0000001162598155.png" desc="the png file for readme, the file is self-developed"/>
-                <filteritem type="filepath" name="trace_analyzer/prebuilts/trace_streamer.exe" desc="the trace_streamer.exe executable file, the file is self-developed"/>
                 <filteritem type="filepath" name="trace_analyzer/test/resource/htrace.bin" desc="the trace_streamer test file, the file is self-developed"/>
                 <filteritem type="filepath" name="trace_analyzer/prebuilts/windows/trace_streamer.exe" desc="the trace_streamer.exe executable file, the file is self-developed"/>
+                <filteritem type="filepath" name="trace_analyzer/prebuilts/linux/trace_streamer" desc="the trace_streamer executable file, the file is self-developed"/>
+                <filteritem type="filepath" name="trace_analyzer/prebuilts/macx/trace_streamer" desc="the trace_streamer executable file, the file is self-developed"/>
                 <filteritem type="filepath" name="trace_analyzer/test/resource/htrace_gold.db" desc="the trace_streamer test file, the file is self-developed"/>
-                <filteritem type="filepath" name="trace_analyzer/prebuilts/mac/trace_streamer.app/Contents/MacOS/trace_streamer" desc="the trace_streamer executable file for mac, the file is self-developed"/>
                 <filteritem type="filepath" name="trace_analyzer/test/resource/ut_bytrace_input_thread_gold.db" desc="the trace_streamer test file, the file is self-developed"/>
                 <filteritem type="filepath" name="trace_analyzer/test/resource/ut_bytrace_input_full_gold.db" desc="the trace_streamer test file, the file is self-developed"/>
             </filefilter>

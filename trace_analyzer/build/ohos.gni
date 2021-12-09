@@ -13,8 +13,89 @@
 template("ohos_source_set") {
   source_set(target_name) {
     sources = invoker.sources
-    deps = invoker.deps
-    include_dirs = invoker.include_dirs
+    if (defined(invoker.configs)) {
+      configs = invoker.configs
+    }
+    if (defined(invoker.cflags)) {
+      cflags = invoker.cflags
+    }
+    if (defined(invoker.include_dirs)) {
+      include_dirs = invoker.include_dirs
+    }
+    if (defined(invoker.deps)) {
+      deps = invoker.deps
+    }
+    if (defined(invoker.cflags_cc)) {
+      cflags_cc = invoker.cflags_cc
+    }
     public_deps = invoker.public_deps
+  }
+}
+template("ohos_shared_library") {
+  shared_library(target_name) {
+    sources = invoker.sources
+    if (defined(invoker.configs)) {
+      configs = invoker.configs
+    }
+    public_configs = invoker.public_configs
+    if (defined(invoker.defines)) {
+      defines = invoker.defines
+    }
+    if (defined(invoker.cflags)) {
+      cflags = invoker.cflags
+    }
+    if (defined(invoker.include_dirs)) {
+      include_dirs = invoker.include_dirs
+    }
+    if (defined(invoker.cflags_cc)) {
+      cflags_cc = invoker.cflags_cc
+    }
+    if (defined(invoker.deps)) {
+      deps = invoker.deps
+    }
+  }
+}
+template("ohos_static_library") {
+  static_library(target_name) {
+    sources = invoker.sources
+    if (defined(invoker.configs)) {
+      configs = invoker.configs
+    }
+    public_configs = invoker.public_configs
+    if (defined(invoker.defines)) {
+      defines = invoker.defines
+    }
+    if (defined(invoker.cflags)) {
+      cflags = invoker.cflags
+    }
+    if (defined(invoker.include_dirs)) {
+      include_dirs = invoker.include_dirs
+    }
+    if (defined(invoker.cflags_cc)) {
+      cflags_cc = invoker.cflags_cc
+    }
+    if (defined(invoker.deps)) {
+      deps = invoker.deps
+    }
+  }
+}
+template("ohos_executable") {
+  executable(target_name) {
+    if (defined(invoker.include_dirs)) {
+      include_dirs = invoker.include_dirs
+    }
+    sources = invoker.sources
+    if (defined(invoker.defines)) {
+      defines = invoker.defines
+    }
+    if (defined(invoker.cflags)) {
+      cflags = invoker.cflags
+    }
+    if (defined(invoker.deps)) {
+      deps = invoker.deps
+    }
+    if (defined(invoker.cflags_cc)) {
+      cflags_cc = invoker.cflags_cc
+    }
   }
 }

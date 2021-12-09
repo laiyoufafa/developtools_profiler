@@ -30,7 +30,6 @@
             <option name="push" value="developtools/developtools/libabsl_spinlock_wait.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libabsl_stacktrace.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libabsl_status.z.so -> /system/lib/" src="out"/>
-            <option name="push" value="developtools/developtools/libabsl_statusor.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libabsl_str_format_internal.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libabsl_strings.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libabsl_strings_internal.z.so -> /system/lib/" src="out"/>
@@ -40,14 +39,12 @@
             <option name="push" value="developtools/developtools/libabsl_time.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libabsl_time_zone.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libaddress_sorting.z.so -> /system/lib/" src="out"/>
-            <option name="push" value="developtools/developtools/libagentplugin.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libares.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libbytraceplugin.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libcrypto.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libgpr.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libgrpc.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libgrpcxx.z.so -> /system/lib/" src="out"/>
-            <option name="push" value="developtools/developtools/libhiperf_call_plugin.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libprotobuf.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libprotobuf_lite.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libprotoc_lib.z.so -> /system/lib/" src="out"/>
@@ -73,7 +70,6 @@
             <option name="push" value="developtools/developtools/libabsl_spinlock_wait.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libabsl_stacktrace.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libabsl_status.z.so -> /system/lib/" src="out"/>
-            <option name="push" value="developtools/developtools/libabsl_statusor.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libabsl_str_format_internal.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libabsl_strings.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libabsl_strings_internal.z.so -> /system/lib/" src="out"/>
@@ -83,14 +79,12 @@
             <option name="push" value="developtools/developtools/libabsl_time.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libabsl_time_zone.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libaddress_sorting.z.so -> /system/lib/" src="out"/>
-            <option name="push" value="developtools/developtools/libagentplugin.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libares.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libbytraceplugin.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libcrypto.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libgpr.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libgrpc.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libgrpcxx.z.so -> /system/lib/" src="out"/>
-            <option name="push" value="developtools/developtools/libhiperf_call_plugin.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libprotobuf.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libprotobuf_lite.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libprotoc_lib.z.so -> /system/lib/" src="out"/>
@@ -116,7 +110,6 @@
             <option name="push" value="developtools/developtools/libabsl_spinlock_wait.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libabsl_stacktrace.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libabsl_status.z.so -> /system/lib/" src="out"/>
-            <option name="push" value="developtools/developtools/libabsl_statusor.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libabsl_str_format_internal.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libabsl_strings.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libabsl_strings_internal.z.so -> /system/lib/" src="out"/>
@@ -126,14 +119,12 @@
             <option name="push" value="developtools/developtools/libabsl_time.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libabsl_time_zone.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libaddress_sorting.z.so -> /system/lib/" src="out"/>
-            <option name="push" value="developtools/developtools/libagentplugin.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libares.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libbytraceplugin.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libcrypto.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libgpr.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libgrpc.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libgrpcxx.z.so -> /system/lib/" src="out"/>
-            <option name="push" value="developtools/developtools/libhiperf_call_plugin.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libprotobuf.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libprotobuf_lite.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libprotoc_lib.z.so -> /system/lib/" src="out"/>
@@ -159,7 +150,6 @@
             <option name="push" value="developtools/developtools/libabsl_spinlock_wait.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libabsl_stacktrace.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libabsl_status.z.so -> /system/lib/" src="out"/>
-            <option name="push" value="developtools/developtools/libabsl_statusor.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libabsl_str_format_internal.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libabsl_strings.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libabsl_strings_internal.z.so -> /system/lib/" src="out"/>
@@ -169,14 +159,12 @@
             <option name="push" value="developtools/developtools/libabsl_time.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libabsl_time_zone.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libaddress_sorting.z.so -> /system/lib/" src="out"/>
-            <option name="push" value="developtools/developtools/libagentplugin.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libares.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libbytraceplugin.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libcrypto.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libgpr.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libgrpc.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libgrpcxx.z.so -> /system/lib/" src="out"/>
-            <option name="push" value="developtools/developtools/libhiperf_call_plugin.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libprotobuf.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libprotobuf_lite.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libprotoc_lib.z.so -> /system/lib/" src="out"/>
@@ -202,7 +190,6 @@
             <option name="push" value="developtools/developtools/libabsl_spinlock_wait.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libabsl_stacktrace.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libabsl_status.z.so -> /system/lib/" src="out"/>
-            <option name="push" value="developtools/developtools/libabsl_statusor.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libabsl_str_format_internal.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libabsl_strings.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libabsl_strings_internal.z.so -> /system/lib/" src="out"/>
@@ -212,14 +199,12 @@
             <option name="push" value="developtools/developtools/libabsl_time.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libabsl_time_zone.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libaddress_sorting.z.so -> /system/lib/" src="out"/>
-            <option name="push" value="developtools/developtools/libagentplugin.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libares.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libbytraceplugin.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libcrypto.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libgpr.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libgrpc.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libgrpcxx.z.so -> /system/lib/" src="out"/>
-            <option name="push" value="developtools/developtools/libhiperf_call_plugin.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libprotobuf.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libprotobuf_lite.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libprotoc_lib.z.so -> /system/lib/" src="out"/>
@@ -242,6 +227,7 @@
             <option name="push" value="plugins/memory_plugin/test/utresources/proc/11/status -> /data/local/tmp/utresources/proc/11/" src="res"/>
             <option name="push" value="plugins/memory_plugin/test/utresources/proc/cmdline -> /data/local/tmp/utresources/proc/" src="res"/>
             <option name="push" value="plugins/memory_plugin/test/utresources/proc/meminfo -> /data/local/tmp/utresources/proc/" src="res"/>
+            <option name="push" value="plugins/memory_plugin/test/utresources/proc/vmstat -> /data/local/tmp/utresources/proc/" src="res"/>
             <option name="push" value="developtools/developtools/libabsl_base.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libabsl_civil_time.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libabsl_cord.z.so -> /system/lib/" src="out"/>
@@ -256,7 +242,6 @@
             <option name="push" value="developtools/developtools/libabsl_spinlock_wait.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libabsl_stacktrace.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libabsl_status.z.so -> /system/lib/" src="out"/>
-            <option name="push" value="developtools/developtools/libabsl_statusor.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libabsl_str_format_internal.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libabsl_strings.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libabsl_strings_internal.z.so -> /system/lib/" src="out"/>
@@ -266,14 +251,12 @@
             <option name="push" value="developtools/developtools/libabsl_time.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libabsl_time_zone.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libaddress_sorting.z.so -> /system/lib/" src="out"/>
-            <option name="push" value="developtools/developtools/libagentplugin.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libares.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libbytraceplugin.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libcrypto.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libgpr.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libgrpc.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libgrpcxx.z.so -> /system/lib/" src="out"/>
-            <option name="push" value="developtools/developtools/libhiperf_call_plugin.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libprotobuf.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libprotobuf_lite.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libprotoc_lib.z.so -> /system/lib/" src="out"/>
@@ -281,6 +264,49 @@
             <option name="push" value="developtools/developtools/./libmemdataplugin.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libshared_memory.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libssl.z.so -> /system/lib/" src="out"/>
+            <option name="push" value="developtools/developtools/memorytest -> /system/bin/" src="out"/>
+        </preparer>
+    </target>
+    <target name="smaps_stats_ut">
+        <preparer>
+            <option name="push" value="plugins/memory_plugin/test/utresources/proc/2/smaps -> /data/local/tmp/utresources/proc/2/" src="res"/>
+            <option name="push" value="developtools/developtools/libabsl_base.z.so -> /system/lib/" src="out"/>
+            <option name="push" value="developtools/developtools/libabsl_civil_time.z.so -> /system/lib/" src="out"/>
+            <option name="push" value="developtools/developtools/libabsl_cord.z.so -> /system/lib/" src="out"/>
+            <option name="push" value="developtools/developtools/libabsl_debugging_internal.z.so -> /system/lib/" src="out"/>
+            <option name="push" value="developtools/developtools/libabsl_demangle_internal.z.so -> /system/lib/" src="out"/>
+            <option name="push" value="developtools/developtools/libabsl_dynamic_annotations.z.so -> /system/lib/" src="out"/>
+            <option name="push" value="developtools/developtools/libabsl_graphcycles_internal.z.so -> /system/lib/" src="out"/>
+            <option name="push" value="developtools/developtools/libabsl_int128.z.so -> /system/lib/" src="out"/>
+            <option name="push" value="developtools/developtools/libabsl_log_severity.z.so -> /system/lib/" src="out"/>
+            <option name="push" value="developtools/developtools/libabsl_malloc_internal.z.so -> /system/lib/" src="out"/>
+            <option name="push" value="developtools/developtools/libabsl_raw_logging_internal.z.so -> /system/lib/" src="out"/>
+            <option name="push" value="developtools/developtools/libabsl_spinlock_wait.z.so -> /system/lib/" src="out"/>
+            <option name="push" value="developtools/developtools/libabsl_stacktrace.z.so -> /system/lib/" src="out"/>
+            <option name="push" value="developtools/developtools/libabsl_status.z.so -> /system/lib/" src="out"/>
+            <option name="push" value="developtools/developtools/libabsl_str_format_internal.z.so -> /system/lib/" src="out"/>
+            <option name="push" value="developtools/developtools/libabsl_strings.z.so -> /system/lib/" src="out"/>
+            <option name="push" value="developtools/developtools/libabsl_strings_internal.z.so -> /system/lib/" src="out"/>
+            <option name="push" value="developtools/developtools/libabsl_symbolize.z.so -> /system/lib/" src="out"/>
+            <option name="push" value="developtools/developtools/libabsl_synchronization.z.so -> /system/lib/" src="out"/>
+            <option name="push" value="developtools/developtools/libabsl_throw_delegate.z.so -> /system/lib/" src="out"/>
+            <option name="push" value="developtools/developtools/libabsl_time.z.so -> /system/lib/" src="out"/>
+            <option name="push" value="developtools/developtools/libabsl_time_zone.z.so -> /system/lib/" src="out"/>
+            <option name="push" value="developtools/developtools/libaddress_sorting.z.so -> /system/lib/" src="out"/>
+            <option name="push" value="developtools/developtools/libares.z.so -> /system/lib/" src="out"/>
+            <option name="push" value="developtools/developtools/libbytraceplugin.z.so -> /system/lib/" src="out"/>
+            <option name="push" value="developtools/developtools/libcrypto.z.so -> /system/lib/" src="out"/>
+            <option name="push" value="developtools/developtools/libgpr.z.so -> /system/lib/" src="out"/>
+            <option name="push" value="developtools/developtools/libgrpc.z.so -> /system/lib/" src="out"/>
+            <option name="push" value="developtools/developtools/libgrpcxx.z.so -> /system/lib/" src="out"/>
+            <option name="push" value="developtools/developtools/libprotobuf.z.so -> /system/lib/" src="out"/>
+            <option name="push" value="developtools/developtools/libprotobuf_lite.z.so -> /system/lib/" src="out"/>
+            <option name="push" value="developtools/developtools/libprotoc_lib.z.so -> /system/lib/" src="out"/>
+            <option name="push" value="developtools/developtools/libre2.z.so -> /system/lib/" src="out"/>
+            <option name="push" value="developtools/developtools/./libmemdataplugin.z.so -> /system/lib/" src="out"/>
+            <option name="push" value="developtools/developtools/libshared_memory.z.so -> /system/lib/" src="out"/>
+            <option name="push" value="developtools/developtools/libssl.z.so -> /system/lib/" src="out"/>
+            <option name="push" value="developtools/developtools/memorytest -> /system/bin/" src="out"/>
         </preparer>
     </target>
     <target name="hiprofiler_plugins_ut">
@@ -299,7 +325,6 @@
             <option name="push" value="developtools/developtools/libabsl_spinlock_wait.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libabsl_stacktrace.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libabsl_status.z.so -> /system/lib/" src="out"/>
-            <option name="push" value="developtools/developtools/libabsl_statusor.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libabsl_str_format_internal.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libabsl_strings.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libabsl_strings_internal.z.so -> /system/lib/" src="out"/>
@@ -309,14 +334,12 @@
             <option name="push" value="developtools/developtools/libabsl_time.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libabsl_time_zone.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libaddress_sorting.z.so -> /system/lib/" src="out"/>
-            <option name="push" value="developtools/developtools/libagentplugin.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libares.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libbytraceplugin.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libcrypto.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libgpr.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libgrpc.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libgrpcxx.z.so -> /system/lib/" src="out"/>
-            <option name="push" value="developtools/developtools/libhiperf_call_plugin.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libprotobuf.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libprotobuf_lite.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libprotoc_lib.z.so -> /system/lib/" src="out"/>
@@ -343,7 +366,6 @@
             <option name="push" value="developtools/developtools/libabsl_spinlock_wait.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libabsl_stacktrace.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libabsl_status.z.so -> /system/lib/" src="out"/>
-            <option name="push" value="developtools/developtools/libabsl_statusor.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libabsl_str_format_internal.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libabsl_strings.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libabsl_strings_internal.z.so -> /system/lib/" src="out"/>
@@ -353,20 +375,20 @@
             <option name="push" value="developtools/developtools/libabsl_time.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libabsl_time_zone.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libaddress_sorting.z.so -> /system/lib/" src="out"/>
-            <option name="push" value="developtools/developtools/libagentplugin.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libares.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libbytraceplugin.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libcrypto.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libgpr.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libgrpc.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libgrpcxx.z.so -> /system/lib/" src="out"/>
-            <option name="push" value="developtools/developtools/libhiperf_call_plugin.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libprotobuf.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libprotobuf_lite.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libprotoc_lib.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libre2.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/./libmemdataplugin.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libshared_memory.z.so -> /system/lib/" src="out"/>
+            <option name="push" value="developtools/developtools/libsampleplugin.z.so -> /system/lib/" src="out"/>
+            <option name="push" value="developtools/developtools/libstreamplugin.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libssl.z.so -> /system/lib/" src="out"/>
         </preparer>
     </target>
@@ -413,7 +435,6 @@
             <option name="push" value="developtools/developtools/libabsl_spinlock_wait.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libabsl_stacktrace.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libabsl_status.z.so -> /system/lib/" src="out"/>
-            <option name="push" value="developtools/developtools/libabsl_statusor.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libabsl_str_format_internal.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libabsl_strings.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libabsl_strings_internal.z.so -> /system/lib/" src="out"/>
@@ -423,7 +444,6 @@
             <option name="push" value="developtools/developtools/libabsl_time.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libabsl_time_zone.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libaddress_sorting.z.so -> /system/lib/" src="out"/>
-            <option name="push" value="developtools/developtools/libagentplugin.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libares.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libbytraceplugin.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libcpudataplugin.z.so -> /system/lib/" src="out"/>
@@ -432,7 +452,6 @@
             <option name="push" value="developtools/developtools/libgpr.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libgrpc.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libgrpcxx.z.so -> /system/lib/" src="out"/>
-            <option name="push" value="developtools/developtools/libhiperf_call_plugin.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libprotobuf.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libprotobuf_lite.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libprotoc_lib.z.so -> /system/lib/" src="out"/>
@@ -459,7 +478,6 @@
             <option name="push" value="developtools/developtools/libabsl_spinlock_wait.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libabsl_stacktrace.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libabsl_status.z.so -> /system/lib/" src="out"/>
-            <option name="push" value="developtools/developtools/libabsl_statusor.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libabsl_str_format_internal.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libabsl_strings.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libabsl_strings_internal.z.so -> /system/lib/" src="out"/>
@@ -469,7 +487,6 @@
             <option name="push" value="developtools/developtools/libabsl_time.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libabsl_time_zone.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libaddress_sorting.z.so -> /system/lib/" src="out"/>
-            <option name="push" value="developtools/developtools/libagentplugin.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libares.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libbytraceplugin.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libcpudataplugin.z.so -> /system/lib/" src="out"/>
@@ -478,7 +495,6 @@
             <option name="push" value="developtools/developtools/libgpr.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libgrpc.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libgrpcxx.z.so -> /system/lib/" src="out"/>
-            <option name="push" value="developtools/developtools/libhiperf_call_plugin.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libprotobuf.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libprotobuf_lite.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libprotoc_lib.z.so -> /system/lib/" src="out"/>
@@ -488,7 +504,7 @@
             <option name="push" value="developtools/developtools/libssl.z.so -> /system/lib/" src="out"/>
         </preparer>
     </target>
-<target name="networkplugin_ut">
+    <target name="networkplugin_ut">
         <preparer>
             <option name="push" value="plugins/network_plugin/test/utresources/begin/proc/9553/status -> /data/local/tmp/utresources/begin/proc/9553/" src="res"/>
             <option name="push" value="plugins/network_plugin/test/utresources/begin/proc/net/xt_qtaguid/stats -> /data/local/tmp/utresources/begin/proc/net/xt_qtaguid/" src="res"/>
@@ -508,7 +524,6 @@
             <option name="push" value="developtools/developtools/libabsl_spinlock_wait.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libabsl_stacktrace.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libabsl_status.z.so -> /system/lib/" src="out"/>
-            <option name="push" value="developtools/developtools/libabsl_statusor.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libabsl_str_format_internal.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libabsl_strings.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libabsl_strings_internal.z.so -> /system/lib/" src="out"/>
@@ -518,7 +533,6 @@
             <option name="push" value="developtools/developtools/libabsl_time.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libabsl_time_zone.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libaddress_sorting.z.so -> /system/lib/" src="out"/>
-            <option name="push" value="developtools/developtools/libagentplugin.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libares.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libbytraceplugin.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libcpudataplugin.z.so -> /system/lib/" src="out"/>
@@ -527,7 +541,6 @@
             <option name="push" value="developtools/developtools/libgpr.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libgrpc.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libgrpcxx.z.so -> /system/lib/" src="out"/>
-            <option name="push" value="developtools/developtools/libhiperf_call_plugin.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libprotobuf.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libprotobuf_lite.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libprotoc_lib.z.so -> /system/lib/" src="out"/>
@@ -535,12 +548,57 @@
             <option name="push" value="developtools/developtools/./libmemdataplugin.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libshared_memory.z.so -> /system/lib/" src="out"/>
             <option name="push" value="developtools/developtools/libssl.z.so -> /system/lib/" src="out"/>
+            <option name="push" value="developtools/developtools/libnetworkplugin.z.so -> /system/lib/" src="out"/>
         </preparer>
     </target>
-<target name="agent_ut">
+    <target name="hilogplugin_ut">
         <preparer>
-            <option name="push" value="developtools/developtools/libagentplugin.z.so -> /system/lib/" src="out"/>
-            <option name="push" value="developtools/developtools/hiprofilerd -> /system/lib/" src="out"/>
+            <option name="push" value="developtools/developtools/libabsl_base.z.so -> /system/lib/" src="out"/>
+            <option name="push" value="developtools/developtools/libabsl_civil_time.z.so -> /system/lib/" src="out"/>
+            <option name="push" value="developtools/developtools/libabsl_cord.z.so -> /system/lib/" src="out"/>
+            <option name="push" value="developtools/developtools/libabsl_debugging_internal.z.so -> /system/lib/" src="out"/>
+            <option name="push" value="developtools/developtools/libabsl_demangle_internal.z.so -> /system/lib/" src="out"/>
+            <option name="push" value="developtools/developtools/libabsl_dynamic_annotations.z.so -> /system/lib/" src="out"/>
+            <option name="push" value="developtools/developtools/libabsl_graphcycles_internal.z.so -> /system/lib/" src="out"/>
+            <option name="push" value="developtools/developtools/libabsl_int128.z.so -> /system/lib/" src="out"/>
+            <option name="push" value="developtools/developtools/libabsl_log_severity.z.so -> /system/lib/" src="out"/>
+            <option name="push" value="developtools/developtools/libabsl_malloc_internal.z.so -> /system/lib/" src="out"/>
+            <option name="push" value="developtools/developtools/libabsl_raw_logging_internal.z.so -> /system/lib/" src="out"/>
+            <option name="push" value="developtools/developtools/libabsl_spinlock_wait.z.so -> /system/lib/" src="out"/>
+            <option name="push" value="developtools/developtools/libabsl_stacktrace.z.so -> /system/lib/" src="out"/>
+            <option name="push" value="developtools/developtools/libabsl_status.z.so -> /system/lib/" src="out"/>
+            <option name="push" value="developtools/developtools/libabsl_str_format_internal.z.so -> /system/lib/" src="out"/>
+            <option name="push" value="developtools/developtools/libabsl_strings.z.so -> /system/lib/" src="out"/>
+            <option name="push" value="developtools/developtools/libabsl_strings_internal.z.so -> /system/lib/" src="out"/>
+            <option name="push" value="developtools/developtools/libabsl_symbolize.z.so -> /system/lib/" src="out"/>
+            <option name="push" value="developtools/developtools/libabsl_synchronization.z.so -> /system/lib/" src="out"/>
+            <option name="push" value="developtools/developtools/libabsl_throw_delegate.z.so -> /system/lib/" src="out"/>
+            <option name="push" value="developtools/developtools/libabsl_time.z.so -> /system/lib/" src="out"/>
+            <option name="push" value="developtools/developtools/libabsl_time_zone.z.so -> /system/lib/" src="out"/>
+            <option name="push" value="developtools/developtools/libaddress_sorting.z.so -> /system/lib/" src="out"/>
+            <option name="push" value="developtools/developtools/libares.z.so -> /system/lib/" src="out"/>
+            <option name="push" value="developtools/developtools/libbytraceplugin.z.so -> /system/lib/" src="out"/>
+            <option name="push" value="developtools/developtools/libcpudataplugin.z.so -> /system/lib/" src="out"/>
+            <option name="push" value="developtools/developtools/libcrypto.z.so -> /system/lib/" src="out"/>
+            <option name="push" value="developtools/developtools/libdiskiodataplugin.z.so -> /system/lib/" src="out"/>
+            <option name="push" value="developtools/developtools/libgpr.z.so -> /system/lib/" src="out"/>
+            <option name="push" value="developtools/developtools/libgrpc.z.so -> /system/lib/" src="out"/>
+            <option name="push" value="developtools/developtools/libgrpcxx.z.so -> /system/lib/" src="out"/>
+            <option name="push" value="developtools/developtools/libprotobuf.z.so -> /system/lib/" src="out"/>
+            <option name="push" value="developtools/developtools/libprotobuf_lite.z.so -> /system/lib/" src="out"/>
+            <option name="push" value="developtools/developtools/libprotoc_lib.z.so -> /system/lib/" src="out"/>
+            <option name="push" value="developtools/developtools/libre2.z.so -> /system/lib/" src="out"/>
+            <option name="push" value="developtools/developtools/./libmemdataplugin.z.so -> /system/lib/" src="out"/>
+            <option name="push" value="developtools/developtools/libshared_memory.z.so -> /system/lib/" src="out"/>
+            <option name="push" value="developtools/developtools/libssl.z.so -> /system/lib/" src="out"/>
+            <option name="push" value="developtools/developtools/libnetworkplugin.z.so -> /system/lib/" src="out"/>
+            <option name="push" value="developtools/developtools/libhilogplugin.z.so -> /system/lib/" src="out"/>
+        </preparer>
+    </target>
+    <target name="ftrace_plugin_ut">
+        <preparer>
+            <option name="push" value="developtools/developtools/libftrace_plugin.z.so -> /system/lib/" src="out"/>
+            <option name="push" value="developtools/developtools/libprotobuf_lite.z.so -> /system/lib/" src="out"/>
         </preparer>
     </target>
 </configuration>

@@ -16,12 +16,18 @@
 #ifndef INCLUDE_BASE_STRING_TO_NUMERICAL_H_
 #define INCLUDE_BASE_STRING_TO_NUMERICAL_H_
 
+#include <iostream>
 #include <optional>
+#include <sstream>
 #include <string>
 
 namespace SysTuning {
 namespace base {
-inline std::optional<uint32_t> StrToUInt32(const std::string& str, int base = 10)
+enum IntegerRadixType {
+    INTEGER_RADIX_TYPE_DEC = 10,
+    INTEGER_RADIX_TYPE_HEX = 16
+};
+inline std::optional<uint32_t> StrToUInt32(const std::string& str, int base = INTEGER_RADIX_TYPE_DEC)
 {
     if (!str.empty()) {
         uint32_t value = static_cast<uint32_t>(std::stoul(str, nullptr, base));
@@ -31,7 +37,18 @@ inline std::optional<uint32_t> StrToUInt32(const std::string& str, int base = 10
     return std::nullopt;
 }
 
-inline std::optional<int32_t> StrToInt32(const std::string& str, int base = 10)
+inline std::string number(int value, int base = INTEGER_RADIX_TYPE_DEC)
+{
+    std::stringstream ss;
+    if (base == INTEGER_RADIX_TYPE_DEC) {
+        ss << std::oct << value;
+    } else if (base == INTEGER_RADIX_TYPE_HEX) {
+        ss << std::hex << value;
+    }
+    return ss.str();
+}
+
+inline std::optional<int32_t> StrToInt32(const std::string& str, int base = INTEGER_RADIX_TYPE_DEC)
 {
     if (!str.empty()) {
         int32_t value = static_cast<int32_t>(std::stol(str, nullptr, base));
@@ -41,7 +58,7 @@ inline std::optional<int32_t> StrToInt32(const std::string& str, int base = 10)
     return std::nullopt;
 }
 
-inline std::optional<uint64_t> StrToUInt64(const std::string& str, int base = 10)
+inline std::optional<uint64_t> StrToUInt64(const std::string& str, int base = INTEGER_RADIX_TYPE_DEC)
 {
     if (!str.empty()) {
         uint64_t value = static_cast<uint64_t>(std::stoull(str, nullptr, base));
@@ -51,7 +68,7 @@ inline std::optional<uint64_t> StrToUInt64(const std::string& str, int base = 10
     return std::nullopt;
 }
 
-inline std::optional<int64_t> StrToInt64(const std::string& str, int base = 10)
+inline std::optional<int64_t> StrToInt64(const std::string& str, int base = INTEGER_RADIX_TYPE_DEC)
 {
     if (!str.empty()) {
         int64_t value = static_cast<int64_t>(std::stoll(str, nullptr, base));

@@ -36,14 +36,8 @@ public:
 
 class UnitTestPluginService : public testing::Test {
 public:
-    static void SetUpTestCase()
-    {
-        setenv("RECV_NO_WAIT", "1", 0);
-    }
-    static void TearDownTestCase()
-    {
-        unsetenv("RECV_NO_WAIT");
-    }
+    static void SetUpTestCase() {}
+    static void TearDownTestCase() {}
 
     void SetUp()
     {
@@ -57,6 +51,7 @@ public:
         pluginClient_ = nullptr;
         pluginService_ = nullptr;
     }
+
 public:
     std::unique_ptr<PluginService> pluginService_ = nullptr;
     std::unique_ptr<PluginClientTest> pluginClient_ = nullptr;
@@ -193,7 +188,7 @@ HWTEST_F(UnitTestPluginService, AppendResult, TestSize.Level1)
 HWTEST_F(UnitTestPluginService, GetPluginStatus, TestSize.Level1)
 {
     auto status = pluginService_->GetPluginStatus();
-    ASSERT_TRUE(status.size()==0);
+    ASSERT_TRUE(status.size() == 0);
 }
 
 /**
@@ -203,7 +198,7 @@ HWTEST_F(UnitTestPluginService, GetPluginStatus, TestSize.Level1)
  */
 HWTEST_F(UnitTestPluginService, GetPluginIdByName, TestSize.Level1)
 {
-    ASSERT_TRUE(pluginService_->GetPluginIdByName("abc.so")==0);
+    ASSERT_TRUE(pluginService_->GetPluginIdByName("abc.so") == 0);
 }
 
 /**

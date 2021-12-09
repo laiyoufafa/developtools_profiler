@@ -18,7 +18,7 @@
 namespace SysTuning {
 namespace TraceStreamer {
 HtraceCpuDetailParser::HtraceCpuDetailParser(TraceDataCache* dataCache, const TraceStreamerFilters* ctx)
-    : EventParserBase(dataCache, ctx), eventParser_(std::make_unique<HtraceEventParser>(dataCache, ctx))
+    : eventParser_(std::make_unique<HtraceEventParser>(dataCache, ctx))
 {
 }
 
@@ -26,7 +26,6 @@ HtraceCpuDetailParser::~HtraceCpuDetailParser() = default;
 void HtraceCpuDetailParser::Parse(TracePluginResult& tracePacket, BuiltinClocks clock)
 {
     if (!tracePacket.ftrace_cpu_detail_size()) {
-        streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_OTHER, STAT_EVENT_DATA_INVALID);
         return;
     }
 

@@ -14,18 +14,7 @@
  */
 
 #include "trace_data_cache_reader.h"
-#include <array>
-#include <deque>
-#include <limits>
-#include <map>
-#include <optional>
-#include <stdexcept>
-#include <string>
-#include <unordered_map>
-#include <vector>
 #include "log.h"
-#include "trace_stdtype.h"
-
 namespace SysTuning {
 namespace TraceStreamer {
 using namespace TraceStdtype;
@@ -98,6 +87,10 @@ const ClockEventData& TraceDataCacheReader::GetConstClockEventFilterData() const
 {
     return clockEventFilterData_;
 }
+const ClkEventData& TraceDataCacheReader::GetConstClkEventFilterData() const
+{
+    return clkEventFilterData_;
+}
 const std::string& TraceDataCacheReader::GetConstSchedStateData(uint64_t rowId) const
 {
     TS_ASSERT(statusString_.find(rowId) != statusString_.end());
@@ -124,6 +117,30 @@ const MetaData& TraceDataCacheReader::GetConstMetaData() const
 const SymbolsData& TraceDataCacheReader::GetConstSymbolsData() const
 {
     return symbolsData_;
+}
+
+const LogInfo& TraceDataCacheReader::GetConstHilogData() const
+{
+    return hilogData_;
+}
+
+const SysCall& TraceDataCacheReader::GetConstSysCallData() const
+{
+    return sysCallData_;
+}
+const ArgSet& TraceDataCacheReader::GetConstArgSetData() const
+{
+    return argSet_;
+}
+
+const DataType& TraceDataCacheReader::GetConstDataTypeData() const
+{
+    return dataType_;
+}
+
+const SysMeasureFilter& TraceDataCacheReader::GetConstSysMeasureFilterData() const
+{
+    return sysEvent_;
 }
 } // namespace TraceStreamer
 } // namespace SysTuning

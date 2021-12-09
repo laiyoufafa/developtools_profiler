@@ -15,11 +15,11 @@
 
 #ifndef TRACE_STREAMER_SELECTOR_H
 #define TRACE_STREAMER_SELECTOR_H
-
 #include <functional>
 #include <memory>
 #include "trace_data/trace_data_cache.h"
 #include "trace_streamer_filters.h"
+
 
 namespace SysTuning {
 namespace TraceStreamer {
@@ -32,10 +32,15 @@ public:
     ~TraceStreamerSelector();
     bool ParseTraceDataSegment(std::unique_ptr<uint8_t[]> data, size_t size);
     void EnableMetaTable(bool enabled);
+    void SetCleanMode(bool cleanMode);
     int ExportDatabase(const std::string& outputName) const;
     int SearchData(const std::string& outputName);
     void WaitForParserEnd();
     MetaData* GetMetaData();
+    void SetDataType(TraceFileType type)
+    {
+        fileType_ = type;
+    }
     TraceFileType DataType()
     {
         return fileType_;
@@ -45,8 +50,8 @@ private:
     void InitFilter();
     void InitParser();
     TraceFileType fileType_;
-    std::unique_ptr<TraceStreamerFilters> streamFilters_{};
-    std::unique_ptr<TraceDataCache> traceDataCache_{};
+    std::unique_ptr<TraceStreamerFilters> streamFilters_ = {};
+    std::unique_ptr<TraceDataCache> traceDataCache_ = {};
 
     std::unique_ptr<BytraceParser> bytraceParser_;
     std::unique_ptr<HtraceParser> htraceParser_;

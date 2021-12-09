@@ -51,7 +51,7 @@ public:
     bool GetInfo(PluginModuleInfo& info);
     bool GetPluginName(std::string& pluginName);
     bool GetBufferSizeHint(uint32_t& bufferSizeHint);
-
+    bool IsRunning();
     bool IsLoaded();
     bool BindFunctions();
 
@@ -67,6 +67,7 @@ public:
 
 private:
     void* handle_;
+    bool running_;
     std::string path_;
     std::string pluginName_;
     std::string configData_;

@@ -66,26 +66,38 @@ int ThreadTable::Cursor::Column(int column) const
         case NAME: {
             const auto& thread = dataCache_->GetConstThreadData(CurrentRow());
             const auto& name = dataCache_->GetDataFromDict(thread.nameIndex_);
-            sqlite3_result_text(context_, name.c_str(), static_cast<int>(name.length()), nullptr);
+            if (name.size()) {
+                sqlite3_result_text(context_, name.c_str(), static_cast<int>(name.length()), nullptr);
+            }
             break;
         }
         case START_TS: {
             const auto& thread = dataCache_->GetConstThreadData(CurrentRow());
-            sqlite3_result_int64(context_, static_cast<long long>(thread.startT_));
+            if (thread.startT_) {
+                sqlite3_result_int64(context_, static_cast<int64_t>(thread.startT_));
+            }
             break;
         }
         case END_TS: {
             const auto& thread = dataCache_->GetConstThreadData(CurrentRow());
-            sqlite3_result_int64(context_, static_cast<long long>(thread.endT_));
+            if (thread.endT_) {
+                sqlite3_result_int64(context_, static_cast<int64_t>(thread.endT_));
+            }
             break;
         }
         case INTERNAL_PID: {
             const auto& thread = dataCache_->GetConstThreadData(CurrentRow());
-            sqlite3_result_int(context_, static_cast<int>(thread.internalPid_));
+            if (thread.internalPid_) {
+                sqlite3_result_int(context_, static_cast<int>(thread.internalPid_));
+            }
             break;
         }
         case IS_MAIN_THREAD: {
             const auto& thread = dataCache_->GetConstThreadData(CurrentRow());
+            // When it is not clear which process the thread belongs to, is_main_thread should be set to null
+            if (!thread.internalPid_) {
+                break;
+            }
             const auto& process = dataCache_->GetConstProcessData(thread.internalPid_);
             sqlite3_result_int(context_, thread.tid_ == process.pid_);
             break;

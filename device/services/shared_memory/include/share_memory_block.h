@@ -16,9 +16,14 @@
 #ifndef SHARE_MEMORY_BLOCK_H
 #define SHARE_MEMORY_BLOCK_H
 
+#ifndef NO_PROTOBUF
 #include "google/protobuf/message.h"
+#endif
 #include <cstdint>
 #include <functional>
+#include <map>
+#include <pthread.h>
+#include <string>
 
 class ShareMemoryBlock {
 public:
@@ -27,8 +32,9 @@ public:
     ~ShareMemoryBlock();
 
     bool PutRaw(const int8_t* data, uint32_t size);
+#ifndef NO_PROTOBUF
     bool PutMessage(const google::protobuf::Message& pmsg);
-
+#endif
     using DataHandler = std::function<bool(const int8_t*, uint32_t)>;
     bool TakeData(const DataHandler& func);
 

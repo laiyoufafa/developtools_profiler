@@ -23,7 +23,7 @@
 using namespace testing::ext;
 
 namespace {
-const static std::string SUCCESS_PLUGIN_NAME = "libmemdataplugin.z.so";
+const std::string SUCCESS_PLUGIN_NAME = "libmemdataplugin.z.so";
 constexpr size_t READ_BUFFER_SIZE = 4 * 1024 * 1024;
 std::string g_testPluginDir("/system/lib/");
 
@@ -87,7 +87,7 @@ HWTEST_F(PluginModuleTest, PluginModuleNormal, TestSize.Level1)
     EXPECT_EQ(cfgData.c_str()[1], 1);
     EXPECT_EQ(cfgData.c_str()[2], 10);
 
-    std::unique_ptr<uint8_t[]> buffer(new (std::nothrow) uint8_t[size]);
+    std::unique_ptr<uint8_t[]> buffer = std::make_unique<uint8_t[]>(size);
     EXPECT_NE(buffer, nullptr);
     EXPECT_TRUE(plugin->StartSession(reinterpret_cast<const uint8_t*>(cfgData.c_str()), cfgData.size()));
     EXPECT_NE(plugin->ReportResult(buffer.get(), size), 0);
@@ -133,7 +133,7 @@ HWTEST_F(PluginModuleTest, PluginModuleAbnormal, TestSize.Level1)
     plugin->GetPluginName(name);
     EXPECT_STREQ(name.c_str(), "");
 
-    std::unique_ptr<uint8_t[]> buffer(new (std::nothrow) uint8_t[size]);
+    std::unique_ptr<uint8_t[]> buffer = std::make_unique<uint8_t[]>(size);
     EXPECT_NE(buffer, nullptr);
     EXPECT_FALSE(plugin->StartSession(nullptr, 0));
     EXPECT_EQ(plugin->ReportResult(buffer.get(), size), -1);

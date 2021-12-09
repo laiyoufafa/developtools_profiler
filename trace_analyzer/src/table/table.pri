@@ -31,9 +31,15 @@ HEADERS += \
     $$PWD/thread_filter_table.h \
     $$PWD/thread_state_table.h \
     $$PWD/clock_event_filter_table.h \
+    $$PWD/clk_event_filter_table.h \
     $$PWD/stat_table.h \
     $$PWD/meta_table.h \
-    $$PWD/symbols_table.h
+    $$PWD/symbols_table.h \
+    $$PWD/system_call_table.h \
+    $$PWD/log_table.h \
+    $$PWD/args_table.h \
+    $$PWD/data_type_table.h \
+    $$PWD/system_event_filter_table.h
 
 SOURCES += \
     $$PWD/range_table.cpp \
@@ -54,6 +60,12 @@ SOURCES += \
     $$PWD/thread_filter_table.cpp \
     $$PWD/thread_state_table.cpp \
     $$PWD/clock_event_filter_table.cpp \
+    $$PWD/clk_event_filter_table.cpp \
     $$PWD/stat_table.cpp \
     $$PWD/meta_table.cpp \
-    $$PWD/symbols_table.cpp
+    $$PWD/symbols_table.cpp \
+    $$PWD/system_call_table.cpp \
+    $$PWD/log_table.cpp \
+    $$PWD/args_table.cpp \
+    $$PWD/data_type_table.cpp \
+    $$PWD/system_event_filter_table.cpp

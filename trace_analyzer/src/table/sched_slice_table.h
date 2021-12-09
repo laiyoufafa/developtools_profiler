@@ -32,7 +32,7 @@ private:
     public:
         explicit Cursor(const TraceDataCache* dataCache);
         ~Cursor() override;
-        int Column(int) const override;
+        int Column(int col) const override;
 
     private:
         const SchedSlice& schedSliceObj_;

@@ -23,9 +23,6 @@
 #include "share_memory_allocator.h"
 #include "writer.h"
 
-class CommandPoller;
-
-using CommandPollerPtr = STD_PTR(shared, CommandPoller);
 
 class BufferWriter : public Writer {
 public:
@@ -39,7 +36,6 @@ public:
     bool Flush() override;
 
     bool WriteMessage(const google::protobuf::Message& pmsg);
-
 private:
     void DoStats(long bytes);
     void Report() const;

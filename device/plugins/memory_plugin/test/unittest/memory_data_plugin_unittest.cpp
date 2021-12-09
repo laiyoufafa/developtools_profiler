@@ -13,26 +13,26 @@
  * limitations under the License.
  */
 
+#include <dlfcn.h>
 #include <hwext/gtest-ext.h>
 #include <hwext/gtest-tag.h>
+#include <sys/types.h>
 
 #include "memory_data_plugin.h"
+#include "plugin_module_api.h"
 
 using namespace testing::ext;
 
 namespace {
-#if defined(__i386__) || defined(__x86_64__)
-const std::string DEFAULT_TEST_PATH("./");
-#else
 const std::string DEFAULT_TEST_PATH("/data/local/tmp/");
-#endif
+const std::string DEFAULT_SO_PATH("/system/lib/");
+const std::string DEFAULT_BIN_PATH("/system/bin/memorytest");
 constexpr uint32_t BUF_SIZE = 4 * 1024 * 1024;
 constexpr uint32_t BIT_WIDTH = 35;
+const int US_PER_S = 1000000;
+const int US_PER_MS = 10000;
 
 std::string g_path;
-const std::vector<int> g_expectPidList = {
-    1, 2, 11
-};
 
 struct TestElement {
     int32_t pid;
@@ -56,15 +56,22 @@ struct TestElement {
     uint64_t private_other;
 };
 
-TestElement g_singlepid = {-1, "null", 0, 0};
 TestElement g_pidtarget[] = {
     {1, "systemd", 226208, 9388, 2984, 6404, 0, 0, 0, 9616, -1, 3036, 4256, 288, 748, 0, 1388},
     {2, "kthreadd", 0, 0, 0, 0, 0, 0, 0, 0, -100, 3036, 4260, 336, 760, 0, 4204},
     {11, "rcu_sched", 0, 0, 0, 0, 0, 0, 0, 0, 0, 3036, 4272, 392, 772, 0, 7168},
 };
 
-unsigned long g_meminfo[] = {16168696, 1168452, 12363564, 2726188, 7370484, 29260,    8450388,  4807668,
-                             2535372,  658832,  4148836,  132,     0,       63999996, 62211580, 0};
+unsigned long g_meminfo[] = {
+    16168696, 1168452, 12363564, 2726188, 7370484, 29260,    8450388,  4807668,
+    2535372,  658832,  4148836,  132,     0,       63999996, 62211580, 0
+};
+
+unsigned long g_vmeminfo[] = {
+    112823, 0,      587,    1848,   101,   9074,  8426,   18314,
+    0,     2416,  2348,  9073,   1876,  26863, 1,      0
+};
+
 std::string GetFullPath(std::string path);
 
 class MemoryDataPluginTest : public ::testing::Test {
@@ -168,6 +175,28 @@ void SetPluginSysMemConfig(MemoryConfig &protoConfig)
     protoConfig.add_sys_meminfo_counters(SysMeminfoType::MEMINFO_SWAP_TOTAL);
     protoConfig.add_sys_meminfo_counters(SysMeminfoType::MEMINFO_SWAP_FREE);
     protoConfig.add_sys_meminfo_counters(SysMeminfoType::MEMINFO_DIRTY);
+
+    protoConfig.set_report_sysmem_vmem_info(true);
+
+    protoConfig.add_sys_vmeminfo_counters(SysVMeminfoType::VMEMINFO_NR_FREE_PAGES);
+    protoConfig.add_sys_vmeminfo_counters(SysVMeminfoType::VMEMINFO_NR_INACTIVE_ANON);
+    protoConfig.add_sys_vmeminfo_counters(SysVMeminfoType::VMEMINFO_NR_ACTIVE_ANON);
+    protoConfig.add_sys_vmeminfo_counters(SysVMeminfoType::VMEMINFO_NR_INACTIVE_FILE);
+
+    protoConfig.add_sys_vmeminfo_counters(SysVMeminfoType::VMEMINFO_NR_ACTIVE_FILE);
+    protoConfig.add_sys_vmeminfo_counters(SysVMeminfoType::VMEMINFO_NR_UNEVICTABLE);
+    protoConfig.add_sys_vmeminfo_counters(SysVMeminfoType::VMEMINFO_NR_MLOCK);
+    protoConfig.add_sys_vmeminfo_counters(SysVMeminfoType::VMEMINFO_NR_ANON_PAGES);
+
+    protoConfig.add_sys_vmeminfo_counters(SysVMeminfoType::VMEMINFO_NR_MAPPED);
+    protoConfig.add_sys_vmeminfo_counters(SysVMeminfoType::VMEMINFO_NR_FILE_PAGES);
+    protoConfig.add_sys_vmeminfo_counters(SysVMeminfoType::VMEMINFO_NR_DIRTY);
+    protoConfig.add_sys_vmeminfo_counters(SysVMeminfoType::VMEMINFO_NR_SLAB_RECLAIMABLE);
+
+    protoConfig.add_sys_vmeminfo_counters(SysVMeminfoType::VMEMINFO_NR_SLAB_UNRECLAIMABLE);
+    protoConfig.add_sys_vmeminfo_counters(SysVMeminfoType::VMEMINFO_NR_PAGE_TABLE_PAGES);
+    protoConfig.add_sys_vmeminfo_counters(SysVMeminfoType::VMEMINFO_NR_KERNEL_STACK);
+    protoConfig.add_sys_vmeminfo_counters(SysVMeminfoType::VMEMINFO_NR_UNSTABLE);
 }
 
 void SetPluginDumpsysConfig(MemoryConfig& protoConfig)
@@ -211,49 +240,12 @@ std::string GetFullPath(std::string path)
     return path;
 }
 
-#if defined(__i386__) || defined(__x86_64__)
-bool CreatTestResource(std::string path, std::string exepath)
-{
-    std::string str = "cp -r " + path + "utresources " + exepath;
-    printf("CreatTestResource:%s\n", str.c_str());
-
-    pid_t status = system(str.c_str());
-    if (-1 == status) {
-        printf("system error!");
-    } else {
-        printf("exit status value = [0x%x]\n", status);
-        if (WIFEXITED(status)) {
-            if (WEXITSTATUS(status) == 0) {
-                return true;
-            } else {
-                printf("run shell script fail, script exit code: %d\n", WEXITSTATUS(status));
-                return false;
-            }
-        } else {
-            printf("exit status = [%d]\n", WEXITSTATUS(status));
-            return true;
-        }
-    }
-    return false;
-}
-#endif
-
 void MemoryDataPluginTest::SetUpTestCase()
 {
     g_path = GetFullPath(DEFAULT_TEST_PATH);
     printf("g_path:%s\n", g_path.c_str());
     EXPECT_NE("", g_path);
-#if defined(__i386__) || defined(__x86_64__)
-    if (DEFAULT_TEST_PATH != g_path) {
-        if ((access(std::string(g_path + "utresources/proc").c_str(), F_OK) != 0) &&
-            (access(std::string(DEFAULT_TEST_PATH + "utresources/proc").c_str(), F_OK) == 0)) {
-            EXPECT_TRUE(CreatTestResource(DEFAULT_TEST_PATH, g_path));
-        }
-        g_path += "utresources/proc";
-    }
-#else
     g_path += "utresources/proc";
-#endif
     printf("g_path:%s\n", g_path.c_str());
 }
 
@@ -276,6 +268,7 @@ HWTEST_F(MemoryDataPluginTest, TestUtpath, TestSize.Level1)
 HWTEST_F(MemoryDataPluginTest, Testpidlist, TestSize.Level1)
 {
     MemoryDataPlugin* memoryPlugin = new MemoryDataPlugin();
+    const std::vector<int> expectPidList = {1, 2, 11};
 
     printf("g_path:%s\n", g_path.c_str());
     DIR* dir = memoryPlugin->OpenDestDir(g_path.c_str());
@@ -288,7 +281,7 @@ HWTEST_F(MemoryDataPluginTest, Testpidlist, TestSize.Level1)
     }
     sort(cmpPidList.begin(), cmpPidList.end());
     closedir(dir);
-    EXPECT_EQ(cmpPidList, g_expectPidList);
+    EXPECT_EQ(cmpPidList, expectPidList);
     delete memoryPlugin;
 }
 
@@ -303,15 +296,21 @@ HWTEST_F(MemoryDataPluginTest, Testpluginformeminfo, TestSize.Level1)
     MemoryData memoryData;
     MemoryConfig protoConfig;
 
+    memoryPlugin.SetPath(const_cast<char*>(g_path.c_str()));
     SetPluginSysMemConfig(protoConfig);
     EXPECT_TRUE(PluginStub(memoryPlugin, protoConfig, memoryData));
 
     EXPECT_EQ(16, memoryData.meminfo().size());
-    int index = memoryData.processesinfo_size();
+    int index = memoryData.meminfo_size();
     for (int i = 0; i < index; ++i) {
         EXPECT_EQ(g_meminfo[i], memoryData.meminfo(i).value());
     }
 
+    EXPECT_EQ(16, memoryData.vmeminfo().size());
+    index = memoryData.vmeminfo_size();
+    for (int i = 0; i < index; ++i) {
+        EXPECT_EQ(g_vmeminfo[i], memoryData.vmeminfo(i).value());
+    }
     memoryPlugin.Stop();
 }
 
@@ -372,6 +371,7 @@ HWTEST_F(MemoryDataPluginTest, Testpluginforsinglepid, TestSize.Level1)
     MemoryConfig protoConfig;
 
     std::vector<int> pid = {5};
+    TestElement singlepid = {-1, "null", 0, 0};
 
     memoryPlugin.SetPath(const_cast<char*>(g_path.c_str()));
     printf("Testpluginforsinglepid:setPath=%s\n", g_path.c_str());
@@ -385,27 +385,27 @@ HWTEST_F(MemoryDataPluginTest, Testpluginforsinglepid, TestSize.Level1)
     printf("Testpluginforsinglepid:index=%d\n", index);
 
     ProcessMemoryInfo it = memoryData.processesinfo(0);
-    EXPECT_EQ(g_singlepid.pid, it.pid());
+    EXPECT_EQ(singlepid.pid, it.pid());
     printf("pid=%d\r\n", it.pid());
-    EXPECT_EQ(g_singlepid.name, it.name());
-    EXPECT_EQ(g_singlepid.vm_size_kb, it.vm_size_kb());
-    EXPECT_EQ(g_singlepid.vm_rss_kb, it.vm_rss_kb());
-    EXPECT_EQ(g_singlepid.rss_anon_kb, it.rss_anon_kb());
-    EXPECT_EQ(g_singlepid.rss_file_kb, it.rss_file_kb());
-    EXPECT_EQ(g_singlepid.rss_shmem_kb, it.rss_shmem_kb());
-    EXPECT_EQ(g_singlepid.vm_locked_kb, it.vm_locked_kb());
-    EXPECT_EQ(g_singlepid.vm_hwm_kb, it.vm_hwm_kb());
+    EXPECT_EQ(singlepid.name, it.name());
+    EXPECT_EQ(singlepid.vm_size_kb, it.vm_size_kb());
+    EXPECT_EQ(singlepid.vm_rss_kb, it.vm_rss_kb());
+    EXPECT_EQ(singlepid.rss_anon_kb, it.rss_anon_kb());
+    EXPECT_EQ(singlepid.rss_file_kb, it.rss_file_kb());
+    EXPECT_EQ(singlepid.rss_shmem_kb, it.rss_shmem_kb());
+    EXPECT_EQ(singlepid.vm_locked_kb, it.vm_locked_kb());
+    EXPECT_EQ(singlepid.vm_hwm_kb, it.vm_hwm_kb());
 
-    EXPECT_EQ(g_singlepid.oom_score_adj, it.oom_score_adj());
+    EXPECT_EQ(singlepid.oom_score_adj, it.oom_score_adj());
 
     EXPECT_TRUE(it.has_memsummary());
     AppSummary app = it.memsummary();
-    EXPECT_EQ(g_singlepid.java_heap, app.java_heap());
-    EXPECT_EQ(g_singlepid.native_heap, app.native_heap());
-    EXPECT_EQ(g_singlepid.code, app.code());
-    EXPECT_EQ(g_singlepid.stack, app.stack());
-    EXPECT_EQ(g_singlepid.graphics, app.graphics());
-    EXPECT_EQ(g_singlepid.private_other, app.private_other());
+    EXPECT_EQ(singlepid.java_heap, app.java_heap());
+    EXPECT_EQ(singlepid.native_heap, app.native_heap());
+    EXPECT_EQ(singlepid.code, app.code());
+    EXPECT_EQ(singlepid.stack, app.stack());
+    EXPECT_EQ(singlepid.graphics, app.graphics());
+    EXPECT_EQ(singlepid.private_other, app.private_other());
 
     memoryPlugin.Stop();
 }
@@ -421,7 +421,7 @@ HWTEST_F(MemoryDataPluginTest, Testpluginforpids, TestSize.Level1)
     MemoryData memoryData;
     MemoryConfig protoConfig;
 
-    std::vector<int> cmpPidList = g_expectPidList;
+    std::vector<int> cmpPidList = {1, 2, 11};
     EXPECT_NE((size_t)0, cmpPidList.size());
 
     memoryPlugin.SetPath(const_cast<char*>(g_path.c_str()));
@@ -462,9 +462,11 @@ HWTEST_F(MemoryDataPluginTest, Testpluginforpids, TestSize.Level1)
  */
 HWTEST_F(MemoryDataPluginTest, TestSmapsStatsInfo, TestSize.Level1)
 {
+    const std::vector<int> expectPidList = {1, 2, 11};
+
     SmapsStats smap(std::string(g_path + "/"));
-    for (size_t i = 0; i < g_expectPidList.size(); i++) {
-        EXPECT_TRUE(smap.ParseMaps(g_expectPidList[i]));
+    for (size_t i = 0; i < expectPidList.size(); i++) {
+        EXPECT_TRUE(smap.ParseMaps(expectPidList[i]));
         EXPECT_EQ(g_pidtarget[i].java_heap, (uint64_t)(smap.GetProcessJavaHeap()));
         EXPECT_EQ(g_pidtarget[i].native_heap, (uint64_t)(smap.GetProcessNativeHeap()));
         EXPECT_EQ(g_pidtarget[i].code, (uint64_t)(smap.GetProcessCode()));
@@ -518,5 +520,255 @@ HWTEST_F(MemoryDataPluginTest, TestpluginDumpsys, TestSize.Level1)
     EXPECT_EQ((uint64_t)0, app.private_other());
 
     memoryPlugin.Stop();
+}
+
+long WriteFunc(WriterStruct* writer, const void* data, size_t size)
+{
+    if (writer == nullptr || data == nullptr || size <= 0) {
+        return -1;
+    }
+    return 0;
+}
+
+bool FlushFunc(WriterStruct* writer)
+{
+    if (writer == nullptr) {
+        return false;
+    }
+    return true;
+}
+
+/**
+ * @tc.name: mem plugin
+ * @tc.desc: test register
+ * @tc.type: FUNC
+ */
+HWTEST_F(MemoryDataPluginTest, TestRegister, TestSize.Level1)
+{
+    std::string path = DEFAULT_SO_PATH + std::string("libmemdataplugin.z.so");
+    void* handle = dlopen(path.c_str(), RTLD_LAZY);
+    EXPECT_NE(handle, nullptr);
+    PluginModuleStruct* plugin = reinterpret_cast<PluginModuleStruct*>(dlsym(handle, "g_pluginModule"));
+    EXPECT_NE(plugin, nullptr);
+    EXPECT_STREQ(plugin->name, "memory-plugin");
+
+    // set config
+    MemoryConfig config;
+    config.set_report_process_mem_info(true);
+    int size = config.ByteSizeLong();
+    ASSERT_GT(size, 0);
+    std::vector<uint8_t> configData(size);
+    ASSERT_GT(config.SerializeToArray(configData.data(), configData.size()), 0);
+
+    // test framework process
+    WriterStruct writer = {WriteFunc, FlushFunc};
+    std::vector<uint8_t> dataBuffer(plugin->resultBufferSizeHint);
+    EXPECT_EQ(plugin->callbacks->onRegisterWriterStruct(&writer), 0);
+}
+
+/**
+ * @tc.name: mem plugin
+ * @tc.desc: start fail test
+ * @tc.type: FUNC
+ */
+HWTEST_F(MemoryDataPluginTest, TestStartFail, TestSize.Level1)
+{
+    MemoryConfig config;
+    MemoryDataPlugin plugin;
+
+    // set config
+    config.set_report_process_mem_info(true);
+
+    // serialize
+    int size = config.ByteSizeLong();
+    ASSERT_GT(size, 0);
+    std::vector<uint8_t> configData(size);
+    ASSERT_GT(config.SerializeToArray(configData.data(), configData.size()), 0);
+
+    // start
+    EXPECT_NE(plugin.Start(configData.data(), size - 1), 0);
+}
+
+/**
+ * @tc.name: mem plugin
+ * @tc.desc: Framework test
+ * @tc.type: FUNC
+ */
+HWTEST_F(MemoryDataPluginTest, TestFramework, TestSize.Level1)
+{
+    std::string path = DEFAULT_SO_PATH + std::string("libmemdataplugin.z.so");
+    void* handle = dlopen(path.c_str(), RTLD_LAZY);
+    EXPECT_NE(handle, nullptr);
+    PluginModuleStruct* plugin = reinterpret_cast<PluginModuleStruct*>(dlsym(handle, "g_pluginModule"));
+    EXPECT_NE(plugin, nullptr);
+    EXPECT_STREQ(plugin->name, "memory-plugin");
+
+    // set config
+    MemoryConfig config;
+    config.set_report_process_mem_info(true);
+    int size = config.ByteSizeLong();
+    ASSERT_GT(size, 0);
+    std::vector<uint8_t> configData(size);
+    ASSERT_GT(config.SerializeToArray(configData.data(), configData.size()), 0);
+
+    // test framework process
+    std::vector<uint8_t> dataBuffer(plugin->resultBufferSizeHint);
+    EXPECT_EQ(plugin->callbacks->onPluginSessionStart(configData.data(), configData.size()), 0);
+    EXPECT_EQ(plugin->callbacks->onPluginReportResult(dataBuffer.data(), dataBuffer.size()), 0);
+    EXPECT_EQ(plugin->callbacks->onPluginSessionStop(), 0);
+}
+
+void OutputData(uint8_t* data, uint32_t size)
+{
+    MemoryData memoryData;
+    int ret = memoryData.ParseFromArray(data, size);
+    if (ret <= 0) {
+        printf("MemoryDataPluginTest, %s:parseFromArray failed!", __func__);
+        return;
+    }
+
+    return;
+}
+
+/**
+ * @tc.name: mem plugin
+ * @tc.desc: ProcessTree test
+ * @tc.type: FUNC
+ */
+HWTEST_F(MemoryDataPluginTest, TestProcessTreeRunTime, TestSize.Level1)
+{
+    std::string path = DEFAULT_SO_PATH + std::string("libmemdataplugin.z.so");
+    void* handle = dlopen(path.c_str(), RTLD_LAZY);
+    EXPECT_NE(handle, nullptr);
+    PluginModuleStruct* plugin = reinterpret_cast<PluginModuleStruct*>(dlsym(handle, "g_pluginModule"));
+    EXPECT_NE(plugin, nullptr);
+    EXPECT_STREQ(plugin->name, "memory-plugin");
+
+    // set config
+    MemoryConfig config;
+    config.set_report_process_tree(true);
+    int size = config.ByteSizeLong();
+    ASSERT_GT(size, 0);
+    std::vector<uint8_t> configData(size);
+    ASSERT_GT(config.SerializeToArray(configData.data(), configData.size()), 0);
+
+    // test framework process
+    int testCount = 10;
+    struct timeval start, end;
+    std::vector<uint8_t> dataBuffer(plugin->resultBufferSizeHint);
+    EXPECT_EQ(plugin->callbacks->onPluginSessionStart(configData.data(), configData.size()), 0);
+    clock_t clockstart = clock();
+    gettimeofday(&start, NULL);
+    while (testCount--) {
+        int ret = plugin->callbacks->onPluginReportResult(dataBuffer.data(), dataBuffer.size());
+        ASSERT_GT(ret, 0);
+        OutputData(dataBuffer.data(), (uint32_t)ret);
+    }
+    gettimeofday(&end, NULL);
+    clock_t clockend = clock();
+    int timeuse = US_PER_S * (end.tv_sec - start.tv_sec) + end.tv_usec - start.tv_usec;
+    printf("clock time=%.3fs, timeofday=%.3fs\n", (double)(clockend - clockstart) / CLOCKS_PER_SEC,
+           (double)timeuse / US_PER_S);
+    EXPECT_EQ(plugin->callbacks->onPluginSessionStop(), 0);
+}
+
+namespace {
+const char* DUMP_FORMAT = R"(Applications Memory Usage (in Kilobytes):
+Uptime: 559174 Realtime: 559174
+App Summary
+Pss(KB)
+------
+Java Heap:  0
+Native Heap:    2932
+Code:   640
+Stack:  60
+Graphics:   0
+Private Other:  1056
+System: 1092
+TOTAL:  5780      TOTAL SWAP (KB):        0)";
+}
+
+/**
+ * @tc.name: mem plugin
+ * @tc.desc: test ParseMemInfo
+ * @tc.type: FUNC
+ */
+HWTEST_F(MemoryDataPluginTest, TestParseMemInfo, TestSize.Level1)
+{
+    MemoryDataPlugin plugin;
+    ProcessMemoryInfo memoryInfo;
+    uint64_t javaHeap = 0;
+    uint64_t nativeHeap = 2932;
+    uint64_t code = 640;
+    uint64_t stack = 60;
+    uint64_t graphics = 0;
+    uint64_t other = 1056;
+    uint64_t system = 1092;
+
+    ASSERT_TRUE(plugin.ParseMemInfo(DUMP_FORMAT, &memoryInfo));
+    // test result
+    EXPECT_EQ(memoryInfo.mutable_memsummary()->java_heap(), javaHeap);
+    EXPECT_EQ(memoryInfo.mutable_memsummary()->native_heap(), nativeHeap);
+    EXPECT_EQ(memoryInfo.mutable_memsummary()->code(), code);
+    EXPECT_EQ(memoryInfo.mutable_memsummary()->stack(), stack);
+    EXPECT_EQ(memoryInfo.mutable_memsummary()->graphics(), graphics);
+    EXPECT_EQ(memoryInfo.mutable_memsummary()->private_other(), other);
+    EXPECT_EQ(memoryInfo.mutable_memsummary()->system(), system);
+}
+
+bool ExecuteBin(const std::string& bin, const std::vector<std::string>& args)
+{
+    std::vector<char*> argv;
+    for (size_t i = 0; i < args.size(); i++) {
+        argv.push_back(const_cast<char*>(args[i].c_str()));
+    }
+    argv.push_back(nullptr); // last item in argv must be NULL
+
+    int retval = execvp(bin.c_str(), argv.data());
+    CHECK_TRUE(retval != -1, false, "execv %s failed, %s!", bin.c_str(), strerror(errno));
+    _exit(EXIT_FAILURE);
+    abort(); // never should be here.
+    return true;
+}
+
+/**
+ * @tc.name: mem plugin
+ * @tc.desc: test ParseMemInfo
+ * @tc.type: FUNC
+ */
+HWTEST_F(MemoryDataPluginTest, TestPid, TestSize.Level1)
+{
+    pid_t pid1, pid2;
+    MemoryDataPlugin plugin;
+    MemoryData memoryData;
+    MemoryConfig config;
+
+    std::string cmd = "chmod 777 " + DEFAULT_BIN_PATH;
+    system(cmd.c_str());
+    if ((pid1 = fork()) == 0) {
+        std::vector<std::string> argv = {"childpidtest1", "1"};
+        ASSERT_TRUE(ExecuteBin("memorytest", argv));
+    }
+    usleep(US_PER_MS);
+    if ((pid2 = fork()) == 0) {
+        std::vector<std::string> argv = {"childpidtest2", "2"};
+        ASSERT_TRUE(ExecuteBin("memorytest", argv));
+    }
+    usleep(US_PER_MS);
+    // set config
+    config.set_report_process_mem_info(true);
+    config.set_report_app_mem_info(true);
+    config.add_pid(pid1);
+    config.add_pid(pid2);
+    // check result
+    EXPECT_TRUE(PluginStub(plugin, config, memoryData));
+    MyPrintfProcessMemoryInfo(memoryData);
+    EXPECT_LT(memoryData.processesinfo(0).vm_size_kb(), memoryData.processesinfo(1).vm_size_kb());
+
+    while (waitpid(-1, NULL, WNOHANG) == 0) {
+        kill(pid1, SIGKILL);
+        kill(pid2, SIGKILL);
+    }
+    plugin.Stop();
 }
 } // namespace

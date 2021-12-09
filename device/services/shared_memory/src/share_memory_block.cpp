@@ -218,10 +218,12 @@ bool ShareMemoryBlock::PutRaw(const int8_t* data, uint32_t size)
     }
 
     UseFreeMemory(rawMemory, size);
-    HILOG_INFO(LOG_CORE, "ShareMemoryBlock::%s %d %d", __func__, header_->info.bytesCount_, header_->info.chunkCount_);
+    ++header_->info.bytesCount_;
+    ++header_->info.chunkCount_;
     return true;
 }
 
+#ifndef NO_PROTOBUF
 bool ShareMemoryBlock::PutMessage(const google::protobuf::Message& pmsg)
 {
     size_t size = pmsg.ByteSizeLong();
@@ -240,6 +242,7 @@ bool ShareMemoryBlock::PutMessage(const google::protobuf::Message& pmsg)
     ++header_->info.chunkCount_;
     return true;
 }
+#endif
 
 bool ShareMemoryBlock::TakeData(const DataHandler& func)
 {

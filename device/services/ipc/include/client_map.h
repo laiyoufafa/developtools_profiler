@@ -26,6 +26,7 @@ public:
     static ClientMap& GetInstance();
     int PutClientSocket(int socketFileDescriptor, ServiceEntry& p);
     int AutoRelease();
+    int ClearClientSocket();
 
 private:
     ClientMap();

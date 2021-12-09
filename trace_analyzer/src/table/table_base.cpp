@@ -74,8 +74,10 @@ void TableBase::TableRegister(sqlite3& db,
     module.xBestIndex = [](sqlite3_vtab*, sqlite3_index_info*) { return SQLITE_OK; };
     module.xDisconnect = destroyFn;
     module.xDestroy = destroyFn;
-    module.xOpen = [](sqlite3_vtab* t, sqlite3_vtab_cursor** c) { return (static_cast<TableBase*>(t))->Open(c); };
-     module.xClose = [](sqlite3_vtab_cursor* c) {
+    module.xOpen = [](sqlite3_vtab* t, sqlite3_vtab_cursor** c) {
+        return (static_cast<TableBase*>(t))->Open(c);
+    };
+    module.xClose = [](sqlite3_vtab_cursor* c) {
         UNUSED(c);
         return SQLITE_OK;
     };

@@ -12,15 +12,24 @@
 # limitations under the License.
 
 import("base/config.gni")
-
 group("hiprofiler_targets") {
   deps = [
     "cmds:hiprofiler_cmd",
     "plugins/api:hiprofiler_plugins",
     "plugins/bytrace_plugin:bytraceplugin",
+    "plugins/bytrace_plugin:test_bytrace_plugin",
     "plugins/cpu_plugin:cpudataplugin",
     "plugins/cpu_plugin:cpudataplugintest",
+    "plugins/diskio_plugin:diskiodataplugin",
+    "plugins/diskio_plugin:diskiodataplugintest",
+    "plugins/ftrace_plugin:ftrace_targets",
+    "plugins/hilog_plugin:hilogplugin",
     "plugins/memory_plugin:memdataplugin",
+    "plugins/memory_plugin:memorytest",
+    "plugins/network_plugin:networkplugin",
+    "plugins/process_plugin:processplugin",
+    "plugins/sample_plugin:sampleplugin",
+    "plugins/stream_plugin:streamplugin",
     "services/profiler_service:hiprofilerd",
     "services/shared_memory:shared_memory",
   ]
@@ -32,10 +41,36 @@ group("unittest") {
     "base/test:unittest",
     "plugins/api/test:unittest",
     "plugins/cpu_plugin/test:unittest",
+    "plugins/diskio_plugin/test:unittest",
+    "plugins/ftrace_plugin/test:unittest",
+    "plugins/hilog_plugin/test:unittest",
     "plugins/memory_plugin/test:unittest",
+    "plugins/network_plugin/test:unittest",
     "services/ipc/test:unittest",
     "services/plugin_service/test:unittest",
     "services/profiler_service/test:unittest",
     "services/shared_memory/test:unittest",
+  ]
+}
+
+group("fuzztest") {
+  testonly = true
+  deps = [
+    "plugins/api/test/fuzztest/plugincreatesessioncmd_fuzzer:fuzztest",
+    "plugins/api/test/fuzztest/plugindestroysessioncmd_fuzzer:fuzztest",
+    "plugins/api/test/fuzztest/pluginstartsessioncmd_fuzzer:fuzztest",
+    "plugins/api/test/fuzztest/pluginstopsessioncmd_fuzzer:fuzztest",
+    "plugins/cpu_plugin/test/fuzztest/cpustartplugin_fuzzer:fuzztest",
+    "plugins/diskio_plugin/test/fuzztest/diskiostartplugin_fuzzer:fuzztest",
+    "plugins/hilog_plugin/test/fuzztest/hilogstartplugin_fuzzer:fuzztest",
+    "plugins/memory_plugin/test/fuzztest/memorystartplugin_fuzzer:fuzztest",
+    "plugins/network_plugin/test/fuzztest/networkstartplugin_fuzzer:fuzztest",
+    "services/profiler_service/test/fuzztest/profilercreatesession_fuzzer:fuzztest",
+    "services/profiler_service/test/fuzztest/profilerdestroysession_fuzzer:fuzztest",
+    "services/profiler_service/test/fuzztest/profilerfetchdata_fuzzer:fuzztest",
+    "services/profiler_service/test/fuzztest/profilergetcapabilities_fuzzer:fuzztest",
+    "services/profiler_service/test/fuzztest/profilerkeepsession_fuzzer:fuzztest",
+    "services/profiler_service/test/fuzztest/profilerstartsession_fuzzer:fuzztest",
+    "services/profiler_service/test/fuzztest/profilerstopsession_fuzzer:fuzztest",
   ]
 }

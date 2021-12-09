@@ -27,9 +27,11 @@ class PluginSession;
 class ResultDemuxer;
 class TraceFileWriter;
 class ProfilerDataRepeater;
+class PluginSessionManager;
 
 using PluginSessionPtr = STD_PTR(shared, PluginSession);
 using PluginServicePtr = STD_PTR(shared, PluginService);
+using PluginSessionManagerPtr = STD_PTR(shared, PluginSessionManager);
 
 class ProfilerService : public IProfilerService::Service {
 public:
@@ -90,35 +92,21 @@ private:
         ProfilerService* service = nullptr;
         std::mutex sessionMutex;
         ProfilerSessionConfig sessionConfig;
+        std::vector<std::string> pluginNames;
         std::vector<BufferConfig> bufferConfigs;
         std::vector<ProfilerPluginConfig> pluginConfigs;
-        std::vector<ProfilerPluginState> pluginStatus;
-        std::map<std::string, PluginSessionPtr> pluginSessions;
         std::shared_ptr<ProfilerDataRepeater> dataRepeater;
         std::shared_ptr<TraceFileWriter> traceFileWriter;
         std::shared_ptr<ResultDemuxer> resultDemuxer;
 
-        PluginSessionPtr CreatePluginSession(const PluginServicePtr& pluginService,
-                                             const ProfilerPluginConfig& pluginConfig);
-
-        PluginSessionPtr CreatePluginSession(const PluginServicePtr& pluginService,
-                                             const ProfilerPluginConfig& pluginConfig,
-                                             const BufferConfig& bufferConfig);
-
-        bool CheckPluginSha256(const ProfilerPluginConfig& pluginConfig);
-
-        bool CheckBufferConfig(const BufferConfig& bufferConfig);
-
-        bool CreatePluginSessions(const PluginServicePtr& pluginService);
-        bool RemovePluginSessions(const std::vector<std::string>& nameList);
-        bool UpdatePluginSessions(const PluginServicePtr& pluginService, const std::vector<int>& configIndexes);
-        std::vector<int> UpdatePluginConfigs(const std::vector<ProfilerPluginConfig>& configList);
-
         SessionContext() = default;
         ~SessionContext();
 
+        bool CreatePluginSessions();
         bool StartPluginSessions();
         bool StopPluginSessions();
+
+        size_t UpdatePluginConfigs(const std::vector<ProfilerPluginConfig>& newPluginConfigs);
 
         void SetKeepAliveTime(uint32_t timeout);
         void StartSessionExpireTask();
@@ -137,6 +125,7 @@ private:
 private:
     mutable std::mutex sessionContextMutex_ = {};
     PluginServicePtr pluginService_ = nullptr;
+    PluginSessionManagerPtr pluginSessionManager_ = nullptr;
     std::atomic<uint32_t> sessionIdCounter_ = 0;
     std::atomic<uint32_t> responseIdCounter_ = 0;
     std::map<uint32_t, SessionContextPtr> sessionContext_ = {};

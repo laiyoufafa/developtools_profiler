@@ -75,6 +75,138 @@ constexpr Proto2StrMapping meminfoMapping[] = {
     {SysMeminfoType::MEMINFO_CMA_FREE, "CmaFree"},
 };
 
+constexpr Proto2StrMapping vmeminfoMapping[] = {
+    {SysVMeminfoType::VMEMINFO_UNSPECIFIED, "unspecified"},
+    {SysVMeminfoType::VMEMINFO_NR_FREE_PAGES, "nr_free_pages"},
+    {SysVMeminfoType::VMEMINFO_NR_ALLOC_BATCH, "nr_alloc_batch"},
+    {SysVMeminfoType::VMEMINFO_NR_INACTIVE_ANON, "nr_inactive_anon"},
+    {SysVMeminfoType::VMEMINFO_NR_ACTIVE_ANON, "nr_active_anon"},
+    {SysVMeminfoType::VMEMINFO_NR_INACTIVE_FILE, "nr_inactive_file"},
+    {SysVMeminfoType::VMEMINFO_NR_ACTIVE_FILE, "nr_active_file"},
+    {SysVMeminfoType::VMEMINFO_NR_UNEVICTABLE, "nr_unevictable"},
+    {SysVMeminfoType::VMEMINFO_NR_MLOCK, "nr_mlock"},
+    {SysVMeminfoType::VMEMINFO_NR_ANON_PAGES, "nr_anon_pages"},
+    {SysVMeminfoType::VMEMINFO_NR_MAPPED, "nr_mapped"},
+    {SysVMeminfoType::VMEMINFO_NR_FILE_PAGES, "nr_file_pages"},
+    {SysVMeminfoType::VMEMINFO_NR_DIRTY, "nr_dirty"},
+    {SysVMeminfoType::VMEMINFO_NR_WRITEBACK, "nr_writeback"},
+    {SysVMeminfoType::VMEMINFO_NR_SLAB_RECLAIMABLE, "nr_slab_reclaimable"},
+    {SysVMeminfoType::VMEMINFO_NR_SLAB_UNRECLAIMABLE, "nr_slab_unreclaimable"},
+    {SysVMeminfoType::VMEMINFO_NR_PAGE_TABLE_PAGES, "nr_page_table_pages"},
+    {SysVMeminfoType::VMEMINFO_NR_KERNEL_STACK, "nr_kernel_stack"},
+    {SysVMeminfoType::VMEMINFO_NR_OVERHEAD, "nr_overhead"},
+    {SysVMeminfoType::VMEMINFO_NR_UNSTABLE, "nr_unstable"},
+    {SysVMeminfoType::VMEMINFO_NR_BOUNCE, "nr_bounce"},
+    {SysVMeminfoType::VMEMINFO_NR_VMSCAN_WRITE, "nr_vmscan_write"},
+    {SysVMeminfoType::VMEMINFO_NR_VMSCAN_IMMEDIATE_RECLAIM, "nr_vmscan_immediate_reclaim"},
+    {SysVMeminfoType::VMEMINFO_NR_WRITEBACK_TEMP, "nr_writeback_temp"},
+    {SysVMeminfoType::VMEMINFO_NR_ISOLATED_ANON, "nr_isolated_anon"},
+    {SysVMeminfoType::VMEMINFO_NR_ISOLATED_FILE, "nr_isolated_file"},
+    {SysVMeminfoType::VMEMINFO_NR_SHMEM, "nr_shmem"},
+    {SysVMeminfoType::VMEMINFO_NR_DIRTIED, "nr_dirtied"},
+    {SysVMeminfoType::VMEMINFO_NR_WRITTEN, "nr_written"},
+    {SysVMeminfoType::VMEMINFO_NR_PAGES_SCANNED, "nr_pages_scanned"},
+    {SysVMeminfoType::VMEMINFO_WORKINGSET_REFAULT, "workingset_refault"},
+    {SysVMeminfoType::VMEMINFO_WORKINGSET_ACTIVATE, "workingset_activate"},
+    {SysVMeminfoType::VMEMINFO_WORKINGSET_NODERECLAIM, "workingset_nodereclaim"},
+    {SysVMeminfoType::VMEMINFO_NR_ANON_TRANSPARENT_HUGEPAGES, "nr_anon_transparent_hugepages"},
+    {SysVMeminfoType::VMEMINFO_NR_FREE_CMA, "nr_free_cma"},
+    {SysVMeminfoType::VMEMINFO_NR_SWAPCACHE, "nr_swapcache"},
+    {SysVMeminfoType::VMEMINFO_NR_DIRTY_THRESHOLD, "nr_dirty_threshold"},
+    {SysVMeminfoType::VMEMINFO_NR_DIRTY_BACKGROUND_THRESHOLD, "nr_dirty_background_threshold"},
+    {SysVMeminfoType::VMEMINFO_PGPGIN, "pgpgin"},
+    {SysVMeminfoType::VMEMINFO_PGPGOUT, "pgpgout"},
+    {SysVMeminfoType::VMEMINFO_PGPGOUTCLEAN, "pgpgoutclean"},
+    {SysVMeminfoType::VMEMINFO_PSWPIN, "pswpin"},
+    {SysVMeminfoType::VMEMINFO_PSWPOUT, "pswpou"},
+    {SysVMeminfoType::VMEMINFO_PGALLOC_DMA, "pgalloc_dma"},
+    {SysVMeminfoType::VMEMINFO_PGALLOC_NORMAL, "pgalloc_normal"},
+    {SysVMeminfoType::VMEMINFO_PGALLOC_MOVABLE, "pgalloc_movable"},
+    {SysVMeminfoType::VMEMINFO_PGFREE, "pgfree"},
+    {SysVMeminfoType::VMEMINFO_PGACTIVATE, "pgactivate"},
+    {SysVMeminfoType::VMEMINFO_PGDEACTIVATE, "pgdeactivate"},
+    {SysVMeminfoType::VMEMINFO_PGFAULT, "pgfault"},
+    {SysVMeminfoType::VMEMINFO_PGMAJFAULT, "pgmajfault"},
+    {SysVMeminfoType::VMEMINFO_PGREFILL_DMA, "pgrefill_dma"},
+    {SysVMeminfoType::VMEMINFO_PGREFILL_NORMAL, "pgrefill_normal"},
+    {SysVMeminfoType::VMEMINFO_PGREFILL_MOVABLE, "pgrefill_movable"},
+    {SysVMeminfoType::VMEMINFO_PGSTEAL_KSWAPD_DMA, "pgsteal_kswapd_dma"},
+    {SysVMeminfoType::VMEMINFO_PGSTEAL_KSWAPD_NORMAL, "pgsteal_kswapd_normal"},
+    {SysVMeminfoType::VMEMINFO_PGSTEAL_KSWAPD_MOVABLE, "pgsteal_kswapd_movable"},
+    {SysVMeminfoType::VMEMINFO_PGSTEAL_DIRECT_DMA, "pgsteal_direct_dma"},
+    {SysVMeminfoType::VMEMINFO_PGSTEAL_DIRECT_NORMAL, "pgsteal_direct_normal"},
+    {SysVMeminfoType::VMEMINFO_PGSTEAL_DIRECT_MOVABLE, "pgsteal_direct_movable"},
+    {SysVMeminfoType::VMEMINFO_PGSCAN_KSWAPD_DMA, "pgscan_kswapd_dma"},
+    {SysVMeminfoType::VMEMINFO_PGSCAN_KSWAPD_NORMAL, "pgscan_kswapd_normal"},
+    {SysVMeminfoType::VMEMINFO_PGSCAN_KSWAPD_MOVABLE, "pgscan_kswapd_movable"},
+    {SysVMeminfoType::VMEMINFO_PGSCAN_DIRECT_DMA, "pgscan_direct_dma"},
+    {SysVMeminfoType::VMEMINFO_PGSCAN_DIRECT_NORMAL, "pgscan_direct_normal"},
+    {SysVMeminfoType::VMEMINFO_PGSCAN_DIRECT_MOVABLE, "pgscan_direct_movable"},
+    {SysVMeminfoType::VMEMINFO_PGSCAN_DIRECT_THROTTLE, "pgscan_direct_throttle"},
+    {SysVMeminfoType::VMEMINFO_PGINODESTEAL, "pginodesteal"},
+    {SysVMeminfoType::VMEMINFO_SLABS_SCANNED, "slabs_scanned"},
+    {SysVMeminfoType::VMEMINFO_KSWAPD_INODESTEAL, "kswapd_inodesteal"},
+    {SysVMeminfoType::VMEMINFO_KSWAPD_LOW_WMARK_HIT_QUICKLY, "kswapd_low_wmark_hit_quickly"},
+    {SysVMeminfoType::VMEMINFO_KSWAPD_HIGH_WMARK_HIT_QUICKLY, "kswapd_high_wmark_hit_quickly"},
+    {SysVMeminfoType::VMEMINFO_PAGEOUTRUN, "pageoutrun"},
+    {SysVMeminfoType::VMEMINFO_ALLOCSTALL, "allocstall"},
+    {SysVMeminfoType::VMEMINFO_PGROTATED, "pgrotated"},
+    {SysVMeminfoType::VMEMINFO_DROP_PAGECACHE, "drop_pagecache"},
+    {SysVMeminfoType::VMEMINFO_DROP_SLAB, "drop_slab"},
+    {SysVMeminfoType::VMEMINFO_PGMIGRATE_SUCCESS, "pgmigrate_success"},
+    {SysVMeminfoType::VMEMINFO_PGMIGRATE_FAIL, "pgmigrate_fail"},
+    {SysVMeminfoType::VMEMINFO_COMPACT_MIGRATE_SCANNED, "compact_migrate_scanned"},
+    {SysVMeminfoType::VMEMINFO_COMPACT_FREE_SCANNED, "compact_free_scanned"},
+    {SysVMeminfoType::VMEMINFO_COMPACT_ISOLATED, "compact_isolated"},
+    {SysVMeminfoType::VMEMINFO_COMPACT_STALL, "compact_stall"},
+    {SysVMeminfoType::VMEMINFO_COMPACT_FAIL, "compact_fail"},
+    {SysVMeminfoType::VMEMINFO_COMPACT_SUCCESS, "compact_success"},
+    {SysVMeminfoType::VMEMINFO_COMPACT_DAEMON_WAKE, "compact_daemon_wake"},
+    {SysVMeminfoType::VMEMINFO_UNEVICTABLE_PGS_CULLED, "unevictable_pgs_culled"},
+    {SysVMeminfoType::VMEMINFO_UNEVICTABLE_PGS_SCANNED, "unevictable_pgs_scanned"},
+    {SysVMeminfoType::VMEMINFO_UNEVICTABLE_PGS_RESCUED, "unevictable_pgs_rescued"},
+    {SysVMeminfoType::VMEMINFO_UNEVICTABLE_PGS_MLOCKED, "unevictable_pgs_mlocked"},
+    {SysVMeminfoType::VMEMINFO_UNEVICTABLE_PGS_MUNLOCKED, "unevictable_pgs_munlocked"},
+    {SysVMeminfoType::VMEMINFO_UNEVICTABLE_PGS_CLEARED, "unevictable_pgs_cleared"},
+    {SysVMeminfoType::VMEMINFO_UNEVICTABLE_PGS_STRANDED, "unevictable_pgs_stranded"},
+    {SysVMeminfoType::VMEMINFO_NR_ZSPAGES, "nr_zspages"},
+    {SysVMeminfoType::VMEMINFO_NR_ION_HEAP, "nr_ion_heap"},
+    {SysVMeminfoType::VMEMINFO_NR_GPU_HEAP, "nr_gpu_heap"},
+    {SysVMeminfoType::VMEMINFO_ALLOCSTALL_DMA, "allocstall_dma"},
+    {SysVMeminfoType::VMEMINFO_ALLOCSTALL_MOVABLE, "allocstall_movable"},
+    {SysVMeminfoType::VMEMINFO_ALLOCSTALL_NORMAL, "allocstall_normal"},
+    {SysVMeminfoType::VMEMINFO_COMPACT_DAEMON_FREE_SCANNED, "compact_daemon_free_scanned"},
+    {SysVMeminfoType::VMEMINFO_COMPACT_DAEMON_MIGRATE_SCANNED, "compact_daemon_migrate_scanned"},
+    {SysVMeminfoType::VMEMINFO_NR_FASTRPC, "nr_fastrpc"},
+    {SysVMeminfoType::VMEMINFO_NR_INDIRECTLY_RECLAIMABLE, "nr_indirectly_reclaimable"},
+    {SysVMeminfoType::VMEMINFO_NR_ION_HEAP_POOL, "nr_ion_heap_pool"},
+    {SysVMeminfoType::VMEMINFO_NR_KERNEL_MISC_RECLAIMABLE, "nr_kernel_misc_reclaimable"},
+    {SysVMeminfoType::VMEMINFO_NR_SHADOW_CALL_STACK_BYTES, "nr_shadow_call_stack_bytes"},
+    {SysVMeminfoType::VMEMINFO_NR_SHMEM_HUGEPAGES, "nr_shmem_hugepages"},
+    {SysVMeminfoType::VMEMINFO_NR_SHMEM_PMDMAPPED, "nr_shmem_pmdmapped"},
+    {SysVMeminfoType::VMEMINFO_NR_UNRECLAIMABLE_PAGES, "nr_unreclaimable_pages"},
+    {SysVMeminfoType::VMEMINFO_NR_ZONE_ACTIVE_ANON, "nr_zone_active_anon"},
+    {SysVMeminfoType::VMEMINFO_NR_ZONE_ACTIVE_FILE, "nr_zone_active_file"},
+    {SysVMeminfoType::VMEMINFO_NR_ZONE_INACTIVE_ANON, "nr_zone_inactive_anon"},
+    {SysVMeminfoType::VMEMINFO_NR_ZONE_INACTIVE_FILE, "nr_zone_inactive_file"},
+    {SysVMeminfoType::VMEMINFO_NR_ZONE_UNEVICTABLE, "nr_zone_unevictable"},
+    {SysVMeminfoType::VMEMINFO_NR_ZONE_WRITE_PENDING, "nr_zone_write_pending"},
+    {SysVMeminfoType::VMEMINFO_OOM_KILL, "oom_kill"},
+    {SysVMeminfoType::VMEMINFO_PGLAZYFREE, "pglazyfree"},
+    {SysVMeminfoType::VMEMINFO_PGLAZYFREED, "pglazyfreed"},
+    {SysVMeminfoType::VMEMINFO_PGREFILL, "pgrefill"},
+    {SysVMeminfoType::VMEMINFO_PGSCAN_DIRECT, "pgscan_direct"},
+    {SysVMeminfoType::VMEMINFO_PGSCAN_KSWAPD, "pgscan_kswapd"},
+    {SysVMeminfoType::VMEMINFO_PGSKIP_DMA, "pgskip_dma"},
+    {SysVMeminfoType::VMEMINFO_PGSKIP_MOVABLE, "pgskip_movable"},
+    {SysVMeminfoType::VMEMINFO_PGSKIP_NORMAL, "pgskip_normal"},
+    {SysVMeminfoType::VMEMINFO_PGSTEAL_DIRECT, "pgsteal_direct"},
+    {SysVMeminfoType::VMEMINFO_PGSTEAL_KSWAPD, "pgsteal_kswapd"},
+    {SysVMeminfoType::VMEMINFO_SWAP_RA, "swap_ra"},
+    {SysVMeminfoType::VMEMINFO_SWAP_RA_HIT, "swap_ra_hit"},
+    {SysVMeminfoType::VMEMINFO_WORKINGSET_RESTORE, "workingset_restore"},
+};
+
 struct ProcStatusMapping {
     int procid;
     const char* procstr;
@@ -152,9 +284,11 @@ private:
     int meminfoFd_;
     int vmstatFd_;
     std::map<std::string, int> meminfoCounters_;
+    std::map<std::string, int> vmstatCounters_;
 
     void InitProto2StrVector();
     std::vector<const char*> meminfoStrList_;
+    std::vector<const char*> vmstatStrList_;
     // SmapsStats *
     void WriteVmstat(MemoryData& data);
     void WriteMeminfo(MemoryData& data);
@@ -172,6 +306,7 @@ private:
     void WriteProcess(ProcessMemoryInfo* processinfo, const char* pFile, uint32_t fileLen, int32_t pid);
     void WriteAppsummary(ProcessMemoryInfo* processinfo, SmapsStats& smapInfo);
     void SetProcessInfo(ProcessMemoryInfo* processinfo, int key, const char* word);
+    bool StringToUll(const char* word, uint64_t& value);
 
     bool BufnCmp(const char* src, int srcLen, const char* key, int keyLen);
     bool addPidBySort(int32_t pid);
@@ -179,6 +314,7 @@ private:
 
     bool ParseMemInfo(const char* data, ProcessMemoryInfo* memoryInfo);
     bool GetMemInfoByDumpsys(uint32_t pid, ProcessMemoryInfo* memoryInfo);
+    int InitMemVmemFd();
 };
 
 #endif

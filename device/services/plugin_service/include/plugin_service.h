@@ -37,6 +37,7 @@ class ProfilerDataRepeater;
 class SocketContext;
 class ShareMemoryBlock;
 class PluginCommandBuilder;
+class PluginSessionManager;
 
 using ProfilerDataRepeaterPtr = STD_PTR(shared, ProfilerDataRepeater);
 using ProfilerPluginStatePtr = STD_PTR(shared, ProfilerPluginState);
@@ -60,8 +61,12 @@ struct PluginContext {
     ProfilerDataRepeaterPtr profilerDataRepeater;
     std::shared_ptr<ShareMemoryBlock> shareMemoryBlock;
     EventNotifierPtr eventNotifier;
-    ProfilerPluginStatePtr profilerPluginState;
+    ProfilerPluginState profilerPluginState;
 };
+
+using PluginContextPtr = std::shared_ptr<PluginContext>;
+
+using PluginSessionManagerPtr = std::shared_ptr<PluginSessionManager>;
 
 class PluginService {
 public:
@@ -82,8 +87,10 @@ public:
 
     bool AppendResult(NotifyResultRequest& request);
 
-    std::vector<ProfilerPluginStatePtr> GetPluginStatus();
+    std::vector<ProfilerPluginState> GetPluginStatus();
     uint32_t GetPluginIdByName(std::string name);
+
+    void SetPluginSessionManager(const PluginSessionManagerPtr& pluginSessionManager);
 
 private:
     bool StartService(const std::string& unixSocketName);
@@ -91,8 +98,13 @@ private:
     SemaphorePtr GetSemaphore(uint32_t) const;
     void ReadShareMemory(PluginContext&);
 
+    std::pair<uint32_t, PluginContextPtr> GetPluginContext(const std::string& pluginName);
+    PluginContextPtr GetPluginContextById(uint32_t id);
+
+    bool RemovePluginSessionCtx(const std::string& pluginName);
+
     mutable std::mutex mutex_;
-    std::map<uint32_t, PluginContext> pluginContext_;
+    std::map<uint32_t, PluginContextPtr> pluginContext_;
     std::map<uint32_t, SemaphorePtr> waitSemphores_;
     std::map<std::string, uint32_t> nameIndex_;
 
@@ -101,6 +113,7 @@ private:
     std::shared_ptr<PluginServiceImpl> pluginServiceImpl_;
     std::shared_ptr<PluginCommandBuilder> pluginCommandBuilder_;
     std::unique_ptr<EpollEventPoller> eventPoller_;
+    PluginSessionManagerPtr pluginSessionManager_;
 };
 
 #endif // PLUGIN_SERVICE_H

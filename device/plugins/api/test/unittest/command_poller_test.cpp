@@ -117,14 +117,8 @@ private:
 
 class CommandPollerTest : public ::testing::Test {
 protected:
-    static void SetUpTestCase()
-    {
-        setenv("RECV_NO_WAIT", "1", 0);
-    }
-    static void TearDownTestCase()
-    {
-        unsetenv("RECV_NO_WAIT");
-    }
+    static void SetUpTestCase() {}
+    static void TearDownTestCase() {}
 };
 
 HWTEST_F(CommandPollerTest, CreateCmdTest, TestSize.Level1)

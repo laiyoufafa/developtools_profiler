@@ -102,6 +102,7 @@ bool ScheduleTaskManager::ScheduleTask(const std::string& name,
     timeMap_.insert(std::make_pair(task->nextRunTime, task));
     taskCv_.notify_one();
 
+    DumpTask(task);
     HILOG_DEBUG(LOG_CORE, "add schedule %s done, total: %zu", name.c_str(), taskMap_.size());
     return true;
 }
@@ -143,7 +144,7 @@ void ScheduleTaskManager::DumpTask(const SharedTask& task)
     if (task) {
         long msecs = std::chrono::duration_cast<ms>(task->nextRunTime.time_since_epoch()).count();
         HILOG_DEBUG(LOG_CORE,
-                    "{name = %{public}s, interval = %{public}lld, delay = %{public}lld, nextRunTime = %{public}ld}",
+                    "{name = %s, interval = %lld, delay = %lld, nextRunTime = %ld}",
                     task->name.c_str(), task->repeatInterval.count(), task->initialDelay.count(), msecs);
     }
 }
@@ -163,6 +164,7 @@ void ScheduleTaskManager::ScheduleThread()
             auto taskTime = weakTask.lock(); // promote to shared_ptr
             if (!taskTime) {
                 // task cancelled with UnschduleTask or not a repeat task
+                HILOG_INFO(LOG_CORE, "front task cacelled or not repeat task");
                 continue;
             }
             targetTime = taskTime->nextRunTime;
@@ -176,11 +178,14 @@ void ScheduleTaskManager::ScheduleThread()
 
         auto taskRepeat = weakTask.lock();
         if (!taskRepeat) {
-            // task cancelled with UnschduleTask or not a repeat task
+            // task cancelled with UnschduleTask
+            HILOG_INFO(LOG_CORE, "front task cacelled");
             continue;
         }
 
         // call task callback
+        HILOG_INFO(LOG_CORE, "on schedule %s, do callback!", taskRepeat->name.c_str());
+        DumpTask(taskRepeat);
         taskRepeat->callback();
         taskRepeat->nextRunTime = targetTime + taskRepeat->repeatInterval;
 

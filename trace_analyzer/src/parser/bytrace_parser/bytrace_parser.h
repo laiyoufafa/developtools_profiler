@@ -36,15 +36,15 @@ public:
     ~BytraceParser();
 
     void ParseTraceDataSegment(std::unique_ptr<uint8_t[]> bufferStr, size_t size) override;
-    size_t ParsedTraceValidLines()
+    size_t ParsedTraceValidLines() const
     {
         return parsedTraceValidLines_;
     }
-    size_t ParsedTraceInvalidLines()
+    size_t ParsedTraceInvalidLines() const
     {
         return parsedTraceInvalidLines_;
     }
-    size_t TraceCommentLines()
+    size_t TraceCommentLines() const
     {
         return traceCommentLines_;
     }
@@ -55,7 +55,7 @@ private:
     int GetNextSegment();
     void GetDataSegAttr(DataSegment& seg, const std::smatch& matcheLine) const;
     void GetDataSegArgs(DataSegment& seg) const;
-    void ParseLine();
+    void FilterThread();
     inline static bool IsNotSpace(char c)
     {
         return !std::isspace(c);
@@ -67,7 +67,7 @@ private:
 
     void ParseTraceDataItem(const std::string& buffer) override;
     std::string StrTrim(const std::string& input) const;
-    void MatchLine();
+    void ParseThread();
 
 private:
     using ArgsMap = std::unordered_map<std::string, std::string>;
@@ -82,17 +82,17 @@ private:
     size_t parsedTraceInvalidLines_ = 0;
     size_t traceCommentLines_ = 0;
     std::mutex dataSegMux_;
-    int matchHead_ = 0;
-    std::atomic<bool> parsingDataItemThreadStarted_{false};
-    bool matchLineThreadStarted = false;
+    int parseHead_ = 0;
+    std::atomic<bool> filterThreadStarted_{false};
+    bool parseThreadStarted_ = false;
     const int MAX_SEG_ARRAY_SIZE = 5000;
     const int maxThread_ = 4; // 4 is the best on ubuntu 113MB/s, max 138MB/s, 6 is best on mac m1 21MB/s,
     int parserThreadCount_ = 0;
     bool toExit_ = false;
     bool exited_ = false;
     std::unique_ptr<DataSegment[]> dataSegArray;
-    int seprateHead_ = 0;
-    int parseHead_ = 0;
+    int rawDataHead_ = 0;
+    int filterHead_ = 0;
     const int sleepDur_ = 100;
 };
 } // namespace TraceStreamer

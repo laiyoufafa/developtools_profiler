@@ -37,15 +37,17 @@ void ThreadState::ProcessSate(const std::string& stateStr)
 {
     for (size_t i = 0; i < stateStr.size(); i++) {
         if (stateStr[i] == '+') {
+            invalid_ = true;
             SetStat(TASKNEW);
             continue;
         }
 
         Direction ret = SetStatByChar(stateStr[i]);
         if (ret == NEED_CONTINUE) {
+            invalid_ = true;
             continue;
         } else if (ret == NEED_BREAK) {
-            TS_LOGE("Un supported state:%c", stateStr[i]);
+            // TS_LOGE("Un supported state:%c", stateStr[i]);
             break;
         }
     }

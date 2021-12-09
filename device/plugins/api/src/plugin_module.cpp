@@ -21,7 +21,8 @@
 #include "logging.h"
 #include "plugin_module_api.h"
 
-PluginModule::PluginModule(const std::string& path) : handle_(nullptr), path_(path), structPtr_(nullptr) {}
+PluginModule::PluginModule(const std::string& path) : handle_(nullptr), running_(false), path_(path),
+                                                        structPtr_(nullptr) {}
 
 PluginModule::~PluginModule() {}
 
@@ -34,19 +35,19 @@ bool PluginModule::Load()
 {
     char realPath[PATH_MAX + 1] = {0};
     if (handle_ != nullptr) {
-        HILOG_DEBUG(LOG_CORE, "already open");
+        HILOG_DEBUG(LOG_CORE, "%s:already open", __func__);
         return false;
     }
 
     if (realpath(path_.c_str(), realPath) == nullptr) {
-        HILOG_ERROR(LOG_CORE, "so filename invalid, errno=%d", errno);
+        HILOG_ERROR(LOG_CORE, "%s:so filename invalid, errno=%d", __func__, errno);
         return false;
     }
 
     std::string rpath = realPath; // for SC warning
     handle_ = dlopen(rpath.c_str(), RTLD_NOW);
     if (handle_ == nullptr) {
-        HILOG_DEBUG(LOG_CORE, "dlopen err:%s.", dlerror());
+        HILOG_DEBUG(LOG_CORE, "%s:dlopen err:%s.", __func__, dlerror());
         return false;
     }
     return true;
@@ -56,9 +57,8 @@ bool PluginModule::Unload()
 {
     HILOG_INFO(LOG_CORE, "%s:unload ready!", __func__);
     if (handle_ != nullptr) {
-        HILOG_INFO(LOG_CORE, "Unload plugin");
         int ret = dlclose(handle_);
-        HILOG_INFO(LOG_CORE, "Unload plugin ret = %d", ret);
+        HILOG_INFO(LOG_CORE, "%s:unload plugin ret = %d", __func__, ret);
         handle_ = nullptr;
         structPtr_ = nullptr;
         return true;
@@ -130,28 +130,34 @@ bool PluginModule::IsLoaded()
 {
     return (handle_ != nullptr);
 }
+
+bool PluginModule::IsRunning()
+{
+    return running_;
+}
+
 bool PluginModule::BindFunctions()
 {
     if (handle_ == nullptr) {
-        HILOG_DEBUG(LOG_CORE, "plugin not load");
+        HILOG_DEBUG(LOG_CORE, "%s:plugin not load", __func__);
         return false;
     }
     if (structPtr_ == nullptr) {
         structPtr_ = static_cast<PluginModuleStruct*>(dlsym(handle_, "g_pluginModule"));
         if (structPtr_ == nullptr) {
-            HILOG_DEBUG(LOG_CORE, "structPtr_ == nullptr");
+            HILOG_DEBUG(LOG_CORE, "%s:structPtr_ == nullptr", __func__);
             return false;
         }
     }
 
     if (structPtr_->callbacks == nullptr) {
-        HILOG_DEBUG(LOG_CORE, "structPtr_->callbacks == nullptr");
+        HILOG_DEBUG(LOG_CORE, "%s:structPtr_->callbacks == nullptr", __func__);
         return false;
     }
 
     if ((structPtr_->callbacks->onPluginSessionStart == nullptr) ||
         (structPtr_->callbacks->onPluginSessionStop == nullptr)) {
-        HILOG_DEBUG(LOG_CORE, "onPluginSessionStart == nullptr");
+        HILOG_DEBUG(LOG_CORE, "%s:onPluginSessionStart == nullptr", __func__);
         return false;
     }
 
@@ -162,12 +168,13 @@ bool PluginModule::StartSession(const uint8_t* buffer, uint32_t size)
 {
     HILOG_DEBUG(LOG_CORE, "StartSession");
     if (handle_ == nullptr) {
-        HILOG_DEBUG(LOG_CORE, "plugin not load");
+        HILOG_DEBUG(LOG_CORE, "%s:plugin not load", __func__);
         return false;
     }
 
     if (structPtr_ != nullptr && structPtr_->callbacks != nullptr) {
         if (structPtr_->callbacks->onPluginSessionStart) {
+            running_ = true;
             return (structPtr_->callbacks->onPluginSessionStart(buffer, size) == 0);
         }
     }
@@ -178,11 +185,12 @@ bool PluginModule::StopSession()
 {
     HILOG_INFO(LOG_CORE, "%s:stop Session ready!", __func__);
     if (handle_ == nullptr) {
-        HILOG_DEBUG(LOG_CORE, "plugin not load");
+        HILOG_DEBUG(LOG_CORE, "%s:plugin not load", __func__);
         return false;
     }
     if (structPtr_ != nullptr && structPtr_->callbacks != nullptr) {
         if (structPtr_->callbacks->onPluginSessionStop != nullptr) {
+            running_ = false;
             return (structPtr_->callbacks->onPluginSessionStop() == 0);
         }
     }
@@ -192,7 +200,7 @@ bool PluginModule::StopSession()
 int32_t PluginModule::ReportResult(uint8_t* buffer, uint32_t size)
 {
     if (handle_ == nullptr) {
-        HILOG_DEBUG(LOG_CORE, "plugin not open");
+        HILOG_DEBUG(LOG_CORE, "%s:plugin not open", __func__);
         return -1;
     }
     if (first_) {
@@ -218,7 +226,7 @@ bool PluginModule::RegisterWriter(const BufferWriterPtr writer)
     writerAdapter_->SetWriter(writer);
 
     if (writer == nullptr) {
-        HILOG_INFO(LOG_CORE, "BufferWriter is null, update WriterAdapter only!");
+        HILOG_INFO(LOG_CORE, "%s:bufferWriter is null, update WriterAdapter only!", __func__);
         return true;
     }
     if (structPtr_ != nullptr && structPtr_->callbacks != nullptr) {
@@ -232,7 +240,7 @@ bool PluginModule::RegisterWriter(const BufferWriterPtr writer)
 WriterPtr PluginModule::GetWriter()
 {
     if (writerAdapter_ == nullptr) {
-        HILOG_DEBUG(LOG_CORE, "PluginModule 111111, nullptr");
+        HILOG_DEBUG(LOG_CORE, "%s:pluginModule nullptr", __func__);
         return nullptr;
     }
     return writerAdapter_->GetWriter();

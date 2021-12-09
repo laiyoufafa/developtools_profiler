@@ -20,7 +20,9 @@
 #include <string>
 #include <unordered_map>
 #include "services/common_types.pb.h"
+#include "ts_common.h"
 #include "types/plugins/ftrace_data/trace_plugin_result.pb.h"
+#include "types/plugins/hilog_data/hilog_plugin_result.pb.h"
 #include "types/plugins/memory_data/memory_plugin_result.pb.h"
 
 namespace SysTuning {
@@ -33,7 +35,7 @@ enum Stat : uint32_t {
     INTERRUPTABLESLEEP = 1,
     UNINTERRUPTIBLESLEEP = 2,
     STOPPED = 4,
-    TRACED = 8,
+    TRACED = 8, // the process is being debug
     EXITDEAD = 16,
     EXITZOMBIE = 32,
     TASKDEAD = 64,
@@ -57,19 +59,36 @@ struct BytraceLine {
     std::string argsStr;
 };
 enum ParseStatus {
-    Status_Init = 0,
-    Status_Seprated = 1,
-    Status_Parsing = 2,
-    Status_Parsed = 3,
-    Status_Invalid = 4
+    TS_PARSE_STATUS_INIT = 0,
+    TS_PARSE_STATUS_SEPRATED = 1,
+    TS_PARSE_STATUS_PARSING = 2,
+    TS_PARSE_STATUS_PARSED = 3,
+    TS_PARSE_STATUS_INVALID = 4
 };
 struct DataSegment {
     std::string seg;
     BytraceLine bufLine;
     std::unordered_map<std::string, std::string> args;
     uint32_t tgid;
-    std::atomic<ParseStatus> status{Status_Init};
+    std::atomic<ParseStatus> status{TS_PARSE_STATUS_INIT};
 };
+enum DataSourceType {
+    DATA_SOURCE_TYPE_TRACE,
+    DATA_SOURCE_TYPE_MEM,
+    DATA_SOURCE_TYPE_HILOG
+};
+// 注意使用完之后恢复初始化状态，保证下次使用不会出现数据混乱。
+struct HtraceDataSegment {
+    std::string seg;
+    MemoryData memData;
+    HilogInfo logData;
+    uint64_t timeStamp;
+    TracePluginResult traceData;
+    BuiltinClocks clockId;
+    DataSourceType dataType;
+    std::atomic<ParseStatus> status{TS_PARSE_STATUS_INIT};
+};
+
 struct TracePoint {
     char phase_ = '\0';
     uint32_t tgid_ = 0;

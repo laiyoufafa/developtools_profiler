@@ -51,14 +51,13 @@ int SymbolsTable::Cursor::Column(int col) const
             sqlite3_result_int64(context_, static_cast<sqlite3_int64>(CurrentRow()));
             break;
         case STR:
-            sqlite3_result_text(
-                context_,
+            sqlite3_result_text(context_,
                 dataCache_->GetDataFromDict(dataCache_->GetConstSymbolsData().GetConstFuncNames()[index]).c_str(),
                 STR_DEFAULT_LEN, nullptr);
             break;
         case ADDR:
             sqlite3_result_int64(context_,
-                                 static_cast<sqlite3_int64>(dataCache_->GetConstSymbolsData().GetConstAddrs()[index]));
+                static_cast<sqlite3_int64>(dataCache_->GetConstSymbolsData().GetConstAddrs()[index]));
             break;
         default:
             TS_LOGF("Unknown column %d", col);

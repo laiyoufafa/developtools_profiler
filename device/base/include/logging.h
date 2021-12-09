@@ -128,6 +128,9 @@ inline void StringReplace(std::string& str, const std::string& oldStr, const std
     }
 }
 
+// let compiler check format string and variable arugments
+static inline std::string StringFormat(const char* fmt, ...)  __attribute__((format(printf, 1, 2)));
+
 static inline std::string StringFormat(const char* fmt, ...)
 {
     va_list vargs;
@@ -190,7 +193,7 @@ static inline std::string StringFormat(const char* fmt, ...)
 #define CHECK_NOTNULL(ptr, retval, fmt, ...)                                                                        \
     do {                                                                                                            \
         if (ptr == nullptr) {                                                                                       \
-            HILOG_WARN(LOG_CORE, "CHECK_NOTNULL(%{public}s) in %{public}s:%{public}d FAILED, " fmt, #ptr, __func__, \
+            HILOG_WARN(LOG_CORE, "CHECK_NOTNULL(%s) in %s:%d FAILED, " fmt, #ptr, __func__, \
                        __LINE__, ##__VA_ARGS__);                                                                    \
             return retval;                                                                                          \
         }                                                                                                           \
@@ -199,7 +202,7 @@ static inline std::string StringFormat(const char* fmt, ...)
 #define CHECK_TRUE(expr, retval, fmt, ...)                                                                        \
     do {                                                                                                          \
         if (!(expr)) {                                                                                            \
-            HILOG_WARN(LOG_CORE, "CHECK_TRUE(%{public}s) in %{public}s:%{public}d FAILED, " fmt, #expr, __func__, \
+            HILOG_WARN(LOG_CORE, "CHECK_TRUE(%s) in %s:%d FAILED, " fmt, #expr, __func__, \
                        __LINE__, ##__VA_ARGS__);                                                                  \
             return retval;                                                                                        \
         }                                                                                                         \

@@ -17,8 +17,10 @@
 #define UNIX_SOCKET_SERVER_H
 
 #include "socket_context.h"
+
 #include <ostream>
 #include <thread>
+#include "client_connection.h"
 
 class ServiceEntry;
 
@@ -36,7 +38,7 @@ public:
 
 private:
     void UnixSocketAccept();
-
+    std::map<int, std::shared_ptr<ClientConnection>> socketClients_;
     std::thread acceptThread_;
 };
 

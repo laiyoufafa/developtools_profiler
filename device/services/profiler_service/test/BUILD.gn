@@ -30,8 +30,9 @@ config("cflags_config") {
 ohos_unittest("profiler_service_ut") {
   module_out_path = module_output_path
   sources = [
+    "../../plugin_service/src/plugin_session.cpp",
+    "../../plugin_service/src/plugin_session_manager.cpp",
     "unittest/plugin_service_stubs.cpp",
-    "unittest/plugin_session_test.cpp",
     "unittest/profiler_capability_manager_test.cpp",
     "unittest/profiler_data_repeater_test.cpp",
     "unittest/profiler_service_test.cpp",

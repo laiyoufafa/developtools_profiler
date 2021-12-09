@@ -15,8 +15,6 @@
 #ifndef TRACE_FILE_HEADER_H
 #define TRACE_FILE_HEADER_H
 
-#include <cstdint>
-
 struct TraceFileHeader {
     static constexpr uint32_t HEADER_SIZE = 1024; // 预留了一些空间，方便后续在头部添加字段
     static constexpr uint32_t SHA256_SIZE = 256 / 8;

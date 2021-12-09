@@ -24,6 +24,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+#include "codec_cov.h"
 #include "file.h"
 #include "filter/slice_filter.h"
 #include "log.h"
@@ -43,19 +44,24 @@ constexpr size_t G_CHUNK_SIZE = 1024 * 1024;
 constexpr int G_MIN_PARAM_NUM = 2;
 constexpr size_t G_FILE_PERMISSION = 664;
 size_t g_loadSize = 0;
-const char* TRACE_STREAM_VERSION = "1.1.102";          // version
-const char* TRACE_STREAM_PUBLISHVERSION = "2021/8/30"; // publish datetime
-
-void ExportStatusToLog(TraceParserStatus stauts)
+const char* TRACE_STREAM_VERSION = "1.2.117";          // version
+const char* TRACE_STREAM_PUBLISHVERSION = "2021/12/6"; // publish datetime
+void ExportStatusToLog(const std::string& dbPath, TraceParserStatus stauts)
 {
-    std::string path = GetExecutionDirectoryPath() + "/trace_streamer.log";
+    std::string path = dbPath + ".ohos.ts";
     std::ofstream out(path, std::ios_base::trunc);
     out << (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()))
                .count()
         << ":" << stauts << std::endl;
+    using std::chrono::system_clock;
+
+    system_clock::time_point today = system_clock::now();
+
+    std::time_t tt = system_clock::to_time_t(today);
+    out << "last running  time  is: " << ctime(&tt);
+    out << "last running status is: " << stauts;
     out.close();
 }
-
 void ShowHelpInfo(const char* argv)
 {
     TS_LOGI(
@@ -64,10 +70,16 @@ void ShowHelpInfo(const char* argv)
         "Usage: %s FILE -e sqlite_out.pb\n"
         " or    %s FILE -c\n"
         "Options:\n"
-        " -e    transfer a bytrace file into a SQLiteBased DB.\n"
+        " -e    transfer a bytrace file into a SQLiteBased DB. with -nm to except meta table\n"
         " -c    command line mode.\n"
+        " -i    show information.\n"
         " -v    show version.",
         argv, argv);
+}
+void PrintInformation()
+{
+    TraceStreamConfig cfg;
+    cfg.PrintInfo();
 }
 void PrintVersion()
 {
@@ -81,14 +93,14 @@ bool ReadAndParser(SysTuning::TraceStreamer::TraceStreamerSelector& ta, int fd)
             .count();
     g_loadSize = 0;
     while (true) {
-        std::unique_ptr<uint8_t[]> buf = std::make_unique<uint8_t[]>(std::move(G_CHUNK_SIZE));
+        std::unique_ptr<uint8_t[]> buf = std::make_unique<uint8_t[]>(G_CHUNK_SIZE);
         auto rsize = Read(fd, buf.get(), G_CHUNK_SIZE);
         if (rsize == 0) {
             break;
         }
 
         if (rsize < 0) {
-            TS_LOGI("Reading trace file failed (errno: %d, %s)", errno, strerror(errno));
+            TS_LOGE("Reading trace file failed (errno: %d, %s)", errno, strerror(errno));
             return false;
         }
         g_loadSize += rsize;
@@ -109,13 +121,13 @@ int OpenAndParserFile(TraceStreamerSelector& ts, const std::string& traceFilePat
 {
     int fd(OpenFile(traceFilePath, O_RDONLY, G_FILE_PERMISSION));
     if (fd < 0) {
-        TS_LOGI("%s does not exist", traceFilePath.c_str());
-        ExportStatusToLog(TRACE_PARSER_ABNORMAL);
+        TS_LOGE("%s does not exist", traceFilePath.c_str());
+        SetAnalysisResult(TRACE_PARSER_ABNORMAL);
         return 1;
     }
     if (!ReadAndParser(ts, fd)) {
         close(fd);
-        ExportStatusToLog(TRACE_PARSER_ABNORMAL);
+        SetAnalysisResult(TRACE_PARSER_ABNORMAL);
         return 1;
     }
     MetaData* metaData = ts.GetMetaData();
@@ -152,12 +164,11 @@ int ExportDatabase(TraceStreamerSelector& ts, const std::string& sqliteFilePath)
         fprintf(stdout, "ExportDatabase begin...\n");
         if (ts.ExportDatabase(sqliteFilePath)) {
             fprintf(stdout, "ExportDatabase failed\n");
-            ExportStatusToLog(TRACE_PARSER_ABNORMAL);
+            ExportStatusToLog(sqliteFilePath, TRACE_PARSER_ABNORMAL);
             return 1;
         }
         fprintf(stdout, "ExportDatabase end\n");
     }
-    ExportStatusToLog(GetAnalysisResult());
     auto endTime =
         (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()))
             .count();
@@ -166,24 +177,17 @@ int ExportDatabase(TraceStreamerSelector& ts, const std::string& sqliteFilePath)
     fprintf(stdout, "ExportSpeed:\t%.2f MB/s\n", (g_loadSize / (endTime - startTime) / 1E3));
     return 0;
 }
-} // namespace TraceStreamer
-} // namespace SysTuning
-int main(int argc, char** argv)
+int CheckArgs(int argc,
+              char** argv,
+              bool& interactiveState,
+              bool& exportMetaTable,
+              std::string& traceFilePath,
+              std::string& sqliteFilePath)
 {
-    if (argc < G_MIN_PARAM_NUM) {
-        ShowHelpInfo(argv[0]);
-        ExportStatusToLog(TRACE_PARSER_ABNORMAL);
-        return 1;
-    }
-    std::string traceFilePath;
-    std::string sqliteFilePath;
-    bool interactiveState = false;
-    bool exportMetaTable = true;
     for (int i = 1; i < argc; i++) {
         if (!strcmp(argv[i], "-e")) {
             if (++i == argc) {
                 ShowHelpInfo(argv[0]);
-                ExportStatusToLog(TRACE_PARSER_ABNORMAL);
                 return 1;
             }
             sqliteFilePath = std::string(argv[i]);
@@ -191,35 +195,63 @@ int main(int argc, char** argv)
         } else if (!strcmp(argv[i], "-c") || !strcmp(argv[i], "--command")) {
             interactiveState = true;
             continue;
+        } else if (!strcmp(argv[i], "-i") || !strcmp(argv[i], "--info")) {
+            PrintInformation();
         } else if (!strcmp(argv[i], "-nm") || !strcmp(argv[i], "--nometa")) {
             exportMetaTable = false;
             continue;
         } else if (!strcmp(argv[i], "-v") || !strcmp(argv[i], "--v") || !strcmp(argv[i], "-version") ||
                    !strcmp(argv[i], "--version")) {
             PrintVersion();
-            return 0;
+            return 1;
         }
         traceFilePath = std::string(argv[i]);
     }
     if (traceFilePath.empty() || (!interactiveState && sqliteFilePath.empty())) {
         ShowHelpInfo(argv[0]);
-        ExportStatusToLog(TRACE_PARSER_ABNORMAL);
         return 1;
+    }
+    return 0;
+}
+} // namespace TraceStreamer
+} // namespace SysTuning
+
+int main(int argc, char** argv)
+{
+    if (argc < G_MIN_PARAM_NUM) {
+        ShowHelpInfo(argv[0]);
+        return 1;
+    }
+    std::string traceFilePath;
+    std::string sqliteFilePath;
+    bool interactiveState = false;
+    bool exportMetaTable = true;
+    int ret = CheckArgs(argc, argv, interactiveState, exportMetaTable, traceFilePath, sqliteFilePath);
+    if (ret) {
+        if (!sqliteFilePath.empty()) {
+            ExportStatusToLog(sqliteFilePath, GetAnalysisResult());
+        }
+        return 0;
     }
 
     TraceStreamerSelector ts;
     ts.EnableMetaTable(exportMetaTable);
     if (OpenAndParserFile(ts, traceFilePath)) {
+        if (!sqliteFilePath.empty()) {
+            ExportStatusToLog(sqliteFilePath, GetAnalysisResult());
+        }
         return 1;
     }
     if (interactiveState && sqliteFilePath.empty()) {
         sqliteFilePath = "default.db";
     }
     if (ExportDatabase(ts, sqliteFilePath)) {
-        ExportStatusToLog(TRACE_PARSER_ABNORMAL);
+        ExportStatusToLog(sqliteFilePath, GetAnalysisResult());
         return 1;
     }
-    ExportStatusToLog(GetAnalysisResult());
+    if (!sqliteFilePath.empty()) {
+        ExportStatusToLog(sqliteFilePath, GetAnalysisResult());
+    }
     if (interactiveState) {
         ts.SearchData(sqliteFilePath);
     }

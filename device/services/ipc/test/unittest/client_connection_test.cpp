@@ -39,12 +39,10 @@ public:
 HWTEST_F(ClientConnectionTest, RawProtocolProc, TestSize.Level1)
 {
     std::string serviceName="test_service_name";
-    struct RawPointToService rpts;
-    std::copy(serviceName.begin(), serviceName.end(), rpts.serviceName_);
-
     ServiceEntry serviceEntry;
-    ClientConnection* clientConnection = new ClientConnection(0, serviceEntry);
+    std::unique_ptr<ClientConnection> clientConnection = std::make_unique<ClientConnection>(0, serviceEntry);
     ASSERT_EQ(clientConnection->RawProtocolProc(RAW_PROTOCOL_POINTTO_SERVICE,
-        (int8_t *)&rpts, sizeof(struct RawPointToService)), 1);
+        (const int8_t *)serviceName.c_str(), sizeof(struct RawPointToService)), 1);
+    clientConnection.reset(nullptr);
 }
 } // namespace

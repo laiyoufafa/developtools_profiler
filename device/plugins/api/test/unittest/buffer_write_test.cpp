@@ -45,7 +45,7 @@ int InitShareMemory1()
     }
 
     g_smbAddr1 = mmap(nullptr, SMB1_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
-    if (g_smbAddr1 == MAP_FAILED) {
+    if (g_smbAddr1 == static_cast<void*>(MAP_FAILED)) {
         close(fd);
         HILOG_ERROR(LOG_CORE, "CreateBlock g_smbAddr1 mmap ERR : %s", strerror(errno));
         return -1;
@@ -76,7 +76,7 @@ int InitShareMemory2()
     }
 
     g_smbAddr2 = mmap(nullptr, SMB2_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
-    if (g_smbAddr2 == MAP_FAILED) {
+    if (g_smbAddr2 == static_cast<void*>(MAP_FAILED)) {
         close(fd);
         HILOG_ERROR(LOG_CORE, "CreateBlock g_smbAddr2 mmap ERR : %s", strerror(errno));
         return -1;

@@ -29,10 +29,10 @@ public:
 
 private:
     class Cursor : public TableBase::Cursor {
-public:
+    public:
         explicit Cursor(const TraceDataCache* dataCache);
         ~Cursor() override;
-        int Column(int) const override;
+        int Column(int column) const override;
 
     private:
         const CpuMeasureFilter& cpuMeasureObj_;

@@ -38,6 +38,11 @@ public:
     TraceDataCache traceDataCache_;
 };
 
+/**
+ * @tc.name: AddCpuCounterFilter
+ * @tc.desc: Add cpu_counter_filter through AddFilter interface
+ * @tc.type: FUNC
+ */
 HWTEST_F(FilterFilterTest, AddCpuCounterFilter, TestSize.Level1)
 {
     TS_LOGI("test5-1");
@@ -51,6 +56,11 @@ HWTEST_F(FilterFilterTest, AddCpuCounterFilter, TestSize.Level1)
     EXPECT_EQ(filterTable->Size(), static_cast<size_t>(2));
 }
 
+/**
+ * @tc.name: AddCpuCounterFilter
+ * @tc.desc: Add thread_counter_filter & thread_filter through AddFilter interface
+ * @tc.type: FUNC
+ */
 HWTEST_F(FilterFilterTest, AddThreadFilter, TestSize.Level1)
 {
     TS_LOGI("test5-2");

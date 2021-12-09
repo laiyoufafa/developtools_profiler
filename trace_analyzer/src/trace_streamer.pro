@@ -10,7 +10,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 QT -= gui core
 TEMPLATE = app
 CONFIG += c++17 console
@@ -25,7 +24,7 @@ DEFINES += _LIBCPP_DISABLE_AVAILABILITY
 DEFINES += HAVE_PTHREAD
 ROOTSRCDIR = $$PWD/../
 
-include($$PWD/../global.pri)
+include($$PWD/multi_platform/global.pri)
 INCLUDEPATH += $$PWD/include \
     $$PWD/../third_party/protobuf/src \
     $$PWD/../third_party/sqlite/include \
@@ -36,7 +35,7 @@ include($$PWD/trace_streamer/trace_streamer.pri)
 include($$PWD/base/base.pri)
 include($$PWD/filter/filter.pri)
 include($$PWD/parser/parser.pri)
-include($$PWD/../third_party/protogen/gen.pri)
+include($$PWD/multi_platform/protogen.pri)
 include($$PWD/table/table.pri)
 include($$PWD/trace_data/trace_data.pri)
 include($$PWD/cfg/cfg.pri)

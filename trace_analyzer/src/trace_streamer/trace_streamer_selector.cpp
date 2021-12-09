@@ -14,15 +14,16 @@
  */
 
 #include "trace_streamer_selector.h"
-
 #include <algorithm>
 #include <chrono>
 #include <functional>
-
+#include "args_filter.h"
+#include "binder_filter.h"
 #include "clock_filter.h"
 #include "cpu_filter.h"
 #include "file.h"
 #include "filter_filter.h"
+#include "irq_filter.h"
 #include "measure_filter.h"
 #include "parser/bytrace_parser/bytrace_parser.h"
 #include "parser/htrace_parser/htrace_parser.h"
@@ -30,6 +31,8 @@
 #include "slice_filter.h"
 #include "stat_filter.h"
 #include "symbols_filter.h"
+#include "system_event_measure_filter.h"
+
 using namespace SysTuning::base;
 namespace SysTuning {
 namespace TraceStreamer {
@@ -51,7 +54,7 @@ TraceFileType GuessFileType(const uint8_t* data, size_t size)
         return TRACE_FILETYPE_BY_TRACE;
     }
     if (start.compare(0, std::string("\x0a").length(), "\x0a") == 0) {
-        return TRACE_FILETYPE_H_TRACE;
+        return TRACE_FILETYPE_UN_KNOW;
     }
     if (start.compare(0, std::string("OHOSPROF").length(), "OHOSPROF") == 0) {
         return TRACE_FILETYPE_H_TRACE;
@@ -75,8 +78,8 @@ void TraceStreamerSelector::InitFilter()
 {
     streamFilters_ = std::make_unique<TraceStreamerFilters>();
     traceDataCache_ = std::make_unique<TraceDataCache>();
-    streamFilters_->sliceFilter_ = std::make_unique<SliceFilter>(traceDataCache_.get(), streamFilters_.get());
     streamFilters_->cpuFilter_ = std::make_unique<CpuFilter>(traceDataCache_.get(), streamFilters_.get());
+    streamFilters_->sliceFilter_ = std::make_unique<SliceFilter>(traceDataCache_.get(), streamFilters_.get());
 
     streamFilters_->processFilter_ = std::make_unique<ProcessFilter>(traceDataCache_.get(), streamFilters_.get());
     streamFilters_->clockFilter_ = std::make_unique<ClockFilter>(traceDataCache_.get(), streamFilters_.get());
@@ -94,12 +97,25 @@ void TraceStreamerSelector::InitFilter()
         std::make_unique<MeasureFilter>(traceDataCache_.get(), streamFilters_.get(), E_PROCESS_FILTER_FILTER);
     streamFilters_->symbolsFilter_ = std::make_unique<SymbolsFilter>(traceDataCache_.get(), streamFilters_.get());
     streamFilters_->statFilter_ = std::make_unique<StatFilter>(traceDataCache_.get(), streamFilters_.get());
+    streamFilters_->binderFilter_ = std::make_unique<BinderFilter>(traceDataCache_.get(), streamFilters_.get());
+    streamFilters_->argsFilter_ = std::make_unique<ArgsFilter>(traceDataCache_.get(), streamFilters_.get());
+    streamFilters_->irqFilter_ = std::make_unique<IrqFilter>(traceDataCache_.get(), streamFilters_.get());
     streamFilters_->clockRateFilter_ =
         std::make_unique<MeasureFilter>(traceDataCache_.get(), streamFilters_.get(), E_CLOCK_RATE_FILTER);
     streamFilters_->clockEnableFilter_ =
         std::make_unique<MeasureFilter>(traceDataCache_.get(), streamFilters_.get(), E_CLOCK_ENABLE_FILTER);
     streamFilters_->clockDisableFilter_ =
         std::make_unique<MeasureFilter>(traceDataCache_.get(), streamFilters_.get(), E_CLOCK_DISABLE_FILTER);
+    streamFilters_->clkRateFilter_ =
+        std::make_unique<MeasureFilter>(traceDataCache_.get(), streamFilters_.get(), E_CLK_RATE_FILTER);
+    streamFilters_->clkEnableFilter_ =
+        std::make_unique<MeasureFilter>(traceDataCache_.get(), streamFilters_.get(), E_CLK_ENABLE_FILTER);
+    streamFilters_->clkDisableFilter_ =
+        std::make_unique<MeasureFilter>(traceDataCache_.get(), streamFilters_.get(), E_CLK_DISABLE_FILTER);
+    streamFilters_->sysEventMemMeasureFilter_ =
+        std::make_unique<SystemEventMeasureFilter>(traceDataCache_.get(), streamFilters_.get(), E_SYS_MEMORY_FILTER);
+    streamFilters_->sysEventVMemMeasureFilter_ = std::make_unique<SystemEventMeasureFilter>(
+        traceDataCache_.get(), streamFilters_.get(), E_SYS_VIRTUAL_MEMORY_FILTER);
 }
 void TraceStreamerSelector::InitParser()
 {
@@ -110,7 +126,7 @@ void TraceStreamerSelector::InitParser()
 void TraceStreamerSelector::WaitForParserEnd()
 {
     if (fileType_ == TRACE_FILETYPE_H_TRACE) {
-        return;
+        htraceParser_->WaitForParserEnd();
     }
     if (fileType_ == TRACE_FILETYPE_BY_TRACE) {
         bytraceParser_->WaitForParserEnd();
@@ -130,7 +146,10 @@ bool TraceStreamerSelector::ParseTraceDataSegment(std::unique_ptr<uint8_t[]> dat
         fileType_ = GuessFileType(data.get(), size);
         if (fileType_ == TRACE_FILETYPE_UN_KNOW) {
             SetAnalysisResult(TRACE_PARSER_FILE_TYPE_ERROR);
-            fprintf(stdout, "File type is not supported!");
+            TS_LOGI(
+                "File type is not supported!,\nthe head content is:%s\n ---waring!!!---\n"
+                "File type is not supported!,\n",
+                data.get());
             return false;
         }
     }
@@ -147,8 +166,14 @@ void TraceStreamerSelector::EnableMetaTable(bool enabled)
 {
     traceDataCache_->EnableMetaTable(enabled);
 }
+
+void TraceStreamerSelector::SetCleanMode(bool cleanMode)
+{
+    g_cleanMode = true;
+}
 int TraceStreamerSelector::ExportDatabase(const std::string& outputName) const
 {
+    traceDataCache_->UpdateTraceRange();
     return traceDataCache_->ExportDatabase(outputName);
 }
 int TraceStreamerSelector::SearchData(const std::string& outputName)

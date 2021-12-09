@@ -35,7 +35,7 @@ int main(int argc, char* argv[])
 {
     std::string pluginDir(DEFAULT_PLUGIN_PATH);
     if (argv[1] != nullptr) {
-        HILOG_DEBUG(LOG_CORE, "pluginDir = %s", argv[1]);
+        HILOG_DEBUG(LOG_CORE, "%s:pluginDir = %s", __func__, argv[1]);
         pluginDir = argv[1];
     }
 
@@ -48,12 +48,12 @@ int main(int argc, char* argv[])
 
     PluginWatcher watcher(pluginManager);
     if (!watcher.ScanPlugins(pluginDir)) {
-        HILOG_DEBUG(LOG_CORE, "Scan pluginDir:%s failed!", DEFAULT_PLUGIN_PATH);
+        HILOG_DEBUG(LOG_CORE, "%s:scan pluginDir %s failed!", __func__, DEFAULT_PLUGIN_PATH);
         return 0;
     }
 
     if (!watcher.WatchPlugins(pluginDir)) {
-        HILOG_DEBUG(LOG_CORE, "Monitor pluginDir:%s failed!", DEFAULT_PLUGIN_PATH);
+        HILOG_DEBUG(LOG_CORE, "%s:monitor pluginDir %s failed!", __func__, DEFAULT_PLUGIN_PATH);
         return 0;
     }
 

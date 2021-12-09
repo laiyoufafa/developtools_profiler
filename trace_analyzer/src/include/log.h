@@ -28,11 +28,14 @@ namespace base {
     } while (0)
 enum LogLevel {LOG_DEBUG, LOG_INFO, LOG_WARN, LOG_ERROR, LOG_FATAL};
 const enum LogLevel g_currentLogLevel = LOG_DEBUG;
+extern bool g_cleanMode;
 #define LOGWITHLEVEL(level, motify, fmt, ...) \
     do { \
         if (level >= SysTuning::base::g_currentLogLevel) { \
-            fprintf(stdout, "[-%c][%s][%d]: " fmt "\n", motify, __FUNCTION__, \
-                                    __LINE__, ##__VA_ARGS__); \
+            if (!base::g_cleanMode) { \
+                fprintf(stdout, "[-%c][%s][%d]: " fmt "\n", motify, __FUNCTION__, \
+                                        __LINE__, ##__VA_ARGS__); \
+            } \
             if (level == SysTuning::base::LOG_FATAL) { \
                 TS_CRASH; \
             } \
@@ -40,14 +43,13 @@ const enum LogLevel g_currentLogLevel = LOG_DEBUG;
     } while (0)
 #define TS_LOGE(fmt, ...) LOGWITHLEVEL(SysTuning::base::LOG_ERROR, 'E', fmt, ##__VA_ARGS__)
 #define TS_LOGF(fmt, ...) LOGWITHLEVEL(SysTuning::base::LOG_FATAL, 'F', fmt, ##__VA_ARGS__)
+#define TS_LOGI(fmt, ...) LOGWITHLEVEL(SysTuning::base::LOG_INFO, 'I',  fmt, ##__VA_ARGS__)
 #ifdef NDEBUG
 #define TS_LOGD(format, ...)
-#define TS_LOGI(fmt, ...) LOGWITHLEVEL(SysTuning::base::LOG_INFO, 'I',  fmt, ##__VA_ARGS__)
 #define TS_LOGW(format, ...)
 #define TS_ASSERT(x)
 #else
 #define TS_LOGD(fmt, ...) LOGWITHLEVEL(SysTuning::base::LOG_DEBUG, 'D', fmt, ##__VA_ARGS__)
-#define TS_LOGI(fmt, ...) LOGWITHLEVEL(SysTuning::base::LOG_INFO, 'I',  fmt, ##__VA_ARGS__)
 #define TS_LOGW(fmt, ...) LOGWITHLEVEL(SysTuning::base::LOG_WARN, 'W',  fmt, ##__VA_ARGS__)
 
 #define TS_ASSERT(x)        \

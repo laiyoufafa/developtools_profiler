@@ -18,10 +18,10 @@
 #include <limits>
 #include <optional>
 
-#include "common.h"
 #include "log.h"
 #include "measure_filter.h"
 #include "process_filter.h"
+#include "ts_common.h"
 
 namespace SysTuning {
 namespace TraceStreamer {

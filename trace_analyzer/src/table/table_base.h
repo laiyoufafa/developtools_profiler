@@ -33,7 +33,7 @@ public:
     TableBase(const TableBase&) = delete;
     TableBase& operator=(const TableBase&) = delete;
 
-    template <typename T>
+    template<typename T>
     static void TableDeclare(sqlite3& db, TraceDataCache* dataCache, const std::string& name)
     {
         TableRegister(db, dataCache, name, [](const TraceDataCache* cache) {
@@ -51,16 +51,12 @@ public:
         virtual int Next();
         virtual int Eof();
         virtual int Column(int) const = 0;
-
     public:
         sqlite3_context* context_;
-
     protected:
         uint32_t CurrentRow() const;
-
     protected:
         const TraceDataCache* dataCache_;
-
     private:
         uint32_t currentRow_;
         uint32_t rowsTotalNum_;
@@ -75,13 +71,11 @@ public:
 protected:
     explicit TableBase(const TraceDataCache* dataCache) : dataCache_(dataCache), cursor_(nullptr) {}
     virtual void CreateCursor() = 0;
-
 protected:
-    std::vector<ColumnInfo> tableColumn_{};
-    std::vector<std::string> tablePriKey_{};
+    std::vector<ColumnInfo> tableColumn_ = {};
+    std::vector<std::string> tablePriKey_ = {};
     const TraceDataCache* dataCache_;
     std::unique_ptr<Cursor> cursor_;
-
 private:
     static void TableRegister(sqlite3& db, const TraceDataCache* cache, const std::string& name, TabTemplate tmplate);
     int Open(sqlite3_vtab_cursor** ppCursor);

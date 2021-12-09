@@ -60,14 +60,16 @@ long TraceFileReader::Read(MessageLite& message)
     CHECK_TRUE(!stream_.eof(), 0, "no more data in file %s stream", path_.c_str());
 
     uint32_t msgLen = 0;
+    size_t offset = GetReadPos(stream_);
     stream_.read(reinterpret_cast<CharPtr>(&msgLen), sizeof(msgLen));
-    CHECK_TRUE(stream_, 0, "read msg length from %s (offset %zu) failed!", path_.c_str(), GetReadPos(stream_));
+    CHECK_TRUE(stream_, 0, "read msg length from %s (offset %zu) failed, or no more data!", path_.c_str(), offset);
     CHECK_TRUE(helper_.AddSegment(reinterpret_cast<uint8_t*>(&msgLen), sizeof(msgLen)),
         0, "Add payload for message length failed!");
 
     std::vector<char> msgData(msgLen);
+    offset = GetReadPos(stream_);
     stream_.read(msgData.data(), msgData.size());
-    CHECK_TRUE(stream_, 0, "read msg bytes from %s (offset %zu) failed!", path_.c_str(), GetReadPos(stream_));
+    CHECK_TRUE(stream_, 0, "read msg bytes from %s (offset %zu) failed!", path_.c_str(), offset);
     CHECK_TRUE(helper_.AddSegment(reinterpret_cast<uint8_t*>(msgData.data()), msgData.size()),
         0, "Add payload for message bytes failed!");
 

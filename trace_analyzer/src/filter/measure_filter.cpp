@@ -14,9 +14,9 @@
  */
 
 #include "measure_filter.h"
-#include "common.h"
 #include "filter_filter.h"
 #include "log.h"
+#include "ts_common.h"
 
 namespace SysTuning {
 namespace TraceStreamer {
@@ -68,13 +68,22 @@ void MeasureFilter::AddCertainFilterId(uint64_t internalTid, DataIndex nameIndex
         traceDataCache_->GetCpuMeasuresData()->AppendNewFilter(filterId, static_cast<uint32_t>(nameIndex), internalTid);
     } else if (filterType_ == E_CLOCK_RATE_FILTER) {
         traceDataCache_->GetClockEventFilterData()->AppendNewFilter(filterId, clockSetRateDataIndex_,
-                                                                    static_cast<uint32_t>(nameIndex), internalTid);
+            static_cast<uint32_t>(nameIndex), internalTid);
     } else if (filterType_ == E_CLOCK_ENABLE_FILTER) {
         traceDataCache_->GetClockEventFilterData()->AppendNewFilter(filterId, clockEnableDataIndex_,
-                                                                    static_cast<uint32_t>(nameIndex), internalTid);
+            static_cast<uint32_t>(nameIndex), internalTid);
     } else if (filterType_ == E_CLOCK_DISABLE_FILTER) {
         traceDataCache_->GetClockEventFilterData()->AppendNewFilter(filterId, clockDisableDataIndex_,
-                                                                    static_cast<uint32_t>(nameIndex), internalTid);
+            static_cast<uint32_t>(nameIndex), internalTid);
+    } else if (filterType_ == E_CLK_RATE_FILTER) {
+        traceDataCache_->GetClkEventFilterData()->AppendNewFilter(filterId, clkSetRateDataIndex_,
+            static_cast<uint32_t>(nameIndex), internalTid);
+    } else if (filterType_ == E_CLK_ENABLE_FILTER) {
+        traceDataCache_->GetClkEventFilterData()->AppendNewFilter(filterId, clkEnableDataIndex_,
+            static_cast<uint32_t>(nameIndex), internalTid);
+    } else if (filterType_ == E_CLK_DISABLE_FILTER) {
+        traceDataCache_->GetClkEventFilterData()->AppendNewFilter(filterId, clkDisableDataIndex_,
+            static_cast<uint32_t>(nameIndex), internalTid);
     }
 }
 } // namespace TraceStreamer

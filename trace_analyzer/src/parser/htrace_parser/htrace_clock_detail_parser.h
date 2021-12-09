@@ -35,8 +35,8 @@ public:
 private:
     const TraceStreamerFilters* streamFilters_;
     TraceDataCache* traceDataCache_;
-    TraceStreamConfig config_;
-    std::map<MemInfoType, DataIndex> memNameDictMap_{};
+    TraceStreamConfig config_ = {};
+    std::map<MemInfoType, DataIndex> memNameDictMap_ = {};
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

@@ -14,6 +14,7 @@
  */
 #ifndef HTRACE_MEM_PARSER_H
 #define HTRACE_MEM_PARSER_H
+
 #include <cstdint>
 #include <limits>
 #include <map>
@@ -23,20 +24,28 @@
 #include "trace_streamer_cfg.h"
 #include "trace_streamer_filters.h"
 #include "types/plugins/memory_data/memory_plugin_result.pb.h"
-
 namespace SysTuning {
 namespace TraceStreamer {
 class HtraceMemParser {
 public:
     HtraceMemParser(TraceDataCache* dataCache, const TraceStreamerFilters* ctx);
     ~HtraceMemParser();
-    void Parse(const MemoryData& tracePacket, uint64_t, BuiltinClocks clock) const;
-
+    void Parse(const MemoryData& tracePacket, uint64_t, BuiltinClocks clock);
+    void Finish();
 private:
+    void ParseProcessInfo(const MemoryData& tracePacket, uint64_t timeStamp) const;
+    void ParseMemInfo(const MemoryData& tracePacket, uint64_t timeStamp) const;
+    void ParseMemInfoEasy(const MemoryData& tracePacket, uint64_t timeStamp) const;
+    void ParseVMemInfo(const MemoryData& tracePacket, uint64_t timeStamp) const;
+    void ParseVMemInfoEasy(const MemoryData& tracePacket, uint64_t timeStamp) const;
     const TraceStreamerFilters* streamFilters_;
     TraceDataCache* traceDataCache_;
-    TraceStreamConfig config_;
-    std::map<MemInfoType, DataIndex> memNameDictMap_{};
+    TraceStreamConfig config_ = {};
+    std::map<MemInfoType, DataIndex> memNameDictMap_ = {};
+    std::map<SysMeminfoType, DataIndex> sysMemNameDictMap_ = {};
+    std::map<SysVMeminfoType, DataIndex> sysVMemNameDictMap_ = {};
+    uint64_t traceStartTime_ = std::numeric_limits<uint64_t>::max();
+    uint64_t traceEndTime_ = 0;
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

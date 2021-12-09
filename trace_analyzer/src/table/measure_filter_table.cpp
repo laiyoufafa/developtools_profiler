@@ -61,8 +61,7 @@ int MeasureFilterTable::Cursor::Column(int column) const
             break;
         }
         case INTERNAL_TID:
-            sqlite3_result_int64(
-                context_,
+            sqlite3_result_int64(context_,
                 static_cast<int32_t>(dataCache_->GetConstThreadMeasureFilterData().InternalTidData()[CurrentRow()]));
             break;
         default:

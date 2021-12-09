@@ -51,7 +51,7 @@ bool SmapsStats::ReadVmemareasFile(const std::string& path)
     int prevHeap = 0;
     std::ifstream input(path, std::ios::in);
     if (input.fail()) {
-        HILOG_ERROR(LOG_CORE, "open %s failed, errno = %d", path.c_str(), errno);
+        HILOG_ERROR(LOG_CORE, "%s:open %s failed, errno = %d", __func__, path.c_str(), errno);
         return false;
     }
     do {
@@ -122,7 +122,7 @@ bool SmapsStats::GetVmaIndex(std::string name, uint32_t namesz, int32_t heapInde
             } else if (MatchHead(name, "[anon:")) {
                 if (MatchHead(name, "[anon:sensitive_vm-") &&
                     GetVMAStuId(OPS_END, name, g_vmaMemSuffix, sizeof(g_vmaMemSuffix) /
-                                sizeof(g_vmaMemSuffix[0]), heapIndex, swappable)) {
+                    sizeof(g_vmaMemSuffix[0]), heapIndex, swappable)) {
                         return true;
                 }
                 return GetVMAStuId(OPS_START, name, g_vmaMemAnon, sizeof(g_vmaMemAnon) /

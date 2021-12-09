@@ -19,12 +19,11 @@
 #include <list>
 #include <string>
 
-extern "C"
-{
-    struct sqlite3;
-    struct sqlite3_stmt;
-    extern int sqlite3_close(sqlite3*);
-    extern int sqlite3_finalize(sqlite3_stmt* pStmt);
+extern "C" {
+struct sqlite3;
+struct sqlite3_stmt;
+extern int sqlite3_close(sqlite3*);
+extern int sqlite3_finalize(sqlite3_stmt* pStmt);
 }
 
 namespace SysTuning {
@@ -47,8 +46,8 @@ public:
     sqlite3* db_;
 
 private:
-    void ExecuteSql(const std::string_view&);
-    std::list<std::string> internalTables_{};
+    void ExecuteSql(const std::string_view& sql);
+    std::list<std::string> internalTables_ = {};
     bool exportMetaTable_ = false;
 };
 } // namespace TraceStreamer

@@ -37,21 +37,16 @@ namespace {
 constexpr int BATCH_SIZE = 100;
 constexpr int ROUND_COUNT = 200;
 constexpr int FETCH_DATA_DELAY_US = 100 * 1000;
-constexpr int TEST_SESSION_TIMEOUT_MS = 100;
+constexpr int TEST_SESSION_TIMEOUT_MS = 1000;
 
 class Timer {
 public:
     using Clock = std::chrono::steady_clock;
     using TimePoint = Clock::time_point;
 
-    Timer()
-        : startTime_(Now())
-    {
-    }
+    Timer() : startTime_(Now()) {}
 
-    ~Timer()
-    {
-    }
+    ~Timer() {}
 
     long ElapsedUs()
     {
@@ -271,7 +266,6 @@ HWTEST_F(ProfilerServiceTest, GetCapabilitiesAfterRemove, TestSize.Level1)
     EXPECT_EQ(response->capabilities_size(), capSize);
 }
 
-
 /**
  * @tc.name: server
  * @tc.desc: get plugin capabilities batch test.
@@ -431,16 +425,16 @@ HWTEST_F(ProfilerServiceTest, CreateSessionBatchTest, TestSize.Level1)
     ASSERT_NE(service_, nullptr);
     ASSERT_NE(context_, nullptr);
 
-    CreateSessionRequest request;
-    CreateSessionResponse response;
-
-    auto sessionConfig = request.mutable_session_config();
-    ASSERT_NE(sessionConfig, nullptr);
-    sessionConfig->set_session_mode(ProfilerSessionConfig::ONLINE);
-    sessionConfig->clear_result_file();
-
     Timer timer = {};
     for (int i = 0; i < ROUND_COUNT; i++) {
+        CreateSessionRequest request;
+        CreateSessionResponse response;
+
+        auto sessionConfig = request.mutable_session_config();
+        ASSERT_NE(sessionConfig, nullptr);
+        sessionConfig->set_session_mode(ProfilerSessionConfig::ONLINE);
+        sessionConfig->clear_result_file();
+
         auto pluginConfig = request.add_plugin_configs();
         ASSERT_NE(pluginConfig, nullptr);
         std::string pluginName = "create_session_batch_test_" + std::to_string(i);
@@ -495,7 +489,6 @@ HWTEST_F(ProfilerServiceTest, CreateSessionWithInvalidContext, TestSize.Level1)
     auto status = service_->CreateSession(nullptr, &request, response.get());
     EXPECT_NE(status.error_code(), grpc::StatusCode::OK);
 }
-
 
 /**
  * @tc.name: server
@@ -1248,7 +1241,7 @@ HWTEST_F(ProfilerServiceTest, KeepSessionOffline, TestSize.Level1)
     std::this_thread::sleep_for(std::chrono::milliseconds(TEST_SESSION_TIMEOUT_MS));
 
     status = DestroySession(sessionId);
-    EXPECT_EQ(status.error_code(), grpc::StatusCode::OK);
+    EXPECT_NE(status.error_code(), grpc::StatusCode::OK);
 }
 
 /**
@@ -1280,7 +1273,7 @@ HWTEST_F(ProfilerServiceTest, KeepSessionBatchTest, TestSize.Level1)
     std::this_thread::sleep_for(std::chrono::milliseconds(TEST_SESSION_TIMEOUT_MS));
     std::this_thread::sleep_for(std::chrono::milliseconds(TEST_SESSION_TIMEOUT_MS));
     auto status = DestroySession(sessionId);
-    EXPECT_EQ(status.error_code(), grpc::StatusCode::OK);
+    EXPECT_NE(status.error_code(), grpc::StatusCode::OK);
 }
 
 /**
@@ -1339,7 +1332,7 @@ HWTEST_F(ProfilerServiceTest, KeepSessionInvalidContext, TestSize.Level1)
  */
 HWTEST_F(ProfilerServiceTest, StartService, TestSize.Level1)
 {
-    auto service = std::make_unique<ProfilerService>();
+    auto service = service_;
     EXPECT_NE(service, nullptr);
     EXPECT_FALSE(service->StartService(""));
 
@@ -1349,4 +1342,4 @@ HWTEST_F(ProfilerServiceTest, StartService, TestSize.Level1)
     service->StopService();
     waiterThread.join();
 }
-}
+} // namespace

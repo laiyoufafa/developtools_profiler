@@ -28,13 +28,11 @@ ClientConnection::ClientConnection(int sfd, ServiceEntry& serviceEntry)
     clientState_ = CLIENT_STAT_WORKING;
     lastProcMS_ = GetTimeMS();
     serviceEntry_ = &serviceEntry;
+    HILOG_INFO(LOG_CORE, "new ClientConnection construct");
     CreateRecvThread();
 }
 
-ClientConnection::~ClientConnection()
-{
-    HILOG_INFO(LOG_CORE, "Client Released");
-}
+ClientConnection::~ClientConnection() {}
 
 int ClientConnection::RawProtocolProc(uint32_t pnum, const int8_t* buf, const uint32_t size)
 {

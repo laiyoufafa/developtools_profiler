@@ -40,7 +40,6 @@ static int MemPluginReportResult(uint8_t* bufferData, uint32_t bufferSize)
 static int MemPluginSessionStop()
 {
     std::lock_guard<std::mutex> guard(g_taskMutex);
-    HILOG_INFO(LOG_CORE, "%s:stop Session success!", __func__);
     g_plugin->Stop();
     g_plugin = nullptr;
     return 0;
