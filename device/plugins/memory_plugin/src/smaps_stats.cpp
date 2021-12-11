@@ -320,21 +320,21 @@ void SmapsStats::HeapIndexFix(std::string name, const char* key, int32_t heapInd
             heapIndex[0] = VMHEAP_SENSITIVE_JVBIN;
             heapIndex[1] = VMHEAP_SENSITIVE_JVBIN_APP_VDEX;
         }
-    } else if (!strncmp(key, ".art", sizeof(".art")) || !strncmp(key, ".art]", sizeof(".art]"))) {
+    } else if (!strncmp(key, ".hrt", sizeof(".hrt")) || !strncmp(key, ".hrt]", sizeof(".hrt]"))) {
         if ((strstr(name.c_str(), "@boot") != nullptr) || (strstr(name.c_str(), "/boot") != nullptr) ||
             (strstr(name.c_str(), "/apex") != nullptr)) {
-            heapIndex[0] = VMHEAP_ART;
-            heapIndex[1] = VMHEAP_ART_BOOT;
+            heapIndex[0] = VMHEAP_HRT;
+            heapIndex[1] = VMHEAP_HRT_BOOT;
         } else {
-            heapIndex[0] = VMHEAP_ART;
-            heapIndex[1] = VMHEAP_ART_APP;
+            heapIndex[0] = VMHEAP_HRT;
+            heapIndex[1] = VMHEAP_HRT_APP;
         }
     }
 }
 
 int SmapsStats::GetProcessJavaHeap()
 {
-    return stats_[VMHEAP_SENSITIVE_VM].privateDirty_ + GetPrivate(VMHEAP_ART);
+    return stats_[VMHEAP_SENSITIVE_VM].privateDirty_ + GetPrivate(VMHEAP_HRT);
 }
 
 int SmapsStats::GetProcessNativeHeap()

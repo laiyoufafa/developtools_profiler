@@ -82,7 +82,9 @@ protected:
     {
         for (auto it : createFileList) {
             int fd = creat((dirPath + it).c_str(), DEAFULT_FILE_MODE);
-            close(fd);
+            if (fd > 0) {
+                close(fd);
+            }
         }
     }
 
