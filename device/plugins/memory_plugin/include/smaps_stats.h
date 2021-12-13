@@ -126,7 +126,7 @@ enum VmemifoType {
     VMHEAP_TTF,
     VMHEAP_SENSITIVE_JVBIN,
     VMHEAP_OAT,
-    VMHEAP_ART,
+    VMHEAP_HRT,
     VMHEAP_UNKNOWN_MAP,
     VMHEAP_GRAPHICS,
     VMHEAP_GL,
@@ -150,9 +150,9 @@ enum VmemifoType {
     VMHEAP_SENSITIVE_JVBIN_APP_SENSITIVE_JVBIN,
     VMHEAP_SENSITIVE_JVBIN_APP_VDEX,
 
-    // App art, boot art.
-    VMHEAP_ART_APP,
-    VMHEAP_ART_BOOT,
+    // App hrt, boot hrt.
+    VMHEAP_HRT_APP,
+    VMHEAP_HRT_BOOT,
 
     VMHEAP_NUM_HEAP,
     VMHEAP_NUM_EXCLUSIVE_HEAP = VMHEAP_OTHER_MEMTRACK + 1,
@@ -246,8 +246,8 @@ constexpr VmeminfoAreaMapping g_vmaMemSuffix[] = {
      ".odex", {VmemifoType::VMHEAP_SENSITIVE_JVBIN, VmemifoType::VMHEAP_SENSITIVE_JVBIN_APP_SENSITIVE_JVBIN}},
 
     {OpsType::OPS_END, ".vdex", {VmemifoType::VMHEAP_SENSITIVE_JVBIN, VmemifoType::VMHEAP_NEEDFIX}},
-    {OpsType::OPS_END, ".art", {VmemifoType::VMHEAP_ART, VmemifoType::VMHEAP_NEEDFIX}},
-    {OpsType::OPS_END, ".art]", {VmemifoType::VMHEAP_ART, VmemifoType::VMHEAP_NEEDFIX}},
+    {OpsType::OPS_END, ".hrt", {VmemifoType::VMHEAP_HRT, VmemifoType::VMHEAP_NEEDFIX}},
+    {OpsType::OPS_END, ".hrt]", {VmemifoType::VMHEAP_HRT, VmemifoType::VMHEAP_NEEDFIX}},
 };
 
 class SmapsStats {
