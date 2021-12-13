@@ -36,6 +36,7 @@ ohos_source_set("htrace_parser_src") {
     "${OHOS_PROTO_GEN}",
     "${OHOS_PROTO_GEN}/types/plugins/memory_data",
     "${OHOS_PROTO_GEN}/types/plugins/ftrace_data",
+    "${OHOS_PROTO_GEN}/types/plugins/hilog_data",
     "../../include",
     "../../",
     "../",

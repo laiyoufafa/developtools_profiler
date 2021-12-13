@@ -21,8 +21,8 @@
 #include "process_filter.h"
 #include "slice_filter.h"
 #include "stat_filter.h"
+#include "trace_plugin_result.pb.h"
 #include "ts_common.h"
-#include "types/plugins/ftrace_data/trace_plugin_result.pb.h"
 
 using namespace testing::ext;
 using namespace SysTuning::TraceStreamer;

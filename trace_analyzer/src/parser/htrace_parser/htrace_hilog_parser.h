@@ -18,9 +18,9 @@
 #include <map>
 #include <string>
 #include "trace_data/trace_data_cache.h"
+#include "hilog_plugin_result.pb.h"
 #include "trace_streamer_cfg.h"
 #include "trace_streamer_filters.h"
-#include "types/plugins/hilog_data/hilog_plugin_result.pb.h"
 
 
 namespace SysTuning {

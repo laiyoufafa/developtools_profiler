@@ -20,9 +20,9 @@
 #include <stdexcept>
 #include <string>
 #include "trace_data/trace_data_cache.h"
+#include "trace_plugin_result.pb.h"
 #include "trace_streamer_cfg.h"
 #include "trace_streamer_filters.h"
-#include "types/plugins/ftrace_data/trace_plugin_result.pb.h"
 
 namespace SysTuning {
 namespace TraceStreamer {

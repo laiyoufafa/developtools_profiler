@@ -17,13 +17,13 @@
 #include <unistd.h>
 #include "binder_filter.h"
 #include "cpu_filter.h"
+#include "ftrace_event.pb.h"
 #include "log.h"
+#include "memory_plugin_result.pb.h"
 #include "services/common_types.pb.h"
 #include "stat_filter.h"
-#include "types/plugins/ftrace_data/ftrace_event.pb.h"
-#include "types/plugins/ftrace_data/trace_plugin_config.pb.h"
-#include "types/plugins/ftrace_data/trace_plugin_result.pb.h"
-#include "types/plugins/memory_data/memory_plugin_result.pb.h"
+#include "trace_plugin_config.pb.h"
+#include "trace_plugin_result.pb.h"
 namespace SysTuning {
 namespace TraceStreamer {
 HtraceParser::HtraceParser(TraceDataCache* dataCache, const TraceStreamerFilters* filters)

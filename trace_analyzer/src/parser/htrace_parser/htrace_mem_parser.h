@@ -20,10 +20,10 @@
 #include <map>
 #include <stdexcept>
 #include <string>
+#include "memory_plugin_result.pb.h"
 #include "trace_data/trace_data_cache.h"
 #include "trace_streamer_cfg.h"
 #include "trace_streamer_filters.h"
-#include "types/plugins/memory_data/memory_plugin_result.pb.h"
 namespace SysTuning {
 namespace TraceStreamer {
 class HtraceMemParser {

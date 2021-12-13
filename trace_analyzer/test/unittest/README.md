@@ -15,8 +15,8 @@
         将OHOS_STD/test/resource目录push到hi3516DV300设备的/data目录
         在代码根目录执行： push ./test/resource/ /data/
     5. 环境清理
-        (a) 执行之前先清理OHOS_STD/out/aosp-arm-release/obj/developtools 临时文件。
-                rm -rf ~/OHOS_STD/out/aosp-arm-release/obj/developtools
+        (a) 执行之前先清理OHOS_STD/out/xxx-arm-release/obj/developtools 临时文件。
+                rm -rf ~/OHOS_STD/out/xxx-arm-release/obj/developtools
         (b) 清理hi3516DV300设备上生成的中间文件/home/XXX/OHOS_STD/out。
                 rm -rf /home/ohos/OHOS_STD/out*
         (c) 清理UT环境残留的覆盖率报告。

@@ -139,6 +139,7 @@ ohos_source_set("trace_streamer_source") {
     "//third_party/sqlite/include",
     "${OHOS_PROTO_GEN}/types/plugins/memory_data",
     "${OHOS_PROTO_GEN}/types/plugins/ftrace_data",
+    "${OHOS_PROTO_GEN}/types/plugins/hilog_data",
     "${OHOS_PROTO_GEN}",
     "//third_party/protobuf/src",
   ]
@@ -176,6 +177,7 @@ executable("trace_streamer") {
     "//third_party/sqlite/include",
     "${OHOS_PROTO_GEN}/types/plugins/memory_data",
     "${OHOS_PROTO_GEN}/types/plugins/ftrace_data",
+    "${OHOS_PROTO_GEN}/types/plugins/hilog_data",
     "${OHOS_PROTO_GEN}",
     "//third_party/protobuf/src",
     "base",
