@@ -19,9 +19,9 @@
 #include "binder_filter.h"
 #include "htrace_cpu_detail_parser.h"
 #include "htrace_event_parser.h"
+#include "trace_plugin_result.pb.h"
 #include "trace_streamer_selector.h"
 #include "ts_common.h"
-#include "types/plugins/ftrace_data/trace_plugin_result.pb.h"
 
 using namespace testing::ext;
 using namespace SysTuning::TraceStreamer;

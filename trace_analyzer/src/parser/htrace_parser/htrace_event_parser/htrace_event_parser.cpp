@@ -16,9 +16,11 @@
 #include <sstream>
 #include <string>
 #include "binder_filter.h"
+#include "binder.pb.h"
 #include "clock_filter.h"
 #include "cpu_filter.h"
 #include "irq_filter.h"
+#include "irq.pb.h"
 #include "log.h"
 #include "measure_filter.h"
 #include "process_filter.h"
@@ -26,8 +28,6 @@
 #include "stat_filter.h"
 #include "symbols_filter.h"
 #include "thread_state.h"
-#include "types/plugins/ftrace_data/binder.pb.h"
-#include "types/plugins/ftrace_data/irq.pb.h"
 namespace SysTuning {
 namespace TraceStreamer {
 HtraceEventParser::HtraceEventParser(TraceDataCache* dataCache, const TraceStreamerFilters* filter)

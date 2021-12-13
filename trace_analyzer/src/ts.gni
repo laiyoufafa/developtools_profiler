@@ -35,5 +35,5 @@ if (target_os == "linux" || target_os == "windows") {
   OHOS_HILOG_PROTO_DIR =
       "//developtools/profiler/protos/types/plugins/hilog_data"
   OHOS_SERVICE_PROTO_DIR = "//developtools/profiler/protos/services"
-  OHOS_PROTO_GEN = "//out/aosp-arm-release/gen/cpp/developtools/profiler/protos"
+  OHOS_PROTO_GEN = "//out/ohos-arm-release/gen/cpp/developtools/profiler/protos"
 }

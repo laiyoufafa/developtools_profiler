@@ -13,6 +13,7 @@
 PROTOGEN = $$PWD/../../third_party/protogen
 INCLUDEPATH += $${PROTOGEN}/types/plugins/ftrace_data \
         $${PROTOGEN}/types/plugins/memory_data \
+        $${PROTOGEN}/types/plugins/hilog_data \
         $${PROTOGEN}
 SOURCES +=$${PROTOGEN}/services/common_types.pb.cc \
     $${PROTOGEN}/types/plugins/ftrace_data/trace_plugin_result.pb.cc \

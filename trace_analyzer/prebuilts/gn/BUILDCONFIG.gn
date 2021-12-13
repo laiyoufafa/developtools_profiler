@@ -24,16 +24,16 @@ is_win = false
 is_linux = false
 
 if (target_os == "linux") {
-    is_win = false
-    is_linux = true
-    is_clang = true
-} else if (target_os == "windows"){
-    is_win = true
-    is_linux = false
-    is_clang = true
+  is_win = false
+  is_linux = true
+  is_clang = true
+} else if (target_os == "windows") {
+  is_win = true
+  is_linux = false
+  is_clang = true
 } else {
-    print("unknown platform " + target_os)
-    exit(-1)
+  print("unknown platform " + target_os)
+  exit(-1)
 }
 
 default_configs = [

@@ -28,7 +28,10 @@ include($$PWD/multi_platform/global.pri)
 INCLUDEPATH += $$PWD/include \
     $$PWD/../third_party/protobuf/src \
     $$PWD/../third_party/sqlite/include \
-    $$PWD/../third_party/protogen/gen
+    $$PWD/../third_party/protogen/gen \
+    $$PWD/../third_party/protogen/gen/types/plugins/memory_data \
+    $$PWD/../third_party/protogen/gen/types/plugins/ftrace_data \
+    $$PWD/../third_party/protogen/gen/types/plugins/hilog_data
 
 
 include($$PWD/trace_streamer/trace_streamer.pri)

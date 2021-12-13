@@ -19,11 +19,11 @@
 #include <atomic>
 #include <string>
 #include <unordered_map>
+#include "hilog_plugin_result.pb.h"
+#include "memory_plugin_result.pb.h"
 #include "services/common_types.pb.h"
+#include "trace_plugin_result.pb.h"
 #include "ts_common.h"
-#include "types/plugins/ftrace_data/trace_plugin_result.pb.h"
-#include "types/plugins/hilog_data/hilog_plugin_result.pb.h"
-#include "types/plugins/memory_data/memory_plugin_result.pb.h"
 
 namespace SysTuning {
 namespace TraceStreamer {

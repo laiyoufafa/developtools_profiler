@@ -39,6 +39,7 @@ ohos_fuzztest("hiprofiler_ts_htrace_fuzz_test") {
     "//third_party/sqlite/include",
     "${OHOS_PROTO_GEN}/types/plugins/memory_data",
     "${OHOS_PROTO_GEN}/types/plugins/ftrace_data",
+    "${OHOS_PROTO_GEN}/types/plugins/hilog_data",
     "${OHOS_PROTO_GEN}",
     "//third_party/protobuf/src",
   ]

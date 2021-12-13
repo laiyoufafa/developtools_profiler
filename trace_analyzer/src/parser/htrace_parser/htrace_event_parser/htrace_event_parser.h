@@ -27,9 +27,9 @@
 #include "log.h"
 #include "print_event_parser.h"
 #include "trace_data/trace_data_cache.h"
+#include "trace_plugin_result.pb.h"
 #include "trace_streamer_filters.h"
 #include "ts_common.h"
-#include "types/plugins/ftrace_data/trace_plugin_result.pb.h"
 
 namespace SysTuning {
 namespace TraceStreamer {
