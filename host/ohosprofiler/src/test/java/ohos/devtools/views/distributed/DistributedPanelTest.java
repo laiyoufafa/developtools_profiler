@@ -20,7 +20,7 @@ import com.intellij.openapi.wm.impl.IdeGlassPaneImpl;
 import ohos.devtools.Config;
 import ohos.devtools.views.distributed.bean.DistributedParams;
 import ohos.devtools.views.distributed.util.DistributedDB;
-import org.fest.swing.fixture.FrameFixture;
+import org.assertj.swing.fixture.FrameFixture;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -68,10 +68,10 @@ class DistributedPanelTest {
     @Test
     void load() {
         panel.load(new DistributedParams.Builder()
-            .setPkgNameA("com.google.android.maps")
+            .setPkgNameA("com.maps")
             .setPkgNameB("com.distributed.ims")
-            .setDeviceNameA("Distributed Mate40")
-            .setDeviceNameB("Distributed P30")
+            .setDeviceNameA("distributed Mate40")
+            .setDeviceNameB("distributed P30")
             .setProcessIdA(27521)
             .setProcessIdB(1155)
             .setPathA(Config.TRACE_DISTRIBUTED_A)

@@ -242,4 +242,5 @@ class AsyncEventDataFragmentTest {
         fragment.keyReleased(keyEvent);
         Assertions.assertNotNull(fragment);
     }
+
 }

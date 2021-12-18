@@ -12,8 +12,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 select c.type,
     ts, value,
     filter_id as track_id,
     c.ts-tb.start_ts startTime
-from measure c,trace_range tb where filter_id = %d;
+from measure c,trace_section tb where filter_id = %d;

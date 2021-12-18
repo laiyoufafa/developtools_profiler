@@ -78,7 +78,7 @@ public class FlameChart extends EventPanel implements KeyListener, MouseListener
     /**
      * constructor with listener
      *
-     * @param iAllThreadDataListener   all thread data listener
+     * @param iAllThreadDataListener all thread data listener
      * @param iOtherThreadDataListener other thread data listener
      */
     public FlameChart(IAllThreadDataListener iAllThreadDataListener,
@@ -140,7 +140,7 @@ public class FlameChart extends EventPanel implements KeyListener, MouseListener
      * set all node in flame chart
      *
      * @param datasource datasource
-     * @param dur        dur
+     * @param dur dur
      */
     public void setAllNode(List<DefaultMutableTreeNode> datasource, long dur) {
         duration = dur;

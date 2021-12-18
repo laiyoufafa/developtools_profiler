@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 -- Query the asynchronous event method call information under the process
 select tid,
     p.pid,
@@ -25,7 +26,7 @@ select tid,
     c.parent_id,
     c.id,
     c.depth
-from thread A,trace_range D
+from thread A,trace_section D
 left join callstack C on A.id = C.callid
 left join process p on A.ipid = p.id
 where startTs not null  and c.cookie not null and p.pid = %s

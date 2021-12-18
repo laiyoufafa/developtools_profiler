@@ -16,7 +16,7 @@
 package ohos.devtools.views.trace.fragment;
 
 import ohos.devtools.views.trace.bean.ProcessMem;
-import ohos.devtools.views.trace.bean.ThreadData;
+import ohos.devtools.views.trace.bean.ProcessMemData;
 import ohos.devtools.views.trace.component.AnalystPanel;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -28,7 +28,7 @@ import java.awt.event.MouseEvent;
 /**
  * test MemDataFragment class .
  *
- * @since 2021/4/24 17:57
+ * @date 2021/4/24 17:57
  */
 class MemDataFragmentTest {
     private MemDataFragment memDataFragment;
@@ -72,7 +72,7 @@ class MemDataFragmentTest {
     void click() {
         AnalystPanel.iThreadDataClick = null;
         MouseEvent mouseEvent = new MouseEvent(jPanel, 1, 1, 1, 1, 1, 1, true, 1);
-        memDataFragment.click(mouseEvent, new ThreadData());
+        memDataFragment.click(mouseEvent, new ProcessMemData());
         Assertions.assertNotNull(memDataFragment);
     }
 }

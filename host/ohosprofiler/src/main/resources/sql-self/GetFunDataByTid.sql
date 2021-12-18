@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 select tid,
     A.name as threadName,
     is_main_thread,
@@ -21,8 +22,9 @@ select tid,
     c.name as funName,
     c.parent_id,
     c.id,
-    c.depth
+    c.depth,
+    c.argsetid
 -- ,(case when category isnull then 'N/A' else category end) as cat
-from thread A,trace_range D
+from thread A,trace_section D
 left join callstack C on A.id = C.callid
 where startTs not null and A.tid = %s and c.cookie is null

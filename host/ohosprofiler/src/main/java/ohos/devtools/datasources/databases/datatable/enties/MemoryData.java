@@ -19,15 +19,16 @@ import java.io.Serializable;
 import java.util.Objects;
 
 /**
- * @param <T> <T>
+ * MemoryData <T>
  *
- * @since 2021/10/22 16:00
+ * @since 2021/10/26
  */
 public class MemoryData<T> implements Serializable {
     /**
      * serialVersionUID
      */
     private static final long serialVersionUID = -8106428244173195592L;
+
     long localSessionId;
     int sessionId;
     long timeStamp;

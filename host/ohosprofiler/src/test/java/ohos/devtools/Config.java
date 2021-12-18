@@ -44,12 +44,12 @@ public class Config {
     /**
      * TRACE DISTRIBUTED A
      */
-    public static final String TRACE_DISTRIBUTED_A = Config
-        .class.getResource("/trace_db/trace_distributed_deviceA.db").getFile();
+    public static final String TRACE_DISTRIBUTED_A =
+        Config.class.getResource("/trace_db/trace_distributed_deviceA.db").getFile();
 
     /**
      * TRACE DISTRIBUTED B
      */
-    public static final String TRACE_DISTRIBUTED_B = Config
-        .class.getResource("/trace_db/trace_distributed_deviceB.db").getFile();
+    public static final String TRACE_DISTRIBUTED_B =
+        Config.class.getResource("/trace_db/trace_distributed_deviceB.db").getFile();
 }

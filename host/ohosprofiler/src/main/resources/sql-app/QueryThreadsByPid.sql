@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 select
                       the_tracks.upid,
                       the_tracks.utid,

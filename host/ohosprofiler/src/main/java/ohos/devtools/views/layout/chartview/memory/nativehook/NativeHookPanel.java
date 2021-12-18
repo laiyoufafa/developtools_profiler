@@ -36,7 +36,6 @@ import ohos.devtools.views.layout.dialog.SampleDialog;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
@@ -44,6 +43,7 @@ import javax.swing.Spring;
 import javax.swing.SpringLayout;
 import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
+import javax.swing.Timer;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
@@ -51,15 +51,18 @@ import javax.swing.event.DocumentListener;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.event.ActionEvent;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.ItemEvent;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 
 import static java.awt.Image.SCALE_DEFAULT;
+import static ohos.devtools.datasources.transport.hdc.HdcStdCmdList.HDC_STD_HAS_TRACE_FILE_INFO;
 import static ohos.devtools.datasources.transport.hdc.HdcStdCmdList.HDC_STD_PULL_FILE;
 import static ohos.devtools.datasources.transport.hdc.HdcWrapper.conversionCommand;
 import static ohos.devtools.views.common.Constant.IS_DEVELOP_MODE;
@@ -78,6 +81,13 @@ public class NativeHookPanel extends JBPanel {
 
     private TaskScenePanelChart taskScenePanelChart;
     private NativeHookTreeTablePanel recordTable;
+    private int fileSize = -1;
+    private Timer timer;
+    private long sessionId;
+    private CustomJLabel labelSave;
+    private boolean isOnline;
+    private String filePath;
+    private JBLabel loadingLabel;
 
     /**
      * NativeHookPanel
@@ -100,23 +110,81 @@ public class NativeHookPanel extends JBPanel {
         if (ProfilerLogManager.isInfoEnabled()) {
             LOGGER.info("load");
         }
-        JBLabel loadingLabel = showLoading(this);
+        this.sessionId = sessionId;
+        this.labelSave = labelSave;
+        this.isOnline = isOnline;
+        this.filePath = filePath;
+        loadingLabel = showLoading(this);
+        timer = new Timer(1000, this::checkFileExits);
+        timer.start();
+    }
+
+    private void checkFileExits(ActionEvent actionEvent) {
+        if (isOnline) {
+            SessionInfo sessionInfo = SessionManager.getInstance().getSessionInfo(sessionId);
+            if (Objects.nonNull(sessionInfo)) {
+                String srcFilePath = "/data/local/tmp/" + sessionInfo.getPid() + ".nativeHeap";
+                ArrayList<String> hasFile =
+                    conversionCommand(HDC_STD_HAS_TRACE_FILE_INFO, sessionInfo.getDeviceIPPortInfo().getDeviceID(),
+                        srcFilePath);
+                String result = HdcWrapper.getInstance().execCmdBy(hasFile);
+                if (!result.isEmpty()) {
+                    String[] fileArray = result.split("\t");
+                    if (fileSize != -1 && fileSize == Integer.valueOf(fileArray[0])) {
+                        if (Objects.nonNull(timer)) {
+                            timer.stop();
+                            pullFileAndParse();
+                        }
+                    } else {
+                        fileSize = Integer.valueOf(fileArray[0]);
+                        if (ProfilerLogManager.isInfoEnabled()) {
+                            LOGGER.info("file size is {}", fileSize);
+                        }
+                    }
+                }
+            }
+        } else {
+            if (Objects.nonNull(timer)) {
+                timer.stop();
+                pullFileAndParse();
+            }
+        }
+    }
+
+    private void pullFileAndParse() {
         new SwingWorker<NativeDataExternalInterface, Void>() {
             @Override
             protected NativeDataExternalInterface doInBackground() {
-                return getNativeDataExternalInterface(isOnline, sessionId, labelSave, filePath);
+                String tmpFilePath;
+                if (isOnline) {
+                    SessionInfo sessionInfo = SessionManager.getInstance().getSessionInfo(sessionId);
+                    int pid = sessionInfo.getPid();
+                    String srcFilePath = "/data/local/tmp/" + pid + ".nativeHeap";
+                    String targetFile = pid + "_" + CommonUtil.getLocalSessionId() + ".nativeHeap";
+                    labelSave.setName(targetFile);
+                    tmpFilePath = SessionManager.getInstance().tempPath() + targetFile;
+                    ArrayList cmdStr =
+                        conversionCommand(HDC_STD_PULL_FILE, sessionInfo.getDeviceIPPortInfo().getDeviceID(),
+                            srcFilePath, tmpFilePath);
+                    String res = HdcWrapper.getInstance().execCmdBy(cmdStr);
+                    if (!res.contains("FileTransfer finish")) {
+                        return null;
+                    }
+                } else {
+                    tmpFilePath = filePath;
+                }
+                NativeDataExternalInterface nativeDataExternalInterface = new NativeDataExternalInterface();
+                nativeDataExternalInterface.parseNativeFile(tmpFilePath);
+                return nativeDataExternalInterface;
             }
 
             @Override
             protected void done() {
-                // Move the result of the time-consuming task to done for processing,
-                // and close the rotating waiting box after processing
-                NativeDataExternalInterface result = null;
                 try {
-                    result = get();
+                    NativeDataExternalInterface result = get();
                     NativeHookPanel.this.remove(loadingLabel);
-                    if (result.getNativeInstanceMap().isEmpty()) {
-                        new SampleDialog("prompt", "pull file failed, please try again ").show();
+                    if (Objects.isNull(result)) {
+                        new SampleDialog("prompt", "pull file failed, please try again").show();
                         return;
                     }
                     NativeHookPanel.this.setLayout(new BorderLayout());
@@ -127,37 +195,11 @@ public class NativeHookPanel extends JBPanel {
                         public void stateChanged(ChangeEvent event) {
                         }
                     });
-                } catch (InterruptedException | ExecutionException exception) {
-                    exception.printStackTrace();
+                } catch (InterruptedException | ExecutionException interruptedException) {
+                    interruptedException.printStackTrace();
                 }
             }
         }.execute();
-    }
-
-    @Nullable
-    private NativeDataExternalInterface getNativeDataExternalInterface(boolean isOnline, long sessionId,
-        CustomJLabel labelSave, String filePath) {
-        String tmpFilePath;
-        if (isOnline) {
-            SessionInfo sessionInfo = SessionManager.getInstance().getSessionInfo(sessionId);
-            int pid = sessionInfo.getPid();
-            String srcFilePath = "/data/local/tmp/" + pid + ".nativehook";
-            String targetFile = pid + "_" + CommonUtil.getLocalSessionId() + ".nativehook";
-            labelSave.setName(targetFile);
-            tmpFilePath = SessionManager.getInstance().tempPath() + targetFile;
-            ArrayList cmdStr =
-                conversionCommand(HDC_STD_PULL_FILE, sessionInfo.getDeviceIPPortInfo().getDeviceID(),
-                    srcFilePath, tmpFilePath);
-            String res = HdcWrapper.getInstance().execCmdBy(cmdStr);
-            if (!res.contains("FileTransfer finish")) {
-                return new NativeDataExternalInterface();
-            }
-        } else {
-            tmpFilePath = filePath;
-        }
-        NativeDataExternalInterface nativeDataExternalInterface = new NativeDataExternalInterface();
-        nativeDataExternalInterface.parseNativeFile(tmpFilePath);
-        return nativeDataExternalInterface;
     }
 
     private JBLabel showLoading(JBPanel panel) {
@@ -166,19 +208,27 @@ public class NativeHookPanel extends JBPanel {
         }
         SpringLayout spring = new SpringLayout();
         panel.setLayout(spring);
-        JBLabel loadingLabel = new JBLabel();
-        URL url = TaskScenePanelChart.class.getClassLoader().getResource("/images/loading.gif");
+        JBLabel loading = new JBLabel();
+        URL url = TaskScenePanelChart.class.getClassLoader().getResource("images/loading.gif");
         if (url != null) {
             ImageIcon icon = new ImageIcon(url);
             icon.setImage(icon.getImage().getScaledInstance(LOADING_SIZE, LOADING_SIZE, SCALE_DEFAULT));
-            loadingLabel.setIcon(icon);
+            loading.setIcon(icon);
         }
-        panel.add(loadingLabel);
-        // 增加约束，保持Loading图在组件中间
-        SpringLayout.Constraints loadingCons = spring.getConstraints(loadingLabel);
-        loadingCons.setX(Spring.constant((taskScenePanelChart.getjPanelMiddleRight().getWidth() - LOADING_SIZE) / 2));
-        loadingCons.setY(Spring.constant((taskScenePanelChart.getjPanelMiddleRight().getHeight() - LOADING_SIZE) / 2));
-        return loadingLabel;
+        panel.add(loading);
+        if (isOnline) {
+            // 增加约束，保持Loading图在组件中间
+            SpringLayout.Constraints loadingCons = spring.getConstraints(loading);
+            loadingCons
+                .setX(Spring.constant((taskScenePanelChart.getjPanelMiddleRight().getWidth() - LOADING_SIZE) / 2));
+            loadingCons
+                .setY(Spring.constant((taskScenePanelChart.getjPanelMiddleRight().getHeight() - LOADING_SIZE) / 2));
+        } else {
+            SpringLayout.Constraints loadingCons = spring.getConstraints(loading);
+            loadingCons.setX(Spring.constant((1000 - LOADING_SIZE) / 2));
+            loadingCons.setY(Spring.constant((800 - LOADING_SIZE) / 2));
+        }
+        return loading;
     }
 
     /**

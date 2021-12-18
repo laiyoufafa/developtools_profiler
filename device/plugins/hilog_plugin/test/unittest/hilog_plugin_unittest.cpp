@@ -103,7 +103,6 @@ bool RecordFileExist(std::string& file)
     }
 
     std::string cmd = "find /data/local/tmp -name " + std::string(name) + "*";
-    printf("%s:: cmd(%s)\r\n", __func__, cmd.c_str());
     char buff[BUF_MAX_LEN] = {0};
     std::unique_ptr<FILE, int (*)(FILE*)> fp(popen(cmd.c_str(), "r"), pclose);
     if (!fp) {
@@ -114,7 +113,6 @@ bool RecordFileExist(std::string& file)
     char* pRet = fgets(buff, BUF_MAX_LEN - 1, fp.get());
     CHECK_NOTNULL(pRet, false, "FileCache: fgets Failed, errno(%d:%s)", errno, strerror(errno));
     buff[BUF_MAX_LEN - 1] = '\0';
-    printf("%s:: buffer(%s)\r\n", __func__, buff);
     if (strlen(buff)) {
         file = std::string(buff);
         return true;
@@ -1002,26 +1000,16 @@ HWTEST_F(HilogPluginTest, TestFramework, TestSize.Level1)
     std::vector<uint8_t> dataBuffer(plugin->resultBufferSizeHint);
     EXPECT_EQ(plugin->callbacks->onRegisterWriterStruct(&writer), 0);
     EXPECT_EQ(plugin->callbacks->onPluginSessionStart(configData.data(), configData.size()), 0);
-    printf("hold on (%d)s !!! Wait for the workthread to end\r\n", DEFAULT_WAIT);
     usleep(US_PER_S * DEFAULT_WAIT); // 10s
     EXPECT_EQ(plugin->callbacks->onPluginSessionStop(), 0);
 
     // test proto data
     int protoSize = g_proto.size();
-    printf("g_proto.size(%d)\r\n", protoSize);
     ASSERT_GT(protoSize, 0);
     g_testId = 1;
     for (int i = 0; i < protoSize; i++) {
         HilogInfo info = g_proto[i];
         for (int j = 0; j < info.info_size(); j++) {
-            if (info.info(j).id() != g_testId) {
-                printf(
-                    "%s:: fail, i(%d), info.id("
-                    "%" PRIu64
-                    ") != g_testId("
-                    "%" PRIu64 ")\r\n",
-                    __func__, i, info.info(i).id(), g_testId);
-            }
             EXPECT_EQ(info.info(j).id(), g_testId);
             g_testId++;
         }
@@ -1047,25 +1035,15 @@ HWTEST_F(HilogPluginTest, TestDefaultCmd, TestSize.Level1)
     // test plugin process
     plugin.SetWriter(&writer);
     EXPECT_TRUE(PluginStart(plugin, config));
-    printf("hold on (%d)s !!! Wait for the workthread to end\r\n", DEFAULT_WAIT);
     usleep(US_PER_S * DEFAULT_WAIT); // 10s
     EXPECT_EQ(plugin.Stop(), 0);
 
     // test proto data
     int size = g_proto.size();
-    printf("g_proto.size(%d)\r\n", size);
     ASSERT_GT(size, 0);
     for (int i = 0; i < size; i++) {
         HilogInfo info = g_proto[i];
         for (int j = 0; j < info.info_size(); j++) {
-            if (info.info(j).id() != g_testId) {
-                printf(
-                    "%s:: fail, i(%d), info.id("
-                    "%" PRIu64
-                    ") != g_testId("
-                    "%" PRIu64 ")\r\n",
-                    __func__, i, info.info(i).id(), g_testId);
-            }
             EXPECT_EQ(info.info(j).id(), g_testId);
             g_testId++;
         }
@@ -1093,24 +1071,14 @@ HWTEST_F(HilogPluginTest, TestFullCmd, TestSize.Level1)
     // test plugin process
     plugin.SetWriter(&writer);
     EXPECT_TRUE(PluginStart(plugin, config));
-    printf("hold on (%d)s !!! Wait for the workthread to end\r\n", DEFAULT_WAIT);
     usleep(US_PER_S * DEFAULT_WAIT); // 10s
 
     // test proto data
     int size = g_proto.size();
-    printf("g_proto.size(%d)\r\n", size);
     ASSERT_GT(size, 0);
     for (int i = 0; i < size; i++) {
         HilogInfo info = g_proto[i];
         for (int j = 0; j < info.info_size(); j++) {
-            if (info.info(j).id() != g_testId) {
-                printf(
-                    "%s:: fail, i(%d), info.id("
-                    "%" PRIu64
-                    ") != g_testId("
-                    "%" PRIu64 ")\r\n",
-                    __func__, i, info.info(i).id(), g_testId);
-            }
             EXPECT_EQ(info.info(j).id(), g_testId);
             g_testId++;
         }

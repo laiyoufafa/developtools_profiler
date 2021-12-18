@@ -30,9 +30,19 @@ public class UtConstant {
     public static final String UT_DEVICE_PROCESS_PANEL_CONNECT_TYPE = "connectType";
 
     /**
+     * Gpu connect Type ComboBox
+     */
+    public static final String UT_DEVICE_GPU_CONNECT_TYPE = "gpuConnectType";
+
+    /**
      * device name comboBox
      */
     public static final String UT_DEVICE_PROCESS_PANEL_DEVICE_NAME = "deviceNameComboBox";
+
+    /**
+     * gpu device name comboBox
+     */
+    public static final String UT_DEVICE_GPU_DEVICE_NAME = "gpuDeviceNameComboBox";
 
     /**
      * Click to expand the secondary chart interface
@@ -158,6 +168,16 @@ public class UtConstant {
      * task scene
      */
     public static final String UT_TASK_PANEL_SYSTEM = "System Tuning";
+
+    /**
+     * task scene
+     */
+    public static final String UT_TASK_PANEL_DISTRIBUTED = "Distributed Scenario";
+
+    /**
+     * task scene
+     */
+    public static final String UT_TASK_PANEL_GPU = "GPU Counter";
 
     /**
      * task scene choose button
@@ -313,4 +333,34 @@ public class UtConstant {
      * hiLog tab close
      */
     public static final String UT_HILOG_TAB_CLOSE = "tabClose";
+
+    /**
+     * Probes
+     */
+    public static final String UT_SYSTEM_TUNING_LABEL = "Probes";
+
+    /**
+     * Bytrace categories
+     */
+    public static final String UT_SYSTEM_TUNING_CATEGORIES = "Bytrace categories";
+
+    /**
+     * metrics Button
+     */
+    public static final String UT_SYSTEM_TUNING_METRICS = "metricsButton";
+
+    /**
+     * metrics run Button
+     */
+    public static final String UT_SYSTEM_TUNING_METRICS_RUN = "metricsRun";
+
+    /**
+     * queryButton
+     */
+    public static final String UT_SYSTEM_TUNING_QUERY = "queryButton";
+
+    /**
+     * infoButton
+     */
+    public static final String UT_SYSTEM_TUNING_INFO = "infoButton";
 }

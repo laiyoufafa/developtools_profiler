@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 select ta.*,ts-tb.start_ts as startTime,tc.tid,tc.pid,tc.process,tc.thread
 from thread_state ta,trace_bounds tb
 left join (

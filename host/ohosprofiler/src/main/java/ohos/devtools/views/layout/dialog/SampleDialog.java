@@ -15,6 +15,10 @@
 
 package ohos.devtools.views.layout.dialog;
 
+import com.intellij.openapi.ui.DialogWrapper;
+import ohos.devtools.views.common.LayoutConstants;
+import org.apache.commons.lang3.StringUtils;
+
 import javax.annotation.Nullable;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
@@ -23,13 +27,10 @@ import javax.swing.JPanel;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 
-import org.apache.commons.lang3.StringUtils;
-import com.intellij.openapi.ui.DialogWrapper;
-
-import ohos.devtools.views.common.LayoutConstants;
-
 /**
  * SampleDialog
+ *
+ * @since 2021/10/26
  */
 public class SampleDialog extends DialogWrapper {
     private String message = "";

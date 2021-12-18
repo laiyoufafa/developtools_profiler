@@ -16,7 +16,6 @@
 package ohos.devtools.views.layout.chartview.memory;
 
 import com.intellij.icons.AllIcons;
-import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.JBSplitter;
@@ -26,8 +25,11 @@ import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.table.JBTable;
 import com.intellij.ui.treeStructure.treetable.ListTreeTableModelOnColumns;
 import net.miginfocom.swing.MigLayout;
-import ohos.devtools.datasources.transport.hdc.HdcWrapper;
+import ohos.devtools.datasources.utils.common.Constant;
+import ohos.devtools.datasources.utils.device.entity.DeviceIPPortInfo;
 import ohos.devtools.datasources.utils.device.entity.DeviceType;
+import ohos.devtools.datasources.utils.process.entity.ProcessInfo;
+import ohos.devtools.datasources.utils.process.service.ProcessManager;
 import ohos.devtools.datasources.utils.profilerlog.ProfilerLogManager;
 import ohos.devtools.datasources.utils.session.entity.SessionInfo;
 import ohos.devtools.datasources.utils.session.service.SessionManager;
@@ -52,10 +54,13 @@ import ohos.devtools.views.layout.chartview.MonitorItemDetail;
 import ohos.devtools.views.layout.chartview.MonitorItemView;
 import ohos.devtools.views.layout.chartview.ProfilerChartsView;
 import ohos.devtools.views.layout.chartview.ProfilerMonitorItem;
+import ohos.devtools.views.layout.chartview.cpu.CpuItemView;
 import ohos.devtools.views.layout.chartview.memory.javaagent.AgentTreeTableRowSorter;
 import ohos.devtools.views.layout.chartview.memory.javaagent.MemoryAgentHeapInfoPanel;
 import ohos.devtools.views.layout.chartview.memory.javaagent.MemoryTreeTablePanel;
+import ohos.devtools.views.layout.chartview.memory.nativehook.NativeConfigDialog;
 import ohos.devtools.views.layout.chartview.observer.MemoryChartObserver;
+import ohos.devtools.views.layout.dialog.CustomDialog;
 import ohos.devtools.views.layout.dialog.NativeRecordDialog;
 import ohos.devtools.views.layout.utils.EventTrackUtils;
 import org.apache.logging.log4j.LogManager;
@@ -67,6 +72,7 @@ import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
+import javax.swing.JPanel;
 import javax.swing.JScrollBar;
 import javax.swing.JTable;
 import javax.swing.RowSorter;
@@ -89,9 +95,12 @@ import java.awt.event.ComponentEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -101,8 +110,7 @@ import java.util.Objects;
 import java.util.Vector;
 import java.util.concurrent.TimeUnit;
 
-import static ohos.devtools.datasources.transport.hdc.HdcStdCmdList.HDC_STD_START_NATIVE_HOOK;
-import static ohos.devtools.datasources.transport.hdc.HdcWrapper.conversionCommand;
+import static ohos.devtools.pluginconfig.NativeConfig.NATIVE_HOOK_PLUGIN_NAME;
 import static ohos.devtools.views.charts.utils.ChartUtils.divide;
 import static ohos.devtools.views.layout.chartview.MonitorItemDetail.MEM_CODE;
 import static ohos.devtools.views.layout.chartview.MonitorItemDetail.MEM_GRAPHICS;
@@ -212,6 +220,9 @@ public class MemoryItemView extends MonitorItemView {
      * Constructor
      */
     public MemoryItemView() {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("create MemoryItemView");
+        }
     }
 
     @Override
@@ -598,7 +609,7 @@ public class MemoryItemView extends MonitorItemView {
                         scrollBar.setValue(0);
                         scrollBar.removeMouseMotionListener(memoryAgentHeapInfoPanel.getMouseMotionAdapter());
                         createMouseMotionAdapter(memoryAgentHeapInfoPanel, tableModelOnColumns, agentTreeTable);
-                        scrollBar.addMouseMotionListener(memoryAgentHeapInfoPanel.getMouseListener());
+                        scrollBar.addMouseMotionListener(memoryAgentHeapInfoPanel.getMouseMotionAdapter());
                         AgentTreeTableRowSorter sorter =
                             new AgentTreeTableRowSorter(agentTreeTable.getTable().getModel());
                         sorter.setListener((columnIndex, sortOrder) -> {
@@ -624,7 +635,7 @@ public class MemoryItemView extends MonitorItemView {
 
     private void createMouseMotionAdapter(MemoryAgentHeapInfoPanel memoryAgentHeapInfoPanel,
         ListTreeTableModelOnColumns tableModelOnColumns, ExpandTreeTable agentTreeTable) {
-        MouseMotionAdapter mouseMotionAdapter = new MouseMotionAdapter() {
+        memoryAgentHeapInfoPanel.setMouseMotionAdapter(new MouseMotionAdapter() {
             @Override
             public void mouseDragged(MouseEvent mouseEvent) {
                 JScrollBar jScrollBar = null;
@@ -657,8 +668,7 @@ public class MemoryItemView extends MonitorItemView {
                     }
                 }
             }
-        };
-        memoryAgentHeapInfoPanel.setMouseMotionAdapter(mouseMotionAdapter);
+        });
     }
 
     /**
@@ -914,6 +924,9 @@ public class MemoryItemView extends MonitorItemView {
     }
 
     private void chartMouseDragged() {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("chartMouseDragged");
+        }
     }
 
     private void chartMouseRelease() {
@@ -1001,7 +1014,10 @@ public class MemoryItemView extends MonitorItemView {
             // Add components
             hiddenComp.add(new DottedLine());
             initDetailCfgBtn();
+            initHeapDumpBtn();
             hiddenComp.add(new DottedLine());
+            initNativeBtn();
+            initNativeConfigBtn();
             // The initial state is folded and hiddenComp needs to be hidden
             hiddenComp.setVisible(false);
         }
@@ -1029,26 +1045,38 @@ public class MemoryItemView extends MonitorItemView {
             heapDumpBtn = new JBLabel();
             heapDumpBtn.setName(UtConstant.UT_MEMORY_ITEM_VIEW_HEAP_DUMP);
             heapDumpBtn.setToolTipText("Memory heap dump");
-            Icon icon = IconLoader.getIcon("/images/icon_heap_dump_grey.png", getClass());
+            Icon icon;
+            // Add support for heap dump in specific processes
+            DeviceIPPortInfo deviceInfoBySessionId =
+                SessionManager.getInstance().getDeviceInfoBySessionId(bottomPanel.getSessionId());
+            ProcessInfo processInfo =
+                SessionManager.getInstance().getSessionInfo(bottomPanel.getSessionId()).getProcessInfo();
+            boolean isDebuggerProcess =
+                ProcessManager.getInstance().checkIsDebuggerProcess(deviceInfoBySessionId, processInfo);
+            if (isDebuggerProcess) {
+                icon = IconLoader.getIcon("/images/icon_heap_dump_normal.png", getClass());
+                heapDumpBtn.addMouseListener(new MouseAdapter() {
+                    @Override
+                    public void mouseClicked(MouseEvent mouseEvent) {
+                        super.mouseClicked(mouseEvent);
+                        EventTrackUtils.getInstance().trackApplicationHprof();
+                        int showTime = bottomPanel.getTimeline().getEndTime();
+                        Date date = new Date();
+                        StringWriter stringWriter = new StringWriter();
+                        PrintWriter printWriter = new PrintWriter(stringWriter);
+                        date.setTime(showTime);
+                        printWriter.format("%1$tM:%1$tS.%tL", date);
+                        printWriter.flush();
+                        bottomPanel.getTaskScenePanelChart()
+                            .createSessionList(LayoutConstants.HEAP_DUMP, stringWriter.toString(),
+                                bottomPanel.getSessionId(), null);
+                    }
+                });
+            } else {
+                icon = IconLoader.getIcon("/images/icon_heap_dump_grey.png", getClass());
+            }
             heapDumpBtn.setIcon(icon);
             hiddenComp.add(heapDumpBtn);
-        }
-
-        private void initTrackingLabel() {
-            if (ProfilerLogManager.isInfoEnabled()) {
-                LOGGER.info("initTrackingLabel");
-            }
-            hiddenComp.add(new JBLabel("Allocation tracking"));
-        }
-
-        private void initCollectBox() {
-            if (ProfilerLogManager.isInfoEnabled()) {
-                LOGGER.info("initCollectBox");
-            }
-            ComboBox<String> collectBox = new ComboBox<>();
-            collectBox.setName(UtConstant.UT_MEMORY_ITEM_VIEW_COLLECT_BOX);
-            collectBox.addItem("Full");
-            hiddenComp.add(collectBox);
         }
 
         private void initNativeBtn() {
@@ -1070,19 +1098,50 @@ public class MemoryItemView extends MonitorItemView {
                         super.mouseClicked(mouseEvent);
                         long sessionId = bottomPanel.getSessionId();
                         SessionInfo sessionInfo = SessionManager.getInstance().getSessionInfo(sessionId);
-                        if (Objects.isNull(sessionInfo)) {
-                            ArrayList cmd =
-                                conversionCommand(HDC_STD_START_NATIVE_HOOK,
-                                        sessionInfo.getDeviceIPPortInfo().getDeviceID(),
-                                    String.valueOf(sessionInfo.getPid()));
-                            HdcWrapper.getInstance().execCmdBy(cmd);
-                            new NativeRecordDialog(bottomPanel, sessionId);
+                        if (Objects.nonNull(sessionInfo)) {
+                            DeviceIPPortInfo deviceIPPortInfo = sessionInfo.getDeviceIPPortInfo();
+                            ProcessInfo processInfo = new ProcessInfo();
+                            processInfo.setProcessId(sessionInfo.getPid());
+                            processInfo.setProcessName(sessionInfo.getProcessName());
+                            long sessionOperationId = SessionManager.getInstance()
+                                .createSessionOperationStart(deviceIPPortInfo, processInfo, NATIVE_HOOK_PLUGIN_NAME);
+                            if (sessionOperationId != Constant.ABNORMAL) {
+                                sessionInfo.setSecondSessionId(sessionOperationId);
+                                bottomPanel.getTaskScenePanelChart().getjButtonStop()
+                                    .setIcon(AllIcons.Process.ProgressResumeHover);
+                                bottomPanel.getTaskScenePanelChart().getjButtonStop().setToolTipText("Start");
+                                bottomPanel.getPublisher().pauseRefresh();
+                                bottomPanel.setPause(true);
+                                new NativeRecordDialog(bottomPanel, sessionId);
+                            } else {
+                                JPanel promptMessage = new JPanel(new BorderLayout());
+                                JBLabel messageLabel = new JBLabel("Create Session Failed");
+                                messageLabel.setPreferredSize(new Dimension(100, 70));
+                                promptMessage.add(messageLabel, BorderLayout.CENTER);
+                                new CustomDialog("prompt", promptMessage).show();
+                            }
                         }
                     }
                 });
                 nativeBtn.setBorder(BorderFactory.createEmptyBorder());
             }
             hiddenComp.add(nativeBtn);
+        }
+
+        /**
+         * init Native ConfigBtn
+         */
+        private void initNativeConfigBtn() {
+            JBLabel configButton = new JBLabel();
+            configButton.setIcon(IconLoader.getIcon("/images/icon_cpu_perfConfig.png", CpuItemView.class));
+            configButton.setOpaque(false);
+            configButton.addMouseListener(new MouseAdapter() {
+                @Override
+                public void mouseClicked(MouseEvent event) {
+                    new NativeConfigDialog();
+                }
+            });
+            hiddenComp.add(configButton);
         }
     }
 

@@ -63,8 +63,7 @@ public class WelcomePanel extends JBPanel implements MouseListener {
         if (ProfilerLogManager.isInfoEnabled()) {
             LOGGER.info("initComponents");
         }
-        setLayout(new MigLayout("inset 0", "[grow,fill]",
-            "[fill,fill]push[]push"));
+        setLayout(new MigLayout("inset 0", "[grow,fill]", "[fill,fill]push[]push"));
         // init newTaskBtn
         newTaskBtn = new JBLabel(NEW_BUTTON_STR, JBLabel.CENTER);
         newTaskBtn.setOpaque(true);
@@ -92,8 +91,7 @@ public class WelcomePanel extends JBPanel implements MouseListener {
         welcomeTipLabel.setForeground(JBColor.foreground().darker());
         welcomeTipLabel.setOpaque(false);
         welcomeTipLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        JBPanel containPanel = new JBPanel(new MigLayout("inset 0", "[grow,fill]",
-            "[fill,fill]"));
+        JBPanel containPanel = new JBPanel(new MigLayout("inset 0", "[grow,fill]", "[fill,fill]"));
         containPanel.add(picImg, "wrap");
         containPanel.add(welcomeTitleLabel, "wrap, height 30!");
         containPanel.add(welcomeTipLabel, "wrap, height 30!");

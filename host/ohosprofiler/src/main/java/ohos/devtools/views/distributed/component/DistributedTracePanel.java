@@ -43,6 +43,7 @@ import java.awt.event.MouseMotionAdapter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -51,13 +52,18 @@ import java.util.stream.Collectors;
 /**
  * TracePanel
  *
- * @since 2021/8/26 15:10
+ * @since 2021/5/13 13:06
  */
 public class DistributedTracePanel extends JBPanel {
     /**
      * currentSelectThreadIds
      */
     public static final List<Integer> CURRENT_SELECT_THREAD_IDS = new ArrayList<>();
+
+    /**
+     * root TracePanel
+     */
+    public static DistributedTracePanel root;
 
     /**
      * current start time
@@ -70,14 +76,9 @@ public class DistributedTracePanel extends JBPanel {
     public static long endNS;
 
     /**
-     * time shaft start time
+     * DURATION 10_000_000_000L
      */
-    private static long START_TS;
-
-    /**
-     * time shaft end time
-     */
-    private static long END_TS;
+    private static long DURATION = 0L;
 
     /**
      * range start time
@@ -88,16 +89,6 @@ public class DistributedTracePanel extends JBPanel {
      * range end time
      */
     private static Long rangeEndNS;
-
-    /**
-     * root TracePanel
-     */
-    public static DistributedTracePanel root;
-
-    /**
-     * DURATION
-     */
-    private static long DURATION = 0L; // 10_000_000_000L;
 
     private boolean isDragRelease = false;
     private DistributedTimeShaft timeShaft;
@@ -115,56 +106,6 @@ public class DistributedTracePanel extends JBPanel {
      * structure function
      */
     public DistributedTracePanel() {
-        initPanel();
-        /**
-         * Add monitor to change the selected func color block according to funcId
-         */
-        EventDispatcher.addFuncSelectChange(funcId -> {
-            if (Objects.nonNull(DistributedFuncBean.currentSelectedFunc)) {
-                DistributedFuncBean.currentSelectedFunc.setSelected(false);
-            }
-            allComponent.stream().filter(TraceFuncRow.class::isInstance)
-                .map(it -> ((TraceFuncRow<DistributedFuncBean>) it)).forEach(row -> {
-                    if (row.getData() != null) {
-                        row.getData().stream().filter(it -> it.getId() == funcId).forEach(it -> {
-                            it.setSelected(true);
-                            // Rectangle is the bounds after row expansion
-                            DistributedFuncBean.currentSelectedFunc = it;
-                            int offsetHeight = 0;
-                            for (Component component : scrollPane.getRootPane().getLayeredPane().getComponents()) {
-                                if (component.getClass() == DistributedDataPane.class) {
-                                    offsetHeight = component.getBounds().height;
-                                }
-                            }
-                            int finalOffsetHeight = offsetHeight;
-                            if (row.isCollapsed()) {
-                                row.setCollapsed(false, rectangle1 -> {
-                                    Rectangle rct =
-                                        SwingUtilities.convertRectangle(row.content, it.getRect(), contentPanel);
-                                    scrollPane.getVerticalScrollBar().setValue(0);
-                                    scrollPane.getViewport().scrollRectToVisible(new Rectangle(0,
-                                        Utils.getY(rct) + finalOffsetHeight + it.getRect().y,
-                                        row.getBounds().width,
-                                        rct.height));
-                                    contentPanel.repaint();
-                                });
-                            } else {
-                                Rectangle rct =
-                                    SwingUtilities.convertRectangle(row.content, it.getRect(), contentPanel);
-                                scrollPane.getVerticalScrollBar().setValue(0);
-                                scrollPane.getViewport().scrollRectToVisible(new Rectangle(0,
-                                    Utils.getY(rct) + finalOffsetHeight + it.getRect().y,
-                                    row.getBounds().width,
-                                    rct.height));
-                                contentPanel.repaint();
-                            }
-                        });
-                    }
-                });
-        });
-    }
-
-    private void initPanel() {
         timeShaft = new DistributedTimeShaft((startNS, endNS, scale) -> {
             EventDispatcher.dispatcherRange(startNS, endNS, scale);
             Arrays.stream(contentPanel.getComponents()).filter(DeviceExpandPanel.class::isInstance)
@@ -178,9 +119,9 @@ public class DistributedTracePanel extends JBPanel {
         setLayout(new MigLayout("inset 0", "0[115!]0[grow,fill]0", "0[]0"));
         scrollPane = new JBScrollPane(contentPanel);
         scrollPane.setBorder(null);
-        totalLabel.setText("Total: " + TimeUtils.getDistributedTotalTime(DistributedTracePanel.DURATION));
+        totalLabel.setText("Total: " + TimeUtils.getDistributedTotalTime(DistributedTracePanel.getDURATION()));
         add(totalLabel, "span 1 1,align center");
-        add(new DistributedRuler(DistributedTracePanel.DURATION), "pushx,growx, h 20!,wrap");
+        add(new DistributedRuler(DistributedTracePanel.getDURATION()), "pushx,growx, h 20!,wrap");
         add(rangeStartLabel, "span 1 1,align right,gapright 5");
         add(timeShaft, "pushx,growx,h 30!,wrap");
         add(scrollPane, "span 2,push,grow");
@@ -193,6 +134,68 @@ public class DistributedTracePanel extends JBPanel {
         contentPanel.addMouseListener(new ContentMouseAdapter());
         contentPanel.addMouseMotionListener(new ContentMouseMotionAdapter());
         contentPanel.addComponentListener(new ContentComponentAdapter());
+        // Add monitor to change the selected func color block according to funcId
+        addMonitorChange();
+    }
+
+    private void addMonitorChange() {
+        EventDispatcher.addFuncSelectChange(funcId -> {
+            if (Objects.nonNull(DistributedFuncBean.currentSelectedFunc)) {
+                DistributedFuncBean.currentSelectedFunc.setSelected(false);
+            }
+            allComponent.stream().filter(TraceFuncRow.class::isInstance)
+                .map(it -> ((TraceFuncRow<DistributedFuncBean>) it)).forEach(row -> {
+                if (row.getData() != null) {
+                    row.getData().stream().filter(it -> it.getId() == funcId).forEach(it -> {
+                        it.setSelected(true);
+                        // Rectangle is the bounds after row expansion
+                        DistributedFuncBean.currentSelectedFunc = it;
+                        int offsetHeight = 0;
+                        for (Component component : scrollPane.getRootPane().getLayeredPane().getComponents()) {
+                            if (component.getClass() == DistributedDataPane.class) {
+                                offsetHeight = component.getBounds().height;
+                            }
+                        }
+                        int finalOffsetHeight = offsetHeight;
+                        if (row.isCollapsed()) {
+                            row.setCollapsed(false, rectangle1 -> {
+                                Rectangle rct =
+                                    SwingUtilities.convertRectangle(row.content, it.getRect(), contentPanel);
+                                scrollPane.getVerticalScrollBar().setValue(0);
+                                scrollPane.getViewport().scrollRectToVisible(new Rectangle(0,
+                                    Utils.getY(rct) + finalOffsetHeight + it.getRect().y + it.getRect().height,
+                                    row.getBounds().width, rct.height));
+                                long rangeX1 = it.getStartTs() - it.getDur() * 2;
+                                if (rangeX1 < 0) {
+                                    rangeX1 = 0;
+                                }
+                                long rangeX2 = it.getEndTs() + it.getDur() * 2;
+                                timeShaft.setRange(rangeX1, rangeX2);
+                                timeShaft.notifyRangeChange(rangeX1, rangeX2);
+                            });
+                        } else {
+                            rowUnCollapsed(row, it, finalOffsetHeight);
+                        }
+                    });
+                }
+            });
+        });
+    }
+
+    private void rowUnCollapsed(TraceFuncRow<DistributedFuncBean> row, DistributedFuncBean it,
+        int finalOffsetHeight) {
+        Rectangle rct = SwingUtilities.convertRectangle(row.content, it.getRect(), contentPanel);
+        scrollPane.getVerticalScrollBar().setValue(0);
+        scrollPane.getViewport().scrollRectToVisible(
+            new Rectangle(0, Utils.getY(rct) + finalOffsetHeight + it.getRect().y + it.getRect().height,
+                row.getBounds().width, rct.height));
+        long rangeX1 = it.getStartTs() - it.getDur() * 2;
+        if (rangeX1 < 0) {
+            rangeX1 = 0;
+        }
+        long rangeX2 = it.getEndTs() + it.getDur() * 2;
+        timeShaft.setRange(rangeX1, rangeX2);
+        timeShaft.notifyRangeChange(rangeX1, rangeX2);
     }
 
     /**
@@ -207,9 +210,10 @@ public class DistributedTracePanel extends JBPanel {
     private void timeShaftComplete() {
         Arrays.stream(contentPanel.getComponents()).filter(it -> it instanceof ExpandPanel)
             .map(it -> ((ExpandPanel) it)).filter(it -> !it.isCollapsed()).forEach(
-                it -> Arrays.stream(it.getContent().getComponents()).filter(row -> row instanceof TraceSimpleRow)
-                    .map(row -> ((TraceSimpleRow) row)).filter(row -> row.getRowName().toLowerCase().startsWith("cpu"))
-                    .forEach(row -> row.reload()));
+            it -> Arrays.stream(it.getContent().getComponents()).filter(row -> row instanceof TraceSimpleRow)
+                .map(row -> ((TraceSimpleRow) row))
+                .filter(row -> row.getRowName().toLowerCase(Locale.ENGLISH).startsWith("cpu"))
+                .forEach(row -> row.reload()));
     }
 
     private void tip(MouseEvent event) {
@@ -231,10 +235,15 @@ public class DistributedTracePanel extends JBPanel {
             allComponent.forEach(component -> {
                 if (component instanceof AbstractRow) {
                     AbstractRow row = (AbstractRow) component;
-                    Rectangle rectangle = SwingUtilities.convertRectangle(row, row.getContentBounds(), contentPanel);
-                    if (rectangle.contains(event.getPoint())) {
-                        Point point = SwingUtilities.convertPoint(contentPanel, event.getPoint(), row.content);
-                        row.mouseMoveHandler(point);
+                    Optional<ExpandPanel> exp = getExpandPanel(row);
+                    Optional<DeviceExpandPanel> dxp = getDevicePanel(row);
+                    if (exp.isPresent() && dxp.isPresent() && !exp.get().isCollapsed() && !dxp.get().isCollapsed()) {
+                        Rectangle rectangle =
+                            SwingUtilities.convertRectangle(row, row.getContentBounds(), contentPanel);
+                        if (rectangle.contains(event.getPoint())) {
+                            Point point = SwingUtilities.convertPoint(contentPanel, event.getPoint(), row.content);
+                            row.mouseMoveHandler(point);
+                        }
                     }
                 }
             });
@@ -260,15 +269,39 @@ public class DistributedTracePanel extends JBPanel {
         } else {
             long st =
                 DistributedTracePanel.rangeStartNS < DistributedTracePanel.startNS ? DistributedTracePanel.startNS
-                        : DistributedTracePanel.rangeStartNS;
+                    : DistributedTracePanel.rangeStartNS;
             long et = DistributedTracePanel.rangeEndNS > DistributedTracePanel.endNS ? DistributedTracePanel.endNS
-                    : DistributedTracePanel.rangeEndNS;
+                : DistributedTracePanel.rangeEndNS;
             EventDispatcher.dispatcherThreadRange(st, et, CURRENT_SELECT_THREAD_IDS);
         }
     }
 
     public DistributedTimeShaft getTimeShaft() {
         return timeShaft;
+    }
+
+    private Optional<DeviceExpandPanel> getDevicePanel(Container component) {
+        if (component == null) {
+            return Optional.empty();
+        }
+        if (component instanceof DeviceExpandPanel) {
+            DeviceExpandPanel deviceExpandPanel = (DeviceExpandPanel) component;
+            return Optional.ofNullable(deviceExpandPanel);
+        } else {
+            return getDevicePanel(component.getParent());
+        }
+    }
+
+    private Optional<ExpandPanel> getExpandPanel(Container component) {
+        if (component == null) {
+            return Optional.empty();
+        }
+        if (component instanceof ExpandPanel) {
+            ExpandPanel expandPanel = (ExpandPanel) component;
+            return Optional.ofNullable(expandPanel);
+        } else {
+            return getExpandPanel(component.getParent());
+        }
     }
 
     private class ContentMouseAdapter extends MouseAdapter {
@@ -289,20 +322,14 @@ public class DistributedTracePanel extends JBPanel {
                     .forEach(thread -> {
                         Rectangle rect =
                             SwingUtilities.convertRectangle(thread.getParent(), thread.getBounds(), contentPanel);
-                        if (rect.contains(startPoint) && Utils.getX(startPoint) < Utils.getX(
-                            thread.getContentBounds())) {
-                            DeviceExpandPanel devicePanel = getDevicePanel(thread);
-                            DistributedCache.setCurrentDBFlag(devicePanel.getDbFlag());
+                        if (rect.contains(startPoint) && Utils.getX(startPoint) < Utils
+                            .getX(thread.getContentBounds())) {
+                            Optional<DeviceExpandPanel> devicePanel = getDevicePanel(thread);
+                            if (devicePanel.isPresent()) {
+                                DistributedCache.setCurrentDBFlag(devicePanel.get().getDbFlag());
+                            }
                         }
                     });
-            }
-        }
-
-        private DeviceExpandPanel getDevicePanel(Container component) {
-            if (component instanceof DeviceExpandPanel) {
-                return (DeviceExpandPanel) component;
-            } else {
-                return getDevicePanel(component.getParent());
             }
         }
 
@@ -312,33 +339,37 @@ public class DistributedTracePanel extends JBPanel {
             DistributedTracePanel.rangeStartNS = null;
             DistributedTracePanel.rangeEndNS = null;
             AtomicBoolean flag = new AtomicBoolean(false);
+            CURRENT_SELECT_THREAD_IDS.clear();
             componentList.stream().filter(TraceFuncRow.class::isInstance).map(it -> ((TraceFuncRow<?>) it))
                 .forEach(thread -> {
+                    Optional<ExpandPanel> exp = getExpandPanel(thread);
+                    Optional<DeviceExpandPanel> dxp = getDevicePanel(thread);
+                    if (exp.isPresent() && dxp.isPresent() && !exp.get().isCollapsed() && !dxp.get().isCollapsed()) {
+                        // Create a rectangle
+                        Rectangle rect =
+                            SwingUtilities.convertRectangle(thread.getParent(), thread.getBounds(), contentPanel);
 
-                    // Create a rectangle
-                    Rectangle rect =
-                        SwingUtilities.convertRectangle(thread.getParent(), thread.getBounds(), contentPanel);
-
-                    // If the click coordinates are in the thread name display area, select the thread
-                    if (rect.contains(startPoint) && Utils.getX(startPoint) < Utils.getX(thread.getContentBounds())) {
-                        if (!CURRENT_SELECT_THREAD_IDS.contains(thread.getTid())) {
-                            CURRENT_SELECT_THREAD_IDS.add(thread.getTid());
+                        // If the click coordinates are in the thread name display area, select the thread
+                        if (rect.contains(startPoint) && Utils.getX(startPoint) < Utils
+                            .getX(thread.getContentBounds())) {
+                            if (!CURRENT_SELECT_THREAD_IDS.contains(thread.getTid())) {
+                                CURRENT_SELECT_THREAD_IDS.add(thread.getTid());
+                            }
+                            thread.setSelect(true, null, null);
+                        } else {
+                            // If the clicked coordinates are on the color block,
+                            // it means that the color block is selected instead of the selected row
+                            Point point =
+                                SwingUtilities.convertPoint(event.getComponent(), event.getPoint(), thread.content);
+                            if ((Objects.nonNull(thread.getData()) && thread.getData().stream()
+                                .anyMatch(it -> it.getRect().contains(point)))) {
+                                thread.getData().stream().filter(it -> it.getRect().contains(point))
+                                    .forEach(it -> it.onClick(event));
+                                flag.set(true);
+                            }
+                            CURRENT_SELECT_THREAD_IDS.remove(thread.getTid());
+                            thread.setSelect(false, null, null);
                         }
-                        thread.setSelect(true, null, null);
-                    } else {
-
-                        // If the clicked coordinates are on the color block, it means that the color
-                        // block is selected instead of the selected row
-                        Point point =
-                            SwingUtilities.convertPoint(event.getComponent(), event.getPoint(), thread.content);
-                        if ((Objects.nonNull(thread.getData()) && thread.getData().stream()
-                            .anyMatch(it -> it.getRect().contains(point)))) {
-                            thread.getData().stream().filter(it -> it.getRect().contains(point))
-                                .forEach(it -> it.onClick(event));
-                            flag.set(true);
-                        }
-                        CURRENT_SELECT_THREAD_IDS.remove(thread.getTid());
-                        thread.setSelect(false, null, null);
                     }
                 });
 
@@ -376,21 +407,26 @@ public class DistributedTracePanel extends JBPanel {
                 : Math.abs(Utils.getX(startPoint) - Utils.getX(endPoint));
             int height = Math.abs(Utils.getY(startPoint) - Utils.getY(endPoint));
             Rectangle range = new Rectangle(xPoint, yPoint, width, height);
+            CURRENT_SELECT_THREAD_IDS.clear();
             componentList.stream().filter(TraceFuncRow.class::isInstance).map(it -> ((TraceFuncRow<?>) it))
                 .forEach(thread -> {
-                    Rectangle rect =
-                        SwingUtilities.convertRectangle(thread.getParent(), thread.getBounds(), contentPanel);
-                    if (range.intersects(rect)) {
-                        if (!CURRENT_SELECT_THREAD_IDS.contains(thread.getTid())) {
-                            CURRENT_SELECT_THREAD_IDS.add(thread.getTid());
+                    Optional<ExpandPanel> exp = getExpandPanel(thread);
+                    Optional<DeviceExpandPanel> dxp = getDevicePanel(thread);
+                    if (exp.isPresent() && dxp.isPresent() && !exp.get().isCollapsed() && !dxp.get().isCollapsed()) {
+                        Rectangle rect =
+                            SwingUtilities.convertRectangle(thread.getParent(), thread.getBounds(), contentPanel);
+                        if (range.intersects(rect)) {
+                            if (!CURRENT_SELECT_THREAD_IDS.contains(thread.getTid())) {
+                                CURRENT_SELECT_THREAD_IDS.add(thread.getTid());
+                            }
+                            thread.setSelect(true, xPoint - Utils.getX(thread.getContentBounds()),
+                                xPoint + width - Utils.getX(thread.getContentBounds()));
+                        } else {
+                            if (CURRENT_SELECT_THREAD_IDS.contains(thread.getTid())) {
+                                CURRENT_SELECT_THREAD_IDS.remove(thread.getTid());
+                            }
+                            thread.setSelect(false, null, null);
                         }
-                        thread.setSelect(true, xPoint - Utils.getX(thread.getContentBounds()),
-                            xPoint + width - Utils.getX(thread.getContentBounds()));
-                    } else {
-                        if (CURRENT_SELECT_THREAD_IDS.contains(thread.getTid())) {
-                            CURRENT_SELECT_THREAD_IDS.remove(thread.getTid());
-                        }
-                        thread.setSelect(false, null, null);
                     }
                 });
             Tip.getInstance().hidden();
@@ -423,39 +459,19 @@ public class DistributedTracePanel extends JBPanel {
         DistributedTracePanel.DURATION = DURATION;
     }
 
-    /**
-     * getRangeEndNS
-     *
-     * @return Long
-     */
-    public static Long getRangeEndNS() {
-        return rangeEndNS;
-    }
-
-    /**
-     * setRangeEndNS
-     *
-     * @param rangeEndNS rangeEndNS
-     */
-    public static void setRangeEndNS(Long rangeEndNS) {
-        DistributedTracePanel.rangeEndNS = rangeEndNS;
-    }
-
-    /**
-     * getRangeStartNS
-     *
-     * @return Long
-     */
     public static Long getRangeStartNS() {
         return rangeStartNS;
     }
 
-    /**
-     * setRangeStartNS
-     *
-     * @param rangeStartNS rangeStartNS
-     */
     public static void setRangeStartNS(Long rangeStartNS) {
         DistributedTracePanel.rangeStartNS = rangeStartNS;
+    }
+
+    public static Long getRangeEndNS() {
+        return rangeEndNS;
+    }
+
+    public static void setRangeEndNS(Long rangeEndNS) {
+        DistributedTracePanel.rangeEndNS = rangeEndNS;
     }
 }

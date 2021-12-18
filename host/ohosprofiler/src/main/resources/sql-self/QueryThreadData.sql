@@ -12,10 +12,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 select A.id, A.type, A.tid, A.name, A.start_ts, A.end_ts, A.ipid as upid, A.is_main_thread
      , B.cpu, B.ts-TR.start_ts AS startTime,B.dur,B.state,IP.pid,IP.name as processName
                 from thread_state AS B
                 left join thread as A
-                left join trace_range AS TR
+                left join trace_section AS TR
                 left join process AS IP on IP.id=ipid
                 where A.id=B.itid and tid = %s

@@ -41,13 +41,13 @@ ohos_source_set("cpudataplugin_source") {
       external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
     }
   }
+  public_configs = [ "${OHOS_PROFILER_DIR}/device/base:hiprofiler_test_config" ]
 }
 
 ohos_shared_library("cpudataplugin") {
   output_name = "cpudataplugin"
 
   deps = [ ":cpudataplugin_source" ]
-  public_configs = [ "${OHOS_PROFILER_DIR}/device/base:hiprofiler_test_config" ]
   install_enable = true
   subsystem_name = "${OHOS_PROFILER_SUBSYS_NAME}"
   part_name = "${OHOS_PROFILER_PART_NAME}"
@@ -61,11 +61,13 @@ ohos_executable("cpudataplugintest") {
     "../api/include",
     "${OHOS_PROFILER_DIR}/interfaces/kits",
     "${OHOS_PROFILER_DIR}/device/base/include",
+    "//utils/native/base/include",
   ]
   deps = [
     "${OHOS_PROFILER_3RDPARTY_PROTOBUF_DIR}:protobuf_lite",
     "${OHOS_PROFILER_3RDPARTY_PROTOBUF_DIR}:protoc_lib",
     "${OHOS_PROFILER_DIR}/protos/types/plugins/cpu_data:cpu_data_cpp",
+    "//utils/native/base:utilsecurec",
   ]
   if (current_toolchain != host_toolchain) {
     defines = [ "HAVE_HILOG" ]
@@ -75,7 +77,6 @@ ohos_executable("cpudataplugintest") {
       external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
     }
   }
-  public_configs = [ "${OHOS_PROFILER_DIR}/device/base:hiprofiler_test_config" ]
   install_enable = false
   subsystem_name = "${OHOS_PROFILER_SUBSYS_NAME}"
   part_name = "${OHOS_PROFILER_PART_NAME}"

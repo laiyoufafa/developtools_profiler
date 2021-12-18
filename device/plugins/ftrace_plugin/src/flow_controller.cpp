@@ -40,7 +40,7 @@ constexpr uint32_t MAX_FLUSH_THRESHOLD = 128 * 1024 * 1024;
 constexpr uint32_t MAX_TRACE_PERIOD_MS = 720 * 1000;
 constexpr uint32_t MAX_BUFFER_SIZE_KB = 64 * 1024; // 64MB
 constexpr uint32_t MIN_BUFFER_SIZE_KB = 1024;      // 1 MB
-constexpr uint32_t DEFAULT_TRACE_PERIOD_MS = 500;  // 250 ms
+constexpr uint32_t DEFAULT_TRACE_PERIOD_MS = 250;  // 250 ms
 constexpr uint32_t MAX_BLOCK_SIZE_PAGES = 4096;    // 16 MB
 constexpr uint32_t MIN_BLOCK_SIZE_PAGES = 256;     // 1  MB
 const std::set<std::string> g_availableClocks = {"boot", "global", "local", "mono"};
@@ -220,25 +220,17 @@ void FlowController::CaptureWork()
     pthread_setname_np(pthread_self(), "TraceReader");
     HILOG_DEBUG(LOG_CORE, "FlowController::CaptureWork start!");
 
-    SetScheduler(SCHED_IDLE, sched_get_priority_min(SCHED_IDLE));
+    UNUSED_PARAMETER(SetScheduler);
     auto tracePeriod = std::chrono::milliseconds(tracePeriodMs_);
     std::vector<long> rawDataBytes(platformCpuNum_, 0);
 
-    bool hasMoreData = true;
-    while (keepRunning_ || hasMoreData) {
+    while (keepRunning_) {
         std::this_thread::sleep_for(tracePeriod);
-        hasMoreData = false;
 
         // read data from percpu trace_pipe_raw, consume kernel ring buffers
         for (size_t i = 0; i < rawDataBytes.size(); i++) {
             long nbytes = ReadEventData(i);
-            if (nbytes > 0) {
-                hasMoreData = true;
-            }
             rawDataBytes[i] = nbytes;
-        }
-        if (!keepRunning_ && !hasMoreData) {
-            break;
         }
 
         // append buffer data to cache
@@ -257,7 +249,6 @@ void FlowController::CaptureWork()
             HILOG_INFO(LOG_CORE, "Parse raw data for CPU%zu: %ld bytes...", i, rawDataBytes[i]);
             ParseEventData(i, rawDataBytes[i]);
         }
-        sched_yield();
     }
     HILOG_DEBUG(LOG_CORE, "FlowController::CaptureWork done!");
 }

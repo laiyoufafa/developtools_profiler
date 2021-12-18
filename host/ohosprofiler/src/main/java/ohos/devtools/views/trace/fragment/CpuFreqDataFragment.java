@@ -15,10 +15,10 @@
 
 package ohos.devtools.views.trace.fragment;
 
-import ohos.devtools.views.trace.bean.CpuData;
 import ohos.devtools.views.trace.bean.CpuFreqData;
 import ohos.devtools.views.trace.bean.CpuFreqMax;
-import ohos.devtools.views.trace.component.AnalystPanel;
+import ohos.devtools.views.trace.bean.NodeEventListener;
+import ohos.devtools.views.trace.util.Final;
 import ohos.devtools.views.trace.util.Utils;
 
 import javax.swing.JComponent;
@@ -29,27 +29,26 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Rectangle2D;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * cpu frequency data
  *
  * @since 2021/04/22 12:25
  */
-public class CpuFreqDataFragment extends AbstractDataFragment<CpuFreqData> implements CpuData.IEventListener {
+public class CpuFreqDataFragment extends AbstractDataFragment<CpuFreqData> implements NodeEventListener<CpuFreqData> {
     /**
-     * The currently selected cpu frequency data
+     * focusCpuData
      */
-    public static CpuData currentSelectedCpuData;
+    private static CpuFreqData focusCpuData;
 
     private double x1;
-
     private double x2;
-
     private Rectangle2D bounds;
-
     private String name;
-
     private CpuFreqMax cpuMaxFreq;
+    private CpuFreqData showTipCpuData;
+    private int tipX;
 
     /**
      * Construction method
@@ -84,31 +83,48 @@ public class CpuFreqDataFragment extends AbstractDataFragment<CpuFreqData> imple
         graphics.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, .7f)); // transparency
         String cupFreqName = cpuMaxFreq.getName();
         Object value = cpuMaxFreq.getValue();
-        data.stream().filter(cpuFreqData -> cpuFreqData.getStartTime() + cpuFreqData.getDuration() > startNS
-            && cpuFreqData.getStartTime() < endNS).forEach(cpuGraph -> {
-            if (cpuGraph.getStartTime() <= startNS) {
-                x1 = 0;
-            } else {
-                x1 = getXDouble(cpuGraph.getStartTime());
-            }
-            if (cpuGraph.getStartTime() + cpuGraph.getDuration() >= endNS) {
-                x2 = getDataRect().width;
-            } else {
-                x2 = getXDouble(cpuGraph.getStartTime() + cpuGraph.getDuration());
-            }
-            if (value instanceof Double) {
-                cpuGraph.setMax((Double) value);
-            }
-            cpuGraph.setRoot(getRoot());
-            cpuGraph.setRect(x1 + Utils.getX(getDataRect()), Utils.getY(getDataRect()), x2 - x1 <= 0 ? 1 : x2 - x1,
-                getDataRect().height);
-            cpuGraph.draw(graphics);
-        });
+        if (data != null) {
+            data.stream().filter(cpuFreqData -> cpuFreqData.getStartTime() + cpuFreqData.getDuration() > startNS
+                && cpuFreqData.getStartTime() < endNS).forEach(cpuGraph -> {
+                if (cpuGraph.getStartTime() <= startNS) {
+                    x1 = 0;
+                } else {
+                    x1 = getXDouble(cpuGraph.getStartTime());
+                }
+                if (cpuGraph.getStartTime() + cpuGraph.getDuration() >= endNS) {
+                    x2 = getDataRect().width;
+                } else {
+                    x2 = getXDouble(cpuGraph.getStartTime() + cpuGraph.getDuration());
+                }
+                if (value instanceof Double) {
+                    cpuGraph.setMax((Double) value);
+                }
+                cpuGraph.setEventListener(CpuFreqDataFragment.this);
+                cpuGraph.setRoot(getRoot());
+                cpuGraph.setRect(x1 + Utils.getX(getDataRect()), Utils.getY(getDataRect()), x2 - x1 <= 0 ? 1 : x2 - x1,
+                    getDataRect().height);
+                cpuGraph.draw(graphics);
+            });
+        }
         graphics.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1f)); // transparency
         bounds = graphics.getFontMetrics().getStringBounds(cupFreqName, graphics);
         graphics.setColor(Color.lightGray);
         graphics.drawString(cupFreqName, Utils.getX(getDataRect()) + 2,
             (int) (Utils.getY(getDataRect()) + 2 + bounds.getHeight()));
+        drawTips(graphics);
+    }
+
+    private void drawTips(Graphics2D graphics) {
+        if (showTipCpuData != null) {
+            graphics.setFont(Final.NORMAL_FONT);
+            String process = showTipCpuData.getValue() + "Hz";
+            Rectangle2D processBounds = graphics.getFontMetrics(Final.NORMAL_FONT).getStringBounds(process, graphics);
+            int tipWidth = (int) (processBounds.getWidth() + 20);
+            graphics.setColor(getRoot().getForeground());
+            graphics.fillRect(tipX, Utils.getY(showTipCpuData.rect), tipWidth, showTipCpuData.rect.height);
+            graphics.setColor(getRoot().getBackground());
+            graphics.drawString(process, tipX + 10, Utils.getY(showTipCpuData.rect) + 12);
+        }
     }
 
     /**
@@ -157,21 +173,23 @@ public class CpuFreqDataFragment extends AbstractDataFragment<CpuFreqData> imple
     public void mouseMoved(MouseEvent evt) {
         MouseEvent event = getRealMouseEvent(evt);
         super.mouseMoved(event);
+        tipX = event.getX();
         clearFocus(event);
-        if (edgeInspect(event)) {
-            data.forEach(cpuFreqData -> {
-                if (cpuFreqData.edgeInspect(event)) {
-                    if (!cpuFreqData.isFlagFocus()) {
-                        cpuFreqData.setFlagFocus(true);
-                        cpuFreqData.onFocus(event);
+        if (showTipCpuData != null) {
+            showTipCpuData.select(false);
+        }
+        showTipCpuData = null;
+        if (Objects.nonNull(data) && edgeInspect(event)) {
+            data.stream().filter(it -> it.getStartTime() + it.getDuration() > startNS && it.getStartTime() < endNS)
+                .forEach(it -> {
+                    it.onMouseMove(event);
+                    if (it.edgeInspect(event)) {
+                        if (!it.isFlagFocus()) {
+                            it.setFlagFocus(true);
+                            it.onFocus(event);
+                        }
                     }
-                } else {
-                    if (cpuFreqData.isFlagFocus()) {
-                        cpuFreqData.setFlagFocus(false);
-                        cpuFreqData.onBlur(event);
-                    }
-                }
-            });
+                });
         }
     }
 
@@ -200,17 +218,7 @@ public class CpuFreqDataFragment extends AbstractDataFragment<CpuFreqData> imple
      * @param cpuData cpuData
      */
     @Override
-    public void click(MouseEvent event, CpuData cpuData) {
-        if (currentSelectedCpuData != null) {
-            currentSelectedCpuData.select(false);
-            currentSelectedCpuData.repaint();
-        }
-        cpuData.select(true);
-        cpuData.repaint();
-        currentSelectedCpuData = cpuData;
-        if (AnalystPanel.iCpuDataClick != null) {
-            AnalystPanel.iCpuDataClick.click(cpuData);
-        }
+    public void click(MouseEvent event, CpuFreqData cpuData) {
     }
 
     /**
@@ -220,7 +228,13 @@ public class CpuFreqDataFragment extends AbstractDataFragment<CpuFreqData> imple
      * @param data data
      */
     @Override
-    public void blur(MouseEvent event, CpuData data) {
+    public void blur(MouseEvent event, CpuFreqData data) {
+        if (showTipCpuData != null) {
+            showTipCpuData.select(false);
+        }
+        showTipCpuData = null;
+        focusCpuData = null;
+        getRoot().repaint();
     }
 
     /**
@@ -230,7 +244,11 @@ public class CpuFreqDataFragment extends AbstractDataFragment<CpuFreqData> imple
      * @param data data
      */
     @Override
-    public void focus(MouseEvent event, CpuData data) {
+    public void focus(MouseEvent event, CpuFreqData data) {
+        showTipCpuData = data;
+        showTipCpuData.select(true);
+        focusCpuData = data;
+        getRoot().repaint();
     }
 
     /**
@@ -240,6 +258,18 @@ public class CpuFreqDataFragment extends AbstractDataFragment<CpuFreqData> imple
      * @param data data
      */
     @Override
-    public void mouseMove(MouseEvent event, CpuData data) {
+    public void mouseMove(MouseEvent event, CpuFreqData data) {
+        showTipCpuData = data;
+        showTipCpuData.select(true);
+        tipX = event.getX();
+        getRoot().repaint();
+    }
+
+    /**
+     * Overwrite drawFrame, drawFrame will clean up the data and re-draw, and CpuFreq will load them all together,
+     * without re-drawing
+     */
+    @Override
+    public void drawFrame() {
     }
 }

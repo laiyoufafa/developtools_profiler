@@ -16,14 +16,12 @@
 package ohos.devtools.views.trace.component;
 
 import com.intellij.ui.AncestorListenerAdapter;
-import com.intellij.ui.IdeBorderFactory;
-import com.intellij.ui.SideBorder;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
-import com.intellij.util.ui.JBInsets;
 import net.miginfocom.swing.MigLayout;
 import ohos.devtools.views.trace.Sql;
 import ohos.devtools.views.trace.bean.AsyncEvent;
+import ohos.devtools.views.trace.bean.BinderArg;
 import ohos.devtools.views.trace.bean.Clock;
 import ohos.devtools.views.trace.bean.ClockData;
 import ohos.devtools.views.trace.bean.Cpu;
@@ -36,12 +34,14 @@ import ohos.devtools.views.trace.bean.FlagBean;
 import ohos.devtools.views.trace.bean.FunctionBean;
 import ohos.devtools.views.trace.bean.Process;
 import ohos.devtools.views.trace.bean.ProcessMem;
+import ohos.devtools.views.trace.bean.ProcessMemData;
 import ohos.devtools.views.trace.bean.ThreadData;
 import ohos.devtools.views.trace.bean.WakeupBean;
 import ohos.devtools.views.trace.bean.WakeupTime;
 import ohos.devtools.views.trace.fragment.AbstractDataFragment;
 import ohos.devtools.views.trace.fragment.AsyncEventDataFragment;
 import ohos.devtools.views.trace.fragment.ClockDataFragment;
+import ohos.devtools.views.trace.fragment.ClockFolderFragment;
 import ohos.devtools.views.trace.fragment.CpuDataFragment;
 import ohos.devtools.views.trace.fragment.CpuFreqDataFragment;
 import ohos.devtools.views.trace.fragment.FunctionDataFragment;
@@ -52,8 +52,8 @@ import ohos.devtools.views.trace.listener.IFlagListener;
 import ohos.devtools.views.trace.util.Db;
 import ohos.devtools.views.trace.util.TimeUtils;
 import ohos.devtools.views.trace.util.Utils;
+import org.apache.commons.compress.utils.Lists;
 
-import javax.swing.JLayeredPane;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import javax.swing.event.AncestorEvent;
@@ -116,54 +116,54 @@ public final class AnalystPanel extends JBPanel
     public static IFunctionDataClick iFunctionDataClick;
 
     /**
-     * clock data click listener
-     */
-    public static IClockDataClick iClockDataClick;
-
-    /**
-     * flag click listener
-     */
-    public static IFlagClick iFlagClick;
-
-    /**
-     * cpu data list
-     */
-    public static List<List<CpuData>> cpuList;
-
-    /**
-     * cpu freg data list
-     */
-    public static List<List<CpuFreqData>> cpuFreqList;
-
-    /**
-     * thread data list
-     */
-    public static List<ThreadData> threadsList;
-
-    /**
-     * duration
-     */
-    public static long DURATION = 10_000_000_000L;
-
-    /**
-     * cpu count
-     */
-    public static int cpuNum;
-
-    /**
-     * layered pane
-     */
-    public static JLayeredPane layeredPane;
-
-    /**
      * function click listener
      */
     private static IAsyncFunctionDataClick iAsyncFunctionDataClick;
 
     /**
+     * clock data click listener
+     */
+    private static IClockDataClick iClockDataClick;
+
+    /**
+     * mem data click listener
+     */
+    private static IMemDataClick iMemDataClick;
+
+    /**
+     * flag click listener
+     */
+    private static IFlagClick iFlagClick;
+
+    /**
+     * duration
+     */
+    private static long DURATION = 10_000_000_000L;
+
+    /**
+     * cpu data list
+     */
+    private static List<List<CpuData>> cpuList;
+
+    /**
+     * cpu freg data list
+     */
+    private static List<List<CpuFreqData>> cpuFreqList;
+
+    /**
+     * thread data list
+     */
+    private static List<ThreadData> threadsList;
+
+    /**
+     * cpu count
+     */
+    private static int cpuNum;
+
+    /**
      * bottom tab
      */
-    public TabPanel tab;
+    private TabPanel tab;
     private final JBScrollPane scrollPane = new JBScrollPane();
     private final int defaultFragmentHeight = 40;
     private final double defaultScale = 0.1;
@@ -185,7 +185,7 @@ public final class AnalystPanel extends JBPanel
      * Constructor
      */
     public AnalystPanel() {
-        setLayout(new MigLayout("insets 0"));
+        setLayout(new MigLayout("insets 0", "[grow,fill]", "[grow,fill]"));
         viewport = new TimeViewPort(height -> viewport.setBorder(null), (sn, en) -> {
             /**
              * When the time axis range changes,
@@ -200,25 +200,10 @@ public final class AnalystPanel extends JBPanel
         viewport.setView(contentPanel);
         scrollPane.setViewport(viewport);
         scrollPane.setBorder(null);
-        tab = new TabPanel();
-        tab.setFocusable(true);
-        tab.setVisible(false);
-        tab.setBorder(IdeBorderFactory.createBorder(SideBorder.NONE));
-        tab.setTabComponentInsets(JBInsets.create(0, 0));
         addAncestorListener(new AncestorListenerAdapter() {
             @Override
             public void ancestorAdded(AncestorEvent event) {
                 super.ancestorAdded(event);
-                layeredPane = AnalystPanel.this.getRootPane().getLayeredPane();
-                layeredPane.add(tab);
-                layeredPane.setLayer(tab, JLayeredPane.UNDEFINED_CONDITION);
-                layeredPane.addComponentListener(new ComponentAdapter() {
-                    @Override
-                    public void componentResized(ComponentEvent event) {
-                        super.componentResized(event);
-                        tab.setBounds(0, 0, 0, 0);
-                    }
-                });
                 contentPanel.requestFocusInWindow();
             }
 
@@ -238,7 +223,7 @@ public final class AnalystPanel extends JBPanel
                 contentPanel.repaint();
             }
         });
-        add(scrollPane, "push,grow");
+        add(scrollPane);
         contentPanel.setFocusable(true);
         contentPanel.addMouseMotionListener(this);
         contentPanel.addMouseListener(this);
@@ -249,11 +234,21 @@ public final class AnalystPanel extends JBPanel
         iClockDataClick = clock -> clickClockData(clock);
         iFlagClick = flag -> clickTimeFlag(flag);
         iAsyncFunctionDataClick = data -> clickAsyncFunctionData(data);
+        iMemDataClick = mem -> clickMemData(mem);
     }
 
     static <T> Predicate<T> distinctByKey(Function<? super T, ?> keyExtractor) {
         Map<Object, Boolean> seen = new ConcurrentHashMap<>();
         return obj -> seen.putIfAbsent(keyExtractor.apply(obj), Boolean.TRUE) == null;
+    }
+
+    /**
+     * set tab
+     *
+     * @param tab tab
+     */
+    public void setTab(final TabPanel tab) {
+        this.tab = tab;
     }
 
     /**
@@ -268,15 +263,14 @@ public final class AnalystPanel extends JBPanel
         cpuList = list;
         cpuNum = list.size();
         for (int index = 0; index < list.size(); index++) {
-            List<CpuData> dataList = list.get(index);
-            contentPanel.addDataFragment(new CpuDataFragment(contentPanel, index, dataList));
+            contentPanel.addDataFragment(new CpuDataFragment(contentPanel, index, null));
         }
     }
 
     /**
      * add cpu freg data list
      *
-     * @param list       source
+     * @param list source
      * @param cpuMaxFreq cpu size
      */
     public void addCpuFreqList(final List<List<CpuFreqData>> list, final CpuFreqMax cpuMaxFreq) {
@@ -301,8 +295,8 @@ public final class AnalystPanel extends JBPanel
     /**
      * add thread data list
      *
-     * @param list        thread list
-     * @param processMem  process list
+     * @param list thread list
+     * @param processMem process list
      * @param asyncEvents asyncEvents
      */
     public void addThreadsList(final List<ThreadData> list, final List<ProcessMem> processMem,
@@ -321,10 +315,7 @@ public final class AnalystPanel extends JBPanel
         if (processes.isEmpty()) {
             Db.getInstance().query(Sql.SYS_QUERY_PROCESS_NORDER, processes);
         }
-        for (Process process : processes) {
-            if (process.getPid() == 0) {
-                continue;
-            }
+        processes.stream().filter(it -> it.getPid() != 0).forEach(process -> {
             ProcessDataFragment processDataFragment = new ProcessDataFragment(contentPanel, process);
             contentPanel.addDataFragment(processDataFragment);
             processMem.stream().filter(mem -> mem.getPid() == process.getPid()).forEach(mem -> {
@@ -336,16 +327,16 @@ public final class AnalystPanel extends JBPanel
             });
             asyncEvents.stream().filter(it -> it.getPid().equals(process.getPid()))
                 .filter(distinctByKey(it -> it.getName())).forEach(it -> {
-                    List<AsyncEvent> collect = asyncEvents.stream()
-                        .filter(wt -> wt.getPid().equals(it.getPid()) && wt.getName().equals(it.getName()))
-                        .collect(Collectors.toList());
-                    AsyncEventDataFragment fgr = new AsyncEventDataFragment(contentPanel, it, collect);
-                    int maxHeight = (collect.stream().mapToInt(bean -> bean.getDepth()).max().getAsInt() + 1) * 20;
-                    fgr.defaultHeight = maxHeight + 20;
-                    fgr.parentUuid = processDataFragment.uuid;
-                    fgr.visible = false;
-                    contentPanel.addDataFragment(fgr);
-                });
+                List<AsyncEvent> collect = asyncEvents.stream()
+                    .filter(wt -> wt.getPid().equals(it.getPid()) && wt.getName().equals(it.getName()))
+                    .collect(Collectors.toList());
+                AsyncEventDataFragment fgr = new AsyncEventDataFragment(contentPanel, it, collect);
+                int maxHeight = (collect.stream().mapToInt(bean -> bean.getDepth()).max().getAsInt() + 1) * 20;
+                fgr.defaultHeight = maxHeight + 20;
+                fgr.parentUuid = processDataFragment.uuid;
+                fgr.visible = false;
+                contentPanel.addDataFragment(fgr);
+            });
             List<ThreadData> collect = list.stream().filter(
                 threadData -> threadData.getPid() == process.getPid() && threadData.getTid() != 0
                     && threadData.getThreadName() != null).collect(Collectors.toList());
@@ -356,7 +347,7 @@ public final class AnalystPanel extends JBPanel
                 fgr.visible = false;
                 contentPanel.addDataFragment(fgr);
             }
-        }
+        });
         // If you use the memory method to find the data, you need to execute the following code
         if (!list.isEmpty()) {
             addThreadsList2(list);
@@ -402,7 +393,7 @@ public final class AnalystPanel extends JBPanel
     /**
      * load database
      *
-     * @param name    db name
+     * @param name db name
      * @param isLocal is local db
      */
     public void load(final String name, final boolean isLocal) {
@@ -445,14 +436,11 @@ public final class AnalystPanel extends JBPanel
                 addThreadsList(processThreads, processMem, asyncEvents); // The memory information of the process and
                 // The thread information of the process is displayed together
                 // load logs
-                Rectangle b3 =
-                    SwingUtilities.convertRectangle(scrollPane, scrollPane.getBounds(), layeredPane);
                 tab.removeAll();
-                tab.display(b3);
+                tab.display();
                 tab.add("Logs", tabLogTable);
                 tab.hideInBottom();
                 tabLogTable.query(true);
-                tabLogTable.requestFocusInWindow();
                 contentPanel.refresh();
             });
         }, Utils.getPool()).whenComplete((unused, throwable) -> {
@@ -468,8 +456,16 @@ public final class AnalystPanel extends JBPanel
             screenState.setName("ScreenState");
             screenState.setSrcname("ScreenState");
             contentPanel.addDataFragment(new ClockDataFragment(contentPanel, screenState));
+            Clock folder = new Clock();
+            folder.setName("Clocks");
+            folder.setSrcname("Clocks");
+            ClockFolderFragment folderFragment = new ClockFolderFragment(contentPanel, folder);
+            contentPanel.addDataFragment(folderFragment);
             clocks.forEach(it -> {
-                contentPanel.addDataFragment(new ClockDataFragment(contentPanel, it));
+                ClockDataFragment clockDataFragment = new ClockDataFragment(contentPanel, it);
+                clockDataFragment.parentUuid = folderFragment.uuid;
+                clockDataFragment.visible = false;
+                contentPanel.addDataFragment(clockDataFragment);
             });
         }
     }
@@ -488,7 +484,7 @@ public final class AnalystPanel extends JBPanel
         };
         Db.getInstance().query(Sql.SYS_QUERY_CPU_MAX, cpuMaxes);
         if (cpuMaxes.isEmpty()) {
-            return new ArrayList<>();
+            return Lists.newArrayList();
         }
         int cpuMax = cpuMaxes.get(0).getCpu();
         List<List<CpuData>> list = new ArrayList<>();
@@ -516,22 +512,22 @@ public final class AnalystPanel extends JBPanel
     /**
      * The bottom tab is displayed when the select event is clicked.
      *
-     * @param cpus      select cpu list（）
+     * @param cpus select cpu list（）
      * @param threadIds select thread id list
-     * @param trackIds  select mem track id list
-     * @param ns        select start time ns and end time ns
-     * @param funTids   funTids
+     * @param trackIds select mem track id list
+     * @param ns select start time ns and end time ns
+     * @param funTids funTids
      */
     public void boxSelection(final List<Integer> cpus, final List<Integer> threadIds, final List<Integer> trackIds,
         final List<Integer> funTids, final LeftRightNS ns) {
         if (cpus.isEmpty() && threadIds.isEmpty() && trackIds.isEmpty() && funTids.isEmpty()) {
-            tab.hidden();
+            if (Objects.nonNull(tab)) {
+                tab.hidden();
+            }
             return;
         }
         SwingUtilities.invokeLater(() -> {
-            Rectangle b3 =
-                SwingUtilities.convertRectangle(scrollPane, scrollPane.getBounds(), layeredPane);
-            tab.display(b3);
+            tab.display();
             tab.removeAll();
             if (cpus != null && !cpus.isEmpty()) {
                 TabCpuByThread cpuThread = new TabCpuByThread();
@@ -571,20 +567,30 @@ public final class AnalystPanel extends JBPanel
         ArrayList<ScrollSlicePanel.SliceData> dataSource = new ArrayList<>();
         dataSource.add(ScrollSlicePanel.createSliceData("Name", bean.getFunName(), false));
         dataSource.add(ScrollSlicePanel.createSliceData("Category", bean.getCategory(), false));
-        dataSource.add(ScrollSlicePanel.createSliceData("StartTime",
-            TimeUtils.getTimeString(bean.getStartTime()) + "", false));
-        dataSource.add(ScrollSlicePanel.createSliceData("Duration",
-            TimeUtils.getTimeString(bean.getDuration()) + "", false));
+        dataSource.add(
+            ScrollSlicePanel.createSliceData("StartTime", TimeUtils.getTimeString(bean.getStartTime()) + "", false));
+        dataSource
+            .add(ScrollSlicePanel.createSliceData("Duration", TimeUtils.getTimeString(bean.getDuration()) + "", false));
+        if (bean.isBinder()) {
+            List<BinderArg> binderArgList = new ArrayList<>() {
+            };
+            Db.getInstance().query(Sql.SYS_QUERY_BINDER_ARGS_BY_ARGSET, binderArgList, bean.getArgSetId());
+            binderArgList.forEach(it -> {
+                dataSource.add(ScrollSlicePanel.createSliceData(it.getKeyName(), it.getStrValue(), false));
+            });
+            dataSource.add(ScrollSlicePanel.createSliceData("depth", bean.getDepth().toString(), false));
+            dataSource.add(ScrollSlicePanel.createSliceData("arg_set_id", bean.getArgSetId().toString(), false));
+        }
         SwingUtilities.invokeLater(() -> {
-            Rectangle b3 =
-                SwingUtilities.convertRectangle(scrollPane, scrollPane.getBounds(), layeredPane);
-            tab.display(b3);
-            tab.removeAll();
-            ScrollSlicePanel ssp = new ScrollSlicePanel();
-            ssp.setData("Slice Details", dataSource, null);
-            tab.add("Current Selection", ssp);
-            tab.add("Logs", tabLogTable);
-            tabLogTable.query(true);
+            if (Objects.nonNull(tab)) {
+                tab.display();
+                tab.removeAll();
+                ScrollSlicePanel ssp = new ScrollSlicePanel();
+                ssp.setData("Slice Details", dataSource, null);
+                tab.add("Current Selection", ssp);
+                tab.add("Logs", tabLogTable);
+                tabLogTable.query(true);
+            }
         });
     }
 
@@ -598,20 +604,20 @@ public final class AnalystPanel extends JBPanel
         ArrayList<ScrollSlicePanel.SliceData> dataSource = new ArrayList<>();
         dataSource.add(ScrollSlicePanel.createSliceData("Name", bean.getName(), false));
         dataSource.add(ScrollSlicePanel.createSliceData("Cookie", bean.getCookie().toString(), false));
-        dataSource.add(ScrollSlicePanel.createSliceData("StartTime",
-            TimeUtils.getTimeString(bean.getStartTime()) + "", false));
-        dataSource.add(ScrollSlicePanel.createSliceData("Duration",
-            TimeUtils.getTimeString(bean.getDuration()) + "", false));
+        dataSource.add(
+            ScrollSlicePanel.createSliceData("StartTime", TimeUtils.getTimeString(bean.getStartTime()) + "", false));
+        dataSource
+            .add(ScrollSlicePanel.createSliceData("Duration", TimeUtils.getTimeString(bean.getDuration()) + "", false));
         SwingUtilities.invokeLater(() -> {
-            Rectangle b3 =
-                SwingUtilities.convertRectangle(scrollPane, scrollPane.getBounds(), layeredPane);
-            tab.display(b3);
-            tab.removeAll();
-            ScrollSlicePanel ssp = new ScrollSlicePanel();
-            ssp.setData("Slice Details", dataSource, null);
-            tab.add("Current Selection", ssp);
-            tab.add("Logs", tabLogTable);
-            tabLogTable.query(true);
+            if (Objects.nonNull(tab)) {
+                tab.display();
+                tab.removeAll();
+                ScrollSlicePanel ssp = new ScrollSlicePanel();
+                ssp.setData("Slice Details", dataSource, null);
+                tab.add("Current Selection", ssp);
+                tab.add("Logs", tabLogTable);
+                tabLogTable.query(true);
+            }
         });
     }
 
@@ -623,18 +629,41 @@ public final class AnalystPanel extends JBPanel
     public void clickClockData(final ClockData clock) {
         cancelRangeSelect();
         ArrayList<ScrollSlicePanel.SliceData> dataSource = new ArrayList<>();
-        dataSource.add(ScrollSlicePanel.createSliceData("Start time",
-            TimeUtils.getTimeString(clock.getStartTime()), false));
-        dataSource.add(ScrollSlicePanel.createSliceData("Value",
-            String.valueOf(clock.getValue()), false));
-        dataSource.add(ScrollSlicePanel.createSliceData("Delta",
-            String.valueOf(clock.getDelta()), false));
-        dataSource.add(ScrollSlicePanel.createSliceData("Duration",
-            TimeUtils.getTimeString(clock.getDuration()) + "", false));
+        dataSource
+            .add(ScrollSlicePanel.createSliceData("Start time", TimeUtils.getTimeString(clock.getStartTime()), false));
+        dataSource.add(ScrollSlicePanel.createSliceData("Value", String.valueOf(clock.getValue()), false));
+        dataSource.add(ScrollSlicePanel.createSliceData("Delta", String.valueOf(clock.getDelta()), false));
+        dataSource.add(
+            ScrollSlicePanel.createSliceData("Duration", TimeUtils.getTimeString(clock.getDuration()) + "", false));
         SwingUtilities.invokeLater(() -> {
-            Rectangle b3 =
-                SwingUtilities.convertRectangle(scrollPane, scrollPane.getBounds(), layeredPane);
-            tab.display(b3);
+            if (Objects.nonNull(tab)) {
+                tab.display();
+                tab.removeAll();
+                ScrollSlicePanel ssp = new ScrollSlicePanel();
+                ssp.setData("Counter Details", dataSource, null);
+                tab.add("Current Selection", ssp);
+                tab.add("Logs", tabLogTable);
+                tabLogTable.query(true);
+            }
+        });
+    }
+
+    /**
+     * The bottom tab is displayed when the mem data event is clicked.
+     *
+     * @param mem mem data
+     */
+    public void clickMemData(final ProcessMemData mem) {
+        cancelRangeSelect();
+        ArrayList<ScrollSlicePanel.SliceData> dataSource = new ArrayList<>();
+        dataSource
+            .add(ScrollSlicePanel.createSliceData("Start time", TimeUtils.getTimeString(mem.getStartTime()), false));
+        dataSource.add(ScrollSlicePanel.createSliceData("Value", String.valueOf(mem.getValue()), false));
+        dataSource.add(ScrollSlicePanel.createSliceData("Delta", String.valueOf(mem.getDelta()), false));
+        dataSource
+            .add(ScrollSlicePanel.createSliceData("Duration", TimeUtils.getTimeString(mem.getDuration()) + "", false));
+        SwingUtilities.invokeLater(() -> {
+            tab.display();
             tab.removeAll();
             ScrollSlicePanel ssp = new ScrollSlicePanel();
             ssp.setData("Counter Details", dataSource, null);
@@ -662,25 +691,24 @@ public final class AnalystPanel extends JBPanel
         }
         dataSource.add(ScrollSlicePanel.createSliceData("State", state, true));
         String processName = threadData.getProcessName();
-        if (processName == null || processName.isEmpty()) {
+        if (processName == null || processName.isEmpty() || processName.equalsIgnoreCase("null")) {
             processName = threadData.getThreadName();
         }
         dataSource
             .add(ScrollSlicePanel.createSliceData("Process", processName + " [" + threadData.getPid() + "]", false));
         SwingUtilities.invokeLater(() -> {
-            Rectangle b3 =
-                SwingUtilities.convertRectangle(scrollPane, scrollPane.getBounds(), layeredPane);
-            tab.setRootRect(b3);
-            tab.display(b3);
-            tab.removeAll();
-            ScrollSlicePanel ssp = new ScrollSlicePanel();
-            ssp.setData("Thread State", dataSource, null);
-            ssp.setScrollSliceLinkListener(bean -> {
-                contentPanel.scrollToCpu(threadData.getCpu(), threadData.getStartTime());
-            });
-            tab.add("Current Selection", ssp);
-            tab.add("Logs", tabLogTable);
-            tabLogTable.query(true);
+            if (Objects.nonNull(tab)) {
+                tab.display();
+                tab.removeAll();
+                ScrollSlicePanel ssp = new ScrollSlicePanel();
+                ssp.setData("Thread State", dataSource, null);
+                ssp.setScrollSliceLinkListener(bean -> {
+                    contentPanel.scrollToCpu(threadData.getCpu(), threadData.getStartTime());
+                });
+                tab.add("Current Selection", ssp);
+                tab.add("Logs", tabLogTable);
+                tabLogTable.query(true);
+            }
         });
     }
 
@@ -712,14 +740,14 @@ public final class AnalystPanel extends JBPanel
             Optional<WakeupBean> wb = queryWakeUpThread(cpu);
             SwingUtilities.invokeLater(() -> {
                 contentPanel.setWakeupBean(wb.orElse(null));
-                Rectangle b3 =
-                    SwingUtilities.convertRectangle(scrollPane, scrollPane.getBounds(), layeredPane);
-                tab.display(b3);
+                tab.display();
                 tab.removeAll();
                 ScrollSlicePanel ssp = new ScrollSlicePanel();
                 ssp.setData("Slice Details", dataSource, wb.orElse(null));
                 ssp.setScrollSliceLinkListener(bean -> {
-                    contentPanel.scrollToThread(cpu.getProcessId(), cpu.getTid(), cpu.getStartTime(), tab.getHeight());
+                    contentPanel
+                        .scrollToThread(cpu.getProcessId(), cpu.getProcessName(), cpu.getTid(), cpu.getStartTime(),
+                            tab.getHeight());
                 });
                 tab.add("Current Selection", ssp);
                 tab.add("Logs", tabLogTable);
@@ -773,7 +801,6 @@ public final class AnalystPanel extends JBPanel
     public void clickTimeFlag(final FlagBean flagBean) {
         cancelRangeSelect();
         clicked = true;
-        layeredPane.setLayer(tab, javax.swing.JLayeredPane.DRAG_LAYER);
         ScrollFlagPanel flagPanel = new ScrollFlagPanel(flagBean);
         flagPanel.setFlagListener(new IFlagListener() {
             @Override
@@ -794,12 +821,12 @@ public final class AnalystPanel extends JBPanel
             }
         });
         SwingUtilities.invokeLater(() -> {
-            Rectangle b3 =
-                SwingUtilities.convertRectangle(scrollPane, scrollPane.getBounds(), layeredPane);
-            tab.display(b3);
-            tab.removeAll();
-            tab.add("Current Selection", flagPanel);
-            repaint();
+            if (Objects.nonNull(tab)) {
+                tab.display();
+                tab.removeAll();
+                tab.add("Current Selection", flagPanel);
+                repaint();
+            }
         });
     }
 
@@ -849,9 +876,7 @@ public final class AnalystPanel extends JBPanel
                 viewport.cancel(frg);
             }
             String keyword = Optional.ofNullable(JOptionPane
-                    .showInputDialog(null, "Search for pid uid name",
-                        "Search", JOptionPane.PLAIN_MESSAGE, null, null,
-                        ""))
+                .showInputDialog(null, "Search for pid uid name", "Search", JOptionPane.PLAIN_MESSAGE, null, null, ""))
                 .map(it -> it.toString().trim()).orElse("");
             if (keyword == null || keyword.isEmpty()) {
                 keyPressedVKFEmptyKeyword();
@@ -1213,12 +1238,52 @@ public final class AnalystPanel extends JBPanel
         contentPanel.endPoint = null;
     }
 
+    public static int getCpuNum() {
+        return cpuNum;
+    }
+
+    public static void setCpuNum(int cpuNum) {
+        AnalystPanel.cpuNum = cpuNum;
+    }
+
     public static IAsyncFunctionDataClick getiAsyncFunctionDataClick() {
         return iAsyncFunctionDataClick;
     }
 
     public static void setiAsyncFunctionDataClick(IAsyncFunctionDataClick iAsyncFunctionDataClick) {
         AnalystPanel.iAsyncFunctionDataClick = iAsyncFunctionDataClick;
+    }
+
+    public static IClockDataClick getiClockDataClick() {
+        return iClockDataClick;
+    }
+
+    public static void setiClockDataClick(IClockDataClick iClockDataClick) {
+        AnalystPanel.iClockDataClick = iClockDataClick;
+    }
+
+    public static IMemDataClick getiMemDataClick() {
+        return iMemDataClick;
+    }
+
+    public static void setiMemDataClick(IMemDataClick iMemDataClick) {
+        AnalystPanel.iMemDataClick = iMemDataClick;
+    }
+
+    public static IFlagClick getiFlagClick() {
+        return iFlagClick;
+    }
+
+    public static void setiFlagClick(IFlagClick iFlagClick) {
+        AnalystPanel.iFlagClick = iFlagClick;
+    }
+
+    public static long getDURATION() {
+        return DURATION;
+    }
+
+    public static void setDURATION(long DURATION) {
+        AnalystPanel.DURATION = DURATION;
     }
 
     /**
@@ -1279,6 +1344,18 @@ public final class AnalystPanel extends JBPanel
          * @param data function
          */
         void click(ClockData data);
+    }
+
+    /**
+     * mem data click callback
+     */
+    public interface IMemDataClick {
+        /**
+         * mem data click callback
+         *
+         * @param data function
+         */
+        void click(ProcessMemData data);
     }
 
     /**

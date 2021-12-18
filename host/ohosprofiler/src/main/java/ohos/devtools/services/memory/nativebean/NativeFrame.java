@@ -15,10 +15,12 @@
 
 package ohos.devtools.services.memory.nativebean;
 
+import org.apache.commons.lang.StringUtils;
+
 import java.util.Objects;
 
 /**
- * NativeFrame
+ * NativeFunction
  *
  * @since 2021/9/20
  */
@@ -26,11 +28,16 @@ public class NativeFrame {
     private String pc;
     private String fileName;
     private String functionName;
+    private String offsetAddress;
+    private String line;
 
-    public NativeFrame(String pc, String fileName, String functionName) {
+    public NativeFrame(String pc, String fileName, String functionName, String offsetAddress, String line) {
         this.pc = pc;
         this.fileName = fileName;
         this.functionName = functionName;
+        this.offsetAddress = offsetAddress;
+        this.line = line;
+
     }
 
     public String getPc() {
@@ -50,12 +57,24 @@ public class NativeFrame {
     }
 
     public String getFunctionName() {
-        return functionName;
+        if (StringUtils.isBlank(functionName)) {
+            return offsetAddress + "(" + pc + ")";
+        }
+        return functionName + "(" + "+" + line + ")";
     }
 
     public void setFunctionName(String functionName) {
         this.functionName = functionName;
     }
+
+    public String getOffsetAddress() {
+        return offsetAddress;
+    }
+
+    public void setOffsetAddress(String offsetAddress) {
+        this.offsetAddress = offsetAddress;
+    }
+
 
     @Override
     public boolean equals(Object obj) {

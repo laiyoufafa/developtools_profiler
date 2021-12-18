@@ -29,7 +29,7 @@ import java.awt.RenderingHints;
  * @since 2021/5/12 16:34
  */
 public class Ruler extends JBPanel {
-    private final long duration;
+    private long duration;
     private int degreeCount = 55;
 
     /**
@@ -48,6 +48,16 @@ public class Ruler extends JBPanel {
             dtArr[index] = TimeUtils.getSecondFromNSecond(index * 10 * ns);
         }
         return dtArr;
+    }
+
+    /**
+     * refresh time ruler
+     *
+     * @param duration time
+     */
+    public void refreshTimeRuler(long duration) {
+        this.duration = duration;
+        repaint();
     }
 
     @Override

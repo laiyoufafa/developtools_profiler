@@ -199,9 +199,7 @@ public class CpuFreq extends AbstractNode {
 
     @Override
     public List<String> getStringList(String time) {
-        return Arrays.asList(
-            time,
-            "CPU" + cpu + " Frequency: " + value
-        );
+        return Arrays.asList(time, "CPU" + cpu + " Frequency: " + Utils.getHzUnit(value));
     }
+
 }

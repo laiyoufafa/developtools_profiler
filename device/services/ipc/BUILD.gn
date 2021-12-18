@@ -41,7 +41,7 @@ ohos_source_set("ipc") {
     "${OHOS_PROFILER_3RDPARTY_PROTOBUF_DIR}:protobuf_lite",
     "//utils/native/base:utilsecurec",
   ]
-  public_configs = [ "../../base:hiprofiler_test_config" ]
+  public_configs = [ "${OHOS_PROFILER_DIR}/device/base:hiprofiler_test_config" ]
 }
 
 ohos_executable("protoc_gen_ipc") {
@@ -55,7 +55,7 @@ ohos_executable("protoc_gen_ipc") {
     "include",
     "${OHOS_PROFILER_3RDPARTY_PROTOBUF_DIR}",
   ]
-  public_configs = [ "../../base:hiprofiler_test_config" ]
+  public_configs = [ "${OHOS_PROFILER_DIR}/device/base:hiprofiler_test_config" ]
   deps = [
     "${OHOS_PROFILER_3RDPARTY_PROTOBUF_DIR}:protobuf",
     "${OHOS_PROFILER_3RDPARTY_PROTOBUF_DIR}:protobuf_lite",

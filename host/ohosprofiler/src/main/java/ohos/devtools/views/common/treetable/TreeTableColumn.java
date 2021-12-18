@@ -56,7 +56,7 @@ public abstract class TreeTableColumn<T, N> extends ColumnInfo<DefaultMutableTre
                     long startL = Long.parseLong(this.getColumnValue(start));
                     long endL = Long.parseLong(this.getColumnValue(end));
                     return Long.compare(startL, endL);
-                } catch (NumberFormatException e) {
+                } catch (NumberFormatException exception) {
                     return this.getColumnValue(start).compareTo(this.getColumnValue(end));
                 }
             }

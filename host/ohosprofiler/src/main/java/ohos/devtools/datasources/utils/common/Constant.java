@@ -165,6 +165,11 @@ public class Constant {
      */
     public static final String PROCESS_PLUGS = "process-plugin";
 
+    /**
+     * TIME_OUT
+     */
+    public static final String TIME_OUT = "TimeOut";
+
 
     private Constant() {
     }

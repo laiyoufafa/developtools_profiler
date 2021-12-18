@@ -12,4 +12,5 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 select thread.*,p.pid from thread left join process p on thread.ipid = p.id where pid = %s;

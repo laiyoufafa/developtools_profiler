@@ -12,14 +12,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 select * from
-    ( select ts as wakeTs,start_ts from instants_view,trace_range
+    ( select ts as wakeTs,start_ts from instants_view,trace_section
        where name = 'sched_waking'
        and ref = %s
        and ts < start_ts + %s
        order by ts desc limit 1) TA
        left join
-    (select ts as preRow from sched_view,trace_range
+    (select ts as preRow from sched_view,trace_section
        where itid = %s
        and ts < start_ts + %s
        order by ts desc limit 1) TB

@@ -27,7 +27,7 @@ import org.apache.logging.log4j.Logger;
 /**
  * FtraceConfig
  *
- * @since: 2021/9/20
+ * @since 2021/9/20
  */
 @DPlugin
 public class ProcessConfig extends IPluginConfig {

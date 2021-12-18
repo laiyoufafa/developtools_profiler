@@ -25,6 +25,7 @@ import javax.swing.SortOrder;
 public interface ITreeTableSortChangeListener {
     /**
      * sort Callback
+     *
      * @param columns table column index
      * @param sortOrder type of sort
      */

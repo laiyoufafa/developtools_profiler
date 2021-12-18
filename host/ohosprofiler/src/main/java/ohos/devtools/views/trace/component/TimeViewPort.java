@@ -201,9 +201,9 @@ public final class TimeViewPort extends JBViewport {
             cpuFragment.setSelectX(
                 event.getX() < Utils.getX(cpuFragment.getRect()) ? Utils.getX(cpuFragment.getRect()) : event.getX());
             cpuFragment.setSelectY(scrollY);
-            rulerFragment
-                .setSelectX(event.getX() < Utils.getX(rulerFragment.getRect()) ? Utils.getX(rulerFragment.getRect())
-                        : event.getX());
+            rulerFragment.setSelectX(
+                event.getX() < Utils.getX(rulerFragment.getRect()) ? Utils.getX(rulerFragment.getRect())
+                    : event.getX());
             rulerFragment.setSelectY(scrollY);
         }
     }
@@ -231,9 +231,9 @@ public final class TimeViewPort extends JBViewport {
             cpuFragment.setSelectX(
                 event.getX() < Utils.getX(cpuFragment.getRect()) ? Utils.getX(cpuFragment.getRect()) : event.getX());
             cpuFragment.setSelectY(scrollY);
-            rulerFragment
-                .setSelectX(event.getX() < Utils.getX(rulerFragment.getRect()) ? Utils.getX(rulerFragment.getRect())
-                        : event.getX());
+            rulerFragment.setSelectX(
+                event.getX() < Utils.getX(rulerFragment.getRect()) ? Utils.getX(rulerFragment.getRect())
+                    : event.getX());
             rulerFragment.setSelectY(scrollY);
             CpuDataFragment.focusCpuData = null;
             rulerFragment.mouseMoved(event);
@@ -245,6 +245,7 @@ public final class TimeViewPort extends JBViewport {
      * recycle all fragments
      */
     public void recycle() {
+        TimeViewPort.height = 140;
         if (favoriteFragments != null) {
             favoriteFragments.forEach(AbstractDataFragment::recycle);
             favoriteFragments.clear();

@@ -17,6 +17,10 @@ package ohos.devtools.views.applicationtrace.bean;
 
 import ohos.devtools.views.trace.DField;
 
+import java.math.BigDecimal;
+
+import static java.math.BigDecimal.ROUND_HALF_UP;
+
 /**
  * CpuFreqMax
  *
@@ -92,7 +96,7 @@ public class CpuFreqMax {
      * @return CpuFreqMax
      */
     public CpuFreqMax math() {
-        StringBuilder sb = new StringBuilder(" ");
+        StringBuilder builder = new StringBuilder(" ");
         setName(" ");
         if (maxFreq > 0) {
             double log10 = Math.ceil(Math.log10(maxFreq));
@@ -100,11 +104,12 @@ public class CpuFreqMax {
             double afterCeil = Math.ceil(maxFreq / (pow10 / 4)) * (pow10 / 4);
             setValue(afterCeil);
             double unitIndex = Math.floor(log10 / 3);
-            sb.append(afterCeil / Math.pow(10, unitIndex * 3));
-            sb.append(units[(int) unitIndex + 1]);
-            sb.append("hz");
+            builder.append(BigDecimal.valueOf(afterCeil)
+                .divide(BigDecimal.valueOf(Math.pow(10, unitIndex * 3)), 5, ROUND_HALF_UP));
+            builder.append(units[(int) unitIndex + 1]);
+            builder.append("hz");
         }
-        setName(sb.toString());
+        setName(builder.toString());
         return this;
     }
 }

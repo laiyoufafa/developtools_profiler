@@ -26,7 +26,7 @@ import java.nio.charset.StandardCharsets;
 /**
  * ParsePerf Parent Class.
  *
- * @since: 2021/9/20
+ * @since 2021/9/20
  */
 public abstract class ParsePerf {
 

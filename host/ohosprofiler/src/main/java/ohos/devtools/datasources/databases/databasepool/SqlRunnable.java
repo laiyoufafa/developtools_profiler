@@ -28,7 +28,7 @@ import java.sql.Statement;
 /**
  * sql carried out
  *
- * @since 2021/10/22 16:30
+ * @since 2021/10/26
  */
 public class SqlRunnable {
     private static final Logger LOGGER = LogManager.getLogger(SqlRunnable.class);

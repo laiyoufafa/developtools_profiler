@@ -36,9 +36,9 @@ public class QuartzManager {
     public static final int DELAY = 0;
 
     /**
-     * PERIOD 3000
+     * PERIOD 4000
      */
-    public static final int PERIOD = 3000;
+    public static final int PERIOD = 4000;
     private static final Logger LOGGER = LogManager.getLogger(QuartzManager.class);
     private static volatile QuartzManager instance;
 
@@ -69,7 +69,7 @@ public class QuartzManager {
      */
     public void addExecutor(String runName, Runnable runnable) {
         if (ProfilerLogManager.isInfoEnabled()) {
-            LOGGER.info("addExecutor", runName);
+            LOGGER.info("addExecutor {}", runName);
         }
         ScheduledExecutorService scheduled = new ScheduledThreadPoolExecutor(1);
         executorHashMap.put(runName, scheduled);
@@ -85,7 +85,7 @@ public class QuartzManager {
      */
     public void startExecutor(String runName, long delay, long period) {
         if (ProfilerLogManager.isInfoEnabled()) {
-            LOGGER.info("startExecutor");
+            LOGGER.info("startExecutor {}", runName);
         }
         ScheduledExecutorService scheduled = executorHashMap.get(runName);
         Runnable runnable = runnableHashMap.get(runName);
@@ -103,7 +103,7 @@ public class QuartzManager {
      */
     public void deleteExecutor(String runName) {
         if (ProfilerLogManager.isInfoEnabled()) {
-            LOGGER.info("deleteExecutor");
+            LOGGER.info("deleteExecutor {}", runName);
         }
         ScheduledExecutorService scheduledExecutorService = executorHashMap.get(runName);
         if (scheduledExecutorService != null) {

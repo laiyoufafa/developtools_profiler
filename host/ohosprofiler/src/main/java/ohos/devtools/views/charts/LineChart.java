@@ -39,6 +39,10 @@ public class LineChart extends ProfilerChart {
     private static final int NUM_2 = 2;
     private static final int NUM_3 = 3;
 
+    private boolean isZoom = true;
+    private int lineWidth = -1;
+    private String chartName;
+
     /**
      * Constructor
      *
@@ -47,7 +51,24 @@ public class LineChart extends ProfilerChart {
      */
     public LineChart(ProfilerChartsView bottomPanel, String name) {
         super(bottomPanel, name);
+        this.chartName = name;
         chartType = LINE;
+    }
+
+    /**
+     * Constructor
+     *
+     * @param bottomPanel bottomPanel
+     * @param name name
+     * @param isZoom isZoom
+     * @param lineWidth lineWidth
+     */
+    public LineChart(ProfilerChartsView bottomPanel, String name, boolean isZoom, int lineWidth) {
+        super(bottomPanel, name);
+        chartType = LINE;
+        this.chartName = name;
+        this.isZoom = isZoom;
+        this.lineWidth = lineWidth;
     }
 
     /**
@@ -84,13 +105,18 @@ public class LineChart extends ProfilerChart {
         graphicD.setColor(ColorConstants.RULER);
         graphicD.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         // Define dashed bar features
-        BasicStroke bs = new BasicStroke(DEFAULT_LINE_WIDTH);
+        if (lineWidth == -1) {
+            lineWidth = DEFAULT_LINE_WIDTH;
+        }
+        BasicStroke bs = new BasicStroke(lineWidth);
         // Save original line features
         Stroke stroke = graphicD.getStroke();
         graphicD.setStroke(bs);
         // 循环绘制多条折线
         List<ChartDataModel> lines = dataMap.entrySet().iterator().next().getValue();
-        lines.forEach((line) -> paintLine(line.getIndex(), graphics));
+        if (lines != null && lines.size() > 0) {
+            lines.forEach((line) -> paintLine(line.getIndex(), graphics));
+        }
         // After drawing, the default format should be restored, otherwise the graphics drawn later are dotted lines
         BasicStroke defaultStroke = castBasicStroke(stroke);
         graphicD.setStroke(defaultStroke);
@@ -107,9 +133,9 @@ public class LineChart extends ProfilerChart {
         int length = timeArray.length;
         int[] pointX = new int[length];
         int[] pointY = new int[length];
-        for (int i = 0; i < length; i++) {
-            int time = timeArray[i];
-            pointX[i] = startXCoordinate + multiply(pixelPerX, time - startTime);
+        for (int timeIndex = 0; timeIndex < length; timeIndex++) {
+            int time = timeArray[timeIndex];
+            pointX[timeIndex] = startXCoordinate + multiply(pixelPerX, time - startTime);
             List<ChartDataModel> chartDataModels = dataMap.get(time);
             if (chartDataModels == null) {
                 return;
@@ -121,10 +147,14 @@ public class LineChart extends ProfilerChart {
             int value = chartDataModel.getValue();
             // Update Y-axis maximum
             if (value > maxUnitY) {
-                maxUnitY = divideInt(value * NUM_3, NUM_2);
+                if (isZoom) {
+                    maxUnitY = divideInt(value * NUM_3, NUM_2);
+                } else {
+                    maxUnitY = value;
+                }
             }
             int y = y0 + multiply(pixelPerY, value);
-            pointY[i] = y;
+            pointY[timeIndex] = y;
         }
         graphics.setColor(getCurrentLineColor(index, dataMap.get(timeArray[0])));
         graphics.drawPolyline(pointX, pointY, length);
@@ -175,5 +205,14 @@ public class LineChart extends ProfilerChart {
      */
     @Override
     protected void mouseReleaseEvent(MouseEvent event) {
+    }
+
+    /**
+     * getChartName
+     *
+     * @return String
+     */
+    public String getChartName() {
+        return chartName;
     }
 }

@@ -21,7 +21,7 @@ import java.util.Objects;
 /**
  * energy data
  *
- * @since 2021/10/22 16:00
+ * @since 2021/10/26
  */
 public class EnergyData implements Serializable {
     /**
@@ -38,7 +38,7 @@ public class EnergyData implements Serializable {
     private Long startTimeStamp;
     private Long endTimeStamp;
     private Long triggerTimeNs;
-    private String provider;
+    private String supplier;
     private String priority;
     private Long minInterval;
     private Long FestInterval;
@@ -152,12 +152,12 @@ public class EnergyData implements Serializable {
         this.triggerTimeNs = triggerTimeNs;
     }
 
-    public String getProvider() {
-        return provider;
+    public String getSupplier() {
+        return supplier;
     }
 
-    public void setProvider(String provider) {
-        this.provider = provider;
+    public void setSupplier(String supplier) {
+        this.supplier = supplier;
     }
 
     public String getPriority() {
@@ -273,7 +273,7 @@ public class EnergyData implements Serializable {
     public int hashCode() {
         return Objects
             .hash(sessionId, eventId, systemEvent, description, callStack, endCallStack, startTimeStamp, endTimeStamp,
-                triggerTimeNs, provider, priority, minInterval, FestInterval, workNetworkType, workCharging,
+                triggerTimeNs, supplier, priority, minInterval, FestInterval, workNetworkType, workCharging,
                 workStorage, workDeepIdle, workBattery, workPersisted, workRepeatCounter, workRepeatCycleTime,
                 workDelay, workResult, startType, endType, eventType);
     }

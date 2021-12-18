@@ -24,10 +24,8 @@ import net.miginfocom.swing.MigLayout;
  * @since 2021/08/05 16:09
  */
 public class DistributedDataEventsPane extends JBPanel {
-
     /**
      * DistributedDataEventsPane
-     *
      */
     public DistributedDataEventsPane() {
         setLayout(new MigLayout(""));

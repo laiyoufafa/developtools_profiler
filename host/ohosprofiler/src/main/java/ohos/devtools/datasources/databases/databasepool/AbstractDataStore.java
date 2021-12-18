@@ -39,7 +39,7 @@ import static ohos.devtools.datasources.databases.databasepool.DataTableHelper.s
 /**
  * Provides common data table operations
  *
- * @since: 2021/10/22 16:00
+ * @since 2021/10/26
  */
 public abstract class AbstractDataStore<T> extends SqlRunnable {
     private static final Logger LOGGER = LogManager.getLogger(AbstractDataStore.class);
@@ -261,14 +261,8 @@ public abstract class AbstractDataStore<T> extends SqlRunnable {
             stmt = connection.createStatement();
             rs = executeQuery(stmt, selectSql.toString());
             return new DataBaseRsHelp<T>().util(clazz.newInstance(), rs);
-        } catch (SQLException exe) {
-            LOGGER.error("SQLException: ", exe);
-        } catch (IllegalAccessException exception) {
-            LOGGER.error("IllegalAccessException: ", exception);
-        } catch (InstantiationException exception) {
-            LOGGER.error("InstantiationException: ", exception);
-        } catch (NoSuchFieldException exception) {
-            LOGGER.error("NoSuchFieldException: ", exception);
+        } catch (SQLException | IllegalAccessException | InstantiationException | NoSuchFieldException exe) {
+            LOGGER.error("select Exception: ", exe);
         } finally {
             close(rs, connection);
         }

@@ -66,7 +66,7 @@ public class ProcessDataFragment extends AbstractDataFragment<ProcessData> imple
     /**
      * constructor
      *
-     * @param root    root
+     * @param root root
      * @param process process
      */
     public ProcessDataFragment(JComponent root, Process process) {
@@ -123,9 +123,8 @@ public class ProcessDataFragment extends AbstractDataFragment<ProcessData> imple
             if (substring.length() < wordNum) {
                 graphics.drawString(name.substring(0, (int) wordNum), Utils.getX(getDescRect()) + 30,
                     (int) (Utils.getY(getDescRect()) + bounds.getHeight() + 8));
-                graphics
-                    .drawString(substring, Utils.getX(getDescRect()) + 30,
-                        (int) (Utils.getY(getDescRect()) + bounds.getHeight() * 2 + 8));
+                graphics.drawString(substring, Utils.getX(getDescRect()) + 30,
+                    (int) (Utils.getY(getDescRect()) + bounds.getHeight() * 2 + 8));
             } else {
                 graphics.drawString(name.substring(0, (int) wordNum), Utils.getX(getDescRect()) + 30,
                     (int) (Utils.getY(getDescRect()) + bounds.getHeight() + 2));
@@ -141,7 +140,7 @@ public class ProcessDataFragment extends AbstractDataFragment<ProcessData> imple
 
     private void drawDefaultState(Graphics graphics) {
         if (!expandGraph.isExpand()) {
-            int height = (getRect().height) / (AnalystPanel.cpuNum == 0 ? 1 : AnalystPanel.cpuNum);
+            int height = (getRect().height) / (AnalystPanel.getCpuNum() == 0 ? 1 : AnalystPanel.getCpuNum());
             if (data != null) {
                 if (graphics instanceof Graphics2D) {
                     data.stream()
@@ -200,11 +199,9 @@ public class ProcessDataFragment extends AbstractDataFragment<ProcessData> imple
             graphics.setColor(processColor);
         }
         pd.setRect(x1 + Utils.getX(getDataRect()), Utils.getY(getDataRect()) + height * pd.getCpu() + 2,
-            x2 - x1 <= 0 ? 1 : x2 - x1,
-            height - 4);
+            x2 - x1 <= 0 ? 1 : x2 - x1, height - 4);
         graphics.fillRect(x1 + Utils.getX(getDataRect()), Utils.getY(getDataRect()) + height * pd.getCpu() + 2,
-            x2 - x1 <= 0 ? 1 : x2 - x1,
-            height - 4);
+            x2 - x1 <= 0 ? 1 : x2 - x1, height - 4);
     }
 
     private void drawTips(Graphics2D graphics) {
@@ -374,14 +371,17 @@ public class ProcessDataFragment extends AbstractDataFragment<ProcessData> imple
             CompletableFuture.runAsync(() -> {
                 List<ProcessData> list = new ArrayList<>() {
                 };
-                int count =
-                    Db.getInstance().queryCount(Sql.SYS_QUERY_PROCESS_DATA_COUNT, process.getPid(), startNS, endNS);
+                int count = Db.getInstance()
+                    .queryCount(st -> addStatement(st), Sql.SYS_QUERY_PROCESS_DATA_COUNT, process.getPid(), startNS,
+                        endNS);
                 if (count > Final.CAPACITY) {
                     Db.getInstance()
-                        .query(Sql.SYS_QUERY_PROCESS_DATA_LIMIT, list, process.getPid(), startNS, endNS,
-                            Final.CAPACITY);
+                        .query(st -> addStatement(st), Sql.SYS_QUERY_PROCESS_DATA_LIMIT, list, process.getPid(),
+                            startNS, endNS, Final.CAPACITY);
                 } else {
-                    Db.getInstance().query(Sql.SYS_QUERY_PROCESS_DATA, list, process.getPid(), startNS, endNS);
+                    Db.getInstance()
+                        .query(st -> addStatement(st), Sql.SYS_QUERY_PROCESS_DATA, list, process.getPid(), startNS,
+                            endNS);
                 }
 
                 data = list;

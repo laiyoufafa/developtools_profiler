@@ -139,15 +139,7 @@ ScheduleTaskManager::WeakTask ScheduleTaskManager::TakeFront()
     return task;
 }
 
-void ScheduleTaskManager::DumpTask(const SharedTask& task)
-{
-    if (task) {
-        long msecs = std::chrono::duration_cast<ms>(task->nextRunTime.time_since_epoch()).count();
-        HILOG_DEBUG(LOG_CORE,
-                    "{name = %s, interval = %lld, delay = %lld, nextRunTime = %ld}",
-                    task->name.c_str(), task->repeatInterval.count(), task->initialDelay.count(), msecs);
-    }
-}
+void ScheduleTaskManager::DumpTask(const SharedTask& task) {}
 
 void ScheduleTaskManager::ScheduleThread()
 {
@@ -184,7 +176,6 @@ void ScheduleTaskManager::ScheduleThread()
         }
 
         // call task callback
-        HILOG_INFO(LOG_CORE, "on schedule %s, do callback!", taskRepeat->name.c_str());
         DumpTask(taskRepeat);
         taskRepeat->callback();
         taskRepeat->nextRunTime = targetTime + taskRepeat->repeatInterval;

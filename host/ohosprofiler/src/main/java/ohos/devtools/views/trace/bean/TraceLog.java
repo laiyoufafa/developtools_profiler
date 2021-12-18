@@ -37,6 +37,8 @@ public class TraceLog {
     private String tag;
     @DField(name = "context")
     private String context;
+    @DField(name = "origints")
+    private Long origints;
 
     public Long getStartTime() {
         return startTime;
@@ -92,5 +94,13 @@ public class TraceLog {
 
     public void setSeq(Integer seq) {
         this.seq = seq;
+    }
+
+    public Long getOrigints() {
+        return origints;
+    }
+
+    public void setOrigints(Long origints) {
+        this.origints = origints;
     }
 }

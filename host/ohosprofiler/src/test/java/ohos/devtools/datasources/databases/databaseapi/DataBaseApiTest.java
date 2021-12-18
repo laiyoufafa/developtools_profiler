@@ -300,7 +300,9 @@ public class DataBaseApiTest {
     @Test
     public void getConnectBydbnameTest04() {
         Optional<Connection> res1 = DataBaseApi.getInstance().getConnectBydbname("test");
+        Assert.assertTrue(res1.isPresent());
         Optional<Connection> res2 = DataBaseApi.getInstance().getConnectBydbname("test");
+        Assert.assertTrue(res2.isPresent());
         Assert.assertNotEquals(res1, res2);
     }
 
@@ -409,7 +411,8 @@ public class DataBaseApiTest {
     @Test
     public void registerTableTest01() {
         DataBaseApi.getInstance().registerTable("test", "ttest");
-        Assert.assertTrue(true);
+        String test = DataBaseApi.getInstance().checkTableRegister("test");
+        Assert.assertEquals(test, "ttest");
     }
 
     /**
@@ -423,8 +426,8 @@ public class DataBaseApiTest {
      */
     @Test
     public void registerTableTest02() {
-        DataBaseApi.getInstance().registerTable("", "ttest");
-        Assert.assertTrue(true);
+        boolean ttest = DataBaseApi.getInstance().registerTable("", "ttest");
+        Assert.assertFalse(ttest);
     }
 
     /**
@@ -453,8 +456,8 @@ public class DataBaseApiTest {
      */
     @Test
     public void registerTableTest04() {
-        DataBaseApi.getInstance().registerTable(null, null);
-        Assert.assertTrue(true);
+        boolean res = DataBaseApi.getInstance().registerTable(null, null);
+        Assert.assertFalse(res);
     }
 
     /**
@@ -468,8 +471,8 @@ public class DataBaseApiTest {
      */
     @Test
     public void registerTableTest05() {
-        DataBaseApi.getInstance().registerTable("", "");
-        Assert.assertTrue(true);
+        boolean res = DataBaseApi.getInstance().registerTable("", "");
+        Assert.assertFalse(res);
     }
 
     /**
@@ -483,8 +486,8 @@ public class DataBaseApiTest {
      */
     @Test
     public void registerDataSourceTest01() {
-        DataBaseApi.getInstance().registerDataSource(null, null);
-        Assert.assertTrue(true);
+        boolean rst = DataBaseApi.getInstance().registerDataSource(null, null);
+        Assert.assertFalse(rst);
     }
 
     /**
@@ -498,8 +501,8 @@ public class DataBaseApiTest {
      */
     @Test
     public void registerDataSourceTest02() {
-        DataBaseApi.getInstance().registerDataSource("dataBase", null);
-        Assert.assertTrue(true);
+        boolean dataBase = DataBaseApi.getInstance().registerDataSource("dataBase", null);
+        Assert.assertFalse(dataBase);
     }
 
     /**
@@ -513,8 +516,8 @@ public class DataBaseApiTest {
      */
     @Test
     public void registerDataSourceTest03() {
-        DataBaseApi.getInstance().registerDataSource("dataBase", new DruidDataSource());
-        Assert.assertTrue(true);
+        boolean dataBase = DataBaseApi.getInstance().registerDataSource("dataBase", new DruidDataSource());
+        Assert.assertTrue(dataBase);
     }
 
     /**
@@ -528,8 +531,8 @@ public class DataBaseApiTest {
      */
     @Test
     public void registerDataSourceTest04() {
-        DataBaseApi.getInstance().registerDataSource(null, new DruidDataSource());
-        Assert.assertTrue(true);
+        boolean rse = DataBaseApi.getInstance().registerDataSource(null, new DruidDataSource());
+        Assert.assertFalse(rse);
     }
 
     /**
@@ -543,8 +546,8 @@ public class DataBaseApiTest {
      */
     @Test
     public void registerDataSourceTest05() {
-        DataBaseApi.getInstance().registerDataSource("", null);
-        Assert.assertTrue(true);
+        boolean res = DataBaseApi.getInstance().registerDataSource("", null);
+        Assert.assertFalse(res);
     }
 
     /**
@@ -711,8 +714,10 @@ public class DataBaseApiTest {
      */
     @Test
     public void createIndexTest01() {
+        DataBaseApi.getInstance()
+            .createTable(DataBaseApi.DEFAULT_DATABASE_DBNAME, "testTable222222", processMemInfo);
         boolean res =
-            DataBaseApi.getInstance().createTable(DataBaseApi.DEFAULT_DATABASE_DBNAME, "testTable", processMemInfo);
+            DataBaseApi.getInstance().createIndex("testTable222222", "testTable2", processMemInfoIndex);
         Assert.assertTrue(res);
     }
 
@@ -817,6 +822,7 @@ public class DataBaseApiTest {
      */
     @Test
     public void checkTableRegisterTest03() {
+        DataBaseApi.getInstance().registerCreateIndex("testTable");
         String res = DataBaseApi.getInstance().checkTableRegister("testTable");
         Assert.assertNotNull(res);
     }
@@ -832,7 +838,7 @@ public class DataBaseApiTest {
      */
     @Test
     public void checkTableRegisterTest04() {
-        String res1 = DataBaseApi.getInstance().checkTableRegister("tableName");
+        String res1 = DataBaseApi.getInstance().checkTableRegister("testTable");
         String res2 = DataBaseApi.getInstance().checkTableRegister("");
         Assert.assertNotEquals(res1, res2);
     }
@@ -894,8 +900,9 @@ public class DataBaseApiTest {
      */
     @Test
     public void checkIndexRegisterTest03() {
+        DataBaseApi.getInstance().registerCreateIndex("testTable");
         boolean res = DataBaseApi.getInstance().checkIndexRegister("testTable");
-        Assert.assertFalse(res);
+        Assert.assertTrue(res);
     }
 
     /**
@@ -909,7 +916,7 @@ public class DataBaseApiTest {
      */
     @Test
     public void checkIndexRegisterTest04() {
-        boolean res1 = DataBaseApi.getInstance().checkIndexRegister("tableName");
+        boolean res1 = DataBaseApi.getInstance().checkIndexRegister("tableName1");
         boolean res2 = DataBaseApi.getInstance().checkIndexRegister("");
         Assert.assertEquals(res1, res2);
     }
@@ -941,8 +948,8 @@ public class DataBaseApiTest {
      */
     @Test
     public void registerCreateIndexTest01() {
-        DataBaseApi.getInstance().registerCreateIndex("");
-        Assert.assertTrue(true);
+        boolean res = DataBaseApi.getInstance().registerCreateIndex("");
+        Assert.assertFalse(res);
     }
 
     /**
@@ -956,8 +963,8 @@ public class DataBaseApiTest {
      */
     @Test
     public void registerCreateIndexTest02() {
-        DataBaseApi.getInstance().registerCreateIndex(null);
-        Assert.assertTrue(true);
+        boolean res = DataBaseApi.getInstance().registerCreateIndex(null);
+        Assert.assertFalse(res);
     }
 
     /**
@@ -971,8 +978,8 @@ public class DataBaseApiTest {
      */
     @Test
     public void registerCreateIndexTest03() {
-        DataBaseApi.getInstance().registerCreateIndex("testTable");
-        Assert.assertTrue(true);
+        boolean testTable = DataBaseApi.getInstance().registerCreateIndex("testTable");
+        Assert.assertTrue(testTable);
     }
 
     /**
@@ -986,7 +993,8 @@ public class DataBaseApiTest {
      */
     @Test
     public void createTableSqlTest01() {
-        boolean res = DataBaseApi.getInstance().createTable(DataBaseApi.DEFAULT_DATABASE_DBNAME, "testTable", "sql");
+        boolean res = DataBaseApi.getInstance().createTable(DataBaseApi.DEFAULT_DATABASE_DBNAME, "MemoryInstanceInfo",
+            "CREATE TABLE MemoryInstanceInfo (instanceId int(100) not null, deallocTime int(100));");
         Assert.assertTrue(res);
     }
 
@@ -1016,7 +1024,7 @@ public class DataBaseApiTest {
      */
     @Test
     public void createTableSqlTest03() {
-        boolean res = DataBaseApi.getInstance().createTable("", null, "");
+        boolean res = DataBaseApi.getInstance().createTable(DataBaseApi.DEFAULT_DATABASE_DBNAME, "test", "");
         Assert.assertFalse(res);
     }
 
@@ -1046,7 +1054,8 @@ public class DataBaseApiTest {
      */
     @Test
     public void createTableSqlTest05() {
-        boolean res = DataBaseApi.getInstance().createTable(null, null, "sql");
+        boolean res = DataBaseApi.getInstance().createTable(null, null,
+            "CREATE TABLE MemoryInstanceInfos (instanceId int(100) not null, deallocTime int(100))");
         Assert.assertFalse(res);
     }
 }

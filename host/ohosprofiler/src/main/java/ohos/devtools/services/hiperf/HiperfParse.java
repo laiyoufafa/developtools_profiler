@@ -34,7 +34,7 @@ import java.util.List;
 /**
  * Trace File Parse
  *
- * @since: 2021/8/20
+ * @since 2021/8/20 18:00
  */
 public class HiperfParse extends ParsePerf {
     /**
@@ -120,10 +120,31 @@ public class HiperfParse extends ParsePerf {
     public void insertSample() {
         Connection conn = PerfDAO.getInstance().getConn();
         try {
+            PreparedStatement callChainPst = conn.prepareStatement(
+                    "insert into "
+                            + "perf_callchain("
+                            + "sample_id, "
+                            + "callchain_id, "
+                            + "vaddr_in_file, "
+                            + "file_id, "
+                            + "symbol_id) "
+                            + "values(?,?,?,?,?)");
+            conn.setAutoCommit(false);
+
+            PreparedStatement samplePst = conn.prepareStatement(
+                    "insert into "
+                            + "perf_sample("
+                            + "sample_id, "
+                            + "timestamp, "
+                            + "thread_id, "
+                            + "event_count, "
+                            + "event_type_id) "
+                            + "values(?,?,?,?,?)");
+            conn.setAutoCommit(false);
+
             // sample
-            PreparedStatement samplePst = getSamplePst(conn);
-            // callchain
-            PreparedStatement callChainPst = getCallChainPst(conn);
+            getSamplePst(samplePst, callChainPst);
+
             // files
             PreparedStatement filePst = getFilePst(conn);
             // thread
@@ -151,14 +172,15 @@ public class HiperfParse extends ParsePerf {
         }
     }
 
+
     private PreparedStatement getThreadPst(Connection conn) throws SQLException {
         PreparedStatement threadPst = conn.prepareStatement(
-            "insert into "
-                + "perf_thread("
-                + "thread_id, "
-                + "process_id, "
-                + "thread_name) "
-                + "values(?,?,?)");
+                "insert into "
+                        + "perf_thread("
+                        + "thread_id, "
+                        + "process_id, "
+                        + "thread_name) "
+                        + "values(?,?,?)");
         conn.setAutoCommit(false);
         mThreads.values().forEach(thread -> {
             try {
@@ -177,12 +199,12 @@ public class HiperfParse extends ParsePerf {
 
     private PreparedStatement getFilePst(Connection conn) throws SQLException {
         PreparedStatement filePst = conn.prepareStatement(
-            "insert into "
-                + "perf_files("
-                + "file_id, "
-                + "symbol, "
-                + "path) "
-                + "values(?,?,?)");
+                "insert into "
+                        + "perf_files("
+                        + "file_id, "
+                        + "symbol, "
+                        + "path) "
+                        + "values(?,?,?)");
         conn.setAutoCommit(false);
         mFiles.values().forEach(perffile -> {
             perffile.getFunctionNameList().forEach(function -> {
@@ -201,61 +223,31 @@ public class HiperfParse extends ParsePerf {
         return filePst;
     }
 
-    private PreparedStatement getCallChainPst(Connection conn) throws SQLException {
-        PreparedStatement callChainPst = conn.prepareStatement(
-            "insert into "
-                + "perf_callchain("
-                + "sample_id, "
-                + "callchain_id, "
-                + "vaddr_in_file, "
-                + "file_id, "
-                + "symbol_id) "
-                + "values(?,?,?,?,?)");
-        conn.setAutoCommit(false);
-        mSamples.forEach(sample -> {
-            sample.getCallStackFrameList().forEach(callChain -> {
-                try {
-                    callChainPst.setLong(1, mSamples.indexOf(sample));
-                    callChainPst.setLong(2, sample.getCallStackFrameList().indexOf(callChain));
-                    callChainPst.setLong(3, callChain.getSymbolsVaddr());
-                    callChainPst.setLong(4, callChain.getSymbolsFileId());
-                    callChainPst.setInt(5, callChain.getFunctionNameId());
-                    callChainPst.addBatch();
-                } catch (SQLException exception) {
-                    if (ProfilerLogManager.isErrorEnabled()) {
-                        LOGGER.error(exception.getMessage());
-                    }
-                }
-            });
-        });
-        return callChainPst;
-    }
-
-    private PreparedStatement getSamplePst(Connection conn) throws SQLException {
-        PreparedStatement samplePst = conn.prepareStatement(
-            "insert into "
-                + "perf_sample("
-                + "sample_id, "
-                + "timestamp, "
-                + "thread_id, "
-                + "event_count, "
-                + "event_type_id) "
-                + "values(?,?,?,?,?)");
-        conn.setAutoCommit(false);
-        mSamples.forEach(sample -> {
+    private void getSamplePst(PreparedStatement samplePst, PreparedStatement callChainPst) {
+        for (int sampleId = 0; sampleId < mSamples.size(); sampleId++) {
+            HiperfReport.CallStackSample sample = mSamples.get(sampleId);
             try {
-                samplePst.setLong(1, mSamples.indexOf(sample));
+                samplePst.setLong(1, sampleId);
                 samplePst.setLong(2, sample.getTime());
                 samplePst.setInt(3, sample.getTid());
                 samplePst.setLong(4, sample.getEventCount());
                 samplePst.setInt(5, sample.getConfigNameId());
                 samplePst.addBatch();
+                for (int callChainId = 0; callChainId < sample.getCallStackFrameList().size(); callChainId++) {
+                    HiperfReport.CallStackSample.CallStackFrame callChain =
+                            sample.getCallStackFrameList().get(callChainId);
+                    callChainPst.setLong(1, sampleId);
+                    callChainPst.setLong(2, callChainId);
+                    callChainPst.setLong(3, callChain.getSymbolsVaddr());
+                    callChainPst.setLong(4, callChain.getSymbolsFileId());
+                    callChainPst.setInt(5, callChain.getFunctionNameId());
+                    callChainPst.addBatch();
+                }
             } catch (SQLException exception) {
                 if (ProfilerLogManager.isErrorEnabled()) {
                     LOGGER.error(exception.getMessage());
                 }
             }
-        });
-        return samplePst;
+        }
     }
 }

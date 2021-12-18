@@ -34,15 +34,20 @@ import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import javax.swing.Icon;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 
 import static ohos.devtools.datasources.utils.profilerlog.ProfilerLogManager.isInfoEnabled;
 import static ohos.devtools.views.common.LayoutConstants.WINDOW_HEIGHT;
@@ -50,8 +55,15 @@ import static ohos.devtools.views.common.LayoutConstants.WINDOW_WIDTH;
 
 /**
  * HomePanel
+ *
+ * @since 2021/10/26
  */
 public class HomePanel extends JBPanel implements ActionListener, MouseListener {
+    /**
+     * taskIsOpen
+     */
+    private static boolean taskIsOpen = false;
+
     private static final Logger LOGGER = LogManager.getLogger(HomePanel.class);
     private static final String LOG_SWITCH_STR = "Path to Log";
     private static final String FILE_MENU_STR = "  File  ";
@@ -76,9 +88,16 @@ public class HomePanel extends JBPanel implements ActionListener, MouseListener 
     private JBMenuItem openFileItem;
     private JBMenuItem saveAsItem;
     private JBMenuItem quitItem;
-    private JBMenuItem logSwitchItem;
     private JBMenuItem aboutItem;
     private JBMenuItem helpContentsItem;
+    private final Icon selected = IconLoader.getIcon("/images/icon_radio_selected.png", HomePanel.class);
+    private final Icon unselected = IconLoader.getIcon("/images/icon_radio_normal.png", HomePanel.class);
+    private JBMenuItem offLog;
+    private JBMenuItem errorLog;
+    private JBMenuItem warnLog;
+    private JBMenuItem infoLog;
+    private JBMenuItem debugLog;
+    private List<JBMenuItem> menuItems = new ArrayList<>();
 
     /**
      * HomePanel
@@ -108,14 +127,11 @@ public class HomePanel extends JBPanel implements ActionListener, MouseListener 
         openFileItem = new JBMenuItem(OPEN_FILE_STR);
         saveAsItem = new JBMenuItem(SAVE_AS_STR);
         quitItem = new JBMenuItem(QUIT_STR);
-        fileMenu.add(newTaskItem);
         fileMenu.add(openFileItem);
-        fileMenu.add(saveAsItem);
-        fileMenu.add(quitItem);
+        fileMenu.setIcon(IconLoader.getIcon("/images/file.png", getClass()));
         // init settingMenu
         settingMenu = new JMenu(SETTING_STR);
         settingMenu.setIcon(AllIcons.Actions.InlayGear);
-        logSwitchItem = new JBMenuItem(LOG_SWITCH_STR);
         aboutItem = new JBMenuItem(ABOUT);
         helpContentsItem = new JBMenuItem(HELP_CONTENTS);
         hiLogMenu = new JMenu(HILOG);
@@ -124,11 +140,12 @@ public class HomePanel extends JBPanel implements ActionListener, MouseListener 
         helpMenu = new JMenu(HELP);
         helpMenu.setIcon(IconLoader.getIcon("/images/help.png", getClass()));
         helpMenu.setName(UtConstant.UT_HOME_PANEL_HELP_MENU);
+        initSettingMenu();
         JMenuBar settingMenuBar = new JMenuBar();
+        settingMenuBar.add(fileMenu);
         settingMenuBar.add(hiLogMenu);
         settingMenuBar.add(settingMenu);
         settingMenuBar.add(helpMenu);
-        settingMenu.add(logSwitchItem);
         helpMenu.add(aboutItem);
         helpMenu.add(helpContentsItem);
         // MenuPanel set
@@ -137,7 +154,6 @@ public class HomePanel extends JBPanel implements ActionListener, MouseListener 
         containerPanel.add(welcomePanel);
         add(menuPanel, BorderLayout.NORTH);
         add(containerPanel, BorderLayout.CENTER);
-        logSwitchItem.addActionListener(this);
         newTaskItem.addActionListener(this);
         openFileItem.addActionListener(this);
         aboutItem.addActionListener(this);
@@ -145,21 +161,52 @@ public class HomePanel extends JBPanel implements ActionListener, MouseListener 
         hiLogMenu.addMouseListener(this);
     }
 
+    private void initSettingMenu() {
+        offLog = new JBMenuItem("OFF", selected);
+        offLog.setPreferredSize(new Dimension(80, 30));
+        menuItems.add(offLog);
+        errorLog = new JBMenuItem("Error", unselected);
+        errorLog.setPreferredSize(new Dimension(80, 30));
+        menuItems.add(errorLog);
+        warnLog = new JBMenuItem("Warn", unselected);
+        warnLog.setPreferredSize(new Dimension(80, 30));
+        menuItems.add(warnLog);
+        infoLog = new JBMenuItem("Info", unselected);
+        infoLog.setPreferredSize(new Dimension(80, 30));
+        menuItems.add(infoLog);
+        debugLog = new JBMenuItem("Debug", unselected);
+        debugLog.setPreferredSize(new Dimension(80, 30));
+        menuItems.add(debugLog);
+        JMenu logLevelMenu = new JMenu("Level to Log");
+        logLevelMenu.setPreferredSize(new Dimension(100, 30));
+        settingMenu.add(logLevelMenu);
+        logLevelMenu.add(offLog);
+        logLevelMenu.add(errorLog);
+        logLevelMenu.add(warnLog);
+        logLevelMenu.add(infoLog);
+        logLevelMenu.add(debugLog);
+        offLog.addActionListener(this);
+        errorLog.addActionListener(this);
+        warnLog.addActionListener(this);
+        infoLog.addActionListener(this);
+        debugLog.addActionListener(this);
+    }
+
+    private void updateIcon(String selectMenuItem) {
+        menuItems.forEach(menuItem -> {
+            if (menuItem.getText().equals(selectMenuItem)) {
+                menuItem.setIcon(selected);
+            } else {
+                menuItem.setIcon(unselected);
+            }
+        });
+    }
+
     @Override
     public void actionPerformed(ActionEvent actionEvent) {
         String actionCommand = actionEvent.getActionCommand();
         // switch log
-        if (actionCommand.equals(LOG_SWITCH_STR)) {
-            EventTrackUtils.getInstance().trackLogSwitch();
-            Level logLevel = ProfilerLogManager.getNowLogLevel();
-            if (Level.ERROR.equals(logLevel)) {
-                ProfilerLogManager.updateLogLevel(Level.DEBUG);
-                logSwitchItem.setIcon(AllIcons.Actions.Commit);
-            } else {
-                ProfilerLogManager.updateLogLevel(Level.ERROR);
-                logSwitchItem.setIcon(null);
-            }
-        }
+        handleLogLevel(actionCommand);
         // new task
         if (actionCommand.equals(NEW_TASK_STR)) {
             if (Constant.jtasksTab == null || Constant.jtasksTab.getTabCount() == 0) {
@@ -173,7 +220,17 @@ public class HomePanel extends JBPanel implements ActionListener, MouseListener 
             if (Constant.jtasksTab == null || Constant.jtasksTab.getTabCount() == 0) {
                 Constant.jtasksTab = new JBTabbedPane();
             }
-            TaskPanel taskPanel = new TaskPanel(containerPanel, welcomePanel);
+            TaskPanel taskPanel = null;
+            Component[] components1 = containerPanel.getComponents();
+            for (Component item : components1) {
+                if (item instanceof TaskPanel) {
+                    // filter TaskPanel
+                    taskPanel = (TaskPanel) item;
+                }
+            }
+            if (Objects.isNull(taskPanel)) {
+                taskPanel = new TaskPanel(containerPanel, welcomePanel);
+            }
             OpenFileDialogUtils.getInstance().showFileOpenDialog(taskPanel.getTabItem(), taskPanel);
             welcomePanel.setVisible(false);
         }
@@ -184,6 +241,35 @@ public class HomePanel extends JBPanel implements ActionListener, MouseListener 
         // help contents
         if (actionCommand.equals(HELP_CONTENTS)) {
             new HelpContentsDialog().show();
+        }
+    }
+
+    private void handleLogLevel(String actionCommand) {
+        switch (actionCommand) {
+            case "OFF":
+                ProfilerLogManager.updateLogLevel(Level.OFF);
+                updateIcon(actionCommand);
+                break;
+            case "Error":
+                ProfilerLogManager.updateLogLevel(Level.ERROR);
+                updateIcon(actionCommand);
+                break;
+            case "Warn":
+                ProfilerLogManager.updateLogLevel(Level.WARN);
+                updateIcon(actionCommand);
+                break;
+            case "Info":
+                ProfilerLogManager.updateLogLevel(Level.INFO);
+                updateIcon(actionCommand);
+                break;
+            case "Debug":
+                ProfilerLogManager.updateLogLevel(Level.DEBUG);
+                updateIcon(actionCommand);
+                break;
+            default:
+                ProfilerLogManager.updateLogLevel(Level.ERROR);
+                updateIcon("Error");
+                break;
         }
     }
 
@@ -248,5 +334,23 @@ public class HomePanel extends JBPanel implements ActionListener, MouseListener 
      */
     @Override
     public void mouseExited(MouseEvent event) {
+    }
+
+    /**
+     * isTaskIsOpen
+     *
+     * @return boolean
+     */
+    public static boolean isTaskIsOpen() {
+        return taskIsOpen;
+    }
+
+    /**
+     * setTaskIsOpen
+     *
+     * @param taskIsOpen taskIsOpen
+     */
+    public static void setTaskIsOpen(boolean taskIsOpen) {
+        HomePanel.taskIsOpen = taskIsOpen;
     }
 }

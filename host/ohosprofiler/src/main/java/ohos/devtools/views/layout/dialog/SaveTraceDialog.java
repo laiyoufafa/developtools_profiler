@@ -44,7 +44,7 @@ import java.io.IOException;
 /**
  * SaveTraceDialog
  *
- * @since  2021/10/25
+ * @since 2021/10/25
  */
 public class SaveTraceDialog {
     /**
@@ -145,7 +145,7 @@ public class SaveTraceDialog {
             // 查询数据保存到file
             String pathName = filePath + File.separator + fileName + Constant.TRACE_SUFFIX;
             DeviceIPPortInfo deviceIPPortInfo =
-                    SessionManager.getInstance().getDeviceInfoBySessionId(btn.getSessionId());
+                SessionManager.getInstance().getDeviceInfoBySessionId(btn.getSessionId());
             DeviceProcessInfo deviceProcessInfo = new DeviceProcessInfo();
             deviceProcessInfo.setDeviceName(btn.getDeviceName());
             deviceProcessInfo.setProcessName(btn.getProcessName());

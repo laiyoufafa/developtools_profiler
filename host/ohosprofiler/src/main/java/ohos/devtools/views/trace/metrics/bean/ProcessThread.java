@@ -68,7 +68,13 @@ public class ProcessThread {
 
     @Override
     public String toString() {
-        return "ProcessThread{" + "pid=" + pid + ", processName='" + (StringUtils.isEmpty(processName) ? null
-                : processName) + '\'' + ", threadName='" + threadName + '\'' + '}';
+        return "ProcessThread{"
+            + "pid=" + pid
+            + ", processName='"
+            + (StringUtils.isEmpty(processName) ? null : processName)
+            + '\''
+            + ", threadName='" + threadName
+            + '\''
+            + '}';
     }
 }

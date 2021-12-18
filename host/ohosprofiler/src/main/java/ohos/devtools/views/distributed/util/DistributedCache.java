@@ -31,7 +31,6 @@ import java.util.Map;
  * @since 2021/08/07 13:41
  */
 public class DistributedCache {
-
     /**
      * durA duration from A database
      */
@@ -43,11 +42,6 @@ public class DistributedCache {
      */
     public static final List<DistributedThreadBean> THREADS_A = new ArrayList<>() {
     };
-
-    /**
-     * funcMapB function map from B database
-     */
-    public static final Map<Integer, List<DistributedFuncBean>> FUNC_MAP_B = new HashMap<>();
 
     /**
      * threadMapA thread map from A database
@@ -82,14 +76,19 @@ public class DistributedCache {
     public static final Map<Integer, List<DistributedThreadBean>> THREAD_MAP_B = new HashMap<>();
 
     /**
-     * idFuncBeanMapB function map with name is id and value is function from B database
+     * funcMapB function map from B database
      */
-    public static final Map<Integer, DistributedFuncBean> FUNC_BEAN_MAP = new HashMap<>();
+    public static final Map<Integer, List<DistributedFuncBean>> FUNC_MAP_B = new HashMap<>();
 
     /**
-     * delayMedianTimes
+     * idFuncBeanMapB function map with name is id and value is function from B database
      */
-    private static Double delayMedianTimes = 1.0D;
+    public static final Map<Integer, DistributedFuncBean> ID_FUNC_BEAN_MAP_B = new HashMap<>();
+
+    /**
+     * DistributedParams distribuetedParams map
+     */
+    private static DistributedParams distribuetedParams;
 
     /**
      * threadNamesA thread name list from A database
@@ -107,14 +106,14 @@ public class DistributedCache {
     private static Double totalMedianTimes = 2.0D;
 
     /**
+     * delayMedianTimes
+     */
+    private static Double delayMedianTimes = 1.0D;
+
+    /**
      * currentDBFlag current db
      */
     private static String currentDBFlag = "A";
-
-    /**
-     * DistributedParams distribuetedParams map
-     */
-    private static DistributedParams distribuetedParams;
 
     /**
      * recycleData recycler all data
@@ -131,49 +130,11 @@ public class DistributedCache {
         THREAD_MAP_B.entrySet().stream().forEach(it -> it.getValue().clear());
         FUNC_MAP_B.entrySet().stream().forEach(it -> it.getValue().clear());
         ID_FUNC_BEAN_MAP_A.clear();
-        FUNC_BEAN_MAP.clear();
+        ID_FUNC_BEAN_MAP_B.clear();
         THREAD_MAP_A.clear();
         THREAD_MAP_B.clear();
         FUNC_MAP_A.clear();
         FUNC_MAP_B.clear();
-    }
-
-    /**
-     * getCurrentDBFlag
-     *
-     * @return String
-     */
-    public static String getCurrentDBFlag() {
-        return currentDBFlag;
-    }
-
-    /**
-     * setCurrentDBFlag
-     *
-     * @param currentDBFlag currentDBFlag
-     */
-    public static void setCurrentDBFlag(String currentDBFlag) {
-        DistributedCache.currentDBFlag = currentDBFlag;
-    }
-
-    public static Double getTotalMedianTimes() {
-        return totalMedianTimes;
-    }
-
-    public static void setTotalMedianTimes(Double totalMedianTimes) {
-        DistributedCache.totalMedianTimes = totalMedianTimes;
-    }
-
-    public static Double getDelayMedianTimes() {
-        return delayMedianTimes;
-    }
-
-    public static void setDelayMedianTimes(Double delayMedianTimes) {
-        DistributedCache.delayMedianTimes = delayMedianTimes;
-    }
-
-    public static Map<Integer, String> getThreadNamesA() {
-        return threadNamesA;
     }
 
     public static void setThreadNamesA(Map<Integer, String> threadNamesA) {
@@ -194,5 +155,29 @@ public class DistributedCache {
 
     public static void setDistribuetedParams(DistributedParams distribuetedParams) {
         DistributedCache.distribuetedParams = distribuetedParams;
+    }
+
+    public static Double getTotalMedianTimes() {
+        return totalMedianTimes;
+    }
+
+    public static void setTotalMedianTimes(Double totalMedianTimes) {
+        DistributedCache.totalMedianTimes = totalMedianTimes;
+    }
+
+    public static Double getDelayMedianTimes() {
+        return delayMedianTimes;
+    }
+
+    public static void setDelayMedianTimes(Double delayMedianTimes) {
+        DistributedCache.delayMedianTimes = delayMedianTimes;
+    }
+
+    public static String getCurrentDBFlag() {
+        return currentDBFlag;
+    }
+
+    public static void setCurrentDBFlag(String currentDBFlag) {
+        DistributedCache.currentDBFlag = currentDBFlag;
     }
 }

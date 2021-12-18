@@ -140,7 +140,7 @@ class TreeTableRowSorterTest {
     @Test
     void setListener() {
         sorter.setListener((columns, sortOrder) -> {
-            sortOrder.getDeclaringClass();
+            sortOrder.toString();
         });
         assertNotNull(sorter);
     }

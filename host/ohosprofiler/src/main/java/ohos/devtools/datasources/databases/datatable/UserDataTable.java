@@ -31,7 +31,7 @@ import java.util.Optional;
 /**
  * DiskIo DB and Table Construct
  *
- * @since: 2021/10/22 15:43
+ * @since 2021/10/22
  */
 public class UserDataTable extends AbstractDataStore {
     private static final Logger LOGGER = LogManager.getLogger(UserDataTable.class);
@@ -39,11 +39,10 @@ public class UserDataTable extends AbstractDataStore {
     private static final String INSERT_SQL = "INSERT OR IGNORE "
         + "INTO "
         + "sdkDataTable("
-        + "session, "
         + "sessionId, "
         + "timeStamp, "
         + "sdkData) "
-        + "VALUES (?, ?, ?, ?)";
+        + "VALUES (?, ?, ?)";
 
     /**
      * constructor
@@ -62,15 +61,13 @@ public class UserDataTable extends AbstractDataStore {
         List<String> sdkInfos = new ArrayList() {
             {
                 add("id INTEGER primary key autoincrement not null");
-                add("session LONG NOT NULL");
-                add("sessionId INTEGER NOT NULL");
+                add("sessionId LONG NOT NULL");
                 add("timeStamp Long NOT NULL");
                 add("sdkData BLOB NOT NULL");
             }
         };
         List<String> sysDiskIoInfoIndex = new ArrayList() {
             {
-                add("sessionId");
                 add("timeStamp");
             }
         };
@@ -97,9 +94,8 @@ public class UserDataTable extends AbstractDataStore {
                 conn.setAutoCommit(false);
                 for (UserData sdkInfo : sdkInfoList) {
                     pst.setLong(1, sdkInfo.getLocalSessionId());
-                    pst.setInt(2, sdkInfo.getSessionId());
-                    pst.setLong(3, sdkInfo.getTimeStamp());
-                    pst.setBytes(4, sdkInfo.getBytes());
+                    pst.setLong(2, sdkInfo.getTimeStamp());
+                    pst.setBytes(3, sdkInfo.getBytes());
                     pst.addBatch();
                 }
                 try {

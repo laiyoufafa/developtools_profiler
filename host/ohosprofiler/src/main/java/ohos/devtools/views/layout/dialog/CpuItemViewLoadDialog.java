@@ -51,7 +51,6 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import static ohos.devtools.services.hiperf.PerfCommand.PERF_TRACE_PATH;
 import static ohos.devtools.datasources.transport.hdc.HdcCmdList.HDC_GET_SIMPER_FILE;
 import static ohos.devtools.datasources.transport.hdc.HdcCmdList.HDC_GET_SIMPER_FILE_INFO;
 import static ohos.devtools.datasources.transport.hdc.HdcCmdList.HDC_GET_TRACE_FILE;
@@ -63,6 +62,7 @@ import static ohos.devtools.datasources.transport.hdc.HdcStdCmdList.HDC_STD_GET_
 import static ohos.devtools.datasources.transport.hdc.HdcStdCmdList.HDC_STD_GET_TRACE_FILE_INFO;
 import static ohos.devtools.datasources.transport.hdc.HdcWrapper.conversionCommand;
 import static ohos.devtools.datasources.utils.device.entity.DeviceType.LEAN_HOS_DEVICE;
+import static ohos.devtools.services.hiperf.PerfCommand.PERF_TRACE_PATH;
 import static ohos.devtools.views.common.Constant.IS_SUPPORT_NEW_HDC;
 
 /**
@@ -159,22 +159,35 @@ public class CpuItemViewLoadDialog implements ActionListener {
         jPanel.add(typeJLabel);
         jPanel.add(typeValueJLabel);
         jPanel.setPreferredSize(new Dimension(300, 150));
-        cpuItemDialogEvent
-            .setLabelAttribute(statusJLabel, durationJLabel, recordingJLabel, timeJLabel, typeJLabel);
-        typeValueJLabel.setBounds(140, LayoutConstants.CPU_GRAP_TYPE_Y, LayoutConstants.CPU_GRAP_TYPE_WIDTH,
-            20);
+        cpuItemDialogEvent.setLabelAttribute(statusJLabel, durationJLabel, recordingJLabel, timeJLabel, typeJLabel);
+        typeValueJLabel.setBounds(140, LayoutConstants.CPU_GRAP_TYPE_Y,
+            LayoutConstants.CPU_GRAP_TYPE_WIDTH, 20);
         boolean showAndGet = cpuItemDialogEvent.showAndGet();
         // close timer
         cpuItemDialogEvent.getTimer().stop();
         LOGGER.info(showAndGet);
         if (showAndGet) {
-            showPerf(deviceIPPortInfoParam, sessionIdParam);
+            handleShowAndGet(deviceIPPortInfoParam, sessionIdParam);
         } else {
-            destorySession(deviceIPPortInfoParam, sessionIdParam);
+            ExecutorService executorCancel =
+                new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>());
+            if (!executorCancel.isShutdown()) {
+                executorCancel.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (typeParam) {
+                            perfCommand.stopRecord();
+                        } else {
+                            cancelActionDestroySession(deviceIPPortInfoParam, sessionIdParam);
+                        }
+                    }
+                });
+                executorCancel.shutdown();
+            }
         }
     }
 
-    private void showPerf(DeviceIPPortInfo deviceIPPortInfoParam, String sessionIdParam) {
+    private void handleShowAndGet(DeviceIPPortInfo deviceIPPortInfoParam, String sessionIdParam) {
         if (typeParam) {
             ExecutorService executorOk =
                 new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>());
@@ -188,15 +201,7 @@ public class CpuItemViewLoadDialog implements ActionListener {
                         @Override
                         public void run() {
                             if (result.toString().contains("failed")) {
-                                if (analysisDialog.isShowing()) {
-                                    analysisDialog.close(1);
-                                }
-                                if (timerLoading.isRunning()) {
-                                    timerLoading.stop();
-                                }
-                                List<String> messageList = result.stream().map(str -> str
-                                    .concat(System.lineSeparator())).collect(Collectors.toList());
-                                new SampleDialog("prompt", messageList.toString()).show();
+                                failedShowDialog(result);
                             }
                         }
                     });
@@ -210,22 +215,24 @@ public class CpuItemViewLoadDialog implements ActionListener {
         loading();
     }
 
-    private void destorySession(DeviceIPPortInfo deviceIPPortInfoParam, String sessionIdParam) {
-        ExecutorService executorCancel =
-            new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>());
-        if (!executorCancel.isShutdown()) {
-            executorCancel.execute(new Runnable() {
-                @Override
-                public void run() {
-                    if (typeParam) {
-                        perfCommand.stopRecord();
-                    } else {
-                        cancelActionDestroySession(deviceIPPortInfoParam, sessionIdParam);
-                    }
-                }
-            });
-            executorCancel.shutdown();
+    /**
+     * failedShowDialog
+     *
+     * @param result result
+     */
+    public void failedShowDialog(List<String> result) {
+        if (analysisDialog != null && analysisDialog.isShowing()) {
+            analysisDialog.close(1);
         }
+        if (cpuItemDialogEvent != null && cpuItemDialogEvent.isShowing()) {
+            cpuItemDialogEvent.close(1);
+        }
+        if (timerLoading != null && timerLoading.isRunning()) {
+            timerLoading.stop();
+        }
+        List<String> messageList =
+            result.stream().map(str -> str.concat(System.lineSeparator())).collect(Collectors.toList());
+        new SampleDialog("prompt", messageList.toString()).show();
     }
 
     /**
@@ -241,7 +248,7 @@ public class CpuItemViewLoadDialog implements ActionListener {
             executorStop.execute(new Runnable() {
                 @Override
                 public void run() {
-                    new SystemTraceHelper().stopSession(deviceIPPortInfoParam, sessionIdParam);
+                    SystemTraceHelper.getSingleton().stopSession(deviceIPPortInfoParam, sessionIdParam);
                 }
             });
             executorStop.shutdown();
@@ -261,7 +268,7 @@ public class CpuItemViewLoadDialog implements ActionListener {
             executorDestroy.execute(new Runnable() {
                 @Override
                 public void run() {
-                    new SystemTraceHelper().cancelActionDestroySession(deviceIPPortInfoParam, sessionIdParam);
+                    SystemTraceHelper.getSingleton().cancelActionDestroySession(deviceIPPortInfoParam, sessionIdParam);
                 }
             });
             executorDestroy.shutdown();
@@ -287,8 +294,8 @@ public class CpuItemViewLoadDialog implements ActionListener {
         cpuItemDialogEvent
             .setLabelAttribute(statusAnalysisJLabel, durationAnalysisJLabel, loadingJLabel, loadingInitTimeJLabel,
                 typeJLabel);
-        typeValueJLabel.setBounds(140, LayoutConstants.CPU_GRAP_TYPE_Y, LayoutConstants.CPU_GRAP_TYPE_WIDTH,
-            20);
+        typeValueJLabel.setBounds(140, LayoutConstants.CPU_GRAP_TYPE_Y,
+            LayoutConstants.CPU_GRAP_TYPE_WIDTH, 20);
         jPanel.removeAll();
         jPanel.add(statusAnalysisJLabel);
         jPanel.add(durationAnalysisJLabel);
@@ -321,11 +328,7 @@ public class CpuItemViewLoadDialog implements ActionListener {
             }
         }
         int num = secondsLoading % 2;
-        if (!pullBytraceFileState && !analysisState && num == 0) {
-            if (!executorAnalysis.isShutdown()) {
-                executeAnalysis();
-            }
-        }
+        buildTraceFile(num);
         // When the file size is 0 in the past 6 seconds, it is determined that the capture failed
         if (bytraceFileSize == 0 && secondsLoading > 8 && !typeParam) {
             executorAnalysis.shutdown();
@@ -341,47 +344,51 @@ public class CpuItemViewLoadDialog implements ActionListener {
         }
     }
 
-    private void executeAnalysis() {
-        executorAnalysis.execute(new Runnable() {
-            @Override
-            public void run() {
-                ArrayList<String> getPerfOrTraceFileInfoByCmd = null;
-                if (typeParam) {
-                    String filePath = PERF_TRACE_PATH + fileSuffixTimestamp + ".trace";
-                    if (IS_SUPPORT_NEW_HDC && deviceIPPortInfo.getDeviceType() == LEAN_HOS_DEVICE) {
-                        getPerfOrTraceFileInfoByCmd =
-                            conversionCommand(HDC_STD_GET_SIMPERF_FILE_INFO, deviceIPPortInfo.getDeviceID(),
-                                filePath);
-                    } else {
-                        getPerfOrTraceFileInfoByCmd =
-                            conversionCommand(HDC_GET_SIMPER_FILE_INFO, deviceIPPortInfo.getDeviceID(),
-                                filePath);
+    private void buildTraceFile(int num) {
+        if (!pullBytraceFileState && !analysisState && num == 0) {
+            if (!executorAnalysis.isShutdown()) {
+                executorAnalysis.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        ArrayList<String> getPerfOrTraceFileInfoByCmd = null;
+                        if (typeParam) {
+                            String filePath = PERF_TRACE_PATH + fileSuffixTimestamp + ".trace";
+                            if (IS_SUPPORT_NEW_HDC && deviceIPPortInfo.getDeviceType() == LEAN_HOS_DEVICE) {
+                                getPerfOrTraceFileInfoByCmd =
+                                    conversionCommand(HDC_STD_GET_SIMPERF_FILE_INFO, deviceIPPortInfo.getDeviceID(),
+                                        filePath);
+                            } else {
+                                getPerfOrTraceFileInfoByCmd =
+                                    conversionCommand(HDC_GET_SIMPER_FILE_INFO, deviceIPPortInfo.getDeviceID(),
+                                        filePath);
+                            }
+                        } else {
+                            String filePath = "/data/local/tmp/hiprofiler_data" + fileSuffixTimestamp + ".htrace";
+                            if (IS_SUPPORT_NEW_HDC && deviceIPPortInfo.getDeviceType() == LEAN_HOS_DEVICE) {
+                                getPerfOrTraceFileInfoByCmd =
+                                    conversionCommand(HDC_STD_GET_TRACE_FILE_INFO, deviceIPPortInfo.getDeviceID(),
+                                        filePath);
+                            } else {
+                                getPerfOrTraceFileInfoByCmd =
+                                    conversionCommand(HDC_GET_TRACE_FILE_INFO, deviceIPPortInfo.getDeviceID(),
+                                        filePath);
+                            }
+                        }
+                        String fileInfo = HdcWrapper.getInstance().getHdcStringResult(getPerfOrTraceFileInfoByCmd);
+                        if (fileInfo != null && fileInfo.length() > 0 && !analysisState && fileInfo.contains("\t")) {
+                            String[] fileInfoArray = fileInfo.split("\t");
+                            if (bytraceFileSize != 0 && bytraceFileSize == Integer.valueOf(fileInfoArray[0])) {
+                                pullBytraceFileState = true;
+                                pullAndAnalysisHtraceFile();
+                                executorAnalysis.shutdown();
+                            } else {
+                                bytraceFileSize = Integer.valueOf(fileInfoArray[0]);
+                            }
+                        }
                     }
-                } else {
-                    String filePath = "/data/local/tmp/hiprofiler_data" + fileSuffixTimestamp + ".htrace";
-                    if (IS_SUPPORT_NEW_HDC && deviceIPPortInfo.getDeviceType() == LEAN_HOS_DEVICE) {
-                        getPerfOrTraceFileInfoByCmd =
-                            conversionCommand(HDC_STD_GET_TRACE_FILE_INFO, deviceIPPortInfo.getDeviceID(),
-                                filePath);
-                    } else {
-                        getPerfOrTraceFileInfoByCmd =
-                            conversionCommand(HDC_GET_TRACE_FILE_INFO, deviceIPPortInfo.getDeviceID(),
-                                filePath);
-                    }
-                }
-                String fileInfo = HdcWrapper.getInstance().getHdcStringResult(getPerfOrTraceFileInfoByCmd);
-                if (fileInfo != null && fileInfo.length() > 0 && !analysisState && fileInfo.contains("\t")) {
-                    String[] fileInfoArray = fileInfo.split("\t");
-                    if (bytraceFileSize != 0 && bytraceFileSize == Integer.valueOf(fileInfoArray[0])) {
-                        pullBytraceFileState = true;
-                        pullAndAnalysisHtraceFile();
-                        executorAnalysis.shutdown();
-                    } else {
-                        bytraceFileSize = Integer.valueOf(fileInfoArray[0]);
-                    }
-                }
+                });
             }
-        });
+        }
     }
 
     /**
@@ -397,8 +404,8 @@ public class CpuItemViewLoadDialog implements ActionListener {
                     if (perfFile.exists()) {
                         try {
                             Thread.sleep(500);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
+                        } catch (InterruptedException exception) {
+                            exception.printStackTrace();
                         }
                         PerfDAO.getInstance().createTable(fileSuffixTimestamp);
                         ParsePerf parsePerf = new HiperfParse();
@@ -478,7 +485,7 @@ public class CpuItemViewLoadDialog implements ActionListener {
      * remove old log
      */
     public void removeOldTraceStreamerLog() {
-        String logPath = TraceStreamerUtils.getInstance().getLogPath();
+        String logPath = TraceStreamerUtils.getInstance().getLogPath("realTimeTrace" + fileSuffixTimestamp + ".db");
         File logFile = new File(logPath);
         if (logFile.exists()) {
             logFile.delete();
@@ -492,8 +499,8 @@ public class CpuItemViewLoadDialog implements ActionListener {
      * @throws IOException
      */
     public String analysisTraceFileToDbFile() throws IOException {
-        String dbPath = TraceStreamerUtils.getInstance().getCreateFileDir()
-            + "realTimeTrace" + fileSuffixTimestamp + ".db";
+        String dbPath =
+            TraceStreamerUtils.getInstance().getCreateFileDir() + "realTimeTrace" + fileSuffixTimestamp + ".db";
         String cmd =
             TraceStreamerUtils.getInstance().getBaseDir() + TraceStreamerUtils.getInstance().getTraceStreamerApp();
         String dir =
@@ -502,16 +509,19 @@ public class CpuItemViewLoadDialog implements ActionListener {
         HdcWrapper.getInstance().getHdcStringResult(arrayList);
         try {
             Thread.sleep(3000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+        } catch (InterruptedException exception) {
+            exception.printStackTrace();
         }
-        String logPath = TraceStreamerUtils.getInstance().getLogPath();
+        String logPath = TraceStreamerUtils.getInstance().getLogPath("realTimeTrace" + fileSuffixTimestamp + ".db");
         File logFile = new File(logPath);
         if (logFile.exists() && numberOfParsingFile > 0) {
             RandomAccessFile randomFile = null;
             randomFile = new RandomAccessFile(logFile, "r");
             String tmp = null;
             while ((tmp = randomFile.readLine()) != null) {
+                if (tmp.startsWith("last")) {
+                    continue;
+                }
                 if (Integer.valueOf(tmp.split(":")[1]) != 0) {
                     numberOfParsingFile--;
                     LOGGER.info("File parsing failed last time, try again. value is {}",

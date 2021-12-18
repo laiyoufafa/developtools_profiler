@@ -20,6 +20,8 @@ import ohos.devtools.views.charts.ProfilerChart;
 
 /**
  * Abstract parent class profiler monitor item view
+ *
+ * @since 2021/11/22
  */
 public abstract class MonitorItemView extends JBPanel implements MonitorItemInterface {
     /**

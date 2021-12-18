@@ -19,13 +19,24 @@ import ohos.devtools.datasources.databases.databaseapi.DataBaseApi;
 import ohos.devtools.datasources.utils.device.service.MultiDeviceManager;
 import ohos.devtools.datasources.utils.plugin.IPluginConfig;
 import ohos.devtools.datasources.utils.plugin.service.PlugManager;
+import ohos.devtools.datasources.utils.process.service.ProcessManager;
 import ohos.devtools.datasources.utils.profilerlog.ProfilerLogManager;
+import ohos.devtools.datasources.utils.session.service.SessionManager;
+import ohos.devtools.pluginconfig.AgentConfig;
+import ohos.devtools.pluginconfig.BytraceConfig;
+import ohos.devtools.pluginconfig.CpuConfig;
+import ohos.devtools.pluginconfig.DiskIoConfig;
+import ohos.devtools.pluginconfig.FtraceConfig;
+import ohos.devtools.pluginconfig.HilogConfig;
 import ohos.devtools.pluginconfig.MemoryConfig;
+import ohos.devtools.pluginconfig.ProcessConfig;
+import ohos.devtools.pluginconfig.UserConfig;
 import ohos.devtools.views.common.UtConstant;
 import ohos.devtools.views.layout.HomePanel;
+import ohos.devtools.views.user.UserManager;
 import org.apache.logging.log4j.Level;
-import org.fest.swing.exception.ActionFailedException;
-import org.fest.swing.fixture.FrameFixture;
+import org.assertj.swing.exception.ActionFailedException;
+import org.assertj.swing.fixture.FrameFixture;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -34,6 +45,7 @@ import javax.swing.JFrame;
 import java.awt.AWTException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -57,12 +69,23 @@ public class HiLogButtonFixtureTest {
     @Before
     public void init() throws AWTException {
         // Initialization data
+        ProcessManager.getInstance().setIsRequest(false);
+        SessionManager.getInstance().settingPermissions();
         ProfilerLogManager.getSingleton().updateLogLevel(Level.ERROR);
-        DataBaseApi apo = DataBaseApi.getInstance();
-        apo.initDataSourceManager();
-        // Boot device
+        PlugManager.getInstance().unzipStdDevelopTools();
+        DataBaseApi.getInstance().initDataSourceManager();
         MultiDeviceManager.getInstance().start();
         List<Class<? extends IPluginConfig>> plugConfigList = new ArrayList();
+        plugConfigList.add(ProcessConfig.class);
+        plugConfigList.add(AgentConfig.class);
+        plugConfigList.add(BytraceConfig.class);
+        plugConfigList.add(FtraceConfig.class);
+        plugConfigList.add(CpuConfig.class);
+        plugConfigList.add(HilogConfig.class);
+        if (Objects.nonNull(UserManager.getInstance().getSdkImpl())) {
+            plugConfigList.add(UserConfig.class);
+        }
+        plugConfigList.add(DiskIoConfig.class);
         plugConfigList.add(MemoryConfig.class);
         PlugManager.getInstance().loadingPlugs(plugConfigList);
         while (true) {

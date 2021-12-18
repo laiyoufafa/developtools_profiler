@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 select tid,
     A.start_ts,
     A.end_ts,
@@ -25,6 +26,6 @@ select tid,
     c.depth,
    c.parent_id,
    c.id
-from thread A,trace_range D
+from thread A,trace_section D
 left join callstack C on A.id = C.callid
 where startTs not null and A.tid = ${tid};

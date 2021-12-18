@@ -33,6 +33,7 @@ import java.awt.event.MouseMotionAdapter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -41,6 +42,7 @@ import java.util.stream.Collectors;
 /**
  * TracePanel
  *
+ * @since 2021/5/13 13:06
  */
 public class TracePanel extends JBPanel {
     /**
@@ -153,7 +155,7 @@ public class TracePanel extends JBPanel {
             @Override
             public void mouseClicked(MouseEvent event) {
                 super.mouseClicked(event);
-                PrefFunc.resetSelectedPrefFunc();
+                PrefFunc.setSelectedPrefFunc(null);
                 mouseClickThreadRow(event);
             }
 
@@ -172,7 +174,7 @@ public class TracePanel extends JBPanel {
             @Override
             public void mouseDragged(MouseEvent event) {
                 super.mouseDragged(event);
-                PrefFunc.resetSelectedPrefFunc();
+                PrefFunc.setSelectedPrefFunc(null);
                 mouseDraggedThreadRow(event);
             }
 
@@ -194,14 +196,11 @@ public class TracePanel extends JBPanel {
     }
 
     private void timeShaftComplete() {
-        Arrays.stream(contentPanel.getComponents())
-            .filter(it -> it instanceof ExpandPanel)
-            .map(it -> ((ExpandPanel) it))
-            .filter(it -> !it.isCollapsed())
-            .forEach(it -> Arrays.stream(it.getContent().getComponents())
-                .filter(row -> row instanceof TraceSimpleRow)
+        Arrays.stream(contentPanel.getComponents()).filter(it -> it instanceof ExpandPanel)
+            .map(it -> ((ExpandPanel) it)).filter(it -> !it.isCollapsed()).forEach(
+            it -> Arrays.stream(it.getContent().getComponents()).filter(row -> row instanceof TraceSimpleRow)
                 .map(row -> ((TraceSimpleRow) row))
-                .filter(row -> row.getRowName().toLowerCase().startsWith("cpu"))
+                .filter(row -> row.getRowName().toLowerCase(Locale.ENGLISH).startsWith("cpu"))
                 .forEach(row -> row.reload()));
     }
 
@@ -251,8 +250,8 @@ public class TracePanel extends JBPanel {
         endPoint = SwingUtilities.convertPoint(contentPanel, event.getPoint(), componentList.get(0).getParent());
         int xPoint = Math.min(Utils.getX(startPoint), Utils.getX(endPoint));
         int yPoint = Math.min(Utils.getY(startPoint), Utils.getY(endPoint));
-        int width = Math.abs(Utils.getX(startPoint) - Utils.getX(endPoint)) == 0 ? 1 :
-            Math.abs(Utils.getX(startPoint) - Utils.getX(endPoint));
+        int width = Math.abs(Utils.getX(startPoint) - Utils.getX(endPoint)) == 0 ? 1
+            : Math.abs(Utils.getX(startPoint) - Utils.getX(endPoint));
         int height = Math.abs(Utils.getY(startPoint) - Utils.getY(endPoint));
         Rectangle range = new Rectangle(xPoint, yPoint, width, height);
 
@@ -284,8 +283,8 @@ public class TracePanel extends JBPanel {
         componentList.forEach(component -> {
             if (component instanceof TraceThreadRow) {
                 TraceThreadRow<?, ?> thread = (TraceThreadRow<?, ?>) component;
-                if (thread.getBounds().contains(startPoint) && Utils.getX(startPoint) < Utils.getX(
-                    thread.getContentBounds())) {
+                if (thread.getBounds().contains(startPoint) && Utils.getX(startPoint) < Utils
+                    .getX(thread.getContentBounds())) {
                     if (!currentSelectThreadIds.contains(thread.getTid())) {
                         currentSelectThreadIds.add(thread.getTid());
                     }
@@ -296,12 +295,12 @@ public class TracePanel extends JBPanel {
                         .anyMatch(it -> it.getRect().contains(point))) || (thread.getData2() != null && thread
                         .getData2().stream().anyMatch(it -> it.getRect().contains(point)))) {
                         if (Objects.nonNull(thread.getData())) {
-                            thread.getData().stream().filter(it -> it.getRect().contains(point))
-                                .forEach(it -> it.onClick(event));
+                            thread.getData().stream().filter(it -> it.getRect().contains(point)).findFirst()
+                                .ifPresent(it -> it.onClick(event));
                         }
                         if (Objects.nonNull(thread.getData2())) {
-                            thread.getData2().stream().filter(it -> it.getRect().contains(point))
-                                .forEach(it -> it.onClick(event));
+                            thread.getData2().stream().filter(it -> it.getRect().contains(point)).findFirst()
+                                .ifPresent(it -> it.onClick(event));
                         }
                         flag.set(true);
                     }
@@ -360,5 +359,14 @@ public class TracePanel extends JBPanel {
      */
     public TimeShaft getTimeShaft() {
         return timeShaft;
+    }
+
+    /**
+     * get the TimeRuler
+     *
+     * @return ruler timeRuler
+     */
+    public Ruler getRuler() {
+        return ruler;
     }
 }

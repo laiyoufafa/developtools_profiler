@@ -19,9 +19,7 @@ import ohos.devtools.datasources.databases.databasepool.DataBase;
 import ohos.devtools.datasources.databases.databasepool.DataBaseHelper;
 import org.junit.Assert;
 import org.junit.Test;
-
 import javax.sql.DataSource;
-
 import static ohos.devtools.datasources.databases.databaseapi.DataBaseApi.DEFAULT_DATABASE_DBNAME;
 import static ohos.devtools.datasources.databases.databasepool.DataBaseHelper.getUrlByDataBaseName;
 

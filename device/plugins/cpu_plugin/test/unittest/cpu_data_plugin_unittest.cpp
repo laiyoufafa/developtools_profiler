@@ -25,6 +25,7 @@ using namespace testing::ext;
 namespace {
 const std::string DEFAULT_TEST_PATH = "/data/local/tmp/resources";
 const std::string SO_PATH = "/system/lib/libcpudataplugin.z.so";
+const std::string DEFAULT_BIN_PATH("/data/local/tmp/cpudataplugintest");
 constexpr uint32_t BUF_SIZE = 4 * 1024 * 1024;
 constexpr int TEST_PID = 1;
 
@@ -138,7 +139,6 @@ public:
     {
         if (access(g_testPath.c_str(), F_OK) == 0) {
             std::string str = "rm -rf " + g_testPath;
-            printf("TearDown--> %s\r\n", str.c_str());
             system(str.c_str());
         }
     }
@@ -195,13 +195,11 @@ bool PluginCpuinfoStub(CpuDataPlugin& cpuPlugin, CpuData& cpuData, int pid, bool
     if (ret < 0) {
         return false;
     }
-    printf("ut: serialize success start plugin ret = %d\n", ret);
 
     // report
     std::vector<uint8_t> bufferData(BUF_SIZE);
     if (unusualBuff) { // buffer异常，调整缓冲区长度为1，测试异常情况
         bufferData.resize(1, 0);
-        printf("ut: bufferData resize\n");
     }
 
     ret = cpuPlugin.Report(bufferData.data(), bufferData.size());
@@ -228,7 +226,6 @@ HWTEST_F(CpuDataPluginTest, TestPath, TestSize.Level1)
 {
     g_path = GetFullPath(DEFAULT_TEST_PATH);
     g_testPath = g_path;
-    printf("g_path:%s\n", g_path.c_str());
     EXPECT_NE("", g_path);
 }
 
@@ -241,7 +238,6 @@ HWTEST_F(CpuDataPluginTest, TestTidlist, TestSize.Level1)
 {
     CpuDataPlugin cpuPlugin;
     std::string path = g_path + "/proc/1872/task/";
-    printf("path:%s\n", path.c_str());
     DIR* dir = cpuPlugin.OpenDestDir(path);
     EXPECT_NE(nullptr, dir);
 
@@ -270,7 +266,6 @@ HWTEST_F(CpuDataPluginTest, TestPluginInfo, TestSize.Level1)
     int64_t systemCpuTime = 0;
     int64_t systemBootTime = 0;
     int64_t Hz = cpuPlugin.GetUserHz();
-    printf("Hz : %" PRId64 "\n", Hz);
     int64_t processCpuTime = (g_pidStat.utime + g_pidStat.stime + g_pidStat.cutime + g_pidStat.cstime) * Hz;
     GetSystemCpuTime(g_systemStat[0], Hz, systemCpuTime, systemBootTime);
 
@@ -280,9 +275,7 @@ HWTEST_F(CpuDataPluginTest, TestPluginInfo, TestSize.Level1)
     EXPECT_EQ(cpuUsageInfo.prev_system_boot_time_ms(), 0);
     EXPECT_EQ(cpuUsageInfo.process_cpu_time_ms(), processCpuTime);
     EXPECT_EQ(cpuUsageInfo.system_cpu_time_ms(), systemCpuTime);
-    printf("systemCpuTime = %" PRId64 "\n", systemCpuTime);
     EXPECT_EQ(cpuUsageInfo.system_boot_time_ms(), systemBootTime);
-    printf("systemBootTime = %" PRId64 "\n", systemBootTime);
 
     ASSERT_EQ(cpuUsageInfo.cores_size(), 6);
     for (int i = 1; i <= CORE_NUM; i++) {
@@ -393,7 +386,6 @@ HWTEST_F(CpuDataPluginTest, TestPluginRegister, TestSize.Level1)
     // 反序列化失败导致的start失败
     EXPECT_EQ(cpuPlugin->callbacks->onPluginSessionStart(configBuffer.data(), configLength+1), RET_FAIL);
 }
-
 
 /**
  * @tc.name: cpu plugin
@@ -879,5 +871,59 @@ HWTEST_F(CpuDataPluginTest, TestPluginThreadBoundary, TestSize.Level1)
     EXPECT_EQ(threadInfo1.thread_state(), g_tidStat1[0].state);
     EXPECT_EQ(threadInfo1.prev_thread_cpu_time_ms(), threadCpuTime);
     EXPECT_EQ(threadInfo1.thread_cpu_time_ms(), threadCpuTime);
+}
+
+bool ExecuteBin(const std::string& bin, const std::vector<std::string>& args)
+{
+    std::vector<char*> argv;
+    for (size_t i = 0; i < args.size(); i++) {
+        argv.push_back(const_cast<char*>(args[i].c_str()));
+    }
+    argv.push_back(nullptr); // last item in argv must be NULL
+
+    int retval = execvp(bin.c_str(), argv.data());
+    CHECK_TRUE(retval != -1, false, "execv %s failed, %s!", bin.c_str(), strerror(errno));
+    _exit(EXIT_FAILURE);
+    abort(); // never should be here.
+    return true;
+}
+
+/**
+ * @tc.name: cpu plugin
+ * @tc.desc: test ParseCpuInfo for pid
+ * @tc.type: FUNC
+ */
+HWTEST_F(CpuDataPluginTest, TestPid, TestSize.Level1)
+{
+    pid_t pid1, pid2;
+    CpuDataPlugin plugin1, plugin2;
+    CpuData cpuData1, cpuData2;
+
+    std::string cmd = "chmod 777 " + DEFAULT_BIN_PATH;
+    system(cmd.c_str());
+
+    if ((pid1 = fork()) == 0) {
+        // set 0, not to do
+        std::vector<std::string> argv = {"childpidtest1", "0"};
+        ASSERT_TRUE(ExecuteBin(DEFAULT_BIN_PATH, argv));
+    }
+    if ((pid2 = fork()) == 0) {
+        // set 1, consume cpu
+        std::vector<std::string> argv = {"childpidtest2", "1"};
+        ASSERT_TRUE(ExecuteBin(DEFAULT_BIN_PATH, argv));
+    }
+
+    sleep(1); // 睡眠1s，确保pid1进入睡眠状态，pid2进入while循环
+    EXPECT_TRUE(PluginCpuinfoStub(plugin1, cpuData1, static_cast<int>(pid1), false));
+    EXPECT_TRUE(PluginCpuinfoStub(plugin2, cpuData2, static_cast<int>(pid2), false));
+    EXPECT_LT(cpuData1.cpu_usage_info().process_cpu_time_ms(), cpuData2.cpu_usage_info().process_cpu_time_ms());
+
+    while (waitpid(-1, NULL, WNOHANG) == 0) {
+        kill(pid1, SIGKILL);
+        kill(pid2, SIGKILL);
+    }
+
+    plugin1.Stop();
+    plugin2.Stop();
 }
 } // namespace

@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 select max(value) as maxNum,min(value) as minNum,result.name,result.processName from measure inner join
 (
 select filter.id,filter.name,p.name as processName from process_measure_filter as filter

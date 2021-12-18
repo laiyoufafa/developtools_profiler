@@ -18,8 +18,8 @@ package ohos.devtools.views.distributed.util;
 import ohos.devtools.datasources.utils.profilerlog.ProfilerLogManager;
 import ohos.devtools.views.distributed.component.DistributedTracePanel;
 import ohos.devtools.views.trace.util.Utils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
 
 import java.awt.AlphaComposite;
 import java.awt.Graphics;
@@ -33,7 +33,7 @@ import static ohos.devtools.views.distributed.component.DistributedTracePanel.st
 /**
  * Common util
  *
- * @since 2021/8/26 15:10
+ * @since 2021/5/13 16:40
  */
 public class DistributedCommon {
     private static final Logger LOGGER = LogManager.getLogger(DistributedCommon.class);

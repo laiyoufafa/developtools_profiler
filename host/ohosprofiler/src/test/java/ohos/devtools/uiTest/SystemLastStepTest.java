@@ -55,5 +55,8 @@ public class SystemLastStepTest {
         remoteRobot.find(CommonContainerFixture.class, byXpath("//div[@class='HomePanel']")).button(byXpath(
             "//div[@accessiblename='Last Step' and @class='JButton' and @name='Last Step' and @text='Last Step']"),
             Duration.ofSeconds(2)).click();
+        // top close
+        remoteRobot.find(CommonContainerFixture.class, byXpath("//div[@class='JBPanel' and @name='chartTopClose']"))
+            .click();
     }
 }

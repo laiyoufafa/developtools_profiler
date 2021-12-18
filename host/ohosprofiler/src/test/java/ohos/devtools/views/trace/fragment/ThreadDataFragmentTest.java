@@ -30,7 +30,7 @@ import java.awt.image.BufferedImage;
 /**
  * test ThreadDataFragment class .
  *
- * @since 2021/4/24 17:58
+ * @date 2021/4/24 17:58
  */
 class ThreadDataFragmentTest {
     private ThreadDataFragment threadDataFragment;

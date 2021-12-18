@@ -24,6 +24,8 @@ import org.junit.Test;
 
 /**
  * Test class of Chart-related tool classes
+ *
+ * @since 2021/2/1 9:31
  */
 public class LineChartTest {
     /**

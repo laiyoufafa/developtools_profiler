@@ -23,6 +23,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * State Table Test
+ *
+ * @since 2021/2/1 9:31
  */
 class StateTableTest {
     StateTable stateTable = new StateTable();

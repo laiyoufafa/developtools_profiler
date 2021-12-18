@@ -12,9 +12,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 with list as (select ta.id,type, ts, dur, ta.cpu, itid as utid, state
      ,ts-tb.start_ts as startTime,tc.tid,tc.pid,tc.process,tc.thread
-from thread_state ta,trace_range tb
+from thread_state ta,trace_section tb
 left join (
     select it.id,tid,pid,ip.name as process,it.name as thread from thread as it left join process ip on it.ipid = ip.id
     ) tc on ta.itid = tc.id

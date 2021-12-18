@@ -31,7 +31,7 @@ import java.util.Optional;
 /**
  * memory data
  *
- * @since 2021/10/22 15:55
+ * @since 2021/10/22
  */
 public class MemoryTable extends AbstractDataStore {
     private static final Logger LOGGER = LogManager.getLogger(MemoryTable.class);

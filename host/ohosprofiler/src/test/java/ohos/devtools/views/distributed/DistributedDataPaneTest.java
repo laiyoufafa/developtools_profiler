@@ -28,6 +28,7 @@ class DistributedDataPaneTest {
 
     @Test
     void getBarHeight() {
+
         DistributedParams.Builder builder = new DistributedParams.Builder();
         builder.setDeviceNameA("A");
         builder.setDeviceNameB("B");

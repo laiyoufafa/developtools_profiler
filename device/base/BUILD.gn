@@ -16,20 +16,23 @@ import("config.gni")
 
 # compile options for gcov
 config("hiprofiler_test_config") {
-  cflags = []
-  if (enable_debuginfo) {
-    cflags += [ "-g" ]
-  }
+  cflags = [ "-std=c++17" ]
+  ldflags = []
 
   if (enable_coverage) {
+    # clang coverage options:
+    if (is_ohos) {
+      cflags += [
+        "-fprofile-arcs",
+        "-ftest-coverage",
+      ]
+      ldflags += [ "--coverage" ]
+    }
     cflags += [
-      # clang coverage options:
-      "--coverage",
       "-mllvm",
       "-limited-coverage-experimental=true",
       "-fno-use-cxa-atexit",
     ]
-    ldflags = [ "--coverage" ]
   }
 }
 

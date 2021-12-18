@@ -17,6 +17,8 @@ package ohos.devtools.views.layout.chartview.event;
 
 /**
  * Publisher of chart event
+ *
+ * @since 2021/11/22
  */
 public interface IChartEventPublisher {
 

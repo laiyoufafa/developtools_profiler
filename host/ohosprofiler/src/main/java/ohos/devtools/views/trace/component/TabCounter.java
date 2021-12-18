@@ -99,16 +99,15 @@ public class TabCounter extends JBPanel {
             List<Counter> result = new ArrayList<>() {
             };
             Db.getInstance().query(Sql.SYS_GET_TAB_COUNTERS, result, buffer.toString(), rightNs);
-            Map<Integer, List<Counter>> collect =
-                result.stream().collect(Collectors.groupingBy(Counter::getTrackId));
+            Map<Integer, List<Counter>> collect = result.stream().collect(Collectors.groupingBy(Counter::getTrackId));
             Set<Integer> keys = collect.keySet();
             List<TabCounterBean> source = new ArrayList<>();
             double range = (rightNs - leftNs) * 1.0 / 1000000000;
             int count = 0;
             for (Integer key : keys) {
                 List<Counter> counters = collect.get(key);
-                List<Counter> list = counters.stream().filter(counter -> counter.getStartTime() > leftNs)
-                    .collect(Collectors.toList());
+                List<Counter> list =
+                    counters.stream().filter(counter -> counter.getStartTime() > leftNs).collect(Collectors.toList());
                 if (list.size() > 0) {
                     int index = counters.indexOf(list.get(0));
                     if (index > 0) {
@@ -130,8 +129,7 @@ public class TabCounter extends JBPanel {
                     TabCounterBean cb = source.get(0);
                     for (int index = 0; index < 9; index++) {
                         if (index == 4) {
-                            tableRowSorter
-                                .setComparator(index, ComparatorUtils.generateComparator(cb.getCount() + ""));
+                            tableRowSorter.setComparator(index, ComparatorUtils.generateComparator(cb.getCount() + ""));
                         } else {
                             tableRowSorter.setComparator(index, ComparatorUtils.generateComparator(""));
                         }

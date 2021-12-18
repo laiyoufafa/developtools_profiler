@@ -24,7 +24,7 @@ import org.apache.logging.log4j.Logger;
  */
 public class ProfilerLogManager {
     private static final Logger LOGGER = LogManager.getLogger(ProfilerLogManager.class);
-    private static Level nowLogLevel = Level.ERROR;
+    private static Level nowLogLevel = Level.OFF;
 
     /**
      * 单例进程对象
@@ -48,7 +48,7 @@ public class ProfilerLogManager {
     }
 
     /**
-     * 修改日志等级
+     * updateLogLevel
      *
      * @param logLevel loglevel
      * @return boolean

@@ -133,7 +133,7 @@ public final class LayoutConstants {
     /**
      * top panel east width
      */
-    public static final int TOP_PANEL_EAST_WIDTH = 250;
+    public static final int TOP_PANEL_EAST_WIDTH = 200;
 
     /**
      * 设备进程面板X值
@@ -648,7 +648,7 @@ public final class LayoutConstants {
     /**
      * native_hook_recording
      */
-    public static final String NATIVE_HOOK_RECORDING = "Native Hook Recording";
+    public static final String NATIVE_HOOK_RECORDING = "Native Heap Recording";
 
     /**
      * Drop down options trace app calls

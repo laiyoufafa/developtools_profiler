@@ -34,11 +34,12 @@ import java.util.concurrent.TimeUnit;
  * @since 2021/04/22 12:25
  */
 public final class Utils {
+    private static final String[] UNITS = new String[] {"", "K", "M", "G", "T", "E"};
     private static Map<String, String> statusMap = new HashedMap();
     private static Utils instance;
-    private static ExecutorService pool =
-        new ThreadPoolExecutor(8, 8,
-            0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>());
+    private static ExecutorService pool = new ThreadPoolExecutor(8, 8,
+        0L, TimeUnit.MILLISECONDS,
+        new LinkedBlockingQueue<Runnable>());
 
     private Utils() {
         statusMap.put("D", "Uninterruptible Sleep");
@@ -175,7 +176,8 @@ public final class Utils {
     public static void resetPool() {
         pool.shutdownNow();
         pool = new ThreadPoolExecutor(8, 8,
-            0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>());
+            0L, TimeUnit.MILLISECONDS,
+            new LinkedBlockingQueue<Runnable>());
     }
 
     /**
@@ -186,7 +188,8 @@ public final class Utils {
     public static void resetPool(int num) {
         pool.shutdownNow();
         pool = new ThreadPoolExecutor(num, num,
-            0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>());
+            0L, TimeUnit.MILLISECONDS,
+            new LinkedBlockingQueue<Runnable>());
     }
 
     /**
@@ -276,5 +279,29 @@ public final class Utils {
      */
     public Map<String, String> getStatusMap() {
         return statusMap;
+    }
+
+    /**
+     * get the unit cpu freq
+     *
+     * @param maxFreq maxFreq
+     * @return CpuFreq
+     */
+    public static String getHzUnit(Long maxFreq) {
+        StringBuilder builder = new StringBuilder();
+        if (maxFreq > 1000000000L) {
+            builder.append(String.format("%.2f", maxFreq / 1000000000D));
+            builder.append("G");
+        } else if (maxFreq > 1000000L) {
+            builder.append(String.format("%.2f", maxFreq / 1000000D));
+            builder.append("M");
+        } else if (maxFreq > 1000L) {
+            builder.append(String.format("%.2f", maxFreq / 1000D));
+            builder.append("K");
+        } else {
+            builder.toString();
+        }
+        builder.append("hz");
+        return builder.toString();
     }
 }

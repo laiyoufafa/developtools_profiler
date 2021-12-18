@@ -27,7 +27,6 @@ import java.awt.Color;
  * @since 2021/04/22 12:25
  */
 public class PerfColorUtil {
-
     /**
      * PERF_VENDOR color
      */
@@ -66,25 +65,11 @@ public class PerfColorUtil {
      */
     public static Color getJavaMethod(PrefFunc func) {
         String funcName = func.getFuncName();
-        Boolean startWithBool = funcName.startsWith("java.");
-        if (startWithBool || checkPerfVendor(funcName)) {
+        boolean result = funcName.startsWith("java.") || funcName.startsWith("sun.") || funcName.startsWith("javax.");
+        if (result || funcName.startsWith("apple.") || funcName.startsWith("com.apple.")) {
             return PERF_VENDOR;
         } else {
             return PERF_APP;
-        }
-    }
-
-    private static boolean checkPerfVendor(String funcName) {
-        if (funcName.startsWith("sun.")) {
-            return true;
-        } else if (funcName.startsWith("javax.")) {
-            return true;
-        } else if (funcName.startsWith("apple.")) {
-            return true;
-        } else if (funcName.startsWith("com.apple.")) {
-            return true;
-        } else {
-            return false;
         }
     }
 
@@ -96,7 +81,9 @@ public class PerfColorUtil {
      */
     public static Color getJavaMethod(TreeTableBean func) {
         String funcName = func.getName();
-        if (funcName.startsWith("java.") || checkPerfVendor(funcName)) {
+        boolean nameResult =
+            funcName.startsWith("java.") || funcName.startsWith("sun.") || funcName.startsWith("javax.");
+        if (nameResult || funcName.startsWith("apple.") || funcName.startsWith("com.apple.")) {
             return PERF_FLAME_VENDOR;
         } else {
             return PERF_FLAME_APP;
@@ -113,9 +100,6 @@ public class PerfColorUtil {
         String funcName = func.getFuncName();
         if (func.isUserWrite() && funcName.contains("(")) {
             return PERF_APP;
-        } else if (funcName.startsWith("art::")
-                || funcName.startsWith("art_")) {
-            return PERF_PLATFORM;
         } else {
             return PERF_VENDOR;
         }
@@ -128,12 +112,8 @@ public class PerfColorUtil {
      * @return Color Color
      */
     public static Color getPerfMethod(TreeTableBean func) {
-        String funcName = func.getName();
         if (func.isUserWrite()) {
             return PERF_FLAME_APP;
-        } else if (funcName.startsWith("art::")
-                || funcName.startsWith("art_")) {
-            return PERF_FLAME_PLATFORM;
         } else {
             return PERF_FLAME_VENDOR;
         }

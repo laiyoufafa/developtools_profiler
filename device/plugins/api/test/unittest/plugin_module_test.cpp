@@ -38,15 +38,12 @@ protected:
             char* pos = strrchr(pluginDir, '/');
             if (pos != nullptr) {
                 *(pos++) = '\0';
-                printf("-----> pluginModuleDir = %s\n", pluginDir);
                 g_testPluginDir = pluginDir;
             }
         }
 #endif
-        printf("======> pluginModuleDir = %s\n", g_testPluginDir.c_str());
 
         std::this_thread::sleep_for(TEMP_DELAY);
-        printf("SetUpTestCase success\n");
     }
 
     static void TearDownTestCase() {}

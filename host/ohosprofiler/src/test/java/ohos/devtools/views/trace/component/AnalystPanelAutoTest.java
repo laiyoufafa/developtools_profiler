@@ -18,7 +18,7 @@ package ohos.devtools.views.trace.component;
 import com.intellij.openapi.wm.IdeGlassPane;
 import com.intellij.openapi.wm.impl.IdeGlassPaneImpl;
 import ohos.devtools.Config;
-import org.fest.swing.fixture.FrameFixture;
+import org.assertj.swing.fixture.FrameFixture;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -39,7 +39,7 @@ import java.awt.event.InputEvent;
  */
 class AnalystPanelAutoTest {
     private FrameFixture frame;
-    private AnalystPanel distributedPanel;
+    private SysAnalystPanel distributedPanel;
     private JFrame jFrame;
     private Robot robot;
 
@@ -53,13 +53,14 @@ class AnalystPanelAutoTest {
         } catch (AWTException e) {
             e.printStackTrace();
         }
-        distributedPanel = new AnalystPanel();
+        distributedPanel = new SysAnalystPanel();
         jFrame.add(distributedPanel);
         frame = new FrameFixture(jFrame);
         // Display the frame
+        distributedPanel.load(Config.TRACE_SYS, true);
         frame.show(new Dimension(1920, 1080));
         frame.moveTo(new Point(0, 0));
-        distributedPanel.load(Config.TRACE_SYS, true);
+
     }
 
     @AfterEach

@@ -20,6 +20,8 @@ import ohos.devtools.views.common.customcomp.CustomJLabel;
 
 /**
  * SubSessionListJBPanel
+ *
+ * @since 2021/11/22
  */
 public class SubSessionListJBPanel extends JBPanel {
     private String startTime;

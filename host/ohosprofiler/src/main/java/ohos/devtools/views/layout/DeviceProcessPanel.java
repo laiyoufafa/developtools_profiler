@@ -29,7 +29,6 @@ import ohos.devtools.datasources.utils.process.service.ProcessManager;
 import ohos.devtools.datasources.utils.profilerlog.ProfilerLogManager;
 import ohos.devtools.views.common.Constant;
 import ohos.devtools.views.common.LayoutConstants;
-import ohos.devtools.views.common.UtConstant;
 import ohos.devtools.views.common.customcomp.CustomTextField;
 import ohos.devtools.views.common.customcomp.GraphicsLinePanel;
 import ohos.devtools.views.layout.event.DeviceProcessPanelEvent;
@@ -53,10 +52,11 @@ import java.util.Vector;
 /**
  * DeviceProcessPanel
  *
- * @since: 2021/10/25
+ * @since 2021/10/25
  */
 public class DeviceProcessPanel extends JBPanel {
     private static final Logger LOGGER = LogManager.getLogger(DeviceProcessPanel.class);
+
     private JBLabel currentDeviceNum;
     private JBLabel deviceLabel;
     private ComboBox<String> connectTypeComboBox;
@@ -109,11 +109,9 @@ public class DeviceProcessPanel extends JBPanel {
         deviceLabel.setFont(new Font(Font.DIALOG, Font.PLAIN, 14));
         connectTypeComboBox = new ComboBox<String>();
         connectTypeComboBox.addItem(LayoutConstants.USB);
-        connectTypeComboBox.setName(UtConstant.UT_DEVICE_PROCESS_PANEL_CONNECT_TYPE);
         connectTypeComboBox.setBackground(JBColor.background());
         connectTypeComboBox.setOpaque(true);
         deviceNameComboBox = new ComboBox<String>();
-        deviceNameComboBox.setName(UtConstant.UT_DEVICE_PROCESS_PANEL_DEVICE_NAME);
         deviceNameComboBox.setBackground(JBColor.background());
         deviceNameComboBox.setOpaque(true);
         // application name
@@ -128,10 +126,8 @@ public class DeviceProcessPanel extends JBPanel {
         searchField.setBackground(JBColor.background());
         searchField.setOpaque(true);
         searchField.setForeground(JBColor.foreground().brighter());
-        searchField.setName(UtConstant.UT_DEVICE_PROCESS_PANEL_SEARCH_FIELD);
         // process scroll
-        processPanel = new JBPanel(new MigLayout("insets 0", "[grow,fill]",
-            "[fill,fill]"));
+        processPanel = new JBPanel(new MigLayout("insets 0", "[grow,fill]", "[fill,fill]"));
         processPanel.setBackground(JBColor.background());
         processPanel.setOpaque(true);
         processTable = new JBTable();
@@ -183,8 +179,8 @@ public class DeviceProcessPanel extends JBPanel {
             LOGGER.info("initProcessList");
         }
         if (!processInfoList.isEmpty()) {
-            selectedProcessName.setText(processInfoList.get(0).getProcessName() +
-                    "(" + processInfoList.get(0).getProcessId() + ")");
+            selectedProcessName
+                .setText(processInfoList.get(0).getProcessName() + "(" + processInfoList.get(0).getProcessId() + ")");
         } else {
             selectedProcessName.setText("Please select the device process !");
         }
@@ -214,7 +210,6 @@ public class DeviceProcessPanel extends JBPanel {
             LOGGER.info("renderProcessTable");
         }
         DefaultTableModel model = new DefaultTableModel(processNames, columnNames);
-        processTable.setName(UtConstant.UT_DEVICE_PROCESS_PANEL_TABLE);
         processTable.setModel(model);
         processTable.getTableHeader().setVisible(false);
         processTable.setRowHeight(LayoutConstants.DEVICE_ADD_HEIGHT);
@@ -237,8 +232,7 @@ public class DeviceProcessPanel extends JBPanel {
             "Devices " + String.format(Locale.ENGLISH, "%02d", deviceNum));
         deviceProcessPanelEvent.connectTypeChanged(deviceInfoList.get(0), connectTypeComboBox);
         deviceProcessPanelEvent.mouseEffectTable(processTable);
-        deviceProcessPanelEvent
-            .clickTable(this, currentDeviceNum.getText(), deviceConnectScrollPane);
+        deviceProcessPanelEvent.clickTable(this, currentDeviceNum.getText(), deviceConnectScrollPane);
         deviceProcessPanelEvent.searchJButtonSelect(this, processInfoList);
     }
 

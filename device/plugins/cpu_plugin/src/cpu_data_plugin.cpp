@@ -561,10 +561,9 @@ void CpuDataPlugin::WriteThreadInfo(CpuData& data)
         return;
     }
 
+    tidVec_.clear();
     while (int32_t tid = GetValidTid(procDir)) {
-        if (find(tidVec_.begin(), tidVec_.end(), tid) == tidVec_.end()) {
-            addTidBySort(tid);
-        }
+        addTidBySort(tid);
     }
 
     for (unsigned int i = 0; i < tidVec_.size(); i++) {

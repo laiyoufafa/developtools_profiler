@@ -33,7 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 /**
  * Flame Chart Test
  *
- * @since 2021/10/22 16:00
+ * @since: 2021/10/22 16:00
  */
 class FlameChartTest {
     private FlameChart flameChart = new FlameChart();

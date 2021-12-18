@@ -12,4 +12,5 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 select cpu from cpu_measure_filter where (name='cpufreq' or name='cpu_frequency') order by cpu;

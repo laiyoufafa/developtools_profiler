@@ -20,6 +20,17 @@ import com.intellij.openapi.util.IconLoader;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBPanel;
+import ohos.devtools.views.common.UtConstant;
+import ohos.devtools.views.layout.SystemPanel;
+
+import ohos.devtools.views.layout.chartview.TaskScenePanelChart;
+import ohos.devtools.views.trace.component.SysAnalystPanel;
+import ohos.devtools.views.trace.metrics.strategy.MetricsContext;
+import ohos.devtools.views.trace.util.Db;
+import org.apache.commons.lang.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -27,16 +38,6 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
-import ohos.devtools.views.common.UtConstant;
-import ohos.devtools.views.layout.SystemPanel;
-import ohos.devtools.views.layout.chartview.TaskScenePanelChart;
-import ohos.devtools.views.trace.component.AnalystPanel;
-import ohos.devtools.views.trace.metrics.strategy.MetricsContext;
-import ohos.devtools.views.trace.util.Db;
-import org.apache.commons.lang.StringUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -170,7 +171,7 @@ public class MetricsPanel extends JBPanel {
     private JBPanel topJPanel;
     private JBPanel centerJPanel;
     private JBLabel inputLabel;
-    private AnalystPanel analystPanel;
+    private SysAnalystPanel analystPanel;
     private JComboBox<String> metricSelect;
     private JButton metricsButton;
     private JBPanel bottomJPanel;
@@ -181,7 +182,7 @@ public class MetricsPanel extends JBPanel {
     /**
      * System Tuning Panel
      */
-    public MetricsPanel(JBPanel optionJPanel, AnalystPanel analystPanel, JButton metricsButton) {
+    public MetricsPanel(JBPanel optionJPanel, SysAnalystPanel analystPanel, JButton metricsButton) {
         this.optionJPanel = optionJPanel;
         this.analystPanel = analystPanel;
         this.metricsButton = metricsButton;
@@ -231,6 +232,7 @@ public class MetricsPanel extends JBPanel {
         addSelectItem();
         runButton.setFont(font);
         runButton.setText("Run");
+        runButton.setName(UtConstant.UT_SYSTEM_TUNING_METRICS_RUN);
         runButton.setBounds(optionJPanel.getWidth() / QUARTER + RUN_BUTTON_MARGIN_LEFT, SELECT_Y, RUN_BUTTON_WIDTH,
             RUN_BUTTON_HEIGHT);
         centerJPanel.setBounds(CENTER_PANEL_X, CENTER_PANEL_Y, optionJPanel.getWidth(), CENTER_PANEL_HEIGHT);

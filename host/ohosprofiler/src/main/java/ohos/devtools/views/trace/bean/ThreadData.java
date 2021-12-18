@@ -164,7 +164,7 @@ public class ThreadData extends AbstractGraph {
      * @return the value of threadName .
      */
     public String getThreadName() {
-        return threadName;
+        return threadName == null ? "Thread" : threadName;
     }
 
     /**

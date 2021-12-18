@@ -138,7 +138,7 @@ public class DeviceDao extends AbstractDataStore {
             }
         } catch (SQLException sqlException) {
             if (ProfilerLogManager.isErrorEnabled()) {
-                LOGGER.error("sql Exception ", sqlException.getMessage());
+                LOGGER.error("sql Exception ", sqlException);
             }
         } finally {
             close(statement, rs, connection);
@@ -180,6 +180,7 @@ public class DeviceDao extends AbstractDataStore {
         int port = rs.getInt("port");
         deviceInfo.setPort(port);
         int forwardPort = rs.getInt("forwardPort");
+        deviceInfo.setOfflineCount(rs.getInt("offlineCount"));
         deviceInfo.setForwardPort(forwardPort);
         deviceIPPortInfoList.add(deviceInfo);
     }
@@ -206,6 +207,43 @@ public class DeviceDao extends AbstractDataStore {
             }
             execute(conn, delSql);
         }
+    }
+
+    /**
+     * updateDeviceIPPortInfo
+     *
+     * @param offlineCount offlineCount
+     * @param deviceId deviceId
+     * @return boolean boolean
+     */
+    public boolean updateDeviceIPPortInfo(int offlineCount, String deviceId) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("updateDeviceIPPortInfo");
+        }
+        StringBuilder sql = new StringBuilder("update DeviceIPPortInfo set ");
+        if (offlineCount >= 0) {
+            sql.append("offlineCount = ").append(offlineCount);
+        }
+        sql.append(" where deviceID = '").append(deviceId).append("'");
+        Statement statement = null;
+        Connection conn = null;
+        try {
+            Optional<Connection> optionalConnection = getConnectByTable(DEVICE_TABLE);
+            if (optionalConnection.isPresent()) {
+                conn = optionalConnection.get();
+                statement = conn.createStatement();
+                int executeUpdate = statement.executeUpdate(sql.toString());
+                return executeUpdate > 0;
+            }
+        } catch (SQLException sqlException) {
+            if (ProfilerLogManager.isErrorEnabled()) {
+                LOGGER.error("sql Exception ", sqlException.getMessage());
+            }
+            return false;
+        } finally {
+            close(statement, conn);
+        }
+        return false;
     }
 
     /**

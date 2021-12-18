@@ -15,14 +15,27 @@
 
 package ohos.devtools.views.layout.event;
 
+import com.intellij.ui.components.JBPanel;
+import com.intellij.ui.components.JBTabbedPane;
+import ohos.devtools.datasources.utils.session.entity.SessionInfo;
+import ohos.devtools.datasources.utils.session.service.SessionManager;
+import ohos.devtools.views.common.Constant;
+import ohos.devtools.views.common.customcomp.CustomJLabel;
+import ohos.devtools.views.layout.TaskPanel;
+import ohos.devtools.views.layout.WelcomePanel;
 import ohos.devtools.views.layout.chartview.TaskScenePanelChart;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.ArrayList;
+
 /**
  * Task Panel Event Test
+ *
+ * @since 2021/2/1 9:31
  */
 public class TaskScenePanelChartEventTest {
+    private SessionInfo sessionInfo;
     private TaskScenePanelChartEvent taskScenePanelChartEvent;
 
     /**
@@ -36,6 +49,7 @@ public class TaskScenePanelChartEventTest {
      */
     @Before
     public void getTaskScenePanelChartEvent() {
+        sessionInfo = SessionInfo.builder().sessionId(0).sessionName("Test").pid(2).processName("processName").build();
         taskScenePanelChartEvent = new TaskScenePanelChartEvent();
     }
 
@@ -50,6 +64,13 @@ public class TaskScenePanelChartEventTest {
      */
     @Test
     public void clickDelete() {
-        taskScenePanelChartEvent.clickDelete(new TaskScenePanelChart());
+        ArrayList<CustomJLabel> hosJLabels = new ArrayList<CustomJLabel>();
+        CustomJLabel hosJLabel = new CustomJLabel();
+        hosJLabels.add(hosJLabel);
+        Constant.jtasksTab = new JBTabbedPane();
+        TaskPanel taskPanel = new TaskPanel(new JBPanel(), new WelcomePanel());
+        SessionManager.getInstance().getProfilingSessions().put(0L, sessionInfo);
+        TaskScenePanelChart taskScenePanelChart = new TaskScenePanelChart(taskPanel, hosJLabels);
+        taskScenePanelChartEvent.clickDelete(taskScenePanelChart);
     }
 }

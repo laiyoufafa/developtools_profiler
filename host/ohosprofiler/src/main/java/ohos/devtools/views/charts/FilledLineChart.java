@@ -35,11 +35,18 @@ import static ohos.devtools.views.common.LayoutConstants.INITIAL_VALUE;
 public class FilledLineChart extends ProfilerChart {
     private static final int NUM_2 = 2;
     private static final int NUM_3 = 3;
+    private static final int Y_AXIS_COORDINATE_MAX_VALUE = 100;
+
 
     /**
      * Do line charts need to be stacked
      */
     private final boolean stacked;
+
+    /**
+     * y Axis Coordinate Fixed
+     */
+    private boolean yAxisCoordinateFixed = false;
 
     /**
      * Constructor
@@ -51,6 +58,21 @@ public class FilledLineChart extends ProfilerChart {
     public FilledLineChart(ProfilerChartsView bottomPanel, String name, boolean stacked) {
         super(bottomPanel, name);
         this.stacked = stacked;
+        chartType = FILLED_LINE;
+    }
+
+    /**
+     * Constructor
+     *
+     * @param bottomPanel ProfilerChartsView
+     * @param name chart name
+     * @param stacked Do line charts need to be stacked
+     * @param yAxisCoordinateFixed yAxisCoordinateFixed
+     */
+    public FilledLineChart(ProfilerChartsView bottomPanel, String name, boolean stacked, boolean yAxisCoordinateFixed) {
+        super(bottomPanel, name);
+        this.stacked = stacked;
+        this.yAxisCoordinateFixed = yAxisCoordinateFixed;
         chartType = FILLED_LINE;
     }
 
@@ -116,8 +138,12 @@ public class FilledLineChart extends ProfilerChart {
                 valueY = getModelValueByIndex(dataMap.get(time), index);
             }
             // If the current value exceeds the maximum, the maximum update value is 1.5 times the current value
-            if (valueY > maxUnitY) {
-                maxUnitY = divideInt(valueY * NUM_3, NUM_2);
+            if (yAxisCoordinateFixed) {
+                maxUnitY = Y_AXIS_COORDINATE_MAX_VALUE;
+            } else {
+                if (valueY > maxUnitY) {
+                    maxUnitY = divideInt(valueY * NUM_3, NUM_2);
+                }
             }
             int pointY = y0 + multiply(pixelPerY, valueY);
             polygon.addPoint(pointX, pointY);
@@ -144,8 +170,12 @@ public class FilledLineChart extends ProfilerChart {
                 int pointX = startXCoordinate + multiply(pixelPerX, timeArray[time] - startTime);
                 int sum = getListSum(dataMap.get(timeArray[time]), nextLineIndex);
                 // If the current value exceeds the maximum, the maximum update value is 1.5 times the current value
-                if (sum > maxUnitY) {
-                    maxUnitY = divideInt(sum * NUM_3, NUM_2);
+                if (yAxisCoordinateFixed) {
+                    maxUnitY = Y_AXIS_COORDINATE_MAX_VALUE;
+                } else {
+                    if (sum > maxUnitY) {
+                        maxUnitY = divideInt(sum * NUM_3, NUM_2);
+                    }
                 }
                 int pointY = y0 + multiply(pixelPerY, sum);
                 polygon.addPoint(pointX, pointY);

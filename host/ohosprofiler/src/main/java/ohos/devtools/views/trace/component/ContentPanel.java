@@ -166,11 +166,24 @@ public final class ContentPanel extends JBPanel implements AbstractDataFragment.
                 TimeViewPort parent = (TimeViewPort) getParent();
                 Rectangle viewRect = parent.getViewRect();
                 // Render the line in the viewport display area, and the line beyond the range will not be rendered
-                fragmentList.stream().filter(fragment -> fragment.visible).filter(fragment -> {
+                fragmentList.stream().filter(fragment -> {
+                    // Cancel the future if the fragment is hidden
+                    if (!fragment.visible) {
+                        fragment.cancel();
+                    }
+                    return fragment.visible;
+                }).filter(fragment -> {
                     if (fragment != null && fragment.getRect() != null && viewRect != null) {
-                        return Utils.getY(fragment.getRect()) + fragment.getRect().height
+                        boolean rs = Utils.getY(fragment.getRect()) + fragment.getRect().height
                             >= Utils.getY(viewRect) + TimeViewPort.height
                             && Utils.getY(fragment.getRect()) <= Utils.getY(viewRect) + viewRect.height;
+                        if (rs) {
+                            return true;
+                        } else {
+                            // If it is not in the display area, cancel the future
+                            fragment.cancel();
+                            return false;
+                        }
                     } else {
                         return false;
                     }
@@ -211,15 +224,14 @@ public final class ContentPanel extends JBPanel implements AbstractDataFragment.
                     List<AbstractDataFragment> rangeFragments =
                         fragmentList.stream().filter(it -> range.intersects(it.getDataRect()))
                             .collect(Collectors.toList());
-
                     // Draw after dragging
                     rangeFragments.forEach(it -> it.drawFrame());
                     List<AbstractDataFragment> process = new ArrayList<>();
                     rangeFragments.stream().filter(it -> it instanceof ProcessDataFragment)
                         .map(it -> (ProcessDataFragment) it).forEach(it -> {
-                            process.addAll(fragmentList.stream().filter(that -> that.parentUuid.equals(it.uuid))
-                                .collect(Collectors.toList()));
-                        });
+                        process.addAll(fragmentList.stream().filter(that -> that.parentUuid.equals(it.uuid))
+                            .collect(Collectors.toList()));
+                    });
                     rangeFragments.addAll(process);
                     List<Integer> cpu = rangeFragments.stream().filter(it -> it instanceof CpuDataFragment)
                         .map(it -> ((CpuDataFragment) it).getIndex()).collect(Collectors.toList());
@@ -356,9 +368,9 @@ public final class ContentPanel extends JBPanel implements AbstractDataFragment.
                 /**
                  * Draw the vertical line
                  */
-                graphics.drawLine(wakeupX + Utils.getX(dataRect), Utils.getY(visibleRect),
-                    wakeupX + Utils.getX(dataRect),
-                    Utils.getY(visibleRect) + visibleRect.height);
+                graphics
+                    .drawLine(wakeupX + Utils.getX(dataRect), Utils.getY(visibleRect), wakeupX + Utils.getX(dataRect),
+                        Utils.getY(visibleRect) + visibleRect.height);
                 /**
                  * Draw a diamond First filter out which cpu fragment the wake-up thread is in,
                  * get the rect of the cpu fragment, and then calculate the coordinates of the drawing diamond
@@ -368,13 +380,11 @@ public final class ContentPanel extends JBPanel implements AbstractDataFragment.
                         if (((CpuDataFragment) dataFragment).getIndex() == wakeup.getWakeupCpu()) {
                             Rectangle wakeCPURect = dataFragment.getRect();
                             final int[] xs = {Utils.getX(dataRect) + wakeupX, Utils.getX(dataRect) + wakeupX + 6,
-                                Utils.getX(dataRect) + wakeupX,
-                                Utils.getX(dataRect) + wakeupX - 6};
-                            final int[] ys =
-                                {Utils.getY(wakeCPURect) + wakeCPURect.height / 2 - 10,
-                                    Utils.getY(wakeCPURect) + wakeCPURect.height / 2,
-                                    Utils.getY(wakeCPURect) + wakeCPURect.height / 2 + 10,
-                                    Utils.getY(wakeCPURect) + wakeCPURect.height / 2};
+                                Utils.getX(dataRect) + wakeupX, Utils.getX(dataRect) + wakeupX - 6};
+                            final int[] ys = {Utils.getY(wakeCPURect) + wakeCPURect.height / 2 - 10,
+                                Utils.getY(wakeCPURect) + wakeCPURect.height / 2,
+                                Utils.getY(wakeCPURect) + wakeCPURect.height / 2 + 10,
+                                Utils.getY(wakeCPURect) + wakeCPURect.height / 2};
                             graphics.fillPolygon(xs, ys, xs.length);
                             break;
                         }
@@ -395,16 +405,14 @@ public final class ContentPanel extends JBPanel implements AbstractDataFragment.
                 new Rectangle(wakeupX + Utils.getX(dataRect), Utils.getY(selectCpu.rect) + selectCpu.rect.height / 2,
                     Utils.getX(selectCpu.rect) - wakeupX - Utils.getX(dataRect), 30);
             if (selectCpu.getStartTime() > startNS && wakeup.getWakeupTime() < endNS) {
-                graphics.drawLine(Utils.getX(dataRect) + wakeupX,
-                    Utils.getY(selectCpu.rect) + selectCpu.rect.height - 2,
-                    Utils.getX(selectCpu.rect),
-                    Utils.getY(selectCpu.rect) + selectCpu.rect.height - 2);
+                graphics
+                    .drawLine(Utils.getX(dataRect) + wakeupX, Utils.getY(selectCpu.rect) + selectCpu.rect.height - 2,
+                        Utils.getX(selectCpu.rect), Utils.getY(selectCpu.rect) + selectCpu.rect.height - 2);
             }
             if (rectangle.width > 10) {
                 if (wakeup.getWakeupTime() > startNS && wakeup.getWakeupTime() < endNS) {
                     drawArrow(graphics, Utils.getX(dataRect) + wakeupX,
-                        Utils.getY(selectCpu.rect) + selectCpu.rect.height - 2,
-                        -1);
+                        Utils.getY(selectCpu.rect) + selectCpu.rect.height - 2, -1);
                 }
                 if (selectCpu.getStartTime() < endNS && selectCpu.getStartTime() > startNS) {
                     drawArrow(graphics, Utils.getX(selectCpu.rect),
@@ -456,63 +464,63 @@ public final class ContentPanel extends JBPanel implements AbstractDataFragment.
     public void scrollToCpu(int cpu, long startTime) {
         fragmentList.stream().filter(CpuDataFragment.class::isInstance).map(it -> ((CpuDataFragment) it))
             .filter(it -> it.getIndex() == cpu).findFirst().ifPresent(it -> {
-                if (getParent() instanceof JViewport) {
-                    JViewport parent = (JViewport) getParent();
-                    if (it.getData() != null) {
-                        it.getData().stream().filter(cpuData -> cpuData.getStartTime() == startTime).findFirst()
-                            .ifPresent(cpuData -> it.click(null, cpuData));
-                    } else {
-                        it.delayClickStartTime = startTime;
-                    }
-                    JBScrollPane scrollPane = (JBScrollPane) parent.getParent();
-                    scrollPane.getVerticalScrollBar().setValue(0);
+            if (getParent() instanceof JViewport) {
+                JViewport parent = (JViewport) getParent();
+                if (it.getData() != null) {
+                    it.getData().stream().filter(cpuData -> cpuData.getStartTime() == startTime).findFirst()
+                        .ifPresent(cpuData -> it.click(null, cpuData));
+                } else {
+                    it.delayClickStartTime = startTime;
                 }
-            });
+                JBScrollPane scrollPane = (JBScrollPane) parent.getParent();
+                scrollPane.getVerticalScrollBar().setValue(0);
+            }
+        });
     }
 
     /**
      * Jump to the specified location
      *
      * @param processId processId
+     * @param processName processName
      * @param tid tid
      * @param startTime startTime
      * @param offsetHeight tab height
      */
-    public void scrollToThread(int processId, int tid, long startTime, int offsetHeight) {
+    public void scrollToThread(int processId, String processName, int tid, long startTime, int offsetHeight) {
         fragmentList.stream().filter(ProcessDataFragment.class::isInstance).map(it -> ((ProcessDataFragment) it))
             .filter(it -> it.getProcess().getPid() == processId).findFirst().ifPresent(it -> {
-                if (getParent() instanceof JViewport) {
-                    JViewport parent = (JViewport) getParent();
-                    it.expandThreads();
+            if (getParent() instanceof JViewport) {
+                JViewport parent = (JViewport) getParent();
+                it.expandThreads();
 
-                    SwingUtilities.invokeLater(() -> {
-                        fragmentList.stream().filter(ThreadDataFragment.class::isInstance)
-                            .map(th -> ((ThreadDataFragment) th))
-                            .filter(th -> th.thread.getTid() == tid && th.parentUuid.equals(it.uuid)).findFirst()
-                            .ifPresent(th -> {
-                                // If the thread data has been loaded, data is not empty,
-                                // find the node whose start time is startTime, and select it
-                                if (th.getData() != null) {
-                                    th.getData().stream()
-                                        .filter(threadData -> threadData.getStartTime() == startTime)
-                                        .findFirst().ifPresent(threadData -> {
-                                            th.click(null, threadData);
-                                        });
-                                } else {
-                                    // If the thread data has not been loaded yet,
-                                    // save the start time of the node to be selected,
-                                    // the load Data() method in the component will process this field,
-                                    // select it directly after loading,
-                                    // and then set the delay Click Start Time to null
-                                    th.delayClickStartTime = startTime;
-                                }
-                                parent.scrollRectToVisible(
-                                    new Rectangle(Utils.getX(th.getRect()), Utils.getY(th.getRect()) + offsetHeight,
-                                        th.getRect().width,
-                                        th.getRect().height));
-                            });
-                    });
-                }
-            });
+                SwingUtilities.invokeLater(() -> {
+                    fragmentList.stream().filter(ThreadDataFragment.class::isInstance)
+                        .map(th -> ((ThreadDataFragment) th))
+                        .filter(th -> th.thread.getTid() == tid && th.parentUuid.equals(it.uuid)).findFirst()
+                        .ifPresent(th -> {
+                            // If the thread data has been loaded, data is not empty,
+                            // find the node whose start time is startTime, and select it
+                            if (th.getData() != null) {
+                                th.getData().stream().filter(threadData -> threadData.getStartTime() == startTime)
+                                    .findFirst().ifPresent(threadData -> {
+                                    th.click(null, threadData);
+                                });
+                            } else {
+                                // If the thread data has not been loaded yet,
+                                // save the start time of the node to be selected,
+                                // the load Data() method in the component will process this field,
+                                // select it directly after loading,
+                                // and then set the delay Click Start Time to null
+                                th.delayClickStartTime = startTime;
+                                th.setDelayClickProcessName(processName);
+                            }
+                            parent.scrollRectToVisible(
+                                new Rectangle(Utils.getX(th.getRect()), Utils.getY(th.getRect()) + offsetHeight,
+                                    th.getRect().width, th.getRect().height));
+                        });
+                });
+            }
+        });
     }
 }

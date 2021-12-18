@@ -180,28 +180,28 @@ public final class ChartUtils {
         }
         long milliSecond = ms - day * dd - hour * hh - minute * mi - second * ss;
 
-        StringBuilder sb = new StringBuilder();
+        StringBuilder builder = new StringBuilder();
         if (day > 0) {
-            sb.append(day).append(":");
+            builder.append(day).append(":");
         }
         if (hour > 0) {
-            sb.append(hour).append(":");
+            builder.append(hour).append(":");
         }
         if (minute > 0) {
-            sb.append(minute).append(":");
+            builder.append(minute).append(":");
         } else {
-            sb.append("00:");
+            builder.append("00:");
         }
         if (second > 0) {
-            sb.append(second).append(":");
+            builder.append(second).append(":");
         } else {
-            sb.append("00:");
+            builder.append("00:");
         }
         if (milliSecond > 0) {
-            sb.append(milliSecond).append(" ");
+            builder.append(milliSecond).append(" ");
         } else {
-            sb.append("00:");
+            builder.append("00:");
         }
-        return sb.toString();
+        return builder.toString();
     }
 }

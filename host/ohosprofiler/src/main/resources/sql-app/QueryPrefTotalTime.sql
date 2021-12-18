@@ -12,4 +12,5 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 select max(timestamp) as endTime,min(timestamp) as startTime from perf_sample;

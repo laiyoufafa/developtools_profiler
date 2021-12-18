@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 select cast(name as varchar) as name,cast(value as varchar) as value from meta
 UNION
 select 'start_ts',cast(start_ts as varchar) from trace_range

@@ -20,7 +20,7 @@ import ohos.devtools.views.trace.metrics.MetricsSql;
 /**
  * Strategy
  *
- * @since 2021/04/22 12:25
+ * @since 2021/9/10
  */
 public interface Strategy {
 

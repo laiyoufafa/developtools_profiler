@@ -100,7 +100,6 @@ protected:
     {
         g_smbFd1 = InitShareMemory1();
         g_smbFd2 = InitShareMemory2();
-        printf("SetUpTestCase success\n");
     }
     static void TearDownTestCase() {}
 };

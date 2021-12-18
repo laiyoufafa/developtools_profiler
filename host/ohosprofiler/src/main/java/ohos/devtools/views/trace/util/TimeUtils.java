@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Time formatting tool
@@ -42,7 +43,7 @@ public final class TimeUtils {
         final long second1 = 1_000_000_000L; // 1 second
         final long millisecond1 = 1_000_000L; // 1 millisecond
         final long microsecond1 = 1_000L; // 1 microsecond
-        final double nanosecond1 = 1000.0;
+        final double nanosecond1 = 1000.0D;
         String res;
         if (ns >= second1) {
             res = df.format(TimeUnit.MILLISECONDS.convert(ns, TimeUnit.NANOSECONDS) / nanosecond1) + "s";
@@ -95,5 +96,23 @@ public final class TimeUtils {
             list.add(nanos + "ns");
         }
         return list.stream().collect(Collectors.joining(" "));
+    }
+
+    /**
+     * Get the current formatting time
+     *
+     * @param ns ns
+     * @return String
+     */
+    public static String getLogTimeString(long ns) {
+        long second = TimeUnit.NANOSECONDS.toSeconds(ns);
+        long millis = TimeUnit.NANOSECONDS.toMillis(ns) - TimeUnit.SECONDS.toMillis(second);
+        long micros = TimeUnit.NANOSECONDS.toMicros(ns) - TimeUnit.SECONDS.toMicros(second) - TimeUnit.MILLISECONDS
+            .toMicros(millis);
+        long nanos =
+            TimeUnit.NANOSECONDS.toNanos(ns) - TimeUnit.SECONDS.toNanos(second) - TimeUnit.MILLISECONDS.toNanos(millis)
+                - TimeUnit.MICROSECONDS.toNanos(micros);
+        return Stream.of(second + "." + String.format("%03d", millis), String.format("%03d", micros),
+            String.format("%03d", nanos)).collect(Collectors.joining(" "));
     }
 }

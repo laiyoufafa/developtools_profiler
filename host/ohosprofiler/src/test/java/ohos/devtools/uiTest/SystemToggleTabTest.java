@@ -54,7 +54,8 @@ public class SystemToggleTabTest {
             byXpath("//div[@accessiblename='Choose' and @class='JButton' and @name='Choose' and @text='Choose']"),
             Duration.ofSeconds(2)).click();
         remoteRobot.find(CommonContainerFixture.class, byXpath("//div[@class='SystemConfigPanel']"))
-            .jLabel(byXpath("//div[@accessiblename='Probes' and @class='JBLabel' and @text='Probes']"),
+            .jLabel(byXpath("//div[@accessiblename='Probes'"
+                    + " and @class='JBLabel' and @name='Probes' and @text='Probes']"),
                 Duration.ofSeconds(2)).click();
         remoteRobot.find(CommonContainerFixture.class, byXpath("//div[@class='SystemConfigPanel']")).checkBox(byXpath(
             "//div[@accessiblename='Board voltages & frequency' and @class='JBCheckBox' "

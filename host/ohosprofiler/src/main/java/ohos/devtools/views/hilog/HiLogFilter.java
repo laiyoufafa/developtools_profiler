@@ -162,7 +162,7 @@ public class HiLogFilter {
             } catch (BadLocationException locationException) {
                 if (ProfilerLogManager.isErrorEnabled()) {
                     LOGGER.error("Error deleting the top row when the maximum number of rows is exceeded {}",
-                            locationException.getMessage());
+                        locationException.getMessage());
                 }
             }
         }

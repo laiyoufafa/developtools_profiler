@@ -22,55 +22,92 @@
 
 namespace {
 int g_testCount = 10;
+const std::string writeFile = "/data/local/tmp/diskio_write_test.txt";
+constexpr int BLOCK_LEN = 100 * 1024;
+constexpr int SLEEP_TIME = 10;
 } // namespace
 
-int main()
+void IoTest()
 {
-    DiskioConfig protoConfig;
-    PluginModuleStruct* diskioPlugin;
-    void* handle = dlopen("./libdiskiodataplugin.z.so", RTLD_LAZY);
-    if (handle == nullptr) {
-        std::cout << "test:dlopen err: " << dlerror() << std::endl;
-        return 0;
+    // 一次累加16B，直至100KB
+    std::string str = "";
+    while (str.length() < BLOCK_LEN) {
+        str += "this is IO test.";
     }
-    std::cout << "test:handle = " << handle << std::endl;
-    diskioPlugin = (PluginModuleStruct*)dlsym(handle, "g_pluginModule");
-    std::cout << "test:name = " << diskioPlugin->name << std::endl;
-    std::cout << "test:buffer size = " << diskioPlugin->resultBufferSizeHint << std::endl;
 
-    // Serialize config
-    int configLength = protoConfig.ByteSizeLong();
-    std::vector<uint8_t> configBuffer(configLength);
-    int ret = protoConfig.SerializeToArray(configBuffer.data(), configBuffer.size());
-    std::cout << "test:configLength = " << configLength << std::endl;
-    std::cout << "test:serialize success start plugin ret = " << ret << std::endl;
+    // 一次写100K数据，写10次
+    int count = 0;
+    FILE* writeFp = fopen(writeFile.c_str(),"w");
+    while (count < g_testCount) {
+        fwrite(const_cast<char*>(str.c_str()), 1, BLOCK_LEN, writeFp);
+        fflush(writeFp);
+        fsync(fileno(writeFp));
+        count++;
+    }
+    fclose(writeFp);
 
-    // Start
-    std::vector<uint8_t> dataBuffer(diskioPlugin->resultBufferSizeHint);
-    diskioPlugin->callbacks->onPluginSessionStart(configBuffer.data(), configLength);
-    while (g_testCount--) {
-        int len = diskioPlugin->callbacks->onPluginReportResult(dataBuffer.data(), diskioPlugin->resultBufferSizeHint);
-        std::cout << "test:filler buffer length = " << len << std::endl;
+    // delete file
+    std::string command = "rm " + writeFile;
+    system(command.c_str());
+}
 
-        if (len > 0) {
-            DiskioData diskioData;
-            diskioData.ParseFromArray(dataBuffer.data(), len);
-            std::cout << "test:ParseFromArray length = " << len << std::endl;
+int main(int agrc, char* agrv[])
+{
+    bool isTestDiskIO = false;
+    for (int i = 1; i < agrc; i++) {
+        isTestDiskIO = atoi(agrv[i]);
+    }
 
-            std::cout << "prev_rd_sectors_kb:" << diskioData.prev_rd_sectors_kb() << std::endl;
-            std::cout << "prev_wr_sectors_kb:" << diskioData.prev_wr_sectors_kb() << std::endl;
-            std::cout << "prev_timestamp.tv_sec:" << diskioData.prev_timestamp().tv_sec() << std::endl;
-            std::cout << "prev_timestamp.tv_nsec:" << diskioData.prev_timestamp().tv_nsec() << std::endl;
-            std::cout << "rd_sectors_kb:" << diskioData.rd_sectors_kb() << std::endl;
-            std::cout << "wr_sectors_kb:" << diskioData.wr_sectors_kb() << std::endl;
-            std::cout << "timestamp.tv_sec:" << diskioData.timestamp().tv_sec() << std::endl;
-            std::cout << "timestamp.tv_nsec:" << diskioData.timestamp().tv_nsec() << std::endl;
+    if (isTestDiskIO) {
+        IoTest();
+        sleep(SLEEP_TIME);
+    } else {
+        DiskioConfig protoConfig;
+        PluginModuleStruct* diskioPlugin;
+        void* handle = dlopen("./libdiskiodataplugin.z.so", RTLD_LAZY);
+        if (handle == nullptr) {
+            std::cout << "test:dlopen err: " << dlerror() << std::endl;
+            return 0;
         }
+        std::cout << "test:handle = " << handle << std::endl;
+        diskioPlugin = (PluginModuleStruct*)dlsym(handle, "g_pluginModule");
+        std::cout << "test:name = " << diskioPlugin->name << std::endl;
+        std::cout << "test:buffer size = " << diskioPlugin->resultBufferSizeHint << std::endl;
 
-        std::cout << "test:sleep...................." << std::endl;
-        sleep(1);
+        // Serialize config
+        int configLength = protoConfig.ByteSizeLong();
+        std::vector<uint8_t> configBuffer(configLength);
+        int ret = protoConfig.SerializeToArray(configBuffer.data(), configBuffer.size());
+        std::cout << "test:configLength = " << configLength << std::endl;
+        std::cout << "test:serialize success start plugin ret = " << ret << std::endl;
+
+        // Start
+        std::vector<uint8_t> dataBuffer(diskioPlugin->resultBufferSizeHint);
+        diskioPlugin->callbacks->onPluginSessionStart(configBuffer.data(), configLength);
+        while (g_testCount--) {
+            int len = diskioPlugin->callbacks->onPluginReportResult(dataBuffer.data(), diskioPlugin->resultBufferSizeHint);
+            std::cout << "test:filler buffer length = " << len << std::endl;
+
+            if (len > 0) {
+                DiskioData diskioData;
+                diskioData.ParseFromArray(dataBuffer.data(), len);
+                std::cout << "test:ParseFromArray length = " << len << std::endl;
+
+                std::cout << "prev_rd_sectors_kb:" << diskioData.prev_rd_sectors_kb() << std::endl;
+                std::cout << "prev_wr_sectors_kb:" << diskioData.prev_wr_sectors_kb() << std::endl;
+                std::cout << "prev_timestamp.tv_sec:" << diskioData.prev_timestamp().tv_sec() << std::endl;
+                std::cout << "prev_timestamp.tv_nsec:" << diskioData.prev_timestamp().tv_nsec() << std::endl;
+                std::cout << "rd_sectors_kb:" << diskioData.rd_sectors_kb() << std::endl;
+                std::cout << "wr_sectors_kb:" << diskioData.wr_sectors_kb() << std::endl;
+                std::cout << "timestamp.tv_sec:" << diskioData.timestamp().tv_sec() << std::endl;
+                std::cout << "timestamp.tv_nsec:" << diskioData.timestamp().tv_nsec() << std::endl;
+            }
+
+            std::cout << "test:sleep...................." << std::endl;
+            sleep(1);
+        }
+        diskioPlugin->callbacks->onPluginSessionStop();
     }
 
-    diskioPlugin->callbacks->onPluginSessionStop();
     return 0;
 }

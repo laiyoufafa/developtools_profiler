@@ -89,7 +89,7 @@ public class StackBar extends JPanel {
             Map<String, List<TabThreadStatesBean>> collect =
                 data.stream().collect(Collectors.groupingBy(TabThreadStatesBean::getState));
             for (String state : collect.keySet()) {
-                long sum = 0;
+                long sum = 0L;
                 for (TabThreadStatesBean bean : collect.get(state)) {
                     sum += bean.getWallDuration();
                 }

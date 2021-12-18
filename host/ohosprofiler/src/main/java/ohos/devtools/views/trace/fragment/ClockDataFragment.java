@@ -30,7 +30,6 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
-import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
@@ -102,8 +101,7 @@ public class ClockDataFragment extends AbstractDataFragment<ClockData> implement
             graphics.drawString("Loading...", Utils.getX(getDataRect()), Utils.getY(getDataRect()) + 12);
             loadData();
         } else {
-            data.stream()
-                .filter(it -> it.getStartTime() + it.getDuration() > startNS && it.getStartTime() < endNS)
+            data.stream().filter(it -> it.getStartTime() + it.getDuration() > startNS && it.getStartTime() < endNS)
                 .forEach(it -> {
                     if (it.getStartTime() < startNS) {
                         x1 = 0;
@@ -159,9 +157,11 @@ public class ClockDataFragment extends AbstractDataFragment<ClockData> implement
     public void mouseClicked(MouseEvent event) {
         super.mouseClicked(event);
         ContentPanel.clickFragment = this;
-        data.stream().filter(
-                cpuData -> cpuData.getStartTime() + cpuData.getDuration() > startNS && cpuData.getStartTime() < endNS)
-            .filter(cpuData -> cpuData.edgeInspect(event)).findFirst().ifPresent(cpuData -> cpuData.onClick(event));
+        if (data != null) {
+            data.stream()
+                .filter(clock -> clock.getStartTime() + clock.getDuration() > startNS && clock.getStartTime() < endNS)
+                .filter(clock -> clock.edgeInspect(event)).findFirst().ifPresent(clock -> clock.onClick(event));
+        }
     }
 
     /**
@@ -206,8 +206,7 @@ public class ClockDataFragment extends AbstractDataFragment<ClockData> implement
         }
         showTipCpuData = null;
         if (Objects.nonNull(data) && edgeInspect(event)) {
-            data.stream().filter(
-                    it -> it.getStartTime() + it.getDuration() > startNS && it.getStartTime() < endNS)
+            data.stream().filter(it -> it.getStartTime() + it.getDuration() > startNS && it.getStartTime() < endNS)
                 .forEach(it -> {
                     it.onMouseMove(event);
                     if (it.edgeInspect(event)) {
@@ -252,8 +251,8 @@ public class ClockDataFragment extends AbstractDataFragment<ClockData> implement
             showTipCpuData.select(true);
             showTipCpuData.repaint();
             currentSelectedCpuData = ClockDataFragment.focusCpuData;
-            if (AnalystPanel.iClockDataClick != null) {
-                AnalystPanel.iClockDataClick.click(showTipCpuData);
+            if (AnalystPanel.getiClockDataClick() != null) {
+                AnalystPanel.getiClockDataClick().click(showTipCpuData);
             }
         }
     }
@@ -310,32 +309,34 @@ public class ClockDataFragment extends AbstractDataFragment<ClockData> implement
                 ArrayList<ClockData> clockData = new ArrayList<>() {
                 };
                 if (clock.getName().endsWith(" Frequency")) {
-                    Db.getInstance().query(Sql.SYS_QUERY_CLOCK_FREQUENCY, clockData, clock.getSrcname());
+                    Db.getInstance()
+                        .query(st -> addStatement(st), Sql.SYS_QUERY_CLOCK_FREQUENCY, clockData, clock.getSrcname());
                     for (int idx = 0, len = clockData.size(); idx < len; idx++) {
                         ClockData it = clockData.get(idx);
                         if (idx == len - 1) {
-                            it.setDuration(AnalystPanel.DURATION - it.getStartTime());
+                            it.setDuration(AnalystPanel.getDURATION() - it.getStartTime());
                         } else {
                             it.setDuration(clockData.get(idx + 1).getStartTime() - it.getStartTime());
                         }
                     }
                 } else if (clock.getName().endsWith(" State")) {
-                    Db.getInstance().query(Sql.SYS_QUERY_CLOCK_STATE, clockData, clock.getSrcname());
+                    Db.getInstance()
+                        .query(st -> addStatement(st), Sql.SYS_QUERY_CLOCK_STATE, clockData, clock.getSrcname());
                 } else {
                     if (clock.getName().endsWith("ScreenState")) {
-                        Db.getInstance().query(Sql.SYS_QUERY_SCREEN_STATE, clockData);
+                        Db.getInstance().query(st -> addStatement(st), Sql.SYS_QUERY_SCREEN_STATE, clockData);
                         for (int idx = 0, len = clockData.size(); idx < len; idx++) {
                             ClockData it = clockData.get(idx);
                             if (idx == len - 1) {
-                                it.setDuration(AnalystPanel.DURATION - it.getStartTime());
+                                it.setDuration(AnalystPanel.getDURATION() - it.getStartTime());
                             } else {
                                 it.setDuration(clockData.get(idx + 1).getStartTime() - it.getStartTime());
                             }
                         }
                     }
                 }
-                min = clockData.stream().mapToLong(ClockData::getValue).min().orElseThrow(NoSuchElementException::new);
-                max = clockData.stream().mapToLong(ClockData::getValue).max().orElseThrow(NoSuchElementException::new);
+                min = clockData.stream().mapToLong(ClockData::getValue).min().orElse(0);
+                max = clockData.stream().mapToLong(ClockData::getValue).max().orElse(0);
                 data = clockData;
                 SwingUtilities.invokeLater(() -> {
                     isLoading = false;

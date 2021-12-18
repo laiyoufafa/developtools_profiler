@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 select A.*, B.cpu, B.ts-TR.start_ts AS startTime,B.dur,B.state,IP.pid,IP.name as processName
                 from thread_state AS B
                 left join internal_thread as A

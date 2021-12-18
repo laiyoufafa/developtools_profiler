@@ -331,7 +331,20 @@ public class TimeShaft extends JBPanel implements KeyListener, MouseListener, Mo
      * @param rate rate
      */
     public void putRateMap(int xPoint, double rate) {
-        rateMap.put(xPoint, rate);
+        if (rateMap.containsKey(xPoint)) {
+            if (rateMap.get(xPoint) == 0d) {
+                rateMap.put(xPoint, rate);
+            }
+        } else {
+            rateMap.put(xPoint, rate);
+        }
+    }
+
+    /**
+     * clear map
+     */
+    public void clearMap() {
+        rateMap.clear();
     }
 
     /**

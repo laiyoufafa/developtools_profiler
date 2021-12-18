@@ -30,10 +30,13 @@ import java.util.List;
 
 /**
  * Custom Tooltip test class
+ *
+ * @since 2021/2/1 9:31
  */
 public class LegendTooltipTest {
     private static final String TEST_TIME = "00:23:189";
     private static final String TEST_TEXT = "Java:123MB";
+
     private LegendTooltip tooltip;
     private ProfilerChartsView view;
     private List<TooltipItem> tooltipItems;

@@ -22,6 +22,7 @@ import java.util.Objects;
 /**
  * Distribute Term entity
  *
+ * @since 2021/9/10
  */
 public class DistributeTerm {
     @DField(name = "threadId")

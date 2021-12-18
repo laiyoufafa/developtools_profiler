@@ -35,8 +35,8 @@ import ohos.devtools.views.distributed.util.DistributedDataPraser;
 import ohos.devtools.views.trace.EventDispatcher;
 import ohos.devtools.views.trace.Tip;
 import ohos.devtools.views.trace.util.ImageUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
 
 import javax.swing.ImageIcon;
 import javax.swing.JTable;
@@ -124,14 +124,10 @@ public class DistributedDataCallTreePane extends JBPanel implements IDistributed
             }
             tableModelOnColumns.reload();
         });
-        treeTableAddListener();
-    }
-
-    private void treeTableAddListener() {
         treeTable.getTable().addMouseListener(new MouseAdapter() {
             @Override
-            public void mouseExited(MouseEvent mouseEvent) {
-                super.mouseExited(mouseEvent);
+            public void mouseExited(MouseEvent event) {
+                super.mouseExited(event);
                 Tip.getInstance().hidden();
             }
 
@@ -145,29 +141,33 @@ public class DistributedDataCallTreePane extends JBPanel implements IDistributed
                 }
             }
         });
-        treeTable.getTree().addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseExited(MouseEvent mouseEvent) {
-                super.mouseExited(mouseEvent);
-                Tip.getInstance().hidden();
-            }
-
-            @Override
-            public void mouseClicked(MouseEvent event) {
-                super.mouseClicked(event);
-                if (currentSelectBean != null) {
-                    List<String> stringList = currentSelectBean.getStringList();
-                    Tip.getInstance().display(event, stringList);
-                    EventDispatcher.dispatcherFuncChangeListener(currentSelectBean.getId());
-                }
-            }
-        });
+        addTreeTableMouseListener();
         treeTable.getTree().addTreeSelectionListener(event -> {
             if (treeTable.getTree().getLastSelectedPathComponent() instanceof DefaultMutableTreeNode) {
                 DefaultMutableTreeNode node =
                     (DefaultMutableTreeNode) treeTable.getTree().getLastSelectedPathComponent();
                 if (node != null && node.getUserObject() instanceof DetailBean) {
                     currentSelectBean = (DetailBean) node.getUserObject();
+                }
+            }
+        });
+    }
+
+    private void addTreeTableMouseListener() {
+        treeTable.getTree().addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseExited(MouseEvent event) {
+                super.mouseExited(event);
+                Tip.getInstance().hidden();
+            }
+
+            @Override
+            public void mouseClicked(MouseEvent event) {
+                super.mouseClicked(event);
+                if (currentSelectBean != null) {
+                    List<String> stringList = currentSelectBean.getStringList();
+                    Tip.getInstance().display(event, stringList);
+                    EventDispatcher.dispatcherFuncChangeListener(currentSelectBean.getId());
                 }
             }
         });
@@ -202,7 +202,7 @@ public class DistributedDataCallTreePane extends JBPanel implements IDistributed
         }
         if (chainIdFuncBeanMapB.size() == 0) {
             chainIdFuncBeanMapB =
-                DistributedCache.FUNC_BEAN_MAP.values().stream().filter((bean) -> !bean.getChainId().isEmpty())
+                DistributedCache.ID_FUNC_BEAN_MAP_B.values().stream().filter((bean) -> !bean.getChainId().isEmpty())
                     .sorted(Comparator.comparingInt(DistributedFuncBean::getId)).collect(
                     Collectors.groupingBy(DistributedFuncBean::getChainId, LinkedHashMap::new, Collectors.toList()));
         }
@@ -211,7 +211,7 @@ public class DistributedDataCallTreePane extends JBPanel implements IDistributed
                 .collect(Collectors.groupingBy(DistributedFuncBean::getParentId));
         }
         if (parentIdFuncBeanMapB.size() == 0) {
-            parentIdFuncBeanMapB = DistributedCache.FUNC_BEAN_MAP.values().stream()
+            parentIdFuncBeanMapB = DistributedCache.ID_FUNC_BEAN_MAP_B.values().stream()
                 .collect(Collectors.groupingBy(DistributedFuncBean::getParentId));
         }
         DistributedFuncBean head = findHead(selectBean);
@@ -294,7 +294,7 @@ public class DistributedDataCallTreePane extends JBPanel implements IDistributed
     private DistributedFuncBean findParentBeanDistributed(
         DistributedFuncBean selectBean) { // The parent node was found based on the praentid
         DistributedFuncBean parentA = DistributedCache.ID_FUNC_BEAN_MAP_A.get(selectBean.getParentId());
-        DistributedFuncBean parentB = DistributedCache.FUNC_BEAN_MAP.get(selectBean.getParentId());
+        DistributedFuncBean parentB = DistributedCache.ID_FUNC_BEAN_MAP_B.get(selectBean.getParentId());
         if (selectBean.getCurrentType().equals(DistributedFuncBean.BeanDataType.TYPE_A)) {
             return parentA;
         } else {
@@ -330,10 +330,14 @@ public class DistributedDataCallTreePane extends JBPanel implements IDistributed
                     .equals(selectBean.getParentSpanId()) && item.getFlag().equals("C")).findFirst().orElse(null);
             if (findBeanA == null) {
                 if (chainIdFuncBeanMapB.containsKey(selectBean.getChainId())) { // The corresponding bean was found in b
-                    return chainIdFuncBeanMapB.get(selectBean.getChainId()).stream().filter(
+                    DistributedFuncBean findBeanB = chainIdFuncBeanMapB.get(selectBean.getChainId()).stream().filter(
                         (item) -> item.getSpanId().equals(selectBean.getSpanId()) && item.getParentSpanId()
                             .equals(selectBean.getParentSpanId()) && item.getFlag().equals("C")).findFirst()
                         .orElse(null);
+                    if (findBeanB == null) { // Data outage
+                        return null;
+                    }
+                    return findBeanB;
                 }
             } else {
                 return findBeanA;
@@ -383,11 +387,11 @@ public class DistributedDataCallTreePane extends JBPanel implements IDistributed
 
     private String getPackageName(DistributedFuncBean.BeanDataType type) {
         if (type.equals(DistributedFuncBean.BeanDataType.TYPE_A)) {
-            return DistributedCache.getDistribuetedParams().getPkgNameA() + "("
-                + DistributedCache.getDistribuetedParams().getDeviceNameA() + ")";
+            return DistributedCache.getDistribuetedParams().getPkgNameA() + "(" + DistributedCache
+                .getDistribuetedParams().getDeviceNameA() + ")";
         } else {
-            return DistributedCache.getDistribuetedParams().getPkgNameB() + "("
-                + DistributedCache.getDistribuetedParams().getDeviceNameB() + ")";
+            return DistributedCache.getDistribuetedParams().getPkgNameB() + "(" + DistributedCache
+                .getDistribuetedParams().getDeviceNameB() + ")";
         }
     }
 
@@ -398,21 +402,27 @@ public class DistributedDataCallTreePane extends JBPanel implements IDistributed
             if (parentIdFuncBeanMapA.containsKey(headBean.getId())) {
                 forEachToMap(parentIdFuncBeanMapA, headBean.getId(), list);
             } else {
+                parentIdFuncNotFound(headBean, list);
+            }
+        } else if (headBean.getCurrentType().equals(DistributedFuncBean.BeanDataType.TYPE_B)) {
+            if (parentIdFuncBeanMapB.containsKey(headBean.getId())) {
+                forEachToMap(parentIdFuncBeanMapB, headBean.getId(), list);
+            } else {
                 if (headBean.getFlag().equals("C")) {
                     toNextThreadFunc(headBean, list);
                 } else if (headBean.getFlag().equals("S")) {
-                    DistributedFuncBean childSBeanA = chainIdFuncBeanMapA.get(headBean.getChainId()).stream()
+                    DistributedFuncBean childSBeanB = chainIdFuncBeanMapB.get(headBean.getChainId()).stream()
                         .filter((item) -> item.getParentSpanId() == headBean.getSpanId()).findFirst().orElse(null);
-                    if (childSBeanA != null) {
-                        headToEndBean(childSBeanA, list);
+                    if (childSBeanB != null) {
+                        headToEndBean(childSBeanB, list);
                     }
                 } else if (headBean.getParentId() == 0 && headBean.getParentSpanId() == headBean.getSpanId()
                     && !headBean.getChainId().isEmpty()) { // Flag is an empty head node
-                    DistributedFuncBean childBeanA = chainIdFuncBeanMapA.get(headBean.getChainId()).stream()
+                    DistributedFuncBean childBeanB = chainIdFuncBeanMapB.get(headBean.getChainId()).stream()
                         .filter((item) -> item.getParentSpanId() == headBean.getSpanId() && item.getFlag().equals("C"))
                         .findFirst().orElse(null);
-                    if (childBeanA != null) {
-                        headToEndBean(childBeanA, list);
+                    if (childBeanB != null) {
+                        headToEndBean(childBeanB, list);
                     }
                 } else {
                     if (ProfilerLogManager.isDebugEnabled()) {
@@ -420,39 +430,33 @@ public class DistributedDataCallTreePane extends JBPanel implements IDistributed
                     }
                 }
             }
-        } else if (headBean.getCurrentType().equals(DistributedFuncBean.BeanDataType.TYPE_B)) {
-            handleTypeB(headBean, list);
         } else {
-            if (ProfilerLogManager.isDebugEnabled()) {
-                LOGGER.debug("headBean status");
+            if (ProfilerLogManager.isInfoEnabled()) {
+                LOGGER.info("CurrentType error");
             }
         }
     }
 
-    private void handleTypeB(DistributedFuncBean headBean, List<DistributedFuncBean> list) {
-        if (parentIdFuncBeanMapB.containsKey(headBean.getId())) {
-            forEachToMap(parentIdFuncBeanMapB, headBean.getId(), list);
+    private void parentIdFuncNotFound(DistributedFuncBean headBean, List<DistributedFuncBean> list) {
+        if (headBean.getFlag().equals("C")) {
+            toNextThreadFunc(headBean, list);
+        } else if (headBean.getFlag().equals("S")) {
+            DistributedFuncBean childSBeanA = chainIdFuncBeanMapA.get(headBean.getChainId()).stream()
+                .filter((item) -> item.getParentSpanId() == headBean.getSpanId()).findFirst().orElse(null);
+            if (childSBeanA != null) {
+                headToEndBean(childSBeanA, list);
+            }
+        } else if (headBean.getParentId() == 0 && headBean.getParentSpanId() == headBean.getSpanId()
+            && !headBean.getChainId().isEmpty()) { // Flag is an empty head node
+            DistributedFuncBean childBeanA = chainIdFuncBeanMapA.get(headBean.getChainId()).stream()
+                .filter((item) -> item.getParentSpanId() == headBean.getSpanId() && item.getFlag().equals("C"))
+                .findFirst().orElse(null);
+            if (childBeanA != null) {
+                headToEndBean(childBeanA, list);
+            }
         } else {
-            if (headBean.getFlag().equals("C")) {
-                toNextThreadFunc(headBean, list);
-            } else if (headBean.getFlag().equals("S")) {
-                DistributedFuncBean childSBeanB = chainIdFuncBeanMapB.get(headBean.getChainId()).stream()
-                    .filter((item) -> item.getParentSpanId() == headBean.getSpanId()).findFirst().orElse(null);
-                if (childSBeanB != null) {
-                    headToEndBean(childSBeanB, list);
-                }
-            } else if (headBean.getParentId() == 0 && headBean.getParentSpanId() == headBean.getSpanId()
-                && !headBean.getChainId().isEmpty()) { // Flag is an empty head node
-                DistributedFuncBean childBeanB = chainIdFuncBeanMapB.get(headBean.getChainId()).stream()
-                    .filter((item) -> item.getParentSpanId() == headBean.getSpanId() && item.getFlag().equals("C"))
-                    .findFirst().orElse(null);
-                if (childBeanB != null) {
-                    headToEndBean(childBeanB, list);
-                }
-            } else {
-                if (ProfilerLogManager.isDebugEnabled()) {
-                    LOGGER.debug("headBean status error");
-                }
+            if (ProfilerLogManager.isDebugEnabled()) {
+                LOGGER.debug("headBean status error");
             }
         }
     }
@@ -472,7 +476,7 @@ public class DistributedDataCallTreePane extends JBPanel implements IDistributed
             if (headBean.getCurrentType().equals(DistributedFuncBean.BeanDataType.TYPE_A)) {
                 parentBean = DistributedCache.ID_FUNC_BEAN_MAP_A.get(headBean.getParentId());
             } else {
-                parentBean = DistributedCache.FUNC_BEAN_MAP.get(headBean.getParentId());
+                parentBean = DistributedCache.ID_FUNC_BEAN_MAP_B.get(headBean.getParentId());
             }
             list.add(parentBean);
             supplementParentBean(parentBean, list);

@@ -90,7 +90,7 @@ public class RulerFragment extends AbstractFragment implements FlagBean.IEventLi
         this.changeListener = listener;
         this.setRoot(root);
         getRect().setBounds(200, 94, root.getWidth(), 40);
-        setRange(0, AnalystPanel.DURATION, 0);
+        setRange(0, AnalystPanel.getDURATION(), 0);
     }
 
     /**
@@ -152,7 +152,7 @@ public class RulerFragment extends AbstractFragment implements FlagBean.IEventLi
             return;
         }
         if (scale == 0) {
-            setRange(0, AnalystPanel.DURATION, 0);
+            setRange(0, AnalystPanel.getDURATION(), 0);
         }
         if (changeListener != null) {
             changeListener.change(leftNS, rightNS);
@@ -169,11 +169,11 @@ public class RulerFragment extends AbstractFragment implements FlagBean.IEventLi
             int xAxis = Utils.getX(flagBean.rect);
             if (xAxis > 0) {
                 graphics.drawLine(xAxis + Utils.getX(getRect()), Utils.getY(getRect()) + getRect().height / 2,
-                    Utils.getX(getRect()) + xAxis,
-                    Utils.getY(getRect()) + getRect().height - 2);
+                    Utils.getX(getRect()) + xAxis, Utils.getY(getRect()) + getRect().height - 2);
                 graphics.fillRect(xAxis + Utils.getX(getRect()), Utils.getY(getRect()) + getRect().height / 2, 10, 10);
-                graphics.fillRect(xAxis + Utils.getX(getRect()) + 7, Utils.getY(getRect()) + getRect().height / 2 + 2,
-                    7, 7);
+                graphics
+                    .fillRect(xAxis + Utils.getX(getRect()) + 7, Utils.getY(getRect()) + getRect().height / 2 + 2, 7,
+                        7);
                 flagBean.draw(graphics);
             }
         }
@@ -226,8 +226,8 @@ public class RulerFragment extends AbstractFragment implements FlagBean.IEventLi
             graphics.setColor(getRoot().getForeground());
             final AlphaComposite alpha = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, .5f);
             graphics.setComposite(alpha);
-            graphics.drawLine((int) startX, Utils.getY(getRect()), (int) startX,
-                Utils.getY(getRect()) + getRect().height);
+            graphics
+                .drawLine((int) startX, Utils.getY(getRect()), (int) startX, Utils.getY(getRect()) + getRect().height);
         }
         graphics.setColor(getRoot().getForeground());
         graphics.drawLine(Utils.getX(getRect()), Utils.getY(getRect()), Utils.getX(getRect()) + getRect().width,
@@ -260,16 +260,13 @@ public class RulerFragment extends AbstractFragment implements FlagBean.IEventLi
             graphics.setColor(focusFlag.getColor());
             graphics.setStroke(BOLD_STORE);
             graphics.drawLine(Utils.getX(focusFlag.rect) + Utils.getX(getRect()),
-                Utils.getY(getRect()) + getRect().height / 2,
-                Utils.getX(getRect()) + Utils.getX(focusFlag.rect),
+                Utils.getY(getRect()) + getRect().height / 2, Utils.getX(getRect()) + Utils.getX(focusFlag.rect),
                 Utils.getY(getRect()) + getRect().height + extendHeight);
             graphics.fillRect(Utils.getX(focusFlag.rect) + Utils.getX(getRect()),
-                Utils.getY(getRect()) + getRect().height / 2,
-                side, side);
+                Utils.getY(getRect()) + getRect().height / 2, side, side);
             final int offset = 7;
-            graphics
-                .fillRect(Utils.getX(focusFlag.rect) + Utils.getX(getRect()) + offset,
-                    Utils.getY(getRect()) + getRect().height / 2 + 2, side, side);
+            graphics.fillRect(Utils.getX(focusFlag.rect) + Utils.getX(getRect()) + offset,
+                Utils.getY(getRect()) + getRect().height / 2 + 2, side, side);
         }
     }
 
@@ -292,15 +289,15 @@ public class RulerFragment extends AbstractFragment implements FlagBean.IEventLi
         final int leftW = 200;
         if (selectY > Utils.getY(getRect()) && selectY < Utils.getY(getRect()) + getRect().height
             && event.getX() >= leftW) {
-            Optional<FlagBean> first =
-                flags.stream().filter(bean -> event.getX() >= Utils.getX(bean.rect) + Utils.getX(getRect())
+            Optional<FlagBean> first = flags.stream().filter(
+                bean -> event.getX() >= Utils.getX(bean.rect) + Utils.getX(getRect())
                     && event.getX() <= Utils.getX(bean.rect) + Utils.getX(getRect()) + bean.rect.width).findFirst();
             if (first.isPresent()) {
                 focusFlag.setVisible(false);
             } else {
                 focusFlag.setVisible(true);
-                focusFlag.rect.setLocation(event.getX() - Utils.getX(getRect()),
-                    Utils.getY(getRect()) + getRect().height / 2);
+                focusFlag.rect
+                    .setLocation(event.getX() - Utils.getX(getRect()), Utils.getY(getRect()) + getRect().height / 2);
                 focusFlag.rect.width = 17;
                 focusFlag.rect.height = getRect().height / 2;
             }
@@ -320,8 +317,8 @@ public class RulerFragment extends AbstractFragment implements FlagBean.IEventLi
             final int leftW = 200;
             if (selectY > Utils.getY(getRect()) && selectY < Utils.getY(getRect()) + getRect().height
                 && event.getX() >= leftW) {
-                Optional<FlagBean> first =
-                    flags.stream().filter(bean -> event.getX() >= Utils.getX(bean.rect) + Utils.getX(getRect())
+                Optional<FlagBean> first = flags.stream().filter(
+                    bean -> event.getX() >= Utils.getX(bean.rect) + Utils.getX(getRect())
                         && event.getX() <= Utils.getX(bean.rect) + Utils.getX(getRect()) + bean.rect.width).findFirst();
                 if (first.isPresent()) {
                     FlagBean flagBean = first.get();
@@ -353,8 +350,8 @@ public class RulerFragment extends AbstractFragment implements FlagBean.IEventLi
      */
     @Override
     public void click(final MouseEvent event, final FlagBean data) {
-        if (AnalystPanel.iFlagClick != null) {
-            AnalystPanel.iFlagClick.click(data);
+        if (AnalystPanel.getiFlagClick() != null) {
+            AnalystPanel.getiFlagClick().click(data);
         }
     }
 

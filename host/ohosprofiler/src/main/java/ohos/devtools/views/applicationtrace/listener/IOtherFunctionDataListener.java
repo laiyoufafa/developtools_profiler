@@ -28,6 +28,7 @@ import java.util.List;
 public interface IOtherFunctionDataListener<T extends Func> {
     /**
      * getOtherFunctionData Callback
+     *
      * @param func function
      * @return tree node
      */

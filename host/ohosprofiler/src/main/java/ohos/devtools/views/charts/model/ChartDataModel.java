@@ -19,6 +19,8 @@ import java.awt.Color;
 
 /**
  * Chart data model
+ *
+ * @since 2021/3/10
  */
 public class ChartDataModel {
     private int index;
@@ -30,6 +32,8 @@ public class ChartDataModel {
     private Color color;
 
     private int value;
+
+    private String unit;
 
     public int getIndex() {
         return index;
@@ -69,6 +73,14 @@ public class ChartDataModel {
 
     public void setDoubleValue(double cpuPercent) {
         this.doubleValue = cpuPercent;
+    }
+
+    public String getUnit() {
+        return unit == null ? "" : unit;
+    }
+
+    public void setUnit(String unit) {
+        this.unit = unit;
     }
 
     @Override

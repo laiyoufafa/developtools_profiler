@@ -19,14 +19,13 @@ import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.table.JBTable;
-
-import javax.swing.JViewport;
-
 import net.miginfocom.swing.MigLayout;
 import ohos.devtools.views.trace.Sql;
 import ohos.devtools.views.trace.bean.TraceLog;
 import ohos.devtools.views.trace.util.Db;
+import ohos.devtools.views.trace.util.TimeUtils;
 
+import javax.swing.JViewport;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
@@ -34,6 +33,7 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -54,6 +54,7 @@ public class TabLogTable extends JBPanel {
     private boolean complete = false;
     private long endTime;
     private long startTime;
+    private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     /**
      * TabLogTable
@@ -68,7 +69,7 @@ public class TabLogTable extends JBPanel {
         resizeColumns();
         addComponentListener(new ComponentAdapter() {
             @Override
-            public void componentResized(ComponentEvent componentEvent) {
+            public void componentResized(ComponentEvent event) {
                 resizeColumns();
             }
         });
@@ -98,9 +99,9 @@ public class TabLogTable extends JBPanel {
         TableColumn column;
         TableColumnModel jTableColumnModel = table.getColumnModel();
         int cantCols = jTableColumnModel.getColumnCount();
-        for (int i = 0; i < cantCols; i++) {
-            column = jTableColumnModel.getColumn(i);
-            int pWidth = Math.round(columnWidthPercentage[i] * tableWidth);
+        for (int index = 0; index < cantCols; index++) {
+            column = jTableColumnModel.getColumn(index);
+            int pWidth = Math.round(columnWidthPercentage[index] * tableWidth);
             column.setPreferredWidth(pWidth);
         }
     }
@@ -151,61 +152,81 @@ public class TabLogTable extends JBPanel {
     public void rangeChange(long sn, long en) {
         this.startTime = sn;
         this.endTime = en;
+        loading = false;
+        complete = false;
         query(true);
     }
 
     private class TableModel extends AbstractTableModel {
-        /**
-         * dataSource list
-         */
-        public final List<TraceLog> dataSource = new ArrayList<>();
-        private List<Column> columnNames = new ArrayList<>();
+        private List<TraceLog> dataSource = new ArrayList<>();
+
+        private List<Column> columnNames = new ArrayList<>() {
+            {
+            add(new Column("time", (item) -> TimeUtils.getLogTimeString(item.getStartTime())));
+            add(new Column("level", (item) -> item.getLevel()));
+            add(new Column("tag", (item) -> item.getTag()));
+            add(new Column("context", (item) -> item.getContext()));
+            }
+        };
 
         /**
-         * TableModel
+         * getRowCount
+         *
+         * @return int
          */
-        public TableModel() {
-            columnNames.add(new Column("time", (item) -> item.getStartTime()));
-            columnNames.add(new Column("level", (item) -> item.getLevel()));
-            columnNames.add(new Column("tag", (item) -> item.getTag()));
-            columnNames.add(new Column("context", (item) -> item.getContext()));
-        }
-
         @Override
         public int getRowCount() {
             return dataSource.size();
         }
 
+        /**
+         * getColumnCount
+         *
+         * @return int
+         */
         @Override
         public int getColumnCount() {
             return columnNames.size();
         }
 
+        /**
+         * getColumnName
+         *
+         * @param column column
+         * @return String
+         */
         @Override
         public String getColumnName(int column) {
             return columnNames.get(column).name;
         }
 
+        /**
+         * getValueAt
+         *
+         * @param rowIndex rowIndex
+         * @param columnIndex columnIndex
+         * @return Object
+         */
         @Override
         public Object getValueAt(int rowIndex, int columnIndex) {
             return columnNames.get(columnIndex).callable.map(dataSource.get(rowIndex));
         }
 
+        /**
+         * isCellEditable
+         *
+         * @param rowIndex rowIndex
+         * @param columnIndex columnIndex
+         * @return boolean
+         */
         @Override
         public boolean isCellEditable(int rowIndex, int columnIndex) {
-            if (columnIndex == columnNames.size() - 1) {
-                return true;
-            } else {
-                return false;
-            }
+            return columnIndex == columnNames.size() - 1;
         }
+
     }
 
     private class Column {
-
-        /**
-         * column name
-         */
         private String name;
         private Process callable;
 
@@ -221,17 +242,13 @@ public class TabLogTable extends JBPanel {
         }
     }
 
-    /**
-     * Process
-     */
     private interface Process {
         /**
-         * map process
+         * map
          *
          * @param traceLog traceLog
          * @return Object
          */
         Object map(TraceLog traceLog);
     }
-
 }

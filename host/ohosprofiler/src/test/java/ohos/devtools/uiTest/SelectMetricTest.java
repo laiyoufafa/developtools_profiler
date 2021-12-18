@@ -48,17 +48,19 @@ public class SelectMetricTest {
             "//div[@accessiblename=' + New Task' and @class='JBLabel' and @name='newTaskBtn' and @text=' + New Task']"),
             Duration.ofSeconds(2)).click();
         remoteRobot.find(CommonContainerFixture.class, byXpath("//div[@class='HomePanel']")).jLabel(byXpath(
-            "//div[@accessiblename='System Tuning' and @class='JBLabel' "
-                + "and @name='System Tuning' and @text='System Tuning']"), Duration.ofSeconds(2)).click();
+            "//div[@accessiblename='System Tuning' "
+                + "and @class='JBLabel' and @name='System Tuning' and @text='System Tuning']"),
+            Duration.ofSeconds(2)).click();
         remoteRobot.find(CommonContainerFixture.class, byXpath("//div[@class='HomePanel']")).button(
             byXpath("//div[@accessiblename='Choose' and @class='JButton' and @name='Choose' and @text='Choose']"),
             Duration.ofSeconds(2)).click();
         remoteRobot.find(CommonContainerFixture.class, byXpath("//div[@class='SystemConfigPanel']"))
-            .jLabel(byXpath("//div[@accessiblename='Probes' and @class='JBLabel' and @text='Probes']"),
+            .jLabel(byXpath("//div[@accessiblename='Probes' "
+                    + "and @class='JBLabel' and @name='Probes' and @text='Probes']"),
                 Duration.ofSeconds(2)).click();
         remoteRobot.find(CommonContainerFixture.class, byXpath("//div[@class='HomePanel']")).checkBox(byXpath(
-            "//div[@accessiblename='Bytrace categories' and @class='JBCheckBox' and @text='Bytrace categories']"),
-            Duration.ofSeconds(2)).click();
+            "//div[@accessiblename='Bytrace categories' and @class='JBCheckBox' and "
+                + "@name='Bytrace categories' and @text='Bytrace categories']"), Duration.ofSeconds(2)).click();
         remoteRobot.find(CommonContainerFixture.class, byXpath("//div[@class='HomePanel']"))
             .checkBox(byXpath("//div[@accessiblename='Audio' and @class='JBCheckBox' and @text='Audio']"),
                 Duration.ofSeconds(2)).click();
@@ -69,9 +71,9 @@ public class SelectMetricTest {
             "//div[@accessiblename='Start Task' and @class='JButton' and @name='Start Task' and @text='Start Task']"),
             Duration.ofSeconds(2)).click();
         TimeUnit.SECONDS.sleep(30);
-        remoteRobot.find(CommonContainerFixture.class, byXpath("//div[@class='HomePanel']"))
-            .button(byXpath("//div[@accessiblename='Metrics' and @class='JButton' and @text='Metrics']"),
-                Duration.ofSeconds(2)).click();
+        remoteRobot.find(CommonContainerFixture.class, byXpath("//div[@class='HomePanel']")).button(byXpath(
+            "//div[@accessiblename='Metrics' and @class='JButton' " + "and @name='metricsButton' and @text='Metrics']"),
+            Duration.ofSeconds(2)).click();
         TimeUnit.SECONDS.sleep(5);
         remoteRobot.find(CommonContainerFixture.class, byXpath("//div[@class='JComboBox' and @name='metricSelect']"))
             .click();

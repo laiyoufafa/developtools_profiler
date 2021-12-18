@@ -106,7 +106,6 @@ HWTEST_F(FileUtilsTest, WriteFileWithPath, TestSize.Level1)
     std::string path = "temp.txt";
 
     int nbytes = data_.size();
-    printf("path: %s, data: %s\n", path.c_str(), data_.c_str());
     int retval = FileUtils::WriteFile(path, data_, O_CREAT | O_RDWR, FILE_MODE);
     EXPECT_EQ(retval, nbytes); // expect write success!
 
@@ -139,7 +138,6 @@ HWTEST_F(FileUtilsTest, WriteFileWithPathOptions, TestSize.Level1)
     std::string path = "temp.txt";
 
     int nbytes = data_.size();
-    printf("path: %s, data: %s\n", path.c_str(), data_.c_str());
     int retval = FileUtils::WriteFile(path, data_, O_CREAT | O_RDWR, FILE_MODE);
     EXPECT_EQ(retval, nbytes);
 

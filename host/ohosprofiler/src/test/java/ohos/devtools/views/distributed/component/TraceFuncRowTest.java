@@ -31,6 +31,8 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 
 /**
  * Trace Func Row Test
+ *
+ * @since 2021/2/1 9:31
  */
 class TraceFuncRowTest {
     TraceFuncRow traceFuncRow = new TraceFuncRow("title", 1);
@@ -45,7 +47,7 @@ class TraceFuncRowTest {
         final Field field = traceFuncRow.getClass().getDeclaredField("render");
         field.setAccessible(true);
         traceFuncRow.setRender((g2, data2) -> {
-            data2.isEmpty();
+            return;
         });
         assertNotNull(field.get(traceFuncRow));
     }
@@ -73,7 +75,7 @@ class TraceFuncRowTest {
         final Field field = traceFuncRow.getClass().getDeclaredField("render");
         field.setAccessible(true);
         traceFuncRow.setRender((g2, data2) -> {
-            data2.isEmpty();
+            return;
         });
         assertNotNull(field.get(traceFuncRow));
     }

@@ -17,8 +17,7 @@ package ohos.devtools.views.layout.dialog;
 
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBPanel;
-import ohos.devtools.datasources.transport.hdc.HdcWrapper;
-import ohos.devtools.datasources.utils.device.entity.DeviceIPPortInfo;
+import ohos.devtools.datasources.utils.profilerlog.ProfilerLogManager;
 import ohos.devtools.datasources.utils.session.entity.SessionInfo;
 import ohos.devtools.datasources.utils.session.service.SessionManager;
 import ohos.devtools.views.common.LayoutConstants;
@@ -32,20 +31,18 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
-import static ohos.devtools.datasources.transport.hdc.HdcStdCmdList.HDC_STD_STOP_NATIVE_HOOK;
-import static ohos.devtools.datasources.transport.hdc.HdcWrapper.conversionCommand;
-
 /**
  * record native dialog
  *
- * @since : 2021/10/25
+ * @since 2021/10/25
  */
 public class NativeRecordDialog {
     private static final Logger LOGGER = LogManager.getLogger(NativeRecordDialog.class);
@@ -169,6 +166,40 @@ public class NativeRecordDialog {
     }
 
     private void addButtonListeners() {
+        addStopButtonListener();
+        sampleDialog.getWindow().addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosed(WindowEvent windowEvent) {
+                super.windowClosed(windowEvent);
+                if (ProfilerLogManager.isInfoEnabled()) {
+                    LOGGER.info("windows closed");
+                }
+                LOGGER.info("windows closed");
+                recordStatus = false;
+                SessionInfo sessionInfo = SessionManager.getInstance().getSessionInfo(bottomPanel.getSessionId());
+                if (Objects.isNull(sessionInfo)) {
+                    return;
+                }
+                SessionManager.getInstance().stopAndDestoryOperation(sessionInfo.getSecondSessionId());
+            }
+        });
+
+        buttonCancel.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent event) {
+                super.mouseClicked(event);
+                recordStatus = false;
+                sampleDialog.close(1);
+                SessionInfo sessionInfo = SessionManager.getInstance().getSessionInfo(bottomPanel.getSessionId());
+                if (Objects.isNull(sessionInfo)) {
+                    return;
+                }
+                SessionManager.getInstance().stopAndDestoryOperation(sessionInfo.getSecondSessionId());
+            }
+        });
+    }
+
+    private void addStopButtonListener() {
         buttonStop.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent mouseEvent) {
@@ -182,28 +213,16 @@ public class NativeRecordDialog {
                 printWriter.flush();
                 recordStatus = false;
                 sampleDialog.close(1);
-                SessionInfo sessionInfo = SessionManager.getInstance().getSessionInfo(bottomPanel.getSessionId());
-                if (Objects.isNull(sessionId)) {
+                long session = bottomPanel.getSessionId();
+                SessionInfo sessionInfo = SessionManager.getInstance().getSessionInfo(session);
+                if (Objects.isNull(sessionInfo)) {
                     return;
                 }
-                DeviceIPPortInfo deviceIPPortInfo = sessionInfo.getDeviceIPPortInfo();
-                ArrayList cmd = conversionCommand(HDC_STD_STOP_NATIVE_HOOK, deviceIPPortInfo.getDeviceID(),
-                        String.valueOf(sessionInfo.getPid()));
-                HdcWrapper.getInstance().execCmdBy(cmd);
+                SessionManager.getInstance().stopAndDestoryOperation(sessionInfo.getSecondSessionId());
                 String timeText = stringWriter.toString();
                 bottomPanel.getTaskScenePanelChart()
-                    .createSessionList(LayoutConstants.NATIVE_HOOK_RECORDING, timeText, sessionId, null);
-            }
-        });
-
-        buttonCancel.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent event) {
-                super.mouseClicked(event);
-                recordStatus = false;
-                sampleDialog.close(1);
+                    .createSessionList(LayoutConstants.NATIVE_HOOK_RECORDING, timeText, session, null);
             }
         });
     }
-
 }

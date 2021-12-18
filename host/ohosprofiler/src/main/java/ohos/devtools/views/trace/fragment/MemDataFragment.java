@@ -18,8 +18,8 @@ package ohos.devtools.views.trace.fragment;
 import ohos.devtools.views.trace.Sql;
 import ohos.devtools.views.trace.bean.ProcessMem;
 import ohos.devtools.views.trace.bean.ProcessMemData;
-import ohos.devtools.views.trace.bean.ThreadData;
 import ohos.devtools.views.trace.component.AnalystPanel;
+import ohos.devtools.views.trace.component.ContentPanel;
 import ohos.devtools.views.trace.util.Db;
 import ohos.devtools.views.trace.util.Final;
 import ohos.devtools.views.trace.util.Utils;
@@ -41,17 +41,25 @@ import java.util.stream.Collectors;
  *
  * @since 2021/04/22 12:25
  */
-public class MemDataFragment extends AbstractDataFragment<ProcessMemData> implements ThreadData.IEventListener {
+public class MemDataFragment extends AbstractDataFragment<ProcessMemData> implements ProcessMemData.IEventListener {
     /**
      * graph event callback
      */
-    public static ThreadData currentSelectedThreadData;
+    private static ProcessMemData currentSelectedMemData;
+
+    /**
+     * The node that currently has focus
+     */
+    private static ProcessMemData currentFocusMemData;
 
     /**
      * Process memory
      */
     public ProcessMem mem;
 
+    private ProcessMemData showTipData; // Prompt window
+    private int tipX; // X position of the message
+    private int tipWidth; // Prompt message width
     private boolean isLoading;
     private Rectangle2D bounds;
     private int max;
@@ -90,9 +98,8 @@ public class MemDataFragment extends AbstractDataFragment<ProcessMemData> implem
             if (substring.length() < wordNum) {
                 graphics.drawString(name.substring(0, (int) wordNum), Utils.getX(getDescRect()) + 10,
                     (int) (Utils.getY(getDescRect()) + bounds.getHeight() + 8));
-                graphics
-                    .drawString(substring, Utils.getX(getDescRect()) + 10,
-                        (int) (Utils.getY(getDescRect()) + bounds.getHeight() * 2 + 8));
+                graphics.drawString(substring, Utils.getX(getDescRect()) + 10,
+                    (int) (Utils.getY(getDescRect()) + bounds.getHeight() * 2 + 8));
             } else {
                 graphics.drawString(name.substring(0, (int) wordNum), Utils.getX(getDescRect()) + 10,
                     (int) (Utils.getY(getDescRect()) + bounds.getHeight() + 2));
@@ -106,15 +113,14 @@ public class MemDataFragment extends AbstractDataFragment<ProcessMemData> implem
     private void drawData(Graphics2D graphics) {
         if (data != null) {
             List<ProcessMemData> collect = data.stream().filter(
-                    memData -> memData.getStartTime() + memData.getDuration() > startNS
-                            && memData.getStartTime() < endNS)
+                memData -> memData.getStartTime() + memData.getDuration() > startNS && memData.getStartTime() < endNS)
                 .collect(Collectors.toList());
             int x1;
             int x2;
             for (int index = 0, len = collect.size(); index < len; index++) {
                 ProcessMemData memData = collect.get(index);
                 if (index == len - 1) {
-                    memData.setDuration(AnalystPanel.DURATION);
+                    memData.setDuration(AnalystPanel.getDURATION());
                 } else {
                     memData.setDuration(collect.get(index + 1).getStartTime() - memData.getStartTime());
                 }
@@ -128,10 +134,15 @@ public class MemDataFragment extends AbstractDataFragment<ProcessMemData> implem
                 } else {
                     x2 = getX(memData.getStartTime() + memData.getDuration());
                 }
+                if (index > 0) {
+                    memData.setDelta((long) (memData.getValue() - data.get(index - 1).getValue()));
+                } else {
+                    memData.setDelta(0L);
+                }
                 memData.root = getRoot();
-                memData
-                    .setRect(x1 + Utils.getX(getDataRect()), Utils.getY(getDataRect()), x2 - x1 <= 0 ? 1 : x2 - x1,
-                        getDataRect().height);
+                memData.setRect(x1 + Utils.getX(getDataRect()), Utils.getY(getDataRect()), x2 - x1 <= 0 ? 1 : x2 - x1,
+                    getDataRect().height);
+                memData.setEventListener(MemDataFragment.this);
                 memData.setMaxValue(max);
                 memData.draw(graphics);
             }
@@ -139,6 +150,23 @@ public class MemDataFragment extends AbstractDataFragment<ProcessMemData> implem
             graphics.setColor(getRoot().getForeground());
             graphics.drawString("Loading...", Utils.getX(getDataRect()), Utils.getY(getDataRect()) + 12);
             loadData();
+        }
+        drawTips(graphics);
+    }
+
+    private void drawTips(Graphics2D graphics) {
+        if (showTipData != null) {
+            graphics.setFont(Final.NORMAL_FONT);
+            String process = "value:" + showTipData.getValue();
+            String thread = "";
+            Rectangle2D processBounds = graphics.getFontMetrics(Final.NORMAL_FONT).getStringBounds(process, graphics);
+            Rectangle2D threadBounds = graphics.getFontMetrics(Final.NORMAL_FONT).getStringBounds(thread, graphics);
+            tipWidth = (int) (Math.max(processBounds.getWidth(), threadBounds.getWidth()) + 20);
+            graphics.setColor(getRoot().getForeground());
+            graphics.fillRect(tipX, Utils.getY(showTipData.rect), tipWidth, showTipData.rect.height);
+            graphics.setColor(getRoot().getBackground());
+            graphics.drawString(process, tipX + 10, Utils.getY(showTipData.rect) + 12);
+            graphics.drawString(thread, tipX + 10, Utils.getY(showTipData.rect) + 24);
         }
     }
 
@@ -150,6 +178,12 @@ public class MemDataFragment extends AbstractDataFragment<ProcessMemData> implem
     @Override
     public void mouseClicked(MouseEvent event) {
         super.mouseClicked(event);
+        ContentPanel.clickFragment = this;
+        if (data != null) {
+            data.stream().filter(
+                memData -> memData.getStartTime() + memData.getDuration() > startNS && memData.getStartTime() < endNS)
+                .filter(memData -> memData.edgeInspect(event)).findFirst().ifPresent(memData -> memData.onClick(event));
+        }
     }
 
     /**
@@ -179,6 +213,22 @@ public class MemDataFragment extends AbstractDataFragment<ProcessMemData> implem
         MouseEvent event = getRealMouseEvent(evt);
         super.mouseMoved(event);
         clearFocus(event);
+        if (showTipData != null) {
+            showTipData.select(false);
+        }
+        showTipData = null;
+        if (Objects.nonNull(data) && edgeInspect(event)) {
+            data.stream().filter(it -> it.getStartTime() + it.getDuration() > startNS && it.getStartTime() < endNS)
+                .forEach(it -> {
+                    it.onMouseMove(event);
+                    if (it.edgeInspect(event)) {
+                        if (!it.flagFocus) {
+                            it.flagFocus = true;
+                            it.onFocus(event);
+                        }
+                    }
+                });
+        }
     }
 
     @Override
@@ -200,7 +250,7 @@ public class MemDataFragment extends AbstractDataFragment<ProcessMemData> implem
             CompletableFuture.runAsync(() -> {
                 List<ProcessMemData> list = new ArrayList<>() {
                 };
-                Db.getInstance().query(Sql.SYS_GET_PROCESS_MEM_DATA, list, mem.getTrackId());
+                Db.getInstance().query(st -> addStatement(st), Sql.SYS_GET_PROCESS_MEM_DATA, list, mem.getTrackId());
                 data = list;
                 SwingUtilities.invokeLater(() -> {
                     data.stream().mapToInt(memData -> memData.getValue()).max().ifPresent(maxData -> {
@@ -224,13 +274,15 @@ public class MemDataFragment extends AbstractDataFragment<ProcessMemData> implem
      * @param data data
      */
     @Override
-    public void click(MouseEvent event, ThreadData data) {
+    public void click(MouseEvent event, ProcessMemData data) {
         clearSelected();
-        data.select(true);
-        data.repaint();
-        currentSelectedThreadData = data;
-        if (AnalystPanel.iThreadDataClick != null) {
-            AnalystPanel.iThreadDataClick.click(data);
+        if (showTipData != null) {
+            showTipData.select(true);
+            showTipData.repaint();
+            currentSelectedMemData = MemDataFragment.currentFocusMemData;
+            if (AnalystPanel.getiMemDataClick() != null) {
+                AnalystPanel.getiMemDataClick().click(showTipData);
+            }
         }
     }
 
@@ -241,7 +293,13 @@ public class MemDataFragment extends AbstractDataFragment<ProcessMemData> implem
      * @param data data
      */
     @Override
-    public void blur(MouseEvent event, ThreadData data) {
+    public void blur(MouseEvent event, ProcessMemData data) {
+        if (showTipData != null) {
+            showTipData.select(false);
+        }
+        showTipData = null;
+        MemDataFragment.currentFocusMemData = null;
+        getRoot().repaint();
     }
 
     /**
@@ -251,7 +309,11 @@ public class MemDataFragment extends AbstractDataFragment<ProcessMemData> implem
      * @param data data
      */
     @Override
-    public void focus(MouseEvent event, ThreadData data) {
+    public void focus(MouseEvent event, ProcessMemData data) {
+        showTipData = data;
+        showTipData.select(true);
+        MemDataFragment.currentFocusMemData = data;
+        getRoot().repaint();
     }
 
     /**
@@ -261,7 +323,11 @@ public class MemDataFragment extends AbstractDataFragment<ProcessMemData> implem
      * @param data data
      */
     @Override
-    public void mouseMove(MouseEvent event, ThreadData data) {
+    public void mouseMove(MouseEvent event, ProcessMemData data) {
+        showTipData = data;
+        showTipData.select(true);
+        MemDataFragment.currentFocusMemData = data;
+        tipX = event.getX();
         getRoot().repaint();
     }
 }

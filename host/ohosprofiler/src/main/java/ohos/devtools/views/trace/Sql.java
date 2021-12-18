@@ -74,6 +74,7 @@ public enum Sql {
     SYS_QUERY_SCREEN_STATE("QueryScreenState"),
     SYS_QUERY_LOGS("QueryLogs"),
     SYS_QUERY_LOGS_COUNT("QueryLogsCount"),
+    SYS_QUERY_BINDER_ARGS_BY_ARGSET("QueryBinderArgsByArgset"),
 
     DISTRIBUTED_QUERY_TOTAL_TIME("DistributedQueryTotalTime"),
     DISTRIBUTED_QUERY_THREADS_BY_PID("DistributedQueryThreadsByPid"),

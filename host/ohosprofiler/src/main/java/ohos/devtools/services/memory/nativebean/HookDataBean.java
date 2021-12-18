@@ -22,7 +22,7 @@ import java.util.Objects;
 /**
  * HookDataBean
  *
- * @since: 2021/8/20
+ * @since 2021/8/20
  */
 public class HookDataBean {
     private String hookMethodName;

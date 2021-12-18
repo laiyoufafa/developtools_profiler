@@ -15,25 +15,23 @@
 package ohos.devtools.services.hiperf;
 
 import ohos.devtools.datasources.transport.hdc.HdcWrapper;
+import ohos.devtools.datasources.utils.monitorconfig.entity.PerfConfig;
 import ohos.devtools.datasources.utils.profilerlog.ProfilerLogManager;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.Map;
 
 /**
  * execute perf command on devices.
  *
- * @since 2021/10/25
+ * @since 2021/8/22
  */
 public class HiPerfCommand extends PerfCommand {
-
-    private static final String HIPERF_COMMAND = "hiperf";
+    private static final String HIPERF_COMMAND = "/data/local/tmp/hiperf";
     private static final Logger LOGGER = LogManager.getLogger(HiPerfCommand.class);
 
     /**
@@ -49,43 +47,112 @@ public class HiPerfCommand extends PerfCommand {
     }
 
     /**
+     * Construction.
+     *
+     * @param isLeakOhos is leak ohos
+     * @param deviceId devices id
+     */
+    public HiPerfCommand(boolean isLeakOhos, String deviceId) {
+        super(isLeakOhos, deviceId);
+    }
+
+    /**
      * execute Record command
      * hiperf record -p xxx --app xxx -o perf.data -f 1000 --offcpu
+     *
+     * @param config config
+     * @return  List<String> list
      */
-    public void executeRecord() {
+    public List<String> executeRecord(PerfConfig config) {
         stopRecord(); // first kill all of perf process to prevent data mistake
-
-        ArrayList<String> recordCommand = new ArrayList<>();
-        generateCmdHead(recordCommand, isLeakOhos, deviceId);
+        ArrayList<String> recordCommand = HdcWrapper.getInstance().generateDeviceCmdHead(isLeakOhos, deviceId);
         recordCommand.add(HIPERF_COMMAND);
-
         recordCommand.add("record");
         recordCommand.add("-p");
         recordCommand.add(sessionInfo.getPid() + "");
-        // recordCommand.add("--app")
-        // recordCommand.add(sessionInfo.getProcessName())
         recordCommand.add("-o");
         recordCommand.add(PERF_DATA_PATH);
         recordCommand.add("-f");
-        recordCommand.add(DEFAULT_FREQUENCY + "");
-        recordCommand.add("--call-stack");
-        recordCommand.add("dwarf");
-        recordCommand.add("--offcpu");
-
+        recordCommand.add(config.getFrequency() + "");
+        recordCpu(config, recordCommand);
+        if (config.getCpuPercent() != 0) {
+            recordCommand.add("--cpu-limit");
+            recordCommand.add(config.getCpuPercent() + "");
+        }
+        recordEvent(config, recordCommand);
+        if (config.getPeriod() != 0) {
+            recordCommand.add("--period");
+            recordCommand.add(config.getPeriod() + "");
+        }
+        recordEnum(config, recordCommand);
+        if (config.isOffCpu()) {
+            recordCommand.add("--offcpu");
+        }
+        if (config.isInherit()) {
+            recordCommand.add("--no-inherit");
+        }
+        if (config.getMmapPages() != 0) {
+            recordCommand.add("-m");
+            recordCommand.add(config.getMmapPages() + "");
+        }
         String cmd = getCmd(recordCommand);
-        ExecutorService executorService =
-            new ThreadPoolExecutor(1, 1,
-                0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>());
-        executorService.execute(() -> HdcWrapper.getInstance().execCmdBy(recordCommand));
         LOGGER.info(cmd);
+        return HdcWrapper.getInstance().execCmd(recordCommand);
+    }
+
+    private void recordEvent(PerfConfig config, ArrayList<String> recordCommand) {
+        List<?> eventList = config.getEventList();
+        if (!config.getEventList().isEmpty()) {
+            recordCommand.add("-e");
+            StringBuilder builder = new StringBuilder();
+            for (Object event : eventList) {
+                builder.append(event);
+                if (eventList.indexOf(event) != eventList.size() - 1) {
+                    builder.append(",");
+                }
+            }
+            recordCommand.add(builder.toString());
+        }
+    }
+
+    private void recordCpu(PerfConfig config, ArrayList<String> recordCommand) {
+        List<?> cpuList = config.getCpuList();
+        if (!cpuList.isEmpty()) {
+            recordCommand.add("-c");
+            StringBuilder builder = new StringBuilder();
+            for (Object obj : cpuList) {
+                builder.append(obj);
+                if (cpuList.indexOf(obj) != cpuList.size() - 1) {
+                    builder.append(",");
+                }
+            }
+            recordCommand.add(builder.toString());
+        }
+    }
+
+    private void recordEnum(PerfConfig config, ArrayList<String> recordCommand) {
+        if (config.getCallStack() != 0) {
+            String callStackType = PerfConfig.CallStack.class.getEnumConstants()[config.getCallStack()].getName();
+            recordCommand.add("--call-stack");
+            recordCommand.add(callStackType);
+        }
+        if (config.getBranch() != 0) {
+            String branchType = PerfConfig.Branch.class.getEnumConstants()[config.getBranch()].getName();
+            recordCommand.add("-j");
+            recordCommand.add(branchType);
+        }
+        if (config.getClockId() != 0) {
+            String clockType = PerfConfig.Clock.class.getEnumConstants()[config.getClockId()].getName();
+            recordCommand.add("--clockid");
+            recordCommand.add(clockType);
+        }
     }
 
     /**
      * Stop Record by kill perf pid.
      */
     public void stopRecord() {
-        ArrayList<String> stopRecordCommand = new ArrayList<>();
-        generateCmdHead(stopRecordCommand, isLeakOhos, deviceId);
+        ArrayList<String> stopRecordCommand = HdcWrapper.getInstance().generateDeviceCmdHead(isLeakOhos, deviceId);
         stopRecordCommand.add("killall");
         stopRecordCommand.add("-2");
         stopRecordCommand.add(HIPERF_COMMAND);
@@ -95,7 +162,6 @@ public class HiPerfCommand extends PerfCommand {
         if (ProfilerLogManager.isInfoEnabled()) {
             LOGGER.info("Stop Record result is {}", result);
         }
-
     }
 
     /**
@@ -105,9 +171,7 @@ public class HiPerfCommand extends PerfCommand {
      * @return execute Command result
      */
     public List<String> executeReport() {
-        ArrayList<String> reportCommand = new ArrayList<>();
-        generateCmdHead(reportCommand, isLeakOhos, deviceId);
-
+        ArrayList<String> reportCommand = HdcWrapper.getInstance().generateDeviceCmdHead(isLeakOhos, deviceId);
         reportCommand.add(HIPERF_COMMAND);
         reportCommand.add("report");
         reportCommand.add("--proto");
@@ -123,5 +187,40 @@ public class HiPerfCommand extends PerfCommand {
             LOGGER.info("report Command result is {}", result);
         }
         return result;
+    }
+
+    @Override
+    public final Map<String, List<String>> getSupportEvents() {
+        ArrayList<String> command = HdcWrapper.getInstance().generateDeviceCmdHead(isLeakOhos, deviceId);
+        command.add(HIPERF_COMMAND);
+        command.add("list");
+        List<String> result = HdcWrapper.getInstance().execCmd(command);
+        return parseEvent(result);
+    }
+
+    private Map<String, List<String>> parseEvent(List<String> result) {
+        Map<String, List<String>> eventMap = new HashMap<>();
+        List<String> events;
+        String type = "";
+        for (String line : result) {
+            line = line.strip();
+            if (line.startsWith("Supported")) {
+                String startSign = "for";
+                type = line.substring(line.indexOf(startSign) + startSign.length(), line.lastIndexOf(":")).strip();
+                events = new ArrayList<>();
+                eventMap.put(type, events);
+            } else if (line.contains("not support") || line.isEmpty() || line.contains("Text file busy")) {
+                // do not need deal with it
+                if (ProfilerLogManager.isDebugEnabled()) {
+                    LOGGER.debug("do not need deal with {}", line);
+                }
+            } else {
+                String event = line.split(" ")[0];
+                if (eventMap.get(type) != null) {
+                    eventMap.get(type).add(event);
+                }
+            }
+        }
+        return eventMap;
     }
 }

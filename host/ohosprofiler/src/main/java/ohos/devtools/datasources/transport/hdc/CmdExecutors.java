@@ -15,6 +15,7 @@
 
 package ohos.devtools.datasources.transport.hdc;
 
+import ohos.devtools.datasources.utils.plugin.service.PlugManager;
 import ohos.devtools.datasources.utils.profilerlog.ProfilerLogManager;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -62,24 +63,88 @@ public class CmdExecutors {
         Future<Integer> executeFuture = null;
         try {
             process = new ProcessBuilder(command).start();
+            pIn = process.getInputStream();
+            pErr = process.getErrorStream();
+            if (PlugManager.getInstance().getSystemOsName().contains("win") && command.contains("hdc_std")) {
+                outputGobbler = new IoStreamConsumer(pIn);
+                errorGobbler = new IoStreamConsumer(pErr);
+            } else {
+                outputGobbler = new IoReadLineConsumer(pIn);
+                errorGobbler = new IoReadLineConsumer(pErr);
+            }
+            outputGobbler.start();
+            errorGobbler.start();
+            Callable<Integer> call = new StreamCallBack(process);
+            executeFuture = pool.submit(call);
+            int exitCode = executeFuture.get(timeout, TimeUnit.SECONDS);
+            ArrayList<String> content = outputGobbler.getContent();
+            return new ExecResult(exitCode, content);
+        } catch (InterruptedException exception) {
+            if (ProfilerLogManager.isErrorEnabled()) {
+                LOGGER.error("command [" + command + "] failed.", exception);
+            }
+            return getExecResult(outputGobbler, errorGobbler, -1);
+        } catch (ExecutionException | IOException | TimeoutException timeoutException) {
+            if (ProfilerLogManager.isErrorEnabled()) {
+                LOGGER.error("command [" + command + "] failed.", timeoutException);
+            }
+            return getExecResult(outputGobbler, errorGobbler, -2);
+        } finally {
+            if (executeFuture != null) {
+                executeFuture.cancel(true);
+            }
+            if (process != null) {
+                process.destroy();
+            }
+        }
+    }
+
+    class StreamCallBack implements Callable<java.lang.Integer> {
+        Process process;
+
+        /**
+         * StreamCallBack
+         *
+         * @param process process
+         */
+        public StreamCallBack(Process process) {
+            this.process = process;
+        }
+
+        @Override
+        public java.lang.Integer call() throws Exception {
+            process.waitFor();
+            return process.exitValue();
+        }
+    }
+
+    /**
+     * executeCommand
+     *
+     * @param command command
+     * @param timeout timeout
+     * @return ExecResult
+     */
+    public ExecResult executeCommandByLine(ArrayList<String> command, long timeout) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("executeCommand");
+        }
+        Process process = null;
+        InputStream pIn = null;
+        InputStream pErr = null;
+        IoReadLineConsumer outputGobbler = null;
+        IoReadLineConsumer errorGobbler = null;
+        Future<Integer> executeFuture = null;
+        try {
+            process = new ProcessBuilder(command).start();
             Process prcess = process;
             pIn = process.getInputStream();
-            outputGobbler = new IoStreamConsumer(pIn);
+            outputGobbler = new IoReadLineConsumer(pIn);
             outputGobbler.start();
             pErr = process.getErrorStream();
-            errorGobbler = new IoStreamConsumer(pErr);
+            errorGobbler = new IoReadLineConsumer(pErr);
             errorGobbler.start();
-            Callable<Integer> call = new Callable<Integer>() {
-                /**
-                 * call
-                 * @return Integer
-                 * @throws InterruptedException InterruptedException
-                 */
-                public Integer call() throws InterruptedException {
-                    return prcess.exitValue();
-                }
-            };
-            prcess.waitFor();
+            Callable<Integer> call = new StreamCallBack(process);
             executeFuture = pool.submit(call);
             int exitCode = executeFuture.get(timeout, TimeUnit.SECONDS);
             ArrayList<String> content = outputGobbler.getContent();
@@ -88,31 +153,19 @@ public class CmdExecutors {
             if (ProfilerLogManager.isErrorEnabled()) {
                 LOGGER.error("command [" + command + "] failed.", exception);
             }
-            return getExecResult(outputGobbler, errorGobbler);
+            return getExecResult(outputGobbler, errorGobbler, -1);
         } finally {
             if (executeFuture != null) {
                 executeFuture.cancel(true);
             }
-            closeIO(pIn);
-            closeIO(pErr);
             if (process != null) {
                 process.destroy();
             }
         }
     }
 
-    private void closeIO(InputStream pIn) {
-        if (pIn != null) {
-            try {
-                pIn.close();
-            } catch (IOException ioException) {
-                LOGGER.error("ioException.", ioException);
-            }
-        }
-    }
-
     @NotNull
-    private ExecResult getExecResult(IoStreamConsumer outputGobbler, IoStreamConsumer errorGobbler) {
+    private ExecResult getExecResult(IoStreamConsumer outputGobbler, IoStreamConsumer errorGobbler, int exitCode) {
         if (ProfilerLogManager.isInfoEnabled()) {
             LOGGER.info("getExecResult");
         }
@@ -120,11 +173,11 @@ public class CmdExecutors {
             ArrayList<String> result = new ArrayList<>();
             result.addAll(outputGobbler.getContent());
             result.addAll(errorGobbler.getContent());
-            return new ExecResult(-1, result);
+            return new ExecResult(exitCode, result);
         } else if (errorGobbler.getContent().size() > 0) {
-            return new ExecResult(-1, errorGobbler.getContent());
+            return new ExecResult(exitCode, errorGobbler.getContent());
         } else {
-            return new ExecResult(-1, outputGobbler.getContent());
+            return new ExecResult(exitCode, outputGobbler.getContent());
         }
     }
 }

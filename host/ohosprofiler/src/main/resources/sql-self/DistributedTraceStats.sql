@@ -12,4 +12,5 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 select event_name,stat_type,count,source,serverity from stat

@@ -22,7 +22,7 @@ import java.util.Objects;
 /**
  * NetWorkInfo
  *
- * @since 2021/10/22 15:22
+ * @since 2021/10/26
  */
 public class NetWorkInfo implements Serializable {
     /**

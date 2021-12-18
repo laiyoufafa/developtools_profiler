@@ -16,16 +16,14 @@
 package ohos.devtools.datasources.utils.monitorconfig.dao;
 
 import ohos.devtools.datasources.databases.databaseapi.DataBaseApi;
-import ohos.devtools.datasources.utils.monitorconfig.entity.MonitorInfo;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * DAO layer test class of monitoring item configuration data
+ *
+ * @since 2021/11/22
  */
 public class MonitorConfigDaoTest {
     private MonitorConfigDao monitorConfigDao;
@@ -68,43 +66,5 @@ public class MonitorConfigDaoTest {
         monitorConfigDao = MonitorConfigDao.getInstance();
         MonitorConfigDao configDao = MonitorConfigDao.getInstance();
         Assert.assertEquals(monitorConfigDao, configDao);
-    }
-
-    /**
-     * functional testing insertMonitorInfo
-     *
-     * @tc.name: MonitorConfigDao insertMonitorInfo
-     * @tc.number: OHOS_JAVA_monitor_MonitorConfigDao_insertMonitorInfo_0001
-     * @tc.desc: MonitorConfigDao insertMonitorInfo
-     * @tc.type: functional testing
-     * @tc.require: AR000FK61R
-     */
-    @Test
-    public void testInsert() {
-        MonitorInfo monitorInfo =
-            MonitorInfo.builder().monitorType("type").localSessionId(1L).parameter("name").value("value").build();
-        monitorConfigDao = MonitorConfigDao.getInstance();
-        boolean flag = monitorConfigDao.insertMonitorInfo(monitorInfo);
-        Assert.assertTrue(flag);
-    }
-
-    /**
-     * functional testing insertMonitorInfos
-     *
-     * @tc.name: MonitorConfigDao insertMonitorInfos
-     * @tc.number: OHOS_JAVA_monitor_MonitorConfigDao_insertMonitorInfos_0001
-     * @tc.desc: MonitorConfigDao insertMonitorInfos
-     * @tc.type: functional testing
-     * @tc.require: AR000FK61R
-     */
-    @Test
-    public void testInsertList() {
-        List<MonitorInfo> list = new ArrayList<>();
-        MonitorInfo monitorInfo =
-            MonitorInfo.builder().monitorType("type").localSessionId(1L).parameter("name").value("value").build();
-        list.add(monitorInfo);
-        monitorConfigDao = MonitorConfigDao.getInstance();
-        boolean flag = monitorConfigDao.insertMonitorInfos(list);
-        Assert.assertTrue(flag);
     }
 }

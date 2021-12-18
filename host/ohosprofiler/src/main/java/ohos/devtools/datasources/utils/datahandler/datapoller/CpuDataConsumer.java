@@ -33,18 +33,26 @@ import org.apache.logging.log4j.Logger;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.TimeUnit;
 
 /**
  * CpuDataConsumer
+ *
+ * @since 2021/11/22
  */
 public class CpuDataConsumer extends AbsDataConsumer {
     private static final Logger LOGGER = LogManager.getLogger(CpuDataConsumer.class);
-    private static final long SAVE_FREQ = 1000;
+    private static final long SAVE_FREQ = 1000L;
     private static CpuPluginResult.CpuData prevData = null;
+    private static List<ChartDataModel> lastThread = null;
+
     private List<ProcessCpuData> processCpuDataList = new ArrayList<>();
+    private Map<String, ChartDataModel> threadMap = new HashMap<>();
+    private Map<Long, ChartDataModel> deadThreadInfo = new HashMap<>();
     private DeviceIPPortInfo deviceIPPortInfo;
     private Queue<CommonTypes.ProfilerPluginData> queue;
     private CpuTable cpuTable;
@@ -77,8 +85,8 @@ public class CpuDataConsumer extends AbsDataConsumer {
             } else {
                 try {
                     TimeUnit.MILLISECONDS.sleep(500);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
+                } catch (InterruptedException exception) {
+                    exception.printStackTrace();
                 }
             }
             insertCpuData();
@@ -146,6 +154,25 @@ public class CpuDataConsumer extends AbsDataConsumer {
         CpuDataCache.getInstance().addCpuDataModel(localSessionId, procCpuData.getTimeStamp(), cpuDataModels);
         List<ChartDataModel> threadModels = getThreadStatus(procCpuData.getData());
         CpuDataCache.getInstance().addThreadDataModel(localSessionId, procCpuData.getTimeStamp(), threadModels);
+        if (lastThread == null) {
+            lastThread = threadModels;
+        } else {
+            List<ChartDataModel> collect = new ArrayList<>();
+            lastThread.stream().forEach(
+                chartDataModel -> {
+                    String key = chartDataModel.getName() + chartDataModel.getIndex();
+                    ChartDataModel lastChartDataModel = threadMap.get(key);
+                    if (lastChartDataModel == null) {
+                        deadThreadInfo.put(procCpuData.getTimeStamp(), chartDataModel);
+                        collect.add(chartDataModel);
+                    }
+                }
+            );
+            if (!collect.isEmpty()) {
+                CpuDataCache.getInstance().addDeadThreadDataModel(localSessionId, procCpuData.getTimeStamp(), collect);
+            }
+        }
+        lastThread = threadModels;
     }
 
     /**
@@ -166,12 +193,24 @@ public class CpuDataConsumer extends AbsDataConsumer {
             .getPrevProcessCpuTimeMs()) / elapsedTime;  // process_cpu_time_ms
         double systemValue = 100.0 * (cpuData.getCpuUsageInfo().getSystemCpuTimeMs() - cpuData.getCpuUsageInfo()
             .getPrevSystemCpuTimeMs()) / elapsedTime;  // system_cpu_time_ms
+        if (ProfilerLogManager.isWarnEnabled()) {
+            if (cpuData.getCpuUsageInfo().getProcessCpuTimeMs()
+                    != cpuData.getCpuUsageInfo().getPrevProcessCpuTimeMs()) {
+                LOGGER.debug("---------------------------------------------------------------------------");
+                LOGGER.warn("getSystemBootTimeMs:{}", cpuData.getCpuUsageInfo().getSystemBootTimeMs());
+                LOGGER.warn("getPrevSystemBootTimeMs:{}", cpuData.getCpuUsageInfo().getPrevSystemBootTimeMs());
+                LOGGER.warn("getProcessCpuTimeMs:{}", cpuData.getCpuUsageInfo().getProcessCpuTimeMs());
+                LOGGER.warn("getPrevProcessCpuTimeMs:{}", cpuData.getCpuUsageInfo().getPrevProcessCpuTimeMs());
+                LOGGER.warn("getSystemCpuTimeMs:{}", cpuData.getCpuUsageInfo().getSystemCpuTimeMs());
+                LOGGER.warn("getPrevSystemCpuTimeMs:{}", cpuData.getCpuUsageInfo().getPrevSystemCpuTimeMs());
+            }
+        }
         systemValue = Math.max(0, Math.min(systemValue, 100.0));
         appValue = Math.max(0, Math.min(appValue, systemValue));
         appModel.setDoubleValue(appValue);
-        appModel.setValue((int) appValue);
+        appModel.setValue((int) Math.ceil(appValue));
         ChartDataModel systemModel = buildChartDataModel(MonitorItemDetail.CPU_SYSTEM);
-        systemModel.setValue((int) systemValue);
+        systemModel.setValue((int) Math.ceil(systemValue));
         systemModel.setDoubleValue(systemValue);
         prevData = cpuData;
         List<ChartDataModel> list = new ArrayList<>();
@@ -186,15 +225,15 @@ public class CpuDataConsumer extends AbsDataConsumer {
      * @param cpuData cpuData
      * @return List <ChartDataModel>
      */
-    public static List<ChartDataModel> getThreadStatus(CpuPluginResult.CpuData cpuData) {
+    public List<ChartDataModel> getThreadStatus(CpuPluginResult.CpuData cpuData) {
         if (ProfilerLogManager.isInfoEnabled()) {
             LOGGER.info("getThreadStatus");
         }
         List<ChartDataModel> list = new ArrayList<>();
+        threadMap.clear();
         // add the thread info data
         long elapsedTime =
             (cpuData.getCpuUsageInfo().getSystemBootTimeMs() - cpuData.getCpuUsageInfo().getPrevSystemBootTimeMs());
-
         cpuData.getThreadInfoList().forEach(threadInfo -> {
             double threadValue = 0d;
             if (elapsedTime != 0) {
@@ -208,6 +247,8 @@ public class CpuDataConsumer extends AbsDataConsumer {
             threadInfoModel.setName(threadInfo.getThreadName());
             threadInfoModel.setValue(threadInfo.getThreadStateValue());
             threadInfoModel.setDoubleValue(bigDecimal.setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue());
+            String key = threadInfo.getThreadName() + threadInfo.getTid();
+            threadMap.put(key, threadInfoModel);
             list.add(threadInfoModel);
         });
         return list;
@@ -239,6 +280,8 @@ public class CpuDataConsumer extends AbsDataConsumer {
             if (now - flagTime > SAVE_FREQ) {
                 cpuTable.insertProcessCpuInfo(processCpuDataList);
                 processCpuDataList.clear();
+                cpuTable.insertDeadThreadInfo(deadThreadInfo, localSessionId);
+                deadThreadInfo.clear();
                 // Update flagTime.
                 flagTime = now;
             }

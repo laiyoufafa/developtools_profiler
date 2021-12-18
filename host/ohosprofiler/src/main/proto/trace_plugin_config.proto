@@ -13,14 +13,19 @@
 
 syntax = "proto3";
 option java_package = "ohos.devtools.datasources.transport.grpc.service";
+option optimize_for = LITE_RUNTIME;
 
 message TracePluginConfig {
-  repeated string ftrace_events = 1;
-  repeated string bytrace_categories = 2;
-  repeated string bytrace_apps = 3;
-  uint32 buffer_size_kb = 4;   // for ftrace procfs
-  uint32 flush_interval_ms = 5;
-  uint32 flush_threshold_kb = 6;
-  bool parse_ksyms = 7;  // enable /proc/kallsyms parser
-  string clock = 8;
+  repeated string ftrace_events = 1; // kernel event set
+  repeated string bytrace_categories = 2; // bytrace event set
+  repeated string bytrace_apps = 3; // bytrace app set
+  uint32 buffer_size_kb = 4;    // kernel trace buffer size
+  uint32 flush_interval_ms = 5; // time interval in milliseconds to notify service process
+  uint32 flush_threshold_kb = 6; // buffer water mark threshold to notify service process
+  bool parse_ksyms = 7;  // parse /proc/kallsyms or not
+  string clock = 8;      // value for trace_clock
+  uint32 trace_period_ms = 10; // time interval in milliseconds to read kernel trace buffer
+  string raw_data_prefix = 13; // raw data file prefix for debug
+  uint32 trace_duration_ms = 20; // time duration in millisconds for trace actions
+  bool debug_on = 30; // enable debug options
 }

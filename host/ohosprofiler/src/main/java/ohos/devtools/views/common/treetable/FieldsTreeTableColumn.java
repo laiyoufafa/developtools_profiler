@@ -67,7 +67,7 @@ public abstract class FieldsTreeTableColumn<T, N> extends ColumnInfo<DefaultMuta
                     long startL = Long.parseLong(columnValue);
                     long endL = Long.parseLong(columnValue1);
                     return Long.compare(startL, endL);
-                } catch (NumberFormatException e) {
+                } catch (NumberFormatException exception) {
                     return this.getColumnValue(start).compareTo(this.getColumnValue(end));
                 }
             }

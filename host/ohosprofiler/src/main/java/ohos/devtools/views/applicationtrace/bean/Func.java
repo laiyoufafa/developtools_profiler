@@ -400,13 +400,9 @@ public class Func extends AppFunc {
 
     @Override
     public List<String> getStringList(final String time) {
-        return Arrays.asList(
-            time,
-            "" + getFuncName(),
-            "Running: " + TimeUtils.getTimeWithUnit(running),
-            "Idle: " + TimeUtils.getTimeWithUnit(idle),
-            "Total: " + TimeUtils.getTimeWithUnit(dur)
-        );
+        return Arrays.asList(time, "" + getFuncName(), "Thread:" + threadName, "Tid:" + tid,
+            "Running: " + TimeUtils.getTimeWithUnit(running), "Idle: " + TimeUtils.getTimeWithUnit(idle),
+            "Total: " + TimeUtils.getTimeWithUnit(dur));
     }
 
     /**

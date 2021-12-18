@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 with list as ( SELECT  IP.name as processName,
     IP.name processCmdLine,
     IP.pid as processId,B.cpu,

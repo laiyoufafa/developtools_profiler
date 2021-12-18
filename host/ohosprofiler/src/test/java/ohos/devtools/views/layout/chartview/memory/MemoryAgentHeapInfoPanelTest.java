@@ -15,6 +15,8 @@
 
 package ohos.devtools.views.layout.chartview.memory;
 
+import ohos.devtools.datasources.utils.session.entity.SessionInfo;
+import ohos.devtools.datasources.utils.session.service.SessionManager;
 import ohos.devtools.views.common.LayoutConstants;
 import ohos.devtools.views.layout.chartview.ItemsView;
 import ohos.devtools.views.layout.chartview.ProfilerChartsView;
@@ -22,7 +24,6 @@ import ohos.devtools.views.layout.chartview.ProfilerMonitorItem;
 import ohos.devtools.views.layout.chartview.TaskScenePanelChart;
 import ohos.devtools.views.layout.chartview.memory.javaagent.MemoryAgentHeapInfoPanel;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 
 /**
@@ -36,32 +37,7 @@ public class MemoryAgentHeapInfoPanelTest {
     private static final int TEST_END = 1000;
 
     private MemoryItemView memoryItemView;
-    private MemoryAgentHeapInfoPanel memoryAgentHeapInfoPanel;
     private ProfilerChartsView view;
-
-    private void initView() {
-        view = new ProfilerChartsView(LayoutConstants.NUM_L, true, new TaskScenePanelChart());
-        view.getPublisher().getStandard().updateDisplayTimeRange(TEST_START, TEST_END);
-    }
-
-    /**
-     * init
-     *
-     * @tc.name: init
-     * @tc.number: OHOS_JAVA_View_MemoryAgentHeapInfoPanel_init_0001
-     * @tc.desc: init
-     * @tc.type: functional testing
-     * @tc.require: AR000FK5UI
-     */
-    @Before
-    public void init() {
-        initView();
-        ItemsView itemsView = new ItemsView(view);
-        memoryItemView = new MemoryItemView();
-        ProfilerMonitorItem memoryItem = new ProfilerMonitorItem(2, "Memory", MemoryItemView.class);
-        memoryItemView.init(view, itemsView, memoryItem);
-        memoryAgentHeapInfoPanel = new MemoryAgentHeapInfoPanel(memoryItemView, 1L, "Test");
-    }
 
     /**
      * Memory Agent Heap Info Panel Test
@@ -74,11 +50,16 @@ public class MemoryAgentHeapInfoPanelTest {
      */
     @Test
     public void memoryAgentHeapInfoPanelTest() {
+        view = new ProfilerChartsView(LayoutConstants.NUM_L, true, new TaskScenePanelChart());
+        view.getPublisher().getStandard().updateDisplayTimeRange(TEST_START, TEST_END);
         ItemsView itemsView = new ItemsView(view);
         memoryItemView = new MemoryItemView();
         ProfilerMonitorItem memoryItem = new ProfilerMonitorItem(2, "Memory", MemoryItemView.class);
+        SessionInfo sessionInfo = SessionInfo.builder()
+            .sessionId(32947).sessionName("Test").pid(2).processName("processName").build();
+        SessionManager.getInstance().getProfilingSessions().put(32947L, sessionInfo);
         memoryItemView.init(view, itemsView, memoryItem);
-        MemoryAgentHeapInfoPanel memoryAgentHeapInfo = new MemoryAgentHeapInfoPanel(memoryItemView, 1L, "Test");
+        MemoryAgentHeapInfoPanel memoryAgentHeapInfo = new MemoryAgentHeapInfoPanel(memoryItemView, 32947L, "Test");
         Assert.assertNotNull(memoryAgentHeapInfo);
     }
 }

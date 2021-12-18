@@ -50,7 +50,7 @@ public class FlameSearchChart extends JBPanel {
     /**
      * structure with listener
      *
-     * @param iAllThreadDataListener   all thread listener
+     * @param iAllThreadDataListener all thread listener
      * @param iOtherThreadDataListener other thread listener
      */
     public FlameSearchChart(IAllThreadDataListener iAllThreadDataListener,
@@ -93,7 +93,7 @@ public class FlameSearchChart extends JBPanel {
      * fresh current data
      *
      * @param datasource datasource
-     * @param dur        dur
+     * @param dur dur
      */
     public void freshData(List<DefaultMutableTreeNode> datasource, long dur) {
         flameChart.setAllNode(datasource, dur);

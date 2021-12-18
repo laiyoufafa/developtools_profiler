@@ -36,6 +36,13 @@ public class TooltipItem {
     private String name;
 
     /**
+     * TooltipItem
+     */
+    public TooltipItem() {
+        super();
+    }
+
+    /**
      * 构造函数
      *
      * @param color Tooltip中图例色块的颜色
@@ -63,7 +70,7 @@ public class TooltipItem {
     }
 
     public String getName() {
-        return name;
+        return name == null ? "Result Value" : name;
     }
 
     public void setName(String name) {

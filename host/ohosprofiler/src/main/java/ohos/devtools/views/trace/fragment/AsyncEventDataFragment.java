@@ -84,9 +84,8 @@ public class AsyncEventDataFragment extends AbstractDataFragment<AsyncEvent> imp
             if (substring.length() < wordNum) {
                 graphics.drawString(name.substring(0, (int) wordNum), Utils.getX(getDescRect()) + 10,
                     (int) (Utils.getY(getDescRect()) + bounds.getHeight() + 8));
-                graphics
-                    .drawString(substring, Utils.getX(getDescRect()) + 10,
-                        (int) (Utils.getY(getDescRect()) + bounds.getHeight() * 2 + 8));
+                graphics.drawString(substring, Utils.getX(getDescRect()) + 10,
+                    (int) (Utils.getY(getDescRect()) + bounds.getHeight() * 2 + 8));
             } else {
                 graphics.drawString(name.substring(0, (int) wordNum), Utils.getX(getDescRect()) + 10,
                     (int) (Utils.getY(getDescRect()) + bounds.getHeight() + 2));
@@ -100,8 +99,7 @@ public class AsyncEventDataFragment extends AbstractDataFragment<AsyncEvent> imp
     private void drawData(Graphics2D graphics) {
         if (data != null) {
             List<AsyncEvent> collect = data.stream().filter(
-                    memData -> memData.getStartTime() + memData.getDuration() > startNS
-                            && memData.getStartTime() < endNS)
+                memData -> memData.getStartTime() + memData.getDuration() > startNS && memData.getStartTime() < endNS)
                 .collect(Collectors.toList());
             int x1;
             int x2;
@@ -120,8 +118,7 @@ public class AsyncEventDataFragment extends AbstractDataFragment<AsyncEvent> imp
                 asyncEvent.root = getRoot();
                 asyncEvent.setEventListener(this);
                 asyncEvent.setRect(x1 + Utils.getX(getDataRect()),
-                    Utils.getY(getDataRect()) + asyncEvent.getDepth() * 20 + 10,
-                    x2 - x1 <= 0 ? 1 : x2 - x1, 20);
+                    Utils.getY(getDataRect()) + asyncEvent.getDepth() * 20 + 10, x2 - x1 <= 0 ? 1 : x2 - x1, 20);
                 asyncEvent.draw(graphics);
             }
         } else {
@@ -143,8 +140,8 @@ public class AsyncEventDataFragment extends AbstractDataFragment<AsyncEvent> imp
             data.stream()
                 .filter(bean -> bean.getStartTime() + bean.getDuration() > startNS && bean.getStartTime() < endNS)
                 .filter(bean -> bean.edgeInspect(event)).findFirst().ifPresent(bean -> {
-                    bean.onClick(event);
-                });
+                bean.onClick(event);
+            });
         }
     }
 

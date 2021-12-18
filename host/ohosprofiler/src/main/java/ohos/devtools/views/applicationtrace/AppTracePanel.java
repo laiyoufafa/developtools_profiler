@@ -102,8 +102,8 @@ public class AppTracePanel extends JBPanel {
         });
         addComponentListener(new ComponentAdapter() {
             @Override
-            public void componentHidden(ComponentEvent componentEvent) {
-                super.componentHidden(componentEvent);
+            public void componentHidden(ComponentEvent event) {
+                super.componentHidden(event);
                 tip.hidden();
             }
         });
@@ -112,7 +112,7 @@ public class AppTracePanel extends JBPanel {
     /**
      * load the data from db file
      *
-     * @param name    name
+     * @param name name
      * @param cpuName cpuName
      * @param isLocal isLocal
      */
@@ -123,9 +123,9 @@ public class AppTracePanel extends JBPanel {
     /**
      * load the data from db file
      *
-     * @param name    name
+     * @param name name
      * @param cpuName cpuName
-     * @param pId     pId
+     * @param pId pId
      * @param isLocal isLocal
      */
     public void load(final String name, final String cpuName, final Integer pId, final boolean isLocal) {
@@ -189,6 +189,7 @@ public class AppTracePanel extends JBPanel {
             TracePanel.DURATION = dur.get(0).getTotal();
             TracePanel.START_TS = dur.get(0).getStartTs();
             TracePanel.END_TS = dur.get(0).getEndTs();
+            tracePanel.getRuler().refreshTimeRuler(TracePanel.DURATION);
         }
         List<CpuMax> cpuMaxList = new ArrayList<>() {
         };
@@ -208,9 +209,8 @@ public class AppTracePanel extends JBPanel {
 
     private void loadProcessWithoutPid(List<Process> processes) {
         Object processObj = JOptionPane
-                .showInputDialog(JOptionPane.getRootFrame(), "select process", "process",
-                        JOptionPane.PLAIN_MESSAGE, null, processes.toArray(new Object[0]),
-                        processes.size() > 0 ? processes.get(0).toString() : "");
+            .showInputDialog(JOptionPane.getRootFrame(), "select process", "process", JOptionPane.PLAIN_MESSAGE, null,
+                processes.toArray(new Object[0]), processes.size() > 0 ? processes.get(0).toString() : "");
         if (processObj instanceof Process) {
             Process process = (Process) processObj;
             processId = process.getPid();
@@ -228,6 +228,7 @@ public class AppTracePanel extends JBPanel {
                 TracePanel.DURATION = dur.get(0).getTotal();
                 TracePanel.START_TS = dur.get(0).getStartTs();
                 TracePanel.END_TS = dur.get(0).getEndTs();
+                tracePanel.getRuler().refreshTimeRuler(TracePanel.DURATION);
                 List<CpuMax> cpuMaxList = new ArrayList<>() {
                 };
                 Db.getInstance().query(Sql.QUERY_CPU_MAX, cpuMaxList);
@@ -255,6 +256,7 @@ public class AppTracePanel extends JBPanel {
     private void insertCpuScale() {
         List<CpuScale> cpuScales = new ArrayList<>() {
         };
+
         CpuDb.getInstance().query(Sql.QUERY_CPU_SCALE, cpuScales);
         List<CpuPluginResult.CpuUsageInfo> list = new ArrayList<>();
         cpuScales.forEach(scale -> {
@@ -264,12 +266,13 @@ public class AppTracePanel extends JBPanel {
                 CpuPluginResult.CpuUsageInfo cpuUsageInfo = cpuData.getCpuUsageInfo();
                 list.add(cpuUsageInfo);
                 scale.setScale(getCpuScale(cpuUsageInfo));
-                scale.setStartNs(TimeUnit.MILLISECONDS.toNanos(cpuUsageInfo.getPrevSystemBootTimeMs()));
-                scale.setEndNs(TimeUnit.MILLISECONDS.toNanos(cpuUsageInfo.getSystemBootTimeMs()));
+                scale.setStartNs(TimeUnit.MILLISECONDS.toNanos(cpuUsageInfo.getPrevProcessCpuTimeMs()));
+                scale.setEndNs(TimeUnit.MILLISECONDS.toNanos(cpuUsageInfo.getProcessCpuTimeMs()));
             } catch (IOException exception) {
                 exception.printStackTrace();
             }
         });
+        tracePanel.getTimeShaft().clearMap();
         tracePanel.paintTimeShaft(g2 -> {
             Rectangle bounds = tracePanel.getTimeShaft().getBounds();
             if (cpuScales == null || cpuScales.isEmpty()) {
@@ -296,7 +299,7 @@ public class AppTracePanel extends JBPanel {
     }
 
     private double getCpuScale(CpuPluginResult.CpuUsageInfo cpuUsageInfo) {
-        return (cpuUsageInfo.getSystemCpuTimeMs() - cpuUsageInfo.getPrevSystemCpuTimeMs()) * 1.0 / (
+        return (cpuUsageInfo.getProcessCpuTimeMs() - cpuUsageInfo.getPrevProcessCpuTimeMs()) * 1.0 / (
             cpuUsageInfo.getSystemBootTimeMs() - cpuUsageInfo.getPrevSystemBootTimeMs());
     }
 
@@ -340,8 +343,8 @@ public class AppTracePanel extends JBPanel {
             frameFuncList.stream().filter(frameFunc -> frameFunc.getFuncName().contains("doFrame")).forEach(func -> {
                 Frame frame = new Frame(func);
                 frame.setRenderList(renderFuncList.stream().filter(renderFunc -> TimeUtils
-                        .isInRange(func.getStartTs(), func.getStartTs() + func.getDur(), renderFunc.getStartTs(),
-                                renderFunc.getStartTs() + renderFunc.getDur())).collect(Collectors.toList()));
+                    .isInRange(func.getStartTs(), func.getStartTs() + func.getDur(), renderFunc.getStartTs(),
+                        renderFunc.getStartTs() + renderFunc.getDur())).collect(Collectors.toList()));
                 frameList.add(frame);
             });
             return frameList;
@@ -363,8 +366,8 @@ public class AppTracePanel extends JBPanel {
         });
         surfaceflinger.setSupplier(() -> {
             Process sfProcess = AllData.processes.stream()
-                    .filter(process -> Objects.equals(process.getName(), "/system/bin/surfaceflinger")).findAny()
-                    .orElse(null);
+                .filter(process -> Objects.equals(process.getName(), "/system/bin/surfaceflinger")).findAny()
+                .orElse(null);
             List<Func> flingerThreads = new ArrayList<>() {
             };
             if (sfProcess == null) {
@@ -372,7 +375,7 @@ public class AppTracePanel extends JBPanel {
             } else {
                 Db.getInstance().query(Sql.GET_FUN_DATA_BY_TID, flingerThreads, sfProcess.getPid());
                 flingerThreads =
-                        flingerThreads.stream().filter(func -> func.getDepth() == 0).collect(Collectors.toList());
+                    flingerThreads.stream().filter(func -> func.getDepth() == 0).collect(Collectors.toList());
                 return flingerThreads.stream().map(DisplayFunc::new).collect(Collectors.toList());
             }
         });
@@ -392,7 +395,7 @@ public class AppTracePanel extends JBPanel {
             for (int idx = 0, len = tracks.size(); idx < len; idx++) {
                 VsyncAppBean it = tracks.get(idx);
                 if (idx == len - 1) {
-                    it.setDuration(AnalystPanel.DURATION - it.getStartTime());
+                    it.setDuration(AnalystPanel.getDURATION() - it.getStartTime());
                 } else {
                     it.setDuration(tracks.get(idx + 1).getStartTime() - it.getStartTime());
                 }
@@ -418,8 +421,8 @@ public class AppTracePanel extends JBPanel {
         tracePanel.getContentPanel().add(panel, "growx,pushx");
     }
 
-    private void insertCpuRowFreq(TraceSimpleRow<CpuFreq> rowFreq, int index,
-        TraceSimpleRow<Cpu> row, CpuFreqMax freqMax) {
+    private void insertCpuRowFreq(TraceSimpleRow<CpuFreq> rowFreq, int index, TraceSimpleRow<Cpu> row,
+        CpuFreqMax freqMax) {
         rowFreq.setSupplier(() -> {
             List<CpuFreq> list = new ArrayList<>() {
             };
@@ -427,7 +430,7 @@ public class AppTracePanel extends JBPanel {
             for (int idx = 0, len = list.size(); idx < len; idx++) {
                 CpuFreq cpuGraph = list.get(idx);
                 if (idx == len - 1) {
-                    cpuGraph.setDuration(AnalystPanel.DURATION - cpuGraph.getStartTime());
+                    cpuGraph.setDuration(AnalystPanel.getDURATION() - cpuGraph.getStartTime());
                 } else {
                     cpuGraph.setDuration(list.get(idx + 1).getStartTime() - cpuGraph.getStartTime());
                 }
@@ -443,8 +446,7 @@ public class AppTracePanel extends JBPanel {
             g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1f)); // transparency
             Rectangle2D bounds = g2.getFontMetrics().getStringBounds(freqMax.getName(), g2);
             g2.setColor(Color.lightGray);
-            g2.drawString(freqMax.getName(), 2,
-                    (int) (Utils.getY(row.getContentBounds()) + 2 + bounds.getHeight()));
+            g2.drawString(freqMax.getName(), 2, (int) (Utils.getY(row.getContentBounds()) + 2 + bounds.getHeight()));
         });
     }
 
@@ -453,10 +455,10 @@ public class AppTracePanel extends JBPanel {
             List<Cpu> cpus = new ArrayList<>() {
             };
             int count =
-                    Db.getInstance().queryCount(Sql.QUERY_CPU_DATA_COUNT, index, TracePanel.startNS, TracePanel.endNS);
+                Db.getInstance().queryCount(Sql.QUERY_CPU_DATA_COUNT, index, TracePanel.startNS, TracePanel.endNS);
             if (count > Final.CAPACITY) {
-                Db.getInstance().query(Sql.QUERY_CPU_DATA_LIMIT, cpus, index, TracePanel.startNS, TracePanel.endNS,
-                        Final.CAPACITY);
+                Db.getInstance()
+                    .query(Sql.QUERY_CPU_DATA_LIMIT, cpus, index, TracePanel.startNS, TracePanel.endNS, Final.CAPACITY);
             } else {
                 Db.getInstance().query(Sql.QUERY_CPU_DATA, cpus, index, TracePanel.startNS, TracePanel.endNS);
             }
@@ -498,55 +500,55 @@ public class AppTracePanel extends JBPanel {
                 AllData.threadMap.put(thread.getTid(), threadList);
                 return threadList;
             });
-            row.setSupplier2(() -> {
-                List<Func> funcs = new ArrayList<>() {
-                };
-                Db.getInstance().query(Sql.GET_FUN_DATA_BY_TID, funcs, thread.getTid());
-                addThreadTunc(funcs, thread);
-                AllData.funcMap.put(thread.getTid(), funcs);
-                int maxDept = funcs.stream().mapToInt(Func::getDepth).max().orElse(0) + 1;
-                int maxHeight = maxDept * row.getFuncHeight() + row.getFuncHeight();
-                if (maxHeight < 30) {
-                    maxHeight = 30;
-                }
-                row.setMaxDept(maxDept);
-                if (panel.getContent().getLayout() instanceof MigLayout) {
-                    ((MigLayout) panel.getContent().getLayout())
-                            .setComponentConstraints(row, "growx,pushx,h " + maxHeight + "!");
-                }
-                row.updateUI();
-                return funcs;
-            });
+            handleRowSupplier(panel, thread, row);
             panel.addTraceRow(row);
         }
         tracePanel.getContentPanel().add(panel, "pushx,growx");
     }
 
-    private void addThreadTunc(List<Func> funcs, Thread thread) {
-        if (AllData.threadMap.containsKey(thread.getTid())) {
-            List<Thread> threadList = AllData.threadMap.get(thread.getTid());
-            setFuncIdel(funcs, threadList);
-            Func threadFunc = new Func();
-            threadFunc.setFuncName(thread.getThreadName());
-            threadFunc.setThreadName(thread.getThreadName());
-            threadFunc.setTid(thread.getTid());
-            threadFunc.setDepth(-1);
-            threadFunc.setBloodId(Utils.md5String(thread.getThreadName()));
-            threadFunc.setStartTs(0);
-            threadFunc.setEndTs(TracePanel.END_TS - TracePanel.START_TS);
-            funcs.add(threadFunc);
-            List<Func> sortedList = funcs.stream().filter((item) -> item.getDepth() != -1)
+    private void handleRowSupplier(ExpandPanel panel, Thread thread, TraceThreadRow<Thread, Func> row) {
+        row.setSupplier2(() -> {
+            List<Func> funcs = new ArrayList<>() {
+            };
+            Db.getInstance().query(Sql.GET_FUN_DATA_BY_TID, funcs, thread.getTid());
+            if (AllData.threadMap.containsKey(thread.getTid())) {
+                List<Thread> threadList = AllData.threadMap.get(thread.getTid());
+                setFuncIdel(funcs, threadList);
+                Func threadFunc = new Func();
+                threadFunc.setFuncName(thread.getThreadName());
+                threadFunc.setThreadName(thread.getThreadName());
+                threadFunc.setTid(thread.getTid());
+                threadFunc.setDepth(-1);
+                threadFunc.setBloodId(Utils.md5String(thread.getThreadName()));
+                threadFunc.setStartTs(0);
+                threadFunc.setEndTs(TracePanel.END_TS - TracePanel.START_TS);
+                funcs.add(threadFunc);
+                List<Func> sortedList = funcs.stream().filter((item) -> item.getDepth() != -1)
                     .sorted(Comparator.comparingInt(Func::getDepth)).collect(Collectors.toList());
-            Map<Integer, Func> map = funcs.stream().collect(Collectors.toMap(Func::getId, func -> func));
-            sortedList.forEach((func) -> {
-                func.setThreadName(thread.getThreadName());
-                if (func.getDepth() != 0) {
-                    func.setParentBloodId(map.get(func.getParentId()).getBloodId());
-                }
-                func.setEndTs(func.getStartTs() + func.getDur());
-                func.createBloodId();
-            });
-        }
+                Map<Integer, Func> map = funcs.stream().collect(Collectors.toMap(Func::getId, func -> func));
+                sortedList.forEach((func) -> {
+                    func.setThreadName(thread.getThreadName());
+                    if (func.getDepth() != 0) {
+                        func.setParentBloodId(map.get(func.getParentId()).getBloodId());
+                    }
+                    func.setEndTs(func.getStartTs() + func.getDur());
+                    func.createBloodId();
+                });
+            }
+            AllData.funcMap.put(thread.getTid(), funcs);
+            int maxDept = funcs.stream().mapToInt(Func::getDepth).max().orElse(0) + 1;
+            int maxHeight = maxDept * row.getFuncHeight() + row.getFuncHeight();
+            if (maxHeight < 30) {
+                maxHeight = 30;
+            }
+            row.setMaxDept(maxDept);
+            if (panel.getContent().getLayout() instanceof MigLayout) {
+                ((MigLayout) panel.getContent().getLayout())
+                    .setComponentConstraints(row, "growx,pushx,h " + maxHeight + "!");
+            }
+            row.updateUI();
+            return funcs;
+        });
     }
 
     private void setFuncIdel(List<Func> funcList, List<Thread> threadList) {

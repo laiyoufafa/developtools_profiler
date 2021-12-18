@@ -12,7 +12,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 CREATE VIEW IF NOT EXISTS thread_view AS SELECT id as itid, * FROM thread;
 CREATE VIEW IF NOT EXISTS process_view AS SELECT id as ipid, * FROM process;
 CREATE VIEW IF NOT EXISTS sched_view AS SELECT *, ts + dur as ts_end FROM sched_slice;
 CREATE VIEW IF NOT EXISTS instants_view AS SELECT *, 0.0 as value FROM instant;
+CREATE VIEW IF NOT EXISTS trace_section AS select start_ts, end_ts from trace_range;

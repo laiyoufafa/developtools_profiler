@@ -18,7 +18,6 @@ package ohos.devtools.views.layout.event;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.util.IconLoader;
 import ohos.devtools.datasources.utils.session.service.SessionManager;
-import ohos.devtools.services.ability.AbilityDataCache;
 import ohos.devtools.services.cpu.CpuDataCache;
 import ohos.devtools.services.diskio.DiskIoDataCache;
 import ohos.devtools.services.memory.memoryservice.MemoryDataCache;
@@ -32,14 +31,14 @@ import ohos.devtools.views.common.UtConstant;
 import ohos.devtools.views.common.customcomp.CustomComboBox;
 import ohos.devtools.views.common.customcomp.CustomJButton;
 import ohos.devtools.views.common.customcomp.CustomJLabel;
-import ohos.devtools.views.layout.chartview.PerformanceIndexPopupMenu;
-import ohos.devtools.views.layout.chartview.SubSessionListJBPanel;
-import ohos.devtools.views.layout.chartview.ProfilerChartsView;
+import ohos.devtools.views.layout.TaskPanel;
 import ohos.devtools.views.layout.chartview.CountingThread;
+import ohos.devtools.views.layout.chartview.PerformanceIndexPopupMenu;
+import ohos.devtools.views.layout.chartview.ProfilerChartsView;
+import ohos.devtools.views.layout.chartview.SubSessionListJBPanel;
+import ohos.devtools.views.layout.chartview.TaskScenePanelChart;
 import ohos.devtools.views.layout.dialog.ExportFileChooserDialog;
 import ohos.devtools.views.layout.dialog.SampleDialog;
-import ohos.devtools.views.layout.TaskPanel;
-import ohos.devtools.views.layout.chartview.TaskScenePanelChart;
 import ohos.devtools.views.perftrace.PerfTracePanel;
 
 import javax.swing.BorderFactory;
@@ -62,9 +61,12 @@ import java.awt.event.ComponentEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * 任务场景面板图事件类
+ *
+ * @since 2021/11/22
  */
 public class TaskScenePanelChartEvent {
     private static final int NUM_2 = 2;
@@ -218,13 +220,12 @@ public class TaskScenePanelChartEvent {
             @Override
             public void mouseClicked(MouseEvent mouseEvent) {
                 String fileType = "";
-                if (name.contains("Native Hook")) {
-                    fileType = "nativehook";
+                if (name.contains("Native Heap")) {
+                    fileType = "nativeHeap";
                 } else {
                     fileType = "hprof";
                 }
-                ExportFileChooserDialog fileChooserDialogWrapper =
-                    new ExportFileChooserDialog("Export As", fileType);
+                ExportFileChooserDialog fileChooserDialogWrapper = new ExportFileChooserDialog("Export As", fileType);
                 boolean showAndGet = fileChooserDialogWrapper.showAndGet();
                 if (showAndGet) {
                     String exportFileName = labelSave.getName();
@@ -282,7 +283,9 @@ public class TaskScenePanelChartEvent {
                 taskScenePanelChart.setGreyFlag(true);
                 dumpPanel.setBackground(ColorConstants.SELECTED_COLOR);
                 dumpPanel.getHosJLabel().setForeground(ColorConstants.FONT_COLOR);
-                dumpPanel.getTimeJLabel().setForeground(ColorConstants.FONT_COLOR);
+                if (Objects.nonNull(dumpPanel.getTimeJLabel())) {
+                    dumpPanel.getTimeJLabel().setForeground(ColorConstants.FONT_COLOR);
+                }
             }
 
             @Override
@@ -299,9 +302,6 @@ public class TaskScenePanelChartEvent {
         TaskScenePanelChart taskScenePanelChart) {
         profilerView.getPublisher().stopRefresh(false);
         // Re-refresh the status of the app after stopping
-        if (profilerView.getAbilitySlice() != null) {
-            profilerView.getAbilitySlice().refreshActivityEndStatus(false);
-        }
         stopButton.setIcon(IconLoader.getIcon("/images/breakpoint.png", getClass()));
         taskScenePanelChart.getjButtonStop().setIcon(AllIcons.Process.ProgressResumeHover);
         buttonAvailable = false;
@@ -311,6 +311,8 @@ public class TaskScenePanelChartEvent {
         boolean endFlag = SessionManager.getInstance().endSession(stopButton.getSessionId());
         if (!endFlag) {
             stopButton.setIcon(IconLoader.getIcon("/images/breakpoint_grey.png", getClass()));
+            taskScenePanelChart.setGreyFlag(true);
+            taskScenePanelChart.getJButtonDelete().setIcon(IconLoader.getIcon("/images/gc_grey.png", getClass()));
             new SampleDialog("prompt", "Failed to stop this session. Exit and try again.").show();
             return;
         }
@@ -318,7 +320,6 @@ public class TaskScenePanelChartEvent {
         MemoryDataCache.getInstance().clearCacheBySession(stopButton.getSessionId());
         CpuDataCache.getInstance().clearCacheBySession(stopButton.getSessionId());
         DiskIoDataCache.getInstance().clearCacheBySession(stopButton.getSessionId());
-        AbilityDataCache.getInstance().clearCacheBySession(stopButton.getSessionId());
         profilerView.setStop(true);
         profilerView.setPause(true);
     }
@@ -335,6 +336,8 @@ public class TaskScenePanelChartEvent {
         boolean startFlag = sessionManager.startSession(sessionId, true);
         if (!startFlag) {
             stopButton.setIcon(IconLoader.getIcon("/images/breakpoint_grey.png", getClass()));
+            taskScenePanelChart.setGreyFlag(true);
+            taskScenePanelChart.getJButtonDelete().setIcon(IconLoader.getIcon("/images/gc_grey.png", getClass()));
             new SampleDialog("prompt", "Failed to start this session. Exit and try again.").show();
             return;
         }
@@ -348,10 +351,6 @@ public class TaskScenePanelChartEvent {
         counting.start();
         // Clear the selected time after restarting
         profilerView.getPublisher().getStandard().clearAllSelectedRanges();
-        if (profilerView.getAbilitySlice() != null) {
-            // Re-refresh the status of the app after restart
-            profilerView.getAbilitySlice().refreshActivityEndStatus(true);
-        }
         profilerView.showLoading();
         profilerView.setStop(false);
         profilerView.setPause(false);
@@ -417,8 +416,6 @@ public class TaskScenePanelChartEvent {
                         profilerView.setPause(true);
                     } else {
                         taskScenePanelChart.getjButtonStop().setIcon(AllIcons.Process.ProgressPauseHover);
-                        taskScenePanelChart.getjButtonBottom()
-                            .setIcon(IconLoader.getIcon("/images/previewDetailsVertically_grey.png", getClass()));
                         taskScenePanelChart.getjButtonStop().setToolTipText("Suspend");
                         profilerView.getPublisher().restartRefresh();
                         profilerView.setPause(false);
@@ -537,7 +534,6 @@ public class TaskScenePanelChartEvent {
         taskScenePanelChart.getJButtonDelete().setDeviceName(jLabelRight.getDeviceName());
         taskScenePanelChart.getJButtonDelete().setProcessName(jLabelRight.getProcessName());
         taskScenePanelChart.getConfigButton().setSessionId(jLabelRight.getSessionId());
-        taskScenePanelChart.getjButtonBottom().setSessionId(jLabelRight.getSessionId());
         taskScenePanelChart.getjButtonLeft().setSessionId(jLabelRight.getSessionId());
         taskScenePanelChart.getjComboBox().setSessionId(jLabelRight.getSessionId());
         taskScenePanelChart.getTimeJComboBox().setSessionId(jLabelRight.getSessionId());
@@ -585,27 +581,40 @@ public class TaskScenePanelChartEvent {
                     jLabelRight.getLeft().setBackground(ColorConstants.SELECTED_COLOR);
                 }
                 jLabelRight.setForeground(Color.white);
-                int numy = 0;
                 // 循环确定擦片布局显示哪个页面
-                for (int index = 0; index < numberSum; index++) {
-                    JPanel jPanel = null;
-                    Object innerObj = taskScenePanelChart.getJScrollCardsPanelInner().getComponentAt(0, numy);
-                    if (innerObj instanceof JPanel) {
-                        jPanel = (JPanel) innerObj;
-                        numy += LayoutConstants.HEIGHT;
-                        Color colorBack = jPanel.getComponent(0).getBackground();
-                        if (colorBack == ColorConstants.SELECTED_COLOR) {
-                            taskScenePanelChart.getCardLayout().show(taskScenePanelChart.getCards(), "card" + index);
-                            taskScenePanelChart.add(taskScenePanelChart.getPanelTop(), BorderLayout.NORTH);
-                        }
-                    }
-                }
+                showCurrentView(numberSum, taskScenePanelChart);
                 taskScenePanelChart.setButtonEnable(false, "");
                 taskScenePanelChart.setGreyFlag(false);
                 // Replace the content of the tab with the content of the clicked device information
                 replaceDevicesInfo(jLabelSelect);
             }
         });
+    }
+
+    private void showCurrentView(int numberSum, TaskScenePanelChart taskScenePanelChart) {
+        int numY = 0;
+        for (int index = 0; index < numberSum; index++) {
+            JPanel jPanel = null;
+            Object innerObj = taskScenePanelChart.getJScrollCardsPanelInner().getComponentAt(0, numY);
+            if (innerObj instanceof JPanel) {
+                jPanel = (JPanel) innerObj;
+                numY += LayoutConstants.HEIGHT;
+                Color colorBack = jPanel.getComponent(0).getBackground();
+                if (colorBack == ColorConstants.SELECTED_COLOR) {
+                    if (jPanel.getComponent(0) instanceof CustomJLabel) {
+                        CustomJLabel customJLabel = (CustomJLabel) jPanel.getComponent(0);
+                        if (Objects.nonNull(customJLabel.getCardName())) {
+                            taskScenePanelChart.getCardLayout()
+                                .show(taskScenePanelChart.getCards(), customJLabel.getCardName());
+                        } else {
+                            taskScenePanelChart.getCardLayout()
+                                .show(taskScenePanelChart.getCards(), "card" + index);
+                            taskScenePanelChart.add(taskScenePanelChart.getPanelTop(), BorderLayout.NORTH);
+                        }
+                    }
+                }
+            }
+        }
     }
 
     /**

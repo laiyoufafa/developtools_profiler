@@ -27,6 +27,9 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -49,7 +52,7 @@ import static ohos.devtools.views.common.Constant.IS_SUPPORT_NEW_HDC;
 /**
  * DistributedManager
  *
- * @since: 2021/9/20
+ * @since 2021/9/20
  */
 public class DistributedManager {
     private static final Logger LOGGER = LogManager.getLogger(DistributedManager.class);
@@ -60,6 +63,7 @@ public class DistributedManager {
     private static final String LEAN_PERFETTO_STR =
         "ability;ace;app;distributeddatamgr;freq;graphic;idle;irq;mdfs;mmc;notification;ohos;pagecache;sync;"
             + "workq;zaudio;zcamera;zimage;zmedia";
+    private static final int NUMBER_OF_TIMES = 10;
 
     private final DistributeDevice firstDevice;
     private final DistributeDevice secondDevice;
@@ -68,8 +72,7 @@ public class DistributedManager {
     private int secondFileSize;
     private long firstStartTime;
     private long secondStartTime;
-    private long nowTime;
-    private boolean isTest = true;
+    private boolean isTest = false;
     private final ExecutorService executorService =
         new ThreadPoolExecutor(2, 2, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>());
 
@@ -93,23 +96,44 @@ public class DistributedManager {
         if (ProfilerLogManager.isInfoEnabled()) {
             LOGGER.info("startCollecting");
         }
-        nowTime = TimeUnit.MILLISECONDS.toNanos(System.currentTimeMillis());
-        Future<Result> firstResult = executorService.submit(new CollectingCallBack(firstDevice));
-        Future<Result> secondResult = executorService.submit(new CollectingCallBack(secondDevice));
+        Future<Optional<TimeCalibrationBean>> firstDeviceTimeBeanOpt =
+            executorService.submit(new TimeCalibrationDevice(firstDevice));
+        Future<Optional<TimeCalibrationBean>> secondDeviceTimeBeanOpt =
+            executorService.submit(new TimeCalibrationDevice(secondDevice));
         try {
-            Result firstString = firstResult.get();
-            Result secondString = secondResult.get();
-            if (StringUtils.equals(firstString.getSessionId(), "0") || StringUtils
-                .equals(secondString.getSessionId(), "0")) {
+            Optional<TimeCalibrationBean> firstDeviceCalibrationBean = firstDeviceTimeBeanOpt.get();
+            Optional<TimeCalibrationBean> secondDeviceCalibrationBean = secondDeviceTimeBeanOpt.get();
+
+            if (firstDeviceCalibrationBean.isPresent() && secondDeviceCalibrationBean.isPresent()) {
+                TimeCalibrationBean firstDeviceCalibration = firstDeviceCalibrationBean.get();
+                TimeCalibrationBean secondDeviceCalibration = secondDeviceCalibrationBean.get();
+                long realPc1Time = firstDeviceCalibration.getPcTime() + (firstDeviceCalibration.getUseTime() / 2);
+                long realPc2Time = secondDeviceCalibration.getPcTime() + (secondDeviceCalibration.getUseTime() / 2);
+                long timeDifference = realPc1Time - realPc2Time;
+                if (timeDifference == 0) {
+                    // 时间一致不需要同步
+                    firstStartTime = firstDeviceCalibration.getDeviceTime();
+                    secondStartTime = secondDeviceCalibration.getDeviceTime();
+                } else if (timeDifference < 0) {
+                    firstStartTime = firstDeviceCalibration.getDeviceTime();
+                    secondStartTime = secondDeviceCalibration.getDeviceTime() + timeDifference;
+                } else {
+                    firstStartTime = firstDeviceCalibration.getDeviceTime() + timeDifference;
+                    secondStartTime = secondDeviceCalibration.getDeviceTime();
+                }
+            }
+            Future<String> firstResult = executorService.submit(new CollectingCallBack(firstDevice));
+            Future<String> secondResult = executorService.submit(new CollectingCallBack(secondDevice));
+            String firstString = firstResult.get();
+            String secondString = secondResult.get();
+            if (StringUtils.equals(firstString, "0") || StringUtils.equals(secondString, "0")) {
                 if (ProfilerLogManager.isInfoEnabled()) {
                     LOGGER.info("startSession failed");
                 }
                 return false;
             } else {
-                firstDevice.setSessionId(firstString.getSessionId());
-                secondDevice.setSessionId(secondString.getSessionId());
-                firstStartTime = Long.valueOf(firstString.getStartTime());
-                secondStartTime = Long.valueOf(secondString.getStartTime());
+                firstDevice.setSessionId(firstString);
+                secondDevice.setSessionId(secondString);
                 return true;
             }
         } catch (InterruptedException | ExecutionException exception) {
@@ -117,6 +141,34 @@ public class DistributedManager {
                 LOGGER.error("start Collect Failed ", exception);
             }
             return false;
+        }
+    }
+
+    class TimeCalibrationDevice implements Callable<Optional<TimeCalibrationBean>> {
+        private final DistributeDevice distributeDevice;
+
+        /**
+         * TimeCalibrationDevice
+         *
+         * @param distributeDevice distributeDevice
+         */
+        public TimeCalibrationDevice(DistributeDevice distributeDevice) {
+            this.distributeDevice = distributeDevice;
+        }
+
+        @Override
+        public Optional<TimeCalibrationBean> call() throws Exception {
+            return calibrationEquipmentTime(distributeDevice);
+        }
+
+        private Optional<TimeCalibrationBean> calibrationEquipmentTime(DistributeDevice distributeDevice) {
+            List<TimeCalibrationBean> timeBeans = new ArrayList<>();
+            for (int count = 0; count < NUMBER_OF_TIMES; count++) {
+                TimeCalibrationBean timeCalibrationBean = getDeviceTime(distributeDevice);
+                timeBeans.add(timeCalibrationBean);
+            }
+            LOGGER.info("timeBeans {}", timeBeans);
+            return timeBeans.stream().sorted(Comparator.comparingLong(TimeCalibrationBean::getUseTime)).findFirst();
         }
     }
 
@@ -326,7 +378,7 @@ public class DistributedManager {
         if (ProfilerLogManager.isInfoEnabled()) {
             LOGGER.info("cancelCollection");
         }
-        SystemTraceHelper systemTraceHelper = new SystemTraceHelper();
+        SystemTraceHelper systemTraceHelper = SystemTraceHelper.getSingleton();
         systemTraceHelper.stopSession(firstDevice.getDeviceIPPortInfo(), firstDevice.getSessionId());
         systemTraceHelper.cancelActionDestroySession(firstDevice.getDeviceIPPortInfo(), firstDevice.getSessionId());
         systemTraceHelper.stopSession(secondDevice.getDeviceIPPortInfo(), secondDevice.getSessionId());
@@ -340,7 +392,7 @@ public class DistributedManager {
         if (ProfilerLogManager.isInfoEnabled()) {
             LOGGER.info("stopCollection");
         }
-        SystemTraceHelper systemTraceHelper = new SystemTraceHelper();
+        SystemTraceHelper systemTraceHelper = SystemTraceHelper.getSingleton();
         systemTraceHelper.stopSession(firstDevice.getDeviceIPPortInfo(), firstDevice.getSessionId());
         systemTraceHelper.cancelActionDestroySession(firstDevice.getDeviceIPPortInfo(), firstDevice.getSessionId());
         systemTraceHelper.stopSession(secondDevice.getDeviceIPPortInfo(), secondDevice.getSessionId());
@@ -360,7 +412,7 @@ public class DistributedManager {
     /**
      * CollectingCallBack
      */
-    class CollectingCallBack implements Callable<Result> {
+    class CollectingCallBack implements Callable<String> {
         private final DistributeDevice distributeDevice;
 
         /**
@@ -373,7 +425,7 @@ public class DistributedManager {
         }
 
         @Override
-        public Result call() throws Exception {
+        public String call() throws Exception {
             String outPutPath = getTraceFilePath(distributeDevice);
             String perfettoString;
             if (distributeDevice.getDeviceIPPortInfo().getDeviceType() == DeviceType.FULL_HOS_DEVICE) {
@@ -381,17 +433,101 @@ public class DistributedManager {
             } else {
                 perfettoString = LEAN_PERFETTO_STR;
             }
-            String sessionByTraceRequest = new SystemTraceHelper()
+            return SystemTraceHelper.getSingleton()
                 .createSessionByTraceRequest(distributeDevice.getDeviceIPPortInfo(), perfettoString, maxDurationParam,
                     10, outPutPath, false);
-            ArrayList cmd;
-            if (IS_SUPPORT_NEW_HDC && distributeDevice.getDeviceIPPortInfo().getDeviceType() == LEAN_HOS_DEVICE) {
-                cmd = conversionCommand(HDC_STD_GET_TIME, distributeDevice.getDeviceIPPortInfo().getDeviceID());
-            } else {
-                cmd = conversionCommand(HDC_GET_TIME, distributeDevice.getDeviceIPPortInfo().getDeviceID());
-            }
-            String startTime = HdcWrapper.getInstance().execCmdBy(cmd);
-            return new Result(sessionByTraceRequest, startTime);
+        }
+    }
+
+    private TimeCalibrationBean getDeviceTime(DistributeDevice distributeDevice) {
+        ArrayList<String> cmd;
+        if (IS_SUPPORT_NEW_HDC && distributeDevice.getDeviceIPPortInfo().getDeviceType() == LEAN_HOS_DEVICE) {
+            cmd = conversionCommand(HDC_STD_GET_TIME, distributeDevice.getDeviceIPPortInfo().getDeviceID());
+        } else {
+            cmd = conversionCommand(HDC_GET_TIME, distributeDevice.getDeviceIPPortInfo().getDeviceID());
+        }
+        long pcTime = TimeUnit.MILLISECONDS.toNanos(System.currentTimeMillis());
+        String deviceTime = HdcWrapper.getInstance().execCmdBy(cmd);
+        long endTime = TimeUnit.MILLISECONDS.toNanos(System.currentTimeMillis());
+        TimeCalibrationBean timeCalibrationBean = new TimeCalibrationBean();
+        timeCalibrationBean.setPcTime(pcTime);
+        timeCalibrationBean.setEndTime(endTime);
+        timeCalibrationBean.setDeviceTime(Long.parseLong(deviceTime));
+        return timeCalibrationBean;
+    }
+
+    class TimeCalibrationBean {
+        private long pcTime;
+        private long endTime;
+        private long deviceTime;
+
+        /**
+         * getPcTime
+         *
+         * @return long
+         */
+        public long getPcTime() {
+            return pcTime;
+        }
+
+        /**
+         * setPcTime
+         *
+         * @param pcTime pcTime
+         */
+        public void setPcTime(long pcTime) {
+            this.pcTime = pcTime;
+        }
+
+        /**
+         * getEndTime
+         *
+         * @return long
+         */
+        public long getEndTime() {
+            return endTime;
+        }
+
+        /**
+         * setEndTime
+         *
+         * @param endTime endTime
+         */
+        public void setEndTime(long endTime) {
+            this.endTime = endTime;
+        }
+
+        /**
+         * getDeviceTime
+         *
+         * @return long
+         */
+        public long getDeviceTime() {
+            return deviceTime;
+        }
+
+        /**
+         * setDeviceTime
+         *
+         * @param deviceTime deviceTime
+         */
+        public void setDeviceTime(long deviceTime) {
+            this.deviceTime = deviceTime;
+        }
+
+        /**
+         * getUseTime
+         *
+         * @return long
+         */
+        public long getUseTime() {
+            return endTime - pcTime;
+        }
+
+        @Override
+        public String toString() {
+            return "TimeCalibrationBean{" + "pcTime=" + pcTime + ", endTime=" + endTime + ", deviceTime=" + deviceTime
+                + ", useTime=" + (endTime - pcTime) + '}';
         }
     }
 

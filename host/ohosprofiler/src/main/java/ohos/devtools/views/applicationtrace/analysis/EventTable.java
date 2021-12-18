@@ -56,12 +56,11 @@ public class EventTable extends JBPanel {
 
     private final int RowHeight = 25;
     private final int RowHeadHeight = 30;
+    private List<Col<EventBean>> columnNames = new ArrayList<>();
     private JBScrollPane jScrollPane;
     private EventTableModel tableColumnModel;
     private JBTable jbTable;
     private ITableSizeChangeListener listener;
-    private List<Col<EventBean>> columnNames = new ArrayList<>();
-
 
     /**
      * Constructor
@@ -144,10 +143,10 @@ public class EventTable extends JBPanel {
             long cpuDuration = func.getRunning();
             if (collect.containsKey(func.getStackId())) {
                 selfTime = func.getDur() - collect.get(func.getStackId()).stream().filter(func1 -> TimeUtils
-                        .isRangeCross(func.getStartTs(), func.getEndTs(), func1.getStartTs(), func1.getEndTs()))
+                    .isRangeCross(func.getStartTs(), func.getEndTs(), func1.getStartTs(), func1.getEndTs()))
                     .mapToLong(Func::getDur).sum();
                 cupSelfTime = cpuDuration - collect.get(func.getStackId()).stream().filter(func1 -> TimeUtils
-                        .isRangeCross(func.getStartTs(), func.getEndTs(), func1.getStartTs(), func1.getEndTs()))
+                    .isRangeCross(func.getStartTs(), func.getEndTs(), func1.getStartTs(), func1.getEndTs()))
                     .mapToLong(Func::getRunning).sum();
             } else {
                 cupSelfTime = func.getRunning();
@@ -166,10 +165,10 @@ public class EventTable extends JBPanel {
     private void getPerfData(long startNS, long endNS, List<Integer> threadIds) {
         List<PrefFunc> funcList = new ArrayList<>();
         threadIds.forEach(threadId -> {
-            if (PerfData.FUNC_MAP.containsKey(threadId)) {
-                funcList.addAll(PerfData.FUNC_MAP.get(threadId).stream().filter(
-                        func -> func.getDepth() != -1 && TimeUtils
-                            .isRangeCross(startNS, endNS, func.getStartTs(), func.getEndTs()))
+            if (PerfData.getFuncMap().containsKey(threadId)) {
+                funcList.addAll(PerfData.getFuncMap().get(threadId).stream().filter(
+                    func -> func.getDepth() != -1 && TimeUtils
+                        .isRangeCross(startNS, endNS, func.getStartTs(), func.getEndTs()))
                     .collect(Collectors.toList()));
             }
         });
@@ -191,8 +190,8 @@ public class EventTable extends JBPanel {
     /**
      * getData
      *
-     * @param startNS   startNS
-     * @param endNS     endNS
+     * @param startNS startNS
+     * @param endNS endNS
      * @param threadIds threadIds
      */
     public void getData(long startNS, long endNS, List<Integer> threadIds) {
@@ -257,7 +256,7 @@ public class EventTable extends JBPanel {
         /**
          * Constructor
          *
-         * @param name     name
+         * @param name name
          * @param callable callable
          */
         public Col(String name, Function<T, Object> callable) {

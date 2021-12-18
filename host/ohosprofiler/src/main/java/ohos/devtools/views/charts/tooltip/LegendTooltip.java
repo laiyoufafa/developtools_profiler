@@ -17,10 +17,8 @@ package ohos.devtools.views.charts.tooltip;
 
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
-
 import ohos.devtools.views.charts.model.ChartDataModel;
 import ohos.devtools.views.charts.utils.ChartUtils;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -335,7 +333,7 @@ public final class LegendTooltip extends JComponent {
         // 添加时间
         JBLabel timeLabel = new JBLabel();
         timeLabel.setBorder(new EmptyBorder(5, 5, 5, 5));
-        long ms = 0;
+        long ms = 0L;
         String pattern = "^\\d{0,20}$";
         boolean isMatch = Pattern.matches(pattern, timeline);
         if (isMatch) {
@@ -393,7 +391,7 @@ public final class LegendTooltip extends JComponent {
             this.rows = tooltipItems.size() + 1;
             if (isCharting) {
                 rebuild(parent);
-                resize();
+                this.setSize(300, this.rows * ROW_HEIGHT);
                 return;
             }
 
@@ -407,7 +405,7 @@ public final class LegendTooltip extends JComponent {
         mainPanel.removeAll();
         JBLabel timeLabel = new JBLabel();
         timeLabel.setBorder(new EmptyBorder(5, 5, 5, 5));
-        long ms = 0L;
+        long ms = 0;
         String pattern = "^\\d{0,20}$";
         boolean isMatch = Pattern.matches(pattern, timeline);
         if (isMatch) {
@@ -423,7 +421,7 @@ public final class LegendTooltip extends JComponent {
             single.setOpaque(false);
             JBLabel nameLabel = new JBLabel();
             nameLabel.setOpaque(false);
-            nameLabel.setText("Value : " + tooltipItem.getText());
+            nameLabel.setText(tooltipItem.getName() + " : " + tooltipItem.getText());
             single.add(nameLabel);
             mainPanel.add(single);
         }

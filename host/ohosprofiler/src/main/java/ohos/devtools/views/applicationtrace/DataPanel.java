@@ -133,8 +133,8 @@ public class DataPanel extends EventPanel {
                     name = AllData.threadNames.get(ids.get(0));
                 }
             } else {
-                if (PerfData.THREAD_NAMES != null) {
-                    name = PerfData.THREAD_NAMES.get(ids.get(0));
+                if (PerfData.getThreadNames() != null) {
+                    name = PerfData.getThreadNames().get(ids.get(0));
                 }
             }
             if (name != null && name.length() > 20) {

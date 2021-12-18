@@ -95,6 +95,7 @@ bool #CLIENT_CLASS_NAME#::Connect(const std::string addrname)
     }
     unixSocketClient_ = std::make_shared<UnixSocketClient>();
     if (!unixSocketClient_->Connect(addrname, *this)) {
+        printf("Socket Connect failed\n");
         unixSocketClient_=nullptr;
         return false;
     }
@@ -364,8 +365,9 @@ bool #CLIENT_CLASS_NAME#::#METHOD_NAME#(#PACKAGE_NAME##REQUEST_NAME# &request,
     }
     waitingFor=IpcProtocol#BASE_NAME##RESPONSE_NAME#;
     presponse=&response;
-    unixSocketClient_->SendProtobuf(IpcProtocol#BASE_NAME##REQUEST_NAME#, request);
-
+    if (unixSocketClient_!=nullptr) {
+        unixSocketClient_->SendProtobuf(IpcProtocol#BASE_NAME##REQUEST_NAME#, request);
+    }
     if (mWait_.try_lock_for(std::chrono::milliseconds(timeout_ms))) {
         mWait_.unlock();
         return true;

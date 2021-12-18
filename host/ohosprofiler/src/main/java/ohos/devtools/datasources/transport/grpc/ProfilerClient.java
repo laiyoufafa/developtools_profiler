@@ -34,6 +34,11 @@ import java.util.concurrent.TimeUnit;
 public class ProfilerClient {
     private static final Logger LOGGER = LogManager.getLogger(ProfilerClient.class);
 
+    /**
+     * IProfilerServiceStub
+     */
+    private IProfilerServiceGrpc.IProfilerServiceStub profilerServiceStub;
+
     private ManagedChannel channel;
 
     private String host;
@@ -71,6 +76,7 @@ public class ProfilerClient {
             this.channel = channel;
         }
         profilerBlockInClient = IProfilerServiceGrpc.newBlockingStub(this.channel);
+        profilerServiceStub = IProfilerServiceGrpc.newStub(this.channel);
     }
 
     /**
@@ -204,7 +210,7 @@ public class ProfilerClient {
             LOGGER.info("keepSession");
         }
         ProfilerServiceTypes.KeepSessionResponse res =
-            profilerBlockInClient.keepSession(keepSessionRequest);
+            profilerBlockInClient.withDeadlineAfter(3, TimeUnit.SECONDS).keepSession(keepSessionRequest);
         return res;
     }
 
@@ -231,5 +237,14 @@ public class ProfilerClient {
      */
     public ManagedChannel getChannel() {
         return channel;
+    }
+
+    /**
+     * getProfilerServiceStub
+     *
+     * @return IProfilerServiceGrpc.IProfilerServiceStub
+     */
+    public IProfilerServiceGrpc.IProfilerServiceStub getProfilerServiceStub() {
+        return profilerServiceStub;
     }
 }

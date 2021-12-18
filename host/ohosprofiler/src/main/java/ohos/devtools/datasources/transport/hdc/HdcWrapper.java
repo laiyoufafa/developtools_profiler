@@ -16,6 +16,7 @@
 package ohos.devtools.datasources.transport.hdc;
 
 import ohos.devtools.datasources.utils.profilerlog.ProfilerLogManager;
+import ohos.devtools.datasources.utils.session.service.SessionManager;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -30,7 +31,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
+import java.util.Objects;
+
+import static ohos.devtools.datasources.utils.common.Constant.TIME_OUT;
 
 /**
  * Interact with commands on the device side
@@ -38,7 +41,6 @@ import java.util.concurrent.TimeUnit;
 public class HdcWrapper {
     private static final Logger LOGGER = LogManager.getLogger(HdcWrapper.class);
     private static final HdcWrapper INSTANCE = new HdcWrapper();
-
 
     /**
      * Get an instance
@@ -50,6 +52,28 @@ public class HdcWrapper {
     }
 
     private HdcWrapper() {
+    }
+
+    /**
+     * generate Cmd Head
+     *
+     * @param isLeakOhos judge use hdc or hdc_std
+     * @param deviceId select device id
+     * @return ArrayList <String>
+     */
+    public ArrayList<String> generateDeviceCmdHead(boolean isLeakOhos, String deviceId) {
+        ArrayList<String> headCommand = new ArrayList<>();
+        String pluginPath;
+        if (isLeakOhos) {
+            pluginPath = SessionManager.getInstance().getHdcStdPath();
+        } else {
+            pluginPath = SessionManager.getInstance().getHdcPath();
+        }
+        headCommand.add(pluginPath);
+        headCommand.add("-t");
+        headCommand.add(deviceId);
+        headCommand.add("shell");
+        return headCommand;
     }
 
     /**
@@ -87,11 +111,44 @@ public class HdcWrapper {
                 close(errorStream);
                 close(brErrorStream);
                 close(brInputStream);
+                if (Objects.nonNull(process)) {
+                    process.destroy();
+                }
             }
         } catch (IOException ioException) {
             if (ProfilerLogManager.isErrorEnabled()) {
                 LOGGER.error("ioException error: " + ioException);
             }
+        }
+        return cmdStrResult.toString();
+    }
+
+    /**
+     * Get hdc string result
+     *
+     * @param hdcCmd hdc command
+     * @param timeout timeout
+     * @return String
+     */
+    public String getHdcStringResult(ArrayList<String> hdcCmd, long timeout) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("getHdcStringResult");
+        }
+        long time = timeout;
+        if (timeout <= 0) {
+            time = 5;
+        }
+        ExecResult execResult = new CmdExecutors().executeCommand(hdcCmd, time);
+        StringBuilder cmdStrResult = new StringBuilder();
+        int exitCode = execResult.getExitCode();
+        if (exitCode == 0) {
+            ArrayList<String> executeOut = execResult.getExecuteOut();
+            executeOut.forEach(line -> {
+                cmdStrResult.append(line).append(System.getProperty("line.separator"));
+            });
+        }
+        if (exitCode == -2) {
+            return TIME_OUT;
         }
         return cmdStrResult.toString();
     }
@@ -131,6 +188,9 @@ public class HdcWrapper {
                 close(errorStream);
                 close(brErrorStream);
                 close(brInputStream);
+                if (Objects.nonNull(process)) {
+                    process.destroy();
+                }
             }
         } catch (IOException ioException) {
             if (ProfilerLogManager.isErrorEnabled()) {
@@ -165,9 +225,6 @@ public class HdcWrapper {
                 brErrorStream = new BufferedReader(new InputStreamReader(errorStream));
                 String line;
                 while ((line = brInputStream.readLine()) != null || (line = brErrorStream.readLine()) != null) {
-                    if (ProfilerLogManager.isInfoEnabled()) {
-                        LOGGER.info("cmd result line {}", line);
-                    }
                     cmdStrResult.append(line);
                     if ("StartDaemonSuccess".equals(line)) {
                         break;
@@ -182,6 +239,9 @@ public class HdcWrapper {
                 close(errorStream);
                 close(brErrorStream);
                 close(brInputStream);
+                if (Objects.nonNull(process)) {
+                    process.destroy();
+                }
             }
         } catch (IOException ioException) {
             if (ProfilerLogManager.isErrorEnabled()) {
@@ -205,47 +265,15 @@ public class HdcWrapper {
         if (hdcCmd.isEmpty()) {
             return "";
         }
-        Process process;
         StringBuilder cmdStrResult = new StringBuilder();
-        try {
-            process = new ProcessBuilder(hdcCmd).start();
-            process.waitFor(timeout, TimeUnit.MILLISECONDS);
-            InputStream inputStream = null;
-            InputStream errorStream = null;
-            BufferedReader brInputStream = null;
-            BufferedReader brErrorStream = null;
-            try {
-                inputStream = process.getInputStream();
-                errorStream = process.getErrorStream();
-                brInputStream = new BufferedReader(new InputStreamReader(inputStream, Charset.forName("gbk")));
-                brErrorStream = new BufferedReader(new InputStreamReader(errorStream));
-                String line;
-                while ((line = brInputStream.readLine()) != null || (line = brErrorStream.readLine()) != null) {
-                    if (ProfilerLogManager.isInfoEnabled()) {
-                        LOGGER.info("cmd result line {}", line);
-                    }
-                    cmdStrResult.append(line);
-                    // shell return success flag
-                    if ("StartDaemonSuccess".equals(line)) {
-                        break;
-                    }
+        ExecResult execResult = new CmdExecutors().executeCommand(hdcCmd, timeout);
+        int exitCode = execResult.getExitCode();
+        if (exitCode == 0) {
+            ArrayList<String> executeOut = execResult.getExecuteOut();
+            for (String excuteResult : executeOut) {
+                if (StringUtils.isNotBlank(excuteResult)) {
+                    cmdStrResult.append(excuteResult);
                 }
-                if (ProfilerLogManager.isInfoEnabled()) {
-                    LOGGER.info("cmd result ok {}", cmdStrResult);
-                }
-            } catch (IOException ioException) {
-                if (ProfilerLogManager.isErrorEnabled()) {
-                    LOGGER.error("ioException error: " + ioException);
-                }
-            } finally {
-                close(inputStream);
-                close(errorStream);
-                close(brErrorStream);
-                close(brInputStream);
-            }
-        } catch (IOException | InterruptedException ioException) {
-            if (ProfilerLogManager.isErrorEnabled()) {
-                LOGGER.error("ioException error: " + ioException);
             }
         }
         return cmdStrResult.toString();
@@ -255,7 +283,7 @@ public class HdcWrapper {
      * execCmd
      *
      * @param hdcCmd hdcCmd
-     * @return List<String>
+     * @return List <String>
      */
     public List<String> execCmd(ArrayList<String> hdcCmd) {
         List<String> result = new ArrayList<>();
@@ -293,6 +321,9 @@ public class HdcWrapper {
                 close(errorStream);
                 close(brErrorStream);
                 close(brInputStream);
+                if (Objects.nonNull(process)) {
+                    process.destroy();
+                }
             }
         } catch (IOException ioException) {
             if (ProfilerLogManager.isErrorEnabled()) {
@@ -312,49 +343,29 @@ public class HdcWrapper {
         if (ProfilerLogManager.isInfoEnabled()) {
             LOGGER.info("getCliResult");
         }
-        String temp;
         ArrayList<ArrayList<String>> result = new ArrayList<>();
-        try {
-            Process process = new ProcessBuilder(hdcStr).start();
-            // Obtain the input stream through the process object to obtain the successful execution of the command
-            // Get the error flow through the process object to get the command error situation
-            InputStream inputStream = null;
-            InputStream errorStream = null;
-            BufferedReader brInput = null;
-            BufferedReader brError = null;
-            try {
-                inputStream = process.getInputStream();
-                errorStream = process.getErrorStream();
-                brInput = new BufferedReader(new InputStreamReader(inputStream));
-                brError = new BufferedReader(new InputStreamReader(errorStream));
-                while ((temp = brInput.readLine()) != null || (temp = brError.readLine()) != null) {
-                    temp = temp.trim();
-                    if (!"".equals(temp)) {
-                        ArrayList<String> list = new ArrayList<>();
-                        String[] newLine = temp.split(":");
-                        for (String str : newLine) {
-                            String s = str.trim();
-                            if (!"".equals(s)) {
-                                list.add(s);
-                            }
+        ExecResult execResult = new CmdExecutors().executeCommand(hdcStr, 8);
+        int exitCode = execResult.getExitCode();
+        if (exitCode == 0) {
+            ArrayList<String> executeOut = execResult.getExecuteOut();
+            for (String excuteResult : executeOut) {
+                if (StringUtils.isNotBlank(excuteResult)) {
+                    ArrayList<String> list = new ArrayList<>();
+                    String[] newLine = excuteResult.split(":");
+                    for (String str : newLine) {
+                        String s = str.trim();
+                        if (!"".equals(s)) {
+                            list.add(s);
                         }
-                        result.add(list);
                     }
+                    result.add(list);
                 }
-            } catch (IOException ioException) {
-                if (ProfilerLogManager.isErrorEnabled()) {
-                    LOGGER.error("ioException error: " + ioException);
-                }
-            } finally {
-                close(inputStream);
-                close(errorStream);
-                close(brError);
-                close(brInput);
             }
-        } catch (IOException ioException) {
-            if (ProfilerLogManager.isErrorEnabled()) {
-                LOGGER.error("ioException error: " + ioException);
-            }
+        }
+        if (exitCode == -2) {
+            ArrayList<String> list = new ArrayList<>();
+            list.add(TIME_OUT);
+            result.add(list);
         }
         return result;
     }
@@ -370,35 +381,15 @@ public class HdcWrapper {
             LOGGER.info("getCmdResultMap");
         }
         Map<String, String> resultMap = new HashMap<>();
-        try {
-            Process process = new ProcessBuilder(hdcStr).start();
-            InputStream inputStream = null;
-            InputStream errorStream = null;
-            BufferedReader brInput = null;
-            BufferedReader brError = null;
-            try {
-                inputStream = process.getInputStream();
-                brInput = new BufferedReader(new InputStreamReader(inputStream));
-                errorStream = process.getErrorStream();
-                brError = new BufferedReader(new InputStreamReader(errorStream));
-                String temp;
-                while ((temp = brInput.readLine()) != null || (temp = brError.readLine()) != null) {
-                    String[] strings = temp.trim().split("  ");
+        ExecResult execResult = new CmdExecutors().executeCommandByLine(hdcStr, 5);
+        int exitCode = execResult.getExitCode();
+        if (exitCode == 0) {
+            ArrayList<String> executeOut = execResult.getExecuteOut();
+            for (String excuteResult : executeOut) {
+                if (StringUtils.isNotBlank(excuteResult)) {
+                    String[] strings = excuteResult.trim().split("  ");
                     resultMap.put(strings[1], strings[0]);
                 }
-            } catch (IOException ioException) {
-                if (ProfilerLogManager.isErrorEnabled()) {
-                    LOGGER.error("ioException error: " + ioException);
-                }
-            } finally {
-                close(inputStream);
-                close(errorStream);
-                close(brError);
-                close(brInput);
-            }
-        } catch (IOException ioException) {
-            if (ProfilerLogManager.isErrorEnabled()) {
-                LOGGER.error("ioException error: " + ioException);
             }
         }
         return resultMap;
@@ -415,7 +406,7 @@ public class HdcWrapper {
             LOGGER.info("getListResult");
         }
         ArrayList<ArrayList<String>> devices = new ArrayList<>();
-        ExecResult execResult = new CmdExecutors().executeCommand(hdcStr, 5);
+        ExecResult execResult = new CmdExecutors().executeCommand(hdcStr, 8);
         int exitCode = execResult.getExitCode();
         if (exitCode == 0) {
             ArrayList<String> executeOut = execResult.getExecuteOut();
@@ -433,6 +424,11 @@ public class HdcWrapper {
                 }
             }
         }
+        if (exitCode == -2) {
+            ArrayList<String> list = new ArrayList<>();
+            list.add(TIME_OUT);
+            devices.add(list);
+        }
         return devices;
     }
 
@@ -448,7 +444,7 @@ public class HdcWrapper {
         }
         String temp;
         ArrayList<ArrayList<String>> devices = new ArrayList<>();
-        ExecResult execResult = new CmdExecutors().executeCommand(hdcStr, 5);
+        ExecResult execResult = new CmdExecutors().executeCommand(hdcStr, 8);
         int exitCode = execResult.getExitCode();
         if (exitCode == 0) {
             ArrayList<String> executeOut = execResult.getExecuteOut();
@@ -465,6 +461,11 @@ public class HdcWrapper {
                     devices.add(list);
                 }
             }
+        }
+        if (exitCode == -2) {
+            ArrayList<String> list = new ArrayList<>();
+            list.add(TIME_OUT);
+            devices.add(list);
         }
         return devices;
     }

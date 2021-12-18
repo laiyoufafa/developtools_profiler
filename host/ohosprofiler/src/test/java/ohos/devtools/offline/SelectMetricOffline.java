@@ -46,8 +46,8 @@ public class SelectMetricOffline {
     @Test
     public void selectMetricTest() throws InterruptedException {
         remoteRobot.find(CommonContainerFixture.class, Locators.byXpath("//div[@class='WelcomePanel']")).button(Locators
-            .byXpath("//div[@accessiblename=' + New Task' and @class='JBLabel' and "
-                + "@name='newTaskBtn' and @text=' + New Task']"), Duration.ofSeconds(2)).click();
+            .byXpath("//div[@accessiblename=' + New Task' and @class='JBLabel' "
+                + "and @name='newTaskBtn' and @text=' + New Task']"), Duration.ofSeconds(2)).click();
         remoteRobot.find(CommonContainerFixture.class, Locators.byXpath("//div[@class='HomePanel']")).jLabel(Locators
             .byXpath("//div[@accessiblename='Application Tuning' and @class='JBLabel' "
                 + "and @name='Application Tuning' and @text='Application Tuning']"), Duration.ofSeconds(2)).click();

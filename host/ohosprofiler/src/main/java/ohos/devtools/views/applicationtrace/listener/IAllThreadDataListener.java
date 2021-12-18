@@ -26,6 +26,7 @@ import java.util.List;
 public interface IAllThreadDataListener {
     /**
      * getAllThreadData Calllback
+     *
      * @param startNS start time
      * @param endNS end time
      * @param scale scale level

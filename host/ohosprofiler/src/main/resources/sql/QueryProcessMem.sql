@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 select process_counter_track.id   as trackId,
        process_counter_track.name as trackName,
        upid,

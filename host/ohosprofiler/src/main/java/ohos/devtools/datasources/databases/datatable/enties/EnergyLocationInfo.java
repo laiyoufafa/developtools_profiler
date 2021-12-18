@@ -21,7 +21,7 @@ import java.util.Objects;
 /**
  * energy location inf0
  *
- * @since 2021/10/22 15:43
+ * @since 2021/10/26
  */
 public class EnergyLocationInfo implements Serializable {
     /**

@@ -35,7 +35,7 @@ import java.util.Map;
 /**
  * NativeDataExternalInterface
  *
- * @since: 2021/9/20
+ * @since 2021/9/20
  */
 public class NativeDataExternalInterface {
     private static final Logger LOGGER = LogManager.getLogger(NativeDataExternalInterface.class);
@@ -131,7 +131,7 @@ public class NativeDataExternalInterface {
             }
             if (line.startsWith("free")) {
                 startRecord = false;
-                String[] split = line.split(",");
+                String[] split = line.split(";");
                 String freeAddr = split[3];
                 String addrId = getAddrId(freeAddr);
                 String freeFunction = addrFunctionMap.get(addrId);
@@ -169,7 +169,7 @@ public class NativeDataExternalInterface {
     }
 
     private NativeInstanceObject createInstance(String string) {
-        String[] split = string.split(",");
+        String[] split = string.split(";");
         String addr = split[3];
         String mallocSize = split[4];
         NativeInstanceObject nativeInstanceObject = new NativeInstanceObject();
@@ -181,11 +181,16 @@ public class NativeDataExternalInterface {
     }
 
     private NativeFrame createNativeFrame(String string) {
-        String[] split = string.split(",");
+        String[] split = string.split(";");
         String pc = split[0];
-        String fileName = split[1];
+        if (split.length < 6) {
+            return new NativeFrame(pc, "", "", "", "");
+        }
         String functionName = split[2];
-        return new NativeFrame(pc, fileName, functionName);
+        String fileName = split[3];
+        String offsetAddr = split[4];
+        String line = split[5];
+        return new NativeFrame(pc, fileName, functionName, offsetAddr, line);
     }
 
     public MultiValueMap getNativeInstanceMap() {

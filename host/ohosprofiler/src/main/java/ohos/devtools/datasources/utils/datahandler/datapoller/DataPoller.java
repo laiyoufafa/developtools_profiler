@@ -16,12 +16,14 @@
 package ohos.devtools.datasources.utils.datahandler.datapoller;
 
 import io.grpc.StatusRuntimeException;
-import ohos.devtools.datasources.transport.grpc.ProfilerClient;
+import io.grpc.stub.StreamObserver;
+import ohos.devtools.datasources.transport.grpc.HiProfilerClient;
 import ohos.devtools.datasources.transport.grpc.ProfilerServiceHelper;
 import ohos.devtools.datasources.transport.grpc.service.CommonTypes;
 import ohos.devtools.datasources.transport.grpc.service.ProfilerServiceTypes;
 import ohos.devtools.datasources.utils.common.util.CommonUtil;
 import ohos.devtools.datasources.utils.common.util.DateTimeUtil;
+import ohos.devtools.datasources.utils.device.entity.DeviceIPPortInfo;
 import ohos.devtools.datasources.utils.plugin.entity.PluginConf;
 import ohos.devtools.datasources.utils.plugin.service.PlugManager;
 import ohos.devtools.datasources.utils.profilerlog.ProfilerLogManager;
@@ -32,7 +34,6 @@ import org.apache.logging.log4j.Logger;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -52,28 +53,29 @@ public class DataPoller extends Thread {
     private static final Logger LOGGER = LogManager.getLogger(DataPoller.class);
     private long localSessionId;
     private int sessionId;
-    private ProfilerClient client;
+    private DeviceIPPortInfo deviceIPPortInfo;
     private boolean stopFlag = false;
     private boolean startRefresh = false;
     private ExecutorService executorService =
         new ThreadPoolExecutor(0, Integer.MAX_VALUE, 60L, TimeUnit.SECONDS, new SynchronousQueue<Runnable>());
     private Map<String, Queue> queueMap = new HashMap<>();
     private List<AbsDataConsumer> consumers = new ArrayList<>();
+    private Integer count = 0;
 
     /**
      * Data Poller
      *
      * @param localSessionId local SessionId
      * @param sessionId session Id
-     * @param client client
+     * @param device device
      */
-    public DataPoller(Long localSessionId, int sessionId, ProfilerClient client) {
+    public DataPoller(Long localSessionId, int sessionId, DeviceIPPortInfo device) {
         if (ProfilerLogManager.isInfoEnabled()) {
             LOGGER.info("DataPoller");
         }
         this.localSessionId = localSessionId;
         this.sessionId = sessionId;
-        this.client = client;
+        this.deviceIPPortInfo = device;
         init();
     }
 
@@ -99,83 +101,89 @@ public class DataPoller extends Thread {
                         startRefresh = true;
                     }
                 }
-            } catch (InstantiationException | IllegalAccessException
-                | InvocationTargetException | NoSuchMethodException exception) {
+            } catch (InstantiationException | IllegalAccessException | InvocationTargetException
+                | NoSuchMethodException exception) {
                 LOGGER.error("start Poll init has Exception {}", exception.getMessage());
             }
         }
     }
 
-    /**
-     * Starts polling.
-     */
     private void startPoll() {
         if (ProfilerLogManager.isInfoEnabled()) {
             LOGGER.info("startPoll");
         }
         ProfilerServiceTypes.FetchDataRequest request =
             ProfilerServiceHelper.fetchDataRequest(CommonUtil.getRequestId(), sessionId, null);
-        Iterator<ProfilerServiceTypes.FetchDataResponse> response = null;
-        try {
-            if (ProfilerLogManager.isInfoEnabled()) {
-                LOGGER.info("start Poller fetchData01, {}", DateTimeUtil.getNowTimeLong());
-            }
-            response = client.fetchData(request);
-            long startTime = DateTimeUtil.getNowTimeLong();
-            if (ProfilerLogManager.isInfoEnabled()) {
-                LOGGER.info("start Poller fetchData02, {}", startTime);
-            }
-            while ((!stopFlag) && response.hasNext()) {
-                ProfilerServiceTypes.FetchDataResponse fetchDataResponse = response.next();
-                List<CommonTypes.ProfilerPluginData> lists = fetchDataResponse.getPluginDataList();
-                if (lists.isEmpty()) {
-                    continue;
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("start Poller fetchData01, {}", DateTimeUtil.getNowTimeLong());
+        }
+        HiProfilerClient.getInstance()
+            .getProfilerClient(deviceIPPortInfo.getIp(), deviceIPPortInfo.getForwardPort()).getProfilerServiceStub()
+            .withMaxInboundMessageSize(Integer.MAX_VALUE).withMaxOutboundMessageSize(Integer.MAX_VALUE)
+            .fetchData(request, new StreamObserver<ProfilerServiceTypes.FetchDataResponse>() {
+                @Override
+                public void onNext(ProfilerServiceTypes.FetchDataResponse fetchDataResponse) {
+                    count = 0;
+                    List<CommonTypes.ProfilerPluginData> lists = fetchDataResponse.getPluginDataList();
+                    buildPluginData(lists);
                 }
-                lists.parallelStream().forEach(pluginData -> {
-                    handleData(pluginData);
-                });
-            }
-        } catch (StatusRuntimeException exception) {
-            if (ProfilerLogManager.isErrorEnabled()) {
-                LOGGER.error("start Poll has Exception", exception);
-            }
+
+                @Override
+                public void onError(Throwable throwable) {
+                    setErrorPoll(throwable);
+                }
+
+                @Override
+                public void onCompleted() {
+                    shutDown();
+                }
+            });
+    }
+
+    private void setErrorPoll(Throwable throwable) {
+        LOGGER.error("start Poll has Exception", throwable);
+        if (throwable.getMessage().contains("session_id invalid!")) {
             SessionManager.getInstance().deleteLocalSession(localSessionId);
-            return;
-        } finally {
-            dataPollerEnd();
-        }
-    }
-
-    private void handleData(CommonTypes.ProfilerPluginData pluginData) {
-        if (ProfilerLogManager.isInfoEnabled()) {
-            LOGGER.info("handleData");
-        }
-        if (pluginData.getStatus() != 0) {
-            return;
-        }
-        String name = pluginData.getName();
-        if (name.equals(MEMORY_PLUG)) {
-            if (ProfilerLogManager.isInfoEnabled()) {
-                LOGGER.info("get Memory Date, time is {}", DateTimeUtil.getNowTimeLong());
+        } else {
+            LOGGER.info("restart poller session id {}", sessionId);
+            try {
+                TimeUnit.MILLISECONDS.sleep(500);
+            } catch (InterruptedException interruptedException) {
+                LOGGER.error("restart poller InterruptedException session id {}", sessionId);
+            }
+            count++;
+            if (count < 3) {
+                HiProfilerClient.getInstance()
+                    .destroyProfiler(deviceIPPortInfo.getIp(), deviceIPPortInfo.getForwardPort());
+                startPoll();
             }
         }
-        Queue queue = queueMap.get(name);
-        if (Objects.nonNull(queue)) {
-            queue.offer(pluginData);
-        }
-        if (!startRefresh) {
-            long timeStamp = (pluginData.getTvSec() * 1000000000L + pluginData.getTvNsec()) / 1000000;
-            SessionManager.getInstance().stopLoadingView(localSessionId, timeStamp);
-            startRefresh = true;
-        }
     }
 
-    private void dataPollerEnd() {
-        if (ProfilerLogManager.isInfoEnabled()) {
-            LOGGER.info("dataPollerEnd");
-        }
-        consumers.forEach(absDataConsumer -> absDataConsumer.shutDown());
-        executorService.shutdown();
+    private void buildPluginData(List<CommonTypes.ProfilerPluginData> lists) {
+        lists.parallelStream().forEach(pluginData -> {
+            if (ProfilerLogManager.isInfoEnabled()) {
+                LOGGER.info("handleData");
+            }
+            if (pluginData.getStatus() != 0) {
+                return;
+            }
+            String name = pluginData.getName();
+            if (name.equals(MEMORY_PLUG)) {
+                if (ProfilerLogManager.isInfoEnabled()) {
+                    LOGGER.info("get Memory Date, time is {}", DateTimeUtil.getNowTimeLong());
+                }
+            }
+            Queue queue = queueMap.get(name);
+            if (Objects.nonNull(queue)) {
+                queue.offer(pluginData);
+            }
+            if (!startRefresh) {
+                long timeStamp = (pluginData.getTvSec() * 1000000000L + pluginData.getTvNsec()) / 1000000;
+                SessionManager.getInstance().stopLoadingView(localSessionId, timeStamp);
+                startRefresh = true;
+            }
+        });
     }
 
     /**
@@ -186,6 +194,7 @@ public class DataPoller extends Thread {
             LOGGER.info("shutDown");
         }
         consumers.forEach(absDataConsumer -> absDataConsumer.shutDown());
+        executorService.shutdown();
         stopFlag = true;
     }
 

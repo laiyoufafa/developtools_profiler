@@ -40,6 +40,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.Iterator;
+import java.util.Objects;
 import java.util.Set;
 
 import static javax.swing.tree.DefaultMutableTreeNode.EMPTY_ENUMERATION;
@@ -183,8 +184,8 @@ public class NativeHookTreeTablePanel extends JBPanel {
                 hookDataBean = (HookDataBean) userObjectNew;
                 HookDataBean rootNode;
                 Object object = root.getUserObject();
-                if (object instanceof HookDataBean) {
-                    rootNode = (HookDataBean) object;
+                if (Objects.isNull(object)) {
+                    rootNode = new HookDataBean();
                     rootNode.setHookAllocationCount(hookDataBean.getHookAllocationCount());
                     rootNode.setHookAllocationMemorySize(hookDataBean.getHookAllocationMemorySize());
                     rootNode.setHookDeAllocationCount(hookDataBean.getHookDeAllocationCount());
@@ -203,6 +204,7 @@ public class NativeHookTreeTablePanel extends JBPanel {
             LOGGER.info("insertNodeInTreeNode");
         }
         Enumeration<TreeNode> children = parentNode.children();
+        boolean insert = false;
         while (children.hasMoreElements()) {
             DefaultMutableTreeNode child = null;
             Object elementObject = children.nextElement();
@@ -213,8 +215,8 @@ public class NativeHookTreeTablePanel extends JBPanel {
                 if (object instanceof HookDataBean) {
                     userObject = (HookDataBean) object;
                 }
-                if (userObject != null && userObject.toString()
-                    .equals(nativeFrames.get(startIndex).getFunctionName())) {
+                if (userObject != null && userObject.getHookMethodName()
+                    .equals(nativeFrames.get(startIndex).getFunctionName().trim())) {
                     int index = startIndex + 1;
                     if (userObject.getBeanEnum() == MALLOC_ENUM && nativeFrames.size() == index) {
                         HookDataBean newUserObject = new HookDataBean();
@@ -236,16 +238,16 @@ public class NativeHookTreeTablePanel extends JBPanel {
                         }
                         child.setUserObject(newUserObject);
                         updateParentByAddInstance(child, nativeInstance);
-                        return;
+                    } else {
+                        insertNodeInTreeNode(nativeInstance, nativeFrames, child, index);
                     }
-                    insertNodeInTreeNode(nativeInstance, nativeFrames, child, index);
                     return;
                 } else {
-                    addNewNodeAndUpdateParentObject(nativeInstance, nativeFrames, parentNode, startIndex);
+                    insert = true;
                 }
             }
         }
-
+        addNewNodeAndUpdateParentObject(nativeInstance, nativeFrames, parentNode, startIndex, insert);
     }
 
     /**
@@ -255,9 +257,13 @@ public class NativeHookTreeTablePanel extends JBPanel {
      * @param nativeFrames nativeFrames
      * @param parentNode parentNode
      * @param startIndex startIndex
+     * @param insert insert
      */
     private void addNewNodeAndUpdateParentObject(NativeInstanceObject nativeInstance,
-        ArrayList<NativeFrame> nativeFrames, DefaultMutableTreeNode parentNode, int startIndex) {
+        ArrayList<NativeFrame> nativeFrames, DefaultMutableTreeNode parentNode, int startIndex, boolean insert) {
+        if (!insert) {
+            return;
+        }
         if (ProfilerLogManager.isInfoEnabled()) {
             LOGGER.info("addNewNodeAndUpdateParentObject");
         }
@@ -528,12 +534,11 @@ public class NativeHookTreeTablePanel extends JBPanel {
      * get node contains keyword
      * Set node type 0 OK 1 based on keywords There are keywords 2 children there keywords 3 no keywords
      *
-     * @param node       node
+     * @param node node
      * @param searchText keyword
      * @return getNodeContainSearch
      */
-    public static boolean getNodeContainSearch(DefaultMutableTreeNode node,
-        String searchText) {
+    public static boolean getNodeContainSearch(DefaultMutableTreeNode node, String searchText) {
         boolean hasKeyWord = false;
         if (searchText == null || searchText.isEmpty()) {
             return false;
@@ -551,12 +556,14 @@ public class NativeHookTreeTablePanel extends JBPanel {
                                 hasKeyWord = true;
                             }
                             bean.setContainType(2);
+                            updateContainType(nextElement);
                         } else {
                             bean.setContainType(3);
                         }
                         if (nextElement.getUserObject().toString().contains(searchText)) {
                             hasKeyWord = true;
                             bean.setContainType(1);
+                            updateContainType(nextElement);
                         }
                     }
                 }
@@ -573,6 +580,29 @@ public class NativeHookTreeTablePanel extends JBPanel {
             }
         }
         return hasKeyWord;
+    }
+
+    private static void updateContainType(DefaultMutableTreeNode node) {
+        if (node.isLeaf()) {
+            Object userObject = node.getUserObject();
+            if (userObject instanceof HookDataBean) {
+                HookDataBean bean = (HookDataBean) userObject;
+                bean.setContainType(2);
+            }
+        } else {
+            Enumeration<TreeNode> children = node.children();
+            while (children.hasMoreElements()) {
+                TreeNode treNode = children.nextElement();
+                if (treNode instanceof DefaultMutableTreeNode) {
+                    DefaultMutableTreeNode nextElement = (DefaultMutableTreeNode) treNode;
+                    if (nextElement.getUserObject() instanceof HookDataBean) {
+                        HookDataBean bean = (HookDataBean) nextElement.getUserObject();
+                        bean.setContainType(2);
+                        updateContainType(nextElement);
+                    }
+                }
+            }
+        }
     }
 
     /**
@@ -621,8 +651,8 @@ public class NativeHookTreeTablePanel extends JBPanel {
 
     private void treeResort(DefaultMutableTreeNode node) {
         if (currentOrder == SortOrder.ASCENDING) {
-            NativeHookTreeTableRowSorter.sortDescTree(node, columns[currentSortKey].getComparator(),
-                    treeTable.getTree());
+            NativeHookTreeTableRowSorter
+                .sortDescTree(node, columns[currentSortKey].getComparator(), treeTable.getTree());
         } else {
             NativeHookTreeTableRowSorter.sortTree(node, columns[currentSortKey].getComparator(), treeTable.getTree());
         }

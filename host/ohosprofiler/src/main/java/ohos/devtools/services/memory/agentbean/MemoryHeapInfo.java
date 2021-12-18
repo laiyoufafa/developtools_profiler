@@ -317,7 +317,8 @@ public class MemoryHeapInfo implements Serializable {
             + ", cId=" + cId
             + ", heapId=" + heapId
             + ", sessionId=" + sessionId
-            + ", className='" + className + '\''
+            + ", className='" + className
+            + '\''
             + ", allocations=" + allocations
             + ", deallocations=" + deallocations
             + ", totalCount=" + totalCount

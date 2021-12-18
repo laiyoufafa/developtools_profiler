@@ -172,9 +172,6 @@ public class VsyncAppBean extends AbstractNode {
 
     @Override
     public List<String> getStringList(String time) {
-        return Arrays.asList(
-            time,
-            "Value: " + value.intValue()
-        );
+        return Arrays.asList(time, "Value: " + value.intValue());
     }
 }

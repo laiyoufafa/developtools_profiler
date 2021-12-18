@@ -37,7 +37,7 @@ import static ohos.devtools.views.common.LayoutConstants.THOUSAND_TWENTY_FOUR;
 /**
  * Used for database creation in the project, default table creation
  *
- * @since 2021/10/22 16:30
+ * @since 2021/10/26
  */
 public class DataBaseHelper {
     private static final Logger LOGGER = LogManager.getLogger(DataBaseHelper.class);

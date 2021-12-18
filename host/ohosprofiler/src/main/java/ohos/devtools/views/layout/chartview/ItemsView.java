@@ -34,6 +34,8 @@ import static javax.swing.SpringLayout.SOUTH;
 
 /**
  * Save the custom layout panel of each indicator item View
+ *
+ * @since 2021/11/22
  */
 public class ItemsView extends JBPanel {
     private static final int ITEM_MIN_EXPAND_HEIGHT = 400;
@@ -85,10 +87,10 @@ public class ItemsView extends JBPanel {
      * Add a monitor item view
      *
      * @param item Profiler monitor item enum
-     * @throws NoSuchMethodException
-     * @throws IllegalAccessException
-     * @throws InvocationTargetException
-     * @throws InstantiationException
+     * @throws NoSuchMethodException NoSuchMethodException
+     * @throws IllegalAccessException NoSuchMethodException
+     * @throws InvocationTargetException InvocationTargetException
+     * @throws InstantiationException InstantiationException
      */
     void addMonitorItemView(ProfilerMonitorItem item)
         throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {

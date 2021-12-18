@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+
 package ohos.devtools.views.distributed.component;
 
 import org.junit.jupiter.api.Test;

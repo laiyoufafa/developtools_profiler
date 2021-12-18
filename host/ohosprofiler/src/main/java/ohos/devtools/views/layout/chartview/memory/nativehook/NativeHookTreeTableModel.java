@@ -36,6 +36,7 @@ import java.util.Enumeration;
  */
 public class NativeHookTreeTableModel extends DefaultTreeModel implements TreeTableModel, SortableColumnModel {
     private static final Logger LOGGER = LogManager.getLogger(NativeHookTreeTableModel.class);
+
     private NativeHookDataFilter filter = new NativeHookDataFilter();
     private ColumnInfo[] myColumns;
     private JTree myTree;
@@ -119,11 +120,12 @@ public class NativeHookTreeTableModel extends DefaultTreeModel implements TreeTa
                 if (nextElementObject instanceof DefaultMutableTreeNode) {
                     treeNode = (DefaultMutableTreeNode) nextElementObject;
                     if (filter.passTreeNode(treeNode)) {
-                        Object val = this.myColumns[column].valueOf(treeNode);
+                        Object valueAt = this.getValueAt(treeNode, column);
                         try {
-                            parentNodeData = Long.parseLong(val.toString()) + parentNodeData;
+                            parentNodeData = Long.parseLong(valueAt.toString()) + parentNodeData;
                         } catch (NumberFormatException numberFormatException) {
-                            return this.myColumns[column].valueOf(value);
+                            Object valueOf = this.myColumns[column].valueOf(value);
+                            return String.valueOf(valueOf);
                         }
                     }
                 }

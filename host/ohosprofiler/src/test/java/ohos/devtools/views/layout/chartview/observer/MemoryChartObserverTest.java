@@ -17,13 +17,15 @@ package ohos.devtools.views.layout.chartview.observer;
 
 import ohos.devtools.datasources.databases.databaseapi.DataBaseApi;
 import ohos.devtools.datasources.utils.profilerlog.ProfilerLogManager;
+import ohos.devtools.datasources.utils.session.entity.SessionInfo;
+import ohos.devtools.datasources.utils.session.service.SessionManager;
 import ohos.devtools.views.charts.model.ChartDataRange;
 import ohos.devtools.views.charts.model.ChartStandard;
 import ohos.devtools.views.common.LayoutConstants;
-import ohos.devtools.views.layout.chartview.ProfilerMonitorItem;
 import ohos.devtools.views.layout.chartview.ProfilerChartsView;
-import ohos.devtools.views.layout.chartview.event.IChartEventObserver;
+import ohos.devtools.views.layout.chartview.ProfilerMonitorItem;
 import ohos.devtools.views.layout.chartview.TaskScenePanelChart;
+import ohos.devtools.views.layout.chartview.event.IChartEventObserver;
 import ohos.devtools.views.layout.chartview.memory.MemoryItemView;
 import org.apache.logging.log4j.Level;
 import org.junit.Assert;
@@ -48,6 +50,7 @@ public class MemoryChartObserverTest {
     private static final int TEST_MARK = 1000;
 
     private MemoryChartObserver observer;
+    private SessionInfo sessionInfo;
 
     /**
      * functional test
@@ -64,7 +67,10 @@ public class MemoryChartObserverTest {
         ProfilerLogManager.getSingleton().updateLogLevel(Level.ERROR);
         DataBaseApi apo = DataBaseApi.getInstance();
         apo.initDataSourceManager();
+        sessionInfo = SessionInfo.builder()
+            .sessionId(32947).sessionName("Test").pid(2).processName("processName").build();
         ProfilerChartsView view = new ProfilerChartsView(LayoutConstants.NUM_L, true, new TaskScenePanelChart());
+        SessionManager.getInstance().getProfilingSessions().put(LayoutConstants.NUM_L, sessionInfo);
         try {
             ProfilerMonitorItem memoryItem = new ProfilerMonitorItem(2, "Memory", MemoryItemView.class);
             view.addMonitorItemView(memoryItem);

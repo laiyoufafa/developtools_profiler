@@ -25,6 +25,8 @@ import java.util.Locale;
 
 /**
  * CountingThread
+ *
+ * @since 2021/11/22
  */
 public class CountingThread extends Thread {
     private static final Logger LOGGER = LogManager.getLogger(CountingThread.class);
@@ -60,8 +62,7 @@ public class CountingThread extends Thread {
             SwingUtilities.invokeLater(new Runnable() {
                 @Override
                 public void run() {
-                    jTextArea.setText("Run 1 of 1   |   " + String.format(Locale.ENGLISH, "%02d", hours)
-                        + ":" + String
+                    jTextArea.setText("Run 1 of 1   |   " + String.format(Locale.ENGLISH, "%02d", hours) + ":" + String
                         .format(Locale.ENGLISH, "%02d", minutes) + ":" + String
                         .format(Locale.ENGLISH, "%02d", seconds));
                     seconds++;

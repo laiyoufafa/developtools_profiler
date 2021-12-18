@@ -26,7 +26,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 /**
  * test ImageUtils class .
  *
- * @since 2021/4/24 17:53
+ * @date 2021/4/24 17:53
  */
 class ImageUtilsTest {
     /**

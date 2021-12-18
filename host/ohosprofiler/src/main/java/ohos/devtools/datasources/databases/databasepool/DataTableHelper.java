@@ -29,7 +29,7 @@ import static ohos.devtools.views.common.LayoutConstants.NEGATIVE_ONE;
 /**
  * Database table structure maintenance
  *
- * @since 2021/10/22 17:00
+ * @since 2021/10/26
  */
 public class DataTableHelper {
     private static final Logger LOGGER = LogManager.getLogger(DataTableHelper.class);
@@ -66,8 +66,8 @@ public class DataTableHelper {
             LOGGER.info("sqlPlaceholder");
         }
         StringBuffer stringBuffer = new StringBuffer();
-        for (int i = 0; i < size; i++) {
-            if (i == (size - 1)) {
+        for (int index = 0; index < size; index++) {
+            if (index == (size - 1)) {
                 stringBuffer.append("?");
             } else {
                 stringBuffer.append("?,");

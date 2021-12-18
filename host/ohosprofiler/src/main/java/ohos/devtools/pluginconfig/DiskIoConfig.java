@@ -22,8 +22,8 @@ import ohos.devtools.datasources.utils.device.entity.DeviceIPPortInfo;
 import ohos.devtools.datasources.utils.plugin.IPluginConfig;
 import ohos.devtools.datasources.utils.plugin.entity.AnalysisType;
 import ohos.devtools.datasources.utils.plugin.entity.DPlugin;
-import ohos.devtools.datasources.utils.plugin.entity.PluginConf;
 import ohos.devtools.datasources.utils.plugin.entity.HiProfilerPluginConfig;
+import ohos.devtools.datasources.utils.plugin.entity.PluginConf;
 import ohos.devtools.datasources.utils.plugin.entity.PluginMode;
 import ohos.devtools.datasources.utils.process.entity.ProcessInfo;
 import ohos.devtools.datasources.utils.profilerlog.ProfilerLogManager;
@@ -67,5 +67,4 @@ public class DiskIoConfig extends IPluginConfig {
         }
         return DiskIoHelper.createDiskIORequest(process.getProcessId());
     }
-
 }

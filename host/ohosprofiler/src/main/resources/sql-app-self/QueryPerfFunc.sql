@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 select perf_callchain.id,
 perf_callchain.callchain_id,
 sample.sample_id,

@@ -17,6 +17,8 @@ package ohos.devtools.views.layout.chartview;
 
 /**
  * Profiler的监控项
+ *
+ * @since 2021/11/22
  */
 public class ProfilerMonitorItem {
     private int index;

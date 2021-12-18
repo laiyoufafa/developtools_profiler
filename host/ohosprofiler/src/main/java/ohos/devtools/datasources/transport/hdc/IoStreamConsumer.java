@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 /**
  * IoStreamConsumer
@@ -35,6 +36,13 @@ public class IoStreamConsumer extends Thread {
     private InputStream inputStream;
     private ArrayList<String> resultList;
     private volatile boolean isStopped;
+
+    /**
+     * IoStreamConsumer
+     */
+    public IoStreamConsumer() {
+        super();
+    }
 
     /**
      * IoStreamConsumer
@@ -58,13 +66,14 @@ public class IoStreamConsumer extends Thread {
         try {
             inputStreamReader = new InputStreamReader(inputStream, "GBK");
             bufferedReader = new BufferedReader(inputStreamReader);
-            String line = null;
-            while ((line = bufferedReader.readLine()) != null) {
-                resultList.add(line);
-                if (line.contains("Empty")) {
-                    return;
-                }
+            char[] cbuf = new char[2048];
+            int len;
+            StringBuilder stringBuilder = new StringBuilder();
+            while ((len = bufferedReader.read(cbuf)) != -1) {
+                stringBuilder.append(cbuf);
             }
+            String[] split = stringBuilder.toString().split("\r\n");
+            resultList = new ArrayList<>(Arrays.asList(split));
         } catch (IOException ioException) {
             if (ProfilerLogManager.isErrorEnabled()) {
                 LOGGER.error("IOException ", ioException);

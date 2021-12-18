@@ -21,7 +21,7 @@ import java.util.Objects;
 /**
  * cpu data
  *
- * @since 2021/10/22 16:00
+ * @since 2021/10/26
  */
 public class CpuData<T> implements Serializable {
     private static final long serialVersionUID = -8106428244173195592L;

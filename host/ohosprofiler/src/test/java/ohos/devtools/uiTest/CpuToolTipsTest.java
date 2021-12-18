@@ -54,8 +54,6 @@ public class CpuToolTipsTest {
             byXpath("//div[@accessiblename='Choose' and @class='JButton' and @name='Choose' and @text='Choose']"),
             Duration.ofSeconds(2)).click();
         TimeUnit.SECONDS.sleep(10);
-        remoteRobot.find(CommonContainerFixture.class,
-            byXpath("//div[@class='CustomTextField' and @name='selectedProcessName']")).click();
         remoteRobot.find(CommonContainerFixture.class, byXpath("//div[@class='HomePanel']")).button(byXpath(
             "//div[@accessiblename='Start Task' and @class='JButton' and @name='Start Task' and @text='Start Task']"),
             Duration.ofSeconds(2)).click();

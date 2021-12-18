@@ -30,7 +30,6 @@ class EventTableTest {
     private EventTable eventTable = new EventTable(new EventTable.ITableSizeChangeListener() {
         @Override
         public void onTableSizeChange(@Nullable String title) {
-            title.trim();
         }
     });
 

@@ -31,7 +31,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 /**
  * Database operation class
  *
- * @since: 2021/8/25
+ * @since 2021/8/25
  */
 public final class PerfDAO {
     private static final Logger LOGGER = LogManager.getLogger(PerfDAO.class);
@@ -134,8 +134,8 @@ public final class PerfDAO {
                 db.newConn().ifPresent(connection -> {
                     try {
                         db.pool.put(connection);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
+                    } catch (InterruptedException exception) {
+                        exception.printStackTrace();
                     }
                 });
             }

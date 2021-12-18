@@ -39,6 +39,8 @@ public class CpuDataCache {
     private final Map<Long, LRUCache<List<ChartDataModel>>> cpuDataCacheMap = new ConcurrentHashMap<>();
     private final Map<Long, LRUCache<List<ChartDataModel>>> threadDataCacheMap =
         new ConcurrentHashMap<>();
+    private final Map<Long, LRUCache<List<ChartDataModel>>> threadDeadCacheMap =
+        new ConcurrentHashMap<>();
     private final Map<Long, Long> cpuFirstTsMap = new HashMap<>();
     private final Map<Long, Long> threadFirstTsMap = new HashMap<>();
 
@@ -111,6 +113,31 @@ public class CpuDataCache {
     }
 
     /**
+     * Add Cpu data to cache map
+     *
+     * @param sessionId Session id
+     * @param timestamp Timestamp of data
+     * @param dataModels Data model list
+     */
+    public void addDeadThreadDataModel(long sessionId, long timestamp, List<ChartDataModel> dataModels) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("addThreadDataModel");
+        }
+        LRUCache<List<ChartDataModel>> cache = threadDeadCacheMap.get(sessionId);
+        // If cache map is null, generate the new map and save the current timestamp as first timestamp
+        if (cache == null) {
+            cache = genNewSessionCache();
+            threadDeadCacheMap.put(sessionId, cache);
+        }
+        synchronized (threadDeadCacheMap.get(sessionId)) {
+            // Save relative time
+            int time = (int) (timestamp - threadFirstTsMap.get(sessionId));
+            cache.addCaCheData(time, dataModels);
+            threadDeadCacheMap.put(sessionId, cache);
+        }
+    }
+
+    /**
      * Generate new session cache map
      *
      * @return LRUCache <List<ChartDataModel>>
@@ -163,6 +190,30 @@ public class CpuDataCache {
             return result;
         }
         synchronized (threadDataCacheMap.get(sessionId)) {
+            result = cache.getCaCheData(startTime, endTime);
+        }
+        return result;
+    }
+
+
+    /**
+     * Get thread data
+     *
+     * @param sessionId Session id
+     * @param startTime start time
+     * @param endTime end time
+     * @return LinkedHashMap <Integer, List<ChartDataModel>> getCpuData
+     */
+    public LinkedHashMap<Integer, List<ChartDataModel>> getDeadThreadData(long sessionId, int startTime, int endTime) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("getThreadData");
+        }
+        LinkedHashMap<Integer, List<ChartDataModel>> result = new LinkedHashMap<>();
+        LRUCache<List<ChartDataModel>> cache = threadDeadCacheMap.get(sessionId);
+        if (cache == null) {
+            return result;
+        }
+        synchronized (threadDeadCacheMap.get(sessionId)) {
             result = cache.getCaCheData(startTime, endTime);
         }
         return result;

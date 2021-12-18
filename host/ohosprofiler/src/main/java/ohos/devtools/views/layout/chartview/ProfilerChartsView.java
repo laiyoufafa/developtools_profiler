@@ -18,10 +18,11 @@ package ohos.devtools.views.layout.chartview;
 import com.intellij.icons.AllIcons;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
+import ohos.devtools.datasources.utils.device.entity.DeviceIPPortInfo;
+import ohos.devtools.datasources.utils.process.entity.ProcessInfo;
+import ohos.devtools.datasources.utils.process.service.ProcessManager;
+import ohos.devtools.datasources.utils.session.service.SessionManager;
 import ohos.devtools.views.common.LayoutConstants;
-import ohos.devtools.views.common.UtConstant;
-import ohos.devtools.views.layout.chartview.ability.ProfilerAppAbility;
-import ohos.devtools.views.layout.chartview.observer.AbilityObserver;
 import ohos.devtools.views.layout.chartview.observer.ProfilerChartsViewPublisher;
 import ohos.devtools.views.layout.chartview.observer.TimelineObserver;
 
@@ -41,7 +42,7 @@ import static ohos.devtools.views.layout.chartview.utils.ChartViewConstants.TIME
 /**
  * Profiler Chart view main panel
  *
- * @since: 2021/10/25
+ * @since 2021/10/25
  */
 public class ProfilerChartsView extends JBPanel {
     /**
@@ -91,11 +92,6 @@ public class ProfilerChartsView extends JBPanel {
      */
     private JBPanel loadingPanel;
 
-    /**
-     * ability Slice
-     */
-    private ProfilerAppAbility abilitySlice;
-
     private JBScrollPane itemsScroll;
 
     /**
@@ -135,30 +131,21 @@ public class ProfilerChartsView extends JBPanel {
         this.add(mainPanel, BorderLayout.CENTER);
         this.publisher = new ProfilerChartsViewPublisher(this, traceFile);
         initTimeline();
-        JBPanel timeAbilityPanel = new JBPanel(new BorderLayout());
-        timeAbilityPanel.add(timeline, BorderLayout.NORTH);
-        this.mainPanel.add(timeAbilityPanel, BorderLayout.NORTH);
+        JBPanel timePanel = new JBPanel(new BorderLayout());
+        timePanel.add(timeline, BorderLayout.NORTH);
+        if (!traceFile) {
+            // Add support for ability in specific processes
+            DeviceIPPortInfo deviceInfoBySessionId =
+                SessionManager.getInstance().getDeviceInfoBySessionId(sessionId);
+            ProcessInfo processInfo =
+                SessionManager.getInstance().getSessionInfo(sessionId).getProcessInfo();
+            boolean isDebuggerProcess =
+                ProcessManager.getInstance().checkIsDebuggerProcess(deviceInfoBySessionId, processInfo);
+        }
+        this.mainPanel.add(timePanel, BorderLayout.NORTH);
         initScrollPane();
         sessionMap.put(this.sessionId, this);
         addResizedListener();
-    }
-
-    /**
-     * init Ability Pane
-     *
-     * @return JBPanel
-     */
-    private JBPanel initAbilityPane() {
-        abilitySlice = new ProfilerAppAbility();
-        // Save chart standard for timeline
-        abilitySlice.setMaxDisplayTime(publisher.getStandard().getMaxDisplayMillis());
-        abilitySlice.setMinMarkInterval(publisher.getStandard().getMinMarkInterval());
-        abilitySlice.setLastTimestamp(publisher.getStandard().getLastTimestamp());
-        abilitySlice.setName(UtConstant.UT_PROFILER_ABILITY_SLICE);
-        // Create the observer for timeline and register to the current view
-        AbilityObserver abilityObserver = new AbilityObserver(abilitySlice, sessionId, pause, stop);
-        publisher.attach(abilityObserver);
-        return abilitySlice;
     }
 
     /**
@@ -171,12 +158,6 @@ public class ProfilerChartsView extends JBPanel {
                 // Adjust the size and position of the scroll bar when the component size changes
                 if (horizontalBar != null) {
                     horizontalBar.resizeAndReposition();
-                    // Scroll bar move to refresh the ability Slice
-                    int lastTime = (int) (publisher.getStandard().getLastTimestamp() - publisher.getStandard()
-                        .getFirstTimestamp());
-                    if (abilitySlice != null) {
-                        abilitySlice.setLastTimestamp(lastTime);
-                    }
                 }
             }
         });
@@ -283,9 +264,9 @@ public class ProfilerChartsView extends JBPanel {
             }
         }
 
-        if (taskScenePanelChart != null) {
-            taskScenePanelChart.getjButtonStop().setIcon(icon);
-            taskScenePanelChart.getjButtonStop().setToolTipText(text);
+        if (taskScenePanelChart != null && taskScenePanelChart.getjButtonStop() != null) {
+                taskScenePanelChart.getjButtonStop().setIcon(icon);
+                taskScenePanelChart.getjButtonStop().setToolTipText(text);
         }
     }
 
@@ -339,10 +320,6 @@ public class ProfilerChartsView extends JBPanel {
 
     public ItemsView getItemsView() {
         return itemsView;
-    }
-
-    public ProfilerAppAbility getAbilitySlice() {
-        return abilitySlice;
     }
 
     public JBScrollPane getItemsScroll() {

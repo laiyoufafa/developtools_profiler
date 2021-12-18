@@ -25,7 +25,6 @@ import org.apache.logging.log4j.Logger;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Font;
-
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
@@ -33,6 +32,8 @@ import java.util.Properties;
 
 /**
  * Help Dialog
+ *
+ * @since 2021/11/22
  */
 public class HelpDialog {
     private static final Logger LOGGER = LogManager.getLogger(HelpDialog.class);

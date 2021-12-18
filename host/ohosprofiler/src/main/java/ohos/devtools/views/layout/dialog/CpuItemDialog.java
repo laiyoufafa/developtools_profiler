@@ -90,9 +90,8 @@ public class CpuItemDialog extends DialogWrapper {
      */
     public void actionPerformed(ActionEvent actionEvent) {
         if (seconds <= LayoutConstants.NUMBER_SECONDS) {
-            timeLabel.setText(" " + String.format(Locale.ENGLISH, "%02d", hours) + ":" +
-                    String.format(Locale.ENGLISH, "%02d", minutes) + ":" +
-                    String.format(Locale.ENGLISH, "%02d", seconds));
+            timeLabel.setText(" " + String.format(Locale.ENGLISH, "%02d", hours) + ":" + String
+                .format(Locale.ENGLISH, "%02d", minutes) + ":" + String.format(Locale.ENGLISH, "%02d", seconds));
             seconds++;
             if (seconds > LayoutConstants.NUMBER_SECONDS) {
                 seconds = 0;
@@ -113,6 +112,7 @@ public class CpuItemDialog extends DialogWrapper {
      * @param recordingJLabelParam recordingJLabelParam
      * @param timeJLabelParam timeJLabelParam
      * @param typeJLabelParam typeJLabelParam
+     * @param typeValueJLabelParam typeValueJLabelParam
      */
     public void setLabelAttribute(JLabel statusJLabelParam, JLabel durationJLabelParam, JLabel recordingJLabelParam,
         JLabel timeJLabelParam, JLabel typeJLabelParam) {

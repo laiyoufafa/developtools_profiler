@@ -35,7 +35,7 @@ import java.util.stream.Collectors;
 /**
  * class of tree table row sorter
  *
- * @since: 2021/10/25
+ * @since 2021/10/25
  */
 public class NativeHookTreeTableRowSorter<M extends TableModel> extends DefaultRowSorter<M, Integer> {
     private int sorterColumn = -1;
@@ -57,9 +57,9 @@ public class NativeHookTreeTableRowSorter<M extends TableModel> extends DefaultR
     /**
      * sort desc tree
      *
-     * @param root      root node
+     * @param root root node
      * @param condition sort condition
-     * @param jtree     tree
+     * @param jtree tree
      */
     public static void sortDescTree(DefaultMutableTreeNode root, Comparator<TreeNode> condition, JTree jtree) {
         Consumer<DefaultMutableTreeNode> sort = parent -> {
@@ -92,9 +92,9 @@ public class NativeHookTreeTableRowSorter<M extends TableModel> extends DefaultR
     /**
      * sort tree
      *
-     * @param root      root node
+     * @param root root node
      * @param condition sort condition
-     * @param jtree     tree
+     * @param jtree tree
      */
     public static void sortTree(DefaultMutableTreeNode root, Comparator<TreeNode> condition, JTree jtree) {
         Consumer<DefaultMutableTreeNode> sort = parent -> {
@@ -107,8 +107,7 @@ public class NativeHookTreeTableRowSorter<M extends TableModel> extends DefaultR
                 }
             }
             parent.removeAllChildren();
-            childs.stream().sorted(condition.reversed()).collect(Collectors.toList())
-                .forEach(parent::add);
+            childs.stream().sorted(condition.reversed()).collect(Collectors.toList()).forEach(parent::add);
         };
         Enumeration enumeration = root.depthFirstEnumeration();
         while (enumeration.hasMoreElements()) {

@@ -12,5 +12,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 select T.thread_name as threadName,T.thread_id as tid,T.process_id as pid
 from perf_thread T inner join (select count(*) as count,thread_id from perf_sample group by thread_id) S on T.thread_id = S.thread_id and S.count>0;

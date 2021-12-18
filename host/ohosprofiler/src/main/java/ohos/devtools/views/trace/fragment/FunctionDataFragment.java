@@ -77,9 +77,8 @@ public class FunctionDataFragment extends AbstractDataFragment<FunctionBean> imp
             if (substring.length() < wordNum) {
                 graphics.drawString(name.substring(0, (int) wordNum), Utils.getX(getDescRect()) + 10,
                     (int) (Utils.getY(getDescRect()) + bounds.getHeight() + 8));
-                graphics
-                    .drawString(substring, Utils.getX(getDescRect()) + 10,
-                        (int) (Utils.getY(getDescRect()) + bounds.getHeight() * 2 + 8));
+                graphics.drawString(substring, Utils.getX(getDescRect()) + 10,
+                    (int) (Utils.getY(getDescRect()) + bounds.getHeight() * 2 + 8));
             } else {
                 graphics.drawString(name.substring(0, (int) wordNum), Utils.getX(getDescRect()) + 10,
                     (int) (Utils.getY(getDescRect()) + bounds.getHeight() + 2));
@@ -89,25 +88,27 @@ public class FunctionDataFragment extends AbstractDataFragment<FunctionBean> imp
                     (int) (Utils.getY(getDescRect()) + bounds.getHeight() * 3 + 2));
             }
         }
-        for (FunctionBean bean : data) {
-            int x1;
-            int x2;
-            if (bean.getStartTime() < startNS) {
-                x1 = getX(startNS);
-            } else {
-                x1 = getX(bean.getStartTime());
-            }
-            if (bean.getStartTime() + bean.getDuration() > endNS) {
-                x2 = getX(endNS);
-            } else {
-                x2 = getX(bean.getStartTime() + bean.getDuration());
-            }
-            bean.setRect(x1 + Utils.getX(getDataRect()), Utils.getY(getDataRect()) + 10 + 20 * bean.getDepth(),
-                x2 - x1 <= 0 ? 1 : x2 - x1,
-                20);
-            bean.root = getRoot();
-            bean.setEventListener(this);
-            bean.draw(graphics);
+        if (data != null) {
+            data.stream().filter(it -> it.getStartTime() + it.getDuration() > startNS && it.getStartTime() < endNS)
+                .forEach(bean -> {
+                    int x1;
+                    int x2;
+                    if (bean.getStartTime() < startNS) {
+                        x1 = getX(startNS);
+                    } else {
+                        x1 = getX(bean.getStartTime());
+                    }
+                    if (bean.getStartTime() + bean.getDuration() > endNS) {
+                        x2 = getX(endNS);
+                    } else {
+                        x2 = getX(bean.getStartTime() + bean.getDuration());
+                    }
+                    bean.setRect(x1 + Utils.getX(getDataRect()), Utils.getY(getDataRect()) + 10 + 20 * bean.getDepth(),
+                        x2 - x1 <= 0 ? 1 : x2 - x1, 20);
+                    bean.root = getRoot();
+                    bean.setEventListener(this);
+                    bean.draw(graphics);
+                });
         }
     }
 
@@ -123,8 +124,8 @@ public class FunctionDataFragment extends AbstractDataFragment<FunctionBean> imp
             data.stream()
                 .filter(bean -> bean.getStartTime() + bean.getDuration() > startNS && bean.getStartTime() < endNS)
                 .filter(bean -> bean.edgeInspect(event)).findFirst().ifPresent(bean -> {
-                    bean.onClick(event);
-                });
+                bean.onClick(event);
+            });
         }
     }
 
@@ -230,5 +231,10 @@ public class FunctionDataFragment extends AbstractDataFragment<FunctionBean> imp
      */
     @Override
     public void mouseMove(MouseEvent event, FunctionBean data) {
+    }
+
+    // function After loading together, there is no need to redraw drawFrame according to the time interval
+    @Override
+    public void drawFrame() {
     }
 }

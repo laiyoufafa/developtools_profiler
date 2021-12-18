@@ -517,4 +517,40 @@ public class HdcCmdList {
             add("%s");
         }
     };
+
+    /**
+     * HDC CHECK FPROT
+     */
+    public static final ArrayList<String> HDC_CHECK_FPORT = new ArrayList<>() {
+        {
+            add(PLUGIN_PATH);
+            add("-t");
+            add("%s");
+            add("fport");
+            add("list");
+        }
+    };
+
+    /**
+     * HDC_GET_DEVICES
+     */
+    public static final ArrayList<String> HDC_GET_DEVICES = new ArrayList<>() {
+        {
+            add(PLUGIN_PATH);
+            add("list targets");
+            add("|");
+            add("%s");
+            add("%s");
+        }
+    };
+
+    /**
+     * HDC RESET
+     */
+    public static final ArrayList<String> HDC_RESET = new ArrayList<>() {
+        {
+            add(PLUGIN_PATH);
+            add("reset");
+        }
+    };
 }

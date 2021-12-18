@@ -39,7 +39,7 @@ public interface IDistributedData {
     }
 
     /**
-     * expandAll
+     * expandTree
      *
      * @param tree tree
      * @param parent parent

@@ -27,7 +27,10 @@ config("bytraceplugin_config") {
 ohos_shared_library("bytraceplugin") {
   output_name = "bytraceplugin"
   sources = [ "src/bytrace_module.cpp" ]
-  public_configs = [ ":bytraceplugin_config" ]
+  public_configs = [
+    ":bytraceplugin_config",
+    "${OHOS_PROFILER_DIR}/device/base:hiprofiler_test_config",
+  ]
   public_deps = [
     "${OHOS_PROFILER_3RDPARTY_PROTOBUF_DIR}:protobuf_lite",
     "${OHOS_PROFILER_3RDPARTY_PROTOBUF_DIR}:protoc_lib",

@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 CREATE VIEW IF NOT EXISTS thread AS SELECT id as utid, * FROM internal_thread;
 CREATE VIEW IF NOT EXISTS process AS SELECT id as upid, * FROM internal_process;
 CREATE VIEW IF NOT EXISTS sched AS SELECT *, ts + dur as ts_end FROM sched_slice;

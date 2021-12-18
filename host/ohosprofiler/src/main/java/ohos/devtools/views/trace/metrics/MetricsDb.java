@@ -50,7 +50,6 @@ public final class MetricsDb {
     private static boolean isLocal;
     private static volatile MetricsDb db = new MetricsDb();
     private static String dbName;
-    private final String[] units = new String[] {"", "K", "M", "G", "T", "E"};
 
     /**
      * Gets the value of dbName .
@@ -179,7 +178,7 @@ public final class MetricsDb {
      * @return String sql
      */
     public static String getSql(String sqlName) {
-        String path = "metrics-sql/" + sqlName + ".txt";
+        String path = "metrics-sql/" + sqlName + ".sql";
         try (InputStream STREAM = DataUtils.class.getClassLoader().getResourceAsStream(path)) {
             String sqlFile = IOUtils.toString(STREAM, Charset.forName("UTF-8"));
             if (sqlFile.startsWith("/*")) {
@@ -240,7 +239,7 @@ public final class MetricsDb {
                 res.add(data);
             }
         } catch (ClassNotFoundException | SQLException | InstantiationException | IllegalAccessException
-                | InvocationTargetException | NoSuchMethodException exception) {
+            | InvocationTargetException | NoSuchMethodException exception) {
             exception.printStackTrace();
         } finally {
             release(rs, stat, conn);
@@ -298,8 +297,7 @@ public final class MetricsDb {
             declaredField.set(data, rs.getDouble(annotation.name()));
         } else if (declaredField.getType() == Float.class || declaredField.getType() == float.class) {
             declaredField.set(data, rs.getFloat(annotation.name()));
-        } else if (declaredField.getType() == Boolean.class
-            || declaredField.getType() == boolean.class) {
+        } else if (declaredField.getType() == Boolean.class || declaredField.getType() == boolean.class) {
             declaredField.set(data, rs.getBoolean(annotation.name()));
         } else if (declaredField.getType() == Blob.class) {
             declaredField.set(data, rs.getBytes(annotation.name()));

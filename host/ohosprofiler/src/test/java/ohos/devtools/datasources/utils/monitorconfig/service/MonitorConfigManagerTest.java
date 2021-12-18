@@ -110,38 +110,4 @@ public class MonitorConfigManagerTest {
         MonitorConfigManager configManager02 = MonitorConfigManager.getInstance();
         Assert.assertEquals(configManager01, configManager02);
     }
-
-    /**
-     * functional testing analyzeCharTarget
-     *
-     * @tc.name: MonitorConfigManager analyzeCharTarget
-     * @tc.number: OHOS_JAVA_monitor_MonitorConfigManager_analyzeCharTarget_0001
-     * @tc.desc: MonitorConfigManager analyzeCharTarget
-     * @tc.type: functional testing
-     * @tc.require: AR000FK61R
-     */
-    @Test
-    public void analyzeCharTargetTest1() {
-        Map<String, LinkedList<String>> stringLinkedListMap =
-            MonitorConfigManager.getInstance().analyzeCharTarget(localSessionId, jsonObject);
-        Assert.assertNotNull(stringLinkedListMap);
-    }
-
-    /**
-     * functional testing analyzeCharTarget
-     *
-     * @tc.name: MonitorConfigManager analyzeCharTarget
-     * @tc.number: OHOS_JAVA_monitor_MonitorConfigManager_analyzeCharTarget_0002
-     * @tc.desc: MonitorConfigManager analyzeCharTarget
-     * @tc.type: functional testing
-     * @tc.require: AR000FK61R
-     */
-    @Test
-    public void analyzeCharTargetTest3() {
-        Map<String, LinkedList<String>> stringLinkedListMap =
-            MonitorConfigManager.getInstance().analyzeCharTarget(localSessionId, jsonObject);
-        Map<String, LinkedList<String>> stringLinkedListMap1 =
-            MonitorConfigManager.getInstance().analyzeCharTarget(localSessionId, jsonObject);
-        Assert.assertEquals(stringLinkedListMap, stringLinkedListMap1);
-    }
 }

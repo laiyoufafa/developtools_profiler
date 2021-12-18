@@ -187,6 +187,11 @@ public abstract class ProfilerChart extends JBPanel implements MouseListener, Mo
     protected final ProfilerChartsView bottomPanel;
 
     /**
+     * YAxisLable
+     */
+    protected ArrayList<String> yAxisList = new ArrayList<>();
+
+    /**
      * Data map
      *
      * @see "Key: time, Value: The values of chart at this point in time>"
@@ -204,6 +209,11 @@ public abstract class ProfilerChart extends JBPanel implements MouseListener, Mo
     protected LegendTooltip tooltip;
 
     /**
+     * Enable/disable drag select
+     */
+    protected boolean enableDragSelect = false;
+
+    /**
      * Chart type
      */
     protected ChartType chartType;
@@ -219,9 +229,11 @@ public abstract class ProfilerChart extends JBPanel implements MouseListener, Mo
     protected BigDecimal pixelPerY;
 
     /**
-     * YAxisLable
+     * Update when mouse moved
+     *
+     * @see "Use function getMousePosition() will be null sometime."
      */
-    ArrayList<String> yAxisList = new ArrayList<>();
+    private Point mousePoint;
 
     /**
      * Whether the chart can be dragged or not
@@ -233,12 +245,6 @@ public abstract class ProfilerChart extends JBPanel implements MouseListener, Mo
      */
     private boolean dragging = false;
 
-    /**
-     * Update when mouse moved
-     *
-     * @see "Use function getMousePosition() will be null sometime."
-     */
-    private Point mousePoint;
 
     /**
      * Constructor
@@ -437,13 +443,7 @@ public abstract class ProfilerChart extends JBPanel implements MouseListener, Mo
             graphics.setColor(TIMELINE_SCALE);
             graphics.drawLine(x0, y, x0 + SCALE_LINE_LEN, y);
             // Draw the string of Y-axis scale
-            String str = null;
-            if (yAxisList.size() > 0 && index < yAxisList.size()) {
-                str = yAxisList.get(index);
-                index++;
-            } else {
-                str = getYaxisLabelStr(value);
-            }
+            String str = getYaxisLabelStr(value);
             graphics.setColor(JBColor.foreground());
             graphics.drawString(str, x0 + Y_AXIS_STR_OFFSET_X, y + Y_AXIS_STR_OFFSET_Y);
         }
@@ -553,10 +553,14 @@ public abstract class ProfilerChart extends JBPanel implements MouseListener, Mo
             graphics.setColor(ColorConstants.RULER);
             int startX = startXCoordinate + multiply(pixelPerX, selectedRange.getStartTime() - startTime);
             graphics.drawLine(startX, panelTop, startX, this.getHeight());
-            drawInvertedTriangle(startX, graphics);
+            if (!enableDragSelect) {
+                drawInvertedTriangle(startX, graphics);
+            }
             int endX = startXCoordinate + multiply(pixelPerX, selectedRange.getEndTime() - startTime);
             graphics.drawLine(endX, panelTop, endX, this.getHeight());
-            drawInvertedTriangle(endX, graphics);
+            if (!enableDragSelect) {
+                drawInvertedTriangle(endX, graphics);
+            }
         }
     }
 
@@ -604,7 +608,7 @@ public abstract class ProfilerChart extends JBPanel implements MouseListener, Mo
      * @param newChart Is it a new chart
      */
     protected void showTooltip(boolean newChart) {
-        if (dragging) {
+        if (dragging && !enableDragSelect) {
             tooltip.hideTip();
             return;
         }
@@ -1015,6 +1019,10 @@ public abstract class ProfilerChart extends JBPanel implements MouseListener, Mo
         this.maxUnitY = maxUnitY;
     }
 
+    public int getMaxUnitY() {
+        return maxUnitY;
+    }
+
     public void setSectionNumY(int sectionNumY) {
         this.sectionNumY = sectionNumY;
     }
@@ -1049,5 +1057,9 @@ public abstract class ProfilerChart extends JBPanel implements MouseListener, Mo
 
     public int getMinMarkIntervalX() {
         return minMarkIntervalX;
+    }
+
+    public void setEnableDragSelect(boolean enableDragSelect) {
+        this.enableDragSelect = enableDragSelect;
     }
 }

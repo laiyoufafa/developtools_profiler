@@ -43,7 +43,7 @@ import java.util.stream.Collectors;
  * @since 2021/04/22 12:25
  */
 public class CpuFragment extends AbstractFragment {
-    private static Map<Integer, List<CpuRateBean>> listMap;
+    private Map<Integer, List<CpuRateBean>> listMap;
     private final Color shadowColor = new Color(0x99, 0x99, 0x99, 0xCE);
     private int leftX;
     private int rightX;
@@ -117,7 +117,7 @@ public class CpuFragment extends AbstractFragment {
             }
             ArrayList<CpuRateBean> cpus = new ArrayList<>() {
             };
-            Db.getInstance().query(Sql.SYS_GET_CPU_UTILIZATION_RATE, cpus);
+            Db.getInstance().query(Sql.SYS_GET_CPU_UTILIZATION_RATE, cpus, 0, AnalystPanel.getDURATION());
             listMap = cpus.stream().collect(Collectors.groupingBy(cpuRateBean -> cpuRateBean.getCpu()));
             SwingUtilities.invokeLater(() -> {
                 repaint();
@@ -152,13 +152,12 @@ public class CpuFragment extends AbstractFragment {
             int height = getRect().height / listMap.size();
             double rw = (getRect().width) / 100.00;
             listMap.forEach((map, beanList) -> {
-                for (int index = 0, len = beanList.size(); index < len; index++) {
-                    CpuRateBean cpuRateBean = beanList.get(index);
+                for (CpuRateBean cpuRateBean : beanList) {
                     graphics.setStroke(new BasicStroke(0));
                     graphics.setComposite(
                         AlphaComposite.getInstance(AlphaComposite.SRC_OVER, (float) cpuRateBean.getRate()));
                     graphics.setColor(ColorUtils.MD_PALETTE[map]);
-                    int side = (int) (Utils.getX(getRect()) + rw * index);
+                    int side = (int) (Utils.getX(getRect()) + rw * cpuRateBean.getIndex());
                     graphics.fillRect(side, Utils.getY(getRect()) + map * height, (int) rw + 1, height);
                     graphics.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1f));
                 }
@@ -231,8 +230,8 @@ public class CpuFragment extends AbstractFragment {
      * @param en endNs
      */
     public void setRange(final long sn, final long en) {
-        leftX = (int) (sn * getRect().width / AnalystPanel.DURATION) + Utils.getX(getRect());
-        rightX = (int) (en * getRect().width / AnalystPanel.DURATION) + Utils.getX(getRect());
+        leftX = (int) (sn * getRect().width / AnalystPanel.getDURATION()) + Utils.getX(getRect());
+        rightX = (int) (en * getRect().width / AnalystPanel.getDURATION()) + Utils.getX(getRect());
         repaint();
     }
 }

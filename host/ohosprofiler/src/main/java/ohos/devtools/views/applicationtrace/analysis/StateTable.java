@@ -44,6 +44,7 @@ import java.util.stream.Collectors;
 /**
  * StateTable
  *
+ * @since 2021/5/12 16:34
  */
 public class StateTable extends EventPanel {
     private static final Map<String, String> STATUS_MAP = new HashedMap() {{
@@ -68,16 +69,16 @@ public class StateTable extends EventPanel {
 
     private final int RowHeight = 25;
     private final int RowHeadHeight = 30;
-    private JBScrollPane jScrollPane;
-    private StateTableModel tableColumnModel;
-    private JBTable jbTable;
-    private TableRowSorter<StateTableModel> rowSorter;
     private List<EventTable.Col<ThreadStateBean>> columnNames = new ArrayList<>() {{
         add(new EventTable.Col<>("Thread State", ThreadStateBean::getState));
         add(new EventTable.Col<>("Duration", ThreadStateBean::getDuration));
         add(new EventTable.Col<>("%", ThreadStateBean::getPercent));
         add(new EventTable.Col<>("Occurrences", ThreadStateBean::getOccurrences));
     }};
+    private JBScrollPane jScrollPane;
+    private StateTableModel tableColumnModel;
+    private JBTable jbTable;
+    private TableRowSorter<StateTableModel> rowSorter;
 
     /**
      * structure function
@@ -96,10 +97,10 @@ public class StateTable extends EventPanel {
         jbTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         jbTable.setBackground(JBColor.background().darker());
         rowSorter = new TableRowSorter<>(tableColumnModel);
-        for (int i = 0; i < tableColumnModel.getColumnCount(); i++) {
-            if (i == 1) {
+        for (int index = 0; index < tableColumnModel.getColumnCount(); index++) {
+            if (index == 1) {
                 // set duration sorter
-                rowSorter.setComparator(i, (str1, str2) -> {
+                rowSorter.setComparator(index, (str1, str2) -> {
                     // change duration String to time ns
                     long time1 = TimeUtils.getNSByTimeString(String.valueOf(str1));
                     long time2 = TimeUtils.getNSByTimeString(String.valueOf(str2));
@@ -112,7 +113,7 @@ public class StateTable extends EventPanel {
                     }
                 });
             } else {
-                rowSorter.setComparator(i, ComparatorUtils.generateComparator(""));
+                rowSorter.setComparator(index, ComparatorUtils.generateComparator(""));
             }
         }
         jbTable.setRowSorter(rowSorter); // add row sorter
@@ -128,8 +129,7 @@ public class StateTable extends EventPanel {
         threadIds.forEach(threadId -> {
             if (AllData.threadMap.containsKey(threadId)) {
                 threads.addAll(AllData.threadMap.get(threadId).stream().filter(thread -> TimeUtils
-                        .isRangeCross(startNS, endNS, thread.getStartTime(),
-                                thread.getStartTime() + thread.getDuration()))
+                    .isRangeCross(startNS, endNS, thread.getStartTime(), thread.getStartTime() + thread.getDuration()))
                     .collect(Collectors.toList()));
             }
         });

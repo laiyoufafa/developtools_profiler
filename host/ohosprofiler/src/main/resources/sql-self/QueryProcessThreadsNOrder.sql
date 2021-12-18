@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 select p.id as upid,
        t.id as utid,
        p.pid,

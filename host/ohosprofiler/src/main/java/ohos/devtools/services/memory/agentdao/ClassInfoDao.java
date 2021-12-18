@@ -238,7 +238,10 @@ public class ClassInfoDao extends AbstractDataStore {
             LOGGER.info("deleteSessionData");
         }
         StringBuffer deleteSql = new StringBuffer("DELETE FROM ClassInfo");
-        Connection connection = DataBaseApi.getInstance().getConnectByTable("ClassInfo").get();
-        return execute(connection, deleteSql.toString());
+        Optional<Connection> classInfo = DataBaseApi.getInstance().getConnectByTable("ClassInfo");
+        if (classInfo.isPresent()) {
+            return execute(classInfo.get(), deleteSql.toString());
+        }
+        return false;
     }
 }

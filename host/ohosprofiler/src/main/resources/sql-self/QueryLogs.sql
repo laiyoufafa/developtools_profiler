@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-select l.*,l.ts-t.start_ts as "startTime" from log as l left join trace_range AS t
- where "startTime" between %s and %s
+
+select l.*,l.ts-t.start_ts as "startTime" from log as l left join trace_section AS t
+ where "startTime" between %s and %s order by "startTime"
  limit %s offset %s;

@@ -96,7 +96,7 @@ public class TraceStreamerUtilsTest {
      */
     @Test
     public void getLogPathTest01() {
-        String str = traceStreamerUtils.getLogPath();
+        String str = traceStreamerUtils.getLogPath("trace_streamer.db");
         Assert.assertNotEquals("", str);
     }
 

@@ -12,5 +12,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 select *,p.pid as pid,c.ts - t.start_ts as "startTime"
-from callstack c,trace_range t left join process p on c.callid = p.id where cookie is not null;
+from callstack c,trace_section t left join process p on c.callid = p.id where cookie is not null;

@@ -48,20 +48,19 @@ public class AllThreadPanel extends JBPanel {
         allThreadTab.setBackground(JBColor.background().darker());
         setBorder(JBUI.Borders.empty(5, 8));
         if (Objects.equals(analysisEnum, AnalysisEnum.APP)) {
-            topDownPanel = new TopBottomPanel(
-                (startNS, endNS, scale) -> AllData.getFuncTreeTopDown(startNS, endNS),
-                null);
-            bottomUpPanel = new TopBottomPanel(
-                (startNS, endNS, scale) -> AllData.getFuncTreeBottomUp(startNS, endNS), null);
-            flameSearchChart = new FlameSearchChart(
-                (startNS, endNS, scale) -> AllData.getFuncTreeFlameChart(startNS, endNS), null);
+            topDownPanel =
+                new TopBottomPanel((startNS, endNS, scale) -> AllData.getFuncTreeTopDown(startNS, endNS), null);
+            bottomUpPanel =
+                new TopBottomPanel((startNS, endNS, scale) -> AllData.getFuncTreeBottomUp(startNS, endNS), null);
+            flameSearchChart =
+                new FlameSearchChart((startNS, endNS, scale) -> AllData.getFuncTreeFlameChart(startNS, endNS), null);
         } else {
-            topDownPanel = new TopBottomPanel(
-                (startNS, endNS, scale) -> PerfData.getFuncTreeTopDown(startNS, endNS), null);
-            bottomUpPanel = new TopBottomPanel(
-                (startNS, endNS, scale) -> PerfData.getFuncTreeBottomUp(startNS, endNS), null);
-            flameSearchChart = new FlameSearchChart(
-                (startNS, endNS, scale) -> PerfData.getFuncTreeFlameChart(startNS, endNS), null);
+            topDownPanel =
+                new TopBottomPanel((startNS, endNS, scale) -> PerfData.getFuncTreeTopDown(startNS, endNS), null);
+            bottomUpPanel =
+                new TopBottomPanel((startNS, endNS, scale) -> PerfData.getFuncTreeBottomUp(startNS, endNS), null);
+            flameSearchChart =
+                new FlameSearchChart((startNS, endNS, scale) -> PerfData.getFuncTreeFlameChart(startNS, endNS), null);
         }
         allThreadTab.addTab("Summary", allThreadSummaryPanel);
         allThreadTab.addTab("Top Down", topDownPanel);

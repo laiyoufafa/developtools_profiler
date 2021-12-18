@@ -18,6 +18,8 @@
 #include <string.h>
 #include <vector>
 
+#include "logging.h"
+
 namespace {
 const size_t MB_PER_BYTE = 0x100000;
 }
@@ -30,15 +32,14 @@ int main(int agrc, char* agrv[]) {
     for (int i = 1; i < agrc; i++) {
         size = atoi(agrv[i]);
         if (size <= 0) {
-            printf("ready malloc size(%zu)Mb invalid,", size);
+            HILOG_INFO(LOG_CORE, "ready malloc size(%zu)Mb invalid", size);
             continue;
         }
         buf = (char *)malloc(size * MB_PER_BYTE);
         if (buf == NULL) {
-            printf("malloc %zu fail, err(%s:%d)", size, strerror(errno), errno);
+            HILOG_ERROR(LOG_CORE, "malloc %zu fail, err(%s:%d)", size, strerror(errno), errno);
             continue;
         }
-        printf("malloc size(%zu)Mb succ\r\n", size);
         cache.emplace(cache.begin() + i - 1, buf);
     }
     while(true);

@@ -19,6 +19,7 @@ import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
+import net.miginfocom.swing.MigLayout;
 import ohos.devtools.views.common.UtConstant;
 import org.apache.commons.lang.StringUtils;
 
@@ -46,32 +47,44 @@ public class CustomSearchComBox extends JBPanel {
 
     /**
      * CustomSearchComBox
+     *
+     * @param deviceId deviceId
+     * @param isDistributedPanel isDistributedPanel
      */
-    public CustomSearchComBox() {
-        this.setLayout(new BorderLayout());
+    public CustomSearchComBox(int deviceId, boolean isDistributedPanel) {
         selectedProcessTextField = new CustomTextField("device");
-        selectedProcessTextField.setName(UtConstant.UT_DEVICE_PROCESS_PANEL_PROCESS_NAME);
+        selectedProcessTextField.setName(UtConstant.UT_DEVICE_PROCESS_PANEL_PROCESS_NAME + deviceId);
         selectedProcessTextField.setBackground(JBColor.background());
         selectedProcessTextField.setOpaque(true);
         selectedProcessTextField.setForeground(JBColor.foreground().brighter());
         selectedProcessTextField.setEditable(false);
         selectedProcessTextField.setBorder(BorderFactory.createLineBorder(JBColor.background().darker(), 1));
-        this.add(selectedProcessTextField, BorderLayout.NORTH);
         searchField = new CustomTextField("press");
         searchField.setBackground(JBColor.background());
         searchField.setOpaque(true);
         searchField.setForeground(JBColor.foreground().brighter());
         searchField.setVisible(false);
-        this.add(searchField, BorderLayout.CENTER);
+        searchField.setName(UtConstant.UT_DEVICE_PROCESS_PANEL_SEARCH_FIELD);
         processList = new JBList(myListModel);
         processList.setBackground(JBColor.background());
         processList.setOpaque(true);
         processList.setForeground(JBColor.foreground().brighter());
         processList.setVisible(false);
         processList.setFont(new Font("PingFang SC", Font.PLAIN, 14));
+        processList.setName(UtConstant.UT_DEVICE_PROCESS_PANEL_TABLE + deviceId);
         processScrollPane = new JBScrollPane(processList);
         processScrollPane.setVisible(false);
-        this.add(processScrollPane, BorderLayout.SOUTH);
+        if (isDistributedPanel) {
+            this.setLayout(new BorderLayout());
+            this.add(selectedProcessTextField, BorderLayout.NORTH);
+            this.add(searchField, BorderLayout.CENTER);
+            this.add(processScrollPane, BorderLayout.SOUTH);
+        } else {
+            this.setLayout(new MigLayout("insets 5", "[grow,fill]", "[grow,fill][grow,fill][grow,fill]"));
+            this.add(selectedProcessTextField, "growx,growy,span");
+            this.add(searchField, "growx,growy,span");
+            this.add(processScrollPane, "growx,growy,span");
+        }
         selectedProcessTextField.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent mouseEvent) {
@@ -110,7 +123,7 @@ public class CustomSearchComBox extends JBPanel {
     private void addProcessListListen() {
         processList.addListSelectionListener(new ListSelectionListener() {
             @Override
-            public void valueChanged(ListSelectionEvent e) {
+            public void valueChanged(ListSelectionEvent event) {
                 Object selectedValue = processList.getSelectedValue();
                 if (selectedValue instanceof String) {
                     String value = (String) selectedValue;

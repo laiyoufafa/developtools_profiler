@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 with cpu as (
     select cpu,ts,dur,(case when ro < 99 then ro else 99 end) as ro ,
            (case when ro < 99 then stime+ro*cell else stime + 99 * cell end) as st,

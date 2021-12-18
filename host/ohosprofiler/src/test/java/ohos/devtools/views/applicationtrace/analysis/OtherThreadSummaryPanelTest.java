@@ -29,6 +29,9 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
  * @since 2021/2/1 9:31
  */
 public class OtherThreadSummaryPanelTest {
+    /**
+     * otherThreadSummaryPanel
+     */
     private static OtherThreadSummaryPanel otherThreadSummaryPanel;
 
     @BeforeAll

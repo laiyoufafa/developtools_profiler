@@ -24,6 +24,7 @@ import com.intellij.ui.components.JBPanel;
 import ohos.devtools.datasources.transport.hdc.HdcWrapper;
 import ohos.devtools.datasources.utils.common.util.CommonUtil;
 import ohos.devtools.datasources.utils.device.entity.DeviceProcessInfo;
+import ohos.devtools.datasources.utils.profilerlog.ProfilerLogManager;
 import ohos.devtools.datasources.utils.session.service.SessionManager;
 import ohos.devtools.services.hiperf.HiperfParse;
 import ohos.devtools.services.hiperf.ParsePerf;
@@ -33,13 +34,14 @@ import ohos.devtools.views.common.LayoutConstants;
 import ohos.devtools.views.common.UtConstant;
 import ohos.devtools.views.common.customcomp.CustomJLabel;
 import ohos.devtools.views.common.customcomp.CustomProgressBar;
+import ohos.devtools.views.layout.HomePanel;
 import ohos.devtools.views.layout.SystemPanel;
 import ohos.devtools.views.layout.TaskPanel;
 import ohos.devtools.views.layout.chartview.TaskScenePanelChart;
 import ohos.devtools.views.layout.dialog.ImportFileChooserDialog;
 import ohos.devtools.views.layout.dialog.SampleDialog;
 import ohos.devtools.views.perftrace.PerfTracePanel;
-import ohos.devtools.views.trace.component.AnalystPanel;
+import ohos.devtools.views.trace.component.SysAnalystPanel;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -50,6 +52,9 @@ import javax.swing.JComponent;
 import javax.swing.JList;
 import javax.swing.SwingWorker;
 import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Rectangle;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.io.BufferedReader;
@@ -169,17 +174,110 @@ public class OpenFileDialogUtils {
      */
     private void loadOfflineFiles(JBPanel tabItem, String readLineStr, File selectedFile) {
         if (readLineStr.contains(HI_PERF_TYPE_VALUE)) {
-            loadPerf(selectedFile, taskPanel.getTabContainer(), readLineStr);
-        } else if (readLineStr.contains(BYTRACE_TYPE_VALUE) || readLineStr.contains(HTRACE_TYPE_VALUE)
-                || readLineStr.contains(BYTRACE_TYPE_FLAG_VALUE)) {
+            if (HomePanel.isTaskIsOpen()) {
+                TaskScenePanelChart taskScenePanelChart = getTaskScenePanelChart();
+                CustomJLabel hosJLabel = new CustomJLabel();
+                hosJLabel.setProcessName(getTime() + ";" + selectedFile.getName() + ";" + "Perf");
+                long sessionId = CommonUtil.getLocalSessionId();
+                hosJLabel.setSessionId(sessionId);
+                hosJLabel.setConnectType(DEVICE_STAT_OFFLINE);
+                taskScenePanelChart.createImportFileSessionList(readLineStr, hosJLabel, selectedFile);
+            } else {
+                loadPerf(selectedFile, taskPanel.getTabContainer(), readLineStr);
+            }
+        } else if (readLineStr.contains(BYTRACE_TYPE_VALUE) || readLineStr.contains(HTRACE_TYPE_VALUE) || readLineStr
+            .contains(BYTRACE_TYPE_FLAG_VALUE)) {
             loadOfflineFile(tabItem, taskPanel, selectedFile, taskPanel.getTabContainer());
         } else if (readLineStr.contains(TRACE_FILE)) {
-            loadOfflineFile(tabItem, taskPanel, selectedFile, taskPanel.getTabContainer());
+            if (HomePanel.isTaskIsOpen()) {
+                TaskScenePanelChart taskScenePanelChart = getTaskScenePanelChart();
+                CustomJLabel hosJLabel = new CustomJLabel();
+                hosJLabel.setProcessName(getTime() + ";" + selectedFile.getName() + ";" + "trace");
+                long sessionId = CommonUtil.getLocalSessionId();
+                hosJLabel.setSessionId(sessionId);
+                hosJLabel.setConnectType(DEVICE_STAT_OFFLINE);
+                taskScenePanelChart.createImportFileSessionList(UtConstant.FILE_TYPE_TRACE, hosJLabel, selectedFile);
+            } else {
+                loadOfflineFile(tabItem, taskPanel, selectedFile, taskPanel.getTabContainer());
+            }
         } else if (readLineStr.contains("malloc") || readLineStr.contains("free")) {
             loadOfflineFileNativeHook(selectedFile, taskPanel, taskPanel.getTabContainer());
         } else {
             showWarningDialog(tabItem);
         }
+    }
+
+    /**
+     * loadOfflineFileHprof
+     *
+     * @param selectedFile selectedFile
+     * @param taskPanel taskPanel
+     * @param optionJPanel optionJPanel
+     */
+    public void loadOfflineFileHprof(File selectedFile, TaskPanel taskPanel, JBPanel optionJPanel) {
+        SwingWorker<String, Object> task = new SwingWorker<>() {
+            TaskScenePanelChart chart = null;
+
+            /**
+             * doInBackground
+             *
+             * @return String
+             */
+            @Override
+            protected String doInBackground() {
+                if (HomePanel.isTaskIsOpen()) {
+                    chart = getTaskScenePanelChart();
+                } else {
+                    progressBar.setValue(LayoutConstants.DEFAULT_NUMBER);
+                    Dimension dimension = progressBar.getSize();
+                    Rectangle rect = new Rectangle(0, 0, dimension.width, dimension.height);
+                    progressBar.setValue(LayoutConstants.HUNDRED);
+                    progressBar.paintImmediately(rect);
+                }
+                return getTime() + ";" + selectedFile.getName() + ";" + "Heap Dump";
+            }
+
+            /**
+             * done
+             */
+            @Override
+            protected void done() {
+                try {
+                    long sessionId = CommonUtil.getLocalSessionId();
+                    String fileName = get();
+                    if (fileName != null) {
+                        CustomJLabel hosJLabel = new CustomJLabel();
+                        hosJLabel.setProcessName(fileName);
+                        hosJLabel.setDeviceName("");
+                        hosJLabel.setOnline(false);
+                        hosJLabel.setConnectType(DEVICE_STAT_OFFLINE);
+                        hosJLabel.setSessionId(sessionId);
+                        hosJLabel.setFileType(UtConstant.FILE_TYPE_HPROF);
+                        ArrayList<CustomJLabel> hosJLabels = new ArrayList<CustomJLabel>();
+                        hosJLabels.add(hosJLabel);
+                        if (HomePanel.isTaskIsOpen()) {
+                            // filter TaskScenePanelChart
+                            chart.createImportFileSessionList(LayoutConstants.HEAP_DUMP, hosJLabel, selectedFile);
+                        } else {
+                            optionJPanel.removeAll();
+                            TaskScenePanelChart taskScenePanelChart = new TaskScenePanelChart(taskPanel, hosJLabels);
+                            taskPanel.getTabContainer().setBackground(JBColor.background());
+                            taskPanel.setLocalSessionId(sessionId);
+                            optionJPanel.add(taskScenePanelChart);
+                        }
+                    }
+                } catch (InterruptedException | ExecutionException exception) {
+                    exception.printStackTrace();
+                }
+            }
+        };
+        task.execute();
+    }
+
+    private String getTime() {
+        SimpleDateFormat formatter = new SimpleDateFormat("HH:mm");
+        Date currentTime = new Date();
+        return formatter.format(currentTime);
     }
 
     /**
@@ -190,31 +288,48 @@ public class OpenFileDialogUtils {
      * @param optionJPanel optionJPanel
      */
     public void loadOfflineFileNativeHook(File selectedFile, TaskPanel taskPanel, JBPanel optionJPanel) {
-        SimpleDateFormat formatter = new SimpleDateFormat("HH:mm");
-        Date currentTime = new Date();
-        String time = formatter.format(currentTime);
         String absolutePath = null;
         try {
             absolutePath = selectedFile.getCanonicalPath();
         } catch (IOException ioException) {
-            LOGGER.error(ioException.getMessage());
+            if (ProfilerLogManager.isErrorEnabled()) {
+                LOGGER.error("load NativeHook file failed {}", ioException.getMessage());
+            }
         }
         long sessionId = CommonUtil.getLocalSessionId();
         CustomJLabel hosJLabel = new CustomJLabel();
-        hosJLabel.setProcessName(time + ";" + selectedFile.getName() + ";" + "NativeHook");
+        hosJLabel.setProcessName(getTime() + ";" + selectedFile.getName() + ";" + "NativeHeap");
         hosJLabel.setDeviceName("");
         hosJLabel.setOnline(false);
         hosJLabel.setConnectType(DEVICE_STAT_OFFLINE);
         hosJLabel.setSessionId(sessionId);
-        hosJLabel.setFileType("nativehook");
+        hosJLabel.setFileType("nativeHeap");
         hosJLabel.setMessage(absolutePath);
         ArrayList<CustomJLabel> hosJLabels = new ArrayList<CustomJLabel>();
         hosJLabels.add(hosJLabel);
-        optionJPanel.removeAll();
-        TaskScenePanelChart taskScenePanelChart = new TaskScenePanelChart(taskPanel, hosJLabels);
-        taskPanel.getTabContainer().setBackground(JBColor.background());
-        taskPanel.setLocalSessionId(sessionId);
-        optionJPanel.add(taskScenePanelChart);
+        if (HomePanel.isTaskIsOpen()) {
+            // filter TaskScenePanelChart
+            TaskScenePanelChart chart = getTaskScenePanelChart();
+            chart.createImportFileSessionList("NativeHeap", hosJLabel, selectedFile);
+        } else {
+            optionJPanel.removeAll();
+            TaskScenePanelChart taskScenePanelChart = new TaskScenePanelChart(taskPanel, hosJLabels);
+            taskPanel.getTabContainer().setBackground(JBColor.background());
+            taskPanel.setLocalSessionId(sessionId);
+            optionJPanel.add(taskScenePanelChart);
+        }
+    }
+
+    private TaskScenePanelChart getTaskScenePanelChart() {
+        TaskScenePanelChart chart = null;
+        Component[] innerComponents = taskPanel.getTabContainer().getComponents();
+        for (Component component : innerComponents) {
+            // filter TaskScenePanelChart
+            if (component instanceof TaskScenePanelChart) {
+                chart = (TaskScenePanelChart) component;
+            }
+        }
+        return chart;
     }
 
     /**
@@ -248,23 +363,22 @@ public class OpenFileDialogUtils {
             protected void done() {
                 try {
                     Optional<DeviceProcessInfo> deviceProcessInfo = get();
-                    if (deviceProcessInfo != null && deviceProcessInfo.isPresent()) {
+                    if (deviceProcessInfo.isPresent()) {
                         DeviceProcessInfo deviceInfo = deviceProcessInfo.get();
-                        CustomJLabel hosJLabel = new CustomJLabel();
-                        hosJLabel.setProcessName(deviceInfo.getProcessName());
-                        hosJLabel.setSessionId(deviceInfo.getLocalSessionId());
-                        hosJLabel.setDeviceName(deviceInfo.getDeviceName());
-                        hosJLabel.setOnline(false);
-                        hosJLabel.setFileType(UtConstant.FILE_TYPE_TRACE);
-                        hosJLabel.setStartTime(deviceInfo.getStartTime());
-                        hosJLabel.setEndTime(deviceInfo.getEndTime());
+                        CustomJLabel hosJLabel = getCustomJLabel(deviceInfo, selectedFile);
                         List<CustomJLabel> hosJLabels = new ArrayList<CustomJLabel>();
                         hosJLabels.add(hosJLabel);
-                        optionJPanel.removeAll();
-                        TaskScenePanelChart taskScenePanelChart = new TaskScenePanelChart(taskPanel, hosJLabels);
-                        taskPanel.getTabContainer().setBackground(JBColor.background());
-                        taskPanel.setLocalSessionId(deviceInfo.getLocalSessionId());
-                        optionJPanel.add(taskScenePanelChart);
+                        if (HomePanel.isTaskIsOpen()) {
+                            TaskScenePanelChart taskScenePanelChart = getTaskScenePanelChart();
+                            taskScenePanelChart
+                                .createImportFileSessionList(UtConstant.FILE_TYPE_TRACE, hosJLabel, null);
+                        } else {
+                            optionJPanel.removeAll();
+                            TaskScenePanelChart taskScenePanelChart = new TaskScenePanelChart(taskPanel, hosJLabels);
+                            taskPanel.getTabContainer().setBackground(JBColor.background());
+                            taskPanel.setLocalSessionId(deviceInfo.getLocalSessionId());
+                            optionJPanel.add(taskScenePanelChart);
+                        }
                     } else {
                         ChooseTraceTypeDialogWrapper chooseTraceTypeDialogWrapper =
                             new ChooseTraceTypeDialogWrapper(optionJPanelContent, selectedFile, optionJPanel);
@@ -283,9 +397,23 @@ public class OpenFileDialogUtils {
         task.execute();
     }
 
+    @NotNull
+    private CustomJLabel getCustomJLabel(DeviceProcessInfo deviceInfo, File selectedFile) {
+        CustomJLabel hosJLabel = new CustomJLabel();
+        hosJLabel.setProcessName(deviceInfo.getProcessName() + ";" + selectedFile.getName());
+        hosJLabel.setSessionId(deviceInfo.getLocalSessionId());
+        hosJLabel.setDeviceName(deviceInfo.getDeviceName());
+        hosJLabel.setOnline(false);
+        hosJLabel.setFileType(UtConstant.FILE_TYPE_TRACE);
+        hosJLabel.setStartTime(deviceInfo.getStartTime());
+        hosJLabel.setEndTime(deviceInfo.getEndTime());
+        return hosJLabel;
+    }
+
     /**
      * loadHiPerf
-     *  @param selectedFile selectedFile
+     *
+     * @param selectedFile selectedFile
      * @param optionJPanel optionJPanel
      * @param readLineStr readLineStr
      */
@@ -312,11 +440,29 @@ public class OpenFileDialogUtils {
                     String dbPath = get();
                     if (dbPath != null) {
                         optionJPanel.removeAll();
+                        long sessionId = CommonUtil.getLocalSessionId();
+                        CustomJLabel hosJLabel = new CustomJLabel();
+                        hosJLabel.setProcessName(getTime() + ";" + selectedFile.getName() + ";" + "Perf");
+                        hosJLabel.setDeviceName("");
+                        hosJLabel.setOnline(false);
+                        hosJLabel.setConnectType(DEVICE_STAT_OFFLINE);
+                        hosJLabel.setSessionId(sessionId);
+                        hosJLabel.setFileType(BYTRACE_TYPE_VALUE);
+                        ArrayList<CustomJLabel> hosJLabels = new ArrayList<CustomJLabel>();
+                        String cardName = "Trace" + sessionId;
+                        hosJLabel.setCardName(cardName);
+                        hosJLabels.add(hosJLabel);
+                        TaskScenePanelChart taskScenePanelChart = new TaskScenePanelChart(taskPanel, hosJLabels);
+                        taskPanel.getTabContainer().setBackground(JBColor.background());
+                        taskPanel.setLocalSessionId(sessionId);
+                        optionJPanel.add(taskScenePanelChart);
                         taskPanel.getTabContainer().setBackground(JBColor.background());
                         PerfTracePanel component = new PerfTracePanel();
                         component.load(dbPath, null, true);
                         progressBar.setValue(LayoutConstants.HUNDRED);
-                        optionJPanel.add(component);
+                        // optionJPanel.add(component);
+                        taskScenePanelChart.getCards().add(component, cardName);
+                        taskScenePanelChart.getCardLayout().show(taskScenePanelChart.getCards(), cardName);
                     }
                 } catch (InterruptedException | ExecutionException exception) {
                     exception.printStackTrace();
@@ -339,7 +485,7 @@ public class OpenFileDialogUtils {
             @Override
             protected String doInBackground() throws Exception {
                 traceAnalysisResult = true;
-                String logPath = TraceStreamerUtils.getInstance().getLogPath();
+                String logPath = TraceStreamerUtils.getInstance().getLogPath("trace_streamer.db");
                 File logFile = new File(logPath);
                 if (logFile.exists()) {
                     logFile.delete();
@@ -359,8 +505,12 @@ public class OpenFileDialogUtils {
             @Override
             protected void done() {
                 if (!traceAnalysisResult) {
-                    optionJPanelContent.remove(progressBar);
-                    optionJPanelContent.add(taskPanel.getBtnPanel());
+                    if (progressBar != null) {
+                        optionJPanelContent.remove(progressBar);
+                    }
+                    if (taskPanel != null) {
+                        optionJPanelContent.add(taskPanel.getBtnPanel());
+                    }
                     optionJPanelContent.repaint();
                     new SampleDialog("Warring",
                         "The system cannot parse the file properly. Please import the legal file.").show();
@@ -368,7 +518,7 @@ public class OpenFileDialogUtils {
                 try {
                     if (traceAnalysisResult) {
                         String dbPath = get();
-                        addOptionJPanel(dbPath, optionJPanel, isAppTrace);
+                        addOptionJPanel(dbPath, optionJPanel, isAppTrace, selectedFile);
                     }
                 } catch (InterruptedException interruptedException) {
                     LOGGER.error(interruptedException.getMessage());
@@ -386,24 +536,49 @@ public class OpenFileDialogUtils {
      * @param dbPath dbPath
      * @param optionJPanel optionJPanel
      * @param isAppTrace isAppTrace
+     * @param selectedFile selectedFile
      */
-    private void addOptionJPanel(String dbPath, JBPanel optionJPanel, boolean isAppTrace) {
-        optionJPanel.removeAll();
+    private void addOptionJPanel(String dbPath, JBPanel optionJPanel, boolean isAppTrace, File selectedFile) {
+        if (!HomePanel.isTaskIsOpen()) {
+            optionJPanel.removeAll();
+        }
+        long sessionId = CommonUtil.getLocalSessionId();
+        CustomJLabel hosJLabel = new CustomJLabel();
+        hosJLabel.setProcessName(getTime() + ";" + selectedFile.getName() + ";" + BYTRACE_TYPE_VALUE);
+        hosJLabel.setDeviceName("");
+        hosJLabel.setOnline(false);
+        hosJLabel.setConnectType(DEVICE_STAT_OFFLINE);
+        hosJLabel.setSessionId(sessionId);
+        hosJLabel.setFileType(BYTRACE_TYPE_VALUE);
+        ArrayList<CustomJLabel> hosJLabels = new ArrayList<CustomJLabel>();
+        String cardName = "Trace" + sessionId;
+        hosJLabel.setCardName(cardName);
+        hosJLabels.add(hosJLabel);
+        TaskScenePanelChart taskScenePanelChart = new TaskScenePanelChart(taskPanel, hosJLabels);
+        taskPanel.getTabContainer().setBackground(JBColor.background());
+        taskPanel.setLocalSessionId(sessionId);
+        optionJPanel.add(taskScenePanelChart);
         if (isAppTrace) {
             AppTracePanel component = new AppTracePanel();
             component.load(dbPath, null, null, true);
-            taskPanel.getTabContainer().setBackground(JBColor.background());
+            // taskPanel.getTabContainer().setBackground(JBColor.background());
             progressBar.setValue(LayoutConstants.HUNDRED);
-            optionJPanel.add(component);
+            // optionJPanel.add(component);
+            taskScenePanelChart.getCards().add(component, cardName);
         } else {
-            AnalystPanel component = new AnalystPanel();
+            SysAnalystPanel component = new SysAnalystPanel();
             component.load(dbPath, true);
-            taskPanel.getTabContainer().setBackground(JBColor.background());
+            // taskPanel.getTabContainer().setBackground(JBColor.background());
             progressBar.setValue(LayoutConstants.HUNDRED);
-            SystemPanel systemTuningPanel = new SystemPanel(optionJPanel, component);
-            optionJPanel.add(systemTuningPanel, BorderLayout.NORTH);
-            optionJPanel.add(component, BorderLayout.CENTER);
+            JBPanel tabContainer = new JBPanel(new BorderLayout());
+            SystemPanel systemTuningPanel = new SystemPanel(tabContainer, component);
+            tabContainer.add(systemTuningPanel, BorderLayout.NORTH);
+            tabContainer.add(component, BorderLayout.CENTER);
+            component.getAnalystPanel()
+                .setPreferredSize(new Dimension(optionJPanel.getWidth() - 20, optionJPanel.getHeight()));
+            taskScenePanelChart.getCards().add(tabContainer, cardName);
         }
+        taskScenePanelChart.getCardLayout().show(taskScenePanelChart.getCards(), cardName);
     }
 
     /**
@@ -419,6 +594,9 @@ public class OpenFileDialogUtils {
                 randomFile = new RandomAccessFile(logFile, "r");
                 String tmp = null;
                 while ((tmp = randomFile.readLine()) != null) {
+                    if (tmp.startsWith("last")) {
+                        continue;
+                    }
                     if (Integer.valueOf(tmp.split(":")[1]) != 0) {
                         traceAnalysisResult = false;
                     }
@@ -494,12 +672,23 @@ public class OpenFileDialogUtils {
         @Override
         protected ValidationInfo doValidate() {
             String value = typeList.getSelectedValue();
-            if (value != null) {
-                if (value.equals(SYSTEM_TYPE)) {
-                    loadTrace(optionJPanelContent, selectedFile, optionJPanel, false);
-                }
-                if (value.equals(APPLICATION_TYPE)) {
-                    loadTrace(optionJPanelContent, selectedFile, optionJPanel, true);
+            if (HomePanel.isTaskIsOpen()) {
+                TaskScenePanelChart taskScenePanelChart = getTaskScenePanelChart();
+                CustomJLabel hosJLabel = new CustomJLabel();
+                hosJLabel.setProcessName(getTime() + ";" + selectedFile.getName() + ";" + BYTRACE_TYPE_VALUE);
+                long sessionId = CommonUtil.getLocalSessionId();
+                hosJLabel.setSessionId(sessionId);
+                hosJLabel.setConnectType(DEVICE_STAT_OFFLINE);
+                hosJLabel.setMessage(value);
+                taskScenePanelChart.createImportFileSessionList(BYTRACE_TYPE_VALUE, hosJLabel, selectedFile);
+            } else {
+                if (value != null) {
+                    if (value.equals(SYSTEM_TYPE)) {
+                        loadTrace(optionJPanelContent, selectedFile, optionJPanel, false);
+                    }
+                    if (value.equals(APPLICATION_TYPE)) {
+                        loadTrace(optionJPanelContent, selectedFile, optionJPanel, true);
+                    }
                 }
             }
             return null;

@@ -1,0 +1,305 @@
+#!/bin/bash
+
+#
+# Copyright (c) 2021 Huawei Device Co., Ltd.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+WORK_DIR=/data/local/tmp
+LOCK_NAME="/data/local/tmp/my.lock"
+function error(){
+    echo -e "\033[1;31m$1\033[0m"
+    exit 1
+}
+
+
+function start_daemon() {
+    echo "start Profiler Daemon Process"
+    if [ $(getprop ro.product.cpu.abi) == "arm64-v8a" ]; then
+      echo "run as shell"
+      if ( set -o noclobber; echo "$$" > "$LOCK_NAME") 2> /dev/null;then
+          trap 'rm -f "$LOCK_NAME"; exit $?' INT TERM EXIT
+	  killall hiprofilerd hiprofiler_plugins
+          start_hiprofilerd
+	  sleep 1
+	  start_plugins
+
+          ### Removing lock
+          rm -f $LOCK_NAME
+          trap - INT TERM EXIT
+	  echo "StartDaemonSuccess"
+      else
+         echo "lockfile failed: $LOCK_NAME."
+         echo "other process is running： $(cat $LOCK_NAME)"
+         exit 1
+      fi
+    else
+     su root <<EOF
+      if [ `ps -ef | grep hiprofilerd | grep -v grep | wc -l` -ne 0 ]; then
+          killall hiprofilerd
+      fi
+      if [ `ps -ef | grep hiprofiler_plugins | grep -v grep | wc -l` -ne 0 ]; then
+          killall hiprofiler_plugins
+      fi
+      sh /data/local/tmp/ohosprofiler start_hiprofilerd
+      sleep 1
+      sh /data/local/tmp/ohosprofiler start_plugins
+      exit 0;
+EOF
+    echo "StartDaemonSuccess"
+    fi
+    exit 0
+}
+
+function start_std_daemon() {
+    echo "start_std_daemon Profiler Daemon Process"
+    if ( set -o noclobber; echo "$$" > "$LOCK_NAME") 2> /dev/null;then
+          trap 'rm -f "$LOCK_NAME"; exit $?' INT TERM EXIT
+          killall hiprofilerd hiprofiler_plugins native_daemon
+          start_std_hiprofilerd
+          sleep 1
+          start_std_plugins
+          sleep 1
+          start_std_nativehook
+          sleep 1
+          ### Removing lock
+          rm -f $LOCK_NAME
+          trap - INT TERM EXIT
+	  echo "StartDaemonSuccess"
+    else
+         echo "lockfile failed: $LOCK_NAME."
+         echo "other process is running： $(cat $LOCK_NAME)"
+         exit 1
+    fi
+    exit 0
+}
+
+function restart_daemon(){
+     echo "start Profiler Daemon Process"
+    if [ $(getprop ro.product.cpu.abi) == "arm64-v8a" ]; then
+      echo "run as shell"
+      if ( set -o noclobber; echo "$$" > "$LOCK_NAME") 2> /dev/null;then
+          trap 'rm -f "$LOCK_NAME"; exit $?' INT TERM EXIT
+
+          killall hiprofilerd hiprofiler_plugins
+          start_hiprofilerd
+          sleep 1
+          start_plugins
+
+          ### Removing lock
+          rm -f $LOCK_NAME
+          trap - INT TERM EXIT
+	  echo "StartDaemonSuccess"
+      else
+         echo "lockfile failed: $LOCK_NAME."
+         echo "other process is running： $(cat $LOCK_NAME)"
+         exit 1
+      fi
+    else
+      su root <<EOF
+        if [ `ps -ef | grep hiprofilerd | grep -v grep | wc -l` -ne 0 ]; then
+            killall hiprofilerd
+        fi
+        if [ `ps -ef | grep hiprofiler_plugins | grep -v grep | wc -l` -ne 0 ]; then
+            killall hiprofiler_plugins
+      fi
+          sh /data/local/tmp/ohosprofiler start_hiprofilerd
+          sleep 1
+          sh /data/local/tmp/ohosprofiler start_plugins
+          exit 0;
+EOF
+    echo "StartDaemonSuccess"
+    fi
+}
+
+function start_std_hiprofilerd() {
+    hiprofilerd & >> /dev/null
+}
+
+function start_std_plugins() {
+    hiprofiler_plugins & >> /dev/null
+}
+
+function start_std_nativehook() {
+    native_daemon & >> /dev/null
+}
+
+function start_hiprofilerd() {
+    cd $WORK_DIR/developtools
+    chmod +x $WORK_DIR/developtools/hiprofilerd
+    echo "$pwd"
+    LD_LIBRARY_PATH=./ ./hiprofilerd & >> /dev/null
+}
+
+function start_plugins() {
+    cd $WORK_DIR/developtools
+    chmod +x $WORK_DIR/developtools/hiprofiler_plugins
+    LD_LIBRARY_PATH=./ ./hiprofiler_plugins & >> /dev/null
+}
+
+function start_java_heap(){
+   process_name=$1
+   echo "start collect heap ${process_name}"
+   run-as ${process_name} sh -c 'cp /data/local/tmp/developtools/libagentplugin.z.so  ./'
+   run-as ${process_name} sh -c 'cp /data/local/tmp/developtools/profiler.jar  ./'
+   sh -c "cmd activity attach-agent ${process_name} /data/data/${process_name}/libagentplugin.z.so"
+   if [ "$?" == "0" ]; then
+       echo "start javaHeapSuccess"
+   else 
+       echo "failed"
+   fi
+   exit 0
+}
+
+function uzip_file(){
+     echo "================= $1 "
+     string=$1
+     array=(${string//,/ })
+     echo "uzip devtools file"
+     cd $WORK_DIR
+     if [ `ls $WORK_DIR | grep developtools | grep -v grep | wc -l` -eq 1 ]; then
+        cd developtools
+        chmod + *
+         for pluginfile in ${array[@]}
+         do
+           echo "---------------- $pluginfile"
+           if [ `ls ${WORK_DIR}/developtools/ | grep $pluginfile | grep -v grep | wc -l` -eq 1 ]; then
+               cp $WORK_DIR/developtools/$pluginfile $WORK_DIR
+           fi
+         done
+     fi
+}
+
+function uzip_std_file(){
+     echo "================= $1 "
+     string=$1
+     array=(${string//,/ })
+     echo "uzip devtools file"
+     cd $WORK_DIR
+     if [ `ls $WORK_DIR | grep stddeveloptools | grep -v grep | wc -l` -eq 1 ]; then
+        cd stddeveloptools
+        chmod + *
+         for pluginfile in ${array[@]}
+         do
+           echo "---------------- $pluginfile"
+           if [ `ls ${WORK_DIR}/stddeveloptools/ | grep $pluginfile | grep -v grep | wc -l` -eq 1 ]; then
+               cp $WORK_DIR/stddeveloptools/$pluginfile $WORK_DIR
+           fi
+         done
+     fi
+}
+
+
+function check_server(){
+   chmod +x /data/local/tmp/developtools/hiprofiler_cmd
+   cd /data/local/tmp/developtools/
+   if [ `ps -ef| grep hiprofiler_plugins | grep -v grep | wc -l` -eq 0 ];then
+      echo "FAIL"
+   fi
+   LD_LIBRARY_PATH=./  /data/local/tmp/developtools/hiprofiler_cmd -q
+}
+
+function check_std_server(){
+   chmod +x /data/local/tmp/stddeveloptools/hiprofiler_cmd
+   if [ `ps -ef| grep hiprofiler_plugins | grep -v grep | wc -l` -eq 0 ];then
+      echo "FAIL"
+      echo "hiprofiler_plugins not"
+   fi
+   if [ `ps -ef| grep hiprofilerd | grep -v grep | wc -l` -eq 0 ];then
+        echo "FAIL"
+        echo "hiprofilerd not"
+   fi
+   if [ `ps -ef| grep native_daemon | grep -v grep | wc -l` -eq 0 ];then
+        echo "FAIL"
+        echo "native_daemon not"
+   fi
+   echo "OK";
+}
+
+
+function unzip_start_daemon(){
+    uzip_file $1
+    start_daemon 
+    exit 0
+}
+
+function untar_start_daemon(){
+    untar
+    uzip_std_file $1
+    init_hiperf
+    start_std_daemon
+    exit 0
+}
+
+function untar(){
+    cd /data/local/tmp/
+    tar -vxf stddeveloptool.tar
+    return 0
+}
+
+function init_hiperf(){
+    chmod a+x /data/local/tmp/hiperf
+    cp /data/local/tmp/hiperf /system/bin/
+    chmod a+x /system/bin/hiperf
+    return 0
+}
+
+case $1 in
+         check)
+           echo "check file"
+	   check_file_exits 
+         ;;
+         start)
+           echo "start"
+	   start_daemon
+         ;;
+	     unzipStart)
+           echo "start"
+           unzip_start_daemon $2
+         ;;
+         untarStart)
+           echo "start"
+           untar_start_daemon $2
+         ;;
+         startHeap)
+	       echo "start Heap"
+	       start_java_heap $2
+	 ;; 
+         check_server)
+           check_server
+         ;;
+         check_std_server)
+           check_std_server
+         ;;
+	 restart)
+           restart_daemon
+         ;;
+         start_std_daemon)
+           start_std_daemon
+         ;;
+         start_hiprofilerd)
+           echo "ohosprofiler"
+           start_hiprofilerd
+         ;;
+         start_native)
+           start_std_nativehook
+         ;;
+         start_plugins)
+           echo "------------"
+           start_plugins
+         ;;
+         *)
+           echo "Ignorant"
+         ;;
+esac

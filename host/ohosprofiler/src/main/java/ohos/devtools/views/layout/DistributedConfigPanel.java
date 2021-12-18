@@ -126,10 +126,10 @@ public class DistributedConfigPanel extends JBPanel {
             LOGGER.info("initDevicePanel");
         }
         JBPanel devicePanel = new JBPanel(new MigLayout("insets 0", "[grow,fill]"));
-        firstDevice = new DistributedDeviceProcessPanel(1);
+        firstDevice = new DistributedDeviceProcessPanel(1, true);
         devicePanel.add(firstDevice, "wrap");
         devicePanel.add(new JSeparator(), "wrap");
-        secondDevice = new DistributedDeviceProcessPanel(2);
+        secondDevice = new DistributedDeviceProcessPanel(2, true);
         devicePanel.add(secondDevice, "wrap");
         devicePanel.add(new JSeparator(), "wrap");
         JBScrollPane scrollPane = new JBScrollPane(devicePanel);
@@ -209,8 +209,9 @@ public class DistributedConfigPanel extends JBPanel {
                     new SampleDialog("prompt", "The selection process cannot be empty !").show();
                     return;
                 }
-                DistributedManager distributedManager = new DistributedManager(new DistributeDevice(item, firstProcess),
-                    new DistributeDevice(deviceIPPortInfo, secondProcess));
+                DistributeDevice firstDeviceInfo = new DistributeDevice(item, firstProcess);
+                DistributeDevice secondDeviceInfo = new DistributeDevice(deviceIPPortInfo, secondProcess);
+                DistributedManager distributedManager = new DistributedManager(firstDeviceInfo, secondDeviceInfo);
                 boolean collectSuccess = distributedManager.startCollecting();
                 if (collectSuccess) {
                     new TraceRecordDialog().load(contentPanel, distributedManager, true);
@@ -235,10 +236,10 @@ public class DistributedConfigPanel extends JBPanel {
                         new SwingWorker<List<String>, Integer>() {
                             @Override
                             protected List<String> doInBackground() {
+                                secondDevice.getSearchComBox().getSelectedProcessTextFiled().setText("");
                                 LOGGER.info("start Process");
                                 List<ProcessInfo> processInfos = ProcessManager.getInstance().getProcessList(item);
                                 LOGGER.info("Process end");
-
                                 List<String> processNames = new ArrayList<>();
                                 for (int index = 0; index < processInfos.size(); index++) {
                                     ProcessInfo processInfo = processInfos.get(index);
@@ -259,6 +260,8 @@ public class DistributedConfigPanel extends JBPanel {
                                     LOGGER.info(" refreshProcess end");
                                 } catch (InterruptedException | ExecutionException exception) {
                                     exception.printStackTrace();
+                                } finally {
+                                    ProcessManager.getInstance().setIsRequest(false);
                                 }
                             }
                         }.execute();
@@ -288,6 +291,7 @@ public class DistributedConfigPanel extends JBPanel {
                         new SwingWorker<List<String>, Integer>() {
                             @Override
                             protected List<String> doInBackground() {
+                                firstDevice.getSearchComBox().getSelectedProcessTextFiled().setText("");
                                 List<ProcessInfo> processInfos = ProcessManager.getInstance().getProcessList(item);
                                 List<String> processNames = new ArrayList<>();
                                 for (int index = 0; index < processInfos.size(); index++) {
@@ -305,6 +309,8 @@ public class DistributedConfigPanel extends JBPanel {
                                     firstDevice.getSearchComBox().refreshProcess(vector);
                                 } catch (InterruptedException | ExecutionException exception) {
                                     exception.printStackTrace();
+                                } finally {
+                                    ProcessManager.getInstance().setIsRequest(false);
                                 }
                             }
                         }.execute();

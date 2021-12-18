@@ -27,6 +27,8 @@ import static ohos.devtools.views.layout.chartview.utils.ChartViewConstants.LOAD
 
 /**
  * Loading Panel
+ *
+ * @since 2021/11/22
  */
 public class LoadingPanel extends JBPanel {
     /**

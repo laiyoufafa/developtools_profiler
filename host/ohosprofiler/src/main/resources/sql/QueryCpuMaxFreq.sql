@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 select max(value) as maxFreq
 from counter c
 inner join cpu_counter_track t on c.track_id = t.id
