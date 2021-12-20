@@ -146,10 +146,9 @@ public class OtherFunctionSummaryPanel extends EventPanel {
     }
 
     private void getAppTraceData(Func func) {
-        List<Func> collect =
-            AllData.funcMap.get(func.getTid()).stream()
-                .filter(filter -> filter.getFuncName().equals(func.getFuncName()))
-                .sorted(Comparator.comparingLong(Func::getDur).reversed()).collect(Collectors.toList());
+        List<Func> collect = AllData.funcMap.get(func.getTid()).stream()
+            .filter(filter -> filter.getFuncName().equals(func.getFuncName()))
+            .sorted(Comparator.comparingLong(Func::getDur).reversed()).collect(Collectors.toList());
         List<Long> longs = collect.stream().map(Func::getDur).collect(Collectors.toList());
         setStatisticsData(longs);
         List<EventBean> dataSource = new ArrayList<>();
@@ -161,7 +160,7 @@ public class OtherFunctionSummaryPanel extends EventPanel {
     }
 
     private void getPerfData(PrefFunc prefFunc) {
-        List<PrefFunc> collect = PerfData.FUNC_MAP.get(Long.valueOf(prefFunc.getTid()).intValue()).stream()
+        List<PrefFunc> collect = PerfData.getFuncMap().get(Long.valueOf(prefFunc.getTid()).intValue()).stream()
             .filter(filter -> filter.getDepth() != -1 && filter.getFuncName().equals(prefFunc.getFuncName()))
             .sorted(Comparator.comparingLong(PrefFunc::getDur).reversed()).collect(Collectors.toList());
         List<Long> longs = collect.stream().map(PrefFunc::getDur).collect(Collectors.toList());

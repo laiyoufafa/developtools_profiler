@@ -72,7 +72,7 @@ public class AllData {
      * get right TopDown tree by time range
      *
      * @param startNS startNS
-     * @param endNS   endNS
+     * @param endNS endNS
      * @return node List
      */
     public static List<DefaultMutableTreeNode> getFuncTreeTopDown(long startNS, long endNS) {
@@ -88,8 +88,8 @@ public class AllData {
     /**
      * get right TopDown tree by time range and selected thread
      *
-     * @param startNS   startNS
-     * @param endNS     endNS
+     * @param startNS startNS
+     * @param endNS endNS
      * @param threadIds threadIds
      * @return node List
      */
@@ -109,7 +109,7 @@ public class AllData {
      * get right BottomUp tree by time range
      *
      * @param startNS startNS
-     * @param endNS   endNS
+     * @param endNS endNS
      * @return tree node List
      */
     public static List<DefaultMutableTreeNode> getFuncTreeBottomUp(long startNS, long endNS) {
@@ -119,8 +119,8 @@ public class AllData {
     /**
      * get right BottomUp tree by time range and thread
      *
-     * @param startNS   startNS
-     * @param endNS     endNS
+     * @param startNS startNS
+     * @param endNS endNS
      * @param threadIds threadIds
      * @return tree node List
      */
@@ -140,7 +140,7 @@ public class AllData {
         List<Func> collect = funcMap.get(func.getTid()).stream().filter(
             item -> TimeUtils.isRangeCross(func.getStartTs(), func.getEndTs(), item.getStartTs(), item.getEndTs())
                 && item.getDepth() > func.getDepth()).collect(Collectors.toList());
-        Map<Long, TreeTableBean> longTreeTableBeanMap = funcGroupByStackId(func, collect, null);
+        Map<String, TreeTableBean> longTreeTableBeanMap = funcGroupByStackId(func, collect, null);
         List<TreeTableBean> treeTableBeans = setNumForNodes(longTreeTableBeanMap);
         TreeTableBean treeTableBean = new TreeTableBean();
         treeTableBean.setName(func.getFuncName());
@@ -153,14 +153,14 @@ public class AllData {
         treeTableBean.setChildrenNum(threadFuncDuration);
         treeTableBean.setSelfNum(totalUs - threadFuncDuration);
         DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode(treeTableBean);
-        Map<Long, DefaultMutableTreeNode> treeNodeMap =
-            treeTableBeans.stream().collect(Collectors.toMap(TreeTableBean::getStackId, DefaultMutableTreeNode::new));
+        Map<String, DefaultMutableTreeNode> treeNodeMap =
+            treeTableBeans.stream().collect(Collectors.toMap(TreeTableBean::getBloodId, DefaultMutableTreeNode::new));
         treeTableBeans.forEach(listBean -> {
-            if (listBean.getParentStackId() == func.getStackId()) {
-                rootNode.add(treeNodeMap.get(listBean.getStackId()));
+            if (listBean.getParentBloodId().equals(func.getBloodId())) {
+                rootNode.add(treeNodeMap.get(listBean.getBloodId()));
             } else {
-                if (treeNodeMap.containsKey(listBean.getParentStackId())) {
-                    treeNodeMap.get(listBean.getParentStackId()).add(treeNodeMap.get(listBean.getStackId()));
+                if (treeNodeMap.containsKey(listBean.getParentBloodId())) {
+                    treeNodeMap.get(listBean.getParentBloodId()).add(treeNodeMap.get(listBean.getBloodId()));
                 }
             }
         });
@@ -178,10 +178,10 @@ public class AllData {
     public static List<DefaultMutableTreeNode> getFuncTreeByFuncBottomUp(Func func) {
         ArrayList<DefaultMutableTreeNode> nodes = new ArrayList<>();
         List<Func> collect = funcMap.get(func.getTid()).stream().filter(
-                item -> TimeUtils.isRangeCross(func.getStartTs(), func.getEndTs(), item.getStartTs(), item.getEndTs()))
+            item -> TimeUtils.isRangeCross(func.getStartTs(), func.getEndTs(), item.getStartTs(), item.getEndTs()))
             .collect(Collectors.toList());
-        Map<String, List<Long>> nameToId = new HashMap<>();
-        Map<Long, TreeTableBean> treeNodeMap = funcGroupByStackId(func, collect, nameToId);
+        Map<String, List<String>> nameToId = new HashMap<>();
+        Map<String, TreeTableBean> treeNodeMap = funcGroupByStackId(func, collect, nameToId);
         setNumForNodes(treeNodeMap);
         nameToId.forEach((name, ids) -> {
             TreeTableBean treeTableBean = new TreeTableBean(TimeUnit.NANOSECONDS.toMicros(func.getDur()));
@@ -189,7 +189,7 @@ public class AllData {
             long totalNum = 0;
             long childrenNum = 0;
             long selfNum = 0;
-            for (Long id : ids) {
+            for (String id : ids) {
                 TreeTableBean tableBean = treeNodeMap.get(id);
                 totalNum += tableBean.getTotalNum();
                 childrenNum += tableBean.getChildrenNum();
@@ -200,10 +200,10 @@ public class AllData {
             treeTableBean.setChildrenNum(childrenNum);
             DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode(treeTableBean);
             ids.forEach(
-                id -> recursionNode(rootNode, treeNodeMap.get(id).getParentStackId(), threadNames.get(func.getTid()),
+                id -> recursionNode(rootNode, treeNodeMap.get(id).getParentBloodId(), threadNames.get(func.getTid()),
                     treeNodeMap, id));
             if (ids.stream().noneMatch(id ->
-                collect.stream().filter(item -> item.getStackId() == id && item.getDepth() < func.getDepth())
+                collect.stream().filter(item -> item.getBloodId().equals(id) && item.getDepth() < func.getDepth())
                     .toArray().length > 0)) {
                 nodes.add(rootNode);
             }
@@ -211,72 +211,36 @@ public class AllData {
         return nodes;
     }
 
-    private static Map<Long, TreeTableBean> funcGroupByStackId(Func func, List<Func> collect,
-        Map<String, List<Long>> nameToId) {
+    private static Map<String, TreeTableBean> funcGroupByStackId(Func func, List<Func> collect,
+        Map<String, List<String>> nameToId) {
         long totalUs = TimeUnit.NANOSECONDS.toMicros(func.getDur());
-        Map<Long, TreeTableBean> map = collect.stream().collect(groupingBy(Func::getStackId)).entrySet().stream()
-            .collect(Collectors.toMap(entry -> entry.getKey(), entry -> {
+        Map<String, TreeTableBean> map =
+            collect.stream().filter(item -> !item.getBloodId().isEmpty()).collect(groupingBy(Func::getBloodId))
+                .entrySet().stream().collect(Collectors.toMap(entry -> entry.getKey(), entry -> {
                 TreeTableBean uniteBean = new TreeTableBean(totalUs);
-                uniteBean.setStackId(entry.getKey());
+                uniteBean.setBloodId(entry.getKey());
                 if (entry.getValue().size() > 0) {
                     uniteBean.setName(entry.getValue().get(0).getFuncName());
-                    uniteBean.setParentStackId(entry.getValue().get(0).getParentStackId());
+                    uniteBean.setParentBloodId(entry.getValue().get(0).getParentBloodId());
                     if (nameToId != null) {
                         if (nameToId.containsKey(entry.getValue().get(0).getFuncName())) {
                             nameToId.get(entry.getValue().get(0).getFuncName())
-                                .add(entry.getValue().get(0).getStackId());
+                                .add(entry.getValue().get(0).getBloodId());
                         } else {
-                            List<Long> ids = new ArrayList<>();
-                            ids.add(entry.getValue().get(0).getStackId());
+                            List<String> ids = new ArrayList<>();
+                            ids.add(entry.getValue().get(0).getBloodId());
                             nameToId.put(entry.getValue().get(0).getFuncName(), ids);
                         }
                     }
                 }
                 long childrenTotal = entry.getValue().stream().mapToLong(mapper -> TimeUtils
-                    .getIntersection(func.getStartTs(), func.getEndTs(), mapper.getStartTs(),
-                            mapper.getEndTs())).sum();
+                    .getIntersection(func.getStartTs(), func.getEndTs(), mapper.getStartTs(), mapper.getEndTs())).sum();
                 uniteBean.setTotalNum(childrenTotal);
                 uniteBean.setChildrenNS(entry.getValue().stream().mapToLong(mapper -> TimeUtils
-                        .getNanoIntersection(func.getStartTs(), func.getEndTs(),
-                                mapper.getStartTs(), mapper.getEndTs()))
-                        .sum());
+                    .getNanoIntersection(func.getStartTs(), func.getEndTs(), mapper.getStartTs(), mapper.getEndTs()))
+                    .sum());
                 return uniteBean;
             }));
-        return map;
-    }
-
-    private static Map<Long, TreeTableBean> funcGroupByStackId(long startNS, long endNS, List<Func> list,
-        Map<String, List<Long>> nameToId) {
-        long dur = endNS - startNS;
-        Map<Long, TreeTableBean> map =
-            list.stream().filter(func -> func.getEndTs() > startNS && func.getStartTs() < endNS)
-                .collect(groupingBy(Func::getStackId)).entrySet().stream()
-                .collect(Collectors.toMap(Map.Entry::getKey, a1 -> {
-                    TreeTableBean uniteBean = new TreeTableBean(dur);
-                    uniteBean.setThreadDur(dur);
-                    uniteBean.setStackId(a1.getKey());
-                    if (a1.getValue().size() > 0) {
-                        uniteBean.setName(a1.getValue().get(0).getFuncName());
-                        uniteBean.setParentStackId(a1.getValue().get(0).getParentStackId());
-                        if (nameToId != null) {
-                            if (nameToId.containsKey(a1.getValue().get(0).getFuncName())) {
-                                nameToId.get(a1.getValue().get(0).getFuncName()).add(a1.getValue().get(0).getStackId());
-                            } else {
-                                ArrayList<Long> ids = new ArrayList<>();
-                                ids.add(a1.getValue().get(0).getStackId());
-                                nameToId.put(a1.getValue().get(0).getFuncName(), ids);
-                            }
-                        }
-                    }
-                    long childrenTotal = a1.getValue().stream().mapToLong(mapper -> TimeUtils
-                            .getIntersection(startNS, endNS, mapper.getStartTs(),
-                                    mapper.getStartTs() + mapper.getDur())).sum();
-                    uniteBean.setTotalNum(childrenTotal);
-                    uniteBean.setChildrenNS(a1.getValue().stream().mapToLong(mapper -> TimeUtils
-                        .getNanoIntersection(startNS, endNS, mapper.getStartTs(),
-                            mapper.getStartTs() + mapper.getDur())).sum());
-                    return uniteBean;
-                }));
         return map;
     }
 
@@ -286,12 +250,12 @@ public class AllData {
      * @param map map
      * @return set node userObject
      */
-    public static List<TreeTableBean> setNumForNodes(Map<Long, TreeTableBean> map) { // Set up presentation data
+    public static List<TreeTableBean> setNumForNodes(Map<String, TreeTableBean> map) { // Set up presentation data
         List<TreeTableBean> treeNodes = new ArrayList<>(map.values()); // Sort the array
         for (TreeTableBean ts : treeNodes) { // Loop set children and total data
             ts.setSelfNum(ts.getTotalNum() - ts.getChildrenNum());
-            if (map.containsKey(ts.getParentStackId())) {
-                TreeTableBean mapUserObject = map.get(ts.getParentStackId());
+            if (map.containsKey(ts.getParentBloodId())) {
+                TreeTableBean mapUserObject = map.get(ts.getParentBloodId());
                 mapUserObject.setChildrenNum(mapUserObject.getChildrenNum() + ts.getTotalNum());
                 mapUserObject.setSelfNum(mapUserObject.getTotalNum() - mapUserObject.getChildrenNum());
             }
@@ -299,52 +263,40 @@ public class AllData {
         return treeNodes;
     }
 
-    private static void recursionNode(DefaultMutableTreeNode rootNode, long parentId, String threadName,
-        Map<Long, TreeTableBean> treeNodeMap, long id) {
+    private static void recursionNode(DefaultMutableTreeNode rootNode, String parentId, String threadName,
+        Map<String, TreeTableBean> treeNodeMap, String id) {
         if (rootNode.getUserObject() instanceof TreeTableBean) {
             TreeTableBean topBean = (TreeTableBean) rootNode.getUserObject();
             TreeTableBean timeBean = treeNodeMap.get(id);
-            if (parentId == 0) { // Leaf node
+            if (parentId.equals("")) { // Leaf node
                 recursionNodeLeaf(threadName, rootNode, topBean, timeBean);
             } else { // Non-leaf nodes
-                Map<String, Long> idMap = new HashMap<>();
-                idMap.put("parentId", parentId);
-                idMap.put("id", id);
-                recursionNodeNonLeaf(threadName, rootNode, timeBean, treeNodeMap, idMap);
+                Map<String, String> Ids = new HashMap();
+                Ids.put("parentId", parentId);
+                Ids.put("id", id);
+                recursionNodeNonLeaf(threadName, rootNode, timeBean, treeNodeMap, Ids);
             }
         }
     }
 
-    private static void recursionNodeLeaf(String threadName, DefaultMutableTreeNode rootNode,
-        TreeTableBean topBean, TreeTableBean timeBean) {
-        if (rootNode.getChildCount() == 0) { // The child node is thread and there are currently no child nodes
-            TreeTableBean bean = new TreeTableBean(topBean.getThreadDur());
-            bean.setName(threadName);
-            bean.setTotalNum(timeBean.getTotalNum());
-            bean.setSelfNum(timeBean.getTotalNum());
-            bean.setSelfNum(timeBean.getSelfNum());
-            DefaultMutableTreeNode node = new DefaultMutableTreeNode(bean);
-            rootNode.add(node);
-        } else { // Merge leaf nodes
+    private static void recursionNodeLeaf(String threadName, DefaultMutableTreeNode rootNode, TreeTableBean topBean,
+        TreeTableBean timeBean) {
+        if (rootNode.getChildCount() != 0) { // The child node is thread and there are currently no child nodes
             TreeNode tNode = rootNode.getChildAt(rootNode.getChildCount() - 1);
             if (tNode instanceof DefaultMutableTreeNode) {
                 DefaultMutableTreeNode leafNode = (DefaultMutableTreeNode) tNode;
                 if (leafNode.getUserObject() instanceof TreeTableBean) {
                     TreeTableBean leafNodeUserObject = (TreeTableBean) leafNode.getUserObject();
-                    leafNodeUserObject.setTotalNum(leafNodeUserObject.getTotalNum() + timeBean.getTotalNum());
-                    leafNodeUserObject.setSelfNum(leafNodeUserObject.getSelfNum() + timeBean.getTotalNum());
-                    leafNodeUserObject
-                            .setChildrenNum(leafNodeUserObject.getSelfNum() + timeBean.getChildrenNum());
+                    leafNodeUserObject.mergeTime(timeBean);
                     leafNode.setUserObject(leafNodeUserObject);
                 }
             }
         }
     }
 
-    private static void recursionNodeNonLeaf(String threadName, DefaultMutableTreeNode rootNode,
-        TreeTableBean timeBean, Map<Long, TreeTableBean> treeNodeMap,
-        Map<String, Long> idMap) {
-        final TreeTableBean idBean = treeNodeMap.get(idMap.get("parentId"));
+    private static void recursionNodeNonLeaf(String threadName, DefaultMutableTreeNode rootNode, TreeTableBean timeBean,
+        Map<String, TreeTableBean> treeNodeMap, Map<String, String> Ids) {
+        final TreeTableBean idBean = treeNodeMap.get(Ids.get("parentId"));
         boolean sameName = false;
         Enumeration<TreeNode> enumeration = rootNode.children();
         while (enumeration.hasMoreElements()) {
@@ -355,27 +307,20 @@ public class AllData {
                 if (nextElement.getUserObject() instanceof TreeTableBean) {
                     TreeTableBean nextElementUserObject = (TreeTableBean) nextElement.getUserObject();
                     if (nextElementUserObject.getName().equals(idBean.getName())) { // The merge time difference
-                        nextElementUserObject
-                                .setSelfNum(nextElementUserObject.getSelfNum() + timeBean.getSelfNum());
-                        nextElementUserObject
-                                .setChildrenNum(nextElementUserObject.getChildrenNum() + timeBean.getChildrenNum());
-                        nextElementUserObject
-                                .setTotalNum(nextElementUserObject.getTotalNum() + timeBean.getTotalNum());
-                        recursionNode(nextElement, idBean.getParentStackId(), threadName, treeNodeMap, idMap.get("id"));
+                        nextElementUserObject.mergeTime(timeBean);
+                        recursionNode(nextElement, idBean.getParentBloodId(), threadName, treeNodeMap, Ids.get("id"));
                         sameName = true;
                     }
                 }
             }
         }
         if (!sameName) { // No same node needs to be merged
-            TreeTableBean bean = new TreeTableBean();
+            TreeTableBean bean = new TreeTableBean(idBean.getThreadDur());
             bean.setName(idBean.getName());
-            bean.setTotalNum(timeBean.getTotalNum());
-            bean.setSelfNum(timeBean.getSelfNum());
-            bean.setChildrenNum(timeBean.getChildrenNum());
+            bean.setTime(timeBean);
             DefaultMutableTreeNode addNode = new DefaultMutableTreeNode(bean);
             rootNode.add(addNode);
-            recursionNode(addNode, idBean.getParentStackId(), threadName, treeNodeMap, idMap.get("id"));
+            recursionNode(addNode, idBean.getParentBloodId(), threadName, treeNodeMap, Ids.get("id"));
         }
     }
 
@@ -383,7 +328,7 @@ public class AllData {
      * get right flame chart data by time range
      *
      * @param startNS startNS
-     * @param endNS   endNS
+     * @param endNS endNS
      * @return return flame node list
      */
     public static List<DefaultMutableTreeNode> getFuncTreeFlameChart(long startNS, long endNS) {
@@ -406,8 +351,8 @@ public class AllData {
     /**
      * get right flame chart data by time range and selected thread
      *
-     * @param startNS   startNS
-     * @param endNS     endNS
+     * @param startNS startNS
+     * @param endNS endNS
      * @param threadIds threadIds
      * @return return flame node list
      */

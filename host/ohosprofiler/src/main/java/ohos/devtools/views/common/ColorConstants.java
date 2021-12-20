@@ -203,20 +203,17 @@ public final class ColorConstants {
     /**
      * url color
      */
-    public static final JBColor URL_COLOR = new JBColor(new Color(0x0076FF, true),
-        new Color(0, 118, 255));
+    public static final JBColor URL_COLOR = new JBColor(new Color(0x0076FF, true), new Color(0, 118, 255));
 
     /**
      * ability background color
      */
-    public static final Color ABILITY_COLOR = new JBColor(new Color(0xFF494E52, true),
-        new Color(73, 78, 82));
+    public static final Color ABILITY_COLOR = new JBColor(new Color(0xFF494E52, true), new Color(73, 78, 82));
 
     /**
      * ability active color
      */
-    public static final Color ABILITY_ACTIVE_COLOR = new JBColor(new Color(0xFF0C65D1, true),
-        new Color(12, 101, 209));
+    public static final Color ABILITY_ACTIVE_COLOR = new JBColor(new Color(0xFF0C65D1, true), new Color(12, 101, 209));
 
     /**
      * ability initial color
@@ -227,14 +224,12 @@ public final class ColorConstants {
     /**
      * network request color
      */
-    public static final Color NETWORK_REQUEST_COLOR = new JBColor(new Color(0xFF9201),
-        new Color(255, 146, 1));
+    public static final Color NETWORK_REQUEST_COLOR = new JBColor(new Color(0xFF9201), new Color(255, 146, 1));
 
     /**
      * network response color
      */
-    public static final Color NETWORK_RESPONSE_COLOR = new JBColor(new Color(0x3391FF, true),
-        new Color(51, 145, 255));
+    public static final Color NETWORK_RESPONSE_COLOR = new JBColor(new Color(0x3391FF, true), new Color(51, 145, 255));
 
     /**
      * network overview text color
@@ -244,8 +239,7 @@ public final class ColorConstants {
     /**
      * ability home color
      */
-    public static final Color ABILITY_HOME_COLOR = new JBColor(new Color(0xE88FAE, true),
-        new Color(232, 143, 174));
+    public static final Color ABILITY_HOME_COLOR = new JBColor(new Color(0xE88FAE, true), new Color(232, 143, 174));
 
     /**
      * ability home other color

@@ -22,6 +22,8 @@ import java.util.Locale;
 
 /**
  * TraceStreamerUtils
+ *
+ * @since 2021/11/22
  */
 public class TraceStreamerUtils {
     private static TraceStreamerUtils traceStreamerUtils;
@@ -71,11 +73,12 @@ public class TraceStreamerUtils {
     /**
      * getLogPath
      *
+     * @param dbName dbName
      * @return String
      */
-    public String getLogPath() {
-        String pluginPath = SessionManager.getInstance().getPluginPath();
-        String logPath = pluginPath + LOG_STR;
+    public String getLogPath(String dbName) {
+        String tmpPath = SessionManager.getInstance().tempPath();
+        String logPath = tmpPath + DIR_STR + dbName + ".ohos.ts";
         return logPath;
     }
 

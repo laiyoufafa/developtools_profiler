@@ -72,6 +72,7 @@ public class FolderPanel extends JPanel {
      */
     @NonNls
     public static final String COLLAPSE = "collapse";
+
     private final JButton myToggleCollapseButton;
     private final JComponent myContent;
     private final Collection<CollapsingListener> myListeners = ContainerUtil.createLockFreeCopyOnWriteList();
@@ -160,6 +161,7 @@ public class FolderPanel extends JPanel {
         }
     }
 
+    @Nls
     private String getToggleButtonToolTipText() {
         if (myIsCollapsed) {
             return UtilUiBundle.message("collapsible.panel.collapsed.state.tooltip.text");

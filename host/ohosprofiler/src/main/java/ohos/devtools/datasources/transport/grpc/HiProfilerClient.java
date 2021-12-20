@@ -55,6 +55,8 @@ import static ohos.devtools.views.common.Constant.IS_SUPPORT_NEW_HDC;
 
 /**
  * Provide device-side grpc interface encapsulation for each module in the application
+ *
+ * @since 2021/11/22
  */
 public final class HiProfilerClient {
     private static final Logger LOGGER = LogManager.getLogger(HiProfilerClient.class);
@@ -106,7 +108,8 @@ public final class HiProfilerClient {
             return null;
         }
         if (Objects.isNull(profilerClientMap.get(mapKey))) {
-            ProfilerClient profilerClient = new ProfilerClient(IP, port, channel);
+            ProfilerClient profilerClient = null;
+            profilerClient = new ProfilerClient(IP, port, channel);
             profilerClientMap.put(mapKey, profilerClient);
             return profilerClient;
         }
@@ -572,7 +575,7 @@ public final class HiProfilerClient {
                     .setSessionId(sessionId).build());
         } catch (StatusRuntimeException exception) {
             handleGrpcInterface(exception, port, client);
-            if (counts > 5 || (exception.getStatus() == INTERNAL && exception.getMessage()
+            if (counts > 2 || (exception.getStatus() == INTERNAL && exception.getMessage()
                 .contains("session_id invalid"))) {
                 if (ProfilerLogManager.isErrorEnabled()) {
                     LOGGER.error("exception Error ", exception);

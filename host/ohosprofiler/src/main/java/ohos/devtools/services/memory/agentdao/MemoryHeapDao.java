@@ -156,8 +156,8 @@ public class MemoryHeapDao extends AbstractDataStore {
         }
     }
 
-    private void setPreparedStatement(List<MemoryHeapInfo> memoryHeapInfoList, PreparedStatement ps) {
-        for (MemoryHeapInfo memoryHeapInfo : memoryHeapInfoList) {
+    private void setPreparedStatement(List<MemoryHeapInfo> memoryHeapInfos, PreparedStatement ps) {
+        for (MemoryHeapInfo memoryHeapInfo : memoryHeapInfos) {
             try {
                 ps.setInt(1, memoryHeapInfo.getcId());
                 ps.setInt(2, memoryHeapInfo.getHeapId());
@@ -285,7 +285,7 @@ public class MemoryHeapDao extends AbstractDataStore {
                 memoryHeapInfo.setAgentHeapId(0);
                 memoryHeapInfo.setSessionId(sessionId);
                 memoryHeapInfo.setAgentClazzName(className);
-                memoryHeapInfo.setAgentAllocationsCount(allocations);
+                memoryHeapInfo.setAgentAllocationsCount(allocations - deallocations);
                 memoryHeapInfo.setAgentDeAllocationsCount(deallocations);
                 memoryHeapInfo.setAgentTotalInstanceCount(totalCount);
                 memoryHeapInfo.setAgentTotalshallowSize(shallowSize);
@@ -354,8 +354,11 @@ public class MemoryHeapDao extends AbstractDataStore {
         }
         StringBuffer deleteSql = new StringBuffer("DELETE FROM ");
         deleteSql.append("MemoryHeapInfo").append(" WHERE sessionId = ").append(sessionId);
-        Connection connection = DataBaseApi.getInstance().getConnectByTable("MemoryHeapInfo").get();
-        return execute(connection, deleteSql.toString());
+        Optional<Connection> memoryHeapInfo = DataBaseApi.getInstance().getConnectByTable("MemoryHeapInfo");
+        if (memoryHeapInfo.isPresent()) {
+            return execute(memoryHeapInfo.get(), deleteSql.toString());
+        }
+        return false;
     }
 
     /**
@@ -412,8 +415,8 @@ public class MemoryHeapDao extends AbstractDataStore {
             + "sum( IFNULL( heaptable.deallocations, 0 ) ) AS deallocations FROM ClassInfo c LEFT JOIN "
             + "(SELECT m.cId,m.heapId,m.instanceId,m.sessionId,m.allocations,m.totalCount,m.shallowSize,m.createTime,"
             + "instance.deallocTime,1 AS deallocations FROM MemoryHeapInfo m LEFT JOIN MemoryInstanceInfo instance ON"
-            + " instance.instanceId = m.instanceId WHERE m.sessionId = ? AND "
-            + "(( m.createTime >= ? AND m.createTime <= ? ) "
+            + " instance.instanceId = m.instanceId WHERE m.sessionId = ? "
+            + "AND (( m.createTime >= ? AND m.createTime <= ? ) "
             + "AND ( instance.deallocTime >= ? AND instance.deallocTime <= ? ) ) UNION "
             + "SELECT m.cId,m.heapId,m.instanceId,m.sessionId,m.allocations,m.totalCount,m.shallowSize,m.createTime,"
             + "IFNULL( instance.deallocTime, 0 ) AS deallocTime,0 AS deallocations FROM MemoryHeapInfo m LEFT JOIN "
@@ -426,8 +429,8 @@ public class MemoryHeapDao extends AbstractDataStore {
             + "IFNULL( instance.deallocTime, 0 ) AS deallocTime,1 AS deallocations FROM MemoryHeapInfo m "
             + "LEFT JOIN MemoryInstanceInfo instance ON instance.instanceId = m.instanceId "
             + "WHERE m.sessionId = ? AND ( ( instance.deallocTime >= ? AND instance.deallocTime <= ? ) ) "
-            + "AND m.instanceId NOT IN (SELECT m.instanceId FROM MemoryHeapInfo m LEFT JOIN "
-            + "MemoryInstanceInfo instance "
+            + "AND m.instanceId NOT IN (SELECT m.instanceId "
+            + "FROM MemoryHeapInfo m LEFT JOIN MemoryInstanceInfo instance "
             + "ON instance.instanceId = m.instanceId WHERE m.sessionId = ? "
             + "AND (( m.createTime >= ? AND m.createTime <= ? ) AND ( instance.deallocTime >= ? "
             + "AND instance.deallocTime <= ? ) ) ) ) AS heaptable ON c.cId = heaptable.cId GROUP BY c.cId ) "

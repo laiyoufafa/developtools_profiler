@@ -276,7 +276,11 @@ public class MemoryInstanceDetailsDao extends AbstractDataStore {
             LOGGER.info("deleteSessionData");
         }
         StringBuffer deleteSql = new StringBuffer("DELETE FROM MemoryInstanceDetailsInfo");
-        Connection connection = DataBaseApi.getInstance().getConnectByTable("MemoryInstanceDetailsInfo").get();
-        return execute(connection, deleteSql.toString());
+        Optional<Connection> memoryInstanceDetailsInfo =
+            DataBaseApi.getInstance().getConnectByTable("MemoryInstanceDetailsInfo");
+        if (memoryInstanceDetailsInfo.isPresent()) {
+            return execute(memoryInstanceDetailsInfo.get(), deleteSql.toString());
+        }
+        return false;
     }
 }

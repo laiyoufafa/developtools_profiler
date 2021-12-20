@@ -26,7 +26,7 @@ import java.awt.image.BufferedImage;
 /**
  * test ExpandGraph class .
  *
- * @since 2021/4/24 17:56
+ * @date: 2021/4/24 17:56
  */
 class ExpandGraphTest {
     /**

@@ -19,13 +19,23 @@ import ohos.devtools.datasources.databases.databaseapi.DataBaseApi;
 import ohos.devtools.datasources.utils.device.service.MultiDeviceManager;
 import ohos.devtools.datasources.utils.plugin.IPluginConfig;
 import ohos.devtools.datasources.utils.plugin.service.PlugManager;
+import ohos.devtools.datasources.utils.process.service.ProcessManager;
 import ohos.devtools.datasources.utils.profilerlog.ProfilerLogManager;
 import ohos.devtools.datasources.utils.session.service.SessionManager;
+import ohos.devtools.pluginconfig.AgentConfig;
+import ohos.devtools.pluginconfig.BytraceConfig;
+import ohos.devtools.pluginconfig.CpuConfig;
+import ohos.devtools.pluginconfig.DiskIoConfig;
+import ohos.devtools.pluginconfig.FtraceConfig;
+import ohos.devtools.pluginconfig.HilogConfig;
 import ohos.devtools.pluginconfig.MemoryConfig;
+import ohos.devtools.pluginconfig.ProcessConfig;
+import ohos.devtools.pluginconfig.UserConfig;
 import ohos.devtools.views.common.UtConstant;
 import ohos.devtools.views.layout.HomePanel;
+import ohos.devtools.views.user.UserManager;
 import org.apache.logging.log4j.Level;
-import org.fest.swing.fixture.FrameFixture;
+import org.assertj.swing.fixture.FrameFixture;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -35,6 +45,7 @@ import javax.swing.JFrame;
 import java.awt.AWTException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -44,7 +55,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class ProcessSearchFixtureTest {
     private FrameFixture frameFixture;
-    private final String PROCESS_NAME = "com.zh";
+    private final String PROCESS_NAME = "init";
 
     /**
      * init
@@ -59,12 +70,23 @@ public class ProcessSearchFixtureTest {
     @Before
     public void init() throws AWTException {
         // Initialization data
+        ProcessManager.getInstance().setIsRequest(false);
+        SessionManager.getInstance().settingPermissions();
         ProfilerLogManager.getSingleton().updateLogLevel(Level.ERROR);
-        DataBaseApi apo = DataBaseApi.getInstance();
-        apo.initDataSourceManager();
-        // Boot device
+        PlugManager.getInstance().unzipStdDevelopTools();
+        DataBaseApi.getInstance().initDataSourceManager();
         MultiDeviceManager.getInstance().start();
         List<Class<? extends IPluginConfig>> plugConfigList = new ArrayList();
+        plugConfigList.add(ProcessConfig.class);
+        plugConfigList.add(AgentConfig.class);
+        plugConfigList.add(BytraceConfig.class);
+        plugConfigList.add(FtraceConfig.class);
+        plugConfigList.add(CpuConfig.class);
+        plugConfigList.add(HilogConfig.class);
+        if (Objects.nonNull(UserManager.getInstance().getSdkImpl())) {
+            plugConfigList.add(UserConfig.class);
+        }
+        plugConfigList.add(DiskIoConfig.class);
         plugConfigList.add(MemoryConfig.class);
         PlugManager.getInstance().loadingPlugs(plugConfigList);
         while (true) {
@@ -97,11 +119,14 @@ public class ProcessSearchFixtureTest {
         frameFixture.button(UtConstant.UT_TASK_PANEL_CHOOSE).click();
         TimeUnit.SECONDS.sleep(5);
         // Monitoring process display
-        frameFixture.textBox(UtConstant.UT_DEVICE_PROCESS_PANEL_PROCESS_NAME).click();
+        frameFixture.comboBox(UtConstant.UT_DEVICE_PROCESS_PANEL_DEVICE_NAME).click();
+        frameFixture.textBox(UtConstant.UT_DEVICE_PROCESS_PANEL_PROCESS_NAME + "1").click();
+        TimeUnit.SECONDS.sleep(5);
         frameFixture.textBox(UtConstant.UT_DEVICE_PROCESS_PANEL_SEARCH_FIELD).setText(PROCESS_NAME);
-        frameFixture.table(UtConstant.UT_DEVICE_PROCESS_PANEL_TABLE).selectRows(0);
-        String processName = frameFixture.textBox(UtConstant.UT_DEVICE_PROCESS_PANEL_PROCESS_NAME).text();
-        Assert.assertTrue(processName.contains("com.zh"));
+        TimeUnit.SECONDS.sleep(5);
+        frameFixture.list(UtConstant.UT_DEVICE_PROCESS_PANEL_TABLE + "1").selectItem(0);
+        String processName = frameFixture.textBox(UtConstant.UT_DEVICE_PROCESS_PANEL_PROCESS_NAME + "1").text();
+        Assert.assertTrue(processName.contains("init"));
         TimeUnit.SECONDS.sleep(5);
         SessionManager.getInstance().stopAllSession();
         // Close the main interface

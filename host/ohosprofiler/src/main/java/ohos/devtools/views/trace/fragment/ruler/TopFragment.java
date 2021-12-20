@@ -15,6 +15,7 @@
 
 package ohos.devtools.views.trace.fragment.ruler;
 
+import ohos.devtools.views.trace.component.AnalystPanel;
 import ohos.devtools.views.trace.util.TimeUtils;
 import ohos.devtools.views.trace.util.Utils;
 
@@ -22,8 +23,6 @@ import javax.swing.JComponent;
 import java.awt.AlphaComposite;
 import java.awt.Font;
 import java.awt.Graphics2D;
-
-import static ohos.devtools.views.trace.component.AnalystPanel.DURATION;
 
 /**
  * Time axis scale
@@ -54,7 +53,8 @@ public class TopFragment extends AbstractFragment {
     public void draw(final Graphics2D graphics) {
         int width = getRoot().getWidth() - Utils.getX(getRect());
         final int height = 18;
-        final double sq = 10.00; // 10 equal parts
+        // 10 equal parts
+        final double sq = 10.00d;
         double wid = width / sq;
         double sqWidth = wid / sq;
         graphics.setFont(getRoot().getFont());
@@ -64,7 +64,7 @@ public class TopFragment extends AbstractFragment {
         int yAxis = 0;
         graphics.drawLine(Utils.getX(getRect()), yAxis, Utils.getX(getRect()) + width, yAxis);
         final int num = 10;
-        long second = DURATION / num;
+        long second = AnalystPanel.getDURATION() / num;
         final AlphaComposite alpha100 = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1f);
         for (int index = 0; index <= num; index++) {
             int tx = (int) (index * wid) + Utils.getX(getRect());

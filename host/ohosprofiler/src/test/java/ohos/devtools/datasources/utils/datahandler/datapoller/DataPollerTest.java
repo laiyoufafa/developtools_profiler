@@ -46,6 +46,8 @@ import static ohos.devtools.datasources.utils.common.Constant.MEMORY_PLUG;
 
 /**
  * Data Poller Test
+ *
+ * @since 2021/2/1 9:31
  */
 public class DataPollerTest {
     private static volatile Integer requestId = 1;
@@ -53,7 +55,7 @@ public class DataPollerTest {
     /**
      * grpcCleanup
      */
-    public GrpcCleanupRule grpcCleanup = new GrpcCleanupRule();
+    private GrpcCleanupRule grpcCleanup = new GrpcCleanupRule();
     private String serverName;
     private SessionManager session;
     private DeviceIPPortInfo device;
@@ -94,7 +96,32 @@ public class DataPollerTest {
                 .start());
     }
 
-    private class DataPollerMock extends MockProfilerServiceImplBase {
+    /**
+     * functional testing dataPoller
+     *
+     * @tc.name: dataPoller
+     * @tc.number: OHOS_JAVA_utils_DataPoller_dataPoller_0001
+     * @tc.desc: dataPoller
+     * @tc.type: functional testing
+     * @tc.require: SR000FK61J
+     */
+    @Test
+    public void dataPollerTest() {
+        MockProfilerServiceImplBaseCustom getFeatureImpl = new MockProfilerServiceImplBaseCustom();
+        ManagedChannel channel =
+            grpcCleanup.register(InProcessChannelBuilder.forName(serverName).directExecutor().build());
+        serviceRegistry.addService(getFeatureImpl);
+        SessionManager.getInstance();
+        ProfilerClient client = HiProfilerClient.getInstance().getProfilerClient("", 11007, channel);
+        long num = session.createSession(device, process, AnalysisType.APPLICATION_TYPE);
+        HashMap<String, AbstractDataStore> map = new HashMap();
+        map.put(MEMORY_PLUG, new MemoryTable());
+        DataPoller dataPoller = new DataPoller(num, 111, device);
+        dataPoller.run();
+        Assert.assertNotNull(dataPoller);
+    }
+
+    class MockProfilerServiceImplBaseCustom extends MockProfilerServiceImplBase {
         /**
          * init createSession
          *
@@ -165,31 +192,6 @@ public class DataPollerTest {
             responseObserver.onNext(fetchDataResponse);
             responseObserver.onCompleted();
         }
-    }
-
-    /**
-     * functional testing dataPoller
-     *
-     * @tc.name: dataPoller
-     * @tc.number: OHOS_JAVA_utils_DataPoller_dataPoller_0001
-     * @tc.desc: dataPoller
-     * @tc.type: functional testing
-     * @tc.require: SR000FK61J
-     */
-    @Test
-    public void dataPollerTest() {
-        MockProfilerServiceImplBase getFeatureImpl = new DataPollerMock();
-        ManagedChannel channel =
-            grpcCleanup.register(InProcessChannelBuilder.forName(serverName).directExecutor().build());
-        serviceRegistry.addService(getFeatureImpl);
-        SessionManager.getInstance();
-        ProfilerClient client = HiProfilerClient.getInstance().getProfilerClient("", 11007, channel);
-        long num = session.createSession(device, process, AnalysisType.APPLICATION_TYPE);
-        HashMap<String, AbstractDataStore> map = new HashMap();
-        map.put(MEMORY_PLUG, new MemoryTable());
-        DataPoller dataPoller = new DataPoller(num, 111, client);
-        dataPoller.run();
-        Assert.assertNotNull(dataPoller);
     }
 
     /**

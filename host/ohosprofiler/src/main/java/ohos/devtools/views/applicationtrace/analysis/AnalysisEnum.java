@@ -19,6 +19,5 @@ package ohos.devtools.views.applicationtrace.analysis;
  * enum of Analysis type
  */
 public enum AnalysisEnum {
-    PREF,
-    APP
+    PREF, APP
 }

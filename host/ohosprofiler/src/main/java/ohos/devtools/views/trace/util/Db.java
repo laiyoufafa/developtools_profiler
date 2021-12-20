@@ -15,9 +15,12 @@
 
 package ohos.devtools.views.trace.util;
 
+import ohos.devtools.datasources.utils.profilerlog.ProfilerLogManager;
 import ohos.devtools.views.trace.DField;
 import ohos.devtools.views.trace.Sql;
 import org.apache.commons.io.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -42,6 +45,7 @@ import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.function.Consumer;
 
 /**
  * Database operation class class
@@ -49,13 +53,16 @@ import java.util.concurrent.LinkedBlockingQueue;
  * @since 2021/04/22 12:25
  */
 public final class Db {
+    private static final Logger LOGGER = LoggerFactory.getLogger(Db.class);
     private static boolean isLocal;
     private static volatile Db db = new Db();
     private static String dbName = "trace.db";
+
     private final String[] units = new String[] {"", "K", "M", "G", "T", "E"};
     private LinkedBlockingQueue<Connection> pool = new LinkedBlockingQueue();
 
     private Db() {
+        super();
     }
 
     /**
@@ -143,12 +150,7 @@ public final class Db {
         String tmp = Final.IS_RESOURCE_SQL ? "-self/" : "/";
         String path = "sql" + tmp + sqlName + ".sql";
         try (InputStream STREAM = DataUtils.class.getClassLoader().getResourceAsStream(path)) {
-            String sqlFile = IOUtils.toString(STREAM, Charset.forName("UTF-8"));
-            if (sqlFile.startsWith("/*")) {
-                return sqlFile.trim().substring(sqlFile.indexOf("*/") + 2);
-            } else {
-                return IOUtils.toString(STREAM, Charset.forName("UTF-8"));
-            }
+            return IOUtils.toString(STREAM, Charset.forName("UTF-8")).replaceAll("/\\*[\\s\\S]*?\\*/", "");
         } catch (UnsupportedEncodingException exception) {
             exception.printStackTrace();
         } catch (IOException ioException) {
@@ -210,7 +212,21 @@ public final class Db {
      */
     public <T> void query(Sql em, List<T> res, Object... args) {
         String sql = String.format(Locale.ENGLISH, getSql(em.getName()), args);
-        query(sql, res);
+        query(null, sql, res);
+    }
+
+    /**
+     * query
+     *
+     * @param controller controller
+     * @param em em
+     * @param res res
+     * @param args args
+     * @param <T> <T>
+     */
+    public <T> void query(Consumer<Statement> controller, Sql em, List<T> res, Object... args) {
+        String sql = String.format(Locale.ENGLISH, getSql(em.getName()), args);
+        query(controller, sql, res);
     }
 
     /**
@@ -222,16 +238,30 @@ public final class Db {
      */
     public int queryCount(Sql em, Object... args) {
         String sql = String.format(Locale.ENGLISH, getSql(em.getName()), args);
-        return queryCount(sql);
+        return queryCount(null, sql);
+    }
+
+    /**
+     * queryCount
+     *
+     * @param controller controller
+     * @param em em
+     * @param args args
+     * @return int
+     */
+    public int queryCount(Consumer<Statement> controller, Sql em, Object... args) {
+        String sql = String.format(Locale.ENGLISH, getSql(em.getName()), args);
+        return queryCount(controller, sql);
     }
 
     /**
      * query count from sql
      *
+     * @param controller controller
      * @param sql sql
      * @return int int
      */
-    public int queryCount(String sql) {
+    public int queryCount(Consumer<Statement> controller, String sql) {
         Statement stat = null;
         ResultSet rs = null;
         int count = 0;
@@ -241,6 +271,9 @@ public final class Db {
         }
         try {
             stat = conn.createStatement();
+            if (controller != null) {
+                controller.accept(stat);
+            }
             String tSql = sql.trim();
             if (sql.trim().endsWith(";")) {
                 tSql = sql.trim().substring(0, sql.trim().length() - 1);
@@ -250,7 +283,9 @@ public final class Db {
                 count = rs.getInt("count");
             }
         } catch (SQLException exception) {
-            exception.printStackTrace();
+            if (ProfilerLogManager.isErrorEnabled()) {
+                LOGGER.error(exception.getMessage());
+            }
         } finally {
             release(rs, stat, conn);
         }
@@ -260,11 +295,12 @@ public final class Db {
     /**
      * Read the sql directory under resource
      *
+     * @param controller controller
      * @param res res
      * @param sql sql
      * @param <T> return type
      */
-    public <T> void query(String sql, List<T> res) {
+    public <T> void query(Consumer<Statement> controller, String sql, List<T> res) {
         Statement stat = null;
         ResultSet rs = null;
         Connection conn = getConn();
@@ -275,6 +311,9 @@ public final class Db {
         try {
             Class<T> aClass = (Class<T>) Class.forName(argument.getTypeName());
             stat = conn.createStatement();
+            if (controller != null) {
+                controller.accept(stat);
+            }
             rs = stat.executeQuery(sql);
             ArrayList<String> columnList = new ArrayList<>();
             ResultSetMetaData rsMeta = rs.getMetaData();
@@ -294,14 +333,11 @@ public final class Db {
                 res.add(data);
             }
         } catch (ClassNotFoundException | SQLException exception) {
-            exception.printStackTrace();
-        } catch (InstantiationException exception) {
-            exception.printStackTrace();
-        } catch (IllegalAccessException exception) {
-            exception.printStackTrace();
-        } catch (InvocationTargetException exception) {
-            exception.printStackTrace();
-        } catch (NoSuchMethodException exception) {
+            if (ProfilerLogManager.isErrorEnabled()) {
+                LOGGER.error(exception.getMessage());
+            }
+        } catch (InstantiationException | IllegalAccessException | InvocationTargetException
+            | NoSuchMethodException exception) {
             exception.printStackTrace();
         } finally {
             release(rs, stat, conn);
@@ -318,13 +354,12 @@ public final class Db {
             declaredField.set(data, rs.getDouble(annotation.name()));
         } else if (declaredField.getType() == Float.class || declaredField.getType() == float.class) {
             declaredField.set(data, rs.getFloat(annotation.name()));
-        } else if (declaredField.getType() == Boolean.class
-            || declaredField.getType() == boolean.class) {
+        } else if (declaredField.getType() == Boolean.class || declaredField.getType() == boolean.class) {
             declaredField.set(data, rs.getBoolean(annotation.name()));
         } else if (declaredField.getType() == Blob.class) {
             declaredField.set(data, rs.getBlob(annotation.name()));
         } else {
-            declaredField.set(data, rs.getObject(annotation.name()));
+            declaredField.set(data, rs.getString(annotation.name()));
         }
     }
 

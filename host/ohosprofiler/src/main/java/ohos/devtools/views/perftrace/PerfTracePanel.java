@@ -63,6 +63,13 @@ public class PerfTracePanel extends JBPanel {
     private Tip tip = Tip.getInstance();
 
     /**
+     * PerfTracePanel
+     */
+    public PerfTracePanel() {
+        super();
+    }
+
+    /**
      * load the data from db file
      *
      * @param name name
@@ -102,7 +109,7 @@ public class PerfTracePanel extends JBPanel {
     }
 
     private double getCpuScale(CpuPluginResult.CpuUsageInfo cpuUsageInfo) {
-        return (cpuUsageInfo.getSystemCpuTimeMs() - cpuUsageInfo.getPrevSystemCpuTimeMs()) * 1.0 / (
+        return (cpuUsageInfo.getProcessCpuTimeMs() - cpuUsageInfo.getPrevProcessCpuTimeMs()) * 1.0 / (
             cpuUsageInfo.getSystemBootTimeMs() - cpuUsageInfo.getPrevSystemBootTimeMs());
     }
 
@@ -127,13 +134,14 @@ public class PerfTracePanel extends JBPanel {
                 CpuPluginResult.CpuUsageInfo cpuUsageInfo = cpuData.getCpuUsageInfo();
                 list.add(cpuUsageInfo);
                 scale.setScale(getCpuScale(cpuUsageInfo));
-                scale.setStartNs(TimeUnit.MILLISECONDS.toNanos(cpuUsageInfo.getPrevSystemBootTimeMs()));
-                scale.setEndNs(TimeUnit.MILLISECONDS.toNanos(cpuUsageInfo.getSystemBootTimeMs()));
+                scale.setStartNs(TimeUnit.MILLISECONDS.toNanos(cpuUsageInfo.getPrevProcessCpuTimeMs()));
+                scale.setEndNs(TimeUnit.MILLISECONDS.toNanos(cpuUsageInfo.getProcessCpuTimeMs()));
 
             } catch (IOException ioException) {
                 ioException.printStackTrace();
             }
         });
+        tracePanel.getTimeShaft().clearMap();
         tracePanel.paintTimeShaft(g2 -> {
             Rectangle bounds = tracePanel.getTimeShaft().getBounds();
             if (cpuScales == null || cpuScales.isEmpty()) {
@@ -167,6 +175,7 @@ public class PerfTracePanel extends JBPanel {
             PrefRange prefRange = range.get(0);
             PerfData.setPrefRange(prefRange);
             TracePanel.DURATION = prefRange.getEndTime() - prefRange.getStartTime();
+            tracePanel.getRuler().refreshTimeRuler(TracePanel.DURATION);
         }
     }
 
@@ -199,7 +208,7 @@ public class PerfTracePanel extends JBPanel {
         ExpandPanel panel = new ExpandPanel("Threads (" + threads.size() + ")");
         for (Thread thread : threads) {
             TraceThreadRow<Thread, PrefFunc> row = new TraceThreadRow<>(thread.getThreadName(), thread.getTid());
-            PerfData.THREAD_NAMES.put(thread.getTid(), thread.getThreadName());
+            PerfData.getThreadNames().put(thread.getTid(), thread.getThreadName());
             initRow(row, thread, panel);
             panel.addTraceRow(row);
         }
@@ -238,7 +247,7 @@ public class PerfTracePanel extends JBPanel {
                 }
             });
             List<PrefFunc> funcList = PerfData.formatSampleList(prefSamples);
-            PerfData.FUNC_MAP.put(thread.getTid(), funcList);
+            PerfData.getFuncMap().put(thread.getTid(), funcList);
             int maxDept = funcList.stream().mapToInt(bean -> bean.getDepth()).max().orElse(0) + 1;
             int maxHeight = maxDept * row.getFuncHeight() + row.getFuncHeight();
             if (maxHeight < 30) {

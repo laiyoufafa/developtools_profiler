@@ -33,6 +33,7 @@ public class SessionInfo {
     private boolean offlineMode;
     private final DeviceIPPortInfo deviceIPPortInfo;
     private ProcessInfo processInfo;
+    private long secondSessionId;
 
     private SessionInfo(Builder builder) {
         sessionName = builder.sessionName;
@@ -137,6 +138,14 @@ public class SessionInfo {
 
     public void setProcessInfo(ProcessInfo processInfo) {
         this.processInfo = processInfo;
+    }
+
+    public long getSecondSessionId() {
+        return secondSessionId;
+    }
+
+    public void setSecondSessionId(long secondSessionId) {
+        this.secondSessionId = secondSessionId;
     }
 
     /**

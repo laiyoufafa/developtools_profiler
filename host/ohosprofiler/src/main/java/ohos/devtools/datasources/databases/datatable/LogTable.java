@@ -32,7 +32,7 @@ import java.util.Queue;
 /**
  * Log Table
  *
- * @since: 2021/10/22 15:22
+ * @since 2021/10/22
  */
 public class LogTable extends AbstractDataStore {
     private static final Logger LOGGER = LogManager.getLogger(LogTable.class);
@@ -85,7 +85,7 @@ public class LogTable extends AbstractDataStore {
         if (option.isPresent()) {
             Connection conn = option.get();
             try {
-                PreparedStatement pst = conn.prepareStatement(getIsertLogSql());
+                PreparedStatement pst = conn.prepareStatement(getInsertLogSql());
                 conn.setAutoCommit(false);
                 while (true) {
                     HiLogBean hiLogBean = hiLogBeans.poll();
@@ -143,7 +143,7 @@ public class LogTable extends AbstractDataStore {
         }
     }
 
-    private String getIsertLogSql() {
+    private String getInsertLogSql() {
         return "INSERT OR IGNORE "
             + "INTO "
             + "logTable("

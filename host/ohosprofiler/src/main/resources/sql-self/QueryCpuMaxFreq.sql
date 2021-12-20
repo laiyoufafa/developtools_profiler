@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 select max(value) as maxFreq
 from measure c
 inner join cpu_measure_filter t on c.filter_id = t.id

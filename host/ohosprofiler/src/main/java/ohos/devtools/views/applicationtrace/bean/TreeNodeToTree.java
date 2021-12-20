@@ -44,7 +44,7 @@ public abstract class TreeNodeToTree<T> {
     /**
      * add childes
      *
-     * @param node   node
+     * @param node node
      * @param parent parent node
      */
     protected abstract void addChildrens(T node, T parent);

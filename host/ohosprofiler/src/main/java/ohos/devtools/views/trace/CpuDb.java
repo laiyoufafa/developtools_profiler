@@ -20,7 +20,6 @@ import org.apache.commons.io.IOUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.ParameterizedType;
@@ -112,10 +111,8 @@ public final class CpuDb {
                     exception.printStackTrace();
                 }
             });
-        } catch (SQLException throwables) {
+        } catch (SQLException | ClassNotFoundException throwables) {
             throwables.printStackTrace();
-        } catch (ClassNotFoundException classNotFoundException) {
-            classNotFoundException.printStackTrace();
         }
     }
 
@@ -140,16 +137,9 @@ public final class CpuDb {
     public static String getSql(String sqlName) {
         String path = "sql-app/" + sqlName + ".sql";
         try (InputStream STREAM = DataUtils.class.getClassLoader().getResourceAsStream(path)) {
-            String sqlFile = IOUtils.toString(STREAM, Charset.forName("UTF-8"));
-            if (sqlFile.startsWith("/*")) {
-                return sqlFile.trim().substring(sqlFile.indexOf("*/") + 2);
-            } else {
-                return IOUtils.toString(STREAM, Charset.forName("UTF-8"));
-            }
-        } catch (UnsupportedEncodingException exception) {
+            return IOUtils.toString(STREAM, Charset.forName("UTF-8")).replaceAll("/\\*[\\s\\S]*?\\*/", "");
+        } catch (IOException exception) {
             exception.printStackTrace();
-        } catch (IOException ioException) {
-            ioException.printStackTrace();
         }
         return "";
     }
@@ -243,8 +233,8 @@ public final class CpuDb {
                 }
                 res.add(data);
             }
-        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException
-            | InvocationTargetException | NoSuchMethodException | SQLException exception) {
+        } catch (ClassNotFoundException | SQLException | InstantiationException | IllegalAccessException
+            | InvocationTargetException | NoSuchMethodException exception) {
             exception.printStackTrace();
         } finally {
             release(rs, stat, conn);
@@ -261,8 +251,7 @@ public final class CpuDb {
             declaredField.set(data, rs.getDouble(annotation.name()));
         } else if (declaredField.getType() == Float.class || declaredField.getType() == float.class) {
             declaredField.set(data, rs.getFloat(annotation.name()));
-        } else if (declaredField.getType() == Boolean.class
-            || declaredField.getType() == boolean.class) {
+        } else if (declaredField.getType() == Boolean.class || declaredField.getType() == boolean.class) {
             declaredField.set(data, rs.getBoolean(annotation.name()));
         } else if (declaredField.getType() == Blob.class) {
             declaredField.set(data, rs.getBytes(annotation.name()));

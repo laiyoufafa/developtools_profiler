@@ -24,21 +24,24 @@ import ohos.devtools.datasources.utils.device.service.MultiDeviceManager;
 import ohos.devtools.datasources.utils.plugin.IPluginConfig;
 import ohos.devtools.datasources.utils.plugin.service.PlugManager;
 import ohos.devtools.datasources.utils.session.service.SessionManager;
-import ohos.devtools.pluginconfig.AgentConfig;
 import ohos.devtools.pluginconfig.BytraceConfig;
 import ohos.devtools.pluginconfig.CpuConfig;
+import ohos.devtools.pluginconfig.DiskIoConfig;
 import ohos.devtools.pluginconfig.FtraceConfig;
 import ohos.devtools.pluginconfig.HilogConfig;
-import ohos.devtools.pluginconfig.HiperfConfig;
 import ohos.devtools.pluginconfig.MemoryConfig;
+import ohos.devtools.pluginconfig.NativeConfig;
 import ohos.devtools.pluginconfig.ProcessConfig;
+import ohos.devtools.pluginconfig.UserConfig;
 import ohos.devtools.views.layout.HomePanel;
+import ohos.devtools.views.user.UserManager;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Profiler Tool Window Factory
@@ -61,13 +64,17 @@ public class ProfilerToolWindowFactory implements ToolWindowFactory {
         MultiDeviceManager.getInstance().start();
         List<Class<? extends IPluginConfig>> plugConfigList = new ArrayList();
         plugConfigList.add(ProcessConfig.class);
-        plugConfigList.add(AgentConfig.class);
         plugConfigList.add(BytraceConfig.class);
         plugConfigList.add(FtraceConfig.class);
         plugConfigList.add(HilogConfig.class);
-        plugConfigList.add(HiperfConfig.class);
         plugConfigList.add(CpuConfig.class);
+        if (UserManager.getInstance().getSdkImpl().isPresent() && Objects
+            .nonNull(UserManager.getInstance().getSdkImpl().get().getLegends())) {
+            plugConfigList.add(UserConfig.class);
+        }
+        plugConfigList.add(DiskIoConfig.class);
         plugConfigList.add(MemoryConfig.class);
+        plugConfigList.add(NativeConfig.class);
         PlugManager.getInstance().loadingPlugs(plugConfigList);
         toolWindow.getContentManager()
             .addContent(ContentFactory.SERVICE.getInstance().createContent(new HomePanel(), "", false));

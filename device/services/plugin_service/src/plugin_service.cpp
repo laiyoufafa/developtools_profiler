@@ -360,7 +360,6 @@ void PluginService::ReadShareMemory(PluginContext& context)
     if (context.eventNotifier) {
         value = context.eventNotifier->Take();
     }
-    HILOG_DEBUG(LOG_CORE, "ReadShareMemory for %s %" PRIu64, context.path.c_str(), value);
     while (true) {
         auto pluginData = std::make_shared<ProfilerPluginData>();
         bool ret = context.shareMemoryBlock->TakeData([&](const int8_t data[], uint32_t size) -> bool {

@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 select tid,
     A.name as threadName,
     is_main_thread,

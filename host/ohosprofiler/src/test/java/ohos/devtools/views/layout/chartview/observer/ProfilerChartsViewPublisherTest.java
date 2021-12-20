@@ -15,11 +15,13 @@
 
 package ohos.devtools.views.layout.chartview.observer;
 
+import com.intellij.icons.AllIcons;
 import ohos.devtools.datasources.utils.common.util.DateTimeUtil;
 import ohos.devtools.datasources.utils.quartzmanager.QuartzManager;
 import ohos.devtools.views.charts.model.ChartDataRange;
 import ohos.devtools.views.charts.model.ChartStandard;
 import ohos.devtools.views.common.LayoutConstants;
+import ohos.devtools.views.common.customcomp.CustomJButton;
 import ohos.devtools.views.layout.chartview.ProfilerChartsView;
 import ohos.devtools.views.layout.chartview.event.IChartEventObserver;
 import ohos.devtools.views.layout.chartview.TaskScenePanelChart;
@@ -33,6 +35,8 @@ import static ohos.devtools.views.layout.chartview.utils.ChartViewConstants.CHAR
 
 /**
  * ProfilerChartsViewObserver test
+ *
+ * @since 2021/11/22
  */
 public class ProfilerChartsViewPublisherTest {
     /**
@@ -70,6 +74,8 @@ public class ProfilerChartsViewPublisherTest {
 
     private ProfilerChartsViewPublisher observer;
 
+    private TaskScenePanelChart taskScenePanelChart;
+
     /**
      * functional test
      *
@@ -81,7 +87,8 @@ public class ProfilerChartsViewPublisherTest {
      */
     @Before
     public void init() {
-        ProfilerChartsView view = new ProfilerChartsView(LayoutConstants.NUM_L, true, new TaskScenePanelChart());
+        taskScenePanelChart = new TaskScenePanelChart();
+        ProfilerChartsView view = new ProfilerChartsView(LayoutConstants.NUM_L, true, taskScenePanelChart);
         observer = view.getPublisher();
         boolean isScrollbarShow = false;
         ChartStandard standard = new ChartStandard(324L);
@@ -163,6 +170,7 @@ public class ProfilerChartsViewPublisherTest {
     @Test
     public void stopRefreshTest() {
         observer.startRefresh(TEST_START_LONG);
+        taskScenePanelChart.setjButtonStop(new CustomJButton(AllIcons.Process.ProgressResumeHover, "Start"));
         observer.stopRefresh(false);
         destroy();
         Assert.assertTrue(true);

@@ -238,6 +238,7 @@ constexpr VmeminfoAreaMapping g_vmaMemDev[] = {
 
 constexpr VmeminfoAreaMapping g_vmaMemSuffix[] = {
     {OpsType::OPS_END, ".so", {VmemifoType::VMHEAP_SO, VmemifoType::VMHEAP_NULL}},
+    {OpsType::OPS_END, ".so.1", {VmemifoType::VMHEAP_SO, VmemifoType::VMHEAP_NULL}},
     {OpsType::OPS_END, ".jar", {VmemifoType::VMHEAP_JAR, VmemifoType::VMHEAP_NULL}},
     {OpsType::OPS_END, ".ttf", {VmemifoType::VMHEAP_TTF, VmemifoType::VMHEAP_NULL}},
     {OpsType::OPS_END, ".oat", {VmemifoType::VMHEAP_OAT, VmemifoType::VMHEAP_NULL}},

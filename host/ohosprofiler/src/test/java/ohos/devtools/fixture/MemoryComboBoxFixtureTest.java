@@ -27,7 +27,7 @@ import ohos.devtools.pluginconfig.MemoryConfig;
 import ohos.devtools.views.common.UtConstant;
 import ohos.devtools.views.layout.HomePanel;
 import org.apache.logging.log4j.Level;
-import org.fest.swing.fixture.FrameFixture;
+import org.assertj.swing.fixture.FrameFixture;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;

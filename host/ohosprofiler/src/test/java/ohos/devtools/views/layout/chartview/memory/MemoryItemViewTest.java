@@ -16,6 +16,8 @@
 package ohos.devtools.views.layout.chartview.memory;
 
 import com.intellij.ui.components.JBPanel;
+import ohos.devtools.datasources.utils.session.entity.SessionInfo;
+import ohos.devtools.datasources.utils.session.service.SessionManager;
 import ohos.devtools.views.common.LayoutConstants;
 import ohos.devtools.views.layout.chartview.ItemsView;
 import ohos.devtools.views.layout.chartview.ProfilerChartsView;
@@ -27,12 +29,16 @@ import org.junit.Test;
 
 /**
  * Memory Item View Test
+ *
+ * @since 2021/11/22
  */
 public class MemoryItemViewTest {
     private static final int TEST_START = 0;
     private static final int TEST_END = 1000;
+
     private MemoryItemView memoryItemView;
     private ProfilerChartsView view;
+    private SessionInfo sessionInfo;
 
     private void initView() {
         view = new ProfilerChartsView(LayoutConstants.NUM_L, true, new TaskScenePanelChart());
@@ -54,6 +60,9 @@ public class MemoryItemViewTest {
         ItemsView itemsView = new ItemsView(view);
         memoryItemView = new MemoryItemView();
         ProfilerMonitorItem memoryItem = new ProfilerMonitorItem(2, "Memory", MemoryItemView.class);
+        sessionInfo = SessionInfo.builder().sessionId(32947)
+            .sessionName("Test").pid(2).processName("processName").build();
+        SessionManager.getInstance().getProfilingSessions().put(32947L, sessionInfo);
         memoryItemView.init(view, itemsView, memoryItem);
     }
 

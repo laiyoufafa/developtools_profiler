@@ -28,6 +28,8 @@ import java.awt.BorderLayout;
 
 /**
  * AnalysisDialog
+ *
+ * @since 2021/11/22
  */
 public class AnalysisDialog extends DialogWrapper {
     private JPanel filePanel;

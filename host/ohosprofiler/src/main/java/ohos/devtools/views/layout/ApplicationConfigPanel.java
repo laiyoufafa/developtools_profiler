@@ -99,8 +99,7 @@ public class ApplicationConfigPanel extends JBPanel implements MouseListener, It
         if (ProfilerLogManager.isInfoEnabled()) {
             LOGGER.info("initComponents");
         }
-        this.setLayout(new MigLayout("insets 0", "15[grow,fill]",
-                "15[fill,fill]"));
+        this.setLayout(new MigLayout("insets 0", "15[grow,fill]", "15[10%!,fill][70%!,fill]20[20%!,fill]"));
         // init northPanel
         initNorthPanelItems();
         // init centerPanel
@@ -136,17 +135,44 @@ public class ApplicationConfigPanel extends JBPanel implements MouseListener, It
         if (ProfilerLogManager.isInfoEnabled()) {
             LOGGER.info("initCenterPanelItems");
         }
-        centerPanel = new JBPanel(new MigLayout("insets 0", "[grow,fill]20",
-            "[fill,fill]"));
+        centerPanel = new JBPanel(new MigLayout("insets 0", "[grow,fill]20", "[grow,fill]"));
         List<DeviceIPPortInfo> deviceInfoList = MultiDeviceManager.getInstance().getOnlineDeviceInfoList();
         if (deviceInfoList.isEmpty()) {
-            deviceProcess = new DistributedDeviceProcessPanel(1);
+            deviceProcess = new DistributedDeviceProcessPanel(1, false);
         } else {
-            List<ProcessInfo> processInfoList = ProcessManager.getInstance().getProcessList(deviceInfoList.get(0));
-            if (processInfoList.isEmpty()) {
-                deviceProcess = new DistributedDeviceProcessPanel(1);
-            } else {
-                deviceProcess = new DistributedDeviceProcessPanel(1, deviceInfoList.get(0), processInfoList.get(0));
+            deviceProcess = new DistributedDeviceProcessPanel(1, deviceInfoList.get(0));
+            DeviceIPPortInfo item = deviceProcess.getDeviceComboBox().getItem();
+            if (Objects.nonNull(item)) {
+                ProcessManager instance = ProcessManager.getInstance();
+                if (!instance.isRequestProcess()) {
+                    new SwingWorker<String, Integer>() {
+                        @Override
+                        protected String doInBackground() {
+                            deviceProcess.getSearchComBox().getSelectedProcessTextFiled().setText("");
+                            List<ProcessInfo> processInfos = ProcessManager.getInstance().getProcessList(item);
+                            if (processInfos.isEmpty()) {
+                                return "";
+                            } else {
+                                ProcessInfo processInfo = processInfos.get(0);
+                                return processInfo.getProcessName() + "(" + processInfo.getProcessId() + ")";
+                            }
+                        }
+
+                        @Override
+                        protected void done() {
+                            try {
+                                String processName = get();
+                                if (StringUtils.isNotBlank(processName)) {
+                                    deviceProcess.getSearchComBox().getSelectedProcessTextFiled().setText(processName);
+                                }
+                            } catch (InterruptedException | ExecutionException exception) {
+                                exception.printStackTrace();
+                            } finally {
+                                ProcessManager.getInstance().setIsRequest(false);
+                            }
+                        }
+                    }.execute();
+                }
             }
         }
         deviceProcess.setForeground(JBColor.foreground().brighter());
@@ -162,8 +188,7 @@ public class ApplicationConfigPanel extends JBPanel implements MouseListener, It
         if (ProfilerLogManager.isInfoEnabled()) {
             LOGGER.info("initSouthPanelItems");
         }
-        southPanel = new JBPanel(new MigLayout("insets 0", "push[]20[]20",
-            "[fill,fill]"));
+        southPanel = new JBPanel(new MigLayout("insets 0", "push[]20[]20", "[fill,fill]"));
         southPanel.setPreferredSize(new Dimension(1200, 40));
         lastStepBtn = new JButton(LAST_STEP_BTN_STR);
         lastStepBtn.setName(LAST_STEP_BTN_STR);
@@ -188,7 +213,7 @@ public class ApplicationConfigPanel extends JBPanel implements MouseListener, It
     private void addPanels() {
         this.add(northPanel, "wrap");
         this.add(centerPanel, "wrap");
-        this.add(southPanel, "gaptop 100");
+        this.add(southPanel, "wrap");
         this.setBackground(JBColor.background().darker());
         this.setOpaque(true);
     }
@@ -208,12 +233,12 @@ public class ApplicationConfigPanel extends JBPanel implements MouseListener, It
                     new SwingWorker<List<String>, Integer>() {
                         @Override
                         protected List<String> doInBackground() {
+                            deviceProcess.getSearchComBox().getSelectedProcessTextFiled().setText("");
                             List<ProcessInfo> processInfos = ProcessManager.getInstance().getProcessList(item);
                             List<String> processNames = new ArrayList<>();
                             for (int index = 0; index < processInfos.size(); index++) {
                                 ProcessInfo processInfo = processInfos.get(index);
-                                processNames
-                                    .add(processInfo.getProcessName() + "(" + processInfo.getProcessId() + ")");
+                                processNames.add(processInfo.getProcessName() + "(" + processInfo.getProcessId() + ")");
                             }
                             return processNames;
                         }
@@ -225,6 +250,8 @@ public class ApplicationConfigPanel extends JBPanel implements MouseListener, It
                                 deviceProcess.getSearchComBox().refreshProcess(vector);
                             } catch (InterruptedException | ExecutionException exception) {
                                 exception.printStackTrace();
+                            } finally {
+                                ProcessManager.getInstance().setIsRequest(false);
                             }
                         }
                     }.execute();

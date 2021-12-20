@@ -22,33 +22,8 @@ import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBRadioButton;
+import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.JBTabbedPane;
-import net.miginfocom.swing.MigLayout;
-import ohos.devtools.datasources.transport.grpc.SystemTraceHelper;
-import ohos.devtools.datasources.utils.common.GrpcException;
-import ohos.devtools.datasources.utils.device.entity.DeviceIPPortInfo;
-import ohos.devtools.datasources.utils.device.entity.DeviceType;
-import ohos.devtools.datasources.utils.device.service.MultiDeviceManager;
-import ohos.devtools.datasources.utils.profilerlog.ProfilerLogManager;
-import ohos.devtools.datasources.utils.quartzmanager.QuartzManager;
-import ohos.devtools.views.common.ColorConstants;
-import ohos.devtools.views.common.LayoutConstants;
-import ohos.devtools.views.common.UtConstant;
-import ohos.devtools.views.layout.dialog.SampleDialog;
-import ohos.devtools.views.layout.dialog.TraceRecordDialog;
-import ohos.devtools.views.layout.utils.EventTrackUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
-import javax.swing.BorderFactory;
-import javax.swing.DefaultComboBoxModel;
-import javax.swing.JButton;
-import javax.swing.JScrollPane;
-import javax.swing.JSeparator;
-import javax.swing.JSlider;
-import javax.swing.JTextArea;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Cursor;
@@ -72,8 +47,40 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Vector;
+import java.util.concurrent.CompletableFuture;
+import javax.swing.BorderFactory;
+import javax.swing.ButtonGroup;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.JButton;
+import javax.swing.JScrollPane;
+import javax.swing.JSeparator;
+import javax.swing.JSlider;
+import javax.swing.JTextArea;
+import javax.swing.SwingUtilities;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+import net.miginfocom.swing.MigLayout;
+import ohos.devtools.datasources.transport.grpc.SystemTraceHelper;
+import ohos.devtools.datasources.utils.common.GrpcException;
+import ohos.devtools.datasources.utils.device.entity.DeviceIPPortInfo;
+import ohos.devtools.datasources.utils.device.entity.DeviceType;
+import ohos.devtools.datasources.utils.device.service.MultiDeviceManager;
+import ohos.devtools.datasources.utils.profilerlog.ProfilerLogManager;
+import ohos.devtools.datasources.utils.quartzmanager.QuartzManager;
+import ohos.devtools.services.systemconfig.SystemConfigData;
+import ohos.devtools.views.common.ColorConstants;
+import ohos.devtools.views.common.LayoutConstants;
+import ohos.devtools.views.common.UtConstant;
+import ohos.devtools.views.layout.dialog.SampleDialog;
+import ohos.devtools.views.layout.dialog.TraceRecordDialog;
+import ohos.devtools.views.layout.utils.EventTrackUtils;
+import ohos.devtools.views.trace.util.Utils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 
 import static ohos.devtools.views.common.Constant.DEVICE_REFRESH;
 
@@ -102,6 +109,16 @@ public class SystemConfigPanel extends JBPanel implements MouseListener, ItemLis
     private static final String TRACE_CONFIG_TITLE_STR = "Trace config";
     private static final String PROBES_TITLE_STR = "Probes";
     private static final String RECORD_MODEL_STR = "Record Mode";
+    private static final String MEMORY_CONFIG_STR = "Memory Config";
+    private static final String KERNEL_MEMORY = "Kernel meminfo";
+    private static final String VIRTUAL_MEMORY = "Virtual memory stats";
+    private static final String LOG_LEVEL_CHECKBOX = "Log level";
+    private static final String LOG_LEVEL_CHECKBOX_DEC = "Set log level";
+    private static final String HILOG_CONFIG_STR = "hilog Config";
+    private static final String HILOG_CONFIG_ERROR = "Error";
+    private static final String HILOG_CONFIG_INFO = "Info";
+    private static final String HILOG_CONFIG_DEBUG = "Debug";
+    private static final String HILOG_CONFIG_WARN = "Warn";
     private static final String SCHEDULING_STR = "Scheduling details";
     private static final String SCHEDULING_DES_STR = "Enables high-detailed tracking of scheduling events";
     private static final String CPU_FREQUENCY_STR = "CPU Frequency and idle states";
@@ -123,7 +140,11 @@ public class SystemConfigPanel extends JBPanel implements MouseListener, ItemLis
             + "(HTRACE_BEGIN() / os.Trace())" + "</html>";
     private static final String SYSCALLS_STR = "Syscalls";
     private static final String SYSCALLS_DES_STR = "Tracks the enter and exit of all syscalls";
-    private static final String LOW_MEMORY_STR = "Low memory killer";
+    private static final String ADVANCED_CONFIG_STR = "Advanced ftrace config";
+    private static final String ADVANCED_CONFIG_DES_STR = "<html>"
+            + "Enable individual events and tune the kernel-tracng(ftrace) module."
+            + "The events enabled here are in addition to those from"
+            + " enabled by other probes." + "</html>";
     private static final String LOW_MEMORY_DES_STR = "<html>"
             + "Record LMK events. Works both with the old in kernel LMK and"
             + "the newer userspace Imkd. It also tracks OOM score adjustments "
@@ -142,6 +163,14 @@ public class SystemConfigPanel extends JBPanel implements MouseListener, ItemLis
             + "<p style=\"font-size:13px;text-align:left;color:white;\">probes config</p>"
             + "<p style=\"margin-top:0px;font-size:9px;text-align:left;color:#757784;\">CPU usage,scheduling"
             + "<br>wakeups</p>"
+            + "</html>";
+    private static final String VIRTUAL_MEMOYR_STR = "<html>"
+            + "Periodically polls virtual memory stats from /proc/vmstat."
+            + " Allows to gather statistics about swap,"
+            + "eviction, compression and pagecache efficiency"
+            + "</html>";
+    private static final String MEMOYR_STR = "<html>"
+            + "Polling of /proc/meminfo"
             + "</html>";
     private static final String FULL_HOS_DEVICE_PATH = "cd /data/local/tmp/developtools";
     private static final String LEAN_HOS_DEVICE_PATH = "cd /data/local/tmp/stddeveloptools";
@@ -167,6 +196,9 @@ public class SystemConfigPanel extends JBPanel implements MouseListener, ItemLis
             .concat(System.lineSeparator()).concat(START_HIPROFILER_PLUGINS);
 
     JSeparator separator = new JSeparator();
+    JSeparator memorySeparator = new JSeparator();
+    JSeparator hilogSeparator = new JSeparator();
+    ButtonGroup hilogButtonGroup = new ButtonGroup();
 
     ArrayList<String> schedulingEvents = new ArrayList<String>(Arrays.asList(
         "sched/sched_switch",
@@ -203,6 +235,40 @@ public class SystemConfigPanel extends JBPanel implements MouseListener, ItemLis
         "kmem/ion_heap_grow",
         "kmem/ion_heap_shrink"
     ));
+    ArrayList<String> advancedConfigEvents = new ArrayList<String>(Arrays.asList(
+        "sched/sched_switch",
+        "sched/sched_wakeup",
+        "sched/sched_wakeup_new",
+        "sched/sched_waking",
+        "sched/sched_process_exit",
+        "sched/sched_process_free",
+        "irq/irq_handler_entry",
+        "irq/irq_handler_exit",
+        "irq/softirq_entry",
+        "irq/softirq_exit",
+        "irq/softirq_raise",
+        "power/clock_disable",
+        "power/clock_enable",
+        "power/clock_set_rate",
+        "power/cpu_frequency",
+        "power/cpu_idle",
+        "clk/clk_disable",
+        "clk/clk_disable_complete",
+        "clk/clk_enable",
+        "clk/clk_enable_complete",
+        "clk/clk_set_rate",
+        "clk/clk_set_rate_complete",
+        "binder/binder_transaction",
+        "binder/binder_transaction_alloc_buf",
+        "binder/binder_transaction_received",
+        "binder/binder_lock",
+        "binder/binder_locked",
+        "binder/binder_unlock",
+        "workqueue/workqueue_execute_start",
+        "workqueue/workqueue_execute_end",
+        "oom/oom_score_adj_update",
+        "ftrace/print"
+    ));
     ArrayList<String> hTraceAudioEvents = new ArrayList<String>(Arrays.asList(
         "audio"
     ));
@@ -236,6 +302,19 @@ public class SystemConfigPanel extends JBPanel implements MouseListener, ItemLis
     private JBPanel sceneTitlePanel;
     private JBLabel sceneTitle;
     private JBLabel sceneTitleDes;
+
+    private JBRadioButton hilogLevelError;
+    private JBRadioButton hilogLevelInfo;
+    private JBRadioButton hilogLevelDebug;
+    private JBRadioButton hilogLevelWarn;
+
+    private JBCheckBox memoyrCheckBox;
+    private JBLabel memoyrTitleDes;
+    private JBCheckBox virtualMemoryCheckBox;
+    private JBLabel virtualMemoryTitleDes;
+    private JBCheckBox hilogCheckBox;
+    private JBLabel hilogTitleDes;
+
     private ComboBox<String> connectTypeComboBox;
     private ComboBox<String> deviceComboBox;
     private JBPanel configTitlePanel;
@@ -256,6 +335,8 @@ public class SystemConfigPanel extends JBPanel implements MouseListener, ItemLis
     private JButton lastStepBtn;
     private JButton startTaskBtn;
     private JBLabel recordModelTitle;
+    private JBLabel memoryConfigTitle;
+    private JBLabel hilogConfigTitle;
     private JBCheckBox schedulingCheckBox;
     private JBLabel schedulingCheckBoxDes;
     private JBCheckBox cpuFrequencyCheckBox;
@@ -268,11 +349,15 @@ public class SystemConfigPanel extends JBPanel implements MouseListener, ItemLis
     private JBLabel hTraceUserspaceCheckBoxDes;
     private JBCheckBox syscallsCheckBox;
     private JBLabel syscallsCheckBoxDes;
+    private JBCheckBox advancedConfigCheckBox;
+    private JBLabel advancedConfigCheckBoxDes;
     private JBLabel durationValue;
     private JSlider bufferSizeSlider;
     private JBPanel buttonPanel;
     private JBLabel bufferSizeValue;
     private JSlider durationSlider;
+    private JBScrollPane probesCenterScrollPane;
+    private JBPanel panelIncludeScrollPane;
     private int inMemoryValue = 10;
     private int maxDuration = 10;
     private String eventStr = "";
@@ -317,8 +402,7 @@ public class SystemConfigPanel extends JBPanel implements MouseListener, ItemLis
         if (ProfilerLogManager.isInfoEnabled()) {
             LOGGER.info("initSceneTitlePanel");
         }
-        sceneTitlePanel = new JBPanel(new MigLayout("insets 0",
-            "[]15[]push", "[fill,fill]"));
+        sceneTitlePanel = new JBPanel(new MigLayout("insets 0", "[]15[]push", "[fill,fill]"));
         sceneTitlePanel.setOpaque(false);
         sceneTitle = new JBLabel(SCENE_TITLE_STR);
         sceneTitle.setFont(new Font(Font.DIALOG, Font.BOLD, 24));
@@ -347,8 +431,7 @@ public class SystemConfigPanel extends JBPanel implements MouseListener, ItemLis
         if (ProfilerLogManager.isInfoEnabled()) {
             LOGGER.info("initConfigTitlePanel");
         }
-        configTitlePanel = new JBPanel(new MigLayout("insets 0",
-            "[]15[]push", "15[fill,fill]"));
+        configTitlePanel = new JBPanel(new MigLayout("insets 0", "[]15[]push", "15[fill,fill]"));
         configTitlePanel.setOpaque(false);
         configTitle = new JBLabel(CONFIG_TITLE_STR);
         configTitle.setFont(new Font(Font.DIALOG, Font.BOLD, 24));
@@ -373,6 +456,10 @@ public class SystemConfigPanel extends JBPanel implements MouseListener, ItemLis
         initProbesTabItems();
         // initProbesHtraceTabItem
         initProbesHTraceTabItem();
+        // initMemoryitems
+        initMemoryitems();
+        // initProbesTabHilogItem
+        initProbesTabHilogItem();
     }
 
     private void initTabPanel() {
@@ -388,6 +475,7 @@ public class SystemConfigPanel extends JBPanel implements MouseListener, ItemLis
         // init the probesTab
         probesTab = new JBPanel(new BorderLayout());
         probesTitle = new JBLabel(PROBES_TITLE_STR, JBLabel.CENTER);
+        probesTitle.setName(UtConstant.UT_SYSTEM_TUNING_LABEL);
         probesTitle.setFont(new Font(Font.DIALOG, Font.BOLD, 16));
         probesTitle.setPreferredSize(new Dimension(100, 40));
         // init the configTabbedPane
@@ -462,12 +550,16 @@ public class SystemConfigPanel extends JBPanel implements MouseListener, ItemLis
             LOGGER.info("traceCommandLabelRightShow");
         }
         traceConfigCenterPanel.removeAll();
-
-        ArrayList<ArrayList<String>> eventsList = new ArrayList();
+        ArrayList<String> eventsList = new ArrayList();
         ArrayList<ArrayList<String>> atraceEventsList = new ArrayList();
         getEvent(eventsList, atraceEventsList);
-        String commandStr = getCommandStr(eventsList, atraceEventsList);
-        JTextArea textArea = new JTextArea(commandStr);
+        String commandString = SystemTraceHelper.getSingleton().showHtraceCommand(deviceIPPortInfo,
+            constructRequestParam());
+        String commandFormatString = commandString.replace("\\\"", "")
+            .replace("\\n", System.lineSeparator() + "\t\t");
+        // load html
+        JTextArea textArea = new JTextArea(commandFormatString);
+        textArea.setFocusable(false);
         // Sets the text in the text field to wrap
         textArea.setLineWrap(true);
         textArea.setForeground(Color.gray);
@@ -475,7 +567,6 @@ public class SystemConfigPanel extends JBPanel implements MouseListener, ItemLis
         textArea.setBackground(ColorConstants.BLACK_COLOR);
         JScrollPane scrollPane = new JScrollPane(textArea);
         scrollPane.setBounds(40, 40, 600, 400);
-
         traceConfigCenterPanel.add(scrollPane);
         JButton jButtonSave = new JButton();
         jButtonSave.setIcon(IconLoader.getIcon("/images/copy.png", getClass()));
@@ -485,25 +576,32 @@ public class SystemConfigPanel extends JBPanel implements MouseListener, ItemLis
         jButtonSave.setBorderPainted(false);
         jButtonSave.addActionListener(new ActionListener() {
             @Override
-            public void actionPerformed(ActionEvent e) {
-                clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-                StringSelection contents = new StringSelection(textArea.getText());
-                clipboard.setContents(contents, SystemConfigPanel.this);
+            public void actionPerformed(ActionEvent event) {
+                CompletableFuture.runAsync(() -> {
+                    StringSelection contents = new StringSelection(getCopyCommandStr());
+                    SwingUtilities.invokeLater(() -> {
+                        clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+                        clipboard.setContents(contents, SystemConfigPanel.this);
+                    });
+                }, Utils.getPool()).whenComplete((unused, throwable) -> {
+                    if (Objects.nonNull(throwable)) {
+                        throwable.printStackTrace();
+                    }
+                });
             }
         });
         traceConfigCenterPanel.add(jButtonSave);
         traceConfigCenterPanel.repaint();
     }
 
-    private String getCommandStr(ArrayList<ArrayList<String>> eventsList, ArrayList<ArrayList<String>> atraceEventsList)
-        throws GrpcException {
+    private String getCopyCommandStr() {
         String commandStr = null;
         if (deviceIPPortInfo != null) {
             Date date = new Date();
-            String commandParameterStr = new SystemTraceHelper()
-                .getHtraceTraceCommand(deviceIPPortInfo, eventsList, atraceEventsList, maxDuration, inMemoryValue);
-            String commandFilePath =
-                new SystemTraceHelper().pushHtraceCommandFile(commandParameterStr, sdf.format(date), deviceIPPortInfo);
+            String commandParameterStr = SystemTraceHelper.getSingleton()
+                .getHtraceExecuteCommand(deviceIPPortInfo, constructRequestParam());
+            String commandFilePath = SystemTraceHelper.getSingleton()
+                .pushHtraceCommandFile(commandParameterStr, sdf.format(date), deviceIPPortInfo);
             String path;
             if (deviceIPPortInfo.getDeviceType() == DeviceType.FULL_HOS_DEVICE) {
                 path = FULL_HOS_DEVICE_PATH;
@@ -601,10 +699,9 @@ public class SystemConfigPanel extends JBPanel implements MouseListener, ItemLis
                 int seconds = durationSlider.getValue() % 60;
                 int minutes = (durationSlider.getValue() / 60) % 60;
                 int hours = durationSlider.getValue() / (60 * 60);
-                durationValue.setText(" " + String.format(Locale.ENGLISH, "%02d", hours) + ":" +
-                        String.format(Locale.ENGLISH, "%02d", minutes) +
-                        ":" + String.format(Locale.ENGLISH, "%02d", seconds)
-                        + " h:m:s ");
+                durationValue.setText(" " + String.format(Locale.ENGLISH, "%02d", hours) + ":" + String
+                    .format(Locale.ENGLISH, "%02d", minutes) + ":" + String.format(Locale.ENGLISH, "%02d", seconds)
+                    + " h:m:s ");
                 durationValue.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 14));
                 durationValue.setVerticalTextPosition(JBLabel.CENTER);
                 durationValue.setHorizontalTextPosition(JBLabel.CENTER);
@@ -620,8 +717,9 @@ public class SystemConfigPanel extends JBPanel implements MouseListener, ItemLis
         hTraceUserspaceCheckBox = new JBCheckBox(HTRACE_USERSPACE_STR, false);
         hTraceUserspaceCheckBoxDes = new JBLabel(HTRACE_USERSPACE_DES_STR, JBLabel.LEFT);
         hTraceUserspaceCheckBox.setFont(new Font(Font.DIALOG, Font.BOLD, 14));
-        hTraceUserspaceCheckBox.setBounds(50, 330, 250, 50);
-        hTraceUserspaceCheckBoxDes.setBounds(70, 360, 350, 80);
+        hTraceUserspaceCheckBox.setName(UtConstant.UT_SYSTEM_TUNING_CATEGORIES);
+        hTraceUserspaceCheckBox.setBounds(50, 350, 250, 50);
+        hTraceUserspaceCheckBoxDes.setBounds(70, 380, 350, 80);
         hTraceAudio = new JBCheckBox(HTRACE_AUDIO_STR, false);
         hTraceCamera = new JBCheckBox(HTRACE_CAMERA_STR, false);
         hTraceDatabase = new JBCheckBox(HTRACE_DATABASE_STR, false);
@@ -630,19 +728,19 @@ public class SystemConfigPanel extends JBPanel implements MouseListener, ItemLis
         hTraceNetWork = new JBCheckBox(HTRACE_NETWORK_STR, false);
         hTraceVideo = new JBCheckBox(HTRACE_VIDEO_STR, false);
         hTraceAudio.setFont(new Font(Font.DIALOG, Font.BOLD, 14));
-        hTraceAudio.setBounds(500, 330, 90, 50);
+        hTraceAudio.setBounds(500, 350, 90, 40);
         hTraceCamera.setFont(new Font(Font.DIALOG, Font.BOLD, 14));
-        hTraceCamera.setBounds(590, 330, 90, 50);
+        hTraceCamera.setBounds(590, 350, 90, 40);
         hTraceDatabase.setFont(new Font(Font.DIALOG, Font.BOLD, 14));
-        hTraceDatabase.setBounds(680, 330, 90, 50);
+        hTraceDatabase.setBounds(680, 350, 90, 40);
         hTraceGraphics.setFont(new Font(Font.DIALOG, Font.BOLD, 14));
-        hTraceGraphics.setBounds(770, 330, 90, 50);
+        hTraceGraphics.setBounds(770, 350, 90, 40);
         hTraceInput.setFont(new Font(Font.DIALOG, Font.BOLD, 14));
-        hTraceInput.setBounds(500, 380, 90, 50);
+        hTraceInput.setBounds(500, 380, 90, 40);
         hTraceNetWork.setFont(new Font(Font.DIALOG, Font.BOLD, 14));
-        hTraceNetWork.setBounds(590, 380, 90, 50);
+        hTraceNetWork.setBounds(590, 380, 90, 40);
         hTraceVideo.setFont(new Font(Font.DIALOG, Font.BOLD, 14));
-        hTraceVideo.setBounds(680, 380, 90, 50);
+        hTraceVideo.setBounds(680, 380, 90, 40);
         hTraceAddActionListener(hTraceUserspaceCheckBox);
         addActionListener(hTraceAudio);
         addActionListener(hTraceCamera);
@@ -670,7 +768,7 @@ public class SystemConfigPanel extends JBPanel implements MouseListener, ItemLis
     public void hTraceAddActionListener(JBCheckBox checkBoxObject) {
         checkBoxObject.addActionListener(new ActionListener() {
             @Override
-            public void actionPerformed(ActionEvent e) {
+            public void actionPerformed(ActionEvent event) {
                 if (hTraceUserspaceCheckBox.isSelected()) {
                     hTraceAudio.setSelected(true);
                     hTraceCamera.setSelected(true);
@@ -700,12 +798,11 @@ public class SystemConfigPanel extends JBPanel implements MouseListener, ItemLis
     public void addActionListener(JBCheckBox checkBoxObject) {
         checkBoxObject.addActionListener(new ActionListener() {
             @Override
-            public void actionPerformed(ActionEvent e) {
-                boolean isSelected =
+            public void actionPerformed(ActionEvent event) {
+                boolean isSelect =
                     hTraceGraphics.isSelected() && hTraceInput.isSelected() && hTraceNetWork.isSelected() && hTraceVideo
                         .isSelected();
-                if (hTraceAudio.isSelected() && hTraceCamera.isSelected() && hTraceDatabase.isSelected()
-                    && isSelected) {
+                if (hTraceAudio.isSelected() && hTraceCamera.isSelected() && hTraceDatabase.isSelected() && isSelect) {
                     hTraceUserspaceCheckBox.setSelected(true);
                 } else {
                     hTraceUserspaceCheckBox.setSelected(false);
@@ -727,11 +824,10 @@ public class SystemConfigPanel extends JBPanel implements MouseListener, ItemLis
         probesCpu.setBounds(0, 50, 200, 70);
         probesWestPanel.add(probesCpu);
         probesCpu.setVisible(false);
-        probesWestPanel.setPreferredSize(new Dimension(200, 500));
+        probesWestPanel.setPreferredSize(new Dimension(200, 800));
         // init the component
         recordModelTitle = new JBLabel(RECORD_MODEL_STR);
         schedulingCheckBox = new JBCheckBox(SCHEDULING_STR, true);
-        schedulingCheckBox.setEnabled(false);
         schedulingCheckBoxDes = new JBLabel(SCHEDULING_DES_STR, JBLabel.LEFT);
         cpuFrequencyCheckBox = new JBCheckBox(CPU_FREQUENCY_STR, false);
         cpuFrequencyCheckBoxDes = new JBLabel(CPU_FREQUENCY_DES_STR, JBLabel.LEFT);
@@ -742,6 +838,8 @@ public class SystemConfigPanel extends JBPanel implements MouseListener, ItemLis
 
         syscallsCheckBox = new JBCheckBox(SYSCALLS_STR, false);
         syscallsCheckBoxDes = new JBLabel(SYSCALLS_DES_STR, JBLabel.LEFT);
+        advancedConfigCheckBox = new JBCheckBox(ADVANCED_CONFIG_STR, false);
+        advancedConfigCheckBoxDes = new JBLabel(ADVANCED_CONFIG_DES_STR, JBLabel.LEFT);
         // set the font
         schedulingCheckBox.setFont(new Font(Font.DIALOG, Font.BOLD, 14));
         cpuFrequencyCheckBox.setFont(new Font(Font.DIALOG, Font.BOLD, 14));
@@ -749,22 +847,114 @@ public class SystemConfigPanel extends JBPanel implements MouseListener, ItemLis
         highFrequencyCheckBox.setFont(new Font(Font.DIALOG, Font.BOLD, 14));
 
         syscallsCheckBox.setFont(new Font(Font.DIALOG, Font.BOLD, 14));
+        advancedConfigCheckBox.setFont(new Font(Font.DIALOG, Font.BOLD, 14));
         // set the bounds
         recordModelTitle.setBounds(50, 13, 200, 50);
         schedulingCheckBox.setBounds(50, 50, 250, 50);
         schedulingCheckBoxDes.setBounds(70, 80, 350, 50);
-
         cpuFrequencyCheckBox.setBounds(50, 140, 250, 50);
         cpuFrequencyCheckBoxDes.setBounds(70, 170, 350, 50);
+        advancedConfigCheckBox.setBounds(50, 240, 250, 50);
+        advancedConfigCheckBoxDes.setBounds(70, 270, 350, 90);
+
         boardCheckBox.setBounds(500, 50, 250, 50);
         boardCheckBoxDes.setBounds(520, 80, 350, 60);
         highFrequencyCheckBox.setBounds(500, 140, 250, 50);
         highFrequencyCheckBoxDes.setBounds(520, 170, 350, 80);
-        syscallsCheckBox.setBounds(50, 230, 250, 50);
-        syscallsCheckBoxDes.setBounds(70, 260, 350, 50);
-        separator.setBounds(50, 310, 850, 10);
-        separator.setBackground(new Color(255, 255, 255));
+        syscallsCheckBox.setBounds(500, 240, 250, 50);
+        syscallsCheckBoxDes.setBounds(520, 270, 350, 50);
         addProbesCenterPanel();
+    }
+
+    private void initMemoryitems() {
+        // memory
+        memorySeparator.setBounds(50, 450, 850, 10);
+        memorySeparator.setBackground(new Color(255, 255, 255));
+        memoryConfigTitle = new JBLabel(MEMORY_CONFIG_STR);
+        memoryConfigTitle.setBounds(50, 460, 200, 40);
+        memoyrCheckBox = new JBCheckBox(KERNEL_MEMORY, true);
+        memoyrTitleDes = new JBLabel(MEMOYR_STR);
+        virtualMemoryCheckBox = new JBCheckBox(VIRTUAL_MEMORY);
+        virtualMemoryTitleDes = new JBLabel(VIRTUAL_MEMOYR_STR);
+        memoyrCheckBox.setBounds(50, 490, 250, 50);
+        memoyrTitleDes.setBounds(70, 520, 250, 60);
+        virtualMemoryCheckBox.setBounds(500, 490, 250, 50);
+        virtualMemoryTitleDes.setBounds(520, 520, 350, 90);
+        // set font size
+        memoyrCheckBox.setFont(new Font(Font.DIALOG, Font.BOLD, 14));
+        virtualMemoryCheckBox.setFont(new Font(Font.DIALOG, Font.BOLD, 14));
+        // add all items to probesCenterPanel
+        probesCenterPanel.add(memorySeparator);
+        probesCenterPanel.add(memoryConfigTitle);
+        probesCenterPanel.add(memoyrCheckBox);
+        probesCenterPanel.add(memoyrTitleDes);
+        probesCenterPanel.add(virtualMemoryCheckBox);
+        probesCenterPanel.add(virtualMemoryTitleDes);
+    }
+
+    private void initProbesTabHilogItem() {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("initProbesTabHilogItem");
+        }
+        // hilog
+        hilogSeparator.setBounds(50, 600, 850, 10);
+        hilogSeparator.setBackground(new Color(255, 255, 255));
+        hilogConfigTitle = new JBLabel(HILOG_CONFIG_STR);
+        hilogConfigTitle.setBounds(50, 610, 200, 40);
+        hilogCheckBox = new JBCheckBox(LOG_LEVEL_CHECKBOX, true);
+        hilogCheckBox.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent event) {
+                hilogLinkageSetting();
+            }
+        });
+        hilogTitleDes = new JBLabel(LOG_LEVEL_CHECKBOX_DEC);
+        hilogCheckBox.setBounds(50, 640, 250, 50);
+        hilogTitleDes.setBounds(70, 680, 250, 60);
+        hilogLevelError = new JBRadioButton(HILOG_CONFIG_ERROR, false);
+        hilogLevelInfo = new JBRadioButton(HILOG_CONFIG_INFO, true);
+        hilogLevelDebug = new JBRadioButton(HILOG_CONFIG_DEBUG, false);
+        hilogLevelWarn = new JBRadioButton(HILOG_CONFIG_WARN, false);
+        hilogButtonGroup.add(hilogLevelError);
+        hilogButtonGroup.add(hilogLevelInfo);
+        hilogButtonGroup.add(hilogLevelDebug);
+        hilogButtonGroup.add(hilogLevelWarn);
+        hilogLevelError.setFont(new Font(Font.DIALOG, Font.BOLD, 14));
+        hilogLevelError.setBounds(500, 640, 90, 50);
+        hilogLevelInfo.setFont(new Font(Font.DIALOG, Font.BOLD, 14));
+        hilogLevelInfo.setBounds(590, 640, 90, 50);
+        hilogLevelDebug.setFont(new Font(Font.DIALOG, Font.BOLD, 14));
+        hilogLevelDebug.setBounds(680, 640, 90, 50);
+        hilogLevelWarn.setFont(new Font(Font.DIALOG, Font.BOLD, 14));
+        hilogLevelWarn.setBounds(770, 640, 90, 50);
+        probesCenterPanel.add(hilogSeparator);
+        probesCenterPanel.add(hilogConfigTitle);
+        probesCenterPanel.add(hilogCheckBox);
+        probesCenterPanel.add(hilogTitleDes);
+        probesCenterPanel.add(hilogLevelError);
+        probesCenterPanel.add(hilogLevelInfo);
+        probesCenterPanel.add(hilogLevelDebug);
+        probesCenterPanel.add(hilogLevelWarn);
+    }
+
+    private void hilogLinkageSetting() {
+        if (hilogCheckBox.isSelected()) {
+            hilogLevelInfo.setSelected(true);
+            hilogLevelError.setEnabled(true);
+            hilogLevelInfo.setEnabled(true);
+            hilogLevelDebug.setEnabled(true);
+            hilogLevelWarn.setEnabled(true);
+        } else {
+            hilogLevelError.setSelected(false);
+            hilogLevelError.setEnabled(false);
+            hilogLevelInfo.setSelected(false);
+            hilogLevelInfo.setEnabled(false);
+            hilogLevelDebug.setSelected(false);
+            hilogLevelDebug.setEnabled(false);
+            hilogLevelWarn.setSelected(false);
+            hilogLevelWarn.setEnabled(false);
+            hilogButtonGroup.clearSelection();
+        }
     }
 
     /**
@@ -786,18 +976,24 @@ public class SystemConfigPanel extends JBPanel implements MouseListener, ItemLis
         probesCenterPanel.add(highFrequencyCheckBoxDes);
         probesCenterPanel.add(syscallsCheckBox);
         probesCenterPanel.add(syscallsCheckBoxDes);
+        probesCenterPanel.add(advancedConfigCheckBox);
+        probesCenterPanel.add(advancedConfigCheckBoxDes);
         probesCenterPanel.add(separator);
         // checkBoxState
         probesTab.add(probesWestPanel, BorderLayout.WEST);
-        probesTab.add(probesCenterPanel, BorderLayout.CENTER);
+        probesCenterPanel.setPreferredSize(new Dimension(1100, 800));
+        probesCenterScrollPane = new JBScrollPane(probesCenterPanel);
+        probesCenterScrollPane.setBounds(0, 0, 1100, 500);
+        panelIncludeScrollPane = new JBPanel(null);
+        panelIncludeScrollPane.add(probesCenterScrollPane);
+        probesTab.add(panelIncludeScrollPane, BorderLayout.CENTER);
     }
 
     private void initButtonPanel() {
         if (ProfilerLogManager.isInfoEnabled()) {
             LOGGER.info("initButtonPanel");
         }
-        buttonPanel = new JBPanel(new MigLayout("insets 0", "push[]20[]20",
-            "[fill,fill]"));
+        buttonPanel = new JBPanel(new MigLayout("insets 0", "push[]20[]20", "[fill,fill]"));
         buttonPanel.setOpaque(false);
         lastStepBtn = new JButton(LAST_STEP_BTN);
         lastStepBtn.setName(LAST_STEP_BTN);
@@ -852,8 +1048,8 @@ public class SystemConfigPanel extends JBPanel implements MouseListener, ItemLis
                 }
             }
         });
-        QuartzManager.getInstance().startExecutor(DEVICE_REFRESH, LayoutConstants.DEFAULT_NUMBER,
-            LayoutConstants.NUMBER_THREAD);
+        QuartzManager.getInstance()
+            .startExecutor(DEVICE_REFRESH, LayoutConstants.DEFAULT_NUMBER, LayoutConstants.NUMBER_THREAD);
     }
 
     @Override
@@ -908,20 +1104,16 @@ public class SystemConfigPanel extends JBPanel implements MouseListener, ItemLis
                     if (schedulingCheckBox.isSelected()) {
                         eventStr = eventStr.concat(";").concat(SCHED_FREQ_EVENT);
                     }
-                    sessionId = new SystemTraceHelper()
+                    sessionId = SystemTraceHelper.getSingleton()
                         .createSessionByTraceRequest(deviceIPPortInfo, eventStr, maxDuration, inMemoryValue,
                             "/data/local/tmp/hiprofiler_data.bytrace", true);
                 } else {
-                    ArrayList<ArrayList<String>> eventsList = new ArrayList();
-                    ArrayList<ArrayList<String>> hTraceEventsList = new ArrayList();
-                    getEvent(eventsList, hTraceEventsList);
-                    sessionId = new SystemTraceHelper()
-                        .createSessionHtraceRequest(deviceIPPortInfo, eventsList, hTraceEventsList, maxDuration,
-                            inMemoryValue);
+                    sessionId = SystemTraceHelper.getSingleton()
+                        .executeHtraceRecording(deviceIPPortInfo, constructRequestParam());
                 }
                 if (Optional.ofNullable(sessionId).isPresent()) {
                     new TraceRecordDialog().load(contentPanel, maxDuration, sessionId, deviceIPPortInfo, chooseMode);
-                }else {
+                } else {
                     new SampleDialog("prompt", "The corresponding file is missing!").show();
                 }
 
@@ -929,6 +1121,32 @@ public class SystemConfigPanel extends JBPanel implements MouseListener, ItemLis
         } catch (GrpcException grpcException) {
             grpcException.printStackTrace();
         }
+    }
+
+    private SystemConfigData constructRequestParam() {
+        SystemConfigData systemConfigData = new SystemConfigData();
+        ArrayList<String> eventsList = new ArrayList();
+        ArrayList<ArrayList<String>> hTraceEventsList = new ArrayList();
+        getEvent(eventsList, hTraceEventsList);
+        systemConfigData.setEventsList(eventsList);
+        systemConfigData.sethTraceEventsList(hTraceEventsList);
+        systemConfigData.setInMemoryValue(inMemoryValue);
+        systemConfigData.setMaxDuration(maxDuration);
+        systemConfigData.setMemoryInfo(memoyrCheckBox.isSelected());
+        systemConfigData.setVmemoryInfo(virtualMemoryCheckBox.isSelected());
+        if (hilogLevelError.isSelected()) {
+            systemConfigData.setHilogLevel("ERROR");
+        }
+        if (hilogLevelInfo.isSelected()) {
+            systemConfigData.setHilogLevel("INFO");
+        }
+        if (hilogLevelDebug.isSelected()) {
+            systemConfigData.setHilogLevel("DEBUG");
+        }
+        if (hilogLevelWarn.isSelected()) {
+            systemConfigData.setHilogLevel("WARN");
+        }
+        return systemConfigData;
     }
 
     /**
@@ -939,10 +1157,12 @@ public class SystemConfigPanel extends JBPanel implements MouseListener, ItemLis
     public boolean getClassificationSelect() {
         if (!schedulingCheckBox.isSelected() && !cpuFrequencyCheckBox.isSelected() && !boardCheckBox.isSelected()
             && !syscallsCheckBox.isSelected() && !highFrequencyCheckBox.isSelected() && !hTraceAudio.isSelected()
-            && !hTraceCamera.isSelected() && !hTraceDatabase.isSelected() && !hTraceGraphics.isSelected()
-            && !hTraceInput.isSelected() && !hTraceNetWork.isSelected() && !hTraceVideo.isSelected()) {
+            && !advancedConfigCheckBox.isSelected() && !hTraceCamera.isSelected() && !hTraceDatabase.isSelected()
+            && !hTraceGraphics.isSelected() && !hTraceInput.isSelected() && !hTraceNetWork.isSelected() && !hTraceVideo
+            .isSelected() && !memoyrCheckBox.isSelected() && !virtualMemoryCheckBox.isSelected() && !hilogCheckBox
+            .isSelected()) {
             return false;
-        }else {
+        } else {
             return true;
         }
     }
@@ -953,21 +1173,24 @@ public class SystemConfigPanel extends JBPanel implements MouseListener, ItemLis
      * @param eventsList eventsList
      * @param hTraceEventsList hTraceEventsList
      */
-    public void getEvent(ArrayList<ArrayList<String>> eventsList, ArrayList<ArrayList<String>> hTraceEventsList) {
+    public void getEvent(ArrayList<String> eventsList, ArrayList<ArrayList<String>> hTraceEventsList) {
         if (schedulingCheckBox.isSelected()) {
-            eventsList.add(schedulingEvents);
+            schedulingEvents.stream().forEach(event -> eventsList.add(event));
         }
         if (boardCheckBox.isSelected()) {
-            eventsList.add(powerEvents);
+            powerEvents.stream().forEach(event -> eventsList.add(event));
         }
         if (cpuFrequencyCheckBox.isSelected()) {
-            eventsList.add(cpuFreqEvents);
+            cpuFreqEvents.stream().forEach(event -> eventsList.add(event));
         }
         if (syscallsCheckBox.isSelected()) {
-            eventsList.add(sysCallsEvents);
+            sysCallsEvents.stream().forEach(event -> eventsList.add(event));
+        }
+        if (advancedConfigCheckBox.isSelected()) {
+            advancedConfigEvents.stream().forEach(event -> eventsList.add(event));
         }
         if (highFrequencyCheckBox.isSelected()) {
-            eventsList.add(highFrequencyEvents);
+            highFrequencyEvents.stream().forEach(event -> eventsList.add(event));
         }
         if (hTraceAudio.isSelected()) {
             hTraceEventsList.add(hTraceAudioEvents);

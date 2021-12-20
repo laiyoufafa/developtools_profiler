@@ -67,12 +67,12 @@ public class ProfilerClientTest {
         grpcCleanup.register(
             InProcessServerBuilder.forName(serverName).fallbackHandlerRegistry(serviceRegistry).directExecutor().build()
                 .start());
-        MockProfilerServiceImplBase getFeatureImpl = new ProfilerClientTestMock();
+        MockProfilerServiceImplBaseCustom getFeatureImpl = new MockProfilerServiceImplBaseCustom();
         channel = grpcCleanup.register(InProcessChannelBuilder.forName(serverName).directExecutor().build());
         serviceRegistry.addService(getFeatureImpl);
     }
 
-    private class ProfilerClientTestMock extends MockProfilerServiceImplBase {
+    class MockProfilerServiceImplBaseCustom extends MockProfilerServiceImplBase {
         @Override
         public void getCapabilities(ProfilerServiceTypes.GetCapabilitiesRequest request,
             StreamObserver<ProfilerServiceTypes.GetCapabilitiesResponse> responseObserver) {
@@ -126,6 +126,16 @@ public class ProfilerClientTest {
             StreamObserver<ProfilerServiceTypes.FetchDataResponse> responseObserver) {
             fetchDataResponseObserver(responseObserver);
         }
+        @Override
+        public void keepSession(ProfilerServiceTypes.KeepSessionRequest request,
+            StreamObserver<ProfilerServiceTypes.KeepSessionResponse> responseObserver) {
+            CommonTypes.ProfilerPluginState profilerPluginState =
+                CommonTypes.ProfilerPluginState.newBuilder().build();
+            ProfilerServiceTypes.KeepSessionResponse reply =
+                ProfilerServiceTypes.KeepSessionResponse.newBuilder().setStatus(0).build();
+            responseObserver.onNext(reply);
+            responseObserver.onCompleted();
+        }
     }
 
     /**
@@ -170,8 +180,9 @@ public class ProfilerClientTest {
     @Test
     public void getCapabilitiesTest02() {
         ProfilerClient profilerClient = new ProfilerClient(ip, port, channel);
-        ProfilerServiceTypes.GetCapabilitiesResponse capabilities = profilerClient.getCapabilities(null);
-        Assert.assertNotNull(capabilities);
+        ProfilerServiceTypes.GetCapabilitiesResponse capabilities = profilerClient.getCapabilities(
+            ProfilerServiceTypes.GetCapabilitiesRequest.newBuilder().setRequestId(CommonUtil.getRequestId()).build());
+        Assert.assertEquals(capabilities.getStatus(), 0);
     }
 
     /**
@@ -710,5 +721,97 @@ public class ProfilerClientTest {
             ProfilerServiceHelper.destroySessionRequest(CommonUtil.getRequestId(), -1);
         ProfilerServiceTypes.DestroySessionResponse destroySessionResponse = profilerClient.destroySession(req);
         Assert.assertNotNull(destroySessionResponse);
+    }
+
+    /**
+     * functional testing
+     *
+     * @tc.name: keepSessionTest01
+     * @tc.number: OHOS_JAVA_grpc_ProfilerClient_keepSessionTest_0001
+     * @tc.desc: keep Session Test
+     * @tc.type: functional testing
+     * @tc.require: SR-005
+     */
+    @Test
+    public void keepSessionTest01() {
+        ProfilerClient profilerClient = new ProfilerClient(ip, port, channel);
+        ProfilerServiceTypes.KeepSessionRequest build =
+            ProfilerServiceTypes.KeepSessionRequest.newBuilder().setRequestId(CommonUtil.getRequestId()).setSessionId(1)
+                .build();
+
+        ProfilerServiceTypes.KeepSessionResponse keepSessionResponse = profilerClient.keepSession(build);
+        Assert.assertEquals(keepSessionResponse.getStatus(), 0);
+    }
+
+    /**
+     * functional testing
+     *
+     * @tc.name: keepSessionTest02
+     * @tc.number: OHOS_JAVA_grpc_ProfilerClient_keepSessionTest_0002
+     * @tc.desc: keep Session Test
+     * @tc.type: functional testing
+     * @tc.require: SR-005
+     */
+    @Test
+    public void keepSessionTest02() {
+        ProfilerClient profilerClient = new ProfilerClient(ip, port, channel);
+        ProfilerServiceTypes.KeepSessionResponse keepSessionResponse = profilerClient.keepSession(null);
+        Assert.assertNotNull(keepSessionResponse);
+    }
+
+    /**
+     * functional testing
+     *
+     * @tc.name: keepSessionTest03
+     * @tc.number: OHOS_JAVA_grpc_ProfilerClient_keepSessionTest_0003
+     * @tc.desc: keep Session Test
+     * @tc.type: functional testing
+     * @tc.require: SR-005
+     */
+    @Test
+    public void keepSessionTest03() {
+        ProfilerClient profilerClient = new ProfilerClient(ip, port, channel);
+        ProfilerServiceTypes.KeepSessionRequest keepSessionRequest =
+            ProfilerServiceTypes.KeepSessionRequest.newBuilder().setRequestId(CommonUtil.getRequestId())
+                .setSessionId(-1).build();
+        ProfilerServiceTypes.KeepSessionResponse keepSessionResponse = profilerClient.keepSession(keepSessionRequest);
+        Assert.assertNotNull(keepSessionResponse);
+    }
+
+    /**
+     * functional testing
+     *
+     * @tc.name: keepSessionTest04
+     * @tc.number: OHOS_JAVA_grpc_ProfilerClient_keepSessionTest_0004
+     * @tc.desc: keep Session Test
+     * @tc.type: functional testing
+     * @tc.require: SR-005
+     */
+    @Test
+    public void keepSessionTest04() {
+        ProfilerClient profilerClient = new ProfilerClient(ip, port, channel);
+        ProfilerServiceTypes.KeepSessionRequest keepSessionRequest =
+            ProfilerServiceTypes.KeepSessionRequest.newBuilder().setRequestId(-1).setSessionId(1).build();
+        ProfilerServiceTypes.KeepSessionResponse keepSessionResponse = profilerClient.keepSession(keepSessionRequest);
+        Assert.assertNotNull(keepSessionResponse);
+    }
+
+    /**
+     * functional testing
+     *
+     * @tc.name: keepSessionTest05
+     * @tc.number: OHOS_JAVA_grpc_ProfilerClient_keepSessionTest_0005
+     * @tc.desc: keep Session Test
+     * @tc.type: functional testing
+     * @tc.require: SR-005
+     */
+    @Test
+    public void keepSessionTest05() {
+        ProfilerClient profilerClient = new ProfilerClient(null, -1, channel);
+        ProfilerServiceTypes.KeepSessionRequest keepSessionRequest =
+            ProfilerServiceTypes.KeepSessionRequest.newBuilder().setRequestId(CommonUtil.getRequestId())
+                .setSessionId(-1).build();
+        ProfilerServiceTypes.KeepSessionResponse keepSessionResponse = profilerClient.keepSession(keepSessionRequest);
+        Assert.assertNotNull(keepSessionResponse);
     }
 }

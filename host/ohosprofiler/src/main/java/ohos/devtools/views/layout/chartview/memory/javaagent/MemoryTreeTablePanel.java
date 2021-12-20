@@ -28,9 +28,9 @@ import ohos.devtools.views.common.ColorConstants;
 import ohos.devtools.views.common.LayoutConstants;
 import ohos.devtools.views.common.UtConstant;
 import ohos.devtools.views.common.customcomp.CustomComboBox;
-import ohos.devtools.views.common.treetable.ExpandTreeTable;
 import ohos.devtools.views.common.customcomp.CustomJBComboBoxUI;
 import ohos.devtools.views.common.customcomp.CustomJBTextField;
+import ohos.devtools.views.common.treetable.ExpandTreeTable;
 import ohos.devtools.views.layout.chartview.memory.MemoryItemView;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -262,6 +262,7 @@ public class MemoryTreeTablePanel extends JBPanel {
             public void insertUpdate(DocumentEvent event) {
                 searchInsertUpdate(search);
             }
+
             @Override
             public void removeUpdate(DocumentEvent event) {
                 // search
@@ -298,8 +299,8 @@ public class MemoryTreeTablePanel extends JBPanel {
                     if (tableModelRoot instanceof DefaultMutableTreeNode) {
                         root = (DefaultMutableTreeNode) tableModelRoot;
                         List<AgentHeapBean> datas = memoryAgentHeapInfoPanel.getAllAgentDatas().stream()
-                                .filter(agentDataNode -> agentDataNode.getAgentClazzName().contains(text))
-                                .collect(Collectors.toList());
+                            .filter(agentDataNode -> agentDataNode.getAgentClazzName().contains(text))
+                            .collect(Collectors.toList());
                         root.removeAllChildren();
                         int totalAllocations = 0;
                         int totalDeallocations = 0;
@@ -307,8 +308,7 @@ public class MemoryTreeTablePanel extends JBPanel {
                         long totalShallowSize = 0L;
                         for (AgentHeapBean agentHeapBean : datas) {
                             totalAllocations = totalAllocations + agentHeapBean.getAgentAllocationsCount();
-                            totalDeallocations =
-                                    totalDeallocations + agentHeapBean.getAgentDeAllocationsCount();
+                            totalDeallocations = totalDeallocations + agentHeapBean.getAgentDeAllocationsCount();
                             totalTotalCount = totalTotalCount + agentHeapBean.getAgentTotalInstanceCount();
                             totalShallowSize = totalShallowSize + agentHeapBean.getAgentTotalshallowSize();
                             root.add(new DefaultMutableTreeNode(agentHeapBean));
@@ -350,8 +350,8 @@ public class MemoryTreeTablePanel extends JBPanel {
                     if (tableModelRoot instanceof DefaultMutableTreeNode) {
                         root = (DefaultMutableTreeNode) tableModelRoot;
                         List<AgentHeapBean> datas = memoryAgentHeapInfoPanel.getAllAgentDatas().stream()
-                                .filter(agentDataNode -> agentDataNode.getAgentClazzName().contains(text))
-                                .collect(Collectors.toList());
+                            .filter(agentDataNode -> agentDataNode.getAgentClazzName().contains(text))
+                            .collect(Collectors.toList());
                         root.removeAllChildren();
                         int totalAllocations = 0;
                         int totalDeallocations = 0;
@@ -359,8 +359,7 @@ public class MemoryTreeTablePanel extends JBPanel {
                         long totalShallowSize = 0L;
                         for (AgentHeapBean agentHeapBean : datas) {
                             totalAllocations = totalAllocations + agentHeapBean.getAgentAllocationsCount();
-                            totalDeallocations =
-                                    totalDeallocations + agentHeapBean.getAgentDeAllocationsCount();
+                            totalDeallocations = totalDeallocations + agentHeapBean.getAgentDeAllocationsCount();
                             totalTotalCount = totalTotalCount + agentHeapBean.getAgentTotalInstanceCount();
                             totalShallowSize = totalShallowSize + agentHeapBean.getAgentTotalshallowSize();
                             root.add(new DefaultMutableTreeNode(agentHeapBean));

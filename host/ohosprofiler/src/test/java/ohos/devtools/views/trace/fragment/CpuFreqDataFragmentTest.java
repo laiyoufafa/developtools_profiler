@@ -16,7 +16,6 @@
 package ohos.devtools.views.trace.fragment;
 
 import com.intellij.util.ui.UIUtil;
-import ohos.devtools.views.trace.bean.CpuData;
 import ohos.devtools.views.trace.bean.CpuFreqData;
 import ohos.devtools.views.trace.bean.CpuFreqMax;
 import org.junit.jupiter.api.Assertions;
@@ -33,7 +32,7 @@ import java.util.List;
 /**
  * test CpuFreqDataFragment class .
  *
- * @since 2021/4/24 17:57
+ * @date: 2021/4/24 17:57
  */
 class CpuFreqDataFragmentTest {
     private CpuFreqDataFragment cpuFreqDataFragment;
@@ -89,7 +88,7 @@ class CpuFreqDataFragmentTest {
     @Test
     void click() {
         MouseEvent mouseEvent = new MouseEvent(jPanel, 1, 1, 1, 1, 1, 1, true, 1);
-        cpuFreqDataFragment.click(mouseEvent, new CpuData());
+        cpuFreqDataFragment.click(mouseEvent, new CpuFreqData());
         Assertions.assertNotNull(cpuFreqDataFragment.favoriteGraph);
     }
 }

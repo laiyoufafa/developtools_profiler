@@ -47,12 +47,12 @@ public class SystemTraceHelperTest {
     /**
      * grpcCleanup
      */
-    private GrpcCleanupRule grpcCleanup = new GrpcCleanupRule();
-    private DeviceIPPortInfo deviceIPPortInfo;
-    private ManagedChannel channel;
-    private String serverName;
-    private MockProfilerServiceImplBase getFeatureImpl;
-    private MutableHandlerRegistry serviceRegistry = new MutableHandlerRegistry();
+    private GrpcCleanupRule commCleanup = new GrpcCleanupRule();
+    private DeviceIPPortInfo deviceInfo = new DeviceIPPortInfo();
+    private ManagedChannel commchannel;
+    private String commName;
+    private MockProfilerServiceImplBase featureImpl;
+    private MutableHandlerRegistry commRegistry = new MutableHandlerRegistry();
 
     /**
      * TraceManager init
@@ -67,88 +67,7 @@ public class SystemTraceHelperTest {
     @Before
     public void initObj() throws IOException {
         setDeviceInfo();
-        getFeatureImpl = new MockProfilerServiceImplBase() {
-            /**
-             * init getCapabilities
-             *
-             * @param request request
-             * @param responseObserver responseObserver
-             */
-            @Override
-            public void getCapabilities(ProfilerServiceTypes.GetCapabilitiesRequest request,
-                StreamObserver<ProfilerServiceTypes.GetCapabilitiesResponse> responseObserver) {
-                ProfilerServiceTypes.GetCapabilitiesResponse reply = getGetCapabilitiesResponse();
-                responseObserver.onNext(reply);
-                responseObserver.onCompleted();
-            }
-
-            /**
-             * init createSession
-             *
-             * @param request request
-             * @param responseObserver responseObserver
-             */
-            @Override
-            public void createSession(ProfilerServiceTypes.CreateSessionRequest request,
-                StreamObserver<ProfilerServiceTypes.CreateSessionResponse> responseObserver) {
-                ProfilerServiceTypes.CreateSessionResponse reply =
-                    ProfilerServiceTypes.CreateSessionResponse.newBuilder().setSessionId(1).setStatus(0).build();
-                responseObserver.onNext(reply);
-                responseObserver.onCompleted();
-            }
-
-            /**
-             * init startSession
-             *
-             * @param request request
-             * @param responseObserver responseObserver
-             */
-            @Override
-            public void startSession(ProfilerServiceTypes.StartSessionRequest request,
-                StreamObserver<ProfilerServiceTypes.StartSessionResponse> responseObserver) {
-                beginSession(responseObserver);
-                responseObserver.onCompleted();
-            }
-
-            /**
-             * init fetchData
-             *
-             * @param request request
-             * @param responseObserver responseObserver
-             */
-            @Override
-            public void fetchData(ProfilerServiceTypes.FetchDataRequest request,
-                StreamObserver<ProfilerServiceTypes.FetchDataResponse> responseObserver) {
-                SystemTraceHelperTest.this.dataFetch(responseObserver);
-            }
-
-            /**
-             * init stopSession
-             *
-             * @param request request
-             * @param responseObserver responseObserver
-             */
-            @Override
-            public void stopSession(ProfilerServiceTypes.StopSessionRequest request,
-                StreamObserver<ProfilerServiceTypes.StopSessionResponse> responseObserver) {
-                ProfilerServiceTypes.StopSessionResponse reply =
-                    ProfilerServiceTypes.StopSessionResponse.newBuilder().build();
-                responseObserver.onNext(reply);
-                responseObserver.onCompleted();
-            }
-
-            /**
-             * init destroySession
-             *
-             * @param request request
-             * @param responseObserver responseObserver
-             */
-            @Override
-            public void destroySession(ProfilerServiceTypes.DestroySessionRequest request,
-                StreamObserver<ProfilerServiceTypes.DestroySessionResponse> responseObserver) {
-                SystemTraceHelperTest.this.destroy(responseObserver);
-            }
-        };
+        featureImpl = new InitMockServiceImp();
         register();
     }
 
@@ -166,19 +85,19 @@ public class SystemTraceHelperTest {
     }
 
     private void register() throws IOException {
-        grpcCleanup.register(
-            InProcessServerBuilder.forName(serverName).fallbackHandlerRegistry(serviceRegistry).directExecutor().build()
+        commCleanup.register(
+            InProcessServerBuilder.forName(commName).fallbackHandlerRegistry(commRegistry).directExecutor().build()
                 .start());
-        channel = grpcCleanup.register(InProcessChannelBuilder.forName(serverName).directExecutor().build());
-        serviceRegistry.addService(getFeatureImpl);
+        commchannel = commCleanup.register(InProcessChannelBuilder.forName(commName).directExecutor().build());
+        commRegistry.addService(featureImpl);
     }
 
     private void setDeviceInfo() {
-        deviceIPPortInfo = new DeviceIPPortInfo();
-        deviceIPPortInfo.setIp("");
-        deviceIPPortInfo.setPort(5001);
-        deviceIPPortInfo.setForwardPort(5001);
-        serverName = InProcessServerBuilder.generateName();
+        deviceInfo = new DeviceIPPortInfo();
+        deviceInfo.setIp("");
+        deviceInfo.setPort(5001);
+        deviceInfo.setForwardPort(65531);
+        commName = InProcessServerBuilder.generateName();
     }
 
     private void beginSession(StreamObserver<ProfilerServiceTypes.StartSessionResponse> responseObserver) {
@@ -187,21 +106,6 @@ public class SystemTraceHelperTest {
             ProfilerServiceTypes.StartSessionResponse.newBuilder().setStatus(0).addPluginStatus(profilerPluginState)
                 .build();
         responseObserver.onNext(reply);
-    }
-
-    private ProfilerServiceTypes.GetCapabilitiesResponse getGetCapabilitiesResponse() {
-        ProfilerServiceTypes.ProfilerPluginCapability pluginCapability = ProfilerServiceTypes.ProfilerPluginCapability
-            .newBuilder(ProfilerServiceTypes.ProfilerPluginCapability.newBuilder()
-                .setName("/data/local/tmp/libbytraceplugin.z.so").setPath("/data/local/tmp/libbytraceplugin.z.so")
-                .build()).build();
-
-        ProfilerServiceTypes.ProfilerPluginCapability pluginCapabilityPtrace =
-            ProfilerServiceTypes.ProfilerPluginCapability.newBuilder(
-                ProfilerServiceTypes.ProfilerPluginCapability.newBuilder()
-                    .setName("/data/local/tmp/libptrace_plugin.z.so").setPath("/data/local/tmp/libptrace_plugin.z.so")
-                    .build()).build();
-        return ProfilerServiceTypes.GetCapabilitiesResponse.newBuilder().addCapabilities(pluginCapability)
-            .addCapabilities(pluginCapabilityPtrace).setStatus(0).build();
     }
 
     private ProfilerServiceTypes.FetchDataResponse getFetchDataResponse() {
@@ -228,6 +132,15 @@ public class SystemTraceHelperTest {
             .setHasMore(false).addPluginData(data).build();
     }
 
+    /**
+     * TraceManager get Singleton
+     */
+    @Test
+    public void getSingletonTest() {
+        SystemTraceHelper systemTraceHelper = SystemTraceHelper.getSingleton();
+        Assert.assertNotNull(systemTraceHelper);
+    }
+
     private int getIntData() {
         requestId++;
         if (requestId == Integer.MAX_VALUE) {
@@ -248,11 +161,10 @@ public class SystemTraceHelperTest {
      */
     @Test
     public void createSessionByTraceRequestTest() throws GrpcException {
-        SystemTraceHelper systemTraceHelper = new SystemTraceHelper();
-        ProfilerClient client = HiProfilerClient.getInstance().getProfilerClient("", 5001, channel);
+        SystemTraceHelper systemTraceHelper = SystemTraceHelper.getSingleton();
+        ProfilerClient client = HiProfilerClient.getInstance().getProfilerClient("", 65531, commchannel);
         String sessionId = systemTraceHelper
-            .createSessionByTraceRequest(deviceIPPortInfo, "idle", 5, 10, "/data/local/tmp/hiprofiler_data.bytrace",
-                true);
+            .createSessionByTraceRequest(deviceInfo, "idle", 5, 10, "/data/local/tmp/hiprofiler_data.bytrace", true);
         Assert.assertNotNull(sessionId);
     }
 
@@ -265,14 +177,239 @@ public class SystemTraceHelperTest {
      * @tc.type: functional testing
      * @tc.require: SR-032
      * @throws GrpcException GrpcException
+     * @throws IOException IOException
      */
     @Test
-    public void stopAndDestroySessionTest() throws GrpcException {
-        SystemTraceHelper systemTraceHelper = new SystemTraceHelper();
-        ProfilerClient client = HiProfilerClient.getInstance().getProfilerClient("", 5001, channel);
+    public void stopAndDestroySessionTest() throws GrpcException, IOException {
+        DeviceIPPortInfo deviceIPPortInfo = new DeviceIPPortInfo();
+        deviceIPPortInfo.setIp("");
+        deviceIPPortInfo.setPort(5001);
+        deviceIPPortInfo.setForwardPort(65532);
+        String serverName = InProcessServerBuilder.generateName();
+        SystemTraceHelper systemTraceHelper = SystemTraceHelper.getSingleton();
+        GrpcCleanupRule grpcCleanup = new GrpcCleanupRule();
+        MockProfilerServiceImplBase serviceImp = new MockServiceImp();
+        MutableHandlerRegistry serviceRegistry = new MutableHandlerRegistry();
+        grpcCleanup.register(
+            InProcessServerBuilder.forName(serverName).fallbackHandlerRegistry(serviceRegistry).directExecutor().build()
+                .start());
+        ManagedChannel channel =
+            grpcCleanup.register(InProcessChannelBuilder.forName(serverName).directExecutor().build());
+        serviceRegistry.addService(serviceImp);
+        ProfilerClient client = HiProfilerClient.getInstance().getProfilerClient("", 65532, channel);
         String sessionId = systemTraceHelper
             .createSessionByTraceRequest(deviceIPPortInfo, "idle", 5, 10, "/data/local/tmp/hiprofiler_data.bytrace",
                 true);
         systemTraceHelper.stopAndDestroySession(deviceIPPortInfo, sessionId);
+    }
+
+    private class InitMockServiceImp extends MockProfilerServiceImplBase {
+        /**
+         * init getCapabilities
+         *
+         * @param request request
+         * @param responseObserver responseObserver
+         */
+        @Override
+        public void getCapabilities(ProfilerServiceTypes.GetCapabilitiesRequest request,
+            StreamObserver<ProfilerServiceTypes.GetCapabilitiesResponse> responseObserver) {
+            ProfilerServiceTypes.ProfilerPluginCapability pluginCapability =
+                ProfilerServiceTypes.ProfilerPluginCapability.newBuilder(
+                    ProfilerServiceTypes.ProfilerPluginCapability.newBuilder()
+                        .setName("/data/local/tmp/libbytraceplugin.z.so")
+                        .setPath("/data/local/tmp/libbytraceplugin.z.so").build()).build();
+
+            ProfilerServiceTypes.ProfilerPluginCapability pluginCapabilityPtrace =
+                ProfilerServiceTypes.ProfilerPluginCapability.newBuilder(
+                    ProfilerServiceTypes.ProfilerPluginCapability.newBuilder()
+                        .setName("/data/local/tmp/libptrace_plugin.z.so")
+                        .setPath("/data/local/tmp/libptrace_plugin.z.so").build()).build();
+            ProfilerServiceTypes.GetCapabilitiesResponse reply =
+                ProfilerServiceTypes.GetCapabilitiesResponse.newBuilder().addCapabilities(pluginCapability)
+                    .addCapabilities(pluginCapabilityPtrace).setStatus(0).build();
+            responseObserver.onNext(reply);
+            responseObserver.onCompleted();
+        }
+
+        /**
+         * init createSession
+         *
+         * @param request request
+         * @param responseObserver responseObserver
+         */
+        @Override
+        public void createSession(ProfilerServiceTypes.CreateSessionRequest request,
+            StreamObserver<ProfilerServiceTypes.CreateSessionResponse> responseObserver) {
+            ProfilerServiceTypes.CreateSessionResponse reply =
+                ProfilerServiceTypes.CreateSessionResponse.newBuilder().setSessionId(1).setStatus(0).build();
+            responseObserver.onNext(reply);
+            responseObserver.onCompleted();
+        }
+
+        /**
+         * init startSession
+         *
+         * @param request request
+         * @param responseObserver responseObserver
+         */
+        @Override
+        public void startSession(ProfilerServiceTypes.StartSessionRequest request,
+            StreamObserver<ProfilerServiceTypes.StartSessionResponse> responseObserver) {
+            beginSession(responseObserver);
+            responseObserver.onCompleted();
+        }
+
+        /**
+         * init fetchData
+         *
+         * @param request request
+         * @param responseObserver responseObserver
+         */
+        @Override
+        public void fetchData(ProfilerServiceTypes.FetchDataRequest request,
+            StreamObserver<ProfilerServiceTypes.FetchDataResponse> responseObserver) {
+            SystemTraceHelperTest.this.dataFetch(responseObserver);
+        }
+
+        /**
+         * init stopSession
+         *
+         * @param request request
+         * @param responseObserver responseObserver
+         */
+        @Override
+        public void stopSession(ProfilerServiceTypes.StopSessionRequest request,
+            StreamObserver<ProfilerServiceTypes.StopSessionResponse> responseObserver) {
+            ProfilerServiceTypes.StopSessionResponse reply =
+                ProfilerServiceTypes.StopSessionResponse.newBuilder().build();
+            responseObserver.onNext(reply);
+            responseObserver.onCompleted();
+        }
+
+        /**
+         * init destroySession
+         *
+         * @param request request
+         * @param responseObserver responseObserver
+         */
+        @Override
+        public void destroySession(ProfilerServiceTypes.DestroySessionRequest request,
+            StreamObserver<ProfilerServiceTypes.DestroySessionResponse> responseObserver) {
+            SystemTraceHelperTest.this.destroy(responseObserver);
+        }
+
+        @Override
+        public void keepSession(ProfilerServiceTypes.KeepSessionRequest request,
+            StreamObserver<ProfilerServiceTypes.KeepSessionResponse> responseObserver) {
+            ProfilerServiceTypes.KeepSessionResponse reply =
+                ProfilerServiceTypes.KeepSessionResponse.newBuilder().build();
+            responseObserver.onNext(reply);
+            responseObserver.onCompleted();
+        }
+    }
+
+    private class MockServiceImp extends MockProfilerServiceImplBase {
+        /**
+         * init getCapabilities
+         *
+         * @param request request
+         * @param responseObserver responseObserver
+         */
+        @Override
+        public void getCapabilities(ProfilerServiceTypes.GetCapabilitiesRequest request,
+            StreamObserver<ProfilerServiceTypes.GetCapabilitiesResponse> responseObserver) {
+            ProfilerServiceTypes.ProfilerPluginCapability pluginCapability =
+                ProfilerServiceTypes.ProfilerPluginCapability.newBuilder(
+                    ProfilerServiceTypes.ProfilerPluginCapability.newBuilder()
+                        .setName("/data/local/tmp/libbytraceplugin.z.so")
+                        .setPath("/data/local/tmp/libbytraceplugin.z.so").build()).build();
+
+            ProfilerServiceTypes.ProfilerPluginCapability pluginCapabilityPtrace =
+                ProfilerServiceTypes.ProfilerPluginCapability.newBuilder(
+                    ProfilerServiceTypes.ProfilerPluginCapability.newBuilder()
+                        .setName("/data/local/tmp/libptrace_plugin.z.so")
+                        .setPath("/data/local/tmp/libptrace_plugin.z.so").build()).build();
+            ProfilerServiceTypes.GetCapabilitiesResponse reply =
+                ProfilerServiceTypes.GetCapabilitiesResponse.newBuilder().addCapabilities(pluginCapability)
+                    .addCapabilities(pluginCapabilityPtrace).setStatus(0).build();
+            responseObserver.onNext(reply);
+            responseObserver.onCompleted();
+        }
+
+        /**
+         * init createSession
+         *
+         * @param request request
+         * @param responseObserver responseObserver
+         */
+        @Override
+        public void createSession(ProfilerServiceTypes.CreateSessionRequest request,
+            StreamObserver<ProfilerServiceTypes.CreateSessionResponse> responseObserver) {
+            ProfilerServiceTypes.CreateSessionResponse reply =
+                ProfilerServiceTypes.CreateSessionResponse.newBuilder().setSessionId(1).setStatus(0).build();
+            responseObserver.onNext(reply);
+            responseObserver.onCompleted();
+        }
+
+        /**
+         * init startSession
+         *
+         * @param request request
+         * @param responseObserver responseObserver
+         */
+        @Override
+        public void startSession(ProfilerServiceTypes.StartSessionRequest request,
+            StreamObserver<ProfilerServiceTypes.StartSessionResponse> responseObserver) {
+            beginSession(responseObserver);
+            responseObserver.onCompleted();
+        }
+
+        /**
+         * init fetchData
+         *
+         * @param request request
+         * @param responseObserver responseObserver
+         */
+        @Override
+        public void fetchData(ProfilerServiceTypes.FetchDataRequest request,
+            StreamObserver<ProfilerServiceTypes.FetchDataResponse> responseObserver) {
+            SystemTraceHelperTest.this.dataFetch(responseObserver);
+        }
+
+        /**
+         * init stopSession
+         *
+         * @param request request
+         * @param responseObserver responseObserver
+         */
+        @Override
+        public void stopSession(ProfilerServiceTypes.StopSessionRequest request,
+            StreamObserver<ProfilerServiceTypes.StopSessionResponse> responseObserver) {
+            ProfilerServiceTypes.StopSessionResponse reply =
+                ProfilerServiceTypes.StopSessionResponse.newBuilder().build();
+            responseObserver.onNext(reply);
+            responseObserver.onCompleted();
+        }
+
+        /**
+         * init destroySession
+         *
+         * @param request request
+         * @param responseObserver responseObserver
+         */
+        @Override
+        public void destroySession(ProfilerServiceTypes.DestroySessionRequest request,
+            StreamObserver<ProfilerServiceTypes.DestroySessionResponse> responseObserver) {
+            SystemTraceHelperTest.this.destroy(responseObserver);
+        }
+
+        @Override
+        public void keepSession(ProfilerServiceTypes.KeepSessionRequest request,
+            StreamObserver<ProfilerServiceTypes.KeepSessionResponse> responseObserver) {
+            ProfilerServiceTypes.KeepSessionResponse reply =
+                ProfilerServiceTypes.KeepSessionResponse.newBuilder().build();
+            responseObserver.onNext(reply);
+            responseObserver.onCompleted();
+        }
     }
 }

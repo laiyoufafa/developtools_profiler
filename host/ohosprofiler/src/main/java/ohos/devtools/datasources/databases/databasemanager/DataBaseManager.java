@@ -46,7 +46,7 @@ import static ohos.devtools.datasources.databases.databasepool.DataTableHelper.g
 /**
  * Database creation class
  *
- * @since 2021/10/22 16:30
+ * @since 2021/10/26
  */
 public class DataBaseManager {
     private static final Logger LOGGER = LogManager.getLogger(DataBaseManager.class);
@@ -74,6 +74,9 @@ public class DataBaseManager {
     }
 
     private DataBaseManager() {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("create DataBaseManager");
+        }
     }
 
     /**

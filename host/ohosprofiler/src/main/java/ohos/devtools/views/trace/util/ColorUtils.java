@@ -68,6 +68,7 @@ public final class ColorUtils {
     private static Map<Integer, Color> colorHashMap = new ConcurrentHashMap();
 
     private ColorUtils() {
+        super();
     }
 
     /**

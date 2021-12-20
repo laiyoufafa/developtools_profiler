@@ -12,4 +12,5 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-select m.type, m.ts-r.start_ts as ts, value, filter_id from measure m,trace_range r where filter_id in (select id from process_measure_filter where name = 'ScreenState');
+
+select m.type, m.ts-r.start_ts as ts, value, filter_id from measure m,trace_section r where filter_id in (select id from process_measure_filter where name = 'ScreenState');

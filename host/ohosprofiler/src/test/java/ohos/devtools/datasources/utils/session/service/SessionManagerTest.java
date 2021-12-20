@@ -15,7 +15,6 @@
 
 package ohos.devtools.datasources.utils.session.service;
 
-import com.alibaba.fastjson.JSONObject;
 import io.grpc.ManagedChannel;
 import io.grpc.inprocess.InProcessChannelBuilder;
 import io.grpc.inprocess.InProcessServerBuilder;
@@ -31,12 +30,14 @@ import ohos.devtools.datasources.transport.grpc.service.MemoryPluginResult;
 import ohos.devtools.datasources.transport.grpc.service.ProfilerServiceTypes;
 import ohos.devtools.datasources.utils.device.entity.DeviceIPPortInfo;
 import ohos.devtools.datasources.utils.device.entity.DeviceProcessInfo;
+import ohos.devtools.datasources.utils.plugin.IPluginConfig;
+import ohos.devtools.datasources.utils.plugin.entity.AnalysisType;
+import ohos.devtools.datasources.utils.plugin.service.PlugManager;
 import ohos.devtools.datasources.utils.process.entity.ProcessInfo;
-import ohos.devtools.services.memory.agentbean.MemoryHeapInfo;
-import ohos.devtools.services.memory.agentdao.MemoryHeapManager;
+import ohos.devtools.pluginconfig.MemoryConfig;
+import ohos.devtools.pluginconfig.ProcessConfig;
 import ohos.devtools.views.layout.chartview.ProfilerChartsView;
 import ohos.devtools.views.layout.chartview.TaskScenePanelChart;
-import org.jetbrains.annotations.NotNull;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -44,7 +45,11 @@ import org.junit.Test;
 import javax.swing.JProgressBar;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
+
+import static ohos.devtools.datasources.utils.device.entity.DeviceType.FULL_HOS_DEVICE;
 
 /**
  * Session Manager Test
@@ -59,12 +64,9 @@ public class SessionManagerTest {
     private SessionManager session;
     private DeviceIPPortInfo device;
     private ProcessInfo process;
-    private JSONObject jsonObject;
     private DeviceProcessInfo deviceProcessInfo;
     private String serverName;
-    private MemoryHeapInfo memoryHeapInfo;
-    private MemoryHeapManager memoryHeapManager;
-    private SessionTestServiceMock getFeatureImpl;
+    private MockProfilerServiceImplBaseCustom getFeatureImpl;
     private ManagedChannel channel;
 
     /**
@@ -78,32 +80,25 @@ public class SessionManagerTest {
      */
     @Before
     public void init() {
+        List<Class<? extends IPluginConfig>> plugConfigList = new ArrayList();
+        plugConfigList.add(ProcessConfig.class);
+        plugConfigList.add(MemoryConfig.class);
+        PlugManager.getInstance().loadingPlugs(plugConfigList);
         session = SessionManager.getInstance();
-        DataBaseApi apo = DataBaseApi.getInstance();
-        apo.initDataSourceManager();
-        jsonObject = new JSONObject();
-        JSONObject memoryObject = getJsonObject();
-        jsonObject.put("Memory", memoryObject);
+        DataBaseApi.getInstance().initDataSourceManager();
         device = new DeviceIPPortInfo();
         device.setIp("");
         device.setPort(3333);
         device.setForwardPort(3333);
         device.setDeviceID("1");
+        device.setDeviceName("Device");
+        device.setDeviceType(FULL_HOS_DEVICE);
         process = new ProcessInfo();
         process.setProcessId(1);
         process.setProcessName("process");
         deviceProcessInfo = new DeviceProcessInfo();
+        deviceProcessInfo.setDeviceType("arm64-v8a");
         serverName = InProcessServerBuilder.generateName();
-        memoryHeapManager = new MemoryHeapManager();
-        memoryHeapInfo = new MemoryHeapInfo();
-        memoryHeapInfo.setcId(1);
-        memoryHeapInfo.setHeapId(1);
-        memoryHeapInfo.setSessionId(1L);
-        memoryHeapInfo.setAllocations(10);
-        memoryHeapInfo.setDeallocations(0);
-        memoryHeapInfo.setTotalCount(79);
-        memoryHeapInfo.setShallowSize(348L);
-        memoryHeapInfo.setCreateTime(20210406L);
         try {
             grpcCleanup.register(
                 InProcessServerBuilder.forName(serverName).fallbackHandlerRegistry(serviceRegistry).directExecutor()
@@ -111,12 +106,12 @@ public class SessionManagerTest {
         } catch (IOException exception) {
             exception.printStackTrace();
         }
-        getFeatureImpl = new SessionTestServiceMock();
+        getFeatureImpl = new MockProfilerServiceImplBaseCustom();
         channel = grpcCleanup.register(InProcessChannelBuilder.forName(serverName).directExecutor().build());
         serviceRegistry.addService(getFeatureImpl);
     }
 
-    class SessionTestServiceMock extends MockProfilerServiceImplBase {
+    class MockProfilerServiceImplBaseCustom extends MockProfilerServiceImplBase {
         /**
          * init getCapabilities
          *
@@ -235,18 +230,15 @@ public class SessionManagerTest {
             responseObserver.onNext(reply);
             responseObserver.onCompleted();
         }
-    }
-    @NotNull
-    private JSONObject getJsonObject() {
-        JSONObject memoryObject = new JSONObject();
-        memoryObject.put("Select All", true);
-        memoryObject.put("Java", true);
-        memoryObject.put("Native", true);
-        memoryObject.put("Graphics", true);
-        memoryObject.put("Stack", true);
-        memoryObject.put("Code", true);
-        memoryObject.put("Others", true);
-        return memoryObject;
+
+        @Override
+        public void keepSession(ProfilerServiceTypes.KeepSessionRequest request,
+            StreamObserver<ProfilerServiceTypes.KeepSessionResponse> responseObserver) {
+            ProfilerServiceTypes.KeepSessionResponse reply =
+                ProfilerServiceTypes.KeepSessionResponse.newBuilder().build();
+            responseObserver.onNext(reply);
+            responseObserver.onCompleted();
+        }
     }
 
     /**
@@ -276,7 +268,7 @@ public class SessionManagerTest {
     @Test
     public void testCreateSessionRealTime01() {
         long num = session.createSession(null, process, null);
-        Assert.assertNotNull(num);
+        Assert.assertEquals(-1L, num);
     }
 
     /**
@@ -305,8 +297,9 @@ public class SessionManagerTest {
      */
     @Test
     public void testCreateSessionRealTime03() {
-        long num = session.createSession(device, process, null);
-        Assert.assertNotNull(num);
+        HiProfilerClient.getInstance().getProfilerClient(device.getIp(), device.getForwardPort(), channel);
+        long num = session.createSession(device, process, AnalysisType.APPLICATION_TYPE);
+        Assert.assertNotEquals(num, -1);
     }
 
     /**
@@ -335,8 +328,9 @@ public class SessionManagerTest {
      */
     @Test
     public void testCreateSession05() {
-        long num = session.createSession(null, process, null);
-        Assert.assertEquals(num, -1L);
+        HiProfilerClient.getInstance().getProfilerClient(device.getIp(), device.getForwardPort(), channel);
+        long num = session.createSession(device, process, null);
+        Assert.assertNotEquals(num, -1L);
     }
 
     /**
@@ -380,7 +374,7 @@ public class SessionManagerTest {
      */
     @Test
     public void testStart03() {
-        boolean flag = session.startSession(2L, false);
+        boolean flag = session.startSession(1L, false);
         Assert.assertTrue(flag);
     }
 
@@ -395,7 +389,7 @@ public class SessionManagerTest {
      */
     @Test
     public void testStart04() {
-        boolean flag = session.startSession(2L, true);
+        boolean flag = session.startSession(1L, true);
         Assert.assertTrue(flag);
     }
 
@@ -649,7 +643,7 @@ public class SessionManagerTest {
         long num = session.createSession(device, process, null);
         ProfilerChartsView view = new ProfilerChartsView(num, true, new TaskScenePanelChart());
         boolean flag = session.deleteSession(num);
-        Assert.assertFalse(flag);
+        Assert.assertTrue(flag);
     }
 
     /**

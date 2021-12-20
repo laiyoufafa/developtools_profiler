@@ -26,6 +26,8 @@ import java.awt.event.MouseEvent;
 
 /**
  * Clock Data Fragment Test
+ *
+ * @since 2021/2/1 9:31
  */
 class ClockDataFragmentTest {
     AnalystPanel analystPanel = new AnalystPanel();

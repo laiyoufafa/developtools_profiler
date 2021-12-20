@@ -47,6 +47,8 @@ import static ohos.devtools.views.layout.chartview.utils.ChartViewConstants.REFR
 
 /**
  * 监控界面保存Chart的面板的事件发布者
+ *
+ * @since 2021/11/22
  */
 public class ProfilerChartsViewPublisher implements IChartEventPublisher {
     private static final Logger LOGGER = LogManager.getLogger(ProfilerChartsViewPublisher.class);
@@ -54,7 +56,7 @@ public class ProfilerChartsViewPublisher implements IChartEventPublisher {
     /**
      * Chart监控界面的定时刷新线程的名称
      */
-    private static final String RUN_NAME = "ProfilerChartsViewMonitorTimer";
+    public static final String RUN_NAME = "ProfilerChartsViewMonitorTimer";
 
     /**
      * Chart监控界面的定时刷新线程的进度条名称
@@ -185,8 +187,9 @@ public class ProfilerChartsViewPublisher implements IChartEventPublisher {
                     long first = info.getStartTimestamp();
                     view.hideLoading();
                     startRefresh(first);
-                } catch (InterruptedException | ExecutionException e) {
-                    LOGGER.error(String.format(Locale.ENGLISH, "Error occur when loading done: %s", e.toString()));
+                } catch (InterruptedException | ExecutionException exception) {
+                    LOGGER.error(String.format(Locale.ENGLISH, "Error occur when loading done: %s", exception
+                        .toString()));
                 }
             }
         }.execute();
@@ -238,10 +241,6 @@ public class ProfilerChartsViewPublisher implements IChartEventPublisher {
                 standard.setLastTimestamp(DateTimeUtil.getNowTimeLong() - startOffset - CHART_START_DELAY);
                 int end = (int) (standard.getLastTimestamp() - standard.getFirstTimestamp());
                 int start = end > standard.getMaxDisplayMillis() ? end - standard.getMaxDisplayMillis() : 0;
-                if (view.getAbilitySlice() != null) {
-                    // Set the last time of the chart
-                    view.getAbilitySlice().setLastTimestamp(end);
-                }
                 // 当end大于最大展示时间时，且滚动条未显示时，初始化显示滚动条，并把isScrollbarShow置为true
                 if (end > standard.getMaxDisplayMillis() && !displayScrollbar) {
                     // isScrollbarShow判断必须保留，否则会导致Scrollbar重复初始化，频繁闪烁

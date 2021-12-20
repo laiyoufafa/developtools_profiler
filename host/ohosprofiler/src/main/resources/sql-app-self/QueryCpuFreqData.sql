@@ -12,7 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 select cpu,value,ts-tb.start_ts as startNS
-    from measure c ,trace_range tb
+    from measure c ,trace_section tb
     inner join cpu_measure_filter t on c.filter_id = t.id
     where (name = 'cpufreq' or name='cpu_frequency') and cpu=%s  order by ts ;

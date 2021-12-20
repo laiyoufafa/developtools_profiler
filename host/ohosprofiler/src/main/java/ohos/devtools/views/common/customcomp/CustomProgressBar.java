@@ -32,7 +32,7 @@ public class CustomProgressBar extends JProgressBar {
      */
     public CustomProgressBar(JPanel parentPanel) {
         this.setBounds(LayoutConstants.TEN, parentPanel.getHeight() - LayoutConstants.FORTY,
-                parentPanel.getWidth() - LayoutConstants.TWENTY, LayoutConstants.THIRTY);
+            parentPanel.getWidth() - LayoutConstants.TWENTY, LayoutConstants.THIRTY);
         this.setMinimum(0);
         this.setMaximum(LayoutConstants.HUNDRED);
         this.setValue(0);

@@ -21,6 +21,8 @@ import ohos.devtools.views.trace.util.ColorUtils;
 import ohos.devtools.views.trace.util.Utils;
 
 import javax.swing.JComponent;
+import java.awt.AlphaComposite;
+import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.event.MouseEvent;
 
@@ -30,6 +32,13 @@ import java.awt.event.MouseEvent;
  * @since 2021/04/22 12:25
  */
 public class CpuFreqData extends AbstractGraph {
+    /**
+     * flagFocus
+     */
+    private boolean flagFocus;
+    private final int redOff = 40;
+    private final int greenOff = 60;
+    private final int blueOff = 75;
     @DField(name = "cpu")
     private int cpu;
 
@@ -40,12 +49,10 @@ public class CpuFreqData extends AbstractGraph {
     private long startTime;
 
     private long duration;
-
     private JComponent root;
-
-    private boolean flagFocus;
-
     private double max;
+    private NodeEventListener eventListener;
+    private boolean isSelected; // Whether to be selected
 
     /**
      * Empty parameter construction method
@@ -187,24 +194,66 @@ public class CpuFreqData extends AbstractGraph {
     }
 
     /**
+     * Set selected state
+     *
+     * @param isSelected isSelected
+     */
+    public void select(final boolean isSelected) {
+        this.isSelected = isSelected;
+    }
+
+    /**
      * Rewrite drawing method
      *
      * @param graphics graphics
      */
     @Override
     public void draw(final Graphics2D graphics) {
+        if (isSelected) {
+            drawSelect(graphics);
+        } else {
+            drawNoSelect(graphics);
+        }
+    }
+
+    private void drawSelect(Graphics2D graphics) {
         double drawHeight = (value * (rect.height - 5) * 1.0) / max;
-        graphics.setColor(ColorUtils.MD_PALETTE[cpu]);
+        Color color = ColorUtils.MD_PALETTE[cpu];
+        graphics.setColor(color);
+        graphics.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, .7f));
+        graphics.fillRect(Utils.getX(rect), Utils.getY(rect) + rect.height - (int) drawHeight, rect.width,
+            (int) drawHeight);
+        int red = color.getRed();
+        int green = color.getGreen();
+        int blue = color.getBlue();
+        graphics.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f));
+        Color borderColor = new Color(red <= redOff ? 0 : red - redOff, green <= greenOff ? 0 : green - greenOff,
+            blue <= blueOff ? 0 : blue - blueOff);
+        graphics.setColor(borderColor);
+        graphics.fillRect(Utils.getX(rect), Utils.getY(rect) + rect.height - (int) drawHeight, rect.width, 3);
+    }
+
+    private void drawNoSelect(Graphics2D graphics) {
+        double drawHeight = (value * (rect.height - 5) * 1.0) / max;
+        Color color = ColorUtils.MD_PALETTE[cpu];
+        graphics.setColor(color);
+        graphics.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, .7f));
         graphics.fillRect(Utils.getX(rect), Utils.getY(rect) + rect.height - (int) drawHeight, rect.width,
             (int) drawHeight);
     }
 
     @Override
     public void onFocus(final MouseEvent event) {
+        if (eventListener != null) {
+            eventListener.focus(event, this);
+        }
     }
 
     @Override
     public void onBlur(final MouseEvent event) {
+        if (eventListener != null) {
+            eventListener.blur(event, this);
+        }
     }
 
     @Override
@@ -213,6 +262,19 @@ public class CpuFreqData extends AbstractGraph {
 
     @Override
     public void onMouseMove(final MouseEvent event) {
+        if (edgeInspect(event)) {
+            if (eventListener != null) {
+                eventListener.mouseMove(event, this);
+            }
+        }
     }
 
+    /**
+     * Set callback event listener
+     *
+     * @param eventListener eventListener
+     */
+    public void setEventListener(final NodeEventListener eventListener) {
+        this.eventListener = eventListener;
+    }
 }

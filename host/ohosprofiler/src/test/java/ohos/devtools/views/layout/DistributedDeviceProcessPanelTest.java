@@ -23,7 +23,7 @@ import org.junit.Test;
 import java.util.Vector;
 
 /**
- * DistributedDeviceProcessPanelTest
+ * Distributed Device Process Panel Test
  *
  * @since 2021/2/1 9:31
  */
@@ -47,7 +47,7 @@ public class DistributedDeviceProcessPanelTest {
         deviceIPPortInfo.setDeviceID("");
         deviceIPPortInfo.setDeviceType(DeviceType.FULL_HOS_DEVICE);
         deviceIPPortInfos.add(deviceIPPortInfo);
-        new DistributedDeviceProcessPanel(10).refreshDeviceItem(deviceIPPortInfos);
+        new DistributedDeviceProcessPanel(10, false).refreshDeviceItem(deviceIPPortInfos);
         Assert.assertTrue(true);
     }
 
@@ -62,7 +62,7 @@ public class DistributedDeviceProcessPanelTest {
      */
     @Test
     public void getVectorTest01() {
-        Vector<DeviceIPPortInfo> list = new DistributedDeviceProcessPanel(10).getVector();
+        Vector<DeviceIPPortInfo> list = new DistributedDeviceProcessPanel(10, false).getVector();
         int num = list.size();
         Assert.assertEquals(0, num);
     }

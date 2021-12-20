@@ -21,9 +21,10 @@ import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBPanel;
 import ohos.devtools.datasources.utils.profilerlog.ProfilerLogManager;
 import ohos.devtools.views.common.LayoutConstants;
+import ohos.devtools.views.common.UtConstant;
 import ohos.devtools.views.common.customcomp.CustomTextField;
 import ohos.devtools.views.layout.utils.EventTrackUtils;
-import ohos.devtools.views.trace.component.AnalystPanel;
+import ohos.devtools.views.trace.component.SysAnalystPanel;
 import ohos.devtools.views.trace.metrics.InfoStatsPanel;
 import ohos.devtools.views.trace.metrics.MetricsPanel;
 import ohos.devtools.views.trace.metrics.QuerySqlPanel;
@@ -41,6 +42,8 @@ import java.awt.event.MouseEvent;
 
 /**
  * SystemTuningPanel
+ *
+ * @since 2021/11/22
  */
 public class SystemPanel extends JBPanel {
     private static final Logger LOGGER = LogManager.getLogger(SystemPanel.class);
@@ -69,7 +72,7 @@ public class SystemPanel extends JBPanel {
     private JBLabel downBtn;
     private JBLabel leftBtn;
     private JBPanel optionJPanel;
-    private AnalystPanel analystPanel;
+    private SysAnalystPanel analystPanel;
 
     /**
      * device name drop down box
@@ -79,7 +82,7 @@ public class SystemPanel extends JBPanel {
     /**
      * System Tuning Panel
      */
-    public SystemPanel(JBPanel optionJPanel, AnalystPanel analystPanel) {
+    public SystemPanel(JBPanel optionJPanel, SysAnalystPanel analystPanel) {
         EventTrackUtils.getInstance().trackSystemTrace();
         this.optionJPanel = optionJPanel;
         this.analystPanel = analystPanel;
@@ -100,13 +103,16 @@ public class SystemPanel extends JBPanel {
         }
         queryButton = new JButton();
         queryButton.setText("Query(SQL)");
+        queryButton.setName(UtConstant.UT_SYSTEM_TUNING_QUERY);
         queryButton.setIcon(IconLoader.getIcon("/images/preview_normal.png", getClass()));
         metricsButton = new JButton();
+        metricsButton.setName(UtConstant.UT_SYSTEM_TUNING_METRICS);
         metricsButton.setIcon(IconLoader.getIcon("/images/overhead_normal.png", getClass()));
         metricsButton.setText("Metrics");
         infoButton = new JButton();
         infoButton.setIcon(IconLoader.getIcon("/images/notificationInfo_normal.png", getClass()));
         infoButton.setText("Info and stats");
+        infoButton.setName(UtConstant.UT_SYSTEM_TUNING_INFO);
         saveBtn = new JBLabel();
         saveBtn.setIcon(IconLoader.getIcon("/images/menu-saveAll_grey.png", getClass()));
         saveBtn.setToolTipText("Save");

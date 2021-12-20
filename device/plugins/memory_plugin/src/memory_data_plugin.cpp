@@ -328,17 +328,14 @@ int MemoryDataPlugin::Report(uint8_t* data, uint32_t dataSize)
     uint32_t length;
 
     if (protoConfig_.report_process_tree()) {
-        HILOG_DEBUG(LOG_CORE, "%s:report process list", __func__);
         WriteProcesseList(dataProto);
     }
 
     if (protoConfig_.report_sysmem_mem_info()) {
-        HILOG_DEBUG(LOG_CORE, "%s:report system mem_info list", __func__);
         WriteMeminfo(dataProto);
     }
 
     if (protoConfig_.report_sysmem_vmem_info()) {
-        HILOG_DEBUG(LOG_CORE, "%s:report system vmem_info list", __func__);
         WriteVmstat(dataProto);
     }
 
@@ -692,10 +689,9 @@ void MemoryDataPlugin::WriteProcesseList(MemoryData& data)
         return;
     }
 
+    seenPids_.clear();
     while (int32_t pid = GetValidPid(procDir)) {
-        if (find(seenPids_.begin(), seenPids_.end(), pid) == seenPids_.end()) {
-            addPidBySort(pid);
-        }
+        addPidBySort(pid);
     }
 
     for (unsigned int i = 0; i < seenPids_.size(); i++) {

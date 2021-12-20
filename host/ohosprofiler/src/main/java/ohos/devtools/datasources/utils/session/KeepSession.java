@@ -18,12 +18,27 @@ package ohos.devtools.datasources.utils.session;
 import io.grpc.StatusRuntimeException;
 import ohos.devtools.datasources.transport.grpc.HiProfilerClient;
 import ohos.devtools.datasources.transport.grpc.service.ProfilerServiceTypes;
+import ohos.devtools.datasources.transport.hdc.HdcWrapper;
 import ohos.devtools.datasources.utils.device.entity.DeviceIPPortInfo;
+import ohos.devtools.datasources.utils.device.entity.DeviceType;
+import ohos.devtools.datasources.utils.device.service.DeviceForwardPort;
+import ohos.devtools.datasources.utils.plugin.service.PlugManager;
 import ohos.devtools.datasources.utils.profilerlog.ProfilerLogManager;
-import ohos.devtools.datasources.utils.quartzmanager.QuartzManager;
-import ohos.devtools.datasources.utils.session.service.SessionManager;
+import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
+import java.util.ArrayList;
+
+import static ohos.devtools.datasources.transport.hdc.HdcCmdList.HDC_CHECK_FPORT;
+import static ohos.devtools.datasources.transport.hdc.HdcCmdList.HDC_GET_DEVICES;
+import static ohos.devtools.datasources.transport.hdc.HdcCmdList.HDC_RESET;
+import static ohos.devtools.datasources.transport.hdc.HdcStdCmdList.HDC_STD_CHECK_FPORT;
+import static ohos.devtools.datasources.transport.hdc.HdcStdCmdList.HDC_STD_GET_DEVICES;
+import static ohos.devtools.datasources.transport.hdc.HdcStdCmdList.HDC_STD_RESET;
+import static ohos.devtools.datasources.transport.hdc.HdcWrapper.conversionCommand;
+import static ohos.devtools.datasources.utils.device.entity.DeviceType.LEAN_HOS_DEVICE;
+import static ohos.devtools.views.common.Constant.IS_SUPPORT_NEW_HDC;
 
 /**
  * KeepSession
@@ -33,6 +48,7 @@ public class KeepSession implements Runnable {
     private final long localSessionId;
     private final int sessionId;
     private final DeviceIPPortInfo deviceIPPortInfo;
+    private int logCount = 1;
 
     /**
      * KeepSession
@@ -49,15 +65,77 @@ public class KeepSession implements Runnable {
 
     @Override
     public void run() {
-        try {
-            ProfilerServiceTypes.KeepSessionResponse keepSessionResponse = HiProfilerClient.getInstance()
-                .keepSession(deviceIPPortInfo.getIp(), deviceIPPortInfo.getForwardPort(), sessionId);
-        } catch (StatusRuntimeException exception) {
-            if (ProfilerLogManager.isErrorEnabled()) {
-                LOGGER.error("KeepSession StatusRuntimeException ", exception);
+        new SendSession().start();
+    }
+
+    private void handleForwardNotExits(DeviceIPPortInfo deviceIPPortInfo) {
+        int forwardPort = deviceIPPortInfo.getForwardPort();
+        ArrayList<String> cmdStr;
+        if (forwardPort > 0) {
+            if (IS_SUPPORT_NEW_HDC && deviceIPPortInfo.getDeviceType() == LEAN_HOS_DEVICE) {
+                cmdStr = conversionCommand(HDC_STD_CHECK_FPORT, deviceIPPortInfo.getDeviceID());
+            } else {
+                cmdStr = conversionCommand(HDC_CHECK_FPORT, deviceIPPortInfo.getDeviceID());
             }
-            String keepSessionName = SessionManager.getInstance().getKeepSessionName(deviceIPPortInfo, sessionId);
-            QuartzManager.getInstance().deleteExecutor(keepSessionName);
+            String forward = HdcWrapper.getInstance().execCmdBy(cmdStr, 1);
+            if (!forward.contains(String.valueOf(forwardPort))) {
+                DeviceForwardPort.getInstance().forwardDevicePort(deviceIPPortInfo, forwardPort);
+            }
+        }
+    }
+
+    private class SendSession extends Thread {
+
+        /**
+         * SendSession
+         */
+        public SendSession() {
+            super.setName("SendSession");
+        }
+
+        @Override
+        public void run() {
+            try {
+                ProfilerServiceTypes.KeepSessionResponse keepSessionResponse = HiProfilerClient.getInstance()
+                    .keepSession(deviceIPPortInfo.getIp(), deviceIPPortInfo.getForwardPort(), sessionId);
+                if (ProfilerLogManager.isDebugEnabled()) {
+                    LOGGER.debug("KeepSession sessionId  {}, resp is {}", sessionId, keepSessionResponse.toString());
+                }
+            } catch (StatusRuntimeException exception) {
+                LOGGER.error("KeepSession StatusRuntimeException ", exception);
+                if (ProfilerLogManager.isErrorEnabled()) {
+                    LOGGER.error("KeepSession StatusRuntimeException ", exception);
+                }
+                if (exception instanceof StatusRuntimeException) {
+                    String findCmd;
+                    if (PlugManager.getInstance().getSystemOsName().contains("win")) {
+                        findCmd = "findstr";
+                    } else {
+                        findCmd = "grep";
+                    }
+                    ArrayList<String> cmdStr;
+                    if (deviceIPPortInfo.getDeviceType() == DeviceType.FULL_HOS_DEVICE) {
+                        cmdStr = conversionCommand(HDC_GET_DEVICES, findCmd, deviceIPPortInfo.getDeviceID());
+                    } else {
+                        cmdStr = conversionCommand(HDC_STD_GET_DEVICES, findCmd, deviceIPPortInfo.getDeviceID());
+                    }
+                    LOGGER.info("KeepSession DEADLINE_EXCEEDED  check Device Exits");
+                    if (StringUtils.isBlank(HdcWrapper.getInstance().execCmdBy(cmdStr, 2))) {
+                        LOGGER.info("KeepSession DEADLINE_EXCEEDED  Device not Exits, to reset");
+                        if (deviceIPPortInfo.getDeviceType() == DeviceType.FULL_HOS_DEVICE) {
+                            String result = HdcWrapper.getInstance().execCmdBy(HDC_RESET);
+                            if (result.contains(deviceIPPortInfo.getDeviceID()) && result.contains("device")) {
+                                handleForwardNotExits(deviceIPPortInfo);
+                            }
+                        } else {
+                            HdcWrapper.getInstance().execCmdBy(HDC_STD_RESET);
+                            handleForwardNotExits(deviceIPPortInfo);
+                        }
+                        HiProfilerClient.getInstance()
+                            .destroyProfiler(deviceIPPortInfo.getIp(), deviceIPPortInfo.getForwardPort());
+                    }
+                }
+            }
         }
     }
 }

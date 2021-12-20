@@ -23,7 +23,7 @@ import java.awt.event.MouseEvent;
 
 class TimeShaftTest {
     TimeShaft timeShaft = new TimeShaft((startNS, endNS, scale) -> {
-        startNS = startNS + endNS;
+        long result = startNS + endNS;
     }, keyEvent -> {
         keyEvent.getKeyCode();
     }, mouseEvent -> {

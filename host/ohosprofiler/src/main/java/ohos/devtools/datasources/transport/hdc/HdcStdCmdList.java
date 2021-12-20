@@ -421,4 +421,41 @@ public class HdcStdCmdList {
             add("%s");
         }
     };
+
+
+    /**
+     * HDC STD CHECK FPROT
+     */
+    public static final ArrayList<String> HDC_STD_CHECK_FPORT = new ArrayList<>() {
+        {
+            add(pluginPath);
+            add("-t");
+            add("%s");
+            add("fport");
+            add("ls");
+        }
+    };
+
+    /**
+     * HDC_GET_DEVICES
+     */
+    public static final ArrayList<String> HDC_STD_GET_DEVICES = new ArrayList<>() {
+        {
+            add(pluginPath);
+            add("list targets");
+            add("|");
+            add("%s");
+            add("%s");
+        }
+    };
+
+    /**
+     * HDC RESET
+     */
+    public static final ArrayList<String> HDC_STD_RESET = new ArrayList<>() {
+        {
+            add(pluginPath);
+            add("kill -r");
+        }
+    };
 }

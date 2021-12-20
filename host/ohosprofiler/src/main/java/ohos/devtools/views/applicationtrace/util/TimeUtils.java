@@ -85,10 +85,10 @@ public class TimeUtils {
     /**
      * get the time range is in other range function
      *
-     * @param startNs  startNs
-     * @param endNs    endNs
+     * @param startNs startNs
+     * @param endNs endNs
      * @param startRNs startRNs
-     * @param endLNs   endLNs
+     * @param endLNs endLNs
      * @return String time
      */
     public static boolean isInRange(long startNs, long endNs, long startRNs, long endLNs) {
@@ -98,10 +98,10 @@ public class TimeUtils {
     /**
      * get the time range is cross function
      *
-     * @param startNs  startNs
-     * @param endNs    endNs
+     * @param startNs startNs
+     * @param endNs endNs
      * @param startRNs startRNs
-     * @param endLNs   endLNs
+     * @param endLNs endLNs
      * @return String time
      */
     public static boolean isRangeCross(long startNs, long endNs, long startRNs, long endLNs) {
@@ -138,9 +138,9 @@ public class TimeUtils {
      * get Intersection function
      *
      * @param fStartNs fStartNs
-     * @param fEndNs   fEndNs
+     * @param fEndNs fEndNs
      * @param sStartNs sStartNs
-     * @param sEndns   sEndns
+     * @param sEndns sEndns
      * @return long time
      */
     public static long getIntersection(long fStartNs, long fEndNs, long sStartNs, long sEndns) {
@@ -156,9 +156,9 @@ public class TimeUtils {
      * get Intersection unit nanos function
      *
      * @param fStartNs fStartNs
-     * @param fEndNs   fEndNs
+     * @param fEndNs fEndNs
      * @param sStartNs sStartNs
-     * @param sEndns   sEndns
+     * @param sEndns sEndns
      * @return long time
      */
     public static long getNanoIntersection(long fStartNs, long fEndNs, long sStartNs, long sEndns) {
@@ -246,8 +246,8 @@ public class TimeUtils {
             } else {
                 return 0;
             }
-        } catch (NumberFormatException e) {
-            e.printStackTrace();
+        } catch (NumberFormatException exception) {
+            exception.printStackTrace();
             return 0;
         }
     }

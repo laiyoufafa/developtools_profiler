@@ -43,18 +43,13 @@ import static java.util.stream.Collectors.groupingBy;
 /**
  * c++ function PerfData
  *
- * @since 2021/5/12 16:34
+ * @since 2021/04/22 12:25
  */
 public class PerfData {
     /**
-     * current func map from db
+     * current Range
      */
-    public static final Map<Integer, List<PrefFunc>> FUNC_MAP = new HashMap<>();
-
-    /**
-     * current thread name map from db
-     */
-    public static final Map<Integer, String> THREAD_NAMES = new HashMap<>();
+    private static PrefRange prefRange;
 
     /**
      * current files from db
@@ -62,9 +57,14 @@ public class PerfData {
     private static Map<Long, List<PrefFile>> prefFiles;
 
     /**
-     * current Range
+     * current func map from db
      */
-    private static PrefRange prefRange;
+    private static Map<Integer, List<PrefFunc>> funcMap = new HashMap<>();
+
+    /**
+     * current thread name map from db
+     */
+    private static Map<Integer, String> threadNames = new HashMap<>();
 
     /**
      * get the PrefFunc by PrefSample object
@@ -82,8 +82,8 @@ public class PerfData {
         List<PrefSample> lastEntry = collect.get(0).getValue();
         PrefFunc threadFunc = new PrefFunc();
         int threadId = Long.valueOf(sampleList.get(0).getThreadId()).intValue();
-        threadFunc.setFuncName(THREAD_NAMES.get(threadId));
-        threadFunc.setThreadName(THREAD_NAMES.get(threadId));
+        threadFunc.setFuncName(threadNames.get(threadId));
+        threadFunc.setThreadName(threadNames.get(threadId));
         threadFunc.setBloodId(Utils.md5String(threadFunc.getFuncName()));
         threadFunc.setDepth(-1);
         threadFunc.setStartTs(sampleList.get(0).getTs());
@@ -158,7 +158,7 @@ public class PerfData {
      * @return list nodes
      */
     public static List<DefaultMutableTreeNode> getFuncTreeTopDown(long startNS, long endNS) {
-        if (Objects.isNull(FUNC_MAP)) {
+        if (Objects.isNull(funcMap)) {
             return new ArrayList<>();
         }
         return getFuncTreeTopDown(startNS, endNS, null);
@@ -173,10 +173,10 @@ public class PerfData {
      * @return list nodes
      */
     public static List<DefaultMutableTreeNode> getFuncTreeTopDown(long startNS, long endNS, List<Integer> threadIds) {
-        if (Objects.isNull(FUNC_MAP)) {
+        if (Objects.isNull(funcMap)) {
             return new ArrayList<>();
         }
-        Map<Integer, List<AppFunc>> collect = FUNC_MAP.entrySet().stream()
+        Map<Integer, List<AppFunc>> collect = funcMap.entrySet().stream()
             .collect(Collectors.toMap(Map.Entry::getKey, entry -> new ArrayList<>(entry.getValue())));
         return DataProcess.getFuncTreeTopDown(collect, startNS, endNS, threadIds);
     }
@@ -201,10 +201,10 @@ public class PerfData {
      * @return list nodes
      */
     public static List<DefaultMutableTreeNode> getFuncTreeBottomUp(long startNS, long endNS, List<Integer> threadIds) {
-        if (Objects.isNull(FUNC_MAP)) {
+        if (Objects.isNull(funcMap)) {
             return new ArrayList<>();
         }
-        Map<Integer, List<AppFunc>> collect = FUNC_MAP.entrySet().stream()
+        Map<Integer, List<AppFunc>> collect = funcMap.entrySet().stream()
             .collect(Collectors.toMap(Map.Entry::getKey, entry -> new ArrayList<>(entry.getValue())));
         return DataProcess.getFuncTreeBottomUp(collect, startNS, endNS, threadIds);
     }
@@ -216,7 +216,7 @@ public class PerfData {
      * @return list nodes
      */
     public static List<DefaultMutableTreeNode> getFuncTreeByFuncTopDown(PrefFunc func) {
-        List<PrefFunc> collect = FUNC_MAP.get(Long.valueOf(func.getTid()).intValue()).stream().filter(
+        List<PrefFunc> collect = funcMap.get(Long.valueOf(func.getTid()).intValue()).stream().filter(
             item -> TimeUtils.isRangeCross(func.getStartTs(), func.getEndTs(), item.getStartTs(), item.getEndTs())
                 && item.getDepth() > func.getDepth()).collect(Collectors.toList());
         DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode();
@@ -248,9 +248,9 @@ public class PerfData {
                 }
             }
         });
-        ArrayList<DefaultMutableTreeNode> defaultMutableTreeNodes = new ArrayList<>();
-        defaultMutableTreeNodes.add(rootNode);
-        return defaultMutableTreeNodes;
+        List<DefaultMutableTreeNode> objects = new ArrayList<DefaultMutableTreeNode>();
+        objects.add(rootNode);
+        return objects;
     }
 
     /**
@@ -262,7 +262,7 @@ public class PerfData {
     public static List<DefaultMutableTreeNode> getFuncTreeByFuncBottomUp(PrefFunc func) {
         long totalUs = TimeUnit.NANOSECONDS.toMicros(func.getDur());
         ArrayList<DefaultMutableTreeNode> nodes = new ArrayList<>();
-        List<PrefFunc> collect = FUNC_MAP.get(Long.valueOf(func.getTid()).intValue()).stream().filter(
+        List<PrefFunc> collect = funcMap.get(Long.valueOf(func.getTid()).intValue()).stream().filter(
             item -> TimeUtils.isRangeCross(func.getStartTs(), func.getEndTs(), item.getStartTs(), item.getEndTs()))
             .collect(Collectors.toList());
         Map<String, List<String>> nameToId = new HashMap<>();
@@ -270,23 +270,25 @@ public class PerfData {
         setNumForNodes(treeNodeMap);
         nameToId.forEach((name, ids) -> {
             DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode();
-            rootNode.setUserObject(new TreeTableBean(totalUs) { {
-                setName(name);
-                long totalNum = 0L;
-                long childrenNum = 0L;
-                long selfNum = 0L;
-                for (String id : ids) {
-                    TreeTableBean tableBean = treeNodeMap.get(id);
-                    totalNum += tableBean.getTotalNum();
-                    childrenNum += tableBean.getChildrenNum();
-                    selfNum += tableBean.getSelfNum();
+            rootNode.setUserObject(new TreeTableBean(totalUs) {
+                {
+                    setName(name);
+                    long totalNum = 0L;
+                    long childrenNum = 0L;
+                    long selfNum = 0L;
+                    for (String id : ids) {
+                        TreeTableBean tableBean = treeNodeMap.get(id);
+                        totalNum += tableBean.getTotalNum();
+                        childrenNum += tableBean.getChildrenNum();
+                        selfNum += tableBean.getSelfNum();
+                    }
+                    setTotalNum(totalNum);
+                    setSelfNum(selfNum);
+                    setChildrenNum(childrenNum);
                 }
-                setTotalNum(totalNum);
-                setSelfNum(selfNum);
-                setChildrenNum(childrenNum);
-            }});
+            });
             ids.forEach(id -> recursionNode(rootNode, treeNodeMap.get(id).getPrefParentStackId(),
-                THREAD_NAMES.get(Long.valueOf(func.getTid()).intValue()), treeNodeMap, id));
+                threadNames.get(Long.valueOf(func.getTid()).intValue()), treeNodeMap, id));
             if (ids.stream().noneMatch(id ->
                 collect.stream().filter(item -> item.getBloodId().equals(id) && item.getDepth() < func.getDepth())
                     .toArray().length > 0)) {
@@ -311,9 +313,9 @@ public class PerfData {
                             nameToId.get(entry.getValue().get(0).getFuncName())
                                 .add(entry.getValue().get(0).getBloodId());
                         } else {
-                            ArrayList<String> ids = new ArrayList<>();
-                            ids.add(entry.getValue().get(0).getBloodId());
-                            nameToId.put(entry.getValue().get(0).getFuncName(), ids);
+                            ArrayList<String> list = new ArrayList<String>();
+                            list.add(entry.getValue().get(0).getBloodId());
+                            nameToId.put(entry.getValue().get(0).getFuncName(), list);
                         }
                     }
                 }
@@ -325,7 +327,6 @@ public class PerfData {
                     .sum());
                 return uniteBean;
             }));
-
     }
 
     /**
@@ -355,9 +356,7 @@ public class PerfData {
         TreeTableBean topBean = (TreeTableBean) rootNode.getUserObject();
         TreeTableBean timeBean = treeNodeMap.get(id);
         if (parentId.isEmpty()) { // Leaf node
-            if (rootNode.getChildCount() == 0) { // The child node is thread and there are currently no child nodes
-                rootNode.add(createNewNode(topBean, timeBean, threadName));
-            } else { // Merge leaf nodes
+            if (rootNode.getChildCount() != 0) { // Merge leaf nodes
                 if (rootNode.getChildAt(rootNode.getChildCount() - 1) instanceof DefaultMutableTreeNode) {
                     DefaultMutableTreeNode leafNode =
                         (DefaultMutableTreeNode) rootNode.getChildAt(rootNode.getChildCount() - 1);
@@ -394,10 +393,10 @@ public class PerfData {
     }
 
     private static DefaultMutableTreeNode createNewNode(TreeTableBean topBean, TreeTableBean timeBean, String name) {
-        DefaultMutableTreeNode defaultMutableTreeNode = new DefaultMutableTreeNode();
         TreeTableBean treeTableBean = new TreeTableBean(topBean.getThreadDur());
         treeTableBean.setName(name);
         treeTableBean.setTime(timeBean);
+        DefaultMutableTreeNode defaultMutableTreeNode = new DefaultMutableTreeNode();
         defaultMutableTreeNode.setUserObject(treeTableBean);
         return defaultMutableTreeNode;
     }
@@ -484,53 +483,49 @@ public class PerfData {
         if (prefRange != null) {
             prefRange = null;
         }
-        if (FUNC_MAP != null) {
-            if (FUNC_MAP.size() > 0) {
-                FUNC_MAP.values().forEach(List::clear);
+        if (funcMap != null) {
+            if (funcMap.size() > 0) {
+                funcMap.values().forEach(List::clear);
             }
-            FUNC_MAP.clear();
+            funcMap.clear();
         }
-        if (THREAD_NAMES != null) {
-            THREAD_NAMES.clear();
+        if (threadNames != null) {
+            threadNames.clear();
         }
         if (prefFiles != null) {
             prefFiles.clear();
         }
     }
 
-    /**
-     * getPrefRange
-     *
-     * @return PrefRange
-     */
     public static PrefRange getPrefRange() {
         return prefRange;
     }
 
-    /**
-     * setPrefRange
-     *
-     * @param prefRange prefRange
-     */
     public static void setPrefRange(PrefRange prefRange) {
         PerfData.prefRange = prefRange;
     }
 
-    /**
-     * getPrefFiles
-     *
-     * @return Map<Long, List<PrefFile>>
-     */
     public static Map<Long, List<PrefFile>> getPrefFiles() {
         return prefFiles;
     }
 
-    /**
-     * setPrefFiles
-     *
-     * @param prefFiles prefFiles
-     */
     public static void setPrefFiles(Map<Long, List<PrefFile>> prefFiles) {
         PerfData.prefFiles = prefFiles;
+    }
+
+    public static Map<Integer, List<PrefFunc>> getFuncMap() {
+        return funcMap;
+    }
+
+    public static void setFuncMap(Map<Integer, List<PrefFunc>> funcMap) {
+        PerfData.funcMap = funcMap;
+    }
+
+    public static Map<Integer, String> getThreadNames() {
+        return threadNames;
+    }
+
+    public static void setThreadNames(Map<Integer, String> threadNames) {
+        PerfData.threadNames = threadNames;
     }
 }

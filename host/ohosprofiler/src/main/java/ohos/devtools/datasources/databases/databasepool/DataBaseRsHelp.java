@@ -28,7 +28,7 @@ import java.util.List;
 /**
  * Data results help
  *
- * @since 2021/10/22 17:00
+ * @since 2021/10/26
  */
 public class DataBaseRsHelp<T> {
     private static final Logger LOGGER = LogManager.getLogger(DataBaseRsHelp.class);

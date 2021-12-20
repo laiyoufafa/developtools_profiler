@@ -17,8 +17,8 @@ package ohos.devtools.services;
 
 import ohos.devtools.datasources.utils.profilerlog.ProfilerLogManager;
 import org.apache.commons.collections.map.LRUMap;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
 
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -28,7 +28,7 @@ import java.util.LinkedList;
  * LRUCache
  *
  * @param <V> v
- * @since: 2021/8/25
+ * @since 2021/8/25
  */
 public class LRUCache<V> {
     private static final Logger LOGGER = LogManager.getLogger(LRUCache.class);
@@ -73,11 +73,11 @@ public class LRUCache<V> {
         boolean endEntry = true;
         int startIndex;
         LinkedHashMap<Integer, V> linkedHashMap = new LinkedHashMap<>();
-        for (int i = 0; i < linkedList.size(); i++) {
-            int integer = linkedList.get(i);
+        for (int index = 0; index < linkedList.size(); index++) {
+            int integer = linkedList.get(index);
             if (integer >= start && integer <= end) {
                 if (firstEntry) {
-                    startIndex = i - 1;
+                    startIndex = index - 1;
                     if (startIndex >= 0) {
                         Integer timeBeforeKey = linkedList.get(startIndex);
                         linkedHashMap.put(timeBeforeKey, (V) lruMap.get(timeBeforeKey));
@@ -92,7 +92,7 @@ public class LRUCache<V> {
                 }
             } else {
                 if (ProfilerLogManager.isInfoEnabled()) {
-                    LOGGER.info("linkedHashMap put error: {}", integer);
+                    LOGGER.info("linkedHashMap put error");
                 }
             }
         }

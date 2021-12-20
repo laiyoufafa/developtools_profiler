@@ -20,15 +20,15 @@ import com.intellij.openapi.util.IconLoader;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBPanel;
+import net.miginfocom.swing.MigLayout;
+import ohos.devtools.views.trace.component.SysAnalystPanel;
+import ohos.devtools.views.trace.util.Db;
+
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
-import net.miginfocom.swing.MigLayout;
-import ohos.devtools.views.trace.component.AnalystPanel;
-import ohos.devtools.views.trace.util.Db;
-
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableRowSorter;
@@ -40,6 +40,7 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -143,18 +144,19 @@ public class QuerySqlPanel extends JBPanel {
     private JBPanel topJPanel;
     private JBPanel centerJPanel;
     private JBLabel inputLabel;
-    private AnalystPanel analystPanel;
+    private SysAnalystPanel analystPanel;
     private JTextField textField;
     private JButton queryButton;
     private JBPanel bottomJPanel;
     private JBLabel bottomLabel;
     private JBLabel errorLabel;
     private JScrollPane scrollPane;
+    private List<String> notSupportList;
 
     /**
      * System Tuning Panel
      */
-    public QuerySqlPanel(JBPanel optionJPanel, AnalystPanel analystPanel, JButton queryButton) {
+    public QuerySqlPanel(JBPanel optionJPanel, SysAnalystPanel analystPanel, JButton queryButton) {
         this.optionJPanel = optionJPanel;
         this.analystPanel = analystPanel;
         this.queryButton = queryButton;
@@ -180,6 +182,7 @@ public class QuerySqlPanel extends JBPanel {
         bottomLabel = new JBLabel();
         errorLabel = new JBLabel();
         scrollPane = new JScrollPane();
+        notSupportList = new ArrayList<>();
     }
 
     private void setAttributes() {
@@ -221,6 +224,12 @@ public class QuerySqlPanel extends JBPanel {
         this.add(centerJPanel);
         this.add(topJPanel);
         this.add(bottomJPanel);
+        notSupportList.add("insert");
+        notSupportList.add("delete");
+        notSupportList.add("update");
+        notSupportList.add("drop");
+        notSupportList.add("alter");
+        notSupportList.add("truncate");
     }
 
     private void componentAddListener() {
@@ -244,6 +253,16 @@ public class QuerySqlPanel extends JBPanel {
                 if ((event.getKeyCode() == KeyEvent.VK_ENTER) && (event.isControlDown())) {
                     bottomJPanel.removeAll();
                     long start = System.currentTimeMillis();
+                    for (String item : notSupportList) {
+                        if (textField.getText().contains(item)) {
+                            errorLabel.setText("Statement contains a change action keyword,The change operation is not "
+                                + "supported.");
+                            bottomJPanel.add(errorLabel, "gapleft 6,width 500,height 25");
+                            bottomJPanel.revalidate();
+                            bottomJPanel.repaint();
+                            return;
+                        }
+                    }
                     List<Map<String, String>> list = MetricsDb.getInstance().queryBySql(textField.getText());
                     long spendTime = System.currentTimeMillis() - start;
                     bottomLabel.setText("Query result - " + spendTime + " ms  " + textField.getText());

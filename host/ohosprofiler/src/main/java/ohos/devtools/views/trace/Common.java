@@ -143,8 +143,8 @@ public class Common {
      * @param rectangle rectangle
      */
     public static void drawStringCenter(Graphics2D graphics, String str, final Rectangle rectangle) {
-        Rectangle2D minBound = graphics.getFontMetrics(graphics.getFont())
-            .getStringBounds("m...", graphics); // show string min rect
+        Rectangle2D minBound =
+            graphics.getFontMetrics(graphics.getFont()).getStringBounds("m...", graphics); // show string min rect
         if (rectangle.width < minBound.getWidth() || rectangle.height < minBound.getHeight()) {
             return;
         }
@@ -157,9 +157,8 @@ public class Common {
         if (chartNum >= str.length()) {
             graphics.drawString(str, (int) (rectangle.getX() + (rectangle.width - bounds.getWidth()) / 2), mY);
         } else if (chartNum >= LEN + 1) {
-            graphics
-                .drawString(str.substring(0, (int) chartNum - LEN) + "...", (int) (rectangle.getX() + LEFT_PADDING),
-                    mY);
+            graphics.drawString(str.substring(0, (int) chartNum - LEN) + "...", (int) (rectangle.getX() + LEFT_PADDING),
+                mY);
         } else if (chartNum > 1 && chartNum < LEN) { // If only one character can be displayed
             graphics.drawString(str.substring(0, 1), (int) (rectangle.getX() + LEFT_PADDING), mY);
         } else {
@@ -187,9 +186,8 @@ public class Common {
         if (chartNum >= str.length()) {
             graphics.drawString(str, (int) (rectangle.getX() + (rectangle.width - bounds.getWidth()) / 2), mY);
         } else if (chartNum >= LEN + 1) {
-            graphics
-                .drawString(str.substring(0, (int) chartNum - LEN) + "...", (int) (rectangle.getX() + LEFT_PADDING),
-                    mY);
+            graphics.drawString(str.substring(0, (int) chartNum - LEN) + "...", (int) (rectangle.getX() + LEFT_PADDING),
+                mY);
         } else if (chartNum > 1 && chartNum < LEN) { // If only one character can be displayed
             graphics.drawString(str.substring(0, 1), (int) (rectangle.getX() + LEFT_PADDING), mY);
         } else {
@@ -220,7 +218,7 @@ public class Common {
                 g2.drawString(str.substring(0, 1), Utils.getX(rect),
                     (float) (Utils.getY(rect) + rect.height / 2 + bounds.getHeight() / 2 - 3));
             } else {
-                rect.getWidth();
+                int yValue = Utils.getY(rect);
             }
         }
     }

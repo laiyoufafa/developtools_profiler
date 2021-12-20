@@ -33,6 +33,8 @@ import java.io.InputStreamReader;
 
 /**
  * License Dialog
+ *
+ * @since 2021/11/22
  */
 public class LicenseDialog {
     private static final Logger LOGGER = LogManager.getLogger(LicenseDialog.class);

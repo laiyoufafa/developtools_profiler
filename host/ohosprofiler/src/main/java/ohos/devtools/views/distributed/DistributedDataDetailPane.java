@@ -35,8 +35,8 @@ import ohos.devtools.views.distributed.util.DistributedCache;
 import ohos.devtools.views.trace.EventDispatcher;
 import ohos.devtools.views.trace.Tip;
 import ohos.devtools.views.trace.util.Final;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
 
 import javax.swing.JTable;
 import javax.swing.JTree;
@@ -67,7 +67,7 @@ import static ohos.devtools.views.distributed.util.DistributedDataPraser.collect
 /**
  * DistributedDataDetailPane
  *
- * @since 2021/8/26 15:10
+ * @since 2021/08/05 16:06
  */
 public class DistributedDataDetailPane extends JBPanel implements IDistributedData {
     private static final Logger LOGGER = LogManager.getLogger(DistributedDataDetailPane.class);
@@ -149,8 +149,8 @@ public class DistributedDataDetailPane extends JBPanel implements IDistributedDa
         search.setTextToTriggerEmptyTextStatus("Search");
         search.getDocument().addDocumentListener(new DocumentListener() {
             @Override
-            public void insertUpdate(DocumentEvent documentEvent) {
-                searchText = search.getText().toLowerCase();
+            public void insertUpdate(DocumentEvent event) {
+                searchText = search.getText().toLowerCase(Locale.ENGLISH);
                 getNodeContainSearch(root, searchText);
                 treeResort(root);
                 tableModelOnColumns.reload();
@@ -158,8 +158,8 @@ public class DistributedDataDetailPane extends JBPanel implements IDistributedDa
             }
 
             @Override
-            public void removeUpdate(DocumentEvent documentEvent) {
-                searchText = search.getText().toLowerCase();
+            public void removeUpdate(DocumentEvent event) {
+                searchText = search.getText().toLowerCase(Locale.ENGLISH);
                 if (searchText.isEmpty()) {
                     resetAllNode(root);
                 } else {
@@ -171,7 +171,7 @@ public class DistributedDataDetailPane extends JBPanel implements IDistributedDa
             }
 
             @Override
-            public void changedUpdate(DocumentEvent documentEvent) {
+            public void changedUpdate(DocumentEvent even) {
             }
         });
         add(search, "w 300:400:500,wrap");
@@ -288,8 +288,8 @@ public class DistributedDataDetailPane extends JBPanel implements IDistributedDa
                 DefaultMutableTreeNode nextElement = (DefaultMutableTreeNode) treNode;
                 if (nextElement.getUserObject() instanceof DetailBean) {
                     DetailBean userObject = (DetailBean) nextElement.getUserObject();
-                    if (DistributedFuncBean.currentSelectedFunc != null && DistributedFuncBean
-                        .currentSelectedFunc.getId().equals(userObject.getId())) {
+                    if (DistributedFuncBean.currentSelectedFunc != null && DistributedFuncBean.currentSelectedFunc
+                        .getId().equals(userObject.getId())) {
                         treeTable.getTree().setSelectionPath(new TreePath(nextElement.getPath()));
                     }
                 }
@@ -321,8 +321,8 @@ public class DistributedDataDetailPane extends JBPanel implements IDistributedDa
                 DefaultMutableTreeNode nextElement = (DefaultMutableTreeNode) treNode;
                 if (nextElement.getUserObject() instanceof DetailBean) {
                     DetailBean userObject = (DetailBean) nextElement.getUserObject();
-                    if (DistributedFuncBean.currentSelectedFunc != null && DistributedFuncBean
-                        .currentSelectedFunc.getId().equals(userObject.getId())) {
+                    if (DistributedFuncBean.currentSelectedFunc != null && DistributedFuncBean.currentSelectedFunc
+                        .getId().equals(userObject.getId())) {
                         treeTable.getTree().setSelectionPath(new TreePath(nextElement.getPath()));
                     }
                 }
@@ -431,9 +431,8 @@ public class DistributedDataDetailPane extends JBPanel implements IDistributedDa
                         if (item.getDepth() == 0) {
                             item.setDelay(0L);
                         } else if (DistributedCache.ID_FUNC_BEAN_MAP_A.containsKey(item.getParentId())) {
-                            item.setDelay(
-                                item.getStartTs() - DistributedCache.ID_FUNC_BEAN_MAP_A.get(item.getParentId())
-                                    .getStartTs());
+                            item.setDelay(item.getStartTs() - DistributedCache.ID_FUNC_BEAN_MAP_A
+                                .get(item.getParentId()).getStartTs());
                         } else {
                             if (ProfilerLogManager.isDebugEnabled()) {
                                 LOGGER.debug("item Depth error");
@@ -453,9 +452,9 @@ public class DistributedDataDetailPane extends JBPanel implements IDistributedDa
                     .peek((item) -> {
                         if (item.getDepth() == 0) {
                             item.setDelay(0L);
-                        } else if (DistributedCache.FUNC_BEAN_MAP.containsKey(item.getParentId())) {
-                            item.setDelay(item.getStartTs() - DistributedCache.FUNC_BEAN_MAP.get(item.getParentId())
-                                .getStartTs());
+                        } else if (DistributedCache.ID_FUNC_BEAN_MAP_B.containsKey(item.getParentId())) {
+                            item.setDelay(item.getStartTs() - DistributedCache.ID_FUNC_BEAN_MAP_B
+                                .get(item.getParentId()).getStartTs());
                         } else {
                             if (ProfilerLogManager.isDebugEnabled()) {
                                 LOGGER.debug("item Depth error");
@@ -527,8 +526,8 @@ public class DistributedDataDetailPane extends JBPanel implements IDistributedDa
                 DetailBean bean = (DetailBean) value;
                 if (column == 1 && bean.getTotalNS() > bean.getMiddleNs() * DistributedCache.getTotalMedianTimes()) {
                     setForeground(JBColor.RED);
-                } else if (column == 2 && bean.getDelayNS() > bean.getMiddleDelayNS() * DistributedCache
-                    .getDelayMedianTimes()) {
+                } else if (column == 2
+                    && bean.getDelayNS() > bean.getMiddleDelayNS() * DistributedCache.getDelayMedianTimes()) {
                     setForeground(JBColor.RED);
                 } else {
                     setForeground(JBColor.foreground());

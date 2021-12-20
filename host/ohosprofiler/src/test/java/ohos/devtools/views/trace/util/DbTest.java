@@ -31,6 +31,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 
 import static ohos.devtools.Config.TRACE_SYS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -41,7 +42,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 /**
  * test Db class .
  *
- * @since 2021/4/24 17:52
+ * @date: 2021/4/24 17:52
  */
 class DbTest {
     private static String dbPath = TRACE_SYS;
@@ -202,9 +203,11 @@ class DbTest {
         Db.setDbName(dbPath);
         Db.load(true);
         Db instance = Db.getInstance();
-        Connection conn = createNewConnection(dbPath);
-        instance.free(conn);
-        assertNotNull(conn);
+        Optional<Connection> conn = createNewConnection(dbPath);
+        if (conn.isPresent()) {
+            instance.free(conn.get());
+            assertNotNull(conn);
+        }
     }
 
     @Test
@@ -212,10 +215,10 @@ class DbTest {
         Db.setDbName(dbPath);
         Db.load(true);
         Db instance = Db.getInstance();
-        Connection connB = createNewConnection(dbPath);
-        if (connB != null) {
-            instance.free(connB);
-            assertNotNull(connB);
+        Optional<Connection> connB = createNewConnection(dbPath);
+        if (connB.isPresent()) {
+            instance.free(connB.get());
+            assertNotNull(connB.get());
         }
     }
 
@@ -236,10 +239,10 @@ class DbTest {
         Db.setDbName(dbPath);
         Db.load(true);
         Db instance = Db.getInstance();
-        Connection connA = createNewConnection(dbPath);
-        if (connA != null) {
-            instance.free(connA);
-            assertNotNull(connA);
+        Optional<Connection> connA = createNewConnection(dbPath);
+        if (connA.isPresent()) {
+            instance.free(connA.get());
+            assertNotNull(connA.get());
             Connection connAagain = instance.getConn();
             instance.free(connAagain);
             assertNotNull(connAagain);
@@ -346,7 +349,7 @@ class DbTest {
         Db.setDbName(dbPath);
         Db.load(true);
         String sql = String.format(Locale.ENGLISH, Db.getSql(Sql.SYS_QUERY_CPU_DATA_COUNT.getName()), 1, 0, 0);
-        int index = Db.getInstance().queryCount(sql);
+        int index = Db.getInstance().queryCount(null, sql);
         assertEquals(index, 0);
     }
 
@@ -355,7 +358,7 @@ class DbTest {
         Db.setDbName(dbPath);
         Db.load(true);
         String sql = String.format(Locale.ENGLISH, Db.getSql(Sql.SYS_QUERY_CPU_DATA_COUNT.getName()), 1, -1, -1);
-        int index = Db.getInstance().queryCount(sql);
+        int index = Db.getInstance().queryCount(null, sql);
         assertEquals(index, 0);
     }
 
@@ -365,7 +368,7 @@ class DbTest {
         Db.load(true);
         String sql =
             String.format(Locale.ENGLISH, Db.getSql(Sql.SYS_QUERY_CPU_DATA_COUNT.getName()), 1, Integer.MAX_VALUE, -1);
-        int index = Db.getInstance().queryCount(sql);
+        int index = Db.getInstance().queryCount(null, sql);
         assertEquals(index, 0);
     }
 
@@ -375,7 +378,7 @@ class DbTest {
         Db.load(true);
         String sql =
             String.format(Locale.ENGLISH, Db.getSql(Sql.SYS_QUERY_CPU_DATA_COUNT.getName()), 1, Integer.MIN_VALUE, -1);
-        int index = Db.getInstance().queryCount(sql);
+        int index = Db.getInstance().queryCount(null, sql);
         assertEquals(index, 0);
     }
 
@@ -406,19 +409,12 @@ class DbTest {
         Db.load(false);
     }
 
-    private Connection createNewConnection(String path) {
-        Connection conn = null;
+    private Optional<Connection> createNewConnection(String path) {
         try {
-            conn = DriverManager.getConnection("jdbc:sqlite:" + path);
+            return Optional.ofNullable(DriverManager.getConnection("jdbc:sqlite:" + path));
         } catch (SQLException exception) {
             exception.printStackTrace();
-        } finally {
-            try {
-                conn.close();
-            } catch (SQLException throwables) {
-                throwables.printStackTrace();
-            }
         }
-        return conn;
+        return Optional.empty();
     }
 }

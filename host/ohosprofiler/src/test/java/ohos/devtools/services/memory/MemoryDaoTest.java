@@ -207,7 +207,7 @@ public class MemoryDaoTest {
             MemoryDao.getInstance().getData(1L, 0, 1000, 0L, false);
         LinkedHashMap<Integer, List<ChartDataModel>> memoryData2 =
             MemoryDao.getInstance().getData(10L, 0, 1000, 0L, false);
-        Assert.assertNotEquals(memoryData1, memoryData2);
+        Assert.assertNotEquals(memoryData1.size(), memoryData2.size());
     }
 
     /**
@@ -231,7 +231,7 @@ public class MemoryDaoTest {
         LinkedHashMap<Integer, List<ChartDataModel>> memoryData =
             MemoryDao.getInstance().getData(Long.MAX_VALUE, 0, 1000, 0L, true);
         int num = memoryData.size();
-        Assert.assertNotEquals(0, num);
+        Assert.assertEquals(1, num);
     }
 
     /**

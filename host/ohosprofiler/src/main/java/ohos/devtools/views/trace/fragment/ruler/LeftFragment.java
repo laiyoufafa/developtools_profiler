@@ -15,6 +15,7 @@
 
 package ohos.devtools.views.trace.fragment.ruler;
 
+import ohos.devtools.views.trace.component.AnalystPanel;
 import ohos.devtools.views.trace.util.TimeUtils;
 import ohos.devtools.views.trace.util.Utils;
 
@@ -22,8 +23,6 @@ import javax.swing.JComponent;
 import java.awt.AlphaComposite;
 import java.awt.Graphics2D;
 import java.awt.geom.Rectangle2D;
-
-import static ohos.devtools.views.trace.component.AnalystPanel.DURATION;
 
 /**
  * The left part of the timeline display area
@@ -124,7 +123,7 @@ public class LeftFragment extends AbstractFragment {
         Rectangle2D rectangle2D = graphics.getFontMetrics().getStringBounds(startTimeS, graphics);
         int strHeight = (int) rectangle2D.getHeight();
         int strWidth = (int) rectangle2D.getWidth() + pad;
-        graphics.drawString(TimeUtils.getSecondFromNSecond(DURATION), 2, yaxis + strHeight);
+        graphics.drawString(TimeUtils.getSecondFromNSecond(AnalystPanel.getDURATION()), 2, yaxis + strHeight);
         graphics.drawString(startTimeS, getRect().width - strWidth, yaxis + strHeight);
         if (logString != null && !logString.isEmpty()) {
             int index = 0;

@@ -19,7 +19,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 /**
- * EventTrackUtilsTest
+ * Event Track Utils Test
  *
  * @since 2021/2/1 9:31
  */

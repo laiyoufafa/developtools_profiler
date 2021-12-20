@@ -137,7 +137,7 @@ class CpuFreqDataTest {
     void isFlagFocus() {
         boolean flagFocus = true;
         assertEquals(flagFocus, new CpuFreqData() {{
-            setFlagFocus(flagFocus);
+            setFlagFocus(isFlagFocus());
         }}.isFlagFocus());
     }
 
@@ -148,7 +148,7 @@ class CpuFreqDataTest {
     void setFlagFocus() {
         boolean flagFocus = true;
         assertEquals(flagFocus, new CpuFreqData() {{
-            setFlagFocus(flagFocus);
+            setFlagFocus(isFlagFocus());
         }}.isFlagFocus());
     }
 

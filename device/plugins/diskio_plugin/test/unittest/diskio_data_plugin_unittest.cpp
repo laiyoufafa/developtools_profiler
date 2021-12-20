@@ -25,7 +25,9 @@ using namespace testing::ext;
 namespace {
 const std::string DEFAULT_TEST_PATH = "/data/local/tmp/resources";
 const std::string SO_PATH = "/system/lib/libdiskiodataplugin.z.so";
+const std::string DEFAULT_BIN_PATH("/data/local/tmp/diskiodataplugintest");
 constexpr uint32_t BUF_SIZE = 4 * 1024 * 1024;
+constexpr int WRITE_KB = 1000;
 
 std::string g_path;
 std::string g_testPath;
@@ -45,7 +47,6 @@ public:
     {
         if (access(g_testPath.c_str(), F_OK) == 0) {
             std::string str = "rm -rf " + g_testPath;
-            printf("TearDown--> %s\r\n", str.c_str());
             system(str.c_str());
         }
     }
@@ -85,20 +86,17 @@ bool PluginDiskioInfoStub(DiskioDataPlugin& diskioPlugin, DiskioData& diskioData
     if (ret < 0) {
         return false;
     }
-    printf("ut: serialize config success, ret = %d\n", ret);
 
     // start
     ret = diskioPlugin.Start(configData.data(), configData.size());
     if (ret < 0) {
         return false;
     }
-    printf("ut: start plugin success, ret = %d\n", ret);
 
     // report
     std::vector<uint8_t> bufferData(BUF_SIZE);
     if (unusualBuff) { // buffer异常，调整缓冲区长度为1，测试异常情况
         bufferData.resize(1, 0);
-        printf("ut: bufferData resize\n");
     }
 
     ret = diskioPlugin.Report(bufferData.data(), bufferData.size());
@@ -118,10 +116,8 @@ HWTEST_F(DiskioDataPluginTest, TestPath, TestSize.Level1)
 {
     g_path = GetFullPath(DEFAULT_TEST_PATH);
     g_testPath = g_path;
-    printf("g_path:%s\n", g_path.c_str());
     EXPECT_NE("", g_path);
     g_path += "/proc/vmstat";
-    printf("g_path:%s\n", g_path.c_str());
 }
 
 /**
@@ -194,5 +190,52 @@ HWTEST_F(DiskioDataPluginTest, TestPluginRegister, TestSize.Level1)
     std::vector<uint8_t> configBuffer2(configLength);
     EXPECT_TRUE(protoConfig.SerializeToArray(configBuffer2.data(), configLength));
     EXPECT_EQ(diskioPlugin->callbacks->onPluginSessionStart(configBuffer2.data(), configLength+1), RET_FAIL);
+}
+
+bool ExecuteBin(const std::string& bin, const std::vector<std::string>& args)
+{
+    std::vector<char*> argv;
+    for (size_t i = 0; i < args.size(); i++) {
+        argv.push_back(const_cast<char*>(args[i].c_str()));
+    }
+    argv.push_back(nullptr); // last item in argv must be NULL
+
+    int retval = execvp(bin.c_str(), argv.data());
+    CHECK_TRUE(retval != -1, false, "execv %s failed, %s!", bin.c_str(), strerror(errno));
+    _exit(EXIT_FAILURE);
+    abort(); // never should be here.
+    return true;
+}
+
+/**
+ * @tc.name: diskio plugin
+ * @tc.desc: test ParseDiskioInfo for system file
+ * @tc.type: FUNC
+ */
+HWTEST_F(DiskioDataPluginTest, TestSystemFile, TestSize.Level1)
+{
+    pid_t pid;
+    DiskioDataPlugin plugin1, plugin2;
+    DiskioData diskioData1, diskioData2;
+
+    std::string cmd = "chmod 777 " + DEFAULT_BIN_PATH;
+    system(cmd.c_str());
+
+    EXPECT_TRUE(PluginDiskioInfoStub(plugin1, diskioData1, false));
+    if ((pid = fork()) == 0) {
+        // set 1, write data to disk
+        std::vector<std::string> argv = {"childpidtest", "1"};
+        ASSERT_TRUE(ExecuteBin(DEFAULT_BIN_PATH, argv));
+    }
+    sleep(1); // 睡眠1s，确保已写入磁盘1000kb的数据
+    EXPECT_TRUE(PluginDiskioInfoStub(plugin2, diskioData2, false));
+    EXPECT_LE(diskioData1.wr_sectors_kb() + WRITE_KB, diskioData2.wr_sectors_kb());
+
+    while (waitpid(-1, NULL, WNOHANG) == 0) {
+        kill(pid, SIGKILL);
+    }
+
+    plugin1.Stop();
+    plugin2.Stop();
 }
 } // namespace

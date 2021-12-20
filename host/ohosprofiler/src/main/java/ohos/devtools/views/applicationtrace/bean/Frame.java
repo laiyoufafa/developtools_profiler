@@ -208,8 +208,8 @@ public class Frame extends AbstractNode {
      */
     public void setRenderList(final List<Func> renderList) {
         this.renderList = renderList;
-        long renderTotal = renderList.stream().filter(
-                func -> !(startNs <= func.getStartTs() && (startNs + dur) >= (func.getStartTs() + func.getDur())))
+        long renderTotal = renderList.stream()
+            .filter(func -> !(startNs <= func.getStartTs() && (startNs + dur) >= (func.getStartTs() + func.getDur())))
             .mapToLong(Func::getDur).sum();
         if (renderTotal > 0) {
             long renderRuning = renderList.stream().mapToLong(Func::getRunning).sum();

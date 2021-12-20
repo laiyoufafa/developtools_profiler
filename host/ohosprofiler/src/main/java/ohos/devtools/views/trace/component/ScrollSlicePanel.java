@@ -244,17 +244,16 @@ public class ScrollSlicePanel extends BottomScrollPanel {
      * @since 2021/04/20 12:24
      */
     class LineComponent extends ChildLineComponent {
-
         /**
          * linkable
          */
         public boolean linkable;
 
+        private final int leftW = 200;
         private String key;
         private String value;
         private IScrollSliceLinkListener listener;
         private Rectangle linkRect;
-        private final int leftW = 200;
 
         /**
          * LineComponent constructor

@@ -18,7 +18,7 @@ package ohos.devtools.views.distributed.bean;
 /**
  * DistributedParams
  *
- * @since 2021/8/1 14:58
+ * @since 2021/08/10 16:20
  */
 public class DistributedParams {
     private String pkgNameA;
@@ -53,7 +53,7 @@ public class DistributedParams {
     /**
      * getPkgNameA
      *
-     * @return pkgNameA pkgNameA
+     * @return String pkgNameA
      */
     public String getPkgNameA() {
         return pkgNameA;
@@ -62,7 +62,7 @@ public class DistributedParams {
     /**
      * getPkgNameB
      *
-     * @return pkgNameB pkgNameB
+     * @return String pkgNameB
      */
     public String getPkgNameB() {
         return pkgNameB;
@@ -71,7 +71,7 @@ public class DistributedParams {
     /**
      * getProcessIdA
      *
-     * @return processIdA processIdA
+     * @return Integer processIdA
      */
     public Integer getProcessIdA() {
         return processIdA;
@@ -80,7 +80,7 @@ public class DistributedParams {
     /**
      * getProcessIdB
      *
-     * @return processIdB processIdB
+     * @return Integer processIdB
      */
     public Integer getProcessIdB() {
         return processIdB;
@@ -89,7 +89,7 @@ public class DistributedParams {
     /**
      * getDeviceNameA
      *
-     * @return deviceNameA deviceNameA
+     * @return String deviceNameA
      */
     public String getDeviceNameA() {
         return deviceNameA;
@@ -98,7 +98,7 @@ public class DistributedParams {
     /**
      * getDeviceNameB
      *
-     * @return deviceNameB deviceNameB
+     * @return String deviceNameB
      */
     public String getDeviceNameB() {
         return deviceNameB;
@@ -107,7 +107,7 @@ public class DistributedParams {
     /**
      * getPathA
      *
-     * @return pathA pathA
+     * @return String pathA
      */
     public String getPathA() {
         return pathA;
@@ -116,7 +116,7 @@ public class DistributedParams {
     /**
      * getPathB
      *
-     * @return pathB pathB
+     * @return String pathB
      */
     public String getPathB() {
         return pathB;
@@ -125,7 +125,7 @@ public class DistributedParams {
     /**
      * getOffsetA
      *
-     * @return offsetA offsetA
+     * @return Long offsetA
      */
     public Long getOffsetA() {
         return offsetA;
@@ -134,7 +134,7 @@ public class DistributedParams {
     /**
      * getOffsetB
      *
-     * @return offsetB offsetB
+     * @return Long offsetB
      */
     public Long getOffsetB() {
         return offsetB;
@@ -159,7 +159,7 @@ public class DistributedParams {
          * setPkgNameA
          *
          * @param pkgNameA pkgNameA
-         * @return Builder builder
+         * @return Builder Builder
          */
         public Builder setPkgNameA(String pkgNameA) {
             this.pkgNameA = pkgNameA;
@@ -170,7 +170,7 @@ public class DistributedParams {
          * setPkgNameB
          *
          * @param pkgNameB pkgNameB
-         * @return Builder builder
+         * @return Builder Builder
          */
         public Builder setPkgNameB(String pkgNameB) {
             this.pkgNameB = pkgNameB;
@@ -181,7 +181,7 @@ public class DistributedParams {
          * setDeviceNameA
          *
          * @param deviceNameA deviceNameA
-         * @return Builder builder
+         * @return Builder Builder
          */
         public Builder setDeviceNameA(String deviceNameA) {
             this.deviceNameA = deviceNameA;
@@ -192,7 +192,7 @@ public class DistributedParams {
          * setDeviceNameB
          *
          * @param deviceNameB deviceNameB
-         * @return Builder builder
+         * @return Builder Builder
          */
         public Builder setDeviceNameB(String deviceNameB) {
             this.deviceNameB = deviceNameB;
@@ -203,7 +203,7 @@ public class DistributedParams {
          * setProcessIdA
          *
          * @param processIdA processIdA
-         * @return Builder builder
+         * @return Builder Builder
          */
         public Builder setProcessIdA(Integer processIdA) {
             this.processIdA = processIdA;
@@ -214,7 +214,7 @@ public class DistributedParams {
          * setProcessIdB
          *
          * @param processIdB processIdB
-         * @return Builder builder
+         * @return Builder Builder
          */
         public Builder setProcessIdB(Integer processIdB) {
             this.processIdB = processIdB;
@@ -225,7 +225,7 @@ public class DistributedParams {
          * setPathA
          *
          * @param pathA pathA
-         * @return Builder builder
+         * @return Builder Builder
          */
         public Builder setPathA(String pathA) {
             this.pathA = pathA;
@@ -236,7 +236,7 @@ public class DistributedParams {
          * setPathB
          *
          * @param pathB pathB
-         * @return Builder builder
+         * @return Builder Builder
          */
         public Builder setPathB(String pathB) {
             this.pathB = pathB;
@@ -247,7 +247,7 @@ public class DistributedParams {
          * setOffsetA
          *
          * @param offsetA offsetA
-         * @return Builder builder
+         * @return Builder Builder
          */
         public Builder setOffsetA(Long offsetA) {
             this.offsetA = offsetA;
@@ -258,7 +258,7 @@ public class DistributedParams {
          * setOffsetB
          *
          * @param offsetB offsetB
-         * @return Builder builder
+         * @return Builder Builder
          */
         public Builder setOffsetB(Long offsetB) {
             this.offsetB = offsetB;

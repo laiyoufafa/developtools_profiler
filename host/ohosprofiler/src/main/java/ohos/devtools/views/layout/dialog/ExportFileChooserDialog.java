@@ -98,10 +98,10 @@ public class ExportFileChooserDialog extends DialogWrapper {
             .setBounds(LayoutConstants.MARGIN_LEFT, LayoutConstants.FILE_SELECT_Y, LayoutConstants.SCROPNUM,
                 LayoutConstants.THIRTY);
         panel.add(textFieldWithBrowseButton);
-        JLabel fileTypeLabel = new JLabel("File Type");
-        fileTypeLabel.setBounds(LayoutConstants.MARGIN_LEFT, LayoutConstants.FILE_TYPE_Y, LayoutConstants.HUNDRED_FIFTY,
+        JLabel fileTypes = new JLabel("File Type");
+        fileTypes.setBounds(LayoutConstants.MARGIN_LEFT, LayoutConstants.FILE_TYPE_Y, LayoutConstants.HUNDRED_FIFTY,
             LayoutConstants.THIRTY);
-        panel.add(fileTypeLabel);
+        panel.add(fileTypes);
         fileTypeBox.setBounds(LayoutConstants.MARGIN_LEFT, LayoutConstants.FILE_TYPE_BOX_Y, LayoutConstants.SCROPNUM,
             LayoutConstants.THIRTY);
         panel.add(fileTypeBox);
@@ -136,7 +136,7 @@ public class ExportFileChooserDialog extends DialogWrapper {
         // 查询数据保存到file
         String pathName = exportFilePath + File.separator + exportFileName + Constant.TRACE_SUFFIX;
         DeviceIPPortInfo deviceIPPortInfo =
-                SessionManager.getInstance().getDeviceInfoBySessionId(jButton.getSessionId());
+            SessionManager.getInstance().getDeviceInfoBySessionId(jButton.getSessionId());
         DeviceProcessInfo deviceProcessInfo = new DeviceProcessInfo();
         deviceProcessInfo.setDeviceName(jButton.getDeviceName());
         deviceProcessInfo.setProcessName(jButton.getProcessName());
@@ -169,6 +169,11 @@ public class ExportFileChooserDialog extends DialogWrapper {
         return exportFilePath;
     }
 
+    /**
+     * getFileType
+     *
+     * @return String
+     */
     public String getFileType() {
         return fileType;
     }

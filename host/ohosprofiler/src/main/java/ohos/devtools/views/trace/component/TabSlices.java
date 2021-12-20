@@ -84,7 +84,7 @@ public class TabSlices extends JBPanel {
                 Db.getInstance().query(Sql.SYS_GET_TAB_SLICES, result, buffer.toString(), leftNs, rightNs);
                 SwingUtilities.invokeLater(() -> {
                     if (result != null && result.size() > 0) {
-                        long sumWall = 0;
+                        long sumWall = 0L;
                         int sumOcc = 0;
                         for (TabSlicesBean bean : result) {
                             sumWall += bean.getWallDuration();

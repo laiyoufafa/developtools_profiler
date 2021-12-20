@@ -23,7 +23,7 @@ plugins {
 }
 
 group 'ohos.devtools'
-version '3.07.211021_Ia1ed1303974563b64db30257247eb41b3140ea5a'
+version '3.09.211210_Ia1ed1303974563b64db30257247eb41b3140ea5a'
 
 project.sourceCompatibility=1.11
 project.targetCompatibility=1.11
@@ -54,7 +54,7 @@ dependencies {
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
     testImplementation group: 'org.powermock', name: 'powermock-module-junit4', version: '2.0.9'
     testImplementation group: 'org.powermock', name: 'powermock-api-mockito2', version: '2.0.9'
-    implementation group: 'com.huawei.deveco', name: 'common-trace', version: '2.2.0.200'
+    implementation fileTree(dir:'libs',include:['sdk.jar'])
 }
 
 // See https://github.com/JetBrains/gradle-intellij-plugin/
@@ -105,7 +105,7 @@ protobuf {
         all()*.plugins {
             grpc {}
         }
-   }
+    }
 }
 
 buildSearchableOptions {

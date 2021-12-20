@@ -176,10 +176,6 @@ void PluginModuleApiTest::SetSampleConfig(std::vector<uint8_t>& configData, uint
     // serialize
     protoConfig.SerializeToArray(configData.data(), configData.size());
     configSize = protoConfig.ByteSizeLong();
-    printf("SetSampleConfig -->\n");
-    for (uint32_t i = 0; i < configSize; i++)
-        printf("0x%02x", configData[i]);
-    printf("\n");
 }
 
 void PluginModuleApiTest::SetMemoryConfig(std::vector<uint8_t>& configData, uint32_t& configSize)
@@ -190,7 +186,6 @@ void PluginModuleApiTest::SetMemoryConfig(std::vector<uint8_t>& configData, uint
     // serialize
     protoConfig.SerializeToArray(configData.data(), configSize);
     configSize = protoConfig.ByteSizeLong();
-    printf("SetMemoryConfig memoryConfigData---->configLen(%d)\n", configSize);
 }
 
 void PluginModuleApiTest::SetStreamConfig(std::vector<uint8_t>& configData, uint32_t& configSize)
@@ -200,7 +195,6 @@ void PluginModuleApiTest::SetStreamConfig(std::vector<uint8_t>& configData, uint
     // serialize
     protoConfig.SerializeToArray(configData.data(), configSize);
     configSize = protoConfig.ByteSizeLong();
-    printf("SetStreamConfig streamConfigData---->configLen(%d)\n", configSize);
 }
 
 // 流式调用写接口
@@ -377,12 +371,7 @@ HWTEST_F(PluginModuleApiTest, SamplePluginStartSucc, TestSize.Level1)
     EXPECT_NE(sampleCallbacks_->onPluginSessionStart, nullptr);
     uint32_t configLen = MAX_BUFFER_SIZE;
     std::vector<uint8_t> configData(configLen); // config
-    printf("PluginModuleApiTest before---->configLen(%zu)\n", configData.size());
     SetSampleConfig(configData, configLen);
-    printf("PluginModuleApiTest after---->configLen(%d)\n", configLen);
-    for (uint32_t i = 0; i < configLen; i++)
-        printf("0x%02x", configData[i]);
-    printf("\n");
     EXPECT_EQ(sampleCallbacks_->onPluginSessionStart(configData.data(), configLen), 0);
     EXPECT_NE(samplePlugin, nullptr);
 
@@ -419,7 +408,6 @@ HWTEST_F(PluginModuleApiTest, MultPluginStart, TestSize.Level1)
     configLen = MAX_BUFFER_SIZE;
     std::vector<uint8_t> memoryConfigData(configLen);
     SetMemoryConfig(memoryConfigData, configLen);
-    printf("PluginModuleApiTest memoryConfigData---->configLen(%d)\n", configLen);
     EXPECT_EQ(memoryCallbacks_->onPluginSessionStart(memoryConfigData.data(), configLen), 0);
     EXPECT_NE(memoryPlugin, nullptr);
     memoryCallbacks_->onPluginSessionStop();

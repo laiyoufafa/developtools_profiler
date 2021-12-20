@@ -34,6 +34,7 @@ public class DeviceIPPortInfo implements Serializable {
     private int forwardPort;
     private int deviceStatus;
     private int retryNum;
+    private int offlineCount;
 
     public DeviceType getDeviceType() {
         return deviceType;
@@ -105,6 +106,14 @@ public class DeviceIPPortInfo implements Serializable {
 
     public void setRetryNum(int retryNum) {
         this.retryNum = retryNum;
+    }
+
+    public int getOfflineCount() {
+        return offlineCount;
+    }
+
+    public void setOfflineCount(int offlineCount) {
+        this.offlineCount = offlineCount;
     }
 
     @Override

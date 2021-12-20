@@ -31,6 +31,8 @@ import static ohos.devtools.views.layout.chartview.utils.ChartViewConstants.TIME
 
 /**
  * User-defined timeline component of Profiler
+ *
+ * @since 2021/11/22
  */
 public class ProfilerTimeline extends JBPanel {
     /**

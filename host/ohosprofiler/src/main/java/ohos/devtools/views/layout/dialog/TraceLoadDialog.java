@@ -33,6 +33,8 @@ import java.util.Locale;
 
 /**
  * SystemTuningDialog
+ *
+ * @since 2021/11/22
  */
 public class TraceLoadDialog extends DialogWrapper {
     private static final Logger LOGGER = LogManager.getLogger(TraceLoadDialog.class);
@@ -62,8 +64,7 @@ public class TraceLoadDialog extends DialogWrapper {
      * @param timeJLabel timeJLabel
      * @param maxDurationParam maxDurationParam
      */
-    public TraceLoadDialog(JPanel filePanel,
-        JBLabel timeJLabel, int maxDurationParam) {
+    public TraceLoadDialog(JPanel filePanel, JBLabel timeJLabel, int maxDurationParam) {
         super(true);
         this.filePanel = filePanel;
         this.timeJLabel = timeJLabel;
@@ -110,8 +111,7 @@ public class TraceLoadDialog extends DialogWrapper {
      * @param actionEvent actionEvent
      */
     public void actionPerformed(ActionEvent actionEvent) {
-        if ((hours * MINUTE_TO_S * MINUTE_TO_S
-            + minutes * MINUTE_TO_S + seconds) > maxDurationParam) {
+        if ((hours * MINUTE_TO_S * MINUTE_TO_S + minutes * MINUTE_TO_S + seconds) > maxDurationParam) {
             timer.stop();
             this.doOKAction();
         }
@@ -141,12 +141,12 @@ public class TraceLoadDialog extends DialogWrapper {
      */
     public void setLableAttribute(JLabel statusJLabelParam, JLabel durationJLabelParam, JLabel recordingJLabelParam,
         JLabel timeJLabelParam, JButton stopJButton) {
-        statusJLabelParam.setBounds(120, 30, 70, 20);
-        recordingJLabelParam.setBounds(190, 30, 70, 20);
-        durationJLabelParam.setBounds(120, 60, 70, 20);
-        timeJLabelParam.setBounds(190, 60, 70, 20);
+        statusJLabelParam.setBounds(90, 30, 70, 20);
+        recordingJLabelParam.setBounds(160, 30, 70, 20);
+        durationJLabelParam.setBounds(90, 60, 70, 20);
+        timeJLabelParam.setBounds(160, 60, 70, 20);
         if (stopJButton != null) {
-            stopJButton.setBounds(150, 110, 70, 20);
+            stopJButton.setBounds(120, 110, 70, 20);
         }
     }
 }

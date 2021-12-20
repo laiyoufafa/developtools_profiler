@@ -37,7 +37,7 @@ constexpr int DEFAULT_SLEEP_TIME = 1000;
 const std::string SUCCESS_PLUGIN_NAME = "libmemdataplugin.z.so";
 std::string g_testPluginDir("/system/lib/");
 int g_hiprofilerProcessNum = -1;
-const std::string DEFAULT_HIPROFILERD_PATH("/system/lib/hiprofilerd");
+const std::string DEFAULT_HIPROFILERD_PATH("/system/bin/hiprofilerd");
 
 class PluginManagerTest : public ::testing::Test {
 protected:
@@ -50,22 +50,16 @@ protected:
             char* pos = strrchr(pluginDir, '/');
             if (pos != nullptr) {
                 *(pos++) = '\0';
-                printf("-----> pluginDir = %s\n", pluginDir);
                 g_testPluginDir = pluginDir;
             }
         }
 #endif
-        printf("======> pluginDir = %s\n", g_testPluginDir.c_str());
 
         std::this_thread::sleep_for(TEMP_DELAY);
 
         int processNum = fork();
-        std::cout << "processNum : " << processNum << std::endl;
         if (processNum == 0) {
             // start running hiprofilerd
-            std::string cmd = "chmod 777 " + DEFAULT_HIPROFILERD_PATH;
-            std::cout << "cmd : " << cmd << std::endl;
-            system(cmd.c_str());
             execl(DEFAULT_HIPROFILERD_PATH.c_str(), nullptr, nullptr);
             _exit(1);
         } else {
@@ -73,13 +67,11 @@ protected:
         }
 
         std::this_thread::sleep_for(std::chrono::milliseconds(DEFAULT_SLEEP_TIME));
-        printf("SetUpTestCase success\n");
     }
 
     static void TearDownTestCase()
     {
         std::string stopCmd = "kill " + std::to_string(g_hiprofilerProcessNum);
-        std::cout << "stop command : " << stopCmd << std::endl;
         std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(stopCmd.c_str(), "r"), pclose);
     }
 };

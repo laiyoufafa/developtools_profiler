@@ -24,9 +24,11 @@ import ohos.devtools.datasources.transport.grpc.service.MemoryPluginResult;
 import ohos.devtools.datasources.utils.common.util.CommonUtil;
 import ohos.devtools.datasources.utils.common.util.DateTimeUtil;
 import ohos.devtools.datasources.utils.profilerlog.ProfilerLogManager;
+import ohos.devtools.datasources.utils.session.service.SessionManager;
 import ohos.devtools.services.memory.memoryservice.MemoryDataCache;
 import ohos.devtools.views.charts.model.ChartDataModel;
 import ohos.devtools.views.layout.chartview.MonitorItemDetail;
+import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -120,6 +122,14 @@ public class MemoryDataConsumer extends AbsDataConsumer {
         }
         List<MemoryPluginResult.ProcessMemoryInfo> processMemoryInfoList = memorydata.getProcessesinfoList();
         processMemoryInfoList.forEach(processMemoryInfo -> {
+            int pid = processMemoryInfo.getPid();
+            String name = processMemoryInfo.getName();
+            if (pid == -1 && (StringUtils.isEmpty(name) || name == "null")) {
+                if (ProfilerLogManager.isErrorEnabled()) {
+                    LOGGER.error("pid is -1, the process is not exits");
+                }
+                SessionManager.getInstance().deleteSession(localSessionId);
+            }
             MemoryPluginResult.AppSummary app = processMemoryInfo.getMemsummary();
             ProcessMemInfo procMemInfo = new ProcessMemInfo();
             procMemInfo.setData(app);

@@ -13,7 +13,13 @@
  * limitations under the License.
  */
 #include "sample_plugin.h"
+
+#include <stdlib.h>
 #include "securec.h"
+namespace {
+constexpr int MAX_INT = 10;
+constexpr int MAX_DOUBLE = 100;
+} // namespace
 
 SamplePlugin::SamplePlugin() {}
 
@@ -52,7 +58,11 @@ int SamplePlugin::Report(uint8_t* data, uint32_t dataSize)
     SampleData dataProto;
 
     // 回填数据
+    int intData = rand() % MAX_INT;
+    double doubleData = rand() % MAX_DOUBLE;
     dataProto.set_time_ms(GetTimeMS());
+    dataProto.set_int_data(intData);
+    dataProto.set_double_data(doubleData);
 
     uint32_t length = dataProto.ByteSizeLong();
     if (length > dataSize) {

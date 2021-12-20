@@ -59,6 +59,8 @@ import static ohos.devtools.views.common.Constant.DEVICE_REFRESH;
 
 /**
  * DeviceProcessPanelEvent
+ *
+ * @since 2021/11/22
  */
 public class DeviceProcessPanelEvent {
     private static final Logger LOGGER = LogManager.getLogger(DeviceProcessPanelEvent.class);
@@ -289,6 +291,8 @@ public class DeviceProcessPanelEvent {
                         LOGGER.error(interruptedException.getMessage());
                     } catch (ExecutionException executionException) {
                         LOGGER.error(executionException.getMessage());
+                    } finally {
+                        ProcessManager.getInstance().setIsRequest(false);
                     }
                 }
             };

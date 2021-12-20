@@ -17,6 +17,7 @@ package ohos.devtools.pluginconfig;
 
 import ohos.devtools.datasources.transport.grpc.service.StreamPluginConfig;
 import ohos.devtools.datasources.utils.plugin.IPluginConfig;
+import ohos.devtools.datasources.utils.plugin.entity.AnalysisType;
 import ohos.devtools.datasources.utils.plugin.entity.HiProfilerPluginConfig;
 import ohos.devtools.datasources.utils.plugin.entity.PluginConf;
 import ohos.devtools.datasources.utils.plugin.entity.PluginMode;
@@ -27,12 +28,13 @@ import org.apache.logging.log4j.Logger;
 /**
  * Data Verification Config
  *
- * @since IPluginConfig
+ * @since 2021/9/20
  */
 public class DataCheckConfig extends IPluginConfig {
     private static final Logger LOGGER = LogManager.getLogger(DataCheckConfig.class);
-    private final String DATA_CHECK_PLUGIN_NAME = "/data/local/tmp/libdatacheckplugin.z.so";
-    private final String DATA_CHECK_PLUG = "/data/local/tmp/libdatacheckplugin.z.so";
+
+    private final String DATA_CHECK_PLUGIN_NAME = "/data/local/tmp/libstreamplugin.z.so";
+    private final String DATA_CHECK_PLUG = "/data/local/tmp/libstreamplugin.z.so";
 
     @Override
     public PluginConf createConfig() {
@@ -46,6 +48,7 @@ public class DataCheckConfig extends IPluginConfig {
             return new HiProfilerPluginConfig(40, stream.toByteString());
         });
         pluginConf.setPluginMode(PluginMode.ONLINE);
+        pluginConf.addAnalysisTypes(AnalysisType.APPLICATION_TYPE);
         return pluginConf;
     }
 }

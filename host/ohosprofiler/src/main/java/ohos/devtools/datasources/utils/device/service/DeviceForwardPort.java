@@ -48,7 +48,7 @@ public class DeviceForwardPort {
             LOGGER.info("getInstance");
         }
         if (instance == null) {
-            synchronized (MultiDeviceManager.class) {
+            synchronized (DeviceForwardPort.class) {
                 if (instance == null) {
                     instance = new DeviceForwardPort();
                 }
@@ -58,6 +58,7 @@ public class DeviceForwardPort {
     }
 
     private DeviceForwardPort() {
+        super();
     }
 
     /**
@@ -79,11 +80,30 @@ public class DeviceForwardPort {
             } else {
                 cmdStr = conversionCommand(HDC_FOR_PORT, serialNumber, String.valueOf(forward));
             }
-            String res = HdcWrapper.getInstance().getHdcStringResult(cmdStr);
+            String res = HdcWrapper.getInstance().getHdcStringResult(cmdStr, 5);
             if (!res.contains("cannot bind")) {
                 return forward;
             }
         }
+    }
+
+    /**
+     * forwardDevicePort
+     *
+     * @param deviceIPPortInfo deviceIPPortInfo
+     * @param port port
+     * @return boolean
+     */
+    public boolean forwardDevicePort(DeviceIPPortInfo deviceIPPortInfo, int port) {
+        String serialNumber = deviceIPPortInfo.getDeviceID();
+        ArrayList<String> cmdStr;
+        if (IS_SUPPORT_NEW_HDC && deviceIPPortInfo.getDeviceType() == LEAN_HOS_DEVICE) {
+            cmdStr = conversionCommand(HDC_STD_FOR_PORT, serialNumber, String.valueOf(port));
+        } else {
+            cmdStr = conversionCommand(HDC_FOR_PORT, serialNumber, String.valueOf(port));
+        }
+        String res = HdcWrapper.getInstance().getHdcStringResult(cmdStr, 5);
+        return !res.contains("cannot bind");
     }
 
     /**

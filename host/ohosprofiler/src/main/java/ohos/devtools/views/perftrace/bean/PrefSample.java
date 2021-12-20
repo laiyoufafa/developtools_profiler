@@ -30,6 +30,7 @@ public class PrefSample {
      * KERNEL path name
      */
     public static final String KERNEL = "[kernel.kallsyms]";
+
     private static final String DATA_APP_DIR = "/data/app";
 
     @DField(name = "id")
@@ -88,7 +89,7 @@ public class PrefSample {
         if (Objects.isNull(file)) {
             name = KERNEL + "+0x" + Long.toHexString(vaddrInFile);
         } else {
-            if (file.getPath().startsWith(DATA_APP_DIR + PerfData.THREAD_NAMES.get((int) threadId))) {
+            if (file.getPath().startsWith(DATA_APP_DIR + PerfData.getThreadNames().get((int) threadId))) {
                 isUserWrite = true;
             }
             if (symbolId == -1) {

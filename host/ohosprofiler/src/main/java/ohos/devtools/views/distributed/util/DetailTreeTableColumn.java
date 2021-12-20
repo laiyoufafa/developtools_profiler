@@ -76,7 +76,7 @@ public abstract class DetailTreeTableColumn<T, N> extends ColumnInfo<DefaultMuta
                     } else {
                         return 0;
                     }
-                } catch (ClassCastException e) {
+                } catch (ClassCastException exception) {
                     return 0;
                 }
             }

@@ -15,6 +15,7 @@
 
 package ohos.devtools.views.trace.fragment;
 
+import com.intellij.ui.JBColor;
 import ohos.devtools.views.trace.component.AnalystPanel;
 import ohos.devtools.views.trace.fragment.graph.AbstractGraph;
 import ohos.devtools.views.trace.fragment.graph.CheckGraph;
@@ -25,10 +26,12 @@ import ohos.devtools.views.trace.util.Utils;
 import javax.swing.JComponent;
 import javax.swing.SwingUtilities;
 import java.awt.AlphaComposite;
-import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -62,11 +65,6 @@ public abstract class AbstractDataFragment<T extends AbstractGraph> extends Abst
      * no rendering, and the display restores the height according to defaultHeight
      */
     public int defaultHeight = 40;
-
-    /**
-     * Small font
-     */
-    public Font smallFont = new Font("宋体", Font.ITALIC, 10);
 
     /**
      * ndicates whether the data row is selected.
@@ -104,6 +102,10 @@ public abstract class AbstractDataFragment<T extends AbstractGraph> extends Abst
      */
     protected List<T> data;
 
+    /**
+     * Control query database thread
+     */
+    private List<Statement> statement = new ArrayList<>();
     private IDataFragment dataFragmentListener;
     private final boolean hasFavorite;
     private final boolean hasCheck;
@@ -228,11 +230,13 @@ public abstract class AbstractDataFragment<T extends AbstractGraph> extends Abst
     @Override
     public void draw(Graphics2D graphics) {
         if (endNS == 0) {
-            endNS = AnalystPanel.DURATION;
+            endNS = AnalystPanel.getDURATION();
         }
         getRect().width = getRoot().getWidth();
         getDescRect().width = 200;
         getDataRect().width = getRoot().getWidth() - 200;
+        graphics.setColor(JBColor.background().darker());
+        graphics.fillRect(201, getRect().y + 1, getDataRect().width, getRect().height - 1);
         graphics.setColor(getRoot().getForeground());
         graphics.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, .5f));
         graphics.drawLine(Utils.getX(getRect()), Utils.getY(getRect()) + getRect().height, getRoot().getWidth(),
@@ -258,7 +262,7 @@ public abstract class AbstractDataFragment<T extends AbstractGraph> extends Abst
      */
     public int getX(long ns) {
         if (endNS == 0) {
-            endNS = AnalystPanel.DURATION;
+            endNS = AnalystPanel.getDURATION();
         }
         int xSize = (int) ((ns - startNS) * getDataRect().width / (endNS - startNS));
         if (xSize < 0) {
@@ -278,7 +282,7 @@ public abstract class AbstractDataFragment<T extends AbstractGraph> extends Abst
      */
     public double getXDouble(long ns) {
         if (endNS == 0) {
-            endNS = AnalystPanel.DURATION;
+            endNS = AnalystPanel.getDURATION();
         }
         double xSize = (ns - startNS) * getDataRect().width / (endNS - startNS);
         if (xSize < 0) {
@@ -407,6 +411,35 @@ public abstract class AbstractDataFragment<T extends AbstractGraph> extends Abst
         }
         return true;
     }
+
+    /**
+     * addStatement
+     *
+     * @param st st
+     */
+    public void addStatement(Statement st) {
+        statement.add(st);
+    }
+
+    /**
+     * cancel
+     */
+    public void cancel() {
+        if (!statement.isEmpty()) {
+            for (Statement st : statement) {
+                if (st != null) {
+                    try {
+                        st.cancel();
+                    } catch (SQLException exception) {
+                        exception.printStackTrace();
+                    }
+                }
+            }
+            statement.clear();
+        }
+    }
+
+    ;
 
     /**
      * IDataFragment

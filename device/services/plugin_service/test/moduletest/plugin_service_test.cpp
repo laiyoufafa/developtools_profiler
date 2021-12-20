@@ -27,26 +27,19 @@ class PluginClient final : public IPluginServiceClient {
 public:
     bool OnRegisterPluginResponse(SocketContext& context, ::RegisterPluginResponse& response) override
     {
-        printf("OnRegisterPluginResponse\n");
-
-        printf("RegisterPlugin status : %d\n", response.status());
         g_pluginId = response.plugin_id();
-        printf("RegisterPlugin ID : %d\n", g_pluginId);
         return true;
     }
     bool OnUnregisterPluginResponse(SocketContext& context, ::UnregisterPluginResponse& response) override
     {
-        printf("OnUnregisterPluginResponse\n");
         return true;
     }
     bool OnGetCommandResponse(SocketContext& context, ::GetCommandResponse& response) override
     {
-        printf("OnGetCommandResponse\n");
         return true;
     }
     bool OnNotifyResultResponse(SocketContext& context, ::NotifyResultResponse& response) override
     {
-        printf("OnNotifyResultResponse\n");
         return true;
     }
 };
@@ -81,7 +74,6 @@ HWTEST_F(ModuleTestPluginService, RegisterPlugin, TestSize.Level1)
     request.set_name("abc.so");
     ASSERT_TRUE(response.status() == 0);
     g_pluginId = response.plugin_id();
-    printf("RegisterPlugin ID : %d\n", g_pluginId);
 }
 
 HWTEST_F(ModuleTestPluginService, RegisterPlugin_CallBack, TestSize.Level1)

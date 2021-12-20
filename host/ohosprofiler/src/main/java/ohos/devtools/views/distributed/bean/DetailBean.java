@@ -23,7 +23,7 @@ import java.util.List;
 /**
  * DetailBean
  *
- * @since 2021/8/26 15:10
+ * @since 2021/08/06 11:20
  */
 public class DetailBean {
     private String name;
@@ -460,9 +460,13 @@ public class DetailBean {
         if (totalNS == null) {
             return Arrays.asList("" + getName());
         }
-        return Arrays.asList("" + getName(), "Current Time: " + TimeUtils.getTimeWithUnit(totalNS),
-            "Median Time: " + TimeUtils.getTimeWithUnit(middleNs), "Avg Time:" + TimeUtils.getTimeWithUnit(avgNs),
-            "Delay:" + TimeUtils.getTimeWithUnit(delayNS), "Median Delay:" + TimeUtils.getTimeWithUnit(middleDelayNS),
+        return Arrays.asList("" + getName(),
+            "Start Time: " + TimeUtils.getTimeWithUnit(startTs),
+            "Current Time: " + TimeUtils.getTimeWithUnit(totalNS),
+            "Median Time: " + TimeUtils.getTimeWithUnit(middleNs),
+            "Avg Time:" + TimeUtils.getTimeWithUnit(avgNs),
+            "Delay:" + TimeUtils.getTimeWithUnit(delayNS),
+            "Median Delay:" + TimeUtils.getTimeWithUnit(middleDelayNS),
             "Avg Delay:" + TimeUtils.getTimeWithUnit(delayAvgNs));
     }
 }

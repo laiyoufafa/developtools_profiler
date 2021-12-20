@@ -24,6 +24,7 @@ import ohos.devtools.datasources.utils.device.entity.DeviceIPPortInfo;
 import ohos.devtools.datasources.utils.process.entity.ProcessInfo;
 import ohos.devtools.datasources.utils.profilerlog.ProfilerLogManager;
 import ohos.devtools.views.common.LayoutConstants;
+import ohos.devtools.views.common.UtConstant;
 import ohos.devtools.views.common.customcomp.CustomSearchComBox;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -35,7 +36,7 @@ import java.util.Vector;
 /**
  * DistributedDeviceProcessPanel
  *
- * @since: 2021/10/25
+ * @since 2021/10/25
  */
 public class DistributedDeviceProcessPanel extends JBPanel {
     private static final Logger LOGGER = LogManager.getLogger(DistributedDeviceProcessPanel.class);
@@ -63,7 +64,7 @@ public class DistributedDeviceProcessPanel extends JBPanel {
         this.add(deviceComboBox, "wrap, width 68%");
         JBLabel applicationDesLabel = new JBLabel("Application");
         this.add(applicationDesLabel, "wrap, span 2");
-        customSearchComBox = new CustomSearchComBox();
+        customSearchComBox = new CustomSearchComBox(deviceId, false);
         String processName = processInfo.getProcessName() + "(" + processInfo.getProcessId() + ")";
         customSearchComBox.getSelectedProcessTextFiled().setText(processName);
         this.add(customSearchComBox, "wrap, span 2, width 99%");
@@ -73,20 +74,48 @@ public class DistributedDeviceProcessPanel extends JBPanel {
      * DistributedDeviceProcessPanel
      *
      * @param deviceId deviceId
+     * @param deviceIPPortInfo deviceIPPortInfo
      */
-    public DistributedDeviceProcessPanel(int deviceId) {
+    public DistributedDeviceProcessPanel(int deviceId, DeviceIPPortInfo deviceIPPortInfo) {
+        this.setLayout(new MigLayout("insets 5 5 0 0", "[][]", "[][][][]"));
+        this.setOpaque(false);
+        JBPanel deviceTitlePanel = initDeviceTitlePanel(deviceId);
+        this.add(deviceTitlePanel, "wrap, span");
+        ComboBox<String> deviceConnectTypeComboBox = new ComboBox<String>();
+        deviceConnectTypeComboBox.addItem(LayoutConstants.USB);
+        deviceConnectTypeComboBox.setName(UtConstant.UT_DEVICE_PROCESS_PANEL_CONNECT_TYPE);
+        deviceComboBox = new ComboBox<>();
+        deviceComboBox.addItem(deviceIPPortInfo);
+        deviceComboBox.setName(UtConstant.UT_DEVICE_PROCESS_PANEL_DEVICE_NAME);
+        this.add(deviceConnectTypeComboBox, "width 30%");
+        this.add(deviceComboBox, "wrap, width 68%");
+        JBLabel applicationDesLabel = new JBLabel("Application");
+        this.add(applicationDesLabel, "wrap, span 2");
+        customSearchComBox = new CustomSearchComBox(deviceId, false);
+        this.add(customSearchComBox, "wrap, span 2, width 99%");
+    }
+
+    /**
+     * DistributedDeviceProcessPanel
+     *
+     * @param deviceId deviceId
+     * @param isDistributedPanel isDistributedPanel
+     */
+    public DistributedDeviceProcessPanel(int deviceId, boolean isDistributedPanel) {
         this.setLayout(new MigLayout("insets 5 5 0 0"));
         this.setOpaque(false);
         JBPanel deviceTitlePanel = initDeviceTitlePanel(deviceId);
         this.add(deviceTitlePanel, "wrap, span");
         ComboBox<String> deviceConnectTypeComboBox = new ComboBox<String>();
         deviceConnectTypeComboBox.addItem(LayoutConstants.USB);
+        deviceConnectTypeComboBox.setName(UtConstant.UT_DEVICE_GPU_CONNECT_TYPE);
         deviceComboBox = new ComboBox<>();
+        deviceComboBox.setName(UtConstant.UT_DEVICE_GPU_DEVICE_NAME);
         this.add(deviceConnectTypeComboBox, "width 30%");
         this.add(deviceComboBox, "wrap, width 68%");
         JBLabel applicationDesLabel = new JBLabel("Application");
         this.add(applicationDesLabel, "wrap, span 2");
-        customSearchComBox = new CustomSearchComBox();
+        customSearchComBox = new CustomSearchComBox(deviceId, isDistributedPanel);
         this.add(customSearchComBox, "wrap, span 2, width 99%");
     }
 
@@ -100,8 +129,7 @@ public class DistributedDeviceProcessPanel extends JBPanel {
         if (ProfilerLogManager.isInfoEnabled()) {
             LOGGER.info("initDeviceTitlePanel");
         }
-        JBPanel firstDeviceTitlePanel = new JBPanel(
-            new MigLayout("insets 0 0 5 0", "[]15[]push", "20[fill,fill]"));
+        JBPanel firstDeviceTitlePanel = new JBPanel(new MigLayout("insets 0 0 5 0", "[]15[]push", "20[fill,fill]"));
         firstDeviceTitlePanel.setOpaque(false);
         JBLabel firstDeviceTitle = new JBLabel("Device 0" + index);
         firstDeviceTitle.setFont(new Font("Helvetica", Font.BOLD, 16));

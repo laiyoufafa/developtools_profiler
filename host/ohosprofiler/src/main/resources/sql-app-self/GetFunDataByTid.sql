@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 select tid,
     A.name as threadName,
     is_main_thread,
@@ -21,6 +22,8 @@ select tid,
     c.parent_id,
     c.id,
     c.depth
-from thread A,trace_range D
+--     c.stack_id,
+--     c.parent_stack_id
+from thread A,trace_section D
 left join callstack C on A.id = C.callid
 where startTs not null and A.tid = %s

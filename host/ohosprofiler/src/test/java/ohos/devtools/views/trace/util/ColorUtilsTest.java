@@ -25,7 +25,7 @@ import static org.junit.Assert.assertEquals;
 /**
  * test ColorUtils class .
  *
- * @since 2021/4/24 17:01
+ * @date 2021/4/24 17:01
  */
 class ColorUtilsTest {
     /**

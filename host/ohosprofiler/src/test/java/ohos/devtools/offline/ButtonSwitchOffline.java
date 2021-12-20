@@ -46,14 +46,16 @@ public class ButtonSwitchOffline {
     @Test
     public void buttonSwitchOffline() throws InterruptedException {
         remoteRobot.find(CommonContainerFixture.class, Locators.byXpath("//div[@class='WelcomePanel']")).button(Locators
-            .byXpath("//div[@accessiblename=' + New Task' and @class='JBLabel' and "
-                + "@name='newTaskBtn' and @text=' + New Task']"), Duration.ofSeconds(2)).click();
+            .byXpath("//div[@accessiblename=' + New Task' and @class='JBLabel' "
+                + "and @name='newTaskBtn' and @text=' + New Task']"), Duration.ofSeconds(2)).click();
         remoteRobot.find(CommonContainerFixture.class, Locators.byXpath("//div[@class='HomePanel']")).jLabel(Locators
             .byXpath("//div[@accessiblename='Application Tuning' and @class='JBLabel' "
                 + "and @name='Application Tuning' and @text='Application Tuning']"), Duration.ofSeconds(2)).click();
+
         remoteRobot.find(CommonContainerFixture.class, Locators.byXpath("//div[@class='HomePanel']")).button(Locators
             .byXpath("//div[@accessiblename='Open File' and @class='JButton' "
                 + "and @name='Open File' and @text='Open File']"), Duration.ofSeconds(2)).click();
+
         String resource = this.getClass().getResource("/Demo.bytrace").toString();
         resource = resource.substring(resource.indexOf("/") + 1);
         remoteRobot.find(CommonContainerFixture.class,

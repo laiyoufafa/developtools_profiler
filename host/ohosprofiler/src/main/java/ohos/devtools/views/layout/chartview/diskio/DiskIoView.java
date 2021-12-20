@@ -71,7 +71,7 @@ public class DiskIoView extends MonitorItemView {
      */
     public DiskIoView() {
         if (ProfilerLogManager.isInfoEnabled()) {
-            LOGGER.info("DiskIoView init");
+            LOGGER.info("create DiskIoView");
         }
     }
 

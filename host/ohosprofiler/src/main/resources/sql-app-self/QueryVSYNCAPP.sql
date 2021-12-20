@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 with tracks as (
     select process_measure_filter.id as trackId,
                 process_measure_filter.name as trackName, ipid, process_view.pid,
@@ -21,4 +22,4 @@ with tracks as (
                 where trackName='VSYNC-app'
     order by trackName
 )
-select c.*,c.filter_id as track_id,c.ts-tb.start_ts startTime from measure c,trace_range tb where filter_id in (select tracks.trackId from tracks);
+select c.*,c.filter_id as track_id,c.ts-tb.start_ts startTime from measure c,trace_section tb where filter_id in (select tracks.trackId from tracks);

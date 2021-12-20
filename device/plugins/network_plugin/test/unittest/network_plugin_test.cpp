@@ -57,7 +57,6 @@ public:
     {
         if (access(g_path.c_str(), F_OK) == 0) {
             std::string str = "rm -rf " + GetFullPath(DEFAULT_TEST_PATH) + "utresources";
-            printf("TearDown--> %s\r\n", str.c_str());
             system(str.c_str());
         }
     }
@@ -97,23 +96,18 @@ bool PluginStub(NetworkPlugin& plugin, NetworkDatas& networkData, NetworkConfig&
 {
     // serialize
     int configSize = config.ByteSizeLong();
-    printf("ut: start configSize(%d)\n", configSize);
     std::vector<uint8_t> configData(configSize);
     int ret = config.SerializeToArray(configData.data(), configData.size());
-    printf("ut: start serialize ret(%d)\n", ret);
 
     // start
     ret = plugin.Start(configData.data(), configSize);
     CHECK_TRUE(ret == 0, false, "ut: start failed!\n");
-    printf("ut: serialize success start plugin ret(%d)\n", ret);
 
     // report
     std::vector<uint8_t> bufferData(BUF_SIZE);
     ret = plugin.Report(bufferData.data(), bufferData.size());
-    printf("ut: report ret(%d)\n", ret);
     if (ret > 0) {
         networkData.ParseFromArray(bufferData.data(), ret);
-        printf("ut: report success!\n");
         return true;
     }
 
@@ -131,10 +125,8 @@ std::string GetFullPath(std::string path)
 void NetworkPluginTest::SetUpTestCase()
 {
     g_path = GetFullPath(DEFAULT_TEST_PATH);
-    printf("g_path:%s\n", g_path.c_str());
     EXPECT_NE("", g_path);
     g_path += "utresources";
-    printf("g_path:%s\n", g_path.c_str());
 }
 
 /**
@@ -145,7 +137,6 @@ void NetworkPluginTest::SetUpTestCase()
 HWTEST_F(NetworkPluginTest, Testpath, TestSize.Level1)
 {
     EXPECT_NE(g_path, "");
-    printf("g_path:%s\n", g_path.c_str());
 }
 
 /**
@@ -158,7 +149,6 @@ HWTEST_F(NetworkPluginTest, TestNetworkDataNull, TestSize.Level1)
     NetworkPlugin plugin;
     NetworkDatas networkData;
     plugin.setPathForTest(g_path + std::string("/begin"));
-    printf("TestNetworkDataNull: testPath=%s\n", plugin.getPathForTest().c_str());
 
     std::vector<int> pidList = {g_expect_begin.pid};
     NetworkConfig config;
@@ -187,7 +177,6 @@ HWTEST_F(NetworkPluginTest, TestGetNetworkData, TestSize.Level1)
     NetworkPlugin plugin;
     NetworkDatas networkData;
     plugin.setPathForTest(g_path + std::string("/end"));
-    printf("TestNetworkDataNull: testPath=%s\n", plugin.getPathForTest().c_str());
 
     std::vector<int> pidList = {g_expect_end.pid};
     NetworkConfig config;

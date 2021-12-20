@@ -118,14 +118,13 @@ public class CpuDataFragment extends AbstractDataFragment<CpuData> implements Cp
         bounds = graphics.getFontMetrics().getStringBounds("Cpu " + index, graphics);
         graphics.drawString("Cpu " + index, (int) (getDescRect().getX() + 10),
             (int) (getDescRect().getY() + (getDescRect().getHeight()) / 2 + bounds.getHeight() / 3));
-        if (Objects.isNull(data) || data.isEmpty()) {
+        if (Objects.isNull(data)) {
             graphics.setColor(getRoot().getForeground());
             graphics.drawString("Loading...", Utils.getX(getDataRect()), Utils.getY(getDataRect()) + 12);
             loadData();
         } else {
             data.stream().filter(
-                    cpuData -> cpuData.getStartTime() + cpuData.getDuration() > startNS
-                            && cpuData.getStartTime() < endNS)
+                cpuData -> cpuData.getStartTime() + cpuData.getDuration() > startNS && cpuData.getStartTime() < endNS)
                 .forEach(cpuGraph -> {
                     if (cpuGraph.getStartTime() < startNS) {
                         x1 = 0;
@@ -139,9 +138,8 @@ public class CpuDataFragment extends AbstractDataFragment<CpuData> implements Cp
                     }
                     cpuGraph.setRoot(getRoot());
                     double getV = x2 - x1 <= 0 ? 1 : x2 - x1;
-                    cpuGraph
-                        .setRect(x1 + getDataRect().getX(), getDataRect().getY() + 5, getV,
-                            getDataRect().getHeight() - 10);
+                    cpuGraph.setRect(x1 + getDataRect().getX(), getDataRect().getY() + 5, getV,
+                        getDataRect().getHeight() - 10);
                     cpuGraph.setEventListener(CpuDataFragment.this);
                     cpuGraph.draw(graphics);
                 });
@@ -177,10 +175,11 @@ public class CpuDataFragment extends AbstractDataFragment<CpuData> implements Cp
     public void mouseClicked(MouseEvent event) {
         super.mouseClicked(event);
         ContentPanel.clickFragment = this;
-        data.stream().filter(
-                cpuData -> cpuData.getStartTime() + cpuData.getDuration() > startNS
-                        && cpuData.getStartTime() < endNS)
-            .filter(cpuData -> cpuData.edgeInspect(event)).findFirst().ifPresent(cpuData -> cpuData.onClick(event));
+        if (Objects.nonNull(data)) {
+            data.stream().filter(
+                cpuData -> cpuData.getStartTime() + cpuData.getDuration() > startNS && cpuData.getStartTime() < endNS)
+                .filter(cpuData -> cpuData.edgeInspect(event)).findFirst().ifPresent(cpuData -> cpuData.onClick(event));
+        }
     }
 
     /**
@@ -222,18 +221,16 @@ public class CpuDataFragment extends AbstractDataFragment<CpuData> implements Cp
         showTipCpuData = null;
         if (edgeInspect(event)) {
             if (data != null) {
-                data.stream().filter(
-                        cpuData -> cpuData.getStartTime() + cpuData.getDuration() > startNS
-                            && cpuData.getStartTime() < endNS)
-                    .forEach(cpuData -> {
-                        cpuData.onMouseMove(event);
-                        if (cpuData.edgeInspect(event)) {
-                            if (!cpuData.flagFocus) {
-                                cpuData.flagFocus = true;
-                                cpuData.onFocus(event);
-                            }
+                data.stream().filter(cpuData -> cpuData.getStartTime() + cpuData.getDuration() > startNS
+                    && cpuData.getStartTime() < endNS).forEach(cpuData -> {
+                    cpuData.onMouseMove(event);
+                    if (cpuData.edgeInspect(event)) {
+                        if (!cpuData.flagFocus) {
+                            cpuData.flagFocus = true;
+                            cpuData.onFocus(event);
                         }
-                    });
+                    }
+                });
             }
         }
     }
@@ -329,12 +326,15 @@ public class CpuDataFragment extends AbstractDataFragment<CpuData> implements Cp
             CompletableFuture.runAsync(() -> {
                 List<CpuData> cpuData = new ArrayList<>() {
                 };
-                int count = Db.getInstance().queryCount(Sql.SYS_QUERY_CPU_DATA_COUNT, index, startNS, endNS);
+                int count = Db.getInstance()
+                    .queryCount(st -> addStatement(st), Sql.SYS_QUERY_CPU_DATA_COUNT, index, startNS, endNS);
                 if (count > Final.CAPACITY) {
                     Db.getInstance()
-                        .query(Sql.SYS_QUERY_CPU_DATA_LIMIT, cpuData, index, startNS, endNS, Final.CAPACITY);
+                        .query(st -> addStatement(st), Sql.SYS_QUERY_CPU_DATA_LIMIT, cpuData, index, startNS, endNS,
+                            Final.CAPACITY);
                 } else {
-                    Db.getInstance().query(Sql.SYS_QUERY_CPU_DATA, cpuData, index, startNS, endNS);
+                    Db.getInstance()
+                        .query(st -> addStatement(st), Sql.SYS_QUERY_CPU_DATA, cpuData, index, startNS, endNS);
                 }
                 data = cpuData;
                 SwingUtilities.invokeLater(() -> {

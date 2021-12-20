@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 --参数 1 tids 数组，框选范围中选中的 thread id 集合
 --参数 2 leftNs 框选范围左边的时间，单位 ns
 --参数 3 rightNs 框选范围右边的时间 单位 ns

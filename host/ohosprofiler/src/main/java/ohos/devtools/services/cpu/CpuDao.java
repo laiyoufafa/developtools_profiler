@@ -16,6 +16,7 @@
 package ohos.devtools.services.cpu;
 
 import com.google.protobuf.InvalidProtocolBufferException;
+import com.intellij.ui.JBColor;
 import ohos.devtools.datasources.databases.databaseapi.DataBaseApi;
 import ohos.devtools.datasources.databases.databasepool.AbstractDataStore;
 import ohos.devtools.datasources.databases.datatable.enties.ProcessCpuData;
@@ -26,6 +27,7 @@ import ohos.devtools.views.charts.model.ChartDataModel;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -41,9 +43,12 @@ import static ohos.devtools.services.cpu.CpuDao.CpuSelectStatements.SELECT_AFTER
 import static ohos.devtools.services.cpu.CpuDao.CpuSelectStatements.SELECT_ALL_APP_CPU_INFO;
 import static ohos.devtools.services.cpu.CpuDao.CpuSelectStatements.SELECT_APP_CPU_INFO;
 import static ohos.devtools.services.cpu.CpuDao.CpuSelectStatements.SELECT_BEFORE_HEAD;
+import static ohos.devtools.services.cpu.CpuDao.CpuSelectStatements.SELECT_DEAD_THREAD_INFO;
 
 /**
  * CpuDao
+ *
+ * @since 2021/11/22
  */
 public class CpuDao extends AbstractDataStore {
     private static final Logger LOGGER = LogManager.getLogger(CpuDao.class);
@@ -125,7 +130,20 @@ public class CpuDao extends AbstractDataStore {
                 + "order by "
                 + "timeStamp "
                 + "asc "
-                + "limit 1");
+                + "limit 1"),
+        SELECT_DEAD_THREAD_INFO(
+            "SELECT "
+                + "timeStamp, "
+                + "tid, "
+                + "threadName "
+                + "from "
+                + "deadThread "
+                + "where "
+                + "session = ? "
+                + "and "
+                + "timeStamp > ? "
+                + "and "
+                + "timeStamp < ?");
 
         CpuSelectStatements(String sqlStatement) {
             this.sqlStatement = sqlStatement;
@@ -302,7 +320,7 @@ public class CpuDao extends AbstractDataStore {
                     }
                     CpuPluginResult.CpuData.Builder builders = CpuPluginResult.CpuData.newBuilder();
                     CpuPluginResult.CpuData cpuData = builders.mergeFrom(data).build();
-                    result.put((int) (timeStamp - startTimeStamp), CpuDataConsumer.getThreadStatus(cpuData));
+                    result.put((int) (timeStamp - startTimeStamp), getThreadStatus(cpuData));
                 }
             }
         } catch (SQLException | InvalidProtocolBufferException throwAbles) {
@@ -402,7 +420,7 @@ public class CpuDao extends AbstractDataStore {
                     }
                     CpuPluginResult.CpuData.Builder builders = CpuPluginResult.CpuData.newBuilder();
                     CpuPluginResult.CpuData appSummary = builders.mergeFrom(data).build();
-                    result.put((int) (timeStamp - startTs), CpuDataConsumer.getThreadStatus(appSummary));
+                    result.put((int) (timeStamp - startTs), getThreadStatus(appSummary));
                 }
             }
         } catch (SQLException | InvalidProtocolBufferException throwAbles) {
@@ -410,6 +428,58 @@ public class CpuDao extends AbstractDataStore {
                 LOGGER.error(" SQLException {}", throwAbles.getMessage());
             }
         }
+        return result;
+    }
+
+    /**
+     * Get the dead Thread Info
+     *
+     * @param sessionId Session id
+     * @param min min offset
+     * @param max max offset
+     * @param startTimeStamp start/first timestamp
+     * @return LinkedHashMap <Integer, List<ChartDataModel>>
+     */
+    public LinkedHashMap<Integer, List<ChartDataModel>> getDeadThreadData(long sessionId, int min, int max,
+        long startTimeStamp) {
+        Optional<Connection> connect = getConnectByTable("deadThread");
+        LinkedHashMap<Integer, List<ChartDataModel>> result = new LinkedHashMap<>();
+        connect.ifPresent(connection -> {
+            PreparedStatement preparedStatement = null;
+            ResultSet rs = null;
+            try {
+                preparedStatement = connection.prepareStatement(SELECT_DEAD_THREAD_INFO.getStatement());
+                preparedStatement.setLong(1, sessionId);
+                preparedStatement.setLong(2, startTimeStamp + min);
+                preparedStatement.setLong(3, startTimeStamp + max);
+                rs = preparedStatement.executeQuery();
+                while (rs.next()) {
+                    long timeStamp = rs.getLong("timeStamp");
+                    int treadId = rs.getInt("tid");
+                    String threadName = rs.getString("threadName");
+                    ChartDataModel threadInfoModel = new ChartDataModel();
+                    threadInfoModel.setIndex(treadId);
+                    threadInfoModel.setColor(JBColor.GREEN);
+                    threadInfoModel.setName(threadName);
+                    int key = (int) (timeStamp - startTimeStamp);
+                    List<ChartDataModel> chartDataModels = result.get(key);
+                    if (chartDataModels != null) {
+                        chartDataModels.add(threadInfoModel);
+                        result.put(key, chartDataModels);
+                    } else {
+                        List<ChartDataModel> deadThread = new ArrayList<>();
+                        deadThread.add(threadInfoModel);
+                        result.put(key, deadThread);
+                    }
+                }
+            } catch (SQLException sqlException) {
+                if (ProfilerLogManager.isErrorEnabled()) {
+                    LOGGER.error("SQLException ", sqlException);
+                }
+            } finally {
+                close(preparedStatement, rs, connection);
+            }
+        });
         return result;
     }
 
@@ -431,5 +501,33 @@ public class CpuDao extends AbstractDataStore {
             return execute(connection, deleteSql.toString());
         }
         return true;
+    }
+
+    /**
+     * getThreadStatus
+     *
+     * @param cpuData cpuData
+     * @return List <ChartDataModel>
+     */
+    public List<ChartDataModel> getThreadStatus(CpuPluginResult.CpuData cpuData) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("getThreadStatus");
+        }
+        List<ChartDataModel> list = new ArrayList<>();
+        // add the thread info data
+        long elapsedTime =
+            (cpuData.getCpuUsageInfo().getSystemBootTimeMs() - cpuData.getCpuUsageInfo().getPrevSystemBootTimeMs());
+        cpuData.getThreadInfoList().forEach(threadInfo -> {
+            BigDecimal threadValue = elapsedTime == 0 ? BigDecimal.valueOf(0D) : BigDecimal
+                .valueOf(100.0 * (threadInfo.getThreadCpuTimeMs() - threadInfo.getPrevThreadCpuTimeMs()) / elapsedTime);
+            ChartDataModel threadInfoModel = new ChartDataModel();
+            threadInfoModel.setIndex(threadInfo.getTid());
+            threadInfoModel.setColor(JBColor.GREEN);
+            threadInfoModel.setName(threadInfo.getThreadName());
+            threadInfoModel.setValue(threadInfo.getThreadStateValue());
+            threadInfoModel.setDoubleValue(threadValue.setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue());
+            list.add(threadInfoModel);
+        });
+        return list;
     }
 }

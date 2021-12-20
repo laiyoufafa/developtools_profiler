@@ -21,7 +21,7 @@ import org.junit.Test;
 /**
  * Distributed Config Panel Test
  *
- * @since 2021/2/1 9:31
+ *  @since 2021/2/1 9:31
  */
 public class DistributedConfigPanelTest {
     /**

@@ -16,7 +16,6 @@
 package ohos.devtools.views.perftrace.bean;
 
 import com.intellij.ui.JBColor;
-import ohos.devtools.datasources.utils.profilerlog.ProfilerLogManager;
 import ohos.devtools.views.applicationtrace.bean.AppFunc;
 import ohos.devtools.views.applicationtrace.util.TimeUtils;
 import ohos.devtools.views.perftrace.PerfColorUtil;
@@ -24,8 +23,6 @@ import ohos.devtools.views.perftrace.PerfData;
 import ohos.devtools.views.trace.Common;
 import ohos.devtools.views.trace.EventDispatcher;
 import ohos.devtools.views.trace.util.Utils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import java.awt.Graphics2D;
 import java.awt.event.MouseEvent;
@@ -36,11 +33,9 @@ import java.util.List;
 /**
  * PrefFunc c++ function object
  *
- * @since 2021/04/22 12:25
+ * @since 2021/5/12 16:34
  */
 public class PrefFunc extends AppFunc {
-    private static final Logger LOGGER = LogManager.getLogger(PrefFunc.class);
-
     /**
      * selected pref func
      */
@@ -50,7 +45,7 @@ public class PrefFunc extends AppFunc {
     private List<PrefFunc> childrenNodes = new ArrayList<>();
     private long fileId;
     private long symbolId;
-    private long vaddrInFile = -1;
+    private long vaddrInFile = -1L;
     private boolean isFirstMerage = true;
     private boolean isUserWrite = false;
     private boolean isSelected = false;
@@ -59,9 +54,7 @@ public class PrefFunc extends AppFunc {
      * PrefFunc
      */
     public PrefFunc() {
-        if (ProfilerLogManager.isInfoEnabled()) {
-            LOGGER.info("PrefFunc init");
-        }
+        super();
     }
 
     /**
@@ -72,10 +65,6 @@ public class PrefFunc extends AppFunc {
     public PrefFunc(PrefSample sample) {
         this();
         merageSample(sample);
-    }
-
-    public static void resetSelectedPrefFunc() {
-        selectedPrefFunc = null;
     }
 
     /**
@@ -187,6 +176,15 @@ public class PrefFunc extends AppFunc {
     }
 
     /**
+     * setSelectedPrefFunc
+     *
+     * @param selectedPrefFunc selectedPrefFunc
+     */
+    public static void setSelectedPrefFunc(PrefFunc selectedPrefFunc) {
+        PrefFunc.selectedPrefFunc = selectedPrefFunc;
+    }
+
+    /**
      * get the startTs
      *
      * @return startTs startTs
@@ -283,7 +281,7 @@ public class PrefFunc extends AppFunc {
             vaddrInFile = sample.getVaddrInFile();
             funcName = sample.getName();
             isUserWrite = sample.isUserWrite();
-            threadName = PerfData.THREAD_NAMES.get(Long.valueOf(sample.getThreadId()).intValue());
+            threadName = PerfData.getThreadNames().get(Long.valueOf(sample.getThreadId()).intValue());
         } else {
             if (endTs == 0) {
                 setEndTs(sample.getTs());
@@ -343,12 +341,8 @@ public class PrefFunc extends AppFunc {
 
     @Override
     public List<String> getStringList(String time) {
-        return Arrays.asList(time,
-            funcName,
-            "depth:" + depth,
-            "Runing：" + TimeUtils.getTimeWithUnit(dur),
-            "idle:0μs",
-            "Total：" + TimeUtils.getTimeWithUnit(dur));
+        return Arrays.asList(time, funcName, "Thread:" + threadName, "Tid:" + tid, "depth:" + depth,
+            "Runing: " + TimeUtils.getTimeWithUnit(dur), "idle:0μs", "Total: " + TimeUtils.getTimeWithUnit(dur));
     }
 
     @Override

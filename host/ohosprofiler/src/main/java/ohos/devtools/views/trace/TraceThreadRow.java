@@ -50,6 +50,7 @@ public class TraceThreadRow<T extends AbstractNode, R extends AbstractNode> exte
     private Long rangeEndNS;
     private Integer x1;
     private Integer x2;
+    private String threadName;
 
     /**
      * structure
@@ -58,8 +59,9 @@ public class TraceThreadRow<T extends AbstractNode, R extends AbstractNode> exte
      * @param tid tid
      */
     public TraceThreadRow(String name, Integer tid) {
-        super(name, true, false);
+        super(name + "（Tid:" + tid + ")", true, false);
         this.tid = tid;
+        this.threadName = name;
         layout.setComponentConstraints(expandBtn, "split 2,gapleft 15,gaptop 3,gapbottom push");
         layout.setComponentConstraints(nameLabel, "gapleft 5,gaptop 3,gapbottom push,w 70!");
         loadData();
@@ -147,7 +149,8 @@ public class TraceThreadRow<T extends AbstractNode, R extends AbstractNode> exte
                 if (Objects.nonNull(currentData)) {
                     currentData.moveOut(point, content);
                 }
-                Tip.getInstance().display(content, point, Arrays.asList(getTimeByX(Utils.getX(point))));
+                Tip.getInstance().display(content, point,
+                    Arrays.asList(getTimeByX(Utils.getX(point)), "Thread:" + threadName, "Tid:" + getTid()));
             }
         }
         if (nonNull(data2)) {
@@ -166,7 +169,8 @@ public class TraceThreadRow<T extends AbstractNode, R extends AbstractNode> exte
                 if (Objects.nonNull(currentData2)) {
                     currentData2.moveOut(point, content);
                 }
-                Tip.getInstance().display(content, point, Arrays.asList(getTimeByX(Utils.getX(point))));
+                Tip.getInstance().display(content, point,
+                    Arrays.asList(getTimeByX(Utils.getX(point)), "Thread:" + threadName, "Tid:" + getTid()));
             }
         }
     }

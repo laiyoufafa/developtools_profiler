@@ -71,6 +71,7 @@ public class SystemConfigPanelTest {
     public void mouseReleasedTest01() {
         JBPanel jBPanel = new JBPanel();
         MouseEvent mouseEvent = new MouseEvent(jBPanel, 1, 1, 1, 1, 1, 1, true, 1);
+        mouseEvent.getComponent().setName("Test");
         new SystemConfigPanel(new TaskPanel()).mouseReleased(mouseEvent);
         Assert.assertTrue(true);
     }

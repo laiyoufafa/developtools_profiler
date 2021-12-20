@@ -42,7 +42,7 @@ import static ohos.devtools.views.layout.chartview.MonitorItemDetail.DISK_IO_WRI
 /**
  * Consumer class of DiskIoData, Perform disk IO data construction and table insertion
  *
- * @since: 2021/9/20
+ * @since 2021/9/20
  */
 public class DiskIoDataConsumer extends AbsDataConsumer {
     private static final Logger LOGGER = LogManager.getLogger(DiskIoDataConsumer.class);
@@ -78,8 +78,8 @@ public class DiskIoDataConsumer extends AbsDataConsumer {
             } else {
                 try {
                     TimeUnit.MILLISECONDS.sleep(500);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
+                } catch (InterruptedException exception) {
+                    exception.printStackTrace();
                 }
             }
             insertDiskIoData();

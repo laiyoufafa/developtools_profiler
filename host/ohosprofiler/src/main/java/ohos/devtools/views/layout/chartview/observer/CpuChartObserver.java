@@ -32,14 +32,19 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.awt.Component;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 
 /**
  * Observer of cpu chart
+ *
+ * @since 2021/11/22
  */
 public class CpuChartObserver implements IChartEventObserver {
     private static final Logger LOGGER = LogManager.getLogger(CpuChartObserver.class);
@@ -105,15 +110,18 @@ public class CpuChartObserver implements IChartEventObserver {
     public void refreshView(ChartDataRange range, long firstTimestamp, boolean useCache) {
         LinkedHashMap<Integer, List<ChartDataModel>> cpuResult;
         LinkedHashMap<Integer, List<ChartDataModel>> threadResult;
+        LinkedHashMap<Integer, List<ChartDataModel>> deadThreadData;
         int start = range.getStartTime();
         int end = range.getEndTime();
         boolean chartStop = chart.getBottomPanel().isPause() || chart.getBottomPanel().isStop();
         if (chartStop || !useCache) {
             cpuResult = CpuDao.getInstance().getCpuData(sessionId, start, end, firstTimestamp, true);
             threadResult = CpuDao.getInstance().getThreadData(sessionId, start, end, firstTimestamp, true);
+            deadThreadData = CpuDao.getInstance().getDeadThreadData(sessionId, start, end, firstTimestamp);
         } else {
             cpuResult = CpuDataCache.getInstance().getCpuData(sessionId, start, end);
             threadResult = CpuDataCache.getInstance().getThreadData(sessionId, start, end);
+            deadThreadData = CpuDataCache.getInstance().getDeadThreadData(sessionId, start, end);
         }
         LinkedHashMap<Integer, List<ChartDataModel>> showDataMap = new LinkedHashMap<>();
         for (int time : cpuResult.keySet()) {
@@ -122,7 +130,7 @@ public class CpuChartObserver implements IChartEventObserver {
                 ChartDataModel total = new ChartDataModel();
                 total.setName("System");
                 total.setColor(ColorConstants.CPU);
-                total.setValue((int) sumChosenItems(dataModels));
+                total.setValue(sumChosenItems(dataModels));
                 total.setDoubleValue(sumChosenItems(dataModels));
                 showDataMap.put(time, Collections.singletonList(total));
             } else {
@@ -131,7 +139,7 @@ public class CpuChartObserver implements IChartEventObserver {
 
         }
         chart.refreshChart(range.getStartTime(), end, showDataMap);
-        refreshThreadPanel(range.getStartTime(), end, threadResult);
+        refreshThreadPanel(range.getStartTime(), end, threadResult, deadThreadData);
     }
 
     /**
@@ -140,12 +148,12 @@ public class CpuChartObserver implements IChartEventObserver {
      * @param dataModels Data list
      * @return int
      */
-    private double sumChosenItems(List<ChartDataModel> dataModels) {
-        double total = 0;
+    private int sumChosenItems(List<ChartDataModel> dataModels) {
+        int total = 0;
         if (dataModels != null && dataModels.size() > 0) {
             ChartDataModel systemChartDataModel =
                 dataModels.stream().filter(each -> StringUtils.equals(each.getName(), "System")).findFirst().get();
-            return systemChartDataModel.getDoubleValue();
+            return systemChartDataModel.getValue();
         }
         return total;
     }
@@ -170,7 +178,8 @@ public class CpuChartObserver implements IChartEventObserver {
      * @param endTime endTime
      * @param dataMap dataMap
      */
-    private void refreshThreadPanel(int startTime, int endTime, LinkedHashMap<Integer, List<ChartDataModel>> dataMap) {
+    private void refreshThreadPanel(int startTime, int endTime, LinkedHashMap<Integer, List<ChartDataModel>> dataMap,
+        LinkedHashMap<Integer, List<ChartDataModel>> deadThreadMap) {
         dataMap.forEach((integer, chartDataModels) -> {
             chartDataModels.forEach(chartDataModel -> {
                 // add view
@@ -191,23 +200,26 @@ public class CpuChartObserver implements IChartEventObserver {
                             tooltip.showThreadStatusTip(this, showKey + "", dataModel, newChart);
                         }
                     };
-                    rectChart.setFold(false);
-                    rectChart.setMaxDisplayX(this.bottomPanel.getPublisher().getStandard().getMaxDisplayMillis());
-                    rectChart.setMinMarkIntervalX(this.bottomPanel.getPublisher().getStandard().getMinMarkInterval());
-                    rectChart.setSectionNumY(1);
-                    rectChart.setAxisLabelY("");
-                    rectChart.setEnableSelect(false);
-                    rectChart.setThreadId(chartDataModel.getIndex());
-                    rectChart.setBounds(0, 0, bottomPanel.getWidth(), 35);
-                    rectChart.setOpaque(true);
-                    itemPanel.add(rectChart);
-                    rectChartList.add(rectChart);
-                    rectChart.setOpaque(false);
-                    threadInfoPanel.setOpaque(false);
-                    threadInfoPanel.setBackground(JBColor.background().darker());
-                    threadInfoPanel.add(itemPanel, "wrap, height 30!, gapy 0");
+                    buildThreadPanel(chartDataModel, itemPanel, rectChart);
                 }
             });
+            List<ChartDataModel> chartDataModels1 = deadThreadMap.get(integer);
+            if (chartDataModels1 != null && chartDataModels1.size() > 0) {
+                chartDataModels1.forEach(chartDataModel -> {
+                    String name = chartDataModel.getName();
+                    int index = chartDataModel.getIndex();
+                    threadMap.remove(index);
+                    rectChartList.removeIf(cha -> cha.getName().equals(name + index + "chart"));
+                    Component[] components = threadInfoPanel.getComponents();
+                    Iterator<Component> iterator = Arrays.stream(components).iterator();
+                    while (iterator.hasNext()) {
+                        Component next = iterator.next();
+                        if (next.getName().equals(name + index + "item")) {
+                            threadInfoPanel.remove(next);
+                        }
+                    }
+                });
+            }
         });
         if (!rectChartList.isEmpty()) {
             threadLabel.setText("Thread(" + rectChartList.size() + ")");
@@ -217,6 +229,26 @@ public class CpuChartObserver implements IChartEventObserver {
         } else {
             threadLabel.setText("Thread(0)");
         }
+    }
+
+    private void buildThreadPanel(ChartDataModel chartDataModel, JBPanel itemPanel, RectChart rectChart) {
+        rectChart.setFold(false);
+        rectChart.setMaxDisplayX(this.bottomPanel.getPublisher().getStandard().getMaxDisplayMillis());
+        rectChart.setMinMarkIntervalX(this.bottomPanel.getPublisher().getStandard().getMinMarkInterval());
+        rectChart.setSectionNumY(1);
+        rectChart.setAxisLabelY("");
+        rectChart.setEnableSelect(false);
+        rectChart.setThreadId(chartDataModel.getIndex());
+        rectChart.setBounds(0, 0, bottomPanel.getWidth(), 35);
+        rectChart.setOpaque(true);
+        rectChart.setName(chartDataModel.getName() + chartDataModel.getIndex() + "chart");
+        itemPanel.add(rectChart);
+        itemPanel.setName(chartDataModel.getName() + chartDataModel.getIndex() + "item");
+        rectChartList.add(rectChart);
+        rectChart.setOpaque(false);
+        threadInfoPanel.setOpaque(false);
+        threadInfoPanel.setBackground(JBColor.background().darker());
+        threadInfoPanel.add(itemPanel, "wrap, height 30!, gapy 0");
     }
 
     /**

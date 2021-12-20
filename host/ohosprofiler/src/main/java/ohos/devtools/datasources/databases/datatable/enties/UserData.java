@@ -20,7 +20,7 @@ import java.util.Arrays;
 /**
  * UserData
  *
- * @since 2021/10/22 16:00
+ * @since 2021/10/22
  */
 public class UserData {
     byte[] bytes;

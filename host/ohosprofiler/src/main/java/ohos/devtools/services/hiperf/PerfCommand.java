@@ -15,17 +15,19 @@
 package ohos.devtools.services.hiperf;
 
 import ohos.devtools.datasources.transport.hdc.HdcWrapper;
+import ohos.devtools.datasources.utils.monitorconfig.entity.PerfConfig;
 import ohos.devtools.datasources.utils.session.entity.SessionInfo;
 import ohos.devtools.datasources.utils.session.service.SessionManager;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Perf Command Parent Class
  *
- * @since: 2021/8/25
+ * @since 2021/8/25
  */
 public abstract class PerfCommand {
     /**
@@ -37,11 +39,6 @@ public abstract class PerfCommand {
      * perf data path
      */
     protected static final String PERF_DATA_PATH = "/data/local/tmp/perf.data";
-
-    /**
-     * default frequency
-     */
-    protected static final int DEFAULT_FREQUENCY = 1000;
 
     /**
      * deviceId
@@ -73,17 +70,30 @@ public abstract class PerfCommand {
      * @param fileStorePath out file path
      */
     public PerfCommand(long sessionId, boolean isLeakOhos, String deviceId, String fileStorePath) {
+        this(isLeakOhos, deviceId);
         sessionInfo = SessionManager.getInstance().getSessionInfo(sessionId);
+        outPath = fileStorePath;
+    }
+
+    /**
+     * PerfCommand
+     *
+     * @param isLeakOhos isLeakOhos
+     * @param deviceId deviceId
+     */
+    public PerfCommand(boolean isLeakOhos, String deviceId) {
         this.isLeakOhos = isLeakOhos;
         this.deviceId = deviceId;
-        outPath = fileStorePath;
     }
 
     /**
      * execute Record command
      * hiperf record -p xxx --app xxx -o perf.data -f 1000 --offcpu
+     *
+     * @param config config
+     * @return List<String>
      */
-    public abstract void executeRecord();
+    public abstract List<String> executeRecord(PerfConfig config);
 
     /**
      * execute report command
@@ -99,24 +109,11 @@ public abstract class PerfCommand {
     public abstract void stopRecord();
 
     /**
-     * generate Cmd Head
+     * get Support Event
      *
-     * @param recordCommand command
-     * @param isLeakOhos judge use hdc or hdc_std
-     * @param deviceId select device id
+     * @return Map<String, List<String>>
      */
-    protected void generateCmdHead(ArrayList<String> recordCommand, boolean isLeakOhos, String deviceId) {
-        String pluginPath;
-        if (isLeakOhos) {
-            pluginPath = SessionManager.getInstance().getHdcStdPath();
-        } else {
-            pluginPath = SessionManager.getInstance().getHdcPath();
-        }
-        recordCommand.add(pluginPath);
-        recordCommand.add("-t");
-        recordCommand.add(deviceId);
-        recordCommand.add("shell");
-    }
+    public abstract Map<String, List<String>> getSupportEvents();
 
     /**
      * wait record file generate done.
@@ -124,8 +121,7 @@ public abstract class PerfCommand {
      */
     public void checkData() {
         while (true) {
-            ArrayList<String> checkData = new ArrayList<>();
-            generateCmdHead(checkData, isLeakOhos, deviceId);
+            ArrayList<String> checkData = HdcWrapper.getInstance().generateDeviceCmdHead(isLeakOhos, deviceId);
             checkData.add("du");
             checkData.add(PERF_DATA_PATH);
             String execResult = HdcWrapper.getInstance().execCmdBy(checkData);
@@ -138,13 +134,13 @@ public abstract class PerfCommand {
                     break;
                 }
                 lastSize = currentSize;
-            } catch (NumberFormatException e) {
+            } catch (NumberFormatException exception) {
                 break;
             }
             try {
                 Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+            } catch (InterruptedException exception) {
+                exception.printStackTrace();
             }
         }
     }

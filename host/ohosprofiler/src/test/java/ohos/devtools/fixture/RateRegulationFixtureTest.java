@@ -19,6 +19,7 @@ import ohos.devtools.datasources.databases.databaseapi.DataBaseApi;
 import ohos.devtools.datasources.utils.device.service.MultiDeviceManager;
 import ohos.devtools.datasources.utils.plugin.IPluginConfig;
 import ohos.devtools.datasources.utils.plugin.service.PlugManager;
+import ohos.devtools.datasources.utils.process.service.ProcessManager;
 import ohos.devtools.datasources.utils.profilerlog.ProfilerLogManager;
 import ohos.devtools.datasources.utils.session.service.SessionManager;
 import ohos.devtools.pluginconfig.CpuConfig;
@@ -27,7 +28,7 @@ import ohos.devtools.pluginconfig.MemoryConfig;
 import ohos.devtools.views.common.UtConstant;
 import ohos.devtools.views.layout.HomePanel;
 import org.apache.logging.log4j.Level;
-import org.fest.swing.fixture.FrameFixture;
+import org.assertj.swing.fixture.FrameFixture;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -59,6 +60,7 @@ public class RateRegulationFixtureTest {
     @Before
     public void init() throws AWTException {
         // Initialization data
+        ProcessManager.getInstance().setIsRequest(false);
         ProfilerLogManager.getSingleton().updateLogLevel(Level.ERROR);
         DataBaseApi apo = DataBaseApi.getInstance();
         apo.initDataSourceManager();

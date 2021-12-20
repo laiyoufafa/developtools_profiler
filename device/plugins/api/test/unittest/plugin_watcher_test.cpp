@@ -104,13 +104,11 @@ protected:
     {
         for (auto it : createFileList) {
             if (remove((dirPath + it).c_str()) != 0) {
-                std::cout << "createFileList remove failed, errno=" << errno << std::endl;
                 return;
             }
         }
         for (auto it : addFileList) {
             if (remove((dirPath + it).c_str()) != 0) {
-                std::cout << "addFileList remove failed, errno=" << errno << std::endl;
                 return;
             }
         }

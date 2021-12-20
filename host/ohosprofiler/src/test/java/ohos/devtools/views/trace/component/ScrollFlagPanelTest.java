@@ -26,7 +26,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 /**
  * test ScrollFlagPanel class .
  *
- * @since 2021/4/24 18:03
+ * @date 2021/4/24 18:03
  */
 class ScrollFlagPanelTest {
     /**

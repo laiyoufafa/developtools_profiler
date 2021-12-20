@@ -16,37 +16,32 @@
 package ohos.devtools.views.distributed;
 
 import com.intellij.icons.AllIcons;
-import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBTabbedPane;
 import com.intellij.util.Consumer;
-import com.intellij.util.ui.JBUI;
 import net.miginfocom.swing.MigLayout;
 import ohos.devtools.datasources.utils.profilerlog.ProfilerLogManager;
 import ohos.devtools.views.distributed.bean.DistributedFuncBean;
 import ohos.devtools.views.distributed.component.SettingDialog;
 import ohos.devtools.views.trace.EventDispatcher;
 import ohos.devtools.views.trace.util.Utils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
 
 import javax.swing.JButton;
-import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import java.awt.Cursor;
 import java.awt.Graphics;
-import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.awt.event.MouseMotionListener;
 import java.util.Optional;
 
 /**
  * DistributedDataPane
  *
- * @since 2021/8/26 15:10
+ * @since 2021/08/05 16:03
  */
 public class DistributedDataPane extends JBPanel {
     private static final Logger LOGGER = LogManager.getLogger(DistributedDataPane.class);
@@ -75,7 +70,6 @@ public class DistributedDataPane extends JBPanel {
         this.boundsChangeListener = boundsChangeListener;
         setLayout(new MigLayout("insets 0 0 0 0", "[grow,fill]", "[grow,fill]"));
         tabbedPane = new MyTabPanel();
-        setBorder(JBUI.Borders.customLine(JBColor.background().darker(), 5, 8, 5, 8));
         detailPane = new DistributedDataDetailPane();
         callTreePane = new DistributedDataCallTreePane();
         statisticsPane = new DistributedDataStatisticsPane();
@@ -97,7 +91,7 @@ public class DistributedDataPane extends JBPanel {
         });
         tabbedPane.addChangeListener(new ChangeListener() {
             @Override
-            public void stateChanged(ChangeEvent changeEvent) {
+            public void stateChanged(ChangeEvent event) {
                 int index = tabbedPane.getSelectedIndex();
                 if (index != 2) {
                     if (currentIndex == 0 && index == 1) {
@@ -125,58 +119,58 @@ public class DistributedDataPane extends JBPanel {
     private class MyTabPanel extends JBTabbedPane implements MouseListener {
         private Rectangle setting = new Rectangle();
         private Rectangle cancel = new Rectangle();
-        private Point startPoint;
-        private Point endPoint;
-        private Rectangle srcBounds;
+        // private Point startPoint;
+        // private Point endPoint;
+        // private Rectangle srcBounds;
 
         /**
          * MyTabPanel
-         *
          */
         public MyTabPanel() {
             addMouseListener(this);
-            addMouseMotionListener(new MouseMotionListener() {
-                @Override
-                public void mouseDragged(MouseEvent event) {
-                    if (getCursor().getType() == Cursor.N_RESIZE_CURSOR) {
-                        endPoint = SwingUtilities.convertPoint(MyTabPanel.this, event.getPoint(),
-                            MyTabPanel.this.getRootPane().getLayeredPane());
-                        int yPosition = Utils.getY(endPoint) - Utils.getY(startPoint);
-                        if (srcBounds.height - yPosition < barHeight) {
-                            return;
-                        } else if (srcBounds.height - yPosition
-                            > MyTabPanel.this.getRootPane().getLayeredPane().getHeight() - barHeight) {
-                            return;
-                        } else {
-                            DistributedDataPane.this.setBounds(Utils.getX(srcBounds), Utils.getY(srcBounds) + yPosition,
-                                srcBounds.width,
-                                srcBounds.height - yPosition);
-                            DistributedDataPane.this.revalidate();
-                            if (boundsChangeListener != null) {
-                                boundsChangeListener.consume(DistributedDataPane.this.getBounds());
-                            }
-                        }
-                    }
-                }
-
-                @Override
-                public void mouseMoved(MouseEvent event) {
-                    int xNum = 0;
-                    if (getTabCount() > 0) {
-                        Rectangle rect = getUI().getTabBounds(MyTabPanel.this, getTabCount() - 1);
-                        xNum = rect.width + Utils.getX(rect) + 10;
-                    }
-                    if (event.getY() > 0 && event.getY() < barHeight && event.getX() > xNum) {
-                        if (setting.contains(event.getPoint()) || cancel.contains(event.getPoint())) {
-                            setCursor(new Cursor(Cursor.HAND_CURSOR));
-                        } else {
-                            setCursor(new Cursor(Cursor.N_RESIZE_CURSOR));
-                        }
-                    } else {
-                        setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
-                    }
-                }
-            });
+            //            addMouseMotionListener(new MouseMotionListener() {
+            //                @Override
+            //                public void mouseDragged(MouseEvent event) {
+            //                    if (getCursor().getType() == Cursor.N_RESIZE_CURSOR) {
+            //                        endPoint = SwingUtilities.convertPoint(MyTabPanel.this, event.getPoint(),
+            //                            MyTabPanel.this.getRootPane().getLayeredPane());
+            //                        int yPosition = Utils.getY(endPoint) - Utils.getY(startPoint);
+            //                        if (srcBounds.height - yPosition < barHeight) {
+            //                            return;
+            //                        } else if (srcBounds.height - yPosition
+            //                            > MyTabPanel.this.getRootPane().getLayeredPane().getHeight() - barHeight) {
+            //                            return;
+            //                        } else {
+            //                            DistributedDataPane.this.setBounds(Utils.getX(srcBounds),
+            //                            Utils.getY(srcBounds) + yPosition,
+            //                                srcBounds.width,
+            //                                srcBounds.height - yPosition);
+            //                            DistributedDataPane.this.revalidate();
+            //                            if (boundsChangeListener != null) {
+            //                                boundsChangeListener.consume(DistributedDataPane.this.getBounds());
+            //                            }
+            //                        }
+            //                    }
+            //                }
+            //
+            //                @Override
+            //                public void mouseMoved(MouseEvent event) {
+            //                    int xNum = 0;
+            //                    if (getTabCount() > 0) {
+            //                        Rectangle rect = getUI().getTabBounds(MyTabPanel.this, getTabCount() - 1);
+            //                        xNum = rect.width + Utils.getX(rect) + 10;
+            //                    }
+            //                    if (event.getY() > 0 && event.getY() < barHeight && event.getX() > xNum) {
+            //                        if (setting.contains(event.getPoint()) || cancel.contains(event.getPoint())) {
+            //                            setCursor(new Cursor(Cursor.HAND_CURSOR));
+            //                        } else {
+            //                            setCursor(new Cursor(Cursor.N_RESIZE_CURSOR));
+            //                        }
+            //                    } else {
+            //                        setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
+            //                    }
+            //                }
+            //            });
         }
 
         @Override
@@ -206,16 +200,16 @@ public class DistributedDataPane extends JBPanel {
                 Optional.ofNullable(onCloseHandler).ifPresent(it -> it.consume(event));
             } else {
                 if (ProfilerLogManager.isDebugEnabled()) {
-                    LOGGER.debug("mouseClicked pointX {}, pointY {}", event.getX(), event.getY());
+                    LOGGER.debug("mouseClicked point error");
                 }
             }
         }
 
         @Override
         public void mousePressed(MouseEvent event) {
-            srcBounds = DistributedDataPane.this.getBounds();
-            startPoint = SwingUtilities
-                .convertPoint(MyTabPanel.this, event.getPoint(), MyTabPanel.this.getRootPane().getLayeredPane());
+            // srcBounds = DistributedDataPane.this.getBounds()
+            // startPoint = SwingUtilities
+            // .convertPoint(MyTabPanel.this, event.getPoint(), MyTabPanel.this.getRootPane().getLayeredPane())
         }
 
         @Override

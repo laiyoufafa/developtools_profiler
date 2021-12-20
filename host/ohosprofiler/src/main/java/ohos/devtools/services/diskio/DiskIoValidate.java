@@ -27,7 +27,7 @@ import java.util.List;
 /**
  * DiskIo Validate
  *
- * @since: 2021/9/20
+ * @since 2021/9/20
  */
 public class DiskIoValidate extends Validate {
     private boolean registerDisk;

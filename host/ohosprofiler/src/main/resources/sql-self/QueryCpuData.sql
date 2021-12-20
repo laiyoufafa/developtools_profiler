@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 with list as (SELECT
     IP.name as processName,
     IP.name processCmdLine,
@@ -28,7 +29,7 @@ with list as (SELECT
 from thread_state AS B
     left join  thread as A
     left join sched_slice AS C
-    left join trace_range AS TR
+    left join trace_section AS TR
     left join process AS IP
 where B.itid = A.id and B.cpu = %s
     and B.itid = C.itid and B.ts = C.ts

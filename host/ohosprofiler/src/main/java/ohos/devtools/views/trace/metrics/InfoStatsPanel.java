@@ -20,16 +20,16 @@ import com.intellij.openapi.util.IconLoader;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBPanel;
-import javax.swing.JButton;
-import javax.swing.JLabel;
-import javax.swing.JScrollPane;
-import javax.swing.JTable;
 import net.miginfocom.swing.MigLayout;
-import ohos.devtools.views.trace.component.AnalystPanel;
+import ohos.devtools.views.trace.component.SysAnalystPanel;
 import ohos.devtools.views.trace.metrics.bean.Metadata;
 import ohos.devtools.views.trace.metrics.bean.Stats;
 import ohos.devtools.views.trace.util.Db;
 
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableRowSorter;
@@ -68,7 +68,7 @@ public class InfoStatsPanel extends JBPanel {
     private JBLabel previousButton;
     private JBPanel optionJPanel;
     private JBPanel topJPanel;
-    private AnalystPanel analystPanel;
+    private SysAnalystPanel analystPanel;
     private JButton infoButton;
     private JBPanel centerJPanel;
     private JBLabel centerLabel;
@@ -80,7 +80,7 @@ public class InfoStatsPanel extends JBPanel {
     /**
      * Info Stats Panel
      */
-    public InfoStatsPanel(JBPanel optionJPanel, AnalystPanel analystPanel, JButton infoButton) {
+    public InfoStatsPanel(JBPanel optionJPanel, SysAnalystPanel analystPanel, JButton infoButton) {
         this.optionJPanel = optionJPanel;
         this.analystPanel = analystPanel;
         this.infoButton = infoButton;

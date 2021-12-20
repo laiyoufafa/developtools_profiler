@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 with list as (
     select distinct name from clock_event_filter
     where  clock_event_filter.type = 'clock_set_rate' order by name
@@ -22,7 +23,7 @@ with list as (
     order by measure.ts
 ),state as (
     select filter_id, ts, endts, endts-ts as dur, type, value,name from
-    (select measure.filter_id, measure.ts, lead(ts, 1, null) over( order by measure.ts) endts, measure.type, measure.value,clock_event_filter.name from clock_event_filter,trace_range
+    (select measure.filter_id, measure.ts, lead(ts, 1, null) over( order by measure.ts) endts, measure.type, measure.value,clock_event_filter.name from clock_event_filter,trace_section
     left join measure
     where clock_event_filter.type != 'clock_set_rate' and clock_event_filter.id = measure.filter_id
     order by measure.ts)

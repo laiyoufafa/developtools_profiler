@@ -207,7 +207,7 @@ public class TopBottomPanel extends EventPanel {
         search.setTextToTriggerEmptyTextStatus("Search");
         search.getDocument().addDocumentListener(new DocumentListener() {
             @Override
-            public void insertUpdate(DocumentEvent documentEvent) {
+            public void insertUpdate(DocumentEvent event) {
                 searchText = search.getText().toLowerCase(Locale.ENGLISH);
                 getNodeContainSearch(root, searchText);
                 treeResort(root);
@@ -216,7 +216,7 @@ public class TopBottomPanel extends EventPanel {
             }
 
             @Override
-            public void removeUpdate(DocumentEvent documentEvent) {
+            public void removeUpdate(DocumentEvent event) {
                 searchText = search.getText().toLowerCase(Locale.ENGLISH);
                 if (searchText.isEmpty()) {
                     resetAllNode(root);
@@ -229,7 +229,7 @@ public class TopBottomPanel extends EventPanel {
             }
 
             @Override
-            public void changedUpdate(DocumentEvent documentEvent) {
+            public void changedUpdate(DocumentEvent event) {
             }
         });
         add(search, "wrap");
@@ -376,7 +376,7 @@ public class TopBottomPanel extends EventPanel {
                         } else {
                             return 0;
                         }
-                    } catch (ClassCastException e) {
+                    } catch (ClassCastException exception) {
                         return 0;
                     }
                 }

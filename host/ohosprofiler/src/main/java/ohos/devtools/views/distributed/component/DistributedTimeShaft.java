@@ -56,7 +56,7 @@ import static ohos.devtools.views.distributed.component.DistributedTracePanel.st
 /**
  * The timescale
  *
- * @since 2021/8/26 15:10
+ * @since 2021/5/12 16:39
  */
 public class DistributedTimeShaft extends JBPanel implements KeyListener, MouseListener, MouseMotionListener {
     private static final int SELECT_BORDER_WIDTH = 3;
@@ -534,7 +534,13 @@ public class DistributedTimeShaft extends JBPanel implements KeyListener, MouseL
         Optional.ofNullable(rangeListener).ifPresent(range -> range.change(startNS, endNS, scale));
     }
 
-    private void notifyRangeChange(long ns1, long ns2) {
+    /**
+     * notifyRangeChange
+     *
+     * @param ns1 ns1
+     * @param ns2 ns2
+     */
+    public void notifyRangeChange(long ns1, long ns2) {
         startNS = Math.min(ns1, ns2);
         endNS = Math.max(ns1, ns2);
         repaint();

@@ -48,7 +48,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 /**
  * DistributedDBA
  *
- * @since 2021/8/26 15:10
+ * @since 2021/08/10 16:53
  */
 public final class DistributedDB {
     private static boolean isLocal;
@@ -169,12 +169,7 @@ public final class DistributedDB {
         String tmp = Final.IS_RESOURCE_SQL ? "-self/" : "/";
         String path = "sql" + tmp + sqlName + ".sql";
         try (InputStream STREAM = DataUtils.class.getClassLoader().getResourceAsStream(path)) {
-            String sqlFile = IOUtils.toString(STREAM, Charset.forName("UTF-8"));
-            if (sqlFile.startsWith("/*")) {
-                return sqlFile.trim().substring(sqlFile.indexOf("*/") + 2);
-            } else {
-                return IOUtils.toString(STREAM, Charset.forName("UTF-8"));
-            }
+            return IOUtils.toString(STREAM, Charset.forName("UTF-8")).replaceAll("/\\*[\\s\\S]*?\\*/", "");
         } catch (UnsupportedEncodingException exception) {
             exception.printStackTrace();
         } catch (IOException ioException) {
@@ -419,8 +414,8 @@ public final class DistributedDB {
                 }
                 res.add(data);
             }
-        } catch (ClassNotFoundException | SQLException | InstantiationException
-            | IllegalAccessException | InvocationTargetException | NoSuchMethodException exception) {
+        } catch (ClassNotFoundException | SQLException | InstantiationException | IllegalAccessException
+            | InvocationTargetException | NoSuchMethodException exception) {
             exception.printStackTrace();
         } finally {
             releaseA(rs, stat, conn);
@@ -463,8 +458,8 @@ public final class DistributedDB {
                 }
                 res.add(data);
             }
-        } catch (ClassNotFoundException | SQLException | InstantiationException
-            | IllegalAccessException | InvocationTargetException | NoSuchMethodException exception) {
+        } catch (ClassNotFoundException | SQLException | InstantiationException | IllegalAccessException
+            | InvocationTargetException | NoSuchMethodException exception) {
             exception.printStackTrace();
         } finally {
             releaseB(rs, stat, conn);
@@ -481,8 +476,7 @@ public final class DistributedDB {
             declaredField.set(data, rs.getDouble(annotation.name()));
         } else if (declaredField.getType() == Float.class || declaredField.getType() == float.class) {
             declaredField.set(data, rs.getFloat(annotation.name()));
-        } else if (declaredField.getType() == Boolean.class
-            || declaredField.getType() == boolean.class) {
+        } else if (declaredField.getType() == Boolean.class || declaredField.getType() == boolean.class) {
             declaredField.set(data, rs.getBoolean(annotation.name()));
         } else if (declaredField.getType() == Blob.class) {
             declaredField.set(data, rs.getBlob(annotation.name()));
@@ -567,8 +561,8 @@ public final class DistributedDB {
         try {
             stat = conn.createStatement();
             return stat.executeUpdate(sql);
-        } catch (SQLException e) {
-            e.printStackTrace();
+        } catch (SQLException exception) {
+            exception.printStackTrace();
         } finally {
             releaseA(null, stat, conn);
         }
@@ -581,8 +575,8 @@ public final class DistributedDB {
         try {
             stat = conn.createStatement();
             return stat.executeUpdate(sql);
-        } catch (SQLException e) {
-            e.printStackTrace();
+        } catch (SQLException exception) {
+            exception.printStackTrace();
         } finally {
             releaseB(null, stat, conn);
         }

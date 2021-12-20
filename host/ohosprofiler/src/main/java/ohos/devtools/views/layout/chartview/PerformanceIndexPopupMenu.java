@@ -37,6 +37,8 @@ import java.util.stream.Collectors;
 
 /**
  * PerformanceIndexPopupMenu
+ *
+ * @since 2021/11/22
  */
 public class PerformanceIndexPopupMenu {
     private static final int OTHER_ITEM = 2;
@@ -183,6 +185,9 @@ public class PerformanceIndexPopupMenu {
                 selectIndex = item.getIndex();
             }
         }
+        if (items.size() == 1) {
+            items.get(0).setPreferredSize(new Dimension(items.get(0).getWidth(), 400));
+        }
         // Add the selected chart item to the chart again
         for (MonitorItemView item : cacheItemList) {
             if (selectClass.isInstance(item)) {
@@ -247,8 +252,7 @@ public class PerformanceIndexPopupMenu {
         // resize
         ItemsView itemsView = profilerView.getItemsView();
         for (MonitorItemView item : items) {
-            itemsView.itemFoldOrExpend(true, item);
-            break;
+            itemsView.itemFoldOrExpend(item.isFold(), item);
         }
         if (items.size() == 1) {
             items.get(0).setPreferredSize(new Dimension(items.get(0).getWidth(), itemsView.getHeight() - ITEM_HEIGHT));

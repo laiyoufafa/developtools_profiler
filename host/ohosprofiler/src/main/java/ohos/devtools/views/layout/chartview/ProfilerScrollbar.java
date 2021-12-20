@@ -31,6 +31,8 @@ import static ohos.devtools.views.layout.chartview.utils.OperationUtils.multiply
 
 /**
  * 自定义滚动条
+ *
+ * @since 2021/11/22
  */
 public class ProfilerScrollbar extends JBPanel {
     /**

@@ -66,8 +66,7 @@ public class MemoryAgentHeapInfoPanel extends JBPanel {
      * columns
      */
     public final ColumnInfo[] columns =
-        new ColumnInfo[] {new TreeColumnInfo("Class Name"), new TreeTableColumn<>("Allocations",
-            AgentHeapBean.class) {
+        new ColumnInfo[] {new TreeColumnInfo("Class Name"), new TreeTableColumn<>("Allocations", AgentHeapBean.class) {
             @Override
             public String getColumnValue(AgentHeapBean nodeData) {
                 return String.valueOf(nodeData.getAgentAllocationsCount());
@@ -104,12 +103,12 @@ public class MemoryAgentHeapInfoPanel extends JBPanel {
      */
     private MouseMotionAdapter mouseMotionAdapter;
 
+    private ExpandTreeTable treeTable;
+
     /**
      * mouseListener
      */
     private MouseAdapter mouseListener;
-
-    private ExpandTreeTable treeTable;
 
     /**
      * MemoryAgentHeapInfoPanel
@@ -161,9 +160,9 @@ public class MemoryAgentHeapInfoPanel extends JBPanel {
             LOGGER.info("listCopy");
         }
         List list = new ArrayList();
-        for (int i = startIndex + 1; i < endIndex; i++) {
-            if (i < dataList.size()) {
-                AgentHeapBean agentHeapBean = dataList.get(i);
+        for (int index = startIndex + 1; index < endIndex; index++) {
+            if (index < dataList.size()) {
+                AgentHeapBean agentHeapBean = dataList.get(index);
                 if (agentHeapBean != null) {
                     list.add(agentHeapBean);
                 }
@@ -187,11 +186,9 @@ public class MemoryAgentHeapInfoPanel extends JBPanel {
         DefaultMutableTreeNode root = initData(sessionId, chartName);
         ListTreeTableModelOnColumns tableModelOnColumns = new ListTreeTableModelOnColumns(root, columns);
         ExpandTreeTable treeTables = new ExpandTreeTable(tableModelOnColumns);
-        treeTables.getTable().setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
-            {
-                setHorizontalAlignment(JLabel.RIGHT);
-            }
-        });
+        DefaultTableCellRenderer defaultTableCellRenderer = new DefaultTableCellRenderer();
+        defaultTableCellRenderer.setHorizontalAlignment(JLabel.RIGHT);
+        treeTables.getTable().setDefaultRenderer(Object.class, defaultTableCellRenderer);
         JScrollBar tableVerticalScrollBar1 = treeTables.getVerticalScrollBar();
         getMouseMotionAdapter(tableModelOnColumns, treeTables);
         tableVerticalScrollBar1.addMouseMotionListener(mouseMotionAdapter);
@@ -201,11 +198,11 @@ public class MemoryAgentHeapInfoPanel extends JBPanel {
                 return;
             }
             if (sortOrder == SortOrder.ASCENDING) {
-                AgentTreeTableRowSorter.sortDescTree(MemoryAgentHeapInfoPanel.this,
-                    columns[columnIndex].getName(), tableModelOnColumns);
+                AgentTreeTableRowSorter
+                    .sortDescTree(MemoryAgentHeapInfoPanel.this, columns[columnIndex].getName(), tableModelOnColumns);
             } else {
-                AgentTreeTableRowSorter.sortTree(MemoryAgentHeapInfoPanel.this,
-                    columns[columnIndex].getName(), tableModelOnColumns);
+                AgentTreeTableRowSorter
+                    .sortTree(MemoryAgentHeapInfoPanel.this, columns[columnIndex].getName(), tableModelOnColumns);
             }
             tableModelOnColumns.reload();
         });
@@ -217,6 +214,7 @@ public class MemoryAgentHeapInfoPanel extends JBPanel {
         mouseListener = getTreeTableMouseListener(memoryItemView, sessionId, chartName);
         treeTables.getTable().addMouseListener(mouseListener);
         treeTables.getTree().addMouseListener(mouseListener);
+        treeTable = treeTables;
         return treeTables;
     }
 
@@ -348,9 +346,9 @@ public class MemoryAgentHeapInfoPanel extends JBPanel {
         int totalTotalCount = 0;
         long totalShallowSize = 0L;
         if (!allAgentDatas.isEmpty()) {
-            for (int i = 0; i < MEMORY_AGENT_INIT_COUNT; i++) {
-                AgentHeapBean node = allAgentDatas.get(i);
-                if (i == MEMORY_AGENT_INIT_COUNT - 1) {
+            for (int index = 0; index < MEMORY_AGENT_INIT_COUNT; index++) {
+                AgentHeapBean node = allAgentDatas.get(index);
+                if (index == MEMORY_AGENT_INIT_COUNT - 1) {
                     lastDataNode = node;
                 }
                 appNode.add(new DefaultMutableTreeNode(node));
@@ -369,6 +367,10 @@ public class MemoryAgentHeapInfoPanel extends JBPanel {
         agentHeapBean.setAgentTotalshallowSize(totalShallowSize);
         appNode.setUserObject(agentHeapBean);
         return appNode;
+    }
+
+    public ExpandTreeTable getTreeTable() {
+        return treeTable;
     }
 
     public List<AgentHeapBean> getAllAgentDatas() {
@@ -393,17 +395,5 @@ public class MemoryAgentHeapInfoPanel extends JBPanel {
 
     public void setMouseMotionAdapter(MouseMotionAdapter mouseMotionAdapter) {
         this.mouseMotionAdapter = mouseMotionAdapter;
-    }
-
-    public MouseAdapter getMouseListener() {
-        return mouseListener;
-    }
-
-    public void setMouseListener(MouseAdapter mouseListener) {
-        this.mouseListener = mouseListener;
-    }
-
-    public ExpandTreeTable getTreeTable() {
-        return treeTable;
     }
 }

@@ -22,6 +22,7 @@ import ohos.devtools.views.trace.component.AnalystPanel;
 import ohos.devtools.views.trace.component.ContentPanel;
 import ohos.devtools.views.trace.util.Db;
 import ohos.devtools.views.trace.util.Utils;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.JComponent;
 import javax.swing.SwingUtilities;
@@ -55,10 +56,16 @@ public class ThreadDataFragment extends AbstractDataFragment<ThreadData> impleme
      */
     public Long delayClickStartTime;
 
+    /**
+     * delayClickProcessName
+     */
+    private String delayClickProcessName;
+
     private int x1;
     private int x2;
     private Rectangle2D bounds;
     private boolean isLoading;
+    private boolean funcLoad = false;
 
     /**
      * structure
@@ -132,9 +139,9 @@ public class ThreadDataFragment extends AbstractDataFragment<ThreadData> impleme
                 } else {
                     x2 = getX(threadData.getStartTime() + threadData.getDuration());
                 }
-                threadData.setRect(x1 + Utils.getX(getDataRect()), Utils.getY(getDataRect()) + 5,
-                    x2 - x1 <= 0 ? 1 : x2 - x1,
-                    getDataRect().height - 10);
+                threadData
+                    .setRect(x1 + Utils.getX(getDataRect()), Utils.getY(getDataRect()) + 5, x2 - x1 <= 0 ? 1 : x2 - x1,
+                        getDataRect().height - 10);
                 threadData.root = getRoot();
                 threadData.setEventListener(this);
                 threadData.draw(graphics);
@@ -248,27 +255,29 @@ public class ThreadDataFragment extends AbstractDataFragment<ThreadData> impleme
             CompletableFuture.runAsync(() -> {
                 List<ThreadData> list = new ArrayList<>() {
                 };
-                Db.getInstance().query(Sql.SYS_QUERY_THREAD_DATA, list, thread.getTid());
+                Db.getInstance().query(st -> addStatement(st), Sql.SYS_QUERY_THREAD_DATA, list, thread.getTid());
                 data = list;
                 ArrayList<FunctionBean> functionBeans = new ArrayList<>() {
                 };
-                Db.getInstance().query(Sql.SYS_GET_FUN_DATA_BY_TID, functionBeans, thread.getTid());
+                Db.getInstance()
+                    .query(st -> addStatement(st), Sql.SYS_GET_FUN_DATA_BY_TID, functionBeans, thread.getTid());
                 SwingUtilities.invokeLater(() -> {
                     isLoading = false;
                     if (!functionBeans.isEmpty()) {
-                        int maxHeight =
-                            (functionBeans.stream().mapToInt(bean -> bean.getDepth()).max().getAsInt() + 1) * 20;
-                        FunctionDataFragment functionDataFragment =
-                            new FunctionDataFragment(this.getRoot(), functionBeans);
-                        functionDataFragment.parentUuid = this.parentUuid;
-                        functionDataFragment.thread = this.thread;
-                        functionDataFragment.defaultHeight = maxHeight + 20;
-                        functionDataFragment.visible = true;
-                        if (this.getRoot() instanceof ContentPanel) {
-                            ContentPanel contentPanel = (ContentPanel) this.getRoot();
-                            int index = contentPanel.fragmentList.indexOf(this) + 1;
-                            contentPanel.addDataFragment(index, functionDataFragment);
-                            contentPanel.refresh();
+                        if (!funcLoad) {
+                            funcLoad = true;
+                            int maxHeight =
+                                (functionBeans.stream().mapToInt(bean -> bean.getDepth()).max().getAsInt() + 1) * 20;
+                            FunctionDataFragment functionDataFragment =
+                                getFunctionDataFragment(functionBeans, maxHeight);
+                            if (this.getRoot() instanceof ContentPanel) {
+                                ContentPanel contentPanel = (ContentPanel) this.getRoot();
+                                int index = contentPanel.fragmentList.indexOf(this) + 1;
+                                contentPanel.addDataFragment(index, functionDataFragment);
+                                contentPanel.refresh();
+                            }
+                        } else {
+                            repaint();
                         }
                     } else {
                         repaint();
@@ -276,8 +285,10 @@ public class ThreadDataFragment extends AbstractDataFragment<ThreadData> impleme
                     if (delayClickStartTime != null) {
                         data.stream().filter(it -> it.getStartTime() == delayClickStartTime).findFirst()
                             .ifPresent(it -> {
+                                it.setProcessName(delayClickProcessName);
                                 click(null, it);
                                 delayClickStartTime = null;
+                                delayClickProcessName = null;
                             });
                     }
                 });
@@ -287,6 +298,17 @@ public class ThreadDataFragment extends AbstractDataFragment<ThreadData> impleme
                 }
             });
         }
+    }
+
+    @NotNull
+    private FunctionDataFragment getFunctionDataFragment(ArrayList<FunctionBean> functionBeans, int maxHeight) {
+        FunctionDataFragment functionDataFragment =
+            new FunctionDataFragment(this.getRoot(), functionBeans);
+        functionDataFragment.parentUuid = this.parentUuid;
+        functionDataFragment.thread = this.thread;
+        functionDataFragment.defaultHeight = maxHeight + 20;
+        functionDataFragment.visible = true;
+        return functionDataFragment;
     }
 
     /**
@@ -335,5 +357,13 @@ public class ThreadDataFragment extends AbstractDataFragment<ThreadData> impleme
     @Override
     public void mouseMove(MouseEvent event, ThreadData data) {
         getRoot().repaint();
+    }
+
+    public String getDelayClickProcessName() {
+        return delayClickProcessName;
+    }
+
+    public void setDelayClickProcessName(String delayClickProcessName) {
+        this.delayClickProcessName = delayClickProcessName;
     }
 }

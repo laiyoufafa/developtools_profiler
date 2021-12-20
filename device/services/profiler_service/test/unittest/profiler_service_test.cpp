@@ -34,10 +34,10 @@ using namespace testing::ext;
 using ProfilerServicePtr = STD_PTR(shared, ProfilerService);
 
 namespace {
-constexpr int BATCH_SIZE = 100;
 constexpr int ROUND_COUNT = 200;
 constexpr int FETCH_DATA_DELAY_US = 100 * 1000;
 constexpr int TEST_SESSION_TIMEOUT_MS = 1000;
+constexpr int TIMEOUT_US = 3 * 1000 * 1000;
 
 class Timer {
 public:
@@ -285,7 +285,7 @@ HWTEST_F(ProfilerServiceTest, GetCapabilitiesBatchTest, TestSize.Level1)
     EXPECT_EQ(status.error_code(), grpc::StatusCode::OK);
     EXPECT_EQ(response->capabilities_size(), ProfilerCapabilityManager::GetInstance().GetCapabilities().size());
 
-    for (int i = 0; i < BATCH_SIZE; i++) {
+    for (int i = 0; i < ROUND_COUNT; i++) {
         ProfilerPluginCapability cap;
         cap.set_name("cap_" + std::to_string(i));
         EXPECT_TRUE(ProfilerCapabilityManager::GetInstance().AddCapability(cap));
@@ -300,6 +300,7 @@ HWTEST_F(ProfilerServiceTest, GetCapabilitiesBatchTest, TestSize.Level1)
     }
     auto timeCost = timer.ElapsedUs();
     printf("GetCapabilities %d time cost %ldus.\n", ROUND_COUNT, timeCost);
+    EXPECT_LE(timeCost, TIMEOUT_US);
 }
 
 /**
@@ -445,7 +446,9 @@ HWTEST_F(ProfilerServiceTest, CreateSessionBatchTest, TestSize.Level1)
         auto status = service_->CreateSession(context_.get(), &request, &response);
         EXPECT_EQ(status.error_code(), grpc::StatusCode::OK);
     }
-    printf("CreateSession %d time, cost %ldus.\n", ROUND_COUNT, timer.ElapsedUs());
+    auto timeCost = timer.ElapsedUs();
+    printf("CreateSession %d time, cost %ldus.\n", ROUND_COUNT, timeCost);
+    EXPECT_LE(timeCost, TIMEOUT_US);
 }
 
 /**
@@ -570,13 +573,17 @@ HWTEST_F(ProfilerServiceTest, DestroySessionBatchTest, TestSize.Level1)
             sessionIds.push_back(sessionId);
         }
     }
-    printf("CreateSession %d time, cost %ldus.\n", ROUND_COUNT, timer.ElapsedUs());
+    auto timeCost = timer.ElapsedUs();
+    printf("CreateSession %d time, cost %ldus.\n", ROUND_COUNT, timeCost);
+    EXPECT_LE(timeCost, TIMEOUT_US);
 
     timer.Reset();
     for (auto sessionId : sessionIds) {
         EXPECT_EQ(DestroySession(sessionId).error_code(), grpc::StatusCode::OK);
     }
-    printf("DestroySession %d time, cost %ldus.\n", ROUND_COUNT, timer.ElapsedUs());
+    timeCost = timer.ElapsedUs();
+    printf("DestroySession %d time, cost %ldus.\n", ROUND_COUNT, timeCost);
+    EXPECT_LE(timeCost, TIMEOUT_US);
 }
 
 /**
@@ -734,13 +741,17 @@ HWTEST_F(ProfilerServiceTest, StartSessionBatchTest, TestSize.Level1)
             sessionIds.push_back(sessionId);
         }
     }
-    printf("CreateSession %d time, cost %ldus.\n", ROUND_COUNT, timer.ElapsedUs());
+    auto timeCost = timer.ElapsedUs();
+    printf("CreateSession %d time, cost %ldus.\n", ROUND_COUNT, timeCost);
+    EXPECT_LE(timeCost, TIMEOUT_US);
 
     timer.Reset();
     for (auto sessionId : sessionIds) {
         EXPECT_EQ(StartSession(sessionId).error_code(), grpc::StatusCode::OK);
     }
-    printf("StartSession %d time, cost %ldus.\n", ROUND_COUNT, timer.ElapsedUs());
+    timeCost = timer.ElapsedUs();
+    printf("StartSession %d time, cost %ldus.\n", ROUND_COUNT, timeCost);
+    EXPECT_LE(timeCost, TIMEOUT_US);
 }
 
 /**
@@ -875,19 +886,25 @@ HWTEST_F(ProfilerServiceTest, StopSessionBatchTest, TestSize.Level1)
             sessionIds.push_back(sessionId);
         }
     }
-    printf("CreateSession %d time, cost %ldus.\n", ROUND_COUNT, timer.ElapsedUs());
+    auto timeCost = timer.ElapsedUs();
+    printf("CreateSession %d time, cost %ldus.\n", ROUND_COUNT, timeCost);
+    EXPECT_LE(timeCost, TIMEOUT_US);
 
     timer.Reset();
     for (auto sessionId : sessionIds) {
         EXPECT_EQ(StartSession(sessionId).error_code(), grpc::StatusCode::OK);
     }
-    printf("StartSession %d time, cost %ldus.\n", ROUND_COUNT, timer.ElapsedUs());
+    timeCost = timer.ElapsedUs();
+    printf("StartSession %d time, cost %ldus.\n", ROUND_COUNT, timeCost);
+    EXPECT_LE(timeCost, TIMEOUT_US);
 
     timer.Reset();
     for (auto sessionId : sessionIds) {
         EXPECT_EQ(StopSession(sessionId).error_code(), grpc::StatusCode::OK);
     }
-    printf("StopSession %d time, cost %ldus.\n", ROUND_COUNT, timer.ElapsedUs());
+    timeCost = timer.ElapsedUs();
+    printf("StopSession %d time, cost %ldus.\n", ROUND_COUNT, timeCost);
+    EXPECT_LE(timeCost, TIMEOUT_US);
 }
 
 /**
@@ -957,10 +974,6 @@ public:
     bool Write(const ::FetchDataResponse& msg, ::grpc::WriteOptions options) override
     {
         if (msg.plugin_data_size() > 0) {
-            printf("ServerWriter recv %d data!\n", msg.plugin_data_size());
-            for (int i = 0; i < msg.plugin_data_size(); i++) {
-                printf("data[%d] size = %zu\n", i, msg.plugin_data(i).ByteSizeLong());
-            }
             dataCount_ += msg.plugin_data_size();
         }
         return true;
@@ -1076,8 +1089,10 @@ HWTEST_F(ProfilerServiceTest, FetchDataBatchTest, TestSize.Level1)
     auto sessionCtx = service_->GetSessionContext(sessionId);
     ASSERT_NE(sessionCtx->dataRepeater, nullptr);
 
+    // 只能存入小于maxsize的数据才能确保dataProducer线程正常退出
+    int size = ProfilerService::DEFAULT_REPEATER_BUFFER_SIZE - 1;
     std::thread dataProducer([&]() {
-        for (int i = 0; i < BATCH_SIZE; i++) {
+        for (int i = 0; i < size; i++) {
             auto data = std::make_shared<ProfilerPluginData>();
             ASSERT_NE(data, nullptr);
             data->set_name(pluginInfo.name);
@@ -1085,7 +1100,18 @@ HWTEST_F(ProfilerServiceTest, FetchDataBatchTest, TestSize.Level1)
             sessionCtx->dataRepeater->PutPluginData(data);
         }
     });
+    dataProducer.join();
 
+    std::thread closeDataRepeater([&]() {
+        while (1) {
+            if (sessionCtx->dataRepeater->Size() == 0) {
+                sessionCtx->dataRepeater->Close();
+                break;
+            }
+        }
+    });
+
+    Timer timer = {};
     std::thread dataConsumer([&]() {
         FetchDataRequest request;
         request.set_session_id(sessionId);
@@ -1094,15 +1120,16 @@ HWTEST_F(ProfilerServiceTest, FetchDataBatchTest, TestSize.Level1)
         EXPECT_EQ(status.error_code(), grpc::StatusCode::OK);
     });
 
-    dataProducer.join();
-    sleep(1);
-    sessionCtx->dataRepeater->Close(); // make sure FetchData thread exit
     dataConsumer.join();
+    auto timeCost = timer.ElapsedUs();
+    printf("FetchData %d time, cost %ldus.\n", size, timeCost);
+    EXPECT_LE(timeCost, TIMEOUT_US);
 
     EXPECT_EQ(StopSession(sessionId).error_code(), grpc::StatusCode::OK);
     EXPECT_EQ(DestroySession(sessionId).error_code(), grpc::StatusCode::OK);
 
-    EXPECT_EQ(writer->GetDataCount(), BATCH_SIZE);
+    EXPECT_EQ(writer->GetDataCount(), size);
+    closeDataRepeater.join();
 }
 
 /**
@@ -1268,7 +1295,9 @@ HWTEST_F(ProfilerServiceTest, KeepSessionBatchTest, TestSize.Level1)
         auto status = service_->KeepSession(context_.get(), &request, &response);
         EXPECT_EQ(status.error_code(), grpc::StatusCode::OK);
     }
-    printf("KeepSession %d time, cost %ldus.\n", ROUND_COUNT, timer.ElapsedUs());
+    auto timeCost = timer.ElapsedUs();
+    printf("KeepSession %d time, cost %ldus.\n", ROUND_COUNT, timeCost);
+    EXPECT_LE(timeCost, TIMEOUT_US);
 
     std::this_thread::sleep_for(std::chrono::milliseconds(TEST_SESSION_TIMEOUT_MS));
     std::this_thread::sleep_for(std::chrono::milliseconds(TEST_SESSION_TIMEOUT_MS));

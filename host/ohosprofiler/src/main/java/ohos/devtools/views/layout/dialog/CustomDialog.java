@@ -24,6 +24,8 @@ import java.awt.BorderLayout;
 
 /**
  * Custom dialog
+ *
+ * @since 2021/11/22
  */
 public class CustomDialog extends DialogWrapper {
     private final JPanel fileJPanel;

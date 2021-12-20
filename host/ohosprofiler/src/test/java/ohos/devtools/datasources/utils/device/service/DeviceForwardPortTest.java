@@ -42,6 +42,7 @@ public class DeviceForwardPortTest {
         deviceIPPortInfo = new DeviceIPPortInfo();
         deviceIPPortInfo.setIp("");
         deviceIPPortInfo.setPort(5001);
+        deviceIPPortInfo.setDeviceID("1");
     }
 
     /**

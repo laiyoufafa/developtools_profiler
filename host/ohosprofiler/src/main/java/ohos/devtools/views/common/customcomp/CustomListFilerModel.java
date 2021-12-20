@@ -316,9 +316,9 @@ public class CustomListFilerModel<E> extends AbstractListModel<E> {
             defaultFilterItems = false;
             filterItems.clear();
             String term = text;
-            for (int i = 0; i < items.size(); i++) {
-                if (items.get(i).toString().indexOf(term, 0) != -1) {
-                    filterItems.add(items.get(i));
+            for (int index = 0; index < items.size(); index++) {
+                if (items.get(index).toString().indexOf(term, 0) != -1) {
+                    filterItems.add(items.get(index));
                 }
             }
         }

@@ -14,25 +14,27 @@
 set -e
 DIR=$(dirname $(realpath ${BASH_SOURCE[0]}))
 TOP=$(realpath $DIR/../../..)
-HOST_OUT=$TOP/hos/out/hos-arm/clang_x64
-if [ ! -e "$HOST_OUT" ]; then
-    HOST_OUT=$TOP/out/ohos-arm-release/clang_x64
-fi
 
+HOST_OUT=$TOP/out/ohos-arm-release/
+PREFIX=$TOP/developtools/profiler
+TEST_OUT=$TOP
+mkdir -p $TEST_OUT
 
 # collect and convert all gcno and gcda to test.info
-lcov -c -d $HOST_OUT -o test.info --gcov-tool $DIR/gcov.sh
+lcov -c -d $HOST_OUT -o $TEST_OUT/profiler_ut_coverage.info --gcov-tool $DIR/gcov.sh
 if [ $? -ne 0 ]; then
     echo "Install lcov: sudo apt install lcov"
 fi
 
 # filter out system headers
-lcov -r test.info \
+lcov -r profiler_ut_coverage.info \
     '/usr/include/*' \
-    '*/hos/out/*' \
-    '*/hos/third_party/*' \
-    '*/third_party/grpc/*' \
-    -o test.info
+    '*/out/*' \
+    '*/third_party/*' \
+    '*/test/unittest/*' \
+    '*.pb.h' \
+    '*v1/*' \
+    -o profiler_ut_coverage.info
 
 # generate html report
-genhtml -o html test.info
+genhtml --demangle-cpp -o $TEST_OUT/html $TEST_OUT/profiler_ut_coverage.info --prefix $PREFIX

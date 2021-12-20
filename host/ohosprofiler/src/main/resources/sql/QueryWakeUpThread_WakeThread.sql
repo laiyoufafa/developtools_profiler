@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 select TB.tid,TB.name as thread ,TA.cpu,TC.pid,TC.name as process
 from sched TA
 left join internal_thread TB on TA.utid = TB.id

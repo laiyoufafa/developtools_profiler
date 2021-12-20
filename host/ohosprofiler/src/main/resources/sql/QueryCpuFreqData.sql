@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 select cpu,value,ts-tb.start_ts as startNS
 from counter c ,trace_bounds tb
 inner join cpu_counter_track t on c.track_id = t.id

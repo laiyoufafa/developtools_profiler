@@ -29,11 +29,13 @@ import java.awt.image.BufferedImage;
 class DistributedTimeShaftTest {
     DistributedTimeShaft timeShaft = new DistributedTimeShaft(new ITimeRange() {
         @Override
-        public void change(long startNS, long endNS, long scale) {}
+        public void change(long startNS, long endNS, long scale) {
+            long res = startNS + endNS;
+        }
     }, keyEvent -> {
         keyEvent.getKeyCode();
     }, event -> {
-        event.getX();
+        event.getID();
     });
 
     @Test

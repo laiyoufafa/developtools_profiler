@@ -27,7 +27,7 @@ import static org.junit.Assert.assertNotNull;
 /**
  * test AbstractFragment class .
  *
- * @since 2021/4/24 17:53
+ * @date 2021/4/24 17:53
  */
 class AbstractFragmentTest {
     /**

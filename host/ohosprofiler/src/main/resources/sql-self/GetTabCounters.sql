@@ -12,9 +12,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 select t1.filter_id as trackId,t2.name,value, t1.ts - t3.start_ts as startTime
 from measure t1
 left join process_measure_filter t2 on t1.filter_id = t2.id
-left join trace_range t3 where filter_id in (%s)
+left join trace_section t3 where filter_id in (%s)
 and startTime <= %d
 order by startTime asc;

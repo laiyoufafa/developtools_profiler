@@ -25,6 +25,7 @@ import ohos.devtools.datasources.utils.profilerlog.ProfilerLogManager;
 import ohos.devtools.datasources.utils.session.service.SessionManager;
 import ohos.devtools.views.layout.chartview.ProfilerMonitorItem;
 import org.apache.commons.collections.map.MultiValueMap;
+import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -34,17 +35,26 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
  * PlugManager
+ *
+ * @since 2021/5/20
  */
 public class PlugManager {
     private static final Logger LOGGER = LogManager.getLogger(PlugManager.class);
     private static volatile PlugManager singleton;
+
     private final MultiValueMap profilerConfigMap = new MultiValueMap();
     private final List<PluginConf> confLists = new ArrayList<>();
+    private String systemOsName = "";
+
+    private PlugManager() {
+    }
 
     /**
      * getInstance
@@ -62,11 +72,8 @@ public class PlugManager {
         return singleton;
     }
 
-    private PlugManager() {
-    }
-
     /**
-     * get PluginConfig
+     * get Plugin Config
      *
      * @param deviceType deviceType
      * @param pluginMode pluginMode
@@ -80,11 +87,14 @@ public class PlugManager {
         List<PluginConf> collect;
         if (Objects.nonNull(analysisType)) {
             collect = confLists.stream().filter(pluginConf -> pluginConf.getAnalysisTypes().contains(analysisType))
-                    .collect(Collectors.toList());
+                .collect(Collectors.toList());
         } else {
             collect = confLists;
         }
         if (Objects.isNull(pluginMode)) {
+            if (Objects.isNull(deviceType)) {
+                return collect;
+            }
             return collect.stream().filter(hiProfilerPluginConf -> {
                 List<DeviceType> supportDeviceTypes = hiProfilerPluginConf.getSupportDeviceTypes();
                 if (supportDeviceTypes.isEmpty()) {
@@ -122,10 +132,8 @@ public class PlugManager {
                         config = pluginConfigPackage.getConstructor().newInstance();
                         config.registerPlugin();
                     }
-                } catch (InstantiationException |
-                    IllegalAccessException |
-                    InvocationTargetException |
-                    NoSuchMethodException exception) {
+                } catch (InstantiationException | IllegalAccessException
+                    | InvocationTargetException | NoSuchMethodException exception) {
                     if (ProfilerLogManager.isErrorEnabled()) {
                         LOGGER.error("loadingPlugs exception {}", exception.getMessage());
                     }
@@ -150,10 +158,8 @@ public class PlugManager {
                 config = pluginConfig.getConstructor().newInstance();
                 config.registerPlugin();
             }
-        } catch (InstantiationException |
-            IllegalAccessException |
-            InvocationTargetException |
-            NoSuchMethodException exception) {
+        } catch (InstantiationException | IllegalAccessException
+            | InvocationTargetException | NoSuchMethodException exception) {
             if (ProfilerLogManager.isErrorEnabled()) {
                 LOGGER.error("loadingPlug exception {}", exception.getMessage());
             }
@@ -232,6 +238,24 @@ public class PlugManager {
     }
 
     /**
+     * getPluginConfigByName
+     *
+     * @param configFileName configFileName
+     * @return Optional<PluginConf
+     */
+    public Optional<PluginConf> getPluginConfigByName(String configFileName) {
+        if (StringUtils.isNotBlank(configFileName)) {
+            List<PluginConf> collect =
+                confLists.stream().filter(pluginConf -> pluginConf.getPluginFileName().equals(configFileName))
+                    .collect(Collectors.toList());
+            if (!collect.isEmpty()) {
+                return Optional.ofNullable(collect.get(0));
+            }
+        }
+        return Optional.empty();
+    }
+
+    /**
      * unzip StdDevelopTools
      *
      * @return boolean
@@ -246,6 +270,18 @@ public class PlugManager {
             return FileUtils.unzipTarFile(stdFile).size() > 0;
         }
         return false;
+    }
+
+    /**
+     * getSystemOsName
+     *
+     * @return String
+     */
+    public String getSystemOsName() {
+        if (StringUtils.isBlank(systemOsName)) {
+            systemOsName = System.getProperty("os.name").toLowerCase(Locale.ENGLISH);
+        }
+        return systemOsName;
     }
 
     /**

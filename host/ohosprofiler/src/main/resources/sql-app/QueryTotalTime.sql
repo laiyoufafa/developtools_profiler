@@ -12,4 +12,5 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 select start_ts,end_ts,end_ts-start_ts as total from trace_bounds;

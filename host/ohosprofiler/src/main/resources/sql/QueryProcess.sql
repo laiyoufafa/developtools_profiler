@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 select
       distinct process.pid as pid,
       process.name as processName

@@ -31,7 +31,7 @@ import java.util.List;
 /**
  * cpu data
  *
- * @since : 2021/5/14 15:52
+ * @since 2021/5/14 15:52
  */
 public class Cpu extends AbstractNode {
     private ArrayList<Integer> stats = new ArrayList<>();

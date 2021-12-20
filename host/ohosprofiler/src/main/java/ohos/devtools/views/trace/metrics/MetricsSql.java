@@ -18,6 +18,7 @@ package ohos.devtools.views.trace.metrics;
 /**
  * sql text file path
  *
+ * @since 2021/9/16
  */
 public enum MetricsSql {
     DISTRIBUTED_TERM("distributed_term"),

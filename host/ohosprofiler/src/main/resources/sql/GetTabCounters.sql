@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 select t1.track_id as trackId,t2.name,value, t1.ts - t3.start_ts as startTime
 from counter t1
 left join process_counter_track t2 on t1.track_id = t2.id

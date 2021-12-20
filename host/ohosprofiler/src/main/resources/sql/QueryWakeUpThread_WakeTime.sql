@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 select * from
     ( select ts as wakeTs,start_ts from instants,trace_bounds
        where name = 'sched_waking'

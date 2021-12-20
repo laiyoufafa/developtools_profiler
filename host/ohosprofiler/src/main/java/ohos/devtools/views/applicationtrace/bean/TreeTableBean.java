@@ -26,10 +26,10 @@ import ohos.devtools.views.trace.Common;
 import ohos.devtools.views.trace.util.Final;
 import ohos.devtools.views.trace.util.Utils;
 
+import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
-import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -37,6 +37,7 @@ import java.util.List;
 /**
  * TreeTableBean
  *
+ * @since 2021/5/26 15:38
  */
 public class TreeTableBean extends AbstractNode {
     /**
@@ -53,18 +54,20 @@ public class TreeTableBean extends AbstractNode {
     private String name;
     private String total;
     private long totalNum = 0L;
-    private double totalPercentNum = 0;
+    private double totalPercentNum = 0D;
     private long selfNum = 0L;
     private String selfPercent = "0";
-    private double selfPercentNum = 0;
+    private double selfPercentNum = 0D;
     private long childrenNum = 0L;
-    private double childrenPercentNum = 0;
+    private double childrenPercentNum = 0D;
     private long childrenNS;
     private String childrenPercent;
     private boolean isUserWrite = false;
     private int containType = 0; // 0 OK 1 There are keywords 2 children there are keywords 3 there are no keywords
     private List<Integer> childrens = new ArrayList<>();
     private long threadDur = 0L;
+    private String bloodId = "";
+    private String parentBloodId = "";
 
     /**
      * constructor
@@ -89,8 +92,8 @@ public class TreeTableBean extends AbstractNode {
      */
     public void setTime(TreeTableBean timeBean) {
         setTotalNum(timeBean.getTotalNum());
-        setSelfNum(timeBean.getTotalNum());
-        setChildrenNum(timeBean.getSelfNum());
+        setSelfNum(0);
+        setChildrenNum(timeBean.getTotalNum());
     }
 
     /**
@@ -100,8 +103,8 @@ public class TreeTableBean extends AbstractNode {
      */
     public void mergeTime(TreeTableBean timeBean) {
         setTotalNum(getTotalNum() + timeBean.getTotalNum());
-        setSelfNum(getSelfNum() + timeBean.getTotalNum());
-        setChildrenNum(getChildrenNum() + timeBean.getSelfNum());
+        setSelfNum(getSelfNum() + timeBean.getSelfNum());
+        setChildrenNum(getChildrenNum() + timeBean.getChildrenNum());
     }
 
     /**
@@ -482,5 +485,41 @@ public class TreeTableBean extends AbstractNode {
             "",
             "Total: " + TimeUtils.getTimeWithUnit(totalNum * 1000)
         );
+    }
+
+    /**
+     * get BloodId
+     *
+     * @return BloodId
+     */
+    public String getBloodId() {
+        return bloodId;
+    }
+
+    /**
+     * set BloodId
+     *
+     * @param bloodId bloodId
+     */
+    public void setBloodId(String bloodId) {
+        this.bloodId = bloodId;
+    }
+
+    /**
+     * get parentBloodId
+     *
+     * @return parentBloodId
+     */
+    public String getParentBloodId() {
+        return parentBloodId;
+    }
+
+    /**
+     * set BloodId
+     *
+     * @param parentBloodId parentBloodId
+     */
+    public void setParentBloodId(String parentBloodId) {
+        this.parentBloodId = parentBloodId;
     }
 }

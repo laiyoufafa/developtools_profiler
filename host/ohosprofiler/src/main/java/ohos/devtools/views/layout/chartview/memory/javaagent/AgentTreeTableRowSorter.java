@@ -107,9 +107,8 @@ public class AgentTreeTableRowSorter<M extends TableModel> extends DefaultRowSor
             LOGGER.info("sortDescTree");
         }
         Comparator<AgentHeapBean> comparator = chooseCompare(name);
-        List<AgentHeapBean> agentDatas =
-            agentDataNodes.getAllAgentDatas().stream().sorted(comparator).collect(Collectors.toList());
-        agentDataNodes.setAllAgentDatas(agentDatas);
+        agentDataNodes.setAllAgentDatas(
+            agentDataNodes.getAllAgentDatas().stream().sorted(comparator).collect(Collectors.toList()));
         DefaultMutableTreeNode root = null;
         Object columnsRoot = listTreeTableModelOnColumns.getRoot();
         if (columnsRoot instanceof DefaultMutableTreeNode) {
@@ -141,9 +140,8 @@ public class AgentTreeTableRowSorter<M extends TableModel> extends DefaultRowSor
             LOGGER.info("sortTree");
         }
         Comparator<AgentHeapBean> comparator = chooseCompare(name);
-        List<AgentHeapBean> allAgentDatas =
-            agentDataNodes.getAllAgentDatas().stream().sorted(comparator.reversed()).collect(Collectors.toList());
-        agentDataNodes.setAllAgentDatas(allAgentDatas);
+        agentDataNodes.setAllAgentDatas(
+            agentDataNodes.getAllAgentDatas().stream().sorted(comparator.reversed()).collect(Collectors.toList()));
         DefaultMutableTreeNode root = null;
         Object columnsRoot = listTreeTableModelOnColumns.getRoot();
         if (columnsRoot instanceof DefaultMutableTreeNode) {
@@ -168,25 +166,30 @@ public class AgentTreeTableRowSorter<M extends TableModel> extends DefaultRowSor
         }
         Comparator<AgentHeapBean> agentDataNodeComparator = null;
         switch (name) {
-            case "Allocations":
+            case "Allocations": {
                 agentDataNodeComparator = (previousNode, lastNode) -> Integer
                     .compare(previousNode.getAgentAllocationsCount(), lastNode.getAgentAllocationsCount());
                 break;
-            case "Deallocations":
+            }
+            case "Deallocations": {
                 agentDataNodeComparator = (previousNode, lastNode) -> Integer
                     .compare(previousNode.getAgentDeAllocationsCount(), lastNode.getAgentDeAllocationsCount());
                 break;
-            case "Total Count"
-                : agentDataNodeComparator = (previousNode, lastNode) -> Integer
+            }
+            case "Total Count": {
+                agentDataNodeComparator = (previousNode, lastNode) -> Integer
                     .compare(previousNode.getAgentTotalInstanceCount(), lastNode.getAgentTotalInstanceCount());
                 break;
-            case "Shallow Size"
-                : agentDataNodeComparator = (previousNode, lastNode) -> Long
+            }
+            case "Shallow Size": {
+                agentDataNodeComparator = (previousNode, lastNode) -> Long
                     .compare(previousNode.getAgentTotalshallowSize(), lastNode.getAgentTotalshallowSize());
                 break;
-            default:
-                agentDataNodeComparator = (previousNode, lastNode) -> previousNode.toString()
-                    .compareTo(lastNode.toString());
+            }
+            default: {
+                agentDataNodeComparator =
+                    (previousNode, lastNode) -> previousNode.toString().compareTo(lastNode.toString());
+            }
         }
         return agentDataNodeComparator;
     }

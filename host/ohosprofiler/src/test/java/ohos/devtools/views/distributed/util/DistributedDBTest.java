@@ -31,6 +31,7 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -222,10 +223,10 @@ class DistributedDBTest {
     void freeANew() {
         DistributedDB.load(true);
         DistributedDB instance = DistributedDB.getInstance();
-        Connection connB = createNewConnection(dbAPath);
-        if (connB != null) {
-            instance.freeA(connB);
-            assertNotNull(connB);
+        Optional<Connection> connB = createNewConnection(dbAPath);
+        if (connB.isPresent()) {
+            instance.freeA(connB.get());
+            assertNotNull(connB.get());
         }
     }
 
@@ -244,10 +245,10 @@ class DistributedDBTest {
     void freeANewPutTake() {
         DistributedDB.load(true);
         DistributedDB instance = DistributedDB.getInstance();
-        Connection connA = createNewConnection(dbAPath);
-        if (connA != null) {
-            instance.freeA(connA);
-            assertNotNull(connA);
+        Optional<Connection> connA = createNewConnection(dbAPath);
+        if (connA.isPresent()) {
+            instance.freeA(connA.get());
+            assertNotNull(connA.get());
             Connection connAagain = instance.getConnA();
             instance.freeA(connAagain);
             assertNotNull(connAagain);
@@ -276,10 +277,10 @@ class DistributedDBTest {
     void freeBNew() {
         DistributedDB.load(true);
         DistributedDB instance = DistributedDB.getInstance();
-        Connection connB = createNewConnection(dbBPath);
-        if (connB != null) {
-            instance.freeB(connB);
-            assertNotNull(connB);
+        Optional<Connection> connB = createNewConnection(dbBPath);
+        if (connB.isPresent()) {
+            instance.freeB(connB.get());
+            assertNotNull(connB.get());
         }
     }
 
@@ -299,10 +300,10 @@ class DistributedDBTest {
     void freeBNewPutTake() {
         DistributedDB.load(true);
         DistributedDB instance = DistributedDB.getInstance();
-        Connection connB = createNewConnection(dbBPath);
-        if (connB != null) {
-            instance.freeA(connB);
-            assertNotNull(connB);
+        Optional<Connection> connB = createNewConnection(dbBPath);
+        if (connB.isPresent()) {
+            instance.freeA(connB.get());
+            assertNotNull(connB.get());
             Connection connBagain = instance.getConnB();
             instance.freeA(connBagain);
             assertNotNull(connBagain);
@@ -411,20 +412,13 @@ class DistributedDBTest {
         assertNotNull(list);
     }
 
-    private Connection createNewConnection(String path) {
-        Connection conn = null;
+    private Optional<Connection> createNewConnection(String path) {
         try {
-            conn = DriverManager.getConnection("jdbc:sqlite:" + path);
+            return Optional.ofNullable(DriverManager.getConnection("jdbc:sqlite:" + path));
         } catch (SQLException exception) {
             exception.printStackTrace();
-        } finally {
-            try {
-                conn.close();
-            } catch (SQLException throwables) {
-                throwables.printStackTrace();
-            }
         }
-        return conn;
+        return Optional.empty();
     }
 
     @AfterAll

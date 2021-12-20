@@ -48,6 +48,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * AbstractRow
  *
+ * @since 2021/5/20 15:50
  */
 public abstract class AbstractRow extends JBPanel {
     /**
@@ -232,10 +233,10 @@ public abstract class AbstractRow extends JBPanel {
         if (Objects.nonNull(finish)) {
             addComponentListener(new ComponentAdapter() {
                 @Override
-                public void componentResized(ComponentEvent componentEvent) {
-                    super.componentResized(componentEvent);
-                    if (defHeight != componentEvent.getComponent().getBounds().height) {
-                        finish.consume(componentEvent.getComponent().getBounds());
+                public void componentResized(ComponentEvent event) {
+                    super.componentResized(event);
+                    if (defHeight != event.getComponent().getBounds().height) {
+                        finish.consume(event.getComponent().getBounds());
                     }
                 }
             });

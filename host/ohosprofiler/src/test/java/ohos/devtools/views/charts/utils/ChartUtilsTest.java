@@ -22,16 +22,18 @@ import java.math.BigDecimal;
 
 /**
  * Test class of Chart-related tool classes
+ *
+ * @since 2021/2/1 9:31
  */
 public class ChartUtilsTest {
     private static final int[] TEST_ARRAY = {0, 10, 14, 24, 29, 32, 37, 40, 45};
     private static final int SEARCH_VALUE = 34;
     private static final int EXPECT_VALUE = 5;
-    private static final double TEST_NUM1 = 23.51D;
+    private static final int TEST_NUM1 = 23;
     private static final int TEST_NUM2 = 4;
     private static final int MULTIPLY_RESULT_INT = 94;
     private static final int DIVIDE_RESULT_INT = 5;
-    private static final long TEST_MS = 32349;
+    private static final long TEST_MS = 32349L;
     private static final String FORMAT_RESULT = "00:32:349 ";
 
     /**

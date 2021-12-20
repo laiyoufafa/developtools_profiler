@@ -15,6 +15,7 @@
 
 package ohos.devtools.views.trace.bean;
 
+import com.intellij.ui.JBColor;
 import ohos.devtools.views.trace.DField;
 import ohos.devtools.views.trace.component.AnalystPanel;
 import ohos.devtools.views.trace.fragment.graph.AbstractGraph;
@@ -24,7 +25,9 @@ import ohos.devtools.views.trace.util.Utils;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
+import java.awt.RenderingHints;
 import java.awt.event.MouseEvent;
+import java.util.Locale;
 
 /**
  * Method entity class
@@ -56,10 +59,31 @@ public class FunctionBean extends AbstractGraph {
     @DField(name = "depth")
     private Integer depth;
 
+    @DField(name = "argsetid")
+    private Integer argSetId;
+
     private String category;
 
     private boolean isSelected; // Whether to be selected
     private IEventListener eventListener;
+
+    /**
+     * Gets the value of argSetId .
+     *
+     * @return the value of int
+     */
+    public Integer getArgSetId() {
+        return argSetId;
+    }
+
+    /**
+     * Sets the argSetId .You can use getArgSetId() to get the value of argSetId
+     *
+     * @param argSetId argSetId
+     */
+    public void setArgSetId(Integer argSetId) {
+        this.argSetId = argSetId;
+    }
 
     /**
      * Gets the value of tid .
@@ -253,20 +277,56 @@ public class FunctionBean extends AbstractGraph {
      */
     @Override
     public void draw(final Graphics2D graphics) {
-        if (isSelected) {
-            graphics.setColor(Color.black);
-            graphics.fillRect(Utils.getX(rect), Utils.getY(rect), rect.width, rect.height);
-            graphics.setColor(ColorUtils.FUNC_COLOR[depth % ColorUtils.FUNC_COLOR.length]);
-            graphics.fillRect(Utils.getX(rect) + 1, Utils.getY(rect) + 1, rect.width - 2, rect.height - 2);
-            graphics.setColor(Color.white);
-            Rectangle rectangle = new Rectangle();
-            rectangle.setRect(rect.getX() + 1, rect.getY() + 1, rect.getWidth() - 2, rect.getHeight() - 2);
-            drawString(graphics, rectangle, funName, Placement.CENTER_LINE);
+        if ((duration == null || duration == 0)) {
+            if (isBinder()) {
+                int pointX = Utils.getX(rect);
+                int pointY = Utils.getY(rect);
+                graphics.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+                graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                final int[] xArray;
+                final int[] yArray;
+                if (isSelected) {
+                    xArray = new int[] {pointX, pointX + 8, pointX, pointX - 8};
+                    yArray = new int[] {pointY - 2, pointY - 2 + 24, pointY - 2 + 16, pointY - 2 + 24};
+                    graphics.setColor(JBColor.foreground().brighter());
+                } else {
+                    xArray = new int[] {pointX, pointX + 6, pointX, pointX - 6};
+                    yArray = new int[] {pointY, pointY + 20, pointY + 14, pointY + 20};
+                    graphics.setColor(JBColor.foreground().darker());
+                }
+                graphics.fillPolygon(xArray, yArray, xArray.length);
+                rect.width = 8;
+            }
         } else {
-            graphics.setColor(ColorUtils.FUNC_COLOR[depth % ColorUtils.FUNC_COLOR.length]);
-            graphics.fillRect(Utils.getX(rect), Utils.getY(rect), rect.width, rect.height);
-            graphics.setColor(Color.white);
-            drawString(graphics, rect, funName, Placement.CENTER_LINE);
+            if (isSelected) {
+                graphics.setColor(Color.black);
+                graphics.fillRect(Utils.getX(rect), Utils.getY(rect), rect.width, rect.height);
+                graphics.setColor(ColorUtils.FUNC_COLOR[depth % ColorUtils.FUNC_COLOR.length]);
+                graphics.fillRect(Utils.getX(rect) + 1, Utils.getY(rect) + 1, rect.width - 2, rect.height - 2);
+                graphics.setColor(Color.white);
+                Rectangle rectangle = new Rectangle();
+                rectangle.setRect(rect.getX() + 1, rect.getY() + 1, rect.getWidth() - 2, rect.getHeight() - 2);
+                drawString(graphics, rectangle, funName, Placement.CENTER_LINE);
+            } else {
+                graphics.setColor(ColorUtils.FUNC_COLOR[depth % ColorUtils.FUNC_COLOR.length]);
+                graphics.fillRect(Utils.getX(rect), Utils.getY(rect), rect.width, rect.height);
+                graphics.setColor(Color.white);
+                drawString(graphics, rect, funName, Placement.CENTER_LINE);
+            }
+        }
+    }
+
+    /**
+     * is binder
+     *
+     * @return the value of boolean
+     */
+    public boolean isBinder() {
+        if (funName != null && (funName.toLowerCase(Locale.ENGLISH).startsWith("binder transaction") || funName
+            .toLowerCase(Locale.ENGLISH).startsWith("binder async"))) {
+            return true;
+        } else {
+            return false;
         }
     }
 

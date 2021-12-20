@@ -26,6 +26,8 @@ group("hiprofiler_targets") {
     "plugins/hilog_plugin:hilogplugin",
     "plugins/memory_plugin:memdataplugin",
     "plugins/memory_plugin:memorytest",
+    "plugins/native_hook:nativetest_c",
+    "plugins/native_hook:nativetest_cpp",
     "plugins/network_plugin:networkplugin",
     "plugins/process_plugin:processplugin",
     "plugins/sample_plugin:sampleplugin",
@@ -33,12 +35,23 @@ group("hiprofiler_targets") {
     "services/profiler_service:hiprofilerd",
     "services/shared_memory:shared_memory",
   ]
+
+  # do not build native hook target
+  # if (is_ohos && target_cpu == "arm") {
+  if (false) {
+    deps += [
+      "plugins/native_daemon:native_daemon",
+      "plugins/native_hook:native_hook",
+      "plugins/native_hook:perf_test_data",
+    ]
+  }
 }
 
 group("unittest") {
   testonly = true
   deps = [
     "base/test:unittest",
+    "cmds/test:unittest",
     "plugins/api/test:unittest",
     "plugins/cpu_plugin/test:unittest",
     "plugins/diskio_plugin/test:unittest",
@@ -51,6 +64,15 @@ group("unittest") {
     "services/profiler_service/test:unittest",
     "services/shared_memory/test:unittest",
   ]
+
+  # do not build native hook target
+  # if (is_ohos && target_cpu == "arm") {
+  if (false) {
+    deps += [
+      "plugins/native_daemon/test:unittest",
+      "plugins/native_hook/test:unittest",
+    ]
+  }
 }
 
 group("fuzztest") {

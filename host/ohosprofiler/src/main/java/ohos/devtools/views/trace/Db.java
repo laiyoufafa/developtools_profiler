@@ -51,6 +51,7 @@ public final class Db {
     private static boolean isLocal;
     private static volatile Db db = new Db();
     private static String dbName = "trace.db";
+
     private final String[] units = new String[] {"", "K", "M", "G", "T", "E"};
     private LinkedBlockingQueue<Connection> pool = new LinkedBlockingQueue<>();
 
@@ -139,12 +140,7 @@ public final class Db {
         String tmp = Final.IS_RESOURCE_SQL ? "-self/" : "/";
         String path = "sql-app" + tmp + sqlName + ".sql";
         try (InputStream STREAM = DataUtils.class.getClassLoader().getResourceAsStream(path)) {
-            String sqlFile = IOUtils.toString(STREAM, Charset.forName("UTF-8"));
-            if (sqlFile.startsWith("/*")) {
-                return sqlFile.trim().substring(sqlFile.indexOf("*/") + 2);
-            } else {
-                return IOUtils.toString(STREAM, Charset.forName("UTF-8"));
-            }
+            return IOUtils.toString(STREAM, Charset.forName("UTF-8")).replaceAll("/\\*[\\s\\S]*?\\*/", "");
         } catch (IOException exception) {
             exception.printStackTrace();
         }
@@ -162,11 +158,6 @@ public final class Db {
             connection = pool.take();
         } catch (InterruptedException exception) {
             exception.printStackTrace();
-            try {
-                connection.close();
-            } catch (SQLException sqlException) {
-                sqlException.getMessage();
-            }
         }
         return connection;
     }
@@ -195,11 +186,6 @@ public final class Db {
             }
         } catch (SQLException exception) {
             exception.printStackTrace();
-            try {
-                conn.close();
-            } catch (SQLException sqlException) {
-                sqlException.getMessage();
-            }
         }
         return Optional.ofNullable(conn);
     }
@@ -294,8 +280,8 @@ public final class Db {
                 }
                 res.add(data);
             }
-        } catch (ClassNotFoundException | SQLException | InstantiationException
-            | IllegalAccessException | InvocationTargetException | NoSuchMethodException exception) {
+        } catch (ClassNotFoundException | SQLException | InstantiationException | IllegalAccessException
+            | InvocationTargetException | NoSuchMethodException exception) {
             exception.printStackTrace();
         } finally {
             release(rs, stat, conn);

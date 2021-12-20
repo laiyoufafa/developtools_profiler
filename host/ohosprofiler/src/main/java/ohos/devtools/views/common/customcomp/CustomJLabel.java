@@ -31,6 +31,7 @@ public class CustomJLabel extends JBLabel {
     private long endTime;
     private CustomJLabel left;
     private String fileType;
+    private String cardName;
 
     /**
      * isOnline
@@ -229,6 +230,24 @@ public class CustomJLabel extends JBLabel {
     }
 
     /**
+     * getCardName
+     *
+     * @return cardName
+     */
+    public String getCardName() {
+        return cardName;
+    }
+
+    /**
+     * setCardName
+     *
+     * @param cardName cardName
+     */
+    public void setCardName(String cardName) {
+        this.cardName = cardName;
+    }
+
+    /**
      * toString
      *
      * @return String
@@ -238,6 +257,6 @@ public class CustomJLabel extends JBLabel {
         return "CustomJLabel{" + "sessionId=" + sessionId + ", deviceName='" + deviceName + '\'' + ", processName='"
             + processName + '\'' + ", message='" + message + '\'' + ", connectType='" + connectType + '\''
             + ", isOnline=" + isOnline + ", startTime=" + startTime + ", endTime=" + endTime + ", left=" + left
-            + ", fileType='" + fileType + '\'' + '}';
+            + ", fileType='" + fileType + '\'' + ", cardName='" + cardName + '\'' + '}';
     }
 }

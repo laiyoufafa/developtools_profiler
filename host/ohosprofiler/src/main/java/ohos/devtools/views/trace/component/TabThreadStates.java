@@ -88,7 +88,7 @@ public class TabThreadStates extends JBPanel {
                 Db.getInstance().query(Sql.SYS_GET_TAB_THREAD_STATES, result, buffer.toString(), leftNs, rightNs);
                 SwingUtilities.invokeLater(() -> {
                     if (result != null && result.size() > 0) {
-                        long sumWall = 0;
+                        long sumWall = 0L;
                         int sumOcc = 0;
                         for (TabThreadStatesBean bean : result) {
                             sumWall += bean.getWallDuration();

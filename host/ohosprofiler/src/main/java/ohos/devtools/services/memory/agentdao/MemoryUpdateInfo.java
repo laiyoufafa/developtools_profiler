@@ -25,6 +25,7 @@ import java.util.Objects;
  */
 public class MemoryUpdateInfo implements Serializable {
     private static final long serialVersionUID = 1679168310864454754L;
+
     private long updateTime;
     private long instanceId;
 

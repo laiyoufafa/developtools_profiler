@@ -16,9 +16,6 @@
 package ohos.devtools.views.layout.utils;
 
 import com.alibaba.fastjson.JSONObject;
-import com.huawei.deveco.common.trace.HarmonyCustomTopic;
-import com.huawei.deveco.common.trace.TraceDataBean;
-import com.huawei.deveco.common.trace.TraceUtil;
 
 /**
  * EventTrackUtils
@@ -79,8 +76,6 @@ public class EventTrackUtils {
         trackJson.put(JSON_TRIGGER_TIME_STR, System.currentTimeMillis());
         trackJson.put(JSON_EVENT_NAME_STR, EVENT_WELCOME_PAGE);
         String trackDetail = trackJson.toJSONString();
-        TraceDataBean traceData = new TraceDataBean(SID, "", ACTION_HOME, trackDetail);
-        TraceUtil.trace(traceData, HarmonyCustomTopic.topic);
     }
 
     /**
@@ -91,8 +86,6 @@ public class EventTrackUtils {
         trackJson.put(JSON_TRIGGER_TIME_STR, System.currentTimeMillis());
         trackJson.put(JSON_EVENT_NAME_STR, EVENT_TASK_PAGE);
         String trackDetail = trackJson.toJSONString();
-        TraceDataBean traceData = new TraceDataBean(SID, "", ACTION_HOME, trackDetail);
-        TraceUtil.trace(traceData, HarmonyCustomTopic.topic);
     }
 
     /**
@@ -103,8 +96,6 @@ public class EventTrackUtils {
         trackJson.put(JSON_TRIGGER_TIME_STR, System.currentTimeMillis());
         trackJson.put(JSON_EVENT_NAME_STR, EVENT_LOG_PAGE);
         String trackDetail = trackJson.toJSONString();
-        TraceDataBean traceData = new TraceDataBean(SID, "", ACTION_HOME, trackDetail);
-        TraceUtil.trace(traceData, HarmonyCustomTopic.topic);
     }
 
     /**
@@ -115,8 +106,6 @@ public class EventTrackUtils {
         trackJson.put(JSON_TRIGGER_TIME_STR, System.currentTimeMillis());
         trackJson.put(JSON_EVENT_NAME_STR, EVENT_LOG_SWITCH);
         String trackDetail = trackJson.toJSONString();
-        TraceDataBean traceData = new TraceDataBean(SID, "", ACTION_HOME, trackDetail);
-        TraceUtil.trace(traceData, HarmonyCustomTopic.topic);
     }
 
     /**
@@ -127,8 +116,6 @@ public class EventTrackUtils {
         trackJson.put(JSON_TRIGGER_TIME_STR, System.currentTimeMillis());
         trackJson.put(JSON_EVENT_NAME_STR, EVENT_HELP);
         String trackDetail = trackJson.toJSONString();
-        TraceDataBean traceData = new TraceDataBean(SID, "", ACTION_HOME, trackDetail);
-        TraceUtil.trace(traceData, HarmonyCustomTopic.topic);
     }
 
     /**
@@ -139,8 +126,6 @@ public class EventTrackUtils {
         trackJson.put(JSON_TRIGGER_TIME_STR, System.currentTimeMillis());
         trackJson.put(JSON_EVENT_NAME_STR, EVENT_APPLICATION_CONFIG_PAGE);
         String trackDetail = trackJson.toJSONString();
-        TraceDataBean traceData = new TraceDataBean(SID, "", ACTION_HOME_APPLICATION, trackDetail);
-        TraceUtil.trace(traceData, HarmonyCustomTopic.topic);
     }
 
     /**
@@ -151,8 +136,6 @@ public class EventTrackUtils {
         trackJson.put(JSON_TRIGGER_TIME_STR, System.currentTimeMillis());
         trackJson.put(JSON_EVENT_NAME_STR, EVENT_APPLICATION_CHART_PAGE);
         String trackDetail = trackJson.toJSONString();
-        TraceDataBean traceData = new TraceDataBean(SID, "", ACTION_HOME_APPLICATION, trackDetail);
-        TraceUtil.trace(traceData, HarmonyCustomTopic.topic);
     }
 
     /**
@@ -163,8 +146,6 @@ public class EventTrackUtils {
         trackJson.put(JSON_TRIGGER_TIME_STR, System.currentTimeMillis());
         trackJson.put(JSON_EVENT_NAME_STR, EVENT_APPLICATION_CPU);
         String trackDetail = trackJson.toJSONString();
-        TraceDataBean traceData = new TraceDataBean(SID, "", ACTION_HOME_APPLICATION, trackDetail);
-        TraceUtil.trace(traceData, HarmonyCustomTopic.topic);
     }
 
     /**
@@ -175,8 +156,6 @@ public class EventTrackUtils {
         trackJson.put(JSON_TRIGGER_TIME_STR, System.currentTimeMillis());
         trackJson.put(JSON_EVENT_NAME_STR, EVENT_APPLICATION_TRACE);
         String trackDetail = trackJson.toJSONString();
-        TraceDataBean traceData = new TraceDataBean(SID, "", ACTION_HOME_APPLICATION, trackDetail);
-        TraceUtil.trace(traceData, HarmonyCustomTopic.topic);
     }
 
     /**
@@ -187,8 +166,6 @@ public class EventTrackUtils {
         trackJson.put(JSON_TRIGGER_TIME_STR, System.currentTimeMillis());
         trackJson.put(JSON_EVENT_NAME_STR, EVENT_APPLICATION_PERF_TRACE);
         String trackDetail = trackJson.toJSONString();
-        TraceDataBean traceData = new TraceDataBean(SID, "", ACTION_HOME_APPLICATION, trackDetail);
-        TraceUtil.trace(traceData, HarmonyCustomTopic.topic);
     }
 
     /**
@@ -199,8 +176,6 @@ public class EventTrackUtils {
         trackJson.put(JSON_TRIGGER_TIME_STR, System.currentTimeMillis());
         trackJson.put(JSON_EVENT_NAME_STR, EVENT_APPLICATION_MEMORY);
         String trackDetail = trackJson.toJSONString();
-        TraceDataBean traceData = new TraceDataBean(SID, "", ACTION_HOME_APPLICATION, trackDetail);
-        TraceUtil.trace(traceData, HarmonyCustomTopic.topic);
     }
 
     /**
@@ -211,8 +186,6 @@ public class EventTrackUtils {
         trackJson.put(JSON_TRIGGER_TIME_STR, System.currentTimeMillis());
         trackJson.put(JSON_EVENT_NAME_STR, EVENT_APPLICATION_HPROF);
         String trackDetail = trackJson.toJSONString();
-        TraceDataBean traceData = new TraceDataBean(SID, "", ACTION_HOME_APPLICATION, trackDetail);
-        TraceUtil.trace(traceData, HarmonyCustomTopic.topic);
     }
 
     /**
@@ -223,8 +196,6 @@ public class EventTrackUtils {
         trackJson.put(JSON_TRIGGER_TIME_STR, System.currentTimeMillis());
         trackJson.put(JSON_EVENT_NAME_STR, EVENT_APPLICATION_DISK_IO);
         String trackDetail = trackJson.toJSONString();
-        TraceDataBean traceData = new TraceDataBean(SID, "", ACTION_HOME_APPLICATION, trackDetail);
-        TraceUtil.trace(traceData, HarmonyCustomTopic.topic);
     }
 
     /**
@@ -235,8 +206,6 @@ public class EventTrackUtils {
         trackJson.put(JSON_TRIGGER_TIME_STR, System.currentTimeMillis());
         trackJson.put(JSON_EVENT_NAME_STR, EVENT_APPLICATION_NETWORK);
         String trackDetail = trackJson.toJSONString();
-        TraceDataBean traceData = new TraceDataBean(SID, "", ACTION_HOME_APPLICATION, trackDetail);
-        TraceUtil.trace(traceData, HarmonyCustomTopic.topic);
     }
 
     /**
@@ -247,8 +216,6 @@ public class EventTrackUtils {
         trackJson.put(JSON_TRIGGER_TIME_STR, System.currentTimeMillis());
         trackJson.put(JSON_EVENT_NAME_STR, EVENT_APPLICATION_ENERGY);
         String trackDetail = trackJson.toJSONString();
-        TraceDataBean traceData = new TraceDataBean(SID, "", ACTION_HOME_APPLICATION, trackDetail);
-        TraceUtil.trace(traceData, HarmonyCustomTopic.topic);
     }
 
     /**
@@ -259,8 +226,6 @@ public class EventTrackUtils {
         trackJson.put(JSON_TRIGGER_TIME_STR, System.currentTimeMillis());
         trackJson.put(JSON_EVENT_NAME_STR, EVENT_APPLICATION_APP);
         String trackDetail = trackJson.toJSONString();
-        TraceDataBean traceData = new TraceDataBean(SID, "", ACTION_HOME_APPLICATION, trackDetail);
-        TraceUtil.trace(traceData, HarmonyCustomTopic.topic);
     }
 
     /**
@@ -271,8 +236,6 @@ public class EventTrackUtils {
         trackJson.put(JSON_TRIGGER_TIME_STR, System.currentTimeMillis());
         trackJson.put(JSON_EVENT_NAME_STR, EVENT_SYSTEM_CONFIG);
         String trackDetail = trackJson.toJSONString();
-        TraceDataBean traceData = new TraceDataBean(SID, "", ACTION_HOME_SYSTEM, trackDetail);
-        TraceUtil.trace(traceData, HarmonyCustomTopic.topic);
     }
 
     /**
@@ -283,8 +246,6 @@ public class EventTrackUtils {
         trackJson.put(JSON_TRIGGER_TIME_STR, System.currentTimeMillis());
         trackJson.put(JSON_EVENT_NAME_STR, EVENT_SYSTEM_TRACE_PAGE);
         String trackDetail = trackJson.toJSONString();
-        TraceDataBean traceData = new TraceDataBean(SID, "", ACTION_HOME_SYSTEM, trackDetail);
-        TraceUtil.trace(traceData, HarmonyCustomTopic.topic);
     }
 
     /**
@@ -295,8 +256,6 @@ public class EventTrackUtils {
         trackJson.put(JSON_TRIGGER_TIME_STR, System.currentTimeMillis());
         trackJson.put(JSON_EVENT_NAME_STR, EVENT_DISTRIBUTED_CONFIG);
         String trackDetail = trackJson.toJSONString();
-        TraceDataBean traceData = new TraceDataBean(SID, "", ACTION_HOME_DISTRIBUTED, trackDetail);
-        TraceUtil.trace(traceData, HarmonyCustomTopic.topic);
     }
 
     /**
@@ -307,7 +266,5 @@ public class EventTrackUtils {
         trackJson.put(JSON_TRIGGER_TIME_STR, System.currentTimeMillis());
         trackJson.put(JSON_EVENT_NAME_STR, EVENT_DISTRIBUTED_PAGE);
         String trackDetail = trackJson.toJSONString();
-        TraceDataBean traceData = new TraceDataBean(SID, "", ACTION_HOME_DISTRIBUTED, trackDetail);
-        TraceUtil.trace(traceData, HarmonyCustomTopic.topic);
     }
 }

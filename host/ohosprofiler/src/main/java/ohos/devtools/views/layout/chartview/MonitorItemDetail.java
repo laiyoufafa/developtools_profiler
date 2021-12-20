@@ -21,6 +21,8 @@ import java.awt.Color;
 
 /**
  * 监控项详情，各个二级界面监控项的监控项
+ *
+ * @since 2021/11/22
  */
 public enum MonitorItemDetail {
     /**

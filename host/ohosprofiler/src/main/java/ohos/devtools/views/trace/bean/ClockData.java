@@ -261,8 +261,8 @@ public class ClockData extends AbstractGraph {
         int green = color.getGreen();
         int blue = color.getBlue();
         graphics.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f));
-        Color borderColor = new Color(red <= redOff ? 0 : red - redOff,
-            green <= greenOff ? 0 : green - greenOff, blue <= blueOff ? 0 : blue - blueOff);
+        Color borderColor = new Color(red <= redOff ? 0 : red - redOff, green <= greenOff ? 0 : green - greenOff,
+            blue <= blueOff ? 0 : blue - blueOff);
         graphics.setColor(borderColor);
         graphics.fillRect(xAxis, yAxis, rect.width, 3);
     }

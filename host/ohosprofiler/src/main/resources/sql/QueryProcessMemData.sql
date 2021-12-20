@@ -12,4 +12,5 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 select c.*,c.ts-tb.start_ts startTime from counter c,trace_bounds tb where track_id = %d;

@@ -27,7 +27,7 @@ import java.awt.image.BufferedImage;
 /**
  * test LeftFragment class .
  *
- * @since 2021/4/24 17:54
+ * @date 2021/4/24 17:54
  */
 class LeftFragmentTest {
     /**

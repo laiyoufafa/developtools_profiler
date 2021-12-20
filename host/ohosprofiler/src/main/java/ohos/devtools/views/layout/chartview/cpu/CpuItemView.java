@@ -15,20 +15,22 @@
 
 package ohos.devtools.views.layout.chartview.cpu;
 
-import static ohos.devtools.services.hiperf.PerfCommand.PERF_TRACE_PATH;
-
 import com.intellij.icons.AllIcons;
+import com.intellij.openapi.util.IconLoader;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
 import net.miginfocom.swing.MigLayout;
 import ohos.devtools.datasources.transport.grpc.SystemTraceHelper;
-import ohos.devtools.datasources.utils.common.GrpcException;
 import ohos.devtools.datasources.utils.device.entity.DeviceIPPortInfo;
 import ohos.devtools.datasources.utils.device.entity.DeviceType;
+import ohos.devtools.datasources.utils.monitorconfig.entity.ConfigInfo;
+import ohos.devtools.datasources.utils.monitorconfig.entity.PerfConfig;
 import ohos.devtools.datasources.utils.process.entity.ProcessInfo;
+import ohos.devtools.datasources.utils.process.service.ProcessManager;
 import ohos.devtools.datasources.utils.profilerlog.ProfilerLogManager;
+import ohos.devtools.datasources.utils.session.entity.SessionInfo;
 import ohos.devtools.datasources.utils.session.service.SessionManager;
 import ohos.devtools.services.hiperf.HiPerfCommand;
 import ohos.devtools.services.hiperf.PerfCommand;
@@ -58,6 +60,7 @@ import javax.swing.SwingWorker;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.EventQueue;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
@@ -72,6 +75,13 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+
+import static ohos.devtools.services.hiperf.PerfCommand.PERF_TRACE_PATH;
+import static ohos.devtools.views.charts.utils.ChartConstants.CHART_SECTION_NUM_Y;
 
 /**
  * Cpu monitor item view
@@ -91,9 +101,7 @@ public class CpuItemView extends MonitorItemView {
      */
     private static final int CHART_DEFAULT_HEIGHT = 150;
 
-    private static final int NUM_2 = 2;
-
-    ArrayList<String> schedulingEvents = new ArrayList<String>(Arrays.asList(
+    private ArrayList<String> schedulingEvents = new ArrayList<String>(Arrays.asList(
             "sched/sched_switch",
             "power/suspend_resume",
             "sched/sched_wakeup",
@@ -104,7 +112,7 @@ public class CpuItemView extends MonitorItemView {
             "task/task_newtask",
             "task/task_rename"));
 
-    SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmss");
+    private SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmss");
     private CpuChartObserver chartObserver;
     private JBLabel foldBtn;
     private final JBLabel totalLabel = new JBLabel();
@@ -124,6 +132,7 @@ public class CpuItemView extends MonitorItemView {
     private JBPanel threadInfoPanel;
     private ProfilerMonitorItem item;
     private ProcessInfo processInfo;
+    private JBLabel configButton = new JBLabel();
 
     /**
      * Constructors
@@ -152,7 +161,7 @@ public class CpuItemView extends MonitorItemView {
         if (ProfilerLogManager.isInfoEnabled()) {
             LOGGER.info("initLegendsComp");
         }
-        totalLabel.setPreferredSize(new Dimension(60, 13));
+        totalLabel.setPreferredSize(new Dimension(80, 13));
         totalLabel.setOpaque(false);
         totalColor.setColor(ColorConstants.ENERGY_EVENT_LOCATION);
         totalColor.setOpaque(false);
@@ -160,7 +169,7 @@ public class CpuItemView extends MonitorItemView {
         appLabel.setOpaque(false);
         appColor.setColor(ColorConstants.MEM_JAVA);
         appColor.setOpaque(false);
-        systemLabel.setPreferredSize(new Dimension(70, 13));
+        systemLabel.setPreferredSize(new Dimension(80, 13));
         systemLabel.setOpaque(false);
         systemColor.setColor(ColorConstants.MEM_NATIVE);
         systemColor.setOpaque(false);
@@ -171,15 +180,14 @@ public class CpuItemView extends MonitorItemView {
      */
     private void addChart() {
         if (ProfilerLogManager.isInfoEnabled()) {
-            LOGGER.info("addChart");
+            LOGGER.info("CPU module add lineChart");
         }
         chart = generateChart();
         chart.setBounds(0, 0, CHART_INIT_WIDTH, CHART_DEFAULT_HEIGHT);
         southCpuThreadPanel.setPreferredSize(new Dimension(50, 0));
         threadNorthPanel.setPreferredSize(new Dimension(50, 30));
         southCpuThreadPanel.add(threadNorthPanel, BorderLayout.NORTH);
-        threadInfoPanel = new JBPanel(new MigLayout("inset 0, gapy 0", "[grow,fill]",
-            "[fill,fill]"));
+        threadInfoPanel = new JBPanel(new MigLayout("inset 0, gapy 0", "[grow,fill]", "[fill,fill]"));
         threadScrollPane = new JBScrollPane(threadInfoPanel);
         southCpuThreadPanel.add(threadScrollPane, BorderLayout.CENTER);
         threadLabel.setBounds(15, 0, 100, 30);
@@ -196,9 +204,9 @@ public class CpuItemView extends MonitorItemView {
 
     private ProfilerChart generateChart() {
         if (ProfilerLogManager.isInfoEnabled()) {
-            LOGGER.info("generateChart");
+            LOGGER.info("CPU module generateChart");
         }
-        ProfilerChart cpuChart = new FilledLineChart(this.bottomPanel, item.getName(), true) {
+        ProfilerChart cpuChart = new FilledLineChart(this.bottomPanel, item.getName(), true, true) {
             @Override
             protected void initLegends() {
                 CpuItemView.this.initChartLegends(legends);
@@ -219,7 +227,7 @@ public class CpuItemView extends MonitorItemView {
         cpuChart.setFold(true);
         cpuChart.setMaxDisplayX(this.bottomPanel.getPublisher().getStandard().getMaxDisplayMillis());
         cpuChart.setMinMarkIntervalX(this.bottomPanel.getPublisher().getStandard().getMinMarkInterval());
-        cpuChart.setSectionNumY(NUM_2);
+        cpuChart.setSectionNumY(CHART_SECTION_NUM_Y);
         cpuChart.setAxisLabelY("%");
         cpuChart.setMaxUnitY(100);
         cpuChart.setEnableSelect(false);
@@ -241,8 +249,7 @@ public class CpuItemView extends MonitorItemView {
         if (models == null || models.size() == 0) {
             return "";
         }
-        int value = chart.getListSum(models, 0);
-        return String.valueOf(value);
+        return String.valueOf(parseTotalModelToLegend(models));
     }
 
     /**
@@ -297,9 +304,9 @@ public class CpuItemView extends MonitorItemView {
             @Override
             protected Object doInBackground() {
                 // Total label
-                int total = chart.getListSum(lastModels, 0);
                 String totalText;
                 if (fold) {
+                    int total = parseTotalModelToLegend(lastModels);
                     totalText = String.format(Locale.ENGLISH, "Total:%s%s", total, chart.getAxisLabelY());
                     systemLabel.setVisible(false);
                     systemColor.setVisible(false);
@@ -309,9 +316,8 @@ public class CpuItemView extends MonitorItemView {
                     totalColor.setVisible(true);
                     totalLabel.setVisible(true);
                 } else {
-                    totalText = String.format(Locale.ENGLISH, "Total:%s%s", total, chart.getAxisLabelY());
                     if (lastModels != null) {
-                        lastModels.forEach(chartDataModel -> CpuItemView.this.parseModelToLegend(chartDataModel));
+                        lastModels.forEach(chartDataModel -> parseModelToLegend(chartDataModel));
                     }
                     totalColor.setVisible(false);
                     totalLabel.setVisible(false);
@@ -345,6 +351,27 @@ public class CpuItemView extends MonitorItemView {
             default:
                 break;
         }
+    }
+
+    /**
+     * Processing data into legend and remove from allItemLegendMap
+     *
+     * @param lastModels Data model
+     * @return int
+     */
+    private int parseTotalModelToLegend(List<ChartDataModel> lastModels) {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("parseTotalModelToLegend is the same with system");
+        }
+        if (lastModels != null) {
+            for (ChartDataModel chartDataModel : lastModels) {
+                if (chartDataModel.getName().toLowerCase(Locale.ENGLISH)
+                    .contains("System".toLowerCase(Locale.ENGLISH))) {
+                    return chartDataModel.getValue();
+                }
+            }
+        }
+        return 0;
     }
 
     /**
@@ -417,60 +444,106 @@ public class CpuItemView extends MonitorItemView {
             jComboBoxType.setBounds(880, 0, 200, 30);
             jButtonRecord.setBounds(1100, 0, 60, 30);
             jButtonRecord.setOpaque(false);
-            jButtonRecordAddListener();
+            SessionInfo sessionInfo = SessionManager.getInstance().getSessionInfo(sessionId);
+            if (sessionInfo != null && !sessionInfo.isOfflineMode()) {
+                recordButtonAddListener(sessionInfo);
+            }
+            configButton.setIcon(IconLoader.getIcon("/images/icon_cpu_perfConfig.png", CpuItemView.class));
+            configButton.setOpaque(false);
+            configButton.setName("close");
+            configButton.addMouseListener(new MouseAdapter() {
+                @Override
+                public void mouseClicked(MouseEvent event) {
+                    super.mouseClicked(event);
+                    if (sessionInfo != null && configButton.getName().equals("close")) {
+                        new CpuConfigDialog(configButton, sessionInfo.getDeviceIPPortInfo());
+                    }
+                }
+            });
             hiddenComp.add(jComboBoxType);
             hiddenComp.add(jButtonRecord);
+            hiddenComp.add(configButton);
             hiddenComp.setVisible(false);
         }
 
-        private void jButtonRecordAddListener() {
+        private void recordButtonAddListener(SessionInfo sessionInfo) {
             jButtonRecord.addActionListener(new ActionListener() {
                 CpuItemViewLoadDialog cpuItemViewLoadDialog = null;
                 String requestSessionId = null;
-                DeviceIPPortInfo deviceIPPortInfo = SessionManager.getInstance().getDeviceInfoBySessionId(sessionId);
+                DeviceIPPortInfo deviceIPPortInfo = sessionInfo.getDeviceIPPortInfo();
 
                 @Override
-                public void actionPerformed(ActionEvent e) {
+                public void actionPerformed(ActionEvent event) {
                     Date date = new Date();
                     if (jComboBoxType.getSelectedItem().toString().equals(LayoutConstants.TRACE_SYSTEM_CALLS)) {
-                        ArrayList<ArrayList<String>> eventsList = new ArrayList();
+                        ArrayList<ArrayList<String>> eventsList = new ArrayList<>();
                         eventsList.add(schedulingEvents);
                         EventTrackUtils.getInstance().trackApplicationTrace();
-                        try {
-                            //  requestSessionId = new SystemTraceHelper()
-                            //  .createSessionByTraceRequestNoParam(deviceIPPortInfo, sdf.format(date), null);
-                            requestSessionId = new SystemTraceHelper()
-                                .createSessionHtraceRequestForCpu(deviceIPPortInfo, eventsList, sdf.format(date));
-                        } catch (GrpcException grpcException) {
-                            grpcException.printStackTrace();
-                        }
+                        int inMemorySize = ConfigInfo.getInstance().getAppTraceConfig().getMemoryBufferSize();
+                        requestSessionId = SystemTraceHelper.getSingleton()
+                            .createSessionHtraceRequestForCpu(deviceIPPortInfo, eventsList, sdf.format(date),
+                                inMemorySize);
                         if (Optional.ofNullable(requestSessionId).isPresent()) {
                             cpuItemViewLoadDialog = new CpuItemViewLoadDialog(bottomPanel, false, requestSessionId);
                             cpuItemViewLoadDialog.load(deviceIPPortInfo, requestSessionId, sdf.format(date));
                         } else {
+                            if (ProfilerLogManager.isInfoEnabled()) {
+                                LOGGER.info("The corresponding file in the CPU module is missing");
+                            }
                             new SampleDialog("prompt", "The corresponding file is missing!").show();
                         }
                     } else {
                         String processName = SessionManager.getInstance().getProcessName(sessionId);
                         processInfo.setProcessName(processName);
-                        EventTrackUtils.getInstance().trackApplicationPerfTrace();
-                        String fileStorePath = PERF_TRACE_PATH.concat(sdf.format(date)).concat(".trace");
-                        boolean isLeakOhos = deviceIPPortInfo.getDeviceType() == DeviceType.LEAN_HOS_DEVICE;
-                        PerfCommand perfCommand =
-                            new HiPerfCommand(sessionId, isLeakOhos, deviceIPPortInfo.getDeviceID(), fileStorePath);
-                        perfCommand.executeRecord();
-                        cpuItemViewLoadDialog = new CpuItemViewLoadDialog(bottomPanel, true, requestSessionId);
-                        cpuItemViewLoadDialog.setCommand(perfCommand);
-                        cpuItemViewLoadDialog.load(deviceIPPortInfo, requestSessionId, sdf.format(date));
-
+                        // On no root device, non debug processes are not supported by perf
+                        if (deviceIPPortInfo.getDeviceType().equals(DeviceType.FULL_HOS_DEVICE) && !ProcessManager
+                            .getInstance().checkIsDebuggerProcess(deviceIPPortInfo, processInfo)) {
+                            if (ProfilerLogManager.isInfoEnabled()) {
+                                LOGGER.info("perf recording, only support debug application");
+                            }
+                            new SampleDialog("prompt", "only support debug application!").show();
+                        } else {
+                            EventTrackUtils.getInstance().trackApplicationPerfTrace();
+                            boolean isLeakOhos = deviceIPPortInfo.getDeviceType() == DeviceType.LEAN_HOS_DEVICE;
+                            String deviceId = deviceIPPortInfo.getDeviceID();
+                            String fileStorePath = PERF_TRACE_PATH.concat(sdf.format(date)).concat(".trace");
+                            PerfCommand perfCommand = getPerfCommand(isLeakOhos, deviceId, fileStorePath);
+                            cpuItemViewLoadDialog = new CpuItemViewLoadDialog(bottomPanel, true, requestSessionId);
+                            executePerf(isLeakOhos, perfCommand, cpuItemViewLoadDialog);
+                            cpuItemViewLoadDialog.setCommand(perfCommand);
+                            cpuItemViewLoadDialog.load(deviceIPPortInfo, requestSessionId, sdf.format(date));
+                        }
                     }
+                }
+            });
+        }
+
+        private PerfCommand getPerfCommand(boolean isLeakOhos, String deviceId, String fileStorePath) {
+            return new HiPerfCommand(sessionId, isLeakOhos, deviceId, fileStorePath);
+        }
+
+        private void executePerf(boolean isLeakOhos, PerfCommand perfCommand,
+            CpuItemViewLoadDialog cpuItemViewLoadDialog) {
+            ExecutorService executorService =
+                new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
+            executorService.execute(() -> {
+                // ConfigManager.getInstance().readConfig();
+                PerfConfig perfConfig = ConfigInfo.getInstance().getPerfConfig(isLeakOhos);
+                List<String> resultList = perfCommand.executeRecord(perfConfig);
+                String result = resultList.toString();
+                if (result.contains("failed") || result.contains("incorrect")) {
+                    EventQueue.invokeLater(() -> cpuItemViewLoadDialog.failedShowDialog(resultList));
+                    return;
+                }
+                if (!isLeakOhos && result.contains("not support")) {
+                    EventQueue.invokeLater(() -> cpuItemViewLoadDialog.failedShowDialog(resultList));
                 }
             });
         }
 
         private void foldBtnClick() {
             if (ProfilerLogManager.isInfoEnabled()) {
-                LOGGER.info("foldBtnClick");
+                LOGGER.info("cpu module foldBtnClick");
             }
             fold = !fold;
             // Item fold, buttons hide

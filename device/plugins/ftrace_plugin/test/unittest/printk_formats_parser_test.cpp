@@ -19,6 +19,7 @@
 #include <random>
 #include <string>
 
+#include "logging.h"
 #include "printk_formats_parser.h"
 
 using FTRACE_NS::PrintkFormatsParser;
@@ -159,7 +160,6 @@ HWTEST_F(PrintkFormatsParserTest, PrintkFormatsParserFalse, TestSize.Level1)
     EXPECT_FALSE(PrintkFormatsParser::GetInstance().Parse(input));
 
     std::string symbol = PrintkFormatsParser::GetInstance().GetSymbol(0);
-    std::cout << "symbol == " << symbol << std::endl;
     EXPECT_EQ(symbol, "");
 }
 
@@ -175,10 +175,9 @@ HWTEST_F(PrintkFormatsParserTest, PrintkFormatsParserNormal, TestSize.Level1)
     for (auto& entry : PrintkFormatsParser::GetInstance().printkFormats_) {
         uint64_t addr = entry.first;
         std::string symbol = entry.second;
-        printf("%" PRIx64 " : %s\n", addr, symbol.c_str());
+        HILOG_INFO(LOG_CORE, "%" PRIx64 " : %s", addr, symbol.c_str());
     }
     std::string symbol = PrintkFormatsParser::GetInstance().GetSymbol(CPU_ON_ADDR);
-    std::cout << "symbol == " << symbol << std::endl;
     EXPECT_EQ(symbol, CPU_ON_STR);
 }
 
@@ -195,7 +194,6 @@ HWTEST_F(PrintkFormatsParserTest, PrintkFormatsParserSymbolsNormal, TestSize.Lev
     EXPECT_TRUE(PrintkFormatsParser::GetInstance().Parse(input));
 
     std::string symbol = PrintkFormatsParser::GetInstance().GetSymbol(1);
-    std::cout << "symbol == " << symbol << std::endl;
     EXPECT_EQ(symbol, "test");
 }
 

@@ -18,11 +18,14 @@
 
 #include "cpu_plugin_config.pb.h"
 #include "cpu_plugin_result.pb.h"
+#include "logging.h"
 #include "plugin_module_api.h"
 
 namespace {
-constexpr int TEST_PID = 10;
-int g_testCount = 10;
+int g_testCount = 100;
+constexpr int CONSUME_CPU_SLEEP_TIME = 500 * 1000;
+constexpr int PROCESS_SLEEP_TIME = 10;
+const std::string SO_PATH = "/system/lib/libcpudataplugin.z.so";
 } // namespace
 
 static void Report(PluginModuleStruct*& cpuPlugin, std::vector<uint8_t>& dataBuffer)
@@ -51,13 +54,7 @@ static void Report(PluginModuleStruct*& cpuPlugin, std::vector<uint8_t>& dataBuf
                 std::cout << "prev_system_boot_time_ms:" << cpuCoreUsageInfo.prev_system_boot_time_ms() << std::endl;
                 std::cout << "system_cpu_time_ms:" << cpuCoreUsageInfo.system_cpu_time_ms() << std::endl;
                 std::cout << "system_boot_time_ms:" << cpuCoreUsageInfo.system_boot_time_ms() << std::endl;
-                std::cout << "min_frequency_khz:" << cpuCoreUsageInfo.frequency().min_frequency_khz() << std::endl;
-                std::cout << "max_frequency_khz:" << cpuCoreUsageInfo.frequency().max_frequency_khz() << std::endl;
-                std::cout << "cur_frequency_khz:" << cpuCoreUsageInfo.frequency().cur_frequency_khz() << std::endl;
-                std::cout << "is_little_core:" << cpuCoreUsageInfo.is_little_core() << std::endl;
             }
-            std::cout << "timestamp.tv_sec : " << cpuUsageInfo.timestamp().tv_sec() << std::endl;
-            std::cout << "timestamp.tv_nsec : " << cpuUsageInfo.timestamp().tv_nsec() << std::endl;
 
             for (int i = 0; i < cpuData.thread_info_size(); i++) {
                 ThreadInfo threadInfo = cpuData.thread_info()[i];
@@ -66,45 +63,60 @@ static void Report(PluginModuleStruct*& cpuPlugin, std::vector<uint8_t>& dataBuf
                 std::cout << "thread_state : " << threadInfo.thread_state() << std::endl;
                 std::cout << "prev_thread_cpu_time_ms : " << threadInfo.prev_thread_cpu_time_ms() << std::endl;
                 std::cout << "thread_cpu_time_ms : " << threadInfo.thread_cpu_time_ms() << std::endl;
-                std::cout << "timestamp.tv_sec : " << threadInfo.timestamp().tv_sec() << std::endl;
-                std::cout << "timestamp.tv_nsec : " << threadInfo.timestamp().tv_nsec() << std::endl;
             }
         }
 
         std::cout << "test:sleep...................." << std::endl;
-        sleep(1);
+        usleep(CONSUME_CPU_SLEEP_TIME);
     }
 }
 
-int main()
+int main(int agrc, char* agrv[])
 {
-    CpuConfig protoConfig;
-    void* handle = dlopen("./libcpudataplugin.z.so", RTLD_LAZY);
-    if (handle == nullptr) {
-        std::cout << "test:dlopen err: " << dlerror() << std::endl;
-        return 0;
+    bool isConsumeCpu = false;
+    for (int i = 1; i < agrc; i++) {
+        isConsumeCpu = atoi(agrv[i]);
     }
-    std::cout << "test:handle = " << handle << std::endl;
-    PluginModuleStruct* cpuPlugin = (PluginModuleStruct*)dlsym(handle, "g_pluginModule");
-    if (cpuPlugin == nullptr) {
-        return 0;
+
+    if (isConsumeCpu || agrc == 1) {
+        CpuConfig protoConfig;
+        void* handle = dlopen(SO_PATH.c_str(), RTLD_LAZY);
+        if (handle == nullptr) {
+            HILOG_ERROR(LOG_CORE, "test:dlopen err, errno(%d:%s)", errno, strerror(errno));
+            return 0;
+        }
+
+        PluginModuleStruct* cpuPlugin = (PluginModuleStruct*)dlsym(handle, "g_pluginModule");
+        if (cpuPlugin == nullptr) {
+            return 0;
+        }
+
+        // Serialize config
+        int pid = getpid();
+        protoConfig.set_pid(pid);
+        int configLength = protoConfig.ByteSizeLong();
+        std::vector<uint8_t> configBuffer(configLength);
+        protoConfig.SerializeToArray(configBuffer.data(), configLength);
+
+        // run plugin
+        std::vector<uint8_t> dataBuffer(cpuPlugin->resultBufferSizeHint);
+        cpuPlugin->callbacks->onPluginSessionStart(configBuffer.data(), configLength);
+        if (agrc == 1) {
+            Report(cpuPlugin, dataBuffer);
+        } else {
+            // 循环上报数据消耗cpu
+            while (1) {
+                int len = cpuPlugin->callbacks->onPluginReportResult(dataBuffer.data(), cpuPlugin->resultBufferSizeHint);
+                if (len > 0) {
+                    CpuData cpuData;
+                    cpuData.ParseFromArray(dataBuffer.data(), len);
+                }
+                usleep(100000);
+            }
+        }
+        cpuPlugin->callbacks->onPluginSessionStop();
     }
-    std::cout << "test:name = " << cpuPlugin->name << std::endl;
-    std::cout << "test:buffer size = " << cpuPlugin->resultBufferSizeHint << std::endl;
 
-    // Serialize config
-    protoConfig.set_pid(TEST_PID);
-    int configLength = protoConfig.ByteSizeLong();
-    std::vector<uint8_t> configBuffer(configLength);
-    int ret = protoConfig.SerializeToArray(configBuffer.data(), configLength);
-    std::cout << "test:configLength = " << configLength << std::endl;
-    std::cout << "test:serialize success start plugin ret = " << ret << std::endl;
-
-    // run plugin
-    std::vector<uint8_t> dataBuffer(cpuPlugin->resultBufferSizeHint);
-    cpuPlugin->callbacks->onPluginSessionStart(configBuffer.data(), configLength);
-    Report(cpuPlugin, dataBuffer);
-    cpuPlugin->callbacks->onPluginSessionStop();
-
+    sleep(PROCESS_SLEEP_TIME);
     return 0;
 }

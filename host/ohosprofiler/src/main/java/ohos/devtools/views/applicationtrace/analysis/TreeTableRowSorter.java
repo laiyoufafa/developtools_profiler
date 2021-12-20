@@ -74,9 +74,9 @@ public class TreeTableRowSorter<M extends TableModel> extends DefaultRowSorter<M
     /**
      * sort desc tree
      *
-     * @param root      root node
+     * @param root root node
      * @param condition sort condition
-     * @param jtree     tree
+     * @param jtree tree
      */
     public static void sortDescTree(DefaultMutableTreeNode root, Comparator<TreeNode> condition, JTree jtree) {
         Consumer<DefaultMutableTreeNode> sort = parent -> {
@@ -110,9 +110,9 @@ public class TreeTableRowSorter<M extends TableModel> extends DefaultRowSorter<M
     /**
      * sort tree
      *
-     * @param root      root node
+     * @param root root node
      * @param condition sort condition
-     * @param jtree     tree
+     * @param jtree tree
      */
     public static void sortTree(DefaultMutableTreeNode root, Comparator<TreeNode> condition, JTree jtree) {
         Consumer<DefaultMutableTreeNode> sort = parent -> {

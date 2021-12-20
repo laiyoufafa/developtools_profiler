@@ -130,9 +130,6 @@ HWTEST_F(SubEventParserTest, ParseEvent, TestSize.Level1)
     EXPECT_TRUE(ftraceParser.ParseEventFormat(schedSwitchFormatDesc, format));
     EXPECT_TRUE(SubEventParser::GetInstance().SetupEvent(format));
     EXPECT_EQ(format.eventId, schedSwitchEventId);
-    for (auto& entry : SubEventParser::GetInstance().idToFunctions_) {
-        printf("eventId: %u\n", entry.first);
-    }
 
     std::vector<uint8_t> buffer(PAGE_SIZE, 0);
     std::vector<uint8_t> zeros(PAGE_SIZE, 0);
@@ -145,7 +142,7 @@ HWTEST_F(SubEventParserTest, ParseEvent, TestSize.Level1)
     EXPECT_TRUE(FtraceFsOps::GetInstance().EnableTracing());
 
     std::this_thread::sleep_for(TEST_DELAY);
-    EXPECT_EQ(read(fd, buffer.data(), buffer.size()), PAGE_SIZE);
+    EXPECT_EQ(read(fd, buffer.data(), buffer.size()), static_cast<int>(PAGE_SIZE));
     EXPECT_TRUE(FtraceFsOps::GetInstance().DisableTracing());
     EXPECT_EQ(close(fd), 0);
     EXPECT_NE(buffer, zeros);

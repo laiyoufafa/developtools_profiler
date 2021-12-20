@@ -47,13 +47,11 @@ class TopBottomPanelTest {
     void change() {
         topBottomPanel.change(0, 0, new ArrayList<>());
         assertNotNull(topBottomPanel);
-
     }
 
     @Test
     void testChange() {
         topBottomPanel.change(0, 0, 0);
         assertNotNull(topBottomPanel);
-
     }
 }

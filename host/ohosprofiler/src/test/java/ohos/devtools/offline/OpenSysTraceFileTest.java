@@ -23,12 +23,10 @@ import org.junit.Test;
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
-import static com.intellij.remoterobot.search.locators.Locators.byXpath;
-
 /**
  * Open System Trace File Test
  *
- * @since 2021/5/20 18:00
+ * @since 2021/11/22
  */
 public class OpenSysTraceFileTest {
     private RemoteRobot remoteRobot = new RemoteRobot("http://127.0.0.1:8082");
@@ -46,8 +44,8 @@ public class OpenSysTraceFileTest {
     @Test
     public void openSysTraceFileTest() throws InterruptedException {
         remoteRobot.find(CommonContainerFixture.class, Locators.byXpath("//div[@class='WelcomePanel']")).button(Locators
-            .byXpath("//div[@accessiblename=' + New Task' and @class='JBLabel' and "
-                + "@name='newTaskBtn' and @text=' + New Task']"), Duration.ofSeconds(2)).click();
+            .byXpath("//div[@accessiblename=' + New Task' and @class='JBLabel' "
+                + "and @name='newTaskBtn' and @text=' + New Task']"), Duration.ofSeconds(2)).click();
         remoteRobot.find(CommonContainerFixture.class, Locators.byXpath("//div[@class='HomePanel']")).jLabel(Locators
             .byXpath("//div[@accessiblename='Application Tuning' and @class='JBLabel' "
                 + "and @name='Application Tuning' and @text='Application Tuning']"), Duration.ofSeconds(2)).click();

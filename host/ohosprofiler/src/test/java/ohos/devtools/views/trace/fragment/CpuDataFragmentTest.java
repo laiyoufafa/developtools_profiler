@@ -34,7 +34,7 @@ import java.util.List;
 /**
  * test CpuDataFragment class .
  *
- * @since 2021/4/24 17:57
+ * @date 2021/4/24 17:57
  */
 class CpuDataFragmentTest {
     private CpuDataFragment cpuDataFragment;

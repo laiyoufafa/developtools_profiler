@@ -120,8 +120,8 @@ public class RectChart extends ProfilerChart {
                         }
                     }
                 }
-                for (int i = 0; i < splitList.size(); i++) {
-                    switch (splitList.get(i).getThreadStatus()) {
+                for (int index = 0; index < splitList.size(); index++) {
+                    switch (splitList.get(index).getThreadStatus()) {
                         case THREAD_RUNNING:
                             graphics.setColor(JBColor.GREEN);
                             break;
@@ -134,7 +134,7 @@ public class RectChart extends ProfilerChart {
                         default:
                             graphics.setColor(null);
                     }
-                    graphics.fillRect(splitList.get(i).getPointX(), 0, endX, y0);
+                    graphics.fillRect(splitList.get(index).getPointX(), 0, endX, y0);
                 }
             }
         }

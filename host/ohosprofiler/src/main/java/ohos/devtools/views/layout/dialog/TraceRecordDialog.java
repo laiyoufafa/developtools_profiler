@@ -31,7 +31,7 @@ import ohos.devtools.views.layout.SystemPanel;
 import ohos.devtools.views.layout.TaskPanel;
 import ohos.devtools.views.layout.utils.EventTrackUtils;
 import ohos.devtools.views.layout.utils.TraceStreamerUtils;
-import ohos.devtools.views.trace.component.AnalystPanel;
+import ohos.devtools.views.trace.component.SysAnalystPanel;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -41,7 +41,6 @@ import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
 import javax.swing.Timer;
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -70,6 +69,7 @@ import static ohos.devtools.views.common.Constant.IS_SUPPORT_NEW_HDC;
  */
 public class TraceRecordDialog {
     private static final Logger LOGGER = LogManager.getLogger(TraceRecordDialog.class);
+
     private int bytraceFileSize;
     private Timer timerLoading;
     private DeviceIPPortInfo deviceIPPortInfo;
@@ -123,10 +123,10 @@ public class TraceRecordDialog {
             }
         });
         countPanel.setPreferredSize(new Dimension(300, 150));
-        statusJLabel.setForeground(Color.white);
-        durationJLabel.setForeground(Color.white);
-        recordingJLabel.setForeground(Color.white);
-        timeJLabel.setForeground(Color.white);
+        statusJLabel.setForeground(JBColor.foreground().brighter());
+        durationJLabel.setForeground(JBColor.foreground().brighter());
+        recordingJLabel.setForeground(JBColor.foreground().brighter());
+        timeJLabel.setForeground(JBColor.foreground().brighter());
         traceLoadDialog.setLableAttribute(statusJLabel, durationJLabel, recordingJLabel, timeJLabel, stopJButton);
         countPanel.add(statusJLabel);
         countPanel.add(durationJLabel);
@@ -143,11 +143,11 @@ public class TraceRecordDialog {
             executorCancel.execute(new Runnable() {
                 @Override
                 public void run() {
-                    new SystemTraceHelper().stopAndDestroySession(deviceIPPortInfo, sessionId);
+                    SystemTraceHelper.getSingleton().stopAndDestroySession(deviceIPPortInfo, sessionId);
                 }
             });
         } else {
-            new SystemTraceHelper().stopAndDestroySession(deviceIPPortInfo, sessionId);
+            SystemTraceHelper.getSingleton().stopAndDestroySession(deviceIPPortInfo, sessionId);
         }
     }
 
@@ -174,10 +174,10 @@ public class TraceRecordDialog {
             }
         });
         countPanel.setPreferredSize(new Dimension(300, 150));
-        statusJLabel.setForeground(Color.white);
-        durationJLabel.setForeground(Color.white);
-        recordingJLabel.setForeground(Color.white);
-        timeJLabel.setForeground(Color.white);
+        statusJLabel.setForeground(JBColor.foreground().brighter());
+        durationJLabel.setForeground(JBColor.foreground().brighter());
+        recordingJLabel.setForeground(JBColor.foreground().brighter());
+        timeJLabel.setForeground(JBColor.foreground().brighter());
         traceLoadDialog.setLableAttribute(statusJLabel, durationJLabel, recordingJLabel, timeJLabel, stopJButton);
         countPanel.add(statusJLabel);
         countPanel.add(durationJLabel);
@@ -218,10 +218,10 @@ public class TraceRecordDialog {
         };
         timerLoading = new Timer(LayoutConstants.NUMBER_THREAD, this::distributedActionPerformedLoading);
         countPanel.setPreferredSize(new Dimension(300, 150));
-        statusAnalysisJLabel.setForeground(Color.white);
-        durationAnalysisJLabel.setForeground(Color.white);
-        loadingJLabel.setForeground(Color.white);
-        loadingInitTimeJLabel.setForeground(Color.white);
+        statusAnalysisJLabel.setForeground(JBColor.foreground().brighter());
+        durationAnalysisJLabel.setForeground(JBColor.foreground().brighter());
+        loadingJLabel.setForeground(JBColor.foreground().brighter());
+        loadingInitTimeJLabel.setForeground(JBColor.foreground().brighter());
         traceLoadDialog
             .setLableAttribute(statusAnalysisJLabel, durationAnalysisJLabel, loadingJLabel, loadingInitTimeJLabel,
                 null);
@@ -304,7 +304,7 @@ public class TraceRecordDialog {
                                             tabContainer.removeAll();
                                             DistributedPanel component = new DistributedPanel();
                                             DistributedParams distributedParams =
-                                                    distributedManager.getDistributedParams();
+                                                distributedManager.getDistributedParams();
                                             component.load(distributedParams);
                                             EventTrackUtils.getInstance().trackDistributedPage();
                                             tabContainer.setBackground(JBColor.background());
@@ -341,10 +341,10 @@ public class TraceRecordDialog {
         };
         timerLoading = new Timer(LayoutConstants.NUMBER_THREAD, this::actionPerformedLoading);
         countPanel.setPreferredSize(new Dimension(300, 150));
-        statusAnalysisJLabel.setForeground(Color.white);
-        durationAnalysisJLabel.setForeground(Color.white);
-        loadingJLabel.setForeground(Color.white);
-        loadingInitTimeJLabel.setForeground(Color.white);
+        statusAnalysisJLabel.setForeground(JBColor.foreground().brighter());
+        durationAnalysisJLabel.setForeground(JBColor.foreground().brighter());
+        loadingJLabel.setForeground(JBColor.foreground().brighter());
+        loadingInitTimeJLabel.setForeground(JBColor.foreground().brighter());
         traceLoadDialog
             .setLableAttribute(statusAnalysisJLabel, durationAnalysisJLabel, loadingJLabel, loadingInitTimeJLabel,
                 null);
@@ -439,7 +439,7 @@ public class TraceRecordDialog {
                                     analysisDialogEvent.close(1);
                                     JBPanel tabContainer = taskPanel.getTabContainer();
                                     tabContainer.removeAll();
-                                    AnalystPanel component = new AnalystPanel();
+                                    SysAnalystPanel component = new SysAnalystPanel();
                                     String dbPath = get();
                                     component.load(dbPath, true);
                                     tabContainer.setBackground(JBColor.background());

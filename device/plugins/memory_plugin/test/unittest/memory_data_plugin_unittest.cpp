@@ -26,9 +26,8 @@ using namespace testing::ext;
 namespace {
 const std::string DEFAULT_TEST_PATH("/data/local/tmp/");
 const std::string DEFAULT_SO_PATH("/system/lib/");
-const std::string DEFAULT_BIN_PATH("/system/bin/memorytest");
+const std::string DEFAULT_BIN_PATH("/data/local/tmp/memorytest");
 constexpr uint32_t BUF_SIZE = 4 * 1024 * 1024;
-constexpr uint32_t BIT_WIDTH = 35;
 const int US_PER_S = 1000000;
 const int US_PER_MS = 10000;
 
@@ -59,7 +58,7 @@ struct TestElement {
 TestElement g_pidtarget[] = {
     {1, "systemd", 226208, 9388, 2984, 6404, 0, 0, 0, 9616, -1, 3036, 4256, 288, 748, 0, 1388},
     {2, "kthreadd", 0, 0, 0, 0, 0, 0, 0, 0, -100, 3036, 4260, 336, 760, 0, 4204},
-    {11, "rcu_sched", 0, 0, 0, 0, 0, 0, 0, 0, 0, 3036, 4272, 392, 772, 0, 7168},
+    {11, "rcu_sched", 0, 0, 0, 0, 0, 0, 0, 0, 0, 3036, 4272, 400, 772, 0, 7160},
 };
 
 unsigned long g_meminfo[] = {
@@ -82,7 +81,6 @@ public:
     {
         if (access(g_path.c_str(), F_OK) == 0) {
             std::string str = "rm -rf " + GetFullPath(DEFAULT_TEST_PATH) + "utresources";
-            printf("TearDown--> %s\r\n", str.c_str());
             system(str.c_str());
         }
     }
@@ -106,37 +104,6 @@ string Getexepath()
         }
     }
     return buf;
-}
-
-void MyPrintfProcessMemoryInfo(MemoryData memoryData)
-{
-    int index = memoryData.processesinfo_size();
-    for (int i = 0; i < index; ++i) {
-        ProcessMemoryInfo it = memoryData.processesinfo(i);
-        std::cout << it.pid() << "\t";
-        std::cout << std::setw(BIT_WIDTH) << std::setfill(' ') << it.name().c_str() << "\t";
-        std::cout << it.vm_size_kb() << "\t";
-        std::cout << it.vm_rss_kb() << "\t";
-        std::cout << it.rss_anon_kb() << "\t";
-        std::cout << it.rss_file_kb() << "\t";
-        std::cout << it.rss_shmem_kb() << "\t";
-        std::cout << it.vm_locked_kb() << "\t";
-        std::cout << it.vm_hwm_kb() << "\t";
-
-        std::cout << it.oom_score_adj() << "\t";
-        if (it.has_memsummary()) {
-            std::cout << "appsummary:\t";
-            AppSummary app = it.memsummary();
-            std::cout << app.java_heap() << "\t";
-            std::cout << app.native_heap() << "\t";
-            std::cout << app.code() << "\t";
-            std::cout << app.stack() << "\t";
-            std::cout << app.graphics() << "\t";
-            std::cout << app.private_other() << "\t";
-            std::cout << app.system() << "\t";
-        }
-        std::cout << std::endl;
-    }
 }
 
 void SetPluginProcessConfig(std::vector<int> processList, MemoryConfig& protoConfig)
@@ -219,8 +186,6 @@ bool PluginStub(MemoryDataPlugin& memoryPlugin, MemoryConfig& protoConfig, Memor
     ret = memoryPlugin.Start(configData.data(), configData.size());
     CHECK_TRUE(ret == 0, false, "PluginStub::start plugin fail!!!");
 
-    printf("ut: serialize success start plugin ret = %d\n", ret);
-
     // report
     std::vector<uint8_t> bufferData(BUF_SIZE);
     ret = memoryPlugin.Report(bufferData.data(), bufferData.size());
@@ -243,10 +208,8 @@ std::string GetFullPath(std::string path)
 void MemoryDataPluginTest::SetUpTestCase()
 {
     g_path = GetFullPath(DEFAULT_TEST_PATH);
-    printf("g_path:%s\n", g_path.c_str());
     EXPECT_NE("", g_path);
     g_path += "utresources/proc";
-    printf("g_path:%s\n", g_path.c_str());
 }
 
 /**
@@ -257,7 +220,6 @@ void MemoryDataPluginTest::SetUpTestCase()
 HWTEST_F(MemoryDataPluginTest, TestUtpath, TestSize.Level1)
 {
     EXPECT_NE(g_path, "");
-    printf("g_path:%s\n", g_path.c_str());
 }
 
 /**
@@ -270,13 +232,11 @@ HWTEST_F(MemoryDataPluginTest, Testpidlist, TestSize.Level1)
     MemoryDataPlugin* memoryPlugin = new MemoryDataPlugin();
     const std::vector<int> expectPidList = {1, 2, 11};
 
-    printf("g_path:%s\n", g_path.c_str());
     DIR* dir = memoryPlugin->OpenDestDir(g_path.c_str());
     EXPECT_NE(nullptr, dir);
 
     std::vector<int> cmpPidList;
     while (int32_t pid = memoryPlugin->GetValidPid(dir)) {
-        printf("pid = %d\n", pid);
         cmpPidList.push_back(pid);
     }
     sort(cmpPidList.begin(), cmpPidList.end());
@@ -329,19 +289,15 @@ HWTEST_F(MemoryDataPluginTest, Testpluginforlist, TestSize.Level1)
     EXPECT_EQ((size_t)0, cmpPidList.size());
 
     memoryPlugin.SetPath(const_cast<char*>(g_path.c_str()));
-    printf("Testpluginforlist:setPath=%s\n", g_path.c_str());
 
     SetPluginProcessConfig(cmpPidList, protoConfig);
     EXPECT_TRUE(PluginStub(memoryPlugin, protoConfig, memoryData));
-    MyPrintfProcessMemoryInfo(memoryData);
 
     int index = memoryData.processesinfo_size();
     EXPECT_EQ(3, index);
-    printf("Testpluginforlist:index=%d", index);
     for (int i = 0; i < index; ++i) {
         ProcessMemoryInfo it = memoryData.processesinfo(i);
         EXPECT_EQ(g_pidtarget[i].pid, it.pid());
-        printf("%d:pid=%d\r\n", i, it.pid());
         EXPECT_EQ(g_pidtarget[i].name, it.name());
         EXPECT_EQ(g_pidtarget[i].vm_size_kb, it.vm_size_kb());
         EXPECT_EQ(g_pidtarget[i].vm_rss_kb, it.vm_rss_kb());
@@ -374,19 +330,15 @@ HWTEST_F(MemoryDataPluginTest, Testpluginforsinglepid, TestSize.Level1)
     TestElement singlepid = {-1, "null", 0, 0};
 
     memoryPlugin.SetPath(const_cast<char*>(g_path.c_str()));
-    printf("Testpluginforsinglepid:setPath=%s\n", g_path.c_str());
 
     SetPluginProcessConfig(pid, protoConfig);
     EXPECT_TRUE(PluginStub(memoryPlugin, protoConfig, memoryData));
-    MyPrintfProcessMemoryInfo(memoryData);
 
     int index = memoryData.processesinfo_size();
     EXPECT_EQ(1, index);
-    printf("Testpluginforsinglepid:index=%d\n", index);
 
     ProcessMemoryInfo it = memoryData.processesinfo(0);
     EXPECT_EQ(singlepid.pid, it.pid());
-    printf("pid=%d\r\n", it.pid());
     EXPECT_EQ(singlepid.name, it.name());
     EXPECT_EQ(singlepid.vm_size_kb, it.vm_size_kb());
     EXPECT_EQ(singlepid.vm_rss_kb, it.vm_rss_kb());
@@ -425,19 +377,15 @@ HWTEST_F(MemoryDataPluginTest, Testpluginforpids, TestSize.Level1)
     EXPECT_NE((size_t)0, cmpPidList.size());
 
     memoryPlugin.SetPath(const_cast<char*>(g_path.c_str()));
-    printf("Testpluginforpids:setPath=%s\n", g_path.c_str());
 
     SetPluginProcessConfig(cmpPidList, protoConfig);
     EXPECT_TRUE(PluginStub(memoryPlugin, protoConfig, memoryData));
-    MyPrintfProcessMemoryInfo(memoryData);
 
     int index = memoryData.processesinfo_size();
     EXPECT_EQ(3, index);
-    printf("Testpluginforpids:index=%d\n", index);
     for (int i = 0; i < index; ++i) {
         ProcessMemoryInfo it = memoryData.processesinfo(i);
         EXPECT_EQ(g_pidtarget[i].pid, it.pid());
-        printf("%d:pid=%d\r\n", i, it.pid());
         EXPECT_EQ(g_pidtarget[i].name, it.name());
         EXPECT_EQ(g_pidtarget[i].vm_size_kb, it.vm_size_kb());
         EXPECT_EQ(g_pidtarget[i].vm_rss_kb, it.vm_rss_kb());
@@ -623,7 +571,7 @@ void OutputData(uint8_t* data, uint32_t size)
     MemoryData memoryData;
     int ret = memoryData.ParseFromArray(data, size);
     if (ret <= 0) {
-        printf("MemoryDataPluginTest, %s:parseFromArray failed!", __func__);
+        HILOG_ERROR(LOG_CORE, "MemoryDataPluginTest, %s:parseFromArray failed!", __func__);
         return;
     }
 
@@ -667,8 +615,8 @@ HWTEST_F(MemoryDataPluginTest, TestProcessTreeRunTime, TestSize.Level1)
     gettimeofday(&end, NULL);
     clock_t clockend = clock();
     int timeuse = US_PER_S * (end.tv_sec - start.tv_sec) + end.tv_usec - start.tv_usec;
-    printf("clock time=%.3fs, timeofday=%.3fs\n", (double)(clockend - clockstart) / CLOCKS_PER_SEC,
-           (double)timeuse / US_PER_S);
+    HILOG_INFO(LOG_CORE, "clock time=%.3fs, timeofday=%.3fs", (double)(clockend - clockstart) / CLOCKS_PER_SEC,
+        (double)timeuse / US_PER_S);
     EXPECT_EQ(plugin->callbacks->onPluginSessionStop(), 0);
 }
 
@@ -747,12 +695,12 @@ HWTEST_F(MemoryDataPluginTest, TestPid, TestSize.Level1)
     system(cmd.c_str());
     if ((pid1 = fork()) == 0) {
         std::vector<std::string> argv = {"childpidtest1", "1"};
-        ASSERT_TRUE(ExecuteBin("memorytest", argv));
+        ASSERT_TRUE(ExecuteBin(DEFAULT_BIN_PATH, argv));
     }
     usleep(US_PER_MS);
     if ((pid2 = fork()) == 0) {
         std::vector<std::string> argv = {"childpidtest2", "2"};
-        ASSERT_TRUE(ExecuteBin("memorytest", argv));
+        ASSERT_TRUE(ExecuteBin(DEFAULT_BIN_PATH, argv));
     }
     usleep(US_PER_MS);
     // set config
@@ -762,7 +710,6 @@ HWTEST_F(MemoryDataPluginTest, TestPid, TestSize.Level1)
     config.add_pid(pid2);
     // check result
     EXPECT_TRUE(PluginStub(plugin, config, memoryData));
-    MyPrintfProcessMemoryInfo(memoryData);
     EXPECT_LT(memoryData.processesinfo(0).vm_size_kb(), memoryData.processesinfo(1).vm_size_kb());
 
     while (waitpid(-1, NULL, WNOHANG) == 0) {

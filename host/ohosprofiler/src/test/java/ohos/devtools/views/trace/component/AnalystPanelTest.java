@@ -630,7 +630,7 @@ class AnalystPanelTest {
         AnalystPanel analystPanel = new AnalystPanel();
         JFrame jbPanel = new JFrame();
         jbPanel.add(analystPanel);
-        AnalystPanel.layeredPane = jbPanel.getLayeredPane();
+        //        AnalystPanel.layeredPane = jbPanel.getLayeredPane();
         FlagBean flagBean = new FlagBean();
         flagBean.setColor(Color.BLACK);
         flagBean.setTime(1L);
@@ -643,7 +643,7 @@ class AnalystPanelTest {
         AnalystPanel analystPanel = new AnalystPanel();
         JFrame jbPanel = new JFrame();
         jbPanel.add(analystPanel);
-        AnalystPanel.layeredPane = jbPanel.getLayeredPane();
+        //        AnalystPanel.layeredPane = jbPanel.getLayeredPane();
         FlagBean flagBean = new FlagBean();
         flagBean.setColor(Color.BLACK);
         flagBean.setTime(0L);
@@ -668,7 +668,7 @@ class AnalystPanelTest {
         AnalystPanel analystPanel = new AnalystPanel();
         JFrame jbPanel = new JFrame();
         jbPanel.add(analystPanel);
-        AnalystPanel.layeredPane = jbPanel.getLayeredPane();
+        //        AnalystPanel.layeredPane = jbPanel.getLayeredPane();
         FlagBean flagBean = new FlagBean();
         flagBean.setColor(Color.BLACK);
         flagBean.setTime(-1000L);
@@ -681,7 +681,7 @@ class AnalystPanelTest {
         AnalystPanel analystPanel = new AnalystPanel();
         JFrame jbPanel = new JFrame();
         jbPanel.add(analystPanel);
-        AnalystPanel.layeredPane = jbPanel.getLayeredPane();
+        //        AnalystPanel.layeredPane = jbPanel.getLayeredPane();
         FlagBean flagBean = new FlagBean();
         flagBean.setColor(Color.BLACK);
         flagBean.setTime(Long.MAX_VALUE);

@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 with cpu as (
     select cpu,ts,dur,(case when ro < 99 then ro else 99 end) as ro ,
            (case when ro < 99 then stime+ro*cell else stime + 99 * cell end) as st,
@@ -19,10 +20,10 @@ with cpu as (
     from (
         select cpu,ts,A.dur,((ts+A.dur)-D.start_ts)/((D.end_ts-D.start_ts)/100) as ro,D.start_ts as stime,D.end_ts etime,(D.end_ts-D.start_ts)/100 as cell
         from sched_slice A
-        left join trace_range D
+        left join trace_section D
         left join thread B on A.itid = B.id
         left join process C on B.ipid = C.id
-        where tid != 0 ))
+        where tid != 0 and (A.ts - D.start_ts) between %s and %s))
 select cpu,ro,
        sum(case
                when ts <= st and ts + dur <= et then (ts + dur - st)

@@ -358,7 +358,7 @@ public class HiLogPanel extends JBLayeredPane implements MouseListener {
         optionJPanel.add(optionJPanelContent);
         addComponent();
         tabContainer.add(optionJPanel);
-        Constant.jtasksTab.addTab("", tabContainer);
+        Constant.jtasksTab.addTab("HilogTab", tabContainer);
         Constant.jtasksTab.setTabComponentAt(Constant.jtasksTab.indexOfComponent(tabContainer), tabPanel);
         containerPanel.setLayout(new BorderLayout());
         Constant.jtasksTab.setBounds(0, 0, containerPanel.getWidth(), containerPanel.getHeight());
@@ -482,7 +482,7 @@ public class HiLogPanel extends JBLayeredPane implements MouseListener {
                                 Thread.sleep(WAIT_TIME);
                             } catch (InterruptedException ioException) {
                                 if (ProfilerLogManager.isErrorEnabled()) {
-                                    LOGGER.error("interrupted ", ioException);
+                                    LOGGER.error("interrupted: ", ioException);
                                 }
                             }
                             deviceChangedFlag = false;
@@ -575,15 +575,15 @@ public class HiLogPanel extends JBLayeredPane implements MouseListener {
 
                     @Override
                     protected void done() {
-                        String result = null;
                         try {
-                            result = get();
+                            get();
                         } catch (InterruptedException | ExecutionException inException) {
                             if (ProfilerLogManager.isErrorEnabled()) {
-                                LOGGER.error("interrupted: " + inException.getMessage());
+                                LOGGER.error("interrupted: ", inException);
                             }
                         }
-                        executeHiLogStatus(result);
+                        logTextArea.setText("");
+                        wholeBuilder.delete(0, wholeBuilder.length());
                     }
                 }.execute();
             }
@@ -600,20 +600,6 @@ public class HiLogPanel extends JBLayeredPane implements MouseListener {
                 clearLogBtn.setCursor(Cursor.getDefaultCursor());
             }
         });
-    }
-
-    private void executeHiLogStatus(String result) {
-        if (SUCCESS.equals(result)) {
-            if (ProfilerLogManager.isInfoEnabled()) {
-                LOGGER.info("clear device hilog success!");
-            }
-        } else {
-            if (ProfilerLogManager.isErrorEnabled()) {
-                LOGGER.error("clear device hilog failed!");
-            }
-        }
-        logTextArea.setText("");
-        wholeBuilder.delete(0, wholeBuilder.length());
     }
 
     private ArrayList getClearCmd() {
@@ -663,7 +649,9 @@ public class HiLogPanel extends JBLayeredPane implements MouseListener {
             }
         });
         QuartzManager.getInstance().startExecutor(selectDevice.getDeviceName(), 0, PERIOD);
-        ExecutorService service = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
+        ExecutorService service = new ThreadPoolExecutor(1, 1,
+            0L, TimeUnit.MILLISECONDS,
+            new LinkedBlockingQueue<Runnable>());
         service.submit(() -> {
             while (true) {
                 if (!isOpen) {
@@ -698,7 +686,7 @@ public class HiLogPanel extends JBLayeredPane implements MouseListener {
             // Error command result output stream or Get command result output stream
             inputStream = process.getInputStream();
             errorStream = process.getErrorStream();
-            brInputStream = new BufferedReader(new InputStreamReader(inputStream, Charset.forName("gbk")));
+            brInputStream = new BufferedReader(new InputStreamReader(inputStream, Charset.forName("UTF-8")));
             brErrorStream = new BufferedReader(new InputStreamReader(errorStream));
             String line;
             while ((line = brInputStream.readLine()) != null || (line = brErrorStream.readLine()) != null) {

@@ -39,6 +39,7 @@ import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridLayout;
@@ -51,6 +52,8 @@ import static ohos.devtools.views.common.Constant.DEVICE_REFRESH;
 
 /**
  * TaskPanel
+ *
+ * @since 2021/11/22
  */
 public class TaskPanel extends JBLayeredPane implements MouseListener {
     private static final Logger LOGGER = LogManager.getLogger(TaskPanel.class);
@@ -64,12 +67,14 @@ public class TaskPanel extends JBLayeredPane implements MouseListener {
     private static final String APPLICATION_TITLE_STR = "Application Tuning";
     private static final String SYSTEM_TITLE_STR = "System Tuning";
     private static final String DISTRIBUTED_TITLE_STR = "Distributed Scenario";
-    private static final String APPLICATION_TIP_STR = "<html>Application Tuning<br/><br/>" +
-        "Use the performance profiler to check the CPU,memory,network and energy status of the application</html>";
-    private static final String SYSTEM_TIP_STR = "<html>System Tuning<br/><br/>" +
-        "Collect system-wide performance traces from Harmony devices from a variety of data sources</html>";
-    private static final String DISTRIBUTED_TIP_STR = "<html>Distributed Scenario<br/><br/>" +
-        "Collect performance data for distributed scenarios</html>";
+    private static final String APPLICATION_TIP_STR = "<html>Application Tuning<br/><br/>"
+        + "Use the performance profiler to check the CPU,memory,network and energy status of the application</html>";
+    private static final String SYSTEM_TIP_STR = "<html>System Tuning<br/><br/>"
+        + "Collect system-wide performance traces from Harmony devices from a variety of data sources</html>";
+    private static final String DISTRIBUTED_TIP_STR =
+        "<html>Distributed Scenario<br/><br/>" + "Collect performance data for distributed scenarios</html>";
+    private static final String GPU_TIP_STR =
+        "<html>GPU Counter<br/><br/>" + "Collect performance data for GPU Counter</html>";
 
     private JBPanel parentPanel;
     private JBPanel welcomePanel;
@@ -164,8 +169,8 @@ public class TaskPanel extends JBLayeredPane implements MouseListener {
         containerPanel.setLayout(new BorderLayout());
         tabAddBtn.setFont(new Font(Font.DIALOG, Font.PLAIN, LayoutConstants.DEVICES_HEIGHT));
         tabAddBtn.setBorderPainted(false);
-        tabAddBtn.setBounds(LayoutConstants.NUMBER_X_ADD * Constant.jtasksTab.getTabCount(), LayoutConstants
-                .NUMBER_Y, LayoutConstants.BUTTON_HEIGHT, LayoutConstants.BUTTON_HEIGHT);
+        tabAddBtn.setBounds(LayoutConstants.NUMBER_X_ADD * Constant.jtasksTab.getTabCount(), LayoutConstants.NUMBER_Y,
+            LayoutConstants.BUTTON_HEIGHT, LayoutConstants.BUTTON_HEIGHT);
         Constant.jtasksTab.setBounds(0, 0, containerPanel.getWidth(), containerPanel.getHeight());
         this.add(Constant.jtasksTab);
         containerPanel.add(this);
@@ -195,8 +200,7 @@ public class TaskPanel extends JBLayeredPane implements MouseListener {
         if (ProfilerLogManager.isInfoEnabled()) {
             LOGGER.info("setPanelData");
         }
-        tabItem.setLayout(new MigLayout("insets 0", "[grow,fill]",
-                "15[fill,fill]20[]push[][][]20[]"));
+        tabItem.setLayout(new MigLayout("insets 0", "[grow,fill]", "15[fill,fill]20[]push[][][]20[]"));
         tabPanel.setOpaque(false);
         tabPanel.setPreferredSize(new Dimension(LayoutConstants.JPA_LABEL_WIDTH, LayoutConstants.DEVICES_HEIGHT));
         tabLeftPanel.setOpaque(false);
@@ -222,7 +226,7 @@ public class TaskPanel extends JBLayeredPane implements MouseListener {
         Font fontTaskTun = new Font(Font.DIALOG, Font.BOLD, LayoutConstants.TUN_LABEL_FONT);
         tipInfoLabel.setFont(fontTaskTun);
         tabContainer.add(tabItem);
-        Constant.jtasksTab.addTab("", tabContainer);
+        Constant.jtasksTab.addTab("TaskTab", tabContainer);
         Constant.jtasksTab.setTabComponentAt(Constant.jtasksTab.indexOfComponent(tabContainer), tabPanel);
     }
 
@@ -237,7 +241,7 @@ public class TaskPanel extends JBLayeredPane implements MouseListener {
         setApplicationBtnData();
         setSystemBtnData();
         distributedBtn.setText(DISTRIBUTED_TITLE_STR);
-        distributedBtn.setName(DISTRIBUTED_TITLE_STR);
+        distributedBtn.setName(UtConstant.UT_TASK_PANEL_DISTRIBUTED);
         distributedBtn.setPreferredSize(new Dimension(210, 155));
         distributedBtn.setFont(new Font(Font.DIALOG, Font.PLAIN, 14));
         distributedBtn.setVerticalTextPosition(JBLabel.BOTTOM);
@@ -257,8 +261,7 @@ public class TaskPanel extends JBLayeredPane implements MouseListener {
         tipPanel.add(tipIconLabel, "gap 30");
         tipPanel.add(tipInfoLabel);
         tipPanel.setOpaque(false);
-        btnPanel = new JBPanel(new MigLayout("insets 0", "push[]15[]15",
-            "[fill, fill]"));
+        btnPanel = new JBPanel(new MigLayout("insets 0", "push[]15[]15", "[fill, fill]"));
         btnPanel.add(openFileBtn);
         btnPanel.add(chooseBtn);
         btnPanel.setOpaque(false);
@@ -401,6 +404,7 @@ public class TaskPanel extends JBLayeredPane implements MouseListener {
         }
         if (name.equals(TAB_CLOSE_STR)) {
             removeAll();
+            HomePanel.setTaskIsOpen(false);
             Constant.jtasksTab.remove(Constant.jtasksTab.indexOfTabComponent(tabPanel));
             add(Constant.jtasksTab);
             parentPanel.add(this);
@@ -413,6 +417,12 @@ public class TaskPanel extends JBLayeredPane implements MouseListener {
                 }
                 removeAll();
                 Constant.jtasksTab = null;
+                Component[] components = parentPanel.getComponents();
+                for (Component item : components) {
+                    if (item instanceof TaskPanel) {
+                        parentPanel.remove(item);
+                    }
+                }
                 welcomePanel.setVisible(true);
             }
             QuartzManager.getInstance().deleteExecutor(DEVICE_REFRESH);

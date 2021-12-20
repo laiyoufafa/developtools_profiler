@@ -23,6 +23,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * Flame Search Chart Test
+ *
+ * @since 2021/2/1 9:31
  */
 class FlameSearchChartTest {
     FlameSearchChart flameSearchChart = new FlameSearchChart();
