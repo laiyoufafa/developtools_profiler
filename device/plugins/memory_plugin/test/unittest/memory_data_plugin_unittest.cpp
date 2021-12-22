@@ -29,7 +29,6 @@ const std::string DEFAULT_SO_PATH("/system/lib/");
 const std::string DEFAULT_BIN_PATH("/data/local/tmp/memorytest");
 constexpr uint32_t BUF_SIZE = 4 * 1024 * 1024;
 const int US_PER_S = 1000000;
-const int US_PER_MS = 10000;
 
 std::string g_path;
 
@@ -686,23 +685,24 @@ bool ExecuteBin(const std::string& bin, const std::vector<std::string>& args)
  */
 HWTEST_F(MemoryDataPluginTest, TestPid, TestSize.Level1)
 {
-    pid_t pid1, pid2;
     MemoryDataPlugin plugin;
     MemoryData memoryData;
     MemoryConfig config;
 
     std::string cmd = "chmod 777 " + DEFAULT_BIN_PATH;
     system(cmd.c_str());
-    if ((pid1 = fork()) == 0) {
-        std::vector<std::string> argv = {"childpidtest1", "1"};
+    pid_t pid1 = fork();
+    if (pid1 == 0) {
+        std::vector<std::string> argv = {"childpidtest1", "10"};
         ASSERT_TRUE(ExecuteBin(DEFAULT_BIN_PATH, argv));
     }
-    usleep(US_PER_MS);
-    if ((pid2 = fork()) == 0) {
-        std::vector<std::string> argv = {"childpidtest2", "2"};
+    pid_t pid2 = fork();
+    if (pid2 == 0) {
+        std::vector<std::string> argv = {"childpidtest2", "1"};
         ASSERT_TRUE(ExecuteBin(DEFAULT_BIN_PATH, argv));
     }
-    usleep(US_PER_MS);
+    sleep(1);
+
     // set config
     config.set_report_process_mem_info(true);
     config.set_report_app_mem_info(true);
@@ -710,7 +710,7 @@ HWTEST_F(MemoryDataPluginTest, TestPid, TestSize.Level1)
     config.add_pid(pid2);
     // check result
     EXPECT_TRUE(PluginStub(plugin, config, memoryData));
-    EXPECT_LT(memoryData.processesinfo(0).vm_size_kb(), memoryData.processesinfo(1).vm_size_kb());
+    EXPECT_GT(memoryData.processesinfo(0).vm_size_kb(), memoryData.processesinfo(1).vm_size_kb());
 
     while (waitpid(-1, NULL, WNOHANG) == 0) {
         kill(pid1, SIGKILL);

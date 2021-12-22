@@ -33,7 +33,6 @@ ohos_shared_library("bytraceplugin") {
   ]
   public_deps = [
     "${OHOS_PROFILER_3RDPARTY_PROTOBUF_DIR}:protobuf_lite",
-    "${OHOS_PROFILER_3RDPARTY_PROTOBUF_DIR}:protoc_lib",
     "${OHOS_PROFILER_DIR}/protos/types/plugins/bytrace_plugin:bytrace_plugin_protos_cpp",
     "//utils/native/base:utilsecurec",
   ]

@@ -28,7 +28,6 @@ ohos_shared_library("sampleplugin") {
   ]
   deps = [
     "${OHOS_PROFILER_3RDPARTY_PROTOBUF_DIR}:protobuf_lite",
-    "${OHOS_PROFILER_3RDPARTY_PROTOBUF_DIR}:protoc_lib",
     "${OHOS_PROFILER_DIR}/protos/types/plugins/sample_data:sample_data_cpp",
     "//utils/native/base:utilsecurec",
   ]

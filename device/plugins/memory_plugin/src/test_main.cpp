@@ -20,6 +20,8 @@
 
 #include "logging.h"
 
+#pragma clang optimize off
+
 namespace {
 const size_t MB_PER_BYTE = 0x100000;
 }
@@ -45,3 +47,5 @@ int main(int agrc, char* agrv[]) {
     while(true);
     return 0;
 }
+
+#pragma clang optimize on

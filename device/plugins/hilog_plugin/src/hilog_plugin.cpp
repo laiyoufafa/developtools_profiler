@@ -330,7 +330,12 @@ bool HilogPlugin::SetHilogLineDetails(const char* data, HilogLine* info)
     info->mutable_detail()->set_tag(std::string(end, end + index - 1));
     pTmp++;
     CHECK_TRUE(RemoveSpaces(&pTmp), false, "HilogPlugin: RemoveSpaces failed!");
-    info->set_context(pTmp, strlen(pTmp) - 1);  // - \n
+    if (google::protobuf::internal::IsStructurallyValidUTF8(pTmp, strlen(pTmp) - 1)) {
+        info->set_context(pTmp, strlen(pTmp) - 1);  // - \n
+    } else {
+        HILOG_ERROR(LOG_CORE, "HilogPlugin: log context include invalid UTF-8 data");
+        info->set_context("");
+    }
 
     return true;
 }
@@ -457,11 +462,11 @@ FILE* HilogPlugin::CustomPopen(const char* command, const char* type)
         return nullptr;
     }
 
-    pid_t pid;
     int fd[PIPE_LEN];
     pipe(fd);
 
-    if ((pid = fork()) == -1) {
+    pid_t pid = fork();
+    if (pid == -1) {
         perror("fork");
         exit(1);
     }
