@@ -59,8 +59,9 @@ ohos_executable("protoc_gen_ipc") {
   deps = [
     "${OHOS_PROFILER_3RDPARTY_PROTOBUF_DIR}:protobuf",
     "${OHOS_PROFILER_3RDPARTY_PROTOBUF_DIR}:protobuf_lite",
-    "${OHOS_PROFILER_3RDPARTY_PROTOBUF_DIR}:protoc_lib",
+    "${OHOS_PROFILER_3RDPARTY_PROTOBUF_DIR}:protoc_lib(${host_toolchain})",
   ]
+  install_enable = false
   subsystem_name = "${OHOS_PROFILER_SUBSYS_NAME}"
   part_name = "${OHOS_PROFILER_PART_NAME}"
 }

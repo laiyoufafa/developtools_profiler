@@ -214,7 +214,6 @@ bool ExecuteBin(const std::string& bin, const std::vector<std::string>& args)
  */
 HWTEST_F(DiskioDataPluginTest, TestSystemFile, TestSize.Level1)
 {
-    pid_t pid;
     DiskioDataPlugin plugin1, plugin2;
     DiskioData diskioData1, diskioData2;
 
@@ -222,7 +221,8 @@ HWTEST_F(DiskioDataPluginTest, TestSystemFile, TestSize.Level1)
     system(cmd.c_str());
 
     EXPECT_TRUE(PluginDiskioInfoStub(plugin1, diskioData1, false));
-    if ((pid = fork()) == 0) {
+    pid_t pid = fork();
+    if (pid == 0) {
         // set 1, write data to disk
         std::vector<std::string> argv = {"childpidtest", "1"};
         ASSERT_TRUE(ExecuteBin(DEFAULT_BIN_PATH, argv));

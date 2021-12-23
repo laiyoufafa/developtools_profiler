@@ -895,19 +895,20 @@ bool ExecuteBin(const std::string& bin, const std::vector<std::string>& args)
  */
 HWTEST_F(CpuDataPluginTest, TestPid, TestSize.Level1)
 {
-    pid_t pid1, pid2;
     CpuDataPlugin plugin1, plugin2;
     CpuData cpuData1, cpuData2;
 
     std::string cmd = "chmod 777 " + DEFAULT_BIN_PATH;
     system(cmd.c_str());
 
-    if ((pid1 = fork()) == 0) {
+    pid_t pid1 = fork();
+    if (pid1 == 0) {
         // set 0, not to do
         std::vector<std::string> argv = {"childpidtest1", "0"};
         ASSERT_TRUE(ExecuteBin(DEFAULT_BIN_PATH, argv));
     }
-    if ((pid2 = fork()) == 0) {
+    pid_t pid2 = fork();
+    if (pid2 == 0) {
         // set 1, consume cpu
         std::vector<std::string> argv = {"childpidtest2", "1"};
         ASSERT_TRUE(ExecuteBin(DEFAULT_BIN_PATH, argv));
