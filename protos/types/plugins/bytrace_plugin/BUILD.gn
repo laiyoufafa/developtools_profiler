@@ -19,6 +19,7 @@ bytrace_plugin_protos_defines = [ "./bytrace_plugin_config.proto" ]
 #######################################################
 proto_out_dir = "$root_gen_dir/cpp/" + rebase_path(".", "//")
 proto_rel_out_dir = rebase_path(proto_out_dir, root_build_dir)
+print("proto_out_dir", proto_out_dir, proto_rel_out_dir)
 
 #######################################################
 bytrace_plugin_protos_codegen = []

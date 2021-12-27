@@ -27,3 +27,6 @@ if (getenv("BUILD_MT") == "true") {
   build_tests = true
   enable_debuginfo = true
 }
+print("build_tests = ", build_tests)
+print("enable_debuginfo =", enable_debuginfo)
+print("enable_coverage =", enable_coverage)

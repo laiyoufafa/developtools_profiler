@@ -27,6 +27,7 @@ profiler_services_defines = [ "./profiler_service.proto" ]
 #######################################################
 proto_out_dir = "$root_gen_dir/cpp/" + rebase_path(".", "//")
 proto_rel_out_dir = rebase_path(proto_out_dir, root_build_dir)
+print("proto_out_dir", proto_out_dir, proto_rel_out_dir)
 
 grpc_cpp_plugin = "$subsys_x64_out/grpc_cpp_plugin"
 ipc_cpp_plugin = "$subsys_x64_out/protoc_gen_ipc"
