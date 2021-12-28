@@ -102,7 +102,7 @@ bool RecordFileExist(std::string& file)
         return false;
     }
 
-    std::string cmd = "find /data/local/tmp -name " + std::string(name) + "*";
+    std::string cmd = "find /data/local/tmp -name \"" + std::string(name) + "*\"";
     char buff[BUF_MAX_LEN] = {0};
     std::unique_ptr<FILE, int (*)(FILE*)> fp(popen(cmd.c_str(), "r"), pclose);
     if (!fp) {
@@ -1057,6 +1057,12 @@ HWTEST_F(HilogPluginTest, TestDefaultCmd, TestSize.Level1)
  */
 HWTEST_F(HilogPluginTest, TestFullCmd, TestSize.Level1)
 {
+    std::string oldFile = "";
+    if (RecordFileExist(oldFile)) {
+        std::string cmd = std::string("rm ") + oldFile;
+        system(cmd.c_str());
+    }
+
     HilogConfig config;
     HilogPlugin plugin;
     WriterStruct writer = {WriteFunc, FlushFunc};
