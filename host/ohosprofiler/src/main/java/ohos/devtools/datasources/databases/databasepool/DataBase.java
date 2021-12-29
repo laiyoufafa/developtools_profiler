@@ -239,7 +239,7 @@ public class DataBase {
         }
 
         /**
-         * Biggest activity
+         * maxActiveCount
          *
          * @param maxActive maxActive
          * @return Builder

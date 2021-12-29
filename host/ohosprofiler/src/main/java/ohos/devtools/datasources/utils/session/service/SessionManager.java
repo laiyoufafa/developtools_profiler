@@ -108,7 +108,7 @@ import java.util.concurrent.TimeUnit;
 import static ohos.devtools.datasources.transport.hdc.HdcCmdList.HDC_CHMOD_PROC;
 import static ohos.devtools.datasources.transport.hdc.HdcStdCmdList.HDC_STD_CHMOD_PROC;
 import static ohos.devtools.datasources.transport.hdc.HdcWrapper.conversionCommand;
-import static ohos.devtools.datasources.utils.common.Constant.DEVTOOLS_PLUGINS_V8_PATH;
+import static ohos.devtools.datasources.utils.common.Constant.DEVTOOLS_PLUGINS_FULL_PATH;
 import static ohos.devtools.datasources.utils.device.entity.DeviceType.FULL_HOS_DEVICE;
 import static ohos.devtools.datasources.utils.device.entity.DeviceType.LEAN_HOS_DEVICE;
 import static ohos.devtools.datasources.utils.plugin.entity.PluginBufferConfig.Policy.RECYCLE;
@@ -325,7 +325,7 @@ public class SessionManager {
             stringBuilder.append(SessionManager.getInstance().tempPath()).append(STD_DEVELOPTOOLS)
                 .append(File.separator).append(fileName);
         } else {
-            stringBuilder.append(SessionManager.getInstance().getPluginPath()).append(DEVTOOLS_PLUGINS_V8_PATH)
+            stringBuilder.append(SessionManager.getInstance().getPluginPath()).append(DEVTOOLS_PLUGINS_FULL_PATH)
                 .append(File.separator).append(fileName);
         }
         String filePath = stringBuilder.toString();
@@ -357,7 +357,7 @@ public class SessionManager {
         String pluginFileName = conf.getPluginFileName();
         String fileName = pluginFileName.substring(pluginFileName.lastIndexOf("/") + 1);
         StringBuilder stringBuilder = new StringBuilder(SessionManager.getInstance().getPluginPath());
-        stringBuilder.append(DEVTOOLS_PLUGINS_V8_PATH).append(File.separator).append(fileName).toString();
+        stringBuilder.append(DEVTOOLS_PLUGINS_FULL_PATH).append(File.separator).append(fileName).toString();
         String filePath = stringBuilder.toString();
         File pluginFile = new File(filePath);
         try {
