@@ -35,6 +35,7 @@ const int FILE_NAME_LEN = 5;
 const int US_PER_S = 1000000;
 const int BASE_YEAR = 1900;
 const int DEFAULT_WAIT = 10;
+const int TIME_HOUR_WIDTH = 5;
 constexpr int BUF_MAX_LEN = 32;
 uint64_t g_testId;
 std::vector<HilogInfo> g_proto;
@@ -118,6 +119,34 @@ bool RecordFileExist(std::string& file)
         return true;
     }
     return false;
+}
+
+uint64_t GetSec(HilogPlugin& plugin, const char* data)
+{
+    time_t nSeconds = time(nullptr);
+    if (nSeconds == 0) {
+        HILOG_ERROR(LOG_CORE, "GetSec: get time failed!, errno(%d:%s)", errno, strerror(errno));
+        return 0;
+    }
+
+    struct tm* pTM = localtime(&nSeconds);
+    if (pTM == nullptr) {
+        HILOG_ERROR(LOG_CORE, "GetSec: get localtime failed!, errno(%d:%s)", errno, strerror(errno));
+        return 0;
+    }
+
+    struct tm tmTime = {0};
+    tmTime.tm_year = pTM->tm_year;
+    strptime(data, "%m-%d %H:%M:%S", &tmTime);
+    const char* pTmp = data + TIME_HOUR_WIDTH;
+    long fixHour;
+    CHECK_TRUE(plugin.StringToL(pTmp, fixHour), 0, "%s:strtol fixHour failed", __func__);
+    if (static_cast<int>(fixHour) != tmTime.tm_hour) { // hours since midnight - [0, 23]
+        HILOG_INFO(LOG_CORE, "GetSec: hour(%d) <==> fix hour(%ld)!", tmTime.tm_hour, fixHour);
+        tmTime.tm_hour = fixHour;
+    }
+
+    return mktime(&tmTime);
 }
 
 /**
@@ -358,12 +387,13 @@ HWTEST_F(HilogPluginTest, TestInvalidLogLine2, TestSize.Level1)
     HilogPlugin plugin;
     HilogLine info;
     const char* data = "08-30 16:47:16.149566200\n";
-    uint64_t timeTarget[] = {20882836, 149566200};
+    uint64_t sec = GetSec(plugin, data);
+    uint64_t nsec = 149566200;
 
     plugin.SetConfig(config);
     plugin.ParseLogLineInfo(data, strlen(data), &info);
-    EXPECT_EQ(info.mutable_detail()->tv_sec(), timeTarget[0]);
-    EXPECT_EQ(info.mutable_detail()->tv_nsec(), timeTarget[1]);
+    EXPECT_EQ(info.mutable_detail()->tv_sec(), sec);
+    EXPECT_EQ(info.mutable_detail()->tv_nsec(), nsec);
     EXPECT_EQ(info.mutable_detail()->pid(), (uint32_t)0);
     EXPECT_EQ(info.mutable_detail()->tid(), (uint32_t)0);
     EXPECT_EQ(info.mutable_detail()->level(), (uint32_t)0);
@@ -382,14 +412,15 @@ HWTEST_F(HilogPluginTest, TestInvalidLogLine3, TestSize.Level1)
     HilogPlugin plugin;
     HilogLine info;
     const char* data = "08-30 16:47:16.149566200 27953 \n";
-    uint64_t timeTarget[] = {20882836, 149566200};
-    uint32_t target[] = {27953, 31750};
+    uint64_t sec = GetSec(plugin, data);
+    uint64_t nsec = 149566200;
+    uint32_t target = 27953;
 
     plugin.SetConfig(config);
     plugin.ParseLogLineInfo(data, strlen(data), &info);
-    EXPECT_EQ(info.mutable_detail()->tv_sec(), timeTarget[0]);
-    EXPECT_EQ(info.mutable_detail()->tv_nsec(), timeTarget[1]);
-    EXPECT_EQ(info.mutable_detail()->pid(), target[0]);
+    EXPECT_EQ(info.mutable_detail()->tv_sec(), sec);
+    EXPECT_EQ(info.mutable_detail()->tv_nsec(), nsec);
+    EXPECT_EQ(info.mutable_detail()->pid(), target);
     EXPECT_EQ(info.mutable_detail()->tid(), (uint32_t)0);
     EXPECT_EQ(info.mutable_detail()->level(), (uint32_t)0);
     EXPECT_STREQ(info.mutable_detail()->tag().c_str(), "");
@@ -407,13 +438,14 @@ HWTEST_F(HilogPluginTest, TestInvalidLogLine4, TestSize.Level1)
     HilogPlugin plugin;
     HilogLine info;
     const char* data = "08-30 16:47:16.149566200 27953 31750 \n";
-    uint64_t timeTarget[] = {20882836, 149566200};
+    uint64_t sec = GetSec(plugin, data);
+    uint64_t nsec = 149566200;
     uint32_t target[] = {27953, 31750};
 
     plugin.SetConfig(config);
     plugin.ParseLogLineInfo(data, strlen(data), &info);
-    EXPECT_EQ(info.mutable_detail()->tv_sec(), timeTarget[0]);
-    EXPECT_EQ(info.mutable_detail()->tv_nsec(), timeTarget[1]);
+    EXPECT_EQ(info.mutable_detail()->tv_sec(), sec);
+    EXPECT_EQ(info.mutable_detail()->tv_nsec(), nsec);
     EXPECT_EQ(info.mutable_detail()->pid(), target[0]);
     EXPECT_EQ(info.mutable_detail()->tid(), target[1]);
     EXPECT_EQ(info.mutable_detail()->level(), (uint32_t)0);
@@ -432,13 +464,14 @@ HWTEST_F(HilogPluginTest, TestInvalidLogLine5, TestSize.Level1)
     HilogPlugin plugin;
     HilogLine info;
     const char* data = "08-30 16:47:16.149566200 27953 31750 I\n";
-    uint64_t timeTarget[] = {20882836, 149566200};
+    uint64_t sec = GetSec(plugin, data);
+    uint64_t nsec = 149566200;
     uint32_t target[] = {27953, 31750};
 
     plugin.SetConfig(config);
     plugin.ParseLogLineInfo(data, strlen(data), &info);
-    EXPECT_EQ(info.mutable_detail()->tv_sec(), timeTarget[0]);
-    EXPECT_EQ(info.mutable_detail()->tv_nsec(), timeTarget[1]);
+    EXPECT_EQ(info.mutable_detail()->tv_sec(), sec);
+    EXPECT_EQ(info.mutable_detail()->tv_nsec(), nsec);
     EXPECT_EQ(info.mutable_detail()->pid(), target[0]);
     EXPECT_EQ(info.mutable_detail()->tid(), target[1]);
     EXPECT_EQ(info.mutable_detail()->level(), 'I');
@@ -457,13 +490,14 @@ HWTEST_F(HilogPluginTest, TestInvalidLogLine6, TestSize.Level1)
     HilogPlugin plugin;
     HilogLine info;
     const char* data = "08-30 16:47:16.522 27953 31750 I 00B00 \n";
-    uint64_t timeTarget[] = {20882836, 522};
+    uint64_t sec = GetSec(plugin, data);
+    uint64_t nsec = 522;
     uint32_t target[] = {27953, 31750};
 
     plugin.SetConfig(config);
     plugin.ParseLogLineInfo(data, strlen(data), &info);
-    EXPECT_EQ(info.mutable_detail()->tv_sec(), timeTarget[0]);
-    EXPECT_EQ(info.mutable_detail()->tv_nsec(), timeTarget[1]);
+    EXPECT_EQ(info.mutable_detail()->tv_sec(), sec);
+    EXPECT_EQ(info.mutable_detail()->tv_nsec(), nsec);
     EXPECT_EQ(info.mutable_detail()->pid(), target[0]);
     EXPECT_EQ(info.mutable_detail()->tid(), target[1]);
     EXPECT_EQ(info.mutable_detail()->level(), 'I');
@@ -482,13 +516,14 @@ HWTEST_F(HilogPluginTest, TestInvalidLogLine7, TestSize.Level1)
     HilogPlugin plugin;
     HilogLine info;
     const char* data = "08-30 16:47:16.522 27953 31750 I 00B00/ \n";
-    uint64_t timeTarget[] = {20882836, 522};
+    uint64_t sec = GetSec(plugin, data);
+    uint64_t nsec = 522;
     uint32_t target[] = {27953, 31750};
 
     plugin.SetConfig(config);
     plugin.ParseLogLineInfo(data, strlen(data), &info);
-    EXPECT_EQ(info.mutable_detail()->tv_sec(), timeTarget[0]);
-    EXPECT_EQ(info.mutable_detail()->tv_nsec(), timeTarget[1]);
+    EXPECT_EQ(info.mutable_detail()->tv_sec(), sec);
+    EXPECT_EQ(info.mutable_detail()->tv_nsec(), nsec);
     EXPECT_EQ(info.mutable_detail()->pid(), target[0]);
     EXPECT_EQ(info.mutable_detail()->tid(), target[1]);
     EXPECT_EQ(info.mutable_detail()->level(), 'I');
@@ -507,13 +542,14 @@ HWTEST_F(HilogPluginTest, TestInvalidLogLine8, TestSize.Level1)
     HilogPlugin plugin;
     HilogLine info;
     const char* data = "08-30 16:47:16.522 27953 31750 I 00B00/HwMSDPMovementImpl: \n";
-    uint64_t timeTarget[] = {20882836, 522};
+    uint64_t sec = GetSec(plugin, data);
+    uint64_t nsec = 522;
     uint32_t target[] = {27953, 31750};
 
     plugin.SetConfig(config);
     plugin.ParseLogLineInfo(data, strlen(data), &info);
-    EXPECT_EQ(info.mutable_detail()->tv_sec(), timeTarget[0]);
-    EXPECT_EQ(info.mutable_detail()->tv_nsec(), timeTarget[1]);
+    EXPECT_EQ(info.mutable_detail()->tv_sec(), sec);
+    EXPECT_EQ(info.mutable_detail()->tv_nsec(), nsec);
     EXPECT_EQ(info.mutable_detail()->pid(), target[0]);
     EXPECT_EQ(info.mutable_detail()->tid(), target[1]);
     EXPECT_EQ(info.mutable_detail()->level(), 'I');
@@ -532,13 +568,14 @@ HWTEST_F(HilogPluginTest, TestInvalidLogLine9, TestSize.Level1)
     HilogPlugin plugin;
     HilogLine info;
     const char* data = "08-30 16:47:16.522 27953 31750 I chatty  :\n";
-    uint64_t timeTarget[] = {20882836, 522};
+    uint64_t sec = GetSec(plugin, data);
+    uint64_t nsec = 522;
     uint32_t target[] = {27953, 31750};
 
     plugin.SetConfig(config);
     plugin.ParseLogLineInfo(data, strlen(data), &info);
-    EXPECT_EQ(info.mutable_detail()->tv_sec(), timeTarget[0]);
-    EXPECT_EQ(info.mutable_detail()->tv_nsec(), timeTarget[1]);
+    EXPECT_EQ(info.mutable_detail()->tv_sec(), sec);
+    EXPECT_EQ(info.mutable_detail()->tv_nsec(), nsec);
     EXPECT_EQ(info.mutable_detail()->pid(), target[0]);
     EXPECT_EQ(info.mutable_detail()->tid(), target[1]);
     EXPECT_EQ(info.mutable_detail()->level(), 'I');
@@ -557,13 +594,14 @@ HWTEST_F(HilogPluginTest, TestInvalidLogLine, TestSize.Level1)
     HilogPlugin plugin;
     HilogLine info;
     const char* data = "08-30 16:47:16.522 27953 31750 I 00B00/HwMSDPMovementImpl: mSupportedModule= 0\n";
-    uint64_t timeTarget[] = {20882836, 522};
+    uint64_t sec = GetSec(plugin, data);
+    uint64_t nsec = 522;
     uint32_t target[] = {27953, 31750};
 
     plugin.SetConfig(config);
     plugin.ParseLogLineInfo(data, strlen(data), &info);
-    EXPECT_EQ(info.mutable_detail()->tv_sec(), timeTarget[0]);
-    EXPECT_EQ(info.mutable_detail()->tv_nsec(), timeTarget[1]);
+    EXPECT_EQ(info.mutable_detail()->tv_sec(), sec);
+    EXPECT_EQ(info.mutable_detail()->tv_nsec(), nsec);
     EXPECT_EQ(info.mutable_detail()->pid(), target[0]);
     EXPECT_EQ(info.mutable_detail()->tid(), target[1]);
     EXPECT_EQ(info.mutable_detail()->level(), 'I');
@@ -582,13 +620,14 @@ HWTEST_F(HilogPluginTest, TestParseLogLine1, TestSize.Level1)
     HilogPlugin plugin;
     HilogLine info;
     const char* data = "08-30 16:47:16.149566200 27953 31750 I 00B00/HwMSDPMovementImpl: mSupportedModule= 0\n";
-    uint64_t timeTarget[] = {20882836, 149566200};
+    uint64_t sec = GetSec(plugin, data);
+    uint64_t nsec = 149566200;
     uint32_t target[] = {27953, 31750};
 
     plugin.SetConfig(config);
     plugin.ParseLogLineInfo(data, strlen(data), &info);
-    EXPECT_EQ(info.mutable_detail()->tv_sec(), timeTarget[0]);
-    EXPECT_EQ(info.mutable_detail()->tv_nsec(), timeTarget[1]);
+    EXPECT_EQ(info.mutable_detail()->tv_sec(), sec);
+    EXPECT_EQ(info.mutable_detail()->tv_nsec(), nsec);
     EXPECT_EQ(info.mutable_detail()->pid(), target[0]);
     EXPECT_EQ(info.mutable_detail()->tid(), target[1]);
     EXPECT_EQ(info.mutable_detail()->level(), 'I');
@@ -608,13 +647,14 @@ HWTEST_F(HilogPluginTest, TestParseLogLine2, TestSize.Level1)
     HilogLine info;
     const char* data =
         "08-30 16:47:16.149566200 27953 31750 E chatty  : uid=10194(com.zh.heaptest) identical 2 lines\n";
-    uint64_t timeTarget[] = {20882836, 149566200};
+    uint64_t sec = GetSec(plugin, data);
+    uint64_t nsec = 149566200;
     uint32_t target[] = {27953, 31750};
 
     plugin.SetConfig(config);
     plugin.ParseLogLineInfo(data, strlen(data), &info);
-    EXPECT_EQ(info.mutable_detail()->tv_sec(), timeTarget[0]);
-    EXPECT_EQ(info.mutable_detail()->tv_nsec(), timeTarget[1]);
+    EXPECT_EQ(info.mutable_detail()->tv_sec(), sec);
+    EXPECT_EQ(info.mutable_detail()->tv_nsec(), nsec);
     EXPECT_EQ(info.mutable_detail()->pid(), target[0]);
     EXPECT_EQ(info.mutable_detail()->tid(), target[1]);
     EXPECT_EQ(info.mutable_detail()->level(), 'E');
