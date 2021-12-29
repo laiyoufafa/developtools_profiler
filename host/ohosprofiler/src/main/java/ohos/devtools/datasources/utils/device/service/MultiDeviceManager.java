@@ -67,8 +67,8 @@ import static ohos.devtools.datasources.transport.hdc.HdcStdCmdList.HDC_STD_RUN_
 import static ohos.devtools.datasources.transport.hdc.HdcStdCmdList.HDC_STD_START_PROFILER;
 import static ohos.devtools.datasources.transport.hdc.HdcWrapper.conversionCommand;
 import static ohos.devtools.datasources.utils.common.Constant.DEVICE_STAT_FAIL;
-import static ohos.devtools.datasources.utils.common.Constant.DEVTOOLS_PLUGINS_V7_PATH;
-import static ohos.devtools.datasources.utils.common.Constant.DEVTOOLS_PLUGINS_V8_PATH;
+import static ohos.devtools.datasources.utils.common.Constant.DEVTOOLS_PLUGINS_LEAN_PATH;
+import static ohos.devtools.datasources.utils.common.Constant.DEVTOOLS_PLUGINS_FULL_PATH;
 import static ohos.devtools.datasources.utils.common.Constant.PLUGIN_NOT_FOUND;
 import static ohos.devtools.datasources.utils.common.Constant.PLUGIN_RESULT_OK;
 import static ohos.devtools.datasources.utils.common.Constant.TIME_OUT;
@@ -296,13 +296,13 @@ public class MultiDeviceManager {
         }
         ArrayList<String> cmdStr;
         if (IS_SUPPORT_NEW_HDC && info.getDeviceType() == LEAN_HOS_DEVICE) {
-            String devToolsPath = SessionManager.getInstance().getPluginPath() + DEVTOOLS_PLUGINS_V7_PATH;
+            String devToolsPath = SessionManager.getInstance().getPluginPath() + DEVTOOLS_PLUGINS_LEAN_PATH;
             HdcWrapper.getInstance().execCmdBy(conversionCommand(HDC_STD_ROOT_CLEAR_CMD, info.getDeviceID()), 10);
             cmdStr = conversionCommand(HDC_STD_PUSH_CMD, info.getDeviceID(), devToolsPath);
             String result = HdcWrapper.getInstance().getHdcStringResult(cmdStr);
             return result.contains("FileTransfer finish");
         } else {
-            String devToolsPath = SessionManager.getInstance().getPluginPath() + DEVTOOLS_PLUGINS_V8_PATH;
+            String devToolsPath = SessionManager.getInstance().getPluginPath() + DEVTOOLS_PLUGINS_FULL_PATH;
             if (info.getDeviceType() == LEAN_HOS_DEVICE) {
                 HdcWrapper.getInstance().getHdcStringResult(conversionCommand(HDC_ROOT_CLEAR_CMD, info.getDeviceID()));
             } else {
@@ -562,7 +562,7 @@ public class MultiDeviceManager {
         if (ProfilerLogManager.isInfoEnabled()) {
             LOGGER.info("updateVersion");
         }
-        String devToolsPath = SessionManager.getInstance().getPluginPath() + DEVTOOLS_PLUGINS_V8_PATH;
+        String devToolsPath = SessionManager.getInstance().getPluginPath() + DEVTOOLS_PLUGINS_FULL_PATH;
         File devtoolsPath = new File(devToolsPath);
         Map<String, String> cmdResultMap;
         if (IS_SUPPORT_NEW_HDC && deviceIPPortInfo.getDeviceType() == LEAN_HOS_DEVICE) {

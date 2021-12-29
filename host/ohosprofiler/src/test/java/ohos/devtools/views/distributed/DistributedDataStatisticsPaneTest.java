@@ -51,10 +51,10 @@ class DistributedDataStatisticsPaneTest {
         }
         DistributedPanel distributedPanel = new DistributedPanel();
         distributedPanel.load(new DistributedParams.Builder()
-            .setPkgNameA("com.google.android.maps")
+            .setPkgNameA("com.test.maps")
             .setPkgNameB("com.distributed.ims")
-            .setDeviceNameA("distributed Mate40")
-            .setDeviceNameB("distributed P30")
+            .setDeviceNameA("distributed device 1")
+            .setDeviceNameB("distributed device 2")
             .setProcessIdA(27521)
             .setProcessIdB(1155)
             .setPathA(Config.TRACE_DISTRIBUTED_A)

@@ -57,7 +57,7 @@ import static ohos.devtools.views.common.Constant.IS_SUPPORT_NEW_HDC;
 public class DistributedManager {
     private static final Logger LOGGER = LogManager.getLogger(DistributedManager.class);
     private static final String FULL_PERFETTO_STR =
-        "power;ability;ace;app;audio;binder_lock;bionic;camera;database;distributeddatamgr;gfx;graphic;hal;"
+        "power;ability;ace;app;audio;binder_lock;camera;database;distributeddatamgr;gfx;graphic;hal;"
             + "i2c;idle;input;mdfs;memreclaim;network;nnapi;notification;ohos;res;rro;rs;sm;ss;vibrator;video;view;"
             + "webview;wm;zaudio;zcamera;zimage;zmedia";
     private static final String LEAN_PERFETTO_STR =
