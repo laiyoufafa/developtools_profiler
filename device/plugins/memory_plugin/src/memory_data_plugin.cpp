@@ -21,7 +21,7 @@
 #include "smaps_stats.h"
 
 namespace {
-const char* CMD_FORMAT = "dumpsys meminfo --local ";
+const char* CMD_FORMAT = "memory service meminfo --local ";
 constexpr size_t READ_BUFFER_SIZE = 1024 * 16;
 constexpr int BUF_MAX_LEN = 2048;
 } // namespace
@@ -305,7 +305,7 @@ bool MemoryDataPlugin::ParseMemInfo(const char* data, ProcessMemoryInfo* memoryI
     return done;
 }
 
-bool MemoryDataPlugin::GetMemInfoByDumpsys(uint32_t pid, ProcessMemoryInfo* memoryInfo)
+bool MemoryDataPlugin::GetMemInfoByMemoryService(uint32_t pid, ProcessMemoryInfo* memoryInfo)
 {
     std::string fullCmd = CMD_FORMAT + std::to_string(pid);
 
@@ -347,14 +347,10 @@ int MemoryDataPlugin::Report(uint8_t* data, uint32_t dataSize)
                 WriteProcinfoByPidfds(processinfo, pid);
             }
 
-            if (protoConfig_.report_app_mem_info()) {
-                if (protoConfig_.report_app_mem_by_dumpsys()) {
-                    GetMemInfoByDumpsys(pid, processinfo);
-                } else {
-                    SmapsStats smapInfo;
-                    smapInfo.ParseMaps(pid);
-                    WriteAppsummary(processinfo, smapInfo);
-                }
+            if (protoConfig_.report_app_mem_info() && !protoConfig_.report_app_mem_by_memory_service()) {
+                SmapsStats smapInfo;
+                smapInfo.ParseMaps(pid);
+                WriteAppsummary(processinfo, smapInfo);
             }
         }
     }

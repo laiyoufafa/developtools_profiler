@@ -165,12 +165,12 @@ void SetPluginSysMemConfig(MemoryConfig &protoConfig)
     protoConfig.add_sys_vmeminfo_counters(SysVMeminfoType::VMEMINFO_NR_UNSTABLE);
 }
 
-void SetPluginDumpsysConfig(MemoryConfig& protoConfig)
+void SetPluginMemoryServiceConfig(MemoryConfig& protoConfig)
 {
     protoConfig.set_report_process_mem_info(true);
     protoConfig.set_report_app_mem_info(true);
     protoConfig.add_pid(1);
-    protoConfig.set_report_app_mem_by_dumpsys(true);
+    protoConfig.set_report_app_mem_by_memory_service(true);
 }
 
 bool PluginStub(MemoryDataPlugin& memoryPlugin, MemoryConfig& protoConfig, MemoryData& memoryData)
@@ -442,16 +442,16 @@ HWTEST_F(MemoryDataPluginTest, TestpluginWriteVmstat, TestSize.Level1)
 
 /**
  * @tc.name: memory plugin
- * @tc.desc: Get information through Dumpsys.
+ * @tc.desc: Get information through MemoryService.
  * @tc.type: FUNC
  */
-HWTEST_F(MemoryDataPluginTest, TestpluginDumpsys, TestSize.Level1)
+HWTEST_F(MemoryDataPluginTest, TestpluginMemoryService, TestSize.Level1)
 {
     MemoryDataPlugin memoryPlugin;
     MemoryData memoryData;
     MemoryConfig protoConfig;
 
-    SetPluginDumpsysConfig(protoConfig);
+    SetPluginMemoryServiceConfig(protoConfig);
     EXPECT_TRUE(PluginStub(memoryPlugin, protoConfig, memoryData));
     std::string line = "01234567890";
     memoryPlugin.ParseNumber(line);
