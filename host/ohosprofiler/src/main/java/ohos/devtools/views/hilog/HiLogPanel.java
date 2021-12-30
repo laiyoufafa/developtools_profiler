@@ -285,7 +285,7 @@ public class HiLogPanel extends JBLayeredPane implements MouseListener {
         endBtn.setToolTipText("Scroll to the end");
         endBtn.setBounds(width - END_MARGIN_RIGHT, BUTTON_MARGIN_TOP, BTN_WIDTH_HEIGHT, BTN_WIDTH_HEIGHT);
         clearLogBtn.setIcon(AllIcons.Actions.GC);
-        clearLogBtn.setToolTipText("Clear Logcat");
+        clearLogBtn.setToolTipText("Clear Log");
         clearLogBtn.setBounds(width - CLEAR_MARGIN_RIGHT, BUTTON_MARGIN_TOP, BTN_WIDTH_HEIGHT, BTN_WIDTH_HEIGHT);
     }
 

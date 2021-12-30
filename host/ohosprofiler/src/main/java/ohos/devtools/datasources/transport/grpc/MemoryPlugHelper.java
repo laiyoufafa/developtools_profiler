@@ -49,11 +49,11 @@ public final class MemoryPlugHelper {
      * @param reportProcessTree reportProcessTree
      * @param reportProcessMemInfo reportProcessMemInfo
      * @param reportAppMemInfo reportAppMemInfo
-     * @param reportAppMemByDumpsys reportAppMemByDumpsys
+     * @param reportAppMemByService reportAppMemByService
      * @return MemoryPluginConfig.MemoryConfig
      */
     public static MemoryPluginConfig.MemoryConfig createMemRequest(int pid, boolean reportProcessTree,
-        boolean reportProcessMemInfo, boolean reportAppMemInfo, boolean reportAppMemByDumpsys) {
+        boolean reportProcessMemInfo, boolean reportAppMemInfo, boolean reportAppMemByService) {
         MemoryPluginConfig.MemoryConfig.Builder builder = MemoryPluginConfig.MemoryConfig.newBuilder();
         if (pid > 0) {
             builder.addPid(pid);
@@ -61,7 +61,7 @@ public final class MemoryPlugHelper {
         builder.setReportProcessTree(reportProcessTree);
         builder.setReportProcessMemInfo(reportProcessMemInfo);
         builder.setReportAppMemInfo(reportAppMemInfo);
-        builder.setReportAppMemByDumpsys(reportAppMemByDumpsys);
+        builder.setReportAppMemByMemoryService(reportAppMemByService);
         return builder.build();
     }
 
