@@ -145,10 +145,6 @@ public class SystemConfigPanel extends JBPanel implements MouseListener, ItemLis
             + "Enable individual events and tune the kernel-tracng(ftrace) module."
             + "The events enabled here are in addition to those from"
             + " enabled by other probes." + "</html>";
-    private static final String LOW_MEMORY_DES_STR = "<html>"
-            + "Record LMK events. Works both with the old in kernel LMK and"
-            + "the newer userspace Imkd. It also tracks OOM score adjustments "
-            + "</html>";
     private static final String RECORD_SETTING_STR = "<html>"
             + "<p style=\"margin-left:28px;font-size:13px;text-align:left;color:white;\">Record Setting</p>"
             + "<p style=\"margin-top:0px;margin-left:28px;font-size:9px;text-align:left;color:#757784;\">"
