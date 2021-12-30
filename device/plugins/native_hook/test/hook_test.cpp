@@ -115,6 +115,10 @@ void* thread_func_cpp(void* param)
 
 int ThreadTimeCost(int threadNum, int mallocTimes) {
     Timer timer = {};
+    if (threadNum <= 0) {
+        printf("threadNum less than or equal to 0.\n");
+        return 1;
+    }
     pthread_t* thr_array = new (std::nothrow) pthread_t[threadNum];
     if (!thr_array) {
         printf("new thread array failed.\n");

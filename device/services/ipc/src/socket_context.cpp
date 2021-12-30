@@ -163,6 +163,7 @@ bool SocketContext::SendRaw(uint32_t pnum, const int8_t* data, uint32_t size, in
 bool SocketContext::SendProtobuf(uint32_t pnum, google::protobuf::Message& pmsg)
 {
     int size = pmsg.ByteSizeLong();
+    CHECK_TRUE(size > 0, false, "%s:size less than or equal to 0", __func__);
     int8_t* data = reinterpret_cast<int8_t*>(malloc(size));
     if (data == nullptr) {
         return false;
