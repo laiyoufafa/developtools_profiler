@@ -20,14 +20,14 @@ package ohos.devtools.datasources.utils.common;
  */
 public class Constant {
     /**
-     * Devtools plug-in (V8) path
+     * Devtools plug-in device path
      */
-    public static final String DEVTOOLS_PLUGINS_V8_PATH = "developtools";
+    public static final String DEVTOOLS_PLUGINS_FULL_PATH = "developtools";
 
     /**
-     * Devtools plug-in (V7) path
+     * Devtools plug-in path
      */
-    public static final String DEVTOOLS_PLUGINS_V7_PATH = "stddeveloptools.tar";
+    public static final String DEVTOOLS_PLUGINS_LEAN_PATH = "stddeveloptools.tar";
 
     /**
      * Unzip shell plug-in path

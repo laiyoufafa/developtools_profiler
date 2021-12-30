@@ -48,7 +48,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import static io.grpc.Status.DEADLINE_EXCEEDED;
 import static io.grpc.Status.INTERNAL;
 import static io.grpc.Status.UNAVAILABLE;
-import static ohos.devtools.datasources.utils.common.Constant.DEVTOOLS_PLUGINS_V8_PATH;
+import static ohos.devtools.datasources.utils.common.Constant.DEVTOOLS_PLUGINS_FULL_PATH;
 import static ohos.devtools.datasources.utils.common.Constant.PROCESS_PLUGS;
 import static ohos.devtools.datasources.utils.device.entity.DeviceType.LEAN_HOS_DEVICE;
 import static ohos.devtools.views.common.Constant.IS_SUPPORT_NEW_HDC;
@@ -252,7 +252,7 @@ public final class HiProfilerClient {
         }
         String fileName = pluginFileName.substring(pluginFileName.lastIndexOf("/") + 1);
         String filePath =
-            SessionManager.getInstance().getPluginPath() + DEVTOOLS_PLUGINS_V8_PATH + File.separator + fileName;
+            SessionManager.getInstance().getPluginPath() + DEVTOOLS_PLUGINS_FULL_PATH + File.separator + fileName;
         File pluginFile = new File(filePath);
         String fileSha256 = "";
         try {
