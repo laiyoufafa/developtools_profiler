@@ -18,9 +18,11 @@
 #include <thread>
 #include <unistd.h>
 
+#include "flow_controller.h"
 #include "ftrace_fs_ops.h"
 #include "ftrace_parser.h"
 
+using FTRACE_NS::FlowController;
 using FTRACE_NS::FtraceFsOps;
 using FTRACE_NS::FtraceParser;
 using FTRACE_NS::PerCpuStats;
@@ -30,12 +32,65 @@ namespace {
 #ifndef PAGE_SIZE
 constexpr uint32_t PAGE_SIZE = 4096;
 #endif
+
+constexpr uint32_t BUFFER_SIZE_KB = 256;
+constexpr uint32_t FLUSH_INTERVAL_MS = 100;
+constexpr uint32_t FLUSH_THRESHOLD_KB = 1024;
+constexpr uint32_t TRACE_PERIOD_MS = 500;
+using WriterStructPtr = std::unique_ptr<WriterStruct>::pointer;
+using ConstVoidPtr = std::unique_ptr<const void>::pointer;
+
+long WriteFunc(WriterStructPtr writer, ConstVoidPtr data, size_t size);
+bool FlushFunc(WriterStructPtr writer);
+
 class FtraceParserTest : public ::testing::Test {
 protected:
-    void SetUp() override {}
+    static void SetUpTestCase()
+    {
+        // start tracing sched_switch event
+        FlowController controller;
+        TracePluginConfig config;
 
+        // set writer
+        WriterStruct writer = {WriteFunc, FlushFunc};
+        controller.SetWriter(static_cast<WriterStructPtr>(&writer));
+
+        // set config
+        config.add_ftrace_events("sched/sched_switch");
+        config.set_buffer_size_kb(BUFFER_SIZE_KB);
+        config.set_flush_interval_ms(FLUSH_INTERVAL_MS);
+        config.set_flush_threshold_kb(FLUSH_THRESHOLD_KB);
+        config.set_parse_ksyms(true);
+        config.set_clock("global");
+        config.set_trace_period_ms(TRACE_PERIOD_MS);
+        config.set_raw_data_prefix("/data/local/tmp/raw_trace_");
+        std::vector<uint8_t> configData(config.ByteSizeLong());
+        config.SerializeToArray(configData.data(), configData.size());
+        controller.LoadConfig(configData.data(), configData.size());
+        controller.StartCapture();
+        controller.StopCapture();
+    }
+
+    void SetUp() override {}
     void TearDown() override {}
 };
+
+long WriteFunc(WriterStructPtr writer, ConstVoidPtr data, size_t size)
+{
+    if (writer == nullptr || data == nullptr || size <= 0) {
+        return -1;
+    }
+
+    return 0;
+}
+
+bool FlushFunc(WriterStructPtr writer)
+{
+    if (writer == nullptr) {
+        return false;
+    }
+    return true;
+}
 
 /*
  * @tc.name: Init

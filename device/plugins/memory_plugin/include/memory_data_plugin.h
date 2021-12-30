@@ -313,7 +313,7 @@ private:
     int GetProcStatusId(const char* src, int srcLen);
 
     bool ParseMemInfo(const char* data, ProcessMemoryInfo* memoryInfo);
-    bool GetMemInfoByDumpsys(uint32_t pid, ProcessMemoryInfo* memoryInfo);
+    bool GetMemInfoByMemoryService(uint32_t pid, ProcessMemoryInfo* memoryInfo);
     int InitMemVmemFd();
 };
 
