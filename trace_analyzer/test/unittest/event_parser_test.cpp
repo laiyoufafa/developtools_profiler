@@ -1136,7 +1136,7 @@ HWTEST_F(EventParserTest, HandlerB, TestSize.Level1)
     TS_LOGI("test4-60");
     size_t length{3};
     TracePoint outPoint;
-    std::string str("B|924|HIDL::ISensors::batch::client");
+    std::string str("B|924|HID::ISensors::batch::client");
     BytraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     int result = eventParser.printEventParser_.HandlerB(str, outPoint, length);
 
