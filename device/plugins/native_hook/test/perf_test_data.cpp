@@ -194,13 +194,6 @@ int main(int argc, char *argv[])
         }
         long long total_times = times.load(std::memory_order_relaxed);
         PRINTF_DATA(out_fp, "The total times(malloc/free): %lld\n", total_times);
-        long long total_malloc_total_time = malloc_total_time.load(std::memory_order_relaxed);
-        long long total_free_total_time = free_total_time.load(std::memory_order_relaxed);
-        PRINTF_DATA(out_fp,
-                    "\nTest duration: %d seconds, malloc/free invoking times: %lld, average time of invoking malloc: "
-                    "%f nano seconds, average time of invoking free: %f nano seconds\n",
-                    duration, total_times, static_cast<double>(total_malloc_total_time / total_times),
-                    static_cast<double>(total_free_total_time / total_times));
     }
     free(thr_array);
     printf("Exit\n");
