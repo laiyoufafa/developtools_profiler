@@ -328,25 +328,9 @@ public class SessionManager {
             stringBuilder.append(SessionManager.getInstance().getPluginPath()).append(DEVTOOLS_PLUGINS_FULL_PATH)
                 .append(File.separator).append(fileName);
         }
-        String filePath = stringBuilder.toString();
-        File pluginFile = new File(filePath);
-        try {
-            String fileSha256 = DigestUtils.sha256Hex(new FileInputStream(pluginFile));
-            if (ProfilerLogManager.isInfoEnabled()) {
-                LOGGER.info("plugin sha256Hex  {}", fileSha256);
-            }
-            if (fileName.contains("libnative_hook")) {
-                fileSha256 = "";
-            }
-            return ProfilerServiceHelper
-                .profilerPluginConfig(plug.getName(), fileSha256, pluginConfig.getSampleInterval(),
-                    pluginConfig.getConfData());
-        } catch (IOException ioException) {
-            if (ProfilerLogManager.isErrorEnabled()) {
-                LOGGER.error("plugin sha256Hex fail {}", fileName);
-            }
-            return CommonTypes.ProfilerPluginConfig.getDefaultInstance();
-        }
+        return ProfilerServiceHelper
+            .profilerPluginConfig(plug.getName(), "", pluginConfig.getSampleInterval(),
+                pluginConfig.getConfData());
     }
 
     private CommonTypes.ProfilerPluginConfig getAgentPluginConfig(PluginConf conf,
@@ -358,21 +342,8 @@ public class SessionManager {
         String fileName = pluginFileName.substring(pluginFileName.lastIndexOf("/") + 1);
         StringBuilder stringBuilder = new StringBuilder(SessionManager.getInstance().getPluginPath());
         stringBuilder.append(DEVTOOLS_PLUGINS_FULL_PATH).append(File.separator).append(fileName).toString();
-        String filePath = stringBuilder.toString();
-        File pluginFile = new File(filePath);
-        try {
-            String fileSha256 = DigestUtils.sha256Hex(new FileInputStream(pluginFile));
-            if (ProfilerLogManager.isInfoEnabled()) {
-                LOGGER.info("plugin sha256Hex  {}", fileSha256);
-            }
-            return ProfilerServiceHelper
-                .profilerPluginConfig(plug.getName(), "", pluginConfig.getSampleInterval(), pluginConfig.getConfData());
-        } catch (IOException ioException) {
-            if (ProfilerLogManager.isErrorEnabled()) {
-                LOGGER.error("plugin sha256Hex fail {}", fileName);
-            }
-            return CommonTypes.ProfilerPluginConfig.getDefaultInstance();
-        }
+        return ProfilerServiceHelper
+            .profilerPluginConfig(plug.getName(), "", pluginConfig.getSampleInterval(), pluginConfig.getConfData());
     }
 
     private ProfilerServiceTypes.ProfilerSessionConfig.BufferConfig getBufferConfig(PluginConf conf) {

@@ -59,15 +59,13 @@ import static ohos.devtools.datasources.transport.hdc.HdcStdCmdList.HDC_STD_CHEC
 import static ohos.devtools.datasources.transport.hdc.HdcStdCmdList.HDC_STD_CHECK_SERVER;
 import static ohos.devtools.datasources.transport.hdc.HdcStdCmdList.HDC_STD_GET_PLUGIN_MD5S;
 import static ohos.devtools.datasources.transport.hdc.HdcStdCmdList.HDC_STD_LIST_TARGETS_STR;
-import static ohos.devtools.datasources.transport.hdc.HdcStdCmdList.HDC_STD_PUSH_CMD;
 import static ohos.devtools.datasources.transport.hdc.HdcStdCmdList.HDC_STD_PUSH_FILE_SHELL;
 import static ohos.devtools.datasources.transport.hdc.HdcStdCmdList.HDC_STD_PUSH_OHOS_SHELL;
-import static ohos.devtools.datasources.transport.hdc.HdcStdCmdList.HDC_STD_ROOT_CLEAR_CMD;
+import static ohos.devtools.datasources.transport.hdc.HdcStdCmdList.HDC_STD_REMOVE_SHELL;
 import static ohos.devtools.datasources.transport.hdc.HdcStdCmdList.HDC_STD_RUN_OHOS;
 import static ohos.devtools.datasources.transport.hdc.HdcStdCmdList.HDC_STD_START_PROFILER;
 import static ohos.devtools.datasources.transport.hdc.HdcWrapper.conversionCommand;
 import static ohos.devtools.datasources.utils.common.Constant.DEVICE_STAT_FAIL;
-import static ohos.devtools.datasources.utils.common.Constant.DEVTOOLS_PLUGINS_LEAN_PATH;
 import static ohos.devtools.datasources.utils.common.Constant.DEVTOOLS_PLUGINS_FULL_PATH;
 import static ohos.devtools.datasources.utils.common.Constant.PLUGIN_NOT_FOUND;
 import static ohos.devtools.datasources.utils.common.Constant.PLUGIN_RESULT_OK;
@@ -169,6 +167,10 @@ public class MultiDeviceManager {
                 handleForwardNotExits(deviceIPPortInfo);
             } else {
                 deviceDao.insertDeviceIPPortInfo(deviceIPPortInfo);
+                if (IS_SUPPORT_NEW_HDC && deviceIPPortInfo.getDeviceType() == LEAN_HOS_DEVICE) {
+                    ArrayList<String> cmdStr = conversionCommand(HDC_STD_REMOVE_SHELL, deviceIPPortInfo.getDeviceID());
+                    HdcWrapper.getInstance().execCmd(cmdStr);
+                }
                 checkUpdate = true;
             }
             if (IS_SUPPORT_NEW_HDC && deviceIPPortInfo.getDeviceType() == LEAN_HOS_DEVICE) {
@@ -265,12 +267,11 @@ public class MultiDeviceManager {
         if (ProfilerLogManager.isInfoEnabled()) {
             LOGGER.info("pushPluginAndRun");
         }
-        if (pushHiProfilerTools(deviceIPPortInfo)) {
-            boolean pushShellResult = pushDevToolsShell(deviceIPPortInfo);
+        if (pushDevToolsShell(deviceIPPortInfo)) {
+            boolean pushShellResult = pushHiProfilerTools(deviceIPPortInfo);
             if (pushShellResult) {
                 pushHiPerfFIle(deviceIPPortInfo);
                 pushDevTools(deviceIPPortInfo);
-                pushtrace(deviceIPPortInfo);
             }
             String cap = isServiceCapability(deviceIPPortInfo, false, 0);
             if (PLUGIN_RESULT_OK.equals(cap)) {
@@ -296,11 +297,7 @@ public class MultiDeviceManager {
         }
         ArrayList<String> cmdStr;
         if (IS_SUPPORT_NEW_HDC && info.getDeviceType() == LEAN_HOS_DEVICE) {
-            String devToolsPath = SessionManager.getInstance().getPluginPath() + DEVTOOLS_PLUGINS_LEAN_PATH;
-            HdcWrapper.getInstance().execCmdBy(conversionCommand(HDC_STD_ROOT_CLEAR_CMD, info.getDeviceID()), 10);
-            cmdStr = conversionCommand(HDC_STD_PUSH_CMD, info.getDeviceID(), devToolsPath);
-            String result = HdcWrapper.getInstance().getHdcStringResult(cmdStr);
-            return result.contains("FileTransfer finish");
+            return true;
         } else {
             String devToolsPath = SessionManager.getInstance().getPluginPath() + DEVTOOLS_PLUGINS_FULL_PATH;
             if (info.getDeviceType() == LEAN_HOS_DEVICE) {

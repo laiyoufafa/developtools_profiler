@@ -145,6 +145,10 @@ public class SystemConfigPanel extends JBPanel implements MouseListener, ItemLis
             + "Enable individual events and tune the kernel-tracng(ftrace) module."
             + "The events enabled here are in addition to those from"
             + " enabled by other probes." + "</html>";
+    private static final String LOW_MEMORY_DES_STR = "<html>"
+            + "Record LMK events. Works both with the old in kernel LMK and"
+            + "the newer userspace Imkd. It also tracks OOM score adjustments "
+            + "</html>";
     private static final String RECORD_SETTING_STR = "<html>"
             + "<p style=\"margin-left:28px;font-size:13px;text-align:left;color:white;\">Record Setting</p>"
             + "<p style=\"margin-top:0px;margin-left:28px;font-size:9px;text-align:left;color:#757784;\">"
@@ -169,27 +173,37 @@ public class SystemConfigPanel extends JBPanel implements MouseListener, ItemLis
             + "Polling of /proc/meminfo"
             + "</html>";
     private static final String FULL_HOS_DEVICE_PATH = "cd /data/local/tmp/developtools";
-    private static final String LEAN_HOS_DEVICE_PATH = "cd /data/local/tmp/stddeveloptools";
     private static final String EXPORT_TO_LIBRARY_PATH = "export LD_LIBRARY_PATH=$PWD";
     private static final String TRACE_COMMAND_CHECK_HIPROFILER =
-            "if [ `ps -ef | grep hiprofilerd | grep -v grep | wc -l` -ne 0 ]; then";
-    private static final String KILL_HIPROFILERD = "killall hiprofilerd";
+        "if [ `ps -ef | grep hiprofilerd | grep -v grep | wc -l` -eq 0 ]; then";
+    private static final String SLEEP = "sleep 1";
     private static final String EOF = "fi";
     private static final String TRACE_COMMAND_CHECK_HIPROFILER_PLUGINS =
-            "if [ `ps -ef | grep hiprofiler_plugins | grep -v grep | wc -l` -ne 0 ]; then";
-    private static final String KILL_HIPROFILER_PLUGINS = "killall hiprofiler_plugins";
-    private static final String START_HIPROFILER = "./hiprofilerd";
-    private static final String START_HIPROFILER_PLUGINS = "./hiprofiler_plugins";
+        "if [ `ps -ef | grep hiprofiler_plugins | grep -v grep | wc -l` -eq 0 ]; then";
+    private static final String START_HIPROFILER = "./hiprofilerd & >> /dev/null";
+    private static final String START_STD_HIPROFILER = "hiprofilerd & >> /dev/null";
+    private static final String START_HIPROFILER_PLUGINS = "./hiprofiler_plugins & >> /dev/null";
+    private static final String START_STD_HIPROFILER_PLUGINS = "hiprofiler_plugins & >> /dev/null";
     private static final String TRACE_COMMAND_HEAD = "./hiprofiler_cmd -c ";
+    private static final String TRACE_STD_COMMAND_HEAD = "hiprofiler_cmd -c ";
+
     private static final String TRACE_COMMAND_END = "/data/local/tmp/hiprofiler_data";
-    private static final String KILL_HIPROFILER_RESULT = TRACE_COMMAND_CHECK_HIPROFILER.concat(System.lineSeparator())
-            .concat(KILL_HIPROFILERD).concat(System.lineSeparator()).concat(EOF);
-    private static final String KILL_HIPROFILER_PLUGINS_RESULT = TRACE_COMMAND_CHECK_HIPROFILER_PLUGINS
-            .concat(System.lineSeparator()).concat(KILL_HIPROFILER_PLUGINS).concat(System.lineSeparator()).concat(EOF);
-    private static final String START_HIPROFILER_RESULT = EXPORT_TO_LIBRARY_PATH
-            .concat(System.lineSeparator()).concat(START_HIPROFILER);
-    private static final String START_HIPROFILER_PLUGINS_RESULT = EXPORT_TO_LIBRARY_PATH
-            .concat(System.lineSeparator()).concat(START_HIPROFILER_PLUGINS);
+    private static final String JUDGE_STD_HIPROFILER_RESULT =
+        TRACE_COMMAND_CHECK_HIPROFILER.concat(System.lineSeparator())
+            .concat(START_STD_HIPROFILER).concat(System.lineSeparator())
+            .concat(SLEEP).concat(System.lineSeparator()).concat(EOF);
+    private static final String JUDGE_STD_HIPROFILER_PLUGIN_RESULT =
+        TRACE_COMMAND_CHECK_HIPROFILER_PLUGINS.concat(System.lineSeparator())
+            .concat(START_STD_HIPROFILER_PLUGINS).concat(System.lineSeparator())
+            .concat(SLEEP).concat(System.lineSeparator()).concat(EOF);
+    private static final String JUDGE_HIPROFILER_RESULT =
+        TRACE_COMMAND_CHECK_HIPROFILER.concat(System.lineSeparator())
+            .concat(START_HIPROFILER).concat(System.lineSeparator())
+            .concat(SLEEP).concat(System.lineSeparator()).concat(EOF);
+    private static final String JUDGE_HIPROFILER_PLUGIN_RESULT =
+        TRACE_COMMAND_CHECK_HIPROFILER_PLUGINS.concat(System.lineSeparator())
+            .concat(START_HIPROFILER_PLUGINS).concat(System.lineSeparator())
+            .concat(SLEEP).concat(System.lineSeparator()).concat(EOF);
 
     JSeparator separator = new JSeparator();
     JSeparator memorySeparator = new JSeparator();
@@ -598,19 +612,24 @@ public class SystemConfigPanel extends JBPanel implements MouseListener, ItemLis
                 .getHtraceExecuteCommand(deviceIPPortInfo, constructRequestParam());
             String commandFilePath = SystemTraceHelper.getSingleton()
                 .pushHtraceCommandFile(commandParameterStr, sdf.format(date), deviceIPPortInfo);
-            String path;
+            String path = "";
+            String recordTrace;
             if (deviceIPPortInfo.getDeviceType() == DeviceType.FULL_HOS_DEVICE) {
                 path = FULL_HOS_DEVICE_PATH;
+                path = path.concat(System.lineSeparator())
+                    .concat(JUDGE_HIPROFILER_RESULT).concat(System.lineSeparator())
+                    .concat(JUDGE_HIPROFILER_PLUGIN_RESULT).concat(System.lineSeparator())
+                    .concat(EXPORT_TO_LIBRARY_PATH);
+                recordTrace = TRACE_COMMAND_HEAD.concat(commandFilePath).concat(" -o ").concat(TRACE_COMMAND_END)
+                    .concat(sdf.format(date)).concat(".htrace");
             } else {
-                path = LEAN_HOS_DEVICE_PATH;
+                path = path.concat(System.lineSeparator())
+                    .concat(JUDGE_STD_HIPROFILER_RESULT).concat(System.lineSeparator())
+                    .concat(JUDGE_STD_HIPROFILER_PLUGIN_RESULT).concat(System.lineSeparator());
+                recordTrace = TRACE_STD_COMMAND_HEAD.concat(commandFilePath).concat(" -o ").concat(TRACE_COMMAND_END)
+                    .concat(sdf.format(date)).concat(".htrace");
             }
-            String recordTrace = TRACE_COMMAND_HEAD.concat(commandFilePath).concat(" -o ").concat(TRACE_COMMAND_END)
-                .concat(sdf.format(date)).concat(".htrace");
-            commandStr =
-                path.concat(System.lineSeparator()).concat(KILL_HIPROFILER_RESULT).concat(System.lineSeparator())
-                    .concat(KILL_HIPROFILER_PLUGINS_RESULT).concat(System.lineSeparator())
-                    .concat(START_HIPROFILER_RESULT).concat(System.lineSeparator())
-                    .concat(START_HIPROFILER_PLUGINS_RESULT).concat(System.lineSeparator()).concat(recordTrace);
+            commandStr = path.concat(System.lineSeparator()).concat(recordTrace);
         }
         return commandStr;
     }

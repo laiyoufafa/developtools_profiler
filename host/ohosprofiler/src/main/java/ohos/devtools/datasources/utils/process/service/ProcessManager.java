@@ -150,12 +150,7 @@ public class ProcessManager {
         ProfilerServiceTypes.ProfilerSessionConfig sessionConfig = ProfilerServiceHelper
             .profilerSessionConfig(true, null, 10,
                 ProfilerServiceTypes.ProfilerSessionConfig.BufferConfig.Policy.RECYCLE, 5000);
-        String sha256;
-        if (IS_SUPPORT_NEW_HDC && deviceType == LEAN_HOS_DEVICE) {
-            sha256 = getSTDSha256("/data/local/tmp/libprocessplugin.z.so");
-        } else {
-            sha256 = getSha256("/data/local/tmp/libprocessplugin.z.so");
-        }
+        String sha256 = "";
         CommonTypes.ProfilerPluginConfig plugConfig =
             ProfilerServiceHelper.profilerPluginConfig(name, sha256, 2, plug.toByteString());
         List<CommonTypes.ProfilerPluginConfig> plugs = new ArrayList();
