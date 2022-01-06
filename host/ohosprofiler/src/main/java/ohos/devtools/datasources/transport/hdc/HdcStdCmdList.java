@@ -112,6 +112,25 @@ public class HdcStdCmdList {
     };
 
     /**
+     * HDC STD REMOVE Shell
+     */
+    public static final ArrayList<String> HDC_STD_REMOVE_SHELL = new ArrayList<>() {
+        private static final long serialVersionUID = 2946832952090077766L;
+        {
+            add(pluginPath);
+            add("-t");
+            add("%s");
+            add("shell");
+            add("cd");
+            add("/data/local/tmp");
+            add("&&");
+            add("rm");
+            add("-f");
+            add("ohosprofiler");
+        }
+    };
+
+    /**
      * HDC STD PUSH OHOS SHELL
      */
     public static final ArrayList<String> HDC_STD_PUSH_OHOS_SHELL = new ArrayList<>() {

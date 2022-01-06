@@ -66,10 +66,16 @@ function start_std_daemon() {
     echo "start_std_daemon Profiler Daemon Process"
     if ( set -o noclobber; echo "$$" > "$LOCK_NAME") 2> /dev/null;then
           trap 'rm -f "$LOCK_NAME"; exit $?' INT TERM EXIT
-          killall hiprofilerd hiprofiler_plugins native_daemon
+          if type native_daemon 2>/dev/null;then
+             killall hiprofilerd hiprofiler_plugins native_daemon
+          else
+             killall hiprofilerd hiprofiler_plugins
+          fi
           start_std_hiprofilerd
           sleep 1
           start_std_plugins
+          sleep 1
+          start_std_nativehook
           sleep 1
           ### Removing lock
           rm -f $LOCK_NAME
@@ -130,7 +136,9 @@ function start_std_plugins() {
 }
 
 function start_std_nativehook() {
-    native_daemon & >> /dev/null
+    if type native_daemon 2>/dev/null;then
+         native_daemon & >> /dev/null
+    fi
 }
 
 function start_hiprofilerd() {
@@ -170,18 +178,14 @@ function uzip_std_file(){
      string=$1
      array=(${string//,/ })
      echo "uzip devtools file"
-     cd $WORK_DIR
-     if [ `ls $WORK_DIR | grep stddeveloptools | grep -v grep | wc -l` -eq 1 ]; then
-        cd stddeveloptools
-        chmod + *
-         for pluginfile in ${array[@]}
-         do
-           echo "---------------- $pluginfile"
-           if [ `ls ${WORK_DIR}/stddeveloptools/ | grep $pluginfile | grep -v grep | wc -l` -eq 1 ]; then
-               cp $WORK_DIR/stddeveloptools/$pluginfile $WORK_DIR
-           fi
-         done
-     fi
+     cd /system/lib/
+     for pluginfile in ${array[@]}
+     do
+        echo "---------------- $pluginfile"
+        if [ `ls /system/lib/ | grep $pluginfile | grep -v grep | wc -l` -eq 1 ]; then
+            cp /system/lib/$pluginfile $WORK_DIR
+        fi
+     done
 }
 
 
@@ -195,7 +199,6 @@ function check_server(){
 }
 
 function check_std_server(){
-   chmod +x /data/local/tmp/stddeveloptools/hiprofiler_cmd
    if [ `ps -ef| grep hiprofiler_plugins | grep -v grep | wc -l` -eq 0 ];then
       echo "FAIL"
       echo "hiprofiler_plugins not"
@@ -215,7 +218,6 @@ function unzip_start_daemon(){
 }
 
 function untar_start_daemon(){
-    untar
     uzip_std_file $1
     init_hiperf
     start_std_daemon

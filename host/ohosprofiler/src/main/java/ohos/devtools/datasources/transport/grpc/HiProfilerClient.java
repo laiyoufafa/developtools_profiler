@@ -213,12 +213,7 @@ public final class HiProfilerClient {
         ProfilerServiceTypes.ProfilerSessionConfig sessionConfig = ProfilerServiceHelper
             .profilerSessionConfig(true, null, 10,
                 ProfilerServiceTypes.ProfilerSessionConfig.BufferConfig.Policy.RECYCLE, 5000);
-        String sha256;
-        if (IS_SUPPORT_NEW_HDC && deviceType == LEAN_HOS_DEVICE) {
-            sha256 = getSTDSha256("/data/local/tmp/libprocessplugin.z.so");
-        } else {
-            sha256 = getSha256("/data/local/tmp/libprocessplugin.z.so");
-        }
+        String sha256 = "";
         CommonTypes.ProfilerPluginConfig plugConfig =
             ProfilerServiceHelper.profilerPluginConfig(name, sha256, 2, plug.toByteString());
         List<CommonTypes.ProfilerPluginConfig> plugs = new ArrayList();
@@ -247,25 +242,7 @@ public final class HiProfilerClient {
      * @return String
      */
     public static String getSha256(String pluginFileName) {
-        if (ProfilerLogManager.isInfoEnabled()) {
-            LOGGER.info("getSha256");
-        }
-        String fileName = pluginFileName.substring(pluginFileName.lastIndexOf("/") + 1);
-        String filePath =
-            SessionManager.getInstance().getPluginPath() + DEVTOOLS_PLUGINS_FULL_PATH + File.separator + fileName;
-        File pluginFile = new File(filePath);
-        String fileSha256 = "";
-        try {
-            fileSha256 = DigestUtils.sha256Hex(new FileInputStream(pluginFile));
-            if (ProfilerLogManager.isInfoEnabled()) {
-                LOGGER.info("plugin sha256Hex  {}", fileSha256);
-            }
-        } catch (IOException ioException) {
-            if (ProfilerLogManager.isErrorEnabled()) {
-                LOGGER.error("plugin sha256Hex IOException {}", ioException.getMessage());
-            }
-        }
-        return fileSha256;
+        return "";
     }
 
     /**
@@ -275,24 +252,7 @@ public final class HiProfilerClient {
      * @return String
      */
     public static String getSTDSha256(String pluginFileName) {
-        if (ProfilerLogManager.isInfoEnabled()) {
-            LOGGER.info("getSTDSha256");
-        }
-        String fileName = pluginFileName.substring(pluginFileName.lastIndexOf("/") + 1);
-        String filePath = SessionManager.getInstance().tempPath() + "stddeveloptools" + File.separator + fileName;
-        File pluginFile = new File(filePath);
-        String fileSha256 = "";
-        try {
-            fileSha256 = DigestUtils.sha256Hex(new FileInputStream(pluginFile));
-            if (ProfilerLogManager.isInfoEnabled()) {
-                LOGGER.info("plugin sha256Hex  {}", fileSha256);
-            }
-        } catch (IOException ioException) {
-            if (ProfilerLogManager.isErrorEnabled()) {
-                LOGGER.error("plugin sha256Hex IOException {}", ioException.getMessage());
-            }
-        }
-        return fileSha256;
+        return "";
     }
 
     /**
