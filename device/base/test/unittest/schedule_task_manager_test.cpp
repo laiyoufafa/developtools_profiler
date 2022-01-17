@@ -18,7 +18,6 @@
 #include <hwext/gtest-tag.h>
 #include <sys/time.h>
 #include <thread>
-#include <cinttypes>
 
 #include "schedule_task_manager.h"
 
@@ -84,7 +83,7 @@ HWTEST_F(ScheduleTaskManagerTest, ScheduleTaskRepeated, TestSize.Level1)
             count++;
             struct timeval tv;
             gettimeofday(&tv, nullptr);
-            printf("[%" PRId64 ".%06" PRId64 "] count: %d\n", tv.tv_sec, tv.tv_usec, count.load());
+            printf("[%ld.%06ld] count: %d\n", tv.tv_sec, tv.tv_usec, count.load());
         },
         repeatInterval, initalDelay));
 
@@ -94,7 +93,7 @@ HWTEST_F(ScheduleTaskManagerTest, ScheduleTaskRepeated, TestSize.Level1)
         expected++;
         struct timeval tv = { 0, 0 };
         gettimeofday(&tv, nullptr);
-        printf("[%" PRId64 ".%06" PRId64 "] expected: %d\n", tv.tv_sec, tv.tv_usec, expected);
+        printf("[%ld.%06ld] expected: %d\n", tv.tv_sec, tv.tv_usec, expected);
         EXPECT_EQ(count.load(), expected);
         std::this_thread::sleep_for(repeatInterval);
     }
@@ -123,7 +122,7 @@ HWTEST_F(ScheduleTaskManagerTest, UnscheduleTask, TestSize.Level1)
             count++;
             struct timeval tv;
             gettimeofday(&tv, nullptr);
-            printf("[%" PRId64 ".%06" PRId64 "] count: %d\n", tv.tv_sec, tv.tv_usec, count.load());
+            printf("[%ld.%06ld] count: %d\n", tv.tv_sec, tv.tv_usec, count.load());
         },
         repeatInterval));
 
@@ -134,7 +133,7 @@ HWTEST_F(ScheduleTaskManagerTest, UnscheduleTask, TestSize.Level1)
         expected++;
         struct timeval tv = { 0, 0 };
         gettimeofday(&tv, nullptr);
-        printf("[%" PRId64 ".%06" PRId64 "] expected: %d\n", tv.tv_sec, tv.tv_usec, expected);
+        printf("[%ld.%06ld] expected: %d\n", tv.tv_sec, tv.tv_usec, expected);
         EXPECT_EQ(count.load(), expected);
     }
 
