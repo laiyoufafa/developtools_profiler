@@ -15,7 +15,6 @@
 #ifndef HIPERF_VIRTUAL_RUNTIME_TEST_H
 #define HIPERF_VIRTUAL_RUNTIME_TEST_H
 
-#include "callstack_test.h"
 #include "debug_logger.h"
 #include "utilities.h"
 #include "virtual_runtime.h"

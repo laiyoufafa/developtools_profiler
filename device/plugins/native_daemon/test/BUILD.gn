@@ -37,6 +37,7 @@ sources_base = [
   "../src/hook_manager.cpp",
   "../src/callstack.cpp",
   "../src/debug_logger.cpp",
+  "../src/dwarf_encoding.cpp",
   "../src/elf_file.cpp",
   "../src/elf_header.cpp",
   "../src/elf_symbol.cpp",
