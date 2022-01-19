@@ -136,7 +136,8 @@ bool HookManager::CreatePluginSession(const std::vector<ProfilerPluginConfig>& c
         HILOG_DEBUG(LOG_CORE, "save file name = %s", hookConfig_.file_name().c_str());
         FILE *fp = fopen(hookConfig_.file_name().c_str(), "wb+");
         if (fp) {
-            fpHookData_.reset(fp);
+            fpHookData_.reset();
+            fpHookData_ = std::unique_ptr<FILE, decltype(&fclose)>(fp, fclose);
         } else {
             fpHookData_.reset();
         }
