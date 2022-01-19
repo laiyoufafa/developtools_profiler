@@ -34,11 +34,11 @@ void HookManager::writeFrames(int type, const struct timespec& ts, void* addr, u
     const std::vector<OHOS::Developtools::NativeDaemon::CallFrame>& callsFrames)
 {
     if (type == 0) {
-        fprintf(fpHookData_.get(), "malloc;%" PRId64 ";%ld;0x%" PRIx64 ";%u\n", ts.tv_sec, ts.tv_nsec,
-            (uint64_t)addr, mallocSize);
+        fprintf(fpHookData_.get(), "malloc;%" PRId64 ";%ld;0x%" PRIx64 ";%u\n",
+                (int64_t)ts.tv_sec, ts.tv_nsec, (uint64_t)addr, mallocSize);
     } else if (type == 1) {
-        fprintf(fpHookData_.get(), "free;%" PRId64 ";%ld;0x%" PRIx64 "\n", ts.tv_sec, ts.tv_nsec,
-            (uint64_t)addr);
+        fprintf(fpHookData_.get(), "free;%" PRId64 ";%ld;0x%" PRIx64 "\n",
+                (int64_t)ts.tv_sec, ts.tv_nsec, (uint64_t)addr);
     } else {
         return;
     }
