@@ -41,11 +41,11 @@ void writeFrames(int type, const struct timespec& ts, void* addr, uint32_t mallo
     const std::vector<OHOS::Developtools::NativeDaemon::CallFrame>& callsFrames)
 {
     if (type == 0) {
-        fprintf(g_fpHookFile.get(), "malloc;%" PRId64 ";%ld;0x%" PRIx64 ";%u\n", ts.tv_sec, ts.tv_nsec,
-            (uint64_t)addr, mallocSize);
+        fprintf(g_fpHookFile.get(), "malloc;%" PRId64 ";%ld;0x%" PRIx64 ";%u\n",
+                (int64_t)ts.tv_sec, ts.tv_nsec, (uint64_t)addr, mallocSize);
     } else if (type == 1) {
-        fprintf(g_fpHookFile.get(), "free;%" PRId64 ";%ld;0x%" PRIx64 "\n", ts.tv_sec, ts.tv_nsec,
-            (uint64_t)addr);
+        fprintf(g_fpHookFile.get(), "free;%" PRId64 ";%ld;0x%" PRIx64 "\n",
+                (int64_t)ts.tv_sec, ts.tv_nsec, (uint64_t)addr);
     } else {
         return;
     }
