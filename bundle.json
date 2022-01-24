@@ -1,11 +1,41 @@
 {
-  "subsystem": "developtools",
-  "parts": {
-    "profiler": {
-      "module_list": [
+  "name": "@ohos/profiler",
+  "description": "Performance profiler that provides an analytics tool for the memory, bytrace plug-in, and IDE, as well as plug-in capabilities",
+  "version": "3.09",
+  "license": "Apache License 2.0",
+  "publishAs": "code-segment",
+  "segment": {
+    "destPath": "developtools/profiler/device"
+  },
+  "dirs": {},
+  "scripts": {},
+  "component": {
+    "name": "profiler",
+    "subsystem": "developtools",
+    "adapted_system_type": [
+      "standard"
+    ],
+    "rom": "188KB",
+    "ram": "2000KB",
+    "deps": {
+      "components": [
+        "hilog",
+        "hiprofiler",
+        "hiprofiler_cmd",
+        "hiprofiler_plugins"
+      ],
+      "third_party": [
+        "googletest",
+        "utils",
+        "zlib"
+      ]
+    },
+    "build": {
+      "sub_component": [
         "//developtools/profiler/device:hiprofiler_targets"
       ],
-      "test_list": [
+      "inner_kits": [],
+      "test": [
         "//developtools/profiler/device:unittest",
         "//developtools/profiler/interfaces/kits/test:unittest"
       ]
