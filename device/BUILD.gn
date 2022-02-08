@@ -11,6 +11,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import("//build/ohos.gni")
 import("base/config.gni")
 group("hiprofiler_targets") {
   deps = [
@@ -35,7 +36,7 @@ group("hiprofiler_targets") {
     "services/profiler_service:hiprofilerd",
     "services/shared_memory:shared_memory",
   ]
-  if (is_ohos && use_musl) {
+  if (is_ohos && use_musl && !is_asan) {
     deps += [
       "plugins/native_daemon:native_daemon",
       "plugins/native_hook:native_hook",
@@ -61,7 +62,7 @@ group("unittest") {
     "services/profiler_service/test:unittest",
     "services/shared_memory/test:unittest",
   ]
-  if (is_ohos && use_musl) {
+  if (is_ohos && use_musl && !is_asan) {
     deps += [
       "plugins/native_daemon/test:unittest",
       "plugins/native_hook/test:unittest",
