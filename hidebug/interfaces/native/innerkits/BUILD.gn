@@ -11,8 +11,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import("//developtools/profiler/hidebug/hidebug.gni")
 import("//build/ohos.gni")
+import("//developtools/profiler/hidebug/hidebug.gni")
 
 config("hidebug_native_config") {
   visibility = [ ":*" ]
@@ -22,7 +22,8 @@ config("hidebug_native_config") {
 ohos_shared_library("libhidebug") {
   public_configs = [ ":hidebug_native_config" ]
 
-  deps = [ "//developtools/profiler/hidebug/frameworks/native:libhidebug_source" ]
+  deps =
+      [ "//developtools/profiler/hidebug/frameworks/native:libhidebug_source" ]
 
   external_deps = [
     "hilog_native:libhilog",
@@ -30,7 +31,7 @@ ohos_shared_library("libhidebug") {
   ]
 
   output_extension = "so"
-  
+
   part_name = "profiler"
-  subsystem_name = "developtools" 
+  subsystem_name = "developtools"
 }

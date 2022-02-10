@@ -11,9 +11,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import("//developtools/profiler/hidebug/hidebug.gni")
 import("//build/ohos.gni")
 import("//build/ohos/ace/ace.gni")
+import("//developtools/profiler/hidebug/hidebug.gni")
 
 config("napi_hidebug_config") {
   visibility = [ ":*" ]
@@ -37,19 +37,19 @@ ohos_shared_library("napi_hidebug") {
 
   deps = [
     "//base/hiviewdfx/hiview/adapter/utility:hiview_adapter_utility",
-    "//utils/native/base:utils",
     "//foundation/ace/napi:ace_napi",
     "//foundation/distributedschedule/safwk/interfaces/innerkits/safwk:system_ability_fwk",
     "//foundation/distributedschedule/samgr/interfaces/innerkits/samgr_proxy:samgr_proxy",
+    "//utils/native/base:utils",
   ]
 
-  external_deps = [ 
+  external_deps = [
     "ability_runtime:base",
     "ability_runtime:want",
-    "hilog_native:libhilog",
-    "ipc:ipc_core",  
     "bundle_framework:appexecfwk_core",
     "ces_standard:cesfwk_services",
+    "hilog_native:libhilog",
+    "ipc:ipc_core",
   ]
 
   relative_install_dir = "module"
