@@ -11,5 +11,5 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# hiview path definitions
+# hidebug path definitions
 hidebug_path = "//developtools/profiler/hidebug"
