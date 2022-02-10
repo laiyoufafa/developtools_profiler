@@ -22,7 +22,9 @@
         "hilog",
         "hiprofiler",
         "hiprofiler_cmd",
-        "hiprofiler_plugins"
+        "hiprofiler_plugins",
+        "ace_napi",
+        "syspara"
       ],
       "third_party": [
         "googletest",
@@ -32,9 +34,21 @@
     },
     "build": {
       "sub_component": [
-        "//developtools/profiler/device:hiprofiler_targets"
+        "//developtools/profiler/device:hiprofiler_targets",
+        "//developtools/profiler/hidebug/interfaces/js/kits/napi:napi_hidebug"
       ],
-      "inner_kits": [],
+      "inner_kits": [
+        {
+          "header": {
+            "header_base": "//developtools/profiler/hidebug/interfaces/native/innerkits/include",
+            "header_files": [
+              "hidebug.h",
+              "hidebug_base.h"
+            ]
+          },
+          "name": "//developtools/profiler/hidebug/interfaces/native/innerkits:libhidebug"
+        }
+      ],
       "test": [
         "//developtools/profiler/device:unittest",
         "//developtools/profiler/interfaces/kits/test:unittest"
