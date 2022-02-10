@@ -24,9 +24,9 @@
 
 namespace OHOS {
 namespace HiviewDFX{
-static constexpr HiLogLabel LABEL = { LOG_CORE, 0xD002D0B, "HiDebug_Native" };
+static constexpr HiLogLabel LABEL = { LOG_CORE, 0xD002D0A, "HiDebug_Native" };
 static constexpr char SPACE_CHR = ' ';
-static constexpr char EQUAL_CHR = '=';
+static constexpr char COLON_CHR = ':';
 
 bool HiDebug::InitEnvironmentParam(std::string serviceName)
 {
@@ -73,7 +73,7 @@ std::map<std::string, std::string> HiDebug::ParseParam(std::string paramStr)
             }
             cnt = 0;
             startIdx = i + 1;
-        } else if (paramStr[i] == EQUAL_CHR) {
+        } else if (paramStr[i] == COLON_CHR) {
             if (hasKey) {
                 keyStr = paramStr.substr(startIdx, cnt);
                 hasKey = false;

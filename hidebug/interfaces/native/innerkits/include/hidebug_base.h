@@ -24,8 +24,8 @@ const int MAX_PARA_LEN = 50;
 const int MAX_PARA_CNT = 20;
 
 struct Params {
-	char key[MAX_PARA_LEN];
-	char value[MAX_PARA_LEN];
+    char key[MAX_PARA_LEN];
+    char value[MAX_PARA_LEN];
 } params[MAX_PARA_CNT];
 
 bool InitEnvironmentParam(const char *serviceName);
