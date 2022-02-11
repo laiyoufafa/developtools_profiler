@@ -59,6 +59,7 @@ int ParseParams(const char *input)
                 err = strncpy_s(key, MAX_PARA_LEN, input + startIdx, cnt);
                 if (err != EOK) {
                     HILOG_ERROR(LOG_CORE, "strncpy_s failed.");
+                    return 0;
                 }
                 key[cnt] = '\0';
                 hasKey = false;
@@ -67,15 +68,18 @@ int ParseParams(const char *input)
                 err = strncpy_s(value, MAX_PARA_LEN, input + startIdx, cnt);
                 if (err != EOK) {
                     HILOG_ERROR(LOG_CORE, "strcpy_s failed.");
+                    return 0;
                 }
                 value[cnt] = '\0';
                 err = strcpy_s(params[paramCnt].key, MAX_PARA_LEN, key);
                 if (err != EOK) {
                     HILOG_ERROR(LOG_CORE, "strcpy_s failed.");
+                    return 0;
                 }
                 err = strcpy_s(params[paramCnt].value, MAX_PARA_LEN, value);
                 if (err != EOK) {
                     HILOG_ERROR(LOG_CORE, "strcpy_s failed.");
+                    return 0;
                 }
                 paramCnt++;
                 hasValue = false;
@@ -88,6 +92,7 @@ int ParseParams(const char *input)
                 err = strncpy_s(key, MAX_PARA_LEN, input + startIdx, cnt);
                 if (err != EOK) {
                     HILOG_ERROR(LOG_CORE, "strncpy_s failed.");
+                    return 0;
                 }
                 key[cnt] = '\0';
                 hasKey = false;
@@ -104,15 +109,18 @@ int ParseParams(const char *input)
         err = strncpy_s(value, MAX_PARA_LEN, input + startIdx, cnt);
         if (err != EOK) {
             HILOG_ERROR(LOG_CORE, "strncpy_s failed.");
+            return 0;
         }
         value[cnt] = '\0';
         err = strcpy_s(params[paramCnt].key, MAX_PARA_LEN, key);
         if (err != EOK) {
             HILOG_ERROR(LOG_CORE, "strcpy_s failed.");
+            return 0;
         }
         err = strcpy_s(params[paramCnt].value, MAX_PARA_LEN, value);
         if (err != EOK) {
             HILOG_ERROR(LOG_CORE, "strcpy_s failed.");
+            return 0;
         }
         paramCnt++;
     }
@@ -124,10 +132,11 @@ bool InitEnvironmentParam(const char *serviceName)
 {
     char paramOutBuf[PARAM_BUF_LEN];
     char defStrValue[PARAM_BUF_LEN];
-    char queryName[] = "hiviewdfx.debugenv.";
+    char queryName[QUERYNAME_LEN] = "hiviewdfx.debugenv.";
     errno_t err = strcat_s(queryName, QUERYNAME_LEN, serviceName);
     if (err != EOK) {
         HILOG_ERROR(LOG_CORE, "strcat_s failed.");
+        return false;
     }
     int retLen = GetParameter(queryName, defStrValue, paramOutBuf, PARAM_BUF_LEN);
     paramOutBuf[retLen] = '\0';
@@ -137,17 +146,17 @@ bool InitEnvironmentParam(const char *serviceName)
         err = strcat_s(persistName, QUERYNAME_LEN, serviceName);
         if (err != EOK) {
             HILOG_ERROR(LOG_CORE, "strcat_s failed.");
+            return false;
         }
         retLen = GetParameter(persistName, defStrValue, paramOutBuf, PARAM_BUF_LEN);
         paramOutBuf[retLen] = '\0';
-        cnt = ParseParams(paramOutBuf);
-    }
-    if (cnt > 0) {
-        for (int i = 0; i < cnt; ++i) {
-            setenv(params[i].key, params[i].value, 1);
+        if (ParseParams(paramOutBuf) < 1) {
+            HILOG_ERROR(LOG_CORE, "failed to capture environment params.");
+            return false;
         }
-        return true;
     }
-    HILOG_ERROR(LOG_CORE, "failed to capture environment params.");
-    return false;
+    for (int i = 0; i < cnt; ++i) {
+        setenv(params[i].key, params[i].value, 1);
+    }
+    return true;
 }
