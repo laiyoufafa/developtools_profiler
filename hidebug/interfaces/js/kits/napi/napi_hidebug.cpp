@@ -21,8 +21,8 @@
 #include "file_ex.h"
 #include "file_util.h"
 #include "unistd.h"
-#include <errno.h>
-#include <securec.h>
+#include <cerrno>
+#include "securec.h"
 #include <malloc.h>
 #include <string>
 
@@ -41,22 +41,25 @@ constexpr int ARRAY_INDEX_FIRST = 0;
 constexpr int MODE_FULL = 00777;
 const std::string BASE_PATH = "/data/accounts/account_0/appdata/";
 const std::string SUB_DIR = "/files/";
+const std::string DEFAULT_FILENAME = "undefined";
+const std::string JSON_FILE = ".json";
+const std::string HEAPSNAPSHOT_FILE = ".heapsnapshot";
 }
 
 napi_value StartProfiling(napi_env env, napi_callback_info info)
 {
     std::string fileName = GetFileNameParam(env, info);
     int callingUid = IPCSkeleton::GetCallingUid();
-    std::string bundleName = "";
+    std::string bundleName;
     if (!GetBundleNameByUid(callingUid, bundleName)) {
         return CreateErrorMessage(env, "search bundle name failed.");
     }
-    std::string filePath = BASE_PATH + bundleName + SUB_DIR + fileName;
+    std::string filePath = BASE_PATH + bundleName + SUB_DIR + fileName + JSON_FILE;
     if (!FileUtil::IsLegalPath(filePath)) {
          return CreateErrorMessage(env, "input fileName is illegal.");
     }
     if (!FileUtil::CreateFile(filePath, MODE_FULL)) {
-        return CreateErrorMessage(env, "file created failed");
+        return CreateErrorMessage(env, "file created failed.");
     }
     NativeEngine *engine = reinterpret_cast<NativeEngine*>(env);
     engine->StartCpuProfiler(filePath);
@@ -74,17 +77,17 @@ napi_value DumpHeapData(napi_env env, napi_callback_info info)
 {
     std::string fileName = GetFileNameParam(env, info);
     int callingUid = IPCSkeleton::GetCallingUid();
-    std::string bundleName = "";
+    std::string bundleName;
     if (!GetBundleNameByUid(callingUid, bundleName)) {
         return CreateErrorMessage(env, "search bundle name failed.");
     }
-    std::string filePath = BASE_PATH + bundleName + SUB_DIR + fileName;
+    std::string filePath = BASE_PATH + bundleName + SUB_DIR + fileName + HEAPSNAPSHOT_FILE;
     HiLog::Debug(LABEL, "filePath is %{public}s.", filePath.c_str());
     if (!FileUtil::IsLegalPath(filePath)) {
          return CreateErrorMessage(env, "input fileName is illegal.");
     }
     if (!FileUtil::CreateFile(filePath, MODE_FULL)) {
-        return CreateErrorMessage(env, "file created failed");
+        return CreateErrorMessage(env, "file created failed.");
     }
     NativeEngine *engine = reinterpret_cast<NativeEngine*>(env);
     engine->DumpHeapSnapShot(filePath);
@@ -193,17 +196,17 @@ std::string GetFileNameParam(napi_env env, napi_callback_info info)
     napi_get_cb_info(env, info, &argc, argv, &thisVar, &data);
     if (argc != ONE_VALUE_LIMIT) {
         HiLog::Error(LABEL, "invalid number = %{public}d of params.", ONE_VALUE_LIMIT);
-        return "undefined";
+        return DEFAULT_FILENAME;
     }
     if (!MatchValueType(env, argv[ARRAY_INDEX_FIRST], napi_string)) {
         HiLog::Error(LABEL, "Type error, should be string type!");
-        return "undefined";
+        return DEFAULT_FILENAME;
     }
     size_t bufLen = 0;
     napi_status status = napi_get_value_string_utf8(env, argv[0], NULL, 0, &bufLen);
     if (status != napi_ok) {
         HiLog::Error(LABEL, "Get input filename param length failed.");
-        return "undefined";
+        return DEFAULT_FILENAME;
     }
     char buf[bufLen + 1];
     napi_get_value_string_utf8(env, argv[0], buf, bufLen + 1, &bufLen);

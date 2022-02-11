@@ -13,20 +13,15 @@
  * limitations under the License.
  */
 
-#ifndef HIVIEWDFX_HIDEBUG_BASE_C_H
-#define HIVIEWDFX_HIDEBUG_BASE_C_H
+#ifndef HIVIEWDFX_HIDEBUG_BASE_H
+#define HIVIEWDFX_HIDEBUG_BASE_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-const int MAX_PARA_LEN = 50;
-const int MAX_PARA_CNT = 20;
-
-struct Params {
-    char key[MAX_PARA_LEN];
-    char value[MAX_PARA_LEN];
-} params[MAX_PARA_CNT];
+static const int MAX_PARA_LEN = 50;
+static const int MAX_PARA_CNT = 20;
 
 bool InitEnvironmentParam(const char *serviceName);
 
@@ -34,4 +29,4 @@ bool InitEnvironmentParam(const char *serviceName);
 }
 #endif
 
-#endif  // HIVIEWDFX_HIDEBUG_BASE_C_H
+#endif  // HIVIEWDFX_HIDEBUG_BASE_H

@@ -22,7 +22,7 @@
 #include "napi/native_node_api.h"
 
 namespace OHOS {
-namespace HiviewDFX{
+namespace HiviewDFX {
 static napi_value StartProfiling(napi_env env, napi_callback_info info);
 static napi_value StopProfiling(napi_env env, napi_callback_info info);
 static napi_value DumpHeapData(napi_env env, napi_callback_info info);

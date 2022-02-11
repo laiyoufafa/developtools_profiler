@@ -42,7 +42,6 @@
           "header": {
             "header_base": "//developtools/profiler/hidebug/interfaces/native/innerkits/include",
             "header_files": [
-              "hidebug.h",
               "hidebug_base.h"
             ]
           },
