@@ -20,9 +20,7 @@ ohos_source_set("libhidebug_source") {
     "//developtools/profiler/hidebug/interfaces/native/innerkits/include",
   ]
 
-  sources = [
-    "hidebug_base.cpp",
-  ]
+  sources = [ "hidebug_base.cpp" ]
 
   deps = [ "//utils/native/base:utils" ]
 
