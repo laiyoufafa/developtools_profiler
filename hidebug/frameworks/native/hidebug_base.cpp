@@ -16,11 +16,11 @@
 #include "hidebug_base.h"
 
 #include <cerrno>
+#include <cinttypes>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
 
-#include <inttypes.h>
 #include <parameter.h>
 #include <sysparam_errno.h>
 
