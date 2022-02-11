@@ -20,10 +20,7 @@
 extern "C" {
 #endif
 
-static const int MAX_PARA_LEN = 50;
-static const int MAX_PARA_CNT = 20;
-
-bool InitEnvironmentParam(const char *serviceName);
+static bool InitEnvironmentParam(const char *serviceName);
 
 #ifdef __cplusplus
 }

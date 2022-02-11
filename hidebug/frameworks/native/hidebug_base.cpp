@@ -34,6 +34,8 @@
 namespace {
 const char SPACE_CHR = ' ';
 const char COLON_CHR = ':';
+const int MAX_PARA_LEN = 50;
+const int MAX_PARA_CNT = 20;
 const int PARAM_BUF_LEN = 128;
 const int QUERYNAME_LEN = 80;
 
