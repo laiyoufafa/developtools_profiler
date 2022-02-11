@@ -133,7 +133,7 @@ bool InitEnvironmentParam(const char *serviceName)
     char paramOutBuf[PARAM_BUF_LEN];
     char defStrValue[PARAM_BUF_LEN];
     char queryName[QUERYNAME_LEN] = "hiviewdfx.debugenv.";
-    errno_t err = strcat_s(queryName, QUERYNAME_LEN, serviceName);
+    errno_t err = strcat_s(queryName, sizeof(queryName), serviceName);
     if (err != EOK) {
         HILOG_ERROR(LOG_CORE, "strcat_s failed.");
         return false;
@@ -143,7 +143,7 @@ bool InitEnvironmentParam(const char *serviceName)
     int cnt = ParseParams(paramOutBuf);
     if (cnt < 1) {
         char persistName[] = "persist.hiviewdfx.debugenv.";
-        err = strcat_s(persistName, QUERYNAME_LEN, serviceName);
+        err = strcat_s(persistName, sizeof(queryName), serviceName);
         if (err != EOK) {
             HILOG_ERROR(LOG_CORE, "strcat_s failed.");
             return false;
