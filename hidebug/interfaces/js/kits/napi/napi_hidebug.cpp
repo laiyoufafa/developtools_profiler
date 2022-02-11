@@ -15,16 +15,16 @@
 
 #include "napi_hidebug.h"
 
+#include <cerrno>
 #include <fstream>
+#include <string>
 
 #include "directory_ex.h"
 #include "file_ex.h"
 #include "file_util.h"
-#include "unistd.h"
-#include <cerrno>
 #include "securec.h"
+#include "unistd.h"
 #include <malloc.h>
-#include <string>
 
 #include "ipc_skeleton.h"
 
@@ -56,7 +56,7 @@ napi_value StartProfiling(napi_env env, napi_callback_info info)
     }
     std::string filePath = BASE_PATH + bundleName + SUB_DIR + fileName + JSON_FILE;
     if (!FileUtil::IsLegalPath(filePath)) {
-         return CreateErrorMessage(env, "input fileName is illegal.");
+        return CreateErrorMessage(env, "input fileName is illegal.");
     }
     if (!FileUtil::CreateFile(filePath, MODE_FULL)) {
         return CreateErrorMessage(env, "file created failed.");
@@ -84,7 +84,7 @@ napi_value DumpHeapData(napi_env env, napi_callback_info info)
     std::string filePath = BASE_PATH + bundleName + SUB_DIR + fileName + HEAPSNAPSHOT_FILE;
     HiLog::Debug(LABEL, "filePath is %{public}s.", filePath.c_str());
     if (!FileUtil::IsLegalPath(filePath)) {
-         return CreateErrorMessage(env, "input fileName is illegal.");
+        return CreateErrorMessage(env, "input fileName is illegal.");
     }
     if (!FileUtil::CreateFile(filePath, MODE_FULL)) {
         return CreateErrorMessage(env, "file created failed.");

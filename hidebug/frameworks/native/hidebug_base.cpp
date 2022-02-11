@@ -20,10 +20,11 @@
 #include <cstring>
 #include <cerrno>
 
-#include "hilog/log.h"
 #include "securec.h"
 #include <sysparam_errno.h>
 #include <parameter.h>
+
+#include "hilog/log.h"
 
 #undef LOG_DOMAIN
 #undef LOG_TAG
@@ -34,6 +35,7 @@ namespace {
 const char SPACE_CHR = ' ';
 const char COLON_CHR = ':';
 const int PARAM_BUF_LEN = 128;
+const int QUERYNAME_LEN = 80;
 
 struct Params {
     char key[MAX_PARA_LEN];
@@ -71,7 +73,7 @@ int ParseParams(const char *input)
                 if (err != EOK) {
                     HILOG_ERROR(LOG_CORE, "strcpy_s failed.");
                 }
-                err = strcpy_s(params[paramCnt].value, MAX_PARA_LEN,value);
+                err = strcpy_s(params[paramCnt].value, MAX_PARA_LEN, value);
                 if (err != EOK) {
                     HILOG_ERROR(LOG_CORE, "strcpy_s failed.");
                 }
@@ -123,7 +125,7 @@ bool InitEnvironmentParam(const char *serviceName)
     char paramOutBuf[PARAM_BUF_LEN];
     char defStrValue[PARAM_BUF_LEN];
     char queryName[] = "hiviewdfx.debugenv.";
-    errno_t err = strcat_s(queryName, PARAM_BUF_LEN, serviceName);
+    errno_t err = strcat_s(queryName, QUERYNAME_LEN, serviceName);
     if (err != EOK) {
         HILOG_ERROR(LOG_CORE, "strcat_s failed.");
     }
@@ -132,7 +134,7 @@ bool InitEnvironmentParam(const char *serviceName)
     int cnt = ParseParams(paramOutBuf);
     if (cnt < 1) {
         char persistName[] = "persist.hiviewdfx.debugenv.";
-        err = strcat_s(persistName, PARAM_BUF_LEN, serviceName);
+        err = strcat_s(persistName, QUERYNAME_LEN, serviceName);
         if (err != EOK) {
             HILOG_ERROR(LOG_CORE, "strcat_s failed.");
         }
