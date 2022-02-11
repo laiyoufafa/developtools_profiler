@@ -18,19 +18,17 @@
 #include <cerrno>
 #include <fstream>
 #include <string>
+#include <malloc.h>
 
+#include "bundle_manager_helper.h"
 #include "directory_ex.h"
 #include "file_ex.h"
 #include "file_util.h"
+#include "hilog/log.h"
+#include "ipc_skeleton.h"
+#include "native_engine/native_engine.h"
 #include "securec.h"
 #include "unistd.h"
-#include <malloc.h>
-
-#include "ipc_skeleton.h"
-
-#include "bundle_manager_helper.h"
-#include "hilog/log.h"
-#include "native_engine/native_engine.h"
 
 namespace OHOS {
 namespace HiviewDFX {

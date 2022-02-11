@@ -15,16 +15,16 @@
 
 #include "hidebug_base.h"
 
+#include <cerrno>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include <cerrno>
 
-#include "securec.h"
-#include <sysparam_errno.h>
 #include <parameter.h>
+#include <sysparam_errno.h>
 
 #include "hilog/log.h"
+#include "securec.h"
 
 #undef LOG_DOMAIN
 #undef LOG_TAG
