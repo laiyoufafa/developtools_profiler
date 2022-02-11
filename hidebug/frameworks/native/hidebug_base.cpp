@@ -143,7 +143,7 @@ bool InitEnvironmentParam(const char *serviceName)
     int cnt = ParseParams(paramOutBuf);
     if (cnt < 1) {
         char persistName[] = "persist.hiviewdfx.debugenv.";
-        err = strcat_s(persistName, sizeof(queryName), serviceName);
+        err = strcat_s(persistName, sizeof(persistName), serviceName);
         if (err != EOK) {
             HILOG_ERROR(LOG_CORE, "strcat_s failed.");
             return false;
@@ -157,6 +157,9 @@ bool InitEnvironmentParam(const char *serviceName)
     }
     for (int i = 0; i < cnt; ++i) {
         setenv(params[i].key, params[i].value, 1);
+        if (errno != 0) {
+            HILOG_ERROR(LOG_CORE, "setenv failed, errno = %{public}d.", errno);
+        }
     }
     return true;
 }
