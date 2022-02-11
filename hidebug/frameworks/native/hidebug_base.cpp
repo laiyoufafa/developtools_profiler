@@ -20,6 +20,7 @@
 #include <cstdlib>
 #include <cstring>
 
+#include <inttypes.h>
 #include <parameter.h>
 #include <sysparam_errno.h>
 
@@ -32,8 +33,6 @@
 #define LOG_TAG "HiDebug_Native"
 
 namespace {
-const char SPACE_CHR = ' ';
-const char COLON_CHR = ':';
 const int MAX_PARA_LEN = 50;
 const int MAX_PARA_CNT = 20;
 const int PARAM_BUF_LEN = 128;
@@ -44,89 +43,28 @@ struct Params {
     char value[MAX_PARA_LEN];
 } params[MAX_PARA_CNT];
 
-int ParseParams(const char *input)
+int GetKeyValue(const char *input)
 {
-    bool hasKey = false;
-    bool hasValue = false;
-    bool hasEql = false;
-    char key[MAX_PARA_LEN];
-    char value[MAX_PARA_LEN];
-    int startIdx = 0;
+    char key[MAX_PARA_LEN] = { 0 };
+    char value[MAX_PARA_LEN] = { 0 };
+    uint32_t len = 0;
     int cnt = 0;
-    int paramCnt = 0;
     errno_t err = 0;
-    for (size_t i = 0; i < strlen(input); ++i) {
-        if (input[i] == SPACE_CHR) {
-            if (hasKey) {
-                err = strncpy_s(key, MAX_PARA_LEN, input + startIdx, cnt);
-                if (err != EOK) {
-                    HILOG_ERROR(LOG_CORE, "strncpy_s failed.");
-                    return 0;
-                }
-                key[cnt] = '\0';
-                hasKey = false;
-            }
-            if (hasValue) {
-                err = strncpy_s(value, MAX_PARA_LEN, input + startIdx, cnt);
-                if (err != EOK) {
-                    HILOG_ERROR(LOG_CORE, "strcpy_s failed.");
-                    return 0;
-                }
-                value[cnt] = '\0';
-                err = strcpy_s(params[paramCnt].key, MAX_PARA_LEN, key);
-                if (err != EOK) {
-                    HILOG_ERROR(LOG_CORE, "strcpy_s failed.");
-                    return 0;
-                }
-                err = strcpy_s(params[paramCnt].value, MAX_PARA_LEN, value);
-                if (err != EOK) {
-                    HILOG_ERROR(LOG_CORE, "strcpy_s failed.");
-                    return 0;
-                }
-                paramCnt++;
-                hasValue = false;
-                hasEql = false;
-            }
-            cnt = 0;
-            startIdx = i + 1;
-        } else if (input[i] == COLON_CHR) {
-            if (hasKey) {
-                err = strncpy_s(key, MAX_PARA_LEN, input + startIdx, cnt);
-                if (err != EOK) {
-                    HILOG_ERROR(LOG_CORE, "strncpy_s failed.");
-                    return 0;
-                }
-                key[cnt] = '\0';
-                hasKey = false;
-            }
-            hasEql = true;
-            cnt = 0;
-            startIdx = i + 1;
-        } else {
-            cnt++;
-            hasEql ? hasValue = true : hasKey = true;
-        }
-    }
-    if (hasValue) {
-        err = strncpy_s(value, MAX_PARA_LEN, input + startIdx, cnt);
-        if (err != EOK) {
-            HILOG_ERROR(LOG_CORE, "strncpy_s failed.");
-            return 0;
-        }
-        value[cnt] = '\0';
-        err = strcpy_s(params[paramCnt].key, MAX_PARA_LEN, key);
-        if (err != EOK) {
+    while (sscanf(input, "%*[ ]%[^:]:%19s%n", key, value, &len) == 2) {
+        err = strcpy_s(params[cnt].key, sizeof(params[cnt].key), key);
+        if (err != 0) {
             HILOG_ERROR(LOG_CORE, "strcpy_s failed.");
-            return 0;
+            break;
         }
-        err = strcpy_s(params[paramCnt].value, MAX_PARA_LEN, value);
-        if (err != EOK) {
+        err = strcpy_s(params[cnt].value, sizeof(params[cnt].value), value);
+        if (err != 0) {
             HILOG_ERROR(LOG_CORE, "strcpy_s failed.");
-            return 0;
+            break;
         }
-        paramCnt++;
+        input += len;
+        cnt++;
     }
-    return paramCnt;
+    return cnt;
 }
 }
 
@@ -142,9 +80,9 @@ bool InitEnvironmentParam(const char *serviceName)
     }
     int retLen = GetParameter(queryName, defStrValue, paramOutBuf, PARAM_BUF_LEN);
     paramOutBuf[retLen] = '\0';
-    int cnt = ParseParams(paramOutBuf);
+    int cnt = GetKeyValue(paramOutBuf);
     if (cnt < 1) {
-        char persistName[] = "persist.hiviewdfx.debugenv.";
+        char persistName[QUERYNAME_LEN] = "persist.hiviewdfx.debugenv.";
         err = strcat_s(persistName, sizeof(persistName), serviceName);
         if (err != EOK) {
             HILOG_ERROR(LOG_CORE, "strcat_s failed.");
@@ -152,7 +90,7 @@ bool InitEnvironmentParam(const char *serviceName)
         }
         retLen = GetParameter(persistName, defStrValue, paramOutBuf, PARAM_BUF_LEN);
         paramOutBuf[retLen] = '\0';
-        if (ParseParams(paramOutBuf) < 1) {
+        if (GetKeyValue(paramOutBuf) < 1) {
             HILOG_ERROR(LOG_CORE, "failed to capture environment params.");
             return false;
         }

@@ -20,7 +20,7 @@
 extern "C" {
 #endif
 
-static bool InitEnvironmentParam(const char *serviceName);
+bool InitEnvironmentParam(const char *serviceName);
 
 #ifdef __cplusplus
 }
