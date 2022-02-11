@@ -219,9 +219,11 @@ std::string GetFileNameParam(napi_env env, napi_callback_info info)
 bool GetBundleNameByUid(std::int32_t uid, std::string& bname)
 {
     std::shared_ptr<EventFwk::BundleManagerHelper> bundleManager = EventFwk::BundleManagerHelper::GetInstance();
-    if (bundleManager != nullptr) {
-        bname = bundleManager->GetBundleName(uid);
+    if (bundleManager == nullptr) {
+        HiLog::Error(LABEL, "get BundleManagerHelper instance failed.");
+        return false;
     }
+    bname = bundleManager->GetBundleName(uid);
     return true;
 }
 

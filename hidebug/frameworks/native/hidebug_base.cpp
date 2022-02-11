@@ -37,6 +37,7 @@ const int MAX_PARA_LEN = 50;
 const int MAX_PARA_CNT = 20;
 const int PARAM_BUF_LEN = 128;
 const int QUERYNAME_LEN = 80;
+const int FORMAT_NUM = 2;
 
 struct Params {
     char key[MAX_PARA_LEN];
@@ -50,7 +51,7 @@ int GetKeyValue(const char *input)
     uint32_t len = 0;
     int cnt = 0;
     errno_t err = 0;
-    while (sscanf(input, "%*[ ]%[^:]:%19s%n", key, value, &len) == 2) {
+    while (sscanf(input, "%*[ ]%[^:]:%19s%n", key, value, &len) == FORMAT_NUM) {
         err = strcpy_s(params[cnt].key, sizeof(params[cnt].key), key);
         if (err != 0) {
             HILOG_ERROR(LOG_CORE, "strcpy_s failed.");

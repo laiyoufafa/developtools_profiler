@@ -42,7 +42,7 @@ ohos_shared_library("napi_hidebug") {
   ]
 
   external_deps = [
-    "ability_runtime:want",
+    "ability_base:want",
     "bundle_framework:appexecfwk_core",
     "ces_standard:cesfwk_services",
     "hilog_native:libhilog",
