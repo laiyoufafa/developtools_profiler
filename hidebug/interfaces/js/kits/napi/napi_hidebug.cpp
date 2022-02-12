@@ -156,26 +156,32 @@ static uint64_t GetProcessMeminfo(const std::string& matchingItem)
     std::string filePath = "/proc/" + std::to_string(pid) + "/smaps_rollup";
     FILE* smapsRollupInfo = fopen(filePath.c_str(), "r");
     if (smapsRollupInfo == nullptr) {
-        return -1;
+        HiLog::Error(LABEL, "The smaps_rollup file was not found.");
+        return 0;
     }
  
     char line[256];
-    while (fgets(line, sizeof(line), smapsRollupInfo)) {
-        uint64_t meminfo;
+    while (true) {
+        char* flag = fgets(line, sizeof(line), smapsRollupInfo);
+        if (flag == nullptr) {
+            HiLog::Error(LABEL, "The parameter was not found.");
+            return 0;
+        }
+        uint64_t meminfo = 0;
         if (matchingItem == "pss") {
             if (sscanf_s(line, "Pss: %llu kB", &meminfo) == 1) {
-                fclose(smapsRollupInfo);
+                (void)fclose(smapsRollupInfo);
                 return meminfo;
             }
         } else if (matchingItem == "Shared_Dirty") {
             if (sscanf_s(line, "Shared_Dirty: %llu kB", &meminfo) == 1) {
-                fclose(smapsRollupInfo);
+                (void)fclose(smapsRollupInfo);
                 return meminfo;
             }
         }
     }
-    fclose(smapsRollupInfo);
-    return -1;
+    (void)fclose(smapsRollupInfo);
+    return 0;
 }
 
 bool MatchValueType(napi_env env, napi_value value, napi_valuetype targetType)
