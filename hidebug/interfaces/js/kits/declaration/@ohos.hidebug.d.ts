@@ -24,49 +24,74 @@
 declare namespace hidebug {
     /**
      * Get total native heap memory size
+     * @param -
+     * @return Returns total native heap memory size.
      * @since 8
      */
     function getNativeHeapSize() : bigint;
 
     /**
-     * Get Native heap memory allocation size
+     * Get Native heap memory allocation size.
+     * @param -
+     * @return Returns native heap memory allocation size.
      * @since 8
      */
     function getNativeHeapAllocatedSize() : bigint;
 
     /**
      * Get Native heap memory free size
+     * @param -
+     * @return Returns native heap memory free size.
      * @since 8
      */
     function getNativeHeapFreeSize() : bigint;
 
-
     /**
      * Get application process proportional set size memory information
+     * @param -
+     * @return Returns application process proportional set size memory information.
      * @since 8
      */
     function getPss() : bigint;
 
     /**
      * Get process private dirty memory size
+     * @param -
+     * @return Returns process private dirty memory size
      * @since 8
      */
     function getSharedDirty() : bigint;
 
     /**
-     * Start CPU Profiling
+     * Start CPU Profiling.
+     * The input parameter is a user-defined file name, excluding the file suffix.
+     * The generated file is in the files folder under the application directory.
+     * such as "/data/accounts/account_0/appdata/[package name]/files/cpuprofiler-xxx.json"
+     * 
+     * @param fileName Indicates the user-defined file name,  excluding the file suffix.
+     * @return -
      * @since 8
      */
     function startProfiling(fileName : string) : void;
 
     /**
-     * Stop CPU Profiling
+     * Stop CPU Profiling.
+     * It takes effect only when the CPU profiler is turned on
+     * 
+     * @param -
+     * @return -
      * @since 8
      */
     function stopProfiling() : void;
 
     /**
-     * Dump JS Virtual Machine Heap Snapshot
+     * Dump JS Virtual Machine Heap Snapshot.
+     * The input parameter is a user-defined file name, excluding the file suffix.
+     * The generated file is in the files folder under the application directory.
+     * such as "/data/accounts/account_0/appdata/[package name]/files/xxx.heapsnapshot"
+     * 
+     * @param fileName Indicates the user-defined file name, excluding the file suffix.
+     * @return -
      * @since 8
      */
     function dumpHeapData(fileName : string) : void;

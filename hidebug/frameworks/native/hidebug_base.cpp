@@ -44,14 +44,13 @@ struct Params {
     char value[MAX_PARA_LEN];
 } params[MAX_PARA_CNT];
 
-int GetKeyValue(const char *input)
+void GetKeyValue(const char *input, int &cnt)
 {
     char key[MAX_PARA_LEN] = { 0 };
     char value[MAX_PARA_LEN] = { 0 };
     uint32_t len = 0;
-    int cnt = 0;
     errno_t err = 0;
-    while (sscanf(input, "%*[ ]%[^:]:%19s%n", key, value, &len) == FORMAT_NUM) {
+    while (sscanf(input, "%[^:]:%19s%n", key, value, &len) == FORMAT_NUM) {
         err = strcpy_s(params[cnt].key, sizeof(params[cnt].key), key);
         if (err != 0) {
             HILOG_ERROR(LOG_CORE, "strcpy_s failed.");
@@ -65,8 +64,22 @@ int GetKeyValue(const char *input)
         input += len;
         cnt++;
     }
+}
+
+int SplitParams(char *input)
+{
+    int cnt = 0;
+    const char space[2] = " ";
+    char *param;
+    char *next = nullptr;
+    param = strtok_s(input, space, &next);
+    while (param != NULL) {
+        GetKeyValue(param, cnt);
+        param = strtok_s(NULL, space, &next);
+    }
     return cnt;
 }
+
 }
 
 bool InitEnvironmentParam(const char *serviceName)
@@ -81,7 +94,7 @@ bool InitEnvironmentParam(const char *serviceName)
     }
     int retLen = GetParameter(queryName, defStrValue, paramOutBuf, PARAM_BUF_LEN);
     paramOutBuf[retLen] = '\0';
-    int cnt = GetKeyValue(paramOutBuf);
+    int cnt = SplitParams(paramOutBuf);
     if (cnt < 1) {
         char persistName[QUERYNAME_LEN] = "persist.hiviewdfx.debugenv.";
         err = strcat_s(persistName, sizeof(persistName), serviceName);
@@ -91,7 +104,7 @@ bool InitEnvironmentParam(const char *serviceName)
         }
         retLen = GetParameter(persistName, defStrValue, paramOutBuf, PARAM_BUF_LEN);
         paramOutBuf[retLen] = '\0';
-        if (GetKeyValue(paramOutBuf) < 1) {
+        if (SplitParams(paramOutBuf) < 1) {
             HILOG_ERROR(LOG_CORE, "failed to capture environment params.");
             return false;
         }
