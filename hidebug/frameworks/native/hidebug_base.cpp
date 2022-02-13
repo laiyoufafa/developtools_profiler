@@ -44,12 +44,13 @@ struct Params {
     char value[MAX_PARA_LEN];
 } params[MAX_PARA_CNT];
 
-void GetKeyValue(const char *input, int &cnt)
+int GetKeyValue(const char *input)
 {
     char key[MAX_PARA_LEN] = { 0 };
     char value[MAX_PARA_LEN] = { 0 };
     uint32_t len = 0;
     errno_t err = 0;
+    int cnt = 0;
     while (sscanf(input, "%[^:]:%19s%n", key, value, &len) == FORMAT_NUM) {
         err = strcpy_s(params[cnt].key, sizeof(params[cnt].key), key);
         if (err != 0) {
@@ -64,6 +65,7 @@ void GetKeyValue(const char *input, int &cnt)
         input += len;
         cnt++;
     }
+    return cnt;
 }
 
 int SplitParams(char *input)
@@ -73,13 +75,12 @@ int SplitParams(char *input)
     char *param;
     char *next = nullptr;
     param = strtok_s(input, space, &next);
-    while (param != NULL) {
-        GetKeyValue(param, cnt);
-        param = strtok_s(NULL, space, &next);
+    while (param != nullptr) {
+        cnt += GetKeyValue(param);
+        param = strtok_s(nullptr, space, &next);
     }
     return cnt;
 }
-
 }
 
 bool InitEnvironmentParam(const char *serviceName)
