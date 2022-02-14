@@ -42,44 +42,43 @@ const int FORMAT_NUM = 2;
 struct Params {
     char key[MAX_PARA_LEN];
     char value[MAX_PARA_LEN];
-} params[MAX_PARA_CNT];
+} g_params[MAX_PARA_CNT];
 
-int GetKeyValue(const char *input)
+int g_paramCnt = 0;
+
+void GetKeyValue(const char *input)
 {
     char key[MAX_PARA_LEN] = { 0 };
     char value[MAX_PARA_LEN] = { 0 };
     uint32_t len = 0;
     errno_t err = 0;
-    int cnt = 0;
-    while (sscanf(input, "%[^:]:%19s%n", key, value, &len) == FORMAT_NUM) {
-        err = strcpy_s(params[cnt].key, sizeof(params[cnt].key), key);
+    while (sscanf(input, "%[^:]:%49s%n", key, value, &len) == FORMAT_NUM) {
+        err = strcpy_s(g_params[g_paramCnt].key, sizeof(g_params[g_paramCnt].key), key);
         if (err != 0) {
             HILOG_ERROR(LOG_CORE, "strcpy_s failed.");
             break;
         }
-        err = strcpy_s(params[cnt].value, sizeof(params[cnt].value), value);
+        err = strcpy_s(g_params[g_paramCnt].value, sizeof(g_params[g_paramCnt].value), value);
         if (err != 0) {
             HILOG_ERROR(LOG_CORE, "strcpy_s failed.");
             break;
         }
         input += len;
-        cnt++;
+        g_paramCnt++;
     }
-    return cnt;
 }
 
-int SplitParams(char *input)
+void SplitParams(char *input)
 {
-    int cnt = 0;
+    g_paramCnt = 0;
     const char space[] = " ";
     char *param;
     char *next = nullptr;
     param = strtok_s(input, space, &next);
     while (param != nullptr) {
-        cnt += GetKeyValue(param);
+        GetKeyValue(param);
         param = strtok_s(nullptr, space, &next);
     }
-    return cnt;
 }
 }
 
@@ -95,8 +94,8 @@ bool InitEnvironmentParam(const char *serviceName)
     }
     int retLen = GetParameter(queryName, defStrValue, paramOutBuf, PARAM_BUF_LEN);
     paramOutBuf[retLen] = '\0';
-    int cnt = SplitParams(paramOutBuf);
-    if (cnt < 1) {
+    SplitParams(paramOutBuf);
+    if (g_paramCnt < 1) {
         char persistName[QUERYNAME_LEN] = "persist.hiviewdfx.debugenv.";
         err = strcat_s(persistName, sizeof(persistName), serviceName);
         if (err != EOK) {
@@ -105,14 +104,14 @@ bool InitEnvironmentParam(const char *serviceName)
         }
         retLen = GetParameter(persistName, defStrValue, paramOutBuf, PARAM_BUF_LEN);
         paramOutBuf[retLen] = '\0';
-        cnt = SplitParams(paramOutBuf);
-        if (cnt < 1) {
+        SplitParams(paramOutBuf);
+        if (g_paramCnt < 1) {
             HILOG_ERROR(LOG_CORE, "failed to capture environment params.");
             return false;
         }
     }
-    for (int i = 0; i < cnt; ++i) {
-        setenv(params[i].key, params[i].value, 1);
+    for (int i = 0; i < g_paramCnt; ++i) {
+        setenv(g_params[i].key, g_params[i].value, 1);
         if (errno != 0) {
             HILOG_ERROR(LOG_CORE, "setenv failed, errno = %{public}d.", errno);
         }
