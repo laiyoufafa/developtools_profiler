@@ -71,7 +71,7 @@ int GetKeyValue(const char *input)
 int SplitParams(char *input)
 {
     int cnt = 0;
-    const char space[2] = " ";
+    const char space[] = " ";
     char *param;
     char *next = nullptr;
     param = strtok_s(input, space, &next);
@@ -85,8 +85,8 @@ int SplitParams(char *input)
 
 bool InitEnvironmentParam(const char *serviceName)
 {
-    char paramOutBuf[PARAM_BUF_LEN];
-    char defStrValue[PARAM_BUF_LEN];
+    char paramOutBuf[PARAM_BUF_LEN] = { 0 };
+    char defStrValue[PARAM_BUF_LEN] = { 0 };
     char queryName[QUERYNAME_LEN] = "hiviewdfx.debugenv.";
     errno_t err = strcat_s(queryName, sizeof(queryName), serviceName);
     if (err != EOK) {
@@ -105,7 +105,8 @@ bool InitEnvironmentParam(const char *serviceName)
         }
         retLen = GetParameter(persistName, defStrValue, paramOutBuf, PARAM_BUF_LEN);
         paramOutBuf[retLen] = '\0';
-        if (SplitParams(paramOutBuf) < 1) {
+        cnt = SplitParams(paramOutBuf);
+        if (cnt < 1) {
             HILOG_ERROR(LOG_CORE, "failed to capture environment params.");
             return false;
         }

@@ -30,7 +30,7 @@ config("napi_hidebug_config") {
   ]
 }
 
-ohos_shared_library("napi_hidebug") {
+ohos_shared_library("hidebug") {
   sources = [ "napi_hidebug.cpp" ]
 
   configs = [ ":napi_hidebug_config" ]

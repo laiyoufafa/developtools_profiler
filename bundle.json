@@ -35,7 +35,7 @@
     "build": {
       "sub_component": [
         "//developtools/profiler/device:hiprofiler_targets",
-        "//developtools/profiler/hidebug/interfaces/js/kits/napi:napi_hidebug"
+        "//developtools/profiler/hidebug/interfaces/js/kits/napi:hidebug"
       ],
       "inner_kits": [
         {
