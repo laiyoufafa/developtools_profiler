@@ -270,7 +270,6 @@ public class MultiDeviceManager {
         if (pushDevToolsShell(deviceIPPortInfo)) {
             boolean pushShellResult = pushHiProfilerTools(deviceIPPortInfo);
             if (pushShellResult) {
-                pushHiPerfFIle(deviceIPPortInfo);
                 pushDevTools(deviceIPPortInfo);
             }
             String cap = isServiceCapability(deviceIPPortInfo, false, 0);

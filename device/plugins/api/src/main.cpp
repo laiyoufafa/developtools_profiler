@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+#include <unistd.h>
+
 #include "command_poller.h"
 #include "logging.h"
 #include "plugin_manager.h"
@@ -33,6 +35,8 @@ const int SLEEP_ONE_SECOND = 1000;
 
 int main(int argc, char* argv[])
 {
+    const int connectRetrySeconds = 3;
+
     std::string pluginDir(DEFAULT_PLUGIN_PATH);
     if (argv[1] != nullptr) {
         HILOG_DEBUG(LOG_CORE, "%s:pluginDir = %s", __func__, argv[1]);
@@ -44,6 +48,14 @@ int main(int argc, char* argv[])
 
     auto commandPoller = std::make_shared<CommandPoller>(pluginManager);
     CHECK_NOTNULL(commandPoller, 1, "create CommandPoller FAILED!");
+
+    while (true) {
+        if (commandPoller->OnConnect()) {
+            break;
+        }
+        HILOG_DEBUG(LOG_CORE, "%s:connect failed, try again", __func__);
+        sleep(connectRetrySeconds);
+    }
     pluginManager->SetCommandPoller(commandPoller);
 
     PluginWatcher watcher(pluginManager);

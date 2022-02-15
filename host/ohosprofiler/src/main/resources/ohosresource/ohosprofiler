@@ -219,7 +219,6 @@ function unzip_start_daemon(){
 
 function untar_start_daemon(){
     uzip_std_file $1
-    init_hiperf
     start_std_daemon
     exit 0
 }

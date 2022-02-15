@@ -105,7 +105,7 @@ bool PluginManager::AddPlugin(const std::string& pluginPath)
     RegisterPluginResponse response;
 
     if (commandPoller_->RegisterPlugin(request, response)) {
-        if (response.status() == 0) {
+        if (response.status() == ResponseStatus::OK) {
             HILOG_DEBUG(LOG_CORE, "%s:response.plugin_id() = %d", __func__, response.plugin_id());
             pluginIds_[pluginPath] = response.plugin_id();
             pluginModules_.insert(std::pair<uint32_t, std::shared_ptr<PluginModule>>(response.plugin_id(), plugin));
@@ -161,7 +161,7 @@ bool PluginManager::RemovePlugin(const std::string& pluginPath)
     request.set_plugin_id(index);
     UnregisterPluginResponse response;
     if (commandPoller_->UnregisterPlugin(request, response)) {
-        if (response.status() != 0) {
+        if (response.status() != ResponseStatus::OK) {
             HILOG_DEBUG(LOG_CORE, "%s:registerPlugin fail 1", __func__);
             return false;
         }
@@ -338,7 +338,7 @@ bool PluginManager::SubmitResult(const PluginResult& pluginResult)
         HILOG_DEBUG(LOG_CORE, "%s:fail 1", __func__);
         return false;
     }
-    if (response.status() != 0) {
+    if (response.status() != ResponseStatus::OK) {
         HILOG_DEBUG(LOG_CORE, "%s:fail 2", __func__);
         return false;
     }
