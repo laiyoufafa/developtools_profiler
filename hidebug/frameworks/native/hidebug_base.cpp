@@ -37,7 +37,7 @@ const int MAX_PARA_LEN = 50;
 const int MAX_PARA_CNT = 20;
 const int PARAM_BUF_LEN = 128;
 const int QUERYNAME_LEN = 80;
-const int FORMAT_NUM = 2;
+const char COLON_CHR = ':';
 
 struct Params {
     char key[MAX_PARA_LEN];
@@ -46,26 +46,28 @@ struct Params {
 
 int g_paramCnt = 0;
 
-void GetKeyValue(const char *input)
+void ParseKeyValue(const char *input)
 {
-    char key[MAX_PARA_LEN] = { 0 };
-    char value[MAX_PARA_LEN] = { 0 };
-    uint32_t len = 0;
-    errno_t err = 0;
-    while (sscanf(input, "%[^:]:%49s%n", key, value, &len) == FORMAT_NUM) {
-        err = strcpy_s(g_params[g_paramCnt].key, sizeof(g_params[g_paramCnt].key), key);
-        if (err != 0) {
-            HILOG_ERROR(LOG_CORE, "strcpy_s failed.");
-            break;
-        }
-        err = strcpy_s(g_params[g_paramCnt].value, sizeof(g_params[g_paramCnt].value), value);
-        if (err != 0) {
-            HILOG_ERROR(LOG_CORE, "strcpy_s failed.");
-            break;
-        }
-        input += len;
-        g_paramCnt++;
+    if (g_paramCnt >= MAX_PARA_CNT) {
+        HILOG_ERROR(LOG_CORE, "Parameters is Full.");
+        return;
     }
+    const char *colonPos = strchr(input, COLON_CHR);
+    if (colonPos == nullptr) {
+        HILOG_ERROR(LOG_CORE, "params is illegal.");
+        return;
+    }
+    errno_t err = strncpy_s(g_params[g_paramCnt].key, MAX_PARA_LEN, input, colonPos - input);
+    if (err != EOK) {
+        HILOG_ERROR(LOG_CORE, "memcpy_s copy key strings failed.");
+        return;
+    }
+    err = strncpy_s(g_params[g_paramCnt].value, MAX_PARA_LEN, colonPos + 1, strlen(colonPos + 1));
+    if (err != EOK) {
+        HILOG_ERROR(LOG_CORE, "memcpy_s copy value strings failed.");
+        return;
+    }
+    g_paramCnt++;
 }
 
 void SplitParams(char *input)
@@ -76,43 +78,52 @@ void SplitParams(char *input)
     char *next = nullptr;
     param = strtok_s(input, space, &next);
     while (param != nullptr) {
-        GetKeyValue(param);
+        ParseKeyValue(param);
         param = strtok_s(nullptr, space, &next);
     }
+}
+
+int QueryParams(const char *queryName)
+{
+    g_paramCnt = 0;
+    char paramOutBuf[PARAM_BUF_LEN] = { 0 };
+    char defStrValue[PARAM_BUF_LEN] = { 0 };
+    int retLen = GetParameter(queryName, defStrValue, paramOutBuf, PARAM_BUF_LEN);
+    if (retLen == 0) {
+        HILOG_ERROR(LOG_CORE, "get %{public}s parameters failed.", queryName);
+        return 0;
+    }
+    paramOutBuf[retLen] = '\0';
+    SplitParams(paramOutBuf);
+    return g_paramCnt;
 }
 }
 
 bool InitEnvironmentParam(const char *serviceName)
 {
-    char paramOutBuf[PARAM_BUF_LEN] = { 0 };
-    char defStrValue[PARAM_BUF_LEN] = { 0 };
-    char queryName[QUERYNAME_LEN] = "hiviewdfx.debugenv.";
-    errno_t err = strcat_s(queryName, sizeof(queryName), serviceName);
-    if (err != EOK) {
-        HILOG_ERROR(LOG_CORE, "strcat_s failed.");
+    if (serviceName == nullptr) {
+        HILOG_ERROR(LOG_CORE, "input service name is null.");
         return false;
     }
-    int retLen = GetParameter(queryName, defStrValue, paramOutBuf, PARAM_BUF_LEN);
-    paramOutBuf[retLen] = '\0';
-    SplitParams(paramOutBuf);
-    if (g_paramCnt < 1) {
-        char persistName[QUERYNAME_LEN] = "persist.hiviewdfx.debugenv.";
-        err = strcat_s(persistName, sizeof(persistName), serviceName);
-        if (err != EOK) {
-            HILOG_ERROR(LOG_CORE, "strcat_s failed.");
-            return false;
-        }
-        retLen = GetParameter(persistName, defStrValue, paramOutBuf, PARAM_BUF_LEN);
-        paramOutBuf[retLen] = '\0';
-        SplitParams(paramOutBuf);
-        if (g_paramCnt < 1) {
-            HILOG_ERROR(LOG_CORE, "failed to capture environment params.");
-            return false;
-        }
+    errno_t err = 0;
+    char persistName[QUERYNAME_LEN] = "persist.hiviewdfx.debugenv.";
+    char onceName[QUERYNAME_LEN] = "hiviewdfx.debugenv.";
+    err = strcat_s(onceName, sizeof(onceName), serviceName);
+    if (err != EOK) {
+        HILOG_ERROR(LOG_CORE, "strcat_s query name failed.");
+        return 0;
+    }
+    err = strcat_s(persistName, sizeof(persistName), serviceName);
+    if (err != EOK) {
+        HILOG_ERROR(LOG_CORE, "strcat_s persist query name failed.");
+        return 0;
+    }
+    if (QueryParams(onceName) == 0 && QueryParams(persistName) == 0) {
+        HILOG_ERROR(LOG_CORE, "failed to capture %{public}s environment params.", serviceName);
+        return false;
     }
     for (int i = 0; i < g_paramCnt; ++i) {
-        setenv(g_params[i].key, g_params[i].value, 1);
-        if (errno != 0) {
+        if (setenv(g_params[i].key, g_params[i].value, 1) != 0) { // 1 : overwrite
             HILOG_ERROR(LOG_CORE, "setenv failed, errno = %{public}d.", errno);
         }
     }
