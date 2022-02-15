@@ -38,13 +38,13 @@ int main(int agrc, char* agrv[]) {
             continue;
         }
         buf = (char *)malloc(size * MB_PER_BYTE);
-        if (buf == NULL) {
+        if (buf == nullptr) {
             HILOG_ERROR(LOG_CORE, "malloc %zu fail, err(%s:%d)", size, strerror(errno), errno);
             continue;
         }
         cache.emplace(cache.begin() + i - 1, buf);
     }
-    while(true);
+    while(true) {};
     return 0;
 }
 
