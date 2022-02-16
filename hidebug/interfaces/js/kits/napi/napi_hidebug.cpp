@@ -113,7 +113,7 @@ static napi_value GetPss(napi_env env, napi_callback_info info)
     napi_value pss;
     std::string item = "pss";
     uint64_t pssInfo = GetProcessMeminfo(item);
-    napi_create_int64(env, pssInfo, &pss);
+    napi_create_bigint_uint64(env, pssInfo, &pss);
     return pss;
 }
 
@@ -122,7 +122,7 @@ static napi_value GetShareDirty(napi_env env, napi_callback_info info)
     napi_value share_dirty;
     std::string item = "Shared_Dirty";
     uint64_t shareDirtyInfo = GetProcessMeminfo(item);
-    napi_create_int64(env, shareDirtyInfo, &share_dirty);
+    napi_create_bigint_uint64(env, shareDirtyInfo, &share_dirty);
     return share_dirty;
 }
 
@@ -130,7 +130,7 @@ static napi_value GetNativeHeapSize(napi_env env, napi_callback_info info)
 {
     struct mallinfo mi;
     napi_value native_heap_size;
-    napi_create_int64(env, mi.usmblks, &native_heap_size);
+    napi_create_bigint_uint64(env, mi.usmblks, &native_heap_size);
     return native_heap_size;
 }
 
@@ -138,7 +138,7 @@ static napi_value GetNativeHeapAllocatedSize(napi_env env, napi_callback_info in
 {
     struct mallinfo mi;
     napi_value native_heap_allocated_size;
-    napi_create_int64(env, mi.uordblks, &native_heap_allocated_size);
+    napi_create_bigint_uint64(env, mi.uordblks, &native_heap_allocated_size);
     return native_heap_allocated_size;
 }
 
@@ -146,7 +146,7 @@ static napi_value GetNativeHeapFreeSize(napi_env env, napi_callback_info info)
 {
     struct mallinfo mi;
     napi_value native_heap_free_size;
-    napi_create_int64(env, mi.fordblks, &native_heap_free_size);
+    napi_create_bigint_uint64(env, mi.fordblks, &native_heap_free_size);
     return native_heap_free_size;
 }
 
