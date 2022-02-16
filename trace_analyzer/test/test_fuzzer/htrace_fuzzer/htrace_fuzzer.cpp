@@ -16,8 +16,8 @@
 #include "htrace_fuzzer.h"
 #include <cstdint>
 #include <memory>
-#include <stddef.h>
-#include <stdint.h>
+#include <cstddef>
+#include <cstdint>
 #include "common_types.h"
 #include "securec.h"
 #include "trace_streamer_selector.h"

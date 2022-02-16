@@ -15,8 +15,8 @@
 
 #include "memorystartplugin_fuzzer.h"
 
-#include <stddef.h>
-#include <stdint.h>
+#include <cstddef>
+#include <cstdint>
 
 #include "memory_data_plugin.h"
 

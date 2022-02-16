@@ -15,8 +15,8 @@
 
 #include "networkstartplugin_fuzzer.h"
 
-#include <stddef.h>
-#include <stdint.h>
+#include <cstddef>
+#include <cstdint>
 
 #include "network_plugin.h"
 

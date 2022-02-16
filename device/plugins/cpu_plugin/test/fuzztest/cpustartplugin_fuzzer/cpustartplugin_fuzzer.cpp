@@ -15,8 +15,8 @@
 
 #include "cpustartplugin_fuzzer.h"
 
-#include <stddef.h>
-#include <stdint.h>
+#include <cstddef>
+#include <cstdint>
 
 #include "cpu_data_plugin.h"
 

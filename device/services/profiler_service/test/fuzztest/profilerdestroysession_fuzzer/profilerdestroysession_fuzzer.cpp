@@ -15,8 +15,8 @@
 
 #include "profilerdestroysession_fuzzer.h"
 
-#include <stddef.h>
-#include <stdint.h>
+#include <cstddef>
+#include <cstdint>
 
 #include "plugin_service.h"
 #include "profiler_service.h"
