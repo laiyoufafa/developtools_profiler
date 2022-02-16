@@ -14,7 +14,6 @@
  */
 #include "sample_plugin.h"
 
-#include <cstdlib>
 #include "securec.h"
 namespace {
 constexpr int MAX_INT = 10;

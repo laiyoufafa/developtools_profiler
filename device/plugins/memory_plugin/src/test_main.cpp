@@ -26,7 +26,8 @@ namespace {
 const size_t MB_PER_BYTE = 0x100000;
 }
 
-int main(int agrc, char* agrv[]) {
+int main(int agrc, char* agrv[])
+{
     std::vector<char*> cache;
     size_t size = 0;
     char *buf = nullptr;
