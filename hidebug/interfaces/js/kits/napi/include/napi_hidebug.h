@@ -27,7 +27,7 @@ static napi_value StartProfiling(napi_env env, napi_callback_info info);
 static napi_value StopProfiling(napi_env env, napi_callback_info info);
 static napi_value DumpHeapData(napi_env env, napi_callback_info info);
 static napi_value GetPss(napi_env env, napi_callback_info info);
-static napi_value GetShareDirty(napi_env env, napi_callback_info info);
+static napi_value GetSharedDirty(napi_env env, napi_callback_info info);
 static napi_value GetNativeHeapSize(napi_env env, napi_callback_info info);
 static napi_value GetNativeHeapAllocatedSize(napi_env env, napi_callback_info info);
 static napi_value GetNativeHeapFreeSize(napi_env env, napi_callback_info info);

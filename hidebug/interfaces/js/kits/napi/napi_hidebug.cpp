@@ -240,7 +240,7 @@ napi_value DeclareHiDebugInterface(napi_env env, napi_value exports)
         DECLARE_NAPI_FUNCTION("stopProfiling", StopProfiling),
         DECLARE_NAPI_FUNCTION("dumpHeapData", DumpHeapData),
         DECLARE_NAPI_FUNCTION("getPss", GetPss),
-        DECLARE_NAPI_FUNCTION("getShareDirty", GetShareDirty),
+        DECLARE_NAPI_FUNCTION("getSharedDirty", GetSharedDirty),
         DECLARE_NAPI_FUNCTION("getNativeHeapSize", GetNativeHeapSize),
         DECLARE_NAPI_FUNCTION("getNativeHeapAllocatedSize", GetNativeHeapAllocatedSize),
         DECLARE_NAPI_FUNCTION("getNativeHeapFreeSize", GetNativeHeapFreeSize)
