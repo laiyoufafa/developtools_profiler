@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#include "ipc_generator.h"
 #include <iostream>
+#include "ipc_generator.h"
 
 int main(int argc, char* argv[])
 {

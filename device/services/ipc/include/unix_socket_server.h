@@ -16,10 +16,11 @@
 #ifndef UNIX_SOCKET_SERVER_H
 #define UNIX_SOCKET_SERVER_H
 
-#include "socket_context.h"
-
 #include <ostream>
 #include <thread>
+
+#include "socket_context.h"
+
 #include "client_connection.h"
 
 class ServiceEntry;

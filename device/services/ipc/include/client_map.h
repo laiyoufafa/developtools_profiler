@@ -16,8 +16,8 @@
 #ifndef CLIENT_MAP_H
 #define CLIENT_MAP_H
 
-#include "client_connection.h"
 #include <map>
+#include "client_connection.h"
 
 class ServiceEntry;
 

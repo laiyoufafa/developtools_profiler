@@ -13,9 +13,9 @@
  * limitations under the License.
  */
 
-#include "writer_adapter.h"
 #include <hwext/gtest-ext.h>
 #include <hwext/gtest-tag.h>
+#include "writer_adapter.h"
 
 using namespace testing::ext;
 

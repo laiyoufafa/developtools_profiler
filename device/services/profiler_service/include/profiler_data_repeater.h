@@ -15,13 +15,13 @@
 #ifndef PROFILER_DATA_REPEATER_H
 #define PROFILER_DATA_REPEATER_H
 
-#include "logging.h"
-#include "nocopyable.h"
-#include "profiler_service_types.pb.h"
 #include <condition_variable>
 #include <deque>
 #include <memory>
 #include <mutex>
+#include "logging.h"
+#include "nocopyable.h"
+#include "profiler_service_types.pb.h"
 
 using ProfilerPluginDataPtr = STD_PTR(shared, ProfilerPluginData);
 
