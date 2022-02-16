@@ -85,6 +85,7 @@ HWTEST_F(PluginManagerTest, SuccessPlugin, TestSize.Level1)
 {
     auto pluginManage = std::make_shared<PluginManager>();
     auto commandPoller = std::make_shared<CommandPoller>(pluginManage);
+    EXPECT_TRUE(commandPoller->OnConnect());
     pluginManage->SetCommandPoller(commandPoller);
 
     const uint8_t configData[] = {0x30, 0x01, 0x38, 0x01, 0x42, 0x01, 0x01};

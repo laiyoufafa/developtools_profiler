@@ -72,7 +72,7 @@ HWTEST_F(ModuleTestPluginService, RegisterPlugin, TestSize.Level1)
     request.set_path("abc.so");
     request.set_sha256("ADSFAFASFASFASF");
     request.set_name("abc.so");
-    ASSERT_TRUE(response.status() == 0);
+    ASSERT_TRUE(response.status() != ResponseStatus::OK);
     g_pluginId = response.plugin_id();
 }
 

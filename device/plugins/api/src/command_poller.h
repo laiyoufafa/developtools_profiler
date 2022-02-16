@@ -40,6 +40,7 @@ public:
     bool OnStopSessionCmd(const StopSessionCmd& cmd) const;
 
     uint32_t GetRequestId();
+    bool OnConnect();
 
 protected:
     bool OnGetCommandResponse(SocketContext& context, ::GetCommandResponse& response) override;

@@ -29,7 +29,7 @@ GetCommandResponsePtr PluginCommandBuilder::BuildCreateSessionCmd(const Profiler
                                                                   uint32_t bufferSize)
 {
     auto cmd = std::make_shared<GetCommandResponse>();
-    cmd->set_status(0);
+    cmd->set_status(ResponseStatus::OK);
     cmd->set_has_more(false);
     cmd->set_command_id(cmdIdAutoIncrease_);
     CreateSessionCmd* csc = cmd->mutable_create_session_cmd();
@@ -44,7 +44,7 @@ GetCommandResponsePtr PluginCommandBuilder::BuildCreateSessionCmd(const Profiler
 GetCommandResponsePtr PluginCommandBuilder::BuildDestroySessionCmd(uint32_t pluginId)
 {
     auto cmd = std::make_shared<GetCommandResponse>();
-    cmd->set_status(0);
+    cmd->set_status(ResponseStatus::OK);
     cmd->set_has_more(false);
     cmd->set_command_id(cmdIdAutoIncrease_);
 
@@ -59,7 +59,7 @@ GetCommandResponsePtr PluginCommandBuilder::BuildDestroySessionCmd(uint32_t plug
 GetCommandResponsePtr PluginCommandBuilder::BuildStartSessionCmd(const ProfilerPluginConfig& config, uint32_t pluginId)
 {
     auto cmd = std::make_shared<GetCommandResponse>();
-    cmd->set_status(0);
+    cmd->set_status(ResponseStatus::OK);
     cmd->set_has_more(false);
     cmd->set_command_id(cmdIdAutoIncrease_);
 
@@ -76,7 +76,7 @@ GetCommandResponsePtr PluginCommandBuilder::BuildStartSessionCmd(const ProfilerP
 GetCommandResponsePtr PluginCommandBuilder::BuildStopSessionCmd(uint32_t pluginId)
 {
     auto cmd = std::make_shared<GetCommandResponse>();
-    cmd->set_status(0);
+    cmd->set_status(ResponseStatus::OK);
     cmd->set_has_more(false);
     cmd->set_command_id(cmdIdAutoIncrease_);
 

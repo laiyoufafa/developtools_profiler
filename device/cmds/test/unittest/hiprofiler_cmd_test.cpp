@@ -32,6 +32,8 @@ using namespace testing::ext;
 namespace {
 const std::string DEFAULT_HIPROFILERD_PATH("/system/bin/hiprofilerd");
 const std::string DEFAULT_HIPROFILER_PLUGINS_PATH("/system/bin/hiprofiler_plugins");
+const std::string DEFAULT_HIPROFILERD_NAME("hiprofilerd");
+const std::string DEFAULT_HIPROFILER_PLUGINS_NAME("hiprofiler_plugins");
 const std::string DEFAULT_HIPROFILER_CMD_PATH("/system/bin/hiprofiler_cmd");
 const std::string FTRACE_PLUGIN_PATH("/data/local/tmp/libftrace_plugin.z.so");
 std::string DEFAULT_PATH("/data/local/tmp/");
@@ -39,6 +41,7 @@ constexpr uint32_t READ_BUFFER_SIZE = 1024;
 constexpr int SLEEP_TIME = 3;
 constexpr int FILE_READ_CHUNK_SIZE = 4096;
 constexpr char HEX_CHARS[] = "0123456789abcdef";
+constexpr int LINE_SIZE = 1000;
 
 
 class HiprofilerCmdTest : public ::testing::Test {
@@ -136,11 +139,11 @@ public:
         configStr = configStr + sha256 + "\"\n";
         configStr +=
             "  sample_interval: 2000\n"
-            "  config_data: \"\\n\\022sched/sched_waking\\n  \\020task/task_rename\\n"
-            "    \\022sched/sched_switch\\n  \\030sched/sched_process_exit\\n"
-            "    \\024power/suspend_resume\\n\\030sched/sched_process_free\\n"
-            "    \\021task/task_newtask\\n\\022sched/sched_wakeup\\n"
-            "    \\026sched/sched_wakeup_new \\200P(\\350\\a0\\200 8\\001B\\004monoP\\310\\001\"\n"
+            "  config_data: \"\\n\\022sched/sched_waking\\n\\020task/task_rename\\n"
+            "\\022sched/sched_switch\\n\\030sched/sched_process_exit\\n"
+            "\\024power/suspend_resume\\n\\030sched/sched_process_free\\n"
+            "\\021task/task_newtask\\n\\022sched/sched_wakeup\\n"
+            "\\026sched/sched_wakeup_new \\200P(\\350\\a0\\200 8\\001B\\004monoP\\310\\001\"\n"
             "}\n";
 
         // 根据构建的config写文件
@@ -170,6 +173,29 @@ public:
         }
     }
 
+    void KillProcess(const std::string processName)
+    {
+        int pid = -1;
+        std::string findpid = "pidof " + processName;
+        HILOG_INFO(LOG_CORE, "find pid command : %s", findpid.c_str());
+        std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(findpid.c_str(), "r"), pclose);
+
+        char line[LINE_SIZE];
+        do {
+            if (fgets(line, sizeof(line), pipe.get()) == nullptr) {
+                HILOG_INFO(LOG_CORE, "not find processName : %s", processName.c_str());
+                return;
+            } else if (strlen(line) > 0 && isdigit((unsigned char)(line[0]))) {
+                pid = atoi(line);
+                HILOG_INFO(LOG_CORE, "find processName : %s, pid: %d", processName.c_str(), pid);
+                break;
+            }
+        } while (1);
+
+        if (pid != -1) {
+            StopProcessStub(pid);
+        }
+    }
 private:
     int g_hiprofilerdPid = -1;
     int g_hiprofilerPluginsPid = -1;
@@ -182,6 +208,9 @@ private:
  */
 HWTEST_F(HiprofilerCmdTest, DFX_DFR_Hiprofiler_0110, Function | MediumTest | Level1)
 {
+    KillProcess(DEFAULT_HIPROFILERD_NAME);
+    KillProcess(DEFAULT_HIPROFILER_PLUGINS_NAME);
+
     std::string cmd = DEFAULT_HIPROFILER_CMD_PATH + " -h";
     std::string content = "";
     EXPECT_TRUE(RunCommand(cmd, content));
@@ -210,6 +239,9 @@ HWTEST_F(HiprofilerCmdTest, DFX_DFR_Hiprofiler_0110, Function | MediumTest | Lev
  */
 HWTEST_F(HiprofilerCmdTest, DFX_DFR_Hiprofiler_0120, Function | MediumTest | Level1)
 {
+    KillProcess(DEFAULT_HIPROFILERD_NAME);
+    KillProcess(DEFAULT_HIPROFILER_PLUGINS_NAME);
+
     std::string cmd = "cp /system/lib/libftrace_plugin.z.so " + DEFAULT_PATH;
     system(cmd.c_str());
 

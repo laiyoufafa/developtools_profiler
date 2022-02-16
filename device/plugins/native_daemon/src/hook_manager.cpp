@@ -67,7 +67,7 @@ bool HookManager::RegisterAgentPlugin(const std::string& pluginPath)
     RegisterPluginResponse response;
 
     if (commandPoller_->RegisterPlugin(request, response)) {
-        if (response.status() == 0) {
+        if (response.status() == ResponseStatus::OK) {
             HILOG_DEBUG(LOG_CORE, "response.plugin_id() = %d", response.plugin_id());
             agentIndex_ = response.plugin_id();
             HILOG_DEBUG(LOG_CORE, "RegisterPlugin OK");
@@ -90,7 +90,7 @@ bool HookManager::UnregisterAgentPlugin(const std::string& pluginPath)
     request.set_plugin_id(agentIndex_);
     UnregisterPluginResponse response;
     if (commandPoller_->UnregisterPlugin(request, response)) {
-        if (response.status() != 0) {
+        if (response.status() != ResponseStatus::OK) {
             HILOG_DEBUG(LOG_CORE, "RegisterPlugin FAIL 1");
             return false;
         }

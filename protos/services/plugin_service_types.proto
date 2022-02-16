@@ -17,6 +17,13 @@ import "common_types.proto";
 
 // Message define for IPC interface, imported by plugin service proto file.
 // for RegisterPlugin API
+
+enum ResponseStatus {
+    STATUS_UNSPECIFIED = 0;
+    OK = 1;
+    ERR = 2;
+}
+
 message RegisterPluginRequest {
     uint32 request_id = 1;
     string path = 2;
@@ -27,7 +34,7 @@ message RegisterPluginRequest {
 }
 
 message RegisterPluginResponse {
-    uint32 status = 1;
+    ResponseStatus status = 1;
     uint32 plugin_id = 2;
 }
 
@@ -38,7 +45,7 @@ message UnregisterPluginRequest {
 }
 
 message UnregisterPluginResponse {
-    uint32 status = 1;
+    ResponseStatus status = 1;
 }
 
 // for GetCommand API
@@ -65,7 +72,7 @@ message StopSessionCmd {
 }
 
 message GetCommandResponse {
-    uint32 status = 1;
+    ResponseStatus status = 1;
     bool has_more = 2;
     uint32 command_id = 3;
     oneof command {
@@ -99,5 +106,5 @@ message NotifyResultRequest {
 }
 
 message NotifyResultResponse {
-    uint32 status = 1;
+    ResponseStatus status = 1;
 }

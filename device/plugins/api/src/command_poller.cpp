@@ -24,16 +24,18 @@ namespace {
 constexpr int SLEEP_TIME = 10;
 }
 
-CommandPoller::CommandPoller(const ManagerInterfacePtr& p) : requestIdAutoIncrease_(1), pluginManager_(p)
-{
-    Connect(DEFAULT_UNIX_SOCKET_PATH);
-}
+CommandPoller::CommandPoller(const ManagerInterfacePtr& p) : requestIdAutoIncrease_(1), pluginManager_(p) {}
 
 CommandPoller::~CommandPoller() {}
 
 uint32_t CommandPoller::GetRequestId()
 {
     return requestIdAutoIncrease_++;
+}
+
+bool CommandPoller::OnConnect()
+{
+    return Connect(DEFAULT_UNIX_SOCKET_PATH);
 }
 
 bool CommandPoller::OnCreateSessionCmd(const CreateSessionCmd& cmd, SocketContext& context) const

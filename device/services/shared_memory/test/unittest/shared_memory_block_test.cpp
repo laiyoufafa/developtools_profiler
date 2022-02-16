@@ -158,20 +158,20 @@ HWTEST_F(SharedMemoryBlockTest, PutMessage, TestSize.Level1)
     ASSERT_TRUE(shareMemoryBlock.GetDataSize() == 0);
 
     NotifyResultResponse response;
-    response.set_status(123);
+    response.set_status(ResponseStatus::OK);
     ASSERT_TRUE(shareMemoryBlock.PutMessage(response));
     EXPECT_EQ(shareMemoryBlock.GetDataSize(), response.ByteSizeLong());
     response.ParseFromArray(shareMemoryBlock.GetDataPoint(), shareMemoryBlock.GetDataSize());
-    ASSERT_TRUE(response.status() == 123);
+    ASSERT_TRUE(response.status() == ResponseStatus::OK);
 
     // 调用next移动指针，取值正常
     shareMemoryBlock.Next();
     NotifyResultResponse response2;
-    response2.set_status(2345);
+    response2.set_status(ResponseStatus::OK);
     ASSERT_TRUE(shareMemoryBlock.PutMessage(response2));
     EXPECT_EQ(shareMemoryBlock.GetDataSize(), response2.ByteSizeLong());
     response2.ParseFromArray(shareMemoryBlock.GetDataPoint(), shareMemoryBlock.GetDataSize());
-    EXPECT_TRUE(response2.status() == 2345);
+    EXPECT_TRUE(response2.status() == ResponseStatus::OK);
 
     // 调用next，设置空message
     shareMemoryBlock.Next();
@@ -194,21 +194,21 @@ HWTEST_F(SharedMemoryBlockTest, PutMessageAbnormal, TestSize.Level1)
     ASSERT_TRUE(shareMemoryBlock.GetDataSize() == 0);
 
     NotifyResultResponse response;
-    response.set_status(123);
+    response.set_status(ResponseStatus::OK);
     ASSERT_TRUE(shareMemoryBlock.PutMessage(response));
     EXPECT_EQ(shareMemoryBlock.GetDataSize(), response.ByteSizeLong());
     response.ParseFromArray(shareMemoryBlock.GetDataPoint(), shareMemoryBlock.GetDataSize());
-    ASSERT_TRUE(response.status() == 123);
+    ASSERT_TRUE(response.status() == ResponseStatus::OK);
 
     // 不调用next无法移动指针，取值出错
     NotifyResultResponse response2;
-    response2.set_status(2345);
+    response2.set_status(ResponseStatus::ERR);
     ASSERT_TRUE(shareMemoryBlock.PutMessage(response2));
-    EXPECT_NE(shareMemoryBlock.GetDataSize(), response2.ByteSizeLong());
+    EXPECT_EQ(shareMemoryBlock.GetDataSize(), response2.ByteSizeLong());
     EXPECT_EQ(shareMemoryBlock.GetDataSize(), response.ByteSizeLong());
     response2.ParseFromArray(shareMemoryBlock.GetDataPoint(), shareMemoryBlock.GetDataSize());
-    EXPECT_FALSE(response2.status() == 2345);
-    EXPECT_TRUE(response2.status() == 123);
+    EXPECT_FALSE(response2.status() == ResponseStatus::ERR);
+    EXPECT_TRUE(response2.status() == ResponseStatus::OK);
 
     ASSERT_TRUE(shareMemoryBlock.ReleaseBlock());
 }
@@ -267,7 +267,7 @@ HWTEST_F(SharedMemoryBlockTest, TakeData, TestSize.Level1)
     // 不匹配的非空message
     shareMemoryBlock.Next();
     NotifyResultResponse response;
-    response.set_status(123);
+    response.set_status(ResponseStatus::OK);
     ASSERT_TRUE(shareMemoryBlock.PutMessage(response));
     EXPECT_FALSE(shareMemoryBlock.GetDataSize() == 0);
     EXPECT_FALSE(shareMemoryBlock.TakeData(function));

@@ -198,12 +198,12 @@ int VirtualThreadTest::PhdrCallBack(struct dl_phdr_info *info, size_t size, void
         for (const MemMapItem &item : *thread->GetMaps()) {
             HLOGV("%s", item.ToString().c_str());
         }
+        return 0;
     }
 
-    if (memMaps.size() > 0 and phdrMaps.size() > 0) {
+    if (memMaps.size() == phdrMaps.size()) {
         EXPECT_EQ(memMaps.front().begin_, phdrMaps.front().begin_);
         EXPECT_EQ(memMaps.front().pageoffset_, phdrMaps.front().pageoffset_);
-        EXPECT_EQ(memMaps.front().end_, phdrMaps.front().end_);
     }
     return 0;
 }

@@ -36,12 +36,12 @@ bool PluginServiceImpl::RegisterPlugin(SocketContext& context,
     pluginInfo.context = &context;
 
     if (pluginService->AddPluginInfo(pluginInfo)) {
-        response.set_status(0);
+        response.set_status(ResponseStatus::OK);
         response.set_plugin_id(pluginService->GetPluginIdByName(pluginInfo.name));
         HILOG_DEBUG(LOG_CORE, "RegisterPlugin OK");
         return true;
     }
-    response.set_status(1);
+    response.set_status(ResponseStatus::ERR);
     HILOG_DEBUG(LOG_CORE, "RegisterPlugin FAIL");
     return false;
 }
@@ -53,11 +53,11 @@ bool PluginServiceImpl::UnregisterPlugin(SocketContext& context,
     pluginInfo.id = request.plugin_id();
 
     if (pluginService->RemovePluginInfo(pluginInfo)) {
-        response.set_status(0);
+        response.set_status(ResponseStatus::OK);
         HILOG_DEBUG(LOG_CORE, "UnregisterPlugin OK");
         return true;
     }
-    response.set_status(1);
+    response.set_status(ResponseStatus::ERR);
     HILOG_DEBUG(LOG_CORE, "UnregisterPlugin FAIL");
     return false;
 }
@@ -73,10 +73,10 @@ bool PluginServiceImpl::NotifyResult(SocketContext& context,
 {
     HILOG_DEBUG(LOG_CORE, "NotifyResult");
     if (pluginService->AppendResult(request)) {
-        response.set_status(0);
+        response.set_status(ResponseStatus::OK);
         return true;
     }
-    response.set_status(1);
+    response.set_status(ResponseStatus::ERR);
     return true;
 }
 

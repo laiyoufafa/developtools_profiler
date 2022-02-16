@@ -25,23 +25,18 @@
 using namespace testing::ext;
 
 namespace {
-const int SLEEP_TIME = 30000;
 const std::string DEFAULT_HIPROFILERD_PATH("/system/bin/hiprofilerd");
-const std::string DEFAULT_HIPROFILER_PLUGINS_PATH("/system/bin/hiprofiler_plugins");
 int g_hiprofilerdProcessNum = -1;
-int g_hiprofilerPluginsProcessNum = -1;
 
 class HookManagerTest : public ::testing::Test {
 public:
     static void SetUpTestCase()
     {
         StartServerStub(DEFAULT_HIPROFILERD_PATH);
-        sleep(1); // 睡眠1s确保hiprofilerd进程启动之后再启动hiprofiler_plugins进程
-        StartServerStub(DEFAULT_HIPROFILER_PLUGINS_PATH);
+        sleep(1); // 睡眠1s确保hiprofilerd进程启动
     }
     static void TearDownTestCase()
     {
-        StopServerStub(g_hiprofilerPluginsProcessNum);
         StopServerStub(g_hiprofilerdProcessNum);
     }
 
@@ -53,15 +48,10 @@ public:
             if (DEFAULT_HIPROFILERD_PATH == name) {
                 // start running hiprofilerd
                 execl(name.c_str(), nullptr, nullptr);
-            } else if (DEFAULT_HIPROFILER_PLUGINS_PATH == name) {
-                // start running hiprofiler_plugins
-                execl(name.c_str(), "/data/local/tmp/", nullptr);
             }
             _exit(1);
         } else if (DEFAULT_HIPROFILERD_PATH == name) {
             g_hiprofilerdProcessNum = processNum;
-        } else if (DEFAULT_HIPROFILER_PLUGINS_PATH == name) {
-            g_hiprofilerPluginsProcessNum = processNum;
         }
     }
 
@@ -84,6 +74,7 @@ HWTEST_F(HookManagerTest, RegisterPlugin, TestSize.Level1)
     ASSERT_TRUE(hookManager != nullptr);
     std::shared_ptr<CommandPoller> commandPoller = std::make_shared<CommandPoller>(hookManager);
     ASSERT_TRUE(commandPoller != nullptr);
+    EXPECT_TRUE(commandPoller->OnConnect());
     hookManager->SetCommandPoller(commandPoller);
     ASSERT_TRUE(hookManager->RegisterAgentPlugin("hookdaemon"));
     ASSERT_TRUE(hookManager->UnregisterAgentPlugin("hookdaemon"));
@@ -100,6 +91,7 @@ HWTEST_F(HookManagerTest, LoadPlugin, TestSize.Level1)
     ASSERT_TRUE(hookManager != nullptr);
     std::shared_ptr<CommandPoller> commandPoller = std::make_shared<CommandPoller>(hookManager);
     ASSERT_TRUE(commandPoller != nullptr);
+    EXPECT_TRUE(commandPoller->OnConnect());
     hookManager->SetCommandPoller(commandPoller);
     ASSERT_TRUE(hookManager->RegisterAgentPlugin("hookdaemon"));
     ASSERT_TRUE(hookManager->LoadPlugin("hookdaemon"));
@@ -118,6 +110,7 @@ HWTEST_F(HookManagerTest, UnloadPlugin, TestSize.Level1)
     ASSERT_TRUE(hookManager != nullptr);
     std::shared_ptr<CommandPoller> commandPoller = std::make_shared<CommandPoller>(hookManager);
     ASSERT_TRUE(commandPoller != nullptr);
+    EXPECT_TRUE(commandPoller->OnConnect());
     hookManager->SetCommandPoller(commandPoller);
     ASSERT_TRUE(hookManager->RegisterAgentPlugin("hookdaemon"));
     ASSERT_TRUE(hookManager->LoadPlugin("hookdaemon"));
@@ -136,6 +129,7 @@ HWTEST_F(HookManagerTest, PluginSession, TestSize.Level1)
     ASSERT_TRUE(hookManager != nullptr);
     std::shared_ptr<CommandPoller> commandPoller = std::make_shared<CommandPoller>(hookManager);
     ASSERT_TRUE(commandPoller != nullptr);
+    EXPECT_TRUE(commandPoller->OnConnect());
     hookManager->SetCommandPoller(commandPoller);
 
     std::vector<uint32_t> pluginIds(1);

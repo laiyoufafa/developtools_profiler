@@ -73,7 +73,7 @@ HWTEST_F(UnitTestPluginService, AddPluginInfo, TestSize.Level1)
     request.set_path("abc.so");
     request.set_sha256("asdfasdfasdfasfd");
     request.set_name("abc.so");
-    ASSERT_TRUE(response.status() == 0);
+    ASSERT_TRUE(response.status() != ResponseStatus::OK);
     pluginId_ = response.plugin_id();
 
     plugin.name = "abc.so";
@@ -216,7 +216,7 @@ HWTEST_F(UnitTestPluginService, AddPluginInfo2, TestSize.Level1)
     request.set_path("mem.so");
     request.set_sha256("asdfasdfasdfasfd");
     request.set_name("mem.so");
-    ASSERT_TRUE(response.status() == 0);
+    ASSERT_TRUE(response.status() != ResponseStatus::OK);
     pluginId_ = response.plugin_id();
 
     plugin.name = "mem.so";
@@ -359,7 +359,7 @@ HWTEST_F(UnitTestPluginService, AddPluginInfo3, TestSize.Level1)
     request.set_path("cpu.so");
     request.set_sha256("asdfasdfasdfasfd");
     request.set_name("cpu.so");
-    ASSERT_TRUE(response.status() == 0);
+    ASSERT_TRUE(response.status() != ResponseStatus::OK);
     pluginId_ = response.plugin_id();
 
     plugin.name = "cpu.so";
@@ -502,7 +502,7 @@ HWTEST_F(UnitTestPluginService, AddPluginInfo4, TestSize.Level1)
     request.set_path("stream.so");
     request.set_sha256("asdfasdfasdfasfd");
     request.set_name("stream.so");
-    ASSERT_TRUE(response.status() == 0);
+    ASSERT_TRUE(response.status() != ResponseStatus::OK);
     pluginId_ = response.plugin_id();
 
     plugin.name = "stream.so";
@@ -645,7 +645,7 @@ HWTEST_F(UnitTestPluginService, AddPluginInfo5, TestSize.Level1)
     request.set_path("sample.so");
     request.set_sha256("asdfasdfasdfasfd");
     request.set_name("sample.so");
-    ASSERT_TRUE(response.status() == 0);
+    ASSERT_TRUE(response.status() != ResponseStatus::OK);
     pluginId_ = response.plugin_id();
 
     plugin.name = "sample.so";

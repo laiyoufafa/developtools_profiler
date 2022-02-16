@@ -31,7 +31,7 @@ import java.util.Map;
  * @since 2021/8/22
  */
 public class HiPerfCommand extends PerfCommand {
-    private static final String HIPERF_COMMAND = "/data/local/tmp/hiperf";
+    private static final String HIPERF_COMMAND = "hiperf";
     private static final Logger LOGGER = LogManager.getLogger(HiPerfCommand.class);
 
     /**
@@ -80,10 +80,6 @@ public class HiPerfCommand extends PerfCommand {
             recordCommand.add(config.getCpuPercent() + "");
         }
         recordEvent(config, recordCommand);
-        if (config.getPeriod() != 0) {
-            recordCommand.add("--period");
-            recordCommand.add(config.getPeriod() + "");
-        }
         recordEnum(config, recordCommand);
         if (config.isOffCpu()) {
             recordCommand.add("--offcpu");
