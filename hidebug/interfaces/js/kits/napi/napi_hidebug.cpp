@@ -146,7 +146,7 @@ static napi_value GetNativeHeapFreeSize(napi_env env, napi_callback_info info)
 {
     struct mallinfo mi;
     napi_value native_heap_free_size;
-    napi_create_int64(env, mi.usmblks, &native_heap_free_size);
+    napi_create_int64(env, mi.fordblks, &native_heap_free_size);
     return native_heap_free_size;
 }
 
