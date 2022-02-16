@@ -117,7 +117,7 @@ static napi_value GetPss(napi_env env, napi_callback_info info)
     return pss;
 }
 
-static napi_value GetShareDirty(napi_env env, napi_callback_info info)
+static napi_value GetSharedDirty(napi_env env, napi_callback_info info)
 {
     napi_value share_dirty;
     std::string item = "Shared_Dirty";
