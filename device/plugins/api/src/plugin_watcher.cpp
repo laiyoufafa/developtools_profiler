@@ -60,7 +60,9 @@ bool PluginWatcher::ScanPlugins(const std::string& pluginDir)
     DIR* dir = nullptr;
     struct dirent* entry = nullptr;
     char fullpath[PATH_MAX + 1] = {0};
-    realpath(pluginDir.c_str(), fullpath);
+    if ((pluginDir.length() > PATH_MAX) || (realpath(pluginDir.c_str(), fullpath) == nullptr)) {
+        return false;
+    }
     HILOG_INFO(LOG_CORE, "scan plugin from directory %s", fullpath);
     dir = opendir(fullpath);
     if (dir == nullptr) {
@@ -87,7 +89,9 @@ bool PluginWatcher::ScanPlugins(const std::string& pluginDir)
 bool PluginWatcher::WatchPlugins(const std::string& pluginDir)
 {
     char fullpath[PATH_MAX + 1] = {0};
-    realpath(pluginDir.c_str(), fullpath);
+    if ((pluginDir.length() > PATH_MAX) || (realpath(pluginDir.c_str(), fullpath) == nullptr)) {
+        return false;
+    }
 
     int wd = inotify_add_watch(inotifyFd_, fullpath, IN_ALL_EVENTS);
     if (wd < 0) {

@@ -38,7 +38,7 @@ bool PluginModule::Load()
         return false;
     }
 
-    if (realpath(path_.c_str(), realPath) == nullptr) {
+    if ((path_.length() > PATH_MAX) || (realpath(path_.c_str(), realPath) == nullptr)) {
         HILOG_ERROR(LOG_CORE, "so filename invalid, errno=%d", errno);
         return false;
     }
