@@ -35,12 +35,16 @@ std::string ComputeFileSha256(const std::string& path)
 {
     uint8_t out[SHA256_DIGEST_LENGTH];
     uint8_t buffer[FILE_READ_CHUNK_SIZE];
+    char realPath[PATH_MAX + 1] = {0};
 
     SHA256_CTX sha;
     SHA256_Init(&sha);
 
     size_t nbytes = 0;
-    std::unique_ptr<FILE, decltype(fclose)*> fptr(fopen(path.c_str(), "rb"), fclose);
+    if ((path.length() > PATH_MAX) || (realpath(path.c_str(), realPath) == nullptr)) {
+        return "";
+    }
+    std::unique_ptr<FILE, decltype(fclose)*> fptr(fopen(realPath, "rb"), fclose);
     while ((nbytes = fread(buffer, 1, sizeof(buffer), fptr.get())) > 0) {
         SHA256_Update(&sha, buffer, nbytes);
     }

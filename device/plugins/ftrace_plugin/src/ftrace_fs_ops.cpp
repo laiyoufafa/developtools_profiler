@@ -137,9 +137,14 @@ std::string FtraceFsOps::GetEventDataFormat(const std::string& type, const std::
 
 bool FtraceFsOps::ClearTraceBuffer()
 {
+    char realPath[PATH_MAX + 1] = {0};
+
     std::string path = ftraceRoot_ + "/trace";
-    int fd = open(path.c_str(), O_TRUNC);
-    CHECK_TRUE(fd >= 0, false, "open %s failed!", path.c_str());
+    if ((path.length() > PATH_MAX) || (realpath(path.c_str(), realPath) == nullptr)) {
+        return false;
+    }
+    int fd = open(realPath, O_TRUNC);
+    CHECK_TRUE(fd >= 0, false, "open %s failed!", realPath);
     return close(fd) == 0;
 }
 

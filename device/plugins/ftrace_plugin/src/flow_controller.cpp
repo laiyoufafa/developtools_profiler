@@ -147,10 +147,16 @@ bool FlowController::CreateRawDataBuffers()
 
 bool FlowController::CreateRawDataCaches()
 {
+    char realPath[PATH_MAX + 1] = {0};
+
     for (size_t i = 0; i < rawDataDumpPath_.size(); i++) {
         auto& path = rawDataDumpPath_[i];
         HILOG_INFO(LOG_CORE, "create raw data cache[%zu]: %s", i, path.c_str());
-        auto cache = std::shared_ptr<FILE>(fopen(path.c_str(), "wb+"), [](FILE* fp) { fclose(fp); });
+
+        if ((path.length() > PATH_MAX) || (realpath(path.c_str(), realPath) == nullptr)) {
+            return false;
+        }
+        auto cache = std::shared_ptr<FILE>(fopen(realPath, "wb+"), [](FILE* fp) { fclose(fp); });
         CHECK_NOTNULL(cache, false, "create cache[%zu]: %s failed!", i, path.c_str());
         rawDataDumpFile_.emplace_back(std::move(cache));
     }
