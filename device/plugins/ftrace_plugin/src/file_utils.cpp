@@ -50,7 +50,7 @@ std::string FileUtils::ReadFile(const std::string& path)
     char realPath[PATH_MAX + 1] = {0};
 
     if ((path.length() > PATH_MAX) || (realpath(path.c_str(), realPath) == nullptr)) {
-        return -1;
+        return "";
     }
     int fd = open(realPath, O_RDONLY);
     if (fd < 0) {
@@ -77,7 +77,7 @@ int FileUtils::WriteFile(const std::string& path, const std::string& content, in
 {
     char realPath[PATH_MAX + 1] = {0};
 
-    if ((path.length()) > PATH_MAX) || (realpath(path.c_str(), realPath) == nullptr)) {
+    if ((path.length() > PATH_MAX) || (realpath(path.c_str(), realPath) == nullptr)) {
         return -1;
     }
     int fd = open(realPath, flags, mode);
