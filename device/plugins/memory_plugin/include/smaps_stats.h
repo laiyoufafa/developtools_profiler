@@ -16,7 +16,6 @@
 #ifndef SMAPS_STATS_H
 #define SMAPS_STATS_H
 
-#include "logging.h"
 #include <array>
 #include <cinttypes>
 #include <cstdio>
@@ -26,6 +25,7 @@
 #include <memory>
 #include <string>
 #include <sys/mman.h>
+#include "logging.h"
 
 struct MemUsageInfo {
     uint64_t vss;

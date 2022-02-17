@@ -23,6 +23,7 @@
 #include <csignal>
 #include <atomic>
 
+namespace {
 struct PerfData {
     long long malloc_total_time;
     long long free_total_time;
@@ -98,6 +99,7 @@ void usage()
 {
     printf("Usage: perf_test_data <-o output_file_name> [-t thread_num[] [-d duration] [-s mem_size]\n");
 }
+} // namespace
 
 int main(int argc, char *argv[])
 {

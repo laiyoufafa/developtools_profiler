@@ -16,9 +16,9 @@
 #ifndef CLIENT_CONNECTION_H
 #define CLIENT_CONNECTION_H
 
+#include <cstdint>
 #include "service_entry.h"
 #include "socket_context.h"
-#include <cstdint>
 
 class ClientConnection final : public SocketContext {
 public:

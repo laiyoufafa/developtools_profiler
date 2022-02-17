@@ -111,7 +111,6 @@ void* thread_func_cpp(void* param)
     }
     return nullptr;
 }
-} // namespace
 
 int ThreadTimeCost(int threadNum, int mallocTimes) {
     Timer timer = {};
@@ -158,6 +157,7 @@ int ThreadTimeCost(int threadNum, int mallocTimes) {
     printf("After hook, time cost %ldus.\nPerformance test finish!", hookCost);
     return 0;
 }
+} // namespace
 
 int main(int argc, char *argv[])
 {

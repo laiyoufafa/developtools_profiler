@@ -16,10 +16,10 @@
 #ifndef COMMAND_LINE_H
 #define COMMAND_LINE_H
 
+#include <vector>
 #include "command_param.h"
 #include "command_param_switch.h"
 #include "command_param_text.h"
-#include <vector>
 
 #ifdef VT100_ENABLE
 #define VT100_RED "\033[31m"

@@ -25,7 +25,6 @@ int g_testCount = 10;
 const std::string writeFile = "/data/local/tmp/diskio_write_test.txt";
 constexpr int BLOCK_LEN = 100 * 1024;
 constexpr int SLEEP_TIME = 10;
-} // namespace
 
 void IoTest()
 {
@@ -50,6 +49,7 @@ void IoTest()
     std::string command = "rm " + writeFile;
     system(command.c_str());
 }
+} // namespace
 
 int main(int agrc, char* agrv[])
 {

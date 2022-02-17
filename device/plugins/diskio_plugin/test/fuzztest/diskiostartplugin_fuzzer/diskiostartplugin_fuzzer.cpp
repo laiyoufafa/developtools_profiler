@@ -15,8 +15,8 @@
 
 #include "diskiostartplugin_fuzzer.h"
 
-#include <stddef.h>
-#include <stdint.h>
+#include <cstddef>
+#include <cstdint>
 
 #include "diskio_data_plugin.h"
 

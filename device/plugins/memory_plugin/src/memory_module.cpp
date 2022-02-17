@@ -13,10 +13,10 @@
  * limitations under the License.
  */
 
-#include "memory_data_plugin.h"
 #include <mutex>
 #include <sys/types.h>
 #include "plugin_module_api.h"
+#include "memory_data_plugin.h"
 
 namespace {
 constexpr uint32_t MAX_BUFFER_SIZE = 4 * 1024 * 1024;

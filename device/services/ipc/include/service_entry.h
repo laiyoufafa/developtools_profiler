@@ -16,9 +16,9 @@
 #ifndef SERVICE_ENTRY_H
 #define SERVICE_ENTRY_H
 
-#include "service_base.h"
 #include <cstdint>
 #include <map>
+#include "service_base.h"
 
 static const uint32_t PROTOCOL_TYPE_FILTER = 0xF0000000;
 

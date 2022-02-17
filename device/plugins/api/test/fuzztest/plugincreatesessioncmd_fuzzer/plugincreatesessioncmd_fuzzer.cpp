@@ -15,8 +15,8 @@
 
 #include "plugincreatesessioncmd_fuzzer.h"
 
-#include <stddef.h>
-#include <stdint.h>
+#include <cstddef>
+#include <cstdint>
 
 #include "command_poller.h"
 #include "plugin_manager.h"

@@ -14,8 +14,8 @@
  */
 
 #include <iostream>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 #include <vector>
 
 #include "logging.h"
@@ -26,7 +26,8 @@ namespace {
 const size_t MB_PER_BYTE = 0x100000;
 }
 
-int main(int agrc, char* agrv[]) {
+int main(int agrc, char* agrv[])
+{
     std::vector<char*> cache;
     size_t size = 0;
     char *buf = nullptr;
@@ -38,13 +39,13 @@ int main(int agrc, char* agrv[]) {
             continue;
         }
         buf = (char *)malloc(size * MB_PER_BYTE);
-        if (buf == NULL) {
+        if (buf == nullptr) {
             HILOG_ERROR(LOG_CORE, "malloc %zu fail, err(%s:%d)", size, strerror(errno), errno);
             continue;
         }
         cache.emplace(cache.begin() + i - 1, buf);
     }
-    while(true);
+    while (true) {};
     return 0;
 }
 
