@@ -504,10 +504,10 @@ bool TraceConverter::Convert()
     numberResults_ = (header.data_.segments_ >> 1); // pairs of (length segment, data segment)
     HILOG_INFO(LOG_CORE, "number of results in trace file header: %u", numberResults_);
 
-    if ((path.length() > PATH_MAX) || (realpath(path.c_str(), realPath) == nullptr)) {
+    if ((output_.length() > PATH_MAX) || (realpath(output_.c_str(), realPath) == nullptr)) {
         return false;
     }
-    outputFd_ = open(output_.c_str(), O_CREAT | O_RDWR, OUTPUT_FILE_MODE);
+    outputFd_ = open(realPath, O_CREAT | O_RDWR, OUTPUT_FILE_MODE);
     CHECK_TRUE(outputFd_ != -1, false, "open %s failed!", output_.c_str());
     CHECK_TRUE(WriteInitialHeader(), false, "write initial header failed!");
 

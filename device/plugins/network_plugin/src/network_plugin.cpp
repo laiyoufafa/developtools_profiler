@@ -54,7 +54,7 @@ int NetworkPlugin::Report(uint8_t* data, uint32_t dataSize)
     std::string file = GetRateNodePath();
     char realPath[PATH_MAX + 1] = {0};
 
-    if (file.length() > PATH_MAX) || (realpath(file.c_str(), realPath) == nullptr)) {
+    if ((file.length() > PATH_MAX) || (realpath(file.c_str(), realPath) == nullptr)) {
         return -1;
     }
     fp_ = std::unique_ptr<FILE, int (*)(FILE*)>(fopen(realPath, "r"), fclose);

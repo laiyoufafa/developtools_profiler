@@ -49,7 +49,7 @@ std::string FileUtils::ReadFile(const std::string& path)
 {
     char realPath[PATH_MAX + 1] = {0};
 
-    if (path.length() > PATH_MAX) || (realpath(path.c_str(), realPath) == nullptr)) {
+    if ((path.length() > PATH_MAX) || (realpath(path.c_str(), realPath) == nullptr)) {
         return -1;
     }
     int fd = open(realPath, O_RDONLY);
