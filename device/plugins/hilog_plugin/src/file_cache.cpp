@@ -28,6 +28,9 @@ FileCache::~FileCache()
 
 bool FileCache::Open(const std::string& file)
 {
+    if (path_.length() > PATH_MAX) {
+        return false;
+    }
     if (access(path_.c_str(), F_OK) != 0) {
         int32_t ret = mkdir(path_.c_str(), 0777);
         CHECK_TRUE(ret == 0, false, "FileCache: mkdir failed(%s), error(%s)!", path_.c_str(), strerror(errno));

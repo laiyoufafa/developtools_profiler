@@ -52,8 +52,13 @@ int NetworkPlugin::Report(uint8_t* data, uint32_t dataSize)
 {
     NetworkDatas dataProto;
     std::string file = GetRateNodePath();
-    fp_ = std::unique_ptr<FILE, int (*)(FILE*)>(fopen(file.c_str(), "r"), fclose);
-    CHECK_NOTNULL(fp_, -1, "%s:NetworkPlugin, open(%s) Failed, errno(%s)", __func__, file.c_str(), strerror(errno));
+    char realPath[PATH_MAX + 1] = {0};
+
+    if ((file.length() > PATH_MAX) || (realpath(file.c_str(), realPath) == nullptr)) {
+        return -1;
+    }
+    fp_ = std::unique_ptr<FILE, int (*)(FILE*)>(fopen(realPath, "r"), fclose);
+    CHECK_NOTNULL(fp_, -1, "%s:NetworkPlugin, open(%s) Failed, errno(%s)", __func__, realPath, strerror(errno));
 
     for (int i = 0; i < protoConfig_.pid().size(); i++) {
         auto* info = dataProto.add_networkinfo();

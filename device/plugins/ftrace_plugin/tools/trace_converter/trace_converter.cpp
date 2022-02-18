@@ -493,6 +493,8 @@ bool TraceConverter::ConvertAndWriteEvents()
 
 bool TraceConverter::Convert()
 {
+    char realPath[PATH_MAX + 1] = {0};
+
     auto startTime = Clock::now();
     CHECK_TRUE(access(input_.c_str(), R_OK) == 0, false, "input %s not found!", input_.c_str());
     CHECK_TRUE(reader_.Open(input_), false, "open %s failed!", input_.c_str());
@@ -502,7 +504,10 @@ bool TraceConverter::Convert()
     numberResults_ = (header.data_.segments_ >> 1); // pairs of (length segment, data segment)
     HILOG_INFO(LOG_CORE, "number of results in trace file header: %u", numberResults_);
 
-    outputFd_ = open(output_.c_str(), O_CREAT | O_RDWR, OUTPUT_FILE_MODE);
+    if ((output_.length() > PATH_MAX) || (realpath(output_.c_str(), realPath) == nullptr)) {
+        return false;
+    }
+    outputFd_ = open(realPath, O_CREAT | O_RDWR, OUTPUT_FILE_MODE);
     CHECK_TRUE(outputFd_ != -1, false, "open %s failed!", output_.c_str());
     CHECK_TRUE(WriteInitialHeader(), false, "write initial header failed!");
 

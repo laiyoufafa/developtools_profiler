@@ -90,12 +90,17 @@ public:
     {
         uint8_t out[SHA256_DIGEST_LENGTH];
         uint8_t buffer[FILE_READ_CHUNK_SIZE];
+        char realPath[PATH_MAX + 1] = {0};
 
         SHA256_CTX sha;
         SHA256_Init(&sha);
 
         size_t nbytes = 0;
-        FILE* file = fopen(path.c_str(), "rb");
+
+        if ((strlen(path.c_str()) > PATH_MAX) || (realpath(path.c_str(), realPath) == nullptr)) {
+            return "";
+        }
+        FILE* file = fopen(realPath, "rb");
         if (file == nullptr) {
             return "";
         }

@@ -92,8 +92,12 @@ int32_t DiskioDataPlugin::ReadFile(std::string& fileName)
 {
     int fd = -1;
     ssize_t bytesRead = 0;
+    char realPath[PATH_MAX + 1] = {0};
 
-    fd = open(fileName.c_str(), O_RDONLY | O_CLOEXEC);
+    if ((fileName.length() > PATH_MAX) || (realpath(fileName.c_str(), realPath) == nullptr)) {
+        return RET_FAIL;
+    }
+    fd = open(realPath, O_RDONLY | O_CLOEXEC);
     if (fd == -1) {
         HILOG_ERROR(LOG_CORE, "%s:failed to open(%s), errno=%d", __func__, fileName.c_str(), errno);
         err_ = errno;

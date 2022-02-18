@@ -47,7 +47,12 @@ std::string FileUtils::ReadFile(int fd)
 
 std::string FileUtils::ReadFile(const std::string& path)
 {
-    int fd = open(path.c_str(), O_RDONLY);
+    char realPath[PATH_MAX + 1] = {0};
+
+    if ((path.length() > PATH_MAX) || (realpath(path.c_str(), realPath) == nullptr)) {
+        return "";
+    }
+    int fd = open(realPath, O_RDONLY);
     if (fd < 0) {
         HILOG_WARN(LOG_CORE, "open file %s FAILED: %s!", path.c_str(), strerror(errno));
         return "";
@@ -70,7 +75,12 @@ int FileUtils::WriteFile(const std::string& path, const std::string& content, in
 
 int FileUtils::WriteFile(const std::string& path, const std::string& content, int flags, int mode)
 {
-    int fd = open(path.c_str(), flags, mode);
+    char realPath[PATH_MAX + 1] = {0};
+
+    if ((path.length() > PATH_MAX) || (realpath(path.c_str(), realPath) == nullptr)) {
+        return -1;
+    }
+    int fd = open(realPath, flags, mode);
     CHECK_TRUE(fd >= 0, -1, "open %s failed, %s", path.c_str(), strerror(errno));
 
     int retval = write(fd, content.data(), content.size());
