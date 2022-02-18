@@ -47,7 +47,7 @@ public:
 
 private:
     int fd_;
-    int flags_;
+    unsigned int flags_;
 
     DISALLOW_COPY_AND_MOVE(EventNotifier);
 };
