@@ -80,8 +80,7 @@ int HilogPlugin::Start(const uint8_t* configData, uint32_t configSize)
     }
 
     fp_ = std::unique_ptr<FILE, int (*)(FILE*)>(CustomPopen(fullCmd_.c_str(), "r"), CustomPclose);
-    CHECK_NOTNULL(fp_.get(), -1, "HilogPlugin: open(%s) Failed, errno(%d:%s)", fullCmd_.c_str(), errno,
-                  strerror(errno));
+    CHECK_NOTNULL(fp_.get(), -1, "HilogPlugin: open(%s) Failed, errno(%d)", fullCmd_.c_str(), errno);
     if (protoConfig_.need_record()) {
         OpenLogFile();
     }
@@ -406,7 +405,10 @@ bool HilogPlugin::TimeStringToNS(const char* data, struct timespec *tsTime)
     nSeconds = time(nullptr);
     struct tm* pTM = localtime(&nSeconds);
     if (pTM == nullptr) {
-        HILOG_ERROR(LOG_CORE, "HilogPlugin: get localtime failed!, errno(%d:%s)", errno, strerror(errno));
+        const int bufSize = 1024;
+        char buf[bufSize] = { 0 };
+        strerror_r(errno, buf, bufSize);
+        HILOG_ERROR(LOG_CORE, "HilogPlugin: get localtime failed!, errno(%d:%s)", errno, buf);
         return false;
     }
     tmTime.tm_year = pTM->tm_year;
@@ -509,7 +511,7 @@ int HilogPlugin::CustomPclose(FILE* fp)
     int stat;
 
     int ret = fclose(fp);
-    CHECK_TRUE(ret == 0, -1, "HilogPlugin:%s fclose failed! errno(%d:%s)", __func__, errno, strerror(errno));
+    CHECK_TRUE(ret == 0, -1, "HilogPlugin:%s fclose failed! errno(%d)", __func__, errno);
     kill(g_child, SIGKILL);
     if (waitpid(g_child, &stat, 0) == -1) {
         if (errno != EINTR) {

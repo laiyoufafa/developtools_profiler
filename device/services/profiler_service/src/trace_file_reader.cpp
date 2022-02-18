@@ -40,7 +40,7 @@ bool TraceFileReader::ValidateHeader()
 bool TraceFileReader::Open(const std::string& path)
 {
     stream_.open(path, std::ios_base::in | std::ios_base::binary);
-    CHECK_TRUE(stream_.is_open(), false, "open %s failed, %s!", path.c_str(), strerror(errno));
+    CHECK_TRUE(stream_.is_open(), false, "open %s failed, %d!", path.c_str(), errno);
 
     stream_.read(reinterpret_cast<CharPtr>(&header_), sizeof(header_));
     CHECK_TRUE(stream_, false, "read header from %s failed!", path_.c_str());

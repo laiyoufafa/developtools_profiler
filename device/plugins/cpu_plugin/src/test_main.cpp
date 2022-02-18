@@ -82,7 +82,10 @@ int main(int agrc, char* agrv[])
         CpuConfig protoConfig;
         void* handle = dlopen(SO_PATH.c_str(), RTLD_LAZY);
         if (handle == nullptr) {
-            HILOG_ERROR(LOG_CORE, "test:dlopen err, errno(%d:%s)", errno, strerror(errno));
+            const int bufSize = 1024;
+            char buf[bufSize] = { 0 };
+            strerror_r(errno, buf, bufSize);
+            HILOG_ERROR(LOG_CORE, "test:dlopen err, errno(%d:%s)", errno, buf);
             return 0;
         }
 
@@ -106,12 +109,14 @@ int main(int agrc, char* agrv[])
         } else {
             // 循环上报数据消耗cpu
             while (1) {
-                int len = cpuPlugin->callbacks->onPluginReportResult(dataBuffer.data(), cpuPlugin->resultBufferSizeHint);
+                int len = cpuPlugin->callbacks->onPluginReportResult(dataBuffer.data(),
+                    cpuPlugin->resultBufferSizeHint);
                 if (len > 0) {
                     CpuData cpuData;
                     cpuData.ParseFromArray(dataBuffer.data(), len);
                 }
-                usleep(100000);
+                const int interval = 100000;
+                usleep(interval);
             }
         }
         cpuPlugin->callbacks->onPluginSessionStop();

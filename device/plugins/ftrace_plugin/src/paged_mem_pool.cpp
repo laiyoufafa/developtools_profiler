@@ -58,7 +58,7 @@ void* PagedMemPool::Allocate()
     }
 
     block = mmap(nullptr, blockSize_, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-    CHECK_NOTNULL(block, nullptr, "mmap failed, %s", strerror(errno));
+    CHECK_NOTNULL(block, nullptr, "mmap failed, %d", errno);
     blockSet_.insert(block);
     HILOG_INFO(LOG_CORE, "PagedMemPool::Allocate %zuB block %p done!", blockSize_, block);
     return block;
@@ -79,7 +79,7 @@ bool PagedMemPool::Recycle(void* block)
 
 bool PagedMemPool::Free(void* block)
 {
-    CHECK_TRUE(munmap(block, blockSize_) == 0, false, "munmap failed, %s", strerror(errno));
+    CHECK_TRUE(munmap(block, blockSize_) == 0, false, "munmap failed, %d", errno);
     return true;
 }
 

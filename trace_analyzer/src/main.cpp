@@ -100,7 +100,10 @@ bool ReadAndParser(SysTuning::TraceStreamer::TraceStreamerSelector& ta, int fd)
         }
 
         if (rsize < 0) {
-            TS_LOGE("Reading trace file failed (errno: %d, %s)", errno, strerror(errno));
+            const int bufSize = 1024;
+            char buf[bufSize] = { 0 };
+            strerror_r(errno, buf, bufSize);
+            TS_LOGE("Reading trace file failed (errno: %d, %s)", errno, buf);
             return false;
         }
         g_loadSize += rsize;

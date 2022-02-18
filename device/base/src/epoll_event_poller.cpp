@@ -108,7 +108,7 @@ bool EpollEventPoller::UpdateEvent(int op, const EventContextPtr& ctx)
     std::string name = EpollOpName(op).c_str();
     HILOG_DEBUG(LOG_CORE, "poll set %s %d %x start!", name.c_str(), ctx->fd, event.events);
     int retval = epoll_ctl(epollFd_, op, ctx->fd, &event);
-    CHECK_TRUE(retval == 0, false, "epoll_ctl %s failed, %s", name.c_str(), strerror(errno));
+    CHECK_TRUE(retval == 0, false, "epoll_ctl %s failed, %d", name.c_str(), errno);
     HILOG_DEBUG(LOG_CORE, "poll set %s %d %x done!", name.c_str(), ctx->fd, event.events);
     return true;
 }
@@ -123,7 +123,7 @@ void EpollEventPoller::Run()
             eventVec.resize(context_.size());
         }
         int retval = TEMP_FAILURE_RETRY(epoll_wait(epollFd_, eventVec.data(), eventVec.size(), timeOut_));
-        CHECK_TRUE(retval >= 0, NO_RETVAL, "epoll_wait failed, %s!", strerror(errno));
+        CHECK_TRUE(retval >= 0, NO_RETVAL, "epoll_wait failed, %d!", errno);
         if (retval == 0) {
             HILOG_INFO(LOG_CORE, "epoll_wait %dms timeout!", timeOut_);
             continue;
@@ -171,11 +171,11 @@ bool EpollEventPoller::Init()
     CHECK_TRUE(state_ == INITIAL, false, "Init FAIL %d", state_.load());
 
     int epollFd = epoll_create1(EPOLL_CLOEXEC);
-    CHECK_TRUE(epollFd >= 0, false, "epoll_create failed, %s!", strerror(errno));
+    CHECK_TRUE(epollFd >= 0, false, "epoll_create failed, %d!", errno);
     fileDescriptors_.push_back(epollFd);
 
     int eventFd = eventfd(0, O_CLOEXEC | O_NONBLOCK);
-    CHECK_TRUE(eventFd >= 0, false, "create event fd failed, %s", strerror(errno));
+    CHECK_TRUE(eventFd >= 0, false, "create event fd failed, %d", errno);
     fileDescriptors_.push_back(eventFd);
 
     auto eventFdCtx = std::make_shared<EventContext>();

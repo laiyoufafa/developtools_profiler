@@ -108,7 +108,7 @@ bool UnixSocketServer::StartServer(const std::string& addrname, ServiceEntry& p)
 
     struct sockaddr_un addr;
     int sock = socket(AF_UNIX, SOCK_STREAM, 0);
-    CHECK_TRUE(sock != -1, false, "StartServer FAIL create socket ERR : %s", strerror(errno));
+    CHECK_TRUE(sock != -1, false, "StartServer FAIL create socket ERR : %d", errno);
 
     if (memset_s(&addr, sizeof(struct sockaddr_un), 0, sizeof(struct sockaddr_un)) != EOK) {
         HILOG_ERROR(LOG_CORE, "memset_s error!");
@@ -119,17 +119,20 @@ bool UnixSocketServer::StartServer(const std::string& addrname, ServiceEntry& p)
     }
     unlink(addrname.c_str());
     CHECK_TRUE(bind(sock, (struct sockaddr*)&addr, sizeof(struct sockaddr_un)) == 0, close(sock) != 0,
-               "StartServer FAIL bind ERR : %s", strerror(errno));
+               "StartServer FAIL bind ERR : %d", errno);
 
     CHECK_TRUE(listen(sock, UNIX_SOCKET_LISTEN_COUNT) != -1, close(sock) != 0 && unlink(addrname.c_str()) == 0,
-               "StartServer FAIL listen ERR : %s", strerror(errno));
+               "StartServer FAIL listen ERR : %d", errno);
 
     socketHandle_ = sock;
     acceptThread_ = std::thread(&UnixSocketServer::UnixSocketAccept, this);
     if (acceptThread_.get_id() == std::thread::id()) {
         close(socketHandle_);
         unlink(addrname.c_str());
-        HILOG_ERROR(LOG_CORE, "StartServer FAIL pthread_create ERR : %s", strerror(errno));
+        const int bufSize = 1024;
+        char buf[bufSize] = { 0 };
+        strerror_r(errno, buf, bufSize);
+        HILOG_ERROR(LOG_CORE, "StartServer FAIL pthread_create ERR : %s", buf);
         socketHandle_ = -1;
         return false;
     }

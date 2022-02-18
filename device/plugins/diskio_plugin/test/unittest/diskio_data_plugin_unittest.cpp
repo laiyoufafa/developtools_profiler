@@ -201,7 +201,7 @@ bool ExecuteBin(const std::string& bin, const std::vector<std::string>& args)
     argv.push_back(nullptr); // last item in argv must be NULL
 
     int retval = execvp(bin.c_str(), argv.data());
-    CHECK_TRUE(retval != -1, false, "execv %s failed, %s!", bin.c_str(), strerror(errno));
+    CHECK_TRUE(retval != -1, false, "execv %s failed, %d!", bin.c_str(), errno);
     _exit(EXIT_FAILURE);
     abort(); // never should be here.
     return true;

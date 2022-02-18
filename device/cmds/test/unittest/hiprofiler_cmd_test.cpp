@@ -154,26 +154,38 @@ public:
         // 根据构建的config写文件
         FILE* writeFp = fopen(configFile.c_str(), "w");
         if (writeFp == nullptr) {
-            HILOG_ERROR(LOG_CORE, "CreateConfigFile: fopen() error = %s", strerror(errno));
+            const int bufSize = 1024;
+            char buf[bufSize] = { 0 };
+            strerror_r(errno, buf, bufSize);
+            HILOG_ERROR(LOG_CORE, "CreateConfigFile: fopen() error = %s", buf);
             return;
         }
 
         size_t len = fwrite(const_cast<char*>(configStr.c_str()), 1, configStr.length(), writeFp);
         if (len < 0) {
-            HILOG_ERROR(LOG_CORE, "CreateConfigFile: fwrite() error = %s", strerror(errno));
+            const int bufSize = 1024;
+            char buf[bufSize] = { 0 };
+            strerror_r(errno, buf, bufSize);
+            HILOG_ERROR(LOG_CORE, "CreateConfigFile: fwrite() error = %s", buf);
             return;
         }
 
         int ret = fflush(writeFp);
         if (ret == EOF) {
-            HILOG_ERROR(LOG_CORE, "CreateConfigFile: fflush() error = %s", strerror(errno));
+            const int bufSize = 1024;
+            char buf[bufSize] = { 0 };
+            strerror_r(errno, buf, bufSize);
+            HILOG_ERROR(LOG_CORE, "CreateConfigFile: fflush() error = %s", buf);
             return;
         }
 
         fsync(fileno(writeFp));
         ret = fclose(writeFp);
         if (ret == 0) {
-            HILOG_ERROR(LOG_CORE, "CreateConfigFile: fclose() error = %s", strerror(errno));
+            const int bufSize = 1024;
+            char buf[bufSize] = { 0 };
+            strerror_r(errno, buf, bufSize);
+            HILOG_ERROR(LOG_CORE, "CreateConfigFile: fclose() error = %s", buf);
             return;
         }
     }

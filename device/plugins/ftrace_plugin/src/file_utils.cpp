@@ -54,12 +54,15 @@ std::string FileUtils::ReadFile(const std::string& path)
     }
     int fd = open(realPath, O_RDONLY);
     if (fd < 0) {
-        HILOG_WARN(LOG_CORE, "open file %s FAILED: %s!", path.c_str(), strerror(errno));
+        const int bufSize = 1024;
+        char buf[bufSize] = { 0 };
+        strerror_r(errno, buf, bufSize);
+        HILOG_WARN(LOG_CORE, "open file %s FAILED: %s!", path.c_str(), buf);
         return "";
     }
 
     std::string content = ReadFile(fd);
-    CHECK_TRUE(close(fd) != -1, content, "close %s failed, %s", path.c_str(), strerror(errno));
+    CHECK_TRUE(close(fd) != -1, content, "close %s failed, %d", path.c_str(), errno);
     return content;
 }
 
@@ -81,10 +84,10 @@ int FileUtils::WriteFile(const std::string& path, const std::string& content, in
         return -1;
     }
     int fd = open(realPath, flags, mode);
-    CHECK_TRUE(fd >= 0, -1, "open %s failed, %s", path.c_str(), strerror(errno));
+    CHECK_TRUE(fd >= 0, -1, "open %s failed, %d", path.c_str(), errno);
 
     int retval = write(fd, content.data(), content.size());
-    CHECK_TRUE(close(fd) != -1, -1, "close %s failed, %s", path.c_str(), strerror(errno));
+    CHECK_TRUE(close(fd) != -1, -1, "close %s failed, %d", path.c_str(), errno);
     HILOG_DEBUG(LOG_CORE, "write(%s) with '%s' done!", path.c_str(), content.c_str());
     return retval;
 }

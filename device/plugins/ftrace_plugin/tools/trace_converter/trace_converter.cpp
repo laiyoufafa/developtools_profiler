@@ -391,7 +391,7 @@ bool TraceConverter::WriteFinalHeader()
     PrintTextHeader("FINAL TRACE HEADER");
 
     // flush file buffer
-    CHECK_TRUE(fsync(outputFd_) == 0, false, "fsync %s FAILED, %s", output_.c_str(), strerror(errno));
+    CHECK_TRUE(fsync(outputFd_) == 0, false, "fsync %s FAILED, %d", output_.c_str(), errno);
     HILOG_INFO(LOG_CORE, "WriteFinalHeader done!");
     return true;
 }
@@ -516,7 +516,7 @@ bool TraceConverter::Convert()
     SummarizeStats();
 
     CHECK_TRUE(WriteFinalHeader(), false, "write final header failed!");
-    CHECK_TRUE(close(outputFd_) == 0, false, "close %s FAILED, %s", output_.c_str(), strerror(errno));
+    CHECK_TRUE(close(outputFd_) == 0, false, "close %s FAILED, %d", output_.c_str(), errno);
     outputFd_ = INVALID_FD;
 
     auto endTime = Clock::now();

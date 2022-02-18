@@ -54,15 +54,15 @@ private:
         handler_ = signal(sig_, &PipedSigHandler::SigHandler);
         HILOG_INFO(LOG_CORE, "set signal handler for sig %d done!", sig_);
 
-        CHECK_TRUE(pipe(pipe_) != -1, -1, "create pipe failed, %s", strerror(errno));
+        CHECK_TRUE(pipe(pipe_) != -1, -1, "create pipe failed, %d", errno);
         CHECK_TRUE(fcntl(pipe_[RD], F_SETFL, O_NONBLOCK) != -1, -1, "set non block to pipe[WR] failed!");
         return 0;
     }
 
     int Finalize()
     {
-        CHECK_TRUE(close(pipe_[RD]) != -1, -1, "close pipe_[RD] failed, %s", strerror(errno));
-        CHECK_TRUE(close(pipe_[WR]) != -1, -1, "close pipe_[WR] failed, %s", strerror(errno));
+        CHECK_TRUE(close(pipe_[RD]) != -1, -1, "close pipe_[RD] failed, %d", errno);
+        CHECK_TRUE(close(pipe_[WR]) != -1, -1, "close pipe_[WR] failed, %d", errno);
 
         if (handler_ != nullptr) {
             signal(sig_, handler_);
@@ -100,7 +100,7 @@ struct Poller {
     int PollEvents(int timeout)
     {
         int nready = poll(pollSet_.data(), pollSet_.size(), timeout);
-        CHECK_TRUE(nready >= 0, -1, "poll failed, %s", strerror(errno));
+        CHECK_TRUE(nready >= 0, -1, "poll failed, %d", errno);
         if (nready == 0) {
             HILOG_INFO(LOG_CORE, "poll %dms timeout!", timeout);
             return 0;
@@ -132,35 +132,35 @@ static bool ExecuteProcess(const std::string& bin,
                            bool out2pipe,
                            bool err2pipe)
 {
-    CHECK_TRUE(close(STDIN_FILENO) != -1, false, "close stdin failed, %s", strerror(errno));
-    CHECK_TRUE(close(STDOUT_FILENO) != -1, false, "close stdout failed, %s", strerror(errno));
-    CHECK_TRUE(close(STDERR_FILENO) != -1, false, "close stderr failed, %s", strerror(errno));
+    CHECK_TRUE(close(STDIN_FILENO) != -1, false, "close stdin failed, %d", errno);
+    CHECK_TRUE(close(STDOUT_FILENO) != -1, false, "close stdout failed, %d", errno);
+    CHECK_TRUE(close(STDERR_FILENO) != -1, false, "close stderr failed, %d", errno);
 
     // redirect /dev/null to stdin
     int nullFd = open("/dev/null", O_RDONLY);
     int inFd = nullFd;
     int outFd = nullFd;
     int errFd = nullFd;
-    CHECK_TRUE(inFd >= 0, -1, "open /dev/null failed, %s", strerror(errno));
-    CHECK_TRUE(dup2(inFd, STDIN_FILENO) != -1, false, "dup nullFD to stdin failed, %s", strerror(errno));
+    CHECK_TRUE(inFd >= 0, -1, "open /dev/null failed, %d", errno);
+    CHECK_TRUE(dup2(inFd, STDIN_FILENO) != -1, false, "dup nullFD to stdin failed, %d", errno);
     inFd = INVALID_FD; // for static check warning
 
     // redirect outFd to stdout
     if (out2pipe) {
         outFd = pipeFd;
     }
-    CHECK_TRUE(dup2(outFd, STDOUT_FILENO) != -1, false, "dup fd %d to stdout failed, %s", outFd, strerror(errno));
+    CHECK_TRUE(dup2(outFd, STDOUT_FILENO) != -1, false, "dup fd %d to stdout failed, %d", outFd, errno);
     outFd = INVALID_FD; // for static check warning
 
     // redirect errFd to stderr
     if (err2pipe) {
         errFd = pipeFd;
     }
-    CHECK_TRUE(dup2(errFd, STDERR_FILENO) != -1, false, "dup fd %d to stderr failed, %s", errFd, strerror(errno));
+    CHECK_TRUE(dup2(errFd, STDERR_FILENO) != -1, false, "dup fd %d to stderr failed, %d", errFd, errno);
     errFd = INVALID_FD; // for static check warning
 
-    CHECK_TRUE(close(nullFd) != -1, false, "close nullFd failed, %s", strerror(errno));
-    CHECK_TRUE(close(pipeFd) != -1, false, "close pipeFd failed, %s", strerror(errno));
+    CHECK_TRUE(close(nullFd) != -1, false, "close nullFd failed, %d", errno);
+    CHECK_TRUE(close(pipeFd) != -1, false, "close pipeFd failed, %d", errno);
 
     std::vector<char*> argv;
     for (size_t i = 0; i < args.size(); i++) {
@@ -170,7 +170,7 @@ static bool ExecuteProcess(const std::string& bin,
 
     int retval = execv(bin.c_str(), argv.data());
     std::string cmdline = StringUtils::Join(args, " ");
-    CHECK_TRUE(retval != -1, false, "execv %s failed, %s!", cmdline.c_str(), strerror(errno));
+    CHECK_TRUE(retval != -1, false, "execv %s failed, %d!", cmdline.c_str(), errno);
     _exit(EXIT_FAILURE);
     abort(); // never should be here.
     return true;
@@ -210,7 +210,7 @@ static int GetProcessExitCode(int pid)
     // get child exit code
     int wstatus = 0;
     pid_t w = waitpid(pid, &wstatus, 0);
-    CHECK_TRUE(w > 0, -1, "waitpid failed, %s!", strerror(errno));
+    CHECK_TRUE(w > 0, -1, "waitpid failed, %d!", errno);
 
     // determine child exit status
     int retval = 0;
@@ -233,7 +233,7 @@ int ProcessUtils::Execute(const ExecuteArgs& args, std::string& output)
     CHECK_TRUE(args.argv_.size() > 0, -1, "args_ empty");
 
     int pipeFds[2] = {-1, -1};
-    CHECK_TRUE(pipe(pipeFds) != -1, -1, "create pipe failed, %s", strerror(errno));
+    CHECK_TRUE(pipe(pipeFds) != -1, -1, "create pipe failed, %d", errno);
     CHECK_TRUE(fcntl(pipeFds[RD], F_SETFL, O_NONBLOCK) != -1, -1, "set non block to pipe[WR] failed!");
 
     std::string cmdline = StringUtils::Join(args.argv_, " ");
@@ -244,12 +244,12 @@ int ProcessUtils::Execute(const ExecuteArgs& args, std::string& output)
     CHECK_TRUE(pid >= 0, -1, "fork failed!");
     if (pid == 0) {
         // child process
-        CHECK_TRUE(close(pipeFds[RD]) != -1, false, "close pipeFds[RD] failed, %s", strerror(errno));
+        CHECK_TRUE(close(pipeFds[RD]) != -1, false, "close pipeFds[RD] failed, %d", errno);
         ExecuteProcess(args.bin_, args.argv_, pipeFds[WR], args.out2pipe_, args.err2pipe_);
     }
 
     // parent process only read data from pipe, so close write end as soon as possible
-    CHECK_TRUE(close(pipeFds[WR]) != -1, -1, "close pipeFds[WR] failed, %s", strerror(errno));
+    CHECK_TRUE(close(pipeFds[WR]) != -1, -1, "close pipeFds[WR] failed, %d", errno);
 
     output = ReceiveOutputAndSigchld(pipeFds[RD], sigChldHandler);
     auto lines = StringUtils::Split(output, "\n");
@@ -261,7 +261,7 @@ int ProcessUtils::Execute(const ExecuteArgs& args, std::string& output)
     int retval = GetProcessExitCode(pid);
 
     // close pipe fds
-    CHECK_TRUE(close(pipeFds[RD]) != -1, -1, "close pipe[RD] failed, %s", strerror(errno));
+    CHECK_TRUE(close(pipeFds[RD]) != -1, -1, "close pipe[RD] failed, %d", errno);
     HILOG_DEBUG(LOG_CORE, "ExecuteCommand(%s): exit with %d", cmdline.c_str(), retval);
     return retval;
 }

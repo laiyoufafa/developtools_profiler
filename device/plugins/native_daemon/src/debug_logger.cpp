@@ -235,8 +235,10 @@ bool DebugLogger::OpenLog()
         file_ = fopen(logPath_.c_str(), "w");
     }
     if (file_ == nullptr) {
-        fprintf(stdout, "unable save log file to '%s' because '%d:%s'\n", logPath_.c_str(), errno,
-            strerror(errno));
+        const int bufSize = 1024;
+        char buf[bufSize] = { 0 };
+        strerror_r(errno, buf, bufSize);
+        fprintf(stdout, "unable save log file to '%s' because '%d:%s'\n", logPath_.c_str(), errno, buf);
         return false;
     } else {
         fseek(file_, 0, SEEK_SET);

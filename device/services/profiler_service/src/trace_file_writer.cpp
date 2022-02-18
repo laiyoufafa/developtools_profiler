@@ -43,7 +43,7 @@ std::string TraceFileWriter::Path() const
 bool TraceFileWriter::Open(const std::string& path)
 {
     stream_.open(path, std::ios_base::out | std::ios_base::binary);
-    CHECK_TRUE(stream_.is_open(), false, "open %s failed, %s!", path.c_str(), strerror(errno));
+    CHECK_TRUE(stream_.is_open(), false, "open %s failed, %d!", path.c_str(), errno);
 
     // write initial header, makes file write position move forward
     stream_.write(reinterpret_cast<CharPtr>(&header_), sizeof(header_));

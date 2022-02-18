@@ -112,7 +112,7 @@ bool RecordFileExist(std::string& file)
     }
 
     char* pRet = fgets(buff, BUF_MAX_LEN - 1, fp.get());
-    CHECK_NOTNULL(pRet, false, "FileCache: fgets Failed, errno(%d:%s)", errno, strerror(errno));
+    CHECK_NOTNULL(pRet, false, "FileCache: fgets Failed, errno(%d)", errno);
     buff[BUF_MAX_LEN - 1] = '\0';
     if (strlen(buff)) {
         file = std::string(buff);
@@ -125,13 +125,19 @@ uint64_t GetSec(HilogPlugin& plugin, const char* data)
 {
     time_t nSeconds = time(nullptr);
     if (nSeconds == 0) {
-        HILOG_ERROR(LOG_CORE, "GetSec: get time failed!, errno(%d:%s)", errno, strerror(errno));
+        const int bufSize = 1024;
+        char buf[bufSize] = { 0 };
+        strerror_r(errno, buf, bufSize);
+        HILOG_ERROR(LOG_CORE, "GetSec: get time failed!, errno(%d:%s)", errno, buf);
         return 0;
     }
 
     struct tm* pTM = localtime(&nSeconds);
     if (pTM == nullptr) {
-        HILOG_ERROR(LOG_CORE, "GetSec: get localtime failed!, errno(%d:%s)", errno, strerror(errno));
+        const int bufSize = 1024;
+        char buf[bufSize] = { 0 };
+        strerror_r(errno, buf, bufSize);
+        HILOG_ERROR(LOG_CORE, "GetSec: get localtime failed!, errno(%d:%s)", errno, buf);
         return 0;
     }
 
