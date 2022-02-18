@@ -40,14 +40,20 @@ int InitShareMemory1()
     int check = ftruncate(fd, SMB1_SIZE);
     if (check < 0) {
         close(fd);
-        HILOG_ERROR(LOG_CORE, "CreateBlock ftruncate ERR : %s", strerror(errno));
+        const int bufSize = 1024;
+        char buf[bufSize] = { 0 };
+        strerror_r(errno, buf, bufSize);
+        HILOG_ERROR(LOG_CORE, "CreateBlock ftruncate ERR : %s", buf);
         return -1;
     }
 
     g_smbAddr1 = mmap(nullptr, SMB1_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
     if (g_smbAddr1 == static_cast<void*>(MAP_FAILED)) {
         close(fd);
-        HILOG_ERROR(LOG_CORE, "CreateBlock g_smbAddr1 mmap ERR : %s", strerror(errno));
+        const int bufSize = 1024;
+        char buf[bufSize] = { 0 };
+        strerror_r(errno, buf, bufSize);
+        HILOG_ERROR(LOG_CORE, "CreateBlock g_smbAddr1 mmap ERR : %s", buf);
         return -1;
     }
 
@@ -71,14 +77,20 @@ int InitShareMemory2()
     int check = ftruncate(fd, SMB2_SIZE);
     if (check < 0) {
         close(fd);
-        HILOG_ERROR(LOG_CORE, "CreateBlock ftruncate ERR : %s", strerror(errno));
+        const int bufSize = 1024;
+        char buf[bufSize] = { 0 };
+        strerror_r(errno, buf, bufSize);
+        HILOG_ERROR(LOG_CORE, "CreateBlock ftruncate ERR : %s", buf);
         return -1;
     }
 
     g_smbAddr2 = mmap(nullptr, SMB2_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
     if (g_smbAddr2 == static_cast<void*>(MAP_FAILED)) {
         close(fd);
-        HILOG_ERROR(LOG_CORE, "CreateBlock g_smbAddr2 mmap ERR : %s", strerror(errno));
+        const int bufSize = 1024;
+        char buf[bufSize] = { 0 };
+        strerror_r(errno, buf, bufSize);
+        HILOG_ERROR(LOG_CORE, "CreateBlock g_smbAddr2 mmap ERR : %s", buf);
         return -1;
     }
 

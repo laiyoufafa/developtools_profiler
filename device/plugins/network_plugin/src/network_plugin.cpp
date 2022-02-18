@@ -58,7 +58,7 @@ int NetworkPlugin::Report(uint8_t* data, uint32_t dataSize)
         return -1;
     }
     fp_ = std::unique_ptr<FILE, int (*)(FILE*)>(fopen(realPath, "r"), fclose);
-    CHECK_NOTNULL(fp_, -1, "%s:NetworkPlugin, open(%s) Failed, errno(%s)", __func__, realPath, strerror(errno));
+    CHECK_NOTNULL(fp_, -1, "%s:NetworkPlugin, open(%s) Failed, errno(%d)", __func__, file.c_str(), errno);
 
     for (int i = 0; i < protoConfig_.pid().size(); i++) {
         auto* info = dataProto.add_networkinfo();
@@ -123,7 +123,10 @@ int32_t NetworkPlugin::GetUid(int32_t pid)
     }
     std::ifstream input(path, std::ios::in);
     if (input.fail()) {
-        HILOG_ERROR(LOG_CORE, "%s:NetworkPlugin, open %s failed, errno(%s)", __func__, path.c_str(), strerror(errno));
+        const int bufSize = 1024;
+        char buf[bufSize] = { 0 };
+        strerror_r(errno, buf, bufSize);
+        HILOG_ERROR(LOG_CORE, "%s:NetworkPlugin, open %s failed, errno(%s)", __func__, path.c_str(), buf);
         return -1;
     }
     do {
@@ -148,10 +151,10 @@ bool NetworkPlugin::ReadTxRxBytes(int32_t pid, NetworkCell &cell)
     int32_t uid = pidUid_.at(pid);
     CHECK_NOTNULL(fp_.get(), false, "%s:NetworkPlugin, fp_ is null", __func__);
     int ret = fseek(fp_.get(), 0, SEEK_SET);
-    CHECK_TRUE(ret == 0, false, "%s:NetworkPlugin, fseek failed, error(%s)!", __func__, strerror(errno));
+    CHECK_TRUE(ret == 0, false, "%s:NetworkPlugin, fseek failed, error(%d)!", __func__, errno);
     size_t rsize = static_cast<size_t>(fread(buffer_.get(), sizeof(char), READ_BUFFER_SIZE - 1, fp_.get()));
     buffer_.get()[rsize] = '\0';
-    CHECK_TRUE(rsize >= 0, false, "%s:NetworkPlugin, read failed, errno(%s)", __func__, strerror(errno));
+    CHECK_TRUE(rsize >= 0, false, "%s:NetworkPlugin, read failed, errno(%d)", __func__, errno);
     char* end = nullptr;
     BufferSplitter totalbuffer((const char*)buffer_.get(), rsize + 1);
     do {

@@ -60,7 +60,10 @@ HWTEST_F(ParserTest, BytraceParserTest, TestSize.Level1)
                 break;
             }
             if (rsize < 0) {
-                TS_LOGD("Reading trace file failed (errno: %d, %s)", errno, strerror(errno));
+                const int bufSize = 1024;
+                char buf[bufSize] = { 0 };
+                strerror_r(errno, buf, bufSize);
+                TS_LOGD("Reading trace file failed (errno: %d, %s)", errno, buf);
                 break;
             }
             if (!ta->ParseTraceDataSegment(std::move(buf), rsize)) {
@@ -128,7 +131,10 @@ HWTEST_F(ParserTest, HtraceParserTest, TestSize.Level1)
                 break;
             }
             if (rsize < 0) {
-                TS_LOGD("Reading trace file over (errno: %d, %s)", errno, strerror(errno));
+                const int bufSize = 1024;
+                char buf[bufSize] = { 0 };
+                strerror_r(errno, buf, bufSize);
+                TS_LOGD("Reading trace file over (errno: %d, %s)", errno, buf);
                 break;
             }
             if (!ta->ParseTraceDataSegment(std::move(buf), rsize)) {

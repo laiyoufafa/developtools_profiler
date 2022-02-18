@@ -46,11 +46,17 @@ SocketContext::~SocketContext()
 
         int ret = shutdown(socketHandle_, SHUT_RDWR);
         if (ret < 0) {
-            HILOG_ERROR(LOG_CORE, "shutdown socket err = %d %s", errno, strerror(errno));
+            const int bufSize = 1024;
+            char buf[bufSize] = { 0 };
+            strerror_r(errno, buf, bufSize);
+            HILOG_ERROR(LOG_CORE, "shutdown socket err = %d %s", errno, buf);
         }
         ret = close(socketHandle_);
         if (ret < 0) {
-            HILOG_ERROR(LOG_CORE, "close socket err = %d %s", errno, strerror(errno));
+            const int bufSize = 1024;
+            char buf[bufSize] = { 0 };
+            strerror_r(errno, buf, bufSize);
+            HILOG_ERROR(LOG_CORE, "close socket err = %d %s", errno, buf);
         }
         socketHandle_ = -1;
     }
@@ -153,9 +159,9 @@ bool SocketContext::SendRaw(uint32_t pnum, const int8_t* data, uint32_t size, in
     phead.protoType = PROTOCOL_TYPE_RAW | pnum;
     phead.protoSize = size + sizeof(struct ProtocolHead);
     CHECK_TRUE(send(sockfd, reinterpret_cast<int8_t*>(&phead), sizeof(struct ProtocolHead), 0) != -1, false,
-               "SendRaw Send Head ERR :%s", strerror(errno));
+               "SendRaw Send Head ERR :%d", errno);
 
-    CHECK_TRUE(send(sockfd, data, size, 0) != -1, false, "SendRaw Send Data ERR : %s", strerror(errno));
+    CHECK_TRUE(send(sockfd, data, size, 0) != -1, false, "SendRaw Send Data ERR : %d", errno);
     return true;
 }
 

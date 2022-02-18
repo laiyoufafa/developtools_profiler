@@ -33,12 +33,12 @@ bool FileCache::Open(const std::string& file)
     }
     if (access(path_.c_str(), F_OK) != 0) {
         int32_t ret = mkdir(path_.c_str(), 0777);
-        CHECK_TRUE(ret == 0, false, "FileCache: mkdir failed(%s), error(%s)!", path_.c_str(), strerror(errno));
+        CHECK_TRUE(ret == 0, false, "FileCache: mkdir failed(%s), error(%d)!", path_.c_str(), errno);
     }
 
     std::string path = path_ + file;
     fp_ = fopen(path.c_str(), "wb+");
-    CHECK_NOTNULL(fp_, -1, "FileCache: open(%s) Failed, errno(%s)", path.c_str(), strerror(errno));
+    CHECK_NOTNULL(fp_, -1, "FileCache: open(%s) Failed, errno(%d)", path.c_str(), errno);
 
     return true;
 }
@@ -53,7 +53,7 @@ long FileCache::Write(char* bytes, int32_t len)
     int32_t writedLen = 0;
     while (writedLen < dataLen) {
         size_t len = fwrite(bytes, sizeof(char), dataLen - writedLen, fp_);
-        CHECK_TRUE(len >= 0, -1, "FileCache: write failed, error(%s)!", strerror(errno));
+        CHECK_TRUE(len >= 0, -1, "FileCache: write failed, error(%d)!", errno);
         writedLen += len;
     }
 
@@ -68,15 +68,15 @@ long FileCache::Read(char* content)
 
     // read data bytes
     int ret = fseek(fp_, 0, SEEK_END);
-    CHECK_TRUE(ret == 0, -1, "FileCache:%s fseek_end failed, error(%s)!", __func__, strerror(errno));
+    CHECK_TRUE(ret == 0, -1, "FileCache:%s fseek_end failed, error(%d)!", __func__, errno);
     uint64_t dataLen = static_cast<uint64_t>(ftell(fp_));
-    CHECK_TRUE(dataLen > 0, -1, "FileCache:%s ftell failed, error(%s)!", __func__, strerror(errno));
+    CHECK_TRUE(dataLen > 0, -1, "FileCache:%s ftell failed, error(%d)!", __func__, errno);
     ret = fseek(fp_, 0, SEEK_SET);
-    CHECK_TRUE(ret == 0, -1, "FileCache:%s fseek_set failed, error(%s)!", __func__, strerror(errno));
+    CHECK_TRUE(ret == 0, -1, "FileCache:%s fseek_set failed, error(%d)!", __func__, errno);
 
     while (readLen < dataLen) {
         size_t len = static_cast<size_t>(fread(content, sizeof(char), dataLen - readLen, fp_));
-        CHECK_TRUE(len >= 0, -1, "FileCache:%s read failed, error(%s)!", __func__, strerror(errno));
+        CHECK_TRUE(len >= 0, -1, "FileCache:%s read failed, error(%d)!", __func__, errno);
         readLen += len;
     }
 

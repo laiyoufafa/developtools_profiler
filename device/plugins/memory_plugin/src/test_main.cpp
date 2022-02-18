@@ -40,7 +40,10 @@ int main(int agrc, char* agrv[])
         }
         buf = (char *)malloc(size * MB_PER_BYTE);
         if (buf == nullptr) {
-            HILOG_ERROR(LOG_CORE, "malloc %zu fail, err(%s:%d)", size, strerror(errno), errno);
+            const int bufferSize = 1024;
+            char buffer[bufferSize] = { 0 };
+            strerror_r(errno, buffer, bufferSize);
+            HILOG_ERROR(LOG_CORE, "malloc %zu fail, err(%s:%d)", size, buffer, errno);
             continue;
         }
         cache.emplace(cache.begin() + i - 1, buf);

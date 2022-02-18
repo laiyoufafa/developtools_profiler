@@ -95,19 +95,28 @@ public:
         char filePath[PATH_MAX + 1] = {0};
 
         if (snprintf_s(filePath, sizeof(filePath), sizeof(filePath) - 1, "%s", file.c_str()) < 0) {
-            HILOG_ERROR(LOG_CORE, "snprintf_s(%s) error, errno(%d:%s)", file.c_str(), errno, strerror(errno));
+            const int bufSize = 1024;
+            char buf[bufSize] = { 0 };
+            strerror_r(errno, buf, bufSize);
+            HILOG_ERROR(LOG_CORE, "snprintf_s(%s) error, errno(%d:%s)", file.c_str(), errno, buf);
             return -1;
         }
 
         char* realPath = realpath(filePath, nullptr);
         if (realPath == nullptr) {
-            HILOG_ERROR(LOG_CORE, "realpath(%s) failed, errno(%d:%s)", file.c_str(), errno, strerror(errno));
+            const int bufSize = 1024;
+            char buf[bufSize] = { 0 };
+            strerror_r(errno, buf, bufSize);
+            HILOG_ERROR(LOG_CORE, "realpath(%s) failed, errno(%d:%s)", file.c_str(), errno, buf);
             return -1;
         }
 
         fd = open(realPath, O_RDONLY | O_CLOEXEC);
         if (fd == -1) {
-            HILOG_ERROR(LOG_CORE, "%s:failed to open(%s), errno(%d:%s)", __func__, realPath, errno, strerror(errno));
+            const int bufSize = 1024;
+            char buf[bufSize] = { 0 };
+            strerror_r(errno, buf, bufSize);
+            HILOG_ERROR(LOG_CORE, "%s:failed to open(%s), errno(%d:%s)", __func__, realPath, errno, buf);
             return -1;
         }
         if (g_buffer == nullptr) {
@@ -152,7 +161,10 @@ public:
     {
         char *p = DepthMalloc(depth);
         if (!p) {
-            HILOG_ERROR(LOG_CORE, "ApplyForMalloc: malloc failure, errno(%d:%s)", errno, strerror(errno));
+            const int bufSize = 1024;
+            char buf[bufSize] = { 0 };
+            strerror_r(errno, buf, bufSize);
+            HILOG_ERROR(LOG_CORE, "ApplyForMalloc: malloc failure, errno(%d:%s)", errno, buf);
             return;
         }
         DepthFree(depth, p);
@@ -186,7 +198,10 @@ public:
         int callocSize = DEFAULT_CALLOC_SIZE / sizeof(char);
         char *p = DepthCalloc(depth, callocSize);
         if (!p) {
-            HILOG_ERROR(LOG_CORE, "ApplyForCalloc: calloc failure, errno(%d:%s)", errno, strerror(errno));
+            const int bufSize = 1024;
+            char buf[bufSize] = { 0 };
+            strerror_r(errno, buf, bufSize);
+            HILOG_ERROR(LOG_CORE, "ApplyForCalloc: calloc failure, errno(%d:%s)", errno, buf);
             return;
         }
         DepthFree(depth, p);
@@ -220,13 +235,19 @@ public:
         int reallocSize = DEFAULT_REALLOC_SIZE;
         char *p = (char *)malloc(DEFAULT_MALLOC_SIZE);
         if (!p) {
-            HILOG_ERROR(LOG_CORE, "ApplyForRealloc: malloc failure, errno(%d:%s)", errno, strerror(errno));
+            const int bufSize = 1024;
+            char buf[bufSize] = { 0 };
+            strerror_r(errno, buf, bufSize);
+            HILOG_ERROR(LOG_CORE, "ApplyForRealloc: malloc failure, errno(%d:%s)", errno, buf);
             return;
         }
         char *np = DepthRealloc(depth, p, reallocSize);
         if (!np) {
             free(p);
-            HILOG_ERROR(LOG_CORE, "ApplyForRealloc: realloc failure, errno(%d:%s)", errno, strerror(errno));
+            const int bufSize = 1024;
+            char buf[bufSize] = { 0 };
+            strerror_r(errno, buf, bufSize);
+            HILOG_ERROR(LOG_CORE, "ApplyForRealloc: realloc failure, errno(%d:%s)", errno, buf);
             return;
         }
         DepthFree(depth, np);

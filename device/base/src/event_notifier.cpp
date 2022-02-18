@@ -46,14 +46,14 @@ EventNotifier::EventNotifier(unsigned int initValue, unsigned int mask) : fd_(-1
         flags_ |= EFD_SEMAPHORE;
     }
     fd_ = eventfd(initValue, flags_);
-    CHECK_TRUE(fd_ >= 0, NO_RETVAL, "create eventfd FAILED, %s", strerror(errno));
+    CHECK_TRUE(fd_ >= 0, NO_RETVAL, "create eventfd FAILED, %d", errno);
     HILOG_DEBUG(LOG_CORE, "EventNotifier create eventfd %d done!", fd_);
 }
 
 EventNotifier::EventNotifier(int fd) : fd_(fd), flags_(0)
 {
     int flags = fcntl(fd_, F_GETFL);
-    CHECK_TRUE(flags >= 0, NO_RETVAL, "get flags of fd %d FAILED, %s", fd, strerror(errno));
+    CHECK_TRUE(flags >= 0, NO_RETVAL, "get flags of fd %d FAILED, %d", fd, errno);
     HILOG_DEBUG(LOG_CORE, "EventNotifier bind eventfd %d done!", fd_);
 }
 
@@ -82,13 +82,13 @@ uint64_t EventNotifier::Take() const
 {
     uint64_t value = UINT64_MAX;
     int retval = TEMP_FAILURE_RETRY(read(fd_, &value, sizeof(value)));
-    CHECK_TRUE(retval == sizeof(value), false, "read value from eventfd %d failed, %s!", fd_, strerror(errno));
+    CHECK_TRUE(retval == sizeof(value), false, "read value from eventfd %d failed, %d!", fd_, errno);
     return value;
 }
 
 bool EventNotifier::Post(uint64_t value) const
 {
     int retval = TEMP_FAILURE_RETRY(write(fd_, &value, sizeof(value)));
-    CHECK_TRUE(retval == sizeof(value), false, "write value to eventfd %d failed, %s!", fd_, strerror(errno));
+    CHECK_TRUE(retval == sizeof(value), false, "write value to eventfd %d failed, %d!", fd_, errno);
     return true;
 }

@@ -462,7 +462,10 @@ private:
                 }
             }
         } else {
-            HLOGD("elf file open failed with %s by %s", loadElfPath.c_str(), strerror(errno));
+            const int bufSize = 1024;
+            char buf[bufSize] = { 0 };
+            strerror_r(errno, buf, bufSize);
+            HLOGD("elf file open failed with %s by %s", loadElfPath.c_str(), buf);
             return;
         }
 #endif

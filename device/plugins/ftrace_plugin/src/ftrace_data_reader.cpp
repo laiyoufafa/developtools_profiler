@@ -28,12 +28,12 @@ FTRACE_NS_BEGIN
 FtraceDataReader::FtraceDataReader(const std::string& path) : path_(path), readFd_(-1)
 {
     readFd_ = open(path.c_str(), O_CLOEXEC | O_NONBLOCK);
-    CHECK_TRUE(readFd_ >= 0, NO_RETVAL, "open %s failed, %s", path_.c_str(), strerror(errno));
+    CHECK_TRUE(readFd_ >= 0, NO_RETVAL, "open %s failed, %d", path_.c_str(), errno);
 }
 
 FtraceDataReader::~FtraceDataReader()
 {
-    CHECK_TRUE(close(readFd_) == 0, NO_RETVAL, "close %s failed, %s", path_.c_str(), strerror(errno));
+    CHECK_TRUE(close(readFd_) == 0, NO_RETVAL, "close %s failed, %d", path_.c_str(), errno);
 }
 
 long FtraceDataReader::Read(uint8_t data[], uint32_t size)

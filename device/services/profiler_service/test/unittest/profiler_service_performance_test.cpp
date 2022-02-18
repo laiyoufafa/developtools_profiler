@@ -372,7 +372,10 @@ protected:
             CpuConfig protoConfig;
             void* handle = dlopen("/system/lib/libcpudataplugin.z.so", RTLD_LAZY);
             if (handle == nullptr) {
-                HILOG_ERROR(LOG_CORE, "test:dlopen err, errno(%d:%s)", errno, strerror(errno));
+                const int bufSize = 1024;
+                char buf[bufSize] = { 0 };
+                strerror_r(errno, buf, bufSize);
+                HILOG_ERROR(LOG_CORE, "test:dlopen err, errno(%d:%s)", errno, buf);
                 return false;
             }
 
@@ -429,8 +432,11 @@ protected:
         if (processNum == 0) {
             auto requestBuff = std::make_unique<char[]>(MB_PER_BYTE);
             if (requestBuff == NULL) {
+                const int bufSize = 1024;
+                char buf[bufSize] = { 0 };
+                strerror_r(errno, buf, bufSize);
                 HILOG_ERROR(LOG_CORE, "StartRequestMemoryProcess: malloc %zu fail, errno(%d:%s)",
-                    MB_PER_BYTE, errno, strerror(errno));
+                    MB_PER_BYTE, errno, buf);
             }
             while (1) {
                 sleep(1);
