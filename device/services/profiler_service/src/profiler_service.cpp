@@ -571,11 +571,7 @@ bool ProfilerService::StartService(const std::string& listenUri)
         return false;
     }
 
-    //std::vector<std::unique_ptr<grpc::experimental::ServerInterceptorFactoryInterface>> interceptorFactories;
-    //interceptorFactories.emplace_back(std::make_unique<InterceptorFactory>());
-
     ServerBuilder builder;
-    //builder.experimental().SetInterceptorCreators(std::move(interceptorFactories));
     builder.AddListeningPort(listenUri, grpc::InsecureServerCredentials());
     builder.RegisterService(this);
 

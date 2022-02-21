@@ -89,7 +89,8 @@ int CommandLine::CheckParam(const std::string& s1, const std::string& s2)
                 CommandParamSwitch* pswitch = (CommandParamSwitch*)p.get();
                 pswitch->SetValue(true);
                 return USED_PARAM_ONE;
-            } break;
+            }
+                break;
             case PARAM_TYPE_TEXT: {
                 CommandParamText* ptext = (CommandParamText*)p.get();
                 if (s2 != "") {
@@ -98,7 +99,8 @@ int CommandLine::CheckParam(const std::string& s1, const std::string& s2)
                 }
                 printf("%s lost content\n", s1.c_str());
                 return USED_PARAM_ERR;
-            } break;
+            }
+                break;
             default:
                 printf("unknown type\n");
                 break;
