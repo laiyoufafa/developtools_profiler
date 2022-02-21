@@ -30,6 +30,11 @@ ohos_shared_library("libhidebug") {
     "startup_l2:syspara",
   ]
 
+  install_images = [
+    "system",
+    "updater",
+  ]
+
   output_extension = "so"
 
   part_name = "profiler"
