@@ -395,6 +395,7 @@ bool HilogPlugin::StringToL(const char* word, long& value)
 bool HilogPlugin::TimeStringToNS(const char* data, struct timespec *tsTime)
 {
     struct tm tmTime = {0};
+    struct tm* pTM = nullptr;
     time_t timetTime;
     char* end = nullptr;
     char* pTmp = nullptr;
@@ -403,7 +404,7 @@ bool HilogPlugin::TimeStringToNS(const char* data, struct timespec *tsTime)
     long fixHour;
 
     nSeconds = time(nullptr);
-    struct tm* pTM = localtime(&nSeconds);
+    localtime_r(&nSeconds, pTM);
     if (pTM == nullptr) {
         const int bufSize = 1024;
         char buf[bufSize] = { 0 };
