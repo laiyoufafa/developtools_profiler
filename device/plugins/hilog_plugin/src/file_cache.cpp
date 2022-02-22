@@ -28,16 +28,20 @@ FileCache::~FileCache()
 
 bool FileCache::Open(const std::string& file)
 {
-    if (path_.length() > PATH_MAX) {
+    std::string path = path_ + file;
+    char realPath[PATH_MAX + 1] = {0};
+
+    if ((path.length() > PATH_MAX) || (realpath(path.c_str(), realPath) == nullptr)) {
+        HILOG_ERROR(LOG_CORE, "%s:so filename invalid, errno=%d", __func__, errno);
         return false;
     }
+
     if (access(path_.c_str(), F_OK) != 0) {
         int32_t ret = mkdir(path_.c_str(), 0777);
         CHECK_TRUE(ret == 0, false, "FileCache: mkdir failed(%s), error(%d)!", path_.c_str(), errno);
     }
 
-    std::string path = path_ + file;
-    fp_ = fopen(path.c_str(), "wb+");
+    fp_ = fopen(realPath, "wb+");
     CHECK_NOTNULL(fp_, -1, "FileCache: open(%s) Failed, errno(%d)", path.c_str(), errno);
 
     return true;
