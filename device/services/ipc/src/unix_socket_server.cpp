@@ -63,7 +63,6 @@ void UnixSocketServer::UnixSocketAccept()
     while (socketHandle_ != -1) {
         struct epoll_event events[10];
         int nfds = epoll_wait(epfd, &events[0], 1, 1000);  // timeout value set 1000.
-
         if (nfds > 0) {
             if (events[0].events & EPOLLIN) {
                 int clientSocket = accept(socketHandle_, nullptr, nullptr);
@@ -104,7 +103,6 @@ const int UNIX_SOCKET_LISTEN_COUNT = 5;
 bool UnixSocketServer::StartServer(const std::string& addrname, ServiceEntry& p)
 {
     CHECK_TRUE(socketHandle_ == -1, false, "StartServer FAIL socketHandle_ != -1");
-
 
     struct sockaddr_un addr;
     int sock = socket(AF_UNIX, SOCK_STREAM, 0);

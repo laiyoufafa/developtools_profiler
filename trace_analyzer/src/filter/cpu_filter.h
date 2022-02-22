@@ -96,7 +96,12 @@ private:
         uint64_t cpu_;
         uint64_t pid_;
     };
-    enum TSCpuEventType { TS_EVENT_THREAD_SWITCH, TS_EVENT_THREAD_WAKING, TS_EVENT_PROCESS_EXIT, TS_EVENT_PROCESS_FREE };
+    enum TSCpuEventType {
+        TS_EVENT_THREAD_SWITCH,
+        TS_EVENT_THREAD_WAKING,
+        TS_EVENT_PROCESS_EXIT,
+        TS_EVENT_PROCESS_FREE
+    };
     class TSCpuEvent {
     public:
         TSCpuEvent() {}

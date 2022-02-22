@@ -47,7 +47,6 @@ void ThreadState::ProcessSate(const std::string& stateStr)
             invalid_ = true;
             continue;
         } else if (ret == NEED_BREAK) {
-            // TS_LOGE("Un supported state:%c", stateStr[i]);
             break;
         }
     }

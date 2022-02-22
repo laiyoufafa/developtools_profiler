@@ -628,7 +628,10 @@ bool HtraceEventParser::OomScoreAdjUdate(const google::protobuf::MessageLite& ev
     streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_OOM_SCORE_ADJ_UPDATE, STAT_EVENT_RECEIVED);
     const auto msg = static_cast<const OomScoreAdjUpdateFormat&>(event);
     DataIndex nameIndex = traceDataCache_->GetDataIndex("oom_score_adj");
-    streamFilters_->processMeasureFilter_->AppendNewMeasureData(msg.pid(), nameIndex, eventTimestamp_, msg.oom_score_adj());
+    streamFilters_->processMeasureFilter_->AppendNewMeasureData(msg.pid(),
+                                                                nameIndex,
+                                                                eventTimestamp_,
+                                                                msg.oom_score_adj());
     return true;
 }
 
@@ -636,7 +639,9 @@ bool HtraceEventParser::SignalGenerateEvent(const google::protobuf::MessageLite&
 {
     streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_BLOCK_BIO_BACKMERGE, STAT_EVENT_RECEIVED);
     const auto msg = static_cast<const SignalGenerateFormat&>(event);
-    InternalTid internalTid = streamFilters_->processFilter_->UpdateOrCreateThreadWithName(eventTimestamp_, msg.pid(), msg.comm());
+    InternalTid internalTid = streamFilters_->processFilter_->UpdateOrCreateThreadWithName(eventTimestamp_,
+                                                                                           msg.pid(),
+                                                                                           msg.comm());
     streamFilters_->threadFilter_->AppendNewMeasureData(internalTid ,signalGenerateId_, eventTimestamp_, msg.sig());
     return true;
 }

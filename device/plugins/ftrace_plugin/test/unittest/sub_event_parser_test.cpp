@@ -150,5 +150,4 @@ HWTEST_F(SubEventParserTest, ParseEvent, TestSize.Level1)
     FtraceEvent event = {};
     EXPECT_TRUE(SubEventParser::GetInstance().ParseEvent(event, buffer.data(), buffer.size(), format));
 }
-
 } // namespace
