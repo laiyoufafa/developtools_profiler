@@ -58,7 +58,7 @@ private:
 
     void Run();
     bool UpdateEvent(int op, const EventContextPtr& ctx);
-    void HandleEvent(int events, const EventContext& ctx);
+    void HandleEvent(uint32_t events, const EventContext& ctx);
 
     bool AddContextLocked(const EventContextPtr& ctx);
     bool RemoveContextLocked(const EventContextPtr& ctx);
