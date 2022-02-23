@@ -137,7 +137,7 @@ void EpollEventPoller::Run()
     }
 }
 
-void EpollEventPoller::HandleEvent(int events, const EventContext& ctx)
+void EpollEventPoller::HandleEvent(uint32_t events, const EventContext& ctx)
 {
     if (events & EPOLLIN) {
         if (ctx.onReadable) {
