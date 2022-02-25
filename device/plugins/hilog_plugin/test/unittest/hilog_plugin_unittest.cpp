@@ -974,6 +974,8 @@ HWTEST_F(HilogPluginTest, TestFileOperation, TestSize.Level1)
 {
     char buff[FILE_NAME_LEN] = {0};
     std::string testPath = "/data/local/tmp/uttestdir/";
+    std::string cmd = std::string("mkdir ") + testPath;
+    system(cmd.c_str());
     FileCache file(testPath);
     char writeByte[] = "1234";
     int32_t writeLen = static_cast<int32_t>(strlen(writeByte));
@@ -983,7 +985,7 @@ HWTEST_F(HilogPluginTest, TestFileOperation, TestSize.Level1)
     ASSERT_GT(FILE_NAME_LEN, writeLen);
     ASSERT_EQ(file.Read(buff), writeLen);
     ASSERT_TRUE(file.Close());
-    std::string cmd = std::string("rm -rf ") + testPath;
+    cmd = std::string("rm -rf ") + testPath;
     system(cmd.c_str());
 }
 
