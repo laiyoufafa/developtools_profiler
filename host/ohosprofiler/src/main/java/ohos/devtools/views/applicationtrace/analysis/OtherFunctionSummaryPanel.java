@@ -146,7 +146,7 @@ public class OtherFunctionSummaryPanel extends EventPanel {
     }
 
     private void getAppTraceData(Func func) {
-        List<Func> collect = AllData.funcMap.get(func.getTid()).stream()
+        List<Func> collect = AllData.FUNC_MAP.get(func.getTid()).stream()
             .filter(filter -> filter.getFuncName().equals(func.getFuncName()))
             .sorted(Comparator.comparingLong(Func::getDur).reversed()).collect(Collectors.toList());
         List<Long> longs = collect.stream().map(Func::getDur).collect(Collectors.toList());
@@ -178,11 +178,11 @@ public class OtherFunctionSummaryPanel extends EventPanel {
         eventBean.setName(func.getFuncName());
         eventBean.setStartTime(func.getStartTs());
         eventBean.setWallDuration(func.getDur());
-        eventBean.setSelfTime(func.getDur() - AllData.funcMap.get(func.getTid()).stream()
+        eventBean.setSelfTime(func.getDur() - AllData.FUNC_MAP.get(func.getTid()).stream()
             .filter(filter -> filter.getDepth() != -1 && filter.getParentId().equals(func.getId()))
             .mapToLong(Func::getDur).sum());
         eventBean.setCpuDuration(func.getRunning());
-        eventBean.setCpuSelfTime(func.getRunning() - AllData.funcMap.get(func.getTid()).stream()
+        eventBean.setCpuSelfTime(func.getRunning() - AllData.FUNC_MAP.get(func.getTid()).stream()
             .filter(filter -> filter.getDepth() != -1 && filter.getParentId().equals(func.getId()))
             .mapToLong(Func::getRunning).sum());
         return eventBean;

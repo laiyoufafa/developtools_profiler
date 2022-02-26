@@ -19,12 +19,21 @@ import java.util.Objects;
 
 /**
  * MonitorInfo
+ *
+ * @since 2021/5/19 16:39
  */
 public final class MonitorInfo {
     private long localSessionId;
     private String monitorType;
     private String parameter;
     private String value;
+
+    private MonitorInfo(Builder builder) {
+        localSessionId = builder.localSessionId;
+        monitorType = builder.monitorType;
+        parameter = builder.parameter;
+        value = builder.value;
+    }
 
     /**
      * builder
@@ -33,13 +42,6 @@ public final class MonitorInfo {
      */
     public static Builder builder() {
         return new Builder();
-    }
-
-    private MonitorInfo(Builder builder) {
-        localSessionId = builder.localSessionId;
-        monitorType = builder.monitorType;
-        parameter = builder.parameter;
-        value = builder.value;
     }
 
     public long getLocalSessionId() {

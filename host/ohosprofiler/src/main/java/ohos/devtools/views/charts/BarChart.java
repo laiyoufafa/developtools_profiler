@@ -99,8 +99,8 @@ public class BarChart extends ProfilerChart {
                         if (valueY > maxUnitY) {
                             maxUnitY = divideInt(valueY * EXPANSION_MULTIPLE, REDUCTION_MULTIPLE);
                         }
-                        int pointY = y0 + multiply(pixelPerY, valueY);
-                        resultList.add(new BarDataModel(rectLeftX, pointY, y0 - pointY, ColorConstants.CPU));
+                        int pointY = yZero + multiply(pixelPerY, valueY);
+                        resultList.add(new BarDataModel(rectLeftX, pointY, yZero - pointY, ColorConstants.CPU));
                     }
                 } else {
                     if (dataMap.get(key) != null && dataMap.get(key).size() > 0) {
@@ -111,10 +111,10 @@ public class BarChart extends ProfilerChart {
                                 if (sum > maxUnitY) {
                                     maxUnitY = divideInt(sum * EXPANSION_MULTIPLE, REDUCTION_MULTIPLE);
                                 }
-                                int pointY = y0 + multiply(pixelPerY, valueY);
-                                int sumPointY = y0 + multiply(pixelPerY, sum);
+                                int pointY = yZero + multiply(pixelPerY, valueY);
+                                int sumPointY = yZero + multiply(pixelPerY, sum);
                                 resultList.add(
-                                    new BarDataModel(rectLeftX, sumPointY, y0 - pointY, chartDataModel.getColor()));
+                                    new BarDataModel(rectLeftX, sumPointY, yZero - pointY, chartDataModel.getColor()));
                             }
                         }
                     }

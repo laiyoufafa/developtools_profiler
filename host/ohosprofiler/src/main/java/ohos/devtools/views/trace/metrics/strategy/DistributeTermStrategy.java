@@ -24,6 +24,8 @@ import java.util.List;
 
 /**
  * Distribute Term Strategy
+ *
+ * @since 2021/5/19 16:39
  */
 public class DistributeTermStrategy implements Strategy {
     /**
@@ -54,8 +56,8 @@ public class DistributeTermStrategy implements Strategy {
             String[] times = item.getTime().split(",");
             String[] flags = item.getFlag().split(",");
             builder.append("\tdistributed_term_item{").append(System.lineSeparator());
-            long receiverTime = 0;
-            long senderTime = 0;
+            long receiverTime = 0L;
+            long senderTime = 0L;
             for (int index = 0; index < flags.length; index++) {
                 String sendOrRecv = "C".equals(flags[index]) ? "\t\tsender {" : "\t\treceiver {";
                 builder.append(sendOrRecv).append(System.lineSeparator());

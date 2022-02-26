@@ -17,6 +17,8 @@ package ohos.devtools.views.applicationtrace.analysis;
 
 /**
  * enum of Analysis type
+ *
+ * @since 2021/5/19 16:39
  */
 public enum AnalysisEnum {
     PREF, APP

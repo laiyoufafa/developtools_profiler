@@ -30,7 +30,7 @@ public class ComparatorUtils {
      * @return Comparator
      */
     public static Comparator<Object> generateComparator(String filter) {
-        Comparator<Object> comparator = (str1, str2) -> {
+        return (str1, str2) -> {
             if (filter == null) {
                 return 0;
             }
@@ -55,6 +55,5 @@ public class ComparatorUtils {
                 return s1.compareTo(s2);
             }
         };
-        return comparator;
     }
 }

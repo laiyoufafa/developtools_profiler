@@ -22,6 +22,8 @@ import java.awt.Graphics;
 
 /**
  * Legend color block in tooltip
+ *
+ * @since 2021/5/19 16:39
  */
 public class TooltipColorRect extends JComponent {
     /**

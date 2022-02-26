@@ -55,6 +55,9 @@ public class ProcessManager {
 
     private boolean isRequestProcess = false;
 
+    private ProcessManager() {
+    }
+
     /**
      * SingletonClassInstance
      */
@@ -69,9 +72,6 @@ public class ProcessManager {
      */
     public static ProcessManager getInstance() {
         return ProcessManager.SingletonClassInstance.INSTANCE;
-    }
-
-    private ProcessManager() {
     }
 
     /**

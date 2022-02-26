@@ -22,7 +22,6 @@ import ohos.devtools.views.applicationtrace.bean.Func;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -42,8 +41,7 @@ class OtherFunctionSummaryPanelTest {
         appFunc.setStartTs(0);
         appFunc.setFuncName("");
         DataPanel.analysisEnum = AnalysisEnum.APP;
-        AllData.funcMap = new HashMap<>();
-        AllData.funcMap.put(0, new ArrayList<>());
+        AllData.FUNC_MAP.put(0, new ArrayList<>());
         otherFunctionSummaryPanel.setPageData(appFunc);
         assertNotNull(otherFunctionSummaryPanel);
     }

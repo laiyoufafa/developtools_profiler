@@ -30,6 +30,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * MonitorConfigManager
+ *
+ * @since 2021/5/19 16:39
  */
 public class MonitorConfigManager {
     private static final Logger LOGGER = LogManager.getLogger(MonitorConfigManager.class);
@@ -39,6 +41,9 @@ public class MonitorConfigManager {
      */
     public static ConcurrentHashMap<Long, Map<String, LinkedList<String>>> dataMap = new ConcurrentHashMap<>();
     private static volatile MonitorConfigManager singleton;
+
+    private MonitorConfigManager() {
+    }
 
     /**
      * getInstance
@@ -54,9 +59,6 @@ public class MonitorConfigManager {
             }
         }
         return singleton;
-    }
-
-    private MonitorConfigManager() {
     }
 
     /**

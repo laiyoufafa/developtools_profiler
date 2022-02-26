@@ -462,7 +462,7 @@ public class AppTracePanel extends JBPanel {
             } else {
                 Db.getInstance().query(Sql.QUERY_CPU_DATA, cpus, index, TracePanel.startNS, TracePanel.endNS);
             }
-            AllData.cpuMap.put(index, cpus);
+            AllData.CPU_MAP.put(index, cpus);
             return cpus;
         });
         row.setRender((g2, data1) -> {
@@ -497,7 +497,7 @@ public class AppTracePanel extends JBPanel {
                 List<Thread> threadList = new ArrayList<>() {
                 };
                 Db.getInstance().query(Sql.QUERY_THREAD_DATA, threadList, thread.getTid());
-                AllData.threadMap.put(thread.getTid(), threadList);
+                AllData.THREAD_MAP.put(thread.getTid(), threadList);
                 return threadList;
             });
             handleRowSupplier(panel, thread, row);
@@ -511,8 +511,8 @@ public class AppTracePanel extends JBPanel {
             List<Func> funcs = new ArrayList<>() {
             };
             Db.getInstance().query(Sql.GET_FUN_DATA_BY_TID, funcs, thread.getTid());
-            if (AllData.threadMap.containsKey(thread.getTid())) {
-                List<Thread> threadList = AllData.threadMap.get(thread.getTid());
+            if (AllData.THREAD_MAP.containsKey(thread.getTid())) {
+                List<Thread> threadList = AllData.THREAD_MAP.get(thread.getTid());
                 setFuncIdel(funcs, threadList);
                 Func threadFunc = new Func();
                 threadFunc.setFuncName(thread.getThreadName());
@@ -535,7 +535,7 @@ public class AppTracePanel extends JBPanel {
                     func.createBloodId();
                 });
             }
-            AllData.funcMap.put(thread.getTid(), funcs);
+            AllData.FUNC_MAP.put(thread.getTid(), funcs);
             int maxDept = funcs.stream().mapToInt(Func::getDepth).max().orElse(0) + 1;
             int maxHeight = maxDept * row.getFuncHeight() + row.getFuncHeight();
             if (maxHeight < 30) {

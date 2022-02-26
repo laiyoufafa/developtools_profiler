@@ -64,6 +64,7 @@ public class ClockData extends AbstractGraph {
      * ui control extension field.
      */
     public ClockData() {
+        super();
     }
 
     /**

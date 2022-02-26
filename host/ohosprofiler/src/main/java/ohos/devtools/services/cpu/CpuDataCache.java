@@ -29,12 +29,14 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * CpuDataCache
+ *
+ * @since 2021/5/19 16:39
  */
 public class CpuDataCache {
     private static final Logger LOGGER = LogManager.getLogger(CpuDataCache.class);
     private static final float LOAD_FACTOR = 0.75F;
     private static final int CACHE_MAX_SIZE = 1500;
-    private static CpuDataCache instance;
+    private static CpuDataCache instance = new CpuDataCache();
 
     private final Map<Long, LRUCache<List<ChartDataModel>>> cpuDataCacheMap = new ConcurrentHashMap<>();
     private final Map<Long, LRUCache<List<ChartDataModel>>> threadDataCacheMap =
@@ -53,9 +55,6 @@ public class CpuDataCache {
      * @return MemoryDataCache
      */
     public static CpuDataCache getInstance() {
-        if (instance == null) {
-            instance = new CpuDataCache();
-        }
         return instance;
     }
 

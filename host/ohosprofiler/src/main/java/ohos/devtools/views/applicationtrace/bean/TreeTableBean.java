@@ -44,9 +44,9 @@ public class TreeTableBean extends AbstractNode {
      * PERF_FLAME_VENDOR color
      */
     public static final Color PERF_FLAME_VENDOR = new JBColor(0xFFC56F, 0xFFC56F);
-
     private static final int PADDING_LEFT = 5;
     private static final int PADDING_RIGHT = 5;
+
     private long stackId;
     private long parentStackId;
     private String prefStackId;

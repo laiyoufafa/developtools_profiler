@@ -19,6 +19,8 @@ import java.io.Serializable;
 
 /**
  * specific instance information
+ *
+ * @since 2021/5/19 16:39
  */
 public class MemoryInstanceInfo implements Serializable {
     private static final long serialVersionUID = -2702142952950557386L;

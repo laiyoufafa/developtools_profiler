@@ -32,11 +32,17 @@ import static ohos.devtools.datasources.utils.device.entity.DeviceType.LEAN_HOS_
 import static ohos.devtools.views.common.Constant.IS_SUPPORT_NEW_HDC;
 
 /**
- * 设备转发端口类
+ * Device forwarding port class
+ *
+ * @since 2021/5/19 16:39
  */
 public class DeviceForwardPort {
     private static final Logger LOGGER = LogManager.getLogger(DeviceForwardPort.class);
     private static volatile DeviceForwardPort instance;
+
+    private DeviceForwardPort() {
+        super();
+    }
 
     /**
      * getInstance
@@ -55,10 +61,6 @@ public class DeviceForwardPort {
             }
         }
         return instance;
-    }
-
-    private DeviceForwardPort() {
-        super();
     }
 
     /**

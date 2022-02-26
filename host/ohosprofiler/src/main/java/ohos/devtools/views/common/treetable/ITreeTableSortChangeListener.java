@@ -19,6 +19,8 @@ import javax.swing.SortOrder;
 
 /**
  * ITreeTableSortChangeListener
+ *
+ * @since 2021/5/27 12:01
  */
 public interface ITreeTableSortChangeListener {
 

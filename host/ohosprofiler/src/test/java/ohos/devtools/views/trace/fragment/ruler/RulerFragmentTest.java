@@ -38,6 +38,7 @@ class RulerFragmentTest {
     @Test
     void draw() {
         RulerFragment fragment = new RulerFragment(new JPanel(), (startNS, endNS) -> {
+            long time = startNS + endNS;
         });
         BufferedImage image = UIUtil.createImage(new JPanel(), 1, 1, BufferedImage.TYPE_INT_ARGB);
         Graphics2D graphics2D = image.createGraphics();
@@ -51,6 +52,7 @@ class RulerFragmentTest {
     @Test
     void mouseMoved() {
         RulerFragment fragment = new RulerFragment(new JPanel(), (startNS, endNS) -> {
+            long time = startNS + endNS;
         });
         JPanel jPanel = new JPanel();
         MouseEvent mouseEvent = new MouseEvent(jPanel, 1, 1, 1, 1, 1, 1, true, 1);

@@ -116,6 +116,8 @@ import static ohos.devtools.views.common.Constant.IS_SUPPORT_NEW_HDC;
 
 /**
  * session Management core class
+ *
+ * @since 2021/5/19 16:39
  */
 public class SessionManager {
     private static final Logger LOGGER = LogManager.getLogger(SessionManager.class);
@@ -402,10 +404,8 @@ public class SessionManager {
                     .setSessionMode(ProfilerServiceTypes.ProfilerSessionConfig.Mode.ONLINE);
             }
         }
-        ProfilerServiceTypes.ProfilerSessionConfig.Builder sessionConfigBuilder =
-            ProfilerServiceTypes.ProfilerSessionConfig.newBuilder().setKeepAliveTime(KEEP_SESSION_TIME)
-                .setSessionMode(ProfilerServiceTypes.ProfilerSessionConfig.Mode.ONLINE);
-        return sessionConfigBuilder;
+        return ProfilerServiceTypes.ProfilerSessionConfig.newBuilder().setKeepAliveTime(KEEP_SESSION_TIME)
+            .setSessionMode(ProfilerServiceTypes.ProfilerSessionConfig.Mode.ONLINE);
     }
 
     private void startKeepLiveSession(DeviceIPPortInfo deviceIPPortInfo, int sessionId, long localSessionId) {
@@ -523,10 +523,8 @@ public class SessionManager {
         }
         String deviceId = device.getDeviceID();
         String sessionName = CommonUtil.generateSessionName(deviceId, process.getProcessId());
-        SessionInfo session =
-            SessionInfo.builder().sessionId(sessionId).sessionName(sessionName).pid(process.getProcessId())
-                .processName(process.getProcessName()).deviceIPPortInfo(device).processInfo(process).build();
-        return session;
+        return SessionInfo.builder().sessionId(sessionId).sessionName(sessionName).pid(process.getProcessId())
+            .processName(process.getProcessName()).deviceIPPortInfo(device).processInfo(process).build();
     }
 
     private Optional<ProfilerServiceTypes.ProfilerPluginCapability> getLibPlugin(
@@ -928,7 +926,7 @@ public class SessionManager {
      * @param memInfoList memInfoList
      * @param objectOutputStream objectOutputStream
      * @param index index
-     * @throws IOException
+     * @throws IOException IOException
      */
     private void setDeviceProcessInfo(DeviceProcessInfo deviceProcessInfo, List<ProcessMemInfo> memInfoList,
         ObjectOutputStream objectOutputStream, int index) throws IOException {
@@ -1028,7 +1026,7 @@ public class SessionManager {
             LOGGER.info("loadFileInDataBase");
         }
         long objNum = traceFileInfo.getRecordNum() + 1;
-        long currentNum = 0;
+        long currentNum = 0L;
         intDbDao();
         Validate[] validates = {new CpuValidate(), new MemoryValidate(), new DiskIoValidate()};
         while (true) {
@@ -1053,8 +1051,7 @@ public class SessionManager {
                 currentNum = currentNum + processMemInfoNum;
                 int progress = (int) (currentNum * LayoutConstants.HUNDRED / objNum);
                 jProgressBar.setValue(progress);
-                DeviceProcessInfo deviceProcessInfo = (DeviceProcessInfo) object;
-                return deviceProcessInfo;
+                return (DeviceProcessInfo) object;
             } else {
                 continue;
             }

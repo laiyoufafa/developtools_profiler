@@ -53,6 +53,8 @@ import static ohos.devtools.views.layout.chartview.utils.ChartViewConstants.LOAD
 
 /**
  * Metrics Panel
+ *
+ * @since 2021/5/19 16:39
  */
 public class MetricsPanel extends JBPanel {
     private static final Logger LOGGER = LogManager.getLogger(MetricsPanel.class);
@@ -166,6 +168,7 @@ public class MetricsPanel extends JBPanel {
      * other height
      */
     private static final int OTHER_HEIGHT = 100;
+
     private JBLabel previousButton;
     private JBPanel optionJPanel;
     private JBPanel topJPanel;
@@ -181,6 +184,10 @@ public class MetricsPanel extends JBPanel {
 
     /**
      * System Tuning Panel
+     *
+     * @param optionJPanel optionJPanel
+     * @param analystPanel analystPanel
+     * @param metricsButton metricsButton
      */
     public MetricsPanel(JBPanel optionJPanel, SysAnalystPanel analystPanel, JButton metricsButton) {
         this.optionJPanel = optionJPanel;

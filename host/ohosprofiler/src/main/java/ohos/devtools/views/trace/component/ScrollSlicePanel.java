@@ -193,9 +193,9 @@ public class ScrollSlicePanel extends BottomScrollPanel {
                 125);
             graphics.setFont(font.deriveFont(9f));
             graphics.setColor(new Color(0x88, 0x88, 0x88));
-            int lines = wakeupBean.getSchedulingDesc().length() % lineCharSize == 0 ?
-                wakeupBean.getSchedulingDesc().length() / lineCharSize :
-                wakeupBean.getSchedulingDesc().length() / lineCharSize + 1;
+            int lines = wakeupBean.getSchedulingDesc().length() % lineCharSize == 0
+                ? wakeupBean.getSchedulingDesc().length() / lineCharSize
+                : wakeupBean.getSchedulingDesc().length() / lineCharSize + 1;
             for (int index = 0; index < lines; index++) {
                 String str = "";
                 if (index == lines - 1) {
@@ -219,6 +219,8 @@ public class ScrollSlicePanel extends BottomScrollPanel {
 
         /**
          * set title
+         *
+         * @param title title
          */
         public TitlePanel(String title) {
             this.title = title;

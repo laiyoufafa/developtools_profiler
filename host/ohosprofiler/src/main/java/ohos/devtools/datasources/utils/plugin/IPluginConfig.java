@@ -20,6 +20,8 @@ import ohos.devtools.datasources.utils.plugin.service.PlugManager;
 
 /**
  * IPluginConfig
+ *
+ * @since 2021/5/19 16:39
  */
 public abstract class IPluginConfig {
     /**

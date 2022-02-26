@@ -34,6 +34,8 @@ import static ohos.devtools.views.charts.utils.ChartUtils.multiply;
 
 /**
  * Line chart
+ *
+ * @since 2021/5/19 16:39
  */
 public class LineChart extends ProfilerChart {
     private static final int NUM_2 = 2;
@@ -153,8 +155,8 @@ public class LineChart extends ProfilerChart {
                     maxUnitY = value;
                 }
             }
-            int y = y0 + multiply(pixelPerY, value);
-            pointY[timeIndex] = y;
+            int pointResultY = yZero + multiply(pixelPerY, value);
+            pointY[timeIndex] = pointResultY;
         }
         graphics.setColor(getCurrentLineColor(index, dataMap.get(timeArray[0])));
         graphics.drawPolyline(pointX, pointY, length);

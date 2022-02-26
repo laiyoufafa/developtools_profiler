@@ -72,6 +72,7 @@ public class TaskScenePanelChartEvent {
     private static final int NUM_2 = 2;
     private static final int NUM_10 = 10;
     private static final Long ABNORMAL = -1L;
+
     private boolean flagLeft = false;
     private boolean flag = false;
     private Container obj = null;
@@ -680,8 +681,6 @@ public class TaskScenePanelChartEvent {
         int newEnd;
         // 场景1：频率切换后oldStart + newDisplay超过了lastTime，这时要修正start
         if (oldStart + newMaxDisplay > lastTime) {
-            // 场景1.1：切换后newDisplay > lastTime，这时就变成任务刚启动时，Chart没有铺满的场景，start为0，end为lastTime
-            // 场景1.2：切换后newDisplay < lastTime，修正start为lastTime - display
             newStart = Math.max(lastTime - newMaxDisplay, 0);
             newEnd = lastTime;
         } else {

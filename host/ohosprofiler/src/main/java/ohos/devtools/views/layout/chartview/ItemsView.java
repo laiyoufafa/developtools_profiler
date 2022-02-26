@@ -40,6 +40,7 @@ import static javax.swing.SpringLayout.SOUTH;
 public class ItemsView extends JBPanel {
     private static final int ITEM_MIN_EXPAND_HEIGHT = 400;
     private static final int ITEM_MIN_HEIGHT = 175;
+
     private final SpringLayout spring = new SpringLayout();
     private final ProfilerChartsView bottomPanel;
     private final List<MonitorItemView> items;

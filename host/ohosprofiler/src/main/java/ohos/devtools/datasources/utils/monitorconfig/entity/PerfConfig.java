@@ -291,6 +291,8 @@ public class PerfConfig<T> {
 
     /**
      * use to -j
+     *
+     * @since 2021/5/19 16:39
      */
     public enum Branch {
         /**
@@ -343,6 +345,8 @@ public class PerfConfig<T> {
 
     /**
      * use to --call-stack
+     *
+     * @since 2021/5/19 16:39
      */
     public enum CallStack {
         /**
@@ -387,6 +391,8 @@ public class PerfConfig<T> {
 
     /**
      * use --clock_id
+     *
+     * @since 2021/5/19 16:39
      */
     public enum Clock {
         MONOTONIC("monotonic"), MONOTONIC_RAW("monitonic_row"), REALTIME("realtime"), BOOTTIME("boottime"),

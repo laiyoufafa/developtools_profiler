@@ -20,9 +20,12 @@ import java.util.Objects;
 
 /**
  * Equipment process
+ *
+ * @since 2021/5/19 16:39
  */
 public class DeviceProcessInfo implements Serializable {
     private static final long serialVersionUID = -3815785606619485252L;
+
     private String deviceName;
     private String processName;
     private long localSessionId;

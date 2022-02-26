@@ -49,6 +49,7 @@ public class LicenseDialog {
     private static final int TITLE_WIDTH = 240;
     private static final int TEXT_AREA_ROWS = 20;
     private static final int TEXT_AREA_COLUMNS = 40;
+
     private final CustomDialog sampleDialog;
     private final JBPanel jPanel;
     private final JBLabel titleLabel;

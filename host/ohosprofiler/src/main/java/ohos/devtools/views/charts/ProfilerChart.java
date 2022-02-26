@@ -66,6 +66,8 @@ import static ohos.devtools.views.charts.utils.ChartConstants.CHART_SECTION_NUM_
 
 /**
  * Abstract parent  class of all charts
+ *
+ * @since 2021/5/19 16:39
  */
 public abstract class ProfilerChart extends JBPanel implements MouseListener, MouseMotionListener {
     private static final int NUM_5 = 5;
@@ -115,14 +117,14 @@ public abstract class ProfilerChart extends JBPanel implements MouseListener, Mo
      *
      * @see "It is the coordinate axis X0 point used in daily drawing, not the coordinate axis origin of Swing"
      */
-    protected int x0 = 0;
+    protected int xZero = 0;
 
     /**
      * Coordinate axis Y0 point when drawing chart
      *
      * @see "It is the coordinate axis Y0 point used in daily drawing, not the coordinate axis origin of Swing"
      */
-    protected int y0 = 0;
+    protected int yZero = 0;
 
     /**
      * The x-axis is the coordinate of the starting plot
@@ -414,17 +416,17 @@ public abstract class ProfilerChart extends JBPanel implements MouseListener, Mo
         int left = 0;
         right = left + this.getWidth();
         int bottom = this.getHeight();
-        x0 = left;
-        y0 = bottom;
+        xZero = left;
+        yZero = bottom;
         // How many pixels does one unit of x-axis occupy
         pixelPerX = divide(right - left, maxDisplayX);
         // How many pixels does one unit of y-axis occupy
-        pixelPerY = divide(top - y0, maxUnitY);
+        pixelPerY = divide(top - yZero, maxUnitY);
         // If the time exceeds maxDisplayX and continues to move forward, the drawing should start from x0
         if (endTime < maxDisplayX) {
             startXCoordinate = right - multiply(pixelPerX, endTime);
         } else {
-            startXCoordinate = x0;
+            startXCoordinate = xZero;
         }
     }
 
@@ -438,14 +440,14 @@ public abstract class ProfilerChart extends JBPanel implements MouseListener, Mo
         int interval = divideInt(maxUnitY, sectionNumY);
         int index = 0;
         for (int value = interval; value <= maxUnitY; value += interval) {
-            int y = y0 + multiply(pixelPerY, value);
+            int yAxis = yZero + multiply(pixelPerY, value);
             // Draw Y-axis scale
             graphics.setColor(TIMELINE_SCALE);
-            graphics.drawLine(x0, y, x0 + SCALE_LINE_LEN, y);
+            graphics.drawLine(xZero, yAxis, xZero + SCALE_LINE_LEN, yAxis);
             // Draw the string of Y-axis scale
             String str = getYaxisLabelStr(value);
             graphics.setColor(JBColor.foreground());
-            graphics.drawString(str, x0 + Y_AXIS_STR_OFFSET_X, y + Y_AXIS_STR_OFFSET_Y);
+            graphics.drawString(str, xZero + Y_AXIS_STR_OFFSET_X, yAxis + Y_AXIS_STR_OFFSET_Y);
         }
     }
 

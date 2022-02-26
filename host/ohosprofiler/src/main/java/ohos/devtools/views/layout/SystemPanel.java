@@ -81,6 +81,9 @@ public class SystemPanel extends JBPanel {
 
     /**
      * System Tuning Panel
+     *
+     * @param optionJPanel optionJPanel
+     * @param analystPanel analystPanel
      */
     public SystemPanel(JBPanel optionJPanel, SysAnalystPanel analystPanel) {
         EventTrackUtils.getInstance().trackSystemTrace();

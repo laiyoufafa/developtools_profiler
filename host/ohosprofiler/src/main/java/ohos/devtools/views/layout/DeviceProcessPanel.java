@@ -78,6 +78,8 @@ public class DeviceProcessPanel extends JBPanel {
      * DeviceProcessPanel
      *
      * @param deviceConnectScrollPane deviceConnectScrollPane
+     * @param deviceNum deviceNum
+     * @param scrollContainerHeight scrollContainerHeight
      */
     public DeviceProcessPanel(JBPanel deviceConnectScrollPane, int deviceNum, int scrollContainerHeight) {
         this.deviceNum = deviceNum;

@@ -17,13 +17,9 @@ package ohos.devtools.datasources.utils.plugin.entity;
 
 /**
  * PluginMode
+ *
+ * @since 2021/5/19 16:39
  */
 public enum PluginMode {
     OFFLINE, ONLINE;
-
-    /**
-     * PluginMode
-     */
-    PluginMode() {
-    }
 }

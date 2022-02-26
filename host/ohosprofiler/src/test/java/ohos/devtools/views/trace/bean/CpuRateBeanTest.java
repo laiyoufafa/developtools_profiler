@@ -30,9 +30,9 @@ class CpuRateBeanTest {
      */
     @Test
     void getCpu() {
-        assertEquals(3, new CpuRateBean() {{
-            setCpu(3);
-        }}.getCpu());
+        CpuRateBean cpuRateBean = new CpuRateBean();
+        cpuRateBean.setCpu(3);
+        assertEquals(3, cpuRateBean.getCpu());
     }
 
     /**
@@ -40,9 +40,9 @@ class CpuRateBeanTest {
      */
     @Test
     void setCpu() {
-        assertEquals(3, new CpuRateBean() {{
-            setCpu(3);
-        }}.getCpu());
+        CpuRateBean cpuRateBean = new CpuRateBean();
+        cpuRateBean.setCpu(3);
+        assertEquals(3, cpuRateBean.getCpu());
     }
 
     /**
@@ -50,9 +50,9 @@ class CpuRateBeanTest {
      */
     @Test
     void getIndex() {
-        assertEquals(3, new CpuRateBean() {{
-            setIndex(3);
-        }}.getIndex());
+        CpuRateBean cpuRateBean = new CpuRateBean();
+        cpuRateBean.setIndex(3);
+        assertEquals(3, cpuRateBean.getIndex());
     }
 
     /**
@@ -60,9 +60,9 @@ class CpuRateBeanTest {
      */
     @Test
     void setIndex() {
-        assertEquals(3, new CpuRateBean() {{
-            setIndex(3);
-        }}.getIndex());
+        CpuRateBean cpuRateBean = new CpuRateBean();
+        cpuRateBean.setIndex(3);
+        assertEquals(3, cpuRateBean.getIndex());
     }
 
     /**
@@ -70,9 +70,9 @@ class CpuRateBeanTest {
      */
     @Test
     void getRate() {
-        assertEquals(3.0D, new CpuRateBean() {{
-            setRate(3.0D);
-        }}.getRate());
+        CpuRateBean cpuRateBean = new CpuRateBean();
+        cpuRateBean.setRate(3.0D);
+        assertEquals(3.0D, cpuRateBean.getRate());
     }
 
     /**
@@ -80,8 +80,8 @@ class CpuRateBeanTest {
      */
     @Test
     void setRate() {
-        assertEquals(3.0D, new CpuRateBean() {{
-            setRate(3.0D);
-        }}.getRate());
+        CpuRateBean cpuRateBean = new CpuRateBean();
+        cpuRateBean.setRate(3.0D);
+        assertEquals(3.0D, cpuRateBean.getRate());
     }
 }

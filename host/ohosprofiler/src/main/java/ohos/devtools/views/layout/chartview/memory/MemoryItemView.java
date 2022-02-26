@@ -775,8 +775,7 @@ public class MemoryItemView extends MonitorItemView {
             LOGGER.info("getSemiSimplifiedClockString");
         }
         long micros = Math.max(0, micro);
-        String result = getFullClockString(micros);
-        return result;
+        return getFullClockString(micros);
     }
 
     /**

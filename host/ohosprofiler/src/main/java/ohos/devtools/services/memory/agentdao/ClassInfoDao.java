@@ -36,26 +36,11 @@ import static ohos.devtools.datasources.utils.common.Constant.JVMTI_AGENT_PLUG;
 
 /**
  * processing the class data obtained on the end side
+ *
+ * @since 2021/5/19 16:39
  */
 public class ClassInfoDao extends AbstractDataStore {
     private static final Logger LOGGER = LogManager.getLogger(ClassInfoDao.class);
-    private static volatile ClassInfoDao singleton;
-
-    /**
-     * ClassInfoDao
-     *
-     * @return ClassInfoDao
-     */
-    public static ClassInfoDao getInstance() {
-        if (singleton == null) {
-            synchronized (ClassInfoDao.class) {
-                if (singleton == null) {
-                    singleton = new ClassInfoDao();
-                }
-            }
-        }
-        return singleton;
-    }
 
     /**
      * ClassInfoDao constructor
@@ -90,8 +75,7 @@ public class ClassInfoDao extends AbstractDataStore {
         String classInfoTable = "ClassInfo";
         String sql = "CREATE TABLE ClassInfo " + "("
             + "    cId        int not null, " + "  className  varchar  not null " + ");";
-        createResult = createTable(dbName, classInfoTable, sql);
-        return createResult;
+        return createTable(dbName, classInfoTable, sql);
     }
 
     /**

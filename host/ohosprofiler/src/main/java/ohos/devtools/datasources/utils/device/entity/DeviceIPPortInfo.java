@@ -22,9 +22,12 @@ import java.util.Objects;
 
 /**
  * Device IP and port number information
+ *
+ * @since 2021/5/19 16:39
  */
 public class DeviceIPPortInfo implements Serializable {
     private static final long serialVersionUID = -290179609047525076L;
+
     private String deviceID;
     private String deviceName;
     private String ip;

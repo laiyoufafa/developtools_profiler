@@ -56,6 +56,7 @@ import static ohos.devtools.views.trace.TracePanel.startNS;
  */
 public class TimeShaft extends JBPanel implements KeyListener, MouseListener, MouseMotionListener {
     private static final int SELECT_BORDER_WIDTH = 3;
+
     private final ITimeRange rangeListener;
     private final Consumer keyReleaseHandler;
     private final Consumer mouseReleaseHandler;
@@ -90,9 +91,11 @@ public class TimeShaft extends JBPanel implements KeyListener, MouseListener, Mo
     private Map<Integer, Double> rateMap = new HashMap<>();
 
     /**
-     * structure function
+     * TimeShaft
      *
      * @param range range
+     * @param keyReleaseHandler keyReleaseHandler
+     * @param mouseReleaseHandler mouseReleaseHandler
      */
     public TimeShaft(ITimeRange range, Consumer<KeyEvent> keyReleaseHandler, Consumer<MouseEvent> mouseReleaseHandler) {
         this.rangeListener = range;
@@ -121,6 +124,7 @@ public class TimeShaft extends JBPanel implements KeyListener, MouseListener, Mo
      * @param event event
      */
     public void mouseClicked(MouseEvent event) {
+        event.getX();
     }
 
     /**
@@ -276,6 +280,7 @@ public class TimeShaft extends JBPanel implements KeyListener, MouseListener, Mo
      * @param event event
      */
     public void keyTyped(KeyEvent event) {
+        event.getKeyCode();
     }
 
     /**

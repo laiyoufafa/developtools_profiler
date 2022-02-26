@@ -152,6 +152,7 @@ public class AsyncEventDataFragment extends AbstractDataFragment<AsyncEvent> imp
      */
     @Override
     public void mousePressed(MouseEvent event) {
+        event.getX();
     }
 
     /**
@@ -161,6 +162,7 @@ public class AsyncEventDataFragment extends AbstractDataFragment<AsyncEvent> imp
      */
     @Override
     public void keyReleased(KeyEvent event) {
+        event.getKeyCode();
     }
 
     /**
@@ -170,10 +172,12 @@ public class AsyncEventDataFragment extends AbstractDataFragment<AsyncEvent> imp
      */
     @Override
     public void mouseExited(MouseEvent event) {
+        event.getX();
     }
 
     @Override
     public void mouseEntered(MouseEvent event) {
+        event.getX();
     }
 
     @Override
@@ -185,9 +189,11 @@ public class AsyncEventDataFragment extends AbstractDataFragment<AsyncEvent> imp
 
     @Override
     public void mouseReleased(MouseEvent event) {
+        event.getX();
     }
 
     private void loadData() {
+        return;
     }
 
     @Override
@@ -199,16 +205,16 @@ public class AsyncEventDataFragment extends AbstractDataFragment<AsyncEvent> imp
 
     @Override
     public void blur(MouseEvent event, AsyncEvent data) {
-
+        event.getX();
     }
 
     @Override
     public void focus(MouseEvent event, AsyncEvent data) {
-
+        event.getX();
     }
 
     @Override
     public void mouseMove(MouseEvent event, AsyncEvent data) {
-
+        event.getX();
     }
 }

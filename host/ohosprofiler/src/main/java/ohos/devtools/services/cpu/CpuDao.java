@@ -53,9 +53,20 @@ import static ohos.devtools.services.cpu.CpuDao.CpuSelectStatements.SELECT_DEAD_
 public class CpuDao extends AbstractDataStore {
     private static final Logger LOGGER = LogManager.getLogger(CpuDao.class);
     private static volatile CpuDao singleton;
+
     private Map<CpuDao.CpuSelectStatements, PreparedStatement> cpuSelectMap = new HashMap<>();
     private Map<CpuDao.CpuSelectStatements, PreparedStatement> threadSelectMap = new HashMap<>();
     private Connection conn;
+
+    private CpuDao() {
+        if (conn == null) {
+            Optional<Connection> connection = getConnectBydbName("cpuDb");
+            if (connection.isPresent()) {
+                conn = connection.get();
+            }
+            createPrePareStatements();
+        }
+    }
 
     /**
      * getInstance
@@ -158,16 +169,6 @@ public class CpuDao extends AbstractDataStore {
          */
         public String getStatement() {
             return sqlStatement;
-        }
-    }
-
-    private CpuDao() {
-        if (conn == null) {
-            Optional<Connection> connection = getConnectBydbName("cpuDb");
-            if (connection.isPresent()) {
-                conn = connection.get();
-            }
-            createPrePareStatements();
         }
     }
 

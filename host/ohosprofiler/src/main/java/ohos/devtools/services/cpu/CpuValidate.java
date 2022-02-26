@@ -26,6 +26,8 @@ import java.util.List;
 
 /**
  * Cpu Validate
+ *
+ * @since 2021/5/19 16:39
  */
 public class CpuValidate extends Validate {
     private boolean registerCpu;

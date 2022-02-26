@@ -20,6 +20,8 @@ import java.util.Objects;
 
 /**
  * Memory Heap Info
+ *
+ * @since 2021/5/19 16:39
  */
 public class MemoryHeapInfo implements Serializable {
     private static final long serialVersionUID = -4742624779850639424L;

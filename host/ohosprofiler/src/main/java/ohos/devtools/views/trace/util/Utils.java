@@ -36,7 +36,7 @@ import java.util.concurrent.TimeUnit;
 public final class Utils {
     private static final String[] UNITS = new String[] {"", "K", "M", "G", "T", "E"};
     private static Map<String, String> statusMap = new HashedMap();
-    private static Utils instance;
+    private static Utils instance = new Utils();
     private static ExecutorService pool = new ThreadPoolExecutor(8, 8,
         0L, TimeUnit.MILLISECONDS,
         new LinkedBlockingQueue<Runnable>());
@@ -65,9 +65,6 @@ public final class Utils {
      * @return Utils
      */
     public static Utils getInstance() {
-        if (instance == null) {
-            instance = new Utils();
-        }
         return instance;
     }
 

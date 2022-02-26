@@ -30,9 +30,9 @@ class FunctionBeanTest {
      */
     @Test
     void getTid() {
-        assertEquals(3, new FunctionBean() {{
-            setTid(3);
-        }}.getTid());
+        FunctionBean functionBean = new FunctionBean();
+        functionBean.setTid(3);
+        assertEquals(3, functionBean.getTid());
     }
 
     /**
@@ -40,9 +40,9 @@ class FunctionBeanTest {
      */
     @Test
     void setTid() {
-        assertEquals(3, new FunctionBean() {{
-            setTid(3);
-        }}.getTid());
+        FunctionBean functionBean = new FunctionBean();
+        functionBean.setTid(3);
+        assertEquals(3, functionBean.getTid());
     }
 
     /**
@@ -50,9 +50,9 @@ class FunctionBeanTest {
      */
     @Test
     void getThreadName() {
-        assertEquals("ThreadName", new FunctionBean() {{
-            setThreadName("ThreadName");
-        }}.getThreadName());
+        FunctionBean functionBean = new FunctionBean();
+        functionBean.setThreadName("ThreadName");
+        assertEquals("ThreadName", functionBean.getThreadName());
     }
 
     /**
@@ -60,9 +60,9 @@ class FunctionBeanTest {
      */
     @Test
     void setThreadName() {
-        assertEquals("ThreadName", new FunctionBean() {{
-            setThreadName("ThreadName");
-        }}.getThreadName());
+        FunctionBean functionBean = new FunctionBean();
+        functionBean.setThreadName("ThreadName");
+        assertEquals("ThreadName", functionBean.getThreadName());
     }
 
     /**
@@ -70,9 +70,9 @@ class FunctionBeanTest {
      */
     @Test
     void getIsMainThread() {
-        assertEquals(1, new FunctionBean() {{
-            setIsMainThread(1);
-        }}.getIsMainThread());
+        FunctionBean functionBean = new FunctionBean();
+        functionBean.setIsMainThread(1);
+        assertEquals(1, functionBean.getIsMainThread());
     }
 
     /**
@@ -80,9 +80,9 @@ class FunctionBeanTest {
      */
     @Test
     void setIsMainThread() {
-        assertEquals(1, new FunctionBean() {{
-            setIsMainThread(1);
-        }}.getIsMainThread());
+        FunctionBean functionBean = new FunctionBean();
+        functionBean.setIsMainThread(1);
+        assertEquals(1, functionBean.getIsMainThread());
     }
 
     /**
@@ -90,9 +90,9 @@ class FunctionBeanTest {
      */
     @Test
     void getTrackId() {
-        assertEquals(1, new FunctionBean() {{
-            setTrackId(1);
-        }}.getTrackId());
+        FunctionBean functionBean = new FunctionBean();
+        functionBean.setTrackId(1);
+        assertEquals(1, functionBean.getTrackId());
     }
 
     /**
@@ -100,9 +100,9 @@ class FunctionBeanTest {
      */
     @Test
     void setTrackId() {
-        assertEquals(1, new FunctionBean() {{
-            setTrackId(1);
-        }}.getTrackId());
+        FunctionBean functionBean = new FunctionBean();
+        functionBean.setTrackId(1);
+        assertEquals(1, functionBean.getTrackId());
     }
 
     /**
@@ -110,9 +110,9 @@ class FunctionBeanTest {
      */
     @Test
     void getStartTime() {
-        assertEquals(1L, new FunctionBean() {{
-            setStartTime(1L);
-        }}.getStartTime());
+        FunctionBean functionBean = new FunctionBean();
+        functionBean.setStartTime(1L);
+        assertEquals(1L, functionBean.getStartTime());
     }
 
     /**
@@ -120,9 +120,9 @@ class FunctionBeanTest {
      */
     @Test
     void setStartTime() {
-        assertEquals(1L, new FunctionBean() {{
-            setStartTime(1L);
-        }}.getStartTime());
+        FunctionBean functionBean = new FunctionBean();
+        functionBean.setStartTime(1L);
+        assertEquals(1L, functionBean.getStartTime());
     }
 
     /**
@@ -130,9 +130,9 @@ class FunctionBeanTest {
      */
     @Test
     void getDuration() {
-        assertEquals(1L, new FunctionBean() {{
-            setDuration(1L);
-        }}.getDuration());
+        FunctionBean functionBean = new FunctionBean();
+        functionBean.setDuration(1L);
+        assertEquals(1L, functionBean.getDuration());
     }
 
     /**
@@ -140,9 +140,9 @@ class FunctionBeanTest {
      */
     @Test
     void setDuration() {
-        assertEquals(1L, new FunctionBean() {{
-            setDuration(1L);
-        }}.getDuration());
+        FunctionBean functionBean = new FunctionBean();
+        functionBean.setDuration(1L);
+        assertEquals(1L, functionBean.getDuration());
     }
 
     /**
@@ -150,9 +150,9 @@ class FunctionBeanTest {
      */
     @Test
     void getFunName() {
-        assertEquals("FunName", new FunctionBean() {{
-            setFunName("FunName");
-        }}.getFunName());
+        FunctionBean functionBean = new FunctionBean();
+        functionBean.setFunName("FunName");
+        assertEquals("FunName", functionBean.getFunName());
     }
 
     /**
@@ -160,9 +160,9 @@ class FunctionBeanTest {
      */
     @Test
     void setFunName() {
-        assertEquals("FunName", new FunctionBean() {{
-            setFunName("FunName");
-        }}.getFunName());
+        FunctionBean functionBean = new FunctionBean();
+        functionBean.setFunName("FunName");
+        assertEquals("FunName", functionBean.getFunName());
     }
 
     /**
@@ -170,9 +170,9 @@ class FunctionBeanTest {
      */
     @Test
     void getDepth() {
-        assertEquals(3, new FunctionBean() {{
-            setDepth(3);
-        }}.getDepth());
+        FunctionBean functionBean = new FunctionBean();
+        functionBean.setDepth(3);
+        assertEquals(3, functionBean.getDepth());
     }
 
     /**
@@ -180,9 +180,9 @@ class FunctionBeanTest {
      */
     @Test
     void setDepth() {
-        assertEquals(3, new FunctionBean() {{
-            setDepth(3);
-        }}.getDepth());
+        FunctionBean functionBean = new FunctionBean();
+        functionBean.setDepth(3);
+        assertEquals(3, functionBean.getDepth());
     }
 
     /**
@@ -190,9 +190,9 @@ class FunctionBeanTest {
      */
     @Test
     void getCategory() {
-        assertEquals("Category", new FunctionBean() {{
-            setCategory("Category");
-        }}.getCategory());
+        FunctionBean functionBean = new FunctionBean();
+        functionBean.setCategory("Category");
+        assertEquals("Category", functionBean.getCategory());
     }
 
     /**
@@ -200,9 +200,9 @@ class FunctionBeanTest {
      */
     @Test
     void setCategory() {
-        assertEquals("Category", new FunctionBean() {{
-            setCategory("Category");
-        }}.getCategory());
+        FunctionBean functionBean = new FunctionBean();
+        functionBean.setCategory("Category");
+        assertEquals("Category", functionBean.getCategory());
     }
 
     /**
@@ -211,9 +211,9 @@ class FunctionBeanTest {
     @Test
     void isSelected() {
         boolean selected = true;
-        assertEquals(selected, new FunctionBean() {{
-            setSelected(selected);
-        }}.isSelected());
+        FunctionBean functionBean = new FunctionBean();
+        functionBean.setSelected(selected);
+        assertEquals(selected, functionBean.isSelected());
     }
 
     /**
@@ -222,8 +222,8 @@ class FunctionBeanTest {
     @Test
     void setSelected() {
         boolean selected = true;
-        assertEquals(selected, new FunctionBean() {{
-            setSelected(selected);
-        }}.isSelected());
+        FunctionBean functionBean = new FunctionBean();
+        functionBean.setSelected(selected);
+        assertEquals(selected, functionBean.isSelected());
     }
 }

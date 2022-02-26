@@ -46,6 +46,8 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * AgentDataConsumer
+ *
+ * @since 2021/5/19 16:39
  */
 public class AgentDataConsumer extends AbsDataConsumer {
     private static final Logger LOGGER = LogManager.getLogger(AgentDataConsumer.class);
@@ -110,6 +112,7 @@ public class AgentDataConsumer extends AbsDataConsumer {
      * MemoryHeapDataConsumer
      */
     public AgentDataConsumer() {
+        super();
     }
 
     @Override

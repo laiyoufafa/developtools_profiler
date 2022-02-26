@@ -27,6 +27,8 @@ import java.util.List;
 
 /**
  * ClassInfo Dao Test
+ *
+ * @since 2021/5/19 16:39
  */
 public class ClassInfoDaoTest {
     private ClassInfoDao classInfoDao;
@@ -45,7 +47,7 @@ public class ClassInfoDaoTest {
     public void init() {
         DataBaseApi apo = DataBaseApi.getInstance();
         apo.initDataSourceManager();
-        classInfoDao = ClassInfoDao.getInstance();
+        classInfoDao = new ClassInfoDao();
         classInfoDao.createClassInfo();
         classInfo = new ClassInfo();
         classInfo.setClassName("className");
@@ -65,7 +67,7 @@ public class ClassInfoDaoTest {
      */
     @Test
     public void testGetInstance01() {
-        ClassInfoDao instance = ClassInfoDao.getInstance();
+        ClassInfoDao instance = new ClassInfoDao();
         Assert.assertNotNull(instance);
     }
 
@@ -80,8 +82,8 @@ public class ClassInfoDaoTest {
      */
     @Test
     public void testGetInstance02() {
-        ClassInfoDao instance = ClassInfoDao.getInstance();
-        ClassInfoDao classInfoDaoInstance = ClassInfoDao.getInstance();
+        ClassInfoDao instance = new ClassInfoDao();
+        ClassInfoDao classInfoDaoInstance = new ClassInfoDao();
         Assert.assertEquals(instance, classInfoDaoInstance);
     }
 

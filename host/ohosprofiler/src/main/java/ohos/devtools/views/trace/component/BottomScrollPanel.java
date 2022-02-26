@@ -60,6 +60,7 @@ public class BottomScrollPanel extends JBScrollPane {
          * line height
          */
         public int lineHeight;
+
         /**
          * line width
          */
@@ -114,6 +115,7 @@ public class BottomScrollPanel extends JBScrollPane {
      */
     public static class ChildLineComponent extends ChildPanel {
         private static final int DEFAULT_LINE_HEIGHT = 27;
+
         /**
          * Monitor whether the mouse is moved into the component
          */
@@ -169,6 +171,7 @@ public class BottomScrollPanel extends JBScrollPane {
          * @param event mouse event
          */
         public void childMouseClicked(final MouseEvent event) {
+            event.getX();
         }
     }
 }

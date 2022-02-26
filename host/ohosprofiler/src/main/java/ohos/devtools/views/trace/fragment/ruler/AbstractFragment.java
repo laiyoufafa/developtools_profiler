@@ -145,8 +145,7 @@ public abstract class AbstractFragment extends AbstractNode implements IFragment
      * @return long time
      */
     public long x2ns(final int xValue) {
-        long ns = (xValue - Utils.getX(rect)) * AnalystPanel.getDURATION() / (root.getWidth() - Utils.getX(rect));
-        return ns;
+        return (xValue - Utils.getX(rect)) * AnalystPanel.getDURATION() / (root.getWidth() - Utils.getX(rect));
     }
 
     /**

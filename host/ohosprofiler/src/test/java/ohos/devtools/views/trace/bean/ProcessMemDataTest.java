@@ -30,9 +30,9 @@ class ProcessMemDataTest {
      */
     @Test
     void getMaxValue() {
-        assertEquals(3, new ProcessMemData() {{
-            setMaxValue(3);
-        }}.getMaxValue());
+        ProcessMemData processMemData = new ProcessMemData();
+        processMemData.setMaxValue(3);
+        assertEquals(3, processMemData.getMaxValue());
     }
 
     /**
@@ -40,9 +40,9 @@ class ProcessMemDataTest {
      */
     @Test
     void setMaxValue() {
-        assertEquals(3, new ProcessMemData() {{
-            setMaxValue(3);
-        }}.getMaxValue());
+        ProcessMemData processMemData = new ProcessMemData();
+        processMemData.setMaxValue(3);
+        assertEquals(3, processMemData.getMaxValue());
     }
 
     /**
@@ -50,9 +50,9 @@ class ProcessMemDataTest {
      */
     @Test
     void getId() {
-        assertEquals(3, new ProcessMemData() {{
-            setId(3);
-        }}.getId());
+        ProcessMemData processMemData = new ProcessMemData();
+        processMemData.setId(3);
+        assertEquals(3, processMemData.getId());
     }
 
     /**
@@ -60,9 +60,9 @@ class ProcessMemDataTest {
      */
     @Test
     void setId() {
-        assertEquals(3, new ProcessMemData() {{
-            setId(3);
-        }}.getId());
+        ProcessMemData processMemData = new ProcessMemData();
+        processMemData.setId(3);
+        assertEquals(3, processMemData.getId());
     }
 
     /**
@@ -70,9 +70,9 @@ class ProcessMemDataTest {
      */
     @Test
     void getType() {
-        assertEquals("type", new ProcessMemData() {{
-            setType("type");
-        }}.getType());
+        ProcessMemData processMemData = new ProcessMemData();
+        processMemData.setType("type");
+        assertEquals("type", processMemData.getType());
     }
 
     /**
@@ -80,9 +80,9 @@ class ProcessMemDataTest {
      */
     @Test
     void setType() {
-        assertEquals("type", new ProcessMemData() {{
-            setType("type");
-        }}.getType());
+        ProcessMemData processMemData = new ProcessMemData();
+        processMemData.setType("type");
+        assertEquals("type", processMemData.getType());
     }
 
     /**
@@ -90,9 +90,9 @@ class ProcessMemDataTest {
      */
     @Test
     void getTrackId() {
-        assertEquals(3, new ProcessMemData() {{
-            setTrackId(3);
-        }}.getTrackId());
+        ProcessMemData processMemData = new ProcessMemData();
+        processMemData.setTrackId(3);
+        assertEquals(3, processMemData.getTrackId());
     }
 
     /**
@@ -100,9 +100,9 @@ class ProcessMemDataTest {
      */
     @Test
     void setTrackId() {
-        assertEquals(3, new ProcessMemData() {{
-            setTrackId(3);
-        }}.getTrackId());
+        ProcessMemData processMemData = new ProcessMemData();
+        processMemData.setTrackId(3);
+        assertEquals(3, processMemData.getTrackId());
     }
 
     /**
@@ -110,9 +110,9 @@ class ProcessMemDataTest {
      */
     @Test
     void getValue() {
-        assertEquals(3, new ProcessMemData() {{
-            setValue(3);
-        }}.getValue());
+        ProcessMemData processMemData = new ProcessMemData();
+        processMemData.setValue(3);
+        assertEquals(3, processMemData.getValue());
     }
 
     /**
@@ -120,9 +120,9 @@ class ProcessMemDataTest {
      */
     @Test
     void setValue() {
-        assertEquals(3, new ProcessMemData() {{
-            setValue(3);
-        }}.getValue());
+        ProcessMemData processMemData = new ProcessMemData();
+        processMemData.setValue(3);
+        assertEquals(3, processMemData.getValue());
     }
 
     /**
@@ -130,9 +130,9 @@ class ProcessMemDataTest {
      */
     @Test
     void getStartTime() {
-        assertEquals(3L, new ProcessMemData() {{
-            setStartTime(3L);
-        }}.getStartTime());
+        ProcessMemData processMemData = new ProcessMemData();
+        processMemData.setStartTime(3L);
+        assertEquals(3L, processMemData.getStartTime());
     }
 
     /**
@@ -140,9 +140,9 @@ class ProcessMemDataTest {
      */
     @Test
     void setStartTime() {
-        assertEquals(3L, new ProcessMemData() {{
-            setStartTime(3L);
-        }}.getStartTime());
+        ProcessMemData processMemData = new ProcessMemData();
+        processMemData.setStartTime(3L);
+        assertEquals(3L, processMemData.getStartTime());
     }
 
     /**
@@ -150,9 +150,9 @@ class ProcessMemDataTest {
      */
     @Test
     void getDuration() {
-        assertEquals(3L, new ProcessMemData() {{
-            setDuration(3L);
-        }}.getDuration());
+        ProcessMemData processMemData = new ProcessMemData();
+        processMemData.setDuration(3L);
+        assertEquals(3L, processMemData.getDuration());
     }
 
     /**
@@ -160,8 +160,8 @@ class ProcessMemDataTest {
      */
     @Test
     void setDuration() {
-        assertEquals(3L, new ProcessMemData() {{
-            setDuration(3L);
-        }}.getDuration());
+        ProcessMemData processMemData = new ProcessMemData();
+        processMemData.setDuration(3L);
+        assertEquals(3L, processMemData.getDuration());
     }
 }

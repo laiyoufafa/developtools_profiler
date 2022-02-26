@@ -34,6 +34,8 @@ import java.util.List;
 
 /**
  * Memory Validate
+ *
+ * @since 2021/5/19 16:39
  */
 public class MemoryValidate extends Validate {
     private boolean registerMemory;

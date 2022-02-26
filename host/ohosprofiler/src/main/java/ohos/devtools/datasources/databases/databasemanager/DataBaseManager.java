@@ -61,6 +61,12 @@ public class DataBaseManager {
 
     private static Set<String> dbLists = new HashSet<>();
 
+    private DataBaseManager() {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("create DataBaseManager");
+        }
+    }
+
     /**
      * getInstance
      *
@@ -71,12 +77,6 @@ public class DataBaseManager {
             LOGGER.info("getInstance");
         }
         return DataBaseManager.INSTANCE;
-    }
-
-    private DataBaseManager() {
-        if (ProfilerLogManager.isInfoEnabled()) {
-            LOGGER.info("create DataBaseManager");
-        }
     }
 
     /**

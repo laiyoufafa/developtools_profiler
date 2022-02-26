@@ -46,17 +46,17 @@ public class AllData {
     /**
      * cpu data map
      */
-    public static Map<Integer, List<Cpu>> cpuMap = new HashMap<>();
+    public static final Map<Integer, List<Cpu>> CPU_MAP = new HashMap<>();
 
     /**
      * thread data map
      */
-    public static Map<Integer, List<Thread>> threadMap = new HashMap<>();
+    public static final Map<Integer, List<Thread>> THREAD_MAP = new HashMap<>();
 
     /**
      * function data map
      */
-    public static Map<Integer, List<Func>> funcMap = new HashMap<>();
+    public static final Map<Integer, List<Func>> FUNC_MAP = new HashMap<>();
 
     /**
      * function names map
@@ -76,10 +76,10 @@ public class AllData {
      * @return node List
      */
     public static List<DefaultMutableTreeNode> getFuncTreeTopDown(long startNS, long endNS) {
-        if (Objects.isNull(funcMap)) {
+        if (Objects.isNull(FUNC_MAP)) {
             return new ArrayList<>();
         }
-        if (Objects.isNull(threadMap)) {
+        if (Objects.isNull(THREAD_MAP)) {
             return new ArrayList<>();
         }
         return getFuncTreeTopDown(startNS, endNS, null);
@@ -94,13 +94,13 @@ public class AllData {
      * @return node List
      */
     public static List<DefaultMutableTreeNode> getFuncTreeTopDown(long startNS, long endNS, List<Integer> threadIds) {
-        if (Objects.isNull(funcMap)) {
+        if (Objects.isNull(FUNC_MAP)) {
             return new ArrayList<>();
         }
-        if (Objects.isNull(threadMap)) {
+        if (Objects.isNull(THREAD_MAP)) {
             return new ArrayList<>();
         }
-        Map<Integer, List<AppFunc>> collect = funcMap.entrySet().stream()
+        Map<Integer, List<AppFunc>> collect = FUNC_MAP.entrySet().stream()
             .collect(Collectors.toMap(Map.Entry::getKey, entry -> new ArrayList<>(entry.getValue())));
         return DataProcess.getFuncTreeTopDown(collect, startNS, endNS, threadIds);
     }
@@ -125,7 +125,7 @@ public class AllData {
      * @return tree node List
      */
     public static List<DefaultMutableTreeNode> getFuncTreeBottomUp(long startNS, long endNS, List<Integer> threadIds) {
-        Map<Integer, List<AppFunc>> collect = funcMap.entrySet().stream()
+        Map<Integer, List<AppFunc>> collect = FUNC_MAP.entrySet().stream()
             .collect(Collectors.toMap(Map.Entry::getKey, entry -> new ArrayList<>(entry.getValue())));
         return DataProcess.getFuncTreeBottomUp(collect, startNS, endNS, threadIds);
     }
@@ -137,7 +137,7 @@ public class AllData {
      * @return tree node List
      */
     public static List<DefaultMutableTreeNode> getFuncTreeByFuncTopDown(Func func) {
-        List<Func> collect = funcMap.get(func.getTid()).stream().filter(
+        List<Func> collect = FUNC_MAP.get(func.getTid()).stream().filter(
             item -> TimeUtils.isRangeCross(func.getStartTs(), func.getEndTs(), item.getStartTs(), item.getEndTs())
                 && item.getDepth() > func.getDepth()).collect(Collectors.toList());
         Map<String, TreeTableBean> longTreeTableBeanMap = funcGroupByStackId(func, collect, null);
@@ -177,7 +177,7 @@ public class AllData {
      */
     public static List<DefaultMutableTreeNode> getFuncTreeByFuncBottomUp(Func func) {
         ArrayList<DefaultMutableTreeNode> nodes = new ArrayList<>();
-        List<Func> collect = funcMap.get(func.getTid()).stream().filter(
+        List<Func> collect = FUNC_MAP.get(func.getTid()).stream().filter(
             item -> TimeUtils.isRangeCross(func.getStartTs(), func.getEndTs(), item.getStartTs(), item.getEndTs()))
             .collect(Collectors.toList());
         Map<String, List<String>> nameToId = new HashMap<>();
@@ -186,9 +186,9 @@ public class AllData {
         nameToId.forEach((name, ids) -> {
             TreeTableBean treeTableBean = new TreeTableBean(TimeUnit.NANOSECONDS.toMicros(func.getDur()));
             treeTableBean.setName(name);
-            long totalNum = 0;
-            long childrenNum = 0;
-            long selfNum = 0;
+            long totalNum = 0L;
+            long childrenNum = 0L;
+            long selfNum = 0L;
             for (String id : ids) {
                 TreeTableBean tableBean = treeNodeMap.get(id);
                 totalNum += tableBean.getTotalNum();
@@ -214,9 +214,8 @@ public class AllData {
     private static Map<String, TreeTableBean> funcGroupByStackId(Func func, List<Func> collect,
         Map<String, List<String>> nameToId) {
         long totalUs = TimeUnit.NANOSECONDS.toMicros(func.getDur());
-        Map<String, TreeTableBean> map =
-            collect.stream().filter(item -> !item.getBloodId().isEmpty()).collect(groupingBy(Func::getBloodId))
-                .entrySet().stream().collect(Collectors.toMap(entry -> entry.getKey(), entry -> {
+        return collect.stream().filter(item -> !item.getBloodId().isEmpty()).collect(groupingBy(Func::getBloodId))
+            .entrySet().stream().collect(Collectors.toMap(entry -> entry.getKey(), entry -> {
                 TreeTableBean uniteBean = new TreeTableBean(totalUs);
                 uniteBean.setBloodId(entry.getKey());
                 if (entry.getValue().size() > 0) {
@@ -241,7 +240,6 @@ public class AllData {
                     .sum());
                 return uniteBean;
             }));
-        return map;
     }
 
     /**
@@ -404,17 +402,17 @@ public class AllData {
      * clear all static data
      */
     public static void clearData() {
-        if (cpuMap != null) {
-            cpuMap.values().forEach(List::clear);
-            cpuMap.clear();
+        if (CPU_MAP != null) {
+            CPU_MAP.values().forEach(List::clear);
+            CPU_MAP.clear();
         }
-        if (threadMap != null) {
-            threadMap.values().forEach(List::clear);
-            threadMap.clear();
+        if (THREAD_MAP != null) {
+            THREAD_MAP.values().forEach(List::clear);
+            THREAD_MAP.clear();
         }
-        if (funcMap != null) {
-            funcMap.values().forEach(List::clear);
-            funcMap.clear();
+        if (FUNC_MAP != null) {
+            FUNC_MAP.values().forEach(List::clear);
+            FUNC_MAP.clear();
         }
         if (threadNames != null) {
             threadNames.clear();

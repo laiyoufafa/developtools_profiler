@@ -45,8 +45,7 @@ public class Common {
      * @return int
      */
     public static Rectangle2D getStringRect(Graphics graphics, String str) {
-        Rectangle2D bounds = graphics.getFontMetrics(graphics.getFont()).getStringBounds(str, graphics);
-        return bounds;
+        return graphics.getFontMetrics(graphics.getFont()).getStringBounds(str, graphics);
     }
 
     /**
@@ -69,8 +68,7 @@ public class Common {
      * @return long time
      */
     public static long x2ns(final int coordX, Rectangle rect, long duration) {
-        long ns = (long) ((coordX - rect.getX()) * duration / (rect.getWidth() - Utils.getX(rect)));
-        return ns;
+        return (long) ((coordX - rect.getX()) * duration / (rect.getWidth() - Utils.getX(rect)));
     }
 
     /**

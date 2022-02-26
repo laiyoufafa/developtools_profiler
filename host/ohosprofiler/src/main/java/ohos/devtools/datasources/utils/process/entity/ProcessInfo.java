@@ -18,7 +18,9 @@ package ohos.devtools.datasources.utils.process.entity;
 import java.util.Objects;
 
 /**
- * 进程实体
+ * Process entity
+ *
+ * @since 2021/5/19 16:39
  */
 public class ProcessInfo {
     private String deviceId;
