@@ -42,6 +42,8 @@ import static ohos.devtools.views.common.Constant.IS_SUPPORT_NEW_HDC;
 
 /**
  * KeepSession
+ *
+ * @since 2021/5/19 16:39
  */
 public class KeepSession implements Runnable {
     private static final Logger LOGGER = LogManager.getLogger(KeepSession.class);

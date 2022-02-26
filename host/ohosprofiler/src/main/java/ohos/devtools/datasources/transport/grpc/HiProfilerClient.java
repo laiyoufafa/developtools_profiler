@@ -76,6 +76,9 @@ public final class HiProfilerClient {
     private static ConcurrentHashMap<String, ProfilerClient> profilerClientMap =
         new ConcurrentHashMap<>(CommonUtil.collectionSize(0));
 
+    private HiProfilerClient() {
+    }
+
     /**
      * Get instance
      *
@@ -86,9 +89,6 @@ public final class HiProfilerClient {
             LOGGER.info("getInstance");
         }
         return INSTANCE;
-    }
-
-    private HiProfilerClient() {
     }
 
     /**
@@ -508,7 +508,7 @@ public final class HiProfilerClient {
      * @param port port number
      * @param sessionId sessionId
      * @return ProfilerServiceTypes.GetCapabilitiesResponse
-     * @throws StatusRuntimeException
+     * @throws StatusRuntimeException StatusRuntimeException
      */
     public ProfilerServiceTypes.KeepSessionResponse keepSession(String deviceIp, int port, int sessionId)
         throws StatusRuntimeException {

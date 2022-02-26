@@ -36,7 +36,7 @@ class CpuDataTest {
      */
     @Test
     void getCpu() throws NoSuchFieldException, IllegalAccessException {
-        int random = (int) (Math.random() * 100);
+        int random = 2;
         CpuData cpuData = new CpuData();
         final Field field = cpuData.getClass().getDeclaredField("cpu");
         field.setAccessible(true);
@@ -52,7 +52,7 @@ class CpuDataTest {
      */
     @Test
     void setCpu() throws NoSuchFieldException, IllegalAccessException {
-        int random = (int) (Math.random() * 100);
+        int random = 2;
         CpuData cpuData = new CpuData();
         cpuData.setCpu(random);
         final Field field = cpuData.getClass().getDeclaredField("cpu");
@@ -100,9 +100,8 @@ class CpuDataTest {
      */
     @Test
     void getStats() throws NoSuchFieldException, IllegalAccessException {
-        ArrayList<Integer> stats = new ArrayList<>() {{
-            add(1);
-        }};
+        ArrayList<Integer> stats = new ArrayList<>();
+        stats.add(1);
         CpuData cpuData = new CpuData();
         final Field field = cpuData.getClass().getDeclaredField("stats");
         field.setAccessible(true);
@@ -118,9 +117,8 @@ class CpuDataTest {
      */
     @Test
     void setStats() throws NoSuchFieldException, IllegalAccessException {
-        ArrayList<Integer> stats = new ArrayList<>() {{
-            add(1);
-        }};
+        ArrayList<Integer> stats = new ArrayList<>();
+        stats.add(1);
         CpuData cpuData = new CpuData();
         cpuData.setStats(stats);
         final Field field = cpuData.getClass().getDeclaredField("stats");
@@ -168,7 +166,7 @@ class CpuDataTest {
      */
     @Test
     void getPriority() throws NoSuchFieldException, IllegalAccessException {
-        int priority = (int) (Math.random() * 100);
+        int priority = 2;
         CpuData cpuData = new CpuData();
         final Field field = cpuData.getClass().getDeclaredField("priority");
         field.setAccessible(true);
@@ -184,7 +182,7 @@ class CpuDataTest {
      */
     @Test
     void setPriority() throws NoSuchFieldException, IllegalAccessException {
-        int priority = (int) (Math.random() * 100);
+        int priority = 2;
         CpuData cpuData = new CpuData();
         cpuData.setPriority(priority);
         final Field field = cpuData.getClass().getDeclaredField("priority");
@@ -200,7 +198,7 @@ class CpuDataTest {
      */
     @Test
     void getSchedId() throws NoSuchFieldException, IllegalAccessException {
-        int schedId = (int) (Math.random() * 100);
+        int schedId = 2;
         CpuData cpuData = new CpuData();
         final Field field = cpuData.getClass().getDeclaredField("schedId");
         field.setAccessible(true);
@@ -216,7 +214,7 @@ class CpuDataTest {
      */
     @Test
     void setSchedId() throws NoSuchFieldException, IllegalAccessException {
-        int schedId = (int) (Math.random() * 100);
+        int schedId = 2;
         CpuData cpuData = new CpuData();
         cpuData.setPriority(schedId);
         assertEquals(schedId, cpuData.getPriority());
@@ -230,7 +228,7 @@ class CpuDataTest {
      */
     @Test
     void getStartTime() throws NoSuchFieldException, IllegalAccessException {
-        long startTime = Double.doubleToLongBits((Math.random() * 100));
+        long startTime = 1201110L;
         CpuData cpuData = new CpuData();
         final Field field = cpuData.getClass().getDeclaredField("startTime");
         field.setAccessible(true);
@@ -246,7 +244,7 @@ class CpuDataTest {
      */
     @Test
     void setStartTime() throws NoSuchFieldException, IllegalAccessException {
-        long startTime = Double.doubleToLongBits((Math.random() * 100));
+        long startTime = 1201110L;
         CpuData cpuData = new CpuData();
         cpuData.setStartTime(startTime);
         final Field field = cpuData.getClass().getDeclaredField("startTime");
@@ -262,7 +260,7 @@ class CpuDataTest {
      */
     @Test
     void getDuration() throws NoSuchFieldException, IllegalAccessException {
-        long duration = Double.doubleToLongBits((Math.random() * 100));
+        long duration = 1201110L;
         CpuData cpuData = new CpuData();
         final Field field = cpuData.getClass().getDeclaredField("duration");
         field.setAccessible(true);
@@ -278,7 +276,7 @@ class CpuDataTest {
      */
     @Test
     void setDuration() throws NoSuchFieldException, IllegalAccessException {
-        long duration = Double.doubleToLongBits((Math.random() * 100));
+        long duration = 1201110L;
         CpuData cpuData = new CpuData();
         cpuData.setDuration(duration);
         final Field field = cpuData.getClass().getDeclaredField("duration");

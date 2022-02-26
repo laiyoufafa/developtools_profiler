@@ -29,6 +29,8 @@ import static ohos.devtools.views.charts.utils.ChartUtils.multiply;
 
 /**
  * RectChart chart
+ *
+ * @since 2021/5/19 16:39
  */
 public class RectChart extends ProfilerChart {
     /**
@@ -58,10 +60,6 @@ public class RectChart extends ProfilerChart {
 
     private int threadId;
 
-    public void setThreadId(int threadId) {
-        this.threadId = threadId;
-    }
-
     /**
      * Constructor
      *
@@ -72,6 +70,10 @@ public class RectChart extends ProfilerChart {
         super(bottomPanel, name);
         chartType = RECT;
         top = 0;
+    }
+
+    public void setThreadId(int threadId) {
+        this.threadId = threadId;
     }
 
     /**
@@ -134,7 +136,7 @@ public class RectChart extends ProfilerChart {
                         default:
                             graphics.setColor(null);
                     }
-                    graphics.fillRect(splitList.get(index).getPointX(), 0, endX, y0);
+                    graphics.fillRect(splitList.get(index).getPointX(), 0, endX, yZero);
                 }
             }
         }

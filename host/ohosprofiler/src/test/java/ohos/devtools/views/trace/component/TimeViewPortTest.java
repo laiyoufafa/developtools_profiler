@@ -33,7 +33,9 @@ class TimeViewPortTest {
     @Test
     void mousePressed() {
         TimeViewPort timeViewPort = new TimeViewPort(height -> {
+            String.valueOf(height);
         }, (startNS, endNS) -> {
+            long time = startNS + endNS;
         });
         MouseEvent mouseEvent = new MouseEvent(timeViewPort, 1, 1, 1, 1, 1, 1, true, 1);
         timeViewPort.mousePressed(mouseEvent);
@@ -46,7 +48,9 @@ class TimeViewPortTest {
     @Test
     void mouseDragged() {
         TimeViewPort timeViewPort = new TimeViewPort(height -> {
+            String.valueOf(height);
         }, (startNS, endNS) -> {
+            long time = startNS + endNS;
         });
         MouseEvent mouseEvent = new MouseEvent(timeViewPort, 1, 1, 1, 1, 1, 1, true, 1);
         timeViewPort.mouseDragged(mouseEvent);
@@ -59,7 +63,9 @@ class TimeViewPortTest {
     @Test
     void mouseMoved() {
         TimeViewPort timeViewPort = new TimeViewPort(height -> {
+            String.valueOf(height);
         }, (startNS, endNS) -> {
+            long time = startNS + endNS;
         });
         MouseEvent mouseEvent = new MouseEvent(timeViewPort, 1, 1, 1, 1, 1, 1, true, 1);
         timeViewPort.mouseMoved(mouseEvent);

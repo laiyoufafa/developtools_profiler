@@ -19,6 +19,8 @@ import com.intellij.ui.components.JBLabel;
 
 /**
  * HosJLabel
+ *
+ * @since 2021/5/19 16:39
  */
 public class CustomJLabel extends JBLabel {
     private long sessionId;
@@ -32,6 +34,22 @@ public class CustomJLabel extends JBLabel {
     private CustomJLabel left;
     private String fileType;
     private String cardName;
+
+    /**
+     * CustomJLabel
+     */
+    public CustomJLabel() {
+        super("", null, LEADING);
+    }
+
+    /**
+     * CustomJLabel
+     *
+     * @param text text
+     */
+    public CustomJLabel(String text) {
+        super(text);
+    }
 
     /**
      * isOnline
@@ -85,22 +103,6 @@ public class CustomJLabel extends JBLabel {
      */
     public void setEndTime(long endTime) {
         this.endTime = endTime;
-    }
-
-    /**
-     * CustomJLabel
-     *
-     * @param text text
-     */
-    public CustomJLabel(String text) {
-        super(text);
-    }
-
-    /**
-     * CustomJLabel
-     */
-    public CustomJLabel() {
-        super("", null, LEADING);
     }
 
     /**

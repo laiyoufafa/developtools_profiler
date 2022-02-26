@@ -35,6 +35,7 @@ import java.io.IOException;
  */
 public class TabPanel extends JBTabbedPane {
     private static int barHeight;
+
     private final int iconWH = 20;
     private Rectangle topRect;
     private Rectangle bottomRect;

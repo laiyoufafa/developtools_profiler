@@ -28,6 +28,8 @@ import java.util.Objects;
 
 /**
  * PluginConf
+ *
+ * @since 2021/5/19 16:39
  */
 public final class PluginConf {
     private String pluginFileName;

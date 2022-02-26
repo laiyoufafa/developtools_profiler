@@ -38,6 +38,7 @@ class CpuFragmentTest {
     @Test
     void draw() {
         CpuFragment cpuFragment = new CpuFragment(new JPanel(), (leftX, rightX, leftNS, rightNS, centerNS) -> {
+            int xValue = leftX + rightX;
         });
         BufferedImage image = UIUtil.createImage(new JPanel(), 1, 1, BufferedImage.TYPE_INT_ARGB);
         Graphics2D graphics2D = image.createGraphics();
@@ -51,6 +52,7 @@ class CpuFragmentTest {
     @Test
     void getRect() {
         CpuFragment cpuFragment = new CpuFragment(new JPanel(), (leftX, rightX, leftNS, rightNS, centerNS) -> {
+            int xValue = leftX + rightX;
         });
         assertEquals(true, cpuFragment.getRect() != null);
     }
@@ -61,6 +63,7 @@ class CpuFragmentTest {
     @Test
     void setRect() {
         CpuFragment cpuFragment = new CpuFragment(new JPanel(), (leftX, rightX, leftNS, rightNS, centerNS) -> {
+            int xValue = leftX + rightX;
         });
         cpuFragment.setRect(new Rectangle(0, 0, 100, 100));
         assertEquals(100, cpuFragment.getRect().width);
@@ -72,6 +75,7 @@ class CpuFragmentTest {
     @Test
     void getDescRect() {
         CpuFragment cpuFragment = new CpuFragment(new JPanel(), (leftX, rightX, leftNS, rightNS, centerNS) -> {
+            int xValue = leftX + rightX;
         });
         cpuFragment.setRect(new Rectangle(0, 0, 100, 100));
         assertEquals(100, cpuFragment.getRect().width);
@@ -83,6 +87,7 @@ class CpuFragmentTest {
     @Test
     void setDescRect() {
         CpuFragment cpuFragment = new CpuFragment(new JPanel(), (leftX, rightX, leftNS, rightNS, centerNS) -> {
+            int xValue = leftX + rightX;
         });
         cpuFragment.setRect(new Rectangle(0, 0, 100, 100));
         assertEquals(100, cpuFragment.getRect().width);
@@ -94,6 +99,7 @@ class CpuFragmentTest {
     @Test
     void getDataRect() {
         CpuFragment cpuFragment = new CpuFragment(new JPanel(), (leftX, rightX, leftNS, rightNS, centerNS) -> {
+            int xValue = leftX + rightX;
         });
         cpuFragment.setRect(new Rectangle(0, 0, 100, 100));
         assertEquals(100, cpuFragment.getRect().width);
@@ -105,6 +111,7 @@ class CpuFragmentTest {
     @Test
     void setDataRect() {
         CpuFragment cpuFragment = new CpuFragment(new JPanel(), (leftX, rightX, leftNS, rightNS, centerNS) -> {
+            int xValue = leftX + rightX;
         });
         cpuFragment.setRect(new Rectangle(0, 0, 100, 100));
         assertEquals(100, cpuFragment.getRect().width);
@@ -116,6 +123,7 @@ class CpuFragmentTest {
     @Test
     void getRoot() {
         CpuFragment cpuFragment = new CpuFragment(new JPanel(), (leftX, rightX, leftNS, rightNS, centerNS) -> {
+            int xValue = leftX + rightX;
         });
         cpuFragment.setRect(new Rectangle(0, 0, 100, 100));
         assertEquals(100, cpuFragment.getRect().width);
@@ -127,6 +135,7 @@ class CpuFragmentTest {
     @Test
     void setRoot() {
         CpuFragment cpuFragment = new CpuFragment(new JPanel(), (leftX, rightX, leftNS, rightNS, centerNS) -> {
+            int xValue = leftX + rightX;
         });
         cpuFragment.setRect(new Rectangle(0, 0, 100, 100));
         assertEquals(100, cpuFragment.getRect().width);
@@ -138,6 +147,7 @@ class CpuFragmentTest {
     @Test
     void getLineColor() {
         CpuFragment cpuFragment = new CpuFragment(new JPanel(), (leftX, rightX, leftNS, rightNS, centerNS) -> {
+            int xValue = leftX + rightX;
         });
         cpuFragment.setRect(new Rectangle(0, 0, 100, 100));
         assertEquals(100, cpuFragment.getRect().width);
@@ -149,6 +159,7 @@ class CpuFragmentTest {
     @Test
     void getTextColor() {
         CpuFragment cpuFragment = new CpuFragment(new JPanel(), (leftX, rightX, leftNS, rightNS, centerNS) -> {
+            int xValue = leftX + rightX;
         });
         cpuFragment.setRect(new Rectangle(0, 0, 100, 100));
         assertEquals(100, cpuFragment.getRect().width);
@@ -160,6 +171,7 @@ class CpuFragmentTest {
     @Test
     void repaint() {
         CpuFragment cpuFragment = new CpuFragment(new JPanel(), (leftX, rightX, leftNS, rightNS, centerNS) -> {
+            int xValue = leftX + rightX;
         });
         cpuFragment.setRect(new Rectangle(0, 0, 100, 100));
         assertEquals(100, cpuFragment.getRect().width);
@@ -171,6 +183,7 @@ class CpuFragmentTest {
     @Test
     void getSelectX() {
         CpuFragment cpuFragment = new CpuFragment(new JPanel(), (leftX, rightX, leftNS, rightNS, centerNS) -> {
+            int xValue = leftX + rightX;
         });
         cpuFragment.setSelectX(100);
         assertEquals(100, cpuFragment.getSelectX());
@@ -182,6 +195,7 @@ class CpuFragmentTest {
     @Test
     void setSelectX() {
         CpuFragment cpuFragment = new CpuFragment(new JPanel(), (leftX, rightX, leftNS, rightNS, centerNS) -> {
+            int xValue = leftX + rightX;
         });
         cpuFragment.setSelectX(100);
         assertEquals(100, cpuFragment.getSelectX());
@@ -193,6 +207,7 @@ class CpuFragmentTest {
     @Test
     void getSelectY() {
         CpuFragment cpuFragment = new CpuFragment(new JPanel(), (leftX, rightX, leftNS, rightNS, centerNS) -> {
+            int xValue = leftX + rightX;
         });
         cpuFragment.setSelectY(100);
         assertEquals(100, cpuFragment.getSelectY());
@@ -204,6 +219,7 @@ class CpuFragmentTest {
     @Test
     void setSelectY() {
         CpuFragment cpuFragment = new CpuFragment(new JPanel(), (leftX, rightX, leftNS, rightNS, centerNS) -> {
+            int xValue = leftX + rightX;
         });
         cpuFragment.setSelectY(100);
         assertEquals(100, cpuFragment.getSelectY());
@@ -215,6 +231,7 @@ class CpuFragmentTest {
     @Test
     void setRangeChangeListener() {
         CpuFragment cpuFragment = new CpuFragment(new JPanel(), (leftX, rightX, leftNS, rightNS, centerNS) -> {
+            int xValue = leftX + rightX;
         });
         cpuFragment.setRect(new Rectangle(0, 0, 100, 100));
         assertEquals(100, cpuFragment.getRect().width);
@@ -226,6 +243,7 @@ class CpuFragmentTest {
     @Test
     void mouseDragged() {
         CpuFragment cpuFragment = new CpuFragment(new JPanel(), (leftX, rightX, leftNS, rightNS, centerNS) -> {
+            int xValue = leftX + rightX;
         });
         cpuFragment.setRect(new Rectangle(0, 0, 100, 100));
         assertEquals(100, cpuFragment.getRect().width);
@@ -237,6 +255,7 @@ class CpuFragmentTest {
     @Test
     void setRange() {
         CpuFragment cpuFragment = new CpuFragment(new JPanel(), (leftX, rightX, leftNS, rightNS, centerNS) -> {
+            int xValue = leftX + rightX;
         });
         cpuFragment.setRect(new Rectangle(0, 0, 100, 100));
         assertEquals(100, cpuFragment.getRect().width);

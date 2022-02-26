@@ -29,6 +29,8 @@ import java.util.List;
 
 /**
  * Memory Instance Details Dao Test
+ *
+ * @since 2021/5/19 16:39
  */
 public class MemoryInstanceDetailsDaoTest {
     private MemoryInstanceDetailsInfo memoryInstanceDetailsInfo;
@@ -49,7 +51,7 @@ public class MemoryInstanceDetailsDaoTest {
         ProfilerLogManager.getSingleton().updateLogLevel(Level.ERROR);
         DataBaseApi apo = DataBaseApi.getInstance();
         apo.initDataSourceManager();
-        memoryInstanceDetailsDao = MemoryInstanceDetailsDao.getInstance();
+        memoryInstanceDetailsDao = new MemoryInstanceDetailsDao();
         memoryInstanceDetailsInfo = new MemoryInstanceDetailsInfo();
         memoryInstanceDetailsInfo.setInstanceId(1);
         memoryInstanceDetailsInfo.setClassName("Class");
@@ -71,7 +73,7 @@ public class MemoryInstanceDetailsDaoTest {
      */
     @Test
     public void testGetInstance() {
-        MemoryInstanceDetailsDao instance = MemoryInstanceDetailsDao.getInstance();
+        MemoryInstanceDetailsDao instance = new MemoryInstanceDetailsDao();
         Assert.assertNotNull(instance);
     }
 

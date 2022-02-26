@@ -163,7 +163,7 @@ public class TabCounter extends JBPanel {
             bean.setMinValue(collect.get(0).getValue());
             bean.setMaxValue(collect.get(collect.size() - 1).getValue());
             // Calculate the weighted average value
-            double weightAvg = 0.0;
+            double weightAvg = 0.0D;
             long timeRange = rightNs - leftNs;
             for (int index = 0, size = list.size(); index < size; index++) {
                 long start = index == 0 ? leftNs : list.get(index).getStartTime();

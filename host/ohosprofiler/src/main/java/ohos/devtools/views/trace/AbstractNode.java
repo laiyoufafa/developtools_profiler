@@ -100,5 +100,6 @@ public abstract class AbstractNode {
      * @param event event
      */
     public void onClick(MouseEvent event) {
+        event.getX();
     }
 }

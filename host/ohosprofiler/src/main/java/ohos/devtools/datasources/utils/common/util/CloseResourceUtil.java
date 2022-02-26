@@ -26,6 +26,8 @@ import java.sql.Statement;
 
 /**
  * Close Resource Util
+ *
+ * @since 2021/5/19 16:39
  */
 public class CloseResourceUtil {
     private static final Logger LOGGER = LogManager.getLogger(CloseResourceUtil.class);

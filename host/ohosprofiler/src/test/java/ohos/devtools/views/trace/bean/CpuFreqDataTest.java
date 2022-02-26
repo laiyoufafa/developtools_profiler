@@ -33,9 +33,9 @@ class CpuFreqDataTest {
      */
     @Test
     void getCpu() {
-        assertEquals(3, new CpuFreqData() {{
-            setCpu(3);
-        }}.getCpu());
+        CpuFreqData cpuFreqData = new CpuFreqData();
+        cpuFreqData.setCpu(3);
+        assertEquals(3, cpuFreqData.getCpu());
     }
 
     /**
@@ -43,9 +43,9 @@ class CpuFreqDataTest {
      */
     @Test
     void setCpu() {
-        assertEquals(3, new CpuFreqData() {{
-            setCpu(3);
-        }}.getCpu());
+        CpuFreqData cpuFreqData = new CpuFreqData();
+        cpuFreqData.setCpu(3);
+        assertEquals(3, cpuFreqData.getCpu());
     }
 
     /**
@@ -53,9 +53,9 @@ class CpuFreqDataTest {
      */
     @Test
     void getValue() {
-        assertEquals(3L, new CpuFreqData() {{
-            setValue(3L);
-        }}.getValue());
+        CpuFreqData cpuFreqData = new CpuFreqData();
+        cpuFreqData.setValue(3L);
+        assertEquals(3L, cpuFreqData.getValue());
     }
 
     /**
@@ -63,9 +63,9 @@ class CpuFreqDataTest {
      */
     @Test
     void setValue() {
-        assertEquals(3L, new CpuFreqData() {{
-            setValue(3L);
-        }}.getValue());
+        CpuFreqData cpuFreqData = new CpuFreqData();
+        cpuFreqData.setValue(3L);
+        assertEquals(3L, cpuFreqData.getValue());
     }
 
     /**
@@ -73,9 +73,9 @@ class CpuFreqDataTest {
      */
     @Test
     void getStartTime() {
-        assertEquals(3L, new CpuFreqData() {{
-            setStartTime(3L);
-        }}.getStartTime());
+        CpuFreqData cpuFreqData = new CpuFreqData();
+        cpuFreqData.setStartTime(3L);
+        assertEquals(3L, cpuFreqData.getStartTime());
     }
 
     /**
@@ -83,9 +83,9 @@ class CpuFreqDataTest {
      */
     @Test
     void setStartTime() {
-        assertEquals(3L, new CpuFreqData() {{
-            setStartTime(3L);
-        }}.getStartTime());
+        CpuFreqData cpuFreqData = new CpuFreqData();
+        cpuFreqData.setStartTime(3L);
+        assertEquals(3L, cpuFreqData.getStartTime());
     }
 
     /**
@@ -93,9 +93,9 @@ class CpuFreqDataTest {
      */
     @Test
     void getDuration() {
-        assertEquals(3L, new CpuFreqData() {{
-            setDuration(3L);
-        }}.getDuration());
+        CpuFreqData cpuFreqData = new CpuFreqData();
+        cpuFreqData.setDuration(3L);
+        assertEquals(3L, cpuFreqData.getDuration());
     }
 
     /**
@@ -103,9 +103,9 @@ class CpuFreqDataTest {
      */
     @Test
     void setDuration() {
-        assertEquals(3L, new CpuFreqData() {{
-            setDuration(3L);
-        }}.getDuration());
+        CpuFreqData cpuFreqData = new CpuFreqData();
+        cpuFreqData.setDuration(3L);
+        assertEquals(3L, cpuFreqData.getDuration());
     }
 
     /**
@@ -114,9 +114,9 @@ class CpuFreqDataTest {
     @Test
     void getRoot() {
         JComponent jComponent = new JButton();
-        assertEquals(jComponent, new CpuFreqData() {{
-            setRoot(jComponent);
-        }}.getRoot());
+        CpuFreqData cpuFreqData = new CpuFreqData();
+        cpuFreqData.setRoot(jComponent);
+        assertEquals(jComponent, cpuFreqData.getRoot());
     }
 
     /**
@@ -125,9 +125,9 @@ class CpuFreqDataTest {
     @Test
     void setRoot() {
         JComponent jComponent = new JButton();
-        assertEquals(jComponent, new CpuFreqData() {{
-            setRoot(jComponent);
-        }}.getRoot());
+        CpuFreqData cpuFreqData = new CpuFreqData();
+        cpuFreqData.setRoot(jComponent);
+        assertEquals(jComponent, cpuFreqData.getRoot());
     }
 
     /**
@@ -136,9 +136,9 @@ class CpuFreqDataTest {
     @Test
     void isFlagFocus() {
         boolean flagFocus = true;
-        assertEquals(flagFocus, new CpuFreqData() {{
-            setFlagFocus(isFlagFocus());
-        }}.isFlagFocus());
+        CpuFreqData cpuFreqData = new CpuFreqData();
+        cpuFreqData.setFlagFocus(cpuFreqData.isFlagFocus());
+        assertEquals(flagFocus, cpuFreqData.isFlagFocus());
     }
 
     /**
@@ -147,9 +147,9 @@ class CpuFreqDataTest {
     @Test
     void setFlagFocus() {
         boolean flagFocus = true;
-        assertEquals(flagFocus, new CpuFreqData() {{
-            setFlagFocus(isFlagFocus());
-        }}.isFlagFocus());
+        CpuFreqData cpuFreqData = new CpuFreqData();
+        cpuFreqData.setFlagFocus(cpuFreqData.isFlagFocus());
+        assertEquals(flagFocus, cpuFreqData.isFlagFocus());
     }
 
     /**
@@ -157,9 +157,9 @@ class CpuFreqDataTest {
      */
     @Test
     void getMax() {
-        assertEquals(10.0D, new CpuFreqData() {{
-            setMax(10.0D);
-        }}.getMax());
+        CpuFreqData cpuFreqData = new CpuFreqData();
+        cpuFreqData.setMax(10.0D);
+        assertEquals(10.0D, cpuFreqData.getMax());
     }
 
     /**
@@ -167,9 +167,9 @@ class CpuFreqDataTest {
      */
     @Test
     void setMax() {
-        assertEquals(10.0D, new CpuFreqData() {{
-            setMax(10.0D);
-        }}.getMax());
+        CpuFreqData cpuFreqData = new CpuFreqData();
+        cpuFreqData.setMax(10.0D);
+        assertEquals(10.0D, cpuFreqData.getMax());
     }
 
 }

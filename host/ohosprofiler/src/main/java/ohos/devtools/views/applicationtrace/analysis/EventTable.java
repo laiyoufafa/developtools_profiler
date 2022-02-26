@@ -104,12 +104,11 @@ public class EventTable extends JBPanel {
     }
 
     private Comparator<String> getComparator() {
-        Comparator<String> comparator = (left, right) -> {
+        return (left, right) -> {
             double leftTime = stringToTime(left);
             double rightTime = stringToTime(right);
             return Double.compare(leftTime, rightTime);
         };
-        return comparator;
     }
 
     private double stringToTime(String str) {
@@ -129,9 +128,10 @@ public class EventTable extends JBPanel {
     private void getAppData(long startNS, long endNS, List<Integer> threadIds) {
         List<Func> funcList = new ArrayList<>();
         threadIds.forEach(threadId -> {
-            if (AllData.funcMap.containsKey(threadId)) {
-                funcList.addAll(AllData.funcMap.get(threadId).stream().filter(func -> func.getDepth() != -1 && TimeUtils
-                    .isRangeCross(startNS, endNS, func.getStartTs(), func.getEndTs())).collect(Collectors.toList()));
+            if (AllData.FUNC_MAP.containsKey(threadId)) {
+                funcList.addAll(AllData.FUNC_MAP.get(threadId).stream().filter(func -> func.getDepth() != -1
+                    && TimeUtils.isRangeCross(startNS, endNS, func.getStartTs(), func.getEndTs()))
+                    .collect(Collectors.toList()));
             }
         });
         Map<Long, List<Func>> collect = funcList.stream().collect(Collectors.groupingBy(Func::getParentStackId));

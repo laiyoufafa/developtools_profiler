@@ -23,6 +23,8 @@ import javax.swing.JProgressBar;
 
 /**
  * CustomProgressBar
+ *
+ * @since 2021/5/19 16:39
  */
 public class CustomProgressBar extends JProgressBar {
     /**

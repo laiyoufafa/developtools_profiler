@@ -71,6 +71,7 @@ public class CpuDataConsumer extends AbsDataConsumer {
      * CpuDataConsumer
      */
     public CpuDataConsumer() {
+        super();
     }
 
     /**

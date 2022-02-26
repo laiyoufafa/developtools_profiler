@@ -78,6 +78,8 @@ import static ohos.devtools.views.common.Constant.IS_SUPPORT_NEW_HDC;
 
 /**
  * DevicesManager
+ *
+ * @since 2021/5/19 16:39
  */
 public class MultiDeviceManager {
     private static final Logger LOGGER = LogManager.getLogger(MultiDeviceManager.class);
@@ -90,6 +92,10 @@ public class MultiDeviceManager {
 
     private final DeviceDao deviceDao = new DeviceDao();
 
+    private MultiDeviceManager() {
+        super();
+    }
+
     /**
      * getInstance
      *
@@ -97,10 +103,6 @@ public class MultiDeviceManager {
      */
     public static MultiDeviceManager getInstance() {
         return MultiDeviceManager.INSTANCE;
-    }
-
-    private MultiDeviceManager() {
-        super();
     }
 
     /**

@@ -37,10 +37,15 @@ import static ohos.devtools.datasources.utils.common.Constant.TIME_OUT;
 
 /**
  * Interact with commands on the device side
+ *
+ * @since 2021/5/19 16:39
  */
 public class HdcWrapper {
     private static final Logger LOGGER = LogManager.getLogger(HdcWrapper.class);
     private static final HdcWrapper INSTANCE = new HdcWrapper();
+
+    private HdcWrapper() {
+    }
 
     /**
      * Get an instance
@@ -49,9 +54,6 @@ public class HdcWrapper {
      */
     public static HdcWrapper getInstance() {
         return INSTANCE;
-    }
-
-    private HdcWrapper() {
     }
 
     /**
@@ -353,9 +355,9 @@ public class HdcWrapper {
                     ArrayList<String> list = new ArrayList<>();
                     String[] newLine = excuteResult.split(":");
                     for (String str : newLine) {
-                        String s = str.trim();
-                        if (!"".equals(s)) {
-                            list.add(s);
+                        String value = str.trim();
+                        if (!"".equals(value)) {
+                            list.add(value);
                         }
                     }
                     result.add(list);
@@ -415,9 +417,9 @@ public class HdcWrapper {
                     ArrayList<String> list = new ArrayList<>();
                     String[] newLine = excuteResult.split(" ");
                     for (String str : newLine) {
-                        String s = str.trim();
-                        if (!"".equals(s)) {
-                            list.add(s);
+                        String value = str.trim();
+                        if (!"".equals(value)) {
+                            list.add(value);
                         }
                     }
                     devices.add(list);
@@ -454,8 +456,8 @@ public class HdcWrapper {
                     String[] newLine = excuteResult.split("\t");
                     for (String str : newLine) {
                         if (StringUtils.isNotBlank(str)) {
-                            String s = str.trim();
-                            list.add(s);
+                            String value = str.trim();
+                            list.add(value);
                         }
                     }
                     devices.add(list);

@@ -58,6 +58,7 @@ public class CpuFreqData extends AbstractGraph {
      * Empty parameter construction method
      */
     public CpuFreqData() {
+        super();
     }
 
     /**

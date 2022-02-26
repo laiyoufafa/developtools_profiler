@@ -29,7 +29,9 @@ import java.util.Iterator;
 import java.util.concurrent.TimeUnit;
 
 /**
- * 提供设备侧grpc接口封装
+ * Provide device-side grpc interface encapsulation
+ *
+ * @since 2021/5/19 16:39
  */
 public class ProfilerClient {
     private static final Logger LOGGER = LogManager.getLogger(ProfilerClient.class);
@@ -103,10 +105,8 @@ public class ProfilerClient {
         if (ProfilerLogManager.isInfoEnabled()) {
             LOGGER.info("getProfilerClient");
         }
-        ProfilerServiceTypes.GetCapabilitiesResponse res =
-            profilerBlockInClient.withDeadlineAfter(LayoutConstants.FIVE, TimeUnit.SECONDS)
-                .getCapabilities(getCapabilitiesRequest);
-        return res;
+        return profilerBlockInClient.withDeadlineAfter(LayoutConstants.FIVE, TimeUnit.SECONDS)
+            .getCapabilities(getCapabilitiesRequest);
     }
 
     /**
@@ -121,10 +121,8 @@ public class ProfilerClient {
         if (ProfilerLogManager.isInfoEnabled()) {
             LOGGER.info("createSession");
         }
-        ProfilerServiceTypes.CreateSessionResponse response =
-            profilerBlockInClient.withDeadlineAfter(LayoutConstants.FIVE, TimeUnit.SECONDS)
-                .createSession(createSessionRequest);
-        return response;
+        return profilerBlockInClient.withDeadlineAfter(LayoutConstants.FIVE, TimeUnit.SECONDS)
+            .createSession(createSessionRequest);
     }
 
     /**
@@ -139,10 +137,8 @@ public class ProfilerClient {
         if (ProfilerLogManager.isInfoEnabled()) {
             LOGGER.info("startSession");
         }
-        ProfilerServiceTypes.StartSessionResponse response =
-            profilerBlockInClient.withDeadlineAfter(LayoutConstants.THREE, TimeUnit.SECONDS)
-                .startSession(startSessionRequest);
-        return response;
+        return profilerBlockInClient.withDeadlineAfter(LayoutConstants.THREE, TimeUnit.SECONDS)
+            .startSession(startSessionRequest);
     }
 
     /**
@@ -157,10 +153,8 @@ public class ProfilerClient {
         if (ProfilerLogManager.isInfoEnabled()) {
             LOGGER.info("fetchData");
         }
-        Iterator<ProfilerServiceTypes.FetchDataResponse> response =
-            profilerBlockInClient.withMaxInboundMessageSize(Integer.MAX_VALUE)
-                .withMaxOutboundMessageSize(Integer.MAX_VALUE).fetchData(fetchDataRequest);
-        return response;
+        return profilerBlockInClient.withMaxInboundMessageSize(Integer.MAX_VALUE)
+            .withMaxOutboundMessageSize(Integer.MAX_VALUE).fetchData(fetchDataRequest);
     }
 
     /**
@@ -175,9 +169,7 @@ public class ProfilerClient {
         if (ProfilerLogManager.isInfoEnabled()) {
             LOGGER.info("stopSession");
         }
-        ProfilerServiceTypes.StopSessionResponse response =
-            profilerBlockInClient.withDeadlineAfter(3, TimeUnit.SECONDS).stopSession(stopSessionRequest);
-        return response;
+        return profilerBlockInClient.withDeadlineAfter(3, TimeUnit.SECONDS).stopSession(stopSessionRequest);
     }
 
     /**
@@ -192,9 +184,7 @@ public class ProfilerClient {
         if (ProfilerLogManager.isInfoEnabled()) {
             LOGGER.info("destroySession");
         }
-        ProfilerServiceTypes.DestroySessionResponse res =
-            profilerBlockInClient.withDeadlineAfter(1, TimeUnit.SECONDS).destroySession(destroyRequest);
-        return res;
+        return profilerBlockInClient.withDeadlineAfter(1, TimeUnit.SECONDS).destroySession(destroyRequest);
     }
 
     /**
@@ -202,16 +192,14 @@ public class ProfilerClient {
      *
      * @param keepSessionRequest keepSessionRequest
      * @return ProfilerServiceTypes.KeepSessionResponse
-     * @throws StatusRuntimeException
+     * @throws StatusRuntimeException StatusRuntimeException
      */
     public ProfilerServiceTypes.KeepSessionResponse keepSession(
         ProfilerServiceTypes.KeepSessionRequest keepSessionRequest) throws StatusRuntimeException {
         if (ProfilerLogManager.isInfoEnabled()) {
             LOGGER.info("keepSession");
         }
-        ProfilerServiceTypes.KeepSessionResponse res =
-            profilerBlockInClient.withDeadlineAfter(3, TimeUnit.SECONDS).keepSession(keepSessionRequest);
-        return res;
+        return profilerBlockInClient.withDeadlineAfter(3, TimeUnit.SECONDS).keepSession(keepSessionRequest);
     }
 
     /**

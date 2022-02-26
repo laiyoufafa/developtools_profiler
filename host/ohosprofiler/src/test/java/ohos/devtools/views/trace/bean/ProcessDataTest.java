@@ -30,9 +30,9 @@ class ProcessDataTest {
      */
     @Test
     void getId() {
-        assertEquals(3, new ProcessData() {{
-            setId(3);
-        }}.getId());
+        ProcessData processData = new ProcessData();
+        processData.setId(3);
+        assertEquals(3, processData.getId());
     }
 
     /**
@@ -40,9 +40,9 @@ class ProcessDataTest {
      */
     @Test
     void setId() {
-        assertEquals(3, new ProcessData() {{
-            setId(3);
-        }}.getId());
+        ProcessData processData = new ProcessData();
+        processData.setId(3);
+        assertEquals(3, processData.getId());
     }
 
     /**
@@ -50,9 +50,9 @@ class ProcessDataTest {
      */
     @Test
     void getUtid() {
-        assertEquals(3, new ProcessData() {{
-            setUtid(3);
-        }}.getUtid());
+        ProcessData processData = new ProcessData();
+        processData.setUtid(3);
+        assertEquals(3, processData.getUtid());
     }
 
     /**
@@ -60,9 +60,9 @@ class ProcessDataTest {
      */
     @Test
     void setUtid() {
-        assertEquals(3, new ProcessData() {{
-            setUtid(3);
-        }}.getUtid());
+        ProcessData processData = new ProcessData();
+        processData.setUtid(3);
+        assertEquals(3, processData.getUtid());
     }
 
     /**
@@ -70,9 +70,9 @@ class ProcessDataTest {
      */
     @Test
     void getCpu() {
-        assertEquals(3, new ProcessData() {{
-            setCpu(3);
-        }}.getCpu());
+        ProcessData processData = new ProcessData();
+        processData.setCpu(3);
+        assertEquals(3, processData.getCpu());
     }
 
     /**
@@ -80,9 +80,9 @@ class ProcessDataTest {
      */
     @Test
     void setCpu() {
-        assertEquals(3, new ProcessData() {{
-            setCpu(3);
-        }}.getCpu());
+        ProcessData processData = new ProcessData();
+        processData.setCpu(3);
+        assertEquals(3, processData.getCpu());
     }
 
     /**
@@ -90,9 +90,9 @@ class ProcessDataTest {
      */
     @Test
     void getStartTime() {
-        assertEquals(3L, new ProcessData() {{
-            setStartTime(3L);
-        }}.getStartTime());
+        ProcessData processData = new ProcessData();
+        processData.setStartTime(3L);
+        assertEquals(3L, processData.getStartTime());
     }
 
     /**
@@ -100,9 +100,9 @@ class ProcessDataTest {
      */
     @Test
     void setStartTime() {
-        assertEquals(3L, new ProcessData() {{
-            setStartTime(3L);
-        }}.getStartTime());
+        ProcessData processData = new ProcessData();
+        processData.setStartTime(3L);
+        assertEquals(3L, processData.getStartTime());
     }
 
     /**
@@ -110,9 +110,9 @@ class ProcessDataTest {
      */
     @Test
     void getDuration() {
-        assertEquals(3L, new ProcessData() {{
-            setDuration(3L);
-        }}.getDuration());
+        ProcessData processData = new ProcessData();
+        processData.setDuration(3L);
+        assertEquals(3L, processData.getDuration());
     }
 
     /**
@@ -120,9 +120,9 @@ class ProcessDataTest {
      */
     @Test
     void setDuration() {
-        assertEquals(3L, new ProcessData() {{
-            setDuration(3L);
-        }}.getDuration());
+        ProcessData processData = new ProcessData();
+        processData.setDuration(3L);
+        assertEquals(3L, processData.getDuration());
     }
 
     /**
@@ -130,9 +130,9 @@ class ProcessDataTest {
      */
     @Test
     void getState() {
-        assertEquals("state", new ProcessData() {{
-            setState("state");
-        }}.getState());
+        ProcessData processData = new ProcessData();
+        processData.setState("state");
+        assertEquals("state", processData.getState());
     }
 
     /**
@@ -140,8 +140,8 @@ class ProcessDataTest {
      */
     @Test
     void setState() {
-        assertEquals("state", new ProcessData() {{
-            setState("state");
-        }}.getState());
+        ProcessData processData = new ProcessData();
+        processData.setState("state");
+        assertEquals("state", processData.getState());
     }
 }

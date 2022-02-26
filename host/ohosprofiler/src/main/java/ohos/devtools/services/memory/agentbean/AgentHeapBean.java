@@ -19,6 +19,8 @@ import java.util.Objects;
 
 /**
  * Agent Heap Bean
+ *
+ * @since 2021/5/19 16:39
  */
 public class AgentHeapBean {
     private Integer agentNodeId;

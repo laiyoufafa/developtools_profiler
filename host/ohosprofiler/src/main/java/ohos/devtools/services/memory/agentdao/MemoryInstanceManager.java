@@ -21,6 +21,8 @@ import java.util.ArrayList;
 
 /**
  * Memory Instance Manager
+ *
+ * @since 2021/5/19 16:39
  */
 public class MemoryInstanceManager {
     /**
@@ -33,8 +35,7 @@ public class MemoryInstanceManager {
      * @return ArrayList <MemoryInstanceInfo>
      */
     public ArrayList<MemoryInstanceInfo> getMemoryInstanceInfos(Integer cId, Long startTime, Long endTime) {
-        MemoryInstanceDao memoryInstanceDao = MemoryInstanceDao.getInstance();
-        return memoryInstanceDao.getMemoryInstanceInfos(cId, startTime, endTime);
+        return new MemoryInstanceDao().getMemoryInstanceInfos(cId, startTime, endTime);
     }
 
     /**
@@ -43,7 +44,6 @@ public class MemoryInstanceManager {
      * @return ArrayList <MemoryInstanceInfo>
      */
     public ArrayList<MemoryUpdateInfo> getAllMemoryInstanceInfos() {
-        MemoryInstanceDao memoryInstanceDao = MemoryInstanceDao.getInstance();
-        return memoryInstanceDao.getAllMemoryInstanceInfos();
+        return new MemoryInstanceDao().getAllMemoryInstanceInfos();
     }
 }

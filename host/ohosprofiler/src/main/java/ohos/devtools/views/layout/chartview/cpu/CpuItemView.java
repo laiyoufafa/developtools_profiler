@@ -138,6 +138,7 @@ public class CpuItemView extends MonitorItemView {
      * Constructors
      */
     public CpuItemView() {
+        super();
     }
 
     @Override

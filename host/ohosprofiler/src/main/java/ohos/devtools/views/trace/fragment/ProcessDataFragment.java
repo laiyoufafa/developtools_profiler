@@ -51,6 +51,7 @@ public class ProcessDataFragment extends AbstractDataFragment<ProcessData> imple
      * current focus Process Data .
      */
     public static ProcessData focusProcessData = null;
+
     private final Process process;
     private final float alpha60 = .6f;
     private final float alpha100 = 1.0f;

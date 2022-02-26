@@ -23,6 +23,8 @@ import java.math.BigDecimal;
 
 /**
  * ViewUtils test
+ *
+ * @since 2021/5/19 16:39
  */
 public class OperationUtilsTest {
     private static final int[] TEST_ARRAY = {0, 10, 14, 24, 29, 32, 37, 40, 45};
@@ -46,8 +48,8 @@ public class OperationUtilsTest {
      */
     @Test
     public void multiplyTest() {
-        BigDecimal num1 = new BigDecimal(TEST_NUM1);
-        int result = OperationUtils.multiply(num1, TEST_NUM2);
+        BigDecimal bigDecimal = BigDecimal.valueOf(TEST_NUM1);
+        int result = OperationUtils.multiply(bigDecimal, TEST_NUM2);
         Assert.assertEquals(MULTIPLY_RESULT_INT, result);
     }
 

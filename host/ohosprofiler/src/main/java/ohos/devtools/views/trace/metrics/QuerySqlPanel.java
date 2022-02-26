@@ -47,6 +47,8 @@ import java.util.Set;
 
 /**
  * Query Sql Panel
+ *
+ * @since 2021/5/19 16:39
  */
 public class QuerySqlPanel extends JBPanel {
     /**
@@ -155,6 +157,10 @@ public class QuerySqlPanel extends JBPanel {
 
     /**
      * System Tuning Panel
+     *
+     * @param optionJPanel optionJPanel
+     * @param analystPanel analystPanel
+     * @param queryButton queryButton
      */
     public QuerySqlPanel(JBPanel optionJPanel, SysAnalystPanel analystPanel, JButton queryButton) {
         this.optionJPanel = optionJPanel;

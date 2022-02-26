@@ -39,16 +39,10 @@ public class AnalysisDialog extends DialogWrapper {
     private DeviceIPPortInfo deviceIPPortInfo;
 
     /**
-     * get timer
-     *
-     * @return Timer
-     */
-    public Timer getTimer() {
-        return this.timer;
-    }
-
-    /**
      * AnalysisDialog
+     *
+     * @param deviceIPPortInfo deviceIPPortInfo
+     * @param filePanel filePanel
      */
     public AnalysisDialog(DeviceIPPortInfo deviceIPPortInfo, JPanel filePanel) {
         super(true);
@@ -57,6 +51,15 @@ public class AnalysisDialog extends DialogWrapper {
         init();
         setTitle("Prompt");
         setResizable(false);
+    }
+
+    /**
+     * get timer
+     *
+     * @return Timer
+     */
+    public Timer getTimer() {
+        return this.timer;
     }
 
     /**
@@ -77,7 +80,6 @@ public class AnalysisDialog extends DialogWrapper {
     @Nullable
     @Override
     protected JComponent createSouthPanel() {
-        JPanel dialogSouthPanel = new JPanel(new BorderLayout());
-        return dialogSouthPanel;
+        return new JPanel(new BorderLayout());
     }
 }

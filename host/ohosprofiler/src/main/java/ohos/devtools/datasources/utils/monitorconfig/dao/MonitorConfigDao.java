@@ -24,11 +24,16 @@ import org.apache.logging.log4j.Logger;
 import java.util.List;
 
 /**
- * 监控项配置数据的dao层
+ * Dao layer of monitoring item configuration data
+ *
+ * @since 2021/5/19 16:39
  */
 public class MonitorConfigDao extends AbstractDataStore {
     private static final Logger LOGGER = LogManager.getLogger(MonitorConfigDao.class);
     private static volatile MonitorConfigDao singleton;
+
+    private MonitorConfigDao() {
+    }
 
     /**
      * Get an instance
@@ -44,9 +49,6 @@ public class MonitorConfigDao extends AbstractDataStore {
             }
         }
         return singleton;
-    }
-
-    private MonitorConfigDao() {
     }
 
     /**

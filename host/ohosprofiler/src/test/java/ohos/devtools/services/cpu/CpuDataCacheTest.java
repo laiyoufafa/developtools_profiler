@@ -26,11 +26,14 @@ import java.util.List;
 
 /**
  * Cpu Data Cache Test
+ *
+ * @since 2021/5/19 16:39
  */
 public class CpuDataCacheTest {
     private static final int TEST_START = 0;
     private static final int TEST_END = 1000;
     private static final String STR = "TEST";
+
     private List<ChartDataModel> chartDataModels = new ArrayList<>();
     private ChartDataModel chartDataModel;
     private CpuDataCache cache;

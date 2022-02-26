@@ -89,6 +89,7 @@ public class TracePanel extends JBPanel {
      * range end time
      */
     public static Long rangeEndNS;
+
     private TimeShaft timeShaft;
     private Ruler ruler;
     private JBScrollPane scrollPane;
@@ -145,6 +146,10 @@ public class TracePanel extends JBPanel {
             }
         });
         root = this;
+        contentPanelAddListen();
+    }
+
+    private void contentPanelAddListen() {
         contentPanel.addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent event) {

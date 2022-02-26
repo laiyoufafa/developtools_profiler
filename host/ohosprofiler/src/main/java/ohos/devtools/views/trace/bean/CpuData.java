@@ -83,6 +83,7 @@ public class CpuData extends AbstractGraph {
      * ui control extension field.
      */
     public CpuData() {
+        super();
     }
 
     /**

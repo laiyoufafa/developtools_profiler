@@ -30,9 +30,9 @@ class CPUProcessBeanTest {
      */
     @Test
     void getAvgDuration() {
-        assertEquals(3L, new CPUProcessBean(0, 0, "", "", "") {{
-            setAvgDuration(3L);
-        }}.getAvgDuration());
+        CPUProcessBean cpuProcessBean = new CPUProcessBean(0, 0, "", "", "");
+        cpuProcessBean.setAvgDuration(3L);
+        assertEquals(3L, cpuProcessBean.getAvgDuration());
     }
 
     /**
@@ -40,9 +40,9 @@ class CPUProcessBeanTest {
      */
     @Test
     void setAvgDuration() {
-        assertEquals(3L, new CPUProcessBean(0, 0, "", "", "") {{
-            setAvgDuration(3L);
-        }}.getAvgDuration());
+        CPUProcessBean cpuProcessBean = new CPUProcessBean(0, 0, "", "", "");
+        cpuProcessBean.setAvgDuration(3L);
+        assertEquals(3L, cpuProcessBean.getAvgDuration());
     }
 
     /**
@@ -50,9 +50,9 @@ class CPUProcessBeanTest {
      */
     @Test
     void getWallDuration() {
-        assertEquals(3L, new CPUProcessBean(0, 0, "", "", "") {{
-            setWallDuration(3L);
-        }}.getWallDuration());
+        CPUProcessBean cpuProcessBean = new CPUProcessBean(0, 0, "", "", "");
+        cpuProcessBean.setWallDuration(3L);
+        assertEquals(3L, cpuProcessBean.getWallDuration());
     }
 
     /**
@@ -60,9 +60,9 @@ class CPUProcessBeanTest {
      */
     @Test
     void setWallDuration() {
-        assertEquals(3L, new CPUProcessBean(0, 0, "", "", "") {{
-            setWallDuration(3L);
-        }}.getWallDuration());
+        CPUProcessBean cpuProcessBean = new CPUProcessBean(0, 0, "", "", "");
+        cpuProcessBean.setWallDuration(3L);
+        assertEquals(3L, cpuProcessBean.getWallDuration());
     }
 
     /**
@@ -70,9 +70,9 @@ class CPUProcessBeanTest {
      */
     @Test
     void getPid() {
-        assertEquals("pid", new CPUProcessBean(0, 0, "", "", "") {{
-            setPid("pid");
-        }}.getPid());
+        CPUProcessBean cpuProcessBean = new CPUProcessBean(0, 0, "", "", "");
+        cpuProcessBean.setPid("pid");
+        assertEquals("pid", cpuProcessBean.getPid());
     }
 
     /**
@@ -80,9 +80,9 @@ class CPUProcessBeanTest {
      */
     @Test
     void setPid() {
-        assertEquals("pid", new CPUProcessBean(0, 0, "", "", "") {{
-            setPid("pid");
-        }}.getPid());
+        CPUProcessBean cpuProcessBean = new CPUProcessBean(0, 0, "", "", "");
+        cpuProcessBean.setPid("pid");
+        assertEquals("pid", cpuProcessBean.getPid());
     }
 
     /**
@@ -90,9 +90,9 @@ class CPUProcessBeanTest {
      */
     @Test
     void getOccurrences() {
-        assertEquals("Occurrences", new CPUProcessBean(0, 0, "", "", "") {{
-            setOccurrences("Occurrences");
-        }}.getOccurrences());
+        CPUProcessBean cpuProcessBean = new CPUProcessBean(0, 0, "", "", "");
+        cpuProcessBean.setOccurrences("Occurrences");
+        assertEquals("Occurrences", cpuProcessBean.getOccurrences());
     }
 
     /**
@@ -100,9 +100,9 @@ class CPUProcessBeanTest {
      */
     @Test
     void setOccurrences() {
-        assertEquals("Occurrences", new CPUProcessBean(0, 0, "", "", "") {{
-            setOccurrences("Occurrences");
-        }}.getOccurrences());
+        CPUProcessBean cpuProcessBean = new CPUProcessBean(0, 0, "", "", "");
+        cpuProcessBean.setOccurrences("Occurrences");
+        assertEquals("Occurrences", cpuProcessBean.getOccurrences());
     }
 
     /**
@@ -110,9 +110,9 @@ class CPUProcessBeanTest {
      */
     @Test
     void getProcess() {
-        assertEquals("Process", new CPUProcessBean(0, 0, "", "", "") {{
-            setProcess("Process");
-        }}.getProcess());
+        CPUProcessBean cpuProcessBean = new CPUProcessBean(0, 0, "", "", "");
+        cpuProcessBean.setProcess("Process");
+        assertEquals("Process", cpuProcessBean.getProcess());
     }
 
     /**
@@ -120,8 +120,8 @@ class CPUProcessBeanTest {
      */
     @Test
     void setProcess() {
-        assertEquals("Process", new CPUProcessBean(0, 0, "", "", "") {{
-            setProcess("Process");
-        }}.getProcess());
+        CPUProcessBean cpuProcessBean = new CPUProcessBean(0, 0, "", "", "");
+        cpuProcessBean.setProcess("Process");
+        assertEquals("Process", cpuProcessBean.getProcess());
     }
 }

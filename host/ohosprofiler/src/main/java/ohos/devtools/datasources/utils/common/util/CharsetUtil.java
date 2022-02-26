@@ -26,13 +26,12 @@ import java.nio.charset.UnsupportedCharsetException;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
 /**
- * @Description String utilities class
+ * String utilities class
+ *
+ * @since 2021/5/19 16:39
  */
 public class CharsetUtil {
     private static final Logger LOGGER = LogManager.getLogger(CharsetUtil.class);
-
-    private CharsetUtil() {
-    }
 
     /**
      * GBK
@@ -72,6 +71,9 @@ public class CharsetUtil {
             LOGGER.info("Get GBKCharset Error {}", throwAbles.getMessage());
         }
         CHARSET_GBK = gbkCharset;
+    }
+
+    private CharsetUtil() {
     }
 
     /**

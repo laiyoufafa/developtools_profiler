@@ -19,6 +19,15 @@ import ohos.devtools.datasources.transport.grpc.service.MemoryPluginResult;
 
 /**
  * SysMemInfo
+ *
+ * @since 2021/5/19 16:39
  */
 public class SysMemInfo extends MemoryData<MemoryPluginResult.SysMeminfo> {
+
+    /**
+     * SysMemInfo
+     */
+    public SysMemInfo() {
+        super();
+    }
 }

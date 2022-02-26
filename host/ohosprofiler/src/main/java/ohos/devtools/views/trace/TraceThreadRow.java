@@ -65,7 +65,7 @@ public class TraceThreadRow<T extends AbstractNode, R extends AbstractNode> exte
         layout.setComponentConstraints(expandBtn, "split 2,gapleft 15,gaptop 3,gapbottom push");
         layout.setComponentConstraints(nameLabel, "gapleft 5,gaptop 3,gapbottom push,w 70!");
         loadData();
-        nameLabelClickConsumer = (e) -> {
+        nameLabelClickConsumer = (event) -> {
             setSelect(true, null, null);
         };
     }

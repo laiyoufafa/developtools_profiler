@@ -30,9 +30,9 @@ class ProcessTest {
      */
     @Test
     void getPid() {
-        assertEquals(3, new Process() {{
-            setPid(3);
-        }}.getPid());
+        Process process = new Process();
+        process.setPid(3);
+        assertEquals(3, process.getPid());
     }
 
     /**
@@ -40,9 +40,9 @@ class ProcessTest {
      */
     @Test
     void setPid() {
-        assertEquals(3, new Process() {{
-            setPid(3);
-        }}.getPid());
+        Process process = new Process();
+        process.setPid(3);
+        assertEquals(3, process.getPid());
     }
 
     /**
@@ -50,9 +50,9 @@ class ProcessTest {
      */
     @Test
     void getName() {
-        assertEquals("Process", new Process() {{
-            setName("Process");
-        }}.getName());
+        Process process = new Process();
+        process.setName("Process");
+        assertEquals("Process", process.getName());
     }
 
     /**
@@ -60,8 +60,8 @@ class ProcessTest {
      */
     @Test
     void setName() {
-        assertEquals("Process", new Process() {{
-            setName("Process");
-        }}.getName());
+        Process process = new Process();
+        process.setName("Process");
+        assertEquals("Process", process.getName());
     }
 }

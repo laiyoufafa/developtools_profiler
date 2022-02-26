@@ -36,6 +36,8 @@ public class LeftFragment extends AbstractFragment {
     private String logString;
 
     /**
+     * LeftFragment
+     *
      * @param root Component
      */
     public LeftFragment(final JComponent root) {

@@ -43,6 +43,8 @@ import java.util.List;
 
 /**
  * Info Stats Panel
+ *
+ * @since 2021/5/19 16:39
  */
 public class InfoStatsPanel extends JBPanel {
     /**
@@ -79,6 +81,10 @@ public class InfoStatsPanel extends JBPanel {
 
     /**
      * Info Stats Panel
+     *
+     * @param optionJPanel optionJPanel
+     * @param analystPanel analystPanel
+     * @param infoButton infoButton
      */
     public InfoStatsPanel(JBPanel optionJPanel, SysAnalystPanel analystPanel, JButton infoButton) {
         this.optionJPanel = optionJPanel;

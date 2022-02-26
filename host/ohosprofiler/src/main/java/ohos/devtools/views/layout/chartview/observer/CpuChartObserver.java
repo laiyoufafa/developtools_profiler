@@ -60,8 +60,11 @@ public class CpuChartObserver implements IChartEventObserver {
     /**
      * Constructor
      *
-     * @param chart Profiler Chart
-     * @param chartFold true: Chart fold/expand
+     * @param chart chart
+     * @param threadInfoPanel threadInfoPanel
+     * @param bottomPanel bottomPanel
+     * @param chartFold chartFold
+     * @param threadLabel threadLabel
      */
     public CpuChartObserver(ProfilerChart chart, JBPanel threadInfoPanel, ProfilerChartsView bottomPanel,
         boolean chartFold, JBLabel threadLabel) {
@@ -177,6 +180,7 @@ public class CpuChartObserver implements IChartEventObserver {
      * @param startTime startTime
      * @param endTime endTime
      * @param dataMap dataMap
+     * @param deadThreadMap deadThreadMap
      */
     private void refreshThreadPanel(int startTime, int endTime, LinkedHashMap<Integer, List<ChartDataModel>> dataMap,
         LinkedHashMap<Integer, List<ChartDataModel>> deadThreadMap) {

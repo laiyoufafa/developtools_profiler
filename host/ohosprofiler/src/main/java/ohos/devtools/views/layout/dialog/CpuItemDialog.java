@@ -44,6 +44,11 @@ public class CpuItemDialog extends DialogWrapper {
 
     /**
      * CpuItemDialog
+     *
+     * @param title title
+     * @param filePanel filePanel
+     * @param fileType fileType
+     * @param timeJLabel timeJLabel
      */
     public CpuItemDialog(String title, JPanel filePanel, FileEnum fileType, JBLabel timeJLabel) {
         super(true);

@@ -19,6 +19,8 @@ import javax.swing.tree.TreeNode;
 
 /**
  * DataFilter
+ *
+ * @since 2021/5/19 16:39
  */
 public class DataFilter {
     boolean aBoolean = true;
@@ -35,7 +37,7 @@ public class DataFilter {
         if (aBoolean) {
             return true;
         }
-        if (treeNode.isLeaf() == false) {
+        if (!treeNode.isLeaf()) {
             return true;
         }
         String treeString = treeNode.toString();

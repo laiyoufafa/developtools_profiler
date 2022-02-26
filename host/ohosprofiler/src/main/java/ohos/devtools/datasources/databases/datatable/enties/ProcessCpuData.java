@@ -19,6 +19,15 @@ import ohos.devtools.datasources.transport.grpc.service.CpuPluginResult;
 
 /**
  * processCpuInfo
+ *
+ * @since 2021/5/19 16:39
  */
 public class ProcessCpuData extends CpuData<CpuPluginResult.CpuData> {
+
+    /**
+     * ProcessCpuData
+     */
+    public ProcessCpuData() {
+        super();
+    }
 }

@@ -44,6 +44,7 @@ public class Thread extends AbstractNode {
     private static Color uninterruptibleSleepColor = new Color(Final.UNINTERRUPTIBLE_SLEEP_COLOR);
     private static Color exitColor = new Color(Final.EXIT_COLOR);
     private static Color sColor = new Color(Final.S_COLOR);
+
     private final Integer padding1 = 5;
     private final Integer padding2 = 10;
     private final float alpha2 = 0.02f;

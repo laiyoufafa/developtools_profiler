@@ -22,6 +22,8 @@ import java.util.Comparator;
 
 /**
  * TreeTableColumn
+ *
+ * @since 2021/5/19 16:39
  */
 public abstract class TreeTableColumn<T, N> extends ColumnInfo<DefaultMutableTreeNode, String> {
     private final Class<T> type;

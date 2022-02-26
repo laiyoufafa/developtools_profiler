@@ -49,6 +49,7 @@ public class CpuFreq extends AbstractNode {
      * Empty parameter construction method
      */
     public CpuFreq() {
+        super();
     }
 
     /**

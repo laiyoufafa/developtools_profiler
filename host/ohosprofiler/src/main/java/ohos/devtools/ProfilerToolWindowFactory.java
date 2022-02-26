@@ -45,6 +45,8 @@ import java.util.Objects;
 
 /**
  * Profiler Tool Window Factory
+ *
+ * @since 2021/5/19 16:39
  */
 public class ProfilerToolWindowFactory implements ToolWindowFactory {
     private static final Logger LOGGER = LogManager.getLogger(ProfilerToolWindowFactory.class);
@@ -83,6 +85,14 @@ public class ProfilerToolWindowFactory implements ToolWindowFactory {
     }
 
     private class WindowShutdownHook extends Thread {
+
+        /**
+         * WindowShutdownHook
+         */
+        public WindowShutdownHook() {
+            super.setName("WindowShutdownHook");
+        }
+
         @Override
         public void run() {
             SessionManager.getInstance().stopAllSession();

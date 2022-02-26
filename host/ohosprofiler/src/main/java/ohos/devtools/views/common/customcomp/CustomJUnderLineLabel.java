@@ -28,6 +28,8 @@ import static java.awt.BasicStroke.CAP_BUTT;
 
 /**
  * CustomJ UnderLine Label
+ *
+ * @since 2021/5/19 16:39
  */
 public class CustomJUnderLineLabel extends JBLabel {
     private Color underLineColor;

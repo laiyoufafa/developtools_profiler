@@ -30,9 +30,9 @@ class ThreadDataTest {
      */
     @Test
     void getuPid() {
-        assertEquals(3, new ThreadData() {{
-            setuPid(3);
-        }}.getuPid());
+        ThreadData threadData = new ThreadData();
+        threadData.setuPid(3);
+        assertEquals(3, threadData.getuPid());
     }
 
     /**
@@ -40,9 +40,9 @@ class ThreadDataTest {
      */
     @Test
     void setuPid() {
-        assertEquals(3, new ThreadData() {{
-            setuPid(3);
-        }}.getuPid());
+        ThreadData threadData = new ThreadData();
+        threadData.setuPid(3);
+        assertEquals(3, threadData.getuPid());
     }
 
     /**
@@ -50,9 +50,9 @@ class ThreadDataTest {
      */
     @Test
     void getuTid() {
-        assertEquals(3, new ThreadData() {{
-            setuTid(3);
-        }}.getuTid());
+        ThreadData threadData = new ThreadData();
+        threadData.setuTid(3);
+        assertEquals(3, threadData.getuTid());
     }
 
     /**
@@ -60,9 +60,9 @@ class ThreadDataTest {
      */
     @Test
     void setuTid() {
-        assertEquals(3, new ThreadData() {{
-            setuTid(3);
-        }}.getuTid());
+        ThreadData threadData = new ThreadData();
+        threadData.setuTid(3);
+        assertEquals(3, threadData.getuTid());
     }
 
     /**
@@ -70,9 +70,9 @@ class ThreadDataTest {
      */
     @Test
     void getPid() {
-        assertEquals(3, new ThreadData() {{
-            setPid(3);
-        }}.getPid());
+        ThreadData threadData = new ThreadData();
+        threadData.setPid(3);
+        assertEquals(3, threadData.getPid());
     }
 
     /**
@@ -80,9 +80,9 @@ class ThreadDataTest {
      */
     @Test
     void setPid() {
-        assertEquals(3, new ThreadData() {{
-            setPid(3);
-        }}.getPid());
+        ThreadData threadData = new ThreadData();
+        threadData.setPid(3);
+        assertEquals(3, threadData.getPid());
     }
 
     /**
@@ -90,9 +90,9 @@ class ThreadDataTest {
      */
     @Test
     void getTid() {
-        assertEquals(3, new ThreadData() {{
-            setTid(3);
-        }}.getTid());
+        ThreadData threadData = new ThreadData();
+        threadData.setTid(3);
+        assertEquals(3, threadData.getTid());
     }
 
     /**
@@ -100,9 +100,9 @@ class ThreadDataTest {
      */
     @Test
     void setTid() {
-        assertEquals(3, new ThreadData() {{
-            setTid(3);
-        }}.getTid());
+        ThreadData threadData = new ThreadData();
+        threadData.setTid(3);
+        assertEquals(3, threadData.getTid());
     }
 
     /**
@@ -110,9 +110,9 @@ class ThreadDataTest {
      */
     @Test
     void getProcessName() {
-        assertEquals("ProcessName", new ThreadData() {{
-            setProcessName("ProcessName");
-        }}.getProcessName());
+        ThreadData threadData = new ThreadData();
+        threadData.setProcessName("ProcessName");
+        assertEquals("ProcessName", threadData.getProcessName());
     }
 
     /**
@@ -120,9 +120,9 @@ class ThreadDataTest {
      */
     @Test
     void setProcessName() {
-        assertEquals("ProcessName", new ThreadData() {{
-            setProcessName("ProcessName");
-        }}.getProcessName());
+        ThreadData threadData = new ThreadData();
+        threadData.setProcessName("ProcessName");
+        assertEquals("ProcessName", threadData.getProcessName());
     }
 
     /**
@@ -130,9 +130,9 @@ class ThreadDataTest {
      */
     @Test
     void getThreadName() {
-        assertEquals("ThreadName", new ThreadData() {{
-            setThreadName("ThreadName");
-        }}.getThreadName());
+        ThreadData threadData = new ThreadData();
+        threadData.setThreadName("ThreadName");
+        assertEquals("ThreadName", threadData.getThreadName());
     }
 
     /**
@@ -140,9 +140,9 @@ class ThreadDataTest {
      */
     @Test
     void setThreadName() {
-        assertEquals("ThreadName", new ThreadData() {{
-            setThreadName("ThreadName");
-        }}.getThreadName());
+        ThreadData threadData = new ThreadData();
+        threadData.setThreadName("ThreadName");
+        assertEquals("ThreadName", threadData.getThreadName());
     }
 
     /**
@@ -150,9 +150,9 @@ class ThreadDataTest {
      */
     @Test
     void getState() {
-        assertEquals("State", new ThreadData() {{
-            setState("State");
-        }}.getState());
+        ThreadData threadData = new ThreadData();
+        threadData.setState("State");
+        assertEquals("State", threadData.getState());
     }
 
     /**
@@ -160,9 +160,9 @@ class ThreadDataTest {
      */
     @Test
     void setState() {
-        assertEquals("State", new ThreadData() {{
-            setState("State");
-        }}.getState());
+        ThreadData threadData = new ThreadData();
+        threadData.setState("State");
+        assertEquals("State", threadData.getState());
     }
 
     /**
@@ -170,9 +170,9 @@ class ThreadDataTest {
      */
     @Test
     void getStartTime() {
-        assertEquals(3L, new ThreadData() {{
-            setStartTime(3L);
-        }}.getStartTime());
+        ThreadData threadData = new ThreadData();
+        threadData.setStartTime(3L);
+        assertEquals(3L, threadData.getStartTime());
     }
 
     /**
@@ -180,9 +180,9 @@ class ThreadDataTest {
      */
     @Test
     void setStartTime() {
-        assertEquals(3L, new ThreadData() {{
-            setStartTime(3L);
-        }}.getStartTime());
+        ThreadData threadData = new ThreadData();
+        threadData.setStartTime(3L);
+        assertEquals(3L, threadData.getStartTime());
     }
 
     /**
@@ -190,9 +190,9 @@ class ThreadDataTest {
      */
     @Test
     void getDuration() {
-        assertEquals(3L, new ThreadData() {{
-            setDuration(3L);
-        }}.getDuration());
+        ThreadData threadData = new ThreadData();
+        threadData.setDuration(3L);
+        assertEquals(3L, threadData.getDuration());
     }
 
     /**
@@ -200,9 +200,9 @@ class ThreadDataTest {
      */
     @Test
     void setDuration() {
-        assertEquals(3L, new ThreadData() {{
-            setDuration(3L);
-        }}.getDuration());
+        ThreadData threadData = new ThreadData();
+        threadData.setDuration(3L);
+        assertEquals(3L, threadData.getDuration());
     }
 
     /**
@@ -210,9 +210,9 @@ class ThreadDataTest {
      */
     @Test
     void getCpu() {
-        assertEquals(3, new ThreadData() {{
-            setCpu(3);
-        }}.getCpu());
+        ThreadData threadData = new ThreadData();
+        threadData.setCpu(3);
+        assertEquals(3, threadData.getCpu());
     }
 
     /**
@@ -220,8 +220,8 @@ class ThreadDataTest {
      */
     @Test
     void setCpu() {
-        assertEquals(3, new ThreadData() {{
-            setCpu(3);
-        }}.getCpu());
+        ThreadData threadData = new ThreadData();
+        threadData.setCpu(3);
+        assertEquals(3, threadData.getCpu());
     }
 }

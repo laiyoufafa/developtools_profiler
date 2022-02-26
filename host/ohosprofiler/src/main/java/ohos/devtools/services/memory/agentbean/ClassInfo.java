@@ -19,6 +19,8 @@ import java.io.Serializable;
 
 /**
  * class object entity
+ *
+ * @since 2021/5/19 16:39
  */
 public class ClassInfo implements Serializable {
     private static final long serialVersionUID = -3958115376721507302L;

@@ -38,6 +38,7 @@ import java.util.Optional;
  */
 public class RulerFragment extends AbstractFragment implements FlagBean.IEventListener {
     private static final BasicStroke BOLD_STORE = new BasicStroke(2);
+
     private final long[] scales =
         new long[] {50, 100, 200, 500, 1_000, 2_000, 5_000, 10_000, 20_000, 50_000, 100_000, 200_000, 500_000,
             1_000_000, 2_000_000, 5_000_000, 10_000_000, 20_000_000, 50_000_000, 100_000_000, 200_000_000, 500_000_000,
@@ -45,6 +46,7 @@ public class RulerFragment extends AbstractFragment implements FlagBean.IEventLi
             100_000_000_000L, 200_000_000_000L, 500_000_000_000L};
     private long leftNS;
     private long rightNS;
+
     /**
      * The current time selection range is based on 20 units.
      * The zoom level obtained by the position in the scales array is 70ns if calculated
@@ -215,7 +217,7 @@ public class RulerFragment extends AbstractFragment implements FlagBean.IEventLi
         if (scale == 0) {
             return;
         }
-        long tmpNs = 0;
+        long tmpNs = 0L;
         long yu = leftNS % scale;
         realW = (scale * getRect().width) / (rightNS - leftNS);
         startX = Utils.getX(getRect());

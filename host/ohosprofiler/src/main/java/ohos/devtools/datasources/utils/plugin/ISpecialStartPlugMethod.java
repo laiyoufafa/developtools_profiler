@@ -20,6 +20,8 @@ import ohos.devtools.datasources.utils.process.entity.ProcessInfo;
 
 /**
  * ISpecialStartPlugMethod
+ *
+ * @since 2021/5/19 16:39
  */
 public interface ISpecialStartPlugMethod {
     /**

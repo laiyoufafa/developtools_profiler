@@ -37,6 +37,7 @@ public class ThreadData extends AbstractGraph {
     private static Color rColor = new Color(Final.R_COLOR);
     private static Color uninterruptibleSleepColor = new Color(Final.UNINTERRUPTIBLE_SLEEP_COLOR);
     private static Color sColor = new Color(Final.S_COLOR);
+
     private final int padding1 = 5;
     private final int padding2 = 10;
     private final float alpha2 = 0.02f;

@@ -30,6 +30,8 @@ import java.util.List;
 
 /**
  * Memory Heap Dao Test
+ *
+ * @since 2021/5/19 16:39
  */
 public class MemoryHeapDaoTest {
     private MemoryHeapInfo memoryHeapInfo;
@@ -50,7 +52,7 @@ public class MemoryHeapDaoTest {
         ProfilerLogManager.getSingleton().updateLogLevel(Level.ERROR);
         DataBaseApi apo = DataBaseApi.getInstance();
         apo.initDataSourceManager();
-        memoryHeapDao = MemoryHeapDao.getInstance();
+        memoryHeapDao = new MemoryHeapDao();
 
         memoryHeapDao.createMemoryHeapInfo();
         memoryHeapInfo = new MemoryHeapInfo();

@@ -189,6 +189,7 @@ public abstract class AbstractRow extends JBPanel {
      * fresh the Notify data by startNS and endNS
      */
     public void refreshNotify() {
+        long time = endNS + startNS;
     }
 
     /**
@@ -336,6 +337,7 @@ public abstract class AbstractRow extends JBPanel {
      * @param point point
      */
     public void mouseMoveHandler(Point point) {
+        super.getName();
     }
 
     /**
@@ -479,9 +481,8 @@ public abstract class AbstractRow extends JBPanel {
             x2 = Common.ns2x(node.getStartTime() + node.getDuration(), getContentBounds());
         }
         double getV = x2 - x1 <= 1 ? 1 : x2 - x1;
-        Rectangle rectangle = new Rectangle((int) x1, (int) (getContentBounds().getY() + padding), (int) getV,
+        return new Rectangle((int) x1, (int) (getContentBounds().getY() + padding), (int) getV,
             (int) (getContentBounds().getHeight() - padding * 2));
-        return rectangle;
     }
 
     /**
@@ -505,8 +506,7 @@ public abstract class AbstractRow extends JBPanel {
             x2 = Common.ns2x(node.getStartTime() + node.getDuration(), getContentBounds());
         }
         double getV = x2 - x1 <= 1 ? 1 : x2 - x1;
-        Rectangle rectangle = new Rectangle((int) x1, (int) (getContentBounds().getY()), (int) getV, height);
-        return rectangle;
+        return new Rectangle((int) x1, (int) (getContentBounds().getY()), (int) getV, height);
     }
 
     /**
@@ -531,10 +531,8 @@ public abstract class AbstractRow extends JBPanel {
             x2 = Common.ns2x(node.getEndTs(), getContentBounds());
         }
         double getV = x2 - x1 <= 1 ? 1 : x2 - x1;
-        Rectangle rectangle =
-            new Rectangle((int) x1, (int) (getContentBounds().getY() + node.getDepth() * height + paddingTop),
-                (int) getV, height);
-        return rectangle;
+        return new Rectangle((int) x1, (int) (getContentBounds().getY() + node.getDepth() * height + paddingTop),
+            (int) getV, height);
     }
 
     /**
@@ -559,10 +557,8 @@ public abstract class AbstractRow extends JBPanel {
             x2 = Common.ns2x(node.getStartTs() + node.getDur(), getContentBounds());
         }
         double getV = x2 - x1 <= 1 ? 1 : x2 - x1;
-        Rectangle rectangle =
-            new Rectangle((int) x1, (int) (getContentBounds().getY() + node.getDepth() * height + paddingTop),
-                (int) getV, height);
-        return rectangle;
+        return new Rectangle((int) x1, (int) (getContentBounds().getY() + node.getDepth() * height + paddingTop),
+            (int) getV, height);
     }
 
     /**
@@ -587,10 +583,8 @@ public abstract class AbstractRow extends JBPanel {
             x2 = DistributedCommon.ns2x(node.getStartTs() + node.getDur(), getContentBounds());
         }
         double getV = x2 - x1 <= 1 ? 1 : x2 - x1;
-        Rectangle rectangle =
-            new Rectangle((int) x1, (int) (getContentBounds().getY() + node.getDepth() * height + paddingTop),
-                (int) getV, height);
-        return rectangle;
+        return new Rectangle((int) x1, (int) (getContentBounds().getY() + node.getDepth() * height + paddingTop),
+            (int) getV, height);
     }
 
     /**
@@ -613,9 +607,7 @@ public abstract class AbstractRow extends JBPanel {
             x2 = Common.ns2x(node.getStartTime() + node.getDuration(), getContentBounds());
         }
         double getV = x2 - x1 <= 1 ? 1 : x2 - x1;
-        Rectangle rectangle =
-            new Rectangle((int) x1, (int) (getContentBounds().getY()), (int) getV, getContentBounds().height);
-        return rectangle;
+        return new Rectangle((int) x1, (int) (getContentBounds().getY()), (int) getV, getContentBounds().height);
     }
 
     /**
@@ -638,9 +630,7 @@ public abstract class AbstractRow extends JBPanel {
             x2 = Common.ns2x(node.getStartTime() + node.getDuration(), getContentBounds());
         }
         double getV = x2 - x1 <= 1 ? 1 : x2 - x1;
-        Rectangle rectangle =
-            new Rectangle((int) x1, (int) (getContentBounds().getY()), (int) getV, getContentBounds().height);
-        return rectangle;
+        return new Rectangle((int) x1, (int) (getContentBounds().getY()), (int) getV, getContentBounds().height);
     }
 
     /**
@@ -664,8 +654,7 @@ public abstract class AbstractRow extends JBPanel {
             x2 = Common.ns2x(node.getStartNs() + node.getDur(), getContentBounds());
         }
         double getV = x2 - x1 <= 1 ? 1 : x2 - x1;
-        Rectangle rectangle = new Rectangle((int) x1, (int) (getContentBounds().getY() + 5), (int) getV, height);
-        return rectangle;
+        return new Rectangle((int) x1, (int) (getContentBounds().getY() + 5), (int) getV, height);
     }
 
     /**

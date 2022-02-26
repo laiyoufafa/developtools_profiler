@@ -64,7 +64,6 @@ public class CpuConfig extends IPluginConfig {
         if (ProfilerLogManager.isInfoEnabled()) {
             LOGGER.info("getCpuConfig");
         }
-        CpuPluginConfig.CpuConfig plug = CpuPlugHelper.createCpuRequest(process.getProcessId());
-        return plug;
+        return CpuPlugHelper.createCpuRequest(process.getProcessId());
     }
 }

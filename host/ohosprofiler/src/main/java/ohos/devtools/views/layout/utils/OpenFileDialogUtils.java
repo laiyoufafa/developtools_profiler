@@ -91,6 +91,7 @@ public class OpenFileDialogUtils {
     private static final String BYTRACE_TYPE_FLAG_VALUE = "tracer";
     private static final String HTRACE_TYPE_VALUE = "OHOSPROF";
     private static final String TRACE_FILE = "TraceFileInfo";
+
     private Boolean traceAnalysisResult = true;
     private String path = "";
 
@@ -351,9 +352,7 @@ public class OpenFileDialogUtils {
             @Override
             protected Optional<DeviceProcessInfo> doInBackground() {
                 path = selectedFile.getPath();
-                Optional<DeviceProcessInfo> deviceProcessInfo =
-                    SessionManager.getInstance().localSessionDataFromFile(progressBar, selectedFile);
-                return deviceProcessInfo;
+                return SessionManager.getInstance().localSessionDataFromFile(progressBar, selectedFile);
             }
 
             /**
@@ -627,6 +626,7 @@ public class OpenFileDialogUtils {
         private static final String DIALOG_TITLE = "Please Choose the type";
         private static final String SYSTEM_TYPE = "1.System Trace";
         private static final String APPLICATION_TYPE = "2.Application Trace";
+
         private JBPanel optionJPanelContent;
         private JBPanel optionJPanel;
         private File selectedFile;

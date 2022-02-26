@@ -104,6 +104,7 @@ public class TaskPanel extends JBLayeredPane implements MouseListener {
      * Task Panel
      */
     public TaskPanel() {
+        super();
     }
 
     /**

@@ -166,7 +166,7 @@ public final class AnalystPanel extends JBPanel
     private TabPanel tab;
     private final JBScrollPane scrollPane = new JBScrollPane();
     private final int defaultFragmentHeight = 40;
-    private final double defaultScale = 0.1;
+    private final double defaultScale = 0.1D;
     private ContentPanel contentPanel;
     private TimeViewPort viewport;
     private double wheelSize;
@@ -500,13 +500,12 @@ public final class AnalystPanel extends JBPanel
         List<Cpu> cpus = new ArrayList<>() {
         };
         Db.getInstance().query(Sql.SYS_QUERY_CPU_FREQ, cpus);
-        List<List<CpuFreqData>> freqList = cpus.stream().map(it -> {
+        return cpus.stream().map(it -> {
             List<CpuFreqData> cpuFreqData = new ArrayList<>() {
             };
             Db.getInstance().query(Sql.SYS_QUERY_CPU_FREQ_DATA, cpuFreqData, it.getCpu());
             return cpuFreqData;
         }).collect(Collectors.toList());
-        return freqList;
     }
 
     /**

@@ -64,6 +64,8 @@ public class SampleCodeDao extends AbstractDataStore<SampleCodeInfo> {
 
     /**
      * MemorySelectStatements
+     *
+     * @since 2021/5/19 16:39
      */
     public enum SelectStatements {
         SELECT_INFO("SELECT " + "timeStamp, " + "int_value, " + "double_value " + "from " + "sampleIoInfo " + "where "

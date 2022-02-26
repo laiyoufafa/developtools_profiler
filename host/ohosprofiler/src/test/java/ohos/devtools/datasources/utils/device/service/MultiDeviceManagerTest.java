@@ -26,6 +26,8 @@ import java.util.List;
 
 /**
  * Multi-device management test class
+ *
+ * @since 2021/5/19 16:39
  */
 public class MultiDeviceManagerTest {
     private String serialNumber;
@@ -45,7 +47,7 @@ public class MultiDeviceManagerTest {
         serialNumber = "emulator-5554";
         DataBaseApi.getInstance().initDataSourceManager();
         MultiDeviceManager.getInstance().start();
-        deviceIPPortInfo  = new DeviceIPPortInfo();
+        deviceIPPortInfo = new DeviceIPPortInfo();
         deviceIPPortInfo.setDeviceID("1");
         deviceIPPortInfo.setDeviceType(DeviceType.FULL_HOS_DEVICE);
     }

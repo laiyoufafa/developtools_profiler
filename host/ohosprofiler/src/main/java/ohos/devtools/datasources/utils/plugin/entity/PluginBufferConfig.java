@@ -17,6 +17,8 @@ package ohos.devtools.datasources.utils.plugin.entity;
 
 /**
  * PluginBufferConfig
+ *
+ * @since 2021/5/19 16:39
  */
 public class PluginBufferConfig {
     private int pages;
@@ -43,11 +45,10 @@ public class PluginBufferConfig {
 
     /**
      * Policy
+     *
+     * @since 2021/5/19 16:39
      */
     public enum Policy {
         RECYCLE, FLATTEN;
-
-        Policy() {
-        }
     }
 }

@@ -35,7 +35,7 @@ import java.awt.event.MouseListener;
 /**
  * WelcomePanel class
  *
- * @Since 2021/10/25
+ * @since 2021/10/25
  */
 public class WelcomePanel extends JBPanel implements MouseListener {
     private static final Logger LOGGER = LogManager.getLogger(WelcomePanel.class);
