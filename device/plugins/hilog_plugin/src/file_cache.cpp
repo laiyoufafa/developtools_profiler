@@ -28,22 +28,14 @@ FileCache::~FileCache()
 
 bool FileCache::Open(const std::string& file)
 {
-    std::string path = path_ + file;
-    char realPath[PATH_MAX + 1] = {0};
-
-    if ((path.length() > PATH_MAX) || (realpath(path.c_str(), realPath) == nullptr)) {
-        HILOG_ERROR(LOG_CORE, "%s:so filename invalid, errno=%d", __func__, errno);
+    char realPath[PATH_MAX] = {0};
+    if (path_.empty() || (path_.length() >= PATH_MAX) || (realpath(path_.c_str(), realPath) == nullptr)) {
+        HILOG_ERROR(LOG_CORE, "%s:path is invalid: %s, errno=%d", __func__, path_.c_str(), errno);
         return false;
     }
-
-    if (access(path_.c_str(), F_OK) != 0) {
-        int32_t ret = mkdir(path_.c_str(), 0777);
-        CHECK_TRUE(ret == 0, false, "FileCache: mkdir failed(%s), error(%d)!", path_.c_str(), errno);
-    }
-
-    fp_ = fopen(realPath, "wb+");
-    CHECK_NOTNULL(fp_, -1, "FileCache: open(%s) Failed, errno(%d)", path.c_str(), errno);
-
+    std::string targetFile = std::string(realPath) + std::string("/") + file;
+    fp_ = fopen(targetFile.c_str(), "wb+");
+    CHECK_NOTNULL(fp_, false, "FileCache: open(%s) Failed, errno(%d)", targetFile.c_str(), errno);
     return true;
 }
 

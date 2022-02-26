@@ -395,24 +395,22 @@ bool HilogPlugin::StringToL(const char* word, long& value)
 bool HilogPlugin::TimeStringToNS(const char* data, struct timespec *tsTime)
 {
     struct tm tmTime = {0};
-    struct tm* pTM = nullptr;
+    struct tm result;
     time_t timetTime;
     char* end = nullptr;
     char* pTmp = nullptr;
-    time_t nSeconds;
-    uint32_t nsec;
-    long fixHour;
+    time_t nSeconds = time(nullptr);
+    uint32_t nsec = 0;
+    long fixHour = 0;
 
-    nSeconds = time(nullptr);
-    localtime_r(&nSeconds, pTM);
-    if (pTM == nullptr) {
-        const int bufSize = 1024;
+    if (localtime_r(&nSeconds, &result) == nullptr) {
+        const int bufSize = 128;
         char buf[bufSize] = { 0 };
         strerror_r(errno, buf, bufSize);
         HILOG_ERROR(LOG_CORE, "HilogPlugin: get localtime failed!, errno(%d:%s)", errno, buf);
         return false;
     }
-    tmTime.tm_year = pTM->tm_year;
+    tmTime.tm_year = result.tm_year;
     strptime(data, "%m-%d %H:%M:%S", &tmTime);
     pTmp = const_cast<char*>(data) + TIME_HOUR_WIDTH;
     CHECK_TRUE(StringToL(pTmp, fixHour), false, "%s:strtol fixHour failed", __func__);
@@ -479,6 +477,7 @@ FILE* HilogPlugin::CustomPopen(const char* command, const char* type)
         if (!strncmp(type, "r", strlen(type))) {
             close(fd[READ]);
             dup2(fd[WRITE], 1); // Redirect stdout to pipe
+            dup2(fd[WRITE], 2); // 2: Redirect stderr to pipe
         } else {
             close(fd[WRITE]);
             dup2(fd[READ], 0); // Redirect stdin to pipe
