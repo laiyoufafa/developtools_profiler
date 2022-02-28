@@ -17,6 +17,8 @@ package ohos.devtools.datasources.utils.device.entity;
 
 /**
  * device Type
+ *
+ * @since 2021/5/19 16:39
  */
 public enum DeviceType {
     FULL_HOS_DEVICE("arm64-v8a"), LEAN_HOS_DEVICE("arm64-v7a");

@@ -51,6 +51,7 @@ public class PerformanceIndexPopupMenu {
     private static final int MEMORY_ITEM_HEIGHT = 35;
     private static final int POPUP_OFFSET = 15;
     private static final String ITEM = "item";
+
     private JBLabel titleLabel = new JBLabel("DataSource");
     private JBCheckBox checkBoxSelectAll = new JBCheckBox("Select all");
     private final LinkedList<String> ITEMS;
@@ -65,6 +66,7 @@ public class PerformanceIndexPopupMenu {
      * PerformanceIndexPopupMenu constructor
      *
      * @param profilerView profilerView
+     * @param sessionId sessionId
      */
     public PerformanceIndexPopupMenu(ProfilerChartsView profilerView, long sessionId) {
         this.profilerView = profilerView;

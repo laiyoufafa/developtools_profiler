@@ -83,6 +83,12 @@ public class DataBaseApi {
      */
     private static Map<String, String> groupTables = new ConcurrentHashMap(CommonUtil.collectionSize(0));
 
+    private DataBaseApi() {
+        if (ProfilerLogManager.isInfoEnabled()) {
+            LOGGER.info("create DataBaseApi");
+        }
+    }
+
     /**
      * getInstance
      *
@@ -93,12 +99,6 @@ public class DataBaseApi {
             LOGGER.info("getInstance");
         }
         return DataBaseApi.INSTANCE;
-    }
-
-    private DataBaseApi() {
-        if (ProfilerLogManager.isInfoEnabled()) {
-            LOGGER.info("create DataBaseApi");
-        }
     }
 
     /**

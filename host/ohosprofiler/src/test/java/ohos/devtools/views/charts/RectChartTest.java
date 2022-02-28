@@ -24,11 +24,14 @@ import org.junit.Test;
 
 /**
  * Rect Chart Test
+ *
+ * @since 2021/5/19 16:39
  */
 public class RectChartTest {
     private static final String NAME = "Test";
     private static final int TEST_START = 0;
     private static final int TEST_END = 1000;
+
     private ProfilerChartsView view;
 
     /**

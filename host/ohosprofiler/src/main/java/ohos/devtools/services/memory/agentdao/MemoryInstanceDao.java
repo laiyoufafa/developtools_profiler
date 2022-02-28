@@ -35,26 +35,11 @@ import static ohos.devtools.datasources.utils.common.Constant.JVMTI_AGENT_PLUG;
 
 /**
  * instance data processing object
+ *
+ * @since 2021/5/19 16:39
  */
 public class MemoryInstanceDao extends AbstractDataStore {
     private static final Logger LOGGER = LogManager.getLogger(MemoryInstanceDao.class);
-    private static volatile MemoryInstanceDao singleton;
-
-    /**
-     * getInstance
-     *
-     * @return MemoryInstanceDao
-     */
-    public static MemoryInstanceDao getInstance() {
-        if (singleton == null) {
-            synchronized (MemoryInstanceDao.class) {
-                if (singleton == null) {
-                    singleton = new MemoryInstanceDao();
-                }
-            }
-        }
-        return singleton;
-    }
 
     /**
      * MemoryInstanceDao

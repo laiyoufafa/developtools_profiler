@@ -38,10 +38,6 @@ public class ImportFileChooserDialog extends DialogWrapper {
     private TextFieldWithBrowseButton textFieldWithBrowseButton;
     private String importFilePath;
 
-    public String getImportFilePath() {
-        return importFilePath;
-    }
-
     /**
      * constructor
      *
@@ -52,6 +48,10 @@ public class ImportFileChooserDialog extends DialogWrapper {
         init();
         setTitle(title);
         setResizable(false);
+    }
+
+    public String getImportFilePath() {
+        return importFilePath;
     }
 
     @Nullable

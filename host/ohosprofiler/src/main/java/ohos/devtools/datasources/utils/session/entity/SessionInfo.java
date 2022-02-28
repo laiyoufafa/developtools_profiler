@@ -20,6 +20,8 @@ import ohos.devtools.datasources.utils.process.entity.ProcessInfo;
 
 /**
  * SessionInfo实体
+ *
+ * @since 2021/5/19 16:39
  */
 public class SessionInfo {
     private String sessionName;

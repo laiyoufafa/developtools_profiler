@@ -66,7 +66,7 @@ public class FlameChart extends EventPanel implements KeyListener, MouseListener
     private TreeTableBean activeBean;
     private DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode("root");
     private String currentSearchText = "";
-    private double percent = 0;
+    private double percent = 0D;
 
     /**
      * constructor

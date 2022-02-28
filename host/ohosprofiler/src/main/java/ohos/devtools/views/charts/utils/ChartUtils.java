@@ -25,7 +25,9 @@ import static ohos.devtools.views.charts.utils.ChartConstants.NUM_60;
 import static ohos.devtools.views.common.LayoutConstants.INITIAL_VALUE;
 
 /**
- * Chart相关的工具类
+ * Chart related tools
+ *
+ * @since 2021/5/19 16:39
  */
 public final class ChartUtils {
     /**

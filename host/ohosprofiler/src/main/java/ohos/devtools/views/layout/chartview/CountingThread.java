@@ -42,6 +42,7 @@ public class CountingThread extends Thread {
      * @param jTextArea jTextArea
      */
     public CountingThread(JLabel jTextArea) {
+        super.setName("CountingThread");
         this.jTextArea = jTextArea;
     }
 

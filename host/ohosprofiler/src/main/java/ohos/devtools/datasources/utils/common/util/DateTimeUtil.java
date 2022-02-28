@@ -26,12 +26,11 @@ import java.time.format.DateTimeFormatter;
 
 /**
  * Date and time utilities
+ *
+ * @since 2021/5/19 16:39
  */
 public final class DateTimeUtil {
     private static final Logger LOGGER = LogManager.getLogger(DateTimeUtil.class);
-
-    private DateTimeUtil() {
-    }
 
     /**
      * Format: yyyy-MM-dd HH:mm:ss
@@ -51,6 +50,9 @@ public final class DateTimeUtil {
     private static final DateTimeFormatter COMMON_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     private static final ZoneOffset DEFAULT_ZONE_OFFSET = ZoneOffset.of("+8");
+
+    private DateTimeUtil() {
+    }
 
     /**
      * Convert the date to a string.

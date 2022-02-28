@@ -47,6 +47,8 @@ import ohos.devtools.views.common.LayoutConstants;
 
 /**
  * Bean object utilities class.
+ *
+ * @since 2021/5/19 16:39
  */
 public class BeanUtil {
     private static final Logger LOGGER = LogManager.getLogger(BeanUtil.class);

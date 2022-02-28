@@ -23,12 +23,17 @@ import org.apache.logging.log4j.Logger;
 import java.util.List;
 
 /**
- * Memory业务处理类
+ * Memory business processing class
+ *
+ * @since 2021/5/19 16:39
  */
 public class MemoryService {
     private static final Logger LOGGER = LogManager.getLogger(MemoryService.class);
 
     private static MemoryService instance;
+
+    private MemoryService() {
+    }
 
     /**
      * MemoryService
@@ -44,9 +49,6 @@ public class MemoryService {
             }
         }
         return instance;
-    }
-
-    private MemoryService() {
     }
 
     /**

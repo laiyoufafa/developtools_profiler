@@ -39,6 +39,7 @@ import java.util.Locale;
 public class TraceLoadDialog extends DialogWrapper {
     private static final Logger LOGGER = LogManager.getLogger(TraceLoadDialog.class);
     private static final int MINUTE_TO_S = 60;
+
     private JPanel filePanel;
     private JBLabel timeJLabel;
     private Timer timer;
@@ -47,15 +48,6 @@ public class TraceLoadDialog extends DialogWrapper {
     private int hours = 0;
     private int minutes = 0;
     private int seconds = 0;
-
-    /**
-     * get timer
-     *
-     * @return Timer
-     */
-    public Timer getTimer() {
-        return this.timer;
-    }
 
     /**
      * SystemTunningDialogEvent
@@ -72,6 +64,15 @@ public class TraceLoadDialog extends DialogWrapper {
         init();
         setTitle("Prompt");
         setResizable(false);
+    }
+
+    /**
+     * get timer
+     *
+     * @return Timer
+     */
+    public Timer getTimer() {
+        return this.timer;
     }
 
     /**
@@ -93,8 +94,7 @@ public class TraceLoadDialog extends DialogWrapper {
     @Nullable
     @Override
     protected JComponent createSouthPanel() {
-        JPanel dialogSouthPanel = new JPanel(new BorderLayout());
-        return dialogSouthPanel;
+        return new JPanel(new BorderLayout());
     }
 
     /**

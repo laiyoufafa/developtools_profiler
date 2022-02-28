@@ -62,7 +62,7 @@ public final class ContentPanel extends JBPanel implements AbstractDataFragment.
     /**
      * FragmentList to be rendered
      */
-    public List<AbstractDataFragment> fragmentList = new ArrayList<>();
+    public final List<AbstractDataFragment> fragmentList = new ArrayList<>();
 
     /**
      * start point object

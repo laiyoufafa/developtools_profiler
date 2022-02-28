@@ -17,6 +17,8 @@ package ohos.devtools.datasources.databases.databasepool;
 
 /**
  * database objects
+ *
+ * @since 2021/5/19 16:39
  */
 public class DataBase {
     private String driver;

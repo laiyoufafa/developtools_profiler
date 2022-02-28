@@ -21,15 +21,17 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 /**
- * 用于单个功能工具方法的提取保存。
+ * Extract saves for individual function tool methods.
+ *
+ * @since 2021/5/19 16:39
  */
 public class CommonUtil {
     private static final Logger LOGGER = LogManager.getLogger(CommonUtil.class);
 
+    private static volatile Integer requestId = 1;
+
     private CommonUtil() {
     }
-
-    private static volatile Integer requestId = 1;
 
     /**
      * Sets the intial collection size.

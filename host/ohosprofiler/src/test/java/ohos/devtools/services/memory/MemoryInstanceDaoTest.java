@@ -45,7 +45,7 @@ public class MemoryInstanceDaoTest {
      */
     @Before
     public void getInstance() {
-        memoryInstanceDao = MemoryInstanceDao.getInstance();
+        memoryInstanceDao = new MemoryInstanceDao();
         memoryInstanceInfo = new MemoryInstanceInfo();
         memoryInstanceInfo.setId(1);
         memoryInstanceInfo.setcId(1);

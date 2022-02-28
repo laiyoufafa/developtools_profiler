@@ -24,6 +24,8 @@ import java.util.List;
 
 /**
  * app function abstract class
+ *
+ * @since 2021/5/19 16:39
  */
 public abstract class AppFunc extends AbstractNode {
     /**
@@ -65,7 +67,7 @@ public abstract class AppFunc extends AbstractNode {
     /**
      * end ts
      */
-    protected long endTs = 0;
+    protected long endTs = 0L;
 
     /**
      * blood id

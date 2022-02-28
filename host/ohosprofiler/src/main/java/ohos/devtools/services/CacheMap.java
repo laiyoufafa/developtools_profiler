@@ -23,6 +23,7 @@ import java.util.Map;
  *
  * @param <K> k
  * @param <V> v
+ * @since 2021/5/19 16:39
  */
 public class CacheMap<K, V> extends LinkedHashMap<K, V> {
 

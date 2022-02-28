@@ -30,9 +30,9 @@ class CPUThreadBeanTest {
      */
     @Test
     void getAvgDuration() {
-        assertEquals(3L, new CPUThreadBean(0, 0, "", "", "", "", "") {{
-            setAvgDuration(3L);
-        }}.getAvgDuration());
+        CPUThreadBean cpuThreadBean = new CPUThreadBean(0, 0, "", "", "", "", "");
+        cpuThreadBean.setAvgDuration(3L);
+        assertEquals(3L, cpuThreadBean.getAvgDuration());
     }
 
     /**
@@ -40,9 +40,9 @@ class CPUThreadBeanTest {
      */
     @Test
     void setAvgDuration() {
-        assertEquals(3L, new CPUThreadBean(0, 0, "", "", "", "", "") {{
-            setAvgDuration(3L);
-        }}.getAvgDuration());
+        CPUThreadBean cpuThreadBean = new CPUThreadBean(0, 0, "", "", "", "", "");
+        cpuThreadBean.setAvgDuration(3L);
+        assertEquals(3L, cpuThreadBean.getAvgDuration());
     }
 
     /**
@@ -50,9 +50,9 @@ class CPUThreadBeanTest {
      */
     @Test
     void getWallDuration() {
-        assertEquals(3L, new CPUThreadBean(0, 0, "", "", "", "", "") {{
-            setWallDuration(3L);
-        }}.getWallDuration());
+        CPUThreadBean cpuThreadBean = new CPUThreadBean(0, 0, "", "", "", "", "");
+        cpuThreadBean.setWallDuration(3L);
+        assertEquals(3L, cpuThreadBean.getWallDuration());
     }
 
     /**
@@ -60,9 +60,9 @@ class CPUThreadBeanTest {
      */
     @Test
     void setWallDuration() {
-        assertEquals(3L, new CPUThreadBean(0, 0, "", "", "", "", "") {{
-            setWallDuration(3L);
-        }}.getWallDuration());
+        CPUThreadBean cpuThreadBean = new CPUThreadBean(0, 0, "", "", "", "", "");
+        cpuThreadBean.setWallDuration(3L);
+        assertEquals(3L, cpuThreadBean.getWallDuration());
     }
 
     /**
@@ -70,9 +70,9 @@ class CPUThreadBeanTest {
      */
     @Test
     void getPid() {
-        assertEquals("Pid", new CPUThreadBean(0, 0, "", "", "", "", "") {{
-            setPid("Pid");
-        }}.getPid());
+        CPUThreadBean cpuThreadBean = new CPUThreadBean(0, 0, "", "", "", "", "");
+        cpuThreadBean.setPid("Pid");
+        assertEquals("Pid", cpuThreadBean.getPid());
     }
 
     /**
@@ -80,9 +80,9 @@ class CPUThreadBeanTest {
      */
     @Test
     void setPid() {
-        assertEquals("Pid", new CPUThreadBean(0, 0, "", "", "", "", "") {{
-            setPid("Pid");
-        }}.getPid());
+        CPUThreadBean cpuThreadBean = new CPUThreadBean(0, 0, "", "", "", "", "");
+        cpuThreadBean.setPid("Pid");
+        assertEquals("Pid", cpuThreadBean.getPid());
     }
 
     /**
@@ -90,9 +90,9 @@ class CPUThreadBeanTest {
      */
     @Test
     void getTid() {
-        assertEquals("Tid", new CPUThreadBean(0, 0, "", "", "", "", "") {{
-            setTid("Tid");
-        }}.getTid());
+        CPUThreadBean cpuThreadBean = new CPUThreadBean(0, 0, "", "", "", "", "");
+        cpuThreadBean.setTid("Tid");
+        assertEquals("Tid", cpuThreadBean.getTid());
     }
 
     /**
@@ -100,9 +100,9 @@ class CPUThreadBeanTest {
      */
     @Test
     void setTid() {
-        assertEquals("Tid", new CPUThreadBean(0, 0, "", "", "", "", "") {{
-            setTid("Tid");
-        }}.getTid());
+        CPUThreadBean cpuThreadBean = new CPUThreadBean(0, 0, "", "", "", "", "");
+        cpuThreadBean.setTid("Tid");
+        assertEquals("Tid", cpuThreadBean.getTid());
     }
 
     /**
@@ -110,9 +110,9 @@ class CPUThreadBeanTest {
      */
     @Test
     void getOccurrences() {
-        assertEquals("Occurrences", new CPUThreadBean(0, 0, "", "", "", "", "") {{
-            setOccurrences("Occurrences");
-        }}.getOccurrences());
+        CPUThreadBean cpuThreadBean = new CPUThreadBean(0, 0, "", "", "", "", "");
+        cpuThreadBean.setOccurrences("Occurrences");
+        assertEquals("Occurrences", cpuThreadBean.getOccurrences());
     }
 
     /**
@@ -120,9 +120,9 @@ class CPUThreadBeanTest {
      */
     @Test
     void setOccurrences() {
-        assertEquals("Occurrences", new CPUThreadBean(0, 0, "", "", "", "", "") {{
-            setOccurrences("Occurrences");
-        }}.getOccurrences());
+        CPUThreadBean cpuThreadBean = new CPUThreadBean(0, 0, "", "", "", "", "");
+        cpuThreadBean.setOccurrences("Occurrences");
+        assertEquals("Occurrences", cpuThreadBean.getOccurrences());
     }
 
     /**
@@ -130,9 +130,9 @@ class CPUThreadBeanTest {
      */
     @Test
     void getProcess() {
-        assertEquals("Process", new CPUThreadBean(0, 0, "", "", "", "", "") {{
-            setProcess("Process");
-        }}.getProcess());
+        CPUThreadBean cpuThreadBean = new CPUThreadBean(0, 0, "", "", "", "", "");
+        cpuThreadBean.setProcess("Process");
+        assertEquals("Process", cpuThreadBean.getProcess());
     }
 
     /**
@@ -140,9 +140,9 @@ class CPUThreadBeanTest {
      */
     @Test
     void setProcess() {
-        assertEquals("Process", new CPUThreadBean(0, 0, "", "", "", "", "") {{
-            setProcess("Process");
-        }}.getProcess());
+        CPUThreadBean cpuThreadBean = new CPUThreadBean(0, 0, "", "", "", "", "");
+        cpuThreadBean.setProcess("Process");
+        assertEquals("Process", cpuThreadBean.getProcess());
     }
 
     /**
@@ -150,9 +150,9 @@ class CPUThreadBeanTest {
      */
     @Test
     void getThread() {
-        assertEquals("Thread", new CPUThreadBean(0, 0, "", "", "", "", "") {{
-            setThread("Thread");
-        }}.getThread());
+        CPUThreadBean cpuThreadBean = new CPUThreadBean(0, 0, "", "", "", "", "");
+        cpuThreadBean.setThread("Thread");
+        assertEquals("Thread", cpuThreadBean.getThread());
     }
 
     /**
@@ -160,8 +160,8 @@ class CPUThreadBeanTest {
      */
     @Test
     void setThread() {
-        assertEquals("Thread", new CPUThreadBean(0, 0, "", "", "", "", "") {{
-            setThread("Thread");
-        }}.getThread());
+        CPUThreadBean cpuThreadBean = new CPUThreadBean(0, 0, "", "", "", "", "");
+        cpuThreadBean.setThread("Thread");
+        assertEquals("Thread", cpuThreadBean.getThread());
     }
 }

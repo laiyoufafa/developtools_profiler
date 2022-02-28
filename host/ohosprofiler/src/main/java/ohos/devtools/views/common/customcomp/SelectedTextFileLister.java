@@ -17,6 +17,8 @@ package ohos.devtools.views.common.customcomp;
 
 /**
  * SelectedTextFileLister
+ *
+ * @since 2021/5/19 16:39
  */
 public interface SelectedTextFileLister {
 

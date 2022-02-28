@@ -32,9 +32,9 @@ class FlagBeanTest {
      */
     @Test
     void getNs() {
-        assertEquals(3L, new FlagBean() {{
-            setNs(3L);
-        }}.getNs());
+        FlagBean flagBean = new FlagBean();
+        flagBean.setNs(3L);
+        assertEquals(3L, flagBean.getNs());
     }
 
     /**
@@ -42,9 +42,9 @@ class FlagBeanTest {
      */
     @Test
     void setNs() {
-        assertEquals(3L, new FlagBean() {{
-            setNs(3L);
-        }}.getNs());
+        FlagBean flagBean = new FlagBean();
+        flagBean.setNs(3L);
+        assertEquals(3L, flagBean.getNs());
     }
 
     /**
@@ -53,9 +53,9 @@ class FlagBeanTest {
     @Test
     void isVisible() {
         boolean visiable = true;
-        assertEquals(visiable, new FlagBean() {{
-            setVisible(visiable);
-        }}.isVisible());
+        FlagBean flagBean = new FlagBean();
+        flagBean.setVisible(visiable);
+        assertEquals(visiable, flagBean.isVisible());
     }
 
     /**
@@ -64,9 +64,9 @@ class FlagBeanTest {
     @Test
     void setVisible() {
         boolean visiable = true;
-        assertEquals(visiable, new FlagBean() {{
-            setVisible(visiable);
-        }}.isVisible());
+        FlagBean flagBean = new FlagBean();
+        flagBean.setVisible(visiable);
+        assertEquals(visiable, flagBean.isVisible());
     }
 
     /**
@@ -74,9 +74,9 @@ class FlagBeanTest {
      */
     @Test
     void getName() {
-        assertEquals("name", new FlagBean() {{
-            setName("name");
-        }}.getName());
+        FlagBean flagBean = new FlagBean();
+        flagBean.setName("name");
+        assertEquals("name", flagBean.getName());
     }
 
     /**
@@ -84,9 +84,9 @@ class FlagBeanTest {
      */
     @Test
     void setName() {
-        assertEquals("name", new FlagBean() {{
-            setName("name");
-        }}.getName());
+        FlagBean flagBean = new FlagBean();
+        flagBean.setName("name");
+        assertEquals("name", flagBean.getName());
     }
 
     /**
@@ -94,9 +94,9 @@ class FlagBeanTest {
      */
     @Test
     void getTime() {
-        assertEquals(3L, new FlagBean() {{
-            setTime(3L);
-        }}.getTime());
+        FlagBean flagBean = new FlagBean();
+        flagBean.setTime(3L);
+        assertEquals(3L, flagBean.getTime());
     }
 
     /**
@@ -104,9 +104,9 @@ class FlagBeanTest {
      */
     @Test
     void setTime() {
-        assertEquals(3L, new FlagBean() {{
-            setTime(3L);
-        }}.getTime());
+        FlagBean flagBean = new FlagBean();
+        flagBean.setTime(3L);
+        assertEquals(3L, flagBean.getTime());
     }
 
     /**
@@ -115,9 +115,9 @@ class FlagBeanTest {
     @Test
     void getColor() {
         Color black = Color.BLACK;
-        assertEquals(black, new FlagBean() {{
-            setColor(black);
-        }}.getColor());
+        FlagBean flagBean = new FlagBean();
+        flagBean.setColor(black);
+        assertEquals(black, flagBean.getColor());
     }
 
     /**
@@ -126,9 +126,9 @@ class FlagBeanTest {
     @Test
     void setColor() {
         Color black = Color.BLACK;
-        assertEquals(black, new FlagBean() {{
-            setColor(black);
-        }}.getColor());
+        FlagBean flagBean = new FlagBean();
+        flagBean.setColor(black);
+        assertEquals(black, flagBean.getColor());
     }
 
 }

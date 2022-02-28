@@ -37,23 +37,11 @@ import static ohos.devtools.datasources.utils.common.Constant.JVMTI_AGENT_PLUG;
 
 /**
  * heap data processing object
+ *
+ * @since 2021/5/19 16:39
  */
 public class MemoryHeapDao extends AbstractDataStore {
     private static final Logger LOGGER = LogManager.getLogger(MemoryHeapDao.class);
-
-    /**
-     * Singleton MemoryHeapDao.
-     */
-    private static final MemoryHeapDao SINGLETON = new MemoryHeapDao();
-
-    /**
-     * getInstance
-     *
-     * @return MemoryHeapDao
-     */
-    public static MemoryHeapDao getInstance() {
-        return MemoryHeapDao.SINGLETON;
-    }
 
     /**
      * MemoryHeapDao
@@ -105,8 +93,7 @@ public class MemoryHeapDao extends AbstractDataStore {
             + "createTime int(200) not null, "
             + "updateTime int(200) DEFAULT -1"
             + ");";
-        createResult = createTable(dbName, memoryHeapInfoTable, sql);
-        return createResult;
+        return createTable(dbName, memoryHeapInfoTable, sql);
     }
 
     /**
@@ -310,7 +297,7 @@ public class MemoryHeapDao extends AbstractDataStore {
      * @param startTime startTime
      * @param endTime endTime
      * @param ps ps
-     * @throws SQLException
+     * @throws SQLException SQLException
      */
     private void setPreparedStatementData(Long sessionId, Long startTime, Long endTime, PreparedStatement ps)
         throws SQLException {
@@ -408,7 +395,7 @@ public class MemoryHeapDao extends AbstractDataStore {
 
     @NotNull
     private String getSql() {
-        String str1 = "SELECT d.cid,d.className,IFNULL( d.allocations, 0 ) AS allocations,"
+        return "SELECT d.cid,d.className,IFNULL( d.allocations, 0 ) AS allocations,"
             + "IFNULL( d.deallocations, 0 ) AS deallocations,IFNULL( f.totalCount, 0 ) AS totalCount,"
             + "IFNULL( f.shallowSize, 0 ) AS shallowSize "
             + "FROM ((SELECT c.cId,c.className,sum( IFNULL( heaptable.allocations, 0 ) ) AS allocations,"
@@ -438,6 +425,5 @@ public class MemoryHeapDao extends AbstractDataStore {
             + "sum( IFNULL( e.shallowSize, 0 ) ) AS shallowSize FROM ClassInfo l LEFT JOIN MemoryHeapInfo e "
             + "ON e.cId = l.cId WHERE e.sessionId = ? AND e.createTime <= ? GROUP BY l.cId ) AS f ON d.cId = f.cId) "
             + "ORDER BY shallowSize DESC";
-        return str1;
     }
 }

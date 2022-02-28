@@ -21,17 +21,17 @@ import java.util.List;
 
 /**
  * ClassInfo Manager
+ *
+ * @since 2021/5/19 16:39
  */
 public class ClassInfoManager {
-    private final ClassInfoDao classInfoDao = ClassInfoDao.getInstance();
-
     /**
      * insertClassInfo
      *
      * @param classInfo classInfo
      */
     public void insertClassInfo(ClassInfo classInfo) {
-        classInfoDao.insertClassInfo(classInfo);
+        new ClassInfoDao().insertClassInfo(classInfo);
     }
 
     /**
@@ -41,7 +41,7 @@ public class ClassInfoManager {
      * @return List <ClassInfo>
      */
     public List<ClassInfo> getAllClassInfoData(Long sessionId) {
-        return classInfoDao.getAllClassInfoData(sessionId);
+        return new ClassInfoDao().getAllClassInfoData(sessionId);
     }
 
     /**
@@ -51,6 +51,6 @@ public class ClassInfoManager {
      * @return int
      */
     public int getClassIdByClassName(String className) {
-        return classInfoDao.getClassIdByClassName(className);
+        return new ClassInfoDao().getClassIdByClassName(className);
     }
 }

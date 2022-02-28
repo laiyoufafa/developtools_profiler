@@ -20,9 +20,12 @@ import java.util.Objects;
 
 /**
  * TraceFileInfo
+ *
+ * @since 2021/5/19 16:39
  */
 public class TraceFileInfo implements Serializable {
     private static final long serialVersionUID = 6310938366918639648L;
+
     private String version;
     private long recordNum;
     private long createTime;

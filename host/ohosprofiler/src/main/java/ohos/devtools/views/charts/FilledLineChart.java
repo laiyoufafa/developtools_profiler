@@ -31,6 +31,8 @@ import static ohos.devtools.views.common.LayoutConstants.INITIAL_VALUE;
 
 /**
  * Filled line chart
+ *
+ * @since 2021/5/19 16:39
  */
 public class FilledLineChart extends ProfilerChart {
     private static final int NUM_2 = 2;
@@ -145,7 +147,7 @@ public class FilledLineChart extends ProfilerChart {
                     maxUnitY = divideInt(valueY * NUM_3, NUM_2);
                 }
             }
-            int pointY = y0 + multiply(pixelPerY, valueY);
+            int pointY = yZero + multiply(pixelPerY, valueY);
             polygon.addPoint(pointX, pointY);
         }
         // Draw the line below
@@ -161,8 +163,8 @@ public class FilledLineChart extends ProfilerChart {
         if (nextLineIndex == INITIAL_VALUE || !stacked) {
             int endX = startXCoordinate + multiply(pixelPerX, timeArray[timeArray.length - 1] - startTime);
             int startX = startXCoordinate + multiply(pixelPerX, timeArray[0] - startTime);
-            polygon.addPoint(endX, y0);
-            polygon.addPoint(startX, y0);
+            polygon.addPoint(endX, yZero);
+            polygon.addPoint(startX, yZero);
         } else {
             // Add the point of the next index line from right to left
             for (int time = timeArray.length - 1; time >= 0; time--) {
@@ -177,7 +179,7 @@ public class FilledLineChart extends ProfilerChart {
                         maxUnitY = divideInt(sum * NUM_3, NUM_2);
                     }
                 }
-                int pointY = y0 + multiply(pixelPerY, sum);
+                int pointY = yZero + multiply(pixelPerY, sum);
                 polygon.addPoint(pointX, pointY);
             }
         }

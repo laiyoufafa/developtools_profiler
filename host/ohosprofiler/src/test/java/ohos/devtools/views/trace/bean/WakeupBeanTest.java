@@ -30,9 +30,9 @@ class WakeupBeanTest {
      */
     @Test
     void getWakeupTime() {
-        assertEquals(3L, new WakeupBean() {{
-            setWakeupTime(3L);
-        }}.getWakeupTime());
+        WakeupBean wakeupBean = new WakeupBean();
+        wakeupBean.setWakeupTime(3L);
+        assertEquals(3L, wakeupBean.getWakeupTime());
     }
 
     /**
@@ -40,9 +40,9 @@ class WakeupBeanTest {
      */
     @Test
     void setWakeupTime() {
-        assertEquals(3L, new WakeupBean() {{
-            setWakeupTime(3L);
-        }}.getWakeupTime());
+        WakeupBean wakeupBean = new WakeupBean();
+        wakeupBean.setWakeupTime(3L);
+        assertEquals(3L, wakeupBean.getWakeupTime());
     }
 
     /**
@@ -50,9 +50,9 @@ class WakeupBeanTest {
      */
     @Test
     void getWakeupCpu() {
-        assertEquals(3, new WakeupBean() {{
-            setWakeupCpu(3);
-        }}.getWakeupCpu());
+        WakeupBean wakeupBean = new WakeupBean();
+        wakeupBean.setWakeupCpu(3);
+        assertEquals(3, wakeupBean.getWakeupCpu());
     }
 
     /**
@@ -60,9 +60,9 @@ class WakeupBeanTest {
      */
     @Test
     void setWakeupCpu() {
-        assertEquals(3, new WakeupBean() {{
-            setWakeupCpu(3);
-        }}.getWakeupCpu());
+        WakeupBean wakeupBean = new WakeupBean();
+        wakeupBean.setWakeupCpu(3);
+        assertEquals(3, wakeupBean.getWakeupCpu());
     }
 
     /**
@@ -70,9 +70,9 @@ class WakeupBeanTest {
      */
     @Test
     void getWakeupProcess() {
-        assertEquals("WakeupProcess", new WakeupBean() {{
-            setWakeupProcess("WakeupProcess");
-        }}.getWakeupProcess());
+        WakeupBean wakeupBean = new WakeupBean();
+        wakeupBean.setWakeupProcess("WakeupProcess");
+        assertEquals("WakeupProcess", wakeupBean.getWakeupProcess());
     }
 
     /**
@@ -80,9 +80,9 @@ class WakeupBeanTest {
      */
     @Test
     void setWakeupProcess() {
-        assertEquals("WakeupProcess", new WakeupBean() {{
-            setWakeupProcess("WakeupProcess");
-        }}.getWakeupProcess());
+        WakeupBean wakeupBean = new WakeupBean();
+        wakeupBean.setWakeupProcess("WakeupProcess");
+        assertEquals("WakeupProcess", wakeupBean.getWakeupProcess());
     }
 
     /**
@@ -90,9 +90,9 @@ class WakeupBeanTest {
      */
     @Test
     void getWakeupPid() {
-        assertEquals(0, new WakeupBean() {{
-            setWakeupPid(0);
-        }}.getWakeupPid());
+        WakeupBean wakeupBean = new WakeupBean();
+        wakeupBean.setWakeupPid(0);
+        assertEquals(0, wakeupBean.getWakeupPid());
     }
 
     /**
@@ -100,9 +100,9 @@ class WakeupBeanTest {
      */
     @Test
     void setWakeupPid() {
-        assertEquals(0, new WakeupBean() {{
-            setWakeupPid(0);
-        }}.getWakeupPid());
+        WakeupBean wakeupBean = new WakeupBean();
+        wakeupBean.setWakeupPid(0);
+        assertEquals(0, wakeupBean.getWakeupPid());
     }
 
     /**
@@ -110,9 +110,9 @@ class WakeupBeanTest {
      */
     @Test
     void getWakeupThread() {
-        assertEquals("WakeupThread", new WakeupBean() {{
-            setWakeupThread("WakeupThread");
-        }}.getWakeupThread());
+        WakeupBean wakeupBean = new WakeupBean();
+        wakeupBean.setWakeupThread("WakeupThread");
+        assertEquals("WakeupThread", wakeupBean.getWakeupThread());
     }
 
     /**
@@ -120,9 +120,9 @@ class WakeupBeanTest {
      */
     @Test
     void setWakeupThread() {
-        assertEquals("WakeupThread", new WakeupBean() {{
-            setWakeupThread("WakeupThread");
-        }}.getWakeupThread());
+        WakeupBean wakeupBean = new WakeupBean();
+        wakeupBean.setWakeupThread("WakeupThread");
+        assertEquals("WakeupThread", wakeupBean.getWakeupThread());
     }
 
     /**
@@ -130,9 +130,9 @@ class WakeupBeanTest {
      */
     @Test
     void getWakeupTid() {
-        assertEquals(0, new WakeupBean() {{
-            setWakeupTid(0);
-        }}.getWakeupTid());
+        WakeupBean wakeupBean = new WakeupBean();
+        wakeupBean.setWakeupTid(0);
+        assertEquals(0, wakeupBean.getWakeupTid());
     }
 
     /**
@@ -140,9 +140,9 @@ class WakeupBeanTest {
      */
     @Test
     void setWakeupTid() {
-        assertEquals(0, new WakeupBean() {{
-            setWakeupTid(0);
-        }}.getWakeupTid());
+        WakeupBean wakeupBean = new WakeupBean();
+        wakeupBean.setWakeupTid(0);
+        assertEquals(0, wakeupBean.getWakeupTid());
     }
 
     /**
@@ -150,9 +150,9 @@ class WakeupBeanTest {
      */
     @Test
     void getSchedulingLatency() {
-        assertEquals(3L, new WakeupBean() {{
-            setSchedulingLatency(3L);
-        }}.getSchedulingLatency());
+        WakeupBean wakeupBean = new WakeupBean();
+        wakeupBean.setSchedulingLatency(3L);
+        assertEquals(3L, wakeupBean.getSchedulingLatency());
     }
 
     /**
@@ -160,9 +160,9 @@ class WakeupBeanTest {
      */
     @Test
     void setSchedulingLatency() {
-        assertEquals(3L, new WakeupBean() {{
-            setSchedulingLatency(3L);
-        }}.getSchedulingLatency());
+        WakeupBean wakeupBean = new WakeupBean();
+        wakeupBean.setSchedulingLatency(3L);
+        assertEquals(3L, wakeupBean.getSchedulingLatency());
     }
 
     /**
@@ -170,9 +170,9 @@ class WakeupBeanTest {
      */
     @Test
     void getSchedulingDesc() {
-        assertEquals("SchedulingDesc", new WakeupBean() {{
-            setSchedulingDesc("SchedulingDesc");
-        }}.getSchedulingDesc());
+        WakeupBean wakeupBean = new WakeupBean();
+        wakeupBean.setSchedulingDesc("SchedulingDesc");
+        assertEquals("SchedulingDesc", wakeupBean.getSchedulingDesc());
     }
 
     /**
@@ -180,8 +180,8 @@ class WakeupBeanTest {
      */
     @Test
     void setSchedulingDesc() {
-        assertEquals("SchedulingDesc", new WakeupBean() {{
-            setSchedulingDesc("SchedulingDesc");
-        }}.getSchedulingDesc());
+        WakeupBean wakeupBean = new WakeupBean();
+        wakeupBean.setSchedulingDesc("SchedulingDesc");
+        assertEquals("SchedulingDesc", wakeupBean.getSchedulingDesc());
     }
 }

@@ -16,15 +16,11 @@
 package ohos.devtools.views.common;
 
 /**
- * 主界面相关的常量值
+ * Constant values related to the main interface
+ *
+ * @since 2021/5/19 16:39
  */
 public final class LayoutConstants {
-    /**
-     * 构造函数
-     */
-    private LayoutConstants() {
-    }
-
     /**
      * 初始值
      */
@@ -874,4 +870,10 @@ public final class LayoutConstants {
      * CPU grap data kind button width
      */
     public static final int CPU_GRAP_TYPE_WIDTH = 200;
+
+    /**
+     * 构造函数
+     */
+    private LayoutConstants() {
+    }
 }

@@ -28,6 +28,8 @@ import static java.awt.BasicStroke.JOIN_ROUND;
 
 /**
  * Draw a vertical dotted line
+ *
+ * @since 2021/5/19 16:39
  */
 public class DottedLine extends JBPanel {
     private static final int DEFAULT_WIDTH = 10;

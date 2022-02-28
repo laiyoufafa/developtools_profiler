@@ -23,9 +23,10 @@ import java.util.List;
 
 /**
  * Memory Heap Manager
+ *
+ * @since 2021/5/19 16:39
  */
 public class MemoryHeapManager {
-    private final MemoryHeapDao memoryHeapDao = MemoryHeapDao.getInstance();
 
     /**
      * Get the data in the selected time period and provide it to the heap information query interface of the UI
@@ -36,7 +37,7 @@ public class MemoryHeapManager {
      * @return ArrayList <MemoryHeapInfo>
      */
     public List<AgentHeapBean> getMemoryHeapInfos(Long sessionId, Long startTime, Long endTime) {
-        return memoryHeapDao.getMemoryHeapInfos(sessionId, startTime, endTime);
+        return new MemoryHeapDao().getMemoryHeapInfos(sessionId, startTime, endTime);
     }
 
     /**
@@ -46,6 +47,6 @@ public class MemoryHeapManager {
      * @return ArrayList <MemoryHeapInfo>
      */
     public ArrayList<MemoryHeapInfo> getAllMemoryHeapInfos(Long sessionId) {
-        return memoryHeapDao.getAllMemoryHeapInfos(sessionId);
+        return new MemoryHeapDao().getAllMemoryHeapInfos(sessionId);
     }
 }

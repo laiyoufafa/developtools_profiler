@@ -47,20 +47,7 @@ import java.util.stream.Collectors;
  * @since 2021/5/12 16:34
  */
 public class StateTable extends EventPanel {
-    private static final Map<String, String> STATUS_MAP = new HashedMap() {{
-        put("D", "Waiting");
-        put("S", "Sleeping");
-        put("R", "Runnable");
-        put("Running", "Running");
-        put("R+", "Runnable");
-        put("DK", "Waiting");
-        put("W", "Runnable");
-        put("X", "Dead");
-        put("Z", "Exit (Zombie)");
-        put("K", "Wake Kill");
-        put("P", "Parked");
-        put("N", "No Load");
-    }};
+    private static final Map<String, String> STATUS_MAP = getStatusMap();
 
     /**
      * table data source
@@ -69,12 +56,7 @@ public class StateTable extends EventPanel {
 
     private final int RowHeight = 25;
     private final int RowHeadHeight = 30;
-    private List<EventTable.Col<ThreadStateBean>> columnNames = new ArrayList<>() {{
-        add(new EventTable.Col<>("Thread State", ThreadStateBean::getState));
-        add(new EventTable.Col<>("Duration", ThreadStateBean::getDuration));
-        add(new EventTable.Col<>("%", ThreadStateBean::getPercent));
-        add(new EventTable.Col<>("Occurrences", ThreadStateBean::getOccurrences));
-    }};
+    private List<EventTable.Col<ThreadStateBean>> columnNames = new ArrayList<>();
     private JBScrollPane jScrollPane;
     private StateTableModel tableColumnModel;
     private JBTable jbTable;
@@ -84,6 +66,10 @@ public class StateTable extends EventPanel {
      * structure function
      */
     public StateTable() {
+        columnNames.add(new EventTable.Col<>("Thread State", ThreadStateBean::getState));
+        columnNames.add(new EventTable.Col<>("Duration", ThreadStateBean::getDuration));
+        columnNames.add(new EventTable.Col<>("%", ThreadStateBean::getPercent));
+        columnNames.add(new EventTable.Col<>("Occurrences", ThreadStateBean::getOccurrences));
         setLayout(new MigLayout("insets 0", "[grow,fill]", "[grow,fill]"));
         tableColumnModel = new StateTableModel();
         jbTable = new JBTable(tableColumnModel);
@@ -123,12 +109,34 @@ public class StateTable extends EventPanel {
         add(jScrollPane);
     }
 
+    /**
+     * getStatusMap
+     *
+     * @return Map <String, String> Map
+     */
+    private static Map<String, String> getStatusMap() {
+        Map<String, String> hashedMap = new HashedMap();
+        hashedMap.put("D", "Waiting");
+        hashedMap.put("S", "Sleeping");
+        hashedMap.put("R", "Runnable");
+        hashedMap.put("Running", "Running");
+        hashedMap.put("R+", "Runnable");
+        hashedMap.put("DK", "Waiting");
+        hashedMap.put("W", "Runnable");
+        hashedMap.put("X", "Dead");
+        hashedMap.put("Z", "Exit (Zombie)");
+        hashedMap.put("K", "Wake Kill");
+        hashedMap.put("P", "Parked");
+        hashedMap.put("N", "No Load");
+        return hashedMap;
+    }
+
     private void getAppData(long startNS, long endNS, List<Integer> threadIds) {
         List<Thread> threads = new ArrayList<>();
         dataSource.clear();
         threadIds.forEach(threadId -> {
-            if (AllData.threadMap.containsKey(threadId)) {
-                threads.addAll(AllData.threadMap.get(threadId).stream().filter(thread -> TimeUtils
+            if (AllData.THREAD_MAP.containsKey(threadId)) {
+                threads.addAll(AllData.THREAD_MAP.get(threadId).stream().filter(thread -> TimeUtils
                     .isRangeCross(startNS, endNS, thread.getStartTime(), thread.getStartTime() + thread.getDuration()))
                     .collect(Collectors.toList()));
             }

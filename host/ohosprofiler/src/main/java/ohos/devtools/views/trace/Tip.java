@@ -47,6 +47,7 @@ public class Tip extends JBPanel {
     private static final int ROW_HEIGHT = 20;
     private static final int MEGA_BYTES = 10241024;
     private static Tip tip = new Tip();
+
     private JLayeredPane layeredPane;
     private List<String> stringList;
 

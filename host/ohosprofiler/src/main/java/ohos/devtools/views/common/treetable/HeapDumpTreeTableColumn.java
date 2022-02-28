@@ -25,6 +25,8 @@ import java.util.Enumeration;
 
 /**
  * HeapDumpTreeTableColumn
+ *
+ * @since 2021/5/19 16:39
  */
 public abstract class HeapDumpTreeTableColumn<T, N> extends ColumnInfo<DefaultMutableTreeNode, String> {
     private final Class<T> type;

@@ -26,7 +26,7 @@ import java.util.Locale;
  * @since 2021/11/22
  */
 public class TraceStreamerUtils {
-    private static TraceStreamerUtils traceStreamerUtils;
+    private static TraceStreamerUtils traceStreamerUtils = new TraceStreamerUtils();
     private static final String DIR_STR = "trace_streamer" + File.separator;
     private static final String LOG_STR = "trace_streamer" + File.separator + "trace_streamer.log";
     private static final String DB_NAME = "trace_streamer.db";
@@ -39,9 +39,6 @@ public class TraceStreamerUtils {
      * @return TraceStreamerUtils
      */
     public static TraceStreamerUtils getInstance() {
-        if (traceStreamerUtils == null) {
-            traceStreamerUtils = new TraceStreamerUtils();
-        }
         return traceStreamerUtils;
     }
 
@@ -78,8 +75,7 @@ public class TraceStreamerUtils {
      */
     public String getLogPath(String dbName) {
         String tmpPath = SessionManager.getInstance().tempPath();
-        String logPath = tmpPath + DIR_STR + dbName + ".ohos.ts";
-        return logPath;
+        return tmpPath + DIR_STR + dbName + ".ohos.ts";
     }
 
     /**
@@ -88,8 +84,7 @@ public class TraceStreamerUtils {
      * @return String
      */
     public String getDbPath() {
-        String dbPath = getCreateFileDir() + DB_NAME;
-        return dbPath;
+        return getCreateFileDir() + DB_NAME;
     }
 
     /**
@@ -99,8 +94,7 @@ public class TraceStreamerUtils {
      * @return String
      */
     public String getDbPath(String dbName) {
-        String dbPath = getCreateFileDir() + dbName;
-        return dbPath;
+        return getCreateFileDir() + dbName;
     }
 
     /**

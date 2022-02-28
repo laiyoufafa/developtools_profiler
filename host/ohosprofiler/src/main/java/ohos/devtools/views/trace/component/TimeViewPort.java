@@ -66,7 +66,7 @@ public final class TimeViewPort extends JBViewport {
     /**
      * Favorite fragment list
      */
-    public List<AbstractDataFragment> favoriteFragments = new CopyOnWriteArrayList<>();
+    public final List<AbstractDataFragment> favoriteFragments = new CopyOnWriteArrayList<>();
 
     private final IRangeChangeListener rangeChangeListener;
     private final IHeightChangeListener heightChangeListener;

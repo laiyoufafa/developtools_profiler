@@ -26,6 +26,8 @@ import java.util.Map;
 
 /**
  * Bean Util
+ *
+ * @since 2021/5/19 16:39
  */
 public class BeanUtilTest {
     private DeviceIPPortInfo deviceIPPortInfo;

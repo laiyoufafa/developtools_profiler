@@ -41,6 +41,8 @@ import java.util.regex.Pattern;
 
 /**
  * Customize the tooltip that can follow the mouse as a legend
+ *
+ * @since 2021/5/19 16:39
  */
 public final class LegendTooltip extends JComponent {
     private static final Logger LOGGER = LogManager.getLogger(LegendTooltip.class);
@@ -220,7 +222,7 @@ public final class LegendTooltip extends JComponent {
         // 添加时间
         JBLabel timeLabel = new JBLabel();
         timeLabel.setBorder(new EmptyBorder(5, 5, 5, 5));
-        long ms = 0;
+        long ms = 0L;
         String pattern = "^\\d{0,20}$";
         boolean isMatch = Pattern.matches(pattern, timeline);
         if (isMatch) {
@@ -405,7 +407,7 @@ public final class LegendTooltip extends JComponent {
         mainPanel.removeAll();
         JBLabel timeLabel = new JBLabel();
         timeLabel.setBorder(new EmptyBorder(5, 5, 5, 5));
-        long ms = 0;
+        long ms = 0L;
         String pattern = "^\\d{0,20}$";
         boolean isMatch = Pattern.matches(pattern, timeline);
         if (isMatch) {

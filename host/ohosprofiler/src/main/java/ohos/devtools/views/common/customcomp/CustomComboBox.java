@@ -21,6 +21,8 @@ import javax.swing.JComboBox;
 
 /**
  * CustomComboBox
+ *
+ * @since 2021/5/19 16:39
  */
 public class CustomComboBox<E> extends JComboBox {
     private SessionInfo sessionInfo;

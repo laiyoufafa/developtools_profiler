@@ -19,7 +19,9 @@ import java.io.Serializable;
 import java.util.Objects;
 
 /**
- * 调用栈信息
+ * call stack information
+ *
+ * @since 2021/5/19 16:39
  */
 public class MemoryInstanceDetailsInfo implements Serializable {
     private static final long serialVersionUID = -7886031529563053311L;

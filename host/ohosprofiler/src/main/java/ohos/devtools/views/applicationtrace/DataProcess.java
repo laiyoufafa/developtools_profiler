@@ -67,13 +67,12 @@ public class DataProcess {
                 }
             }
         });
-        List<DefaultMutableTreeNode> threadNodes = treeNodeMap.values().stream().filter(node -> {
+        return treeNodeMap.values().stream().filter(node -> {
             if (node.getUserObject() instanceof TreeTableBean) {
                 return ((TreeTableBean) node.getUserObject()).getPrefParentStackId().isEmpty();
             }
             return false;
         }).collect(Collectors.toList());
-        return threadNodes;
     }
 
     /**
@@ -97,21 +96,21 @@ public class DataProcess {
         setNumForNodes(treeNodeMap);
         nameToId.forEach((name, ids) -> {
             DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode();
-            rootNode.setUserObject(new TreeTableBean(dur) {{
-                setName(name);
-                long totalNum = 0;
-                long childrenNum = 0;
-                long selfNum = 0;
-                for (String id : ids) {
-                    TreeTableBean tableBean = treeNodeMap.get(id);
-                    totalNum += tableBean.getTotalNum();
-                    childrenNum += tableBean.getChildrenNum();
-                    selfNum += tableBean.getSelfNum();
-                }
-                setTotalNum(totalNum);
-                setSelfNum(selfNum);
-                setChildrenNum(childrenNum);
-            }});
+            TreeTableBean treeTableBean = new TreeTableBean(dur);
+            treeTableBean.setName(name);
+            long totalNum = 0L;
+            long childrenNum = 0L;
+            long selfNum = 0L;
+            for (String id : ids) {
+                TreeTableBean tableBean = treeNodeMap.get(id);
+                totalNum += tableBean.getTotalNum();
+                childrenNum += tableBean.getChildrenNum();
+                selfNum += tableBean.getSelfNum();
+            }
+            treeTableBean.setTotalNum(totalNum);
+            treeTableBean.setSelfNum(selfNum);
+            treeTableBean.setChildrenNum(childrenNum);
+            rootNode.setUserObject(treeTableBean);
             ids.forEach(id -> recursionNode(rootNode, treeNodeMap.get(id).getPrefParentStackId(), treeNodeMap, id));
             nodes.add(rootNode);
         });
@@ -137,9 +136,9 @@ public class DataProcess {
                     if (nameToId.containsKey(a1.getValue().get(0).getFuncName())) {
                         nameToId.get(a1.getValue().get(0).getFuncName()).add(a1.getValue().get(0).getBloodId());
                     } else {
-                        nameToId.put(a1.getValue().get(0).getFuncName(), new ArrayList<>() {{
-                            add(a1.getValue().get(0).getBloodId());
-                        }});
+                        List<String> arrayList = new ArrayList<>();
+                        arrayList.add(a1.getValue().get(0).getBloodId());
+                        nameToId.put(a1.getValue().get(0).getFuncName(), arrayList);
                     }
                 }
             }
@@ -210,12 +209,11 @@ public class DataProcess {
             }
         }
         if (!sameName) { // No same node needs to be merged
-            DefaultMutableTreeNode addNode = new DefaultMutableTreeNode() { {
-                setUserObject(new TreeTableBean(topBean.getThreadDur()) { { // Calculate the time difference
-                    setName(idBean.getName());
-                    setTime(timeBean);
-                }});
-            }};
+            DefaultMutableTreeNode addNode = new DefaultMutableTreeNode();
+            TreeTableBean treeTableBean = new TreeTableBean(topBean.getThreadDur());
+            treeTableBean.setName(idBean.getName());
+            treeTableBean.setTime(timeBean);
+            addNode.setUserObject(treeTableBean);
             rootNode.add(addNode);
             recursionNode(addNode, idBean.getPrefParentStackId(), treeNodeMap, Ids.get("id"));
         }

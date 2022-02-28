@@ -115,12 +115,6 @@ public class TaskScenePanelChart extends JBPanel {
     private Boolean traceAnalysisResult = true;
 
     /**
-     * Task Scene Panel Chart
-     */
-    public TaskScenePanelChart() {
-    }
-
-    /**
      * 整体页面top容器
      */
     private JBPanel panelTop;
@@ -280,17 +274,10 @@ public class TaskScenePanelChart extends JBPanel {
     private List<SubSessionListJBPanel> dumpOrHookSessionList;
 
     /**
-     * getCardLayout
-     *
-     * @param cards cards
+     * Task Scene Panel Chart
      */
-    private void getCardLayout(JBPanel cards) {
-        if (cards != null) {
-            LayoutManager layout = cards.getLayout();
-            if (layout instanceof CardLayout) {
-                cardLayout = (CardLayout) layout;
-            }
-        }
+    public TaskScenePanelChart() {
+        super();
     }
 
     /**
@@ -353,6 +340,20 @@ public class TaskScenePanelChart extends JBPanel {
         }
         // 刷新页面
         jTaskPanel.getTabContainer().repaint();
+    }
+
+    /**
+     * getCardLayout
+     *
+     * @param cards cards
+     */
+    private void getCardLayout(JBPanel cards) {
+        if (cards != null) {
+            LayoutManager layout = cards.getLayout();
+            if (layout instanceof CardLayout) {
+                cardLayout = (CardLayout) layout;
+            }
+        }
     }
 
     private void init() {
@@ -620,6 +621,14 @@ public class TaskScenePanelChart extends JBPanel {
      * 使用内部类完成标签移动操作
      */
     private class DynamicThread extends Thread {
+
+        /**
+         * DynamicThread con
+         */
+        public DynamicThread() {
+            super.setName("DynamicThread");
+        }
+
         @Override
         public void run() {
             while (true) {

@@ -17,6 +17,8 @@ package ohos.devtools.datasources.utils.device.entity;
 
 /**
  * device Type
+ *
+ * @since 2021/5/19 16:39
  */
 public enum DeviceStatus {
     INIT(0), OK(1), FAILED(2);

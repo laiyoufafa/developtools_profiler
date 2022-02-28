@@ -22,14 +22,10 @@ import java.awt.Color;
 
 /**
  * ColorConstants
+ *
+ * @since 2021/5/19 16:39
  */
 public final class ColorConstants {
-    /**
-     * 构造函数
-     */
-    private ColorConstants() {
-    }
-
     /**
      * color RGB 12 14 18
      */
@@ -251,4 +247,10 @@ public final class ColorConstants {
      * ability back event color
      */
     public static final Color ABILITY_BACK_COLOR = new JBColor(new Color(0xACACAC), Gray._172);
+
+    /**
+     * 构造函数
+     */
+    private ColorConstants() {
+    }
 }

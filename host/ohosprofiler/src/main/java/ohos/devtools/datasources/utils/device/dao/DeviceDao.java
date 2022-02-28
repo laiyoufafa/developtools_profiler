@@ -37,6 +37,8 @@ import static ohos.devtools.datasources.utils.device.entity.DeviceType.LEAN_HOS_
 
 /**
  * Device-related execution sql class
+ *
+ * @since 2021/5/19 16:39
  */
 public class DeviceDao extends AbstractDataStore {
     private static final Logger LOGGER = LogManager.getLogger(DeviceDao.class);

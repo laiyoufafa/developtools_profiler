@@ -17,6 +17,8 @@ package ohos.devtools.datasources.utils.common.util;
 
 /**
  * Validate
+ *
+ * @since 2021/5/19 16:39
  */
 public abstract class Validate {
     /**

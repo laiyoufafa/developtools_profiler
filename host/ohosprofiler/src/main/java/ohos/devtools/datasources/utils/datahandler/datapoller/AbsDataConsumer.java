@@ -17,6 +17,15 @@ package ohos.devtools.datasources.utils.datahandler.datapoller;
 
 /**
  * AbsDataConsumer
+ *
+ * @since 2021/5/19 16:39
  */
 public abstract class AbsDataConsumer implements DataConsumerInterface {
+
+    /**
+     * AbsDataConsumer
+     */
+    public AbsDataConsumer() {
+        super();
+    }
 }

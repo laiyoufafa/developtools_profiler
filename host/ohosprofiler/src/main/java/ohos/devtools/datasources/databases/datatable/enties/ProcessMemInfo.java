@@ -19,6 +19,15 @@ import ohos.devtools.datasources.transport.grpc.service.MemoryPluginResult;
 
 /**
  * ProcessMemInfo
+ *
+ * @since 2021/5/19 16:39
  */
 public class ProcessMemInfo extends MemoryData<MemoryPluginResult.AppSummary> {
+
+    /**
+     * ProcessMemInfo
+     */
+    public ProcessMemInfo() {
+        super();
+    }
 }

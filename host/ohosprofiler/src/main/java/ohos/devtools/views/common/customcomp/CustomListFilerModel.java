@@ -24,6 +24,8 @@ import java.util.Vector;
 
 /**
  * CustomListFilerModel
+ *
+ * @since 2021/5/19 16:39
  */
 public class CustomListFilerModel<E> extends AbstractListModel<E> {
     private Vector<E> items = new Vector<E>();

@@ -30,9 +30,9 @@ class ProcessMemTest {
      */
     @Test
     void getTrackId() {
-        assertEquals(3, new ProcessMem() {{
-            setTrackId(3);
-        }}.getTrackId());
+        ProcessMem processMem = new ProcessMem();
+        processMem.setTrackId(3);
+        assertEquals(3, processMem.getTrackId());
     }
 
     /**
@@ -40,9 +40,9 @@ class ProcessMemTest {
      */
     @Test
     void setTrackId() {
-        assertEquals(3, new ProcessMem() {{
-            setTrackId(3);
-        }}.getTrackId());
+        ProcessMem processMem = new ProcessMem();
+        processMem.setTrackId(3);
+        assertEquals(3, processMem.getTrackId());
     }
 
     /**
@@ -50,9 +50,9 @@ class ProcessMemTest {
      */
     @Test
     void getProcessName() {
-        assertEquals("ProcessName", new ProcessMem() {{
-            setProcessName("ProcessName");
-        }}.getProcessName());
+        ProcessMem processMem = new ProcessMem();
+        processMem.setProcessName("ProcessName");
+        assertEquals("ProcessName", processMem.getProcessName());
     }
 
     /**
@@ -60,9 +60,9 @@ class ProcessMemTest {
      */
     @Test
     void setProcessName() {
-        assertEquals("ProcessName", new ProcessMem() {{
-            setProcessName("ProcessName");
-        }}.getProcessName());
+        ProcessMem processMem = new ProcessMem();
+        processMem.setProcessName("ProcessName");
+        assertEquals("ProcessName", processMem.getProcessName());
     }
 
     /**
@@ -70,9 +70,9 @@ class ProcessMemTest {
      */
     @Test
     void getPid() {
-        assertEquals(1, new ProcessMem() {{
-            setPid(1);
-        }}.getPid());
+        ProcessMem processMem = new ProcessMem();
+        processMem.setPid(1);
+        assertEquals(1, processMem.getPid());
     }
 
     /**
@@ -80,9 +80,9 @@ class ProcessMemTest {
      */
     @Test
     void setPid() {
-        assertEquals(1, new ProcessMem() {{
-            setPid(1);
-        }}.getPid());
+        ProcessMem processMem = new ProcessMem();
+        processMem.setPid(1);
+        assertEquals(1, processMem.getPid());
     }
 
     /**
@@ -90,9 +90,9 @@ class ProcessMemTest {
      */
     @Test
     void getUpid() {
-        assertEquals(1, new ProcessMem() {{
-            setUpid(1);
-        }}.getUpid());
+        ProcessMem processMem = new ProcessMem();
+        processMem.setUpid(1);
+        assertEquals(1, processMem.getUpid());
     }
 
     /**
@@ -100,9 +100,9 @@ class ProcessMemTest {
      */
     @Test
     void setUpid() {
-        assertEquals(1, new ProcessMem() {{
-            setUpid(1);
-        }}.getUpid());
+        ProcessMem processMem = new ProcessMem();
+        processMem.setUpid(1);
+        assertEquals(1, processMem.getUpid());
     }
 
     /**
@@ -110,9 +110,9 @@ class ProcessMemTest {
      */
     @Test
     void getTrackName() {
-        assertEquals("TrackName", new ProcessMem() {{
-            setTrackName("TrackName");
-        }}.getTrackName());
+        ProcessMem processMem = new ProcessMem();
+        processMem.setTrackName("TrackName");
+        assertEquals("TrackName", processMem.getTrackName());
     }
 
     /**
@@ -120,8 +120,8 @@ class ProcessMemTest {
      */
     @Test
     void setTrackName() {
-        assertEquals("TrackName", new ProcessMem() {{
-            setTrackName("TrackName");
-        }}.getTrackName());
+        ProcessMem processMem = new ProcessMem();
+        processMem.setTrackName("TrackName");
+        assertEquals("TrackName", processMem.getTrackName());
     }
 }

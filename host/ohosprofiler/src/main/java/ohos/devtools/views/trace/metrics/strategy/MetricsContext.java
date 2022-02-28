@@ -19,6 +19,8 @@ import ohos.devtools.views.trace.metrics.MetricsSql;
 
 /**
  * MetadataStrategy
+ *
+ * @since 2021/5/19 16:39
  */
 public class MetricsContext {
     /**

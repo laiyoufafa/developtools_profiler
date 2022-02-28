@@ -22,10 +22,10 @@ import java.util.List;
 
 /**
  * Memory Instance DetailsManager
+ *
+ * @since 2021/5/19 16:39
  */
 public class MemoryInstanceDetailsManager {
-    private final MemoryInstanceDetailsDao memoryInstanceDetailsDao = MemoryInstanceDetailsDao.getInstance();
-
     /**
      * Find the call information corresponding to instance in the database according
      * to the instanceid and provide it to the query interface of the UI
@@ -34,7 +34,7 @@ public class MemoryInstanceDetailsManager {
      * @return ArrayList <MemoryInstanceDetailsInfo>
      */
     public ArrayList<MemoryInstanceDetailsInfo> getMemoryInstanceDetailsInfos(Integer instanceId) {
-        return memoryInstanceDetailsDao.getMemoryInstanceDetails(instanceId);
+        return new MemoryInstanceDetailsDao().getMemoryInstanceDetails(instanceId);
     }
 
     /**
@@ -43,6 +43,6 @@ public class MemoryInstanceDetailsManager {
      * @return ArrayList <MemoryInstanceDetailsInfo>
      */
     public List<MemoryInstanceDetailsInfo> getAllMemoryInstanceDetails() {
-        return memoryInstanceDetailsDao.getAllMemoryInstanceDetails();
+        return new MemoryInstanceDetailsDao().getAllMemoryInstanceDetails();
     }
 }

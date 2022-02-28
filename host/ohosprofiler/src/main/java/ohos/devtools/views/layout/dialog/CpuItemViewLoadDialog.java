@@ -496,7 +496,7 @@ public class CpuItemViewLoadDialog implements ActionListener {
      * analysis trace file to db file
      *
      * @return String
-     * @throws IOException
+     * @throws IOException IOException
      */
     public String analysisTraceFileToDbFile() throws IOException {
         String dbPath =

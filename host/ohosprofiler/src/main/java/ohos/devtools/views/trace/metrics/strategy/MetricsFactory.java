@@ -22,6 +22,8 @@ import java.util.Map;
 
 /**
  * MetadataStrategy
+ *
+ * @since 2021/5/19 16:39
  */
 public class MetricsFactory {
     private static final MetricsFactory FACTORY = new MetricsFactory();

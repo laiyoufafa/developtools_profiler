@@ -46,6 +46,8 @@ import static ohos.devtools.datasources.utils.device.entity.DeviceType.LEAN_HOS_
 
 /**
  * AgentConfig
+ *
+ * @since 2021/5/19 16:39
  */
 @DPlugin
 public class AgentConfig extends IPluginConfig {
@@ -68,8 +70,7 @@ public class AgentConfig extends IPluginConfig {
         agentConfig.setPluginBufferConfig(new PluginBufferConfig(10000, PluginBufferConfig.Policy.RECYCLE));
         agentConfig.setSpecialStart(true);
         agentConfig.setGetPluginName((deviceIPPortInfo, processInfo) -> {
-            String agentPlug = "jvmtiagent_" + processInfo.getProcessName();
-            return agentPlug;
+            return "jvmtiagent_" + processInfo.getProcessName();
         });
         agentConfig.setSpecialStartPlugMethod((deviceIPPortInfo, processInfo) -> {
             if (!ProcessManager.getInstance().checkIsDebuggerProcess(deviceIPPortInfo, processInfo)) {

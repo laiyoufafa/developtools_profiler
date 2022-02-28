@@ -48,6 +48,8 @@ import static ohos.devtools.datasources.utils.common.Constant.MEMORY_PLUG;
 
 /**
  * DataPoller utilities class
+ *
+ * @since 2021/5/19 16:39
  */
 public class DataPoller extends Thread {
     private static final Logger LOGGER = LogManager.getLogger(DataPoller.class);
@@ -73,6 +75,7 @@ public class DataPoller extends Thread {
         if (ProfilerLogManager.isInfoEnabled()) {
             LOGGER.info("DataPoller");
         }
+        super.setName("DataPoller");
         this.localSessionId = localSessionId;
         this.sessionId = sessionId;
         this.deviceIPPortInfo = device;

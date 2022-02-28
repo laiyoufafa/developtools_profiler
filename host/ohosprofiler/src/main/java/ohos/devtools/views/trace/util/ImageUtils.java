@@ -25,7 +25,7 @@ import java.io.IOException;
  * @since 2021/04/22 12:25
  */
 public final class ImageUtils {
-    private static ImageUtils instance;
+    private static ImageUtils instance = new ImageUtils();
 
     private Image starFill;
 
@@ -70,9 +70,6 @@ public final class ImageUtils {
      * @return ImageUtils
      */
     public static ImageUtils getInstance() {
-        if (instance == null) {
-            instance = new ImageUtils();
-        }
         return instance;
     }
 
