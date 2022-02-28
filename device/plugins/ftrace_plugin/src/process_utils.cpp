@@ -172,7 +172,6 @@ static bool ExecuteProcess(const std::string& bin,
     std::string cmdline = StringUtils::Join(args, " ");
     CHECK_TRUE(retval != -1, false, "execv %s failed, %d!", cmdline.c_str(), errno);
     _exit(EXIT_FAILURE);
-    abort(); // never should be here.
     return true;
 }
 
