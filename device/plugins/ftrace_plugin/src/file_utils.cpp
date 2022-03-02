@@ -78,12 +78,11 @@ int FileUtils::WriteFile(const std::string& path, const std::string& content, in
 
 int FileUtils::WriteFile(const std::string& path, const std::string& content, int flags, int mode)
 {
-    char realPath[PATH_MAX + 1] = {0};
-
-    if ((path.length() > PATH_MAX) || (realpath(path.c_str(), realPath) == nullptr)) {
+    if (path.empty() || (path.length() >= PATH_MAX) || (path.find("..") != std::string::npos)) {
+        HILOG_ERROR(LOG_CORE, "%s:path is invalid: %s, errno=%d", __func__, path.c_str(), errno);
         return -1;
     }
-    int fd = open(realPath, flags, mode);
+    int fd = open(path.c_str(), flags, mode);
     CHECK_TRUE(fd >= 0, -1, "open %s failed, %d", path.c_str(), errno);
 
     int retval = write(fd, content.data(), content.size());
