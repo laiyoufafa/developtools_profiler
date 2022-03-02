@@ -38,6 +38,7 @@ const int MAX_PARA_CNT = 20;
 const int PARAM_BUF_LEN = 128;
 const int QUERYNAME_LEN = 80;
 const char COLON_CHR = ':';
+const char SLASH_CHR = '/';
 
 struct Params {
     char key[MAX_PARA_LEN];
@@ -59,12 +60,12 @@ void ParseKeyValue(const char *input)
     }
     errno_t err = strncpy_s(g_params[g_paramCnt].key, MAX_PARA_LEN, input, colonPos - input);
     if (err != EOK) {
-        HILOG_ERROR(LOG_CORE, "memcpy_s copy key strings failed.");
+        HILOG_ERROR(LOG_CORE, "strncpy_s copy key strings failed.");
         return;
     }
     err = strncpy_s(g_params[g_paramCnt].value, MAX_PARA_LEN, colonPos + 1, strlen(colonPos + 1));
     if (err != EOK) {
-        HILOG_ERROR(LOG_CORE, "memcpy_s copy value strings failed.");
+        HILOG_ERROR(LOG_CORE, "strncpy_s copy value strings failed.");
         return;
     }
     g_paramCnt++;
@@ -97,12 +98,26 @@ int QueryParams(const char *queryName)
     SplitParams(paramOutBuf);
     return g_paramCnt;
 }
+
+const char* FilterServiceName(const char *inputName)
+{
+    const char *ret = strrchr(inputName, SLASH_CHR);
+    if (ret == nullptr) {
+        return inputName;
+    }
+    return ret + 1;
+}
 }
 
-bool InitEnvironmentParam(const char *serviceName)
+bool InitEnvironmentParam(const char *inputName)
 {
-    if (serviceName == nullptr) {
+    if (inputName == nullptr) {
         HILOG_ERROR(LOG_CORE, "input service name is null.");
+        return false;
+    }
+    const char *serviceName = FilterServiceName(inputName);
+    if (*serviceName == '\0') {
+        HILOG_ERROR(LOG_CORE, "input service name is illegal.");
         return false;
     }
     errno_t err = 0;
@@ -111,12 +126,12 @@ bool InitEnvironmentParam(const char *serviceName)
     err = strcat_s(onceName, sizeof(onceName), serviceName);
     if (err != EOK) {
         HILOG_ERROR(LOG_CORE, "strcat_s query name failed.");
-        return 0;
+        return false;
     }
     err = strcat_s(persistName, sizeof(persistName), serviceName);
     if (err != EOK) {
         HILOG_ERROR(LOG_CORE, "strcat_s persist query name failed.");
-        return 0;
+        return false;
     }
     if (QueryParams(onceName) == 0 && QueryParams(persistName) == 0) {
         HILOG_ERROR(LOG_CORE, "failed to capture %{public}s environment params.", serviceName);
