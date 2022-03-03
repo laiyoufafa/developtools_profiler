@@ -15,6 +15,7 @@ import("//build/ohos.gni")
 import("//developtools/profiler/hidebug/hidebug.gni")
 
 ohos_source_set("libhidebug_source") {
+  part_name = "profiler"
   include_dirs = [
     "//utils/native/base/include",
     "//developtools/profiler/hidebug/interfaces/native/innerkits/include",

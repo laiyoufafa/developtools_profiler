@@ -15,6 +15,7 @@ import("//build/ohos.gni")
 import("../base/config.gni")
 
 ohos_source_set("command_line") {
+  part_name = "profiler"
   sources = [
     "src/command_line.cpp",
     "src/command_param.cpp",
