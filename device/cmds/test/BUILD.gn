@@ -27,8 +27,8 @@ ohos_unittest("hiprofiler_cmd_ut") {
   sources = [ "unittest/hiprofiler_cmd_test.cpp" ]
   deps = [
     "//third_party/boringssl:crypto",
+    "//third_party/bounds_checking_function:libsec_static",
     "//third_party/googletest:gtest_main",
-    "//utils/native/base:utilsecurec",
   ]
   include_dirs = [
     "../include",

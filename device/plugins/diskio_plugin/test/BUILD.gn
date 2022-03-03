@@ -28,8 +28,8 @@ ohos_unittest("diskiodataplugin_ut") {
   deps = [
     "${OHOS_PROFILER_DIR}/device/plugins/diskio_plugin:diskiodataplugin",
     "${OHOS_PROFILER_DIR}/protos/types/plugins/diskio_data:diskio_data_cpp",
+    "//third_party/bounds_checking_function:libsec_static",
     "//third_party/googletest:gtest_main",
-    "//utils/native/base:utilsecurec",
   ]
   include_dirs = [
     "../include",
