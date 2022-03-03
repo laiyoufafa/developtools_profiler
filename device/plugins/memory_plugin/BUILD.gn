@@ -62,7 +62,7 @@ ohos_executable("memorytest") {
     "//utils/native/base/include",
   ]
 
-  deps = [ "//utils/native/base:utilsecurec" ]
+  deps = [ "//third_party/bounds_checking_function:libsec_static" ]
 
   if (current_toolchain != host_toolchain) {
     defines = [ "HAVE_HILOG" ]
