@@ -15,6 +15,7 @@ import("//build/ohos.gni")
 import("../../base/config.gni")
 
 ohos_source_set("hiprofiler_plugin_service") {
+  part_name = "profiler"
   public_deps = [
     "${OHOS_PROFILER_DIR}/device/services/profiler_service:profiler_service",
     "${OHOS_PROFILER_DIR}/device/services/shared_memory:shared_memory",

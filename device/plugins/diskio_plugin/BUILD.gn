@@ -15,6 +15,7 @@ import("//build/ohos.gni")
 import("../../base/config.gni")
 
 ohos_source_set("diskiodataplugin_source") {
+  part_name = "profiler"
   sources = [
     "../memory_plugin/src/buffer_splitter.cpp",
     "src/diskio_data_plugin.cpp",
