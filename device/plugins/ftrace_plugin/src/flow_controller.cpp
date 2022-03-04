@@ -153,7 +153,7 @@ bool FlowController::CreateRawDataCaches()
 
         if (path.empty() || (path.length() >= PATH_MAX) || (path.find("..") != std::string::npos)) {
             HILOG_ERROR(LOG_CORE, "%s:path is invalid: %s, errno=%d", __func__, path.c_str(), errno);
-            return -1;
+            return false;
         }
         auto cache = std::shared_ptr<FILE>(fopen(path.c_str(), "wb+"), [](FILE* fp) { fclose(fp); });
         CHECK_NOTNULL(cache, false, "create cache[%zu]: %s failed!", i, path.c_str());
