@@ -170,7 +170,7 @@ public class TabCounter extends JBPanel {
                 long end = index == size - 1 ? rightNs : list.get(index + 1).getStartTime();
                 weightAvg += list.get(index).getValue() * ((end - start) * 1.0 / timeRange);
             }
-            BigDecimal decimal = new BigDecimal(weightAvg);
+            BigDecimal decimal = BigDecimal.valueOf(weightAvg);
             weightAvg = decimal.setScale(2, RoundingMode.HALF_UP).doubleValue();
             bean.setWeightAvgValue(weightAvg);
         }

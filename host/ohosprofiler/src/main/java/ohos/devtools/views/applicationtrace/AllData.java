@@ -66,7 +66,7 @@ public class AllData {
     /**
      * list of process data
      */
-    public static List<Process> processes = new ArrayList<>();
+    protected static List<Process> processes = new ArrayList<>();
 
     /**
      * get right TopDown tree by time range

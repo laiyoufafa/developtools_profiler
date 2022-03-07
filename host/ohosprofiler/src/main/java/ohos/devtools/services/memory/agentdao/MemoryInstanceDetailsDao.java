@@ -49,24 +49,6 @@ public class MemoryInstanceDetailsDao extends AbstractDataStore {
     }
 
     /**
-     * get database connection
-     *
-     * @param tableName TableName
-     * @return Connection
-     */
-    private Connection getConnection(String tableName) {
-        if (ProfilerLogManager.isInfoEnabled()) {
-            LOGGER.info("getConnection");
-        }
-        Optional<Connection> optionalConnection = getConnectByTable(tableName);
-        Connection conn = null;
-        if (optionalConnection.isPresent()) {
-            conn = optionalConnection.get();
-        }
-        return conn;
-    }
-
-    /**
      * Creation of a detailed table of object information for specific instances
      *
      * @return boolean
@@ -95,55 +77,54 @@ public class MemoryInstanceDetailsDao extends AbstractDataStore {
      * @return boolean
      */
     public boolean insertMemoryInstanceDetailsInfo(List<MemoryInstanceDetailsInfo> memoryInstanceDetailsInfos) {
-        if (ProfilerLogManager.isInfoEnabled()) {
-            LOGGER.info("insertMemoryInstanceDetailsInfo");
-        }
         if (memoryInstanceDetailsInfos.isEmpty()) {
             return false;
         }
         Connection conn = null;
         PreparedStatement ps = null;
-        try {
-            conn = getConnection("MemoryInstanceDetailsInfo");
-            conn.setAutoCommit(false);
-            String sql = "insert into "
-                + "MemoryInstanceDetailsInfo("
-                + "instanceId, "
-                + "frameId, "
-                + "className, "
-                + "methodName, "
-                + "fieldName, "
-                + "lineNumber) "
-                + "values(?,?,?,?,?,?)";
-            ps = conn.prepareStatement(sql);
-            for (MemoryInstanceDetailsInfo memoryInstanceDetailsInfo : memoryInstanceDetailsInfos) {
-                try {
-                    ps.setInt(1, memoryInstanceDetailsInfo.getInstanceId());
-                    ps.setInt(2, memoryInstanceDetailsInfo.getFrameId());
-                    ps.setString(3, memoryInstanceDetailsInfo.getClassName());
-                    ps.setString(4, memoryInstanceDetailsInfo.getMethodName());
-                    ps.setString(5, memoryInstanceDetailsInfo.getFieldName());
-                    ps.setInt(6, memoryInstanceDetailsInfo.getLineNumber());
-                    ps.addBatch();
-                } catch (SQLException sqlException) {
-                    if (ProfilerLogManager.isErrorEnabled()) {
+        Optional<Connection> optionalConnection = getConnectByTable("MemoryInstanceDetailsInfo");
+        if (optionalConnection.isPresent()) {
+            try {
+                conn = optionalConnection.get();
+                conn.setAutoCommit(false);
+                String sql = "insert into "
+                    + "MemoryInstanceDetailsInfo("
+                    + "instanceId, "
+                    + "frameId, "
+                    + "className, "
+                    + "methodName, "
+                    + "fieldName, "
+                    + "lineNumber) "
+                    + "values(?,?,?,?,?,?)";
+                ps = conn.prepareStatement(sql);
+                for (MemoryInstanceDetailsInfo memoryInstanceDetailsInfo : memoryInstanceDetailsInfos) {
+                    try {
+                        ps.setInt(1, memoryInstanceDetailsInfo.getInstanceId());
+                        ps.setInt(2, memoryInstanceDetailsInfo.getFrameId());
+                        ps.setString(3, memoryInstanceDetailsInfo.getClassName());
+                        ps.setString(4, memoryInstanceDetailsInfo.getMethodName());
+                        ps.setString(5, memoryInstanceDetailsInfo.getFieldName());
+                        ps.setInt(6, memoryInstanceDetailsInfo.getLineNumber());
+                        ps.addBatch();
+                    } catch (SQLException sqlException) {
                         LOGGER.error("insert AppInfo {}", sqlException.getMessage());
                     }
                 }
+                ps.executeBatch();
+                conn.commit();
+                conn.setAutoCommit(true);
+                ps.clearParameters();
+                return true;
+            } catch (SQLException throwables) {
+                if (ProfilerLogManager.isErrorEnabled()) {
+                    LOGGER.error("insert Exception {}", throwables.getMessage());
+                }
+                return false;
+            } finally {
+                CloseResourceUtil.closeResource(LOGGER, conn, ps, null);
             }
-            ps.executeBatch();
-            conn.commit();
-            conn.setAutoCommit(true);
-            ps.clearParameters();
-            return true;
-        } catch (SQLException throwables) {
-            if (ProfilerLogManager.isErrorEnabled()) {
-                LOGGER.error("insert Exception {}", throwables.getMessage());
-            }
-            return false;
-        } finally {
-            CloseResourceUtil.closeResource(LOGGER, conn, ps, null);
         }
+        return false;
     }
 
     /**
@@ -156,43 +137,46 @@ public class MemoryInstanceDetailsDao extends AbstractDataStore {
         if (ProfilerLogManager.isInfoEnabled()) {
             LOGGER.info("getMemoryInstanceDetails");
         }
-        Connection conn = getConnection("MemoryInstanceDetailsInfo");
-        PreparedStatement ps = null;
+        Optional<Connection> connection = getConnectByTable("MemoryInstanceDetailsInfo");
         ArrayList<MemoryInstanceDetailsInfo> memoryInstanceDetailsInfos = new ArrayList<>();
-        try {
-            String sql = "select "
-                + "* "
-                + "from "
-                + "MemoryInstanceDetailsInfo "
-                + "where "
-                + "instanceId = ?";
-            ps = conn.prepareStatement(sql);
-            ps.setInt(1, instanceId);
-            ResultSet rs = ps.executeQuery();
-            MemoryInstanceDetailsInfo memoryInstanceDetailsInfo = null;
-            while (rs.next()) {
-                memoryInstanceDetailsInfo = new MemoryInstanceDetailsInfo();
-                Integer frameId = rs.getInt("frameId");
-                String className = rs.getString("className");
-                String methodName = rs.getString("methodName");
-                String fieldName = rs.getString("fieldName");
-                Integer lineNumber = rs.getInt("lineNumber");
-                memoryInstanceDetailsInfo.setInstanceId(instanceId);
-                memoryInstanceDetailsInfo.setFrameId(frameId);
-                memoryInstanceDetailsInfo.setClassName(className);
-                memoryInstanceDetailsInfo.setMethodName(methodName);
-                memoryInstanceDetailsInfo.setFieldName(fieldName);
-                memoryInstanceDetailsInfo.setLineNumber(lineNumber);
-                memoryInstanceDetailsInfos.add(memoryInstanceDetailsInfo);
+        if (connection.isPresent()) {
+            Connection conn = connection.get();
+            PreparedStatement ps = null;
+            try {
+                String sql = "select "
+                    + "* "
+                    + "from "
+                    + "MemoryInstanceDetailsInfo "
+                    + "where "
+                    + "instanceId = ?";
+                ps = conn.prepareStatement(sql);
+                ps.setInt(1, instanceId);
+                ResultSet rs = ps.executeQuery();
+                MemoryInstanceDetailsInfo memoryInstanceDetailsInfo = null;
+                while (rs.next()) {
+                    memoryInstanceDetailsInfo = new MemoryInstanceDetailsInfo();
+                    Integer frameId = rs.getInt("frameId");
+                    String className = rs.getString("className");
+                    String methodName = rs.getString("methodName");
+                    String fieldName = rs.getString("fieldName");
+                    Integer lineNumber = rs.getInt("lineNumber");
+                    memoryInstanceDetailsInfo.setInstanceId(instanceId);
+                    memoryInstanceDetailsInfo.setFrameId(frameId);
+                    memoryInstanceDetailsInfo.setClassName(className);
+                    memoryInstanceDetailsInfo.setMethodName(methodName);
+                    memoryInstanceDetailsInfo.setFieldName(fieldName);
+                    memoryInstanceDetailsInfo.setLineNumber(lineNumber);
+                    memoryInstanceDetailsInfos.add(memoryInstanceDetailsInfo);
+                }
+                ps.clearParameters();
+                return memoryInstanceDetailsInfos;
+            } catch (SQLException sqlException) {
+                if (ProfilerLogManager.isErrorEnabled()) {
+                    LOGGER.error(sqlException.getMessage());
+                }
+            } finally {
+                CloseResourceUtil.closeResource(LOGGER, conn, ps, null);
             }
-            ps.clearParameters();
-            return memoryInstanceDetailsInfos;
-        } catch (SQLException sqlException) {
-            if (ProfilerLogManager.isErrorEnabled()) {
-                LOGGER.error(sqlException.getMessage());
-            }
-        } finally {
-            CloseResourceUtil.closeResource(LOGGER, conn, ps, null);
         }
         return memoryInstanceDetailsInfos;
     }
@@ -206,46 +190,49 @@ public class MemoryInstanceDetailsDao extends AbstractDataStore {
         if (ProfilerLogManager.isInfoEnabled()) {
             LOGGER.info("getAllMemoryInstanceDetails");
         }
-        Connection conn = getConnection("MemoryInstanceDetailsInfo");
-        PreparedStatement ps = null;
+        Optional<Connection> optionalConnection = getConnectByTable("MemoryInstanceDetailsInfo");
         ArrayList<MemoryInstanceDetailsInfo> memoryInstanceDetailsInfos = new ArrayList<>();
-        try {
-            String sql = "select "
-                + "instanceId, "
-                + "frameId, "
-                + "className, "
-                + "methodName, "
-                + "fieldName, "
-                + "lineNumber "
-                + "from "
-                + "MemoryInstanceDetailsInfo";
-            ps = conn.prepareStatement(sql);
-            ResultSet rs = ps.executeQuery();
-            MemoryInstanceDetailsInfo memoryInstanceDetailsInfo = null;
-            while (rs.next()) {
-                memoryInstanceDetailsInfo = new MemoryInstanceDetailsInfo();
-                Integer instanceId = rs.getInt("instanceId");
-                Integer frameId = rs.getInt("frameId");
-                String className = rs.getString("className");
-                String methodName = rs.getString("methodName");
-                String fieldName = rs.getString("fieldName");
-                Integer lineNumber = rs.getInt("lineNumber");
-                memoryInstanceDetailsInfo.setInstanceId(instanceId);
-                memoryInstanceDetailsInfo.setFrameId(frameId);
-                memoryInstanceDetailsInfo.setClassName(className);
-                memoryInstanceDetailsInfo.setMethodName(methodName);
-                memoryInstanceDetailsInfo.setFieldName(fieldName);
-                memoryInstanceDetailsInfo.setLineNumber(lineNumber);
-                memoryInstanceDetailsInfos.add(memoryInstanceDetailsInfo);
+        if (optionalConnection.isPresent()) {
+            Connection conn = optionalConnection.get();
+            PreparedStatement ps = null;
+            try {
+                String sql = "select "
+                    + "instanceId, "
+                    + "frameId, "
+                    + "className, "
+                    + "methodName, "
+                    + "fieldName, "
+                    + "lineNumber "
+                    + "from "
+                    + "MemoryInstanceDetailsInfo";
+                ps = conn.prepareStatement(sql);
+                ResultSet rs = ps.executeQuery();
+                MemoryInstanceDetailsInfo memoryInstanceDetailsInfo = null;
+                while (rs.next()) {
+                    memoryInstanceDetailsInfo = new MemoryInstanceDetailsInfo();
+                    Integer instanceId = rs.getInt("instanceId");
+                    Integer frameId = rs.getInt("frameId");
+                    String className = rs.getString("className");
+                    String methodName = rs.getString("methodName");
+                    String fieldName = rs.getString("fieldName");
+                    Integer lineNumber = rs.getInt("lineNumber");
+                    memoryInstanceDetailsInfo.setInstanceId(instanceId);
+                    memoryInstanceDetailsInfo.setFrameId(frameId);
+                    memoryInstanceDetailsInfo.setClassName(className);
+                    memoryInstanceDetailsInfo.setMethodName(methodName);
+                    memoryInstanceDetailsInfo.setFieldName(fieldName);
+                    memoryInstanceDetailsInfo.setLineNumber(lineNumber);
+                    memoryInstanceDetailsInfos.add(memoryInstanceDetailsInfo);
+                }
+                ps.clearParameters();
+                return memoryInstanceDetailsInfos;
+            } catch (SQLException throwables) {
+                if (ProfilerLogManager.isErrorEnabled()) {
+                    LOGGER.error(throwables.getMessage());
+                }
+            } finally {
+                CloseResourceUtil.closeResource(LOGGER, conn, ps, null);
             }
-            ps.clearParameters();
-            return memoryInstanceDetailsInfos;
-        } catch (SQLException throwables) {
-            if (ProfilerLogManager.isErrorEnabled()) {
-                LOGGER.error(throwables.getMessage());
-            }
-        } finally {
-            CloseResourceUtil.closeResource(LOGGER, conn, ps, null);
         }
         return memoryInstanceDetailsInfos;
     }

@@ -241,7 +241,7 @@ public class CpuDataConsumer extends AbsDataConsumer {
                 threadValue =
                     100.0 * (threadInfo.getThreadCpuTimeMs() - threadInfo.getPrevThreadCpuTimeMs()) / elapsedTime;
             }
-            BigDecimal bigDecimal = new BigDecimal(threadValue);
+            BigDecimal bigDecimal = BigDecimal.valueOf(threadValue);
             ChartDataModel threadInfoModel = new ChartDataModel();
             threadInfoModel.setIndex(threadInfo.getTid());
             threadInfoModel.setColor(JBColor.GREEN);
