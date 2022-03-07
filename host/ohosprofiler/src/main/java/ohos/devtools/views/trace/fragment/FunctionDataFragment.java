@@ -36,7 +36,7 @@ public class FunctionDataFragment extends AbstractDataFragment<FunctionBean> imp
     /**
      * graph event callback
      */
-    public static FunctionBean currentSelectedFunctionData;
+    protected static FunctionBean currentSelectedFunctionData;
 
     /**
      * Thread object

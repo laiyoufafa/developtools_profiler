@@ -264,7 +264,7 @@ public abstract class AbstractDataStore<T> extends SqlRunnable {
         } catch (SQLException | IllegalAccessException | InstantiationException | NoSuchFieldException exe) {
             LOGGER.error("select Exception: ", exe);
         } finally {
-            close(rs, connection);
+            close(stmt, rs, connection);
         }
         return new ArrayList<>();
     }

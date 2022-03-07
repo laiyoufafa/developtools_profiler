@@ -68,6 +68,8 @@ import static ohos.devtools.views.common.Constant.IS_SUPPORT_NEW_HDC;
 
 /**
  * get trace data
+ *
+ * @since 2021/5/19 16:39
  */
 public class SystemTraceHelper {
     private static final Logger LOGGER = LogManager.getLogger(SystemTraceHelper.class);

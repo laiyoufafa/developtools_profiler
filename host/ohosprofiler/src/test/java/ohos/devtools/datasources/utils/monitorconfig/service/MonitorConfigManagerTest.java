@@ -77,7 +77,7 @@ public class MonitorConfigManagerTest {
         processInfo.setProcessName("process");
         monitorConfigManager = MonitorConfigManager.getInstance();
         DataBaseApi.getInstance().initDataSourceManager();
-        ConcurrentHashMap<Long, Map<String, LinkedList<String>>> dataMap = monitorConfigManager.dataMap;
+        ConcurrentHashMap<Long, Map<String, LinkedList<String>>> dataMap = monitorConfigManager.DATA_MAP;
     }
 
     /**

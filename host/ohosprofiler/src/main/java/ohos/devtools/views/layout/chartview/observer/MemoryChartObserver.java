@@ -103,7 +103,7 @@ public class MemoryChartObserver implements IChartEventObserver {
             queryResult = MemoryDataCache.getInstance().getData(sessionId, start, end);
         }
 
-        Map<String, LinkedList<String>> configMap = MonitorConfigManager.dataMap.get(sessionId);
+        Map<String, LinkedList<String>> configMap = MonitorConfigManager.DATA_MAP.get(sessionId);
         List<String> monitorItemList = new ArrayList<>();
         if (configMap != null) {
             monitorItemList = configMap.get("Memory");

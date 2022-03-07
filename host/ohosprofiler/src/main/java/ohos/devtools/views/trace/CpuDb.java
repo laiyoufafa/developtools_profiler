@@ -269,8 +269,7 @@ public final class CpuDb {
         if (pt == null) {
             return clazz;
         }
-        Type argument = pt.getActualTypeArguments()[0];
-        return argument;
+        return pt.getActualTypeArguments()[0];
     }
 
     private void release(ResultSet rs, Statement stat, Connection conn) {
