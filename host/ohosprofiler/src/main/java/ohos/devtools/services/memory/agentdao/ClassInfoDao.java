@@ -49,18 +49,6 @@ public class ClassInfoDao extends AbstractDataStore {
         createClassInfo();
     }
 
-    private Connection getConnection(String tableName) {
-        if (ProfilerLogManager.isInfoEnabled()) {
-            LOGGER.info("getConnection");
-        }
-        Optional<Connection> optionalConnection = getConnectByTable(tableName);
-        Connection conn = null;
-        if (optionalConnection.isPresent()) {
-            conn = optionalConnection.get();
-        }
-        return conn;
-    }
-
     /**
      * createClassInfo
      *
@@ -90,12 +78,15 @@ public class ClassInfoDao extends AbstractDataStore {
         Connection conn = null;
         PreparedStatement ps = null;
         try {
-            conn = getConnection("ClassInfo");
-            String sql = "insert into ClassInfo (cId,className) values (?,?)";
-            ps = conn.prepareStatement(sql);
-            ps.setInt(1, classInfo.getcId());
-            ps.setString(2, classInfo.getClassName());
-            ps.executeUpdate();
+            Optional<Connection> optionalConnection = getConnectByTable("ClassInfo");
+            if (optionalConnection.isPresent()) {
+                conn = optionalConnection.get();
+                String sql = "insert into ClassInfo (cId,className) values (?,?)";
+                ps = conn.prepareStatement(sql);
+                ps.setInt(1, classInfo.getcId());
+                ps.setString(2, classInfo.getClassName());
+                ps.executeUpdate();
+            }
         } catch (SQLException throwables) {
             if (ProfilerLogManager.isErrorEnabled()) {
                 LOGGER.error("memoryHeapInfo Exception {}", throwables.getMessage());
@@ -121,18 +112,22 @@ public class ClassInfoDao extends AbstractDataStore {
         Connection conn = null;
         PreparedStatement ps = null;
         try {
-            conn = getConnection("ClassInfo");
-            conn.setAutoCommit(false);
-            String sql = "insert into ClassInfo (cId,className) values (?,?)";
-            ps = conn.prepareStatement(sql);
-            for (ClassInfo classInfo : classInfos) {
-                ps.setInt(1, classInfo.getcId());
-                ps.setString(2, classInfo.getClassName());
-                ps.addBatch();
+            Optional<Connection> optionalConnection = getConnectByTable("ClassInfo");
+            if (optionalConnection.isPresent()) {
+                conn = optionalConnection.get();
+                conn.setAutoCommit(false);
+                String sql = "insert into ClassInfo (cId,className) values (?,?)";
+                ps = conn.prepareStatement(sql);
+                for (ClassInfo classInfo : classInfos) {
+                    ps.setInt(1, classInfo.getcId());
+                    ps.setString(2, classInfo.getClassName());
+                    ps.addBatch();
+                }
+                int[] results = ps.executeBatch();
+                conn.commit();
+                return true;
             }
-            int[] results = ps.executeBatch();
-            conn.commit();
-            return true;
+            return false;
         } catch (SQLException throwables) {
             if (ProfilerLogManager.isErrorEnabled()) {
                 LOGGER.error("memoryHeapInfo Exception {}", throwables.getMessage());
@@ -153,29 +148,32 @@ public class ClassInfoDao extends AbstractDataStore {
         if (ProfilerLogManager.isInfoEnabled()) {
             LOGGER.info("getAllClassInfoData");
         }
-        Connection conn = getConnection("ClassInfo");
-        PreparedStatement ps = null;
+        Optional<Connection> optionalConnection = getConnectByTable("ClassInfo");
         ArrayList<ClassInfo> classInfos = new ArrayList<>();
-        try {
-            String sql = "select cId,className from ClassInfo";
-            ps = conn.prepareStatement(sql);
-            ResultSet rs = ps.executeQuery();
-            ClassInfo classInfo = null;
-            while (rs.next()) {
-                classInfo = new ClassInfo();
-                Integer cId = rs.getInt("cId");
-                String className = rs.getString("className");
-                classInfo.setcId(cId);
-                classInfo.setClassName(className);
-                classInfos.add(classInfo);
+        if (optionalConnection.isPresent()) {
+            Connection conn = optionalConnection.get();
+            PreparedStatement ps = null;
+            try {
+                String sql = "select cId,className from ClassInfo";
+                ps = conn.prepareStatement(sql);
+                ResultSet rs = ps.executeQuery();
+                ClassInfo classInfo = null;
+                while (rs.next()) {
+                    classInfo = new ClassInfo();
+                    Integer cId = rs.getInt("cId");
+                    String className = rs.getString("className");
+                    classInfo.setcId(cId);
+                    classInfo.setClassName(className);
+                    classInfos.add(classInfo);
+                }
+                return classInfos;
+            } catch (SQLException throwables) {
+                if (ProfilerLogManager.isErrorEnabled()) {
+                    LOGGER.error("memoryHeapInfo Exception {}", throwables.getMessage());
+                }
+            } finally {
+                CloseResourceUtil.closeResource(LOGGER, conn, ps, null);
             }
-            return classInfos;
-        } catch (SQLException throwables) {
-            if (ProfilerLogManager.isErrorEnabled()) {
-                LOGGER.error("memoryHeapInfo Exception {}", throwables.getMessage());
-            }
-        } finally {
-            CloseResourceUtil.closeResource(LOGGER, conn, ps, null);
         }
         return classInfos;
     }
@@ -190,23 +188,26 @@ public class ClassInfoDao extends AbstractDataStore {
         if (ProfilerLogManager.isInfoEnabled()) {
             LOGGER.info("getClassIdByClassName");
         }
-        Connection conn = getConnection("ClassInfo");
-        PreparedStatement ps = null;
+        Optional<Connection> optionalConnection = getConnectByTable("ClassInfo");
         int cId = 0;
-        try {
-            String sql = "select cId from ClassInfo where className = '" + className + "'";
-            Statement statement = conn.createStatement();
-            ResultSet rs = statement.executeQuery(sql);
-            if (rs.next()) {
-                cId = rs.getInt("cId");
+        if (optionalConnection.isPresent()) {
+            Connection conn = optionalConnection.get();
+            PreparedStatement ps = null;
+            try {
+                String sql = "select cId from ClassInfo where className = '" + className + "'";
+                Statement statement = conn.createStatement();
+                ResultSet rs = statement.executeQuery(sql);
+                if (rs.next()) {
+                    cId = rs.getInt("cId");
+                }
+                return cId;
+            } catch (SQLException throwables) {
+                if (ProfilerLogManager.isErrorEnabled()) {
+                    LOGGER.error("memoryHeapInfo Exception {}", throwables.getMessage());
+                }
+            } finally {
+                CloseResourceUtil.closeResource(LOGGER, conn, ps, null);
             }
-            return cId;
-        } catch (SQLException throwables) {
-            if (ProfilerLogManager.isErrorEnabled()) {
-                LOGGER.error("memoryHeapInfo Exception {}", throwables.getMessage());
-            }
-        } finally {
-            CloseResourceUtil.closeResource(LOGGER, conn, ps, null);
         }
         return cId;
     }

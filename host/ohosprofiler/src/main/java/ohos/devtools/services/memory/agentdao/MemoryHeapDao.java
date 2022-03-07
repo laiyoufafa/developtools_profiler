@@ -112,27 +112,31 @@ public class MemoryHeapDao extends AbstractDataStore {
         Connection conn = null;
         PreparedStatement ps = null;
         try {
-            conn = getConnection("MemoryHeapInfo");
-            conn.setAutoCommit(false);
-            String sql = "insert into "
-                + "MemoryHeapInfo("
-                + "cId, "
-                + "heapId, "
-                + "sessionId, "
-                + "allocations, "
-                + "deallocations, "
-                + "totalCount, "
-                + "shallowSize, "
-                + "createTime, "
-                + "instanceId) "
-                + "values(?,?,?,?,?,?,?,?,?)";
-            ps = conn.prepareStatement(sql);
-            setPreparedStatement(memoryHeapInfos, ps);
-            ps.executeBatch();
-            conn.commit();
-            conn.setAutoCommit(true);
-            ps.clearParameters();
-            return true;
+            Optional<Connection> optionalConnection = getConnectByTable("MemoryHeapInfo");
+            if (optionalConnection.isPresent()) {
+                conn = optionalConnection.get();
+                conn.setAutoCommit(false);
+                String sql = "insert into "
+                    + "MemoryHeapInfo("
+                    + "cId, "
+                    + "heapId, "
+                    + "sessionId, "
+                    + "allocations, "
+                    + "deallocations, "
+                    + "totalCount, "
+                    + "shallowSize, "
+                    + "createTime, "
+                    + "instanceId) "
+                    + "values(?,?,?,?,?,?,?,?,?)";
+                ps = conn.prepareStatement(sql);
+                setPreparedStatement(memoryHeapInfos, ps);
+                ps.executeBatch();
+                conn.commit();
+                conn.setAutoCommit(true);
+                ps.clearParameters();
+                return true;
+            }
+            return false;
         } catch (SQLException sqlException) {
             if (ProfilerLogManager.isErrorEnabled()) {
                 LOGGER.error("insert MemoryHeap {}", sqlException.getMessage());
@@ -172,39 +176,42 @@ public class MemoryHeapDao extends AbstractDataStore {
         if (ProfilerLogManager.isInfoEnabled()) {
             LOGGER.info("getAllMemoryHeapInfos");
         }
-        Connection conn = getConnection("MemoryHeapInfo");
-        PreparedStatement ps = null;
+        Optional<Connection> optionalConnection = getConnectByTable("MemoryHeapInfo");
         ArrayList<MemoryHeapInfo> memoryHeapInfos = new ArrayList<>();
-        try {
-            String sql =
-                "select "
-                    + "cId, "
-                    + "heapId, "
-                    + "sessionId, "
-                    + "allocations, "
-                    + "deallocations, "
-                    + "totalCount, "
-                    + "shallowSize, "
-                    + "createTime, "
-                    + "instanceId, "
-                    + "updateTime "
-                    + "from "
-                    + "MemoryHeapInfo "
-                    + "where "
-                    + "sessionId = ?";
-            ps = conn.prepareStatement(sql);
-            ps.setLong(1, sessionId);
-            ResultSet rs = ps.executeQuery();
-            MemoryHeapInfo memoryHeapInfo = null;
-            getMemoryHeapData(sessionId, memoryHeapInfos, rs);
-            ps.clearParameters();
-            return memoryHeapInfos;
-        } catch (SQLException sqlException) {
-            if (ProfilerLogManager.isErrorEnabled()) {
-                LOGGER.error("memoryHeapInfo Exception {}", sqlException.getMessage());
+        if (optionalConnection.isPresent()) {
+            Connection conn = optionalConnection.get();
+            PreparedStatement ps = null;
+            try {
+                String sql =
+                    "select "
+                        + "cId, "
+                        + "heapId, "
+                        + "sessionId, "
+                        + "allocations, "
+                        + "deallocations, "
+                        + "totalCount, "
+                        + "shallowSize, "
+                        + "createTime, "
+                        + "instanceId, "
+                        + "updateTime "
+                        + "from "
+                        + "MemoryHeapInfo "
+                        + "where "
+                        + "sessionId = ?";
+                ps = conn.prepareStatement(sql);
+                ps.setLong(1, sessionId);
+                ResultSet rs = ps.executeQuery();
+                MemoryHeapInfo memoryHeapInfo = null;
+                getMemoryHeapData(sessionId, memoryHeapInfos, rs);
+                ps.clearParameters();
+                return memoryHeapInfos;
+            } catch (SQLException sqlException) {
+                if (ProfilerLogManager.isErrorEnabled()) {
+                    LOGGER.error("memoryHeapInfo Exception {}", sqlException.getMessage());
+                }
+            } finally {
+                CloseResourceUtil.closeResource(LOGGER, conn, ps, null);
             }
-        } finally {
-            CloseResourceUtil.closeResource(LOGGER, conn, ps, null);
         }
         return memoryHeapInfos;
     }
@@ -251,41 +258,44 @@ public class MemoryHeapDao extends AbstractDataStore {
         if (ProfilerLogManager.isInfoEnabled()) {
             LOGGER.info("getMemoryHeapInfos");
         }
-        Connection conn = getConnection("MemoryHeapInfo");
-        PreparedStatement ps = null;
+        Optional<Connection> optionalConnection = getConnectByTable("MemoryHeapInfo");
         List<AgentHeapBean> memoryHeapInfos = new ArrayList<>();
-        try {
-            String sql = getSql();
-            ps = conn.prepareStatement(sql);
-            setPreparedStatementData(sessionId, startTime, endTime, ps);
-            ResultSet rs = ps.executeQuery();
-            AgentHeapBean memoryHeapInfo = null;
-            while (rs.next()) {
-                memoryHeapInfo = new AgentHeapBean();
-                Integer cId = rs.getInt("cId");
-                String className = rs.getString("className");
-                Integer allocations = rs.getInt("allocations");
-                Integer deallocations = rs.getInt("deallocations");
-                Integer totalCount = rs.getInt("totalCount");
-                Long shallowSize = rs.getLong("shallowSize");
-                memoryHeapInfo.setAgentClazzId(cId);
-                memoryHeapInfo.setAgentHeapId(0);
-                memoryHeapInfo.setSessionId(sessionId);
-                memoryHeapInfo.setAgentClazzName(className);
-                memoryHeapInfo.setAgentAllocationsCount(allocations - deallocations);
-                memoryHeapInfo.setAgentDeAllocationsCount(deallocations);
-                memoryHeapInfo.setAgentTotalInstanceCount(totalCount);
-                memoryHeapInfo.setAgentTotalshallowSize(shallowSize);
-                memoryHeapInfos.add(memoryHeapInfo);
+        if (optionalConnection.isPresent()) {
+            Connection conn = optionalConnection.get();
+            PreparedStatement ps = null;
+            try {
+                String sql = getSql();
+                ps = conn.prepareStatement(sql);
+                setPreparedStatementData(sessionId, startTime, endTime, ps);
+                ResultSet rs = ps.executeQuery();
+                AgentHeapBean memoryHeapInfo = null;
+                while (rs.next()) {
+                    memoryHeapInfo = new AgentHeapBean();
+                    Integer cId = rs.getInt("cId");
+                    String className = rs.getString("className");
+                    Integer allocations = rs.getInt("allocations");
+                    Integer deallocations = rs.getInt("deallocations");
+                    Integer totalCount = rs.getInt("totalCount");
+                    Long shallowSize = rs.getLong("shallowSize");
+                    memoryHeapInfo.setAgentClazzId(cId);
+                    memoryHeapInfo.setAgentHeapId(0);
+                    memoryHeapInfo.setSessionId(sessionId);
+                    memoryHeapInfo.setAgentClazzName(className);
+                    memoryHeapInfo.setAgentAllocationsCount(allocations - deallocations);
+                    memoryHeapInfo.setAgentDeAllocationsCount(deallocations);
+                    memoryHeapInfo.setAgentTotalInstanceCount(totalCount);
+                    memoryHeapInfo.setAgentTotalshallowSize(shallowSize);
+                    memoryHeapInfos.add(memoryHeapInfo);
+                }
+                ps.clearParameters();
+                return memoryHeapInfos;
+            } catch (SQLException sqlException) {
+                if (ProfilerLogManager.isErrorEnabled()) {
+                    LOGGER.error("memoryHeapInfo Exception {}", sqlException.getMessage());
+                }
+            } finally {
+                CloseResourceUtil.closeResource(LOGGER, conn, ps, null);
             }
-            ps.clearParameters();
-            return memoryHeapInfos;
-        } catch (SQLException sqlException) {
-            if (ProfilerLogManager.isErrorEnabled()) {
-                LOGGER.error("memoryHeapInfo Exception {}", sqlException.getMessage());
-            }
-        } finally {
-            CloseResourceUtil.closeResource(LOGGER, conn, ps, null);
         }
         return memoryHeapInfos;
     }

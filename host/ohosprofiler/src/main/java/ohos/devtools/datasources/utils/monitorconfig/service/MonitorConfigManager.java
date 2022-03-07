@@ -39,7 +39,8 @@ public class MonitorConfigManager {
     /**
      * dataMap
      */
-    public static ConcurrentHashMap<Long, Map<String, LinkedList<String>>> dataMap = new ConcurrentHashMap<>();
+    public static final ConcurrentHashMap<Long, Map<String, LinkedList<String>>> DATA_MAP = new ConcurrentHashMap<>();
+
     private static volatile MonitorConfigManager singleton;
 
     private MonitorConfigManager() {
@@ -106,7 +107,7 @@ public class MonitorConfigManager {
             }
         }
 
-        dataMap.put(localSessionId, monitors);
+        DATA_MAP.put(localSessionId, monitors);
         // 解析后的数据先写表
         MonitorConfigDao.getInstance().insertMonitorInfos(monitorInfos);
         if (ProfilerLogManager.isInfoEnabled()) {

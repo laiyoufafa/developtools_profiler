@@ -1305,6 +1305,9 @@ public class SessionManager {
         } finally {
             try {
                 dataOut.flush();
+                if (dataOut != null) {
+                    dataOut.close();
+                }
                 if (fileOut != null) {
                     fileOut.close();
                 }

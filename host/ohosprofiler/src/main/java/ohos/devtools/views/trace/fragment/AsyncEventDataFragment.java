@@ -16,7 +16,6 @@
 package ohos.devtools.views.trace.fragment;
 
 import ohos.devtools.views.trace.bean.AsyncEvent;
-import ohos.devtools.views.trace.bean.ThreadData;
 import ohos.devtools.views.trace.component.AnalystPanel;
 import ohos.devtools.views.trace.util.Final;
 import ohos.devtools.views.trace.util.Utils;
@@ -36,14 +35,9 @@ import java.util.stream.Collectors;
  */
 public class AsyncEventDataFragment extends AbstractDataFragment<AsyncEvent> implements AsyncEvent.IEventListener {
     /**
-     * graph event callback
-     */
-    public static ThreadData currentSelectedThreadData;
-
-    /**
      * Process memory
      */
-    public AsyncEvent obj;
+    private AsyncEvent obj;
     private boolean isLoading;
     private Rectangle2D bounds;
     private int max;

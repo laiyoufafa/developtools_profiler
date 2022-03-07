@@ -52,8 +52,7 @@ public class EventTable extends JBPanel {
     /**
      * event data source
      */
-    public List<EventBean> dataSource = new ArrayList<>();
-
+    protected List<EventBean> dataSource = new ArrayList<>();
     private final int RowHeight = 25;
     private final int RowHeadHeight = 30;
     private List<Col<EventBean>> columnNames = new ArrayList<>();
@@ -246,12 +245,12 @@ public class EventTable extends JBPanel {
         /**
          * name
          */
-        public String name;
+        protected String name;
 
         /**
          * callable
          */
-        public Function<T, Object> callable;
+        protected Function<T, Object> callable;
 
         /**
          * Constructor

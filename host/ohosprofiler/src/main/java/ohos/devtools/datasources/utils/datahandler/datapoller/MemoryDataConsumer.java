@@ -18,10 +18,8 @@ package ohos.devtools.datasources.utils.datahandler.datapoller;
 import com.google.protobuf.InvalidProtocolBufferException;
 import ohos.devtools.datasources.databases.datatable.MemoryTable;
 import ohos.devtools.datasources.databases.datatable.enties.ProcessMemInfo;
-import ohos.devtools.datasources.transport.grpc.service.AgentPluginNetworkData;
 import ohos.devtools.datasources.transport.grpc.service.CommonTypes;
 import ohos.devtools.datasources.transport.grpc.service.MemoryPluginResult;
-import ohos.devtools.datasources.utils.common.util.CommonUtil;
 import ohos.devtools.datasources.utils.common.util.DateTimeUtil;
 import ohos.devtools.datasources.utils.profilerlog.ProfilerLogManager;
 import ohos.devtools.datasources.utils.session.service.SessionManager;
@@ -51,7 +49,8 @@ import static ohos.devtools.views.layout.chartview.MonitorItemDetail.MEM_STACK;
 public class MemoryDataConsumer extends AbsDataConsumer {
     private static final Logger DATA = LogManager.getLogger("Data");
     private static final Logger LOGGER = LogManager.getLogger(MemoryDataConsumer.class);
-    private static final long SAVE_FREQ = 1000;
+    private static final long SAVE_FREQ = 1000L;
+
     private List<ProcessMemInfo> processMemInfoList = new ArrayList<>();
     private Queue<CommonTypes.ProfilerPluginData> queue;
     private MemoryTable memoryTable;
@@ -66,6 +65,7 @@ public class MemoryDataConsumer extends AbsDataConsumer {
      * MemoryDataConsumer
      */
     public MemoryDataConsumer() {
+        super();
     }
 
     /**

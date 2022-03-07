@@ -87,7 +87,7 @@ public class FTableModel<T extends Object> extends AbstractTableModel {
         /**
          * name
          */
-        public String name;
+        private String name;
         private Process callable;
 
         /**

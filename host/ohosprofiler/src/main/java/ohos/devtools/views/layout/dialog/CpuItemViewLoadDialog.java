@@ -516,17 +516,23 @@ public class CpuItemViewLoadDialog implements ActionListener {
         File logFile = new File(logPath);
         if (logFile.exists() && numberOfParsingFile > 0) {
             RandomAccessFile randomFile = null;
-            randomFile = new RandomAccessFile(logFile, "r");
-            String tmp = null;
-            while ((tmp = randomFile.readLine()) != null) {
-                if (tmp.startsWith("last")) {
-                    continue;
+            try {
+                randomFile = new RandomAccessFile(logFile, "r");
+                String tmp = null;
+                while ((tmp = randomFile.readLine()) != null) {
+                    if (tmp.startsWith("last")) {
+                        continue;
+                    }
+                    if (Integer.valueOf(tmp.split(":")[1]) != 0) {
+                        numberOfParsingFile--;
+                        LOGGER.info("File parsing failed last time, try again. value is {}",
+                            Integer.valueOf(tmp.split(":")[1]));
+                        analysisTraceFileToDbFile();
+                    }
                 }
-                if (Integer.valueOf(tmp.split(":")[1]) != 0) {
-                    numberOfParsingFile--;
-                    LOGGER.info("File parsing failed last time, try again. value is {}",
-                        Integer.valueOf(tmp.split(":")[1]));
-                    analysisTraceFileToDbFile();
+            } finally {
+                if (randomFile != null) {
+                    randomFile.close();
                 }
             }
         }

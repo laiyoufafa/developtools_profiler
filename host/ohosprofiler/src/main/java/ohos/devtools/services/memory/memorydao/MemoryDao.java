@@ -44,6 +44,8 @@ import static ohos.devtools.services.memory.memorydao.MemoryDao.MemorySelectStat
 
 /**
  * memory And Database Interaction Class
+ *
+ * @since 2021/5/19 16:39
  */
 public class MemoryDao extends AbstractDataStore {
     private static final Logger LOGGER = LogManager.getLogger(MemoryDao.class);
@@ -207,6 +209,7 @@ public class MemoryDao extends AbstractDataStore {
             if (ProfilerLogManager.isErrorEnabled()) {
                 LOGGER.error(" SQLException {}", throwables.getMessage());
             }
+            close();
         }
         return result;
     }
@@ -256,6 +259,7 @@ public class MemoryDao extends AbstractDataStore {
             if (ProfilerLogManager.isErrorEnabled()) {
                 LOGGER.error(" SQLException {}", throwAbles.getMessage());
             }
+            close();
         }
 
         // 取最后一个点的后一个点用于Chart绘制，填充空白，解决边界闪烁
@@ -310,8 +314,29 @@ public class MemoryDao extends AbstractDataStore {
             if (ProfilerLogManager.isErrorEnabled()) {
                 LOGGER.error(" SQLException {}", throwAbles.getMessage());
             }
+            close();
         }
         return result;
+    }
+
+    private void close() {
+        if (conn != null) {
+            try {
+                memorySelectMap.values().forEach(preparedStatement -> {
+                    try {
+                        preparedStatement.close();
+                    } catch (SQLException sqlException) {
+                        sqlException.printStackTrace();
+                    }
+                });
+                memorySelectMap.clear();
+                conn.close();
+            } catch (SQLException sqlException) {
+                sqlException.printStackTrace();
+            } finally {
+                conn = null;
+            }
+        }
     }
 
     /**

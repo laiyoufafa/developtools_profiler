@@ -45,11 +45,17 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  * Metric Db
+ *
+ * @since 2021/5/19 16:39
  */
 public final class MetricsDb {
     private static boolean isLocal;
     private static volatile MetricsDb db = new MetricsDb();
     private static String dbName;
+
+    private MetricsDb() {
+        super();
+    }
 
     /**
      * Gets the value of dbName .
@@ -68,9 +74,6 @@ public final class MetricsDb {
      */
     public static void setDbName(final String dbName) {
         MetricsDb.dbName = dbName;
-    }
-
-    private MetricsDb() {
     }
 
     private LinkedBlockingQueue<Connection> pool = new LinkedBlockingQueue<>();
@@ -315,8 +318,7 @@ public final class MetricsDb {
         if (pt == null) {
             return clazz;
         }
-        Type argument = pt.getActualTypeArguments()[0];
-        return argument;
+        return pt.getActualTypeArguments()[0];
     }
 
     private void release(ResultSet rs, Statement stat, Connection conn) {

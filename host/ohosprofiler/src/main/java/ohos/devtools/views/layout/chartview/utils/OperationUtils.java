@@ -52,7 +52,7 @@ public final class OperationUtils {
      * @return BigDecimal结果
      */
     public static BigDecimal divide(double num1, double num2) {
-        return new BigDecimal(num1).divide(new BigDecimal(num2), DECIMAL_COUNTS, ROUND_HALF_UP);
+        return BigDecimal.valueOf(num1).divide(BigDecimal.valueOf(num2), DECIMAL_COUNTS, ROUND_HALF_UP);
     }
 
     /**
@@ -63,7 +63,7 @@ public final class OperationUtils {
      * @return int结果
      */
     public static int divideInt(double num1, double num2) {
-        return new BigDecimal(num1).divide(new BigDecimal(num2), DECIMAL_COUNTS, ROUND_HALF_UP).intValue();
+        return BigDecimal.valueOf(num1).divide(BigDecimal.valueOf(num2), DECIMAL_COUNTS, ROUND_HALF_UP).intValue();
     }
 
     /**
@@ -74,7 +74,7 @@ public final class OperationUtils {
      * @return int结果
      */
     public static int divide(double num1, BigDecimal num2) {
-        return new BigDecimal(num1).divide(num2, DECIMAL_COUNTS, ROUND_HALF_UP).intValue();
+        return BigDecimal.valueOf(num1).divide(num2, DECIMAL_COUNTS, ROUND_HALF_UP).intValue();
     }
 
 }
