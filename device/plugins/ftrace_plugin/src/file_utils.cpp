@@ -21,6 +21,7 @@
 #include <dirent.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <regex>
 #include "logging.h"
 
 namespace {
@@ -78,10 +79,28 @@ int FileUtils::WriteFile(const std::string& path, const std::string& content, in
 
 int FileUtils::WriteFile(const std::string& path, const std::string& content, int flags, int mode)
 {
-    if (path.empty() || (path.length() >= PATH_MAX) || (path.find("..") != std::string::npos)) {
+    if (path.empty() || (path.length() >= PATH_MAX)) {
         HILOG_ERROR(LOG_CORE, "%s:path is invalid: %s, errno=%d", __func__, path.c_str(), errno);
         return -1;
     }
+
+    std::regex dirNameRegex("[.~-]");
+    std::regex fileNameRegex("[\\/:*?\"<>|]");
+    size_t pos = path.rfind("/");
+    if (pos != std::string::npos) {
+        std::string dirName = path.substr(0, pos+1);
+        std::string fileName = path.substr(pos+1, path.length()-pos-1);
+        if (std::regex_search(dirName, dirNameRegex) || std::regex_search(fileName, fileNameRegex)) {
+            HILOG_ERROR(LOG_CORE, "%s:path is invalid: %s, errno=%d", __func__, path.c_str(), errno);
+            return -1;
+        }
+    } else {
+        if (std::regex_search(path, fileNameRegex)) {
+            HILOG_ERROR(LOG_CORE, "%s:path is invalid: %s, errno=%d", __func__, path.c_str(), errno);
+            return -1;
+        }
+    }
+
     int fd = open(path.c_str(), flags, mode);
     CHECK_TRUE(fd >= 0, -1, "open %s failed, %d", path.c_str(), errno);
 

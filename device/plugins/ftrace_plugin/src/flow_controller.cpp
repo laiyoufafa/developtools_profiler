@@ -22,6 +22,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <regex>
 
 #include "bytrace_ops.h"
 #include "file_utils.h"
@@ -151,10 +152,28 @@ bool FlowController::CreateRawDataCaches()
         auto& path = rawDataDumpPath_[i];
         HILOG_INFO(LOG_CORE, "create raw data cache[%zu]: %s", i, path.c_str());
 
-        if (path.empty() || (path.length() >= PATH_MAX) || (path.find("..") != std::string::npos)) {
+        if (path.empty() || (path.length() >= PATH_MAX)) {
             HILOG_ERROR(LOG_CORE, "%s:path is invalid: %s, errno=%d", __func__, path.c_str(), errno);
             return false;
         }
+
+        std::regex dirNameRegex("[.~-]");
+        std::regex fileNameRegex("[\\/:*?\"<>|]");
+        size_t pos = path.rfind("/");
+        if (pos != std::string::npos) {
+            std::string dirName = path.substr(0, pos+1);
+            std::string fileName = path.substr(pos+1, path.length()-pos-1);
+            if (std::regex_search(dirName, dirNameRegex) || std::regex_search(fileName, fileNameRegex)) {
+                HILOG_ERROR(LOG_CORE, "%s:path is invalid: %s, errno=%d", __func__, path.c_str(), errno);
+                return false;
+            }
+        } else {
+            if (std::regex_search(path, fileNameRegex)) {
+                HILOG_ERROR(LOG_CORE, "%s:path is invalid: %s, errno=%d", __func__, path.c_str(), errno);
+                return false;
+            }
+        }
+
         auto cache = std::shared_ptr<FILE>(fopen(path.c_str(), "wb+"), [](FILE* fp) { fclose(fp); });
         CHECK_NOTNULL(cache, false, "create cache[%zu]: %s failed!", i, path.c_str());
         rawDataDumpFile_.emplace_back(std::move(cache));
