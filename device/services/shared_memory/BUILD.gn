@@ -19,6 +19,7 @@ config("shared_memory_config") {
     "include",
     "../../base/include",
     "${OHOS_PROFILER_DIR}/interfaces/innerkits",
+    "//third_party/bounds_checking_function:libsec_public_config",
     "//utils/native/base/include",
   ]
 }

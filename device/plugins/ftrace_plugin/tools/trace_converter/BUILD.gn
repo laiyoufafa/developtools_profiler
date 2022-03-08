@@ -31,6 +31,7 @@ ohos_executable("trace_converter") {
     "${OHOS_PROFILER_DIR}/device/base/include",
     "$trace_file_src_dir",  # for trace file reader
     "${OHOS_PROFILER_DIR}/interfaces/kits",
+    "//third_party/bounds_checking_function:libsec_public_config",
     "//utils/native/base/include",
   ]
   deps = [

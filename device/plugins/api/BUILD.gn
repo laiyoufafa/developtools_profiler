@@ -34,7 +34,7 @@ ohos_source_set("plugins_sources") {
     "./include",
     "../../base/include/",
     "${OHOS_PROFILER_DIR}/interfaces/kits",
-    "//utils/native/base/include",
+    "//third_party/bounds_checking_function:libsec_public_config",
     "//third_party/boringssl/src/include",
   ]
   sources = [

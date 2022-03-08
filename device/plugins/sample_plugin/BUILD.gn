@@ -24,7 +24,7 @@ ohos_shared_library("sampleplugin") {
     "include",
     "${OHOS_PROFILER_DIR}/interfaces/kits",
     "${OHOS_PROFILER_DIR}/device/base/include",
-    "//utils/native/base/include",
+    "//third_party/bounds_checking_function:libsec_public_config",
   ]
   deps = [
     "${OHOS_PROFILER_3RDPARTY_PROTOBUF_DIR}:protobuf_lite",

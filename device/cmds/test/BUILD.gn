@@ -35,7 +35,7 @@ ohos_unittest("hiprofiler_cmd_ut") {
     "${OHOS_PROFILER_DIR}/device/base/include",
     "//third_party/boringssl/src/include",
     "//third_party/googletest/googletest/include/gtest",
-    "//utils/native/base/include",
+    "//third_party/bounds_checking_function:libsec_public_config",
   ]
   cflags = [
     "-Wno-inconsistent-missing-override",
