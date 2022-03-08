@@ -12,6 +12,9 @@
   "component": {
     "name": "profiler",
     "subsystem": "developtools",
+    "syscap": [
+      "SystemCapability.HiviewDFX.HiProfiler.HiDebug"
+    ],
     "adapted_system_type": [
       "standard"
     ],
