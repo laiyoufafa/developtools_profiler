@@ -111,9 +111,9 @@ bool PluginServiceStub::GetRemoveResult()
 PluginService::PluginService()
 {
     pluginIdCounter_ = 0;
-    serviceEntry_ = NULL;
-    pluginServiceImpl_ = NULL;
-    pluginCommandBuilder_ = NULL;
+    serviceEntry_ = nullptr;
+    pluginServiceImpl_ = nullptr;
+    pluginCommandBuilder_ = nullptr;
 }
 
 PluginService::~PluginService() {}

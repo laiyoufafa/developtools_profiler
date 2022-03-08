@@ -27,10 +27,10 @@
 
 using namespace ::grpc;
 
-#define CHECK_REQUEST_RESPONSE(context, requst, response)         \
+#define CHECK_REQUEST_RESPONSE(context, request, response)         \
     do {                                                          \
         CHECK_POINTER_NOTNULL(context, "context ptr invalid!");   \
-        CHECK_POINTER_NOTNULL(requst, "request ptr invalid!");    \
+        CHECK_POINTER_NOTNULL(request, "request ptr invalid!");    \
         CHECK_POINTER_NOTNULL(response, "response ptr invalid!"); \
     } while (0)
 

@@ -181,7 +181,7 @@ public:
 
         fsync(fileno(writeFp));
         ret = fclose(writeFp);
-        if (ret == 0) {
+        if (ret != 0) {
             const int bufSize = 1024;
             char buf[bufSize] = { 0 };
             strerror_r(errno, buf, bufSize);

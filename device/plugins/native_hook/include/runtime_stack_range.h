@@ -20,8 +20,8 @@
 extern "C" {
 #endif
 
-#define INIT_LINE_SIZE 1000
-#define INC_LINE_SIZE 100
+constexpr int INIT_LINE_SIZE = 1000;
+constexpr int INC_LINE_SIZE = 100;
 
 void GetRuntimeStackEnd(const char* stackptr, char** end);
 

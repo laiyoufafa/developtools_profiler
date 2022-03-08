@@ -94,7 +94,7 @@ bool BeginTrace()
     }
     // real-time: time is set 0.
     if (g_bytraceInfo->time == 0) {
-        // if time is not set 1s(must >= 1), bytrace tool will use 5s by dafault.
+        // if time is not set 1s(must >= 1), bytrace tool will use 5s by default.
         beginCmd += " -t 1 ";
         beginCmd += " --trace_begin ";
     } else {
@@ -142,7 +142,7 @@ int BytracePluginSessionStart(const uint8_t* configData, const uint32_t configSi
 int BytracePluginSessionStop()
 {
     std::lock_guard<std::mutex> guard(g_taskMutex);
-    // real-time type nead finish trace.
+    // real-time type need finish trace.
     if (g_bytraceInfo->time == 0) {
         int res = StopTrace();
         CHECK_TRUE(res, 0, "BytracePluginSessionStop, bytrace finish FAILED!");

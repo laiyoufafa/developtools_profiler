@@ -284,7 +284,7 @@ int main(int argc, char* argv[])
     }
 
     if (configFile.empty()) { // normal case
-        printf("FAIL\nconfig file argument must sepcified!");
+        printf("FAIL\nconfig file argument must specified!");
         return 1;
     }
     // do capture work

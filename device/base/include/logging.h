@@ -128,7 +128,7 @@ inline void StringReplace(std::string& str, const std::string& oldStr, const std
     }
 }
 
-// let compiler check format string and variable arugments
+// let compiler check format string and variable arguments
 static inline std::string StringFormat(const char* fmt, ...)  __attribute__((format(printf, 1, 2)));
 
 static inline std::string StringFormat(const char* fmt, ...)

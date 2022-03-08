@@ -148,6 +148,9 @@ static void GetMainThreadRuntimeStackRange(char** start, char** end)
             break;
         }
     }
+    if (fclose(fp) != 0) {
+        printf("fclose failed.\n");
+    }
 }
 
 static bool IfContained(const char* start, const char* end, const char* ptr)

@@ -117,7 +117,7 @@ int main(int argc, char *argv[])
                 ++idx;
                 out_fp = fopen(argv[idx], "w");
                 if (out_fp == nullptr) {
-                    printf("File '%s' can't be opened.\n", argv[argc]);
+                    printf("File '%s' can't be opened.\n", argv[idx]);
                     return 1;
                 }
             }
@@ -196,6 +196,9 @@ int main(int argc, char *argv[])
         }
         long long total_times = times.load(std::memory_order_relaxed);
         PRINTF_DATA(out_fp, "The total times(malloc/free): %lld\n", total_times);
+    }
+    if (fclose(out_fp) != 0) {
+        printf("fclose failed.\n");
     }
     free(thr_array);
     printf("Exit\n");
