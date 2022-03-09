@@ -59,12 +59,12 @@ public class BottomScrollPanel extends JBScrollPane {
         /**
          * line height
          */
-        public int lineHeight;
+        protected int lineHeight;
 
         /**
          * line width
          */
-        public int lineWidth;
+        protected int lineWidth;
 
         /**
          * construct with line width and line height

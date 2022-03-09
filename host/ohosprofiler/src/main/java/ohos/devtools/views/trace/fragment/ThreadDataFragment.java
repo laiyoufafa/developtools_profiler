@@ -44,7 +44,7 @@ public class ThreadDataFragment extends AbstractDataFragment<ThreadData> impleme
     /**
      * graph event callback
      */
-    public static ThreadData currentSelectedThreadData;
+    protected static ThreadData currentSelectedThreadData;
 
     /**
      * Thread object
