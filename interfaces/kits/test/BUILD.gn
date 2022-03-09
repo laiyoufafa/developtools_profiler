@@ -43,7 +43,7 @@ ohos_unittest("plugin_module_api_ut") {
     "${OHOS_PROFILER_DIR}/device/plugins/api/src",
     "${OHOS_PROFILER_DIR}/device/base/include",
     "//third_party/googletest/googletest/include/gtest",
-    "//third_party/bounds_checking_function:libsec_public_config",
+    "//third_party/bounds_checking_function/include",
   ]
   sources = [ "unittest/plugin_module_api_test.cpp" ]
   cflags = [

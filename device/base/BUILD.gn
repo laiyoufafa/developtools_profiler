@@ -39,7 +39,7 @@ config("hiprofiler_test_config") {
 config("hiprofiler_base_config") {
   include_dirs = [
     "include",
-    "//third_party/bounds_checking_function:libsec_public_config",
+    "//third_party/bounds_checking_function/include",
     "//utils/native/base/include",
   ]
 }

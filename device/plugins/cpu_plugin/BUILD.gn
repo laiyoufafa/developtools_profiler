@@ -25,7 +25,7 @@ ohos_source_set("cpudataplugin_source") {
     "../memory_plugin/include",
     "${OHOS_PROFILER_DIR}/interfaces/kits",
     "${OHOS_PROFILER_DIR}/device/base/include",
-    "//third_party/bounds_checking_function:libsec_public_config",
+    "//third_party/bounds_checking_function/include",
   ]
   deps = [
     "${OHOS_PROFILER_3RDPARTY_PROTOBUF_DIR}:protobuf_lite",
@@ -60,7 +60,7 @@ ohos_executable("cpudataplugintest") {
     "../api/include",
     "${OHOS_PROFILER_DIR}/interfaces/kits",
     "${OHOS_PROFILER_DIR}/device/base/include",
-    "//third_party/bounds_checking_function:libsec_public_config",
+    "//third_party/bounds_checking_function/include",
   ]
   deps = [
     "${OHOS_PROFILER_3RDPARTY_PROTOBUF_DIR}:protobuf_lite",

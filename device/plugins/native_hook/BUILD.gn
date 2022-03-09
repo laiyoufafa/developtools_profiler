@@ -48,7 +48,7 @@ ohos_shared_library("native_hook") {
     "${OHOS_PROFILER_DIR}/interfaces/kits",
     "${OHOS_PROFILER_DIR}/device/services/ipc/include",
     "${OHOS_PROFILER_DIR}/device/services/shared_memory/include",
-    "//third_party/bounds_checking_function:libsec_public_config",
+    "//third_party/bounds_checking_function/include",
     "//third_party/googletest/googletest/include",
   ]
   public_configs = [

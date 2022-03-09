@@ -20,7 +20,7 @@ config("bytraceplugin_config") {
     "../../services/profiler_service/src",
     "../../base/include",
     "include",
-    "//third_party/bounds_checking_function:libsec_public_config",
+    "//third_party/bounds_checking_function/include",
   ]
 }
 

@@ -24,7 +24,7 @@ ohos_source_set("hilogplugin_source") {
     "include",
     "${OHOS_PROFILER_DIR}/interfaces/kits",
     "${OHOS_PROFILER_DIR}/device/base/include",
-    "//third_party/bounds_checking_function:libsec_public_config",
+    "//third_party/bounds_checking_function/include",
     "//base/hiviewdfx/hilog/frameworks/native/include",
   ]
   deps = [

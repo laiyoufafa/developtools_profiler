@@ -53,7 +53,7 @@ ohos_unittest("ftrace_plugin_ut") {
     "${OHOS_PROFILER_DIR}/interfaces/kits",
     "${OHOS_PROFILER_DIR}/device/base/include",
     "//third_party/googletest/googletest/include/gtest",
-    "//third_party/bounds_checking_function:libsec_public_config",
+    "//third_party/bounds_checking_function/include",
     "//utils/native/base/include",
   ]
   cflags = [
