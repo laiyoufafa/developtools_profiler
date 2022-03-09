@@ -448,6 +448,14 @@ int HilogPlugin::GetDateTime(char* psDateTime, uint32_t size)
 
     nSeconds = time(nullptr);
     pTM = localtime(&nSeconds);
+    if (pTM == nullptr) {
+        const int bufSize = 128;
+        char buf[bufSize] = { 0 };
+        strerror_r(errno, buf, bufSize);
+        HILOG_ERROR(LOG_CORE, "HilogPlugin: get localtime failed!, errno(%d:%s)", errno, buf);
+        return -1;
+    }
+
     if (snprintf_s(psDateTime, size, size - 1, "%04d%02d%02d%02d%02d%02d", pTM->tm_year + BASE_YEAR, pTM->tm_mon + 1,
                    pTM->tm_mday, pTM->tm_hour, pTM->tm_min, pTM->tm_sec) < 0) {
         HILOG_ERROR(LOG_CORE, "%s:snprintf_s error", __func__);
