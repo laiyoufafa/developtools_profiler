@@ -21,16 +21,16 @@
 #include <time.h>
 #pragma clang optimize off
 
-#define DEFAULT_THREAD_NUM 1
-#define DEFAULT_MALLOC_SIZE 100
-#define DEFAULT_REALLOC_SIZE 100
-#define SLEEP_TIME_SEC 1
-#define TEST_BRANCH_NUM 3
-#define ARG_CASE_NUM_THREADNUM 3
-#define ARG_CASE_MALLOCSIZE 2
-#define ARG_THREADNUM 2
-#define STATIC_DEPTH 5
-#define DATA_SIZE 50
+const int DEFAULT_THREAD_NUM = 1;
+const int DEFAULT_MALLOC_SIZE = 100;
+const int DEFAULT_REALLOC_SIZE = 100;
+const int SLEEP_TIME_SEC = 1;
+const int TEST_BRANCH_NUM = 3;
+const int ARG_CASE_NUM_THREADNUM = 3;
+const int ARG_CASE_MALLOCSIZE = 2;
+const int ARG_THREADNUM = 2;
+const int STATIC_DEPTH = 5;
+const int DATA_SIZE = 50;
 
 typedef struct {
     int data[DATA_SIZE];

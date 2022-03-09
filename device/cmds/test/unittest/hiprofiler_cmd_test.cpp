@@ -168,10 +168,7 @@ public:
             strerror_r(errno, buf, bufSize);
             HILOG_ERROR(LOG_CORE, "CreateConfigFile: fwrite() error = %s", buf);
             if (fclose(writeFp) != 0) {
-                const int bufSize = 1024;
-                char buf[bufSize] = { 0 };
-                strerror_r(errno, buf, bufSize);
-                HILOG_ERROR(LOG_CORE, "CreateConfigFile: fclose() error = %s", buf);
+                HILOG_ERROR(LOG_CORE, "fclose() error");
             }
             return;
         }
@@ -183,10 +180,7 @@ public:
             strerror_r(errno, buf, bufSize);
             HILOG_ERROR(LOG_CORE, "CreateConfigFile: fflush() error = %s", buf);
             if (fclose(writeFp) != 0) {
-                const int bufSize = 1024;
-                char buf[bufSize] = { 0 };
-                strerror_r(errno, buf, bufSize);
-                HILOG_ERROR(LOG_CORE, "CreateConfigFile: fclose() error = %s", buf);
+                HILOG_ERROR(LOG_CORE, "fclose() error");
             }
             return;
         }
