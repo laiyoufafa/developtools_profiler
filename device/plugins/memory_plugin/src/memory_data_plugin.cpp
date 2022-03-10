@@ -328,7 +328,10 @@ bool MemoryDataPlugin::GetMemInfoByMemoryService(uint32_t pid, ProcessMemoryInfo
         return false;
     }
 
-    fread(buffer.get(), 1, BUF_MAX_LEN, fp.get());
+    size_t ret = fread(buffer.get(), 1, BUF_MAX_LEN, fp.get());
+    if (ret == 0) {
+        HILOG_ERROR(LOG_CORE, "%s:fread failed", __func__);
+    }
     buffer.get()[BUF_MAX_LEN - 1] = '\0';
 
     return ParseMemInfo(reinterpret_cast<char*>(buffer.get()), memoryInfo);
