@@ -67,57 +67,57 @@ public final class ContentPanel extends JBPanel implements AbstractDataFragment.
     /**
      * start point object
      */
-    public Point startPoint;
+    protected Point startPoint;
 
     /**
      * end point object
      */
-    public Point endPoint;
+    protected Point endPoint;
 
     /**
      * Analysis component
      */
-    public AnalystPanel analystPanel;
+    protected AnalystPanel analystPanel;
 
     /**
      * draw range select flag
      */
-    public boolean drawRangeSelect;
+    protected boolean drawRangeSelect;
 
     /**
      * draw range select data flag
      */
-    public boolean drawRangeSelectData;
+    protected boolean drawRangeSelectData;
 
     /**
      * range select x1
      */
-    public int x1;
+    protected int x1;
 
     /**
      * range select y1
      */
-    public int y1;
+    protected int y1;
 
     /**
      * range select x2
      */
-    public int x2;
+    protected int x2;
 
     /**
      * range select y2
      */
-    public int y2;
+    protected int y2;
 
     /**
      * range start time
      */
-    public long rangeStartNS;
+    protected long rangeStartNS;
 
     /**
      * range end time
      */
-    public long rangeEndNS;
+    protected long rangeEndNS;
 
     private WakeupBean wakeupBean;
     private long startNS;

@@ -41,32 +41,32 @@ public final class TimeViewPort extends JBViewport {
     /**
      * Initial height of the time axis
      */
-    public static int height = 140;
-
-    /**
-     * Fragment above
-     */
-    public TopFragment topFragment;
-
-    /**
-     * Fragment on the left
-     */
-    public LeftFragment leftFragment;
-
-    /**
-     * Cpu fragment
-     */
-    public CpuFragment cpuFragment;
-
-    /**
-     * Rule fragment
-     */
-    public RulerFragment rulerFragment;
+    protected static int height = 140;
 
     /**
      * Favorite fragment list
      */
-    public final List<AbstractDataFragment> favoriteFragments = new CopyOnWriteArrayList<>();
+    protected final List<AbstractDataFragment> favoriteFragments = new CopyOnWriteArrayList<>();
+
+    /**
+     * Fragment above
+     */
+    protected TopFragment topFragment;
+
+    /**
+     * Fragment on the left
+     */
+    protected LeftFragment leftFragment;
+
+    /**
+     * Cpu fragment
+     */
+    protected CpuFragment cpuFragment;
+
+    /**
+     * Rule fragment
+     */
+    protected RulerFragment rulerFragment;
 
     private final IRangeChangeListener rangeChangeListener;
     private final IHeightChangeListener heightChangeListener;

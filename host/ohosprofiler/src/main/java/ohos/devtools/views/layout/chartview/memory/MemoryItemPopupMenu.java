@@ -121,10 +121,10 @@ class MemoryItemPopupMenu {
         if (ProfilerLogManager.isInfoEnabled()) {
             LOGGER.info("initSelectedItems");
         }
-        configMap = MonitorConfigManager.dataMap.get(sessionId);
+        configMap = MonitorConfigManager.DATA_MAP.get(sessionId);
         if (configMap == null || configMap.get(MEMORY_NAME) == null) {
             configMap = initFullItems();
-            MonitorConfigManager.dataMap.put(sessionId, configMap);
+            MonitorConfigManager.DATA_MAP.put(sessionId, configMap);
         }
 
         for (String str : configMap.get(MEMORY_NAME)) {
@@ -200,7 +200,7 @@ class MemoryItemPopupMenu {
         }
         configMap.remove(MEMORY_NAME);
         configMap.put(MEMORY_NAME, memoryFlushed);
-        MonitorConfigManager.dataMap.put(sessionId, configMap);
+        MonitorConfigManager.DATA_MAP.put(sessionId, configMap);
         // Refresh chart manually
         chartObserver.refreshManually();
     }

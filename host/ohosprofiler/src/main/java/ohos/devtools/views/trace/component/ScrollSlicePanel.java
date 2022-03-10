@@ -123,17 +123,17 @@ public class ScrollSlicePanel extends BottomScrollPanel {
         /**
          * parameter key
          */
-        public String key;
+        protected String key;
 
         /**
          * parameter value
          */
-        public String value;
+        protected String value;
 
         /**
          * parameter linkable
          */
-        public boolean linkable;
+        protected boolean linkable;
     }
 
     /**
@@ -249,8 +249,7 @@ public class ScrollSlicePanel extends BottomScrollPanel {
         /**
          * linkable
          */
-        public boolean linkable;
-
+        private boolean linkable;
         private final int leftW = 200;
         private String key;
         private String value;

@@ -226,6 +226,7 @@ public class CpuDao extends AbstractDataStore {
             if (ProfilerLogManager.isErrorEnabled()) {
                 LOGGER.error(" SQLException {}", throwables.getMessage());
             }
+            close();
         }
         return result;
     }
@@ -275,6 +276,7 @@ public class CpuDao extends AbstractDataStore {
             if (ProfilerLogManager.isErrorEnabled()) {
                 LOGGER.error(" SQLException {}", throwAbles.getMessage());
             }
+            close();
         }
         // 取最后一个点的后一个点用于Chart绘制，填充空白，解决边界闪烁
         if (isNeedHeadTail) {
@@ -328,6 +330,7 @@ public class CpuDao extends AbstractDataStore {
             if (ProfilerLogManager.isErrorEnabled()) {
                 LOGGER.error(" SQLException {}", throwAbles.getMessage());
             }
+            close();
         }
         // 取最后一个点的后一个点用于Chart绘制，填充空白，解决边界闪烁
         if (isNeedHeadTail) {
@@ -380,6 +383,7 @@ public class CpuDao extends AbstractDataStore {
             if (ProfilerLogManager.isErrorEnabled()) {
                 LOGGER.error(" SQLException {}", throwAbles.getMessage());
             }
+            close();
         }
         return result;
     }
@@ -428,6 +432,7 @@ public class CpuDao extends AbstractDataStore {
             if (ProfilerLogManager.isErrorEnabled()) {
                 LOGGER.error(" SQLException {}", throwAbles.getMessage());
             }
+            close();
         }
         return result;
     }
@@ -530,5 +535,33 @@ public class CpuDao extends AbstractDataStore {
             list.add(threadInfoModel);
         });
         return list;
+    }
+
+    private void close() {
+        if (conn != null) {
+            try {
+                cpuSelectMap.values().forEach(preparedStatement -> {
+                    try {
+                        preparedStatement.close();
+                    } catch (SQLException sqlException) {
+                        sqlException.printStackTrace();
+                    }
+                });
+                cpuSelectMap.clear();
+                threadSelectMap.values().forEach(preparedStatement -> {
+                    try {
+                        preparedStatement.close();
+                    } catch (SQLException sqlException) {
+                        sqlException.printStackTrace();
+                    }
+                });
+                threadSelectMap.clear();
+                conn.close();
+            } catch (SQLException sqlException) {
+                sqlException.printStackTrace();
+            } finally {
+                conn = null;
+            }
+        }
     }
 }
