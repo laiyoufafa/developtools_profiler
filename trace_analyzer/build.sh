@@ -17,12 +17,12 @@ echo "begin to check input"
 target_os='linux'
 is_debug='false'
 if [ "$#" -eq "2" ];then
-    if [ "$1" != 'windows' ] && [ $1 != "linux" ];then
+    if [ "$1" != 'windows' ] && [ "$1" != "linux" ];then
 	echo "failed"
     	echo "Usage: `basename $0` windows/linux debug/release"
 	exit
     fi
-    if [ $2 != "debug" -a $2 != "release" ];then
+    if [ "$2" != "debug" -a "$2" != "release" ];then
 	echo "failed"
     	echo "Usage: `basename $0` windows/linux debug/release"
 	exit
