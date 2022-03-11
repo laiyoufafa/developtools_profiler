@@ -55,7 +55,7 @@ std::string FileUtils::ReadFile(const std::string& path)
     }
     int fd = open(realPath, O_RDONLY);
     if (fd < 0) {
-        const int bufSize = 1024;
+        const int bufSize = 256;
         char buf[bufSize] = { 0 };
         strerror_r(errno, buf, bufSize);
         HILOG_WARN(LOG_CORE, "open file %s FAILED: %s!", path.c_str(), buf);

@@ -123,7 +123,7 @@ int32_t NetworkPlugin::GetUid(int32_t pid)
     }
     std::ifstream input(path, std::ios::in);
     if (input.fail()) {
-        const int bufSize = 1024;
+        const int bufSize = 256;
         char buf[bufSize] = { 0 };
         strerror_r(errno, buf, bufSize);
         HILOG_ERROR(LOG_CORE, "%s:NetworkPlugin, open %s failed, errno(%s)", __func__, path.c_str(), buf);

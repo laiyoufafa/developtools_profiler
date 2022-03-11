@@ -125,7 +125,7 @@ uint64_t GetSec(HilogPlugin& plugin, const char* data)
 {
     time_t nSeconds = time(nullptr);
     if (nSeconds == 0) {
-        const int bufSize = 1024;
+        const int bufSize = 256;
         char buf[bufSize] = { 0 };
         strerror_r(errno, buf, bufSize);
         HILOG_ERROR(LOG_CORE, "GetSec: get time failed!, errno(%d:%s)", errno, buf);
@@ -134,7 +134,7 @@ uint64_t GetSec(HilogPlugin& plugin, const char* data)
 
     struct tm* pTM = localtime(&nSeconds);
     if (pTM == nullptr) {
-        const int bufSize = 1024;
+        const int bufSize = 256;
         char buf[bufSize] = { 0 };
         strerror_r(errno, buf, bufSize);
         HILOG_ERROR(LOG_CORE, "GetSec: get localtime failed!, errno(%d:%s)", errno, buf);

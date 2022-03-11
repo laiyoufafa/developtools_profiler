@@ -127,7 +127,7 @@ bool UnixSocketServer::StartServer(const std::string& addrname, ServiceEntry& p)
     if (acceptThread_.get_id() == std::thread::id()) {
         close(socketHandle_);
         unlink(addrname.c_str());
-        const int bufSize = 1024;
+        const int bufSize = 256;
         char buf[bufSize] = { 0 };
         strerror_r(errno, buf, bufSize);
         HILOG_ERROR(LOG_CORE, "StartServer FAIL pthread_create ERR : %s", buf);

@@ -82,7 +82,7 @@ int main(int agrc, char* agrv[])
         CpuConfig protoConfig;
         void* handle = dlopen(SO_PATH.c_str(), RTLD_LAZY);
         if (handle == nullptr) {
-            const int bufSize = 1024;
+            const int bufSize = 256;
             char buf[bufSize] = { 0 };
             strerror_r(errno, buf, bufSize);
             HILOG_ERROR(LOG_CORE, "test:dlopen err, errno(%d:%s)", errno, buf);
