@@ -70,7 +70,7 @@ public class TaskPanel extends JBLayeredPane implements MouseListener {
     private static final String APPLICATION_TIP_STR = "<html>Application Tuning<br/><br/>"
         + "Use the performance profiler to check the CPU,memory,network and energy status of the application</html>";
     private static final String SYSTEM_TIP_STR = "<html>System Tuning<br/><br/>"
-        + "Collect system-wide performance traces from Harmony devices from a variety of data sources</html>";
+        + "Collect system-wide performance traces from openHarmony devices from a variety of data sources</html>";
     private static final String DISTRIBUTED_TIP_STR =
         "<html>Distributed Scenario<br/><br/>" + "Collect performance data for distributed scenarios</html>";
     private static final String GPU_TIP_STR =
