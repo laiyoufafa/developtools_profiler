@@ -15,6 +15,7 @@ import("//build/ohos.gni")
 import("../../base/config.gni")
 
 ohos_source_set("hilogplugin_source") {
+  part_name = "profiler"
   sources = [
     "src/file_cache.cpp",
     "src/hilog_module.cpp",

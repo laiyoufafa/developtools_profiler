@@ -44,6 +44,7 @@ config("hiprofiler_base_config") {
 }
 
 ohos_source_set("hiprofiler_base") {
+  part_name = "profiler"
   sources = [
     "src/epoll_event_poller.cpp",
     "src/event_notifier.cpp",

@@ -30,6 +30,7 @@ config("hiprofiler_plugins_config") {
 }
 
 ohos_source_set("plugins_sources") {
+  part_name = "profiler"
   include_dirs = [
     "./include",
     "../../base/include/",

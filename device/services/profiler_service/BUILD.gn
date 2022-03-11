@@ -30,6 +30,7 @@ config("profiler_service_config") {
 }
 
 ohos_source_set("profiler_service") {
+  part_name = "profiler"
   sources = [
     "src/profiler_capability_manager.cpp",
     "src/profiler_data_repeater.cpp",

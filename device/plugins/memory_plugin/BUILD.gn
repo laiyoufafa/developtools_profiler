@@ -15,6 +15,7 @@ import("//build/ohos.gni")
 import("../../base/config.gni")
 
 ohos_source_set("memdataplugin_source") {
+  part_name = "profiler"
   sources = [
     "src/buffer_splitter.cpp",
     "src/memory_data_plugin.cpp",
