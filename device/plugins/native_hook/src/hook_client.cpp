@@ -46,6 +46,25 @@ bool InititalizeIPC()
     return true;
 }
 void FinalizeIPC() { }
+} // namespace
+
+bool ohos_malloc_hook_on_start(void)
+{
+    std::lock_guard<std::recursive_mutex> guard(g_ClientMutex);
+
+    if (g_hookClient == nullptr) {
+        g_hookClient = std::make_shared<HookSocketClient>(getpid());
+    }
+    return true;
+}
+
+bool ohos_malloc_hook_on_end(void)
+{
+    std::lock_guard<std::recursive_mutex> guard(g_ClientMutex);
+    g_hookClient = nullptr;
+
+    return true;
+}
 
 void* hook_malloc(void* (*fn)(size_t), size_t size)
 {
@@ -267,25 +286,6 @@ void hook_free(void (*free_func)(void*), void *p)
     if (g_hookClient != nullptr) {
         g_hookClient->SendStack(buffer.get(), metaSize);
     }
-}
-} // namespace
-
-bool ohos_malloc_hook_on_start(void)
-{
-    std::lock_guard<std::recursive_mutex> guard(g_ClientMutex);
-
-    if (g_hookClient == nullptr) {
-        g_hookClient = std::make_shared<HookSocketClient>(getpid());
-    }
-    return true;
-}
-
-bool ohos_malloc_hook_on_end(void)
-{
-    std::lock_guard<std::recursive_mutex> guard(g_ClientMutex);
-    g_hookClient = nullptr;
-
-    return true;
 }
 
 bool ohos_malloc_hook_initialize(const MallocDispatchType*malloc_dispatch, bool*, const char*)
