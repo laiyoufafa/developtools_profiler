@@ -131,15 +131,10 @@ size_t SliceFilter::BeginAsyncBinder(uint64_t timestamp, uint32_t pid, DataIndex
                                                sliceData.cat, sliceData.name, depth, std::nullopt);
 
     uint32_t argSetId = INVALID_INT32;
-    if (args.valuesMap_.size()) {
-        argSetId = streamFilters_->argsFilter_->NewArgs(args);
-        slices->AppendArgSet(argSetId);
-        binderQueue_[pid] = argSetId;
-    } else {
-        argSetId = streamFilters_->argsFilter_->NewArgs(args);
-        slices->AppendArgSet(argSetId);
-        binderQueue_[pid] = argSetId;
-    }
+    argSetId = streamFilters_->argsFilter_->NewArgs(args);
+    slices->AppendArgSet(argSetId);
+    binderQueue_[pid] = argSetId;
+
     argsToSliceQueue_[argSetId] = static_cast<uint32_t>(index);
     return index;
 }
@@ -161,15 +156,10 @@ size_t SliceFilter::BeginBinder(uint64_t timestamp, uint32_t pid, DataIndex cat,
     sliceStack->push_back(index);
 
     uint32_t argSetId = INVALID_INT32;
-    if (args.valuesMap_.size()) {
-        argSetId = streamFilters_->argsFilter_->NewArgs(args);
-        slices->AppendArgSet(argSetId);
-        binderQueue_[pid] = argSetId;
-    } else {
-        argSetId = streamFilters_->argsFilter_->NewArgs(args);
-        slices->AppendArgSet(argSetId);
-        binderQueue_[pid] = argSetId;
-    }
+    argSetId = streamFilters_->argsFilter_->NewArgs(args);
+    slices->AppendArgSet(argSetId);
+    binderQueue_[pid] = argSetId;
+
     argsToSliceQueue_[argSetId] = static_cast<uint32_t>(index);
     return index;
 }

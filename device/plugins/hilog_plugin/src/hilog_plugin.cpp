@@ -319,7 +319,7 @@ bool HilogPlugin::SetHilogLineDetails(const char* data, HilogLine* info)
         end = pTmp;
     }
     int index = 1;
-    while (end != NULL && *pTmp != ':') { // 结束符 ':'
+    while (end != nullptr && *pTmp != ':') { // 结束符 ':'
         if (*pTmp == '\0' || *pTmp == '\n') {
             return false;
         }

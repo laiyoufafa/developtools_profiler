@@ -131,14 +131,14 @@ int32_t CpuDataPlugin::ReadFile(std::string& fileName)
     char realPath[PATH_MAX + 1] = {0};
 
     if (snprintf_s(filePath, sizeof(filePath), sizeof(filePath) - 1, "%s", fileName.c_str()) < 0) {
-        const int bufSize = 1024;
+        const int bufSize = 256;
         char buf[bufSize] = { 0 };
         strerror_r(errno, buf, bufSize);
         HILOG_ERROR(LOG_CORE, "snprintf_s(%s) error, errno(%d:%s)", fileName.c_str(), errno, buf);
         return RET_FAIL;
     }
     if (realpath(filePath, realPath) == nullptr) {
-        const int bufSize = 1024;
+        const int bufSize = 256;
         char buf[bufSize] = { 0 };
         strerror_r(errno, buf, bufSize);
         HILOG_ERROR(LOG_CORE, "realpath(%s) failed, errno(%d:%s)", fileName.c_str(), errno, buf);
@@ -147,7 +147,7 @@ int32_t CpuDataPlugin::ReadFile(std::string& fileName)
 
     fd = open(realPath, O_RDONLY | O_CLOEXEC);
     if (fd == -1) {
-        const int bufSize = 1024;
+        const int bufSize = 256;
         char buf[bufSize] = { 0 };
         strerror_r(errno, buf, bufSize);
         HILOG_ERROR(LOG_CORE, "%s:failed to open(%s), errno(%d:%s)", __func__, realPath, errno, buf);

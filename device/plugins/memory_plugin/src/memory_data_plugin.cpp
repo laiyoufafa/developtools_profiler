@@ -92,7 +92,7 @@ int MemoryDataPlugin::InitMemVmemFd()
             return RET_FAIL;
         }
         if (realpath(fileName, realPath) == nullptr) {
-            const int bufSize = 1024;
+            const int bufSize = 256;
             char buf[bufSize] = { 0 };
             strerror_r(errno, buf, bufSize);
             HILOG_ERROR(LOG_CORE, "%s:realpath failed, errno(%d:%s)", __func__, errno, buf);
@@ -100,7 +100,7 @@ int MemoryDataPlugin::InitMemVmemFd()
         }
         meminfoFd_ = open(realPath, O_RDONLY | O_CLOEXEC);
         if (meminfoFd_ == -1) {
-            const int bufSize = 1024;
+            const int bufSize = 256;
             char buf[bufSize] = { 0 };
             strerror_r(errno, buf, bufSize);
             HILOG_ERROR(LOG_CORE, "%s:open failed, fileName, errno(%d:%s)", __func__, errno, buf);
@@ -116,7 +116,7 @@ int MemoryDataPlugin::InitMemVmemFd()
             return RET_FAIL;
         }
         if (realpath(fileName, realPath) == nullptr) {
-            const int bufSize = 1024;
+            const int bufSize = 256;
             char buf[bufSize] = { 0 };
             strerror_r(errno, buf, bufSize);
             HILOG_ERROR(LOG_CORE, "%s:realpath failed, errno(%d:%s)", __func__, errno, buf);
@@ -124,7 +124,7 @@ int MemoryDataPlugin::InitMemVmemFd()
         }
         vmstatFd_ = open(realPath, O_RDONLY | O_CLOEXEC);
         if (vmstatFd_ == -1) {
-            const int bufSize = 1024;
+            const int bufSize = 256;
             char buf[bufSize] = { 0 };
             strerror_r(errno, buf, bufSize);
             HILOG_ERROR(LOG_CORE, "%s:failed to open(/proc/vmstat), errno(%d:%s)", __func__, errno, buf);
@@ -328,7 +328,10 @@ bool MemoryDataPlugin::GetMemInfoByMemoryService(uint32_t pid, ProcessMemoryInfo
         return false;
     }
 
-    fread(buffer.get(), 1, BUF_MAX_LEN, fp.get());
+    size_t ret = fread(buffer.get(), 1, BUF_MAX_LEN, fp.get());
+    if (ret == 0) {
+        HILOG_ERROR(LOG_CORE, "%s:fread failed", __func__);
+    }
     buffer.get()[BUF_MAX_LEN - 1] = '\0';
 
     return ParseMemInfo(reinterpret_cast<char*>(buffer.get()), memoryInfo);
@@ -425,7 +428,7 @@ int32_t MemoryDataPlugin::ReadFile(int fd)
     }
     int readsize = pread(fd, buffer_.get(), READ_BUFFER_SIZE - 1, 0);
     if (readsize <= 0) {
-        const int bufSize = 1024;
+        const int bufSize = 256;
         char buf[bufSize] = { 0 };
         strerror_r(errno, buf, bufSize);
         HILOG_ERROR(LOG_CORE, "%s:failed to read(%d), errno(%d:%s)", __func__, fd, errno, buf);
@@ -448,14 +451,14 @@ std::vector<int> MemoryDataPlugin::OpenProcPidFiles(int32_t pid)
             HILOG_ERROR(LOG_CORE, "%s:snprintf_s error", __func__);
         }
         if (realpath(fileName, realPath) == nullptr) {
-            const int bufSize = 1024;
+            const int bufSize = 256;
             char buf[bufSize] = { 0 };
             strerror_r(errno, buf, bufSize);
             HILOG_ERROR(LOG_CORE, "%s:realpath failed, errno(%d:%s)", __func__, errno, buf);
         }
         int fd = open(realPath, O_RDONLY | O_CLOEXEC);
         if (fd == -1) {
-            const int bufSize = 1024;
+            const int bufSize = 256;
             char buf[bufSize] = { 0 };
             strerror_r(errno, buf, bufSize);
             HILOG_ERROR(LOG_CORE, "%s:failed to open(%s), errno(%d:%s)", __func__, fileName, errno, buf);
@@ -471,7 +474,7 @@ DIR* MemoryDataPlugin::OpenDestDir(const char* dirPath)
 
     destDir = opendir(dirPath);
     if (destDir == nullptr) {
-        const int bufSize = 1024;
+        const int bufSize = 256;
         char buf[bufSize] = { 0 };
         strerror_r(errno, buf, bufSize);
         HILOG_ERROR(LOG_CORE, "%s:failed to opendir(%s), errno(%d:%s)", __func__, dirPath, errno, buf);
@@ -508,7 +511,7 @@ int32_t MemoryDataPlugin::ReadProcPidFile(int32_t pid, const char* pFileName)
         return RET_FAIL;
     }
     if (realpath(fileName, realPath) == nullptr) {
-        const int bufSize = 1024;
+        const int bufSize = 256;
         char buf[bufSize] = { 0 };
         strerror_r(errno, buf, bufSize);
         HILOG_ERROR(LOG_CORE, "%s:realpath failed, errno(%d:%s)", __func__, errno, buf);
@@ -516,7 +519,7 @@ int32_t MemoryDataPlugin::ReadProcPidFile(int32_t pid, const char* pFileName)
     }
     fd = open(realPath, O_RDONLY | O_CLOEXEC);
     if (fd == -1) {
-        const int bufSize = 1024;
+        const int bufSize = 256;
         char buf[bufSize] = { 0 };
         strerror_r(errno, buf, bufSize);
         HILOG_INFO(LOG_CORE, "%s:failed to open(%s), errno(%d:%s)", __func__, fileName, errno, buf);
@@ -532,7 +535,7 @@ int32_t MemoryDataPlugin::ReadProcPidFile(int32_t pid, const char* pFileName)
     bytesRead = read(fd, buffer_.get(), READ_BUFFER_SIZE - 1);
     if (bytesRead < 0) {
         close(fd);
-        const int bufSize = 1024;
+        const int bufSize = 256;
         char buf[bufSize] = { 0 };
         strerror_r(errno, buf, bufSize);
         HILOG_INFO(LOG_CORE, "%s:failed to read(%s), errno(%d:%s)", __func__, fileName, errno, buf);

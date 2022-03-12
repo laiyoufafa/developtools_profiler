@@ -64,7 +64,7 @@ bool ShareMemoryBlock::CreateBlockWithFd(std::string name, uint32_t size, int fd
 
     auto ptr = mmap(nullptr, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
     if (ptr == MAP_FAILED) {
-        const int bufSize = 1024;
+        const int bufSize = 256;
         char buf[bufSize] = { 0 };
         strerror_r(errno, buf, bufSize);
         HILOG_ERROR(LOG_CORE, "CreateBlockWithFd mmap ERR : %s", buf);
@@ -92,7 +92,7 @@ bool ShareMemoryBlock::CreateBlock(std::string name, uint32_t size)
     int check = ftruncate(fd, size);
     if (check < 0) {
         close(fd);
-        const int bufSize = 1024;
+        const int bufSize = 256;
         char buf[bufSize] = { 0 };
         strerror_r(errno, buf, bufSize);
         HILOG_ERROR(LOG_CORE, "CreateBlock ftruncate ERR : %s", buf);
@@ -102,7 +102,7 @@ bool ShareMemoryBlock::CreateBlock(std::string name, uint32_t size)
     auto ptr = mmap(nullptr, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
     if (ptr == MAP_FAILED) {
         close(fd);
-        const int bufSize = 1024;
+        const int bufSize = 256;
         char buf[bufSize] = { 0 };
         strerror_r(errno, buf, bufSize);
         HILOG_ERROR(LOG_CORE, "CreateBlock mmap ERR : %s", buf);

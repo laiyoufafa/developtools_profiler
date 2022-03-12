@@ -372,7 +372,7 @@ protected:
             CpuConfig protoConfig;
             void* handle = dlopen("/system/lib/libcpudataplugin.z.so", RTLD_LAZY);
             if (handle == nullptr) {
-                const int bufSize = 1024;
+                const int bufSize = 256;
                 char buf[bufSize] = { 0 };
                 strerror_r(errno, buf, bufSize);
                 HILOG_ERROR(LOG_CORE, "test:dlopen err, errno(%d:%s)", errno, buf);
@@ -431,8 +431,8 @@ protected:
         int processNum = fork();
         if (processNum == 0) {
             auto requestBuff = std::make_unique<char[]>(MB_PER_BYTE);
-            if (requestBuff == NULL) {
-                const int bufSize = 1024;
+            if (requestBuff == nullptr) {
+                const int bufSize = 256;
                 char buf[bufSize] = { 0 };
                 strerror_r(errno, buf, bufSize);
                 HILOG_ERROR(LOG_CORE, "StartRequestMemoryProcess: malloc %zu fail, errno(%d:%s)",
@@ -463,16 +463,22 @@ protected:
         size_t len = fwrite(const_cast<char*>(str.c_str()), 1, BLOCK_LEN, writeFp);
         if (len < 0) {
             HILOG_ERROR(LOG_CORE, "fwrite() error");
+            if (fclose(writeFp) != 0) {
+                HILOG_ERROR(LOG_CORE, "fclose() error");
+            }
             return;
         }
         int ret = fflush(writeFp);
         if (ret == EOF) {
             HILOG_ERROR(LOG_CORE, "fflush() error");
+            if (fclose(writeFp) != 0) {
+                HILOG_ERROR(LOG_CORE, "fclose() error");
+            }
             return;
         }
         fsync(fileno(writeFp));
         ret = fclose(writeFp);
-        if (ret == 0) {
+        if (ret != 0) {
             HILOG_ERROR(LOG_CORE, "fclose() error");
             return;
         }

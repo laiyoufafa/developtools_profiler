@@ -40,7 +40,7 @@ int main(int agrc, char* agrv[])
         }
         buf = (char *)malloc(size * MB_PER_BYTE);
         if (buf == nullptr) {
-            const int bufferSize = 1024;
+            const int bufferSize = 256;
             char buffer[bufferSize] = { 0 };
             strerror_r(errno, buffer, bufferSize);
             HILOG_ERROR(LOG_CORE, "malloc %zu fail, err(%s:%d)", size, buffer, errno);

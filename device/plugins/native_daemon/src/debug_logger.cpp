@@ -235,7 +235,7 @@ bool DebugLogger::OpenLog()
         file_ = fopen(logPath_.c_str(), "w");
     }
     if (file_ == nullptr) {
-        const int bufSize = 1024;
+        const int bufSize = 256;
         char buf[bufSize] = { 0 };
         strerror_r(errno, buf, bufSize);
         fprintf(stdout, "unable save log file to '%s' because '%d:%s'\n", logPath_.c_str(), errno, buf);

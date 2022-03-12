@@ -46,14 +46,14 @@ SocketContext::~SocketContext()
 
         int ret = shutdown(socketHandle_, SHUT_RDWR);
         if (ret < 0) {
-            const int bufSize = 1024;
+            const int bufSize = 256;
             char buf[bufSize] = { 0 };
             strerror_r(errno, buf, bufSize);
             HILOG_ERROR(LOG_CORE, "shutdown socket err = %d %s", errno, buf);
         }
         ret = close(socketHandle_);
         if (ret < 0) {
-            const int bufSize = 1024;
+            const int bufSize = 256;
             char buf[bufSize] = { 0 };
             strerror_r(errno, buf, bufSize);
             HILOG_ERROR(LOG_CORE, "close socket err = %d %s", errno, buf);

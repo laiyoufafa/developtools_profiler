@@ -36,7 +36,10 @@ protected:
     {
         size_t offset = buffer_.size();
         buffer_.resize(buffer_.size() + sizeof(value));
-        memcpy_s(&buffer_[offset], buffer_.capacity() - offset, &value, sizeof(value));
+        if (memcpy_s(&buffer_[offset], buffer_.capacity() - offset, &value, sizeof(value))) {
+            EXPECT_TRUE(false);
+            return;
+        }
         FieldFormat format = {};
         format.offset = offset;
         format.size = sizeof(value);
@@ -49,7 +52,10 @@ protected:
     {
         size_t offset = buffer_.size();
         buffer_.resize(buffer_.size() + str.size());
-        memcpy_s(&buffer_[offset], buffer_.capacity() - offset, &str[0], str.size());
+        if (memcpy_s(&buffer_[offset], buffer_.capacity() - offset, &str[0], str.size())) {
+            EXPECT_TRUE(false);
+            return;
+        }
         FieldFormat format = {};
         format.offset = offset;
         format.size = str.size();
