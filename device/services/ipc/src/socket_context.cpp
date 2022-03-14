@@ -77,6 +77,9 @@ bool SocketContext::ReceiveData(int sock, uint8_t* databuf, uint32_t size)
     if (sock < 0) {
         return false;
     }
+    if (size == 0) {
+        return false;
+    }
     while (p < size) {
         int ret = recv(sock, &databuf[p], size - p, 0);
         if (ret <= 0) {
