@@ -246,7 +246,7 @@ int main(int argc, char *argv[])
     printf("Process pid %d, Test start %d thread, malloc %d size\n", pid, threadNum, mallocSize);
 
     pthread_t* thrArray = (pthread_t*)malloc(sizeof(pthread_t) * threadNum);
-    if (!thrArray) {
+    if (thrArray == nullptr) {
         printf("new thread failed.\n");
     }
     int idx;

@@ -77,7 +77,7 @@ bool SocketContext::ReceiveData(int sock, uint8_t* databuf, uint32_t size)
     if (sock < 0) {
         return false;
     }
-    if (size <= 0 || size > MEMORY_BLOCK_UNIT) {
+    if (size == 0) {
         return false;
     }
     while (p < size) {
