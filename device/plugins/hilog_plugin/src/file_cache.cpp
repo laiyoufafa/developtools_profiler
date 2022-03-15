@@ -31,7 +31,6 @@ bool FileCache::Open(const std::string& file)
     char realPath[PATH_MAX] = {0};
     if (path_.empty() || (path_.length() >= PATH_MAX) || (realpath(path_.c_str(), realPath) == nullptr)) {
         HILOG_ERROR(LOG_CORE, "%s:path is invalid: %s, errno=%d", __func__, path_.c_str(), errno);
-        return false;
     }
     std::string targetFile = std::string(realPath) + std::string("/") + file;
     fp_ = fopen(targetFile.c_str(), "wb+");

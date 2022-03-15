@@ -39,9 +39,8 @@ bool PluginModule::Load()
         return false;
     }
 
-    if ((path_.length() > PATH_MAX) || (realpath(path_.c_str(), realPath) == nullptr)) {
+    if ((path_.length() >= PATH_MAX) || (realpath(path_.c_str(), realPath) == nullptr)) {
         HILOG_ERROR(LOG_CORE, "%s:so filename invalid, errno=%d", __func__, errno);
-        return false;
     }
 
     std::string rpath = realPath; // for SC warning
