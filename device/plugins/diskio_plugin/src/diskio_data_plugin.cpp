@@ -94,8 +94,8 @@ int32_t DiskioDataPlugin::ReadFile(std::string& fileName)
     ssize_t bytesRead = 0;
     char realPath[PATH_MAX + 1] = {0};
 
-    if ((fileName.length() > PATH_MAX) || (realpath(fileName.c_str(), realPath) == nullptr)) {
-        return RET_FAIL;
+    if ((fileName.length() >= PATH_MAX) || (realpath(fileName.c_str(), realPath) == nullptr)) {
+        HILOG_ERROR(LOG_CORE, "%s:path is invalid: %s, errno=%d", __func__, fileName.c_str(), errno);
     }
     fd = open(realPath, O_RDONLY | O_CLOEXEC);
     if (fd == -1) {

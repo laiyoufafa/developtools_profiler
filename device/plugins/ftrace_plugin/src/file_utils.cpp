@@ -50,11 +50,11 @@ std::string FileUtils::ReadFile(const std::string& path)
 {
     char realPath[PATH_MAX + 1] = {0};
 
-    if ((path.length() > PATH_MAX) || (realpath(path.c_str(), realPath) == nullptr)) {
-        return "";
+    if ((path.length() >= PATH_MAX) || (realpath(path.c_str(), realPath) == nullptr)) {
+        HILOG_ERROR(LOG_CORE, "%s:path is invalid: %s, errno=%d", __func__, path.c_str(), errno);
     }
     int fd = open(realPath, O_RDONLY);
-    if (fd < 0) {
+    if (fd == -1) {
         const int bufSize = 256;
         char buf[bufSize] = { 0 };
         strerror_r(errno, buf, bufSize);

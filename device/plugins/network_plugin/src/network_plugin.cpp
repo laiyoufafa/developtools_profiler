@@ -54,8 +54,8 @@ int NetworkPlugin::Report(uint8_t* data, uint32_t dataSize)
     std::string file = GetRateNodePath();
     char realPath[PATH_MAX + 1] = {0};
 
-    if ((file.length() > PATH_MAX) || (realpath(file.c_str(), realPath) == nullptr)) {
-        return -1;
+    if ((file.length() >= PATH_MAX) || (realpath(file.c_str(), realPath) == nullptr)) {
+        HILOG_ERROR(LOG_CORE, "%s:path is invalid: %s, errno=%d", __func__, file.c_str(), errno);
     }
     fp_ = std::unique_ptr<FILE, int (*)(FILE*)>(fopen(realPath, "r"), fclose);
     CHECK_NOTNULL(fp_, -1, "%s:NetworkPlugin, open(%s) Failed, errno(%d)", __func__, file.c_str(), errno);

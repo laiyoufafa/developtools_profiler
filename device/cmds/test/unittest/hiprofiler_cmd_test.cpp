@@ -97,8 +97,8 @@ public:
 
         size_t nbytes = 0;
 
-        if ((strlen(path.c_str()) > PATH_MAX) || (realpath(path.c_str(), realPath) == nullptr)) {
-            return "";
+        if ((strlen(path.c_str()) >= PATH_MAX) || (realpath(path.c_str(), realPath) == nullptr)) {
+            HILOG_ERROR(LOG_CORE, "%s:path is invalid: %s, errno=%d", __func__, path.c_str(), errno);
         }
         FILE* file = fopen(realPath, "rb");
         if (file == nullptr) {
