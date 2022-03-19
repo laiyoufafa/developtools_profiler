@@ -15,6 +15,7 @@ import("//build/ohos.gni")
 import("../../base/config.gni")
 
 ohos_source_set("ipc") {
+  part_name = "profiler"
   sources = [
     "src/client_connection.cpp",
     "src/client_map.cpp",

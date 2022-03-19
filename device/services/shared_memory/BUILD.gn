@@ -75,6 +75,9 @@ ohos_static_library("shared_memory_static") {
       external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
     }
   }
+
+  subsystem_name = "developtools"
+  part_name = "profiler"
 }
 
 ohos_static_library("shared_memory_lite") {
@@ -97,4 +100,7 @@ ohos_static_library("shared_memory_lite") {
       external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
     }
   }
+
+  subsystem_name = "developtools"
+  part_name = "profiler"
 }
