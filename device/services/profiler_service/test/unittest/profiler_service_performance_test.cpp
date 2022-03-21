@@ -619,8 +619,6 @@ HWTEST_F(ProfilerServicePerformanceTest, DFX_DFR_Hiprofiler_0010, Function | Med
                 EXPECT_GE(md.processesinfo(1).vm_locked_kb(), 0);
                 EXPECT_GE(md.processesinfo(0).vm_hwm_kb(), 0);
                 EXPECT_GE(md.processesinfo(1).vm_hwm_kb(), 0);
-                EXPECT_GE(md.processesinfo(0).oom_score_adj(), 0);
-                EXPECT_GE(md.processesinfo(1).oom_score_adj(), 0);
 
                 EXPECT_TRUE(md.processesinfo(0).has_memsummary());
                 EXPECT_GE(md.processesinfo(0).memsummary().java_heap(), 0);
