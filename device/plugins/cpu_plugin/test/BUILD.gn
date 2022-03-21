@@ -28,8 +28,8 @@ ohos_unittest("cpudataplugin_ut") {
   deps = [
     "${OHOS_PROFILER_DIR}/device/plugins/cpu_plugin:cpudataplugin",
     "${OHOS_PROFILER_DIR}/protos/types/plugins/cpu_data:cpu_data_cpp",
+    "//third_party/bounds_checking_function:libsec_static",
     "//third_party/googletest:gtest_main",
-    "//utils/native/base:utilsecurec",
   ]
   include_dirs = [
     "../include",
@@ -37,7 +37,7 @@ ohos_unittest("cpudataplugin_ut") {
     "${OHOS_PROFILER_DIR}/interfaces/kits",
     "${OHOS_PROFILER_DIR}/device/base/include",
     "//third_party/googletest/googletest/include/gtest",
-    "//utils/native/base/include",
+    "//third_party/bounds_checking_function/include",
   ]
   cflags = [
     "-Wno-inconsistent-missing-override",

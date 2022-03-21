@@ -19,6 +19,7 @@ config("shared_memory_config") {
     "include",
     "../../base/include",
     "${OHOS_PROFILER_DIR}/interfaces/innerkits",
+    "//third_party/bounds_checking_function/include",
     "//utils/native/base/include",
   ]
 }
@@ -36,7 +37,7 @@ ohos_shared_library("shared_memory") {
   public_deps = [
     "${OHOS_PROFILER_3RDPARTY_PROTOBUF_DIR}:protobuf",
     "${OHOS_PROFILER_3RDPARTY_PROTOBUF_DIR}:protobuf_lite",
-    "//utils/native/base:utilsecurec",
+    "//third_party/bounds_checking_function:libsec_static",
   ]
   install_enable = true
   subsystem_name = "${OHOS_PROFILER_SUBSYS_NAME}"

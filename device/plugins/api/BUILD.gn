@@ -35,7 +35,7 @@ ohos_source_set("plugins_sources") {
     "./include",
     "../../base/include/",
     "${OHOS_PROFILER_DIR}/interfaces/kits",
-    "//utils/native/base/include",
+    "//third_party/bounds_checking_function/include",
     "//third_party/boringssl/src/include",
   ]
   sources = [
@@ -52,7 +52,7 @@ ohos_source_set("plugins_sources") {
     "${OHOS_PROFILER_DIR}/protos/services:service_types_proto",
     "../../base:hiprofiler_base",
     "//third_party/boringssl:crypto",
-    "//utils/native/base:utilsecurec",
+    "//third_party/bounds_checking_function:libsec_static",
   ]
   public_configs = [
     ":hiprofiler_plugins_config",

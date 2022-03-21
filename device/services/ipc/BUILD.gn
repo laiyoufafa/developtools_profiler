@@ -27,7 +27,7 @@ ohos_source_set("ipc") {
   include_dirs = [
     "include",
     "../../base/include",
-    "//utils/native/base/include",
+    "//third_party/bounds_checking_function/include",
   ]
   if (current_toolchain != host_toolchain) {
     defines = [ "HAVE_HILOG" ]
@@ -40,7 +40,7 @@ ohos_source_set("ipc") {
   deps = [
     "${OHOS_PROFILER_3RDPARTY_PROTOBUF_DIR}:protobuf",
     "${OHOS_PROFILER_3RDPARTY_PROTOBUF_DIR}:protobuf_lite",
-    "//utils/native/base:utilsecurec",
+    "//third_party/bounds_checking_function:libsec_static",
   ]
   public_configs = [ "${OHOS_PROFILER_DIR}/device/base:hiprofiler_test_config" ]
 }

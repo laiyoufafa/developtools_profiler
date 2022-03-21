@@ -31,8 +31,8 @@ ohos_unittest("memdataplugin_ut") {
   deps = [
     "${OHOS_PROFILER_DIR}/device/plugins/memory_plugin:memdataplugin",
     "${OHOS_PROFILER_DIR}/protos/types/plugins/memory_data:memory_data_cpp",
+    "//third_party/bounds_checking_function:libsec_static",
     "//third_party/googletest:gtest_main",
-    "//utils/native/base:utilsecurec",
   ]
   include_dirs = [
     "../include",
@@ -40,7 +40,7 @@ ohos_unittest("memdataplugin_ut") {
     "${OHOS_PROFILER_DIR}/interfaces/kits",
     "${OHOS_PROFILER_DIR}/device/base/include",
     "//third_party/googletest/googletest/include/gtest",
-    "//utils/native/base/include",
+    "//third_party/bounds_checking_function/include",
   ]
   cflags = [
     "-Wno-inconsistent-missing-override",
@@ -59,8 +59,8 @@ ohos_unittest("smaps_stats_ut") {
   deps = [
     "${OHOS_PROFILER_DIR}/device/plugins/memory_plugin:memdataplugin",
     "${OHOS_PROFILER_DIR}/protos/types/plugins/memory_data:memory_data_cpp",
+    "//third_party/bounds_checking_function:libsec_static",
     "//third_party/googletest:gtest_main",
-    "//utils/native/base:utilsecurec",
   ]
   include_dirs = [
     "../include",
@@ -68,7 +68,7 @@ ohos_unittest("smaps_stats_ut") {
     "${OHOS_PROFILER_DIR}/interfaces/kits",
     "${OHOS_PROFILER_DIR}/device/base/include",
     "//third_party/googletest/googletest/include/gtest",
-    "//utils/native/base/include",
+    "//third_party/bounds_checking_function/include",
   ]
   cflags = [
     "-Wno-inconsistent-missing-override",

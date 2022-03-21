@@ -34,7 +34,7 @@ ohos_fuzztest("hiprofiler_ts_bytrace_fuzz_test") {
     "../../../src/cfg",
     "../../../src/parser/htrace_parser",
     "../../../src/parser/htrace_parser/htrace_event_parser",
-    "//utils/native/base/include",
+    "//third_party/bounds_checking_function/include",
     "../../../src/parser/htrace_parser/htrace_cpu_parser",
     "//third_party/sqlite/include",
     "${OHOS_PROTO_GEN}/types/plugins/memory_data",
@@ -60,10 +60,10 @@ ohos_fuzztest("hiprofiler_ts_bytrace_fuzz_test") {
     "${OHOS_MEMORY_PROTO_DIR}:memory_data_cpp",
     "${OHOS_SERVICE_PROTO_DIR}:proto_services_cpp",
     "../../../src:trace_streamer_source",
+    "//third_party/bounds_checking_function:libsec_static",
     "//third_party/protobuf:protobuf",
     "//third_party/protobuf:protobuf_lite",
     "//third_party/sqlite:sqlite",
-    "//utils/native/base:utilsecurec",
   ]
 }
 

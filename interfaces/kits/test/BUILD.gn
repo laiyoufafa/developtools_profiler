@@ -31,8 +31,8 @@ ohos_unittest("plugin_module_api_ut") {
     "${OHOS_PROFILER_DIR}/protos/types/plugins/memory_data:memory_data_cpp",
     "${OHOS_PROFILER_DIR}/protos/types/plugins/sample_data:sample_data_cpp",
     "${OHOS_PROFILER_DIR}/protos/types/plugins/stream_data:stream_data_cpp",
+    "//third_party/bounds_checking_function:libsec_static",
     "//third_party/googletest:gtest",
-    "//utils/native/base:utilsecurec",
   ]
   include_dirs = [
     "../",
@@ -43,7 +43,7 @@ ohos_unittest("plugin_module_api_ut") {
     "${OHOS_PROFILER_DIR}/device/plugins/api/src",
     "${OHOS_PROFILER_DIR}/device/base/include",
     "//third_party/googletest/googletest/include/gtest",
-    "//utils/native/base/include",
+    "//third_party/bounds_checking_function/include",
   ]
   sources = [ "unittest/plugin_module_api_test.cpp" ]
   cflags = [

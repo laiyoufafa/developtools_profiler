@@ -31,6 +31,7 @@ ohos_executable("trace_converter") {
     "${OHOS_PROFILER_DIR}/device/base/include",
     "$trace_file_src_dir",  # for trace file reader
     "${OHOS_PROFILER_DIR}/interfaces/kits",
+    "//third_party/bounds_checking_function/include",
     "//utils/native/base/include",
   ]
   deps = [
@@ -38,7 +39,7 @@ ohos_executable("trace_converter") {
     "${OHOS_PROFILER_DIR}/protos/services:service_types_proto",
     "${OHOS_PROFILER_DIR}/protos/types/plugins/ftrace_data:ftrace_data_cpp",
     "event_formatters:ftrace_event_formatters",
-    "//utils/native/base:utilsecurec",
+    "//third_party/bounds_checking_function:libsec_static",
   ]
   public_configs = [ "${OHOS_PROFILER_DIR}/device/base:hiprofiler_test_config" ]
   install_enable = false

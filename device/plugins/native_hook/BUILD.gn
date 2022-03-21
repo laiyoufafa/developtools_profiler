@@ -48,7 +48,7 @@ ohos_shared_library("native_hook") {
     "${OHOS_PROFILER_DIR}/interfaces/kits",
     "${OHOS_PROFILER_DIR}/device/services/ipc/include",
     "${OHOS_PROFILER_DIR}/device/services/shared_memory/include",
-    "//utils/native/base/include",
+    "//third_party/bounds_checking_function/include",
     "//third_party/googletest/googletest/include",
   ]
   public_configs = [
@@ -58,8 +58,8 @@ ohos_shared_library("native_hook") {
   deps = [
     "${OHOS_PROFILER_DIR}/device/services/shared_memory:shared_memory_lite",
     "../../base:hiprofiler_base",
+    "//third_party/bounds_checking_function:libsec_static",
     "//third_party/zlib:libz",
-    "//utils/native/base:utilsecurec",
   ]
 
   public_deps = [ "//third_party/libunwind:unwind_source_${target_cpu}" ]

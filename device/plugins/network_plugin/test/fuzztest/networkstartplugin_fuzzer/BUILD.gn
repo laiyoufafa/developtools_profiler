@@ -30,7 +30,7 @@ ohos_fuzztest("NetworkStartPluginFuzzTest") {
   deps = [
     "${OHOS_PROFILER_DIR}/device/plugins/network_plugin:networkplugin_source",
     "${OHOS_PROFILER_DIR}/protos/types/plugins/network_data:network_data_cpp",
-    "//utils/native/base:utilsecurec",
+    "//third_party/bounds_checking_function:libsec_static",
   ]
 
   include_dirs = [
@@ -38,7 +38,7 @@ ohos_fuzztest("NetworkStartPluginFuzzTest") {
     "../../../../api/include",
     "${OHOS_PROFILER_DIR}/interfaces/kits",
     "${OHOS_PROFILER_DIR}/device/base/include",
-    "//utils/native/base/include",
+    "//third_party/bounds_checking_function/include",
   ]
 }
 
