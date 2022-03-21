@@ -128,7 +128,7 @@ inline void StringReplace(std::string& str, const std::string& oldStr, const std
     }
 }
 
-// let compiler check format string and variable arugments
+// let compiler check format string and variable arguments
 static inline std::string StringFormat(const char* fmt, ...)  __attribute__((format(printf, 1, 2)));
 
 static inline std::string StringFormat(const char* fmt, ...)
@@ -144,6 +144,7 @@ static inline std::string StringFormat(const char* fmt, ...)
 
     va_start(vargs, fmt);
     if (vsnprintf_s(buf, sizeof(buf), sizeof(buf) - 1, format.c_str(), vargs) < 0) {
+        va_end(vargs);
         return "";
     }
 
