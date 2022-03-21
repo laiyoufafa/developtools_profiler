@@ -37,6 +37,10 @@ void IoTest()
     // 一次写100K数据，写10次
     int count = 0;
     FILE* writeFp = fopen(writeFile.c_str(),"w");
+    if (writeFp == nullptr) {
+        HILOG_ERROR(LOG_CORE, "fopen() error");
+        return;
+    }
     while (count < g_testCount) {
         fwrite(const_cast<char*>(str.c_str()), 1, BLOCK_LEN, writeFp);
         fflush(writeFp);

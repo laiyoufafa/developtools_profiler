@@ -144,6 +144,7 @@ static inline std::string StringFormat(const char* fmt, ...)
 
     va_start(vargs, fmt);
     if (vsnprintf_s(buf, sizeof(buf), sizeof(buf) - 1, format.c_str(), vargs) < 0) {
+        va_end(vargs);
         return "";
     }
 
