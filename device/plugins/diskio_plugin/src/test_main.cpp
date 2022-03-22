@@ -19,6 +19,7 @@
 #include "diskio_plugin_config.pb.h"
 #include "diskio_plugin_result.pb.h"
 #include "plugin_module_api.h"
+#include "logging.h"
 
 namespace {
 int g_testCount = 10;
