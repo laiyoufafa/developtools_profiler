@@ -19,7 +19,6 @@
 #include "diskio_plugin_config.pb.h"
 #include "diskio_plugin_result.pb.h"
 #include "plugin_module_api.h"
-#include "logging.h"
 
 namespace {
 int g_testCount = 10;
@@ -39,7 +38,7 @@ void IoTest()
     int count = 0;
     FILE* writeFp = fopen(writeFile.c_str(),"w");
     if (writeFp == nullptr) {
-        HILOG_ERROR(LOG_CORE, "fopen() error");
+        printf("fopen() error");
         return;
     }
     while (count < g_testCount) {
