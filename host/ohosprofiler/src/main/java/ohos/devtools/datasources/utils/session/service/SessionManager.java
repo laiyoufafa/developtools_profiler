@@ -287,9 +287,7 @@ public class SessionManager {
                 startKeepLiveSession(device, res.getSessionId(), localSessionID);
                 profilingSessions.put(localSessionID, createSessionInfo(device, process, res.getSessionId()));
                 if (ProfilerLogManager.isInfoEnabled()) {
-                    if (ProfilerLogManager.isInfoEnabled()) {
-                        LOGGER.info("Task with Session created successfully");
-                    }
+                    LOGGER.info("Task with Session created successfully");
                 }
                 return localSessionID;
             }
