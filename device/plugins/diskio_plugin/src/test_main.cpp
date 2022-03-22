@@ -42,12 +42,12 @@ void IoTest()
         return;
     }
     while (count < g_testCount) {
-        fwrite(const_cast<char*>(str.c_str()), 1, BLOCK_LEN, writeFp);
+        (void)fwrite(const_cast<char*>(str.c_str()), 1, BLOCK_LEN, writeFp);
         fflush(writeFp);
         fsync(fileno(writeFp));
         count++;
     }
-    fclose(writeFp);
+    (void)fclose(writeFp);
 
     // delete file
     std::string command = "rm " + writeFile;
@@ -89,7 +89,8 @@ int main(int agrc, char* agrv[])
         std::vector<uint8_t> dataBuffer(diskioPlugin->resultBufferSizeHint);
         diskioPlugin->callbacks->onPluginSessionStart(configBuffer.data(), configLength);
         while (g_testCount--) {
-            int len = diskioPlugin->callbacks->onPluginReportResult(dataBuffer.data(), diskioPlugin->resultBufferSizeHint);
+            int len = diskioPlugin->callbacks->onPluginReportResult(dataBuffer.data(), 
+                                                                    diskioPlugin->resultBufferSizeHint);
             std::cout << "test:filler buffer length = " << len << std::endl;
 
             if (len > 0) {
