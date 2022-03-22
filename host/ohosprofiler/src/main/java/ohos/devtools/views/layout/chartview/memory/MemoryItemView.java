@@ -253,7 +253,6 @@ public class MemoryItemView extends MonitorItemView {
             LOGGER.info("initLegendsComp");
         }
         totalLabel.setOpaque(false);
-        totalLabel.setOpaque(false);
         javaLabel.setOpaque(false);
         nativeLabel.setOpaque(false);
         graphicsLabel.setOpaque(false);
