@@ -63,7 +63,7 @@ public abstract class FieldsTreeTableColumn<T, N> extends ColumnInfo<DefaultMuta
                     if ("-".equals(columnValue)) {
                         columnValue1 = "" + Integer.MAX_VALUE;
                     }
-                    if ("--".equals(columnValue) || "--".equals(columnValue)) {
+                    if ("--".equals(columnValue)) {
                         return 0;
                     }
                     long startL = Long.parseLong(columnValue);
