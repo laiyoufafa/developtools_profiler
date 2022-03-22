@@ -39,7 +39,7 @@ void IoTest()
     int count = 0;
     FILE* writeFp = fopen(writeFile.c_str(),"w");
     if (writeFp == nullptr) {
-        HILOG_ERROR(LOG_CORE, "fopen() error");
+        printf("fopen() error");
         return;
     }
     while (count < g_testCount) {
