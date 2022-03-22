@@ -91,6 +91,7 @@ int main(int agrc, char* agrv[])
 
         PluginModuleStruct* cpuPlugin = (PluginModuleStruct*)dlsym(handle, "g_pluginModule");
         if (cpuPlugin == nullptr) {
+            dlclose(handle);
             return 0;
         }
 
@@ -120,6 +121,7 @@ int main(int agrc, char* agrv[])
             }
         }
         cpuPlugin->callbacks->onPluginSessionStop();
+        dlclose(handle);
     }
 
     sleep(PROCESS_SLEEP_TIME);

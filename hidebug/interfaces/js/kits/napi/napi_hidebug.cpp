@@ -165,6 +165,7 @@ static uint64_t GetProcessMeminfo(const std::string& matchingItem)
         char* flag = fgets(line, sizeof(line), smapsRollupInfo);
         if (flag == nullptr) {
             HiLog::Error(LABEL, "The parameter was not found.");
+            (void)fclose(smapsRollupInfo);
             return 0;
         }
         uint64_t meminfo = 0;

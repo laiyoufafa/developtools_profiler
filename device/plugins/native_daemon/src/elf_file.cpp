@@ -131,6 +131,8 @@ bool ElfFile::ParsePrgHeaders()
     }
     ret = read(fd_, phdrsBuf, phdrSize * numPhdrs);
     if (ret != static_cast<int64_t>(phdrSize * numPhdrs)) {
+        delete[] phdrsBuf;
+        phdrsBuf = nullptr;
         return false;
     }
     char *phdrBuf = phdrsBuf;
