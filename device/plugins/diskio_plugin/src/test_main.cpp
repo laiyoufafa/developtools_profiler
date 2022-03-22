@@ -112,6 +112,7 @@ int main(int agrc, char* agrv[])
             sleep(1);
         }
         diskioPlugin->callbacks->onPluginSessionStop();
+	dlclose(handle);
     }
 
     return 0;
