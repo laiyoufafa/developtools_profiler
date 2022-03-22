@@ -121,6 +121,7 @@ int main(int agrc, char* agrv[])
             }
         }
         cpuPlugin->callbacks->onPluginSessionStop();
+        dlclose(handle);
     }
 
     sleep(PROCESS_SLEEP_TIME);
