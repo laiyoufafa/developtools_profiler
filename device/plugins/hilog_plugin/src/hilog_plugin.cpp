@@ -319,7 +319,7 @@ bool HilogPlugin::SetHilogLineDetails(const char* data, HilogLine* info)
         end = pTmp;
     }
     int index = 1;
-    while (end != NULL && *pTmp != ':') { // 结束符 ':'
+    while (end != nullptr && *pTmp != ':') { // 结束符 ':'
         if (*pTmp == '\0' || *pTmp == '\n') {
             return false;
         }
@@ -431,7 +431,8 @@ bool HilogPlugin::TimeStringToNS(const char* data, struct timespec *tsTime)
     if (snprintf_s(buff, sizeof(buff), sizeof(buff) - 1, "%ld.%09u\n", timetTime, nsec) < 0) {
         HILOG_ERROR(LOG_CORE, "%s:snprintf_s error", __func__);
     }
-    for (size_t i = 0; i < strlen(buff) && protoConfig_.need_record(); i++) {
+    size_t buffSize = strlen(buff);
+    for (size_t i = 0; i < buffSize && protoConfig_.need_record(); i++) {
         dataBuffer_.push_back(buff[i]);
     }
 
