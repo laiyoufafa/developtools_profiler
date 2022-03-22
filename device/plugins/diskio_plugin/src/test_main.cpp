@@ -21,7 +21,6 @@
 #include "plugin_module_api.h"
 #include "logging.h"
 
-
 namespace {
 int g_testCount = 10;
 const std::string writeFile = "/data/local/tmp/diskio_write_test.txt";
