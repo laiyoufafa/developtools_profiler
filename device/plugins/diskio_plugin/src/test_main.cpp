@@ -89,7 +89,7 @@ int main(int agrc, char* agrv[])
         std::vector<uint8_t> dataBuffer(diskioPlugin->resultBufferSizeHint);
         diskioPlugin->callbacks->onPluginSessionStart(configBuffer.data(), configLength);
         while (g_testCount--) {
-            int len = diskioPlugin->callbacks->onPluginReportResult(dataBuffer.data(), 
+            int len = diskioPlugin->callbacks->onPluginReportResult(dataBuffer.data(),
                                                                     diskioPlugin->resultBufferSizeHint);
             std::cout << "test:filler buffer length = " << len << std::endl;
 
@@ -112,6 +112,7 @@ int main(int agrc, char* agrv[])
             sleep(1);
         }
         diskioPlugin->callbacks->onPluginSessionStop();
+        dlclose(handle);
     }
 
     return 0;
