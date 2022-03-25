@@ -218,17 +218,6 @@ HWTEST_F(FtraceFsOpsTest, GetSavedCmdLinesFalse, TestSize.Level1)
 }
 
 /*
- * @tc.name: GetSavedTgidsNormal
- * @tc.desc: test FtraceFsOps::GetSavedTgids with normal case.
- * @tc.type: FUNC
- */
-HWTEST_F(FtraceFsOpsTest, GetSavedTgidsNormal, TestSize.Level1)
-{
-    std::string content = FtraceFsOps::GetInstance().GetSavedTgids();
-    EXPECT_STRNE(content.c_str(), "");
-}
-
-/*
  * @tc.name: GetSavedTgidsFalse
  * @tc.desc: test FtraceFsOps::GetSavedTgids with false case.
  * @tc.type: FUNC
