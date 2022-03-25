@@ -156,7 +156,7 @@ bool HookManager::CreatePluginSession(const std::vector<ProfilerPluginConfig>& c
 
     // start event poller task
     eventPoller_ = std::make_unique<EpollEventPoller>(DEFAULT_EVENT_POLLING_INTERVAL);
-    CHECK_NOTNULL(eventPoller_, -1, "create event poller FAILED!");
+    CHECK_NOTNULL(eventPoller_, false, "create event poller FAILED!");
 
     eventPoller_->Init();
     eventPoller_->Start();
@@ -169,7 +169,7 @@ bool HookManager::CreatePluginSession(const std::vector<ProfilerPluginConfig>& c
     // start service init socket
     hookService_ = std::make_shared<HookService>(shareMemoryBlock_->GetfileDescriptor(), eventNotifier_->GetFd(),
                                                 hookConfig_.filter_size(), bufferSize, hookConfig_.pid(), "");
-    CHECK_NOTNULL(hookService_, -1, "ProfilerService create failed!");
+    CHECK_NOTNULL(hookService_, false, "ProfilerService create failed!");
 
     // send signal
     std::string stopCmd = "kill -36 " + std::to_string(hookConfig_.pid());
