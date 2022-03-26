@@ -16,8 +16,8 @@ OpenHarmony性能测试工具,通过采集设备性能指标，对采集数据�
 ```bash
 > hdc_std shell
 :/ # cd data/local/tmp
-:/data/local/tmp # ./GP_daemon --help
-usage: ./GP_daemon <options> <arguments>
+:/data/local/tmp # ./SP_daemon --help
+usage: ./SP_daemon <options> <arguments>
 --------------------------------------------------------------------
 These are common commands list:
  -N      set num of profiler <must be non-null>
@@ -31,12 +31,12 @@ These are common commands list:
  -p      get current_now and voltage_now
  -r      get ram(pss)
 --------------------------------------------------------------------
-Example: ./GP_daemon -N 2 -PKG com.ohos.contacts -c -g -t -p -r
+Example: ./SP_daemon -N 2 -PKG com.ohos.contacts -c -g -t -p -r
 --------------------------------------------------------------------
 ```
-**2、GP_daemon -N 2 -PKG com.ohos.contacts -c -g -t -p -r**
+**2、SP_daemon -N 2 -PKG com.ohos.contacts -c -g -t -p -r**
 ```bash
-:/data/local/tmp # ./GP_daemon -N 2 -PKG com.ohos.contacts -c -g -t -p -r
+:/data/local/tmp # ./SP_daemon -N 2 -PKG com.ohos.contacts -c -g -t -p -r
 set num:2
 set pkg name:com.ohos.contacts
 
@@ -116,14 +116,26 @@ ambient,cpu0freq,cpu0load,cpu1freq,cpu1load,cpu2freq,cpu2load,cpu3freq,cpu3load,
 | -f1   | 采集fps(视频应用)        |否|
 
 ---
-## 推送GP_daemon至设备
-> 当前未在系统内集成，需在对应系统进行build构建出可执行文件GP_daemon,推送至
-/data/local/tmp目录下执行（也可推送至、/bin/目录下）<br>
+## 构建方式
+> 当前未在系统内集成，需拉取openHarmony代码到本地，将本代码拷贝到目录里，并修改项目build.gn文件以及对应子系统的bundle.json文件，然后编译。
+> 例：编RK3568版本
+第一步：将本代码放置\foundation\graphic\standard\rosen\samples\opensourcesp目录下
+第二步：修改本代码中的build.gn文件
+第三步：修改对应子系统bundle.json文件  \foundation\graphic\standard
+在文件中加入代码路径以及编译出的二进制文件名称
+"build": {
+    "sub_component": [
+        ....,
+        "//foundation/graphic/standard/rosen/samples/opensourcesp:SP_daemon"
+    ]
+}
+第四步：执行全量编译命令： ./build.sh --product-name rk3568 --ccache 
 
 ### 推送方式
 
+> 可以使用项目目录里面已经编译好的SP_daemon推到RK3568、Hi3516试用<br>
 ```shell
 hdc_std shell mount -o rw,remount /
-hdc_std file send GP_daemon /data/local/tmp
-hdc_std shell chmod a+x /data/local/tmp/GP_daemon
+hdc_std file send SP_daemon /data/local/tmp
+hdc_std shell chmod a+x /data/local/tmp/SP_daemon
 ```

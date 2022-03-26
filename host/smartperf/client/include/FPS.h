@@ -1,0 +1,91 @@
+/*
+ * Copyright (c) Huawei Technologies Co., Ltd. 2021-2022. All rights reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+#ifndef FPS_H
+#define FPS_H
+
+#include <map>
+#include <string>
+#include <utility>
+#include <vector>
+#include <queue>
+#include <cstdlib>
+#include <unistd.h>
+#include <pthread.h>
+#include "gp_utils.h"
+
+#define KEY_FPS "FPS"
+#define JITTERS "Jitters"
+
+namespace OHOS
+{
+    namespace SmartPerf
+    {
+        static long long lastFrameTimeStamp = -1;
+
+          //采集fps应用 相机和视频应用特殊适配
+        struct parameter
+        {
+            int is_video;
+            int is_camera;
+        };
+
+        struct FpsInfo
+        {
+            int fps;
+            int pre_fps;
+            int dumpInfoLess5Cnt; // dump后连续多少次没有结果或结果过少，说明这个图层有问题，需要删除
+            std::vector<long long> jitters;
+            std::queue<long long> time_stamp_q;
+            long long last_frame_ready_time;
+            long long current_fps_time;
+            FpsInfo()
+            {
+                fps = 0;
+                pre_fps = 0;
+                dumpInfoLess5Cnt = 0;
+                last_frame_ready_time = 0;
+                current_fps_time = 0;
+            }
+        };
+
+        class FPS
+        {
+        private:
+            const std::map<std::string, std::string> support_map = {
+                {KEY_FPS, "hidumper -s 10"},
+            };
+
+            FPS();
+            ~FPS() {}
+
+            static FPS *instance;
+            std::string pkg_name;
+            std::string cur_layer_name;
+            long long lastFPSTimestamp = -1;
+
+            FpsInfo GetSurfaceFrameDataGB(std::string name);
+            static void *collect_fps_thread(void *__this);
+            FpsInfo m_fpsInfo;
+
+        public:
+            static FPS *getInstance();
+            void setPackageName(std::string pkgName);
+            FpsInfo getFpsInfo(int video_on, int camera_on);
+            static pthread_mutex_t mutex;
+        };
+
+    }
+}
+#endif
