@@ -213,7 +213,7 @@ std::string GetFileNameParam(napi_env env, napi_callback_info info)
         HiLog::Error(LABEL, "Get input filename param length failed.");
         return DEFAULT_FILENAME;
     }
-    if (bufLen > BUF_MAX) {
+    if (bufLen > BUF_MAX || bufLen == 0) {
         HiLog::Error(LABEL, "input filename param length is illegal.");
         return DEFAULT_FILENAME;
     }
