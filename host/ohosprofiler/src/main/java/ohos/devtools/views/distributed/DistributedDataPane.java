@@ -119,58 +119,12 @@ public class DistributedDataPane extends JBPanel {
     private class MyTabPanel extends JBTabbedPane implements MouseListener {
         private Rectangle setting = new Rectangle();
         private Rectangle cancel = new Rectangle();
-        // private Point startPoint;
-        // private Point endPoint;
-        // private Rectangle srcBounds;
 
         /**
          * MyTabPanel
          */
         public MyTabPanel() {
             addMouseListener(this);
-            //            addMouseMotionListener(new MouseMotionListener() {
-            //                @Override
-            //                public void mouseDragged(MouseEvent event) {
-            //                    if (getCursor().getType() == Cursor.N_RESIZE_CURSOR) {
-            //                        endPoint = SwingUtilities.convertPoint(MyTabPanel.this, event.getPoint(),
-            //                            MyTabPanel.this.getRootPane().getLayeredPane());
-            //                        int yPosition = Utils.getY(endPoint) - Utils.getY(startPoint);
-            //                        if (srcBounds.height - yPosition < barHeight) {
-            //                            return;
-            //                        } else if (srcBounds.height - yPosition
-            //                            > MyTabPanel.this.getRootPane().getLayeredPane().getHeight() - barHeight) {
-            //                            return;
-            //                        } else {
-            //                            DistributedDataPane.this.setBounds(Utils.getX(srcBounds),
-            //                            Utils.getY(srcBounds) + yPosition,
-            //                                srcBounds.width,
-            //                                srcBounds.height - yPosition);
-            //                            DistributedDataPane.this.revalidate();
-            //                            if (boundsChangeListener != null) {
-            //                                boundsChangeListener.consume(DistributedDataPane.this.getBounds());
-            //                            }
-            //                        }
-            //                    }
-            //                }
-            //
-            //                @Override
-            //                public void mouseMoved(MouseEvent event) {
-            //                    int xNum = 0;
-            //                    if (getTabCount() > 0) {
-            //                        Rectangle rect = getUI().getTabBounds(MyTabPanel.this, getTabCount() - 1);
-            //                        xNum = rect.width + Utils.getX(rect) + 10;
-            //                    }
-            //                    if (event.getY() > 0 && event.getY() < barHeight && event.getX() > xNum) {
-            //                        if (setting.contains(event.getPoint()) || cancel.contains(event.getPoint())) {
-            //                            setCursor(new Cursor(Cursor.HAND_CURSOR));
-            //                        } else {
-            //                            setCursor(new Cursor(Cursor.N_RESIZE_CURSOR));
-            //                        }
-            //                    } else {
-            //                        setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
-            //                    }
-            //                }
-            //            });
         }
 
         @Override
@@ -207,9 +161,6 @@ public class DistributedDataPane extends JBPanel {
 
         @Override
         public void mousePressed(MouseEvent event) {
-            // srcBounds = DistributedDataPane.this.getBounds()
-            // startPoint = SwingUtilities
-            // .convertPoint(MyTabPanel.this, event.getPoint(), MyTabPanel.this.getRootPane().getLayeredPane())
         }
 
         @Override
