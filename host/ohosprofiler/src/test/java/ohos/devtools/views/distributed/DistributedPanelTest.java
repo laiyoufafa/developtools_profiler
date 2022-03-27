@@ -80,7 +80,6 @@ class DistributedPanelTest {
             .setOffsetB(186590530788000L)
             .build());
         panel.updateUI();
-        // inspect();
         delay(10000);
         select(280, 90, 285, 90); // 测试选择时间区间
         keyClick(KeyEvent.VK_W); // 测试 wsad 缩放
@@ -88,10 +87,6 @@ class DistributedPanelTest {
         keyClick(KeyEvent.VK_A);
         keyClick(KeyEvent.VK_D);
         mouseClick(23, 234); // 展开thread
-        //        mouseClick(43, 234);//选中thread
-        //        select(300, 234,400, 236);//选中thread范围
-        //        mouseClick(300, 234);//取消选中thread
-        //        mouseClick(430, 234);//点击func
         delay();
     }
 
