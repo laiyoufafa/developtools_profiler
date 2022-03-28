@@ -4,7 +4,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,50 +17,39 @@
 
 #include <string>
 #include <vector>
-#include <stdlib.h>
 #include <sstream>
 #include <map>
 #include <cstdlib>
-#include <pthread.h>
 #include "gp_utils.h"
 
 namespace OHOS {
-    namespace SmartPerf {
-        namespace{
-            const char *thermal_path[] = {
-                "/sys/devices/virtual/thermal",
-                "/sys/class/thermal"
-            };
+namespace SmartPerf {
+class Temperature {
+public:
+    static constexpr const char *thermal_path[] = {
+        "/sys/devices/virtual/thermal",
+        "/sys/class/thermal"
+    };
 
-            const std::map<std::string, std::string> collect_nodes = {
-                {"soc_thermal", "soc_thermal"},
-                {"system_h", "system_h"},
-                {"soc-thermal", "soc-thermal"},
-                {"gpu-thermal", "gpu-thermal"},
-                {"shell_frame", "shell_frame"},
-                {"shell_front", "shell_front"},
-                {"shell_back", "shell_back"}
-            };
-        }
-        
+    const std::map<std::string, std::string> collect_nodes = {
+        { "soc_thermal", "soc_thermal" }, { "system_h", "system_h" },       { "soc-thermal", "soc-thermal" },
+        { "gpu-thermal", "gpu-thermal" }, { "shell_frame", "shell_frame" }, { "shell_front", "shell_front" },
+        { "shell_back", "shell_back" }
+    };
+    static Temperature *getInstance();
+    std::map<std::string, float> getThermalMap();
 
-        class Temperature {
-        public:
-            static Temperature *getInstance();
-            std::map<std::string, float> getThermalMap();
+    static pthread_mutex_t mutex;
 
-            static pthread_mutex_t mutex;
-        private:
-            Temperature();
-            ~Temperature() {}
+private:
+    Temperature();
+    ~Temperature() {}
 
-            static Temperature *instance;
-            std::string thermal_base_path;
-            std::map<std::string, std::string> thermal_node_path_map;
-            void initThermalNode();
-
-        };
-
-    }
+    static Temperature *instance;
+    std::string thermal_base_path;
+    std::map<std::string, std::string> thermal_node_path_map;
+    void initThermalNode();
+};
+}
 }
 #endif

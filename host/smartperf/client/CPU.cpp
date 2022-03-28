@@ -88,8 +88,9 @@ namespace OHOS {
             FILE *fp;
             fp = fopen(PROC_STAT.c_str(), "r");
             if (fp == nullptr) {
-                for (int i = 0; i <= m_cpu_num; ++i)
+                for (int i = 0; i <= m_cpu_num; ++i) {
                     workload.push_back(-1.0f);
+                }
                 return workload;
             }
             char buffer[1024];
@@ -123,8 +124,9 @@ namespace OHOS {
             const char default_end = '9';
 
             size_t pre_len = strlen(pre_buffer);
-            if (pre_len == 0)
+            if (pre_len == 0) {
                 return -1.0f;
+            }
             size_t len = strlen(buffer);
             int i;
             int time[10];
@@ -132,8 +134,9 @@ namespace OHOS {
             int cnt = 0;
             for (i = default_index; i < len; ++i) {
                 int tmp = 0;
-                if (buffer[i] < default_start || buffer[i] > default_end)
+                if (buffer[i] < default_start || buffer[i] > default_end) {
                     continue;
+                }
                 while (buffer[i] >= default_start && buffer[i] <= default_end) {
                     tmp = tmp * default_shift + (buffer[i] - default_start);
                     i++;
@@ -144,8 +147,9 @@ namespace OHOS {
             int pre_cnt = 0;
             for (i = default_index; i < pre_len; ++i) {
                 int tmp = 0;
-                if (pre_buffer[i] < default_start || pre_buffer[i] > default_end)
+                if (pre_buffer[i] < default_start || pre_buffer[i] > default_end) {
                     continue;
+                }
                 while (pre_buffer[i] >= default_start && pre_buffer[i] <= default_end) {
                     tmp = tmp * default_shift + (pre_buffer[i] - default_start);
                     i++;

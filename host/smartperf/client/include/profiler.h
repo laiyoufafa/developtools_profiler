@@ -34,7 +34,7 @@ namespace OHOS {
             void createCpu(std::map<std::string, std::string> &gpMap);
             void createGpu(std::map<std::string, std::string> &gpMap);
             void createDdr(std::map<std::string, std::string> &gpMap);
-            void createFps(int is_video, int is_camera, std::map<std::string, std::string> &gpMap);
+            void createFps(int isVideo, int isCamera, std::map<std::string, std::string> &gpMap);
             void createTemp(std::map<std::string, std::string> &gpMap);
             void createPower(std::map<std::string, std::string> &gpMap);
             void createRam(const std::string &pkg_name, std::map<std::string, std::string> &gpMap, int pid);

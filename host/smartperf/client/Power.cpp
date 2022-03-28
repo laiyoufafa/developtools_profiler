@@ -12,7 +12,6 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-#include <ctime>
 #include <cmath>
 #include "include/Power.h"
 #include "include/gp_utils.h"
@@ -38,7 +37,7 @@ namespace OHOS {
         {
             pthread_mutex_init(&mutex, nullptr);
 
-            for (int i = 0; i < sizeof(OHOS::SmartPerf::power_path) / sizeof(const char *); ++i) {
+            for (int i = 0; i < sizeof(power_path) / sizeof(const char *); ++i) {
                 if (GPUtils::canOpen(std::string(power_path[i]))) {
                     power_base_path = std::string(power_path[i]);
                 }
@@ -49,8 +48,9 @@ namespace OHOS {
                 sprintf(powerNode, "%s/%s", power_base_path.c_str(), default_collect_power_info[j]);
                 // file exists
                 std::string type = std::string(default_collect_power_info[j]);
-                if (power_node_path_map.count(type) > 0)
+                if (power_node_path_map.count(type) > 0) {
                     continue;
+                }
                 power_node_path_map[type] = std::string(powerNode);
             }
         }
@@ -79,15 +79,19 @@ namespace OHOS {
 
                 std::string power_value = std::string(buffer);
                 if (iter->first == "status") {
-                    if (power_value.find("Charging") == std::string::npos && power_value.find("Full") == std::string::npos)
+                    if (power_value.find("Charging") == std::string::npos && power_value.find("Full") == std::string::npos) {
                         charging = 0;
-                    if (power_value.find("Discharging") != std::string::npos)
+                    }
+                    if (power_value.find("Discharging") != std::string::npos) {
                         charging = 0;
+                    }
                 } else if (iter->first == "enable_hiz") {
-                    if (strcmp(buffer, "1") == 0)
+                    if (strcmp(buffer, "1") == 0) {
                         charging = 0;
-                    if (std::stoi(buffer) == 1)
+                    }
+                    if (std::stoi(buffer) == 1) {
                         charging = 0;
+                    }
                 } else if (iter->first == "current_now") {
                     // 若current now 大于 100000 单位归一化为 1000，大于10000 单位归一化为100，大于3000 单位归一化为10
                     double tmp = fabs(std::stof(buffer));

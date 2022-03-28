@@ -12,7 +12,6 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-#include <errno.h>
 #include "include/gp_utils.h"
 #include "include/RAM.h"
 
@@ -65,10 +64,10 @@ namespace OHOS {
                 sprintf(ram, "/proc/%s/smaps_rollup", pid_value.c_str());
                 std::string path = ram;
                 FILE *fp;
-                if ((fp = fopen(path.c_str(), "r")) != NULL) {
+                if ((fp = fopen(path.c_str(), "r")) != nullptr) {
                     char s[1024];
                     s[0] = '\0';
-                    while (fgets(s, sizeof(s), fp) != NULL) {
+                    while (fgets(s, sizeof(s), fp) != nullptr) {
                         
                         // 获取物理内存Pss: "p" 过滤读取的行中第一个字符是否为'P',"s" 过滤读取的行中第二个字符是否为's','s  过滤读取的行中第三个字符是否为's'
                         if (s[0] == 'P' && s[1] == 's' && s[2] == 's' && s[3] == ':') {
@@ -76,7 +75,7 @@ namespace OHOS {
                         }
                     }
                 }
-                if (fp != NULL) {
+                if (fp != nullptr) {
                     pclose(fp);
                 }
             }

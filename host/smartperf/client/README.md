@@ -26,7 +26,7 @@ These are common commands list:
  -c      get cpuFreq and cpuLoad
  -g      get gpuFreq and gpuLoad
  -d      get ddrFreq
- -f      get fps and fps jitters <dependent on hidumper capability>
+ -f      get fps  
  -t      get soc-temp gpu-temp ..
  -p      get current_now and voltage_now
  -r      get ram(pss)
@@ -40,54 +40,54 @@ Example: SP_daemon -N 2 -PKG com.ohos.contacts -c -g -t -p -r
 set num:2
 set pkg name:com.ohos.contacts
 
-----------------------------------print_gp_map START------------------------------------
-print_gp_map:0 ambient=0.000000
-print_gp_map:1 cpu0freq=1700000
-print_gp_map:2 cpu0load=-1.000000
-print_gp_map:3 cpu1freq=1700000
-print_gp_map:4 cpu1load=-1.000000
-print_gp_map:5 cpu2freq=1700000
-print_gp_map:6 cpu2load=-1.000000
-print_gp_map:7 cpu3freq=1700000
-print_gp_map:8 cpu3load=-1.000000
-print_gp_map:9 cpu4freq=2343000
-print_gp_map:10 cpu4load=-1.000000
-print_gp_map:11 cpu5freq=2343000
-print_gp_map:12 cpu5load=-1.000000
-print_gp_map:13 cpu6freq=2343000
-print_gp_map:14 cpu6load=-1.000000
-print_gp_map:15 cpu7freq=2756000
-print_gp_map:16 cpu7load=-1.000000
-print_gp_map:17 current_now=-1213.000000
-print_gp_map:18 gpufreq=260000000
-print_gp_map:19 gpuload=0.000000
-print_gp_map:20 pss=37589
-print_gp_map:21 voltage_now=4.308090
-----------------------------------print_gp_map END--------------------------------------
-----------------------------------print_gp_map START------------------------------------
-print_gp_map:0 ambient=0.000000
-print_gp_map:1 cpu0freq=1700000
-print_gp_map:2 cpu0load=13.592233
-print_gp_map:3 cpu1freq=1700000
-print_gp_map:4 cpu1load=42.718445
-print_gp_map:5 cpu2freq=1700000
-print_gp_map:6 cpu2load=55.238094
-print_gp_map:7 cpu3freq=1700000
-print_gp_map:8 cpu3load=16.000000
-print_gp_map:9 cpu4freq=826000
-print_gp_map:10 cpu4load=0.000000
-print_gp_map:11 cpu5freq=826000
-print_gp_map:12 cpu5load=1.923077
-print_gp_map:13 cpu6freq=826000
-print_gp_map:14 cpu6load=0.961538
-print_gp_map:15 cpu7freq=2756000
-print_gp_map:16 cpu7load=99.038460
-print_gp_map:17 current_now=-1139.000000
-print_gp_map:18 gpufreq=260000000
-print_gp_map:19 gpuload=0.000000
-print_gp_map:20 pss=37589
-print_gp_map:21 voltage_now=4.308323
-----------------------------------print_gp_map END--------------------------------------
+----------------------------------Print START------------------------------------
+order:0 ambient=0.000000
+order:1 cpu0freq=1700000
+order:2 cpu0load=-1.000000
+order:3 cpu1freq=1700000
+order:4 cpu1load=-1.000000
+order:5 cpu2freq=1700000
+order:6 cpu2load=-1.000000
+order:7 cpu3freq=1700000
+order:8 cpu3load=-1.000000
+order:9 cpu4freq=2343000
+order:10 cpu4load=-1.000000
+order:11 cpu5freq=2343000
+order:12 cpu5load=-1.000000
+order:13 cpu6freq=2343000
+order:14 cpu6load=-1.000000
+order:15 cpu7freq=2756000
+order:16 cpu7load=-1.000000
+order:17 current_now=-1213.000000
+order:18 gpufreq=260000000
+order:19 gpuload=0.000000
+order:20 pss=37589
+order:21 voltage_now=4.308090
+----------------------------------Print END--------------------------------------
+----------------------------------Print START------------------------------------
+order:0 ambient=0.000000
+order:1 cpu0freq=1700000
+order:2 cpu0load=13.592233
+order:3 cpu1freq=1700000
+order:4 cpu1load=42.718445
+order:5 cpu2freq=1700000
+order:6 cpu2load=55.238094
+order:7 cpu3freq=1700000
+order:8 cpu3load=16.000000
+order:9 cpu4freq=826000
+order:10 cpu4load=0.000000
+order:11 cpu5freq=826000
+order:12 cpu5load=1.923077
+order:13 cpu6freq=826000
+order:14 cpu6load=0.961538
+order:15 cpu7freq=2756000
+order:16 cpu7load=99.038460
+order:17 current_now=-1139.000000
+order:18 gpufreq=260000000
+order:19 gpuload=0.000000
+order:20 pss=37589
+order:21 voltage_now=4.308323
+----------------------------------Print END--------------------------------------
 :/data/local/tmp #
 ```
 **3、执行完毕后会在data/local/tmp生成data.csv文件，每次执行命令覆盖写入**
@@ -113,7 +113,7 @@ ambient,cpu0freq,cpu0load,cpu1freq,cpu1load,cpu2freq,cpu2load,cpu3freq,cpu3load,
 | -t    | 是否采集温度             |否|
 | -p    | 是否采集电流             |否|
 | -r    | 是否采集内存             |否|
-| -f1   | 采集fps(视频应用)        |否|
+
 
 ---
 ## 构建方式
@@ -132,8 +132,6 @@ ambient,cpu0freq,cpu0load,cpu1freq,cpu1load,cpu2freq,cpu2load,cpu3freq,cpu3load,
 第四步：执行全量编译命令： ./build.sh --product-name rk3568 --ccache 
 
 ### 推送方式
-
-> 可以使用项目目录里面已经编译好的SP_daemon推到RK3568、Hi3516试用<br>
 ```shell
 hdc_std shell mount -o rw,remount /
 hdc_std file send SP_daemon /data/local/tmp

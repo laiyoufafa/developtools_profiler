@@ -16,7 +16,7 @@
 #include <fstream>
 #include <sstream>
 #include "include/gp_utils.h"
-#define BUFF_LENGTH 1024
+
 namespace OHOS {
     namespace SmartPerf {
         void GPUtils::mSplit(const std::string &content, const std::string &sp, std::vector<std::string> &out)
@@ -47,12 +47,13 @@ namespace OHOS {
         // popen
         std::string GPUtils::readFile(const std::string &cmd)
         {
+            const int buffLengh = 1024;
             std::string res = "NA";
             FILE *fp = popen(cmd.c_str(), "r");
 
-            char line[BUFF_LENGTH];
+            char line[buffLengh];
             line[0] = '\0';
-            while (fgets(line, BUFF_LENGTH, fp) != nullptr) {
+            while (fgets(line, buffLengh, fp) != nullptr) {
                 res = std::string(line);
             }
             fclose(fp);
@@ -63,16 +64,19 @@ namespace OHOS {
         std::string GPUtils::freadFile(const std::string &path)
         {
             std::string res = "NA";
-
+            const int buffLengh = 1024;
             FILE *fp;
             if ((fp = fopen(path.c_str(), "r")) != nullptr) {
-                char s[BUFF_LENGTH];
+                char s[buffLengh];
                 s[0] = '\0';
                 while (fgets(s, sizeof(s), fp) != nullptr) {
                     res += std::string(s);
                 }
             }
-            fclose(fp);
+            if (fp != nullptr)
+            {
+                fclose(fp);
+            }
             return res;
         }
 

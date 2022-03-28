@@ -15,10 +15,8 @@
 #ifndef RAM_H
 #define RAM_H
 #include <map>
-#include <string>
-#include <cstdio>
 #include <pthread.h>
-
+#include <string>
 namespace OHOS {
     namespace SmartPerf {
         class RAM {

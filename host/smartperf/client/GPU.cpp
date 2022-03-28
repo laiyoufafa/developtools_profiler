@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 
-#include <ctime>
 #include "include/GPU.h"
 
 namespace OHOS {
