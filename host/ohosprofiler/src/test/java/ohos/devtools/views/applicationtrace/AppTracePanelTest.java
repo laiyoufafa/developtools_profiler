@@ -73,12 +73,6 @@ class AppTracePanelTest {
         delay(10000);
         mouseClick(317, 373);
         select(494, 367, 584, 467);
-        // select(419, 369, 500, 469);
-        // mouseClick(1290, 96);
-        // mouseClick(315, 535);
-        // mouseClick(1290, 96);
-        // mouseClick(52, 437);
-        // mouseClick(1386, 97);
         delay();
     }
 
