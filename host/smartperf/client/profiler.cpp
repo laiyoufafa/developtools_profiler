@@ -1,22 +1,20 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2021-2022. All rights reserved.
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+* Copyright (C) 2021 Huawei Device Co., Ltd.
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*/
 #include "include/profiler.h"
-namespace OHOS
-{
-    namespace SmartPerf
-    {
+namespace OHOS {
+    namespace SmartPerf {
 
         Profiler::Profiler()
         {
@@ -31,20 +29,18 @@ namespace OHOS
 
         void Profiler::createCpu(std::map<std::string, std::string> &gpMap)
         {
-            int cpu_core_num = mCpu->get_cpu_num();
-            for (int i = 0; i < cpu_core_num; i++)
-            {
-                int cur_freq = mCpu->get_cpu_freq(i);
+            int cpuCoreNum = mCpu->get_cpu_num();
+            for (int i = 0; i < cpuCoreNum; i++) {
+                int curFreq = mCpu->get_cpu_freq(i);
                 char desc[10];
                 sprintf(desc, "cpu%dfreq", i);
-                gpMap.insert(std::pair<std::string, std::string>(std::string(desc), std::to_string(cur_freq)));
+                gpMap.insert(std::pair<std::string, std::string>(std::string(desc), std::to_string(curFreq)));
             }
 
             std::vector<float> workloads;
             workloads = mCpu->get_cpu_load();
 
-            for (int i = 1; i < workloads.size(); ++i)
-            {
+            for (int i = 1; i < workloads.size(); ++i) {
                 char desc[10];
                 sprintf(desc, "cpu%dload", i - 1);
                 gpMap.insert(std::pair<std::string, std::string>(std::string(desc), std::to_string(workloads[i])));
@@ -67,13 +63,13 @@ namespace OHOS
             sprintf(desc, "ddrfreq");
             gpMap.insert(std::pair<std::string, std::string>(std::string(desc), std::to_string(ret)));
         }
-        void Profiler::createFps(int is_video, int is_camera, std::map<std::string, std::string> &gpMap)
+        void Profiler::createFps(int isVideo, int isCamera, std::map<std::string, std::string> &gpMap)
         {
-            static int video_on = is_video;
-            static int camera_on = is_camera;
+            static int videoOn = isVideo;
+            static int cameraOn = isCamera;
 
             FpsInfo gfpsInfo;
-            gfpsInfo = mFps->getFpsInfo(video_on, camera_on);
+            gfpsInfo = mFps->getFpsInfo(videoOn, cameraOn);
             std::string res = "";
             res += "timestamp|";
             res += std::to_string(gfpsInfo.current_fps_time);
@@ -82,8 +78,7 @@ namespace OHOS
             res += std::to_string(gfpsInfo.fps);
             res += ";";
             res += "jitter|";
-            for (int i = 0; i < gfpsInfo.jitters.size(); ++i)
-            {
+            for (int i = 0; i < gfpsInfo.jitters.size(); ++i) {
                 res += std::to_string(gfpsInfo.jitters[i]);
                 res += "==";
             }
@@ -98,8 +93,7 @@ namespace OHOS
             tempInfo = mTemperature->getThermalMap();
 
             std::map<std::string, float>::iterator iter;
-            for (iter = tempInfo.begin(); iter != tempInfo.end(); ++iter)
-            {
+            for (iter = tempInfo.begin(); iter != tempInfo.end(); ++iter) {
                 float value = iter->second;
                 gpMap.insert(
                     std::pair<std::string, std::string>(
@@ -113,8 +107,7 @@ namespace OHOS
             std::map<std::string, std::string> powerInfo;
             powerInfo = mPower->getPowerMap();
             std::map<std::string, std::string>::iterator iter;
-            for (iter = powerInfo.begin(); iter != powerInfo.end(); ++iter)
-            {
+            for (iter = powerInfo.begin(); iter != powerInfo.end(); ++iter) {
                 gpMap.insert(std::pair<std::string, std::string>(iter->first, iter->second));
             }
         }
@@ -124,17 +117,16 @@ namespace OHOS
             std::map<std::string, std::string> gramInfo;
             gramInfo = mRam->getRamInfo(pkg_name, pid);
             std::map<std::string, std::string>::iterator iter;
-            for (iter = gramInfo.begin(); iter != gramInfo.end(); ++iter)
-            {
+            for (iter = gramInfo.begin(); iter != gramInfo.end(); ++iter) {
                 gpMap.insert(std::pair<std::string, std::string>(iter->first, iter->second));
             }
         }
 
         void Profiler::createSnapshot(std::map<std::string, std::string> &gpMap, long long timestamp)
         {
-            char cmd_capture[20];
-            sprintf(cmd_capture, "hi_snapshot");
-            std::string res = GPUtils::readFile(cmd_capture);
+            char cmdCapture[20];
+            sprintf(cmdCapture, "hi_snapshot");
+            std::string res = GPUtils::readFile(cmdCapture);
             char pathstr[50];
             sprintf(pathstr, "/data/local/tmp/capture/%lld", timestamp);
             std::string path = pathstr;

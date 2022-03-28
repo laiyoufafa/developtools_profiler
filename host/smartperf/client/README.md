@@ -12,12 +12,12 @@ OpenHarmony性能测试工具,通过采集设备性能指标，对采集数据�
 
 ## 使用方式
 
-**1、GP_deamon --help**
+**1、SP_daemon --help**
 ```bash
 > hdc_std shell
 :/ # cd data/local/tmp
-:/data/local/tmp # ./SP_daemon --help
-usage: ./SP_daemon <options> <arguments>
+:/data/local/tmp # SP_daemon --help
+usage: SP_daemon <options> <arguments>
 --------------------------------------------------------------------
 These are common commands list:
  -N      set num of profiler <must be non-null>
@@ -31,7 +31,7 @@ These are common commands list:
  -p      get current_now and voltage_now
  -r      get ram(pss)
 --------------------------------------------------------------------
-Example: ./SP_daemon -N 2 -PKG com.ohos.contacts -c -g -t -p -r
+Example: SP_daemon -N 2 -PKG com.ohos.contacts -c -g -t -p -r
 --------------------------------------------------------------------
 ```
 **2、SP_daemon -N 2 -PKG com.ohos.contacts -c -g -t -p -r**

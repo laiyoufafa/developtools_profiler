@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2021-2022. All rights reserved.
+ * Copyright (C) 2021 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,20 +13,16 @@
  * limitations under the License.
  */
 
-#include <errno.h>
 #include <fstream>
 #include <sstream>
 #include "include/gp_utils.h"
-
-namespace OHOS
-{
-    namespace SmartPerf
-    {
+#define BUFF_LENGTH 1024
+namespace OHOS {
+    namespace SmartPerf {
         void GPUtils::mSplit(const std::string &content, const std::string &sp, std::vector<std::string> &out)
         {
             int index = 0;
-            while (index != std::string::npos)
-            {
+            while (index != std::string::npos) {
                 int t_end = content.find_first_of(sp, index);
                 std::string tmp = content.substr(index, t_end - index);
                 if (tmp != "" && tmp != " ")
@@ -41,9 +37,7 @@ namespace OHOS
         {
             FILE *fp;
             fp = fopen(path.c_str(), "r");
-            if (fp == NULL)
-            {
-                // printf("open path: %s failed, err=%s\n", path.c_str(), strerror(errno));
+            if (fp == nullptr) {
                 return false;
             }
             fclose(fp);
@@ -55,14 +49,10 @@ namespace OHOS
         {
             std::string res = "NA";
             FILE *fp = popen(cmd.c_str(), "r");
-            if (fp == NULL)
-            {
-                // printf("read_file:%s failed",cmd.c_str());
-            }
-            char line[1024];
+
+            char line[BUFF_LENGTH];
             line[0] = '\0';
-            while (fgets(line, 1024, fp) != NULL)
-            {
+            while (fgets(line, BUFF_LENGTH, fp) != nullptr) {
                 res = std::string(line);
             }
             fclose(fp);
@@ -75,17 +65,10 @@ namespace OHOS
             std::string res = "NA";
 
             FILE *fp;
-            if ((fp = fopen(path.c_str(), "r")) == NULL)
-            {
-                // printf("no such file %s",path.c_str());
-            }
-            else
-            {
-                char s[1024];
+            if ((fp = fopen(path.c_str(), "r")) != nullptr) {
+                char s[BUFF_LENGTH];
                 s[0] = '\0';
-                while (fgets(s, sizeof(s), fp) != NULL)
-                {
-                    // printf("read line: %s",s);
+                while (fgets(s, sizeof(s), fp) != nullptr) {
                     res += std::string(s);
                 }
             }
@@ -97,17 +80,16 @@ namespace OHOS
         std::string GPUtils::getNumber(const std::string &str)
         {
 
-            int cnt_int = 0;
+            int cntInt = 0;
+            const int shift = 10;
 
-            for (int i = 0; str[i] != '\0'; ++i)
-            {
-                if (str[i] >= '0' && str[i] <= '9')
-                {
-                    cnt_int *= 10;
-                    cnt_int += str[i] - '0';
+            for (int i = 0; str[i] != '\0'; ++i) {
+                if (str[i] >= '0' && str[i] <= '9') {
+                    cntInt *= shift;
+                    cntInt += str[i] - '0';
                 }
             }
-            return std::to_string(cnt_int);
+            return std::to_string(cntInt);
         }
 
         // wirte to csv by path
@@ -118,21 +100,17 @@ namespace OHOS
             outFile.open(path.c_str(), std::ios::out);
             int i = 0;
             std::string title = "";
-            for (GPData gpdata : vmap)
-            {
+            for (GPData gpdata : vmap) {
 
                 std::map<std::string, std::string>::iterator iter;
                 std::string line_content = "";
-                for (iter = gpdata.values.begin(); iter != gpdata.values.end(); ++iter)
-                {
-                    if (i == 0)
-                    {
+                for (iter = gpdata.values.begin(); iter != gpdata.values.end(); ++iter) {
+                    if (i == 0) {
                         title += iter->first + ",";
                     }
                     line_content += iter->second + ",";
                 }
-                if (i == 0)
-                {
+                if (i == 0) {
                     title.pop_back();
                     outFile << title << std::endl;
                 }
