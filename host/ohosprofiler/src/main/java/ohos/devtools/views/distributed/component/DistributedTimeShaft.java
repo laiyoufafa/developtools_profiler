@@ -395,7 +395,6 @@ public class DistributedTimeShaft extends JBPanel implements KeyListener, MouseL
             g2.fillRect(0, 0, getWidth(), getHeight());
             g2.setComposite(alpha100);
             g2.setColor(JBColor.foreground());
-            // g2.drawString("CPU Usage", 3, 13);
             g2.setComposite(alpha100);
             if (startX == 0 && endX == 0) {
                 startX = 0;

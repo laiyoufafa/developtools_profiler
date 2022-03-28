@@ -68,7 +68,6 @@ class DistributedDataStatisticsPaneTest {
         frame = new FrameFixture(jFrame);
         frame.show(new Dimension(1024, 600));
         frame.moveTo(new Point(0, 0));
-        //        inspect();
     }
 
     @AfterEach
@@ -100,7 +99,6 @@ class DistributedDataStatisticsPaneTest {
         mouseClick(312, 64);
         mouseClick(290, 158);
         mouseClick(390, 68);
-        //        inspect();
         delay();
     }
 
