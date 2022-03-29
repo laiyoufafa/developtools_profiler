@@ -15,7 +15,6 @@
 #include "include/profiler.h"
 namespace OHOS {
     namespace SmartPerf {
-
         Profiler::Profiler()
         {
             mCpu = CPU::getInstance();

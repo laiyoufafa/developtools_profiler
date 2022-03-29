@@ -35,12 +35,14 @@ namespace OHOS {
 
         bool GPUtils::canOpen(const std::string &path)
         {
-            FILE *fp;
-            fp = fopen(path.c_str(), "r");
+            FILE *fp = fopen(path.c_str(), "r");
             if (fp == nullptr) {
                 return false;
             }
-            fclose(fp);
+            if (fclose(fp) == EOF)
+            {
+                return false;
+            }
             return true;
         }
 
@@ -56,7 +58,11 @@ namespace OHOS {
             while (fgets(line, buffLengh, fp) != nullptr) {
                 res = std::string(line);
             }
-            fclose(fp);
+            
+            if (fclose(fp) == EOF)
+            {
+                return "";
+            }
             return res;
         }
 

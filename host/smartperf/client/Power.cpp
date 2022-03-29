@@ -13,8 +13,8 @@
 * limitations under the License.
 */
 #include <cmath>
-#include "include/Power.h"
 #include "include/gp_utils.h"
+#include "include/Power.h"
 
 namespace OHOS {
     namespace SmartPerf {

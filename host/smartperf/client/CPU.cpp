@@ -18,7 +18,6 @@
 
 namespace OHOS {
     namespace SmartPerf {
-
         pthread_mutex_t CPU::mutex;
         CPU *CPU::instance = nullptr;
 
@@ -53,15 +52,17 @@ namespace OHOS {
         int CPU::get_cpu_freq(int cpu_id)
         {
             char buffer[128];
-            FILE *fp;
-            fp = fopen(CPU_SCALING_CUR_FREQ(cpu_id).c_str(), "r");
+            FILE *fp = fopen(CPU_SCALING_CUR_FREQ(cpu_id).c_str(), "r");
             if (fp == nullptr) {
                 return -1;
             }
             buffer[0] = '\0';
             fgets(buffer, sizeof(buffer), fp);
 
-            fclose(fp);
+            if (fclose(fp) == EOF)
+            {
+                return EOF;
+            }
             return atoi(buffer);
         }
 
@@ -85,8 +86,7 @@ namespace OHOS {
                 "\0",
                 "\0",
             };
-            FILE *fp;
-            fp = fopen(PROC_STAT.c_str(), "r");
+            FILE *fp = fopen(PROC_STAT.c_str(), "r");
             if (fp == nullptr) {
                 for (int i = 0; i <= m_cpu_num; ++i) {
                     workload.push_back(-1.0f);
@@ -97,12 +97,13 @@ namespace OHOS {
             buffer[0] = '\0';
             int line = 0;
             while (fgets(buffer, sizeof(buffer), fp) != nullptr) {
-                // 判定 第0个字符为:c 第1个字符为:p 第2个字符为:u
-                if (strlen(buffer) >= 3 && buffer[0] == 'c' && buffer[1] == 'p' && buffer[2] == 'u') {
+                const int zeroPos = 0;
+                const int firstPos = 1;
+                const int secondPos = 2;
+                const int length = 3;
+                if (strlen(buffer) >= length && buffer[zeroPos] == 'c' && buffer[firstPos] == 'p' && buffer[secondPos] == 'u') {
                     float b = cac_workload(buffer, pre_buffer[line]);
-
                     workload.push_back(b);
-
                     snprintf(pre_buffer[line], sizeof(pre_buffer[line]), "%s", buffer);
                 }
                 ++line;
@@ -111,12 +112,15 @@ namespace OHOS {
                     break;
                 }
             }
-            fclose(fp);
+            if (fclose(fp) == EOF)
+            {
+                return EOF;
+            }
 
             return workload;
         }
 
-        float CPU::cac_workload(const char *buffer, const char *pre_buffer) const
+        float CPU::cac_workload(const char *buffer, const char *pre_buffer)
         {
             const int default_index = 4;
             const int default_shift = 10;
@@ -175,7 +179,7 @@ namespace OHOS {
 
             double workload = per_user + per_sys + per_iowait + per_irq;
 
-            return (float)workload;
+            return static_cast<float>(workload);
         }
     }
 }

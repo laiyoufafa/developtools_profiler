@@ -35,7 +35,7 @@ namespace OHOS {
             pthread_mutex_init(&mutex, nullptr);
         }
 
-        long long DDR::getDdrFreq() const 
+        long long DDR::getDdrFreq() 
         {
             long long curFreq;
 

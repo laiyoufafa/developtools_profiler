@@ -91,16 +91,18 @@ namespace OHOS {
 
         float GPU::get_gpu_load()
         {
-
             static char buffer[128];
             FILE *fp;
             fp = fopen(gpu_cur_load_path.c_str(), "r");
             if (fp == nullptr) {
-                return -1.0f;
+                return EOF;
             }
             buffer[0] = '\0';
             fgets(buffer, sizeof(buffer), fp);
-            fclose(fp);
+              if (fclose(fp) == EOF)
+            {
+                return -1.0;
+            }
             return calc_workload(buffer);
         }
     }

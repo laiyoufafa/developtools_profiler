@@ -15,8 +15,9 @@
 #ifndef RAM_H
 #define RAM_H
 #include <map>
-#include <pthread.h>
 #include <string>
+#include <pthread.h>
+
 namespace OHOS {
     namespace SmartPerf {
         class RAM {
@@ -24,17 +25,13 @@ namespace OHOS {
             static RAM *getInstance();
             void setPkgName(std::string ss);
             std::map<std::string, std::string> getRamInfo(std::string pkg_name, int pid);
-
             static pthread_mutex_t mutex;
         private:
             RAM();
             ~RAM();
-
             static RAM *instance;
             std::string pkgName;
-
         };
-
     }
 }
 #endif

@@ -68,9 +68,11 @@ namespace OHOS {
                     char s[1024];
                     s[0] = '\0';
                     while (fgets(s, sizeof(s), fp) != nullptr) {
-                        
-                        // 获取物理内存Pss: "p" 过滤读取的行中第一个字符是否为'P',"s" 过滤读取的行中第二个字符是否为's','s  过滤读取的行中第三个字符是否为's'
-                        if (s[0] == 'P' && s[1] == 's' && s[2] == 's' && s[3] == ':') {
+                        const int zeroPos = 0;
+                        const int firstPos = 1;
+                        const int secondPos = 2;
+                        const int thirdPos = 3;
+                        if (s[zeroPos] == 'P' && s[firstPos] == 's' && s[secondPos] == 's' && s[thirdPos] == ':') {
                             tmp += std::string(s);
                         }
                     }
@@ -79,7 +81,6 @@ namespace OHOS {
                     pclose(fp);
                 }
             }
-           
             ramInfo["pss"] = GPUtils::getNumber(tmp);
             return ramInfo;
         }

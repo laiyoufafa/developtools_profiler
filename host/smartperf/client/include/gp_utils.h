@@ -20,7 +20,6 @@
 namespace OHOS {
     namespace SmartPerf {
         namespace GPUtils {
-
             void mSplit(const std::string &content, const std::string &sp, std::vector<std::string> &out);
 
             bool canOpen(const std::string &path);
@@ -32,7 +31,6 @@ namespace OHOS {
             std::string getNumber(const std::string &str);
 
             void writeCsv(const std::string &path, std::vector<GPData> &vmap);
-
         };
     }
 }

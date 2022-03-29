@@ -17,7 +17,6 @@
 #include <map>
 
 class GPData {
-
 public:
     std::map<std::string, std::string> values;
 };

@@ -168,16 +168,12 @@ namespace OHOS
                 long long lastFrame = -1;
                 if (t_frameReadyTime == t_lastReadyTime)
                 {
-
                     (fpsInfo.time_stamp_q).push(frameReadyTime);
                 }
                 else if (t_frameReadyTime == t_lastReadyTime + 1)
                 {
-
                     jump = true;
-
                     lastFrame = fpsInfo.last_frame_ready_time;
-
                     lastReadyTime = frameReadyTime;
                     int fps_tmp = 0;
                     fpsInfo.jitters.clear();
@@ -202,7 +198,6 @@ namespace OHOS
                 }
                 else if (t_frameReadyTime > t_lastReadyTime + 1)
                 {
-
                     jump = true;
                     lastReadyTime = frameReadyTime;
 
@@ -218,20 +213,16 @@ namespace OHOS
             const int maxZeroNum = 120;
             if (zeroNum >= maxZeroNum)
             {
-
                 while (!(fpsInfo.time_stamp_q.empty())) {
                     fpsInfo.time_stamp_q.pop();
                 }
-
                 fpsInfo.fps = 0;
-
                 return fpsInfo;
             }
             const int minPrintLine = 5;
             if (cnt < minPrintLine)
             {
                 fpsInfo.fps = fpsInfo.pre_fps;
-
                 return fpsInfo;
             }
 
@@ -243,17 +234,14 @@ namespace OHOS
             }
             else if (refresh && !jump)
             {
-
                 fpsInfo.fps = fpsInfo.pre_fps;
                 return fpsInfo;
             }
             else
             {
-
                 fpsInfo.fps = 0;
                 return fpsInfo;
             }
         }
-
     }
 }

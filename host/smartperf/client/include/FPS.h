@@ -67,7 +67,6 @@ private:
     long long lastFPSTimestamp = -1;
 
     FpsInfo GetSurfaceFrameDataGB(std::string name);
-    static void *collect_fps_thread(void *__this);
     FpsInfo m_fpsInfo;
 };
 }

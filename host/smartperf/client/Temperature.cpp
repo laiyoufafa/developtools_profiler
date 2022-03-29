@@ -67,7 +67,6 @@ namespace OHOS {
                 if (buffer[strlen(buffer) - 1] == '\n')
                     buffer[strlen(buffer) - 1] = '\0';
                 std::string type = std::string(buffer);
-
                 if (collect_nodes.count(type) == 0) {
                     continue;
                 }
@@ -103,6 +102,5 @@ namespace OHOS {
             }
             return thermal_map;
         }
-
     }
 }
