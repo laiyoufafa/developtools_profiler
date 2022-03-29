@@ -18,7 +18,6 @@
 
 namespace OHOS {
     namespace SmartPerf {
-       
         RAM *RAM::instance = nullptr;
         RAM *RAM::getInstance()
         {

@@ -87,9 +87,7 @@ namespace OHOS {
                 const int pNameLastPos = 2;
                 layerName = std::string(sps[pNameLastPos].c_str() + addEndChar);
             }
-
             FpsInfo fpsInfo = GetSurfaceFrameDataGB(layerName);
-
             if (fpsInfo.fps > fpsInfoMax.fps) {
                 fpsInfoMax = fpsInfo;
             }

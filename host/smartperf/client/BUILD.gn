@@ -10,7 +10,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
- 
+
 import("//build/ohos.gni")
 
 ## Build so {{{
@@ -30,21 +30,20 @@ config("public_config") {
 
 ohos_executable("SP_daemon") {
   sources = [
-    "gp_utils.cpp",
-    "FPS.cpp",
-    "RAM.cpp",
+    "CPU.cpp",
     "DDR.cpp",
+    "FPS.cpp",
     "GPU.cpp",
     "Power.cpp",
-    "CPU.cpp",
-    "profiler.cpp",
+    "RAM.cpp",
     "Temperature.cpp",
+    "gp_utils.cpp",
+    "profiler.cpp",
     "smartperf_command.cpp",
-    "smartperf_main.cpp"
+    "smartperf_main.cpp",
   ]
-  include_dirs = [
-    "//foundation/graphic/standard/rosen/samples/opensourcesp/include"
-  ]
+  include_dirs =
+      [ "//foundation/graphic/standard/rosen/samples/opensourcesp/include" ]
   configs = [ ":config" ]
 
   part_name = "graphic_standard"

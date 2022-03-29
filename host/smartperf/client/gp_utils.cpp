@@ -88,7 +88,6 @@ namespace OHOS {
         // get number_str from str
         std::string GPUtils::getNumber(const std::string &str)
         {
-
             int cntInt = 0;
             const int shift = 10;
 
@@ -104,13 +103,11 @@ namespace OHOS {
         // wirte to csv by path
         void GPUtils::writeCsv(const std::string &path, std::vector<GPData> &vmap)
         {
-
             std::ofstream outFile;
             outFile.open(path.c_str(), std::ios::out);
             int i = 0;
             std::string title = "";
             for (GPData gpdata : vmap) {
-
                 std::map<std::string, std::string>::iterator iter;
                 std::string line_content = "";
                 for (iter = gpdata.values.begin(); iter != gpdata.values.end(); ++iter) {

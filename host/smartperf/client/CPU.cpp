@@ -15,6 +15,7 @@
 
 #include <iostream>
 #include <pthread.h>
+#include <unistd.h>
 #include "include/CPU.h"
 
 namespace OHOS {
@@ -45,8 +46,11 @@ namespace OHOS {
             unsigned int cpu_num = 0;
             while (true) {
                 if (snprintf(cpu_node, sizeof(cpu_node), "%s/cpu%u", CPU_BASE_PATH.c_str(), cpu_num) > 0) {
-                    ++cpu_num;
+                   if (access(cpu_node, F_OK)== -1){
+                       break;
+                   } 
                 }
+                ++cpu_num;
             }
             return m_cpu_num = cpu_num;
         }
@@ -59,8 +63,9 @@ namespace OHOS {
                 return -1;
             }
             buffer[0] = '\0';
-            fgets(buffer, sizeof(buffer), fp);
-
+            while (fgets(buffer, sizeof(buffer), fp) == nullptr) {
+                std::cout << "fgets fail";
+            }
             if (fclose(fp) == EOF) {
                 return EOF;
             }

@@ -46,9 +46,7 @@ namespace OHOS {
             RAM *mRam = nullptr;
             Temperature *mTemperature = nullptr;
             Power *mPower = nullptr;
-
         };
-
     }
 }
 #endif

@@ -75,8 +75,12 @@ namespace OHOS {
                     continue;
                 }
                 buffer[0] = '\0';
-                fgets(buffer, sizeof(buffer), fp);
-                fclose(fp);
+                while (fgets(buffer, sizeof(buffer), fp) == nullptr) {
+                    std::cout << "fgets fail";
+                }
+                if (fclose(fp) == EOF) {
+                    std::cout << "fclose fail";
+                }
                 std::string power_value = std::string(buffer);
                 if (iter->first == "status") {
                     if (power_value.find("Charging") == std::string::npos &&

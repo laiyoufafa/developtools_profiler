@@ -59,8 +59,9 @@ namespace OHOS {
                 return -1;
             }
             buffer[0] = '\0';
-            fgets(buffer, sizeof(buffer), fp);
-
+            while (fgets(buffer, sizeof(buffer), fp) == nullptr) {
+                std::cout << "fgets fail";
+            }
             if (fclose(fp) == EOF) {
                 return EOF;
             }
@@ -96,13 +97,14 @@ namespace OHOS {
         float GPU::get_gpu_load()
         {
             static char buffer[128];
-            FILE *fp;
-            fp = fopen(gpu_cur_load_path.c_str(), "r");
+            FILE *fp = fopen(gpu_cur_load_path.c_str(), "r");
             if (fp == nullptr) {
                 return EOF;
             }
             buffer[0] = '\0';
-            fgets(buffer, sizeof(buffer), fp)
+            while (fgets(buffer, sizeof(buffer), fp) == nullptr) {
+                std::cout << "fgets fail";
+            }
             if (fclose(fp) == EOF) {
                 return -1.0;
             }

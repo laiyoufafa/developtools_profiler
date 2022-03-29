@@ -51,18 +51,22 @@ namespace OHOS {
             FILE *fp = nullptr;
             const int zoneTravelNum = 100;
             for (int zone = 0; zone < zoneTravelNum; ++zone) {
-                if (snprintf(typeNode, sizeof(typeNode), "%s/thermal_zone%d/type", thermal_base_path.c_str(), zone) < 0) {
+                if (snprintf(typeNode, sizeof(typeNode), 
+                "%s/thermal_zone%d/type", thermal_base_path.c_str(), zone) < 0) {
                     std::cout << "snprintf fail";
                 }
           
                 fp = fopen(typeNode, "r");
                 if (fp == nullptr) {
-                    printf("Thermal()-fopen %s, err=%s\n", typeNode, strerror(errno));
                     continue;
                 }
                 buffer[0] = '\0';
-                fgets(buffer, sizeof(buffer), fp);
-                fclose(fp);
+                while (fgets(buffer, sizeof(buffer), fp) == nullptr) {
+                    std::cout << "fgets fail";
+                }
+                if (fclose(fp) == EOF) {
+                    std::cout << "fclose fail";
+                }
 
                 if (strlen(buffer) == 0) {
                     continue;
@@ -73,7 +77,8 @@ namespace OHOS {
                 if (collect_nodes.count(type) == 0) {
                     continue;
                 }
-                if (snprintf(tempNode, sizeof(tempNode), "%s/thermal_zone%d/temp", thermal_base_path.c_str(), zone) < 0) {
+                if (snprintf(tempNode, sizeof(tempNode), 
+                "%s/thermal_zone%d/temp", thermal_base_path.c_str(), zone) < 0) {
                     std::cout << "snprintf fail";
                 }
                 thermal_node_path_map[type] = std::string(tempNode);
@@ -96,9 +101,13 @@ namespace OHOS {
                     continue;
                 }
                 buffer[0] = '\0';
-                fgets(buffer, sizeof(buffer), fp);
+                while (fgets(buffer, sizeof(buffer), fp) == nullptr) {
+                    std::cout << "fgets fail";
+                }
                 float temp = std::fabs(atof(buffer));
-                fclose(fp);
+                if (fclose(fp) == EOF) {
+                    std::cout << "fclose fail";
+                }
                 if (strlen(buffer) == 0) {
                     thermal_map[type] = -1.0f;
                     continue;

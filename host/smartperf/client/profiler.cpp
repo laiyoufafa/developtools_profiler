@@ -38,8 +38,7 @@ namespace OHOS {
                 }
             }
 
-            std::vector<float> workloads;
-            workloads = mCpu->get_cpu_load();
+            std::vector<float> workloads = mCpu->get_cpu_load();
 
             for (int i = 1; i < workloads.size(); ++i) {
                 char desc[10];
@@ -73,8 +72,7 @@ namespace OHOS {
             static int videoOn = isVideo;
             static int cameraOn = isCamera;
 
-            FpsInfo gfpsInfo;
-            gfpsInfo = mFps->getFpsInfo(videoOn, cameraOn);
+            FpsInfo gfpsInfo = mFps->getFpsInfo(videoOn, cameraOn);
             std::string res = "";
             res += "timestamp|";
             res += std::to_string(gfpsInfo.current_fps_time);
@@ -95,8 +93,7 @@ namespace OHOS {
 
         void Profiler::createTemp(std::map<std::string, std::string> &gpMap)
         {
-            std::map<std::string, float> tempInfo;
-            tempInfo = mTemperature->getThermalMap();
+            std::map<std::string, float> tempInfo = mTemperature->getThermalMap();
 
             std::map<std::string, float>::iterator iter;
             for (iter = tempInfo.begin(); iter != tempInfo.end(); ++iter) {
