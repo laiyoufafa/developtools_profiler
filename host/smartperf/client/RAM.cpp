@@ -12,29 +12,23 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
+#include <iostream>
 #include "include/gp_utils.h"
 #include "include/RAM.h"
 
 namespace OHOS {
     namespace SmartPerf {
-        pthread_mutex_t RAM::mutex;
+       
         RAM *RAM::instance = nullptr;
         RAM *RAM::getInstance()
         {
             if (instance == nullptr) {
-                pthread_mutex_lock(&mutex);
-                if (instance == nullptr) {
-                    instance = new RAM();
-                }
-                pthread_mutex_unlock(&mutex);
+                instance = new RAM();
             }
             return instance;
         }
 
-        RAM::RAM()
-        {
-            pthread_mutex_init(&mutex, nullptr);
-        }
+        RAM::RAM() {}
 
         void RAM::setPkgName(std::string ss)
         {
@@ -49,7 +43,10 @@ namespace OHOS {
                 pid_value = std::to_string(pid);
             } else {
                 char pidStr[100];
-                sprintf(pidStr, "ps -ef |grep -w %s |grep -v grep |grep -v SP_daemon", pkg_name.c_str());
+                if (snprintf(pidStr, sizeof(pidStr),
+                "ps -ef |grep -w %s |grep -v grep |grep -v SP_daemon", pkg_name.c_str()) < 0) {
+                    std::cout << "snprintf fail";
+                }
                 std::string pidLine = GPUtils::readFile(pidStr);
                 std::vector<std::string> sps;
                 GPUtils::mSplit(pidLine, " ", sps);
@@ -61,7 +58,9 @@ namespace OHOS {
             std::string tmp = "-1";
             if (atoi(pid_value.c_str()) > 0) {
                 char ram[50];
-                sprintf(ram, "/proc/%s/smaps_rollup", pid_value.c_str());
+                if (snprintf(ram, sizeof(ram), "/proc/%s/smaps_rollup", pid_value.c_str()) < 0) {
+                    std::cout << "snprintf fail";
+                }
                 std::string path = ram;
                 FILE *fp;
                 if ((fp = fopen(path.c_str(), "r")) != nullptr) {

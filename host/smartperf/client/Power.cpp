@@ -13,6 +13,7 @@
 * limitations under the License.
 */
 #include <cmath>
+#include <iostream>
 #include "include/gp_utils.h"
 #include "include/Power.h"
 
@@ -45,7 +46,10 @@ namespace OHOS {
             
             char powerNode[256];
             for (int j = 0; j < sizeof(default_collect_power_info) / sizeof(const char *); ++j) {
-                sprintf(powerNode, "%s/%s", power_base_path.c_str(), default_collect_power_info[j]);
+                if (snprintf(powerNode, sizeof(powerNode), "%s/%s",
+                power_base_path.c_str(), default_collect_power_info[j]) < 0) {
+                    std::cout << "snprintf fail";
+                }
                 // file exists
                 std::string type = std::string(default_collect_power_info[j]);
                 if (power_node_path_map.count(type) > 0) {
@@ -58,11 +62,9 @@ namespace OHOS {
         std::map<std::string, std::string> Power::getPowerMap()
         {
             std::map<std::string, std::string> power_map;
-
             FILE *fp = nullptr;
             char buffer[256];
             std::map<std::string, std::string>::iterator iter;
-
             int charging = 1;
             for (iter = power_node_path_map.begin(); iter != power_node_path_map.end(); ++iter) {
                 std::string type = iter->first;
@@ -74,12 +76,11 @@ namespace OHOS {
                 }
                 buffer[0] = '\0';
                 fgets(buffer, sizeof(buffer), fp);
-
                 fclose(fp);
-
                 std::string power_value = std::string(buffer);
                 if (iter->first == "status") {
-                    if (power_value.find("Charging") == std::string::npos && power_value.find("Full") == std::string::npos) {
+                    if (power_value.find("Charging") == std::string::npos &&
+                    power_value.find("Full") == std::string::npos) {
                         charging = 0;
                     }
                     if (power_value.find("Discharging") != std::string::npos) {
@@ -101,14 +102,12 @@ namespace OHOS {
                     double tmp = std::stof(buffer);
                     power_value = std::to_string(tmp);
                 }
-
                 power_map[type] = power_value;
             }
-            if (power_map.count("voltage_now") == 0
-            && power_map.count("bat_id_0") > 0
-            && power_map.count("bat_id_1") > 0) {
-                power_map["voltage_now"] = std::to_string(
-                    std::stof(power_map["bat_id_0"]) + std::stof(power_map["bat_id_1"]));
+            if (power_map.count("voltage_now") == 0 && power_map.count("bat_id_0") > 0 &&
+                power_map.count("bat_id_1") > 0) {
+                power_map["voltage_now"] =
+                    std::to_string(std::stof(power_map["bat_id_0"]) + std::stof(power_map["bat_id_1"]));
             }
             if (power_map.count("current_now") > 0 && charging) {
                 power_map["current_now"] = "-" + power_map["current_now"];

@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include <iostream>
 #include "include/GPU.h"
 
 namespace OHOS {
@@ -53,18 +54,21 @@ namespace OHOS {
         {
             const int unit = 1000;
             static char buffer[128];
-            FILE *fp;
-            fp = fopen(gpu_cur_freq_path.c_str(), "r");
+            FILE *fp = fopen(gpu_cur_freq_path.c_str(), "r");
             if (fp == nullptr) {
                 return -1;
             }
             buffer[0] = '\0';
             fgets(buffer, sizeof(buffer), fp);
 
-            fclose(fp);
+            if (fclose(fp) == EOF) {
+                return EOF;
+            }
             int curGpuFreq = -1;
             int tmp;
-            sscanf(buffer, "%d %d", &tmp, &curGpuFreq);
+            if (sscanf(buffer, "%d %d", &tmp, &curGpuFreq) < 0) {
+                std::cout << "sscanf fail";
+            }
             if (curGpuFreq != -1) {
                 return curGpuFreq * unit;
             } else {
@@ -72,7 +76,7 @@ namespace OHOS {
             }
         }
 
-        float GPU::calc_workload(const char *buffer) const 
+        float GPU::calc_workload(const char *buffer) const
         {
             std::vector<std::string> sps;
             std::string buffer_line = buffer;
@@ -98,9 +102,8 @@ namespace OHOS {
                 return EOF;
             }
             buffer[0] = '\0';
-            fgets(buffer, sizeof(buffer), fp);
-              if (fclose(fp) == EOF)
-            {
+            fgets(buffer, sizeof(buffer), fp)
+            if (fclose(fp) == EOF) {
                 return -1.0;
             }
             return calc_workload(buffer);

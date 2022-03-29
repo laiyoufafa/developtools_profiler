@@ -35,7 +35,7 @@ namespace OHOS {
             pthread_mutex_init(&mutex, nullptr);
         }
 
-        long long DDR::getDdrFreq() 
+        long long DDR::getDdrFreq()
         {
             long long curFreq;
 
@@ -51,7 +51,8 @@ namespace OHOS {
                 buffer[0] = '\0';
                 long long curDDR = -1;
                 while (fgets(buffer, sizeof(buffer), fp)) {
-                    sscanf(buffer, "DDR :%lld", &curDDR);
+                    if (sscanf(buffer, "DDR :%lld", &curDDR) < 0)
+                        continue;
                 }
                 if (curDDR != -1) {
                     curFreq = curDDR * defaultUnit / defaultHalf;

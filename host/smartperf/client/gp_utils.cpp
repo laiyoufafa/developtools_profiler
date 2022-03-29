@@ -25,10 +25,12 @@ namespace OHOS {
             while (index != std::string::npos) {
                 int t_end = content.find_first_of(sp, index);
                 std::string tmp = content.substr(index, t_end - index);
-                if (tmp != "" && tmp != " ")
+                if (tmp != "" && tmp != " ") {
                     out.push_back(tmp);
-                if (t_end == std::string::npos)
+                }
+                if (t_end == std::string::npos) {
                     break;
+                }
                 index = t_end + 1;
             }
         }
@@ -39,8 +41,7 @@ namespace OHOS {
             if (fp == nullptr) {
                 return false;
             }
-            if (fclose(fp) == EOF)
-            {
+            if (fclose(fp) == EOF) {
                 return false;
             }
             return true;
@@ -58,9 +59,8 @@ namespace OHOS {
             while (fgets(line, buffLengh, fp) != nullptr) {
                 res = std::string(line);
             }
-            
-            if (fclose(fp) == EOF)
-            {
+
+            if (fclose(fp) == EOF) {
                 return "";
             }
             return res;
@@ -79,8 +79,7 @@ namespace OHOS {
                     res += std::string(s);
                 }
             }
-            if (fp != nullptr)
-            {
+            if (fp != nullptr) {
                 fclose(fp);
             }
             return res;
@@ -128,9 +127,7 @@ namespace OHOS {
                 outFile << line_content << std::endl;
                 ++i;
             }
-
             outFile.close();
         }
-
     }
 }

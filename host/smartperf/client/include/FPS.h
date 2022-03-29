@@ -64,7 +64,6 @@ private:
     static FPS *instance;
     std::string pkg_name;
     std::string cur_layer_name;
-    long long lastFPSTimestamp = -1;
 
     FpsInfo GetSurfaceFrameDataGB(std::string name);
     FpsInfo m_fpsInfo;

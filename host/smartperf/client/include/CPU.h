@@ -63,7 +63,7 @@ private:
 
     static CPU *instance;
     int m_cpu_num;
-    float cac_workload(const char *buffer, const char *pre_buffer) const;
+    float cac_workload(const char *buffer, const char *pre_buffer);
 };
 }
 }

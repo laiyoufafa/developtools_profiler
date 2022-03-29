@@ -13,6 +13,7 @@
 * limitations under the License.
 */
 #include <cmath>
+#include <iostream>
 #include "include/Temperature.h"
 namespace OHOS {
     namespace SmartPerf {
@@ -42,15 +43,17 @@ namespace OHOS {
             }
         }
 
-        void Temperature::initThermalNode() 
+        void Temperature::initThermalNode()
         {
             char typeNode[256];
             char tempNode[256];
             char buffer[256];
             FILE *fp = nullptr;
-            const int zoneTravelNum=100;
+            const int zoneTravelNum = 100;
             for (int zone = 0; zone < zoneTravelNum; ++zone) {
-                sprintf(typeNode, "%s/thermal_zone%d/type", thermal_base_path.c_str(), zone);
+                if (snprintf(typeNode, sizeof(typeNode), "%s/thermal_zone%d/type", thermal_base_path.c_str(), zone) < 0) {
+                    std::cout << "snprintf fail";
+                }
           
                 fp = fopen(typeNode, "r");
                 if (fp == nullptr) {
@@ -70,7 +73,9 @@ namespace OHOS {
                 if (collect_nodes.count(type) == 0) {
                     continue;
                 }
-                sprintf(tempNode, "%s/thermal_zone%d/temp", thermal_base_path.c_str(), zone);
+                if (snprintf(tempNode, sizeof(tempNode), "%s/thermal_zone%d/temp", thermal_base_path.c_str(), zone) < 0) {
+                    std::cout << "snprintf fail";
+                }
                 thermal_node_path_map[type] = std::string(tempNode);
             }
         }

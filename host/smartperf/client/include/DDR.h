@@ -42,7 +42,7 @@ public:
     };
     ~DDR();
     static DDR *getInstance();
-    long long getDdrFreq() const;
+    long long getDdrFreq();
     static pthread_mutex_t mutex;
 
 private:

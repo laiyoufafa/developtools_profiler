@@ -26,7 +26,6 @@
 #include "gp_data.h"
 namespace OHOS {
     namespace SmartPerf {
-        
         class Profiler {
         public:
             Profiler();

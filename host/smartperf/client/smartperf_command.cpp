@@ -15,9 +15,9 @@
 #include <map>
 #include "sys/time.h"
 #include "unistd.h"
-#include "include/smartperf_command.h"
 #include "include/gp_data.h"
 #include "include/gp_utils.h"
+#include "include/smartperf_command.h"
 
 namespace OHOS {
 namespace SmartPerf {

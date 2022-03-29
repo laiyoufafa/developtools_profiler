@@ -12,6 +12,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
+#include <cstdio>
 #include "include/profiler.h"
 namespace OHOS {
     namespace SmartPerf {
@@ -32,8 +33,9 @@ namespace OHOS {
             for (int i = 0; i < cpuCoreNum; i++) {
                 int curFreq = mCpu->get_cpu_freq(i);
                 char desc[10];
-                sprintf(desc, "cpu%dfreq", i);
-                gpMap.insert(std::pair<std::string, std::string>(std::string(desc), std::to_string(curFreq)));
+                if (snprintf(desc, sizeof(desc), "cpu%dfreq", i) > 0) {
+                    gpMap.insert(std::pair<std::string, std::string>(std::string(desc), std::to_string(curFreq)));
+                }
             }
 
             std::vector<float> workloads;
@@ -41,8 +43,9 @@ namespace OHOS {
 
             for (int i = 1; i < workloads.size(); ++i) {
                 char desc[10];
-                sprintf(desc, "cpu%dload", i - 1);
-                gpMap.insert(std::pair<std::string, std::string>(std::string(desc), std::to_string(workloads[i])));
+                if (snprintf(desc, sizeof(desc), "cpu%dload", i - 1) > 0) {
+                    gpMap.insert(std::pair<std::string, std::string>(std::string(desc), std::to_string(workloads[i])));
+                }
             }
         }
         void Profiler::createGpu(std::map<std::string, std::string> &gpMap)
@@ -50,17 +53,20 @@ namespace OHOS {
             int ret = mGpu->get_gpu_freq();
             float workload = mGpu->get_gpu_load();
             char desc[10];
-            sprintf(desc, "gpufreq");
-            gpMap.insert(std::pair<std::string, std::string>(std::string(desc), std::to_string(ret)));
-            sprintf(desc, "gpuload");
-            gpMap.insert(std::pair<std::string, std::string>(std::string(desc), std::to_string(workload)));
+            if (snprintf(desc, sizeof(desc), "gpufreq") > 0) {
+                gpMap.insert(std::pair<std::string, std::string>(std::string(desc), std::to_string(ret)));
+            }
+            if (snprintf(desc, sizeof(desc), "gpuload") > 0) {
+                gpMap.insert(std::pair<std::string, std::string>(std::string(desc), std::to_string(workload)));
+            }
         }
         void Profiler::createDdr(std::map<std::string, std::string> &gpMap)
         {
             long long ret = mDdr->getDdrFreq();
             char desc[10];
-            sprintf(desc, "ddrfreq");
-            gpMap.insert(std::pair<std::string, std::string>(std::string(desc), std::to_string(ret)));
+            if (snprintf(desc, sizeof(desc), "ddrfreq") > 0) {
+                gpMap.insert(std::pair<std::string, std::string>(std::string(desc), std::to_string(ret)));
+            }
         }
         void Profiler::createFps(int isVideo, int isCamera, std::map<std::string, std::string> &gpMap)
         {
@@ -82,8 +88,9 @@ namespace OHOS {
                 res += "==";
             }
             char desc[10];
-            sprintf(desc, "fps");
-            gpMap.insert(std::pair<std::string, std::string>(std::string(desc), std::to_string(gfpsInfo.fps)));
+            if (snprintf(desc, sizeof(desc), "fps") > 0) {
+                gpMap.insert(std::pair<std::string, std::string>(std::string(desc), std::to_string(gfpsInfo.fps)));
+            }
         }
 
         void Profiler::createTemp(std::map<std::string, std::string> &gpMap)
@@ -124,12 +131,14 @@ namespace OHOS {
         void Profiler::createSnapshot(std::map<std::string, std::string> &gpMap, long long timestamp)
         {
             char cmdCapture[20];
-            sprintf(cmdCapture, "hi_snapshot");
-            std::string res = GPUtils::readFile(cmdCapture);
+            if (snprintf(cmdCapture, sizeof(cmdCapture), "hi_snapshot") > 0) {
+                std::string res = GPUtils::readFile(cmdCapture);
+            }
             char pathstr[50];
-            sprintf(pathstr, "/data/local/tmp/capture/%lld", timestamp);
-            std::string path = pathstr;
-            gpMap.insert(std::pair<std::string, std::string>(std::string("snapshotPath"), path));
+            if (snprintf(pathstr, sizeof(pathstr), "/data/local/tmp/capture/%lld", timestamp) > 0) {
+                std::string path = pathstr;
+                gpMap.insert(std::pair<std::string, std::string>(std::string("snapshotPath"), path));
+            }
         }
     }
 }

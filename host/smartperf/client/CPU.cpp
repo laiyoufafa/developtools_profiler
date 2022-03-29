@@ -13,8 +13,9 @@
 * limitations under the License.
 */
 
-#include "include/CPU.h"
+#include <iostream>
 #include <pthread.h>
+#include "include/CPU.h"
 
 namespace OHOS {
     namespace SmartPerf {
@@ -43,8 +44,9 @@ namespace OHOS {
             char cpu_node[128];
             unsigned int cpu_num = 0;
             while (true) {
-                sprintf(cpu_node, "%s/cpu%u", CPU_BASE_PATH.c_str(), cpu_num);
-                ++cpu_num;
+                if (snprintf(cpu_node, sizeof(cpu_node), "%s/cpu%u", CPU_BASE_PATH.c_str(), cpu_num) > 0) {
+                    ++cpu_num;
+                }
             }
             return m_cpu_num = cpu_num;
         }
@@ -59,8 +61,7 @@ namespace OHOS {
             buffer[0] = '\0';
             fgets(buffer, sizeof(buffer), fp);
 
-            if (fclose(fp) == EOF)
-            {
+            if (fclose(fp) == EOF) {
                 return EOF;
             }
             return atoi(buffer);
@@ -101,10 +102,13 @@ namespace OHOS {
                 const int firstPos = 1;
                 const int secondPos = 2;
                 const int length = 3;
-                if (strlen(buffer) >= length && buffer[zeroPos] == 'c' && buffer[firstPos] == 'p' && buffer[secondPos] == 'u') {
+                if (strlen(buffer) >= length && buffer[zeroPos] == 'c' && buffer[firstPos] == 'p' &&
+                    buffer[secondPos] == 'u') {
                     float b = cac_workload(buffer, pre_buffer[line]);
                     workload.push_back(b);
-                    snprintf(pre_buffer[line], sizeof(pre_buffer[line]), "%s", buffer);
+                    if (snprintf(pre_buffer[line], sizeof(pre_buffer[line]), "%s", buffer) < 0) {
+                        std::cout << "snprintf fail";
+                    }
                 }
                 ++line;
 
@@ -112,9 +116,8 @@ namespace OHOS {
                     break;
                 }
             }
-            if (fclose(fp) == EOF)
-            {
-                return EOF;
+            if (fclose(fp) == EOF) {
+                return workload;
             }
 
             return workload;
@@ -132,11 +135,10 @@ namespace OHOS {
                 return -1.0f;
             }
             size_t len = strlen(buffer);
-            int i;
             int time[10];
             int pre_time[10];
             int cnt = 0;
-            for (i = default_index; i < len; ++i) {
+            for (int i = default_index; i < len; ++i) {
                 int tmp = 0;
                 if (buffer[i] < default_start || buffer[i] > default_end) {
                     continue;
@@ -149,7 +151,7 @@ namespace OHOS {
             }
 
             int pre_cnt = 0;
-            for (i = default_index; i < pre_len; ++i) {
+            for (int i = default_index; i < pre_len; ++i) {
                 int tmp = 0;
                 if (pre_buffer[i] < default_start || pre_buffer[i] > default_end) {
                     continue;
