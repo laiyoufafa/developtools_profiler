@@ -342,7 +342,7 @@ public class PrefFunc extends AppFunc {
     @Override
     public List<String> getStringList(String time) {
         return Arrays.asList(time, funcName, "Thread:" + threadName, "Tid:" + tid, "depth:" + depth,
-            "Runing: " + TimeUtils.getTimeWithUnit(dur), "idle:0μs", "Total: " + TimeUtils.getTimeWithUnit(dur));
+            "Running: " + TimeUtils.getTimeWithUnit(dur), "idle:0μs", "Total: " + TimeUtils.getTimeWithUnit(dur));
     }
 
     @Override

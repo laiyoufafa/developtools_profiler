@@ -18,8 +18,9 @@
 #include <cerrno>
 #include <fstream>
 #include <string>
-#include <malloc.h>
+#include <memory>
 
+#include <malloc.h>
 #include "bundle_manager_helper.h"
 #include "directory_ex.h"
 #include "file_ex.h"
@@ -29,6 +30,7 @@
 #include "native_engine/native_engine.h"
 #include "securec.h"
 #include "unistd.h"
+#include "dump_usage.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -111,78 +113,65 @@ napi_value CreateErrorMessage(napi_env env, std::string msg)
 static napi_value GetPss(napi_env env, napi_callback_info info)
 {
     napi_value pss;
-    std::string item = "pss";
-    uint64_t pssInfo = GetProcessMeminfo(item);
-    napi_create_bigint_uint64(env, pssInfo, &pss);
+    std::unique_ptr<DumpUsage> dumpUsage = std::make_unique<DumpUsage>();
+    if (dumpUsage) {
+        int pid = getpid();
+        uint64_t pssInfo = dumpUsage->GetPss(pid);
+        napi_create_bigint_uint64(env, pssInfo, &pss);
+    } else {
+        napi_create_bigint_uint64(env, 0, &pss);
+    }
     return pss;
 }
 
 static napi_value GetSharedDirty(napi_env env, napi_callback_info info)
 {
     napi_value share_dirty;
-    std::string item = "Shared_Dirty";
-    uint64_t shareDirtyInfo = GetProcessMeminfo(item);
-    napi_create_bigint_uint64(env, shareDirtyInfo, &share_dirty);
+    std::unique_ptr<DumpUsage> dumpUsage = std::make_unique<DumpUsage>();
+    if (dumpUsage) {
+        int pid = getpid();
+        uint64_t shareDirtyInfo = dumpUsage->GetSharedDirty(pid);
+        napi_create_bigint_uint64(env, shareDirtyInfo, &share_dirty);
+    } else {
+        napi_create_bigint_uint64(env, 0, &share_dirty);
+    }
     return share_dirty;
 }
 
 static napi_value GetNativeHeapSize(napi_env env, napi_callback_info info)
 {
-    struct mallinfo mi;
+    struct mallinfo mi = mallinfo();
     napi_value native_heap_size;
-    napi_create_bigint_uint64(env, mi.usmblks, &native_heap_size);
+    if (mi.usmblks >= 0) {
+        napi_create_bigint_uint64(env, mi.usmblks, &native_heap_size);
+    } else {
+        napi_create_bigint_uint64(env, 0, &native_heap_size);
+    }
     return native_heap_size;
 }
 
 static napi_value GetNativeHeapAllocatedSize(napi_env env, napi_callback_info info)
 {
-    struct mallinfo mi;
+    struct mallinfo mi = mallinfo();
     napi_value native_heap_allocated_size;
-    napi_create_bigint_uint64(env, mi.uordblks, &native_heap_allocated_size);
+    if (mi.uordblks >= 0) {
+        napi_create_bigint_uint64(env, mi.uordblks, &native_heap_allocated_size);
+    } else {
+        napi_create_bigint_uint64(env, 0, &native_heap_allocated_size);
+    }
     return native_heap_allocated_size;
 }
 
 static napi_value GetNativeHeapFreeSize(napi_env env, napi_callback_info info)
 {
-    struct mallinfo mi;
+    struct mallinfo mi = mallinfo();
     napi_value native_heap_free_size;
-    napi_create_bigint_uint64(env, mi.fordblks, &native_heap_free_size);
+    if (mi.fordblks >= 0) {
+        napi_create_bigint_uint64(env, mi.fordblks, &native_heap_free_size);
+    } else {
+        napi_create_bigint_uint64(env, 0, &native_heap_free_size);
+    }
     return native_heap_free_size;
-}
-
-static uint64_t GetProcessMeminfo(const std::string& matchingItem)
-{
-    size_t pid = getpid();
-    std::string filePath = "/proc/" + std::to_string(pid) + "/smaps_rollup";
-    FILE* smapsRollupInfo = fopen(filePath.c_str(), "r");
-    if (smapsRollupInfo == nullptr) {
-        HiLog::Error(LABEL, "The smaps_rollup file was not found.");
-        return 0;
-    }
-
-    char line[256];
-    while (true) {
-        char* flag = fgets(line, sizeof(line), smapsRollupInfo);
-        if (flag == nullptr) {
-            HiLog::Error(LABEL, "The parameter was not found.");
-            (void)fclose(smapsRollupInfo);
-            return 0;
-        }
-        uint64_t meminfo = 0;
-        if (matchingItem == "pss") {
-            if (sscanf_s(line, "Pss: %llu kB", &meminfo) == 1) {
-                (void)fclose(smapsRollupInfo);
-                return meminfo;
-            }
-        } else if (matchingItem == "Shared_Dirty") {
-            if (sscanf_s(line, "Shared_Dirty: %llu kB", &meminfo) == 1) {
-                (void)fclose(smapsRollupInfo);
-                return meminfo;
-            }
-        }
-    }
-    (void)fclose(smapsRollupInfo);
-    return 0;
 }
 
 bool MatchValueType(napi_env env, napi_value value, napi_valuetype targetType)

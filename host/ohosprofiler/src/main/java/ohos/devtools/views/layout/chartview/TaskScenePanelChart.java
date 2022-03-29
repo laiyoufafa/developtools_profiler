@@ -495,7 +495,7 @@ public class TaskScenePanelChart extends JBPanel {
             number += LayoutConstants.SIXTY;
             numberJlabel += LayoutConstants.INDEX_THREE;
             sessionList.add(jLabelRight);
-            // margin left lable
+            // margin left label
             if (hosJLabel.isOnline()) {
                 CustomJLabel left = new CustomJLabel("");
                 left.setOpaque(true);
