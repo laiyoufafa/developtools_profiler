@@ -3,11 +3,11 @@ trace_streamer工具可以将系统离线trace文件解析并转为db，此工�
 关于trace解析工具的使用说明：
 trace_streamer.exe trace文件路径名 -e 导出db路径名.db
 此命令可以将trace文件转为db
-本应用支持在ohos, linux, windows, mac使用。
+此工具支持在ohos, linux, windows, macOS使用。
 关于db文件的说明：
-使用db查看工具查看stat表，可以浏览当前数据一共有多少类数据，各类数据都收到多少条，数据是否正常等情况。在meta表会记录数据库导出时的一些系统信息，比如导入和导出的文件全路径，解析时间等信息。
+使用db查看工具查看stat表，可以浏览当前数据一共有多少类，各类数据都收到多少条，数据是否正常等情况。在meta表会记录数据库导出时的一些系统信息，比如导入和导出的文件全路径，解析时间等信息。
 meta表可以选择不导出（有些情况下会暴露系统敏感信息），在导出时添加 -nm选项即可。
-在数据导出之后，会在本地目录下生成一个trace_streamer.log文件，在导出db的目录下生成一个数据库文件同名，.db.ohos.ts后缀的文件
+在数据导出之后，会在本地目录下生成一个trace_streamer.log文件，在导出db的目录下生成一个与数据库文件同名，.db.ohos.ts后缀的文件
 文件内容如下：
 时间戳:执行结果（数字）
 应用运行时间
@@ -254,6 +254,7 @@ ubuntu使用vscode，windows和mac使用QtCreator
 ```
 在test_list列表中添加"//developtools/profiler/trace_analyzer/test:unittest"来编译UT
 在根目录third_party/sqlite/BUILD.gn文件中，在ohos_shared_library("sqlite")选型中添加
+
 ```
 visibility += [ "//developtools/profiler/trace_analyzer/*" ]
 ```
@@ -264,17 +265,17 @@ cflags_c = [
   ]
 ```
 # 对外部的依赖
-本应用依赖与sqlite，protobuf(htrace解析部分依赖) 
+本应用依赖于sqlite，protobuf(htrace解析部分依赖) 
 
 本应用同时依赖于//developtools/profiler/protos/types/plugins/ftrace_data目录下的部分对象ftrace_data_cpp编译目标来支持htrace的解析 
 
-ts.gni文件用来区别独立编译和build目录下的ohos.gni用来支持独立编译，开发者需自行编译相关依赖
+ts.gni文件用来区别独立编译和build目录下的ohos.gni用来支持独立编译，需自行编译相关依赖
 
 ### 2.1、 编译linux版应用
 在根目录下执行相关命令进行编译
 
 ### 2.2、编译Windows版和Mac应用
-在项目目录下有pro文件，为QtCreator的工程文件，但部分内容赖在于上面所添加的外部依赖，如果要编译相关平台应用，开发者需自行补充相关工程文件，或者在论坛留言
+在项目目录下有pro文件，为QtCreator的工程文件，但部分内容依赖于上面所添加的外部依赖，如果要编译相关平台应用，需自行补充相关工程文件，或者在论坛留言
 
 ### 2.3、开始编译
 

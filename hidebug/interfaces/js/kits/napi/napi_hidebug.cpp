@@ -159,7 +159,7 @@ static uint64_t GetProcessMeminfo(const std::string& matchingItem)
         HiLog::Error(LABEL, "The smaps_rollup file was not found.");
         return 0;
     }
- 
+
     char line[256];
     while (true) {
         char* flag = fgets(line, sizeof(line), smapsRollupInfo);

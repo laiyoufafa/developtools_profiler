@@ -141,7 +141,7 @@ static bool ExecuteProcess(const std::string& bin,
     int inFd = nullFd;
     int outFd = nullFd;
     int errFd = nullFd;
-    CHECK_TRUE(inFd >= 0, -1, "open /dev/null failed, %d", errno);
+    CHECK_TRUE(inFd >= 0, false, "open /dev/null failed, %d", errno);
     CHECK_TRUE(dup2(inFd, STDIN_FILENO) != -1, false, "dup nullFD to stdin failed, %d", errno);
     inFd = INVALID_FD; // for static check warning
 
