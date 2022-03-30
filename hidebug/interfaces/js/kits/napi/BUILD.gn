@@ -36,10 +36,10 @@ ohos_shared_library("hidebug") {
   configs = [ ":napi_hidebug_config" ]
 
   deps = [
+    "//base/hiviewdfx/hidumper/interfaces/innerkits:lib_dump_usage",
     "//base/hiviewdfx/hiview/adapter/utility:hiview_adapter_utility",
     "//foundation/ace/napi:ace_napi",
     "//utils/native/base:utils",
-    "//base/hiviewdfx/hidumper/interfaces/innerkits:lib_dump_usage",
   ]
 
   external_deps = [
