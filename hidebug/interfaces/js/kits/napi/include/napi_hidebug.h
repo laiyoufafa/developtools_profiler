@@ -36,7 +36,6 @@ static napi_value CreateUndefined(napi_env env);
 static napi_value CreateErrorMessage(napi_env env, std::string msg);
 static bool MatchValueType(napi_env env, napi_value value, napi_valuetype targetType);
 static std::string GetFileNameParam(napi_env env, napi_callback_info info);
-static uint64_t GetProcessMeminfo(const std::string& matchingItem);
 static bool GetBundleNameByUid(std::int32_t uid, std::string& bname);
 } // HiviewDFX
 } // OHOS

@@ -34,7 +34,7 @@ public class CommonUtil {
     }
 
     /**
-     * Sets the intial collection size.
+     * Sets the initial collection size.
      *
      * @param size size
      * @return Returns the initial collection size.

@@ -173,7 +173,7 @@ public class PerfConfig<T> {
     }
 
     /**
-     * set sample peroid
+     * set sample period
      *
      * @param period period
      */

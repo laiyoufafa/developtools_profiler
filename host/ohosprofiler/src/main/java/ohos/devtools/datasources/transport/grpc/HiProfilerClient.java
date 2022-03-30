@@ -333,7 +333,7 @@ public final class HiProfilerClient {
     }
 
     /**
-     * request destory Session
+     * request destroy Session
      *
      * @param deviceIp deviceIp
      * @param port port number

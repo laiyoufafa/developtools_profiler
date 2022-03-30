@@ -59,7 +59,7 @@ public final class FileUtils {
                 tarArchiveInputStream = new TarArchiveInputStream(new FileInputStream(file));
                 while (true) {
                     TarArchiveEntry nextTarEntry = tarArchiveInputStream.getNextTarEntry();
-                    if (Objects.isNull(nextTarEntry)) {
+                    if (Objects.isNull(nextTarEntry) || nextTarEntry.getName().startsWith("../")) {
                         break;
                     }
                     fileNames.add(nextTarEntry.getName());

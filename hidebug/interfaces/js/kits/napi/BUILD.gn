@@ -26,7 +26,7 @@ config("napi_hidebug_config") {
     "//foundation/ace/napi",
     "//foundation/ace/napi/native_engine",
     "//foundation/ace/napi/interfaces/kits",
-    "//third_party/musl/include/malloc.h",
+    "//base/hiviewdfx/hidumper/interfaces/innerkits/include/",
   ]
 }
 
@@ -36,6 +36,7 @@ ohos_shared_library("hidebug") {
   configs = [ ":napi_hidebug_config" ]
 
   deps = [
+    "//base/hiviewdfx/hidumper/interfaces/innerkits:lib_dump_usage",
     "//base/hiviewdfx/hiview/adapter/utility:hiview_adapter_utility",
     "//foundation/ace/napi:ace_napi",
     "//utils/native/base:utils",
