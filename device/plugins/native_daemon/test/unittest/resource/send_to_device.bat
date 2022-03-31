@@ -19,9 +19,8 @@ hdc_std file send %%f /data/test/resource/testdata/
 echo %%f
 )
 
-hdc_std shell mkdir -p /data/test/resource/testdata/dwarf/
-for /R %DIR% %%f in (testdata\dwarf\*) do (
-hdc_std file send %%f /data/test/resource/testdata/dwarf/
-echo %%f
-)
+call send_dwarf_to_device.bat
+
+call send_report_to_device.bat
+
 pause

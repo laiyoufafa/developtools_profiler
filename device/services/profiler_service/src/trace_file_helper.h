@@ -17,7 +17,9 @@
 
 #include <cstdint>
 #include <memory>
+#if !is_mingw
 #include "openssl/sha.h"
+#endif
 #include "trace_file_header.h"
 
 class TraceFileHelper {
@@ -36,7 +38,9 @@ private:
 
 private:
     TraceFileHeader header_ = {};
+#if !is_mingw
     std::shared_ptr<SHA256_CTX> shaCtx_ = nullptr;
+#endif
 };
 
 #endif  // TRACE_FILER_HELPER_H

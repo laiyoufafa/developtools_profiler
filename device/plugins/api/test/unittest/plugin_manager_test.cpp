@@ -44,19 +44,6 @@ protected:
     static constexpr auto TEMP_DELAY = std::chrono::milliseconds(20);
     static void SetUpTestCase()
     {
-#if defined(__i386__) || defined(__x86_64__)
-        char pluginDir[PATH_MAX + 1] = {0};
-        if (readlink("/proc/self/exe", pluginDir, PATH_MAX) > 0) {
-            char* pos = strrchr(pluginDir, '/');
-            if (pos != nullptr) {
-                *(pos++) = '\0';
-                g_testPluginDir = pluginDir;
-            }
-        }
-#endif
-
-        std::this_thread::sleep_for(TEMP_DELAY);
-
         int processNum = fork();
         if (processNum == 0) {
             // start running hiprofilerd
@@ -89,24 +76,25 @@ HWTEST_F(PluginManagerTest, SuccessPlugin, TestSize.Level1)
     pluginManage->SetCommandPoller(commandPoller);
 
     const uint8_t configData[] = {0x30, 0x01, 0x38, 0x01, 0x42, 0x01, 0x01};
+    std::string pluginName = "memory-plugin";
     ProfilerPluginConfig config;
     const std::vector<uint32_t> pluginIdsVector = {2};
-    config.set_name(g_testPluginDir + SUCCESS_PLUGIN_NAME);
+    config.set_name(pluginName);
     config.set_config_data((const void*)configData, 7);
     config.set_sample_interval(DEFAULT_SLEEP_TIME);
 
-    EXPECT_FALSE(pluginManage->LoadPlugin(g_testPluginDir + SUCCESS_PLUGIN_NAME));
-    EXPECT_FALSE(pluginManage->UnloadPlugin(g_testPluginDir + SUCCESS_PLUGIN_NAME));
+    EXPECT_FALSE(pluginManage->LoadPlugin(pluginName));
+    EXPECT_FALSE(pluginManage->UnloadPlugin(pluginName));
     EXPECT_TRUE(pluginManage->AddPlugin(g_testPluginDir + SUCCESS_PLUGIN_NAME));
     EXPECT_FALSE(pluginManage->AddPlugin(g_testPluginDir + SUCCESS_PLUGIN_NAME));
     EXPECT_TRUE(pluginManage->RemovePlugin(g_testPluginDir + SUCCESS_PLUGIN_NAME));
     EXPECT_FALSE(pluginManage->RemovePlugin(g_testPluginDir + SUCCESS_PLUGIN_NAME));
     EXPECT_TRUE(pluginManage->AddPlugin(g_testPluginDir + SUCCESS_PLUGIN_NAME));
-    EXPECT_TRUE(pluginManage->LoadPlugin(g_testPluginDir + SUCCESS_PLUGIN_NAME));
-    EXPECT_FALSE(pluginManage->LoadPlugin(g_testPluginDir + SUCCESS_PLUGIN_NAME));
-    EXPECT_TRUE(pluginManage->UnloadPlugin(g_testPluginDir + SUCCESS_PLUGIN_NAME));
+    EXPECT_TRUE(pluginManage->LoadPlugin(pluginName));
+    EXPECT_FALSE(pluginManage->LoadPlugin(pluginName));
+    EXPECT_TRUE(pluginManage->UnloadPlugin(pluginName));
 
-    EXPECT_TRUE(pluginManage->LoadPlugin(g_testPluginDir + SUCCESS_PLUGIN_NAME));
+    EXPECT_TRUE(pluginManage->LoadPlugin(pluginName));
 
     std::vector<ProfilerPluginConfig> configVec;
     configVec.push_back(config);

@@ -16,7 +16,6 @@ import("../../base/config.gni")
 
 ohos_shared_library("ftrace_plugin") {
   sources = [
-    "src/bytrace_ops.cpp",
     "src/file_utils.cpp",
     "src/flow_controller.cpp",
     "src/ftrace_data_reader.cpp",
@@ -24,6 +23,7 @@ ohos_shared_library("ftrace_plugin") {
     "src/ftrace_fs_ops.cpp",
     "src/ftrace_module.cpp",
     "src/ftrace_parser.cpp",
+    "src/hitrace_ops.cpp",
     "src/kernel_symbols_parser.cpp",
     "src/paged_mem_pool.cpp",
     "src/printk_formats_parser.cpp",
@@ -68,7 +68,6 @@ group("ftrace_targets") {
   deps = [
     ":ftrace_plugin",
     "test:busy_test",
-    "test:get_tzinfo",
-    "tools/trace_converter",
+    "test:get_tzinfo"
   ]
 }

@@ -16,8 +16,11 @@
 #include "debug_logger.h"
 
 #include <ratio>
-#include <cstdarg>
-#include "utilities.h"
+
+#include "option.h"
+#if is_ohos
+#include "hiperf_hilog.h"
+#endif
 
 using namespace std::literals::chrono_literals;
 using namespace std::chrono;
@@ -70,13 +73,15 @@ int DebugLogger::HiLog(std::string &buffer) const
     if (lastLF != std::string::npos) {
         buffer.erase(lastLF, 1);
     }
-    OHOS::HiviewDFX::HiLog::Debug(HIPERF_HILOG_LABLE[MODULE_DEFAULT], "%{public}s", buffer.c_str());
+    return OHOS::HiviewDFX::HiLog::Debug(HIPERF_HILOG_LABLE[MODULE_DEFAULT], "%{public}s",
+                                         buffer.c_str());
 }
 #endif
 #endif
 
 int DebugLogger::Log(DebugLevel level, const std::string &logTag, const char *fmt, ...) const
 {
+    constexpr const int DEFAULT_STRING_BUF_SIZE = 4096;
 #ifdef HIPERF_DEBUG_TIME
     const auto startSprintf = steady_clock::now();
 #endif
@@ -90,7 +95,7 @@ int DebugLogger::Log(DebugLevel level, const std::string &logTag, const char *fm
     va_list va;
     int ret = 0;
 
-    std::string buffer(PATH_MAX, '\0');
+    std::string buffer(DEFAULT_STRING_BUF_SIZE, '\0');
     va_start(va, fmt);
     ret = vsnprintf_s(buffer.data(), buffer.size(), buffer.size() - 1, fmt, va);
     va_end(va);
@@ -123,6 +128,7 @@ int DebugLogger::Log(DebugLevel level, const std::string &logTag, const char *fm
     logCount_++;
 #endif
     if (level == LEVEL_FATAL && exitOnFatal_) {
+        fflush(file_);
         logDisabled_ = true;
         exit(-1);
     }

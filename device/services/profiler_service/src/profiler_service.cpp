@@ -319,6 +319,7 @@ Status ProfilerService::CreateSession(ServerContext* context,
     response->set_status(0);
     response->set_session_id(sessionId);
 
+    pluginService_->SetProfilerSessionConfig(sessionConfig);
     HILOG_INFO(LOG_CORE, "CreateSession %d %u done!", request->request_id(), sessionId);
     return Status::OK;
 }

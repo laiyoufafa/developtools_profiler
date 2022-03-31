@@ -18,6 +18,7 @@
 #if is_mingw
 #include <io.h>
 #endif
+#include "logging.h"
 
 namespace OHOS {
 namespace Developtools {
@@ -78,17 +79,30 @@ std::vector<std::string> StringSplit(std::string source, std::string split)
     }
     return result;
 }
-
+StdoutRecord::StdoutRecord(const std::string &tempFile, const std::string &mode)
+{
+    if (!tempFile.empty()) {
+        recordFile_ = fopen(tempFile.c_str(), mode.c_str());
+        if (recordFile_ == nullptr) {
+            HLOGE("tmpfile create failed '%s' with mode '%s'", tempFile.c_str(), mode.c_str());
+        } else {
+            // auto start it
+            Start();
+        }
+    }
+}
 bool StdoutRecord::Start()
 {
-    content_ = std::string();
+    content_ = EMPTY_STRING;
     fflush(stdout);
 
     // we will save output here
-    recordFile_ = std::tmpfile();
+    if (recordFile_ == nullptr) {
+        recordFile_ = std::tmpfile();
+    }
     if (recordFile_ == nullptr) {
         // try second way
-        std::string fileName = "temp.stdout";
+        std::string fileName = "/data/local/tmp/temp.stdout";
         recordFile_ = fopen(fileName.c_str(), "w+");
         if (recordFile_ == nullptr) {
             HLOGF("tmpfile create failed '%s'", fileName.c_str());
@@ -191,8 +205,8 @@ bool IsPath(const std::string &fileName)
     if (fileName[0] == PATH_SEPARATOR) {
         return true;
     }
-    const int PREFIX_PATH_LEN = 2;
-    if (fileName.substr(0, PREFIX_PATH_LEN) == "./") {
+    const int prefixPathLen = 2;
+    if (fileName.substr(0, prefixPathLen) == "./") {
         return true;
     }
     return false;
@@ -211,7 +225,7 @@ std::string ReadFileToString(const std::string &fileName)
 {
     std::ifstream inputString(fileName, std::ios::in);
     if (!inputString) {
-        return std::string();
+        return EMPTY_STRING;
     }
     std::istreambuf_iterator<char> firstIt = {inputString};
     std::istreambuf_iterator<char> lastIt = {};
@@ -220,13 +234,17 @@ std::string ReadFileToString(const std::string &fileName)
     return content;
 }
 
-bool ReadFileToString(const std::string &fileName, std::string &fileData)
+bool ReadFileToString(const std::string &fileName, std::string &fileData, size_t fileSize)
 {
     fileData.clear();
     OHOS::UniqueFd fd(open(fileName.c_str(), O_RDONLY | O_BINARY));
-    struct stat fileStat;
-    if (fstat(fd.Get(), &fileStat) != -1 && fileStat.st_size > 0) {
-        fileData.reserve(fileStat.st_size);
+    if (fileSize == 0) {
+        struct stat fileStat;
+        if (fstat(fd.Get(), &fileStat) != -1 && fileStat.st_size > 0) {
+            fileData.reserve(fileStat.st_size);
+        }
+    } else {
+        fileData.reserve(fileSize);
     }
 
     char buf[BUFSIZ] __attribute__((__uninitialized__));
@@ -313,9 +331,10 @@ bool CompressFile(const std::string &dataFile, const std::string &destFile)
             return false;
         }
     }
-    if (fp != nullptr) {
-        fclose(fp);
-    }
+    const int errBufSize = 256;
+    char errBuf[errBufSize] = { 0 };
+    strerror_r(errno, errBuf, errBufSize);
+    CHECK_TRUE(fclose(fp) == 0, false, "fclose failed! errno(%d:%s)", errno, errBuf);
     return true;
 }
 
@@ -353,9 +372,10 @@ bool UncompressFile(const std::string &gzipFile, const std::string &dataFile)
             return false;
         }
     }
-    if (fp != nullptr) {
-        fclose(fp);
-    }
+    const int size = 256;
+    char errBuf[size] = { 0 };
+    strerror_r(errno, errBuf, size);
+    CHECK_TRUE(fclose(fp) == 0, false, "fclose failed! errno(%d:%s)", errno, errBuf);
     return true;
 }
 
@@ -398,18 +418,15 @@ std::vector<std::string> GetSubDirs(const std::string &basePath)
     return result;
 }
 
-bool IsSameCommand(std::string srcCmd, std::string destCmd)
+bool IsSameCommand(std::string cmdLine, std::string cmdName)
 {
-    if (srcCmd.size() == 0) {
-        return false;
+    std::vector<std::string> cmdpaths = StringSplit(cmdLine, "/");
+    if (!cmdpaths.empty()) {
+        if (strcmp(cmdpaths.back().c_str(), cmdName.c_str()) == 0) {
+            return true;
+        }
     }
-    if (destCmd.size() == 0) {
-        return false;
-    }
-    if (srcCmd.find(destCmd) == std::string::npos) {
-        return false;
-    }
-    return true;
+    return false;
 }
 
 std::vector<pid_t> GetSubthreadIDs(const pid_t pid)
@@ -447,20 +464,20 @@ bool StringEndsWith(const std::string &string, const std::string &with)
     return string.rfind(with) == (string.length() - with.length());
 }
 
-void HexDump(const void *buf, size_t size, size_t max_size)
+void HexDump(const uint8_t *buf, size_t size, size_t maxSize)
 {
     const unsigned char *byteBuf = static_cast<const unsigned char *>(buf);
-    const size_t DUMP_BYTE_EACH_LINE = 8;
+    const size_t dumpByteEachLine = 8;
     size_t outputBytes = 0;
-    if (!max_size) {
+    if (!maxSize) {
         outputBytes = size;
     } else {
-        outputBytes = std::min(size, max_size);
+        outputBytes = std::min(size, maxSize);
     }
 
-    for (size_t i = 0; i <= outputBytes; i += DUMP_BYTE_EACH_LINE) {
-        HLOGM(" %02zu: %s ", i, BufferToHexString(byteBuf, DUMP_BYTE_EACH_LINE).c_str());
-        byteBuf += DUMP_BYTE_EACH_LINE;
+    for (size_t i = 0; i <= outputBytes; i += dumpByteEachLine) {
+        HLOGM(" %02zu: %s ", i, BufferToHexString(byteBuf, dumpByteEachLine).c_str());
+        byteBuf += dumpByteEachLine;
     }
 }
 
@@ -490,8 +507,8 @@ std::string GetLastErrorString()
 {
     LPVOID lpMsgBuf;
     FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM |
-                      FORMAT_MESSAGE_IGNORE_INSERTS,
-        NULL, GetLastError(), 0, (LPTSTR)&lpMsgBuf, 0, NULL);
+                  FORMAT_MESSAGE_IGNORE_INSERTS,
+                  NULL, GetLastError(), 0, (LPTSTR)&lpMsgBuf, 0, NULL);
     std::string error((LPTSTR)lpMsgBuf);
     LocalFree(lpMsgBuf);
     return error;
@@ -509,14 +526,14 @@ void *mmap(void *addr, size_t length, int prot, int flags, int fd, size_t offset
     HANDLE FileMappingHandle = ::CreateFileMappingW(FileHandle, 0, PAGE_READONLY, 0, 0, 0);
     if (FileMappingHandle == nullptr) {
         HLOGE("CreateFileMappingW %zu Failed with %ld:%s", length, GetLastError(),
-            GetLastErrorString().c_str());
+              GetLastErrorString().c_str());
         return MMAP_FAILED;
     }
 
     void *mapAddr = ::MapViewOfFile(FileMappingHandle, FILE_MAP_READ, 0, 0, 0);
     if (mapAddr == nullptr) {
         HLOGE("MapViewOfFile %zu Failed with %ld:%s", length, GetLastError(),
-            GetLastErrorString().c_str());
+              GetLastErrorString().c_str());
         return MMAP_FAILED;
     }
 

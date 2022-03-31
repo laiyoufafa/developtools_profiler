@@ -1,0 +1,98 @@
+// Copyright (c) 2021 Huawei Device Co., Ltd.
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+option java_package = "ohos.devtools.datasources.transport.grpc.service";
+
+import "all_plugin_common.proto";
+
+message CpuPluginConfig {
+    int32 pid = 1;
+}
+
+message DiskioPluginConfig {
+    int32 unspeci_fied = 1; // Reserved field, not used
+}
+
+message FtracePluginConfig {
+    repeated string ftrace_events = 1; // kernel event set
+    repeated string hitrace_categories = 2; // hitrace event set
+    repeated string hitrace_apps = 3; // hitrace app set
+    uint32 buffer_size_kb = 4;    // kernel trace buffer size
+    uint32 flush_interval_ms = 5; // time interval in milliseconds to notify service process
+    uint32 flush_threshold_kb = 6; // buffer water mark threshold to notify service process
+    bool parse_ksyms = 7;  // parse /proc/kallsyms or not
+    string clock = 8;      // value for trace_clock
+    uint32 trace_period_ms = 10; // time interval in milliseconds to read kernel trace buffer
+    string raw_data_prefix = 13; // raw data file prefix for debug
+    uint32 trace_duration_ms = 20; // time duration in millisconds for trace actions
+    bool debug_on = 30; // enable debug options
+    bool flush_cache_data = 31; // if set true, session will stop immediately.(cache data will be lost)
+    uint32 hitrace_time = 32;
+}
+
+message HidumpPluginConfig {
+    bool report_fps = 1;
+}
+
+message HilogPluginConfig {
+    int32 device_type = 1;
+    HilogLevel log_level = 2;
+
+    // set the pid for get log e.g. hilogcat --pid=111
+    int32 pid = 3;
+    bool need_record = 4;
+    bool need_clear = 5;
+}
+
+message MemoryPluginConfig {
+    // set true to report process list
+    bool report_process_tree = 1;
+    // set true to report memory counter from /proc/meminfo
+    bool report_sysmem_mem_info = 2;
+    // set required counter list of system meminfo, eg:MemTotal, MemFree, etc.
+    repeated SysMemPluginType sys_meminfo_counters = 3;
+    // set true to report memory counter from /proc/vmstat
+    bool report_sysmem_vmem_info = 4;
+    // set required counter list of virtual system meminfo, eg:nr_free_pages, nr_anon_pages, etc.
+    repeated SysVMemPluginType sys_vmeminfo_counters = 5;
+    // set true to report process meminfo from /proc/${pid}/stat
+    bool report_process_mem_info = 6;
+    // set true to report application memory usage summary, eg:java heap memory, native heap, stack memory, etc.
+    bool report_app_mem_info = 7;
+    // set true to report application memory by memory service, otherwise,
+    // application memory will count up by /proc/${pid}/smaps information
+    bool report_app_mem_by_memory_service = 8;
+    // set required pid list
+    repeated int32 pid = 9;
+}
+
+message HookPluginConfig {
+    int32 pid = 1;
+    bool save_file = 2;
+    string file_name = 3;
+    int32 filter_size = 4;
+    int32 smb_pages = 5;
+    int32 max_stack_depth = 6;
+    string process_name = 7;
+}
+
+message NetworkPluginConfig {
+    repeated int32 pid = 1;
+}
+
+message ProcessPluginConfig {
+    // set true to report process list
+    bool report_process_tree = 1;
+}

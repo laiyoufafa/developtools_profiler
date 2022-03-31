@@ -76,8 +76,8 @@ HWTEST_F(HookManagerTest, RegisterPlugin, TestSize.Level1)
     ASSERT_TRUE(commandPoller != nullptr);
     EXPECT_TRUE(commandPoller->OnConnect());
     hookManager->SetCommandPoller(commandPoller);
-    ASSERT_TRUE(hookManager->RegisterAgentPlugin("hookdaemon"));
-    ASSERT_TRUE(hookManager->UnregisterAgentPlugin("hookdaemon"));
+    ASSERT_TRUE(hookManager->RegisterAgentPlugin("nativehook"));
+    ASSERT_TRUE(hookManager->UnregisterAgentPlugin("nativehook"));
 }
 
 /*
@@ -93,10 +93,10 @@ HWTEST_F(HookManagerTest, LoadPlugin, TestSize.Level1)
     ASSERT_TRUE(commandPoller != nullptr);
     EXPECT_TRUE(commandPoller->OnConnect());
     hookManager->SetCommandPoller(commandPoller);
-    ASSERT_TRUE(hookManager->RegisterAgentPlugin("hookdaemon"));
-    ASSERT_TRUE(hookManager->LoadPlugin("hookdaemon"));
-    ASSERT_TRUE(hookManager->UnloadPlugin("hookdaemon"));
-    ASSERT_TRUE(hookManager->UnregisterAgentPlugin("hookdaemon"));
+    ASSERT_TRUE(hookManager->RegisterAgentPlugin("nativehook"));
+    ASSERT_TRUE(hookManager->LoadPlugin("nativehook"));
+    ASSERT_TRUE(hookManager->UnloadPlugin("nativehook"));
+    ASSERT_TRUE(hookManager->UnregisterAgentPlugin("nativehook"));
 }
 
 /*
@@ -112,10 +112,10 @@ HWTEST_F(HookManagerTest, UnloadPlugin, TestSize.Level1)
     ASSERT_TRUE(commandPoller != nullptr);
     EXPECT_TRUE(commandPoller->OnConnect());
     hookManager->SetCommandPoller(commandPoller);
-    ASSERT_TRUE(hookManager->RegisterAgentPlugin("hookdaemon"));
-    ASSERT_TRUE(hookManager->LoadPlugin("hookdaemon"));
+    ASSERT_TRUE(hookManager->RegisterAgentPlugin("nativehook"));
+    ASSERT_TRUE(hookManager->LoadPlugin("nativehook"));
     ASSERT_TRUE(hookManager->UnloadPlugin(commandPoller->GetRequestId()));
-    ASSERT_TRUE(hookManager->UnregisterAgentPlugin("hookdaemon"));
+    ASSERT_TRUE(hookManager->UnregisterAgentPlugin("nativehook"));
 }
 
 /*
@@ -134,7 +134,7 @@ HWTEST_F(HookManagerTest, PluginSession, TestSize.Level1)
 
     std::vector<uint32_t> pluginIds(1);
     ProfilerPluginConfig config;
-    config.set_name("hookdaemon");
+    config.set_name("nativehook");
     config.set_plugin_sha256("");
     config.set_sample_interval(20);
 
@@ -142,10 +142,10 @@ HWTEST_F(HookManagerTest, PluginSession, TestSize.Level1)
     configVec.push_back(config);
 
     EXPECT_FALSE(hookManager->CreatePluginSession(configVec));
-    EXPECT_TRUE(hookManager->StartPluginSession(pluginIds, configVec));
+    EXPECT_FALSE(hookManager->StartPluginSession(pluginIds, configVec));
     EXPECT_TRUE(hookManager->CreateWriter("name", 0, 0, 0));
     EXPECT_TRUE(hookManager->ResetWriter(0));
-    EXPECT_TRUE(hookManager->StopPluginSession(pluginIds));
+    EXPECT_FALSE(hookManager->StopPluginSession(pluginIds));
     EXPECT_TRUE(hookManager->DestroyPluginSession(pluginIds));
 }
 } // namespace

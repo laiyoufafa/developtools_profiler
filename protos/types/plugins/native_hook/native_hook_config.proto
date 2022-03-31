@@ -24,4 +24,5 @@ message NativeHookConfig {
     int32 filter_size = 4;
     int32 smb_pages = 5;
     int32 max_stack_depth = 6;
+    string process_name = 7;
 }

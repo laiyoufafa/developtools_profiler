@@ -23,24 +23,24 @@
 
 using namespace testing::ext;
 using namespace std;
-#ifndef CONFIG_NO_HILOG
 using namespace OHOS::HiviewDFX;
-#endif
 using namespace OHOS::Developtools::NativeDaemon::ELF;
 namespace OHOS {
 namespace Developtools {
 namespace NativeDaemon {
 namespace UnitTest {
-static const std::string file32 {"resource/testdata/elf32_test"};
-static const std::string file64 {"resource/testdata/elf_test"};
-static const std::string ehdr32 {"resource/testdata/ehdr_from_readelf_32"};
-static const std::string ehdr64 {"resource/testdata/ehdr_from_readelf_64"};
-static const std::string shdrs32 {"resource/testdata/shdrs_from_readelf_32"};
-static const std::string shdrs64 {"resource/testdata/shdrs_from_readelf_64"};
-static const std::string phdrs32 {"resource/testdata/phdrs_from_readelf_32"};
-static const std::string phdrs64 {"resource/testdata/phdrs_from_readelf_64"};
-static const std::string syms32 {"resource/testdata/syms_from_readelf_32"};
-static const std::string syms64 {"resource/testdata/syms_from_readelf_64"};
+namespace {
+const std::string file32 {"resource/testdata/elf32_test"};
+const std::string file64 {"resource/testdata/elf_test"};
+const std::string ehdr32 {"resource/testdata/ehdr_from_readelf_32"};
+const std::string ehdr64 {"resource/testdata/ehdr_from_readelf_64"};
+const std::string shdrs32 {"resource/testdata/shdrs_from_readelf_32"};
+const std::string shdrs64 {"resource/testdata/shdrs_from_readelf_64"};
+const std::string phdrs32 {"resource/testdata/phdrs_from_readelf_32"};
+const std::string phdrs64 {"resource/testdata/phdrs_from_readelf_64"};
+const std::string syms32 {"resource/testdata/syms_from_readelf_32"};
+const std::string syms64 {"resource/testdata/syms_from_readelf_64"};
+} // namespace
 
 static const std::string GetNextLine(FILE *fp, int *status)
 {
@@ -1319,7 +1319,7 @@ bool EhdrFromReadelf::GetShdrStrTabIdx(FILE * const fp)
 }
 
 static bool CompareElfHeader(const std::unique_ptr<ElfFileFromReadelf> &elfFileFromReadelf,
-    const std::unique_ptr<ElfFile> &elfFile)
+                             const std::unique_ptr<ElfFile> &elfFile)
 {
     const auto &ehdr1 = elfFile->ehdr_;
     const auto &ehdr2 = elfFileFromReadelf->ehdr_;
@@ -1360,7 +1360,7 @@ static bool CompareElfHeader(const std::unique_ptr<ElfFileFromReadelf> &elfFileF
 }
 
 static bool CompareSecHeaders(const std::unique_ptr<ElfFileFromReadelf> &elfFileFromReadelf,
-    const std::unique_ptr<ElfFile> &elfFile)
+                              const std::unique_ptr<ElfFile> &elfFile)
 {
     const auto &shdrs1 = elfFile->shdrs_;
     const auto &shdrs2 = elfFileFromReadelf->shdrs_;
@@ -1375,7 +1375,7 @@ static bool CompareSecHeaders(const std::unique_ptr<ElfFileFromReadelf> &elfFile
 }
 
 static bool ComparePrgHeaders(const std::unique_ptr<ElfFileFromReadelf> &elfFileFromReadelf,
-    const std::unique_ptr<ElfFile> &elfFile)
+                              const std::unique_ptr<ElfFile> &elfFile)
 {
     const auto &phdrs1 = elfFile->phdrs_;
     const auto &phdrs2 = elfFileFromReadelf->phdrs_;

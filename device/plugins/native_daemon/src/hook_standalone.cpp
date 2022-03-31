@@ -23,13 +23,14 @@
 #include "epoll_event_poller.h"
 #include "virtual_runtime.h"
 
+using namespace OHOS::Developtools::NativeDaemon;
 namespace OHOS {
 namespace Developtools {
 namespace Profiler {
 namespace Hook {
 const int DEFAULT_EVENT_POLLING_INTERVAL = 5000;
 std::string g_smbName = "hooknativesmb";
-std::shared_ptr<OHOS::Developtools::NativeDaemon::VirtualRuntime> g_runtimeInstance;
+std::shared_ptr<VirtualRuntime> g_runtimeInstance;
 std::unique_ptr<EpollEventPoller> g_eventPoller_;
 std::shared_ptr<ShareMemoryBlock> g_shareMemoryBlock;
 std::shared_ptr<EventNotifier> g_eventNotifier;
@@ -38,7 +39,7 @@ uint32_t g_maxStackDepth;
 std::unique_ptr<FILE, decltype(&fclose)> g_fpHookFile(nullptr, nullptr);
 
 void writeFrames(int type, const struct timespec& ts, void* addr, uint32_t mallocSize,
-    const std::vector<OHOS::Developtools::NativeDaemon::CallFrame>& callsFrames)
+    const std::vector<CallFrame>& callsFrames)
 {
     if (type == 0) {
         fprintf(g_fpHookFile.get(), "malloc;%" PRId64 ";%ld;0x%" PRIx64 ";%u\n",
@@ -50,10 +51,11 @@ void writeFrames(int type, const struct timespec& ts, void* addr, uint32_t mallo
         return;
     }
 
-    for (size_t idx = 0, size = callsFrames.size(); idx < size; ++idx) {
+    for (size_t idx = FILTER_STACK_DEPTH; idx < callsFrames.size(); ++idx) {
+        auto item = callsFrames[idx];
         (void)fprintf(g_fpHookFile.get(), "0x%" PRIx64 ";0x%" PRIx64 ";%s;%s;0x%" PRIx64 ";%" PRIu64 "\n",
-                      callsFrames[idx].ip_, callsFrames[idx].sp_, callsFrames[idx].symbolName_.c_str(),
-                      callsFrames[idx].filePath_.c_str(), callsFrames[idx].offset_, callsFrames[idx].symbolOffset_);
+                      item.ip_, item.sp_, std::string(item.symbolName_).c_str(),
+                      std::string(item.filePath_).c_str(), item.offset_, item.symbolOffset_);
     }
 }
 
@@ -76,8 +78,8 @@ void ReadShareMemory(uint64_t duration, const std::string& performance_filename)
             std::vector<u64> u64regs;
             uint32_t *regAddr = nullptr;
             uint32_t stackSize;
-            pid_t tid;
             pid_t pid;
+            pid_t tid;
             void *addr = nullptr;
             int8_t* tmp = const_cast<int8_t *>(data);
 
@@ -95,14 +97,14 @@ void ReadShareMemory(uint64_t duration, const std::string& performance_filename)
                 + sizeof(mallocSize) + sizeof(void *), stackSize) != EOK) {
                 HILOG_ERROR(LOG_CORE, "memcpy_s data failed");
             }
-            tid = *(reinterpret_cast<pid_t *>(tmp + sizeof(stackSize) + stackSize + sizeof(ts)
-                + sizeof(type) + sizeof(mallocSize) + sizeof(void *)));
             pid = *(reinterpret_cast<pid_t *>(tmp + sizeof(stackSize) + stackSize + sizeof(ts)
-                + sizeof(type) + sizeof(mallocSize) + sizeof(void *) + sizeof(tid)));
-            regAddr = reinterpret_cast<uint32_t *>(tmp + sizeof(tid) + sizeof(pid) + sizeof(stackSize)
+                + sizeof(type) + sizeof(mallocSize) + sizeof(void *)));
+            tid = *(reinterpret_cast<pid_t *>(tmp + sizeof(stackSize) + stackSize + sizeof(ts)
+                + sizeof(type) + sizeof(mallocSize) + sizeof(void *) + sizeof(pid)));
+            regAddr = reinterpret_cast<uint32_t *>(tmp + sizeof(pid) + sizeof(tid) + sizeof(stackSize)
                 + stackSize + sizeof(ts) + sizeof(type) + sizeof(mallocSize) + sizeof(void *));
 
-            int reg_count = (size - sizeof(tid) - sizeof(pid) - sizeof(stackSize) - stackSize
+            int reg_count = (size - sizeof(pid) - sizeof(tid) - sizeof(stackSize) - stackSize
                 - sizeof(ts) - sizeof(type) - sizeof(mallocSize) - sizeof(void *))
                 / sizeof(uint32_t);
             if (reg_count <= 0) {
@@ -120,9 +122,9 @@ void ReadShareMemory(uint64_t duration, const std::string& performance_filename)
                 }
             }
 
-            std::vector<OHOS::Developtools::NativeDaemon::CallFrame> callsFrames;
+            std::vector<CallFrame> callsFrames;
             g_runtimeInstance->UnwindStack(u64regs, stackData.get(), stackSize, pid, tid, callsFrames,
-                (g_maxStackDepth > 0) ? g_maxStackDepth : OHOS::Developtools::NativeDaemon::MAX_CALL_FRAME_UNWIND_SIZE);
+                (g_maxStackDepth > 0) ? g_maxStackDepth + FILTER_STACK_DEPTH : MAX_CALL_FRAME_UNWIND_SIZE);
 
             if (!end_flag && duration != 0) {
                 clock_gettime(CLOCK_REALTIME, &end_time);
@@ -159,7 +161,7 @@ void ReadShareMemory(uint64_t duration, const std::string& performance_filename)
 
 bool StartHook(HookData& hookData)
 {
-    g_runtimeInstance = std::make_shared<OHOS::Developtools::NativeDaemon::VirtualRuntime>();
+    g_runtimeInstance = std::make_shared<VirtualRuntime>();
     FILE *fp = fopen(hookData.fileName.c_str(), "wb+");
     if (fp != nullptr) {
         g_fpHookFile.reset();
@@ -171,14 +173,11 @@ bool StartHook(HookData& hookData)
     }
     // create smb and eventNotifier
     g_shareMemoryBlock = ShareMemoryAllocator::GetInstance().CreateMemoryBlockLocal(g_smbName, hookData.smbSize);
-
     g_eventNotifier = EventNotifier::Create(0, EventNotifier::NONBLOCK);
-
     // start event poller task
     g_eventPoller_ = std::make_unique<EpollEventPoller>(DEFAULT_EVENT_POLLING_INTERVAL);
     g_eventPoller_->Init();
     g_eventPoller_->Start();
-
     g_eventPoller_->AddFileDescriptor(g_eventNotifier->GetFd(),
                                       std::bind(ReadShareMemory, hookData.duration, hookData.performance_filename));
 

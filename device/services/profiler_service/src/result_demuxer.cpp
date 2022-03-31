@@ -17,18 +17,6 @@
 #include <unistd.h>
 #include "logging.h"
 
-#define CHECK_POINTER_NOTNULL(ptr)                                       \
-    if (ptr == nullptr) {                                                \
-        HILOG_WARN(LOG_CORE, "%s: FAILED, %s is null!", __func__, #ptr); \
-        return false;                                                    \
-    }
-
-#define CHECK_THREAD_ID_VALID(t)                                          \
-    if (t.get_id() == std::thread::id()) {                                \
-        HILOG_WARN(LOG_CORE, "%s: FAILED, %s id invalid!", __func__, #t); \
-        return false;                                                     \
-    }
-
 namespace {
 constexpr auto DEFAULT_FLUSH_INTERVAL = std::chrono::milliseconds(1000);
 } // namespace
@@ -40,6 +28,7 @@ ResultDemuxer::ResultDemuxer(const ProfilerDataRepeaterPtr& dataRepeater)
 
 ResultDemuxer::~ResultDemuxer()
 {
+    isStopTakeData_ = true;
     if (dataRepeater_) {
         dataRepeater_->Close();
     }
@@ -60,24 +49,22 @@ void ResultDemuxer::SetFlushInterval(std::chrono::milliseconds interval)
 
 bool ResultDemuxer::StartTakeResults()
 {
-    CHECK_POINTER_NOTNULL(dataRepeater_);
+    CHECK_NOTNULL(dataRepeater_, false, "data repeater null");
 
     std::thread demuxer(&ResultDemuxer::TakeResults, this);
-    CHECK_THREAD_ID_VALID(demuxer);
+    CHECK_TRUE(demuxer.get_id() != std::thread::id(), false, "thread invalid");
 
     demuxerThread_ = std::move(demuxer);
+    isStopTakeData_ = false;
     return true;
 }
 
 bool ResultDemuxer::StopTakeResults()
 {
-    CHECK_POINTER_NOTNULL(dataRepeater_);
-    CHECK_THREAD_ID_VALID(demuxerThread_);
+    CHECK_NOTNULL(dataRepeater_, false, "data repeater null");
+    CHECK_TRUE(demuxerThread_.get_id() != std::thread::id(), false, "thread invalid");
 
-    if (traceWriter_) {
-        traceWriter_->Flush();
-    }
-
+    isStopTakeData_ = true;
     dataRepeater_->PutPluginData(nullptr);
     if (demuxerThread_.joinable()) {
         demuxerThread_.join();
@@ -95,7 +82,7 @@ void ResultDemuxer::TakeResults()
     lastFlushTime_ = std::chrono::steady_clock::now();
     while (1) {
         auto pluginData = dataRepeater_->TakePluginData();
-        if (!pluginData) {
+        if (!pluginData || isStopTakeData_) {
             break;
         }
 

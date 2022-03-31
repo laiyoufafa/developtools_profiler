@@ -141,7 +141,7 @@ static bool ExecuteProcess(const std::string& bin,
     int inFd = nullFd;
     int outFd = nullFd;
     int errFd = nullFd;
-    CHECK_TRUE(inFd >= 0, false, "open /dev/null failed, %d", errno);
+    CHECK_TRUE(inFd >= 0, -1, "open /dev/null failed, %d", errno);
     CHECK_TRUE(dup2(inFd, STDIN_FILENO) != -1, false, "dup nullFD to stdin failed, %d", errno);
     inFd = INVALID_FD; // for static check warning
 
@@ -253,9 +253,6 @@ int ProcessUtils::Execute(const ExecuteArgs& args, std::string& output)
     output = ReceiveOutputAndSigchld(pipeFds[RD], sigChldHandler);
     auto lines = StringUtils::Split(output, "\n");
     HILOG_DEBUG(LOG_CORE, "ExecuteCommand(%s): output %zuB, %zuLn", cmdline.c_str(), output.size(), lines.size());
-    for (size_t i = 0; i < lines.size(); i++) {
-        HILOG_DEBUG(LOG_CORE, "[%zu]: %s", i, lines[i].c_str());
-    }
 
     int retval = GetProcessExitCode(pid);
 

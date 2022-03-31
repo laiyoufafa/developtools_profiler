@@ -123,6 +123,11 @@ void PluginService::SetPluginSessionManager(const PluginSessionManagerPtr& plugi
     pluginSessionManager_ = pluginSessionManager;
 }
 
+void PluginService::SetProfilerSessionConfig(const ProfilerSessionConfig& profilerSessionConfig)
+{
+    profilerSessionConfig_ = profilerSessionConfig;
+}
+
 bool PluginService::CreatePluginSession(const ProfilerPluginConfig& pluginConfig,
                                         const ProfilerDataRepeaterPtr& dataRepeater)
 {

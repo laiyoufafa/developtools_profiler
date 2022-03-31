@@ -17,20 +17,27 @@ option java_package = "ohos.devtools.datasources.transport.grpc.service";
 option optimize_for = LITE_RUNTIME;
 
 message Frame {
-    uint64 pc = 1;
-    string file_name = 2;
-    string function_name = 3;
+    uint64 ip = 1;
+    uint64 sp = 2;
+    string symbol_name = 3;
+    string file_path = 4;
+    uint64 offset = 5;
+    uint64 symbol_offset = 6;
 }
 
 message AllocEvent {
-    uint64 addr = 1;
-    uint32 size = 2;
-    repeated Frame frame_info = 3;
+    int32 pid = 1;
+    int32 tid = 2;
+    uint64 addr = 3;
+    uint32 size = 4;
+    repeated Frame frame_info = 5;
 }
 
 message FreeEvent {
-    uint64 addr = 1;
-    repeated Frame frame_info = 2;
+    int32 pid = 1;
+    int32 tid = 2;
+    uint64 addr = 3;
+    repeated Frame frame_info = 4;
 }
 
 message NativeHookData {

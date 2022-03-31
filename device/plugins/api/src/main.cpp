@@ -31,6 +31,17 @@ const char DEFAULT_PLUGIN_PATH[] = "/data/local/tmp/";
 #endif
 
 const int SLEEP_ONE_SECOND = 1000;
+const char DEFAULT_LIB_PATH[] = "/system/lib/";
+std::vector<std::string> presetPluginVec = {
+    "libcpudataplugin.z.so",
+    "libdiskiodataplugin.z.so",
+    "libftrace_plugin.z.so",
+    "libhidumpplugin.z.so",
+    "libhilogplugin.z.so",
+    "libmemdataplugin.z.so",
+    "libnetworkplugin.z.so",
+    "libprocessplugin.z.so",
+};
 } // namespace
 
 int main(int argc, char* argv[])
@@ -57,6 +68,16 @@ int main(int argc, char* argv[])
         sleep(connectRetrySeconds);
     }
     pluginManager->SetCommandPoller(commandPoller);
+
+    // add preset plugin
+    for (size_t i = 0; i < presetPluginVec.size(); i++) {
+        const std::string pluginPath = DEFAULT_LIB_PATH + presetPluginVec[i];
+        if (pluginManager->AddPlugin(pluginPath)) {
+            HILOG_INFO(LOG_CORE, "add preset plugin %s success!", pluginPath.c_str());
+        } else {
+            HILOG_INFO(LOG_CORE, "add preset plugin %s failed!", pluginPath.c_str());
+        }
+    }
 
     PluginWatcher watcher(pluginManager);
     if (!watcher.ScanPlugins(pluginDir)) {

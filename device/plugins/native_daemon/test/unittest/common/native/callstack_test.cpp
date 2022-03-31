@@ -18,9 +18,7 @@
 #include "get_thread_id.h"
 using namespace testing::ext;
 using namespace std;
-#ifndef CONFIG_NO_HILOG
 using namespace OHOS::HiviewDFX;
-#endif
 namespace OHOS {
 namespace Developtools {
 namespace NativeDaemon {
@@ -88,14 +86,12 @@ HWTEST_F(CallStackTest, UnwindCallStack, TestSize.Level1)
 #endif
 
     std::vector<u64> regs;
-    std::vector<char> data;
+    std::vector<u8> data;
     LoadFromFile(PATH_RESOURCE_TEST_DWARF_DATA + TEST_DWARF_USER_REGS_0, regs);
-    ASSERT_NE(regs.size(), 0u);
     LoadFromFile(PATH_RESOURCE_TEST_DWARF_DATA + TEST_DWARF_USER_DATA_0, data);
-    ASSERT_NE(data.size(), 0u);
-
+    if (regs.size() > 0 and data.size() > 0) {
 #ifdef __arm__
-    ASSERT_EQ(regs.size(), 16u);
+        ASSERT_EQ(regs.size(), 16u);
 #endif
 
     std::set<std::unique_ptr<SymbolsFile>, CCompareSymbolsFile> symbolsFiles;
@@ -110,13 +106,18 @@ HWTEST_F(CallStackTest, UnwindCallStack, TestSize.Level1)
     std::vector<CallFrame> callFrames;
     CallStack callStack;
 
-    callStack.UnwindCallStack(thread, regs, data, callFrames);
-}
+    u64* sppcRegs = new u64[2];
+    sppcRegs[0] = regs[PERF_REG_ARM_SP_IDX];
+    sppcRegs[1] = regs[PERF_REG_ARM_PC_IDX];
+    callStack.UnwindCallStack(thread, sppcRegs, 2, data.data(), data.size(),
+                                  callFrames);
+    delete[] sppcRegs;
+    ASSERT_LE(TEST_DWARF_FRAMES.size(), callFrames.size());
 
-void MakeMaps(VirtualThread &thread)
-{
-    for (const mmapDumpInfo &mmap : TEST_DWARF_MMAP) {
-        thread.CreateMapItem(mmap.fileName, mmap.begin, mmap.len, mmap.pgoff);
+        for (size_t i = 0; i < TEST_DWARF_FRAMES.size(); i++) {
+            EXPECT_EQ(TEST_DWARF_FRAMES[i].ip, callFrames[i].ip_);
+            EXPECT_EQ(TEST_DWARF_FRAMES[i].sp, callFrames[i].sp_);
+        }
     }
 }
 } // namespace NativeDaemon

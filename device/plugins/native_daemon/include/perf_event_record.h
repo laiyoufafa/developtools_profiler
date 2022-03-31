@@ -39,13 +39,19 @@ struct CallFrame {
     uint64_t ip_ = 0;
     uint64_t sp_ = 0;
 
-    uint64_t vaddrInFile_ = 0;       // in symbol file vaddr
+    uint64_t vaddrInFile_ = 0; // in symbol file vaddr
     int32_t symbolIndex_ = -1; // symbols index , should update after sort
-    std::string symbolName_;
-    std::string filePath_; // lib path , elf path
+    std::string_view symbolName_;
+    std::string_view filePath_; // lib path , elf path
     uint64_t offset_ = 0;
     uint64_t symbolOffset_ = 0;
-    CallFrame(uint64_t ip, uint64_t sp) : ip_(ip), sp_(sp) {}
+    CallFrame(uint64_t ip, uint64_t sp = 0) : ip_(ip), sp_(sp) {}
+
+    // this is for ut test
+    CallFrame(uint64_t ip, uint64_t vaddrInFile, const char *name, const char *filePath)
+        : ip_(ip), vaddrInFile_(vaddrInFile), symbolName_(name), filePath_(filePath)
+    {
+    }
     bool operator==(const CallFrame &b) const
     {
         return (ip_ == b.ip_) && (sp_ == b.sp_);
@@ -82,7 +88,7 @@ struct CallFrame {
 struct AttrWithId {
     perf_event_attr attr;
     std::vector<uint64_t> ids;
-    std::string name;
+    std::string name; // will be empty in GetAttrSection
 };
 } // namespace NativeDaemon
 } // namespace Developtools

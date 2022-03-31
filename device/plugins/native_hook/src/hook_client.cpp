@@ -32,6 +32,7 @@
 static __thread bool ohos_malloc_hook_enable_hook_flag = true;
 
 namespace {
+using OHOS::Developtools::NativeDaemon::buildArchType;
 std::shared_ptr<HookSocketClient> g_hookClient;
 std::recursive_mutex g_ClientMutex;
 std::atomic<const MallocDispatchType*> g_dispatch {nullptr};
@@ -96,7 +97,7 @@ void* hook_malloc(void* (*fn)(size_t), size_t size)
       :
       : "r3", "r4", "memory");
 #endif
-    const char* stackptr = reinterpret_cast<const char*>(regs[OHOS::Developtools::NativeDaemon::RegisterGetSP()]);
+    const char* stackptr = reinterpret_cast<const char*>(regs[RegisterGetSP(buildArchType)]);
     char* stackendptr = nullptr;
     GetRuntimeStackEnd(stackptr, &stackendptr);  // stack end pointer
     int stackSize = stackendptr - stackptr;
@@ -137,7 +138,7 @@ void* hook_malloc(void* (*fn)(size_t), size_t size)
         HILOG_ERROR(LOG_CORE, "memcpy_s stackptr failed");
     }
     metaSize += stackSize;
-    if (memcpy_s(buffer.get() + metaSize, totalSize - metaSize, &pid, sizeof(pid) != EOK)) {
+    if (memcpy_s(buffer.get() + metaSize, totalSize - metaSize, &pid, sizeof(pid)) != EOK) {
         HILOG_ERROR(LOG_CORE, "memcpy_s stackptr failed");
     }
     metaSize += sizeof(pid_t);
@@ -229,7 +230,7 @@ void hook_free(void (*free_func)(void*), void *p)
       :
       : "r3", "r4", "memory");
 #endif
-    const char* stackptr = reinterpret_cast<const char*>(regs[OHOS::Developtools::NativeDaemon::RegisterGetSP()]);
+    const char* stackptr = reinterpret_cast<const char*>(regs[RegisterGetSP(buildArchType)]);
     char* stackendptr = nullptr;
     GetRuntimeStackEnd(stackptr, &stackendptr);  // stack end pointer
     int stackSize = stackendptr - stackptr;

@@ -55,8 +55,10 @@ bool FtraceFieldParser::ReadData(const uint8_t start[], const uint8_t end[], voi
         return false;
     }
 
-    auto err = memcpy_s(out, size, start, size);
-    CHECK_TRUE(err == EOK, false, "copy %zu byte to memory region [%p, %p) FAILED!", size, start, end);
+    if (memcpy_s(out, size, start, size) != EOK) {
+        HILOG_ERROR(LOG_CORE, "copy %zu byte to memory region [%p, %p) FAILED!", size, start, end);
+        return false;
+    }
     return true;
 }
 
@@ -74,7 +76,7 @@ std::string FtraceFieldParser::ParseStrField(const FieldFormat& format, uint8_t 
     uint32_t dataLoc = 0;
     uint32_t dataOffset = 0;
     uint32_t dataLength = 0;
-    errno_t errCode = EOK;
+
     switch (format.filedType) {
         case FIELD_TYPE_FIXEDCSTRING:
             retval = ReadString(start, end, format.size);
@@ -91,8 +93,10 @@ std::string FtraceFieldParser::ParseStrField(const FieldFormat& format, uint8_t 
             break;
         case FIELD_TYPE_STRINGPTR:
             strSize = std::min(static_cast<size_t>(format.size), sizeof(strPtr));
-            errCode = memcpy_s(&strPtr, sizeof(strPtr), start, strSize);
-            CHECK_TRUE(errCode == EOK, "", "parse STRINGPTR at %" PRIx64 " with %zu size FAILED!", strPtr, strSize);
+            if (memcpy_s(&strPtr, sizeof(strPtr), start, strSize) != EOK) {
+                HILOG_ERROR(LOG_CORE, "parse STRINGPTR at %" PRIx64 " with %zu size FAILED!", strPtr, strSize);
+                return "";
+            }
             retval = PrintkFormatsParser::GetInstance().GetSymbol(strPtr);
             break;
         case FIELD_TYPE_DATALOC:

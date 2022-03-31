@@ -115,8 +115,8 @@ action("profiler_services_proto_gen") {
   ]
   args += rebase_path(sources, root_build_dir)
   deps = [
-    "${OHOS_PROFILER_3RDPARTY_GRPC_DIR}:grpc_cpp_plugin(${host_toolchain})",
-    "${OHOS_PROFILER_3RDPARTY_PROTOBUF_DIR}:protoc(${host_toolchain})",
+    "${OHOS_PROFILER_3RDPARTY_GRPC_DIR}:grpc_cpp_plugin(//build/toolchain/linux:clang_x64)",
+    "${OHOS_PROFILER_3RDPARTY_PROTOBUF_DIR}:protoc(//build/toolchain/linux:clang_x64)",
   ]
 }
 
