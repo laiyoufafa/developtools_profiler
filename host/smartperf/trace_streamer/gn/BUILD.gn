@@ -1,0 +1,126 @@
+# Copyright (C) 2021 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+print("target_os", target_os)
+group("default_deps") {
+  public_configs = [ ":default_config" ]
+  public_deps = []
+}
+config("default_config") {
+  include_dirs = [
+    "..",
+    "../include",
+  ]
+}
+config("trace_cfg") {
+  cflags_cc = [
+    "-std=c++17",
+    "-fno-rtti",
+    "-fno-exceptions",
+    "-fvisibility=hidden",
+  ]
+}
+
+config("visibility_hidden") {
+  cflags = [ "-fvisibility=hidden" ]
+}
+
+config("default") {
+  cflags_c = []
+  cflags_cc = []
+  libs = []
+
+  cflags = [
+    "-fstrict-aliasing",
+    "-fPIC",
+    "-g",
+    "-Wformat",
+  ]
+
+  if (is_linux) {
+    cflags += [
+      "-Wa,--noexecstack",
+      "-fcolor-diagnostics",
+      "-fdiagnostics-show-template-tree",
+      "-ftrapv",
+    ]
+    if (!use_wasm) {
+      cflags += [
+        "-fPIE",
+        "-fstack-protector-strong",
+        "-fstack-protector-all",
+        "-D_FORTIFY_SOURCE=2 -O2",
+      ]
+    }
+    libs += [
+      "pthread",
+      "rt",
+    ]
+    if (is_debug) {
+      libs += [ "dl" ]
+    }
+  }
+}
+
+config("symbols") {
+  cflags = [ "-O0" ]
+  if (is_linux) {
+    cflags += [ "-funwind-tables" ]
+  }
+}
+
+config("release") {
+  cflags = [
+    "-fdata-sections",
+    "-ffunction-sections",
+  ]
+
+  cflags += [ "-O3" ]
+  ldflags = [
+    "-fuse-ld=gold",
+    "-fstack-protector",
+    "-Wl,--gc-sections",
+    "-Wl,-O1",
+    "-fpie",
+    "-pie",
+  ]
+  defines = [ "NDEBUG" ]
+}
+
+config("shared_library") {
+  ldflags = [ "-fPIC" ]
+}
+
+config("executable") {
+  print("use_wasm", use_wasm)
+  ldflags = []
+
+  if (is_linux && !use_wasm) {
+    ldflags += [
+      #      "-Wl,-rpath=\$ORIGIN/.",
+      "-Wl,-z,now",
+
+      #      "-Wl,-rpath-link=.",
+      "-Wl,-z,relro",
+      "-lrt",
+      "-fpie",
+      "-pie",
+      "-Wl,-z,noexecstack",
+      "-Wl,--disable-new-dtags",
+
+      #      "-s", # delete sambols
+    ]
+  }
+  if (!is_debug) {
+    ldflags += [ "-s" ]
+  }
+}
