@@ -41,7 +41,7 @@ std::string ComputeFileSha256(const std::string& path)
     SHA256_Init(&sha);
 
     size_t nbytes = 0;
-    if ((path.length() >= PATH_MAX) || (realpath(path.c_str(), realPath) == nullptr)) {
+    if ((realpath(path.c_str(), realPath) == nullptr) || (path.length() >= PATH_MAX)) {
         HILOG_ERROR(LOG_CORE, "%s:path is invalid: %s, errno=%d", __func__, path.c_str(), errno);
     }
     std::unique_ptr<FILE, decltype(fclose)*> fptr(fopen(realPath, "rb"), fclose);

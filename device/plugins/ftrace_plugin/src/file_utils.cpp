@@ -52,6 +52,7 @@ std::string FileUtils::ReadFile(const std::string& path)
 
     if ((path.length() >= PATH_MAX) || (realpath(path.c_str(), realPath) == nullptr)) {
         HILOG_ERROR(LOG_CORE, "%s:path is invalid: %s, errno=%d", __func__, path.c_str(), errno);
+        return "";
     }
     int fd = open(realPath, O_RDONLY);
     if (fd == -1) {

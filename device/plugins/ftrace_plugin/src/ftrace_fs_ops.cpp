@@ -142,6 +142,7 @@ bool FtraceFsOps::ClearTraceBuffer()
     std::string path = ftraceRoot_ + "/trace";
     if ((path.length() >= PATH_MAX) || (realpath(path.c_str(), realPath) == nullptr)) {
         HILOG_ERROR(LOG_CORE, "%s:path is invalid: %s, errno=%d", __func__, path.c_str(), errno);
+        return false;
     }
     int fd = open(realPath, O_TRUNC);
     CHECK_TRUE(fd >= 0, false, "open %s failed!", realPath);
