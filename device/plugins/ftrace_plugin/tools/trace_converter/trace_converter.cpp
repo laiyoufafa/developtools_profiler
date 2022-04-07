@@ -513,8 +513,8 @@ bool TraceConverter::Convert()
     std::regex fileNameRegex("[\\/:*?\"<>|]");
     size_t pos = output_.rfind("/");
     if (pos != std::string::npos) {
-        std::string dirName = output_.substr(0, pos+1);
-        std::string fileName = output_.substr(pos+1, output_.length()-pos-1);
+        std::string dirName = output_.substr(0, pos + 1);
+        std::string fileName = output_.substr(pos + 1, output_.length() - pos - 1);
         if (std::regex_search(dirName, dirNameRegex) || std::regex_search(fileName, fileNameRegex)) {
             HILOG_ERROR(LOG_CORE, "%s:path is invalid: %s, errno=%d", __func__, output_.c_str(), errno);
             return false;
