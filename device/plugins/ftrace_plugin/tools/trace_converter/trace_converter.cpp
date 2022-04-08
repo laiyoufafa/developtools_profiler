@@ -509,7 +509,7 @@ bool TraceConverter::Convert()
         return false;
     }
 
-    std::regex dirNameRegex("[.~-]");
+    std::regex dirNameRegex("[~-]|[.]{2}");
     std::regex fileNameRegex("[\\/:*?\"<>|]");
     size_t pos = output_.rfind("/");
     if (pos != std::string::npos) {
