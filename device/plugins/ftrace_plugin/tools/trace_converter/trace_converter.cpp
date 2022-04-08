@@ -18,7 +18,9 @@
 #include <fcntl.h>
 #include <sstream>
 #include <tuple>
+#include <regex>
 #include <unistd.h>
+
 #include "common_types.pb.h"
 #include "event_formatter.h"
 
@@ -493,8 +495,6 @@ bool TraceConverter::ConvertAndWriteEvents()
 
 bool TraceConverter::Convert()
 {
-    char realPath[PATH_MAX + 1] = {0};
-
     auto startTime = Clock::now();
     CHECK_TRUE(access(input_.c_str(), R_OK) == 0, false, "input %s not found!", input_.c_str());
     CHECK_TRUE(reader_.Open(input_), false, "open %s failed!", input_.c_str());
@@ -504,10 +504,29 @@ bool TraceConverter::Convert()
     numberResults_ = (header.data_.segments_ >> 1); // pairs of (length segment, data segment)
     HILOG_INFO(LOG_CORE, "number of results in trace file header: %u", numberResults_);
 
-    if ((output_.length() >= PATH_MAX) || (realpath(output_.c_str(), realPath) == nullptr)) {
+    if (output_.empty() || (output_.length() >= PATH_MAX)) {
         HILOG_ERROR(LOG_CORE, "%s:path is invalid: %s, errno=%d", __func__, output_.c_str(), errno);
+        return false;
     }
-    outputFd_ = open(realPath, O_CREAT | O_RDWR, OUTPUT_FILE_MODE);
+
+    std::regex dirNameRegex("[~-]|[.]{2}");
+    std::regex fileNameRegex("[\\/:*?\"<>|]");
+    size_t pos = output_.rfind("/");
+    if (pos != std::string::npos) {
+        std::string dirName = output_.substr(0, pos + 1);
+        std::string fileName = output_.substr(pos + 1, output_.length() - pos - 1);
+        if (std::regex_search(dirName, dirNameRegex) || std::regex_search(fileName, fileNameRegex)) {
+            HILOG_ERROR(LOG_CORE, "%s:path is invalid: %s, errno=%d", __func__, output_.c_str(), errno);
+            return false;
+        }
+    } else {
+        if (std::regex_search(output_, fileNameRegex)) {
+            HILOG_ERROR(LOG_CORE, "%s:path is invalid: %s, errno=%d", __func__, output_.c_str(), errno);
+            return false;
+        }
+    }
+    
+    outputFd_ = open(output_.c_str(), O_CREAT | O_RDWR, OUTPUT_FILE_MODE);
     CHECK_TRUE(outputFd_ != -1, false, "open %s failed!", output_.c_str());
     CHECK_TRUE(WriteInitialHeader(), false, "write initial header failed!");
 
