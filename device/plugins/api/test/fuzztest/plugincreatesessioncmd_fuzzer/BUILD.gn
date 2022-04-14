@@ -17,9 +17,9 @@ import("../../../../../base/config.gni")
 module_output_path = "${OHOS_PROFILER_TEST_MODULE_OUTPUT_PATH}/device"
 
 ##############################fuzztest##########################################
-ohos_fuzztest("PluginCreateSessionTest") {
+ohos_fuzztest("PluginCreateSessionCmdFuzzTest") {
   module_out_path = module_output_path
-
+  fuzz_config_file = "${OHOS_PROFILER_DIR}/device/plugins/api/test/fuzztest/plugincreatesessioncmd_fuzzer"
   include_dirs = []
   cflags = [
     "-g",
@@ -42,7 +42,7 @@ group("fuzztest") {
   deps = []
   deps += [
     # deps file
-    ":PluginCreateSessionTest",
+    ":PluginCreateSessionCmdFuzzTest",
   ]
 }
 ###############################################################################
