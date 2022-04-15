@@ -52,6 +52,7 @@
         }
       ],
       "test": [
+        "//developtools/profiler/device:fuzztest",
         "//developtools/profiler/device:unittest",
         "//developtools/profiler/interfaces/kits/test:unittest"
       ]

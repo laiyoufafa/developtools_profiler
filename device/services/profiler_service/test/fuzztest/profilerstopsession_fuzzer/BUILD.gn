@@ -19,7 +19,7 @@ module_output_path = "${OHOS_PROFILER_TEST_MODULE_OUTPUT_PATH}/services"
 ##############################fuzztest##########################################
 ohos_fuzztest("ProfilerStopSessionFuzzTest") {
   module_out_path = module_output_path
-
+  fuzz_config_file = "${OHOS_PROFILER_DIR}/device/services/profiler_service/test/fuzztest/profilerstopsession_fuzzer"
   include_dirs = [
     "../../../include",
     "../../../../plugin_service/include",
