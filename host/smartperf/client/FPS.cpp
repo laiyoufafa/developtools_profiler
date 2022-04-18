@@ -130,9 +130,7 @@ namespace OHOS {
             int zeroNum = 0;
             while (fgets(tmp, sizeof(tmp), fp) != nullptr) {
                 long long frameReadyTime = 0;
-                if (sscanf(tmp, "%lld", &frameReadyTime) == EOF) {
-                    break;
-                }
+                sscanf(tmp, "%lld", &frameReadyTime);
                 cnt++;
                 if (frameReadyTime == 0) {
                     zeroNum++;

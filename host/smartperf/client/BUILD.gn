@@ -12,6 +12,7 @@
 # limitations under the License.
 
 import("//build/ohos.gni")
+import("../../../build/config.gni")
 
 ## Build so {{{
 config("config") {
@@ -42,11 +43,10 @@ ohos_executable("SP_daemon") {
     "smartperf_command.cpp",
     "smartperf_main.cpp",
   ]
-  include_dirs =
-      [ "//foundation/graphic/standard/rosen/samples/opensourcesp/include" ]
+  include_dirs = [ "//developtools/profiler/host/smartperf/client/include" ]
   configs = [ ":config" ]
 
-  part_name = "graphic_standard"
-  subsystem_name = "graphic"
+  subsystem_name = "${OHOS_PROFILER_SUBSYS_NAME}"
+  part_name = "${OHOS_PROFILER_PART_NAME}"
 }
 ## Build so }}}

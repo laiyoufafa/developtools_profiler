@@ -38,7 +38,8 @@
     "build": {
       "sub_component": [
         "//developtools/profiler/device:hiprofiler_targets",
-        "//developtools/profiler/hidebug/interfaces/js/kits:profiler_jsapi_module"
+        "//developtools/profiler/hidebug/interfaces/js/kits:profiler_jsapi_module",
+        "//developtools/profiler/host/smartperf/client/:SP_daemon"
       ],
       "inner_kits": [
         {

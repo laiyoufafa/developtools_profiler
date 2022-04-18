@@ -1,6 +1,6 @@
 ## 工具介绍
 
-OpenHarmony性能测试工具,通过采集设备性能指标，对采集数据进行实时展示、导出csv。
+> OpenHarmony性能测试工具,通过采集设备性能指标，对采集数据进行实时展示、导出csv。
 
 ## 支持功能
 
@@ -11,32 +11,33 @@ OpenHarmony性能测试工具,通过采集设备性能指标，对采集数据�
 - 支持采集整机CPU、GPU、DDR、POWER、TEMPERATURE、应用的FPS、RAM;
 
 ## 使用方式
+>1、首先检查系统是否默认预制了SP_daemon，如打印如下日志，系统已内置SP_daemon
 
-**1、SP_daemon --help**
 ```bash
-> hdc_std shell
-:/ # cd data/local/tmp
-:/data/local/tmp # SP_daemon --help
+C:\>hdc_std shell
+SP_daemon --help
 usage: SP_daemon <options> <arguments>
 --------------------------------------------------------------------
 These are common commands list:
- -N      set num of profiler <must be non-null>
- -PKG    set pkg_name of profiler
- -PID    set process id of profiler
- -c      get cpuFreq and cpuLoad
- -g      get gpuFreq and gpuLoad
- -d      get ddrFreq
- -f      get fps  
- -t      get soc-temp gpu-temp ..
- -p      get current_now and voltage_now
- -r      get ram(pss)
+ -N             set num of profiler <must be non-null>
+ -PKG           set pkg_name of profiler
+ -PID           set process id of profiler
+ -OUT           set output path of CSV
+ -c             get cpuFreq and cpuLoad
+ -g             get gpuFreq and gpuLoad
+ -d             get ddrFreq
+ -f             get fps and fps jitters
+ -t             get soc-temp gpu-temp ..
+ -p             get current_now and voltage_now
+ -r             get ram(pss)
 --------------------------------------------------------------------
 Example: SP_daemon -N 2 -PKG com.ohos.contacts -c -g -t -p -r
 --------------------------------------------------------------------
+command exec finished!
 ```
-**2、SP_daemon -N 2 -PKG com.ohos.contacts -c -g -t -p -r**
+>2、执行示例命令SP_daemon -N 2 -PKG com.ohos.contacts -c -g -t -p -r
 ```bash
-:/data/local/tmp # ./SP_daemon -N 2 -PKG com.ohos.contacts -c -g -t -p -r
+SP_daemon -N 2 -PKG com.ohos.contacts -c -g -t -p -r
 set num:2
 set pkg name:com.ohos.contacts
 
@@ -90,7 +91,7 @@ order:21 voltage_now=4.308323
 ----------------------------------Print END--------------------------------------
 :/data/local/tmp #
 ```
-**3、执行完毕后会在data/local/tmp生成data.csv文件，每次执行命令覆盖写入**
+>3、执行完毕后会在data/local/tmp生成data.csv文件，每次执行命令覆盖写入
 ```bash
 :/data/local/tmp # cat data.csv
 ambient,cpu0freq,cpu0load,cpu1freq,cpu1load,cpu2freq,cpu2load,cpu3freq,cpu3load,cpu4freq,cpu4load,cpu5freq,cpu5load,cpu6freq,cpu6load,cpu7freq,cpu7load,current_now,gpufreq,gpuload,pss,voltage_now
@@ -100,7 +101,7 @@ ambient,cpu0freq,cpu0load,cpu1freq,cpu1load,cpu2freq,cpu2load,cpu3freq,cpu3load,
 ```
 ---
 
-## 选项说明
+## 参数说明
 
 | 命令   | 功能                   |是否必选|
 | :-----| :--------------------- |:-----|
@@ -117,23 +118,4 @@ ambient,cpu0freq,cpu0load,cpu1freq,cpu1load,cpu2freq,cpu2load,cpu3freq,cpu3load,
 
 ---
 ## 构建方式
-> 当前未在系统内集成，需拉取openHarmony代码到本地，将本代码拷贝到目录里，并修改项目build.gn文件以及对应子系统的bundle.json文件，然后编译。
-> 例：编RK3568版本
-第一步：将本代码放置\foundation\graphic\standard\rosen\samples\opensourcesp目录下
-第二步：修改本代码中的build.gn文件
-第三步：修改对应子系统bundle.json文件  \foundation\graphic\standard
-在文件中加入代码路径以及编译出的二进制文件名称
-"build": {
-    "sub_component": [
-        ....,
-        "//foundation/graphic/standard/rosen/samples/opensourcesp:SP_daemon"
-    ]
-}
-第四步：执行全量编译命令： ./build.sh --product-name rk3568 --ccache 
-
-### 推送方式
-```shell
-hdc_std shell mount -o rw,remount /
-hdc_std file send SP_daemon /data/local/tmp
-hdc_std shell chmod a+x /data/local/tmp/SP_daemon
-```
+>1、在OpenHarmony系统根目录执行全量编译命令（RK3568为例）： ./build.sh --product-name rk3568 --ccache <br>
