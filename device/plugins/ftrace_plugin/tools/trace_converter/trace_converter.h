@@ -33,7 +33,7 @@ private:
     bool WriteInitialHeader();
     bool WriteFinalHeader();
     bool WriteEvent(const FtraceEvent& event, int cpu);
-    std::string FormatEvent(const FtraceEvent& event, int cpu);
+    std::string FormatEvent(const FtraceEvent& event, int cpu) noexcept;
     void ParseCpuStats(const FtraceCpuStatsMsg& cpuStats);
     void SummarizeStats();
     bool ReadAndParseEvents();

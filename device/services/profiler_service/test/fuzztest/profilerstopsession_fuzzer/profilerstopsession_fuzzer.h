@@ -13,11 +13,10 @@
  * limitations under the License.
  */
 
-#include <climits>
-#include <cstdint>
-#include <cstdio>
-#include <cstdlib>
-#include <fcntl.h>
-#include <unistd.h>
+#ifndef PROFILER_STOP_SESSION_FUZZER
+#define PROFILER_STOP_SESSION_FUZZER
+
 
 #define FUZZ_PROJECT_NAME "profilerstopsession_fuzzer"
+
+#endif

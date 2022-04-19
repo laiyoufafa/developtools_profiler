@@ -28,7 +28,7 @@
 #endif
 
 #ifndef UNUSED_PARAMETER
-#define UNUSED_PARAMETER(x) ((void)x)
+#define UNUSED_PARAMETER(x) ((void)(x))
 #endif
 
 #ifdef HAVE_HILOG

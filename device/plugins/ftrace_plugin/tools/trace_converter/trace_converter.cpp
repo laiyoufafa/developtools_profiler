@@ -229,7 +229,7 @@ std::string TraceConverter::TraceFlagsToString(uint32_t flags, uint32_t preemptC
     return result;
 }
 
-std::string TraceConverter::FormatEvent(const FtraceEvent& event, int cpu)
+std::string TraceConverter::FormatEvent(const FtraceEvent& event, int cpu) noexcept
 {
     std::stringstream sout;
     int pid = event.common_fields().pid();
@@ -496,19 +496,23 @@ bool TraceConverter::ConvertAndWriteEvents()
 bool TraceConverter::Convert()
 {
     auto startTime = Clock::now();
+    char realPathIn[PATH_MAX + 1] = {0};
+    char realPathOut[PATH_MAX + 1] = {0};
+    if (input_.empty() || (input_.length() >= PATH_MAX) || (realpath(input_.c_str(), realPathIn) == nullptr)) {
+        HILOG_ERROR(LOG_CORE, "%s:path is invalid: %s, errno=%d", __func__, input_.c_str(), errno);
+        return false;
+    }
     CHECK_TRUE(access(input_.c_str(), R_OK) == 0, false, "input %s not found!", input_.c_str());
     CHECK_TRUE(reader_.Open(input_), false, "open %s failed!", input_.c_str());
-
     auto header = reader_.GetHeader();
     PrintTraceFileHeader(header);
     numberResults_ = (header.data_.segments_ >> 1); // pairs of (length segment, data segment)
     HILOG_INFO(LOG_CORE, "number of results in trace file header: %u", numberResults_);
 
-    if (output_.empty() || (output_.length() >= PATH_MAX)) {
+    if (output_.empty() || (output_.length() >= PATH_MAX) || (realpath(output_.c_str(), realPathOut) == nullptr)) {
         HILOG_ERROR(LOG_CORE, "%s:path is invalid: %s, errno=%d", __func__, output_.c_str(), errno);
         return false;
     }
-
     std::regex dirNameRegex("[~-]|[.]{2}");
     std::regex fileNameRegex("[\\/:*?\"<>|]");
     size_t pos = output_.rfind("/");

@@ -36,7 +36,7 @@ using namespace ::grpc;
 
 #define CHECK_POINTER_NOTNULL(ptr, errorMessage)                              \
     do {                                                                      \
-        if (ptr == nullptr) {                                                 \
+        if ((ptr) == nullptr) {                                                 \
             HILOG_ERROR(LOG_CORE, "%s: FAILED, %s is null!", __func__, #ptr); \
             return {StatusCode::INTERNAL, errorMessage};                      \
         }                                                                     \

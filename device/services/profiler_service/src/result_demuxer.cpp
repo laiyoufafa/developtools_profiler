@@ -18,13 +18,13 @@
 #include "logging.h"
 
 #define CHECK_POINTER_NOTNULL(ptr)                                       \
-    if (ptr == nullptr) {                                                \
+    if ((ptr) == nullptr) {                                                \
         HILOG_WARN(LOG_CORE, "%s: FAILED, %s is null!", __func__, #ptr); \
         return false;                                                    \
     }
 
 #define CHECK_THREAD_ID_VALID(t)                                          \
-    if (t.get_id() == std::thread::id()) {                                \
+    if ((t).get_id() == std::thread::id()) {                                \
         HILOG_WARN(LOG_CORE, "%s: FAILED, %s id invalid!", __func__, #t); \
         return false;                                                     \
     }

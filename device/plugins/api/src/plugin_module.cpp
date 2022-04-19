@@ -83,12 +83,12 @@ PluginModule::SampleMode PluginModule::GetSampleMode() const
 {
     if (structPtr_ && structPtr_->callbacks) {
         if (structPtr_->callbacks->onPluginReportResult != nullptr) {
-            return POLLING;
+            return SampleMode::POLLING;
         } else if (structPtr_->callbacks->onRegisterWriterStruct != nullptr) {
-            return STREAMING;
+            return SampleMode::STREAMING;
         }
     }
-    return UNKNOWN;
+    return SampleMode::UNKNOWN;
 }
 
 void PluginModule::SetConfigData(const std::string& data)

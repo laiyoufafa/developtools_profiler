@@ -13,6 +13,9 @@
  * limitations under the License.
  */
 
+#ifndef DISK_IO_START_PLUGIN_FUZZER
+#define DISK_IO_START_PLUGIN_FUZZER
+
 #include <climits>
 #include <cstdint>
 #include <cstdio>
@@ -21,3 +24,5 @@
 #include <unistd.h>
 
 #define FUZZ_PROJECT_NAME "diskiostartplugin_fuzzer"
+
+#endif

@@ -140,7 +140,7 @@ bool PluginManager::RemovePlugin(const std::string& pluginPath)
         HILOG_WARN(LOG_CORE, "%s:plugin delete while using, stop plugin", __func__);
 
         // delete schedule task if POLLING mode
-        if (pluginModules_[index]->GetSampleMode() == PluginModule::POLLING) {
+        if (pluginModules_[index]->GetSampleMode() == PluginModule::SampleMode::POLLING) {
             HILOG_WARN(LOG_CORE, "%s:delete schedule task plugin name = %s", __func__, pluginPath.c_str());
             if (!scheduleTaskManager_.UnscheduleTask(pluginPath)) {
                 HILOG_WARN(LOG_CORE, "%s:delete schedule task plugin name = %s failed!", __func__, pluginPath.c_str());
@@ -274,7 +274,7 @@ bool PluginManager::StartPluginSession(const std::vector<uint32_t>& pluginIds,
         if (!plugin->StartSession(reinterpret_cast<const uint8_t*>(cfgData.c_str()), cfgData.size())) {
             return false;
         }
-        if (plugin->GetSampleMode() == PluginModule::POLLING) {
+        if (plugin->GetSampleMode() == PluginModule::SampleMode::POLLING) {
             if (idx > config.size()) {
                 HILOG_WARN(LOG_CORE, "%s:idx %zu out of size %zu", __func__, idx, config.size());
                 return false;
@@ -308,7 +308,7 @@ bool PluginManager::StopPluginSession(const std::vector<uint32_t>& pluginIds)
             HILOG_DEBUG(LOG_CORE, "%s:plugin not find", __func__);
             return false;
         }
-        if (pluginModules_[id]->GetSampleMode() == PluginModule::POLLING) {
+        if (pluginModules_[id]->GetSampleMode() == PluginModule::SampleMode::POLLING) {
             for (auto it : pluginIds_) {
                 if (it.second == id) {
                     HILOG_DEBUG(LOG_CORE, "%s:find plugin name = %s", __func__, it.first.c_str());

@@ -62,7 +62,7 @@ typedef int (*PluginReportResultCallback)(uint8_t* bufferData, uint32_t bufferSi
  * Called when stopping plug-in sessions
  * @return Return 0 for success and - 1 for failure；
  */
-typedef int (*PluginSessionStopCallback)();
+typedef int (*PluginSessionStopCallback)(void);
 
 /**
  * WriterStruct type forward declaration

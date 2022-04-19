@@ -13,11 +13,10 @@
  * limitations under the License.
  */
 
-#include <climits>
-#include <cstdint>
-#include <cstdio>
-#include <cstdlib>
-#include <fcntl.h>
-#include <unistd.h>
+#ifndef PROFILER_CREATE_SESSION
+#define PROFILER_CREATE_SESSION
+
 
 #define FUZZ_PROJECT_NAME "profilercreatesession_fuzzer"
+
+#endif
