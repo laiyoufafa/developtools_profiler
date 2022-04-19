@@ -23,7 +23,7 @@
 
 #include "common_types.pb.h"
 #include "event_formatter.h"
-
+#include "file_utility.h"
 namespace {
 constexpr unsigned TS_MIN_LEN = 9;
 constexpr unsigned US_DIGITS = 6;
@@ -393,7 +393,12 @@ bool TraceConverter::WriteFinalHeader()
     PrintTextHeader("FINAL TRACE HEADER");
 
     // flush file buffer
-    CHECK_TRUE(fsync(outputFd_) == 0, false, "fsync %s FAILED, %d", output_.c_str(), errno);
+    std::string outputPath = CanonicalizeSpecPath(output_.c_str());
+    if (outputPath == "") {
+         HILOG_ERROR(LOG_CORE, "%s:path is invalid: %s, errno=%d", __func__, output_.c_str(), errno);
+         return false;
+    }
+    CHECK_TRUE(fsync(outputFd_) == 0, false, "fsync %s FAILED, %d", outputPath.c_str(), errno);
     HILOG_INFO(LOG_CORE, "WriteFinalHeader done!");
     return true;
 }
@@ -496,42 +501,45 @@ bool TraceConverter::ConvertAndWriteEvents()
 bool TraceConverter::Convert()
 {
     auto startTime = Clock::now();
-    char realPathIn[PATH_MAX + 1] = {0};
-    char realPathOut[PATH_MAX + 1] = {0};
-    if (input_.empty() || (input_.length() >= PATH_MAX) || (realpath(input_.c_str(), realPathIn) == nullptr)) {
-        HILOG_ERROR(LOG_CORE, "%s:path is invalid: %s, errno=%d", __func__, input_.c_str(), errno);
-        return false;
+    // process file path
+    std::string resolvedPathInput = CanonicalizeSpecPath(input_.c_str());
+    if (resolvedPathInput == "") {
+         HILOG_ERROR(LOG_CORE, "%s:path is invalid: %s, errno=%d", __func__, input_.c_str(), errno);
+         return false;
     }
-    CHECK_TRUE(access(input_.c_str(), R_OK) == 0, false, "input %s not found!", input_.c_str());
-    CHECK_TRUE(reader_.Open(input_), false, "open %s failed!", input_.c_str());
+    CHECK_TRUE(access(resolvedPathInput.c_str(), R_OK) == 0, false, "input %s not found!", resolvedPathInput.c_str());
+    CHECK_TRUE(reader_.Open(resolvedPathInput), false, "open %s failed!", resolvedPathInput.c_str());
+
     auto header = reader_.GetHeader();
     PrintTraceFileHeader(header);
     numberResults_ = (header.data_.segments_ >> 1); // pairs of (length segment, data segment)
     HILOG_INFO(LOG_CORE, "number of results in trace file header: %u", numberResults_);
 
-    if (output_.empty() || (output_.length() >= PATH_MAX) || (realpath(output_.c_str(), realPathOut) == nullptr)) {
-        HILOG_ERROR(LOG_CORE, "%s:path is invalid: %s, errno=%d", __func__, output_.c_str(), errno);
-        return false;
+    // process file path
+    std::string resolvedPathOutput = CanonicalizeSpecPath(output_.c_str());
+    if (resolvedPathOutput == "") {
+         HILOG_ERROR(LOG_CORE, "%s:path is invalid: %s, errno=%d", __func__, output_.c_str(), errno);
+         return false;
     }
     std::regex dirNameRegex("[~-]|[.]{2}");
     std::regex fileNameRegex("[\\/:*?\"<>|]");
-    size_t pos = output_.rfind("/");
+    size_t pos = resolvedPathOutput.rfind("/");
     if (pos != std::string::npos) {
-        std::string dirName = output_.substr(0, pos + 1);
-        std::string fileName = output_.substr(pos + 1, output_.length() - pos - 1);
+        std::string dirName = resolvedPathOutput.substr(0, pos + 1);
+        std::string fileName = resolvedPathOutput.substr(pos + 1, resolvedPathOutput.length() - pos - 1);
         if (std::regex_search(dirName, dirNameRegex) || std::regex_search(fileName, fileNameRegex)) {
-            HILOG_ERROR(LOG_CORE, "%s:path is invalid: %s, errno=%d", __func__, output_.c_str(), errno);
+            HILOG_ERROR(LOG_CORE, "%s:path is invalid: %s, errno=%d", __func__, resolvedPathOutput.c_str(), errno);
             return false;
         }
     } else {
-        if (std::regex_search(output_, fileNameRegex)) {
-            HILOG_ERROR(LOG_CORE, "%s:path is invalid: %s, errno=%d", __func__, output_.c_str(), errno);
+        if (std::regex_search(resolvedPathOutput, fileNameRegex)) {
+            HILOG_ERROR(LOG_CORE, "%s:path is invalid: %s, errno=%d", __func__, resolvedPathOutput.c_str(), errno);
             return false;
         }
     }
     
-    outputFd_ = open(output_.c_str(), O_CREAT | O_RDWR, OUTPUT_FILE_MODE);
-    CHECK_TRUE(outputFd_ != -1, false, "open %s failed!", output_.c_str());
+    outputFd_ = open(resolvedPathOutput.c_str(), O_CREAT | O_RDWR, OUTPUT_FILE_MODE);
+    CHECK_TRUE(outputFd_ != -1, false, "open %s failed!", resolvedPathOutput.c_str());
     CHECK_TRUE(WriteInitialHeader(), false, "write initial header failed!");
 
     CHECK_TRUE(ReadAndParseEvents(), false, "read and parse events failed!");
@@ -539,11 +547,11 @@ bool TraceConverter::Convert()
     SummarizeStats();
 
     CHECK_TRUE(WriteFinalHeader(), false, "write final header failed!");
-    CHECK_TRUE(close(outputFd_) == 0, false, "close %s FAILED, %d", output_.c_str(), errno);
+    CHECK_TRUE(close(outputFd_) == 0, false, "close %s FAILED, %d", resolvedPathOutput.c_str(), errno);
     outputFd_ = INVALID_FD;
 
     auto endTime = Clock::now();
-    HILOG_INFO(LOG_CORE, "convert %s to %s done!", input_.c_str(), output_.c_str());
+    HILOG_INFO(LOG_CORE, "convert %s to %s done!", resolvedPathInput.c_str(), resolvedPathOutput.c_str());
     HILOG_INFO(LOG_CORE, "total time cost: %ld ms!", TimeDeltaMs(endTime, startTime));
     return true;
 }

@@ -16,14 +16,17 @@ import("//build/ohos.gni")
 import("../../../../base/config.gni")
 
 trace_file_src_dir = "${OHOS_PROFILER_DIR}/device/services/profiler_service/src"
+base_file_src_dir = "${OHOS_PROFILER_DIR}/device/base/src"
 
 ohos_executable("trace_converter") {
   sources = [
     "$trace_file_src_dir/trace_file_helper.cpp",
     "$trace_file_src_dir/trace_file_reader.cpp",
+    "$base_file_src_dir/file_utility.cpp",
     "event_formatter.cpp",
     "main.cpp",
     "trace_converter.cpp",
+
   ]
   defines = [ "_GNU_SOURCE" ]
   include_dirs = [
