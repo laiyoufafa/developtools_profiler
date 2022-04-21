@@ -40,6 +40,12 @@ std::string TraceFileWriter::Path() const
     return path_;
 }
 
+bool TraceFileWriter::SetPluginConfig(const void* data, size_t size)
+{
+    Write(data, size);
+    return true;
+}
+
 bool TraceFileWriter::Open(const std::string& path)
 {
     stream_.open(path, std::ios_base::out | std::ios_base::binary);

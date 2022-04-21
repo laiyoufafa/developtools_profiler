@@ -74,7 +74,9 @@ bool ElfSymbol::ParseElf64Symbol(char * const symBuf)
 }
 
 std::unique_ptr<SymbolTable> SymbolTable::MakeUnique(const std::string &symNamesStr,
-    const char * const secBuf, const uint64_t secSize, const uint64_t entrySize)
+                                                     const char * const secBuf,
+                                                     const uint64_t secSize,
+                                                     const uint64_t entrySize)
 {
     std::unique_ptr<SymbolTable> symTable {new (std::nothrow) SymbolTable(symNamesStr)};
     if (symNamesStr.empty()) {
@@ -87,7 +89,29 @@ std::unique_ptr<SymbolTable> SymbolTable::MakeUnique(const std::string &symNames
     char *symBuf = const_cast<char *>(secBuf);
     for (uint64_t curPos = 0; curPos < secSize; curPos += entrySize) {
         symBuf = const_cast<char *>(secBuf + curPos);
-        if ((curPos + entrySize) >= secSize) {
+        /*
+            not >= , change to >
+            Section Headers:
+            [Nr] Name              Type             Address           Offset
+                Size              EntSize          Flags  Link  Info  Align
+            [ 0]                   NULL             0000000000000000  00000000
+                0000000000000000  0000000000000000           0     0     0
+            [ 1] .text             NOBITS           000000009c868f20  00000000
+                0000000000000164  0000000000000000  AX       0     0     4096
+            [ 2] .strtab           STRTAB           0000000000000000  00000040
+                0000000000000042  0000000000000000           0     0     4096
+            [ 3] .symtab           SYMTAB           0000000000000000  00000082
+                0000000000000030  0000000000000018           2     1     8
+            [ 4] .debug_frame      PROGBITS         0000000000000000  000000b2
+                00000000000000c8  0000000000000000           0     0     8
+            [ 5] .shstrtab         STRTAB           0000000000000000  0000017a
+                000000000000002e  0000000000000000           0     0     1
+
+            Symbol table '.symtab' contains 2 entries:
+            Num:    Value          Size Type    Bind   Vis      Ndx Name
+                0: 0000000000000000     0 NOTYPE  LOCAL  DEFAULT  UND
+        */
+        if ((curPos + entrySize) > secSize) {
             break;
         }
         std::unique_ptr<ElfSymbol> sym = ElfSymbol::MakeUnique(symBuf, entrySize);

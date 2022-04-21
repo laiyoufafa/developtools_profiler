@@ -63,8 +63,10 @@ bool ReadInc(uint8_t* start[], uint8_t end[], void* outData, size_t outSize)
     if ((end - *start) < static_cast<ptrdiff_t>(outSize)) {
         return false;
     }
-    auto err = memcpy_s(outData, outSize, *start, outSize);
-    CHECK_TRUE(err == EOK, false, "read %zu bytes from memory region [%p, %p) FAILED", outSize, *start, end);
+    if (memcpy_s(outData, outSize, *start, outSize) != EOK) {
+        HILOG_ERROR(LOG_CORE, "read %zu bytes from memory region [%p, %p) FAILED", outSize, *start, end);
+        return false;
+    }
     *start += outSize;
     return true;
 }
@@ -111,7 +113,6 @@ bool FtraceParser::SetupEvent(const std::string& type, const std::string& name)
                name.c_str());
 
     eventDict_[format.eventId] = format;
-    HILOG_INFO(LOG_CORE, "SetupEvent: %s/%s, %u done!", type.c_str(), name.c_str(), format.eventId);
     return true;
 }
 

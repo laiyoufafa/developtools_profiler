@@ -18,6 +18,7 @@
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
+#include <hilog/log.h>
 
 #include "debug_logger.h"
 #include "utilities.h"

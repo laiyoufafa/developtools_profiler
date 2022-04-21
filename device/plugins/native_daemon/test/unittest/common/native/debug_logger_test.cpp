@@ -12,21 +12,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include "debug_logger_test.h"
 
-#include <debug_logger_test.h>
-
-#include <gtest/gtest_prod.h>
-#include <debug_logger.h>
 #include <random>
+
+#include <debug_logger.h>
+#include <gtest/gtest_prod.h>
 
 using namespace testing::ext;
 using namespace std;
-#ifndef CONFIG_NO_HILOG
 using namespace OHOS::HiviewDFX;
-#endif
-
-static const char* OHOS_HILOG_TAG  = "DebugTest";
-
 namespace OHOS {
 namespace Developtools {
 namespace NativeDaemon {
@@ -91,11 +86,11 @@ void DebugLoggerTest::LogLevelTest(DebugLevel testlevel, bool useStdout)
         EXPECT_EQ(SubStringCount(log, logMessage), 0u);
     } else {
         EXPECT_EQ(SubStringCount(log, logMessage),
-            static_cast<size_t>(LEVEL_FATAL) - static_cast<size_t>(testlevel) + 1u);
+                  static_cast<size_t>(LEVEL_FATAL) - static_cast<size_t>(testlevel) + 1u);
     }
     if (HasFailure()) {
         HLOGD("LogLevelTest failed. testlevel is %d, logMessage is '%s'", testlevel,
-            logMessage.c_str());
+              logMessage.c_str());
         if (useStdout) {
             printf("%s", log.c_str());
         }
@@ -187,27 +182,26 @@ HWTEST_F(DebugLoggerTest, GetInstance, TestSize.Level1)
  */
 HWTEST_F(DebugLoggerTest, SetLogPath, TestSize.Level1)
 {
-    const std::string LOG_FILE1 = "log1.txt";
-    const std::string LOG_FILE2 = "log2.txt";
-    const std::string LOG_FILE3 = "log3.txt";
-    const std::string LOG_FILE_ERR = "!@#$%^&*()";
+    const std::string logFile1 = "log1.txt";
+    const std::string logFile2 = "log2.txt";
+    const std::string logFile3 = "log3.txt";
 
     EXPECT_EQ(access(DEFAULT_LOG_PATH.c_str(), F_OK), 0);
 
-    DebugLogger::GetInstance()->SetLogPath(LOG_FILE1);
+    DebugLogger::GetInstance()->SetLogPath(logFile1);
     EXPECT_NE(access(DEFAULT_LOG_PATH.c_str(), F_OK), 0);
-    EXPECT_EQ(access(LOG_FILE1.c_str(), F_OK), 0);
+    EXPECT_EQ(access(logFile1.c_str(), F_OK), 0);
 
-    DebugLogger::GetInstance()->SetLogPath(LOG_FILE2);
-    EXPECT_NE(access(LOG_FILE1.c_str(), F_OK), 0);
-    EXPECT_EQ(access(LOG_FILE2.c_str(), F_OK), 0);
+    DebugLogger::GetInstance()->SetLogPath(logFile2);
+    EXPECT_NE(access(logFile1.c_str(), F_OK), 0);
+    EXPECT_EQ(access(logFile2.c_str(), F_OK), 0);
 
-    DebugLogger::GetInstance()->SetLogPath(LOG_FILE3);
-    EXPECT_NE(access(LOG_FILE2.c_str(), F_OK), 0);
-    EXPECT_EQ(access(LOG_FILE3.c_str(), F_OK), 0);
+    DebugLogger::GetInstance()->SetLogPath(logFile3);
+    EXPECT_NE(access(logFile2.c_str(), F_OK), 0);
+    EXPECT_EQ(access(logFile3.c_str(), F_OK), 0);
 
     DebugLogger::GetInstance()->SetLogPath(DEFAULT_LOG_PATH);
-    EXPECT_NE(access(LOG_FILE3.c_str(), F_OK), 0);
+    EXPECT_NE(access(logFile3.c_str(), F_OK), 0);
     EXPECT_EQ(access(DEFAULT_LOG_PATH.c_str(), F_OK), 0);
 }
 
@@ -218,30 +212,30 @@ HWTEST_F(DebugLoggerTest, SetLogPath, TestSize.Level1)
  */
 HWTEST_F(DebugLoggerTest, SetLogTags, TestSize.Level1)
 {
-    const std::string ERROR_LOG_TAG = "errtag";
-    const std::string ERROR_LOG_TAGS = "errtag,errtag,errtag";
-    const std::string MIX_LOG_TAGS = std::string("errtag,errtag,") + OHOS_HILOG_TAG + string(",errtag");
+    const std::string errorLogTag = "errtag";
+    const std::string errorLogTags = "errtag,errtag,errtag";
+    const std::string mixLogTags = "errtag,errtag,DebugTest,errtag";
 
-    DebugLogger::GetInstance()->SetLogTags(OHOS_HILOG_TAG);
+    DebugLogger::GetInstance()->SetLogTags("DebugTest");
 
-    EXPECT_EQ(DebugLogger::GetInstance()->ShouldLog(LEVEL_MUCH, OHOS_HILOG_TAG), true);
-    EXPECT_EQ(DebugLogger::GetInstance()->ShouldLog(LEVEL_DEBUG, OHOS_HILOG_TAG), true);
+    EXPECT_EQ(DebugLogger::GetInstance()->ShouldLog(LEVEL_MUCH, "DebugTest"), true);
+    EXPECT_EQ(DebugLogger::GetInstance()->ShouldLog(LEVEL_DEBUG, "DebugTest"), true);
 
-    EXPECT_EQ(DebugLogger::GetInstance()->ShouldLog(LEVEL_MUCH, ERROR_LOG_TAG), false);
-    EXPECT_EQ(DebugLogger::GetInstance()->ShouldLog(LEVEL_DEBUG, ERROR_LOG_TAG), true);
+    EXPECT_EQ(DebugLogger::GetInstance()->ShouldLog(LEVEL_MUCH, errorLogTag), false);
+    EXPECT_EQ(DebugLogger::GetInstance()->ShouldLog(LEVEL_DEBUG, errorLogTag), true);
 
-    DebugLogger::GetInstance()->SetLogTags(ERROR_LOG_TAGS);
+    DebugLogger::GetInstance()->SetLogTags(errorLogTags);
 
-    EXPECT_EQ(DebugLogger::GetInstance()->ShouldLog(LEVEL_MUCH, OHOS_HILOG_TAG), false);
-    EXPECT_EQ(DebugLogger::GetInstance()->ShouldLog(LEVEL_DEBUG, OHOS_HILOG_TAG), true);
+    EXPECT_EQ(DebugLogger::GetInstance()->ShouldLog(LEVEL_MUCH, "DebugTest"), false);
+    EXPECT_EQ(DebugLogger::GetInstance()->ShouldLog(LEVEL_DEBUG, "DebugTest"), true);
 
-    EXPECT_EQ(DebugLogger::GetInstance()->ShouldLog(LEVEL_MUCH, ERROR_LOG_TAG), true);
-    EXPECT_EQ(DebugLogger::GetInstance()->ShouldLog(LEVEL_DEBUG, ERROR_LOG_TAG), true);
+    EXPECT_EQ(DebugLogger::GetInstance()->ShouldLog(LEVEL_MUCH, errorLogTag), true);
+    EXPECT_EQ(DebugLogger::GetInstance()->ShouldLog(LEVEL_DEBUG, errorLogTag), true);
 
-    DebugLogger::GetInstance()->SetLogTags(MIX_LOG_TAGS);
+    DebugLogger::GetInstance()->SetLogTags(mixLogTags);
 
-    EXPECT_EQ(DebugLogger::GetInstance()->ShouldLog(LEVEL_MUCH, OHOS_HILOG_TAG), true);
-    EXPECT_EQ(DebugLogger::GetInstance()->ShouldLog(LEVEL_DEBUG, OHOS_HILOG_TAG), true);
+    EXPECT_EQ(DebugLogger::GetInstance()->ShouldLog(LEVEL_MUCH, "DebugTest"), true);
+    EXPECT_EQ(DebugLogger::GetInstance()->ShouldLog(LEVEL_DEBUG, "DebugTest"), true);
 
     // back to default
     DebugLogger::GetInstance()->SetLogTags("");

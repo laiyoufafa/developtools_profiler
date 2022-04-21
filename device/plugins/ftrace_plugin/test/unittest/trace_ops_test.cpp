@@ -16,11 +16,11 @@
 #include <hwext/gtest-ext.h>
 #include <hwext/gtest-tag.h>
 
-#include "bytrace_ops.h"
+#include "hitrace_ops.h"
 #include "trace_ops.h"
 
 namespace {
-using FTRACE_NS::BytraceOps;
+using FTRACE_NS::HitraceOps;
 using FTRACE_NS::TraceOps;
 using testing::ext::TestSize;
 
@@ -32,52 +32,52 @@ protected:
 
 /*
  * @tc.name: GetTraceType
- * @tc.desc: test BytraceOps::GetTraceType with normal case.
+ * @tc.desc: test HitraceOps::GetTraceType with normal case.
  * @tc.type: FUNC
  */
 HWTEST_F(TraceOpsTest, GetTraceType, TestSize.Level1)
 {
-    std::unique_ptr<TraceOps> traceOps = std::make_unique<BytraceOps>();
-    EXPECT_TRUE(traceOps->GetTraceType() == TraceOps::TraceType::BYTRACE);
+    std::unique_ptr<TraceOps> traceOps = std::make_unique<HitraceOps>();
+    EXPECT_TRUE(traceOps->GetTraceType() == TraceOps::TraceType::HITRACE);
 }
 
 /*
  * @tc.name: GetCommand
- * @tc.desc: test BytraceOps::GetCommand with normal case.
+ * @tc.desc: test HitraceOps::GetCommand with normal case.
  * @tc.type: FUNC
  */
 HWTEST_F(TraceOpsTest, GetCommand, TestSize.Level1)
 {
-    std::unique_ptr<TraceOps> traceOps = std::make_unique<BytraceOps>();
+    std::unique_ptr<TraceOps> traceOps = std::make_unique<HitraceOps>();
     EXPECT_STREQ(traceOps->GetCommand().c_str(), "/system/bin/bytrace");
 }
 
 /*
  * @tc.name: HasCategoryNormal
- * @tc.desc: test BytraceOps::HasCategory with normal case.
+ * @tc.desc: test HitraceOps::HasCategory with normal case.
  * @tc.type: FUNC
  */
 HWTEST_F(TraceOpsTest, HasCategoryNormal, TestSize.Level1)
 {
-    std::unique_ptr<TraceOps> traceOps = std::make_unique<BytraceOps>();
+    std::unique_ptr<TraceOps> traceOps = std::make_unique<HitraceOps>();
     EXPECT_TRUE(traceOps->HasCategory("ability"));
     EXPECT_TRUE(traceOps->HasCategory("idle"));
 }
 
 /*
  * @tc.name: HasCategoryFalse
- * @tc.desc: test BytraceOps::HasCategory with false case.
+ * @tc.desc: test HitraceOps::HasCategory with false case.
  * @tc.type: FUNC
  */
 HWTEST_F(TraceOpsTest, HasCategoryFalse, TestSize.Level1)
 {
-    std::unique_ptr<TraceOps> traceOps = std::make_unique<BytraceOps>();
+    std::unique_ptr<TraceOps> traceOps = std::make_unique<HitraceOps>();
     EXPECT_FALSE(traceOps->HasCategory("12345"));
 
-    traceOps = std::make_unique<TraceOps>("/system/bin/bytrace", "4567", TraceOps::TraceType::BYTRACE);
+    traceOps = std::make_unique<TraceOps>("/system/bin/bytrace", "4567", TraceOps::TraceType::HITRACE);
     EXPECT_FALSE(traceOps->HasCategory("sched"));
 
-    traceOps = std::make_unique<TraceOps>("1234", "bytrace", TraceOps::TraceType::BYTRACE);
+    traceOps = std::make_unique<TraceOps>("1234", "bytrace", TraceOps::TraceType::HITRACE);
     EXPECT_FALSE(traceOps->HasCategory("ability"));
 
     traceOps = std::make_unique<TraceOps>("/system/bin/bytrace", "4567", TraceOps::TraceType::UNKNOW);
@@ -89,12 +89,12 @@ HWTEST_F(TraceOpsTest, HasCategoryFalse, TestSize.Level1)
 
 /*
  * @tc.name: EnableCategoriesNormal
- * @tc.desc: test BytraceOps::EnableCategories with normal case.
+ * @tc.desc: test HitraceOps::EnableCategories with normal case.
  * @tc.type: FUNC
  */
 HWTEST_F(TraceOpsTest, EnableCategoriesNormal, TestSize.Level1)
 {
-    std::unique_ptr<TraceOps> traceOps = std::make_unique<BytraceOps>();
+    std::unique_ptr<TraceOps> traceOps = std::make_unique<HitraceOps>();
     std::vector<std::string> categories;
     categories.push_back("sched");
     EXPECT_TRUE(traceOps->EnableCategories(categories));
@@ -106,21 +106,21 @@ HWTEST_F(TraceOpsTest, EnableCategoriesNormal, TestSize.Level1)
 
 /*
  * @tc.name: EnableCategoriesFalse
- * @tc.desc: test BytraceOps::EnableCategories with false case.
+ * @tc.desc: test HitraceOps::EnableCategories with false case.
  * @tc.type: FUNC
  */
 HWTEST_F(TraceOpsTest, EnableCategoriesFalse, TestSize.Level1)
 {
-    std::unique_ptr<TraceOps> traceOps = std::make_unique<BytraceOps>();
+    std::unique_ptr<TraceOps> traceOps = std::make_unique<HitraceOps>();
     std::vector<std::string> categories;
     EXPECT_FALSE(traceOps->EnableCategories(categories));
 
     categories.push_back("sched");
-    traceOps = std::make_unique<TraceOps>("/system/bin/bytrace", "4567", TraceOps::TraceType::BYTRACE);
+    traceOps = std::make_unique<TraceOps>("/system/bin/bytrace", "4567", TraceOps::TraceType::HITRACE);
     EXPECT_FALSE(traceOps->EnableCategories(categories));
 
     categories.push_back("ability");
-    traceOps = std::make_unique<TraceOps>("1234", "bytrace", TraceOps::TraceType::BYTRACE);
+    traceOps = std::make_unique<TraceOps>("1234", "bytrace", TraceOps::TraceType::HITRACE);
     EXPECT_FALSE(traceOps->EnableCategories(categories));
 
     categories.push_back("idle");
@@ -134,23 +134,23 @@ HWTEST_F(TraceOpsTest, EnableCategoriesFalse, TestSize.Level1)
 
 /*
  * @tc.name: DisableCategoriesNormal
- * @tc.desc: test BytraceOps::DisableCategories with normal case.
+ * @tc.desc: test HitraceOps::DisableCategories with normal case.
  * @tc.type: FUNC
  */
 HWTEST_F(TraceOpsTest, DisableCategoriesNormal, TestSize.Level1)
 {
-    std::unique_ptr<TraceOps> traceOps = std::make_unique<BytraceOps>();
+    std::unique_ptr<TraceOps> traceOps = std::make_unique<HitraceOps>();
     EXPECT_TRUE(traceOps->DisableCategories());
 }
 
 /*
  * @tc.name: DisableCategoriesFalse
- * @tc.desc: test BytraceOps::DisableCategories with false case.
+ * @tc.desc: test HitraceOps::DisableCategories with false case.
  * @tc.type: FUNC
  */
 HWTEST_F(TraceOpsTest, DisableCategoriesFalse, TestSize.Level1)
 {
-    std::unique_ptr<TraceOps> traceOps = std::make_unique<TraceOps>("1234", "bytrace", TraceOps::TraceType::BYTRACE);
+    std::unique_ptr<TraceOps> traceOps = std::make_unique<TraceOps>("1234", "bytrace", TraceOps::TraceType::HITRACE);
     EXPECT_FALSE(traceOps->DisableCategories());
 
     traceOps = std::make_unique<TraceOps>("/system/bin/bytrace", "4567", TraceOps::TraceType::UNKNOW);
@@ -159,29 +159,29 @@ HWTEST_F(TraceOpsTest, DisableCategoriesFalse, TestSize.Level1)
 
 /*
  * @tc.name: IsSupportedNormal
- * @tc.desc: test BytraceOps::IsSupported with normal case.
+ * @tc.desc: test HitraceOps::IsSupported with normal case.
  * @tc.type: FUNC
  */
 HWTEST_F(TraceOpsTest, IsSupportedNormal, TestSize.Level1)
 {
-    std::unique_ptr<TraceOps> traceOps = std::make_unique<BytraceOps>();
+    std::unique_ptr<TraceOps> traceOps = std::make_unique<HitraceOps>();
     EXPECT_TRUE(traceOps->IsSupported());
 }
 
 /*
  * @tc.name: IsSupportedFalse
- * @tc.desc: test BytraceOps::IsSupported with false case.
+ * @tc.desc: test HitraceOps::IsSupported with false case.
  * @tc.type: FUNC
  */
 HWTEST_F(TraceOpsTest, IsSupportedFalse, TestSize.Level1)
 {
-    std::unique_ptr<TraceOps> traceOps = std::make_unique<TraceOps>("1234", "bytrace", TraceOps::TraceType::BYTRACE);
+    std::unique_ptr<TraceOps> traceOps = std::make_unique<TraceOps>("1234", "bytrace", TraceOps::TraceType::HITRACE);
     EXPECT_FALSE(traceOps->IsSupported());
 
     traceOps = std::make_unique<TraceOps>("/system/bin/bytrace", "4567", TraceOps::TraceType::UNKNOW);
     EXPECT_TRUE(traceOps->IsSupported());
 
-    traceOps = std::make_unique<TraceOps>("1234", "4567", TraceOps::TraceType::BYTRACE);
+    traceOps = std::make_unique<TraceOps>("1234", "4567", TraceOps::TraceType::HITRACE);
     EXPECT_FALSE(traceOps->IsSupported());
 
     traceOps = std::make_unique<TraceOps>("1234", "4567", TraceOps::TraceType::UNKNOW);

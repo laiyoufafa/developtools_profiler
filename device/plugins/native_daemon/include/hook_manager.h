@@ -21,17 +21,30 @@
 #include <string>
 #include <vector>
 
+#include "buffer_writer.h"
 #include "manager_interface.h"
 #include "hook_service.h"
 #include "epoll_event_poller.h"
 #include "share_memory_allocator.h"
 #include "event_notifier.h"
 #include "native_hook_config.pb.h"
+#include "native_hook_result.pb.h"
 #include "virtual_runtime.h"
+#include "stack_data_repeater.h"
+#include "stack_preprocess.h"
 
+using BatchNativeHookDataPtr = STD_PTR(shared, BatchNativeHookData);
 class ProfilerPluginConfig;
 class PluginResult;
 class CommandPoller;
+
+struct HookContext {
+    int type;
+    pid_t pid;
+    pid_t tid;
+    void* addr;
+    uint32_t mallocSize;
+};
 
 class HookManager : public ManagerInterface {
 public:
@@ -55,9 +68,18 @@ public:
     void SetCommandPoller(const std::shared_ptr<CommandPoller>& p) override;
 
 private:
-    void writeFrames(int type, const struct timespec& ts, void* addr, uint32_t size,
+    void writeFrames(const struct timespec& ts, HookContext& hookContext,
         const std::vector<OHOS::Developtools::NativeDaemon::CallFrame>& callsFrames);
     void ReadShareMemory();
+    void RegisterWriter(const BufferWriterPtr& writer);
+    bool SendProtobufPackage(uint8_t *cache, size_t length);
+    void SetFrameInfo(Frame& frame, OHOS::Developtools::NativeDaemon::CallFrame& callsFrame);
+    bool CheckProcess();
+    void CheckProcessName();
+    void SetHookData(HookContext& hookContext, struct timespec ts,
+        std::vector<OHOS::Developtools::NativeDaemon::CallFrame>& callsFrames,
+        BatchNativeHookDataPtr& batchNativeHookData);
+
     std::shared_ptr<HookService> hookService_;
     std::shared_ptr<CommandPoller> commandPoller_;
     int agentIndex_ = -1;
@@ -69,6 +91,12 @@ private:
     std::string smbName_;
     std::unique_ptr<FILE, decltype(&fclose)> fpHookData_;
     std::shared_ptr<OHOS::Developtools::NativeDaemon::VirtualRuntime> runtime_instance;
+    std::unique_ptr<uint8_t[]> buffer_;
+    std::mutex bufferMutex_;
+
+    StackDataRepeaterPtr stackData_;
+    std::shared_ptr<StackPreprocess> stackPreprocess_;
+    int pid_;
 };
 
 #endif // AGENT_MANAGER_H

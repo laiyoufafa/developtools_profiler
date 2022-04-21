@@ -35,6 +35,8 @@ public:
 
     std::string Path() const;
 
+    bool SetPluginConfig(const void* data, size_t size);
+
     bool Open(const std::string& path);
 
     long Write(const MessageLite& message);

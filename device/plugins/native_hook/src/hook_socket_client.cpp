@@ -15,14 +15,15 @@
 
 #include "hook_socket_client.h"
 
+#include "hook_common.h"
 #include "unix_socket_client.h"
-
-uint32_t g_filterSize;
 
 HookSocketClient::HookSocketClient(int pid) : pid_(pid)
 {
     unixSocketClient_ = nullptr;
     serviceName_ = "HookService";
+    mallocDisable_ = false;
+    mmapDisable_ = false;
     Connect(DEFAULT_UNIX_SOCKET_HOOK_PATH);
 }
 
@@ -47,6 +48,8 @@ bool HookSocketClient::Connect(const std::string addrname)
     return true;
 }
 
+// config |F F F F      F F F F      F F F F      F F F F|
+//        malloctype   filtersize    sharememory  size
 bool HookSocketClient::ProtocolProc(SocketContext &context, uint32_t pnum, const int8_t *buf, const uint32_t size)
 {
     if (size != sizeof(uint64_t)) {
@@ -55,11 +58,18 @@ bool HookSocketClient::ProtocolProc(SocketContext &context, uint32_t pnum, const
     }
     uint64_t config = *(uint64_t *)buf;
     uint32_t smbSize = (uint32_t)config;
-    uint32_t filterSize = config >> 32;
+    filterSize_ = (uint16_t)(config >> 32);
+    uint16_t mask = (uint16_t)(config >> 48);
 
     smbFd_ = context.ReceiveFileDiscriptor();
     eventFd_ = context.ReceiveFileDiscriptor();
-    g_filterSize = filterSize;
+
+    if (mask & MALLOCDISABLE) {
+        mallocDisable_ = true;
+    }
+    if (mask & MMAPDISABLE) {
+        mmapDisable_ = true;
+    }
 
     stackWriter_ = std::make_shared<StackWriter>("hooknativesmb", smbSize, smbFd_, eventFd_);
     return true;
@@ -70,7 +80,6 @@ bool HookSocketClient::SendStack(const void* data, size_t size)
     if (stackWriter_ == nullptr) {
         return false;
     }
-
     stackWriter_->Write(data, size);
     stackWriter_->Flush();
 

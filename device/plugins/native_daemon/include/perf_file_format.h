@@ -16,6 +16,7 @@
 #define HIPERF_PERF_FILE_FORMAT_H
 
 #include <string>
+#include "utilities.h"
 
 namespace OHOS {
 namespace Developtools {
@@ -24,7 +25,7 @@ namespace NativeDaemon {
 struct SymbolStruct {
     uint64_t vaddr_ = 0;
     uint32_t len_ = 0;
-    std::string symbolName_ = std::string();
+    std::string symbolName_ = EMPTY_STRING;
     SymbolStruct() {};
     SymbolStruct(uint64_t vaddr, uint32_t len, const std::string &symbolName)
         : vaddr_(vaddr), len_(len), symbolName_(symbolName)
@@ -33,7 +34,7 @@ struct SymbolStruct {
 };
 
 struct SymbolFileStruct {
-    std::string filePath_ = std::string();
+    std::string filePath_ = EMPTY_STRING;
     uint32_t symbolType_;
     uint64_t textExecVaddr_;
     uint64_t textExecVaddrFileOffset_;

@@ -48,6 +48,7 @@ action("service_types_proto_gen") {
   args = [
     "$libc_dir_proto",
     "$root_output_dir_proto",
+    "$proto_rel_out_dir",  # standard proto file destination path
     "--cpp_out",
     "$proto_rel_out_dir",
     "--proto_path",
@@ -105,6 +106,7 @@ action("profiler_services_proto_gen") {
   args = [
     "$libc_dir_proto",
     "$root_output_dir_proto",
+    "$proto_rel_out_dir",  # standard proto file destination path
     "--plugin=protoc-gen-grpc=$grpc_cpp_plugin",
     "--grpc_out",
     "$proto_rel_out_dir",
@@ -115,8 +117,9 @@ action("profiler_services_proto_gen") {
   ]
   args += rebase_path(sources, root_build_dir)
   deps = [
-    "${OHOS_PROFILER_3RDPARTY_GRPC_DIR}:grpc_cpp_plugin(${host_toolchain})",
-    "${OHOS_PROFILER_3RDPARTY_PROTOBUF_DIR}:protoc(${host_toolchain})",
+    ":service_types_proto_gen",
+    "${OHOS_PROFILER_3RDPARTY_GRPC_DIR}:grpc_cpp_plugin(//build/toolchain/linux:clang_x64)",
+    "${OHOS_PROFILER_3RDPARTY_PROTOBUF_DIR}:protoc(//build/toolchain/linux:clang_x64)",
   ]
 }
 
@@ -159,6 +162,7 @@ action("plugin_services_proto_gen") {
   args = [
     "$libc_dir_proto",
     "$root_output_dir_proto",
+    "$proto_rel_out_dir",  # standard proto file destination path
     "--plugin=protoc-gen-ipc=$ipc_cpp_plugin",
     "--ipc_out",
     "$proto_rel_out_dir",
@@ -169,6 +173,7 @@ action("plugin_services_proto_gen") {
   ]
   args += rebase_path(sources, root_build_dir)
   deps = [
+    ":service_types_proto_gen",
     "${OHOS_PROFILER_3RDPARTY_PROTOBUF_DIR}:protoc(${host_toolchain})",
     "${OHOS_PROFILER_DIR}/device/services/ipc:protoc_gen_ipc(${host_toolchain})",
   ]

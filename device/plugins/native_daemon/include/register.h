@@ -103,6 +103,7 @@ enum ArchType {
     X86_64,
     ARM,
     ARM64,
+    UNSUPPORT,
 };
 
 // order is IP , SP for ut
@@ -131,39 +132,25 @@ static const std::map<uint64_t, const std::string> PERF_CONTEXT_NAME = {
 };
 
 #if defined(target_cpu_x64)
-constexpr ArchType BuildArchType = ArchType::X86_64;
+constexpr ArchType buildArchType = ArchType::X86_64;
 #elif defined(target_cpu_arm64)
-constexpr ArchType BuildArchType = ArchType::ARM64;
+constexpr ArchType buildArchType = ArchType::ARM64;
 #elif defined(target_cpu_arm)
-constexpr ArchType BuildArchType = ArchType::ARM;
+constexpr ArchType buildArchType = ArchType::ARM;
 #else
 #error NOT SUPPORT ARCH
 #endif
 
 const std::string UpdatePerfContext(uint64_t addr, perf_callchain_context &perfCallchainContext);
-const std::string GetArchName(ArchType arch);
+
 uint64_t GetSupportedRegMask(ArchType arch);
 
 // this is only for debug
 const std::string RegisterGetName(size_t registerIndex);
 
-bool RegisterGetValue(uint64_t &value, const u64 registers[], const size_t registerIndex,
-    const size_t registerNumber);
-
-size_t RegisterGetSP();
-size_t RegisterGetIP();
-
 size_t RegisterGetCount();
 
-inline bool RegisterGetSPValue(uint64_t &value, const u64 registers[], const size_t registerNumber)
-{
-    return RegisterGetValue(value, registers, RegisterGetSP(), registerNumber);
-}
-
-inline bool RegisterGetIPValue(uint64_t &value, const u64 registers[], const size_t registerNumber)
-{
-    return RegisterGetValue(value, registers, RegisterGetIP(), registerNumber);
-}
+size_t RegisterGetSP(ArchType arch);
 
 inline const std::string GetArchName(ArchType arch)
 {
@@ -181,26 +168,11 @@ inline const std::string GetArchName(ArchType arch)
     }
 }
 
-inline size_t RegisterGetIP()
-{
-    switch (BuildArchType) {
-        case ArchType::X86_32:
-        case ArchType::X86_64:
-            return PERF_REG_X86_IP;
-        case ArchType::ARM:
-            return PERF_REG_ARM_PC;
-        case ArchType::ARM64:
-            return PERF_REG_ARM64_PC;
-        default: {
-            HLOGM("Registers in an unknown CPU.");
-            return std::numeric_limits<size_t>::max();
-        }
-    }
-}
+size_t RegisterGetIP(ArchType arch);
 
 inline size_t RegisterGetCount()
 {
-    switch (BuildArchType) {
+    switch (buildArchType) {
         case ArchType::X86_32:
             return PERF_REG_X86_32_MAX;
         case ArchType::X86_64:
@@ -216,35 +188,36 @@ inline size_t RegisterGetCount()
     }
 }
 
-inline size_t RegisterGetSP()
-{
-    switch (BuildArchType) {
-        case ArchType::X86_32:
-        case ArchType::X86_64:
-            return PERF_REG_X86_SP;
-        case ArchType::ARM:
-            return PERF_REG_ARM_SP;
-        case ArchType::ARM64:
-            return PERF_REG_ARM64_SP;
-        default: {
-            HLOGM("Registers in an unknown CPU.");
-            return std::numeric_limits<size_t>::max();
-        }
-    }
-}
-
 inline bool RegisterGetValue(uint64_t &value, const u64 registers[], const size_t registerIndex,
     const size_t registerNumber)
 {
     if (registerIndex >= registerNumber) {
-        HLOGM("registerIndex is %zu, max is %zu", registerIndex, registerNumber);
+        HLOGE("registerIndex is %zu, max is %zu", registerIndex, registerNumber);
         return false;
     }
     value = registers[registerIndex];
     return true;
 }
 
-int LibunwindRegIdToPrefReg(int regnum);
+inline bool RegisterGetSPValue(uint64_t &value, ArchType arch, const u64 registers[],
+                               const size_t registerNumber)
+{
+    return RegisterGetValue(value, registers, RegisterGetSP(arch), registerNumber);
+}
+
+inline bool RegisterGetIPValue(uint64_t &value, ArchType arch, const u64 registers[],
+                               const size_t registerNumber)
+{
+    return RegisterGetValue(value, registers, RegisterGetIP(arch), registerNumber);
+}
+
+int LibunwindRegIdToPerfReg(int regnum);
+
+ArchType GetDeviceArch();
+ArchType SetDeviceArch(ArchType arch);
+ArchType GetArchTypeFromUname(const std::string &machine);
+ArchType GetArchTypeFromABI(bool abi32);
+void UpdateRegForABI(ArchType arch, u64 registers[]);
 } // namespace NativeDaemon
 } // namespace Developtools
 } // namespace OHOS

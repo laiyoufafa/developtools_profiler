@@ -16,8 +16,8 @@ option optimize_for = LITE_RUNTIME;
 
 message TracePluginConfig {
   repeated string ftrace_events = 1; // kernel event set
-  repeated string bytrace_categories = 2; // bytrace event set
-  repeated string bytrace_apps = 3; // bytrace app set
+  repeated string hitrace_categories = 2; // hitrace event set
+  repeated string hitrace_apps = 3; // hitrace app set
   uint32 buffer_size_kb = 4;    // kernel trace buffer size
   uint32 flush_interval_ms = 5; // time interval in milliseconds to notify service process
   uint32 flush_threshold_kb = 6; // buffer water mark threshold to notify service process
@@ -27,4 +27,6 @@ message TracePluginConfig {
   string raw_data_prefix = 13; // raw data file prefix for debug
   uint32 trace_duration_ms = 20; // time duration in millisconds for trace actions
   bool debug_on = 30; // enable debug options
+  bool discard_cache_data = 31; // if set true, session will stop immediately.(cache data will be lost)
+  uint32 hitrace_time = 32;
 }

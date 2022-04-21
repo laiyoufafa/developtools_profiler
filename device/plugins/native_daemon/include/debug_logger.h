@@ -17,20 +17,35 @@
 #define HIPERF_DEBUG_H
 
 #include <chrono>
+#include <cstring>
 #include <map>
 #include <memory>
 #include <mutex>
+#include <sstream>
 #include <stdio.h>
 #include <string>
 #include <unistd.h>
+
 #include <gtest/gtest_prod.h>
 #include "get_thread_id.h"
 
 namespace OHOS {
 namespace Developtools {
 namespace NativeDaemon {
+enum DebugLevel {
+    LEVEL_MUCH = 1,
+    LEVEL_VERBOSE,
+    LEVEL_DEBUG,
+    LEVEL_INFO,
+    LEVEL_WARNING,
+    LEVEL_ERROR,
+    LEVEL_FATAL,
+    LEVEL_STDOUT, // printf
+    LEVEL_MAX,    // max
+};
+
 #ifdef HIPERF_DEBUG
-#if is_ohos || is_double_framework
+#if is_ohos
 const std::string DEFAULT_LOG_PATH = "/data/local/tmp/hiperf_log.txt";
 #elif is_mingw
 const std::string DEFAULT_LOG_PATH = ".\\hiperf_log.txt";
@@ -51,26 +66,9 @@ const std::string DEFAULT_LOG_PATH = "hiperf_log.txt";
 #define SHORT_FILENAME                                                                             \
     (__builtin_strrchr(__FILE__, '/') ? __builtin_strrchr(__FILE__, '/') + 1 : __FILE__)
 
-enum DebugLevel {
-    LEVEL_MUCH = 1,
-    LEVEL_VERBOSE,
-    LEVEL_DEBUG,
-    LEVEL_INFO,
-    LEVEL_WARNING,
-    LEVEL_ERROR,
-    LEVEL_FATAL,
-    LEVEL_STDOUT, // printf
-    LEVEL_MAX,    // max
-};
-
 const std::map<DebugLevel, const std::string> DebugLevelMap = {
-    {LEVEL_MUCH, "M"},
-    {LEVEL_VERBOSE, "V"},
-    {LEVEL_DEBUG, "D"},
-    {LEVEL_INFO, "I"},
-    {LEVEL_WARNING, "W"},
-    {LEVEL_ERROR, "E"},
-    {LEVEL_FATAL, "F"},
+    {LEVEL_MUCH, "M"},    {LEVEL_VERBOSE, "V"}, {LEVEL_DEBUG, "D"}, {LEVEL_INFO, "I"},
+    {LEVEL_WARNING, "W"}, {LEVEL_ERROR, "E"},   {LEVEL_FATAL, "F"},
 };
 constexpr const int LOG_BUFFER_SIZE = 4 * 1024 * 1024;
 
@@ -147,7 +145,7 @@ private:
     do {                                                                                           \
         std::perror(format);                                                                       \
         DebugLogger::GetInstance()->Log(LEVEL_STDOUT, HILOG_TAG, format "<%d:%s>\n",               \
-            ##__VA_ARGS__, errno, strerror(errno));                                                \
+                                        ##__VA_ARGS__, errno, strerror(errno));                    \
     } while (0)
 #endif
 #endif
@@ -163,10 +161,6 @@ private:
 };
 #define TempMixLogLevel(level) ScopeDebugLevel tempLogLevel(level, true)
 
-#else
-#error not impl
-#endif
-
 #define LOG_LEVEL(LEVEL)  LOG_##LEVEL
 #define LOG_LEVEL_MUCH    "M:"
 #define LOG_LEVEL_VERBOSE "V:"
@@ -176,15 +170,14 @@ private:
 #define LOG_LEVEL_ERROR   "E:"
 #define LOG_LEVEL_FATAL   "F:"
 
-#define LOG_LEVEL_END ""
-
 #ifndef HLOG
 #define HLOG(level, format, ...)                                                                   \
     do {                                                                                           \
-        if (!DebugLogger::logDisabled_) {                                                          \
-            DebugLogger::GetInstance()->Log(level, HILOG_TAG,                                      \
-                HILOG_TAG_NAME "/" LOG_LEVEL(level) "<%ld>[%s:%d]%s:" format LOG_LEVEL_END "\n",   \
-                get_thread_id(), SHORT_FILENAME, __LINE__, __FUNCTION__, ##__VA_ARGS__);                  \
+        if (__builtin_expect(!DebugLogger::logDisabled_, false)) {                                 \
+            DebugLogger::GetInstance()->Log(                                                       \
+                level, HILOG_TAG,                                                                  \
+                HILOG_TAG_NAME "/" LOG_LEVEL(level) "<%ld>[%s:%d]%s:" format "\n", (long)(gettid()),       \
+                SHORT_FILENAME, __LINE__, __FUNCTION__, ##__VA_ARGS__);                            \
         }                                                                                          \
     } while (0)
 #endif
@@ -275,6 +268,93 @@ private:
 #endif
 
 #undef assert
+class LogMessage {
+public:
+    LogMessage(DebugLevel level = LEVEL_VERBOSE, bool showError = false)
+        : level_(level), showError_(showError)
+    {
+    }
+    std::ostream &Stream()
+    {
+        return buffer_;
+    }
+    ~LogMessage()
+    {
+        if (!DebugLogger::logDisabled_) {
+            if (!showError_) {
+                DebugLogger::GetInstance()->Log(level_, HILOG_TAG, "%s\n", buffer_.str().c_str());
+            } else {
+                DebugLogger::GetInstance()->Log(level_, HILOG_TAG, "%s (errno %d:%s)\n",
+                                                buffer_.str().c_str(), errno, strerror(errno));
+            }
+        }
+    }
+
+private:
+    DebugLevel level_;
+    bool showError_;
+    std::ostringstream buffer_;
+};
+#define HLOGMESSAGE(level, error)                                                                  \
+    LogMessage(level, error).Stream()                                                              \
+        << HILOG_TAG_NAME << "/" << LOG_LEVEL(level) << "<" << gettid() << ">[" << SHORT_FILENAME  \
+        << ":" << __LINE__ << "]" << __FUNCTION__ << ":"
+
+#define HLOGS(level) HLOGMESSAGE(level, false)
+
+#define HLOGSP(level) HLOGMESSAGE(level, true)
+#else
+#define HLOGS(...)  std::ostringstream()
+#define HLOGSP(...) std::ostringstream()
+
+#define HLOGDUMMY(...)                                                                             \
+    do {                                                                                           \
+    } while (0)
+#define HLOGEP(...)                                                                                \
+    do {                                                                                           \
+    } while (0)
+#define HLOGM(...)                                                                                 \
+    do {                                                                                           \
+    } while (0)
+#define HLOGMMM(...)                                                                               \
+    do {                                                                                           \
+    } while (0)
+#define HLOGV(...)                                                                                 \
+    do {                                                                                           \
+    } while (0)
+#define HLOGVVV(...)                                                                               \
+    do {                                                                                           \
+    } while (0)
+#define HLOGD(...)                                                                                 \
+    do {                                                                                           \
+    } while (0)
+#define HLOGDDD(...)                                                                               \
+    do {                                                                                           \
+    } while (0)
+#define HLOGI(...)                                                                                 \
+    do {                                                                                           \
+    } while (0)
+#define HLOGW(...)                                                                                 \
+    do {                                                                                           \
+    } while (0)
+#define HLOGE(...)                                                                                 \
+    do {                                                                                           \
+    } while (0)
+#define HLOGF(...)                                                                                 \
+    do {                                                                                           \
+    } while (0)
+#define HLOG_ASSERT_MESSAGE(...)                                                                   \
+    do {                                                                                           \
+    } while (0)
+#define HLOG_ASSERT(...)                                                                           \
+    do {                                                                                           \
+    } while (0)
+
+class ScopeDebugLevel {
+public:
+    ScopeDebugLevel(DebugLevel level, bool mix = false) {};
+};
+#endif
 } // namespace NativeDaemon
 } // namespace Developtools
 } // namespace OHOS

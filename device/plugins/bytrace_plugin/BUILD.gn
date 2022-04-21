@@ -44,7 +44,7 @@ ohos_shared_library("bytraceplugin") {
       external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
     }
   }
-  install_enable = true
+  install_enable = false
   subsystem_name = "${OHOS_PROFILER_SUBSYS_NAME}"
   part_name = "${OHOS_PROFILER_PART_NAME}"
 }

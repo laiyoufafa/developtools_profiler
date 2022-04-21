@@ -22,21 +22,30 @@ proto_rel_out_dir = rebase_path(proto_out_dir, root_build_dir)
 
 #######################################################
 bytrace_plugin_protos_codegen = []
+bytrace_plugin_protos_codegen_standard = []
+bytrace_plugin_protos_codegen_all = []
 foreach(proto, bytrace_plugin_protos_defines) {
   name = get_path_info(proto, "name")
   bytrace_plugin_protos_codegen += [
     "$proto_out_dir/$name.pb.h",
     "$proto_out_dir/$name.pb.cc",
   ]
+  bytrace_plugin_protos_codegen_standard += [
+    "$proto_out_dir/${name}_standard.pb.h",
+    "$proto_out_dir/${name}_standard.pb.cc",
+  ]
 }
+bytrace_plugin_protos_codegen_all += bytrace_plugin_protos_codegen
+bytrace_plugin_protos_codegen_all += bytrace_plugin_protos_codegen_standard
 
 action("bytrace_plugin_protos_protoc") {
   script = "${OHOS_PROFILER_DIR}/build/protoc.sh"
   sources = bytrace_plugin_protos_defines
-  outputs = bytrace_plugin_protos_codegen
+  outputs = bytrace_plugin_protos_codegen_all
   args = [
     "$libc_dir_proto",
     "$root_output_dir_proto",
+    "$proto_rel_out_dir",
     "--cpp_out",
     "$proto_rel_out_dir",
     "--proto_path",
@@ -59,4 +68,15 @@ ohos_source_set("bytrace_plugin_protos_cpp") {
   include_dirs = [ "$proto_out_dir" ]
   public_configs = [ ":bytrace_plugin_protos_config" ]
   sources = bytrace_plugin_protos_codegen
+}
+
+ohos_source_set("bytrace_plugin_protos_cpp_standard") {
+  deps = [ ":bytrace_plugin_protos_protoc" ]
+  public_deps = [
+    "${OHOS_PROFILER_3RDPARTY_PROTOBUF_DIR}:protobuf",
+    "${OHOS_PROFILER_3RDPARTY_PROTOBUF_DIR}:protobuf_lite",
+  ]
+  include_dirs = [ "$proto_out_dir" ]
+  public_configs = [ ":bytrace_plugin_protos_config" ]
+  sources = bytrace_plugin_protos_codegen_standard
 }

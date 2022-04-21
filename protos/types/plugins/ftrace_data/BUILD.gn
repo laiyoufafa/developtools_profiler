@@ -25,6 +25,8 @@ proto_out_dir = "$root_gen_dir/cpp/" + rebase_path(".", "//")
 proto_rel_out_dir = rebase_path(proto_out_dir, root_build_dir)
 
 ftrace_data_codegen = []
+ftrace_data_codegen_standard = []
+ftrace_data_codegen_all = []
 foreach(proto, ftrace_data_sources) {
   dir = get_path_info(proto, "dir")
   name = get_path_info(proto, "name")
@@ -32,7 +34,13 @@ foreach(proto, ftrace_data_sources) {
     "$proto_out_dir/$dir/$name.pb.h",
     "$proto_out_dir/$dir/$name.pb.cc",
   ]
+  ftrace_data_codegen_standard += [
+    "$proto_out_dir/$dir/${name}_standard.pb.h",
+    "$proto_out_dir/$dir/${name}_standard.pb.cc",
+  ]
 }
+ftrace_data_codegen_all += ftrace_data_codegen
+ftrace_data_codegen_all += ftrace_data_codegen_standard
 
 config("ftrace_data_include_config") {
   include_dirs = [ "$proto_out_dir" ]
@@ -42,10 +50,11 @@ config("ftrace_data_include_config") {
 action("ftrace_data_cpp_gen") {
   script = "${OHOS_PROFILER_DIR}/build/protoc.sh"
   sources = ftrace_data_sources
-  outputs = ftrace_data_codegen
+  outputs = ftrace_data_codegen_all
   args = [
     "$libc_dir_proto",
     "$root_output_dir_proto",
+    "$proto_rel_out_dir",
     "--cpp_out",
     "$proto_rel_out_dir",
     "--proto_path",
@@ -64,4 +73,15 @@ ohos_source_set("ftrace_data_cpp") {
   include_dirs = [ "$proto_out_dir" ]
   public_configs = [ ":ftrace_data_include_config" ]
   sources = ftrace_data_codegen
+}
+
+ohos_source_set("ftrace_data_cpp_standard") {
+  deps = [ ":ftrace_data_cpp_gen" ]
+  public_deps = [
+    "${OHOS_PROFILER_3RDPARTY_PROTOBUF_DIR}:protobuf",
+    "${OHOS_PROFILER_3RDPARTY_PROTOBUF_DIR}:protobuf_lite",
+  ]
+  include_dirs = [ "$proto_out_dir" ]
+  public_configs = [ ":ftrace_data_include_config" ]
+  sources = ftrace_data_codegen_standard
 }

@@ -98,7 +98,7 @@ uint64_t dwReadAnyTypeData(const unsigned char *&buffer, T)
 class DwarfEncoding {
 public:
     DwarfEncoding(dw_encode_t dw, const unsigned char *&data, uint64_t vaddrBase = 0,
-        uint64_t vaddrPC = 0, uint64_t vaddrText = 0);
+                  uint64_t vaddrPC = 0, uint64_t vaddrText = 0);
 
     const std::string ToString() const;
 

@@ -24,13 +24,21 @@ proto_out_dir = "$root_gen_dir/cpp/" + rebase_path(".", "//")
 proto_rel_out_dir = rebase_path(proto_out_dir, root_build_dir)
 
 stream_data_codegen = []
+stream_data_codegen_standard = []
+stream_data_codegen_all = []
 foreach(proto, stream_data_sources) {
   name = get_path_info(proto, "name")
   stream_data_codegen += [
     "$proto_out_dir/$name.pb.h",
     "$proto_out_dir/$name.pb.cc",
   ]
+  stream_data_codegen_standard += [
+    "$proto_out_dir/${name}_standard.pb.h",
+    "$proto_out_dir/${name}_standard.pb.cc",
+  ]
 }
+stream_data_codegen_all += stream_data_codegen
+stream_data_codegen_all += stream_data_codegen_standard
 
 config("stream_include_config") {
   include_dirs = [ "$proto_out_dir" ]
@@ -40,10 +48,11 @@ config("stream_include_config") {
 action("stream_data_cpp_gen") {
   script = "${OHOS_PROFILER_DIR}/build/protoc.sh"
   sources = stream_data_sources
-  outputs = stream_data_codegen
+  outputs = stream_data_codegen_all
   args = [
     "$libc_dir_proto",
     "$root_output_dir_proto",
+    "$proto_rel_out_dir",
     "--cpp_out",
     "$proto_rel_out_dir",
     "--proto_path",

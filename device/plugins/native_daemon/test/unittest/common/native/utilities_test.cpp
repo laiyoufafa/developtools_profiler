@@ -17,16 +17,11 @@
 
 #include <chrono>
 #include <thread>
-
-#include "logging.h"
 #include "utilities.h"
-#include "get_thread_id.h"
 
 using namespace testing::ext;
 using namespace std;
-#ifndef CONFIG_NO_HILOG
 using namespace OHOS::HiviewDFX;
-#endif
 namespace OHOS {
 namespace Developtools {
 namespace NativeDaemon {
@@ -55,26 +50,29 @@ void UtilitiesTest::TearDown() {}
 
 void UtilitiesTest::TestThread()
 {
+    printf("threads %ld create\n", (long)gettid());
     int ret = fflush(nullptr);
     if (ret == EOF) {
-        HILOG_ERROR(LOG_CORE, "fflush() error");
+        printf("fflush() error\n");
     }
 
-    tids_.emplace_back(get_thread_id());
+    tids_.emplace_back(gettid());
     while (!exitThreads_) {
         std::this_thread::sleep_for(std::chrono::milliseconds(sleepTime_));
     }
+    printf("threads %ld exited\n", (long)gettid());
     ret = fflush(nullptr);
     if (ret == EOF) {
-        HILOG_ERROR(LOG_CORE, "fflush() error");
+        printf("fflush() error\n");
     }
 }
 
 void UtilitiesTest::StartThreads(const size_t count)
 {
+    printf("create %zu threads\n", count);
     int ret = fflush(nullptr);
     if (ret == EOF) {
-        HILOG_ERROR(LOG_CORE, "fflush() error");
+        printf("fflush() error\n");
     }
 
     exitThreads_ = false;
@@ -86,19 +84,22 @@ void UtilitiesTest::StartThreads(const size_t count)
     while (tids_.size() < count) {
         std::this_thread::sleep_for(std::chrono::milliseconds(sleepTime_));
     }
+    printf("all threads created\n");
     ret = fflush(nullptr);
     if (ret == EOF) {
-        HILOG_ERROR(LOG_CORE, "fflush() error");
+        printf("fflush() error\n");
     }
 }
 
 void UtilitiesTest::ExitThreads()
 {
+    printf("wait all threads exit\n");
     exitThreads_ = true;
     for (std::thread &t : this->threads_) {
         t.join();
     }
     tids_.clear();
+    printf("all threads exited\n");
 }
 
 /**
@@ -207,39 +208,35 @@ HWTEST_F(UtilitiesTest, StringStartsWith, TestSize.Level1)
  */
 HWTEST_F(UtilitiesTest, VectorToString, TestSize.Level1)
 {
-    std::vector<std::string> itemStrNull = {};
-    std::vector<std::string> itemStrSingle = {"a"};
-    std::vector<std::string> itemStrMulti = {"a", "b", "c"};
-    EXPECT_EQ(VectorToString<std::string>(itemStrNull), "<empty>");
-    EXPECT_EQ(VectorToString<std::string>(itemStrSingle), "a");
-    EXPECT_EQ(VectorToString<std::string>(itemStrMulti), "a,b,c");
+    EXPECT_EQ(VectorToString<std::string>(
+        {}), "<empty>");
+    EXPECT_EQ(VectorToString<std::string>(
+        {"a", "b", "c"}), "a,b,c");
+    EXPECT_EQ(VectorToString<std::string>(
+        {"a"}), "a");
+    EXPECT_EQ(VectorToString<std::vector<std::string>>(
+        { {} }), "[<empty>]");
+    EXPECT_EQ(VectorToString<std::vector<std::string>>(
+        { { "a", "b", "c" }, }), "[a,b,c]");
+    EXPECT_EQ(VectorToString<std::vector<std::string>>(
+        {
+            {"a", "b", "c"},
+            {"a", "b", "c"},
+            {"a", "b", "c"},
+        }),
+        "[a,b,c],[a,b,c],[a,b,c]");
 
-    std::vector<std::vector<std::string>> itemStrNullNull = {
-        {},
-    };
-    std::vector<std::vector<std::string>> itemStrNullSingle = {
-        {"a", "b", "c"},
-    };
-    std::vector<std::vector<std::string>> itemStrNullMulti = {
-        {"a", "b", "c"},
-        {"a", "b", "c"},
-        {"a", "b", "c"},
-    };
-    EXPECT_EQ(VectorToString<std::vector<std::string>>(itemStrNullNull), "[<empty>]");
-    EXPECT_EQ(VectorToString<std::vector<std::string>>(itemStrNullSingle), "[a,b,c]");
-    EXPECT_EQ(VectorToString<std::vector<std::string>>(itemStrNullMulti), "[a,b,c],[a,b,c],[a,b,c]");
+    EXPECT_EQ(VectorToString<int>(
+        {}), "<empty>");
+    EXPECT_EQ(VectorToString<int>(
+        {1}), "1");
+    EXPECT_EQ(VectorToString<int>(
+        {1, 2, 3}), "1,2,3");
 
-    std::vector<int> itemIntNull = {};
-    std::vector<int> itemIntSingle = {1};
-    std::vector<int> itemIntMulti = {1, 2, 3};
-    EXPECT_EQ(VectorToString<int>(itemIntNull), "<empty>");
-    EXPECT_EQ(VectorToString<int>(itemIntSingle), "1");
-    EXPECT_EQ(VectorToString<int>(itemIntMulti), "1,2,3");
-
-    std::vector<float> itemFloatNull = {};
-    std::vector<float> itemFloatMulti = {1.0, 2.0, 3.0};
-    EXPECT_EQ(VectorToString<float>(itemFloatNull), "<empty>");
-    EXPECT_EQ(VectorToString<float>(itemFloatMulti), "1.000000,2.000000,3.000000");
+    EXPECT_EQ(VectorToString<float>(
+        {}), "<empty>");
+    EXPECT_EQ(VectorToString<float>(
+        {1.0, 2.0, 3.0}), "1.000000,2.000000,3.000000");
 }
 
 /**
@@ -268,12 +265,14 @@ HWTEST_F(UtilitiesTest, BufferToHexString, TestSize.Level1)
     EXPECT_STREQ(BufferToHexString(buf2, 5).c_str(), "5: 0x31 0x32 0x33 0x34 0x35");
     EXPECT_STREQ(BufferToHexString(buf2, 8).c_str(), "8: 0x31 0x32 0x33 0x34 0x35 0x36 0x37 0x38");
     EXPECT_STREQ(BufferToHexString(buf2, 9).c_str(),
-        "9: 0x31 0x32 0x33 0x34 0x35 0x36 0x37 0x38 0x31");
-    EXPECT_STREQ(BufferToHexString(buf2, 16).c_str(),
+                 "9: 0x31 0x32 0x33 0x34 0x35 0x36 0x37 0x38 0x31");
+    EXPECT_STREQ(
+        BufferToHexString(buf2, 16).c_str(),
         "16: 0x31 0x32 0x33 0x34 0x35 0x36 0x37 0x38 0x31 0x32 0x33 0x34 0x35 0x36 0x37 0x38");
 
     const std::vector<unsigned char> vbuf2(buf2, buf2 + sizeof(buf2) - 1u);
-    EXPECT_STREQ(BufferToHexString(vbuf2).c_str(),
+    EXPECT_STREQ(
+        BufferToHexString(vbuf2).c_str(),
         "16: 0x31 0x32 0x33 0x34 0x35 0x36 0x37 0x38 0x31 0x32 0x33 0x34 0x35 0x36 0x37 0x38");
 }
 
@@ -285,16 +284,15 @@ HWTEST_F(UtilitiesTest, BufferToHexString, TestSize.Level1)
 HWTEST_F(UtilitiesTest, HexDump, TestSize.Level1)
 {
     const unsigned char buf[] = "12345678";
-    const void *vbuf = static_cast<const void *>(buf);
     ScopeDebugLevel tempLogLevel(LEVEL_MUCH, true);
 
     StdoutRecord stdoutRecord;
     stdoutRecord.Start();
-    HexDump(vbuf, 0);
-    HexDump(vbuf, 1);
-    HexDump(vbuf, 4);
-    HexDump(vbuf, 5);
-    HexDump(vbuf, 8);
+    HexDump(buf, 0);
+    HexDump(buf, 1);
+    HexDump(buf, 4);
+    HexDump(buf, 5);
+    HexDump(buf, 8);
     stdoutRecord.Stop();
 }
 
@@ -524,7 +522,7 @@ HWTEST_F(UtilitiesTest, ToHex, TestSize.Level1)
  * @tc.desc:
  * @tc.type: FUNC
  */
-HWTEST_F(UtilitiesTest, CopyBytesFromBufferAndMove, TestSize.Level1)
+HWTEST_F(UtilitiesTest, CopyFromBufferAndMove, TestSize.Level1)
 {
     unsigned char *buffer = new unsigned char[4];
     buffer[0] = '1';
@@ -533,55 +531,7 @@ HWTEST_F(UtilitiesTest, CopyBytesFromBufferAndMove, TestSize.Level1)
     buffer[3] = '4';
     int *dest = new int;
     const unsigned char *srcStr = buffer;
-    EXPECT_EQ(CopyBytesFromBufferAndMove(srcStr, dest, 4), 4u);
-}
-
-/**
- * @tc.name: CopyFromBufferAndMove
- * @tc.desc:
- * @tc.type: FUNC
- */
-HWTEST_F(UtilitiesTest, CopyFromBufferAndMove, TestSize.Level1)
-{
-    char dest = '\0';
-    std::string strTmp = "source";
-    unsigned char *srcTmp = new unsigned char[7];
-    if (memcpy_s(srcTmp, strlen(strTmp.c_str()) + 1, strTmp.c_str(), strlen(strTmp.c_str()) + 1) != EOK) {
-        HILOG_ERROR(LOG_CORE, "memcpy_s failed");
-    }
-    const unsigned char *srcStr = srcTmp;
-    CopyFromBufferAndMove(srcStr, dest);
-    EXPECT_EQ(dest, 's');
-    delete[] srcTmp;
-}
-
-/**
- * @tc.name: CopyFromBufferAndMove2
- * @tc.desc:
- * @tc.type: FUNC
- */
-HWTEST_F(UtilitiesTest, CopyFromBufferAndMove2, TestSize.Level1)
-{
-    int srcVal;
-    uint *dest = new uint;
-    *dest = 1;
-
-    CopyFromBufferAndMove2(dest, srcVal);
-    EXPECT_EQ(srcVal, 1);
-}
-
-/**
- * @tc.name: CopyToBufferAndMove2
- * @tc.desc:
- * @tc.type: FUNC
- */
-HWTEST_F(UtilitiesTest, CopyToBufferAndMove2, TestSize.Level1)
-{
-    int srcVal = 1;
-    int *dest = new int[2];
-
-    CopyToBufferAndMove2(srcVal, dest);
-    EXPECT_EQ(*(dest - sizeof(int)), 1);
+    EXPECT_EQ(CopyFromBufferAndMove(srcStr, dest, 4), 4u);
 }
 
 /**

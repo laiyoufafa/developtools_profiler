@@ -20,6 +20,7 @@
 #include <string>
 #include <sys/time.h>
 
+#include "hook_common.h"
 #include "hook_socket_client.h"
 #include "musl_preinit_common.h"
 #include "stack_writer.h"
@@ -32,6 +33,7 @@
 static __thread bool ohos_malloc_hook_enable_hook_flag = true;
 
 namespace {
+using OHOS::Developtools::NativeDaemon::buildArchType;
 std::shared_ptr<HookSocketClient> g_hookClient;
 std::recursive_mutex g_ClientMutex;
 std::atomic<const MallocDispatchType*> g_dispatch {nullptr};
@@ -73,7 +75,10 @@ void* hook_malloc(void* (*fn)(size_t), size_t size)
         ret = fn(size);
     }
 
-    if (size < g_filterSize) {
+    if (g_hookClient == nullptr) {
+        return ret;
+    }
+    if ((size < g_hookClient->GetFilterSize()) || g_hookClient->GetMallocDisable() ) {
         return ret;
     }
 
@@ -96,7 +101,7 @@ void* hook_malloc(void* (*fn)(size_t), size_t size)
       :
       : "r3", "r4", "memory");
 #endif
-    const char* stackptr = reinterpret_cast<const char*>(regs[OHOS::Developtools::NativeDaemon::RegisterGetSP()]);
+    const char* stackptr = reinterpret_cast<const char*>(regs[RegisterGetSP(buildArchType)]);
     char* stackendptr = nullptr;
     GetRuntimeStackEnd(stackptr, &stackendptr);  // stack end pointer
     int stackSize = stackendptr - stackptr;
@@ -106,7 +111,7 @@ void* hook_malloc(void* (*fn)(size_t), size_t size)
     struct timespec ts = {};
     clock_gettime(CLOCK_REALTIME, &ts);
 
-    uint32_t type = 0;
+    uint32_t type = MALLOC_MSG;
 
     size_t metaSize = sizeof(ts) + sizeof(type) + sizeof(size) + sizeof(void *)
         + sizeof(stackSize) + stackSize + sizeof(pid_t) + sizeof(pid_t) + regCount * sizeof(uint32_t);
@@ -137,7 +142,7 @@ void* hook_malloc(void* (*fn)(size_t), size_t size)
         HILOG_ERROR(LOG_CORE, "memcpy_s stackptr failed");
     }
     metaSize += stackSize;
-    if (memcpy_s(buffer.get() + metaSize, totalSize - metaSize, &pid, sizeof(pid) != EOK)) {
+    if (memcpy_s(buffer.get() + metaSize, totalSize - metaSize, &pid, sizeof(pid)) != EOK) {
         HILOG_ERROR(LOG_CORE, "memcpy_s stackptr failed");
     }
     metaSize += sizeof(pid_t);
@@ -211,6 +216,14 @@ void hook_free(void (*free_func)(void*), void *p)
         free_func(p);
     }
 
+    if (g_hookClient == nullptr) {
+        return;
+    }
+
+    if (g_hookClient->GetMallocDisable()) {
+        return;
+    }
+
     int regCount = OHOS::Developtools::NativeDaemon::RegisterGetCount();
     if (regCount <= 0) {
         return;
@@ -229,13 +242,13 @@ void hook_free(void (*free_func)(void*), void *p)
       :
       : "r3", "r4", "memory");
 #endif
-    const char* stackptr = reinterpret_cast<const char*>(regs[OHOS::Developtools::NativeDaemon::RegisterGetSP()]);
+    const char* stackptr = reinterpret_cast<const char*>(regs[RegisterGetSP(buildArchType)]);
     char* stackendptr = nullptr;
     GetRuntimeStackEnd(stackptr, &stackendptr);  // stack end pointer
     int stackSize = stackendptr - stackptr;
     pid_t tid = get_thread_id();
     pid_t pid = getpid();
-    uint32_t type = 1;
+    uint32_t type = FREE_MSG;
     struct timespec ts = {};
     clock_gettime(CLOCK_REALTIME, &ts);
 
@@ -286,6 +299,200 @@ void hook_free(void (*free_func)(void*), void *p)
     if (g_hookClient != nullptr) {
         g_hookClient->SendStack(buffer.get(), metaSize);
     }
+}
+
+void* hook_mmap(void*(*fn)(void*, size_t, int, int, int, off_t),
+    void* addr, size_t length, int prot, int flags, int fd, off_t offset)
+{
+    void* ret = nullptr;
+    if (fn) {
+        ret = fn(addr, length, prot, flags, fd, offset);
+    }
+
+    if (g_hookClient == nullptr) {
+        return ret;
+    }
+
+    if (g_hookClient->GetMmapDisable()) {
+        return ret;
+    }
+
+    int regCount = OHOS::Developtools::NativeDaemon::RegisterGetCount();
+    if (regCount <= 0) {
+        return ret;
+    }
+    uint32_t* regs = new (std::nothrow) uint32_t[regCount];
+    if (!regs) {
+        HILOG_ERROR(LOG_CORE, "new regs failed");
+        return ret;
+    }
+
+#if defined(__arm__)
+    asm volatile(
+      "mov r3, r13\n"
+      "mov r4, r15\n"
+      "stmia %[base], {r3-r4}\n"
+      : [ base ] "+r"(regs)
+      :
+      : "r3", "r4", "memory");
+#endif
+    const char* stackptr = reinterpret_cast<const char*>(regs[RegisterGetSP(buildArchType)]);
+    char* stackendptr = nullptr;
+    GetRuntimeStackEnd(stackptr, &stackendptr);  // stack end pointer
+    int stackSize = stackendptr - stackptr;
+    pid_t pid = getpid();
+    pid_t tid = get_thread_id();
+
+    struct timespec ts = {};
+    clock_gettime(CLOCK_REALTIME, &ts);
+
+    uint32_t type = MMAP_MSG;
+
+    size_t metaSize = sizeof(ts) + sizeof(type) + sizeof(length) + sizeof(void *)
+        + sizeof(stackSize) + stackSize + sizeof(pid_t) + sizeof(pid_t) + regCount * sizeof(uint32_t);
+    std::unique_ptr<uint8_t[]> buffer = std::make_unique<uint8_t[]>(metaSize);
+    size_t totalSize = metaSize;
+
+    if (memcpy_s(buffer.get(), totalSize, &ts, sizeof(ts)) != EOK) {
+        HILOG_ERROR(LOG_CORE, "memcpy_s ts failed");
+    }
+    metaSize = sizeof(ts);
+    if (memcpy_s(buffer.get() + metaSize, totalSize - metaSize, &type, sizeof(type)) != EOK) {
+        HILOG_ERROR(LOG_CORE, "memcpy_s type failed");
+    }
+    metaSize += sizeof(type);
+    if (memcpy_s(buffer.get() + metaSize, totalSize - metaSize, &length, sizeof(length)) != EOK) {
+        HILOG_ERROR(LOG_CORE, "memcpy_s length failed");
+    }
+    metaSize += sizeof(length);
+    if (memcpy_s(buffer.get() + metaSize, totalSize - metaSize, &ret, sizeof(void *)) != EOK) {
+        HILOG_ERROR(LOG_CORE, "memcpy_s addr failed");
+    }
+    metaSize += sizeof(ret);
+    if (memcpy_s(buffer.get() + metaSize, totalSize - metaSize, &stackSize, sizeof(stackSize)) != EOK) {
+        HILOG_ERROR(LOG_CORE, "memcpy_s stackSize failed");
+    }
+    metaSize += sizeof(stackSize);
+    if (memcpy_s(buffer.get() + metaSize, totalSize - metaSize, stackptr, stackSize) != EOK) {
+        HILOG_ERROR(LOG_CORE, "memcpy_s stackptr failed");
+    }
+    metaSize += stackSize;
+    if (memcpy_s(buffer.get() + metaSize, totalSize - metaSize, &pid, sizeof(pid)) != EOK) {
+        HILOG_ERROR(LOG_CORE, "memcpy_s stackptr failed");
+    }
+    metaSize += sizeof(pid_t);
+    if (memcpy_s(buffer.get() + metaSize, totalSize - metaSize, &tid, sizeof(tid)) != EOK) {
+        HILOG_ERROR(LOG_CORE, "memcpy_s tid failed");
+    }
+    metaSize += sizeof(pid_t);
+    if (memcpy_s(buffer.get() + metaSize, totalSize - metaSize, regs, regCount * sizeof(uint32_t)) != EOK) {
+        HILOG_ERROR(LOG_CORE, "memcpy_s regs failed");
+    }
+    metaSize += regCount * sizeof(uint32_t);
+    delete[] regs;
+
+    std::lock_guard<std::recursive_mutex> guard(g_ClientMutex);
+    if (g_hookClient != nullptr) {
+        g_hookClient->SendStack(buffer.get(), metaSize);
+    }
+    return ret;
+}
+
+int hook_munmap(int(*fn)(void*, size_t), void* addr, size_t length)
+{
+    int ret = -1;
+    if (fn) {
+        ret = fn(addr, length);
+    }
+
+    if (g_hookClient == nullptr) {
+        return ret;
+    }
+
+    if (g_hookClient->GetMmapDisable()) {
+        return ret;
+    }
+
+    int regCount = OHOS::Developtools::NativeDaemon::RegisterGetCount();
+    if (regCount <= 0) {
+        return ret;
+    }
+    uint32_t* regs = new (std::nothrow) uint32_t[regCount];
+    if (!regs) {
+        HILOG_ERROR(LOG_CORE, "new regs failed");
+        return ret;
+    }
+
+#if defined(__arm__)
+    asm volatile(
+      "mov r3, r13\n"
+      "mov r4, r15\n"
+      "stmia %[base], {r3-r4}\n"
+      : [ base ] "+r"(regs)
+      :
+      : "r3", "r4", "memory");
+#endif
+    const char* stackptr = reinterpret_cast<const char*>(regs[RegisterGetSP(buildArchType)]);
+    char* stackendptr = nullptr;
+    GetRuntimeStackEnd(stackptr, &stackendptr);  // stack end pointer
+    int stackSize = stackendptr - stackptr;
+    pid_t pid = getpid();
+    pid_t tid = get_thread_id();
+
+    struct timespec ts = {};
+    clock_gettime(CLOCK_REALTIME, &ts);
+
+    uint32_t type = MUNMAP_MSG;
+
+    size_t metaSize = sizeof(ts) + sizeof(type) + sizeof(length) + sizeof(void *)
+        + sizeof(stackSize) + stackSize + sizeof(pid_t) + sizeof(pid_t) + regCount * sizeof(uint32_t);
+
+    std::unique_ptr<uint8_t[]> buffer = std::make_unique<uint8_t[]>(metaSize);
+    size_t totalSize = metaSize;
+
+    if (memcpy_s(buffer.get(), totalSize, &ts, sizeof(ts)) != EOK) {
+        HILOG_ERROR(LOG_CORE, "memcpy_s ts failed");
+    }
+    metaSize = sizeof(ts);
+    if (memcpy_s(buffer.get() + metaSize, totalSize - metaSize, &type, sizeof(type)) != EOK) {
+        HILOG_ERROR(LOG_CORE, "memcpy_s type failed");
+    }
+    metaSize += sizeof(type);
+    if (memcpy_s(buffer.get() + metaSize, totalSize - metaSize, &length, sizeof(length)) != EOK) {
+        HILOG_ERROR(LOG_CORE, "memcpy_s length failed");
+    }
+    metaSize += sizeof(length);
+    if (memcpy_s(buffer.get() + metaSize, totalSize - metaSize, &addr, sizeof(void *)) != EOK) {
+        HILOG_ERROR(LOG_CORE, "memcpy_s addr failed");
+    }
+    metaSize += sizeof(addr);
+    if (memcpy_s(buffer.get() + metaSize, totalSize - metaSize, &stackSize, sizeof(stackSize)) != EOK) {
+        HILOG_ERROR(LOG_CORE, "memcpy_s stackSize failed");
+    }
+    metaSize += sizeof(stackSize);
+    if (memcpy_s(buffer.get() + metaSize, totalSize - metaSize, stackptr, stackSize) != EOK) {
+        HILOG_ERROR(LOG_CORE, "memcpy_s stackptr failed");
+    }
+    metaSize += stackSize;
+    if (memcpy_s(buffer.get() + metaSize, totalSize - metaSize, &pid, sizeof(pid)) != EOK) {
+        HILOG_ERROR(LOG_CORE, "memcpy_s stackptr failed");
+    }
+    metaSize += sizeof(pid_t);
+    if (memcpy_s(buffer.get() + metaSize, totalSize - metaSize, &tid, sizeof(tid)) != EOK) {
+        HILOG_ERROR(LOG_CORE, "memcpy_s tid failed");
+    }
+    metaSize += sizeof(pid_t);
+    if (memcpy_s(buffer.get() + metaSize, totalSize - metaSize, regs, regCount * sizeof(uint32_t)) != EOK) {
+        HILOG_ERROR(LOG_CORE, "memcpy_s regs failed");
+    }
+    metaSize += regCount * sizeof(uint32_t);
+    delete[] regs;
+
+    std::lock_guard<std::recursive_mutex> guard(g_ClientMutex);
+    if (g_hookClient != nullptr) {
+        g_hookClient->SendStack(buffer.get(), metaSize);
+    }
+    return ret;
 }
 
 bool ohos_malloc_hook_initialize(const MallocDispatchType*malloc_dispatch, bool*, const char*)

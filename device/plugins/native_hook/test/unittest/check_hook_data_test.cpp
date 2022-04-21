@@ -39,11 +39,12 @@ std::string DEFAULT_PATH("/data/local/tmp/");
 const int g_shareMemorySize = 1000 * 4096;
 const int g_bufferSize = 100 * 1024;
 const int g_defaultDepth = 30;
-const int g_callocDepth = 18;
+const int g_callocDepth = 16;
 const int g_mallocVecSize = 5;
 const int g_freeVecSize = 4;
 const int g_mallocGetDataSize = 3;
 const int g_freeGetDataSize = 2;
+const int g_filteDepth = 2;
 std::unique_ptr<uint8_t[]> g_buffer = std::make_unique<uint8_t[]>(g_bufferSize);
 
 using StaticSpace = struct {
@@ -471,7 +472,7 @@ HWTEST_F(CheckHookDataTest, DFX_DFR_Hiprofiler_0100, Function | MediumTest | Lev
             if (isRealloc) {
                 reallocAddr = hookVec[addrPos];
                 ASSERT_EQ(atoi(hookVec[4].c_str()), DEFAULT_REALLOC_SIZE);
-                EXPECT_EQ(depth, g_defaultDepth/g_freeGetDataSize);
+                EXPECT_EQ(depth, ((g_defaultDepth/g_freeGetDataSize)-g_filteDepth));
                 isFirstHook = false;
             } else {
                 mallocAddr = hookVec[addrPos];

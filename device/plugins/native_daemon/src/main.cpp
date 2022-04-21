@@ -97,6 +97,7 @@ bool VerifyCommand(std::vector<std::string> args, HookData& hookData)
     if ((args.size() % VC_ARG_TWAIN) != 0) {
         return false;
     }
+    hookData.pid = 0;
     hookData.duration = 0;
     hookData.performance_filename = "./performance.txt";
     hookData.fileName = "";
@@ -112,8 +113,9 @@ bool VerifyCommand(std::vector<std::string> args, HookData& hookData)
 
 void GetHookedProceInfo(HookData& hookData)
 {
+    printf("Record file = %s, apply sharememory size = %u\n", hookData.fileName.c_str(), hookData.smbSize);
     if (hookData.pid > 0) {
-        printf("Please send signal to target process %d\n", hookData.pid);
+        printf("Please send signal 36 to target process %d\n", hookData.pid);
     } else if (!hookData.processName.empty()) {
         std::string findpid = "pidof " + hookData.processName;
         std::unique_ptr<char[]> buffer {new (std::nothrow) char[BUF_MAX_LEN]};
@@ -125,14 +127,16 @@ void GetHookedProceInfo(HookData& hookData)
                 printf("Please start process %s\n", hookData.processName.c_str());
                 break;
             } else if (strlen(line) > 0 && isdigit((unsigned char)(line[0]))) {
-                hookData.pid = (int)atoi(line);
-                printf("Please send signal to target process %d\n", hookData.pid);
+                printf("If you want to hook current process, please send signal 36 to target process %d\n",
+                    (int)atoi(line));
+                printf("If you want to hook new process, please\n");
+                printf("1.param set libc.hook_mode startup:%s\n", hookData.processName.c_str());
+                printf("2.restart process %s\n", hookData.processName.c_str());
                 break;
             }
         } while (1);
     }
 
-    printf("Record file = %s, apply sharememory size = %u\n", hookData.fileName.c_str(), hookData.smbSize);
     if (hookData.maxStackDepth > 0) {
         printf("depth greater than %u will not display\n", hookData.maxStackDepth);
     }
@@ -156,8 +160,7 @@ int main(int argc, char* argv[])
         for (int i = 1; i < argc; i++) {
             args.push_back(argv[i]);
         }
-        HookData hookData = {-1, 0, 0, 0, 0, "", "", ""};
-        hookData.pid = -1;
+        HookData hookData = {0, 0, 0, 0, 0, "", "", ""};
         if (VerifyCommand(args, hookData)) {
             GetHookedProceInfo(hookData);
         } else {
@@ -172,8 +175,9 @@ int main(int argc, char* argv[])
 
         auto commandPoller = std::make_shared<CommandPoller>(hookManager);
         CHECK_NOTNULL(commandPoller, 1, "create CommandPoller FAILED!");
+        CHECK_TRUE(commandPoller->OnConnect(), 1, "connect FAILED");
         hookManager->SetCommandPoller(commandPoller);
-        hookManager->RegisterAgentPlugin("hookdaemon");
+        hookManager->RegisterAgentPlugin("nativehook");
         while (true) {
             std::this_thread::sleep_for(std::chrono::milliseconds(SLEEP_ONE_SECOND));
         }

@@ -18,8 +18,13 @@
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
+#include <hilog/log.h>
 
 #include "debug_logger.h"
 #include "register.h"
 #include "utilities.h"
+
+#define ARM_R13_REG 13
+#define ARM_R15_REG 15
+
 #endif

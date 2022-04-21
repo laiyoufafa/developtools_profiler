@@ -18,4 +18,3 @@ for /R %DIR% %%f in (testdata\dwarf\*) do (
 hdc_std file send %%f /data/test/resource/testdata/dwarf/
 echo %%f
 )
-pause

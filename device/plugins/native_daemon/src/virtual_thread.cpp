@@ -12,7 +12,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <cstdio>
 #define HILOG_TAG "RuntimeThread"
 
 #include "virtual_thread.h"
@@ -24,12 +23,83 @@
 #include <sys/mman.h>
 #endif
 
-#include "symbols.h"
+#include "symbols_file.h"
 #include "utilities.h"
 #include "virtual_runtime.h"
 namespace OHOS {
 namespace Developtools {
 namespace NativeDaemon {
+#ifdef DEBUG_TIME
+bool VirtualThread::IsSorted() const
+{
+    for (std::size_t index = 1; index < memMaps_->size(); ++index) {
+        if ((*memMaps_)[index - 1].end_ > (*memMaps_)[index].begin_) {
+            std::cout << "memMaps_ order error:\n"
+                      << "    " << (*memMaps_)[index - 1].begin_ << "-" << (*memMaps_)[index - 1].end_
+                      << "    " << (*memMaps_)[index].begin_ << "-" << (*memMaps_)[index].end_;
+            return false;
+        }
+    }
+    return true;
+}
+#endif
+
+const MemMapItem *VirtualThread::FindMapByAddr2(uint64_t addr) const
+{
+    HLOGM("try found vaddr 0x%" PRIx64 " in maps %zu ", addr, memMaps_->size());
+    if (memMaps_->size() == 0) {
+        return nullptr;
+    }
+    auto foundIt =
+        std::upper_bound(memMaps_->begin(), memMaps_->end(), addr, MemMapItem::ValueLessThan);
+    if (foundIt == memMaps_->begin()) {
+        // have map 2 3 4 5
+        // find 1 , will return 2 (index 0, begin elem)
+        // this same as not found any thins
+    } else {
+        // include memMaps_->end()
+        foundIt = std::prev(foundIt);
+        if (foundIt->Contain(addr)) {
+            HLOGM("found '%s' for vaddr 0x%016" PRIx64 "", foundIt->ToString().c_str(), addr);
+            return &(*foundIt);
+        }
+    }
+    return nullptr;
+}
+
+const MemMapItem *VirtualThread::FindMapByAddr(uint64_t addr) const
+{
+    HLOGM("try found vaddr 0x%" PRIx64 " in maps %zu ", addr, memMaps_->size());
+    if (memMaps_->size() == 0) {
+        return nullptr;
+    }
+    if (memMaps_->front().begin_ > addr) {
+        return nullptr;
+    }
+    if (memMaps_->back().end_ <= addr) {
+        return nullptr;
+    }
+    constexpr int two {2};
+    std::size_t left {0};
+    std::size_t right {memMaps_->size()};
+    std::size_t mid = (right - left) / two + left;
+    while (left < right) {
+        if (addr < (*memMaps_)[mid].end_) {
+            right = mid;
+            mid = (right - left) / two + left;
+            continue;
+        }
+        if (addr >= (*memMaps_)[mid].end_) {
+            left = mid + 1;
+            mid = (right - left) / two + left;
+            continue;
+        }
+    }
+    if (addr >= (*memMaps_)[left].begin_ and addr < (*memMaps_)[left].end_) {
+        return &(*memMaps_)[left];
+    }
+    return nullptr;
+}
 VirtualThread::VirtualThread(pid_t pid,
                              pid_t tid,
                              const std::set<std::unique_ptr<SymbolsFile>, CCompareSymbolsFile>& symbolsFiles,
@@ -37,6 +107,7 @@ VirtualThread::VirtualThread(pid_t pid,
                              bool parseFlag)
     : pid_(pid), tid_(tid), symbolsFiles_(symbolsFiles), virtualruntime_(runtime)
 {
+    memMaps_ = &virtualruntime_->processMemMaps_;
     if (parseFlag) {
         pthread_mutex_lock(&virtualruntime_->threadMemMapsLock_);
         if (virtualruntime_->processMemMaps_.size() == 0) {
@@ -45,7 +116,6 @@ VirtualThread::VirtualThread(pid_t pid,
         pthread_mutex_unlock(&virtualruntime_->threadMemMapsLock_);
     }
 
-    memMaps_ = &virtualruntime_->processMemMaps_;
     this->name_ = ReadThreadName(pid);
     reg_nr = RegisterGetCount();
     if (reg_nr <= 0) {
@@ -75,25 +145,7 @@ std::string VirtualThread::ReadThreadName(pid_t tid)
     return comm;
 }
 
-bool VirtualThread::FindMapByAddr(uint64_t addr, MemMapItem &outMap) const
-{
-    HLOGM("try found vaddr 0x%" PRIx64 " in maps %zu ", addr, memMaps_->size());
-    for (auto &map : *memMaps_) {
-        if (addr >= map.begin_ && addr < map.end_) {
-            outMap = map;
-            HLOGMMM("found vaddr 0x%" PRIx64 " in map fileoffset 0x%" PRIx64 " (0x%" PRIx64
-                    " - 0x%" PRIx64 " pageoffset 0x%" PRIx64 ")  from %s",
-                addr, outMap.FileOffsetFromAddr(addr), map.begin_, map.end_, map.pageoffset_,
-                map.name_.c_str());
-            return true;
-        }
-    }
-    HLOGM("NOT found vaddr 0x%" PRIx64 " in maps %zu ", addr, memMaps_->size());
-    return false;
-}
-
-bool VirtualThread::FindMapByFileInfo(const std::string name, uint64_t offset,
-    MemMapItem& outMap) const
+const MemMapItem *VirtualThread::FindMapByFileInfo(const std::string name, uint64_t offset) const
 {
     for (auto &map : *memMaps_) {
         if (name != map.name_) {
@@ -101,19 +153,14 @@ bool VirtualThread::FindMapByFileInfo(const std::string name, uint64_t offset,
         }
         // check begin and length
         if (offset >= map.pageoffset_ && (offset - map.pageoffset_) < (map.end_ - map.begin_)) {
-            outMap = map;
             HLOGMMM("found fileoffset 0x%" PRIx64 " in map (0x%" PRIx64 " - 0x%" PRIx64
                     " pageoffset 0x%" PRIx64 ")  from %s",
-                offset, map.begin_, map.end_, map.pageoffset_, map.name_.c_str());
-            return true;
-        } else {
-            HLOGM("* fail to found fileoffset 0x%" PRIx64 " in map (0x%" PRIx64 " - 0x%" PRIx64
-                    " pageoffset 0x%" PRIx64 ")  from %s",
-                offset, map.begin_, map.end_, map.pageoffset_, map.name_.c_str());
+                    offset, map.begin_, map.end_, map.pageoffset_, map.name_.c_str());
+            return &map;
         }
     }
     HLOGM("NOT found offset 0x%" PRIx64 " in maps %zu ", offset, memMaps_->size());
-    return false;
+    return nullptr;
 }
 
 SymbolsFile *VirtualThread::FindSymbolsFileByMap(const MemMapItem &inMap) const
@@ -121,13 +168,11 @@ SymbolsFile *VirtualThread::FindSymbolsFileByMap(const MemMapItem &inMap) const
     for (auto &symbolsFile : symbolsFiles_) {
         if (symbolsFile->filePath_ == inMap.name_) {
             HLOGM("found symbol for map '%s'", inMap.name_.c_str());
-            if (!symbolsFile->Loaded()) {
-                symbolsFile->LoadSymbols();
-            }
+            symbolsFile->LoadDebugInfo();
             return symbolsFile.get();
         }
     }
-
+#ifdef DEBUG_MISS_SYMBOL
     if (find(missedSymbolFile_.begin(), missedSymbolFile_.end(), inMap.name_) ==
         missedSymbolFile_.end()) {
         missedSymbolFile_.emplace_back(inMap.name_);
@@ -136,40 +181,61 @@ SymbolsFile *VirtualThread::FindSymbolsFileByMap(const MemMapItem &inMap) const
             HLOGW(" we have '%s'", file->filePath_.c_str());
         }
     }
-
+#endif
     return nullptr;
 }
-
-bool VirtualThread::ReadRoMemory(uint64_t addr, uint8_t *data, size_t size) const
+void VirtualThread::ReportVaddrMapMiss(uint64_t vaddr) const
 {
-    MemMapItem map {};
-    if (FindMapByAddr(addr, map)) {
+#ifdef HIPERF_DEBUG
+    if (DebugLogger::GetInstance()->GetLogLevel() <= LEVEL_VERBOSE) {
+        if (missedRuntimeVaddr_.find(vaddr) == missedRuntimeVaddr_.end()) {
+            missedRuntimeVaddr_.insert(vaddr);
+            HLOGV("vaddr %" PRIx64 " not found in any map", vaddr);
+            for (auto &map : *memMaps_) {
+                HLOGV("map %s ", map.ToString().c_str());
+            }
+        }
+    }
+#endif
+}
+
+bool VirtualThread::ReadRoMemory(uint64_t vaddr, uint8_t *data, size_t size) const
+{
+    const MemMapItem *map = FindMapByAddr(vaddr);
+    if (map != nullptr) {
         // found symbols by file name
-        SymbolsFile *symbolsFile = FindSymbolsFileByMap(map);
+        SymbolsFile *symbolsFile = FindSymbolsFileByMap(*map);
         if (symbolsFile != nullptr) {
-            HLOGM("read vaddr from addr is 0x%" PRIx64 " at '%s'", addr - map.begin_,
-                map.name_.c_str());
-            if (size == symbolsFile->ReadRoMemory(map.FileOffsetFromAddr(addr), data, size)) {
+            HLOGM("read vaddr from addr is 0x%" PRIx64 " at '%s'", vaddr - map->begin_,
+                  map->name_.c_str());
+            if (size == symbolsFile->ReadRoMemory(map->FileOffsetFromAddr(vaddr), data, size)) {
                 return true;
             } else {
                 return false;
             }
         } else {
-            HLOGW("found addr %" PRIx64 " in map but not loaded symbole %s", addr,
-                map.name_.c_str());
+            HLOGW("found addr %" PRIx64 " in map but not loaded symbole %s", vaddr,
+                  map->name_.c_str());
         }
     } else {
-        HLOGW("have not found addr %" PRIx64 " in any map", addr);
+#ifdef HIPERF_DEBUG
+        ReportVaddrMapMiss(vaddr);
+#endif
     }
     return false;
 }
 
 bool VirtualThread::IsLegalFileName(const std::string &fileName)
 {
-    if (fileName.empty() or StringStartsWith(fileName, "/dev/") or
-        fileName.find(':') != std::string::npos or fileName.front() == '[' or
-        fileName.back() == ']' or StringEndsWith(fileName, ".ttf") or
-        fileName == MMAP_ANONYMOUS_OHOS_NAME) {
+    // some specail
+    if (fileName == "[vdso]") {
+        return true;
+    }
+    if (fileName.empty() or fileName.find(':') != std::string::npos or fileName.front() == '[' or
+        fileName.back() == ']' or std::strncmp(fileName.c_str(), "/dev/", sizeof("/dev/")) == 0 or
+        std::strncmp(fileName.c_str(), "/memfd:", sizeof("/memfd:")) == 0 or
+        std::strncmp(fileName.c_str(), "//anon", sizeof("//anon")) == 0 or
+        StringEndsWith(fileName, ".ttf")) {
         return false;
     }
     return true;
@@ -242,7 +308,7 @@ void VirtualThread::ParseMap(std::vector<MemMapItem>& memMaps)
                 memMapItem.type_ |= PROT_EXEC;
             }
 
-            if ((memMapItem.type_ & PROT_EXEC) || (memMapItem.type_ & PROT_READ)) {
+            if ((memMapItem.type_ & PROT_EXEC) or (memMapItem.type_ == PROT_READ)) {
                 /*
                 we need record the read hen exec map address
                 callstackk need r map to check the ehframe addrssss
@@ -275,7 +341,7 @@ void VirtualThread::ParseMap(std::vector<MemMapItem>& memMaps)
             try {
                 // 00000000
                 memMapItem.pageoffset_ = std::stoull(mapTokens[MMAP_LINE_TOKEN_INDEX_OFFSET],
-                    nullptr, NUMBER_FORMAT_HEX_BASE);
+                                                     nullptr, NUMBER_FORMAT_HEX_BASE);
 
                 // major:minor
                 std::vector<std::string> mm = StringSplit(mapTokens[MMAP_LINE_TOKEN_INDEX_MM], ":");
@@ -286,7 +352,7 @@ void VirtualThread::ParseMap(std::vector<MemMapItem>& memMaps)
 
                 // 959
                 memMapItem.inode = std::stoull(mapTokens[MMAP_LINE_TOKEN_INDEX_INODE], nullptr,
-                    NUMBER_FORMAT_HEX_BASE);
+                                               NUMBER_FORMAT_HEX_BASE);
             } catch (...) {
                 // next line
                 continue;
@@ -306,19 +372,38 @@ void VirtualThread::ParseMap(std::vector<MemMapItem>& memMaps)
             HLOGD("%d %d memMap add '%s'", pid_, tid_, memMapItem.name_.c_str());
         }
     }
+    SortMemMaps();
 }
 #endif
 
-void VirtualThread::CreateMapItem(const std::string filename, uint64_t begin, uint64_t len,
-    uint64_t offset)
+void VirtualThread::SortMemMaps()
 {
-    MemMapItem &map = memMaps_->emplace_back();
-    map.name_ = filename;
-    map.begin_ = begin;
-    map.end_ = begin + len;
-    map.pageoffset_ = offset;
+    for (int currPos = 1; currPos < static_cast<int>(memMaps_->size()); ++currPos) {
+        int targetPos = currPos - 1;
+        while (targetPos >= 0 and (*memMaps_)[currPos].end_ < (*memMaps_)[targetPos].end_) {
+            --targetPos;
+        }
+        if (targetPos < currPos - 1) {
+            auto target = (*memMaps_)[currPos];
+            for (int k = currPos - 1; k > targetPos; --k) {
+                (*memMaps_)[k + 1] = (*memMaps_)[k];
+            }
+            (*memMaps_)[targetPos + 1] = target;
+        }
+    }
+    return;
+}
+
+void VirtualThread::CreateMapItem(const std::string filename, uint64_t begin, uint64_t len,
+                                  uint64_t offset)
+{
+    if (!IsLegalFileName(filename)) {
+        return; // skip some memmap
+    }
+    MemMapItem &map = memMaps_->emplace_back(begin, begin + len, offset, filename);
     HLOGD(" %u:%u create a new map(total %zu) at '%s' (0x%" PRIx64 "-0x%" PRIx64 ")@0x%" PRIx64 " ",
-        pid_, tid_, memMaps_->size(), map.name_.c_str(), map.begin_, map.end_, map.pageoffset_);
+          pid_, tid_, memMaps_->size(), map.name_.c_str(), map.begin_, map.end_, map.pageoffset_);
+    SortMemMaps();
 }
 } // namespace NativeDaemon
 } // namespace Developtools

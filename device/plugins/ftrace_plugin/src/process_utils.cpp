@@ -253,9 +253,6 @@ int ProcessUtils::Execute(const ExecuteArgs& args, std::string& output)
     output = ReceiveOutputAndSigchld(pipeFds[RD], sigChldHandler);
     auto lines = StringUtils::Split(output, "\n");
     HILOG_DEBUG(LOG_CORE, "ExecuteCommand(%s): output %zuB, %zuLn", cmdline.c_str(), output.size(), lines.size());
-    for (size_t i = 0; i < lines.size(); i++) {
-        HILOG_DEBUG(LOG_CORE, "[%zu]: %s", i, lines[i].c_str());
-    }
 
     int retval = GetProcessExitCode(pid);
 

@@ -280,6 +280,16 @@ Status ProfilerService::CreateSession(ServerContext* context,
         traceWriter = std::make_shared<TraceFileWriter>(resultFile);
         CHECK_POINTER_NOTNULL(traceWriter, "alloc TraceFileWriter failed!");
         resultDemuxer->SetTraceWriter(traceWriter);
+        for (int i = 0; i < nConfigs; i++) {
+            ProfilerPluginData pluginData;
+            pluginData.set_name(request->plugin_configs(i).name() + "_config");
+            pluginData.set_data(request->plugin_configs(i).config_data());
+            std::vector<char> msgData(pluginData.ByteSizeLong());
+            if (pluginData.SerializeToArray(msgData.data(), msgData.size()) <= 0) {
+                HILOG_WARN(LOG_CORE, "PluginConfig SerializeToArray failed!");
+            }
+            traceWriter->SetPluginConfig(msgData.data(), msgData.size());
+        }
     }
 
     // create session context
@@ -319,6 +329,7 @@ Status ProfilerService::CreateSession(ServerContext* context,
     response->set_status(0);
     response->set_session_id(sessionId);
 
+    pluginService_->SetProfilerSessionConfig(sessionConfig);
     HILOG_INFO(LOG_CORE, "CreateSession %d %u done!", request->request_id(), sessionId);
     return Status::OK;
 }
