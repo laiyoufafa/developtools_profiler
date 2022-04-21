@@ -391,12 +391,11 @@ bool TraceConverter::WriteFinalHeader()
     auto nbytes = write(outputFd_, textHeader_.data(), textHeader_.size());
     CHECK_TRUE(static_cast<size_t>(nbytes) == textHeader_.size(), false, "write final header failed!");
     PrintTextHeader("FINAL TRACE HEADER");
-
     // flush file buffer
     std::string outputPath = CanonicalizeSpecPath(output_.c_str());
     if (outputPath == "") {
-         HILOG_ERROR(LOG_CORE, "%s:path is invalid: %s, errno=%d", __func__, output_.c_str(), errno);
-         return false;
+        HILOG_ERROR(LOG_CORE, "%s:path is invalid: %s, errno=%d", __func__, output_.c_str(), errno);
+        return false;
     }
     CHECK_TRUE(fsync(outputFd_) == 0, false, "fsync %s FAILED, %d", outputPath.c_str(), errno);
     HILOG_INFO(LOG_CORE, "WriteFinalHeader done!");
@@ -504,8 +503,8 @@ bool TraceConverter::Convert()
     // process file path
     std::string resolvedPathInput = CanonicalizeSpecPath(input_.c_str());
     if (resolvedPathInput == "") {
-         HILOG_ERROR(LOG_CORE, "%s:path is invalid: %s, errno=%d", __func__, input_.c_str(), errno);
-         return false;
+        HILOG_ERROR(LOG_CORE, "%s:path is invalid: %s, errno=%d", __func__, input_.c_str(), errno);
+        return false;
     }
     CHECK_TRUE(access(resolvedPathInput.c_str(), R_OK) == 0, false, "input %s not found!", resolvedPathInput.c_str());
     CHECK_TRUE(reader_.Open(resolvedPathInput), false, "open %s failed!", resolvedPathInput.c_str());
@@ -518,8 +517,8 @@ bool TraceConverter::Convert()
     // process file path
     std::string resolvedPathOutput = CanonicalizeSpecPath(output_.c_str());
     if (resolvedPathOutput == "") {
-         HILOG_ERROR(LOG_CORE, "%s:path is invalid: %s, errno=%d", __func__, output_.c_str(), errno);
-         return false;
+        HILOG_ERROR(LOG_CORE, "%s:path is invalid: %s, errno=%d", __func__, output_.c_str(), errno);
+        return false;
     }
     std::regex dirNameRegex("[~-]|[.]{2}");
     std::regex fileNameRegex("[\\/:*?\"<>|]");

@@ -49,12 +49,12 @@ ohos_source_set("hiprofiler_base") {
   sources = [
     "src/epoll_event_poller.cpp",
     "src/event_notifier.cpp",
+    "src/file_utility.cpp",
     "src/i_semaphore.cpp",
     "src/posix_semaphore.cpp",
     "src/pthread_semaphore.cpp",
     "src/schedule_task_manager.cpp",
     "src/std_semaphore.cpp",
-    "src/file_utility.cpp"
   ]
 
   public_configs = [

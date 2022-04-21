@@ -14,21 +14,20 @@
  */
 
 #include "file_utility.h"
-#include <limits.h>
+#include <climits>
 #include <unistd.h>
-
 #include "logging.h"
 
 std::string CanonicalizeSpecPath(const char* src)
 {
     if (src == nullptr || strlen(src) >= PATH_MAX) {
-         HILOG_ERROR(LOG_CORE, "%s:Error: CanonicalizeSpecPath %s failed", __func__, src);
-         return "";
+        HILOG_ERROR(LOG_CORE, "%s:Error: CanonicalizeSpecPath %s failed", __func__, src);
+        return "";
     }
     char resolvedPath[PATH_MAX] = { 0 };
     if (access(src, F_OK) == 0) {
         if (realpath(src, resolvedPath) == nullptr) {
-           HILOG_ERROR(LOG_CORE, "%s:Error: realpath %s failed", __func__, src); 
+            HILOG_ERROR(LOG_CORE, "%s:Error: realpath %s failed", __func__, src); 
             return "";
         }
     } else {
@@ -40,8 +39,8 @@ std::string CanonicalizeSpecPath(const char* src)
                 return "";
             }
         } else {
-            HILOG_ERROR(LOG_CORE, "%s:Error: find.. %s failed", __func__, src); 
-             return "";
+            HILOG_ERROR(LOG_CORE, "%s:Error: find.. %s failed",  __func__, src); 
+            return "";
         }
     }
     std::string res(resolvedPath);
