@@ -392,7 +392,7 @@ bool TraceConverter::WriteFinalHeader()
     CHECK_TRUE(static_cast<size_t>(nbytes) == textHeader_.size(), false, "write final header failed!");
     PrintTextHeader("FINAL TRACE HEADER");
     // flush file buffer
-    std::string outputPath = CanonicalizeSpecPath(output_.c_str());
+    std::string outputPath = FileUtility::CanonicalizeSpecPath(output_.c_str());
     if (outputPath == "") {
         HILOG_ERROR(LOG_CORE, "%s:path is invalid: %s, errno=%d", __func__, output_.c_str(), errno);
         return false;
@@ -501,7 +501,7 @@ bool TraceConverter::Convert()
 {
     auto startTime = Clock::now();
     // process file path
-    std::string resolvedPathInput = CanonicalizeSpecPath(input_.c_str());
+    std::string resolvedPathInput = FileUtility::CanonicalizeSpecPath(input_.c_str());
     if (resolvedPathInput == "") {
         HILOG_ERROR(LOG_CORE, "%s:path is invalid: %s, errno=%d", __func__, input_.c_str(), errno);
         return false;
@@ -515,7 +515,7 @@ bool TraceConverter::Convert()
     HILOG_INFO(LOG_CORE, "number of results in trace file header: %u", numberResults_);
 
     // process file path
-    std::string resolvedPathOutput = CanonicalizeSpecPath(output_.c_str());
+    std::string resolvedPathOutput = FileUtility::CanonicalizeSpecPath(output_.c_str());
     if (resolvedPathOutput == "") {
         HILOG_ERROR(LOG_CORE, "%s:path is invalid: %s, errno=%d", __func__, output_.c_str(), errno);
         return false;
