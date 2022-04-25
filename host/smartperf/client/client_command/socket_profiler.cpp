@@ -106,8 +106,9 @@ void *SocketProfiler::thread_udp_server(void *spThis)
             std::vector<float> workloads = SP->mCpu->get_cpu_load();
             std::string res = "";
             for (int i = 0; i < workloads.size(); ++i) {
-                if (i != 0)
+                if (i != 0) {
                     res += "==";
+                }
                 res += std::to_string(workloads[i]);
             }
             int length = GPUtils::safeSprintf(bufsend, "%s::%s", recv.c_str(), res.c_str());
@@ -181,8 +182,9 @@ void *SocketProfiler::thread_udp_server(void *spThis)
             std::map<std::string, float>::iterator iter;
             int i = 0;
             for (iter = tempInfo.begin(); iter != tempInfo.end(); ++iter) {
-                if (i != 0)
+                if (i != 0) {
                     res += "==";
+                }
                 res += (iter->first + ",," + std::to_string(iter->second));
                 ++i;
             }
@@ -195,8 +197,9 @@ void *SocketProfiler::thread_udp_server(void *spThis)
             std::map<std::string, std::string>::iterator iter;
             int i = 0;
             for (iter = powerInfo.begin(); iter != powerInfo.end(); ++iter) {
-                if (i != 0)
+                if (i != 0) {
                     res += "==";
+                }
                 res += (iter->first + ",," + iter->second);
                 ++i;
             }
