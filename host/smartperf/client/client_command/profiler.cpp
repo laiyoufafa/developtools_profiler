@@ -21,6 +21,9 @@ namespace OHOS {
 namespace SmartPerf {
 Profiler::Profiler()
 {
+}
+
+void Profiler::initProfiler() {
     // get singleton instance
     mCpu = CPU::GetInstance();
     mGpu = GPU::GetInstance();

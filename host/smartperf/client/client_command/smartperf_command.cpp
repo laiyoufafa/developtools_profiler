@@ -22,11 +22,11 @@
 
 namespace OHOS {
 namespace SmartPerf {
-
 SmartPerfCommand::SmartPerfCommand(int argc, char *argv[])
 {
     if (argc == ONE_PARAM) {
         this->socketProfiler = new SocketProfiler();
+        this->socketProfiler->initSocketProfiler();
         struct SmartPerfCommandParam *scp = new SmartPerfCommandParam;
         scp->spThis = this->socketProfiler;
         daemon(0, 0);
@@ -46,6 +46,7 @@ SmartPerfCommand::SmartPerfCommand(int argc, char *argv[])
     }
     if (argc >= THREE_PARAM_MORE) {
         this->profiler = new Profiler();
+        this->profiler->initProfiler();
         for (int i = 1; i <= argc - 1; i++) {
             if ((strcmp(argv[i], "-N") == 0) || (strcmp(argv[i], "--num") == 0)) {
                 this->num = atoi(argv[i + 1]);

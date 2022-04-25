@@ -32,7 +32,7 @@ class Profiler {
 public:
     Profiler();
     ~Profiler();
-
+    void initProfiler();
     void createCpu(std::map<std::string, std::string> &gpMap);
     void createGpu(std::map<std::string, std::string> &gpMap);
     void createDdr(std::map<std::string, std::string> &gpMap);

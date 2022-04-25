@@ -22,8 +22,10 @@
 
 namespace OHOS {
 namespace SmartPerf {
-SocketProfiler::SocketProfiler()
-{
+SocketProfiler::SocketProfiler(){
+}
+
+void SocketProfiler::initSocketProfiler() {
     mCpu = CPU::GetInstance();
     mGpu = GPU::GetInstance();
     mDdr = DDR::GetInstance();

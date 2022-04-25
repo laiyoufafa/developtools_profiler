@@ -35,6 +35,8 @@ public:
     SocketProfiler();
     ~SocketProfiler();
 
+    void initSocketProfiler();
+
     int bufsendto(int sock, const char *bufsend, int length, struct sockaddr *client, socklen_t len);
 
     FpsInfo gfpsInfo;
