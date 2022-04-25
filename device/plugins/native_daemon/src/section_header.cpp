@@ -36,7 +36,7 @@ enum class NUMBER : int {
 };
 
 std::unique_ptr<SectionHeader> SectionHeader::MakeUnique(char * const shdrBuf, const size_t bufSize,
-    const size_t index)
+                                                         const size_t index)
 {
     std::unique_ptr<SectionHeader> shdr {new (std::nothrow) SectionHeader()};
     if (shdr == nullptr) {

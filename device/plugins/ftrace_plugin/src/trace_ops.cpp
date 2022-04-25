@@ -95,7 +95,7 @@ bool TraceOps::PrepareListCategoriesCmd()
     return false;
 }
 
-bool TraceOps::PrepareEnableCategoriesCmd()
+bool TraceOps::PrepareEnableCategoriesCmd(int traceTime)
 {
     return false;
 }
@@ -105,7 +105,7 @@ bool TraceOps::PrepareDisableCategoriesCmd()
     return false;
 }
 
-bool TraceOps::EnableCategories(const std::vector<std::string>& categories)
+bool TraceOps::EnableCategories(const std::vector<std::string>& categories, int traceTime)
 {
     CHECK_TRUE(categories.size() > 0, false, "categories empty!");
     for (auto& category : categories) {
@@ -115,7 +115,7 @@ bool TraceOps::EnableCategories(const std::vector<std::string>& categories)
     }
 
     args_ = {arg0_};
-    CHECK_TRUE(PrepareEnableCategoriesCmd(), false, "prepare enable categories failed!");
+    CHECK_TRUE(PrepareEnableCategoriesCmd(traceTime), false, "prepare enable categories failed!");
 
     int retval = ExecuteCommand();
     HILOG_INFO(LOG_CORE, "exec %s exit %d!", bin_.c_str(), retval);

@@ -34,7 +34,7 @@ UnixSocketServer::UnixSocketServer()
 
 UnixSocketServer::~UnixSocketServer()
 {
-    if (socketHandle_ != 1) {
+    if (socketHandle_ != -1) {
         HILOG_DEBUG(LOG_CORE, "close UnixSocketServer");
         close(socketHandle_);
         socketHandle_ = -1;

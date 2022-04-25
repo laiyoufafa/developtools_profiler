@@ -23,7 +23,7 @@
 
 class HookService : public ServiceBase {
 public:
-    HookService(int smbFd, int eventFd, uint32_t filterSize, uint32_t smbSize, int pid, std::string processName);
+    HookService(int smbFd, int eventFd, int pid, std::string processName, uint64_t config);
     ~HookService();
     bool ProtocolProc(SocketContext &context, uint32_t pnum, const int8_t *buf, const uint32_t size) override;
 private:
@@ -31,8 +31,7 @@ private:
     std::shared_ptr<ServiceEntry> serviceEntry_;
     int smbFd_;
     int eventFd_;
-    uint32_t filterSize_;
-    uint32_t smbSize_;
+    uint64_t hookConfig_;
     int pid_;
     std::string processName_;
 };

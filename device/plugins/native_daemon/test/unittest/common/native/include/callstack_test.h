@@ -14,6 +14,7 @@
  */
 #ifndef HIPERF_CALLSTACK_TEST_H
 #define HIPERF_CALLSTACK_TEST_H
+
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <iterator>
@@ -21,7 +22,9 @@
 #include <random>
 #include <sys/mman.h>
 
-#include "callstack.h"
+#include <hilog/log.h>
+
+#include "call_stack.h"
 #include "debug_logger.h"
 #include "utilities.h"
 
@@ -37,6 +40,9 @@ static const std::string PATH_RESOURCE_TEST_DWARF_DATA = "resource/testdata/dwar
 static const std::string TEST_DWARF_ELF = "hiperf_example_cmd";
 static const std::string TEST_DWARF_USER_REGS_0 = "user_regs.dump";
 static const std::string TEST_DWARF_USER_DATA_0 = "user_data.dump";
+
+static const int PERF_REG_ARM_SP_IDX = 13;
+static const int PERF_REG_ARM_PC_IDX = 15;
 
 struct mmapDumpInfo {
     std::string fileName;
@@ -95,44 +101,49 @@ struct frame {
 };
 static const std::vector<frame> TEST_DWARF_FRAMES = {
     {0x4575BC, 0xB6CA1C18}, // base ip sp
-    {0x45765e, 0xb6ca1c68},
-    {0x45768a, 0xb6ca1c78},
-    {0x4576ce, 0xb6ca1c88},
-    {0x457712, 0xb6ca1c98},
-    {0x457756, 0xb6ca1ca8},
-    {0x45779a, 0xb6ca1cb8},
-    {0x4577de, 0xb6ca1cc8},
-    {0x457822, 0xb6ca1cd8},
-    {0x457866, 0xb6ca1ce8},
-    {0x4578aa, 0xb6ca1cf8},
-    {0x4578ee, 0xb6ca1d08},
-    {0x45793c, 0xb6ca1d18},
-    {0x457ffe, 0xb6ca1d28},
-    {0xb6f01f73, 0xb6ca1d38},
+    {0x45765e, 0xb6ca1c68}, {0x45768a, 0xb6ca1c78},   {0x4576ce, 0xb6ca1c88},
+    {0x457712, 0xb6ca1c98}, {0x457756, 0xb6ca1ca8},   {0x45779a, 0xb6ca1cb8},
+    {0x4577de, 0xb6ca1cc8}, {0x457822, 0xb6ca1cd8},   {0x457866, 0xb6ca1ce8},
+    {0x4578aa, 0xb6ca1cf8}, {0x4578ee, 0xb6ca1d08},   {0x45793c, 0xb6ca1d18},
+    {0x457ffe, 0xb6ca1d28}, {0xb6f01f73, 0xb6ca1d38},
 };
 
 // data convert funcion
 template<class T>
 void LoadFromFile(const std::string &fileName, std::vector<T> &data)
 {
-    std::unique_ptr<FILE, decltype(&fclose)> fp(nullptr, fclose);
-    FILE *originalPtr = fopen(fileName.c_str(), "r");
-    if (originalPtr) {
-        fp.reset(originalPtr);
+    FILE *fp_cin = fopen(fileName.c_str(), "r");
+    if (fp_cin == nullptr) {
+        HLOGE("fopen fail!");
+        return;
     }
-    ASSERT_NE(fp, nullptr);
-
+    std::unique_ptr<FILE, decltype(&fclose)> fp(fp_cin, fclose);
+    if (fp == nullptr) {
+        HLOGE("make file unique ptr fail!");
+        return;
+    }
     struct stat sb = {};
-
     ASSERT_NE(fstat(fileno(fp.get()), &sb), -1);
     ASSERT_NE(sb.st_size, 0);
     ASSERT_EQ(sb.st_size % sizeof(T), 0u);
     data.resize(sb.st_size / sizeof(T));
-    size_t count = fread(data.data(), sizeof(T), data.size(), fp.get());
-    ASSERT_EQ(count, data.size());
+    size_t ret;
+    if ((ret = fread(data.data(), sizeof(T), data.size(), fp.get())) < 0) {
+        const int errBufSize = 256;
+        char errBuf[errBufSize] = { 0 };
+        strerror_r(errno, errBuf, errBufSize);
+        HLOGE("fread fail! errno(%d:%s)", errno, errBuf);
+        return;
+    }
+    ASSERT_EQ(ret, data.size());
 }
 
-void MakeMaps(VirtualThread &thread);
+static void MakeMaps(VirtualThread &thread)
+{
+    for (const mmapDumpInfo &mmap : TEST_DWARF_MMAP) {
+        thread.CreateMapItem(mmap.fileName, mmap.begin, mmap.len, mmap.pgoff);
+    }
+}
 } // namespace NativeDaemon
 } // namespace Developtools
 } // namespace OHOS

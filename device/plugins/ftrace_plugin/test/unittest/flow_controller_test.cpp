@@ -120,7 +120,7 @@ HWTEST_F(FlowControllerTest, SetMinBufForLoadConfig, TestSize.Level1)
     std::vector<uint8_t> configData(config.ByteSizeLong());
     int ret = config.SerializeToArray(configData.data(), configData.size());
     ASSERT_GT(ret, 0);
-    EXPECT_EQ(controller.LoadConfig(configData.data(), configData.size()), 0);
+    EXPECT_EQ(controller.LoadConfig(configData.data(), configData.size()), -1);
 }
 
 /*
@@ -142,7 +142,7 @@ HWTEST_F(FlowControllerTest, SetMaxBufForLoadConfig, TestSize.Level1)
     std::vector<uint8_t> configData(config.ByteSizeLong());
     int ret = config.SerializeToArray(configData.data(), configData.size());
     ASSERT_GT(ret, 0);
-    EXPECT_EQ(controller.LoadConfig(configData.data(), configData.size()), 0);
+    EXPECT_EQ(controller.LoadConfig(configData.data(), configData.size()), -1);
 }
 
 /*
@@ -160,8 +160,8 @@ HWTEST_F(FlowControllerTest, SetTracePeriodForLoadConfig, TestSize.Level1)
     ASSERT_EQ(controller.SetWriter(static_cast<WriterStructPtr>(&writer)), 0);
 
     // set config
-    config.add_bytrace_apps("ftrace_plugin_ut");
-    config.add_bytrace_categories("idle");
+    config.add_hitrace_apps("ftrace_plugin_ut");
+    config.add_hitrace_categories("idle");
     std::vector<uint8_t> configData(config.ByteSizeLong());
     int ret = config.SerializeToArray(configData.data(), configData.size());
     ASSERT_GT(ret, 0);
@@ -173,7 +173,7 @@ HWTEST_F(FlowControllerTest, SetTracePeriodForLoadConfig, TestSize.Level1)
  * @tc.desc: test FlowController::LoadConfig.
  * @tc.type: FUNC
  */
-HWTEST_F(FlowControllerTest, SetBytraceAppForLoadConfig, TestSize.Level1)
+HWTEST_F(FlowControllerTest, SetHitraceAppForLoadConfig, TestSize.Level1)
 {
     OHOS::Profiler::Plugins::FlowController controller;
     TracePluginConfig config;

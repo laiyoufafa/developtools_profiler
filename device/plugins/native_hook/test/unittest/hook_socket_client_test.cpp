@@ -40,27 +40,6 @@ public:
 };
 
 /*
- * @tc.name: Connect
- * @tc.desc: test HookSocketClient::Connect with normal case.
- * @tc.type: FUNC
- */
-HWTEST_F(HookSocketClientTest, Connect, TestSize.Level1)
-{
-    HookSocketClient hookClient(1);
-    ASSERT_FALSE(hookClient.Connect("test"));
-
-    ServiceEntry serviceEntry;
-    IPluginServiceServer pluginService;
-    ASSERT_TRUE(serviceEntry.StartServer("test_unix_socket_service_entry"));
-    ASSERT_TRUE(serviceEntry.RegisterService(pluginService));
-    serviceEntry.FindServiceByName(pluginService.serviceName_);
-
-    usleep(SLEEP_TIME);
-
-    ASSERT_TRUE(hookClient.Connect("test_unix_socket_service_entry"));
-}
-
-/*
  * @tc.name: ProtocolProc
  * @tc.desc: test HookSocketClient::ProtocolProc with normal case.
  * @tc.type: FUNC

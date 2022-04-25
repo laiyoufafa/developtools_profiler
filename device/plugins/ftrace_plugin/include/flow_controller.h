@@ -100,6 +100,8 @@ private:
     bool getClockTimes_ = true;
 
     bool ftraceSupported_ = false;
+    bool flushCacheData_ = false;
+    int hitraceTime_ = 0;
 };
 FTRACE_NS_END
 #endif // FLOW_CONTROLLER_H

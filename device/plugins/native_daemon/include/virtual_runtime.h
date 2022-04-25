@@ -19,9 +19,9 @@
 #include <pthread.h>
 #include <functional>
 #include <map>
-#include "callstack.h"
+#include "call_stack.h"
 #include "perf_event_record.h"
-#include "symbols.h"
+#include "symbols_file.h"
 #include "virtual_thread.h"
 
 namespace OHOS {
@@ -42,7 +42,7 @@ recorded in the corresponding mmap.
 
 class VirtualRuntime {
 public:
-    VirtualRuntime();
+    VirtualRuntime(bool onDevice = true);
     virtual ~VirtualRuntime();
     // thread need hook the record
     // from the record , it will call back to write some Simulated Record
@@ -54,13 +54,13 @@ public:
     // any mode
     static_assert(sizeof(pid_t) == sizeof(int));
 
-    const std::set<std::unique_ptr<SymbolsFile>, CCompareSymbolsFile> &GetSymbolsFiles()
+    const std::set<std::unique_ptr<SymbolsFile>, CCompareSymbolsFile> &GetSymbolsFiles() const
     {
         return symbolsFiles_;
     }
 
     const Symbol GetSymbol(uint64_t ip, pid_t pid, pid_t tid,
-        const perf_callchain_context &context = PERF_CONTEXT_MAX);
+                           const perf_callchain_context &context = PERF_CONTEXT_MAX);
 
     VirtualThread &GetThread(pid_t pid, pid_t tid);
     const std::map<pid_t, VirtualThread> &GetThreads() const
@@ -69,12 +69,12 @@ public:
     }
 
     void UnwindStack(std::vector<u64> regs,
-                                const u8* stack_addr,
-                                int stack_size,
-                                pid_t pid,
-                                pid_t tid,
-                                std::vector<CallFrame>& callsFrames,
-                                size_t maxStackLevel);
+                     const u8* stack_addr,
+                     int stack_size,
+                     pid_t pid,
+                     pid_t tid,
+                     std::vector<CallFrame>& callsFrames,
+                     size_t maxStackLevel);
     void GetSymbolName(pid_t pid, pid_t tid, std::vector<CallFrame>& callsFrames);
     void ClearMaps();
     // debug time
@@ -96,11 +96,14 @@ private:
     std::vector<MemMapItem> kernelSpaceMemMaps_;
     pthread_mutex_t processSymbolsFileLock_;
     std::set<std::unique_ptr<SymbolsFile>, CCompareSymbolsFile> symbolsFiles_;
-    // review maybe need change to lru cache?
-    std::map<pid_t, HashList<uint64_t, Symbol>> threadSymbolCache_;
-    HashList<uint64_t, Symbol> kernelSymbolCache_;
+    enum SymbolCacheLimit : std::size_t {
+        KERNEL_SYMBOL_CACHE_LIMIT = 4000,
+        THREAD_SYMBOL_CACHE_LIMIT = 2000,
+    };
+    std::unordered_map<pid_t, HashList<uint64_t, Symbol>> threadSymbolCache_;
+    HashList<uint64_t, Symbol> kernelSymbolCache_ {KERNEL_SYMBOL_CACHE_LIMIT};
     bool GetSymbolCache(uint64_t ip, pid_t pid, pid_t tid, Symbol &symbol,
-        const perf_callchain_context &context);
+                        const perf_callchain_context &context);
     void UpdateSymbolCache(uint64_t ip, Symbol &symbol, HashList<uint64_t, Symbol> &cache);
 
     // find synbols function name
@@ -111,7 +114,8 @@ private:
     std::string ReadThreadName(pid_t tid);
     VirtualThread &CreateThread(pid_t pid, pid_t tid);
 
-    const Symbol GetKernelSymbol(uint64_t ip, const std::vector<MemMapItem> &memMaps);
+    const Symbol GetKernelSymbol(uint64_t ip, const std::vector<MemMapItem> &memMaps,
+                                 const VirtualThread &thread);
     const Symbol GetUserSymbol(uint64_t ip, const VirtualThread &thread);
 
     std::vector<std::string> symbolsPaths_;

@@ -24,7 +24,7 @@
 #include <unistd.h>
 #include <regex>
 
-#include "bytrace_ops.h"
+#include "hitrace_ops.h"
 #include "file_utils.h"
 #include "ftrace_field_parser.h"
 #include "ftrace_fs_ops.h"
@@ -51,7 +51,7 @@ FTRACE_NS_BEGIN
 std::unique_ptr<TraceOps> FlowController::GetTraceOps()
 {
     std::vector<std::unique_ptr<TraceOps>> traceOps;
-    traceOps.emplace_back(std::make_unique<BytraceOps>());
+    traceOps.emplace_back(std::make_unique<HitraceOps>());
 
     for (size_t i = 0; i < traceOps.size(); i++) {
         auto& ops = traceOps[i];
@@ -221,7 +221,7 @@ int FlowController::StartCapture(void)
 
     // enable ftrace event switches
     if (traceCategories_.size() > 0) {
-        traceOps_->EnableCategories(traceCategories_);
+        traceOps_->EnableCategories(traceCategories_, hitraceTime_);
     }
     EnableTraceEvents();
 
@@ -253,12 +253,20 @@ void FlowController::CaptureWork()
 
         // read data from percpu trace_pipe_raw, consume kernel ring buffers
         for (size_t i = 0; i < rawDataBytes.size(); i++) {
+            if (flushCacheData_ && !keepRunning_) {
+                HILOG_INFO(LOG_CORE, "flushCacheData_ is true, return");
+                return;
+            }
             long nbytes = ReadEventData(i);
             rawDataBytes[i] = nbytes;
         }
 
         // append buffer data to cache
         for (size_t i = 0; i < rawDataDumpFile_.size(); i++) {
+            if (flushCacheData_ && !keepRunning_) {
+                HILOG_INFO(LOG_CORE, "flushCacheData_ is true, return");
+                return;
+            }
             auto& file = rawDataDumpFile_[i];
             size_t writen = fwrite(ftraceBuffers_[i].get(), sizeof(uint8_t), rawDataBytes[i], file.get());
             HILOG_INFO(LOG_CORE, "Append raw data to cache[%zu]: %zu/%ld bytes", i, writen, rawDataBytes[i]);
@@ -270,10 +278,16 @@ void FlowController::CaptureWork()
 
         // parse ftrace percpu event data
         for (size_t i = 0; i < rawDataBytes.size(); i++) {
-            HILOG_INFO(LOG_CORE, "Parse raw data for CPU%zu: %ld bytes...", i, rawDataBytes[i]);
+            if (flushCacheData_ && !keepRunning_) {
+                HILOG_INFO(LOG_CORE, "flushCacheData_ is true, return");
+                return;
+            }
             ParseEventData(i, rawDataBytes[i]);
+            HILOG_INFO(LOG_CORE, "Parse raw data for CPU%zu: %ld bytes...", i, rawDataBytes[i]);
         }
     }
+
+    tansporter_->Flush();
     HILOG_DEBUG(LOG_CORE, "FlowController::CaptureWork done!");
 }
 
@@ -312,6 +326,11 @@ int FlowController::StopCapture(void)
     CHECK_NOTNULL(tansporter_, -1, "crate ResultTransporter FAILED!");
     CHECK_NOTNULL(traceOps_, -1, "create TraceOps FAILED!");
 
+    if (requestEvents_.size() == 0 && traceApps_.size() == 0 && traceCategories_.size() == 0) {
+        HILOG_INFO(LOG_CORE, "StopCapture: ftrace event is not set, return false");
+        return -1;
+    }
+
     // disable ftrace event switches
     DisableTraceEvents();
 
@@ -332,6 +351,7 @@ int FlowController::StopCapture(void)
 
     // parse per cpu stats
     CHECK_TRUE(ParsePerCpuStatus(TRACE_END), -1, "parse TRACE_END stats failed!");
+    tansporter_->Flush();
 
     // release resources
     rawDataDumpFile_.clear(); // close raw data dump files
@@ -453,32 +473,6 @@ bool FlowController::AddPlatformEventsToParser(void)
     return true;
 }
 
-static void PrintTraceConfig(const TracePluginConfig& config)
-{
-    HILOG_DEBUG(LOG_CORE, "ftrace_events: %d", config.ftrace_events_size());
-    for (auto& event : config.ftrace_events()) {
-        HILOG_DEBUG(LOG_CORE, "  '%s'", event.c_str());
-    }
-
-    HILOG_DEBUG(LOG_CORE, "bytrace_apps: %d", config.bytrace_apps_size());
-    for (auto& app : config.bytrace_apps()) {
-        HILOG_DEBUG(LOG_CORE, "  '%s'", app.c_str());
-    }
-
-    HILOG_DEBUG(LOG_CORE, "bytrace_categories: %d", config.bytrace_categories_size());
-    for (auto& category : config.bytrace_categories()) {
-        HILOG_DEBUG(LOG_CORE, "  '%s'", category.c_str());
-    }
-
-    HILOG_DEBUG(LOG_CORE, "buffer_size_kb: %u", config.buffer_size_kb());
-    HILOG_DEBUG(LOG_CORE, "flush_interval_ms: %u", config.flush_interval_ms());
-    HILOG_DEBUG(LOG_CORE, "flush_threshold_kb: %u", config.flush_threshold_kb());
-
-    HILOG_DEBUG(LOG_CORE, "parse_ksyms: %s", config.parse_ksyms() ? "true" : "false");
-    HILOG_DEBUG(LOG_CORE, "clock: '%s'", config.clock().c_str());
-    HILOG_DEBUG(LOG_CORE, "trace_period_ms: %d", config.trace_period_ms());
-}
-
 int FlowController::LoadConfig(const uint8_t configData[], uint32_t size)
 {
     CHECK_TRUE(size > 0, -1, "config data size is zero!");
@@ -488,7 +482,6 @@ int FlowController::LoadConfig(const uint8_t configData[], uint32_t size)
 
     TracePluginConfig traceConfig;
     CHECK_TRUE(traceConfig.ParseFromArray(configData, size), -1, "parse %u bytes configData failed!", size);
-    PrintTraceConfig(traceConfig);
 
     // sort and save user requested trace events
     std::set<std::string> events(traceConfig.ftrace_events().begin(), traceConfig.ftrace_events().end());
@@ -497,8 +490,13 @@ int FlowController::LoadConfig(const uint8_t configData[], uint32_t size)
         HILOG_INFO(LOG_CORE, "ftraceEvent: %s", ftraceEvent.c_str());
     }
 
-    traceApps_.assign(traceConfig.bytrace_apps().begin(), traceConfig.bytrace_apps().end());
-    traceCategories_.assign(traceConfig.bytrace_categories().begin(), traceConfig.bytrace_categories().end());
+    traceApps_.assign(traceConfig.hitrace_apps().begin(), traceConfig.hitrace_apps().end());
+    traceCategories_.assign(traceConfig.hitrace_categories().begin(), traceConfig.hitrace_categories().end());
+
+    if (requestEvents_.size() == 0 && traceApps_.size() == 0 && traceCategories_.size() == 0) {
+        HILOG_INFO(LOG_CORE, "LoadConfig: ftrace event is not set, return false");
+        return -1;
+    }
 
     // setup trace clock
     if (g_availableClocks.count(traceConfig.clock()) > 0) {
@@ -519,6 +517,8 @@ int FlowController::LoadConfig(const uint8_t configData[], uint32_t size)
 
     // setup trace period param
     SetupTraceReadPeriod(traceConfig.trace_period_ms());
+    flushCacheData_ = traceConfig.discard_cache_data();
+    hitraceTime_ = traceConfig.hitrace_time();
     return 0;
 }
 

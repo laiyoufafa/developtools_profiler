@@ -42,15 +42,14 @@ public:
     bool Submit(ResultPtr&& result);
     void SetFlushInterval(int ms);
     void SetFlushThreshold(uint32_t nbytes);
+    void Flush();
 
 protected:
     long Write(ResultPtr&& packet);
-    void Flush();
 
 private:
     DISALLOW_COPY_AND_MOVE(ResultTransporter);
     bool IsFlushTime() const;
-    void Report();
 
     std::string name_;
     std::atomic<uint64_t> bytesCount_ = 0;

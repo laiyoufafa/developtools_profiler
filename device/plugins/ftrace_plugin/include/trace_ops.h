@@ -27,7 +27,7 @@ public:
 
     enum TraceType {
         UNKNOW = 0,
-        BYTRACE,
+        HITRACE,
     };
 
     TraceOps(const std::string& path, const std::string& arg0, TraceType type);
@@ -36,7 +36,7 @@ public:
     bool IsSupported();
 
     bool HasCategory(const std::string& name);
-    bool EnableCategories(const std::vector<std::string>& categories);
+    bool EnableCategories(const std::vector<std::string>& categories, int traceTime = 0);
     bool DisableCategories();
 
     std::string GetCommand() const;
@@ -45,7 +45,7 @@ public:
 protected:
     virtual std::vector<std::string> ListCategories();
     virtual bool PrepareListCategoriesCmd();
-    virtual bool PrepareEnableCategoriesCmd();
+    virtual bool PrepareEnableCategoriesCmd(int traceTime = 0);
     virtual bool PrepareDisableCategoriesCmd();
 
     int ExecuteCommand(bool out2pipe = true, bool err2pipe = true);

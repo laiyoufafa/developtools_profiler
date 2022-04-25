@@ -23,13 +23,11 @@
 
 #include <hilog/log.h>
 
-#include "symbols_test.h"
+#include "symbols_file_test.h"
 
 using namespace testing::ext;
 using namespace std;
-#ifndef CONFIG_NO_HILOG
 using namespace OHOS::HiviewDFX;
-#endif
 namespace OHOS {
 namespace Developtools {
 namespace NativeDaemon {
@@ -115,12 +113,14 @@ HWTEST_F(VirtualRuntimeTest, GetSymbolsFiles, TestSize.Level1)
     EXPECT_EQ(runtime_->GetSymbolsFiles().size(), 1u);
 }
 
-static constexpr const pid_t testTid = 1;
-static constexpr const uint64_t testUserVaddr = 0x1000;
-static constexpr const uint64_t testKernelVaddr = testUserVaddr / 4;
-static constexpr const uint64_t testKernelLen = testUserVaddr / 2;
-static constexpr const uint64_t testUserMapBegin = 0x2000;
-static constexpr const uint64_t testUserMapLen = 0x4000;
+namespace {
+constexpr const pid_t testTid = 1;
+constexpr const uint64_t testUserVaddr = 0x1000;
+constexpr const uint64_t testKernelVaddr = testUserVaddr / 4;
+constexpr const uint64_t testKernelLen = testUserVaddr / 2;
+constexpr const uint64_t testUserMapBegin = 0x2000;
+constexpr const uint64_t testUserMapLen = 0x4000;
+} // namespace
 
 void VirtualRuntimeTest::PrepareKernelSymbol()
 {
@@ -129,7 +129,7 @@ void VirtualRuntimeTest::PrepareKernelSymbol()
     kernel->filePath_ = kernelSymbol;
     kernel->symbols_.emplace_back(testKernelVaddr, 1u, "first_kernel_func", kernel->filePath_);
     kernel->symbols_.emplace_back(testKernelVaddr + 1u, 1u, "second_kernel_func",
-        kernel->filePath_);
+                                  kernel->filePath_);
     runtime_->symbolsFiles_.insert(std::move(kernel));
 
     auto &kernelMap = runtime_->kernelSpaceMemMaps_.emplace_back();
@@ -173,14 +173,14 @@ HWTEST_F(VirtualRuntimeTest, GetSymbol, TestSize.Level1)
     symbol = runtime_->GetSymbol(testKernelVaddr, testTid, testTid);
     // in kernel
     EXPECT_EQ(symbol.isValid(), true);
-    EXPECT_EQ(symbol.vaddr_, testKernelVaddr);
-    EXPECT_STREQ(symbol.name_.c_str(), "first_kernel_func");
+    EXPECT_EQ(symbol.funcVaddr_, testKernelVaddr);
+    EXPECT_STREQ(symbol.name_.data(), "first_kernel_func");
 
     symbol = runtime_->GetSymbol(testUserVaddr + testUserMapBegin, testTid, testTid);
     // in user
     EXPECT_EQ(symbol.isValid(), true);
-    EXPECT_EQ(symbol.vaddr_, testUserVaddr);
-    EXPECT_STREQ(symbol.name_.c_str(), "first_user_func");
+    EXPECT_EQ(symbol.funcVaddr_, testUserVaddr);
+    EXPECT_STREQ(symbol.name_.data(), "first_user_func");
 }
 
 /**
@@ -197,7 +197,7 @@ HWTEST_F(VirtualRuntimeTest, GetThread, TestSize.Level1)
     EXPECT_EQ(runtime_->GetThreads().size(), 4u);
     if (HasFailure()) {
         for (auto &pair : runtime_->GetThreads()) {
-            HILOG_INFO(LOG_CORE, "pid %d tid %d", pair.second.pid_, pair.second.tid_);
+            printf("pid %d tid %d\n", pair.second.pid_, pair.second.tid_);
         }
     }
 }

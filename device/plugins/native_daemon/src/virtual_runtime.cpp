@@ -19,12 +19,13 @@
 #include <cinttypes>
 #include <iostream>
 #include <sstream>
+#include <unistd.h>
 #if !is_mingw
 #include <sys/mman.h>
 #endif
 
 #include "register.h"
-#include "symbols.h"
+#include "symbols_file.h"
 #include "utilities.h"
 
 using namespace std::chrono;
@@ -37,7 +38,7 @@ void VirtualRuntime::ClearMaps()
     processMemMaps_.clear();
 }
 
-VirtualRuntime::VirtualRuntime()
+VirtualRuntime::VirtualRuntime(bool onDevice)
 {
     threadMapsLock_ = PTHREAD_MUTEX_INITIALIZER;
     threadMemMapsLock_ = PTHREAD_MUTEX_INITIALIZER;
@@ -54,6 +55,7 @@ std::string VirtualRuntime::ReadThreadName(pid_t tid)
     comm.erase(std::remove(comm.begin(), comm.end(), '\n'), comm.end());
     return comm;
 }
+
 VirtualThread &VirtualRuntime::UpdateThread(pid_t pid, pid_t tid, const std::string name)
 {
 #ifdef HIPERF_DEBUG_TIME
@@ -97,13 +99,13 @@ VirtualThread &VirtualRuntime::GetThread(pid_t pid, pid_t tid)
 
 void VirtualRuntime::MakeCallFrame(Symbol &symbol, CallFrame &callFrame)
 {
-    callFrame.vaddrInFile_ = symbol.vaddr_;
-    callFrame.symbolName_ = symbol.GetName();
+    callFrame.vaddrInFile_ = symbol.funcVaddr_;
+    callFrame.symbolName_ = symbol.Name();
     callFrame.symbolIndex_ = symbol.index_;
-    callFrame.filePath_ = symbol.module_;
+    callFrame.filePath_ = symbol.module_.empty() ? symbol.comm_ : symbol.module_;
     callFrame.symbolOffset_ = symbol.offset_;
-    if (symbol.ipVaddr_ != 0) {
-        callFrame.offset_ = symbol.ipVaddr_;
+    if (symbol.funcVaddr_ != 0) {
+        callFrame.offset_ = symbol.funcVaddr_;
     } else {
         callFrame.offset_ = callFrame.ip_;
     }
@@ -162,9 +164,7 @@ void VirtualRuntime::UnwindStack(std::vector<u64> regs,
     // if we have userstack ?
     if (stack_size > 0) {
         auto &thread = UpdateThread(pid, tid);
-        std::vector<char> stack(stack_addr,
-                            stack_addr + stack_size);
-        callstack_.UnwindCallStack(thread, regs, stack, callsFrames, maxStackLevel);
+        callstack_.UnwindCallStack(thread, &regs[0], regs.size(), stack_addr, stack_size, callsFrames, maxStackLevel);
 #ifdef HIPERF_DEBUG_TIME
         unwindCallStackTimes_ += duration_cast<microseconds>(steady_clock::now() - startTime);
 #endif
@@ -182,7 +182,6 @@ void VirtualRuntime::UpdateSymbols(std::string fileName)
 #ifdef HIPERF_DEBUG_TIME
     const auto startTime = steady_clock::now();
 #endif
-
     for (auto &symbolsFile : symbolsFiles_) {
         if (symbolsFile->filePath_ == fileName) {
             HLOGV("already have '%s'", fileName.c_str());
@@ -213,30 +212,42 @@ void VirtualRuntime::UpdateSymbols(std::string fileName)
 #endif
 }
 
-const Symbol VirtualRuntime::GetKernelSymbol(uint64_t ip, const std::vector<MemMapItem> &memMaps)
+const Symbol VirtualRuntime::GetKernelSymbol(uint64_t ip, const std::vector<MemMapItem> &memMaps,
+                                             const VirtualThread &thread)
 {
-    Symbol vaddrSymbol;
-    for (auto map : memMaps) {
+    Symbol vaddrSymbol(ip, thread.name_);
+    for (auto &map : memMaps) {
         if (ip > map.begin_ && ip < map.end_) {
             HLOGM("found addr 0x%" PRIx64 " in kernel map 0x%" PRIx64 " - 0x%" PRIx64 " from %s",
-                ip, map.begin_, map.end_, map.name_.c_str());
+                  ip, map.begin_, map.end_, map.name_.c_str());
             vaddrSymbol.module_ = map.name_;
             // found symbols by file name
             for (auto &symbolsFile : symbolsFiles_) {
                 if (symbolsFile->filePath_ == map.name_) {
-                    vaddrSymbol.ipVaddr_ =
+                    vaddrSymbol.fileVaddr_ =
                         symbolsFile->GetVaddrInSymbols(ip, map.begin_, map.pageoffset_);
-                    HLOGM("check vaddr 0x%" PRIx64 " in symbols for addr 0x%" PRIx64 " at '%s'",
-                        vaddrSymbol.ipVaddr_, ip, map.name_.c_str());
-                    Symbol foundSymbols = symbolsFile->GetSymbolWithVaddr(vaddrSymbol.ipVaddr_);
-                    return foundSymbols.isValid() ? foundSymbols : vaddrSymbol;
+                    HLOGV("found symbol vaddr 0x%" PRIx64 " for runtime vaddr 0x%" PRIx64
+                          " at '%s'",
+                          vaddrSymbol.fileVaddr_, ip, map.name_.c_str());
+                    if (!symbolsFile->SymbolsLoaded()) {
+                        symbolsFile->LoadSymbols();
+                    }
+                    Symbol foundSymbols = symbolsFile->GetSymbolWithVaddr(vaddrSymbol.fileVaddr_);
+                    foundSymbols.taskVaddr_ = ip;
+                    if (!foundSymbols.isValid()) {
+                        HLOGW("addr 0x%" PRIx64 " vaddr  0x%" PRIx64 " NOT found in symbol file %s",
+                              ip, vaddrSymbol.fileVaddr_, map.name_.c_str());
+                        return vaddrSymbol;
+                    } else {
+                        return foundSymbols;
+                    }
                 }
             }
             HLOGW("addr 0x%" PRIx64 " in map but NOT found the symbol file %s", ip,
-                map.name_.c_str());
+                  map.name_.c_str());
         } else {
             HLOGM("addr 0x%" PRIx64 " not in map 0x%" PRIx64 " - 0x%" PRIx64 " from %s", ip,
-                map.begin_, map.end_, map.name_.c_str());
+                  map.begin_, map.end_, map.name_.c_str());
         }
     }
     return vaddrSymbol;
@@ -244,34 +255,42 @@ const Symbol VirtualRuntime::GetKernelSymbol(uint64_t ip, const std::vector<MemM
 
 const Symbol VirtualRuntime::GetUserSymbol(uint64_t ip, const VirtualThread &thread)
 {
-    Symbol vaddrSymbol;
-    MemMapItem mmap;
-    if (thread.FindMapByAddr(ip, mmap)) {
-        SymbolsFile *symbolsFile = thread.FindSymbolsFileByMap(mmap);
+    Symbol vaddrSymbol(ip, thread.name_);
+    const MemMapItem *mmap = thread.FindMapByAddr(ip);
+    if (mmap != nullptr) {
+        SymbolsFile *symbolsFile = thread.FindSymbolsFileByMap(*mmap);
         if (symbolsFile != nullptr) {
-            vaddrSymbol.ipVaddr_ =
-                symbolsFile->GetVaddrInSymbols(ip, mmap.begin_, mmap.pageoffset_);
-            vaddrSymbol.module_ = mmap.name_;
-            HLOGM("check vaddr 0x%" PRIx64 " in symbols for addr 0x%" PRIx64 " at '%s'",
-                vaddrSymbol.ipVaddr_, ip, mmap.name_.c_str());
-            Symbol foundSymbols = symbolsFile->GetSymbolWithVaddr(vaddrSymbol.ipVaddr_);
+            vaddrSymbol.fileVaddr_ =
+                symbolsFile->GetVaddrInSymbols(ip, mmap->begin_, mmap->pageoffset_);
+            vaddrSymbol.module_ = mmap->name_;
+            HLOGV("found symbol vaddr 0x%" PRIx64 " for runtime vaddr 0x%" PRIx64 " at '%s'",
+                  vaddrSymbol.fileVaddr_, ip, mmap->name_.c_str());
+            if (!symbolsFile->SymbolsLoaded()) {
+                symbolsFile->LoadSymbols();
+            }
+            Symbol foundSymbols = symbolsFile->GetSymbolWithVaddr(vaddrSymbol.fileVaddr_);
+            foundSymbols.taskVaddr_ = ip;
             if (!foundSymbols.isValid()) {
                 HLOGW("addr 0x%" PRIx64 " vaddr  0x%" PRIx64 " NOT found in symbol file %s", ip,
-                    vaddrSymbol.ipVaddr_, mmap.name_.c_str());
+                      vaddrSymbol.fileVaddr_, mmap->name_.c_str());
                 return vaddrSymbol;
+            } else {
+                return foundSymbols;
             }
-            return foundSymbols;
         } else {
             HLOGW("addr 0x%" PRIx64 " in map but NOT found the symbol file %s", ip,
-                mmap.name_.c_str());
+                  mmap->name_.c_str());
         }
     } else {
-        HLOGM("addr 0x%" PRIx64 " not in any user map", ip);
+#ifdef HIPERF_DEBUG
+        thread.ReportVaddrMapMiss(ip);
+#endif
     }
     return vaddrSymbol;
 }
+
 bool VirtualRuntime::GetSymbolCache(uint64_t ip, pid_t pid, pid_t tid, Symbol &symbol,
-    const perf_callchain_context &context)
+                                    const perf_callchain_context &context)
 {
     if (context != PERF_CONTEXT_USER and kernelSymbolCache_.count(ip)) {
         if (kernelSymbolCache_.find(ip) == kernelSymbolCache_.end()) {
@@ -305,28 +324,29 @@ void VirtualRuntime::UpdateSymbolCache(uint64_t ip, Symbol &symbol,
 }
 
 const Symbol VirtualRuntime::GetSymbol(uint64_t ip, pid_t pid, pid_t tid,
-    const perf_callchain_context &context)
+                                       const perf_callchain_context &context)
 {
     HLOGM("try find tid %u ip 0x%" PRIx64 " in %zu symbolsFiles ", tid, ip, symbolsFiles_.size());
     Symbol symbol;
+    if (!threadSymbolCache_.count(tid)) {
+        threadSymbolCache_[tid].reserve(THREAD_SYMBOL_CACHE_LIMIT);
+    }
     if (GetSymbolCache(ip, pid, tid, symbol, context)) {
         return symbol;
     }
-
-    if (context != PERF_CONTEXT_USER) {
-        // check kernelspace
-        HLOGM("try found addr in kernelspace %zu maps ", kernelSpaceMemMaps_.size());
-        symbol = GetKernelSymbol(ip, kernelSpaceMemMaps_);
-    }
-
-    if (!symbol.isValid()) {
+    if (context == PERF_CONTEXT_USER or (context == PERF_CONTEXT_MAX and !symbol.isValid())) {
         // check userspace memmap
         symbol = GetUserSymbol(ip, GetThread(pid, tid));
-        UpdateSymbolCache(ip, symbol, threadSymbolCache_[tid]);
-    } else {
+        threadSymbolCache_[tid][ip] = symbol;
+    }
+
+    if (context == PERF_CONTEXT_KERNEL or (context == PERF_CONTEXT_MAX and !symbol.isValid())) {
+        // check kernelspace
+        HLOGM("try found addr in kernelspace %zu maps ", kernelSpaceMemMaps_.size());
+        symbol = GetKernelSymbol(ip, kernelSpaceMemMaps_, GetThread(pid, tid));
         HLOGM("add addr to kernel cache 0x%" PRIx64 " cache size %zu ", ip,
-            kernelSymbolCache_.size());
-        UpdateSymbolCache(ip, symbol, kernelSymbolCache_);
+              kernelSymbolCache_.size());
+        kernelSymbolCache_[ip] = symbol;
     }
     return symbol;
 }
@@ -338,6 +358,10 @@ bool VirtualRuntime::SetSymbolsPaths(const std::vector<std::string> &symbolsPath
     bool accessable = symbolsFile->setSymbolsFilePath(symbolsPaths);
     if (accessable) {
         symbolsPaths_ = symbolsPaths;
+    } else {
+        if (!symbolsPaths.empty()) {
+            printf("some symbols path unable access\n");
+        }
     }
     return accessable;
 }

@@ -39,8 +39,8 @@
 #include <unistd.h>
 
 #include "debug_logger.h"
-#include "utilities.h"
 #include "noncopyable.h"
+#include "utilities.h"
 
 #if !is_mingw
 #include <sys/mman.h>
@@ -65,7 +65,7 @@ constexpr std::size_t symEnt64Size {24};
 class ElfHeader {
 public:
     static std::unique_ptr<ElfHeader> MakeUnique(unsigned char * const ehdrBuf,
-        const std::size_t bufSize);
+                                                 const std::size_t bufSize);
     bool Init(unsigned char * const ehdrBuf, const std::size_t bufSize);
 
     unsigned char ehdrIdent_[EI_NIDENT];
@@ -138,7 +138,7 @@ private:
 class SectionHeader {
 public:
     static std::unique_ptr<SectionHeader> MakeUnique(char * const shdrBuf, const size_t bufSize,
-        const size_t index);
+                                                     const size_t index);
 
     inline bool Init(char * const shdrBuf, const size_t bufSize, const size_t index)
     {
@@ -219,7 +219,9 @@ private:
 class SymbolTable {
 public:
     static std::unique_ptr<SymbolTable> MakeUnique(const std::string &symNamesStr,
-        const char * const secBuf, const uint64_t secSize, const uint64_t entrySize);
+                                                   const char * const secBuf,
+                                                   const uint64_t secSize,
+                                                   const uint64_t entrySize);
 
     std::vector<std::unique_ptr<ElfSymbol>> symbols_;
 
@@ -231,7 +233,7 @@ private:
 
 class ElfFile : public Noncopyable {
 public:
-    ~ElfFile();
+    virtual ~ElfFile();
     static std::unique_ptr<ElfFile> MakeUnique(const std::string &filename);
     bool ParseFile();
     bool ParseSymTable(const SectionHeader *shdr);
@@ -281,8 +283,15 @@ public:
     std::unique_ptr<SymbolTable> symTable_ {nullptr};
     std::unique_ptr<SymbolTable> dynSymTable_ {nullptr};
 
-private:
+protected:
+    // for fuzz test we make a virtual function
+    virtual ssize_t ReadFile(void *buf, size_t count)
+    {
+        return read(fd_, buf, count);
+    };
     explicit ElfFile(const std::string &filename);
+
+private:
     bool ParseElfHeader();
     bool ParsePrgHeaders();
     bool ParseSecNamesStr();

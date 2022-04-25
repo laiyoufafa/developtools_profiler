@@ -62,6 +62,8 @@ long TraceFileReader::Read(MessageLite& message)
     uint32_t msgLen = 0;
     size_t offset = GetReadPos(stream_);
     stream_.read(reinterpret_cast<CharPtr>(&msgLen), sizeof(msgLen));
+    RETURN_IF(stream_.eof(), 0, "read file end");
+    CHECK_TRUE(msgLen > 0, 0, "read in file %s msg length: %d", path_.c_str(), msgLen);
     CHECK_TRUE(stream_, 0, "read msg length from %s (offset %zu) failed, or no more data!", path_.c_str(), offset);
     CHECK_TRUE(helper_.AddSegment(reinterpret_cast<uint8_t*>(&msgLen), sizeof(msgLen)),
         0, "Add payload for message length failed!");
@@ -69,6 +71,7 @@ long TraceFileReader::Read(MessageLite& message)
     std::vector<char> msgData(msgLen);
     offset = GetReadPos(stream_);
     stream_.read(msgData.data(), msgData.size());
+    RETURN_IF(stream_.eof(), 0, "read file end");
     CHECK_TRUE(stream_, 0, "read msg bytes from %s (offset %zu) failed!", path_.c_str(), offset);
     CHECK_TRUE(helper_.AddSegment(reinterpret_cast<uint8_t*>(msgData.data()), msgData.size()),
         0, "Add payload for message bytes failed!");
@@ -84,12 +87,16 @@ long TraceFileReader::Read(uint8_t buffer[], uint32_t bufferSize)
 
     uint32_t dataLen = 0;
     stream_.read(reinterpret_cast<CharPtr>(&dataLen), sizeof(dataLen));
+    RETURN_IF(stream_.eof(), 0, "read file end");
+    CHECK_TRUE(dataLen > 0, 0, "read in file %s data length: %d", path_.c_str(), dataLen);
     CHECK_TRUE(stream_, 0, "read data length from file %s (offset %zu) failed!", path_.c_str(), GetReadPos(stream_));
-    CHECK_TRUE(bufferSize >= dataLen, 0, "buffer size does not enough to read data bytes!");
+    CHECK_TRUE(bufferSize >= dataLen, 0, "offset:%zu, buffer size(%d) does not enough to read data bytes(%d)!",
+        GetReadPos(stream_), bufferSize, dataLen);
     CHECK_TRUE(helper_.AddSegment(reinterpret_cast<uint8_t*>(&dataLen), sizeof(dataLen)),
         0, "Add payload for data length failed!");
 
     stream_.read(reinterpret_cast<CharPtr>(buffer), dataLen);
+    RETURN_IF(stream_.eof(), 0, "read file end");
     CHECK_TRUE(stream_, 0, "read data bytes from %s (offset %zu) failed!", path_.c_str(), GetReadPos(stream_));
     CHECK_TRUE(helper_.AddSegment(buffer, dataLen), 0, "Add payload for data bytes failed!");
     return dataLen;

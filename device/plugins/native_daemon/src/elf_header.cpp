@@ -20,7 +20,7 @@ namespace Developtools {
 namespace NativeDaemon {
 namespace ELF {
 std::unique_ptr<ElfHeader> ElfHeader::MakeUnique(unsigned char * const ehdrBuf,
-    const std::size_t bufSize)
+                                                 const std::size_t bufSize)
 {
     std::unique_ptr<ElfHeader> ehdr {new (std::nothrow) ElfHeader()};
     if (ehdr == nullptr) {
@@ -114,8 +114,9 @@ bool ElfHeader::ParseElf32Header(unsigned char * const ehdrBuf, const std::size_
 
     u2Buf = reinterpret_cast<uint16_t *>(ehdrBuf + curIndex);
     shdrStrTabIdx_ = u2Buf[0];
-    curIndex += sizeof(uint16_t);
+
 #ifdef HIPERF_DEBUG_ASSERT
+    curIndex += sizeof(uint16_t);
     HLOG_ASSERT(curIndex == ehdrSize_);
     HLOG_ASSERT(shdr32Size == ehdrSize_);
 #endif
@@ -179,8 +180,9 @@ bool ElfHeader::ParseElf64Header(unsigned char * const ehdrBuf, const std::size_
 
     u2Buf = reinterpret_cast<uint16_t *>(ehdrBuf + curIndex);
     shdrStrTabIdx_ = u2Buf[0];
-    curIndex += sizeof(uint16_t);
+
 #ifdef HIPERF_DEBUG_ASSERT
+    curIndex += sizeof(uint16_t);
     HLOG_ASSERT(curIndex == ehdrSize_);
     HLOG_ASSERT(shdr64Size == ehdrSize_);
 #endif

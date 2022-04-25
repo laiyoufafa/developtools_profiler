@@ -28,7 +28,7 @@
 #endif
 
 #ifndef UNUSED_PARAMETER
-#define UNUSED_PARAMETER(x) ((void)x)
+#define UNUSED_PARAMETER(x) ((void)(x))
 #endif
 
 #ifdef HAVE_HILOG
@@ -39,14 +39,24 @@
 #include <string>
 #include <securec.h>
 #include <stdarg.h>
+#if !is_mingw
 #include <sys/syscall.h>
+#undef getsystid
+#define getsystid() syscall(SYS_gettid)
+#else
+#include "windows.h"
+inline long getsystid()
+{
+    return GetCurrentThreadId();
+}
+#endif
 #include <time.h>
 #include <unistd.h>
 #include <vector>
 
 static inline long GetTid(void)
 {
-    return syscall(SYS_gettid);
+    return getsystid();
 }
 
 enum {
@@ -65,18 +75,7 @@ namespace {
 constexpr int NS_PER_MS_LOG = 1000 * 1000;
 }
 
-static inline std::string GetTimeStr()
-{
-    char timeStr[64];
-    struct timespec ts;
-    struct tm tmStruct;
-    clock_gettime(CLOCK_REALTIME, &ts);
-    localtime_r(&ts.tv_sec, &tmStruct);
-    size_t used = strftime(timeStr, sizeof(timeStr), "%m-%d %H:%M:%S", &tmStruct);
-    snprintf_s(&timeStr[used], sizeof(timeStr) - used, sizeof(timeStr) - used - 1, ".%03ld",
-        ts.tv_nsec / NS_PER_MS_LOG);
-    return timeStr;
-}
+static inline std::string GetTimeStr();
 
 typedef const char* ConstCharPtr;
 
@@ -217,4 +216,22 @@ static inline std::string StringFormat(const char* fmt, ...)
         }                                             \
     } while (0)
 
+#ifndef HAVE_HILOG
+static std::string GetTimeStr()
+{
+    char timeStr[64];
+    struct timespec ts;
+    struct tm tmStruct;
+    clock_gettime(CLOCK_REALTIME, &ts);
+#if !is_mingw
+    localtime_r(&ts.tv_sec, &tmStruct);
+#else
+    CHECK_TRUE(localtime_s(&tmStruct, &ts.tv_sec) == 0, "", "localtime_s FAILED!");
 #endif
+    size_t used = strftime(timeStr, sizeof(timeStr), "%m-%d %H:%M:%S", &tmStruct);
+    snprintf_s(&timeStr[used], sizeof(timeStr) - used, sizeof(timeStr) - used - 1, ".%03ld",
+        ts.tv_nsec / NS_PER_MS_LOG);
+    return timeStr;
+}
+#endif // !HAVE_HILOG
+#endif // OHOS_PROFILER_LOGGING_H

@@ -32,8 +32,14 @@ ShareMemoryAllocator& ShareMemoryAllocator::GetInstance()
     return shareMemoryAllocator;
 }
 
-ShareMemoryAllocator::ShareMemoryAllocator() {}
-ShareMemoryAllocator::~ShareMemoryAllocator() {}
+ShareMemoryAllocator::ShareMemoryAllocator()
+{
+    memoryBlocks.clear();
+}
+ShareMemoryAllocator::~ShareMemoryAllocator()
+{
+    memoryBlocks.clear();
+}
 
 bool ShareMemoryAllocator::ReleaseMemoryBlockLocal(std::string name)
 {

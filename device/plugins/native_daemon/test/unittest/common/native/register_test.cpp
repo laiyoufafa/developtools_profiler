@@ -12,21 +12,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#define UNW_EMPTY_STRUCT uint8_t unused;
 
 #include "register_test.h"
 
 #include <bitset>
 
-#if HAVE_LIBUNWIND
-#include "libunwind.h"
-#endif
-
 using namespace testing::ext;
 using namespace std;
-#ifndef CONFIG_NO_HILOG
 using namespace OHOS::HiviewDFX;
-#endif
 namespace OHOS {
 namespace Developtools {
 namespace NativeDaemon {
@@ -71,7 +64,7 @@ HWTEST_F(RegisterTest, GetSupportedRegMask, TestSize.Level1)
     EXPECT_NE(GetSupportedRegMask(ArchType::X86_32), GetSupportedRegMask(ArchType::X86_64));
     EXPECT_NE(GetSupportedRegMask(ArchType::ARM), GetSupportedRegMask(ArchType::ARM64));
     EXPECT_EQ(GetSupportedRegMask(static_cast<ArchType>(100)),
-        std::numeric_limits<uint64_t>::max());
+              std::numeric_limits<uint64_t>::max());
     EXPECT_EQ(GetSupportedRegMask(static_cast<ArchType>(-1)), std::numeric_limits<uint64_t>::max());
 
     std::bitset<64> regMasker;
@@ -97,11 +90,11 @@ HWTEST_F(RegisterTest, GetSupportedRegMask, TestSize.Level1)
 HWTEST_F(RegisterTest, RegisterGetIP, TestSize.Level1)
 {
 #if defined(target_cpu_x64)
-    EXPECT_EQ(RegisterGetIP(), PERF_REG_X86_IP);
+    EXPECT_EQ(RegisterGetIP(ArchType::X86_64), PERF_REG_X86_IP);
 #elif defined(target_cpu_arm)
-    EXPECT_EQ(RegisterGetIP(), PERF_REG_ARM_PC);
+    EXPECT_EQ(RegisterGetIP(ArchType::ARM), PERF_REG_ARM_PC);
 #elif defined(target_cpu_arm64)
-    EXPECT_EQ(RegisterGetIP(), PERF_REG_ARM64_PC);
+    EXPECT_EQ(RegisterGetIP(ArchType::ARM64), PERF_REG_ARM64_PC);
 #endif
 }
 
@@ -113,11 +106,11 @@ HWTEST_F(RegisterTest, RegisterGetIP, TestSize.Level1)
 HWTEST_F(RegisterTest, RegisterGetSP, TestSize.Level1)
 {
 #if defined(target_cpu_x64)
-    EXPECT_EQ(RegisterGetSP(), PERF_REG_X86_IP);
+    EXPECT_EQ(RegisterGetSP(ArchType::X86_64), PERF_REG_X86_IP);
 #elif defined(target_cpu_arm)
-    EXPECT_EQ(RegisterGetSP(), PERF_REG_ARM_SP);
+    EXPECT_EQ(RegisterGetSP(ArchType::ARM), PERF_REG_ARM_SP);
 #elif defined(target_cpu_arm64)
-    EXPECT_EQ(RegisterGetSP(), PERF_REG_ARM64_SP);
+    EXPECT_EQ(RegisterGetSP(ArchType::ARM64), PERF_REG_ARM64_SP);
 #endif
 }
 
@@ -153,11 +146,11 @@ HWTEST_F(RegisterTest, RegisterGetSPValue, TestSize.Level1)
     uint64_t value2 = 0;
     u64 registers[PERF_REG_ARM64_MAX] = {1, 2, 3, 4};
     size_t registerIndex = 0;
-    size_t sp = RegisterGetSP();
+    size_t sp = RegisterGetSP(buildArchType);
     registers[sp] = 0x1234;
 
     EXPECT_EQ(RegisterGetValue(value, registers, sp, sizeof(registers)),
-        RegisterGetSPValue(value2, registers, sizeof(registers)));
+              RegisterGetSPValue(value2, buildArchType, registers, sizeof(registers)));
 
     EXPECT_EQ(value, value2);
 }
@@ -173,11 +166,11 @@ HWTEST_F(RegisterTest, RegisterGetIPValue, TestSize.Level1)
     uint64_t value2 = 0;
     u64 registers[PERF_REG_ARM64_MAX] = {1, 2, 3, 4};
     size_t registerIndex = 0;
-    size_t ip = RegisterGetIP();
+    size_t ip = RegisterGetIP(buildArchType);
     registers[ip] = 0x1234;
 
     EXPECT_EQ(RegisterGetValue(value, registers, ip, sizeof(registers)),
-        RegisterGetIPValue(value2, registers, sizeof(registers)));
+              RegisterGetIPValue(value2, buildArchType, registers, sizeof(registers)));
 
     EXPECT_EQ(value, value2);
 }
@@ -195,23 +188,16 @@ HWTEST_F(RegisterTest, RegisterGetName, TestSize.Level1)
 }
 
 /**
- * @tc.name: LibunwindRegIdToPrefReg
+ * @tc.name: LibunwindRegIdToPerfReg
  * @tc.desc:
  * @tc.type: FUNC
  */
-HWTEST_F(RegisterTest, LibunwindRegIdToPrefReg, TestSize.Level1)
+HWTEST_F(RegisterTest, LibunwindRegIdToPerfReg, TestSize.Level1)
 {
-#if defined(target_cpu_x64)
-    unsigned max = PERF_REG_X86_64_MAX;
-#elif defined(target_cpu_arm)
-    unsigned max = PERF_REG_ARM_MAX;
-#elif defined(target_cpu_arm64)
-    unsigned max = PERF_REG_ARM64_MAX;
-#endif
-    EXPECT_EQ(LibunwindRegIdToPrefReg(UNW_ARM_R13) >= 0, true);
-    EXPECT_EQ(LibunwindRegIdToPrefReg(UNW_ARM_R15) >= 0, true);
-    EXPECT_EQ(LibunwindRegIdToPrefReg(max + 1) < 0, true);
-    EXPECT_EQ(LibunwindRegIdToPrefReg(-1) < 0, true);
+    EXPECT_EQ(LibunwindRegIdToPerfReg(ARM_R13_REG) >= 0, true);
+    EXPECT_EQ(LibunwindRegIdToPerfReg(ARM_R15_REG) >= 0, true);
+    EXPECT_EQ(LibunwindRegIdToPerfReg(ARM_R15_REG + 1) < 0, true);
+    EXPECT_EQ(LibunwindRegIdToPerfReg(-1) < 0, true);
 }
 } // namespace NativeDaemon
 } // namespace Developtools

@@ -13,23 +13,21 @@
  * limitations under the License.
  */
 
+#include "virtual_thread_test.h"
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
-#include <hilog/log.h>
 #include <link.h>
 #include <random>
 #include <sys/mman.h>
 #include "get_thread_id.h"
-#include "symbols_test.h"
+#include "symbols_file_test.h"
 #include "virtual_runtime.h"
 #include "virtual_thread_test.h"
 
 using namespace testing::ext;
 using namespace std;
-#ifndef CONFIG_NO_HILOG
 using namespace OHOS::HiviewDFX;
-#endif
 namespace OHOS {
 namespace Developtools {
 namespace NativeDaemon {
@@ -51,8 +49,8 @@ public:
         return path;
     }
     static int PhdrCallBack(struct dl_phdr_info *info, size_t size, void *data);
-    static void makeMapsFromDlpi(const std::string &dlpiName, const struct dl_phdr_info *info,
-        std::vector<MemMapItem> &phdrMaps);
+    static void MakeMapsFromDlpi(const std::string &dlpiName, const struct dl_phdr_info *info,
+                                 std::vector<MemMapItem> &phdrMaps);
 };
 
 std::string VirtualThreadTest::myFilePath_;
@@ -140,21 +138,21 @@ HWTEST_F(VirtualThreadTest, MemMapItemFileToString, TestSize.Level1)
     EXPECT_EQ(a.ToString().find("300") != std::string::npos, true);
 }
 
-
-void VirtualThreadTest::makeMapsFromDlpi(const std::string &dlpiName,
-    const struct dl_phdr_info *info, std::vector<MemMapItem> &phdrMaps)
+void VirtualThreadTest::MakeMapsFromDlpi(const std::string &dlpiName,
+                                         const struct dl_phdr_info *info,
+                                         std::vector<MemMapItem> &phdrMaps)
 {
-    int p_type;
+    int phdrType;
     HLOGV("Name: \"%s\" (%d segments)", dlpiName.c_str(), info->dlpi_phnum);
     for (int i = 0; i < info->dlpi_phnum; i++) {
-        p_type = info->dlpi_phdr[i].p_type;
-        if (p_type != PT_LOAD) {
+        phdrType = info->dlpi_phdr[i].p_type;
+        if (phdrType != PT_LOAD) {
             continue;
         }
         HLOGV("    %2d: [%14p; memsz:%7jx] align %jx flags: %#jx [(%#x)]", i,
-            (void *)(info->dlpi_addr + info->dlpi_phdr[i].p_vaddr),
-            (uintmax_t)info->dlpi_phdr[i].p_memsz, (uintmax_t)info->dlpi_phdr[i].p_align,
-            (uintmax_t)info->dlpi_phdr[i].p_flags, p_type);
+              (void *)(info->dlpi_addr + info->dlpi_phdr[i].p_vaddr),
+              (uintmax_t)info->dlpi_phdr[i].p_memsz, (uintmax_t)info->dlpi_phdr[i].p_align,
+              (uintmax_t)info->dlpi_phdr[i].p_flags, phdrType);
 
         MemMapItem &item = phdrMaps.emplace_back();
         item.begin_ = (info->dlpi_addr + info->dlpi_phdr[i].p_vaddr);
@@ -172,9 +170,9 @@ int VirtualThreadTest::PhdrCallBack(struct dl_phdr_info *info, size_t size, void
 {
     VirtualThread *thread = static_cast<VirtualThread *>(data);
     std::vector<MemMapItem> phdrMaps {};
-    std::vector<MemMapItem> memMaps {};
+    std::vector<const MemMapItem *> memMaps {};
     static std::string myFilePath = GetFullPath();
-    EXPECT_NE(thread->GetMaps()->size(), 0u);
+    EXPECT_NE(thread->GetMaps().size(), 0u);
     std::string dlpiName = info->dlpi_name;
     if (StringStartsWith(dlpiName, "./") and !StringEndsWith(dlpiName, ".so")) {
         dlpiName = myFilePath;
@@ -183,27 +181,27 @@ int VirtualThreadTest::PhdrCallBack(struct dl_phdr_info *info, size_t size, void
         // dont care empty pt
         return 0;
     } else {
-        makeMapsFromDlpi(dlpiName, info, phdrMaps);
+        MakeMapsFromDlpi(dlpiName, info, phdrMaps);
     }
 
-    for (const MemMapItem &item : *thread->GetMaps()) {
+    for (const MemMapItem &item : thread->GetMaps()) {
         if (item.name_ == dlpiName) {
             HLOGV("%s", item.ToString().c_str());
-            memMaps.emplace_back(item);
+            memMaps.emplace_back(&item);
         }
     }
 
     if (memMaps.size() == 0u) {
-        // show all the items
-        for (const MemMapItem &item : *thread->GetMaps()) {
+        // show all the items if not any match mapitem found
+        for (const MemMapItem &item : thread->GetMaps()) {
             HLOGV("%s", item.ToString().c_str());
         }
         return 0;
     }
 
     if (memMaps.size() == phdrMaps.size()) {
-        EXPECT_EQ(memMaps.front().begin_, phdrMaps.front().begin_);
-        EXPECT_EQ(memMaps.front().pageoffset_, phdrMaps.front().pageoffset_);
+        EXPECT_EQ(memMaps.front()->begin_, phdrMaps.front().begin_);
+        EXPECT_EQ(memMaps.front()->pageoffset_, phdrMaps.front().pageoffset_);
     }
     return 0;
 }
@@ -223,7 +221,7 @@ HWTEST_F(VirtualThreadTest, ParseMap, TestSize.Level1)
 
     dl_iterate_phdr(PhdrCallBack, static_cast<void *>(thread.get()));
 
-    for (const MemMapItem &item : *(thread->GetMaps())) {
+    for (const MemMapItem &item : thread->GetMaps()) {
         EXPECT_EQ(item.name_.empty(), false);
         EXPECT_STRNE(item.name_.c_str(), MMAP_NAME_HEAP.c_str());
         EXPECT_STRNE(item.name_.c_str(), MMAP_NAME_ANON.c_str());
@@ -241,7 +239,7 @@ HWTEST_F(VirtualThreadTest, CreateMapItem, TestSize.Level1)
     std::shared_ptr<VirtualRuntime> runtime = std::make_shared<VirtualRuntime>();
     std::shared_ptr<VirtualThread> thread = std::make_shared<VirtualThread>(getpid(), get_thread_id(),
         files, runtime.get(), false);
-    const std::vector<MemMapItem> &maps = *thread->GetMaps();
+    const std::vector<MemMapItem> &maps = thread->GetMaps();
 
     fprintf(stderr, "map size = %zd\n", maps.size());
 
@@ -283,18 +281,18 @@ HWTEST_F(VirtualThreadTest, InheritMaps, TestSize.Level1)
     std::shared_ptr<VirtualThread> thread2 = std::make_shared<VirtualThread>(getpid(),
         get_thread_id() + 1, files, runtime.get());
 
-    const std::vector<MemMapItem> &maps = *thread->GetMaps();
-    const std::vector<MemMapItem> &maps2 = *thread2->GetMaps();
+    const std::vector<MemMapItem> &maps = thread->GetMaps();
+    const std::vector<MemMapItem> &maps2 = thread2->GetMaps();
 
     ASSERT_EQ(maps.size(), maps2.size());
     for (size_t i = 0; i < maps.size(); i++) {
         EXPECT_STREQ(maps[i].ToString().c_str(), maps2[i].ToString().c_str());
     }
 
-    size_t oldSize = maps.size();
+    size_t oldSize = thread->GetMaps().size();
     thread->CreateMapItem("new", 0u, 1u, 2u);
-    size_t newSize = maps.size();
-    ASSERT_EQ(oldSize, newSize - 1u);
+    size_t newSize = thread->GetMaps().size();
+    ASSERT_EQ(oldSize, newSize);
     ASSERT_EQ(maps.size(), maps2.size());
     for (size_t i = 0; i < maps.size(); i++) {
         EXPECT_STREQ(maps[i].ToString().c_str(), maps2[i].ToString().c_str());
@@ -317,26 +315,29 @@ HWTEST_F(VirtualThreadTest, FindMapByAddr, TestSize.Level1)
     thread->CreateMapItem("1.so", 3000u, 4000u, 5000u);
     thread->CreateMapItem("2.so", 10000u, 20000u, 30000u);
 
-    MemMapItem outMap;
-    EXPECT_EQ(thread->FindMapByAddr(0000u, outMap), false);
+    const MemMapItem *outMap;
+    outMap = thread->FindMapByAddr(0000u);
+    EXPECT_EQ(outMap != nullptr, false);
 
-    EXPECT_EQ(thread->FindMapByAddr(1000u, outMap), true);
-    EXPECT_EQ(outMap.begin_, 1000u);
+    outMap = thread->FindMapByAddr(1000u);
+    ASSERT_EQ(outMap != nullptr, true);
+    EXPECT_EQ(outMap->begin_, 1000u);
 
-    EXPECT_EQ(thread->FindMapByAddr(2000u, outMap), true);
-    EXPECT_EQ(outMap.begin_, 1000u);
+    outMap = thread->FindMapByAddr(2000u);
+    ASSERT_EQ(outMap != nullptr, true);
+    EXPECT_EQ(outMap->begin_, 1000u);
 
-    EXPECT_EQ(thread->FindMapByAddr(2999u, outMap), true);
-    EXPECT_EQ(outMap.begin_, 1000u);
+    outMap = thread->FindMapByAddr(2999u);
+    ASSERT_EQ(outMap != nullptr, true);
+    EXPECT_EQ(outMap->begin_, 1000u);
 
-    EXPECT_EQ(thread->FindMapByAddr(3000u, outMap), true);
-    EXPECT_EQ(outMap.begin_, 3000u);
+    outMap = thread->FindMapByAddr(3000u);
+    ASSERT_EQ(outMap != nullptr, true);
+    EXPECT_EQ(outMap->begin_, 3000u);
 
-    EXPECT_EQ(thread->FindMapByAddr(30000u - 1u, outMap), true);
-
-    EXPECT_EQ(thread->FindMapByAddr(30000u, outMap), false);
-
-    EXPECT_EQ(thread->FindMapByAddr(30000u + 1u, outMap), false);
+    EXPECT_EQ(thread->FindMapByAddr(30000u - 1u) != nullptr, true);
+    EXPECT_EQ(thread->FindMapByAddr(30000u) != nullptr, false);
+    EXPECT_EQ(thread->FindMapByAddr(30000u + 1u) != nullptr, false);
 }
 
 /**
@@ -355,35 +356,31 @@ HWTEST_F(VirtualThreadTest, FindMapByFileInfo, TestSize.Level1)
     thread->CreateMapItem("1.so", 3000u, 4000u, 5000u);
     thread->CreateMapItem("2.so", 10000u, 20000u, 30000u);
 
-    MemMapItem outMap;
-    EXPECT_EQ(thread->FindMapByFileInfo("", 0000u, outMap), false);
-    EXPECT_EQ(thread->FindMapByFileInfo("0.so", 0000u, outMap), false);
+    const MemMapItem *outMap;
+    EXPECT_EQ(thread->FindMapByFileInfo("", 0000u), nullptr);
+    EXPECT_EQ(thread->FindMapByFileInfo("0.so", 0000u), nullptr);
 
-    EXPECT_EQ(thread->FindMapByFileInfo("1.so", 3000u, outMap), false);
-    EXPECT_EQ(thread->FindMapByFileInfo("0.so", 3000u, outMap), true);
-    EXPECT_EQ(outMap.begin_, 1000u);
-    outMap.begin_ = 0;
+    EXPECT_EQ(thread->FindMapByFileInfo("1.so", 3000u), nullptr);
+    ASSERT_NE(outMap = thread->FindMapByFileInfo("0.so", 3000u), nullptr);
+    EXPECT_EQ(outMap->begin_, 1000u);
 
-    EXPECT_EQ(thread->FindMapByFileInfo("1.so", 4000u, outMap), false);
-    EXPECT_EQ(thread->FindMapByFileInfo("0.so", 4000u, outMap), true);
-    EXPECT_EQ(outMap.begin_, 1000u);
-    outMap.begin_ = 0;
+    EXPECT_EQ(thread->FindMapByFileInfo("1.so", 4000u), nullptr);
+    ASSERT_NE(outMap = thread->FindMapByFileInfo("0.so", 4000u), nullptr);
+    EXPECT_EQ(outMap->begin_, 1000u);
 
-    EXPECT_EQ(thread->FindMapByFileInfo("1.so", 4999u, outMap), false);
-    EXPECT_EQ(thread->FindMapByFileInfo("0.so", 4999u, outMap), true);
-    EXPECT_EQ(outMap.begin_, 1000u);
-    outMap.begin_ = 0;
+    EXPECT_EQ(thread->FindMapByFileInfo("1.so", 4999u), nullptr);
+    ASSERT_NE(outMap = thread->FindMapByFileInfo("0.so", 4999u), nullptr);
+    EXPECT_EQ(outMap->begin_, 1000u);
 
-    EXPECT_EQ(thread->FindMapByFileInfo("0.so", 5000u, outMap), false);
-    EXPECT_EQ(thread->FindMapByFileInfo("1.so", 5000u, outMap), true);
-    EXPECT_EQ(outMap.begin_, 3000u);
-    outMap.begin_ = 0;
+    EXPECT_EQ(thread->FindMapByFileInfo("0.so", 5000u), nullptr);
+    ASSERT_NE(outMap = thread->FindMapByFileInfo("1.so", 5000u), nullptr);
+    EXPECT_EQ(outMap->begin_, 3000u);
 
-    EXPECT_EQ(thread->FindMapByFileInfo("1.so", 50000u - 1, outMap), false);
-    EXPECT_EQ(thread->FindMapByFileInfo("x.so", 50000u - 1, outMap), false);
-    EXPECT_EQ(thread->FindMapByFileInfo("2.so", 50000u - 1, outMap), true);
-    EXPECT_EQ(thread->FindMapByFileInfo("2.so", 50000u, outMap), false);
-    EXPECT_EQ(thread->FindMapByFileInfo("2.so", 50000u + 1, outMap), false);
+    EXPECT_EQ(thread->FindMapByFileInfo("1.so", 50000u - 1), nullptr);
+    EXPECT_EQ(thread->FindMapByFileInfo("x.so", 50000u - 1), nullptr);
+    EXPECT_NE(thread->FindMapByFileInfo("2.so", 50000u - 1), nullptr);
+    EXPECT_EQ(thread->FindMapByFileInfo("2.so", 50000u), nullptr);
+    EXPECT_EQ(thread->FindMapByFileInfo("2.so", 50000u + 1), nullptr);
 }
 
 /**
@@ -401,6 +398,7 @@ HWTEST_F(VirtualThreadTest, FindSymbolsFileByMap, TestSize.Level1)
     std::shared_ptr<VirtualRuntime> runtime = std::make_shared<VirtualRuntime>();
     std::shared_ptr<VirtualThread> thread = std::make_shared<VirtualThread>(getpid(), get_thread_id(),
         files, runtime.get(), false);
+
     MemMapItem inMap;
 
     inMap.name_ = "";
@@ -434,55 +432,55 @@ HWTEST_F(VirtualThreadTest, ReadRoMemory, TestSize.Level1)
     std::shared_ptr<VirtualThread> thread = std::make_shared<VirtualThread>(getpid(), get_thread_id(),
         symbolsFiles, runtime.get(), false);
     std::unique_ptr<FILE, decltype(&fclose)> fp(fopen(TEST_FILE_ELF_FULL_PATH.c_str(), "rb"),
-        fclose);
-    ASSERT_NE(fp, nullptr);
+                                                fclose);
+    if (fp) {
+        struct stat sb = {};
+        if (fstat(fileno(fp.get()), &sb) == -1) {
+            HLOGE("unable to check the file size");
+        } else {
+            HLOGV("file stat size %" PRIu64 "", sb.st_size);
+        }
 
-    struct stat sb = {};
-    if (fstat(fileno(fp.get()), &sb) == -1) {
-        HLOGE("unable to check the file size");
-    } else {
-        HLOGV("file stat size %" PRIu64 "", sb.st_size);
-    }
+        thread->CreateMapItem(TEST_FILE_ELF_FULL_PATH, 0u, sb.st_size, 0u);
+        ASSERT_EQ(thread->GetMaps().size(), 1u);
 
-    thread->CreateMapItem(TEST_FILE_ELF_FULL_PATH, 0u, sb.st_size, 0u);
-    ASSERT_EQ(thread->GetMaps()->size(), 1u);
+        std::unique_ptr<SymbolsFile> symbolsFile =
+            SymbolsFile::CreateSymbolsFile(SYMBOL_ELF_FILE, TEST_FILE_ELF_FULL_PATH);
+        ASSERT_NE(symbolsFile, nullptr);
+        ASSERT_EQ(symbolsFile->LoadSymbols(), true);
 
-    std::unique_ptr<SymbolsFile> symbolsFile =
-        SymbolsFile::CreateSymbolsFile(SYMBOL_ELF_FILE, TEST_FILE_ELF_FULL_PATH);
-    ASSERT_NE(symbolsFile, nullptr);
-    ASSERT_EQ(symbolsFile->LoadSymbols(), true);
+        // add to symbols list
+        symbolsFiles.insert(std::move(symbolsFile));
 
-    // add to symbols list
-    symbolsFiles.insert(std::move(symbolsFile));
+        uint8_t freadByte = '\0';
+        uint8_t readRoByte = '\0';
+        uint64_t addr = 0x0;
 
-    uint8_t freadByte = '\0';
-    uint8_t readRoByte = '\0';
-    uint64_t addr = 0x0;
+        // first byte
+        ASSERT_EQ(fread(&freadByte, 1, 1, fp.get()), 1u);
 
-    // first byte
-    ASSERT_EQ(fread(&freadByte, 1, 1, fp.get()), 1u);
+        const MemMapItem *map = thread->FindMapByAddr(addr);
+        ASSERT_EQ(map != nullptr, true);
+        if (HasFailure()) {
+            printf("map: %s\n", thread->GetMaps().at(0).ToString().c_str());
+        }
 
-    MemMapItem map;
-    EXPECT_EQ(thread->FindMapByAddr(addr, map), true);
-    if (HasFailure()) {
-        HILOG_INFO(LOG_CORE, "map: %s", thread->GetMaps()->at(0).ToString().c_str());
-    }
+        EXPECT_NE(thread->FindSymbolsFileByMap(*map), nullptr);
+        if (HasFailure()) {
+            printf("symbols: %s\n", thread->symbolsFiles_.begin()->get()->filePath_.c_str());
+        }
 
-    EXPECT_NE(thread->FindSymbolsFileByMap(map), nullptr);
-    if (HasFailure()) {
-        HILOG_INFO(LOG_CORE, "symbols: %s", thread->symbolsFiles_.begin()->get()->filePath_.c_str());
-    }
-
-    ASSERT_EQ(thread->ReadRoMemory(addr++, &readRoByte, 1u), true);
-    ASSERT_EQ(freadByte, readRoByte);
-
-    while (fread(&freadByte, 1, 1, fp.get()) == 1u) {
         ASSERT_EQ(thread->ReadRoMemory(addr++, &readRoByte, 1u), true);
         ASSERT_EQ(freadByte, readRoByte);
-    }
 
-    // EOF , out of file size should return 0
-    ASSERT_EQ(thread->ReadRoMemory(addr++, &readRoByte, 1u), false);
+        while (fread(&freadByte, 1, 1, fp.get()) == 1u) {
+            ASSERT_EQ(thread->ReadRoMemory(addr++, &readRoByte, 1u), true);
+            ASSERT_EQ(freadByte, readRoByte);
+        }
+
+        // EOF , out of file size should return 0
+        ASSERT_EQ(thread->ReadRoMemory(addr++, &readRoByte, 1u), false);
+    }
 }
 } // namespace NativeDaemon
 } // namespace Developtools

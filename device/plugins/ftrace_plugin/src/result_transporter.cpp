@@ -80,12 +80,10 @@ void ResultTransporter::Flush()
         return;
     }
     writer_->flush(writer_);
-}
 
-void ResultTransporter::Report()
-{
     auto count = bytesCount_.load();
     auto pending = bytesPending_.load();
+    bytesPending_ = 0;
     HILOG_DEBUG(LOG_CORE, "ResultTransporter TX stats B: %" PRIu64 ", P: %u", count, pending);
 }
 
@@ -98,8 +96,6 @@ bool ResultTransporter::Submit(ResultPtr&& packet)
 
     if (IsFlushTime() || bytesPending_ >= flushThreshold_) {
         Flush();
-        Report();
-        bytesPending_ = 0;
     }
     return true;
 }

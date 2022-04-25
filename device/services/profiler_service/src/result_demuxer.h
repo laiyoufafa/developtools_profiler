@@ -47,6 +47,7 @@ private:
     std::chrono::milliseconds flushInterval_ {};
     std::chrono::steady_clock::time_point lastFlushTime_ {};
     std::thread demuxerThread_ {};
+    bool isStopTakeData_ = false;
 
     DISALLOW_COPY_AND_MOVE(ResultDemuxer);
 };

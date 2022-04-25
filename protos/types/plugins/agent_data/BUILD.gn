@@ -28,13 +28,21 @@ proto_out_dir = "$root_gen_dir/cpp/" + rebase_path(".", "//")
 proto_rel_out_dir = rebase_path(proto_out_dir, root_build_dir)
 
 agent_data_codegen = []
+agent_data_codegen_standard = []
+agent_data_codegen_all = []
 foreach(proto, agent_sources) {
   name = get_path_info(proto, "name")
   agent_data_codegen += [
     "$proto_out_dir/$name.pb.h",
     "$proto_out_dir/$name.pb.cc",
   ]
+  agent_data_codegen_standard += [
+    "$proto_out_dir/${name}_standard.pb.h",
+    "$proto_out_dir/${name}_standard.pb.cc",
+  ]
 }
+agent_data_codegen_all += agent_data_codegen
+agent_data_codegen_all += agent_data_codegen_standard
 
 config("agent_include_config") {
   include_dirs = [ "$proto_out_dir" ]
@@ -44,10 +52,11 @@ config("agent_include_config") {
 action("agent_data_cpp_gen") {
   script = "${OHOS_PROFILER_DIR}/build/protoc.sh"
   sources = agent_sources
-  outputs = agent_data_codegen
+  outputs = agent_data_codegen_all
   args = [
     "$libc_dir_proto",
     "$root_output_dir_proto",
+    "$proto_rel_out_dir",
     "--cpp_out",
     "$proto_rel_out_dir",
     "--proto_path",

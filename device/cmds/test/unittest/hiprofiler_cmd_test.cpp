@@ -77,7 +77,7 @@ public:
     bool RunCommand(const std::string& cmd, std::string& content)
     {
         std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd.c_str(), "r"), pclose);
-        CHECK_TRUE(pipe, false, "BytraceCall::RunCommand: create popen FAILED!");
+        CHECK_TRUE(pipe, false, "RunCommand: create popen FAILED!");
 
         std::array<char, READ_BUFFER_SIZE> buffer;
         while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
@@ -99,6 +99,7 @@ public:
 
         if ((strlen(path.c_str()) >= PATH_MAX) || (realpath(path.c_str(), realPath) == nullptr)) {
             HILOG_ERROR(LOG_CORE, "%s:path is invalid: %s, errno=%d", __func__, path.c_str(), errno);
+            return "";
         }
         FILE* file = fopen(realPath, "rb");
         if (file == nullptr) {
