@@ -151,9 +151,9 @@ bool PluginManager::RemovePlugin(const std::string& pluginPath)
 
         // delete schedule task if POLLING mode
         if (pluginModules_[index]->GetSampleMode() == PluginModule::SampleMode::POLLING) {
-            HILOG_WARN(LOG_CORE, "%s:delete schedule task plugin name = %s", __func__, pluginPath.c_str());
-            if (!scheduleTaskManager_.UnscheduleTask(pluginPath)) {
-                HILOG_WARN(LOG_CORE, "%s:delete schedule task plugin name = %s failed!", __func__, pluginPath.c_str());
+            HILOG_WARN(LOG_CORE, "%s:delete schedule task plugin name = %s", __func__, pluginName.c_str());
+            if (!scheduleTaskManager_.UnscheduleTask(pluginName)) {
+                HILOG_WARN(LOG_CORE, "%s:delete schedule task plugin name = %s failed!", __func__, pluginName.c_str());
             }
         }
 
