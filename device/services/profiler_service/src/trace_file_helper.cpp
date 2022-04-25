@@ -16,14 +16,20 @@
 
 #include <climits>
 #include <cstring>
+#if !is_mingw
 #include <openssl/sha.h>
+#endif
 #include <securec.h>
 #include "logging.h"
 
 TraceFileHelper::TraceFileHelper()
+#if !is_mingw
     : shaCtx_(std::make_shared<SHA256_CTX>())
+#endif
 {
+#if !is_mingw
     SHA256_Init(shaCtx_.get());
+#endif
 }
 
 TraceFileHelper::~TraceFileHelper()
@@ -35,34 +41,43 @@ bool TraceFileHelper::AddSegment(const uint8_t data[], uint32_t size)
     if (size > std::numeric_limits<decltype(header_.data_.length_)>::max() - header_.data_.length_ - sizeof(size)) {
         return false;
     }
+#if !is_mingw
     int retval = 0;
     header_.data_.segments_ += 1;
 
     header_.data_.length_ += size;
     retval = SHA256_Update(shaCtx_.get(), data, size);
     CHECK_TRUE(retval, false, "[%u] SHA256_Update FAILED, s:%u, d:%p!", header_.data_.segments_, size, data);
+#endif
     return true;
 }
 
 bool TraceFileHelper::Finish()
 {
+#if !is_mingw
     int retval = 0;
     retval = SHA256_Final(header_.data_.sha256_, shaCtx_.get());
     CHECK_TRUE(retval, false, "[%u] SHA256_Final FAILED!", header_.data_.segments_);
+#endif
     return true;
 }
 
 bool TraceFileHelper::Update(TraceFileHeader& header)
 {
+#if !is_mingw
     CHECK_TRUE(Finish(), false, "Finish FAILED!");
     if (memcpy_s(&header, sizeof(header), &header_, sizeof(header)) != 0) {
         return false;
     }
+#endif
     return true;
 }
 
 bool TraceFileHelper::Validate(const TraceFileHeader& header)
 {
+#if !is_mingw
     CHECK_TRUE(Finish(), false, "Finish FAILED!");
     return memcmp(&header_, &header, sizeof(header_)) == 0;
+#endif
+    return true;
 }

@@ -24,6 +24,7 @@
 
 namespace {
 constexpr int ADDR_VALUE_BASE = 16;
+constexpr int MAX_BUFFER_SIZE = 10 * 1000;
 } // namespace
 
 FTRACE_NS_BEGIN
@@ -69,15 +70,19 @@ bool KernelSymbolsParser::CompareSymbolInfo(const KernelSymbol& a, const KernelS
 
 bool KernelSymbolsParser::Parse(const std::string& kallsyms)
 {
-    std::string line;
+    CHECK_TRUE(!kallsyms.empty(), false, "kallsyms is empty!");
     std::stringstream sin(kallsyms);
+    std::string line;
+    KernelSymbol info;
+    std::string addrStr;
+    std::stringstream ss;
+    int count = 0;
     while (std::getline(sin, line)) {
         // one of following format:
         // c0109b3c T arm_elf_read_implies_exec
         // bf004fd8 t media_mem_init       [hi_osal]
-        std::stringstream ss(line);
-        KernelSymbol info;
-        std::string addrStr;
+        ss.clear();
+        ss.str(line);
         if (ss >> addrStr >> info.type >> info.name) {
             info.addr = strtoull(addrStr.c_str(), nullptr, ADDR_VALUE_BASE);
         }
@@ -88,11 +93,16 @@ bool KernelSymbolsParser::Parse(const std::string& kallsyms)
             info.name = info.name.substr(0, info.name.size() - (sizeof(".cfi") - 1));
         }
         if (IsValidTextSymbol(info)) {
-            kernelSymbols_.emplace_back(std::move(info));
+            if (count % MAX_BUFFER_SIZE == 0) {
+                kernelSymbols_.resize(kernelSymbols_.size() + MAX_BUFFER_SIZE);
+            }
+            kernelSymbols_[count] = info;
+            count++;
         }
     }
+
+    kernelSymbols_.resize(count);
     std::sort(kernelSymbols_.begin(), kernelSymbols_.end(), CompareSymbolInfo);
-    kernelSymbols_.shrink_to_fit();
     return kernelSymbols_.size();
 }
 FTRACE_NS_END

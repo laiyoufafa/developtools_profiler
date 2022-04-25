@@ -20,6 +20,7 @@ config("hook_config") {
     "HAVE_LIBUNWIND=1",
     "HIPERF_DEBUG",
     "CONFIG_NO_HILOG",
+    "HOOK_ENABLE",
   ]
   defines += [ "target_cpu_${target_cpu}" ]
 }

@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+#include <limits>
+#include <sys/stat.h>
 
 #include "command_poller.h"
 #include "epoll_event_poller.h"
@@ -21,41 +23,108 @@
 #include "logging.h"
 #include "plugin_service_types.pb.h"
 #include "share_memory_allocator.h"
+#include "sys_param.h"
 #include "utilities.h"
 #include "virtual_runtime.h"
+#include "hook_common.h"
 #include "hook_manager.h"
 
+using namespace OHOS::Developtools::NativeDaemon;
+
 namespace {
+const int STACK_DATA_SIZE = 3000;
 const int DEFAULT_EVENT_POLLING_INTERVAL = 5000;
 const int PAGE_BYTES = 4096;
+std::shared_ptr<BufferWriter> g_buffWriter;
+constexpr uint32_t MAX_BUFFER_SIZE = 10 * 1024;
+const std::string STARTUP = "startup:";
+const std::string PARAM_NAME = "libc.hook_mode";
+const int MOVE_BIT = 32;
 } // namespace
 
-void HookManager::writeFrames(int type, const struct timespec& ts, void* addr, uint32_t mallocSize,
-    const std::vector<OHOS::Developtools::NativeDaemon::CallFrame>& callsFrames)
+bool HookManager::CheckProcess()
 {
-    if (type == 0) {
-        fprintf(fpHookData_.get(), "malloc;%" PRId64 ";%ld;0x%" PRIx64 ";%u\n",
-                (int64_t)ts.tv_sec, ts.tv_nsec, (uint64_t)addr, mallocSize);
-    } else if (type == 1) {
-        fprintf(fpHookData_.get(), "free;%" PRId64 ";%ld;0x%" PRIx64 "\n",
-                (int64_t)ts.tv_sec, ts.tv_nsec, (uint64_t)addr);
+    if (pid_ != 0) {
+        int ret = 0;
+        std::string pid_path = std::string();
+        struct stat stat_buf;
+        pid_path = "/proc/" + std::to_string(pid_) + "/status";
+        if (stat(pid_path.c_str(), &stat_buf) != 0) {
+            pid_ = 0;
+            HILOG_ERROR(LOG_CORE, "%s: hook process does not exist", __func__);
+            return false;
+        } else {
+            return true;
+        }
+    } else if (hookConfig_.process_name() != "") {
+        // check if the pid and process name is consistency
+        CheckProcessName();
+    }
+
+    return true;
+}
+
+void HookManager::CheckProcessName()
+{
+    std::string findpid = "pidof " + hookConfig_.process_name();
+    HILOG_INFO(LOG_CORE, "find pid command : %s", findpid.c_str());
+    std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(findpid.c_str(), "r"), pclose);
+
+    char line[LINE_SIZE];
+    do {
+        if (fgets(line, sizeof(line), pipe.get()) == nullptr) {
+            HILOG_INFO(LOG_CORE, "Process %s not exist, set param", hookConfig_.process_name().c_str());
+            std::string cmd = STARTUP + hookConfig_.process_name();
+            int ret = SystemSetParameter(PARAM_NAME.c_str(), cmd.c_str());
+            if (ret < 0) {
+                HILOG_WARN(LOG_CORE, "set param failed, please manually set param and start process(%s)",
+                    hookConfig_.process_name().c_str());
+            } else {
+                HILOG_INFO(LOG_CORE, "set param success, please start process(%s)",
+                    hookConfig_.process_name().c_str());
+            }
+            break;
+        } else if (strlen(line) > 0 && isdigit((unsigned char)(line[0]))) {
+            pid_ = (int)atoi(line);
+            HILOG_INFO(LOG_CORE, "Process %s exist, pid = %d", hookConfig_.process_name().c_str(), pid_);
+            break;
+        }
+    } while (1);
+}
+
+void HookManager::writeFrames(const struct timespec& ts, HookContext& hookContext,
+    const std::vector<CallFrame>& callsFrames)
+{
+    if (hookContext.type == MALLOC_MSG) {
+        fprintf(fpHookData_.get(), "malloc;%d;%d;%" PRId64 ";%ld;0x%" PRIx64 ";%u\n", hookContext.pid, hookContext.tid,
+            (int64_t)ts.tv_sec, ts.tv_nsec, (uint64_t)hookContext.addr, hookContext.mallocSize);
+    } else if (hookContext.type == FREE_MSG) {
+        fprintf(fpHookData_.get(), "free;%d;%d;%" PRId64 ";%ld;0x%" PRIx64 "\n", hookContext.pid, hookContext.tid,
+            (int64_t)ts.tv_sec, ts.tv_nsec, (uint64_t)hookContext.addr);
+    } else if (hookContext.type == MMAP_MSG) {
+        fprintf(fpHookData_.get(), "mmap;%d;%d;%" PRId64 ";%ld;0x%" PRIx64 "\n", hookContext.pid, hookContext.tid,
+            (int64_t)ts.tv_sec, ts.tv_nsec, (uint64_t)hookContext.addr);
+    } else if (hookContext.type == MUNMAP_MSG) {
+        fprintf(fpHookData_.get(), "munmap;%d;%d;%" PRId64 ";%ld;0x%" PRIx64 "\n", hookContext.pid, hookContext.tid,
+            (int64_t)ts.tv_sec, ts.tv_nsec, (uint64_t)hookContext.addr);
     } else {
         return;
     }
 
-    for (size_t idx = 0, size = callsFrames.size(); idx < size; ++idx) {
+    for (size_t idx = FILTER_STACK_DEPTH; idx < callsFrames.size(); ++idx) {
         (void)fprintf(fpHookData_.get(), "0x%" PRIx64 ";0x%" PRIx64 ";%s;%s;0x%" PRIx64 ";%" PRIu64 "\n",
-            callsFrames[idx].ip_, callsFrames[idx].sp_, callsFrames[idx].symbolName_.c_str(),
-            callsFrames[idx].filePath_.c_str(), callsFrames[idx].offset_, callsFrames[idx].symbolOffset_);
+            callsFrames[idx].ip_, callsFrames[idx].sp_, std::string(callsFrames[idx].symbolName_).c_str(),
+            std::string(callsFrames[idx].filePath_).c_str(), callsFrames[idx].offset_, callsFrames[idx].symbolOffset_);
     }
 }
 
-HookManager::HookManager() : fpHookData_(nullptr, nullptr) { }
+HookManager::HookManager() : fpHookData_(nullptr, nullptr), buffer_(new (std::nothrow) uint8_t[MAX_BUFFER_SIZE]) { }
 
 void HookManager::SetCommandPoller(const std::shared_ptr<CommandPoller>& p)
 {
     commandPoller_ = p;
 }
+
 bool HookManager::RegisterAgentPlugin(const std::string& pluginPath)
 {
     RegisterPluginRequest request;
@@ -91,11 +160,11 @@ bool HookManager::UnregisterAgentPlugin(const std::string& pluginPath)
     UnregisterPluginResponse response;
     if (commandPoller_->UnregisterPlugin(request, response)) {
         if (response.status() != ResponseStatus::OK) {
-            HILOG_DEBUG(LOG_CORE, "RegisterPlugin FAIL 1");
+            HILOG_DEBUG(LOG_CORE, "UnregisterPlugin FAIL 1");
             return false;
         }
     } else {
-        HILOG_DEBUG(LOG_CORE, "RegisterPlugin FAIL 2");
+        HILOG_DEBUG(LOG_CORE, "UnregisterPlugin FAIL 2");
         return false;
     }
     agentIndex_ = -1;
@@ -129,8 +198,18 @@ bool HookManager::CreatePluginSession(const std::vector<ProfilerPluginConfig>& c
         HILOG_ERROR(LOG_CORE, "%s: ParseFromArray failed", __func__);
         return false;
     }
+    pid_ = hookConfig_.pid();
 
-    runtime_instance = std::make_shared<OHOS::Developtools::NativeDaemon::VirtualRuntime>();
+    int32_t uShortMax = (std::numeric_limits<unsigned short>::max)();
+    if (hookConfig_.filter_size() > uShortMax) {
+        HILOG_WARN(LOG_CORE, "%s: filter size invalid(size exceed 65535), reset to 65535!", __func__);
+        hookConfig_.set_filter_size(uShortMax);
+    }
+    if (!CheckProcess()) {
+        return false;
+    }
+
+    runtime_instance = std::make_shared<VirtualRuntime>();
     // create file
     if (hookConfig_.save_file()) {
         HILOG_DEBUG(LOG_CORE, "save file name = %s", hookConfig_.file_name().c_str());
@@ -142,8 +221,7 @@ bool HookManager::CreatePluginSession(const std::vector<ProfilerPluginConfig>& c
             fpHookData_.reset();
         }
     } else {
-        HILOG_ERROR(LOG_CORE, "%s: Not support!", __func__);
-        return false;
+        HILOG_DEBUG(LOG_CORE, "%s: need report native_hook data", __func__);
     }
     // create smb and eventNotifier
     uint32_t bufferSize = hookConfig_.smb_pages() * PAGE_BYTES; /* bufferConfig.pages() */
@@ -166,16 +244,26 @@ bool HookManager::CreatePluginSession(const std::vector<ProfilerPluginConfig>& c
     HILOG_INFO(LOG_CORE, "hookservice smbFd = %d, eventFd = %d\n", shareMemoryBlock_->GetfileDescriptor(),
                eventNotifier_->GetFd());
 
-    // start service init socket
-    hookService_ = std::make_shared<HookService>(shareMemoryBlock_->GetfileDescriptor(), eventNotifier_->GetFd(),
-                                                hookConfig_.filter_size(), bufferSize, hookConfig_.pid(), "");
-    CHECK_NOTNULL(hookService_, false, "ProfilerService create failed!");
+    // hook config |F F F F      F F F F      F F F F      F F F F|
+    //              malloctype   filtersize    sharememory  size
 
-    // send signal
-    std::string stopCmd = "kill -36 " + std::to_string(hookConfig_.pid());
-    HILOG_INFO(LOG_CORE, "stop command : %s", stopCmd.c_str());
-    std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(stopCmd.c_str(), "r"), pclose);
+    uint64_t hookConfig = hookConfig_.malloc_disable() ? MALLOCDISABLE : 0;
 
+    hookConfig |= hookConfig_.mmap_disable() ? MMAPDISABLE : 0;
+    hookConfig <<= 16;
+    hookConfig |= hookConfig_.filter_size();
+    hookConfig <<= 32;
+    hookConfig |= bufferSize;
+
+    hookService_ = std::make_shared<HookService>(shareMemoryBlock_->GetfileDescriptor(),
+                                                eventNotifier_->GetFd(), pid_, hookConfig_.process_name(), hookConfig);
+    CHECK_NOTNULL(hookService_, false, "HookService create failed!");
+
+    stackData_ = std::make_shared<StackDataRepeater>(STACK_DATA_SIZE);
+    CHECK_TRUE(stackData_ != nullptr, false, "Create StackDataRepeater FAIL");
+    stackPreprocess_ = std::make_shared<StackPreprocess>(stackData_);
+    CHECK_TRUE(stackPreprocess_ != nullptr, false, "Create StackPreprocess FAIL");
+    stackPreprocess_->SetWriter(g_buffWriter);
     return true;
 }
 
@@ -185,12 +273,14 @@ void HookManager::ReadShareMemory()
     uint64_t value = eventNotifier_->Take();
 
     while (true) {
+        auto batchNativeHookData = std::make_shared<BatchNativeHookData>();
+
         bool ret = shareMemoryBlock_->TakeData([&](const int8_t data[], uint32_t size) -> bool {
             std::vector<u64> u64regs;
             uint32_t *regAddr = nullptr;
             uint32_t stackSize;
-            pid_t tid;
             pid_t pid;
+            pid_t tid;
             void *addr = nullptr;
             int8_t* tmp = const_cast<int8_t *>(data);
 
@@ -199,6 +289,7 @@ void HookManager::ReadShareMemory()
                 HILOG_ERROR(LOG_CORE, "memcpy_s ts failed");
             }
             uint32_t type = *(reinterpret_cast<uint32_t *>(tmp + sizeof(ts)));
+
             uint32_t mallocSize = *(reinterpret_cast<uint32_t *>(tmp + sizeof(ts) + sizeof(type)));
             addr = *(reinterpret_cast<void **>(tmp + sizeof(ts) + sizeof(type) + sizeof(mallocSize)));
             stackSize = *(reinterpret_cast<uint32_t *>(tmp + sizeof(ts)
@@ -208,14 +299,14 @@ void HookManager::ReadShareMemory()
                 + sizeof(mallocSize) + sizeof(void *), stackSize) != EOK) {
                 HILOG_ERROR(LOG_CORE, "memcpy_s data failed");
             }
-            tid = *(reinterpret_cast<pid_t *>(tmp + sizeof(stackSize) + stackSize + sizeof(ts)
-                + sizeof(type) + sizeof(mallocSize) + sizeof(void *)));
             pid = *(reinterpret_cast<pid_t *>(tmp + sizeof(stackSize) + stackSize + sizeof(ts)
-                + sizeof(type) + sizeof(mallocSize) + sizeof(void *) + sizeof(tid)));
-            regAddr = reinterpret_cast<uint32_t *>(tmp + sizeof(tid) + sizeof(pid) + sizeof(stackSize)
+                + sizeof(type) + sizeof(mallocSize) + sizeof(void *)));
+            tid = *(reinterpret_cast<pid_t *>(tmp + sizeof(stackSize) + stackSize + sizeof(ts)
+                + sizeof(type) + sizeof(mallocSize) + sizeof(void *) + sizeof(pid)));
+            regAddr = reinterpret_cast<uint32_t *>(tmp + sizeof(pid) + sizeof(tid) + sizeof(stackSize)
                 + stackSize + sizeof(ts) + sizeof(type) + sizeof(mallocSize) + sizeof(void *));
 
-            int reg_count = (size - sizeof(tid) - sizeof(pid) - sizeof(stackSize) - stackSize
+            int reg_count = (size - sizeof(pid) - sizeof(tid) - sizeof(stackSize) - stackSize
                 - sizeof(ts) - sizeof(type) - sizeof(mallocSize) - sizeof(void *))
                 / sizeof(uint32_t);
             if (reg_count <= 0) {
@@ -224,30 +315,88 @@ void HookManager::ReadShareMemory()
             for (int idx = 0; idx < reg_count; ++idx) {
                 u64regs.push_back(*regAddr++);
             }
-            std::vector<OHOS::Developtools::NativeDaemon::CallFrame> callsFrames;
+            std::vector<CallFrame> callsFrames;
             runtime_instance->UnwindStack(u64regs, stackData.get(), stackSize, pid, tid, callsFrames,
                                           (hookConfig_.max_stack_depth() > 0)
-                                              ? hookConfig_.max_stack_depth()
-                                              : OHOS::Developtools::NativeDaemon::MAX_CALL_FRAME_UNWIND_SIZE);
-
-            if (hookConfig_.save_file()) {
-                writeFrames(type, ts, addr, mallocSize, callsFrames);
-            }
+                                              ? hookConfig_.max_stack_depth() + FILTER_STACK_DEPTH
+                                              : MAX_CALL_FRAME_UNWIND_SIZE);
+            HookContext hookContext = {};
+            hookContext.type = type;
+            hookContext.pid = pid;
+            hookContext.tid = tid;
+            hookContext.addr = addr;
+            hookContext.mallocSize = mallocSize;
+            SetHookData(hookContext, ts, callsFrames, batchNativeHookData);
             return true;
         });
         if (!ret) {
             break;
+        }
+
+        if (!hookConfig_.save_file()) {
+            if (!stackData_->PutStackData(batchNativeHookData)) {
+                break;
+            }
+        }
+    }
+}
+
+void HookManager::SetHookData(HookContext& hookContext, struct timespec ts,
+    std::vector<CallFrame>& callsFrames, BatchNativeHookDataPtr& batchNativeHookData)
+{
+    if (hookConfig_.save_file()) {
+        writeFrames(ts, hookContext, callsFrames);
+    } else {
+        NativeHookData* hookData = batchNativeHookData->add_events();
+        hookData->set_tv_sec(ts.tv_sec);
+        hookData->set_tv_nsec(ts.tv_nsec);
+
+        if (hookContext.type == MALLOC_MSG) {
+            AllocEvent* allocEvent = hookData->mutable_alloc_event();
+            allocEvent->set_pid(hookContext.pid);
+            allocEvent->set_tid(hookContext.tid);
+            allocEvent->set_addr((uint64_t)hookContext.addr);
+            allocEvent->set_size(static_cast<uint64_t>(hookContext.mallocSize));
+            for (size_t idx = FILTER_STACK_DEPTH; idx < callsFrames.size(); ++idx) {
+                Frame* frame = allocEvent->add_frame_info();
+                SetFrameInfo(*frame, callsFrames[idx]);
+            }
+        } else if (hookContext.type == FREE_MSG) {
+            FreeEvent* freeEvent = hookData->mutable_free_event();
+            freeEvent->set_pid(hookContext.pid);
+            freeEvent->set_tid(hookContext.tid);
+            freeEvent->set_addr((uint64_t)hookContext.addr);
+            for (size_t idx = FILTER_STACK_DEPTH; idx < callsFrames.size(); ++idx) {
+                Frame* frame = freeEvent->add_frame_info();
+                SetFrameInfo(*frame, callsFrames[idx]);
+            }
+        } else if (hookContext.type == MMAP_MSG) {
+            MmapEvent* mmapEvent = hookData->mutable_mmap_event();
+            mmapEvent->set_pid(hookContext.pid);
+            mmapEvent->set_tid(hookContext.tid);
+            mmapEvent->set_addr((uint64_t)hookContext.addr);
+            mmapEvent->set_size(static_cast<uint64_t>(hookContext.mallocSize));
+            mmapEvent->set_type("mmap_type1");
+            for (size_t idx = FILTER_STACK_DEPTH; idx < callsFrames.size(); ++idx) {
+                Frame* frame = mmapEvent->add_frame_info();
+                SetFrameInfo(*frame, callsFrames[idx]);
+            }
+        } else if (hookContext.type == MUNMAP_MSG) {
+            MunmapEvent* munmapEvent = hookData->mutable_munmap_event();
+            munmapEvent->set_pid(hookContext.pid);
+            munmapEvent->set_tid(hookContext.tid);
+            munmapEvent->set_addr((uint64_t)hookContext.addr);
+            munmapEvent->set_size(static_cast<uint64_t>(hookContext.mallocSize));
+            for (size_t idx = FILTER_STACK_DEPTH; idx < callsFrames.size(); ++idx) {
+                Frame* frame = munmapEvent->add_frame_info();
+                SetFrameInfo(*frame, callsFrames[idx]);
+            }
         }
     }
 }
 
 bool HookManager::DestroyPluginSession(const std::vector<uint32_t>& pluginIds)
 {
-    // send signal
-    std::string stopCmd = "kill -37 " + std::to_string(hookConfig_.pid());
-    HILOG_INFO(LOG_CORE, "stop command : %s", stopCmd.c_str());
-    std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(stopCmd.c_str(), "r"), pclose);
-
     // release hook service
     hookService_ = nullptr;
 
@@ -270,10 +419,11 @@ bool HookManager::DestroyPluginSession(const std::vector<uint32_t>& pluginIds)
         eventNotifier_ = nullptr;
     }
 
-    HILOG_ERROR(LOG_CORE, "stop command : %s", stopCmd.c_str());
     fpHookData_ = nullptr;
     HILOG_ERROR(LOG_CORE, "fclose hook data file");
     runtime_instance = nullptr;
+    stackPreprocess_ = nullptr;
+    stackData_ = nullptr;
     return true;
 }
 
@@ -281,21 +431,89 @@ bool HookManager::StartPluginSession(const std::vector<uint32_t>& pluginIds,
                                      const std::vector<ProfilerPluginConfig>& config)
 {
     UNUSED_PARAMETER(config);
+    CHECK_TRUE(stackPreprocess_ != nullptr, false, "start StackPreprocess FAIL");
+    stackPreprocess_->StartTakeResults();
+
+    if (pid_ > 0) {
+        std::string startCmd = "kill -36 " + std::to_string(pid_);
+        HILOG_INFO(LOG_CORE, "start command : %s", startCmd.c_str());
+        std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(startCmd.c_str(), "r"), pclose);
+    } else {
+        HILOG_INFO(LOG_CORE, "StartPluginSession: pid_(%d) is less or equal zero.", pid_);
+    }
+
     return true;
 }
 
 bool HookManager::StopPluginSession(const std::vector<uint32_t>& pluginIds)
 {
+    // send signal
+    if (pid_ > 0) {
+        std::string stopCmd = "kill -37 " + std::to_string(pid_);
+        HILOG_INFO(LOG_CORE, "stop command : %s", stopCmd.c_str());
+        std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(stopCmd.c_str(), "r"), pclose);
+    } else {
+        HILOG_INFO(LOG_CORE, "StopPluginSession: pid_(%d) is less or equal zero.", pid_);
+    }
+
+    CHECK_TRUE(stackPreprocess_ != nullptr, false, "stop StackPreprocess FAIL");
+    stackPreprocess_->StopTakeResults();
+
+    // make sure TakeResults thread exit
+    if (stackData_) {
+        stackData_->Close();
+    }
     return true;
 }
 
 bool HookManager::CreateWriter(std::string pluginName, uint32_t bufferSize, int smbFd, int eventFd)
 {
     HILOG_DEBUG(LOG_CORE, "agentIndex_ %d", agentIndex_);
+    RegisterWriter(std::make_shared<BufferWriter>(pluginName, bufferSize, smbFd, eventFd, agentIndex_));
     return true;
 }
 
 bool HookManager::ResetWriter(uint32_t pluginId)
 {
+    RegisterWriter(nullptr);
+    return true;
+}
+
+void HookManager::RegisterWriter(const BufferWriterPtr& writer)
+{
+    g_buffWriter = writer;
+    return;
+}
+
+void HookManager::SetFrameInfo(Frame& frame, CallFrame& callsFrame)
+{
+    frame.set_ip(callsFrame.ip_);
+    frame.set_sp(callsFrame.sp_);
+    frame.set_symbol_name(std::string(callsFrame.symbolName_));
+    frame.set_file_path(std::string(callsFrame.filePath_));
+    frame.set_offset(callsFrame.offset_);
+    frame.set_symbol_offset(callsFrame.symbolOffset_);
+}
+
+bool HookManager::SendProtobufPackage(uint8_t *cache, size_t length)
+{
+    if (g_buffWriter == nullptr) {
+        HILOG_ERROR(LOG_CORE, "HookManager:: BufferWriter empty, should set writer first");
+        return false;
+    }
+    ProfilerPluginData pluginData;
+    pluginData.set_name("nativehook");
+    pluginData.set_status(0);
+    pluginData.set_data(cache, length);
+
+    struct timespec ts;
+    clock_gettime(CLOCK_REALTIME, &ts);
+
+    pluginData.set_clock_id(ProfilerPluginData::CLOCKID_REALTIME);
+    pluginData.set_tv_sec(ts.tv_sec);
+    pluginData.set_tv_nsec(ts.tv_nsec);
+
+    g_buffWriter->WriteMessage(pluginData);
+    g_buffWriter->Flush();
     return true;
 }

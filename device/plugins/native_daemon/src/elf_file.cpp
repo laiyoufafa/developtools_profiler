@@ -105,7 +105,7 @@ bool ElfFile::ParseElfHeader()
     }
     HLOG_ASSERT(ret == 0);
     unsigned char ehdrBuf[ehdr64Size] {0};
-    ret = read(fd_, ehdrBuf, ehdr64Size);
+    ret = ReadFile(ehdrBuf, ehdr64Size);
     if (ret < ehdr64Size) {
         HLOGW("file size not enough, try read %zu, only have %zu", ehdr64Size, ret);
     }
@@ -129,7 +129,7 @@ bool ElfFile::ParsePrgHeaders()
     if (memset_s(phdrsBuf, phdrSize * numPhdrs, 0, phdrSize * numPhdrs) != EOK) {
         HLOGE("memset_s failed");
     }
-    ret = read(fd_, phdrsBuf, phdrSize * numPhdrs);
+    ret = ReadFile(phdrsBuf, phdrSize * numPhdrs);
     if (ret != static_cast<int64_t>(phdrSize * numPhdrs)) {
         delete[] phdrsBuf;
         phdrsBuf = nullptr;
@@ -168,7 +168,7 @@ bool ElfFile::ParseSecNamesStr()
     if (memset_s(shdrBuf, shdrSize, 0, shdrSize) != EOK) {
         HLOGE("memset_s failed");
     }
-    ret = read(fd_, shdrBuf, shdrSize);
+    ret = ReadFile(shdrBuf, shdrSize);
     HLOG_ASSERT(ret == static_cast<int64_t>(shdrSize));
     const std::string secName {".shstrtab"};
     shdrs_[secName] = SectionHeader::MakeUnique(shdrBuf, shdrSize, shdrIndex);
@@ -190,7 +190,7 @@ bool ElfFile::ParseSecNamesStr()
     if (memset_s(secNamesBuf, secSize, '\0', secSize) != EOK) {
         HLOGE("memset_s failed");
     }
-    ret = read(fd_, secNamesBuf, secSize);
+    ret = ReadFile(secNamesBuf, secSize);
     if (ret != static_cast<int64_t>(secSize)) {
         delete[] secNamesBuf;
         secNamesBuf = nullptr;
@@ -217,7 +217,7 @@ bool ElfFile::ParseSecHeaders()
     if (memset_s(shdrsBuf, shdrSize * numShdrs, '\0', shdrSize * numShdrs) != EOK) {
         HLOGE("memset_s failed");
     }
-    ret = read(fd_, shdrsBuf, shdrSize * numShdrs);
+    ret = ReadFile(shdrsBuf, shdrSize * numShdrs);
     HLOG_ASSERT(ret == static_cast<int64_t>(shdrSize * numShdrs));
     char *shdrBuf = shdrsBuf;
     for (size_t count = 0; count < numShdrs; ++count) {
@@ -266,7 +266,7 @@ bool ElfFile::ParseSymTable(const SectionHeader *shdr)
         HLOGE("Error in EFL::ElfFile::ParseSymTable(): new failed");
         return false;
     }
-    ret = read(fd_, secBuf, secSize);
+    ret = ReadFile(secBuf, secSize);
     HLOG_ASSERT(ret == static_cast<int64_t>(secSize));
     symTable_ = SymbolTable::MakeUnique(symNamesStr_, secBuf, secSize, entrySize);
     if (symTable_ == nullptr) {
@@ -298,7 +298,7 @@ bool ElfFile::ParseSymNamesStr()
     if (memset_s(secBuf, secSize, '\0', secSize) != EOK) {
         HLOGE("memset failed");
     }
-    ret = read(fd_, secBuf, secSize);
+    ret = ReadFile(secBuf, secSize);
     HLOG_ASSERT(ret == static_cast<int64_t>(secSize));
     symNamesStr_ = std::string(secBuf, secSize);
     if (symNamesStr_ == "") {
@@ -329,7 +329,7 @@ bool ElfFile::ParseDynSymTable()
         HLOGE("Error in EFL::ElfFile::ParseDynSymTable(): new failed");
         return false;
     }
-    ret = read(fd_, secBuf, secSize);
+    ret = ReadFile(secBuf, secSize);
     HLOG_ASSERT(ret == static_cast<int64_t>(secSize));
     dynSymTable_ = SymbolTable::MakeUnique(symNamesStr_, secBuf, secSize, entrySize);
     if (dynSymTable_ == nullptr) {

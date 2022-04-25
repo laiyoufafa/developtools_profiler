@@ -29,14 +29,15 @@
 #include <string>
 #include <vector>
 
-#include <fcntl.h>
 #include <dirent.h>
+#include <fcntl.h>
 #include <file_ex.h>
 #include <stddef.h>
 #include <sys/stat.h>
 #include <unique_fd.h>
 #include <unistd.h>
 #if !is_mingw
+#include <gtest/gtest_prod.h>
 #include <sys/syscall.h>
 #endif
 #include <linux/types.h>
@@ -70,6 +71,8 @@ constexpr const int FULL_PERCENTAGE_LEN = 6;          // 100.00%
 constexpr const int FULL_PERCENTAGE_DIFF_LEN = 7;     // +100.00%
 constexpr const int THOUSANDS = 1000;
 constexpr const int HUNDREDS = 100;
+constexpr const int DEFAULT_STRING_BUF_SIZE = 4096;
+constexpr const int FIVE_THOUSANDS = 5000;
 #if !is_mingw
 #ifndef O_BINARY
 #define O_BINARY 0
@@ -84,7 +87,34 @@ constexpr uint64_t KILO = 1024;
 namespace OHOS {
 namespace Developtools {
 namespace NativeDaemon {
+const std::string EMPTY_STRING = "";
+
 // string function
+static class StringViewMemoryHold {
+public:
+    ~StringViewMemoryHold()
+    {
+        for (auto &p : holder_) {
+            delete[] p;
+        }
+    }
+    const char *HoldStringView(std::string_view view)
+    {
+        if (view.size() == 0) {
+            return "";
+        }
+        // for null end
+        char *p = new char[view.size() + 1];
+        p[view.size()] = '\0';
+        std::copy(view.data(), view.data() + view.size(), p);
+        holder_.emplace_back(p);
+        return p;
+    };
+
+private:
+    std::vector<char *> holder_;
+} memHolder;
+
 std::string StringReplace(std::string source, const std::string &from, const std::string &to);
 
 template<class T>
@@ -116,7 +146,7 @@ std::string VectorToString(const std::vector<T> &items)
 
 std::string BufferToHexString(const std::vector<unsigned char> &vec);
 std::string BufferToHexString(const unsigned char buf[], size_t size);
-void HexDump(const void *buf, size_t size, size_t max_size = 0);
+void HexDump(const uint8_t *buf, size_t size, size_t max_size = 0);
 
 std::string &StringTrim(std::string &s);
 
@@ -128,7 +158,7 @@ bool StringStartsWith(const std::string &string, const std::string &with);
 
 bool StringEndsWith(const std::string &string, const std::string &with);
 
-bool IsSameCommand(std::string cmd1, std::string cmd2);
+bool IsSameCommand(std::string cmdLine, std::string cmdName);
 
 std::vector<pid_t> GetSubthreadIDs(const pid_t pid);
 
@@ -146,16 +176,16 @@ template<typename... VA>
 std::string StringPrintf(const char *stringFormat, VA... args)
 {
     // check howmany bytes we need
-    char bytes[PATH_MAX];
-    bytes[PATH_MAX - 1] = '\0';
+    char bytes[DEFAULT_STRING_BUF_SIZE];
+    bytes[DEFAULT_STRING_BUF_SIZE - 1] = '\0';
 
     if (stringFormat == nullptr) {
-        return std::string();
+        return EMPTY_STRING;
     }
 
     // print it to bytes
-    if (snprintf_s(bytes, PATH_MAX, PATH_MAX - 1, stringFormat, args...) < 0) {
-        return std::string();
+    if (snprintf_s(bytes, sizeof(bytes), DEFAULT_STRING_BUF_SIZE - 1, stringFormat, args...) < 0) {
+        return EMPTY_STRING;
     }
 
     // make a string return
@@ -176,7 +206,7 @@ const char PATH_SEPARATOR = '\\';
 #else
 const char PATH_SEPARATOR = '/';
 #endif
-const std::string PATH_SEPARATOR_STR = std::to_string(PATH_SEPARATOR);
+const std::string PATH_SEPARATOR_STR = std::string(1, PATH_SEPARATOR);
 
 std::string PlatformPathConvert(const std::string &path);
 
@@ -203,8 +233,8 @@ std::string ToHex(const T &source, int size = sizeof(T), bool perfix = false)
 }
 
 // data move and copy
-template<class T>
-size_t inline CopyBytesFromBufferAndMove(const unsigned char *&buffer, T *dest, size_t size = 0)
+template<class S, class T>
+size_t inline CopyFromBufferAndMove(S *&buffer, T *dest, size_t size = 0)
 {
     if (size == 0) {
         size = sizeof(T);
@@ -212,53 +242,15 @@ size_t inline CopyBytesFromBufferAndMove(const unsigned char *&buffer, T *dest, 
     if (memcpy_s(dest, size, buffer, size) != EOK) {
         return size;
     }
-
-    buffer += size;
-    HLOGM("moved %zu bytes: 0x%x", size, dest[0]);
+    buffer = buffer + size;
     return size;
-}
-
-template<class T>
-void CopyFromBufferAndMove(const unsigned char *&buffer, T &dest, size_t size = 0)
-{
-    if (size == 0) {
-        size = sizeof(T);
-    }
-    if (memcpy_s(&dest, size, buffer, size) != EOK) {
-        return;
-    }
-    buffer = buffer + size;
-}
-
-template<class S, class T>
-void CopyFromBufferAndMove2(S *&buffer, T &dest, size_t size = 0)
-{
-    if (size == 0) {
-        size = sizeof(T);
-    }
-    if (memcpy_s(&dest, size, buffer, size) != EOK) {
-        return;
-    }
-    buffer = buffer + size;
-}
-
-template<class S, class T>
-void CopyToBufferAndMove2(S &source, T *&buffer, size_t size = 0)
-{
-    if (size == 0) {
-        size = sizeof(S);
-    }
-    if (memcpy_s(buffer, size, &source, size) != EOK) {
-        return;
-    }
-    buffer = buffer + size;
 }
 
 // file read write
 bool ReadIntFromProcFile(const std::string &path, int &value);
 bool WriteIntToProcFile(const std::string &path, int value);
 std::string ReadFileToString(const std::string &fileName);
-bool ReadFileToString(const std::string &fileName, std::string &content);
+bool ReadFileToString(const std::string &fileName, std::string &content, size_t fileSize = 0);
 bool WriteStringToFile(const std::string &fileName, const std::string &value);
 
 // stdout
@@ -268,6 +260,8 @@ public:
     {
         Stop(); // stdout need restore
     }
+    StdoutRecord(const std::string &tempFile = EMPTY_STRING,
+                 const std::string &mode = EMPTY_STRING);
 
     bool Start();
     std::string Stop();
@@ -276,7 +270,7 @@ private:
     OHOS::UniqueFd stdoutFile_;       // back and restore stdout
     std::FILE *recordFile_ = nullptr; // save the output
     bool stop_ = true;
-    std::string content_ = std::string();
+    std::string content_ = EMPTY_STRING;
 };
 
 // misc
@@ -311,7 +305,6 @@ bool PowerOfTwo(int n);
 
 // this will also used for libunwind head (out of namespace)
 #if is_mingw
-#if !is_double_framework
 #define HAVE_MMAP   1
 #define MAP_PRIVATE 0x02
 #define PROT_NONE   0
@@ -320,7 +313,6 @@ bool PowerOfTwo(int n);
 #define PROT_EXEC   4
 void *mmap(void *addr, size_t length, int prot, int flags, int fd, size_t offset);
 int munmap(void *addr, size_t);
-#endif
 #endif
 
 #endif

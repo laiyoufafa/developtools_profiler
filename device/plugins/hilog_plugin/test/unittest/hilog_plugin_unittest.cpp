@@ -234,7 +234,7 @@ HWTEST_F(HilogPluginTest, TestHI3516AndClear, TestSize.Level1)
     ASSERT_TRUE(plugin.InitHilogCmd());
 
     std::string target;
-    target = "hilog -r && hilog -P " + std::to_string(pid) + " -L E --format nsec";
+    target = "hilog -P " + std::to_string(pid) + " -L E --format nsec";
     EXPECT_STREQ(plugin.GetFullCmd().c_str(), target.c_str());
 }
 
@@ -257,7 +257,7 @@ HWTEST_F(HilogPluginTest, TestP40AndClear, TestSize.Level1)
     ASSERT_TRUE(plugin.InitHilogCmd());
 
     std::string target;
-    target = "hilogcat -c && hilogcat --pid=" + std::to_string(pid) + " *:E --format nsec";
+    target = "hilogcat --pid=" + std::to_string(pid) + " *:E --format nsec";
     EXPECT_STREQ(plugin.GetFullCmd().c_str(), target.c_str());
 }
 

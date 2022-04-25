@@ -218,7 +218,7 @@ bool ShareMemoryBlock::PutRaw(const int8_t* data, uint32_t size)
     PthreadLocker locker(header_->info.mutex_);
     int8_t* rawMemory = GetFreeMemory(size);
     if (rawMemory == nullptr) {
-        HILOG_INFO(LOG_CORE, "_PutRaw not enough space [%d]", size);
+        HILOG_ERROR(LOG_CORE, "PutRaw not enough space [%d]", size);
         return false;
     }
     if (memcpy_s(rawMemory, size, data, size) != EOK) {
@@ -241,7 +241,7 @@ bool ShareMemoryBlock::PutMessage(const google::protobuf::Message& pmsg)
     PthreadLocker locker(header_->info.mutex_);
     int8_t* rawMemory = GetFreeMemory(size);
     if (rawMemory == nullptr) {
-        HILOG_INFO(LOG_CORE, "PutMessage not enough space [%zu]", size);
+        HILOG_ERROR(LOG_CORE, "PutMessage not enough space [%zu]", size);
         return false;
     }
 

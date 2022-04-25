@@ -124,23 +124,23 @@ void SetPluginSysMemConfig(MemoryConfig &protoConfig)
 {
     protoConfig.set_report_sysmem_mem_info(true);
 
-    protoConfig.add_sys_meminfo_counters(SysMeminfoType::MEMINFO_MEM_TOTAL);
-    protoConfig.add_sys_meminfo_counters(SysMeminfoType::MEMINFO_MEM_FREE);
-    protoConfig.add_sys_meminfo_counters(SysMeminfoType::MEMINFO_MEM_AVAILABLE);
-    protoConfig.add_sys_meminfo_counters(SysMeminfoType::MEMINFO_BUFFERS);
-    protoConfig.add_sys_meminfo_counters(SysMeminfoType::MEMINFO_CACHED);
-    protoConfig.add_sys_meminfo_counters(SysMeminfoType::MEMINFO_SWAP_CACHED);
-    protoConfig.add_sys_meminfo_counters(SysMeminfoType::MEMINFO_ACTIVE);
-    protoConfig.add_sys_meminfo_counters(SysMeminfoType::MEMINFO_INACTIVE);
+    protoConfig.add_sys_meminfo_counters(SysMeminfoType::PMEM_MEM_TOTAL);
+    protoConfig.add_sys_meminfo_counters(SysMeminfoType::PMEM_MEM_FREE);
+    protoConfig.add_sys_meminfo_counters(SysMeminfoType::PMEM_MEM_AVAILABLE);
+    protoConfig.add_sys_meminfo_counters(SysMeminfoType::PMEM_BUFFERS);
+    protoConfig.add_sys_meminfo_counters(SysMeminfoType::PMEM_CACHED);
+    protoConfig.add_sys_meminfo_counters(SysMeminfoType::PMEM_SWAP_CACHED);
+    protoConfig.add_sys_meminfo_counters(SysMeminfoType::PMEM_ACTIVE);
+    protoConfig.add_sys_meminfo_counters(SysMeminfoType::PMEM_INACTIVE);
 
-    protoConfig.add_sys_meminfo_counters(SysMeminfoType::MEMINFO_ACTIVE_ANON);
-    protoConfig.add_sys_meminfo_counters(SysMeminfoType::MEMINFO_INACTIVE_ANON);
-    protoConfig.add_sys_meminfo_counters(SysMeminfoType::MEMINFO_INACTIVE_FILE);
-    protoConfig.add_sys_meminfo_counters(SysMeminfoType::MEMINFO_UNEVICTABLE);
-    protoConfig.add_sys_meminfo_counters(SysMeminfoType::MEMINFO_MLOCKED);
-    protoConfig.add_sys_meminfo_counters(SysMeminfoType::MEMINFO_SWAP_TOTAL);
-    protoConfig.add_sys_meminfo_counters(SysMeminfoType::MEMINFO_SWAP_FREE);
-    protoConfig.add_sys_meminfo_counters(SysMeminfoType::MEMINFO_DIRTY);
+    protoConfig.add_sys_meminfo_counters(SysMeminfoType::PMEM_ACTIVE_ANON);
+    protoConfig.add_sys_meminfo_counters(SysMeminfoType::PMEM_INACTIVE_ANON);
+    protoConfig.add_sys_meminfo_counters(SysMeminfoType::PMEM_INACTIVE_FILE);
+    protoConfig.add_sys_meminfo_counters(SysMeminfoType::PMEM_UNEVICTABLE);
+    protoConfig.add_sys_meminfo_counters(SysMeminfoType::PMEM_MLOCKED);
+    protoConfig.add_sys_meminfo_counters(SysMeminfoType::PMEM_SWAP_TOTAL);
+    protoConfig.add_sys_meminfo_counters(SysMeminfoType::PMEM_SWAP_FREE);
+    protoConfig.add_sys_meminfo_counters(SysMeminfoType::PMEM_DIRTY);
 
     protoConfig.set_report_sysmem_vmem_info(true);
 

@@ -34,4 +34,26 @@ public:
     void SetUp() {}
     void TearDown() {}
 };
+
+/*
+ * @tc.name: ProtocolProc
+ * @tc.desc: test HookService::ProtocolProc with normal case.
+ * @tc.type: FUNC
+ */
+HWTEST_F(HookServiceTest, ProtocolProc, TestSize.Level1)
+{
+    auto shareMemoryBlock = ShareMemoryAllocator::GetInstance().CreateMemoryBlockLocal("hooknativesmb", 4096);
+    ASSERT_TRUE(shareMemoryBlock != nullptr);
+    auto eventNotifier = EventNotifier::Create(0, EventNotifier::NONBLOCK);
+    ASSERT_TRUE(eventNotifier != nullptr);
+    int smbFd = shareMemoryBlock->GetfileDescriptor();
+    int eventFd = eventNotifier->GetFd();
+    SocketContext socketContext;
+    std::vector<unsigned char> buf(4096);
+    struct ProtocolHead* pph = (struct ProtocolHead*)buf.data();
+    uint32_t head_size = sizeof(struct ProtocolHead);
+    auto hookService = std::make_shared<HookService>(smbFd, eventFd, 0, "", 0);
+    ASSERT_TRUE(hookService != nullptr);
+    ASSERT_FALSE(hookService->ProtocolProc(socketContext, 0, pph->datas, head_size));
+}
 } // namespace

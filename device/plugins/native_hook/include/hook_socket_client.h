@@ -19,8 +19,6 @@
 #include "service_base.h"
 #include "stack_writer.h"
 
-extern uint32_t g_filterSize;
-
 class UnixSocketClient;
 
 class HookSocketClient : public ServiceBase {
@@ -37,12 +35,28 @@ public:
     {
         return eventFd_;
     }
+    uint32_t GetFilterSize()
+    {
+        return filterSize_;
+    }
+    bool GetMallocDisable()
+    {
+        return mallocDisable_;
+    }
+    bool GetMmapDisable()
+    {
+        return mmapDisable_;
+    }
+
     bool SendStack(const void* data, size_t size);
 private:
     std::shared_ptr<UnixSocketClient> unixSocketClient_;
     int smbFd_;
     int eventFd_;
     int pid_;
+    uint32_t filterSize_;
+    bool mallocDisable_;
+    bool mmapDisable_;
     std::shared_ptr<StackWriter> stackWriter_;
 };
 

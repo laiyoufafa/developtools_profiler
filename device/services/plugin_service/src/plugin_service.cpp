@@ -60,6 +60,11 @@ void PluginService::SetPluginSessionManager(const PluginSessionManagerPtr& plugi
     pluginSessionManager_ = pluginSessionManager;
 }
 
+void PluginService::SetProfilerSessionConfig(const ProfilerSessionConfig& profilerSessionConfig)
+{
+    profilerSessionConfig_ = profilerSessionConfig;
+}
+
 SemaphorePtr PluginService::GetSemaphore(uint32_t id) const
 {
     std::unique_lock<std::mutex> lock(mutex_);
@@ -190,14 +195,17 @@ bool PluginService::StopPluginSession(const std::string& pluginName)
     CHECK_NOTNULL(sem, false, "create Semaphore for stop %s FAILED!", pluginName.c_str());
 
     waitSemphores_[cmd->command_id()] = sem;
-    HILOG_DEBUG(LOG_CORE, "=== StopPluginSession Waiting ... ===");
+    HILOG_DEBUG(LOG_CORE, "=== StopPluginSession %s Waiting ... ===", pluginName.c_str());
     // wait on semaphore at most 30 seconds.
     if (!sem->TimedWait(30)) {
         // semaphore timeout
         HILOG_DEBUG(LOG_CORE, "=== StopPluginSession Waiting FAIL ===");
         return false;
     }
-    ReadShareMemory(*pluginCtx);
+
+    if (!profilerSessionConfig_.discard_cache_data()) {
+        ReadShareMemory(*pluginCtx);
+    }
     HILOG_DEBUG(LOG_CORE, "StopPluginSession %s done!", pluginName.c_str());
     return true;
 }

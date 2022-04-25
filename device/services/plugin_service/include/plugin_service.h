@@ -91,6 +91,7 @@ public:
     uint32_t GetPluginIdByName(std::string name);
 
     void SetPluginSessionManager(const PluginSessionManagerPtr& pluginSessionManager);
+    void SetProfilerSessionConfig(const ProfilerSessionConfig& profilerSessionConfig);
 
 private:
     bool StartService(const std::string& unixSocketName);
@@ -114,6 +115,7 @@ private:
     std::shared_ptr<PluginCommandBuilder> pluginCommandBuilder_;
     std::unique_ptr<EpollEventPoller> eventPoller_;
     PluginSessionManagerPtr pluginSessionManager_;
+    ProfilerSessionConfig profilerSessionConfig_;
 };
 
 #endif // PLUGIN_SERVICE_H

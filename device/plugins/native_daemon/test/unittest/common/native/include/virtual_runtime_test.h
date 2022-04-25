@@ -50,18 +50,12 @@ constexpr const pid_t TEST_DWARF_RECORD_TID = 644;
 constexpr const size_t TEST_DWARF_RECORD_STACK_SIZE = 8192u;
 static const std::vector<std::pair<uint64_t, std::string>> TEST_RECORD_CALLSTACK_IP_FUNC = {
     {0x0000000000003539, "LoopFunction(int)"}, // base ip sp
-    {0x0000000000003645, "CallStack10(int, int)"},
-    {0x0000000000003671, "CallStack9(int, int)"},
-    {0x00000000000036b5, "CallStack8(int, int)"},
-    {0x00000000000036f9, "CallStack7(int, int)"},
-    {0x000000000000373d, "CallStack6(int, int)"},
-    {0x0000000000003781, "CallStack5(int, int)"},
-    {0x00000000000037c5, "CallStack4(int, int)"},
-    {0x0000000000003809, "CallStack3(int, int)"},
-    {0x000000000000384d, "CallStack2(int, int)"},
-    {0x0000000000003891, "CallStack1(int, int)"},
-    {0x00000000000038d5, "CallStack0(int, int)"},
-    {0x0000000000003919, "ExampleThread(int, int)"},
+    {0x0000000000003645, "CallStack10(int, int)"}, {0x0000000000003671, "CallStack9(int, int)"},
+    {0x00000000000036b5, "CallStack8(int, int)"},  {0x00000000000036f9, "CallStack7(int, int)"},
+    {0x000000000000373d, "CallStack6(int, int)"},  {0x0000000000003781, "CallStack5(int, int)"},
+    {0x00000000000037c5, "CallStack4(int, int)"},  {0x0000000000003809, "CallStack3(int, int)"},
+    {0x000000000000384d, "CallStack2(int, int)"},  {0x0000000000003891, "CallStack1(int, int)"},
+    {0x00000000000038d5, "CallStack0(int, int)"},  {0x0000000000003919, "ExampleThread(int, int)"},
 };
 /*
   event_attr:

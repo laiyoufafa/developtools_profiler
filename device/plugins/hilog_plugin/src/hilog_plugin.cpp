@@ -74,6 +74,15 @@ int HilogPlugin::Start(const uint8_t* configData, uint32_t configSize)
         return -1;
     }
 
+    if (protoConfig_.need_clear()) {
+        fullCmd_ = ClearHilog();
+        std::unique_ptr<FILE, int (*)(FILE*)> fp(popen(fullCmd_.c_str(), "r"), pclose);
+        if (!fp) {
+            HILOG_ERROR(LOG_CORE, "%s:clear hilog error", __func__);
+            return false;
+        }
+    }
+
     if (!InitHilogCmd()) {
         HILOG_ERROR(LOG_CORE, "HilogPlugin: Init HilogCmd failed");
         return -1;
@@ -190,9 +199,7 @@ bool HilogPlugin::InitHilogCmd()
         default:
             break;
     }
-    if (protoConfig_.need_clear() && fullCmd_.size()) {
-        fullCmd_ = ClearHilog() + " && " + fullCmd_;
-    }
+
     if (fullCmd_.size()) {
         fullCmd_ = fullCmd_ + std::string(" --format nsec");
         HILOG_INFO(LOG_CORE, "HilogPlugin: hilog cmd(%s)", fullCmd_.c_str());

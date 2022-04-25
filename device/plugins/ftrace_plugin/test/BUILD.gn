@@ -25,13 +25,13 @@ config("module_private_config") {
 ohos_unittest("ftrace_plugin_ut") {
   module_out_path = module_output_path
   sources = [
-    "unittest/bytrace_ops_test.cpp",
     "unittest/file_utils_test.cpp",
     "unittest/flow_controller_test.cpp",
     "unittest/ftrace_data_reader_test.cpp",
     "unittest/ftrace_field_parser_test.cpp",
     "unittest/ftrace_fs_ops_test.cpp",
     "unittest/ftrace_parser_test.cpp",
+    "unittest/hitrace_ops_test.cpp",
     "unittest/kernel_symbols_parser_test.cpp",
     "unittest/paged_mem_pool_test.cpp",
     "unittest/printk_formats_parser_test.cpp",

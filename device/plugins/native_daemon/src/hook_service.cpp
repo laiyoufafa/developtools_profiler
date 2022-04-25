@@ -22,16 +22,14 @@
 
 namespace {
 const int BUF_MAX_LEN = 10;
-const int MOVE_BIT = 32;
 }  // namespace
 
 HookService::HookService(int smbFd,
                          int eventFd,
-                         uint32_t filterSize,
-                         uint32_t smbSize,
                          int pid,
-                         std::string processName)
-    : smbFd_(smbFd), eventFd_(eventFd), filterSize_(filterSize), smbSize_(smbSize), pid_(pid), processName_(processName)
+                         std::string processName,
+                         uint64_t config)
+    : smbFd_(smbFd), eventFd_(eventFd), hookConfig_(config), pid_(pid), processName_(processName)
 {
     serviceName_ = "HookService";
     StartService(DEFAULT_UNIX_SOCKET_HOOK_PATH);
@@ -60,10 +58,9 @@ bool HookService::ProtocolProc(SocketContext &context, uint32_t pnum, const int8
         HILOG_ERROR(LOG_CORE, "ProtocolProc hook config error");
     }
     uint64_t peerconfig = *const_cast<uint64_t *>(reinterpret_cast<const uint64_t *>(buf));
-    if (pid_ == -1) {
+    if (pid_ == 0) {
         // check if the pid and process name is consistency
         std::string findpid = "pidof " + processName_;
-        std::unique_ptr<char []> buffer {new (std::nothrow) char[BUF_MAX_LEN]};
         HILOG_INFO(LOG_CORE, "find pid command : %s", findpid.c_str());
         std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(findpid.c_str(), "r"), pclose);
 
@@ -86,10 +83,8 @@ bool HookService::ProtocolProc(SocketContext &context, uint32_t pnum, const int8
     }
 
     HILOG_DEBUG(LOG_CORE, "ProtocolProc, receive message from hook client, and send hook config to process %d", pid_);
-    uint64_t config = filterSize_;
-    config <<= MOVE_BIT;
-    config |= smbSize_;
-    context.SendHookConfig(config);
+
+    context.SendHookConfig(hookConfig_);
     context.SendFileDescriptor(smbFd_);
     context.SendFileDescriptor(eventFd_);
     return true;

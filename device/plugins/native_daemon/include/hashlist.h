@@ -25,19 +25,19 @@ class Link {
 public:
     Link() = default;
     ~Link() = default;
-    Link(const Link& link) : prev_ { link.prev_ }, next_ { link.next_ } {}
-    Link(Link&& link) : prev_ { link.prev_ }, next_ { link.next_ }
+    Link(const Link &link) : prev_ {link.prev_}, next_ {link.next_} {}
+    Link(Link &&link) : prev_ {link.prev_}, next_ {link.next_}
     {
         link.prev_ = nullptr;
         link.next_ = nullptr;
     }
-    Link& operator=(const Link& link)
+    Link &operator=(const Link &link)
     {
         prev_ = link.prev_;
         next_ = link.next_;
         return *this;
     }
-    Link& operator=(Link&& link)
+    Link &operator=(Link &&link)
     {
         prev_ = link.prev_;
         link.prev_ = nullptr;
@@ -61,10 +61,10 @@ public:
     explicit LinkNode(const Key &key);
     explicit LinkNode(const Key &key, const Val &val);
     explicit LinkNode(const Key &key, Val &&val);
-    LinkNode(const LinkNode& node);
-    LinkNode(LinkNode&& node);
-    LinkNode& operator=(const LinkNode& node);
-    LinkNode& operator=(LinkNode&& node);
+    LinkNode(const LinkNode &node);
+    LinkNode(LinkNode &&node);
+    LinkNode &operator=(const LinkNode &node);
+    LinkNode &operator=(LinkNode &&node);
     static LinkNode<Key, Val> *GetLinkNode(Val *pval);
     static LinkNode<Key, Val> *GetLinkNode(Link *plink);
 };
@@ -92,8 +92,8 @@ public:
         const Val &operator*() const;
         Val *operator->();
         const Val *operator->() const;
-        void swap(HashList<Key, Val>::Iterator& other);
-        LinkNode<Key, Val>* GetNode() const
+        void swap(HashList<Key, Val>::Iterator &other);
+        LinkNode<Key, Val> *GetNode() const
         {
             return pnode_;
         }
@@ -128,9 +128,9 @@ public:
         const Val &operator*() const;
         Val *operator->();
         const Val *operator->() const;
-        void swap(HashList<Key, Val>::ReverseIterator& other);
+        void swap(HashList<Key, Val>::ReverseIterator &other);
 
-        LinkNode<Key, Val>* GetNode()
+        LinkNode<Key, Val> *GetNode()
         {
             return pnode_;
         }
@@ -146,12 +146,12 @@ public:
     };
 
 public:
-    explicit HashList();
+    explicit HashList(const std::size_t numItem = 0);
     ~HashList();
 
-    HashList(const HashList &source);
+    HashList(const HashList &source) = delete;
+    HashList &operator=(const HashList &source) = delete;
     HashList(HashList &&source);
-    HashList &operator=(const HashList &source);
     HashList &operator=(HashList &&source);
 
     // capacity
@@ -161,12 +161,22 @@ public:
     }
     inline bool empty() const
     {
-        return valueTab_.empty();
+        return (dataHead_.next_ == &dataHead_) and (dataHead_.prev_ == &dataHead_);
+    }
+    inline std::size_t capacity() const
+    {
+        return numItem_;
+    }
+    inline bool IsFull() const
+    {
+        return freeHead_.next_ == &freeHead_;
     }
     inline std::size_t count(const Key &key) const
     {
         return valueTab_.count(key);
     }
+
+    int reserve(const std::size_t numItem);
     // iterators
     Iterator begin();
     const Iterator cbegin() const;
@@ -184,14 +194,12 @@ public:
     // lookup
     Iterator find(const Key &key);
     // modifiers
-    void push_front(const Key& key, const Val &val);
-    void push_front(const Key& key, Val &&val);
-    void push_back(const Key& key, const Val &val);
-    void push_back(const Key& key, Val &&val);
+    void push_front(const Key &key, const Val &val);
+    void push_front(const Key &key, Val &&val);
+    void push_back(const Key &key, const Val &val);
+    void push_back(const Key &key, Val &&val);
     void pop_front();
     void pop_back();
-    Iterator insert(const Iterator pos, const Key &key, const Val &value);
-    Iterator insert(const Iterator pos, const Key &key, Val &&value);
     Iterator erase(const Key &key);
     Iterator erase(const Iterator pos);
     Iterator erase(const Iterator first, const Iterator last);
@@ -199,13 +207,16 @@ public:
 private:
     void MoveToHead(LinkNode<Key, Val> *&pnode);
     void MoveToTail(LinkNode<Key, Val> *&pnode);
-    bool InsertNewNode(const Iterator& pos, LinkNode<Key, Val> *&pnode);
-    bool MoveNode(const Iterator& pos, LinkNode<Key, Val> *&pnode);
-    void EraseNode(LinkNode<Key, Val> *&pnode);
-    void EraseNode(Link *&plink);
+    bool MoveNode(const Iterator &pos, LinkNode<Key, Val> *&pnode);
+    LinkNode<Key, Val> *AllocateNode(const Key &key);
+    LinkNode<Key, Val> *AllocateNode(const Key &key, const Val &val);
+    LinkNode<Key, Val> *AllocateNode(const Key &key, Val &&val);
+    void ReclaimNode(LinkNode<Key, Val> *&pnode);
 
-    Link head_ {};
-    Link tail_ {};
+    std::size_t numItem_ {0};
+    LinkNode<Key, Val> *pData_ {nullptr};
+    Link dataHead_ {};
+    Link freeHead_ {};
     std::unordered_map<Key, LinkNode<Key, Val> *> valueTab_ {};
 };
 } // namespace NativeDaemon
