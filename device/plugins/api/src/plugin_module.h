@@ -35,7 +35,7 @@ using BufferWriterPtr = STD_PTR(shared, BufferWriter);
 
 class PluginModule {
 public:
-    enum SampleMode {
+    enum class SampleMode {
         UNKNOWN,
         POLLING,
         STREAMING,

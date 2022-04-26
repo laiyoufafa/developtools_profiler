@@ -12,12 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-#include <climits>
-#include <cstdint>
-#include <cstdio>
-#include <cstdlib>
-#include <fcntl.h>
-#include <unistd.h>
+#ifndef PROFILER_FETCH_DATE_FUZZER
+#define PROFILER_FETCH_DATE_FUZZER
 
 #define FUZZ_PROJECT_NAME "profilerfetchdata_fuzzer"
+#endif

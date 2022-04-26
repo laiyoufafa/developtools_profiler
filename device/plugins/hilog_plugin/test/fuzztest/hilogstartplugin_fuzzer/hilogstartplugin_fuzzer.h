@@ -13,11 +13,10 @@
  * limitations under the License.
  */
 
-#include <climits>
-#include <cstdint>
-#include <cstdio>
-#include <cstdlib>
-#include <fcntl.h>
-#include <unistd.h>
+#ifndef HILOG_START_PLUGIN_FUZZER
+#define HILOG_START_PLUGIN_FUZZER
+
 
 #define FUZZ_PROJECT_NAME "hilogstartplugin_fuzzer"
+
+#endif

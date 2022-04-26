@@ -13,11 +13,9 @@
  * limitations under the License.
  */
 
-#include <climits>
-#include <cstdint>
-#include <cstdio>
-#include <cstdlib>
-#include <fcntl.h>
-#include <unistd.h>
+#ifndef PROFILER_SATRT_SESSION
+#define PROFILER_SATRT_SESSION
 
 #define FUZZ_PROJECT_NAME "profilerstartsession_fuzzer"
+
+#endif

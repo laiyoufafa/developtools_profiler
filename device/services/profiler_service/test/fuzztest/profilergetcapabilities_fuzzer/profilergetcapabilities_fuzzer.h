@@ -13,11 +13,11 @@
  * limitations under the License.
  */
 
-#include <climits>
-#include <cstdint>
-#include <cstdio>
-#include <cstdlib>
-#include <fcntl.h>
-#include <unistd.h>
+
+#ifndef PROFILER_GET_CAPABILITIES
+#define PROFILER_GET_CAPABILITIES
+
 
 #define FUZZ_PROJECT_NAME "profilergetcapabilities_fuzzer"
+
+#endif

@@ -148,7 +148,7 @@ private:
 
 class MockPluginWatcher : public PluginWatcher {
 public:
-    MockPluginWatcher(const PluginManagerPtr& pluginManager) : PluginWatcher(pluginManager) {}
+    explicit MockPluginWatcher(const PluginManagerPtr& pluginManager) : PluginWatcher(pluginManager) {}
     ~MockPluginWatcher() = default;
     MOCK_METHOD1(OnPluginAdded, void(const std::string&));
     MOCK_METHOD1(OnPluginRemoved, void(const std::string&));

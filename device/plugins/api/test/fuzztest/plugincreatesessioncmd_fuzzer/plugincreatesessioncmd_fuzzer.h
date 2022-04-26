@@ -13,6 +13,9 @@
  * limitations under the License.
  */
 
+#ifndef PLUGIN_CREATE_SESSION_CMD_FUZZER
+#define PLUGIN_CREATE_SESSION_CMD_FUZZER
+
 #include <climits>
 #include <cstdint>
 #include <cstdio>
@@ -21,3 +24,5 @@
 #include <unistd.h>
 
 #define FUZZ_PROJECT_NAME "plugincreatesessioncmd_fuzzer"
+
+#endif
