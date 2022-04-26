@@ -59,7 +59,7 @@ typedef int (*PluginReportResultCallback)(uint8_t* bufferData, uint32_t bufferSi
 
 /**
  * @brief interface type of plugin session stop,
- * Called when stopping plug-in sessions
+ * Called when stopping plugin sessions
  * @return Return 0 for success and -1 for failure.
  */
 typedef int (*PluginSessionStopCallback)(void);
@@ -173,11 +173,11 @@ struct PluginModuleStruct {
  * and then retrieve the basic information and callback function table.
  *
  * If Callback function table of onPluginReportResult is filled with non null values,
- * the plugin will be regarded as a "polling" plugin by the plug-in management framework,
+ * the plugin will be regarded as a "polling" plugin by the plugin management framework,
  * and the management framework will call this interface in the module regularly.
 
  * If Callback function table of onRegisterWriterStruct is filled with non null values,
- * The plug-in will be regarded as a "streaming" plugin by the plug-in management framework,
+ * The plugin will be regarded as a "streaming" plugin by the plugin management framework,
  * and the management framework will not call this interface in the module regularly.
 
  * The plugin module needs to save the writer pointer when the onregisterwriterstruct interface is called,
