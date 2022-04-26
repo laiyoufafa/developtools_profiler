@@ -1,0 +1,14 @@
+{
+  "src": [
+    "pages/MainPage",
+    "pages/StartTestPage",
+    "pages/AppSelectPage",
+    "pages/SettingsPage",
+    "pages/Question",
+    "pages/ReportDetail",
+    "pages/LightAdjust",
+    "pages/FloatBall",
+    "pages/TitleWindowPage",
+    "pages/LoginPage"
+  ]
+}
