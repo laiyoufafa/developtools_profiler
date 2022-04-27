@@ -23,9 +23,9 @@ config("napi_hidebug_config") {
     "include/",
     "//utils/native/base/include",
     "//third_party/node/src",
-    "//foundation/ace/napi",
-    "//foundation/ace/napi/native_engine",
-    "//foundation/ace/napi/interfaces/kits",
+    "//foundation/arkui/napi",
+    "//foundation/arkui/napi/native_engine",
+    "//foundation/arkui/napi/interfaces/kits",
     "//base/hiviewdfx/hidumper/interfaces/innerkits/include/",
   ]
 }
@@ -38,7 +38,7 @@ ohos_shared_library("hidebug") {
   deps = [
     "//base/hiviewdfx/hidumper/interfaces/innerkits:lib_dump_usage",
     "//base/hiviewdfx/hiview/adapter/utility:hiview_adapter_utility",
-    "//foundation/ace/napi:ace_napi",
+    "//foundation/arkui/napi:ace_napi",
     "//utils/native/base:utils",
   ]
 
