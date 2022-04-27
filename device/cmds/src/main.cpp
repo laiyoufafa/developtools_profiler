@@ -365,10 +365,7 @@ int CheckGrpcMsgSend()
         printf("FAIL\nService not started\n");
         return -1;
     }
-
     printf("OK\n");
-    printf("ip:%s\n", GetLoopbackAddress().c_str());
-    printf("port:%u\n", GetServicePort());
     return 0;
 }
 } // namespace

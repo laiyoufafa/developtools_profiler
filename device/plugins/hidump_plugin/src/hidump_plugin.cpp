@@ -14,7 +14,6 @@
  */
 #include "hidump_plugin.h"
 #include "securec.h"
-
 #include <sys/syscall.h>
 #include <sys/types.h>
 #include <unistd.h>
@@ -25,7 +24,6 @@
 #include <csignal>
 #include <sstream>
 #include <sys/wait.h>
-#include <unistd.h>
 
 namespace {
 const int REDIRECT_STDOUT = 1;
@@ -73,9 +71,13 @@ int HidumpPlugin::Start(const uint8_t* configData, uint32_t configSize)
     }
 
     fp_ = std::unique_ptr<FILE, int (*)(FILE*)>(CustomPopen(FPS_FORMAT, "r"), CustomPclose);
-    CHECK_NOTNULL(fp_.get(), -1, "HidumpPlugin: popen(%s) Failed, errno(%d:%s)", FPS_FORMAT, errno,
-                  strerror(errno));
-
+    if (fp_.get() == nullptr) {
+        const int bufSize = 256;
+        char buf[bufSize] = { 0 };
+        strerror_r(errno, buf, bufSize);
+        HILOG_ERROR(LOG_CORE, "HidumpPlugin: popen(%s) Failed, errno(%d:%s)", FPS_FORMAT, errno, buf);
+        return -1;
+    }
     CHECK_NOTNULL(resultWriter_, -1, "HidumpPlugin: Writer is no set!");
     CHECK_NOTNULL(resultWriter_->write, -1, "HidumpPlugin: Writer.write is no set!");
     CHECK_NOTNULL(resultWriter_->flush, -1, "HidumpPlugin: Writer.flush is no set!");
@@ -99,7 +101,6 @@ int HidumpPlugin::Stop()
     if (fp_ != nullptr) {
         fp_.reset();
     }
-
     HILOG_INFO(LOG_CORE, "HidumpPlugin: stop success!");
     return 0;
 }
@@ -168,7 +169,9 @@ bool HidumpPlugin::ParseHidumpInfo(HidumpInfo& dataProto, char *buf)
                     BUF_MAX_LEN, buf + length + 1, buf + strlen(buf));
                 return false;
             }
-            uint64_t time_ms = atoll(databuf);
+            std::stringstream strvalue(databuf);
+            uint64_t time_ms;
+            strvalue >> time_ms;
             eve->set_id(::FpsData::REALTIME);
             eve->mutable_time()->set_tv_sec(time_ms / MS_PER_S);
             eve->mutable_time()->set_tv_nsec((time_ms % MS_PER_S) * US_PER_S);
@@ -234,7 +237,6 @@ int HidumpPlugin::CustomPclose(FILE* fp)
 {
     CHECK_NOTNULL(fp, -1, "HidumpPlugin:%s fp is null", __func__);
     int stat;
-
     if (fclose(fp) != 0) {
         const int bufSize = 256;
         char buf[bufSize] = { 0 };
@@ -248,7 +250,6 @@ int HidumpPlugin::CustomPclose(FILE* fp)
             stat = errno;
         }
     }
-
     return stat;
 }
 

@@ -16,13 +16,6 @@
 #ifndef PROFILER_DESTROY_SESSION
 #define PROFILER_DESTROY_SESSION
 
-#include <climits>
-#include <cstdint>
-#include <cstdio>
-#include <cstdlib>
-#include <fcntl.h>
-#include <unistd.h>
-
 #define FUZZ_PROJECT_NAME "profilerdestroysession_fuzzer"
 
 #endif
