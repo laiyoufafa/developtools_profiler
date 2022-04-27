@@ -18,6 +18,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <cstring>
+#include <memory>
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <sys/syscall.h>
@@ -276,7 +278,7 @@ void RemoveMmap(char* pMap)
 // 给文件映射中写入
 void MmapWriteFile(char* pMap, int length, char* data)
 {
-    if (memcpy_s(pMap,length,data,length) != EOK) {
+    if (memcpy_s(pMap, length, data, length) != EOK) {
         printf("memcpy_s type fail\n");
         return;
     }

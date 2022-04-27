@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 #include "hidump_plugin.h"
-#include "securec.h"
 #include <sys/syscall.h>
 #include <sys/types.h>
 #include <unistd.h>
@@ -24,6 +23,7 @@
 #include <csignal>
 #include <sstream>
 #include <sys/wait.h>
+#include "securec.h"
 
 namespace {
 const int REDIRECT_STDOUT = 1;
