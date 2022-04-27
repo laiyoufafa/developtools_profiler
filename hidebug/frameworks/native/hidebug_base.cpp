@@ -91,7 +91,6 @@ int QueryParams(const char *queryName)
     char defStrValue[PARAM_BUF_LEN] = { 0 };
     int retLen = GetParameter(queryName, defStrValue, paramOutBuf, PARAM_BUF_LEN);
     if (retLen == 0) {
-        HILOG_ERROR(LOG_CORE, "get %{public}s parameters failed.", queryName);
         return 0;
     }
     paramOutBuf[retLen] = '\0';
@@ -134,7 +133,7 @@ bool InitEnvironmentParam(const char *inputName)
         return false;
     }
     if (QueryParams(onceName) == 0 && QueryParams(persistName) == 0) {
-        HILOG_ERROR(LOG_CORE, "failed to capture %{public}s environment params.", serviceName);
+        HILOG_INFO(LOG_CORE, "%{public}s debug params not found.", serviceName);
         return false;
     }
     for (int i = 0; i < g_paramCnt; ++i) {
