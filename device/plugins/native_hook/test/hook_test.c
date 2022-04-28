@@ -24,7 +24,7 @@
 #include <sys/types.h>
 #include <time.h>
 #include <unistd.h>
-#include <securec.h>
+#include "securec.h"
 #pragma clang optimize off
 
 #define PAGE_SIZE 4096
