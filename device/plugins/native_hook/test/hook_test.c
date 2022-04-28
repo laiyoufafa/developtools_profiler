@@ -19,7 +19,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <cstring>
-#include <memory>
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <sys/syscall.h>
@@ -530,7 +529,14 @@ int main(int argc, char* argv[])
         for (idx = 0; idx < g_threadNum; ++idx) {
             pthread_join((thrArrayList[type])[idx], NULL);
         }
-        free(thrArrayList[type]);
+        if (thrArrayList[type] != NULL) {
+            free(thrArrayList[type]);
+            thrArrayList[type] = NULL;
+        }
+    }
+    if (thrArrayList != NULL) {
+        free(thrArrayList);
+        thrArrayList = NULL;
     }
     CloseFile();
     return 0;
