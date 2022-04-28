@@ -464,7 +464,7 @@ int main(int argc, char* argv[])
     // 参数解析
     int ret = CommandParse(argc, argv);
     if (ret == -1) {
-        exit(0);
+        return 0;
     }
     int typeNum = bitMapNum(g_hook_flag);
     printf(" g_hook_flag =  [%x] \n", g_hook_flag);
@@ -523,7 +523,6 @@ int main(int argc, char* argv[])
         usleep(RESPONSE_SPEED);
     };
     g_runing = 0;
-
     int idx;
     for (type = 0; type < typeNum; type++) {
         for (idx = 0; idx < g_threadNum; ++idx) {

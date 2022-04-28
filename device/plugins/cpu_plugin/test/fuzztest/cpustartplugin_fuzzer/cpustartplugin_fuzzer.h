@@ -16,13 +16,6 @@
 #ifndef CPU_START_PLUGIN_FUZZER
 #define CPU_START_PLUGIN_FUZZER
 
-#include <climits>
-#include <cstdint>
-#include <cstdio>
-#include <cstdlib>
-#include <fcntl.h>
-#include <unistd.h>
-
 #define FUZZ_PROJECT_NAME "cpustartplugin_fuzzer"
 
 #endif

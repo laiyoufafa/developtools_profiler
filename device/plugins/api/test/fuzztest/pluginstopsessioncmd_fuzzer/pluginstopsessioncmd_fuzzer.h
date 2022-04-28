@@ -16,13 +16,6 @@
 #ifndef PLUGIN_STOP_SESSION_CMD_FUZZER
 #define PLUGIN_STOP_SESSION_CMD_FUZZER
 
-#include <climits>
-#include <cstdint>
-#include <cstdio>
-#include <cstdlib>
-#include <fcntl.h>
-#include <unistd.h>
-
 #define FUZZ_PROJECT_NAME "pluginstopsessioncmd_fuzzer"
 
 #endif
