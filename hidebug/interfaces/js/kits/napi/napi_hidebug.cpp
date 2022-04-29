@@ -90,7 +90,7 @@ napi_value DumpHeapData(napi_env env, napi_callback_info info)
         return CreateErrorMessage(env, "file created failed.");
     }
     NativeEngine *engine = reinterpret_cast<NativeEngine*>(env);
-    engine->DumpHeapSnapShot(filePath);
+    engine->DumpHeapSnapshot(filePath);
     return CreateUndefined(env);
 }
 
