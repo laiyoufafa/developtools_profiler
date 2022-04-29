@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef PLUGIN_START_SESSION_FUZZER
-#define PLUGIN_START_SESSION_FUZZER
+#ifndef PLUGIN_START_SESSION_CMD_FUZZER
+#define PLUGIN_START_SESSION_CMD_FUZZER
 
 #define FUZZ_PROJECT_NAME "pluginstartsessioncmd_fuzzer"
 
