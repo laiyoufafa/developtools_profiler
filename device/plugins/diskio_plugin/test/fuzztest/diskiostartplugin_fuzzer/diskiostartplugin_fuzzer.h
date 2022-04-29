@@ -16,13 +16,6 @@
 #ifndef DISK_IO_START_PLUGIN_FUZZER
 #define DISK_IO_START_PLUGIN_FUZZER
 
-#include <climits>
-#include <cstdint>
-#include <cstdio>
-#include <cstdlib>
-#include <fcntl.h>
-#include <unistd.h>
-
 #define FUZZ_PROJECT_NAME "diskiostartplugin_fuzzer"
 
 #endif

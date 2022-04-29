@@ -24,6 +24,7 @@
 #include <sys/types.h>
 #include <time.h>
 #include <unistd.h>
+#include "securec.h"
 #pragma clang optimize off
 
 #define PAGE_SIZE 4096
@@ -276,16 +277,25 @@ void RemoveMmap(char* pMap)
 // 给文件映射中写入
 void MmapWriteFile(char* pMap, int length, char* data)
 {
-    memcpy(pMap, data, length);
+    if (memcpy_s(pMap, length, data, length) != EOK) {
+        printf("memcpy_s type fail\n");
+        return;
+    }
     msync(pMap, length, MS_SYNC);
 }
 
 // 从文件映射中读取
 char* MmapReadFile(char* pMap, int length)
 {
+    if (length <= 0) {
+        printf("fail:malloc %d memory", length);
+        return NULL;
+    }
     char* data = (char*)malloc(length + 1);
-    memcpy(data, pMap, length);
-    data[length] = '\0';
+    if (data != NULL) {
+        memcpy(data, pMap, length);
+        data[length] = '\0';
+    }
     return data;
 }
 
@@ -308,7 +318,6 @@ char RandChar(void)
     int section = '~' - ' ';
     int randSection = RandInt(0, section);
     char randChar = '~' + randSection;
-
     return randChar;
 }
 
@@ -316,13 +325,17 @@ char RandChar(void)
 char* RandString(int maxLength)
 {
     int strLength = RandInt(10, maxLength);
-    char* data = (char*)malloc(strLength + 1);
-
-    for (int i = 0; i < strLength; i++) {
-        data[i] = RandChar();
+    if (strLength <= 0) {
+        printf("fail:malloc %d memory", strLength);
+        return NULL;
     }
+    char* data = (char*)malloc(strLength + 1);
+    if (data != NULL) {
+        for (int i = 0; i < strLength; i++) {
+            data[i] = RandChar();
+        }
     data[strLength] = '\0';
-
+    }
     return data;
 }
 
@@ -396,11 +409,10 @@ int bitMapNum(unsigned int data)
 }
 
 // 参数解析
-void CommandParse(int argc, char** argv)
+int CommandParse(int argc, char** argv)
 {
     int result;
     opterr = 0;
-
     while ((result = getopt(argc, argv, "t:s:n:o:h:")) != -1) {
         switch (result) {
             case 't':
@@ -422,7 +434,7 @@ void CommandParse(int argc, char** argv)
                 g_mallocSize = atoi(optarg);
                 if (g_mallocSize <= 0) {
                     printf("Invalid mallocSize\n");
-                    exit(0);
+                    return -1;
                 }
                 break;
             case 'n':
@@ -430,7 +442,7 @@ void CommandParse(int argc, char** argv)
                 g_threadNum = atoi(optarg);
                 if (g_threadNum <= 0) {
                     printf("Invalid threadNum.\n");
-                    exit(0);
+                    return -1;
                 }
                 break;
             case 'o':
@@ -441,19 +453,21 @@ void CommandParse(int argc, char** argv)
                 printf("%s -t <alloc/mmap>\n", argv[0]);
                 printf("\talloc : -s [alloc mallocSize] -n [thread Num]\n");
                 printf("\t mmap : -o [mmap datafile]\n");
-                exit(0);
+                return -1;
         }
     }
+    return opterr;
 }
 
 int main(int argc, char* argv[])
 {
     // 参数解析
-    CommandParse(argc, argv);
+    int ret = CommandParse(argc, argv);
+    if (ret == -1) {
+        return 0;
+    }
     int typeNum = bitMapNum(g_hook_flag);
-
     printf(" g_hook_flag =  [%x] \n", g_hook_flag);
-
     if (typeNum == 0) {
         // 未设置type时默认启动alloc
         g_hook_flag |= ALLOC_FLAG;
@@ -461,6 +475,10 @@ int main(int argc, char* argv[])
     }
 
     pthread_t** thrArrayList = (pthread_t**)malloc(sizeof(pthread_t*) * typeNum);
+    if (thrArrayList == NULL) {
+        printf("malloc thrArrayList fail\n");
+        return 0;
+    }
     int type = 0;
     if (g_hook_flag & ALLOC_FLAG) {
         int threadNum = g_threadNum;
@@ -505,13 +523,19 @@ int main(int argc, char* argv[])
         usleep(RESPONSE_SPEED);
     };
     g_runing = 0;
-
     int idx;
     for (type = 0; type < typeNum; type++) {
         for (idx = 0; idx < g_threadNum; ++idx) {
             pthread_join((thrArrayList[type])[idx], NULL);
         }
-        free(thrArrayList[type]);
+        if (thrArrayList[type] != NULL) {
+            free(thrArrayList[type]);
+            thrArrayList[type] = NULL;
+        }
+    }
+    if (thrArrayList != NULL) {
+        free(thrArrayList);
+        thrArrayList = NULL;
     }
     CloseFile();
     return 0;
