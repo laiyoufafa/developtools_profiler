@@ -23,7 +23,7 @@
 #include "logging.h"
 #include "plugin_service_types.pb.h"
 #include "share_memory_allocator.h"
-#include "sys_param.h"
+#include "init_param.h"
 #include "utilities.h"
 #include "virtual_runtime.h"
 #include "hook_common.h"
