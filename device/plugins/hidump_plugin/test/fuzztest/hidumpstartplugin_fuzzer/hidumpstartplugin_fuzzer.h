@@ -13,11 +13,9 @@
  * limitations under the License.
  */
 
-#include <climits>
-#include <cstdint>
-#include <cstdio>
-#include <cstdlib>
-#include <fcntl.h>
-#include <unistd.h>
+#ifndef HIDUMP_START_PLUGIN_FUZZER
+#define HIDUMP_START_PLUGIN_FUZZER
 
 #define FUZZ_PROJECT_NAME "hidumpstartplugin_fuzzer"
+
+#endif
