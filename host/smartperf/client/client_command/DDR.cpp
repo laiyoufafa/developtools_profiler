@@ -18,31 +18,8 @@ namespace SmartPerf {
 long long DDR::get_ddr_freq()
 {
     long long curFreq;
-
-    FILE *fp;
-    static char buffer[256];
-    const int defaultUnit = 1000;
-    const int defaultHalf = 2;
-    fp = fopen(ddr_cur_freq_path.c_str(), "r");
-    if (fp == nullptr) {
-        printf("getDDRInfoFromNode()-fopen %s, err=%s\n", ddr_cur_freq_path.c_str(), strerror(errno));
-        curFreq = -1;
-    } else {
-        buffer[0] = '\0';
-        long long curDDR = -1;
-        while (fgets(buffer, sizeof(buffer), fp)) {
-            if (sscanf(buffer, "DDR :%lld", &curDDR) < 0) {
-                continue;
-            }
-        }
-        if (curDDR != -1) {
-            curFreq = curDDR * defaultUnit / defaultHalf;
-        } else {
-            curFreq = std::atoll(buffer);
-        }
-        printf("getDDRInfoFromNode()-cur_freq: %lld\n", curFreq);
-        fclose(fp);
-    }
+    std::string ddr_freq = GPUtils::freadFile(std::string(ddr_cur_freq_path.c_str()));
+    curFreq = std::atoll(ddr_freq.c_str());
     return curFreq;
 }
 }

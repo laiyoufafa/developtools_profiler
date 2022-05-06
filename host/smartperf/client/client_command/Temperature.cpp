@@ -14,6 +14,7 @@
  */
 #include <cmath>
 #include <iostream>
+#include <unistd.h>
 #include "securec.h"
 #include "include/Temperature.h"
 namespace OHOS {
@@ -41,7 +42,9 @@ void Temperature::init_thermal_node()
         thermal_base_path.c_str(), zone) < 0) {
             std::cout << "snprintf_s fail";
         }
-
+        if (access(typeNode, F_OK) == -1) {
+            continue;
+        }
         fp = fopen(typeNode, "r");
         if (fp == nullptr) {
             continue;
@@ -57,8 +60,7 @@ void Temperature::init_thermal_node()
         if (strlen(buffer) == 0) {
             continue;
         }
-        if (buffer[strlen(buffer) - 1] == '\n')
-            buffer[strlen(buffer) - 1] = '\0';
+
         std::string type = std::string(buffer);
         if (collect_nodes.count(type) == 0) {
             continue;

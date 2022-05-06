@@ -13,34 +13,30 @@
  * limitations under the License.
  */
 #include <iostream>
-#include <pthread.h>
+#include <sstream>
 #include "include/ByTrace.h"
 
 namespace OHOS {
 namespace SmartPerf {
-void *ByTrace::thread_get_trace(void *arg)
+void ByTrace::thread_get_trace()
 {
-    char cmd_trace[100];
-    GPUtils::safeSprintf(cmd_trace, "bytrace --trace_begin --overwrite");
-    std::string res = GPUtils::readFile(cmd_trace);
-    pthread_exit(nullptr);
-    return nullptr;
+    std::stringstream sstream;
+    sstream << "bytrace --trace_begin --overwrite";
+    std::string cmd_trace = sstream.str();  
+    GPUtils::readFile(cmd_trace);
 }
-void *ByTrace::thread_finish_trace(void *pathName)
+void ByTrace::thread_finish_trace(std::string &pathName)
 {
-    char cmd_trace_finish[64];
-    char cmd_trace_overwrite[256];
-    std::string fileName = *(std::string *)pathName;
-    std::cout << "ByTrace::thread_finish_trace:called fileName:" << fileName << std::endl;
-    GPUtils::safeSprintf(cmd_trace_finish, "bytrace --trace_finish");
-    GPUtils::safeSprintf(cmd_trace_overwrite, 
-        "bytrace --overwrite sched ace app disk ohos graphic sync workq ability > /data/mynewtrace%ss.ftrace", 
-        fileName.c_str()
-    );    
+    std::stringstream sstream;
+    sstream << "bytrace --trace_finish";
+    const std::string &cmd_trace_finish = sstream.str();
     GPUtils::readFile(cmd_trace_finish);
+    sstream.str("");
+    sstream << "bytrace --overwrite sched ace app disk ohos graphic sync workq ability > /data/mynewtrace";
+    sstream << pathName;
+    sstream << "s.ftrace";
+    const std::string &cmd_trace_overwrite = sstream.str();
     GPUtils::readFile(cmd_trace_overwrite);
-    pthread_exit(nullptr);
-    return nullptr;
 }
 
 TraceStatus ByTrace::init_trace(bool isStart)

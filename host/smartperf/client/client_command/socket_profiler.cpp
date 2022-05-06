@@ -14,18 +14,15 @@
  */
 #include <cstdio>
 #include <sys/socket.h>
-#include "pthread.h"
-#include "securec.h"
+#include <sys/types.h>
+#include <thread>
 #include "include/gp_utils.h"
 #include "include/gp_constant.h"
 #include "include/socket_profiler.h"
-
 namespace OHOS {
 namespace SmartPerf {
-SocketProfiler::SocketProfiler(){
-}
-
-void SocketProfiler::initSocketProfiler() {
+void SocketProfiler::initSocketProfiler()
+{
     mCpu = CPU::GetInstance();
     mGpu = GPU::GetInstance();
     mDdr = DDR::GetInstance();
@@ -40,19 +37,10 @@ void SocketProfiler::initSocketProfiler() {
     mPower->init_power();
 }
 
-void *SocketProfiler::thread_get_fps(void *arg)
+int SocketProfiler::bufsendto(int sockLocal, const char *bufsend, int length, 
+    struct sockaddr *clientLocal, socklen_t len)
 {
-    struct parameter *p = (parameter *)arg;
-    int videoOn = p->is_video;
-    int cameraOn = p->is_camera;
-    p->spThis->gfpsInfo = p->spThis->mFps->getFpsInfo(videoOn, cameraOn);
-    pthread_exit(nullptr);
-    return nullptr;
-}
-
-int SocketProfiler::bufsendto(int sock, const char *bufsend, int length, struct sockaddr *client, socklen_t len)
-{
-    ssize_t echo_size = sendto(sock, bufsend, length, ZERO, client, len);
+    ssize_t echo_size = sendto(sockLocal, bufsend, length, ZERO, clientLocal, len);
     if (echo_size < ZERO) {
         printf("sendto error, buf is %s\n", bufsend);
         return ERROR_MINUX;
@@ -60,59 +48,71 @@ int SocketProfiler::bufsendto(int sock, const char *bufsend, int length, struct 
     return SUCCESS_ZERO;
 }
 
-
-void *SocketProfiler::thread_udp_server(void *spThis)
+void SocketProfiler::callSend(std::stringstream &sstream, std::string &str1, std::string &str2)
 {
-    SmartPerfCommandParam *SCP = (SmartPerfCommandParam *)spThis;
-    SocketProfiler *SP = SCP->spThis;
-    int sock = socket(AF_INET, SOCK_DGRAM, ZERO);
+    sstream.str("");
+    sstream.clear();
+    sstream << str1 << "::" << str2;
+    std::string streamSend = sstream.str();
+    bufsendto(sock, streamSend.c_str(), streamSend.size(), reinterpret_cast<struct sockaddr*>(&client), sizeof(sockaddr_in));
+}
+
+void SocketProfiler::initSocket() 
+{
+    sock = socket(AF_INET, SOCK_DGRAM, ZERO);
     if (sock < ZERO) {
         perror("socket error");
-        exit(1);
     }
-    struct sockaddr_in local;
     local.sin_family = AF_INET;
     local.sin_port = htons(SOCK_PORT);
     local.sin_addr.s_addr = htonl(INADDR_ANY);
     if (::bind(sock, reinterpret_cast<struct sockaddr*>(&local), sizeof(local)) < ZERO) {
         perror("bind error");
-        exit(1);
     }
-    struct sockaddr_in client;
-    socklen_t len = sizeof(client);
-    char bufsend[BUFF_SIZE_SEND];
+}
+
+void SocketProfiler::thread_udp_server()
+{
+    std::shared_ptr<SocketProfiler> SP = SocketProfiler::GetInstance();
+    SP->initSocket();
+    socklen_t len = sizeof(sockaddr_in);
+    std::stringstream sstream;
     const int loopforever = 1;
     printf("enter while loop forever\n");
     while (loopforever) {
         char recvbuf[BUFF_SIZE_RECV];
-        memset(recvbuf, '\0', sizeof(recvbuf));
+        recvbuf[0] = '\0';
         ssize_t _size = recvfrom(sock, recvbuf, sizeof(recvbuf) - 1, 0, 
         reinterpret_cast<struct sockaddr*>(&client), &len);
         if (_size > 0) {
+            recvbuf[_size] = '\0';
             printf("server recvbuf:%s\n", recvbuf);
         }
+        sstream.str("");
+        sstream.clear();
         std::string recv = std::string(recvbuf);
         if (recv.find("get_cpu_num") != std::string::npos) {
-            int length = GPUtils::safeSprintf(bufsend, "get_cpu_num::%d", SP->mCpu->get_cpu_num());
-            SP->bufsendto(sock, bufsend, length, reinterpret_cast<struct sockaddr*>(&client), len);
+            std::string recvStr = "get_cpu_num";
+            int ret = SP->mCpu->get_cpu_num();
+            std::string str2 = std::to_string(ret);
+            SP->callSend(sstream, recvStr, str2);
         } else if (recv.find("get_cpu_freq") != std::string::npos) {
             std::vector<std::string> sps;
             GPUtils::mSplit(recv, "_", sps);
             int cpu_id = std::stoi(sps[sps.size() - 1]);
             int ret = SP->mCpu->get_cpu_freq(cpu_id);
-            int length = GPUtils::safeSprintf(bufsend, "%s::%d", recv.c_str(), ret);
-            SP->bufsendto(sock, bufsend, length, reinterpret_cast<struct sockaddr*>(&client), len);
+            std::string str2 = std::to_string(ret);
+            SP->callSend(sstream, recv, str2);
         } else if (recv.find("get_cpu_load") != std::string::npos) {
             std::vector<float> workloads = SP->mCpu->get_cpu_load();
             std::string res = "";
-            for (int i = 0; i < workloads.size(); ++i) {
+            for (size_t i = 0; i < workloads.size(); ++i) {
                 if (i != 0) {
                     res += "==";
                 }
                 res += std::to_string(workloads[i]);
             }
-            int length = GPUtils::safeSprintf(bufsend, "%s::%s", recv.c_str(), res.c_str());
-            SP->bufsendto(sock, bufsend, length, reinterpret_cast<struct sockaddr*>(&client), len);
+            SP->callSend(sstream, recv, res);
         } else if (recv.find("set_pkgName") != std::string::npos) {
             std::vector<std::string> sps;
             GPUtils::mSplit(recv, "::", sps);
@@ -126,39 +126,35 @@ void *SocketProfiler::thread_udp_server(void *spThis)
             if (sps.size() > TWO) {
                 int is_video = atoi(sps[1].c_str());
                 int is_camera = atoi(sps[2].c_str());
-                struct parameter *par = new parameter;
-                par->is_video = is_video;
-                par->is_camera = is_camera;
-                par->spThis = SP;
-                pthread_t t_fps;
-                pthread_create(&t_fps, nullptr, thread_get_fps, static_cast<void*>(par));
+        
+                FpsInfo gfpsInfo = SP->mFps->getFpsInfo(is_video, is_camera);
                 std::string res = "";
                 res += "timestamp|";
-                res += std::to_string(SP->gfpsInfo.current_fps_time);
+                res += std::to_string(gfpsInfo.current_fps_time);
                 res += ";";
                 res += "fps|";
-                res += std::to_string(SP->gfpsInfo.fps);
+                res += std::to_string(gfpsInfo.fps);
                 res += ";";
                 res += "jitter|";
-                for (int i = 0; i < SP->gfpsInfo.jitters.size(); ++i) {
-                    res += std::to_string(SP->gfpsInfo.jitters[i]);
+                for (size_t i = 0; i < gfpsInfo.jitters.size(); ++i) {
+                    res += std::to_string(gfpsInfo.jitters[i]);
                     res += "==";
                 }
-                int length = GPUtils::safeSprintf(bufsend, "%s::%s", "get_fps_and_jitters", res.c_str());
-                SP->bufsendto(sock, bufsend, length, reinterpret_cast<struct sockaddr*>(&client), len);
+                std::string recvStr = "get_fps_and_jitters";
+                SP->callSend(sstream, recvStr, res);
             }
         } else if (recv.find("get_gpu_freq") != std::string::npos) {
             int ret = SP->mGpu->get_gpu_freq();
-            int length = GPUtils::safeSprintf(bufsend, "%s::%d", recv.c_str(), ret);
-            SP->bufsendto(sock, bufsend, length, reinterpret_cast<struct sockaddr*>(&client), len);
+            std::string str2 = std::to_string(ret);
+            SP->callSend(sstream, recv, str2);
         } else if (recv.find("get_gpu_load") != std::string::npos) {
             float workload = SP->mGpu->get_gpu_load();
-            int length = GPUtils::safeSprintf(bufsend, "%s::%f", recv.c_str(), workload);
-            SP->bufsendto(sock, bufsend, length, reinterpret_cast<struct sockaddr*>(&client), len);
+            std::string str2 = std::to_string(workload);
+            SP->callSend(sstream, recv, str2);
         } else if (recv.find("get_ddr_freq") != std::string::npos) {
             long long ret = SP->mDdr->get_ddr_freq();
-            int length = GPUtils::safeSprintf(bufsend, "%s::%lld", recv.c_str(), ret);
-            SP->bufsendto(sock, bufsend, length, reinterpret_cast<struct sockaddr*>(&client), len);
+            std::string str2 = std::to_string(ret);
+            SP->callSend(sstream, recv, str2);
         } else if (recv.find("get_ram_info") != std::string::npos) {
             std::vector<std::string> sps;
             GPUtils::mSplit(recv, "::", sps);
@@ -173,8 +169,7 @@ void *SocketProfiler::thread_udp_server(void *spThis)
                     res += iter->second;
                     ++i;
                 }
-                int length = GPUtils::safeSprintf(bufsend, "%s::%s", sps[0].c_str(), res.c_str());
-                SP->bufsendto(sock, bufsend, length, reinterpret_cast<struct sockaddr*>(&client), len);
+                SP->callSend(sstream, sps[0], res);
             }
         } else if (recv.find("get_temperature") != std::string::npos) {
             std::map<std::string, float> tempInfo = SP->mTemperature->getThermalMap();
@@ -188,8 +183,7 @@ void *SocketProfiler::thread_udp_server(void *spThis)
                 res += (iter->first + ",," + std::to_string(iter->second));
                 ++i;
             }
-            int length = GPUtils::safeSprintf(bufsend, "%s::%s", recv.c_str(), res.c_str());
-            SP->bufsendto(sock, bufsend, length, reinterpret_cast<struct sockaddr*>(&client), len);
+            SP->callSend(sstream, recv, res);
         } else if (recv.find("get_power") != std::string::npos) {
             std::map<std::string, std::string> powerInfo;
             powerInfo = SP->mPower->getPowerMap();
@@ -203,26 +197,17 @@ void *SocketProfiler::thread_udp_server(void *spThis)
                 res += (iter->first + ",," + iter->second);
                 ++i;
             }
-            int length = GPUtils::safeSprintf(bufsend, "%s::%s", recv.c_str(), res.c_str());
-            SP->bufsendto(sock, bufsend, length, reinterpret_cast<struct sockaddr*>(&client), len);
+            SP->callSend(sstream, recv, res);
         } else if (recv.find("get_capture") != std::string::npos) {
-            char cmd_capture[20];
-            GPUtils::safeSprintf(cmd_capture, "hi_snapshot");
-            std::string res = GPUtils::readFile(cmd_capture);
-            int length = GPUtils::safeSprintf(bufsend, "%s::%s", "get_capture", res.c_str());
-            SP->bufsendto(sock, bufsend, length, reinterpret_cast<struct sockaddr*>(&client), len);
+            sstream << "snapshot_display";
+            std::string cmd_capture = sstream.str();
+            GPUtils::readFile(cmd_capture);
         } else if (recv.find("catch_trace_start") != std::string::npos) {   
-            pthread_t t_trace_begin;
-            pthread_create(&t_trace_begin, nullptr, SP->mByTrace->thread_get_trace, nullptr);
-            int length = GPUtils::safeSprintf(bufsend, "%s::%s", "catch_trace_start", "trace_begin");
-            SP->bufsendto(sock, bufsend, length, reinterpret_cast<struct sockaddr*>(&client), len);  
+            std::thread tStart(&ByTrace::thread_get_trace, SP->mByTrace);
         } else if (recv.find("catch_trace_finish") != std::string::npos) {   
             std::vector<std::string> traces;
-            GPUtils::mSplit(recv, "::", traces);          
-            pthread_t t_trace_finish;
-            pthread_create(&t_trace_finish, nullptr, SP->mByTrace->thread_finish_trace, (void *)&(traces[1]));
-            int length = GPUtils::safeSprintf(bufsend, "%s::%s", "catch_trace", "trace_finish");
-            SP->bufsendto(sock, bufsend, length, reinterpret_cast<struct sockaddr*>(&client), len);      
+            GPUtils::mSplit(recv, "::", traces);         
+            std::thread tFinish(&ByTrace::thread_finish_trace, SP->mByTrace, std::ref(traces[1]));      
         }
     }
 }

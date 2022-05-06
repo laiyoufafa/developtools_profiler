@@ -23,9 +23,9 @@ namespace SmartPerf {
 int CPU::get_cpu_num()
 {
     char cpu_node[128];
-    unsigned int cpu_num = 0;
+    int cpu_num = 0;
     while (true) {
-        if (snprintf_s(cpu_node, sizeof(cpu_node), sizeof(cpu_node), "%s/cpu%u", CPU_BASE_PATH.c_str(), cpu_num) > 0) {
+        if (snprintf_s(cpu_node, sizeof(cpu_node), sizeof(cpu_node), "%s/cpu%d", CPU_BASE_PATH.c_str(), cpu_num) > 0) {
             if (access(cpu_node, F_OK) == -1) {
                 break;
             }
@@ -37,6 +37,9 @@ int CPU::get_cpu_num()
 int CPU::get_cpu_freq(int cpu_id)
 {
     char buffer[128];
+    if (access(CPU_SCALING_CUR_FREQ(cpu_id).c_str(), F_OK) == -1) {
+        return -1;
+    }
     FILE *fp = fopen(CPU_SCALING_CUR_FREQ(cpu_id).c_str(), "r");
     if (fp == nullptr) {
         return -1;
@@ -70,6 +73,9 @@ std::vector<float> CPU::get_cpu_load()
         "\0",
         "\0",
     };
+    if (access(PROC_STAT.c_str(), F_OK) == -1) {
+        return workload;
+    }
     FILE *fp = fopen(PROC_STAT.c_str(), "r");
     if (fp == nullptr) {
         for (int i = 0; i <= m_cpu_num; ++i) {
@@ -107,21 +113,22 @@ std::vector<float> CPU::get_cpu_load()
 
 float CPU::cac_workload(const char *buffer, const char *pre_buffer)
 {
-    const int default_index = 4;
-    const int default_shift = 10;
+    const size_t default_index = 4;
+    const size_t default_shift = 10;
     const char default_start = '0';
     const char default_end = '9';
 
     size_t pre_len = strlen(pre_buffer);
-    if (pre_len == 0) {
+    size_t len = strlen(buffer);
+    if (pre_len == 0 || len == 0) {
         return -1.0f;
     }
-    size_t len = strlen(buffer);
-    int time[10];
-    int pre_time[10];
-    int cnt = 0;
-    for (int i = default_index; i < len; ++i) {
-        int tmp = 0;
+    size_t time[10];
+    size_t pre_time[10];
+    size_t cnt = 0;
+
+    for (size_t i = default_index; i < len; ++i) {
+        size_t tmp = 0;
         if (buffer[i] < default_start || buffer[i] > default_end) {
             continue;
         }
@@ -132,9 +139,9 @@ float CPU::cac_workload(const char *buffer, const char *pre_buffer)
         time[cnt++] = tmp;
     }
 
-    int pre_cnt = 0;
-    for (int i = default_index; i < pre_len; ++i) {
-        int tmp = 0;
+    size_t pre_cnt = 0;
+    for (size_t i = default_index; i < pre_len; ++i) {
+        size_t tmp = 0;
         if (pre_buffer[i] < default_start || pre_buffer[i] > default_end) {
             continue;
         }
@@ -145,12 +152,12 @@ float CPU::cac_workload(const char *buffer, const char *pre_buffer)
         pre_time[pre_cnt++] = tmp;
     }
 
-    int user = time[0] + time[1] - pre_time[0] - pre_time[1];
-    int sys = time[2] - pre_time[2];
-    int idle = time[3] - pre_time[3];
-    int iowait = time[4] - pre_time[4];
-    int irq = time[5] + time[6] - pre_time[5] - pre_time[6];
-    int total = user + sys + idle + iowait + irq;
+    size_t user = time[0] + time[1] - pre_time[0] - pre_time[1];
+    size_t sys = time[2] - pre_time[2];
+    size_t idle = time[3] - pre_time[3];
+    size_t iowait = time[4] - pre_time[4];
+    size_t irq = time[5] + time[6] - pre_time[5] - pre_time[6];
+    size_t total = user + sys + idle + iowait + irq;
 
     if (user < 0 || sys < 0 || idle < 0 || iowait < 0 || irq < 0) {
         return 0.0f;

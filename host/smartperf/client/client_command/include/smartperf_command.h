@@ -49,7 +49,7 @@ namespace OHOS {
         const int THREE_PARAM_MORE = 3;
         SmartPerfCommand(int argc, char *argv[]);
         ~SmartPerfCommand() {};
-
+        void initSomething();
         std::string ExecCommand();
         // 采集次数
         int num = 0;
@@ -65,9 +65,9 @@ namespace OHOS {
         // 采集配置项
         std::vector<std::string> configs;
         // 命令式采集
-        Profiler* profiler = nullptr;
+        std::shared_ptr<Profiler> profiler = nullptr;
         // Socket采集
-        SocketProfiler* socketProfiler = nullptr;
+        std::shared_ptr<SocketProfiler> socketProfiler = nullptr;
     };
     }
 }

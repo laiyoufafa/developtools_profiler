@@ -28,10 +28,8 @@
 
 namespace OHOS {
 namespace SmartPerf {
-class Profiler {
+class Profiler : public DelayedSingleton<Profiler>{
 public:
-    Profiler();
-    ~Profiler();
     void initProfiler();
     void createCpu(std::map<std::string, std::string> &gpMap);
     void createGpu(std::map<std::string, std::string> &gpMap);
@@ -42,7 +40,6 @@ public:
     void createPower(std::map<std::string, std::string> &gpMap);
     void createRam(const std::string &pkg_name, std::map<std::string, std::string> &gpMap, int pid);
     void createSnapshot(std::map<std::string, std::string> &gpMap, long long timestamp);
-    static void *thread_get_fps(void *arg);
     std::shared_ptr<CPU> mCpu = nullptr;
     std::shared_ptr<GPU> mGpu = nullptr;
     std::shared_ptr<DDR> mDdr = nullptr;
@@ -51,12 +48,6 @@ public:
     std::shared_ptr<Temperature> mTemperature = nullptr;
     std::shared_ptr<Power> mPower = nullptr;
     std::shared_ptr<ByTrace> mByTrace = nullptr;
-};
-// 采集fps应用 相机和视频应用特殊适配
-struct ProfilerFps {
-    int is_video;
-    int is_camera;
-    Profiler *spThis;
 };
 }
 }

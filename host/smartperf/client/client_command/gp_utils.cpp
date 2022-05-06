@@ -15,7 +15,10 @@
 
 #include <fstream>
 #include <sstream>
-#include <cstdarg>
+#include <unistd.h>
+#include <climits>
+#include <cstdio>
+#include <cstdlib>
 #include "securec.h"
 #include "include/gp_utils.h"
 
@@ -23,9 +26,9 @@ namespace OHOS {
     namespace SmartPerf {
         void GPUtils::mSplit(const std::string &content, const std::string &sp, std::vector<std::string> &out)
         {
-            int index = 0;
+            size_t index = 0;
             while (index != std::string::npos) {
-                int t_end = content.find_first_of(sp, index);
+                size_t t_end = content.find_first_of(sp, index);
                 std::string tmp = content.substr(index, t_end - index);
                 if (tmp != "" && tmp != " ") {
                     out.push_back(tmp);
@@ -39,6 +42,9 @@ namespace OHOS {
 
         bool GPUtils::canOpen(const std::string &path)
         {
+            if (access(path.c_str(), F_OK) == -1) {
+                return false;
+            }
             FILE *fp = fopen(path.c_str(), "r");
             if (fp == nullptr) {
                 return false;
@@ -55,14 +61,13 @@ namespace OHOS {
             const int buffLengh = 1024;
             std::string res = "NA";
             FILE *fp = popen(cmd.c_str(), "r");
-
             char line[buffLengh];
             line[0] = '\0';
             while (fgets(line, buffLengh, fp) != nullptr) {
                 res = std::string(line);
             }
 
-            if (fclose(fp) == EOF) {
+            if (pclose(fp) == EOF) {
                 return "";
             }
             return res;
@@ -73,6 +78,9 @@ namespace OHOS {
         {
             std::string res = "NA";
             const int buffLengh = 1024;
+            if (access(path.c_str(), F_OK) == -1) {
+                return res;
+            }
             FILE *fp;
             if ((fp = fopen(path.c_str(), "r")) != nullptr) {
                 char s[buffLengh];
@@ -102,23 +110,15 @@ namespace OHOS {
             return std::to_string(cntInt);
         }
 
-        // SECUREC_API int vsprintf_s(char *strDest, size_t destMax, const char *format
-        int GPUtils::safeSprintf(char *buf, const char *format, ...)
-        {
-            va_list args;
-            va_start(args, format);
-            int length = vsprintf_s(buf, sizeof(buf), format, args); 
-            if (length < 0) {
-                return 0;
-            }
-            va_end(args);
-            return length;
-        }
-
         // wirte to csv by path
         void GPUtils::writeCsv(const std::string &path, std::vector<GPData> &vmap)
         {
             std::ofstream outFile;
+            char realPath[PATH_MAX + 1] = {0x00};
+            if (strlen(path.c_str()) > PATH_MAX || realpath(path.c_str(), realPath) == NULL) {
+                return;
+            }
+            
             outFile.open(path.c_str(), std::ios::out);
             int i = 0;
             std::string title = "";

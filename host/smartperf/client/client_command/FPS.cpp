@@ -13,9 +13,9 @@
  * limitations under the License.
  */
 #include <cstdio>
-#include <cerrno>
 #include <algorithm>
 #include <iostream>
+#include <sstream>
 #include "securec.h"
 #include "include/gp_utils.h"
 #include "include/FPS.h"
@@ -36,7 +36,7 @@ namespace OHOS {
                 }
                 std::string layer_line = GPUtils::readFile(cmd);
                 int flag = 0;
-                for (int i = 0; i < layer_line.size(); i++) {
+                for (size_t i = 0; i < layer_line.size(); i++) {
                     if (layer_line[i] == ']') {
                         flag = 0;
                         break;
@@ -92,7 +92,6 @@ namespace OHOS {
             std::string cmd = "hidumper -s 10 -a \"fps " + name + "\"";
             fp = popen(cmd.c_str(), "r");
             if (fp == nullptr) {
-                printf("FPS--- fopen %s fail,err=%s\n", cmd.c_str(), strerror(errno));
                 return fpsInfo;
             }
             long long MOD = 1e9;
@@ -108,13 +107,16 @@ namespace OHOS {
             int zeroNum = 0;
             while (fgets(tmp, sizeof(tmp), fp) != nullptr) {
                 long long frameReadyTime = 0;
-                sscanf(tmp, "%lld", &frameReadyTime);
+                std::stringstream sstream;
+                sstream << tmp;
+                sstream >> frameReadyTime;
                 cnt++;
                 if (frameReadyTime == 0) {
                     zeroNum++;
                     continue;
                 }
                 if (lastReadyTime >= frameReadyTime) {
+                    lastReadyTime = -1;
                     continue;
                 }
                 refresh = true;

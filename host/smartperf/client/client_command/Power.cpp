@@ -14,6 +14,7 @@
  */
 #include <iostream>
 #include <cmath>
+#include <unistd.h>
 #include "securec.h"
 #include "include/gp_utils.h"
 #include "include/Power.h"
@@ -53,6 +54,9 @@ std::map<std::string, std::string> Power::getPowerMap()
     for (iter = power_node_path_map.begin(); iter != power_node_path_map.end(); ++iter) {
         std::string type = iter->first;
         std::string powerNode = power_node_path_map[type];
+        if (access(powerNode.c_str(), F_OK) == -1) {
+            continue;
+        }
         fp = fopen(powerNode.c_str(), "r");
         if (fp == nullptr) {
             power_map[type] = "-1.0";
@@ -77,16 +81,16 @@ std::map<std::string, std::string> Power::getPowerMap()
             if (strcmp(buffer, "1") == 0) {
                 charging = 0;
             }
-            if (std::stoi(buffer) == 1) {
+            if (std::stoi(power_value) == 1) {
                 charging = 0;
             }
         } else if (iter->first == "current_now") {
             // 若current now 大于 100000 单位归一化为 1000，大于10000 单位归一化为100，大于3000 单位归一化为10
-            double tmp = fabs(std::stof(buffer));
+            double tmp = fabs(std::stof(power_value));
             power_value = std::to_string(tmp);
         } else if (iter->first == "voltage_now") {
             // 若voltage now 大于100 单位归一化为100
-            double tmp = std::stof(buffer);
+            double tmp = std::stof(power_value);
             power_value = std::to_string(tmp);
         }
         power_map[type] = power_value;

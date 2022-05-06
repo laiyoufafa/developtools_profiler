@@ -94,7 +94,7 @@ cpu0freq,cpu0load,cpu1freq,cpu1load,cpu2freq,cpu2load,cpu3freq,cpu3load,current_
 | -f    | 是否采集fps             |否|
 | -t    | 是否采集温度             |否|
 | -p    | 是否采集电流             |否|
-| -r    | 是否采集内存             |否|
+| -r    | 是否采集内存(需指定进程pid)             |否|
 | -snapshot    | 是否截图            |否|
 
 ---
