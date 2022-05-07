@@ -54,7 +54,8 @@ void SocketProfiler::callSend(std::stringstream &sstream, std::string &str1, std
     sstream.clear();
     sstream << str1 << "::" << str2;
     std::string streamSend = sstream.str();
-    bufsendto(sock, streamSend.c_str(), streamSend.size(), reinterpret_cast<struct sockaddr*>(&client), sizeof(sockaddr_in));
+    bufsendto(sock, streamSend.c_str(), streamSend.size(), 
+        reinterpret_cast<struct sockaddr*>(&client), sizeof(sockaddr_in));
 }
 
 void SocketProfiler::initSocket() 
