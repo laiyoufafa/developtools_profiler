@@ -24,6 +24,7 @@
 #include <sys/types.h>
 #include <time.h>
 #include <unistd.h>
+#include <limits.h>
 #include "securec.h"
 #pragma clang optimize off
 
@@ -232,7 +233,12 @@ void* ThreadFuncC(void* param)
 // 打开文件到内存中
 int OpenFile(const char* fileName)
 {
-    int fd = open(fileName, O_RDWR | O_CREAT, (mode_t)0777);
+    char realPath[PATH_MAX + 1] = {0};
+    if ((strlen(fileName) >= PATH_MAX) || (realpath(fileName, realPath) == NULL)) {
+        printf("path is invalid: %s, errno=%d", fileName, errno);
+        return -1;
+    }
+    int fd = open(realPath, O_RDWR | O_CREAT, (mode_t)0777);
     if (fd == -1) {
         printf("can not open the file\n");
         return -1;
@@ -315,9 +321,9 @@ int RandInt(int Max, int Min)
 char RandChar(void)
 {
     // 可显示字符的范围
-    int section = '~' - ' ';
-    int randSection = RandInt(0, section);
-    char randChar = '~' + randSection;
+    unsigned int section = '~' - ' ';
+    unsigned int randSection = (rand() % section);
+    char randChar = ' ' + randSection;
     return randChar;
 }
 
