@@ -26,9 +26,9 @@ enum TraceStatus {
 class ByTrace : public DelayedSingleton<ByTrace> {
 public:
     // 开始抓trace线程
-    static void *thread_get_trace(void *arg);
+    void thread_get_trace();
     // 结束抓trace线程
-    static void *thread_finish_trace(void *pathName);
+    void thread_finish_trace(std::string &pathName);
     // 初始化抓取
     TraceStatus init_trace(bool isStart);
     // 校验fps-jitters

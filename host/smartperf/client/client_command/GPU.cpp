@@ -14,7 +14,8 @@
  */
 
 #include <iostream>
-#include "include/GPU.h"
+#include <unistd.h>
+#include "include/GPU.h"  
 
 namespace OHOS {
     namespace SmartPerf {
@@ -31,33 +32,11 @@ namespace OHOS {
                     gpu_cur_load_path = std::string(GPU_CUR_WORKLOAD_PATH[i]);
                 }
             }
-            GPUtils::readFile(std::string("chmod 777 /proc/stat"));
         }
         int GPU::get_gpu_freq()
         {
-            const int unit = 1000;
-            static char buffer[128];
-            FILE *fp = fopen(gpu_cur_freq_path.c_str(), "r");
-            if (fp == nullptr) {
-                return -1;
-            }
-            buffer[0] = '\0';
-            while (fgets(buffer, sizeof(buffer), fp) == nullptr) {
-                std::cout << "fgets fail";
-            }
-            if (fclose(fp) == EOF) {
-                return EOF;
-            }
-            int curGpuFreq = -1;
-            int tmp;
-            if (sscanf(buffer, "%d %d", &tmp, &curGpuFreq) < 0) {
-                std::cout << "sscanf fail";
-            }
-            if (curGpuFreq != -1) {
-                return curGpuFreq * unit;
-            } else {
-                return atoi(buffer);
-            }
+            std::string gpu_freq = GPUtils::readFile(std::string(gpu_cur_freq_path.c_str()));
+            return atoi(gpu_freq.c_str());
         }
         float GPU::calc_workload(const char *buffer) const
         {
@@ -78,6 +57,9 @@ namespace OHOS {
         float GPU::get_gpu_load()
         {
             static char buffer[128];
+            if (access(gpu_cur_load_path.c_str(), F_OK) == -1) {
+                return -1.0;
+            }
             FILE *fp = fopen(gpu_cur_load_path.c_str(), "r");
             if (fp == nullptr) {
                 return EOF;

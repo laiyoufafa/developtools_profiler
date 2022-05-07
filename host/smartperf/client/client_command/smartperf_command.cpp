@@ -13,9 +13,9 @@
  * limitations under the License.
  */
 #include <map>
+#include <thread>
 #include "sys/time.h"
 #include "unistd.h"
-#include "pthread.h"
 #include "include/gp_data.h"
 #include "include/gp_utils.h"
 #include "include/smartperf_command.h"
@@ -25,14 +25,11 @@ namespace SmartPerf {
 SmartPerfCommand::SmartPerfCommand(int argc, char *argv[])
 {
     if (argc == ONE_PARAM) {
-        this->socketProfiler = new SocketProfiler();
-        this->socketProfiler->initSocketProfiler();
-        struct SmartPerfCommandParam *scp = new SmartPerfCommandParam;
-        scp->spThis = this->socketProfiler;
+        socketProfiler = SocketProfiler::GetInstance();
+        socketProfiler->initSocketProfiler();
         daemon(0, 0);
-        pthread_t t_udp;
-        pthread_create(&t_udp, nullptr, this->socketProfiler->thread_udp_server, static_cast<void*>(scp));
-        pthread_join(t_udp, nullptr);
+        std::thread t_udp(&SocketProfiler::thread_udp_server, socketProfiler);
+        t_udp.join();
     }
     if (argc == TWO_PARAM) {
         char *cmd = argv[1];
@@ -45,39 +42,39 @@ SmartPerfCommand::SmartPerfCommand(int argc, char *argv[])
         }
     }
     if (argc >= THREE_PARAM_MORE) {
-        this->profiler = new Profiler();
-        this->profiler->initProfiler();
+        profiler = Profiler::GetInstance();
+        profiler->initProfiler();
         for (int i = 1; i <= argc - 1; i++) {
             if ((strcmp(argv[i], "-N") == 0) || (strcmp(argv[i], "--num") == 0)) {
-                this->num = atoi(argv[i + 1]);
-                if (this->num > 0) {
-                    std::cout << "set num:" << this->num << std::endl;
+                num = atoi(argv[i + 1]);
+                if (num > 0) {
+                    std::cout << "set num:" << num << std::endl;
                 } else {
                     std::cout << "error input args: -N" << std::endl;
                 }
             }
             if ((strcmp(argv[i], "-PKG") == 0) || (strcmp(argv[i], "--pkgname") == 0)) {
-                this->pkgName = argv[i + 1];
-                if (strcmp(this->pkgName.c_str(), "") != 0) {
-                    this->profiler->mFps->setPackageName(this->pkgName);
-                    std::cout << "set pkg name:" << this->pkgName << std::endl;
+                pkgName = argv[i + 1];
+                if (strcmp(pkgName.c_str(), "") != 0) {
+                    profiler->mFps->setPackageName(pkgName);
+                    std::cout << "set pkg name:" << pkgName << std::endl;
                 } else {
                     std::cout << "empty input args: -PKG" << std::endl;
                 }
             }
             if ((strcmp(argv[i], "-PID") == 0) || (strcmp(argv[i], "--processid") == 0)) {
-                this->pid = atoi(argv[i + 1]);
-                if (this->pid > 0) {
-                    std::cout << "set test pid:" << this->pid << std::endl;
+                pid = atoi(argv[i + 1]);
+                if (pid > 0) {
+                    std::cout << "set test pid:" << pid << std::endl;
                 } else {
                     std::cout << "error input args: -PID " << std::endl;
                 }
             }
 
             if ((strcmp(argv[i], "-OUT") == 0) || (strcmp(argv[i], "--output") == 0)) {
-                this->outPathParam = argv[i + 1];
-                if (strcmp(this->outPathParam.c_str(), "") != 0) {
-                    this->outPath = this->outPathParam + std::string(".csv");
+                outPathParam = argv[i + 1];
+                if (strcmp(outPathParam.c_str(), "") != 0) {
+                    outPath = outPathParam + std::string(".csv");
                 }
             }
 
@@ -85,7 +82,7 @@ SmartPerfCommand::SmartPerfCommand(int argc, char *argv[])
                 strcmp(argv[i], "-f") == 0 || strcmp(argv[i], "-f1") == 0 || strcmp(argv[i], "-f2") == 0 ||
                 strcmp(argv[i], "-t") == 0 || strcmp(argv[i], "-p") == 0 || strcmp(argv[i], "-r") == 0 ||
                 strcmp(argv[i], "-trace") == 0 || strcmp(argv[i], "-snapshot") == 0) {
-                this->configs.push_back(argv[i]);
+                configs.push_back(argv[i]);
             }
         }
     }
@@ -94,17 +91,17 @@ std::string SmartPerfCommand::ExecCommand()
 {
     int index = 0;
     std::vector<GPData> vmap;
-    while (index < this->num) {
+    while (index < num) {
         std::map<std::string, std::string> gpMap;
         struct timeval tv;
         gettimeofday(&tv, nullptr);
         long long timestamp = tv.tv_sec * 1000 + tv.tv_usec / 1000;
         gpMap.insert(std::pair<std::string, std::string>(std::string("timestamp"), std::to_string(timestamp)));
 
-        for (int j = 0; j < this->configs.size(); j++) {
-            std::string curParam = this->configs[j];
+        for (size_t j = 0; j < configs.size(); j++) {
+            std::string curParam = configs[j];
             if (strcmp(curParam.c_str(), "-trace") == 0) {
-                this->trace = 1;
+                trace = 1;
             }
             if (strcmp(curParam.c_str(), "-c") == 0) {
                 profiler->createCpu(gpMap);
@@ -116,13 +113,13 @@ std::string SmartPerfCommand::ExecCommand()
                 profiler->createDdr(gpMap);
             }
             if (strcmp(curParam.c_str(), "-f") == 0) {
-                profiler->createFps(0, 0, this->trace, index, gpMap);
+                profiler->createFps(0, 0, trace, index, gpMap);
             } 
             if (strcmp(curParam.c_str(), "-f1") == 0) {
-                profiler->createFps(1, 0, this->trace, index, gpMap);
+                profiler->createFps(1, 0, trace, index, gpMap);
             }
             if (strcmp(curParam.c_str(), "-f2") == 0) {
-                profiler->createFps(0, 1, this->trace, index, gpMap);
+                profiler->createFps(0, 1, trace, index, gpMap);
             }
             if (strcmp(curParam.c_str(), "-t") == 0) {
                 profiler->createTemp(gpMap);
@@ -131,8 +128,8 @@ std::string SmartPerfCommand::ExecCommand()
                 profiler->createPower(gpMap);
             }
             if (strcmp(curParam.c_str(), "-r") == 0) {
-                if (strcmp(this->pkgName.c_str(), "") != 0 || this->pid > 0) {
-                    profiler->createRam(this->pkgName, gpMap, pid);
+                if (strcmp(pkgName.c_str(), "") != 0 || pid > 0) {
+                    profiler->createRam(pkgName, gpMap, pid);
                 }
             }
             if (strcmp(curParam.c_str(), "-snapshot") == 0) {
@@ -159,6 +156,10 @@ std::string SmartPerfCommand::ExecCommand()
     GPUtils::writeCsv(std::string(outPath.c_str()), vmap);
 
     return std::string("command exec finished!");
+}
+void SmartPerfCommand::initSomething()
+{
+    GPUtils::readFile("chmod a+w /proc/stat");
 }
 }
 }

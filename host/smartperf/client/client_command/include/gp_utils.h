@@ -30,8 +30,6 @@ namespace OHOS {
 
             std::string getNumber(const std::string &str);
 
-            int safeSprintf(char* buf, const char *format, ...);
-
             void writeCsv(const std::string &path, std::vector<GPData> &vmap);
         };
     }

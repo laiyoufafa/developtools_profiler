@@ -14,6 +14,7 @@
  */
 #ifndef SOCKET_PROFILER_H
 #define SOCKET_PROFILER_H
+#include <sstream>
 #include <netinet/in.h>
 #include "CPU.h"
 #include "GPU.h"
@@ -30,18 +31,13 @@ enum SockConstant {
     BUFF_SIZE_RECV = 256,
     BUFF_SIZE_SEND = 2048
 };
-class SocketProfiler {
+class SocketProfiler : public DelayedSingleton<SocketProfiler> {
 public:
-    SocketProfiler();
-    ~SocketProfiler();
-
     void initSocketProfiler();
-
-    int bufsendto(int sock, const char *bufsend, int length, struct sockaddr *client, socklen_t len);
-
-    FpsInfo gfpsInfo;
-    static void *thread_get_fps(void *arg);
-    static void *thread_udp_server(void *spThis);
+    int bufsendto(int sockLocal, const char *bufsend, int length, struct sockaddr *clientLocal, socklen_t len);
+    void callSend(std::stringstream &sstream, std::string &str1, std::string &str2);
+    void thread_udp_server();
+    void initSocket();
 
     std::shared_ptr<CPU> mCpu = nullptr;
     std::shared_ptr<GPU> mGpu = nullptr;
@@ -51,15 +47,10 @@ public:
     std::shared_ptr<Temperature> mTemperature = nullptr;
     std::shared_ptr<Power> mPower = nullptr;
     std::shared_ptr<ByTrace> mByTrace = nullptr;
-};
-struct SmartPerfCommandParam {
-    SocketProfiler *spThis;
-};
-// 采集fps应用 相机和视频应用特殊适配
-struct parameter {
-    int is_video;
-    int is_camera;
-    SocketProfiler *spThis;
+    
+    int sock;
+    struct sockaddr_in local;
+    struct sockaddr_in client;
 };
 }
 }

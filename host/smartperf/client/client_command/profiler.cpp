@@ -14,16 +14,13 @@
  */
 #include <cstdio>
 #include <iostream>
+#include <thread>
 #include "securec.h"
-#include "pthread.h"
 #include "include/profiler.h"
 namespace OHOS {
 namespace SmartPerf {
-Profiler::Profiler()
+void Profiler::initProfiler()
 {
-}
-
-void Profiler::initProfiler() {
     // get singleton instance
     mCpu = CPU::GetInstance();
     mGpu = GPU::GetInstance();
@@ -39,8 +36,7 @@ void Profiler::initProfiler() {
     mGpu->init_gpu_node();
     mPower->init_power();
     if (mByTrace->init_trace(true) == TRACE_START) {
-        pthread_t t_trace_begin;
-        pthread_create(&t_trace_begin, nullptr, mByTrace->thread_get_trace, nullptr);
+        std::thread pInitTrace(&ByTrace::thread_get_trace, mByTrace);
     }
 }
 
@@ -57,7 +53,7 @@ void Profiler::createCpu(std::map<std::string, std::string> &gpMap)
 
     std::vector<float> workloads = mCpu->get_cpu_load();
 
-    for (int i = 1; i < workloads.size(); ++i) {
+    for (size_t i = 1; i < workloads.size(); ++i) {
         char desc[10];
         if (snprintf_s(desc, sizeof(desc), sizeof(desc), "cpu%dload", i - 1) > 0) {
             gpMap.insert(std::pair<std::string, std::string>(std::string(desc), std::to_string(workloads[i])));
@@ -84,27 +80,10 @@ void Profiler::createDdr(std::map<std::string, std::string> &gpMap)
         gpMap.insert(std::pair<std::string, std::string>(std::string(desc), std::to_string(ret)));
     }
 }
-
-void *Profiler::thread_get_fps(void *arg)
-{
-    struct ProfilerFps *p = (ProfilerFps *)arg;
-    int videoOn = p->is_video;
-    int cameraOn = p->is_camera;
-    p->spThis->mFps->m_fpsInfo = p->spThis->mFps->getFpsInfo(videoOn, cameraOn);
-    pthread_exit(nullptr);
-    return nullptr;
-}
-
 void Profiler::createFps(int isVideo, int isCamera, int isCatchTrace, int curProfilerNum,
     std::map<std::string, std::string> &gpMap)
 {
-    struct ProfilerFps *par = new ProfilerFps;
-    par->is_video = isVideo;
-    par->is_camera = isCamera;
-    par->spThis = this;
-    pthread_t t_fps;
-    pthread_create(&t_fps, nullptr, this->thread_get_fps, static_cast<void*>(par));
-    FpsInfo gfpsInfo = mFps->m_fpsInfo;
+    FpsInfo gfpsInfo = mFps->getFpsInfo(isVideo, isCamera);
     char desc[10];
     if (snprintf_s(desc, sizeof(desc), sizeof(desc), "fps") > 0) {
         gpMap.insert(std::pair<std::string, std::string>(std::string(desc), std::to_string(gfpsInfo.fps)));
@@ -112,15 +91,13 @@ void Profiler::createFps(int isVideo, int isCamera, int isCatchTrace, int curPro
     if (isCatchTrace > 0) {
         if (mByTrace->check_fps_jitters(gfpsInfo.jitters, curProfilerNum) == TRACE_FINISH) {
             std::string profilerNum = std::to_string(curProfilerNum);
-            pthread_t t_trace_finish;
-            pthread_create(&t_trace_finish, nullptr, mByTrace->thread_finish_trace, static_cast<void*>(&profilerNum));
+            std::thread pFinishTrace(&ByTrace::thread_finish_trace, mByTrace, std::ref(profilerNum));
         }
     }
 }
 void Profiler::createTemp(std::map<std::string, std::string> &gpMap)
 {
     std::map<std::string, float> tempInfo = mTemperature->getThermalMap();
-
     std::map<std::string, float>::iterator iter;
     for (iter = tempInfo.begin(); iter != tempInfo.end(); ++iter) {
         float value = iter->second;

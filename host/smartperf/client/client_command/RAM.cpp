@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 #include <iostream>
+#include <unistd.h>
 #include "securec.h"
 #include "include/gp_utils.h"
 #include "include/RAM.h"
@@ -27,6 +28,7 @@ void RAM::setPkgName(std::string ss)
 std::map<std::string, std::string> RAM::getRamInfo(std::string pkg_name, int pid)
 {
     std::map<std::string, std::string> ramInfo;
+    ramInfo["pss"] = "-1";
     std::string pid_value = "";
     if (pid > 0) {
         pid_value = std::to_string(pid);
@@ -52,6 +54,9 @@ std::map<std::string, std::string> RAM::getRamInfo(std::string pkg_name, int pid
         }
         std::string path = ram;
         FILE *fp;
+        if (access(path.c_str(), F_OK) == -1) {
+            return ramInfo;
+        }
         if ((fp = fopen(path.c_str(), "r")) != nullptr) {
             char s[1024];
             s[0] = '\0';
