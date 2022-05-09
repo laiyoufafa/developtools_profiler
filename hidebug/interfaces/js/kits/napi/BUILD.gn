@@ -26,7 +26,7 @@ config("napi_hidebug_config") {
     "//foundation/arkui/napi",
     "//foundation/arkui/napi/native_engine",
     "//foundation/arkui/napi/interfaces/kits",
-    "//base/hiviewdfx/hidumper/interfaces/innerkits/include/",
+    "//base/hiviewdfx/hidumper/interfaces/innerkits/include/"
   ]
 }
 
@@ -49,6 +49,8 @@ ohos_shared_library("hidebug") {
     "common_event_service:cesfwk_services",
     "hilog_native:libhilog",
     "ipc:ipc_core",
+    "safwk:system_ability_fwk",
+    "samgr_standard:samgr_proxy"
   ]
 
   relative_install_dir = "module"

@@ -28,15 +28,20 @@ static napi_value StopProfiling(napi_env env, napi_callback_info info);
 static napi_value DumpHeapData(napi_env env, napi_callback_info info);
 static napi_value GetPss(napi_env env, napi_callback_info info);
 static napi_value GetSharedDirty(napi_env env, napi_callback_info info);
+static napi_value GetPrivateDirty(napi_env env, napi_callback_info info);
+static napi_value GetCpuUsage(napi_env env, napi_callback_info info);
 static napi_value GetNativeHeapSize(napi_env env, napi_callback_info info);
 static napi_value GetNativeHeapAllocatedSize(napi_env env, napi_callback_info info);
 static napi_value GetNativeHeapFreeSize(napi_env env, napi_callback_info info);
+static napi_value GetServiceDump(napi_env env, napi_callback_info info);
 
 static napi_value CreateUndefined(napi_env env);
 static napi_value CreateErrorMessage(napi_env env, std::string msg);
 static bool MatchValueType(napi_env env, napi_value value, napi_valuetype targetType);
 static std::string GetFileNameParam(napi_env env, napi_callback_info info);
 static bool GetBundleNameByUid(std::int32_t uid, std::string& bname);
+static uint32_t GetServiceAbilityIdParam(napi_env env, napi_callback_info info);
+static std::string GetLocalTimeStr();
 } // HiviewDFX
 } // OHOS
 #endif // NAPI_HIDEBUG_H
