@@ -22,7 +22,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-#include <time.h>
+#include <ctime>
 #include <iservice_registry.h>
 #include <malloc.h>
 #include "bundle_manager_helper.h"
@@ -186,7 +186,6 @@ static napi_value GetNativeHeapSize(napi_env env, napi_callback_info info)
 static napi_value GetServiceDump(napi_env env, napi_callback_info info)
 {
     napi_value result_info;
-
     uint32_t serviceAbilityId = 0;
     serviceAbilityId = GetServiceAbilityIdParam(env, info);
 
@@ -201,7 +200,7 @@ static napi_value GetServiceDump(napi_env env, napi_callback_info info)
         HiLog::Error(LABEL, "get null sa mgr for ability id %{public}d!", serviceAbilityId);
         napi_create_int32(env, 0, &result_info);
         return result_info;
-    } 
+    }
 
     sptr<IRemoteObject> sa = sam -> CheckSystemAbility(serviceAbilityId);
     if (!sa) {
@@ -323,9 +322,9 @@ bool GetBundleNameByUid(std::int32_t uid, std::string& bname)
 static std::string GetLocalTimeStr()
 {
     time_t timep;
-    time(&timep);
+    (void)time(&timep);
     char tmp[128] = {0};
-    strftime(tmp, sizeof(tmp), "%Y%m%d_%H%M%S", localtime(&timep));
+    (void)strftime(tmp, sizeof(tmp), "%Y%m%d_%H%M%S", localtime(&timep));
     std::string timeStr = tmp;
     return timeStr;
 }
