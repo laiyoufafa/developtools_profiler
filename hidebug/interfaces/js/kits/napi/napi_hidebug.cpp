@@ -185,43 +185,41 @@ static napi_value GetNativeHeapSize(napi_env env, napi_callback_info info)
 
 static napi_value GetServiceDump(napi_env env, napi_callback_info info)
 {
-    napi_value result_info;
+    napi_value none_str;
+    napi_value file_name;
     uint32_t serviceAbilityId = 0;
+    napi_create_string_utf8(env, "", NAPI_AUTO_LENGTH, &none_str);
     serviceAbilityId = GetServiceAbilityIdParam(env, info);
     if (serviceAbilityId == 0) {
         HiLog::Error(LABEL, "get serviceAbilityId failed.");
-        napi_create_int32(env, 0, &result_info);
-        return result_info;
+        return none_str;
     }
     sptr<ISystemAbilityManager> sam = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     if (!sam) {
         HiLog::Error(LABEL, "get null sa mgr for ability id %{public}d!", serviceAbilityId);
-        napi_create_int32(env, 0, &result_info);
-        return result_info;
+        return none_str;
     }
-    sptr<IRemoteObject> sa = sam -> CheckSystemAbility(serviceAbilityId);
+    sptr<IRemoteObject> sa = sam->CheckSystemAbility(serviceAbilityId);
     if (!sa) {
         HiLog::Error(LABEL, "no such system ability for ability id %{public}d!", serviceAbilityId);
-        napi_create_int32(env, 0, &result_info);
-        return result_info;
+        return none_str;
     }
     std::string dumpFilePath = SetDumpFilePath();
     if (dumpFilePath == "") {
-        napi_create_int32(env, 0, &result_info);
-        return result_info;
+        return none_str;
     }
     int fd = open(dumpFilePath.c_str(), O_RDWR | O_APPEND | O_CREAT, 0644);
     if (fd == -1) {
         HiLog::Error(LABEL, "dumpFilePath open error!");
         close(fd);
-        napi_create_int32(env, 0, &result_info);
-        return result_info;
+        return none_str;
     }
     std::vector<std::u16string> args;
     int dumpResult = sa->Dump(fd, args);
+    HiLog::Info(LABEL, "dump result returned by sa id %{public}d", dumpResult);
     close(fd);
-    napi_create_int32(env, dumpResult, &result_info);
-    return result_info;
+    napi_create_string_utf8(env, dumpFilePath.c_str(), NAPI_AUTO_LENGTH, &file_name);
+    return file_name;
 }
 
 static std::string SetDumpFilePath()
