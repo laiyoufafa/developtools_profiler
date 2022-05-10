@@ -188,49 +188,28 @@ static napi_value GetServiceDump(napi_env env, napi_callback_info info)
     napi_value result_info;
     uint32_t serviceAbilityId = 0;
     serviceAbilityId = GetServiceAbilityIdParam(env, info);
-
     if (serviceAbilityId == 0) {
         HiLog::Error(LABEL, "get serviceAbilityId failed.");
         napi_create_int32(env, 0, &result_info);
         return result_info;
     }
-
     sptr<ISystemAbilityManager> sam = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     if (!sam) {
         HiLog::Error(LABEL, "get null sa mgr for ability id %{public}d!", serviceAbilityId);
         napi_create_int32(env, 0, &result_info);
         return result_info;
     }
-
     sptr<IRemoteObject> sa = sam -> CheckSystemAbility(serviceAbilityId);
     if (!sa) {
         HiLog::Error(LABEL, "no such system ability for ability id %{public}d!", serviceAbilityId);
         napi_create_int32(env, 0, &result_info);
         return result_info;
     }
-
-    int callingUid = IPCSkeleton::GetCallingUid();
-    std::string bundleName;
-    if (!GetBundleNameByUid(callingUid, bundleName)) {
-        HiLog::Error(LABEL, "get uid failed.");
-        napi_create_int32(env, 0, &result_info);
+    std::string dumpFilePath = SetDumpFilePath();
+    if (dumpFilePath == "") {
+        napi_create_int32(env, dumpResult, &result_info);
         return result_info;
     }
-
-    std::string timeStr = GetLocalTimeStr();
-    std::string dumpFilePath = BASE_PATH + bundleName + SUB_DIR + "service_info_" + timeStr + ".dump";
-
-    if (!FileUtil::IsLegalPath(dumpFilePath)) {
-        HiLog::Error(LABEL, "dumpFilePath is not legal.");
-        napi_create_int32(env, 0, &result_info);
-        return result_info;
-    }
-    if (!FileUtil::CreateFile(dumpFilePath)) {
-        HiLog::Error(LABEL, "dumpFilePath create failed.");
-        napi_create_int32(env, 0, &result_info);
-        return result_info;
-    }
-
     int fd = open(dumpFilePath.c_str(), O_RDWR | O_APPEND | O_CREAT, 0644);
     if (fd == -1) {
         HiLog::Error(LABEL, "dumpFilePath open error!");
@@ -238,12 +217,32 @@ static napi_value GetServiceDump(napi_env env, napi_callback_info info)
         napi_create_int32(env, 0, &result_info);
         return result_info;
     }
-
     std::vector<std::u16string> args;
     int dumpResult = sa->Dump(fd, args);
     close(fd);
     napi_create_int32(env, dumpResult, &result_info);
     return result_info;
+}
+
+static std::string SetDumpFilePath()
+{
+    int callingUid = IPCSkeleton::GetCallingUid();
+    std::string bundleName;
+    if (!GetBundleNameByUid(callingUid, bundleName)) {
+        HiLog::Error(LABEL, "get uid failed.");
+        return "";
+    }
+    std::string timeStr = GetLocalTimeStr();
+    std::string dumpFilePath = BASE_PATH + bundleName + SUB_DIR + "service_info_" + timeStr + ".dump";
+    if (!FileUtil::IsLegalPath(dumpFilePath)) {
+        HiLog::Error(LABEL, "dumpFilePath is not legal.");;
+        return "";
+    }
+    if (!FileUtil::CreateFile(dumpFilePath)) {
+        HiLog::Error(LABEL, "dumpFilePath create failed.");
+        return "";
+    }
+    return dumpFilePath;
 }
 
 static napi_value GetNativeHeapAllocatedSize(napi_env env, napi_callback_info info)
@@ -324,7 +323,7 @@ static std::string GetLocalTimeStr()
     time_t timep;
     (void)time(&timep);
     char tmp[128] = {0};
-    (void)strftime(tmp, sizeof(tmp), "%Y%m%d_%H%M%S", localtime(&timep));
+    (void)strftime(tmp, sizeof(tmp), "%Y%m%d_%H%M%S", (void)localtime(&timep));
     std::string timeStr = tmp;
     return timeStr;
 }

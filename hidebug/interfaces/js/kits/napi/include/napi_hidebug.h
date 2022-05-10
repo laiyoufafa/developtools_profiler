@@ -42,6 +42,7 @@ static std::string GetFileNameParam(napi_env env, napi_callback_info info);
 static bool GetBundleNameByUid(std::int32_t uid, std::string& bname);
 static uint32_t GetServiceAbilityIdParam(napi_env env, napi_callback_info info);
 static std::string GetLocalTimeStr();
+static std::string SetDumpFilePath();
 } // HiviewDFX
 } // OHOS
 #endif // NAPI_HIDEBUG_H
