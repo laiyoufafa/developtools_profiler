@@ -27,7 +27,7 @@
         "hiprofiler_cmd",
         "hiprofiler_plugins",
         "ace_napi",
-        "syspara"
+        "init"
       ],
       "third_party": [
         "googletest",
