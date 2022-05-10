@@ -207,7 +207,7 @@ static napi_value GetServiceDump(napi_env env, napi_callback_info info)
     }
     std::string dumpFilePath = SetDumpFilePath();
     if (dumpFilePath == "") {
-        napi_create_int32(env, dumpResult, &result_info);
+        napi_create_int32(env, 0, &result_info);
         return result_info;
     }
     int fd = open(dumpFilePath.c_str(), O_RDWR | O_APPEND | O_CREAT, 0644);
@@ -323,8 +323,15 @@ static std::string GetLocalTimeStr()
     time_t timep;
     (void)time(&timep);
     char tmp[128] = {0};
-    (void)strftime(tmp, sizeof(tmp), "%Y%m%d_%H%M%S", (void)localtime(&timep));
+    struct tm* localTime = localtime(&timep);
+    if (!localTime) {
+        delete localTime;
+        HiLog::Error(LABEL, "get local time error.");
+        return "0";
+    }
+    (void)strftime(tmp, sizeof(tmp), "%Y%m%d_%H%M%S", localTime);
     std::string timeStr = tmp;
+    delete localTime;
     return timeStr;
 }
 
