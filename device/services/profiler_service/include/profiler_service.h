@@ -129,7 +129,7 @@ private:
     std::atomic<uint32_t> sessionIdCounter_ = 0;
     std::atomic<uint32_t> responseIdCounter_ = 0;
     std::map<uint32_t, SessionContextPtr> sessionContext_ = {};
-    std::unique_ptr<grpc_impl::Server> server_ = nullptr;
+    std::unique_ptr<grpc::Server> server_ = nullptr;
 
     DISALLOW_COPY_AND_MOVE(ProfilerService);
 };
