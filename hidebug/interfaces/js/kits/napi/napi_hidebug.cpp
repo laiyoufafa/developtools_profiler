@@ -19,7 +19,11 @@
 #include <fstream>
 #include <string>
 #include <memory>
-
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <ctime>
+#include <iservice_registry.h>
 #include <malloc.h>
 #include "bundle_manager_helper.h"
 #include "directory_ex.h"
@@ -35,7 +39,7 @@
 namespace OHOS {
 namespace HiviewDFX {
 namespace {
-constexpr HiLogLabel LABEL = { LOG_CORE, 0xD002D0A, "HiDebug_NAPI" };
+constexpr HiLogLabel LABEL = { LOG_CORE, 0xD002D00, "HiDebug_NAPI" };
 constexpr int ONE_VALUE_LIMIT = 1;
 constexpr int ARRAY_INDEX_FIRST = 0;
 constexpr int BUF_MAX = 128;
@@ -138,6 +142,35 @@ static napi_value GetSharedDirty(napi_env env, napi_callback_info info)
     return share_dirty;
 }
 
+static napi_value GetPrivateDirty(napi_env env, napi_callback_info info)
+{
+    napi_value private_dirty;
+    std::unique_ptr<DumpUsage> dumpUsage = std::make_unique<DumpUsage>();
+    if (dumpUsage) {
+        pid_t pid = getpid();
+        uint64_t privateDirty = dumpUsage->GetPrivateDirty(pid);
+        napi_create_bigint_uint64(env, privateDirty, &private_dirty);
+    } else {
+        napi_create_bigint_uint64(env, 0, &private_dirty);
+    }
+    return private_dirty;
+}
+
+static napi_value GetCpuUsage(napi_env env, napi_callback_info info)
+{
+    napi_value cpu_usage;
+    std::unique_ptr<DumpUsage> dumpUsage = std::make_unique<DumpUsage>();
+    if (dumpUsage) {
+        pid_t pid = getpid();
+        float tmpCpuUsage = dumpUsage->GetCpuUsage(pid);
+        double cpuUsage = double(tmpCpuUsage);
+        napi_create_double(env, cpuUsage, &cpu_usage);
+    } else {
+        napi_create_double(env, 0, &cpu_usage);
+    }
+    return cpu_usage;
+}
+
 static napi_value GetNativeHeapSize(napi_env env, napi_callback_info info)
 {
     struct mallinfo mi = mallinfo();
@@ -148,6 +181,68 @@ static napi_value GetNativeHeapSize(napi_env env, napi_callback_info info)
         napi_create_bigint_uint64(env, 0, &native_heap_size);
     }
     return native_heap_size;
+}
+
+static napi_value GetServiceDump(napi_env env, napi_callback_info info)
+{
+    napi_value result_info;
+    uint32_t serviceAbilityId = 0;
+    serviceAbilityId = GetServiceAbilityIdParam(env, info);
+    if (serviceAbilityId == 0) {
+        HiLog::Error(LABEL, "get serviceAbilityId failed.");
+        napi_create_int32(env, 0, &result_info);
+        return result_info;
+    }
+    sptr<ISystemAbilityManager> sam = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    if (!sam) {
+        HiLog::Error(LABEL, "get null sa mgr for ability id %{public}d!", serviceAbilityId);
+        napi_create_int32(env, 0, &result_info);
+        return result_info;
+    }
+    sptr<IRemoteObject> sa = sam -> CheckSystemAbility(serviceAbilityId);
+    if (!sa) {
+        HiLog::Error(LABEL, "no such system ability for ability id %{public}d!", serviceAbilityId);
+        napi_create_int32(env, 0, &result_info);
+        return result_info;
+    }
+    std::string dumpFilePath = SetDumpFilePath();
+    if (dumpFilePath == "") {
+        napi_create_int32(env, 0, &result_info);
+        return result_info;
+    }
+    int fd = open(dumpFilePath.c_str(), O_RDWR | O_APPEND | O_CREAT, 0644);
+    if (fd == -1) {
+        HiLog::Error(LABEL, "dumpFilePath open error!");
+        close(fd);
+        napi_create_int32(env, 0, &result_info);
+        return result_info;
+    }
+    std::vector<std::u16string> args;
+    int dumpResult = sa->Dump(fd, args);
+    close(fd);
+    napi_create_int32(env, dumpResult, &result_info);
+    return result_info;
+}
+
+static std::string SetDumpFilePath()
+{
+    int callingUid = IPCSkeleton::GetCallingUid();
+    std::string bundleName;
+    if (!GetBundleNameByUid(callingUid, bundleName)) {
+        HiLog::Error(LABEL, "get uid failed.");
+        return "";
+    }
+    std::string timeStr = GetLocalTimeStr();
+    std::string dumpFilePath = BASE_PATH + bundleName + SUB_DIR + "service_info_" + timeStr + ".dump";
+    if (!FileUtil::IsLegalPath(dumpFilePath)) {
+        HiLog::Error(LABEL, "dumpFilePath is not legal.");
+        return "";
+    }
+    if (!FileUtil::CreateFile(dumpFilePath)) {
+        HiLog::Error(LABEL, "dumpFilePath create failed.");
+        return "";
+    }
+    return dumpFilePath;
 }
 
 static napi_value GetNativeHeapAllocatedSize(napi_env env, napi_callback_info info)
@@ -223,6 +318,47 @@ bool GetBundleNameByUid(std::int32_t uid, std::string& bname)
     return true;
 }
 
+static std::string GetLocalTimeStr()
+{
+    time_t timep;
+    (void)time(&timep);
+    char tmp[128] = {0};
+    struct tm* localTime = localtime(&timep);
+    if (!localTime) {
+        delete localTime;
+        HiLog::Error(LABEL, "get local time error.");
+        return "0";
+    }
+    (void)strftime(tmp, sizeof(tmp), "%Y%m%d_%H%M%S", localTime);
+    std::string timeStr = tmp;
+    delete localTime;
+    return timeStr;
+}
+
+static uint32_t GetServiceAbilityIdParam(napi_env env, napi_callback_info info)
+{
+    size_t argc = ONE_VALUE_LIMIT;
+    napi_value argv[ONE_VALUE_LIMIT] = { nullptr };
+    napi_value thisVar = nullptr;
+    void *data = nullptr;
+    napi_get_cb_info(env, info, &argc, argv, &thisVar, &data);
+    if (argc != ONE_VALUE_LIMIT) {
+        HiLog::Error(LABEL, "invalid number = %{public}d of params.", ONE_VALUE_LIMIT);
+        return 0;
+    }
+    if (!MatchValueType(env, argv[ARRAY_INDEX_FIRST], napi_number)) {
+        HiLog::Error(LABEL, "Type error, should be number type!");
+        return 0;
+    }
+    uint32_t serviceAbilityId = 0;
+    napi_status status = napi_get_value_uint32(env, argv[0], &serviceAbilityId);
+    if (status != napi_ok) {
+        HiLog::Error(LABEL, "Get input serviceAbilityId failed.");
+        return 0;
+    }
+    return serviceAbilityId;
+}
+
 napi_value DeclareHiDebugInterface(napi_env env, napi_value exports)
 {
     napi_property_descriptor desc[] = {
@@ -231,6 +367,9 @@ napi_value DeclareHiDebugInterface(napi_env env, napi_value exports)
         DECLARE_NAPI_FUNCTION("dumpHeapData", DumpHeapData),
         DECLARE_NAPI_FUNCTION("getPss", GetPss),
         DECLARE_NAPI_FUNCTION("getSharedDirty", GetSharedDirty),
+        DECLARE_NAPI_FUNCTION("getPrivateDirty", GetPrivateDirty),
+        DECLARE_NAPI_FUNCTION("getCpuUsage", GetCpuUsage),
+        DECLARE_NAPI_FUNCTION("getServiceDump", GetServiceDump),
         DECLARE_NAPI_FUNCTION("getNativeHeapSize", GetNativeHeapSize),
         DECLARE_NAPI_FUNCTION("getNativeHeapAllocatedSize", GetNativeHeapAllocatedSize),
         DECLARE_NAPI_FUNCTION("getNativeHeapFreeSize", GetNativeHeapFreeSize)
