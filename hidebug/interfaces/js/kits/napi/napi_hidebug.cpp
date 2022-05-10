@@ -323,13 +323,11 @@ static std::string GetLocalTimeStr()
     char tmp[128] = {0};
     struct tm* localTime = localtime(&timep);
     if (!localTime) {
-        delete localTime;
         HiLog::Error(LABEL, "get local time error.");
         return "0";
     }
     (void)strftime(tmp, sizeof(tmp), "%Y%m%d_%H%M%S", localTime);
     std::string timeStr = tmp;
-    delete localTime;
     return timeStr;
 }
 
