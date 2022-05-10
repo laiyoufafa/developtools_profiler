@@ -235,7 +235,7 @@ static std::string SetDumpFilePath()
     std::string timeStr = GetLocalTimeStr();
     std::string dumpFilePath = BASE_PATH + bundleName + SUB_DIR + "service_info_" + timeStr + ".dump";
     if (!FileUtil::IsLegalPath(dumpFilePath)) {
-        HiLog::Error(LABEL, "dumpFilePath is not legal.");;
+        HiLog::Error(LABEL, "dumpFilePath is not legal.");
         return "";
     }
     if (!FileUtil::CreateFile(dumpFilePath)) {
