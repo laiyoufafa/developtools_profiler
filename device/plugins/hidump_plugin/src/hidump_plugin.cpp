@@ -157,7 +157,7 @@ bool HidumpPlugin::ParseHidumpInfo(HidumpInfo& dataProto, char *buf, int len)
         if ((length == sizeof("fps:0")) || (length == sizeof("fps:10"))) {
             char databuf[BUF_MAX_LEN] = { 0 };
             if (length - sizeof("fps:") > 0 && BUF_MAX_LEN > (length - sizeof("fps:"))) {
-                 if (memcpy_s(databuf, BUF_MAX_LEN, buf + sizeof("fps:"), length - sizeof("fps:")) != EOK) {
+                if (memcpy_s(databuf, BUF_MAX_LEN, buf + sizeof("fps:"), length - sizeof("fps:")) != EOK) {
                     HILOG_ERROR(LOG_CORE, "copy %d byte to memory region [%p, %p) FAILED!",
                         BUF_MAX_LEN, buf + sizeof("fps:"), buf + length);
                     return false;
