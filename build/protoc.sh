@@ -46,7 +46,7 @@ echo "EXEC: python $PYTHON_SHELL $PARAMS_PRINT"
 python $PYTHON_SHELL $PARAMS_PRINT
 #end python
 
-PARAMS_SRC=${PARAMS[@]:${#PARAMS_FILTER}}
+PARAMS_SRC=${PARAMS:${#PARAMS_FILTER}}
 PARAMS_REPLACE=${PARAMS_SOURCES//.proto/_standard.proto} # 拷贝proto文件名称，替换为_standard.proto
 PARAMS_STANDARD=" --proto_path $PROTO_OUT_DIR " # 新增proto_path 参数，$PROTO_OUT_DIR为路径
 for VAR in ${PARAMS_REPLACE[@]}
