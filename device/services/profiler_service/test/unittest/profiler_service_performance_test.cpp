@@ -619,8 +619,6 @@ HWTEST_F(ProfilerServicePerformanceTest, DFX_DFR_Hiprofiler_0010, Function | Med
                 EXPECT_GE(md.processesinfo(1).vm_locked_kb(), 0);
                 EXPECT_GE(md.processesinfo(0).vm_hwm_kb(), 0);
                 EXPECT_GE(md.processesinfo(1).vm_hwm_kb(), 0);
-                EXPECT_GE(md.processesinfo(0).oom_score_adj(), 0);
-                EXPECT_GE(md.processesinfo(1).oom_score_adj(), 0);
 
                 EXPECT_TRUE(md.processesinfo(0).has_memsummary());
                 EXPECT_GE(md.processesinfo(0).memsummary().java_heap(), 0);
@@ -1342,9 +1340,9 @@ HWTEST_F(ProfilerServicePerformanceTest, DFX_DFR_Hiprofiler_0050, Function | Med
         HilogInfo hilogInfo;
         auto& data = pd.data();
         hilogInfo.ParseFromArray(data.data(), data.size());
-        EXPECT_GT(static_cast<int>(hilogInfo.info().size()), 0);
-        EXPECT_STRNE(hilogInfo.info(0).context().c_str(), "");
-        EXPECT_TRUE(hilogInfo.info(0).has_detail());
+        EXPECT_GT(static_cast<int>(hilogInfo.info().size()), 1);
+        EXPECT_STRNE(hilogInfo.info(1).context().c_str(), "");
+        EXPECT_TRUE(hilogInfo.info(1).has_detail());
     }
     timeCost = timer.ElapsedUs();
     printf("FetchData cost %ldus.\n", timeCost);
