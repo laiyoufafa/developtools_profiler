@@ -233,12 +233,7 @@ void* ThreadFuncC(void* param)
 // 打开文件到内存中
 int OpenFile(const char* fileName)
 {
-    char realPath[PATH_MAX + 1] = {0};
-    if ((strlen(fileName) >= PATH_MAX) || (realpath(fileName, realPath) == NULL)) {
-        printf("path is invalid: %s, errno=%d", fileName, errno);
-        return -1;
-    }
-    int fd = open(realPath, O_RDWR | O_CREAT, (mode_t)0777);
+    int fd = open(fileName, O_RDWR | O_CREAT, (mode_t)0777);
     if (fd == -1) {
         printf("can not open the file\n");
         return -1;
@@ -305,15 +300,12 @@ char* MmapReadFile(char* pMap, int length)
     return data;
 }
 
-void RandSrand(void)
-{
-    srand((unsigned)time(NULL));
-}
-
 // 10 ~ 4096
 int RandInt(int Max, int Min)
 {
-    int value = (rand() % (Max - Min)) + Min;
+    time_t tv = time(NULL);
+    unsigned int seed = (unsigned int)tv;
+    int value = (rand_r(&seed) % (Max - Min)) + Min;
     return value;
 }
 
@@ -322,7 +314,9 @@ char RandChar(void)
 {
     // 可显示字符的范围
     unsigned int section = '~' - ' ';
-    unsigned int randSection = (rand() % section);
+    time_t tv = time(NULL);
+    unsigned int seed = (unsigned int)tv;
+    unsigned int randSection = (rand_r(&seed) % section);
     char randChar = ' ' + randSection;
     return randChar;
 }
@@ -348,8 +342,6 @@ char* RandString(int maxLength)
 // 初始化函数
 void mmapInit(void)
 {
-    // 设置随机种子
-    RandSrand();
     // 设置全局映射的目标文件
     g_fd = OpenFile(g_fileName);
 }
