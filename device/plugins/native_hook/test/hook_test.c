@@ -24,6 +24,7 @@
 #include <sys/types.h>
 #include <time.h>
 #include <unistd.h>
+#include <limits.h>
 #include "securec.h"
 #pragma clang optimize off
 
@@ -255,7 +256,6 @@ char* CreateMmap(void)
     if (g_fd == -1) {
         return NULL;
     }
-
     int size = PAGE_SIZE;
     lseek(g_fd, size + 1, SEEK_SET);
     write(g_fd, "", 1);
@@ -293,21 +293,25 @@ char* MmapReadFile(char* pMap, int length)
     }
     char* data = (char*)malloc(length + 1);
     if (data != NULL) {
-        memcpy(data, pMap, length);
+        if (memcpy_s(data, length+1, pMap, length) != EOK) {
+            printf("memcpy_s type fail\n");
+            free(data);
+            return NULL;
+        }
         data[length] = '\0';
     }
     return data;
 }
 
-void RandSrand(void)
-{
-    srand((unsigned)time(NULL));
-}
-
 // 10 ~ 4096
 int RandInt(int Max, int Min)
 {
-    int value = (rand() % (Max - Min)) + Min;
+    time_t tv = time(NULL);
+    if (tv == -1) {
+        tv = 1;
+    }
+    unsigned int seed = (unsigned int)tv;
+    int value = (rand_r(&seed) % (Max - Min)) + Min;
     return value;
 }
 
@@ -315,9 +319,14 @@ int RandInt(int Max, int Min)
 char RandChar(void)
 {
     // 可显示字符的范围
-    int section = '~' - ' ';
-    int randSection = RandInt(0, section);
-    char randChar = '~' + randSection;
+    unsigned int section = '~' - ' ';
+    time_t tv = time(NULL);
+    if (tv == -1) {
+        tv = 1;
+    }
+    unsigned int seed = (unsigned int)tv;
+    unsigned int randSection = (rand_r(&seed) % section);
+    char randChar = ' ' + randSection;
     return randChar;
 }
 
@@ -342,8 +351,6 @@ char* RandString(int maxLength)
 // 初始化函数
 void mmapInit(void)
 {
-    // 设置随机种子
-    RandSrand();
     // 设置全局映射的目标文件
     g_fd = OpenFile(g_fileName);
 }
@@ -380,10 +387,8 @@ void* ThreadMmap(void* param)
     while (g_runing) {
         // 获取随机字符
         char* randString = RandString(PAGE_SIZE);
-
         // 写入映射
         WriteMmap(randString);
-
         // 从映射中读取
         char* outchar = ReadMmap(strlen(randString));
         printf("thread %ld : Mmap test OK! \n", syscall(SYS_gettid));
