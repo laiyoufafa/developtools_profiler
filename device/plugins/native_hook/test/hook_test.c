@@ -295,6 +295,7 @@ char* MmapReadFile(char* pMap, int length)
     if (data != NULL) {
         if (memcpy_s(data, length+1, pMap, length) != EOK) {
             printf("memcpy_s type fail\n");
+            free(data);
             return NULL;
         }
         data[length] = '\0';
