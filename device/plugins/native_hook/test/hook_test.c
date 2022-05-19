@@ -293,7 +293,10 @@ char* MmapReadFile(char* pMap, int length)
     }
     char* data = (char*)malloc(length + 1);
     if (data != NULL) {
-        memcpy_s(data, length+1,pMap, length);
+        if (memcpy_s(data, length+1, pMap, length) != EOK) {
+            printf("memcpy_s type fail\n");
+            return NULL;
+        }
         data[length] = '\0';
     }
     return data;
@@ -303,6 +306,9 @@ char* MmapReadFile(char* pMap, int length)
 int RandInt(int Max, int Min)
 {
     time_t tv = time(NULL);
+    if (tv == -1) {
+        tv = 1;
+    }
     unsigned int seed = (unsigned int)tv;
     int value = (rand_r(&seed) % (Max - Min)) + Min;
     return value;
@@ -314,6 +320,9 @@ char RandChar(void)
     // 可显示字符的范围
     unsigned int section = '~' - ' ';
     time_t tv = time(NULL);
+    if (tv == -1) {
+        tv = 1;
+    }
     unsigned int seed = (unsigned int)tv;
     unsigned int randSection = (rand_r(&seed) % section);
     char randChar = ' ' + randSection;
