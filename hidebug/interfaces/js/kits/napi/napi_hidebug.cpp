@@ -93,8 +93,8 @@ napi_value DumpHeapData(napi_env env, napi_callback_info info)
     if (context->GetFilesDir().empty()) {
         return CreateErrorMessage(env, "Get App files dir failed.");
     }
-    std::string abilityPath = context->GetFilesDir();
-    std::string filePath = PROC_PATH + std::to_string(getpid()) + ROOT_DIR + abilityPath + SLASH_STR +
+    std::string filesDir = context->GetFilesDir();
+    std::string filePath = PROC_PATH + std::to_string(getpid()) + ROOT_DIR + filesDir + SLASH_STR +
         fileName + HEAPSNAPSHOT_FILE;
     if (!FileUtil::IsLegalPath(filePath)) {
         return CreateErrorMessage(env, "input fileName is illegal.");
