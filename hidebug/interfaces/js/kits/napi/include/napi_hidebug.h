@@ -42,7 +42,7 @@ static std::string GetFileNameParam(napi_env env, napi_callback_info info);
 static uint32_t GetServiceAbilityIdParam(napi_env env, napi_callback_info info);
 static std::string GetLocalTimeStr();
 static std::string SetDumpFilePath();
-static bool CreateFile(const std::string &patch);
+static bool CreateFile(const std::string &path);
 } // HiviewDFX
 } // OHOS
 #endif // NAPI_HIDEBUG_H
