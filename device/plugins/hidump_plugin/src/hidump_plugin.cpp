@@ -122,7 +122,7 @@ void HidumpPlugin::Loop(void)
 
         // format fps:0|1501960484673
         if (fgets(buf, BUF_MAX_LEN - 1, fp_.get()) != nullptr) {
-            if (!ParseHidumpInfo(dataProto, buf)) {
+            if (!ParseHidumpInfo(dataProto, buf, sizeof(buf))) {
                 continue;
             }
         }
@@ -144,7 +144,7 @@ void HidumpPlugin::Loop(void)
     HILOG_INFO(LOG_CORE, "HidumpPlugin: Loop exit");
 }
 
-bool HidumpPlugin::ParseHidumpInfo(HidumpInfo& dataProto, char *buf)
+bool HidumpPlugin::ParseHidumpInfo(HidumpInfo& dataProto, char *buf, int len)
 {
     if (strncmp(buf, "fps:", strlen("fps:")) == 0) {
         auto* eve = dataProto.add_fps_event();
@@ -156,18 +156,22 @@ bool HidumpPlugin::ParseHidumpInfo(HidumpInfo& dataProto, char *buf)
         int length = tmp - buf;
         if ((length == sizeof("fps:0")) || (length == sizeof("fps:10"))) {
             char databuf[BUF_MAX_LEN] = { 0 };
-
-            if (memcpy_s(databuf, BUF_MAX_LEN, buf + sizeof("fps:"), length - sizeof("fps:")) != EOK) {
-                HILOG_ERROR(LOG_CORE, "copy %d byte to memory region [%p, %p) FAILED!",
-                    BUF_MAX_LEN, buf + sizeof("fps:"), buf + length);
-                return false;
+            if (length - sizeof("fps:") > 0 && BUF_MAX_LEN > (length - sizeof("fps:"))) {
+                if (memcpy_s(databuf, BUF_MAX_LEN, buf + sizeof("fps:"), length - sizeof("fps:")) != EOK) {
+                    HILOG_ERROR(LOG_CORE, "copy %d byte to memory region [%p, %p) FAILED!",
+                        BUF_MAX_LEN, buf + sizeof("fps:"), buf + length);
+                    return false;
+                }
             }
             eve->set_fps(atoi(databuf));
             (void)memset_s(databuf, BUF_MAX_LEN, 0, BUF_MAX_LEN);
-            if (memcpy_s(databuf, BUF_MAX_LEN, buf + length + 1, strlen(buf) - length - 1) != EOK) {
-                HILOG_ERROR(LOG_CORE, "copy %d byte to memory region [%p, %p) FAILED!",
-                    BUF_MAX_LEN, buf + length + 1, buf + strlen(buf));
-                return false;
+            size_t bufLength = strlen(buf) - length - 1;
+            if (bufLength > 0 && BUF_MAX_LEN > bufLength) {
+                if (memcpy_s(databuf, BUF_MAX_LEN, buf + length + 1, bufLength) != EOK) {
+                    HILOG_ERROR(LOG_CORE, "copy %d byte to memory region [%p, %p) FAILED!",
+                        BUF_MAX_LEN, buf + length + 1, buf + strlen(buf));
+                    return false;
+                }
             }
             std::stringstream strvalue(databuf);
             uint64_t time_ms;
