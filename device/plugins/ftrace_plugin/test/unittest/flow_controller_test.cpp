@@ -34,7 +34,11 @@ constexpr uint32_t BUFFER_SIZE_MAX_KB = 64 * 1024 + 1;
 constexpr uint32_t FLUSH_INTERVAL_MS = 1000;
 constexpr uint32_t FLUSH_THRESHOLD_KB = 1024;
 constexpr uint32_t TRACE_PERIOD_MS = 500;
+#if defined(__LP64__)
+const std::string DEFAULT_TEST_PATH("/system/lib64/");
+#else
 const std::string DEFAULT_TEST_PATH("/system/lib/");
+#endif
 using WriterStructPtr = std::unique_ptr<WriterStruct>::pointer;
 using ConstVoidPtr = std::unique_ptr<const void>::pointer;
 class FlowControllerTest : public ::testing::Test {

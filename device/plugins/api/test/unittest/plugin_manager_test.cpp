@@ -35,7 +35,11 @@ namespace {
 constexpr int DEFAULT_BUFFER_SIZE = 4096;
 constexpr int DEFAULT_SLEEP_TIME = 1000;
 const std::string SUCCESS_PLUGIN_NAME = "libmemdataplugin.z.so";
+#if defined(__LP64__)
+std::string g_testPluginDir("/system/lib64/");
+#else
 std::string g_testPluginDir("/system/lib/");
+#endif
 int g_hiprofilerProcessNum = -1;
 const std::string DEFAULT_HIPROFILERD_PATH("/system/bin/hiprofilerd");
 

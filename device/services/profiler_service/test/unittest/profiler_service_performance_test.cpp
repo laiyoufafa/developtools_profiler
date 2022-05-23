@@ -367,7 +367,11 @@ protected:
         if (processNum == 0) {
             // consume cpu
             CpuConfig protoConfig;
+#if defined(__LP64__)
+            void* handle = dlopen("/system/lib64/libcpudataplugin.z.so", RTLD_LAZY);
+#else
             void* handle = dlopen("/system/lib/libcpudataplugin.z.so", RTLD_LAZY);
+#endif
             if (handle == nullptr) {
                 const int bufSize = 256;
                 char buf[bufSize] = { 0 };
