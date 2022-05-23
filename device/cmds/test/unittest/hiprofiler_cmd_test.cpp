@@ -265,10 +265,12 @@ HWTEST_F(HiprofilerCmdTest, DFX_DFR_Hiprofiler_0120, Function | MediumTest | Lev
 {
     KillProcess(DEFAULT_HIPROFILERD_NAME);
     KillProcess(DEFAULT_HIPROFILER_PLUGINS_NAME);
-
+#if defined(__LP64__)
+    std::string cmd = "cp /system/lib64/libftrace_plugin.z.so " + DEFAULT_PATH;
+#else
     std::string cmd = "cp /system/lib/libftrace_plugin.z.so " + DEFAULT_PATH;
+#endif
     system(cmd.c_str());
-
     // 测试不存在的config文件
     std::string configTestFile = DEFAULT_PATH + "1234.txt";
     std::string outFile = DEFAULT_PATH + "trace.htrace";

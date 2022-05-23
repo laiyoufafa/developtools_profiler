@@ -25,7 +25,11 @@ using namespace testing::ext;
 namespace {
 const std::string SUCCESS_PLUGIN_NAME = "libmemdataplugin.z.so";
 constexpr size_t READ_BUFFER_SIZE = 4 * 1024 * 1024;
+#if defined(__LP64__)
+std::string g_testPluginDir("/system/lib64/");
+#else
 std::string g_testPluginDir("/system/lib/");
+#endif
 
 class PluginModuleTest : public ::testing::Test {
 protected:
