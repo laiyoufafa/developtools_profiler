@@ -31,7 +31,11 @@ const char DEFAULT_PLUGIN_PATH[] = "/data/local/tmp/";
 #endif
 
 const int SLEEP_ONE_SECOND = 1000;
+#if defined(__LP64__)
+const char DEFAULT_LIB_PATH[] = "/system/lib64/";
+#else
 const char DEFAULT_LIB_PATH[] = "/system/lib/";
+#endif
 std::vector<std::string> presetPluginVec = {
     "libcpudataplugin.z.so",
     "libdiskiodataplugin.z.so",

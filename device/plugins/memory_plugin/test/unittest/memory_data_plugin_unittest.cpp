@@ -25,7 +25,11 @@ using namespace testing::ext;
 
 namespace {
 const std::string DEFAULT_TEST_PATH("/data/local/tmp/");
+#if defined(__LP64__)
+const std::string DEFAULT_SO_PATH("/system/lib64/");
+#else
 const std::string DEFAULT_SO_PATH("/system/lib/");
+#endif
 const std::string DEFAULT_BIN_PATH("/data/local/tmp/memorytest");
 constexpr uint32_t BUF_SIZE = 4 * 1024 * 1024;
 const int US_PER_S = 1000000;
