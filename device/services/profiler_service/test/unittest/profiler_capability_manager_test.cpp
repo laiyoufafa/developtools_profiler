@@ -20,6 +20,11 @@
 using namespace testing::ext;
 
 namespace {
+#if defined(__LP64__)
+const std::string DEFAULT_TEST_PATH("/system/lib64/");
+#else
+const std::string DEFAULT_TEST_PATH("/system/lib/");
+#endif
 class ProfilerCapabilityManagerTest : public ::testing::Test {
 protected:
     static void SetUpTestCase() {}
@@ -40,7 +45,7 @@ protected:
 HWTEST_F(ProfilerCapabilityManagerTest, AddCapability, TestSize.Level1)
 {
     ProfilerPluginCapability cap1;
-    cap1.set_path("/system/lib/libcap1.so");
+    cap1.set_path(DEFAULT_TEST_PATH + "libcap1.so");
     cap1.set_name("cap1");
 
     EXPECT_TRUE(ProfilerCapabilityManager::GetInstance().AddCapability(cap1));
@@ -61,7 +66,7 @@ HWTEST_F(ProfilerCapabilityManagerTest, GetCapabilities, TestSize.Level1)
     const int cnt = 10;
     for (int i = 0; i < cnt; i++) {
         ProfilerPluginCapability cap;
-        cap.set_path("/system/lib/libcap_" + std::to_string(i) + ".so");
+        cap.set_path(DEFAULT_TEST_PATH + "libcap_" + std::to_string(i) + ".so");
         cap.set_name("cap_" + std::to_string(i));
         EXPECT_TRUE(ProfilerCapabilityManager::GetInstance().AddCapability(cap));
         caps = ProfilerCapabilityManager::GetInstance().GetCapabilities();
@@ -81,7 +86,7 @@ HWTEST_F(ProfilerCapabilityManagerTest, GetCapability, TestSize.Level1)
     const int cnt = 10;
     for (int i = 0; i < cnt; i++) {
         ProfilerPluginCapability cap;
-        cap.set_path("/system/lib/libcap_" + std::to_string(i) + ".so");
+        cap.set_path(DEFAULT_TEST_PATH + "libcap_" + std::to_string(i) + ".so");
         cap.set_name("cap_" + std::to_string(i));
         EXPECT_TRUE(ProfilerCapabilityManager::GetInstance().AddCapability(cap));
     }
@@ -103,12 +108,12 @@ HWTEST_F(ProfilerCapabilityManagerTest, GetCapability, TestSize.Level1)
 HWTEST_F(ProfilerCapabilityManagerTest, UpdateCapability, TestSize.Level1)
 {
     ProfilerPluginCapability cap1;
-    cap1.set_path("/system/lib/libcap1.so");
+    cap1.set_path(DEFAULT_TEST_PATH + "libcap1.so");
     cap1.set_name("cap1");
     EXPECT_TRUE(ProfilerCapabilityManager::GetInstance().AddCapability(cap1));
 
     ProfilerPluginCapability cap2(cap1);
-    cap2.set_path("/system/lib/libcap2.so");
+    cap2.set_path(DEFAULT_TEST_PATH + "libcap2.so");
     EXPECT_TRUE(ProfilerCapabilityManager::GetInstance().UpdateCapability("cap1", cap2));
 
     std::vector<ProfilerPluginCapability> caps = ProfilerCapabilityManager::GetInstance().GetCapabilities();
@@ -127,7 +132,7 @@ HWTEST_F(ProfilerCapabilityManagerTest, RemoveCapability, TestSize.Level1)
     std::vector<ProfilerPluginCapability> caps;
     for (int i = 0; i < cnt; i++) {
         ProfilerPluginCapability cap;
-        cap.set_path("/system/lib/libcap_" + std::to_string(i) + ".so");
+        cap.set_path(DEFAULT_TEST_PATH + "libcap_" + std::to_string(i) + ".so");
         cap.set_name("cap_" + std::to_string(i));
         EXPECT_TRUE(ProfilerCapabilityManager::GetInstance().AddCapability(cap));
         caps = ProfilerCapabilityManager::GetInstance().GetCapabilities();

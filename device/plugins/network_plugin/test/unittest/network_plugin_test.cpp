@@ -23,7 +23,11 @@
 using namespace testing::ext;
 
 namespace {
+#if defined(__LP64__)
+const std::string DEFAULT_SO_PATH("/system/lib64/");
+#else
 const std::string DEFAULT_SO_PATH("/system/lib/");
+#endif
 const std::string DEFAULT_TEST_PATH("/data/local/tmp/");
 const std::string DEFAULT_NET_PATH("/proc/net/xt_qtaguid/stats");
 constexpr uint32_t BUF_SIZE = 4 * 1024 * 1024;
