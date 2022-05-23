@@ -194,34 +194,41 @@ static napi_value GetNativeHeapSize(napi_env env, napi_callback_info info)
 
 static napi_value GetServiceDump(napi_env env, napi_callback_info info)
 {
-    napi_value none_str;
+    napi_value error_info;
     napi_value file_name;
     uint32_t serviceAbilityId = 0;
-    napi_create_string_utf8(env, "", NAPI_AUTO_LENGTH, &none_str);
     serviceAbilityId = GetServiceAbilityIdParam(env, info);
     if (serviceAbilityId == 0) {
-        HiLog::Error(LABEL, "get serviceAbilityId failed.");
-        return none_str;
+        HiLog::Error(LABEL, "invalid param.");
+        std::string errorInfo = "Error: invalid param";
+        napi_create_string_utf8(env, errorInfo.c_str(), NAPI_AUTO_LENGTH, &error_info);
+        return error_info;
     }
     sptr<ISystemAbilityManager> sam = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     if (!sam) {
-        HiLog::Error(LABEL, "get null sa mgr for ability id %{public}d!", serviceAbilityId);
-        return none_str;
+        std::string errorInfo = "Error: get system ability manager failed";
+        napi_create_string_utf8(env, errorInfo.c_str(), NAPI_AUTO_LENGTH, &error_info);
+        return error_info;
     }
     sptr<IRemoteObject> sa = sam->CheckSystemAbility(serviceAbilityId);
     if (!sa) {
         HiLog::Error(LABEL, "no such system ability for ability id %{public}d!", serviceAbilityId);
-        return none_str;
+        std::string errorInfo = "Error: no such system ability service.";
+        napi_create_string_utf8(env, errorInfo.c_str(), NAPI_AUTO_LENGTH, &error_info);
+        return error_info;
     }
-    std::string dumpFilePath = SetDumpFilePath();
+    std::string dumpFilePath = SetDumpFilePath(serviceAbilityId);
     if (dumpFilePath == "") {
-        return none_str;
+        std::string errorInfo = "Error: create dump file path failed";
+        napi_create_string_utf8(env, errorInfo.c_str(), NAPI_AUTO_LENGTH, &error_info);
+        return error_info;
     }
     int fd = open(dumpFilePath.c_str(), O_RDWR | O_APPEND | O_CREAT, 0644);
     if (fd == -1) {
-        HiLog::Error(LABEL, "dumpFilePath open error!");
+        std::string errorInfo = "Error: open filepath failed, filepath: " + dumpFilePath;
+        napi_create_string_utf8(env, errorInfo.c_str(), NAPI_AUTO_LENGTH, &error_info);
         close(fd);
-        return none_str;
+        return error_info;
     }
     std::vector<std::u16string> args;
     int dumpResult = sa->Dump(fd, args);
@@ -231,7 +238,7 @@ static napi_value GetServiceDump(napi_env env, napi_callback_info info)
     return file_name;
 }
 
-static std::string SetDumpFilePath()
+static std::string SetDumpFilePath(uint32_t serviceAbilityId)
 {
     auto context = OHOS::AbilityRuntime::Context::GetApplicationContext();
     if (context == nullptr) {
@@ -245,7 +252,7 @@ static std::string SetDumpFilePath()
     }
     std::string timeStr = GetLocalTimeStr();
     std::string dumpFilePath = PROC_PATH + std::to_string(getpid()) + ROOT_DIR + filesDir + SLASH_STR +
-        "service_info_" + timeStr + ".dump";
+        "service_" + std::to_string(serviceAbilityId) + "_" + timeStr + ".dump";
     if (!FileUtil::IsLegalPath(dumpFilePath)) {
         HiLog::Error(LABEL, "dumpFilePath is not legal.");
         return "";
