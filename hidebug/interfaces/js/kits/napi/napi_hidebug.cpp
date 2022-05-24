@@ -20,12 +20,11 @@
 #include <string>
 #include <malloc.h>
 
-#include "bundle_manager_helper.h"
+#include "context.h"
 #include "directory_ex.h"
 #include "file_ex.h"
 #include "file_util.h"
 #include "hilog/log.h"
-#include "ipc_skeleton.h"
 #include "native_engine/native_engine.h"
 #include "securec.h"
 #include "unistd.h"
@@ -37,8 +36,10 @@ constexpr HiLogLabel LABEL = { LOG_CORE, 0xD002D0A, "HiDebug_NAPI" };
 constexpr int ONE_VALUE_LIMIT = 1;
 constexpr int ARRAY_INDEX_FIRST = 0;
 constexpr int BUF_MAX = 128;
-const std::string BASE_PATH = "/data/accounts/account_0/appdata/";
-const std::string SUB_DIR = "/files/";
+constexpr mode_t DEFAULT_MODE = S_IRUSR | S_IWUSR | S_IRGRP; // -rw-r-----
+const std::string PROC_PATH = "/proc/";
+const std::string ROOT_DIR = "/root";
+const std::string SLASH_STR = "/";
 const std::string DEFAULT_FILENAME = "undefined";
 const std::string JSON_FILE = ".json";
 const std::string HEAPSNAPSHOT_FILE = ".heapsnapshot";
@@ -47,16 +48,20 @@ const std::string HEAPSNAPSHOT_FILE = ".heapsnapshot";
 napi_value StartProfiling(napi_env env, napi_callback_info info)
 {
     std::string fileName = GetFileNameParam(env, info);
-    int callingUid = IPCSkeleton::GetCallingUid();
-    std::string bundleName;
-    if (!GetBundleNameByUid(callingUid, bundleName)) {
-        return CreateErrorMessage(env, "search bundle name failed.");
+    auto context = OHOS::AbilityRuntime::Context::GetApplicationContext();
+    if (context == nullptr) {
+        return CreateErrorMessage(env, "Get ApplicationContext failed.");
     }
-    std::string filePath = BASE_PATH + bundleName + SUB_DIR + fileName + JSON_FILE;
+    std::string filesDir = context->GetFilesDir();
+    if (filesDir.empty()) {
+        return CreateErrorMessage(env, "Get App files dir failed.");
+    }
+    std::string filePath = PROC_PATH + std::to_string(getpid()) + ROOT_DIR + filesDir + SLASH_STR +
+        fileName + JSON_FILE;
     if (!FileUtil::IsLegalPath(filePath)) {
         return CreateErrorMessage(env, "input fileName is illegal.");
     }
-    if (!FileUtil::CreateFile(filePath)) {
+    if (!CreateFile(filePath)) {
         return CreateErrorMessage(env, "file created failed.");
     }
     NativeEngine *engine = reinterpret_cast<NativeEngine*>(env);
@@ -74,21 +79,24 @@ napi_value StopProfiling(napi_env env, napi_callback_info info)
 napi_value DumpHeapData(napi_env env, napi_callback_info info)
 {
     std::string fileName = GetFileNameParam(env, info);
-    int callingUid = IPCSkeleton::GetCallingUid();
-    std::string bundleName;
-    if (!GetBundleNameByUid(callingUid, bundleName)) {
-        return CreateErrorMessage(env, "search bundle name failed.");
+    auto context = OHOS::AbilityRuntime::Context::GetApplicationContext();
+    if (context == nullptr) {
+        return CreateErrorMessage(env, "Get ApplicationContext failed.");
     }
-    std::string filePath = BASE_PATH + bundleName + SUB_DIR + fileName + HEAPSNAPSHOT_FILE;
-    HiLog::Debug(LABEL, "filePath is %{public}s.", filePath.c_str());
+    std::string filesDir = context->GetFilesDir();
+    if (filesDir.empty()) {
+        return CreateErrorMessage(env, "Get App files dir failed.");
+    }
+    std::string filePath = PROC_PATH + std::to_string(getpid()) + ROOT_DIR + filesDir + SLASH_STR +
+        fileName + HEAPSNAPSHOT_FILE;
     if (!FileUtil::IsLegalPath(filePath)) {
         return CreateErrorMessage(env, "input fileName is illegal.");
     }
-    if (!FileUtil::CreateFile(filePath)) {
+    if (!CreateFile(filePath)) {
         return CreateErrorMessage(env, "file created failed.");
     }
     NativeEngine *engine = reinterpret_cast<NativeEngine*>(env);
-    engine->DumpHeapSnapShot(filePath);
+    engine->DumpHeapSnapshot(filePath);
     return CreateUndefined(env);
 }
 
@@ -223,15 +231,20 @@ std::string GetFileNameParam(napi_env env, napi_callback_info info)
     return fileName;
 }
 
-bool GetBundleNameByUid(std::int32_t uid, std::string& bname)
+static bool CreateFile(const std::string &path)
 {
-    std::shared_ptr<EventFwk::BundleManagerHelper> bundleManager = EventFwk::BundleManagerHelper::GetInstance();
-    if (bundleManager == nullptr) {
-        HiLog::Error(LABEL, "get BundleManagerHelper instance failed.");
+    if (FileUtil::FileExists(path)) {
+        HiLog::Error(LABEL, "file existed.");
         return false;
     }
-    bname = bundleManager->GetBundleName(uid);
-    return true;
+    int fd = creat(path.c_str(), DEFAULT_MODE);
+    if (fd == -1) {
+        HiLog::Error(LABEL, "file create failed, errno = %{public}d", errno);
+        return false;
+    } else {
+        close(fd);
+        return true;
+    }
 }
 
 napi_value DeclareHiDebugInterface(napi_env env, napi_value exports)

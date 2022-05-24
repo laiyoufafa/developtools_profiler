@@ -27,6 +27,7 @@ config("napi_hidebug_config") {
     "//foundation/ace/napi/native_engine",
     "//foundation/ace/napi/interfaces/kits",
     "//third_party/musl/include/malloc.h",
+    "//foundation/aafwk/standard/frameworks/kits/appkit/native/ability_runtime/context",
   ]
 }
 
@@ -39,13 +40,11 @@ ohos_shared_library("hidebug") {
     "//base/hiviewdfx/hiview/adapter/utility:hiview_adapter_utility",
     "//foundation/ace/napi:ace_napi",
     "//utils/native/base:utils",
+    "//foundation/aafwk/standard/frameworks/kits/appkit:app_context",
   ]
 
   external_deps = [
-    "ability_base:want",
     "bundle_framework:appexecfwk_base",
-    "bundle_framework:appexecfwk_core",
-    "ces_standard:cesfwk_services",
     "hilog_native:libhilog",
     "ipc:ipc_core",
   ]
