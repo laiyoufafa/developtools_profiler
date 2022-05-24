@@ -37,8 +37,8 @@ public:
     bool AddPlugin(const std::string& pluginPath);
     bool RemovePlugin(const std::string& pluginPath);
 
-    bool LoadPlugin(const std::string& pluginPath);
-    bool UnloadPlugin(const std::string& pluginPath);
+    bool LoadPlugin(const std::string& pluginName);
+    bool UnloadPlugin(const std::string& pluginName);
     bool UnloadPlugin(const uint32_t pluginId);
 
     // CommandPoller will call the following four interfaces after receiving the command
@@ -62,6 +62,7 @@ private:
     std::map<std::string, uint32_t> pluginIds_; // pluginName maps to pluginId
     CommandPollerPtr commandPoller_;
     ScheduleTaskManager scheduleTaskManager_;
+    std::map<std::string, std::string> pluginPathAndNameMap_;
 };
 
 #endif // PLUGIN_MANAGER_H
