@@ -133,7 +133,6 @@ bool InitEnvironmentParam(const char *inputName)
         return false;
     }
     if (QueryParams(onceName) == 0 && QueryParams(persistName) == 0) {
-        HILOG_INFO(LOG_CORE, "%{public}s debug params not found.", serviceName);
         return false;
     }
     for (int i = 0; i < g_paramCnt; ++i) {
