@@ -195,7 +195,7 @@ static napi_value GetNativeHeapSize(napi_env env, napi_callback_info info)
 static napi_value GetServiceDump(napi_env env, napi_callback_info info)
 {
     napi_value error_info;
-    napi_value file_name;
+    napi_value success_info;
     uint32_t serviceAbilityId = 0;
     serviceAbilityId = GetServiceAbilityIdParam(env, info);
     if (serviceAbilityId == 0) {
@@ -234,8 +234,9 @@ static napi_value GetServiceDump(napi_env env, napi_callback_info info)
     int dumpResult = sa->Dump(fd, args);
     HiLog::Info(LABEL, "dump result returned by sa id %{public}d", dumpResult);
     close(fd);
-    napi_create_string_utf8(env, dumpFilePath.c_str(), NAPI_AUTO_LENGTH, &file_name);
-    return file_name;
+    std::string successInfo = "Success: " + dumpFilePath;
+    napi_create_string_utf8(env, successInfo.c_str(), NAPI_AUTO_LENGTH, &success_info);
+    return success_info;
 }
 
 static std::string SetDumpFilePath(uint32_t serviceAbilityId)
