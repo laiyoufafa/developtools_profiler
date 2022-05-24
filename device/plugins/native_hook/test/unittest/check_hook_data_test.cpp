@@ -290,6 +290,10 @@ private:
  */
 HWTEST_F(CheckHookDataTest, DFX_DFR_Hiprofiler_0080, Function | MediumTest | Level1)
 {
+#if defined(__LP64__)
+    return;
+#endif
+
     int setDepth = 100; // 递归深度大于hook默认深度30，测试文本
     int mallocPid = -1;
     std::string outFile = DEFAULT_PATH + "hooktest_malloc.txt";
@@ -360,6 +364,10 @@ HWTEST_F(CheckHookDataTest, DFX_DFR_Hiprofiler_0080, Function | MediumTest | Lev
  */
 HWTEST_F(CheckHookDataTest, DFX_DFR_Hiprofiler_0090, Function | MediumTest | Level3)
 {
+#if defined(__LP64__)
+    return;
+#endif
+
     int setDepth = 1; // 递归深度小于hook深度100，测试文本
     int setHookDepth = 100;
     int callocPid = -1;
@@ -431,6 +439,10 @@ HWTEST_F(CheckHookDataTest, DFX_DFR_Hiprofiler_0090, Function | MediumTest | Lev
  */
 HWTEST_F(CheckHookDataTest, DFX_DFR_Hiprofiler_0100, Function | MediumTest | Level3)
 {
+#if defined(__LP64__)
+    return;
+#endif
+
     int setDepth = 100; // realloc测试文本
     int reallocPid = -1;
     std::string outFile = DEFAULT_PATH + "hooktest_realloc.txt";
