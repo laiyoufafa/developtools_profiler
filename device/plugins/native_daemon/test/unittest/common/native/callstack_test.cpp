@@ -81,6 +81,10 @@ HWTEST_F(CallStackTest, GetUnwErrorName, TestSize.Level1)
  */
 HWTEST_F(CallStackTest, UnwindCallStack, TestSize.Level1)
 {
+#if defined(__LP64__)
+    return;
+#endif
+
 #if is_linux
     return;
 #endif
