@@ -139,104 +139,104 @@ static napi_value GetPss(napi_env env, napi_callback_info info)
 
 static napi_value GetSharedDirty(napi_env env, napi_callback_info info)
 {
-    napi_value share_dirty;
+    napi_value shareDirty;
     std::unique_ptr<DumpUsage> dumpUsage = std::make_unique<DumpUsage>();
     if (dumpUsage) {
         int pid = getpid();
         uint64_t shareDirtyInfo = dumpUsage->GetSharedDirty(pid);
-        napi_create_bigint_uint64(env, shareDirtyInfo, &share_dirty);
+        napi_create_bigint_uint64(env, shareDirtyInfo, &shareDirty);
     } else {
-        napi_create_bigint_uint64(env, 0, &share_dirty);
+        napi_create_bigint_uint64(env, 0, &shareDirty);
     }
-    return share_dirty;
+    return shareDirty;
 }
 
 static napi_value GetPrivateDirty(napi_env env, napi_callback_info info)
 {
-    napi_value private_dirty;
+    napi_value privateDirtyValue;
     std::unique_ptr<DumpUsage> dumpUsage = std::make_unique<DumpUsage>();
     if (dumpUsage) {
         pid_t pid = getpid();
         uint64_t privateDirty = dumpUsage->GetPrivateDirty(pid);
-        napi_create_bigint_uint64(env, privateDirty, &private_dirty);
+        napi_create_bigint_uint64(env, privateDirty, &privateDirtyValue);
     } else {
-        napi_create_bigint_uint64(env, 0, &private_dirty);
+        napi_create_bigint_uint64(env, 0, &privateDirtyValue);
     }
-    return private_dirty;
+    return privateDirtyValue;
 }
 
 static napi_value GetCpuUsage(napi_env env, napi_callback_info info)
 {
-    napi_value cpu_usage;
+    napi_value cpuUsageValue;
     std::unique_ptr<DumpUsage> dumpUsage = std::make_unique<DumpUsage>();
     if (dumpUsage) {
         pid_t pid = getpid();
         float tmpCpuUsage = dumpUsage->GetCpuUsage(pid);
         double cpuUsage = double(tmpCpuUsage);
-        napi_create_double(env, cpuUsage, &cpu_usage);
+        napi_create_double(env, cpuUsage, &cpuUsageValue);
     } else {
-        napi_create_double(env, 0, &cpu_usage);
+        napi_create_double(env, 0, &cpuUsageValue);
     }
-    return cpu_usage;
+    return cpuUsageValue;
 }
 
 static napi_value GetNativeHeapSize(napi_env env, napi_callback_info info)
 {
     struct mallinfo mi = mallinfo();
-    napi_value native_heap_size;
+    napi_value nativeHeapSize;
     if (mi.usmblks >= 0) {
-        napi_create_bigint_uint64(env, mi.usmblks, &native_heap_size);
+        napi_create_bigint_uint64(env, mi.usmblks, &nativeHeapSize);
     } else {
-        napi_create_bigint_uint64(env, 0, &native_heap_size);
+        napi_create_bigint_uint64(env, 0, &nativeHeapSize);
     }
-    return native_heap_size;
+    return nativeHeapSize;
 }
 
 static napi_value GetServiceDump(napi_env env, napi_callback_info info)
 {
-    napi_value error_info;
-    napi_value success_info;
+    napi_value errorStr;
+    napi_value successStr;
     uint32_t serviceAbilityId = 0;
     serviceAbilityId = GetServiceAbilityIdParam(env, info);
     if (serviceAbilityId == 0) {
         HiLog::Error(LABEL, "invalid param.");
         std::string errorInfo = "Error: invalid param";
-        napi_create_string_utf8(env, errorInfo.c_str(), NAPI_AUTO_LENGTH, &error_info);
-        return error_info;
+        napi_create_string_utf8(env, errorInfo.c_str(), NAPI_AUTO_LENGTH, &errorStr);
+        return errorStr;
     }
     sptr<ISystemAbilityManager> sam = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     if (!sam) {
         std::string errorInfo = "Error: get system ability manager failed";
-        napi_create_string_utf8(env, errorInfo.c_str(), NAPI_AUTO_LENGTH, &error_info);
-        return error_info;
+        napi_create_string_utf8(env, errorInfo.c_str(), NAPI_AUTO_LENGTH, &errorStr);
+        return errorStr;
     }
     sptr<IRemoteObject> sa = sam->CheckSystemAbility(serviceAbilityId);
     if (!sa) {
         HiLog::Error(LABEL, "no such system ability for ability id %{public}d!", serviceAbilityId);
         std::string errorInfo = "Error: no such system ability service.";
-        napi_create_string_utf8(env, errorInfo.c_str(), NAPI_AUTO_LENGTH, &error_info);
-        return error_info;
+        napi_create_string_utf8(env, errorInfo.c_str(), NAPI_AUTO_LENGTH, &errorStr);
+        return errorStr;
     }
     std::string dumpFilePath = SetDumpFilePath(serviceAbilityId);
     if (dumpFilePath == "") {
         std::string errorInfo = "Error: create dump file path failed";
-        napi_create_string_utf8(env, errorInfo.c_str(), NAPI_AUTO_LENGTH, &error_info);
-        return error_info;
+        napi_create_string_utf8(env, errorInfo.c_str(), NAPI_AUTO_LENGTH, &errorStr);
+        return errorStr;
     }
     int fd = open(dumpFilePath.c_str(), O_RDWR | O_APPEND | O_CREAT, 0644);
     if (fd == -1) {
         std::string errorInfo = "Error: open filepath failed, filepath: " + dumpFilePath;
-        napi_create_string_utf8(env, errorInfo.c_str(), NAPI_AUTO_LENGTH, &error_info);
+        napi_create_string_utf8(env, errorInfo.c_str(), NAPI_AUTO_LENGTH, &errorStr);
         close(fd);
-        return error_info;
+        return errorStr;
     }
     std::vector<std::u16string> args;
     int dumpResult = sa->Dump(fd, args);
     HiLog::Info(LABEL, "dump result returned by sa id %{public}d", dumpResult);
     close(fd);
     std::string successInfo = "Success: " + dumpFilePath;
-    napi_create_string_utf8(env, successInfo.c_str(), NAPI_AUTO_LENGTH, &success_info);
-    return success_info;
+    napi_create_string_utf8(env, successInfo.c_str(), NAPI_AUTO_LENGTH, &successStr);
+    return successStr;
 }
 
 static std::string SetDumpFilePath(uint32_t serviceAbilityId)
@@ -284,25 +284,25 @@ static bool CreateFile(const std::string &path)
 static napi_value GetNativeHeapAllocatedSize(napi_env env, napi_callback_info info)
 {
     struct mallinfo mi = mallinfo();
-    napi_value native_heap_allocated_size;
+    napi_value nativeHeapAllocatedSize;
     if (mi.uordblks >= 0) {
-        napi_create_bigint_uint64(env, mi.uordblks, &native_heap_allocated_size);
+        napi_create_bigint_uint64(env, mi.uordblks, &nativeHeapAllocatedSize);
     } else {
-        napi_create_bigint_uint64(env, 0, &native_heap_allocated_size);
+        napi_create_bigint_uint64(env, 0, &nativeHeapAllocatedSize);
     }
-    return native_heap_allocated_size;
+    return nativeHeapAllocatedSize;
 }
 
 static napi_value GetNativeHeapFreeSize(napi_env env, napi_callback_info info)
 {
     struct mallinfo mi = mallinfo();
-    napi_value native_heap_free_size;
+    napi_value nativeHeapFreeSize;
     if (mi.fordblks >= 0) {
-        napi_create_bigint_uint64(env, mi.fordblks, &native_heap_free_size);
+        napi_create_bigint_uint64(env, mi.fordblks, &nativeHeapFreeSize);
     } else {
-        napi_create_bigint_uint64(env, 0, &native_heap_free_size);
+        napi_create_bigint_uint64(env, 0, &nativeHeapFreeSize);
     }
-    return native_heap_free_size;
+    return nativeHeapFreeSize;
 }
 
 bool MatchValueType(napi_env env, napi_value value, napi_valuetype targetType)
