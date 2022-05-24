@@ -39,10 +39,10 @@ static napi_value CreateUndefined(napi_env env);
 static napi_value CreateErrorMessage(napi_env env, std::string msg);
 static bool MatchValueType(napi_env env, napi_value value, napi_valuetype targetType);
 static std::string GetFileNameParam(napi_env env, napi_callback_info info);
-static bool GetBundleNameByUid(std::int32_t uid, std::string& bname);
 static uint32_t GetServiceAbilityIdParam(napi_env env, napi_callback_info info);
 static std::string GetLocalTimeStr();
 static std::string SetDumpFilePath();
+static bool CreateFile(const std::string &path);
 } // HiviewDFX
 } // OHOS
 #endif // NAPI_HIDEBUG_H
