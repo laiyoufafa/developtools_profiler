@@ -26,6 +26,7 @@
 #include <iservice_registry.h>
 #include <malloc.h>
 
+#include "application_context.h"
 #include "context.h"
 #include "directory_ex.h"
 #include "dump_usage.h"
