@@ -41,7 +41,8 @@ std::string ComputeFileSha256(const std::string& path)
     SHA256_Init(&sha);
 
     size_t nbytes = 0;
-    if ((path.length() > PATH_MAX) || (realpath(path.c_str(), realPath) == nullptr)) {
+    if ((path.length() >= PATH_MAX) || (realpath(path.c_str(), realPath) == nullptr)) {
+        HILOG_ERROR(LOG_CORE, "%s:path is invalid: %s, errno=%d", __func__, path.c_str(), errno);
         return "";
     }
     std::unique_ptr<FILE, decltype(fclose)*> fptr(fopen(realPath, "rb"), fclose);
@@ -72,28 +73,28 @@ void PluginManager::SetCommandPoller(const CommandPollerPtr& p)
 bool PluginManager::AddPlugin(const std::string& pluginPath)
 {
     PluginModuleInfo info = {"", 0};
-
-    if (pluginIds_.find(pluginPath) != pluginIds_.end()) {
-        HILOG_DEBUG(LOG_CORE, "%s:already add", __func__);
-        return false;
-    }
     auto plugin = std::make_shared<PluginModule>(pluginPath);
-    if (!plugin->Load()) {
-        HILOG_DEBUG(LOG_CORE, "%s:load failed!", __func__);
-        return false;
-    }
+    CHECK_TRUE(plugin->Load(), false, "%s:load failed!", __func__);
 
     if (!plugin->BindFunctions()) {
         HILOG_DEBUG(LOG_CORE, "%s:bindFunctions failed %s", __func__, pluginPath.c_str());
+        plugin->Unload();
         return false;
     }
 
     if (!plugin->GetInfo(info)) {
         HILOG_DEBUG(LOG_CORE, "%s:getinfo failed!", __func__);
+        plugin->Unload();
         return false;
     }
 
-    HILOG_DEBUG(LOG_CORE, "%s:add plugin name = %s", __func__, pluginPath.c_str());
+    std::string pluginName = info.name;
+    if (pluginIds_.find(pluginName) != pluginIds_.end()) {
+        HILOG_DEBUG(LOG_CORE, "%s:already add", __func__);
+        plugin->Unload();
+        return false;
+    }
+    HILOG_DEBUG(LOG_CORE, "%s:add plugin name = %s", __func__, pluginName.c_str());
 
     if (!plugin->Unload()) {
         HILOG_DEBUG(LOG_CORE, "%s:unload failed!", __func__);
@@ -104,15 +105,18 @@ bool PluginManager::AddPlugin(const std::string& pluginPath)
     request.set_request_id(commandPoller_->GetRequestId());
     request.set_path(pluginPath);
     request.set_sha256(ComputeFileSha256(pluginPath));
-    request.set_name(pluginPath);
+    request.set_name(pluginName);
     request.set_buffer_size_hint(0);
     RegisterPluginResponse response;
 
     if (commandPoller_->RegisterPlugin(request, response)) {
         if (response.status() == ResponseStatus::OK) {
             HILOG_DEBUG(LOG_CORE, "%s:response.plugin_id() = %d", __func__, response.plugin_id());
-            pluginIds_[pluginPath] = response.plugin_id();
+            pluginIds_[pluginName] = response.plugin_id();
             pluginModules_.insert(std::pair<uint32_t, std::shared_ptr<PluginModule>>(response.plugin_id(), plugin));
+            pluginPathAndNameMap_.insert(
+                {pluginPath, pluginName}
+            );
             HILOG_DEBUG(LOG_CORE, "%s:registerPlugin ok", __func__);
         } else {
             HILOG_DEBUG(LOG_CORE, "%s:registerPlugin fail 1", __func__);
@@ -128,7 +132,13 @@ bool PluginManager::AddPlugin(const std::string& pluginPath)
 
 bool PluginManager::RemovePlugin(const std::string& pluginPath)
 {
-    auto it = pluginIds_.find(pluginPath);
+    if (pluginPathAndNameMap_.count(pluginPath) == 0) {
+        HILOG_DEBUG(LOG_CORE, "%s:not find plugin: %s", __func__, pluginPath.c_str());
+        return false;
+    }
+
+    std::string pluginName = pluginPathAndNameMap_[pluginPath];
+    auto it = pluginIds_.find(pluginName);
     if (it == pluginIds_.end()) {
         HILOG_DEBUG(LOG_CORE, "%s:plugin not exist", __func__);
         return false;
@@ -141,9 +151,9 @@ bool PluginManager::RemovePlugin(const std::string& pluginPath)
 
         // delete schedule task if POLLING mode
         if (pluginModules_[index]->GetSampleMode() == PluginModule::POLLING) {
-            HILOG_WARN(LOG_CORE, "%s:delete schedule task plugin name = %s", __func__, pluginPath.c_str());
-            if (!scheduleTaskManager_.UnscheduleTask(pluginPath)) {
-                HILOG_WARN(LOG_CORE, "%s:delete schedule task plugin name = %s failed!", __func__, pluginPath.c_str());
+            HILOG_WARN(LOG_CORE, "%s:delete schedule task plugin name = %s", __func__, pluginName.c_str());
+            if (!scheduleTaskManager_.UnscheduleTask(pluginName)) {
+                HILOG_WARN(LOG_CORE, "%s:delete schedule task plugin name = %s failed!", __func__, pluginName.c_str());
             }
         }
 
@@ -184,10 +194,10 @@ bool PluginManager::RemovePlugin(const std::string& pluginPath)
     return true;
 }
 
-bool PluginManager::LoadPlugin(const std::string& pluginPath)
+bool PluginManager::LoadPlugin(const std::string& pluginName)
 {
     HILOG_DEBUG(LOG_CORE, "%s:size = %zu", __func__, pluginIds_.size());
-    auto it = pluginIds_.find(pluginPath);
+    auto it = pluginIds_.find(pluginName);
     if (it == pluginIds_.end()) {
         HILOG_DEBUG(LOG_CORE, "%s:plugin not exist", __func__);
         return false;
@@ -203,9 +213,9 @@ bool PluginManager::LoadPlugin(const std::string& pluginPath)
     return true;
 }
 
-bool PluginManager::UnloadPlugin(const std::string& pluginPath)
+bool PluginManager::UnloadPlugin(const std::string& pluginName)
 {
-    auto it = pluginIds_.find(pluginPath);
+    auto it = pluginIds_.find(pluginName);
     if (it == pluginIds_.end()) {
         HILOG_DEBUG(LOG_CORE, "%s:plugin not exist", __func__);
         return false;
