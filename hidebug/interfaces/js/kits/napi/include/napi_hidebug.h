@@ -41,7 +41,7 @@ static bool MatchValueType(napi_env env, napi_value value, napi_valuetype target
 static std::string GetFileNameParam(napi_env env, napi_callback_info info);
 static uint32_t GetServiceAbilityIdParam(napi_env env, napi_callback_info info);
 static std::string GetLocalTimeStr();
-static std::string SetDumpFilePath();
+static std::string SetDumpFilePath(uint32_t serviceAbilityId);
 static bool CreateFile(const std::string &path);
 } // HiviewDFX
 } // OHOS
