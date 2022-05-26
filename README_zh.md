@@ -370,4 +370,3 @@ int main(int argc, char** argv)
 [developtools\_hdc\_standard](https://gitee.com/openharmony/developtools_hdc_standard)
 
 [developtools\_bytrace\_standard](https://gitee.com/openharmony/developtools_bytrace_standard)
-
