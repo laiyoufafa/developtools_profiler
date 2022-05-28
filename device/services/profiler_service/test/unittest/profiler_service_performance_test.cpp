@@ -144,7 +144,7 @@ protected:
     void SetMemPluginConfig(CreateSessionRequest& createRequest, int requstMemoryPid, bool isFirstConfig)
     {
         ProfilerPluginConfig* ppc = createRequest.add_plugin_configs();
-        ppc->set_name("/data/local/tmp/libmemdataplugin.z.so");
+        ppc->set_name("memory-plugin");
         ppc->set_sample_interval(SAMPLE_INTERVAL);
         MemoryConfig mc;
         mc.set_report_process_mem_info(true);
@@ -172,7 +172,7 @@ protected:
     void SetCpuPluginConfig(CreateSessionRequest& createRequest, int pid)
     {
         ProfilerPluginConfig* ppc = createRequest.add_plugin_configs();
-        ppc->set_name("/data/local/tmp/libcpudataplugin.z.so");
+        ppc->set_name("cpu-plugin");
         ppc->set_sample_interval(SAMPLE_INTERVAL);
         CpuConfig cc;
         cc.set_pid(pid);
@@ -189,7 +189,7 @@ protected:
     void SetDiskioPluginConfig(CreateSessionRequest& createRequest)
     {
         ProfilerPluginConfig* ppc = createRequest.add_plugin_configs();
-        ppc->set_name("/data/local/tmp/libdiskiodataplugin.z.so");
+        ppc->set_name("diskio-plugin");
         ppc->set_sample_interval(SAMPLE_INTERVAL);
         auto sessionConfig = createRequest.mutable_session_config();
         ProfilerSessionConfig::BufferConfig* bfs = sessionConfig->add_buffers();
@@ -201,7 +201,7 @@ protected:
     void SetProcessPluginConfig(CreateSessionRequest& createRequest)
     {
         ProfilerPluginConfig* ppc = createRequest.add_plugin_configs();
-        ppc->set_name("/data/local/tmp/libprocessplugin.z.so");
+        ppc->set_name("process-plugin");
         ppc->set_sample_interval(SAMPLE_INTERVAL);
         ProcessConfig pc;
         pc.set_report_process_tree(true);
@@ -218,7 +218,7 @@ protected:
     void SetHilogPluginConfig(CreateSessionRequest& createRequest, bool isFirstConfig)
     {
         ProfilerPluginConfig* ppc = createRequest.add_plugin_configs();
-        ppc->set_name("/data/local/tmp/libhilogplugin.z.so");
+        ppc->set_name("hilog-plugin");
         ppc->set_sample_interval(SAMPLE_INTERVAL);
         HilogConfig hc;
         hc.set_device_type(Type::HI3516);
@@ -245,7 +245,7 @@ protected:
     void SetNetworkPluginConfig(CreateSessionRequest& createRequest)
     {
         ProfilerPluginConfig* ppc = createRequest.add_plugin_configs();
-        ppc->set_name("/data/local/tmp/libnetworkplugin.z.so");
+        ppc->set_name("network-plugin");
         ppc->set_sample_interval(SAMPLE_INTERVAL);
         NetworkConfig nc;
         nc.add_pid(1);
@@ -264,8 +264,8 @@ protected:
         bool isExistPlugin = false;
         for (int i = 0; i < capResponse.capabilities().size(); i++) {
             ProfilerPluginCapability ppc = capResponse.capabilities()[i];
-            pluginVec_.push_back(ppc.name());
             if (ppc.name() == pluginName) {
+                pluginVec_.push_back(ppc.name());
                 isExistPlugin = true;
             }
         }
@@ -294,17 +294,17 @@ protected:
         CreateSessionRequest createRequest = CreateSessionRequest();
         createRequest.set_request_id(0);
         for (int i = 0; i < pluginVec_.size(); i++) {
-            if (pluginVec_[i] == "/data/local/tmp/libmemdataplugin.z.so") {
+            if (pluginVec_[i] == "memory-plugin") {
                 SetMemPluginConfig(createRequest, pid, isFirstConfig);
-            } else if (pluginVec_[i] == "/data/local/tmp/libcpudataplugin.z.so") {
+            } else if (pluginVec_[i] == "cpu-plugin") {
                 SetCpuPluginConfig(createRequest, pid);
-            } else if (pluginVec_[i] == "/data/local/tmp/libdiskiodataplugin.z.so") {
+            } else if (pluginVec_[i] == "diskio-plugin") {
                 SetDiskioPluginConfig(createRequest);
-            } else if (pluginVec_[i] == "/data/local/tmp/libprocessplugin.z.so") {
+            } else if (pluginVec_[i] == "process-plugin") {
                 SetProcessPluginConfig(createRequest);
-            } else if (pluginVec_[i] == "/data/local/tmp/libhilogplugin.z.so") {
+            } else if (pluginVec_[i] == "hilog-plugin") {
                 SetHilogPluginConfig(createRequest, isFirstConfig);
-            } else if (pluginVec_[i] == "/data/local/tmp/libnetworkplugin.z.so") {
+            } else if (pluginVec_[i] == "network-plugin") {
                 SetNetworkPluginConfig(createRequest);
             }
         }
@@ -372,7 +372,7 @@ protected:
             CpuConfig protoConfig;
             void* handle = dlopen("/system/lib/libcpudataplugin.z.so", RTLD_LAZY);
             if (handle == nullptr) {
-                const int bufSize = 1024;
+                const int bufSize = 256;
                 char buf[bufSize] = { 0 };
                 strerror_r(errno, buf, bufSize);
                 HILOG_ERROR(LOG_CORE, "test:dlopen err, errno(%d:%s)", errno, buf);
@@ -431,8 +431,8 @@ protected:
         int processNum = fork();
         if (processNum == 0) {
             auto requestBuff = std::make_unique<char[]>(MB_PER_BYTE);
-            if (requestBuff == NULL) {
-                const int bufSize = 1024;
+            if (requestBuff == nullptr) {
+                const int bufSize = 256;
                 char buf[bufSize] = { 0 };
                 strerror_r(errno, buf, bufSize);
                 HILOG_ERROR(LOG_CORE, "StartRequestMemoryProcess: malloc %zu fail, errno(%d:%s)",
@@ -463,16 +463,22 @@ protected:
         size_t len = fwrite(const_cast<char*>(str.c_str()), 1, BLOCK_LEN, writeFp);
         if (len < 0) {
             HILOG_ERROR(LOG_CORE, "fwrite() error");
+            if (fclose(writeFp) != 0) {
+                HILOG_ERROR(LOG_CORE, "fclose() error");
+            }
             return;
         }
         int ret = fflush(writeFp);
         if (ret == EOF) {
             HILOG_ERROR(LOG_CORE, "fflush() error");
+            if (fclose(writeFp) != 0) {
+                HILOG_ERROR(LOG_CORE, "fclose() error");
+            }
             return;
         }
         fsync(fileno(writeFp));
         ret = fclose(writeFp);
-        if (ret == 0) {
+        if (ret != 0) {
             HILOG_ERROR(LOG_CORE, "fclose() error");
             return;
         }
@@ -509,9 +515,6 @@ private:
  */
 HWTEST_F(ProfilerServicePerformanceTest, DFX_DFR_Hiprofiler_0010, Function | MediumTest | Level1)
 {
-    std::string cmd = "cp /system/lib/libmemdataplugin.z.so /data/local/tmp";
-    system(cmd.c_str());
-
     ASSERT_TRUE(profilerStub_ != nullptr);
     int requestMemoryPid = -1;
     StartIdleProcess();
@@ -530,7 +533,7 @@ HWTEST_F(ProfilerServicePerformanceTest, DFX_DFR_Hiprofiler_0010, Function | Med
     printf("GetCapabilities %d time cost %ldus.\n", ROUND_COUNT, timeCost);
     EXPECT_LE(timeCost, TIMEOUT_US);
 
-    ASSERT_TRUE(isExistSpecifyPlugin(capResponse, "/data/local/tmp/libmemdataplugin.z.so"));
+    ASSERT_TRUE(isExistSpecifyPlugin(capResponse, "memory-plugin"));
 
     timer.Reset();
     uint32_t sessionId1;
@@ -741,8 +744,6 @@ HWTEST_F(ProfilerServicePerformanceTest, DFX_DFR_Hiprofiler_0010, Function | Med
     StopProcessStub(g_idlePid);
     StopProcessStub(requestMemoryPid);
 
-    cmd = "rm /data/local/tmp/libmemdataplugin.z.so";
-    system(cmd.c_str());
     pluginVec_.clear();
 }
 
@@ -753,9 +754,6 @@ HWTEST_F(ProfilerServicePerformanceTest, DFX_DFR_Hiprofiler_0010, Function | Med
  */
 HWTEST_F(ProfilerServicePerformanceTest, DFX_DFR_Hiprofiler_0020, Function | MediumTest | Level1)
 {
-    std::string cmd = "cp /system/lib/libcpudataplugin.z.so /data/local/tmp";
-    system(cmd.c_str());
-
     ASSERT_TRUE(profilerStub_ != nullptr);
     StartIdleProcess();
 
@@ -772,7 +770,7 @@ HWTEST_F(ProfilerServicePerformanceTest, DFX_DFR_Hiprofiler_0020, Function | Med
     printf("GetCapabilities %d time cost %ldus.\n", ROUND_COUNT, timeCost);
     EXPECT_LE(timeCost, TIMEOUT_US);
 
-    ASSERT_TRUE(isExistSpecifyPlugin(capResponse, "/data/local/tmp/libcpudataplugin.z.so"));
+    ASSERT_TRUE(isExistSpecifyPlugin(capResponse, "cpu-plugin"));
 
     timer.Reset();
     uint32_t sessionId1;
@@ -982,8 +980,6 @@ HWTEST_F(ProfilerServicePerformanceTest, DFX_DFR_Hiprofiler_0020, Function | Med
     StopProcessStub(cpuActivePid);
     StopProcessStub(g_idlePid);
 
-    cmd = "rm /data/local/tmp/libcpudataplugin.z.so";
-    system(cmd.c_str());
     pluginVec_.clear();
 }
 
@@ -994,9 +990,6 @@ HWTEST_F(ProfilerServicePerformanceTest, DFX_DFR_Hiprofiler_0020, Function | Med
  */
 HWTEST_F(ProfilerServicePerformanceTest, DFX_DFR_Hiprofiler_0030, Function | MediumTest | Level1)
 {
-    std::string cmd = "cp /system/lib/libdiskiodataplugin.z.so /data/local/tmp";
-    system(cmd.c_str());
-
     ASSERT_TRUE(profilerStub_ != nullptr);
 
     StartServerStub(DEFAULT_HIPROFILERD_PATH);
@@ -1012,7 +1005,7 @@ HWTEST_F(ProfilerServicePerformanceTest, DFX_DFR_Hiprofiler_0030, Function | Med
     printf("GetCapabilities %d time cost %ldus.\n", ROUND_COUNT, timeCost);
     EXPECT_LE(timeCost, TIMEOUT_US);
 
-    ASSERT_TRUE(isExistSpecifyPlugin(capResponse, "/data/local/tmp/libdiskiodataplugin.z.so"));
+    ASSERT_TRUE(isExistSpecifyPlugin(capResponse, "diskio-plugin"));
 
     timer.Reset();
     uint32_t sessionId1;
@@ -1134,8 +1127,6 @@ HWTEST_F(ProfilerServicePerformanceTest, DFX_DFR_Hiprofiler_0030, Function | Med
     StopProcessStub(g_hiprofilerdPid);
     StopProcessStub(diskioPid);
 
-    cmd = "rm /data/local/tmp/libdiskiodataplugin.z.so";
-    system(cmd.c_str());
     pluginVec_.clear();
 }
 
@@ -1146,9 +1137,6 @@ HWTEST_F(ProfilerServicePerformanceTest, DFX_DFR_Hiprofiler_0030, Function | Med
  */
 HWTEST_F(ProfilerServicePerformanceTest, DFX_DFR_Hiprofiler_0040, Function | MediumTest | Level1)
 {
-    std::string cmd = "cp /system/lib/libprocessplugin.z.so /data/local/tmp";
-    system(cmd.c_str());
-
     ASSERT_TRUE(profilerStub_ != nullptr);
 
     StartServerStub(DEFAULT_HIPROFILERD_PATH);
@@ -1164,7 +1152,7 @@ HWTEST_F(ProfilerServicePerformanceTest, DFX_DFR_Hiprofiler_0040, Function | Med
     printf("GetCapabilities %d time cost %ldus.\n", ROUND_COUNT, timeCost);
     EXPECT_LE(timeCost, TIMEOUT_US);
 
-    ASSERT_TRUE(isExistSpecifyPlugin(capResponse, "/data/local/tmp/libprocessplugin.z.so"));
+    ASSERT_TRUE(isExistSpecifyPlugin(capResponse, "process-plugin"));
 
     timer.Reset();
     uint32_t sessionId1;
@@ -1273,8 +1261,6 @@ HWTEST_F(ProfilerServicePerformanceTest, DFX_DFR_Hiprofiler_0040, Function | Med
     StopProcessStub(g_hiprofilerPluginsPid);
     StopProcessStub(g_hiprofilerdPid);
 
-    cmd = "rm /data/local/tmp/libprocessplugin.z.so";
-    system(cmd.c_str());
     pluginVec_.clear();
 }
 
@@ -1285,9 +1271,6 @@ HWTEST_F(ProfilerServicePerformanceTest, DFX_DFR_Hiprofiler_0040, Function | Med
  */
 HWTEST_F(ProfilerServicePerformanceTest, DFX_DFR_Hiprofiler_0050, Function | MediumTest | Level1)
 {
-    std::string cmd = "cp /system/lib/libhilogplugin.z.so /data/local/tmp";
-    system(cmd.c_str());
-
     ASSERT_TRUE(profilerStub_ != nullptr);
 
     StartServerStub(DEFAULT_HIPROFILERD_PATH);
@@ -1303,7 +1286,7 @@ HWTEST_F(ProfilerServicePerformanceTest, DFX_DFR_Hiprofiler_0050, Function | Med
     printf("GetCapabilities %d time cost %ldus.\n", ROUND_COUNT, timeCost);
     EXPECT_LE(timeCost, TIMEOUT_US);
 
-    ASSERT_TRUE(isExistSpecifyPlugin(capResponse, "/data/local/tmp/libhilogplugin.z.so"));
+    ASSERT_TRUE(isExistSpecifyPlugin(capResponse, "hilog-plugin"));
 
     timer.Reset();
     uint32_t sessionId1;
@@ -1420,8 +1403,6 @@ HWTEST_F(ProfilerServicePerformanceTest, DFX_DFR_Hiprofiler_0050, Function | Med
     StopProcessStub(g_hiprofilerPluginsPid);
     StopProcessStub(g_hiprofilerdPid);
 
-    cmd = "rm /data/local/tmp/libhilogplugin.z.so " + hilogResultFile;
-    system(cmd.c_str());
     pluginVec_.clear();
 }
 
@@ -1432,9 +1413,6 @@ HWTEST_F(ProfilerServicePerformanceTest, DFX_DFR_Hiprofiler_0050, Function | Med
  */
 HWTEST_F(ProfilerServicePerformanceTest, DFX_DFR_Hiprofiler_0060, Function | MediumTest | Level1)
 {
-    std::string cmd = "cp /system/lib/libnetworkplugin.z.so /data/local/tmp";
-    system(cmd.c_str());
-
     ASSERT_TRUE(profilerStub_ != nullptr);
 
     StartServerStub(DEFAULT_HIPROFILERD_PATH);
@@ -1450,7 +1428,7 @@ HWTEST_F(ProfilerServicePerformanceTest, DFX_DFR_Hiprofiler_0060, Function | Med
     printf("GetCapabilities %d time cost %ldus.\n", ROUND_COUNT, timeCost);
     EXPECT_LE(timeCost, TIMEOUT_US);
 
-    ASSERT_TRUE(isExistSpecifyPlugin(capResponse, "/data/local/tmp/libnetworkplugin.z.so"));
+    ASSERT_TRUE(isExistSpecifyPlugin(capResponse, "network-plugin"));
 
     timer.Reset();
     uint32_t sessionId1;
@@ -1533,8 +1511,6 @@ HWTEST_F(ProfilerServicePerformanceTest, DFX_DFR_Hiprofiler_0060, Function | Med
     StopProcessStub(g_hiprofilerPluginsPid);
     StopProcessStub(g_hiprofilerdPid);
 
-    cmd = "rm /data/local/tmp/libnetworkplugin.z.so";
-    system(cmd.c_str());
     pluginVec_.clear();
 }
 
@@ -1545,14 +1521,10 @@ HWTEST_F(ProfilerServicePerformanceTest, DFX_DFR_Hiprofiler_0060, Function | Med
  */
 HWTEST_F(ProfilerServicePerformanceTest, DFX_DFR_Hiprofiler_0070, Function | MediumTest | Level1)
 {
-    std::string cmd = "cp /system/lib/libcpudataplugin.z.so /data/local/tmp";
-    system(cmd.c_str());
-
     ASSERT_TRUE(profilerStub_ != nullptr);
 
     uint32_t sessionId;
     GetCapabilitiesResponse capResponse1;
-    EXPECT_FALSE(GetPluginCapabilities(1, capResponse1));
     EXPECT_FALSE(CreatePluginSession(sessionId, 1));
     EXPECT_FALSE(KeepPluginSession(1, sessionId));
     EXPECT_FALSE(StartPluginSession(sessionId));
@@ -1572,7 +1544,7 @@ HWTEST_F(ProfilerServicePerformanceTest, DFX_DFR_Hiprofiler_0070, Function | Med
     printf("UnusualTest: GetCapabilities 1 time cost %ldus.\n", timeCost);
     EXPECT_LE(timeCost, TIMEOUT_US);
 
-    ASSERT_TRUE(isExistSpecifyPlugin(capResponse, "/data/local/tmp/libcpudataplugin.z.so"));
+    ASSERT_TRUE(isExistSpecifyPlugin(capResponse, "cpu-plugin"));
 
     timer.Reset();
     EXPECT_TRUE(CreatePluginSession(sessionId, 1));
@@ -1694,8 +1666,6 @@ HWTEST_F(ProfilerServicePerformanceTest, DFX_DFR_Hiprofiler_0070, Function | Med
     StopProcessStub(g_hiprofilerPluginsPid);
     StopProcessStub(g_hiprofilerdPid);
 
-    cmd = "rm /data/local/tmp/libcpudataplugin.z.so";
-    system(cmd.c_str());
     pluginVec_.clear();
 }
 }
