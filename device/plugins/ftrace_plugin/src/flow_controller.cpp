@@ -364,7 +364,7 @@ int FlowController::StopCapture(void)
 bool FlowController::ParsePerCpuStatus(int stage)
 {
     auto tracePacket = std::make_unique<TracePluginResult>();
-    CHECK_NOTNULL(tracePacket, nullptr, "create TracePluginResult FAILED!");
+    CHECK_NOTNULL(tracePacket, false, "create TracePluginResult FAILED!");
 
     auto cpuStatsMsg = tracePacket->add_ftrace_cpu_stats();
     if (stage == TRACE_START) {
@@ -401,7 +401,7 @@ bool FlowController::ParsePerCpuStatus(int stage)
 bool FlowController::ReportClockTimes()
 {
     auto traceResult = std::make_unique<TracePluginResult>();
-    CHECK_NOTNULL(traceResult, nullptr, "create TracePluginResult FAILED!");
+    CHECK_NOTNULL(traceResult, false, "create TracePluginResult FAILED!");
 
     std::map<clockid_t, ClockDetailMsg::ClockId> clocksMap = {
         {CLOCK_REALTIME, ClockDetailMsg::REALTIME},
@@ -415,7 +415,7 @@ bool FlowController::ReportClockTimes()
         struct timespec ts = {};
         clock_gettime(entry.first, &ts);
         auto clockMsg = traceResult->add_clocks_detail();
-        CHECK_NOTNULL(clockMsg, nullptr, "add clock_detail failed for %d!", entry.first);
+        CHECK_NOTNULL(clockMsg, false, "add clock_detail failed for %d!", entry.first);
         clockMsg->set_id(entry.second);
         auto timeMsg = clockMsg->mutable_time();
         timeMsg->set_tv_sec(ts.tv_sec);
