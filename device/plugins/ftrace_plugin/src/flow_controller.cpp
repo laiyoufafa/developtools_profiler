@@ -433,7 +433,7 @@ bool FlowController::ReportClockTimes()
 bool FlowController::ParseKernelSymbols()
 {
     auto traceResult = std::make_unique<TracePluginResult>();
-    CHECK_NOTNULL(traceResult, nullptr, "create TracePluginResult FAILED!");
+    CHECK_NOTNULL(traceResult, false, "create TracePluginResult FAILED!");
 
     ksymsParser_->Accept([&traceResult](const KernelSymbol& symbol) {
         auto symbolDetail = traceResult->add_symbols_detail();
@@ -447,12 +447,12 @@ bool FlowController::ParseKernelSymbols()
 bool FlowController::ParseFtraceEvent(int cpuid, uint8_t page[])
 {
     auto tracePacket = std::make_unique<TracePluginResult>();
-    CHECK_NOTNULL(tracePacket, nullptr, "create TracePluginResult FAILED!");
+    CHECK_NOTNULL(tracePacket, false, "create TracePluginResult FAILED!");
 
     auto cpudetail = tracePacket->add_ftrace_cpu_detail();
     cpudetail->set_cpu(static_cast<uint32_t>(cpuid));
 
-    CHECK_TRUE(ftraceParser_->ParsePage(*cpudetail, page, PAGE_SIZE), nullptr, "parse page failed!");
+    CHECK_TRUE(ftraceParser_->ParsePage(*cpudetail, page, PAGE_SIZE), false, "parse page failed!");
 
     return tansporter_->Submit(std::move(tracePacket));
 }
