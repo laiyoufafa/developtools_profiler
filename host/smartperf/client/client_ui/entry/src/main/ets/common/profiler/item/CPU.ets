@@ -13,14 +13,15 @@
  * limitations under the License.
  */
 import fileio from '@ohos.fileio';
-import { fileOpen,travelFile,createGPData } from '../base/BaseProfilerUtils';
+import { fileOpen, travelFile, createGPData, isAccess} from '../base/BaseProfilerUtils';
 import { BaseProfiler } from '../base/BaseProfiler'
 import { CollectorType } from '../base/ProfilerConstant'
-import { GPData } from '../../entity/databaseentity';
-import SPLogger from '../../../common/utils/SPLogger'
+import { GPData } from '../../entity/DatabaseEntity'
+import SPLogger from '../../utils/SPLogger'
 enum CPU_CONFIG {
   CPU_BASE = "/sys/devices/system/cpu",
-  CPU_CUR_FREQ = "/cpufreq/scaling_cur_freq"
+  CPU_CUR_FREQ = "/cpufreq/scaling_cur_freq",
+  CPU_LOAD = "/proc/stat"
 }
 
 export class CPU extends BaseProfiler {
@@ -42,6 +43,19 @@ export class CPU extends BaseProfiler {
     return CollectorType.TYPE_CPU
   }
 
+  isSupport(){
+    if(isAccess(CPU_CONFIG.CPU_BASE)&&isAccess(CPU_CONFIG.CPU_LOAD)){
+      SPLogger.DEBUG("BaseProfilerUtils","ets check path is success..."+ "path:");
+      SPLogger.DEBUG("BaseProfilerUtils","napi check path start..."+ "path:");
+      if (globalThis.checkAccess(CPU_CONFIG.CPU_LOAD) == "PermissionAccessed") {
+        SPLogger.DEBUG("BaseProfilerUtils","napi check path success+1..."+ "path:");
+        return true
+      }
+      SPLogger.DEBUG("BaseProfilerUtils","napi check path finish..."+ "path:");
+    }
+    return false
+  }
+
   readData() {
     for (var i = 0;i < this.cpuCoreNum; i++) {
       const path = CPU_CONFIG.CPU_BASE + "/cpu" + i + CPU_CONFIG.CPU_CUR_FREQ
@@ -53,7 +67,7 @@ export class CPU extends BaseProfiler {
   }
 
   readCPULoad(): GPData {
-    const path = "/proc/stat"
+    const path = CPU_CONFIG.CPU_LOAD
     var workLoadArr = []
     try {
       var fd = -1

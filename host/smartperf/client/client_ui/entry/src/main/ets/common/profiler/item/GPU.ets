@@ -12,15 +12,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { fileOpen, createGPData } from '../base/BaseProfilerUtils';
+import { fileOpen, createGPData, isAccess} from '../base/BaseProfilerUtils';
 import { BaseProfiler } from '../base/BaseProfiler'
 import { CollectorType } from '../base/ProfilerConstant'
 
 enum GPU_CONFIG {
   GPU_FREQ_PATH = "/sys/class/devfreq/fde60000.gpu/cur_freq", //RK
   GPU_LOAD_PATH = "/sys/class/devfreq/fde60000.gpu/load",   //RK
-//  GPU_FREQ_PATH =   "/sys/class/devfreq/gpufreq/cur_freq",      // wgr
-//  GPU_LOAD_PATH =    "/sys/class/devfreq/gpufreq/gpu_scene_aware/utilisation", // wgr
 }
 
 export class GPU extends BaseProfiler {
@@ -38,7 +36,12 @@ export class GPU extends BaseProfiler {
     //初始化GPU
     return CollectorType.TYPE_GPU
   }
-
+  isSupport(){
+    if(isAccess(GPU_CONFIG.GPU_FREQ_PATH)&&isAccess(GPU_CONFIG.GPU_LOAD_PATH)){
+      return true
+    }
+    return false
+  }
   readData() {
     console.log("GPU:BaseProfiler called")
     let gpuFreq = fileOpen(GPU_CONFIG.GPU_FREQ_PATH)

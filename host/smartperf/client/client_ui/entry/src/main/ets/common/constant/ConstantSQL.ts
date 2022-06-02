@@ -16,8 +16,6 @@ export const dbName = "gp.db"
 
 export const dbVersion = 1
 
-export const dbPath = "/data/accounts/account_0/appdata/com.ohos.gameperceptio/files"
-
 export const sql_t_general_info =
     "CREATE TABLE IF NOT EXISTS " + "t_general_info" + "(" +
     "sessionId TEXT PRIMARY KEY, " +
@@ -93,5 +91,7 @@ export const sql_t_index_info = "CREATE TABLE IF NOT EXISTS " + "t_index_info" +
 "enableHiz TEXT," +
 "status TEXT," +
 "voltageNow TEXT," +
-"pss TEXT" +
+"pss TEXT," +
+"networkUpSpeed TEXT," +
+"networkDownSpeed TEXT" +
 ")"

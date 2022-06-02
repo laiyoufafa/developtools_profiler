@@ -29,8 +29,8 @@ struct ReportDetail {
   private reportItem: ReportItem = null
 
   aboutToAppear() {
-    let data = router.getParams()["gpData"]
-    let report = router.getParams()["reportItem"]
+    let data : any = router.getParams()["gpData"]
+    let report : any = router.getParams()["reportItem"]
     if (data != null) {
       this.gpData = data
     }

@@ -13,11 +13,10 @@
  * limitations under the License.
  */
 
-import router from '@system.router';
-import { Mine } from '../Common/ui/main/Mine';
-import { Home } from '../Common/ui/main/Home';
-import { Report } from '../Common/ui/main/Report';
-import { HomeBottomPage } from '../Common/ui/main/HomeBottomPage';
+import { Mine } from '../common/ui/main/Mine';
+import { Home } from '../common/ui/main/Home';
+import { Report } from '../common/ui/main/Report';
+import { HomeBottomPage } from '../common/ui/main/HomeBottomPage';
 /*
  * 主页 程序主页面
  */

@@ -22,14 +22,7 @@ import SPLogger from '../utils/SPLogger'
  */
 const TAG = "BundleManager"
 export default class BundleManager {
-    static async getResourceManager(context, bundleName, then?: Function) {
-        if (!then) {
-            return await ResMgr.getResourceManager(context, bundleName);
-        }
-        ResMgr.getResourceManager(context, bundleName).then(then)
-    }
-
-    //根据包名获取base64
+      //根据包名获取base64
     static async getIconByBundleName(mBundleNameArr: Array<String>): Promise<Map<string, string>> {
         let mBundleNames = Array.from(new Set(mBundleNameArr))
         let mMap = new Map
@@ -40,12 +33,19 @@ export default class BundleManager {
                 let bundleName = data[j].name
                 for (let i = 0; i < mBundleNames.length; i++) {
                     if (mBundleNames[i] == bundleName) {
-                        let item = await BundleManager.getResourceManager(globalThis.abilityContext, mBundleNames[i])
-                        let icon = await item.getMediaBase64(data[j].iconId)
-                        mMap.set(mBundleNames[i], icon)
+                        let bundleContext = globalThis.abilityContext.createBundleContext(mBundleNames[i])
+                        await bundleContext.resourceManager.getMediaBase64(data[j].iconId).then((value)=> {
+                            if (value != null) {
+                                mMap.set(mBundleNames[i], value)
+                            }
+                        });
+
                     }
                 }
             }
+        }).catch((error) => {
+            SPLogger.ERROR(TAG,'Operation failed. Cause: ' + JSON.stringify(error))
+            console.error('BundleManager ... Operation failed. Cause: ' + JSON.stringify(error));
         })
         return mMap
     }
@@ -58,10 +58,11 @@ export default class BundleManager {
             SPLogger.INFO(TAG,'xxx getAllApplicationInfo data length [' + data.length + ']')
             for (let i = 0; i < data.length; i++) {
                 let bundleName = data[i].name
-                let item = await BundleManager.getResourceManager(globalThis.abilityContext, bundleName)
+                let bundleContext = globalThis.abilityContext.createBundleContext(data[i
+                ].name)
                 try {
-                    let appName = await item.getString(data[i].labelId)
-                    let icon = await item.getMediaBase64(data[i].iconId)
+                    let appName = await bundleContext.resourceManager.getString(data[i].labelId)
+                    let icon = await bundleContext.resourceManager.getMediaBase64(data[i].iconId)
                     bundle.getBundleInfo(bundleName, 1).then(bundleData => {
                         BundleManager.getAbility(bundleName).then(abilityName => {
                             console.info("index[" + i + "].getAbility for begin data: ", abilityName);
@@ -72,6 +73,9 @@ export default class BundleManager {
                     SPLogger.ERROR(TAG,"index[" + i + "]  getAllApplicationInfo err" + err);
                 }
             }
+        }).catch((error) => {
+            SPLogger.ERROR(TAG,'Operation failed. Cause: ' + JSON.stringify(error))
+            console.error('BundleManager ... Operation failed. Cause: ' + JSON.stringify(error));
         })
         return appInfoList
     }

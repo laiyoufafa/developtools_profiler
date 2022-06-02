@@ -17,8 +17,10 @@ import router from '@system.router';
 import prompt from '@system.prompt';
 import { TopComponent } from '../main/TopComponent';
 import { otherSupportList, OtherSupport, TestMode } from '../../entity/LocalConfigEntity';
+import SPLogger from '../../utils/SPLogger'
 
 
+const TAG = "Home"
 /*
   home页
  */
@@ -97,6 +99,7 @@ export struct Home {
         }.backgroundColor($r('app.color.colorPrimary')).width('100%')
         .alignItems(HorizontalAlign.Center)
         .onAppear(() => {
+          SPLogger.DEBUG(TAG, "deviceInfo.brand:->" + deviceInfo.brand + "deviceInfo.productModel:->" + deviceInfo.productModel )
           this.deviceStr = deviceInfo.brand + " " + deviceInfo.productModel
         })
 

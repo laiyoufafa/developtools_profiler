@@ -15,7 +15,7 @@
 
 import dataRdb from '@ohos.data.rdb'
 import { GPData,TIndexInfo,TGeneralInfo } from '../entity/DatabaseEntity';
-import { sql_t_index_info, dbPath, dbVersion, dbName } from '../constant/ConstantSQL'
+import { sql_t_index_info, dbVersion, dbName } from '../constant/ConstantSQL'
 import SPLogger from '../utils/SPLogger'
 
 const TAG = "DatabaseUtils"
@@ -127,7 +127,9 @@ export default {
             "batteryTemp": strMap.get("batteryTemp"),
             "pss": strMap.get("pss"),
             "fps": strMap.get("fps"),
-            "fpsJitters": strMap.get("fpsJitters")
+            "fpsJitters": strMap.get("fpsJitters"),
+            "networkUpSpeed": strMap.get("networkUpSpeed"),
+            "networkDownSpeed": strMap.get("networkDownSpeed")
         }
         const STORE_CONFIG = {
             name: pathSuffix + ".db"
@@ -208,7 +210,8 @@ export default {
                         "gpuLoad", "gpuFrequency",
                         "currentNow", "voltageNow",
                         "pss",
-                        "fps", "fpsJitters"
+                        "fps", "fpsJitters",
+                        "networkUpSpeed","networkDownSpeed"
                     ])
                 })
                 .then(resultSet => {
@@ -250,6 +253,9 @@ export default {
                         let fps = resultSet.getString(resultSet.getColumnIndex("fps"))
                         let fpsJitters = resultSet.getString(resultSet.getColumnIndex("fpsJitters"))
 
+                        let networkUpSpeed = resultSet.getString(resultSet.getColumnIndex("networkUpSpeed"))
+                        let networkDownSpeed = resultSet.getString(resultSet.getColumnIndex("networkDownSpeed"))
+
                         results.push(new TIndexInfo(
                             timestamp,
                             "18",
@@ -260,8 +266,8 @@ export default {
                             shellFrameTemp, shellFrontTemp, shellBackTemp, socThermalTemp, systemHTemp, gpuTemp, ambientTemp, batteryTemp,
                             currentNow, voltageNow,
                             pss,
-                            fps,
-                            fpsJitters
+                            fps,fpsJitters,
+                            networkUpSpeed,networkDownSpeed
                         ))
                         console.log("resultSet column names:results:index:" + resultSet.rowIndex)
                     }
@@ -347,6 +353,10 @@ export default {
                     case "FPS":
                         tIndexInfo.setFpsData(
                         map.get("fps"), map.get("fpsJitters"))
+                        break;
+                    case "NetWork":
+                        tIndexInfo.setNetWorkData(
+                        map.get("netSpeedUp"), map.get("netSpeedDown"))
                         break;
                 }
             }

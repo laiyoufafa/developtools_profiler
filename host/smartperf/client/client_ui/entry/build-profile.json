@@ -1,0 +1,22 @@
+{
+  "apiType": "stageMode",
+  "buildOption": {
+    "arkEnable": true,
+    "externalNativeOptions": {
+      "path": "./src/main/cpp/CMakeLists.txt",
+      "arguments": "-v -DOHOS_STL=c++_shared",
+      "abiFilters": [
+        "armeabi-v7a"
+      ],
+      "cppFlags": ""
+    }
+  },
+  "targets": [
+    {
+      "name": "default"
+    },
+    {
+      "name": "ohosTest"
+    }
+  ]
+}

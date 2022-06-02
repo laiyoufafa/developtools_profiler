@@ -1,3 +1,4 @@
+
 /*
  * Copyright (C) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CPU } from './item/CPU';
 import deviceInfo from '@ohos.deviceInfo'
-import CommonEvent from '@ohos.commonevent'
-import { csvGeneralInfo, csvTIndexInfo } from '../utils/csvutils'
-import { createFilePath } from '../utils/ioutils'
-import { AppFileDir } from '../constant/ConstantsPath'
-import { GPData, TIndexInfo, TGeneralInfo } from '../entity/databaseentity'
-import database from '../database/databaseutils'
+import CommonEvent from '@ohos.commonEvent'
+import database from '../database/DatabaseUtils'
+import { getPidOfAbility } from '../utils/SystemUtils';
+import { CPU } from './item/CPU';
+import { csvGeneralInfo, csvTIndexInfo } from '../utils/CSVUtils'
+import { createFilePath } from '../utils/IOUtils'
+import { GPData, TIndexInfo, TGeneralInfo } from '../entity/DatabaseEntity'
 import { ProfilerFactory } from './base/ProfilerFactory'
 import SPLogger from '../../common/utils/SPLogger'
 
@@ -38,15 +39,33 @@ export class ProfilerTask {
     SPLogger.DEBUG(ProfilerTask.name,'ProfilerTask initModule configs: ' + JSON.stringify(globalThis.collectConfigs))
     const keys: any[] = Object.keys(globalThis.collectConfigs)
     for (var key of keys) {
-      let typeCollect = ProfilerFactory.getProfilerByConfig(key.toString())
-      SPLogger.DEBUG(ProfilerTask.name,'ProfilerTask initModule: ' + typeCollect)
-      if (typeCollect == null) {
-        continue
-      }else{
-        this.collectItems.push(typeCollect.init())
+      if (globalThis.collectConfigs[key]) {
+        let typeCollect = ProfilerFactory.getProfilerByConfig(key.toString())
+        SPLogger.DEBUG(ProfilerTask.name,'ProfilerTask initModule: ' + typeCollect)
+        if (typeCollect == null) {
+          continue
+        }else{
+          this.collectItems.push(typeCollect.init())
+        }
       }
     }
+    //默认不使用daemon
+    globalThis.useDaemon = false
+    let status = globalThis.CheckDaemon()
+    if (status == "Running") {
+      globalThis.useDaemon = true
+    }
+    SPLogger.DEBUG(ProfilerTask.name,'ProfilerTask initModule:Daemon status ' + status)
+  }
 
+  getSupports(keys:string[]){
+    let supports : Map<string,Boolean> = new Map<string,Boolean>()
+    for (var key of keys) {
+      let typeCollect = ProfilerFactory.getProfilerByConfig(key)
+      let isSupport = typeCollect.isSupport()
+      supports.set(key.toString(),isSupport)
+    }
+    return supports
   }
 
   taskInit() {
@@ -70,6 +89,10 @@ export class ProfilerTask {
     globalThis.fpsArr = new Array<String>()
     // fpsJitter队列
     globalThis.fpsJitterArr = new Array<String>()
+    //初始化采集目标进程pid
+    getPidOfAbility(globalThis.collectPkg).then(pid=>{
+      globalThis.processPid = pid
+    })
     //初始化数据库  2022-02-23 dbName改为时间戳
     database.createTable(globalThis.dbTime)
     SPLogger.DEBUG(ProfilerTask.name,'ProfilerUtils taskInit called');
@@ -114,7 +137,7 @@ export class ProfilerTask {
         database.insertData("t_index_info", globalThis.dbTime, tTndex)
       }
     }
-    createFilePath(AppFileDir + globalThis.dbTime + "/t_index_info.csv", csvTIndexInfo(globalThis.tTndexs))
+    createFilePath(globalThis.abilityContext.getApplicationContext().filesDir + "/" + globalThis.dbTime + "/t_index_info.csv", csvTIndexInfo(globalThis.tTndexs))
     // t_general_info  入库
     globalThis.endTime = new Date().getTime()
     let tGeneralInfo = new TGeneralInfo(
@@ -134,7 +157,7 @@ export class ProfilerTask {
     tGeneralInfo.version = deviceInfo.displayVersion
     tGeneralInfo.sn = deviceInfo.serial
     database.insertGeneraData("t_general_info", tGeneralInfo)
-    createFilePath(AppFileDir + globalThis.dbTime + "/t_general_info.csv", csvGeneralInfo(tGeneralInfo))
+    createFilePath(globalThis.abilityContext.getApplicationContext().filesDir + "/" + globalThis.dbTime + "/t_general_info.csv", csvGeneralInfo(tGeneralInfo))
 
     SPLogger.DEBUG(ProfilerTask.name,'ProfilerTask taskStop called');
   }

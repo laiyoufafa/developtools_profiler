@@ -19,33 +19,37 @@ import { Power } from '../item/Power'
 import { RAM } from '../item/RAM'
 import { Thermal } from '../item/Thermal'
 import { DDR } from '../item/DDR'
+import { NetWork } from '../item/NetWork';
 import { CollectorType } from './ProfilerConstant'
 import { BaseProfiler } from './BaseProfiler'
 import SPLogger from '../../../common/utils/SPLogger'
 
 export class ProfilerFactory {
   static getProfilerByConfig(moduleName: string): BaseProfiler{
-    if (moduleName == CollectorType.TYPE_FPS && globalThis.collectConfigs.FPS) {
-      SPLogger.DEBUG(ProfilerFactory.name,"getProfilerByConfig:TYPE_FPS:" + globalThis.collectConfigs.FPS);
+    if (moduleName == CollectorType.TYPE_FPS) {
+      SPLogger.DEBUG(ProfilerFactory.name,"getProfilerByConfig:TYPE_FPS" );
       return FPS.getInstance()
-    } else if (moduleName == CollectorType.TYPE_CPU && globalThis.collectConfigs.CPU) {
-      SPLogger.DEBUG(ProfilerFactory.name,"getProfilerByConfig:TYPE_CPU:" + globalThis.collectConfigs.CPU);
+    } else if (moduleName == CollectorType.TYPE_CPU) {
+      SPLogger.DEBUG(ProfilerFactory.name,"getProfilerByConfig:TYPE_CPU");
       return CPU.getInstance()
-    } else if (moduleName == CollectorType.TYPE_GPU && globalThis.collectConfigs.GPU) {
-      SPLogger.DEBUG(ProfilerFactory.name,"getProfilerByConfig:TYPE_GPU:" + globalThis.collectConfigs.GPU);
+    } else if (moduleName == CollectorType.TYPE_GPU) {
+      SPLogger.DEBUG(ProfilerFactory.name,"getProfilerByConfig:TYPE_GPU" );
       return GPU.getInstance()
-    } else if (moduleName == CollectorType.TYPE_POWER && globalThis.collectConfigs.POWER) {
-      SPLogger.DEBUG(ProfilerFactory.name,"getProfilerByConfig:TYPE_POWER:" + globalThis.collectConfigs.POWER);
+    } else if (moduleName == CollectorType.TYPE_POWER) {
+      SPLogger.DEBUG(ProfilerFactory.name,"getProfilerByConfig:TYPE_POWER" );
       return Power.getInstance()
-    } else if (moduleName == CollectorType.TYPE_RAM && globalThis.collectConfigs.RAM) {
-      SPLogger.DEBUG(ProfilerFactory.name,"getProfilerByConfig:TYPE_RAM:" + globalThis.collectConfigs.RAM);
+    } else if (moduleName == CollectorType.TYPE_RAM) {
+      SPLogger.DEBUG(ProfilerFactory.name,"getProfilerByConfig:TYPE_RAM" );
       return RAM.getInstance()
-    } else if (moduleName == CollectorType.TYPE_TEMPERATURE && globalThis.collectConfigs.TEMP) {
-      SPLogger.DEBUG(ProfilerFactory.name,"getProfilerByConfig:TYPE_TEMPERATURE:" + globalThis.collectConfigs.TEMP);
+    } else if (moduleName == CollectorType.TYPE_TEMPERATURE) {
+      SPLogger.DEBUG(ProfilerFactory.name,"getProfilerByConfig:TYPE_TEMPERATURE" );
       return Thermal.getInstance()
-    } else if (moduleName == CollectorType.TYPE_DDR && globalThis.collectConfigs.DDR) {
-      SPLogger.DEBUG(ProfilerFactory.name,"getProfilerByConfig:TYPE_DDR:" + globalThis.collectConfigs.DDR);
+    } else if (moduleName == CollectorType.TYPE_DDR) {
+      SPLogger.DEBUG(ProfilerFactory.name,"getProfilerByConfig:TYPE_DDR");
       return DDR.getInstance()
+    }else if (moduleName == CollectorType.TYPE_NET) {
+      SPLogger.DEBUG(ProfilerFactory.name,"getProfilerByConfig:TYPE_NET");
+      return NetWork.getInstance()
     }
     return null
   }

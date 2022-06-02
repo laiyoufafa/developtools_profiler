@@ -14,8 +14,8 @@
  */
 import fileio from '@ohos.fileio';
 import util from '@ohos.util';
-import { GPData } from '../../entity/databaseentity';
-import SPLogger from '../../../common/utils/SPLogger'
+import { GPData } from '../../entity/DatabaseEntity';
+import SPLogger from '../../utils/SPLogger';
 
 const BUFF_SIZE = 1024
 const TAG="BaseProfilerUtils"
@@ -29,10 +29,12 @@ export function createGPData(moduleType: string, values: Map<String, String>): G
 
 
 export function isAccess(path: string):boolean{
+  SPLogger.DEBUG("BaseProfilerUtils","ets check path is start..."+ "path:" + path);
   var isAccess = false
   try {
     fileio.accessSync(path);
     isAccess = true
+    SPLogger.DEBUG("BaseProfilerUtils","ets check path is finish..."+ "path:" + path);
   } catch(err) {
     SPLogger.DEBUG(TAG,"accessSync failed with error:"+ err + "path:" + path);
   }

@@ -12,15 +12,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import fileio from '@ohos.fileio';
-import { fileOpen,travelFile,createGPData } from '../base/BaseProfilerUtils';
+import { fileOpen, travelFile, createGPData, isAccess} from '../base/BaseProfilerUtils';
 import { BaseProfiler } from '../base/BaseProfiler'
 import { CollectorType } from '../base/ProfilerConstant'
 import SPLogger from '../../../common/utils/SPLogger'
 enum POWER_CONFIG {
   //此目录 fileio 无法读取 需自行适配
-//  POWER_PATH = "/data/local/tmp/battery"
-    POWER_PATH = "/sys/class/power_supply/Battery" // wgr
+  POWER_PATH = "/data/local/tmp/battery"
+    
 }
 
 export class Power extends BaseProfiler {
@@ -48,6 +47,13 @@ export class Power extends BaseProfiler {
     })
     SPLogger.DEBUG(Power.name,"pathNodes init length:"+ pathNodes.length + "support items:" + JSON.stringify(this.supportItemKey))
     return CollectorType.TYPE_POWER
+  }
+
+  isSupport(){
+    if(isAccess(POWER_CONFIG.POWER_PATH)){
+      return true
+    }
+    return false
   }
 
   readData() {

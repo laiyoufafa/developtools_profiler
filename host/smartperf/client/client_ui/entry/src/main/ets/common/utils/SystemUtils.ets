@@ -13,30 +13,45 @@
  * limitations under the License.
  */
 
-import { fileOpen,travelFile } from '../profiler/base/BaseProfilerUtils';
-
+import { fileOpen, travelFile } from '../profiler/base/BaseProfilerUtils';
+import { ProcessRunningInfo } from '../utils/../entity/SystemEntity'
+import appManager from '@ohos.application.appManager';
 
 export function getCpuCoreInfo(): Array<String> {
-    const basePath = "/sys/devices/system/cpu/cpufreq"
-    let defaultPolicy = new Array(
-        "policy0", "policy1", "policy2"
-    )
-    var supportPolicy = []
-    let policyArr = travelFile(basePath,"policy")
+  const basePath = "/sys/devices/system/cpu/cpufreq"
+  let defaultPolicy = new Array(
+    "policy0", "policy1", "policy2"
+  )
+  var supportPolicy = []
+  let policyArr = travelFile(basePath, "policy")
 
-    policyArr.forEach((policy)=>{
-        defaultPolicy.forEach((defaultItem)=>{
-            if (defaultItem == policy) {
-                supportPolicy.push(defaultItem)
-            }
-        })
+  policyArr.forEach((policy) => {
+    defaultPolicy.forEach((defaultItem) => {
+      if (defaultItem == policy) {
+        supportPolicy.push(defaultItem)
+      }
     })
-    var coreArr = new Array()
-    for (var index = 0; index < supportPolicy.length; index++) {
-        const policy = supportPolicy[index];
-        var affected_cpus = fileOpen(basePath + "/" + policy + "/affected_cpus")
-        coreArr.push(affected_cpus.charAt(0))
-    }
-    return coreArr
+  })
+  var coreArr = new Array()
+  for (var index = 0; index < supportPolicy.length; index++) {
+    const policy = supportPolicy[index];
+    var affected_cpus = fileOpen(basePath + "/" + policy + "/affected_cpus")
+    coreArr.push(affected_cpus.charAt(0))
+  }
+  return coreArr
 }
+
+export function getPidOfAbility(processName: string): Promise<String> {
+  return appManager.getProcessRunningInfos().then(data => {
+    let processArr: Array<ProcessRunningInfo> = data
+    var pid = "-1"
+    processArr.forEach(process=>{
+        if (process.processName == processName) {
+            pid = process.pid.toString()
+        }
+    })
+    return pid
+  })
+}
+
 

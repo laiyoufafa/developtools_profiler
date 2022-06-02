@@ -16,7 +16,10 @@
 import { StartTestTitleComponent } from '../common/ui/StartTestTitleComponent';
 import { AppInfoItem } from '../common/entity/LocalConfigEntity';
 import router from '@system.router';
+import SPLogger from '../common/utils/SPLogger'
 
+
+const TAG = "AppSelectPage"
 /**
  * app应用选择页
  */
@@ -34,6 +37,10 @@ struct AppSelectPage {
 @Component
 struct appInfoComponent {
   @State appInfoList: Array<AppInfoItem> = globalThis.appList
+  aboutToAppear() {
+    SPLogger.DEBUG(TAG, "appInfoComponent.....")
+    SPLogger.DEBUG(TAG, "appInfoList....." + JSON.stringify(this.appInfoList))
+  }
 
   build() {
     List() {

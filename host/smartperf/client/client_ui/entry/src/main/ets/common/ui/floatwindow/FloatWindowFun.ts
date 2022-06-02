@@ -23,20 +23,27 @@ export class FloatWindowFun {
     static floatingWindowOffsetY: number = 200
     static titleWindowOffsetX: number = 300
     static titleWindowOffsetY: number = 200
+    static lineChartWindowOffsetX: number= 700
+    static lineChartWindowOffsetY: number= 200
     static windowWidth: number = 2560
     static windowHeight: number = 1600
+
 
     static initAllFun() {
         globalThis.CreateFloatingWindow = (() => {
             //5.5SP2  2106 改成 8
-            wm.create(globalThis.abilityContext, 'floatingWindow', 8).then((floatWin) => {
-                floatWin.setWindowMode(102).then(() => {
-                    floatWin.moveTo(this.floatingWindowOffsetX, this.floatingWindowOffsetY).then(() => {
-                        floatWin.resetSize(160, 140).then(() => {
-                            floatWin.loadContent('pages/FloatBall').then(() => {
+            wm.create(globalThis.abilityContext, 'floatingWindow', 2106).then((floatWin) => {
+                floatWin.moveTo(this.floatingWindowOffsetX, this.floatingWindowOffsetY).then(() => {
+                    floatWin.resetSize(95, 95).then(() => {
+                        floatWin.getProperties().then((property) => {
+                            property.isTransparent = false
+                        })
+                        floatWin.loadContent('pages/FloatBall').then(() => {
+                            floatWin.setBackgroundColor("#B3000000").then(() => { //透明
                                 floatWin.show().then(() => {
                                     globalThis.showFloatingWindow = true
                                 })
+
                             })
                         })
                     })
@@ -66,14 +73,16 @@ export class FloatWindowFun {
         })
 
         globalThis.CreateTitleWindow = (() => {
-            wm.create(globalThis.abilityContext, 'TitleWindow', 8).then((floatWin) => {
-                floatWin.setWindowMode(102).then(() => {
-                    floatWin.moveTo(this.titleWindowOffsetX, this.titleWindowOffsetY).then(() => {
-                        floatWin.resetSize(290, 280).then(() => {
-                            floatWin.loadContent('pages/TitleWindowPage').then(() => {
-                                floatWin.hide()
-                                SPLogger.DEBUG(TAG, 'CreateTitleWindow Done');
-                            })
+            wm.create(globalThis.abilityContext, 'TitleWindow', 2106).then((floatWin) => {
+                floatWin.moveTo(this.titleWindowOffsetX, this.titleWindowOffsetY).then(() => {
+                    floatWin.resetSize(350, 260).then(() => {
+                        floatWin.getProperties().then((property) => {
+                            property.isTransparent = false
+                        })
+                        floatWin.loadContent('pages/TitleWindowPage').then(() => {
+                            floatWin.setBackgroundColor("#B3000000")
+                            floatWin.hide()
+                            SPLogger.DEBUG(TAG, 'CreateTitleWindow Done')
                         })
                     })
                 })
@@ -108,6 +117,55 @@ export class FloatWindowFun {
 
         globalThis.ShowTitleWindow = (() => {
             wm.find("TitleWindow").then((fltWin) => {
+                fltWin.show()
+            })
+        })
+
+        globalThis.CreateFPSLineChartWindow = (() => {
+            //5.5SP2  2106 改成 8
+            wm.create(globalThis.abilityContext, 'fpsLineChartWindow', 2106).then((floatWin) => {
+                floatWin.moveTo(this.lineChartWindowOffsetX, this.lineChartWindowOffsetY).then(() => {
+                    floatWin.resetSize(130,90).then(() => {
+                        floatWin.loadContent('pages/FpsLineChartPage').then(() => {
+                            floatWin.show().then(() => {
+                                floatWin.hide()
+                            })
+                        })
+                    })
+                })
+            })
+        })
+
+        globalThis.MoveFPSLineChartWindow = ((offsetX: number, offsetY: number) => {
+            var xx = (this.lineChartWindowOffsetX + offsetX * 2) < 0 ? 0 : ((this.lineChartWindowOffsetX + offsetX * 2) > (this.windowWidth - 200) ? (this.windowWidth - 200) : (this.lineChartWindowOffsetX + offsetX * 2))
+            var yy = (this.lineChartWindowOffsetY + offsetY * 2) < 0 ? 0 : ((this.lineChartWindowOffsetY + offsetY * 2) > (this.windowHeight - 200) ? (this.windowHeight - 200) : (this.lineChartWindowOffsetY + offsetY * 2))
+
+            wm.find("fpsLineChartWindow").then((fltWin) => {
+                fltWin.moveTo(xx, yy)
+            })
+        })
+
+        globalThis.SetFPSLineChartWindowPosition = ((offsetX: number, offsetY: number) => {
+            this.lineChartWindowOffsetX = (this.lineChartWindowOffsetX + offsetX * 2) < 0 ? 0 : ((this.lineChartWindowOffsetX + offsetX * 2) > (this.windowWidth - 200) ? (this.windowWidth - 200) : (this.lineChartWindowOffsetX + offsetX * 2))
+            this.lineChartWindowOffsetY = (this.lineChartWindowOffsetY + offsetY * 2) < 0 ? 0 : ((this.lineChartWindowOffsetY + offsetY * 2) > (this.windowHeight - 200) ? (this.windowHeight - 200) : (this.lineChartWindowOffsetY + offsetY * 2))
+        })
+
+        globalThis.DestroyFPSLineChartWindow = (() => {
+            wm.find("fpsLineChartWindow").then((fltWin) => {
+                fltWin.destroy().then(() => {
+                    globalThis.showFPSLineChartWindow = false
+                })
+            })
+        })
+
+        globalThis.HideFPSLineChartWindow = (() => {
+            wm.find("fpsLineChartWindow").then((fltWin) => {
+                fltWin.hide()
+            })
+        })
+
+        globalThis.ShowFPSLineChartWindow = (() => {
+            wm.find("fpsLineChartWindow").then((fltWin) => {
                 fltWin.show()
             })
         })
