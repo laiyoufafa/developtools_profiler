@@ -496,6 +496,11 @@ int main(int argc, char* argv[])
         // pthread_t* thrArray
         if (thrArrayList[type] == NULL) {
             printf("new thread failed.\n");
+            if (thrArrayList != NULL) {
+                free(thrArrayList);
+                thrArrayList = NULL;
+            }
+            return 0;
         }
         int idx;
         for (idx = 0; idx < threadNum; ++idx) {
@@ -514,6 +519,12 @@ int main(int argc, char* argv[])
         thrArrayList[type] = (pthread_t*)malloc(sizeof(pthread_t) * threadNum);
         if (thrArrayList[type] == NULL) {
             printf("new thread failed.\n");
+            if (thrArrayList != NULL) {
+                free(thrArrayList);
+                thrArrayList = NULL;
+            }
+            CloseFile();
+            return 0;
         }
 
         int idx;
