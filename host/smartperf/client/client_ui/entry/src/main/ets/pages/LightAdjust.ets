@@ -15,7 +15,7 @@
 
 import brightness from '@ohos.brightness';
 import { StartTestTitleComponent } from '../common/ui/StartTestTitleComponent';
-
+import SPLogger from '../common/utils/SPLogger'
 /**
  * 亮度调整
  */

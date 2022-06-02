@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 import fileio from '@ohos.fileio';
-import { fileOpen, createGPData } from '../base/BaseProfilerUtils';
+import { fileOpen, createGPData, isAccess} from '../base/BaseProfilerUtils';
 import { BaseProfiler } from '../base/BaseProfiler'
 import { CollectorType } from '../base/ProfilerConstant'
 import SPLogger from '../../../common/utils/SPLogger'
@@ -65,6 +65,13 @@ export class Thermal extends BaseProfiler {
       }
     } while (dirent != null)
     return CollectorType.TYPE_TEMPERATURE
+  }
+
+  isSupport(){
+    if(isAccess(THERMAL_CONFIG.THERMAL_BASE)){
+      return true
+    }
+    return false
   }
 
   readData() {

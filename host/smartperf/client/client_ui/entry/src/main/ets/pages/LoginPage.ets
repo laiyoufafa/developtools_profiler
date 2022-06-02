@@ -47,7 +47,12 @@ struct Login {
       .height('100%')
     }
     .width('100%')
-    .height('100%').backgroundColor($r("app.color.colorPrimary"))
+    .height('100%')
+    .linearGradient({
+      angle: 135,
+      direction: GradientDirection.Left,
+      colors: [[$r("app.color.colorPrimary"), 0.0], [$r("app.color.colorPrimary"), 1.0]]
+    })
   }
 }
 

@@ -17,7 +17,8 @@ import database from './DatabaseUtils'
 import BundleManager from '../utils/BundleMangerUtils';
 import { dateFormat } from '../utils/TimeUtils'
 import { ReportItem } from '../entity/LocalConfigEntity'
-import { sql_t_general_info, dbPath, dbVersion, dbName } from '../constant/ConstantSQL';
+import { sql_t_general_info, dbVersion, dbName } from '../constant/ConstantSQL';
+import { AppFileRealDir } from '../constant/ConstantsPath'
 import SPLogger from '../utils/SPLogger'
 
 
@@ -38,9 +39,7 @@ export function initDb(): void {
             SPLogger.DEBUG(TAG, "--> createTable start execute sql_t_genneral_info:" + sql_t_general_info)
             return rdbStore
         })
-        .then(rdbStore => {
-            SPLogger.DEBUG(TAG, "--> createTable  dbPath: " + dbPath)
-        })
+
     getReportListDb().then(res => {
         globalThis.reportList = res
         let bundleNameArr = []
@@ -77,7 +76,7 @@ export async function getReportListDb(): Promise<Array<ReportItem>> {
             result.push(
                 new ReportItem(
                 curGeneralInfo.taskId.toString(),
-                    dbPath + "/" + curGeneralInfo.sessionId.toString(),
+                    AppFileRealDir + "/" + curGeneralInfo.sessionId.toString(),
                     curGeneralInfo.packageName,
                     "",
                     curGeneralInfo.taskName,

@@ -17,9 +17,13 @@ import { commonStartAbility } from '../common/utils/AbilityUtils';
 import router from '@system.router';
 import { switchList, SwitchItem, CollectItem } from '../common/entity/LocalConfigEntity';
 import { StartTestTitleComponent } from '../common/ui/StartTestTitleComponent';
+import { ProfilerTask } from '../common/profiler/ProfilerTask'
+import { CollectorType } from '../common/profiler/base/ProfilerConstant'
 import prompt from '@system.prompt';
+import SPLogger from '../../ets/common/utils/SPLogger'
 
 
+const TAG = "StartTestPage"
 /*
  * 测试配置页
  */
@@ -29,7 +33,7 @@ struct StartTestPage {
   @State selectApp: string = "请选择一个应用"
   @State selectAppIcon: string = ""
   @State private collectConfigs: Array<CollectItem> = new Array()
-  @State private switchList: Array<SwitchItem> = new Array()
+  @State private switchList: any = new Array()
   @State private testName: string = "" // 测试名称
 
   dialogController: CustomDialogController = new CustomDialogController({
@@ -49,18 +53,29 @@ struct StartTestPage {
     autoCancel: true
   })
 
-  private aboutToAppear(): void {
+  aboutToAppear() {
+    let supportMap = ProfilerTask
+     .getInstance()
+     .getSupports([
+        CollectorType.TYPE_CPU.toString(),
+        CollectorType.TYPE_GPU.toString(),
+        CollectorType.TYPE_DDR.toString(),
+        CollectorType.TYPE_FPS.toString(),
+        CollectorType.TYPE_POWER.toString(),
+        CollectorType.TYPE_TEMPERATURE.toString(),
+        CollectorType.TYPE_RAM.toString()
+     ])
 
-    this.collectConfigs = new Array(
-      new CollectItem("CPU", true, true),
-      new CollectItem("GPU", true, true),
-      new CollectItem("DDR", false, true),
-      new CollectItem("FPS", false, true),
-      new CollectItem("POWER", false, true),
-      new CollectItem("TEMP", true, true),
-      new CollectItem("RAM", false, true)
-    )
+    var iterator = supportMap.keys()
+    for (var i = 0; i < supportMap.size; i++) {
+      let key = iterator.next().value
+      let val = supportMap.get(key).valueOf()
+      this.collectConfigs.push(
+        new CollectItem(key, val, val)
+      )
+    }
     this.switchList = switchList
+    SPLogger.DEBUG(TAG, "this.switchList value" + JSON.stringify(this.switchList))
   }
 
   build() {
@@ -104,6 +119,10 @@ struct StartTestPage {
 
               Image($r('app.media.icon_enter')).width('15vp').height('15vp').margin({ right: '15vp' })
             }.height('60vp').width('90%').onClick(() => {
+              if (this.selectApp == "请选择一个应用" || this.selectApp == "SmartPerf") {
+                prompt.showToast({ message: "please choose app!", duration: 1000 })
+                return
+              }
               this.dialogController.open()
             })
           }
@@ -156,7 +175,7 @@ struct StartTestPage {
               }
 
               //启动app
-              commonStartAbility(router.getParams()["selectPackageName"], router.getParams()["selectAbilityName"])
+              commonStartAbility(new String(router.getParams()["selectPackageName"]).toString(), new String(router.getParams()["selectAbilityName"]).toString())
               //启动悬浮窗
               globalThis.CreateFloatingWindow()
               router.back({ uri: "pages/MainPage" })
@@ -172,16 +191,18 @@ struct StartTestPage {
 
   onPageShow() {
     console.info("startTestPage" + "onPageShow调用了");
+    console.info("startTestPage  router" + "onPageShow调用了" + router);
+    console.info("startTestPage  router" + "onPageShow调用了" + JSON.stringify(router.getParams()));
     if (router.getParams()["appName"] == null) {
       this.selectApp = "请选择一个应用"
       this.testName = ""
       this.selectAppIcon = ""
     } else {
-      this.selectApp = router.getParams()["appName"]
-      globalThis.appName = router.getParams()["appName"]
-      globalThis.appVersion = router.getParams()["appVersion"]
-      globalThis.packageName = router.getParams()["selectPackageName"]
-      this.selectAppIcon = router.getParams()["appIconId"]
+      this.selectApp = new String(router.getParams()["appName"]).toString()
+      globalThis.appName = new String(router.getParams()["appName"]).toString()
+      globalThis.appVersion = new String(router.getParams()["appVersion"]).toString()
+      globalThis.packageName = new String(router.getParams()["selectPackageName"]).toString()
+      this.selectAppIcon = new String(router.getParams()["appIconId"]).toString()
       let date = new Date()
       let M = (date.getMonth() + 1 < 10 ? '0' + (date.getMonth() + 1) : date.getMonth() + 1);
       let D = date.getDate() + '-';
@@ -203,9 +224,9 @@ struct StartTestPage {
     for (var i = 0; i < collects.length; i++) {
       const collect = collects[i];
       if (i != collects.length - 1) {
-        collectStr += collect.name + "::" + collect.isSupport + ","
+        collectStr += collect.name + "::" + collect.isSelect + ","
       } else {
-        collectStr += collect.name + "::" + collect.isSupport
+        collectStr += collect.name + "::" + collect.isSelect
       }
     }
 
@@ -237,7 +258,9 @@ struct StartTestPage {
       let params = config.split("::")
       if (params[1] == "true" || params[1] == "1") {
         configItems[params[0]] = true
-      } else {
+      }else if (params[1] == "false" || params[1] == "0") {
+        configItems[params[0]] = false
+      }else {
         configItems[params[0]] = false
       }
     }
@@ -259,7 +282,7 @@ struct StartTestPage {
 
 @Component
 struct SwitchComponent {
-  @Link private switchList: Array<SwitchItem>
+  @Link private switchList: any
 
   build() {
     Column() {
@@ -307,25 +330,45 @@ struct CustomDialogCollect {
       List() {
         ForEach(this.collectConfigs, (Item) => {
           ListItem() {
-            Row({ space: '15vp' }) {
-              Flex({ justifyContent: FlexAlign.SpaceBetween, alignItems: ItemAlign.Center }) {
-                Text(Item.name).fontSize('18fp').fontColor($r("app.color.color_333")).margin({ left: 20 })
-                Toggle({ type: ToggleType.Switch, isOn: Item.isSupport })
-                  .width('60vp')
-                  .height('25vp')
-                  .enabled(Item.enable)
-                  .onChange((isOn) => {
-                    Item.isSupport = isOn
-                    console.log("this.collectConfigs" + JSON.stringify(this.collectConfigs))
-                  })
-                  .margin({ right: '5vp' })
-              }.height('60vp').width('90%')
+            if(Item.isSupport) {
+              Row({ space: '15vp' }) {
+                Flex({ justifyContent: FlexAlign.SpaceBetween, alignItems: ItemAlign.Center }) {
+                  Text(Item.name).fontSize('18fp').fontColor($r("app.color.color_333")).margin({ left: 20 })
+                  Toggle({ type: ToggleType.Switch, isOn: Item.isSupport })
+                    .width('60vp')
+                    .height('25vp')
+                    .enabled(true)
+                    .onChange((isOn) => {
+                      Item.isSelect = isOn
+                    })
+                    .margin({ right: '5vp' })
+                }.height('60vp').width('90%')
+              }
+              .height('60vp')
+              .width('100%')
+              .borderRadius('5vp')
+              .backgroundColor($r("app.color.color_fff"))
+              .margin({ top: '10vp' })
+            } else {
+              Row({ space: '15vp' }) {
+                Flex({ justifyContent: FlexAlign.SpaceBetween, alignItems: ItemAlign.Center }) {
+                  Text(Item.name).fontSize('18fp').fontColor($r("app.color.color_333")).margin({ left: 20 })
+                  Toggle({ type: ToggleType.Switch, isOn: Item.isSupport })
+                    .width('60vp')
+                    .height('25vp')
+                    .enabled(false)
+                    .margin({ right: '5vp' })
+                }.height('60vp').width('90%')
+              }
+              .onClick(() => {
+                  prompt.showToast({ duration: 1000, message: "not support" })
+              })
+              .height('60vp')
+              .width('100%')
+              .borderRadius('5vp')
+              .backgroundColor($r("app.color.color_eee"))
+              .margin({ top: '10vp' })
             }
-            .height('60vp')
-            .width('100%')
-            .borderRadius('5vp')
-            .backgroundColor($r("app.color.color_fff"))
-            .margin({ top: '10vp' })
           }
         }, Item => Item.name)
       }

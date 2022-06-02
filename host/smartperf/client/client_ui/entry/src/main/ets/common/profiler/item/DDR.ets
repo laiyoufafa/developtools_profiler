@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { fileOpen, createGPData } from '../base/BaseProfilerUtils';
+import { fileOpen, createGPData, isAccess} from '../base/BaseProfilerUtils';
 import { BaseProfiler } from '../base/BaseProfiler'
 import { CollectorType } from '../base/ProfilerConstant'
 import SPLogger from '../../../common/utils/SPLogger'
@@ -35,6 +35,13 @@ export class DDR extends BaseProfiler {
   init() {
     //初始化DDR 节点
     return CollectorType.TYPE_DDR
+  }
+
+  isSupport(){
+    if(isAccess(DDR_CONFIG.DDR_BASE)){
+      return true
+    }
+    return false
   }
 
   readData() {

@@ -12,10 +12,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { GPData } from '../../entity/databaseentity';
+import { GPData } from '../../entity/DatabaseEntity';
 import { CollectorType } from './ProfilerConstant'
 
 export abstract class BaseProfiler {
   abstract init(): CollectorType
+  abstract isSupport(): Boolean
   abstract readData(): GPData
 }

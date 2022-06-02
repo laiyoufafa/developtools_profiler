@@ -20,7 +20,7 @@ export let MainWorker = new worker.Worker("workers/worker.js")
 MainWorker.onmessage = function (e) {
   SPLogger.DEBUG("MainWorker","MainWorker recv:" + e.data);
   let arr = e.data.split("$")
-  if (arr[0] == "RAM") {
+  if (arr[0] == "RAM ") {
     globalThis.ramArr.push(arr[1])
   }
   if (arr[0] == "FPS") {

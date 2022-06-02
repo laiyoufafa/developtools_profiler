@@ -241,7 +241,8 @@ export class TIndexInfo {
     currentNow?: String, voltageNow?: String,
     pss?: String,
     fps?: String,
-    fpsJitters?: String
+    fpsJitters?: String,
+    networkUpSpeed?: String, networkDownSpeed?: String
   ) {
     this.timestamp = timestamp
     this.taskId = taskId
@@ -277,6 +278,8 @@ export class TIndexInfo {
     this.pss = pss
     this.fps = fps
     this.fpsJitters = fpsJitters
+    this.networkUpSpeed = networkUpSpeed
+    this.networkDownSpeed = networkDownSpeed
   }
 
   setTimeStamp(timestamp: String) {
@@ -341,6 +344,11 @@ export class TIndexInfo {
 
   setRamData(pss: String) {
     this.pss = pss
+  }
+
+  setNetWorkData(networkUpSpeed:String, networkDownSpeed:String){
+    this.networkDownSpeed = networkDownSpeed
+    this.networkUpSpeed = networkUpSpeed
   }
 
   setDefaultValue() {

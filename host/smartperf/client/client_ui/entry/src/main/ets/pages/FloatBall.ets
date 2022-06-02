@@ -16,7 +16,7 @@ import { secToTime } from '../common/utils/TimeUtils';
 import { TaskStatus,CatchTraceStatus}  from '../common/profiler/base/ProfilerConstant';
 import { MainWorker } from "../common/profiler/MainWorkTask"
 import { ProfilerTask } from "../common/profiler/ProfilerTask"
-
+import { initFloatWindow } from '../common/ui/floatwindow/utils/FloatWindowUtils'
 let traceTime = 0
 let socketCollectItems
 let isCollectRam = false
@@ -29,8 +29,15 @@ struct FloatBall {
   @State FpsTimer: number = -1
   timerId: number = -1
   @State windShowState: boolean = false
+  @State windFpsShowState: boolean = false
   offsetX: number = -1
   offsetY: number = -1
+  //解決手势失效的问题
+  COUNTS = 2 // 点击次数
+  DURATION: number = 300 // 规定有效时间
+  mHits = Array(this.COUNTS) // 数组
+  isDoubleFlag = false // 是否是双击
+  singleClickId = 0 // 单击事件ID
 
   aboutToAppear() {
 
@@ -38,8 +45,9 @@ struct FloatBall {
     ProfilerTask.getInstance().taskInit()
     //创建TiTile窗
     globalThis.CreateTitleWindow()
+    globalThis.CreateFPSLineChartWindow()
     globalThis.task_status = TaskStatus.task_init
-
+    initFloatWindow()
     if (globalThis.collectConfigs.trace) {
       globalThis.catchTraceState = CatchTraceStatus.catch_trace_start
       globalThis.jitterTrace = false
@@ -141,6 +149,16 @@ struct FloatBall {
     }
   }
 
+  fpsEvent(){
+    if (this.windFpsShowState) {
+      globalThis.HideFPSLineChartWindow()
+      this.windFpsShowState = false
+    } else {
+      globalThis.ShowFPSLineChartWindow()
+      this.windFpsShowState = true
+    }
+  }
+
   doubleEvent() {
     // 双击启动悬浮TITLE
     if (this.windShowState) {
@@ -161,6 +179,7 @@ struct FloatBall {
   destroyAllWindow(){
     globalThis.DestroyFloatingWindow()
     globalThis.DestroyTitleWindow()
+    globalThis.DestroyFPSLineChartWindow()
   }
 
   clearAllInterVal(){
@@ -178,14 +197,24 @@ struct FloatBall {
   }
 
   build() {
-    Flex({ direction: FlexDirection.Column, alignItems: ItemAlign.Center }) {
+    Stack({ alignContent: Alignment.Center }) {
       if (this.playerState == TaskStatus.task_init) {
+        Circle()
+          .width('90vp')
+          .height('90vp')
+          .fill(Color.White)
+          .fillOpacity(0)
+          .opacity(0.8)
+          .border({ radius: '90vp', width: '0.5vp', color: $r("app.color.colorPrimary") })
+          .linearGradient({
+            angle: 135,
+            direction: GradientDirection.Left,
+            colors: [[$r("app.color.colorPrimary"), 1.0], [$r("app.color.colorPrimary"), 1.0]]
+          })
         Text('start')
+          .fontSize(20)
           .textAlign(TextAlign.Center)
-          .fontSize("20fp")
-          .fontColor($r("app.color.colorPrimary"))
-          .border({ width: 1 })
-          .padding("10vp")
+          .fontColor($r("app.color.color_fff"))
           .width('100%')
           .height('100%')
           .onClick(() => {
@@ -212,23 +241,59 @@ struct FloatBall {
       }
 
       if (this.playerState == TaskStatus.task_running || this.playerState == TaskStatus.task_pause) {
+        if (this.playerState == TaskStatus.task_pause) {
+          Circle()
+            .width('90vp')
+            .height('90vp')
+            .fill(Color.White)
+            .fillOpacity(0)
+            .opacity(0.8)
+            .border({ radius: '90vp', width: '0.5vp', color: $r("app.color.color_666") })
+            .linearGradient({
+              angle: 135,
+              direction: GradientDirection.Left,
+              colors: [[$r("app.color.color_666"), 0.7], [$r("app.color.color_666"), 0.7]]
+            })
+        }else{
+          Circle()
+            .width('90vp')
+            .height('90vp')
+            .fill(Color.White)
+            .fillOpacity(0)
+            .opacity(0.5)
+            .border({ radius: '90vp', width: '0.5vp', color: $r("app.color.colorPrimary") })
+            .linearGradient({
+              angle: 135,
+              direction: GradientDirection.Left,
+              colors: [[$r("app.color.colorPrimary"), 0.7], [$r("app.color.colorPrimary"), 0.7]]
+            })
+        }
         Text(secToTime(this.timerNum).toString())
-          .fontSize("20fp")
+          .fontSize(20)
           .textAlign(TextAlign.Center)
-          .fontColor($r("app.color.colorPrimary"))
-          .border({ width: 1 })
-          .padding("10vp")
+          .fontColor($r("app.color.color_fff"))
           .width('100%')
           .height('100%')
-          .onClick(() => {
-            this.singleEvent()
+          .onClick(res => {
+            this.isDoubleFlag = false
+            for(let i = 0; i < this.mHits.length - 1; i++) {
+              this.mHits[i] = this.mHits[i + 1]
+            }
+            this.mHits[this.mHits.length - 1] = new Date().getTime()
+            if(this.mHits[0] >= new Date().getTime() - this.DURATION) {
+              this.doubleEvent()
+              this.isDoubleFlag = true
+              this.mHits = Array(this.COUNTS)
+            } else {
+              this.singleClickId = setTimeout(()=>{
+                if(!this.isDoubleFlag) {
+                  this.singleEvent()
+                }
+              }, 300)
+            }
           })
           .gesture(
           GestureGroup(GestureMode.Exclusive,
-          TapGesture({ count: 2 })
-            .onAction(() => {
-              this.doubleEvent()
-            }),
           LongPressGesture({ fingers: 1, repeat: false, duration: 1000 })
             .onAction(() => {
               this.longEvent()
@@ -246,18 +311,6 @@ struct FloatBall {
             })
           ))
       }
-
-      Flex({ direction: FlexDirection.Column, alignItems: ItemAlign.Center }) {
-        Text("FPS:" + this.FpsTimer)
-          .textAlign(TextAlign.Center)
-          .fontSize("10fp")
-          .fontColor($r("app.color.colorPrimary"))
-          .border({ width: 1 })
-          .padding("5vp")
-          .width('100%')
-          .height('100%')
-      }.width('100%').height('50%')
-
     }.width('100%').height('100%')
 
   }

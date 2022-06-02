@@ -13,5 +13,7 @@
  * limitations under the License.
  */
 
-export const AppFileDir = "/data/accounts/account_0/appdata/com.ohos.gameperceptio/files/" //应用files路径
+//实际存储路径 对应 沙箱路径 globalThis.abilityContext.getApplicationContext().filesDir 即/data/storage/base/files
+export const AppFileRealDir = "/data/app/el2/100/base/com.ohos.gameperceptio/files/"
+
 

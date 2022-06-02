@@ -51,12 +51,12 @@ export class SwitchItem {
 export class CollectItem {
     public name: string
     public isSupport: boolean
-    public enable: boolean
+    public isSelect: boolean
 
-    constructor(name: string, isSupport: boolean, enable: boolean) {
+    constructor(name: string, isSupport: boolean, isSelect: boolean) {
         this.name = name
         this.isSupport = isSupport
-        this.enable = enable
+        this.isSelect = isSelect
     }
 }
 

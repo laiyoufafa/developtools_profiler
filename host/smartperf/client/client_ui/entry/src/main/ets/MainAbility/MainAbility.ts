@@ -16,8 +16,11 @@
 import Ability from '@ohos.application.Ability'
 import { initDb } from '../common/database/LocalRepository'
 import { FloatWindowFun } from '../common/ui/floatwindow/FloatWindowFun'
+import { NativeTaskFun } from "../common/profiler/NativeTaskFun"
+import { NetWork } from '../common/profiler/item/NetWork';
 import BundleManager from '../common/utils/BundleMangerUtils';
 import SPLogger from '../common/utils/SPLogger'
+
 
 var abilityWindowStage
 const TAG = "MainAbility"
@@ -30,9 +33,10 @@ export default class MainAbility extends Ability {
         // Ability is creating, initialize resources for this ability
         BundleManager.getAppList().then(appList => {
             globalThis.appList = appList
-
+            SPLogger.DEBUG(TAG,"appList-->" + JSON.stringify(appList))
+            SPLogger.DEBUG(TAG,"appList-->-->-->-->-->-->-->-->-->-->-->-->-->-->-->-->-->-->")
+            SPLogger.DEBUG(TAG,"globalThis.appList-->" + JSON.stringify(globalThis.appList))
         })
-        SPLogger.DEBUG(TAG,"getReportListDb" + "--> MainAbility createDd 1")
     }
 
     onDestroy() {
@@ -58,6 +62,9 @@ export default class MainAbility extends Ability {
         initDb()
         // Ability has brought to foreground
         FloatWindowFun.initAllFun()
+        NativeTaskFun.initAllFun()
+        //check netWork
+        NetWork.getInstance().init()
     }
 
     onBackground() {

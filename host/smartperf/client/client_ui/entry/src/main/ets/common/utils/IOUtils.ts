@@ -12,7 +12,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 import fileio from '@ohos.fileio';
 import SPLogger from '../utils/SPLogger'
 /**
@@ -22,10 +21,10 @@ import SPLogger from '../utils/SPLogger'
  */
 const TAG = "IOUtils"
 export function createFilePath(path: string, data: string) {
-    SPLogger.INFO(TAG,"createFilePath:called" + path);
+    SPLogger.INFO(TAG,"createFilePath called:" + path);
     let writer
     try {
-        fileio.mkdirSync("/data/accounts/account_0/appdata/com.ohos.gameperceptio/files/" + globalThis.dbTime)
+        fileio.mkdirSync(globalThis.abilityContext.getApplicationContext().filesDir + "/" + globalThis.dbTime)
     } catch (err) {
         SPLogger.INFO(TAG,"createFilePath:mkdirSync" + err);
     }
