@@ -10,8 +10,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import("//build/ohos.gni")
 import("//build/config/ohos/config.gni")
+import("//build/ohos.gni")
 
 ## Build so {{{
 config("config") {
@@ -30,24 +30,19 @@ config("public_config") {
 
 ohos_shared_library("smartperf") {
   sources = [
-    "profiler.cpp",
-    "gp_utils.cpp",
     "FPS.cpp",
     "RAM.cpp",
-  ] 
-  libs = [ "${clang_base_path}/lib/${abi_target}/c++/libc++.a" ]
-  include_dirs = [
-    "//developtools/profiler/host/smartperf/client/client_ui/entry/src/main/cpp",
+    "gp_utils.cpp",
+    "profiler.cpp",
   ]
+  libs = [ "${clang_base_path}/lib/${abi_target}/c++/libc++.a" ]
+  include_dirs = [ "//developtools/profiler/host/smartperf/client/client_ui/entry/src/main/cpp" ]
   configs = [ ":config" ]
 
-  deps = [ 
-    "//foundation/arkui/napi:ace_napi",
-  ]
+  deps = [ "//foundation/arkui/napi:ace_napi" ]
 
   output_extension = "so"
   subsystem_name = "developtools"
   part_name = "profiler"
 }
-
 ## Build so }}}
