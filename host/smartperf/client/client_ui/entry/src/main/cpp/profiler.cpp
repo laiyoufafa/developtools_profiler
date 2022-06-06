@@ -44,7 +44,7 @@ static napi_value getFpsData(napi_env env, napi_callback_info info)
     napi_typeof(env, args[0], &valuetype0);
     char pkgName[64] = {0};
     size_t typeLen = 0;
-    napi_get_value_string_utf8(env, args[0], pkgName, sizeof(pkgname) - 1, &typeLen);
+    napi_get_value_string_utf8(env, args[0], pkgName, sizeof(pkgName) - 1, &typeLen);
     FPS::getInstance()->setPackageName(pkgName);
 
     std::promise<FpsInfo> promiseObj;
@@ -56,7 +56,7 @@ static napi_value getFpsData(napi_env env, napi_callback_info info)
     std::string fps = std::to_string(fpsInfo.fps);
     std::vector<long long> fpsJitters = fpsInfo.jitters;
     std::string fps_str = fps + "|";
-    for (int i = 0; i < fpsJitters.size(); ++i) {
+    for (size_t i = 0; i < fpsJitters.size(); ++i) {
         fps_str += std::to_string(fpsJitters[i]);
         fps_str += "==";
     }
@@ -74,7 +74,7 @@ static napi_value getRamData(napi_env env, napi_callback_info info)
     napi_typeof(env, args[0], &valuetype0);
     char pidNumber[64] = {0};
     size_t typeLen = 0;
-    napi_get_value_string_utf8(env, args[0], pidNumber, sizeof(pkgname) - 1, &typeLen);
+    napi_get_value_string_utf8(env, args[0], pidNumber, sizeof(pidNumber) - 1, &typeLen);
     std::map<std::string, std::string> gramInfo = RAM::getInstance()->getRamInfo(pidNumber);
     std::string ram_pss = gramInfo["pss"];
     napi_value ram_result;
@@ -105,7 +105,7 @@ static napi_value checkAccess(napi_env env, napi_callback_info info)
     napi_typeof(env, args[0], &valuetype0);
     char pathName[64] = {0};
     size_t typeLen = 0;
-    napi_get_value_string_utf8(env, args[0], pathName, sizeof(pkgname) - 1, &typeLen);
+    napi_get_value_string_utf8(env, args[0], pathName, sizeof(pathName) - 1, &typeLen);
     std::string pathNameStr = pathName;
     std::string status = "PermissionDenied";
     bool isAccess = gpUtils::canOpen(pathNameStr);
