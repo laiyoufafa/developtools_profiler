@@ -364,9 +364,8 @@ bool PluginService::RemovePluginInfo(const PluginInfo& pluginInfo)
 void PluginService::ReadShareMemory(PluginContext& context)
 {
     CHECK_NOTNULL(context.shareMemoryBlock, NO_RETVAL, "smb of %s is null!", context.path.c_str());
-    uint64_t value = 0;
     if (context.eventNotifier) {
-        value = context.eventNotifier->Take();
+        context.eventNotifier->Take();
     }
     while (true) {
         auto pluginData = std::make_shared<ProfilerPluginData>();
