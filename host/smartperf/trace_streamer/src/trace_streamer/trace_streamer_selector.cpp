@@ -28,9 +28,11 @@
 #include "measure_filter.h"
 #include "parser/bytrace_parser/bytrace_parser.h"
 #include "parser/htrace_parser/htrace_parser.h"
+#include "perf_data_filter.h"
 #include "process_filter.h"
 #include "slice_filter.h"
 #include "stat_filter.h"
+#include "string_help.h"
 #include "symbols_filter.h"
 #include "system_event_measure_filter.h"
 
@@ -120,6 +122,7 @@ void TraceStreamerSelector::InitFilter()
         std::make_unique<SystemEventMeasureFilter>(traceDataCache_.get(), streamFilters_.get(), E_SYS_MEMORY_FILTER);
     streamFilters_->sysEventVMemMeasureFilter_ = std::make_unique<SystemEventMeasureFilter>(
         traceDataCache_.get(), streamFilters_.get(), E_SYS_VIRTUAL_MEMORY_FILTER);
+    streamFilters_->perfDataFilter_ = std::make_unique<PerfDataFilter>(traceDataCache_.get(), streamFilters_.get());
 }
 
 void TraceStreamerSelector::WaitForParserEnd()
@@ -130,11 +133,22 @@ void TraceStreamerSelector::WaitForParserEnd()
     if (fileType_ == TRACE_FILETYPE_BY_TRACE) {
         bytraceParser_->WaitForParserEnd();
     }
+    traceDataCache_->UpdateTraceRange();
 }
 
 MetaData* TraceStreamerSelector::GetMetaData()
 {
     return traceDataCache_->GetMetaData();
+}
+
+void TraceStreamerSelector::SetDataType(TraceFileType type)
+{
+    fileType_ = type;
+    if (fileType_ == TRACE_FILETYPE_H_TRACE) {
+        htraceParser_ = std::make_unique<HtraceParser>(traceDataCache_.get(), streamFilters_.get());
+    } else if (fileType_ == TRACE_FILETYPE_BY_TRACE) {
+        bytraceParser_ = std::make_unique<BytraceParser>(traceDataCache_.get(), streamFilters_.get());
+    }
 }
 bool TraceStreamerSelector::ParseTraceDataSegment(std::unique_ptr<uint8_t[]> data, size_t size)
 {
@@ -201,6 +215,10 @@ int TraceStreamerSelector::SearchDatabase(const std::string& sql,
 int TraceStreamerSelector::SearchDatabase(const std::string& sql, uint8_t* out, int outLen)
 {
     return traceDataCache_->SearchDatabase(sql, out, outLen);
+}
+void TraceStreamerSelector::SetCancel(bool cancel)
+{
+    traceDataCache_->SetCancel(cancel);
 }
 } // namespace TraceStreamer
 } // namespace SysTuning

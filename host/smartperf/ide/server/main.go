@@ -1,3 +1,16 @@
+// Copyright (C) 2022 Huawei Device Co., Ltd.
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package main
 
 //遇到报错请在当前目录下执行这个命令： go mod download golang.org/x/text
@@ -7,6 +20,7 @@ import (
     "crypto/rsa"
     "crypto/x509"
     "crypto/x509/pkix"
+	"encoding/json"
     "encoding/pem"
     "math/big"
     "net"
@@ -26,7 +40,7 @@ import (
     "time"
 )
 
-const HttpPort = 9001
+const HttpPort = 9000
 
 var exPath string
 
@@ -107,6 +121,7 @@ func main() {
         mime.AddExtensionType(".js", "application/javascript")
         log.Println(mime.TypeByExtension(".js"))
         mux.HandleFunc("/upload", uploadHandler)
+        mux.HandleFunc("/logger", consoleHandler)
         mux.Handle("/upload/", http.StripPrefix("/upload/", http.FileServer(http.Dir(exPath+"/upload"))))
         fs := http.FileServer(http.Dir(exPath + "/"))
         mux.Handle("/application/", http.StripPrefix("/application/", cors(fs, version)))
@@ -122,6 +137,29 @@ func main() {
     select {}
 }
 
+type LoggerReq struct {
+	FileName string `json:"fileName"`
+	FileSize string `json:"fileSize"`
+}
+
+func consoleHandler(w http.ResponseWriter, r *http.Request) {
+	chekDir(exPath + "/logger")
+	var now = time.Now()
+	var fileName = fmt.Sprintf("%d-%d-%d", now.Year(), now.Month(), now.Day())
+	dst, err := os.OpenFile(exPath+"/logger/"+fileName, os.O_WRONLY|os.O_CREATE|os.O_APPEND|os.O_SYNC, 0666)
+	CheckErr(err)
+	contentType := r.Header["Content-Type"]
+	if len(contentType) > 0 {
+		contentTypeName := contentType[0]
+		if strings.HasPrefix(contentTypeName, "application/json") {
+			decoder := json.NewDecoder(r.Body)
+			var req LoggerReq
+			decoder.Decode(&req)
+			dst.WriteString(fmt.Sprintf("%s %s (%s M)\n", now.Format("2006-01-02 15:04:05"), req.FileName, req.FileSize))
+			fmt.Fprintf(w, fmt.Sprintf("日志写入成功%s", exPath))
+		}
+	}
+}
 func uploadHandler(w http.ResponseWriter, r *http.Request) {
     defer func() {
         var err = recover()

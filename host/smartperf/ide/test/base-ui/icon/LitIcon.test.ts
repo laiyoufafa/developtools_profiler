@@ -56,4 +56,43 @@ describe("testLitIcon Test", () => {
         litIcon.name = "sss"
         expect(litIcon.name).toBe("sss")
     });
+
+    it('testLitIcon07', () => {
+        let litIcon = new LitIcon();
+        expect(litIcon.color = "#FFF").not.toBeUndefined();
+    });
+
+    it('testLitIcon07', () => {
+        let litIcon = new LitIcon();
+        expect(litIcon.initHtml()).toMatchInlineSnapshot(`
+"
+            <style>
+                :host{
+                    font-size: inherit;
+                    display: inline-block;
+                    /*transition: .3s;*/
+                 }
+                 :host([spin]){
+                    animation: rotate 1.75s linear infinite;
+                 }
+                 @keyframes rotate {
+                    to{
+                        transform: rotate(360deg);
+                    }         
+                 }
+                 .icon{
+                    display: block;
+                    width: 1em;
+                    height: 1em;
+                    margin: auto;
+                    fill: currentColor;
+                    overflow: hidden;
+                 }
+            </style>
+            <svg class=\\"icon\\" id=\\"icon\\" aria-hidden=\\"true\\" viewBox=\\"0 0 1024 1024\\">
+                 <use id=\\"use\\"></use>
+            </svg>
+            "
+`);
+    });
 })

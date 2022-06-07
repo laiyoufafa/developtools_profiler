@@ -19,11 +19,10 @@ import {Utils} from "./trace/base/Utils.js";
 
 @element('stack-bar')
 export class StackBar extends BaseElement {
-
     private container: HTMLDivElement | undefined | null;
 
     static get observedAttributes() {
-        return ['mode'];
+        return ['mode'];// max min hidden show 三种状态
     }
 
     set data(val: Array<SelectionData>) {
@@ -63,19 +62,21 @@ export class StackBar extends BaseElement {
 
     initHtml(): string {
         return `
-    <style>
-    :host([mode='hidden']){
-        display: none;
-    }
-    :host{
-        display: block;
-    }
-    .state-text{
-        width: 10%;display: inline-block;overflow: hidden;white-space: nowrap;padding: 5px; margin-right: 2px;font-size: 9pt;
-    }
-    </style>
-    <div style="display: flex;flex-direction: row;width: 100%;" id="container">
-    </div>`;
+        <style>
+            :host([mode='hidden']){
+                display: none;
+            }
+            :host{
+                display: block;
+                /*background-color: rebeccapurple;*/
+            }
+            .state-text{
+                width: 10%;display: inline-block;overflow: hidden;white-space: nowrap;padding: 5px; margin-right: 2px;font-size: 9pt;
+            }
+            </style>
+            <div style="display: flex;flex-direction: row;width: 100%;" id="container">
+            </div>
+        `;
     }
 
     getStateWidth(state: string): number {

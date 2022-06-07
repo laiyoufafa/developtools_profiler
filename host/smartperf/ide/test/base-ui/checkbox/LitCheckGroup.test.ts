@@ -36,4 +36,33 @@ describe('LitCheckGroup Test', ()=>{
         expect(litCheckGroup.value).toEqual([]);
     });
 
+    it('LitCheckGroupTest03', function () {
+        let litCheckGroup = new LitCheckGroup();
+        expect(litCheckGroup.initHtml()).toMatchInlineSnapshot(`
+"
+        <style>   
+        :host {
+            display: -webkit-flex; 
+            display: flex;
+            flex-direction: column;
+        }
+        :host([direction]) {
+            flex-direction: null;
+        }
+        :host(:not([direction])) {
+            flex-direction: column;
+        }
+        
+        :host([layout=\\"compact\\"]) {
+            gap:5px;
+        }
+        :host([layout=\\"dispersion\\"]) {
+           gap:10px;
+        }
+        
+        </style>
+        <slot class=\\"check-group\\"></slot>"
+`);
+    });
+
 })

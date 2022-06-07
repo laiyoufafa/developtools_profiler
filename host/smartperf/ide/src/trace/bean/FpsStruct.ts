@@ -23,10 +23,9 @@ export class FpsStruct extends BaseStruct {
     static maxFpsName: string = "0 FPS"
     static hoverFpsStruct: FpsStruct | undefined;
     static selectFpsStruct: FpsStruct | undefined;
-
     fps: number | undefined
     startNS: number | undefined = 0
-    dur: number | undefined
+    dur: number | undefined //自补充，数据库没有返回
 
     static draw(ctx: CanvasRenderingContext2D, data: FpsStruct) {
         if (data.frame) {
@@ -78,3 +77,4 @@ export class FpsStruct extends BaseStruct {
 }
 
 const textPadding = 2;
+

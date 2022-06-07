@@ -42,10 +42,10 @@ protected:
  */
 HWTEST_F(ParserTest, BytraceParserTest, TestSize.Level1)
 {
-    TS_LOGI("test9-1");
-    const std::string tracePath = "/data/resource/ut_bytrace_input_full.txt";
-    const std::string utGoldDb = "/data/resource/ut_bytrace_input_full_gold.db";
-    const std::string dbPath = "/data/resource/out_db1.db";
+    TS_LOGI("test19-1");
+    const std::string tracePath = "data/resource/ut_bytrace_input_full.txt";
+    const std::string utGoldDb = "data/resource/ut_bytrace_input_full_gold.db";
+    const std::string dbPath = "data/resource/out_db1.db";
     constexpr size_t readSize = 1024 * 1024;
     constexpr uint32_t lineLength = 256;
 
@@ -83,7 +83,7 @@ HWTEST_F(ParserTest, BytraceParserTest, TestSize.Level1)
         FILE* file2 = nullptr;
         char line1[lineLength];
         char line2[lineLength];
-        const std::string command1 = "md5sum /data/resource/ut_bytrace_input_full_gold.db";
+        const std::string command1 = "md5sum data/resource/ut_bytrace_input_full_gold.db";
         const std::string md5DbPath = "md5sum "+ dbPath;
         file1 = popen(command1.c_str(), "r");
         file2 = popen(md5DbPath.c_str(), "r");
@@ -112,10 +112,10 @@ HWTEST_F(ParserTest, BytraceParserTest, TestSize.Level1)
  */
 HWTEST_F(ParserTest, HtraceParserTest, TestSize.Level1)
 {
-    TS_LOGI("test9-2");
-    const std::string tracePath = "/data/resource/htrace.bin";
-    const std::string utGoldDb = "/data/resource/htrace_gold.db";
-    const std::string dbPath = "/data/resource/out_db2.db";
+    TS_LOGI("test19-2");
+    const std::string tracePath = "data/resource/htrace.bin";
+    const std::string utGoldDb = "data/resource/htrace_gold.db";
+    const std::string dbPath = "data/resource/out_db2.db";
     constexpr size_t readSize = 1024;
     constexpr uint32_t lineLength = 256;
 
@@ -154,7 +154,7 @@ HWTEST_F(ParserTest, HtraceParserTest, TestSize.Level1)
         FILE* file2 = nullptr;
         char line1[lineLength];
         char line2[lineLength];
-        const std::string command1 = "md5sum /data/resource/htrace_gold.db";
+        const std::string command1 = "md5sum data/resource/htrace_gold.db";
         const std::string md5DbPath = "md5sum "+ dbPath;
         file1 = popen(command1.c_str(), "r");
         file2 = popen(md5DbPath.c_str(), "r");

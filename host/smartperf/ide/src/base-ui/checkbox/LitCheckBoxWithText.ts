@@ -23,7 +23,7 @@ export class LitCheckBoxWithText extends BaseElement {
     private _upLimit: HTMLInputElement | undefined;
 
     static get observedAttributes() {
-        return ['text', 'lowerlimit', 'uplimit', 'checked']
+        return ['text', 'lowerLimit', 'upLimit', 'checked']
     }
 
     get text(): string {
@@ -34,20 +34,20 @@ export class LitCheckBoxWithText extends BaseElement {
         this.setAttribute("text", text)
     }
 
-    get lowerlimit(): string {
-        return this.getAttribute("lowerlimit") || "0"
+    get lowerLimit(): string {
+        return this.getAttribute("lowerLimit") || "0"
     }
 
-    set lowerlimit(lower: string) {
-        this.setAttribute("lowerlimit", lower)
+    set lowerLimit(lower: string) {
+        this.setAttribute("lowerLimit", lower)
     }
 
-    get uplimit(): string {
-        return this.getAttribute("uplimit") || "∞"
+    get upLimit(): string {
+        return this.getAttribute("upLimit") || "∞"
     }
 
-    set uplimit(uplimit: string) {
-        this.setAttribute("uplimit", uplimit)
+    set upLimit(upLimit: string) {
+        this.setAttribute("upLimit", upLimit)
     }
 
     get checked() {
@@ -70,43 +70,41 @@ export class LitCheckBoxWithText extends BaseElement {
 
     initHtml(): string {
         return `
-<style>
-:host{
- display: grid;
- grid-template-columns: 1fr min-content min-content;
- grid-column-gap: 10px;
- text-align: center;
- height: 16px;
-}
-.input-style {
-  width: 48px;
-  height: 16px;
-  border: 1px solid #B3B3B3;
-  text-align: center;
-}
+        <style>
+        :host{
+         display: grid;
+         grid-template-columns: 1fr min-content min-content;
+         grid-column-gap: 10px;
+         text-align: center;
+         height: 16px;
+        }
+        .input-style {
+          width: 48px;
+          height: 16px;
+          border: 1px solid #B3B3B3;
+          text-align: center;
+        }
 
-</style>
-<check-des-box id ='checkbox' value="${this.text}"></check-des-box>
-<input class="input-style" id="textLowerLimit" value="${this.lowerlimit}"/><input class="input-style" id="_upLimit" value="${this.uplimit}"/>
+        </style>
+        <check-des-box id ='checkbox' value="${this.text}"></check-des-box>
+        <input class="input-style" id="textLowerLimit" value="${this.lowerLimit}"/>
+        <input class="input-style" id="_upLimit" value="${this.upLimit}"/>
         `;
     }
 
     attributeChangedCallback(name: string, oldValue: string, newValue: string) {
         if (name == 'checked') {
-            if (newValue !== null) {
-                this._checkBox!.checked = true;
-            } else {
-                this._checkBox!.checked = false;
-            }
+            this._checkBox!.checked = newValue !== null;
         }
         if (name == 'text') {
             this._checkBox?.setAttribute('value', newValue);
         }
-        if (name == 'lowerlimit') {
+        if (name == 'lowerLimit') {
             this._lowerLimit!.textContent = newValue
         }
-        if (name == 'uplimit') {
+        if (name == 'upLimit') {
             this._upLimit!.textContent = newValue
         }
     }
+
 }

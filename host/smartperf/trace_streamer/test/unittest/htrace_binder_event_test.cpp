@@ -47,6 +47,7 @@ public:
  */
 HWTEST_F(HtraceBinderEventTest, BinderSenderfilterNeedReply, TestSize.Level1)
 {
+    TS_LOGI("test8-1");
     std::string appName = "app1";
     int64_t ts1 = 100;
     uint32_t tid1 = 1;
@@ -78,7 +79,7 @@ HWTEST_F(HtraceBinderEventTest, BinderSenderfilterNeedReply, TestSize.Level1)
 
     HtraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     eventParser.ParseDataItem(&ftraceCpuDetail, TS_CLOCK_BOOTTIME);
-    stream_.streamFilters_->binderFilter_->FinishBinderEvent();
+    eventParser.FilterAllEvents();
     EXPECT_TRUE(stream_.traceDataCache_->GetConstInternalSlicesData().Size() == 1);
     EXPECT_TRUE(stream_.traceDataCache_->GetConstInternalSlicesData().ArgSetIdsData()[0] == 0);
     EXPECT_TRUE(stream_.traceDataCache_->GetConstArgSetData().Size() == 7);
@@ -91,7 +92,7 @@ HWTEST_F(HtraceBinderEventTest, BinderSenderfilterNeedReply, TestSize.Level1)
  */
 HWTEST_F(HtraceBinderEventTest, BinderSenderfilterNeedReplyAndReceive, TestSize.Level1)
 {
-    TS_LOGI("test9-2");
+    TS_LOGI("test8-2");
     std::string appName = "app1";
     int64_t ts1 = 100;
     uint32_t tid1 = 1;
@@ -123,7 +124,7 @@ HWTEST_F(HtraceBinderEventTest, BinderSenderfilterNeedReplyAndReceive, TestSize.
 
     HtraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     eventParser.ParseDataItem(&ftraceCpuDetail, TS_CLOCK_BOOTTIME);
-    stream_.streamFilters_->binderFilter_->FinishBinderEvent();
+    eventParser.FilterAllEvents();
     EXPECT_TRUE(stream_.traceDataCache_->GetConstInternalSlicesData().Size() == 1);
     EXPECT_TRUE(stream_.traceDataCache_->GetConstArgSetData().Size() == 7);
 
@@ -142,7 +143,7 @@ HWTEST_F(HtraceBinderEventTest, BinderSenderfilterNeedReplyAndReceive, TestSize.
     binderReceivedEvent->set_debug_id(transactionId1);
     ftraceEvent2->set_allocated_binder_transaction_received_format(binderReceivedEvent);
     eventParser.ParseDataItem(&ftraceCpuDetail2, TS_CLOCK_BOOTTIME);
-    stream_.streamFilters_->binderFilter_->FinishBinderEvent();
+    eventParser.FilterAllEvents();
     EXPECT_TRUE(stream_.traceDataCache_->GetConstInternalSlicesData().Size() == 2);
     EXPECT_TRUE(stream_.traceDataCache_->GetConstInternalSlicesData().ArgSetIdsData()[0] == 0);
     EXPECT_TRUE(stream_.traceDataCache_->GetConstInternalSlicesData().ArgSetIdsData()[1] == 1);
@@ -156,6 +157,7 @@ HWTEST_F(HtraceBinderEventTest, BinderSenderfilterNeedReplyAndReceive, TestSize.
  */
 HWTEST_F(HtraceBinderEventTest, BinderSenderfilterNeedReplyAndReceiveWithAlloc, TestSize.Level1)
 {
+    TS_LOGI("test8-3");
     int64_t ts1 = 100;
     std::string appName = "app1";
     uint32_t tid1 = 1;
@@ -187,7 +189,7 @@ HWTEST_F(HtraceBinderEventTest, BinderSenderfilterNeedReplyAndReceiveWithAlloc, 
 
     HtraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     eventParser.ParseDataItem(&ftraceCpuDetail, TS_CLOCK_BOOTTIME);
-    stream_.streamFilters_->binderFilter_->FinishBinderEvent();
+    eventParser.FilterAllEvents();
     EXPECT_TRUE(stream_.traceDataCache_->GetConstInternalSlicesData().Size() == 1);
     EXPECT_TRUE(stream_.traceDataCache_->GetConstArgSetData().Size() == 7);
 
@@ -208,7 +210,7 @@ HWTEST_F(HtraceBinderEventTest, BinderSenderfilterNeedReplyAndReceiveWithAlloc, 
     ftraceEvent2->set_comm(appName);
     ftraceEvent2->set_allocated_binder_transaction_alloc_buf_format(binderAllocEvent);
     eventParser.ParseDataItem(&ftraceCpuDetail2, TS_CLOCK_BOOTTIME);
-    stream_.streamFilters_->binderFilter_->FinishBinderEvent();
+    eventParser.FilterAllEvents();
     EXPECT_TRUE(stream_.traceDataCache_->GetConstArgSetData().Size() == 9);
 
     ts1 = 200;
@@ -226,7 +228,7 @@ HWTEST_F(HtraceBinderEventTest, BinderSenderfilterNeedReplyAndReceiveWithAlloc, 
     binderReceivedEvent->set_debug_id(transactionId1);
     ftraceEvent3->set_allocated_binder_transaction_received_format(binderReceivedEvent);
     eventParser.ParseDataItem(&ftraceCpuDetail3, TS_CLOCK_BOOTTIME);
-    stream_.streamFilters_->binderFilter_->FinishBinderEvent();
+    eventParser.FilterAllEvents();
     EXPECT_TRUE(stream_.traceDataCache_->GetConstInternalSlicesData().Size() == 2);
     EXPECT_TRUE(stream_.traceDataCache_->GetConstInternalSlicesData().ArgSetIdsData()[0] == 0);
     EXPECT_TRUE(stream_.traceDataCache_->GetConstInternalSlicesData().ArgSetIdsData()[1] == 1);
@@ -240,7 +242,7 @@ HWTEST_F(HtraceBinderEventTest, BinderSenderfilterNeedReplyAndReceiveWithAlloc, 
  */
 HWTEST_F(HtraceBinderEventTest, BinderSenderfilterNeedReplyAndReceiveNotmatch, TestSize.Level1)
 {
-    TS_LOGI("test9-4");
+    TS_LOGI("test8-4");
     std::string appName = "app1";
     int64_t ts1 = 100;
     uint32_t tid1 = 1;
@@ -272,7 +274,7 @@ HWTEST_F(HtraceBinderEventTest, BinderSenderfilterNeedReplyAndReceiveNotmatch, T
 
     HtraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     eventParser.ParseDataItem(&ftraceCpuDetail, TS_CLOCK_BOOTTIME);
-    stream_.streamFilters_->binderFilter_->FinishBinderEvent();
+    eventParser.FilterAllEvents();
     EXPECT_TRUE(stream_.traceDataCache_->GetConstInternalSlicesData().Size() == 1);
 
     ts1 = 200;
@@ -291,7 +293,7 @@ HWTEST_F(HtraceBinderEventTest, BinderSenderfilterNeedReplyAndReceiveNotmatch, T
     binderReceivedEvent->set_debug_id(transactionId2);
     ftraceEvent2->set_allocated_binder_transaction_received_format(binderReceivedEvent);
     eventParser.ParseDataItem(&ftraceCpuDetail2, TS_CLOCK_BOOTTIME);
-    stream_.streamFilters_->binderFilter_->FinishBinderEvent();
+    eventParser.FilterAllEvents();
     EXPECT_TRUE(stream_.traceDataCache_->GetConstInternalSlicesData().Size() == 1);
     EXPECT_TRUE(stream_.traceDataCache_->GetConstInternalSlicesData().ArgSetIdsData()[0] == 0);
 }
@@ -303,7 +305,7 @@ HWTEST_F(HtraceBinderEventTest, BinderSenderfilterNeedReplyAndReceiveNotmatch, T
  */
 HWTEST_F(HtraceBinderEventTest, BinderSenderfilterNoNeedReply, TestSize.Level1)
 {
-    TS_LOGI("test9-5");
+    TS_LOGI("test8-5");
     std::string appName = "app1";
     int64_t ts1 = 100;
     uint32_t tid1 = 1;
@@ -335,7 +337,7 @@ HWTEST_F(HtraceBinderEventTest, BinderSenderfilterNoNeedReply, TestSize.Level1)
 
     HtraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     eventParser.ParseDataItem(&ftraceCpuDetail, TS_CLOCK_BOOTTIME);
-    stream_.streamFilters_->binderFilter_->FinishBinderEvent();
+    eventParser.FilterAllEvents();
     EXPECT_TRUE(stream_.traceDataCache_->GetConstInternalSlicesData().Size() == 1);
 }
 
@@ -346,7 +348,7 @@ HWTEST_F(HtraceBinderEventTest, BinderSenderfilterNoNeedReply, TestSize.Level1)
  */
 HWTEST_F(HtraceBinderEventTest, BinderSenderNoneedReplyAndReceivefilter, TestSize.Level1)
 {
-    TS_LOGI("test9-6");
+    TS_LOGI("test8-6");
     std::string appName = "app1";
     int64_t ts1 = 100;
     uint32_t tid1 = 1;
@@ -378,7 +380,7 @@ HWTEST_F(HtraceBinderEventTest, BinderSenderNoneedReplyAndReceivefilter, TestSiz
 
     HtraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     eventParser.ParseDataItem(&ftraceCpuDetail, TS_CLOCK_BOOTTIME);
-    stream_.streamFilters_->binderFilter_->FinishBinderEvent();
+    eventParser.FilterAllEvents();
     EXPECT_TRUE(stream_.traceDataCache_->GetConstInternalSlicesData().Size() == 1);
 
     ts1 = 200;
@@ -396,7 +398,7 @@ HWTEST_F(HtraceBinderEventTest, BinderSenderNoneedReplyAndReceivefilter, TestSiz
     binderReceivedEvent->set_debug_id(transactionId1);
     ftraceEvent2->set_allocated_binder_transaction_received_format(binderReceivedEvent);
     eventParser.ParseDataItem(&ftraceCpuDetail2, TS_CLOCK_BOOTTIME);
-    stream_.streamFilters_->binderFilter_->FinishBinderEvent();
+    eventParser.FilterAllEvents();
     EXPECT_TRUE(stream_.traceDataCache_->GetConstInternalSlicesData().Size() == 2);
     EXPECT_TRUE(stream_.traceDataCache_->GetConstInternalSlicesData().ArgSetIdsData()[0] == 0);
     EXPECT_TRUE(stream_.traceDataCache_->GetConstInternalSlicesData().ArgSetIdsData()[1] == 1);
@@ -409,7 +411,7 @@ HWTEST_F(HtraceBinderEventTest, BinderSenderNoneedReplyAndReceivefilter, TestSiz
  */
 HWTEST_F(HtraceBinderEventTest, BinderSenderNoneedReplyAndReceivefilterNotmatch, TestSize.Level1)
 {
-    TS_LOGI("test9-7");
+    TS_LOGI("test8-7");
     std::string appName = "app1";
     int64_t ts1 = 100;
     uint32_t tid1 = 1;
@@ -441,7 +443,7 @@ HWTEST_F(HtraceBinderEventTest, BinderSenderNoneedReplyAndReceivefilterNotmatch,
 
     HtraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     eventParser.ParseDataItem(&ftraceCpuDetail, TS_CLOCK_BOOTTIME);
-    stream_.streamFilters_->binderFilter_->FinishBinderEvent();
+    eventParser.FilterAllEvents();
     EXPECT_TRUE(stream_.traceDataCache_->GetConstInternalSlicesData().Size() == 1);
 
     ts1 = 200;
@@ -460,7 +462,7 @@ HWTEST_F(HtraceBinderEventTest, BinderSenderNoneedReplyAndReceivefilterNotmatch,
     binderReceivedEvent->set_debug_id(transactionId2);
     ftraceEvent2->set_allocated_binder_transaction_received_format(binderReceivedEvent);
     eventParser.ParseDataItem(&ftraceCpuDetail2, TS_CLOCK_BOOTTIME);
-    stream_.streamFilters_->binderFilter_->FinishBinderEvent();
+    eventParser.FilterAllEvents();
     EXPECT_TRUE(stream_.traceDataCache_->GetConstInternalSlicesData().Size() == 1);
     EXPECT_TRUE(stream_.traceDataCache_->GetConstInternalSlicesData().ArgSetIdsData()[0] == 0);
 }
@@ -472,7 +474,7 @@ HWTEST_F(HtraceBinderEventTest, BinderSenderNoneedReplyAndReceivefilterNotmatch,
  */
 HWTEST_F(HtraceBinderEventTest, BinderSenderfilterWrongReply, TestSize.Level1)
 {
-    TS_LOGI("test9-8");
+    TS_LOGI("test8-8");
     std::string appName = "app1";
     int64_t ts1 = 100;
     uint32_t tid1 = 1;
@@ -504,8 +506,7 @@ HWTEST_F(HtraceBinderEventTest, BinderSenderfilterWrongReply, TestSize.Level1)
 
     HtraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     eventParser.ParseDataItem(&ftraceCpuDetail, TS_CLOCK_BOOTTIME);
-    stream_.streamFilters_->binderFilter_->FinishBinderEvent();
-    stream_.streamFilters_->binderFilter_->FinishBinderEvent();
+    eventParser.FilterAllEvents();
     EXPECT_TRUE(stream_.traceDataCache_->GetConstInternalSlicesData().Size() == 0);
     EXPECT_TRUE(stream_.traceDataCache_->GetConstArgSetData().Size() == 0);
 }

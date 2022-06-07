@@ -13,118 +13,119 @@
 
 import("//build/ohos.gni")
 import("//build/test.gni")
-
-#import("../../device/base/config.gni")
 import("test_ts.gni")
 
-#module_output_path = "${OHOS_PROFILER_TEST_MODULE_OUTPUT_PATH}/trace_analyzer"
-config("module_private_config") {
-  visibility = [ ":*" ]
-  cflags_cc = [ "-std=c++17" ]
-
-  # if (current_toolchain != host_toolchain) {
-  #   defines = [ "HAVE_HILOG" ]
-  # }
-}
-
-ohos_unittest("hiprofiler_ts_ut") {
-  #  module_out_path = module_output_path
-  sources = [
-    "unittest/binder_filter_test.cpp",
-    "unittest/bytrace_parser_test.cpp",
-    "unittest/clock_filter_test.cpp",
-    "unittest/cpu_filter_test.cpp",
-    "unittest/event_parser_test.cpp",
-    "unittest/filter_filter_test.cpp",
-    "unittest/hilog_parser_test.cpp",
-    "unittest/htrace_binder_event_test.cpp",
-    "unittest/htrace_event_parser_test.cpp",
-    "unittest/htrace_irq_event_test.cpp",
-    "unittest/htrace_mem_parser_test.cpp",
-    "unittest/htrace_sys_mem_parser_test.cpp",
-    "unittest/htrace_sys_vmem_parser_test.cpp",
-    "unittest/irq_filter_test.cpp",
-    "unittest/measure_filter_test.cpp",
-    "unittest/parser_test.cpp",
-    "unittest/process_filter_test.cpp",
-    "unittest/slice_filter_test.cpp",
-  ]
-  deps = [
-    #    "${OHOS_FTRACE_PROTO_DIR}:ftrace_data_cpp",
-    #    "${OHOS_MEMORY_PROTO_DIR}:memory_data_cpp",
-    #    "${OHOS_HILOG_PROTO_DIR}:hilog_data_cpp",
-    #    "${OHOS_NATIVE_HOOK_PROTO_DIR}:native_hook_cpp",
-    #    "${OHOS_HIDUMP_PROTO_DIR}:hidump_data_cpp",
-    #    "${OHOS_SERVICE_PROTO_DIR}:proto_services_cpp",
-    "../src:trace_streamer_source",
-    "//prebuilts/protos:ts_proto_data_cpp",
-    "//third_party/googletest:gtest_main",
-    "//third_party/protobuf:protobuf",
-    "//third_party/protobuf:protobuf_lite",
-    "//third_party/sqlite:sqlite",
-
-    #  "//utils/native/base:utilsecurec",
-  ]
-  include_dirs = [
-    "../src",
-    "../src/trace_data",
-    "../src/table",
-    "../src/filter",
-    "../src/base",
-    "../src/include",
-    "../src/trace_streamer",
-    "../src/parser/bytrace_parser",
-    "../src/parser",
-    "../src/cfg",
-    "../src/parser/htrace_parser",
-    "../src/parser/htrace_parser/htrace_event_parser",
-    "../src/parser/htrace_parser/htrace_cpu_parser",
-    "..",
-    "//third_party/googletest/googletest/include/gtest",
-    "//utils/native/base/include",
-    "//third_party/protobuf/src",
-    "${OHOS_PROTO_GEN}",
-    "${OHOS_FTRACE_PROTO_DIR}",
-    "${OHOS_MEMORY_PROTO_DIR}",
-    "${OHOS_HILOG_PROTO_DIR}",
-    "${OHOS_NATIVE_HOOK_PROTO_DIR}",
-    "${OHOS_HIDUMP_PROTO_DIR}",
-    "${OHOS_SERVICE_PROTO_DIR}",
-  ]
-  cflags = [
-    "-Wno-inconsistent-missing-override",
-    "-Dprivate=public",  #allow test code access private members
-    "-fprofile-arcs",
-    "-ftest-coverage",
-    "-Wno-unused-command-line-argument",
-    "-Wno-format",
-    "-Wno-unused-const-variable",
-    "-Wno-unused-variable",
-    "-Wno-used-but-marked-unused",
-  ]
-  ldflags = [
-    "-fprofile-arcs",
-    "-ftest-coverage",
-    "--coverage",
-  ]
-
-  # external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
-  # public_configs = [ "${OHOS_PROFILER_DIR}/device/base:hiprofiler_test_config" ]
-  configs = [ ":module_private_config" ]
-
-  # subsystem_name = "${OHOS_PROFILER_SUBSYS_NAME}"
+if (target == "test") {
+  ohos_unittest("trace_streamer_ut") {
+    sources = [
+      "unittest/binder_filter_test.cpp",
+      "unittest/bytrace_parser_test.cpp",
+      "unittest/clock_filter_test.cpp",
+      "unittest/cpu_filter_test.cpp",
+      "unittest/event_parser_test.cpp",
+      "unittest/filter_filter_test.cpp",
+      "unittest/hidump_parser_test.cpp",
+      "unittest/hilog_parser_test.cpp",
+      "unittest/htrace_binder_event_test.cpp",
+      "unittest/htrace_diskio_parser_test.cpp",
+      "unittest/htrace_event_parser_test.cpp",
+      "unittest/htrace_irq_event_test.cpp",
+      "unittest/htrace_mem_parser_test.cpp",
+      "unittest/htrace_network_parser_test.cpp",
+      "unittest/htrace_process_parser_test.cpp",
+      "unittest/htrace_sys_mem_parser_test.cpp",
+      "unittest/htrace_sys_vmem_parser_test.cpp",
+      "unittest/http_server_test.cpp",
+      "unittest/irq_filter_test.cpp",
+      "unittest/measure_filter_test.cpp",
+      "unittest/native_hook_parser_test.cpp",
+      "unittest/parser_test.cpp",
+      "unittest/process_filter_test.cpp",
+      "unittest/rpc_server_test.cpp",
+      "unittest/slice_filter_test.cpp",
+      "unittest/wasm_func_test.cpp",
+    ]
+    deps = [
+      "../src:trace_streamer_source",
+      "//prebuilts/protos:ts_proto_data_cpp",
+      "//third_party/googletest:gtest",
+      "//third_party/googletest:gtest_main",
+      "//third_party/protobuf:protobuf",
+      "//third_party/protobuf:protobuf_lite",
+      "//third_party/sqlite:sqlite",
+    ]
+    include_dirs = [
+      "../src",
+      "../src/trace_data",
+      "../src/table",
+      "../src/filter",
+      "../src/base",
+      "../src/rpc",
+      "../src/include",
+      "../src/trace_streamer",
+      "../src/parser/bytrace_parser",
+      "../src/parser",
+      "../src/cfg",
+      "../src/parser/htrace_parser",
+      "../src/parser/htrace_parser/htrace_event_parser",
+      "../src/parser/htrace_parser/htrace_cpu_parser",
+      "../prebuilts/emsdk/emsdk/emscripten/system/include",
+      "..",
+      "//third_party/googletest/googletest/include/gtest",
+      "//utils/native/base/include",
+      "//third_party/protobuf/src",
+      "${OHOS_PROTO_GEN}",
+      "${OHOS_FTRACE_PROTO_DIR}",
+      "${OHOS_MEMORY_PROTO_DIR}",
+      "${OHOS_HILOG_PROTO_DIR}",
+      "${OHOS_NATIVE_HOOK_PROTO_DIR}",
+      "${OHOS_HIDUMP_PROTO_DIR}",
+      "${OHOS_NETWORK_PROTO_DIR}",
+      "${OHOS_DISKIO_PROTO_DIR}",
+      "${OHOS_CPUDATA_PROTO_DIR}",
+      "${OHOS_PROCESS_PROTO_DIR}",
+      "${OHOS_SERVICE_PROTO_DIR}",
+    ]
+    cflags = [
+      "-Wno-inconsistent-missing-override",
+      "-Dprivate=public",  #allow test code access private members
+      "-fprofile-arcs",
+      "-ftest-coverage",
+      "-Wno-unused-command-line-argument",
+      "-Wno-format",
+      "-Wno-unused-const-variable",
+      "-Wno-unused-variable",
+      "-Wno-used-but-marked-unused",
+    ]
+    ldflags = [
+      "-fprofile-arcs",
+      "-ftest-coverage",
+      "--coverage",
+    ]
+    cflags += [
+      # clang coverage options:
+      "--coverage",
+      "-mllvm",
+      "-limited-coverage-experimental=true",
+      "-fno-use-cxa-atexit",
+    ]
+    libs = [ "LLVMCore" ]
+  }
 }
 
 # this is the dest for ohos.build
-group("unittest") {
-  testonly = true
-  deps = [ ":hiprofiler_ts_ut" ]
+if (target == "test") {
+  group("unittest") {
+    testonly = true
+    deps = [ ":trace_streamer_ut" ]
+  }
+} else if (target == "fuzz") {
+  group("fuzztest") {
+    testonly = true
+    deps = [
+      "test_fuzzer/bytrace_fuzzer:fuzztest",
+      "test_fuzzer/htrace_fuzzer:fuzztest",
+      "test_fuzzer/selector_fuzzer:fuzztest",
+    ]
+  }
 }
-#group("fuzztest") {
-#  testonly = true
-#  deps = [
-#    "test_fuzzer/bytrace_fuzzer:fuzztest",
-#    "test_fuzzer/htrace_fuzzer:fuzztest",
-#    "test_fuzzer/selector_fuzzer:fuzztest",
-#  ]
-#}

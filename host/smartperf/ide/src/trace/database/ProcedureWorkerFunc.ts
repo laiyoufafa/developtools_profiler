@@ -15,16 +15,15 @@
 
 import {BaseStruct, ColorUtils, ns2x, Rect} from "./ProcedureWorkerCommon.js";
 
-const padding = 1;
 export function func(list: Array<any>, res: Set<any>, startNS: number, endNS: number, totalNS: number, frame: any) {
     res.clear();
     if (list) {
         for (let i = 0, len = list.length; i < len; i++) {
             let it = list[i];
             if ((it.startTs || 0) + (it.dur || 0) > (startNS || 0) && (it.startTs || 0) < (endNS || 0)) {
-                FuncStruct.setFuncFrame(list[i], 10, startNS || 0, endNS || 0, totalNS || 0, frame)
+                FuncStruct.setFuncFrame(list[i], 0, startNS || 0, endNS || 0, totalNS || 0, frame)
                 if (i > 0 && (list[i - 1].frame?.y || 0) == (list[i].frame?.y || 0) && ((list[i - 1].frame?.x || 0) == (list[i].frame?.x || 0) && (list[i - 1].frame?.width || 0) == (list[i].frame?.width || 0))) {
-                    continue;
+
                 } else {
                     res.add(list[i])
                 }
@@ -34,6 +33,8 @@ export function func(list: Array<any>, res: Set<any>, startNS: number, endNS: nu
 }
 
 export class FuncStruct extends BaseStruct {
+    static hoverFuncStruct: FuncStruct | undefined;
+    static selectFuncStruct: FuncStruct | undefined;
     argsetid: number | undefined // 53161
     depth: number | undefined // 0
     dur: number | undefined // 570000
@@ -45,8 +46,6 @@ export class FuncStruct extends BaseStruct {
     threadName: string | undefined // "Thread-15"
     tid: number | undefined // 2785
     track_id: number | undefined // 414
-    static hoverFuncStruct: FuncStruct | undefined;
-    static selectFuncStruct: FuncStruct | undefined;
 
     static setFuncFrame(node: any, padding: number, startNS: number, endNS: number, totalNS: number, frame: any) {
         let x1: number, x2: number;
@@ -65,21 +64,28 @@ export class FuncStruct extends BaseStruct {
             node.frame = {};
         }
         node.frame.x = Math.floor(x1);
-        node.frame.y = Math.ceil(frame.y + (node.depth || 0) * 20 + padding);
+        node.frame.y = 0;
         node.frame.width = Math.floor(getV);
         node.frame.height = 20;
     }
 
+    static getInt(str:string):number{
+        let sum = 0;
+        for (let i = 0; i < str.length; i++) {
+            sum+=str.charCodeAt(i)
+        }
+        return sum % ColorUtils.FUNC_COLOR.length;
+    }
     static draw(ctx: CanvasRenderingContext2D, data: FuncStruct) {
         if (data.frame) {
-            if (data.dur == undefined || data.dur == null || data.dur == 0 || FuncStruct.isBinder(data)) {
+            let isBinder = FuncStruct.isBinder(data);
+            if (data.dur == undefined || data.dur == null || data.dur == 0) {
             } else {
-                let width = data.frame.width || 0;
-                ctx.fillStyle = ColorUtils.FUNC_COLOR[data.depth || 0 % ColorUtils.FUNC_COLOR.length]
+                ctx.fillStyle = ColorUtils.FUNC_COLOR[FuncStruct.getInt(data.funName||"")]
                 let miniHeight = 20
                 ctx.fillRect(data.frame.x, data.frame.y, data.frame.width, miniHeight - padding * 2)
-                ctx.fillStyle = "#fff"
                 if (data.frame.width > 10) {
+                    ctx.fillStyle = "#fff"
                     FuncStruct.drawString(ctx, data.funName || '', 5, data.frame)
                 }
                 if (FuncStruct.isSelected(data)) {
@@ -111,6 +117,7 @@ export class FuncStruct extends BaseStruct {
     static isSelected(data: FuncStruct): boolean {
         return (FuncStruct.selectFuncStruct != undefined &&
             FuncStruct.selectFuncStruct.startTs == data.startTs &&
+            FuncStruct.selectFuncStruct.depth == data.depth &&
             FuncStruct.selectFuncStruct.dur == data.dur &&
             FuncStruct.selectFuncStruct.funName == data.funName)
     }
@@ -130,3 +137,4 @@ export class FuncStruct extends BaseStruct {
     }
 }
 
+const padding = 1;

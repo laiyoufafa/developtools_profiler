@@ -48,7 +48,6 @@ void IndexMap::Intersect(const IndexMap& other)
         current_ = 0;
         start_ = 0;
         end_ = 0;
-        // indexVec_.clear();
         return;
     }
 
@@ -66,10 +65,8 @@ void IndexMap::Intersect(const std::vector<TableRowId>& iv)
 {
     auto start = start_;
     auto end = end_;
-    // indexVec_ = iv;
     current_ = 0;
     start_ = 0;
-    // end_ = static_cast<TableRowId>(indexVec_.size());
     type_ = SPARSE;
     return Intersect(start, end);
 }

@@ -1,4 +1,3 @@
-// @ts-nocheck
 /*
  * Copyright (C) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -34,12 +33,10 @@ export class TabPaneCounter extends BaseElement {
                 let sumCount = 0;
                 for (let key of collect.keys()) {
                     let counters = collect.get(key);
-                    let list = counters!.filter((item) => item.startTime > val.leftNs);
-                    if (list.length > 0) {
-                        let index = counters!.indexOf(list[0]);
-                        if (index > 0) {
-                            result.splice(0, 0, counters![index - 1]);
-                        }
+                    let list: Array<Counter> = [];
+                    let index = counters!.findIndex((item) => item.startTime >= val.leftNs);
+                    if (index != -1) {
+                        list = counters!.splice(index > 0 ? index - 1 : index)
                     } else {
                         list.push(counters![counters!.length - 1]);
                     }
@@ -48,11 +45,10 @@ export class TabPaneCounter extends BaseElement {
                     dataSource.push(sd);
                 }
                 let sumData = new SelectionData();
-                sumData.count = sumCount;
+                sumData.count = sumCount.toString();
                 sumData.process = " ";
                 dataSource.splice(0, 0, sumData);
                 this.source = dataSource
-                console.log(dataSource)
                 this.tbl!.dataSource = dataSource
             } else {
                 this.source = [];
@@ -65,31 +61,41 @@ export class TabPaneCounter extends BaseElement {
         this.tbl = this.shadowRoot?.querySelector<LitTable>('#tb-counter');
         this.range = this.shadowRoot?.querySelector('#time-range');
         this.tbl!.addEventListener('column-click', (evt) => {
+            // @ts-ignore
             this.sortByColumn(evt.detail)
         });
     }
 
     initHtml(): string {
         return `
-<style>
-:host{
-    display: flex;
-    flex-direction: column;
-    padding: 10px 10px;
-}
-</style>
-<label id="time-range" style="width: 100%;height: 20px;text-align: end;font-size: 10pt;margin-bottom: 5px">Selected range:0.0 ms</label>
-<lit-table id="tb-counter" style="height: auto">
-    <lit-table-column width="25%" title="Name" data-index="name" key="name"  align="flex-start" order></lit-table-column>
-    <lit-table-column width="1fr" title="Delta value" data-index="delta" key="delta"  align="flex-start" order ></lit-table-column>
-    <lit-table-column width="1fr" title="Rate /s" data-index="rate" key="rate"  align="flex-start" order ></lit-table-column>
-    <lit-table-column width="1fr" title="Weighted avg value" data-index="avgWeight" key="avgWeight"  align="flex-start" order ></lit-table-column>
-    <lit-table-column width="1fr" title="Count" data-index="count" key="count"  align="flex-start" order ></lit-table-column>
-    <lit-table-column width="1fr" title="First value" data-index="first" key="first"  align="flex-start" order ></lit-table-column>
-    <lit-table-column width="1fr" title="Last value" data-index="last" key="last"  align="flex-start" order ></lit-table-column>
-    <lit-table-column width="1fr" title="Min value" data-index="min" key="min"  align="flex-start" order ></lit-table-column>
-    <lit-table-column width="1fr" title="Max value" data-index="max" key="max"  align="flex-start" order ></lit-table-column>
-</lit-table>
+        <style>
+        :host{
+            display: flex;
+            flex-direction: column;
+            padding: 10px 10px;
+        }
+        </style>
+        <label id="time-range" style="width: 100%;height: 20px;text-align: end;font-size: 10pt;margin-bottom: 5px">Selected range:0.0 ms</label>
+        <lit-table id="tb-counter" style="height: auto">
+            <lit-table-column width="25%" title="Name" data-index="name" key="name"  align="flex-start" order>
+            </lit-table-column>
+            <lit-table-column width="1fr" title="Delta value" data-index="delta" key="delta"  align="flex-start" order >
+            </lit-table-column>
+            <lit-table-column width="1fr" title="Rate /s" data-index="rate" key="rate"  align="flex-start" order >
+            </lit-table-column>
+            <lit-table-column width="1fr" title="Weighted avg value" data-index="avgWeight" key="avgWeight"  align="flex-start" order >
+            </lit-table-column>
+            <lit-table-column width="1fr" title="Count" data-index="count" key="count"  align="flex-start" order >
+            </lit-table-column>
+            <lit-table-column width="1fr" title="First value" data-index="first" key="first"  align="flex-start" order >
+            </lit-table-column>
+            <lit-table-column width="1fr" title="Last value" data-index="last" key="last"  align="flex-start" order >
+            </lit-table-column>
+            <lit-table-column width="1fr" title="Min value" data-index="min" key="min"  align="flex-start" order >
+            </lit-table-column>
+            <lit-table-column width="1fr" title="Max value" data-index="max" key="max"  align="flex-start" order >
+            </lit-table-column>
+        </lit-table>
         `;
     }
 
@@ -117,9 +123,9 @@ export class TabPaneCounter extends BaseElement {
             selectData.first = first.value + "";
             selectData.count = list.length + "";
             selectData.last = list[list.length - 1].value + "";
-            selectData.delta = (selectData.last - selectData.first) + "";
-            selectData.rate = (selectData.delta / (range * 1.0 / 1000000000)).toFixed(4);
-            selectData.min = "0";
+            selectData.delta = (parseInt(selectData.last) - parseInt(selectData.first)) + "";
+            selectData.rate = (parseInt(selectData.delta) / (range * 1.0 / 1000000000)).toFixed(4);
+            selectData.min = first.value + "";
             selectData.max = "0";
             let weightAvg = 0.0;
             for (let i = 0; i < list.length; i++) {
@@ -139,21 +145,26 @@ export class TabPaneCounter extends BaseElement {
         return selectData;
     }
 
-    sortByColumn(detail) {
+    sortByColumn(detail: any) {
+        // @ts-ignore
         function compare(property, sort, type) {
             return function (a: SelectionData, b: SelectionData) {
                 if (a.process == " " || b.process == " ") {
                     return 0;
                 }
                 if (type === 'number') {
+                    // @ts-ignore
                     return sort === 2 ? parseFloat(b[property]) - parseFloat(a[property]) : parseFloat(a[property]) - parseFloat(b[property]);
                 } else {
+                    // @ts-ignore
                     if (b[property] > a[property]) {
                         return sort === 2 ? 1 : -1;
-                    } else if (b[property] == a[property]) {
-                        return 0;
-                    } else {
-                        return sort === 2 ? -1 : 1;
+                    } else { // @ts-ignore
+                        if (b[property] == a[property]) {
+                            return 0;
+                        } else {
+                            return sort === 2 ? -1 : 1;
+                        }
                     }
                 }
             }

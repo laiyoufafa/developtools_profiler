@@ -25,14 +25,21 @@ class CpuMeasureFilterTable : public TableBase {
 public:
     explicit CpuMeasureFilterTable(const TraceDataCache* dataCache);
     ~CpuMeasureFilterTable() override;
-    void CreateCursor() override;
+    std::unique_ptr<TableBase::Cursor> CreateCursor() override;
 
 private:
+    void EstimateFilterCost(FilterConstraints& fc, EstimatedIndexInfo& ei) override;
+    // the column is sorted
+    bool CanFilterSorted(const char op, size_t& rowCount);
+
     class Cursor : public TableBase::Cursor {
     public:
-        explicit Cursor(const TraceDataCache* dataCache);
+        explicit Cursor(const TraceDataCache* dataCache, TableBase* table);
         ~Cursor() override;
+        int Filter(const FilterConstraints& fc, sqlite3_value** argv) override;
         int Column(int column) const override;
+
+        void FilterSorted(int col, unsigned char op, sqlite3_value* argv);
 
     private:
         const CpuMeasureFilter& cpuMeasureObj_;

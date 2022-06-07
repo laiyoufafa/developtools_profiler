@@ -46,7 +46,7 @@ export function mem(list: Array<any>, res: Set<any>, startNS: number, endNS: num
             if ((it.startTime || 0) + (it.duration || 0) > startNS && (it.startTime || 0) < endNS) {
                 setMemFrame(list[i], 5, startNS, endNS, totalNS, frame)
                 if (i > 0 && ((list[i - 1].frame?.x || 0) == (list[i].frame?.x || 0) && (list[i - 1].frame?.width || 0) == (list[i].frame?.width || 0))) {
-                    continue;
+
                 } else {
                     res.add(list[i])
                 }
@@ -55,29 +55,29 @@ export function mem(list: Array<any>, res: Set<any>, startNS: number, endNS: num
     }
 }
 
-export class ProcessMemStruct extends BaseStruct{
-    trackId:number|undefined
-    processName:string|undefined
-    pid:number|undefined
-    upid:number|undefined
-    trackName:string|undefined
+export class ProcessMemStruct extends BaseStruct {
+    trackId: number | undefined
+    processName: string | undefined
+    pid: number | undefined
+    upid: number | undefined
+    trackName: string | undefined
 
-    type:string|undefined
-    track_id:string|undefined
-    value:number|undefined
-    startTime:number|undefined
-    duration:number|undefined
-    maxValue:number|undefined
+    type: string | undefined
+    track_id: string | undefined
+    value: number | undefined
+    startTime: number | undefined
+    duration: number | undefined
+    maxValue: number | undefined
     delta: number | undefined;
 
     static draw(ctx: CanvasRenderingContext2D, data: ProcessMemStruct) {
         if (data.frame) {
             let width = data.frame.width || 0;
-            ctx.fillStyle= ColorUtils.colorForTid(data.maxValue||0)
-            ctx.strokeStyle= ColorUtils.colorForTid(data.maxValue||0)
+            ctx.fillStyle = ColorUtils.colorForTid(data.maxValue || 0)
+            ctx.strokeStyle = ColorUtils.colorForTid(data.maxValue || 0)
             ctx.globalAlpha = 0.6;
             ctx.lineWidth = 1;
-            let drawHeight: number = ((data.value || 0) * (data.frame.height || 0) * 1.0) / (data.maxValue||1);
+            let drawHeight: number = ((data.value || 0) * (data.frame.height || 0) * 1.0) / (data.maxValue || 1);
             ctx.fillRect(data.frame.x, data.frame.y + data.frame.height - drawHeight, width, drawHeight)
         }
         ctx.globalAlpha = 1.0;

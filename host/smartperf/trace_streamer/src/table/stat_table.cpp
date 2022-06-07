@@ -33,13 +33,13 @@ StatTable::StatTable(const TraceDataCache* dataCache) : TableBase(dataCache)
 
 StatTable::~StatTable() {}
 
-void StatTable::CreateCursor()
+std::unique_ptr<TableBase::Cursor> StatTable::CreateCursor()
 {
-    cursor_ = std::make_unique<Cursor>(dataCache_);
+    return std::make_unique<Cursor>(dataCache_, this);
 }
 
-StatTable::Cursor::Cursor(const TraceDataCache* dataCache)
-    : TableBase::Cursor(dataCache, 0, STAT_EVENT_MAX * TRACE_EVENT_MAX)
+StatTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
+    : TableBase::Cursor(dataCache, table, STAT_EVENT_MAX * TRACE_EVENT_MAX)
 {
 }
 

@@ -23,22 +23,14 @@
 namespace SysTuning {
 namespace TraceStreamer {
 HtraceMemParser::HtraceMemParser(TraceDataCache* dataCache, const TraceStreamerFilters* ctx)
-    : streamFilters_(ctx), traceDataCache_(dataCache)
+    : HtracePluginTimeParser(dataCache, ctx)
 {
-    if (!traceDataCache_) {
-        TS_LOGE("traceDataCache_ should not be null");
-        return;
-    }
-    if (!streamFilters_) {
-        TS_LOGE("streamFilters_ should not be null");
-        return;
-    }
     for (auto i = 0; i < MEM_MAX; i++) {
         memNameDictMap_.insert(
             std::make_pair(static_cast<MemInfoType>(i),
                            traceDataCache_->GetDataIndex(config_.memNameMap_.at(static_cast<MemInfoType>(i)))));
     }
-    for (auto i = 0; i < SysMeminfoType::PMEM_CMA_FREE + 1; i++) {
+    for (auto i = 0; i < SysMeminfoType::PMEM_KERNEL_RECLAIMABLE + 1; i++) {
         sysMemNameDictMap_.insert(
             std::make_pair(static_cast<SysMeminfoType>(i),
                            traceDataCache_->GetDataIndex(config_.sysMemNameMap_.at(static_cast<SysMeminfoType>(i)))));
@@ -52,24 +44,14 @@ HtraceMemParser::HtraceMemParser(TraceDataCache* dataCache, const TraceStreamerF
 
 HtraceMemParser::~HtraceMemParser()
 {
-    TS_LOGI("mem ts MIN:%llu, MAX:%llu", static_cast<unsigned long long>(traceStartTime_),
-            static_cast<unsigned long long>(traceEndTime_));
+    TS_LOGI("mem ts MIN:%llu, MAX:%llu", static_cast<unsigned long long>(GetPluginStartTime()),
+            static_cast<unsigned long long>(GetPluginEndTime()));
 }
 void HtraceMemParser::Parse(const MemoryData& tracePacket, uint64_t timeStamp, BuiltinClocks clock)
 {
-    if (!traceDataCache_) {
-        TS_LOGE("traceDataCache_ should not be null");
-        return;
-    }
-    if (!streamFilters_) {
-        TS_LOGE("streamFilters_ should not be null");
-        return;
-    }
     auto newTimeStamp = streamFilters_->clockFilter_->ToPrimaryTraceTime(clock, timeStamp);
-    if (newTimeStamp != timeStamp) { // record the time only when the time is valid
-        traceStartTime_ = std::min(traceStartTime_, newTimeStamp);
-        traceEndTime_ = std::max(traceEndTime_, newTimeStamp);
-    }
+    UpdatePluginTimeRange(clock, timeStamp, newTimeStamp);
+    zram_ = tracePacket.zram();
     if (tracePacket.processesinfo_size()) {
         ParseProcessInfo(tracePacket, newTimeStamp);
     }
@@ -284,6 +266,10 @@ void HtraceMemParser::ParseMemInfo(const MemoryData& tracePacket, uint64_t timeS
                 streamFilters_->sysEventMemMeasureFilter_->AppendNewMeasureData(
                     sysMemNameDictMap_.at(SysMeminfoType::PMEM_CMA_FREE), timeStamp, vMemInfo.value());
                 break;
+            case SysMeminfoType::PMEM_KERNEL_RECLAIMABLE:
+                streamFilters_->sysEventMemMeasureFilter_->AppendNewMeasureData(
+                    sysMemNameDictMap_.at(SysMeminfoType::PMEM_KERNEL_RECLAIMABLE), timeStamp, vMemInfo.value());
+                break;
             case SysMeminfoType_INT_MIN_SENTINEL_DO_NOT_USE_:
             case SysMeminfoType_INT_MAX_SENTINEL_DO_NOT_USE_:
             default:
@@ -291,6 +277,7 @@ void HtraceMemParser::ParseMemInfo(const MemoryData& tracePacket, uint64_t timeS
                 break;
         }
     }
+    streamFilters_->sysEventMemMeasureFilter_->AppendNewMeasureData(zramIndex_, timeStamp, zram_);
 }
 void HtraceMemParser::ParseVMemInfo(const MemoryData& tracePacket, uint64_t timeStamp) const
 {
@@ -857,7 +844,7 @@ void HtraceMemParser::ParseVMemInfo(const MemoryData& tracePacket, uint64_t time
 }
 void HtraceMemParser::Finish()
 {
-    traceDataCache_->MixTraceTime(traceStartTime_, traceEndTime_);
+    traceDataCache_->MixTraceTime(GetPluginStartTime(), GetPluginEndTime());
 }
 } // namespace TraceStreamer
 } // namespace SysTuning

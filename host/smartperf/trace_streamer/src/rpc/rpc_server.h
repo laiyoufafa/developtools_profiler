@@ -24,11 +24,14 @@ namespace TraceStreamer {
 class RpcServer {
 public:
     using ResultCallBack = std::function<void(const std::string /* result */)>;
+
+    // In order to bind HTTP, maintain a unified interface, even if some parameters are useless
     bool ParseData(const uint8_t* data, size_t len, ResultCallBack resultCallBack);
     bool ParseDataOver(const uint8_t* data, size_t len, ResultCallBack resultCallBack);
     bool SqlOperate(const uint8_t* data, size_t len, ResultCallBack resultCallBack);
     bool SqlQuery(const uint8_t* data, size_t len, ResultCallBack resultCallBack);
     bool Reset(const uint8_t* data, size_t len, ResultCallBack resultCallBack);
+    void CancelSqlQuery();
 
     // only for wasm, no callback
     int WasmSqlQuery(const uint8_t* data, size_t len, uint8_t* out, int outLen);

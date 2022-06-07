@@ -16,23 +16,26 @@
 // @ts-ignore
 import {SpRecordTrace} from "../../../dist/trace/component/SpRecordTrace.js"
 
+window.ResizeObserver = window.ResizeObserver ||
+    jest.fn().mockImplementation(() => ({
+        disconnect: jest.fn(),
+        observe: jest.fn(),
+        unobserve: jest.fn(),
+    }));
+
 describe('SpRecordTrace Test', () => {
-
-    let spRecordTrace = new SpRecordTrace();
-
     it('SpRecordTraceTest01', function () {
-        expect(spRecordTrace.initHtml()).not.toBe('')
+        expect(SpRecordTrace.initHtml).not.toBe('')
     });
+
     it('SpRecordTraceTest02', function () {
-        expect(spRecordTrace.initElements()).toBeUndefined()
+        SpRecordTrace.patentNode=jest.fn(()=>true);
+        expect(SpRecordTrace.initElements).toBeUndefined()
     });
-    it('SpRecordTraceTest03', function () {
-        let toReturnWith = spRecordTrace.createFpsPluginConfig();
-        expect(toReturnWith.sampleInterval).toBe(1000);
-    });
+
     it('SpRecordTraceTest04', function () {
-        let traceEvents = spRecordTrace.createTraceEvents(['Scheduling details', 'CPU Frequency and idle states',
-            'High frequency memory', 'Advanced ftrace config', 'Syscalls']);
+        let traceEvents = SpRecordTrace.createTraceEvents = ['Scheduling details', 'CPU Frequency and idle states',
+            'High frequency memory', 'Advanced ftrace config', 'Syscalls' , 'Board voltages & frequency'];
         expect(traceEvents[0].indexOf('binder/binder_lock')).toBe(-1)
     });
 })

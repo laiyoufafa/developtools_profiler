@@ -37,12 +37,12 @@ public:
     void SoftIrqExit(int64_t ts, uint32_t cpu, uint32_t vec);
 
 private:
-    DataIndex irqId_ = traceDataCache_->GetDataIndex("irq_id");
-    DataIndex irqRet_ = traceDataCache_->GetDataIndex("irq_ret");
-    DataIndex irqHandled_ = traceDataCache_->GetDataIndex("handled");
-    DataIndex irqUnHandled_ = traceDataCache_->GetDataIndex("unhandled");
-    DataIndex irqCatalog_ = traceDataCache_->GetDataIndex("irq");
-    DataIndex softIrqCatalog_ = traceDataCache_->GetDataIndex("softirq");
+    const DataIndex irqId_ = traceDataCache_->GetDataIndex("irq_id");
+    const DataIndex irqRet_ = traceDataCache_->GetDataIndex("irq_ret");
+    const DataIndex irqHandled_ = traceDataCache_->GetDataIndex("handled");
+    const DataIndex irqUnHandled_ = traceDataCache_->GetDataIndex("unhandled");
+    const DataIndex irqCatalog_ = traceDataCache_->GetDataIndex("irq");
+    const DataIndex softIrqCatalog_ = traceDataCache_->GetDataIndex("softirq");
     std::unordered_map<uint64_t, int64_t> lastEventTs_ = {};
     std::unordered_set<uint64_t> transReplyWaitingReply_ = {};
     std::unordered_map<uint64_t, FilterId> transWaitingRcv_ = {};

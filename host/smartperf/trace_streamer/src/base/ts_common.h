@@ -32,6 +32,8 @@ const size_t MAX_SIZE_T = std::numeric_limits<size_t>::max();
 const uint32_t INVALID_ID = std::numeric_limits<uint32_t>::max();
 const uint64_t SEC_TO_NS = 1000 * 1000 * 1000;
 const int STR_DEFAULT_LEN = -1;
+const auto INVALID_CPU = INVALID_UINT64;
+const auto INVALID_TIME = INVALID_UINT64;
 enum BuiltinClocks {
     TS_CLOCK_UNKNOW = 0,
     TS_CLOCK_BOOTTIME = 1,
@@ -99,11 +101,12 @@ enum SchedWakeType {
     SCHED_WAKEUP = 1, // sched_wakeup
 };
 using DataIndex = uint64_t;
-using TableRowId = uint64_t;
+using TableRowId = uint32_t;
 using InternalPid = uint32_t;
 using InternalTid = uint32_t;
 using InternalTime = uint64_t;
 using FilterId = uint32_t;
+using InternalCpu = uint64_t; // how many cpus? could change to int8_t?
 
 enum BaseDataType {
     BASE_DATA_TYPE_INT,

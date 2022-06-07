@@ -23,16 +23,20 @@ HtraceCpuDetailParser::HtraceCpuDetailParser(TraceDataCache* dataCache, const Tr
 }
 
 HtraceCpuDetailParser::~HtraceCpuDetailParser() = default;
-void HtraceCpuDetailParser::Parse(TracePluginResult& tracePacket, BuiltinClocks clock)
+void HtraceCpuDetailParser::Parse(TracePluginResult* tracePacket, BuiltinClocks clock)
 {
-    if (!tracePacket.ftrace_cpu_detail_size()) {
+    if (!tracePacket->ftrace_cpu_detail_size()) {
         return;
     }
 
-    for (int i = 0; i < tracePacket.ftrace_cpu_detail_size(); i++) {
-        FtraceCpuDetailMsg* cpuDetail = tracePacket.mutable_ftrace_cpu_detail(i);
+    for (int i = 0; i < tracePacket->ftrace_cpu_detail_size(); i++) {
+        FtraceCpuDetailMsg* cpuDetail = tracePacket->mutable_ftrace_cpu_detail(i);
         eventParser_->ParseDataItem(cpuDetail, clock);
     }
+}
+void HtraceCpuDetailParser::FilterAllEvents()
+{
+    eventParser_->FilterAllEvents();
 }
 } // namespace TraceStreamer
 } // namespace SysTuning

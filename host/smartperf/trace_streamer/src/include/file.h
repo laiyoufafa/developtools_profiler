@@ -27,6 +27,30 @@ enum TraceParserStatus {
     TRACE_PARSE_ERROR = 2,
     TRACE_PARSER_ABNORMAL = 3
 };
+struct ProfilerTraceFileHeader {
+    static constexpr uint32_t HEADER_SIZE = 1024; // 预留了一些空间，方便后续在头部添加字段
+    static constexpr uint32_t SHA256_SIZE = 256 / 8;
+    static constexpr uint64_t HEADER_MAGIC = 0x464F5250534F484FuLL;
+    static constexpr uint32_t V_MAJOR = 0x0001;
+    static constexpr uint32_t V_MAJOR_BITS = 16;
+    static constexpr uint32_t V_MINOR = 0x0000;
+    static constexpr uint32_t TRACE_VERSION = (V_MAJOR << V_MAJOR_BITS) | V_MINOR;
+    enum DataType {
+        HIPROFILER_PROTOBUF_BIN = 0,
+        HIPERF_DATA,
+        UNKNOW_TYPE = 1024,
+    };
+    struct HeaderData {
+        uint64_t magic_ = HEADER_MAGIC;  // 魔数，用于区分离线文件
+        uint64_t length_ = HEADER_SIZE;  // 总长度，可用于检验文件是否被截断；
+        uint32_t version_ = TRACE_VERSION;
+        uint32_t segments_ = 0; // 载荷数据中的段个数, 段个数为偶数，一个描述长度 L，一个描述接下来的数据 V
+        uint8_t sha256_[SHA256_SIZE] = {}; // 载荷数据 的 SHA256 ，用于校验 载荷数据是否完整；
+        DataType data_type = UNKNOW_TYPE;
+    } __attribute__((packed));
+    HeaderData data_ = {};
+    uint8_t padding_[HEADER_SIZE - sizeof(data_)] = {};
+};
 
 void SetAnalysisResult(TraceParserStatus stat);
 

@@ -22,7 +22,6 @@ export class ProcessMemStruct extends BaseStruct {
     pid: number | undefined
     upid: number | undefined
     trackName: string | undefined
-
     type: string | undefined
     track_id: string | undefined
     value: number | undefined

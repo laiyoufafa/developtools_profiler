@@ -26,6 +26,11 @@ import {SpRecyclerSystemTrace} from "../../../dist/trace/component/SpRecyclerSys
 describe('SpRecyclerSystemTrace Test', ()=>{
 
     let spRecyclerSystemTrace = new SpRecyclerSystemTrace();
+    const newEl=1;
+    const targetEl = {
+        parentNode:1,
+        nextSibling:1
+    }
 
     spRecyclerSystemTrace.initElements = jest.fn(()=> true)
 
@@ -56,6 +61,8 @@ describe('SpRecyclerSystemTrace Test', ()=>{
     });
 
     it('SpRecyclerSystemTraceTest07', function () {
+        spRecyclerSystemTrace.rangeSelec = jest.fn(()=>true)
+        spRecyclerSystemTrace.rangeSelect.mouseMove = jest.fn(()=>true)
         expect(spRecyclerSystemTrace.documentOnMouseMove('MouseMove')).toBeUndefined()
     });
 
@@ -68,6 +75,8 @@ describe('SpRecyclerSystemTrace Test', ()=>{
     });
 
     it('SpRecyclerSystemTraceTest10', function () {
+        spRecyclerSystemTrace.rangeSelec = jest.fn(()=>true)
+        spRecyclerSystemTrace.rangeSelect.mouseMove = jest.fn(()=>true)
         expect(spRecyclerSystemTrace.documentOnClick('OnClick')).toBeUndefined()
     });
 
@@ -77,5 +86,63 @@ describe('SpRecyclerSystemTrace Test', ()=>{
 
     it('SpRecyclerSystemTraceTest12', function () {
         expect(spRecyclerSystemTrace.disconnectedCallback()).toBeUndefined()
+    });
+
+    it('SpRecyclerSystemTraceTest13', function () {
+        expect(spRecyclerSystemTrace.init).toBeTruthy()
+    });
+
+    it('SpRecyclerSystemTraceTest15', function () {
+        spRecyclerSystemTrace.loadDatabaseUrl = jest.fn(()=>true)
+        expect(spRecyclerSystemTrace.loadDatabaseUrl()).toBeTruthy()
+    });
+
+    it('SpRecyclerSystemTraceTest16', function () {
+        spRecyclerSystemTrace.loadDatabaseArrayBuffer = jest.fn(()=>true)
+        expect(spRecyclerSystemTrace.loadDatabaseArrayBuffer()).toBeTruthy()
+    });
+
+    it('SpRecyclerSystemTraceTest17', function () {
+        expect(spRecyclerSystemTrace.initHtml()).toMatchInlineSnapshot(`
+"
+        <style>
+        :host{
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+        .timer-shaft{
+            width: 100%;
+            z-index: 2;
+        }
+        .rows{
+            display: flex;
+            box-sizing: border-box;
+            flex-direction: column;
+            overflow-y: auto;
+            max-height: calc(100vh - 150px - 48px);
+            flex: 1;
+            width: 100%;
+        }
+        .container{
+            width: 100%;
+            box-sizing: border-box;
+            height: 100%;
+            display: grid;
+            grid-template-columns: 1fr;
+            grid-template-rows: min-content 1fr min-content;
+        }
+
+        </style>
+        <div class=\\"container\\">
+            <timer-shaft-element class=\\"timer-shaft\\">
+            </timer-shaft-element>
+            <trace-row-recycler-view class=\\"rows\\">
+            </trace-row-recycler-view>
+            <trace-sheet class=\\"trace-sheet\\" mode=\\"hidden\\">
+            </trace-sheet>
+        </div>
+        "
+`)
     });
 })

@@ -20,18 +20,17 @@
 #include <cstdint>
 
 #include "log.h"
-
+#include "meta.h"
 namespace SysTuning {
 namespace TraceStreamer {
 bool RpcServer::ParseData(const uint8_t* data, size_t len, ResultCallBack resultCallBack)
 {
-    TS_LOGI("RPC ParseData, has parsed len %zu + %zu", lenParseData_, len);
+    g_loadSize += len;
+    size_t blockSize = 1024 * 1024;
     do {
-        constexpr size_t blockSize = 1024 * 1024;
         size_t parseSize = std::min(len, blockSize);
         std::unique_ptr<uint8_t[]> buf = std::make_unique<uint8_t[]>(parseSize);
         std::copy(data, data + parseSize, buf.get());
-
         if (!ts_->ParseTraceDataSegment(std::move(buf), parseSize)) {
             if (resultCallBack) {
                 resultCallBack("formaterror\r\n");
@@ -50,19 +49,30 @@ bool RpcServer::ParseData(const uint8_t* data, size_t len, ResultCallBack result
 
 bool RpcServer::ParseDataOver(const uint8_t* data, size_t len, ResultCallBack resultCallBack)
 {
+    MetaData* metaData = ts_->GetMetaData();
+    metaData->SetSourceFileName("input stream mode");
+    metaData->SetOutputFileName("wasm mode");
+    metaData->SetParserToolVersion(TRACE_STREAM_VERSION);
+    metaData->SetParserToolPublishDateTime(TRACE_STREAM_PUBLISHVERSION);
+    metaData->SetTraceDataSize(g_loadSize);
+    metaData->SetTraceType((ts_->DataType() == TRACE_FILETYPE_H_TRACE) ? "proto-based-trace" : "txt-based-trace");
     TS_LOGI("RPC ParseDataOver, has parsed len %zu", lenParseData_);
 
     ts_->WaitForParserEnd();
+#ifndef USE_VTABLE
     ts_->Clear();
+#endif
     if (resultCallBack) {
         resultCallBack("ok\r\n");
     }
     lenParseData_ = 0;
+    g_loadSize = 0;
     return true;
 }
 
 bool RpcServer::SqlOperate(const uint8_t* data, size_t len, ResultCallBack resultCallBack)
 {
+    ts_->SetCancel(false);
     std::string sql(reinterpret_cast<const char*>(data), len);
     TS_LOGI("RPC SqlOperate(%s, %zu)", sql.c_str(), len);
 
@@ -79,6 +89,7 @@ bool RpcServer::SqlOperate(const uint8_t* data, size_t len, ResultCallBack resul
 
 bool RpcServer::SqlQuery(const uint8_t* data, size_t len, ResultCallBack resultCallBack)
 {
+    ts_->SetCancel(false);
     std::string sql(reinterpret_cast<const char*>(data), len);
     TS_LOGI("RPC SqlQuery %zu:%s", len, sql.c_str());
 
@@ -86,7 +97,13 @@ bool RpcServer::SqlQuery(const uint8_t* data, size_t len, ResultCallBack resultC
     if (resultCallBack && ret != 0) {
         resultCallBack("dberror\r\n");
     }
+    ts_->SetCancel(false);
     return (ret == 0);
+}
+
+void RpcServer::CancelSqlQuery()
+{
+    ts_->SetCancel(true);
 }
 
 bool RpcServer::Reset(const uint8_t* data, size_t len, ResultCallBack resultCallBack)
@@ -103,6 +120,7 @@ bool RpcServer::Reset(const uint8_t* data, size_t len, ResultCallBack resultCall
 
 int RpcServer::WasmSqlQuery(const uint8_t* data, size_t len, uint8_t* out, int outLen)
 {
+    ts_->SetCancel(false);
     std::string sql(reinterpret_cast<const char*>(data), len);
     TS_LOGI("WASM RPC SqlQuery out(%p:%d) sql(%zu:%s)", reinterpret_cast<void*>(out), outLen,
         len, sql.c_str());

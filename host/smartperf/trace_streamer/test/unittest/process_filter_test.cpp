@@ -43,7 +43,7 @@ public:
  */
 HWTEST_F(ProcessFilterTest, UpdateOrCreateThread, TestSize.Level1)
 {
-    TS_LOGI("test10-1");
+    TS_LOGI("test20-1");
     uint64_t ts = 168758662877000;
     uint32_t tid = 2716;
     uint32_t iTid0 = streamFilters_.processFilter_->UpdateOrCreateThread(ts, tid);
@@ -68,7 +68,7 @@ HWTEST_F(ProcessFilterTest, UpdateOrCreateThread, TestSize.Level1)
  */
 HWTEST_F(ProcessFilterTest, UpdateOrCreateProcessWithName, TestSize.Level1)
 {
-    TS_LOGI("test10-2");
+    TS_LOGI("test20-2");
     uint32_t pid = 8629;
     std::string_view processName = "RenderThread";
     uint32_t iPid0 = streamFilters_.processFilter_->UpdateOrCreateProcessWithName(pid, processName);
@@ -92,7 +92,7 @@ HWTEST_F(ProcessFilterTest, UpdateOrCreateProcessWithName, TestSize.Level1)
  */
 HWTEST_F(ProcessFilterTest, UpdateOrCreateProcessWithNameSingleIpid, TestSize.Level1)
 {
-    TS_LOGI("test10-3");
+    TS_LOGI("test20-3");
     uint32_t pid = 8629;
     std::string_view processName = "RenderThread";
     uint32_t iPid0 = streamFilters_.processFilter_->UpdateOrCreateProcessWithName(pid, processName);
@@ -106,7 +106,7 @@ HWTEST_F(ProcessFilterTest, UpdateOrCreateProcessWithNameSingleIpid, TestSize.Le
  */
 HWTEST_F(ProcessFilterTest, UpdateOrCreateProcessWithNameMultiIpid, TestSize.Level1)
 {
-    TS_LOGI("test10-4");
+    TS_LOGI("test20-4");
     uint32_t pid = 8629;
     std::string_view processName = "RenderThread";
     uint32_t iPid0 = streamFilters_.processFilter_->UpdateOrCreateProcessWithName(pid, processName);
@@ -124,7 +124,7 @@ HWTEST_F(ProcessFilterTest, UpdateOrCreateProcessWithNameMultiIpid, TestSize.Lev
  */
 HWTEST_F(ProcessFilterTest, UpdateOrCreateProcessWithNameSinglePid, TestSize.Level1)
 {
-    TS_LOGI("test10-5");
+    TS_LOGI("test20-5");
     uint32_t pid = 8629;
     std::string_view processName = "RenderThread";
     uint32_t iPid0 = streamFilters_.processFilter_->UpdateOrCreateProcessWithName(pid, processName);
@@ -141,7 +141,7 @@ HWTEST_F(ProcessFilterTest, UpdateOrCreateProcessWithNameSinglePid, TestSize.Lev
  */
 HWTEST_F(ProcessFilterTest, UpdateOrCreateProcessWithNameMultiPid, TestSize.Level1)
 {
-    TS_LOGI("test10-6");
+    TS_LOGI("test20-6");
     uint32_t pid = 8629;
     std::string_view processName = "RenderThread";
     uint32_t iPid0 = streamFilters_.processFilter_->UpdateOrCreateProcessWithName(pid, processName);
@@ -172,7 +172,7 @@ HWTEST_F(ProcessFilterTest, UpdateOrCreateProcessWithNameMultiPid, TestSize.Leve
  */
 HWTEST_F(ProcessFilterTest, UpdateOrCreateThreadWithName, TestSize.Level1)
 {
-    TS_LOGI("test10-7");
+    TS_LOGI("test20-7");
     uint64_t ts = 168758662957020;
     uint32_t tid = 123;
     std::string_view threadName = "RenderThread";
@@ -201,7 +201,7 @@ HWTEST_F(ProcessFilterTest, UpdateOrCreateThreadWithName, TestSize.Level1)
  */
 HWTEST_F(ProcessFilterTest, UpdateOrCreateThreadWithNameSingleItid, TestSize.Level1)
 {
-    TS_LOGI("test10-8");
+    TS_LOGI("test20-8");
     uint64_t ts = 168758662957020;
     uint32_t tid = 123;
     std::string_view threadName = "RenderThread";
@@ -216,7 +216,7 @@ HWTEST_F(ProcessFilterTest, UpdateOrCreateThreadWithNameSingleItid, TestSize.Lev
  */
 HWTEST_F(ProcessFilterTest, UpdateOrCreateThreadWithNameGenarateTidAndItid, TestSize.Level1)
 {
-    TS_LOGI("test10-9");
+    TS_LOGI("test20-9");
     uint64_t ts = 168758662957020;
     uint32_t tid = 123;
     std::string_view threadName = "RenderThread2";
@@ -234,7 +234,7 @@ HWTEST_F(ProcessFilterTest, UpdateOrCreateThreadWithNameGenarateTidAndItid, Test
  */
 HWTEST_F(ProcessFilterTest, UpdateOrCreateThreadWithNameDoubleItid, TestSize.Level1)
 {
-    TS_LOGI("test10-10");
+    TS_LOGI("test20-10");
     uint64_t ts = 168758662957020;
     uint32_t tid = 123;
     std::string_view threadName = "RenderThread";
@@ -258,7 +258,7 @@ HWTEST_F(ProcessFilterTest, UpdateOrCreateThreadWithNameDoubleItid, TestSize.Lev
  */
 HWTEST_F(ProcessFilterTest, UpdateOrCreateThreadWithNameTripleItid, TestSize.Level1)
 {
-    TS_LOGI("test10-11");
+    TS_LOGI("test20-11");
     uint64_t ts = 168758662957020;
     uint32_t tid = 123;
     std::string_view threadName = "RenderThread";
@@ -287,7 +287,7 @@ HWTEST_F(ProcessFilterTest, UpdateOrCreateThreadWithNameTripleItid, TestSize.Lev
  */
 HWTEST_F(ProcessFilterTest, UpdateOrCreateThreadWithPidAndName, TestSize.Level1)
 {
-    TS_LOGI("test10-12");
+    TS_LOGI("test20-12");
     uint32_t tid = 869;
     uint32_t pid = 123;
     std::string_view threadName = "RenderThread";
@@ -306,7 +306,7 @@ HWTEST_F(ProcessFilterTest, UpdateOrCreateThreadWithPidAndName, TestSize.Level1)
  */
 HWTEST_F(ProcessFilterTest, UpdateOrCreateThreadWithPidAndNameAbnomal, TestSize.Level1)
 {
-    TS_LOGI("test10-13");
+    TS_LOGI("test20-13");
     uint32_t tid = 869;
     uint32_t pid = 123;
     std::string_view threadName = "RenderThread";
@@ -323,7 +323,7 @@ HWTEST_F(ProcessFilterTest, UpdateOrCreateThreadWithPidAndNameAbnomal, TestSize.
  */
 HWTEST_F(ProcessFilterTest, UpdateOrCreateThreadWithPidAndNameSingleItid, TestSize.Level1)
 {
-    TS_LOGI("test10-14");
+    TS_LOGI("test20-14");
     uint32_t tid = 869;
     uint32_t pid = 123;
     std::string_view threadName = "RenderThread";
@@ -339,7 +339,7 @@ HWTEST_F(ProcessFilterTest, UpdateOrCreateThreadWithPidAndNameSingleItid, TestSi
  */
 HWTEST_F(ProcessFilterTest, UpdateOrCreateThreadWithPidAndNameAbnomalPid, TestSize.Level1)
 {
-    TS_LOGI("test10-15");
+    TS_LOGI("test20-15");
     uint32_t tid = 869;
     uint32_t pid = 123;
     std::string_view threadName = "RenderThread";
@@ -356,7 +356,7 @@ HWTEST_F(ProcessFilterTest, UpdateOrCreateThreadWithPidAndNameAbnomalPid, TestSi
  */
 HWTEST_F(ProcessFilterTest, UpdateThreadWithName, TestSize.Level1)
 {
-    TS_LOGI("test10-16");
+    TS_LOGI("test20-16");
     uint32_t tid = 869;
     uint64_t timestamp = 168758662957020;
     std::string_view threadName = "RenderThread";
@@ -375,7 +375,7 @@ HWTEST_F(ProcessFilterTest, UpdateThreadWithName, TestSize.Level1)
  */
 HWTEST_F(ProcessFilterTest, UpdateProcessWithName, TestSize.Level1)
 {
-    TS_LOGI("test10-17");
+    TS_LOGI("test20-17");
     uint32_t pid = 869;
     uint64_t timestamp = 168758662957020;
     std::string_view processName = "RenderProcess";

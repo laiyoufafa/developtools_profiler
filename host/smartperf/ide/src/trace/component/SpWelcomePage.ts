@@ -22,23 +22,22 @@ export class SpWelcomePage extends BaseElement {
 
     initHtml(): string {
         return `
-<style>
-:host {
-    width: 100%;
-    height: 100%;
-    display: grid;
-    justify-content: center;
-    align-content: center;
-    background: var(--dark-background5,#F6F6F6);
-}
-.sp-icon{
-    content: var(--dark-img,url('img/pic.png'));
-}
-</style>
-<div>
-    <img class="sp-icon" >
-</div>
+        <style>
+        :host {
+            width: 100%;
+            height: 100%;
+            display: grid;
+            justify-content: center;
+            align-content: center;
+            background: var(--dark-background5,#F6F6F6);
+        }
+        .lit-icon{
+            content: var(--dark-img,url('img/pic.png'));
+        }
+        </style>
+        <div>
+            <img class="lit-icon" >
+        </div>
         `;
     }
-
 }

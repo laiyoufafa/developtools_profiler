@@ -17,7 +17,6 @@ export class CpuUsage {
     cpu: number = 0
     usage: number = 0
     usageStr: string = ""
-
     top1: number = 0
     top2: number = 0
     top3: number = 0

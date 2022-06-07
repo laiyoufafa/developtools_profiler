@@ -29,7 +29,7 @@ class HtraceSymbolsDetailParser {
 public:
     HtraceSymbolsDetailParser(TraceDataCache* dataCache, const TraceStreamerFilters* ctx);
     ~HtraceSymbolsDetailParser();
-    void Parse(const TracePluginResult& tracePacket);
+    void Parse(const TracePluginResult* tracePacket);
 
 private:
     const TraceStreamerFilters* streamFilters_;

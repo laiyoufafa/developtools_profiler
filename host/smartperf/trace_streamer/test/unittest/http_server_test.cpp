@@ -21,6 +21,7 @@
 #include "http_server.h"
 #include "http_socket.h"
 #include "rpc/rpc_server.h"
+#include "string_help.h"
 
 using namespace testing::ext;
 namespace SysTuning {
@@ -30,7 +31,7 @@ do {              \
     static_cast<void>(expr); \
 } while (0)
 
-#define MAX_TESET_BUF_SIZE 1024
+const uint32_t MAX_TESET_BUF_SIZE = 1024;
 std::string g_parserData(
     "ACCS0-2716  ( 2519) [000] ...1 168758.662861: binder_transaction: \
         transaction=25137708 dest_node=4336 dest_proc=924 dest_thread=0 reply=0 flags=0x10 code=0x3");
@@ -69,7 +70,8 @@ int HttpClient(const char* buf)
     struct sockaddr_in addr;
     addr.sin_family = AF_INET;
     addr.sin_addr.s_addr = htons(INADDR_ANY);
-    addr.sin_port = htons(static_cast<uint16_t>(9001));
+    const uint16_t listenPort = 9001;
+    addr.sin_port = htons(listenPort);
     struct timeval recvTimeout = {1, 100000};
 
     int sockfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -78,29 +80,32 @@ int HttpClient(const char* buf)
         return -1;
     }
 
-    int ret = connect(sockfd, (struct sockaddr*)&addr, sizeof(struct sockaddr));
+    int ret = connect(sockfd, (struct sockaddr*)(&addr), sizeof(struct sockaddr));
     if (ret < 0) {
-        TS_LOGI("Connect error");
+        TS_LOGE("Connect error");
         return -1;
     }
 
     ret = send(sockfd, buf, strlen(buf), 0);
     if (ret < 0) {
-        TS_LOGI("Send error");
+        TS_LOGE("Send error");
         return -1;
     }
 
-    memset(g_clientRecvBuf, 0, strlen(g_clientRecvBuf));
+    if (!memset_s(g_clientRecvBuf, strlen(g_clientRecvBuf), 0, strlen(g_clientRecvBuf))) {
+        TS_LOGE("memset_s error");
+        return -1;
+    }
     int index = 0;
-    ret = setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, (char*)&recvTimeout, sizeof(recvTimeout));
+    ret = setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, (char*)(&recvTimeout), sizeof(recvTimeout));
     if (ret != 0) {
-        TS_LOGI("set recv time out error");
+        TS_LOGE("set recv time out error");
         return -1;
     }
     while (1) {
         ret = recv(sockfd, g_clientRecvBuf + index, MAX_TESET_BUF_SIZE, 0);
         if (ret < 0) {
-            TS_LOGI("Recv timeout");
+            TS_LOGE("Recv timeout");
             break;
         }
         index += ret;
@@ -122,8 +127,9 @@ HWTEST_F(HttpServerTest, HttpCorrectRequest, TestSize.Level1)
     int ret = 0;
 
     ret = rpcServer.ParseData((const uint8_t*)g_parserData.c_str(), g_parserData.length(), ResultCallbackFunc);
-    ret = rpcServer.ParseDataOver((const uint8_t*)g_parserData.c_str(), g_parserData.length(), ResultCallbackFunc);
-    ret = rpcServer.SqlOperate((const uint8_t*)g_sqlOPerateInsert.c_str(), g_sqlOPerateInsert.length(), ResultCallbackFunc);
+    ret = rpcServer.ParseDataOver(nullptr, 0, ResultCallbackFunc);
+    ret = rpcServer.SqlOperate((const uint8_t*)g_sqlOPerateInsert.c_str(),
+                               g_sqlOPerateInsert.length(), ResultCallbackFunc);
     ret = rpcServer.SqlQuery((const uint8_t*)g_sqlQuery.c_str(), g_sqlQuery.length(), ResultCallbackFunc);
 
     httpServer.RegisterRpcFunction(&rpcServer);
@@ -135,7 +141,6 @@ HWTEST_F(HttpServerTest, HttpCorrectRequest, TestSize.Level1)
 
     sleep(1);
     char bufToSend[MAX_TESET_BUF_SIZE] = {0};
-    memset(bufToSend, 0, strlen(bufToSend));
     sprintf(bufToSend,
             "GET /sqlquery HTTP/1.1\r\nHost: 127.0.0.1\r\nContent-Length:\
                 23\r\n\r\nselect * from measure\r\n");
@@ -154,7 +159,8 @@ HWTEST_F(HttpServerTest, HttpCorrectRequest, TestSize.Level1)
         "application/json\r\nTransfer-Encoding: chunked\r\nContent-Length:"
         "72\r\n\r\nok\r\n{\"columns\":[\"type\",\"ts\",\"value\",\"filter_id\"],\"values\":[[1,1,1,1]]}\r\n"};
 
-    ret = rpcServer.SqlOperate((const uint8_t*)g_sqlOPerateDelete.c_str(), g_sqlOPerateDelete.length(), ResultCallbackFunc);
+    ret = rpcServer.SqlOperate((const uint8_t*)g_sqlOPerateDelete.c_str(),
+                               g_sqlOPerateDelete.length(), ResultCallbackFunc);
     ret = rpcServer.SqlQuery((const uint8_t*)g_sqlQuery.c_str(), g_sqlQuery.length(), ResultCallbackFunc);
 
     EXPECT_STREQ(targetStr, g_clientRecvBuf);
@@ -181,7 +187,6 @@ HWTEST_F(HttpServerTest, OthreAgreement, TestSize.Level1)
 
     sleep(1);
     char bufToSend[MAX_TESET_BUF_SIZE] = {0};
-    memset(bufToSend, 0, strlen(bufToSend));
     sprintf(bufToSend,
             "GET /sqlquery HTTP/0.9\r\nHost: 127.0.0.1\r\nContent-Length:\
                     23\r\n\r\nselect * from measure\r\n");
@@ -221,7 +226,6 @@ HWTEST_F(HttpServerTest, OthreProtocols, TestSize.Level1)
 
     sleep(1);
     char bufToSend[MAX_TESET_BUF_SIZE] = {0};
-    memset(bufToSend, 0, strlen(bufToSend));
     sprintf(bufToSend,
             "HEAD /sqlquery HTTP/1.1\r\nHost: 127.0.0.1\r\nContent-Length:\
                 23\r\n\r\nselect * from measure\r\n");
@@ -261,7 +265,6 @@ HWTEST_F(HttpServerTest, RequestLineFormatError, TestSize.Level1)
 
     sleep(1);
     char bufToSend[MAX_TESET_BUF_SIZE] = {0};
-    memset(bufToSend, 0, strlen(bufToSend));
     sprintf(bufToSend,
             "POST /sqlqueryHTTP/0.9\r\nHost: 127.0.0.1\r\nContent-Length:\
                 20\r\n\r\nselect * from meta\r\n");
@@ -301,7 +304,6 @@ HWTEST_F(HttpServerTest, RequestOverHttp, TestSize.Level1)
 
     sleep(1);
     char bufToSend[MAX_TESET_BUF_SIZE] = {0};
-    memset(bufToSend, 0, strlen(bufToSend));
     sprintf(bufToSend,
             "POST /query HTTP/1.1\r\nHost: 127.0.0.1\r\nContent-Length:20\r\n\r\n\
             select * from meta\r\n");

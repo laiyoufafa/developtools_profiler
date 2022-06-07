@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+
 import {element} from "../BaseElement.js";
 
 @element('lit-table-column')
@@ -24,13 +25,13 @@ export class LitTableColumn extends HTMLElement {
         super();
         const shadowRoot = this.attachShadow({mode: 'open'});
         shadowRoot.innerHTML = `
-<style>
-:host{
-    overflow: auto;
-    width: 100%;
- }
-</style>
-<slot id="slot"></slot>
+        <style>
+        :host{
+            overflow: auto;
+            width: 100%;
+         }
+        </style>
+        <slot id="slot"></slot>
         `
     }
 
@@ -50,13 +51,13 @@ export class LitTableColumn extends HTMLElement {
     }
 
     disconnectedCallback() {
+
     }
 
     adoptedCallback() {
     }
 
     attributeChangedCallback(name: string, oldValue: string, newValue: string) {
-
     }
 
 }

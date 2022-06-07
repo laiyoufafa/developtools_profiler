@@ -15,13 +15,21 @@
 
 // @ts-ignore
 import {TabPaneCurrentSelection, getTimeString} from "../../../../../dist/trace/component/trace/sheet/TabPaneCurrentSelection.js"
-
+import {SpApplication} from "../../../../../src/trace/SpApplication";
+window.ResizeObserver = window.ResizeObserver ||
+    jest.fn().mockImplementation(() => ({
+        disconnect: jest.fn(),
+        observe: jest.fn(),
+        unobserve: jest.fn(),
+        
+    }));
 describe('TabPaneCurrentSelection Test', () => {
     let tabPaneCurrentSelection = new TabPaneCurrentSelection();
 
     const canvas = document.createElement('canvas');
     canvas.width = 1;
     canvas.height = 1;
+    let context = canvas.getContext("2d");
 
     let cpuData = [{
         cpu: 1,
@@ -92,9 +100,34 @@ describe('TabPaneCurrentSelection Test', () => {
         tid:22,
         schedulingLatency:33,
         schedulingDesc:'schedulingDesc',
+
+    }]
+
+    let queryData = [{
+        id:1,
+        startTime:0,
+        hasSched: 14724852000,
+        pid: 2519,
+        processName: null,
+        threadName: "ACCS0",
+        tid: 2716,
+        upid:  1,
+        utid:  1,
+        cpu: null,
+        dur: 405000,
+        end_ts: null,
+        is_main_thread: 0,
+        name: "ACCS0",
+        start_ts: null,
+        state: "S",
+        type: "thread",
+
     }]
 
     tabPaneCurrentSelection.queryWakeUpData = jest.fn(()=> 'WakeUpData')
+    tabPaneCurrentSelection.queryWakeUpData.wb = jest.fn(()=>null)
+
+
 
     it('TabPaneCurrentSelectionTest01', function () {
         let result = tabPaneCurrentSelection.setFunctionData(functionData)
@@ -106,19 +139,20 @@ describe('TabPaneCurrentSelection Test', () => {
         expect(result).toBeUndefined();
     });
 
+    it('TabPaneCurrentSelectionTest12', function () {
+        let result = tabPaneCurrentSelection.queryWakeUpData(queryData)
+        expect(result).toBeTruthy();
+    });
+
     it('TabPaneCurrentSelectionTest03', function () {
         let result = tabPaneCurrentSelection.setThreadData(threadData)
         expect(result).toBeUndefined();
     });
 
     it('TabPaneCurrentSelectionTest04', function () {
-        let result = tabPaneCurrentSelection.drawRight(canvas, wakeupBean)
-        expect(result).toBeUndefined();
-    });
-
-    it('TabPaneCurrentSelectionTest05', function () {
-        let result = tabPaneCurrentSelection.dprToPx(2)
-        expect(result).toBe(2);
+        // @ts-ignore
+        document.body.innerHTML = `<sp-application> </sp-application>`;
+        expect(tabPaneCurrentSelection.drawRight(canvas, wakeupBean)).toBeUndefined();
     });
 
     it('TabPaneCurrentSelectionTest06', function () {
@@ -149,5 +183,71 @@ describe('TabPaneCurrentSelection Test', () => {
     it('TabPaneCurrentSelectionTest11', function () {
         let result = getTimeString(101)
         expect(result).toBe('101ns ');
+    });
+
+    it('TabPaneCurrentSelectionTest13',function(){
+        tabPaneCurrentSelection.setCpuData = jest.fn(()=>true);
+        tabPaneCurrentSelection.data = jest.fn(()=>true);
+        expect(tabPaneCurrentSelection.data).toBeUndefined();
+    });
+
+    it('TabPaneCurrentSelectionTest14',function(){
+        expect(tabPaneCurrentSelection.setCpuData(cpuData,undefined,1)).not.toBeUndefined();
+    });
+
+    it('TabPaneCurrentSelectionTest15',function(){
+        expect(tabPaneCurrentSelection.initHtml()).toMatchInlineSnapshot(`
+"
+        <style>
+            .current-title{
+                width: 100%;
+                display: flex;
+                top: 0;
+                background: var(--dark-background,#ffffff);
+                position: sticky;
+            }
+            .current-title h2{
+                width: 50%;
+                padding: 0 10px;
+                font-size: 16px;
+                font-weight: 400;
+                visibility: visible;
+            }
+            .bottom-scroll-area{
+                display: flex;
+                height: auto;
+                overflow-y: auto;
+            }
+            .left-table{
+                width: 50%;
+                padding: 0 10px;
+            }
+            .right-table{
+                width: 50%;
+            }
+        </style>
+        <div style=\\"width: 100%;height: auto;position: relative\\">
+            <div class=\\"current-title\\">
+                <h2 id=\\"leftTitle\\"></h2>
+                <h2 id=\\"rightTitle\\">Scheduling Latency</h2>
+            </div>
+            <div class=\\"bottom-scroll-area\\">
+                <div class=\\"left-table\\">
+                    <lit-table id=\\"selectionTbl\\" no-head style=\\"height: auto\\">
+                        <lit-table-column title=\\"name\\" data-index=\\"name\\" key=\\"name\\" align=\\"flex-start\\"  width=\\"180px\\">
+                            <template><div>{{name}}</div></template>
+                        </lit-table-column>
+                        <lit-table-column title=\\"value\\" data-index=\\"value\\" key=\\"value\\" align=\\"flex-start\\" >
+                            <template><div style=\\"display: flex;\\">{{value}}</div></template>
+                        </lit-table-column>
+                    </lit-table>
+                </div>
+                <div class=\\"right-table\\">
+                    <canvas id=\\"rightDraw\\" style=\\"width: 100%;height: 100%;\\"></canvas>
+                </div>
+            </div>
+        </div>
+        "
+`);
     });
 })

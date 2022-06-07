@@ -68,17 +68,124 @@ describe("Utils Test", () => {
     });
 
     it('Utils Test11', () => {
-        expect(Utils.getByteWithUnit(1_000_000_001)).toBe("1.00Gb")
+        expect(Utils.getByteWithUnit(2_000_000_000)).toBe("1.86 Gb")
     });
 
     it('Utils Test12', () => {
-        expect(Utils.getByteWithUnit(1_000_000_000)).toBe("1000.00Mb")
+        expect(Utils.getByteWithUnit(1_000_000_000)).toBe("953.67 Mb")
     });
 
-    it('Utils Test12', () => {
-        expect(Utils.getByteWithUnit(1000_000)).toBe("1000.00kb")
+    it('Utils Test13', () => {
+        expect(Utils.getByteWithUnit(1000_000)).toBe("976.56 Kb")
     });
 
+    it('Utils Test23', () => {
+        expect(Utils.getByteWithUnit(-2_000)).toBe("-1.95 Kb")
+    });
+
+    it('Utils Test14', () => {
+        expect(Utils.getTimeString( 1_000_000_000_000)).toBe("16m 40s ")
+    });
+
+    it('Utils Test15', () => {
+        expect(Utils.getTimeString( 2_000_000)).toBe("2ms ")
+    });
+
+    it('Utils Test16', () => {
+        expect(Utils.getTimeString( 3_000)).toBe("3μs ")
+    });
+
+    it('Utils Test17', () => {
+        expect(Utils.getTimeString( 300)).toBe("300ns ")
+    });
+
+    it('Utils Test18', () => {
+        expect(Utils.getTimeStringHMS(5900_000_000_000)).toBe("1:38:")
+    });
+
+    it('Utils Test19', () => {
+        expect(Utils.getTimeStringHMS(3_000_000_000)).toBe("3:")
+    });
+
+    it('Utils Test20', () => {
+        expect(Utils.getTimeStringHMS(2_000_000)).toBe("2.")
+    });
+
+    it('Utils Test21', () => {
+        expect(Utils.getTimeStringHMS(5_000)).toBe("5.")
+    });
+
+    it('Utils Test22', () => {
+        expect(Utils.getTimeStringHMS(90)).toBe("90")
+    });
+
+    it('Utils Test24', () => {
+        expect(Utils.getBinaryByteWithUnit(0)).toBe("0Bytes")
+    });
+
+    it('Utils Test25', () => {
+        expect(Utils.getBinaryByteWithUnit(3_000_000_000)).toBe("2.79Gib")
+    });
+
+    it('Utils Test26', () => {
+        expect(Utils.getBinaryByteWithUnit(2_000_000)).toBe("1.91Mib")
+    });
+
+    it('Utils Test27', () => {
+        expect(Utils.getBinaryByteWithUnit(2_000)).toBe("1.95kib")
+    });
+
+    it('Utils Test28', () => {
+        expect(Utils.getTimeStampHMS(3900_000_000_000)).toBe("01:05:00:000.000")
+    });
+
+    it('Utils Test29', () => {
+        expect(Utils.getTimeStampHMS(70_000_000_000)).toBe("01:10:000.000")
+    });
+
+    it('Utils Test30', () => {
+        expect(Utils.getTimeStampHMS(2_000_000_000)).toBe("02:000.000")
+    });
+
+    it('Utils Test31', () => {
+        expect(Utils.getTimeStampHMS(2_000_000)).toBe("00:002.000")
+    });
+
+    it('Utils Test32', () => {
+        expect(Utils.getTimeStampHMS(2_000)).toBe("00:000.002.")
+    });
+
+    it('Utils Test33', () => {
+        expect(Utils.getTimeStampHMS(1)).toBe("00:000.000001")
+    });
+
+    it('Utils Test40', () => {
+        expect(Utils.getDurString(61_000_000_000)).toBe("1:1.0s ")
+    });
+
+    it('Utils Test34', () => {
+        expect(Utils.getDurString(2_000_000_000)).toBe("2.0s ")
+    });
+
+    it('Utils Test35', () => {
+        expect(Utils.getDurString(1_800_000)).toBe("1ms ")
+    });
+
+    it('Utils Test36', () => {
+        expect(Utils.timeMsFormat2p(3800_000)).toBe("1.00h")
+    });
+
+    it('Utils Test37', () => {
+        expect(Utils.timeMsFormat2p(90_000)).toBe("1.00min")
+    });
+
+    it('Utils Test38', () => {
+        expect(Utils.timeMsFormat2p(2_000)).toBe("2.00s")
+    });
+
+    it('Utils Test39', () => {
+        expect(Utils.timeMsFormat2p(1)).toBe("1.00ms")
+    });
 
     afterAll(() => {
         // 后处理操作

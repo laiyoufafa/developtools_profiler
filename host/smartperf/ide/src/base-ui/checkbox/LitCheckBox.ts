@@ -17,6 +17,7 @@ import {BaseElement, element} from "../BaseElement.js";
 
 @element('lit-check-box')
 export class LitCheckBox extends BaseElement {
+
     private checkbox: HTMLInputElement | undefined
 
     static get observedAttributes() {
@@ -59,7 +60,7 @@ export class LitCheckBox extends BaseElement {
         return `
         <style>
         :host{ 
-            display:inline-block;
+            display:flex;
             opacity: 0.86;
             font-family: Helvetica;
             font-size: 14px;
@@ -129,7 +130,10 @@ export class LitCheckBox extends BaseElement {
         </style>
         <input type="checkbox" id="checkbox">
         <label for="checkbox">
-          <span class="chekebox"><lit-icon name="checkmark" class="icon" color="#3391FF" size="8"></lit-icon></span>
+          <span class="chekebox">
+          <lit-icon name="checkmark" class="icon" color="#3391FF" size="8">
+          </lit-icon>
+          </span>
           <slot id="slot"></slot>
        </label>
         `;
@@ -152,11 +156,7 @@ export class LitCheckBox extends BaseElement {
 
     attributeChangedCallback(name: string, oldValue: string, newValue: string) {
         if (name == 'checked' && this.checkbox) {
-            if (newValue !== null) {
-                this.checkbox.checked = true;
-            } else {
-                this.checkbox.checked = false;
-            }
+            this.checkbox.checked = newValue !== null;
         }
         if (name == 'value') {
             let slot = this.shadowRoot?.getElementById("slot")

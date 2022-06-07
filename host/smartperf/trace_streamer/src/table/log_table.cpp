@@ -35,13 +35,13 @@ LogTable::LogTable(const TraceDataCache* dataCache) : TableBase(dataCache)
 
 LogTable::~LogTable() {}
 
-void LogTable::CreateCursor()
+std::unique_ptr<TableBase::Cursor> LogTable::CreateCursor()
 {
-    cursor_ = std::make_unique<Cursor>(dataCache_);
+    return std::make_unique<Cursor>(dataCache_, this);
 }
 
-LogTable::Cursor::Cursor(const TraceDataCache* dataCache)
-    : TableBase::Cursor(dataCache, 0, static_cast<uint32_t>(dataCache->GetConstHilogData().Size())),
+LogTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
+    : TableBase::Cursor(dataCache, table, static_cast<uint32_t>(dataCache->GetConstHilogData().Size())),
       logInfoObj_(dataCache->GetConstHilogData())
 {
 }

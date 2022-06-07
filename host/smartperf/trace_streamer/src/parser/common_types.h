@@ -19,10 +19,14 @@
 #include <atomic>
 #include <string>
 #include <unordered_map>
+#include "cpu_plugin_result.pb.h"
+#include "diskio_plugin_result.pb.h"
 #include "hidump_plugin_result.pb.h"
 #include "hilog_plugin_result.pb.h"
 #include "memory_plugin_result.pb.h"
 #include "native_hook_result.pb.h"
+#include "network_plugin_result.pb.h"
+#include "process_plugin_result.pb.h"
 #include "services/common_types.pb.h"
 #include "trace_plugin_result.pb.h"
 #include "ts_common.h"
@@ -70,16 +74,18 @@ enum ParseStatus {
 struct DataSegment {
     std::string seg;
     BytraceLine bufLine;
-    std::unordered_map<std::string, std::string> args;
-    uint32_t tgid;
     std::atomic<ParseStatus> status{TS_PARSE_STATUS_INIT};
 };
 enum DataSourceType {
     DATA_SOURCE_TYPE_TRACE,
     DATA_SOURCE_TYPE_MEM,
     DATA_SOURCE_TYPE_HILOG,
-    DATA_SOURCE_TYPE_HEAP,
-    DATA_SOURCE_TYPE_FPS
+    DATA_SOURCE_TYPE_ALLOCATION,
+    DATA_SOURCE_TYPE_FPS,
+    DATA_SOURCE_TYPE_NETWORK,
+    DATA_SOURCE_TYPE_DISKIO,
+    DATA_SOURCE_TYPE_CPU,
+    DATA_SOURCE_TYPE_PROCESS,
 };
 // 注意使用完之后恢复初始化状态，保证下次使用不会出现数据混乱。
 struct HtraceDataSegment {
@@ -88,14 +94,44 @@ struct HtraceDataSegment {
     HilogInfo logData;
     BatchNativeHookData batchNativeHookData;
     HidumpInfo hidumpInfo;
+    CpuData cpuInfo;
+    NetworkDatas networkInfo;
+    DiskioData diskIOInfo;
+    ProcessData processInfo;
     uint64_t timeStamp;
-    TracePluginResult traceData;
+    std::unique_ptr<TracePluginResult> traceData;
     BuiltinClocks clockId;
     DataSourceType dataType;
     std::atomic<ParseStatus> status{TS_PARSE_STATUS_INIT};
 };
 
-struct TracePoint {
+class TracePoint {
+public:
+    TracePoint() {}
+    TracePoint(const TracePoint& point) {
+        phase_ = point.phase_;
+        tgid_ = point.tgid_;
+        name_ = point.name_;
+        value_ = point.value_;
+        categoryGroup_ = point.categoryGroup_;
+        chainId_ = point.chainId_;
+        spanId_ = point.spanId_;
+        parentSpanId_ = point.parentSpanId_;
+        flag_ = point.flag_;
+        args_ = point.args_;
+    }
+    void operator=(const TracePoint& point) {
+        phase_ = point.phase_;
+        tgid_ = point.tgid_;
+        name_ = point.name_;
+        value_ = point.value_;
+        categoryGroup_ = point.categoryGroup_;
+        chainId_ = point.chainId_;
+        spanId_ = point.spanId_;
+        parentSpanId_ = point.parentSpanId_;
+        flag_ = point.flag_;
+        args_ = point.args_;
+    }
     char phase_ = '\0';
     uint32_t tgid_ = 0;
     std::string name_ = "";

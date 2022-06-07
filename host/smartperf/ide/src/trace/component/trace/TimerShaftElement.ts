@@ -19,6 +19,17 @@ import {Rect} from "./timer-shaft/Rect.js";
 import {RangeRuler, TimeRange} from "./timer-shaft/RangeRuler.js";
 import {SportRuler} from "./timer-shaft/SportRuler.js";
 import {procedurePool} from "../../database/Procedure.js";
+import {Flag} from "./timer-shaft/Flag.js";
+
+//随机生成十六位进制颜色
+export function randomRgbColor() {
+    const letters = '0123456789ABCDEF';
+    let color = '#';
+    for (let i = 0; i < 6; i++) {
+        color += letters[Math.floor(Math.random() * 16)]
+    }
+    return color;
+}
 
 export function ns2s(ns: number): string {
     let second1 = 1_000_000_000; // 1 second
@@ -56,16 +67,21 @@ export function ns2x(ns: number, startNS: number, endNS: number, duration: numbe
 
 @element('timer-shaft-element')
 export class TimerShaftElement extends BaseElement {
+    // @ts-ignore
+    offscreen: OffscreenCanvas | undefined;
+    isOffScreen: boolean = false;
     public ctx: CanvasRenderingContext2D | undefined | null
     public canvas: HTMLCanvasElement | null | undefined
     public totalEL: HTMLDivElement | null | undefined
     public timeTotalEL: HTMLSpanElement | null | undefined
     public timeOffsetEL: HTMLSpanElement | null | undefined
     public loadComplete: boolean = false
-    // @ts-ignore
-    offscreen: OffscreenCanvas | undefined;
-    isOffScreen: boolean = false;
     rangeChangeHandler: ((timeRange: TimeRange) => void) | undefined = undefined
+    flagChangeHandler: ((hoverFlag: Flag | undefined | null, selectFlag: Flag | undefined | null) => void) | undefined = undefined
+    flagClickHandler: ((flag: Flag | undefined | null) => void) | undefined = undefined
+    /**
+     * 离线渲染需要的变量
+     */
     dpr = window.devicePixelRatio || 1;
     frame: Rect = new Rect(0, 0, 0, 0);
     must: boolean = true
@@ -73,12 +89,18 @@ export class TimerShaftElement extends BaseElement {
     hoverY: number = 0
     canvasWidth: number = 0
     canvasHeight: number = 0
+    _cpuUsage: Array<{ cpu: number, ro: number, rate: number }> = []
     protected timeRuler: TimeRuler | undefined;
     protected rangeRuler: RangeRuler | undefined;
-    protected sportRuler: SportRuler | undefined;
+    protected _sportRuler: SportRuler | undefined;
     private root: HTMLDivElement | undefined | null
+    private _totalNS: number = 10_000_000_000;
+    private _startNS: number = 0;
+    private _endNS: number = 10_000_000_000;
 
-    _cpuUsage: Array<{ cpu: number, ro: number, rate: number }> = []
+    get sportRuler(): SportRuler | undefined {
+        return this._sportRuler;
+    }
 
     set cpuUsage(value: Array<{ cpu: number, ro: number, rate: number }>) {
         this._cpuUsage = value;
@@ -86,8 +108,6 @@ export class TimerShaftElement extends BaseElement {
             this.rangeRuler.cpuUsage = this._cpuUsage;
         }
     }
-
-    private _totalNS: number = 10_000_000_000;
 
     get totalNS(): number {
         return this._totalNS;
@@ -101,8 +121,6 @@ export class TimerShaftElement extends BaseElement {
         requestAnimationFrame(() => this.render())
     }
 
-    private _startNS: number = 0;
-
     get startNS(): number {
         return this._startNS;
     }
@@ -110,8 +128,6 @@ export class TimerShaftElement extends BaseElement {
     set startNS(value: number) {
         this._startNS = value;
     }
-
-    private _endNS: number = 10_000_000_000;
 
     get endNS(): number {
         return this._endNS;
@@ -131,7 +147,10 @@ export class TimerShaftElement extends BaseElement {
             this.rangeRuler.markA.frame.x = 0;
             this.rangeRuler.markB.frame.x = this.rangeRuler.frame.width
             this.rangeRuler.cpuUsage = []
+            this.sportRuler!.flagList.length = 0
+            this.sportRuler!.isRangeSelect = false
         }
+        this.removeTriangle("inverted");
         this.totalNS = 10_000_000_000;
     }
 
@@ -149,7 +168,6 @@ export class TimerShaftElement extends BaseElement {
     connectedCallback() {
         if (this.canvas) {
             if (this.isOffScreen) {
-                console.log("timeline offscreen");
                 // @ts-ignore
                 this.offscreen = this.canvas.transferControlToOffscreen();
                 return;
@@ -162,13 +180,24 @@ export class TimerShaftElement extends BaseElement {
         const width = this.canvas?.clientWidth || 0;
         const height = this.canvas?.clientHeight || 0;
         if (!this.timeRuler) {
-            this.timeRuler = new TimeRuler(this.canvas, this.ctx!, new Rect(0, 0, width, 20), this._totalNS);
+            this.timeRuler = new TimeRuler(this, new Rect(0, 0, width, 20), this._totalNS);
         }
-        if (!this.sportRuler) {
-            this.sportRuler = new SportRuler(this.canvas, this.ctx!, new Rect(0, 100.5, width, height - 100));
+        if (!this._sportRuler) {
+            this._sportRuler = new SportRuler(this, new Rect(0, 100, width, height - 100),
+                (hoverFlag, selectFlag) => {
+                    this.flagChangeHandler?.(hoverFlag, selectFlag);
+                }, (flag) => {
+                    this.flagClickHandler?.(flag);
+                });
         }
         if (!this.rangeRuler) {
-            this.rangeRuler = new RangeRuler(this.canvas, this.ctx!, new Rect(0, 25, width, 75), {
+            this.rangeRuler = new RangeRuler(this, new Rect(0, 25, width, 75), {
+                slicesTime:{
+                    startTime:null,
+                    endTime:null,
+                    color:null,
+                },
+                scale: 0,
                 startX: 0,
                 endX: this.canvas?.clientWidth || 0,
                 startNS: 0,
@@ -177,8 +206,8 @@ export class TimerShaftElement extends BaseElement {
                 xs: [],
                 xsTxt: []
             }, (a) => {
-                if (this.sportRuler) {
-                    this.sportRuler.range = a;
+                if (this._sportRuler) {
+                    this._sportRuler.range = a;
                 }
                 if (this.timeOffsetEL) {
                     this.timeOffsetEL.textContent = ns2s(a.startNS)
@@ -189,200 +218,60 @@ export class TimerShaftElement extends BaseElement {
             });
         }
         this.rangeRuler.frame.width = width;
-        this.sportRuler.frame.width = width;
+        this._sportRuler.frame.width = width;
         this.timeRuler.frame.width = width;
-        // @ts-ignore
-        let dpr = window.devicePixelRatio || window.webkitDevicePixelRatio || window.mozDevicePixelRatio || 1;
     }
 
+    setRangeNS(startNS: number, endNS: number) {
+        this.rangeRuler?.setRangeNS(startNS, endNS);
+    }
+
+    getRange(): TimeRange | undefined {
+        return this.rangeRuler?.getRange();
+    }
 
     updateWidth(width: number) {
-        if (this.isOffScreen) {
-            this.frame.width = width - (this.totalEL?.clientWidth || 0);
-            this.frame.height = this.shadowRoot!.host.clientHeight || 0;
-            this.canvasWidth = Math.round((this.frame.width) * this.dpr);
-            this.canvasHeight = Math.round((this.frame.height) * this.dpr);
-            this.render();
-            return;
-        }
         this.canvas!.width = width - (this.totalEL?.clientWidth || 0);
         this.canvas!.height = this.shadowRoot!.host.clientHeight || 0;
         let oldWidth = this.canvas!.width;
         let oldHeight = this.canvas!.height;
-        this.canvas!.width = Math.round((oldWidth) * this.dpr);
-        this.canvas!.height = Math.round(oldHeight * this.dpr);
+        this.canvas!.width = Math.ceil((oldWidth) * this.dpr);
+        this.canvas!.height = Math.ceil(oldHeight * this.dpr);
         this.canvas!.style.width = oldWidth + 'px';
         this.canvas!.style.height = oldHeight + 'px';
         this.ctx?.scale(this.dpr, this.dpr);
         this.ctx?.translate(0, 0)
         this.rangeRuler!.frame.width = oldWidth;
-        this.sportRuler!.frame.width = oldWidth;
+        this._sportRuler!.frame.width = oldWidth;
         this.timeRuler!.frame.width = oldWidth;
         this.rangeRuler?.fillX()
         this.render()
     }
 
     documentOnMouseDown = (ev: MouseEvent) => {
-        if (this.isOffScreen) {
-            procedurePool.submitWithName(`timeline`, `timeline`, {
-                offscreen: this.must ? this.offscreen : undefined,
-                dpr: this.dpr,
-                hoverX: this.hoverX,
-                hoverY: this.hoverY,
-                canvasWidth: this.canvasWidth,
-                canvasHeight: this.canvasHeight,
-                offsetLeft: this.canvas?.offsetLeft || 0,
-                offsetTop: this.canvas?.offsetTop || 0,
-                mouseDown: {offsetX: ev.offsetX, offsetY: ev.offsetY},
-                mouseUp: null,
-                mouseMove: null,
-                mouseOut: null,
-                keyPressCode: null,
-                keyUpCode: null,
-                lineColor: "#dadada",
-                startNS: this.startNS,
-                endNS: this.endNS,
-                totalNS: this.totalNS,
-                frame: this.frame,
-            }, this.must ? this.offscreen : undefined, (res: any) => {
-                this.must = false;
-            })
-        } else {
-            this.rangeRuler?.mouseDown(ev);
-        }
+        this.rangeRuler?.mouseDown(ev);
     }
 
     documentOnMouseUp = (ev: MouseEvent) => {
-        if (this.isOffScreen) {
-            procedurePool.submitWithName(`timeline`, `timeline`, {
-                offscreen: this.must ? this.offscreen : undefined,
-                dpr: this.dpr,
-                hoverX: this.hoverX,
-                hoverY: this.hoverY,
-                canvasWidth: this.canvasWidth,
-                canvasHeight: this.canvasHeight,
-                offsetLeft: this.canvas?.offsetLeft || 0,
-                offsetTop: this.canvas?.offsetTop || 0,
-                mouseUp: {offsetX: ev.offsetX, offsetY: ev.offsetY},
-                mouseMove: null,
-                mouseOut: null,
-                keyPressCode: null,
-                keyUpCode: null,
-                lineColor: "#dadada",
-                startNS: this.startNS,
-                endNS: this.endNS,
-                totalNS: this.totalNS,
-                frame: this.frame,
-            }, this.must ? this.offscreen : undefined, (res: any) => {
-                this.must = false;
-            })
-        } else {
-            this.rangeRuler?.mouseUp(ev);
-            this.sportRuler?.mouseUp(ev);
-        }
+        this.rangeRuler?.mouseUp(ev);
+        this.sportRuler?.mouseUp(ev);
     }
 
     documentOnMouseMove = (ev: MouseEvent) => {
-        if (this.isOffScreen) {
-            procedurePool.submitWithName(`timeline`, `timeline`, {
-                offscreen: this.must ? this.offscreen : undefined,
-                dpr: this.dpr,
-                hoverX: this.hoverX,
-                hoverY: this.hoverY,
-                canvasWidth: this.canvasWidth,
-                canvasHeight: this.canvasHeight,
-                offsetLeft: this.canvas?.offsetLeft || 0,
-                offsetTop: this.canvas?.offsetTop || 0,
-                mouseMove: {offsetX: ev.offsetX, offsetY: ev.offsetY},
-                mouseOut: null,
-                keyPressCode: null,
-                keyUpCode: null,
-                lineColor: "#dadada",
-                startNS: this.startNS,
-                endNS: this.endNS,
-                totalNS: this.totalNS,
-                frame: this.frame,
-            }, this.must ? this.offscreen : undefined, (res: any) => {
-                this.must = false;
-            })
-        } else {
-            this.rangeRuler?.mouseMove(ev);
-            this.sportRuler?.mouseMove(ev);
-        }
+        this.rangeRuler?.mouseMove(ev);
+        this.sportRuler?.mouseMove(ev);
     }
 
     documentOnMouseOut = (ev: MouseEvent) => {
-        if (this.isOffScreen) {
-            procedurePool.submitWithName(`timeline`, `timeline`, {
-                offscreen: this.must ? this.offscreen : undefined,
-                dpr: this.dpr,
-                hoverX: this.hoverX,
-                hoverY: this.hoverY,
-                canvasWidth: this.canvasWidth,
-                canvasHeight: this.canvasHeight,
-                offsetLeft: this.canvas?.offsetLeft || 0,
-                offsetTop: this.canvas?.offsetTop || 0,
-                mouseOut: {offsetX: ev.offsetX, offsetY: ev.offsetY},
-                keyPressCode: null,
-                keyUpCode: null,
-                lineColor: "#dadada",
-                startNS: this.startNS,
-                endNS: this.endNS,
-                totalNS: this.totalNS,
-                frame: this.frame,
-            }, this.must ? this.offscreen : undefined, (res: any) => {
-                this.must = false;
-            })
-        } else {
-            this.rangeRuler?.mouseOut(ev);
-        }
+        this.rangeRuler?.mouseOut(ev);
     }
+
     documentOnKeyPress = (ev: KeyboardEvent) => {
-        if (this.isOffScreen) {
-            procedurePool.submitWithName(`timeline`, `timeline`, {
-                offscreen: this.must ? this.offscreen : undefined,
-                dpr: this.dpr,
-                hoverX: this.hoverX,
-                hoverY: this.hoverY,
-                canvasWidth: this.canvasWidth,
-                canvasHeight: this.canvasHeight,
-                keyPressCode: {key: ev.key},
-                keyUpCode: null,
-                lineColor: "#dadada",
-                startNS: this.startNS,
-                endNS: this.endNS,
-                totalNS: this.totalNS,
-                frame: this.frame,
-            }, this.must ? this.offscreen : undefined, (res: any) => {
-                this.must = false;
-            })
-        } else {
-            this.rangeRuler?.keyPress(ev);
-        }
+        this.rangeRuler?.keyPress(ev);
     }
 
     documentOnKeyUp = (ev: KeyboardEvent) => {
-        if (this.isOffScreen) {
-            procedurePool.submitWithName(`timeline`, `timeline`, {
-                offscreen: this.must ? this.offscreen : undefined,
-                dpr: this.dpr,
-                hoverX: this.hoverX,
-                hoverY: this.hoverY,
-                canvasWidth: this.canvasWidth,
-                canvasHeight: this.canvasHeight,
-                keyPressCode: null,
-                keyUpCode: {key: ev.key},
-                lineColor: "#dadada",
-                startNS: this.startNS,
-                endNS: this.endNS,
-                totalNS: this.totalNS,
-                frame: this.frame,
-            }, this.must ? this.offscreen : undefined, (res: any) => {
-                this.must = false;
-            })
-        } else {
-            this.rangeRuler?.keyUp(ev);
-        }
+        this.rangeRuler?.keyUp(ev);
     }
 
     disconnectedCallback() {
@@ -394,11 +283,11 @@ export class TimerShaftElement extends BaseElement {
             this.ctx?.fillRect(0, 0, this.canvas?.width || 0, this.canvas?.height || 0)
             this.timeRuler?.draw()
             this.rangeRuler?.draw()
-            this.sportRuler?.draw()
+            this._sportRuler?.draw()
         } else {
             procedurePool.submitWithName(`timeline`, `timeline`, {
-                offscreen: this.must ? this.offscreen : undefined,
-                dpr: this.dpr,
+                offscreen: this.must ? this.offscreen : undefined,//是否离屏
+                dpr: this.dpr,//屏幕dpr值
                 hoverX: this.hoverX,
                 hoverY: this.hoverY,
                 canvasWidth: this.canvasWidth,
@@ -416,68 +305,81 @@ export class TimerShaftElement extends BaseElement {
         }
     }
 
-    modifyList(type: string, flag: any = {}) {
-        this.sportRuler?.modifyFlagList(type, flag)
+    modifyFlagList(flag: Flag | null | undefined) {
+        this._sportRuler?.modifyFlagList(flag);
+    }
+
+    drawTriangle(time: number, type: string) {
+        return this._sportRuler?.drawTriangle(time, type);
+    }
+
+    removeTriangle(type: string) {
+        this._sportRuler?.removeTriangle(type)
+    }
+
+    setSlicesMark(startTime: null | number = null,endTime: null | number = null) {
+        this._sportRuler?.setSlicesMark(startTime,endTime)
     }
 
     initHtml(): string {
         return `
-<style>
-:host{
-    box-sizing: border-box;
-    display: flex;
-    width: 100%;
-    height: 147px;
-    border-bottom: 1px solid var(--dark-background,#dadada);
-    border-top: 1px solid var(--dark-background,#dadada);
-}
-*{
-    box-sizing: border-box;
-}
-.root{
-    width: 100%;
-    height: 100%;
-    display: grid;
-    grid-template-rows: 100%;
-    grid-template-columns: 248px 1fr;
-    background: var(--dark-background4,#FFFFFF);
-}
-.total{
-    display: grid;
-    grid-template-columns: 1fr;
-    grid-template-rows: min-content 1fr;
-    background-color: transparent;
-}
-.panel{
-    color: var(--dark-border,#dadada);
-    width: 100%;
-    height: 100%;
-    overflow: visible;
-    background-color: var(--dark-background4,#ffffff);
-}
-.time-div{
-    box-sizing: border-box;
-    width: 100%;border-top: 1px solid var(--dark-background,#dadada);height: 100%;display: flex;justify-content: space-between;background-color: var(--dark-background1,white);color: var(--dark-color1,#212121);font-size: 0.7rem;
-    border-right: 1px solid var(--dark-background,#999);
-    padding: 2px 6px;
-    display: flex;justify-content: space-between;
-    user-select: none;
-}
-.time-total::after{
-    content: " +";
-}
+        <style>
+        :host{
+            box-sizing: border-box;
+            display: flex;
+            width: 100%;
+            height: 147px;
+            border-bottom: 1px solid var(--dark-background,#dadada);
+            border-top: 1px solid var(--dark-background,#dadada);
+        }
+        *{
+            box-sizing: border-box;
+            user-select: none;
+        }
+        .root{
+            width: 100%;
+            height: 100%;
+            display: grid;
+            grid-template-rows: 100%;
+            grid-template-columns: 248px 1fr;
+            background: var(--dark-background4,#FFFFFF);
+        }
+        .total{
+            display: grid;
+            grid-template-columns: 1fr;
+            grid-template-rows: min-content 1fr;
+            background-color: transparent;
+        }
+        .panel{
+            color: var(--dark-border,#dadada);
+            width: 100%;
+            height: 100%;
+            overflow: visible;
+            background-color: var(--dark-background4,#ffffff);
+        }
+        .time-div{
+            box-sizing: border-box;
+            width: 100%;border-top: 1px solid var(--dark-background,#dadada);height: 100%;display: flex;justify-content: space-between;background-color: var(--dark-background1,white);color: var(--dark-color1,#212121);font-size: 0.7rem;
+            border-right: 1px solid var(--dark-background,#999);
+            padding: 2px 6px;
+            display: flex;justify-content: space-between;
+            user-select: none;
+        }
+        .time-total::after{
+            content: " +";
+        }
 
-</style>
-<div class="root">
-    <div class="total">
-        <div style="width: 100%;height: 100px;background: var(--dark-background4,#F6F6F6)"></div>
-        <div class="time-div">
-            <span class="time-total">10</span>
-            <span class="time-offset">0</span>
+        </style>
+        <div class="root">
+            <div class="total">
+                <div style="width: 100%;height: 100px;background: var(--dark-background4,#F6F6F6)"></div>
+                <div class="time-div">
+                    <span class="time-total">10</span>
+                    <span class="time-offset">0</span>
+                </div>
+            </div>
+            <canvas class="panel"></canvas>
         </div>
-    </div>
-    <canvas class="panel"></canvas>
-</div>
         `;
     }
 }

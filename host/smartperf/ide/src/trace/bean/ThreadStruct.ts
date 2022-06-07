@@ -42,23 +42,23 @@ export class ThreadStruct extends BaseStruct {
         "P": "Parked",
         "N": "No Load"
     }
-    hasSched: number | undefined;// 14724852000
-    pid: number | undefined// 2519
-    processName: string | undefined //null
-    threadName: string | undefined//"ACCS0"
-    tid: number | undefined //2716
-    upid: number | undefined // 1
-    utid: number | undefined // 1
-    cpu: number | undefined // null
-    dur: number | undefined // 405000
-    end_ts: number | undefined // null
-    id: number | undefined // 1
-    is_main_thread: number | undefined // 0
-    name: string | undefined // "ACCS0"
-    startTime: number | undefined // 58000
-    start_ts: number | undefined // null
-    state: string | undefined // "S"
-    type: string | undefined // "thread"
+    hasSched: number | undefined;
+    pid: number | undefined;
+    processName: string | undefined;
+    threadName: string | undefined;
+    tid: number | undefined;
+    upid: number | undefined;
+    utid: number | undefined;
+    cpu: number | undefined;
+    dur: number | undefined;
+    end_ts: number | undefined;
+    id: number | undefined;
+    is_main_thread: number | undefined;
+    name: string | undefined;
+    startTime: number | undefined;
+    start_ts: number | undefined;
+    state: string | undefined;
+    type: string | undefined;
 
     static draw(ctx: CanvasRenderingContext2D, data: ThreadStruct) {
         if (data.frame) {

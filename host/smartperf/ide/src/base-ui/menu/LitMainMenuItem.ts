@@ -1,4 +1,3 @@
-// @ts-nocheck
 /*
  * Copyright (C) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 
 import {BaseElement, element} from "../BaseElement.js";
 
@@ -71,6 +71,7 @@ export class LitMainMenuItem extends BaseElement {
                 this.fileEL.addEventListener('change', () => {
                     let files = this.fileEL!.files;
                     if (files && files.length > 0) {
+                        // @ts-ignore
                         this.dispatchEvent(new CustomEvent('file-change', {target: this, detail: files[0]}))
                         if (this.fileEL) this.fileEL.value = ''
                     }
@@ -84,70 +85,72 @@ export class LitMainMenuItem extends BaseElement {
 
     initHtml(): string {
         return `
-<style>
-    :host{
-        user-select: none;
-        display: flex;
-        font-family: Helvetica;
-        opacity: 0.6;
-        font-size: 14px;
-        color: var(--dark-color,rgba(0,0,0,0.6));
-        text-align: left;
-        line-height: 20px;
-        font-weight: 400
-        background-color: #FFFFFF;
-        transition: background-color .3s;
-    }
-    :host(:not([disabled]):hover){
-        display: flex;
-        background-color: var(--dark-background8,#0A59F7);
-        color: #FFFFFF;
-        cursor: pointer;
-    }
-    :host([disabled]:hover){
-        display: flex;
-        cursor:not-allowed;
-    }
-    :host([disabled]) .root{
-        cursor:not-allowed;
-        display: flex;
-        align-items: center;
-        padding: 10px 24px;
-        width: 100%;
-    }
-    :host(:not([disabled])) .root{
-        cursor:pointer;
-        display: flex;
-        align-items: center;
-        padding: 10px 24px;
-        width: 100%;
-    }
-    .name{
-        padding-left: 10px;
-        cursor: pointer;
-    }
-    .icon{
-        pointer-events: none;
-    }
-    :host(:not([file])) .name{
-        pointer-events: none;
-    }
-    :host(:not([file])) .root{
-        pointer-events: none;
-    }
-    :host([file]) .name{
-        pointer-events: none;
-    }
-    :host([file]) .icon{
-        pointer-events: none;
-    }
-</style>
-<input id="file" class="file" type="file" style="display:none;pointer-events: none" />
-<label class="root" for="file">
-    <lit-icon class="icon" name="user" size="20"></lit-icon>
-    <label class="name"></label>
-</label>
-`;
+        <style>
+            :host{
+                user-select: none;
+                display: flex;
+                font-family: Helvetica;
+                opacity: 0.6;
+                font-size: 14px;
+                color: var(--dark-color,rgba(0,0,0,0.6));
+                text-align: left;
+                line-height: 20px;
+                font-weight: 400
+                background-color: #FFFFFF;
+                transition: background-color .3s;
+            }
+            :host(:not([disabled]):hover){
+                display: flex;
+                background-color: var(--dark-background8,#0A59F7);
+                color: #FFFFFF;
+                cursor: pointer;
+            }
+            :host([disabled]:hover){
+                display: flex;
+                /*background-color:#3391FF;*/
+                /*color: #FFFFFF;*/
+                cursor:not-allowed;
+            }
+            :host([disabled]) .root{
+                cursor:not-allowed;
+                display: flex;
+                align-items: center;
+                padding: 10px 24px;
+                width: 100%;
+            }
+            :host(:not([disabled])) .root{
+                cursor:pointer;
+                display: flex;
+                align-items: center;
+                padding: 10px 24px;
+                width: 100%;
+            }
+            .name{
+                padding-left: 10px;
+                cursor: pointer;
+            }
+            .icon{
+                pointer-events: none;
+            }
+            :host(:not([file])) .name{
+                pointer-events: none;
+            }
+            :host(:not([file])) .root{
+                pointer-events: none;
+            }
+            :host([file]) .name{
+                pointer-events: none;
+            }
+            :host([file]) .icon{
+                pointer-events: none;
+            }
+        </style>
+        <input id="file" class="file" type="file" style="display:none;pointer-events: none" />
+        <label class="root" for="file">
+            <lit-icon class="icon" name="user" size="20"></lit-icon>
+            <label class="name"></label>
+        </label>
+        `;
     }
 
     attributeChangedCallback(name: string, oldValue: string, newValue: string) {

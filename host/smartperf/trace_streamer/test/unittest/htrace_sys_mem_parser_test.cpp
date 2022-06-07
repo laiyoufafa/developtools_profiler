@@ -44,7 +44,7 @@ public:
 
 public:
     SysTuning::TraceStreamer::TraceStreamerSelector stream_ = {};
-    const std::string dbPath_ = "/data/resource/out.db";
+    const std::string dbPath_ = "data/resource/out.db";
 };
 
 /**
@@ -54,9 +54,8 @@ public:
  */
 HWTEST_F(HtraceSysMemParserTest, ParseSysMemParseInputEmpty, TestSize.Level1)
 {
-    TS_LOGI("test12-1");
+    TS_LOGI("test13-1");
     HtraceMemParser* memParser = new HtraceMemParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-
     MemoryData tracePacket;
     SysMeminfo* mem = tracePacket.add_meminfo();
     EXPECT_TRUE(mem != nullptr);
@@ -67,6 +66,8 @@ HWTEST_F(HtraceSysMemParserTest, ParseSysMemParseInputEmpty, TestSize.Level1)
     mem->set_value(value);
     uint64_t timeStamp = 1616439852302;
     BuiltinClocks clock = TS_CLOCK_REALTIME;
+    uint64_t zarm = 100;
+    tracePacket.set_zram(zarm);
 
     memParser->Parse(tracePacket, timeStamp, clock);
     stream_.traceDataCache_->ExportDatabase(dbPath_);
@@ -77,7 +78,7 @@ HWTEST_F(HtraceSysMemParserTest, ParseSysMemParseInputEmpty, TestSize.Level1)
 
     auto eventCount = stream_.traceDataCache_->GetConstStatAndInfo().GetValue(TRACE_SYS_MEMORY, STAT_EVENT_RECEIVED);
     EXPECT_TRUE(1 == eventCount);
-    EXPECT_TRUE(stream_.traceDataCache_->GetConstMeasureData().Size() == 1);
+    EXPECT_EQ(2, stream_.traceDataCache_->GetConstMeasureData().Size());
     EXPECT_TRUE(stream_.traceDataCache_->GetConstMeasureData().ValuesData()[0] == static_cast<int64_t>(value));
 }
 
@@ -88,7 +89,7 @@ HWTEST_F(HtraceSysMemParserTest, ParseSysMemParseInputEmpty, TestSize.Level1)
  */
 HWTEST_F(HtraceSysMemParserTest, ParseSysMemParseNormal, TestSize.Level1)
 {
-    TS_LOGI("test12-2");
+    TS_LOGI("test13-2");
     HtraceMemParser* memParser = new HtraceMemParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
 
     MemoryData tracePacket;
@@ -107,6 +108,8 @@ HWTEST_F(HtraceSysMemParserTest, ParseSysMemParseNormal, TestSize.Level1)
     mem->set_key(SysMeminfoType::PMEM_MEM_FREE);
     uint64_t value2 = random();
     mem->set_value(value2);
+    uint64_t zarm = 100;
+    tracePacket.set_zram(zarm);
 
     uint64_t timeStamp = 1616439852302;
     BuiltinClocks clock = TS_CLOCK_REALTIME;
@@ -120,7 +123,7 @@ HWTEST_F(HtraceSysMemParserTest, ParseSysMemParseNormal, TestSize.Level1)
 
     auto eventCount = stream_.traceDataCache_->GetConstStatAndInfo().GetValue(TRACE_SYS_MEMORY, STAT_EVENT_RECEIVED);
     EXPECT_TRUE(1 == eventCount);
-    EXPECT_TRUE(stream_.traceDataCache_->GetConstMeasureData().Size() == 2);
+    EXPECT_EQ(3, stream_.traceDataCache_->GetConstMeasureData().Size());
     EXPECT_TRUE(stream_.traceDataCache_->GetConstMeasureData().ValuesData()[0] == static_cast<int64_t>(value));
     EXPECT_TRUE(stream_.traceDataCache_->GetConstMeasureData().ValuesData()[1] == static_cast<int64_t>(value2));
 }
@@ -132,7 +135,7 @@ HWTEST_F(HtraceSysMemParserTest, ParseSysMemParseNormal, TestSize.Level1)
  */
 HWTEST_F(HtraceSysMemParserTest, ParseSysMemParseAbnomal, TestSize.Level1)
 {
-    TS_LOGI("test12-3");
+    TS_LOGI("test13-3");
     HtraceMemParser* memParser = new HtraceMemParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
 
     MemoryData tracePacket;
@@ -151,6 +154,8 @@ HWTEST_F(HtraceSysMemParserTest, ParseSysMemParseAbnomal, TestSize.Level1)
     mem->set_key(static_cast<SysMeminfoType>(199999)); // invalid data
     uint64_t value2 = random();
     mem->set_value(value2);
+    uint64_t zarm = 100;
+    tracePacket.set_zram(zarm);
 
     uint64_t timeStamp = 1616439852302;
     BuiltinClocks clock = TS_CLOCK_REALTIME;
@@ -166,7 +171,7 @@ HWTEST_F(HtraceSysMemParserTest, ParseSysMemParseAbnomal, TestSize.Level1)
     EXPECT_TRUE(1 == eventCount);
     eventCount = stream_.traceDataCache_->GetConstStatAndInfo().GetValue(TRACE_SYS_MEMORY, STAT_EVENT_DATA_INVALID);
     EXPECT_TRUE(1 == eventCount);
-    EXPECT_TRUE(stream_.traceDataCache_->GetConstMeasureData().Size() == 1);
+    EXPECT_EQ(2, stream_.traceDataCache_->GetConstMeasureData().Size());
     EXPECT_TRUE(stream_.traceDataCache_->GetConstMeasureData().ValuesData()[0] == static_cast<int64_t>(value));
 }
 
@@ -177,7 +182,7 @@ HWTEST_F(HtraceSysMemParserTest, ParseSysMemParseAbnomal, TestSize.Level1)
  */
 HWTEST_F(HtraceSysMemParserTest, ParseSysMemParseMutiNomal, TestSize.Level1)
 {
-    TS_LOGI("test12-4");
+    TS_LOGI("test13-4");
     HtraceMemParser* memParser = new HtraceMemParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
 
     MemoryData tracePacket;
@@ -185,7 +190,7 @@ HWTEST_F(HtraceSysMemParserTest, ParseSysMemParseMutiNomal, TestSize.Level1)
     EXPECT_TRUE(mem != nullptr);
     int size = tracePacket.meminfo_size();
     EXPECT_TRUE(size == 1);
-    mem->set_key(SysMeminfoType::PMEM_CMA_FREE);
+    mem->set_key(SysMeminfoType::PMEM_KERNEL_RECLAIMABLE);
     uint64_t value = random();
     mem->set_value(value);
 
@@ -204,6 +209,8 @@ HWTEST_F(HtraceSysMemParserTest, ParseSysMemParseMutiNomal, TestSize.Level1)
     mem->set_key(SysMeminfoType::SysMeminfoType_INT_MAX_SENTINEL_DO_NOT_USE_);
     uint64_t value3 = random();
     mem->set_value(value3);
+    uint64_t zarm = 100;
+    tracePacket.set_zram(zarm);
 
     uint64_t timeStamp = 1616439852302;
     BuiltinClocks clock = TS_CLOCK_REALTIME;
@@ -219,7 +226,7 @@ HWTEST_F(HtraceSysMemParserTest, ParseSysMemParseMutiNomal, TestSize.Level1)
     EXPECT_TRUE(1 == eventCount);
     eventCount = stream_.traceDataCache_->GetConstStatAndInfo().GetValue(TRACE_SYS_MEMORY, STAT_EVENT_DATA_INVALID);
     EXPECT_TRUE(2 == eventCount);
-    EXPECT_TRUE(stream_.traceDataCache_->GetConstMeasureData().Size() == 1);
+    EXPECT_EQ(2, stream_.traceDataCache_->GetConstMeasureData().Size());
     EXPECT_TRUE(stream_.traceDataCache_->GetConstMeasureData().ValuesData()[0] == static_cast<int64_t>(value));
 }
 
@@ -230,13 +237,13 @@ HWTEST_F(HtraceSysMemParserTest, ParseSysMemParseMutiNomal, TestSize.Level1)
  */
 HWTEST_F(HtraceSysMemParserTest, ParseSysMemParseWithRandomValue, TestSize.Level1)
 {
-    TS_LOGI("test12-5");
+    TS_LOGI("test13-5");
     HtraceMemParser* memParser = new HtraceMemParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
 
     MemoryData tracePacket;
 
     std::map<SysMeminfoType, int64_t> sysMemValueMap_ = {};
-    for (auto i = 0; i < SysMeminfoType::PMEM_CMA_FREE + 1; i++) {
+    for (auto i = 0; i < SysMeminfoType::PMEM_KERNEL_RECLAIMABLE + 1; i++) {
         uint64_t value = random();
         sysMemValueMap_.insert(std::make_pair(static_cast<SysMeminfoType>(i), value));
         SysMeminfo* mem = tracePacket.add_meminfo();
@@ -260,7 +267,7 @@ HWTEST_F(HtraceSysMemParserTest, ParseSysMemParseWithRandomValue, TestSize.Level
     auto eventCount = stream_.traceDataCache_->GetConstStatAndInfo().GetValue(TRACE_SYS_MEMORY, STAT_EVENT_RECEIVED);
     EXPECT_TRUE(1 == eventCount);
 
-    for (auto i = 0; i < SysMeminfoType::PMEM_CMA_FREE + 1; i++) {
+    for (auto i = 0; i < SysMeminfoType::PMEM_KERNEL_RECLAIMABLE + 1; i++) {
         EXPECT_TRUE(stream_.traceDataCache_->GetConstMeasureData().ValuesData()[i] ==
                     sysMemValueMap_.at(static_cast<SysMeminfoType>(i)));
     }

@@ -17,10 +17,10 @@
 #include <cstdint>
 #include <functional>
 #include <limits>
-#include <map>
 #include <stdexcept>
 #include <string>
 #include <unordered_set>
+#include <vector>
 
 #include "event_parser_base.h"
 #include "google/protobuf/message_lite.h"
@@ -39,7 +39,9 @@ public:
     HtraceEventParser(TraceDataCache* dataCache, const TraceStreamerFilters* filter);
     ~HtraceEventParser();
     void ParseDataItem(const FtraceCpuDetailMsg* cpuDetail, BuiltinClocks clock);
+    void FilterAllEvents();
 private:
+    void DealEvent(const FtraceEvent& event);
     bool BinderTractionEvent(const MessageLite& event) const;
     bool BinderTractionReceivedEvent(const MessageLite& event) const;
     bool BinderTractionAllocBufEvent(const MessageLite& event) const;
@@ -73,24 +75,41 @@ private:
     bool SoftIrqExitEvent(const MessageLite& event) const;
     bool SysEnterEvent(const MessageLite& event) const;
     bool SysExitEvent(const MessageLite& event) const;
-    bool OomScoreAdjUdate(const MessageLite& event) const;
+    bool OomScoreAdjUpdate(const MessageLite& event) const;
     bool SignalGenerateEvent(const MessageLite& event) const;
     bool SignalDeleverEvent(const MessageLite& event) const;
     bool InvokeFunc(const SupportedTraceEventType& eventType, const MessageLite& msgBase);
+    struct EventInfo {
+        uint64_t eventTimestamp;
+        uint32_t eventCpu;
+        uint32_t eventPid;
+        uint32_t eventTid;
+        FtraceEvent cpuDetail;
+    };
     using FuncCall = std::function<bool(const MessageLite& event)>;
     uint32_t eventCpu_ = INVALID_UINT32;
     uint64_t eventTimestamp_ = INVALID_UINT64;
     uint32_t eventPid_ = INVALID_UINT32;
+    uint32_t eventTid_ = INVALID_UINT32;
     std::map<std::string, FuncCall> eventToFunctionMap_ = {};
     std::unordered_set<uint32_t> tids_ = {};
     std::unordered_set<uint32_t> pids_ = {};
     DataIndex workQueueId_ = 0;
     PrintEventParser printEventParser_;
     uint64_t lastOverwrite_ = 0;
-    DataIndex signalGenerateId_ = traceDataCache_->GetDataIndex("signal_generate");
-    DataIndex signalDeliverId_ = traceDataCache_->GetDataIndex("signal_deliver");
-    uint64_t traceStartTime_ = std::numeric_limits<uint64_t>::max();
-    uint64_t traceEndTime_ = 0;
+    uint64_t ftraceStartTime_ = std::numeric_limits<uint64_t>::max();
+    uint64_t ftraceEndTime_ = 0;
+    std::vector<EventInfo> eventList_ = {};
+    const DataIndex signalGenerateId_ = traceDataCache_->GetDataIndex("signal_generate");
+    const DataIndex signalDeliverId_ = traceDataCache_->GetDataIndex("signal_deliver");
+    const DataIndex schedWakeupName_ = traceDataCache_->GetDataIndex("sched_wakeup");
+    const DataIndex schedWakingName_ = traceDataCache_->GetDataIndex("sched_waking");
+    const DataIndex schedWakeupNewName_ = traceDataCache_->GetDataIndex("sched_wakeup_new");
+    const DataIndex cpuIdleName_ = traceDataCache_->GetDataIndex("cpu_idle");
+    const DataIndex cpuFrequencyName_ = traceDataCache_->GetDataIndex("cpu_frequency");
+    const DataIndex sysEnterName_ = traceDataCache_->GetDataIndex("sys_enter");
+    const DataIndex sysExitName_ = traceDataCache_->GetDataIndex("sys_exit");
+    const DataIndex oomScoreAdjName_ = traceDataCache_->GetDataIndex("oom_score_adj");
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

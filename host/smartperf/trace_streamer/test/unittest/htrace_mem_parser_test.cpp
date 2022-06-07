@@ -45,7 +45,7 @@ public:
 
 public:
     SysTuning::TraceStreamer::TraceStreamerSelector stream_ = {};
-    const std::string dbPath_ = "/data/resource/out.db";
+    const std::string dbPath_ = "data/resource/out.db";
 };
 
 /**
@@ -55,7 +55,7 @@ public:
  */
 HWTEST_F(HtraceMemParserTest, ParseMemParse, TestSize.Level1)
 {
-    TS_LOGI("test7-1");
+    TS_LOGI("test12-1");
     HtraceMemParser* memParser = new HtraceMemParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
 
     MemoryData tracePacket;
@@ -85,7 +85,7 @@ HWTEST_F(HtraceMemParserTest, ParseMemParse, TestSize.Level1)
  */
 HWTEST_F(HtraceMemParserTest, ParseMemParseTestMeasureDataSize, TestSize.Level1)
 {
-    TS_LOGI("test7-1");
+    TS_LOGI("test12-2");
     HtraceMemParser* memParser = new HtraceMemParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
 
     MemoryData tracePacket;
@@ -145,7 +145,7 @@ HWTEST_F(HtraceMemParserTest, ParseMemParseTestMeasureDataSize, TestSize.Level1)
  */
 HWTEST_F(HtraceMemParserTest, ParseMemParseTestMutiMeasureData, TestSize.Level1)
 {
-    TS_LOGI("test7-1");
+    TS_LOGI("test12-3");
     HtraceMemParser* memParser = new HtraceMemParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
 
     MemoryData tracePacket;
@@ -198,7 +198,7 @@ HWTEST_F(HtraceMemParserTest, ParseMemParseTestMutiMeasureData, TestSize.Level1)
  */
 HWTEST_F(HtraceMemParserTest, ParseMultiEmptyProcessMemoryInfo, TestSize.Level1)
 {
-    TS_LOGI("test7-1");
+    TS_LOGI("test12-4");
     HtraceMemParser* memParser = new HtraceMemParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
 
     MemoryData tracePacket;
@@ -235,7 +235,7 @@ HWTEST_F(HtraceMemParserTest, ParseMultiEmptyProcessMemoryInfo, TestSize.Level1)
  */
 HWTEST_F(HtraceMemParserTest, ParseEmptyMemoryData, TestSize.Level1)
 {
-    TS_LOGI("test7-1");
+    TS_LOGI("test12-5");
     HtraceMemParser* memParser = new HtraceMemParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
 
     MemoryData tracePacket;

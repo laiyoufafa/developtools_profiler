@@ -40,14 +40,21 @@ ohos_source_set("lib") {
     "parser",
     "cfg",
     "parser/htrace_parser",
+    "parser/hiperf_parser",
+    "parser/hiperf_parser/hiperf/linux",
+    "parser/hiperf_parser/hiperf/include",
     "parser/htrace_parser/htrace_event_parser",
     "parser/htrace_parser/htrace_cpu_parser",
     "//third_party/sqlite/include",
     "${OHOS_PROTO_GEN}/types/plugins/memory_data",
-    "${OHOS_PROTO_GEN}/types/plugins/ftrace_data",
+    "${OHOS_PROTO_GEN}/types/plugins/ftrace_data/${kernel_version}",
     "${OHOS_PROTO_GEN}/types/plugins/hilog_data",
     "${OHOS_PROTO_GEN}/types/plugins/native_hook",
     "${OHOS_PROTO_GEN}/types/plugins/hidump_data",
+    "${OHOS_PROTO_GEN}/types/plugins/network_data",
+    "${OHOS_PROTO_GEN}/types/plugins/cpu_data",
+    "${OHOS_PROTO_GEN}/types/plugins/diskio_data",
+    "${OHOS_PROTO_GEN}/types/plugins/process_data",
     "${OHOS_PROTO_GEN}",
     "//third_party/protobuf/src",
   ]
@@ -72,6 +79,8 @@ ohos_source_set("trace_streamer_source") {
     "filter/irq_filter.h",
     "filter/measure_filter.cpp",
     "filter/measure_filter.h",
+    "filter/perf_data_filter.cpp",
+    "filter/perf_data_filter.h",
     "filter/process_filter.cpp",
     "filter/process_filter.h",
     "filter/slice_filter.cpp",
@@ -106,21 +115,25 @@ ohos_source_set("trace_streamer_source") {
     "table/clock_event_filter_table.h",
     "table/cpu_measure_filter_table.cpp",
     "table/cpu_measure_filter_table.h",
+    "table/cpu_usage_info_table.cpp",
+    "table/cpu_usage_info_table.h",
     "table/data_dict_table.cpp",
     "table/data_dict_table.h",
     "table/data_type_table.cpp",
     "table/data_type_table.h",
+    "table/disk_io_table.cpp",
+    "table/disk_io_table.h",
+    "table/filter_constraints.cpp",
     "table/filter_table.cpp",
     "table/filter_table.h",
-    "table/heap_frame_table.cpp",
-    "table/heap_frame_table.h",
-    "table/heap_table.cpp",
-    "table/heap_table.h",
     "table/hidump_table.cpp",
     "table/hidump_table.h",
+    "table/index_map.cpp",
     "table/instants_table.cpp",
     "table/instants_table.h",
     "table/irq_table.cpp",
+    "table/live_process_table.cpp",
+    "table/live_process_table.h",
     "table/log_table.cpp",
     "table/log_table.h",
     "table/measure_filter_table.cpp",
@@ -129,6 +142,22 @@ ohos_source_set("trace_streamer_source") {
     "table/measure_table.h",
     "table/meta_table.cpp",
     "table/meta_table.h",
+    "table/native_hook_frame_table.cpp",
+    "table/native_hook_frame_table.h",
+    "table/native_hook_table.cpp",
+    "table/native_hook_table.h",
+    "table/network_table.cpp",
+    "table/network_table.h",
+    "table/perf_call_chain_table.cpp",
+    "table/perf_call_chain_table.h",
+    "table/perf_files_table.cpp",
+    "table/perf_files_table.h",
+    "table/perf_report_table.cpp",
+    "table/perf_report_table.h",
+    "table/perf_sample_table.cpp",
+    "table/perf_sample_table.h",
+    "table/perf_thread_table.cpp",
+    "table/perf_thread_table.h",
     "table/process_filter_table.cpp",
     "table/process_filter_table.h",
     "table/process_measure_filter_table.cpp",
@@ -183,25 +212,39 @@ ohos_source_set("trace_streamer_source") {
     "parser/htrace_parser",
     "parser/htrace_parser/htrace_event_parser",
     "parser/htrace_parser/htrace_cpu_parser",
+    "parser/hiperf_parser",
+    "parser/hiperf_parser/hiperf/linux",
+    "parser/hiperf_parser/hiperf/kernel",
+    "parser/hiperf_parser/hiperf/include",
+    "../prebuilts/emsdk/emsdk/emscripten/system/include",
     "//third_party/sqlite/include",
     "${OHOS_PROTO_GEN}/types/plugins/memory_data",
-    "${OHOS_PROTO_GEN}/types/plugins/ftrace_data",
+    "${OHOS_PROTO_GEN}/types/plugins/ftrace_data/${kernel_version}",
     "${OHOS_PROTO_GEN}/types/plugins/hilog_data",
     "${OHOS_PROTO_GEN}/types/plugins/native_hook",
     "${OHOS_PROTO_GEN}/types/plugins/hidump_data",
+    "${OHOS_PROTO_GEN}/types/plugins/network_data",
+    "${OHOS_PROTO_GEN}/types/plugins/cpu_data",
+    "${OHOS_PROTO_GEN}/types/plugins/diskio_data",
+    "${OHOS_PROTO_GEN}/types/plugins/process_data",
     "${OHOS_PROTO_GEN}",
     "//third_party/protobuf/src",
+    "//third_party/perf_include",
   ]
   deps = [
     "base:base",
     "ext:sqliteext",
     "include:ibase",
+    "parser/hiperf_parser:hiperf_parser",
     "parser/htrace_parser:htrace_parser",
     "//third_party/sqlite:sqlite",
   ]
 
-  if (use_wasm) {
-    sources += [ "rpc/wasm_func.cpp" ]
+  if (use_wasm || enable_ts_utest) {
+    sources += [
+      "rpc/wasm_func.cpp",
+      "rpc/wasm_func.h",
+    ]
   }
   if (enable_ts_utest && !use_wasm) {
     cflags = [
@@ -222,7 +265,9 @@ if (use_wasm) {
     deps = [ ":lib" ]
   }
 } else {
-  executable("trace_streamer") {
-    deps = [ ":lib" ]
+  if (!is_test && !is_fuzz) {
+    executable("trace_streamer") {
+      deps = [ ":lib" ]
+    }
   }
 }

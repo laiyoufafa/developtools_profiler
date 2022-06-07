@@ -39,9 +39,9 @@
     let req = new XMLHttpRequest();
     req.open('GET', document.location, false);
     req.send(null);
-    window.version = req.getResponseHeader('data-version')||""
+    window.version = req.getResponseHeader('data-version') || ""
 </script>
-<script type="module" src="trace/SpApplication.js"></script>
+<script src="trace/SpApplication.js" type="module"></script>
 <sp-application wasm></sp-application>
 </body>
 </html>

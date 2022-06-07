@@ -16,6 +16,13 @@
 // @ts-ignore
 import {TabPaneThreadSwitch} from "../../../../../dist/trace/component/trace/sheet/TabPaneThreadSwitch.js"
 
+window.ResizeObserver = window.ResizeObserver ||
+    jest.fn().mockImplementation(() => ({
+        disconnect: jest.fn(),
+        observe: jest.fn(),
+        unobserve: jest.fn(),
+    }));
+
 describe('TabPaneContextSwitch Test', () => {
     let tabPaneThreadSwitch = new TabPaneThreadSwitch();
     let dataArray = [{
@@ -36,6 +43,11 @@ describe('TabPaneContextSwitch Test', () => {
         stdDuration: "",
     }]
 
+    let val={
+        leftNs:1,
+        rightNs:1,
+    }
+
     it('TabPaneThreadSwitchTest01', function () {
         let result = tabPaneThreadSwitch.groupByStateToMap(dataArray);
         expect(result.get('').length).toBe(1);
@@ -49,5 +61,34 @@ describe('TabPaneContextSwitch Test', () => {
     it('TabPaneThreadSwitchTest03', function () {
         let result = tabPaneThreadSwitch.groupByStateProcessToMap(dataArray)
         expect(result.get('').get(0).length).toBe(1);
+    });
+
+    it('TabPaneThreadSwitchTest04', function () {
+        expect(tabPaneThreadSwitch.data).toBeUndefined();
+    });
+
+    it('TabPaneThreadSwitchTest06', function () {
+        expect(tabPaneThreadSwitch.initElements()).toBeUndefined();
+    });
+
+    it('TabPaneThreadSwitchTest07', function () {
+        expect(tabPaneThreadSwitch.initHtml()).toMatchInlineSnapshot(`
+"
+        <style>
+        :host{
+            display: flex;
+            flex-direction: column;
+            padding: 10px 10px;
+        }
+        </style>
+        <label id=\\"time-range\\" style=\\"width: 100%;height: 20px;text-align: end;font-size: 10pt;margin-bottom: 5px\\">Selected range:0.0 ms</label>
+        <lit-table id=\\"tb-ts\\" style=\\"height: auto\\" tree>
+            <lit-table-column width=\\"500px\\" title=\\"Event/Process/Thread\\" data-index=\\"title\\" key=\\"title\\" align=\\"flex-start\\">
+            </lit-table-column>
+            <lit-table-column width=\\"1fr\\" title=\\"Count\\" data-index=\\"count\\" key=\\"count\\" align=\\"flex-start\\" >
+            </lit-table-column>
+        </lit-table>
+        "
+`);
     });
 })

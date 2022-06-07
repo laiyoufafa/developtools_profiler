@@ -13,13 +13,15 @@
  * limitations under the License.
  */
 
-import {BaseElement} from "../BaseElement.js";
+import {BaseElement, element} from "../BaseElement.js";
 
+@element('lit-button')
 export class LitButton extends BaseElement {
+    initElements(): void {
+    }
+
     initHtml(): string {
         return "";
     }
 
-    initElements(): void {
-    }
 }

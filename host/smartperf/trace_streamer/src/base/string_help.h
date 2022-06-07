@@ -12,6 +12,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#ifndef SRC_TRACE_BASE_STRINGHELP_H
+#define SRC_TRACE_BASE_STRINGHELP_H
+
 #include <cstdint>
 #include <sys/types.h>
-int memcpy_s(void *det, uint32_t detSize, const void * src, size_t srcSize);
+int memcpy_s(void* dest, uint32_t destSize, const void* src, size_t srcSize);
+void* memset_s(void* dest, size_t destSize, int ch, size_t n);
+int snprintf_s(char* strDest, size_t destMax, size_t count, const char* format, ...);
+int strncpy_s(char* strDest, size_t destMax, const char* strSrc, size_t count);
+int sscanf_s(const char* buffer, const char* format, ...);
+int sprintf_s(char* strDest, size_t destMax, const char* format, ...);
+#endif // SRC_TRACE_BASE_STRINGHELP_H

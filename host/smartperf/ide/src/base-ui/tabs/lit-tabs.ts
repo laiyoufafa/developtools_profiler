@@ -57,6 +57,7 @@ export class LitTabs extends HTMLElement {
             margin-right: 2px;
             font-size: inherit;
         }
+
         .nav-item[data-disabled]{
             pointer-events: all;
             cursor: not-allowed;
@@ -68,11 +69,16 @@ export class LitTabs extends HTMLElement {
             color: #bfbfbf;
             display: none;
         }
+
         .tab-content{
             display: block;
             background-color: #fff;
             flex:1;
         }
+        
+        /*
+         *   top  top-left top-center top-right
+         */
         :host(:not([position])) .nav-root,
         :host([position^='top']) .nav-root{
             display: flex;
@@ -80,7 +86,7 @@ export class LitTabs extends HTMLElement {
             justify-content: center;
             align-items: center;
         }
-        :host(:not([mode]):not([position])) .tab-line,
+        :host(:not([mode]):not([position])) .tab-line,/*移动的线条*/
         :host([mode='flat'][position^='top']) .tab-line{
             position:absolute;
         }
@@ -145,7 +151,9 @@ export class LitTabs extends HTMLElement {
             border-left: 1px solid var(--dark-border1,#bababa);
             border-right: 1px solid var(--dark-border1,#bababa);
         }
-
+        /*
+            bottom bottom-left bottom-center bottom-right
+        */
         :host([position^='bottom']) .tab{
             display: flex;
             flex-direction: column-reverse;
@@ -210,7 +218,9 @@ export class LitTabs extends HTMLElement {
             border-top: 1px solid #fff;
             top: -1px;
         }
-
+        /*
+        left left-top left-center left-bottom
+        */
         :host([position^='left']) .tab{
             display: flex;
             flex-direction: row;
@@ -281,7 +291,9 @@ export class LitTabs extends HTMLElement {
             border-bottom: 1px solid #fff;
             right: -1px;
         }
-
+        /*
+        right right-top right-center right-bottom
+        */
         :host([position^='right']) .tab{
             display: flex;
             flex-direction: row-reverse;
@@ -533,7 +545,6 @@ export class LitTabs extends HTMLElement {
                     }
                 })
             }
-
             let navHtml = "";
             elements?.map(it => it as LitTabpane).forEach(a => {
                 if (a.disabled) {
@@ -587,7 +598,7 @@ export class LitTabs extends HTMLElement {
     }
 
     activeByKey(key: string) {
-        if (key === null || key === undefined) return;
+        if (key === null || key === undefined) return; //如果没有key 不做相应
         this.nav!.querySelectorAll('.nav-item').forEach(a => {
             if (a.getAttribute('data-key') === key) {
                 a.setAttribute('data-selected', 'true');
@@ -632,3 +643,4 @@ export class LitTabs extends HTMLElement {
         }
     }
 }
+

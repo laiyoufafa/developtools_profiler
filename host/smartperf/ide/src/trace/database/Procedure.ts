@@ -51,20 +51,25 @@ class ProcedureThread extends Worker {
 }
 
 class ProcedurePool {
+    static cpuCount = Math.floor((window.navigator.hardwareConcurrency || 4) / 2);
     maxThreadNumber: number = 1
     works: Array<ProcedureThread> = []
-
-    static build(name: string, len: number) {
-        return [...Array(len).keys()].map(it => `${name}${it}`)
-    }
-
+    proxyRunningNum: any;
     timelineChange: ((a: any) => void) | undefined | null = null;
     cpusLen = ProcedurePool.build('cpu', 8);
+    freqLen = ProcedurePool.build('freq', 2);
     processLen = ProcedurePool.build('process', 8);
-    names = [...this.cpusLen, ...this.processLen];
+    ability = ProcedurePool.build('ability', 4);
+    // names = [...this.cpusLen, ...this.freqLen, ...this.processLen, ...this.memLen, ...this.threadLen, ...this.funcLen];
+    names = [...this.cpusLen, ...this.processLen, ...this.freqLen, ...this.ability];
+    onComplete: Function | undefined;//任务完成回调
 
     constructor(threadBuild: (() => ProcedureThread) | undefined = undefined) {
         this.init(threadBuild);
+    }
+
+    static build(name: string, len: number) {
+        return [...Array(len).keys()].map(it => `${name}${it}`)
     }
 
     init(threadBuild: (() => ProcedureThread) | undefined = undefined) {
@@ -81,6 +86,7 @@ class ProcedurePool {
             thread.busy = false;
             if ((event.data.type as string) == "timeline-range-changed") {
                 this.timelineChange && this.timelineChange(event.data.results);
+                thread.busy = false;
                 return;
             }
             if (Reflect.has(thread.taskMap, event.data.id)) {
@@ -91,6 +97,9 @@ class ProcedurePool {
                     }
                     Reflect.deleteProperty(thread.taskMap, event.data.id)
                 }
+            }
+            if (this.isIdle() && this.onComplete) {
+                this.onComplete();
             }
         }
         thread.onmessageerror = e => {
@@ -122,16 +131,17 @@ class ProcedurePool {
     submitWithName(name: string, type: string, args: any, transfer: any, handler: Function): ProcedureThread | undefined {
         let noBusyThreads = this.works.filter(it => it.name === name);
         let thread: ProcedureThread | undefined
-        if (noBusyThreads.length > 0) {
+        if (noBusyThreads.length > 0) { //取第一个空闲的线程进行任务
             thread = noBusyThreads[0];
-            if (thread.isCancelled) {
-                this.works.splice(0, 1)
-                thread = this.newThread();
-            }
             thread!.queryFunc(type, args, transfer, handler)
         }
         return thread;
     }
+
+    isIdle() {
+        return this.works.every(it => !it.busy);
+    }
 }
+
 
 export const procedurePool = new ProcedurePool()

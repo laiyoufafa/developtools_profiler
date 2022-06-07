@@ -88,7 +88,7 @@ HWTEST_F(ClockFilterTest, ConvertBoottimeToMonitonicTimeTwice, TestSize.Level1)
  */
 HWTEST_F(ClockFilterTest, ConvertTimestampInvalid, TestSize.Level1)
 {
-    TS_LOGI("test2-4");
+    TS_LOGI("test2-3");
     uint64_t tsBoottime = 100;
     uint64_t tsMonotonicTime = 200;
     std::vector<SnapShot> snapShot0;
@@ -114,7 +114,7 @@ HWTEST_F(ClockFilterTest, ConvertTimestampInvalid, TestSize.Level1)
  */
 HWTEST_F(ClockFilterTest, ConvertTimestampBoottimeToRealtime, TestSize.Level1)
 {
-    TS_LOGI("test2-5");
+    TS_LOGI("test2-4");
     uint64_t tsBoottime = 100;
     uint64_t tsRealTime = 300;
     std::vector<SnapShot> snapShot0;
@@ -140,7 +140,7 @@ HWTEST_F(ClockFilterTest, ConvertTimestampBoottimeToRealtime, TestSize.Level1)
  */
 HWTEST_F(ClockFilterTest, ConvertBoottimeToRealtimeTwiceWithTwoSnapShot, TestSize.Level1)
 {
-    TS_LOGI("test2-6");
+    TS_LOGI("test2-5");
     uint64_t tsBoottime = 100;
     uint64_t tsRealTime = 300;
     std::vector<SnapShot> snapShot0;
@@ -169,7 +169,7 @@ HWTEST_F(ClockFilterTest, ConvertBoottimeToRealtimeTwiceWithTwoSnapShot, TestSiz
  */
 HWTEST_F(ClockFilterTest, ConvertBoottimeToRealtimeWithSingleSnapShot, TestSize.Level1)
 {
-    TS_LOGI("test2-7");
+    TS_LOGI("test2-6");
     uint64_t tsBoottime = 100;
     uint64_t tsRealTime = 300;
     std::vector<SnapShot> snapShot0;
@@ -192,7 +192,7 @@ HWTEST_F(ClockFilterTest, ConvertBoottimeToRealtimeWithSingleSnapShot, TestSize.
  */
 HWTEST_F(ClockFilterTest, ConvertRealtimeToBoottime, TestSize.Level1)
 {
-    TS_LOGI("test2-8");
+    TS_LOGI("test2-7");
     uint64_t tsBoottime = 100;
     uint64_t tsRealTime = 300;
     std::vector<SnapShot> snapShot0;
@@ -351,7 +351,7 @@ HWTEST_F(ClockFilterTest, ConvertToPrimary, TestSize.Level1)
  */
 HWTEST_F(ClockFilterTest, ConvertToPrimaryTwice, TestSize.Level1)
 {
-    TS_LOGI("test2-11");
+    TS_LOGI("test2-12");
     std::vector<SnapShot> snapShot0;
     uint64_t tsBoottime = 100;
     uint64_t tsRealTime = 300;
@@ -457,7 +457,7 @@ HWTEST_F(ClockFilterTest, ConvertToPrimaryTwiceWithTwoSnapshop, TestSize.Level1)
  */
 HWTEST_F(ClockFilterTest, MutiTimeTypeConvertWithMutiSnapshop, TestSize.Level1)
 {
-    TS_LOGI("test2-13");
+    TS_LOGI("test2-16");
     std::vector<SnapShot> snapShot0;
     uint64_t tsBoottime = 100;
     uint64_t tsMonotonicTime = 200;

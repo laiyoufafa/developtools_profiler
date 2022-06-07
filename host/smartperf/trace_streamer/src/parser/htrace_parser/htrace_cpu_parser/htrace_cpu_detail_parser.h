@@ -33,7 +33,8 @@ class HtraceCpuDetailParser {
 public:
     HtraceCpuDetailParser(TraceDataCache* dataCache, const TraceStreamerFilters* ctx);
     ~HtraceCpuDetailParser();
-    void Parse(TracePluginResult& tracePacket, BuiltinClocks clock);
+    void Parse(TracePluginResult* tracePacket, BuiltinClocks clock);
+    void FilterAllEvents();
 
 private:
     std::unique_ptr<HtraceEventParser> eventParser_;

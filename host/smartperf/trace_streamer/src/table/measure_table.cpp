@@ -32,13 +32,13 @@ MeasureTable::MeasureTable(const TraceDataCache* dataCache) : TableBase(dataCach
 
 MeasureTable::~MeasureTable() {}
 
-void MeasureTable::CreateCursor()
+std::unique_ptr<TableBase::Cursor> MeasureTable::CreateCursor()
 {
-    cursor_ = std::make_unique<Cursor>(dataCache_);
+    return std::make_unique<Cursor>(dataCache_, this);
 }
 
-MeasureTable::Cursor::Cursor(const TraceDataCache* dataCache)
-    : TableBase::Cursor(dataCache, 0, static_cast<uint32_t>(dataCache->GetConstMeasureData().Size())),
+MeasureTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
+    : TableBase::Cursor(dataCache, table, static_cast<uint32_t>(dataCache->GetConstMeasureData().Size())),
       measureObj(dataCache->GetConstMeasureData())
 {
 }

@@ -27,8 +27,8 @@ class FilterConstraints {
 public:
     struct Constraint {
         int idxInaConstraint; // index in sqlite3_index_info.aConstraint[]
-        int col; // Column this constraint refers to
-        unsigned char op; // SQLite op for the constraint
+        int col;              // Column this constraint refers to
+        unsigned char op;     // SQLite op for the constraint
         bool isSupport = false;
     };
     using OrderBy = sqlite3_index_info::sqlite3_index_orderby;
@@ -58,6 +58,7 @@ public:
 private:
     std::vector<Constraint> constraints_;
     std::vector<OrderBy> orderBys_;
+    const std::size_t idxStrSize_ = 512;
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

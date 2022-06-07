@@ -17,8 +17,12 @@ ohos_source_set("htrace_parser_src") {
     "../parser_base.cpp",
     "htrace_clock_detail_parser.cpp",
     "htrace_clock_detail_parser.h",
+    "htrace_cpu_data_parser.cpp",
+    "htrace_cpu_data_parser.h",
     "htrace_cpu_parser/htrace_cpu_detail_parser.cpp",
     "htrace_cpu_parser/htrace_cpu_detail_parser.h",
+    "htrace_disk_io_parser.cpp",
+    "htrace_disk_io_parser.h",
     "htrace_event_parser/htrace_event_parser.cpp",
     "htrace_event_parser/htrace_event_parser.h",
     "htrace_hidump_parser.cpp",
@@ -29,20 +33,33 @@ ohos_source_set("htrace_parser_src") {
     "htrace_mem_parser.h",
     "htrace_native_hook_parser.cpp",
     "htrace_native_hook_parser.h",
+    "htrace_network_parser.cpp",
+    "htrace_network_parser.h",
     "htrace_parser.cpp",
+    "htrace_plugin_time.cpp",
+    "htrace_plugin_time.h",
+    "htrace_process_parser.cpp",
+    "htrace_process_parser.h",
     "htrace_symbols_detail_parser.cpp",
     "htrace_symbols_detail_parser.h",
   ]
   include_dirs = [
+    ".",
     "htrace_event_parser",
     "htrace_cpu_parser",
-    ".",
+    "../hiperf_parser/hiperf/linux",
+    "../hiperf_parser/hiperf/include",
+    "../hiperf_parser/hiperf/kernel",
     "${OHOS_PROTO_GEN}",
     "${OHOS_PROTO_GEN}/types/plugins/memory_data",
-    "${OHOS_PROTO_GEN}/types/plugins/ftrace_data",
+    "${OHOS_PROTO_GEN}/types/plugins/ftrace_data/${kernel_version}",
     "${OHOS_PROTO_GEN}/types/plugins/hilog_data",
     "${OHOS_PROTO_GEN}/types/plugins/native_hook",
     "${OHOS_PROTO_GEN}/types/plugins/hidump_data",
+    "${OHOS_PROTO_GEN}/types/plugins/network_data",
+    "${OHOS_PROTO_GEN}/types/plugins/cpu_data",
+    "${OHOS_PROTO_GEN}/types/plugins/diskio_data",
+    "${OHOS_PROTO_GEN}/types/plugins/process_data",
     "../../include",
     "../../",
     "../",
@@ -51,8 +68,11 @@ ohos_source_set("htrace_parser_src") {
     "../../trace_streamer",
     "//third_party/protobuf/src",
     "//third_party/sqlite/include",
+    "//third_party/perf_include",
     "../../filter",
     "../../base",
+    "../hiperf_parser",
+    "../hiperf_parser/include",
   ]
   if (enable_ts_utest && !use_wasm) {
     cflags = [
@@ -71,8 +91,10 @@ ohos_source_set("htrace_parser_src") {
 group("htrace_parser") {
   deps = [
     ":htrace_parser_src",
-    "//prebuilts/protos:ts_proto_data_cpp",
     "//third_party/protobuf:protobuf",
     "//third_party/protobuf:protobuf_lite",
   ]
+  if (target != "test") {
+    deps += [ "//prebuilts/protos:ts_proto_data_cpp" ]
+  }
 }

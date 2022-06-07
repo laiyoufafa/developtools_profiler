@@ -21,23 +21,22 @@ describe('TabPaneFlag Test', ()=>{
     canvas.width = 1;
     canvas.height = 1;
     const ctx = canvas.getContext('2d');
-
-    let tabPaneFlag = new TabPaneFlag(canvas , ctx, {
-        x: 20,
-        y: 20,
-        width: 100,
-        height: 100
-    }, 10000000000);
+    let tabPaneFlag = new TabPaneFlag()
 
     it('TabPaneFlagTest01', function () {
+        document.body.innerHTML = '<tabpane-flag id="remove-flag"> </tabpane-flag>'
+        tabPaneFlag = document.querySelector('#remove-flag') as TabPaneFlag;
+        let htmlButtonElement = document.createElement('button') as HTMLButtonElement;
+        document.body.appendChild(htmlButtonElement)
+        htmlButtonElement.dispatchEvent(new Event('click'))
         expect(tabPaneFlag.initElements()).toBeUndefined();
     });
 
-    it('TabPaneFlagTest01', function () {
+    it('TabPaneFlagTest02', function () {
         expect(tabPaneFlag.initHtml()).not.toBe('')
     });
 
-    it('TabPaneFlagTest01', function () {
+    it('TabPaneFlagTest03', function () {
         expect(tabPaneFlag.setFlagObj({
             x:  0,
             y:  0,
@@ -47,6 +46,57 @@ describe('TabPaneFlag Test', ()=>{
             color:  "",
             selected: false,
             text:  "",
-        }, 5)).toBeUndefined();
+        })).toBeUndefined();
+    });
+
+    it('TabPaneFlagTest04', function () {
+        expect(tabPaneFlag.initHtml()).toMatchInlineSnapshot(`
+"
+        <style>
+        :host{
+            display: flex;
+            flex-direction: column;
+            padding: 10px 10px;
+        }
+        .notes-editor-panel{
+        display: flex;align-items: center
+        }
+        .flag-text{
+        font-size: 14px;color: var(--dark-color1,#363636c7);font-weight: 300;
+        }
+        .flag-input{
+            border-radius: 4px;
+            border: 1px solid var(--dark-border,#dcdcdc);
+            color: var(--dark-color1,#212121);
+            background: var(--dark-background5,#FFFFFF);
+            padding: 3px;
+            margin: 0 10px;
+        }
+        .flag-input:focus{
+            outline: none;
+            box-shadow: 1px 1px 1px var(--bark-prompt,#bebebe);
+        }
+        .notes-editor-panel button {
+            background: var(--dark-border1,#262f3c);
+            color: white;
+            border-radius: 10px;
+            font-size: 10px;
+            height: 22px;
+            line-height: 18px;
+            min-width: 7em;
+            margin: auto 0 auto 1rem;
+
+            border: none;
+            cursor: pointer;
+            outline: inherit;
+        </style>
+        <div class=\\"notes-editor-panel\\">
+            <div class=\\"flag-text\\">Annotation at <span id=\\"flag-time\\"></span></div>
+            <input style=\\"flex: 1\\" class=\\"flag-input\\" type=\\"text\\" id=\\"text-input\\"/>
+            <span class=\\"flag-text\\">Change color: <input style=\\"background: var(--dark-background5,#FFFFFF);\\" type=\\"color\\" id=\\"color-input\\"/></span>
+            <button id=\\"remove-flag\\">Remove</button>
+        </div>
+        "
+`);
     });
 })

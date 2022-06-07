@@ -18,7 +18,7 @@ import {BaseStruct} from "./BaseStruct.js";
 import {WakeupBean} from "./WakeupBean.js";
 
 export class CpuStruct extends BaseStruct {
-    static cpuCount: number
+    static cpuCount: number //最大cpu数量
     static hoverCpuStruct: CpuStruct | undefined;
     static selectCpuStruct: CpuStruct | undefined;
     static wakeupBean: WakeupBean | null | undefined = null;
@@ -97,3 +97,4 @@ export class CpuStruct extends BaseStruct {
 }
 
 const textPadding = 2;
+

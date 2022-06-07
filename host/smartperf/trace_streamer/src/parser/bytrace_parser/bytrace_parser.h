@@ -54,7 +54,7 @@ private:
     enum ErrorCode { ERROR_CODE_EXIT = -2, ERROR_CODE_NODATA = -1 };
     int GetNextSegment();
     void GetDataSegAttr(DataSegment& seg, const std::smatch& matcheLine) const;
-    void GetDataSegArgs(DataSegment& seg) const;
+
     void FilterThread();
     inline static bool IsNotSpace(char c)
     {
@@ -96,7 +96,7 @@ private:
     int rawDataHead_ = 0;
     int filterHead_ = 0;
     const int sleepDur_ = 100;
-    bool noThread_ = true;
+    bool supportThread_ = false;
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

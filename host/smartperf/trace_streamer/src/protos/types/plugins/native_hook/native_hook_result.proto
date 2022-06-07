@@ -40,12 +40,31 @@ message FreeEvent {
     repeated Frame frame_info = 4;
 }
 
+message MmapEvent {
+    int32 pid = 1;
+    int32 tid = 2;
+    uint64 addr = 3;
+    string type = 4;
+    uint32 size = 5;
+    repeated Frame frame_info = 6;
+}
+
+message MunmapEvent {
+    int32 pid = 1;
+    int32 tid = 2;
+    uint64 addr = 3;
+    uint32 size = 4;
+    repeated Frame frame_info = 5;
+}
+
 message NativeHookData {
     uint64 tv_sec = 1;
     uint64 tv_nsec = 2;
     oneof event {
         AllocEvent alloc_event = 3;
         FreeEvent free_event = 4;
+        MmapEvent mmap_event = 5;
+        MunmapEvent munmap_event = 6;
     }
 }
 

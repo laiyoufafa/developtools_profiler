@@ -16,9 +16,36 @@ syntax = "proto3";
 option java_package = "ohos.devtools.datasources.transport.grpc.service";
 option optimize_for = LITE_RUNTIME;
 
+message DiskioInfo {
+    // read /proc/pid/io
+    uint64 rchar = 1;
+    uint64 wchar = 2;
+    uint64 syscr = 3;
+    uint64 syscw = 4;
+    uint64 rbytes = 5;
+    uint64 wbytes = 6;
+    uint64 cancelled_wbytes = 7;
+}
+
+message PssInfo {
+    // read /proc/pid/smaps_rollup
+    int32 pss_info = 1;
+}
+
+message CpuInfo {
+    double cpu_usage = 1;
+    int32 thread_sum = 2;
+    uint64 cpu_time_ms = 3;
+}
+
 message ProcessInfo {
     int32 pid = 1;
     string name = 2;
+    int32 ppid = 3;
+    int32 uid = 4;
+    CpuInfo cpuinfo = 5;
+    PssInfo pssinfo = 6;
+    DiskioInfo diskinfo = 7;
 }
 
 message ProcessData {

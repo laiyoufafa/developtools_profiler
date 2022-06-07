@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+
 import {BaseElement, element} from "../BaseElement.js";
 
 @element("lit-progress-bar")
@@ -38,50 +39,50 @@ export class LitProgressBar extends BaseElement {
 
     initHtml(): string {
         return `
-<style>
-    :host{
-        width: 100%;
-        height: 1px;
-        display: flex;
-        position: absolute;
-        overflow: hidden;
-    }
-    .root{
-        width: 100%;
-        height: 100%;
-        position:relative;
-    }
-    :host([loading]) .track1{
-        position: absolute;
-        width: 30%;
-        height: 100%;
-        background-image: linear-gradient(to right,transparent,  #535da6, #535da6, #535da6, #535da6,#535da6,transparent);
-        left: -30%;
-        animation: anim 1.7s linear 0s infinite;
-    }
-    :host([loading]) .track2{
-        position: absolute;
-        width: 30%;
-        height: 100%;
-        background-image: linear-gradient(to right,transparent,  #535da6, #535da6, #535da6, #535da6,#535da6,transparent);
-        left: -30%;
-        animation: anim 1.7s  ease-in-out  0.7s infinite;
-    }
-    @keyframes anim {
-      0% {
-        left:-30%;
-      }
-      
-      100% {
-        left:100%;
-      }
-    }
-   
-</style>
-<div class="root">
-    <div class="track1"></div>
-    <div class="track2"></div>
-</div>
+        <style>
+            :host{
+                width: 100%;
+                height: 1px;
+                display: flex;
+                position: absolute;
+                overflow: hidden;
+            }
+            .root{
+                width: 100%;
+                height: 100%;
+                position:relative;
+            }
+            :host([loading]) .track1{
+                position: absolute;
+                width: 30%;
+                height: 100%;
+                background-image: linear-gradient(to right,transparent,  #535da6, #535da6, #535da6, #535da6,#535da6,transparent);
+                left: -30%;
+                animation: anim 1.7s linear 0s infinite;
+            }
+            :host([loading]) .track2{
+                position: absolute;
+                width: 30%;
+                height: 100%;
+                background-image: linear-gradient(to right,transparent,  #535da6, #535da6, #535da6, #535da6,#535da6,transparent);
+                left: -30%;
+                animation: anim 1.7s  ease-in-out  0.7s infinite;
+            }
+            @keyframes anim {
+              0% {
+                left:-30%;
+              }
+
+              100% {
+                left:100%;
+              }
+            }
+
+        </style>
+        <div class="root">
+            <div class="track1"></div>
+            <div class="track2"></div>
+        </div>
         `;
     }
 }

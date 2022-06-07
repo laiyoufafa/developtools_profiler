@@ -72,28 +72,7 @@ void NativeHookTable::EstimateFilterCost(FilterConstraints& fc, EstimatedIndexIn
     if (constraints.empty()) { // scan all rows
         filterCost = rowCount;
     } else {
-        for (int i = 0; i < static_cast<int>(constraints.size()); i++) {
-            if (rowCount <= 1) {
-                // only one row or nothing, needn't filter by constraint
-                filterCost += rowCount;
-                break;
-            }
-            const auto& c = constraints[i];
-            switch (c.col) {
-                case ID: {
-                    if (CanFilterId(c.op, rowCount)) {
-                        fc.UpdateConstraint(i, true);
-                        filterCost += 1; // id can position by 1 step
-                    } else {
-                        filterCost += rowCount; // scan all rows
-                    }
-                    break;
-                }
-                default: // other column
-                    filterCost += rowCount; // scan all rows
-                    break;
-            }
-        }
+        FilterByConstraint(fc, filterCost, rowCount);
     }
     ei.estimatedCost += filterCost;
     ei.estimatedRows = rowCount;
@@ -107,6 +86,33 @@ void NativeHookTable::EstimateFilterCost(FilterConstraints& fc, EstimatedIndexIn
                 break;
             default: // other columns can be sorted by SQLite
                 ei.isOrdered = false;
+                break;
+        }
+    }
+}
+
+void NativeHookTable::FilterByConstraint(FilterConstraints& fc, double& filterCost, size_t rowCount)
+{
+    auto fcConstraints = fc.GetConstraints();
+    for (int i = 0; i < static_cast<int>(fcConstraints.size()); i++) {
+        if (rowCount <= 1) {
+            // only one row or nothing, needn't filter by constraint
+            filterCost += rowCount;
+            break;
+        }
+        const auto& c = fcConstraints[i];
+        switch (c.col) {
+            case ID: {
+                if (CanFilterId(c.op, rowCount)) {
+                    fc.UpdateConstraint(i, true);
+                    filterCost += 1; // id can position by 1 step
+                } else {
+                    filterCost += rowCount; // scan all rows
+                }
+                break;
+            }
+            default:                    // other column
+                filterCost += rowCount; // scan all rows
                 break;
         }
     }
@@ -149,7 +155,7 @@ int NativeHookTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value**
     // reset indexMap_
     indexMap_ = std::make_unique<IndexMap>(0, rowCount_);
 
-    if (rowCount_ <= 0 ) {
+    if (rowCount_ <= 0) {
         return SQLITE_OK;
     }
 
@@ -197,13 +203,18 @@ int NativeHookTable::Cursor::Column(int column) const
             break;
         case EVENT_TYPE: {
             if (!nativeHookObj_.EventTypes()[CurrentRow()].empty()) {
-                sqlite3_result_text(context_, nativeHookObj_.EventTypes()[CurrentRow()].c_str(), STR_DEFAULT_LEN, nullptr);
+                sqlite3_result_text(context_,
+                                    nativeHookObj_.EventTypes()[CurrentRow()].c_str(),
+                                    STR_DEFAULT_LEN, nullptr);
             }
             break;
         }
         case SUB_TYPE: {
             if (nativeHookObj_.SubTypes()[CurrentRow()] != INVALID_UINT64) {
                 auto subTypeIndex = static_cast<size_t>(nativeHookObj_.SubTypes()[CurrentRow()]);
+                if (dataCache_->GetDataFromDict(subTypeIndex).empty()) {
+                    break;
+                }
                 sqlite3_result_text(context_, dataCache_->GetDataFromDict(subTypeIndex).c_str(), STR_DEFAULT_LEN,
                                     nullptr);
             }

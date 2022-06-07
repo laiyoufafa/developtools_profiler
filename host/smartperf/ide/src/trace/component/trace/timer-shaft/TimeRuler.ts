@@ -15,17 +15,16 @@
 
 import {Graph} from "./Graph.js";
 import {Rect} from "./Rect.js";
-import {ns2s} from "../TimerShaftElement.js";
+import {ns2s, TimerShaftElement} from "../TimerShaftElement.js";
 
 export class TimeRuler extends Graph {
     totalNS: number
-
     private stepSmall: number;
     private step: number;
     private stepNS: number;
 
-    constructor(canvas: HTMLCanvasElement | undefined | null, c: CanvasRenderingContext2D, frame: Rect, totalNS: number = 10_000_000_000) {
-        super(canvas, c, frame)
+    constructor(timerShaftEL: TimerShaftElement, frame: Rect, totalNS: number = 10_000_000_000) {
+        super(timerShaftEL.canvas, timerShaftEL.ctx!, frame)
         this.totalNS = totalNS;
         this.step = this.frame.width / 10;
         this.stepSmall = this.frame.width / 100;
@@ -56,3 +55,6 @@ export class TimeRuler extends Graph {
         this.c.closePath();
     }
 }
+
+
+

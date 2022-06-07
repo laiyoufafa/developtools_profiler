@@ -40,10 +40,8 @@ public:
     void WaitForParserEnd();
     void Clear();
     MetaData* GetMetaData();
-    void SetDataType(TraceFileType type)
-    {
-        fileType_ = type;
-    }
+    void SetDataType(TraceFileType type);
+    void SetCancel(bool cancel);
     TraceFileType DataType()
     {
         return fileType_;

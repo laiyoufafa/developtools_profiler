@@ -15,107 +15,56 @@
 
 // @ts-ignore
 import {TraceRow} from "../../../../../dist/trace/component/trace/base/TraceRow.js";
+// @ts-ignore
+import {Sptext} from "../../../../../dist/trace/component/Sptext.js";
 
 describe("TraceRow Test", () => {
+    
     beforeAll(() => {
     })
-
+    const ctx = {
+        lineWidth:1,
+        strokeStyle:true
+    }
     it('TraceRow Test01', () => {
-        let traceRow = new TraceRow<any>();
+        let traceRow = new TraceRow<any>({canvasNumber:1,alpha: true, contextId: '2d', isOffScreen: true});
         expect(traceRow).not.toBeUndefined();
     });
 
     it('TraceRow Test02', () => {
-        let traceRow = new TraceRow<any>();
+        let traceRow = new TraceRow<any>({canvasNumber:1,alpha: true, contextId: '2d', isOffScreen: true});
         expect(traceRow.sleeping).toBeFalsy();
     });
 
     it('TraceRow Test03', () => {
-        let traceRow = new TraceRow<any>();
+        let traceRow = new TraceRow<any>({canvasNumber:1,alpha: true, contextId: '2d', isOffScreen: true});
         traceRow.sleeping = true
         expect(traceRow.sleeping).toBeTruthy();
     });
 
     it('TraceRow Test04', () => {
-        let traceRow = new TraceRow<any>();
+        let traceRow = new TraceRow<any>({canvasNumber:1,alpha: true, contextId: '2d', isOffScreen: true});
         traceRow.sleeping = false
         expect(traceRow.sleeping).toBeFalsy();
     });
 
     it('TraceRow Test05', () => {
-        let traceRow = new TraceRow<any>();
+        let traceRow = new TraceRow<any>({canvasNumber:1,alpha: true, contextId: '2d', isOffScreen: true});
         expect(traceRow.rangeSelect).toBeFalsy();
     });
 
     it('TraceRow Test06', () => {
-        let traceRow = new TraceRow<any>();
+        let traceRow = new TraceRow<any>({canvasNumber:1,alpha: true, contextId: '2d', isOffScreen: true});
         traceRow.rangeSelect = true
         expect(traceRow.rangeSelect).toBeTruthy();
     });
 
-
-    it('TraceRow Test07', () => {
+    it('TraceRow Test10', () => {
         const canvas = document.createElement('canvas');
         canvas.width = 1;
         canvas.height = 1;
         const ctx = canvas.getContext('2d');
-        let traceRow = new TraceRow<any>();
-        traceRow.dataList = {
-            supplier:true,
-            isLoading:false,
-        }
-        traceRow.supplier = true;
-        traceRow.isLoading = false;
-        traceRow.name = "111"
-        traceRow.height = 20
-        traceRow.height = 30
-        expect(traceRow.initCanvas()).toBeUndefined();
-    });
-
-
-
-    it('TraceRow Test08', () => {
-        const canvas = document.createElement('canvas');
-        canvas.width = 1;
-        canvas.height = 1;
-        const ctx = canvas.getContext('2d');
-        let traceRow = new TraceRow<any>();
-        traceRow.dataList = {
-            supplier:true,
-            isLoading:false,
-        }
-        traceRow.supplier = true;
-        traceRow.isLoading = false;
-        traceRow.name = "111"
-        traceRow.height = 20
-        traceRow.height = 30
-        expect(traceRow.drawObject()).toBeUndefined();
-    });
-
-    it('TraceRow Test08', () => {
-        const canvas = document.createElement('canvas');
-        canvas.width = 1;
-        canvas.height = 1;
-        const ctx = canvas.getContext('2d');
-        let traceRow = new TraceRow<any>();
-        traceRow.dataList = {
-            supplier:true,
-            isLoading:false,
-        }
-        traceRow.supplier = true;
-        traceRow.isLoading = false;
-        traceRow.name = "111"
-        traceRow.height = 20
-        traceRow.height = 30
-        expect(traceRow.drawObject()).toBeUndefined();
-    });
-
-    it('TraceRow Test08', () => {
-        const canvas = document.createElement('canvas');
-        canvas.width = 1;
-        canvas.height = 1;
-        const ctx = canvas.getContext('2d');
-        let traceRow = new TraceRow<any>();
+        let traceRow = new TraceRow<any>({canvasNumber:1,alpha: true, contextId: '2d', isOffScreen: true});
         traceRow.dataList = {
             supplier:true,
             isLoading:false,
@@ -128,12 +77,12 @@ describe("TraceRow Test", () => {
         expect(traceRow.clearCanvas()).toBeUndefined();
     });
 
-    it('TraceRow Test08', () => {
+    it('TraceRow Test11', () => {
         const canvas = document.createElement('canvas');
         canvas.width = 1;
         canvas.height = 1;
         const ctx = canvas.getContext('2d');
-        let traceRow = new TraceRow<any>();
+        let traceRow = new TraceRow<any>({canvasNumber:1,alpha: true, contextId: '2d', isOffScreen: true});
         traceRow.dataList = {
             supplier:true,
             isLoading:false,
@@ -146,12 +95,12 @@ describe("TraceRow Test", () => {
         expect(traceRow.drawLines()).toBeUndefined();
     });
 
-    it('TraceRow Test08', () => {
+    it('TraceRow Test12', () => {
         const canvas = document.createElement('canvas');
         canvas.width = 1;
         canvas.height = 1;
         const ctx = canvas.getContext('2d');
-        let traceRow = new TraceRow<any>();
+        let traceRow = new TraceRow<any>({canvasNumber:1,alpha: true, contextId: '2d', isOffScreen: true});
         traceRow.dataList = {
             supplier:true,
             isLoading:false,
@@ -162,5 +111,478 @@ describe("TraceRow Test", () => {
         traceRow.height = 20
         traceRow.height = 30
         expect(traceRow.drawSelection()).toBeUndefined();
+    });
+
+    it('TraceRow Test13', () => {
+        let traceRow = new TraceRow<any>({canvasNumber:1,alpha: true, contextId: '2d', isOffScreen: true});
+        expect(traceRow.collect).toBeFalsy();
+    });
+
+    it('TraceRow Test14', () => {
+        let traceRow = new TraceRow<any>({canvasNumber:1,alpha: true, contextId: '2d', isOffScreen: true});
+        traceRow.collect = true;
+        expect(traceRow.collect).toBeTruthy();
+    });
+
+    it('TraceRow Test15', () => {
+        let traceRow = new TraceRow<any>({canvasNumber:1,alpha: true, contextId: '2d', isOffScreen: true});
+        expect(traceRow.rowType).toBeFalsy();
+    });
+
+    it('TraceRow Test16', () => {
+        let traceRow = new TraceRow<any>({canvasNumber:1,alpha: true, contextId: '2d', isOffScreen: true});
+        traceRow.rowType = true;
+        expect(traceRow.rowType).toBeTruthy();
+    });
+
+    it('TraceRow Test17', () => {
+        let traceRow = new TraceRow<any>({canvasNumber:1,alpha: true, contextId: '2d', isOffScreen: true});
+        expect(traceRow.rowId).toBeFalsy();
+    });
+
+    it('TraceRow Test18', () => {
+        let traceRow = new TraceRow<any>({canvasNumber:1,alpha: true, contextId: '2d', isOffScreen: true});
+        traceRow.rowId = true;
+        expect(traceRow.rowId).toBeTruthy();
+    });
+
+    it('TraceRow Test19', () => {
+        let traceRow = new TraceRow<any>({canvasNumber:1,alpha: true, contextId: '2d', isOffScreen: true});
+        expect(traceRow.rowParentId).toBeFalsy();
+    });
+
+    it('TraceRow Test20', () => {
+        let traceRow = new TraceRow<any>({canvasNumber:1,alpha: true, contextId: '2d', isOffScreen: true});
+        traceRow.rowParentId = true;
+        expect(traceRow.rowParentId).toBeTruthy();
+    });
+
+    it('TraceRow Test21', () => {
+        let traceRow = new TraceRow<any>({canvasNumber:1,alpha: true, contextId: '2d', isOffScreen: true});
+        traceRow.rowHidden = true;
+        expect(traceRow.rowHidden).toBeUndefined();
+    });
+
+
+    it('TraceRow Test22', () => {
+        let traceRow = new TraceRow<any>({canvasNumber:1,alpha: true, contextId: '2d', isOffScreen: true});
+        expect(traceRow.name).toBeFalsy();
+    });
+
+    it('TraceRow Test23', () => {
+        let traceRow = new TraceRow<any>({canvasNumber:1,alpha: true, contextId: '2d', isOffScreen: true});
+        expect(traceRow.folder).toBeFalsy();
+    });
+
+    it('TraceRow Test24', () => {
+        let traceRow = new TraceRow<any>({canvasNumber:1,alpha: true, contextId: '2d', isOffScreen: true});
+        traceRow.folder = true;
+        expect(traceRow.folder).toBeTruthy();
+    });
+
+    it('TraceRow Test25', () => {
+        let traceRow = new TraceRow<any>({canvasNumber:1,alpha: true, contextId: '2d', isOffScreen: true});
+        expect(traceRow.expansion).toBeFalsy();
+    });
+
+    it('TraceRow Test26', () => {
+        let traceRow = new TraceRow<any>({canvasNumber:1,alpha: true, contextId: '2d', isOffScreen: true});
+        traceRow.expansion = true;
+        expect(traceRow.expansion).toBeTruthy();
+    });
+
+    it('TraceRow Test27', () => {
+        let traceRow = new TraceRow<any>({canvasNumber:1,alpha: true, contextId: '2d', isOffScreen: true});
+        traceRow.tip = true;
+        expect(traceRow.tip).toBeUndefined();
+    });
+
+    it('TraceRow Test28', () => {
+        let traceRow = new TraceRow<any>({canvasNumber:1,alpha: true, contextId: '2d', isOffScreen: true});
+        expect(traceRow.frame).not.toBeUndefined();
+    });
+
+    it('TraceRow Test29', () => {
+        let traceRow = new TraceRow<any>({canvasNumber:1,alpha: true, contextId: '2d', isOffScreen: true});
+        traceRow.frame = [0,0,0];
+        expect(traceRow.frame).toBeTruthy();
+    });
+
+    it('TraceRow Test30', () => {
+        let traceRow = new TraceRow<any>({canvasNumber:1,alpha: true, contextId: '2d', isOffScreen: true});
+        expect(traceRow.checkType).not.toBeUndefined();
+    });
+
+    it('TraceRow Test31', () => {
+        let traceRow = new TraceRow<any>({canvasNumber:1,alpha: true, contextId: '2d', isOffScreen: true});
+        traceRow.checkType = "-1";
+        expect(traceRow.checkType).toBeTruthy();
+    });
+
+    it('TraceRow Test32', () => {
+        let traceRow = new TraceRow<any>({canvasNumber:1,alpha: true, contextId: '2d', isOffScreen: true});
+        expect(traceRow.drawType).toBe(0);
+    });
+
+    it('TraceRow Test33', () => {
+        let traceRow = new TraceRow<any>({canvasNumber:1,alpha: true, contextId: '2d', isOffScreen: true});
+        traceRow.drawType = true;
+        expect(traceRow.drawType).toBeTruthy();
+    });
+
+    it('TraceRow Test34', () => {
+        let traceRow = new TraceRow<any>({canvasNumber:1,alpha: true, contextId: '2d', isOffScreen: true});
+        traceRow.args = jest.fn(()=>true)
+        traceRow.args.isOffScreen = jest.fn(()=>null)
+        expect(traceRow.updateWidth(1)).toBeUndefined();
+    });
+
+    it('TraceRow Test36', () => {
+        let traceRow = new TraceRow<any>({canvasNumber:1,alpha: true, contextId: '2d', isOffScreen: true});
+        expect(traceRow.onMouseHover()).toBeFalsy();
+    });
+
+    it('TraceRow Test37', () => {
+        let traceRow = new TraceRow<any>({canvasNumber:1,alpha: true, contextId: '2d', isOffScreen: true});
+        expect(traceRow.setTipLeft(1,null)).toBeFalsy();
+    });
+
+    it('TraceRow Test38', () => {
+        let traceRow = new TraceRow<any>({canvasNumber:1,alpha: true, contextId: '2d', isOffScreen: true});
+        expect(traceRow.onMouseLeave(1,1)).toBeFalsy();
+    });
+
+    it('TraceRow Test39', () => {
+        let traceRow = new TraceRow<any>({canvasNumber:1,alpha: true, contextId: '2d', isOffScreen: true});
+        expect(traceRow.draw(false)).toBeFalsy();
+    });
+
+    it('TraceRow Test40', () => {
+        let traceRow = new TraceRow<any>({canvasNumber:1,alpha: true, contextId: '2d', isOffScreen: true});
+        traceRow.collect = 1
+        expect(traceRow.collect).toBeTruthy();
+    });
+
+    it('TraceRow Test41', () => {
+        let traceRow = new TraceRow<any>({canvasNumber:1,alpha: true, contextId: '2d', isOffScreen: true});
+        traceRow.collect = 0
+        expect(traceRow.collect).toBeFalsy();
+    });
+
+    it('TraceRow Test42', () => {
+        let traceRow = new TraceRow<any>({canvasNumber:1,alpha: true, contextId: '2d', isOffScreen: true});
+        traceRow.checkType = "0";
+        expect(traceRow.checkType).toBe("0");
+    });
+
+    it('TraceRow Test43', () => {
+        let traceRow = new TraceRow<any>({canvasNumber:1,alpha: true, contextId: '2d', isOffScreen: true});
+        traceRow.checkType = "1";
+        expect(traceRow.checkType).toBe("1");
+    });
+
+    it('TraceRow Test44', () => {
+        let traceRow = new TraceRow<any>({canvasNumber:1,alpha: true, contextId: '2d', isOffScreen: true});
+        traceRow.checkType = "2";
+        expect(traceRow.checkType).toBe("2");
+    });
+
+
+    it('TraceRow Test45', () => {
+        let traceRow = new TraceRow<any>({canvasNumber:1,alpha: true, contextId: '2d', isOffScreen: true});
+        traceRow.checkType = 0;
+        expect(traceRow.checkType).toBe("");
+    });
+
+    it('TraceRow Test46', () => {
+        let traceRow = new TraceRow<any>({canvasNumber:1,alpha: true, contextId: '2d', isOffScreen: true});
+        traceRow.rowHidden = false;
+        expect(traceRow.rowHidden).toBeUndefined();
+    });
+
+    it('TraceRow Test47', () => {
+        let traceRow = new TraceRow<any>({canvasNumber:1,alpha: true, contextId: '2d', isOffScreen: true});
+        traceRow.highlight = false;
+        expect(traceRow.highlight).toBeFalsy();
+    });
+
+    it('TraceRow Test48', () => {
+        let traceRow = new TraceRow<any>({canvasNumber:1,alpha: true, contextId: '2d', isOffScreen: true});
+        traceRow.highlight = true;
+        expect(traceRow.highlight).toBeFalsy();
+    });
+
+    it('TraceRow Test49', () => {
+        let traceRow = new TraceRow<any>({canvasNumber:1,alpha: true, contextId: '2d', isOffScreen: true});
+        traceRow.setCheckBox = true;
+        expect(traceRow.highlight).toBeFalsy();
+    });
+
+    it('TraceRow Test50', () => {
+        let traceRow = new TraceRow<any>({canvasNumber:1,alpha: true, contextId: '2d', isOffScreen: true});
+        traceRow.initCanvas = jest.fn(()=>null)
+        expect(traceRow.connectedCallback()).toBeUndefined();
+    });
+
+    it('TraceRow Test51', () => {
+        let traceRow = new TraceRow<any>({canvasNumber:1,alpha: true, contextId: '2d', isOffScreen: true});
+        expect(traceRow.isInTimeRange()).toBe(false);
+    });
+
+    it('TraceRow Test52', () => {
+        let traceRow = new TraceRow<any>({canvasNumber:1,alpha: true, contextId: '2d', isOffScreen: true});
+        expect(traceRow.getLineColor()).toBe("");
+    });
+
+    it('TraceRow Test53', () => {
+        let traceRow = new TraceRow<any>({canvasNumber:1,alpha: true, contextId: '2d', isOffScreen: true});
+        let value = traceRow.attributeChangedCallback("name")
+        expect(value).toBe(undefined);
+    });
+
+    it('TraceRow Test54', () => {
+        let traceRow = new TraceRow<any>({canvasNumber:1,alpha: true, contextId: '2d', isOffScreen: true});
+        let value = traceRow.attributeChangedCallback("height","1","2")
+        expect(value).toBe(undefined);
+    });
+
+    it('TraceRow Test55', () => {
+        let traceRow = new TraceRow<any>({canvasNumber:1,alpha: true, contextId: '2d', isOffScreen: true});
+        let value = traceRow.attributeChangedCallback("check-type","1","check")
+        expect(value).toBe(undefined);
+    });
+
+    it('TraceRow Test56', () => {
+        let traceRow = new TraceRow<any>({canvasNumber:1,alpha: true, contextId: '2d', isOffScreen: true});
+        expect(traceRow.initHtml()).toMatchInlineSnapshot(`
+"
+        <style>
+        *{
+            box-sizing: border-box;
+        }
+        :host(:not([row-hidden])){
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            height: min-content;
+        }
+        :host([row-hidden]){
+            width: 100%;
+            display: none;
+        }
+        .root{
+            height: 40px;
+            width: 100%;
+            display: grid;
+            grid-template-rows: 100%;
+            grid-template-columns: 248px 1fr;
+            border-bottom: 1px solid var(--dark-border1,#dadada);
+            box-sizing: border-box;
+        }
+        .describe{
+            box-sizing: border-box;
+            border-right: 1px solid var(--dark-border1,#c9d0da);
+            background-color: transparent;
+            align-items: center;
+            position: relative;
+        }
+        .panel{
+            width: 100%;
+            height: 100%;
+            overflow: visible;
+            background-color: transparent;
+            display: block;
+        }
+        .panel-container{
+            width: 100%;
+            position: relative;
+            pointer-events: none;
+        }
+        .tip{
+            position:absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            background-color: white;
+            border: 1px solid #f9f9f9;
+            width: auto;
+            font-size: 8px;
+            color: #50809e;
+            flex-direction: column;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 2px 10px;
+            display: none;
+            user-select: none;
+        }
+        .name{
+            color: var(--dark-color1,#4b5766);
+            margin-left: 10px;
+            font-size: .9rem;
+            font-weight: normal;
+            width: 100%;
+            max-height: 100%;
+            text-align: left;
+            overflow: hidden;
+            user-select: none;
+        }
+        :host([highlight]) .name{
+            color: #4b5766;
+        }
+        .icon{
+            color: var(--dark-color1,#151515);
+            margin-left: 10px;
+        }
+        .describe:hover {
+            cursor: pointer;
+        }
+        :host([folder]) .describe:hover > .icon{
+            color:#ecb93f;
+            margin-left: 10px;
+        }
+        :host([folder]){
+            background-color: var(--dark-background1,#f5fafb);
+        }
+        :host([folder]) .icon{
+            display: flex;
+        }
+        :host(:not([folder])){
+            background-color: var(--dark-background,#FFFFFF);
+        }
+        :host(:not([folder]):not([children])) {
+        }
+        :host(:not([folder]):not([children])) .icon{
+            display: none;
+        }
+        :host(:not([folder])[children]) .icon{
+            visibility: hidden;
+            color:#fff
+        }
+
+        :host(:not([folder])[children]) .name{
+        }
+        :host([expansion]) {
+            background-color: var(--bark-expansion,#0C65D1);
+        }
+        :host([expansion]) .name,:host([expansion]) .icon{
+            color: #fff;
+        }
+        :host([expansion]) .describe{
+            border-right: 0px;
+        }
+        :host([expansion]:not(sleeping)) .panel-container{
+            display: none;
+        }
+        :host([expansion]) .children{
+            flex-direction: column;
+            width: 100%;
+        }
+        :host([expansion]) .icon{
+            transform: rotateZ(0deg);
+        }
+        :host(:not([expansion])) .children{
+            display: none;
+            flex-direction: column;
+            width: 100%;
+        }
+        :host(:not([expansion])) .icon{
+            transform: rotateZ(-90deg);
+        }
+        :host([sleeping]) .describe{
+            display: none;
+        }
+        :host([sleeping]) .panel-container{
+            display: none;
+        }
+        :host([sleeping]) .children{
+            display: none;
+        }
+        :host(:not([sleeping])) .describe{
+            display: flex;;
+        }
+        :host(:not([sleeping])) .panel-container{
+            display: block;
+        }
+        :host(:not([sleeping])) .children{
+            display: flex;
+        }
+        :host([folder]) .lit-check-box{
+            display: none;
+        }
+        :host(:not([check-type])) .lit-check-box{
+            display: none;
+        }
+        :host([collect-type]) {
+            position:fixed;
+            z-index:1000;
+        }
+        :host(:not([collect-type])) {
+            position:static;
+        }
+        :host([collect-type]) .collect{
+            display: block;
+            color: #5291FF;
+        }
+        :host(:not([collect-type])) .collect{
+            display: none;
+            color: var(--dark-icon,#666666);
+        }
+        .collect{
+            margin-right: 5px;
+        }
+        :host(:not([folder])) .describe:hover .collect{
+            display: block;
+        }
+        :host([row-type=\\"native-memory\\"]) .popover{
+            display: flex;
+        }
+        .popover{
+            color: var(--dark-color1,#4b5766);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            margin-right: 5px;
+        }
+        .radio{
+            margin-right: 10px;
+
+        }
+        #setting{
+            color: var(--dark-color1,#606060);
+        }
+        :host([expansion]) #setting{
+            color: #FFFFFF;
+        }
+        :host([highlight]) .flash{
+            background-color: #ffe263;
+        }
+
+        </style>
+        <div class=\\"root\\">
+            <div class=\\"describe flash\\">
+                <lit-icon class=\\"icon\\" name=\\"caret-down\\" size=\\"13\\"></lit-icon>
+                <label class=\\"name\\"></label>
+                <lit-icon class=\\"collect\\" name=\\"star-fill\\" size=\\"17\\"></lit-icon>
+                <lit-popover placement=\\"bottomLeft\\" trigger=\\"click\\" class=\\"popover\\" haveRadio=\\"true\\">
+                    <div slot=\\"content\\">
+                        <div id=\\"first-radio\\" style=\\"margin-bottom: 5px\\">
+                        <input class=\\"radio\\" name=\\"status\\" type=\\"radio\\" value=\\"0\\" />Current Bytes</div>
+                        <div id=\\"second-radio\\" style=\\"margin-bottom: 5px\\">
+                        <input class=\\"radio\\" name=\\"status\\" type=\\"radio\\" value=\\"1\\" />Native Memory Density</div>
+                    </div>
+                    <lit-icon name=\\"setting\\" size=\\"17\\" id=\\"setting\\"></lit-icon>
+                </lit-popover>
+                <lit-check-box class=\\"lit-check-box\\"></lit-check-box>
+            </div>
+            <div class=\\"panel-container\\">
+                <div class=\\"tip\\">
+                    P:process [1573]<br>
+                    T:Thread [675]
+                </div>
+            </div>
+        </div>
+        "
+`);
     });
 })

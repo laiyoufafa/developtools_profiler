@@ -40,21 +40,17 @@ export class LitTableGroup extends HTMLElement {
         this.setAttribute('title', value);
     }
 
-    // Called when the custom element is first inserted into the document DOM.
     connectedCallback() {
 
     }
 
-    // Called when a custom element is removed from the document DOM.
     disconnectedCallback() {
 
     }
 
     adoptedCallback() {
-        console.log('Custom square element moved to new page.');
     }
 
     attributeChangedCallback(name: string, oldValue: string, newValue: string) {
-
     }
 }

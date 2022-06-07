@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+
 export function element(tag: string) {
     return (el: any) => {
         if (!customElements.get(tag)) {

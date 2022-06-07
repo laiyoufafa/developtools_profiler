@@ -31,13 +31,13 @@ ProcessFilterTable::ProcessFilterTable(const TraceDataCache* dataCache) : TableB
 
 ProcessFilterTable::~ProcessFilterTable() {}
 
-void ProcessFilterTable::CreateCursor()
+std::unique_ptr<TableBase::Cursor> ProcessFilterTable::CreateCursor()
 {
-    cursor_ = std::make_unique<Cursor>(dataCache_);
+    return std::make_unique<Cursor>(dataCache_, this);
 }
 
-ProcessFilterTable::Cursor::Cursor(const TraceDataCache* dataCache)
-    : TableBase::Cursor(dataCache, 0, static_cast<uint32_t>(dataCache->GetConstProcessFilterData().Size())),
+ProcessFilterTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
+    : TableBase::Cursor(dataCache, table, static_cast<uint32_t>(dataCache->GetConstProcessFilterData().Size())),
       processFilterObj_(dataCache->GetConstProcessFilterData())
 {
 }

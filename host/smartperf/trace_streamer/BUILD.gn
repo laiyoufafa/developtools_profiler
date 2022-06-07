@@ -17,6 +17,11 @@ group("trace_streamer") {
   } else if (is_test) {
     deps = [ "test:unittest" ]
     testonly = true
+  } else if (is_fuzz) {
+    deps = [ "test:fuzztest" ]
+    testonly = true
+  } else if (is_protoc) {
+    deps = [ "//third_party/protobuf:protoc" ]
   } else {
     deps = [ "src:trace_streamer" ]
   }

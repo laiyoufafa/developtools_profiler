@@ -64,6 +64,11 @@ describe('ThreadStruct Test', () => {
         expect(ThreadStruct.draw(ctx, dataSource)).toBeUndefined()
     });
 
+    it('ThreadStructTest11', function () {
+        dataSource.state = "T"||"t"
+        expect(ThreadStruct.draw(ctx, dataSource)).toBeUndefined()
+    });
+
     it('ThreadStructTest06', function () {
         expect(ThreadStruct.drawString(ctx, '', 2, dataSource.frame)).toBeUndefined()
     });

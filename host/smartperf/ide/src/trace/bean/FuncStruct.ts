@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+
 import {BaseStruct} from "./BaseStruct.js";
 import {Rect} from "../component/trace/timer-shaft/Rect.js";
 import {ColorUtils} from "../component/trace/base/ColorUtils.js";
@@ -20,18 +21,17 @@ import {ColorUtils} from "../component/trace/base/ColorUtils.js";
 export class FuncStruct extends BaseStruct {
     static hoverFuncStruct: FuncStruct | undefined;
     static selectFuncStruct: FuncStruct | undefined;
-
-    argsetid: number | undefined // 53161
-    depth: number | undefined // 0
-    dur: number | undefined // 570000
-    funName: string | undefined //"binder transaction"
-    id: number | undefined // 92749
-    is_main_thread: number | undefined // 0
-    parent_id: number | undefined // null
-    startTs: number | undefined // 9729867000
-    threadName: string | undefined // "Thread-15"
-    tid: number | undefined // 2785
-    track_id: number | undefined // 414
+    argsetid: number | undefined
+    depth: number | undefined
+    dur: number | undefined
+    funName: string | undefined
+    id: number | undefined
+    is_main_thread: number | undefined
+    parent_id: number | undefined
+    startTs: number | undefined
+    threadName: string | undefined
+    tid: number | undefined
+    track_id: number | undefined
 
     static draw(ctx: CanvasRenderingContext2D, data: FuncStruct) {
         if (data.frame) {

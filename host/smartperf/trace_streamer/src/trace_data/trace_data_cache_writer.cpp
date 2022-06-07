@@ -45,8 +45,10 @@ Thread* TraceDataCacheWriter::GetThreadData(InternalTid internalTid)
 
 void TraceDataCacheWriter::UpdateTraceTime(uint64_t timestamp)
 {
-    traceStartTime_ = std::min(traceStartTime_, timestamp);
-    traceEndTime_ = std::max(traceEndTime_, timestamp);
+    if (timestamp) {
+        traceStartTime_ = std::min(traceStartTime_, timestamp);
+        traceEndTime_ = std::max(traceEndTime_, timestamp);
+    }
 }
 
 void TraceDataCacheWriter::MixTraceTime(uint64_t timestampMin, uint64_t timestampMax)
@@ -161,21 +163,40 @@ LogInfo* TraceDataCacheWriter::GetHilogData()
     return &hilogData_;
 }
 
-HeapInfo* TraceDataCacheWriter::GetHeapData()
+NativeHook* TraceDataCacheWriter::GetHeapData()
 {
-    return &heapData_;
+    return &nativeHookData_;
 }
 
-HeapFrameInfo* TraceDataCacheWriter::GetHeapFrameData()
+NativeHookFrame* TraceDataCacheWriter::GetHeapFrameData()
 {
-    return &heapFrameData_;
+    return &nativeHookFrameData_;
 }
 
 Hidump* TraceDataCacheWriter::GetHidumpData()
 {
     return &hidumpData_;
 }
-
+PerfCallChain* TraceDataCacheWriter::GetPerfCallChainData()
+{
+    return &perfCallChain_;
+}
+PerfFiles* TraceDataCacheWriter::GetPerfFilesData()
+{
+    return &perfFiles_;
+}
+PerfSample* TraceDataCacheWriter::GetPerfSampleData()
+{
+    return &perfSample_;
+}
+PerfThread* TraceDataCacheWriter::GetPerfThreadData()
+{
+    return &perfThread_;
+}
+PerfReport* TraceDataCacheWriter::GetPerfReportData()
+{
+    return &perfReport_;
+}
 ArgSet* TraceDataCacheWriter::GetArgSetData()
 {
     return &argSet_;
@@ -189,6 +210,27 @@ DataType* TraceDataCacheWriter::GetDataTypeData()
 SysMeasureFilter* TraceDataCacheWriter::GetSysMeasureFilterData()
 {
     return &sysEvent_;
+}
+NetDetailData* TraceDataCacheWriter::GetNetworkData()
+{
+    return &networkData_;
+}
+NetDetailData* TraceDataCacheWriter::GetNetworkDetailData()
+{
+    return &networkDetailData_;
+}
+DiskIOData* TraceDataCacheWriter::GetDiskIOData()
+{
+    return &diskIOData_;
+}
+
+CpuUsageDetailData* TraceDataCacheWriter::GetCpuUsageInfoData()
+{
+    return &cpuUsageData_;
+}
+LiveProcessDetailData* TraceDataCacheWriter::GetLiveProcessData()
+{
+    return &liveProcessDetailData_;
 }
 void TraceDataCacheWriter::Clear()
 {
@@ -209,8 +251,8 @@ void TraceDataCacheWriter::Clear()
     callstackData_.Clear();
     irqData_.Clear();
     hilogData_.Clear();
-    heapData_.Clear();
-    heapFrameData_.Clear();
+    nativeHookData_.Clear();
+    nativeHookFrameData_.Clear();
     hidumpData_.Clear();
 
     internalProcessesData_.clear();
@@ -225,6 +267,8 @@ void TraceDataCacheWriter::Clear()
     argSet_.Clear();
     dataType_.Clear();
     sysEvent_.Clear();
+    networkData_.Clear();
+    networkDetailData_.Clear();
 }
 } // namespace TraceStreamer
 } // namespace SysTuning

@@ -1,4 +1,3 @@
-// @ts-nocheck
 /*
  * Copyright (C) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -56,44 +55,54 @@ export class TabPaneSlices extends BaseElement {
         this.tbl = this.shadowRoot?.querySelector<LitTable>('#tb-slices');
         this.range = this.shadowRoot?.querySelector('#time-range');
         this.tbl!.addEventListener('column-click', (evt) => {
+            // @ts-ignore
             this.sortByColumn(evt.detail)
         });
     }
 
     initHtml(): string {
         return `
-<style>
-:host{
-    display: flex;
-    flex-direction: column;
-    padding: 10px 10px;
-}
-</style>
-<label id="time-range" style="width: 100%;height: 20px;text-align: end;font-size: 10pt;margin-bottom: 5px">Selected range:0.0 ms</label>
-<lit-table id="tb-slices" style="height: auto">
-    <lit-table-column title="Name" width="500px" data-index="name" key="name"  align="flex-start" order></lit-table-column>
-    <lit-table-column title="Wall duration(ms)" width="1fr" data-index="wallDuration" key="wallDuration"  align="flex-start" order ></lit-table-column>
-    <lit-table-column title="Avg Wall duration(ms)" width="1fr" data-index="avgDuration" key="avgDuration"  align="flex-start" order ></lit-table-column>
-    <lit-table-column title="Occurrences" width="1fr" data-index="occurrences" key="occurrences"  align="flex-start" order ></lit-table-column>
-</lit-table>
+        <style>
+        :host{
+            display: flex;
+            flex-direction: column;
+            padding: 10px 10px;
+        }
+        </style>
+        <label id="time-range" style="width: 100%;height: 20px;text-align: end;font-size: 10pt;margin-bottom: 5px">Selected range:0.0 ms</label>
+        <lit-table id="tb-slices" style="height: auto">
+            <lit-table-column title="Name" width="500px" data-index="name" key="name"  align="flex-start" order>
+            </lit-table-column>
+            <lit-table-column title="Wall duration(ms)" width="1fr" data-index="wallDuration" key="wallDuration"  align="flex-start" order >
+            </lit-table-column>
+            <lit-table-column title="Avg Wall duration(ms)" width="1fr" data-index="avgDuration" key="avgDuration"  align="flex-start" order >
+            </lit-table-column>
+            <lit-table-column title="Occurrences" width="1fr" data-index="occurrences" key="occurrences"  align="flex-start" order >
+            </lit-table-column>
+        </lit-table>
         `;
     }
 
-    sortByColumn(detail) {
+    sortByColumn(detail: any) {
+        // @ts-ignore
         function compare(property, sort, type) {
             return function (a: SelectionData, b: SelectionData) {
                 if (a.process == " " || b.process == " ") {
                     return 0;
                 }
                 if (type === 'number') {
+                    // @ts-ignore
                     return sort === 2 ? parseFloat(b[property]) - parseFloat(a[property]) : parseFloat(a[property]) - parseFloat(b[property]);
                 } else {
+                    // @ts-ignore
                     if (b[property] > a[property]) {
                         return sort === 2 ? 1 : -1;
-                    } else if (b[property] == a[property]) {
-                        return 0;
-                    } else {
-                        return sort === 2 ? -1 : 1;
+                    } else { // @ts-ignore
+                        if (b[property] == a[property]) {
+                            return 0;
+                        } else {
+                            return sort === 2 ? -1 : 1;
+                        }
                     }
                 }
             }

@@ -14,9 +14,7 @@
  */
 
 #include "wasm_func.h"
-#include <cstdio>
-#include <emscripten.h>
-#include "rpc_server.h"
+
 namespace SysTuning {
 namespace TraceStreamer {
 RpcServer g_wasmTraceStreamer;
@@ -52,6 +50,11 @@ EMSCRIPTEN_KEEPALIVE int TraceStreamerReset()
 EMSCRIPTEN_KEEPALIVE int TraceStreamerSqlQuery(const uint8_t* sql, int sqlLen, uint8_t* out, int outLen)
 {
     return g_wasmTraceStreamer.WasmSqlQuery(sql, sqlLen, out, outLen);
+}
+EMSCRIPTEN_KEEPALIVE int TraceStreamerCancel()
+{
+    g_wasmTraceStreamer.CancelSqlQuery();
+    return 0;
 }
 } // extern "C"
 } // namespace TraceStreamer

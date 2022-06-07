@@ -17,14 +17,14 @@ import {BaseElement} from "../BaseElement.js";
 import "../icon/LitIcon.js"
 
 export class LitSelectOption extends BaseElement {
-	static get observedAttributes() {
-		return ['selected','disabled','check']
-	}
+    static get observedAttributes() {
+        return ['selected', 'disabled', 'check']
+    }
 
-	initHtml() {
-		// super();
-		// const shadowRoot = this.attachShadow({mode: 'open'});
-		return`
+    initHtml() {
+        // super();
+        // const shadowRoot = this.attachShadow({mode: 'open'});
+        return `
         <style>
         :host{ 
             display: flex;
@@ -63,54 +63,56 @@ export class LitSelectOption extends BaseElement {
              display: none;
         }
         :host([selected]) .selected{
-        	display: flex;
-        	color: #FFFFFF;
+            display: flex;
+            color: #FFFFFF;
         }
         :host(:not([selected])) .selected{
-        	display: none;
+            display: none;
         }
         </style>
         <div style="height: 16px;width: 16px" class="selected-box">
-        	<lit-icon class="selected" name="check"></lit-icon>
+            <lit-icon class="selected" name="check"></lit-icon>
         </div>
         <slot></slot>
         <lit-icon class="check" name="check"></lit-icon>
         `
-	}
+    }
 
-	initElements(): void {
+    initElements(): void {
 
-	}
+    }
 
-	//当 custom element首次被插入文档DOM时，被调用。
-	connectedCallback() {
-		if(!this.hasAttribute('disabled')){
-			this.onclick=ev => {
-				this.dispatchEvent(new CustomEvent('onSelected',{detail:{
-						selected:true,
-						value: this.getAttribute('value'),
-						text: this.textContent
-					}}))
-			}
-		}
+    //当 custom element首次被插入文档DOM时，被调用。
+    connectedCallback() {
+        if (!this.hasAttribute('disabled')) {
+            this.onclick = ev => {
+                this.dispatchEvent(new CustomEvent('onSelected', {
+                    detail: {
+                        selected: true,
+                        value: this.getAttribute('value'),
+                        text: this.textContent
+                    }
+                }))
+            }
+        }
 
-	}
+    }
 
-	//当 custom element从文档DOM中删除时，被调用。
-	disconnectedCallback() {
+    //当 custom element从文档DOM中删除时，被调用。
+    disconnectedCallback() {
 
-	}
+    }
 
-	//当 custom element被移动到新的文档时，被调用。
-	adoptedCallback() {
-	}
+    //当 custom element被移动到新的文档时，被调用。
+    adoptedCallback() {
+    }
 
-	//当 custom element增加、删除、修改自身属性时，被调用。
-	attributeChangedCallback(name:any, oldValue:any, newValue:any) {
+    //当 custom element增加、删除、修改自身属性时，被调用。
+    attributeChangedCallback(name: any, oldValue: any, newValue: any) {
 
-	}
+    }
 }
 
 if (!customElements.get('lit-select-option')) {
-	customElements.define('lit-select-option', LitSelectOption);
+    customElements.define('lit-select-option', LitSelectOption);
 }

@@ -16,8 +16,13 @@ syntax = "proto3";
 option java_package = "ohos.devtools.datasources.transport.grpc.service";
 option optimize_for = LITE_RUNTIME;
 
-
 // Diskio plug-in configuration, passed to plug-in by plug-in service.
 message DiskioConfig {
     int32 unspeci_fied = 1; // Reserved field, not used
+    enum IoReportType {
+        UNSPECIFIED = 0;
+        IO_REPORT = 1;
+        IO_REPORT_EX = 2;
+    }
+    IoReportType report_io_stats = 2;
 }

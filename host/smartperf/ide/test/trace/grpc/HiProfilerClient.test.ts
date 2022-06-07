@@ -37,7 +37,7 @@ describe('HiProfilerClient Test', ()=>{
     });
 
     it('HiProfilerClientTest05', function () {
-        expect(hiProfilerClient.getProfilerClient()).toBeUndefined();
+        expect(hiProfilerClient.getProfilerClient()).toBeTruthy();
     });
 
 })

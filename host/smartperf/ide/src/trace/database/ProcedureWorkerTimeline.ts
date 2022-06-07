@@ -1,7 +1,23 @@
+/*
+ * Copyright (C) 2022 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 import {ns2s, Rect} from "./ProcedureWorkerCommon.js";
 import {CpuStruct} from "../bean/CpuStruct.js";
 import {ColorUtils} from "../component/trace/base/ColorUtils.js";
 
+//绘制时间轴
 let timeRuler: TimeRuler | undefined;
 let rangeRuler: RangeRuler | undefined;
 let sportRuler: SportRuler | undefined;
@@ -9,10 +25,7 @@ let offsetTop: number = 0;
 let offsetLeft: number = 0;
 
 // @ts-ignore
-export function timeline(canvas: OffscreenCanvas, ctx: OffscreenCanvasRenderingContext2D, startNS: number,
-                         endNS: number, totalNS: number, frame: Rect, keyPressCode: any, keyUpCode: any,
-                         mouseDown: any, mouseUp: any, mouseMove: any, mouseOut: any,
-                         _offsetLeft: number, _offsetTop: number, changeHandler: Function) {
+export function timeline(canvas: OffscreenCanvas, ctx: OffscreenCanvasRenderingContext2D, startNS: number, endNS: number, totalNS: number, frame: Rect, keyPressCode: any, keyUpCode: any, mouseDown: any, mouseUp: any, mouseMove: any, mouseOut: any, _offsetLeft: number, _offsetTop: number, changeHandler: Function) {
     offsetLeft = _offsetLeft;
     offsetTop = _offsetTop;
     if (timeRuler == undefined) {
@@ -37,7 +50,7 @@ export function timeline(canvas: OffscreenCanvas, ctx: OffscreenCanvasRenderingC
             changeHandler(a);
         });
     }
-    ;
+
     rangeRuler.frame.width = frame.width;
     sportRuler.frame.width = frame.width;
     timeRuler.frame.width = frame.width;
@@ -120,15 +133,28 @@ export class TimeRuler extends Graph {
  * SportRuler
  */
 export class SportRuler extends Graph {
-    private _range: TimeRange = {} as TimeRange;
-    private rangeFlag = new Flag(0, 0, 0, 0, 0);
-    public flagList: Array<Flag> = [];
-    private ruler_w = 1022;
     public static rulerFlagObj: Flag | null = null;
-
+    public flagList: Array<Flag> = [];
     public flagListIdx: number | null = null
-
     public obj = [{x: 3}, {x: 2}];
+    lineColor: string | null = null;
+    private rangeFlag = new Flag(0, 0, 0, 0, 0);
+    private ruler_w = 1022;
+    private _range: TimeRange = {} as TimeRange;
+
+    // @ts-ignore
+    constructor(canvas: OffscreenCanvas | undefined | null, c: OffscreenCanvasRenderingContext2D, frame: Rect) {
+        super(canvas, c, frame)
+    }
+
+    get range(): TimeRange {
+        return this._range;
+    }
+
+    set range(value: TimeRange) {
+        this._range = value;
+        this.draw()
+    }
 
     modifyFlagList(type: string, flag: any = {}) {
         if (type == "amend") {
@@ -146,27 +172,11 @@ export class SportRuler extends Graph {
         this.draw()
     }
 
-    get range(): TimeRange {
-        return this._range;
-    }
-
-    set range(value: TimeRange) {
-        this._range = value;
-        this.draw()
-    }
-
-    lineColor: string | null = null;
-
-    // @ts-ignore
-    constructor(canvas: OffscreenCanvas | undefined | null, c: OffscreenCanvasRenderingContext2D, frame: Rect) {
-        super(canvas, c, frame)
-    }
-
     draw(): void {
         this.ruler_w = this.frame.width;
         this.c.clearRect(this.frame.x, this.frame.y, this.frame.width, this.frame.height)
         this.c.beginPath();
-        this.lineColor = "#dadada";//window.getComputedStyle(this.canvas!, null).getPropertyValue("color");
+        this.lineColor = "#dadada";
         this.c.strokeStyle = this.lineColor //"#dadada"
         this.c.lineWidth = 1;
         this.c.moveTo(this.frame.x, this.frame.y)
@@ -228,6 +238,7 @@ export class SportRuler extends Graph {
         }
     }
 
+    //随机生成十六位进制颜色
     randomRgbColor() {
         const letters = '0123456789ABCDEF';
         let color = '#';
@@ -237,14 +248,17 @@ export class SportRuler extends Graph {
         return color;
     }
 
+    //鼠标点击绘画旗子、点击旗子
     mouseUp(ev: MouseEvent) {
     }
 
+    //选中的旗子
     onFlagRangeEvent(flagObj: Flag, idx: number) {
         SportRuler.rulerFlagObj = flagObj;
         this.flagListIdx = idx;
     }
 
+    //鼠标移动 绘画旗子
     mouseMove(ev: MouseEvent) {
         let x = ev.offsetX - (offsetLeft || 0)
         let y = ev.offsetY - (offsetTop || 0)
@@ -255,10 +269,6 @@ export class SportRuler extends Graph {
                     let flag_x = Math.round(this.ruler_w * (flagObj.time - this.range.startNS) / (this.range.endNS - this.range.startNS));
                     return (x >= flag_x && x <= flag_x + 18)
                 });
-                if (onFlagRange == -1) {
-                } else {
-                }
-            } else {
             }
         }
     }
@@ -271,22 +281,19 @@ export class Mark extends Graph {
     inspectionFrame: Rect
     private _isHover: boolean = false
 
+    // @ts-ignore
+    constructor(canvas: OffscreenCanvas | undefined | null, name: string, c: OffscreenCanvasRenderingContext2D, frame: Rect) {
+        super(canvas, c, frame);
+        this.name = name;
+        this.inspectionFrame = new Rect(frame.x - markPadding, frame.y, frame.width + markPadding * 2, frame.height)
+    }
+
     get isHover(): boolean {
         return this._isHover;
     }
 
     set isHover(value: boolean) {
         this._isHover = value;
-        if (value) {
-        } else {
-        }
-    }
-
-    // @ts-ignore
-    constructor(canvas: OffscreenCanvas | undefined | null, name: string, c: OffscreenCanvasRenderingContext2D, frame: Rect) {
-        super(canvas, c, frame);
-        this.name = name;
-        this.inspectionFrame = new Rect(frame.x - markPadding, frame.y, frame.width + markPadding * 2, frame.height)
     }
 
     draw(): void {
@@ -337,10 +344,12 @@ export class RangeRuler extends Graph {
     p: number = 800;
     private readonly notifyHandler: (r: TimeRange) => void;
     private scale: number = 0;
+    //缩放级别
     private scales: Array<number> = [50, 100, 200, 500, 1_000, 2_000, 5_000, 10_000, 20_000, 50_000, 100_000, 200_000, 500_000,
         1_000_000, 2_000_000, 5_000_000, 10_000_000, 20_000_000, 50_000_000, 100_000_000, 200_000_000, 500_000_000,
         1_000_000_000, 2_000_000_000, 5_000_000_000, 10_000_000_000, 20_000_000_000, 50_000_000_000,
         100_000_000_000, 200_000_000_000, 500_000_000_000];
+    private _cpuUsage: Array<{ cpu: number, ro: number, rate: number }> = []
 
     // @ts-ignore
     constructor(canvas: OffscreenCanvas | undefined | null, c: OffscreenCanvasRenderingContext2D, frame: Rect, range: TimeRange, notifyHandler: (r: TimeRange) => void) {
@@ -352,7 +361,6 @@ export class RangeRuler extends Graph {
         this.rangeRect = new Rect(range.startX, frame.y, range.endX - range.startX, frame.height)
     }
 
-    private _cpuUsage: Array<{ cpu: number, ro: number, rate: number }> = []
     set cpuUsage(value: Array<{ cpu: number, ro: number, rate: number }>) {
         this._cpuUsage = value
         this.draw();
@@ -380,7 +388,8 @@ export class RangeRuler extends Graph {
         } else {
             this.c.globalAlpha = 1;
         }
-        this.c.fillStyle = "#ffffff";//window.getComputedStyle(this.canvas!, null).getPropertyValue("background-color")
+        //绘制选中区域
+        this.c.fillStyle = "#ffffff";
         this.rangeRect.x = this.markA.frame.x < this.markB.frame.x ? this.markA.frame.x : this.markB.frame.x
         this.rangeRect.width = Math.abs(this.markB.frame.x - this.markA.frame.x)
         this.c.fillRect(this.rangeRect.x, this.rangeRect.y, this.rangeRect.width, this.rangeRect.height)
@@ -514,8 +523,6 @@ export class RangeRuler extends Graph {
             }
             this.movingMark.inspectionFrame.x = this.movingMark.frame.x - markPadding
             requestAnimationFrame(() => this.draw());
-        } else if (this.rangeRect.containsWithPadding(x, y, markPadding, 0)) {
-        } else if (this.frame.containsWithMargin(x, y, 20, 0, 0, 0) && !this.rangeRect.containsWithMargin(x, y, 0, markPadding, 0, markPadding)) {
         }
         if (this.isMovingRange && this.isMouseDown) {
             let result = x - this.mouseDownOffsetX;
@@ -556,7 +563,6 @@ export class RangeRuler extends Graph {
     mouseOut(ev: MouseEvent) {
         this.movingMark = null;
     }
-
 
     fillX() {
         if (this.range.startNS < 0) this.range.startNS = 0;
@@ -613,7 +619,6 @@ export class RangeRuler extends Graph {
                     this.fillX();
                     this.draw();
                     this.pressFrameId = requestAnimationFrame(animA)
-
                 }
                 this.pressFrameId = requestAnimationFrame(animA)
                 break;
@@ -625,7 +630,6 @@ export class RangeRuler extends Graph {
                     this.fillX();
                     this.draw();
                     this.pressFrameId = requestAnimationFrame(animD)
-
                 }
                 this.pressFrameId = requestAnimationFrame(animD)
                 break;

@@ -51,22 +51,6 @@ std::string BinderFilter::GetBinderFlagsDesc(uint32_t flag)
     }
     return str;
 }
-void BinderFilter::MaybeDealEvent()
-{
-    if (tsBinderEventQueue_.size() > MAX_CACHE_SIZE) {
-        DealEvent(tsBinderEventQueue_.begin()->second.get());
-        tsBinderEventQueue_.erase(tsBinderEventQueue_.begin());
-    }
-}
-
-void BinderFilter::FinishBinderEvent()
-{
-    for (auto it = tsBinderEventQueue_.begin(); it != tsBinderEventQueue_.end(); it++) {
-        DealEvent(it->second.get());
-    }
-    tsBinderEventQueue_.clear();
-}
-
 void BinderFilter::SendTraction(int64_t ts,
                                 uint32_t tid,
                                 uint64_t transactionId,
@@ -76,108 +60,6 @@ void BinderFilter::SendTraction(int64_t ts,
                                 bool isReply,
                                 int32_t flags,
                                 int32_t code)
-{
-    auto sendTractionEvent = std::make_unique<TSSendTractionEvent>(ts, tid, transactionId, destNode,
-                                                                   destTgid, destTid, isReply, flags, code);
-    auto binderEvent = std::make_unique<TSBinderEvent>();
-    binderEvent->type_ = TS_EVENT_BINDER_SEND;
-    binderEvent->senderBinderEvent_ = std::move(sendTractionEvent);
-    tsBinderEventQueue_.insert(std::make_pair(ts, std::move(binderEvent)));
-    MaybeDealEvent();
-}
-void BinderFilter::ReceiveTraction(int64_t ts, uint32_t pid, uint64_t transactionId)
-{
-    auto receiveTractionEvent = std::make_unique<TSReceiveTractionEvent>(ts, pid, transactionId);
-    auto binderEvent = std::make_unique<TSBinderEvent>();
-    binderEvent->type_ = TS_EVENT_BINDER_RECIVED;
-    binderEvent->receivedBinderEvent_ = std::move(receiveTractionEvent);
-    tsBinderEventQueue_.insert(std::make_pair(ts,
-        std::move(binderEvent)));
-    MaybeDealEvent();
-}
-void BinderFilter::TransactionAllocBuf(int64_t ts, uint32_t pid, uint64_t dataSize, uint64_t offsetsSize)
-{
-    auto tractionAllocBufEvent = std::make_unique<TSTransactionAllocBufEvent>(ts, pid, dataSize, offsetsSize);
-    auto binderEvent = std::make_unique<TSBinderEvent>();
-    binderEvent->type_ = TS_EVENT_BINDER_ALLOC_BUF;
-    binderEvent->binderAllocBufEvent_ = std::move(tractionAllocBufEvent);
-    tsBinderEventQueue_.insert(std::make_pair(ts,
-        std::move(binderEvent)));
-    MaybeDealEvent();
-}
-void BinderFilter::TractionLock(int64_t ts, uint32_t pid, const std::string& tag)
-{
-    auto tractionLockEvent = std::make_unique<TSTractionLockEvent>(ts, pid, tag);
-    auto binderEvent = std::make_unique<TSBinderEvent>();
-    binderEvent->type_ = TS_EVENT_BINDER_LOCK;
-    binderEvent->binderLockEvent_ = std::move(tractionLockEvent);
-    tsBinderEventQueue_.insert(std::make_pair(ts,
-        std::move(binderEvent)));
-    MaybeDealEvent();
-}
-void BinderFilter::TractionLocked(int64_t ts, uint32_t pid, const std::string& tag)
-{
-    auto tractionLockedEvent = std::make_unique<TSTractionLockEvent>(ts, pid, tag);
-    auto binderEvent = std::make_unique<TSBinderEvent>();
-    binderEvent->type_ = TS_EVENT_BINDER_LOCKED;
-    binderEvent->binderLockedEvent_ = std::move(tractionLockedEvent);
-    tsBinderEventQueue_.insert(std::make_pair(ts,
-        std::move(binderEvent)));
-    MaybeDealEvent();
-}
-void BinderFilter::TractionUnlock(int64_t ts, uint32_t pid, const std::string& tag)
-{
-    auto tractionUnlockEvent = std::make_unique<TSTractionLockEvent>(ts, pid, tag);
-    auto binderEvent = std::make_unique<TSBinderEvent>();
-    binderEvent->type_ = TS_EVENT_BINDER_UNLOCK;
-    binderEvent->binderUnlockEvent_ = std::move(tractionUnlockEvent);
-    tsBinderEventQueue_.insert(std::make_pair(ts,
-        std::move(binderEvent)));
-    MaybeDealEvent();
-}
-void BinderFilter::DealEvent(const TSBinderEvent* event)
-{
-    switch (static_cast<size_t>(event->type_)) {
-        case TS_EVENT_BINDER_SEND:
-            ExecSendTraction(event->senderBinderEvent_->ts_, event->senderBinderEvent_->tid_,
-                             event->senderBinderEvent_->transactionId_, event->senderBinderEvent_->destNode_,
-                             event->senderBinderEvent_->destTgid_, event->senderBinderEvent_->destTid_,
-                             event->senderBinderEvent_->isReply_, event->senderBinderEvent_->flags_,
-                             event->senderBinderEvent_->code_);
-            break;
-        case TS_EVENT_BINDER_RECIVED:
-            ExecReceiveTraction(event->receivedBinderEvent_->ts_, event->receivedBinderEvent_->pid_,
-                                event->receivedBinderEvent_->transactionId_);
-            break;
-        case TS_EVENT_BINDER_ALLOC_BUF:
-            ExecTransactionAllocBuf(event->binderAllocBufEvent_->ts_, event->binderAllocBufEvent_->pid_,
-                                    event->binderAllocBufEvent_->dataSize_, event->binderAllocBufEvent_->offsetsSize_);
-            break;
-        case TS_EVENT_BINDER_LOCK:
-            ExecTractionLock(event->binderLockEvent_->ts_, event->binderLockEvent_->pid_,
-                             event->binderLockEvent_->tag_);
-            break;
-        case TS_EVENT_BINDER_LOCKED:
-            ExecTractionLocked(event->binderLockedEvent_->ts_, event->binderLockedEvent_->pid_,
-                               event->binderLockedEvent_->tag_);
-            break;
-        case TS_EVENT_BINDER_UNLOCK:
-            ExecTractionUnlock(event->binderUnlockEvent_->ts_, event->binderUnlockEvent_->pid_,
-                               event->binderUnlockEvent_->tag_);
-            break;
-        default:
-            break;
-    }
-}
-void BinderFilter::ExecSendTraction(int64_t ts,
-                                    uint32_t tid,
-                                    uint64_t transactionId,
-                                    int32_t destNode,
-                                    int32_t destTgid,
-                                    int32_t destTid,
-                                    bool isReply,
-                                    int32_t flags,
-                                    int32_t code)
 {
     auto flagsStr = traceDataCache_->GetDataIndex("0x" + base::number(flags, base::INTEGER_RADIX_TYPE_HEX) +
                                                   GetBinderFlagsDesc(flags));
@@ -209,12 +91,14 @@ void BinderFilter::ExecSendTraction(int64_t ts,
             transWaitingRcv_[transactionId] = tid;
         } else {
             // transaction not need reply
+            // tid calling id
+            // a binder event only care the transactionId and the callint tid
             streamFilters_->sliceFilter_->BeginAsyncBinder(ts, tid, binderCatalogId_, transAsyncId_, argsSend);
             transNoNeedReply_[transactionId] = argsSend;
         }
     }
 }
-void BinderFilter::ExecReceiveTraction(int64_t ts, uint32_t pid, uint64_t transactionId)
+void BinderFilter::ReceiveTraction(int64_t ts, uint32_t pid, uint64_t transactionId)
 {
     InternalTid internalTid = streamFilters_->processFilter_->UpdateOrCreateThread(ts, pid);
     const auto threadName = traceDataCache_->GetConstThreadData(internalTid).nameIndex_;
@@ -248,15 +132,16 @@ void BinderFilter::ExecReceiveTraction(int64_t ts, uint32_t pid, uint64_t transa
         return;
     }
     // the code below can be hard to understand, may be a EndBinder will be better
-    // this problem cna be test after the IDE is finished
+    // this problem can be test after the IDE is finished
     if (transNoNeedReply_.count(transactionId)) {
         auto args = transNoNeedReply_[transactionId];
         streamFilters_->sliceFilter_->BeginAsyncBinder(ts, pid, binderCatalogId_, asyncRcvId_, args);
+        // maybe you can use the flowing code: streamFilters_->sliceFilter_->EndBinder(ts, pid);
         transNoNeedReply_.erase(transactionId);
         return;
     }
 }
-void BinderFilter::ExecTransactionAllocBuf(int64_t ts, uint32_t pid, uint64_t dataSize, uint64_t offsetsSize)
+void BinderFilter::TransactionAllocBuf(int64_t ts, uint32_t pid, uint64_t dataSize, uint64_t offsetsSize)
 {
     ArgsSet args;
     args.AppendArg(dataSizeId_, BASE_DATA_TYPE_INT, dataSize);
@@ -264,12 +149,12 @@ void BinderFilter::ExecTransactionAllocBuf(int64_t ts, uint32_t pid, uint64_t da
     streamFilters_->sliceFilter_->AddArgs(pid, binderCatalogId_, transSliceId_, args);
     UNUSED(ts);
 }
-void BinderFilter::ExecTractionLock(int64_t ts, uint32_t pid, const std::string& tag)
+void BinderFilter::TractionLock(int64_t ts, uint32_t pid, const std::string& tag)
 {
     lastEventTs_[pid] = ts;
     streamFilters_->sliceFilter_->BeginBinder(ts, pid, binderCatalogId_, lockTryId_);
 }
-void BinderFilter::ExecTractionLocked(int64_t ts, uint32_t pid, const std::string& tag)
+void BinderFilter::TractionLocked(int64_t ts, uint32_t pid, const std::string& tag)
 {
     if (!lastEventTs_.count(pid)) {
         streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_BINDER_TRANSACTION_LOCKED, STAT_EVENT_NOTMATCH);
@@ -280,7 +165,7 @@ void BinderFilter::ExecTractionLocked(int64_t ts, uint32_t pid, const std::strin
     lastEventTs_.erase(pid);
     lastEventTs_[pid] = ts;
 }
-void BinderFilter::ExecTractionUnlock(int64_t ts, uint32_t pid, const std::string& tag)
+void BinderFilter::TractionUnlock(int64_t ts, uint32_t pid, const std::string& tag)
 {
     if (!lastEventTs_.count(pid)) {
         streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_BINDER_TRANSACTION_UNLOCK, STAT_EVENT_NOTMATCH);

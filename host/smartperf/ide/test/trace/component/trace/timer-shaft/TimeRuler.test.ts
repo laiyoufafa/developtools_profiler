@@ -15,14 +15,19 @@
 
 // @ts-ignore
 import {TimeRuler} from "../../../../../dist/trace/component/trace/timer-shaft/TimeRuler.js"
+// @ts-ignore
+import {TimerShaftElement} from "../../../../../dist/trace/component/trace/TimerShaftElement.js";
 
 describe('TimeRuler Test', ()=>{
     const canvas = document.createElement('canvas');
     canvas.width = 1;
     canvas.height = 1;
     const ctx = canvas.getContext('2d');
+    document.body.innerHTML = '<timer-shaft-element id="timerShaftEL"><timer-shaft-element>'
 
-    let timeRuler = new TimeRuler(canvas , ctx, {
+    let timerShaftElement = document.querySelector('#timerShaftEL') as TimerShaftElement;
+
+    let timeRuler = new TimeRuler(timerShaftElement ,{
         x: 20,
         y: 20,
         width: 100,

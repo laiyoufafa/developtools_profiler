@@ -16,9 +16,16 @@
 // @ts-ignore
 import {TabPaneSPT} from "../../../../../dist/trace/component/trace/sheet/TabPaneSPT.js"
 
+window.ResizeObserver = window.ResizeObserver ||
+    jest.fn().mockImplementation(() => ({
+        disconnect: jest.fn(),
+        observe: jest.fn(),
+        unobserve: jest.fn(),
+    }));
+
 describe('TabPaneSPT Test', () => {
     let tabPaneSPT = new TabPaneSPT();
-
+    
     let dataArray = [{
         id: "",
         pid: "",
@@ -50,5 +57,34 @@ describe('TabPaneSPT Test', () => {
     it('TabPaneSPTTest03', function () {
         let result = tabPaneSPT.groupByStateProcessToMap(dataArray)
         expect(result.get('').get(0).length).toBe(1);
+    });
+
+    it('TabPaneSPTTest04', function () {
+        expect(tabPaneSPT.initHtml()).toMatchInlineSnapshot(`
+"
+        <style>
+        :host{
+            display: flex;
+            flex-direction: column;
+            padding: 10px 10px;
+        }
+        </style>
+        <label id=\\"time-range\\" style=\\"width: 100%;height: 20px;text-align: end;font-size: 10pt;margin-bottom: 5px\\">Selected range:0.0 ms</label>
+        <lit-table id=\\"tb-states\\" style=\\"height: auto\\" tree>
+            <lit-table-column width=\\"27%\\" title=\\"State/Process/Thread\\" data-index=\\"title\\" key=\\"title\\" align=\\"flex-start\\">
+            </lit-table-column>
+            <lit-table-column width=\\"1fr\\" title=\\"Count\\" data-index=\\"count\\" key=\\"count\\" align=\\"flex-start\\" >
+            </lit-table-column>
+            <lit-table-column width=\\"1fr\\" title=\\"Duration(ns)\\" data-index=\\"wallDuration\\" key=\\"wallDuration\\" align=\\"flex-start\\" >
+            </lit-table-column>
+            <lit-table-column width=\\"1fr\\" title=\\"Min Duration(ns)\\" data-index=\\"minDuration\\" key=\\"minDuration\\" align=\\"flex-start\\" >
+            </lit-table-column>
+            <lit-table-column width=\\"1fr\\" title=\\"Avg Duration(ns)\\" data-index=\\"avgDuration\\" key=\\"avgDuration\\" align=\\"flex-start\\" >
+            </lit-table-column>
+            <lit-table-column width=\\"1fr\\" title=\\"Max Duration(ns)\\" data-index=\\"maxDuration\\" key=\\"maxDuration\\" align=\\"flex-start\\" >
+            </lit-table-column>
+        </lit-table>
+        "
+`);
     });
 })

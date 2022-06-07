@@ -13,12 +13,14 @@
 
 import("//gn/wasm.gni")
 declare_args() {
-  if (target_os == "linux" || target_os == "wasm" || target_os == "test") {
+  if (target_os == "linux" || target_os == "macx") {
     cc = "/usr/bin/clang"
     cxx = "/usr/bin/clang++"
+    pic = "-fPIC"
   } else if (target_os == "windows") {
-    cc = "~/mingw-w64/ohos/linux-x86_64/clang-mingw/bin/clang"
-    cxx = "~/mingw-w64/ohos/linux-x86_64/clang-mingw/bin/clang++"
+    cc = "clang.exe"
+    cxx = "clang++.exe"
+    pic = ""
   }
   if (use_wasm == true) {
     print("make_wasm")
@@ -26,7 +28,6 @@ declare_args() {
     print("no make_wasm")
   }
   cc_wrapper = ""
-  is_mac = false
 }
 toolchain("wasm") {
   # emsdk_dir and em_config are defined in wasm.gni.
@@ -124,7 +125,7 @@ toolchain("gcc_like") {
 
   tool("cxx") {
     depfile = "{{output}}.d"  # must be defined
-    command = "$cxx -o {{output}} -MMD -MF $depfile {{defines}} -fPIC {{include_dirs}} {{cflags}} {{cflags_cc}} -c {{source}}"
+    command = "$cxx -o {{output}} -MMD -MF $depfile {{defines}} $pic {{include_dirs}} {{cflags}} {{cflags_cc}} -c {{source}}"
     outputfiles =
         "{{source_out_dir}}/{{target_output_name}}.{{source_name_part}}.o"
     outputs = [ outputfiles ]
@@ -133,7 +134,7 @@ toolchain("gcc_like") {
 
   tool("cc") {
     depfile = "{{output}}.d"
-    command = "$cc -o {{output}} -MMD -MF $depfile {{defines}} -fPIC {{include_dirs}} {{cflags}} {{cflags_c}} -c {{source}}"
+    command = "$cc -o {{output}} -MMD -MF $depfile {{defines}} $pic {{include_dirs}} {{cflags}} {{cflags_c}} -c {{source}}"
     outputfiles =
         "{{source_out_dir}}/{{target_output_name}}.{{source_name_part}}.o"
     outputs = [ outputfiles ]

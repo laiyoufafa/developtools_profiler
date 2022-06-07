@@ -44,7 +44,7 @@ public:
 
 public:
     SysTuning::TraceStreamer::TraceStreamerSelector stream_ = {};
-    const std::string dbPath_ = "/data/resource/out.db";
+    const std::string dbPath_ = "data/resource/out.db";
 };
 
 /**
@@ -54,7 +54,7 @@ public:
  */
 HWTEST_F(HtraceSysVMemParserTest, ParseSysVMemParse, TestSize.Level1)
 {
-    TS_LOGI("test13-1");
+    TS_LOGI("test14-1");
     HtraceMemParser* memParser = new HtraceMemParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
 
     MemoryData tracePacket;
@@ -89,7 +89,7 @@ HWTEST_F(HtraceSysVMemParserTest, ParseSysVMemParse, TestSize.Level1)
  */
 HWTEST_F(HtraceSysVMemParserTest, ParseSysVMemNomal, TestSize.Level1)
 {
-    TS_LOGI("test13-2");
+    TS_LOGI("test14-2");
     HtraceMemParser* memParser = new HtraceMemParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
 
     MemoryData tracePacket;
@@ -134,7 +134,7 @@ HWTEST_F(HtraceSysVMemParserTest, ParseSysVMemNomal, TestSize.Level1)
  */
 HWTEST_F(HtraceSysVMemParserTest, ParseSysVMemAbnomal, TestSize.Level1)
 {
-    TS_LOGI("test13-3");
+    TS_LOGI("test14-3");
     HtraceMemParser* memParser = new HtraceMemParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
 
     MemoryData tracePacket;
@@ -180,7 +180,7 @@ HWTEST_F(HtraceSysVMemParserTest, ParseSysVMemAbnomal, TestSize.Level1)
  */
 HWTEST_F(HtraceSysVMemParserTest, ParseSysVMemWithMutiNomal, TestSize.Level1)
 {
-    TS_LOGI("test13-4");
+    TS_LOGI("test14-4");
     HtraceMemParser* memParser = new HtraceMemParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
 
     MemoryData tracePacket;
@@ -235,7 +235,7 @@ HWTEST_F(HtraceSysVMemParserTest, ParseSysVMemWithMutiNomal, TestSize.Level1)
  */
 HWTEST_F(HtraceSysVMemParserTest, ParseSysVMemWithRandomValue, TestSize.Level1)
 {
-    TS_LOGI("test13-5");
+    TS_LOGI("test14-5");
     HtraceMemParser* memParser = new HtraceMemParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
 
     MemoryData tracePacket;

@@ -1,12 +1,12 @@
 {
   "name": "SmartPerf",
   "version": "1.0.0",
-  "description": "SmartPerf",
+  "description": "Smart Perf",
   "main": "index.js",
   "scripts": {
     "compile": "node ./build.js",
-    "test": "jest",
-    "test-c": "jest --coverage"
+    "test": "jest -u",
+    "test-c": "jest --coverage -u"
   },
   "jest": {
     "testEnvironment": "jsdom",
@@ -18,7 +18,8 @@
       "!<rootDir>/dist/trace/database/uuidv4.min.js",
       "!<rootDir>/dist/trace/database/worker.sql-wasm.js",
       "!<rootDir>/dist/trace/database/worker.sql-wasm-debug.js",
-      "!<rootDir>/node_modules/"
+      "!<rootDir>/dist/trace/database/trace_streamer_builtin.js"
+
     ],
     "globals": {
       "useWb": true
@@ -26,7 +27,8 @@
     "setupFiles": [
       "jsdom-worker",
       "jest-canvas-mock"
-    ]
+    ],
+    "setupFilesAfterEnv":["<rootDir>/jest.setup.js"]
   },
   "repository": {
     "type": "git",
@@ -44,7 +46,10 @@
     "jest": "*",
     "jest-canvas-mock": "^2.3.1",
     "typescript": "^4.2.3",
-    "jsdom-worker": "^0.2.1"
+    "jsdom-worker": "^0.2.1",
+    "jest-environment-jsdom": "^28.1.0",
+    "node-fetch": "^2.6.7"
   },
-  "dependencies": {}
+  "dependencies": {
+  }
 }

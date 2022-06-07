@@ -53,22 +53,11 @@ public:
         metaData_.SetTraceDuration((traceEndTime_ - traceStartTime_) / SEC_TO_NS);
     }
     DataIndex GetDataIndex(std::string_view str);
-    std::map<uint64_t, std::string> statusString_ = {{TASK_RUNNABLE, "R"},
-                                                     {TASK_INTERRUPTIBLE, "S"},
-                                                     {TASK_UNINTERRUPTIBLE, "D"},
-                                                     {TASK_RUNNING, "Running"},
-                                                     {TASK_INTERRUPTED, "I"},
-                                                     {TASK_TRACED, "T"},
-                                                     {TASK_EXIT_DEAD, "X"},
-                                                     {TASK_ZOMBIE, "Z"},
-                                                     {TASK_KILLED, "I"},
-                                                     {TASK_WAKEKILL, "R"},
-                                                     {TASK_INVALID, "U"},
-                                                     {TASK_CLONE, "I"},
-                                                     {TASK_DK, "DK"},
-                                                     {TASK_TRACED_KILL, "TK"},
-                                                     {TASK_FOREGROUND, "R+"},
-                                                     {TASK_MAX, "S"}};
+    std::map<uint64_t, std::string> statusString_ = {
+        {TASK_RUNNABLE, "R"},    {TASK_INTERRUPTIBLE, "S"}, {TASK_UNINTERRUPTIBLE, "D"}, {TASK_RUNNING, "Running"},
+        {TASK_INTERRUPTED, "I"}, {TASK_TRACED, "T"},        {TASK_EXIT_DEAD, "X"},       {TASK_ZOMBIE, "Z"},
+        {TASK_KILLED, "I"},      {TASK_WAKEKILL, "R"},      {TASK_INVALID, "U"},         {TASK_CLONE, "I"},
+        {TASK_DK, "DK"},         {TASK_TRACED_KILL, "TK"},  {TASK_FOREGROUND, "R+"},     {TASK_MAX, "S"}};
     uint64_t traceStartTime_ = std::numeric_limits<uint64_t>::max();
     uint64_t traceEndTime_ = 0;
 
@@ -89,9 +78,14 @@ public:
     CallStack callstackData_;
     CallStack irqData_;
     LogInfo hilogData_;
-    HeapInfo heapData_;
-    HeapFrameInfo heapFrameData_;
+    NativeHook nativeHookData_;
+    NativeHookFrame nativeHookFrameData_;
     Hidump hidumpData_;
+    PerfSample perfSample_;
+    PerfCallChain perfCallChain_;
+    PerfThread perfThread_;
+    PerfFiles perfFiles_;
+    PerfReport perfReport_;
 
     std::deque<Process> internalProcessesData_ = {};
     std::deque<Thread> internalThreadsData_ = {};
@@ -106,6 +100,11 @@ public:
     ArgSet argSet_;
     DataType dataType_;
     SysMeasureFilter sysEvent_;
+    NetDetailData networkData_;
+    NetDetailData networkDetailData_;
+    CpuUsageDetailData cpuUsageData_;
+    DiskIOData diskIOData_;
+    LiveProcessDetailData liveProcessDetailData_;
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

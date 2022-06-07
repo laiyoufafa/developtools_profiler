@@ -41,7 +41,7 @@ public:
     {
         return std::max(timeStamps_.size(), ids_.size());
     }
-    const std::deque<uint32_t>& IdsData() const
+    const std::deque<uint64_t>& IdsData() const
     {
         return ids_;
     }
@@ -59,10 +59,11 @@ public:
         timeStamps_.clear();
         ids_.clear();
     }
+
 public:
     std::deque<InternalTid> internalTids_ = {};
     std::deque<uint64_t> timeStamps_ = {};
-    std::deque<uint32_t> ids_ = {};
+    std::deque<uint64_t> ids_ = {};
 };
 
 class CpuCacheBase {
@@ -81,6 +82,7 @@ public:
         durs_.clear();
         cpus_.clear();
     }
+
 public:
     std::deque<uint64_t> durs_;
     std::deque<uint64_t> cpus_;
@@ -103,27 +105,37 @@ public:
     uint32_t pid_ = 0;
 };
 
-class ThreadState : public CacheBase, public CpuCacheBase {
+class ThreadState {
 public:
-    size_t AppendThreadState(uint64_t ts, uint64_t dur, uint64_t cpu, uint64_t internalTid, uint64_t state);
-    void SetDuration(size_t index, uint64_t duration);
-    uint64_t UpdateDuration(size_t index, uint64_t timestamp);
-    void UpdateState(size_t index, uint64_t state);
-    void UpdateDuration(size_t index, uint64_t timestamp, uint64_t state);
-    uint64_t UpdateDuration(size_t index, uint64_t timestamp, uint64_t cpu, uint64_t state);
-    const std::deque<DataIndex>& StatesData() const
+    TableRowId
+        AppendThreadState(InternalTime ts, InternalTime dur, InternalCpu cpu, TableRowId idTid, TableRowId idState);
+    void SetDuration(TableRowId index, InternalTime dur);
+    TableRowId UpdateDuration(TableRowId index, InternalTime ts);
+    void UpdateState(TableRowId index, TableRowId idState);
+    void UpdateDuration(TableRowId index, InternalTime ts, TableRowId idState);
+    TableRowId UpdateDuration(TableRowId index, InternalTime ts, InternalCpu cpu, TableRowId idState);
+    struct ColumnData {
+        InternalTime timeStamp;
+        InternalTime duration;
+        TableRowId idTid;
+        TableRowId idState;
+        InternalCpu cpu;
+    };
+    const std::deque<ColumnData>& RowData() const
     {
-        return states_;
+        return rowDatas_;
     }
     void Clear()
     {
-        CacheBase::Clear();
-        CpuCacheBase::Clear();
-        states_.clear();
+        rowDatas_.clear();
+    }
+    size_t Size()
+    {
+        return rowDatas_.size();
     }
 
 private:
-    std::deque<DataIndex> states_ = {};
+    std::deque<ColumnData> rowDatas_ = {};
 };
 
 class SchedSlice : public CacheBase, public CpuCacheBase {
@@ -544,6 +556,7 @@ public:
         values_.clear();
         argset_.clear();
     }
+
 private:
     std::deque<uint64_t> names_ = {};
     std::deque<BaseDataType> dataTypes_ = {};
@@ -620,30 +633,31 @@ private:
     std::deque<uint64_t> originTs_ = {};
 };
 
-class HeapInfo : public CacheBase {
+class NativeHook : public CacheBase {
 public:
-    size_t AppendNewHeapInfo(uint64_t eventId,
-                            uint32_t ipid,
-                            uint32_t itid,
-                            DataIndex eventType,
-                            uint64_t timestamp,
-                            uint64_t endTimestamp,
-                            uint64_t duration,
-                            uint64_t addr,
-                            int64_t heapSize,
-                            int64_t allHeapSize,
-                            uint64_t currentSizeDur);
+    size_t AppendNewNativeHookData(uint64_t eventId,
+                                   uint32_t ipid,
+                                   uint32_t itid,
+                                   std::string eventType,
+                                   DataIndex subType,
+                                   uint64_t timestamp,
+                                   uint64_t endTimestamp,
+                                   uint64_t duration,
+                                   uint64_t addr,
+                                   int64_t memSize,
+                                   int64_t allMemSize);
     void UpdateHeapDuration(size_t row, uint64_t endTimestamp);
-    void UpdateCurrentSizeDur(size_t row, uint64_t nextStartTime);
+    void UpdateCurrentSizeDur(size_t row, uint64_t timeStamp);
     const std::deque<uint64_t>& EventIds() const;
     const std::deque<uint32_t>& Ipids() const;
     const std::deque<uint32_t>& Itids() const;
-    const std::deque<DataIndex>& EventTypes() const;
+    const std::deque<std::string>& EventTypes() const;
+    const std::deque<DataIndex>& SubTypes() const;
     const std::deque<uint64_t>& EndTimeStamps() const;
     const std::deque<uint64_t>& Durations() const;
     const std::deque<uint64_t>& Addrs() const;
-    const std::deque<int64_t>& HeapSizes() const;
-    const std::deque<int64_t>& AllHeapSizes() const;
+    const std::deque<int64_t>& MemSizes() const;
+    const std::deque<int64_t>& AllMemSizes() const;
     const std::deque<uint64_t>& CurrentSizeDurs() const;
     void Clear()
     {
@@ -652,11 +666,12 @@ public:
         ipids_.clear();
         itids_.clear();
         eventTypes_.clear();
+        subTypes_.clear();
         endTimestamps_.clear();
         durations_.clear();
         addrs_.clear();
-        heapSizes_.clear();
-        allHeapSizes_.clear();
+        memSizes_.clear();
+        allMemSizes_.clear();
         currentSizeDurs_.clear();
     }
 
@@ -664,26 +679,32 @@ private:
     std::deque<uint64_t> eventIds_ = {};
     std::deque<uint32_t> ipids_ = {};
     std::deque<uint32_t> itids_ = {};
-    std::deque<DataIndex> eventTypes_ = {};
+    std::deque<std::string> eventTypes_ = {};
+    std::deque<DataIndex> subTypes_ = {};
     std::deque<uint64_t> endTimestamps_ = {};
     std::deque<uint64_t> durations_ = {};
     std::deque<uint64_t> addrs_ = {};
-    std::deque<int64_t> heapSizes_ = {};
-    std::deque<int64_t> allHeapSizes_ = {};
+    std::deque<int64_t> memSizes_ = {};
+    std::deque<int64_t> allMemSizes_ = {};
     std::deque<uint64_t> currentSizeDurs_ = {};
     int64_t countHeapSizes_ = 0;
+    int64_t countMmapSizes_ = 0;
+    const std::string ALLOC_EVET = "AllocEvent";
+    const std::string FREE_EVENT = "FreeEvent";
+    const std::string MMAP_EVENT = "MmapEvent";
+    const std::string MUNMAP_EVENT = "MunmapEvent";
 };
 
-class HeapFrameInfo {
+class NativeHookFrame {
 public:
-    size_t AppendNewHeapFrameInfo(uint64_t eventId,
-                                uint64_t depth,
-                                DataIndex ip,
-                                DataIndex sp,
-                                DataIndex symbolName,
-                                DataIndex filePath,
-                                DataIndex offset,
-                                uint64_t symbolOffset);
+    size_t AppendNewNativeHookFrame(uint64_t eventId,
+                                    uint64_t depth,
+                                    uint64_t ip,
+                                    uint64_t sp,
+                                    DataIndex symbolName,
+                                    DataIndex filePath,
+                                    uint64_t offset,
+                                    uint64_t symbolOffset);
     const std::deque<uint64_t>& EventIds() const;
     const std::deque<uint64_t>& Depths() const;
     const std::deque<uint64_t>& Ips() const;
@@ -723,8 +744,96 @@ class Hidump : public CacheBase {
 public:
     size_t AppendNewHidumpInfo(uint64_t timestamp, uint32_t fps);
     const std::deque<uint32_t>& Fpss() const;
+
 private:
     std::deque<uint32_t> fpss_ = {};
+};
+
+class PerfCallChain : public CacheBase {
+public:
+    size_t AppendNewPerfCallChain(uint64_t sampleId,
+                                  uint64_t callchainId,
+                                  uint64_t vaddrInFile,
+                                  uint64_t fileId,
+                                  uint64_t symbolId);
+    const std::deque<uint64_t>& SampleIds() const;
+    const std::deque<uint64_t>& CallchainIds() const;
+    const std::deque<uint64_t>& VaddrInFiles() const;
+    const std::deque<uint64_t>& FileIds() const;
+    const std::deque<uint64_t>& SymbolIds() const;
+    const std::deque<std::string>& Names() const;
+    void SetName(uint64_t index, const std::string& name);
+
+private:
+    std::deque<uint64_t> sampleIds_ = {};
+    std::deque<uint64_t> callchainIds_ = {};
+    std::deque<uint64_t> vaddrInFiles_ = {};
+    std::deque<uint64_t> fileIds_ = {};
+    std::deque<uint64_t> symbolIds_ = {};
+    std::deque<std::string> names_ = {};
+};
+
+class PerfFiles : public CacheBase {
+public:
+    size_t AppendNewPerfFiles(uint64_t fileIds, uint32_t serial, DataIndex symbols, DataIndex filePath);
+    const std::deque<uint64_t>& FileIds() const;
+    const std::deque<DataIndex>& Symbols() const;
+    const std::deque<DataIndex>& FilePaths() const;
+    const std::deque<uint32_t>& Serials() const;
+private:
+    std::deque<uint64_t> fileIds_= {};
+    std::deque<uint32_t> serials_ = {};
+    std::deque<DataIndex> symbols_ = {};
+    std::deque<DataIndex> filePaths_ = {};
+};
+
+class PerfSample : public CacheBase {
+public:
+    size_t AppendNewPerfSample(uint64_t sampleId,
+                               uint64_t timestamp,
+                               uint64_t tid,
+                               uint64_t eventCount,
+                               uint64_t eventTypeId,
+                               uint64_t timestampTrace,
+                               uint64_t cpuId,
+                               uint64_t threadState);
+    const std::deque<uint64_t>& SampleIds() const;
+    const std::deque<uint64_t>& Tids() const;
+    const std::deque<uint64_t>& EventCounts() const;
+    const std::deque<uint64_t>& EventTypeIds() const;
+    const std::deque<uint64_t>& TimestampTraces() const;
+    const std::deque<uint64_t>& CpuIds() const;
+    const std::deque<DataIndex>& ThreadStates() const;
+private:
+    std::deque<uint64_t> sampleIds_ = {};
+    std::deque<uint64_t> tids_ = {};
+    std::deque<uint64_t> eventCounts_ = {};
+    std::deque<uint64_t> eventTypeIds_ = {};
+    std::deque<uint64_t> timestampTraces_ = {};
+    std::deque<uint64_t> cpuIds_ = {};
+    std::deque<DataIndex> threadStates_ = {};
+};
+
+class PerfThread : public CacheBase {
+public:
+    size_t AppendNewPerfThread(uint64_t pid, uint64_t tid, DataIndex threadName);
+    const std::deque<uint64_t>& Pids() const;
+    const std::deque<uint64_t>& Tids() const;
+    const std::deque<DataIndex>& ThreadNames() const;
+private:
+    std::deque<uint64_t> tids_ = {};
+    std::deque<uint64_t> pids_ = {};
+    std::deque<DataIndex> threadNames_ = {};
+};
+
+class PerfReport : public CacheBase {
+public:
+    size_t AppendNewPerfReport(DataIndex type, DataIndex value);
+    const std::deque<DataIndex>& Types() const;
+    const std::deque<DataIndex>& Values() const;
+private:
+    std::deque<DataIndex> types_ = {};
+    std::deque<DataIndex> values_ = {};
 };
 
 class StatAndInfo {
@@ -759,9 +868,45 @@ public:
         addrs_.clear();
         funcName_.clear();
     }
+
 private:
     std::deque<uint64_t> addrs_ = {};
     std::deque<DataIndex> funcName_ = {};
+};
+class DiskIOData : public CacheBase {
+public:
+    DiskIOData() = default;
+    ~DiskIOData() = default;
+    void AppendNewData(uint64_t ts,
+                       uint64_t dur,
+                       uint64_t rd,
+                       uint64_t wr,
+                       uint64_t rdPerSec,
+                       uint64_t wrPerSec,
+                       double rdCountPerSec,
+                       double wrCountPerSec,
+                       uint64_t rdCount,
+                       uint64_t wrCount);
+    const std::deque<uint64_t>& Durs() const;
+    const std::deque<uint64_t>& RdDatas() const;
+    const std::deque<uint64_t>& WrDatas() const;
+    const std::deque<double>& RdSpeedDatas() const;
+    const std::deque<double>& WrSpeedDatas() const;
+    const std::deque<double>& RdCountPerSecDatas() const;
+    const std::deque<double>& WrCountPerSecDatas() const;
+    const std::deque<uint64_t>& RdCountDatas() const;
+    const std::deque<uint64_t>& WrCountDatas() const;
+
+private:
+    std::deque<uint64_t> durs_ = {};
+    std::deque<uint64_t> rdDatas_ = {};
+    std::deque<uint64_t> wrDatas_ = {};
+    std::deque<double> wrPerSec_ = {};
+    std::deque<double> rdPerSec_ = {};
+    std::deque<double> wrCountPerSec_ = {};
+    std::deque<double> rdCountPerSec_ = {};
+    std::deque<uint64_t> rdCountDatas_ = {};
+    std::deque<uint64_t> wrCountDatas_ = {};
 };
 class MetaData {
 public:
@@ -781,6 +926,7 @@ public:
         columnNames_.clear();
         values_.clear();
     }
+
 private:
     const std::string METADATA_ITEM_DATASIZE_COLNAME = "datasize";
     const std::string METADATA_ITEM_PARSETOOL_NAME_COLNAME = "parse_tool";
@@ -811,12 +957,148 @@ public:
     {
         dataDict_.clear();
     }
+
 public:
     std::deque<std::string> dataDict_;
     std::unordered_map<uint64_t, DataIndex> dataDictInnerMap_;
 
 private:
     std::hash<std::string_view> hashFun;
+};
+class NetDetailData : public CacheBase {
+public:
+    size_t AppendNewNetData(uint64_t newTimeStamp,
+                            uint64_t tx,
+                            uint64_t rx,
+                            uint64_t dur,
+                            double rxSpeed,
+                            double txSpeed,
+                            uint64_t packetIn,
+                            double packetInSec,
+                            uint64_t packetOut,
+                            double packetOutSec,
+                            const std::string& netType);
+    const std::deque<uint64_t>& Durs() const;
+    const std::deque<double>& RxSpeed() const;
+    const std::deque<double>& TxSpeed() const;
+    const std::deque<std::string>& NetTypes() const;
+    const std::deque<uint64_t>& RxDatas() const;
+    const std::deque<uint64_t>& TxDatas() const;
+    const std::deque<uint64_t>& PacketIn() const;
+    const std::deque<double>& PacketInSec() const;
+    const std::deque<uint64_t>& PacketOut() const;
+    const std::deque<double>& PacketOutSec() const;
+    void Clear()
+    {
+        CacheBase::Clear();
+        durs_.clear();
+        rxSpeeds_.clear();
+        txSpeeds_.clear();
+        netTypes_.clear();
+        packetIn_.clear();
+        packetInSec_.clear();
+        packetOut_.clear();
+        packetOutSec_.clear();
+    }
+
+private:
+    std::deque<uint64_t> rxs_ = {};
+    std::deque<uint64_t> txs_ = {};
+    std::deque<uint64_t> durs_ = {};
+    std::deque<double> rxSpeeds_ = {};
+    std::deque<double> txSpeeds_ = {};
+    std::deque<uint64_t> packetIn_ = {};
+    std::deque<double> packetInSec_ = {};
+    std::deque<uint64_t> packetOut_ = {};
+    std::deque<double> packetOutSec_ = {};
+    std::deque<std::string> netTypes_ = {};
+};
+class LiveProcessDetailData : public CacheBase {
+public:
+    size_t AppendNewData(uint64_t newTimeStamp,
+                         uint64_t dur,
+                         int32_t processID,
+                         std::string processName,
+                         int32_t parentProcessID,
+                         int32_t uid,
+                         std::string userName,
+                         double cpuUsage,
+                         int32_t pssInfo,
+                         uint64_t cpuTime,
+                         int32_t threads,
+                         int64_t diskWrites,
+                         int64_t diskReads);
+    const std::deque<uint64_t>& Durs() const;
+    const std::deque<int32_t>& ProcessID() const;
+    const std::deque<std::string>& ProcessName() const;
+    const std::deque<int32_t>& ParentProcessID() const;
+    const std::deque<int32_t>& Uid() const;
+    const std::deque<std::string>& UserName() const;
+    const std::deque<double>& CpuUsage() const;
+    const std::deque<int32_t>& PssInfo() const;
+    const std::deque<int32_t>& Threads() const;
+    const std::deque<int64_t>& DiskWrites() const;
+    const std::deque<int64_t>& DiskReads() const;
+    const std::deque<uint64_t>& CpuTimes() const;
+    void Clear()
+    {
+        CacheBase::Clear();
+        durs_.clear();
+        processID_.clear();
+        processName_.clear();
+        parentProcessID_.clear();
+        uid_.clear();
+        userName_.clear();
+        cpuUsage_.clear();
+        pssInfo_.clear();
+        threads_.clear();
+        diskWrites_.clear();
+        diskReads_.clear();
+    }
+
+private:
+    std::deque<uint64_t> durs_ = {};
+    std::deque<int32_t> processID_ = {};
+    std::deque<std::string> processName_ = {};
+    std::deque<int32_t> parentProcessID_ = {};
+    std::deque<int32_t> uid_ = {};
+    std::deque<std::string> userName_ = {};
+    std::deque<double> cpuUsage_ = {};
+    std::deque<int32_t> pssInfo_ = {};
+    std::deque<int32_t> threads_ = {};
+    std::deque<int64_t> diskWrites_ = {};
+    std::deque<int64_t> diskReads_ = {};
+    std::deque<uint64_t> cpuTimes_ = {};
+};
+class CpuUsageDetailData : public CacheBase {
+public:
+    size_t AppendNewData(uint64_t newTimeStamp,
+                         uint64_t dur,
+                         double totalLoad,
+                         double userLoad,
+                         double systemLoad,
+                         int64_t threads);
+    const std::deque<uint64_t>& Durs() const;
+    const std::deque<double>& TotalLoad() const;
+    const std::deque<double>& UserLoad() const;
+    const std::deque<double>& SystemLoad() const;
+    const std::deque<int64_t>& Threads() const;
+    void Clear()
+    {
+        CacheBase::Clear();
+        durs_.clear();
+        totalLoad_.clear();
+        userLoad_.clear();
+        systemLoad_.clear();
+        threads_.clear();
+    }
+
+private:
+    std::deque<uint64_t> durs_ = {};
+    std::deque<double> totalLoad_ = {};
+    std::deque<double> userLoad_ = {};
+    std::deque<double> systemLoad_ = {};
+    std::deque<int64_t> threads_ = {};
 };
 } // namespace TraceStdtype
 } // namespace SysTuning

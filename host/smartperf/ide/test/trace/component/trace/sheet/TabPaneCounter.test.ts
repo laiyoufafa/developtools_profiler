@@ -45,26 +45,32 @@ describe('TabPaneCounter Test', () => {
             key: 'name',
             sort: () => {
             }
-        }))
+        })).toBeUndefined();
     });
 
+    it('TabPaneCounterTest06', function () {
+        expect(tabPaneCounter.sortByColumn({
+            key: 'number',
+            sort: () => {
+            }
+        })).toBeUndefined();
+    });
 
     it('TabPaneCounterTest04', function () {
         let mockgetTabCounters = sqlit.getTabCounters
-        mockgetTabCounters.mockResolvedValue([{trackId : 11,
+        mockgetTabCounters.mockResolvedValue(
+            {trackId : 11,
             name: "test",
             value:111,
-            startTime:142445
+            startTime:142445,
             },{trackId : 11,
                 name: "test",
                 value:222,
-                startTime:142446
-            }]
-        )
+                startTime:142446,
+            })
         let a = {rightNs: 1, trackIds: [11, 12, 13]}
         expect(tabPaneCounter.data = a).toBeTruthy();
     });
-
 
     it('TabPaneCounterTest05', function () {
         let mockgetTabCounters = sqlit.getTabCounters
@@ -72,5 +78,40 @@ describe('TabPaneCounter Test', () => {
         )
         let a = {rightNs: 1, trackIds: [11, 12, 13]}
         expect(tabPaneCounter.data = a).toBeTruthy();
+    });
+
+    it('TabPaneCounterTest06', function () {
+        expect(tabPaneCounter.initHtml()).toMatchInlineSnapshot(`
+"
+        <style>
+        :host{
+            display: flex;
+            flex-direction: column;
+            padding: 10px 10px;
+        }
+        </style>
+        <label id=\\"time-range\\" style=\\"width: 100%;height: 20px;text-align: end;font-size: 10pt;margin-bottom: 5px\\">Selected range:0.0 ms</label>
+        <lit-table id=\\"tb-counter\\" style=\\"height: auto\\">
+            <lit-table-column width=\\"25%\\" title=\\"Name\\" data-index=\\"name\\" key=\\"name\\"  align=\\"flex-start\\" order>
+            </lit-table-column>
+            <lit-table-column width=\\"1fr\\" title=\\"Delta value\\" data-index=\\"delta\\" key=\\"delta\\"  align=\\"flex-start\\" order >
+            </lit-table-column>
+            <lit-table-column width=\\"1fr\\" title=\\"Rate /s\\" data-index=\\"rate\\" key=\\"rate\\"  align=\\"flex-start\\" order >
+            </lit-table-column>
+            <lit-table-column width=\\"1fr\\" title=\\"Weighted avg value\\" data-index=\\"avgWeight\\" key=\\"avgWeight\\"  align=\\"flex-start\\" order >
+            </lit-table-column>
+            <lit-table-column width=\\"1fr\\" title=\\"Count\\" data-index=\\"count\\" key=\\"count\\"  align=\\"flex-start\\" order >
+            </lit-table-column>
+            <lit-table-column width=\\"1fr\\" title=\\"First value\\" data-index=\\"first\\" key=\\"first\\"  align=\\"flex-start\\" order >
+            </lit-table-column>
+            <lit-table-column width=\\"1fr\\" title=\\"Last value\\" data-index=\\"last\\" key=\\"last\\"  align=\\"flex-start\\" order >
+            </lit-table-column>
+            <lit-table-column width=\\"1fr\\" title=\\"Min value\\" data-index=\\"min\\" key=\\"min\\"  align=\\"flex-start\\" order >
+            </lit-table-column>
+            <lit-table-column width=\\"1fr\\" title=\\"Max value\\" data-index=\\"max\\" key=\\"max\\"  align=\\"flex-start\\" order >
+            </lit-table-column>
+        </lit-table>
+        "
+`);
     });
 })

@@ -134,11 +134,25 @@ size_t SliceFilter::BeginAsyncBinder(uint64_t timestamp, uint32_t pid, DataIndex
     if (args.valuesMap_.size()) {
         argSetId = streamFilters_->argsFilter_->NewArgs(args);
         slices->AppendArgSet(argSetId);
-        binderQueue_[pid] = argSetId;
+#ifdef BINDER_EXP
+        if (binderQueue_.count(pid) > MAX_BINDER_EVENT_NOT_MATCH) {
+            TS_LOGE("more than %zu binder events do not match, clear them, pid:%d", MAX_BINDER_EVENT_NOT_MATCH, pid);
+            binderQueue_.erase(pid);
+            streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_BINDER_TRANSACTION, STAT_EVENT_DATA_LOST);
+        }
+#endif
+        binderQueue_.emplace(pid, argSetId);
     } else {
         argSetId = streamFilters_->argsFilter_->NewArgs(args);
         slices->AppendArgSet(argSetId);
-        binderQueue_[pid] = argSetId;
+#ifdef BINDER_EXP
+        if (binderQueue_.count(pid) > MAX_BINDER_EVENT_NOT_MATCH) {
+            TS_LOGE("more than %zu binder events do not match, clear them, pid:%d", MAX_BINDER_EVENT_NOT_MATCH, pid);
+            streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_BINDER_TRANSACTION, STAT_EVENT_DATA_LOST);
+            binderQueue_.erase(pid);
+        }
+#endif
+        binderQueue_.emplace(pid, argSetId);
     }
     argsToSliceQueue_[argSetId] = static_cast<uint32_t>(index);
     return index;
@@ -150,25 +164,24 @@ size_t SliceFilter::BeginBinder(uint64_t timestamp, uint32_t pid, DataIndex cat,
     struct SliceData sliceData = {timestamp, 0, internalTid, cat, nameIndex};
     auto slices = traceDataCache_->GetInternalSlicesData();
 
-    auto sliceStack = &sliceStackMap_[sliceData.internalTid];
+    auto sliceStack = &binderStackMap_[sliceData.internalTid];
     if (sliceStack->size() >= std::numeric_limits<uint8_t>::max()) {
         TS_LOGW("stack depth out of range.");
     }
     const uint8_t depth = static_cast<uint8_t>(sliceStack->size());
     size_t index = slices->AppendInternalSlice(sliceData.timestamp, sliceData.duration, sliceData.internalTid,
                                                sliceData.cat, sliceData.name, depth, std::nullopt);
-
     sliceStack->push_back(index);
 
     uint32_t argSetId = INVALID_INT32;
     if (args.valuesMap_.size()) {
         argSetId = streamFilters_->argsFilter_->NewArgs(args);
         slices->AppendArgSet(argSetId);
-        binderQueue_[pid] = argSetId;
+        binderQueue_.emplace(pid, argSetId);
     } else {
         argSetId = streamFilters_->argsFilter_->NewArgs(args);
         slices->AppendArgSet(argSetId);
-        binderQueue_[pid] = argSetId;
+        binderQueue_.emplace(pid, argSetId);
     }
     argsToSliceQueue_[argSetId] = static_cast<uint32_t>(index);
     return index;
@@ -176,33 +189,39 @@ size_t SliceFilter::BeginBinder(uint64_t timestamp, uint32_t pid, DataIndex cat,
 
 uint32_t SliceFilter::AddArgs(uint32_t tid, DataIndex key1, DataIndex key2, ArgsSet &args)
 {
-    if (!binderQueue_.count(tid)) {
+    auto argSize = binderQueue_.count(tid);
+    if (!argSize) {
         return INVALID_UINT32;
     }
-    streamFilters_->argsFilter_->AppendArgs(args, binderQueue_[tid]);
-    return argsToSliceQueue_[binderQueue_[tid]];
+    auto it = binderQueue_.equal_range(tid);
+    auto itor = it.first;
+    streamFilters_->argsFilter_->AppendArgs(args, itor->second);
+    return argsToSliceQueue_[itor->second];
 }
 bool SliceFilter::EndBinder(uint64_t timestamp, uint32_t pid, DataIndex category, DataIndex name, ArgsSet args)
 {
-    if (!binderQueue_.count(pid)) {
+    auto argSize = binderQueue_.count(pid);
+    if (!argSize) {
         return false;
     }
-    auto lastRow = argsToSliceQueue_[binderQueue_[pid]];
+    auto it = binderQueue_.equal_range(pid);
+    auto itor = it.first;
+    auto lastRow = argsToSliceQueue_[itor->second];
     auto slices = traceDataCache_->GetInternalSlicesData();
     slices->SetDuration(lastRow, timestamp);
-    streamFilters_->argsFilter_->AppendArgs(args, binderQueue_[pid]);
-    argsToSliceQueue_.erase(binderQueue_[pid]);
+    streamFilters_->argsFilter_->AppendArgs(args, itor->second);
+    argsToSliceQueue_.erase(itor->second);
 
-    binderQueue_.erase(pid);
+    binderQueue_.erase(itor);
     InternalTid internalTid = streamFilters_->processFilter_->UpdateOrCreateThread(timestamp, pid);
 
-    const auto& stack = sliceStackMap_[internalTid];
+    const auto& stack = binderStackMap_[internalTid];
     if (stack.empty()) {
         TS_LOGE("a slice end do not match a slice start event");
         callEventDisMatchCount++;
         return false;
     }
-    sliceStackMap_[internalTid].pop_back();
+    binderStackMap_[internalTid].pop_back();
     return true;
 }
 
@@ -322,11 +341,11 @@ bool SliceFilter::EndSlice(uint64_t timestamp, uint32_t pid, uint32_t threadGrou
     size_t index = stack.back();
     slices->SetDuration(index, timestamp);
     sliceStackMap_[internalTid].pop_back();
-    // update dur of parent slice maybe
-    auto parentId = slices->ParentIdData()[index];
-    if (parentId.has_value()) {
-        slices->SetDuration(parentId.value(), timestamp);
-    }
+    // update dur of parent slice maybe,
+    // just marke the dur as -1, auto parentId = slices->ParentIdData()[index];
+    // just marke the dur as -1, if (parentId.has_value()) {
+    // just marke the dur as -1,     slices->SetDuration(parentId.value(), timestamp);
+    // just marke the dur as -1, }
     return true;
 }
 

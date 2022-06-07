@@ -22,133 +22,180 @@ import {TableRowObject} from "./TableRowObject.js";
 export class LitTable extends HTMLElement {
     meauseRowElement: HTMLDivElement | undefined
     currentRecycleList: HTMLDivElement[] = []
+    currentTreeDivList: HTMLDivElement[] = []
+    public rememberScrollTop = false
+    private ds: Array<any> = []
+    private recycleDs: Array<any> = []
+    private gridTemplateColumns: any
+    /*Grid css layout descriptions are obtained according to the clustern[] nested structure*/
     private st: HTMLSlotElement | null | undefined
     private tableElement: HTMLDivElement | null | undefined
     private theadElement: HTMLDivElement | null | undefined
     private columns: Array<Element> | null | undefined
     private tbodyElement: HTMLDivElement | undefined | null
+    private treeElement: HTMLDivElement | undefined | null
     private tableColumns: NodeListOf<LitTableColumn> | undefined
     private colCount: number = 0
-    private ds: Array<any> = []
-    private recycleDs: Array<any> = []
-    private gridTemplateColumns: any
+    private currentScrollTop: number = 0
 
     constructor() {
         super();
         const shadowRoot = this.attachShadow({mode: 'open'});
         shadowRoot.innerHTML = `
-<style>
-:host{ 
-    display: grid;
-    grid-template-columns: repeat(1,1fr);
-    width: 100%;
-    flex:1;
-}
-.tr{
-    display: grid;
-    width:100%;
-}
-.tr:nth-of-type(even){
-}
-.tr{
-    background-color: var(--dark-background,#FFFFFF);
-}
-.tr:hover{
-    background-color: var(--dark-background6,#DEEDFF);
-}
-.td{
-    background-color: inherit;
-    box-sizing: border-box;
-    padding: 3px;
-    display: flex;
-    justify-content: flex-start;
-    align-items: center;
-    width: 100%;
-    height: auto;
-}
-.td-order{
-}
-.td-order:before{
-    
-}
-:host([grid-line]) .td{
-    border-left: 1px solid #f0f0f0;
-}
-:host([grid-line]) .td:last-of-type{
-    border-right: 1px solid #f0f0f0;
-}
-.table{
-     color: var(--dark-color2,#262626);
-}
-.thead{
-    display: grid;
-    position: sticky;
-    top: 0;
-    font-weight: bold;
-    font-size: .9rem;
-    color: var(--dark-color1,#000);
-    z-index: 1;
-}
-.tbody{
-    width: 100%;
-    top: 0;
-    left: 0;
-    right:0;
-    bottom:0;
-    display: grid;
-    grid-template-columns: 1fr;
-    row-gap: 1px;
-    column-gap: 1px;
-    position: relative;
-}
-:host([grid-line])  .tbody{
-    border-bottom: 1px solid #f0f0f0;
-    background-color: #f0f0f0;
-}
-.th{
-    display: grid;
-}
+        <style>
+        :host{
+            display: grid;
+            grid-template-columns: repeat(1,1fr);
+            width: 100%;
+            flex:1;
+        }
+        .tr{
+            display: grid;
+            width:100%;
+        }
+        .tr:nth-of-type(even){
+        }
 
-.tree-icon{
-    font-size: 1.2rem;
-    width: 20px;
-    height: 20px;
-    padding-right: 5px;
-    padding-left: 5px;
-    cursor: pointer;
-}
-.tree-icon:hover{
-    color: #42b983;
-}
-.row-checkbox,row-checkbox-all{
-    
-}
-:host([no-head]) .thead{
-    display: none;
-}
-.up-svg{
-    position: absolute;
-    right: 5px;
-    top: 8px;
-    bottom: 8px;
-    width: 15px;
-    height: 15px;
-}
-.down-svg{
-    position: absolute;
-    top: 8px;
-    right: 5px;
-    bottom: 8px;
-    width: 15px;
-    height: 15px;
-}
-</style>
+        .tr{
+            background-color: var(--dark-background,#FFFFFF);
+        }
+        .tr:hover{
+            background-color: var(--dark-background6,#DEEDFF);
+        }
+        .td{
+            background-color: inherit;
+            box-sizing: border-box;
+            padding: 3px;
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            width: 100%;
+            height: auto;
+        }
+        .tr[selected]{
+            background-color: var(--dark-background6,#DEEDFF);
+        }
+        .td-order{
+        }
+        .td-order:before{
 
-<slot id="slot" style="display: none"></slot>
-<div class="table" style="overflow:auto;">
-    <div class="thead"></div>
-    <div class="tbody"></div>
-</div>
+        }
+        :host([grid-line]) .td{
+            border-left: 1px solid #f0f0f0;
+        }
+        :host([grid-line]) .td:last-of-type{
+            border-right: 1px solid #f0f0f0;
+        }
+        .table{
+            width: 100%;
+             color: var(--dark-color2,#262626);
+        }
+        .thead{
+            display: grid;
+            position: sticky;
+            top: 0;
+            font-weight: bold;
+            font-size: .9rem;
+            color: var(--dark-color1,#000);
+            background-color: var(--dark-background,#FFFFFF);
+            z-index: 1;
+        }
+        .tbody{
+            width: 100%;
+            top: 0;
+            left: 0;
+            right:0;
+            bottom:0;
+            display: flex;
+            flex-direction: row
+            row-gap: 1px;
+            column-gap: 1px;
+        }
+        .tree{
+            overflow-x:overlay;
+            overflow-y:hidden;
+            display: grid;
+            grid-template-columns: 1fr;
+            row-gap: 1px;
+            column-gap: 1px;
+            position:relative;
+        }
+        .tree-first-body{
+            min-width: 100%;
+            box-sizing: border-box;
+            display:flex;
+            align-items:center;
+            white-space: nowrap;
+            cursor: pointer;
+        }
+        .tree-first-body:hover{
+            background-color: var(--dark-background6,#DEEDFF); /*antd #fafafa 42b983*/
+        }
+        .body{
+            display: grid;
+            grid-template-columns: 1fr;
+            row-gap: 1px;
+            column-gap: 1px;
+            flex:1;
+            position: relative;
+        }
+        :host([grid-line])  .tbody{
+            border-bottom: 1px solid #f0f0f0;
+            background-color: #f0f0f0;
+        }
+        .th{
+            display: grid;
+        }
+
+        .tree-icon{
+            font-size: 1.2rem;
+            width: 20px;
+            height: 20px;
+            padding-right: 5px;
+            padding-left: 5px;
+            cursor: pointer;
+        }
+        .tree-icon:hover{
+            color: #42b983;
+        }
+        .row-checkbox,row-checkbox-all{
+
+        }
+        :host([no-head]) .thead{
+            display: none;
+        }
+        .up-svg{
+            position: absolute;
+            right: 5px;
+            top: 8px;
+            bottom: 8px;
+            width: 15px;
+            height: 15px;
+        }
+        .down-svg{
+            position: absolute;
+            top: 8px;
+            right: 5px;
+            bottom: 8px;
+            width: 15px;
+            height: 15px;
+        }
+        .mouse-select{
+            background-color: var(--dark-background6,#DEEDFF);
+        }
+        .mouse-in{
+            background-color: var(--dark-background6,#DEEDFF);
+        }
+        </style>
+
+        <slot id="slot" style="display: none"></slot>
+        <div class="table" style="overflow-x:overlay;">
+            <div class="thead"></div>
+            <div class="tbody">
+                <div class="tree"></div>
+                <div class="body"></div>
+        </div>
+        </div>
         `
     }
 
@@ -194,18 +241,31 @@ export class LitTable extends HTMLElement {
     }
 
     set recycleDataSource(value) {
+        if(this.rememberScrollTop){
+            this.currentScrollTop = this.tableElement!.scrollTop;
+            this.tableElement!.scrollTop = 0
+        }else {
+            this.tableElement!.scrollTop = 0
+        }
         if (this.hasAttribute('tree')) {
             this.recycleDs = this.meauseTreeRowElement(value)
         } else {
             this.recycleDs = this.meauseAllRowHeight(value)
         }
+
+
+    }
+
+    move1px(){
+        this.tableElement!.scrollTop = this.tableElement!.scrollTop + 1
     }
 
     connectedCallback() {
         this.st = this.shadowRoot?.querySelector('#slot');
         this.tableElement = this.shadowRoot?.querySelector('.table');
         this.theadElement = this.shadowRoot?.querySelector('.thead');
-        this.tbodyElement = this.shadowRoot?.querySelector('.tbody');
+        this.treeElement = this.shadowRoot?.querySelector('.tree');
+        this.tbodyElement = this.shadowRoot?.querySelector('.body');
         this.tableColumns = this.querySelectorAll<LitTableColumn>('lit-table-column');
         this.colCount = this.tableColumns!.length;
         this.st?.addEventListener('slotchange', () => {
@@ -236,7 +296,6 @@ export class LitTable extends HTMLElement {
                     box.appendChild(checkbox);
                     rowElement.appendChild(box);
                 }
-
                 let area: Array<any> = [], gridTemplateColumns: Array<any> = [];
                 let resolvingArea = (columns: any, x: any, y: any) => {
                     columns.forEach((a: any, i: any) => {
@@ -289,7 +348,7 @@ export class LitTable extends HTMLElement {
                                 downPath.setAttribute("d", "M840.4 300H183.6c-19.7 0-30.7 20.8-18.5 35l328.4 380.8c9.4 10.9 27.5 10.9 37 0L858.9 335c12.2-14.2 1.2-35-18.5-35z");
                                 downSvg.appendChild(downPath)
                                 if (i == 0) {
-                                    h.sortType = 0;
+                                    h.sortType = 0; // 默认以第一列 降序排序 作为默认排序
                                     upSvg.setAttribute('fill', '#fff');
                                     downSvg.setAttribute('fill', '#fff');
                                 }
@@ -368,29 +427,29 @@ export class LitTable extends HTMLElement {
                     rowElement.style.gridTemplateRows = `repeat(${area.length},1fr)`
                     rowElement.style.gridTemplateAreas = s
                 }
+                this.theadElement!.innerHTML = ''
                 this.theadElement!.append(rowElement);
-                if (this.hasAttribute('tree')) {
-                    this.renderTreeTable();
-                } else {
-                    this.renderTable();
-                }
+                this.treeElement!.style.top = this.theadElement?.clientHeight + "px"
             });
 
         });
 
         this.shadowRoot!.addEventListener("load", function (event) {
-            console.log("DOM fully loaded and parsed");
         });
     }
 
+    // Is called when the custom element is removed from the document DOM.
     disconnectedCallback() {
+
     }
 
+    // It is called when the custom element is moved to a new document.
     adoptedCallback() {
-        console.log('Custom square element moved to new page.');
     }
 
+    // It is called when a custom element adds, deletes, or modifies its own properties.
     attributeChangedCallback(name: string, oldValue: string, newValue: string) {
+
     }
 
     fixed(td: HTMLElement, placement: string, bgColor: string) {
@@ -406,14 +465,15 @@ export class LitTable extends HTMLElement {
 
     renderTable() {
         if (!this.columns) return;
-        if (!this.ds) return;
-        this.tbodyElement!.innerHTML = '';
+        if (!this.ds) return; // If no data source is set, it is returned directly
+        this.tbodyElement!.innerHTML = '';// Clear the table contents
         this.ds.forEach((rowData: any) => {
             let rowElement = document.createElement('div');
             rowElement.classList.add('tr');
             // @ts-ignore
             rowElement.data = rowData;
             let gridTemplateColumns: Array<any> = []
+            // If the table is configured with selectable (select row mode) add a checkbox at the head of the line alone
             if (this.selectable) {
                 let box = document.createElement('div');
                 box.style.display = 'flex';
@@ -422,7 +482,7 @@ export class LitTable extends HTMLElement {
                 box.classList.add('td');
                 let checkbox = document.createElement('lit-checkbox');
                 checkbox.classList.add('row-checkbox');
-                checkbox.onchange = (e: any) => {
+                checkbox.onchange = (e: any) => {// Checkbox checking affects whether the div corresponding to the row has a checked attribute for marking
                     if (e.detail.checked) {
                         rowElement.setAttribute('checked', "");
                     } else {
@@ -435,7 +495,7 @@ export class LitTable extends HTMLElement {
             this.tableColumns!.forEach(cl => {
                 let dataIndex = cl.getAttribute('data-index') || '1';
                 gridTemplateColumns.push(cl.getAttribute('width') || '1fr')
-                if (cl.template) {
+                if (cl.template) {// If you customize the rendering, you get the nodes from the template
                     // @ts-ignore
                     let cloneNode = cl.template.render(rowData).content.cloneNode(true);
                     let d = document.createElement('div');
@@ -463,10 +523,10 @@ export class LitTable extends HTMLElement {
                 }
 
             })
-            if (this.selectable) {
+            if (this.selectable) { // If the table with selection is preceded by a 60px column
                 rowElement.style.gridTemplateColumns = '60px ' + gridTemplateColumns.join(' ');
             } else {
-                rowElement.style.gridTemplateColumns = gridTemplateColumns.join(' ');
+                rowElement.style.gridTemplateColumns = gridTemplateColumns.join(' ');//
             }
             rowElement.onclick = e => {
                 this.dispatchEvent(new CustomEvent('row-click', {detail: rowData, composed: true}));
@@ -475,10 +535,12 @@ export class LitTable extends HTMLElement {
         })
     }
 
+
     renderTreeTable() {
         if (!this.columns) return;
         if (!this.ds) return;
         this.tbodyElement!.innerHTML = '';
+        this.treeElement!.innerHTML = '';
         let ids = JSON.parse(this.getAttribute('tree') || `["id","pid"]`);
         let toTreeData = (data: any, id: any, pid: any) => {
             let cloneData = JSON.parse(JSON.stringify(data));
@@ -533,83 +595,86 @@ export class LitTable extends HTMLElement {
                 }
                 this.tableColumns!.forEach((cl, index) => {
                     let dataIndex = cl.getAttribute('data-index');
-                    gridTemplateColumns.push(cl.getAttribute('width') || '1fr')
                     let td;
-                    if (cl.template) {
-                        // @ts-ignore
-                        let cloneNode = cl.template.render(rowData).content.cloneNode(true);
-                        td = document.createElement('div');
-                        td.classList.add('td');
-                        td.style.wordBreak = 'break-all'
-                        td.style.justifyContent = cl.getAttribute('align') || ''
-                        if (cl.hasAttribute('fixed')) {
-                            this.fixed(td, cl.getAttribute('fixed') || '', "#ffffff")
+                    if (index !== 0) {
+                        gridTemplateColumns.push(cl.getAttribute('width') || '1fr')
+                        if (cl.template) {
+                            // @ts-ignore
+                            let cloneNode = cl.template.render(rowData).content.cloneNode(true);
+                            // cloneNode.classList.add('td');
+                            td = document.createElement('div');
+                            td.classList.add('td');
+                            td.style.wordBreak = 'break-all'
+                            // td.style.whiteSpace = 'pre-wrap'
+                            td.style.justifyContent = cl.getAttribute('align') || ''
+                            if (cl.hasAttribute('fixed')) {
+                                this.fixed(td, cl.getAttribute('fixed') || '', "#ffffff")
+                            }
+                            td.append(cloneNode);
+                        } else {
+                            td = document.createElement('div');
+                            td.classList.add('td');
+                            td.style.wordBreak = 'break-all'
+                            // td.style.whiteSpace = 'pre-wrap'
+                            td.style.justifyContent = cl.getAttribute('align') || ''
+                            if (cl.hasAttribute('fixed')) {
+                                this.fixed(td, cl.getAttribute('fixed') || '', "#ffffff")
+                            }
+                            // td.style.position='sticky';
+                            // @ts-ignore
+                            td.innerHTML = rowData[dataIndex];
                         }
-                        td.append(cloneNode);
+                        rowElement.append(td)
                     } else {
-                        td = document.createElement('div');
-                        td.classList.add('td');
-                        td.style.wordBreak = 'break-all'
-                        td.style.justifyContent = cl.getAttribute('align') || ''
-                        if (cl.hasAttribute('fixed')) {
-                            this.fixed(td, cl.getAttribute('fixed') || '', "#ffffff")
+                        this.treeElement!.style.width = cl.getAttribute('width') || "260px"
+                        let treeElement = document.createElement('div');
+                        treeElement.classList.add("tree-first-body")
+                        if (cl.template) {
+                            // @ts-ignore
+                            let cloneNode = cl.template.render(rowData).content.cloneNode(true);
+                            // cloneNode.classList.add('td');
+                            td = document.createElement('div');
+                            td.classList.add('td');
+                            // td.style.wordBreak = 'break-all'
+                            // td.style.whiteSpace = 'pre-wrap'
+                            td.style.justifyContent = cl.getAttribute('align') || ''
+                            if (cl.hasAttribute('fixed')) {
+                                this.fixed(td, cl.getAttribute('fixed') || '', "#ffffff")
+                            }
+                            td.append(cloneNode);
+                        } else {
+                            td = document.createElement('div');
+                            td.classList.add('td');
+                            // td.style.wordBreak = 'break-all'
+                            // td.style.whiteSpace = 'pre-wrap'
+                            td.style.justifyContent = cl.getAttribute('align') || ''
+                            if (cl.hasAttribute('fixed')) {
+                                this.fixed(td, cl.getAttribute('fixed') || '', "#ffffff")
+                            }
+                            // td.style.position='sticky';
+                            // @ts-ignore
+                            td.innerHTML = rowData[dataIndex];
                         }
-                        // @ts-ignore
-                        td.innerHTML = rowData[dataIndex];
-                    }
-                    if (index === 0) {
                         if (rowData.children && rowData.children.length > 0) {
                             let btn = document.createElement('lit-icon');
                             btn.classList.add('tree-icon');
                             // @ts-ignore
                             btn.name = 'minus-square';
-                            td.insertBefore(btn, td.firstChild);
-                            td.style.paddingLeft = (offsetVal - 30) + 'px';
-                            btn.onclick = (e) => {
-                                const foldNode = (rowElement: any) => {
-                                    let id = rowElement.getAttribute('id');
-                                    let pid = rowElement.getAttribute('pid');
-                                    this.shadowRoot!.querySelectorAll(`div[pid=${id}]`).forEach(a => {
-                                        let id = a.getAttribute('id');
-                                        let pid = a.getAttribute('pid');
-                                        (a as HTMLElement).style.display = 'none';
-                                        foldNode(a);
-                                    });
-                                    if (rowElement.querySelector('.tree-icon')) {
-                                        rowElement.querySelector('.tree-icon').name = 'plus-square';
-                                    }
-                                    rowElement.removeAttribute('expend');
-                                };
-                                const expendNode = (rowElement: any) => {
-                                    let id = rowElement.getAttribute('id');
-                                    let pid = rowElement.getAttribute('pid');
-                                    this.shadowRoot!.querySelectorAll(`div[pid=${id}]`).forEach((a) => {
-                                        let id = a.getAttribute('id');
-                                        let pid = a.getAttribute('pid');
-                                        (a as HTMLElement).style.display = '';
-                                    });
-                                    if (rowElement.querySelector('.tree-icon')) {
-                                        rowElement.querySelector('.tree-icon').name = 'minus-square';
-                                    }
-                                    rowElement.setAttribute('expend', '');
-                                }
-                                if (rowElement.hasAttribute('expend')) {
-                                    foldNode(rowElement);
-                                } else {
-                                    expendNode(rowElement);
-                                }
-                                e.stopPropagation();
-                            };
+                            treeElement.append(btn);
+                            treeElement.append(td)
+                            treeElement.style.paddingLeft = (offsetVal - 30) + 'px';
                         } else {
-                            td.style.paddingLeft = offsetVal + 'px';
+                            treeElement.append(td)
+                            treeElement.style.paddingLeft = offsetVal + 'px';
                         }
+                        this.treeElement!.append(treeElement);
                     }
-                    rowElement.append(td);
+
                 })
                 if (this.selectable) {
-                    rowElement.style.gridTemplateColumns = '60px ' + gridTemplateColumns.join(' ');
+                    rowElement.style.gridTemplateColumns = '60px ' + gridTemplateColumns.join(' ');//`repeat(${this.colCount},1fr)`
                 } else {
-                    rowElement.style.gridTemplateColumns = gridTemplateColumns.join(' ');
+                    rowElement.style.gridTemplateColumns = gridTemplateColumns.join(' ');//`repeat(${this.colCount},1fr)`
                 }
                 rowElement.onclick = e => {
                     this.dispatchEvent(new CustomEvent('row-click', {detail: rowData, composed: true}));
@@ -647,46 +712,11 @@ export class LitTable extends HTMLElement {
     }
 
     meauseElementHeight(rowData: any) {
-        if (this.meauseRowElement == undefined) {
-            this.meauseRowElement = this.createNewTableElement(rowData)
-            this.meauseRowElement!.style.width = this.tableElement!.clientWidth + "px"
-            this.meauseRowElement!.style.top = "-100px"
-            this.meauseRowElement!.style.position = 'absolute'
-            this.meauseRowElement!.style.left = "0px"
-            this.tbodyElement?.append(this.meauseRowElement!)
-        } else {
-            this.meauseRowElement.childNodes.forEach((children: any, index: number) => {
-                if (children.template) {
-                    children.innerHTML = children.template.render(rowData).content.cloneNode(true).innerHTML
-                } else {
-                    children.innerHTML = rowData[children.dataIndex]
-                }
-            })
-        }
-        return this.meauseRowElement!.clientHeight
+        return 27;
     }
 
     meauseTreeElementHeight(rowData: any, depth: number) {
-        if (this.meauseRowElement == undefined) {
-            this.meauseRowElement = this.createNewTreeTableElement(rowData)
-            this.meauseRowElement!.style.width = this.tableElement!.clientWidth + "px"
-            this.meauseRowElement!.style.top = "-100px"
-            this.meauseRowElement!.style.position = 'absolute'
-            this.meauseRowElement!.style.left = "0px"
-            this.tbodyElement?.append(this.meauseRowElement!)
-        } else {
-            this.meauseRowElement.childNodes.forEach((children: any, index: number) => {
-                if (index == 0) {
-                    children.style.paddingLeft = depth * 30 + "px"
-                }
-                if (children.template) {
-                    children.innerHTML = children.template.render(rowData.data).content.cloneNode(true).innerHTML
-                } else {
-                    children.innerHTML = rowData.data[children.dataIndex]
-                }
-            })
-        }
-        return this.meauseRowElement!.clientHeight
+        return 27;
     }
 
     meauseAllRowHeight(list: any[]): TableRowObject[] {
@@ -694,7 +724,7 @@ export class LitTable extends HTMLElement {
         this.meauseRowElement = undefined
         this.tbodyElement && (this.tbodyElement.style.width = this.tableElement?.clientWidth + "px")
         this.currentRecycleList = []
-        let headHeight = this.theadElement?.clientHeight || 0
+        let headHeight = 0
         let totalHeight = headHeight
         let visibleObjects: TableRowObject[] = [];
         list.forEach((rowData, index) => {
@@ -715,7 +745,7 @@ export class LitTable extends HTMLElement {
         })
         this.tbodyElement && (this.tbodyElement.style.height = totalHeight + "px")
         this.tableElement && (this.tableElement.onscroll = (event) => {
-            let top = this.tableElement!.scrollTop + headHeight;
+            let top = this.tableElement!.scrollTop;
             let skip = 0;
             for (let i = 0; i < visibleObjects.length; i++) {
                 if (visibleObjects[i].top <= top && visibleObjects[i].top + visibleObjects[i].height >= top) {
@@ -723,9 +753,12 @@ export class LitTable extends HTMLElement {
                     break;
                 }
             }
-            let reduce = this.currentRecycleList.map((item) => item.clientHeight).reduce((a, b) => a + b);
+            let reduce = this.currentRecycleList.map((item) => item.clientHeight).reduce((a, b) => a + b, 0);
+            if (reduce == 0) {
+                return
+            }
             while (reduce <= this.tableElement!.clientHeight) {
-                let newTableElement = this.createNewTableElement(visibleObjects[skip].data);
+                let newTableElement = this.createNewTableElement(visibleObjects[skip]);
                 this.tbodyElement?.append(newTableElement)
                 this.currentRecycleList.push(newTableElement)
                 reduce += newTableElement.clientHeight
@@ -740,25 +773,29 @@ export class LitTable extends HTMLElement {
     meauseTreeRowElement(list: any[]): TableRowObject[] {
         this.meauseRowElement = undefined
         this.tbodyElement!.innerHTML = '';
-        this.tbodyElement && (this.tbodyElement.style.width = this.tableElement?.clientWidth + "px")
+        this.treeElement!.innerHTML = '';
         let headHeight = this.theadElement?.clientHeight || 0
-        let totalHeight = headHeight
+        let totalHeight = 0
         let visibleObjects: TableRowObject[] = []
         this.currentRecycleList = []
+        this.currentTreeDivList = []
         let resetAllHeight = (list: any[], depth: number, parentNode?: TableRowObject) => {
             list.forEach((item) => {
                 let tableRowObject = new TableRowObject();
                 tableRowObject.depth = depth
                 tableRowObject.data = item
-                tableRowObject.top = totalHeight//初始化高度
+                tableRowObject.top = totalHeight
                 tableRowObject.height = this.meauseTreeElementHeight(tableRowObject, depth)
                 if (parentNode != undefined) {
                     parentNode.children.push(tableRowObject)
                 }
-                if (Math.max(totalHeight, this.tableElement!.scrollTop + headHeight) <= Math.min(totalHeight + tableRowObject.height, this.tableElement!.scrollTop + this.tableElement!.clientHeight + headHeight)) {
+                if (Math.max(totalHeight, this.tableElement!.scrollTop) <= Math.min(totalHeight + tableRowObject.height, this.tableElement!.scrollTop + this.tableElement!.clientHeight - headHeight)) {
                     let newTableElement = this.createNewTreeTableElement(tableRowObject);
                     newTableElement.style.transform = `translateY(${totalHeight}px)`
                     this.tbodyElement?.append(newTableElement)
+                    if (this.treeElement?.lastChild) {
+                        (this.treeElement?.lastChild as HTMLElement).style.height = tableRowObject.height + "px";
+                    }
                     this.currentRecycleList.push(newTableElement)
                 }
                 totalHeight += tableRowObject.height
@@ -769,13 +806,14 @@ export class LitTable extends HTMLElement {
             })
         }
         resetAllHeight(list, 0)
-        console.log(visibleObjects);
         this.tbodyElement && (this.tbodyElement.style.height = totalHeight + "px")
+        this.treeElement!.style.height = (this.tableElement!.clientHeight - this.theadElement!.clientHeight) + "px"
         this.tableElement && (this.tableElement.onscroll = (event) => {
             let visibleObjects = this.recycleDs.filter((item) => {
                 return !item.rowHidden
             })
-            let top = this.tableElement!.scrollTop + headHeight;
+            let top = this.tableElement!.scrollTop;
+            this.treeElement!.style.transform = `translateY(${top}px)`
             let skip = 0;
             for (let i = 0; i < visibleObjects.length; i++) {
                 if (visibleObjects[i].top <= top && visibleObjects[i].top + visibleObjects[i].height >= top) {
@@ -783,16 +821,21 @@ export class LitTable extends HTMLElement {
                     break;
                 }
             }
-            let reduce = this.currentRecycleList.map((item) => item.clientHeight).reduce((a, b) => a + b);
+            let reduce = this.currentRecycleList.map((item) => item.clientHeight).reduce((a, b) => a + b, 0);
+            if (reduce == 0) {
+                return
+            }
             while (reduce <= this.tableElement!.clientHeight) {
                 let newTableElement = this.createNewTreeTableElement(visibleObjects[skip]);
                 this.tbodyElement?.append(newTableElement)
+                if (this.treeElement?.lastChild) {
+                    (this.treeElement?.lastChild as HTMLElement).style.height = visibleObjects[skip].height + "px";
+                }
                 this.currentRecycleList.push(newTableElement)
                 reduce += newTableElement.clientHeight
             }
             for (let i = 0; i < this.currentRecycleList.length; i++) {
-                console.log(visibleObjects[i + skip]);
-                this.freshCurrentLine(this.currentRecycleList[i], visibleObjects[i + skip])
+                this.freshCurrentLine(this.currentRecycleList[i], visibleObjects[i + skip], (this.treeElement?.children[i] as HTMLElement));
             }
         })
         return visibleObjects
@@ -803,35 +846,100 @@ export class LitTable extends HTMLElement {
         let newTableElement = document.createElement('div');
         newTableElement.classList.add('tr');
         let gridTemplateColumns: Array<any> = [];
+        let treeTop = 0;
+        if (this.treeElement!.children?.length > 0) {
+            let transX = Number((this.treeElement?.lastChild as HTMLElement).style.transform.replace(/[^0-9]/ig, ""));
+            treeTop += (transX + rowData.height)
+        }
         this?.columns?.forEach((column: any, index) => {
             let dataIndex = column.getAttribute('data-index') || '1';
-            gridTemplateColumns.push(column.getAttribute('width') || '1fr')
             let td: any
-            if (column.template) {
-                td = column.template.render(rowData.data).content.cloneNode(true);
-                td.template = column.template
-            } else {
-                td = document.createElement('div')
-                td.classList.add('td');
-                td.style.wordBreak = 'break-all'
-                td.innerHTML = rowData.data[dataIndex];
-                td.dataIndex = dataIndex
-            }
             if (index === 0) {
+                if (column.template) {
+                    td = column.template.render(rowData.data).content.cloneNode(true);
+                    td.template = column.template
+                } else {
+                    td = document.createElement('div')
+                    td.innerHTML = rowData.data[dataIndex];
+                    td.dataIndex = dataIndex
+                }
                 if (rowData.data.children && rowData.data.children.length > 0) {
                     let btn = this.createExpandBtn(rowData)
                     td.insertBefore(btn, td.firstChild);
-                    td.style.paddingLeft = rowData.depth * 30 + 'px';
+                    td.style.paddingLeft = rowData.depth * 15 + 'px';
                 } else {
-                    td.style.paddingLeft = rowData.depth * 30 + 'px';
+                    td.style.paddingLeft = rowData.depth * 15 + 20 + 'px';
                 }
+                (td as any).data = rowData.data
+                td.classList.add('tree-first-body');
+                td.style.position = 'absolute';
+                td.style.top = '0px'
+                td.style.left = '0px'
+                td.onmouseover = () => {
+                    let indexOf = this.currentTreeDivList.indexOf(td);
+                    if (indexOf >= 0 && indexOf < this.currentRecycleList.length && td.innerHTML != "") {
+                        this.setMouseIn(true, [(this.treeElement?.children[indexOf] as HTMLElement), newTableElement]);
+                    }
+                }
+                td.onmouseout = () => {
+                    let indexOf = this.currentTreeDivList.indexOf(td);
+                    if (indexOf >= 0 && indexOf < this.currentRecycleList.length) {
+                        this.setMouseIn(false, [(this.treeElement?.children[indexOf] as HTMLElement), newTableElement]);
+                    }
+                }
+                td.onclick = () => {
+                    let indexOf = this.currentTreeDivList.indexOf(td);
+                    this.dispatchRowClickEvent(rowData, [(this.treeElement?.children[indexOf] as HTMLElement), newTableElement])
+                }
+                this.treeElement!.style.width = column.getAttribute('width')
+                this.treeElement?.append(td)
+                this.currentTreeDivList.push(td)
+            } else {
+                gridTemplateColumns.push(column.getAttribute('width') || '1fr')
+                td = document.createElement('div')
+                td.classList.add('td');
+                // td.style.wordBreak = 'break-all'
+                td.style.overflow = 'hidden'
+                td.style.textOverflow = 'ellipsis'
+                td.style.whiteSpace = "nowrap"
+                td.title = rowData.data[dataIndex]
+                // td.innerHTML = rowData.data[dataIndex];
+                td.dataIndex = dataIndex
+                td.style.justifyContent = column.getAttribute('align') || 'flex-start'
+                if (column.template) {
+                    td.appendChild(column.template.render(rowData.data).content.cloneNode(true));
+                    td.template = column.template
+                } else {
+                    td.innerHTML = rowData.data[dataIndex];
+                }
+                newTableElement.append(td)
             }
-            newTableElement.append(td)
-        })
+        });
+        (this.treeElement?.lastChild as HTMLElement).style.transform = `translateY(${treeTop}px)`;
+        (newTableElement as any).data = rowData.data
         newTableElement.style.gridTemplateColumns = gridTemplateColumns.join(' ');
         newTableElement.style.position = 'absolute';
         newTableElement.style.top = '0px'
         newTableElement.style.left = '0px'
+        newTableElement.style.cursor = 'pointer'
+        newTableElement.onmouseover = () => {
+            if ((newTableElement as any).data.isSelected) return;
+            let indexOf = this.currentRecycleList.indexOf(newTableElement);
+            if (indexOf >= 0 && indexOf < this.treeElement!.children.length) {
+                this.setMouseIn(true, [(this.treeElement?.children[indexOf] as HTMLElement), newTableElement]);
+            }
+        }
+        newTableElement.onmouseout = () => {
+            if ((newTableElement as any).data.isSelected) return;
+            let indexOf = this.currentRecycleList.indexOf(newTableElement);
+            if (indexOf >= 0 && indexOf < this.treeElement!.children.length) {
+                this.setMouseIn(false, [(this.treeElement?.children[indexOf] as HTMLElement), newTableElement]);
+            }
+        }
+        newTableElement.onclick = e => {
+            let indexOf = this.currentRecycleList.indexOf(newTableElement);
+            this.dispatchRowClickEvent(rowData, [(this.treeElement?.children[indexOf] as HTMLElement), newTableElement])
+        }
         return newTableElement
     }
 
@@ -882,8 +990,10 @@ export class LitTable extends HTMLElement {
     }
 
     reMeauseHeight() {
-        let headHeight = this.theadElement?.clientHeight || 0
-        let totalHeight = headHeight
+        if (this.currentRecycleList.length == 0) {
+            return
+        }
+        let totalHeight = 0
         this.recycleDs.forEach((it) => {
             if (!it.rowHidden) {
                 it.top = totalHeight
@@ -891,10 +1001,11 @@ export class LitTable extends HTMLElement {
             }
         })
         this.tbodyElement && (this.tbodyElement.style.height = totalHeight + "px")
+        this.treeElement!.style.height = (this.tableElement!.clientHeight - this.theadElement!.clientHeight) + "px"
         let visibleObjects = this.recycleDs.filter((item) => {
             return !item.rowHidden
         })
-        let top = this.tableElement!.scrollTop + headHeight;
+        let top = this.tableElement!.scrollTop;
         let skip = 0;
         for (let i = 0; i < visibleObjects.length; i++) {
             if (visibleObjects[i].top <= top && visibleObjects[i].top + visibleObjects[i].height >= top) {
@@ -902,15 +1013,32 @@ export class LitTable extends HTMLElement {
                 break;
             }
         }
-        let reduce = this.currentRecycleList.map((item) => item.clientHeight).reduce((a, b) => a + b);
+        let reduce = this.currentRecycleList.map((item) => item.clientHeight).reduce((a, b) => a + b, 0);
+        if (reduce == 0) {
+            return
+        }
         while (reduce <= this.tableElement!.clientHeight) {
-            let newTableElement = this.createNewTreeTableElement(visibleObjects[skip]);
+            let newTableElement
+            if (this.hasAttribute('tree')) {
+                newTableElement = this.createNewTreeTableElement(visibleObjects[skip]);
+            } else {
+                newTableElement = this.createNewTableElement(visibleObjects[skip])
+            }
             this.tbodyElement?.append(newTableElement)
+            if (this.hasAttribute('tree')) {
+                if (this.treeElement?.lastChild) {
+                    (this.treeElement?.lastChild as HTMLElement).style.height = visibleObjects[skip].height + "px";
+                }
+            }
             this.currentRecycleList.push(newTableElement)
             reduce += newTableElement.clientHeight
         }
         for (let i = 0; i < this.currentRecycleList.length; i++) {
-            this.freshCurrentLine(this.currentRecycleList[i], visibleObjects[i + skip])
+            if (this.hasAttribute('tree')) {
+                this.freshCurrentLine(this.currentRecycleList[i], visibleObjects[i + skip], (this.treeElement?.children[i] as HTMLElement))
+            } else {
+                this.freshCurrentLine(this.currentRecycleList[i], visibleObjects[i + skip])
+            }
         }
     }
 
@@ -922,18 +1050,30 @@ export class LitTable extends HTMLElement {
             let dataIndex = column.getAttribute('data-index') || '1';
             gridTemplateColumns.push(column.getAttribute('width') || '1fr')
             let td: any
+            td = document.createElement('div')
+            td.classList.add('td');
+            td.style.overflow = 'hidden'
+            td.style.textOverflow = 'ellipsis'
+            td.style.whiteSpace = "nowrap"
+            td.dataIndex = dataIndex
+            td.style.justifyContent = column.getAttribute('align') || 'flex-start'
+            td.title = rowData.data[dataIndex]
             if (column.template) {
-                td = column.template.render(rowData).content.cloneNode(true);
+                td.appendChild(column.template.render(rowData.data).content.cloneNode(true));
                 td.template = column.template
             } else {
-                td = document.createElement('div')
-                td.classList.add('td');
-                td.style.wordBreak = 'break-all'
-                td.innerHTML = rowData[dataIndex];
-                td.dataIndex = dataIndex
+                td.innerHTML = rowData.data[dataIndex];
             }
             newTableElement.append(td)
         })
+        newTableElement.onclick = () => {
+            this.dispatchRowClickEvent(rowData, [newTableElement])
+        }
+        if (rowData.data.isSelected != undefined) {
+            this.setSelectedRow(rowData.data.isSelected, [newTableElement])
+        }
+        (newTableElement as any).data = rowData.data
+        newTableElement.style.cursor = "pointer"
         newTableElement.style.gridTemplateColumns = gridTemplateColumns.join(' ');
         newTableElement.style.position = 'absolute';
         newTableElement.style.top = '0px'
@@ -941,22 +1081,164 @@ export class LitTable extends HTMLElement {
         return newTableElement
     }
 
-    freshCurrentLine(element: HTMLElement, rowObject: TableRowObject) {
-        element.childNodes.forEach((child, index) => {
-            if ((this.columns![index] as any).template) {
-                (child as HTMLElement).innerHTML = (this.columns![index] as any).template.render(rowObject.data).content.cloneNode(true).innerHTML
-            } else {
-                let dataIndex = this.columns![index].getAttribute('data-index') || '1';
-                (child as HTMLElement).innerHTML = rowObject.data[dataIndex]
+    freshCurrentLine(element: HTMLElement, rowObject: TableRowObject, firstElement?: HTMLElement) {
+        if (!rowObject) {
+            if (firstElement) {
+                firstElement.style.display = 'none'
             }
-            if (rowObject.depth != -1 && index == 0) {
+            element.style.display = 'none'
+            return
+        }
+        let childIndex = -1
+        element.childNodes.forEach((child) => {
+            if (child.nodeType != 1) return
+            childIndex++;
+            let idx = firstElement != undefined ? childIndex + 1 : childIndex;
+            if (firstElement != undefined && childIndex == 0) {
+                (firstElement as any).data = rowObject.data
+                if ((this.columns![0] as any).template) {
+                    firstElement.innerHTML = (this.columns![0] as any).template.render(rowObject.data).content.cloneNode(true).innerHTML
+                } else {
+                    let dataIndex = this.columns![0].getAttribute('data-index') || '1';
+                    firstElement.innerHTML = rowObject.data[dataIndex]
+                    firstElement.title = rowObject.data[dataIndex]
+                }
                 if (rowObject.children && rowObject.children.length > 0) {
                     let btn = this.createExpandBtn(rowObject)
-                    child.insertBefore(btn, child.firstChild);
+                    firstElement.insertBefore(btn, firstElement.firstChild);
+                    firstElement.style.paddingLeft = 15 * rowObject.depth + "px"
+                } else {
+                    firstElement.style.paddingLeft = 20 + 15 * rowObject.depth + "px"
                 }
-                (child as HTMLElement).style.paddingLeft = 30 * rowObject.depth + "px"
+                firstElement.onclick = () => {
+                    this.dispatchRowClickEvent(rowObject, [firstElement, element])
+                }
+                firstElement.style.transform = `translateY(${rowObject.top - this.tableElement!.scrollTop}px)`
+                if (rowObject.data.isSelected != undefined) {
+                    this.setSelectedRow(rowObject.data.isSelected, [firstElement])
+                } else {
+                    this.setSelectedRow(false, [firstElement])
+                }
+            }
+            if ((this.columns![idx] as any).template) {
+                (child as HTMLElement).innerHTML = "";
+                (child as HTMLElement).appendChild((this.columns![idx] as any).template.render(rowObject.data).content.cloneNode(true))
+            } else {
+                let dataIndex = this.columns![idx].getAttribute('data-index') || '1';
+                (child as HTMLElement).innerHTML = rowObject.data[dataIndex];
+                (child as HTMLElement).title = rowObject.data[dataIndex];
             }
         })
+        if (element.style.display == 'none') {
+            element.style.display = 'grid'
+        }
         element.style.transform = `translateY(${rowObject.top}px)`
+        if (firstElement && firstElement.style.display == 'none') {
+            firstElement.style.display = 'flex'
+        }
+        element.onclick = e => {
+            if (firstElement != undefined) {
+                this.dispatchRowClickEvent(rowObject, [firstElement, element])
+            } else {
+                this.dispatchRowClickEvent(rowObject, [element])
+            }
+        }
+        (element as any).data = rowObject.data
+        if (rowObject.data.isSelected != undefined) {
+            this.setSelectedRow(rowObject.data.isSelected, [element])
+        } else {
+            this.setSelectedRow(false, [element])
+        }
+    }
+
+    setSelectedRow(isSelected: boolean, rows: any[]) {
+        if (isSelected) {
+            rows.forEach((row) => {
+                if (row.classList.contains("mouse-in")) row.classList.remove('mouse-in');
+                row.classList.add('mouse-select')
+                // row.style.backgroundColor = "var(--dark-background6,#DEEDFF)"
+            })
+        } else {
+            rows.forEach((row) => {
+                row.classList.remove('mouse-select')
+                // row.style.backgroundColor = "var(--dark-background,#FFFFFF)"
+            })
+        }
+    }
+
+    setMouseIn(isMouseIn: boolean, rows: any[]) {
+        if (isMouseIn) {
+            rows.forEach((row) => {
+                row.classList.add('mouse-in')
+            })
+        } else {
+            rows.forEach((row) => {
+                row.classList.remove('mouse-in')
+            })
+        }
+    }
+
+    scrollToData(data: any) {
+        if (this.recycleDs.length > 0) {
+            let filter = this.recycleDs.filter((item) => {
+                return item.data == data
+            });
+            if (filter.length > 0) {
+                this.tableElement!.scrollTop = filter[0].top
+            }
+            this.setCurrentSelection(data)
+        }
+
+    }
+
+    expandList(datasource: any[]) {
+        let filter = this.recycleDs.filter((item) => {
+            return datasource.indexOf(item.data) != -1
+        });
+        if (filter.length > 0) {
+            filter.forEach((item) => {
+                item.expanded = true
+                item.rowHidden = false
+            })
+        }
+        this.reMeauseHeight()
+    }
+
+    clearAllSelection(rowObjectData: any) {
+        this.recycleDs.forEach((item) => {
+            if (item.data != rowObjectData && item.data.isSelected) {
+                item.data.isSelected = false
+            }
+        })
+        this.setSelectedRow(false, this.currentTreeDivList)
+        this.setSelectedRow(false, this.currentRecycleList)
+    }
+
+    setCurrentSelection(data: any) {
+        if (data.isSelected != undefined) {
+            this.currentTreeDivList.forEach((item) => {
+                if ((item as any).data == data) {
+                    this.setSelectedRow(data.isSelected, [item])
+                }
+            })
+            this.currentRecycleList.forEach((item) => {
+                if ((item as any).data == data) {
+                    this.setSelectedRow(data.isSelected, [item])
+                }
+            })
+        }
+    }
+
+    dispatchRowClickEvent(rowObject: any, elements: any[]) {
+        this.dispatchEvent(new CustomEvent('row-click', {
+            detail: {
+                ...rowObject.data, data: rowObject.data, callBack: (isSelected: boolean) => {//是否爲单选
+                    if (isSelected) {
+                        this.clearAllSelection(rowObject.data)
+                    }
+                    this.setSelectedRow(rowObject.data.isSelected, elements)
+                }
+            }, composed: true,
+        }));
     }
 }

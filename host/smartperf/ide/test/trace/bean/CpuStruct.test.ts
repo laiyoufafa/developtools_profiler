@@ -32,11 +32,30 @@ describe('CpuStruct Test', ()=>{
         startNS: 200,
         value: 50
     }
+
+
     it('CpuStructTest01', function () {
         expect(CpuStruct.draw(ctx, data)).toBeUndefined()
+        expect(data).toMatchInlineSnapshot({
+        startNS: expect.any(Number),
+        value: expect.any(Number) }, `
+        Object {
+          "frame": Object {
+            "height": 100,
+            "width": 100,
+            "x": 20,
+            "y": 20,
+          },
+          "startNS": Any<Number>,
+          "value": Any<Number>,
+        }
+    `);
     });
 
     it('CpuStructTest02', function () {
         expect(CpuStruct.equals({}, data)).toBeTruthy();
     });
+
+
+
 })

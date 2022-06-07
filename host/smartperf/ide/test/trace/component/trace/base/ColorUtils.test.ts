@@ -42,6 +42,10 @@ describe("testColorUtils Test", () => {
         expect(ColorUtils.colorForThread(thread)).toEqual("#fbbf00");
     });
 
+    it('testColorUtils04', () => {
+        expect(ColorUtils.formatNumberComma(2)).toEqual("2");
+    });
+
     afterAll(() => {
     })
 })

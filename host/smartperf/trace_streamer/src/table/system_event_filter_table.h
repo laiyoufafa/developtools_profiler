@@ -25,14 +25,23 @@ class SystemEventFilterTable : public TableBase {
 public:
     explicit SystemEventFilterTable(const TraceDataCache*);
     ~SystemEventFilterTable() override;
-    void CreateCursor() override;
+    std::unique_ptr<TableBase::Cursor> CreateCursor() override;
 
 private:
+    void EstimateFilterCost(FilterConstraints& fc, EstimatedIndexInfo& ei) override;
+    // the column is sorted
+    bool CanFilterSorted(const char op, size_t& rowCount);
+    void FilterByConstraint(FilterConstraints& fc, double& filterCost, size_t rowCount);
+
     class Cursor : public TableBase::Cursor {
     public:
-        explicit Cursor(const TraceDataCache* dataCache);
+        explicit Cursor(const TraceDataCache* dataCache, TableBase* table);
         ~Cursor() override;
-        int Column(int column) const override;
+        int Filter(const FilterConstraints& fc, sqlite3_value** argv) override;
+        int Column(int col) const override;
+
+        void FilterSorted(int col, unsigned char op, sqlite3_value* argv);
+
     private:
         const SysMeasureFilter& sysEventObj_;
     };

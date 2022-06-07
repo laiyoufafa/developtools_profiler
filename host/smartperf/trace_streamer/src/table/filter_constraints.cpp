@@ -51,14 +51,14 @@ void FilterConstraints::Clear()
 void FilterConstraints::ToString(std::string& idxStr) const
 {
     idxStr.clear();
-    idxStr.reserve(512);
+    idxStr.reserve(idxStrSize_);
     idxStr = "C" + std::to_string(constraints_.size());
-    for (size_t i = 0; i< constraints_.size(); i++) {
+    for (size_t i = 0; i < constraints_.size(); i++) {
         idxStr += " " + std::to_string(constraints_[i].col);
         idxStr += " " + std::to_string(constraints_[i].op);
     }
     idxStr += " O" + std::to_string(orderBys_.size());
-    for (size_t i = 0; i< orderBys_.size(); i++) {
+    for (size_t i = 0; i < orderBys_.size(); i++) {
         idxStr += " " + std::to_string(orderBys_[i].iColumn);
         idxStr += " " + std::to_string(orderBys_[i].desc);
     }
@@ -66,17 +66,32 @@ void FilterConstraints::ToString(std::string& idxStr) const
 
 void FilterConstraints::FromString(const std::string& idxStr)
 {
-    const char* p = idxStr.c_str();
+    const char* p = static_cast<const char*>(idxStr.c_str());
     char* pNext = nullptr;
     TS_ASSERT(*p == 'C');
-    int constraintCount = static_cast<int>(strtol(p+1, &pNext, 10));
+    errno = 0;
+    int constraintCount = static_cast<int>(strtol(p + 1, &pNext, 10));
+    if (errno != 0) {
+        TS_LOGW("strtol failed!");
+        return;
+    }
     TS_ASSERT(p != pNext);
     for (int i = 0; i < constraintCount; i++) {
         p = pNext;
+        errno = 0;
         int col = static_cast<int>(strtol(p, &pNext, 10));
+        if (errno != 0) {
+            TS_LOGW("strtol failed!");
+            return;
+        }
         TS_ASSERT(p != pNext);
         p = pNext;
+        errno = 0;
         unsigned char op = static_cast<unsigned char>(strtol(p, &pNext, 10));
+        if (errno != 0) {
+            TS_LOGW("strtol failed!");
+            return;
+        }
         TS_ASSERT(p != pNext);
 
         AddConstraint(i, col, op);
@@ -85,14 +100,29 @@ void FilterConstraints::FromString(const std::string& idxStr)
     pNext++; // jump the ' '
     p = pNext;
     TS_ASSERT(*p == 'O');
-    int orderbyCount = static_cast<int>(strtol(p+1, &pNext, 10));
+    errno = 0;
+    int orderbyCount = static_cast<int>(strtol(p + 1, &pNext, 10));
+    if (errno != 0) {
+        TS_LOGW("strtol failed!");
+        return;
+    }
     TS_ASSERT(p != pNext);
     for (int i = 0; i < orderbyCount; i++) {
         p = pNext;
+        errno = 0;
         int col = static_cast<int>(strtol(p, &pNext, 10));
+        if (errno != 0) {
+            TS_LOGW("strtol failed!");
+            return;
+        }
         TS_ASSERT(p != pNext);
         p = pNext;
+        errno = 0;
         unsigned char desc = static_cast<unsigned char>(strtol(p, &pNext, 10));
+        if (errno != 0) {
+            TS_LOGW("strtol failed!");
+            return;
+        }
         TS_ASSERT(p != pNext);
 
         AddOrderBy(col, desc);

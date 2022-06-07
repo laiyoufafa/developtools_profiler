@@ -18,10 +18,21 @@ export class SelectionParam {
     threadIds: Array<number> = [];
     trackIds: Array<number> = [];
     funTids: Array<number> = [];
-    heapIds: Array<number> = []
+    heapIds: Array<number> = [];
+    nativeMemory: Array<String> = [];
+    cpuAbilityIds: Array<string> = []
+    memoryAbilityIds: Array<string> = []
+    diskAbilityIds: Array<string> = []
+    networkAbilityIds: Array<string> = []
     leftNs: number = 0;
     rightNs: number = 0;
     hasFps: boolean = false;
+    statisticsSelectData: any = undefined
+    perfSampleIds: Array<number> = [];
+    perfCpus: Array<number> = [];
+    perfProcess: Array<number> = [];
+    perfThread: Array<number> = [];
+    perfAll: boolean = false;
 }
 
 export class BoxJumpParam {
@@ -43,7 +54,6 @@ export class SelectionData {
     occurrences: number = 0
     state: string = ""
     trackId: number = 0
-
     delta: string = ""
     rate: string = ""
     avgWeight: string = ""
