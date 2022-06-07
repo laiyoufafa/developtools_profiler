@@ -29,50 +29,92 @@ export class PluginConvertUtils {
     }
 
     public static BeanToCmdTxt(bean: any, needColon: boolean): string {
-        return this.handleObj(bean, 0, needColon);
+        return this.handleObj(bean, 0, needColon, 1);
     }
 
-    private static handleObj(bean: object, indentation: number, needColon: boolean): string {
+    public static BeanToCmdTxtWithObjName(bean: any, needColon: boolean, objName: string,
+                                          spacesNumber: number): string {
+        return objName + ": {" + this.handleObj(bean, 0, needColon, spacesNumber) + "}";
+    }
+
+    private static handleObj(bean: object, indentation: number, needColon: boolean, spacesNumber: number): string {
         let prefixText: string = "";
         if (indentation == 0) {
             prefixText = prefixText + this.crlf;
         } else {
-            prefixText = prefixText + " " + this.leftBrace + this.crlf;
+            prefixText = prefixText + " ".repeat(spacesNumber) + this.leftBrace + this.crlf;
         }
         for (const [key, value] of Object.entries(bean)) {
             const repeatedKey = Array.isArray(value);
             if (repeatedKey) {
-                prefixText = prefixText + this.handleArray(key, value, indentation, needColon);
+                prefixText = prefixText + this.handleArray(key, value, indentation, needColon, spacesNumber);
             } else {
                 switch (typeof value) {
                     case "bigint":
-                        prefixText = prefixText + ' '.repeat(indentation + 1) + this.humpToSnake(key) + ": " + value.toString() + this.crlf
+                        prefixText = prefixText
+                            + ' '.repeat(spacesNumber).repeat(indentation + 1)
+                            + this.humpToSnake(key)
+                            + ": "
+                            + value.toString()
+                            + this.crlf
                         break
                     case "boolean":
-                        prefixText = prefixText + ' '.repeat(indentation + 1) + this.humpToSnake(key) + ": " + value.toString() + this.crlf
+                        prefixText = prefixText
+                            + ' '.repeat(spacesNumber).repeat(indentation + 1)
+                            + this.humpToSnake(key)
+                            + ": "
+                            + value.toString()
+                            + this.crlf
                         break
                     case "number":
-                        if (value == 0) {
+                        if (value == 0 && !needColon) {
                             break;
                         }
-                        prefixText = prefixText + ' '.repeat(indentation + 1) + this.humpToSnake(key) + ": " + value.toString() + this.crlf
+                        prefixText = prefixText
+                            + ' '.repeat(spacesNumber).repeat(indentation + 1)
+                            + this.humpToSnake(key)
+                            + ": "
+                            + value.toString()
+                            + this.crlf
                         break
                     case "string":
                         if (value == '') {
                             break
                         }
-                        if (value.startsWith("LOG_")) {
-                            prefixText = prefixText + ' '.repeat(indentation + 1) + this.humpToSnake(key) + ": " + value.toString() + this.crlf
+                        if (value.startsWith("LOG_") || value.startsWith("IO_REPORT")) {
+                            prefixText = prefixText
+                                + ' '.repeat(spacesNumber).repeat(indentation + 1)
+                                + this.humpToSnake(key)
+                                + ": "
+                                + value.toString()
+                                + this.crlf
                         } else {
-                            prefixText = prefixText + ' '.repeat(indentation + 1) + this.humpToSnake(key) + ": \"" + value.toString() + "\"" + this.crlf
+                            prefixText = prefixText
+                                + ' '.repeat(spacesNumber).repeat(indentation + 1)
+                                + this.humpToSnake(key)
+                                + ": \""
+                                + value.toString()
+                                + "\""
+                                + this.crlf
                         }
                         break
                     case "object":
                     default:
                         if (needColon) {
-                            prefixText = prefixText + ' '.repeat(indentation + 1) + this.humpToSnake(key) + ": " + this.handleObj(value, indentation + 1, needColon) + "" + this.crlf
+                            prefixText = prefixText
+                                + ' '.repeat(spacesNumber).repeat(indentation + 1)
+                                + this.humpToSnake(key)
+                                + ": "
+                                + this.handleObj(value, indentation + 1, needColon, spacesNumber)
+                                + ""
+                                + this.crlf
                         } else {
-                            prefixText = prefixText + ' '.repeat(indentation + 1) + this.humpToSnake(key) + this.handleObj(value, indentation + 1, needColon) + "" + this.crlf
+                            prefixText = prefixText
+                                + ' '.repeat(spacesNumber).repeat(indentation + 1)
+                                + this.humpToSnake(key)
+                                + this.handleObj(value, indentation + 1, needColon, spacesNumber)
+                                + ""
+                                + this.crlf
                         }
                 }
             }
@@ -80,46 +122,86 @@ export class PluginConvertUtils {
         if (indentation == 0) {
             return prefixText
         } else {
-            return prefixText + ' '.repeat(indentation) + this.rightBrace;
+            return prefixText + ' '.repeat(spacesNumber).repeat(indentation) + this.rightBrace;
         }
     }
 
-    private static handleArray(key: string, arr: Array<any>, indentation: number, needColon: boolean): string {
+    private static handleArray(key: string, arr: Array<any>, indentation: number,
+                               needColon: boolean, spacesNumber: number): string {
         let text = "";
         arr.forEach(arrValue => {
             switch (typeof arrValue) {
                 case "bigint":
-                    text = text + ' '.repeat(indentation + 1) + this.humpToSnake(key) + ": " + arrValue.toString() + this.crlf
+                    text = text
+                        + ' '.repeat(spacesNumber).repeat(indentation + 1)
+                        + this.humpToSnake(key)
+                        + ": "
+                        + arrValue.toString()
+                        + this.crlf
                     break
                 case "boolean":
-                    text = text + ' '.repeat(indentation + 1) + this.humpToSnake(key) + ": " + arrValue.toString() + this.crlf
+                    text = text
+                        + ' '.repeat(spacesNumber).repeat(indentation + 1)
+                        + this.humpToSnake(key)
+                        + ": "
+                        + arrValue.toString()
+                        + this.crlf
                     break
                 case "number":
-                    text = text + ' '.repeat(indentation + 1) + this.humpToSnake(key) + ": " + arrValue.toString() + this.crlf
+                    text = text
+                        + ' '.repeat(spacesNumber).repeat(indentation + 1)
+                        + this.humpToSnake(key)
+                        + ": "
+                        + arrValue.toString()
+                        + this.crlf
                     break
                 case "string":
                     if (arrValue == '') {
                         break
                     }
-                    if (arrValue.startsWith("VMEMPLUGIN") || arrValue.startsWith("MEMPLUGIN")) {
-                        text = text + ' '.repeat(indentation + 1) + this.humpToSnake(key) + ": " + arrValue.toString() + this.crlf
+                    if (arrValue.startsWith("VMEMINFO") || arrValue.startsWith("PMEM")) {
+                        text = text
+                            + ' '.repeat(spacesNumber).repeat(indentation + 1)
+                            + this.humpToSnake(key)
+                            + ": "
+                            + arrValue.toString()
+                            + this.crlf
                     } else {
-                        text = text + ' '.repeat(indentation + 1) + this.humpToSnake(key) + ": \"" + arrValue.toString() + "\"" + this.crlf
+                        text = text
+                            + ' '.repeat(spacesNumber).repeat(indentation + 1)
+                            + this.humpToSnake(key)
+                            + ": \""
+                            + arrValue.toString()
+                            + "\""
+                            + this.crlf
                     }
                     break
                 case "object":
                 default:
                     if (needColon) {
-                        text = text + ' '.repeat(indentation + 1) + this.humpToSnake(key) + ": " + this.handleObj(arrValue, indentation + 1, needColon) + "" + this.crlf
+                        text = text
+                            + ' '.repeat(spacesNumber).repeat(indentation + 1)
+                            + this.humpToSnake(key)
+                            + ": "
+                            + this.handleObj(arrValue, indentation + 1, needColon, spacesNumber)
+                            + ""
+                            + this.crlf
                     } else {
-                        text = text + ' '.repeat(indentation + 1) + this.humpToSnake(key) + this.handleObj(arrValue, indentation + 1, needColon) + "" + this.crlf
+                        text = text
+                            + ' '.repeat(spacesNumber).repeat(indentation + 1)
+                            + this.humpToSnake(key)
+                            + this.handleObj(arrValue, indentation + 1, needColon, spacesNumber)
+                            + ""
+                            + this.crlf
                     }
             }
         })
         return text;
     }
 
+    // 驼峰转snake
     private static humpToSnake(humpString: string): string {
         return humpString.replace(/[A-Z]/g, (value) => '_' + value.toLowerCase());
     }
 }
+

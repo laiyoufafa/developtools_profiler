@@ -13,32 +13,32 @@
  * limitations under the License.
  */
 
-import {element,BaseElement} from "../BaseElement.js";
+import {BaseElement, element} from "../BaseElement.js";
 
 @element("lit-popover")
 export class LitPopover extends BaseElement {
     static get observedAttributes() {
         return [
-            'title',/*标题*/
-            'trigger',/*触发条件 hover | click | focus[未实现]*/
-            'width',/*自定义高度*/
-            'placement',/*设置方向 topLeft top topRight leftTop left leftBottom rightTop right rightBottom bottomLeft bottom bottomRight*/
-            'visible'/*控制popover是否显示*/
+            'title',
+            'trigger',
+            'width',
+            'placement',
+            'visible'
         ]
     }
-    initElements(): void {
 
-    }
-    get visible(){
+    get visible() {
         return this.getAttribute('visible') || 'false';
     }
-    set visible(value){
+
+    set visible(value) {
         if (value) {
             this.setAttribute('visible', 'true');
-        }else{
+        } else {
             this.setAttribute('visible', 'false');
         }
     }
+
     get trigger() {
         return this.getAttribute('trigger') || 'hover'
     }
@@ -51,7 +51,7 @@ export class LitPopover extends BaseElement {
         return this.getAttribute('title');
     }
 
-    set title(value:any) {
+    set title(value: any) {
         this.setAttribute('title', value);
     }
 
@@ -63,13 +63,15 @@ export class LitPopover extends BaseElement {
         this.setAttribute('width', value);
     }
 
-    get haveRadio(){
+    get haveRadio() {
         return this.getAttribute("haveRadio")
     }
 
+    initElements(): void {
+
+    }
+
     initHtml() {
-        // super();
-        // const shadowRoot = this.attachShadow({mode: 'open'});
         return `
         <style>
         :host{ 
@@ -114,14 +116,11 @@ export class LitPopover extends BaseElement {
             content: '';
             display: flex;
             position: absolute;
-            /*width: 0;*/
             width: 12px;
-            /*height: 0;*/
             height: 12px;
-            /*border: 6px solid transparent;*/
-            background: linear-gradient(45deg, var(--dark-background3,#FFFFFF), var(--dark-background3,#FFFFFF) 50%, transparent 50%, transparent 100%);
+            background: linear-gradient(45deg, var(--dark-background3,#FFFFFF),
+            var(--dark-background3,#FFFFFF) 50%, transparent 50%, transparent 100%);
         }
-        /*default or top*/
         :host(:not([placement])) .popover,
         :host([placement='top']) .popover{
             top: 0;
@@ -152,19 +151,16 @@ export class LitPopover extends BaseElement {
             opacity: 1;
             transform: translate(-50%,calc(-100% - 12px)) scale(1);
         }
-        /*topLeft*/
         :host([placement='topLeft']) .popover{
             top: 0;
-            left: 0;
+            left: 50%;
             right: 0;
             transform: translate(0,calc(-100% - 12px)) scale(0.5);
             transform-origin: left bottom;
         }
         :host([placement='topLeft']) .popover:after{
-            border-top: 6px solid #fff;
-            top: calc(100%);
-            transform: translate(0%,0%);
-            left: 20px;
+            top: 99%;
+            transform: rotateX(180deg);
         }
         :host([placement='topLeft']:not([trigger]):hover)  .popover, 
         :host([placement='topLeft'][trigger='hover']:hover)  .popover { 
@@ -177,7 +173,6 @@ export class LitPopover extends BaseElement {
             opacity: 1;
             transform: translate(0%,calc(-100% - 12px)) scale(1);
         }
-        /*topRight*/
         :host([placement='topRight']) .popover{
             top: 0;
             right: 0;
@@ -201,7 +196,6 @@ export class LitPopover extends BaseElement {
             opacity: 1;
             transform: translate(0%,calc(-100% - 12px)) scale(1);
         }
-        /*leftTop*/
         :host([placement='leftTop']) .popover{
             top: 0;
             right: 100%;
@@ -226,7 +220,6 @@ export class LitPopover extends BaseElement {
             opacity: 1;
             transform: translate(-12px,0) scale(1);
         }
-        /*left*/
         :host([placement='left']) .popover{
             right: 100%;
             top: 50%;
@@ -251,7 +244,6 @@ export class LitPopover extends BaseElement {
             opacity: 1;
             transform: translate(-12px,-50%) scale(1);
         }
-        /*leftBottom*/
         :host([placement='leftBottom']) .popover{
             right: 100%;
             bottom: 0;
@@ -276,7 +268,6 @@ export class LitPopover extends BaseElement {
             opacity: 1;
             transform: translate(-12px,0%) scale(1);
         }
-        /*rightTop*/
         :host([placement='rightTop']) .popover{
             top: 0;
             left: 100%;
@@ -301,7 +292,6 @@ export class LitPopover extends BaseElement {
             opacity: 1;
             transform: translate(12px,0) scale(1);
         }
-        /*right*/
         :host([placement='right']) .popover{
             top: 50%;
             left: 100%;
@@ -326,7 +316,6 @@ export class LitPopover extends BaseElement {
             opacity: 1;
             transform: translate(12px,-50%) scale(1);
         }
-        /*rightBottom*/
         :host([placement='rightBottom']) .popover{
             bottom: 0;
             left: 100%;
@@ -352,7 +341,6 @@ export class LitPopover extends BaseElement {
             transform: translate(12px,0%) scale(1);
         }
         
-        /*bottomLeft*/
         :host([placement='bottomLeft']) .popover{
             bottom: 0;
             /*left: 0;*/
@@ -362,7 +350,6 @@ export class LitPopover extends BaseElement {
             transform-origin: top left;
         }
         :host([placement='bottomLeft']) .popover:after{
-            /*border-bottom: 6px solid #fff;*/
             bottom: calc(100%);
             transform: translate(0%,0%);
             left: 0;
@@ -378,7 +365,6 @@ export class LitPopover extends BaseElement {
             opacity: 1;
             transform: translate(0%,calc(100% + 12px)) scale(1);
         }
-        /*bottom*/
         :host([placement='bottom']) .popover{
             bottom: 0;
             left: 50%;
@@ -440,54 +426,55 @@ export class LitPopover extends BaseElement {
         `
     }
 
-    //当 custom element首次被插入文档DOM时，被调用。
     connectedCallback() {
-        let popover:any = this.shadowRoot!.querySelector('.popover');
-        let checkbox:any = this.shadowRoot!.querySelector('.trigger-click');
+        let popover: any = this.shadowRoot!.querySelector('.popover');
+        let checkbox: any = this.shadowRoot!.querySelector('.trigger-click');
         this.setAttribute('tabindex', '1');
-        popover.onclick = (e:any) => {
+        popover.onclick = (e: any) => {
             e.stopPropagation();
         }
-        popover.addEventListener('mousemove',(e:any)=>{
+        popover.addEventListener('mousemove', (e: any) => {
             e.stopPropagation();
         })
-        this.onclick = (e) => {
+        this.onclick = (e: any) => {
             e.stopPropagation();
-            // e.preventDefault()
-            this.focus();
+            if (e.relatedTarget?.hasAttribute("not-close")) {
+                this.focus();
+            }
             checkbox.checked = !checkbox.checked;
+            this.visible = checkbox.checked
         }
-        this.onblur = (ev:any) => {
-            if (ev.relatedTarget&&this.haveRadio) {
-                if (ev.relatedTarget.type === "radio") {
+        this.onblur = (ev: any) => {
+            if (ev.relatedTarget && this.haveRadio) {
+                if (ev.relatedTarget.hasAttribute("not-close")) {
+                } else if (ev.relatedTarget.type === "radio") {
                     this.focus();
-                }else {
-                    checkbox.checked = false;
+                } else {
+                    // @ts-ignore
+                    this.visible = false
                 }
-            }else {
-                checkbox.checked = false;
+            } else {
+                // @ts-ignore
+                this.visible = false
             }
         }
     }
 
-    //当 custom element从文档DOM中删除时，被调用。
     disconnectedCallback() {
 
     }
 
-    //当 custom element被移动到新的文档时，被调用。
     adoptedCallback() {
     }
 
-    //当 custom element增加、删除、修改自身属性时，被调用。
-    attributeChangedCallback(name:any, oldValue:any, newValue:any) {
-        if(name==='visible'){
-            if(newValue==='false'){
+    attributeChangedCallback(name: any, oldValue: any, newValue: any) {
+        if (name === 'visible') {
+            if (newValue === 'false') {
                 // @ts-ignore
-                this.shadowRoot!.querySelector('.trigger-click')!.checked=false;
-            }else{
+                this.shadowRoot!.querySelector('.trigger-click')!.checked = false;
+            } else {
                 // @ts-ignore
-                this.shadowRoot!.querySelector('.trigger-click')!.checked=true;
+                this.shadowRoot!.querySelector('.trigger-click')!.checked = true;
             }
         }
     }

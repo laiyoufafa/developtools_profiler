@@ -51,6 +51,10 @@ describe('FuncStruct Test', ()=>{
     it('FuncStructTest03', function () {
         expect(FuncStruct.drawString(ctx, 2, durData, durData.frame)).toBeUndefined()
     });
+    it('FuncStructTest06 ', function () {
+        expect(FuncStruct.drawString(ctx,3,durData,durData.frame)).toBeUndefined()
+
+    });
 
     it('FuncStructTest04', function () {
         expect(FuncStruct.isSelected({
@@ -60,11 +64,13 @@ describe('FuncStruct Test', ()=>{
         })).toBeTruthy();
     });
 
+
     it('FuncStructTest05', function () {
         expect(FuncStruct.isBinder({
             startTs: 10,
             dur: 10,
-            funName: ''
+            funName: null
         })).toBeFalsy();
     });
+
 })

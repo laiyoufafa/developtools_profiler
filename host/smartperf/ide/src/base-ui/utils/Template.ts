@@ -25,7 +25,8 @@ declare interface HTMLTemplateElement {
         this.$fragment = this.cloneNode(true);
         this.fragment = document.createElement('TEMPLATE');
 
-        // v-for
+        // v-for Loop rendering
+        // <div v-for="list"></div>   =>    ${ list.map(function(item,index){ return '<div></div>' }).join('') }
         const repeatEls = this.$fragment.content.querySelectorAll(`[\\${rule}for]`);
         repeatEls.forEach((el: any) => {
             const strFor = el.getAttribute(`${rule}for`);
@@ -35,7 +36,8 @@ declare interface HTMLTemplateElement {
             el.after('`}).join("")}');
         })
 
-        // v-if
+        // v-if Conditional rendering
+        // <div v-if="if"></div>   =>    ${ if ? '<div></div>' : '' }
         const ifEls = this.$fragment.content.querySelectorAll(`[\\${rule}if]`);
         ifEls.forEach((el: any) => {
             const ifs = el.getAttribute(`${rule}if`);
@@ -44,7 +46,7 @@ declare interface HTMLTemplateElement {
             el.after('`:`<!--if:' + el.tagName + '-->`}');
         })
 
-        // fragment
+        // fragment   <fragment>aa</fragment>   =>  aa
         const fragments = this.$fragment.content.querySelectorAll('fragment,block');
         fragments.forEach((el: any) => {
             el.after(el.innerHTML);
@@ -57,6 +59,7 @@ declare interface HTMLTemplateElement {
     const propsEls = this.fragment.content.querySelectorAll(`[${propsMap.join('],[')}]`);
     propsEls.forEach((el: any) => {
         propsMap.forEach((props: any) => {
+            // If these attribute values are false, they are removed directly
             if (el.getAttribute(props) === 'false') {
                 el.removeAttribute(props);
             }
@@ -66,6 +69,7 @@ declare interface HTMLTemplateElement {
 }
 
 function parseFor(strFor: String) {
+    // Whether it is an object
     const isObject = strFor.includes(' of ');
     const reg = /\s(?:in|of)\s/g;
     const [keys, obj] = strFor.match(reg) ? strFor.split(reg) : ["item", strFor];
@@ -74,6 +78,7 @@ function parseFor(strFor: String) {
     return {isArray: !isObject, items, params}
 }
 
+// String to template string
 (String as any).prototype.interpolate = function (params: any) {
     const names = Object.keys(params);
     const vals = Object.values(params);
@@ -81,6 +86,7 @@ function parseFor(strFor: String) {
     return new Function(...names, `return \`${escape2Html(str)}\`;`)(...vals);
 };
 
+// HTML Character inversion meaning   &lt;  =>  <
 function escape2Html(str: string) {
     let arrEntities: any = {'lt': '<', 'gt': '>', 'nbsp': ' ', 'amp': '&', 'quot': '"'};
     return str.replace(/&(lt|gt|nbsp|amp|quot);/ig, function (all, t) {

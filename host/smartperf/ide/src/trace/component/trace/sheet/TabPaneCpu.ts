@@ -22,7 +22,6 @@ export class TabPaneCpu extends BaseElement {
     private tbl: LitTable | null | undefined;
 
     set data(val: CpuStruct) {
-        console.log(val);
         this.tbl!.dataSource = [
             {name: 'Process', value: `${val.processName || 'Process'} [${val.processId}]`},
             {name: 'Thread', value: `${val.name || 'Thread'} [${val.tid}]`},
@@ -41,19 +40,20 @@ export class TabPaneCpu extends BaseElement {
 
     initHtml(): string {
         return `
-<style>
-:host{
-    display: flex;
-    flex-direction: column;
-    padding: 10px 10px;
-}
-</style>
-<label style="font-size: 15pt">Slice Details</label>
-<lit-table id="tbl3" no-head style="height: auto">
-    <lit-table-column title="name" data-index="name" key="name" align="flex-start"  width="150px"></lit-table-column>
-    <lit-table-column title="value" data-index="value" key="value" align="flex-start" ></lit-table-column>
-</lit-table>
+        <style>
+        :host{
+            display: flex;
+            flex-direction: column;
+            padding: 10px 10px;
+        }
+        </style>
+        <label style="font-size: 15pt">Slice Details</label>
+        <lit-table id="tbl3" no-head style="height: auto">
+            <lit-table-column title="name" data-index="name" key="name" align="flex-start"  width="150px">
+            </lit-table-column>
+            <lit-table-column title="value" data-index="value" key="value" align="flex-start" >
+            </lit-table-column>
+        </lit-table>
         `;
     }
-
 }

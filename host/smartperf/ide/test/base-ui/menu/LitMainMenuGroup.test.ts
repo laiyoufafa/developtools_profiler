@@ -36,9 +36,97 @@ describe("litMainMenuGroup Test", () => {
         expect(litMainMenuGroup.collapsed).toBeTruthy()
     });
 
-    it('litMainMenuGroup03', () => {
+    it('litMainMenuGroup04', () => {
         let litMainMenuGroup = new LitMainMenuGroup();
         litMainMenuGroup.collapsed = false
+        expect(litMainMenuGroup.collapsed).toBeFalsy()
+    });
+
+    it('litMainMenuGroup06', () => {
+        let litMainMenuGroup = new LitMainMenuGroup();
+        expect(litMainMenuGroup.radius).toBeFalsy()
+    });
+
+    it('litMainMenuGroup07', () => {
+        let litMainMenuGroup = new LitMainMenuGroup();
+        expect(litMainMenuGroup.initHtml()).toMatchInlineSnapshot(`
+"
+        <style>
+        :host{
+            transition: background-color .3s;
+            user-select: none;
+        }
+        :host(:not([collapsed])){ 
+            display: flex;
+            flex-direction: column;
+            width: 248px;
+            background-color: var(--dark-background,#FFFFFF);
+            cursor: pointer;
+        }
+        :host(:not([collapsed])) ::slotted(lit-main-menu-item){
+            display: flex;
+        }
+        :host(:not([collapsed])) .group-describe{
+            visibility: hidden;
+            height: 0;
+        }
+        :host([collapsed]){
+            display: flex;
+            flex-direction: column;
+            width: 248px;
+            background-color: var(--dark-background,#FFFFFF);
+            cursor: pointer;
+        }
+        :host([collapsed]):hover){
+            background-color: #FFFFFF;
+        }
+        :host([collapsed]) ::slotted(lit-main-menu-item){
+            display: none;
+        }
+        :host([collapsed]) .group-describe{
+            visibility: visible;
+            height: auto;
+        }
+        :host([radius]) {
+            border-radius: 16px 0px 0px 16px ;
+        }
+        .group-name{
+            font-family: Helvetica;
+            font-size: 14px;
+            color: var(--dark-color1,#212121);
+            text-align: left;
+            line-height: 16px;
+            font-weight: 400;
+            padding: 20px 24px 0px 24px;
+        }
+        .group-describe{
+            color:#92959b;
+            padding: 4px 24px 20px 24px;
+            font-size: .6rem;
+        }
+       
+        </style>
+        <div class=\\"group-name\\"></div>
+        <div class=\\"group-describe\\"></div>
+        <slot></slot>
+        "
+`);
+    });
+
+    it('litMainMenuGroup04', () => {
+        let litMainMenuGroup = new LitMainMenuGroup();
+        litMainMenuGroup.nocollapsed = true
+        expect(litMainMenuGroup.nocollapsed).toBeTruthy()
+    });
+
+    it('litMainMenuGroup04', () => {
+        let litMainMenuGroup = new LitMainMenuGroup();
+        litMainMenuGroup.nocollapsed = false
+        expect(litMainMenuGroup.nocollapsed).toBeFalsy()
+    });
+
+    it('litMainMenuGroup05', () => {
+        let litMainMenuGroup = new LitMainMenuGroup();
         expect(litMainMenuGroup.collapsed).toBeFalsy()
     });
 })

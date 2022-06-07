@@ -23,7 +23,7 @@ export function thread(list: Array<any>, res: Set<any>, startNS: number, endNS: 
             if ((it.startTime || 0) + (it.dur || 0) > startNS && (it.startTime || 0) < endNS) {
                 ThreadStruct.setThreadFrame(list[i], 5, startNS, endNS, totalNS, frame)
                 if (i > 0 && ((list[i - 1].frame?.x || 0) == (list[i].frame?.x || 0) && (list[i - 1].frame?.width || 0) == (list[i].frame?.width || 0))) {
-                    continue;
+
                 } else {
                     res.add(list[i])
                 }
@@ -32,9 +32,34 @@ export function thread(list: Array<any>, res: Set<any>, startNS: number, endNS: 
     }
 }
 
-const padding = 1;
+const padding = 3;
 
 export class ThreadStruct extends BaseStruct {
+    static runningColor: string = "#467b3b";
+    static rColor = "#a0b84d";
+    static otherColor = "#673ab7";
+    static uninterruptibleSleepColor = "#f19d38";
+    static traceColor = "#0d47a1";
+    static sColor = "#FBFBFB";
+    static hoverThreadStruct: ThreadStruct | undefined;
+    static selectThreadStruct: ThreadStruct | undefined;
+    static statusMap: any = {
+        "D": "Uninterruptible Sleep",
+        "S": "Sleeping",
+        "R": "Runnable",
+        "Running": "Running",
+        "R+": "Runnable (Preempted)",
+        "DK": "Uninterruptible Sleep + Wake Kill",
+        "I": "Task Dead",
+        "T": "Traced",
+        "t": "Traced",
+        "X": "Exit (Dead)",
+        "Z": "Exit (Zombie)",
+        "K": "Wake Kill",
+        "W": "Waking",
+        "P": "Parked",
+        "N": "No Load"
+    }
     hasSched: number | undefined;// 14724852000
     pid: number | undefined// 2519
     processName: string | undefined //null
@@ -42,7 +67,6 @@ export class ThreadStruct extends BaseStruct {
     tid: number | undefined //2716
     upid: number | undefined // 1
     utid: number | undefined // 1
-
     cpu: number | undefined // null
     dur: number | undefined // 405000
     end_ts: number | undefined // null
@@ -53,13 +77,6 @@ export class ThreadStruct extends BaseStruct {
     start_ts: number | undefined // null
     state: string | undefined // "S"
     type: string | undefined // "thread"
-
-    static runningColor: string = "#467b3b";
-    static rColor = "#a0b84d";
-    static uninterruptibleSleepColor = "#f19d38";
-    static sColor = "#FBFBFB";
-    static hoverThreadStruct: ThreadStruct | undefined;
-    static selectThreadStruct: ThreadStruct | undefined;
 
     static setThreadFrame(node: any, padding: number, startNS: number, endNS: number, totalNS: number, frame: any) {
         let x1: number;
@@ -81,7 +98,7 @@ export class ThreadStruct extends BaseStruct {
         node.frame.x = Math.floor(x1);
         node.frame.y = frame.y + padding;
         node.frame.width = Math.ceil(getV);
-        node.frame.height = 40 - padding * 2;
+        node.frame.height = 30 - padding * 2;
     }
 
     static draw(ctx: CanvasRenderingContext2D, data: ThreadStruct) {
@@ -93,26 +110,31 @@ export class ThreadStruct extends BaseStruct {
                 ctx.globalAlpha = 0.2; // transparency
                 ctx.fillRect(data.frame.x, data.frame.y + padding, data.frame.width, data.frame.height - padding * 2)
                 ctx.globalAlpha = 1; // transparency
-            } else if ("R" == data.state) {
+            } else if ("R" == data.state || "R+" == data.state) {
                 ctx.fillStyle = ThreadStruct.rColor;
                 ctx.fillRect(data.frame.x, data.frame.y + padding, data.frame.width, data.frame.height - padding * 2)
                 ctx.fillStyle = "#fff";
-                data.frame.width > 4 &&ThreadStruct.drawString(ctx, ThreadStruct.getEndState(data.state || ''), 2, data.frame);
+                data.frame.width > 4 && ThreadStruct.drawString(ctx, ThreadStruct.getEndState(data.state || ''), 2, data.frame);
             } else if ("D" == data.state) {
                 ctx.fillStyle = ThreadStruct.uninterruptibleSleepColor;
                 ctx.fillRect(data.frame.x, data.frame.y + padding, data.frame.width, data.frame.height - padding * 2)
                 ctx.fillStyle = "#fff";
-                data.frame.width > 4 &&ThreadStruct.drawString(ctx, ThreadStruct.getEndState(data.state || ''), 2, data.frame);
+                data.frame.width > 4 && ThreadStruct.drawString(ctx, ThreadStruct.getEndState(data.state || ''), 2, data.frame);
             } else if ("Running" == data.state) {
                 ctx.fillStyle = ThreadStruct.runningColor;
                 ctx.fillRect(data.frame.x, data.frame.y + padding, data.frame.width, data.frame.height - padding * 2)
                 ctx.fillStyle = "#fff";
                 data.frame.width > 4 && ThreadStruct.drawString(ctx, ThreadStruct.getEndState(data.state || ''), 2, data.frame);
-            } else {
-                ctx.fillStyle = ThreadStruct.rColor;
+            } else if ("T" == data.state || "t" == data.state) {
+                ctx.fillStyle = ThreadStruct.traceColor;
                 ctx.fillRect(data.frame.x, data.frame.y + padding, data.frame.width, data.frame.height - padding * 2)
                 ctx.fillStyle = "#fff";
-                data.frame.width > 4 &&ThreadStruct.drawString(ctx, ThreadStruct.getEndState(data.state || ''), 2, data.frame);
+                ThreadStruct.drawString(ctx, ThreadStruct.getEndState(data.state || ''), 2, data.frame);
+            } else {
+                ctx.fillStyle = ThreadStruct.otherColor;
+                ctx.fillRect(data.frame.x, data.frame.y + padding, data.frame.width, data.frame.height - padding * 2)
+                ctx.fillStyle = "#fff";
+                data.frame.width > 4 && ThreadStruct.drawString(ctx, ThreadStruct.getEndState(data.state || ''), 2, data.frame);
             }
             if (ThreadStruct.selectThreadStruct && ThreadStruct.equals(ThreadStruct.selectThreadStruct, data) && ThreadStruct.selectThreadStruct.state != "S") {
                 ctx.strokeStyle = '#232c5d'
@@ -128,6 +150,7 @@ export class ThreadStruct extends BaseStruct {
         if (textMetrics.width < frame.width - textPadding * 2) {
             let x2 = Math.floor(frame.width / 2 - textMetrics.width / 2 + frame.x + textPadding)
             ctx.textBaseline = "middle"
+            ctx.font = "8px sans-serif";
             ctx.fillText(str, x2, Math.floor(frame.y + frame.height / 2), frame.width - textPadding * 2)
             return;
         }
@@ -135,27 +158,10 @@ export class ThreadStruct extends BaseStruct {
             let chatNum = (frame.width - textPadding * 2) / charWidth;
             let x1 = frame.x + textPadding
             ctx.textBaseline = "middle"
+            ctx.font = "8px sans-serif";
             ctx.fillText(str.substring(0, chatNum - 4) + '...', x1, Math.floor(frame.y + frame.height / 2), frame.width - textPadding * 2)
             return;
         }
-    }
-
-    static statusMap: any = {
-        "D": "Uninterruptible Sleep",
-        "S": "Sleeping",
-        "R": "Runnable",
-        "Running": "Running",
-        "R+": "Runnable (Preempted)",
-        "DK": "Uninterruptible Sleep + Wake Kill",
-        "I": "Task Dead",
-        "T": "Stopped",
-        "t": "Traced",
-        "X": "Exit (Dead)",
-        "Z": "Exit (Zombie)",
-        "K": "Wake Kill",
-        "W": "Waking",
-        "P": "Parked",
-        "N": "No Load"
     }
 
     static getEndState(state: string): string {

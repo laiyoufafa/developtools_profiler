@@ -19,7 +19,7 @@ import {SelectionData, SelectionParam} from "../../../bean/BoxSelection.js";
 import "../../StackBar.js"
 import {getTabThreadStates} from "../../../database/SqlLite.js";
 import {Utils} from "../base/Utils.js";
-import {StackBar} from "../../StackBar";
+import {StackBar} from "../../StackBar.js";
 
 @element('tabpane-thread-states')
 export class TabPaneThreadStates extends BaseElement {
@@ -29,7 +29,8 @@ export class TabPaneThreadStates extends BaseElement {
     private source: Array<SelectionData> = []
 
     set data(val: SelectionParam | any) {
-        this.range!.textContent = "Selected range: " + ((val.rightNs - val.leftNs) / 1000000.0).toFixed(7) + " ms"
+        // // @ts-ignore
+        this.range!.textContent = "Selected range: " + ((val.rightNs - val.leftNs) / 1000000.0).toFixed(5) + " ms"
         getTabThreadStates(val.threadIds, val.leftNs, val.rightNs).then((result) => {
             if (result != null && result.length > 0) {
                 let sumWall = 0.0;
@@ -72,27 +73,35 @@ export class TabPaneThreadStates extends BaseElement {
 
     initHtml(): string {
         return `
-<style>
-:host{
-    display: flex;
-    flex-direction: column;
-    padding: 10px 10px;
-}
-</style>
-<div style="display: flex;height: 20px;align-items: center;flex-direction: row;margin-bottom: 5px">
-    <stack-bar id="stack-bar" style="flex: 1"></stack-bar>
-    <label id="time-range"  style="width: auto;text-align: end;font-size: 10pt;">Selected range:0.0 ms</label>
-</div>
-<lit-table id="tb-thread-states" style="height: auto">
-    <lit-table-column width="25%" title="Process" data-index="process" key="process"  align="flex-start" order></lit-table-column>
-    <lit-table-column width="1fr" title="PID" data-index="pid" key="pid"  align="flex-start" order ></lit-table-column>
-    <lit-table-column width="25%" title="Thread" data-index="thread" key="thread"  align="flex-start" order ></lit-table-column>
-    <lit-table-column width="1fr" title="TID" data-index="tid" key="tid"  align="flex-start" order ></lit-table-column>
-    <lit-table-column width="1fr" title="State" data-index="state" key="state"  align="flex-start" order ></lit-table-column>
-    <lit-table-column width="1fr" title="Wall duration(ms)" data-index="wallDuration" key="wallDuration"  align="flex-start" order ></lit-table-column>
-    <lit-table-column width="1fr" title="Avg Wall duration(ms)" data-index="avgDuration" key="avgDuration"  align="flex-start" order ></lit-table-column>
-    <lit-table-column width="1fr" title="Occurrences" data-index="occurrences" key="occurrences"  align="flex-start" order ></lit-table-column>
-</lit-table>
+        <style>
+        :host{
+            display: flex;
+            flex-direction: column;
+            padding: 10px 10px;
+        }
+        </style>
+        <div style="display: flex;height: 20px;align-items: center;flex-direction: row;margin-bottom: 5px">
+            <stack-bar id="stack-bar" style="flex: 1"></stack-bar>
+            <label id="time-range"  style="width: auto;text-align: end;font-size: 10pt;">Selected range:0.0 ms</label>
+        </div>
+        <lit-table id="tb-thread-states" style="height: auto">
+            <lit-table-column width="25%" title="Process" data-index="process" key="process"  align="flex-start" order>
+            </lit-table-column>
+            <lit-table-column width="1fr" title="PID" data-index="pid" key="pid"  align="flex-start" order >
+            </lit-table-column>
+            <lit-table-column width="20%" title="Thread" data-index="thread" key="thread"  align="flex-start" order >
+            </lit-table-column>
+            <lit-table-column width="1fr" title="TID" data-index="tid" key="tid"  align="flex-start" order >
+            </lit-table-column>
+            <lit-table-column width="1fr" title="State" data-index="state" key="state"  align="flex-start" order >
+            </lit-table-column>
+            <lit-table-column width="1fr" title="Wall duration(ms)" data-index="wallDuration" key="wallDuration"  align="flex-start" order >
+            </lit-table-column>
+            <lit-table-column width="1fr" title="Avg Wall duration(ms)" data-index="avgDuration" key="avgDuration"  align="flex-start" order >
+            </lit-table-column>
+            <lit-table-column width="1fr" title="Occurrences" data-index="occurrences" key="occurrences"  align="flex-start" order >
+            </lit-table-column>
+        </lit-table>
         `;
     }
 

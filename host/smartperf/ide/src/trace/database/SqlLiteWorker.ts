@@ -71,7 +71,7 @@ self.onmessage = async (e: any) => {
     if (e.data.action === "open") {
         let array = new Uint8Array(e.data.buffer);
         // @ts-ignore
-        initSqlJs({locateFile: filename => `${filename}`}).then((SQL:any) => {
+        initSqlJs({locateFile: filename => `${filename}`}).then((SQL: any) => {
             conn = new SQL.Database(array);
             // @ts-ignore
             self.postMessage({id: e.data.id, ready: true, index: 0});
@@ -98,7 +98,7 @@ self.onmessage = async (e: any) => {
             stmt.free();
             // @ts-ignore
             self.postMessage({id: e.data.id, results: res});
-        } catch (err:any) {
+        } catch (err: any) {
             // @ts-ignore
             self.postMessage({id: e.data.id, results: [], error: err.message});
         }

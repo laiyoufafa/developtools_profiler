@@ -18,6 +18,41 @@ import {BaseElement, element} from "../BaseElement.js";
 
 @element('lit-switch')
 export default class LitSwitch extends BaseElement {
+    private switch: HTMLInputElement | null | undefined
+    private isfocus: boolean | undefined
+
+    static get observedAttributes() {
+        return ['disabled', 'checked']
+    }
+
+    get disabled() {
+        return this.getAttribute("disabled") !== null;
+    }
+
+    set disabled(value) {
+        if (value === null || value === false) {
+            this.removeAttribute("disabled");
+        } else {
+            this.setAttribute("disabled", "");
+        }
+    }
+
+    get checked() {
+        return this.getAttribute("checked") !== null;
+    }
+
+    set checked(value) {
+        if (value === null || value === false) {
+            this.removeAttribute("checked");
+        } else {
+            this.setAttribute("checked", "");
+        }
+    }
+
+    get name() {
+        return this.getAttribute("name");
+    }
+
     initElements(): void {
 
     }
@@ -36,9 +71,14 @@ export default class LitSwitch extends BaseElement {
             height:1.2em;
             padding:.125em;
             border-radius:1.2em;
-            background:#eee;
+            background: #3391FF;
             transition:.3s width,.3s height,.3s background-color;
         }
+        
+        :host(:not([checked])) #name {
+           background: #999999;
+        }
+       
         #name::before{
             content:'';
             flex:0;
@@ -88,39 +128,6 @@ export default class LitSwitch extends BaseElement {
         <input type="checkbox" id="switch"><label id="name" for="switch"></label>
         `;
     }
-    static get observedAttributes() {
-        return ['disabled', 'checked']
-    }
-
-    get disabled() {
-        return this.getAttribute("disabled") !== null;
-    }
-
-    get checked() {
-        return this.getAttribute("checked") !== null;
-    }
-
-    get name() {
-        return this.getAttribute("name");
-    }
-
-    set disabled(value) {
-        if (value === null || value === false) {
-            this.removeAttribute("disabled");
-        } else {
-            this.setAttribute("disabled", "");
-        }
-    }
-
-    set checked(value) {
-        if (value === null || value === false) {
-            this.removeAttribute("checked");
-        } else {
-            this.setAttribute("checked", "");
-        }
-    }
-    private switch:HTMLInputElement | null | undefined
-    private isfocus:boolean|undefined
 
     connectedCallback() {
         this.switch = this.shadowRoot?.getElementById("switch") as HTMLInputElement;
@@ -157,20 +164,21 @@ export default class LitSwitch extends BaseElement {
         }
     }
 
-    attributeChangedCallback(name:string, oldValue:string, newValue:string) {
-        if(name==="disabled"&&this.switch){
-            if(newValue!==null){
-                this.switch.setAttribute("disabled","");
-            }else{
+    attributeChangedCallback(name: string, oldValue: string, newValue: string) {
+        if (name === "disabled" && this.switch) {
+            if (newValue !== null) {
+                this.switch.setAttribute("disabled", "");
+            } else {
                 this.switch.removeAttribute("disabled");
             }
         }
-        if(name==="checked"&&this.switch){
-            if(newValue!==null){
-                this.switch.checked=true;
-            }else{
-                this.switch.checked=false;
+        if (name === "checked" && this.switch) {
+            if (newValue !== null) {
+                this.switch.checked = true;
+            } else {
+                this.switch.checked = false;
             }
         }
     }
 }
+

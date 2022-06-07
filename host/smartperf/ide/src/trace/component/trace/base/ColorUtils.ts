@@ -18,46 +18,36 @@ import {CpuStruct} from "../../../bean/CpuStruct.js";
 export class ColorUtils {
     public static GREY_COLOR: string = "#f0f0f0"
 
-    /**
-     * Color array of all current columns
-     */
     public static MD_PALETTE: Array<string> = [
-        "#3391ff",// red
-        "#0076ff",// pink
-        "#66adff",// purple
-        "#2db3aa",// deep purple
-        "#008078",// indigo
-        "#73e6de",// blue
-        "#535da6",// light blue
-        "#38428c", // cyan
-        "#7a84cc",// teal
-        "#ff9201",// green
-        "#ff7500",// light green
-        "#ffab40",// lime
-        "#2db4e2",// amber 0xffc105
-        "#0094c6", // orange
-        "#7cdeff",// deep orange
-        "#ffd44a", // brown
-        "#fbbf00",// blue gray
-        "#ffe593",// yellow 0xffec3d
+        "#3391ff",
+        "#0076ff",
+        "#66adff",
+        "#2db3aa",
+        "#008078",
+        "#73e6de",
+        "#535da6",
+        "#38428c",
+        "#7a84cc",
+        "#ff9201",
+        "#ff7500",
+        "#ffab40",
+        "#2db4e2",
+        "#0094c6",
+        "#7cdeff",
+        "#ffd44a",
+        "#fbbf00",
+        "#ffe593",
     ];
     public static FUNC_COLOR: Array<string> = [
-        "#3391ff", // purple
+        "#3391ff",
         "#2db4e2",
-        "#2db3aa", // deep purple
+        "#2db3aa",
         "#ffd44a",
-        "#535da6", // indigo
-        "#008078", // blue
+        "#535da6",
+        "#008078",
         "#ff9201",
         "#38428c"];
 
-    /**
-     * Get the color value according to the length of the string
-     *
-     * @param str str
-     * @param max max
-     * @return int
-     */
     public static hash(str: string, max: number): number {
         let colorA: number = 0x811c9dc5;
         let colorB: number = 0xfffffff;
@@ -72,12 +62,6 @@ export class ColorUtils {
         return Math.abs(hash) % max;
     }
 
-    /**
-     * Get color based on cpu object data
-     *
-     * @param thread thread
-     * @return Color
-     */
     public static colorForThread(thread: CpuStruct): string {
         if (thread == null) {
             return ColorUtils.GREY_COLOR;
@@ -86,12 +70,6 @@ export class ColorUtils {
         return ColorUtils.colorForTid(tid || 0);
     }
 
-    /**
-     * Get color according to tid
-     *
-     * @param tid tid
-     * @return Color
-     */
     public static colorForTid(tid: number): string {
         let colorIdx: number = ColorUtils.hash(`${tid}`, ColorUtils.MD_PALETTE.length);
         return ColorUtils.MD_PALETTE[colorIdx];

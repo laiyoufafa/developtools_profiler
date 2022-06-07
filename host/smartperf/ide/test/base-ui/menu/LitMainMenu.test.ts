@@ -44,18 +44,92 @@ describe("LitMainMenu Test", () => {
                         icon: "folder",
                         fileChoose: true,
                         fileHandler: function (ev: InputEvent) {
-                            console.log(ev);
                         }
 
                     },
                     {
                         title: "Record new trace", icon: "copyhovered", clickHandler: function (item: MenuItem) {
-                            console.log(item);
                         }
                     }
                 ]
             }
         ]
         expect(litMainMenu.menus.length).toBe(1)
+    });
+
+    it('LitMainMenu03', () => {
+        let litMainMenu = new LitMainMenu();
+        expect(litMainMenu.initHtml()).toMatchInlineSnapshot(`
+"
+        <style>
+        :host{
+            display: flex;
+            flex-direction: column;
+            width: 248px;
+            background-color: var(--dark-background,#FFFFFF);
+            height: 100vh;
+        }
+        .menu-body ::-webkit-scrollbar-track
+        {
+            border-radius:10px;
+            background-color:#F5F5F5;
+        }
+        .menu-body ::-webkit-scrollbar-thumb
+        {
+            border-radius:10px;
+            background-color: var(--dark-background,#FFFFFF);
+
+        }
+        .header{
+            display: grid;
+            background-color: var(--dark-background1,#FFFFFF);
+            border-bottom: 1px solid var(--dark-background1,#EFEFEF);
+            color: #47A7E0;
+            font-size: 1.4rem;
+            padding-left: 20px;
+            /*padding-right: 10px;*/
+            gap: 0 20px;
+            box-sizing: border-box;
+            width: 100%;
+            height: 56px;
+            grid-template-columns: min-content 1fr min-content;
+            grid-template-rows: auto;
+        }
+        .header *{
+            align-self: center;
+            user-select: none;
+        }
+        .version{
+            color: #94979d;
+            padding: 20px;
+            font-size: 0.6rem;
+            width: 100%;
+            text-align: right;
+        }
+        *{
+            box-sizing: border-box;
+        }
+        .menu-button{
+            height: 47px;
+            width: 48px;
+            display: flex;
+            align-content: center;
+            justify-content: right;
+            cursor: pointer;
+        }
+        </style>
+        <div name=\\"header\\" class=\\"header\\">
+            <img src=\\"img/logo.png\\"/>
+                <div class=\\"menu-button\\">
+                    <lit-icon name=\\"menu\\" size=\\"20\\" color=\\"var(--dark-color1,#4D4D4D)\\"></lit-icon>
+                </div>
+            </div>
+            <div class=\\"menu-body\\" style=\\"overflow: auto;overflow-x:hidden;height: 100%\\">
+                <slot id=\\"st\\" ></slot>
+            </div>
+        <div class=\\"version\\" style=\\"\\">
+        </div>
+        "
+`);
     });
 })

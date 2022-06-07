@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+
 import {BaseElement, element} from "../BaseElement.js";
 
 @element('lit-icon')
@@ -21,12 +22,14 @@ export class LitIcon extends BaseElement {
     private icon: HTMLElement | undefined | null
     private use: SVGUseElement | undefined | null
     private d: SVGPathElement | undefined | null
+    private _name?: string
+    private _size?: number
+    private _color?: string
+    private _path?: string
 
     static get observedAttributes() {
         return ["name", "size", "color", "path"]
     }
-
-    private _name?: string
 
     get name(): string {
         return this.getAttribute("name") || "";
@@ -37,8 +40,6 @@ export class LitIcon extends BaseElement {
         this.setAttribute("name", value)
     }
 
-    private _size?: number
-
     get size(): number {
         return parseInt(this.getAttribute("size") || '0', 10)
     }
@@ -48,14 +49,10 @@ export class LitIcon extends BaseElement {
         this.setAttribute("size", `${value}`)
     }
 
-    private _color?: string
-
     set color(value: string) {
         this._color = value;
         this.setAttribute('color', value)
     }
-
-    private _path?: string
 
     set path(value: string) {
         this._path = value
@@ -118,3 +115,4 @@ export class LitIcon extends BaseElement {
         }
     }
 }
+

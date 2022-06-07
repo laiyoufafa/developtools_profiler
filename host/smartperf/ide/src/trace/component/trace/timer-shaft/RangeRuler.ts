@@ -15,13 +15,23 @@
 
 import {Graph} from "./Graph.js";
 import {Rect} from "./Rect.js";
-import {ns2s} from "../TimerShaftElement.js";
+import {ns2s, TimerShaftElement} from "../TimerShaftElement.js";
 import {ColorUtils} from "../base/ColorUtils.js";
 import {CpuStruct} from "../../../bean/CpuStruct.js";
 
 const markPadding = 5;
 
 export class Mark extends Graph {
+    name: string | undefined
+    inspectionFrame: Rect
+    private _isHover: boolean = false
+
+    constructor(canvas: HTMLCanvasElement | undefined | null, name: string, c: CanvasRenderingContext2D, frame: Rect) {
+        super(canvas, c, frame);
+        this.name = name;
+        this.inspectionFrame = new Rect(frame.x - markPadding, frame.y, frame.width + markPadding * 2, frame.height)
+    }
+
     get isHover(): boolean {
         return this._isHover;
     }
@@ -33,16 +43,6 @@ export class Mark extends Graph {
         } else {
             document.body.style.cursor = 'default'
         }
-    }
-
-    name: string | undefined
-    private _isHover: boolean = false
-    inspectionFrame: Rect
-
-    constructor(canvas: HTMLCanvasElement | undefined | null, name: string, c: CanvasRenderingContext2D, frame: Rect) {
-        super(canvas, c, frame);
-        this.name = name;
-        this.inspectionFrame = new Rect(frame.x - markPadding, frame.y, frame.width + markPadding * 2, frame.height)
     }
 
     draw(): void {
@@ -62,6 +62,12 @@ export class Mark extends Graph {
 }
 
 export interface TimeRange {
+    slicesTime: {
+        color: string|null|undefined;
+        startTime: number | null | undefined;
+        endTime: number | null | undefined;
+    };
+    scale: number;
     totalNS: number
     startX: number
     endX: number
@@ -76,23 +82,38 @@ export class RangeRuler extends Graph {
     public markA: Mark
     public markB: Mark
     public range: TimeRange;
+    mouseDownOffsetX = 0
+    mouseDownMovingMarkX = 0
+    movingMark: Mark | undefined | null;
+    isMouseDown: boolean = false;
+    isMovingRange: boolean = false;
+    isNewRange: boolean = false;
+    markAX: number = 0;
+    markBX: number = 0;
+    isPress: boolean = false
+    pressFrameId: number = -1
+    currentDuration: number = 0
+    centerXPercentage: number = 0;
+    animaStartTime: number | undefined
+    animTime: number = 250;
+    p: number = 2000;
     private readonly notifyHandler: (r: TimeRange) => void;
     private scale: number = 0;
+    //缩放级别
     private scales: Array<number> = [50, 100, 200, 500, 1_000, 2_000, 5_000, 10_000, 20_000, 50_000, 100_000, 200_000, 500_000,
         1_000_000, 2_000_000, 5_000_000, 10_000_000, 20_000_000, 50_000_000, 100_000_000, 200_000_000, 500_000_000,
         1_000_000_000, 2_000_000_000, 5_000_000_000, 10_000_000_000, 20_000_000_000, 50_000_000_000,
         100_000_000_000, 200_000_000_000, 500_000_000_000];
+    private _cpuUsage: Array<{ cpu: number, ro: number, rate: number }> = []
 
-    constructor(canvas: HTMLCanvasElement | undefined | null, c: CanvasRenderingContext2D, frame: Rect, range: TimeRange, notifyHandler: (r: TimeRange) => void) {
-        super(canvas, c, frame)
+    constructor(timerShaftEL: TimerShaftElement, frame: Rect, range: TimeRange, notifyHandler: (r: TimeRange) => void) {
+        super(timerShaftEL.canvas, timerShaftEL.ctx!, frame)
         this.range = range;
         this.notifyHandler = notifyHandler;
-        this.markA = new Mark(canvas, 'A', c, new Rect(range.startX, frame.y, 1, frame.height))
-        this.markB = new Mark(canvas, 'B', c, new Rect(range.endX, frame.y, 1, frame.height))
+        this.markA = new Mark(timerShaftEL.canvas, 'A', timerShaftEL.ctx!, new Rect(range.startX, frame.y, 1, frame.height))
+        this.markB = new Mark(timerShaftEL.canvas, 'B', timerShaftEL.ctx!, new Rect(range.endX, frame.y, 1, frame.height))
         this.rangeRect = new Rect(range.startX, frame.y, range.endX - range.startX, frame.height)
     }
-
-    private _cpuUsage: Array<{ cpu: number, ro: number, rate: number }> = []
 
     set cpuUsage(value: Array<{ cpu: number, ro: number, rate: number }>) {
         this._cpuUsage = value
@@ -101,8 +122,8 @@ export class RangeRuler extends Graph {
 
     drawCpuUsage() {
         let maxNum = Math.round(this._cpuUsage.length / 100)
-        let miniHeight = Math.round(this.frame.height / CpuStruct.cpuCount);
-        let miniWidth = Math.ceil(this.frame.width / 100);
+        let miniHeight = Math.round(this.frame.height / CpuStruct.cpuCount);//每格高度
+        let miniWidth = Math.ceil(this.frame.width / 100);//每格宽度
         for (let i = 0; i < this._cpuUsage.length; i++) {
             let it = this._cpuUsage[i]
             this.c.fillStyle = ColorUtils.MD_PALETTE[it.cpu]
@@ -120,8 +141,8 @@ export class RangeRuler extends Graph {
         } else {
             this.c.globalAlpha = 1;
         }
-
-        this.c.fillStyle = window.getComputedStyle(this.canvas!, null).getPropertyValue("background-color");
+        //绘制选中区域
+        this.c.fillStyle = window.getComputedStyle(this.canvas!, null).getPropertyValue("background-color");//"#ffffff"
         this.rangeRect.x = this.markA.frame.x < this.markB.frame.x ? this.markA.frame.x : this.markB.frame.x
         this.rangeRect.width = Math.abs(this.markB.frame.x - this.markA.frame.x)
         this.c.fillRect(this.rangeRect.x, this.rangeRect.y, this.rangeRect.width, this.rangeRect.height)
@@ -177,6 +198,7 @@ export class RangeRuler extends Graph {
             } else {
                 this.range.xsTxt = []
             }
+            this.range.scale = this.scale;
             if (yu != 0) {
                 let firstNodeWidth = ((this.scale - yu) / this.scale * realW);
                 startX += firstNodeWidth;
@@ -195,19 +217,6 @@ export class RangeRuler extends Graph {
             }
         }
     }
-
-
-    mouseDownOffsetX = 0
-    mouseDownMovingMarkX = 0
-    movingMark: Mark | undefined | null;
-    isMouseDown: boolean = false;
-    isMovingRange: boolean = false;
-    isNewRange: boolean = false;
-    markAX: number = 0;
-    markBX: number = 0;
-    isPress: boolean = false
-    pressFrameId: number = -1
-    currentDuration: number = 0
 
     mouseDown(ev: MouseEvent) {
         let x = ev.offsetX - (this.canvas?.offsetLeft || 0)
@@ -239,8 +248,6 @@ export class RangeRuler extends Graph {
         this.isNewRange = false;
         this.movingMark = null;
     }
-
-    centerXPercentage: number = 0;
 
     mouseMove(ev: MouseEvent) {
         let x = ev.offsetX - (this.canvas?.offsetLeft || 0);
@@ -316,10 +323,6 @@ export class RangeRuler extends Graph {
         this.movingMark = null;
     }
 
-    animaStartTime: number | undefined
-    animTime: number = 100;
-    p: number = 800;
-
     fillX() {
         if (this.range.startNS < 0) this.range.startNS = 0;
         if (this.range.endNS < 0) this.range.endNS = 0;
@@ -333,13 +336,24 @@ export class RangeRuler extends Graph {
         this.markB.inspectionFrame.x = this.markB.frame.x - markPadding
     }
 
+    setRangeNS(startNS: number, endNS: number) {
+        this.range.startNS = startNS
+        this.range.endNS = endNS
+        this.fillX()
+        this.draw();
+    }
+
+    getRange(): TimeRange {
+        return this.range;
+    }
+
     keyPress(ev: KeyboardEvent) {
         if (this.animaStartTime === undefined) {
             this.animaStartTime = new Date().getTime();
         }
         let startTime = new Date().getTime();
         let duration = (startTime - this.animaStartTime);
-        if (duration < this.animTime) duration = this.animTime
+        if (duration < this.animTime * 2) duration = duration + this.animTime
         this.currentDuration = duration
         if (this.isPress) return
         this.isPress = true

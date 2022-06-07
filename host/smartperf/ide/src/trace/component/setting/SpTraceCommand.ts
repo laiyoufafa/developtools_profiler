@@ -29,6 +29,7 @@ export class SpTraceCommand extends BaseElement {
         this.codeHl!.textContent = value;
     }
 
+    //当 custom element首次被插入文档DOM时，被调用。
     public connectedCallback() {
         this.codeHl = this.shadowRoot?.querySelector('#code-text') as HTMLTextAreaElement;
         this.copyEl = this.shadowRoot?.querySelector('#copy-image') as HTMLElement;
@@ -55,86 +56,92 @@ export class SpTraceCommand extends BaseElement {
 
     initHtml(): string {
         return `
-<style>
-:host{
-    width: 100%;
-    position: relative;
-    background: var(--dark-background3,#FFFFFF);
-    border-radius: 0px 16px 16px 0px;
-}
+        <style>
+        :host{
+            width: 100%;
+            position: relative;
+            background: var(--dark-background3,#FFFFFF);
+            border-radius: 0px 16px 16px 0px;
+        }
 
-#code-text{
-    -webkit-appearance:none;
-    opacity: 0.6;
-    font-family: Helvetica;
-    color: var(--dark-color,#000000);
-    padding: 56px;
-    font-size:1em;
-    margin-left: 10px;
-    line-height: 20px;
-    font-weight: 400;
-    border: none;
-    outline:none; 
-    resize:none; 
-    z-index: 2;
-    min-height: 560px;
-    background: var(--dark-background3,#FFFFFF);
-}
+        #code-text{
+            -webkit-appearance:none;
+            opacity: 0.6;
+            font-family: Helvetica;
+            color: var(--dark-color,#000000);
+            padding: 56px;
+            font-size:1em;
+            margin-left: 10px;
+            line-height: 20px;
+            font-weight: 400;
+            border: none;
+            outline:none;
+            resize:none;
+            /*overflow:auto;*/
+            z-index: 2;
+            min-height: 560px;
+            background: var(--dark-background3,#FFFFFF);
+        }
 
-#copy-image{
-    display: table-cell;
-    white-space: nowrap;
-    outline:0;
-    float:right;
-    z-index: 66;
-    position: relative;
-    top: 56px;
-    right: 40px; 
-}
+        #copy-image{
+            display: table-cell;
+            white-space: nowrap;
+            outline:0;
+            float:right;
+            z-index: 66;
+            position: relative;
+            top: 56px;
+            right: 40px;
+        }
 
-#copy-button{
-    -webkit-appearance:none;
-    outline:0;    
-    border: 0;
-    background: var(--dark-background3,#FFFFFF);
-    justify-content: end;
-    z-index: 55;
-    border-radius: 0px 16px 0px 0px;
-}
+        #copy-button{
+            -webkit-appearance:none;
+            outline:0;
+            border: 0;
+            background: var(--dark-background3,#FFFFFF);
+            justify-content: end;
+            z-index: 55;
+            border-radius: 0px 16px 0px 0px;
+        }
 
-#text-cmd{
-    display: grid;
-    justify-content: stretch;
-    align-content:  stretch;
-    font-size:16px;
-    background: var(--dark-background3,#FFFFFF);
-    border-radius: 0px 16px 0px 0px;
+        #text-cmd{
+            /*overflow-y:auto;*/
+            display: grid;
+            justify-content: stretch;
+            align-content:  stretch;
+            font-size:16px;
+            background: var(--dark-background3,#FFFFFF);
+            border-radius: 0px 16px 0px 0px;
 
-}
+        }
 
-::-webkit-scrollbar
-{
-  width: 6px;
-  height: 10px;
-  background-color: var(--dark-background3,#FFFFFF);
-}
- 
-::-webkit-scrollbar-track
-{
-  background-color: var(--dark-background3,#FFFFFF);
-}
- 
-::-webkit-scrollbar-thumb
-{
-  border-radius: 6px;
-  background-color: var(--dark-background7,#e7c9c9);
-}
-</style>
-<div id="text-cmd">
-    <button id="copy-button">
-        <img id="copy-image" src="img/copy.png">
-    </button>
-    <textarea id="code-text" readonly></textarea>
-</div>`;
+        /*定义滚动条高宽及背景 高宽分别对应横竖滚动条的尺寸*/
+        ::-webkit-scrollbar
+        {
+          width: 6px;
+          height: 10px;
+          background-color: var(--dark-background3,#FFFFFF);
+        }
+
+        /*定义滚动条轨道 内阴影+圆角*/
+        ::-webkit-scrollbar-track
+        {
+          background-color: var(--dark-background3,#FFFFFF);
+        }
+
+        /*定义滑块 内阴影+圆角*/
+        ::-webkit-scrollbar-thumb
+        {
+          border-radius: 6px;
+          background-color: var(--dark-background7,#e7c9c9);
+        }
+        </style>
+        <div id="text-cmd">
+            <button id="copy-button">
+                <img id="copy-image" src="img/copy.png">
+            </button>
+            <textarea id="code-text" readonly></textarea>
+        </div>
+        `;
     }
 }

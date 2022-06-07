@@ -38,6 +38,7 @@ export class LitRadioGroup extends BaseElement {
     initElements(): void {
     }
 
+    //方向
     initHtml(): string {
         return `
         <style>   

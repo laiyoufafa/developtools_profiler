@@ -21,11 +21,10 @@ export class CpuFreqStruct extends BaseStruct {
     static maxFreqName: string = "0 GHz"
     static hoverCpuFreqStruct: CpuFreqStruct | undefined;
     static selectCpuFreqStruct: CpuFreqStruct | undefined;
-
     cpu: number | undefined
     value: number | undefined
     startNS: number | undefined
-    dur: number | undefined
+    dur: number | undefined // Self-supplementing, the database is not returned
 
     static draw(ctx: any, data: CpuFreqStruct) {
         if (data.frame) {
@@ -62,3 +61,4 @@ export class CpuFreqStruct extends BaseStruct {
 }
 
 const textPadding = 2;
+

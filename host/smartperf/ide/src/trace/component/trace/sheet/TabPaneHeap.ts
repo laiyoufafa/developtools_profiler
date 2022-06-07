@@ -17,8 +17,11 @@ import "../../../../base-ui/table/lit-table-column.js";
 import {BaseElement, element} from "../../../../base-ui/BaseElement.js";
 import {LitTable} from "../../../../base-ui/table/lit-table.js";
 import {SelectionParam} from "../../../bean/BoxSelection.js";
-import {queryHeapTable} from "../../../database/SqlLite.js";
+import {queryHeapAllData} from "../../../database/SqlLite.js";
 import {Utils} from "../base/Utils.js";
+import {HeapBean} from "../../../bean/HeapBean.js";
+import {HeapTreeDataBean} from "../../../bean/HeapTreeDataBean.js";
+import {SpSystemTrace} from "../../SpSystemTrace.js";
 
 @element('tabpane-heap')
 export class TabPaneHeap extends BaseElement {
@@ -26,60 +29,141 @@ export class TabPaneHeap extends BaseElement {
     private range: HTMLLabelElement | null | undefined;
 
     set data(val: SelectionParam | any) {
-        queryHeapTable(val.leftNs, val.rightNs, val.heapIds).then((result) => {
-            result.forEach((item) => {
-                console.log(item);
-                item.AllocationSize = Utils.getByteWithUnit(Number(item.AllocationSize))
-                item.DeAllocationSize = Utils.getByteWithUnit(Number(item.DeAllocationSize))
-                item.RemainingSize = Utils.getByteWithUnit(Number(item.RemainingSize))
-            })
-            console.log(result);
-            this.tbl!.dataSource = result
+        // @ts-ignore
+        this.tbl?.shadowRoot.querySelector(".table").style.height = (this.parentElement.clientHeight - 20) + "px"
+        queryHeapAllData(val.leftNs, val.rightNs, val.heapIds).then((allHeap) => {
+            if (allHeap.length > 0) {
+                let groups: any = {};
+                let treeGroup: any = {}
+                let treeData: HeapBean[] = []
+                allHeap.forEach((heapData) => {
+                    groups[heapData.eventId] = heapData
+                })
+                SpSystemTrace.HEAP_FRAME_DATA.map((frame) => {
+                    if (groups[frame.eventId]) {
+                        treeGroup[frame.eventId] = treeGroup[frame.eventId] || []
+                        frame.heapSize = groups[frame.eventId].heapSize
+                        frame.startTs = groups[frame.eventId].startTs
+                        frame.endTs = groups[frame.eventId].endTs
+                        frame.eventType = groups[frame.eventId].eventType
+                        treeGroup[frame.eventId].push(frame)
+                    }
+                })
+                Object.keys(treeGroup).forEach((key) => {
+                    if (treeGroup[key].length > 0) {
+                        if (treeData.length > 0) {
+                            this.merageTree(0, treeData, treeGroup[key], val)
+                        } else {
+                            let currentData = new HeapBean()
+                            let firstData = treeGroup[key][0]
+                            currentData.AllocationFunction = firstData.AllocationFunction
+                            currentData.depth = firstData.depth
+                            currentData.MoudleName = firstData.MoudleName
+                            treeData.push(currentData)
+                            this.merageTree(0, treeData, treeGroup[key], val)
+                        }
+                    }
+                })
+                this.setTreeDataSize(treeData)
+                this.tbl!.recycleDataSource = treeData
+            } else {
+                this.tbl!.recycleDataSource = []
+            }
+
         })
     }
 
     initElements(): void {
         this.tbl = this.shadowRoot?.querySelector<LitTable>('#tb-heap');
         this.range = this.shadowRoot?.querySelector('#time-range')
+        new ResizeObserver((entries) => {
+            if (this.parentElement?.clientHeight != 0) {
+                // @ts-ignore
+                this.tbl?.shadowRoot.querySelector(".table").style.height = (this.parentElement.clientHeight - 20) + "px"
+                this.tbl?.reMeauseHeight()
+            }
+        }).observe(this.parentElement!)
+    }
+
+    setTreeDataSize(list: HeapBean[]) {
+        list.forEach((item) => {
+            item.AllocationSize = Utils.getByteWithUnit(Number(item.AllocationSize))
+            item.DeAllocationSize = Utils.getByteWithUnit(Number(item.DeAllocationSize))
+            item.RemainingSize = Utils.getByteWithUnit(Number(item.RemainingSize))
+            if (item.children.length > 0) {
+                this.setTreeDataSize(item.children)
+            }
+        })
+    }
+
+    merageTree(depth: number, beanList: HeapBean[], list: HeapTreeDataBean[], selection: SelectionParam | any) {
+        if (beanList.length > 0) {
+            if (depth < list.length) {
+                let treeData = list[depth]
+                let currentData = beanList.find((item) => {
+                    return treeData.MoudleName == item.MoudleName && treeData.AllocationFunction == item.AllocationFunction
+                })
+                if (currentData != undefined) {
+                    (currentData.Allocations as number) += selection.leftNs < treeData.startTs ? 1 : 0;
+                    (currentData.Deallocations as number) += selection.rightNs > treeData.endTs ? 1 : 0;
+                    (currentData.AllocationSize as number) += selection.leftNs < treeData.startTs ? treeData.heapSize : 0;
+                    (currentData.DeAllocationSize as number) += selection.rightNs > treeData.endTs ? treeData.heapSize : 0;
+                    (currentData.Total as number) = (currentData.Allocations as number) - (currentData.Deallocations as number);
+                    currentData.RemainingSize = (currentData.AllocationSize as number) - (currentData.DeAllocationSize as number)
+                } else {
+                    currentData = new HeapBean()
+                    currentData.AllocationFunction = treeData.AllocationFunction
+                    currentData.depth = treeData.depth
+                    currentData.MoudleName = (treeData.MoudleName as string);
+                    (currentData.Allocations as number) += selection.leftNs < treeData.startTs ? 1 : 0;
+                    (currentData.Deallocations as number) += selection.rightNs > treeData.endTs ? 1 : 0;
+                    (currentData.AllocationSize as number) += selection.leftNs < treeData.startTs ? treeData.heapSize : 0;
+                    (currentData.DeAllocationSize as number) += selection.rightNs > treeData.endTs ? treeData.heapSize : 0;
+                    currentData.Total = (currentData.Allocations as number) - (currentData.Deallocations as number);
+                    currentData.RemainingSize = (currentData.AllocationSize as number) - (currentData.DeAllocationSize as number);
+                    beanList.push(currentData)
+                }
+                if (depth + 1 < list.length && currentData.children.length == 0) {
+                    let childrenBean = new HeapBean()
+                    let nextData = list[depth + 1]
+                    childrenBean.depth = depth + 1
+                    childrenBean.MoudleName = nextData.MoudleName
+                    childrenBean.AllocationFunction = nextData.AllocationFunction
+                    currentData.children.push(childrenBean)
+                }
+                this.merageTree(depth + 1, currentData.children, list, selection)
+            }
+        }
     }
 
     initHtml(): string {
         return `
-<style>
-:host{
-    display: flex;
-    flex-direction: column;
-    padding: 10px 10px;
-}
-</style>
+        <style>
+        :host{
+            display: flex;
+            flex-direction: column;
+            padding: 10px 10px;
+        }
+        </style>
 
-<lit-table id="tb-heap" style="height: auto">
-    <lit-table-column width="170px" title="Allocation Function" data-index="AllocationFunction" key="AllocationFunction" align="center" >
-    <template><div style="font-size:0.8rem;padding: 0 5px">{{AllocationFunction}}</div></template>
-</lit-table-column>
-    <lit-table-column width="170px" title="Moudle Name" data-index="MoudleName" key="MoudleName" align="center">
-    <template><div style="font-size:0.8rem;padding: 0 5px;word-break: break-word">{{MoudleName}}</div></template>
-</lit-table-column>
-    <lit-table-column width="1fr" title="Allocations" data-index="Allocations" key="Allocations" align="center" >
-    <template><div style="font-size:0.8rem;padding: 0 5px">{{Allocations}}</div></template>
-</lit-table-column>
-    <lit-table-column width="1fr" title="Deallocations" data-index="Deallocations" key="Deallocations" align="center" >
-        <template><div style="font-size:0.8rem;padding: 0 5px">{{Deallocations}}</div></template>
-</lit-table-column>
-    <lit-table-column width="1fr" title="Allocation Size" data-index="AllocationSize" key="AllocationSize" align="center" >
-    <template><div style="font-size:0.8rem;padding: 0 5px">{{AllocationSize}}</div></template>
-</lit-table-column>
-    <lit-table-column width="1fr" title="DeAllocation Size" data-index="DeAllocationSize" key="DeAllocationSize" align="center" >
-    <template><div style="font-size:0.8rem;padding: 0 5px">{{DeAllocationSize}}</div></template>
-</lit-table-column>
-    <lit-table-column title="Total Count" data-index="Total" key="Total" align="center" >
-    <template><div style="font-size:0.8rem;padding: 0 5px">{{Total}}</div></template>
-</lit-table-column>
-    <lit-table-column width="1fr" title="Remaining Size" data-index="RemainingSize" key="RemainingSize" align="center" >
-    <template><div style="font-size:0.8rem;padding: 0 5px">{{RemainingSize}}</div></template>
-</lit-table-column>
-</lit-table>
+        <lit-table id="tb-heap" style="height: auto" tree>
+        <lit-table-column width="30%" title="Allocation Function" data-index="AllocationFunction" key="AllocationFunction" align="center" >
+        </lit-table-column>
+        <lit-table-column width="170px" title="Moudle Name" data-index="MoudleName" key="MoudleName" >
+        </lit-table-column>
+        <lit-table-column width="1fr" title="Allocations" data-index="Allocations" key="Allocations" align="center" >
+        </lit-table-column>
+        <lit-table-column width="1fr" title="Deallocations" data-index="Deallocations" key="Deallocations" align="center" >
+        </lit-table-column>
+        <lit-table-column width="1fr" title="Allocation Size" data-index="AllocationSize" key="AllocationSize" align="center" >
+        </lit-table-column>
+        <lit-table-column width="1fr" title="DeAllocation Size" data-index="DeAllocationSize" key="DeAllocationSize" align="center" >
+        </lit-table-column>
+        <lit-table-column title="Total Count" data-index="Total" key="Total" align="center" >
+        </lit-table-column>
+        <lit-table-column width="1fr" title="Remaining Size" data-index="RemainingSize" key="RemainingSize" align="center" >
+        </lit-table-column>
+        </lit-table>
         `;
     }
-
 }

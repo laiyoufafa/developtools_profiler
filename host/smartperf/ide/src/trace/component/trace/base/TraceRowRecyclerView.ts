@@ -12,7 +12,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 import {BaseElement, element} from "../../../../base-ui/BaseElement.js";
 import {TraceRowObject} from "./TraceRowObject.js";
 import {TraceRow} from "./TraceRow.js";
@@ -27,6 +26,7 @@ export class TraceRowRecyclerView extends BaseElement {
     private totalHeight: number = 0;
 
     private _dataSource: Array<TraceRowObject<any>> = [];
+    private _renderType: string = 'div';
 
     get dataSource(): Array<TraceRowObject<any>> {
         return this._dataSource;
@@ -41,8 +41,6 @@ export class TraceRowRecyclerView extends BaseElement {
             this.refreshRow(els[i], this.visibleObjects[i]);
         }
     }
-
-    private _renderType: string = 'div';
 
     get renderType(): string {
         return this._renderType;
@@ -73,7 +71,6 @@ export class TraceRowRecyclerView extends BaseElement {
         el.rowHidden = obj.rowHidden
         el.setAttribute("height", `${obj.rowHeight}`);
         requestAnimationFrame(() => {
-            el.drawObject();
         })
     }
 
@@ -99,6 +96,7 @@ export class TraceRowRecyclerView extends BaseElement {
         }
     }
 
+
     measureHeight() {
         this.visibleObjects = this.dataSource.filter(it => !it.rowHidden);
         this.totalHeight = this.visibleObjects.map((it) => it.rowHeight).reduce((a, b) => a + b);
@@ -120,12 +118,11 @@ export class TraceRowRecyclerView extends BaseElement {
         }
         if (!this.recycler) this.visibleRowsCount = this.dataSource.length;
         for (let i = 0; i <= this.visibleRowsCount; i++) {
-            let el = new TraceRow<any>({alpha: true, contextId: '2d', isOffScreen: true});
+            let el = new TraceRow<any>({canvasNumber: 1, alpha: true, contextId: '2d', isOffScreen: true});
             el.className = "recycler-cell"
             this.container?.appendChild(el);
             el.addEventListener('expansion-change', (ev: any) => {
                 el.obj!.expansion = ev.detail.expansion;
-                console.log(ev.detail, el.obj);
                 for (let j = 0; j < this.dataSource.length; j++) {
                     if (this.dataSource[j].rowParentId == ev.detail.rowId) {
                         this.dataSource[j].rowHidden = !ev.detail.expansion;
@@ -152,42 +149,42 @@ export class TraceRowRecyclerView extends BaseElement {
 
     initHtml(): string {
         return `
-<style>
-:host{
-    width:100%;
-    height:100%;
-    display: block;
-    position:relative;
-}
-.container{
-    width:100%;
-    height:100%;
-    overflow: auto;
-    position: absolute;
-    display: block;
-}
-.gasket{
-    width:100%;
-    height:auto;
-    top: 0;
-    left: 0;
-    right:0;
-    bottom:0;
-    visibility: hidden;
-}
-.recycler-cell{
-    position: absolute;
-    width:100%;
-    visibility: hidden;
-    top: 0;
-    left: 0;
-}
-</style>
-<div class="container">
-    <div class="gasket"></div>
-</div>
+        <style>
+        :host{
+            width:100%;
+            height:100%;
+            display: block;
+            position:relative;
+        }
+        .container{
+            width:100%;
+            height:100%;
+            overflow: auto;
+            position: absolute;
+            display: block;
+        }
+        .gasket{
+            width:100%;
+            height:auto;
+            top: 0;
+            left: 0;
+            right:0;
+            bottom:0;
+            visibility: hidden;
+        }
+        .recycler-cell{
+            position: absolute;
+            width:100%;
+            visibility: hidden;
+            top: 0;
+            left: 0;
+        }
+        </style>
+        <div class="container">
+            <div class="gasket"></div>
+        </div>
 
-`;
+        `;
     }
 
 }

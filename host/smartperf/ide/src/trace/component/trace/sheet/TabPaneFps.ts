@@ -51,19 +51,20 @@ export class TabPaneFps extends BaseElement {
 
     initHtml(): string {
         return `
-<style>
-:host{
-    display: flex;
-    flex-direction: column;
-    padding: 10px 10px;
-}
-</style>
-<label id="time-range" style="width: 100%;height: 20px;text-align: end;font-size: 10pt;margin-bottom: 5px">Selected range:0.0 ms</label>
-<lit-table id="tb-fps" style="height: auto">
-    <lit-table-column width="1fr" title="Time" data-index="timeStr" key="timeStr" align="flex-start"></lit-table-column>
-    <lit-table-column width="1fr" title="FPS" data-index="fps" key="fps" align="flex-start" ></lit-table-column>
-</lit-table>
+        <style>
+        :host{
+            display: flex;
+            flex-direction: column;
+            padding: 10px 10px;
+        }
+        </style>
+        <label id="time-range" style="width: 100%;height: 20px;text-align: end;font-size: 10pt;margin-bottom: 5px">Selected range:0.0 ms</label>
+        <lit-table id="tb-fps" style="height: auto">
+            <lit-table-column width="1fr" title="Time" data-index="timeStr" key="timeStr" align="flex-start">
+            </lit-table-column>
+            <lit-table-column width="1fr" title="FPS" data-index="fps" key="fps" align="flex-start" >
+            </lit-table-column>
+        </lit-table>
         `;
     }
-
 }

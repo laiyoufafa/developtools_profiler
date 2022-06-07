@@ -15,8 +15,6 @@
 
 import {BaseStruct, ColorUtils, ns2x} from "./ProcedureWorkerCommon.js";
 
-const textPadding = 2;
-
 export function freq(list: Array<any>, res: Set<any>, startNS: number, endNS: number, totalNS: number, frame: any) {
     res.clear();
     if (list) {
@@ -30,7 +28,7 @@ export function freq(list: Array<any>, res: Set<any>, startNS: number, endNS: nu
             if ((it.startNS || 0) + (it.dur || 0) > (startNS || 0) && (it.startNS || 0) < (endNS || 0)) {
                 CpuFreqStruct.setFreqFrame(list[i], 5, startNS || 0, endNS || 0, totalNS || 0, frame)
                 if (i > 0 && ((list[i - 1].frame?.x || 0) == (list[i].frame?.x || 0) && (list[i - 1].frame?.width || 0) == (list[i].frame?.width || 0))) {
-                    continue;
+
                 } else {
                     res.add(it)
                 }
@@ -39,16 +37,16 @@ export function freq(list: Array<any>, res: Set<any>, startNS: number, endNS: nu
     }
 
 }
-export class CpuFreqStruct extends BaseStruct {
-    cpu: number | undefined
-    value: number | undefined
-    startNS: number | undefined
-    dur: number | undefined
 
+export class CpuFreqStruct extends BaseStruct {
     static maxFreq: number = 0
     static maxFreqName: string = "0 GHz"
     static hoverCpuFreqStruct: CpuFreqStruct | undefined;
     static selectCpuFreqStruct: CpuFreqStruct | undefined;
+    cpu: number | undefined
+    value: number | undefined
+    startNS: number | undefined
+    dur: number | undefined //自补充，数据库没有返回
 
     static draw(ctx: CanvasRenderingContext2D, data: CpuFreqStruct) {
         if (data.frame) {
@@ -105,3 +103,5 @@ export class CpuFreqStruct extends BaseStruct {
         node.frame.height = Math.floor(frame.height - padding * 2);
     }
 }
+
+const textPadding = 2;

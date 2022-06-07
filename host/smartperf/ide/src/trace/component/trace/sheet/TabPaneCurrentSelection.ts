@@ -1,4 +1,3 @@
-// @ts-nocheck
 /*
  * Copyright (C) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -38,7 +37,7 @@ const STATUS_MAP: any = {
     "R+": "Runnable (Preempted)",
     DK: "Uninterruptible Sleep + Wake Kill",
     I: "Task Dead",
-    T: "Stopped",
+    T: "Traced",
     t: "Traced",
     X: "Exit (Dead)",
     Z: "Exit (Zombie)",
@@ -95,7 +94,7 @@ export class TabPaneCurrentSelection extends BaseElement {
         this.setCpuData(value)
     }
 
-    setCpuData(data: CpuStruct, callback: ((data: WakeupBean | null) => void) | undefined = undefined) {
+    setCpuData(data: CpuStruct, callback: ((data: WakeupBean | null) => void) | undefined = undefined, scrollCallback?: (data: CpuStruct) => void) {
         let leftTitle: HTMLElement | null | undefined = this?.shadowRoot?.querySelector("#leftTitle");
         if (leftTitle) {
             leftTitle.innerText = "Slice Details"
@@ -115,9 +114,15 @@ export class TabPaneCurrentSelection extends BaseElement {
         } else {
             state = "Unknown State"
         }
+
         list.push({name: 'Process', value: `${process || 'Process'} [${processId}]`})
-        list.push({name: 'Thread', value: `${data.name || 'Process'} [${data.tid}]`})
-        list.push({name: 'CmdLine', value: data.processCmdLine})
+        list.push({
+            name: 'Thread', value: `<div style="margin-left: 5px;white-space: nowrap;display: flex;align-items: center">
+<div style="white-space:pre-wrap">${data.name || 'Process'} [${data.tid}]</div>
+<lit-icon style="cursor:pointer;transform: scaleX(-1);margin-left: 5px" id="thread-id" name="select" color="#7fa1e7" size="20"></lit-icon>
+</div>`
+        })
+        list.push({name: 'CmdLine', value: `${data.processCmdLine}`})
         list.push({name: 'StartTime', value: getTimeString(data.startTime || 0)})
         list.push({name: 'Duration', value: getTimeString(data.dur || 0)})
         list.push({name: 'Prio', value: data.priority || 0})
@@ -129,6 +134,13 @@ export class TabPaneCurrentSelection extends BaseElement {
             this.tbl!.dataSource = list
             let rightArea: HTMLElement | null | undefined = this?.shadowRoot?.querySelector("#right-table");
             let rightTitle: HTMLElement | null | undefined = this?.shadowRoot?.querySelector("#rightTitle");
+            let threadClick = this.tbl?.shadowRoot?.querySelector("#thread-id")
+            threadClick?.addEventListener("click", () => {
+                //cpu点击
+                if (scrollCallback) {
+                    scrollCallback(data)
+                }
+            })
             let canvas = this.initCanvas();
             if (bean != null) {
                 this.weakUpBean = bean;
@@ -163,6 +175,7 @@ export class TabPaneCurrentSelection extends BaseElement {
         }
         let list: any[] = []
         list.push({name: 'Name', value: data.funName})
+        // list.push({name: 'Category', value:data.category}) 暂无参数
         list.push({name: 'StartTime', value: getTimeString(data.startTs || 0)})
         list.push({name: 'Duration', value: getTimeString(data.dur || 0)})
         if (FuncStruct.isBinder(data)) {
@@ -181,7 +194,7 @@ export class TabPaneCurrentSelection extends BaseElement {
 
     }
 
-    setMemData(data: ProcessMemStruct) {
+    setMemData(data: ProcessMemStruct) {//时钟信息
         this.initCanvas()
         let leftTitle: HTMLElement | null | undefined = this?.shadowRoot?.querySelector("#leftTitle");
         if (leftTitle) {
@@ -196,7 +209,7 @@ export class TabPaneCurrentSelection extends BaseElement {
 
     }
 
-    setThreadData(data: ThreadStruct) {
+    setThreadData(data: ThreadStruct, scrollCallback: ((d: any) => void) | undefined) {//线程信息
         this.initCanvas()
         let leftTitle: HTMLElement | null | undefined = this?.shadowRoot?.querySelector("#leftTitle");
         let rightTitle: HTMLElement | null | undefined = this?.shadowRoot?.querySelector("#rightTitle");
@@ -220,22 +233,36 @@ export class TabPaneCurrentSelection extends BaseElement {
         if ("Running" == state) {
             state = state + " on CPU " + data.cpu;
         }
-        list.push({name: 'State', value: state})
+        if (data.cpu == null || data.cpu == undefined) {
+            list.push({name: 'State', value: `${state}`})
+        } else {
+            list.push({
+                name: 'State', value: `<div style="margin-left: 5px;white-space: nowrap;display: flex;align-items: center">
+            <div style="white-space:pre-wrap">${state}</div>
+            <lit-icon style="cursor:pointer;transform: scaleX(-1);margin-left: 5px" id="state-click" name="select" color="#7fa1e7" size="20"></lit-icon>
+            </div>`
+            })
+        }
         let processName = data.processName;
         if (processName == null || processName == "" || processName.toLowerCase() == "null") {
             processName = data.name;
         }
         list.push({name: 'Process', value: processName + " [" + data.pid + "] "})
         this.tbl!.dataSource = list
+        this.tbl?.shadowRoot?.querySelector("#state-click")?.addEventListener("click", () => {
+            //线程点击
+            if (scrollCallback) {
+                scrollCallback(data)
+            }
+        })
     }
-
 
     async queryWakeUpData(data: CpuStruct) {
         let wb: WakeupBean | null = null
         if (data.id == undefined || data.startTime == undefined) {
             return null
         }
-        let wakeupTimes = await queryWakeUpThread_WakeTime(data.id, data.startTime)// 3,4835380000
+        let wakeupTimes = await queryWakeUpThread_WakeTime(data.id, data.startTime)//  3,4835380000
         if (wakeupTimes != undefined && wakeupTimes.length > 0) {
             let wakeupTime = wakeupTimes[0]
             if (wakeupTime.wakeTs != undefined && wakeupTime.preRow != undefined && wakeupTime.wakeTs < wakeupTime.preRow) {
@@ -251,7 +278,7 @@ export class TabPaneCurrentSelection extends BaseElement {
                     if (wakeupTime.wakeTs != undefined && wakeupTime.startTs != undefined) {
                         wb.wakeupTime = wakeupTime.wakeTs - wakeupTime.startTs
                     }
-                    wb.schedulingLatency = data.startTime || 0 - (wb.wakeupTime || 0)
+                    wb.schedulingLatency = (data.startTime || 0) - (wb.wakeupTime || 0)
                     if (wb.process == null) {
                         wb.process = wb.thread;
                     }
@@ -266,7 +293,7 @@ export class TabPaneCurrentSelection extends BaseElement {
     }
 
     initCanvas(): HTMLCanvasElement | null {
-        let canvas = this.shadowRoot!.querySelector("#rightDraw")
+        let canvas = this.shadowRoot!.querySelector<HTMLCanvasElement>("#rightDraw")
         let width = getComputedStyle(this.tbl!).getPropertyValue("width")
         let height = getComputedStyle(this.tbl!).getPropertyValue("height")
         if (canvas != null) {
@@ -274,9 +301,10 @@ export class TabPaneCurrentSelection extends BaseElement {
             canvas.height = Math.round(Number(height.replace("px", "")) * this.dpr)
             canvas.style.width = width
             canvas.style.height = height
+            canvas.getContext("2d")!.scale(this.dpr, this.dpr)
         }
         SpApplication.skinChange = (val: boolean) => {
-            this.drawRight(canvas, this.weakUpBean)
+            this.drawRight(canvas, this.weakUpBean!)
         }
         return canvas
     }
@@ -287,70 +315,68 @@ export class TabPaneCurrentSelection extends BaseElement {
         }
         let context = cavs.getContext("2d");
         if (context != null) {
-            if (document.querySelector<SpApplication>("sp-application").dark) {
+            //绘制竖线
+            if (document.querySelector<SpApplication>("sp-application")!.dark) {
                 context.strokeStyle = "#ffffff";
                 context.fillStyle = "#ffffff";
             } else {
                 context.strokeStyle = "#000000";
                 context.fillStyle = "#000000";
             }
-            context.lineWidth = this.dprToPx(2);
-            context.moveTo(this.dprToPx(10), this.dprToPx(15))
-            context.lineTo(this.dprToPx(10), this.dprToPx(125))
+            context.lineWidth = 2;
+            context.moveTo(10, 15);
+            context.lineTo(10, 125);
             context.stroke();
             //绘制菱形
-            context.lineWidth = this.dprToPx(1);
+            context.lineWidth = 1;
             context.beginPath()
-            context.moveTo(this.dprToPx(10), this.dprToPx(30))
-            context.lineTo(this.dprToPx(4), this.dprToPx(40))
-            context.lineTo(this.dprToPx(10), this.dprToPx(50))
-            context.lineTo(this.dprToPx(16), this.dprToPx(40))
-            context.lineTo(this.dprToPx(10), this.dprToPx(30))
+            context.moveTo(10, 30);
+            context.lineTo(4, 40);
+            context.lineTo(10, 50);
+            context.lineTo(16, 40);
+            context.lineTo(10, 30);
             context.closePath()
             context.fill()
-            context.font = this.dprToPx(12) + "px sans-serif";
+            context.font = 12 + "px sans-serif";
+            //绘制wake up 文字
             let strList = []
             strList.push("wakeup @ " + getTimeString(wakeupBean?.wakeupTime || 0) + " on CPU " + wakeupBean?.cpu + " by")
             strList.push("P:" + wakeupBean?.process + " [ " + wakeupBean?.pid + " ]")
             strList.push("F:" + wakeupBean?.thread + " [ " + wakeupBean?.tid + " ]")
             strList.forEach((str, index) => {
                 if (context != null) {
-                    context.fillText(str
-                        , this.dprToPx(40), this.dprToPx(40 + 16 * index))
+                    context.fillText(str, 40, 40 + 16 * index)
                 }
             })
-            context.lineWidth = this.dprToPx(2);
+            //绘制左右箭头
+            context.lineWidth = 2;
             context.lineJoin = "bevel"
-            context.moveTo(this.dprToPx(10), this.dprToPx(95))
-            context.lineTo(this.dprToPx(20), this.dprToPx(90))
-            context.moveTo(this.dprToPx(10), this.dprToPx(95))
-            context.lineTo(this.dprToPx(20), this.dprToPx(100))
-            context.moveTo(this.dprToPx(10), this.dprToPx(95))
-            context.lineTo(this.dprToPx(80), this.dprToPx(95))
-            context.lineTo(this.dprToPx(70), this.dprToPx(90))
-            context.moveTo(this.dprToPx(80), this.dprToPx(95))
-            context.lineTo(this.dprToPx(70), this.dprToPx(100))
+            context.moveTo(10, 95)
+            context.lineTo(20, 90)
+            context.moveTo(10, 95)
+            context.lineTo(20, 100)
+            context.moveTo(10, 95)
+            context.lineTo(80, 95)
+            context.lineTo(70, 90)
+            context.moveTo(80, 95)
+            context.lineTo(70, 100)
             context.stroke();
-            context.font = this.dprToPx(12) + "px sans-serif";
+            //绘制latency
+            context.font = 12 + "px sans-serif";
             context.fillText("Scheduling latency:" + getTimeString(wakeupBean?.schedulingLatency || 0)
-                , this.dprToPx(90), this.dprToPx(100))
-            context.font = this.dprToPx(10) + "px sans-serif";
+                , 90, 100)
+            //绘制最下方提示语句
+            context.font = 10 + "px sans-serif";
             INPUT_WORD.split("\n").forEach((str, index) => {
-                context?.fillText(str
-                    , this.dprToPx(90), this.dprToPx(120 + 12 * index))
+                context?.fillText(str, 90, 120 + 12 * index)
             })
 
         }
     }
 
-    dprToPx(num: number) {
-        return Math.round(num * this.dpr)
-    }
-
     initElements(): void {
         this.tbl = this.shadowRoot?.querySelector<LitTable>('#selectionTbl');
-        this.tbl.addEventListener("column-click", ev => {
-            console.log(ev.detail);
+        this.tbl?.addEventListener("column-click", (ev: any) => {
         })
         this.addTableObserver()
     }
@@ -358,12 +384,9 @@ export class TabPaneCurrentSelection extends BaseElement {
     addTableObserver() {
         let MutationObserver = window.MutationObserver
         this.tableObserver = new MutationObserver((list) => {
-            console.log(this.tbl);
             if (this.tbl) {
                 let width = getComputedStyle(this.tbl).getPropertyValue("width")
                 let height = getComputedStyle(this.tbl).getPropertyValue("height")
-                console.log(width);
-                console.log(height);
             }
         })
         let selector = this.shadowRoot?.querySelector(".left-table");
@@ -411,7 +434,9 @@ export class TabPaneCurrentSelection extends BaseElement {
                         <lit-table-column title="name" data-index="name" key="name" align="flex-start"  width="180px">
                             <template><div>{{name}}</div></template>
                         </lit-table-column>
-                        <lit-table-column title="value" data-index="value" key="value" align="flex-start" ></lit-table-column>
+                        <lit-table-column title="value" data-index="value" key="value" align="flex-start" >
+                            <template><div style="display: flex;">{{value}}</div></template>
+                        </lit-table-column>
                     </lit-table>
                 </div>
                 <div class="right-table">
@@ -421,5 +446,4 @@ export class TabPaneCurrentSelection extends BaseElement {
         </div>
         `;
     }
-
 }

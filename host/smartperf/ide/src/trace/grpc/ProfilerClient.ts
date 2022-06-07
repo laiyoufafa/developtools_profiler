@@ -1,119 +1,118 @@
+/*
+ * Copyright (C) 2022 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 import * as path from 'path';
 
-const profilerServicePath = path.join(__dirname,'../proto', 'profiler_service.proto');
+const profilerServicePath = path.join(__dirname, '../proto', 'profiler_service.proto');
 
 export class ProfilerClient {
-        // proto filePaths
-        private _filePaths: Array<String> | undefined;
-        // client
-        private _client: any;
-        // profiler_proto
-        private _profiler_proto: any;
-        // ProfilerClient constructor
-        public constructor(address: Address) {
-                // load client port
-                let clientPort = this.loadAddress(address);
-                // load proto file
-                this.start(clientPort, profilerServicePath);
-        };
+    // proto filePaths
+    private _filePaths: Array<String> | undefined;
+    // client
+    private _client: any;
+    // profiler_proto
+    private _profiler_proto: any;
 
-        get filePaths(): Array<String> | undefined {
-                return this._filePaths;
-        }
+    // ProfilerClient constructor
+    public constructor(address: Address) {
+        // load client port
+        let clientPort = this.loadAddress(address);
+        // load proto file
+        this.start(clientPort, profilerServicePath);
+    };
 
-        set filePaths(value: Array<String> | undefined) {
-                this._filePaths = value;
-        }
+    get filePaths(): Array<String> | undefined {
+        return this._filePaths;
+    }
 
-        get client(): any {
-                return this._client;
-        }
+    set filePaths(value: Array<String> | undefined) {
+        this._filePaths = value;
+    }
 
-        set client(value: any) {
-                this._client = value;
-        }
+    get client(): any {
+        return this._client;
+    }
 
-        get profiler_proto(): any {
-                return this._profiler_proto;
-        }
+    set client(value: any) {
+        this._client = value;
+    }
 
-        set profiler_proto(value: any) {
-                this._profiler_proto = value;
-        }
+    get profiler_proto(): any {
+        return this._profiler_proto;
+    }
 
-        start(address: string, filePath: string){
-                // let loadPackage = proto_load.loadSync(
-                //     filePath,
-                //     {
-                //             keepCase: true,
-                //             longs: String,
-                //             enums: String,
-                //             defaults: true,
-                //             oneofs: true
-                //     }
-                // );
-                // // profiler Proto
-                // this._profiler_proto = rpc.loadPackageDefinition(loadPackage);
-                // // get profilerProto service
-                // let profilerProto = this._profiler_proto.profiler;
-                // // client
-                // this._client = new profilerProto.IProfilerService('127.0.0.1:5555', rpc.credentials.createInsecure());
-        }
+    set profiler_proto(value: any) {
+        this._profiler_proto = value;
+    }
 
-        // Address
-        loadAddress(clientAddress: Address): string{
-                return clientAddress.host + ':' + clientAddress.port;
-        };
+    start(address: string, filePath: string) {
+    }
 
-        public getProfilerClient(callback: any): any{
-                return this._client;
-        };
+    // Address
+    loadAddress(clientAddress: Address): string {
+        return clientAddress.host + ':' + clientAddress.port;
+    };
 
-        public getCapabilities(callback: any) {
-                this._client.
-                this._client.getCapabilities(callback);
-                callback();
-        };
+    public getProfilerClient(callback: any): any {
+        return this._client;
+    };
 
-        public createSession(callback: any) {
-                this._client.createSession(callback);
-                callback();
-        };
+    public getCapabilities(callback: any) {
+        this._client.this._client.getCapabilities(callback);
+        callback();
+    };
 
-        public startSession(callback: any) {
-                this._client.startSession(callback);
-                callback();
-        };
+    public createSession(callback: any) {
+        this._client.createSession(callback);
+        callback();
+    };
 
-        public stopSession(callback: any) {
-                this._client.stopSession(callback);
-                callback();
-        };
+    public startSession(callback: any) {
+        this._client.startSession(callback);
+        callback();
+    };
 
-        public destroySession(callback: any) {
-                this._client.destroySession(callback);
-                callback();
-        };
+    public stopSession(callback: any) {
+        this._client.stopSession(callback);
+        callback();
+    };
 
-        public keepSession(callback: any) {
-                this._client.keepSession(callback);
-                callback();
-        };
+    public destroySession(callback: any) {
+        this._client.destroySession(callback);
+        callback();
+    };
 
-        public shutdown(): void {
+    public keepSession(callback: any) {
+        this._client.keepSession(callback);
+        callback();
+    };
 
-        };
+    public shutdown(): void {
 
-        public getChannel() {
-                return this._client.channelInterpretation;
-        };
+    };
+
+    public getChannel() {
+        return this._client.channelInterpretation;
+    };
 
 }
 
 export interface Address {
-        // port
-        port: string | number;
+    // port
+    port: string | number;
 
-        // host
-        host?: string | number;
+    // host
+    host?: string | number;
 }

@@ -24,7 +24,7 @@ export function proc(list: Array<any>, res: Set<any>, startNS: number, endNS: nu
             if ((it.startTime || 0) + (it.dur || 0) > (startNS || 0) && (it.startTime || 0) < (endNS || 0)) {
                 ProcessStruct.setProcessFrame(list[i], 5, startNS || 0, endNS || 0, totalNS || 0, frame)
                 if (i > 0 && ((list[i - 1].frame?.x || 0) == (list[i].frame?.x || 0) && (list[i - 1].frame?.width || 0) == (list[i].frame?.width || 0))) {
-                    continue;
+
                 } else {
                     res.add(list[i])
                 }

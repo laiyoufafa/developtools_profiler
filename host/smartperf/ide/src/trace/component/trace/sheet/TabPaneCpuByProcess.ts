@@ -1,4 +1,3 @@
-// @ts-nocheck
 /*
  * Copyright (C) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -36,7 +35,7 @@ export class TabPaneCpuByProcess extends BaseElement {
                     sumWall += e.wallDuration
                     sumOcc += e.occurrences
                     e.wallDuration = parseFloat((e.wallDuration / 1000000.0).toFixed(5));
-                    e.avgDuration = parseFloat((e.avgDuration / 1000000.0).toFixed(5));
+                    e.avgDuration = parseFloat((parseFloat(e.avgDuration) / 1000000.0).toFixed(5)).toString();
                 }
                 let count = new SelectionData()
                 count.process = " "
@@ -56,45 +55,56 @@ export class TabPaneCpuByProcess extends BaseElement {
         this.tbl = this.shadowRoot?.querySelector<LitTable>('#tb-cpu-process');
         this.range = this.shadowRoot?.querySelector('#time-range')
         this.tbl!.addEventListener('column-click', (evt) => {
+            // @ts-ignore
             this.sortByColumn(evt.detail)
         });
     }
 
     initHtml(): string {
         return `
-<style>
-:host{
-    display: flex;
-    flex-direction: column;
-    padding: 10px 10px;
-}
-</style>
-<label id="time-range" style="width: 100%;height: 20px;text-align: end;font-size: 10pt;margin-bottom: 5px">Selected range:0.0 ms</label>
-<lit-table id="tb-cpu-process" style="height: auto">
-    <lit-table-column order width="30%" title="Process" data-index="process" key="process" align="flex-start" order></lit-table-column>
-    <lit-table-column order width="1fr" title="PID" data-index="pid" key="pid" align="flex-start" order></lit-table-column>
-    <lit-table-column order width="1fr" title="Wall duration(ms)" data-index="wallDuration" key="wallDuration" align="flex-start" order></lit-table-column>
-    <lit-table-column order width="1fr" title="Avg Wall duration(ms)" data-index="avgDuration" key="avgDuration" align="flex-start" order></lit-table-column>
-    <lit-table-column order width="1fr" title="Occurrences" data-index="occurrences" key="occurrences" align="flex-start" order></lit-table-column>
-</lit-table>
+        <style>
+        :host{
+            display: flex;
+            flex-direction: column;
+            padding: 10px 10px;
+        }
+        </style>
+        <label id="time-range" style="width: 100%;height: 20px;text-align: end;font-size: 10pt;margin-bottom: 5px">Selected range:0.0 ms</label>
+        <lit-table id="tb-cpu-process" style="height: auto">
+            <lit-table-column order width="30%" title="Process" data-index="process" key="process" align="flex-start" order>
+            </lit-table-column>
+            <lit-table-column order width="1fr" title="PID" data-index="pid" key="pid" align="flex-start" order>
+            </lit-table-column>
+            <lit-table-column order width="1fr" title="Wall duration(ms)" data-index="wallDuration" key="wallDuration" align="flex-start" order>
+            </lit-table-column>
+            <lit-table-column order width="1fr" title="Avg Wall duration(ms)" data-index="avgDuration" key="avgDuration" align="flex-start" order>
+            </lit-table-column>
+            <lit-table-column order width="1fr" title="Occurrences" data-index="occurrences" key="occurrences" align="flex-start" order>
+            </lit-table-column>
+        </lit-table>
         `;
     }
 
-    sortByColumn(detail) {
+    sortByColumn(detail: any) {
+        // @ts-ignore
         function compare(property, sort, type) {
             return function (a: SelectionData, b: SelectionData) {
                 if (a.process == " " || b.process == " ") {
                     return 0;
                 }
                 if (type === 'number') {
+                    // @ts-ignore
                     return sort === 2 ? parseFloat(b[property]) - parseFloat(a[property]) : parseFloat(a[property]) - parseFloat(b[property]);
                 } else {
+                    // @ts-ignore
                     if (b[property] > a[property]) {
                         return sort === 2 ? 1 : -1;
-                    } else if (b[property] == a[property]) {
-                        return 0;
-                    } else {
-                        return sort === 2 ? -1 : 1;
+                    } else { // @ts-ignore
+                        if (b[property] == a[property]) {
+                            return 0;
+                        } else {
+                            return sort === 2 ? -1 : 1;
+                        }
                     }
                 }
             }

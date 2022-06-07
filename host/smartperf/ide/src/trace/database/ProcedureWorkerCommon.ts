@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+import {SpApplication} from "../SpApplication";
+
 export function ns2s(ns: number): string {
     let second1 = 1_000_000_000; // 1 second
     let millisecond1 = 1_000_000; // 1 millisecond
@@ -34,6 +36,8 @@ export function ns2s(ns: number): string {
 }
 
 export function ns2x(ns: number, startNS: number, endNS: number, duration: number, rect: any) {
+    // @ts-ignore
+    // return _ns2x(ns,startNS,endNS,duration,rect.width);
     if (endNS == 0) {
         endNS = duration;
     }
@@ -59,11 +63,38 @@ export class Rect {
         this.height = height;
     }
 
+    static contains(rect: Rect, x: number, y: number): boolean {
+        return rect.x <= x && x <= rect.x + rect.width && rect.y <= y && y <= rect.y + rect.height;
+    }
+
+    static containsWithPadding(rect: Rect, x: number, y: number, paddingLeftRight: number, paddingTopBottom: number): boolean {
+        return rect.x + paddingLeftRight <= x
+            && x <= rect.x + rect.width - paddingLeftRight
+            && rect.y + paddingTopBottom <= y
+            && y <= rect.y + rect.height - paddingTopBottom;
+    }
+
+    static containsWithMargin(rect: Rect, x: number, y: number, t: number, r: number, b: number, l: number): boolean {
+        return rect.x - l <= x
+            && x <= rect.x + rect.width + r
+            && rect.y - t <= y
+            && y <= rect.y + rect.height + b;
+    }
+
+    static intersect(r1: Rect, rect: Rect): boolean {
+        let maxX = r1.x + r1.width >= rect.x + rect.width ? r1.x + r1.width : rect.x + rect.width;
+        let maxY = r1.y + r1.height >= rect.y + rect.height ? r1.y + r1.height : rect.y + rect.height;
+        let minX = r1.x <= rect.x ? r1.x : rect.x;
+        let minY = r1.y <= rect.y ? r1.y : rect.y;
+        if (maxX - minX <= rect.width + r1.width && maxY - minY <= r1.height + rect.height) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
     contains(x: number, y: number): boolean {
         return this.x <= x && x <= this.x + this.width && this.y <= y && y <= this.y + this.height;
-    }
-    static contains(rect:Rect,x: number, y: number): boolean {
-        return rect.x <= x && x <= rect.x + rect.width && rect.y <= y && y <= rect.y + rect.height;
     }
 
     containsWithPadding(x: number, y: number, paddingLeftRight: number, paddingTopBottom: number): boolean {
@@ -72,24 +103,12 @@ export class Rect {
             && this.y + paddingTopBottom <= y
             && y <= this.y + this.height - paddingTopBottom;
     }
-    static containsWithPadding(rect:Rect,x: number, y: number, paddingLeftRight: number, paddingTopBottom: number): boolean {
-        return rect.x + paddingLeftRight <= x
-            && x <= rect.x + rect.width - paddingLeftRight
-            && rect.y + paddingTopBottom <= y
-            && y <= rect.y + rect.height - paddingTopBottom;
-    }
 
     containsWithMargin(x: number, y: number, t: number, r: number, b: number, l: number): boolean {
         return this.x - l <= x
             && x <= this.x + this.width + r
             && this.y - t <= y
             && y <= this.y + this.height + b;
-    }
-    static containsWithMargin(rect:Rect,x: number, y: number, t: number, r: number, b: number, l: number): boolean {
-        return rect.x - l <= x
-            && x <= rect.x + rect.width + r
-            && rect.y - t <= y
-            && y <= rect.y + rect.height + b;
     }
 
     /**
@@ -101,20 +120,9 @@ export class Rect {
         let maxY = this.y + this.height >= rect.y + rect.height ? this.y + this.height : rect.y + rect.height;
         let minX = this.x <= rect.x ? this.x : rect.x;
         let minY = this.y <= rect.y ? this.y : rect.y;
-        if (maxX - minX <= rect.width + this.width && maxY - minY <= this.height + rect.height){
+        if (maxX - minX <= rect.width + this.width && maxY - minY <= this.height + rect.height) {
             return true;
-        }else{
-            return false;
-        }
-    }
-    static intersect(r1:Rect,rect: Rect): boolean {
-        let maxX = r1.x + r1.width >= rect.x + rect.width ? r1.x + r1.width : rect.x + rect.width;
-        let maxY = r1.y + r1.height >= rect.y + rect.height ? r1.y + r1.height : rect.y + rect.height;
-        let minX = r1.x <= rect.x ? r1.x : rect.x;
-        let minY = r1.y <= rect.y ? r1.y : rect.y;
-        if (maxX - minX <= rect.width + r1.width && maxY - minY <= r1.height + rect.height){
-            return true;
-        }else{
+        } else {
             return false;
         }
     }
@@ -138,7 +146,7 @@ export class BaseStruct {
 
 export class ColorUtils {
     // public static   GREY_COLOR:string = Color.getHSBColor(0, 0, 62); // grey
-    public static   GREY_COLOR:string = "#f0f0f0"
+    public static GREY_COLOR: string = "#f0f0f0"
     /**
      * Color array of all current columns
      */
@@ -162,7 +170,7 @@ export class ColorUtils {
         "#fbbf00",// blue gray
         "#ffe593",// yellow 0xffec3d
     ];
-    public static FUNC_COLOR:Array<string> = [
+    public static FUNC_COLOR: Array<string> = [
         "#3391ff", // purple
         "#2db4e2",
         "#2db3aa", // deep purple
@@ -170,7 +178,26 @@ export class ColorUtils {
         "#535da6", // indigo
         "#008078", // blue
         "#ff9201",
-        "#38428c"];
+        "#38428c",
+        "#3391ff",// red
+        "#0076ff",// pink
+        "#66adff",// purple
+        "#2db3aa",// deep purple
+        "#008078",// indigo
+        "#73e6de",// blue
+        "#535da6",// light blue
+        "#38428c", // cyan
+        "#7a84cc",// teal
+        "#ff9201",// green
+        "#ff7500",// light green
+        "#ffab40",// lime
+        "#2db4e2",// amber 0xffc105
+        "#0094c6", // orange
+        "#7cdeff",// deep orange
+        "#ffd44a", // brown
+        "#fbbf00",// blue gray
+        "#ffe593",// yellow 0xffec3d
+    ];
 
     /**
      * Get the color value according to the length of the string
@@ -199,26 +226,25 @@ export class ColorUtils {
      * @param tid tid
      * @return Color
      */
-    public static colorForTid(tid:number):string {
-        let colorIdx:number = ColorUtils.hash(`${tid}`, ColorUtils.MD_PALETTE.length);
+    public static colorForTid(tid: number): string {
+        let colorIdx: number = ColorUtils.hash(`${tid}`, ColorUtils.MD_PALETTE.length);
         return ColorUtils.MD_PALETTE[colorIdx];
     }
 
-    public static formatNumberComma(str:number):string{
+    public static formatNumberComma(str: number): string {
         let l = str.toString().split("").reverse();
-        let t:string = "";
-        for(let i = 0; i < l.length; i ++ )
-        {
+        let t: string = "";
+        for (let i = 0; i < l.length; i++) {
             t += l[i] + ((i + 1) % 3 == 0 && (i + 1) != l.length ? "," : "");
         }
         return t.split("").reverse().join("")
     }
 }
 
-export function drawLines(ctx: any,xs:Array<any>,height:number,lineColor:string) {
+export function drawLines(ctx: any, xs: Array<any>, height: number, lineColor: string) {
     if (ctx) {
         ctx.lineWidth = 1;
-        ctx.strokeStyle = lineColor||"#dadada";
+        ctx.strokeStyle = lineColor || "#dadada";
         xs?.forEach(it => {
             ctx.moveTo(Math.floor(it), 0)
             ctx.lineTo(Math.floor(it), height)
@@ -227,3 +253,197 @@ export function drawLines(ctx: any,xs:Array<any>,height:number,lineColor:string)
     }
 }
 
+export function drawFlagLine(ctx: any, hoverFlag: any, selectFlag: any, startNS: number, endNS: number, totalNS: number, frame: any, slicesTime: { startTime: number | null, endTime: number | null ,color:string|null}) {
+    if (ctx) {
+        if (hoverFlag) {
+            ctx.beginPath();
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = hoverFlag?.color || "#dadada";
+            ctx.moveTo(Math.floor(hoverFlag.x), 0)
+            ctx.lineTo(Math.floor(hoverFlag.x), frame.height)
+            ctx.stroke();
+            ctx.closePath();
+        }
+        if (selectFlag) {
+            ctx.beginPath();
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = selectFlag?.color || "#dadada";
+            selectFlag.x = ns2x(selectFlag.time, startNS, endNS, totalNS, frame);
+            ctx.moveTo(Math.floor(selectFlag.x), 0)
+            ctx.lineTo(Math.floor(selectFlag.x), frame.height)
+            ctx.stroke();
+            ctx.closePath();
+        }
+        if (slicesTime && slicesTime.startTime && slicesTime.endTime) {
+            ctx.beginPath();
+            ctx.lineWidth = 1;
+            ctx.strokeStyle = slicesTime.color||"#dadada";
+            let x1 = ns2x(slicesTime.startTime, startNS, endNS, totalNS, frame);
+            let x2 = ns2x(slicesTime.endTime, startNS, endNS, totalNS, frame);
+            ctx.moveTo(Math.floor(x1), 0)
+            ctx.lineTo(Math.floor(x1), frame.height)
+            ctx.moveTo(Math.floor(x2), 0)
+            ctx.lineTo(Math.floor(x2), frame.height)
+            ctx.stroke();
+            ctx.closePath();
+        }
+    }
+}
+
+/**
+ * get framechart color by percent
+ * @param widthPercentage proportion of function
+ * @returns rbg
+ */
+export function getHeatColor(widthPercentage: number) {
+    return {
+        r: Math.floor(245 + 10 * (1 - widthPercentage)),
+        g: Math.floor(110 + 105 * (1 - widthPercentage)),
+        b: 100,
+    };
+}
+
+/**
+ * get framechart color by percent
+ * @param percent proportion of function
+ * @param funName function name
+ * @returns
+ */
+export function getFrameChartColor(percent: number, funName: string) {
+    let heatColor;
+    let keyword = ''; // TODO search function reserved
+    if (keyword && keyword.length > 0 && funName.indexOf(keyword) != -1) {
+        heatColor = {r: 0x66, g: 0xad, b: 0xff};
+    } else {
+        heatColor = getHeatColor(percent);
+    }
+    return heatColor;
+}
+
+export enum ChartMode {
+    Call,
+    Byte,
+    Count,
+}
+
+export class ChartStruct extends BaseStruct {
+    static hoverFuncStruct: ChartStruct | undefined;
+    static selectFuncStruct: ChartStruct | undefined;
+    static padding: number = 1;
+    depth: number = 0;
+    symbol: string = '';
+    size: number = 0;
+    count: number = 0;
+    type: ChartMode = ChartMode.Call;
+    parent: ChartStruct | undefined;
+    children: Array<ChartStruct> = [];
+
+    /**
+     * set function position
+     * @param node current function struct
+     * @param canvas_frame canvas
+     * @param total all rect size
+     */
+    static setFuncFrame(node: ChartStruct, canvas_frame: Rect, total: number, mode: ChartMode) {
+        if (!node.frame) {
+            node.frame = new Rect(0, 0, 0, 0);
+        }
+        // filter depth is 0
+        if (node.parent instanceof ChartStruct) {
+            let idx = node.parent.children.indexOf(node);
+            if (idx == 0) {
+                node.frame!.x = node.parent.frame!.x;
+            } else {
+                // set x by left frame. left frame is parent.children[idx - 1]
+                node.frame.x = node.parent.children[idx - 1].frame!.x + node.parent.children[idx - 1].frame!.width
+            }
+            let width = 0;
+            if (mode == ChartMode.Byte) {
+                width = node.size / total * canvas_frame.width;
+            } else {
+                width = node.count / total * canvas_frame.width;
+            }
+            // ensure every rect at least draw 1px
+            width = (width < 1) ? Math.ceil(width) : Math.floor(width);
+            node.frame!.width = width;
+            node.frame!.y = node.parent.frame!.y + 20;
+            node.frame!.height = 20;
+        }
+    }
+
+    /**
+     * draw rect
+     * @param ctx CanvasRenderingContext2D
+     * @param data rect which is need draw
+     * @param percent function size or count / total size or count
+     */
+    static draw(ctx: CanvasRenderingContext2D, data: ChartStruct, percent: number) {
+        let spApplication = <SpApplication>document.getElementsByTagName("sp-application")[0]
+        if (data.frame) {
+            // draw rect
+            let color = getFrameChartColor(percent, data.symbol);
+            let miniHeight = 20;
+            ctx.fillStyle = `rgba(${color.r}, ${color.g}, ${color.b}, 0.9)`;
+            ctx.fillRect(data.frame.x, data.frame.y, data.frame.width, miniHeight - ChartStruct.padding * 2);
+
+            //draw border
+            if (ChartStruct.isHover(data)) {
+                if (spApplication.dark) {
+                    ctx.strokeStyle = "#fff";
+                } else {
+                    ctx.strokeStyle = "#000";
+                }
+            } else {
+                if (spApplication.dark) {
+                    ctx.strokeStyle = "#000";
+                } else {
+                    ctx.strokeStyle = "#fff";
+                }
+            }
+            ctx.lineWidth = 0.4;
+            ctx.strokeRect(data.frame.x, data.frame.y, data.frame.width, miniHeight - ChartStruct.padding * 2);
+
+            //draw symbol name
+            if (data.frame.width > 10) {
+                if (spApplication.dark) {
+                    ctx.fillStyle = "#fff";
+                } else {
+                    ctx.fillStyle = "#000";
+                }
+                ChartStruct.drawString(ctx, data.symbol || '', 5, data.frame);
+            }
+
+        }
+    }
+
+    /**
+     * draw function string in rect
+     * @param ctx CanvasRenderingContext2D
+     * @param str function Name
+     * @param textPadding textPadding
+     * @param frame canvas area
+     * @returns is draw
+     */
+    static drawString(ctx: CanvasRenderingContext2D, str: string, textPadding: number, frame: Rect): boolean {
+        let textMetrics = ctx.measureText(str);
+        let charWidth = Math.round(textMetrics.width / str.length)
+        if (textMetrics.width < frame.width - textPadding * 2) {
+            let x2 = Math.floor(frame.width / 2 - textMetrics.width / 2 + frame.x + textPadding)
+            ctx.fillText(str, x2, Math.floor(frame.y + frame.height / 2 + 2), frame.width - textPadding * 2)
+            return true;
+        }
+        if (frame.width - textPadding * 2 > charWidth * 4) {
+            let chatNum = (frame.width - textPadding * 2) / charWidth;
+            let x1 = frame.x + textPadding
+            ctx.fillText(str.substring(0, chatNum - 4) + '...', x1, Math.floor(frame.y + frame.height / 2 + 2), frame.width - textPadding * 2)
+            return true;
+        }
+        return false;
+    }
+
+    static isHover(data: ChartStruct): boolean {
+        return ChartStruct.hoverFuncStruct == data;
+    }
+
+
+}

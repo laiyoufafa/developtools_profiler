@@ -27,4 +27,18 @@ describe('LitTableGroup Test', ()=>{
     it('LitTableGroupTest02', ()=>{
         expect(litTableColumn.connectedCallback()).toBeUndefined();
     })
+
+    it('LitTableGroupTest03', ()=>{
+        expect(litTableColumn.shadowRoot.innerHTML).toMatchInlineSnapshot(`
+"
+        <style>
+        :host{
+            overflow: auto;
+            width: 100%;
+         }
+        </style>
+        <slot id=\\"slot\\"></slot>
+        "
+`);
+    })
 })

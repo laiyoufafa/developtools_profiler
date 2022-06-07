@@ -40,21 +40,22 @@ function initWASM() {
     })
 }
 
-const REQ_BUF_SIZE = 32 * 1024 * 1024;
+const REQ_BUF_SIZE = 64 * 1024 * 1024;
 self.onmessage = async (e: MessageEvent) => {
     if (e.data.action === "open") {
         await initWASM();
         // @ts-ignore
-        self.postMessage({id: e.data.id, action: "open", ready: true,index:0});
+        self.postMessage({id: e.data.id, action: "open", ready: true, index: 0});
         let uint8Array = new Uint8Array(e.data.buffer);
         let p = Module._malloc(uint8Array.length);
         Module.HEAPU8.set(uint8Array, p);
         let r1 = Module._TraceStreamerParseData(p, uint8Array.length);
         let r2 = Module._TraceStreamerParseDataOver();
-        if(r1 == -1){
+        Module._free(p);
+        if (r1 == -1) {
             // @ts-ignore
-            self.postMessage({id: e.data.id, action: "open", init: false,msg:"parse data error"});
-            return ;
+            self.postMessage({id: e.data.id, action: "open", init: false, msg: "parse data error"});
+            return;
         }
         // @ts-ignore
         temp_init_sql_list.forEach((item, index) => {
@@ -63,7 +64,7 @@ self.onmessage = async (e: MessageEvent) => {
             self.postMessage({id: e.data.id, ready: true, index: index + 1});
         });
         // @ts-ignore
-        self.postMessage({id: e.data.id, action: "open", init: true,msg:"ok"});
+        self.postMessage({id: e.data.id, action: "open", init: true, msg: "ok"});
     } else if (e.data.action === "exec") {
         let arr = query(e.data.name, e.data.sql, e.data.params);
         // @ts-ignore
@@ -83,9 +84,9 @@ function createView(sql: string) {
 function query(name: string, sql: string, params: any) {
     if (params) {
         Reflect.ownKeys(params).forEach((key: any) => {
-            if(typeof params[key] ==="string"){
+            if (typeof params[key] === "string") {
                 sql = sql.replace(new RegExp(`\\${key}`, "g"), `'${params[key]}'`);
-            }else{
+            } else {
                 sql = sql.replace(new RegExp(`\\${key}`, "g"), params[key]);
             }
         });
@@ -103,6 +104,9 @@ function query(name: string, sql: string, params: any) {
     Module._free(sqlPtr);
     Module._free(outPtr);
     str = str.substring(str.indexOf("\n") + 1);
+    if (!str) {
+        return []
+    }
     let parse = JSON.parse(str);
     let columns = parse.columns;
     let values = parse.values;

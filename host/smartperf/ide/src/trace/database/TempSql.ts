@@ -14,22 +14,30 @@
  */
 
 let temp_query_process = `create table temp_query_process as select
-  distinct process_view.pid as pid,
-  process_view.name as processName
-from (
-  select ipid, itid from sched_slice join thread_view using(itid) group by itid
-) the_tracks
-left join (select ipid, sum(dur) as total_dur
-  from sched_view join thread_view using(itid)
-  group by ipid
-) using(ipid)
-left join process_view using(ipid)
-where pid is not null
-order by
-  total_dur desc,
-  the_tracks.ipid,
- processName,
-  the_tracks.itid; 
+    distinct process_view.pid as pid,
+    process_view.name as processName
+  from (
+    select
+      ipid,
+      itid
+    from
+      sched_slice join thread_view using(itid)
+    group by itid
+  ) the_tracks
+  left join
+    (select ipid, sum(dur) as total_dur
+    from sched_view join thread_view using(itid)
+    group by ipid
+  ) using(ipid)
+  left join
+    process_view using(ipid)
+  where
+    pid is not null
+  order by
+    total_dur desc,
+    the_tracks.ipid,
+    processName,
+    the_tracks.itid;
 `
 let temp_query_cpu_data = `create table temp_query_cpu_data as with list as (SELECT
     IP.name as processName,
@@ -45,14 +53,12 @@ let temp_query_cpu_data = `create table temp_query_cpu_data as with list as (SEL
     C.priority,
     C.end_state
 from thread_state AS B
-    left join  thread as A
-    left join sched_slice AS C
+    left join  thread as A on B.itid = A.id
+    left join sched_slice AS C on B.itid = C.itid and B.ts = C.ts
     left join trace_section AS TR
-    left join process AS IP
-where B.itid = A.id
-    and B.itid = C.itid and B.ts = C.ts
-    and A.ipid = IP.id
-order by B.rowid)
+    left join process AS IP on A.ipid = IP.id
+where C.itid is not null
+order by B.id)
 select * from list;
 create index temp_query_cpu_data_idx on temp_query_cpu_data(cpu,startTime);
 `
@@ -95,10 +101,9 @@ create index temp_query_thread_function_idx on temp_query_thread_function(tid);
 let temp_query_thread_data = `create table temp_query_thread_data as select A.id, A.type, A.tid, A.name, A.start_ts, A.end_ts, A.ipid as upid, A.is_main_thread
      , B.cpu, B.ts-TR.start_ts AS startTime,B.dur,B.state,IP.pid,IP.name as processName
                 from thread_state AS B
-                left join thread as A
+                left join thread as A on A.id=B.itid
                 left join trace_section AS TR
-                left join process AS IP on IP.id=ipid
-                where A.id=B.itid;
+                left join process AS IP on IP.id=ipid;
                 create index temp_query_thread_data_idx on temp_query_thread_data(tid);`
 
 let temp_view = `CREATE VIEW IF NOT EXISTS thread_view AS SELECT id as itid, * FROM thread;
@@ -124,6 +129,28 @@ from thread_state as A,trace_section as B
     left join process AS IP on C.ipid = IP.id
 where A.dur > 0 and processId not null and (ts - B.start_ts)>0;
 create index temp_get_tab_states_group_by_process_idx on temp_get_tab_states_group_by_process(end_ts,start_ts);
+`
+
+let temp_get_process_thread_state_data = ` create table temp_get_process_thread_state_data as 
+ select  IP.name as process,
+    IP.pid as processId,
+    A.name as thread,
+    B.state as state,
+    A.tid as threadId,
+    B.dur,
+    (B.ts - TR.start_ts + B.dur) as end_ts,
+    (B.ts - TR.start_ts) as start_ts,
+    B.cpu,
+    C.priority,
+    '-' as note
+from thread_state as B
+    left join  thread as A on B.itid = A.id
+    left join process as IP on A.ipid = IP.id
+    left join trace_section as TR
+    left join sched_slice as C on B.itid = C.itid and C.ts = B.ts
+where
+    B.dur > 0 and IP.pid not null and (B.ts - TR.start_ts) >= 0;
+create index temp_get_process_thread_state_data_idx on temp_get_process_thread_state_data(end_ts,start_ts);
 `
 
 let temp_get_tab_states_group_by_state_pid_tid = ` create table temp_get_tab_states_group_by_state_pid_tid as 
@@ -176,63 +203,99 @@ select state,
  create index temp_get_tab_states_group_by_state_idx1 on temp_get_tab_states_group_by_state(start_ts,end_ts);
  `
 let temp_get_tab_states_group_by_process_thread = `create table temp_get_tab_states_group_by_process_thread as 
-select IP.name as process,
-        IP.pid as processId,
-        A.name as thread,
-        a.tid as threadId,
-        B.dur as dur,
-        A.tid as tid,
-        (ts - TR.start_ts + dur) as end_ts,
-        (ts - TR.start_ts) as start_ts
- from thread_state AS B
-     left join  thread as A on B.itid = A.id
-     left join process AS IP on A.ipid = IP.id
-     left join trace_section AS TR
- where pid not null and
-     B.dur > 0 and (ts - TR.start_ts)>0;
+    select
+      IP.name as process,
+      IP.pid as processId,
+      A.name as thread,
+      a.tid as threadId,
+      B.dur as dur,
+      A.tid as tid,
+      (ts - TR.start_ts + dur) as end_ts,
+      (ts - TR.start_ts) as start_ts
+    from
+      thread_state AS B
+    left join
+      thread as A on B.itid = A.id
+    left join
+      process AS IP on A.ipid = IP.id
+    left join
+      trace_section AS TR
+    where
+      pid not null
+    and
+      B.dur > 0
+    and
+      (ts - TR.start_ts)>0;
  create index temp_get_tab_states_group_by_process_thread_idx0 on temp_get_tab_states_group_by_process_thread(process,processId,thread,threadId);
  create index temp_get_tab_states_group_by_process_thread_idx1 on temp_get_tab_states_group_by_process_thread(start_ts,end_ts);
 `
 
 let temp_get_cpu_rate = `create table temp_get_cpu_rate as 
 with cpu as (
-    select cpu,ts,dur,(case when ro < 99 then ro else 99 end) as ro ,
-           (case when ro < 99 then stime+ro*cell else stime + 99 * cell end) as st,
-           (case when ro < 99 then stime + (ro+1)*cell else etime end) as et
+    select
+      cpu,
+      ts,
+      dur,
+      (case when ro < 99 then ro else 99 end) as ro ,
+      (case when ro < 99 then stime+ro*cell else stime + 99 * cell end) as st,
+      (case when ro < 99 then stime + (ro+1)*cell else etime end) as et
     from (
-        select cpu,ts,A.dur,((ts+A.dur)-D.start_ts)/((D.end_ts-D.start_ts)/100) as ro,D.start_ts as stime,D.end_ts etime,(D.end_ts-D.start_ts)/100 as cell
-        from sched_slice A
-        left join trace_section D
-        left join thread B on A.itid = B.id
-        left join process C on B.ipid = C.id
-        where tid != 0 and (A.ts) between D.start_ts and D.end_ts))
-select cpu,ro,
+        select
+          cpu,
+          ts,
+          A.dur,
+          ((ts+A.dur)-D.start_ts)/((D.end_ts-D.start_ts)/100) as ro,
+          D.start_ts as stime,
+          D.end_ts etime,
+          (D.end_ts-D.start_ts)/100 as cell
+        from
+          sched_slice A
+        left join
+          trace_section D
+        left join
+          thread B on A.itid = B.id
+        left join
+          process C on B.ipid = C.id
+        where
+          tid != 0
+        and (A.ts)
+          between D.start_ts and D.end_ts))
+    select cpu,ro,
        sum(case
                when ts <= st and ts + dur <= et then (ts + dur - st)
                when ts <= st and ts + dur > et then et-st
                when ts > st and ts + dur <= et then dur
                when ts > st and ts + dur > et then et - ts end)/cast(et-st as float) as rate
-from cpu
-group by cpu,ro;
+    from cpu
+    group by cpu,ro;
 `
 
-let temp_get_tab_thread_states= `create table temp_get_tab_thread_states as 
+let temp_get_tab_thread_states = `create table temp_get_tab_thread_states as 
     select
-    IP.name as process,
-    IP.pid as pid,
-    A.name as thread,
-    A.tid as tid,
-    B.state as state,
-    B.dur as dur,
-    (B.ts - TR.start_ts + B.dur) as end_ts,
-    (B.ts - TR.start_ts) as start_ts
-from thread_state AS B
-left join thread as A on A.id = B.itid
-left join trace_section AS TR
-left join process AS IP on IP.id=ipid
-where (B.ts - TR.start_ts > 0);
-create index temp_get_tab_thread_states_idx0 on temp_get_tab_thread_states(process,pid,thread,tid,state);
-create index temp_get_tab_thread_states_idx1 on temp_get_tab_thread_states(start_ts,end_ts);
+      IP.name as process,
+      IP.pid as pid,
+      A.name as thread,
+      A.tid as tid,
+      B.state as state,
+      B.dur as dur,
+      (B.ts - TR.start_ts + ifnull(B.dur,0)) as end_ts,
+      (B.ts - TR.start_ts) as start_ts
+    from
+      thread_state AS B
+    left join
+      thread as A
+    on
+      A.id = B.itid
+    left join
+      trace_section AS TR
+    left join
+      process AS IP
+    on
+      IP.id=ipid
+    where
+      (B.ts - TR.start_ts > 0);
+    create index temp_get_tab_thread_states_idx0 on temp_get_tab_thread_states(process,pid,thread,tid,state);
+    create index temp_get_tab_thread_states_idx1 on temp_get_tab_thread_states(start_ts,end_ts);
 `;
 
 let temp_get_tab_slices = `create table temp_get_tab_slices as 
@@ -242,44 +305,26 @@ let temp_get_tab_slices = `create table temp_get_tab_slices as
       A.tid as tid,
       (C.ts - D.start_ts + C.dur) as end_ts,
       (C.ts - D.start_ts) as start_ts
-from thread A,trace_section D
-left join callstack C on A.id = C.callid
-where C.ts not null
-      and c.dur >= 0    
+    from
+      thread A,
+      trace_section D
+    left join
+      callstack C on A.id = C.callid
+    where
+      C.ts not null
+      and c.dur >= 0
       and (C.ts - D.start_ts > 0);
-create index temp_get_tab_slices_idx0 on temp_get_tab_slices(name);
+    create index temp_get_tab_slices_idx0 on temp_get_tab_slices(name);
 `;
 
 let delete_callstack_binder_data = `DELETE FROM callstack WHERE dur<0 or name like 'binder%';`;
 let temp_init_sql_list = [
     temp_view,
     delete_callstack_binder_data,
-    temp_query_cpu_freq,
-    temp_query_cpu_max_freq,
     temp_query_process,
     temp_query_cpu_data,
-    temp_query_freq_data,
     temp_query_process_data,
     temp_query_thread_function,
     temp_query_thread_data,
     temp_get_cpu_rate,
 ];
-let temp_init_sql = `
-${temp_view};
-${temp_query_cpu_freq};
-${temp_query_cpu_max_freq};
-${temp_query_process};
-${temp_query_cpu_data};
-${temp_query_freq_data};
-${temp_query_process_data};
-${temp_query_thread_function};
-${temp_query_thread_data};
-${temp_get_cpu_rate};
-${temp_get_tab_states_group_by_process};
-${temp_get_tab_states_group_by_process_thread};
-${temp_get_tab_states_group_by_state_pid};
-${temp_get_tab_states_group_by_state_pid_tid};
-${temp_get_tab_states_group_by_state};
-${temp_get_tab_thread_states};
-${temp_get_tab_slices};
-`

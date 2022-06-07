@@ -45,11 +45,11 @@ export class Rect {
     }
 
     static intersect(r1: Rect, rect: Rect): boolean {
-        let maxX = r1.x + r1.width >= rect.x + rect.width ? r1.x + r1.width : rect.x + rect.width;
-        let maxY = r1.y + r1.height >= rect.y + rect.height ? r1.y + r1.height : rect.y + rect.height;
-        let minX = r1.x <= rect.x ? r1.x : rect.x;
-        let minY = r1.y <= rect.y ? r1.y : rect.y;
-        if (maxX - minX <= rect.width + r1.width && maxY - minY <= r1.height + rect.height) {
+        let maxX = r1.x + r1.width > rect.x + rect.width ? r1.x + r1.width : rect.x + rect.width;
+        let maxY = r1.y + r1.height > rect.y + rect.height ? r1.y + r1.height : rect.y + rect.height;
+        let minX = r1.x < rect.x ? r1.x : rect.x;
+        let minY = r1.y < rect.y ? r1.y : rect.y;
+        if (maxX - minX < rect.width + r1.width && maxY - minY < r1.height + rect.height) {
             return true;
         } else {
             return false;
@@ -74,6 +74,10 @@ export class Rect {
             && y <= this.y + this.height + b;
     }
 
+    /**
+     * 判断是否相交
+     * @param rect
+     */
     intersect(rect: Rect): boolean {
         let maxX = this.x + this.width >= rect.x + rect.width ? this.x + this.width : rect.x + rect.width;
         let maxY = this.y + this.height >= rect.y + rect.height ? this.y + this.height : rect.y + rect.height;

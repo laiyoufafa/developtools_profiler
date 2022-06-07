@@ -15,12 +15,11 @@
 
 import {BaseStruct, ns2x, Rect} from "./ProcedureWorkerCommon.js";
 
-const textPadding = 2;
-
 export function fps(list: Array<any>, res: Set<any>, startNS: number, endNS: number, totalNS: number, frame: any) {
     res.clear();
+    FpsStruct.maxFps = 0
     if (list) {
-        for (let i = 0,len = list.length; i < len; i++) {
+        for (let i = 0, len = list.length; i < len; i++) {
             let it = list[i];
             if ((it.fps || 0) > FpsStruct.maxFps) {
                 FpsStruct.maxFps = it.fps || 0
@@ -33,7 +32,7 @@ export function fps(list: Array<any>, res: Set<any>, startNS: number, endNS: num
             if ((it.startNS || 0) + (it.dur || 0) > (startNS) && (it.startNS || 0) < (endNS)) {
                 FpsStruct.setFrame(list[i], 5, startNS, endNS, totalNS, frame)
                 if (i > 0 && ((list[i - 1].frame?.x || 0) == (list[i].frame?.x || 0) && (list[i - 1].frame?.width || 0) == (list[i].frame?.width || 0))) {
-                    continue;
+
                 } else {
                     res.add(list[i])
                 }
@@ -42,36 +41,36 @@ export function fps(list: Array<any>, res: Set<any>, startNS: number, endNS: num
     }
 }
 
-export class FpsStruct extends BaseStruct{
-    fps: number | undefined
-    startNS: number | undefined = 0
-    dur: number | undefined
-
+export class FpsStruct extends BaseStruct {
     static maxFps: number = 0
     static maxFpsName: string = "0 FPS"
-    static hoverFpsStruct:FpsStruct|undefined;
-    static selectFpsStruct:FpsStruct|undefined;
+    static hoverFpsStruct: FpsStruct | undefined;
+    static selectFpsStruct: FpsStruct | undefined;
+    fps: number | undefined
+    startNS: number | undefined = 0
+    dur: number | undefined //自补充，数据库没有返回
+
     static draw(ctx: CanvasRenderingContext2D, data: FpsStruct) {
         if (data.frame) {
             let width = data.frame.width || 0;
-            ctx.fillStyle= '#535da6'
-            ctx.strokeStyle= '#535da6'
-            if(data.startNS===FpsStruct.hoverFpsStruct?.startNS){
+            ctx.fillStyle = '#535da6'
+            ctx.strokeStyle = '#535da6'
+            if (data.startNS === FpsStruct.hoverFpsStruct?.startNS) {
                 ctx.lineWidth = 1;
                 ctx.globalAlpha = 0.6;
                 let drawHeight: number = ((data.fps || 0) * (data.frame.height || 0) * 1.0) / FpsStruct.maxFps;
                 ctx.fillRect(data.frame.x, data.frame.y + data.frame.height - drawHeight, width, drawHeight)
                 ctx.beginPath()
-                ctx.arc(data.frame.x,data.frame.y + data.frame.height - drawHeight,3,0,2*Math.PI,true)
+                ctx.arc(data.frame.x, data.frame.y + data.frame.height - drawHeight, 3, 0, 2 * Math.PI, true)
                 ctx.fill()
                 ctx.globalAlpha = 1.0;
                 ctx.stroke();
                 ctx.beginPath()
-                ctx.moveTo(data.frame.x+3,data.frame.y + data.frame.height - drawHeight);
+                ctx.moveTo(data.frame.x + 3, data.frame.y + data.frame.height - drawHeight);
                 ctx.lineWidth = 3;
-                ctx.lineTo(data.frame.x+width,data.frame.y + data.frame.height - drawHeight)
+                ctx.lineTo(data.frame.x + width, data.frame.y + data.frame.height - drawHeight)
                 ctx.stroke();
-            }else{
+            } else {
                 ctx.globalAlpha = 0.6;
                 ctx.lineWidth = 1;
                 let drawHeight: number = ((data.fps || 0) * (data.frame.height || 0) * 1.0) / FpsStruct.maxFps;
@@ -83,7 +82,7 @@ export class FpsStruct extends BaseStruct{
     }
 
     static setFrame(node: FpsStruct, padding: number, startNS: number, endNS: number, totalNS: number, frame: Rect) {
-        let x1: number,x2:number;
+        let x1: number, x2: number;
         if ((node.startNS || 0) < startNS) {
             x1 = 0;
         } else {
@@ -100,3 +99,4 @@ export class FpsStruct extends BaseStruct{
     }
 }
 
+const textPadding = 2;

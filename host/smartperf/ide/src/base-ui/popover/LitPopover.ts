@@ -50,7 +50,7 @@ export class LitPopover extends BaseElement {
 
     get limit(): LimitText {
         if (this._texBox?.checked) {
-            return {textLowerLimit: this._texBox.lowerlimit, textUpperLimit: this._texBox.uplimit}
+            return {textLowerLimit: this._texBox.lowerLimit, textUpperLimit: this._texBox.upLimit}
         }
         return {textLowerLimit: "", textUpperLimit: ""}
     }
@@ -239,7 +239,9 @@ export class LitPopover extends BaseElement {
         :host([direction="right"][trigger="focus"]:focus-within) ::slotted(lit-pop-content){
             transform:translate(10px,-50%) scale(1);
         }
-
+        
+        
+        
         :host([direction="leftbottom"]) ::slotted(lit-pop-content){
             right:100%;
             top:0;

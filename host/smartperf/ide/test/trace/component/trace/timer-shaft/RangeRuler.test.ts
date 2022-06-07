@@ -17,14 +17,19 @@
 import {RangeRuler} from "../../../../../dist/trace/component/trace/timer-shaft/RangeRuler.js"
 // @ts-ignore
 import {Mark} from "../../../../../dist/trace/component/trace/timer-shaft/RangeRuler.js";
+import {TimerShaftElement} from "../../../../../src/trace/component/trace/TimerShaftElement";
 
-describe('RangeRuler Test', ()=>{
+describe('RangeRuler Test', () => {
     const canvas = document.createElement('canvas');
     canvas.width = 1;
     canvas.height = 1;
     const ctx = canvas.getContext('2d');
 
-    let rangeRuler = new RangeRuler(canvas , ctx, {
+    document.body.innerHTML = '<timer-shaft-element id="timerShaftEL"><timer-shaft-element>'
+
+    let timerShaftElement = document.querySelector('#timerShaftEL') as TimerShaftElement;
+
+    let rangeRuler = new RangeRuler(timerShaftElement, {
         x: 20,
         y: 20,
         width: 100,
@@ -32,8 +37,9 @@ describe('RangeRuler Test', ()=>{
     }, {
         startX: 10,
         endX: 30
+    }, () => {
     });
-    let mark = new Mark(canvas , ctx, '', {
+    let mark = new Mark(canvas, ctx, '', {
         x: 20,
         y: 20,
         width: 100,
@@ -56,7 +62,33 @@ describe('RangeRuler Test', ()=>{
         expect(rangeRuler.fillX()).toBeUndefined();
     });
 
+    it('RangeRulerTest21', function () {
+        rangeRuler.range.startNS =-1
+        expect(rangeRuler.fillX()).toBe(undefined);
+    });
+
+    it('RangeRulerTest22', function () {
+        rangeRuler.range.endNS =-1
+        expect(rangeRuler.fillX()).toBe(undefined);
+    });
+
+    it('RangeRulerTest23', function () {
+        rangeRuler.range.endNS =-1;
+        rangeRuler.range.totalNS =-2
+        expect(rangeRuler.fillX()).toBe(undefined);
+    });
+
+    it('RangeRulerTest24', function () {
+        rangeRuler.range.startNS =-1;
+        rangeRuler.range.totalNS =-2
+        expect(rangeRuler.fillX()).toBe(undefined);
+    });
+
     it('RangeRulerTest03', function () {
+        // window.requestAnimationFrame = window.requestAnimationFrame ||
+        //     jest.fn().mockImplementation(() => ({
+        //
+        //     }));
         expect(rangeRuler.keyPress({
             key: 'w'
         })).toBeUndefined();
@@ -117,20 +149,20 @@ describe('RangeRuler Test', ()=>{
     });
 
     it('RangeRulerTest13', function () {
-        rangeRuler.markA = jest.fn(()=>true)
-        rangeRuler.rangeRect = jest.fn(()=>true)
-        rangeRuler.rangeRect.containsWithPadding = jest.fn(()=>true)
+        rangeRuler.markA = jest.fn(() => true)
+        rangeRuler.rangeRect = jest.fn(() => true)
+        rangeRuler.rangeRect.containsWithPadding = jest.fn(() => true)
 
-        rangeRuler.markA = jest.fn(()=> {
+        rangeRuler.markA = jest.fn(() => {
             return {
                 frame: {
                     x: 20
                 }
             }
         })
-        rangeRuler.markA.isHover = jest.fn(()=> true)
-        rangeRuler.markA.frame = jest.fn(()=> [])
-        rangeRuler.markA.frame.x = jest.fn(()=>true)
+        rangeRuler.markA.isHover = jest.fn(() => true)
+        rangeRuler.markA.frame = jest.fn(() => [])
+        rangeRuler.markA.frame.x = jest.fn(() => true)
 
         expect(rangeRuler.mouseDown({
             key: ''
@@ -138,64 +170,75 @@ describe('RangeRuler Test', ()=>{
     });
 
     it('RangeRulerTest14', function () {
-        rangeRuler.markA = jest.fn(()=>true)
-        rangeRuler.rangeRect = jest.fn(()=>true)
-        rangeRuler.rangeRect.containsWithPadding = jest.fn(()=>false)
-        rangeRuler.frame = jest.fn(()=>false)
-        rangeRuler.frame.containsWithMargin  = jest.fn(()=> true)
-        rangeRuler.rangeRect.containsWithMargin  = jest.fn(()=> false)
-
-        rangeRuler.markA = jest.fn(()=> true)
-        rangeRuler.markB.isHover = jest.fn(()=> true)
-        rangeRuler.markB.frame = jest.fn(()=> true)
-
-        rangeRuler.markB.frame.x = jest.fn(()=>true)
-
+        rangeRuler.markA = jest.fn(() => true)
+        rangeRuler.rangeRect = jest.fn(() => true)
+        rangeRuler.rangeRect.containsWithPadding = jest.fn(() => false)
+        rangeRuler.frame = jest.fn(() => false)
+        rangeRuler.frame.containsWithMargin = jest.fn(() => true)
+        rangeRuler.rangeRect.containsWithMargin = jest.fn(() => false)
+        rangeRuler.markB.isHover = jest.fn(() => true)
+        rangeRuler.markB.frame = jest.fn(() => true)
+        rangeRuler.markB.frame.x = jest.fn(() => true)
         expect(rangeRuler.mouseDown({
             key: ''
         })).toBeUndefined();
     });
 
     it('RangeRulerTest15', function () {
-        rangeRuler.markA = jest.fn(()=>true)
-        rangeRuler.markA.inspectionFrame = jest.fn(()=>true)
-        rangeRuler.markA.inspectionFrame.contains = jest.fn(()=>true)
-
-        rangeRuler.markA.frame = jest.fn(()=> true)
-        rangeRuler.markA.frame.x = jest.fn(()=>true)
-        rangeRuler.markA.draw = jest.fn(()=>true)
+        rangeRuler.markA = jest.fn(() => true)
+        rangeRuler.markA.inspectionFrame = jest.fn(() => true)
+        rangeRuler.markA.inspectionFrame.contains = jest.fn(() => true)
+        rangeRuler.markA.frame = jest.fn(() => true)
+        rangeRuler.markA.frame.x = jest.fn(() => true)
+        rangeRuler.markA.draw = jest.fn(() => true)
+        rangeRuler.centerXPercentage = jest.fn(() => -1)
         expect(rangeRuler.mouseMove({
             key: ''
         })).toBeUndefined();
     });
 
-    it('RangeRulerTest16', ()=> {
-        rangeRuler.markA = jest.fn(()=>false)
-        rangeRuler.markA.draw = jest.fn(()=>true)
-        rangeRuler.markA.frame = jest.fn(()=> true)
-        rangeRuler.markA.frame.x = jest.fn(()=>true)
-        rangeRuler.markA.inspectionFrame = jest.fn(()=>false)
-        rangeRuler.markA.inspectionFrame.contains = jest.fn(()=>false)
-
-        rangeRuler.movingMark = jest.fn(()=>false)
-        rangeRuler.movingMark.frame = jest.fn(()=> false)
-        rangeRuler.movingMark.frame.x = jest.fn(()=>false)
-        rangeRuler.rangeRect = jest.fn(()=>true)
-        rangeRuler.rangeRect.containsWithPadding = jest.fn(()=>true)
-
-        rangeRuler.movingMark.inspectionFrame = jest.fn(()=>false)
-        rangeRuler.movingMark.inspectionFrame.x = jest.fn(()=>false)
+    it('RangeRulerTest16', () => {
+        rangeRuler.markA = jest.fn(() => false)
+        rangeRuler.markA.draw = jest.fn(() => true)
+        rangeRuler.markA.frame = jest.fn(() => true)
+        rangeRuler.markA.frame.x = jest.fn(() => true)
+        rangeRuler.markA.inspectionFrame = jest.fn(() => false)
+        rangeRuler.markA.inspectionFrame.contains = jest.fn(() => false)
+        rangeRuler.movingMark = jest.fn(() => false)
+        rangeRuler.movingMark.frame = jest.fn(() => false)
+        rangeRuler.movingMark.frame.x = jest.fn(() => false)
+        rangeRuler.rangeRect = jest.fn(() => true)
+        rangeRuler.rangeRect.containsWithPadding = jest.fn(() => true)
+        rangeRuler.movingMark.inspectionFrame = jest.fn(() => false)
+        rangeRuler.movingMark.inspectionFrame.x = jest.fn(() => false)
         expect(rangeRuler.mouseMove({
             key: ''
         })).toBeUndefined();
     });
-    it('RangeRulerTest17', ()=> {
-        rangeRuler.notifyHandler = jest.fn(()=>true)
-        rangeRuler.movingMark.inspectionFrame.x = jest.fn(()=>false)
+
+    it('RangeRulerTest17', () => {
+        rangeRuler.notifyHandler = jest.fn(() => true)
+        rangeRuler.movingMark.inspectionFrame.x = jest.fn(() => false)
+        // rangeRuler.c = jest.fn(()=>true)
+        // rangeRuler.c.clearRect = jest.fn(()=>true)
+        rangeRuler.frame = jest.fn(() => true)
+        rangeRuler.frame.x = jest.fn(() => true)
+        rangeRuler.frame.y = jest.fn(() => true)
         expect(rangeRuler.draw()).toBeUndefined();
     });
 
     it('RangeRulerTest18', function () {
         expect(mark.isHover).toBeTruthy();
     });
+    it('RangeRulerTest19', function () {
+        rangeRuler.clearRect = jest.fn(() => true)
+        expect(rangeRuler.draw()).toBeUndefined();
+
+    })
+
+    it('RangeRulerTest20', function () {
+        rangeRuler.setRangeNS(0, 2000)
+        expect(rangeRuler.getRange().startX).toBe(0)
+
+    })
 })

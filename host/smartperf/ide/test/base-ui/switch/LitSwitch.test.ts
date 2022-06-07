@@ -20,6 +20,8 @@ describe('LitSwitch Test', ()=>{
     let litSwitch = new LitSwitch();
     litSwitch.checked = true
     litSwitch.checked = false
+    litSwitch.disabled = true
+    litSwitch.disabled =false
 
     it('LitSwitchTest01', ()=>{
         expect(litSwitch.name).toBeNull();
@@ -52,5 +54,79 @@ describe('LitSwitch Test', ()=>{
 
     it('LitSwitchTest08', ()=>{
         expect(litSwitch.attributeChangedCallback('checked', 'disabled', null)).toBeUndefined()
+    })
+
+    it('LitSwitchTest09', ()=>{
+        expect(litSwitch.initHtml()).toMatchInlineSnapshot(`
+"
+        <style>
+        :host{ 
+            display:inline-block; 
+            -webkit-tap-highlight-color: transparent;
+        }
+        #name{
+            cursor:pointer;
+            display:flex;
+            width:2.4em;
+            height:1.2em;
+            padding:.125em;
+            border-radius:1.2em;
+            background: #3391FF;
+            transition:.3s width,.3s height,.3s background-color;
+        }
+        
+        :host(:not([checked])) #name {
+           background: #999999;
+        }
+       
+        #name::before{
+            content:'';
+            flex:0;
+            transition:.2s cubic-bezier(.12, .4, .29, 1.46) flex;
+        }
+        #name::after{
+            content:'';
+            width:.4em;
+            height:.4em;
+            border-radius:1.2em;
+            border:.4em solid #fff;
+            background-color:#ffffff;
+            transition:.3s background,.3s padding,.3s width,.3s height,.3s border-radius,.3s border;
+            box-shadow: 0 2px 4px 0 rgba(0,35,11,0.2);
+        }
+        #name:active::after{
+            padding:0 .3em;
+        }
+        #switch:checked+#name{
+            background:#42b983);
+        }
+        #switch:checked+#name::before{
+            flex:1;
+        }
+        #switch{
+            position:absolute;
+            clip:rect(0,0px,0px,0);
+        }
+        :host(:focus-within) #name::after,:host(:active) ::after{ 
+            background:#42b983;
+        }
+        :host(:focus-within) #name{ 
+            box-shadow: 0 0 10px rgba(0,0,0,0.1); 
+        }
+        :host(:focus-within) #switch,:host(:active) #switch{
+            z-index:2
+        }
+        :host([disabled]){ 
+            pointer-events: none; 
+            opacity:.5; 
+        }
+        :host([disabled]) #name{ 
+            pointer-events: all;  
+            cursor: not-allowed; 
+        }
+        </style>
+        <input type=\\"checkbox\\" id=\\"switch\\"><label id=\\"name\\" for=\\"switch\\"></label>
+        "
+`);
     })
 })

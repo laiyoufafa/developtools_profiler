@@ -13,18 +13,18 @@
  * limitations under the License.
  */
 
+
 import {BaseElement, element} from "../BaseElement.js";
 
 @element('lit-main-menu-group')
 export class LitMainMenuGroup extends BaseElement {
+    protected _collapsed: boolean | undefined;
     private groupNameEl: HTMLElement | null | undefined;
     private groupDescEl: HTMLElement | null | undefined;
 
     static get observedAttributes() {
         return ['title', 'describe', 'collapsed', 'nocollapse', "radius"]
     }
-
-    protected _collapsed: boolean | undefined;
 
     get collapsed(): boolean {
         return this.hasAttribute('collapsed')

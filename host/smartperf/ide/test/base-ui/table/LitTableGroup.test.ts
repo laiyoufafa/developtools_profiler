@@ -27,4 +27,15 @@ describe('LitTableGroup Test', ()=>{
     it('LitTableGroupTest02', ()=>{
         expect(litTableGroup.title).toBe('title');
     })
+
+    it('LitTableGroupTest03', ()=>{
+        expect(litTableGroup.shadowRoot.innerHTML).toMatchInlineSnapshot(`
+"
+        <style>
+        :host{ }
+        </style>
+        <slot id=\\"sl\\"></slot>
+        "
+`)
+    })
 })

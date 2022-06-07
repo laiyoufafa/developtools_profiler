@@ -23,7 +23,29 @@ describe('TabPaneCpu Test', ()=>{
     it('TabPaneCpuTest01', function () {
         expect(tabPaneCpu.initHtml()).not.toBe('')
     });
+
     it('TabPaneCpuTest02', function () {
         expect(tabPaneCpu.initElements()).toBeUndefined()
+    });
+
+    it('TabPaneCpuTest03', function () {
+       expect(tabPaneCpu.initHtml()).toMatchInlineSnapshot(`
+"
+        <style>
+        :host{
+            display: flex;
+            flex-direction: column;
+            padding: 10px 10px;
+        }
+        </style>
+        <label style=\\"font-size: 15pt\\">Slice Details</label>
+        <lit-table id=\\"tbl3\\" no-head style=\\"height: auto\\">
+            <lit-table-column title=\\"name\\" data-index=\\"name\\" key=\\"name\\" align=\\"flex-start\\"  width=\\"150px\\">
+            </lit-table-column>
+            <lit-table-column title=\\"value\\" data-index=\\"value\\" key=\\"value\\" align=\\"flex-start\\" >
+            </lit-table-column>
+        </lit-table>
+        "
+`)
     });
 })

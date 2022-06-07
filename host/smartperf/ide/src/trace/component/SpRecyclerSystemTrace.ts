@@ -20,11 +20,24 @@ import "./trace/base/TraceRow.js";
 import "./trace/base/TraceRowRecyclerView.js"
 import {
     getAsyncEvents,
-    getCpuUtilizationRate, getFps, getFunDataByTid,
+    getCpuUtilizationRate,
+    getFps,
+    getFunDataByTid,
     queryCpuData,
-    queryCpuFreq, queryCpuFreqData, queryCpuMax, queryCpuMaxFreq, queryHeapByPid, queryHeapPid,
-    queryProcess, queryProcessData, queryProcessMem, queryProcessMemData, queryProcessThreads, queryThreadData,
-    queryTotalTime, threadPool
+    queryCpuFreq,
+    queryCpuFreqData,
+    queryCpuMax,
+    queryCpuMaxFreq,
+    queryHeapByPid,
+    queryHeapPid,
+    queryProcess,
+    queryProcessData,
+    queryProcessMem,
+    queryProcessMemData,
+    queryProcessThreads,
+    queryThreadData,
+    queryTotalTime,
+    threadPool
 } from "../database/SqlLite.js";
 import {TraceRow} from "./trace/base/TraceRow.js";
 import {TimerShaftElement} from "./trace/TimerShaftElement.js";
@@ -49,12 +62,12 @@ import {Rect} from "./trace/timer-shaft/Rect.js";
 
 @element('sp-recycler-system-trace')
 export class SpRecyclerSystemTrace extends BaseElement {
+    static scrollViewWidth = 0
     rowsEL: TraceRowRecyclerView | undefined | null;
     private timerShaftEL: TimerShaftElement | null | undefined;
     private range: TimeRange | undefined
     private traceSheetEL: TraceSheet | undefined | null;
     private rangeSelect!: RangeSelect;
-    static scrollViewWidth = 0
     private processThreads: Array<ThreadStruct> = []
     private processAsyncEvent: Array<ProcessMemStruct> = []
     private processMem: Array<any> = []
@@ -63,26 +76,29 @@ export class SpRecyclerSystemTrace extends BaseElement {
         this.rowsEL = this.shadowRoot?.querySelector<TraceRowRecyclerView>('.rows')
         this.timerShaftEL = this.shadowRoot?.querySelector('.timer-shaft')
         this.traceSheetEL = this.shadowRoot?.querySelector('.trace-sheet')
-        this.rangeSelect = new RangeSelect();
+        this.rangeSelect = new RangeSelect(this.timerShaftEL);
         this.rangeSelect.rowsEL = this.rowsEL;
         document?.addEventListener("flag-change", (event: any) => {
-            this.timerShaftEL?.modifyList(event.detail.type, event.detail.flagObj)
-            if (event.detail.type == "remove") {
+            let flag = event.detail;
+            this.timerShaftEL?.modifyFlagList(event.detail.type, event.detail.flagObj)
+            if (flag.hidden) {
                 this.traceSheetEL?.setAttribute("mode", 'hidden');
-            }
-        })
-        document?.addEventListener("flag-draw", (event: any) => {
-            if (event.detail == null) {
             }
         })
         SpRecyclerSystemTrace.scrollViewWidth = this.getScrollWidth()
         this.rangeSelect.selectHandler = (rows) => {
             let selection = new SelectionParam();
+            // 框选的 cpu ,无则不传
             selection.cpus = [];
+            // 框选的 线程 id,无则不传
             selection.threadIds = [];
+            // 款选的函数的 线程id ,无则不传
             selection.funTids = [];
+            // 框选的 内存 trackId ,无则不传
             selection.trackIds = [];
+            // 框选的起始时间
             selection.leftNs = 0;
+            // 框选的结束时间
             selection.rightNs = 0;
             rows.forEach(it => {
                 if (it.rowType == TraceRow.ROW_TYPE_CPU) {
@@ -95,7 +111,7 @@ export class SpRecyclerSystemTrace extends BaseElement {
                     selection.trackIds.push(parseInt(it.rowId!))
                 } else if (it.rowType == TraceRow.ROW_TYPE_FPS) {
                     selection.hasFps = true;
-                }else if(it.rowType == TraceRow.ROW_TYPE_HEAP){
+                } else if (it.rowType == TraceRow.ROW_TYPE_HEAP) {
                     selection.heapIds.push(parseInt(it.rowId!))
                 }
                 if (it.rangeSelect && it.rangeSelect.startNS) {
@@ -115,15 +131,14 @@ export class SpRecyclerSystemTrace extends BaseElement {
                 this.shadowRoot!.querySelectorAll<TraceRow<any>>("trace-row").forEach(it => it.updateWidth(width))
             })
         }).observe(this)
-
         // @ts-ignore
         new ResizeObserver((entries) => {
             let width = this.clientWidth - 1 - SpRecyclerSystemTrace.scrollViewWidth
-
             requestAnimationFrame(() => {
                 this.timerShaftEL?.updateWidth(width)
                 this.shadowRoot!.querySelectorAll<TraceRow<any>>("trace-row").forEach(it => it.updateWidth(width))
             })
+            // this.shadowRoot!.querySelectorAll<TraceRow<any>>("trace-row").forEach(it=>it.updateWidth(width))
         }).observe(window.document.body)
     }
 
@@ -146,6 +161,7 @@ export class SpRecyclerSystemTrace extends BaseElement {
         TraceRow.range = this.range;
         let scrollTop = this.rowsEL?.scrollTop || 0
         let scrollHeight = this.rowsEL?.clientHeight || 0
+        //在rowsEL显示范围内的 trace-row组件将收到时间区间变化通知
         this.getVisibleRows().forEach(it => {
             it.dataListCache.length = 0;
             this.hoverStructNull();
@@ -167,15 +183,18 @@ export class SpRecyclerSystemTrace extends BaseElement {
     documentOnMouseDown = (ev: MouseEvent) => {
         this.rangeSelect.mouseDown(ev)
     }
+
     documentOnMouseUp = (ev: MouseEvent) => {
         this.rangeSelect.mouseUp(ev);
     }
+
     documentOnMouseMove = (ev: MouseEvent) => {
         let rows = this.getVisibleRows();
         this.rangeSelect.mouseMove(rows, ev)
         rows.forEach(tr => {
             let x = ev.offsetX - (tr.canvasContainer?.offsetLeft || 0);
             let y = ev.offsetY - (tr.canvasContainer?.offsetTop || 0) + (this.rowsEL?.scrollTop || 0);
+            //判断鼠标是否在当前 trace-row
             if (x > tr.frame.x && x < tr.frame.x + tr.frame.width && y > tr.frame.y && y < tr.frame.y + tr.frame.height) {
                 this.hoverStructNull();
                 if (tr.rowType === TraceRow.ROW_TYPE_CPU) {
@@ -248,8 +267,17 @@ export class SpRecyclerSystemTrace extends BaseElement {
     }
 
     connectedCallback() {
+        /**
+         * 监听时间轴区间变化
+         */
         this.timerShaftEL?.addEventListener('range-change', this.timerShaftELRangeChange)
+        /**
+         * 监听rowsEL的滚动时间，刷新可见区域的trace-row组件的时间区间（将触发trace-row组件重绘）
+         */
         this.rowsEL?.addEventListener('scroll', this.rowsElOnScroll)
+        /**
+         * 监听document的mousemove事件 坐标通过换算后找到当前鼠标所在的trace-row组件，将坐标传入
+         */
         document.addEventListener('mousemove', this.documentOnMouseMove)
         document.addEventListener('mousedown', this.documentOnMouseDown)
         document.addEventListener('mouseup', this.documentOnMouseUp)
@@ -351,7 +379,6 @@ export class SpRecyclerSystemTrace extends BaseElement {
                     }, (res: any) => {
                         traceRow.dataListCache = res;
                         traceRow.must = false;
-
                         row.clearCanvas();
                         row.c!.beginPath();
                         row.drawLines();
@@ -423,8 +450,8 @@ export class SpRecyclerSystemTrace extends BaseElement {
                     row.c!.fillRect(0, 5, textMetrics.width + 8, 18)
                     row.c!.globalAlpha = 1
                     row.c!.fillStyle = "#333"
-                    ctx.textBaseline="middle"
-                    ctx.fillText(maxFps, 4, 5+9)
+                    ctx.textBaseline = "middle"
+                    ctx.fillText(maxFps, 4, 5 + 9)
                 })
             }
             objs.push(traceRow)
@@ -463,7 +490,7 @@ export class SpRecyclerSystemTrace extends BaseElement {
                         if ((it.startNS || 0) + (it.dur || 0) > (TraceRow.range?.startNS || 0) && (it.startNS || 0) < (TraceRow.range?.endNS || 0)) {
                             FpsStruct.setFrame(fpsRow.dataList[i], 5, TraceRow.range?.startNS || 0, TraceRow.range?.endNS || 0, TraceRow.range?.totalNS || 0, fpsRow.frame)
                             if (i > 0 && ((fpsRow.dataList[i - 1].frame?.x || 0) == (fpsRow.dataList[i].frame?.x || 0) && (fpsRow.dataList[i - 1].frame?.width || 0) == (fpsRow.dataList[i].frame?.width || 0))) {
-                                continue;
+
                             } else {
                                 fpsRow.dataListCache.push(fpsRow.dataList[i])
                                 FpsStruct.draw(ctx, fpsRow.dataList[i])
@@ -472,7 +499,7 @@ export class SpRecyclerSystemTrace extends BaseElement {
                     }
                 }
             }
-            if (ctx){
+            if (ctx) {
                 let maxFps = FpsStruct.maxFps + "FPS"
                 let textMetrics = ctx.measureText(maxFps);
                 ctx.globalAlpha = 0.8
@@ -480,14 +507,17 @@ export class SpRecyclerSystemTrace extends BaseElement {
                 ctx.fillRect(0, 5, textMetrics.width + 8, 18)
                 ctx.globalAlpha = 1
                 ctx.fillStyle = "#333"
-                ctx.textBaseline="middle"
-                ctx.fillText(maxFps, 4, 5+9)
+                ctx.textBaseline = "middle"
+                ctx.fillText(maxFps, 4, 5 + 9)
             }
         }
         objs.push(fpsRow)
         return objs;
     }
 
+    /**
+     * 添加进程信息
+     */
     initProcess = async () => {
         let objs = [];
         let processList = await queryProcess();
@@ -526,6 +556,9 @@ export class SpRecyclerSystemTrace extends BaseElement {
             if (heapPidList != undefined && Array.isArray(heapPidList) && heapPidList.filter((item) => {
                 return item.pid == it.pid
             }).length > 0) {
+                /**
+                 * 添加heap信息
+                 */
                 let allHeapRow = new TraceRowObject<HeapStruct>();
                 allHeapRow.rowParentId = `${it.pid}`
                 allHeapRow.rowHidden = !processRow.expansion
@@ -590,6 +623,9 @@ export class SpRecyclerSystemTrace extends BaseElement {
                 objs.push(allHeapRow);
             }
 
+            /**
+             * 添加进程内存信息
+             */
             let processMem = this.processMem.filter(mem => mem.pid === it.pid);
             processMem.forEach(mem => {
                 let row = new TraceRowObject<ProcessMemStruct>();
@@ -640,10 +676,11 @@ export class SpRecyclerSystemTrace extends BaseElement {
                 }
                 objs.push(row);
             });
-
+            /**
+             * 添加进程线程信息
+             */
             let threads = this.processThreads.filter(thread => thread.pid === it.pid && thread.tid != 0 && thread.threadName != null);
             threads.forEach((thread, i) => {
-                // if(i>0) return;
                 let threadRow = new TraceRowObject<ThreadStruct>();
                 threadRow.rowId = `${thread.tid}`
                 threadRow.rowType = TraceRow.ROW_TYPE_THREAD
@@ -728,40 +765,43 @@ export class SpRecyclerSystemTrace extends BaseElement {
 
     initHtml(): string {
         return `
-<style>
-:host{
-    display: block;
-    width: 100%;
-    height: 100%;
-}
-.timer-shaft{
-    width: 100%;
-    z-index: 2;
-}
-.rows{
-    display: flex;
-    box-sizing: border-box;
-    flex-direction: column;
-    overflow-y: auto;
-    max-height: calc(100vh - 150px - 48px);
-    flex: 1;
-    width: 100%;
-}
-.container{
-    width: 100%;
-    box-sizing: border-box;
-    height: 100%;
-    display: grid;
-    grid-template-columns: 1fr;
-    grid-template-rows: min-content 1fr min-content;
-}
+        <style>
+        :host{
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+        .timer-shaft{
+            width: 100%;
+            z-index: 2;
+        }
+        .rows{
+            display: flex;
+            box-sizing: border-box;
+            flex-direction: column;
+            overflow-y: auto;
+            max-height: calc(100vh - 150px - 48px);
+            flex: 1;
+            width: 100%;
+        }
+        .container{
+            width: 100%;
+            box-sizing: border-box;
+            height: 100%;
+            display: grid;
+            grid-template-columns: 1fr;
+            grid-template-rows: min-content 1fr min-content;
+        }
 
-</style>
-<div class="container">
-    <timer-shaft-element class="timer-shaft"></timer-shaft-element>
-    <trace-row-recycler-view class="rows"></trace-row-recycler-view>
-    <trace-sheet class="trace-sheet" mode="hidden"></trace-sheet>
-</div>
+        </style>
+        <div class="container">
+            <timer-shaft-element class="timer-shaft">
+            </timer-shaft-element>
+            <trace-row-recycler-view class="rows">
+            </trace-row-recycler-view>
+            <trace-sheet class="trace-sheet" mode="hidden">
+            </trace-sheet>
+        </div>
         `;
     }
 

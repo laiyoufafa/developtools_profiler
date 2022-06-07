@@ -14,6 +14,7 @@
  */
 
 import {BaseStruct, ns2x, Rect} from "./ProcedureWorkerCommon.js";
+
 export function heap(list: Array<any>, res: Set<any>, startNS: number, endNS: number, totalNS: number, frame: any) {
     res.clear();
     if (list) {
@@ -21,19 +22,25 @@ export function heap(list: Array<any>, res: Set<any>, startNS: number, endNS: nu
             let it = list[i];
             if ((it.startTime || 0) + (it.dur || 0) > (startNS || 0) && (it.startTime || 0) < (endNS || 0)) {
                 HeapStruct.setFrame(list[i], 5, startNS || 0, endNS || 0, totalNS || 0, frame)
-                res.add(list[i])
+                if (i > 0 && ((list[i - 1].frame?.x || 0) == (list[i].frame?.x || 0) && (list[i - 1].frame?.width || 0) == (list[i].frame?.width || 0))) {
+
+                } else {
+                    res.add(list[i])
+                }
             }
         }
     }
 }
 
 export class HeapStruct extends BaseStruct {
+    static hoverHeapStruct: HeapStruct | undefined;
     startTime: number | undefined
     endTime: number | undefined
     dur: number | undefined
     heapsize: number | undefined
     maxHeapSize: number = 0
-    static hoverHeapStruct: HeapStruct | undefined;
+    minHeapSize: number = 0
+
     static setFrame(node: HeapStruct, padding: number, startNS: number, endNS: number, totalNS: number, frame: Rect) {
         let x1: number, x2: number;
         if ((node.startTime || 0) < startNS) {
@@ -45,7 +52,7 @@ export class HeapStruct extends BaseStruct {
             x2 = frame.width;
         } else {
             // @ts-ignore
-            x2 = ns2x(node.startTime+node.dur, startNS, endNS, totalNS, frame);
+            x2 = ns2x(node.startTime + node.dur, startNS, endNS, totalNS, frame);
         }
         let getV: number = x2 - x1 <= 1 ? 1 : x2 - x1;
         let rectangle: Rect = new Rect(Math.floor(x1), Math.ceil(frame.y + padding), Math.ceil(getV), Math.floor(frame.height - padding * 2));
@@ -60,7 +67,12 @@ export class HeapStruct extends BaseStruct {
             if (data.startTime === HeapStruct.hoverHeapStruct?.startTime) {
                 ctx.lineWidth = 1;
                 ctx.globalAlpha = 0.6;
-                let drawHeight: number = Math.ceil(((data.heapsize || 0) * (data.frame.height || 0)) / data.maxHeapSize);
+                let drawHeight: number = 0;
+                if (data.minHeapSize < 0) {
+                    drawHeight = Math.ceil((((data.heapsize || 0) - data.minHeapSize) * (data.frame.height || 0)) / (data.maxHeapSize - data.minHeapSize));
+                } else {
+                    drawHeight = Math.ceil(((data.heapsize || 0) * (data.frame.height || 0)) / data.maxHeapSize);
+                }
                 ctx.fillRect(data.frame.x, data.frame.y + data.frame.height - drawHeight, width, drawHeight)
                 ctx.beginPath()
                 ctx.arc(data.frame.x, data.frame.y + data.frame.height - drawHeight, 3, 0, 2 * Math.PI, true)

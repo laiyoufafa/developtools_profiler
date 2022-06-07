@@ -15,7 +15,6 @@
 
 import {BaseStruct, ColorUtils} from "./ProcedureWorkerCommon.js";
 
-const textPadding = 2;
 export function cpu(list: Array<any>, res: Set<any>, startNS: number, endNS: number, totalNS: number, frame: any) {
     res.clear();
     if (list) {
@@ -25,6 +24,7 @@ export function cpu(list: Array<any>, res: Set<any>, startNS: number, endNS: num
         for (let i = 0, len = list.length; i < len; i++) {
             let it = list[i];
             if ((it.startTime || 0) + (it.dur || 0) > startNS && (it.startTime || 0) < endNS) {
+                // setCpuFrame(list[i], 5, startNS, endNS, totalNS, frame)
                 if (!list[i].frame) {
                     list[i].frame = {};
                     list[i].frame.y = y;
@@ -32,7 +32,7 @@ export function cpu(list: Array<any>, res: Set<any>, startNS: number, endNS: num
                 }
                 CpuStruct.setCpuFrame(list[i], pns, startNS, endNS, frame)
                 if (i > 0 && ((list[i - 1].frame?.x || 0) == (list[i].frame?.x || 0) && ((list[i - 1].frame?.width || 0) == (list[i].frame?.width || 0)))) {
-                    continue;
+
                 } else {
                     res.add(list[i])
                 }
@@ -42,6 +42,9 @@ export function cpu(list: Array<any>, res: Set<any>, startNS: number, endNS: num
 }
 
 export class CpuStruct extends BaseStruct {
+    static cpuCount: number = 1 //最大cpu数量
+    static hoverCpuStruct: CpuStruct | undefined;
+    static selectCpuStruct: CpuStruct | undefined;
     cpu: number | undefined
     dur: number | undefined
     end_state: string | undefined
@@ -55,9 +58,25 @@ export class CpuStruct extends BaseStruct {
     startTime: number | undefined
     tid: number | undefined
     type: string | undefined
-    static cpuCount: number = 1
-    static hoverCpuStruct: CpuStruct | undefined;
-    static selectCpuStruct: CpuStruct | undefined;
+
+    // static setFrame(node: CpuStruct, padding: number, startNS: number, endNS: number, totalNS: number, frame: Rect) {
+    //     let x1: number;
+    //     let x2: number;
+    //     if ((node.startTime || 0) < startNS) {
+    //         x1 = 0;
+    //     } else {
+    //         x1 = ns2x((node.startTime || 0), startNS, endNS, totalNS, frame);
+    //     }
+    //     if ((node.startTime || 0) + (node.dur || 0) > endNS) {
+    //         x2 = frame.width;
+    //     } else {
+    //         x2 = ns2x((node.startTime || 0) + (node.dur || 0), startNS, endNS, totalNS, frame);
+    //     }
+    //     let getV: number = x2 - x1 <= 1 ? 1 : x2 - x1;
+    //     let rectangle: Rect = new Rect(Math.floor(x1), frame.y + padding, Math.ceil(getV), frame.height - padding * 2);
+    //     node.frame = rectangle;
+    //     node.isHover = false;
+    // }
 
     static draw(ctx: CanvasRenderingContext2D, data: CpuStruct) {
         if (data.frame) {
@@ -76,6 +95,7 @@ export class CpuStruct extends BaseStruct {
                 let processCharWidth = Math.round(processMeasure.width / process.length)
                 let threadCharWidth = Math.round(threadMeasure.width / thread.length)
                 ctx.fillStyle = "#ffffff"
+                ctx.font = "11px sans-serif";
                 let y = data.frame.height / 2 + data.frame.y;
                 if (processMeasure.width < width - textPadding * 2) {
                     let x1 = Math.floor(width / 2 - processMeasure.width / 2 + data.frame.x + textPadding)
@@ -87,6 +107,8 @@ export class CpuStruct extends BaseStruct {
                     ctx.textBaseline = "bottom";
                     ctx.fillText(process.substring(0, chatNum - 4) + '...', x1, y, width - textPadding * 2)
                 }
+                ctx.fillStyle = "#ffffff"
+                ctx.font = "9px sans-serif";
                 if (threadMeasure.width < width - textPadding * 2) {
                     ctx.textBaseline = "top";
                     let x2 = Math.floor(width / 2 - threadMeasure.width / 2 + data.frame.x + textPadding)
@@ -134,13 +156,17 @@ export class CpuStruct extends BaseStruct {
         }
     }
 }
+
 export class WakeupBean {
-    wakeupTime:number|undefined
-    cpu:number|undefined
-    process:string|undefined
-    pid:number|undefined
-    thread:string|undefined
-    tid:number|undefined
-    schedulingLatency:number|undefined
-    schedulingDesc:string|undefined
+    wakeupTime: number | undefined
+    cpu: number | undefined
+    process: string | undefined
+    pid: number | undefined
+    thread: string | undefined
+    tid: number | undefined
+    schedulingLatency: number | undefined
+    schedulingDesc: string | undefined
+
 }
+
+const textPadding = 2;

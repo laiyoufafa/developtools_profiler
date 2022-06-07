@@ -21,54 +21,57 @@ export class LitSlider extends BaseElement {
     private litSlider: HTMLInputElement | undefined | null;
     private litSliderCon: HTMLDivElement | undefined | null;
     private litResult: HTMLInputElement | undefined | null;
-    private litSliderButton: HTMLDivElement | undefined | null;
     private slotEl: HTMLSlotElement | undefined | null;
     private currentValue: number = 0;
-    private sliderLineHeight: string | undefined;
-    private sliderButtonHeight: string | undefined;
-    private sliderButtonWidth: string | undefined;
     private defaultTimeText: string | undefined | null;
 
     static get observedAttributes() {
         return ['percent', 'disabled-X', 'custom-slider', 'custom-line', 'custom-button']
     }
 
-    get sliderStyle() {
-        if (this.hasAttribute('custom-slider')) {
-            this.defaultTimeText = "50";
+    get sliderStyle(): LitSliderStyle {
+        if (this.litSliderStyle) {
+            return this.litSliderStyle
+        } else {
             return {
                 minRange: 0,
-                maxRange: 1024,
-                defaultValue: this.defaultTimeText,
-                resultUnit: "MB",
-                stepSize: 2,
+                maxRange: 100,
+                defaultValue: "0",
+                resultUnit: "",
+                stepSize: 1,
                 lineColor: "var(--dark-color3,#46B1E3)",
                 buttonColor: "#999999"
             }
-        } else {
-            let defaultTime = "00:00:50";
-            this.defaultTimeText = defaultTime.split(':')[2];
-            return {
-                minRange: 0,
-                maxRange: 480,
-                defaultValue: defaultTime,
-                resultUnit: "h:m:s",
-                stepSize: 1,
-                lineColor: "var(--dark-color4,#61CFBE)",
-                buttonColor: "#999999"
-            }
         }
-
     }
 
-    set sliderStyle(value) {
+    set sliderStyle(value: LitSliderStyle) {
         this.litSliderStyle = value;
-        this.litSliderStyle = this.sliderStyle;
+        this.currentValue = Number(value.defaultValue)
         this.litSliderStyle.defaultValue = value.defaultValue
-        if (this.hasAttribute('custom-slider')) {
-            this.renderCustomSlider();
+        if (this.litSliderStyle.resultUnit === 'h:m:s') {
+            let timeData = this.litSliderStyle.defaultValue.split(':');
+            let timeSize = Number(timeData[0]) * 3600 + Number(timeData[1]) * 60 + Number(timeData[2]);
+            this.defaultTimeText = timeSize.toString()
+            let defaultSize = (timeSize - this.litSliderStyle.minRange) * 100 / (this.litSliderStyle
+                .maxRange - this.litSliderStyle.minRange);
+            this.litSlider!.style.backgroundSize = defaultSize + '%'
         } else {
-            this.renderDefaultSlider();
+            this.defaultTimeText = this.litSliderStyle.defaultValue
+            this.litSlider!.style.backgroundSize = '0%'
+            if (Number(this.litSliderStyle.defaultValue)) {
+                let defaultSize = (Number(this.litSliderStyle.defaultValue) - this.litSliderStyle.minRange)
+                    / (this.litSliderStyle.maxRange - this.litSliderStyle.minRange) * 100;
+                this.litSlider!.style.backgroundSize = defaultSize + '%'
+            }
+        }
+        let htmlInputElement = this.shadowRoot?.querySelector('#slider') as HTMLInputElement;
+        let attribute = htmlInputElement.getAttribute('type');
+        if (attribute === 'range') {
+            htmlInputElement!.setAttribute('value', this.defaultTimeText!)
+            htmlInputElement!.setAttribute('min', this.litSliderStyle!.minRange.toString())
+            htmlInputElement!.setAttribute('max', this.litSliderStyle!.maxRange.toString())
+            htmlInputElement!.setAttribute('step', this.litSliderStyle!.stepSize.toString())
         }
     }
 
@@ -118,6 +121,9 @@ export class LitSlider extends BaseElement {
 
     set percent(value: string) {
         this.setAttribute('percent', value);
+        if (Number(this.sliderStyle.defaultValue)) {
+            this.currentValue = Number(this.sliderStyle.defaultValue)
+        }
     }
 
     get resultUnit() {
@@ -128,44 +134,48 @@ export class LitSlider extends BaseElement {
         this.setAttribute('resultUnit', value);
     }
 
-    get sliderSize() {
-        return this.currentValue;
-    }
-
     initElements(): void {
+        this.litSlider = this.shadowRoot?.querySelector('#slider') as HTMLInputElement;
     }
 
     initHtml(): string {
-        this.litSliderStyle = this.sliderStyle;
-        this.currentValue = Number(this.sliderStyle.defaultValue);
-        let parentElement = this.parentNode as Element;
-        if (parentElement) {
-            parentElement.setAttribute('percent', this.defaultTimeText + "");
-        }
         return `
         <style>
+        /*
+         * Outer box style
+         */
         :host{ 
             box-sizing:border-box; 
             display:flex;
             
         }
+        /*
+         * The mouse is missing
+         */
         :host([disabled]){ 
             opacity:0.8; 
             cursor:not-allowed; 
         }
-        :host([disabled]) input[type="range"]{ 
+        /*
+         * Disable sliding
+         */
+        :host([disabled]) input[type="range"]{
             pointer-events:none;
         }
+        /*
+         * Currently the entire sliding container is controlled
+         */
         #slider-con{ 
             cursor:pointer;
             display:flex;
             align-items:center;
-            padding:5px 0; 
-            width:80%;
-            margin: 20px;
+            width:95%;
             grid-auto-flow: row dense;
             position: relative;
         }
+        /*
+         * Display prompt information
+         */
         :host([showtips]){
             pointer-events:all;
         }
@@ -174,7 +184,10 @@ export class LitSlider extends BaseElement {
             background-color: var(--dark-background7,#D8D8D8);
             z-index: 5;
         }
-
+    
+        /*
+         * Slider basic style
+         */
         input[type="range"]{
             pointer-events:all;
             margin:0 -5px;
@@ -183,28 +196,36 @@ export class LitSlider extends BaseElement {
             outline : 0;
             background: rgba(0,0,0,0.1);
             height: 10px;
-            border-radius:2px;   
-            background: -webkit-linear-gradient(right, ${this.litSliderStyle?.lineColor},${this.litSliderStyle?.lineColor} ) no-repeat;
-            background-size: ${((Number(this.defaultTimeText) - this.litSliderStyle?.minRange) * 100 / (this.litSliderStyle?.maxRange - this.litSliderStyle?.minRange))}%;
+            border-radius:2px;
+            background: -webkit-linear-gradient(right, ${this
+            .getAttribute('defaultColor') ? this
+            .getAttribute('defaultColor') : '#46B1E3'}, ${this
+            .getAttribute('defaultColor') ? this
+            .getAttribute('defaultColor') : '#46B1E3'}) no-repeat;
         }
-
+        
+        /*
+         * Slider-line slidedAble area component
+         */
         input[type="range"]::-webkit-slider-runnable-track{
             display: flex;
             align-items: center;
             position: relative;
-            height: ${this.sliderLineHeight ? this.sliderLineHeight : "10px"};
+            height: 10px;
             border-radius:5px;
         }
-
+        
+         /*
+         * Slider slider component
+         */
         input[type="range"]::-webkit-slider-thumb{
             -webkit-appearance: none;
-            /*border:2px solid #42b983;*/
             position: relative;
-            width:${this.sliderButtonHeight ? this.sliderButtonHeight : "20px"};
-            height:${this.sliderButtonWidth ? this.sliderButtonWidth : "20px"};
+            width:20px;
+            height:20px;
             margin-top: -4px;
             border-radius: 5px;
-            background:${this.litSliderStyle?.buttonColor};
+            background:#999999;
             transition:0.2s cubic-bezier(.12, .4, .29, 1.46);
         }
         
@@ -212,111 +233,53 @@ export class LitSlider extends BaseElement {
             z-index:2;
         }
 
-        input[type="range"]::-webkit-slider-thumb:active,
-        input[type="range"]:focus::-webkit-slider-thumb{
-            transform:scale(1.2);
-            border: 2px solid;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            background: #fff;
-        }
-
         :host(:focus-within) #slider-con,:host(:hover) #slider-con{
             z-index:10
-        }
-        
-        #result{
-            margin: 10px;
-            width: 196px;
-            height: 40px;
-            background-color: var(--dark-background5,#F2F2F2);
-            -webkit-appearance:none;
-            outline:0;
-            font-size:14px;
-            border-radius:20px;
-            border:1px solid var(--dark-border,#c8cccf);
-            color:var(--dark-color,#6a6f77);
-            text-align: left;
-        }
-        
-        #unitSpan{
-            position: absolute;
-            /*width: min-content;*/
-            width: 50px;
-            /*top: -50px;*/
-            right: 0px;
-            color: #adadad;
-            display: table-cell;
-            white-space: nowrap;
-            padding: 7px 10px;
-            font-size:14px;
         }
         
         </style>
         <slot id="slot"></slot>
         <div id='slider-con' dir="right">
-            <input id="slider"
-                value=${this.defaultTimeText}
-                min=${this.litSliderStyle?.minRange}
-                max=${this.litSliderStyle?.maxRange}
-                step=${this.litSliderStyle?.stepSize} 
-                type="range">
-            <input id="result" type="text" value='     ${this.litSliderStyle?.defaultValue}'><span id="unitSpan" >${this.litSliderStyle?.resultUnit}</span>
+            <input id="slider" type="range" max="10000000">
         </div>
         `
     }
 
+    // It is called when the custom element is first inserted into the document DOM.
     connectedCallback() {
         this.slotEl = this.shadowRoot?.querySelector('#slot');
-        this.litSlider = this.shadowRoot?.querySelector('#slider');
         this.litSliderCon = this.shadowRoot?.querySelector('#slider-con');
-        this.litResult = this.shadowRoot?.querySelector('#result');
+        // Add a slider for input event listeners
         this.litSlider?.addEventListener('input', this.inputChangeEvent)
         this.litSlider?.addEventListener('change', this.inputChangeEvent)
-        this.slotEl?.addEventListener('slotchange', this.slotChangeEvent);
-        this.litSlider?.addEventListener('click', this.sliderClickEvent);
-        this.litSliderButton?.addEventListener('TouchEvent', this.sliderStartTouchEvent);
         this.litSliderStyle = this.sliderStyle;
-    }
 
-    slotChangeEvent = (event: any) => {
-    }
-
-    sliderClickEvent = (event: any) => {
     }
 
     inputChangeEvent = (event: any) => {
         if (this.litSlider) {
             this.currentValue = parseInt(this.litSlider?.value)
-            let resultNumber = (this.currentValue - this.litSliderStyle!.minRange) * 100 / (this.litSliderStyle!.maxRange - this.litSliderStyle!.minRange);
-            this.percent = Math.floor(resultNumber) + "%";
+            let resultNumber = (this.currentValue - this.litSliderStyle!.minRange) * 100 / (this
+                .litSliderStyle!.maxRange - this.litSliderStyle!.minRange);
+            this.percent = Number(resultNumber) + "%";
             this.litSliderCon?.style.setProperty('percent', this.currentValue + "%")
             let parentElement = this.parentNode as Element;
             parentElement.setAttribute('percent', this.currentValue + "");
-            if (this.sliderStyle.resultUnit === 'MB') {
+            if (this.sliderStyle.resultUnit === 'h:m:s') {
                 this.litSlider!.style.backgroundSize = this.percent;
-                this.litResult!.value = "     " + this.currentValue;
-            } else if (this.sliderStyle.resultUnit === 'h:m:s') {
+            } else {
                 this.litSlider!.style.backgroundSize = this.percent;
-                let time = this.formatSeconds(this.litSlider?.value);
-                this.litResult!.value = "     " + time;
             }
+            this.parentElement!.setAttribute('percent', this.litSlider?.value)
         }
-    }
-
-    sliderStartTouchEvent = (event: any) => {
-    }
-
-    sliderMoveTouchEvent = (event: any) => {
-    }
-
-    sliderEndTouchEvent = (event: any) => {
     }
 
     disconnectedCallback() {
         this.litSlider?.removeEventListener('input', this.inputChangeEvent);
         this.litSlider?.removeEventListener('change', this.inputChangeEvent)
-        this.litSlider?.removeEventListener('click', this.sliderClickEvent);
-        this.litSliderButton?.removeEventListener('TouchEvent', this.sliderStartTouchEvent);
+    }
+
+    adoptedCallback() {
     }
 
     attributeChangedCallback(name: string, oldValue: string, newValue: string) {
@@ -334,17 +297,23 @@ export class LitSlider extends BaseElement {
         }
     }
 
-    renderCustomSlider() {
-    }
-
     renderDefaultSlider() {
-        if (!this.litSliderStyle) return;
+        let htmlInputElement = this.shadowRoot?.querySelector('#slider') as HTMLInputElement;
+        let attribute = htmlInputElement.getAttribute('type');
+        if (attribute === 'range') {
+            htmlInputElement!.setAttribute('value', this.defaultTimeText!)
+            htmlInputElement!.setAttribute('min', this.litSliderStyle!.minRange.toString())
+            htmlInputElement!.setAttribute('max', this.litSliderStyle!.maxRange.toString())
+            htmlInputElement!.setAttribute('step', this.litSliderStyle!.stepSize.toString())
+        }
     }
 
     formatSeconds(value: string) {
         let result = parseInt(value)
-        let hours = Math.floor(result / 3600) < 10 ? '0' + Math.floor(result / 3600) : Math.floor(result / 3600);
-        let minute = Math.floor((result / 60 % 60)) < 10 ? '0' + Math.floor((result / 60 % 60)) : Math.floor((result / 60 % 60));
+        let hours = Math.floor(result / 3600) < 10 ? '0' + Math.floor(result / 3600) : Math
+            .floor(result / 3600);
+        let minute = Math.floor((result / 60 % 60)) < 10 ? '0' + Math
+            .floor((result / 60 % 60)) : Math.floor((result / 60 % 60));
         let second = Math.floor((result % 60)) < 10 ? '0' + Math.floor((result % 60)) : Math.floor((result % 60));
         let resultTime = '';
         if (hours === '00') {
@@ -367,7 +336,7 @@ export interface LitSliderStyle {
     maxRange: number
     defaultValue: string
     resultUnit: string
-    stepSize?: number
+    stepSize: number
     lineColor?: string
     buttonColor?: string
 }

@@ -1,4 +1,3 @@
-// @ts-nocheck
 /*
  * Copyright (C) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,6 +13,7 @@
  * limitations under the License.
  */
 
+
 import {BaseElement, element} from "../BaseElement.js";
 import './LitMainMenuItem.js'
 import './LitMainMenuGroup.js'
@@ -23,12 +23,11 @@ import {LitMainMenuItem} from "./LitMainMenuItem.js";
 @element('lit-main-menu')
 export class LitMainMenu extends BaseElement {
     private slotElements: Element[] | undefined;
+    private _menus: Array<MenuGroup> | undefined
 
     static get observedAttributes() {
         return []
     }
-
-    private _menus: Array<MenuGroup> | undefined
 
     get menus(): Array<MenuGroup> | undefined {
         return this._menus;
@@ -48,7 +47,7 @@ export class LitMainMenu extends BaseElement {
                 group.removeAttribute('collapsed');
             }
             menuBody?.appendChild(group);
-            it.children?.forEach(item => {
+            it.children?.forEach((item: any) => {
                 let th = new LitMainMenuItem();
                 th.setAttribute('icon', item.icon || "");
                 th.setAttribute('title', item.title || "");
@@ -84,78 +83,80 @@ export class LitMainMenu extends BaseElement {
                 })
             })
         })
-        let versionDiv: HTMLSlotElement = this.shadowRoot?.querySelector('.version');
-        versionDiv.innerText = window.version || ""
+        let versionDiv: HTMLElement | null | undefined = this.shadowRoot?.querySelector<HTMLElement>('.version');
+        versionDiv!.innerText = (window as any).version || ""
     }
 
     initHtml(): string {
         return `
-<style>
-:host{
-    display: flex;
-    flex-direction: column;
-    width: 248px;
-    background-color: var(--dark-background,#FFFFFF);
-    height: 100vh;
-}
-.menu-body ::-webkit-scrollbar-track
-{
-    border-radius:10px;
-    background-color:#F5F5F5;
-}
-.menu-body ::-webkit-scrollbar-thumb
-{
-    border-radius:10px;
-    background-color: var(--dark-background,#FFFFFF);
+        <style>
+        :host{
+            display: flex;
+            flex-direction: column;
+            width: 248px;
+            background-color: var(--dark-background,#FFFFFF);
+            height: 100vh;
+        }
+        .menu-body ::-webkit-scrollbar-track
+        {
+            border-radius:10px;
+            background-color:#F5F5F5;
+        }
+        .menu-body ::-webkit-scrollbar-thumb
+        {
+            border-radius:10px;
+            background-color: var(--dark-background,#FFFFFF);
 
-}
-.header{
-    display: grid;
-    background-color: var(--dark-background1,#FFFFFF);
-    border-bottom: 1px solid var(--dark-background1,#EFEFEF);
-    color: #47A7E0;
-    font-size: 1.4rem;
-    padding-left: 20px;
-    gap: 0 20px;
-    box-sizing: border-box;
-    width: 100%;
-    height: 56px;
-    grid-template-columns: min-content 1fr min-content;
-    grid-template-rows: auto;
-}
-.header *{
-    align-self: center;
-    user-select: none;
-}
-.version{
-    color: #94979d;
-    padding: 20px;
-    font-size: 0.6rem;
-    width: 100%;
-    text-align: right;
-}
-*{
-    box-sizing: border-box;
-}
-.menu-button{
-                    height: 47px; 
-                    width: 48px;
-                    display: flex;
-                    align-content: center;
-                    justify-content: right;
-                    cursor: pointer;
-                 }
-</style>
+        }
+        .header{
+            display: grid;
+            background-color: var(--dark-background1,#FFFFFF);
+            border-bottom: 1px solid var(--dark-background1,#EFEFEF);
+            color: #47A7E0;
+            font-size: 1.4rem;
+            padding-left: 20px;
+            /*padding-right: 10px;*/
+            gap: 0 20px;
+            box-sizing: border-box;
+            width: 100%;
+            height: 56px;
+            grid-template-columns: min-content 1fr min-content;
+            grid-template-rows: auto;
+        }
+        .header *{
+            align-self: center;
+            user-select: none;
+        }
+        .version{
+            color: #94979d;
+            padding: 20px;
+            font-size: 0.6rem;
+            width: 100%;
+            text-align: right;
+        }
+        *{
+            box-sizing: border-box;
+        }
+        .menu-button{
+            height: 47px;
+            width: 48px;
+            display: flex;
+            align-content: center;
+            justify-content: right;
+            cursor: pointer;
+        }
+        </style>
         <div name="header" class="header">
             <img src="img/logo.png"/>
-            <div class="menu-button">
-                <lit-icon name="menu" size="20" color="var(--dark-color1,#4D4D4D)"></lit-icon>
+                <div class="menu-button">
+                    <lit-icon name="menu" size="20" color="var(--dark-color1,#4D4D4D)"></lit-icon>
+                </div>
             </div>
+            <div class="menu-body" style="overflow: auto;overflow-x:hidden;height: 100%">
+                <slot id="st" ></slot>
+            </div>
+        <div class="version" style="">
         </div>
-        <div class="menu-body" style="overflow: auto;overflow-x:hidden;height: 100%">
-            <slot id="st" ></slot>
-        </div>
-        <div class="version" style=""></div>
         `;
     }
 }

@@ -13,13 +13,13 @@
  * limitations under the License.
  */
 
-export class HeapTreeDataBean{
-    MoudleName:string|undefined
-    AllocationFunction:string|undefined
-    startTs:number = 0
-    endTs:number = 0
-    eventType:string|undefined
-    depth:number = 0
-    heapSize:number = 0
-    eventId:string=""
+export class HeapTreeDataBean {
+    MoudleName: string | undefined
+    AllocationFunction: string | undefined
+    startTs: number = 0
+    endTs: number = 0
+    eventType: string | undefined
+    depth: number = 0
+    heapSize: number = 0
+    eventId: string = ""
 }

@@ -17,24 +17,33 @@ import {Graph} from "./Graph.js";
 import {Rect} from "./Rect.js";
 import {TimeRange} from "./RangeRuler.js";
 import {Flag} from "./Flag.js";
-import {LitTabs} from "../../../../base-ui/tabs/lit-tabs.js";
-import {TraceSheet} from "../base/TraceSheet.js";
+import {ns2s, ns2x, randomRgbColor, TimerShaftElement} from "../TimerShaftElement.js";
+import {TraceRow} from "../base/TraceRow.js";
+import {SpApplication} from "../../../SpApplication.js";
 
 export class SportRuler extends Graph {
-    public static rulerFlagObj: Flag | null = null;
-    public flagListIdx: number | null = null
-    public obj = [{x: 3}, {x: 2}];
+    static isMouseInSportRuler = false;
     public flagList: Array<Flag> = [];
-
-    lineColor: string | null = null;
-    private rangeFlag = new Flag(0, 0, 0, 0, 0);
-    private ruler_w = 1022;
-
-    constructor(canvas: HTMLCanvasElement | undefined | null, c: CanvasRenderingContext2D, frame: Rect) {
-        super(canvas, c, frame)
-    }
-
+    isRangeSelect: boolean = false;//region selection
+    private hoverFlag: Flag = new Flag(0, 0, 0, 0, 0);
+    private lineColor: string | null = null;
+    private rulerW = 0;
     private _range: TimeRange = {} as TimeRange;
+    private readonly notifyHandler: ((hoverFlag: Flag | undefined | null, selectFlag: Flag | undefined | null) => void) | undefined;
+    private readonly flagClickHandler: ((flag: Flag | undefined | null) => void) | undefined;
+    private invertedTriangleTime: number | null | undefined = null;
+    private slicesTime: { startTime: number | null | undefined, endTime: number | null | undefined, color: string | null } | null = {
+        startTime: null,
+        endTime: null,
+        color: null
+    };
+    private timerShaftEL: TimerShaftElement|undefined|null;
+    constructor(timerShaftEL: TimerShaftElement, frame: Rect, notifyHandler: (hoverFlag: Flag | undefined | null, selectFlag: Flag | undefined | null) => void, flagClickHandler: (flag: Flag | undefined | null) => void) {
+        super(timerShaftEL.canvas, timerShaftEL.ctx!, frame)
+        this.notifyHandler = notifyHandler;
+        this.flagClickHandler = flagClickHandler;
+        this.timerShaftEL = timerShaftEL;
+    }
 
     get range(): TimeRange {
         return this._range;
@@ -45,30 +54,27 @@ export class SportRuler extends Graph {
         this.draw()
     }
 
-    modifyFlagList(type: string, flag: any = {}) {
-        if (type == "amend") {
-            console.log(this.flagListIdx);
-            console.log(flag.text);
-            if (flag.text && this.flagListIdx !== null) {
-                this.flagList[this.flagListIdx].text = flag.text
+    modifyFlagList(flag: Flag | null | undefined) {
+        if (flag) {
+            if (flag.hidden) {
+                let i = this.flagList.findIndex(it => it.time == flag.time)
+                this.flagList.splice(i, 1)
+            } else {
+                let i = this.flagList.findIndex(it => it.time == flag.time)
+                this.flagList[i] = flag;
             }
-            if (flag.color && this.flagListIdx !== null) {
-                this.flagList[this.flagListIdx].color = flag.color
-            }
-        } else if (type == "remove") {
-            if (this.flagListIdx !== null) {
-                this.flagList.splice(this.flagListIdx, 1)
-            }
+        } else {
+            this.flagList.forEach(it => it.selected = false);
         }
-        this.draw()
+        this.draw();
     }
 
     draw(): void {
-        this.ruler_w = this.canvas!.offsetWidth
-        this.c.clearRect(this.frame.x, this.frame.y, this.frame.width, this.frame.height)
+        this.rulerW = this.canvas!.offsetWidth
+        this.c.clearRect(this.frame.x, this.frame.y, this.frame.width, this.frame.height + 1)
         this.c.beginPath();
         this.lineColor = window.getComputedStyle(this.canvas!, null).getPropertyValue("color");
-        this.c.strokeStyle = this.lineColor // "#dadada"
+        this.c.strokeStyle = this.lineColor //"#dadada"
         this.c.lineWidth = 1;
         this.c.moveTo(this.frame.x, this.frame.y)
         this.c.lineTo(this.frame.x + this.frame.width, this.frame.y)
@@ -83,7 +89,7 @@ export class SportRuler extends Graph {
         this.c.closePath();
         this.c.beginPath();
         this.c.lineWidth = 1;
-        this.c.strokeStyle = this.lineColor; // "#999999"
+        this.c.strokeStyle = this.lineColor;//"#999999"
         this.c.fillStyle = '#999999'
         this.c.font = '8px sans-serif'
         this.range.xs?.forEach((it, i) => {
@@ -91,32 +97,231 @@ export class SportRuler extends Graph {
             this.c.lineTo(it, this.frame.y + this.frame.height)
             this.c.fillText(`+${this.range.xsTxt[i]}`, it + 3, this.frame.y + 12)
         })
-
         this.c.stroke();
         this.c.closePath();
+        //绘制旗子
+        this.flagList.forEach((flagObj: Flag, b) => {
+            if (flagObj.time >= this.range.startNS && flagObj.time <= this.range.endNS) {
+                flagObj.x = Math.round(this.rulerW * (flagObj.time - this.range.startNS) / (this.range.endNS - this.range.startNS));
+                this.drawFlag(flagObj.x, flagObj.color, flagObj.selected, flagObj.text, flagObj.type)
+            }
+        })
+        !this.hoverFlag.hidden && this.drawFlag(this.hoverFlag.x, this.hoverFlag.color, true, this.hoverFlag.text)
+        //If region selection is enabled, the serial number draws a line on the axis to show the length of the box selection
+        if (this.isRangeSelect) {
+            let range = TraceRow.rangeSelectObject;
+            this.c.beginPath();
+            if (document.querySelector<SpApplication>("sp-application")!.dark) {
+                this.c.strokeStyle = "#FFF"
+                this.c.fillStyle = "#FFF"
+            } else {
+                this.c.strokeStyle = "#000"
+                this.c.fillStyle = "#000"
+            }
+            let startX = ns2x(range?.startNS || 0, this.range.startNS, this.range.endNS, this.range.totalNS, this.frame);
+            let endX = ns2x(range?.endNS || 0, this.range.startNS, this.range.endNS, this.range.totalNS, this.frame);
+            let lineWidth = endX - startX;
+            let txt = ns2s((range?.endNS || 0) - (range?.startNS || 0));
+            this.c.moveTo(startX, this.frame.y + 22);
+            this.c.lineTo(endX, this.frame.y + 22);
+            this.c.moveTo(startX, this.frame.y + 22 - 5);
+            this.c.lineTo(startX, this.frame.y + 22 + 5);
+            this.c.moveTo(endX, this.frame.y + 22 - 5);
+            this.c.lineTo(endX, this.frame.y + 22 + 5);
+            let txtWidth = this.c.measureText(txt).width;
+            if (lineWidth > txtWidth) {
+                this.c.fillText(`${txt}`, startX + (lineWidth - txtWidth) / 2, this.frame.y + 20)
+            } else {
+                if (endX + txtWidth >= this.frame.width) {
+                    this.c.fillText(`${txt}`, startX - 5 - txtWidth, this.frame.y + 20)
+                } else {
+                    this.c.fillText(`${txt}`, endX + 5, this.frame.y + 20)
+                }
+            }
+            this.c.stroke();
+            this.c.closePath();
+        }
+        if (this.invertedTriangleTime != null && typeof (this.invertedTriangleTime) != undefined) {
+            this.drawInvertedTriangle(this.invertedTriangleTime, document.querySelector<SpApplication>("sp-application")!.dark ? "#FFFFFF" : "#000000")
+        }
+        this.drawSlicesMark(this.slicesTime?.startTime, this.slicesTime?.endTime)
     }
 
-    drawTheFlag(x: number, color: string = "#999999", isFill: boolean = false, text: string = "") {
+    drawTriangle(time: number, type: string) {
+        if (time != null && typeof (time) != undefined) {
+            let i = this.flagList.findIndex(it => it.time == time);
+            if (type == "triangle") {
+                let triangle = this.flagList.findIndex(it => it.type == type);
+                if (i !== -1) {
+                    if (triangle !== -1) {
+                        this.flagList[i].type == "" ? this.flagList.splice(triangle, 1) : ""
+                    }
+                    this.flagList.forEach(it => it.selected = false)
+                    this.flagList[i].selected = true;
+
+                } else {
+                    if (triangle == -1) {
+                        this.flagList.forEach(it => it.selected = false)
+                        this.flagList.push(new Flag(0, 125, 18, 18, time, randomRgbColor(), true, "triangle"));
+                    } else {
+                        this.flagList.forEach(it => it.selected = false)
+                        this.flagList[triangle].time = time;
+                        this.flagList[triangle].selected = true;
+                    }
+                }
+            } else if (type == "square") {
+                if (i != -1) {
+                    this.flagList[i].type = "";
+                } else {
+                    let triangle = this.flagList.findIndex(it => it.type == "triangle");
+                    if (triangle !== -1) {
+                        this.flagList[triangle].type = "";
+                        this.draw();
+                        this.notifyHandler && this.notifyHandler(
+                            !this.hoverFlag.hidden ? this.hoverFlag : null,
+                            this.flagList.find(it => it.selected) || null
+                        )
+                        return this.flagList[triangle].time;
+                    }
+                }
+            } else if (type == "inverted") {
+                this.invertedTriangleTime = time
+            }
+            this.draw();
+            this.notifyHandler && this.notifyHandler(
+                !this.hoverFlag.hidden ? this.hoverFlag : null,
+                this.flagList.find(it => it.selected) || null
+            )
+        }
+    }
+
+    removeTriangle(type: string) {
+        if (type == "inverted") {
+            this.invertedTriangleTime = null;
+        } else {
+            let i = this.flagList.findIndex(it => it.type == type)
+            if (i !== -1) {
+                this.flagList.splice(i, 1)
+            }
+        }
+        this.draw();
+        this.notifyHandler && this.notifyHandler(
+            !this.hoverFlag.hidden ? this.hoverFlag : null,
+            this.flagList.find(it => it.selected) || null
+        )
+    }
+
+    drawInvertedTriangle(time: number, color: string = "#000000") {
+        if (time != null && typeof (time) != undefined) {
+            let x = Math.round(this.rulerW * (time - this.range.startNS) / (this.range.endNS - this.range.startNS));
+            this.c.beginPath();
+            this.c.fillStyle = color;
+            this.c.strokeStyle = color;
+            this.c.moveTo(x - 2, 142);
+            this.c.lineTo(x + 2, 142);
+            this.c.lineTo(x, 145);
+            this.c.fill()
+            this.c.closePath()
+            this.c.stroke();
+        }
+    }
+
+    setSlicesMark(startTime: number | null = null, endTime: number | null = null) {
+        if (startTime != null && typeof (startTime) != undefined && endTime != null && typeof (endTime) != undefined) {
+            this.slicesTime = {
+                startTime: startTime <= endTime ? startTime : endTime,
+                endTime: startTime <= endTime ? endTime : startTime,
+                color: null
+            };
+        } else {
+            this.slicesTime = {startTime: null, endTime: null, color: null};
+        }
+        this.range.slicesTime = this.slicesTime;
+        this.draw();
+        this.timerShaftEL?.render();
+    }
+
+    drawSlicesMark(startTime: number | null = null, endTime: number | null = null) {
+        if (startTime != null && typeof (startTime) != undefined && endTime != null && typeof (endTime) != undefined) {
+            let startX = Math.round(this.rulerW * (startTime - this.range.startNS) / (this.range.endNS - this.range.startNS));
+            let endX = Math.round(this.rulerW * (endTime - this.range.startNS) / (this.range.endNS - this.range.startNS));
+            this.c.beginPath();
+            if (document.querySelector<SpApplication>("sp-application")!.dark) {
+                this.c.strokeStyle = "#FFF"
+                this.c.fillStyle = "#FFF"
+                this.range.slicesTime.color = "#FFF"
+            } else {
+                this.c.strokeStyle = "#344596"
+                this.c.fillStyle = "#344596"
+                this.range.slicesTime.color = "#344596"
+            }
+            this.c.moveTo(startX + 9, 132);
+            this.c.lineTo(startX, 141);
+            this.c.lineTo(startX, 132);
+            this.c.lineTo(startX + 9, 132);
+
+            this.c.lineTo(endX - 9, 132);
+            this.c.lineTo(endX, 132);
+            this.c.lineTo(endX, 141);
+            this.c.lineTo(endX - 9, 132);
+            // this.c.fill()
+            this.c.closePath()
+            this.c.stroke();
+
+
+            this.c.beginPath();
+            if (document.querySelector<SpApplication>("sp-application")!.dark) {
+                this.c.strokeStyle = "#FFF"
+                this.c.fillStyle = "#FFF"
+            } else {
+                this.c.strokeStyle = "#000"
+                this.c.fillStyle = "#000"
+            }
+            let lineWidth = endX - startX;
+            let txt = ns2s((endTime || 0) - (startTime || 0));
+            this.c.moveTo(startX, this.frame.y + 22);
+            this.c.lineTo(endX, this.frame.y + 22);
+            this.c.moveTo(startX, this.frame.y + 22 - 5);
+            this.c.lineTo(startX, this.frame.y + 22 + 5);
+            this.c.moveTo(endX, this.frame.y + 22 - 5);
+            this.c.lineTo(endX, this.frame.y + 22 + 5);
+            let txtWidth = this.c.measureText(txt).width;
+            if (lineWidth > txtWidth) {
+                this.c.fillText(`${txt}`, startX + (lineWidth - txtWidth) / 2, this.frame.y + 20)
+            } else {
+                if (endX + txtWidth >= this.frame.width) {
+                    this.c.fillText(`${txt}`, startX - 5 - txtWidth, this.frame.y + 20)
+                } else {
+                    this.c.fillText(`${txt}`, endX + 5, this.frame.y + 20)
+                }
+            }
+            this.c.stroke();
+            this.c.closePath();
+        }
+    }
+
+    //绘制旗子
+    drawFlag(x: number, color: string = "#999999", isFill: boolean = false, text: string = "", type: string = "") {
         this.c.beginPath();
         this.c.fillStyle = color;
         this.c.strokeStyle = color;
         this.c.moveTo(x, 125);
-        this.c.lineTo(x + 10, 125);
-        this.c.lineTo(x + 10, 127);
-        this.c.lineTo(x + 18, 127);
-        this.c.lineTo(x + 18, 137);
-        this.c.lineTo(x + 10, 137);
-        this.c.lineTo(x + 10, 135);
-        this.c.lineTo(x + 2, 135);
-        this.c.lineTo(x + 2, 143);
-        this.c.lineTo(x, 143);
-        this.c.closePath()
-        if (isFill) {
-            this.c.fill()
+        if (type == "triangle") {
+            this.c.lineTo(x + 15, 131);
+        } else {
+            this.c.lineTo(x + 10, 125);
+            this.c.lineTo(x + 10, 127);
+            this.c.lineTo(x + 18, 127);
+            this.c.lineTo(x + 18, 137);
+            this.c.lineTo(x + 10, 137);
+            this.c.lineTo(x + 10, 135);
         }
+        this.c.lineTo(x + 2, 135);
+        this.c.lineTo(x + 2, 142);
+        this.c.lineTo(x, 142);
+        this.c.closePath()
+        isFill && this.c.fill()
         this.c.stroke();
-
-
         if (text !== "") {
             this.c.font = "10px Microsoft YaHei"
             const {width} = this.c.measureText(text);
@@ -128,83 +333,49 @@ export class SportRuler extends Graph {
         }
     }
 
-    randomRgbColor() {
-        const letters = '0123456789ABCDEF';
-        let color = '#';
-        for (let i = 0; i < 6; i++) {
-            color += letters[Math.floor(Math.random() * 16)]
-        }
-        return color;
-    }
-
     mouseUp(ev: MouseEvent) {
-        let search: HTMLDivElement | undefined | null = document.querySelector("sp-application")?.shadowRoot?.querySelector("div.search-container")
-        let tabs: LitTabs | undefined | null = (ev?.target as any)?.shadowRoot?.querySelector("sp-system-trace")?.shadowRoot?.querySelector("trace-sheet")?.shadowRoot?.querySelector("#tabs")
-        if (!tabs) {
-            return;
-        }
-        let onResetSelected = ev.offsetY > search!.offsetHeight && ev.offsetY < (window.innerHeight - tabs!.offsetHeight)
-        if (onResetSelected) {
-            this.flagList.find((flagObj: Flag) => {
-                if (flagObj.selected) {
-                    flagObj.selected = false;
-                    return true;
-                }
-            })
-            SportRuler.rulerFlagObj = null;
-
+        if (this.edgeDetection(ev)) {
+            this.flagList.forEach(it => it.selected = false)
             let x = ev.offsetX - (this.canvas?.offsetLeft || 0)
-            let y = ev.offsetY - (this.canvas?.offsetTop || 0)
-            if (y >= 123 && y < 142) {
-                let onFlagRange = this.flagList.findIndex((flagObj: Flag, idx) => {
-                    let flag_x = Math.round(this.ruler_w * (flagObj.time - this.range.startNS) / (this.range.endNS - this.range.startNS));
-                    if (x >= flag_x && x <= flag_x + 18) {
-                        flagObj.selected = true;
-                        return true
-                    }
-                });
-                if (onFlagRange == -1) {
-                    let flagAtRulerTime = Math.round((this.range.endNS - this.range.startNS) * x / this.ruler_w)
-                    if (flagAtRulerTime > 0 && (this.range.startNS + flagAtRulerTime) < this.range.endNS) {
-                    }
+            let findFlag = this.flagList.find(it => x >= it.x && x <= it.x + 18)
+            if (findFlag) {
+                findFlag.selected = true;
+            } else {
+                let flagAtRulerTime = Math.round((this.range.endNS - this.range.startNS) * x / this.rulerW)
+                if (flagAtRulerTime > 0 && (this.range.startNS + flagAtRulerTime) < this.range.endNS) {
+                    this.flagList.push(new Flag(x, 125, 18, 18, flagAtRulerTime + this.range.startNS, randomRgbColor(), true));
                 }
             }
-            if (SportRuler.rulerFlagObj == null) {
-                document.dispatchEvent(new CustomEvent('flag-draw'));
-            }
+            this.flagClickHandler && this.flagClickHandler(this.flagList.find(it => it.selected));
         }
-        if (onResetSelected) {
-            this.draw()
-        }
-    }
-
-    onFlagRangeEvent(flagObj: Flag, idx: number) {
-        let traceSheet: TraceSheet | undefined | null = document.querySelector("sp-application")?.shadowRoot?.querySelector("sp-system-trace")?.shadowRoot?.querySelector("trace-sheet")
-        SportRuler.rulerFlagObj = flagObj;
-        this.flagListIdx = idx;
-
-        traceSheet?.displayFlagData(flagObj, idx)
-        document.dispatchEvent(new CustomEvent('flag-draw', {detail: {time: flagObj.time}}));
     }
 
     mouseMove(ev: MouseEvent) {
+        if (this.edgeDetection(ev)) {
+            let x = ev.offsetX - (this.canvas?.offsetLeft || 0)
+            let flg = this.flagList.find((it) => x >= it.x && x <= it.x + 18);
+            if (flg) {
+                this.hoverFlag.hidden = true;
+            } else {
+                this.hoverFlag.hidden = false;
+                this.hoverFlag.x = x;
+                this.hoverFlag.color = "#999999";
+            }
+        } else {
+            this.hoverFlag.hidden = true;
+        }
+        this.draw();
+        this.notifyHandler && this.notifyHandler(
+            !this.hoverFlag.hidden ? this.hoverFlag : null,
+            this.flagList.find(it => it.selected) || null
+        )
+    }
+
+
+    edgeDetection(ev: MouseEvent): boolean {
         let x = ev.offsetX - (this.canvas?.offsetLeft || 0)
         let y = ev.offsetY - (this.canvas?.offsetTop || 0)
-        if (y >= 50 && y < 200) {
-            this.draw()
-            if (y >= 123 && y < 142 && x > 0) {
-                let onFlagRange = this.flagList.findIndex((flagObj: Flag) => {
-                    let flag_x = Math.round(this.ruler_w * (flagObj.time - this.range.startNS) / (this.range.endNS - this.range.startNS));
-                    return (x >= flag_x && x <= flag_x + 18)
-                });
-                if (onFlagRange == -1) {
-                    document.dispatchEvent(new CustomEvent('flag-draw', {detail: {x: x}}));
-                } else {
-                    document.dispatchEvent(new CustomEvent('flag-draw', {detail: {x: null}}));
-                }
-            } else {
-                document.dispatchEvent(new CustomEvent('flag-draw', {detail: {x: null}}));
-            }
-        }
+        SportRuler.isMouseInSportRuler = x > 0 && x < this.canvas!.offsetWidth && ev.offsetY - this.frame.y > 20 && ev.offsetY - this.frame.y < this.frame.height;
+        return SportRuler.isMouseInSportRuler;
     }
 }

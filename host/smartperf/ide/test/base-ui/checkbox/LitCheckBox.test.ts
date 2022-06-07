@@ -57,4 +57,106 @@ describe('checkBox Test', ()=>{
         litCheckBox.checked = false
         expect(litCheckBox.checked).toBeFalsy();
     });
+    it('checkBoxTest06', function () {
+        document.body.innerHTML =  `<lit-check-box></lit-check-box>
+        `
+        let litCheckBox = new LitCheckBox();
+        litCheckBox.indeterminate = false
+        expect(litCheckBox.indeterminate).toBeFalsy();
+    });
+
+    it('checkBoxTest07', function () {
+        document.body.innerHTML =  `<lit-check-box></lit-check-box>
+        `
+        let litCheckBox = new LitCheckBox();
+        litCheckBox.indeterminate = true
+        expect(litCheckBox.indeterminate).toBeTruthy();
+    });
+
+    it('checkBoxTest08', function () {
+        let litCheckBox = new LitCheckBox();
+        expect(litCheckBox.initHtml()).toMatchInlineSnapshot(`
+"
+        <style>
+        :host{ 
+            display:inline-block;
+            opacity: 0.86;
+            font-family: Helvetica;
+            font-size: 14px;
+            /*color: #212121;*/
+            text-align: left;
+            line-height: 16px;
+            font-weight: 400;
+        }
+        #checkbox{
+            position:absolute;
+            clip:rect(0,0,0,0);
+        }
+
+        label{
+            box-sizing:border-box;
+            cursor:pointer;
+            display:flex;
+            align-items:center;
+        }
+        .chekebox{
+            position:relative;
+            display:flex;
+            justify-content: center;
+            align-items: center;
+            margin-right:12px;
+            width: 16px;
+            height:16px;
+            border: 1px solid var(--dark-color1,#4D4D4D);
+            border-radius: 20%;
+        }
+        .chekebox::before{
+            position:absolute;
+            content:'';
+            width:74%;
+            height:0.15em;
+            background:#3391FF;
+            transform:scale(0);
+            border-radius: 0.15em;
+        }
+        .chekebox{ 
+            background:var(--dark-background,#FFFFFF);
+        }
+        .chekebox::after{
+            content:'';
+            position:absolute;
+            width:100%;
+            height:100%;
+            border-radius:50%;
+            background:#FFFFFF;
+            opacity:0.2;
+            transform:scale(0);
+            z-index:-1;
+        }
+        #checkbox:checked:not(:indeterminate)+label .chekebox .icon{
+            transform: scale(1.5);
+        }
+        #checkbox:checked+label .chekebox,#checkbox:indeterminate+label .chekebox{
+            border-color:#3391FF;
+        }
+        #checkbox:indeterminate+label .chekebox::before{
+            transform:scale(1);
+        }
+        .icon{
+            width: 90%;
+            height: 55%;
+            transform: scale(0);
+        }
+        </style>
+        <input type=\\"checkbox\\" id=\\"checkbox\\">
+        <label for=\\"checkbox\\">
+          <span class=\\"chekebox\\">
+          <lit-icon name=\\"checkmark\\" class=\\"icon\\" color=\\"#3391FF\\" size=\\"8\\">
+          </lit-icon>
+          </span>
+          <slot id=\\"slot\\"></slot>
+       </label>
+        "
+`);
+    });
 })

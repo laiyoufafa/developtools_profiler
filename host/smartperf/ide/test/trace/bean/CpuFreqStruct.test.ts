@@ -33,7 +33,42 @@ describe('CpuFreqStruct Test', ()=>{
         startNS: 200,
         value: 50
     }
+
+    const dataSource = {
+        frame: {
+            x: 20,
+            y: 20,
+            width: 100,
+            height: 100
+        },
+        value: 50,
+        maxFreq: 50
+    }
+
     it('CpuFreqStructTest01', function () {
         expect(CpuFreqStruct.draw(ctx, data)).toBeUndefined()
+        expect(data).toMatchInlineSnapshot({
+        startNS: expect.any(Number),
+        value: expect.any(Number) }, `
+        Object {
+          "frame": Object {
+            "height": 100,
+            "width": 100,
+            "x": 20,
+            "y": 20,
+          },
+          "startNS": Any<Number>,
+          "value": Any<Number>,
+        }
+    `);
+    });
+
+    it('CpuFreqStructTest02', function () {
+        expect(CpuFreqStruct.draw(ctx, {startNS:1})).toBeUndefined()
+    });
+
+    it('CpuFreqStructTest03 ', function () {
+        expect(CpuFreqStruct.draw(ctx,dataSource)).toBeUndefined()
+
     });
 })

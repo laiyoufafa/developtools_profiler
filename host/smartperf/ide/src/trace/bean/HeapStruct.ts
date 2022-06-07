@@ -22,8 +22,10 @@ export class HeapStruct extends BaseStruct {
     startTime: number | undefined
     endTime: number | undefined
     dur: number | undefined
+    eventType: string | undefined
     heapsize: number | undefined
     maxHeapSize: number = 0
+    minHeapSize: number = 0
 
     static setFrame(node: HeapStruct, padding: number, startNS: number, endNS: number, totalNS: number, frame: Rect) {
         let x1: number, x2: number;

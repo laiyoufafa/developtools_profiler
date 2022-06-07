@@ -22,8 +22,10 @@ export class Flag {
     color: string = ""
     selected: boolean = false
     text: string = ""
+    hidden: boolean = false;
+    type: string = "";
 
-    constructor(x: number, y: number, width: number, height: number, time: number, color: string = "#999999", selected = false) {
+    constructor(x: number, y: number, width: number, height: number, time: number, color: string = "#999999", selected = false, type: string = "") {
         this.x = x;
         this.y = y;
         this.width = width;
@@ -31,5 +33,7 @@ export class Flag {
         this.time = time;
         this.color = color;
         this.selected = selected;
+        this.type = type;
     }
 }
+

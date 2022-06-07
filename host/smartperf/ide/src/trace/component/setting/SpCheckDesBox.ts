@@ -19,12 +19,11 @@ import {LitCheckBox} from "../../../base-ui/checkbox/LitCheckBox.js";
 @element('check-des-box')
 export class SpCheckDesBox extends BaseElement {
     private _checkBox: LitCheckBox | undefined
+    private _des: HTMLSpanElement | undefined;
 
     static get observedAttributes() {
         return ['checked', 'value', 'des']
     }
-
-    private _des: HTMLSpanElement | undefined;
 
     set des(des: string) {
         this.setAttribute("des", des)

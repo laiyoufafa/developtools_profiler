@@ -16,13 +16,12 @@
 export class StateProcessThread {
     id: string = ""
     pid: string = ""
-    title: string = ""
+    title: string | null | undefined = ""
     children: Array<StateProcessThread> = []
-
     process: string = ""
-    processId: number = 0
+    processId: number = -1
     thread: string = ""
-    threadId: number = 0
+    threadId: number = -1
     state: string = ""
     wallDuration: number = 0
     avgDuration: string = ""
@@ -47,5 +46,19 @@ export class SPTChild {
     core: string = ""
     priority: number = 0
     prior: string = ""
+    note: string = "-"
+}
+
+export class SPT {
+    process: string = ""
+    processId: number = 0
+    thread: string = ""
+    threadId: number = 0
+    state: string = ""
+    dur: number = 0
+    start_ts: number = 0
+    end_ts: number = 0
+    cpu: number = 0;
+    priority: string = "-"
     note: string = "-"
 }
