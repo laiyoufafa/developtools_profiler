@@ -32,6 +32,10 @@ public:
     bool Recv(void* data, size_t& len);
     bool Send(const void* data, size_t len);
     void Close();
+    bool IsValid()
+    {
+        return sockId_ != INVALID_SOCKET;
+    }
     int GetFd()
     {
         return sockId_;
@@ -40,11 +44,9 @@ public:
 private:
     int sockId_ = -1;
     int domain_ = 0;
-#ifndef _WIN32
     using SOCKET = int;
     const int SOCKET_ERROR = -1;
     const SOCKET INVALID_SOCKET = -1;
-#endif
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

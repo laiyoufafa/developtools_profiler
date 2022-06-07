@@ -28,6 +28,7 @@
 #include "filter/slice_filter.h"
 #include "http_server.h"
 #include "log.h"
+#include "meta.h"
 #include "parser/bytrace_parser/bytrace_event_parser.h"
 #include "parser/bytrace_parser/bytrace_parser.h"
 #include "parting_string.h"
@@ -45,9 +46,7 @@ using namespace SysTuning::base;
 constexpr size_t G_CHUNK_SIZE = 1024 * 1024;
 constexpr int G_MIN_PARAM_NUM = 2;
 constexpr size_t G_FILE_PERMISSION = 664;
-size_t g_loadSize = 0;
-const char* TRACE_STREAM_VERSION = "2.3.118";          // version
-const char* TRACE_STREAM_PUBLISHVERSION = "2022/3/29"; // publish datetime
+// set version info in meta.cpp please
 void ExportStatusToLog(const std::string& dbPath, TraceParserStatus status)
 {
     std::string path = dbPath + ".ohos.ts";
@@ -87,7 +86,7 @@ void PrintInformation()
 }
 void PrintVersion()
 {
-    fprintf(stderr, "version %s\n", TRACE_STREAM_VERSION);
+    fprintf(stderr, "version %s\n", TRACE_STREAM_VERSION.c_str());
 }
 
 bool ReadAndParser(SysTuning::TraceStreamer::TraceStreamerSelector& ta, int fd)
@@ -182,18 +181,18 @@ int ExportDatabase(TraceStreamerSelector& ts, const std::string& sqliteFilePath)
     return 0;
 }
 
+struct TraceExportOption {
+    std::string traceFilePath;
+    std::string sqliteFilePath;
+    bool interactiveState = false;
+    bool exportMetaTable = true;
+};
 struct HttpOption {
     bool enable = false;
     int port = 9001;
 };
 
-int CheckArgs(int argc,
-              char** argv,
-              bool& interactiveState,
-              bool& exportMetaTable,
-              std::string& traceFilePath,
-              std::string& sqliteFilePath,
-              HttpOption& httpOption)
+int CheckArgs(int argc, char** argv, TraceExportOption& traceExportOption, HttpOption& httpOption)
 {
     for (int i = 1; i < argc; i++) {
         if (!strcmp(argv[i], "-e")) {
@@ -201,15 +200,15 @@ int CheckArgs(int argc,
                 ShowHelpInfo(argv[0]);
                 return 1;
             }
-            sqliteFilePath = std::string(argv[i]);
+            traceExportOption.sqliteFilePath = std::string(argv[i]);
             continue;
         } else if (!strcmp(argv[i], "-c") || !strcmp(argv[i], "--command")) {
-            interactiveState = true;
+            traceExportOption.interactiveState = true;
             continue;
         } else if (!strcmp(argv[i], "-i") || !strcmp(argv[i], "--info")) {
             PrintInformation();
         } else if (!strcmp(argv[i], "-nm") || !strcmp(argv[i], "--nometa")) {
-            exportMetaTable = false;
+            traceExportOption.exportMetaTable = false;
             continue;
         } else if (!strcmp(argv[i], "-v") || !strcmp(argv[i], "--v") || !strcmp(argv[i], "-version") ||
                    !strcmp(argv[i], "--version")) {
@@ -226,10 +225,11 @@ int CheckArgs(int argc,
             httpOption.port = std::stoi(argv[i]);
             continue;
         }
-        traceFilePath = std::string(argv[i]);
+        traceExportOption.traceFilePath = std::string(argv[i]);
     }
-    if ((traceFilePath.empty() || (!interactiveState && sqliteFilePath.empty()))
-        && !httpOption.enable) {
+    if ((traceExportOption.traceFilePath.empty() ||
+         (!traceExportOption.interactiveState && traceExportOption.sqliteFilePath.empty())) &&
+        !httpOption.enable) {
         ShowHelpInfo(argv[0]);
         return 1;
     }
@@ -237,22 +237,18 @@ int CheckArgs(int argc,
 }
 } // namespace TraceStreamer
 } // namespace SysTuning
-
 int main(int argc, char** argv)
 {
     if (argc < G_MIN_PARAM_NUM) {
         ShowHelpInfo(argv[0]);
         return 1;
     }
-    std::string traceFilePath;
-    std::string sqliteFilePath;
-    bool interactiveState = false;
-    bool exportMetaTable = true;
+    TraceExportOption tsOption;
     HttpOption httpOption;
-    int ret = CheckArgs(argc, argv, interactiveState, exportMetaTable, traceFilePath, sqliteFilePath, httpOption);
+    int ret = CheckArgs(argc, argv, tsOption, httpOption);
     if (ret) {
-        if (!sqliteFilePath.empty()) {
-            ExportStatusToLog(sqliteFilePath, GetAnalysisResult());
+        if (!tsOption.sqliteFilePath.empty()) {
+            ExportStatusToLog(tsOption.sqliteFilePath, GetAnalysisResult());
         }
         return 0;
     }
@@ -265,23 +261,28 @@ int main(int argc, char** argv)
         return 0;
     }
     TraceStreamerSelector ts;
-    ts.EnableMetaTable(exportMetaTable);
-    if (OpenAndParserFile(ts, traceFilePath)) {
-        if (!sqliteFilePath.empty()) {
-            ExportStatusToLog(sqliteFilePath, GetAnalysisResult());
+    ts.EnableMetaTable(tsOption.exportMetaTable);
+    if (OpenAndParserFile(ts, tsOption.traceFilePath)) {
+        if (!tsOption.sqliteFilePath.empty()) {
+            ExportStatusToLog(tsOption.sqliteFilePath, GetAnalysisResult());
         }
         return 1;
     }
-    if (interactiveState) {
+    if (tsOption.interactiveState) {
+        MetaData* metaData = ts.GetMetaData();
+        metaData->SetOutputFileName("command line mode");
+        metaData->SetParserToolVersion(TRACE_STREAM_VERSION.c_str());
+        metaData->SetParserToolPublishDateTime(TRACE_STREAM_PUBLISHVERSION.c_str());
+        metaData->SetTraceDataSize(g_loadSize);
         ts.SearchData();
         return 0;
     }
-    if (ExportDatabase(ts, sqliteFilePath)) {
-        ExportStatusToLog(sqliteFilePath, GetAnalysisResult());
+    if (ExportDatabase(ts, tsOption.sqliteFilePath)) {
+        ExportStatusToLog(tsOption.sqliteFilePath, GetAnalysisResult());
         return 1;
     }
-    if (!sqliteFilePath.empty()) {
-        ExportStatusToLog(sqliteFilePath, GetAnalysisResult());
+    if (!tsOption.sqliteFilePath.empty()) {
+        ExportStatusToLog(tsOption.sqliteFilePath, GetAnalysisResult());
     }
     return 0;
 }

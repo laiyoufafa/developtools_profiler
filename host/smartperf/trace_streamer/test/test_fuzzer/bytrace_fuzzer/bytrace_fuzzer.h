@@ -15,12 +15,5 @@
 
 #ifndef BYTRACE_FUZZER_H
 #define BYTRACE_FUZZER_H
-#include <climits>
-#include <cstdint>
-#include <cstdio>
-#include <cstdlib>
-#include <fcntl.h>
-#include <unistd.h>
-
 #define FUZZ_PROJECT_NAME "bytrace_fuzzer"
 #endif

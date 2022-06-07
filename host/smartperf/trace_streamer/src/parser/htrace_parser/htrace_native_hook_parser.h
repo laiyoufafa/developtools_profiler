@@ -18,28 +18,34 @@
 #include <map>
 #include <string>
 #include "double_map.h"
-#include "trace_data/trace_data_cache.h"
+#include "htrace_event_parser.h"
+#include "htrace_plugin_time.h"
+#include "native_hook_result.pb.h"
 #include "trace_streamer_config.h"
 #include "trace_streamer_filters.h"
 
-
 namespace SysTuning {
 namespace TraceStreamer {
-class HtraceNativeHookParser {
+class HtraceNativeHookParser : public HtracePluginTimeParser {
 public:
     HtraceNativeHookParser(TraceDataCache* dataCache, const TraceStreamerFilters* ctx);
     ~HtraceNativeHookParser();
-    void Parse(BatchNativeHookData& tracePacket);
+    void SortNativeHookData(BatchNativeHookData& tracePacket);
+    void FinishParseNativeHookData();
     void Finish();
 
 private:
-    const TraceStreamerFilters* streamFilters_;
-    TraceDataCache* traceDataCache_;
-    TraceStreamerConfig config_ = {};
-    uint64_t traceStartTime_ = std::numeric_limits<uint64_t>::max();
-    uint64_t traceEndTime_ = 0;
-    static uint64_t eventId_;
+    void MaybeParseNativeHookData();
+    void ParseNativeHookData(const uint64_t timeStamp, const NativeHookData* nativeHookData);
+    void ParseNativeHookFrame(const RepeatedPtrField< ::Frame >& frameInfo);
+    void MaybeUpdateCurrentSizeDur(uint64_t row, uint64_t timeStamp, bool isMalloc);
+    uint64_t eventId_ = 0;
     DoubleMap<uint32_t, uint64_t, uint64_t> addrToAllocEventRow_;
+    DoubleMap<uint32_t, uint64_t, uint64_t> addrToMmapEventRow_;
+    uint64_t lastMallocEventRaw_ = INVALID_UINT64;
+    uint64_t lastMmapEventRaw_ = INVALID_UINT64;
+    std::multimap<uint64_t, std::unique_ptr<NativeHookData>> tsNativeHookQueue_;
+    const size_t MAX_CACHE_SIZE = 200000;
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

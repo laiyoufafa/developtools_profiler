@@ -70,8 +70,14 @@ enum SupportedTraceEventType {
     TRACE_HIDUMP_FPS,
     TRACE_NATIVE_HOOK_MALLOC,
     TRACE_NATIVE_HOOK_FREE,
+    TRACE_NATIVE_HOOK_MMAP,
+    TRACE_NATIVE_HOOK_MUNMAP,
     TRACE_SYS_MEMORY,
     TRACE_SYS_VIRTUAL_MEMORY,
+    TRACE_DISKIO,
+    TRACE_PROCESS,
+    TRACE_CPU_USAGE,
+    TRACE_NETWORK,
     TRACE_EVENT_SIGNAL_GENERATE,
     TRACE_EVENT_SIGNAL_DELIVER,
     TRACE_EVENT_BLOCK_BIO_BACKMERGE,
@@ -211,6 +217,8 @@ private:
     const std::string TRACE_ACTION_HIDUMP_FPS = "hidump_fps";
     const std::string TRACE_ACTION_NATIVE_HOOK_MALLOC = "native_hook_malloc";
     const std::string TRACE_ACTION_NATIVE_HOOK_FREE = "native_hook_free";
+    const std::string TRACE_ACTION_NATIVE_HOOK_MMAP = "native_hook_mmap";
+    const std::string TRACE_ACTION_NATIVE_HOOK_MUNMAP = "native_hook_munmap";
     const std::string TRACE_ACTION_SIGNAL_GENERATE = "signal_generate";
     const std::string TRACE_ACTION_SIGNAL_DELIVER = "signal_deliver";
     const std::string TRACE_ACTION_BLOCK_BIO_BACKMERGE = "trace_block_bio_backmerge";
@@ -229,6 +237,10 @@ private:
 
     const std::string TRACE_ACTION_SYS_MEMORY = "sys_memory";
     const std::string TRACE_ACTION_SYS_VIRTUAL_MEMORY = "sys_virtual_memory";
+    const std::string TRACE_ACTION_DISKIO = "trace_diskio";
+    const std::string TRACE_ACTION_PROCESS = "trace_process";
+    const std::string TRACE_ACTION_CPU_USAGE = "trace_cpu_usage";
+    const std::string TRACE_ACTION_NETWORK = "trace_network";
     const std::string TRACE_ACTION_OTHER = "other";
 
     const std::string MEM_INFO_VM_SIZE_DESC = "mem.vm.size";
@@ -276,6 +288,7 @@ private:
     const std::string SYS_MEMINFO_VMALLOC_CHUNK_DESC = "sys.mem.vmalloc.chunk";
     const std::string SYS_MEMINFO_CMA_TOTAL_DESC = "sys.mem.cma.total";
     const std::string SYS_MEMINFO_CMA_FREE_DESC = "sys.mem.cma.free";
+    const std::string SYS_MEMINFO_KERNEL_RECLAIMABLE_DESC = "sys.mem.kernel.reclaimable";
     const std::string SYS_VMEMINFO_UNSPECIFIED_DESC = "sys.virtual.mem.unspecified";
     const std::string SYS_VMEMINFO_NR_FREE_PAGES_DESC = "sys.virtual.mem.nr.free.pages";
     const std::string SYS_VMEMINFO_NR_ALLOC_BATCH_DESC = "sys.virtual.mem.nr.alloc.batch";

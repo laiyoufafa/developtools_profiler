@@ -55,6 +55,7 @@ public:
  */
 HWTEST_F(HtraceEventParserTest, ParseSchedSwitchEvent, TestSize.Level1)
 {
+    TS_LOGI("test10-1");
     SchedSwitchFormat* event = new SchedSwitchFormat();
     event->set_prev_prio(PRIORITY_01);
     event->set_next_prio(PRIORITY_02);
@@ -76,7 +77,7 @@ HWTEST_F(HtraceEventParserTest, ParseSchedSwitchEvent, TestSize.Level1)
 
     HtraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     eventParser.ParseDataItem(&ftraceCpuDetail, TS_CLOCK_BOOTTIME);
-    stream_.streamFilters_->cpuFilter_->FinishCpuEvent();
+    eventParser.FilterAllEvents();
     EXPECT_TRUE(1);
     auto realTimeStamp = stream_.traceDataCache_->GetConstSchedSliceData().TimeStamData()[0];
     EXPECT_TRUE(TIMESTAMP == realTimeStamp);
@@ -91,13 +92,14 @@ HWTEST_F(HtraceEventParserTest, ParseSchedSwitchEvent, TestSize.Level1)
  */
 HWTEST_F(HtraceEventParserTest, ParseFtraceCpuDetailMsgHasNoEvent, TestSize.Level1)
 {
+    TS_LOGI("test10-2");
     FtraceCpuDetailMsg ftraceCpuDetail;
     ftraceCpuDetail.set_cpu(0);
     ftraceCpuDetail.set_overwrite(0);
 
     HtraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     eventParser.ParseDataItem(&ftraceCpuDetail, TS_CLOCK_BOOTTIME);
-    stream_.streamFilters_->cpuFilter_->FinishCpuEvent();
+    eventParser.FilterAllEvents();
 
     auto eventCount = stream_.traceDataCache_->GetConstStatAndInfo().GetValue(TRACE_EVENT_OTHER, STAT_EVENT_DATA_LOST);
     EXPECT_TRUE(0 == eventCount);
@@ -110,6 +112,7 @@ HWTEST_F(HtraceEventParserTest, ParseFtraceCpuDetailMsgHasNoEvent, TestSize.Leve
  */
 HWTEST_F(HtraceEventParserTest, ParseFtraceCpuDetailMsgOverwriteTrue, TestSize.Level1)
 {
+    TS_LOGI("test10-3");
     SchedSwitchFormat* event = new SchedSwitchFormat();
     event->set_prev_prio(PRIORITY_01);
     event->set_next_prio(PRIORITY_02);
@@ -131,7 +134,7 @@ HWTEST_F(HtraceEventParserTest, ParseFtraceCpuDetailMsgOverwriteTrue, TestSize.L
 
     HtraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     eventParser.ParseDataItem(&ftraceCpuDetail, TS_CLOCK_BOOTTIME);
-    stream_.streamFilters_->cpuFilter_->FinishCpuEvent();
+    eventParser.FilterAllEvents();
     auto eventCount = stream_.traceDataCache_->GetConstStatAndInfo().GetValue(TRACE_EVENT_OTHER, STAT_EVENT_DATA_LOST);
     EXPECT_TRUE(1 == eventCount);
 }
@@ -143,6 +146,7 @@ HWTEST_F(HtraceEventParserTest, ParseFtraceCpuDetailMsgOverwriteTrue, TestSize.L
  */
 HWTEST_F(HtraceEventParserTest, ParseTaskRenameEvent, TestSize.Level1)
 {
+    TS_LOGI("test10-4");
     TaskRenameFormat* taskRenameEvent = new TaskRenameFormat();
     taskRenameEvent->set_pid(PID_01);
     taskRenameEvent->set_oldcomm(THREAD_NAME_01);
@@ -161,7 +165,7 @@ HWTEST_F(HtraceEventParserTest, ParseTaskRenameEvent, TestSize.Level1)
 
     HtraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     eventParser.ParseDataItem(&ftraceCpuDetail, TS_CLOCK_BOOTTIME);
-    stream_.streamFilters_->cpuFilter_->FinishCpuEvent();
+    eventParser.FilterAllEvents();
     auto eventCount =
         stream_.traceDataCache_->GetConstStatAndInfo().GetValue(TRACE_EVENT_TASK_RENAME, STAT_EVENT_RECEIVED);
     EXPECT_TRUE(1 == eventCount);
@@ -174,6 +178,7 @@ HWTEST_F(HtraceEventParserTest, ParseTaskRenameEvent, TestSize.Level1)
  */
 HWTEST_F(HtraceEventParserTest, ParseTaskNewtaskEvent, TestSize.Level1)
 {
+    TS_LOGI("test10-5");
     TaskNewtaskFormat* newTaskEvent = new TaskNewtaskFormat();
     newTaskEvent->set_pid(PID_01);
     newTaskEvent->set_comm(THREAD_NAME_01);
@@ -192,7 +197,7 @@ HWTEST_F(HtraceEventParserTest, ParseTaskNewtaskEvent, TestSize.Level1)
 
     HtraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     eventParser.ParseDataItem(&ftraceCpuDetail, TS_CLOCK_BOOTTIME);
-    stream_.streamFilters_->cpuFilter_->FinishCpuEvent();
+    eventParser.FilterAllEvents();
     auto eventCount =
         stream_.traceDataCache_->GetConstStatAndInfo().GetValue(TRACE_EVENT_TASK_NEWTASK, STAT_EVENT_RECEIVED);
     EXPECT_TRUE(1 == eventCount);
@@ -205,6 +210,7 @@ HWTEST_F(HtraceEventParserTest, ParseTaskNewtaskEvent, TestSize.Level1)
  */
 HWTEST_F(HtraceEventParserTest, ParseSchedWakeupEvent, TestSize.Level1)
 {
+    TS_LOGI("test10-6");
     SchedWakeupFormat* wakeupEvent = new SchedWakeupFormat();
     wakeupEvent->set_comm(THREAD_NAME_01);
     wakeupEvent->set_pid(PRIORITY_02);
@@ -223,7 +229,7 @@ HWTEST_F(HtraceEventParserTest, ParseSchedWakeupEvent, TestSize.Level1)
 
     HtraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     eventParser.ParseDataItem(&ftraceCpuDetail, TS_CLOCK_BOOTTIME);
-    stream_.streamFilters_->cpuFilter_->FinishCpuEvent();
+    eventParser.FilterAllEvents();
     auto eventCount =
         stream_.traceDataCache_->GetConstStatAndInfo().GetValue(TRACE_EVENT_SCHED_WAKEUP, STAT_EVENT_RECEIVED);
     EXPECT_TRUE(1 == eventCount);
@@ -236,6 +242,7 @@ HWTEST_F(HtraceEventParserTest, ParseSchedWakeupEvent, TestSize.Level1)
  */
 HWTEST_F(HtraceEventParserTest, ParseSchedWakingEvent, TestSize.Level1)
 {
+    TS_LOGI("test10-7");
     SchedWakingFormat* wakingEvent = new SchedWakingFormat();
     wakingEvent->set_comm(THREAD_NAME_01);
     wakingEvent->set_pid(PRIORITY_02);
@@ -254,7 +261,7 @@ HWTEST_F(HtraceEventParserTest, ParseSchedWakingEvent, TestSize.Level1)
 
     HtraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     eventParser.ParseDataItem(&ftraceCpuDetail, TS_CLOCK_BOOTTIME);
-    stream_.streamFilters_->cpuFilter_->FinishCpuEvent();
+    eventParser.FilterAllEvents();
     auto eventCount =
         stream_.traceDataCache_->GetConstStatAndInfo().GetValue(TRACE_EVENT_SCHED_WAKING, STAT_EVENT_RECEIVED);
     EXPECT_TRUE(1 == eventCount);
@@ -267,6 +274,7 @@ HWTEST_F(HtraceEventParserTest, ParseSchedWakingEvent, TestSize.Level1)
  */
 HWTEST_F(HtraceEventParserTest, ParseCpuIdleEvent, TestSize.Level1)
 {
+    TS_LOGI("test10-8");
     CpuIdleFormat* cpuIdleEvent = new CpuIdleFormat();
     cpuIdleEvent->set_cpu_id(0);
     cpuIdleEvent->set_state(1);
@@ -283,7 +291,7 @@ HWTEST_F(HtraceEventParserTest, ParseCpuIdleEvent, TestSize.Level1)
 
     HtraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     eventParser.ParseDataItem(&ftraceCpuDetail, TS_CLOCK_BOOTTIME);
-    stream_.streamFilters_->cpuFilter_->FinishCpuEvent();
+    eventParser.FilterAllEvents();
     auto eventCount =
         stream_.traceDataCache_->GetConstStatAndInfo().GetValue(TRACE_EVENT_CPU_IDLE, STAT_EVENT_RECEIVED);
     EXPECT_TRUE(1 == eventCount);
@@ -296,6 +304,7 @@ HWTEST_F(HtraceEventParserTest, ParseCpuIdleEvent, TestSize.Level1)
  */
 HWTEST_F(HtraceEventParserTest, ParseCpuFrequencyEvent, TestSize.Level1)
 {
+    TS_LOGI("test10-9");
     CpuFrequencyFormat* cpuFrequencyEvent = new CpuFrequencyFormat();
     cpuFrequencyEvent->set_cpu_id(0);
     cpuFrequencyEvent->set_state(1);
@@ -312,7 +321,7 @@ HWTEST_F(HtraceEventParserTest, ParseCpuFrequencyEvent, TestSize.Level1)
 
     HtraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     eventParser.ParseDataItem(&ftraceCpuDetail, TS_CLOCK_BOOTTIME);
-    stream_.streamFilters_->cpuFilter_->FinishCpuEvent();
+    eventParser.FilterAllEvents();
     auto eventCount =
         stream_.traceDataCache_->GetConstStatAndInfo().GetValue(TRACE_EVENT_CPU_FREQUENCY, STAT_EVENT_RECEIVED);
     EXPECT_TRUE(1 == eventCount);
@@ -325,6 +334,7 @@ HWTEST_F(HtraceEventParserTest, ParseCpuFrequencyEvent, TestSize.Level1)
  */
 HWTEST_F(HtraceEventParserTest, ParseWorkqueueExecuteStartEvent, TestSize.Level1)
 {
+    TS_LOGI("test10-10");
     WorkqueueExecuteStartFormat* workqueueExecuteStartEvent = new WorkqueueExecuteStartFormat();
     workqueueExecuteStartEvent->set_work(0);
     workqueueExecuteStartEvent->set_function(1);
@@ -341,7 +351,7 @@ HWTEST_F(HtraceEventParserTest, ParseWorkqueueExecuteStartEvent, TestSize.Level1
 
     HtraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     eventParser.ParseDataItem(&ftraceCpuDetail, TS_CLOCK_BOOTTIME);
-    stream_.streamFilters_->cpuFilter_->FinishCpuEvent();
+    eventParser.FilterAllEvents();
     auto eventCount = stream_.traceDataCache_->GetConstStatAndInfo().GetValue(TRACE_EVENT_WORKQUEUE_EXECUTE_START,
                                                                               STAT_EVENT_RECEIVED);
     EXPECT_TRUE(1 == eventCount);
@@ -354,6 +364,7 @@ HWTEST_F(HtraceEventParserTest, ParseWorkqueueExecuteStartEvent, TestSize.Level1
  */
 HWTEST_F(HtraceEventParserTest, ParseWorkqueueExecuteEndEvent, TestSize.Level1)
 {
+    TS_LOGI("test10-11");
     WorkqueueExecuteEndFormat* workqueueExecuteEndEvent = new WorkqueueExecuteEndFormat();
     workqueueExecuteEndEvent->set_work(0);
 
@@ -369,7 +380,7 @@ HWTEST_F(HtraceEventParserTest, ParseWorkqueueExecuteEndEvent, TestSize.Level1)
 
     HtraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     eventParser.ParseDataItem(&ftraceCpuDetail, TS_CLOCK_BOOTTIME);
-    stream_.streamFilters_->cpuFilter_->FinishCpuEvent();
+    eventParser.FilterAllEvents();
     auto eventCount =
         stream_.traceDataCache_->GetConstStatAndInfo().GetValue(TRACE_EVENT_WORKQUEUE_EXECUTE_END, STAT_EVENT_RECEIVED);
     EXPECT_TRUE(1 == eventCount);
@@ -382,6 +393,7 @@ HWTEST_F(HtraceEventParserTest, ParseWorkqueueExecuteEndEvent, TestSize.Level1)
  */
 HWTEST_F(HtraceEventParserTest, ParseClockDisableEvent, TestSize.Level1)
 {
+    TS_LOGI("test10-12");
     ClockDisableFormat* clockDisableEvent = new ClockDisableFormat();
     clockDisableEvent->set_name(THREAD_NAME_02);
     clockDisableEvent->set_cpu_id(0);
@@ -399,7 +411,7 @@ HWTEST_F(HtraceEventParserTest, ParseClockDisableEvent, TestSize.Level1)
 
     HtraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     eventParser.ParseDataItem(&ftraceCpuDetail, TS_CLOCK_BOOTTIME);
-    stream_.streamFilters_->cpuFilter_->FinishCpuEvent();
+    eventParser.FilterAllEvents();
     auto eventCount =
         stream_.traceDataCache_->GetConstStatAndInfo().GetValue(TRACE_EVENT_CLOCK_DISABLE, STAT_EVENT_RECEIVED);
     EXPECT_TRUE(1 == eventCount);
@@ -412,6 +424,7 @@ HWTEST_F(HtraceEventParserTest, ParseClockDisableEvent, TestSize.Level1)
  */
 HWTEST_F(HtraceEventParserTest, ParseClockEnableEvent, TestSize.Level1)
 {
+    TS_LOGI("test10-13");
     ClockEnableFormat* clockEnableEvent = new ClockEnableFormat();
     clockEnableEvent->set_name(THREAD_NAME_02);
     clockEnableEvent->set_cpu_id(0);
@@ -429,7 +442,7 @@ HWTEST_F(HtraceEventParserTest, ParseClockEnableEvent, TestSize.Level1)
 
     HtraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     eventParser.ParseDataItem(&ftraceCpuDetail, TS_CLOCK_BOOTTIME);
-    stream_.streamFilters_->cpuFilter_->FinishCpuEvent();
+    eventParser.FilterAllEvents();
     auto eventCount =
         stream_.traceDataCache_->GetConstStatAndInfo().GetValue(TRACE_EVENT_CLOCK_ENABLE, STAT_EVENT_RECEIVED);
     EXPECT_TRUE(1 == eventCount);
@@ -442,6 +455,7 @@ HWTEST_F(HtraceEventParserTest, ParseClockEnableEvent, TestSize.Level1)
  */
 HWTEST_F(HtraceEventParserTest, ParseClockSetRateEvent, TestSize.Level1)
 {
+    TS_LOGI("test10-14");
     ClockSetRateFormat* clockSetRateEvent = new ClockSetRateFormat();
     clockSetRateEvent->set_name(THREAD_NAME_02);
     clockSetRateEvent->set_cpu_id(0);
@@ -459,7 +473,7 @@ HWTEST_F(HtraceEventParserTest, ParseClockSetRateEvent, TestSize.Level1)
 
     HtraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     eventParser.ParseDataItem(&ftraceCpuDetail, TS_CLOCK_BOOTTIME);
-    stream_.streamFilters_->cpuFilter_->FinishCpuEvent();
+    eventParser.FilterAllEvents();
     auto eventCount =
         stream_.traceDataCache_->GetConstStatAndInfo().GetValue(TRACE_EVENT_CLOCK_SET_RATE, STAT_EVENT_RECEIVED);
     EXPECT_TRUE(1 == eventCount);
@@ -472,6 +486,7 @@ HWTEST_F(HtraceEventParserTest, ParseClockSetRateEvent, TestSize.Level1)
  */
 HWTEST_F(HtraceEventParserTest, ParseClkDisableEvent, TestSize.Level1)
 {
+    TS_LOGI("test10-15");
     ClkDisableFormat* clkDisableEvent = new ClkDisableFormat();
     clkDisableEvent->set_name(THREAD_NAME_02);
 
@@ -487,7 +502,7 @@ HWTEST_F(HtraceEventParserTest, ParseClkDisableEvent, TestSize.Level1)
 
     HtraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     eventParser.ParseDataItem(&ftraceCpuDetail, TS_CLOCK_BOOTTIME);
-    stream_.streamFilters_->cpuFilter_->FinishCpuEvent();
+    eventParser.FilterAllEvents();
     auto eventCount =
         stream_.traceDataCache_->GetConstStatAndInfo().GetValue(TRACE_EVENT_CLK_DISABLE, STAT_EVENT_RECEIVED);
     EXPECT_TRUE(1 == eventCount);
@@ -500,6 +515,7 @@ HWTEST_F(HtraceEventParserTest, ParseClkDisableEvent, TestSize.Level1)
  */
 HWTEST_F(HtraceEventParserTest, ParseClkEnableEvent, TestSize.Level1)
 {
+    TS_LOGI("test10-16");
     ClkEnableFormat* clkEnableEvent = new ClkEnableFormat();
     clkEnableEvent->set_name(THREAD_NAME_02);
 
@@ -515,6 +531,7 @@ HWTEST_F(HtraceEventParserTest, ParseClkEnableEvent, TestSize.Level1)
 
     HtraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     eventParser.ParseDataItem(&ftraceCpuDetail, TS_CLOCK_BOOTTIME);
+    eventParser.FilterAllEvents();
     auto eventCount =
         stream_.traceDataCache_->GetConstStatAndInfo().GetValue(TRACE_EVENT_CLK_ENABLE, STAT_EVENT_RECEIVED);
     EXPECT_TRUE(1 == eventCount);
@@ -527,6 +544,7 @@ HWTEST_F(HtraceEventParserTest, ParseClkEnableEvent, TestSize.Level1)
  */
 HWTEST_F(HtraceEventParserTest, ParseClkSetRateEvent, TestSize.Level1)
 {
+    TS_LOGI("test10-17");
     ClkSetRateFormat* clkSetRateEvent = new ClkSetRateFormat();
     clkSetRateEvent->set_name(THREAD_NAME_02);
     clkSetRateEvent->set_rate(1);
@@ -543,7 +561,7 @@ HWTEST_F(HtraceEventParserTest, ParseClkSetRateEvent, TestSize.Level1)
 
     HtraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     eventParser.ParseDataItem(&ftraceCpuDetail, TS_CLOCK_BOOTTIME);
-    stream_.streamFilters_->cpuFilter_->FinishCpuEvent();
+    eventParser.FilterAllEvents();
     auto eventCount =
         stream_.traceDataCache_->GetConstStatAndInfo().GetValue(TRACE_EVENT_CLK_SET_RATE, STAT_EVENT_RECEIVED);
     EXPECT_TRUE(1 == eventCount);
@@ -556,6 +574,7 @@ HWTEST_F(HtraceEventParserTest, ParseClkSetRateEvent, TestSize.Level1)
  */
 HWTEST_F(HtraceEventParserTest, ParseSysEnterEvent, TestSize.Level1)
 {
+    TS_LOGI("test10-18");
     SysEnterFormat* sysEnterEvent = new SysEnterFormat();
     sysEnterEvent->set_id(1);
     sysEnterEvent->set_args(THREAD_NAME_02);
@@ -572,7 +591,7 @@ HWTEST_F(HtraceEventParserTest, ParseSysEnterEvent, TestSize.Level1)
 
     HtraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     eventParser.ParseDataItem(&ftraceCpuDetail, TS_CLOCK_BOOTTIME);
-    stream_.streamFilters_->cpuFilter_->FinishCpuEvent();
+    eventParser.FilterAllEvents();
     auto eventCount =
         stream_.traceDataCache_->GetConstStatAndInfo().GetValue(TRACE_EVENT_SYS_ENTRY, STAT_EVENT_RECEIVED);
     EXPECT_TRUE(1 == eventCount);
@@ -584,6 +603,7 @@ HWTEST_F(HtraceEventParserTest, ParseSysEnterEvent, TestSize.Level1)
  */
 HWTEST_F(HtraceEventParserTest, ParseSystemExitEvent, TestSize.Level1)
 {
+    TS_LOGI("test10-19");
     SysExitFormat* sysExitEvent = new SysExitFormat();
     sysExitEvent->set_id(1);
     sysExitEvent->set_ret(1);
@@ -600,7 +620,7 @@ HWTEST_F(HtraceEventParserTest, ParseSystemExitEvent, TestSize.Level1)
 
     HtraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     eventParser.ParseDataItem(&ftraceCpuDetail, TS_CLOCK_BOOTTIME);
-    stream_.streamFilters_->cpuFilter_->FinishCpuEvent();
+    eventParser.FilterAllEvents();
     auto eventCount =
         stream_.traceDataCache_->GetConstStatAndInfo().GetValue(TRACE_EVENT_SYS_EXIT, STAT_EVENT_RECEIVED);
     EXPECT_TRUE(1 == eventCount);

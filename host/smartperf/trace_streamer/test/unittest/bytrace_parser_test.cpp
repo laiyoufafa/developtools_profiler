@@ -21,7 +21,7 @@
 
 #include "parser/bytrace_parser/bytrace_parser.h"
 #include "parser/common_types.h"
-#include "securec.h"
+#include "string_help.h"
 #include "trace_streamer_selector.h"
 
 using namespace testing::ext;
@@ -40,7 +40,7 @@ public:
 
 public:
     SysTuning::TraceStreamer::TraceStreamerSelector stream_ = {};
-    const std::string dbPath_ = "/data/resource/out.db";
+    const std::string dbPath_ = "data/resource/out.db";
 };
 
 /**
@@ -53,11 +53,8 @@ HWTEST_F(BytraceParserTest, ParseNoData, TestSize.Level1)
     TS_LOGI("test1-1");
     auto buf = std::make_unique<uint8_t[]>(1);
     BytraceParser bytraceParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    printf("xxx\n");
     bytraceParser.ParseTraceDataSegment(std::move(buf), 1);
-    printf("xxx2\n");
-    bytraceParser.WaitForParserEnd();
-    printf("xxx3\n");
+    bytraceParser.WaitForParserEnd();;
     EXPECT_TRUE(bytraceParser.TraceCommentLines() == 0);
     EXPECT_TRUE(bytraceParser.ParsedTraceValidLines() == 0);
     EXPECT_TRUE(bytraceParser.ParsedTraceInvalidLines() == 0);
@@ -73,12 +70,13 @@ HWTEST_F(BytraceParserTest, ParseNoDataWhithLineFlag, TestSize.Level1)
     TS_LOGI("test1-2");
     constexpr uint32_t bufSize = 1024;
     auto buf = std::make_unique<uint8_t[]>(bufSize);
-    if (memcpy_s(buf.get(), bufSize, " \n", strlen(" \n"))) {
+    auto realBufSize = strlen(" \n");
+    if (memcpy_s(buf.get(), bufSize, " \n", realBufSize)) {
         EXPECT_TRUE(false);
         return;
     }
     BytraceParser bytraceParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    bytraceParser.ParseTraceDataSegment(std::move(buf), bufSize);
+    bytraceParser.ParseTraceDataSegment(std::move(buf), realBufSize);
     bytraceParser.WaitForParserEnd();
     stream_.traceDataCache_->ExportDatabase(dbPath_);
     EXPECT_TRUE(access(dbPath_.c_str(), F_OK) == 0);
@@ -97,12 +95,13 @@ HWTEST_F(BytraceParserTest, ParseInvalidData, TestSize.Level1)
     TS_LOGI("test1-3");
     constexpr uint32_t bufSize = 1024;
     auto buf = std::make_unique<uint8_t[]>(bufSize);
-    if (memcpy_s(buf.get(), bufSize, "0123456789\n", strlen("0123456789\n"))) {
+    auto realBufSize = strlen("0123456789\n");
+    if (memcpy_s(buf.get(), bufSize, "0123456789\n", realBufSize)) {
         EXPECT_TRUE(false);
         return;
     }
     BytraceParser bytraceParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    bytraceParser.ParseTraceDataSegment(std::move(buf), bufSize);
+    bytraceParser.ParseTraceDataSegment(std::move(buf), realBufSize);
     bytraceParser.WaitForParserEnd();
     stream_.traceDataCache_->ExportDatabase(dbPath_);
     EXPECT_TRUE(access(dbPath_.c_str(), F_OK) == 0);
@@ -121,12 +120,13 @@ HWTEST_F(BytraceParserTest, ParseComment, TestSize.Level1)
     TS_LOGI("test1-4");
     constexpr uint32_t bufSize = 1024;
     auto buf = std::make_unique<uint8_t[]>(bufSize);
-    if (memcpy_s(buf.get(), bufSize, "TRACE: \n# tracer: nop \n# \n", strlen("TRACE: \n# tracer: nop \n# \n"))) {
+    auto realBufSize = strlen("TRACE: \n# tracer: nop \n# \n");
+    if (memcpy_s(buf.get(), bufSize, "TRACE: \n# tracer: nop \n# \n", realBufSize)) {
         EXPECT_TRUE(false);
         return;
     }
     BytraceParser bytraceParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    bytraceParser.ParseTraceDataSegment(std::move(buf), bufSize);
+    bytraceParser.ParseTraceDataSegment(std::move(buf), realBufSize);
     bytraceParser.WaitForParserEnd();
     stream_.traceDataCache_->ExportDatabase(dbPath_);
     EXPECT_TRUE(access(dbPath_.c_str(), F_OK) == 0);
@@ -145,12 +145,13 @@ HWTEST_F(BytraceParserTest, ParseInvalidLines, TestSize.Level1)
     TS_LOGI("test1-5");
     constexpr uint32_t bufSize = 1024;
     auto buf = std::make_unique<uint8_t[]>(bufSize);
-    if (memcpy_s(buf.get(), bufSize, "\nafafda\n", strlen("\nafafda\n"))) {
+    auto realBufSize = strlen("\nafafda\n");
+    if (memcpy_s(buf.get(), bufSize, "\nafafda\n", realBufSize)) {
         EXPECT_TRUE(false);
         return;
     }
     BytraceParser bytraceParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
-    bytraceParser.ParseTraceDataSegment(std::move(buf), bufSize);
+    bytraceParser.ParseTraceDataSegment(std::move(buf), realBufSize);
     bytraceParser.WaitForParserEnd();
     stream_.traceDataCache_->ExportDatabase(dbPath_);
     EXPECT_TRUE(access(dbPath_.c_str(), F_OK) == 0);
@@ -169,7 +170,7 @@ HWTEST_F(BytraceParserTest, ParseNormal, TestSize.Level1)
     TS_LOGI("test1-6");
     std::string str(
         "ACCS0-2716  ( 2519) [000] ...1 168758.662861: binder_transaction: \
-        transaction=25137708 dest_node=4336 dest_proc=924 dest_thread=0 reply=0 flags=0x10 code=0x3\n");
+        transaction=25137708 dest_node=4336 dest_proc=924 dest_thread=0 reply=0 flags=0x10 code=0x3 \n");
     BytraceParser bytraceParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     bytraceParser.ParseTraceDataItem(str);
     bytraceParser.WaitForParserEnd();
@@ -189,7 +190,7 @@ HWTEST_F(BytraceParserTest, LineParser_abnormal_pid_err, TestSize.Level1)
     TS_LOGI("test1-7");
     std::string str(
         "ACCS0-27X6  ( 2519) [000] ...1 168758.662861: binder_transaction: \
-        transaction=25137708 dest_node=4336 dest_proc=924 dest_thread=0 reply=0 flags=0x10 code=0x3\n");
+        transaction=25137708 dest_node=4336 dest_proc=924 dest_thread=0 reply=0 flags=0x10 code=0x3 \n");
     BytraceParser bytraceParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     bytraceParser.ParseTraceDataItem(str);
     bytraceParser.WaitForParserEnd();
@@ -209,7 +210,7 @@ HWTEST_F(BytraceParserTest, LineParserWithInvalidCpu, TestSize.Level1)
     TS_LOGI("test1-8");
     std::string str(
         "ACCS0-2716  ( 2519) [00X] ...1 168758.662861: binder_transaction: \
-        transaction=25137708 dest_node=4336 dest_proc=924 dest_thread=0 reply=0 flags=0x10 code=0x3\n");
+        transaction=25137708 dest_node=4336 dest_proc=924 dest_thread=0 reply=0 flags=0x10 code=0x3 \n");
     BytraceParser bytraceParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     bytraceParser.ParseTraceDataItem(str);
     bytraceParser.WaitForParserEnd();
@@ -229,7 +230,7 @@ HWTEST_F(BytraceParserTest, LineParserWithInvalidTs, TestSize.Level1)
     TS_LOGI("test1-9");
     std::string str(
         "ACCS0-2716  ( 2519) [000] ...1 168758.662X61: binder_transaction: \
-        transaction=25137708 dest_node=4336 dest_proc=924 dest_thread=0 reply=0 flags=0x10 code=0x3\n");
+        transaction=25137708 dest_node=4336 dest_proc=924 dest_thread=0 reply=0 flags=0x10 code=0x3 \n");
     BytraceParser bytraceParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     bytraceParser.ParseTraceDataItem(str);
     bytraceParser.WaitForParserEnd();

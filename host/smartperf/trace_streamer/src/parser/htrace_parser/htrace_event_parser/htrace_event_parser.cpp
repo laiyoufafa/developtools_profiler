@@ -101,15 +101,15 @@ HtraceEventParser::HtraceEventParser(TraceDataCache* dataCache, const TraceStrea
                            {config_.eventNameMap_.at(TRACE_EVENT_SYS_EXIT),
                             std::bind(&HtraceEventParser::SysExitEvent, this, std::placeholders::_1)},
                            {config_.eventNameMap_.at(TRACE_EVENT_OOM_SCORE_ADJ_UPDATE),
-                            std::bind(&HtraceEventParser::OomScoreAdjUdate, this, std::placeholders::_1)}};
+                            std::bind(&HtraceEventParser::OomScoreAdjUpdate, this, std::placeholders::_1)}};
 }
 
 HtraceEventParser::~HtraceEventParser()
 {
     TS_LOGI("thread count:%u", static_cast<unsigned int>(tids_.size()));
     TS_LOGI("process count:%u", static_cast<unsigned int>(pids_.size()));
-    TS_LOGI("ftrace ts MIN:%llu, MAX:%llu", static_cast<unsigned long long>(traceStartTime_),
-            static_cast<unsigned long long>(traceEndTime_));
+    TS_LOGI("ftrace ts MIN:%llu, MAX:%llu", static_cast<unsigned long long>(ftraceStartTime_),
+            static_cast<unsigned long long>(ftraceEndTime_));
 }
 void HtraceEventParser::ParseDataItem(const FtraceCpuDetailMsg* cpuDetail, BuiltinClocks clock)
 {
@@ -132,8 +132,8 @@ void HtraceEventParser::ParseDataItem(const FtraceCpuDetailMsg* cpuDetail, Built
     for (auto i = 0; i < events.size(); i++) {
         auto event = cpuDetail->event(i);
         eventTimestamp_ = event.timestamp();
-        traceStartTime_ = std::min(traceStartTime_, eventTimestamp_);
-        traceEndTime_ = std::max(traceEndTime_, eventTimestamp_);
+        ftraceStartTime_ = std::min(ftraceStartTime_, eventTimestamp_);
+        ftraceEndTime_ = std::max(ftraceEndTime_, eventTimestamp_);
         eventTimestamp_ = streamFilters_->clockFilter_->ToPrimaryTraceTime(clock, eventTimestamp_);
         traceDataCache_->UpdateTraceTime(eventTimestamp_);
         if (event.tgid() != INVALID_INT32) {
@@ -143,84 +143,97 @@ void HtraceEventParser::ParseDataItem(const FtraceCpuDetailMsg* cpuDetail, Built
             }
             streamFilters_->processFilter_->GetOrCreateThreadWithPid(eventPid_, eventPid_);
         }
-        if (event.has_sched_switch_format()) {
-            InvokeFunc(TRACE_EVENT_SCHED_SWITCH, event.sched_switch_format());
-        } else if (event.has_task_rename_format()) {
-            InvokeFunc(TRACE_EVENT_TASK_RENAME, event.task_rename_format());
-        } else if (event.has_task_newtask_format()) {
-            InvokeFunc(TRACE_EVENT_TASK_NEWTASK, event.task_newtask_format());
-        } else if (event.has_sched_wakeup_format()) {
-            InvokeFunc(TRACE_EVENT_SCHED_WAKEUP, event.sched_wakeup_format());
-        } else if (event.has_sched_wakeup_new_format()) {
-            InvokeFunc(TRACE_EVENT_SCHED_WAKEUP, event.sched_wakeup_new_format());
-        } else if (event.has_sched_process_exit_format()) {
-            InvokeFunc(TRACE_EVENT_PROCESS_EXIT, event.sched_process_exit_format());
-        } else if (event.has_sched_process_free_format()) {
-            InvokeFunc(TRACE_EVENT_PROCESS_FREE, event.sched_process_free_format());
-        } else if (event.has_sched_waking_format()) {
-            InvokeFunc(TRACE_EVENT_SCHED_WAKING, event.sched_waking_format());
-        } else if (event.has_cpu_idle_format()) {
-            InvokeFunc(TRACE_EVENT_CPU_IDLE, event.cpu_idle_format());
-        } else if (event.has_cpu_frequency_format()) {
-            InvokeFunc(TRACE_EVENT_CPU_FREQUENCY, event.cpu_frequency_format());
-        } else if (event.has_print_format()) {
-            InvokeFunc(TRACE_EVENT_PRINT, event.print_format());
-        } else if (event.has_suspend_resume_format()) {
-            InvokeFunc(TRACE_EVENT_SUSPEND_RESUME, event.suspend_resume_format());
-        } else if (event.has_workqueue_execute_start_format()) {
-            InvokeFunc(TRACE_EVENT_WORKQUEUE_EXECUTE_START, event.workqueue_execute_start_format());
-        } else if (event.has_workqueue_execute_end_format()) {
-            InvokeFunc(TRACE_EVENT_WORKQUEUE_EXECUTE_END, event.workqueue_execute_end_format());
-        } else if (event.has_clock_disable_format()) {
-            InvokeFunc(TRACE_EVENT_CLOCK_DISABLE, event.clock_disable_format());
-        } else if (event.has_clock_enable_format()) {
-            InvokeFunc(TRACE_EVENT_CLOCK_ENABLE, event.clock_enable_format());
-        } else if (event.has_clock_set_rate_format()) {
-            InvokeFunc(TRACE_EVENT_CLOCK_SET_RATE, event.clock_set_rate_format());
-        } else if (event.has_clk_disable_format()) {
-            InvokeFunc(TRACE_EVENT_CLK_DISABLE, event.clk_disable_format());
-        } else if (event.has_clk_enable_format()) {
-            InvokeFunc(TRACE_EVENT_CLK_ENABLE, event.clk_enable_format());
-        } else if (event.has_clk_set_rate_format()) {
-            InvokeFunc(TRACE_EVENT_CLK_SET_RATE, event.clk_set_rate_format());
-        } else if (event.has_sys_enter_format()) {
-            InvokeFunc(TRACE_EVENT_SYS_ENTRY, event.sys_enter_format());
-        } else if (event.has_sys_exit_format()) {
-            InvokeFunc(TRACE_EVENT_SYS_EXIT, event.sys_exit_format());
-        } else if (event.has_binder_transaction_format()) {
-            InvokeFunc(TRACE_EVENT_BINDER_TRANSACTION, event.binder_transaction_format());
-        } else if (event.has_binder_transaction_received_format()) {
-            InvokeFunc(TRACE_EVENT_BINDER_TRANSACTION_RECEIVED, event.binder_transaction_received_format());
-        } else if (event.has_binder_transaction_alloc_buf_format()) {
-            InvokeFunc(TRACE_EVENT_BINDER_TRANSACTION_ALLOC_BUF, event.binder_transaction_alloc_buf_format());
-        } else if (event.has_binder_lock_format()) {
-            InvokeFunc(TRACE_EVENT_BINDER_TRANSACTION_LOCK, event.binder_lock_format());
-        } else if (event.has_binder_unlock_format()) {
-            InvokeFunc(TRACE_EVENT_BINDER_TRANSACTION_UNLOCK, event.binder_unlock_format());
-        } else if (event.has_binder_locked_format()) {
-            InvokeFunc(TRACE_EVENT_BINDER_TRANSACTION_LOCKED, event.binder_locked_format());
-        } else if (event.has_irq_handler_entry_format()) {
-            InvokeFunc(TRACE_EVENT_IRQ_HANDLER_ENTRY, event.irq_handler_entry_format());
-        } else if (event.has_irq_handler_exit_format()) {
-            InvokeFunc(TRACE_EVENT_IRQ_HANDLER_EXIT, event.irq_handler_exit_format());
-        } else if (event.has_softirq_entry_format()) {
-            InvokeFunc(TRACE_EVENT_SOFTIRQ_ENTRY, event.softirq_entry_format());
-        } else if (event.has_softirq_exit_format()) {
-            InvokeFunc(TRACE_EVENT_SOFTIRQ_EXIT, event.softirq_exit_format());
-        } else if (event.has_oom_score_adj_update_format()) {
-            InvokeFunc(TRACE_EVENT_OOM_SCORE_ADJ_UPDATE, event.softirq_exit_format());
-        } else if (event.has_signal_generate_format()) {
-            InvokeFunc(TRACE_EVENT_SIGNAL_GENERATE, event.signal_generate_format());
-        } else if (event.has_signal_deliver_format()) {
-            InvokeFunc(TRACE_EVENT_SIGNAL_DELIVER, event.signal_deliver_format());
-        } else {
-            streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_OTHER,
-                                                      STAT_EVENT_NOTSUPPORTED);
-            TS_LOGD("has_rpc_socket_shutdown_format\n");
+        if (event.common_fields().pid() != INVALID_INT32) {
+            eventTid_ = event.common_fields().pid();
+            if (!tids_.count(eventTid_)) {
+                tids_.insert(eventTid_);
+            }
+            streamFilters_->processFilter_->UpdateOrCreateThread(eventTimestamp_, eventTid_);
         }
+        if (eventTid_ != INVALID_INT32 && eventPid_ != INVALID_INT32) {
+            streamFilters_->processFilter_->GetOrCreateThreadWithPid(eventTid_, eventPid_);
+        }
+        // remember all event
+        eventList_.push_back(std::move(EventInfo{eventTimestamp_, eventCpu_, eventPid_, eventTid_, std::move(event)}));
     }
 }
-
+void HtraceEventParser::DealEvent(const FtraceEvent& event)
+{
+    if (event.has_sched_switch_format()) {
+        InvokeFunc(TRACE_EVENT_SCHED_SWITCH, event.sched_switch_format());
+    } else if (event.has_task_rename_format()) {
+        InvokeFunc(TRACE_EVENT_TASK_RENAME, event.task_rename_format());
+    } else if (event.has_task_newtask_format()) {
+        InvokeFunc(TRACE_EVENT_TASK_NEWTASK, event.task_newtask_format());
+    } else if (event.has_sched_wakeup_format()) {
+        InvokeFunc(TRACE_EVENT_SCHED_WAKEUP, event.sched_wakeup_format());
+    } else if (event.has_sched_wakeup_new_format()) {
+        InvokeFunc(TRACE_EVENT_SCHED_WAKEUP, event.sched_wakeup_new_format());
+    } else if (event.has_sched_process_exit_format()) {
+        InvokeFunc(TRACE_EVENT_PROCESS_EXIT, event.sched_process_exit_format());
+    } else if (event.has_sched_process_free_format()) {
+        InvokeFunc(TRACE_EVENT_PROCESS_FREE, event.sched_process_free_format());
+    } else if (event.has_sched_waking_format()) {
+        InvokeFunc(TRACE_EVENT_SCHED_WAKING, event.sched_waking_format());
+    } else if (event.has_cpu_idle_format()) {
+        InvokeFunc(TRACE_EVENT_CPU_IDLE, event.cpu_idle_format());
+    } else if (event.has_cpu_frequency_format()) {
+        InvokeFunc(TRACE_EVENT_CPU_FREQUENCY, event.cpu_frequency_format());
+    } else if (event.has_print_format()) {
+        InvokeFunc(TRACE_EVENT_PRINT, event.print_format());
+    } else if (event.has_suspend_resume_format()) {
+        InvokeFunc(TRACE_EVENT_SUSPEND_RESUME, event.suspend_resume_format());
+    } else if (event.has_workqueue_execute_start_format()) {
+        InvokeFunc(TRACE_EVENT_WORKQUEUE_EXECUTE_START, event.workqueue_execute_start_format());
+    } else if (event.has_workqueue_execute_end_format()) {
+        InvokeFunc(TRACE_EVENT_WORKQUEUE_EXECUTE_END, event.workqueue_execute_end_format());
+    } else if (event.has_clock_disable_format()) {
+        InvokeFunc(TRACE_EVENT_CLOCK_DISABLE, event.clock_disable_format());
+    } else if (event.has_clock_enable_format()) {
+        InvokeFunc(TRACE_EVENT_CLOCK_ENABLE, event.clock_enable_format());
+    } else if (event.has_clock_set_rate_format()) {
+        InvokeFunc(TRACE_EVENT_CLOCK_SET_RATE, event.clock_set_rate_format());
+    } else if (event.has_clk_disable_format()) {
+        InvokeFunc(TRACE_EVENT_CLK_DISABLE, event.clk_disable_format());
+    } else if (event.has_clk_enable_format()) {
+        InvokeFunc(TRACE_EVENT_CLK_ENABLE, event.clk_enable_format());
+    } else if (event.has_clk_set_rate_format()) {
+        InvokeFunc(TRACE_EVENT_CLK_SET_RATE, event.clk_set_rate_format());
+    } else if (event.has_sys_enter_format()) {
+        InvokeFunc(TRACE_EVENT_SYS_ENTRY, event.sys_enter_format());
+    } else if (event.has_sys_exit_format()) {
+        InvokeFunc(TRACE_EVENT_SYS_EXIT, event.sys_exit_format());
+    } else if (event.has_binder_transaction_format()) {
+        InvokeFunc(TRACE_EVENT_BINDER_TRANSACTION, event.binder_transaction_format());
+    } else if (event.has_binder_transaction_received_format()) {
+        InvokeFunc(TRACE_EVENT_BINDER_TRANSACTION_RECEIVED, event.binder_transaction_received_format());
+    } else if (event.has_binder_transaction_alloc_buf_format()) {
+        InvokeFunc(TRACE_EVENT_BINDER_TRANSACTION_ALLOC_BUF, event.binder_transaction_alloc_buf_format());
+    } else if (event.has_binder_lock_format()) {
+        InvokeFunc(TRACE_EVENT_BINDER_TRANSACTION_LOCK, event.binder_lock_format());
+    } else if (event.has_binder_unlock_format()) {
+        InvokeFunc(TRACE_EVENT_BINDER_TRANSACTION_UNLOCK, event.binder_unlock_format());
+    } else if (event.has_binder_locked_format()) {
+        InvokeFunc(TRACE_EVENT_BINDER_TRANSACTION_LOCKED, event.binder_locked_format());
+    } else if (event.has_irq_handler_entry_format()) {
+        InvokeFunc(TRACE_EVENT_IRQ_HANDLER_ENTRY, event.irq_handler_entry_format());
+    } else if (event.has_irq_handler_exit_format()) {
+        InvokeFunc(TRACE_EVENT_IRQ_HANDLER_EXIT, event.irq_handler_exit_format());
+    } else if (event.has_softirq_entry_format()) {
+        InvokeFunc(TRACE_EVENT_SOFTIRQ_ENTRY, event.softirq_entry_format());
+    } else if (event.has_softirq_exit_format()) {
+        InvokeFunc(TRACE_EVENT_SOFTIRQ_EXIT, event.softirq_exit_format());
+    } else if (event.has_oom_score_adj_update_format()) {
+        InvokeFunc(TRACE_EVENT_OOM_SCORE_ADJ_UPDATE, event.oom_score_adj_update_format());
+    } else if (event.has_signal_generate_format()) {
+        InvokeFunc(TRACE_EVENT_SIGNAL_GENERATE, event.signal_generate_format());
+    } else if (event.has_signal_deliver_format()) {
+        InvokeFunc(TRACE_EVENT_SIGNAL_DELIVER, event.signal_deliver_format());
+    } else {
+        streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_OTHER, STAT_EVENT_NOTSUPPORTED);
+        TS_LOGD("has_rpc_socket_shutdown_format\n");
+    }
+}
 bool HtraceEventParser::BinderTractionAllocBufEvent(const MessageLite& event) const
 {
     streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_BINDER_TRANSACTION_ALLOC_BUF, STAT_EVENT_RECEIVED);
@@ -372,9 +385,9 @@ bool HtraceEventParser::ParsePrintEvent(const MessageLite& event)
 {
     streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_PRINT, STAT_EVENT_RECEIVED);
     const auto msg = static_cast<const PrintFormat&>(event);
-    printEventParser_.ParsePrintEvent(eventTimestamp_, eventPid_, msg.buf().c_str());
-    if (!pids_.count(eventPid_)) {
-        pids_.insert(eventPid_);
+    printEventParser_.ParsePrintEvent(eventTimestamp_, eventTid_, msg.buf().c_str());
+    if (!tids_.count(eventTid_)) {
+        tids_.insert(eventTid_);
     }
     return true;
 }
@@ -382,12 +395,11 @@ bool HtraceEventParser::SchedWakeupEvent(const MessageLite& event) const
 {
     streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_SCHED_WAKEUP, STAT_EVENT_RECEIVED);
     const auto msg = static_cast<const SchedWakeupFormat&>(event);
-    DataIndex name = traceDataCache_->GetDataIndex(std::string_view("sched_wakeup"));
     auto instants = traceDataCache_->GetInstantsData();
 
     InternalTid internalTid = streamFilters_->processFilter_->UpdateOrCreateThread(eventTimestamp_, msg.pid());
-    instants->AppendInstantEventData(eventTimestamp_, name, internalTid);
-
+    instants->AppendInstantEventData(eventTimestamp_, schedWakeupName_, internalTid);
+    streamFilters_->cpuFilter_->InsertWakeupEvent(eventTimestamp_, internalTid);
     std::optional<uint32_t> targetCpu = msg.target_cpu();
     if (targetCpu.has_value()) {
         traceDataCache_->GetRawData()->AppendRawData(0, eventTimestamp_, RAW_SCHED_WAKEUP, targetCpu.value(),
@@ -401,11 +413,11 @@ bool HtraceEventParser::SchedWakeupNewEvent(const MessageLite& event) const
 {
     streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_SCHED_WAKEUP_NEW, STAT_EVENT_RECEIVED);
     const auto msg = static_cast<const SchedWakeupNewFormat&>(event);
-    DataIndex name = traceDataCache_->GetDataIndex(std::string_view("sched_wakeup_new"));
     auto instants = traceDataCache_->GetInstantsData();
 
     InternalTid internalTid = streamFilters_->processFilter_->UpdateOrCreateThread(eventTimestamp_, msg.pid());
-    instants->AppendInstantEventData(eventTimestamp_, name, internalTid);
+    instants->AppendInstantEventData(eventTimestamp_, schedWakeupNewName_, internalTid);
+    streamFilters_->cpuFilter_->InsertWakeupEvent(eventTimestamp_, internalTid);
 
     std::optional<uint32_t> targetCpu = msg.target_cpu();
     if (targetCpu.has_value()) {
@@ -426,10 +438,10 @@ bool HtraceEventParser::SchedWakingEvent(const MessageLite& event) const
         streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_SCHED_WAKING, STAT_EVENT_DATA_INVALID);
         return false;
     }
-    DataIndex name = traceDataCache_->GetDataIndex(std::string_view("sched_waking"));
     auto instants = traceDataCache_->GetInstantsData();
-    InternalTid internalTid = streamFilters_->processFilter_->UpdateOrCreateThread(eventTimestamp_, eventPid_);
-    instants->AppendInstantEventData(eventTimestamp_, name, internalTid);
+    InternalTid internalTid =
+        streamFilters_->processFilter_->UpdateOrCreateThread(eventTimestamp_, wakePidValue.value());
+    instants->AppendInstantEventData(eventTimestamp_, schedWakingName_, internalTid);
     streamFilters_->cpuFilter_->InsertWakeupEvent(eventTimestamp_, internalTid);
     std::optional<uint32_t> targetCpu = msg.target_cpu();
     if (targetCpu.has_value()) {
@@ -454,9 +466,8 @@ bool HtraceEventParser::CpuIdleEvent(const MessageLite& event) const
         streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_CPU_IDLE, STAT_EVENT_DATA_INVALID);
         return false;
     }
-    auto cpuIdleNameIndex = traceDataCache_->GetDataIndex(std::string_view("cpu_idle"));
 
-    streamFilters_->cpuMeasureFilter_->AppendNewMeasureData(eventCpuValue.value(), cpuIdleNameIndex, eventTimestamp_,
+    streamFilters_->cpuMeasureFilter_->AppendNewMeasureData(eventCpuValue.value(), cpuIdleName_, eventTimestamp_,
                                                             newStateValue.value());
 
     // Add cpu_idle event to raw_data_table
@@ -480,9 +491,8 @@ bool HtraceEventParser::CpuFrequencyEvent(const MessageLite& event) const
         streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_CPU_FREQUENCY, STAT_EVENT_DATA_INVALID);
         return false;
     }
-    auto cpuidleNameIndex = traceDataCache_->GetDataIndex(std::string_view("cpu_frequency"));
 
-    streamFilters_->cpuMeasureFilter_->AppendNewMeasureData(eventCpuValue.value(), cpuidleNameIndex, eventTimestamp_,
+    streamFilters_->cpuMeasureFilter_->AppendNewMeasureData(eventCpuValue.value(), cpuFrequencyName_, eventTimestamp_,
                                                             newStateValue.value());
     return true;
 }
@@ -607,27 +617,24 @@ bool HtraceEventParser::SysEnterEvent(const MessageLite& event) const
 {
     streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_SYS_ENTRY, STAT_EVENT_RECEIVED);
     const auto msg = static_cast<const SysEnterFormat&>(event);
-    DataIndex nameIndex = traceDataCache_->GetDataIndex("sys_enter");
     auto ipid = streamFilters_->processFilter_->UpdateOrCreateThread(eventTimestamp_, eventPid_);
-    traceDataCache_->GetSysCallData()->AppendSysCallData(msg.id(), nameIndex, ipid, eventTimestamp_, 0);
+    traceDataCache_->GetSysCallData()->AppendSysCallData(msg.id(), sysEnterName_, ipid, eventTimestamp_, 0);
     return true;
 }
 bool HtraceEventParser::SysExitEvent(const MessageLite& event) const
 {
     streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_SYS_EXIT, STAT_EVENT_RECEIVED);
     const auto msg = static_cast<const SysExitFormat&>(event);
-    DataIndex nameIndex = traceDataCache_->GetDataIndex("sys_exit");
     auto ipid = streamFilters_->processFilter_->UpdateOrCreateThread(eventTimestamp_, eventPid_);
-    traceDataCache_->GetSysCallData()->AppendSysCallData(msg.id(), nameIndex, ipid, eventTimestamp_, msg.ret());
+    traceDataCache_->GetSysCallData()->AppendSysCallData(msg.id(), sysExitName_, ipid, eventTimestamp_, msg.ret());
     return true;
 }
 
-bool HtraceEventParser::OomScoreAdjUdate(const MessageLite& event) const
+bool HtraceEventParser::OomScoreAdjUpdate(const MessageLite& event) const
 {
     streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_OOM_SCORE_ADJ_UPDATE, STAT_EVENT_RECEIVED);
     const auto msg = static_cast<const OomScoreAdjUpdateFormat&>(event);
-    DataIndex nameIndex = traceDataCache_->GetDataIndex("oom_score_adj");
-    streamFilters_->processMeasureFilter_->AppendNewMeasureData(msg.pid(), nameIndex, eventTimestamp_,
+    streamFilters_->processMeasureFilter_->AppendNewMeasureData(msg.pid(), oomScoreAdjName_, eventTimestamp_,
                                                                 msg.oom_score_adj());
     return true;
 }
@@ -636,8 +643,8 @@ bool HtraceEventParser::SignalGenerateEvent(const MessageLite& event) const
 {
     streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_BLOCK_BIO_BACKMERGE, STAT_EVENT_RECEIVED);
     const auto msg = static_cast<const SignalGenerateFormat&>(event);
-    InternalTid internalTid = streamFilters_->processFilter_->UpdateOrCreateThreadWithName(eventTimestamp_, msg.pid(),
-                                                                                           msg.comm());
+    InternalTid internalTid =
+        streamFilters_->processFilter_->UpdateOrCreateThreadWithName(eventTimestamp_, msg.pid(), msg.comm());
     streamFilters_->threadFilter_->AppendNewMeasureData(internalTid, signalGenerateId_, eventTimestamp_, msg.sig());
     return true;
 }
@@ -649,8 +656,7 @@ bool HtraceEventParser::SignalDeleverEvent(const MessageLite& event) const
     streamFilters_->threadFilter_->AppendNewMeasureData(internalTid, signalDeliverId_, eventTimestamp_, msg.sig());
     return true;
 }
-bool HtraceEventParser::InvokeFunc(const SupportedTraceEventType& eventType,
-                                   const MessageLite& msgBase)
+bool HtraceEventParser::InvokeFunc(const SupportedTraceEventType& eventType, const MessageLite& msgBase)
 {
     auto eventName = config_.eventNameMap_.find(eventType);
     if (eventName == config_.eventNameMap_.end()) {
@@ -666,6 +672,20 @@ bool HtraceEventParser::InvokeFunc(const SupportedTraceEventType& eventType,
     }
     it->second(msgBase);
     return true;
+}
+void HtraceEventParser::FilterAllEvents()
+{
+    auto cmp = [](const EventInfo& a, const EventInfo& b) { return a.eventTimestamp < b.eventTimestamp; };
+    std::sort(eventList_.begin(), eventList_.end(), cmp);
+    for (auto itor = eventList_.begin(); itor != eventList_.end(); itor++) {
+        EventInfo& event = *itor;
+        eventTimestamp_ = event.eventTimestamp;
+        eventCpu_ = event.eventCpu;
+        eventPid_ = event.eventPid;
+        eventTid_ = event.eventTid;
+        DealEvent(event.cpuDetail);
+    }
+    eventList_.clear();
 }
 } // namespace TraceStreamer
 } // namespace SysTuning

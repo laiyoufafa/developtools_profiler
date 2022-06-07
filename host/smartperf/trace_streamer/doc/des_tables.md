@@ -110,7 +110,7 @@ name: 进程名字
 |is_main_thread|INT       |
 #### 字段详细描述：
 id: 线程在数据库重新重新定义的id，从0开始序列增长  
-ipid: 线程所属的进程id, 关联进程表中的ID
+ipid: 线程所属的进程id, 关联process表中的ID
 name: 线程名字  
 is_main_thread: 是否主线程，主线程即该线程实际就是进程本身
 
@@ -130,7 +130,7 @@ id: 线程状态在数据库中的id，从0开始序列增长
 ts: 该线程状态的起始时间  
 dur: 该线程状态的持续时间  
 cpu: 该线程在哪个cpu上执行（针对running状态的线程）  
-itid: 该状态所属的线程所属的进程id, 关联进程表中的ID  
+itid: 该状态所属的线程id, 关联线程表中的id  
 state: 线程实际的的状态值
 ```
 'R', Runnable状态
@@ -278,7 +278,67 @@ parent_id: 父调用的id
 #### 字段详细描述：
 filterid: 来自measure_filter表
 name: cpu状态名  
-ipid: 进程内部编号
+ipid: 进程内部编号  
+### sys_event_filter表
+#### 表结构：
+| Columns Name | SQL TYPE |
+|----          |----      |
+|id            |INT       |
+|type          |NUM       |
+|name          |NUM       |
+#### 字段详细描述：
+
+### clk_event_filter表
+#### 表结构：
+| Columns Name | SQL TYPE |
+|----          |----      |
+|id            |INT       |
+|type          |NUM       |
+|name          |NUM       |
+|cpu           |INT       |
+#### 字段详细描述：
+
+### cpu_measure_filter表
+#### 表结构：
+| Columns Name | SQL TYPE |
+|----          |----      |
+|id            |INT       |
+|type          |NUM       |
+|name          |NUM       |
+|cpu           |INT       |
+#### 字段详细描述：
+
+### measure_filter表
+#### 表结构：
+| Columns Name | SQL TYPE |
+|----          |----      |
+|type          |NUM       |
+|ts            |INT       |
+|value         |INT       |
+|filter_id     |INT       |
+#### 字段详细描述： 
+
+### irq表  
+#### 表结构： 
+| Columns Name | SQL TYPE |
+|----          |----      |
+|id            |INT       |
+|ts            |INT       |
+|dur           |INT       |
+|callid        |INT       |
+|cat           |NUM       |
+|name          |NUM       |
+|depth         |INT       |
+|cookie        |INT       |
+|parent_id     |INT       |
+|argsetid      |INT       |
+|chainId       |NUM       |
+|spanId        |NUM       |
+|parentSpanId  |NUM       |
+|flag          |NUM       |
+|args          |NUM       |
+#### 字段详细描述：
+
 ### data_type表
 #### 表结构：
 | Columns Name | SQL TYPE |

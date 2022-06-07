@@ -11,6 +11,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 print("target_os", target_os)
+print("target_name", target)
 group("default_deps") {
   public_configs = [ ":default_config" ]
   public_deps = []
@@ -24,10 +25,16 @@ config("default_config") {
 config("trace_cfg") {
   cflags_cc = [
     "-std=c++17",
-    "-fno-rtti",
-    "-fno-exceptions",
+
+    # "-std=gnu++17",
     "-fvisibility=hidden",
   ]
+  if (!is_test) {
+    cflags_cc += [
+      "-fno-rtti",
+      # "-fno-exceptions",
+    ]
+  }
 }
 
 config("visibility_hidden") {
@@ -41,12 +48,11 @@ config("default") {
 
   cflags = [
     "-fstrict-aliasing",
-    "-fPIC",
     "-g",
     "-Wformat",
   ]
 
-  if (is_linux) {
+  if (is_linux || is_macx) {
     cflags += [
       "-Wa,--noexecstack",
       "-fcolor-diagnostics",
@@ -55,25 +61,35 @@ config("default") {
     ]
     if (!use_wasm) {
       cflags += [
-        "-fPIE",
         "-fstack-protector-strong",
         "-fstack-protector-all",
         "-D_FORTIFY_SOURCE=2 -O2",
+        "-D SUPPORTTHREAD",  # if support thread
       ]
     }
-    libs += [
-      "pthread",
-      "rt",
-    ]
-    if (is_debug) {
-      libs += [ "dl" ]
+
+    cflags += [ "-D USE_VTABLE" ]
+    cflags += [ "-D BINDER_EXP" ]
+    libs += [ "pthread" ]
+    if (!is_macx) {
+      libs += [ "rt" ]
+    }
+    if (!is_win) {
+      cflags += [
+        "-fPIE",
+        "-fPIC",
+      ]
+    }
+    if (is_win) {
+      cflags += [ "/W0" ]
+      defines = [ "WIN32_LEAN_AND_MEAN" ]
     }
   }
 }
 
 config("symbols") {
   cflags = [ "-O0" ]
-  if (is_linux) {
+  if (is_linux || is_macx) {
     cflags += [ "-funwind-tables" ]
   }
 }
@@ -85,42 +101,60 @@ config("release") {
   ]
 
   cflags += [ "-O3" ]
-  ldflags = [
-    "-fuse-ld=gold",
-    "-fstack-protector",
-    "-Wl,--gc-sections",
-    "-Wl,-O1",
-    "-fpie",
-    "-pie",
-  ]
+  ldflags = [ "-fstack-protector" ]
+  if (!is_macx) {
+    ldflags += [
+      "-fuse-ld=gold",
+      "-Wl,--gc-sections",
+      "-Wl,-O1",
+    ]
+  }
+
+  if (!is_win && !is_macx) {
+    ldflags += [
+      "-fPIC",
+      "-fpie",
+      "-pie",
+    ]
+  }
   defines = [ "NDEBUG" ]
 }
 
 config("shared_library") {
-  ldflags = [ "-fPIC" ]
+  if (!is_win) {
+    ldflags = [ "-fPIC" ]
+  }
 }
 
 config("executable") {
   print("use_wasm", use_wasm)
   ldflags = []
 
-  if (is_linux && !use_wasm) {
-    ldflags += [
-      #      "-Wl,-rpath=\$ORIGIN/.",
-      "-Wl,-z,now",
-
-      #      "-Wl,-rpath-link=.",
-      "-Wl,-z,relro",
+  if (is_linux || (is_macx && !use_wasm)) {
+    ldflags += []
+  }
+  if (!is_macx && !use_wasm) {
+    ldflags = [
+      "-Wl,--disable-new-dtags",
+      "-Wl,-z,noexecstack",
       "-lrt",
+      "-fuse-ld=gold",
+      "-Wl,-z,now",
+      "-Wl,-z,relro",
       "-fpie",
       "-pie",
-      "-Wl,-z,noexecstack",
-      "-Wl,--disable-new-dtags",
-
-      #      "-s", # delete sambols
     ]
   }
-  if (!is_debug) {
+  if (is_macx) {
+    ldflags += [
+      "-Wl,-U,__sanitizer_options_link_helper",
+      "-fdata-sections",
+      "-ffunction-sections",
+    ]
+  }
+  if (!is_debug && !is_macx) {
     ldflags += [ "-s" ]
+  } else if (!is_debug && is_macx) {
+    ldflags += [ "-dead_strip" ]
   }
 }

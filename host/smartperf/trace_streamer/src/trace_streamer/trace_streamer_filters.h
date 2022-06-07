@@ -31,6 +31,7 @@ class BinderFilter;
 class ArgsFilter;
 class IrqFilter;
 class SystemEventMeasureFilter;
+class PerfDataFilter;
 class TraceStreamerFilters {
 public:
     TraceStreamerFilters();
@@ -59,6 +60,7 @@ public:
     std::unique_ptr<IrqFilter> irqFilter_;
     std::unique_ptr<SystemEventMeasureFilter> sysEventMemMeasureFilter_;
     std::unique_ptr<SystemEventMeasureFilter> sysEventVMemMeasureFilter_;
+    std::unique_ptr<PerfDataFilter> perfDataFilter_;
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

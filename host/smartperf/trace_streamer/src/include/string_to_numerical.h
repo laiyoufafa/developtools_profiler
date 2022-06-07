@@ -29,18 +29,21 @@ enum IntegerRadixType {
 inline std::optional<uint32_t> StrToUInt32(const std::string& str, int base = INTEGER_RADIX_TYPE_DEC)
 {
     if (!str.empty()) {
-        uint32_t value = static_cast<uint32_t>(std::stoul(str, nullptr, base));
-        return std::make_optional(value);
+        char* endPtr = nullptr;
+        auto value = static_cast<uint32_t>(std::strtoul(str.c_str(), &endPtr, base));
+        if (!*endPtr) {
+            return std::make_optional(value);
+        }
     }
 
     return std::nullopt;
 }
 
-inline std::string number(int value, int base = INTEGER_RADIX_TYPE_DEC)
+inline std::string number(uint64_t value, int base = INTEGER_RADIX_TYPE_DEC)
 {
     std::stringstream ss;
     if (base == INTEGER_RADIX_TYPE_DEC) {
-        ss << std::oct << value;
+        ss << std::dec << value;
     } else if (base == INTEGER_RADIX_TYPE_HEX) {
         ss << std::hex << value;
     }
@@ -50,8 +53,11 @@ inline std::string number(int value, int base = INTEGER_RADIX_TYPE_DEC)
 inline std::optional<int32_t> StrToInt32(const std::string& str, int base = INTEGER_RADIX_TYPE_DEC)
 {
     if (!str.empty()) {
-        int32_t value = static_cast<int32_t>(std::stol(str, nullptr, base));
-        return std::make_optional(value);
+        char* endPtr = nullptr;
+        auto value = static_cast<int32_t>(std::strtol(str.c_str(), &endPtr, base));
+        if (!*endPtr) {
+            return std::make_optional(value);
+        }
     }
 
     return std::nullopt;
@@ -60,8 +66,11 @@ inline std::optional<int32_t> StrToInt32(const std::string& str, int base = INTE
 inline std::optional<uint64_t> StrToUInt64(const std::string& str, int base = INTEGER_RADIX_TYPE_DEC)
 {
     if (!str.empty()) {
-        uint64_t value = static_cast<uint64_t>(std::stoull(str, nullptr, base));
-        return std::make_optional(value);
+        char* endPtr = nullptr;
+        auto value = static_cast<uint64_t>(std::strtoull(str.c_str(), &endPtr, base));
+        if (!*endPtr) {
+            return std::make_optional(value);
+        }
     }
 
     return std::nullopt;
@@ -70,8 +79,11 @@ inline std::optional<uint64_t> StrToUInt64(const std::string& str, int base = IN
 inline std::optional<int64_t> StrToInt64(const std::string& str, int base = INTEGER_RADIX_TYPE_DEC)
 {
     if (!str.empty()) {
-        int64_t value = static_cast<int64_t>(std::stoll(str, nullptr, base));
-        return std::make_optional(value);
+        char* endPtr = nullptr;
+        int64_t value = static_cast<int64_t>(std::strtoll(str.c_str(), &endPtr, base));
+        if (!*endPtr) {
+            return std::make_optional(value);
+        }
     }
     return std::nullopt;
 }

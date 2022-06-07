@@ -12,32 +12,43 @@
 # limitations under the License.
 is_win = false
 is_linux = false
+is_macx = false
+is_protoc = false
 declare_args() {
   ar = "ar"
   is_debug = true
   use_wasm = false
   is_test = false
+  testonly = false
+  is_fuzz = false
+  is_macx = false
+  target = "trace_streamer"
 }
 if (target_os == "linux") {
-  is_win = false
   is_linux = true
-  is_test = false
+} else if (target_os == "macx") {
+  is_macx = true
 } else if (target_os == "windows") {
   is_win = true
-  is_linux = false
-  is_test = false
-} else if (target_os == "wasm") {
-  is_win = false
-  is_linux = true
-  use_wasm = true
-  is_test = false
-} else if (target_os == "test") {
-  is_win = false
-  is_linux = true
-  use_wasm = false
-  is_test = true
 } else {
   print("unknown platform " + target_os)
+  exit(-1)
+}
+
+if (target == "wasm") {
+  use_wasm = true
+} else if (target == "test") {
+  is_test = true
+  testonly = true
+} else if (target == "fuzz") {
+  is_fuzz = true
+  testonly = true
+} else if (target == "protoc") {
+  is_protoc = true
+} else if (target == "trace_streamer" || target == "streamer") {
+  print("build " + target)
+} else {
+  print("unknown target " + target_os)
   exit(-1)
 }
 
@@ -59,7 +70,9 @@ if (!is_debug) {
 set_defaults("ohos_source_set") {
   configs = default_configs
 }
-
+set_defaults("ohos_shared_library") {
+  configs = default_configs
+}
 set_defaults("executable") {
   configs = default_configs
   configs += [ "//gn:executable" ]

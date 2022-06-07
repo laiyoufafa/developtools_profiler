@@ -58,6 +58,10 @@ public:
     {
         primaryClock_ = primary;
     }
+    ClockId GetPrimaryClock()
+    {
+        return primaryClock_;
+    }
     uint64_t ToPrimaryTraceTime(ClockId srcClockId, uint64_t srcTs) const;
     uint64_t Convert(ClockId srcClockId, uint64_t srcTs, ClockId desClockId) const;
     void AddClockSnapshot(const std::vector<SnapShot>& snapShot);

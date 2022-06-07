@@ -150,7 +150,7 @@ bool HttpSocket::Send(const void* data, size_t len)
         TS_LOGE("send to socket(%d) error: %d:%s", sockId_, errno, strerror(errno));
         return false;
     }
-    TS_LOGD("send to socket(%d) len %zu", sockId_, len);
+    TS_LOGI("send to socket(%d) len %zu", sockId_, len);
     return true;
 }
 

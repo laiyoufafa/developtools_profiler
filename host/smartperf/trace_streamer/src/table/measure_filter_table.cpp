@@ -31,13 +31,13 @@ MeasureFilterTable::MeasureFilterTable(const TraceDataCache* dataCache) : TableB
 
 MeasureFilterTable::~MeasureFilterTable() {}
 
-void MeasureFilterTable::CreateCursor()
+std::unique_ptr<TableBase::Cursor> MeasureFilterTable::CreateCursor()
 {
-    cursor_ = std::make_unique<Cursor>(dataCache_);
+    return std::make_unique<Cursor>(dataCache_, this);
 }
 
-MeasureFilterTable::Cursor::Cursor(const TraceDataCache* dataCache)
-    : TableBase::Cursor(dataCache, 0, static_cast<uint32_t>(dataCache->GetConstThreadMeasureFilterData().Size()))
+MeasureFilterTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
+    : TableBase::Cursor(dataCache, table, static_cast<uint32_t>(dataCache->GetConstThreadMeasureFilterData().Size()))
 {
 }
 

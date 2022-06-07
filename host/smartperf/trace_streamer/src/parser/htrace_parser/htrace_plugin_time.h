@@ -15,22 +15,20 @@
 #ifndef HTRACE_PLUGIN_TIME_H
 #define HTRACE_PLUGIN_TIME_H
 #include "clock_filter.h"
+#include "event_parser_base.h"
 #include "trace_data/trace_data_cache.h"
 
 namespace SysTuning {
 namespace TraceStreamer {
-class HtracePluginTime {
+class HtracePluginTimeParser : public EventParserBase {
 public:
-    HtracePluginTime(TraceDataCache* dataCache, const TraceStreamerFilters* ctx);
-    HtracePluginTime(const HtracePluginTime&) = delete;
-    HtracePluginTime& operator=(const HtracePluginTime&) = delete;
-    ~HtracePluginTime() = default;
+    HtracePluginTimeParser(TraceDataCache* dataCache, const TraceStreamerFilters* ctx);
+    HtracePluginTimeParser(const HtracePluginTimeParser&) = delete;
+    HtracePluginTimeParser& operator=(const HtracePluginTimeParser&) = delete;
+    ~HtracePluginTimeParser() = default;
     void UpdatePluginTimeRange(ClockId clockId, uint64_t asyncTimestamp, uint64_t syncTimestamep);
     uint64_t GetPluginStartTime();
     uint64_t GetPluginEndTime();
-protected:
-    const TraceStreamerFilters* streamFilters_;
-    TraceDataCache* traceDataCache_;
 private:
     uint64_t syncHtracePluginStartTime_ = std::numeric_limits<uint64_t>::max();
     uint64_t syncHtracePluginEndTime_ = 0;

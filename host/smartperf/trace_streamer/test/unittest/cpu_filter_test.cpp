@@ -49,7 +49,6 @@ HWTEST_F(CpuFilterTest, CpufilterInsertWakeupTest, TestSize.Level1)
     uint64_t ts1 = 168758662877000;
     uint64_t itid = 1;
     streamFilters_.cpuFilter_->InsertWakeupEvent(ts1, itid); // 1st waking
-    streamFilters_.cpuFilter_->FinishCpuEvent();
 
     EXPECT_TRUE(streamFilters_.cpuFilter_->RowOfInternalTidInStateTable(itid) == INVALID_UINT64);
     EXPECT_TRUE(streamFilters_.cpuFilter_->StateOfInternalTidInStateTable(itid) == TASK_INVALID);
@@ -73,7 +72,6 @@ HWTEST_F(CpuFilterTest, CpufilterInsertSwitchTest, TestSize.Level1)
 
     streamFilters_.cpuFilter_->InsertSwitchEvent(ts1, cpu, itidPre, prePior, TASK_INTERRUPTIBLE, itidNext,
                                                  nextPior); // 1st switch
-    streamFilters_.cpuFilter_->FinishCpuEvent();
     printf("state of pre itid: %llu\n", streamFilters_.cpuFilter_->StateOfInternalTidInStateTable(itidPre));
 
     EXPECT_TRUE(streamFilters_.cpuFilter_->StateOfInternalTidInStateTable(itidPre) == TASK_INTERRUPTIBLE);
@@ -89,7 +87,7 @@ HWTEST_F(CpuFilterTest, CpufilterInsertSwitchTest, TestSize.Level1)
  */
 HWTEST_F(CpuFilterTest, CpufilterInsertSwitchFromZeroThread, TestSize.Level1)
 {
-    TS_LOGI("test3-2-2");
+    TS_LOGI("test3-3");
     uint64_t ts1 = 168758662919000;
     uint64_t itidPre = 0;
     uint64_t prePior = 120;
@@ -99,7 +97,6 @@ HWTEST_F(CpuFilterTest, CpufilterInsertSwitchFromZeroThread, TestSize.Level1)
 
     streamFilters_.cpuFilter_->InsertSwitchEvent(ts1, cpu, itidPre, prePior, TASK_INTERRUPTIBLE, itidNext,
                                                  nextPior); // 1st switch
-    streamFilters_.cpuFilter_->FinishCpuEvent();
     printf("state of pre itid: %llu\n", streamFilters_.cpuFilter_->StateOfInternalTidInStateTable(itidPre));
 
     EXPECT_TRUE(streamFilters_.cpuFilter_->StateOfInternalTidInStateTable(itidPre) == TASK_INVALID);
@@ -115,7 +112,7 @@ HWTEST_F(CpuFilterTest, CpufilterInsertSwitchFromZeroThread, TestSize.Level1)
  */
 HWTEST_F(CpuFilterTest, CpufilterInsertSwitchToZeroThread, TestSize.Level1)
 {
-    TS_LOGI("test3-2-3");
+    TS_LOGI("test3-4");
     uint64_t ts1 = 168758662919000;
     uint64_t itidPre = 2;
     uint64_t prePior = 120;
@@ -125,7 +122,6 @@ HWTEST_F(CpuFilterTest, CpufilterInsertSwitchToZeroThread, TestSize.Level1)
 
     streamFilters_.cpuFilter_->InsertSwitchEvent(ts1, cpu, itidPre, prePior, TASK_INTERRUPTIBLE, itidNext,
                                                  nextPior); // 1st switch
-    streamFilters_.cpuFilter_->FinishCpuEvent();
     printf("state of pre itid: %llu\n", streamFilters_.cpuFilter_->StateOfInternalTidInStateTable(itidPre));
 
     EXPECT_TRUE(streamFilters_.cpuFilter_->StateOfInternalTidInStateTable(itidPre) == TASK_INTERRUPTIBLE);
@@ -141,7 +137,7 @@ HWTEST_F(CpuFilterTest, CpufilterInsertSwitchToZeroThread, TestSize.Level1)
  */
 HWTEST_F(CpuFilterTest, CpufilterInsertSwitchDoubleThread, TestSize.Level1)
 {
-    TS_LOGI("test3-3");
+    TS_LOGI("test3-5");
     uint64_t ts1 = 168758662919000;
     uint64_t itidPre = 2;
     uint64_t prePior = 120;
@@ -151,7 +147,6 @@ HWTEST_F(CpuFilterTest, CpufilterInsertSwitchDoubleThread, TestSize.Level1)
 
     streamFilters_.cpuFilter_->InsertSwitchEvent(ts1, cpu, itidPre, prePior, TASK_INTERRUPTIBLE, itidNext,
                                                  nextPior); // 1st switch
-    streamFilters_.cpuFilter_->FinishCpuEvent();
 
     EXPECT_TRUE(streamFilters_.cpuFilter_->StateOfInternalTidInStateTable(itidPre) == TASK_INTERRUPTIBLE);
     EXPECT_TRUE(streamFilters_.cpuFilter_->StateOfInternalTidInStateTable(itidNext) == TASK_RUNNING);
@@ -167,7 +162,6 @@ HWTEST_F(CpuFilterTest, CpufilterInsertSwitchDoubleThread, TestSize.Level1)
     nextPior = 120;
     streamFilters_.cpuFilter_->InsertSwitchEvent(ts1, cpu, itidPre, prePior, TASK_RUNNABLE, itidNext,
                                                  nextPior); // 2nd switch
-    streamFilters_.cpuFilter_->FinishCpuEvent();
 
     EXPECT_TRUE(streamFilters_.cpuFilter_->StateOfInternalTidInStateTable(itidNext) == TASK_RUNNING);
     EXPECT_TRUE(streamFilters_.cpuFilter_->RowOfInternalTidInStateTable(itidNext) == 2);
@@ -182,7 +176,7 @@ HWTEST_F(CpuFilterTest, CpufilterInsertSwitchDoubleThread, TestSize.Level1)
  */
 HWTEST_F(CpuFilterTest, CpufilterInsertSwitchThreeThread, TestSize.Level1)
 {
-    TS_LOGI("test3-3-2");
+    TS_LOGI("test3-6");
     uint64_t ts1 = 168758662919000;
     uint64_t itidPre = 2;
     uint64_t prePior = 120;
@@ -192,7 +186,6 @@ HWTEST_F(CpuFilterTest, CpufilterInsertSwitchThreeThread, TestSize.Level1)
 
     streamFilters_.cpuFilter_->InsertSwitchEvent(ts1, cpu, itidPre, prePior, TASK_INTERRUPTIBLE, itidNext,
                                                  nextPior); // 1st switch
-    streamFilters_.cpuFilter_->FinishCpuEvent();
 
     EXPECT_TRUE(streamFilters_.cpuFilter_->StateOfInternalTidInStateTable(itidPre) == TASK_INTERRUPTIBLE);
     EXPECT_TRUE(streamFilters_.cpuFilter_->StateOfInternalTidInStateTable(itidNext) == TASK_RUNNING);
@@ -208,7 +201,6 @@ HWTEST_F(CpuFilterTest, CpufilterInsertSwitchThreeThread, TestSize.Level1)
     nextPior = 120;
     streamFilters_.cpuFilter_->InsertSwitchEvent(ts1, cpu, itidPre, prePior, TASK_RUNNABLE, itidNext,
                                                  nextPior); // 2nd switch
-    streamFilters_.cpuFilter_->FinishCpuEvent();
 
     EXPECT_TRUE(streamFilters_.cpuFilter_->StateOfInternalTidInStateTable(itidNext) == TASK_RUNNING);
     EXPECT_TRUE(streamFilters_.cpuFilter_->RowOfInternalTidInStateTable(itidNext) == 2);
@@ -223,7 +215,7 @@ HWTEST_F(CpuFilterTest, CpufilterInsertSwitchThreeThread, TestSize.Level1)
  */
 HWTEST_F(CpuFilterTest, CpufilterInsertSwitchTestZero, TestSize.Level1)
 {
-    TS_LOGI("test3-3-3");
+    TS_LOGI("test3-7");
     uint64_t ts1 = 168758662919000;
     uint64_t itidPre = 2;
     uint64_t prePior = 120;
@@ -233,7 +225,6 @@ HWTEST_F(CpuFilterTest, CpufilterInsertSwitchTestZero, TestSize.Level1)
 
     streamFilters_.cpuFilter_->InsertSwitchEvent(ts1, cpu, itidPre, prePior, TASK_INTERRUPTIBLE, itidNext,
                                                  nextPior); // 1st switch
-    streamFilters_.cpuFilter_->FinishCpuEvent();
 
     EXPECT_TRUE(streamFilters_.cpuFilter_->StateOfInternalTidInStateTable(itidPre) == TASK_INTERRUPTIBLE);
     EXPECT_TRUE(streamFilters_.cpuFilter_->StateOfInternalTidInStateTable(itidNext) == TASK_RUNNING);
@@ -248,7 +239,6 @@ HWTEST_F(CpuFilterTest, CpufilterInsertSwitchTestZero, TestSize.Level1)
     nextPior = 120;
     streamFilters_.cpuFilter_->InsertSwitchEvent(ts1, cpu, itidPre, prePior, TASK_RUNNABLE, itidNext,
                                                  nextPior); // 2nd switch
-    streamFilters_.cpuFilter_->FinishCpuEvent();
 
     EXPECT_TRUE(streamFilters_.cpuFilter_->StateOfInternalTidInStateTable(itidNext) == TASK_RUNNING);
     EXPECT_TRUE(streamFilters_.cpuFilter_->RowOfInternalTidInStateTable(itidNext) == 2);
@@ -262,12 +252,11 @@ HWTEST_F(CpuFilterTest, CpufilterInsertSwitchTestZero, TestSize.Level1)
  */
 HWTEST_F(CpuFilterTest, CpufiltertWakeupTest, TestSize.Level1)
 {
-    TS_LOGI("test3-5");
+    TS_LOGI("test3-8");
     uint64_t ts1 = 168758662919000;
     uint64_t itid = 2;
 
     streamFilters_.cpuFilter_->InsertWakeupEvent(ts1, itid);
-    streamFilters_.cpuFilter_->FinishCpuEvent();
 
     EXPECT_TRUE(streamFilters_.cpuFilter_->StateOfInternalTidInStateTable(itid) == TASK_INVALID);
     EXPECT_TRUE(streamFilters_.cpuFilter_->RowOfInternalTidInStateTable(itid) == INVALID_UINT64);
@@ -281,16 +270,14 @@ HWTEST_F(CpuFilterTest, CpufiltertWakeupTest, TestSize.Level1)
  */
 HWTEST_F(CpuFilterTest, CpufiltertWakingTwice, TestSize.Level1)
 {
-    TS_LOGI("test3-6");
+    TS_LOGI("test3-9");
     uint64_t ts1 = 168758662919000;
     uint64_t itid = 2;
 
     streamFilters_.cpuFilter_->InsertWakeupEvent(ts1, itid);
-    streamFilters_.cpuFilter_->FinishCpuEvent();
     ts1 = 168758662929000;
     itid = 4;
     streamFilters_.cpuFilter_->InsertWakeupEvent(ts1, itid);
-    streamFilters_.cpuFilter_->FinishCpuEvent();
 
     EXPECT_TRUE(streamFilters_.cpuFilter_->StateOfInternalTidInStateTable(itid) == TASK_INVALID);
     EXPECT_TRUE(streamFilters_.cpuFilter_->RowOfInternalTidInStateTable(itid) == INVALID_UINT64);
@@ -304,18 +291,16 @@ HWTEST_F(CpuFilterTest, CpufiltertWakingTwice, TestSize.Level1)
  */
 HWTEST_F(CpuFilterTest, CpufilterInsertSwitchTestFull, TestSize.Level1)
 {
-    TS_LOGI("test3-7");
+    TS_LOGI("test3-10");
     /* InsertWakeupEvent ts, internalTid */
     /* InsertSwitchEvent                         ts,             cpu, prevPid, prevPior, prevState, nextPid, nextPior */
     streamFilters_.cpuFilter_->InsertWakeupEvent(168758662877000, 1); // 1st waking
-    streamFilters_.cpuFilter_->FinishCpuEvent();
 
     EXPECT_TRUE(streamFilters_.cpuFilter_->RowOfInternalTidInStateTable(1) == INVALID_UINT64);
     EXPECT_TRUE(streamFilters_.cpuFilter_->StateOfInternalTidInStateTable(1) == TASK_INVALID);
     EXPECT_TRUE(traceDataCache_.GetThreadStateData()->Size() == 0); // 0 thread state only
 
     streamFilters_.cpuFilter_->InsertSwitchEvent(168758662919000, 0, 1, 120, TASK_INTERRUPTIBLE, 2, 124); // 1st switch
-    streamFilters_.cpuFilter_->FinishCpuEvent();
 
     EXPECT_TRUE(streamFilters_.cpuFilter_->StateOfInternalTidInStateTable(1) == TASK_INTERRUPTIBLE);
     EXPECT_TRUE(streamFilters_.cpuFilter_->StateOfInternalTidInStateTable(2) == TASK_RUNNING);
@@ -323,7 +308,6 @@ HWTEST_F(CpuFilterTest, CpufilterInsertSwitchTestFull, TestSize.Level1)
     // 2 thread state, the waking event add a runnable state
     EXPECT_TRUE(traceDataCache_.GetThreadStateData()->Size() == 3);
     streamFilters_.cpuFilter_->InsertSwitchEvent(168758663017000, 0, 0, 120, TASK_RUNNABLE, 4, 120); // 2nd switch
-    streamFilters_.cpuFilter_->FinishCpuEvent();
 
     EXPECT_TRUE(streamFilters_.cpuFilter_->StateOfInternalTidInStateTable(4) == TASK_RUNNING);
     EXPECT_TRUE(streamFilters_.cpuFilter_->RowOfInternalTidInStateTable(4) == 3);
@@ -332,10 +316,8 @@ HWTEST_F(CpuFilterTest, CpufilterInsertSwitchTestFull, TestSize.Level1)
     streamFilters_.cpuFilter_->InsertWakeupEvent(168758663078000, 0); // 2nd waking
 
     streamFilters_.cpuFilter_->InsertWakeupEvent(168758663092000, 0); // 3rd waking
-    streamFilters_.cpuFilter_->FinishCpuEvent();
 
     streamFilters_.cpuFilter_->InsertSwitchEvent(168758663107000, 0, 2, 124, TASK_RUNNABLE, 5, 98); // 3rd switch
-    streamFilters_.cpuFilter_->FinishCpuEvent();
 
     EXPECT_TRUE(streamFilters_.cpuFilter_->StateOfInternalTidInStateTable(5) == TASK_RUNNING);
     EXPECT_TRUE(streamFilters_.cpuFilter_->StateOfInternalTidInStateTable(2) == TASK_RUNNABLE);
@@ -344,7 +326,6 @@ HWTEST_F(CpuFilterTest, CpufilterInsertSwitchTestFull, TestSize.Level1)
     EXPECT_TRUE(traceDataCache_.GetThreadStateData()->Size() == 6); // 6 thread state
 
     streamFilters_.cpuFilter_->InsertSwitchEvent(168758663126000, 0, 5, 98, TASK_INTERRUPTIBLE, 2, 124); // 4th switch
-    streamFilters_.cpuFilter_->FinishCpuEvent();
     EXPECT_TRUE(streamFilters_.cpuFilter_->StateOfInternalTidInStateTable(2) == TASK_RUNNING);
     EXPECT_TRUE(streamFilters_.cpuFilter_->StateOfInternalTidInStateTable(5) == TASK_INTERRUPTIBLE);
     EXPECT_TRUE(streamFilters_.cpuFilter_->RowOfInternalTidInStateTable(2) == 6);
@@ -352,19 +333,18 @@ HWTEST_F(CpuFilterTest, CpufilterInsertSwitchTestFull, TestSize.Level1)
     EXPECT_TRUE(traceDataCache_.GetThreadStateData()->Size() == 8); // 8 thread state
 
     streamFilters_.cpuFilter_->InsertSwitchEvent(168758663136000, 3, 5, 120, TASK_RUNNABLE, 6, 120); // 5th switch
-    streamFilters_.cpuFilter_->FinishCpuEvent();
 
     EXPECT_TRUE(streamFilters_.cpuFilter_->StateOfInternalTidInStateTable(6) == TASK_RUNNING);
     EXPECT_TRUE(streamFilters_.cpuFilter_->RowOfInternalTidInStateTable(6) == 8);
     EXPECT_TRUE(traceDataCache_.GetThreadStateData()->Size() == 10); // 10 thread state
 
     // after 3rd switch
-    EXPECT_TRUE(traceDataCache_.GetThreadStateData()->DursData()[0] == 168758663107000 - 168758662919000);
+    EXPECT_TRUE(traceDataCache_.GetThreadStateData()->RowData()[0].duration == 168758663107000 - 168758662919000);
     // after 4th switch
-    EXPECT_TRUE(traceDataCache_.GetThreadStateData()->DursData()[4] == 168758663126000 - 168758663107000);
-    EXPECT_TRUE(traceDataCache_.GetThreadStateData()->DursData()[5] == 168758663126000 - 168758663107000);
+    EXPECT_TRUE(traceDataCache_.GetThreadStateData()->RowData()[4].duration == 168758663126000 - 168758663107000);
+    EXPECT_TRUE(traceDataCache_.GetThreadStateData()->RowData()[5].duration == 168758663126000 - 168758663107000);
     // after 5th switch
-    EXPECT_TRUE(traceDataCache_.GetThreadStateData()->DursData()[7] == 168758663136000 - 168758663126000);
+    EXPECT_TRUE(traceDataCache_.GetThreadStateData()->RowData()[7].duration == 168758663136000 - 168758663126000);
 }
 } // namespace TraceStreamer
 } // namespace SysTuning

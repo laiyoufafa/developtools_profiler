@@ -16,8 +16,8 @@
 #include "selector_fuzzer.h"
 #include <cstdint>
 #include <memory>
-#include <stddef.h>
-#include <stdint.h>
+#include <stddef.h> // include stddef will not work
+#include <stdint.h> // include stdint will not work
 #include "common_types.h"
 #include "string_help.h"
 #include "trace_streamer_selector.h"

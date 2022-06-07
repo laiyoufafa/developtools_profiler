@@ -34,6 +34,7 @@ public:
     virtual ~TraceDataDB();
     virtual void InitDB() = 0;
     void Prepare();
+
 public:
     int ExportDatabase(const std::string& outputName);
     int SearchData();
@@ -41,8 +42,13 @@ public:
     using ResultCallBack = std::function<void(const std::string /* json result */)>;
     int SearchDatabase(const std::string& sql, ResultCallBack resultCallBack);
     int SearchDatabase(const std::string& sql, uint8_t* out, int outLen);
+    void SetCancel(bool cancel);
     void AppendNewTable(std::string tableName);
     void EnableMetaTable(bool enabled);
+    bool Cancel() const
+    {
+        return cancelQuery_;
+    }
 
 public:
     sqlite3* db_;
@@ -50,9 +56,11 @@ public:
 private:
     void ExecuteSql(const std::string_view& sql);
     void GetRowString(sqlite3_stmt* stmt, int colCount, std::string& rowStr);
+    int SearchDatabase(const std::string& sql, bool print);
     std::list<std::string> internalTables_ = {};
-    bool exportMetaTable_ = false;
+    bool exportMetaTable_ = true;
     bool pared_ = false;
+    bool cancelQuery_ = false;
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

@@ -20,13 +20,14 @@
 #include <map>
 #include <stdexcept>
 #include <string>
+#include "htrace_plugin_time.h"
 #include "memory_plugin_result.pb.h"
 #include "trace_data/trace_data_cache.h"
 #include "trace_streamer_config.h"
 #include "trace_streamer_filters.h"
 namespace SysTuning {
 namespace TraceStreamer {
-class HtraceMemParser {
+class HtraceMemParser : public HtracePluginTimeParser {
 public:
     HtraceMemParser(TraceDataCache* dataCache, const TraceStreamerFilters* ctx);
     ~HtraceMemParser();
@@ -38,14 +39,11 @@ private:
     void ParseMemInfoEasy(const MemoryData& tracePacket, uint64_t timeStamp) const;
     void ParseVMemInfo(const MemoryData& tracePacket, uint64_t timeStamp) const;
     void ParseVMemInfoEasy(const MemoryData& tracePacket, uint64_t timeStamp) const;
-    const TraceStreamerFilters* streamFilters_;
-    TraceDataCache* traceDataCache_;
-    TraceStreamerConfig config_ = {};
     std::map<MemInfoType, DataIndex> memNameDictMap_ = {};
     std::map<SysMeminfoType, DataIndex> sysMemNameDictMap_ = {};
     std::map<SysVMeminfoType, DataIndex> sysVMemNameDictMap_ = {};
-    uint64_t traceStartTime_ = std::numeric_limits<uint64_t>::max();
-    uint64_t traceEndTime_ = 0;
+    uint64_t zram_ = 0;
+    const DataIndex zramIndex_ =  traceDataCache_->GetDataIndex("sys.mem.zram");
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

@@ -16,4 +16,21 @@
 #ifndef RPC_WASM_FUNC_H
 #define RPC_WASM_FUNC_H
 
+#include <cstdio>
+#include <emscripten.h>
+#include "rpc_server.h"
+
+namespace SysTuning {
+namespace TraceStreamer {
+extern "C" {
+int TraceStreamerParseData(const uint8_t* data, int dataLen);
+int TraceStreamerParseDataOver();
+int TraceStreamerSqlOperate(const uint8_t* sql, int sqlLen);
+int TraceStreamerReset();
+int TraceStreamerSqlQuery(const uint8_t* sql, int sqlLen, uint8_t* out, int outLen);
+int TraceStreamerCancel();
+} // extern "C"
+} // namespace TraceStreamer
+} // namespace SysTuning
+
 #endif // RPC_WASM_FUNC_H

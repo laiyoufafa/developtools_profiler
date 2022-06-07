@@ -15,8 +15,8 @@
 #include "htrace_plugin_time.h"
 namespace SysTuning {
 namespace TraceStreamer {
-HtracePluginTime::HtracePluginTime(TraceDataCache* dataCache, const TraceStreamerFilters* ctx)
-    : streamFilters_(ctx), traceDataCache_(dataCache)
+HtracePluginTimeParser::HtracePluginTimeParser(TraceDataCache* dataCache, const TraceStreamerFilters* ctx)
+    : EventParserBase(dataCache, ctx)
 {
     if (!streamFilters_) {
         TS_LOGF("streamFilters_ should not be null");
@@ -27,7 +27,7 @@ HtracePluginTime::HtracePluginTime(TraceDataCache* dataCache, const TraceStreame
         return;
     }
 }
-void HtracePluginTime::UpdatePluginTimeRange(ClockId clockId, uint64_t asyncTimestamp, uint64_t syncTimestamp)
+void HtracePluginTimeParser::UpdatePluginTimeRange(ClockId clockId, uint64_t asyncTimestamp, uint64_t syncTimestamp)
 {
     if (clockId == streamFilters_->clockFilter_->GetPrimaryClock()) {
         syncHtracePluginStartTime_ = std::min(syncHtracePluginStartTime_, syncTimestamp);
@@ -42,7 +42,7 @@ void HtracePluginTime::UpdatePluginTimeRange(ClockId clockId, uint64_t asyncTime
         asyncHtracePluginEndTime_ = std::max(asyncHtracePluginEndTime_, syncTimestamp);
     }
 }
-uint64_t HtracePluginTime::GetPluginStartTime()
+uint64_t HtracePluginTimeParser::GetPluginStartTime()
 {
     if (syncHtracePluginStartTime_ != std::numeric_limits<uint64_t>::max()) {
         return syncHtracePluginStartTime_;
@@ -52,7 +52,7 @@ uint64_t HtracePluginTime::GetPluginStartTime()
     return std::numeric_limits<uint64_t>::max();
 }
 
-uint64_t HtracePluginTime::GetPluginEndTime()
+uint64_t HtracePluginTimeParser::GetPluginEndTime()
 {
     if (syncHtracePluginEndTime_ != 0) {
         return syncHtracePluginEndTime_;

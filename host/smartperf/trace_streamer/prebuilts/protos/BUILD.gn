@@ -12,15 +12,19 @@
 # limitations under the License.
 
 import("//build/ohos.gni")
+import("../../src/ts.gni")
 OHOS_PROFILER_3RDPARTY_PROTOBUF_DIR = "//third_party/protobuf"
 proto_dir = "//third_party/protogen"
 services_dir = "$proto_dir/services"
-ftrace_data_dir = "$proto_dir/types/plugins/ftrace_data"
+ftrace_data_dir = "$proto_dir/types/plugins/ftrace_data/${kernel_version}"
 memory_data_dir = "$proto_dir/types/plugins/memory_data"
 hilog_data_dir = "$proto_dir/types/plugins/hilog_data"
 native_hook_dir = "$proto_dir/types/plugins/native_hook"
 hidump_data_dir = "$proto_dir/types/plugins/hidump_data"
-
+network_data_dir = "$proto_dir/types/plugins/network_data"
+cpu_data_dir = "$proto_dir/types/plugins/cpu_data"
+diskio_data_dir = "$proto_dir/types/plugins/diskio_data"
+process_data_dir = "$proto_dir/types/plugins/process_data"
 config("ts_proto_include_config") {
   include_dirs = [
     "$ftrace_data_dir",
@@ -36,14 +40,19 @@ source_set("ts_proto_data_cpp") {
     "${OHOS_PROFILER_3RDPARTY_PROTOBUF_DIR}:protobuf_lite",
   ]
   cflags = [
-    "-fPIC",
     "-ftrapv",
-    "-fPIE",
     "-D_FORTIFY_SOURCE=2 -O2",
     "-Wno-zero-length-array",
-
-    #   "-Wl,--disable-new-dtags,--rpath,/libpath1:/libpath2"
+    "-std=c++17",
   ]
+
+  if (!is_win) {
+    print("xxx")
+    cflags += [
+      "-fPIE",
+      "-fPIC",
+    ]
+  }
   if (!use_wasm) {
     cflags += [
       "-fstack-protector-strong",  #
@@ -71,6 +80,11 @@ source_set("ts_proto_data_cpp") {
     "$ftrace_data_dir/irq.pb.cc",
     "$ftrace_data_dir/kmem.pb.cc",
     "$ftrace_data_dir/net.pb.cc",
+
+    # "$ftrace_data_dir/mmc.pb.cc",
+    # "$ftrace_data_dir/f2fs.pb.cc",
+    # "$ftrace_data_dir/gpu_mem.pb.cc",
+    # "$ftrace_data_dir/regulator.pb.cc",
     "$ftrace_data_dir/oom.pb.cc",
     "$ftrace_data_dir/pagemap.pb.cc",
     "$ftrace_data_dir/power.pb.cc",
@@ -87,7 +101,6 @@ source_set("ts_proto_data_cpp") {
     "$ftrace_data_dir/vmscan.pb.cc",
     "$ftrace_data_dir/workqueue.pb.cc",
     "$ftrace_data_dir/writeback.pb.cc",
-    "$hidump_data_dir/hidump_plugin_config.pb.cc",
     "$hidump_data_dir/hidump_plugin_result.pb.cc",
     "$hilog_data_dir/hilog_plugin_result.pb.cc",
     "$memory_data_dir/memory_plugin_common.pb.cc",
@@ -95,6 +108,10 @@ source_set("ts_proto_data_cpp") {
     "$memory_data_dir/memory_plugin_result.pb.cc",
     "$native_hook_dir/native_hook_config.pb.cc",
     "$native_hook_dir/native_hook_result.pb.cc",
+    "${cpu_data_dir}/cpu_plugin_result.pb.cc",
+    "${diskio_data_dir}/diskio_plugin_result.pb.cc",
+    "${network_data_dir}/network_plugin_result.pb.cc",
+    "${process_data_dir}/process_plugin_result.pb.cc",
     "${services_dir}/common_types.pb.cc",
   ]
 }

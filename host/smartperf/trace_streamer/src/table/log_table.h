@@ -25,13 +25,20 @@ class LogTable : public TableBase {
 public:
     explicit LogTable(const TraceDataCache* dataCache);
     ~LogTable() override;
-    void CreateCursor() override;
+    std::unique_ptr<TableBase::Cursor> CreateCursor() override;
 
 private:
+    void EstimateFilterCost(FilterConstraints& fc, EstimatedIndexInfo& ei) override {}
+
     class Cursor : public TableBase::Cursor {
     public:
-        explicit Cursor(const TraceDataCache* dataCache);
+        explicit Cursor(const TraceDataCache* dataCache, TableBase* table);
         ~Cursor() override;
+        int Filter(const FilterConstraints& fc, sqlite3_value** argv) override
+        {
+            return 0;
+        }
+
         int Column(int column) const override;
 
     private:

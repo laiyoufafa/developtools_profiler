@@ -57,12 +57,12 @@ private:
     bool CreateSocket(int port);
     void ProcessClient(HttpSocket& client);
     void ProcessRequest(HttpSocket& client, RequestST& request);
-    void HttpResponse(HttpSocket& client, const std::string& status, bool hasBody = false);
+    void HttpResponse(HttpSocket& client, const std::string& status, bool hasBody = false, uint32_t bodyLength = 0);
     void ParseRequest(const uint8_t* requst, size_t& len, RequestST& httpReq);
     void ClearDeadClientThread();
     std::vector<std::string_view> StringSplit(std::string_view source, std::string_view split);
 
-    static const int COUNT_SOCKET = 2;
+    static const int COUNT_SOCKET = 1;
     HttpSocket sockets_[COUNT_SOCKET]; // ipv4 and ipv6
     std::atomic_bool isExit_ = {false};
     std::vector<std::unique_ptr<ClientThread>> clientThreads_;

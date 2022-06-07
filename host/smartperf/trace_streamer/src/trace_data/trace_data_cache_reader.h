@@ -57,12 +57,21 @@ public:
     const SymbolsData& GetConstSymbolsData() const;
     const SysCall& GetConstSysCallData() const;
     const LogInfo& GetConstHilogData() const;
-    const HeapInfo& GetConstHeapData() const;
-    const HeapFrameInfo& GetConstHeapFrameData() const;
+    const NativeHook& GetConstNativeHookData() const;
+    const NativeHookFrame& GetConstNativeHookFrameData() const;
     const Hidump& GetConstHidumpData() const;
+    const PerfCallChain& GetConstPerfCallChainData() const;
+    const PerfFiles& GetConstPerfFilesData() const;
+    const PerfSample& GetConstPerfSampleData() const;
+    const PerfThread& GetConstPerfThreadData() const;
+    const PerfReport& GetConstPerfReportData() const;
     const ArgSet& GetConstArgSetData() const;
     const DataType& GetConstDataTypeData() const;
     const SysMeasureFilter& GetConstSysMeasureFilterData() const;
+    const NetDetailData& GetConstNetworkData() const;
+    const CpuUsageDetailData& GetConstCpuUsageInfoData() const;
+    const DiskIOData& GetConstDiskIOData() const;
+    const LiveProcessDetailData& GetConstLiveProcessData() const;
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

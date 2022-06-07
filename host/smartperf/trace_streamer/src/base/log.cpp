@@ -14,9 +14,4 @@
  */
 
 #include "log.h"
-
-// namespace SysTuning {
-// namespace base {
 bool g_cleanMode = false;
-// } // namespace base
-// } // namespace SysTuning

@@ -17,6 +17,7 @@
 #define SRC_BYTRACE_EVENT_PARSER_H
 
 #include <functional>
+#include <vector>
 
 #include "common_types.h"
 #include "event_parser_base.h"
@@ -31,14 +32,15 @@ using ArgsMap = std::unordered_map<std::string, std::string>;
 class BytraceEventParser : private EventParserBase {
 public:
     BytraceEventParser(TraceDataCache* dataCache, const TraceStreamerFilters* filter);
-    bool ParseDataItem(const BytraceLine& line, const ArgsMap& args, uint32_t tgid) const;
+    void ParseDataItem(const BytraceLine& line);
+    void FilterAllEvents();
 
 private:
     using FuncCall = std::function<bool(const ArgsMap& args, const BytraceLine line)>;
     bool SchedSwitchEvent(const ArgsMap& args, const BytraceLine& line) const;
     bool TaskRenameEvent(const ArgsMap& args, const BytraceLine& line) const;
     bool TaskNewtaskEvent(const ArgsMap& args, const BytraceLine& line) const;
-    bool TracingMarkWriteEvent(const ArgsMap& args, const BytraceLine& line) const;
+    bool TracingMarkWriteOrPrintEvent(const ArgsMap& args, const BytraceLine& line);
     bool SchedWakeupEvent(const ArgsMap& args, const BytraceLine& line) const;
     bool SchedWakingEvent(const ArgsMap& args, const BytraceLine& line) const;
     bool CpuIdleEvent(const ArgsMap& args, const BytraceLine& line) const;
@@ -63,15 +65,40 @@ private:
     bool BinderTransaction(const ArgsMap& args, const BytraceLine& line) const;
     bool BinderTransactionReceived(const ArgsMap& args, const BytraceLine& line) const;
     bool BinderTransactionAllocBufEvent(const ArgsMap& args, const BytraceLine& line) const;
+    void GetDataSegArgs(BytraceLine& bufLine, ArgsMap& args, uint32_t& tgid) const;
 private:
-    const DataIndex ioWaitId_;
-    const DataIndex workQueueId_;
-    const DataIndex schedWakeupId_;
-    const DataIndex schedBlockedReasonId_;
+    class EventInfo {
+    public:
+        EventInfo(uint64_t ts, BytraceLine li) : eventTimestamp(ts), line(li) {}
+        uint64_t eventTimestamp;
+        BytraceLine line;
+    };
     std::map<std::string, FuncCall> eventToFunctionMap_ = {};
-    const unsigned int MIN_SCHED_ARGS_COUNT = 6;
+    const unsigned int MIN_SCHED_SWITCH_ARGS_COUNT = 6;
     const unsigned int MIN_SCHED_WAKEUP_ARGS_COUNT = 2;
+    const unsigned int MIN_TASK_RENAME_ARGS_COUNT = 2;
+    const unsigned int MIN_SCHED_WAKING_ARGS_COUNT = 4;
+    const unsigned int MIN_CPU_IDLE_ARGS_COUNT = 2;
+    const unsigned int MIN_CPU_FREQUENCY_ARGS_COUNT = 2;
+    const unsigned int MIN_PROCESS_EXIT_ARGS_COUNT = 2;
+    const unsigned int MIN_CLOCK_SET_RATE_ARGS_COUNT = 3;
+    const unsigned int MIN_CLOCK_ENABLE_ARGS_COUNT = 3;
+    const unsigned int MIN_CLOCK_DISABLE_ARGS_COUNT = 3;
+    const unsigned int MIN_IRQ_HANDLER_ENTRY_ARGS_COUNT = 2;
+    const unsigned int MIN_IRQ_HANDLER_EXIT_ARGS_COUNT = 2;
+    const unsigned int MIN_SOFTIRQ_ENTRY_ARGS_COUNT = 2;
+    const unsigned int MIN_SOFTIRQ_EXIT_ARGS_COUNT = 2;
+    const unsigned int MIN_BINDER_TRANSACTION_ARGS_COUNT = 7;
+    const unsigned int MIN_BINDER_TRANSACTION_RECEIVED_ARGS_COUNT = 1;
+    const unsigned int MIN_BINDER_TRANSACTION_ALLOC_BUF_ARGS_COUNT = 3;
+    std::vector<std::unique_ptr<EventInfo>> eventList_ = {};
     PrintEventParser printEventParser_;
+    const DataIndex schedWakeupName_ = traceDataCache_->GetDataIndex("sched_wakeup");
+    const DataIndex schedWakingName_ = traceDataCache_->GetDataIndex("sched_waking");
+    const DataIndex ioWaitId_ = traceDataCache_->GetDataIndex("io_wait");
+    const DataIndex workQueueId_ = traceDataCache_->GetDataIndex("workqueue");
+    const DataIndex schedWakeupId_ = traceDataCache_->GetDataIndex("sched_wakeup");
+    const DataIndex schedBlockedReasonId_ = traceDataCache_->GetDataIndex("sched_blocked_reason");
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

@@ -12,8 +12,7 @@
 # limitations under the License.
 OHOS_PROTO_DIR = ""
 
-if (target_os == "linux" || target_os == "windows" || target_os == "wasm" ||
-    target_os == "test") {
+if (target_os == "linux" || target_os == "macx" || target_os == "windows") {
   #  OHOS_FTRACE_PROTO_DIR="//third_party/protogen"
   OHOS_FTRACE_PROTO_DIR = "//src/multi_platform"
 
@@ -32,7 +31,10 @@ if (target_os == "linux" || target_os == "windows" || target_os == "wasm" ||
   #  OHOS_SERVICE_PROTO_DIR = "//third_party/protogen"
   OHOS_SERVICE_PROTO_DIR = "//src/multi_platform"
   OHOS_PROTO_GEN = "//third_party/protogen"
-  if (target_os == "test") {
+
+  # kernel_version = "5.10.79_aarch64"
+  kernel_version = "."
+  if (target == "test") {
     enable_ts_utest = true
   } else {
     enable_ts_utest = false
@@ -40,8 +42,7 @@ if (target_os == "linux" || target_os == "windows" || target_os == "wasm" ||
 } else {
   enable_ts_utest = true
   use_wasm = false
-  OHOS_FTRACE_PROTO_DIR =
-      "//developtools/profiler/protos/types/plugins/ftrace_data"
+  OHOS_FTRACE_PROTO_DIR = "//developtools/profiler/protos/types/plugins/ftrace_data/${kernel_version}"
   OHOS_MEMORY_PROTO_DIR =
       "//developtools/profiler/protos/types/plugins/memory_data"
   OHOS_HILOG_PROTO_DIR =

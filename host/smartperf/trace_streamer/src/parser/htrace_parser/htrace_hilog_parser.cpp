@@ -20,34 +20,16 @@
 namespace SysTuning {
 namespace TraceStreamer {
 HtraceHiLogParser::HtraceHiLogParser(TraceDataCache* dataCache, const TraceStreamerFilters* ctx)
-    : streamFilters_(ctx), traceDataCache_(dataCache)
-{
-    if (!traceDataCache_) {
-        TS_LOGE("traceDataCache_ should not be null");
-        return;
-    }
-    if (!streamFilters_) {
-        TS_LOGE("streamFilters_ should not be null");
-        return;
-    }
-}
+    : HtracePluginTimeParser(dataCache, ctx) {}
 
 HtraceHiLogParser::~HtraceHiLogParser()
 {
-    TS_LOGI("hilog ts MIN:%llu, MAX:%llu",
-            static_cast<unsigned long long>(traceStartTime_), static_cast<unsigned long long>(traceEndTime_));
+    TS_LOGI("hilog ts MIN:%llu, MAX:%llu", static_cast<unsigned long long>(GetPluginStartTime()),
+            static_cast<unsigned long long>(GetPluginEndTime()));
 }
 void HtraceHiLogParser::Parse(HilogInfo& tracePacket)
 {
     if (!tracePacket.info_size()) {
-        return;
-    }
-    if (!traceDataCache_) {
-        TS_LOGE("traceDataCache_ should not be null");
-        return;
-    }
-    if (!streamFilters_) {
-        TS_LOGE("streamFilters_ should not be null");
         return;
     }
     for (int i = 0; i < tracePacket.info_size(); i++) {
@@ -70,16 +52,9 @@ void HtraceHiLogParser::Parse(HilogInfo& tracePacket)
             TS_LOGD("log level do not exit!!!");
             continue;
         }
-
         auto timeStamp = logDetails.tv_nsec() + logDetails.tv_sec() * SEC_TO_NS;
         auto newTimeStamp = streamFilters_->clockFilter_->ToPrimaryTraceTime(TS_CLOCK_REALTIME, timeStamp);
-        if (newTimeStamp != timeStamp) { // record the time only when the time is valid
-            traceStartTime_ = std::min(traceStartTime_, newTimeStamp);
-            traceEndTime_ = std::max(traceEndTime_, newTimeStamp);
-        } else {
-            streamFilters_->statFilter_->IncreaseStat(TRACE_HILOG, STAT_EVENT_DATA_INVALID);
-        }
-
+        UpdatePluginTimeRange(TS_CLOCK_REALTIME, timeStamp, newTimeStamp);
         DataIndex levelData = traceDataCache_->dataDict_.GetStringIndex(iter->second.c_str());
         DataIndex logTag = traceDataCache_->dataDict_.GetStringIndex(logDetails.tag().c_str());
         traceDataCache_->GetHilogData()->AppendNewLogInfo(curLineSeq, newTimeStamp, logDetails.pid(), logDetails.tid(),
@@ -88,7 +63,7 @@ void HtraceHiLogParser::Parse(HilogInfo& tracePacket)
 }
 void HtraceHiLogParser::Finish()
 {
-    traceDataCache_->MixTraceTime(traceStartTime_, traceEndTime_);
+    traceDataCache_->MixTraceTime(GetPluginStartTime(), GetPluginEndTime());
 }
 } // namespace TraceStreamer
 } // namespace SysTuning

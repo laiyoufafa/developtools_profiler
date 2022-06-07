@@ -81,13 +81,16 @@ private:
     uint64_t asyncEventSize_ = 0;
     uint64_t asyncEventDisMatchCount = 0;
     uint64_t callEventDisMatchCount = 0;
-    std::unordered_map<uint32_t, uint32_t> binderQueue_ = {};
+    std::unordered_multimap<uint32_t, uint32_t> binderQueue_ = {};
     std::unordered_map<uint32_t, uint32_t> argsToSliceQueue_ = {};
     struct SliceInfo {
         uint32_t row;
         ArgsSet args_tracker;
     };
     std::unordered_map<FilterId, std::vector<SliceInfo>> argsSet_ = {};
+#ifdef BINDER_EXP
+    const size_t MAX_BINDER_EVENT_NOT_MATCH = 1000;
+#endif
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

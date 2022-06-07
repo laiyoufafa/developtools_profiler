@@ -56,12 +56,22 @@ public:
     SymbolsData* GetSymbolsData();
     SysCall* GetSysCallData();
     LogInfo* GetHilogData();
-    HeapInfo* GetHeapData();
-    HeapFrameInfo* GetHeapFrameData();
+    NativeHook* GetHeapData();
+    NativeHookFrame* GetHeapFrameData();
     Hidump* GetHidumpData();
+    PerfCallChain* GetPerfCallChainData();
+    PerfFiles* GetPerfFilesData();
+    PerfSample* GetPerfSampleData();
+    PerfThread* GetPerfThreadData();
+    PerfReport* GetPerfReportData();
     ArgSet* GetArgSetData();
     DataType* GetDataTypeData();
     SysMeasureFilter* GetSysMeasureFilterData();
+    NetDetailData* GetNetworkData();
+    NetDetailData* GetNetworkDetailData();
+    DiskIOData* GetDiskIOData();
+    CpuUsageDetailData* GetCpuUsageInfoData();
+    LiveProcessDetailData* GetLiveProcessData();
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

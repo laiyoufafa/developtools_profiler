@@ -21,6 +21,7 @@
 #include "filter_filter.h"
 #include "irq_filter.h"
 #include "measure_filter.h"
+#include "perf_data_filter.h"
 #include "process_filter.h"
 #include "slice_filter.h"
 #include "stat_filter.h"

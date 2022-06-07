@@ -22,20 +22,29 @@
 #include <string>
 #include <thread>
 #include "common_types.h"
+#include "file.h"
 #include "htrace_clock_detail_parser.h"
 #include "htrace_cpu_detail_parser.h"
+#include "htrace_cpu_data_parser.h"
+#include "htrace_disk_io_parser.h"
 #include "htrace_hidump_parser.h"
 #include "htrace_hilog_parser.h"
 #include "htrace_mem_parser.h"
 #include "htrace_native_hook_parser.h"
+#include "htrace_network_parser.h"
+#include "htrace_process_parser.h"
 #include "htrace_symbols_detail_parser.h"
 #include "log.h"
 #include "parser_base.h"
+#include "perf_data_parser.h"
+#include "string_help.h"
 #include "trace_data/trace_data_cache.h"
 #include "trace_streamer_filters.h"
 
 namespace SysTuning {
 namespace TraceStreamer {
+using namespace SysTuning::base;
+using namespace OHOS::Developtools::HiPerf;
 class HtraceParser : public ParserBase {
 public:
     HtraceParser(TraceDataCache* dataCache, const TraceStreamerFilters* filters);
@@ -52,6 +61,10 @@ private:
     void ParseFtrace(const ProfilerPluginData& pluginData, HtraceDataSegment &dataSeg);
     void ParseNativeHook(const ProfilerPluginData& pluginData, HtraceDataSegment &dataSeg);
     void ParseFPS(const ProfilerPluginData& pluginData, HtraceDataSegment &dataSeg);
+    void ParseCpuUsage(const ProfilerPluginData& pluginData, HtraceDataSegment &dataSeg);
+    void ParseNetwork(const ProfilerPluginData& pluginData, HtraceDataSegment &dataSeg);
+    void ParseDiskIO(const ProfilerPluginData& pluginData, HtraceDataSegment &dataSeg);
+    void ParseProcess(const ProfilerPluginData& pluginData, HtraceDataSegment &dataSeg);
     void ParseThread();
     int GetNextSegment();
     void FilterThread();
@@ -59,8 +72,11 @@ private:
         ERROR_CODE_EXIT = -2,
         ERROR_CODE_NODATA = -1
     };
+    bool InitProfilerTraceFileHeader();
+    ProfilerTraceFileHeader profilerTraceFileHeader_;
+    uint64_t htraceCurentLength_ = 0;
     bool hasGotSegLength_ = false;
-    bool hasGotHeader = false;
+    bool hasGotHeader_ = false;
     uint32_t nextLength_ = 0;
     const size_t PACKET_SEG_LENGTH = 4;
     const size_t PACKET_HEADER_LENGTH = 1024;
@@ -71,6 +87,11 @@ private:
     std::unique_ptr<HtraceHiLogParser> htraceHiLogParser_;
     std::unique_ptr<HtraceNativeHookParser> htraceNativeHookParser_;
     std::unique_ptr<HtraceHidumpParser> htraceHidumpParser_;
+    std::unique_ptr<HtraceCpuDataParser> cpuUsageParser_;
+    std::unique_ptr<HtraceNetworkParser> networkParser_;
+    std::unique_ptr<HtraceDiskIOParser> diskIOParser_;
+    std::unique_ptr<HtraceProcessParser> processParser_;
+    std::unique_ptr<PerfDataParser> perfDataParser_;
     std::atomic<bool> filterThreadStarted_{false};
     const int MAX_SEG_ARRAY_SIZE = 10000;
     std::unique_ptr<HtraceDataSegment[]> dataSegArray;
@@ -79,12 +100,14 @@ private:
     bool exited_ = false;
     int filterHead_ = 0;
     int parseHead_ = 0;
+    size_t sizeAll_ = 0;
+    size_t htraceLength_ = 1024;
     const int sleepDur_ = 100;
     bool parseThreadStarted_ = false;
     const int maxThread_ = 4; // 4 is the best on ubuntu 113MB/s, max 138MB/s, 6 is best on mac m1 21MB/s,
     int parserThreadCount_ = 0;
     std::mutex dataSegMux_;
-    bool noThread_ = true;
+    bool supportThread_ = false;
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

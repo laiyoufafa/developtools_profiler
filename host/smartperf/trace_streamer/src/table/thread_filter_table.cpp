@@ -31,13 +31,13 @@ ThreadFilterTable::ThreadFilterTable(const TraceDataCache* dataCache) : TableBas
 
 ThreadFilterTable::~ThreadFilterTable() {}
 
-void ThreadFilterTable::CreateCursor()
+std::unique_ptr<TableBase::Cursor> ThreadFilterTable::CreateCursor()
 {
-    cursor_ = std::make_unique<Cursor>(dataCache_);
+    return std::make_unique<Cursor>(dataCache_, this);
 }
 
-ThreadFilterTable::Cursor::Cursor(const TraceDataCache* dataCache)
-    : TableBase::Cursor(dataCache, 0, static_cast<uint32_t>(dataCache->GetConstThreadFilterData().Size()))
+ThreadFilterTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
+    : TableBase::Cursor(dataCache, table, static_cast<uint32_t>(dataCache->GetConstThreadFilterData().Size()))
 {
 }
 

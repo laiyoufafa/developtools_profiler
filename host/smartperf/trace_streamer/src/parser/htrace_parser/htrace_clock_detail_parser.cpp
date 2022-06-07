@@ -22,7 +22,7 @@
 namespace SysTuning {
 namespace TraceStreamer {
 HtraceClockDetailParser::HtraceClockDetailParser(TraceDataCache* dataCache, const TraceStreamerFilters* ctx)
-    : streamFilters_(ctx), traceDataCache_(dataCache)
+    : EventParserBase(dataCache, ctx)
 {
     for (auto i = 0; i < MEM_MAX; i++) {
         memNameDictMap_.insert(std::make_pair(static_cast<MemInfoType>(i),
@@ -31,15 +31,16 @@ HtraceClockDetailParser::HtraceClockDetailParser(TraceDataCache* dataCache, cons
 }
 
 HtraceClockDetailParser::~HtraceClockDetailParser() = default;
-void HtraceClockDetailParser::Parse(TracePluginResult& tracePacket) const
+void HtraceClockDetailParser::Parse(TracePluginResult* tracePacket) const
 {
-    if (!tracePacket.clocks_detail_size()) {
+    if (!tracePacket->clocks_detail_size()) {
+        TS_LOGE("!!! no clock snapshot");
         return;
     }
     std::vector<SnapShot> snapShot;
     TS_LOGI("got clock snapshot");
-    for (int i = 0; i < tracePacket.clocks_detail_size(); i++) {
-        auto clockInfo = tracePacket.mutable_clocks_detail(i);
+    for (int i = 0; i < tracePacket->clocks_detail_size(); i++) {
+        auto clockInfo = tracePacket->mutable_clocks_detail(i);
         TS_LOGI("clockid:%d, ts:%llu", clockInfo->id(),
                 static_cast<unsigned long long>(clockInfo->time().tv_nsec() + clockInfo->time().tv_sec() * SEC_TO_NS));
         snapShot.push_back(SnapShot{static_cast<ClockId>(clockInfo->id()),

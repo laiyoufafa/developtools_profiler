@@ -52,14 +52,14 @@ public:
  * @tc.desc: Parse an empty HidumpInfo
  * @tc.type: FUNC
  */
-HWTEST_F(HidumpParserTest,ParserEmptyHidumpInfo,TestSize.Level1)
+HWTEST_F(HidumpParserTest, ParserEmptyHidumpInfo, TestSize.Level1)
 {
     TS_LOGI("test6-1");
     HidumpInfo hidumpInfo;
     HtraceHidumpParser htraceHidumpParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     htraceHidumpParser.Parse(hidumpInfo);
     auto size = stream_.traceDataCache_->GetConstHidumpData().Size();
-    EXPECT_EQ(0,size);
+    EXPECT_EQ(0, size);
 }
 
 /**
@@ -67,7 +67,7 @@ HWTEST_F(HidumpParserTest,ParserEmptyHidumpInfo,TestSize.Level1)
  * @tc.desc: Parse a legal HidumpInfo
  * @tc.type: FUNC
  */
-HWTEST_F(HidumpParserTest,ParseLegalHidumpInfo,TestSize.Level1)
+HWTEST_F(HidumpParserTest, ParseLegalHidumpInfo, TestSize.Level1)
 {
     TS_LOGI("test6-2");
     const uint32_t FPS = 120;
@@ -87,7 +87,7 @@ HWTEST_F(HidumpParserTest,ParseLegalHidumpInfo,TestSize.Level1)
     htraceHidumpParser.Parse(*hidumpInfo);
 
     auto Fps = stream_.traceDataCache_->GetConstHidumpData().Fpss()[0];
-    EXPECT_EQ( FPS, Fps);
+    EXPECT_EQ(FPS, Fps);
     auto TimeSpec = stream_.traceDataCache_->GetConstHidumpData().TimeStamData()[0];
     EXPECT_EQ((TV_NSEC + TV_SEC * SEC_TO_NS), TimeSpec);
     auto Size = stream_.traceDataCache_->GetConstHidumpData().Size();
@@ -99,7 +99,7 @@ HWTEST_F(HidumpParserTest,ParseLegalHidumpInfo,TestSize.Level1)
  * @tc.desc: parse multiple reasonable HidumpInfo
  * @tc.type: FUNC
  */
-HWTEST_F(HidumpParserTest,ParseMultipleReasonableHidumpInfo,TestSize.Level1)
+HWTEST_F(HidumpParserTest, ParseMultipleReasonableHidumpInfo, TestSize.Level1)
 {
     TS_LOGI("test6-3");
     const uint32_t FPS_00 = 120;
@@ -156,6 +156,5 @@ HWTEST_F(HidumpParserTest,ParseMultipleReasonableHidumpInfo,TestSize.Level1)
     auto Size = stream_.traceDataCache_->GetConstHidumpData().Size();
     EXPECT_EQ(3, Size);
 }
-
 } // namespace TraceStreamer
 } // namespace SysTuning

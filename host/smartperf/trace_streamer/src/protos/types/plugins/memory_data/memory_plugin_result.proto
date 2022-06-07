@@ -70,4 +70,5 @@ message MemoryData {
     repeated ProcessMemoryInfo processesinfo = 1;
     repeated SysMeminfo meminfo = 2;
     repeated SysVMeminfo vmeminfo = 3;
+    uint64 zram = 4;
 }

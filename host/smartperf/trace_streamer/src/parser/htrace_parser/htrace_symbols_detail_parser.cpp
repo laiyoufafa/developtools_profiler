@@ -22,23 +22,19 @@ HtraceSymbolsDetailParser::HtraceSymbolsDetailParser(TraceDataCache* dataCache, 
 {
     UNUSED(traceDataCache_);
     if (!streamFilters_) {
-        TS_LOGE("streamFilters_ should not be null");
+        TS_LOGF("streamFilters_ should not be null");
         return;
     }
 }
 
 HtraceSymbolsDetailParser::~HtraceSymbolsDetailParser() = default;
-void HtraceSymbolsDetailParser::Parse(const TracePluginResult& tracePacket)
+void HtraceSymbolsDetailParser::Parse(const TracePluginResult* tracePacket)
 {
-    if (!tracePacket.symbols_detail_size()) {
+    if (!tracePacket->symbols_detail_size()) {
         return;
     }
-    if (!streamFilters_) {
-        TS_LOGE("streamFilters_ should not be null");
-        return;
-    }
-    for (int i = 0; i < tracePacket.symbols_detail_size(); i++) {
-        auto symbol = const_cast<TracePluginResult&>(tracePacket).mutable_symbols_detail(i);
+    for (int i = 0; i < tracePacket->symbols_detail_size(); i++) {
+        auto symbol = const_cast<TracePluginResult*>(tracePacket)->mutable_symbols_detail(i);
         TS_LOGD("symbol_name:%s, symbol_addr:%lu", symbol->symbol_name().c_str(), symbol->symbol_addr());
         // symbol
         streamFilters_->symbolsFilter_->RegisterFunc(symbol->symbol_addr(),

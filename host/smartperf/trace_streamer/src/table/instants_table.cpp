@@ -32,13 +32,13 @@ InstantsTable::InstantsTable(const TraceDataCache* dataCache) : TableBase(dataCa
 
 InstantsTable::~InstantsTable() {}
 
-void InstantsTable::CreateCursor()
+std::unique_ptr<TableBase::Cursor> InstantsTable::CreateCursor()
 {
-    cursor_ = std::make_unique<Cursor>(dataCache_);
+    return std::make_unique<Cursor>(dataCache_, this);
 }
 
-InstantsTable::Cursor::Cursor(const TraceDataCache* dataCache)
-    : TableBase::Cursor(dataCache, 0, static_cast<uint32_t>(dataCache->GetConstInstantsData().Size())),
+InstantsTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
+    : TableBase::Cursor(dataCache, table, static_cast<uint32_t>(dataCache->GetConstInstantsData().Size())),
       InstantsObj_(dataCache->GetConstInstantsData())
 {
 }

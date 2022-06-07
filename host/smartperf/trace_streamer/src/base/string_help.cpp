@@ -16,12 +16,52 @@
 #include <cstdio>
 #include <string>
 #include <memory.h>
-int memcpy_s(void *det, uint32_t detSize, const void * src, size_t srcSize)
+#include <vector>
+int memcpy_s(void* dest, uint32_t destSize, const void* src, size_t srcSize)
 {
-	if (srcSize > detSize || src == nullptr || det == nullptr) {
-		return -1;
-	} else {
-		memcpy(det, src, srcSize);
+    if (srcSize > destSize || src == nullptr || dest == nullptr) {
+        return -1;
+    } else {
+        if (!memcpy(dest, src, srcSize)) {
+            printf("memcpy fail\n");
+            return -1;
+        }
     }
-	return 0;
+    return 0;
+}
+void* memset_s(void* dest, size_t destSize, int ch, size_t n)
+{
+    return memset(dest, 0, n);
+}
+
+int snprintf_s(char* strDest, size_t destMax, size_t count, const char* format, ...)
+{
+    int ret;
+    va_list ap;
+    __builtin_va_start(ap, format);
+    ret = sprintf(strDest, format, ap);
+    __builtin_va_end(ap);
+    return ret;
+}
+
+int strncpy_s(char* strDest, size_t destMax, const char* strSrc, size_t count)
+{
+    return memcpy_s(strDest, destMax, strDest, count);
+}
+
+int sscanf_s(const char* buffer, const char* format, ...)
+{
+    va_list ap;
+    __builtin_va_start(ap, format);
+    int ret = scanf(buffer, format, ap);
+    __builtin_va_end(ap);
+    return ret;
+}
+int sprintf_s(char* strDest, size_t destMax, const char* format, ...)
+{
+    va_list ap;
+    __builtin_va_start(ap, format);
+    int ret = sprintf(strDest, format, ap);
+    __builtin_va_end(ap);
+    return ret;
 }

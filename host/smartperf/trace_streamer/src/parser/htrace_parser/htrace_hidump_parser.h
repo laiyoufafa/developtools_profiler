@@ -17,6 +17,8 @@
 #include <cstdint>
 #include <map>
 #include <string>
+#include "hidump_plugin_result.pb.h"
+#include "htrace_plugin_time.h"
 #include "trace_data/trace_data_cache.h"
 #include "trace_streamer_config.h"
 #include "trace_streamer_filters.h"
@@ -24,19 +26,12 @@
 
 namespace SysTuning {
 namespace TraceStreamer {
-class HtraceHidumpParser {
+class HtraceHidumpParser : public HtracePluginTimeParser {
 public:
     HtraceHidumpParser(TraceDataCache* dataCache, const TraceStreamerFilters* ctx);
     ~HtraceHidumpParser();
     void Parse(HidumpInfo& tracePacket);
     void Finish();
-
-private:
-    const TraceStreamerFilters* streamFilters_;
-    TraceDataCache* traceDataCache_;
-    TraceStreamerConfig config_ = {};
-    uint64_t traceStartTime_ = std::numeric_limits<uint64_t>::max();
-    uint64_t traceEndTime_ = 0;
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

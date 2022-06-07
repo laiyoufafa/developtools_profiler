@@ -46,7 +46,7 @@ public:
  */
 HWTEST_F(SliceFilterTest, SliceTestOnceCall, TestSize.Level1)
 {
-    TS_LOGI("test1");
+    TS_LOGI("test22-1");
     uint64_t ts = 168758662957000;
     uint64_t ts2 = 168758663011000;
 
@@ -68,7 +68,7 @@ HWTEST_F(SliceFilterTest, SliceTestOnceCall, TestSize.Level1)
  */
 HWTEST_F(SliceFilterTest, SliceTestNestedTwoMethod, TestSize.Level1)
 {
-    TS_LOGI("test2");
+    TS_LOGI("test22-2");
     uint64_t ts1 = 168758670506000;
     uint32_t pid1 = 1298;
     uint32_t threadGroupId1 = 1298;
@@ -96,7 +96,7 @@ HWTEST_F(SliceFilterTest, SliceTestNestedTwoMethod, TestSize.Level1)
  */
 HWTEST_F(SliceFilterTest, SliceTestNestedTwoMethodStackAndOneMethodStack, TestSize.Level1)
 {
-    TS_LOGI("test3");
+    TS_LOGI("test22-3");
     uint64_t ts1 = 168758663018000;
     uint32_t pid1 = 2532;
     uint32_t threadGroupId1 = 2519;
@@ -137,7 +137,7 @@ HWTEST_F(SliceFilterTest, SliceTestNestedTwoMethodStackAndOneMethodStack, TestSi
  */
 HWTEST_F(SliceFilterTest, SliceTestWithoutBeginSlice, TestSize.Level1)
 {
-    TS_LOGI("test3");
+    TS_LOGI("test22-4");
     uint64_t ts1 = 168758663018000;
     uint32_t pid1 = 2532;
     uint32_t threadGroupId1 = 2519;
@@ -153,7 +153,7 @@ HWTEST_F(SliceFilterTest, SliceTestWithoutBeginSlice, TestSize.Level1)
  */
 HWTEST_F(SliceFilterTest, SliceTestWithMultiNestedCall, TestSize.Level1)
 {
-    TS_LOGI("test3");
+    TS_LOGI("test22-5");
     uint64_t ts1 = 168758663018000;
     uint32_t pid1 = 2532;
     uint32_t threadGroupId1 = 2519;
@@ -216,7 +216,7 @@ HWTEST_F(SliceFilterTest, SliceTestWithMultiNestedCall, TestSize.Level1)
  */
 HWTEST_F(SliceFilterTest, AsyncTest, TestSize.Level1)
 {
-    TS_LOGI("test3");
+    TS_LOGI("test22-6");
     uint64_t ts1 = 168758663018000;
     uint32_t pid1 = 2532;
     uint32_t threadGroupId1 = 2519;
@@ -239,7 +239,7 @@ HWTEST_F(SliceFilterTest, AsyncTest, TestSize.Level1)
  */
 HWTEST_F(SliceFilterTest, FinishAsyncSliceWithoutStart, TestSize.Level1)
 {
-    TS_LOGI("test3");
+    TS_LOGI("test22-7");
     uint64_t ts = 100;
     uint32_t pid = 2532;
     uint32_t threadGroupId = 2519;
@@ -257,7 +257,7 @@ HWTEST_F(SliceFilterTest, FinishAsyncSliceWithoutStart, TestSize.Level1)
  */
 HWTEST_F(SliceFilterTest, AsyncTestTwiceCallStack, TestSize.Level1)
 {
-    TS_LOGI("test3");
+    TS_LOGI("test22-8");
     uint64_t ts1 = 168758663018000;
     uint32_t pid1 = 2532;
     uint32_t threadGroupId1 = 2519;
@@ -289,7 +289,7 @@ HWTEST_F(SliceFilterTest, AsyncTestTwiceCallStack, TestSize.Level1)
  */
 HWTEST_F(SliceFilterTest, BeginAsyncSliceThreeTimes, TestSize.Level1)
 {
-    TS_LOGI("test3");
+    TS_LOGI("test22-9");
     uint64_t ts1 = 168758663018000;
     uint32_t pid1 = 2532;
     uint32_t threadGroupId1 = 2519;
@@ -330,7 +330,7 @@ HWTEST_F(SliceFilterTest, BeginAsyncSliceThreeTimes, TestSize.Level1)
  */
 HWTEST_F(SliceFilterTest, BeginSliceMultiTimes, TestSize.Level1)
 {
-    TS_LOGI("test3");
+    TS_LOGI("test22-10");
     uint64_t ts1 = 168758663018000;
     uint32_t pid1 = 2532;
     uint32_t threadGroupId1 = 2519;

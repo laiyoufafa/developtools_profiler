@@ -31,7 +31,12 @@ public:
     ~IndexMap() {}
 
     IndexMap(TableRowId start, TableRowId end);
-    IndexMap(std::vector<TableRowId> iv);
+    void Set(TableRowId start, TableRowId end)
+    {
+        start_ = start;
+        end_ = end;
+    }
+    explicit IndexMap(std::vector<TableRowId> iv);
 
     size_t Size() const
     {
@@ -81,7 +86,7 @@ public:
 
     void Insert(TableRowId index);
 
-    void Intersect(const IndexMap& othrer);
+    void Intersect(const IndexMap& other);
     void Intersect(TableRowId start, TableRowId end);
     void Intersect(const std::vector<TableRowId>& iv);
 
@@ -123,7 +128,7 @@ private:
     TableRowId start_ = 0;
     TableRowId end_ = 0;
 
-    enum IndexType{
+    enum IndexType {
         COMPACT,
         SPARSE
     };

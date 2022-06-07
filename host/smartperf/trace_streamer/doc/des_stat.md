@@ -1,7 +1,10 @@
 # TraceStreamer 解析数据状态表
-TraceStreamer使用stat表统计解析trace数据源过程遇到的重要事件状态。通过stat表可以对trace数据源中各个类型事件的数据有一个基本了解。
+TraceStreamer使用stat表统计解析trace数据源过程遇到的重要事件状态。通过stat表可以对trace数据源中各个类型事件的数据的数量，数据质量有一个基本了解。  
+我们对不同类型的数据，统计了收到多少条，数据逻辑是否匹配，是否有不合法数据，是否有数据丢失情况，所有这些，是基于对数据格式本身和数据前后关系的主观认识。欢迎开发者提供更多的思路来帮我们完善数据本身的校验工作。
 ## stat表支持统计的事件列表如下：
-|event_name                     |
+### ftrace事件统计
+ftrace相关事件属于系统内核事件，具体请参考linux内核相关技术网站(www.kernel.org)
+|事件名称                     |
 | ----                          |
 |binder_transaction             |
 |binder_transaction_alloc_buf   |
@@ -17,17 +20,12 @@ TraceStreamer使用stat表统计解析trace数据源过程遇到的重要事件�
 |clock_set_rate                 |
 |cpu_frequency                  |
 |cpu_idle                       |
-|hidump_fps                     |
-|hilog                          |
 |ipi_entry                      |
 |ipi_exit                       |
 |irq_handler_entry              |
 |irq_handler_exit               |
-|memory                         |
-|native_hook_free               |
-|native_hook_malloc             |
+|memory (进程内存)              |
 |oom_score_adj_update           |
-|other                          |
 |print                          |
 |regulator_disable              |
 |regulator_disable_complete     |
@@ -47,8 +45,6 @@ TraceStreamer使用stat表统计解析trace数据源过程遇到的重要事件�
 |suspend_resume                 |
 |sys_enter                      |
 |sys_exit                       |
-|sys_memory                     |
-|sys_virtual_memory             |
 |task_newtask                   |
 |task_rename                    |
 |trace_bblock_bio_queue         |
@@ -68,6 +64,24 @@ TraceStreamer使用stat表统计解析trace数据源过程遇到的重要事件�
 |tracing_mark_write             |
 |workqueue_execute_end          |
 |workqueue_execute_start        |
+## fps事件统计
+|事件名称                     |
+| ----                          |
+|hidump_fps                     |
+## 日志事件统计
+|事件名称                     |
+| ----                          |
+|hilog                          |
+## 系统内存和系统虚拟内存事件
+|事件名称                     |
+| ----                          |
+|sys_memory                     |
+|sys_virtual_memory             |
+## 内存申请和释放事件
+|事件名称                     |
+| ----                          |
+|native_hook_free               |
+|native_hook_malloc             |
 
 ## 事件对应解析状态： 
 每种事件解析数据都有5种状态，描述如下表：
@@ -81,7 +95,9 @@ TraceStreamer使用stat表统计解析trace数据源过程遇到的重要事件�
 
 ## 数据状态级别
 数据状态级别总共有4种，分别是：info, warn, error,fatal。由于数据的重要性不同，不同事件的同一种状态可能对应不同的级别。
-例如binder_transaction_received的 not_supported状态的数据为info级别，而binder_transaction_alloc_buf的not_supported状态数据为warn级别。 
+例如binder_transaction_received的 not_supported状态的数据为info级别，而binder_transaction_alloc_buf的not_supported状态数据为warn级别。  
+
+您可以在src/cfg/trace_streamer_config.cpp的InitSecurityMap方法中自行定义相关事件的优先级。
 
 ## 事件，状态与级别对应关系
 |	event_name	|	stat_type	|	serverity	|
