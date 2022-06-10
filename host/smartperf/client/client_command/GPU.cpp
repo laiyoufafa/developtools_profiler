@@ -35,7 +35,7 @@ namespace OHOS {
         }
         int GPU::get_gpu_freq()
         {
-            std::string gpu_freq = GPUtils::readFile(std::string(gpu_cur_freq_path.c_str()));
+            std::string gpu_freq = GPUtils::freadFile(std::string(gpu_cur_freq_path.c_str()));
             return atoi(gpu_freq.c_str());
         }
         float GPU::calc_workload(const char *buffer) const

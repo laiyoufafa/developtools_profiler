@@ -29,17 +29,12 @@ void Profiler::initProfiler()
     mRam = RAM::GetInstance();
     mTemperature = Temperature::GetInstance();
     mPower = Power::GetInstance();
-    mByTrace = ByTrace::GetInstance();
-
+ 
     // some init methods
     mTemperature->init_temperature();
     mGpu->init_gpu_node();
     mPower->init_power();
-    if (mByTrace->init_trace(true) == TRACE_START) {
-        std::thread pInitTrace(&ByTrace::thread_get_trace, mByTrace);
-    }
 }
-
 void Profiler::createCpu(std::map<std::string, std::string> &gpMap)
 {
     int cpuCoreNum = mCpu->get_cpu_num();
@@ -87,12 +82,6 @@ void Profiler::createFps(int isVideo, int isCamera, int isCatchTrace, int curPro
     char desc[10];
     if (snprintf_s(desc, sizeof(desc), sizeof(desc), "fps") > 0) {
         gpMap.insert(std::pair<std::string, std::string>(std::string(desc), std::to_string(gfpsInfo.fps)));
-    }
-    if (isCatchTrace > 0) {
-        if (mByTrace->check_fps_jitters(gfpsInfo.jitters, curProfilerNum) == TRACE_FINISH) {
-            std::string profilerNum = std::to_string(curProfilerNum);
-            std::thread pFinishTrace(&ByTrace::thread_finish_trace, mByTrace, std::ref(profilerNum));
-        }
     }
 }
 void Profiler::createTemp(std::map<std::string, std::string> &gpMap)

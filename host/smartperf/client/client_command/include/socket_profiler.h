@@ -23,7 +23,6 @@
 #include "RAM.h"
 #include "Temperature.h"
 #include "Power.h"
-#include "ByTrace.h"
 namespace OHOS {
 namespace SmartPerf {
 enum SockConstant {
@@ -46,8 +45,7 @@ public:
     std::shared_ptr<RAM> mRam = nullptr;
     std::shared_ptr<Temperature> mTemperature = nullptr;
     std::shared_ptr<Power> mPower = nullptr;
-    std::shared_ptr<ByTrace> mByTrace = nullptr;
-    
+
     int sock;
     struct sockaddr_in local;
     struct sockaddr_in client;

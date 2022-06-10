@@ -159,7 +159,8 @@ std::string SmartPerfCommand::ExecCommand()
 }
 void SmartPerfCommand::initSomething()
 {
-    GPUtils::readFile("chmod a+w /proc/stat");
+    GPUtils::readFile("chmod o+r /proc/stat");
+    GPUtils::readFile("mkdir /data/local/tmp/capture");
 }
 }
 }

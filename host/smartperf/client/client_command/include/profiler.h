@@ -23,7 +23,6 @@
 #include "RAM.h"
 #include "Temperature.h"
 #include "Power.h"
-#include "ByTrace.h"
 #include "gp_data.h"
 
 namespace OHOS {
@@ -47,7 +46,6 @@ public:
     std::shared_ptr<RAM> mRam = nullptr;
     std::shared_ptr<Temperature> mTemperature = nullptr;
     std::shared_ptr<Power> mPower = nullptr;
-    std::shared_ptr<ByTrace> mByTrace = nullptr;
 };
 }
 }

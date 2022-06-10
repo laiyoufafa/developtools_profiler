@@ -31,7 +31,6 @@ config("public_config") {
 
 ohos_executable("SP_daemon") {
   sources = [
-    "ByTrace.cpp",
     "CPU.cpp",
     "DDR.cpp",
     "FPS.cpp",

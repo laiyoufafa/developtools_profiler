@@ -35,7 +35,7 @@ std::map<std::string, std::string> RAM::getRamInfo(std::string pkg_name, int pid
     } else {
         char pidStr[100];
         if (snprintf_s(pidStr, sizeof(pidStr), sizeof(pidStr), 
-        "ps -ef |grep -w %s", pkg_name.c_str()) < 0) {
+        "ps -ef |grep -w %s |grep -v grep", pkg_name.c_str()) < 0) {
             std::cout << "snprintf_s fail";
         }
         std::string pidLine = GPUtils::readFile(pidStr);
@@ -46,7 +46,7 @@ std::map<std::string, std::string> RAM::getRamInfo(std::string pkg_name, int pid
         }
     }
 
-    std::string tmp = "-1";
+    std::string tmp = "";
     if (atoi(pid_value.c_str()) > 0) {
         char ram[50];
         if (snprintf_s(ram, sizeof(ram), sizeof(ram), "/proc/%s/smaps_rollup", pid_value.c_str()) < 0) {
