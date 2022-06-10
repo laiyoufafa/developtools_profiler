@@ -116,9 +116,8 @@ namespace OHOS {
             std::ofstream outFile;
             char realPath[PATH_MAX + 1] = {0x00};
             if (strlen(path.c_str()) > PATH_MAX || realpath(path.c_str(), realPath) == NULL) {
-                return;
+                printf("write csv path --->> %s\n", path.c_str());
             }
-            
             outFile.open(path.c_str(), std::ios::out);
             int i = 0;
             std::string title = "";

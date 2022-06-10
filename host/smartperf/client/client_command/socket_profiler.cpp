@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <iostream>
 #include <cstdio>
 #include <sys/socket.h>
 #include <sys/types.h>
@@ -30,7 +31,6 @@ void SocketProfiler::initSocketProfiler()
     mRam = RAM::GetInstance();
     mTemperature = Temperature::GetInstance();
     mPower = Power::GetInstance();
-    mByTrace = ByTrace::GetInstance();
 
     mTemperature->init_temperature();
     mGpu->init_gpu_node();
@@ -54,6 +54,7 @@ void SocketProfiler::callSend(std::stringstream &sstream, std::string &str1, std
     sstream.clear();
     sstream << str1 << "::" << str2;
     std::string streamSend = sstream.str();
+    std::cout << "daemon response:" << streamSend << std::endl;
     bufsendto(sock, streamSend.c_str(), streamSend.size(), 
         reinterpret_cast<struct sockaddr*>(&client), sizeof(sockaddr_in));
 }
@@ -204,11 +205,17 @@ void SocketProfiler::thread_udp_server()
             std::string cmd_capture = sstream.str();
             GPUtils::readFile(cmd_capture);
         } else if (recv.find("catch_trace_start") != std::string::npos) {   
-            std::thread tStart(&ByTrace::thread_get_trace, SP->mByTrace);
-        } else if (recv.find("catch_trace_finish") != std::string::npos) {   
-            std::vector<std::string> traces;
-            GPUtils::mSplit(recv, "::", traces);         
-            std::thread tFinish(&ByTrace::thread_finish_trace, SP->mByTrace, std::ref(traces[1]));      
+            sstream << "bytrace --trace_begin --overwrite";
+            std::string cmd_trace_start = sstream.str();
+            GPUtils::readFile(cmd_trace_start);
+        } else if (recv.find("catch_trace_finish") != std::string::npos) {
+            sstream << "bytrace --trace_finish";
+            std::string cmd_finish_trace = sstream.str();
+            GPUtils::readFile(cmd_finish_trace);
+            sstream.str("");
+            sstream << "bytrace --overwrite sched ace app disk ohos graphic sync workq ability > /data/mynewtrace";
+            std::string cmd_save_trace = sstream.str();
+            GPUtils::readFile(cmd_save_trace);
         }
     }
 }

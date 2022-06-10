@@ -40,7 +40,7 @@
         "//developtools/profiler/device:hiprofiler_targets",
         "//developtools/profiler/hidebug/interfaces/js/kits:profiler_jsapi_module",
         "//developtools/profiler/host/smartperf/client/client_command/:SP_daemon",
-        "//developtools/profiler/host/smartperf/client/client_ui/:SmartPerf"
+        "//developtools/profiler/host/smartperf/client/:SmartPerf"
       ],
       "inner_kits": [
         {

@@ -45,12 +45,16 @@ export default class MainAbility extends Ability {
     }
 
     onWindowStageCreate(windowStage) {
+        console.info("zhaohui:-------------->onWindowStageCreate 1")
         globalThis.abilityContext = this.context
-
+        console.info("zhaohui:-------------->onWindowStageCreate 2")
         // Main window is created, set main page for this ability
         SPLogger.DEBUG(TAG,"[MyApplication] MainAbility onWindowStageCreate")
+        console.info("zhaohui:-------------->onWindowStageCreate 3")
         abilityWindowStage = windowStage;
+        console.info("zhaohui:-------------->onWindowStageCreate 4")
         abilityWindowStage.setUIContent(this.context, "pages/LoginPage", null)
+        console.info("zhaohui:-------------->onWindowStageCreate 5")
     }
 
     onWindowStageDestroy() {

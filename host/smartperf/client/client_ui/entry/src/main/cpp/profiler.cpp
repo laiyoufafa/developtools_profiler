@@ -56,7 +56,7 @@ static napi_value getFpsData(napi_env env, napi_callback_info info)
     std::string fps = std::to_string(fpsInfo.fps);
     std::vector<long long> fpsJitters = fpsInfo.jitters;
     std::string fps_str = fps + "|";
-    for (size_t i = 0; i < fpsJitters.size(); ++i) {
+    for (int i = 0; i < fpsJitters.size(); ++i) {
         fps_str += std::to_string(fpsJitters[i]);
         fps_str += "==";
     }
