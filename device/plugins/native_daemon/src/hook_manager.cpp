@@ -39,7 +39,8 @@ std::shared_ptr<BufferWriter> g_buffWriter;
 constexpr uint32_t MAX_BUFFER_SIZE = 10 * 1024;
 const std::string STARTUP = "startup:";
 const std::string PARAM_NAME = "libc.hook_mode";
-const int MOVE_BIT = 32;
+const int MOVE_BIT_16 = 16;
+const int MOVE_BIT_32 = 32;
 } // namespace
 
 bool HookManager::CheckProcess()
@@ -250,9 +251,9 @@ bool HookManager::CreatePluginSession(const std::vector<ProfilerPluginConfig>& c
     uint64_t hookConfig = hookConfig_.malloc_disable() ? MALLOCDISABLE : 0;
 
     hookConfig |= hookConfig_.mmap_disable() ? MMAPDISABLE : 0;
-    hookConfig <<= 16;
+    hookConfig <<= MOVE_BIT_16;
     hookConfig |= hookConfig_.filter_size();
-    hookConfig <<= 32;
+    hookConfig <<= MOVE_BIT_32;
     hookConfig |= bufferSize;
 
     hookService_ = std::make_shared<HookService>(shareMemoryBlock_->GetfileDescriptor(),
@@ -277,49 +278,61 @@ void HookManager::ReadShareMemory()
 
         bool ret = shareMemoryBlock_->TakeData([&](const int8_t data[], uint32_t size) -> bool {
             std::vector<u64> u64regs;
-            uint32_t *regAddr = nullptr;
+            u64 *regAddr = nullptr;
             uint32_t stackSize;
             pid_t pid;
             pid_t tid;
             void *addr = nullptr;
             int8_t* tmp = const_cast<int8_t *>(data);
-
+            std::unique_ptr<uint8_t[]> stackData;
             struct timespec ts = {};
             if (memcpy_s(&ts, sizeof(ts), data, sizeof(ts)) != EOK) {
                 HILOG_ERROR(LOG_CORE, "memcpy_s ts failed");
             }
             uint32_t type = *(reinterpret_cast<uint32_t *>(tmp + sizeof(ts)));
 
-            uint32_t mallocSize = *(reinterpret_cast<uint32_t *>(tmp + sizeof(ts) + sizeof(type)));
+            size_t mallocSize = *(reinterpret_cast<size_t *>(tmp + sizeof(ts) + sizeof(type)));
             addr = *(reinterpret_cast<void **>(tmp + sizeof(ts) + sizeof(type) + sizeof(mallocSize)));
             stackSize = *(reinterpret_cast<uint32_t *>(tmp + sizeof(ts)
                 + sizeof(type) + sizeof(mallocSize) + sizeof(void *)));
-            std::unique_ptr<uint8_t[]> stackData = std::make_unique<uint8_t[]>(stackSize);
-            if (memcpy_s(stackData.get(), stackSize, tmp + sizeof(stackSize) + sizeof(ts) + sizeof(type)
-                + sizeof(mallocSize) + sizeof(void *), stackSize) != EOK) {
-                HILOG_ERROR(LOG_CORE, "memcpy_s data failed");
+            if (stackSize > 0) {
+                stackData = std::make_unique<uint8_t[]>(stackSize);
+                if (memcpy_s(stackData.get(), stackSize, tmp + sizeof(stackSize) + sizeof(ts) + sizeof(type)
+                    + sizeof(mallocSize) + sizeof(void *), stackSize) != EOK) {
+                    HILOG_ERROR(LOG_CORE, "memcpy_s data failed");
+                }
             }
             pid = *(reinterpret_cast<pid_t *>(tmp + sizeof(stackSize) + stackSize + sizeof(ts)
                 + sizeof(type) + sizeof(mallocSize) + sizeof(void *)));
             tid = *(reinterpret_cast<pid_t *>(tmp + sizeof(stackSize) + stackSize + sizeof(ts)
                 + sizeof(type) + sizeof(mallocSize) + sizeof(void *) + sizeof(pid)));
-            regAddr = reinterpret_cast<uint32_t *>(tmp + sizeof(pid) + sizeof(tid) + sizeof(stackSize)
+            regAddr = reinterpret_cast<u64 *>(tmp + sizeof(pid) + sizeof(tid) + sizeof(stackSize)
                 + stackSize + sizeof(ts) + sizeof(type) + sizeof(mallocSize) + sizeof(void *));
 
             int reg_count = (size - sizeof(pid) - sizeof(tid) - sizeof(stackSize) - stackSize
                 - sizeof(ts) - sizeof(type) - sizeof(mallocSize) - sizeof(void *))
-                / sizeof(uint32_t);
+                / sizeof(u64);
             if (reg_count <= 0) {
                 HILOG_ERROR(LOG_CORE, "data error size = %u", size);
             }
+#if defined(__arm__)
+            uint32_t *regAddrArm = reinterpret_cast<uint32_t *>(regAddr);
+#endif
             for (int idx = 0; idx < reg_count; ++idx) {
+#if defined(__arm__)
+                u64regs.push_back(*regAddrArm++);
+#else
                 u64regs.push_back(*regAddr++);
+#endif
             }
             std::vector<CallFrame> callsFrames;
-            runtime_instance->UnwindStack(u64regs, stackData.get(), stackSize, pid, tid, callsFrames,
-                                          (hookConfig_.max_stack_depth() > 0)
-                                              ? hookConfig_.max_stack_depth() + FILTER_STACK_DEPTH
-                                              : MAX_CALL_FRAME_UNWIND_SIZE);
+
+            if (stackSize > 0) {
+                runtime_instance->UnwindStack(u64regs, stackData.get(), stackSize, pid, tid, callsFrames,
+                                            (hookConfig_.max_stack_depth() > 0)
+                                                ? hookConfig_.max_stack_depth() + FILTER_STACK_DEPTH
+                                                : MAX_CALL_FRAME_UNWIND_SIZE);
+            }
             HookContext hookContext = {};
             hookContext.type = type;
             hookContext.pid = pid;

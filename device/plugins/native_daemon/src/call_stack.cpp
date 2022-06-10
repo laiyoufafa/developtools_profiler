@@ -306,6 +306,11 @@ int CallStack::AccessReg([[maybe_unused]] unw_addr_space_t as, unw_regnum_t regn
     uint64_t val;
     size_t perfRegIndex = LibunwindRegIdToPerfReg(regnum);
 
+    if (perfRegIndex < PERF_REG_ARM64_X29) {
+        // libunwind not access other regs
+        HLOGE("access_reg not expected %d", regnum);
+    }
+
     /* Don't support write, I suspect we don't need it. */
     if (writeOperation) {
         HLOGE("access_reg %d", regnum);

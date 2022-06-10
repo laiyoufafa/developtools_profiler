@@ -18,6 +18,11 @@
 #include "hook_common.h"
 #include "unix_socket_client.h"
 
+namespace {
+const int MOVE_BIT_32 = 32;
+const int MOVE_BIT_48 = 48;
+} // namespace
+
 HookSocketClient::HookSocketClient(int pid) : pid_(pid)
 {
     unixSocketClient_ = nullptr;
@@ -58,8 +63,8 @@ bool HookSocketClient::ProtocolProc(SocketContext &context, uint32_t pnum, const
     }
     uint64_t config = *(uint64_t *)buf;
     uint32_t smbSize = (uint32_t)config;
-    filterSize_ = (uint16_t)(config >> 32);
-    uint16_t mask = (uint16_t)(config >> 48);
+    filterSize_ = (uint16_t)(config >> MOVE_BIT_32);
+    uint16_t mask = (uint16_t)(config >> MOVE_BIT_48);
 
     smbFd_ = context.ReceiveFileDiscriptor();
     eventFd_ = context.ReceiveFileDiscriptor();

@@ -16,6 +16,7 @@
 #include <functional>
 #include <linux/types.h>
 #include "utilities.h"
+#include "hook_common.h"
 #include "hook_service.h"
 #include "logging.h"
 #include "share_memory_allocator.h"
@@ -29,6 +30,8 @@ namespace Developtools {
 namespace Profiler {
 namespace Hook {
 const int DEFAULT_EVENT_POLLING_INTERVAL = 5000;
+const int MOVE_BIT_16 = 16;
+const int MOVE_BIT_32 = 32;
 std::string g_smbName = "hooknativesmb";
 std::shared_ptr<VirtualRuntime> g_runtimeInstance;
 std::unique_ptr<EpollEventPoller> g_eventPoller_;
@@ -76,42 +79,51 @@ void ReadShareMemory(uint64_t duration, const std::string& performance_filename)
     while (true) {
         bool ret = g_shareMemoryBlock->TakeData([&](const int8_t data[], uint32_t size) -> bool {
             std::vector<u64> u64regs;
-            uint32_t *regAddr = nullptr;
+            u64 *regAddr = nullptr;
             uint32_t stackSize;
             pid_t pid;
             pid_t tid;
             void *addr = nullptr;
             int8_t* tmp = const_cast<int8_t *>(data);
-
+            std::unique_ptr<uint8_t[]> stackData;
             struct timespec ts = {};
             if (memcpy_s(&ts, sizeof(ts), data, sizeof(ts)) != EOK) {
                 HILOG_ERROR(LOG_CORE, "memcpy_s ts failed");
             }
             uint32_t type = *(reinterpret_cast<uint32_t *>(tmp + sizeof(ts)));
-            uint32_t mallocSize = *(reinterpret_cast<uint32_t *>(tmp + sizeof(ts) + sizeof(type)));
+            size_t mallocSize = *(reinterpret_cast<size_t *>(tmp + sizeof(ts) + sizeof(type)));
             addr = *(reinterpret_cast<void **>(tmp + sizeof(ts) + sizeof(type) + sizeof(mallocSize)));
             stackSize = *(reinterpret_cast<uint32_t *>(tmp + sizeof(ts)
                 + sizeof(type) + sizeof(mallocSize) + sizeof(void *)));
-            std::unique_ptr<uint8_t[]> stackData = std::make_unique<uint8_t[]>(stackSize);
-            if (memcpy_s(stackData.get(), stackSize, tmp + sizeof(stackSize) + sizeof(ts) + sizeof(type)
-                + sizeof(mallocSize) + sizeof(void *), stackSize) != EOK) {
-                HILOG_ERROR(LOG_CORE, "memcpy_s data failed");
+            if (stackSize > 0) {
+                stackData = std::make_unique<uint8_t[]>(stackSize);
+                if (memcpy_s(stackData.get(), stackSize, tmp + sizeof(stackSize) + sizeof(ts) + sizeof(type)
+                    + sizeof(mallocSize) + sizeof(void *), stackSize) != EOK) {
+                    HILOG_ERROR(LOG_CORE, "memcpy_s data failed");
+                }
             }
             pid = *(reinterpret_cast<pid_t *>(tmp + sizeof(stackSize) + stackSize + sizeof(ts)
                 + sizeof(type) + sizeof(mallocSize) + sizeof(void *)));
             tid = *(reinterpret_cast<pid_t *>(tmp + sizeof(stackSize) + stackSize + sizeof(ts)
                 + sizeof(type) + sizeof(mallocSize) + sizeof(void *) + sizeof(pid)));
-            regAddr = reinterpret_cast<uint32_t *>(tmp + sizeof(pid) + sizeof(tid) + sizeof(stackSize)
+            regAddr = reinterpret_cast<u64 *>(tmp + sizeof(pid) + sizeof(tid) + sizeof(stackSize)
                 + stackSize + sizeof(ts) + sizeof(type) + sizeof(mallocSize) + sizeof(void *));
 
             int reg_count = (size - sizeof(pid) - sizeof(tid) - sizeof(stackSize) - stackSize
                 - sizeof(ts) - sizeof(type) - sizeof(mallocSize) - sizeof(void *))
-                / sizeof(uint32_t);
+                / sizeof(u64);
             if (reg_count <= 0) {
                 HILOG_ERROR(LOG_CORE, "data error size = %u", size);
             }
+#if defined(__arm__)
+            uint32_t *regAddrArm = reinterpret_cast<uint32_t *>(regAddr);
+#endif
             for (int idx = 0; idx < reg_count; ++idx) {
+#if defined(__arm__)
+                u64regs.push_back(*regAddrArm++);
+#else
                 u64regs.push_back(*regAddr++);
+#endif
             }
 
             if (!end_flag && duration != 0) {
@@ -123,9 +135,10 @@ void ReadShareMemory(uint64_t duration, const std::string& performance_filename)
             }
 
             std::vector<CallFrame> callsFrames;
-            g_runtimeInstance->UnwindStack(u64regs, stackData.get(), stackSize, pid, tid, callsFrames,
-                (g_maxStackDepth > 0) ? g_maxStackDepth + FILTER_STACK_DEPTH : MAX_CALL_FRAME_UNWIND_SIZE);
-
+            if (stackSize > 0) {
+                g_runtimeInstance->UnwindStack(u64regs, stackData.get(), stackSize, pid, tid, callsFrames,
+                    (g_maxStackDepth > 0) ? g_maxStackDepth + FILTER_STACK_DEPTH : MAX_CALL_FRAME_UNWIND_SIZE);
+            }
             if (!end_flag && duration != 0) {
                 clock_gettime(CLOCK_REALTIME, &end_time);
                 total_time += (end_time.tv_sec - begin_time.tv_sec) * 1000000000LLU +
@@ -187,8 +200,11 @@ bool StartHook(HookData& hookData)
     // hook config |F F F F      F F F F       F F F F      F F F F|
     //              malloctype   filtersize    sharememory  size
 
-    uint64_t hookConfig = hookData.filterSize;
-    hookConfig <<= 32;
+    uint64_t hookConfig = hookData.mallocDisable ? MALLOCDISABLE : 0;
+    hookConfig |= hookData.mmapDisable ? MMAPDISABLE : 0;
+    hookConfig <<= MOVE_BIT_16;
+    hookConfig |= hookData.filterSize;
+    hookConfig <<= MOVE_BIT_32;
     hookConfig |= hookData.smbSize;
 
     g_hookService = std::make_shared<HookService>(g_shareMemoryBlock->GetfileDescriptor(),
