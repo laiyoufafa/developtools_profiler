@@ -601,7 +601,7 @@ HWTEST_F(ProfilerServicePerformanceTest, DFX_DFR_Hiprofiler_0010, Function | Med
                 MemoryData md;
                 auto& data = pd.data();
                 md.ParseFromArray(data.data(), data.size());
-                EXPECT_LE(md.processesinfo(0).vm_size_kb(), md.processesinfo(1).vm_size_kb());
+                EXPECT_LT(md.processesinfo(0).vm_size_kb(), md.processesinfo(1).vm_size_kb());
 
                 EXPECT_GT(md.processesinfo(0).pid(), 0);
                 EXPECT_GT(md.processesinfo(1).pid(), 0);
