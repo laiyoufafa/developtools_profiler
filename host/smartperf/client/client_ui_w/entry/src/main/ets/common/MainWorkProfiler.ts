@@ -15,7 +15,7 @@
 import worker from '@ohos.worker'; // 导入worker模块
 import SPLogger from "../common/utils/SPLogger"
 import {catch_trace_times, catch_trace_start, catch_trace_finish, catch_trace_first_running, catch_trace_running} from './CatchTraceUtils';
-export let MainWorker = new worker.Worker("workers/worker.js")
+export let MainWorker = new worker.Worker("/entry/ets/workers/worker.js")
 const TAG="MainWorkerProfiler"
 
 MainWorker.onmessage = function (result) {

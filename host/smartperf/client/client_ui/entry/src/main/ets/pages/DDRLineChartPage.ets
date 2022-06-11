@@ -36,15 +36,15 @@ struct DDRNowLineChartPage {
 
           this.data.shift() //移除第一个元素
         }
-        if (globalThis.tTndex.ddrFrequency == undefined) {
+        if (globalThis.ddrFreq == undefined) {
           this.DDR = 0
         } else {
-          this.DDR = Number(globalThis.tTndex.ddrFrequency / 1e6).valueOf()
+          this.DDR = Number(globalThis.ddrFreq / 1e6).valueOf()
 
           if (this.DDR == 0) {
             this.data.push(0)
           } else {
-            let lineCount: number = this.DDR / 30
+            let lineCount: number = this.DDR / 15
             this.data.push(Math.abs(lineCount)) //在末尾填充一个元素
           }
           this.random = Math.random()
@@ -60,18 +60,18 @@ struct DDRNowLineChartPage {
       FloatWindowComponent({ title: `ddrFrequency`, data: this.data })
       Flex({ justifyContent: FlexAlign.SpaceBetween, alignItems: ItemAlign.Center }) {
         Text(this.floatName + ":" + this.DDR + "MHz")
-          .fontSize('6fp')
-          .fontColor($r("app.color.color_333"))
+          .fontSize('10fp')
+          .fontColor($r("app.color.color_fff"))
           .margin({ left: 5, top: 3 }) //文本显示
         Text(this.random + "")
           .fontSize('1fp')
-          .fontColor($r("app.color.color_333")).visibility(Visibility.None)
-        Image($r("app.media.icon_close_small")).width('15vp').height('15vp').onClick(() => {
+          .fontColor($r("app.color.color_fff")).visibility(Visibility.None)
+        Image($r("app.media.icon_close_small")).width('20vp').height('20vp').onClick(() => {
           hideFloatWindow(this.floatName)
 
           console.log("hideFloatWindow---------------------" + this.floatName)
         }).align(Alignment.TopEnd)
-      }.height('15vp').width('100%')
+      }.height('20vp').width('100%')
 
     }
   }

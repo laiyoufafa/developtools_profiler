@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {hideFloatWindow} from '../common/ui/floatwindow/utils/FloatWindowUtils'
+import { hideFloatWindow } from '../common/ui/floatwindow/utils/FloatWindowUtils'
 import { FloatWindowComponent } from '../common/FloatWindowComponent'
 import { TaskStatus }  from '../common/profiler/base/ProfilerConstant';
 
@@ -36,10 +36,10 @@ struct CPU2LineChartPage {
 
           this.data.shift() //移除第一个元素
         }
-        if (globalThis.tTndex.cpu7Frequency == undefined) {
+        if (globalThis.cpu2Frequency == undefined) {
           this.cpu2Frequency = 0
         } else {
-          this.cpu2Frequency = parseInt(globalThis.tTndex.cpu7Frequency) / 1e3
+          this.cpu2Frequency = parseInt(globalThis.cpu2Frequency) / 1e3
 
           if (this.cpu2Frequency == 0) {
             this.data.push(0)
@@ -59,18 +59,18 @@ struct CPU2LineChartPage {
     Stack({ alignContent: Alignment.Top }) {
       FloatWindowComponent({ title: `cpu2Frequency`, data: this.data })
       Flex({ justifyContent: FlexAlign.SpaceBetween, alignItems: ItemAlign.Center }) {
-        Text(this.floatName + ":" + this.cpu2Frequency + "Hz")
-          .fontSize('6fp')
-          .fontColor($r("app.color.color_333"))
+        Text(this.floatName + ":" + this.cpu2Frequency + "MHz")
+          .fontSize('10fp')
+          .fontColor($r("app.color.color_fff"))
           .margin({ left: 5, top: 3 }) //文本显示
         Text(this.random + "")
           .fontSize('1fp')
-          .fontColor($r("app.color.color_333")).visibility(Visibility.None)
-        Image($r("app.media.icon_close_small")).width('15vp').height('15vp').onClick(() => {
+          .fontColor($r("app.color.color_fff")).visibility(Visibility.None)
+        Image($r("app.media.icon_close_small")).width('20vp').height('20vp').onClick(() => {
           hideFloatWindow(this.floatName)
           console.log("hideFloatWindow---------------------" + this.floatName)
         }).align(Alignment.TopEnd)
-      }.height('15vp').width('100%')
+      }.height('20vp').width('100%')
 
     }
   }

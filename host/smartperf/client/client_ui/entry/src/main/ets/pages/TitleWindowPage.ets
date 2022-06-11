@@ -13,27 +13,9 @@
  * limitations under the License.
  */
 import { TIndexInfo } from '../common/entity/DatabaseEntity'
-import CheckEmptyUtils from '../common/utils/CheckEmptyUtils'
 import { showFloatWindow, hideFloatWindow } from '../common/ui/floatwindow/utils/FloatWindowUtils'
-import {FPS, GPUFREQUENCY, CPU0FREQUENCY, CPU1FREQUENCY, CPU2FREQUENCY, RAM } from '../common/ui/floatwindow/FloatWindowConstant'
-import SPLogger from '../common/utils/SPLogger'
-
-//展示配置项
-export enum ShowItemConfig {
-  ITEM_CPU = 0X01,
-  ITEM_GPU = 0X01,
-  ITEM_DDR = 0X01,
-  ITEM_FPS = 0X00,
-  ITEM_POWER = 0X01,
-  ITEM_SOC_TEMP = 0X01,
-  ITEM_SHELL_FRAME = 0X01,
-  ITEM_SHELL_BACK = 0X01,
-  ITEM_SHELL_FRONT = 0X01,
-  ITEM_RAM = 0X01,
-  ITEM_UNKNOWN = 0X00,
-}
-
-
+import { FPS, GPUFREQUENCY, CPU0FREQUENCY, CPU1FREQUENCY, CPU2FREQUENCY, RAM } from '../common/ui/floatwindow/FloatWindowConstant'
+import CommonEvent from '@ohos.commonEvent'
 @Component
 export struct ItemContent {
   private icon
@@ -61,22 +43,44 @@ export struct ItemContent {
 @Component
 struct TitleWindowPage {
   private data: boolean[]= [false, false, false, false, false, false, false, false]
-  //计时器
-  @State timerNum: number= 0
+
   @State tIndexInfo: TIndexInfo = new TIndexInfo()
   offsetX: number = -1
   offsetY: number = -1
 
   aboutToAppear() {
-    globalThis.floatIntervalCollect = setInterval(() => {
-      if (CheckEmptyUtils.isEmptyArr(globalThis.tTndex)) {
-        this.tIndexInfo.setDefaultValue()
-        SPLogger.DEBUG("TitleWindowPage","this.tIndexInfo isEmpty" + JSON.stringify(this.tIndexInfo))
+
+    let that = this
+    var subscriber
+    //订阅者信息
+    var subscribeInfo = {
+      events: ["event"]
+    };
+    //订阅公共事件回调
+    function SubscribeCallBack(err, data) {
+      if (data.data == "") {
       } else {
-        this.tIndexInfo = globalThis.tTndex
-        SPLogger.DEBUG("TitleWindowPage","this.tIndexInfo isEmpty" + JSON.stringify(this.tIndexInfo))
+        console.error("subscriberCurData:"+ data.data);
+        that.tIndexInfo = JSON.parse(data.data)
+        globalThis.cpu0Frequency=that.tIndexInfo.cpu0Frequency
+        globalThis.cpu1Frequency=that.tIndexInfo.cpu1Frequency
+        globalThis.cpu2Frequency=that.tIndexInfo.cpu2Frequency
+        globalThis.currentNow=that.tIndexInfo.currentNow
+        globalThis.ddrFrequency=that.tIndexInfo.ddrFrequency
+        globalThis.lineFps=that.tIndexInfo.fps
+        globalThis.gpuFrequency=that.tIndexInfo.gpuFrequency
+        globalThis.pss=that.tIndexInfo.pss
+        globalThis.shellBackTemp=that.tIndexInfo.socThermalTemp
       }
-    }, 999)
+    }
+    //创建订阅者回调
+    function CreateSubscriberCallBack(err, data) {
+      subscriber = data;
+      //订阅公共事件
+      CommonEvent.subscribe(subscriber, SubscribeCallBack);
+    }
+    //创建订阅者
+    CommonEvent.createSubscriber(subscribeInfo, CreateSubscriberCallBack);
   }
 
   MoveWindow(offsetX: number, offsetY: number) {
@@ -99,7 +103,7 @@ struct TitleWindowPage {
 
   build() {
     Stack({ alignContent: Alignment.Center }) {
-      Rect({ width: '100%', height: '100%' }).radius(10).opacity(0.5)
+      Rect({ width: '100%', height: '100%' }).radius(20).opacity(0.4)
       Column({ space: 2 }) {
 
         Row() {
@@ -172,7 +176,7 @@ struct TitleWindowPage {
         // icon: $r("app.media.icon_counter"),
         //value: this.tIndexInfo.networkUpSpeed.toString() + "kbps" + " " +this.tIndexInfo.networkDownSpeed.toString() + "kbps",
         // tittle: "带宽"
-        })
+        //})
         //      ItemContent({
         //        icon: $r("app.media.icon_max_temperature"),
         //        value: (ParseIntValue(this.tIndexInfo.shellBackTemp.toString()) / 1e3).toString() + "℃",

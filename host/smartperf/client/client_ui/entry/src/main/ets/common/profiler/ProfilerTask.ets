@@ -16,7 +16,6 @@
 import deviceInfo from '@ohos.deviceInfo'
 import CommonEvent from '@ohos.commonEvent'
 import database from '../database/DatabaseUtils'
-import { getPidOfAbility } from '../utils/SystemUtils';
 import { CPU } from './item/CPU';
 import { csvGeneralInfo, csvTIndexInfo } from '../utils/CSVUtils'
 import { createFilePath } from '../utils/IOUtils'
@@ -50,12 +49,12 @@ export class ProfilerTask {
       }
     }
     //默认不使用daemon
-    globalThis.useDaemon = false
-    let status = globalThis.CheckDaemon()
-    if (status == "Running") {
-      globalThis.useDaemon = true
-    }
-    SPLogger.DEBUG(ProfilerTask.name,'ProfilerTask initModule:Daemon status ' + status)
+//    globalThis.useDaemon = false
+//    let status = globalThis.CheckDaemon()
+//    if (status == "Running") {
+//      globalThis.useDaemon = true
+//    }
+//    SPLogger.DEBUG(ProfilerTask.name,'ProfilerTask initModule:Daemon status ' + status)
   }
 
   getSupports(keys:string[]){
@@ -89,10 +88,7 @@ export class ProfilerTask {
     globalThis.fpsArr = new Array<String>()
     // fpsJitter队列
     globalThis.fpsJitterArr = new Array<String>()
-    //初始化采集目标进程pid
-    getPidOfAbility(globalThis.collectPkg).then(pid=>{
-      globalThis.processPid = pid
-    })
+
     //初始化数据库  2022-02-23 dbName改为时间戳
     database.createTable(globalThis.dbTime)
     SPLogger.DEBUG(ProfilerTask.name,'ProfilerUtils taskInit called');
@@ -120,7 +116,7 @@ export class ProfilerTask {
       let tTndex = database.gpArray2Index(gpDataArr)
       globalThis.tTndexs.push(tTndex)
       globalThis.tTndex = tTndex;
-      CommonEvent.publish("event", { code: 0, data: tTndex.fps + "", }, (err)=>{});
+      CommonEvent.publish("event", { code: 0, data: JSON.stringify(tTndex), }, (err)=>{});
     }
     globalThis.collectIntervalNum++
     SPLogger.DEBUG(ProfilerTask.name,"profiler globalThis.collectIntervalNum " + globalThis.collectIntervalNum)

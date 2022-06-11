@@ -46,7 +46,7 @@ struct SettingsPage {
         .border({ radius: '20vp' })
         .backgroundColor($r("app.color.colorPrimary"))
         .width('80%')
-        .height('40vp')
+        .height('45vp')
         .textAlign(TextAlign.Center)
         .onClick(res => {
           router.replace({ uri: 'pages/LoginPage' })

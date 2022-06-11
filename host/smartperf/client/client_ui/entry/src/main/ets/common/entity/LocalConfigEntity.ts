@@ -131,8 +131,6 @@ export const otherSupportList = new Array(
 
 export let switchList = new Array(
     new SwitchItem("trace", '是否抓取trace', $r("app.media.icon_average_frame_b"), false, true),
-    new SwitchItem("is_camera", '是否为相机应用', $r("app.media.icon_camera"), false, true),
-    new SwitchItem("is_video", '是否为视频应用', $r("app.media.icon_video"), false, true),
     new SwitchItem("screen_capture", '是否开启截图', $r("app.media.icon_screencap"), false, true)
 )
 
@@ -159,11 +157,13 @@ export class SummaryItem {
     public icon: Resource
     public content: string
     public value: string
+    public backColor: string
 
-    constructor(icon: Resource, content: string, value: string) {
+    constructor(icon: Resource, content: string, value: string, backColor: string) {
         this.icon = icon
         this.content = content
         this.value = value
+        this.backColor = backColor
     }
 }
 

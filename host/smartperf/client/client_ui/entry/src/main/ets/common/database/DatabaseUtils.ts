@@ -30,9 +30,9 @@ export default {
         dataRdb.getRdbStore(globalThis.abilityContext, STORE_CONFIG_Index, dbVersion)
             .then(rdbStore => {
                 rdbStore.executeSql(sql_t_index_info, null).catch(err => {
-                    SPLogger.DEBUG(TAG,"--> createTable t_index_info err:" + err)
+//                    SPLogger.DEBUG(TAG,"--> createTable t_index_info err:" + err)
                 })
-                SPLogger.DEBUG(TAG,"--> createTable start execute sql_t_index_info:" + sql_t_index_info)
+//                SPLogger.DEBUG(TAG,"--> createTable start execute sql_t_index_info:" + sql_t_index_info)
                 return rdbStore
             })
     },
@@ -77,11 +77,11 @@ export default {
             name: dbName
         }
         dataRdb.getRdbStore(globalThis.abilityContext, STORE_CONFIG, dbVersion, (err, rdbStore) => {
-            SPLogger.DEBUG(TAG,"--> insert into  insertGeneraData :tableName:" + tableName + "| valueInsert:" + JSON.stringify(valueInsert))
+//            SPLogger.DEBUG(TAG,"--> insert into  insertGeneraData :tableName:" + tableName + "| valueInsert:" + JSON.stringify(valueInsert))
             rdbStore.insert(tableName, valueInsert).catch(err => {
-                SPLogger.DEBUG(TAG,"--> insert into  insertGeneraData err:" + err)
+//                SPLogger.DEBUG(TAG,"--> insert into  insertGeneraData err:" + err)
             }).then(() => {
-                SPLogger.DEBUG(TAG,"--> insert into  insertGeneraData success:")
+//                SPLogger.DEBUG(TAG,"--> insert into  insertGeneraData success:")
             })
         })
     },
@@ -185,7 +185,7 @@ export default {
                 })
 
         } catch (err) {
-            SPLogger.ERROR(TAG,"resultSet queryGeneralData:err" + err)
+//            SPLogger.ERROR(TAG,"resultSet queryGeneralData:err" + err)
         }
     },
 
@@ -276,7 +276,7 @@ export default {
                     return results
                 })
         } catch (err) {
-            SPLogger.ERROR(TAG,"resultSet queryIndexInfo Data:err" + err)
+//            SPLogger.ERROR(TAG,"resultSet queryIndexInfo Data:err" + err)
         }
     },
     /**

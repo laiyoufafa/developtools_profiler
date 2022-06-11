@@ -33,33 +33,29 @@ export default class MainAbility extends Ability {
         // Ability is creating, initialize resources for this ability
         BundleManager.getAppList().then(appList => {
             globalThis.appList = appList
-            SPLogger.DEBUG(TAG,"appList-->" + JSON.stringify(appList))
-            SPLogger.DEBUG(TAG,"appList-->-->-->-->-->-->-->-->-->-->-->-->-->-->-->-->-->-->")
-            SPLogger.DEBUG(TAG,"globalThis.appList-->" + JSON.stringify(globalThis.appList))
+//            SPLogger.DEBUG(TAG,"appList-->" + JSON.stringify(appList))
+//            SPLogger.DEBUG(TAG,"appList-->-->-->-->-->-->-->-->-->-->-->-->-->-->-->-->-->-->")
+//            SPLogger.DEBUG(TAG,"globalThis.appList-->" + JSON.stringify(globalThis.appList))
         })
     }
 
     onDestroy() {
         // Ability is destroying, release resources for this ability
-        SPLogger.DEBUG(TAG,"[MyApplication] MainAbility onDestroy")
+//        SPLogger.DEBUG(TAG,"[MyApplication] MainAbility onDestroy")
     }
 
     onWindowStageCreate(windowStage) {
-        console.info("zhaohui:-------------->onWindowStageCreate 1")
         globalThis.abilityContext = this.context
-        console.info("zhaohui:-------------->onWindowStageCreate 2")
+
         // Main window is created, set main page for this ability
-        SPLogger.DEBUG(TAG,"[MyApplication] MainAbility onWindowStageCreate")
-        console.info("zhaohui:-------------->onWindowStageCreate 3")
+//        SPLogger.DEBUG(TAG,"[MyApplication] MainAbility onWindowStageCreate")
         abilityWindowStage = windowStage;
-        console.info("zhaohui:-------------->onWindowStageCreate 4")
         abilityWindowStage.setUIContent(this.context, "pages/LoginPage", null)
-        console.info("zhaohui:-------------->onWindowStageCreate 5")
     }
 
     onWindowStageDestroy() {
         // Main window is destroyed, release UI related resources
-        SPLogger.DEBUG(TAG,"[MyApplication] MainAbility onWindowStageDestroy")
+//        SPLogger.DEBUG(TAG,"[MyApplication] MainAbility onWindowStageDestroy")
     }
 
     onForeground() {
@@ -73,7 +69,7 @@ export default class MainAbility extends Ability {
 
     onBackground() {
         // Ability has back to background
-        SPLogger.DEBUG(TAG,"[MyApplication] MainAbility onBackground")
+//        SPLogger.DEBUG(TAG,"[MyApplication] MainAbility onBackground")
     }
 };
 

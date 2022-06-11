@@ -26,3 +26,7 @@ build_l2 = false
 if (getenv("BUILD_L2") == "true") {
   build_l2 = true
 }
+
+declare_args() {
+  profiler_SmartPerf = true
+}

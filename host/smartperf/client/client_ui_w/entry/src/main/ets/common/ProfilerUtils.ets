@@ -27,7 +27,7 @@ const dbName = "gp.db"
 const tableIndex = "t_index_info"
 const tableGeneral = "t_general_info"
 const saveInterval = 60
-var isRk3568 = globalThis.isRk
+
 /**
  * 构造GPData
  */
@@ -103,12 +103,7 @@ export function readDDRFreq(): GPData {
  */
 export function readCPUFreq(): GPData {
   let map = new Map
-  let cpuLength
-  if (isRk3568) {
-    cpuLength = 4
-  } else {
-    cpuLength = 8
-  }
+  let cpuLength = 8
   for (var i = 0;i < cpuLength; i++) {
     const path = "/sys/devices/system/cpu/cpu" + i + "/cpufreq/scaling_cur_freq"
     var cpu = fileOpen(path)
@@ -122,66 +117,46 @@ export function readCPUFreq(): GPData {
  */
 
 let prebufferArr = ["", "", "", "", "", "", "", "", ""]
-let catchLoadArr: Array<String> = ["0", "0", "0", "0", "0"]
-
 export function readCPULoad(): GPData {
   console.log("readCPULoad called");
   const path = "/proc/stat"
   var workLoadArr = []
 
-  if (isRk3568) {
-    let isGiveUP = false
-    let loadQueue: Array<String> = globalThis.cpuLoadArr
-    let curLoadStr = loadQueue.pop()
-    let curLoadArr = curLoadStr.split("==")
-
-    for (var key in curLoadArr) {
-      if (key == "nan" || key == "-1") {
-        isGiveUP = true
-        break;
+  try {
+    var fd = -1
+    fd = fileio.openSync(path, 0o0)
+    let buf = new ArrayBuffer(2048);
+    fileio.readSync(fd, buf);
+    let cpuStr: String = String.fromCharCode.apply(null, new Uint8Array(buf))
+    let cpuStrArr = []
+    cpuStr = cpuStr.substring(0, cpuStr.indexOf("intr"))
+    let nextj = 0;
+    let j
+    for (var i = 1;i < cpuStr.length; i++) {
+      if (cpuStr.charAt(i) == 'c') {
+        j = nextj
+        nextj = i
+        cpuStrArr.push(cpuStr.substring(j, nextj))
       }
     }
-    if (!isGiveUP) {
-      workLoadArr.push(catchLoadArr)
-      catchLoadArr = loadQueue
-    }
+    cpuStrArr.push(cpuStr.substring(nextj, nextj + 50))
 
-  } else {
-    try {
-      var fd = -1
-      fd = fileio.openSync(path, 0o0)
-      let buf = new ArrayBuffer(2048);
-      fileio.readSync(fd, buf);
-      let cpuStr: String = String.fromCharCode.apply(null, new Uint8Array(buf))
-      let cpuStrArr = []
-      cpuStr = cpuStr.substring(0, cpuStr.indexOf("intr"))
-      let nextj = 0;
-      let j
-      for (var i = 1;i < cpuStr.length; i++) {
-        if (cpuStr.charAt(i) == 'c') {
-          j = nextj
-          nextj = i
-          cpuStrArr.push(cpuStr.substring(j, nextj))
-        }
-      }
-      cpuStrArr.push(cpuStr.substring(nextj, nextj + 50))
-
-      console.log("cpuStrArrLength:" + cpuStrArr.length);
-      let buffer = ""
-      for (let index = 1;index < cpuStrArr.length; index++) {
-        console.log("cpuStrArr:" + cpuStrArr[index]);
-        buffer = cpuStrArr[index]
-        let load = calCPULoad(buffer, prebufferArr[index])
-        workLoadArr.push(load)
-        console.log("cpuStr load:" + load);
-        prebufferArr[index] = buffer
-      }
-    } catch (err) {
-      console.log("readCPULoad path:" + path + " error:" + err);
-    } finally {
-      fileio.closeSync(fd)
+    console.log("cpuStrArrLength:" + cpuStrArr.length);
+    let buffer = ""
+    for (let index = 1;index < cpuStrArr.length; index++) {
+      console.log("cpuStrArr:" + cpuStrArr[index]);
+      buffer = cpuStrArr[index]
+      let load = calCPULoad(buffer, prebufferArr[index])
+      workLoadArr.push(load)
+      console.log("cpuStr load:" + load);
+      prebufferArr[index] = buffer
     }
+  } catch (err) {
+    console.log("readCPULoad path:" + path + " error:" + err);
+  } finally {
+    fileio.closeSync(fd)
   }
+
   let map = new Map
   for (let index = 0; index < workLoadArr.length; index++) {
     const element = workLoadArr[index];
@@ -249,31 +224,15 @@ export function ArrStr2Number(arr: Array<String>): Array<number> {
  */
 export function readGPU(): GPData {
   let map = new Map
-  if (isRk3568) {
-    const path = "/sys/class/devfreq/fde60000.gpu/cur_freq"
-    var gpufreq = fileOpen(path)
-    map.set("gpuFreq", gpufreq)
-    console.log("profile_readGPUFreq freq:" + gpufreq);
 
-    const path1 = "/sys/class/devfreq/fde60000.gpu/load"
-    var gpuload = fileOpen(path1)
-    let loadStr: string[] = gpuload.split("@")
-    let load = "-1"
-    if (loadStr.length > 0) {
-      load = loadStr[0].toString()
-    }
-    map.set("gpuLoad", load)
+  const path = "/sys/class/devfreq/gpufreq/cur_freq"
+  var gpufreq = fileOpen(path)
+  map.set("gpuFreq", gpufreq)
+  console.log("profile_readGPUFreq freq:" + gpufreq);
 
-  } else {
-    const path = "/sys/class/devfreq/gpufreq/cur_freq"
-    var gpufreq = fileOpen(path)
-    map.set("gpuFreq", gpufreq)
-    console.log("profile_readGPUFreq freq:" + gpufreq);
-
-    const path1 = "/sys/class/devfreq/gpufreq/gpu_scene_aware/utilisation"
-    var gpuload = fileOpen(path1)
-    map.set("gpuLoad", gpuload)
-  }
+  const path1 = "/sys/class/devfreq/gpufreq/gpu_scene_aware/utilisation"
+  var gpuload = fileOpen(path1)
+  map.set("gpuLoad", gpuload)
 
   console.log("profile_readGPULoad Load:" + gpuload);
   return createGPData("GPU", map)
@@ -287,14 +246,10 @@ export function readPower(): GPData {
   let map = new Map
   var index = ["current_now", "voltage_now", "charge_now", "temp", "status"]
   let pathPower = "/sys/class/power_supply/Battery/"
-  if (isRk3568) {
-    console.log("send msg power")
-  } else {
-    for (var i in index) {
+  for (var i in index) {
       var value = fileOpen(pathPower + index[i])
       map.set(index[i], value)
       console.log("profile_readPower::" + index[i] + " " + value)
-    }
   }
   return createGPData("Power", map)
 }
@@ -315,33 +270,20 @@ export function readTemp(): GPData {
     "ambient",
     "Battery"
   ]
-  if (isRk3568) {
-    console.info("messageQueue for temp " + globalThis.tempArr.length)
-    let tempQueue: Array<String> = globalThis.tempArr
-    let curTemp = tempQueue.pop()
-    let tempArr = curTemp.split("==")
-    for (var i = 0; i < tempArr.length; i++) {
-      let tmp = tempArr[i]
-      let tmpArr = tmp.split(",,")
-      map.set(tmpArr[0], tmpArr[1])
+  for (var i = 0; i < 50; i++) {
+    const pathtemp = "/sys/devices/virtual/thermal/thermal_zone" + i + "/temp"
+    try {
+      fileio.accessSync(pathtemp);
+      var temp = fileOpen(pathtemp)
+      const pathtype = "/sys/devices/virtual/thermal/thermal_zone" + i + "/type"
+      var tptype = fileOpen(pathtype)
+      zoneMap.set(tptype, temp)
+    } catch (e) {
+      break
     }
-
-  } else {
-    for (var i = 0; i < 50; i++) {
-      const pathtemp = "/sys/devices/virtual/thermal/thermal_zone" + i + "/temp"
-      try {
-        fileio.accessSync(pathtemp);
-        var temp = fileOpen(pathtemp)
-        const pathtype = "/sys/devices/virtual/thermal/thermal_zone" + i + "/type"
-        var tptype = fileOpen(pathtype)
-        zoneMap.set(tptype, temp)
-      } catch (e) {
-        break
-      }
-    }
-    for (var k = 0; k < defaultArr.length; k++) {
-      map.set(defaultArr[k], zoneMap.get(defaultArr[k]))
-    }
+  }
+  for (var k = 0; k < defaultArr.length; k++) {
+    map.set(defaultArr[k], zoneMap.get(defaultArr[k]))
   }
   return createGPData("Temp", map)
 }
@@ -403,13 +345,6 @@ export const task_running = 2
 export const task_pause = 3
 //采集结束
 export const task_stop = 4
-
-//当前任务状态
-var cur_status = -1
-
-//采集是否激活
-var active = false
-
 
 export function taskInit() {
   console.info(TAG + 'ServiceAbility taskInit call');
@@ -507,7 +442,7 @@ export function taskPause() {
   console.info(TAG + 'ServiceAbility taskPause called');
 }
 
-export function taskSave(data : Array<TIndexInfo>) {
+export function taskSave(data: Array<TIndexInfo>) {
   console.info(TAG + 'ServiceAbility taskStop call');
   // t_index_info  入库
   if (data.length > 0) {
@@ -544,7 +479,7 @@ export function taskSave(data : Array<TIndexInfo>) {
   tGenneralInfo.brand = deviceInfo.brand
   tGenneralInfo.version = deviceInfo.displayVersion
   tGenneralInfo.sn = deviceInfo.serial
-  database.insertGeneraData(tableGeneral, tGenneralInfo,  globalThis.dbTime.toString())
+  database.insertGeneraData(tableGeneral, tGenneralInfo, globalThis.dbTime.toString())
   console.info(TAG + 'ServiceAbility taskStop call3');
   createFilePath(AppFileDir + globalThis.dbTime + "/t_general_info.csv", csvGeneralInfo(tGenneralInfo))
   console.info(TAG + 'ServiceAbility taskStop call4');

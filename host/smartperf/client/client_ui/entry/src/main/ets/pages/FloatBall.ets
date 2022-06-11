@@ -13,23 +13,18 @@
  * limitations under the License.
  */
 import { secToTime } from '../common/utils/TimeUtils';
-import { TaskStatus,CatchTraceStatus}  from '../common/profiler/base/ProfilerConstant';
-import { MainWorker } from "../common/profiler/MainWorkTask"
+import { TaskStatus }  from '../common/profiler/base/ProfilerConstant';
 import { ProfilerTask } from "../common/profiler/ProfilerTask"
-import { initFloatWindow } from '../common/ui/floatwindow/utils/FloatWindowUtils'
-let traceTime = 0
-let socketCollectItems
-let isCollectRam = false
+import { initFloatWindow,destoryAllFloatWindow } from '../common/ui/floatwindow/utils/FloatWindowUtils'
+
 
 @Entry
 @Component
 struct FloatBall {
   @State playerState: number = TaskStatus.task_init
   @State timerNum: number = 0
-  @State FpsTimer: number = -1
   timerId: number = -1
   @State windShowState: boolean = false
-  @State windFpsShowState: boolean = false
   offsetX: number = -1
   offsetY: number = -1
   //解決手势失效的问题
@@ -45,97 +40,26 @@ struct FloatBall {
     ProfilerTask.getInstance().taskInit()
     //创建TiTile窗
     globalThis.CreateTitleWindow()
-    globalThis.CreateFPSLineChartWindow()
     globalThis.task_status = TaskStatus.task_init
     initFloatWindow()
-    if (globalThis.collectConfigs.trace) {
-      globalThis.catchTraceState = CatchTraceStatus.catch_trace_start
-      globalThis.jitterTrace = false
-    }
 
   }
 
   initAllCollect() {
+    console.log("collectIntervalCollect initAllCollect....");
     if (globalThis.collectConfigs != -1 && globalThis.collectPkg != -1) {
       globalThis.collectIntervalCollect = setInterval(() => {
-        if (globalThis.timerFps == undefined) {
-        } else {
-          this.FpsTimer = globalThis.timerFps
-        }
+        console.log("collectIntervalCollect running....");
         if (this.playerState == TaskStatus.task_running) {
           ProfilerTask.getInstance().taskStart()
-        }
-      }, 1000)
-      globalThis.collectSocketCollect = setInterval(() => {
-        if (this.playerState == TaskStatus.task_running) {
           this.timerNum++
-          isCollectRam = false
-          if ((globalThis.collectIntervalNum % 5 == 0) && globalThis.collectConfigs.RAM) {
-            isCollectRam = true
-          } else {
-            isCollectRam = false
-          }
-
-          socketCollectItems = {
-            "pkg": globalThis.collectPkg,
-            "ram": isCollectRam,
-            "fps": globalThis.collectConfigs.FPS,
-            "screen_capture": globalThis.collectConfigs.screen_capture,
-            "is_video": globalThis.collectConfigs.is_video,
-            "is_camera": globalThis.collectConfigs.is_camera
-          }
-
-          if (globalThis.collectConfigs.trace) {
-            this.taskTrace(socketCollectItems)
-          }
-          MainWorker.postMessage(socketCollectItems)
         }
+        console.log("collectIntervalCollect running status::"+ this.playerState);
       }, 1000)
     }
     globalThis.task_status = TaskStatus.task_running
     this.playerState = TaskStatus.task_running
-  }
-
-  getJitterTrace() {
-    if (globalThis.fpsJitterArr != undefined && globalThis.fpsJitterArr != null && globalThis.fpsJitterArr != "") {
-      let tempQueue: Array<String> = globalThis.fpsJitterArr
-      let curJitter = tempQueue.pop()
-      let tempJitterArr = curJitter.split("==")
-      for (var i = 0; i < tempJitterArr.length; i++) {
-        let tmp = tempJitterArr[i]
-        let jitter = parseInt(tmp) / 1e6
-        if (jitter > 100) {
-          globalThis.jitterTrace = true
-          return
-        }
-      }
-    }
-  }
-
-  taskTrace(defaultSocketCollectItems) {
-    if (globalThis.catchTraceState == CatchTraceStatus.catch_trace_start) { //开始
-      defaultSocketCollectItems["catch_trace_start"] = true
-      globalThis.catchTraceState = CatchTraceStatus.catch_trace_first_running
-    } else if (globalThis.catchTraceState == CatchTraceStatus.catch_trace_finish) { //抓取
-      defaultSocketCollectItems["catch_trace_finish"] = true
-      defaultSocketCollectItems["traceName"] = this.timerNum + ""
-      globalThis.catchTraceState = CatchTraceStatus.catch_trace_running;
-      traceTime = 0
-    } else if (globalThis.catchTraceState == CatchTraceStatus.catch_trace_first_running) { //第一次运行
-      if (globalThis.jitterTrace) { //抓取
-        defaultSocketCollectItems["catch_trace_finish"] = true
-        defaultSocketCollectItems["traceName"] = this.timerNum + ""
-        globalThis.catchTraceState = CatchTraceStatus.catch_trace_running;
-        traceTime = 0
-        globalThis.jitterTrace = false
-      }
-    } else if (globalThis.catchTraceState == CatchTraceStatus.catch_trace_running) { //有时间间隔的运行
-      traceTime++
-      if (traceTime > CatchTraceStatus.catch_trace_times) {
-        globalThis.catchTraceState = CatchTraceStatus.catch_trace_start
-      }
-    }
-    socketCollectItems = defaultSocketCollectItems
+    console.log("collectIntervalCollect initAllCollect finished....");
   }
 
   singleEvent() {
@@ -146,16 +70,6 @@ struct FloatBall {
     else if (this.playerState == TaskStatus.task_pause) {
       globalThis.task_status = TaskStatus.task_running
       this.playerState = TaskStatus.task_running
-    }
-  }
-
-  fpsEvent(){
-    if (this.windFpsShowState) {
-      globalThis.HideFPSLineChartWindow()
-      this.windFpsShowState = false
-    } else {
-      globalThis.ShowFPSLineChartWindow()
-      this.windFpsShowState = true
     }
   }
 
@@ -179,13 +93,11 @@ struct FloatBall {
   destroyAllWindow(){
     globalThis.DestroyFloatingWindow()
     globalThis.DestroyTitleWindow()
-    globalThis.DestroyFPSLineChartWindow()
+    destoryAllFloatWindow()
   }
 
   clearAllInterVal(){
     clearInterval(globalThis.collectIntervalCollect)
-    clearInterval(globalThis.collectSocketCollect)
-    clearInterval(globalThis.collectOtherSocket)
   }
 
   MoveWindow(offsetX: number, offsetY: number) {
@@ -218,7 +130,9 @@ struct FloatBall {
           .width('100%')
           .height('100%')
           .onClick(() => {
+            console.log("collectIntervalCollect  single click ....");
             this.initAllCollect()
+            console.log("collectIntervalCollect  single click finished....");
           })
           .gesture(
           GestureGroup(GestureMode.Exclusive,

@@ -84,7 +84,7 @@ struct ReportDetail {
             TabContent() {
               Summary({ gpData: this.gpData })
             }.tabBar('概览')
-          }
+          }.backgroundColor("#f5f5f5")
           .barWidth(360)
           .scrollable(true)
           .barHeight(60)

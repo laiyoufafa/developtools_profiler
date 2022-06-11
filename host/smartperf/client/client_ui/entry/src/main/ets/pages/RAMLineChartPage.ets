@@ -36,10 +36,10 @@ struct RAMLineChartPage {
 
           this.data.shift() //移除第一个元素
         }
-        if (globalThis.tTndex.pss == undefined || isNaN(globalThis.tTndex.pss)) {
+        if (globalThis.pss == undefined || isNaN(globalThis.pss)) {
           this.pss = 0
         } else {
-          this.pss = globalThis.tTndex.pss
+          this.pss = globalThis.pss
 
           if (this.pss == 0) {
             this.data.push(0)
@@ -62,19 +62,17 @@ struct RAMLineChartPage {
       FloatWindowComponent({ title: `RAM`, data: this.data })
       Flex({ justifyContent: FlexAlign.SpaceBetween, alignItems: ItemAlign.Center }) {
         Text(this.floatName + ":" + this.pss + "KB")
-          .fontSize('6fp')
-          .fontColor($r("app.color.color_333"))
+          .fontSize('10fp')
+          .fontColor($r("app.color.color_fff"))
           .margin({ left: 5, top: 3 }) //文本显示
         Text(this.random + "")
           .fontSize('1fp')
-          .fontColor($r("app.color.color_333")).visibility(Visibility.None)
-        Image($r("app.media.icon_close_small")).width('15vp').height('15vp').onClick(() => {
+          .fontColor($r("app.color.color_fff")).visibility(Visibility.None)
+        Image($r("app.media.icon_close_small")).width('20vp').height('20vp').onClick(() => {
           hideFloatWindow(this.floatName)
 
         }).align(Alignment.TopEnd)
-      }.height('15vp').width('100%')
-
-
+      }.height('20vp').width('100%')
     }
   }
 }

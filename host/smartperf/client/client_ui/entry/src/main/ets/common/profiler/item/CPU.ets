@@ -45,13 +45,12 @@ export class CPU extends BaseProfiler {
 
   isSupport(){
     if(isAccess(CPU_CONFIG.CPU_BASE)&&isAccess(CPU_CONFIG.CPU_LOAD)){
-      SPLogger.DEBUG("BaseProfilerUtils","ets check path is success..."+ "path:");
-      SPLogger.DEBUG("BaseProfilerUtils","napi check path start..."+ "path:");
+
       if (globalThis.checkAccess(CPU_CONFIG.CPU_LOAD) == "PermissionAccessed") {
-        SPLogger.DEBUG("BaseProfilerUtils","napi check path success+1..."+ "path:");
+
         return true
       }
-      SPLogger.DEBUG("BaseProfilerUtils","napi check path finish..."+ "path:");
+
     }
     return false
   }
@@ -61,7 +60,7 @@ export class CPU extends BaseProfiler {
       const path = CPU_CONFIG.CPU_BASE + "/cpu" + i + CPU_CONFIG.CPU_CUR_FREQ
       var cpu = fileOpen(path)
       this.cpuMap.set("cpu" + i + "Freq", cpu)
-      SPLogger.DEBUG(CPU.name,"profile_readCpu cpu" + i + "freq:" + cpu);
+
     }
     return createGPData("CPU", this.cpuMap)
   }
@@ -97,7 +96,7 @@ export class CPU extends BaseProfiler {
         this.prebufferArr[index] = buffer
       }
     } catch (err) {
-      SPLogger.ERROR(CPU.name,"readCPULoad path:" + path + " error:" + err);
+
     } finally {
       fileio.closeSync(fd)
     }

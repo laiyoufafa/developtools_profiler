@@ -44,22 +44,20 @@ export function createFloatWindow(floatName:string) {
             })
             if(floatName=="currentNow"){
               floatWin.loadContent('pages/CurrentNowLineChartPage').then(() => {
-                floatWin.setBackgroundColor("#B3000000").then(() => { //透明
-                  console.log("xhq win setTransparent end.");
+
                   floatWin.setBackgroundColor("#80020000").then(() => { //背景颜色
                   })
-                })
+
                 floatWin.show().then(() => {
                   floatWin.hide()
                 })
               })
             }else if(floatName=="shellBackTemp"){
               floatWin.loadContent('pages/ShellBackTempLineChartPage').then(() => {
-                floatWin.setBackgroundColor("#B3000000").then(() => { //透明
-                  console.log("xhq win setTransparent end.");
+
                   floatWin.setBackgroundColor("#80020000").then(() => { //背景颜色
                   })
-                })
+
                 floatWin.show().then(() => {
                   floatWin.hide()
                 })
@@ -67,11 +65,10 @@ export function createFloatWindow(floatName:string) {
             }
             else if(floatName=="ddrFrequency"){
               floatWin.loadContent('pages/DDRLineChartPage').then(() => {
-                floatWin.setBackgroundColor("#B3000000").then(() => { //透明
-                  console.log("xhq win setTransparent end.");
+
                   floatWin.setBackgroundColor("#80020000").then(() => { //背景颜色
                   })
-                })
+
                 floatWin.show().then(() => {
                   floatWin.hide()
                 })
@@ -79,11 +76,10 @@ export function createFloatWindow(floatName:string) {
             }
             else if(floatName=="gpuFrequency"){
               floatWin.loadContent('pages/GPULineChartPage').then(() => {
-                floatWin.setBackgroundColor("#B3000000").then(() => { //透明
-                  console.log("xhq win setTransparent end.");
+
                   floatWin.setBackgroundColor("#80020000").then(() => { //背景颜色
                   })
-                })
+
                 floatWin.show().then(() => {
                   floatWin.hide()
                 })
@@ -91,11 +87,10 @@ export function createFloatWindow(floatName:string) {
             }
             else if(floatName=="cpu0Frequency"){
               floatWin.loadContent('pages/CPU0LineChartPage').then(() => {
-                floatWin.setBackgroundColor("#B3000000").then(() => { //透明
-                  console.log("xhq win setTransparent end.");
+
                   floatWin.setBackgroundColor("#80020000").then(() => { //背景颜色
                   })
-                })
+
                 floatWin.show().then(() => {
                   floatWin.hide()
                 })
@@ -103,10 +98,10 @@ export function createFloatWindow(floatName:string) {
             }
             else if(floatName=="cpu1Frequency"){
               floatWin.loadContent('pages/CPU1LineChartPage').then(() => {
-                floatWin.setBackgroundColor("#B3000000").then(() => { //透明
+
                   floatWin.setBackgroundColor("#80020000").then(() => { //背景颜色
                   })
-                })
+
                 floatWin.show().then(() => {
                   floatWin.hide()
                 })
@@ -114,11 +109,10 @@ export function createFloatWindow(floatName:string) {
             }
             else if(floatName=="cpu2Frequency"){
               floatWin.loadContent('pages/CPU2LineChartPage').then(() => {
-                floatWin.setBackgroundColor("#B3000000").then(() => { //透明
-                  console.log("xhq win setTransparent end.");
+
                   floatWin.setBackgroundColor("#80020000").then(() => { //背景颜色
                   })
-                })
+
                 floatWin.show().then(() => {
                   floatWin.hide()
                 })
@@ -126,22 +120,20 @@ export function createFloatWindow(floatName:string) {
             }
             else if(floatName=="RAM"){
               floatWin.loadContent('pages/RAMLineChartPage').then(() => {
-                floatWin.setBackgroundColor("#B3000000").then(() => { //透明
-                  console.log("xhq win setTransparent end.");
+
                   floatWin.setBackgroundColor("#80020000").then(() => { //背景颜色
                   })
-                })
+
                 floatWin.show().then(() => {
                   floatWin.hide()
                 })
               })
             }else if(floatName=="FPS") {
               floatWin.loadContent('pages/FpsLineChartPage').then(() => {
-                floatWin.setBackgroundColor("#B3000000").then(() => { //透明
-                  console.log("xhq win setTransparent end.");
+
                   floatWin.setBackgroundColor("#80020000").then(() => { //背景颜色
                   })
-                })
+
                 floatWin.show().then(() => {
                   floatWin.hide()
                   console.log("FPS--------------loadContent")

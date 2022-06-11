@@ -43,11 +43,11 @@ struct FpsLineChartPage {
         console.log("GestureEvent--------------shift:" + this.data);
         this.data.shift()  //移除第一个元素
       }
-      if (globalThis.timerFps == undefined) {
+      if (globalThis.lineFps == undefined) {
         this.LineFps = 0
         this.data.push(0) //在末尾填充一个元素
       } else {
-        this.LineFps = globalThis.timerFps
+        this.LineFps = globalThis.lineFps
         if(this.LineFps==0){
           this.data.push(0)
         }else{
@@ -63,7 +63,7 @@ struct FpsLineChartPage {
     Flex({ direction: FlexDirection.Column, alignItems: ItemAlign.Start, justifyContent: FlexAlign.Center }) {
 
       Flex({ justifyContent: FlexAlign.SpaceBetween, alignItems: ItemAlign.Center }) {
-        Text("FPS:" + this.LineFps).fontSize('6fp').fontColor($r("app.color.color_333")).margin({ left: 5, top: 3 })  //文本显示
+        Text("FPS:" + this.LineFps).fontSize('10fp').fontColor($r("app.color.color_fff")).margin({ left: 5, top: 3 })  //文本显示
         Image($r("app.media.icon_close_small")).width('15vp').height('15vp').onClick(() => {
           globalThis.HideFPSLineChartWindow()
         })
@@ -76,11 +76,13 @@ struct FpsLineChartPage {
           //Y轴
           this.context.clearRect(this.XPoint + 0.5, this.YPoint - this.YLength, this.XLength, this.YLength)
           this.context.beginPath()
+          this.context.strokeStyle="#ffffff"
           this.context.moveTo(this.XPoint, this.YPoint - this.YLength)
           this.context.lineTo(this.XPoint, this.YPoint)
           this.context.stroke()
           //X轴
           this.context.beginPath()
+          this.context.strokeStyle="#ffffff"
           this.context.moveTo(this.XPoint, this.YPoint)
           this.context.lineTo(this.XPoint + this.XLength, this.YPoint)
           this.context.stroke()
@@ -88,6 +90,7 @@ struct FpsLineChartPage {
           if (this.data.length > 1) {
             for (let i = 1; i < this.data.length; i++) {
               this.context.beginPath()
+              this.context.strokeStyle="#ffffff"
               console.log("GestureEvent--------------beginPath:" + this.data[i-1]);
               this.context.moveTo(this.XPoint + (i - 1) * this.XScale, this.YPoint - this.data[i-1])
               this.context.lineTo(this.XPoint + i * this.XScale, this.YPoint - this.data[i])

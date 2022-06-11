@@ -20,7 +20,7 @@ const TAG = "FloatWindowFun"
 
 export class FloatWindowFun {
     static floatingWindowOffsetX: number = 50
-    static floatingWindowOffsetY: number = 200
+    static floatingWindowOffsetY: number = 300
     static titleWindowOffsetX: number = 300
     static titleWindowOffsetY: number = 200
     static lineChartWindowOffsetX: number= 700
@@ -39,7 +39,7 @@ export class FloatWindowFun {
                             property.isTransparent = false
                         })
                         floatWin.loadContent('pages/FloatBall').then(() => {
-                            floatWin.setBackgroundColor("#B3000000").then(() => { //透明
+                            floatWin.setBackgroundColor("#00000000").then(() => { //透明
                                 floatWin.show().then(() => {
                                     globalThis.showFloatingWindow = true
                                 })
@@ -75,12 +75,12 @@ export class FloatWindowFun {
         globalThis.CreateTitleWindow = (() => {
             wm.create(globalThis.abilityContext, 'TitleWindow', 2106).then((floatWin) => {
                 floatWin.moveTo(this.titleWindowOffsetX, this.titleWindowOffsetY).then(() => {
-                    floatWin.resetSize(350, 260).then(() => {
+                    floatWin.resetSize(350, 380).then(() => {
                         floatWin.getProperties().then((property) => {
                             property.isTransparent = false
                         })
                         floatWin.loadContent('pages/TitleWindowPage').then(() => {
-                            floatWin.setBackgroundColor("#B3000000")
+                            floatWin.setBackgroundColor("#4d000000")
                             floatWin.hide()
                             SPLogger.DEBUG(TAG, 'CreateTitleWindow Done')
                         })

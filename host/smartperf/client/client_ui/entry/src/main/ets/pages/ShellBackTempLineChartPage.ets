@@ -36,10 +36,10 @@ struct ShellBackTempLineChartPage {
 
           this.data.shift() //移除第一个元素
         }
-        if (globalThis.tTndex.shellBackTemp == undefined) {
+        if (globalThis.socThermalTemp == undefined) {
           this.shellBackTemp = 0
         } else {
-          this.shellBackTemp = globalThis.tTndex.shellBackTemp / 1e3
+          this.shellBackTemp = globalThis.socThermalTemp / 1e3
           console.log("shellBackTemp---------------------" + this.shellBackTemp)
           if (this.shellBackTemp == 0) {
             this.data.push(0)
@@ -63,18 +63,18 @@ struct ShellBackTempLineChartPage {
       FloatWindowComponent({ title: `shellBackTemp`, data: this.data })
       Flex({ justifyContent: FlexAlign.SpaceBetween, alignItems: ItemAlign.Center }) {
         Text(this.floatName + ":" + this.shellBackTemp + "℃")
-          .fontSize('6fp')
-          .fontColor($r("app.color.color_333"))
+          .fontSize('10fp')
+          .fontColor($r("app.color.color_fff"))
           .margin({ left: 5, top: 3 }) //文本显示
         Text(this.random + "")
           .fontSize('1fp')
-          .fontColor($r("app.color.color_333")).visibility(Visibility.None)
+          .fontColor($r("app.color.color_fff")).visibility(Visibility.None)
 
-        Image($r("app.media.icon_close_small")).width('15vp').height('15vp').onClick(() => {
+        Image($r("app.media.icon_close_small")).width('20vp').height('20vp').onClick(() => {
           hideFloatWindow(this.floatName)
 
         }).align(Alignment.TopEnd)
-      }.height('15vp').width('100%')
+      }.height('20vp').width('100%')
 
 
     }

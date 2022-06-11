@@ -52,11 +52,13 @@ export struct FloatWindowComponent {
           //Y轴
           this.context.clearRect(this.XPoint + 0.5, this.YPoint - this.YLength, this.XLength, this.YLength)
           this.context.beginPath()
+          this.context.strokeStyle="#ffffff"
           this.context.moveTo(this.XPoint, this.YPoint - this.YLength)
           this.context.lineTo(this.XPoint, this.YPoint)
           this.context.stroke()
           //X轴
           this.context.beginPath()
+          this.context.strokeStyle="#ffffff"
           this.context.moveTo(this.XPoint, this.YPoint)
           this.context.lineTo(this.XPoint + this.XLength, this.YPoint)
           this.context.stroke()
@@ -64,6 +66,7 @@ export struct FloatWindowComponent {
           if (this.data.length > 1) {
             for (let i = 1; i < this.data.length; i++) {
               this.context.beginPath()
+              this.context.strokeStyle="#ffffff"
               console.log("GestureEvent--------------beginPath:" + this.data[i-1]);
               this.context.moveTo(this.XPoint + (i - 1) * this.XScale, this.YPoint - this.data[i-1])
               this.context.lineTo(this.XPoint + i * this.XScale, this.YPoint - this.data[i])
