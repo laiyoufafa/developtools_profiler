@@ -32,19 +32,20 @@ struct GPULineChartPage {
     globalThis.LineChartCollect = setInterval(() => {
       this.task_state = globalThis.task_status
       if (this.task_state == TaskStatus.task_running) {
+
         if (this.data.length >= 22) {
 
           this.data.shift() //移除第一个元素
         }
-        if (globalThis.tTndex.gpuFrequency == undefined) {
+        if (globalThis.gpuFrequency == undefined) {
           this.gpuFrequency = 0
         } else {
-          this.gpuFrequency = Number((globalThis.tTndex.gpuFrequency / 1e6).toFixed(2)).valueOf()
+          this.gpuFrequency = Number((globalThis.gpuFrequency / 1e6).toFixed(2)).valueOf()
 
           if (this.gpuFrequency == 0) {
             this.data.push(0)
           } else {
-            let lineCount: number = this.gpuFrequency / 30
+            let lineCount: number = this.gpuFrequency / 15
             this.data.push(Math.abs(lineCount)) //在末尾填充一个元素
           }
           this.random = Math.random()
@@ -60,18 +61,18 @@ struct GPULineChartPage {
       FloatWindowComponent({ title: `gpuFrequency`, data: this.data })
       Flex({ justifyContent: FlexAlign.SpaceBetween, alignItems: ItemAlign.Center }) {
         Text(this.floatName + ":" + this.gpuFrequency + "MHz")
-          .fontSize('6fp')
-          .fontColor($r("app.color.color_333"))
+          .fontSize('10fp')
+          .fontColor($r("app.color.color_fff"))
           .margin({ left: 5, top: 3 }) //文本显示
         Text(this.random + "")
           .fontSize('1fp')
-          .fontColor($r("app.color.color_333")).visibility(Visibility.None)
-        Image($r("app.media.icon_close_small")).width('15vp').height('15vp').onClick(() => {
+          .fontColor($r("app.color.color_fff")).visibility(Visibility.None)
+        Image($r("app.media.icon_close_small")).width('20vp').height('20vp').onClick(() => {
           hideFloatWindow(this.floatName)
 
           console.log("hideFloatWindow---------------------" + this.floatName)
         }).align(Alignment.TopEnd)
-      }.height('15vp').width('100%')
+      }.height('20vp').width('100%')
 
     }
   }

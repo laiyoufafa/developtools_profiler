@@ -12,6 +12,9 @@
   "component": {
     "name": "profiler",
     "subsystem": "developtools",
+    "features": [
+      "profiler_SmartPerf"
+    ],
     "syscap": [
       "SystemCapability.HiviewDFX.HiProfiler.HiDebug"
     ],

@@ -42,8 +42,6 @@ export default class MainAbility extends Ability {
         })
 
         globalThis.showFloatingWindow = false
-        // Ability is creating, initialize resources for this ability
-        globalThis.isRk = false
         globalThis.abilityContext = this.context
         initApps()
         SPLogger.DEBUG(TAG, "[MyApplication] MainAbility initApp finished")
@@ -81,7 +79,7 @@ export default class MainAbility extends Ability {
                             property.isTransparent = false
                         })
                         floatWin.loadContent('pages/FloatBall').then(() => {
-                            floatWin.setBackgroundColor("#B3000000").then(() => { //透明
+                            floatWin.setBackgroundColor("#00000000").then(() => { //透明
                                 console.log("xhq win setTransparent end.");
 
                                     floatWin.show().then(() => {
@@ -124,7 +122,7 @@ export default class MainAbility extends Ability {
                             property.isTransparent = false
                         })
                         floatWin.loadContent('pages/TitleWindowPage').then(() => {
-                            floatWin.setBackgroundColor("#B3000000").then(() => { //透明
+                            floatWin.setBackgroundColor("#00000000").then(() => { //透明
                                 console.log("xhq win setTransparent end.");
                             })
                             floatWin.hide()

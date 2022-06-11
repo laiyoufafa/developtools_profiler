@@ -19,6 +19,7 @@ import { switchList, SwitchItem, CollectItem } from '../common/entity/LocalConfi
 import { StartTestTitleComponent } from '../common/ui/StartTestTitleComponent';
 import { ProfilerTask } from '../common/profiler/ProfilerTask'
 import { CollectorType } from '../common/profiler/base/ProfilerConstant'
+import { getPidOfAbility } from '../common/utils/SystemUtils';
 import prompt from '@system.prompt';
 import SPLogger from '../../ets/common/utils/SPLogger'
 
@@ -97,7 +98,7 @@ struct StartTestPage {
               Text(this.selectApp).fontSize('15fp').fontColor($r("app.color.color_333"))
 
               Image($r('app.media.icon_enter')).width('15vp').height('15vp').margin({ right: '35vp' })
-            }.height('70vp').width('90%')
+            }.height('70vp').width('85%')
           }
           .height('100vp')
           .width('95%')
@@ -169,13 +170,13 @@ struct StartTestPage {
                 return
               }
 
-              if (this.search("is_camera", this.switchList).isOpen && this.search("is_video", this.switchList).isOpen) {
-                prompt.showToast({ message: "video and camera can't be all selected", duration: 1000 })
-                return
-              }
-
               //启动app
               commonStartAbility(new String(router.getParams()["selectPackageName"]).toString(), new String(router.getParams()["selectAbilityName"]).toString())
+
+              //初始化采集目标进程pid
+              getPidOfAbility(globalThis.collectPkg).then(pid=>{
+                globalThis.processPid = pid
+              })
               //启动悬浮窗
               globalThis.CreateFloatingWindow()
               router.back({ uri: "pages/MainPage" })
@@ -190,19 +191,21 @@ struct StartTestPage {
   }
 
   onPageShow() {
+    let routerParams = router.getParams()
     console.info("startTestPage" + "onPageShow调用了");
     console.info("startTestPage  router" + "onPageShow调用了" + router);
-    console.info("startTestPage  router" + "onPageShow调用了" + JSON.stringify(router.getParams()));
-    if (router.getParams()["appName"] == null) {
+    console.info("startTestPage  router" + "onPageShow调用了" + JSON.stringify(routerParams));
+
+    if (routerParams["appName"] == null) {
       this.selectApp = "请选择一个应用"
       this.testName = ""
       this.selectAppIcon = ""
     } else {
-      this.selectApp = new String(router.getParams()["appName"]).toString()
-      globalThis.appName = new String(router.getParams()["appName"]).toString()
-      globalThis.appVersion = new String(router.getParams()["appVersion"]).toString()
-      globalThis.packageName = new String(router.getParams()["selectPackageName"]).toString()
-      this.selectAppIcon = new String(router.getParams()["appIconId"]).toString()
+      this.selectApp = new String(routerParams["appName"]).toString()
+      globalThis.appName = new String(routerParams["appName"]).toString()
+      globalThis.appVersion = new String(routerParams["appVersion"]).toString()
+      globalThis.packageName = new String(routerParams["selectPackageName"]).toString()
+      this.selectAppIcon = new String(routerParams["appIconId"]).toString()
       let date = new Date()
       let M = (date.getMonth() + 1 < 10 ? '0' + (date.getMonth() + 1) : date.getMonth() + 1);
       let D = date.getDate() + '-';

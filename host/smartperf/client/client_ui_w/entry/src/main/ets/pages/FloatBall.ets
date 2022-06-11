@@ -71,29 +71,7 @@ struct FloatBall {
         }
         if (this.playerState == task_running) {
           this.timerNum++
-          if (globalThis.isRk) {
-            //RK 3568 SOCKET
-            let cpu_load_socket = false
-            let power_socket = false
-            let temperature_socket = false
-            if (globalThis.collectConfigs.CPU) {
-              cpu_load_socket = true
-            }
-            if (globalThis.collectConfigs.POWER) {
-              power_socket = true
-            }
-            if (globalThis.collectConfigs.TEMP) {
-              temperature_socket = true
-            }
-            let socketCollectItems = {
-              "temperature": temperature_socket,
-              "cpu_load": cpu_load_socket,
-              "power": power_socket,
-            }
-            MainWorker.postMessage(socketCollectItems)
-          }
           taskStart(globalThis.collectConfigs, globalThis.collectPkg)
-
         }
         SPLogger.DEBUG(TAG, "this.timerNum:" + this.timerNum)
         SPLogger.DEBUG(TAG, "taskStatus:" + this.playerState);
@@ -107,13 +85,22 @@ struct FloatBall {
             isCollectRam = false
           }
 
+          if ((globalThis.collectIntervalNum == 0) && globalThis.collectConfigs.RAM) {
+            isCollectRam = true
+          }
+
+          let curPkg = globalThis.collectPkg  
+          let curFPS = globalThis.collectConfigs.FPS
+          let curScreenCapture = globalThis.collectConfigs.screen_capture
+          let isVideo = globalThis.collectConfigs.is_video
+          let isCamera = globalThis.collectConfigs.is_camera
           socketCollectItems = {
-            "pkg": globalThis.collectPkg,
+            "pkg": curPkg,
             "ram": isCollectRam,
-            "fps": globalThis.collectConfigs.FPS,
-            "screen_capture": globalThis.collectConfigs.screen_capture,
-            "is_video": globalThis.collectConfigs.is_video,
-            "is_camera": globalThis.collectConfigs.is_camera
+            "fps": curFPS,
+            "screen_capture": curScreenCapture,
+            "is_video": isVideo,
+            "is_camera": isCamera
           }
 
           if (globalThis.collectConfigs.trace) {

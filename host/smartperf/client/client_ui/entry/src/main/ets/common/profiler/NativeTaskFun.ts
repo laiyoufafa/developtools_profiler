@@ -24,27 +24,27 @@ export class NativeTaskFun {
     static initAllFun() {
         globalThis.CreateNativeFps = ((pkgName: string) => {
             let fpsStr: string = nativeProfiler.getFpsData(pkgName)
-            SPLogger.DEBUG(TAG, "nativeProfiler" + "--> fpsStr:" + fpsStr)
+//            SPLogger.DEBUG(TAG, "nativeProfiler" + "--> fpsStr:" + fpsStr)
             return fpsStr
         })
         globalThis.CreateNativeRam = (() => {
             let ramStr: string = nativeProfiler.getRamData(globalThis.processPid)
-            SPLogger.DEBUG(TAG, "nativeProfiler" + "--> ramStr :" + ramStr)
+//            SPLogger.DEBUG(TAG, "nativeProfiler" + "--> ramStr :" + ramStr)
             globalThis.ramArr.push(ramStr)
             return ramStr
         })
 
         globalThis.CheckDaemon = (() => {
             let status: string = nativeProfiler.checkDaemon()
-            SPLogger.DEBUG(TAG, "nativeProfiler" + "--> daemon status :" + status)
+//            SPLogger.DEBUG(TAG, "nativeProfiler" + "--> daemon status :" + status)
             return status
         })
 
         globalThis.checkAccess = ((path: string) => {
-            SPLogger.DEBUG("BaseProfilerUtils","native check path is start..."+ "path:" + path);
+//            SPLogger.DEBUG("BaseProfilerUtils","native check path is start..."+ "path:" + path);
             let status: string = nativeProfiler.checkAccess(path)
-            SPLogger.DEBUG("BaseProfilerUtils","native check path is finish..."+ "path:" + path);
-            SPLogger.DEBUG(TAG, "nativeProfiler --> "+ path + " status :" + status)
+//            SPLogger.DEBUG("BaseProfilerUtils","native check path is finish..."+ "path:" + path);
+//            SPLogger.DEBUG(TAG, "nativeProfiler --> "+ path + " status :" + status)
             return status
         })
     }

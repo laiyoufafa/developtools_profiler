@@ -36,10 +36,10 @@ struct CPU1LineChartPage {
 
           this.data.shift() //移除第一个元素
         }
-        if (globalThis.tTndex.cpu4Frequency == undefined) {
+        if (globalThis.cpu1Frequency == undefined) {
           this.cpu1Frequency = 0
         } else {
-          this.cpu1Frequency = parseInt(globalThis.tTndex.cpu4Frequency) / 1e3
+          this.cpu1Frequency = parseInt(globalThis.cpu1Frequency) / 1e3
 
           if (this.cpu1Frequency == 0) {
             this.data.push(0)
@@ -60,18 +60,18 @@ struct CPU1LineChartPage {
     Stack({ alignContent: Alignment.Top }) {
       FloatWindowComponent({ title: `cpu1Frequency`, data: this.data })
       Flex({ justifyContent: FlexAlign.SpaceBetween, alignItems: ItemAlign.Center }) {
-        Text(this.floatName + ":" + this.cpu1Frequency + "Hz")
-          .fontSize('6fp')
-          .fontColor($r("app.color.color_333"))
+        Text(this.floatName + ":" + this.cpu1Frequency + "MHz")
+          .fontSize('10fp')
+          .fontColor($r("app.color.color_fff"))
           .margin({ left: 5, top: 3 }) //文本显示
         Text(this.random + "")
           .fontSize('1fp')
-          .fontColor($r("app.color.color_333")).visibility(Visibility.None)
-        Image($r("app.media.icon_close_small")).width('15vp').height('15vp').onClick(() => {
+          .fontColor($r("app.color.color_fff")).visibility(Visibility.None)
+        Image($r("app.media.icon_close_small")).width('20vp').height('20vp').onClick(() => {
           hideFloatWindow(this.floatName)
           console.log("hideFloatWindow---------------------" + this.floatName)
         }).align(Alignment.TopEnd)
-      }.height('15vp').width('100%')
+      }.height('20vp').width('100%')
 
     }
   }

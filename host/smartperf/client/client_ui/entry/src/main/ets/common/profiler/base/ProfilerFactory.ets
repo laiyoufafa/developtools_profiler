@@ -27,28 +27,28 @@ import SPLogger from '../../../common/utils/SPLogger'
 export class ProfilerFactory {
   static getProfilerByConfig(moduleName: string): BaseProfiler{
     if (moduleName == CollectorType.TYPE_FPS) {
-      SPLogger.DEBUG(ProfilerFactory.name,"getProfilerByConfig:TYPE_FPS" );
+
       return FPS.getInstance()
     } else if (moduleName == CollectorType.TYPE_CPU) {
-      SPLogger.DEBUG(ProfilerFactory.name,"getProfilerByConfig:TYPE_CPU");
+
       return CPU.getInstance()
     } else if (moduleName == CollectorType.TYPE_GPU) {
-      SPLogger.DEBUG(ProfilerFactory.name,"getProfilerByConfig:TYPE_GPU" );
+
       return GPU.getInstance()
     } else if (moduleName == CollectorType.TYPE_POWER) {
-      SPLogger.DEBUG(ProfilerFactory.name,"getProfilerByConfig:TYPE_POWER" );
+
       return Power.getInstance()
     } else if (moduleName == CollectorType.TYPE_RAM) {
-      SPLogger.DEBUG(ProfilerFactory.name,"getProfilerByConfig:TYPE_RAM" );
+
       return RAM.getInstance()
     } else if (moduleName == CollectorType.TYPE_TEMPERATURE) {
-      SPLogger.DEBUG(ProfilerFactory.name,"getProfilerByConfig:TYPE_TEMPERATURE" );
+
       return Thermal.getInstance()
     } else if (moduleName == CollectorType.TYPE_DDR) {
-      SPLogger.DEBUG(ProfilerFactory.name,"getProfilerByConfig:TYPE_DDR");
+
       return DDR.getInstance()
     }else if (moduleName == CollectorType.TYPE_NET) {
-      SPLogger.DEBUG(ProfilerFactory.name,"getProfilerByConfig:TYPE_NET");
+
       return NetWork.getInstance()
     }
     return null

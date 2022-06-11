@@ -25,9 +25,9 @@ namespace SmartPerf {
 SmartPerfCommand::SmartPerfCommand(int argc, char *argv[])
 {
     if (argc == ONE_PARAM) {
+        daemon(0, 0);
         socketProfiler = SocketProfiler::GetInstance();
         socketProfiler->initSocketProfiler();
-        daemon(0, 0);
         std::thread t_udp(&SocketProfiler::thread_udp_server, socketProfiler);
         t_udp.join();
     }

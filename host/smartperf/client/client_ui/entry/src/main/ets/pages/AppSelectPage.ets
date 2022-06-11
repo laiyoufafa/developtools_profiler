@@ -12,7 +12,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 import { StartTestTitleComponent } from '../common/ui/StartTestTitleComponent';
 import { AppInfoItem } from '../common/entity/LocalConfigEntity';
 import router from '@system.router';
@@ -38,8 +37,7 @@ struct AppSelectPage {
 struct appInfoComponent {
   @State appInfoList: Array<AppInfoItem> = globalThis.appList
   aboutToAppear() {
-    SPLogger.DEBUG(TAG, "appInfoComponent.....")
-    SPLogger.DEBUG(TAG, "appInfoList....." + JSON.stringify(this.appInfoList))
+
   }
 
   build() {
