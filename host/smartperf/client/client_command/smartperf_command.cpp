@@ -26,6 +26,7 @@ SmartPerfCommand::SmartPerfCommand(int argc, char *argv[])
 {
     if (argc == ONE_PARAM) {
         daemon(0, 0);
+        initSomething();
         socketProfiler = SocketProfiler::GetInstance();
         socketProfiler->initSocketProfiler();
         std::thread t_udp(&SocketProfiler::thread_udp_server, socketProfiler);

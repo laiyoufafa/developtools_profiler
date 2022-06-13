@@ -120,11 +120,15 @@ struct StartTestPage {
 
               Image($r('app.media.icon_enter')).width('15vp').height('15vp').margin({ right: '15vp' })
             }.height('60vp').width('90%').onClick(() => {
+              console.log("TestIndicators---------onClick")
               if (this.selectApp == "请选择一个应用" || this.selectApp == "SmartPerf") {
+                console.log("TestIndicators---------please choose app")
                 prompt.showToast({ message: "please choose app!", duration: 1000 })
                 return
               }
+              console.log("TestIndicators---------dialogController.open()")
               this.dialogController.open()
+              console.log("TestIndicators---------dialogController.open  End()")
             })
           }
           .height('60vp')
@@ -173,10 +177,6 @@ struct StartTestPage {
               //启动app
               commonStartAbility(new String(router.getParams()["selectPackageName"]).toString(), new String(router.getParams()["selectAbilityName"]).toString())
 
-              //初始化采集目标进程pid
-              getPidOfAbility(globalThis.collectPkg).then(pid=>{
-                globalThis.processPid = pid
-              })
               //启动悬浮窗
               globalThis.CreateFloatingWindow()
               router.back({ uri: "pages/MainPage" })

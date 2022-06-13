@@ -18,6 +18,10 @@ import router from '@system.router';
 import { Summary } from '../common/component/detail/Summary';
 import { StartTestTitleComponent } from '../common/component/StartTestTitleComponent';
 import { ReportItem } from '../common/data/LocalCommon';
+import { Performance } from '../common/component/detail/Performance';
+import { Load } from '../common/component/detail/Load';
+import { Power } from '../common/component/detail/Power';
+import { Temperature } from '../common/component/detail/Temperature';
 
 
 @Entry
@@ -89,29 +93,33 @@ struct ReportDetail {
 
             TabContent() {
               Column({space : "10vp"}) {
-                Text("性能展示页在加紧发布中，原始数据可通过hdc命令导出").fontWeight(FontWeight.Bold).fontSize("15fp")
-                Text(`hdc_std file recv /data/app/el2/100/base/com.ohos.gameperceptio/files/${this.reportItem.dbPath.substring(this.reportItem.dbPath.lastIndexOf("/") + 1)}/t_index_info.csv .`)
+                Performance({ gpData: this.gpData })
+//                Text("性能展示页在加紧发布中，原始数据可通过hdc命令导出").fontWeight(FontWeight.Bold).fontSize("15fp")
+//                Text(`hdc_std file recv /data/app/el2/100/base/com.ohos.gameperceptio/files/${this.reportItem.dbPath.substring(this.reportItem.dbPath.lastIndexOf("/") + 1)}/t_index_info.csv .`)
               }.width('100%').height('100%').align(Alignment.Center)
             }.tabBar('性能')
 
             TabContent() {
               Column({space : "10vp"}) {
-                Text("负载展示页在加紧发布中，原始数据可通过hdc命令导出").fontWeight(FontWeight.Bold).fontSize("15fp")
-                Text(`hdc_std file recv /data/app/el2/100/base/com.ohos.gameperceptio/files/${this.reportItem.dbPath.substring(this.reportItem.dbPath.lastIndexOf("/") + 1)}/t_index_info.csv .`)
+                Load({ gpData: this.gpData })
+//                Text("负载展示页在加紧发布中，原始数据可通过hdc命令导出").fontWeight(FontWeight.Bold).fontSize("15fp")
+//                Text(`hdc_std file recv /data/app/el2/100/base/com.ohos.gameperceptio/files/${this.reportItem.dbPath.substring(this.reportItem.dbPath.lastIndexOf("/") + 1)}/t_index_info.csv .`)
               }.width('100%').height('100%').align(Alignment.Center)
             }.tabBar('负载')
 
             TabContent() {
               Column({space : "10vp"}) {
-                Text("功耗展示页在加紧发布中，原始数据可通过hdc命令导出").fontWeight(FontWeight.Bold).fontSize("15fp")
-                Text(`hdc_std file recv /data/app/el2/100/base/com.ohos.gameperceptio/files/${this.reportItem.dbPath.substring(this.reportItem.dbPath.lastIndexOf("/") + 1)}/t_index_info.csv .`)
+                Power({ gpData: this.gpData })
+//                Text("功耗展示页在加紧发布中，原始数据可通过hdc命令导出").fontWeight(FontWeight.Bold).fontSize("15fp")
+//                Text(`hdc_std file recv /data/app/el2/100/base/com.ohos.gameperceptio/files/${this.reportItem.dbPath.substring(this.reportItem.dbPath.lastIndexOf("/") + 1)}/t_index_info.csv .`)
               }.width('100%').height('100%').align(Alignment.Center)
             }.tabBar('功耗')
 
             TabContent() {
               Column({space : "10vp"}) {
-                Text("热展示页在加紧发布中，原始数据可通过hdc命令导出").fontWeight(FontWeight.Bold).fontSize("15fp")
-                Text(`hdc_std file recv /data/app/el2/100/base/com.ohos.gameperceptio/files/${this.reportItem.dbPath.substring(this.reportItem.dbPath.lastIndexOf("/") + 1)}/t_index_info.csv .`)
+                Temperature({ gpData: this.gpData })
+//                Text("热展示页在加紧发布中，原始数据可通过hdc命令导出").fontWeight(FontWeight.Bold).fontSize("15fp")
+//                Text(`hdc_std file recv /data/app/el2/100/base/com.ohos.gameperceptio/files/${this.reportItem.dbPath.substring(this.reportItem.dbPath.lastIndexOf("/") + 1)}/t_index_info.csv .`)
               }.width('100%').height('100%').align(Alignment.Center)
             }.tabBar('热')
           }.backgroundColor("#f5f5f5")

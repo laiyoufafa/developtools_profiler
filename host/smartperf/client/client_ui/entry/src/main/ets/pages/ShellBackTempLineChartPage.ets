@@ -36,16 +36,16 @@ struct ShellBackTempLineChartPage {
 
           this.data.shift() //移除第一个元素
         }
-        if (globalThis.socThermalTemp == undefined) {
+        if (globalThis.shellBackTemp== undefined) {
           this.shellBackTemp = 0
         } else {
-          this.shellBackTemp = globalThis.socThermalTemp / 1e3
+          this.shellBackTemp = globalThis.shellBackTemp
           console.log("shellBackTemp---------------------" + this.shellBackTemp)
           if (this.shellBackTemp == 0) {
             this.data.push(0)
           } else {
             console.log("shellBackTemp---------------------" + this.shellBackTemp)
-            let lineCount: number = this.shellBackTemp
+            let lineCount: number = parseInt(this.shellBackTemp.toString())/ 1e3
             console.log("shellBackTemp---------------------lineCount:" + lineCount)
             this.data.push(Math.abs(lineCount)) //在末尾填充一个元素
 

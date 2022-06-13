@@ -121,54 +121,6 @@ export class FloatWindowFun {
             })
         })
 
-        globalThis.CreateFPSLineChartWindow = (() => {
-            //5.5SP2  2106 改成 8
-            wm.create(globalThis.abilityContext, 'fpsLineChartWindow', 2106).then((floatWin) => {
-                floatWin.moveTo(this.lineChartWindowOffsetX, this.lineChartWindowOffsetY).then(() => {
-                    floatWin.resetSize(130,90).then(() => {
-                        floatWin.loadContent('pages/FpsLineChartPage').then(() => {
-                            floatWin.show().then(() => {
-                                floatWin.hide()
-                            })
-                        })
-                    })
-                })
-            })
-        })
-
-        globalThis.MoveFPSLineChartWindow = ((offsetX: number, offsetY: number) => {
-            var xx = (this.lineChartWindowOffsetX + offsetX * 2) < 0 ? 0 : ((this.lineChartWindowOffsetX + offsetX * 2) > (this.windowWidth - 200) ? (this.windowWidth - 200) : (this.lineChartWindowOffsetX + offsetX * 2))
-            var yy = (this.lineChartWindowOffsetY + offsetY * 2) < 0 ? 0 : ((this.lineChartWindowOffsetY + offsetY * 2) > (this.windowHeight - 200) ? (this.windowHeight - 200) : (this.lineChartWindowOffsetY + offsetY * 2))
-
-            wm.find("fpsLineChartWindow").then((fltWin) => {
-                fltWin.moveTo(xx, yy)
-            })
-        })
-
-        globalThis.SetFPSLineChartWindowPosition = ((offsetX: number, offsetY: number) => {
-            this.lineChartWindowOffsetX = (this.lineChartWindowOffsetX + offsetX * 2) < 0 ? 0 : ((this.lineChartWindowOffsetX + offsetX * 2) > (this.windowWidth - 200) ? (this.windowWidth - 200) : (this.lineChartWindowOffsetX + offsetX * 2))
-            this.lineChartWindowOffsetY = (this.lineChartWindowOffsetY + offsetY * 2) < 0 ? 0 : ((this.lineChartWindowOffsetY + offsetY * 2) > (this.windowHeight - 200) ? (this.windowHeight - 200) : (this.lineChartWindowOffsetY + offsetY * 2))
-        })
-
-        globalThis.DestroyFPSLineChartWindow = (() => {
-            wm.find("fpsLineChartWindow").then((fltWin) => {
-                fltWin.destroy().then(() => {
-                    globalThis.showFPSLineChartWindow = false
-                })
-            })
-        })
-
-        globalThis.HideFPSLineChartWindow = (() => {
-            wm.find("fpsLineChartWindow").then((fltWin) => {
-                fltWin.hide()
-            })
-        })
-
-        globalThis.ShowFPSLineChartWindow = (() => {
-            wm.find("fpsLineChartWindow").then((fltWin) => {
-                fltWin.show()
-            })
-        })
     }
 }
 

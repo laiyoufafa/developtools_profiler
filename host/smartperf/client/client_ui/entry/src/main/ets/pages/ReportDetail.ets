@@ -17,6 +17,9 @@ import { secToTime } from '../common/utils/TimeUtils';
 import { TIndexInfo } from '../common/entity/DatabaseEntity';
 import router from '@system.router';
 import { Summary } from '../common/ui/detail/Summary';
+import { Performance } from '../common/ui/detail/Performance';
+import { LoadRate } from '../common/ui/detail/LoadRate';
+import { Temperature } from '../common/ui/detail/Temperature';
 import { StartTestTitleComponent } from '../common/ui/StartTestTitleComponent';
 import { ReportItem } from '../common/entity/LocalConfigEntity';
 
@@ -84,6 +87,24 @@ struct ReportDetail {
             TabContent() {
               Summary({ gpData: this.gpData })
             }.tabBar('概览')
+
+            TabContent() {
+              Column() {
+                Performance({ gpData: this.gpData })
+              }.width('100%').height('100%')
+            }.tabBar('性能')
+
+            TabContent() {
+              Column() {
+                LoadRate({ gpData: this.gpData })
+              }.width('100%').height('100%')
+            }.tabBar('负载')
+
+            TabContent() {
+              Column() {
+                Temperature({ gpData: this.gpData })
+              }.width('100%').height('100%')
+            }.tabBar('热')
           }.backgroundColor("#f5f5f5")
           .barWidth(360)
           .scrollable(true)

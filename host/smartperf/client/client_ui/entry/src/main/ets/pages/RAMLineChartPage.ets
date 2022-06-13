@@ -45,7 +45,7 @@ struct RAMLineChartPage {
             this.data.push(0)
           } else {
             let lineCount: number = this.pss / 2000
-            console.log("shellBackTemp---------------------lineCount:" + lineCount)
+
             this.data.push(Math.abs(lineCount)) //在末尾填充一个元素
 
           }

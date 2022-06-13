@@ -82,11 +82,12 @@ parentPort.onmessage = function (e) {
     let messageSetPkg = "set_pkgName::" + socketCollectItems.pkg
     udp.getState((err, data) => {
         if (err) {
-            parentPort.postMessage("FPS$-1")
+            parentPort.postMessage("UdpStatus$-1")
             console.log("Worker socket getState error", err);
         }
         console.log('Worker socket getState success:' + JSON.stringify(data));
 
+        parentPort.postMessage("UdpStatus$1")
         if (flagPackageNum < 2) {
             udp.send({
                 address: UdpSendAddress,
@@ -160,6 +161,7 @@ udp.on("message", function (data) {
     for (let i = 0;i < dataView.byteLength; ++i) {
         str += String.fromCharCode(dataView.getUint8(i))
     }
+    console.log("sub worker Socket recv:" + str);
     try {
         if (includes(str, "Pss")) {
             parentPort.postMessage("RAM$" + str)

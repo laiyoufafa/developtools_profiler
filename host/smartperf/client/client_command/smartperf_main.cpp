@@ -18,7 +18,6 @@
 int main(int argc, char *argv[])
 {
     OHOS::SmartPerf::SmartPerfCommand cmd(argc, argv);
-    cmd.initSomething();
     std::cout << cmd.ExecCommand() << std::endl;
     return 0;
 }
