@@ -328,9 +328,11 @@ void HookManager::ReadShareMemory()
             std::vector<CallFrame> callsFrames;
 
             if (stackSize > 0) {
-                runtime_instance->UnwindStack(u64regs, stackData.get(), stackSize, pid, tid, callsFrames,
-                                            (hookConfig_.max_stack_depth() > 0) ? 
-                                            hookConfig_.max_stack_depth() + FILTER_STACK_DEPTH : MAX_CALL_FRAME_UNWIND_SIZE);
+                runtime_instance->UnwindStack(
+                    u64regs, stackData.get(), stackSize, pid, tid, callsFrames,
+                    (hookConfig_.max_stack_depth() > 0)
+                        ? hookConfig_.max_stack_depth() + FILTER_STACK_DEPTH
+                        : MAX_CALL_FRAME_UNWIND_SIZE);
             }
             HookContext hookContext = {};
             hookContext.type = type;
