@@ -47,5 +47,8 @@ export class NativeTaskFun {
 //            SPLogger.DEBUG(TAG, "nativeProfiler --> "+ path + " status :" + status)
             return status
         })
+
+        let status = globalThis.CheckDaemon()
+        SPLogger.DEBUG(TAG, "nativeProfiler" + "--> daemon status :" + status)
     }
 }

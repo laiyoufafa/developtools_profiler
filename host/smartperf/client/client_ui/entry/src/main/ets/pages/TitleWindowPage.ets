@@ -14,7 +14,7 @@
  */
 import { TIndexInfo } from '../common/entity/DatabaseEntity'
 import { showFloatWindow, hideFloatWindow } from '../common/ui/floatwindow/utils/FloatWindowUtils'
-import { FPS, GPUFREQUENCY, CPU0FREQUENCY, CPU1FREQUENCY, CPU2FREQUENCY, RAM } from '../common/ui/floatwindow/FloatWindowConstant'
+import { FPS, GPUFREQUENCY,SHELLBACKTEMP, CPU0FREQUENCY, CPU1FREQUENCY, CPU2FREQUENCY, RAM } from '../common/ui/floatwindow/FloatWindowConstant'
 import CommonEvent from '@ohos.commonEvent'
 @Component
 export struct ItemContent {
@@ -71,6 +71,7 @@ struct TitleWindowPage {
         globalThis.gpuFrequency=that.tIndexInfo.gpuFrequency
         globalThis.pss=that.tIndexInfo.pss
         globalThis.shellBackTemp=that.tIndexInfo.socThermalTemp
+        console.log("shellBackTemp---------------------111111111111111" + that.tIndexInfo.socThermalTemp)
       }
     }
     //创建订阅者回调
@@ -170,7 +171,10 @@ struct TitleWindowPage {
         ItemContent({
           icon: $r("app.media.icon_max_temperature"),
           value: (parseInt(this.tIndexInfo.socThermalTemp.toString()) / 1e3).toString() + "℃",
-          tittle: "SOC温度"
+          tittle: "SOC温度",
+          onClickCallBack: () => {
+            this.floatWindowEvent("shellBackTemp", SHELLBACKTEMP)
+          }
         })
         //ItemContent({
         // icon: $r("app.media.icon_counter"),

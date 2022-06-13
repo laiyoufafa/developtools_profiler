@@ -16,10 +16,10 @@ import { createGPData, extractNumber } from '../base/BaseProfilerUtils';
 import { BaseProfiler } from '../base/BaseProfiler'
 import { CollectorType } from '../base/ProfilerConstant'
 import { SocketProfiler} from '../base/SocketProfiler'
+import { MainWorker } from '../MainWorkProfiler'
 
 export class RAM extends BaseProfiler implements SocketProfiler{
   private ramMap: Map<String, String> = new Map
-
   public static instance: RAM = null
   public static getInstance() {
     if (this.instance == null) {
@@ -49,6 +49,7 @@ export class RAM extends BaseProfiler implements SocketProfiler{
     return createGPData("RAM", this.ramMap)
   }
   readMessageQueue(){
+    MainWorker.postMessage({ "ram": true, "pkg": globalThis.collectPkg })
     if (globalThis.ramArr.length > 0) {
       let ramQueue: Array<String> = globalThis.ramArr
       let curRAM = ramQueue.pop()

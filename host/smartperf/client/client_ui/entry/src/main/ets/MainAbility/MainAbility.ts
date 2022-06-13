@@ -46,7 +46,7 @@ export default class MainAbility extends Ability {
 
     onWindowStageCreate(windowStage) {
         globalThis.abilityContext = this.context
-
+        globalThis.useDaemon = true
         // Main window is created, set main page for this ability
 //        SPLogger.DEBUG(TAG,"[MyApplication] MainAbility onWindowStageCreate")
         abilityWindowStage = windowStage;
