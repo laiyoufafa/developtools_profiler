@@ -367,6 +367,6 @@ int main(int argc, char** argv)
 
 **developtools\_profiler**
 
-[developtools\_hdc\_standard](https://gitee.com/openharmony/developtools_hdc_standard)
+[developtools\_hdc](https://gitee.com/openharmony/developtools_hdc)
 
-[developtools\_bytrace\_standard](https://gitee.com/openharmony/developtools_bytrace_standard)
+[developtools\_bytrace](https://gitee.com/openharmony/developtools_bytrace)
