@@ -60,6 +60,7 @@ protected:
         config.SerializeToArray(configData.data(), configData.size());
         controller.LoadConfig(configData.data(), configData.size());
         controller.StartCapture();
+        sleep(1);
         controller.StopCapture();
     }
 
