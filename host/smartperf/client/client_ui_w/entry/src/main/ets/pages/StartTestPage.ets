@@ -306,7 +306,12 @@ struct CustomDialogCollect {
                   .height('25vp')
                   .enabled(Item.enable)
                   .onChange((isOn) => {
-                    Item.isSupport = isOn
+                    console.log("this.collectConfigs111111----:" + isOn)
+                    if(isOn){
+                      Item.isSupport = true
+                    }else{
+                      Item.isSupport = false
+                    }
                     console.log("this.collectConfigs" + JSON.stringify(this.collectConfigs))
                   })
                   .margin({ right: '5vp' })

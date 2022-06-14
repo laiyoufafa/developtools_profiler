@@ -23,6 +23,8 @@ import EntryOhos from './chart/data/EntryOhos';
 import { JArrayList } from './chart/utils/JArrayList';
 import ILineDataSet from './chart/interfaces/datasets/ILineDataSet'
 import { TIndexInfo } from '../../data/DatabaseEntity';
+import window from '@ohos.window';
+
 
 /**
  * 负载页面
@@ -31,8 +33,8 @@ import { TIndexInfo } from '../../data/DatabaseEntity';
 @Component
 export struct Load {
   @State private gpData: Array<TIndexInfo> = new Array()
-  width: number = 350; //表的宽度
-  height: number = 300; //表的高度
+  width: number = 700; //表的宽度
+  height: number = 250; //表的高度
   minOffset: number = 15; //X轴线偏移量
 
   //cpuLoad0 cpuLoad1 cpuLoad2 cpuLoad3

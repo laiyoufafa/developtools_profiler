@@ -49,6 +49,7 @@ export struct Summary {
     var curVoltageSum: number = 0
     var normalCurrentNow: number = 0
 
+    var gpuFreqSum:number = 0
 
     var shellFrameSum: number = 0
     var gpuLoadSum: number = 0
@@ -85,6 +86,7 @@ export struct Summary {
       cpu5FreqSum += Number(gpDataCur.cpu5Frequency).valueOf()
       cpu6FreqSum += Number(gpDataCur.cpu6Frequency).valueOf()
       cpu7FreqSum += Number(gpDataCur.cpu7Frequency).valueOf()
+      gpuFreqSum += Number(gpDataCur.gpuFrequency).valueOf()
 
       if (gpDataCur.pss == "") {
         ramNullSum++
@@ -150,7 +152,10 @@ export struct Summary {
       new SummaryItem($r("app.media.icon_jank_score"), "卡顿次数", (calculationTest.calculateCaton(fpsJitters)).toFixed(0) + "次", "#fcf4ee"),
 
 
-      new SummaryItem($r("app.media.icon_frame_score"), "GPU负载", (gpuLoadSum / this.gpData.length).toFixed(0) + "%", "#fcf9f2"),
+      new SummaryItem($r("app.media.icon_frame_score"), "GPU 频率/负载",
+        (gpuFreqSum  / this.gpData.length /1E6).toFixed(0) + "MHZ"
+        + " "
+        + ( gpuLoadSum / this.gpData.length).toFixed(0) + "%", "#fcf9f2"),
       new SummaryItem($r("app.media.icon_average_frame_b"), "DDR频率", (ddrFreqSum / this.gpData.length / 1e6).toFixed(0) + "MHZ", "#fcf9f2"),
 
       new SummaryItem($r("app.media.icon_jank_each_hour"), "CPU0频率", (cpuMin / this.gpData.length).toFixed(0) + "MHZ", "#fcf9f2"),
