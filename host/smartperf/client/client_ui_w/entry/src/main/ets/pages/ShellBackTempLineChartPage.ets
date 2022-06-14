@@ -75,8 +75,6 @@ struct ShellBackTempLineChartPage {
 
         }).align(Alignment.TopEnd)
       }.height('15vp').width('100%')
-
-
     }
   }
 }

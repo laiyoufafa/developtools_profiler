@@ -182,7 +182,7 @@ struct TitleWindowPage {
         Image($r("app.media.icon_counter")).width('10vp').height('10vp').margin({ left: '2%' })
         Flex({ justifyContent: FlexAlign.SpaceBetween, alignItems: ItemAlign.Center }) {
           Text("CPU0频率").fontSize('10fp').fontColor($r("app.color.color_fff"))
-          Text(this.cpu0Frequency + "MHz").fontSize('10fp').fontColor($r("app.color.color_fff")).onClick(() => {
+          Text(this.cpu0Frequency + "MHz"+ " " + this.cpu0Load + "%").fontSize('10fp').fontColor($r("app.color.color_fff")).onClick(() => {
           })
         }.height('15vp').width('88%').onClick(() => {
           this.floatWindowEvent("cpu0Frequency",CPU0FREQUENCY)
@@ -196,7 +196,7 @@ struct TitleWindowPage {
         Image($r("app.media.icon_counter")).width('10vp').height('10vp').margin({ left: '2%' })
         Flex({ justifyContent: FlexAlign.SpaceBetween, alignItems: ItemAlign.Center }) {
           Text("CPU1频率").fontSize('10fp').fontColor($r("app.color.color_fff"))
-          Text(this.cpu1Frequency + "MHz").fontSize('10fp').fontColor($r("app.color.color_fff")).onClick(() => {
+          Text(this.cpu1Frequency + "MHz"+ " " + this.cpu1Load + "%").fontSize('10fp').fontColor($r("app.color.color_fff")).onClick(() => {
           })
 
         }.height('15vp').width('88%') .onClick(() => {
@@ -211,7 +211,7 @@ struct TitleWindowPage {
         Image($r("app.media.icon_average_frame_b")).width('10vp').height('10vp').margin({ left: '2%' })
         Flex({ justifyContent: FlexAlign.SpaceBetween, alignItems: ItemAlign.Center }) {
           Text("CPU2频率").fontSize('10fp').fontColor($r("app.color.color_fff"))
-          Text(this.cpu2Frequency + "MHz").fontSize('10fp').fontColor($r("app.color.color_fff")).onClick(() => {
+          Text(this.cpu2Frequency + "MHz"+ " " + this.cpu2Load + "%").fontSize('10fp').fontColor($r("app.color.color_fff")).onClick(() => {
           })
         }.height('15vp').width('88%').onClick(() => {
           this.floatWindowEvent("cpu2Frequency",CPU2FREQUENCY)

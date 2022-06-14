@@ -39,8 +39,8 @@ export struct Performance {
   fpsJitterValues: Array<string> = new Array()
   topAxis: XAxis = new XAxis(); //顶部X轴
   bottomAxis: XAxis = new XAxis(); //底部X轴
-  width: number = 350; //表的宽度
-  height: number = 300; //表的高度
+  width: number = 700; //表的宽度
+  height: number = 250; //表的高度
   minOffset: number = 15; //X轴线偏移量
   leftAxis: YAxis = null;
   rightAxis: YAxis = null;
@@ -216,7 +216,7 @@ export struct Performance {
                   .fontSize('12fp')
                   .fontColor($r("app.color.color_333"))
                   .height('30vp')
-                  .width('10%')
+                  .width('20%')
                   .border({ width: '1vp', color: $r("app.color.color_999") })
                   .backgroundColor(lostFrame.color)
                   .textAlign(TextAlign.Center)
@@ -225,7 +225,7 @@ export struct Performance {
                   .fontSize('12fp')
                   .fontColor($r("app.color.color_333"))
                   .height('30vp')
-                  .width('10%')
+                  .width('20%')
                   .border({ width: '1vp', color: $r("app.color.color_999") })
                   .backgroundColor(lostFrame.color)
                   .textAlign(TextAlign.Center)
@@ -234,7 +234,7 @@ export struct Performance {
                   .fontSize('12fp')
                   .fontColor($r("app.color.color_333"))
                   .height('30vp')
-                  .width('10%')
+                  .width('20%')
                   .border({ width: '1vp', color: $r("app.color.color_999") })
                   .backgroundColor(lostFrame.color)
                   .textAlign(TextAlign.Center)
