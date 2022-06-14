@@ -27,6 +27,8 @@ using HookData = struct {
     std::string fileName;
     std::string processName;
     std::string performance_filename;
+    bool mallocDisable;
+    bool mmapDisable;
 };
 
 namespace OHOS {

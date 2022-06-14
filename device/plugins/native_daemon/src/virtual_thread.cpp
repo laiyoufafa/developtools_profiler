@@ -308,7 +308,7 @@ void VirtualThread::ParseMap(std::vector<MemMapItem>& memMaps)
                 memMapItem.type_ |= PROT_EXEC;
             }
 
-            if ((memMapItem.type_ & PROT_EXEC) or (memMapItem.type_ == PROT_READ)) {
+            if ((memMapItem.type_ & PROT_EXEC) or (memMapItem.type_ | PROT_READ)) {
                 /*
                 we need record the read hen exec map address
                 callstackk need r map to check the ehframe addrssss
@@ -355,6 +355,11 @@ void VirtualThread::ParseMap(std::vector<MemMapItem>& memMaps)
                                                NUMBER_FORMAT_HEX_BASE);
             } catch (...) {
                 // next line
+                continue;
+            }
+
+            if (memMapItem.major_ == 0 || memMapItem.minor_ == 0) {
+                HLOGM("map line: exit %s", line.c_str());
                 continue;
             }
 

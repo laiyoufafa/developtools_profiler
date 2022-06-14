@@ -305,7 +305,10 @@ int CallStack::AccessReg([[maybe_unused]] unw_addr_space_t as, unw_regnum_t regn
     UnwindInfo *unwindInfoPtr = static_cast<UnwindInfo *>(arg);
     uint64_t val;
     size_t perfRegIndex = LibunwindRegIdToPerfReg(regnum);
-
+    if (perfRegIndex < PERF_REG_ARM64_X29) {
+        // libunwind not access other regs
+        HLOGE("access_reg not expected %d", regnum);
+    }
     /* Don't support write, I suspect we don't need it. */
     if (writeOperation) {
         HLOGE("access_reg %d", regnum);
@@ -315,13 +318,11 @@ int CallStack::AccessReg([[maybe_unused]] unw_addr_space_t as, unw_regnum_t regn
     if (unwindInfoPtr->callStack.regsNum_ == 0) {
         return -UNW_EUNSPEC;
     }
-
     if (!RegisterGetValue(val, unwindInfoPtr->callStack.regs_, perfRegIndex,
                           unwindInfoPtr->callStack.regsNum_)) {
         HLOGE("can't read reg %zu", perfRegIndex);
         return -UNW_EUNSPEC;
     }
-
     *valuePoint = (unw_word_t)val;
     HLOGV("reg %d:%s, val 0x%" UNW_WORD_PFLAG "", regnum, RegisterGetName(perfRegIndex).c_str(),
           *valuePoint);
