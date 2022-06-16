@@ -122,6 +122,10 @@ void ApplyForMalloc(int mallocSize)
     g_freeDuration += (double)(timerStop - timerStart) / CLOCKS_PER_SEC;
     printf("free success, free time is %f\n", (double)(timerStop - timerStart) / CLOCKS_PER_SEC);
     printf("malloc apply success, total time is %f\n", duration);
+    if (p) {
+        free(p);
+        p = NULL;
+    }
 }
 
 void ApplyForCalloc(int mallocSize)
@@ -319,13 +323,13 @@ int RandInt(int Max, int Min)
 char RandChar(void)
 {
     // 可显示字符的范围
-    unsigned int section = '~' - ' ';
+    int section = '~' - ' ';
     time_t tv = time(NULL);
     if (tv == -1) {
         tv = 1;
     }
     unsigned int seed = (unsigned int)tv;
-    unsigned int randSection = (rand_r(&seed) % section);
+    int randSection = (rand_r(&seed) % section);
     char randChar = ' ' + randSection;
     return randChar;
 }
