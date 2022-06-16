@@ -122,10 +122,6 @@ void ApplyForMalloc(int mallocSize)
     g_freeDuration += (double)(timerStop - timerStart) / CLOCKS_PER_SEC;
     printf("free success, free time is %f\n", (double)(timerStop - timerStart) / CLOCKS_PER_SEC);
     printf("malloc apply success, total time is %f\n", duration);
-    if (p) {
-        free(p);
-        p = NULL;
-    }
 }
 
 void ApplyForCalloc(int mallocSize)
@@ -188,6 +184,10 @@ void ApplyForRealloc(int mallocSize)
     g_freeDuration += (double)(timerStop - timerStart) / CLOCKS_PER_SEC;
     printf("free success, free time is %f\n", (double)(timerStop - timerStart) / CLOCKS_PER_SEC);
     printf("realloc apply success, total time is %f\n", duration);
+    if (p) {
+        free(p);
+        p = NULL;
+    }
 }
 
 void* ThreadFuncC(void* param)
