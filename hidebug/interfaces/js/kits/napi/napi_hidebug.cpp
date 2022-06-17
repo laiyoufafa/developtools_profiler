@@ -407,7 +407,7 @@ static napi_module hidebugModule = {
     .nm_flags = 0,
     .nm_filename = nullptr,
     .nm_register_func = HiviewDFX::DeclareHiDebugInterface,
-    .nm_modname = "napi_hidebug",
+    .nm_modname = "hidebug",
     .nm_priv = ((void *)0),
     .reserved = {0}
 };
