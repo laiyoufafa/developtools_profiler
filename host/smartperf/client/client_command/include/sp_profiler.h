@@ -12,18 +12,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef GP_CONSTANT_H
-#define GP_CONSTANT_H
-enum NumberConstant {
-  ZERO = 0X00,
-  ONE = 0X01,
-  TWO = 0X02,
-  THREE = 0X03
+#ifndef SP_PROFILER_H
+#define SP_PROFILER_H
+#include <map>
+namespace OHOS {
+namespace SmartPerf {
+class SpProfiler {
+public:
+    SpProfiler() {};
+    virtual ~SpProfiler() {};
+    virtual std::map<std::string, std::string> ItemData() = 0;
 };
-enum FunConstant {
-  SUCCESS_ONE = 0X01,
-  SUCCESS_ZERO = 0X00,
-  ERROR_ZERO = 0X00,
-  ERROR_MINUX = 0xFFFFFFFF
-};
+}
+}
 #endif

@@ -12,14 +12,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <map>
+#include <cstdio>
 #include <thread>
-#include "sys/time.h"
+#include <cstring>
 #include "unistd.h"
-#include "include/gp_data.h"
-#include "include/gp_utils.h"
+#include "include/sp_utils.h"
+#include "include/sp_csv_util.h"
+#include "include/sp_profiler_factory.h"
+#include "include/sp_thread_socket.h"
+#include "include/ByTrace.h"
 #include "include/smartperf_command.h"
-
 namespace OHOS {
 namespace SmartPerf {
 SmartPerfCommand::SmartPerfCommand(int argc, char *argv[])
@@ -27,141 +29,119 @@ SmartPerfCommand::SmartPerfCommand(int argc, char *argv[])
     if (argc == ONE_PARAM) {
         daemon(0, 0);
         initSomething();
-        socketProfiler = SocketProfiler::GetInstance();
-        socketProfiler->initSocketProfiler();
-        std::thread t_udp(&SocketProfiler::thread_udp_server, socketProfiler);
-        t_udp.join();
+        SpThreadSocket SpThreadSocket;
+        std::thread tSocket(&SpThreadSocket::Process, SpThreadSocket);
+        tSocket.join();
     }
     if (argc == TWO_PARAM) {
-        char *cmd = argv[1];
-        if (strcmp(cmd, "--help") == 0 || strcmp(cmd, "-h") == 0) {
-            std::cout << SmartPerf_MSG;
-        } else if (strcmp(cmd, "--version") == 0) {
-            std::cout << SmartPerf_VERSION;
-        } else {
-            std::cout << SmartPerf_MSG_ERR;
+        auto iterator = commandHelpMap.begin();
+        while (iterator != commandHelpMap.end() && (strcmp(argv[1], iterator->second.c_str()) == 0)) {
+            if (iterator->first == CommandHelp::HELP) {
+                std::cout << SmartPerf_MSG << std::endl;
+                break;
+            }
+            if (iterator->first == CommandHelp::VERSION) {
+                std::cout << SmartPerf_VERSION << std::endl;
+                break;
+            }
+            ++iterator;
         }
     }
     if (argc >= THREE_PARAM_MORE) {
-        profiler = Profiler::GetInstance();
-        profiler->initProfiler();
         for (int i = 1; i <= argc - 1; i++) {
-            if ((strcmp(argv[i], "-N") == 0) || (strcmp(argv[i], "--num") == 0)) {
-                num = atoi(argv[i + 1]);
-                if (num > 0) {
-                    std::cout << "set num:" << num << std::endl;
-                } else {
-                    std::cout << "error input args: -N" << std::endl;
-                }
+            std::string argStr = argv[i];
+            std::string argStr1;
+            if (i < argc - 1) {
+                argStr1 = argv[i + 1];
             }
-            if ((strcmp(argv[i], "-PKG") == 0) || (strcmp(argv[i], "--pkgname") == 0)) {
-                pkgName = argv[i + 1];
-                if (strcmp(pkgName.c_str(), "") != 0) {
-                    profiler->mFps->setPackageName(pkgName);
-                    std::cout << "set pkg name:" << pkgName << std::endl;
-                } else {
-                    std::cout << "empty input args: -PKG" << std::endl;
-                }
-            }
-            if ((strcmp(argv[i], "-PID") == 0) || (strcmp(argv[i], "--processid") == 0)) {
-                pid = atoi(argv[i + 1]);
-                if (pid > 0) {
-                    std::cout << "set test pid:" << pid << std::endl;
-                } else {
-                    std::cout << "error input args: -PID " << std::endl;
-                }
-            }
-
-            if ((strcmp(argv[i], "-OUT") == 0) || (strcmp(argv[i], "--output") == 0)) {
-                outPathParam = argv[i + 1];
-                if (strcmp(outPathParam.c_str(), "") != 0) {
-                    outPath = outPathParam + std::string(".csv");
-                }
-            }
-
-            if (strcmp(argv[i], "-c") == 0 || strcmp(argv[i], "-g") == 0 || strcmp(argv[i], "-d") == 0 ||
-                strcmp(argv[i], "-f") == 0 || strcmp(argv[i], "-f1") == 0 || strcmp(argv[i], "-f2") == 0 ||
-                strcmp(argv[i], "-t") == 0 || strcmp(argv[i], "-p") == 0 || strcmp(argv[i], "-r") == 0 ||
-                strcmp(argv[i], "-trace") == 0 || strcmp(argv[i], "-snapshot") == 0) {
-                configs.push_back(argv[i]);
+            if (commandMap.count(argStr) > 0) {
+                HandleCommand(argStr, argStr1);
             }
         }
     }
 }
+void SmartPerfCommand::HandleCommand(std::string argStr, std::string argStr1)
+{
+    switch (commandMap.at(argStr)) {
+        case CommandType::CT_N:
+            num = atoi(argStr1.c_str());
+            break;
+        case CommandType::CT_PKG:
+            pkgName = argStr1;
+            break;
+        case CommandType::CT_PID:
+            pid = argStr1;
+            break;
+        case CommandType::CT_OUT:
+            outPathParam = argStr1;
+            if (strcmp(outPathParam.c_str(), "") != 0) {
+                outPath = outPathParam + std::string(".csv");
+            }
+            break;
+        case CommandType::CT_C:
+        case CommandType::CT_G:
+        case CommandType::CT_D:
+        case CommandType::CT_F:
+        case CommandType::CT_T:
+        case CommandType::CT_P:
+        case CommandType::CT_R:
+        case CommandType::CT_TTRACE:
+        case CommandType::CT_SNAPSHOT:
+        case CommandType::CT_HW:
+            configs.push_back(argStr);
+            break;
+        default:
+            std::cout << "other unknown args:" << argStr << std::endl;
+            break;
+    }
+    SpProfilerFactory::setProfilerPid(pid);
+    SpProfilerFactory::setProfilerPkg(pkgName);
+}
+
 std::string SmartPerfCommand::ExecCommand()
 {
     int index = 0;
-    std::vector<GPData> vmap;
+    std::vector<SPData> vmap;
     while (index < num) {
-        std::map<std::string, std::string> gpMap;
-        struct timeval tv;
-        gettimeofday(&tv, nullptr);
-        long long timestamp = tv.tv_sec * 1000 + tv.tv_usec / 1000;
-        gpMap.insert(std::pair<std::string, std::string>(std::string("timestamp"), std::to_string(timestamp)));
+        std::map<std::string, std::string> spMap;
+        long long timestamp = SPUtils::GetCurTime();
+        spMap.insert(std::pair<std::string, std::string>(std::string("timestamp"), std::to_string(timestamp)));
 
         for (size_t j = 0; j < configs.size(); j++) {
             std::string curParam = configs[j];
-            if (strcmp(curParam.c_str(), "-trace") == 0) {
-                trace = 1;
-            }
-            if (strcmp(curParam.c_str(), "-c") == 0) {
-                profiler->createCpu(gpMap);
-            }
-            if (strcmp(curParam.c_str(), "-g") == 0) {
-                profiler->createGpu(gpMap);
-            }
-            if (strcmp(curParam.c_str(), "-d") == 0) {
-                profiler->createDdr(gpMap);
-            }
-            if (strcmp(curParam.c_str(), "-f") == 0) {
-                profiler->createFps(0, 0, trace, index, gpMap);
-            } 
-            if (strcmp(curParam.c_str(), "-f1") == 0) {
-                profiler->createFps(1, 0, trace, index, gpMap);
-            }
-            if (strcmp(curParam.c_str(), "-f2") == 0) {
-                profiler->createFps(0, 1, trace, index, gpMap);
-            }
-            if (strcmp(curParam.c_str(), "-t") == 0) {
-                profiler->createTemp(gpMap);
-            }
-            if (strcmp(curParam.c_str(), "-p") == 0) {
-                profiler->createPower(gpMap);
-            }
-            if (strcmp(curParam.c_str(), "-r") == 0) {
-                if (strcmp(pkgName.c_str(), "") != 0 || pid > 0) {
-                    profiler->createRam(pkgName, gpMap, pid);
-                }
-            }
-            if (strcmp(curParam.c_str(), "-snapshot") == 0) {
-                profiler->createSnapshot(gpMap, timestamp);
+            SpProfiler *profiler = SpProfilerFactory::getCmdProfilerItem(commandMap.at(curParam));
+            if (profiler != nullptr) {
+                std::map<std::string, std::string> data = profiler->ItemData();
+                std::map<std::string, std::string> tempData = spMap;
+                tempData.insert(data.begin(), data.end());
+                spMap = tempData;
             }
         }
 
-        printf("----------------------------------Print START------------------------------------\n");
+        std::cout << std::endl;
         std::map<std::string, std::string>::iterator iter;
         int i = 0;
-        for (iter = gpMap.begin(); iter != gpMap.end(); ++iter) {
+        for (iter = spMap.begin(); iter != spMap.end(); ++iter) {
             printf("order:%d %s=%s\n", i, iter->first.c_str(), iter->second.c_str());
             i++;
         }
-        printf("----------------------------------Print END--------------------------------------\n");
+        std::cout << std::endl;
 
-        GPData gpdata;
-        gpdata.values = gpMap;
-        vmap.push_back(gpdata);
+        SPData spdata;
+        spdata.values = spMap;
+        vmap.push_back(spdata);
         sleep(1);
         index++;
     }
-
-    GPUtils::writeCsv(std::string(outPath.c_str()), vmap);
-
+    SpCsvUtil::writeCsv(std::string(outPath.c_str()), vmap);
     return std::string("command exec finished!");
 }
 void SmartPerfCommand::initSomething()
 {
-    GPUtils::readFile("chmod o+r /proc/stat");
-    GPUtils::readFile("mkdir /data/local/tmp/capture");
+    std::string cmdResult;
+    if (SPUtils::LoadCmd("chmod o+r /proc/stat", cmdResult) > 0) {
+        printf("Privilege escalation! \n");
+    };
 }
 }
 }
