@@ -35,14 +35,16 @@ SmartPerfCommand::SmartPerfCommand(int argc, char *argv[])
     }
     if (argc == TWO_PARAM) {
         auto iterator = commandHelpMap.begin();
-        while (iterator != commandHelpMap.end() && (strcmp(argv[1], iterator->second.c_str()) == 0)) {
-            if (iterator->first == CommandHelp::HELP) {
-                std::cout << SmartPerf_MSG << std::endl;
-                break;
-            }
-            if (iterator->first == CommandHelp::VERSION) {
-                std::cout << SmartPerf_VERSION << std::endl;
-                break;
+        while (iterator != commandHelpMap.end()) {
+            if (strcmp(argv[1], iterator->second.c_str()) == 0) {
+                if (iterator->first == CommandHelp::HELP) {
+                    std::cout << SmartPerf_MSG << std::endl;
+                    break;
+                }
+                if (iterator->first == CommandHelp::VERSION) {
+                    std::cout << SmartPerf_VERSION << std::endl;
+                    break;
+                }
             }
             ++iterator;
         }

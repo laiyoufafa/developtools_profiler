@@ -43,6 +43,7 @@ std::map<std::string, std::string> RAM::getRamInfo()
         cmdGrep.str("");
         cmdGrep << "/proc/" << processId << "/smaps_rollup";
         std::string cmdRam = cmdGrep.str();
+        std::cout << "RAM EXEC" << cmdRam << std::endl;
         std::ifstream infile(cmdRam.c_str(), std::ios::in);
         if (!infile) {
             return ramInfo;

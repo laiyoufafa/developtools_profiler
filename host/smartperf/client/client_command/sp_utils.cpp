@@ -57,7 +57,7 @@ bool SPUtils::LoadCmd(const std::string &cmd, std::string &result)
         result = buf;
     }
     if (pclose(fd) == -1) {
-        result += "pclose failed";
+        std::cout << "" << std::endl;
     }
     // remove '' \n\r
     ReplaceString(result);
