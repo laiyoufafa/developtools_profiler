@@ -166,7 +166,7 @@ bool HidumpPlugin::ParseHidumpInfo(HidumpInfo& dataProto, char *buf, int len)
             eve->set_fps(atoi(databuf));
             (void)memset_s(databuf, BUF_MAX_LEN, 0, BUF_MAX_LEN);
             int bufLength = static_cast<int>(strlen(buf)) - length - 1;
-            if (bufLength > 0 && BUF_MAX_LEN > bufLength) {
+            if (bufLength > 0 && BUF_MAX_LEN > bufLength && buf != nullptr) {
                 if (memcpy_s(databuf, BUF_MAX_LEN, buf + length + 1, bufLength) != EOK) {
                     HILOG_ERROR(LOG_CORE, "copy %d byte to memory region [%p, %p) FAILED!",
                         BUF_MAX_LEN, buf + length + 1, buf + strlen(buf));

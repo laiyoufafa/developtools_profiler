@@ -221,6 +221,10 @@ bool ShareMemoryBlock::PutRaw(const int8_t* data, uint32_t size)
         HILOG_ERROR(LOG_CORE, "PutRaw not enough space [%d]", size);
         return false;
     }
+    if (data == nullptr) {
+        HILOG_ERROR(LOG_CORE, "null pointer!");
+        return false;
+    }
     if (memcpy_s(rawMemory, size, data, size) != EOK) {
         HILOG_ERROR(LOG_CORE, "memcpy_s error");
         return false;

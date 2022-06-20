@@ -122,7 +122,7 @@ bool FlowController::CreatePagedMemoryPool()
 {
     HILOG_INFO(LOG_CORE, "create memory pool, buffer_size_kb = %u", bufferSizeKb_);
     size_t bufferSizePages = bufferSizeKb_ / KB_PER_PAGE;
-    size_t pagesPerBlock = bufferSizePages / platformCpuNum_;
+    size_t pagesPerBlock = bufferSizePages / static_cast<size_t>(platformCpuNum_);
     if (pagesPerBlock < MIN_BLOCK_SIZE_PAGES) {
         pagesPerBlock = MIN_BLOCK_SIZE_PAGES;
     }

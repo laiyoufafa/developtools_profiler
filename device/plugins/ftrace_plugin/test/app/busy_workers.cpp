@@ -151,7 +151,7 @@ private:
             }
 
             // wakeup next thread
-            auto nextId = (id + 1) % workerSems_.size();
+            auto nextId = static_cast<unsigned int>(id + 1) % workerSems_.size();
             auto nextSem = workerSems_[nextId];
             if (nextSem) {
                 nextSem->Up();
