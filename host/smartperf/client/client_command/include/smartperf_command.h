@@ -18,57 +18,52 @@
 
 #include <iostream>
 #include <vector>
-#include "profiler.h"
-#include "socket_profiler.h"
 namespace OHOS {
-    namespace SmartPerf {
-    class SmartPerfCommand {
-    public:
-        const std::string SmartPerf_EXE_NAME = "SP_daemon";
-        const std::string SmartPerf_VERSION = "1.0.1\n";
-        const std::string SmartPerf_MSG_ERR = "error input!\n use command '--help' get more information\n";
-        const std::string SmartPerf_MSG = "usage: SP_daemon <options> <arguments> \n"
-            "--------------------------------------------------------------------\n"
-            "These are common commands list:\n"
-            " -N             set num of profiler <must be non-null>\n"
-            " -PKG           set pkgname of profiler \n"
-            " -PID           set process id of profiler \n"
-            " -OUT           set output path of CSV\n"
-            " -c             get cpuFreq and cpuLoad  \n"
-            " -g             get gpuFreq and gpuLoad  \n"
-            " -f             get fps and fps jitters \n"
-            " -t             get soc-temp gpu-temp .. \n"
-            " -p             get current_now and voltage_now \n"
-            " -r             get ram(pss) \n"
-            " -snapshot      get screen capture\n"
-            "--------------------------------------------------------------------\n"
-            "Example: SP_daemon -N 20 -PKG ohos.samples.ecg -c -g -t -p -f \n"
-            "--------------------------------------------------------------------\n";
-        const int ONE_PARAM = 1;
-        const int TWO_PARAM = 2;
-        const int THREE_PARAM_MORE = 3;
-        SmartPerfCommand(int argc, char *argv[]);
-        ~SmartPerfCommand() {};
-        void initSomething();
-        std::string ExecCommand();
-        // 采集次数
-        int num = 0;
-        // 包名
-        std::string pkgName = "";
-        // 是否开启trace 抓取
-        int trace = 0;
-        // csv输出路径
-        std::string outPath = "/data/local/tmp/data.csv";
-        std::string outPathParam = "";
-        // 指定进程pid
-        int pid = 0;
-        // 采集配置项
-        std::vector<std::string> configs;
-        // 命令式采集
-        std::shared_ptr<Profiler> profiler = nullptr;
-        // Socket采集
-        std::shared_ptr<SocketProfiler> socketProfiler = nullptr;
-    };
-    }
+namespace SmartPerf {
+class SmartPerfCommand {
+public:
+    const std::string SmartPerf_EXE_NAME = "SP_daemon";
+    const std::string SmartPerf_VERSION = "1.0.1\n";
+    const std::string SmartPerf_MSG_ERR = "error input!\n use command '--help' get more information\n";
+    const std::string SmartPerf_MSG = "usage: SP_daemon <options> <arguments> \n"
+        "--------------------------------------------------------------------\n"
+        "These are common commands list:\n"
+        " -N             set num of profiler <must be non-null>\n"
+        " -PKG           set pkgname of profiler \n"
+        " -PID           set process id of profiler \n"
+        " -OUT           set output path of CSV\n"
+        " -c             get cpuFreq and cpuLoad  \n"
+        " -g             get gpuFreq and gpuLoad  \n"
+        " -f             get fps and fps jitters \n"
+        " -t             get soc-temp gpu-temp .. \n"
+        " -p             get current_now and voltage_now \n"
+        " -r             get ram(pss) \n"
+        " -snapshot      get screen capture\n"
+        "--------------------------------------------------------------------\n"
+        "Example: SP_daemon -N 20 -PKG ohos.samples.ecg -c -g -t -p -f \n"
+        "--------------------------------------------------------------------\n";
+    const int ONE_PARAM = 1;
+    const int TWO_PARAM = 2;
+    const int THREE_PARAM_MORE = 3;
+    SmartPerfCommand(int argc, char *argv[]);
+    ~SmartPerfCommand() {};
+    void initSomething();
+    std::string ExecCommand();
+    void HandleCommand(std::string argStr, std::string argStr1);
+    // 采集次数
+    int num = 0;
+    // 包名
+    std::string pkgName = "";
+    // 是否开启trace 抓取
+    int trace = 0;
+    // csv输出路径
+    std::string outPath = "/data/local/tmp/data.csv";
+    std::string outPathParam = "";
+    // 指定进程pid
+    std::string pid = "";
+    // 采集配置项
+    std::vector<std::string> configs;
+};
+}
 }
 #endif // SMARTPERF_COMMAND_H

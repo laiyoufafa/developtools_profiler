@@ -1,0 +1,62 @@
+/*
+ * Copyright (C) 2021 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+#ifndef SP_CSV_UTIL_H
+#define SP_CSV_UTIL_H
+#include <iostream>
+#include <string>
+#include <fstream>
+#include <sstream>
+#include <climits>
+#include <cstdlib>
+#include <map>
+#include "common.h"
+#include "sp_data.h"
+namespace OHOS {
+namespace SmartPerf {
+namespace SpCsvUtil {
+void writeCsv(const std::string &path, std::vector<SPData> &vmap)
+{
+    std::ofstream outFile;
+    char realPath[PATH_MAX] = {0x00};
+    if (realpath(path.c_str(), realPath) == nullptr) {
+        std::cout << "" << std::endl;
+    }
+    outFile.open(path.c_str(), std::ios::out);
+    int i = 0;
+    std::string title = "";
+    for (SPData spdata : vmap) {
+        std::map<std::string, std::string>::iterator iter;
+        std::string line_content = "";
+        for (iter = spdata.values.begin(); iter != spdata.values.end(); ++iter) {
+            if (i == 0) {
+                title += iter->first + ",";
+            }
+            line_content += iter->second + ",";
+        }
+        if (i == 0) {
+            title.pop_back();
+            outFile << title << std::endl;
+        }
+        line_content.pop_back();
+        outFile << line_content << std::endl;
+        ++i;
+    }
+    outFile.close();
+}
+};
+}
+}
+
+#endif // SP_CSV_UTILS_H

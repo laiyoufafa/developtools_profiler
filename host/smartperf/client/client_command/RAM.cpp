@@ -12,69 +12,53 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <iostream>
-#include <unistd.h>
-#include "securec.h"
-#include "include/gp_utils.h"
+#include <sstream>
+#include <fstream>
+#include "include/sp_utils.h"
 #include "include/RAM.h"
-
 namespace OHOS {
 namespace SmartPerf {
-void RAM::setPkgName(std::string ss)
+std::map<std::string, std::string> RAM::ItemData()
 {
-    pkgName = std::move(ss);
+    std::map<std::string, std::string> result;
+    std::map<std::string, std::string> ramInfo = RAM::getRamInfo();
+    result = ramInfo;
+    return result;
+}
+void RAM::setProcessId(std::string pid)
+{
+    processId = std::move(pid);
 }
 
-std::map<std::string, std::string> RAM::getRamInfo(std::string pkg_name, int pid)
+std::map<std::string, std::string> RAM::getRamInfo()
 {
     std::map<std::string, std::string> ramInfo;
+    std::string pssValue = "";
     ramInfo["pss"] = "-1";
-    std::string pid_value = "";
-    if (pid > 0) {
-        pid_value = std::to_string(pid);
-    } else {
-        char pidStr[100];
-        if (snprintf_s(pidStr, sizeof(pidStr), sizeof(pidStr), 
-        "ps -ef |grep -w %s |grep -v grep", pkg_name.c_str()) < 0) {
-            std::cout << "snprintf_s fail";
-        }
-        std::string pidLine = GPUtils::readFile(pidStr);
-        std::vector<std::string> sps;
-        GPUtils::mSplit(pidLine, " ", sps);
-        if (sps.size() > 0) {
-            pid_value = sps[1];
-        }
-    }
-
-    std::string tmp = "";
-    if (atoi(pid_value.c_str()) > 0) {
-        char ram[50];
-        if (snprintf_s(ram, sizeof(ram), sizeof(ram), "/proc/%s/smaps_rollup", pid_value.c_str()) < 0) {
-            std::cout << "snprintf fail";
-        }
-        std::string path = ram;
-        FILE *fp;
-        if (access(path.c_str(), F_OK) == -1) {
+    if (processId.size() > 0) {
+        const int zero = 0;
+        const int one = 1;
+        const int two = 2;
+        std::ostringstream cmdGrep;
+        cmdGrep.str("");
+        cmdGrep << "/proc/" << processId << "/smaps_rollup";
+        std::string cmdRam = cmdGrep.str();
+        std::cout << "RAM EXEC" << cmdRam << std::endl;
+        std::ifstream infile(cmdRam.c_str(), std::ios::in);
+        if (!infile) {
             return ramInfo;
         }
-        if ((fp = fopen(path.c_str(), "r")) != nullptr) {
-            char s[1024];
-            s[0] = '\0';
-            while (fgets(s, sizeof(s), fp) != nullptr) {
-                const int zeroPos = 0;
-                const int firstPos = 1;
-                const int secondPos = 2;
-                const int thirdPos = 3;
-                if (s[zeroPos] == 'P' && s[firstPos] == 's' && s[secondPos] == 's' && s[thirdPos] == ':') {
-                    tmp += std::string(s);
-                }
+        std::string textline;
+        while (getline(infile, textline, '\n')) {
+            if (textline[zero] == 'P' && textline[one] == 's' && textline[two] == 's') {
+                pssValue = textline;
+                break;
             }
         }
-        if (fp != nullptr) {
-            pclose(fp);
-        }
     }
-    ramInfo["pss"] = GPUtils::getNumber(tmp);
+    if (pssValue.size() > 0) {
+        ramInfo["pss"] = SPUtils::ExtractNumber(pssValue.c_str());
+    }
     return ramInfo;
 }
 }

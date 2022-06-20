@@ -12,27 +12,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef DDR_H
-#define DDR_H
+#ifndef SP_PROFILER_FACTORY_H
+#define SP_PROFILER_FACTORY_H
+#include "common.h"
 #include "sp_profiler.h"
 namespace OHOS {
 namespace SmartPerf {
-class DDR : public SpProfiler {
+class SpProfilerFactory {
 public:
-    long long getDdrFreq();
-    static DDR &GetInstance()
-    {
-        static DDR instance;
-        return instance;
-    }
-    std::map<std::string, std::string> ItemData() override;
-
-private:
-    DDR() {};
-    DDR(const DDR &);
-    DDR &operator = (const DDR &);
-    std::string ddrCurFreqPath = "/sys/class/devfreq/ddrfreq/cur_freq";
+    static SpProfiler *getProfilerItem(MessageType messageType);
+    static void setProfilerPkg(std::string pkg);
+    static void setProfilerPid(std::string pid);
+    static SpProfiler *getCmdProfilerItem(CommandType commandType);
 };
-};
+}
 }
 #endif
