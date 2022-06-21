@@ -27,7 +27,7 @@ ohos_shared_library("libhidebug") {
 
   external_deps = [
     "hilog_native:libhilog",
-    "startup_l2:syspara",
+    "init:libbegetutil",
   ]
 
   install_images = [
