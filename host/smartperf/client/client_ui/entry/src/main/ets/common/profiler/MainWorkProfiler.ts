@@ -36,6 +36,8 @@ MainWorker.onmessage = function (result) {
             let isSocketConnect = Number(arr[1]).valueOf()
             if (isSocketConnect > 0) {
                 globalThis.useDaemon = true
+            }else{
+                globalThis.useDaemon = false
             }
         default:
             break;

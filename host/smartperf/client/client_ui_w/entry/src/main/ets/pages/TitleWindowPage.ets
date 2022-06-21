@@ -24,7 +24,7 @@ struct TitleWindowPage {
         } else {
           this.FpsTimer = globalThis.timerFps
         }
-      this.currentNow = globalThis.tTndex.currentNow
+      this.currentNow = 0 - Number(globalThis.tTndex.currentNow)
       this.gpuFrequency = Number((globalThis.tTndex.gpuFrequency / 1e6).toFixed(2)).valueOf()
       this.gpuLoad = parseInt(globalThis.tTndex.gpuLoad)
       this.ddrFrequency = Number(globalThis.tTndex.ddrFrequency / 1e6).valueOf()

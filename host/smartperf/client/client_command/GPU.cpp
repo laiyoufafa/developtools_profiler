@@ -30,14 +30,22 @@ std::map<std::string, std::string> GPU::ItemData()
 int GPU::getGpuFreq()
 {
     std::string gpuFreq;
-    SPUtils::LoadFile(gpuCurFreqPath, gpuFreq);
+    for (auto path : gpuCurFreqPaths) {
+        if (SPUtils::FileAccess(path)) {
+            SPUtils::LoadFile(path, gpuFreq);
+        }
+    }
     return atoi(gpuFreq.c_str());
 }
 float GPU::getGpuLoad()
 {
     std::vector<std::string> sps;
     std::string bufferLine;
-    SPUtils::LoadFile(gpuCurLoadPath, bufferLine);
+    for (auto path : gpuCurLoadPaths) {
+        if (SPUtils::FileAccess(path)) {
+            SPUtils::LoadFile(path, bufferLine);
+        }
+    }
     SPUtils::StrSplit(bufferLine, "@", sps);
     if (sps.size() > 0) {
         // rk3568

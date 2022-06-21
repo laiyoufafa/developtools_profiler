@@ -54,6 +54,9 @@ SpProfiler *SpProfilerFactory::getProfilerItem(MessageType messageType)
         case MessageType::CatchTraceStart:
             FPS::GetInstance().setTraceCatch();
             break;
+        case MessageType::GetCapture:
+            FPS::GetInstance().setCaptureOn();
+            break;    
         default:
             break;
     }
@@ -99,6 +102,9 @@ SpProfiler *SpProfilerFactory::getCmdProfilerItem(CommandType commandType)
         case CommandType::CT_TTRACE:
             FPS::GetInstance().setTraceCatch();
             break;
+        case CommandType::CT_SNAPSHOT:
+            FPS::GetInstance().setCaptureOn();
+            break;        
         default:
             break;
     }

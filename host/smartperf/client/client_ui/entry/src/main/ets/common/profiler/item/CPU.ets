@@ -44,13 +44,11 @@ export class CPU extends BaseProfiler {
   }
 
   isSupport(){
-    if(isAccess(CPU_CONFIG.CPU_BASE)&&isAccess(CPU_CONFIG.CPU_LOAD)){
-
-      if (globalThis.checkAccess(CPU_CONFIG.CPU_LOAD) == "PermissionAccessed") {
-
-        return true
-      }
-
+//    if(isAccess(CPU_CONFIG.CPU_BASE)&&isAccess(CPU_CONFIG.CPU_LOAD)){
+//      return true
+//    }
+    if (globalThis.useDaemon) {
+      return true
     }
     return false
   }

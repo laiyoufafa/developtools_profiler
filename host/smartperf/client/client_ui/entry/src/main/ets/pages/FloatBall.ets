@@ -16,7 +16,7 @@ import { secToTime } from '../common/utils/TimeUtils';
 import { TaskStatus }  from '../common/profiler/base/ProfilerConstant';
 import { ProfilerTask } from "../common/profiler/ProfilerTask"
 import { initFloatWindow,destoryAllFloatWindow } from '../common/ui/floatwindow/utils/FloatWindowUtils'
-
+import { MainWorker } from '../common/profiler/MainWorkProfiler'
 
 @Entry
 @Component
@@ -62,6 +62,12 @@ struct FloatBall {
   initAllCollect() {
     console.log("collectIntervalCollect initAllCollect....");
     if (globalThis.collectConfigs != -1 && globalThis.collectPkg != -1) {
+      if(globalThis.collectConfigs.screen_capture){
+        MainWorker.postMessage({"screen_capture":true})
+      }
+      if(globalThis.collectConfigs.trace){
+        MainWorker.postMessage({"catch_trace_start":true})
+      }
       globalThis.collectIntervalCollect = setInterval(() => {
         console.log("collectIntervalCollect running....");
         if (this.playerState == TaskStatus.task_running) {
@@ -99,8 +105,8 @@ struct FloatBall {
   }
 
   longEvent() {
-    this.destroyAllWindow()
     ProfilerTask.getInstance().taskStop()
+    this.destroyAllWindow()
     this.clearAllInterVal()
   }
 

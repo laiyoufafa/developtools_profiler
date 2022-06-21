@@ -33,6 +33,7 @@ ohos_executable("SP_daemon") {
   sources = [
     "ByTrace.cpp",
     "CPU.cpp",
+    "Capture.cpp",
     "DDR.cpp",
     "FPS.cpp",
     "GPU.cpp",

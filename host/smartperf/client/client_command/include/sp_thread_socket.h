@@ -71,8 +71,12 @@ public:
                     if (SPUtils::LoadCmd(pidCmd, pidResult)) {
                         SpProfilerFactory::setProfilerPid(pidResult);
                     }
+                    spSocket->Sendto(curPkgName);
                 } else if (profiler == nullptr && (iterator->first == MessageType::SetProcessId)) {
                     SpProfilerFactory::setProfilerPid(resPkgOrPid(spSocket));
+                } else if (profiler == nullptr) {
+                    std::string returnStr = iterator->second;
+                    spSocket->Sendto(returnStr);
                 } else {
                     std::map<std::string, std::string> data = profiler->ItemData();
                     std::string sendData = mapToString(data);

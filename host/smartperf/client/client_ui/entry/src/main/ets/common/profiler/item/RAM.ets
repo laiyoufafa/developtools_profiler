@@ -34,18 +34,22 @@ export class RAM extends BaseProfiler implements SocketProfiler{
   }
 
   isSupport(){
-    return true
+    if (globalThis.useDaemon) {
+      return true
+    }
+    return false
   }
 
   readData() {
     if (globalThis.useDaemon) {
       this.readMessageQueue()
-    }else{
-      let ramStr:string = globalThis.CreateNativeRam(globalThis.collectPkg)
-      if (ramStr.length > 0) {
-        this.ramMap.set("pss", ramStr)
-      }
     }
+    //    else{
+    //      let ramStr:string = globalThis.CreateNativeRam(globalThis.collectPkg)
+    //      if (ramStr.length > 0) {
+    //        this.ramMap.set("pss", ramStr)
+    //      }
+    //    }
     return createGPData("RAM", this.ramMap)
   }
   readMessageQueue(){

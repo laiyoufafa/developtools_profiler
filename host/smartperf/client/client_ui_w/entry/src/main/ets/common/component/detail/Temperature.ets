@@ -685,7 +685,6 @@ export struct Temperature {
     Stack({ alignContent: Alignment.TopStart }) {
       Scroll() {
         Column({ space: 20 }) {
-
           LineChart({lineChartModel: this.lineChartModel2})
           Text("ShellFrontTemp(℃)") {
           }.fontWeight(FontWeight.Bold).fontColor(Color.Blue).fontSize('15fp').textAlign(TextAlign.Center)

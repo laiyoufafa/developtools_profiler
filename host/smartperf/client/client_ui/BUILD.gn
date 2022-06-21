@@ -24,7 +24,6 @@ ohos_hap("SmartPerf") {
   part_name = "${OHOS_PROFILER_PART_NAME}"
   module_install_dir = "app/com.ohos.gameperceptio"
   js_build_mode = "debug"
-  shared_libraries = [ "entry/src/main/cpp:smartperf" ]
 }
 
 ohos_js_assets("smartperf_js_assets") {

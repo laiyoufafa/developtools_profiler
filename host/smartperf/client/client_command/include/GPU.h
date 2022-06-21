@@ -15,6 +15,7 @@
 
 #ifndef GPU_H
 #define GPU_H
+#include <vector>
 #include "sp_profiler.h"
 namespace OHOS {
 namespace SmartPerf {
@@ -34,8 +35,14 @@ private:
     GPU(const GPU &);
     GPU &operator = (const GPU &);
 
-    const std::string gpuCurFreqPath = "/sys/class/devfreq/gpufreq/cur_freq";
-    const std::string gpuCurLoadPath = "/sys/class/devfreq/gpufreq/gpu_scene_aware/utilisation";
+    const std::vector<std::string> gpuCurFreqPaths = {
+        "/sys/class/devfreq/fde60000.gpu/cur_freq", // rk3568
+        "/sys/class/devfreq/gpufreq/cur_freq",      // wgr
+    };
+    const std::vector<std::string> gpuCurLoadPaths = {
+        "/sys/class/devfreq/gpufreq/gpu_scene_aware/utilisation", // wgr
+        "/sys/class/devfreq/fde60000.gpu/load",                   // rk3568
+    };
 };
 }
 }

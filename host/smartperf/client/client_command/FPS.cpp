@@ -16,8 +16,10 @@
 #include <algorithm>
 #include <iostream>
 #include <sstream>
+#include <thread>
 #include "include/sp_utils.h"
 #include "include/ByTrace.h"
+#include "include/Capture.h"
 #include "include/FPS.h"
 namespace OHOS {
 namespace SmartPerf {
@@ -38,12 +40,18 @@ std::map<std::string, std::string> FPS::ItemData()
     if (isCatchTrace > 0) {
         ByTrace::GetInstance().checkFpsJitters(fpsInfo.jitters);
     }
-
+    if (isCapture > 0) {
+        Capture::GetInstance().TriggerGetCatch(SPUtils::GetCurTime());
+    }
     return result;
 }
 void FPS::setTraceCatch()
 {
     isCatchTrace = 1;
+}
+void FPS::setCaptureOn()
+{
+    isCapture = 1;
 }
 void FPS::setPackageName(std::string pkgName)
 {
