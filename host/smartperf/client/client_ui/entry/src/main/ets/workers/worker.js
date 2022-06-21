@@ -16,7 +16,7 @@
 import worker from '@ohos.worker'; // 导入worker模块
 import net_socket from '@ohos.net.socket';
 
-
+const workTag = "SmartPerf::Work:: "
 let parentPort = worker.parentPort; // 获取parentPort属性
 
 export let IPv4 = 1
@@ -24,7 +24,7 @@ export let IPv4 = 1
 export let IPv4BindAddr = {
     address: "127.0.0.1",
     family: IPv4,
-    port: 8283
+    port: 8282
 }
 
 export let UdpSendAddress = {
@@ -38,76 +38,58 @@ export let flagPackageNum = 0
 export let udp = net_socket.constructUDPSocketInstance()
 udp.bind(IPv4BindAddr, err => {
     if (err) {
-        console.log('Worker socket bind fail');
+        console.log(workTag + 'Worker socket bind fail');
         return;
     }
-    console.log('Worker socket bind success');
+    console.log(workTag + 'Worker socket bind success');
     udp.getState((err, data) => {
         if (err) {
-            console.log('Worker socket getState fail');
+            console.log(workTag + 'Worker socket getState fail');
             return;
         }
-        console.log('Worker socket getState success:' + JSON.stringify(data));
+        console.log(workTag + 'Worker socket getState success:' + JSON.stringify(data));
     })
 })
 
-
-parentPort.onexit = function (e) {
-    console.log("Worker  onexit")
-}
-
-parentPort.onerror = function (e) {
-    console.log("Worker onerror")
-}
-
-parentPort.onmessageerror = function (e) {
-    console.log("Worker onmessageerror")
-}
-
-udp.on('listening', () => {
-    console.log("Worker socket on listening success");
-});
-udp.on('close', () => {
-    console.log("Worker socket on close success");
-});
-
-udp.on('error', err => {
-    console.log("Worker socket on error, err:" + JSON.stringify(err))
-});
 parentPort.onmessage = function (e) {
 
     let socketCollectItems = e.data
-    console.log("sub worker recv:" + JSON.stringify(e.data));
+    console.log(workTag + "sub worker recv:" + JSON.stringify(e.data));
 
     let messageSetPkg = "set_pkgName::" + socketCollectItems.pkg
     udp.getState((err, data) => {
         if (err) {
             parentPort.postMessage("UdpStatus$-1")
-            console.log("Worker socket getState error", err);
+            console.log(workTag + "Worker socket getState error", err);
         }
-        console.log('Worker socket getState success:' + JSON.stringify(data));
+        console.log(workTag + 'Worker socket getState success:' + JSON.stringify(data));
 
-        parentPort.postMessage("UdpStatus$1")
-        if (flagPackageNum < 2) {
-            udp.send({
-                address: UdpSendAddress,
-                data: messageSetPkg
-            })
-        }
-        flagPackageNum++
-
-        if (socketCollectItems.fps) {
-            let messageFps = "get_fps_and_jitters::0::0"
-            if (socketCollectItems.is_video) {
-                messageFps = "get_fps_and_jitters::1::0"
-            } else if (socketCollectItems.is_camera) {
-                messageFps = "get_fps_and_jitters::0::1"
+        if (socketCollectItems.testConnection) {
+            for (let i = 0;i < 10; i++) {
+                udp.send({
+                    address: UdpSendAddress,
+                    data: "set_pkgName::com.ohos.gameperceptio"
+                })
+                console.log(workTag + "Worker socket test connection send");
             }
+        }
+
+        if (flagPackageNum < 2) {
+            if (socketCollectItems.pkg != undefined) {
+                udp.send({
+                    address: UdpSendAddress,
+                    data: messageSetPkg
+                })
+                flagPackageNum++
+            }
+        }
+        if (socketCollectItems.fps) {
+            let messageFps = "get_fps_and_jitters"
             udp.send({
                 address: UdpSendAddress,
                 data: messageFps
             })
-            console.log("sub worker messageFps :" + messageFps);
+            console.log(workTag + "sub worker messageFps :" + messageFps);
 
         }
         if (socketCollectItems.ram) {
@@ -116,24 +98,14 @@ parentPort.onmessage = function (e) {
                 address: UdpSendAddress,
                 data: messageRam
             })
-            console.log("sub worker messageRam :" + messageRam);
+            console.log(workTag + "sub worker messageRam :" + messageRam);
         }
-
         if (socketCollectItems.screen_capture) {
             udp.send({
                 address: UdpSendAddress,
                 data: "get_capture"
             })
-            console.log("sub worker screen_capture :" + screen_capture);
-        }
-
-        if (socketCollectItems.power) {
-            let messagePower = "get_power"
-            udp.send({
-                address: UdpSendAddress,
-                data: messagePower
-            })
-            console.log("sub worker messagePower :" + messagePower);
+            console.log(workTag + "sub worker screen_capture :" + "get_capture");
         }
         if (socketCollectItems.catch_trace_start) {
             let messageTrace = "catch_trace_start"
@@ -141,16 +113,8 @@ parentPort.onmessage = function (e) {
                 address: UdpSendAddress,
                 data: messageTrace
             })
+            console.log(workTag + "sub worker catch_trace_start :" + "catch_trace_start");
         }
-        if (socketCollectItems.catch_trace_finish) {
-            let messageTrace = "catch_trace_finish::" + socketCollectItems.traceName
-            udp.send({
-                address: UdpSendAddress,
-                data: messageTrace
-            })
-        }
-
-
     })
 }
 
@@ -161,15 +125,18 @@ udp.on("message", function (data) {
     for (let i = 0;i < dataView.byteLength; ++i) {
         str += String.fromCharCode(dataView.getUint8(i))
     }
-    console.log("sub worker Socket recv:" + str);
+    console.log(workTag + "sub worker SocketRecv:" + str);
+    if (str.length > 0) {
+        parentPort.postMessage("UdpStatus$1")
+    }
     try {
         if (includes(str, "pss")) {
             parentPort.postMessage("RAM$" + str)
         } else if (includes(str, "fps")) {
             if (str.indexOf("$$") != -1) {
                 let arrStr = str.split("$$")
-                if(arrStr.length > 0){
-                    if(arrStr[0].indexOf("||") != -1 && arrStr[1].indexOf("||") != -1){
+                if (arrStr.length > 0) {
+                    if (arrStr[0].indexOf("||") != -1 && arrStr[1].indexOf("||") != -1) {
                         let fps = arrStr[0].split("||")
                         let fpsJitter = arrStr[1].split("||")
                         parentPort.postMessage("FPS$" + fps[1].toString() + "$" + fpsJitter[1].toString())
@@ -178,7 +145,7 @@ udp.on("message", function (data) {
             }
         }
     } catch (e) {
-        console.log("SockOnMessage recv callback err:" + e)
+        console.log(workTag + "SockOnMessage recv callback err:" + e)
     }
 
 })
@@ -194,10 +161,8 @@ function includes(all, sub) {
 
     for (let i = 0; i < all.length - subLength + 1; i++) {
 
-        if (all.charAt(i) == firstChar)
-        {
-            if (all.substring(i, i + subLength) == sub)
-            {
+        if (all.charAt(i) == firstChar) {
+            if (all.substring(i, i + subLength) == sub) {
                 return true;
             }
         }

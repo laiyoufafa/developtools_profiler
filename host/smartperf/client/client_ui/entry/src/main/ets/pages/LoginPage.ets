@@ -12,17 +12,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 import router from '@system.router';
 
 @Entry
 @Component
 struct Login {
-  aboutToAppear() {
-    console.log("cur router length:" + router.getLength())
-    console.log("cur router state:" + router.getState())
-  }
-
   build() {
     Flex({ direction: FlexDirection.Column, alignItems: ItemAlign.Center, justifyContent: FlexAlign.Start }) {
       Column() {
@@ -38,9 +32,7 @@ struct Login {
           .height('45vp')
           .textAlign(TextAlign.Center)
           .onClick(() => {
-            router.push({ uri: 'pages/MainPage', params: {
-              title: "123"
-            } })
+            router.push({ uri: 'pages/MainPage' })
           })
       }
       .width('100%')

@@ -144,6 +144,10 @@ void SmartPerfCommand::initSomething()
     if (SPUtils::LoadCmd("chmod o+r /proc/stat", cmdResult) > 0) {
         printf("Privilege escalation! \n");
     };
+    if (!SPUtils::FileAccess("/data/local/tmp/capture")) {
+        SPUtils::LoadCmd("mkdir /data/local/tmp/capture", cmdResult);
+        printf("/data/local/tmp/capture created! \n");
+    };
 }
 }
 }
