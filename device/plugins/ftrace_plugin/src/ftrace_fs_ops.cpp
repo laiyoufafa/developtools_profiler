@@ -218,7 +218,7 @@ bool FtraceFsOps::AppendSetEvent(const std::string& type, const std::string& nam
 
 bool FtraceFsOps::ClearSetEvent()
 {
-    return FileUtils::WriteFile(ftraceRoot_ + "/set_event", "\n") > 0;
+    return FileUtils::WriteFile(ftraceRoot_ + "/set_event", "\n", O_WRONLY | O_TRUNC) > 0;
 }
 
 bool FtraceFsOps::EnableEvent(const std::string& type, const std::string& name)
