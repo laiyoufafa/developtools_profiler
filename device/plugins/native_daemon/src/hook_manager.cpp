@@ -249,8 +249,10 @@ bool HookManager::CreatePluginSession(const std::vector<ProfilerPluginConfig>& c
     //              malloctype   filtersize    sharememory  size
 
     uint64_t hookConfig = hookConfig_.malloc_disable() ? MALLOCDISABLE : 0;
-
     hookConfig |= hookConfig_.mmap_disable() ? MMAPDISABLE : 0;
+    hookConfig |= hookConfig_.free_stack_report() ? FREEMSGSTACK : 0;
+    hookConfig |= hookConfig_.munmap_stack_report() ? MUNMAPMSGSTACK : 0;
+
     hookConfig <<= MOVE_BIT_16;
     hookConfig |= hookConfig_.filter_size();
     hookConfig <<= MOVE_BIT_32;
@@ -325,14 +327,14 @@ void HookManager::ReadShareMemory()
                 u64regs.push_back(*regAddr++);
 #endif
             }
+
             std::vector<CallFrame> callsFrames;
 
             if (stackSize > 0) {
-                runtime_instance->UnwindStack(
-                    u64regs, stackData.get(), stackSize, pid, tid, callsFrames,
-                    (hookConfig_.max_stack_depth() > 0)
-                        ? hookConfig_.max_stack_depth() + FILTER_STACK_DEPTH
-                        : MAX_CALL_FRAME_UNWIND_SIZE);
+                runtime_instance->UnwindStack(u64regs, stackData.get(), stackSize, pid, tid, callsFrames,
+                                            (hookConfig_.max_stack_depth() > 0)
+                                                ? hookConfig_.max_stack_depth() + FILTER_STACK_DEPTH
+                                                : MAX_CALL_FRAME_UNWIND_SIZE);
             }
             HookContext hookContext = {};
             hookContext.type = type;
@@ -341,6 +343,7 @@ void HookManager::ReadShareMemory()
             hookContext.addr = addr;
             hookContext.mallocSize = mallocSize;
             SetHookData(hookContext, ts, callsFrames, batchNativeHookData);
+
             return true;
         });
         if (!ret) {
@@ -390,7 +393,6 @@ void HookManager::SetHookData(HookContext& hookContext, struct timespec ts,
             mmapEvent->set_tid(hookContext.tid);
             mmapEvent->set_addr((uint64_t)hookContext.addr);
             mmapEvent->set_size(static_cast<uint64_t>(hookContext.mallocSize));
-            mmapEvent->set_type("mmap_type1");
             for (size_t idx = FILTER_STACK_DEPTH; idx < callsFrames.size(); ++idx) {
                 Frame* frame = mmapEvent->add_frame_info();
                 SetFrameInfo(*frame, callsFrames[idx]);

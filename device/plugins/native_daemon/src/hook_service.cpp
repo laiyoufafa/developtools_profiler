@@ -58,6 +58,10 @@ bool HookService::ProtocolProc(SocketContext &context, uint32_t pnum, const int8
         HILOG_ERROR(LOG_CORE, "ProtocolProc hook config error");
     }
     uint64_t peerconfig = *const_cast<uint64_t *>(reinterpret_cast<const uint64_t *>(buf));
+
+    if (peerconfig == -1u) {
+        return true;
+    }
     if (pid_ == 0) {
         // check if the pid and process name is consistency
         std::string findpid = "pidof " + processName_;

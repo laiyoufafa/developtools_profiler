@@ -27,4 +27,6 @@ message NativeHookConfig {
     string process_name = 7;
     bool malloc_disable = 8;
     bool mmap_disable = 9;
+    bool free_stack_report = 10;
+    bool munmap_stack_report = 11;
 }

@@ -1,0 +1,637 @@
+diff --git a/device/plugins/native_daemon/include/hook_common.h b/device/plugins/native_daemon/include/hook_common.h
+old mode 100755
+new mode 100644
+index 95d036a..68be193
+--- a/device/plugins/native_daemon/include/hook_common.h
++++ b/device/plugins/native_daemon/include/hook_common.h
+@@ -20,6 +20,8 @@
+ enum {
+     MALLOCDISABLE = (1u << 0),
+     MMAPDISABLE = (1u << 1),
++    FREEMSGSTACK = (1u << 2),
++    MUNMAPMSGSTACK = (1u << 3),
+ };
+ 
+ enum {
+@@ -27,6 +29,7 @@ enum {
+     FREE_MSG,
+     MMAP_MSG,
+     MUNMAP_MSG,
++    MEMORY_TAG,
+ };
+ 
+ #endif // HOOK_SERVICE_H
+\ No newline at end of file
+diff --git a/device/plugins/native_daemon/include/hook_standalone.h b/device/plugins/native_daemon/include/hook_standalone.h
+index a5ec7ae..f1d146a 100644
+--- a/device/plugins/native_daemon/include/hook_standalone.h
++++ b/device/plugins/native_daemon/include/hook_standalone.h
+@@ -29,6 +29,8 @@ using HookData = struct {
+     std::string performance_filename;
+     bool mallocDisable;
+     bool mmapDisable;
++    bool freemsgstack;
++    bool munmapmsgstack;
+ };
+ 
+ namespace OHOS {
+diff --git a/device/plugins/native_daemon/src/hook_manager.cpp b/device/plugins/native_daemon/src/hook_manager.cpp
+index e4693d0..42200cb 100644
+--- a/device/plugins/native_daemon/src/hook_manager.cpp
++++ b/device/plugins/native_daemon/src/hook_manager.cpp
+@@ -249,8 +249,10 @@ bool HookManager::CreatePluginSession(const std::vector<ProfilerPluginConfig>& c
+     //              malloctype   filtersize    sharememory  size
+ 
+     uint64_t hookConfig = hookConfig_.malloc_disable() ? MALLOCDISABLE : 0;
+-
+     hookConfig |= hookConfig_.mmap_disable() ? MMAPDISABLE : 0;
++    hookConfig |= hookConfig_.free_stack_report() ? FREEMSGSTACK : 0;
++    hookConfig |= hookConfig_.munmap_stack_report() ? MUNMAPMSGSTACK : 0;
++
+     hookConfig <<= MOVE_BIT_16;
+     hookConfig |= hookConfig_.filter_size();
+     hookConfig <<= MOVE_BIT_32;
+@@ -325,14 +327,14 @@ void HookManager::ReadShareMemory()
+                 u64regs.push_back(*regAddr++);
+ #endif
+             }
++
+             std::vector<CallFrame> callsFrames;
+ 
+             if (stackSize > 0) {
+-                runtime_instance->UnwindStack(
+-                    u64regs, stackData.get(), stackSize, pid, tid, callsFrames,
+-                    (hookConfig_.max_stack_depth() > 0)
+-                        ? hookConfig_.max_stack_depth() + FILTER_STACK_DEPTH
+-                        : MAX_CALL_FRAME_UNWIND_SIZE);
++                runtime_instance->UnwindStack(u64regs, stackData.get(), stackSize, pid, tid, callsFrames,
++                                            (hookConfig_.max_stack_depth() > 0)
++                                                ? hookConfig_.max_stack_depth() + FILTER_STACK_DEPTH
++                                                : MAX_CALL_FRAME_UNWIND_SIZE);
+             }
+             HookContext hookContext = {};
+             hookContext.type = type;
+@@ -341,6 +343,7 @@ void HookManager::ReadShareMemory()
+             hookContext.addr = addr;
+             hookContext.mallocSize = mallocSize;
+             SetHookData(hookContext, ts, callsFrames, batchNativeHookData);
++
+             return true;
+         });
+         if (!ret) {
+@@ -390,7 +393,6 @@ void HookManager::SetHookData(HookContext& hookContext, struct timespec ts,
+             mmapEvent->set_tid(hookContext.tid);
+             mmapEvent->set_addr((uint64_t)hookContext.addr);
+             mmapEvent->set_size(static_cast<uint64_t>(hookContext.mallocSize));
+-            mmapEvent->set_type("mmap_type1");
+             for (size_t idx = FILTER_STACK_DEPTH; idx < callsFrames.size(); ++idx) {
+                 Frame* frame = mmapEvent->add_frame_info();
+                 SetFrameInfo(*frame, callsFrames[idx]);
+diff --git a/device/plugins/native_daemon/src/hook_service.cpp b/device/plugins/native_daemon/src/hook_service.cpp
+index 4ca70fb..470d172 100644
+--- a/device/plugins/native_daemon/src/hook_service.cpp
++++ b/device/plugins/native_daemon/src/hook_service.cpp
+@@ -58,6 +58,10 @@ bool HookService::ProtocolProc(SocketContext &context, uint32_t pnum, const int8
+         HILOG_ERROR(LOG_CORE, "ProtocolProc hook config error");
+     }
+     uint64_t peerconfig = *const_cast<uint64_t *>(reinterpret_cast<const uint64_t *>(buf));
++
++    if (peerconfig == -1u) {
++        return true;
++    }
+     if (pid_ == 0) {
+         // check if the pid and process name is consistency
+         std::string findpid = "pidof " + processName_;
+diff --git a/device/plugins/native_daemon/src/hook_standalone.cpp b/device/plugins/native_daemon/src/hook_standalone.cpp
+index 974a82f..4f39f69 100644
+--- a/device/plugins/native_daemon/src/hook_standalone.cpp
++++ b/device/plugins/native_daemon/src/hook_standalone.cpp
+@@ -202,6 +202,9 @@ bool StartHook(HookData& hookData)
+ 
+     uint64_t hookConfig = hookData.mallocDisable ? MALLOCDISABLE : 0;
+     hookConfig |= hookData.mmapDisable ? MMAPDISABLE : 0;
++    hookConfig |= hookData.freemsgstack ? FREEMSGSTACK : 0;
++    hookConfig |= hookData.munmapmsgstack ? MUNMAPMSGSTACK : 0;
++
+     hookConfig <<= MOVE_BIT_16;
+     hookConfig |= hookData.filterSize;
+     hookConfig <<= MOVE_BIT_32;
+diff --git a/device/plugins/native_daemon/src/main.cpp b/device/plugins/native_daemon/src/main.cpp
+index f5076c6..0741725 100644
+--- a/device/plugins/native_daemon/src/main.cpp
++++ b/device/plugins/native_daemon/src/main.cpp
+@@ -160,7 +160,7 @@ int main(int argc, char* argv[])
+         for (int i = 1; i < argc; i++) {
+             args.push_back(argv[i]);
+         }
+-        HookData hookData = {0, 0, 0, 0, 0, "", "", "", false, false};
++        HookData hookData = {0, 0, 0, 0, 0, "", "", "", false, false, true, true};
+         if (VerifyCommand(args, hookData)) {
+             GetHookedProceInfo(hookData);
+         } else {
+diff --git a/device/plugins/native_hook/include/hook_socket_client.h b/device/plugins/native_hook/include/hook_socket_client.h
+index 57daaa9..c347c72 100644
+--- a/device/plugins/native_hook/include/hook_socket_client.h
++++ b/device/plugins/native_hook/include/hook_socket_client.h
+@@ -47,6 +47,14 @@ public:
+     {
+         return mmapDisable_;
+     }
++    bool GetFreeStackData()
++    {
++        return freeStackData_;
++    }
++    bool GetMunmapStackData()
++    {
++        return munmapStackData_;
++    }
+ 
+     bool SendStack(const void* data, size_t size);
+ private:
+@@ -57,6 +65,8 @@ private:
+     uint32_t filterSize_;
+     bool mallocDisable_;
+     bool mmapDisable_;
++    bool freeStackData_;
++    bool munmapStackData_;
+     std::shared_ptr<StackWriter> stackWriter_;
+ };
+ 
+diff --git a/device/plugins/native_hook/include/runtime_stack_range.h b/device/plugins/native_hook/include/runtime_stack_range.h
+index b971dc7..8b473e0 100644
+--- a/device/plugins/native_hook/include/runtime_stack_range.h
++++ b/device/plugins/native_hook/include/runtime_stack_range.h
+@@ -23,7 +23,8 @@ extern "C" {
+ constexpr int INIT_LINE_SIZE = 1000;
+ constexpr int INC_LINE_SIZE = 100;
+ 
+-void GetRuntimeStackEnd(const char* stackptr, char** end);
++void GetRuntimeStackEnd(const char* stackptr, const char** end);
++void GetMainThreadRuntimeStackRange();
+ 
+ #ifdef __cplusplus
+ }
+diff --git a/device/plugins/native_hook/include/stack_writer.h b/device/plugins/native_hook/include/stack_writer.h
+index 618b60c..fbf3595 100644
+--- a/device/plugins/native_hook/include/stack_writer.h
++++ b/device/plugins/native_hook/include/stack_writer.h
+@@ -33,6 +33,7 @@ public:
+                  int eventFd);
+     ~StackWriter();
+     long Write(const void* data, size_t size) override;
++    long WriteTimeout(const void* data, size_t size);
+     bool Flush() override;
+ 
+ private:
+diff --git a/device/plugins/native_hook/src/hook_client.cpp b/device/plugins/native_hook/src/hook_client.cpp
+index fa5a9b9..509ae28 100644
+--- a/device/plugins/native_hook/src/hook_client.cpp
++++ b/device/plugins/native_hook/src/hook_client.cpp
+@@ -31,13 +31,12 @@
+ #include "hook_client.h"
+ 
+ static __thread bool ohos_malloc_hook_enable_hook_flag = true;
+-
+ namespace {
+ using OHOS::Developtools::NativeDaemon::buildArchType;
+-std::shared_ptr<HookSocketClient> g_hookClient;
+-std::recursive_mutex g_ClientMutex;
++static std::shared_ptr<HookSocketClient> g_hookClient;
++std::recursive_timed_mutex g_ClientMutex;
+ std::atomic<const MallocDispatchType*> g_dispatch {nullptr};
+-
++constexpr int TIMEOUT_MSEC = 2000;
+ const MallocDispatchType* GetDispatch()
+ {
+     return g_dispatch.load(std::memory_order_relaxed);
+@@ -52,17 +51,18 @@ void FinalizeIPC() { }
+ 
+ bool ohos_malloc_hook_on_start(void)
+ {
+-    std::lock_guard<std::recursive_mutex> guard(g_ClientMutex);
++    std::lock_guard<std::recursive_timed_mutex> guard(g_ClientMutex);
+ 
+     if (g_hookClient == nullptr) {
+         g_hookClient = std::make_shared<HookSocketClient>(getpid());
+     }
++    GetMainThreadRuntimeStackRange();
+     return true;
+ }
+ 
+ bool ohos_malloc_hook_on_end(void)
+ {
+-    std::lock_guard<std::recursive_mutex> guard(g_ClientMutex);
++    std::lock_guard<std::recursive_timed_mutex> guard(g_ClientMutex);
+     g_hookClient = nullptr;
+ 
+     return true;
+@@ -81,7 +81,6 @@ void* hook_malloc(void* (*fn)(size_t), size_t size)
+     if ((size < g_hookClient->GetFilterSize()) || g_hookClient->GetMallocDisable() ) {
+         return ret;
+     }
+-
+     int regCount = OHOS::Developtools::NativeDaemon::RegisterGetCount();
+     if (regCount <= 0) {
+         return ret;
+@@ -113,7 +112,7 @@ void* hook_malloc(void* (*fn)(size_t), size_t size)
+       : "x12", "x13", "memory");
+ #endif
+     const char* stackptr = reinterpret_cast<const char*>(regs[RegisterGetSP(buildArchType)]);
+-    char* stackendptr = nullptr;
++    const char* stackendptr = nullptr;
+     GetRuntimeStackEnd(stackptr, &stackendptr);  // stack end pointer
+     int stackSize = stackendptr - stackptr;
+     pid_t pid = getpid();
+@@ -167,7 +166,13 @@ void* hook_malloc(void* (*fn)(size_t), size_t size)
+     metaSize += regCount * sizeof(uint64_t);
+     delete[] regs;
+ 
+-    std::lock_guard<std::recursive_mutex> guard(g_ClientMutex);
++    std::unique_lock<std::recursive_timed_mutex> lck(g_ClientMutex,std::defer_lock);
++    std::chrono::time_point<std::chrono::steady_clock> timeout =
++        std::chrono::steady_clock::now() + std::chrono::milliseconds(TIMEOUT_MSEC);
++    if (!lck.try_lock_until(timeout)) {
++        HILOG_ERROR(LOG_CORE, "lock hook_malloc failed!");
++        return ret;
++    }
+     if (g_hookClient != nullptr) {
+         g_hookClient->SendStack(buffer.get(), metaSize);
+     }
+@@ -265,9 +270,13 @@ void hook_free(void (*free_func)(void*), void *p)
+       : "x12", "x13", "memory");
+ #endif
+     const char* stackptr = reinterpret_cast<const char*>(regs[RegisterGetSP(buildArchType)]);
+-    char* stackendptr = nullptr;
+-    GetRuntimeStackEnd(stackptr, &stackendptr);  // stack end pointer
+-    int stackSize = stackendptr - stackptr;
++    const char* stackendptr = nullptr;
++    int stackSize = 0;
++
++    if (g_hookClient->GetFreeStackData()) {
++        GetRuntimeStackEnd(stackptr, &stackendptr);  // stack end pointer
++        stackSize = stackendptr - stackptr;
++    }
+     pid_t tid = get_thread_id();
+     pid_t pid = getpid();
+     uint32_t type = FREE_MSG;
+@@ -318,9 +327,15 @@ void hook_free(void (*free_func)(void*), void *p)
+         HILOG_ERROR(LOG_CORE, "memcpy_s regs failed");
+     }
+     metaSize += regCount * sizeof(uint64_t);
+-
+     delete[] regs;
+-    std::lock_guard<std::recursive_mutex> guard(g_ClientMutex);
++
++    std::unique_lock<std::recursive_timed_mutex> lck(g_ClientMutex,std::defer_lock);
++    std::chrono::time_point<std::chrono::steady_clock> timeout =
++        std::chrono::steady_clock::now() + std::chrono::milliseconds(TIMEOUT_MSEC);
++    if (!lck.try_lock_until(timeout)) {
++        HILOG_ERROR(LOG_CORE, "lock hook_free failed!");
++        return;
++    }
+     if (g_hookClient != nullptr) {
+         g_hookClient->SendStack(buffer.get(), metaSize);
+     }
+@@ -373,7 +388,7 @@ void* hook_mmap(void*(*fn)(void*, size_t, int, int, int, off_t),
+       : "x12", "x13", "memory");
+ #endif
+     const char* stackptr = reinterpret_cast<const char*>(regs[RegisterGetSP(buildArchType)]);
+-    char* stackendptr = nullptr;
++    const char* stackendptr = nullptr;
+     GetRuntimeStackEnd(stackptr, &stackendptr);  // stack end pointer
+     int stackSize = stackendptr - stackptr;
+     pid_t pid = getpid();
+@@ -429,7 +444,13 @@ void* hook_mmap(void*(*fn)(void*, size_t, int, int, int, off_t),
+     metaSize += regCount * sizeof(uint64_t);
+     delete[] regs;
+ 
+-    std::lock_guard<std::recursive_mutex> guard(g_ClientMutex);
++    std::unique_lock<std::recursive_timed_mutex> lck(g_ClientMutex,std::defer_lock);
++    std::chrono::time_point<std::chrono::steady_clock> timeout =
++        std::chrono::steady_clock::now() + std::chrono::milliseconds(TIMEOUT_MSEC);
++    if (!lck.try_lock_until(timeout)) {
++        HILOG_ERROR(LOG_CORE, "lock hook_mmap failed!");
++        return ret;
++    }
+     if (g_hookClient != nullptr) {
+         g_hookClient->SendStack(buffer.get(), metaSize);
+     }
+@@ -482,9 +503,12 @@ int hook_munmap(int(*fn)(void*, size_t), void* addr, size_t length)
+       : "x12", "x13", "memory");
+ #endif
+     const char* stackptr = reinterpret_cast<const char*>(regs[RegisterGetSP(buildArchType)]);
+-    char* stackendptr = nullptr;
+-    GetRuntimeStackEnd(stackptr, &stackendptr);  // stack end pointer
+-    int stackSize = stackendptr - stackptr;
++    const char* stackendptr = nullptr;
++    int stackSize = 0;
++    if (g_hookClient->GetMunmapStackData()) {
++        GetRuntimeStackEnd(stackptr, &stackendptr);  // stack end pointer
++        stackSize = stackendptr - stackptr;
++    }
+     pid_t pid = getpid();
+     pid_t tid = get_thread_id();
+ 
+@@ -537,7 +561,13 @@ int hook_munmap(int(*fn)(void*, size_t), void* addr, size_t length)
+     metaSize += regCount * sizeof(uint64_t);
+     delete[] regs;
+ 
+-    std::lock_guard<std::recursive_mutex> guard(g_ClientMutex);
++    std::unique_lock<std::recursive_timed_mutex> lck(g_ClientMutex,std::defer_lock);
++    std::chrono::time_point<std::chrono::steady_clock> timeout =
++        std::chrono::steady_clock::now() + std::chrono::milliseconds(TIMEOUT_MSEC);
++    if (!lck.try_lock_until(timeout)) {
++        HILOG_ERROR(LOG_CORE, "lock hook_munmap failed!");
++        return ret;
++    }
+     if (g_hookClient != nullptr) {
+         g_hookClient->SendStack(buffer.get(), metaSize);
+     }
+diff --git a/device/plugins/native_hook/src/hook_socket_client.cpp b/device/plugins/native_hook/src/hook_socket_client.cpp
+index 8266296..e0ecbc0 100644
+--- a/device/plugins/native_hook/src/hook_socket_client.cpp
++++ b/device/plugins/native_hook/src/hook_socket_client.cpp
+@@ -29,6 +29,8 @@ HookSocketClient::HookSocketClient(int pid) : pid_(pid)
+     serviceName_ = "HookService";
+     mallocDisable_ = false;
+     mmapDisable_ = false;
++    freeStackData_ = false;
++    munmapStackData_ = false;
+     Connect(DEFAULT_UNIX_SOCKET_HOOK_PATH);
+ }
+ 
+@@ -75,17 +77,27 @@ bool HookSocketClient::ProtocolProc(SocketContext &context, uint32_t pnum, const
+     if (mask & MMAPDISABLE) {
+         mmapDisable_ = true;
+     }
+-
++    if (mask & FREEMSGSTACK) {
++        freeStackData_ = true;
++    }
++    if (mask & MUNMAPMSGSTACK) {
++        munmapStackData_ = true;
++    }
+     stackWriter_ = std::make_shared<StackWriter>("hooknativesmb", smbSize, smbFd_, eventFd_);
+     return true;
+ }
+ 
+ bool HookSocketClient::SendStack(const void* data, size_t size)
+ {
+-    if (stackWriter_ == nullptr) {
++    if (stackWriter_ == nullptr || unixSocketClient_ == nullptr) {
++        return true;
++    }
++
++    if (!unixSocketClient_->SendHeartBeat()) {
+         return false;
+     }
+-    stackWriter_->Write(data, size);
++
++    stackWriter_->WriteTimeout(data, size);
+     stackWriter_->Flush();
+ 
+     return true;
+diff --git a/device/plugins/native_hook/src/runtime_stack_range.cpp b/device/plugins/native_hook/src/runtime_stack_range.cpp
+index e9492c8..e63cbfd 100644
+--- a/device/plugins/native_hook/src/runtime_stack_range.cpp
++++ b/device/plugins/native_hook/src/runtime_stack_range.cpp
+@@ -26,14 +26,19 @@
+ #include "get_thread_id.h"
+ #include "runtime_stack_range.h"
+ 
+-
+ namespace {
+-    constexpr int BASE_MIN = 2;
+-    constexpr int BASE_CENTRE = 10;
+-    constexpr int BASE_MAX = 16;
++constexpr int BASE_MIN = 2;
++constexpr int BASE_CENTRE = 10;
++constexpr int BASE_MAX = 16;
++
++struct StackScope {
++  const char* start;
++  const char* end;
++};
++static StackScope mainStack;
+ } // namespace
+ 
+-static void GetThreadRuntimeStackRange(char** start, char** end)
++static void GetThreadRuntimeStackRange(const char** start, const char** end)
+ {
+     *start = nullptr;
+     *end = nullptr;
+@@ -42,7 +47,7 @@ static void GetThreadRuntimeStackRange(char** start, char** end)
+     if (pthread_getattr_np(tid, &attr) == 0) {
+         char* stackAddr = nullptr;
+         size_t stackSize;
+-        if (pthread_attr_getstack(&attr, reinterpret_cast<void**>(start), &stackSize) == 0) {
++        if (pthread_attr_getstack(&attr, reinterpret_cast<void**>(const_cast<char**>(start)), &stackSize) == 0) {
+             *end = *start + stackSize;
+         }
+         pthread_attr_destroy(&attr);
+@@ -120,10 +125,8 @@ static void GetAnUnlimitedLine(FILE* fp, std::string& buf)
+     } while (1);
+ }
+ 
+-static void GetMainThreadRuntimeStackRange(char** start, char** end)
++void GetMainThreadRuntimeStackRange()
+ {
+-    *start = nullptr;
+-    *end = nullptr;
+     std::string line;
+     int buf_size = 0;
+     FILE* fp = fopen("/proc/self/maps", "re");
+@@ -141,10 +144,9 @@ static void GetMainThreadRuntimeStackRange(char** start, char** end)
+             if (concatPos == static_cast<std::string::size_type>(-1)) {
+                 continue;
+             }
+-            char* min = reinterpret_cast<char*>(CvtStrToInt(line.c_str(), 16));
+-            char* max = reinterpret_cast<char*>(CvtStrToInt(line.c_str() + concatPos + 1, 16));
+-            *start = min;
+-            *end = max;
++            mainStack.start = reinterpret_cast<char*>(CvtStrToInt(line.c_str(), 16));
++            mainStack.end = reinterpret_cast<char*>(CvtStrToInt(line.c_str() + concatPos + 1, 16));
++
+             break;
+         }
+     }
+@@ -181,15 +183,16 @@ static bool IfSubThread()
+     return pid != tid;
+ }
+ 
+-void GetRuntimeStackEnd(const char* stackptr, char** end)
++void GetRuntimeStackEnd(const char* stackptr, const char** end)
+ {
+-    char* start = nullptr;
++    const char* start = nullptr;
+     *end = nullptr;
+     bool isSubThread = IfSubThread();
+     if (isSubThread) {
+         GetThreadRuntimeStackRange(&start, end);
+     } else {
+-        GetMainThreadRuntimeStackRange(&start, end);
++        start = mainStack.start;
++        *end = mainStack.end;
+     }
+     if (!IfContained(start, *end, stackptr)) {
+         char *sigStackStart, *sigStackEnd;
+diff --git a/device/plugins/native_hook/src/stack_writer.cpp b/device/plugins/native_hook/src/stack_writer.cpp
+index 665ae9e..19fb8c6 100644
+--- a/device/plugins/native_hook/src/stack_writer.cpp
++++ b/device/plugins/native_hook/src/stack_writer.cpp
+@@ -66,6 +66,14 @@ long StackWriter::Write(const void* data, size_t size)
+     return shareMemoryBlock_->PutRaw(reinterpret_cast<const int8_t*>(data), size);
+ }
+ 
++long StackWriter::WriteTimeout(const void* data, size_t size)
++{
++    if (shareMemoryBlock_ == nullptr || data == nullptr || size == 0) {
++        return false;
++    }
++    return shareMemoryBlock_->PutRawTimeout(reinterpret_cast<const int8_t*>(data), size);
++}
++
+ bool StackWriter::Flush()
+ {
+     ++flushCount_;
+diff --git a/device/services/ipc/include/socket_context.h b/device/services/ipc/include/socket_context.h
+index 6036073..f5457d2 100644
+--- a/device/services/ipc/include/socket_context.h
++++ b/device/services/ipc/include/socket_context.h
+@@ -56,6 +56,7 @@ public:
+ #endif
+     bool SendFileDescriptor(int fd);
+     bool SendHookConfig(uint64_t value);
++    bool SendHeartBeat();
+     int ReceiveFileDiscriptor();
+     enum ClientState GetClientState() { return clientState_; }
+ protected:
+diff --git a/device/services/ipc/src/socket_context.cpp b/device/services/ipc/src/socket_context.cpp
+index ede0804..0d12f74 100644
+--- a/device/services/ipc/src/socket_context.cpp
++++ b/device/services/ipc/src/socket_context.cpp
+@@ -29,6 +29,7 @@
+ namespace {
+ const int PROTO_SIZE_MAX = 1024 * 1024;
+ const int MEMORY_BLOCK_UNIT = 4096;
++const uint64_t HEARTBEAT_MSG = -1u;
+ } // namespace
+ 
+ SocketContext::SocketContext()
+@@ -200,6 +201,23 @@ bool SocketContext::SendHookConfig(uint64_t config)
+     return true;
+ }
+ 
++bool SocketContext::SendHeartBeat()
++{
++    struct ProtocolHead phead;
++    phead.protoType = PROTOCOL_TYPE_PROTOBUF;
++    phead.protoSize = sizeof(HEARTBEAT_MSG) + sizeof(struct ProtocolHead);
++
++    if (send(socketHandle_, reinterpret_cast<int8_t*>(&phead), sizeof(struct ProtocolHead), 0) == -1) {
++        return false;
++    }
++
++    if (send(socketHandle_, &HEARTBEAT_MSG, sizeof(HEARTBEAT_MSG), 0) == -1) {
++        return false;
++    }
++
++    return true;
++}
++
+ bool SocketContext::SendFileDescriptor(int fd)
+ {
+     struct msghdr msg = {0};
+diff --git a/device/services/shared_memory/include/share_memory_block.h b/device/services/shared_memory/include/share_memory_block.h
+index 11aee80..8bd8762 100644
+--- a/device/services/shared_memory/include/share_memory_block.h
++++ b/device/services/shared_memory/include/share_memory_block.h
+@@ -32,6 +32,7 @@ public:
+     ~ShareMemoryBlock();
+ 
+     bool PutRaw(const int8_t* data, uint32_t size);
++    bool PutRawTimeout(const int8_t* data, uint32_t size);
+ #ifndef NO_PROTOBUF
+     bool PutMessage(const google::protobuf::Message& pmsg);
+ #endif
+diff --git a/device/services/shared_memory/src/share_memory_block.cpp b/device/services/shared_memory/src/share_memory_block.cpp
+index bcfaccb..d9eeb7f 100644
+--- a/device/services/shared_memory/src/share_memory_block.cpp
++++ b/device/services/shared_memory/src/share_memory_block.cpp
+@@ -28,6 +28,7 @@
+ 
+ namespace {
+ const int HEAD_OFFSET_LEN = 4;
++constexpr uint32_t TIMEOUT_SEC = 1;
+ #ifndef PAGE_SIZE
+ constexpr uint32_t PAGE_SIZE = 4096;
+ #endif
+@@ -126,6 +127,7 @@ bool ShareMemoryBlock::CreateBlock(std::string name, uint32_t size)
+     pthread_mutexattr_t muAttr;
+     pthread_mutexattr_init(&muAttr);
+     pthread_mutexattr_setpshared(&muAttr, PTHREAD_PROCESS_SHARED);
++    pthread_mutexattr_settype(&muAttr,PTHREAD_MUTEX_RECURSIVE);
+     pthread_mutex_init(&header_->info.mutex_, &muAttr);
+     return true;
+ }
+@@ -221,18 +223,46 @@ bool ShareMemoryBlock::PutRaw(const int8_t* data, uint32_t size)
+         HILOG_ERROR(LOG_CORE, "PutRaw not enough space [%d]", size);
+         return false;
+     }
+-    if (data == nullptr) {
+-        HILOG_ERROR(LOG_CORE, "null pointer!");
++    if (memcpy_s(rawMemory, size, data, size) != EOK) {
++        HILOG_ERROR(LOG_CORE, "memcpy_s error");
++        return false;
++    }
++
++    UseFreeMemory(rawMemory, size);
++    ++header_->info.bytesCount_;
++    ++header_->info.chunkCount_;
++    return true;
++}
++
++bool ShareMemoryBlock::PutRawTimeout(const int8_t* data, uint32_t size)
++{
++    CHECK_NOTNULL(header_, false, "header not ready!");
++
++    struct timespec time_out;
++    clock_gettime(CLOCK_REALTIME, &time_out);
++    time_out.tv_sec += TIMEOUT_SEC;
++    if (pthread_mutex_timedlock(&header_->info.mutex_, &time_out) != 0 ) {
++        HILOG_ERROR(LOG_CORE, "PutRawTimeout failed %d", errno);
++        return false;
++    }
++
++    int8_t* rawMemory = GetFreeMemory(size);
++    if (rawMemory == nullptr) {
++        HILOG_ERROR(LOG_CORE, "PutRaw not enough space [%d]", size);
++        pthread_mutex_unlock(&header_->info.mutex_);
+         return false;
+     }
+     if (memcpy_s(rawMemory, size, data, size) != EOK) {
+         HILOG_ERROR(LOG_CORE, "memcpy_s error");
++        pthread_mutex_unlock(&header_->info.mutex_);
+         return false;
+     }
+ 
+     UseFreeMemory(rawMemory, size);
+     ++header_->info.bytesCount_;
+     ++header_->info.chunkCount_;
++
++    pthread_mutex_unlock(&header_->info.mutex_);
+     return true;
+ }
+ 
+diff --git a/protos/types/plugins/native_hook/native_hook_config.proto b/protos/types/plugins/native_hook/native_hook_config.proto
+index 48ed4bb..8dd3335 100644
+--- a/protos/types/plugins/native_hook/native_hook_config.proto
++++ b/protos/types/plugins/native_hook/native_hook_config.proto
+@@ -27,4 +27,6 @@ message NativeHookConfig {
+     string process_name = 7;
+     bool malloc_disable = 8;
+     bool mmap_disable = 9;
++    bool free_stack_report = 10;
++    bool munmap_stack_report = 11;
+ }
+\ No newline at end of file

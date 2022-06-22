@@ -31,13 +31,12 @@
 #include "hook_client.h"
 
 static __thread bool ohos_malloc_hook_enable_hook_flag = true;
-
 namespace {
 using OHOS::Developtools::NativeDaemon::buildArchType;
-std::shared_ptr<HookSocketClient> g_hookClient;
-std::recursive_mutex g_ClientMutex;
+static std::shared_ptr<HookSocketClient> g_hookClient;
+std::recursive_timed_mutex g_ClientMutex;
 std::atomic<const MallocDispatchType*> g_dispatch {nullptr};
-
+constexpr int TIMEOUT_MSEC = 2000;
 const MallocDispatchType* GetDispatch()
 {
     return g_dispatch.load(std::memory_order_relaxed);
@@ -52,17 +51,18 @@ void FinalizeIPC() { }
 
 bool ohos_malloc_hook_on_start(void)
 {
-    std::lock_guard<std::recursive_mutex> guard(g_ClientMutex);
+    std::lock_guard<std::recursive_timed_mutex> guard(g_ClientMutex);
 
     if (g_hookClient == nullptr) {
         g_hookClient = std::make_shared<HookSocketClient>(getpid());
     }
+    GetMainThreadRuntimeStackRange();
     return true;
 }
 
 bool ohos_malloc_hook_on_end(void)
 {
-    std::lock_guard<std::recursive_mutex> guard(g_ClientMutex);
+    std::lock_guard<std::recursive_timed_mutex> guard(g_ClientMutex);
     g_hookClient = nullptr;
 
     return true;
@@ -81,7 +81,6 @@ void* hook_malloc(void* (*fn)(size_t), size_t size)
     if ((size < g_hookClient->GetFilterSize()) || g_hookClient->GetMallocDisable() ) {
         return ret;
     }
-
     int regCount = OHOS::Developtools::NativeDaemon::RegisterGetCount();
     if (regCount <= 0) {
         return ret;
@@ -113,7 +112,7 @@ void* hook_malloc(void* (*fn)(size_t), size_t size)
       : "x12", "x13", "memory");
 #endif
     const char* stackptr = reinterpret_cast<const char*>(regs[RegisterGetSP(buildArchType)]);
-    char* stackendptr = nullptr;
+    const char* stackendptr = nullptr;
     GetRuntimeStackEnd(stackptr, &stackendptr);  // stack end pointer
     int stackSize = stackendptr - stackptr;
     pid_t pid = getpid();
@@ -167,7 +166,13 @@ void* hook_malloc(void* (*fn)(size_t), size_t size)
     metaSize += regCount * sizeof(uint64_t);
     delete[] regs;
 
-    std::lock_guard<std::recursive_mutex> guard(g_ClientMutex);
+    std::unique_lock<std::recursive_timed_mutex> lck(g_ClientMutex,std::defer_lock);
+    std::chrono::time_point<std::chrono::steady_clock> timeout =
+        std::chrono::steady_clock::now() + std::chrono::milliseconds(TIMEOUT_MSEC);
+    if (!lck.try_lock_until(timeout)) {
+        HILOG_ERROR(LOG_CORE, "lock hook_malloc failed!");
+        return ret;
+    }
     if (g_hookClient != nullptr) {
         g_hookClient->SendStack(buffer.get(), metaSize);
     }
@@ -265,9 +270,13 @@ void hook_free(void (*free_func)(void*), void *p)
       : "x12", "x13", "memory");
 #endif
     const char* stackptr = reinterpret_cast<const char*>(regs[RegisterGetSP(buildArchType)]);
-    char* stackendptr = nullptr;
-    GetRuntimeStackEnd(stackptr, &stackendptr);  // stack end pointer
-    int stackSize = stackendptr - stackptr;
+    const char* stackendptr = nullptr;
+    int stackSize = 0;
+
+    if (g_hookClient->GetFreeStackData()) {
+        GetRuntimeStackEnd(stackptr, &stackendptr);  // stack end pointer
+        stackSize = stackendptr - stackptr;
+    }
     pid_t tid = get_thread_id();
     pid_t pid = getpid();
     uint32_t type = FREE_MSG;
@@ -318,9 +327,15 @@ void hook_free(void (*free_func)(void*), void *p)
         HILOG_ERROR(LOG_CORE, "memcpy_s regs failed");
     }
     metaSize += regCount * sizeof(uint64_t);
-
     delete[] regs;
-    std::lock_guard<std::recursive_mutex> guard(g_ClientMutex);
+
+    std::unique_lock<std::recursive_timed_mutex> lck(g_ClientMutex,std::defer_lock);
+    std::chrono::time_point<std::chrono::steady_clock> timeout =
+        std::chrono::steady_clock::now() + std::chrono::milliseconds(TIMEOUT_MSEC);
+    if (!lck.try_lock_until(timeout)) {
+        HILOG_ERROR(LOG_CORE, "lock hook_free failed!");
+        return;
+    }
     if (g_hookClient != nullptr) {
         g_hookClient->SendStack(buffer.get(), metaSize);
     }
@@ -373,7 +388,7 @@ void* hook_mmap(void*(*fn)(void*, size_t, int, int, int, off_t),
       : "x12", "x13", "memory");
 #endif
     const char* stackptr = reinterpret_cast<const char*>(regs[RegisterGetSP(buildArchType)]);
-    char* stackendptr = nullptr;
+    const char* stackendptr = nullptr;
     GetRuntimeStackEnd(stackptr, &stackendptr);  // stack end pointer
     int stackSize = stackendptr - stackptr;
     pid_t pid = getpid();
@@ -429,7 +444,13 @@ void* hook_mmap(void*(*fn)(void*, size_t, int, int, int, off_t),
     metaSize += regCount * sizeof(uint64_t);
     delete[] regs;
 
-    std::lock_guard<std::recursive_mutex> guard(g_ClientMutex);
+    std::unique_lock<std::recursive_timed_mutex> lck(g_ClientMutex,std::defer_lock);
+    std::chrono::time_point<std::chrono::steady_clock> timeout =
+        std::chrono::steady_clock::now() + std::chrono::milliseconds(TIMEOUT_MSEC);
+    if (!lck.try_lock_until(timeout)) {
+        HILOG_ERROR(LOG_CORE, "lock hook_mmap failed!");
+        return ret;
+    }
     if (g_hookClient != nullptr) {
         g_hookClient->SendStack(buffer.get(), metaSize);
     }
@@ -482,9 +503,12 @@ int hook_munmap(int(*fn)(void*, size_t), void* addr, size_t length)
       : "x12", "x13", "memory");
 #endif
     const char* stackptr = reinterpret_cast<const char*>(regs[RegisterGetSP(buildArchType)]);
-    char* stackendptr = nullptr;
-    GetRuntimeStackEnd(stackptr, &stackendptr);  // stack end pointer
-    int stackSize = stackendptr - stackptr;
+    const char* stackendptr = nullptr;
+    int stackSize = 0;
+    if (g_hookClient->GetMunmapStackData()) {
+        GetRuntimeStackEnd(stackptr, &stackendptr);  // stack end pointer
+        stackSize = stackendptr - stackptr;
+    }
     pid_t pid = getpid();
     pid_t tid = get_thread_id();
 
@@ -537,7 +561,13 @@ int hook_munmap(int(*fn)(void*, size_t), void* addr, size_t length)
     metaSize += regCount * sizeof(uint64_t);
     delete[] regs;
 
-    std::lock_guard<std::recursive_mutex> guard(g_ClientMutex);
+    std::unique_lock<std::recursive_timed_mutex> lck(g_ClientMutex,std::defer_lock);
+    std::chrono::time_point<std::chrono::steady_clock> timeout =
+        std::chrono::steady_clock::now() + std::chrono::milliseconds(TIMEOUT_MSEC);
+    if (!lck.try_lock_until(timeout)) {
+        HILOG_ERROR(LOG_CORE, "lock hook_munmap failed!");
+        return ret;
+    }
     if (g_hookClient != nullptr) {
         g_hookClient->SendStack(buffer.get(), metaSize);
     }

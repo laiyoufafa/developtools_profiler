@@ -28,6 +28,7 @@
 
 namespace {
 const int HEAD_OFFSET_LEN = 4;
+constexpr uint32_t TIMEOUT_SEC = 1;
 #ifndef PAGE_SIZE
 constexpr uint32_t PAGE_SIZE = 4096;
 #endif
@@ -126,6 +127,7 @@ bool ShareMemoryBlock::CreateBlock(std::string name, uint32_t size)
     pthread_mutexattr_t muAttr;
     pthread_mutexattr_init(&muAttr);
     pthread_mutexattr_setpshared(&muAttr, PTHREAD_PROCESS_SHARED);
+    pthread_mutexattr_settype(&muAttr,PTHREAD_MUTEX_RECURSIVE);
     pthread_mutex_init(&header_->info.mutex_, &muAttr);
     return true;
 }
@@ -221,10 +223,6 @@ bool ShareMemoryBlock::PutRaw(const int8_t* data, uint32_t size)
         HILOG_ERROR(LOG_CORE, "PutRaw not enough space [%d]", size);
         return false;
     }
-    if (data == nullptr) {
-        HILOG_ERROR(LOG_CORE, "null pointer!");
-        return false;
-    }
     if (memcpy_s(rawMemory, size, data, size) != EOK) {
         HILOG_ERROR(LOG_CORE, "memcpy_s error");
         return false;
@@ -233,6 +231,38 @@ bool ShareMemoryBlock::PutRaw(const int8_t* data, uint32_t size)
     UseFreeMemory(rawMemory, size);
     ++header_->info.bytesCount_;
     ++header_->info.chunkCount_;
+    return true;
+}
+
+bool ShareMemoryBlock::PutRawTimeout(const int8_t* data, uint32_t size)
+{
+    CHECK_NOTNULL(header_, false, "header not ready!");
+
+    struct timespec time_out;
+    clock_gettime(CLOCK_REALTIME, &time_out);
+    time_out.tv_sec += TIMEOUT_SEC;
+    if (pthread_mutex_timedlock(&header_->info.mutex_, &time_out) != 0 ) {
+        HILOG_ERROR(LOG_CORE, "PutRawTimeout failed %d", errno);
+        return false;
+    }
+
+    int8_t* rawMemory = GetFreeMemory(size);
+    if (rawMemory == nullptr) {
+        HILOG_ERROR(LOG_CORE, "PutRaw not enough space [%d]", size);
+        pthread_mutex_unlock(&header_->info.mutex_);
+        return false;
+    }
+    if (memcpy_s(rawMemory, size, data, size) != EOK) {
+        HILOG_ERROR(LOG_CORE, "memcpy_s error");
+        pthread_mutex_unlock(&header_->info.mutex_);
+        return false;
+    }
+
+    UseFreeMemory(rawMemory, size);
+    ++header_->info.bytesCount_;
+    ++header_->info.chunkCount_;
+
+    pthread_mutex_unlock(&header_->info.mutex_);
     return true;
 }
 

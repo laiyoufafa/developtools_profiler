@@ -29,6 +29,7 @@
 namespace {
 const int PROTO_SIZE_MAX = 1024 * 1024;
 const int MEMORY_BLOCK_UNIT = 4096;
+const uint64_t HEARTBEAT_MSG = -1u;
 } // namespace
 
 SocketContext::SocketContext()
@@ -196,6 +197,23 @@ bool SocketContext::SendHookConfig(uint64_t config)
     phead.protoSize = sizeof(config) + sizeof(struct ProtocolHead);
     send(socketHandle_, reinterpret_cast<int8_t*>(&phead), sizeof(struct ProtocolHead), 0);
     send(socketHandle_, &config , sizeof(config), 0);
+
+    return true;
+}
+
+bool SocketContext::SendHeartBeat()
+{
+    struct ProtocolHead phead;
+    phead.protoType = PROTOCOL_TYPE_PROTOBUF;
+    phead.protoSize = sizeof(HEARTBEAT_MSG) + sizeof(struct ProtocolHead);
+
+    if (send(socketHandle_, reinterpret_cast<int8_t*>(&phead), sizeof(struct ProtocolHead), 0) == -1) {
+        return false;
+    }
+
+    if (send(socketHandle_, &HEARTBEAT_MSG, sizeof(HEARTBEAT_MSG), 0) == -1) {
+        return false;
+    }
 
     return true;
 }
