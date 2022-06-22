@@ -626,7 +626,6 @@ private:
             if (shdr->secType_ == SHT_PROGBITS) {
                 if (EH_FRAME_HR == sh_name) {
                     LoadEhFrameHDR(data, shdr->secSize_, shdr->fileOffset_);
-                    break;
                 }
             } // for shdr
 #endif
@@ -682,6 +681,12 @@ private:
                     }
                     break;
                 case SHT_PROGBITS:
+#ifndef __arm__				
+					if (EH_FRAME_HR == sh_name) {
+                    	LoadEhFrameHDR(data, shdr->secSize_, shdr->fileOffset_);
+						break;
+                	}
+#endif
                     if (PLT == sh_name) {
                         // this is a plt section, PLT table will put here
                         // we make it as named PLT function
