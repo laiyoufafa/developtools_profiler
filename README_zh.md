@@ -24,39 +24,39 @@
 
 ```
 /developtools/profiler
-├── device  # 设备侧代码目录
-│   └── base
-│       ├── include  # 基础功能的头文件代码目录
-│       ├── src      # 基础功能的源文件代码目录
-│       ├── test     # 基础功能的测试代码目录
-│   └── cmds
-│       ├── include  # 对外命令行模块的头文件代码目录
-│       ├── src      # 对外命令行模块的源文件代码目录
-│       ├── test     # 对外命令行模块的测试代码目录  
-│   └── plugins
-│       ├── api      # 插件模块对外提供的接口文件代码目录
-│           └── include # 插件模块对外提供的接口头文件代码目录
-│           └── src     # 插件模块对外提供的接口源文件代码目录
-│       ├── memory_plugin   # 内存插件模块代码目录
-│           └── include # 内存插件模块头文件代码目录
-│           └── src     # 内存插件模块源文件代码目录
-│           └── test    # 内存插件模块测试代码目录
-│       ├── trace_plugin   # trace插件模块代码目录
-│           └── include # trace插件模块头文件代码目录
-│           └── src     # trace插件模块源文件代码目录
-│           └── test    # trace插件模块测试代码目录
-├── host     # 主机侧代码目录
-│   └── ohosprofiler     # 主机侧调优模块代码目录
-│       └── src   # 主机侧调优模块源文件代码目录
-├── protos   # 项目中的proto格式文件的代码目录
-│   └── innerkits     # 对内部子系统暴露的头文件存放目录
-│       └── builtin   # JS应用框架对外暴露JS三方module API接口存放目录
-├── trace_analyzer   # bytrace解析模块的代码目录
-│   └── include    # bytrace解析模块的公共头文件存放目录
-│   └── src   # bytrace解析模块功能源文件存放目录
-├── interfaces  # 项目中接口的代码目录
-│   └── innerkits   # 模块间接口的代码目录
-│   └── kits   # 对外提供接口存放目录
+├── device                       # 设备侧代码目录
+│   ├── base                     # 基础功能代码
+│   │   ├── include              # 基础功能的头文件代码目录
+│   |   ├── src                  # 基础功能的源文件代码目录
+│   |   └── test                 # 基础功能的测试代码目录
+│   ├── cmds                     # 对外命令行模块的代码
+│   |   ├── include              # 对外命令行模块的头文件代码目录
+│   |   ├── src                  # 对外命令行模块的源文件代码目录
+│   |   └── test                 # 对外命令行模块的测试代码目录  
+│   └── plugins                  # 插件代码目录
+│       ├── api                  # 插件模块对外提供的接口文件代码目录
+│       |   ├── include          # 插件模块对外提供的接口头文件代码目录
+│       |   └── src              # 插件模块对外提供的接口源文件代码目录
+│       ├── memory_plugin        # 内存插件模块代码目录
+│       |   ├── include          # 内存插件模块头文件代码目录
+│       |   ├── src              # 内存插件模块源文件代码目录
+│       |   └── test             # 内存插件模块测试代码目录
+│       └── trace_plugin         # trace插件模块代码目录
+│           ├── include          # trace插件模块头文件代码目录
+│           ├── src              # trace插件模块源文件代码目录
+│           └── test             # trace插件模块测试代码目录
+├── host                         # 主机侧代码目录
+│   └── ohosprofiler             # 主机侧调优模块代码目录
+│       └── src                  # 主机侧调优模块源文件代码目录
+├── protos                       # 项目中的proto格式文件的代码目录
+│   └── innerkits                # 对内部子系统暴露的头文件存放目录
+│       └── builtin              # JS应用框架对外暴露JS三方module API接口存放目录
+├── trace_analyzer               # bytrace解析模块的代码目录
+│   ├── include                  # bytrace解析模块的公共头文件存放目录
+│   └── src                      # bytrace解析模块功能源文件存放目录
+├── interfaces                   # 项目中接口的代码目录
+│   ├── innerkits                # 模块间接口的代码目录
+│   └── kits                     # 对外提供接口存放目录
 ```
 
 ## 说明<a name="section2165102016359"></a>
@@ -363,11 +363,10 @@ int main(int argc, char** argv)
 
 ## 相关仓<a name="section1293495681320"></a>
 
-研发工具链子系统
+[研发工具链子系统]()
 
 **developtools\_profiler**
 
-[developtools\_hdc\_standard]{https://gitee.com/openharmony/developtools_hdc_standard}
+[developtools\_hdc](https://gitee.com/openharmony/developtools_hdc)
 
-[developtools\_bytrace\_standard]{https://gitee.com/openharmony/developtools_bytrace_standard}
-
+[developtools\_bytrace](https://gitee.com/openharmony/developtools_bytrace)
