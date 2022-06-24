@@ -47,6 +47,14 @@ public:
     {
         return mmapDisable_;
     }
+    bool GetFreeStackData()
+    {
+        return freeStackData_;
+    }
+    bool GetMunmapStackData()
+    {
+        return munmapStackData_;
+    }
 
     bool SendStack(const void* data, size_t size);
 private:
@@ -57,6 +65,8 @@ private:
     uint32_t filterSize_;
     bool mallocDisable_;
     bool mmapDisable_;
+    bool freeStackData_;
+    bool munmapStackData_;
     std::shared_ptr<StackWriter> stackWriter_;
 };
 

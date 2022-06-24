@@ -66,6 +66,14 @@ long StackWriter::Write(const void* data, size_t size)
     return shareMemoryBlock_->PutRaw(reinterpret_cast<const int8_t*>(data), size);
 }
 
+long StackWriter::WriteTimeout(const void* data, size_t size)
+{
+    if (shareMemoryBlock_ == nullptr || data == nullptr || size == 0) {
+        return false;
+    }
+    return shareMemoryBlock_->PutRawTimeout(reinterpret_cast<const int8_t*>(data), size);
+}
+
 bool StackWriter::Flush()
 {
     ++flushCount_;

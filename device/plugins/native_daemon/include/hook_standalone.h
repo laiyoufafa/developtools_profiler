@@ -29,6 +29,8 @@ using HookData = struct {
     std::string performance_filename;
     bool mallocDisable;
     bool mmapDisable;
+    bool freemsgstack;
+    bool munmapmsgstack;
 };
 
 namespace OHOS {

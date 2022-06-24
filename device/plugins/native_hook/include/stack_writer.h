@@ -33,6 +33,7 @@ public:
                  int eventFd);
     ~StackWriter();
     long Write(const void* data, size_t size) override;
+    long WriteTimeout(const void* data, size_t size);
     bool Flush() override;
 
 private:
