@@ -29,6 +29,8 @@ HookSocketClient::HookSocketClient(int pid) : pid_(pid)
     serviceName_ = "HookService";
     mallocDisable_ = false;
     mmapDisable_ = false;
+    freeStackData_ = false;
+    munmapStackData_ = false;
     Connect(DEFAULT_UNIX_SOCKET_HOOK_PATH);
 }
 
@@ -75,17 +77,27 @@ bool HookSocketClient::ProtocolProc(SocketContext &context, uint32_t pnum, const
     if (mask & MMAPDISABLE) {
         mmapDisable_ = true;
     }
-
+    if (mask & FREEMSGSTACK) {
+        freeStackData_ = true;
+    }
+    if (mask & MUNMAPMSGSTACK) {
+        munmapStackData_ = true;
+    }
     stackWriter_ = std::make_shared<StackWriter>("hooknativesmb", smbSize, smbFd_, eventFd_);
     return true;
 }
 
 bool HookSocketClient::SendStack(const void* data, size_t size)
 {
-    if (stackWriter_ == nullptr) {
+    if (stackWriter_ == nullptr || unixSocketClient_ == nullptr) {
+        return true;
+    }
+
+    if (!unixSocketClient_->SendHeartBeat()) {
         return false;
     }
-    stackWriter_->Write(data, size);
+
+    stackWriter_->WriteTimeout(data, size);
     stackWriter_->Flush();
 
     return true;

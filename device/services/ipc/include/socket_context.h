@@ -56,6 +56,7 @@ public:
 #endif
     bool SendFileDescriptor(int fd);
     bool SendHookConfig(uint64_t value);
+    bool SendHeartBeat();
     int ReceiveFileDiscriptor();
     enum ClientState GetClientState() { return clientState_; }
 protected:

@@ -13,27 +13,35 @@
  * limitations under the License.
  */
 
+#include "runtime_stack_range.h"
+
+#include <pthread.h>
+#include <sys/types.h>
+#include <unistd.h>
+
 #include <cassert>
 #include <csignal>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
-#include <pthread.h>
 #include <string>
-#include <unistd.h>
-#include <sys/types.h>
-#include "get_thread_id.h"
-#include "runtime_stack_range.h"
 
+#include "get_thread_id.h"
 
 namespace {
-    constexpr int BASE_MIN = 2;
-    constexpr int BASE_CENTRE = 10;
-    constexpr int BASE_MAX = 16;
-} // namespace
+constexpr int BASE_MIN = 2;
+constexpr int BASE_CENTRE = 10;
+constexpr int BASE_MAX = 16;
 
-static void GetThreadRuntimeStackRange(char** start, char** end)
+struct StackScope {
+    const char* start;
+    const char* end;
+};
+static StackScope mainStack;
+}  // namespace
+
+static void GetThreadRuntimeStackRange(const char** start, const char** end)
 {
     *start = nullptr;
     *end = nullptr;
@@ -42,7 +50,7 @@ static void GetThreadRuntimeStackRange(char** start, char** end)
     if (pthread_getattr_np(tid, &attr) == 0) {
         char* stackAddr = nullptr;
         size_t stackSize;
-        if (pthread_attr_getstack(&attr, reinterpret_cast<void**>(start), &stackSize) == 0) {
+        if (pthread_attr_getstack(&attr, reinterpret_cast<void**>(const_cast<char**>(start)), &stackSize) == 0) {
             *end = *start + stackSize;
         }
         pthread_attr_destroy(&attr);
@@ -108,7 +116,7 @@ static void GetAnUnlimitedLine(FILE* fp, std::string& buf)
         if (offset + length >= static_cast<int>(buf.size())) {
             buf.resize(buf.size() + INC_LINE_SIZE);
         }
-        retLine =  fgets(&buf[0] + offset, buf.size() - offset, fp);
+        retLine = fgets(&buf[0] + offset, buf.size() - offset, fp);
         if (retLine == nullptr) {
             break;
         }
@@ -120,10 +128,8 @@ static void GetAnUnlimitedLine(FILE* fp, std::string& buf)
     } while (1);
 }
 
-static void GetMainThreadRuntimeStackRange(char** start, char** end)
+void GetMainThreadRuntimeStackRange()
 {
-    *start = nullptr;
-    *end = nullptr;
     std::string line;
     int buf_size = 0;
     FILE* fp = fopen("/proc/self/maps", "re");
@@ -141,10 +147,9 @@ static void GetMainThreadRuntimeStackRange(char** start, char** end)
             if (concatPos == static_cast<std::string::size_type>(-1)) {
                 continue;
             }
-            char* min = reinterpret_cast<char*>(CvtStrToInt(line.c_str(), 16));
-            char* max = reinterpret_cast<char*>(CvtStrToInt(line.c_str() + concatPos + 1, 16));
-            *start = min;
-            *end = max;
+            mainStack.start = reinterpret_cast<char*>(CvtStrToInt(line.c_str(), BASE_MAX));
+            mainStack.end = reinterpret_cast<char*>(CvtStrToInt(line.c_str() + concatPos + 1, BASE_MAX));
+
             break;
         }
     }
@@ -181,15 +186,16 @@ static bool IfSubThread()
     return pid != tid;
 }
 
-void GetRuntimeStackEnd(const char* stackptr, char** end)
+void GetRuntimeStackEnd(const char* stackptr, const char** end)
 {
-    char* start = nullptr;
+    const char* start = nullptr;
     *end = nullptr;
     bool isSubThread = IfSubThread();
     if (isSubThread) {
         GetThreadRuntimeStackRange(&start, end);
     } else {
-        GetMainThreadRuntimeStackRange(&start, end);
+        start = mainStack.start;
+        *end = mainStack.end;
     }
     if (!IfContained(start, *end, stackptr)) {
         char *sigStackStart, *sigStackEnd;

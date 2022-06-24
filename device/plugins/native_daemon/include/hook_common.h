@@ -20,6 +20,8 @@
 enum {
     MALLOCDISABLE = (1u << 0),
     MMAPDISABLE = (1u << 1),
+    FREEMSGSTACK = (1u << 2),
+    MUNMAPMSGSTACK = (1u << 3),
 };
 
 enum {
@@ -27,6 +29,7 @@ enum {
     FREE_MSG,
     MMAP_MSG,
     MUNMAP_MSG,
+    MEMORY_TAG,
 };
 
 #endif // HOOK_SERVICE_H

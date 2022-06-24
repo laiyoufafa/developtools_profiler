@@ -202,6 +202,9 @@ bool StartHook(HookData& hookData)
 
     uint64_t hookConfig = hookData.mallocDisable ? MALLOCDISABLE : 0;
     hookConfig |= hookData.mmapDisable ? MMAPDISABLE : 0;
+    hookConfig |= hookData.freemsgstack ? FREEMSGSTACK : 0;
+    hookConfig |= hookData.munmapmsgstack ? MUNMAPMSGSTACK : 0;
+
     hookConfig <<= MOVE_BIT_16;
     hookConfig |= hookData.filterSize;
     hookConfig <<= MOVE_BIT_32;

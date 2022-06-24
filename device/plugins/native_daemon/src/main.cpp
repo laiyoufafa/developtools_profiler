@@ -160,7 +160,7 @@ int main(int argc, char* argv[])
         for (int i = 1; i < argc; i++) {
             args.push_back(argv[i]);
         }
-        HookData hookData = {0, 0, 0, 0, 0, "", "", "", false, false};
+        HookData hookData = {0, 0, 0, 0, 0, "", "", "", false, false, true, true};
         if (VerifyCommand(args, hookData)) {
             GetHookedProceInfo(hookData);
         } else {
