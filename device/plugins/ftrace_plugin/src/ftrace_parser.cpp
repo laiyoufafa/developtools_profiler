@@ -428,7 +428,7 @@ bool FtraceParser::ParseFieldType(const std::string& type, FieldFormat& field)
     }
 
     // Variable length strings: "char foo" + size: 0 (as in 'print').
-    if (type == "char" && field.size == 0) {
+    if ((type == "char" || type == "char []") && field.size == 0) {
         field.filedType = FIELD_TYPE_CSTRING;
         return true;
     }
@@ -606,7 +606,6 @@ bool FtraceParser::ParsePaddingData(const FtraceEventHeader& eventHeader)
 
     // skip padding data
     cur_ += paddingLength;
-    HILOG_INFO(LOG_CORE, "ParsePaddingData: ignore %u bytes!", paddingLength);
     return true;
 }
 

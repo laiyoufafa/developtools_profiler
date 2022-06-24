@@ -66,7 +66,7 @@ long TraceFileWriter::Write(const void* data, size_t size)
     // write 4B data length.
     stream_.write(reinterpret_cast<CharPtr>(&dataLen), sizeof(dataLen));
     CHECK_TRUE(stream_, 0, "binary file %s write raw buffer size failed!", path_.c_str());
-    CHECK_TRUE(helper_.AddSegment(reinterpret_cast<uint8_t*>(&size), sizeof(size)),
+    CHECK_TRUE(helper_.AddSegment(reinterpret_cast<uint8_t*>(&dataLen), sizeof(dataLen)),
         0, "Add payload for size %u FAILED!", dataLen);
 
     // write data bytes

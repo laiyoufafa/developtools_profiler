@@ -190,6 +190,7 @@ ftrace/user_stack
 ftrace/wakeup
 gpio/gpio_direction
 gpio/gpio_value
+gpu_mem/gpu_mem_total
 i2c/i2c_read
 i2c/i2c_reply
 i2c/i2c_result
@@ -230,6 +231,7 @@ kmem/mm_page_alloc_zone_locked
 kmem/mm_page_free
 kmem/mm_page_free_batched
 kmem/mm_page_pcpu_drain
+kmem/rss_stat
 # migrate/mm_migrate_pages
 # napi/napi_poll
 net/napi_gro_frags_entry
@@ -345,10 +347,13 @@ rcu/rcu_utilization
 # regmap/regmap_reg_read
 # regmap/regmap_reg_read_cache
 # regmap/regmap_reg_write
+regulator/regulator_set_voltage
+regulator/regulator_set_voltage_complete
 # rpm/rpm_idle
 # rpm/rpm_resume
 # rpm/rpm_return_int
 # rpm/rpm_suspend
+sched/sched_blocked_reason
 sched/sched_kthread_stop
 sched/sched_kthread_stop_ret
 sched/sched_migrate_task

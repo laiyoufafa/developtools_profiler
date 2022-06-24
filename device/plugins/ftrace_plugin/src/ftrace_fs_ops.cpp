@@ -188,7 +188,6 @@ std::string FtraceFsOps::GetTraceClock()
 
 std::vector<std::pair<std::string, std::string>> FtraceFsOps::GetPlatformEvents()
 {
-    HILOG_INFO(LOG_CORE, "get platform event formats start!");
     std::set<std::pair<std::string, std::string>> eventSet;
     std::string eventsPath = ftraceRoot_ + "/events";
     for (auto& type : FileUtils::ListDir(eventsPath)) {
@@ -230,6 +229,12 @@ bool FtraceFsOps::EnableEvent(const std::string& type, const std::string& name)
 bool FtraceFsOps::DisableEvent(const std::string& type, const std::string& name)
 {
     std::string enablePath = ftraceRoot_ + "/events/" + type + "/" + name + "/enable";
+    return FileUtils::WriteFile(enablePath, "0") > 0;
+}
+
+bool FtraceFsOps::DisableCategories(const std::string& categories)
+{
+    std::string enablePath = ftraceRoot_ + "/events/" + categories + "/enable";
     return FileUtils::WriteFile(enablePath, "0") > 0;
 }
 

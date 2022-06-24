@@ -19,6 +19,7 @@
 #include <memory>
 #include "logging.h"
 #include "nocopyable.h"
+#include "hiperf_plugin_config.pb.h"
 #include "profiler_service.grpc.pb.h"
 
 class PluginService;
@@ -121,6 +122,8 @@ private:
     bool AddSessionContext(uint32_t sessionId, const SessionContextPtr& sessionCtx);
 
     bool RemoveSessionContext(uint32_t sessionId);
+
+    void MergeHiperfFile(const SessionContextPtr& sessionCtx);
 
 private:
     mutable std::mutex sessionContextMutex_ = {};

@@ -38,6 +38,7 @@ public:
     bool SetSerializeHookConfig(const std::string& pluginName, ProfilerPluginConfig& pluginConfig);
     bool SetSerializeNetworkConfig(const std::string& pluginName, ProfilerPluginConfig& pluginConfig);
     bool SetSerializeProcessConfig(const std::string& pluginName, ProfilerPluginConfig& pluginConfig);
+    bool SetSerializeHiperfConfig(const std::string& pluginName, ProfilerPluginConfig& pluginConfig);
 
 private:
     ParsePluginConfig() {}

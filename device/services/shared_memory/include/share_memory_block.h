@@ -32,6 +32,7 @@ public:
     ~ShareMemoryBlock();
 
     bool PutRaw(const int8_t* data, uint32_t size);
+    bool PutRawTimeout(const int8_t* data, uint32_t size);
 #ifndef NO_PROTOBUF
     bool PutMessage(const google::protobuf::Message& pmsg);
 #endif
