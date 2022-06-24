@@ -43,6 +43,8 @@ constexpr uint16_t SERVICE_PORT = 50051;
 constexpr uint32_t US_PER_MS = 1000;
 constexpr int KEEP_SESSION_TIMEOUT_MS = 5 * 1000;
 constexpr int KEEP_SESSION_SLEEP_US = 3 * 1000 * 1000;
+constexpr int DEFAULT_SESSION_TIME_S = 10;
+const std::string DEFAULT_OUTPUT_FILE = "/data/local/tmp/hiprofiler_data.htrace";
 
 uint32_t g_sampleDuration = 0;
 bool g_isConfigFile = false;
@@ -134,16 +136,21 @@ std::unique_ptr<CreateSessionRequest> MakeCreateRequest(const std::string& confi
     }
 
     request->set_request_id(1);
-    printf("keepSecond: %s, outputFileName: %s\n", keepSecond.c_str(), outputFile.c_str());
     if (!keepSecond.empty()) {
         int ks = std::stoi(keepSecond);
         if (ks > 0) {
             sessionConfig->set_sample_duration(ks * MS_PER_S);
         }
+    } else if (sessionConfig->sample_duration() <= 0) {
+        sessionConfig->set_sample_duration(DEFAULT_SESSION_TIME_S * MS_PER_S);
     }
     if (!outputFile.empty()) {
         sessionConfig->set_result_file(outputFile);
+    } else if (sessionConfig->result_file() == "") {
+        sessionConfig->set_result_file(DEFAULT_OUTPUT_FILE);
     }
+    printf("keepSecond: %ds, outputFileName: %s\n", sessionConfig->sample_duration() / MS_PER_S,
+        sessionConfig->result_file().c_str());
 
     g_sampleDuration = sessionConfig->sample_duration();
     if (!g_isConfigFile) {
@@ -366,6 +373,8 @@ int CheckGrpcMsgSend()
         return -1;
     }
     printf("OK\n");
+    printf("ip:%s\n", GetLoopbackAddress().c_str());
+    printf("port:%u\n", GetServicePort());
     return 0;
 }
 } // namespace
