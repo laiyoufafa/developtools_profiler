@@ -44,12 +44,18 @@ std::unique_ptr<FILE, decltype(&fclose)> g_fpHookFile(nullptr, nullptr);
 void writeFrames(int type, const struct timespec& ts, void* addr, uint32_t mallocSize,
     const std::vector<CallFrame>& callsFrames)
 {
-    if (type == 0) {
+    if (type == MALLOC_MSG) {
         fprintf(g_fpHookFile.get(), "malloc;%" PRId64 ";%ld;0x%" PRIx64 ";%u\n",
                 (int64_t)ts.tv_sec, ts.tv_nsec, (uint64_t)addr, mallocSize);
-    } else if (type == 1) {
+    } else if (type == FREE_MSG) {
         fprintf(g_fpHookFile.get(), "free;%" PRId64 ";%ld;0x%" PRIx64 "\n",
                 (int64_t)ts.tv_sec, ts.tv_nsec, (uint64_t)addr);
+    } else if (type == MMAP_MSG) {
+        fprintf(g_fpHookFile.get(), "mmap;%" PRId64 ";%ld;0x%" PRIx64 ";%u\n",
+                (int64_t)ts.tv_sec, ts.tv_nsec, (uint64_t)addr, mallocSize);
+    } else if (type == MUNMAP_MSG) {
+        fprintf(g_fpHookFile.get(), "munmap;%" PRId64 ";%ld;0x%" PRIx64 ";%u\n",
+                (int64_t)ts.tv_sec, ts.tv_nsec, (uint64_t)addr, mallocSize);
     } else {
         return;
     }
@@ -91,6 +97,9 @@ void ReadShareMemory(uint64_t duration, const std::string& performance_filename)
                 HILOG_ERROR(LOG_CORE, "memcpy_s ts failed");
             }
             uint32_t type = *(reinterpret_cast<uint32_t *>(tmp + sizeof(ts)));
+            if (type == MEMORY_TAG) {
+                return true;
+            }
             size_t mallocSize = *(reinterpret_cast<size_t *>(tmp + sizeof(ts) + sizeof(type)));
             addr = *(reinterpret_cast<void **>(tmp + sizeof(ts) + sizeof(type) + sizeof(mallocSize)));
             stackSize = *(reinterpret_cast<uint32_t *>(tmp + sizeof(ts)
