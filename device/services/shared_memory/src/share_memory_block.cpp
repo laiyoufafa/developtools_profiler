@@ -15,13 +15,14 @@
 
 #include "share_memory_block.h"
 
-#include <cstring>
 #include <fcntl.h>
 #include <sys/mman.h>
 #include <sys/socket.h>
 #include <sys/syscall.h>
 #include <sys/un.h>
 #include <unistd.h>
+
+#include <cstring>
 
 #include "logging.h"
 #include "securec.h"
@@ -32,7 +33,7 @@ constexpr uint32_t TIMEOUT_SEC = 1;
 #ifndef PAGE_SIZE
 constexpr uint32_t PAGE_SIZE = 4096;
 #endif
-}
+}  // namespace
 
 struct PthreadLocker {
     explicit PthreadLocker(pthread_mutex_t& mutex) : mutex_(mutex)
@@ -66,7 +67,7 @@ bool ShareMemoryBlock::CreateBlockWithFd(std::string name, uint32_t size, int fd
     auto ptr = mmap(nullptr, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
     if (ptr == MAP_FAILED) {
         const int bufSize = 256;
-        char buf[bufSize] = { 0 };
+        char buf[bufSize] = {0};
         strerror_r(errno, buf, bufSize);
         HILOG_ERROR(LOG_CORE, "CreateBlockWithFd mmap ERR : %s", buf);
         return false;
@@ -94,7 +95,7 @@ bool ShareMemoryBlock::CreateBlock(std::string name, uint32_t size)
     if (check < 0) {
         close(fd);
         const int bufSize = 256;
-        char buf[bufSize] = { 0 };
+        char buf[bufSize] = {0};
         strerror_r(errno, buf, bufSize);
         HILOG_ERROR(LOG_CORE, "CreateBlock ftruncate ERR : %s", buf);
         return false;
@@ -104,7 +105,7 @@ bool ShareMemoryBlock::CreateBlock(std::string name, uint32_t size)
     if (ptr == MAP_FAILED) {
         close(fd);
         const int bufSize = 256;
-        char buf[bufSize] = { 0 };
+        char buf[bufSize] = {0};
         strerror_r(errno, buf, bufSize);
         HILOG_ERROR(LOG_CORE, "CreateBlock mmap ERR : %s", buf);
         return false;
@@ -127,7 +128,7 @@ bool ShareMemoryBlock::CreateBlock(std::string name, uint32_t size)
     pthread_mutexattr_t muAttr;
     pthread_mutexattr_init(&muAttr);
     pthread_mutexattr_setpshared(&muAttr, PTHREAD_PROCESS_SHARED);
-    pthread_mutexattr_settype(&muAttr,PTHREAD_MUTEX_RECURSIVE);
+    pthread_mutexattr_settype(&muAttr, PTHREAD_MUTEX_RECURSIVE);
     pthread_mutex_init(&header_->info.mutex_, &muAttr);
     return true;
 }
@@ -173,14 +174,14 @@ int8_t* ShareMemoryBlock::GetCurrentFreeMemory(uint32_t size)
     uint32_t realSize = size + sizeof(uint32_t) + HEAD_OFFSET_LEN;
 
     uint32_t wp = header_->info.writeOffset_;
-    if (wp + realSize > header_->info.memorySize_) { // 后面部分放不下，从头开始放
+    if (wp + realSize > header_->info.memorySize_) {  // 后面部分放不下，从头开始放
         if (header_->info.readOffset_ == 0) {
             return nullptr;
         }
         *((uint32_t*)(&header_->data[wp])) = 0xffffffff;
         wp = 0;
     }
-    if (wp < header_->info.readOffset_ && header_->info.readOffset_ < wp + realSize) { //
+    if (wp < header_->info.readOffset_ && header_->info.readOffset_ < wp + realSize) {  //
         return nullptr;
     }
 
@@ -241,7 +242,7 @@ bool ShareMemoryBlock::PutRawTimeout(const int8_t* data, uint32_t size)
     struct timespec time_out;
     clock_gettime(CLOCK_REALTIME, &time_out);
     time_out.tv_sec += TIMEOUT_SEC;
-    if (pthread_mutex_timedlock(&header_->info.mutex_, &time_out) != 0 ) {
+    if (pthread_mutex_timedlock(&header_->info.mutex_, &time_out) != 0) {
         HILOG_ERROR(LOG_CORE, "PutRawTimeout failed %d", errno);
         return false;
     }

@@ -24,7 +24,7 @@ constexpr int INIT_LINE_SIZE = 1000;
 constexpr int INC_LINE_SIZE = 100;
 
 void GetRuntimeStackEnd(const char* stackptr, const char** end);
-void GetMainThreadRuntimeStackRange();
+void GetMainThreadRuntimeStackRange(void);
 
 #ifdef __cplusplus
 }

@@ -13,21 +13,23 @@
  * limitations under the License.
  */
 
-#include <limits>
+#include "hook_manager.h"
+
 #include <sys/stat.h>
+
+#include <limits>
 
 #include "command_poller.h"
 #include "epoll_event_poller.h"
 #include "event_notifier.h"
+#include "hook_common.h"
 #include "hook_service.h"
+#include "init_param.h"
 #include "logging.h"
 #include "plugin_service_types.pb.h"
 #include "share_memory_allocator.h"
-#include "init_param.h"
 #include "utilities.h"
 #include "virtual_runtime.h"
-#include "hook_common.h"
-#include "hook_manager.h"
 
 using namespace OHOS::Developtools::NativeDaemon;
 
@@ -41,7 +43,7 @@ const std::string STARTUP = "startup:";
 const std::string PARAM_NAME = "libc.hook_mode";
 const int MOVE_BIT_16 = 16;
 const int MOVE_BIT_32 = 32;
-} // namespace
+}  // namespace
 
 bool HookManager::CheckProcess()
 {
@@ -79,10 +81,9 @@ void HookManager::CheckProcessName()
             int ret = SystemSetParameter(PARAM_NAME.c_str(), cmd.c_str());
             if (ret < 0) {
                 HILOG_WARN(LOG_CORE, "set param failed, please manually set param and start process(%s)",
-                    hookConfig_.process_name().c_str());
+                           hookConfig_.process_name().c_str());
             } else {
-                HILOG_INFO(LOG_CORE, "set param success, please start process(%s)",
-                    hookConfig_.process_name().c_str());
+                HILOG_INFO(LOG_CORE, "set param success, please start process(%s)", hookConfig_.process_name().c_str());
             }
             break;
         } else if (strlen(line) > 0 && isdigit((unsigned char)(line[0]))) {
@@ -94,32 +95,33 @@ void HookManager::CheckProcessName()
 }
 
 void HookManager::writeFrames(const struct timespec& ts, HookContext& hookContext,
-    const std::vector<CallFrame>& callsFrames)
+                              const std::vector<CallFrame>& callsFrames)
 {
     if (hookContext.type == MALLOC_MSG) {
         fprintf(fpHookData_.get(), "malloc;%d;%d;%" PRId64 ";%ld;0x%" PRIx64 ";%u\n", hookContext.pid, hookContext.tid,
-            (int64_t)ts.tv_sec, ts.tv_nsec, (uint64_t)hookContext.addr, hookContext.mallocSize);
+                (int64_t)ts.tv_sec, ts.tv_nsec, (uint64_t)hookContext.addr, hookContext.mallocSize);
     } else if (hookContext.type == FREE_MSG) {
         fprintf(fpHookData_.get(), "free;%d;%d;%" PRId64 ";%ld;0x%" PRIx64 "\n", hookContext.pid, hookContext.tid,
-            (int64_t)ts.tv_sec, ts.tv_nsec, (uint64_t)hookContext.addr);
+                (int64_t)ts.tv_sec, ts.tv_nsec, (uint64_t)hookContext.addr);
     } else if (hookContext.type == MMAP_MSG) {
         fprintf(fpHookData_.get(), "mmap;%d;%d;%" PRId64 ";%ld;0x%" PRIx64 "\n", hookContext.pid, hookContext.tid,
-            (int64_t)ts.tv_sec, ts.tv_nsec, (uint64_t)hookContext.addr);
+                (int64_t)ts.tv_sec, ts.tv_nsec, (uint64_t)hookContext.addr);
     } else if (hookContext.type == MUNMAP_MSG) {
         fprintf(fpHookData_.get(), "munmap;%d;%d;%" PRId64 ";%ld;0x%" PRIx64 "\n", hookContext.pid, hookContext.tid,
-            (int64_t)ts.tv_sec, ts.tv_nsec, (uint64_t)hookContext.addr);
+                (int64_t)ts.tv_sec, ts.tv_nsec, (uint64_t)hookContext.addr);
     } else {
         return;
     }
 
     for (size_t idx = FILTER_STACK_DEPTH; idx < callsFrames.size(); ++idx) {
         (void)fprintf(fpHookData_.get(), "0x%" PRIx64 ";0x%" PRIx64 ";%s;%s;0x%" PRIx64 ";%" PRIu64 "\n",
-            callsFrames[idx].ip_, callsFrames[idx].sp_, std::string(callsFrames[idx].symbolName_).c_str(),
-            std::string(callsFrames[idx].filePath_).c_str(), callsFrames[idx].offset_, callsFrames[idx].symbolOffset_);
+                      callsFrames[idx].ip_, callsFrames[idx].sp_, std::string(callsFrames[idx].symbolName_).c_str(),
+                      std::string(callsFrames[idx].filePath_).c_str(), callsFrames[idx].offset_,
+                      callsFrames[idx].symbolOffset_);
     }
 }
 
-HookManager::HookManager() : fpHookData_(nullptr, nullptr), buffer_(new (std::nothrow) uint8_t[MAX_BUFFER_SIZE]) { }
+HookManager::HookManager() : fpHookData_(nullptr, nullptr), buffer_(new (std::nothrow) uint8_t[MAX_BUFFER_SIZE]) {}
 
 void HookManager::SetCommandPoller(const std::shared_ptr<CommandPoller>& p)
 {
@@ -214,7 +216,7 @@ bool HookManager::CreatePluginSession(const std::vector<ProfilerPluginConfig>& c
     // create file
     if (hookConfig_.save_file()) {
         HILOG_DEBUG(LOG_CORE, "save file name = %s", hookConfig_.file_name().c_str());
-        FILE *fp = fopen(hookConfig_.file_name().c_str(), "wb+");
+        FILE* fp = fopen(hookConfig_.file_name().c_str(), "wb+");
         if (fp) {
             fpHookData_.reset();
             fpHookData_ = std::unique_ptr<FILE, decltype(&fclose)>(fp, fclose);
@@ -258,8 +260,8 @@ bool HookManager::CreatePluginSession(const std::vector<ProfilerPluginConfig>& c
     hookConfig <<= MOVE_BIT_32;
     hookConfig |= bufferSize;
 
-    hookService_ = std::make_shared<HookService>(shareMemoryBlock_->GetfileDescriptor(),
-                                                eventNotifier_->GetFd(), pid_, hookConfig_.process_name(), hookConfig);
+    hookService_ = std::make_shared<HookService>(shareMemoryBlock_->GetfileDescriptor(), eventNotifier_->GetFd(), pid_,
+                                                 hookConfig_.process_name(), hookConfig);
     CHECK_NOTNULL(hookService_, false, "HookService create failed!");
 
     stackData_ = std::make_shared<StackDataRepeater>(STACK_DATA_SIZE);
@@ -280,45 +282,46 @@ void HookManager::ReadShareMemory()
 
         bool ret = shareMemoryBlock_->TakeData([&](const int8_t data[], uint32_t size) -> bool {
             std::vector<u64> u64regs;
-            u64 *regAddr = nullptr;
+            u64* regAddr = nullptr;
             uint32_t stackSize;
             pid_t pid;
             pid_t tid;
-            void *addr = nullptr;
-            int8_t* tmp = const_cast<int8_t *>(data);
+            void* addr = nullptr;
+            int8_t* tmp = const_cast<int8_t*>(data);
             std::unique_ptr<uint8_t[]> stackData;
             struct timespec ts = {};
             if (memcpy_s(&ts, sizeof(ts), data, sizeof(ts)) != EOK) {
                 HILOG_ERROR(LOG_CORE, "memcpy_s ts failed");
             }
-            uint32_t type = *(reinterpret_cast<uint32_t *>(tmp + sizeof(ts)));
+            uint32_t type = *(reinterpret_cast<uint32_t*>(tmp + sizeof(ts)));
 
-            size_t mallocSize = *(reinterpret_cast<size_t *>(tmp + sizeof(ts) + sizeof(type)));
-            addr = *(reinterpret_cast<void **>(tmp + sizeof(ts) + sizeof(type) + sizeof(mallocSize)));
-            stackSize = *(reinterpret_cast<uint32_t *>(tmp + sizeof(ts)
-                + sizeof(type) + sizeof(mallocSize) + sizeof(void *)));
+            size_t mallocSize = *(reinterpret_cast<size_t*>(tmp + sizeof(ts) + sizeof(type)));
+            addr = *(reinterpret_cast<void**>(tmp + sizeof(ts) + sizeof(type) + sizeof(mallocSize)));
+            stackSize =
+                *(reinterpret_cast<uint32_t*>(tmp + sizeof(ts) + sizeof(type) + sizeof(mallocSize) + sizeof(void*)));
             if (stackSize > 0) {
                 stackData = std::make_unique<uint8_t[]>(stackSize);
-                if (memcpy_s(stackData.get(), stackSize, tmp + sizeof(stackSize) + sizeof(ts) + sizeof(type)
-                    + sizeof(mallocSize) + sizeof(void *), stackSize) != EOK) {
+                if (memcpy_s(stackData.get(), stackSize,
+                             tmp + sizeof(stackSize) + sizeof(ts) + sizeof(type) + sizeof(mallocSize) + sizeof(void*),
+                             stackSize) != EOK) {
                     HILOG_ERROR(LOG_CORE, "memcpy_s data failed");
                 }
             }
-            pid = *(reinterpret_cast<pid_t *>(tmp + sizeof(stackSize) + stackSize + sizeof(ts)
-                + sizeof(type) + sizeof(mallocSize) + sizeof(void *)));
-            tid = *(reinterpret_cast<pid_t *>(tmp + sizeof(stackSize) + stackSize + sizeof(ts)
-                + sizeof(type) + sizeof(mallocSize) + sizeof(void *) + sizeof(pid)));
-            regAddr = reinterpret_cast<u64 *>(tmp + sizeof(pid) + sizeof(tid) + sizeof(stackSize)
-                + stackSize + sizeof(ts) + sizeof(type) + sizeof(mallocSize) + sizeof(void *));
+            pid = *(reinterpret_cast<pid_t*>(tmp + sizeof(stackSize) + stackSize + sizeof(ts) + sizeof(type) +
+                                             sizeof(mallocSize) + sizeof(void*)));
+            tid = *(reinterpret_cast<pid_t*>(tmp + sizeof(stackSize) + stackSize + sizeof(ts) + sizeof(type) +
+                                             sizeof(mallocSize) + sizeof(void*) + sizeof(pid)));
+            regAddr = reinterpret_cast<u64*>(tmp + sizeof(pid) + sizeof(tid) + sizeof(stackSize) + stackSize +
+                                             sizeof(ts) + sizeof(type) + sizeof(mallocSize) + sizeof(void*));
 
-            int reg_count = (size - sizeof(pid) - sizeof(tid) - sizeof(stackSize) - stackSize
-                - sizeof(ts) - sizeof(type) - sizeof(mallocSize) - sizeof(void *))
-                / sizeof(u64);
+            int reg_count = (size - sizeof(pid) - sizeof(tid) - sizeof(stackSize) - stackSize - sizeof(ts) -
+                             sizeof(type) - sizeof(mallocSize) - sizeof(void*)) /
+                            sizeof(u64);
             if (reg_count <= 0) {
                 HILOG_ERROR(LOG_CORE, "data error size = %u", size);
             }
 #if defined(__arm__)
-            uint32_t *regAddrArm = reinterpret_cast<uint32_t *>(regAddr);
+            uint32_t* regAddrArm = reinterpret_cast<uint32_t*>(regAddr);
 #endif
             for (int idx = 0; idx < reg_count; ++idx) {
 #if defined(__arm__)
@@ -332,9 +335,9 @@ void HookManager::ReadShareMemory()
 
             if (stackSize > 0) {
                 runtime_instance->UnwindStack(u64regs, stackData.get(), stackSize, pid, tid, callsFrames,
-                                            (hookConfig_.max_stack_depth() > 0)
-                                                ? hookConfig_.max_stack_depth() + FILTER_STACK_DEPTH
-                                                : MAX_CALL_FRAME_UNWIND_SIZE);
+                                              (hookConfig_.max_stack_depth() > 0)
+                                                  ? hookConfig_.max_stack_depth() + FILTER_STACK_DEPTH
+                                                  : MAX_CALL_FRAME_UNWIND_SIZE);
             }
             HookContext hookContext = {};
             hookContext.type = type;
@@ -358,8 +361,8 @@ void HookManager::ReadShareMemory()
     }
 }
 
-void HookManager::SetHookData(HookContext& hookContext, struct timespec ts,
-    std::vector<CallFrame>& callsFrames, BatchNativeHookDataPtr& batchNativeHookData)
+void HookManager::SetHookData(HookContext& hookContext, struct timespec ts, std::vector<CallFrame>& callsFrames,
+                              BatchNativeHookDataPtr& batchNativeHookData)
 {
     if (hookConfig_.save_file()) {
         writeFrames(ts, hookContext, callsFrames);
@@ -511,7 +514,7 @@ void HookManager::SetFrameInfo(Frame& frame, CallFrame& callsFrame)
     frame.set_symbol_offset(callsFrame.symbolOffset_);
 }
 
-bool HookManager::SendProtobufPackage(uint8_t *cache, size_t length)
+bool HookManager::SendProtobufPackage(uint8_t* cache, size_t length)
 {
     if (g_buffWriter == nullptr) {
         HILOG_ERROR(LOG_CORE, "HookManager:: BufferWriter empty, should set writer first");

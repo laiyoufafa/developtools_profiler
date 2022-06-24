@@ -13,18 +13,21 @@
  * limitations under the License.
  */
 
+#include "runtime_stack_range.h"
+
+#include <pthread.h>
+#include <sys/types.h>
+#include <unistd.h>
+
 #include <cassert>
 #include <csignal>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
-#include <pthread.h>
 #include <string>
-#include <unistd.h>
-#include <sys/types.h>
+
 #include "get_thread_id.h"
-#include "runtime_stack_range.h"
 
 namespace {
 constexpr int BASE_MIN = 2;
@@ -32,11 +35,11 @@ constexpr int BASE_CENTRE = 10;
 constexpr int BASE_MAX = 16;
 
 struct StackScope {
-  const char* start;
-  const char* end;
+    const char* start;
+    const char* end;
 };
 static StackScope mainStack;
-} // namespace
+}  // namespace
 
 static void GetThreadRuntimeStackRange(const char** start, const char** end)
 {
@@ -113,7 +116,7 @@ static void GetAnUnlimitedLine(FILE* fp, std::string& buf)
         if (offset + length >= static_cast<int>(buf.size())) {
             buf.resize(buf.size() + INC_LINE_SIZE);
         }
-        retLine =  fgets(&buf[0] + offset, buf.size() - offset, fp);
+        retLine = fgets(&buf[0] + offset, buf.size() - offset, fp);
         if (retLine == nullptr) {
             break;
         }
