@@ -459,7 +459,7 @@ export function taskSave(data: Array<TIndexInfo>) {
     }
   }
   console.info(TAG + 'ServiceAbility taskStop call1');
-  createFilePath(AppFileDir + globalThis.dbTime + "/t_index_info.csv", csvTIndexInfo(data))
+  createFilePath(globalThis.abilityContext.getApplicationContext().filesDir + "/" + globalThis.dbTime + "/t_index_info.csv", csvTIndexInfo(data))
   console.info(TAG + 'ServiceAbility taskStop call2');
   // t_general_info  入库
   globalThis.endTime = new Date().getTime()
@@ -481,7 +481,7 @@ export function taskSave(data: Array<TIndexInfo>) {
   tGenneralInfo.sn = deviceInfo.serial
   database.insertGeneraData(tableGeneral, tGenneralInfo, globalThis.dbTime.toString())
   console.info(TAG + 'ServiceAbility taskStop call3');
-  createFilePath(AppFileDir + globalThis.dbTime + "/t_general_info.csv", csvGeneralInfo(tGenneralInfo))
+  createFilePath(globalThis.abilityContext.getApplicationContext().filesDir + "/" + globalThis.dbTime + "/t_general_info.csv", csvGeneralInfo(tGenneralInfo))
   console.info(TAG + 'ServiceAbility taskStop call4');
 
   console.info(TAG + 'ServiceAbility taskStop called');

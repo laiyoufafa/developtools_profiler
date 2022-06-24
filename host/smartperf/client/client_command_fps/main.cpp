@@ -259,6 +259,7 @@ int main(int argc, char *argv[])
             FpsConfig fpsConfig;
             gfpsInfo = GetSurfaceFrame(layerName, fpsConfig);
             printf("fps:%d|%lld\n", gfpsInfo.fps, gfpsInfo.current_fps_time);
+            fflush(stdout);
             sleep(1);
         }
     }
