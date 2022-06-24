@@ -39,13 +39,20 @@ static std::shared_ptr<HookSocketClient> g_hookClient;
 std::recursive_timed_mutex g_ClientMutex;
 std::atomic<const MallocDispatchType*> g_dispatch{nullptr};
 constexpr int TIMEOUT_MSEC = 2000;
-const MallocDispatchType* GetDispatch() { return g_dispatch.load(std::memory_order_relaxed); }
+const MallocDispatchType* GetDispatch()
+{
+    return g_dispatch.load(std::memory_order_relaxed);
+}
 
-bool InititalizeIPC() { return true; }
+bool InititalizeIPC()
+{
+    return true;
+}
 void FinalizeIPC() {}
 }  // namespace
 
-bool ohos_malloc_hook_on_start(void) {
+bool ohos_malloc_hook_on_start(void)
+{
     std::lock_guard<std::recursive_timed_mutex> guard(g_ClientMutex);
 
     if (g_hookClient == nullptr) {
@@ -55,14 +62,16 @@ bool ohos_malloc_hook_on_start(void) {
     return true;
 }
 
-bool ohos_malloc_hook_on_end(void) {
+bool ohos_malloc_hook_on_end(void)
+{
     std::lock_guard<std::recursive_timed_mutex> guard(g_ClientMutex);
     g_hookClient = nullptr;
 
     return true;
 }
 
-void* hook_malloc(void* (*fn)(size_t), size_t size) {
+void* hook_malloc(void* (*fn)(size_t), size_t size)
+{
     void* ret = nullptr;
     if (fn) {
         ret = fn(size);
@@ -172,7 +181,8 @@ void* hook_malloc(void* (*fn)(size_t), size_t size) {
     return ret;
 }
 
-void* hook_valloc(void* (*fn)(size_t), size_t size) {
+void* hook_valloc(void* (*fn)(size_t), size_t size)
+{
     void* pRet = nullptr;
     if (fn) {
         pRet = fn(size);
@@ -180,7 +190,8 @@ void* hook_valloc(void* (*fn)(size_t), size_t size) {
     return pRet;
 }
 
-void* hook_calloc(void* (*fn)(size_t, size_t), size_t number, size_t size) {
+void* hook_calloc(void* (*fn)(size_t, size_t), size_t number, size_t size)
+{
     void* pRet = nullptr;
     if (fn) {
         pRet = fn(number, size);
@@ -188,7 +199,8 @@ void* hook_calloc(void* (*fn)(size_t, size_t), size_t number, size_t size) {
     return pRet;
 }
 
-void* hook_memalign(void* (*fn)(size_t, size_t), size_t align, size_t bytes) {
+void* hook_memalign(void* (*fn)(size_t, size_t), size_t align, size_t bytes)
+{
     void* pRet = nullptr;
     if (fn) {
         pRet = fn(align, bytes);
@@ -196,7 +208,8 @@ void* hook_memalign(void* (*fn)(size_t, size_t), size_t align, size_t bytes) {
     return pRet;
 }
 
-void* hook_realloc(void* (*fn)(void*, size_t), void* ptr, size_t size) {
+void* hook_realloc(void* (*fn)(void*, size_t), void* ptr, size_t size)
+{
     void* pRet = nullptr;
     if (fn) {
         pRet = fn(ptr, size);
@@ -205,7 +218,8 @@ void* hook_realloc(void* (*fn)(void*, size_t), void* ptr, size_t size) {
     return pRet;
 }
 
-size_t hook_malloc_usable_size(size_t (*fn)(void*), void* ptr) {
+size_t hook_malloc_usable_size(size_t (*fn)(void*), void* ptr)
+{
     size_t ret = 0;
     if (fn) {
         ret = fn(ptr);
@@ -214,7 +228,8 @@ size_t hook_malloc_usable_size(size_t (*fn)(void*), void* ptr) {
     return ret;
 }
 
-void hook_free(void (*free_func)(void*), void* p) {
+void hook_free(void (*free_func)(void*), void* p)
+{
     if (free_func) {
         free_func(p);
     }
@@ -329,7 +344,8 @@ void hook_free(void (*free_func)(void*), void* p) {
 }
 
 void* hook_mmap(void* (*fn)(void*, size_t, int, int, int, off_t), void* addr, size_t length, int prot, int flags,
-                int fd, off_t offset) {
+                int fd, off_t offset)
+{
     void* ret = nullptr;
     if (fn) {
         ret = fn(addr, length, prot, flags, fd, offset);
@@ -443,7 +459,8 @@ void* hook_mmap(void* (*fn)(void*, size_t, int, int, int, off_t), void* addr, si
     return ret;
 }
 
-int hook_munmap(int (*fn)(void*, size_t), void* addr, size_t length) {
+int hook_munmap(int (*fn)(void*, size_t), void* addr, size_t length)
+{
     int ret = -1;
     if (fn) {
         ret = fn(addr, length);
@@ -559,64 +576,79 @@ int hook_munmap(int (*fn)(void*, size_t), void* addr, size_t length) {
     return ret;
 }
 
-bool ohos_malloc_hook_initialize(const MallocDispatchType* malloc_dispatch, bool*, const char*) {
+bool ohos_malloc_hook_initialize(const MallocDispatchType* malloc_dispatch, bool*, const char*)
+{
     g_dispatch.store(malloc_dispatch);
     InititalizeIPC();
     return true;
 }
-void ohos_malloc_hook_finalize(void) { FinalizeIPC(); }
+void ohos_malloc_hook_finalize(void)
+{
+    FinalizeIPC();
+}
 
-void* ohos_malloc_hook_malloc(size_t size) {
+void* ohos_malloc_hook_malloc(size_t size)
+{
     __set_hook_flag(false);
     void* ret = hook_malloc(GetDispatch()->malloc, size);
     __set_hook_flag(true);
     return ret;
 }
 
-void* ohos_malloc_hook_realloc(void* ptr, size_t size) {
+void* ohos_malloc_hook_realloc(void* ptr, size_t size)
+{
     __set_hook_flag(false);
     void* ret = hook_realloc(GetDispatch()->realloc, ptr, size);
     __set_hook_flag(true);
     return ret;
 }
 
-void* ohos_malloc_hook_calloc(size_t number, size_t size) {
+void* ohos_malloc_hook_calloc(size_t number, size_t size)
+{
     __set_hook_flag(false);
     void* ret = hook_calloc(GetDispatch()->calloc, number, size);
     __set_hook_flag(true);
     return ret;
 }
 
-void* ohos_malloc_hook_valloc(size_t size) {
+void* ohos_malloc_hook_valloc(size_t size)
+{
     __set_hook_flag(false);
     void* ret = hook_valloc(GetDispatch()->valloc, size);
     __set_hook_flag(true);
     return ret;
 }
 
-void ohos_malloc_hook_free(void* p) {
+void ohos_malloc_hook_free(void* p)
+{
     __set_hook_flag(false);
     hook_free(GetDispatch()->free, p);
     __set_hook_flag(true);
 }
 
-void* ohos_malloc_hook_memalign(size_t alignment, size_t bytes) {
+void* ohos_malloc_hook_memalign(size_t alignment, size_t bytes)
+{
     __set_hook_flag(false);
     void* ret = hook_memalign(GetDispatch()->memalign, alignment, bytes);
     __set_hook_flag(true);
     return ret;
 }
 
-size_t ohos_malloc_hook_malloc_usable_size(void* mem) {
+size_t ohos_malloc_hook_malloc_usable_size(void* mem)
+{
     __set_hook_flag(false);
     size_t ret = hook_malloc_usable_size(GetDispatch()->malloc_usable_size, mem);
     __set_hook_flag(true);
     return ret;
 }
 
-bool ohos_malloc_hook_get_hook_flag(void) { return ohos_malloc_hook_enable_hook_flag; }
+bool ohos_malloc_hook_get_hook_flag(void)
+{
+    return ohos_malloc_hook_enable_hook_flag;
+}
 
-bool ohos_malloc_hook_set_hook_flag(bool flag) {
+bool ohos_malloc_hook_set_hook_flag(bool flag)
+{
     bool before_lag = ohos_malloc_hook_enable_hook_flag;
     ohos_malloc_hook_enable_hook_flag = flag;
     return before_lag;
