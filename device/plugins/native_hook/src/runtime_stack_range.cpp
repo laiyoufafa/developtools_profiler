@@ -147,8 +147,8 @@ void GetMainThreadRuntimeStackRange()
             if (concatPos == static_cast<std::string::size_type>(-1)) {
                 continue;
             }
-            mainStack.start = reinterpret_cast<char*>(CvtStrToInt(line.c_str(), 16));
-            mainStack.end = reinterpret_cast<char*>(CvtStrToInt(line.c_str() + concatPos + 1, 16));
+            mainStack.start = reinterpret_cast<char*>(CvtStrToInt(line.c_str(), BASE_MAX));
+            mainStack.end = reinterpret_cast<char*>(CvtStrToInt(line.c_str() + concatPos + 1, BASE_MAX));
 
             break;
         }
