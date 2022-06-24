@@ -37,7 +37,7 @@ namespace {
 using OHOS::Developtools::NativeDaemon::buildArchType;
 static std::shared_ptr<HookSocketClient> g_hookClient;
 std::recursive_timed_mutex g_ClientMutex;
-std::atomic<const MallocDispatchType*> g_dispatch{ nullptr };
+std::atomic<const MallocDispatchType*> g_dispatch {nullptr};
 constexpr int TIMEOUT_MSEC = 2000;
 const MallocDispatchType* GetDispatch()
 {
