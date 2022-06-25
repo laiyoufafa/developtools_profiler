@@ -30,8 +30,8 @@ export struct Temperature {
   @State private gpData: Array<TIndexInfo> = new Array()
   topAxis: XAxis = new XAxis(); //顶部X轴
   bottomAxis: XAxis = new XAxis(); //底部X轴
-  width: number = 350; //表的宽度
-  height: number = 300; //表的高度
+  width: number = 700; //表的宽度
+  height: number = 250; //表的高度
   minOffset: number = 15; //X轴线偏移量
   leftAxis: YAxis = null;
   rightAxis: YAxis = null;
@@ -685,7 +685,6 @@ export struct Temperature {
     Stack({ alignContent: Alignment.TopStart }) {
       Scroll() {
         Column({ space: 20 }) {
-
           LineChart({lineChartModel: this.lineChartModel2})
           Text("ShellFrontTemp(℃)") {
           }.fontWeight(FontWeight.Bold).fontColor(Color.Blue).fontSize('15fp').textAlign(TextAlign.Center)

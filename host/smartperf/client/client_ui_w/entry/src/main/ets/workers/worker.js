@@ -175,24 +175,16 @@ udp.on("message", function (data) {
         str += String.fromCharCode(dataView.getUint8(i))
     }
     try {
-        if (contains(str, "Pss", true)) {
+        if (contains(str, "pss", true)) {
             parentPort.postMessage("RAM$" + str)
         } else if (contains(str, "fps", true)) {
-            if (str.indexOf("::") != -1) {
-                let arrStr = str.split("::")
-                console.log("SockOnMessage solveFps1:" + JSON.stringify(arrStr))
-                if (arrStr[1].indexOf(";") != -1) {
-                    let fpsDataArr = arrStr[1].split(";")
-                    console.log("SockOnMessage solveFps2:" + JSON.stringify(fpsDataArr))
-                    if (fpsDataArr[1].indexOf("|") != -1) {
-                        let fps = fpsDataArr[1].split("|")
-                        console.log("SockOnMessage solveFps fps:" + JSON.stringify(fps))
-                        if (fpsDataArr.length > 1 && fpsDataArr[2].indexOf("|")) {
-                            let fpsJitter = fpsDataArr[2].split("|")
-                            console.log("SockOnMessage solveFps fpsJitter:" + JSON.stringify(fpsJitter))
-                            parentPort.postMessage("FPS$" + fps[1].toString() + "$" + fpsJitter[1].toString())
-
-                        }
+            if (str.indexOf("$$") != -1) {
+                let arrStr = str.split("$$")
+                if(arrStr.length > 0){
+                    if(arrStr[0].indexOf("||") != -1 && arrStr[1].indexOf("||") != -1){
+                        let fps = arrStr[0].split("||")
+                        let fpsJitter = arrStr[1].split("||")
+                        parentPort.postMessage("FPS$" + fps[1].toString() + "$" + fpsJitter[1].toString())
                     }
                 }
             }

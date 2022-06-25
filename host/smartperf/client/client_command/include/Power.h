@@ -14,30 +14,25 @@
  */
 #ifndef POWER_H
 #define POWER_H
-
-#include <string>
 #include <sstream>
-#include <map>
-#include "singleton.h"
+#include "sp_profiler.h"
 namespace OHOS {
 namespace SmartPerf {
-class Power : public DelayedSingleton<Power> {
+class Power : public SpProfiler {
 public:
-    static constexpr const char *power_path[] = {
-        "/sys/class/power_supply/battery",
-        "/sys/class/power_supply/Battery",
-        "/data/local/tmp/battery"
-    };
+    std::map<std::string, std::string> ItemData() override;
+    static Power &GetInstance()
+    {
+        static Power instance;
+        return instance;
+    }
 
-    static constexpr const char *default_collect_power_info[] = {
-        "current_now",
-        "voltage_now",
-    };
-    std::map<std::string, std::string> getPowerMap();
-    void init_power();
 private:
-    std::string power_base_path;
-    std::map<std::string, std::string> power_node_path_map;
+    Power() {};
+    Power(const Power &);
+    Power &operator = (const Power &);
+    const std::string currentNowPath = "/sys/class/power_supply/Battery/current_now";
+    const std::string voltageNowPath = "/sys/class/power_supply/Battery/voltage_now";
 };
 }
 }

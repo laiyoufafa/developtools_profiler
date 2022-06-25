@@ -15,31 +15,34 @@
 
 #ifndef GPU_H
 #define GPU_H
-#include <string>
-#include <sstream>
-#include <map>
-#include "gp_utils.h"
-#include "singleton.h"
-
+#include <vector>
+#include "sp_profiler.h"
 namespace OHOS {
 namespace SmartPerf {
-class GPU : public DelayedSingleton<GPU> {
+class GPU : public SpProfiler {
 public:
-    static constexpr const char *GPU_CUR_FREQ_PATH[] = {
+    std::map<std::string, std::string> ItemData() override;
+    static GPU &GetInstance()
+    {
+        static GPU instance;
+        return instance;
+    }
+    int getGpuFreq();
+    float getGpuLoad();
+
+private:
+    GPU() {};
+    GPU(const GPU &);
+    GPU &operator = (const GPU &);
+
+    const std::vector<std::string> gpuCurFreqPaths = {
         "/sys/class/devfreq/fde60000.gpu/cur_freq", // rk3568
         "/sys/class/devfreq/gpufreq/cur_freq",      // wgr
     };
-    static constexpr const char *GPU_CUR_WORKLOAD_PATH[] = {
+    const std::vector<std::string> gpuCurLoadPaths = {
         "/sys/class/devfreq/gpufreq/gpu_scene_aware/utilisation", // wgr
         "/sys/class/devfreq/fde60000.gpu/load",                   // rk3568
     };
-    int get_gpu_freq();
-    float get_gpu_load();
-    void init_gpu_node();    
-private:  
-    std::string gpu_cur_freq_path;
-    std::string gpu_cur_load_path;
-    float calc_workload(const char *buffer) const;
 };
 }
 }

@@ -48,13 +48,6 @@ export class ProfilerTask {
         }
       }
     }
-    //默认不使用daemon
-//    globalThis.useDaemon = false
-//    let status = globalThis.CheckDaemon()
-//    if (status == "Running") {
-//      globalThis.useDaemon = true
-//    }
-//    SPLogger.DEBUG(ProfilerTask.name,'ProfilerTask initModule:Daemon status ' + status)
   }
 
   getSupports(keys:string[]){
@@ -103,7 +96,7 @@ export class ProfilerTask {
         if (typeCollect != null) {
           let gpData:GPData =typeCollect.readData()
           if(typeCollect instanceof CPU){
-            typeCollect.readCPULoad()
+            gpDataArr.push(typeCollect.readCPULoad())
           }
           gpDataArr.push(gpData)
           SPLogger.DEBUG(ProfilerTask.name,"profiler ProfilerTask:curData:"+gpData);

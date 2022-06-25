@@ -30,8 +30,8 @@ export struct Power {
   @State private gpData: Array<TIndexInfo> = new Array()
   topAxis: XAxis = new XAxis(); //顶部X轴
   bottomAxis: XAxis = new XAxis(); //底部X轴
-  width: number = 350; //表的宽度
-  height: number = 300; //表的高度
+  width: number = 700; //表的宽度
+  height: number = 250; //表的高度
   minOffset: number = 15; //X轴线偏移量
   leftAxis: YAxis = null;
   rightAxis: YAxis = null;

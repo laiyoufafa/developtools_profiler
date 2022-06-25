@@ -12,18 +12,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef GP_CONSTANT_H
-#define GP_CONSTANT_H
-enum NumberConstant {
-  ZERO = 0X00,
-  ONE = 0X01,
-  TWO = 0X02,
-  THREE = 0X03
+#ifndef CAPTURE_H
+#define CAPTURE_H
+namespace OHOS {
+namespace SmartPerf {
+class Capture {
+public:
+    static Capture &GetInstance()
+    {
+        static Capture instance;
+        return instance;
+    }
+    // 截图线程
+    void threadGetCatch(std::string curTime);
+    // 触发线程
+    void TriggerGetCatch(long long curTime);
+private:
+    Capture() {};
+    Capture(const Capture &);
+    Capture &operator = (const Capture &);
 };
-enum FunConstant {
-  SUCCESS_ONE = 0X01,
-  SUCCESS_ZERO = 0X00,
-  ERROR_ZERO = 0X00,
-  ERROR_MINUX = 0xFFFFFFFF
-};
+}
+}
 #endif

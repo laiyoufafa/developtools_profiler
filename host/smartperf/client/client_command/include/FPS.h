@@ -14,13 +14,9 @@
  */
 #ifndef FPS_H
 #define FPS_H
-
-#include <map>
-#include <string>
 #include <vector>
 #include <queue>
-#include "gp_utils.h"
-#include "singleton.h"
+#include "sp_profiler.h"
 namespace OHOS {
 namespace SmartPerf {
 struct FpsInfo {
@@ -38,14 +34,29 @@ struct FpsInfo {
         current_fps_time = 0;
     }
 };
-class FPS : public DelayedSingleton<FPS> {
+class FPS : public SpProfiler {
 public:
     void setPackageName(std::string pkgName);
-    FpsInfo getFpsInfo(int is_video, int is_camera);
+    void setCaptureOn();
+    void setTraceCatch();
+    FpsInfo getFpsInfo();
     FpsInfo m_fpsInfo;
+    static FPS &GetInstance()
+    {
+        static FPS instance;
+        return instance;
+    }
+    std::map<std::string, std::string> ItemData() override;
+
 private:
+    FPS() {};
+    FPS(const FPS &);
+    FPS &operator = (const FPS &);
+
     std::string pkg_name;
     std::string cur_layer_name;
+    int isCatchTrace = 0;
+    int isCapture = 0;
     FpsInfo GetSurfaceFrame(std::string name);
 };
 }
