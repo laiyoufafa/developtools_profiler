@@ -120,13 +120,15 @@ void HidumpPlugin::Loop(void)
     while (running_) {
         char buf[BUF_MAX_LEN] = { 0 };
 
+        std::this_thread::sleep_for(std::chrono::milliseconds(SLEEP_TIME));
         // format fps:0|1501960484673
         if (fgets(buf, BUF_MAX_LEN - 1, fp_.get()) != nullptr) {
             if (!ParseHidumpInfo(dataProto, buf, sizeof(buf))) {
                 continue;
             }
+        } else {
+            continue;
         }
-        std::this_thread::sleep_for(std::chrono::milliseconds(SLEEP_TIME));
         if (dataProto.ByteSizeLong() >= CACHE_MAX_SIZE) {
             buffer_.resize(dataProto.ByteSizeLong());
             dataProto.SerializeToArray(buffer_.data(), buffer_.size());
@@ -146,44 +148,33 @@ void HidumpPlugin::Loop(void)
 
 bool HidumpPlugin::ParseHidumpInfo(HidumpInfo& dataProto, char *buf, int len)
 {
-    if (strncmp(buf, "fps:", strlen("fps:")) == 0) {
-        auto* eve = dataProto.add_fps_event();
-        char *tmp = strchr(buf, '|');
-        if (tmp == nullptr) {
-            HILOG_ERROR(LOG_CORE, "HidumpPlugin: fps command not output error!");
-            return false;
+    if (strncmp(buf, "fps:", strlen("fps:")) != 0) {
+        if (strstr(buf, "inaccessible or not found") != nullptr) {
+            HILOG_ERROR(LOG_CORE, "HidumpPlugin: fps command not found!");
+        } else {
+            HILOG_ERROR(LOG_CORE, "format error. %s", buf);
         }
-        int length = tmp - buf;
-        if ((length == sizeof("fps:0")) || (length == sizeof("fps:10"))) {
-            char databuf[BUF_MAX_LEN] = { 0 };
-            if (length - sizeof("fps:") > 0 && BUF_MAX_LEN > (length - sizeof("fps:"))) {
-                if (memcpy_s(databuf, BUF_MAX_LEN, buf + sizeof("fps:"), length - sizeof("fps:")) != EOK) {
-                    HILOG_ERROR(LOG_CORE, "copy %d byte to memory region [%p, %p) FAILED!",
-                        BUF_MAX_LEN, buf + sizeof("fps:"), buf + length);
-                    return false;
-                }
-            }
-            eve->set_fps(atoi(databuf));
-            (void)memset_s(databuf, BUF_MAX_LEN, 0, BUF_MAX_LEN);
-            int bufLength = static_cast<int>(strlen(buf)) - length - 1;
-            if (bufLength > 0 && BUF_MAX_LEN > bufLength && buf != nullptr) {
-                if (memcpy_s(databuf, BUF_MAX_LEN, buf + length + 1, bufLength) != EOK) {
-                    HILOG_ERROR(LOG_CORE, "copy %d byte to memory region [%p, %p) FAILED!",
-                        BUF_MAX_LEN, buf + length + 1, buf + strlen(buf));
-                    return false;
-                }
-            }
-            std::stringstream strvalue(databuf);
-            uint64_t time_ms;
-            strvalue >> time_ms;
-            eve->set_id(::FpsData::REALTIME);
-            eve->mutable_time()->set_tv_sec(time_ms / MS_PER_S);
-            eve->mutable_time()->set_tv_nsec((time_ms % MS_PER_S) * US_PER_S);
-        }
-    } else if (strstr(buf, "inaccessible or not found") != nullptr) {
-        HILOG_ERROR(LOG_CORE, "HidumpPlugin: fps command not found!");
         return false;
     }
+
+    buf += strlen("fps:");
+    char *tmp = strchr(buf, '|');
+    if (tmp == nullptr) {
+        HILOG_ERROR(LOG_CORE, "format error. %s", buf);
+        return false;
+    }
+    *tmp = ' ';
+    std::stringstream strvalue(buf);
+    uint32_t fps = 0;
+    strvalue >> fps;
+    uint64_t time_ms;
+    strvalue >> time_ms;
+
+    auto* eve = dataProto.add_fps_event();
+    eve->set_fps(fps);
+    eve->set_id(::FpsData::REALTIME);
+    eve->mutable_time()->set_tv_sec(time_ms / MS_PER_S);
+    eve->mutable_time()->set_tv_nsec((time_ms % MS_PER_S) * US_PER_S);
 
     return true;
 }
