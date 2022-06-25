@@ -153,38 +153,7 @@ void ApplyForCalloc(int mallocSize)
 
 void ApplyForRealloc(int mallocSize)
 {
-    int reallocSize = mallocSize * DEFAULT_REALLOC_SIZE;
-    printf("\nstart realloc apply (size = %d)\n", reallocSize);
-    if (mallocSize <= 0) {
-        printf("Invalid mallocSize.\n");
-        return;
-    }
-    clock_t timerStart, timerStop;
-    double duration = 0;
-    char* p = (char*)malloc(mallocSize);
-    if (!p) {
-        printf("malloc failure\n");
-        return;
-    }
-    timerStart = clock();
-    char* np = DepthRealloc(STATIC_DEPTH, p, reallocSize);
-    timerStop = clock();
-    if (!np) {
-        free(p);
-        printf("realloc failure\n");
-        return;
-    }
-    duration += (double)(timerStop - timerStart) / CLOCKS_PER_SEC;
-    g_reallocDuration += (double)(timerStop - timerStart) / CLOCKS_PER_SEC;
-    printf("realloc success, realloc (%d) time is %f\n", reallocSize, duration);
-    printf("\nReady for free -- ");
-    timerStart = clock();
-    DepthFree(STATIC_DEPTH, np);
-    timerStop = clock();
-    duration += (double)(timerStop - timerStart) / CLOCKS_PER_SEC;
-    g_freeDuration += (double)(timerStop - timerStart) / CLOCKS_PER_SEC;
-    printf("free success, free time is %f\n", (double)(timerStop - timerStart) / CLOCKS_PER_SEC);
-    printf("realloc apply success, total time is %f\n", duration);
+  
 }
 
 void* ThreadFuncC(void* param)
