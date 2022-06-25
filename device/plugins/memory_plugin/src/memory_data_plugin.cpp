@@ -24,6 +24,9 @@ namespace {
 const char* CMD_FORMAT = "memory service meminfo --local ";
 constexpr size_t READ_BUFFER_SIZE = 1024 * 16;
 constexpr int BUF_MAX_LEN = 2048;
+constexpr int MAX_ZRAM_DEVICES = 256;
+constexpr int ZRAM_KB = 1024;
+constexpr size_t DEFAULT_READ_SIZE = 4096;
 } // namespace
 
 MemoryDataPlugin::MemoryDataPlugin()
@@ -220,6 +223,33 @@ void MemoryDataPlugin::WriteMeminfo(MemoryData& data)
     return;
 }
 
+void MemoryDataPlugin::WriteZramData(MemoryData& data)
+{
+    uint64_t zramSum = 0;
+    for (int i = 0; i < MAX_ZRAM_DEVICES; i++) {
+        std::string path = "/sys/block/zram" + std::to_string(i);
+        if (access(path.c_str(), F_OK) == 0) {
+            uint64_t zramValue = 0;
+            std::string file = path + "/mm_stat";
+            auto fptr = std::unique_ptr<FILE, decltype(&fclose)>{fopen(file.c_str(), "rb"), fclose};
+            if (fptr != nullptr) {
+                int ret = fscanf(fptr.get(), "%*" PRIu64 " %*" PRIu64 " %" PRIu64, &zramValue);
+                if (ret != 1) {
+                    file = path + "/mem_used_total";
+                    std::string content = ReadFile(file);
+                    char* end = nullptr;
+                    uint64_t value = strtoull(content.c_str(), &end, DEC_BASE);
+                    zramValue = (value > 0) ? value : 0;
+                }
+            }
+
+            zramSum += zramValue;
+        }
+    }
+
+    data.set_zram(zramSum / ZRAM_KB);
+}
+
 void MemoryDataPlugin::WriteVmstat(MemoryData& data)
 {
     int readsize = ReadFile(vmstatFd_);
@@ -348,28 +378,26 @@ int MemoryDataPlugin::Report(uint8_t* data, uint32_t dataSize)
 
     if (protoConfig_.report_sysmem_mem_info()) {
         WriteMeminfo(dataProto);
+        WriteZramData(dataProto);
     }
 
     if (protoConfig_.report_sysmem_vmem_info()) {
         WriteVmstat(dataProto);
     }
 
-    if (protoConfig_.pid().size() > 0) {
-        for (int i = 0; i < protoConfig_.pid().size(); i++) {
-            int32_t pid = protoConfig_.pid(i);
-            auto* processinfo = dataProto.add_processesinfo();
-            if (protoConfig_.report_process_mem_info()) {
-                WriteProcinfoByPidfds(processinfo, pid);
-            }
+    for (int i = 0; i < protoConfig_.pid().size(); i++) {
+        int32_t pid = protoConfig_.pid(i);
+        auto* processinfo = dataProto.add_processesinfo();
+        if (protoConfig_.report_process_mem_info()) {
+            WriteProcinfoByPidfds(processinfo, pid);
+        }
 
-            if (protoConfig_.report_app_mem_info() && !protoConfig_.report_app_mem_by_memory_service()) {
-                SmapsStats smapInfo;
-                smapInfo.ParseMaps(pid);
-                WriteAppsummary(processinfo, smapInfo);
-            }
+        if (protoConfig_.report_app_mem_info() && !protoConfig_.report_app_mem_by_memory_service()) {
+            SmapsStats smapInfo;
+            smapInfo.ParseMaps(pid);
+            WriteAppsummary(processinfo, smapInfo);
         }
     }
-
     length = dataProto.ByteSizeLong();
     if (length > dataSize) {
         return -length;
@@ -410,9 +438,8 @@ void MemoryDataPlugin::WriteProcinfoByPidfds(ProcessMemoryInfo* processinfo, int
     readSize = ReadFile(pidFds_[pid][FILE_STATUS]);
     if (readSize != RET_FAIL) {
         WriteProcess(processinfo, (char*)buffer_.get(), readSize, pid);
-    } else {
-        SetEmptyProcessInfo(processinfo);
     }
+
     if (ReadFile(pidFds_[pid][FILE_OOM]) != RET_FAIL) {
         processinfo->set_oom_score_adj(static_cast<int64_t>(strtol((char*)buffer_.get(), &end, DEC_BASE)));
     } else {
@@ -436,6 +463,40 @@ int32_t MemoryDataPlugin::ReadFile(int fd)
         return RET_FAIL;
     }
     return readsize;
+}
+
+std::string MemoryDataPlugin::ReadFile(const std::string& path)
+{
+    const int maxSize = 256;
+    char realPath[maxSize + 1] = {0};
+
+    if ((path.length() >= maxSize) || (realpath(path.c_str(), realPath) == nullptr)) {
+        HILOG_ERROR(LOG_CORE, "%s:path is invalid: %s, errno=%d", __func__, path.c_str(), errno);
+        return "";
+    }
+    int fd = open(realPath, O_RDONLY);
+    if (fd == -1) {
+        char buf[maxSize] = { 0 };
+        strerror_r(errno, buf, maxSize);
+        HILOG_WARN(LOG_CORE, "open file %s FAILED: %s!", path.c_str(), buf);
+        return "";
+    }
+
+    std::string content;
+    size_t count = 0;
+    while (true) {
+        if (content.size() - count < DEFAULT_READ_SIZE) {
+            content.resize(content.size() + DEFAULT_READ_SIZE);
+        }
+        ssize_t nBytes = read(fd, &content[count], content.size() - count);
+        if (nBytes <= 0) {
+            break;
+        }
+        count += nBytes;
+    }
+    content.resize(count);
+    CHECK_TRUE(close(fd) != -1, content, "close %s failed, %d", path.c_str(), errno);
+    return content;
 }
 
 std::vector<int> MemoryDataPlugin::OpenProcPidFiles(int32_t pid)
@@ -667,21 +728,6 @@ void MemoryDataPlugin::WriteProcess(ProcessMemoryInfo* processinfo, const char* 
     }
 }
 
-void MemoryDataPlugin::SetEmptyProcessInfo(ProcessMemoryInfo* processinfo)
-{
-    processinfo->set_pid(-1);
-    processinfo->set_name("null");
-    processinfo->set_vm_size_kb(0);
-    processinfo->set_vm_rss_kb(0);
-    processinfo->set_rss_anon_kb(0);
-    processinfo->set_rss_file_kb(0);
-    processinfo->set_rss_shmem_kb(0);
-    processinfo->set_vm_swap_kb(0);
-    processinfo->set_vm_locked_kb(0);
-    processinfo->set_vm_hwm_kb(0);
-    processinfo->set_oom_score_adj(0);
-}
-
 void MemoryDataPlugin::WriteOomInfo(ProcessMemoryInfo* processinfo, int32_t pid)
 {
     char* end = nullptr;
@@ -702,7 +748,6 @@ void MemoryDataPlugin::WriteProcessInfo(MemoryData& data, int32_t pid)
 {
     int32_t ret = ReadProcPidFile(pid, "status");
     if (ret == RET_FAIL) {
-        SetEmptyProcessInfo(data.add_processesinfo());
         return;
     }
     if ((buffer_.get() == nullptr) || (ret == 0)) {

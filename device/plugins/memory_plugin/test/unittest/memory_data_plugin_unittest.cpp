@@ -330,7 +330,7 @@ HWTEST_F(MemoryDataPluginTest, Testpluginforsinglepid, TestSize.Level1)
     MemoryConfig protoConfig;
 
     std::vector<int> pid = {5};
-    TestElement singlepid = {-1, "null", 0, 0};
+    TestElement singlepid = {};
 
     memoryPlugin.SetPath(const_cast<char*>(g_path.c_str()));
 
