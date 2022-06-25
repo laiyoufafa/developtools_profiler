@@ -325,8 +325,8 @@ char RandChar(void)
         tv = 1;
     }
     unsigned int seed = (unsigned int)tv;
-    unsigned int randSection = (rand_r(&seed) % section);
-    char randChar = ' ' + randSection;
+    int randSection = (rand_r(&seed) % section);
+    char randChar = (char)(' ' + randSection);
     return randChar;
 }
 
