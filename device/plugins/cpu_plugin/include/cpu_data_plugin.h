@@ -20,6 +20,8 @@
 #include <fcntl.h>
 #include <string>
 #include <unistd.h>
+#include <fstream>
+#include <iostream>
 
 #include "cpu_plugin_config.pb.h"
 #include "cpu_plugin_result.pb.h"
@@ -53,6 +55,13 @@ enum SystemCpuTimeType {
     SYSTEM_UNSPECIFIED,
 };
 
+struct CpuTimeData {
+    int64_t userModeUsageTime;
+    int64_t systemModeUsageTime;
+    int64_t systemUsageTime;
+    int64_t systemBootTime;
+};
+
 class CpuDataPlugin {
 public:
     CpuDataPlugin();
@@ -68,8 +77,8 @@ private:
     int64_t GetUserHz();
     int64_t GetCpuUsageTime(std::vector<std::string>& cpuUsageVec);
     void WriteProcessCpuUsage(CpuUsageInfo& cpuUsageInfo, const char* pFile, uint32_t fileLen);
-    bool GetSystemCpuTime(std::vector<std::string>& cpuUsageVec, int64_t& usageTime, int64_t& time);
-    void WriteSystemCpuUsage(CpuUsageInfo& cpuUsageInfo, const char* pFile, uint32_t fileLen);
+    bool GetSystemCpuTime(std::vector<std::string>& cpuUsageVec, CpuTimeData& cpuTimeData);
+    void WriteSystemCpuUsage(CpuData& cpuData, const char* pFile, uint32_t fileLen);
     void WriteCpuUsageInfo(CpuData& data);
 
     bool addTidBySort(int32_t tid);
@@ -84,6 +93,7 @@ private:
     int GetCpuCoreSize();
     int32_t GetMaxCpuFrequencyIndex();
     void SetCpuFrequency(CpuCoreUsageInfo& cpuCore, int32_t coreNum);
+    bool WriteProcnum(CpuData& data);
 
     // for UT
     void SetPath(std::string path)
@@ -102,8 +112,7 @@ private:
     int pid_;
     std::vector<int32_t> tidVec_;
     int64_t prevProcessCpuTime_;
-    int64_t prevSystemCpuTime_;
-    int64_t prevSystemBootTime_;
+    CpuTimeData prevCpuTimeData_;
     std::map<int32_t, int64_t> prevThreadCpuTimeMap_;
     std::map<int32_t, int64_t> prevCoreSystemCpuTimeMap_;
     std::map<int32_t, int64_t> prevCoreSystemBootTimeMap_;

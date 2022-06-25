@@ -30,6 +30,7 @@ constexpr int THREAD_STATE_POS = 2;
 constexpr int CPU_USER_HZ_L = 100;
 constexpr int CPU_USER_HZ_H = 1000;
 constexpr int CPU_HZ_H = 10;
+const int PERCENT = 100;
 
 const std::string FREQUENCY_PATH = "/sys/devices/system/cpu";
 const std::string FREQUENCY_MIN_PATH = "/cpufreq/cpuinfo_min_freq";
@@ -45,8 +46,7 @@ CpuDataPlugin::CpuDataPlugin()
     err_ = -1;
     pid_ = -1;
     prevProcessCpuTime_ = 0;
-    prevSystemCpuTime_ = 0;
-    prevSystemBootTime_ = 0;
+    prevCpuTimeData_ = {};
     maxFreqIndex_ = -1;
     freqPath_ = FREQUENCY_PATH;
 }
@@ -82,6 +82,8 @@ int CpuDataPlugin::Start(const uint8_t* configData, uint32_t configSize)
 
     if (protoConfig_.pid() > 0) {
         pid_ = protoConfig_.pid();
+    } else if (protoConfig_.report_process_info()) {
+        HILOG_INFO(LOG_CORE, "%s:need report process info", __func__);
     } else {
         HILOG_ERROR(LOG_CORE, "%s:invalid pid", __func__);
         return RET_FAIL;
@@ -96,7 +98,13 @@ int CpuDataPlugin::Report(uint8_t* data, uint32_t dataSize)
     uint32_t length;
 
     WriteCpuUsageInfo(dataProto);
-    WriteThreadInfo(dataProto);
+
+    if (pid_ > 0) {
+        WriteThreadInfo(dataProto);
+    }
+    if (protoConfig_.report_process_info()) {
+        WriteProcnum(dataProto);
+    }
 
     length = dataProto.ByteSizeLong();
     if (length > dataSize) {
@@ -106,6 +114,25 @@ int CpuDataPlugin::Report(uint8_t* data, uint32_t dataSize)
         return length;
     }
     return 0;
+}
+
+bool CpuDataPlugin::WriteProcnum(CpuData& data)
+{
+    DIR* procDir = nullptr;
+    procDir = OpenDestDir(path_);
+    if (procDir == nullptr) {
+        return false;
+    }
+
+    uint32_t i = 0;
+    while (int32_t tid = GetValidTid(procDir)) {
+        CHECK_TRUE(tid > 0, false, "%s: get pid[%d] failed", __func__, tid);
+        i++;
+    }
+    data.set_process_num(i);
+    closedir(procDir);
+
+    return true;
 }
 
 int CpuDataPlugin::Stop()
@@ -321,7 +348,7 @@ void CpuDataPlugin::SetCpuFrequency(CpuCoreUsageInfo& cpuCore, int32_t coreNum)
     frequency->set_cur_frequency_khz(curFrequency);
 }
 
-bool CpuDataPlugin::GetSystemCpuTime(std::vector<std::string>& cpuUsageVec, int64_t& usageTime, int64_t& time)
+bool CpuDataPlugin::GetSystemCpuTime(std::vector<std::string>& cpuUsageVec, CpuTimeData& cpuTimeData)
 {
     // 获取到的数据不包含user, nice, system, idle, iowait, irq, softirq, steal八个数值时返回
     if (cpuUsageVec.size() != SYSTEM_UNSPECIFIED) {
@@ -339,17 +366,18 @@ bool CpuDataPlugin::GetSystemCpuTime(std::vector<std::string>& cpuUsageVec, int6
     softirq = atoi(cpuUsageVec[SYSTEM_SOFTIRQ].c_str());
     steal = atoi(cpuUsageVec[SYSTEM_STEAL].c_str());
 
-    usageTime = (user + nice + system + irq + softirq + steal) * GetUserHz();
-    time = usageTime + (idle + iowait) * GetUserHz();
+    cpuTimeData.userModeUsageTime = user * GetUserHz();
+    cpuTimeData.systemModeUsageTime = system * GetUserHz();
+    cpuTimeData.systemUsageTime = (user + nice + system + irq + softirq + steal) * GetUserHz();
+    cpuTimeData.systemBootTime = cpuTimeData.systemUsageTime + (idle + iowait) * GetUserHz();
     return true;
 }
 
-void CpuDataPlugin::WriteSystemCpuUsage(CpuUsageInfo& cpuUsageInfo, const char* pFile, uint32_t fileLen)
+void CpuDataPlugin::WriteSystemCpuUsage(CpuData& cpuData, const char* pFile, uint32_t fileLen)
 {
+    auto* cpuUsageInfo = cpuData.mutable_cpu_usage_info();
     BufferSplitter totalbuffer(const_cast<char*>(pFile), fileLen + 1);
     std::vector<std::string> cpuUsageVec;
-    int64_t usageTime = 0;
-    int64_t time = 0;
     size_t cpuLength = strlen("cpu");
 
     do {
@@ -368,17 +396,41 @@ void CpuDataPlugin::WriteSystemCpuUsage(CpuUsageInfo& cpuUsageInfo, const char* 
         }
 
         // 获取数据失败返回
-        if (!GetSystemCpuTime(cpuUsageVec, usageTime, time)) {
+        CpuTimeData cpuTimeData;
+        if (!GetSystemCpuTime(cpuUsageVec, cpuTimeData)) {
             return;
         }
 
         if (strcmp(cpuUsageVec[0].c_str(), "cpu") == 0) {
-            cpuUsageInfo.set_prev_system_cpu_time_ms(prevSystemCpuTime_);
-            cpuUsageInfo.set_prev_system_boot_time_ms(prevSystemBootTime_);
-            cpuUsageInfo.set_system_cpu_time_ms(usageTime);
-            cpuUsageInfo.set_system_boot_time_ms(time);
-            prevSystemCpuTime_ = usageTime;
-            prevSystemBootTime_ = time;
+            cpuUsageInfo->set_prev_system_cpu_time_ms(prevCpuTimeData_.systemUsageTime);
+            cpuUsageInfo->set_prev_system_boot_time_ms(prevCpuTimeData_.systemBootTime);
+            cpuUsageInfo->set_system_cpu_time_ms(cpuTimeData.systemUsageTime);
+            cpuUsageInfo->set_system_boot_time_ms(cpuTimeData.systemBootTime);
+            bool isTest = false;
+            if (strncmp(path_.c_str(), "/proc/", strlen("/proc/")) != 0) {
+                isTest = true; // UT needs report load data for the first time
+            }
+            if ((protoConfig_.report_process_info() && prevCpuTimeData_.systemBootTime != 0) || isTest) {
+                double userLoad = static_cast<double>(cpuTimeData.userModeUsageTime -
+                    prevCpuTimeData_.userModeUsageTime) /
+                    static_cast<double>(cpuTimeData.systemBootTime -
+                    prevCpuTimeData_.systemBootTime) * PERCENT;
+                double sysLoad = static_cast<double>(cpuTimeData.systemModeUsageTime -
+                    prevCpuTimeData_.systemModeUsageTime) /
+                    static_cast<double>(cpuTimeData.systemBootTime -
+                    prevCpuTimeData_.systemBootTime) * PERCENT;
+                double totalLoad = static_cast<double>(cpuTimeData.systemUsageTime -
+                    prevCpuTimeData_.systemUsageTime) /
+                    static_cast<double>(cpuTimeData.systemBootTime -
+                    prevCpuTimeData_.systemBootTime) * PERCENT;
+                cpuData.set_user_load(userLoad);
+                cpuData.set_sys_load(sysLoad);
+                cpuData.set_total_load(totalLoad);
+            }
+            prevCpuTimeData_ = cpuTimeData;
+            if (pid_ < 0 && protoConfig_.report_process_info()) {
+                return;
+            }
         } else {
             std::string core = std::string(cpuUsageVec[0].c_str() + cpuLength, cpuUsageVec[0].size() - cpuLength);
             int32_t coreNum = atoi(core.c_str());
@@ -387,28 +439,41 @@ void CpuDataPlugin::WriteSystemCpuUsage(CpuUsageInfo& cpuUsageInfo, const char* 
                 prevCoreSystemCpuTimeMap_[coreNum] = 0;
                 prevCoreSystemBootTimeMap_[coreNum] = 0;
             }
-            CpuCoreUsageInfo* cpuCore = cpuUsageInfo.add_cores();
+            CpuCoreUsageInfo* cpuCore = cpuUsageInfo->add_cores();
             cpuCore->set_cpu_core(coreNum);
             cpuCore->set_prev_system_cpu_time_ms(prevCoreSystemCpuTimeMap_[coreNum]);
             cpuCore->set_prev_system_boot_time_ms(prevCoreSystemBootTimeMap_[coreNum]);
-            cpuCore->set_system_cpu_time_ms(usageTime);
-            cpuCore->set_system_boot_time_ms(time);
+            cpuCore->set_system_cpu_time_ms(cpuTimeData.systemUsageTime);
+            cpuCore->set_system_boot_time_ms(cpuTimeData.systemBootTime);
 
             SetCpuFrequency(*cpuCore, coreNum);
-            prevCoreSystemCpuTimeMap_[coreNum] = usageTime;
-            prevCoreSystemBootTimeMap_[coreNum] = time;
+            prevCoreSystemCpuTimeMap_[coreNum] = cpuTimeData.systemUsageTime;
+            prevCoreSystemBootTimeMap_[coreNum] = cpuTimeData.systemBootTime;
         }
 
         cpuUsageVec.clear();
-        usageTime = 0;
-        time = 0;
     } while (totalbuffer.NextLine());
 }
 
 void CpuDataPlugin::WriteCpuUsageInfo(CpuData& data)
 {
     // write process info
-    std::string fileName = path_ + std::to_string(pid_) + "/stat";
+    if (pid_ > 0) {
+        std::string fileName = path_ + std::to_string(pid_) + "/stat";
+        int32_t ret = ReadFile(fileName);
+        if (ret == RET_FAIL) {
+            return;
+        }
+        if ((buffer_ == nullptr) || (ret == 0)) {
+            return;
+        }
+
+        auto* cpuUsageInfo = data.mutable_cpu_usage_info();
+        WriteProcessCpuUsage(*cpuUsageInfo, (char*)buffer_, ret);
+    }
+
+    // write system info
+    std::string fileName = path_ + "stat";
     int32_t ret = ReadFile(fileName);
     if (ret == RET_FAIL) {
         return;
@@ -416,21 +481,9 @@ void CpuDataPlugin::WriteCpuUsageInfo(CpuData& data)
     if ((buffer_ == nullptr) || (ret == 0)) {
         return;
     }
-    auto* cpuUsageInfo = data.mutable_cpu_usage_info();
-    WriteProcessCpuUsage(*cpuUsageInfo, (char*)buffer_, ret);
+    WriteSystemCpuUsage(data, (char*)buffer_, ret);
 
-    // write system info
-    fileName = path_ + "stat";
-    ret = ReadFile(fileName);
-    if (ret == RET_FAIL) {
-        return;
-    }
-    if ((buffer_ == nullptr) || (ret == 0)) {
-        return;
-    }
-    WriteSystemCpuUsage(*cpuUsageInfo, (char*)buffer_, ret);
-
-    auto* timestamp = cpuUsageInfo->mutable_timestamp();
+    auto* timestamp = data.mutable_cpu_usage_info()->mutable_timestamp();
     SetTimestamp(*timestamp);
 }
 
