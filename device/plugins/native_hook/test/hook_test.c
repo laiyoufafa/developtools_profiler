@@ -25,6 +25,7 @@
 #include <time.h>
 #include <unistd.h>
 #include <limits.h>
+#include "memory_tag.h"
 #include "securec.h"
 #pragma clang optimize off
 
@@ -265,6 +266,9 @@ char* CreateMmap(void)
     write(g_fd, "", 1);
 
     char* pMap = (char*)mmap(0, PAGE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, g_fd, 0);
+
+    char *tag = "memtesttag";
+    MEM_TYPESET(pMap, PAGE_SIZE, tag, strlen(tag)+1);
     if (pMap == MAP_FAILED) {
         printf("mmap fail\n");
         CloseFile();
