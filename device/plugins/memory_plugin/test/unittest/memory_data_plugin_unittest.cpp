@@ -25,10 +25,10 @@ using namespace testing::ext;
 
 namespace {
 const std::string DEFAULT_TEST_PATH("/data/local/tmp/");
-#if defined(__LP64__)
-const std::string DEFAULT_SO_PATH("/system/lib64/");
-#else
+#if defined(__arm__)
 const std::string DEFAULT_SO_PATH("/system/lib/");
+#elif defined(__aarch64__)
+const std::string DEFAULT_SO_PATH("/system/lib64/");
 #endif
 const std::string DEFAULT_BIN_PATH("/data/local/tmp/memorytest");
 constexpr uint32_t BUF_SIZE = 4 * 1024 * 1024;
