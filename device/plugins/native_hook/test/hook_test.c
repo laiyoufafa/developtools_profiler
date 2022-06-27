@@ -330,7 +330,7 @@ char RandChar(void)
     }
     unsigned int seed = (unsigned int)tv;
     int randSection = (rand_r(&seed) % section);
-    char randChar = ' ' + randSection;
+    char randChar = static_cast<char>(' ' + randSection);
     return randChar;
 }
 
