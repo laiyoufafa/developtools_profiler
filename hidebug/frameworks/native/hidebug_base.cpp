@@ -20,12 +20,18 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <climits>
+#include <dlfcn.h>
+#include <unistd.h>
+#include <string>
+#include <signal.h>
 
 #include <parameter.h>
 #include <sysparam_errno.h>
 
 #include "hilog/log.h"
 #include "securec.h"
+
 
 #undef LOG_DOMAIN
 #undef LOG_TAG
@@ -39,6 +45,7 @@ const int PARAM_BUF_LEN = 128;
 const int QUERYNAME_LEN = 80;
 const char COLON_CHR = ':';
 const char SLASH_CHR = '/';
+const char * const LIBC_HOOK_PARAM = "libc.hook_mode";
 
 struct Params {
     char key[MAX_PARA_LEN];
@@ -106,7 +113,98 @@ const char* FilterServiceName(const char *inputName)
     }
     return ret + 1;
 }
+
+static int GetMallocHookStartupValue(const char *param, char *path, int size)
+{
+    if (path == nullptr || size <= 0) {
+        return -1;
+    }
+
+    const char *ptr = param;
+    const char *posColon = nullptr;
+
+    while (*ptr && *ptr != ':') {
+        ++ptr;
+    }
+    if (*ptr == ':') {
+        posColon = ptr;
+        ++ptr;
+    }
+    const int paramLength = 7;
+    if (strncmp(param, "startup", paramLength) == 0) {
+        if (*ptr == '\"') {
+            ++ptr;
+            int idx = 0;
+            while (idx < size - 1 && *ptr && *ptr != '\"') {
+                path[idx++] = *ptr++;
+            }
+            path[idx] = '\0';
+        } else {
+            int idx = 0;
+            while (idx < size - 1 && *ptr) {
+                path[idx++] = *ptr++;
+            }
+            path[idx] = '\0';
+        }
+    }
+    return 0;
 }
+
+static bool MatchMallocHookStartupProp(const char *thisName)
+{
+    char paramOutBuf[PARAM_BUF_LEN] = { 0 };
+    char defStrValue[PARAM_BUF_LEN] = { 0 };
+    char targetProcName[PARAM_BUF_LEN] = { 0 };
+
+    int retLen = GetParameter(LIBC_HOOK_PARAM, defStrValue, paramOutBuf, PARAM_BUF_LEN);
+    if (retLen == 0) {
+        return false;
+    }
+    const int paramLength = 8;
+    if (strncmp(paramOutBuf, "startup:", paramLength) != 0) {
+        return false;
+    }
+    retLen = GetMallocHookStartupValue(paramOutBuf, targetProcName, PARAM_BUF_LEN);
+    if (retLen == -1) {
+        HILOG_ERROR(LOG_CORE, "malloc hook parse startup value failed");
+        return false;
+    }
+    if (strncmp(thisName, targetProcName, strlen(targetProcName) + 1) != 0) {
+        return false;
+    }
+    if (strncmp(targetProcName, "init", strlen(targetProcName) + 1) == 0 ||
+        strncmp(targetProcName, "appspawn", strlen(targetProcName) + 1) == 0) {
+        HILOG_INFO(LOG_CORE, "malloc hook: this target proc '%{public}s' no hook", targetProcName);
+        return false;
+    }
+    char *programName = (char *)calloc(PARAM_BUF_LEN, sizeof(char));
+    if (programName == nullptr) {
+        return false;
+    }
+    readlink("/proc/self/exe", programName, PARAM_BUF_LEN - 1);
+    const char *fileName = programName;
+    const char *posLastSlash = strrchr(programName, '/');
+    if (posLastSlash != nullptr) {
+        fileName = posLastSlash + 1;
+    }
+    bool res = false;
+    if (strncmp(fileName, "init", strlen(fileName) + 1) == 0 ||
+        strncmp(fileName, "appspawn", strlen(fileName) + 1) == 0) {
+        res = true;
+    }
+    free(programName);
+    return res;
+}
+
+static int SetupMallocHookAtStartup(const char *thisName)
+{
+    if (!MatchMallocHookStartupProp(thisName)) {
+        return 0;
+    }
+    HILOG_INFO(LOG_CORE, "malloc send hook signal.");
+    return raise(MUSL_SIGNAL_HOOK);
+}
+} // namespace
 
 bool InitEnvironmentParam(const char *inputName)
 {
@@ -132,6 +230,12 @@ bool InitEnvironmentParam(const char *inputName)
         HILOG_ERROR(LOG_CORE, "strcat_s persist query name failed.");
         return false;
     }
+
+#ifdef HAS_MUSL_STARTUP_MALLOC_HOOK_INTF
+    setup_malloc_hook_mode();
+#else
+    SetupMallocHookAtStartup(serviceName);
+#endif
     if (QueryParams(onceName) == 0 && QueryParams(persistName) == 0) {
         return false;
     }
