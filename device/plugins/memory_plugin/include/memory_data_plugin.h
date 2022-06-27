@@ -73,6 +73,7 @@ constexpr Proto2StrMapping meminfoMapping[] = {
     {SysMeminfoType::PMEM_VMALLOC_CHUNK, "VmallocChunk"},
     {SysMeminfoType::PMEM_CMA_TOTAL, "CmaTotal"},
     {SysMeminfoType::PMEM_CMA_FREE, "CmaFree"},
+    {SysMeminfoType::PMEM_KERNEL_RECLAIMABLE, "KReclaimable"},
 };
 
 constexpr Proto2StrMapping vmeminfoMapping[] = {
@@ -292,16 +293,17 @@ private:
     // SmapsStats *
     void WriteVmstat(MemoryData& data);
     void WriteMeminfo(MemoryData& data);
+    void WriteZramData(MemoryData& data);
 
     std::unordered_map<int32_t, std::vector<int>> pidFds_;
     std::vector<int32_t> seenPids_;
     char* testpath_;
     int32_t err_;
     int32_t ReadFile(int fd);
+    std::string ReadFile(const std::string& path);
     std::vector<int> OpenProcPidFiles(int32_t pid);
     int32_t ReadProcPidFile(int32_t pid, const char* pFileName);
     void WriteProcessInfo(MemoryData& data, int32_t pid);
-    void SetEmptyProcessInfo(ProcessMemoryInfo* processinfo);
     void WriteOomInfo(ProcessMemoryInfo* processinfo, int32_t pid);
     void WriteProcess(ProcessMemoryInfo* processinfo, const char* pFile, uint32_t fileLen, int32_t pid);
     void WriteAppsummary(ProcessMemoryInfo* processinfo, SmapsStats& smapInfo);
