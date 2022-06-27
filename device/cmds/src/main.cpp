@@ -149,7 +149,7 @@ std::unique_ptr<CreateSessionRequest> MakeCreateRequest(const std::string& confi
     } else if (sessionConfig->result_file() == "") {
         sessionConfig->set_result_file(DEFAULT_OUTPUT_FILE);
     }
-    printf("keepSecond: %ds, outputFileName: %s\n", sessionConfig->sample_duration() / MS_PER_S,
+    printf("keepSecond: %us, outputFileName: %s\n", sessionConfig->sample_duration() / MS_PER_S,
         sessionConfig->result_file().c_str());
 
     g_sampleDuration = sessionConfig->sample_duration();
