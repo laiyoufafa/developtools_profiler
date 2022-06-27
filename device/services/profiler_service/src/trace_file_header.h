@@ -15,6 +15,11 @@
 #ifndef TRACE_FILE_HEADER_H
 #define TRACE_FILE_HEADER_H
 
+enum DataType {
+    HIPROFILER_PROTOBUF_BIN = 0,
+    HIPERF_DATA,
+};
+
 struct TraceFileHeader {
     static constexpr uint32_t HEADER_SIZE = 1024; // 预留了一些空间，方便后续在头部添加字段
     static constexpr uint32_t SHA256_SIZE = 256 / 8;
@@ -30,6 +35,7 @@ struct TraceFileHeader {
         uint32_t version_ = TRACE_VERSION;
         uint32_t segments_ = 0; // 载荷数据中的段个数, 段个数为偶数，一个描述长度 L，一个描述接下来的数据 V
         uint8_t sha256_[SHA256_SIZE] = {}; // 载荷数据 的 SHA256 ，用于校验 载荷数据是否完整；
+        uint32_t dataType_ = DataType::HIPROFILER_PROTOBUF_BIN; // 存储数据类型
     } __attribute__((packed));
     HeaderData data_ = {};
     uint8_t padding_[HEADER_SIZE - sizeof(data_)] = {};

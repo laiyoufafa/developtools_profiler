@@ -13,6 +13,7 @@
 
 import("//build/ohos.gni")
 import("../../base/config.gni")
+import("ftrace.gni")
 
 ohos_shared_library("ftrace_plugin") {
   sources = [
@@ -46,8 +47,8 @@ ohos_shared_library("ftrace_plugin") {
   ]
   deps = [
     "${OHOS_PROFILER_3RDPARTY_PROTOBUF_DIR}:protobuf_lite",
-    "${OHOS_PROFILER_DIR}/protos/types/plugins/ftrace_data:ftrace_data_cpp",
-    "src/event_parsers:ftrace_event_parsers",
+    "${OHOS_PROFILER_DIR}/protos/types/plugins/ftrace_data/${device_kernel_version}:ftrace_data_cpp",
+    "tools/device_kernel_version/${device_kernel_version}/event_parsers:ftrace_event_parsers",
     "//third_party/bounds_checking_function:libsec_static",
   ]
   if (current_toolchain != host_toolchain) {

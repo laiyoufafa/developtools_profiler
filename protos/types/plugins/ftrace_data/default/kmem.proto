@@ -111,3 +111,11 @@ message MmPagePcpuDrainFormat {
     int32 migratetype = 3;
 }
 
+// /sys/kernel/debug/tracing/events/kmem/rss_stat/format
+message RssStatFormat {
+    uint32 mm_id = 1;
+    uint32 curr = 2;
+    int32 member = 3;
+    uint64 size = 4;
+}
+

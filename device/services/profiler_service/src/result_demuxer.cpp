@@ -98,7 +98,7 @@ void ResultDemuxer::TakeResults()
             HILOG_WARN(LOG_CORE, "no writer, drop data!");
         }
     }
-    traceWriter_->Flush();
     traceWriter_->Finish();
+    traceWriter_->Flush();
     HILOG_INFO(LOG_CORE, "TakeResults thread %d, exit!", gettid());
 }

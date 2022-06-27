@@ -144,5 +144,16 @@ REGISTER_FTRACE_EVENT_PARSE_FUNCTION(
         msg->set_order(FtraceFieldParser::ParseIntField<uint32_t>(format.fields, i++, data, size));
         msg->set_migratetype(FtraceFieldParser::ParseIntField<int32_t>(format.fields, i++, data, size));
     });
+
+REGISTER_FTRACE_EVENT_PARSE_FUNCTION(
+    rss_stat,
+    [](FtraceEvent& ftraceEvent, uint8_t data[], size_t size, const EventFormat& format) {
+        int i = 0;
+        auto msg = ftraceEvent.mutable_rss_stat_format();
+        msg->set_mm_id(FtraceFieldParser::ParseIntField<uint32_t>(format.fields, i++, data, size));
+        msg->set_curr(FtraceFieldParser::ParseIntField<uint32_t>(format.fields, i++, data, size));
+        msg->set_member(FtraceFieldParser::ParseIntField<int32_t>(format.fields, i++, data, size));
+        msg->set_size(FtraceFieldParser::ParseIntField<uint64_t>(format.fields, i++, data, size));
+    });
 } // namespace
 FTRACE_NS_END

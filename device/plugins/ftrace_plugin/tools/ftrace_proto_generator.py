@@ -92,7 +92,8 @@ def fix_field_name(name):
     replace_map = {
         'errno': 'error_code',
         'sa_handler': 'sig_handler',
-        'sa_flags': 'sig_flags'
+        'sa_flags': 'sig_flags',
+        'new': 'seq_new'
     }
     if name in replace_map:
         name = replace_map[name]
@@ -142,6 +143,7 @@ class FtraceEventProtoGenerator(FtraceEventCodeGenerator):
         logger.info('Generate {} ...'.format(protos_gni_path))
         with open(protos_gni_path, 'w+') as f:
             f.write(GN_COPYRIGHT_HEADER)
+            # proto sources
             f.write('auto_generated_ftrace_proto_sources = [\n')
             for proto_path in proto_file_list:
                 f.write('  "{}",\n'.format(os.path.basename(proto_path)))

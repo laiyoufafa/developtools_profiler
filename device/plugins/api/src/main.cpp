@@ -36,12 +36,14 @@ const char DEFAULT_LIB_PATH[] = "/system/lib64/";
 #else
 const char DEFAULT_LIB_PATH[] = "/system/lib/";
 #endif
+
 std::vector<std::string> presetPluginVec = {
     "libcpudataplugin.z.so",
     "libdiskiodataplugin.z.so",
     "libftrace_plugin.z.so",
     "libhidumpplugin.z.so",
     "libhilogplugin.z.so",
+    "libhiperfplugin.z.so",
     "libmemdataplugin.z.so",
     "libnetworkplugin.z.so",
     "libprocessplugin.z.so",

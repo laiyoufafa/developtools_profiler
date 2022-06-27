@@ -86,7 +86,6 @@ std::string FtraceFieldParser::ParseStrField(const FieldFormat& format, uint8_t 
             if (strSize == 0) {
                 strSize = end - start;
                 retval = ReadString(start, end, strSize);
-                HILOG_WARN(LOG_CORE, "C string field %s, size: 0, parsed: %s", format.name.c_str(), retval.c_str());
             } else {
                 retval = ReadString(start, end, strSize);
             }
@@ -104,8 +103,8 @@ std::string FtraceFieldParser::ParseStrField(const FieldFormat& format, uint8_t 
             ReadData(start, end, &dataLoc, sizeof(dataLoc));
             dataOffset = dataLoc & DATALOC_OFFSET_MASK;
             dataLength = (dataLoc >> DATALOC_LENGTH_SHIFT) & DATALOC_LENGTH_MASK;
-            if (dataOffset > 0 && start + dataOffset + dataLength <= end) {
-                retval = ReadString(start + dataOffset, end, dataLength);
+            if (dataOffset > 0 && data + dataOffset + dataLength <= end) {
+                retval = ReadString(data + dataOffset, end, dataLength);
             }
             break;
         default:
