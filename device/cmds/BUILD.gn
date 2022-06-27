@@ -35,6 +35,7 @@ ohos_executable("hiprofiler_cmd") {
     ":command_line",
     "${OHOS_PROFILER_3RDPARTY_PROTOBUF_DIR}:protobuf",
     "${OHOS_PROFILER_3RDPARTY_PROTOBUF_DIR}:protobuf_lite",
+    "${OHOS_PROFILER_DIR}/device/base:hiprofiler_base",
     "${OHOS_PROFILER_DIR}/protos/services:profiler_services_proto",
     "${OHOS_PROFILER_DIR}/protos/services:service_types_proto",
     "${OHOS_PROFILER_DIR}/protos/types/plugins/cpu_data:cpu_data_cpp_standard",
