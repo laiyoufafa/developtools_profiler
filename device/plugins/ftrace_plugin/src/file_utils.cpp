@@ -107,7 +107,6 @@ int FileUtils::WriteFile(const std::string& path, const std::string& content, in
 
     int retval = write(fd, content.data(), content.size());
     CHECK_TRUE(close(fd) != -1, -1, "close %s failed, %d", path.c_str(), errno);
-    HILOG_DEBUG(LOG_CORE, "write(%s) with '%s' done!", path.c_str(), content.c_str());
     return retval;
 }
 

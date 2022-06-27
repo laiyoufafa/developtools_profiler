@@ -15,6 +15,7 @@
 
 #include <unistd.h>
 
+#include "common.h"
 #include "command_poller.h"
 #include "logging.h"
 #include "plugin_manager.h"
@@ -36,12 +37,14 @@ const char DEFAULT_LIB_PATH[] = "/system/lib64/";
 #else
 const char DEFAULT_LIB_PATH[] = "/system/lib/";
 #endif
+
 std::vector<std::string> presetPluginVec = {
     "libcpudataplugin.z.so",
     "libdiskiodataplugin.z.so",
     "libftrace_plugin.z.so",
     "libhidumpplugin.z.so",
     "libhilogplugin.z.so",
+    "libhiperfplugin.z.so",
     "libmemdataplugin.z.so",
     "libnetworkplugin.z.so",
     "libprocessplugin.z.so",
@@ -50,8 +53,11 @@ std::vector<std::string> presetPluginVec = {
 
 int main(int argc, char* argv[])
 {
-    const int connectRetrySeconds = 3;
+    if (COMMON::IsProcessRunning()) { // process is running
+        return 0;
+    }
 
+    const int connectRetrySeconds = 3;
     std::string pluginDir(DEFAULT_PLUGIN_PATH);
     if (argv[1] != nullptr) {
         HILOG_DEBUG(LOG_CORE, "%s:pluginDir = %s", __func__, argv[1]);

@@ -370,6 +370,90 @@ bool ProfilerService::RemoveSessionContext(uint32_t sessionId)
     return false;
 }
 
+void ProfilerService::MergeHiperfFile(const SessionContextPtr& sessionCtx)
+{
+    auto it = std::find(sessionCtx->pluginNames.begin(), sessionCtx->pluginNames.end(), "hiperf-plugin");
+    if (it == sessionCtx->pluginNames.end()) {
+        return;
+    } else if (sessionCtx->sessionConfig.session_mode() != ProfilerSessionConfig::OFFLINE) {
+        return;
+    }
+
+    // get hiperf plugin ouput file
+    std::string hiperfFile;
+    for (auto & config : sessionCtx->pluginConfigs) {
+        if (config.name() != "hiperf-plugin") {
+            continue;
+        }
+
+        HiperfPluginConfig hiperfConfig;
+        if (!hiperfConfig.ParseFromArray(config.config_data().data(), config.config_data().size())) {
+            HILOG_ERROR(LOG_CORE, "parse hiperf config failed");
+            return;
+        }
+        hiperfFile = hiperfConfig.outfile_name();
+        break;
+    }
+    if (hiperfFile.empty()) {
+        HILOG_ERROR(LOG_CORE, "didn't set hiperf output file");
+        return;
+    }
+
+    std::ifstream fsHiperf {}; // read from hiperf output file
+    fsHiperf.open(hiperfFile, std::ios_base::in | std::ios_base::binary);
+    if (!fsHiperf.good()) {
+        HILOG_ERROR(LOG_CORE, "open file(%s) failed: %d", hiperfFile.c_str(), fsHiperf.rdstate());
+        return;
+    }
+
+    std::string targetFile = sessionCtx->sessionConfig.result_file();
+    std::ofstream fsTarget {}; // write to profiler ouput file
+    fsTarget.open(targetFile, std::ios_base::in | std::ios_base::out | std::ios_base::binary);
+    if (!fsTarget.good()) {
+        HILOG_ERROR(LOG_CORE, "open file(%s) failed: %d", targetFile.c_str(), fsTarget.rdstate());
+        return;
+    }
+    fsTarget.seekp(0, std::ios_base::end);
+    int posHiperf = fsTarget.tellp(); // for update sha256
+
+    TraceFileHeader header {};
+    header.data_.dataType_ = DataType::HIPERF_DATA;
+    fsHiperf.seekg(0, std::ios_base::end);
+    uint64_t fileSize = fsHiperf.tellg();
+    header.data_.length_ += fileSize;
+    fsTarget.write(reinterpret_cast<char*>(&header), sizeof(header));
+    if (!fsTarget.good()) {
+        HILOG_ERROR(LOG_CORE, "write file(%s) failed: %d\n", targetFile.c_str(), fsTarget.rdstate());
+        return;
+    }
+
+    SHA256_CTX sha256Ctx;
+    SHA256_Init(&sha256Ctx);
+    constexpr uint64_t bufSize = 4 * 1024 * 1024;
+    std::vector<char> buf(bufSize);
+    uint64_t readSize = 0;
+    fsHiperf.seekg(0);
+    while ((readSize = std::min(bufSize, fileSize)) > 0) {
+        fsHiperf.read(buf.data(), readSize);
+        fsTarget.write(buf.data(), readSize);
+        if (!fsTarget.good()) {
+            HILOG_ERROR(LOG_CORE, "write file(%s) failed: %d\n", targetFile.c_str(), fsTarget.rdstate());
+            return;
+        }
+        fileSize -= readSize;
+
+        SHA256_Update(&sha256Ctx, buf.data(), readSize);
+    }
+    SHA256_Final(header.data_.sha256_, &sha256Ctx);
+    fsTarget.seekp(posHiperf, std::ios_base::beg);
+    fsTarget.write(reinterpret_cast<char*>(&header), sizeof(header));
+
+    fsHiperf.close();
+    fsTarget.close();
+
+    HILOG_INFO(LOG_CORE, "write hiperf file done");
+}
+
 Status ProfilerService::StartSession(ServerContext* context,
                                      const ::StartSessionRequest* request,
                                      ::StartSessionResponse* response)
@@ -516,6 +600,9 @@ Status ProfilerService::DestroySession(ServerContext* context,
     CHECK_EXPRESSION_TRUE(pluginSessionManager_->RemovePluginSessions(ctx->pluginNames),
                           "remove plugin session FAILED!");
     HILOG_INFO(LOG_CORE, "DestroySession %d %u done!", request->request_id(), sessionId);
+
+    MergeHiperfFile(ctx);
+
     return Status::OK;
 }
 

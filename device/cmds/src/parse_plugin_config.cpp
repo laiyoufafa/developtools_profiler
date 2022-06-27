@@ -20,6 +20,7 @@
 #include "google/protobuf/text_format.h"
 #include "hidump_plugin_config_standard.pb.h"
 #include "hilog_plugin_config_standard.pb.h"
+#include "hiperf_plugin_config_standard.pb.h"
 #include "memory_plugin_common_standard.pb.h"
 #include "memory_plugin_config_standard.pb.h"
 #include "native_hook_config_standard.pb.h"
@@ -114,6 +115,8 @@ bool ParsePluginConfig::SetSerializePluginsConfig(const std::string& pluginName,
         ret = SetSerializeNetworkConfig(pluginName, pluginConfig);
     } else if (pluginName == "process-plugin") {
         ret = SetSerializeProcessConfig(pluginName, pluginConfig);
+    } else if (pluginName == "hiperf-plugin") {
+        ret = SetSerializeHiperfConfig(pluginName, pluginConfig);
     } else {
         printf("unsupport plugin: %s\n", pluginName.c_str());
     }
@@ -278,6 +281,24 @@ bool ParsePluginConfig::SetSerializeProcessConfig(const std::string& pluginName,
     std::vector<uint8_t> configDataVec(processConfigNolite->ByteSizeLong());
     if (processConfigNolite->SerializeToArray(configDataVec.data(), configDataVec.size()) <= 0) {
         printf("process serialize failed!\n");
+        return false;
+    }
+    pluginConfig.set_config_data((const void*)configDataVec.data(), configDataVec.size());
+    return true;
+}
+
+bool ParsePluginConfig::SetSerializeHiperfConfig(const std::string& pluginName, ProfilerPluginConfig& pluginConfig)
+{
+    std::string configData = pluginConfigMap[pluginName];
+    auto hiperfConfigNolite = std::make_unique<ForStandard::HiperfPluginConfig>();
+    if (!TextFormat::ParseFromString(configData, hiperfConfigNolite.get())) {
+        printf("hiperf config parse failed!\n");
+        return false;
+    }
+
+    std::vector<uint8_t> configDataVec(hiperfConfigNolite->ByteSizeLong());
+    if (hiperfConfigNolite->SerializeToArray(configDataVec.data(), configDataVec.size()) <= 0) {
+        printf("hiperf config failed!\n");
         return false;
     }
     pluginConfig.set_config_data((const void*)configDataVec.data(), configDataVec.size());

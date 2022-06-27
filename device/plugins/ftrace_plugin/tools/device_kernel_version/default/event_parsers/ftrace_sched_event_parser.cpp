@@ -17,6 +17,16 @@
 FTRACE_NS_BEGIN
 namespace {
 REGISTER_FTRACE_EVENT_PARSE_FUNCTION(
+    sched_blocked_reason,
+    [](FtraceEvent& ftraceEvent, uint8_t data[], size_t size, const EventFormat& format) {
+        int i = 0;
+        auto msg = ftraceEvent.mutable_sched_blocked_reason_format();
+        msg->set_pid(FtraceFieldParser::ParseIntField<int32_t>(format.fields, i++, data, size));
+        msg->set_caller(FtraceFieldParser::ParseIntField<uint64_t>(format.fields, i++, data, size));
+        msg->set_io_wait(FtraceFieldParser::ParseIntField<uint32_t>(format.fields, i++, data, size));
+    });
+
+REGISTER_FTRACE_EVENT_PARSE_FUNCTION(
     sched_kthread_stop,
     [](FtraceEvent& ftraceEvent, uint8_t data[], size_t size, const EventFormat& format) {
         int i = 0;

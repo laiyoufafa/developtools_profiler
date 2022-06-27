@@ -57,6 +57,7 @@ public:
     MOCKABLE bool ClearSetEvent();
     MOCKABLE bool EnableEvent(const std::string& type, const std::string& name);
     MOCKABLE bool DisableEvent(const std::string& type, const std::string& name);
+    MOCKABLE bool DisableCategories(const std::string& categories);
     MOCKABLE bool EnableTracing();
     MOCKABLE bool DisableTracing();
 

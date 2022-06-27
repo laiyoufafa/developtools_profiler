@@ -101,6 +101,8 @@ int FlowController::SetWriter(const WriterStructPtr& writer)
     ksymsParser_->Parse(FtraceFsOps::GetInstance().GetKernelSymbols());
 
     CHECK_TRUE(AddPlatformEventsToParser(), -1, "add platform events to parser failed!");
+    // disable all trace events
+    DisableAllCategories();
 
     resultWriter_ = writer;
     tansporter_ = std::move(transmiter);
@@ -223,8 +225,10 @@ int FlowController::StartCapture(void)
     if (traceCategories_.size() > 0) {
         traceOps_->EnableCategories(traceCategories_, hitraceTime_);
     }
-    EnableTraceEvents();
 
+    // hitrace will reset trace buffer size, so reset user config after hitrace
+    FtraceFsOps::GetInstance().SetBufferSizeKb(bufferSizeKb_);
+    EnableTraceEvents();
     return 0;
 }
 
@@ -342,15 +346,15 @@ int FlowController::StopCapture(void)
         HILOG_INFO(LOG_CORE, "join thread  done!\n");
     }
 
+    // parse per cpu stats
+    CHECK_TRUE(ParsePerCpuStatus(TRACE_END), -1, "parse TRACE_END stats failed!");
+
     // disable userspace trace triggers
     // because trace cmd will read trace buffer,
     // so we to this action after polling thread exit.
     if (traceCategories_.size() > 0) {
         traceOps_->DisableCategories();
     }
-
-    // parse per cpu stats
-    CHECK_TRUE(ParsePerCpuStatus(TRACE_END), -1, "parse TRACE_END stats failed!");
     tansporter_->Flush();
 
     // release resources
@@ -459,7 +463,7 @@ bool FlowController::ParseFtraceEvent(int cpuid, uint8_t page[])
 
 bool FlowController::AddPlatformEventsToParser(void)
 {
-    CHECK_TRUE(ftraceSupported_, -1, "current kernel not support ftrace!");
+    CHECK_TRUE(ftraceSupported_, false, "current kernel not support ftrace!");
 
     HILOG_INFO(LOG_CORE, "Add platform events to parser start!");
     for (auto& typeName : FtraceFsOps::GetInstance().GetPlatformEvents()) {
@@ -487,7 +491,6 @@ int FlowController::LoadConfig(const uint8_t configData[], uint32_t size)
     std::set<std::string> events(traceConfig.ftrace_events().begin(), traceConfig.ftrace_events().end());
     for (auto ftraceEvent : events) {
         requestEvents_.push_back(ftraceEvent);
-        HILOG_INFO(LOG_CORE, "ftraceEvent: %s", ftraceEvent.c_str());
     }
 
     traceApps_.assign(traceConfig.hitrace_apps().begin(), traceConfig.hitrace_apps().end());
@@ -531,7 +534,6 @@ void FlowController::SetupTraceBufferSize(uint32_t sizeKb)
     } else {
         bufferSizeKb_ = sizeKb / KB_PER_PAGE * KB_PER_PAGE;
     }
-    FtraceFsOps::GetInstance().SetBufferSizeKb(bufferSizeKb_);
 }
 
 void FlowController::SetupTransporterFlushParams(uint32_t flushInterval, uint32_t flushThresholdKb)
@@ -588,5 +590,14 @@ void FlowController::DisableTraceEvents(void)
         FtraceFsOps::GetInstance().DisableEvent(type, name);
     }
     enabledEvents_.clear();
+}
+
+void FlowController::DisableAllCategories(void)
+{
+    for (auto& event : supportedEvents_) {
+        std::string type = event.first;
+        std::string name = event.second;
+        FtraceFsOps::GetInstance().DisableCategories(type);
+    }
 }
 FTRACE_NS_END

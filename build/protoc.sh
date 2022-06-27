@@ -23,37 +23,38 @@ SUBSYS_X64_OUT=$PROJECT_TOP/$2/developtools/profiler
 PROTOC=$PROJECT_TOP/$2/developtools/profiler/protoc
 PYTHON_SHELL=$THIS_DIR/make_standard_proto.py # shell path
 TMP=$2
-PROTO_OUT_DIR="$PROJECT_TOP/${TMP%/*}/$3" # ÐÂÔöprotoÎÄ¼þµÄÄ¿±êÂ·¾¶
+PROTO_OUT_DIR="$PROJECT_TOP/${TMP%/*}/$3" # path of the new proto file
 
 echo "1 = $1"
 echo "2 = $2"
 PARAMS=$*
 PARAMS_FILTER="$1 $2 $3"
-#for python
+# for python : copy and change source .proto file
 TARFLAG="--proto_path"
-PARAMS_SOURCE_TMP="${PARAMS#*${TARFLAG}}" # È¡ËùÓÐÔ­protoÎÄ¼þ
+PARAMS_SOURCE_TMP="${PARAMS#*${TARFLAG}}" # get source proto file path
 PARAMS_SOURCES=""
 NUM=0
-for ITM in ${PARAMS_SOURCE_TMP[@]} # ¹ýÂËTARFLAG
+for ITM in ${PARAMS_SOURCE_TMP[@]} # filter the TARGLAG
 do
   if [ $NUM -gt 0 ]; then
     PARAMS_SOURCES="$PARAMS_SOURCES$ITM "
   fi
   NUM=$[$NUM + 1]
 done
-PARAMS_PRINT="$PROTO_OUT_DIR $PARAMS_SOURCES" # Æ´½Ó½Å±¾²ÎÊý
+PARAMS_PRINT="$PROTO_OUT_DIR $PARAMS_SOURCES" # splice the python args
 echo "EXEC: python $PYTHON_SHELL $PARAMS_PRINT"
 python $PYTHON_SHELL $PARAMS_PRINT
-#end python
+# end python
 
+# creat pb file
 PARAMS_SRC=${PARAMS:${#PARAMS_FILTER}}
-PARAMS_REPLACE=${PARAMS_SOURCES//.proto/_standard.proto} # ¿½±´protoÎÄ¼þÃû³Æ£¬Ìæ»»Îª_standard.proto
-PARAMS_STANDARD=" --proto_path $PROTO_OUT_DIR " # ÐÂÔöproto_path ²ÎÊý£¬$PROTO_OUT_DIRÎªÂ·¾¶
+PARAMS_REPLACE=${PARAMS_SOURCES//.proto/_standard.proto} # make the new proto file name. like "_standard.proto"
+PARAMS_STANDARD=" --proto_path $PROTO_OUT_DIR " # add proto_pathï¼Œ$PROTO_OUT_DIR is the pb file path
 for VAR in ${PARAMS_REPLACE[@]}
 do
-  PARAMS_STANDARD="$PARAMS_STANDARD$PROTO_OUT_DIR/${VAR##*/} " # ÔÚ²ÎÊýÖÐÌí¼ÓprotoÎÄ¼þÃû³Æ
+  PARAMS_STANDARD="$PARAMS_STANDARD$PROTO_OUT_DIR/${VAR##*/} " # add .proto file name to args
 done
-PARAMS_ALL="$PARAMS_SRC $PARAMS_STANDARD" # ÔÚÔ­²ÎÊýÖÐÌí¼ÓÐÂ²ÎÊý
+PARAMS_ALL="$PARAMS_SRC $PARAMS_STANDARD" # add new argument list to old argument list
 
 echo "EXEC: LD_LIBRARY_PATH=$LIBCXX_X64_OUT:$SUBSYS_X64_OUT $PROTOC $PARAMS_ALL"
 LD_LIBRARY_PATH=$LIBCXX_X64_OUT:$SUBSYS_X64_OUT exec $PROTOC $PARAMS_ALL

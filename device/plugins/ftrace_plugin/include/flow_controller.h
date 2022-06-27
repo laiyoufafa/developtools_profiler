@@ -63,6 +63,7 @@ private:
     bool AddPlatformEventsToParser(void);
     void EnableTraceEvents(void);
     void DisableTraceEvents(void);
+    void DisableAllCategories(void);
 
     bool ReportClockTimes(void);
     bool ParseKernelSymbols(void);

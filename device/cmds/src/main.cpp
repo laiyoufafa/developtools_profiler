@@ -28,6 +28,7 @@
 #include <unistd.h>
 #include <vector>
 
+#include "common.h"
 #include "command_line.h"
 #include "google/protobuf/text_format.h"
 #include "parse_plugin_config.h"
@@ -45,9 +46,15 @@ constexpr int KEEP_SESSION_TIMEOUT_MS = 5 * 1000;
 constexpr int KEEP_SESSION_SLEEP_US = 3 * 1000 * 1000;
 constexpr int DEFAULT_SESSION_TIME_S = 10;
 const std::string DEFAULT_OUTPUT_FILE = "/data/local/tmp/hiprofiler_data.htrace";
+std::string HIPROFILERD_NAME("hiprofilerd");
+std::string HIPROFILER_PLUGINS_NAME("hiprofiler_plugins");
+std::string NATIVE_DAEMON_NAME("native_daemon");
 
 uint32_t g_sampleDuration = 0;
 bool g_isConfigFile = false;
+int g_hiprofilerdPid = -1;
+int g_hiprofilerPluginsPid = -1;
+int g_nativeDaemonPid = -1;
 
 std::string GetLoopbackAddress()
 {
@@ -149,7 +156,7 @@ std::unique_ptr<CreateSessionRequest> MakeCreateRequest(const std::string& confi
     } else if (sessionConfig->result_file() == "") {
         sessionConfig->set_result_file(DEFAULT_OUTPUT_FILE);
     }
-    printf("keepSecond: %ds, outputFileName: %s\n", sessionConfig->sample_duration() / MS_PER_S,
+    printf("keepSecond: %us, outputFileName: %s\n", sessionConfig->sample_duration() / MS_PER_S,
         sessionConfig->result_file().c_str());
 
     g_sampleDuration = sessionConfig->sample_duration();
@@ -339,6 +346,8 @@ struct DataContext {
     std::string outputFile;
     bool isHelp = false;
     bool isShowPluginList = false;
+    bool isStartProcess = false;
+    bool isKillProcess = false;
 };
 
 void ParseCmdline(CommandLine* pCmdLine, std::string& config, DataContext& data)
@@ -348,6 +357,8 @@ void ParseCmdline(CommandLine* pCmdLine, std::string& config, DataContext& data)
     pCmdLine->AddParamText("--out", "-o", data.outputFile, "output file name");
     pCmdLine->AddParamSwitch("--help", "-h", data.isHelp, "make some help");
     pCmdLine->AddParamSwitch("--list", "-l", data.isShowPluginList, "plugin list");
+    pCmdLine->AddParamSwitch("--start", "-s", data.isStartProcess, "start dependent process");
+    pCmdLine->AddParamSwitch("--kill", "-k", data.isKillProcess, "kill dependent process");
     if (config.empty()) {
         g_isConfigFile = true;
         pCmdLine->AddParamText("--config", "-c", config, "start trace by config file");
@@ -372,10 +383,56 @@ int CheckGrpcMsgSend()
         printf("FAIL\nService not started\n");
         return -1;
     }
+
     printf("OK\n");
     printf("ip:%s\n", GetLoopbackAddress().c_str());
     printf("port:%u\n", GetServicePort());
     return 0;
+}
+
+void StartDependentProcess()
+{
+    if (!COMMON::IsProcessExist(HIPROFILERD_NAME, g_hiprofilerdPid)) {
+        // need start hiprofilerd
+        std::vector<char*> argvVec;
+        argvVec.push_back(const_cast<char*>(HIPROFILERD_NAME.c_str()));
+        g_hiprofilerdPid = COMMON::StartProcess(HIPROFILERD_NAME, argvVec);
+        sleep(1); // Wait for the hiprofilerd to start
+    }
+
+    if (!COMMON::IsProcessExist(HIPROFILER_PLUGINS_NAME, g_hiprofilerPluginsPid)) {
+        // need start hiprofiler_plugins
+        std::vector<char*> argvVec;
+        argvVec.push_back(const_cast<char*>(HIPROFILER_PLUGINS_NAME.c_str()));
+        g_hiprofilerPluginsPid = COMMON::StartProcess(HIPROFILER_PLUGINS_NAME, argvVec);
+        sleep(1); // Wait for the hiprofiler_plugins add preset plugin
+    }
+
+    if (!COMMON::IsProcessExist(NATIVE_DAEMON_NAME, g_nativeDaemonPid)) {
+        // need start native_daemon
+        std::vector<char*> argvVec;
+        argvVec.push_back(const_cast<char*>(NATIVE_DAEMON_NAME.c_str()));
+        g_nativeDaemonPid = COMMON::StartProcess(NATIVE_DAEMON_NAME, argvVec);
+        sleep(1); // Wait for the native_daemon to start
+    }
+}
+
+void KillDependentProcess()
+{
+    // if pid is equal to -1, need to get pid first.
+    if (g_nativeDaemonPid == -1) {
+        COMMON::IsProcessExist(NATIVE_DAEMON_NAME, g_nativeDaemonPid);
+    }
+    if (g_hiprofilerPluginsPid == -1) {
+        COMMON::IsProcessExist(HIPROFILER_PLUGINS_NAME, g_hiprofilerPluginsPid);
+    }
+    if (g_hiprofilerdPid == -1) {
+        COMMON::IsProcessExist(HIPROFILERD_NAME, g_hiprofilerdPid);
+    }
+
+    COMMON::KillProcess(g_nativeDaemonPid);
+    COMMON::KillProcess(g_hiprofilerPluginsPid);
+    COMMON::KillProcess(g_hiprofilerdPid);
 }
 } // namespace
 
@@ -383,7 +440,7 @@ int main(int argc, char* argv[])
 {
     std::string config = "";
     while (true) {
-        int option = getopt(argc, argv, "q:c:t:o:h:l:");
+        int option = getopt(argc, argv, "q:c:t:o:h:l:s:k:");
         if (option == -1) {
             break;  // CONFIG.
         }
@@ -416,17 +473,32 @@ int main(int argc, char* argv[])
         pCmdLine->PrintHelp();
         exit(0);
     }
+
+    if (data.isStartProcess) {
+        StartDependentProcess();
+    }
+
     if (data.isGetGrpcAddr) { // handle get port
-        return CheckGrpcMsgSend();
+        int ret = CheckGrpcMsgSend();
+        if (data.isKillProcess) {
+            KillDependentProcess();
+        }
+        return ret;
     }
 
     if (data.isShowPluginList) { // handle show plugin list
         GetCapabilities();
+        if (data.isKillProcess) {
+            KillDependentProcess();
+        }
         return 0;
     }
 
     if (config.empty()) { // normal case
         printf("FAIL\nconfig file argument must sepcified!");
+        if (data.isKillProcess) {
+            KillDependentProcess();
+        }
         return 1;
     }
     // do capture work
@@ -434,5 +506,8 @@ int main(int argc, char* argv[])
         printf("DONE\n");
     }
 
+    if (data.isKillProcess) {
+        KillDependentProcess();
+    }
     return 0;
 }

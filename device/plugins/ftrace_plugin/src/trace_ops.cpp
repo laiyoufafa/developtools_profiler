@@ -84,7 +84,6 @@ std::vector<std::string> TraceOps::ListCategories()
         }
 
         auto category = line.substr(0, pos - 1);
-        HILOG_INFO(LOG_CORE, "found category: %s", category.c_str());
         result.push_back(category);
     }
     return result;

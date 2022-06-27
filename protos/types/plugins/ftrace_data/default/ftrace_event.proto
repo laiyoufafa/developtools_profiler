@@ -29,6 +29,7 @@ import "filelock.proto";
 import "filemap.proto";
 import "ftrace.proto";
 import "gpio.proto";
+import "gpu_mem.proto";
 import "i2c.proto";
 import "ipi.proto";
 import "irq.proto";
@@ -40,6 +41,7 @@ import "power.proto";
 import "printk.proto";
 import "raw_syscalls.proto";
 import "rcu.proto";
+import "regulator.proto";
 import "sched.proto";
 import "signal.proto";
 import "sunrpc.proto";
@@ -448,5 +450,10 @@ message FtraceEvent {
         WritebackWriteInodeFormat writeback_write_inode_format = 3224;
         WritebackWriteInodeStartFormat writeback_write_inode_start_format = 3225;
         WritebackWrittenFormat writeback_written_format = 3226;
+        RegulatorSetVoltageFormat regulator_set_voltage_format = 4000;
+        RegulatorSetVoltageCompleteFormat regulator_set_voltage_complete_format = 4001;
+        SchedBlockedReasonFormat sched_blocked_reason_format = 4002;
+        GpuMemTotalFormat gpu_mem_total_format = 4003;
+        RssStatFormat rss_stat_format = 4004;
     }
 }

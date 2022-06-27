@@ -181,7 +181,6 @@ static std::string ReceiveOutputAndSigchld(int pipeFd, const PipedSigHandler& ha
     Poller poller = {};
     poller.AddFd(pipeFd, POLLIN, [&]() {
         std::string out = FileUtils::ReadFile(pipeFd);
-        HILOG_INFO(LOG_CORE, "%zu bytes received from pipe[RD]!", out.size());
         output += out;
     });
     volatile bool childExit = false;

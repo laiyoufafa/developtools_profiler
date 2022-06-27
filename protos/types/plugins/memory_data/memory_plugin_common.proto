@@ -52,6 +52,7 @@ enum SysMeminfoType {
     PMEM_VMALLOC_CHUNK = 31;
     PMEM_CMA_TOTAL = 32;
     PMEM_CMA_FREE = 33;
+    PMEM_KERNEL_RECLAIMABLE = 34;
 }
 
 enum SysVMeminfoType {
