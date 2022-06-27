@@ -14,6 +14,7 @@
  */
 #include <memory>
 
+#include "common.h"
 #include "grpc/impl/codegen/log.h"
 #include "grpcpp/health_check_service_interface.h"
 #include "logging.h"
@@ -26,6 +27,10 @@ const std::string DEFAULT_SERVICE_LISTEN_URI = "0.0.0.0:50051";
 
 int main(int argc, char* argv[])
 {
+    if (COMMON::IsProcessRunning()) { // process is running
+        return 0;
+    }
+
     gpr_set_log_verbosity(GPR_LOG_SEVERITY_DEBUG);
     grpc::EnableDefaultHealthCheckService(true);
 
