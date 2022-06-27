@@ -38,7 +38,7 @@ bool IsProcessRunning()
     }
 
     std::string fileName = DEFAULT_PATH + processName + ".pid";
-    int fd = open(fileName.c_str(), O_WRONLY | O_CREAT);
+    int fd = open(fileName.c_str(), O_WRONLY | O_CREAT, (mode_t)0440);
     if (fd < 0) {
         const int bufSize = 256;
         char buf[bufSize] = { 0 };
