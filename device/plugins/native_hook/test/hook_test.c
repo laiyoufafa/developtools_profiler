@@ -153,7 +153,38 @@ void ApplyForCalloc(int mallocSize)
 
 void ApplyForRealloc(int mallocSize)
 {
-  
+    int reallocSize = mallocSize * DEFAULT_REALLOC_SIZE;
+    printf("\nstart realloc apply (size = %d)\n", reallocSize);
+    if (mallocSize <= 0) {
+        printf("Invalid mallocSize.\n");
+        return;
+    }
+    clock_t timerStart, timerStop;
+    double duration = 0;
+    char* p = (char*)malloc(mallocSize);
+    if (!p) {
+        printf("malloc failure\n");
+        return;
+    }
+    timerStart = clock();
+    char* np = DepthRealloc(STATIC_DEPTH, p, reallocSize);
+    timerStop = clock();
+    if (!np) {
+        free(p);
+        printf("realloc failure\n");
+        return;
+    }
+    duration += (double)(timerStop - timerStart) / CLOCKS_PER_SEC;
+    g_reallocDuration += (double)(timerStop - timerStart) / CLOCKS_PER_SEC;
+    printf("realloc success, realloc (%d) time is %f\n", reallocSize, duration);
+    printf("\nReady for free -- ");
+    timerStart = clock();
+    DepthFree(STATIC_DEPTH, np);
+    timerStop = clock();
+    duration += (double)(timerStop - timerStart) / CLOCKS_PER_SEC;
+    g_freeDuration += (double)(timerStop - timerStart) / CLOCKS_PER_SEC;
+    printf("free success, free time is %f\n", (double)(timerStop - timerStart) / CLOCKS_PER_SEC);
+    printf("realloc apply success, total time is %f\n", duration);
 }
 
 void* ThreadFuncC(void* param)
@@ -276,15 +307,15 @@ char* MmapReadFile(char* pMap, int length)
     return data;
 }
 
+void RandSrand(void)
+{
+    srand((unsigned)time(NULL));
+}
+
 // 10 ~ 4096
 int RandInt(int Max, int Min)
 {
-    time_t tv = time(NULL);
-    if (tv == -1) {
-        tv = 1;
-    }
-    unsigned int seed = (unsigned int)tv;
-    int value = (rand_r(&seed) % (Max - Min)) + Min;
+    int value = (rand() % (Max - Min)) + Min;
     return value;
 }
 
@@ -293,13 +324,8 @@ char RandChar(void)
 {
     // 可显示字符的范围
     int section = '~' - ' ';
-    time_t tv = time(NULL);
-    if (tv == -1) {
-        tv = 1;
-    }
-    unsigned int seed = (unsigned int)tv;
-    int randSection = (rand_r(&seed) % section);
-    char randChar = ' ' + randSection;
+    int randSection = RandInt(0, section);
+    char randChar = '~' + randSection;
     return randChar;
 }
 
@@ -324,6 +350,8 @@ char* RandString(int maxLength)
 // 初始化函数
 void mmapInit(void)
 {
+    // 设置随机种子
+    RandSrand();
     // 设置全局映射的目标文件
     g_fd = OpenFile(g_fileName);
 }

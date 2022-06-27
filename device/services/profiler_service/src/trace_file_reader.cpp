@@ -80,7 +80,7 @@ long TraceFileReader::Read(MessageLite& message)
     return sizeof(msgLen) + msgData.size();
 }
 
-long TraceFileReader::Read(uint8_t buffer[], uint32_t bufferSize)
+long TraceFileReader::ReadLen()
 {
     CHECK_TRUE(stream_.is_open(), 0, "binary file %s not open or open failed!", path_.c_str());
     CHECK_TRUE(!stream_.eof(), 0, "no more data in file %s stream", path_.c_str());
@@ -90,14 +90,19 @@ long TraceFileReader::Read(uint8_t buffer[], uint32_t bufferSize)
     RETURN_IF(stream_.eof(), 0, "read file end");
     CHECK_TRUE(dataLen > 0, 0, "read in file %s data length: %d", path_.c_str(), dataLen);
     CHECK_TRUE(stream_, 0, "read data length from file %s (offset %zu) failed!", path_.c_str(), GetReadPos(stream_));
-    CHECK_TRUE(bufferSize >= dataLen, 0, "offset:%zu, buffer size(%d) does not enough to read data bytes(%d)!",
-        GetReadPos(stream_), bufferSize, dataLen);
     CHECK_TRUE(helper_.AddSegment(reinterpret_cast<uint8_t*>(&dataLen), sizeof(dataLen)),
         0, "Add payload for data length failed!");
-
-    stream_.read(reinterpret_cast<CharPtr>(buffer), dataLen);
-    RETURN_IF(stream_.eof(), 0, "read file end");
-    CHECK_TRUE(stream_, 0, "read data bytes from %s (offset %zu) failed!", path_.c_str(), GetReadPos(stream_));
-    CHECK_TRUE(helper_.AddSegment(buffer, dataLen), 0, "Add payload for data bytes failed!");
     return dataLen;
+}
+
+bool TraceFileReader::ReadData(uint8_t buffer[], uint32_t bufferSize)
+{
+    CHECK_TRUE(stream_.is_open(), false, "binary file %s not open or open failed!", path_.c_str());
+    CHECK_TRUE(!stream_.eof(), false, "no more data in file %s stream", path_.c_str());
+
+    stream_.read(reinterpret_cast<CharPtr>(buffer), bufferSize);
+    RETURN_IF(stream_.eof(), false, "read file end");
+    CHECK_TRUE(stream_, false, "read data bytes from %s (offset %zu) failed!", path_.c_str(), GetReadPos(stream_));
+    CHECK_TRUE(helper_.AddSegment(buffer, bufferSize), false, "Add payload for data bytes failed!");
+    return true;
 }

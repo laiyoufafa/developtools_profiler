@@ -36,7 +36,8 @@ public:
 
     long Read(MessageLite& message);
 
-    long Read(uint8_t buffer[], uint32_t bufferSize);
+    long ReadLen();
+    bool ReadData(uint8_t buffer[], uint32_t bufferSize);
 
     bool ValidateHeader();
 
