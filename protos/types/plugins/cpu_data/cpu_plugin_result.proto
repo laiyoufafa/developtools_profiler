@@ -68,4 +68,8 @@ message ThreadInfo {
 message CpuData {
     CpuUsageInfo cpu_usage_info = 1;
     repeated ThreadInfo thread_info = 2;
+    int64 process_num = 3;
+    double user_load = 4;
+    double sys_load = 5;
+    double total_load = 6;
 }

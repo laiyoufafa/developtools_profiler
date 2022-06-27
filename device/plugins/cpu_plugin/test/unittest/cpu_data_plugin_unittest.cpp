@@ -41,6 +41,7 @@ constexpr int CORE_NUM = 6;
 constexpr int THREAD_NUM = 7;
 constexpr int FIRST_THREAD_NUM = 5;
 constexpr int SECOND_THREAD_NUM = 6;
+const int PERCENT = 100;
 
 struct TestSystemStat {
     int32_t core;
@@ -52,6 +53,12 @@ struct TestSystemStat {
     int64_t irq;
     int64_t softirq;
     int64_t steal;
+};
+
+struct TestCpuUsage {
+    double user_load;
+    double sys_load;
+    double total_load;
 };
 
 struct TestStat {
@@ -185,10 +192,13 @@ bool CheckTid(std::vector<int>& tidListTmp)
     return true;
 }
 
-bool PluginCpuinfoStub(CpuDataPlugin& cpuPlugin, CpuData& cpuData, int pid, bool unusualBuff)
+bool PluginCpuinfoStub(CpuDataPlugin& cpuPlugin, CpuData& cpuData, int pid, bool reportProcess, bool unusualBuff)
 {
     CpuConfig protoConfig;
     protoConfig.set_pid(pid);
+    if (reportProcess) {
+        protoConfig.set_report_process_info(true);
+    }
 
     // serialize
     std::vector<uint8_t> configData(protoConfig.ByteSizeLong());
@@ -219,6 +229,18 @@ void GetSystemCpuTime(TestSystemStat& stat, int64_t Hz, int64_t& usageTime, int6
 {
     usageTime = (stat.user + stat.nice + stat.system + stat.irq + stat.softirq + stat.steal) * Hz;
     time = usageTime + (stat.idle + stat.iowait) * Hz;
+}
+
+void GetCpuUsage(TestCpuUsage& cpuUsage, int64_t Hz)
+{
+    TestSystemStat stat = g_systemStat[0];
+    int64_t userTime = stat.user * Hz;
+    int64_t sysTime = stat.system * Hz;
+    int64_t totalTime = (stat.user + stat.nice + stat.system + stat.irq + stat.softirq + stat.steal) * Hz;
+    int64_t bootTime = totalTime + (stat.idle + stat.iowait) * Hz;
+    cpuUsage.user_load = (static_cast<double>(userTime) / bootTime) * PERCENT;
+    cpuUsage.sys_load = (static_cast<double>(sysTime) / bootTime) * PERCENT;
+    cpuUsage.total_load = (static_cast<double>(totalTime) / bootTime) * PERCENT;
 }
 
 /**
@@ -263,15 +285,17 @@ HWTEST_F(CpuDataPluginTest, TestPluginInfo, TestSize.Level1)
     CpuDataPlugin cpuPlugin;
     CpuData cpuData;
     cpuPlugin.SetFreqPath(g_path);
-    g_path += "/proc/";
+    g_path = g_testPath + "/proc/";
     cpuPlugin.SetPath(g_path);
-    EXPECT_TRUE(PluginCpuinfoStub(cpuPlugin, cpuData, 1872, false));
+    EXPECT_TRUE(PluginCpuinfoStub(cpuPlugin, cpuData, 1872, true, false));
 
+    TestCpuUsage cpuUsage;
     int64_t systemCpuTime = 0;
     int64_t systemBootTime = 0;
     int64_t Hz = cpuPlugin.GetUserHz();
     int64_t processCpuTime = (g_pidStat.utime + g_pidStat.stime + g_pidStat.cutime + g_pidStat.cstime) * Hz;
     GetSystemCpuTime(g_systemStat[0], Hz, systemCpuTime, systemBootTime);
+    GetCpuUsage(cpuUsage, Hz);
 
     CpuUsageInfo cpuUsageInfo = cpuData.cpu_usage_info();
     EXPECT_EQ(cpuUsageInfo.prev_process_cpu_time_ms(), 0);
@@ -280,6 +304,10 @@ HWTEST_F(CpuDataPluginTest, TestPluginInfo, TestSize.Level1)
     EXPECT_EQ(cpuUsageInfo.process_cpu_time_ms(), processCpuTime);
     EXPECT_EQ(cpuUsageInfo.system_cpu_time_ms(), systemCpuTime);
     EXPECT_EQ(cpuUsageInfo.system_boot_time_ms(), systemBootTime);
+    EXPECT_EQ(cpuData.process_num(), 1);
+    EXPECT_FLOAT_EQ(cpuData.user_load(), cpuUsage.user_load);
+    EXPECT_FLOAT_EQ(cpuData.sys_load(), cpuUsage.sys_load);
+    EXPECT_FLOAT_EQ(cpuData.total_load(), cpuUsage.total_load);
 
     ASSERT_EQ(cpuUsageInfo.cores_size(), 6);
     for (int i = 1; i <= CORE_NUM; i++) {
@@ -313,14 +341,14 @@ HWTEST_F(CpuDataPluginTest, TestPlugin, TestSize.Level1)
     CpuData cpuData;
     g_path = g_testPath;
     cpuPlugin.SetFreqPath(g_path);
-    g_path += "/proc/";
+    g_path = g_testPath + "/proc/";
     cpuPlugin.SetPath(g_path);
-    EXPECT_TRUE(PluginCpuinfoStub(cpuPlugin, cpuData, 1872, false));
+    EXPECT_TRUE(PluginCpuinfoStub(cpuPlugin, cpuData, 1872, false, false));
 
     int64_t Hz = cpuPlugin.GetUserHz();
     int64_t threadCpuTime;
     ASSERT_EQ(cpuData.thread_info_size(), 7);
-    for (int i = 0; i < THREAD_NUM; i++) {
+    for (int i = 0; i < THREAD_NUM && i < cpuData.thread_info().size(); i++) {
         threadCpuTime = (g_tidStat[i].stat.utime + g_tidStat[i].stat.stime +
             g_tidStat[i].stat.cutime + g_tidStat[i].stat.cstime) * Hz;
         ThreadInfo threadInfo = cpuData.thread_info()[i];
@@ -334,7 +362,7 @@ HWTEST_F(CpuDataPluginTest, TestPlugin, TestSize.Level1)
     EXPECT_EQ(cpuPlugin.Stop(), 0);
 
     // 缓冲区异常
-    EXPECT_FALSE(PluginCpuinfoStub(cpuPlugin, cpuData, 1872, true));
+    EXPECT_FALSE(PluginCpuinfoStub(cpuPlugin, cpuData, 1872, false, true));
     EXPECT_EQ(cpuPlugin.Stop(), 0);
 }
 
@@ -347,16 +375,16 @@ HWTEST_F(CpuDataPluginTest, TestPluginBoundary, TestSize.Level1)
 {
     CpuDataPlugin cpuPlugin;
     CpuData cpuData;
-    g_path += "/proc/";
+    g_path = g_testPath + "/proc/";
     cpuPlugin.SetPath(g_path);
-    EXPECT_FALSE(PluginCpuinfoStub(cpuPlugin, cpuData, -1, false));
-    EXPECT_FALSE(PluginCpuinfoStub(cpuPlugin, cpuData, 12345, false));
+    EXPECT_FALSE(PluginCpuinfoStub(cpuPlugin, cpuData, -1, false, false));
+    EXPECT_FALSE(PluginCpuinfoStub(cpuPlugin, cpuData, 12345, false, false));
 
     CpuDataPlugin cpuPlugin2;
     cpuPlugin2.SetPath("123");
-    EXPECT_FALSE(PluginCpuinfoStub(cpuPlugin2, cpuData, 1872, false));
-    EXPECT_FALSE(PluginCpuinfoStub(cpuPlugin2, cpuData, -1, false));
-    EXPECT_FALSE(PluginCpuinfoStub(cpuPlugin2, cpuData, 12345, false));
+    EXPECT_FALSE(PluginCpuinfoStub(cpuPlugin2, cpuData, 1872, false, false));
+    EXPECT_FALSE(PluginCpuinfoStub(cpuPlugin2, cpuData, -1, false, false));
+    EXPECT_FALSE(PluginCpuinfoStub(cpuPlugin2, cpuData, 12345, false, false));
 }
 
 /**
@@ -519,8 +547,7 @@ HWTEST_F(CpuDataPluginTest, TestPluginSystemInfo, TestSize.Level1)
     int64_t systemCpuTime1 = 0;
     int64_t systemBootTime1 = 0;
     GetSystemCpuTime(g_systemStat1[0], Hz, systemCpuTime1, systemBootTime1);
-    auto* cpuUsageInfo = cpuData.mutable_cpu_usage_info();
-    cpuPlugin.WriteSystemCpuUsage(*cpuUsageInfo, sysStr1.c_str(), sysStr1.length());
+    cpuPlugin.WriteSystemCpuUsage(cpuData, sysStr1.c_str(), sysStr1.length());
     CpuUsageInfo cpuUsageInfo1 = cpuData.cpu_usage_info();
     EXPECT_EQ(cpuUsageInfo1.prev_system_cpu_time_ms(), 0);
     EXPECT_EQ(cpuUsageInfo1.prev_system_boot_time_ms(), 0);
@@ -543,8 +570,7 @@ HWTEST_F(CpuDataPluginTest, TestPluginSystemInfo, TestSize.Level1)
     int64_t systemCpuTime2 = 0;
     int64_t systemBootTime2 = 0;
     GetSystemCpuTime(g_systemStat2[0], Hz, systemCpuTime2, systemBootTime2);
-    cpuUsageInfo = cpuData.mutable_cpu_usage_info();
-    cpuPlugin.WriteSystemCpuUsage(*cpuUsageInfo, sysStr2.c_str(), sysStr2.length());
+    cpuPlugin.WriteSystemCpuUsage(cpuData, sysStr2.c_str(), sysStr2.length());
     CpuUsageInfo cpuUsageInfo2 = cpuData.cpu_usage_info();
     EXPECT_EQ(cpuUsageInfo2.prev_system_cpu_time_ms(), systemCpuTime1);
     EXPECT_EQ(cpuUsageInfo2.prev_system_boot_time_ms(), systemBootTime1);
@@ -564,8 +590,7 @@ HWTEST_F(CpuDataPluginTest, TestPluginSystemInfo, TestSize.Level1)
     }
 
     // 重复存入sysStr2
-    cpuUsageInfo = cpuData.mutable_cpu_usage_info();
-    cpuPlugin.WriteSystemCpuUsage(*cpuUsageInfo, sysStr2.c_str(), sysStr2.length());
+    cpuPlugin.WriteSystemCpuUsage(cpuData, sysStr2.c_str(), sysStr2.length());
     CpuUsageInfo cpuUsageInfo3 = cpuData.cpu_usage_info();
     EXPECT_EQ(cpuUsageInfo3.prev_system_cpu_time_ms(), systemCpuTime2);
     EXPECT_EQ(cpuUsageInfo3.prev_system_boot_time_ms(), systemBootTime2);
@@ -601,8 +626,7 @@ HWTEST_F(CpuDataPluginTest, TestPluginSystemBoundary, TestSize.Level1)
     GetSystemCpuTime(g_systemStat1[0], Hz, systemCpuTime, systemBootTime);
     // 空字符串
     sysStr = "";
-    auto* cpuUsageInfo = cpuData.mutable_cpu_usage_info();
-    cpuPlugin.WriteSystemCpuUsage(*cpuUsageInfo, sysStr.c_str(), sysStr.length());
+    cpuPlugin.WriteSystemCpuUsage(cpuData, sysStr.c_str(), sysStr.length());
     CpuUsageInfo cpuUsageInfo1 = cpuData.cpu_usage_info();
     EXPECT_EQ(cpuUsageInfo1.prev_system_cpu_time_ms(), 0);
     EXPECT_EQ(cpuUsageInfo1.prev_system_boot_time_ms(), 0);
@@ -612,8 +636,7 @@ HWTEST_F(CpuDataPluginTest, TestPluginSystemBoundary, TestSize.Level1)
 
     // 空格字符串
     sysStr = " ";
-    cpuUsageInfo = cpuData.mutable_cpu_usage_info();
-    cpuPlugin.WriteSystemCpuUsage(*cpuUsageInfo, sysStr.c_str(), sysStr.length());
+    cpuPlugin.WriteSystemCpuUsage(cpuData, sysStr.c_str(), sysStr.length());
     cpuUsageInfo1 = cpuData.cpu_usage_info();
     EXPECT_EQ(cpuUsageInfo1.prev_system_cpu_time_ms(), 0);
     EXPECT_EQ(cpuUsageInfo1.prev_system_boot_time_ms(), 0);
@@ -623,8 +646,7 @@ HWTEST_F(CpuDataPluginTest, TestPluginSystemBoundary, TestSize.Level1)
 
     // 数据错误
     sysStr = "1000";
-    cpuUsageInfo = cpuData.mutable_cpu_usage_info();
-    cpuPlugin.WriteSystemCpuUsage(*cpuUsageInfo, sysStr.c_str(), sysStr.length());
+    cpuPlugin.WriteSystemCpuUsage(cpuData, sysStr.c_str(), sysStr.length());
     cpuUsageInfo1 = cpuData.cpu_usage_info();
     EXPECT_EQ(cpuUsageInfo1.prev_system_cpu_time_ms(), 0);
     EXPECT_EQ(cpuUsageInfo1.prev_system_boot_time_ms(), 0);
@@ -640,8 +662,7 @@ HWTEST_F(CpuDataPluginTest, TestPluginSystemBoundary, TestSize.Level1)
              "cpu3 3336646 676939 1458898 2345678 854578\n"
              "cpu4 1111111 601107 2305309 3546789 929594\n"
              "cpu5 3546789 658673 1234567 197791346 738811\n";
-    cpuUsageInfo = cpuData.mutable_cpu_usage_info();
-    cpuPlugin.WriteSystemCpuUsage(*cpuUsageInfo, sysStr.c_str(), sysStr.length());
+    cpuPlugin.WriteSystemCpuUsage(cpuData, sysStr.c_str(), sysStr.length());
     cpuUsageInfo1 = cpuData.cpu_usage_info();
     EXPECT_EQ(cpuUsageInfo1.prev_system_cpu_time_ms(), 0);
     EXPECT_EQ(cpuUsageInfo1.prev_system_boot_time_ms(), 0);
@@ -657,8 +678,7 @@ HWTEST_F(CpuDataPluginTest, TestPluginSystemBoundary, TestSize.Level1)
              "cpu3 3336646 676939     1458898 2345678 854578 0 2345678 0 0\n"
              "cpu4 1111111   601107 2305309 3546789 929594     0 1007959 0 0\n"
              "cpu5 3546789 658673 1234567     197791346 738811 0 49496 0 0\n";
-    cpuUsageInfo = cpuData.mutable_cpu_usage_info();
-    cpuPlugin.WriteSystemCpuUsage(*cpuUsageInfo, sysStr.c_str(), sysStr.length());
+    cpuPlugin.WriteSystemCpuUsage(cpuData, sysStr.c_str(), sysStr.length());
     cpuUsageInfo1 = cpuData.cpu_usage_info();
     EXPECT_EQ(cpuUsageInfo1.prev_system_cpu_time_ms(), 0);
     EXPECT_EQ(cpuUsageInfo1.prev_system_boot_time_ms(), 0);
@@ -685,8 +705,7 @@ HWTEST_F(CpuDataPluginTest, TestPluginSystemBoundary, TestSize.Level1)
              "cpu3 3336646 676939 1458898 2345678 854578 0 2345678 0 0\n"
              "cpu4 1111111 601107 2305309 3546789 929594 0 1007959 0 0\n"
              "cpu5 3546789 658673 1234567 197791346 738811 0 49496 0 0\n";
-    cpuUsageInfo = cpuData.mutable_cpu_usage_info();
-    cpuPlugin.WriteSystemCpuUsage(*cpuUsageInfo, sysStr.c_str(), sysStr.length());
+    cpuPlugin.WriteSystemCpuUsage(cpuData, sysStr.c_str(), sysStr.length());
     cpuUsageInfo1 = cpuData.cpu_usage_info();
     EXPECT_EQ(cpuUsageInfo1.prev_system_cpu_time_ms(), systemCpuTime);
     EXPECT_EQ(cpuUsageInfo1.prev_system_boot_time_ms(), systemBootTime);
@@ -919,8 +938,8 @@ HWTEST_F(CpuDataPluginTest, TestPid, TestSize.Level1)
     }
 
     sleep(1); // 睡眠1s，确保pid1进入睡眠状态，pid2进入while循环
-    EXPECT_TRUE(PluginCpuinfoStub(plugin1, cpuData1, static_cast<int>(pid1), false));
-    EXPECT_TRUE(PluginCpuinfoStub(plugin2, cpuData2, static_cast<int>(pid2), false));
+    EXPECT_TRUE(PluginCpuinfoStub(plugin1, cpuData1, static_cast<int>(pid1), false, false));
+    EXPECT_TRUE(PluginCpuinfoStub(plugin2, cpuData2, static_cast<int>(pid2), false, false));
     EXPECT_LT(cpuData1.cpu_usage_info().process_cpu_time_ms(), cpuData2.cpu_usage_info().process_cpu_time_ms());
 
     while (waitpid(-1, NULL, WNOHANG) == 0) {
