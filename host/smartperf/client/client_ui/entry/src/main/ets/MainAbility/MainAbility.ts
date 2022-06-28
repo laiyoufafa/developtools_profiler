@@ -16,66 +16,37 @@
 import Ability from '@ohos.application.Ability'
 import { initDb } from '../common/database/LocalRepository'
 import { FloatWindowFun } from '../common/ui/floatwindow/FloatWindowFun'
-import { NativeTaskFun } from "../common/profiler/NativeTaskFun"
 import { NetWork } from '../common/profiler/item/NetWork';
+import { MainWorker } from '../common/profiler/MainWorkProfiler';
 import BundleManager from '../common/utils/BundleMangerUtils';
-import SPLogger from '../common/utils/SPLogger'
-
 
 var abilityWindowStage
-const TAG = "MainAbility"
-
 export default class MainAbility extends Ability {
-
 
     onCreate(want, launchParam) {
         globalThis.showFloatingWindow=false
-        // Ability is creating, initialize resources for this ability
         BundleManager.getAppList().then(appList => {
             globalThis.appList = appList
-//            SPLogger.DEBUG(TAG,"appList-->" + JSON.stringify(appList))
-//            SPLogger.DEBUG(TAG,"appList-->-->-->-->-->-->-->-->-->-->-->-->-->-->-->-->-->-->")
-//            SPLogger.DEBUG(TAG,"globalThis.appList-->" + JSON.stringify(globalThis.appList))
         })
     }
-
-    onDestroy() {
-        // Ability is destroying, release resources for this ability
-//        SPLogger.DEBUG(TAG,"[MyApplication] MainAbility onDestroy")
-    }
-
+    onDestroy() {}
     onWindowStageCreate(windowStage) {
         globalThis.abilityContext = this.context
-        globalThis.useDaemon = true
-        // Main window is created, set main page for this ability
-//        SPLogger.DEBUG(TAG,"[MyApplication] MainAbility onWindowStageCreate")
         abilityWindowStage = windowStage;
         abilityWindowStage.setUIContent(this.context, "pages/LoginPage", null)
+        globalThis.useDaemon = false
     }
-
-    onWindowStageDestroy() {
-        // Main window is destroyed, release UI related resources
-//        SPLogger.DEBUG(TAG,"[MyApplication] MainAbility onWindowStageDestroy")
-    }
-
+    onWindowStageDestroy() {}
     onForeground() {
         initDb()
-        // Ability has brought to foreground
         FloatWindowFun.initAllFun()
-        NativeTaskFun.initAllFun()
-        //check netWork
         NetWork.getInstance().init()
-    }
+        MainWorker.postMessage({ "testConnection": true })
 
-    onBackground() {
-        // Ability has back to background
-//        SPLogger.DEBUG(TAG,"[MyApplication] MainAbility onBackground")
     }
+    onBackground() {}
 };
 
-export function initTest() {
-
-}
 
 
 

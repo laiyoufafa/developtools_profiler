@@ -12,27 +12,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef DDR_H
-#define DDR_H
-#include "sp_profiler.h"
+#include <iostream>
+#include <sstream>
+#include <thread>
+#include "include/sp_utils.h"
+#include "include/Capture.h"
 namespace OHOS {
 namespace SmartPerf {
-class DDR : public SpProfiler {
-public:
-    long long getDdrFreq();
-    static DDR &GetInstance()
-    {
-        static DDR instance;
-        return instance;
-    }
-    std::map<std::string, std::string> ItemData() override;
-
-private:
-    DDR() {};
-    DDR(const DDR &);
-    DDR &operator = (const DDR &);
-    std::string ddrCurFreqPath = "/sys/class/devfreq/ddrfreq/cur_freq";
-};
-};
+void Capture::threadGetCatch(std::string curTime)
+{
+    std::string result;
+    std::string cmdCapture = "snapshot_display -f /data/local/tmp/capture/" + curTime +".png";
+    SPUtils::LoadCmd(cmdCapture, result);
+    std::cout << "Screen Capture Thread >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" << std::endl;
 }
-#endif
+void Capture::TriggerGetCatch(long long curTime)
+{
+    std::string curTimeStr = std::to_string(curTime);
+    std::thread tStart(&Capture::threadGetCatch, this, curTimeStr);
+    tStart.detach();
+}
+}
+}

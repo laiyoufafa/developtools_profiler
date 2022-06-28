@@ -14,48 +14,38 @@
  */
 #ifndef CPU_H
 #define CPU_H
-#include <string>
-#include <sstream>
-#include <map>
-#include "gp_utils.h"
-#include "singleton.h"
-
-
+#include <iostream>
+#include <vector>
+#include "sp_profiler.h"
 namespace OHOS {
 namespace SmartPerf {
-class CPU : public DelayedSingleton<CPU> {
+class CPU : public SpProfiler {
 public:
-    int get_cpu_num();
-    int get_cpu_freq(int cpu_id);
-    std::vector<float> get_cpu_load();
+    static CPU &GetInstance()
+    {
+        static CPU instance;
+        return instance;
+    }
+    std::map<std::string, std::string> ItemData() override;
+
+    int getCpuNum();
+    int getCpuFreq(int cpuId);
+    std::vector<float> getCpuLoad();
 
 private:
+    CPU() {};
+    CPU(const CPU &);
+    CPU &operator = (const CPU &);
 
-    const std::string CPU_BASE_PATH = "/sys/devices/system/cpu";
-    const std::string PROC_STAT = "/proc/stat";
-    inline const std::string CPU_SCALING_CUR_FREQ(int CPUID)
+    const std::string CpuBasePath = "/sys/devices/system/cpu";
+    const std::string ProcStat = "/proc/stat";
+    inline const std::string CpuScalingCurFreq(int CPUID)
     {
-        return CPU_BASE_PATH + "/cpu" + std::to_string(CPUID) + "/cpufreq/scaling_cur_freq";
-    }
-    inline const std::string CPU_SCALING_MAX_FREQ(int CPUID)
-    {
-        return CPU_BASE_PATH + "/cpu" + std::to_string(CPUID) + "/cpufreq/scaling_max_freq";
-    }
-    inline const std::string CPU_SCALING_MIN_FREQ(int CPUID)
-    {
-        return CPU_BASE_PATH + "/cpu" + std::to_string(CPUID) + "/cpufreq/scaling_min_freq";
-    }
-    inline const std::string CPUINFO_MAX_FREQ(int CPUID)
-    {
-        return CPU_BASE_PATH + "/cpu" + std::to_string(CPUID) + "/cpufreq/cpuinfo_max_freq";
-    }
-    inline const std::string CPUINFO_MIN_FREQ(int CPUID)
-    {
-        return CPU_BASE_PATH + "/cpu" + std::to_string(CPUID) + "/cpufreq/cpuinfo_min_freq";
+        return CpuBasePath + "/cpu" + std::to_string(CPUID) + "/cpufreq/scaling_cur_freq";
     }
 
-    int m_cpu_num;
-    float cac_workload(const char *buffer, const char *pre_buffer);
+    int mCpuNum = -1;
+    float cacWorkload(const char *buffer, const char *pre_buffer);
 };
 }
 }

@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 import fileio from '@ohos.fileio';
-import {AppFileDir} from "../storage/ConstantsPath"
 
 /**
  * create file by path
@@ -26,7 +25,7 @@ export function createFilePath(path: string, data: string) {
         fileio.accessSync(path, 0)
     } catch(err) {
         try {
-            fileio.mkdirSync(AppFileDir + globalThis.dbTime)
+            fileio.mkdirSync(globalThis.abilityContext.getApplicationContext().filesDir + "/" + globalThis.dbTime)
         } catch (err) {
             console.log("createFilePath:mkdirSync" + err);
         }

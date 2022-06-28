@@ -12,14 +12,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include "include/sp_utils.h"
 #include "include/DDR.h"
 namespace OHOS {
 namespace SmartPerf {
-long long DDR::get_ddr_freq()
+std::map<std::string, std::string> DDR::ItemData()
 {
-    long long curFreq;
-    std::string ddr_freq = GPUtils::freadFile(std::string(ddr_cur_freq_path.c_str()));
-    curFreq = std::atoll(ddr_freq.c_str());
+    std::map<std::string, std::string> result;
+    result["ddrFreq"] = std::to_string(getDdrFreq());
+    return result;
+}
+long long DDR::getDdrFreq()
+{
+    long long curFreq = -1;
+    std::string ddrfreq;
+    SPUtils::LoadFile(ddrCurFreqPath, ddrfreq);
+    curFreq = std::atoll(ddrfreq.c_str());
     return curFreq;
 }
 }

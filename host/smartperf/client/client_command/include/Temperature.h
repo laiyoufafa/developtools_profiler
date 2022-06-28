@@ -15,31 +15,28 @@
 #ifndef TEMPERATURE_H
 #define TEMPERATURE_H
 
-#include <string>
 #include <vector>
-#include <sstream>
-#include <map>
-#include "gp_utils.h"
-#include "singleton.h"
+#include "sp_profiler.h"
 namespace OHOS {
 namespace SmartPerf {
-class Temperature : public DelayedSingleton<Temperature> {
+class Temperature : public SpProfiler {
 public:
-    static constexpr const char *thermal_path[] = {
-        "/sys/devices/virtual/thermal",
-        "/sys/class/thermal"
-    };
-    const std::map<std::string, std::string> collect_nodes = {
-        { "soc_thermal", "soc_thermal" }, { "system_h", "system_h" },       { "soc-thermal", "soc-thermal" },
-        { "gpu-thermal", "gpu-thermal" }, { "shell_frame", "shell_frame" }, { "shell_front", "shell_front" },
-        { "shell_back", "shell_back" }
-    };
-    std::map<std::string, float> getThermalMap();
-    void init_thermal_node();
-    void init_temperature();
+    std::vector<std::string> collectNodes = { std::string("soc_thermal"), std::string("system_h"),
+                                              std::string("soc-thermal"), std::string("gpu-thermal"),
+                                              std::string("shell_frame"), std::string("shell_front"),
+                                              std::string("shell_back") };
+    std::map<std::string, std::string> ItemData() override;
+    static Temperature &GetInstance()
+    {
+        static Temperature instance;
+        return instance;
+    }
+
 private:
-    std::string thermal_base_path;
-    std::map<std::string, std::string> thermal_node_path_map;
+    Temperature() {};
+    Temperature(const Temperature &);
+    Temperature &operator = (const Temperature &);
+    std::string thermalBasePath = "/sys/class/thermal";
 };
 }
 }

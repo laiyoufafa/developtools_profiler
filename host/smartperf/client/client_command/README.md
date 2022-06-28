@@ -8,14 +8,14 @@
 
 - 支持RK3568、Hi3516;
 - 支持Shell启动;
-- 支持采集整机CPU、GPU、DDR、POWER、TEMPERATURE、应用的FPS、RAM;
+- 支持采集整机CPU、GPU、POWER、TEMPERATURE、应用的FPS、RAM;
 
 ## 使用方式
->1、首先检查系统是否默认预制了SP_daemon，如打印如下日志，系统已内置SP_daemon
+>1、目前命令行版本已系统预制，可以进入shell，执行SP_daemon --help查看
 
 ```bash
-C:\>hdc_std shell
-SP_daemon --help
+C:\Users\test>hdc_std shell
+# SP_daemon --help
 usage: SP_daemon <options> <arguments>
 --------------------------------------------------------------------
 These are common commands list:
@@ -33,7 +33,9 @@ These are common commands list:
 --------------------------------------------------------------------
 Example: SP_daemon -N 20 -PKG ohos.samples.ecg -c -g -t -p -f
 --------------------------------------------------------------------
+
 command exec finished!
+#
 ```
 >2、执行示例命令：SP_daemon -N 20 -PKG ohos.samples.ecg -c -g -t -p -f
 ```
@@ -89,6 +91,7 @@ cpu0freq,cpu0load,cpu1freq,cpu1load,cpu2freq,cpu2load,cpu3freq,cpu3load,current_
 | -N    | 设置采集次数             |是|
 | -PKG  | 设置包名                |否|
 | -PID  | 设置进程pid(对于ram适用) |否|
+| -OUT  | 设置csv输出目录          |否|
 | -c    | 是否采集cpu             |否|
 | -g    | 是否采集gpu             |否|
 | -f    | 是否采集fps             |否|
@@ -98,5 +101,3 @@ cpu0freq,cpu0load,cpu1freq,cpu1load,cpu2freq,cpu2load,cpu3freq,cpu3load,current_
 | -snapshot    | 是否截图            |否|
 
 ---
-## 构建方式
->1、在OpenHarmony系统根目录执行全量编译命令（RK3568为例）： ./build.sh --product-name rk3568 --ccache <br>

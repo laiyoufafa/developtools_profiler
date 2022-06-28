@@ -13,72 +13,64 @@
  * limitations under the License.
  */
 
-#include <iostream>
-#include <pthread.h>
-#include <unistd.h>
-#include "securec.h"
+#include <sstream>
+#include <cstdio>
+#include <cstring>
+#include "include/sp_utils.h"
 #include "include/CPU.h"
 namespace OHOS {
 namespace SmartPerf {
-int CPU::get_cpu_num()
+std::map<std::string, std::string> CPU::ItemData()
 {
-    char cpu_node[128];
-    int cpu_num = 0;
+    std::map<std::string, std::string> result;
+    if (mCpuNum < 0) {
+        getCpuNum();
+    }
+    std::vector<float> workloads = getCpuLoad();
+    std::string cpuLoadsStr = "";
+    std::string cpuFreqStr = "";
+    for (size_t i = 0; i < workloads.size(); i++) {
+        cpuLoadsStr = std::to_string(workloads[i]);
+        cpuFreqStr = std::to_string(getCpuFreq(i));
+        result["cpuLoad" + std::to_string(i)] = cpuLoadsStr;
+        result["cpuFreq" + std::to_string(i)] = cpuFreqStr;
+    }
+    return result;
+}
+int CPU::getCpuNum()
+{
+    int cpuNum = 0;
     while (true) {
-        if (snprintf_s(cpu_node, sizeof(cpu_node), sizeof(cpu_node), "%s/cpu%d", CPU_BASE_PATH.c_str(), cpu_num) > 0) {
-            if (access(cpu_node, F_OK) == -1) {
-                break;
-            }
+        std::stringstream cpuNodeStr;
+        cpuNodeStr << CpuBasePath.c_str() << "/cpu" << cpuNum;
+        if (!SPUtils::FileAccess(cpuNodeStr.str())) {
+            break;
         }
-        ++cpu_num;
+        ++cpuNum;
     }
-    return m_cpu_num = cpu_num;
+    return mCpuNum = cpuNum;
 }
-int CPU::get_cpu_freq(int cpu_id)
+int CPU::getCpuFreq(int cpuId)
 {
-    char buffer[128];
-    if (access(CPU_SCALING_CUR_FREQ(cpu_id).c_str(), F_OK) == -1) {
-        return -1;
-    }
-    FILE *fp = fopen(CPU_SCALING_CUR_FREQ(cpu_id).c_str(), "r");
-    if (fp == nullptr) {
-        return -1;
-    }
-    buffer[0] = '\0';
-    while (fgets(buffer, sizeof(buffer), fp) == nullptr) {
-        std::cout << "fgets fail";
-    }
-    if (fclose(fp) == EOF) {
-        return EOF;
-    }
-    return atoi(buffer);
+    std::string curFreq = "-1";
+    SPUtils::LoadFile(CpuScalingCurFreq(cpuId), curFreq);
+    return atoi(curFreq.c_str());
 }
-std::vector<float> CPU::get_cpu_load()
+std::vector<float> CPU::getCpuLoad()
 {
-    if (m_cpu_num <= 0) {
+    if (mCpuNum <= 0) {
         std::vector<float> workload;
         return workload;
     }
     std::vector<float> workload;
 
-    static char pre_buffer[10][256] = {
-        "\0",
-        "\0",
-        "\0",
-        "\0",
-        "\0",
-        "\0",
-        "\0",
-        "\0",
-        "\0",
-        "\0",
-    };
-    if (access(PROC_STAT.c_str(), F_OK) == -1) {
+    static char pre_buffer[10][256] = {"\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0"};
+    if (!SPUtils::FileAccess(ProcStat)) {
         return workload;
     }
-    FILE *fp = fopen(PROC_STAT.c_str(), "r");
+    FILE *fp = fopen(ProcStat.c_str(), "r");
     if (fp == nullptr) {
-        for (int i = 0; i <= m_cpu_num; ++i) {
+        for (int i = 0; i <= mCpuNum; ++i) {
             workload.push_back(-1.0f);
         }
         return workload;
@@ -91,16 +83,15 @@ std::vector<float> CPU::get_cpu_load()
         const int firstPos = 1;
         const int secondPos = 2;
         const int length = 3;
-        if (strlen(buffer) >= length && buffer[zeroPos] == 'c' && buffer[firstPos] == 'p' && buffer[secondPos] == 'u') {
-            float b = cac_workload(buffer, pre_buffer[line]);
+        if (strlen(buffer) >= length && buffer[zeroPos] == 'c' && buffer[firstPos] == 'p' && buffer[secondPos] == 'u' &&
+            line != 0) {
+            float b = cacWorkload(buffer, pre_buffer[line]);
             workload.push_back(b);
-            if (snprintf_s(pre_buffer[line], sizeof(pre_buffer[line]), sizeof(pre_buffer[line]), "%s", buffer) < 0) {
-                std::cout << "snprintf_s fail";
-            }
+            snprintf(pre_buffer[line], sizeof(pre_buffer[line]), "%s", buffer);
         }
         ++line;
 
-        if (line >= m_cpu_num + 1) {
+        if (line >= mCpuNum + 1) {
             break;
         }
     }
@@ -111,7 +102,7 @@ std::vector<float> CPU::get_cpu_load()
     return workload;
 }
 
-float CPU::cac_workload(const char *buffer, const char *pre_buffer)
+float CPU::cacWorkload(const char *buffer, const char *pre_buffer)
 {
     const size_t default_index = 4;
     const size_t default_shift = 10;
