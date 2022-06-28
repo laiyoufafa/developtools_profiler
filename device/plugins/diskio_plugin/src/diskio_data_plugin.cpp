@@ -25,6 +25,7 @@ constexpr size_t READ_BUFFER_SIZE = 1024 * 16;
 
 DiskioDataPlugin::DiskioDataPlugin()
 {
+    ioEntry_ = nullptr;
     buffer_ = nullptr;
     path_ = "/proc/vmstat";
     err_ = -1;
@@ -51,12 +52,14 @@ int DiskioDataPlugin::Start(const uint8_t* configData, uint32_t configSize)
         return RET_FAIL;
     }
 
-    DiskioConfig protoConfig_;
     if (protoConfig_.ParseFromArray(configData, configSize) <= 0) {
         HILOG_ERROR(LOG_CORE, "%s:parseFromArray failed!", __func__);
         return RET_FAIL;
     }
 
+    if (protoConfig_.report_io_stats()) {
+        ioEntry_ = std::make_shared<IoStats>(protoConfig_.report_io_stats());
+    }
     HILOG_INFO(LOG_CORE, "%s:start success!", __func__);
     return RET_SUCC;
 }
@@ -67,6 +70,11 @@ int DiskioDataPlugin::Report(uint8_t* data, uint32_t dataSize)
     uint32_t length;
 
     WriteDiskioData(dataProto);
+
+    if (protoConfig_.report_io_stats() && ioEntry_ != nullptr) {
+        ioEntry_->GetIoData();
+        ioEntry_->PutPluginStatsData(dataProto.mutable_statsdata());
+    }
 
     length = dataProto.ByteSizeLong();
     if (length > dataSize) {
@@ -83,6 +91,10 @@ int DiskioDataPlugin::Stop()
     if (buffer_ != nullptr) {
         free(buffer_);
         buffer_ = nullptr;
+    }
+    if (ioEntry_ != nullptr) {
+        ioEntry_.reset();
+        ioEntry_ = nullptr;
     }
     HILOG_INFO(LOG_CORE, "%s:plugin:stop success!", __func__);
     return 0;
