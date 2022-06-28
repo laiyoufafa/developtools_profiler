@@ -191,21 +191,27 @@ struct StartTestPage {
   }
 
   onPageShow() {
-    let routerParams = router.getParams()
-    console.info("startTestPage" + "onPageShow调用了");
-    console.info("startTestPage  router" + "onPageShow调用了" + router);
-    console.info("startTestPage  router" + "onPageShow调用了" + JSON.stringify(routerParams));
-
-    if (routerParams["appName"] == null) {
+    let routerParams:any = router.getParams()
+    let appName:any
+    let appVersion:any
+    let selectPackageName:any
+    let appIconId:any
+    if (routerParams != undefined && routerParams !=null) {
+      appName = routerParams["appName"]
+      appVersion = routerParams["appVersion"]
+      selectPackageName = routerParams["selectPackageName"]
+      appIconId = routerParams["appIconId"]
+    }
+    if (appName == null && appName == undefined) {
       this.selectApp = "请选择一个应用"
       this.testName = ""
       this.selectAppIcon = ""
     } else {
-      this.selectApp = new String(routerParams["appName"]).toString()
-      globalThis.appName = new String(routerParams["appName"]).toString()
-      globalThis.appVersion = new String(routerParams["appVersion"]).toString()
-      globalThis.packageName = new String(routerParams["selectPackageName"]).toString()
-      this.selectAppIcon = new String(routerParams["appIconId"]).toString()
+      this.selectApp = new String(appName).toString()
+      globalThis.appName = new String(appName).toString()
+      globalThis.appVersion = new String(appVersion).toString()
+      globalThis.packageName = new String(selectPackageName).toString()
+      this.selectAppIcon = new String(appIconId).toString()
       let date = new Date()
       let M = (date.getMonth() + 1 < 10 ? '0' + (date.getMonth() + 1) : date.getMonth() + 1);
       let D = date.getDate() + '-';
