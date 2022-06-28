@@ -47,37 +47,47 @@ public:
     int Start(const uint8_t* configData, uint32_t configSize);
     int Report(uint8_t* configData, uint32_t configSize);
     int Stop();
-    void SetPath(char* path)
+
+    int64_t GetUserHz();
+
+    // for UT
+    void SetPath(std::string path)
     {
-        testpath_ = path;
+        path_ = path;
     };
-    void WriteProcesseList(ProcessData& data);
-    void WriteProcinfoByPidfds(ProcessInfo* processinfo, int32_t pid);
-    DIR* OpenDestDir(const char* dirPath);
-    int32_t GetValidPid(DIR* dirp);
-    // for test change static
-    int ParseNumber(std::string line);
 
 private:
-    ProcessConfig protoConfig_;
-
-    std::unique_ptr<uint8_t[]> buffer_;
-
-    std::unordered_map<int32_t, std::vector<int>> pidFds_;
-    std::vector<int32_t> seenPids_;
-    char* testpath_;
-    int32_t err_;
-    int32_t ReadFile(int fd);
+    bool WriteProcesseList(ProcessData& data);
+    DIR* OpenDestDir(const char* dirPath);
+    int32_t GetValidPid(DIR* dirp);
     std::vector<int> OpenProcPidFiles(int32_t pid);
     int32_t ReadProcPidFile(int32_t pid, const char* pFileName);
     void WriteProcessInfo(ProcessData& data, int32_t pid);
-    void SetEmptyProcessInfo(ProcessInfo* processinfo);
     void WriteProcess(ProcessInfo* processinfo, const char* pFile, uint32_t fileLen, int32_t pid);
     void SetProcessInfo(ProcessInfo* processinfo, int key, const char* word);
-
     bool BufnCmp(const char* src, int srcLen, const char* key, int keyLen);
     bool addPidBySort(int32_t pid);
     int GetProcStatusId(const char* src, int srcLen);
+    bool WriteCpuUsageData(int pid, CpuInfo* protoc);
+    bool ReadCpuUsage(int pid, CpuInfo* protoc, uint64_t& cpuTime);
+    uint32_t GetCpuUsageData(const std::string& line, CpuInfo* protoc, uint64_t& cpuTime);
+    bool ReadBootTime(int pid, CpuInfo* protoc, uint64_t& bootTime);
+    uint32_t GetBootData(const std::string& line, CpuInfo* protoc, uint64_t& bootTime);
+    bool WriteThreadData(int pid, CpuInfo* protoc);
+    bool FindFirstNum(char** p);
+    bool GetValidValue(char* p, uint64_t& num);
+    bool FindFirstSpace(char** p);
+    bool GetDiskioData(std::string& line, DiskioInfo* protoc);
+    bool WriteDiskioData(int pid, DiskioInfo* protoc);
+    bool WritePssData(int pid, PssInfo* protoc);
+
+    ProcessConfig protoConfig_;
+    std::unique_ptr<uint8_t[]> buffer_;
+    std::vector<int32_t> pids_;
+    std::string path_;
+    int32_t err_;
+    std::unordered_map<int, uint64_t> cpuTime_ = {};
+    std::unordered_map<int, uint64_t> bootTime_ = {};
 };
 
 #endif
