@@ -293,12 +293,17 @@ void HookManager::ReadShareMemory()
             if (memcpy_s(&ts, sizeof(ts), data, sizeof(ts)) != EOK) {
                 HILOG_ERROR(LOG_CORE, "memcpy_s ts failed");
             }
-            uint32_t type = *(reinterpret_cast<uint32_t*>(tmp + sizeof(ts)));
-
-            size_t mallocSize = *(reinterpret_cast<size_t*>(tmp + sizeof(ts) + sizeof(type)));
-            addr = *(reinterpret_cast<void**>(tmp + sizeof(ts) + sizeof(type) + sizeof(mallocSize)));
-            stackSize =
-                *(reinterpret_cast<uint32_t*>(tmp + sizeof(ts) + sizeof(type) + sizeof(mallocSize) + sizeof(void*)));
+            uint32_t type = *(reinterpret_cast<uint32_t *>(tmp + sizeof(ts)));
+            if (type == MEMORY_TAG) {
+                addr = *(reinterpret_cast<void **>(tmp + sizeof(ts) + sizeof(type)));
+                std::string tag = (char *)(tmp + sizeof(ts) + sizeof(type) + sizeof(addr));
+                stackPreprocess_->InsertMemorytagMap((uint64_t)addr, tag);
+                return true;
+            }
+            size_t mallocSize = *(reinterpret_cast<size_t *>(tmp + sizeof(ts) + sizeof(type)));
+            addr = *(reinterpret_cast<void **>(tmp + sizeof(ts) + sizeof(type) + sizeof(mallocSize)));
+            stackSize = *(reinterpret_cast<uint32_t *>(tmp + sizeof(ts)
+                + sizeof(type) + sizeof(mallocSize) + sizeof(void *)));
             if (stackSize > 0) {
                 stackData = std::make_unique<uint8_t[]>(stackSize);
                 if (memcpy_s(stackData.get(), stackSize,

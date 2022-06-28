@@ -25,6 +25,7 @@
 #include <time.h>
 #include <unistd.h>
 #include <limits.h>
+#include "memory_tag.h"
 #include "securec.h"
 #pragma clang optimize off
 
@@ -184,10 +185,6 @@ void ApplyForRealloc(int mallocSize)
     g_freeDuration += (double)(timerStop - timerStart) / CLOCKS_PER_SEC;
     printf("free success, free time is %f\n", (double)(timerStop - timerStart) / CLOCKS_PER_SEC);
     printf("realloc apply success, total time is %f\n", duration);
-    if (p != NULL) {
-        free(p);
-        p = NULL;
-    }
 }
 
 void* ThreadFuncC(void* param)
@@ -265,6 +262,9 @@ char* CreateMmap(void)
     write(g_fd, "", 1);
 
     char* pMap = (char*)mmap(0, PAGE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, g_fd, 0);
+
+    char *tag = "memtesttag";
+    MEM_TYPESET(pMap, PAGE_SIZE, tag, strlen(tag)+1);
     if (pMap == MAP_FAILED) {
         printf("mmap fail\n");
         CloseFile();
@@ -307,15 +307,15 @@ char* MmapReadFile(char* pMap, int length)
     return data;
 }
 
+void RandSrand(void)
+{
+    srand((unsigned)time(NULL));
+}
+
 // 10 ~ 4096
 int RandInt(int Max, int Min)
 {
-    time_t tv = time(NULL);
-    if (tv == -1) {
-        tv = 1;
-    }
-    unsigned int seed = (unsigned int)tv;
-    int value = (rand_r(&seed) % (Max - Min)) + Min;
+    int value = (rand() % (Max - Min)) + Min;
     return value;
 }
 
@@ -324,13 +324,8 @@ char RandChar(void)
 {
     // 可显示字符的范围
     int section = '~' - ' ';
-    time_t tv = time(NULL);
-    if (tv == -1) {
-        tv = 1;
-    }
-    unsigned int seed = (unsigned int)tv;
-    int randSection = (rand_r(&seed) % section);
-    char randChar = (char)(' ' + randSection);
+    int randSection = RandInt(0, section);
+    char randChar = '~' + randSection;
     return randChar;
 }
 
@@ -355,6 +350,8 @@ char* RandString(int maxLength)
 // 初始化函数
 void mmapInit(void)
 {
+    // 设置随机种子
+    RandSrand();
     // 设置全局映射的目标文件
     g_fd = OpenFile(g_fileName);
 }
