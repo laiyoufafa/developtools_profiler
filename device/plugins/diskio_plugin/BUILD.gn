@@ -20,6 +20,7 @@ ohos_source_set("diskiodataplugin_source") {
     "../memory_plugin/src/buffer_splitter.cpp",
     "src/diskio_data_plugin.cpp",
     "src/diskio_module.cpp",
+    "src/io_stats.cpp",
   ]
   include_dirs = [
     "include",

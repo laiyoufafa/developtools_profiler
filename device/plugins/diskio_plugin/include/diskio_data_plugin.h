@@ -27,6 +27,7 @@
 #include "diskio_plugin_config.pb.h"
 #include "diskio_plugin_result.pb.h"
 #include "logging.h"
+#include "io_stats.h"
 
 enum ErrorType {
     RET_NULL_ADDR,
@@ -65,6 +66,8 @@ private:
     int64_t prevRdSectorsKb_;
     int64_t prevWrSectorsKb_;
     CollectTimeStamp prevTimestamp_;
+    DiskioConfig protoConfig_;
+    std::shared_ptr<IoStats> ioEntry_;
 };
 
 #endif

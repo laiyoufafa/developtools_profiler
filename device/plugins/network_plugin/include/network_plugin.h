@@ -51,11 +51,30 @@ struct NetworkCell {
     std::vector<NetDetails> details;
 };
 
+struct NetSystemDetails {
+    std::string type;
+    uint64_t rx_bytes;
+    uint64_t rx_packets;
+    uint64_t tx_bytes;
+    uint64_t tx_packets;
+};
+
+struct NetSystemData {
+    struct timespec ts;
+    uint64_t rx_bytes;
+    uint64_t rx_packets;
+    uint64_t tx_bytes;
+    uint64_t tx_packets;
+    std::vector<NetSystemDetails> details;
+};
+
 enum NetworkNum {
     IFACE_INDEX = 2,
     UID_INDEX = 4,
-    RX_INDEX = 6,
-    TX_INDEX = 8,
+    RX_BYTES_INDEX = 6,
+    RX_PACKETS_INDEX = 7,
+    TX_BYTES_INDEX = 8,
+    TX_PACKETS_INDEX = 9,
     DEC_BASE = 10,
 };
 
@@ -70,7 +89,9 @@ protected:
     std::string GetRateNodePath();
     int32_t GetUid(int32_t pid);
     bool ReadTxRxBytes(int32_t pid, NetworkCell &cell);
+    bool ReadSystemTxRxBytes(NetSystemData &systemData);
     void AddNetDetails(NetworkCell& cell, NetDetails& data);
+    void AddNetSystemDetails(NetSystemData& systemData, NetSystemDetails& data);
     // for UT
     void setPathForTest(std::string path)
     {
