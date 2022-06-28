@@ -165,18 +165,28 @@ struct StartTestPage {
     }.height('100%').width('100%').backgroundColor('#EEEEEE')
   }
 
-  onPageShow() {
-    console.info("startTestPage" + "onPageShow调用了");
-    if (router.getParams()["appName"] == null) {
+ onPageShow() {
+    let routerParams:any = router.getParams()
+    let appName:any
+    let appVersion:any
+    let selectPackageName:any
+    let appIconId:any
+    if (routerParams != undefined && routerParams !=null) {
+      appName = routerParams["appName"]
+      appVersion = routerParams["appVersion"]
+      selectPackageName = routerParams["selectPackageName"]
+      appIconId = routerParams["appIconId"]
+    }
+    if (appName == null && appName == undefined) {
       this.selectApp = "请选择一个应用"
       this.testName = ""
       this.selectAppIcon = ""
     } else {
-      this.selectApp = router.getParams()["appName"].toString()
-      globalThis.appName = router.getParams()["appName"]
-      globalThis.appVersion = router.getParams()["appVersion"]
-      globalThis.packageName = router.getParams()["selectPackageName"]
-      this.selectAppIcon = router.getParams()["appIconId"].toString()
+      this.selectApp = new String(appName).toString()
+      globalThis.appName = new String(appName).toString()
+      globalThis.appVersion = new String(appVersion).toString()
+      globalThis.packageName = new String(selectPackageName).toString()
+      this.selectAppIcon = new String(appIconId).toString()
       let date = new Date()
       let M = (date.getMonth() + 1 < 10 ? '0' + (date.getMonth() + 1) : date.getMonth() + 1);
       let D = date.getDate() + '-';
@@ -191,6 +201,7 @@ struct StartTestPage {
       this.testName = "游戏测试" + M + D + h + m
     }
   }
+
 
   resolveTaskConfig() {
     let collects = this.collectConfigs
