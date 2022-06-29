@@ -266,7 +266,6 @@ char* CreateMmap(void)
     char* pMap = (char*)mmap(0, PAGE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, g_fd, 0);
 #ifdef HOOK_ENABLE
     char *tag = "memtesttag";
-    printf("use musl enable\n");
     MEM_TYPESET(pMap, PAGE_SIZE, tag, strlen(tag)+1);
 #endif
     if (pMap == MAP_FAILED) {
