@@ -90,6 +90,9 @@ ohos_executable("nativetest_c") {
 
   if (current_toolchain != host_toolchain) {
     defines = [ "HAVE_HILOG" ]
+    if (use_musl) {
+      defines += [ "HOOK_ENABLE" ]
+    }
     if (build_l2) {
       external_deps = [ "shared_library:libhilog" ]
     } else {
