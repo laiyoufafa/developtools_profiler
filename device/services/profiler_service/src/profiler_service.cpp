@@ -419,7 +419,7 @@ void ProfilerService::MergeHiperfFile(const SessionContextPtr& sessionCtx)
     TraceFileHeader header {};
     header.data_.dataType_ = DataType::HIPERF_DATA;
     fsHiperf.seekg(0, std::ios_base::end);
-    uint64_t fileSize = fsHiperf.tellg();
+    uint64_t fileSize = (uint64_t)(fsHiperf.tellg());
     header.data_.length_ += fileSize;
     fsTarget.write(reinterpret_cast<char*>(&header), sizeof(header));
     if (!fsTarget.good()) {

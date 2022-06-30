@@ -101,6 +101,7 @@ public:
         minor_(0),
         rSucc_(0),
         rMerged_(0),
+        rSectors_(0),
         timeOfRead_(0),
         wSucc_(0),
         wMerged_(0),

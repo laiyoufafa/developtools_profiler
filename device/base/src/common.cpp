@@ -32,7 +32,7 @@ bool IsProcessRunning()
     char buffer[PATH_MAX + 1] = {0};
     readlink("/proc/self/exe", buffer, PATH_MAX);
     std::string processName = buffer;
-    int pos = processName.find_last_of('/');
+    int pos = (int)(processName.find_last_of('/'));
     if (pos != 0) {
         processName = processName.substr(pos + 1, processName.size());
     }
