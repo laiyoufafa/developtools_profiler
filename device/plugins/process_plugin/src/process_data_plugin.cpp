@@ -287,7 +287,11 @@ bool ProcessDataPlugin::WriteProcesseList(ProcessData& data)
 
     pids_.clear();
     while (int32_t pid = GetValidPid(procDir)) {
-        CHECK_TRUE(pid > 0, false, "%s: get pid[%d] failed", __func__, pid);
+        if (pid <= 0) {
+            closedir(procDir);
+            HILOG_WARN(LOG_CORE, "%s: get pid[%d] failed", __func__, pid);
+            return false;
+        }
         addPidBySort(pid);
     }
 
@@ -310,7 +314,11 @@ bool ProcessDataPlugin::WriteThreadData(int pid, CpuInfo* protoc)
 
     uint32_t i = 0;
     while (int32_t tid = GetValidPid(procDir)) {
-        CHECK_TRUE(tid > 0, false, "%s: get pid[%d] failed", __func__, tid);
+        if (tid <= 0) {
+            closedir(procDir);
+            HILOG_WARN(LOG_CORE, "%s: get pid[%d] failed", __func__, tid);
+            return false;
+        }
         i++;
     }
     protoc->set_thread_sum(i);
@@ -414,7 +422,7 @@ uint32_t ProcessDataPlugin::GetBootData(const std::string& line, CpuInfo* protoc
             break;
         }
     }
-    bootTime = bootTime * GetUserHz();
+    bootTime = bootTime * (uint64_t)GetUserHz();
     return count;
 }
 
@@ -467,7 +475,7 @@ uint32_t ProcessDataPlugin::GetCpuUsageData(const std::string& line, CpuInfo* pr
             break;
         }
     }
-    cpuTime = cpuTime * GetUserHz();
+    cpuTime = cpuTime * (uint64_t)GetUserHz();
     return count;
 }
 

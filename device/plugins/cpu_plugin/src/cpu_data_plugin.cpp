@@ -126,7 +126,11 @@ bool CpuDataPlugin::WriteProcnum(CpuData& data)
 
     uint32_t i = 0;
     while (int32_t tid = GetValidTid(procDir)) {
-        CHECK_TRUE(tid > 0, false, "%s: get pid[%d] failed", __func__, tid);
+        if (tid <= 0) {
+            closedir(procDir);
+            HILOG_WARN(LOG_CORE, "%s: get pid[%d] failed", __func__, tid);
+            return false;
+        }
         i++;
     }
     data.set_process_num(i);
