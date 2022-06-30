@@ -67,11 +67,6 @@ bool StackPreprocess::StopTakeResults()
     return true;
 }
 
-void StackPreprocess::InsertMemorytagMap(uint64_t addr, std::string tag)
-{
-    tagMap_.insert(std::pair<uint64_t, std::string>(addr, tag));
-}
-
 void StackPreprocess::TakeResults()
 {
     if (!dataRepeater_) {
@@ -85,18 +80,6 @@ void StackPreprocess::TakeResults()
             break;
         }
 
-        for (int idx = 0; idx < stackData->events().size(); idx++) {
-            auto event = stackData->events(idx);
-            if (event.has_mmap_event()) {
-                if (tagMap_.find(event.mmap_event().addr()) != tagMap_.end()) {
-                    std::string tag = tagMap_[event.mmap_event().addr()];
-                    stackData->mutable_events(idx)->mutable_mmap_event()->set_type(tagMap_[event.mmap_event().addr()]);
-                    tagMap_.erase(event.mmap_event().addr());
-                } else {
-                    HILOG_INFO(LOG_CORE, "No memory tag found!");
-                }
-            }
-        }
         size_t length = stackData->ByteSizeLong();
         if (length < MAX_BUFFER_SIZE) {
             stackData->SerializeToArray(buffer_.get(), length);

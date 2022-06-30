@@ -34,7 +34,7 @@ public:
     bool StartTakeResults();
 
     bool StopTakeResults();
-    void InsertMemorytagMap(uint64_t addr, std::string tag);
+
 private:
     void TakeResults();
 
@@ -45,7 +45,6 @@ private:
     std::unique_ptr<uint8_t[]> buffer_;
     bool isStopTakeData_ = false;
     DISALLOW_COPY_AND_MOVE(StackPreprocess);
-    std::map<uint64_t, std::string> tagMap_;
 };
 
 #endif // STACK_PREPROCESS_H
