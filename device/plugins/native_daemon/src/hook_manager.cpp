@@ -246,7 +246,8 @@ void HookManager::ReadShareMemory()
                 HILOG_ERROR(LOG_CORE, "stack data invalid!");
                 return false;
             }
-            if (memcpy_s(reinterpret_cast<void *>(&(rawStack->stackConext)), sizeof(rawStack->stackConext), data, sizeof(rawStack->stackConext)) != EOK) {
+            if (memcpy_s(reinterpret_cast<void*>(&(rawStack->stackConext)), sizeof(rawStack->stackConext), data,
+                         sizeof(rawStack->stackConext)) != EOK) {
                 HILOG_ERROR(LOG_CORE, "memcpy_s raw data failed!");
                 return false;
             }
@@ -254,7 +255,8 @@ void HookManager::ReadShareMemory()
             rawStack->stackSize = size - sizeof(rawStack->stackConext);
             if (rawStack->stackSize > 0) {
                 rawStack->stackData = std::make_unique<uint8_t[]>(rawStack->stackSize);
-                if (memcpy_s(rawStack->stackData.get(), rawStack->stackSize, data + sizeof(rawStack->stackConext), rawStack->stackSize) != EOK) {
+                if (memcpy_s(rawStack->stackData.get(), rawStack->stackSize, data + sizeof(rawStack->stackConext),
+                             rawStack->stackSize) != EOK) {
                     HILOG_ERROR(LOG_CORE, "memcpy_s stack data failed!");
                 }
             }

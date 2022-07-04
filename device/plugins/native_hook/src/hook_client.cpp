@@ -200,7 +200,7 @@ void hook_free(void (*free_func)(void*), void* p)
 
     if (g_hookClient->GetFreeStackData()) {
         uint64_t* regs = reinterpret_cast<uint64_t*>(&(rawdata.regs));
-    #if defined(__arm__)
+#if defined(__arm__)
         asm volatile(
         "mov r3, r13\n"
         "mov r4, r15\n"
@@ -219,7 +219,7 @@ void hook_free(void (*free_func)(void*), void* p)
         : [ base ] "+r"(regs)
         :
         : "x12", "x13", "memory");
-    #endif
+#endif
         stackptr = reinterpret_cast<const char*>(regs[RegisterGetSP(buildArchType)]);
         GetRuntimeStackEnd(stackptr, &stackendptr);  // stack end pointer
         stackSize = stackendptr - stackptr;

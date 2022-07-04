@@ -118,13 +118,13 @@ void StackPreprocess::TakeResults()
 
         if (!rawData->reportFlag) {
             ignoreCnts_++;
-            if(ignoreCnts_ % LOG_PRINT_TIMES == 0) {
+            if (ignoreCnts_ % LOG_PRINT_TIMES == 0) {
                 HILOG_INFO(LOG_CORE, "ignoreCnts_ = %d quene size = %zu\n", ignoreCnts_, dataRepeater_->Size());
             }
             continue;
         }
         eventCnts_++;
-        if(eventCnts_ % LOG_PRINT_TIMES == 0) {
+        if (eventCnts_ % LOG_PRINT_TIMES == 0) {
             HILOG_INFO(LOG_CORE, "eventCnts_ = %d quene size = %zu\n", eventCnts_, dataRepeater_->Size());
         }
 
@@ -144,13 +144,12 @@ void StackPreprocess::TakeResults()
 
         std::vector<CallFrame> callsFrames;
         if (rawData->stackSize > 0) {
-            runtime_instance->UnwindStack(u64regs, rawData->stackData.get(), rawData->stackSize, rawData->stackConext.pid,
-                rawData->stackConext.tid, callsFrames,
-                (hookConfig_.max_stack_depth() > 0)
-                ? hookConfig_.max_stack_depth() + FILTER_STACK_DEPTH
-                : MAX_CALL_FRAME_UNWIND_SIZE);
+            runtime_instance->UnwindStack(u64regs, rawData->stackData.get(), rawData->stackSize,
+                                          rawData->stackConext.pid, rawData->stackConext.tid, callsFrames,
+                                          (hookConfig_.max_stack_depth() > 0)
+                                              ? hookConfig_.max_stack_depth() + FILTER_STACK_DEPTH
+                                              : MAX_CALL_FRAME_UNWIND_SIZE);
         }
-
         if (hookConfig_.save_file()) {
             writeFrames(rawData, callsFrames);
         } else {
@@ -308,9 +307,7 @@ void StackPreprocess::SetFrameInfo(Frame& frame, CallFrame& callsFrame, BatchNat
     frame.set_sp(callsFrame.sp_);
     frame.set_offset(callsFrame.offset_);
     frame.set_symbol_offset(callsFrame.symbolOffset_);
-
     if (hookConfig_.string_compressed()) {
-
         auto itFuntion = functionMap_.find(std::string(callsFrame.symbolName_));
         if (itFuntion != functionMap_.end()) {
             frame.set_symbol_name_id(itFuntion->second);
@@ -320,11 +317,9 @@ void StackPreprocess::SetFrameInfo(Frame& frame, CallFrame& callsFrame, BatchNat
             SymbolMap* symbolMap = hookData->mutable_symbol_name();
             symbolMap->set_id(functionMap_.size() + 1);
             symbolMap->set_name(std::string(callsFrame.symbolName_));
-
             functionMap_.insert(std::pair<std::string, uint32_t>(callsFrame.symbolName_, functionMap_.size() + 1));
-
             if (functionMap_.size() % 100 == 0) {
-                HILOG_INFO(LOG_CORE, "functionMap_.size() = %zu\n", functionMap_.size() );
+                HILOG_INFO(LOG_CORE, "functionMap_.size() = %zu\n", functionMap_.size());
             }
         }
 
@@ -333,15 +328,13 @@ void StackPreprocess::SetFrameInfo(Frame& frame, CallFrame& callsFrame, BatchNat
             frame.set_file_path_id(itFile->second);
         } else {
             frame.set_file_path_id(fileMap_.size() + 1);
-
             auto hookData = batchNativeHookData.add_events();
             FilePathMap* filepathMap = hookData->mutable_file_path();
             filepathMap->set_id(fileMap_.size() + 1);
             filepathMap->set_name(std::string(callsFrame.filePath_));
             fileMap_.insert(std::pair<std::string, uint32_t>(callsFrame.filePath_, fileMap_.size() + 1));
-
             if (fileMap_.size() % 10 == 0) {
-                HILOG_INFO(LOG_CORE, "fileMap.size() = %zu\n", fileMap_.size() );
+                HILOG_INFO(LOG_CORE, "fileMap.size() = %zu\n", fileMap_.size());
             }
         }
     } else {

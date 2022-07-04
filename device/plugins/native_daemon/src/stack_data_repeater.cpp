@@ -76,11 +76,9 @@ RawStackPtr StackDataRepeater::TakeRawData(uint32_t during, uint32_t max_size)
     if (closed_) {
         return nullptr;
     }
-
     auto result = rawDataQueue_.front();
     rawDataQueue_.pop_front();
     uint32_t size = (max_size > rawDataQueue_.size()) ? rawDataQueue_.size() : max_size;
-
     if ((result != nullptr) && (result->stackConext.type == MALLOC_MSG) && (size > 0)) {
         for (unsigned i = 0; i < size; i++) {
             auto it = rawDataQueue_.at(i);
