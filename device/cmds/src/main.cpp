@@ -41,9 +41,8 @@ namespace {
 constexpr int ADDR_BUFFER_SIZE = 128;
 constexpr int MS_PER_S = 1000;
 constexpr uint16_t SERVICE_PORT = 50051;
-constexpr uint32_t US_PER_MS = 1000;
 constexpr int KEEP_SESSION_TIMEOUT_MS = 5 * 1000;
-constexpr int KEEP_SESSION_SLEEP_US = 3 * 1000 * 1000;
+constexpr int KEEP_SESSION_SLEEP_SECOND = 3;
 constexpr int DEFAULT_SESSION_TIME_S = 10;
 const std::string DEFAULT_OUTPUT_FILE = "/data/local/tmp/hiprofiler_data.htrace";
 std::string HIPROFILERD_NAME("hiprofilerd");
@@ -184,17 +183,17 @@ std::unique_ptr<IProfilerService::Stub> GetProfilerServiceStub()
     std::string serviceUri = GetLoopbackAddress() + ":" + std::to_string(GetServicePort());
     auto grpcChannel = grpc::CreateChannel(serviceUri, grpc::InsecureChannelCredentials());
     if (grpcChannel == nullptr) {
-        printf("FAIL\nCreate gRPC channel failed!\n");
+        printf("Create gRPC channel failed!\n");
         return nullptr;
     }
     return IProfilerService::NewStub(grpcChannel);
 }
 
-bool GetCapabilities()
+bool GetCapabilities(std::string& content, bool isCheck)
 {
     auto profilerStub = GetProfilerServiceStub();
     if (profilerStub == nullptr) {
-        printf("FAIL\nGet profiler service stub failed!\n");
+        printf("Get profiler service stub failed!\n");
         return false;
     }
 
@@ -204,30 +203,27 @@ bool GetCapabilities()
     grpc::ClientContext capContext;
     grpc::Status status = profilerStub->GetCapabilities(&capContext, capRequest, &capResponse);
     if (!status.ok()) {
-        printf("FAIL\nService not started\n");
+        printf("Service not started\n");
         return false;
     }
 
-    std::string content;
     if (!TextFormat::PrintToString(capResponse, &content)) {
         printf("capabilities message format FAILED!\n");
         return false;
     }
-    printf("support plugin list:\n%s\n", content.c_str());
+
+    if (!isCheck) {
+        printf("support plugin list:\n%s\n", content.c_str());
+    }
     return true;
 }
 
-uint32_t CreateSession(const std::string& configFile, const std::string& keepSecond, const std::string& outputFile)
+uint32_t CreateSession(std::unique_ptr<IProfilerService::Stub>& profilerStub, const std::string& configFile,
+    const std::string& keepSecond, const std::string& outputFile)
 {
-    auto profilerStub = GetProfilerServiceStub();
-    if (profilerStub == nullptr) {
-        printf("FAIL\nGet profiler service stub failed!\n");
-        return 0;
-    }
-
     auto request = MakeCreateRequest(configFile, keepSecond, outputFile);
     if (!request) {
-        printf("FAIL\nMakeCreateRequest failed!\n");
+        printf("MakeCreateRequest failed!\n");
         return 0;
     }
 
@@ -235,7 +231,7 @@ uint32_t CreateSession(const std::string& configFile, const std::string& keepSec
     grpc::ClientContext createSessionContext;
     grpc::Status status = profilerStub->CreateSession(&createSessionContext, *request, &createResponse);
     if (!status.ok()) {
-        printf("FAIL\nCreateSession FAIL\n");
+        printf("CreateSession FAIL\n");
         return 0;
     }
 
@@ -251,7 +247,7 @@ bool CheckStartSession(std::unique_ptr<IProfilerService::Stub>& profilerStub, ui
     grpc::ClientContext startContext;
     grpc::Status status = profilerStub->StartSession(&startContext, startRequest, &startResponse);
     if (!status.ok()) {
-        printf("FAIL\nStartSession FAIL\n");
+        printf("StartSession FAIL\n");
         return false;
     }
 
@@ -288,14 +284,15 @@ bool CheckDestroySession(std::unique_ptr<IProfilerService::Stub>& profilerStub, 
 
 bool DoCapture(const std::string& configFile, const std::string& keepSecond, const std::string& outputFile)
 {
-    uint32_t sessionId = CreateSession(configFile, keepSecond, outputFile);
-    if (sessionId == 0) {
-        return false;
-    }
-
     auto profilerStub = GetProfilerServiceStub();
     if (profilerStub == nullptr) {
-        printf("FAIL\nGet profiler service stub failed!\n");
+        printf("Get profiler service stub failed!\n");
+        return 0;
+    }
+
+    uint32_t sessionId = CreateSession(profilerStub, configFile, keepSecond, outputFile);
+    if (sessionId == 0) {
+        printf("Create session returns Id 0\n");
         return false;
     }
 
@@ -310,7 +307,7 @@ bool DoCapture(const std::string& configFile, const std::string& keepSecond, con
             grpc::ClientContext keepContext;
             KeepSessionResponse keepResponse;
             profilerStub->KeepSession(&keepContext, keepRequest, &keepResponse);
-            usleep(KEEP_SESSION_SLEEP_US);
+            std::this_thread::sleep_for(std::chrono::seconds(KEEP_SESSION_SLEEP_SECOND));
         }
     });
 
@@ -319,7 +316,7 @@ bool DoCapture(const std::string& configFile, const std::string& keepSecond, con
     }
 
     printf("tracing %u ms....\n", g_sampleDuration);
-    usleep(g_sampleDuration * US_PER_MS);
+    std::this_thread::sleep_for(std::chrono::milliseconds(g_sampleDuration));
 
     if (!CheckStopSession(profilerStub, sessionId)) {
         sendHeart = false;
@@ -369,7 +366,7 @@ int CheckGrpcMsgSend()
 {
     auto profilerStub = GetProfilerServiceStub();
     if (profilerStub == nullptr) {
-        printf("FAIL\nGet profiler service stub failed!\n");
+        printf("Get profiler service stub failed!\n");
         return -1;
     }
 
@@ -380,7 +377,7 @@ int CheckGrpcMsgSend()
     grpc::ClientContext context;
     grpc::Status status = profilerStub->GetCapabilities(&context, request, &response);
     if (!status.ok()) {
-        printf("FAIL\nService not started\n");
+        printf("Service not started\n");
         return -1;
     }
 
@@ -390,14 +387,17 @@ int CheckGrpcMsgSend()
     return 0;
 }
 
-void StartDependentProcess()
+bool StartDependentProcess()
 {
+    constexpr int waitProcMills = 300;
+
     if (!COMMON::IsProcessExist(HIPROFILERD_NAME, g_hiprofilerdPid)) {
         // need start hiprofilerd
         std::vector<char*> argvVec;
         argvVec.push_back(const_cast<char*>(HIPROFILERD_NAME.c_str()));
         g_hiprofilerdPid = COMMON::StartProcess(HIPROFILERD_NAME, argvVec);
-        sleep(1); // Wait for the hiprofilerd to start
+        // Wait for the hiprofilerd to start
+        std::this_thread::sleep_for(std::chrono::milliseconds(waitProcMills));
     }
 
     if (!COMMON::IsProcessExist(HIPROFILER_PLUGINS_NAME, g_hiprofilerPluginsPid)) {
@@ -405,7 +405,8 @@ void StartDependentProcess()
         std::vector<char*> argvVec;
         argvVec.push_back(const_cast<char*>(HIPROFILER_PLUGINS_NAME.c_str()));
         g_hiprofilerPluginsPid = COMMON::StartProcess(HIPROFILER_PLUGINS_NAME, argvVec);
-        sleep(1); // Wait for the hiprofiler_plugins add preset plugin
+        // Wait for the hiprofiler_plugins add preset plugin
+        std::this_thread::sleep_for(std::chrono::milliseconds(waitProcMills));
     }
 
     if (!COMMON::IsProcessExist(NATIVE_DAEMON_NAME, g_nativeDaemonPid)) {
@@ -413,8 +414,18 @@ void StartDependentProcess()
         std::vector<char*> argvVec;
         argvVec.push_back(const_cast<char*>(NATIVE_DAEMON_NAME.c_str()));
         g_nativeDaemonPid = COMMON::StartProcess(NATIVE_DAEMON_NAME, argvVec);
-        sleep(1); // Wait for the native_daemon to start
+        // Wait for the native_daemon to start
+        std::this_thread::sleep_for(std::chrono::milliseconds(waitProcMills));
     }
+
+    std::string content = "";
+    GetCapabilities(content, true);
+    if (content == "") {
+        printf("Please confirm whether the plugin exists\n");
+        return false;
+    }
+
+    return true;
 }
 
 void KillDependentProcess()
@@ -440,7 +451,7 @@ int main(int argc, char* argv[])
 {
     std::string config = "";
     while (true) {
-        int option = getopt(argc, argv, "q:c:t:o:h:l:s:k:");
+        int option = getopt(argc, argv, "c:t:o:qhlsk");
         if (option == -1) {
             break;  // CONFIG.
         }
@@ -451,7 +462,7 @@ int main(int argc, char* argv[])
             content.assign(begin, end);
             config = ParsePluginConfig::GetInstance().GetPluginsConfig(content);
             if (config == "") {
-                printf("FAIL\nPlease check the configuration!\n");
+                printf("Please check the configuration!\n");
                 return -1;
             }
         }
@@ -463,7 +474,7 @@ int main(int argc, char* argv[])
 
     std::vector<std::string> argvVector;
     for (int i = 0; i < argc; i++) {
-        if ((i + 1) < argc && strcmp(argv[i], "-c") == 0 && strcmp(argv[i+1], "-") == 0) {
+        if ((i + 1) < argc && strcmp(argv[i], "-c") == 0 && strcmp(argv[i + 1], "-") == 0) {
             i++;
         } else {
             argvVector.push_back(argv[i]);
@@ -475,7 +486,12 @@ int main(int argc, char* argv[])
     }
 
     if (data.isStartProcess) {
-        StartDependentProcess();
+        if (!StartDependentProcess()) {
+            if (data.isKillProcess) {
+                KillDependentProcess();
+            }
+            return 0;
+        }
     }
 
     if (data.isGetGrpcAddr) { // handle get port
@@ -487,7 +503,8 @@ int main(int argc, char* argv[])
     }
 
     if (data.isShowPluginList) { // handle show plugin list
-        GetCapabilities();
+        std::string content = "";
+        GetCapabilities(content, false);
         if (data.isKillProcess) {
             KillDependentProcess();
         }
@@ -495,9 +512,12 @@ int main(int argc, char* argv[])
     }
 
     if (config.empty()) { // normal case
-        printf("FAIL\nconfig file argument must sepcified!");
         if (data.isKillProcess) {
             KillDependentProcess();
+            return 1;
+        }
+        if (!data.isStartProcess) {
+            printf("config file argument must sepcified!\n");
         }
         return 1;
     }
