@@ -19,13 +19,14 @@
 #include <pthread.h>
 #include <sys/syscall.h>
 #include <unistd.h>
-
+#include <thread>
+#include <sys/prctl.h>
 #pragma clang optimize off
 
 
 namespace {
 constexpr int MALLOC_SIZE = 1000;
-constexpr int TIME_BASE = 1000;
+constexpr int TIME_BASE = 100;
 constexpr int DATA_SIZE = 200;
 constexpr int SLEEP_TIME = 200;
 constexpr int ARGC_NUM_MAX = 4;
@@ -99,12 +100,17 @@ void* thread_func_cpp(void* param)
     printf("start thread %ld\n", tid);
     int times = *static_cast<int*>(param);
     int idx = 0;
+    std::string name = "thread";
+    name = name + std::to_string(times);
+    prctl(PR_SET_NAME, name.c_str());
+
     while (idx < times) {
         p = DepthMalloc(g_stickDepth, MALLOC_SIZE);
         if (idx % TIME_BASE == 0) {
             printf("thread %ld malloc %d times\n", tid, idx);
         }
         if (p) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(TIME_BASE));
             DepthFree(g_stickDepth, p);
         }
         idx++;

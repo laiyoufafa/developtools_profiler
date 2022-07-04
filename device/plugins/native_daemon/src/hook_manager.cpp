@@ -34,7 +34,7 @@
 using namespace OHOS::Developtools::NativeDaemon;
 
 namespace {
-const int STACK_DATA_SIZE = 3000;
+const int STACK_DATA_SIZE = 10000;
 const int DEFAULT_EVENT_POLLING_INTERVAL = 5000;
 const int PAGE_BYTES = 4096;
 std::shared_ptr<BufferWriter> g_buffWriter;
@@ -94,34 +94,7 @@ void HookManager::CheckProcessName()
     } while (1);
 }
 
-void HookManager::writeFrames(const struct timespec& ts, HookContext& hookContext,
-                              const std::vector<CallFrame>& callsFrames)
-{
-    if (hookContext.type == MALLOC_MSG) {
-        fprintf(fpHookData_.get(), "malloc;%d;%d;%" PRId64 ";%ld;0x%" PRIx64 ";%u\n", hookContext.pid, hookContext.tid,
-                (int64_t)ts.tv_sec, ts.tv_nsec, (uint64_t)hookContext.addr, hookContext.mallocSize);
-    } else if (hookContext.type == FREE_MSG) {
-        fprintf(fpHookData_.get(), "free;%d;%d;%" PRId64 ";%ld;0x%" PRIx64 "\n", hookContext.pid, hookContext.tid,
-                (int64_t)ts.tv_sec, ts.tv_nsec, (uint64_t)hookContext.addr);
-    } else if (hookContext.type == MMAP_MSG) {
-        fprintf(fpHookData_.get(), "mmap;%d;%d;%" PRId64 ";%ld;0x%" PRIx64 "\n", hookContext.pid, hookContext.tid,
-                (int64_t)ts.tv_sec, ts.tv_nsec, (uint64_t)hookContext.addr);
-    } else if (hookContext.type == MUNMAP_MSG) {
-        fprintf(fpHookData_.get(), "munmap;%d;%d;%" PRId64 ";%ld;0x%" PRIx64 "\n", hookContext.pid, hookContext.tid,
-                (int64_t)ts.tv_sec, ts.tv_nsec, (uint64_t)hookContext.addr);
-    } else {
-        return;
-    }
-
-    for (size_t idx = FILTER_STACK_DEPTH; idx < callsFrames.size(); ++idx) {
-        (void)fprintf(fpHookData_.get(), "0x%" PRIx64 ";0x%" PRIx64 ";%s;%s;0x%" PRIx64 ";%" PRIu64 "\n",
-                      callsFrames[idx].ip_, callsFrames[idx].sp_, std::string(callsFrames[idx].symbolName_).c_str(),
-                      std::string(callsFrames[idx].filePath_).c_str(), callsFrames[idx].offset_,
-                      callsFrames[idx].symbolOffset_);
-    }
-}
-
-HookManager::HookManager() : fpHookData_(nullptr, nullptr), buffer_(new (std::nothrow) uint8_t[MAX_BUFFER_SIZE]) {}
+HookManager::HookManager() : buffer_(new (std::nothrow) uint8_t[MAX_BUFFER_SIZE]) { }
 
 void HookManager::SetCommandPoller(const std::shared_ptr<CommandPoller>& p)
 {
@@ -212,23 +185,8 @@ bool HookManager::CreatePluginSession(const std::vector<ProfilerPluginConfig>& c
         return false;
     }
 
-    runtime_instance = std::make_shared<VirtualRuntime>();
-    // create file
-    if (hookConfig_.save_file()) {
-        HILOG_DEBUG(LOG_CORE, "save file name = %s", hookConfig_.file_name().c_str());
-        FILE* fp = fopen(hookConfig_.file_name().c_str(), "wb+");
-        if (fp) {
-            fpHookData_.reset();
-            fpHookData_ = std::unique_ptr<FILE, decltype(&fclose)>(fp, fclose);
-        } else {
-            fpHookData_.reset();
-        }
-    } else {
-        HILOG_DEBUG(LOG_CORE, "%s: need report native_hook data", __func__);
-    }
     // create smb and eventNotifier
     uint32_t bufferSize = hookConfig_.smb_pages() * PAGE_BYTES; /* bufferConfig.pages() */
-    HILOG_DEBUG(LOG_CORE, "smb bufferSize = %u", bufferSize);
     shareMemoryBlock_ = ShareMemoryAllocator::GetInstance().CreateMemoryBlockLocal(smbName_, bufferSize);
     CHECK_TRUE(shareMemoryBlock_ != nullptr, false, "CreateMemoryBlockLocal FAIL %s", smbName_.c_str());
 
@@ -260,13 +218,16 @@ bool HookManager::CreatePluginSession(const std::vector<ProfilerPluginConfig>& c
     hookConfig <<= MOVE_BIT_32;
     hookConfig |= bufferSize;
 
-    hookService_ = std::make_shared<HookService>(shareMemoryBlock_->GetfileDescriptor(), eventNotifier_->GetFd(), pid_,
-                                                 hookConfig_.process_name(), hookConfig);
+    HILOG_INFO(LOG_CORE, "hookConfig filter_size = %d, malloc disable = %d mmap disable = %d smb size = %u",
+        hookConfig_.filter_size(), hookConfig_.malloc_disable(), hookConfig_.mmap_disable(), bufferSize);
+
+    hookService_ = std::make_shared<HookService>(shareMemoryBlock_->GetfileDescriptor(),
+                                                eventNotifier_->GetFd(), pid_, hookConfig_.process_name(), hookConfig);
     CHECK_NOTNULL(hookService_, false, "HookService create failed!");
 
     stackData_ = std::make_shared<StackDataRepeater>(STACK_DATA_SIZE);
     CHECK_TRUE(stackData_ != nullptr, false, "Create StackDataRepeater FAIL");
-    stackPreprocess_ = std::make_shared<StackPreprocess>(stackData_);
+    stackPreprocess_ = std::make_shared<StackPreprocess>(stackData_, hookConfig_);
     CHECK_TRUE(stackPreprocess_ != nullptr, false, "Create StackPreprocess FAIL");
     stackPreprocess_->SetWriter(g_buffWriter);
     return true;
@@ -278,143 +239,35 @@ void HookManager::ReadShareMemory()
     uint64_t value = eventNotifier_->Take();
 
     while (true) {
-        auto batchNativeHookData = std::make_shared<BatchNativeHookData>();
+        auto rawStack = std::make_shared<StackDataRepeater::RawStack>();
 
         bool ret = shareMemoryBlock_->TakeData([&](const int8_t data[], uint32_t size) -> bool {
-            std::vector<u64> u64regs;
-            u64* regAddr = nullptr;
-            uint32_t stackSize;
-            pid_t pid;
-            pid_t tid;
-            void* addr = nullptr;
-            int8_t* tmp = const_cast<int8_t*>(data);
-            std::unique_ptr<uint8_t[]> stackData;
-            struct timespec ts = {};
-            if (memcpy_s(&ts, sizeof(ts), data, sizeof(ts)) != EOK) {
-                HILOG_ERROR(LOG_CORE, "memcpy_s ts failed");
+            if (size < sizeof(rawStack->stackConext)) {
+                HILOG_ERROR(LOG_CORE, "stack data invalid!");
+                return false;
             }
-            uint32_t type = *(reinterpret_cast<uint32_t *>(tmp + sizeof(ts)));
-            if (type == MEMORY_TAG) {
-                addr = *(reinterpret_cast<void **>(tmp + sizeof(ts) + sizeof(type)));
-                std::string tag = (char *)(tmp + sizeof(ts) + sizeof(type) + sizeof(addr));
-                stackPreprocess_->InsertMemorytagMap((uint64_t)addr, tag);
-                return true;
+            if (memcpy_s(reinterpret_cast<void*>(&(rawStack->stackConext)), sizeof(rawStack->stackConext), data,
+                         sizeof(rawStack->stackConext)) != EOK) {
+                HILOG_ERROR(LOG_CORE, "memcpy_s raw data failed!");
+                return false;
             }
-            size_t mallocSize = *(reinterpret_cast<size_t *>(tmp + sizeof(ts) + sizeof(type)));
-            addr = *(reinterpret_cast<void **>(tmp + sizeof(ts) + sizeof(type) + sizeof(mallocSize)));
-            stackSize = *(reinterpret_cast<uint32_t *>(tmp + sizeof(ts)
-                + sizeof(type) + sizeof(mallocSize) + sizeof(void *)));
-            if (stackSize > 0) {
-                stackData = std::make_unique<uint8_t[]>(stackSize);
-                if (memcpy_s(stackData.get(), stackSize,
-                             tmp + sizeof(stackSize) + sizeof(ts) + sizeof(type) + sizeof(mallocSize) + sizeof(void*),
-                             stackSize) != EOK) {
-                    HILOG_ERROR(LOG_CORE, "memcpy_s data failed");
+            rawStack->reportFlag = true;
+            rawStack->stackSize = size - sizeof(rawStack->stackConext);
+            if (rawStack->stackSize > 0) {
+                rawStack->stackData = std::make_unique<uint8_t[]>(rawStack->stackSize);
+                if (memcpy_s(rawStack->stackData.get(), rawStack->stackSize, data + sizeof(rawStack->stackConext),
+                             rawStack->stackSize) != EOK) {
+                    HILOG_ERROR(LOG_CORE, "memcpy_s stack data failed!");
                 }
             }
-            pid = *(reinterpret_cast<pid_t*>(tmp + sizeof(stackSize) + stackSize + sizeof(ts) + sizeof(type) +
-                                             sizeof(mallocSize) + sizeof(void*)));
-            tid = *(reinterpret_cast<pid_t*>(tmp + sizeof(stackSize) + stackSize + sizeof(ts) + sizeof(type) +
-                                             sizeof(mallocSize) + sizeof(void*) + sizeof(pid)));
-            regAddr = reinterpret_cast<u64*>(tmp + sizeof(pid) + sizeof(tid) + sizeof(stackSize) + stackSize +
-                                             sizeof(ts) + sizeof(type) + sizeof(mallocSize) + sizeof(void*));
-
-            int reg_count = (size - sizeof(pid) - sizeof(tid) - sizeof(stackSize) - stackSize - sizeof(ts) -
-                             sizeof(type) - sizeof(mallocSize) - sizeof(void*)) /
-                            sizeof(u64);
-            if (reg_count <= 0) {
-                HILOG_ERROR(LOG_CORE, "data error size = %u", size);
-            }
-#if defined(__arm__)
-            uint32_t* regAddrArm = reinterpret_cast<uint32_t*>(regAddr);
-#endif
-            for (int idx = 0; idx < reg_count; ++idx) {
-#if defined(__arm__)
-                u64regs.push_back(*regAddrArm++);
-#else
-                u64regs.push_back(*regAddr++);
-#endif
-            }
-
-            std::vector<CallFrame> callsFrames;
-
-            if (stackSize > 0) {
-                runtime_instance->UnwindStack(u64regs, stackData.get(), stackSize, pid, tid, callsFrames,
-                                              (hookConfig_.max_stack_depth() > 0)
-                                                  ? hookConfig_.max_stack_depth() + FILTER_STACK_DEPTH
-                                                  : MAX_CALL_FRAME_UNWIND_SIZE);
-            }
-            HookContext hookContext = {};
-            hookContext.type = type;
-            hookContext.pid = pid;
-            hookContext.tid = tid;
-            hookContext.addr = addr;
-            hookContext.mallocSize = mallocSize;
-            SetHookData(hookContext, ts, callsFrames, batchNativeHookData);
-
             return true;
         });
         if (!ret) {
             break;
         }
 
-        if (!hookConfig_.save_file()) {
-            if (!stackData_->PutStackData(batchNativeHookData)) {
-                break;
-            }
-        }
-    }
-}
-
-void HookManager::SetHookData(HookContext& hookContext, struct timespec ts, std::vector<CallFrame>& callsFrames,
-                              BatchNativeHookDataPtr& batchNativeHookData)
-{
-    if (hookConfig_.save_file()) {
-        writeFrames(ts, hookContext, callsFrames);
-    } else {
-        NativeHookData* hookData = batchNativeHookData->add_events();
-        hookData->set_tv_sec(ts.tv_sec);
-        hookData->set_tv_nsec(ts.tv_nsec);
-
-        if (hookContext.type == MALLOC_MSG) {
-            AllocEvent* allocEvent = hookData->mutable_alloc_event();
-            allocEvent->set_pid(hookContext.pid);
-            allocEvent->set_tid(hookContext.tid);
-            allocEvent->set_addr((uint64_t)hookContext.addr);
-            allocEvent->set_size(static_cast<uint64_t>(hookContext.mallocSize));
-            for (size_t idx = FILTER_STACK_DEPTH; idx < callsFrames.size(); ++idx) {
-                Frame* frame = allocEvent->add_frame_info();
-                SetFrameInfo(*frame, callsFrames[idx]);
-            }
-        } else if (hookContext.type == FREE_MSG) {
-            FreeEvent* freeEvent = hookData->mutable_free_event();
-            freeEvent->set_pid(hookContext.pid);
-            freeEvent->set_tid(hookContext.tid);
-            freeEvent->set_addr((uint64_t)hookContext.addr);
-            for (size_t idx = FILTER_STACK_DEPTH; idx < callsFrames.size(); ++idx) {
-                Frame* frame = freeEvent->add_frame_info();
-                SetFrameInfo(*frame, callsFrames[idx]);
-            }
-        } else if (hookContext.type == MMAP_MSG) {
-            MmapEvent* mmapEvent = hookData->mutable_mmap_event();
-            mmapEvent->set_pid(hookContext.pid);
-            mmapEvent->set_tid(hookContext.tid);
-            mmapEvent->set_addr((uint64_t)hookContext.addr);
-            mmapEvent->set_size(static_cast<uint64_t>(hookContext.mallocSize));
-            for (size_t idx = FILTER_STACK_DEPTH; idx < callsFrames.size(); ++idx) {
-                Frame* frame = mmapEvent->add_frame_info();
-                SetFrameInfo(*frame, callsFrames[idx]);
-            }
-        } else if (hookContext.type == MUNMAP_MSG) {
-            MunmapEvent* munmapEvent = hookData->mutable_munmap_event();
-            munmapEvent->set_pid(hookContext.pid);
-            munmapEvent->set_tid(hookContext.tid);
-            munmapEvent->set_addr((uint64_t)hookContext.addr);
-            munmapEvent->set_size(static_cast<uint64_t>(hookContext.mallocSize));
-            for (size_t idx = FILTER_STACK_DEPTH; idx < callsFrames.size(); ++idx) {
-                Frame* frame = munmapEvent->add_frame_info();
-                SetFrameInfo(*frame, callsFrames[idx]);
-            }
+        if (!stackData_->PutRawStack(rawStack)) {
+            break;
         }
     }
 }
@@ -443,9 +296,6 @@ bool HookManager::DestroyPluginSession(const std::vector<uint32_t>& pluginIds)
         eventNotifier_ = nullptr;
     }
 
-    fpHookData_ = nullptr;
-    HILOG_ERROR(LOG_CORE, "fclose hook data file");
-    runtime_instance = nullptr;
     stackPreprocess_ = nullptr;
     stackData_ = nullptr;
     return true;
@@ -483,6 +333,8 @@ bool HookManager::StopPluginSession(const std::vector<uint32_t>& pluginIds)
     CHECK_TRUE(stackPreprocess_ != nullptr, false, "stop StackPreprocess FAIL");
     stackPreprocess_->StopTakeResults();
 
+    HILOG_INFO(LOG_CORE, "StopTakeResults success");
+
     // make sure TakeResults thread exit
     if (stackData_) {
         stackData_->Close();
@@ -509,17 +361,7 @@ void HookManager::RegisterWriter(const BufferWriterPtr& writer)
     return;
 }
 
-void HookManager::SetFrameInfo(Frame& frame, CallFrame& callsFrame)
-{
-    frame.set_ip(callsFrame.ip_);
-    frame.set_sp(callsFrame.sp_);
-    frame.set_symbol_name(std::string(callsFrame.symbolName_));
-    frame.set_file_path(std::string(callsFrame.filePath_));
-    frame.set_offset(callsFrame.offset_);
-    frame.set_symbol_offset(callsFrame.symbolOffset_);
-}
-
-bool HookManager::SendProtobufPackage(uint8_t* cache, size_t length)
+bool HookManager::SendProtobufPackage(uint8_t *cache, size_t length)
 {
     if (g_buffWriter == nullptr) {
         HILOG_ERROR(LOG_CORE, "HookManager:: BufferWriter empty, should set writer first");

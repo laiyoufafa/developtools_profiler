@@ -17,35 +17,49 @@
 
 #include <chrono>
 #include <thread>
+#include <unordered_map>
 
 #include "logging.h"
 #include "nocopyable.h"
 #include "stack_data_repeater.h"
 #include "buffer_writer.h"
+#include "virtual_runtime.h"
+#include "hook_common.h"
+#include "native_hook_config.pb.h"
+#include "native_hook_result.pb.h"
 
 class StackPreprocess {
 public:
-    explicit StackPreprocess(const StackDataRepeaterPtr& dataRepeater);
+    explicit StackPreprocess(const StackDataRepeaterPtr& dataRepeater, NativeHookConfig hookConfig);
 
     ~StackPreprocess();
-
     void SetWriter(const std::shared_ptr<BufferWriter>& writer);
-
     bool StartTakeResults();
-
     bool StopTakeResults();
-    void InsertMemorytagMap(uint64_t addr, std::string tag);
+
 private:
     void TakeResults();
-
+    void SetHookData(RawStackPtr RawStack, std::vector<OHOS::Developtools::NativeDaemon::CallFrame>& callsFrames,
+        BatchNativeHookData& batchNativeHookData);
+    void writeFrames(RawStackPtr RawStack, const std::vector<OHOS::Developtools::NativeDaemon::CallFrame>& callsFrames);
+    void SetFrameInfo(Frame& frame, OHOS::Developtools::NativeDaemon::CallFrame& callsFrame,
+        BatchNativeHookData& batchNativeHookData);
+    uint32_t GetThreadIdx(std::string threadName, BatchNativeHookData& batchNativeHookData);
 private:
     std::shared_ptr<BufferWriter> writer_ = nullptr;
     StackDataRepeaterPtr dataRepeater_ = nullptr;
     std::thread thread_ {};
     std::unique_ptr<uint8_t[]> buffer_;
     bool isStopTakeData_ = false;
+    std::shared_ptr<OHOS::Developtools::NativeDaemon::VirtualRuntime> runtime_instance;
     DISALLOW_COPY_AND_MOVE(StackPreprocess);
-    std::map<uint64_t, std::string> tagMap_;
+    std::unordered_map<std::string, uint32_t> functionMap_;
+    std::unordered_map<std::string, uint32_t> fileMap_;
+    std::unordered_map<std::string, uint32_t> threadMap_;
+    NativeHookConfig hookConfig_;
+    std::unique_ptr<FILE, decltype(&fclose)> fpHookData_;
+    uint32_t ignoreCnts_ = 0;
+    uint32_t eventCnts_ = 0;
 };
 
 #endif // STACK_PREPROCESS_H

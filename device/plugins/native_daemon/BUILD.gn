@@ -37,6 +37,7 @@ config("hook_config") {
 ohos_executable("native_daemon") {
   output_name = "native_daemon"
   sources = [
+    "../../base/src/common.cpp",
     "../../base/src/epoll_event_poller.cpp",
     "../../base/src/event_notifier.cpp",
     "../api/src/buffer_writer.cpp",

@@ -43,6 +43,7 @@ StackWriter::~StackWriter()
     HILOG_DEBUG(LOG_CORE, "%s:destroy eventfd = %d!", __func__, eventNotifier_ ? eventNotifier_->GetFd() : -1);
     eventNotifier_ = nullptr;
     ShareMemoryAllocator::GetInstance().ReleaseMemoryBlockRemote(pluginName_);
+    shareMemoryBlock_ = nullptr;
 }
 
 void StackWriter::Report() const
@@ -72,6 +73,15 @@ long StackWriter::WriteTimeout(const void* data, size_t size)
         return false;
     }
     return shareMemoryBlock_->PutRawTimeout(reinterpret_cast<const int8_t*>(data), size);
+}
+
+long StackWriter::WriteWithPayloadTimeout(const void* data, size_t size, const void* payload, size_t payloadSize)
+{
+    if (shareMemoryBlock_ == nullptr || data == nullptr || size == 0) {
+        return false;
+    }
+    return shareMemoryBlock_->PutWithPayloadTimeout(
+        reinterpret_cast<const int8_t*>(data), size, reinterpret_cast<const int8_t*>(payload), payloadSize);
 }
 
 bool StackWriter::Flush()

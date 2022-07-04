@@ -60,7 +60,7 @@ bool HookSocketClient::Connect(const std::string addrname)
 bool HookSocketClient::ProtocolProc(SocketContext &context, uint32_t pnum, const int8_t *buf, const uint32_t size)
 {
     if (size != sizeof(uint64_t)) {
-        printf("HookSocketClient::config failed!\n");
+        HILOG_ERROR(LOG_CORE, "HookSocketClient::config config size not match = %u\n", size);
         return true;
     }
     uint64_t config = *(uint64_t *)buf;
@@ -83,6 +83,7 @@ bool HookSocketClient::ProtocolProc(SocketContext &context, uint32_t pnum, const
     if (mask & MUNMAPMSGSTACK) {
         munmapStackData_ = true;
     }
+    HILOG_DEBUG(LOG_CORE, "%s: filter size = %u smb size = %u", __func__, filterSize_, smbSize);
     stackWriter_ = std::make_shared<StackWriter>("hooknativesmb", smbSize, smbFd_, eventFd_);
     return true;
 }
@@ -98,6 +99,22 @@ bool HookSocketClient::SendStack(const void* data, size_t size)
     }
 
     stackWriter_->WriteTimeout(data, size);
+    stackWriter_->Flush();
+
+    return true;
+}
+
+bool HookSocketClient::SendStackWithPayload(const void* data, size_t size, const void* payload, size_t payloadSize)
+{
+    if (stackWriter_ == nullptr || unixSocketClient_ == nullptr) {
+        return true;
+    }
+
+    if (!unixSocketClient_->SendHeartBeat()) {
+        return false;
+    }
+
+    stackWriter_->WriteWithPayloadTimeout(data, size, payload, payloadSize);
     stackWriter_->Flush();
 
     return true;

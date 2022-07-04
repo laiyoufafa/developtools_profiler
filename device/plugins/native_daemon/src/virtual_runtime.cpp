@@ -125,7 +125,6 @@ void VirtualRuntime::GetSymbolName(pid_t pid, pid_t tid, std::vector<CallFrame>&
         if (callFrame.ip_ >= PERF_CONTEXT_MAX) {
             // dont care, this is not issue.
             HLOGV("%s", UpdatePerfContext(callFrame.ip_, perfCallchainContext).c_str());
-            callFrameIt = callsFrames.erase(callFrameIt);
             continue;
         }
         auto symbol = GetSymbol(callFrame.ip_, pid, tid,
@@ -134,8 +133,6 @@ void VirtualRuntime::GetSymbolName(pid_t pid, pid_t tid, std::vector<CallFrame>&
             MakeCallFrame(symbol, callFrame);
         } else {
             // we need found out thre reason here.
-            HLOGV("symbol is not found, remove it. addr is %" PRIx64 "", callFrame.ip_);
-            callFrameIt = callsFrames.erase(callFrameIt);
             continue;
         }
         int index = callFrameIt - callsFrames.begin();
