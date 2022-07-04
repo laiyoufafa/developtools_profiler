@@ -13,9 +13,7 @@
  * limitations under the License.
  */
 #include "stack_preprocess.h"
-
 #include <unistd.h>
-
 #include "logging.h"
 #include "plugin_service_types.pb.h"
 
@@ -23,6 +21,8 @@ constexpr uint32_t MAX_BUFFER_SIZE = 10 * 1024;
 constexpr uint32_t MAX_MATCH_CNT = 1000;
 constexpr uint32_t MAX_MATCH_INTERVAL = 2000;
 constexpr uint32_t LOG_PRINT_TIMES = 10000;
+constexpr uint32_t FUNCTION_MAP_LOG_PRINT = 100;
+constexpr uint32_t FILE_MAP_LOG_PRINT = 10;
 
 using namespace OHOS::Developtools::NativeDaemon;
 
@@ -318,7 +318,7 @@ void StackPreprocess::SetFrameInfo(Frame& frame, CallFrame& callsFrame, BatchNat
             symbolMap->set_id(functionMap_.size() + 1);
             symbolMap->set_name(std::string(callsFrame.symbolName_));
             functionMap_.insert(std::pair<std::string, uint32_t>(callsFrame.symbolName_, functionMap_.size() + 1));
-            if (functionMap_.size() % 100 == 0) {
+            if (functionMap_.size() % FUNCTION_MAP_LOG_PRINT == 0) {
                 HILOG_INFO(LOG_CORE, "functionMap_.size() = %zu\n", functionMap_.size());
             }
         }
@@ -333,7 +333,7 @@ void StackPreprocess::SetFrameInfo(Frame& frame, CallFrame& callsFrame, BatchNat
             filepathMap->set_id(fileMap_.size() + 1);
             filepathMap->set_name(std::string(callsFrame.filePath_));
             fileMap_.insert(std::pair<std::string, uint32_t>(callsFrame.filePath_, fileMap_.size() + 1));
-            if (fileMap_.size() % 10 == 0) {
+            if (fileMap_.size() % FILE_MAP_LOG_PRINT == 0) {
                 HILOG_INFO(LOG_CORE, "fileMap.size() = %zu\n", fileMap_.size());
             }
         }
