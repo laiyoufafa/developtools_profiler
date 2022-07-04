@@ -325,7 +325,7 @@ char RandChar(void)
     // 可显示字符的范围
     int section = '~' - ' ';
     int randSection = RandInt(0, section);
-    char randChar = '~' + randSection;
+    char randChar = (char)('~' + (unsigned int)randSection);
     return randChar;
 }
 

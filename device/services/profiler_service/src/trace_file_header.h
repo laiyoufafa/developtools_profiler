@@ -36,6 +36,12 @@ struct TraceFileHeader {
         uint32_t segments_ = 0; // 载荷数据中的段个数, 段个数为偶数，一个描述长度 L，一个描述接下来的数据 V
         uint8_t sha256_[SHA256_SIZE] = {}; // 载荷数据 的 SHA256 ，用于校验 载荷数据是否完整；
         uint32_t dataType_ = DataType::HIPROFILER_PROTOBUF_BIN; // 存储数据类型
+        uint64_t boottime_ = 0;
+        uint64_t realtime_ = 0;
+        uint64_t realtime_coarse_ = 0;
+        uint64_t monotonic_ = 0;
+        uint64_t monotonic_coarse_ = 0;
+        uint64_t monotonic_raw_ = 0;
     } __attribute__((packed));
     HeaderData data_ = {};
     uint8_t padding_[HEADER_SIZE - sizeof(data_)] = {};

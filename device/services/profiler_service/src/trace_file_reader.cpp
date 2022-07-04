@@ -101,7 +101,8 @@ bool TraceFileReader::ReadData(uint8_t buffer[], uint32_t bufferSize)
     CHECK_TRUE(!stream_.eof(), false, "no more data in file %s stream", path_.c_str());
 
     stream_.read(reinterpret_cast<CharPtr>(buffer), bufferSize);
-    RETURN_IF(stream_.eof(), false, "read file end");
+    RETURN_IF(stream_.eof(), false, "read file end. read data bytes from %s failed! (offset %zu)",
+              path_.c_str(), GetReadPos(stream_));
     CHECK_TRUE(stream_, false, "read data bytes from %s (offset %zu) failed!", path_.c_str(), GetReadPos(stream_));
     CHECK_TRUE(helper_.AddSegment(buffer, bufferSize), false, "Add payload for data bytes failed!");
     return true;
