@@ -267,14 +267,15 @@ bool ShareMemoryBlock::PutRawTimeout(const int8_t* data, uint32_t size)
     return true;
 }
 
-bool ShareMemoryBlock::PutWithPayloadTimeout(const int8_t* header, uint32_t headerSize, const int8_t* payload, uint32_t payloadSize)
+bool ShareMemoryBlock::PutWithPayloadTimeout(const int8_t* header, uint32_t headerSize,
+    const int8_t* payload, uint32_t payloadSize)
 {
     CHECK_NOTNULL(header_, false, "header not ready!");
 
     struct timespec time_out;
     clock_gettime(CLOCK_REALTIME, &time_out);
     time_out.tv_sec += TIMEOUT_SEC;
-    if (pthread_mutex_timedlock(&header_->info.mutex_, &time_out) != 0 ) {
+    if (pthread_mutex_timedlock(&header_->info.mutex_, &time_out) != 0) {
         HILOG_ERROR(LOG_CORE, "PutRawTimeout failed %d", errno);
         return false;
     }

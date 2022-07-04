@@ -25,6 +25,7 @@
 
 namespace COMMON {
 constexpr int LINE_SIZE = 1000;
+constexpr int EXECVP_ERRNO = 2;
 const std::string DEFAULT_PATH = "/data/local/tmp/";
 
 bool IsProcessRunning()
@@ -83,7 +84,10 @@ int StartProcess(const std::string& processBin, std::vector<char*>& argv)
     if (pid == 0) {
         argv.push_back(nullptr); // last item in argv must be NULL
         int retval = execvp(processBin.c_str(), argv.data());
-        CHECK_TRUE(retval != -1, false, "execv %s failed, %d!", processBin.c_str(), errno);
+        if (retval == -1 && errno == EXECVP_ERRNO) {
+            printf("warning: %s does not exist!\n", processBin.c_str());
+            HILOG_WARN(LOG_CORE, "warning: %s does not exist!", processBin.c_str());
+        }
         _exit(EXIT_FAILURE);
     }
 
