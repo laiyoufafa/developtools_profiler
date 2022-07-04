@@ -25,6 +25,7 @@
 
 namespace COMMON {
 constexpr int LINE_SIZE = 1000;
+constexpr int EXECVP_ERRNO = 2;
 const std::string DEFAULT_PATH = "/data/local/tmp/";
 
 bool IsProcessRunning()

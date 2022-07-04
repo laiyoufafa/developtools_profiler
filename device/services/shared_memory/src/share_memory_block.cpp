@@ -267,6 +267,44 @@ bool ShareMemoryBlock::PutRawTimeout(const int8_t* data, uint32_t size)
     return true;
 }
 
+bool ShareMemoryBlock::PutWithPayloadTimeout(const int8_t* header, uint32_t headerSize, const int8_t* payload, uint32_t payloadSize)
+{
+    CHECK_NOTNULL(header_, false, "header not ready!");
+
+    struct timespec time_out;
+    clock_gettime(CLOCK_REALTIME, &time_out);
+    time_out.tv_sec += TIMEOUT_SEC;
+    if (pthread_mutex_timedlock(&header_->info.mutex_, &time_out) != 0 ) {
+        HILOG_ERROR(LOG_CORE, "PutRawTimeout failed %d", errno);
+        return false;
+    }
+
+    int8_t* rawMemory = GetFreeMemory(headerSize + payloadSize);
+    if (rawMemory == nullptr) {
+        HILOG_ERROR(LOG_CORE, "PutRaw not enough space [%d]", headerSize + payloadSize);
+        pthread_mutex_unlock(&header_->info.mutex_);
+        return false;
+    }
+    if (memcpy_s(rawMemory, headerSize, header, headerSize) != EOK) {
+        HILOG_ERROR(LOG_CORE, "memcpy_s header error");
+        pthread_mutex_unlock(&header_->info.mutex_);
+        return false;
+    }
+    if (payloadSize > 0) {
+        if (memcpy_s(rawMemory + headerSize, payloadSize, payload, payloadSize) != EOK) {
+            HILOG_ERROR(LOG_CORE, "memcpy_s payload error");
+            pthread_mutex_unlock(&header_->info.mutex_);
+            return false;
+        }
+    }
+    UseFreeMemory(rawMemory, headerSize + payloadSize);
+    ++header_->info.bytesCount_;
+    ++header_->info.chunkCount_;
+
+    pthread_mutex_unlock(&header_->info.mutex_);
+    return true;
+}
+
 #ifndef NO_PROTOBUF
 bool ShareMemoryBlock::PutMessage(const google::protobuf::Message& pmsg)
 {

@@ -16,6 +16,13 @@
 #ifndef HOOK_COMMON_H
 #define HOOK_COMMON_H
 
+#include "register.h"
+#include "utilities.h"
+
+#define MAX_THREAD_NAME (16)
+
+constexpr size_t kMaxRegSize = sizeof(uint64_t)
+    * OHOS::Developtools::NativeDaemon::PERF_REG_ARM64_MAX;
 
 enum {
     MALLOCDISABLE = (1u << 0),
@@ -31,5 +38,16 @@ enum {
     MUNMAP_MSG,
     MEMORY_TAG,
 };
+
+typedef struct alignas(8) {
+    char regs[kMaxRegSize];
+    char tname[MAX_THREAD_NAME];
+    struct timespec ts;
+    void* addr;
+    size_t mallocSize;
+    uint32_t pid;
+    uint32_t tid;
+    uint32_t type;
+} StackRawData;
 
 #endif // HOOK_SERVICE_H

@@ -48,6 +48,9 @@ public:
     bool Finish();
 
 private:
+    void SetTimeStamp();
+
+private:
     std::string path_ {};
     std::ofstream stream_ {};
     uint64_t writeBytes_ = 0;

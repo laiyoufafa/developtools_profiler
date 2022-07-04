@@ -14,19 +14,20 @@
  */
 #include <thread>
 
+#include "common.h"
 #include "command_poller.h"
 #include "hook_manager.h"
 #include "logging.h"
 #include "plugin_service_types.pb.h"
 #include "writer_adapter.h"
 #include "hook_standalone.h"
-
+#include "hook_common.h"
 namespace {
 const int SLEEP_ONE_SECOND = 1000;
 const int BUF_MAX_LEN = 10;
 const int VC_ARG_TWAIN = 2;
 const int VC_ARG_STEP_SIZE = 2;
-const int SMBSIZE_BASE = 2;
+const int SMBSIZE_BASE = 4096;
 
 bool ProcessExist(std::string pid)
 {
@@ -104,8 +105,11 @@ bool VerifyCommand(std::vector<std::string> args, HookData& hookData)
     if (!ParseCommand(args, hookData)) {
         return false;
     }
-    if (!hookData.fileName.empty() && ((hookData.smbSize % SMBSIZE_BASE) == 0) &&
-        (!hookData.processName.empty() || hookData.pid > 0)) {
+    if ((hookData.smbSize % SMBSIZE_BASE) != 0) {
+        printf("Please configure a multiple of 4096 for the shared memory size\n");
+        return false;
+    }
+    if (!hookData.fileName.empty() && (!hookData.processName.empty() || hookData.pid > 0)) {
         return true;
     }
     return false;
@@ -155,12 +159,16 @@ void GetHookedProceInfo(HookData& hookData)
 
 int main(int argc, char* argv[])
 {
+    if (COMMON::IsProcessRunning()) { // process is running
+        return 0;
+    }
+
     if (argc > 1) {
         std::vector<std::string> args;
         for (int i = 1; i < argc; i++) {
             args.push_back(argv[i]);
         }
-        HookData hookData = {0, 0, 0, 0, 0, "", "", "", false, false, true, true};
+        HookData hookData = {0, 0, 0, 0, 0, "", "", "", false, false, false, false};
         if (VerifyCommand(args, hookData)) {
             GetHookedProceInfo(hookData);
         } else {

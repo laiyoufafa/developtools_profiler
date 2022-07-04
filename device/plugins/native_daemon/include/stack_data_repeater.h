@@ -22,36 +22,40 @@
 #include "logging.h"
 #include "nocopyable.h"
 #include "native_hook_result.pb.h"
+#include "hook_common.h"
+#include "utilities.h"
 
 using BatchNativeHookDataPtr = STD_PTR(shared, BatchNativeHookData);
 
 class StackDataRepeater {
 public:
+    struct RawStack {
+        StackRawData stackConext;
+        bool reportFlag;
+        uint32_t stackSize;
+        std::unique_ptr<uint8_t[]> stackData;
+    };
+
     explicit StackDataRepeater(size_t maxSize);
     ~StackDataRepeater();
-
-    bool PutStackData(const BatchNativeHookDataPtr& pluginData);
-
-    BatchNativeHookDataPtr TakeStackData();
-
-    int TakeStackData(std::vector<BatchNativeHookDataPtr>& dataVec);
-
+    bool PutRawStack(const std::shared_ptr<RawStack>& rawData);
+    std::shared_ptr<RawStack> TakeRawData(uint32_t during, uint32_t max_size);
     void Close();
-
     void Reset();
-
     size_t Size();
 
 private:
     std::mutex mutex_;
     std::condition_variable slotCondVar_;
     std::condition_variable itemCondVar_;
-    std::deque<BatchNativeHookDataPtr> dataQueue_;
+    std::deque<std::shared_ptr<RawStack>> rawDataQueue_;
     size_t maxSize_;
     bool closed_;
 
     DISALLOW_COPY_AND_MOVE(StackDataRepeater);
 };
+
+using RawStackPtr = STD_PTR(shared, StackDataRepeater::RawStack);
 
 using StackDataRepeaterPtr = STD_PTR(shared, StackDataRepeater);
 

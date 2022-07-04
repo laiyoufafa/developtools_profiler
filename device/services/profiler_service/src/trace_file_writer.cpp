@@ -46,6 +46,24 @@ bool TraceFileWriter::SetPluginConfig(const void* data, size_t size)
     return true;
 }
 
+void TraceFileWriter::SetTimeStamp()
+{
+    constexpr uint32_t NANOSECONDS = 1000000000;
+    struct timespec ts;
+    clock_gettime(CLOCK_BOOTTIME, &ts);
+    header_.data_.boottime_ = ts.tv_sec * NANOSECONDS + ts.tv_nsec;
+    clock_gettime(CLOCK_REALTIME, &ts);
+    header_.data_.realtime_ = ts.tv_sec * NANOSECONDS + ts.tv_nsec;
+    clock_gettime(CLOCK_REALTIME_COARSE, &ts);
+    header_.data_.realtime_coarse_ = ts.tv_sec * NANOSECONDS + ts.tv_nsec;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    header_.data_.monotonic_ = ts.tv_sec * NANOSECONDS + ts.tv_nsec;
+    clock_gettime(CLOCK_MONOTONIC_COARSE, &ts);
+    header_.data_.monotonic_coarse_ = ts.tv_sec * NANOSECONDS + ts.tv_nsec;
+    clock_gettime(CLOCK_MONOTONIC_RAW, &ts);
+    header_.data_.monotonic_raw_ = ts.tv_sec * NANOSECONDS + ts.tv_nsec;
+}
+
 bool TraceFileWriter::Open(const std::string& path)
 {
     stream_.open(path, std::ios_base::out | std::ios_base::binary);
@@ -99,6 +117,7 @@ bool TraceFileWriter::Finish()
     stream_.seekp(0);
     CHECK_TRUE(stream_, 0, "seek write position to head for %s failed!", path_.c_str());
 
+    SetTimeStamp(); // add timestamp in header
     // write final header
     stream_.write(reinterpret_cast<CharPtr>(&header_), sizeof(header_));
     CHECK_TRUE(stream_, 0, "write final header to %s failed!", path_.c_str());

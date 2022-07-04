@@ -13,24 +13,24 @@
  * limitations under the License.
  */
 
-#include "hook_client.h"
-
-#include <dlfcn.h>
-#include <fcntl.h>
-#include <sys/time.h>
-
 #include <atomic>
 #include <climits>
+#include <dlfcn.h>
+#include <fcntl.h>
 #include <string>
+#include <sys/time.h>
+#include <pthread.h>
+#include <sys/prctl.h>
 
-#include "get_thread_id.h"
 #include "hook_common.h"
 #include "hook_socket_client.h"
 #include "musl_preinit_common.h"
-#include "register.h"
-#include "runtime_stack_range.h"
 #include "stack_writer.h"
+#include "runtime_stack_range.h"
+#include "register.h"
 #include "virtual_runtime.h"
+#include "get_thread_id.h"
+#include "hook_client.h"
 
 static __thread bool ohos_malloc_hook_enable_hook_flag = true;
 namespace {
@@ -83,16 +83,9 @@ void* hook_malloc(void* (*fn)(size_t), size_t size)
     if ((size < g_hookClient->GetFilterSize()) || g_hookClient->GetMallocDisable()) {
         return ret;
     }
-    int regCount = OHOS::Developtools::NativeDaemon::RegisterGetCount();
-    if (regCount <= 0) {
-        return ret;
-    }
-    uint64_t* regs = new (std::nothrow) uint64_t[regCount];
-    if (!regs) {
-        HILOG_ERROR(LOG_CORE, "new regs failed");
-        return ret;
-    }
 
+    StackRawData rawdata = {{0}};
+    uint64_t* regs = reinterpret_cast<uint64_t*>(&(rawdata.regs));
 #if defined(__arm__)
     asm volatile(
         "mov r3, r13\n"
@@ -117,56 +110,14 @@ void* hook_malloc(void* (*fn)(size_t), size_t size)
     const char* stackendptr = nullptr;
     GetRuntimeStackEnd(stackptr, &stackendptr);  // stack end pointer
     int stackSize = stackendptr - stackptr;
-    pid_t pid = getpid();
-    pid_t tid = get_thread_id();
+    clock_gettime(CLOCK_REALTIME, &rawdata.ts);
 
-    struct timespec ts = {};
-    clock_gettime(CLOCK_REALTIME, &ts);
-
-    uint32_t type = MALLOC_MSG;
-
-    size_t metaSize = sizeof(ts) + sizeof(type) + sizeof(size_t) + sizeof(void*) + sizeof(stackSize) + stackSize +
-                      sizeof(pid_t) + sizeof(pid_t) + regCount * sizeof(uint64_t);
-    std::unique_ptr<uint8_t[]> buffer = std::make_unique<uint8_t[]>(metaSize);
-    size_t totalSize = metaSize;
-
-    if (memcpy_s(buffer.get(), totalSize, &ts, sizeof(ts)) != EOK) {
-        HILOG_ERROR(LOG_CORE, "memcpy_s ts failed");
-    }
-    metaSize = sizeof(ts);
-    if (memcpy_s(buffer.get() + metaSize, totalSize - metaSize, &type, sizeof(type)) != EOK) {
-        HILOG_ERROR(LOG_CORE, "memcpy_s type failed");
-    }
-    metaSize += sizeof(type);
-    if (memcpy_s(buffer.get() + metaSize, totalSize - metaSize, &size, sizeof(size)) != EOK) {
-        HILOG_ERROR(LOG_CORE, "memcpy_s size failed");
-    }
-    metaSize += sizeof(size);
-    if (memcpy_s(buffer.get() + metaSize, totalSize - metaSize, &ret, sizeof(void*)) != EOK) {
-        HILOG_ERROR(LOG_CORE, "memcpy_s ret failed");
-    }
-    metaSize += sizeof(void*);
-    if (memcpy_s(buffer.get() + metaSize, totalSize - metaSize, &stackSize, sizeof(stackSize)) != EOK) {
-        HILOG_ERROR(LOG_CORE, "memcpy_s stackSize failed");
-    }
-    metaSize += sizeof(stackSize);
-    if (memcpy_s(buffer.get() + metaSize, totalSize - metaSize, stackptr, stackSize) != EOK) {
-        HILOG_ERROR(LOG_CORE, "memcpy_s stackptr failed");
-    }
-    metaSize += stackSize;
-    if (memcpy_s(buffer.get() + metaSize, totalSize - metaSize, &pid, sizeof(pid)) != EOK) {
-        HILOG_ERROR(LOG_CORE, "memcpy_s stackptr failed");
-    }
-    metaSize += sizeof(pid_t);
-    if (memcpy_s(buffer.get() + metaSize, totalSize - metaSize, &tid, sizeof(tid)) != EOK) {
-        HILOG_ERROR(LOG_CORE, "memcpy_s tid failed");
-    }
-    metaSize += sizeof(pid_t);
-    if (memcpy_s(buffer.get() + metaSize, totalSize - metaSize, regs, regCount * sizeof(uint64_t)) != EOK) {
-        HILOG_ERROR(LOG_CORE, "memcpy_s regs failed");
-    }
-    metaSize += regCount * sizeof(uint64_t);
-    delete[] regs;
+    rawdata.type = MALLOC_MSG;
+    rawdata.pid = getpid();
+    rawdata.tid = get_thread_id();
+    rawdata.mallocSize = size;
+    rawdata.addr = ret;
+    prctl(PR_GET_NAME, rawdata.tname);
 
     std::unique_lock<std::recursive_timed_mutex> lck(g_ClientMutex, std::defer_lock);
     std::chrono::time_point<std::chrono::steady_clock> timeout =
@@ -176,7 +127,7 @@ void* hook_malloc(void* (*fn)(size_t), size_t size)
         return ret;
     }
     if (g_hookClient != nullptr) {
-        g_hookClient->SendStack(buffer.get(), metaSize);
+        g_hookClient->SendStackWithPayload(&rawdata, sizeof(rawdata), stackptr, stackSize);
     }
     return ret;
 }
@@ -242,17 +193,15 @@ void hook_free(void (*free_func)(void*), void* p)
         return;
     }
 
-    int regCount = OHOS::Developtools::NativeDaemon::RegisterGetCount();
-    if (regCount <= 0) {
-        return;
-    }
-    uint64_t* regs = new (std::nothrow) uint64_t[regCount];
-    if (!regs) {
-        HILOG_ERROR(LOG_CORE, "new regs failed");
-        return;
-    }
-#if defined(__arm__)
-    asm volatile(
+    int stackSize = 0;
+    StackRawData rawdata = {{0}};
+    const char* stackptr = nullptr;
+    const char* stackendptr = nullptr;
+
+    if (g_hookClient->GetFreeStackData()) {
+        uint64_t* regs = reinterpret_cast<uint64_t*>(&(rawdata.regs));
+    #if defined(__arm__)
+        asm volatile(
         "mov r3, r13\n"
         "mov r4, r15\n"
         "stmia %[base], {r3-r4}\n"
@@ -270,66 +219,19 @@ void hook_free(void (*free_func)(void*), void* p)
         : [ base ] "+r"(regs)
         :
         : "x12", "x13", "memory");
-#endif
-    const char* stackptr = reinterpret_cast<const char*>(regs[RegisterGetSP(buildArchType)]);
-    const char* stackendptr = nullptr;
-    int stackSize = 0;
-
-    if (g_hookClient->GetFreeStackData()) {
+    #endif
+        stackptr = reinterpret_cast<const char*>(regs[RegisterGetSP(buildArchType)]);
         GetRuntimeStackEnd(stackptr, &stackendptr);  // stack end pointer
         stackSize = stackendptr - stackptr;
     }
-    pid_t tid = get_thread_id();
-    pid_t pid = getpid();
-    uint32_t type = FREE_MSG;
-    struct timespec ts = {};
-    clock_gettime(CLOCK_REALTIME, &ts);
+    clock_gettime(CLOCK_REALTIME, &rawdata.ts);
 
-    size_t metaSize = sizeof(ts) + sizeof(type) + sizeof(size_t) + sizeof(void*) + sizeof(stackSize) + stackSize +
-                      sizeof(pid_t) + sizeof(pid_t) + regCount * sizeof(uint64_t);
-    std::unique_ptr<uint8_t[]> buffer = std::make_unique<uint8_t[]>(metaSize);
-    int totalSize = metaSize;
-
-    if (memcpy_s(buffer.get(), totalSize, &ts, sizeof(ts)) != EOK) {
-        HILOG_ERROR(LOG_CORE, "memcpy_s ts failed");
-    }
-    metaSize = sizeof(ts);
-    if (memcpy_s(buffer.get() + metaSize, totalSize - metaSize, &type, sizeof(type)) != EOK) {
-        HILOG_ERROR(LOG_CORE, "memcpy_s type failed");
-    }
-    metaSize += sizeof(type);
-    if (memset_s(buffer.get() + metaSize, totalSize - metaSize, 0, sizeof(size_t)) != EOK) {
-        HILOG_ERROR(LOG_CORE, "memset_s data failed");
-    }
-    metaSize += sizeof(size_t);
-    if (memcpy_s(buffer.get() + metaSize, totalSize - metaSize, &p, sizeof(void*)) != EOK) {
-        HILOG_ERROR(LOG_CORE, "memcpy_s ptr failed");
-    }
-    metaSize += sizeof(void*);
-    if (memcpy_s(buffer.get() + metaSize, totalSize - metaSize, &stackSize, sizeof(stackSize)) != EOK) {
-        HILOG_ERROR(LOG_CORE, "memcpy_s stackSize failed");
-    }
-    metaSize += sizeof(stackSize);
-
-    if (stackSize > 0) {
-        if (memcpy_s(buffer.get() + metaSize, totalSize - metaSize, stackptr, stackSize) != EOK) {
-            HILOG_ERROR(LOG_CORE, "memcpy_s stackptr failed");
-        }
-        metaSize += stackSize;
-    }
-    if (memcpy_s(buffer.get() + metaSize, totalSize - metaSize, &pid, sizeof(pid)) != EOK) {
-        HILOG_ERROR(LOG_CORE, "memcpy_s pid failed");
-    }
-    metaSize += sizeof(pid_t);
-    if (memcpy_s(buffer.get() + metaSize, totalSize - metaSize, &tid, sizeof(tid)) != EOK) {
-        HILOG_ERROR(LOG_CORE, "memcpy_s tid failed");
-    }
-    metaSize += sizeof(pid_t);
-    if (memcpy_s(buffer.get() + metaSize, totalSize - metaSize, regs, regCount * sizeof(uint64_t)) != EOK) {
-        HILOG_ERROR(LOG_CORE, "memcpy_s regs failed");
-    }
-    metaSize += regCount * sizeof(uint64_t);
-    delete[] regs;
+    rawdata.type = FREE_MSG;
+    rawdata.pid = getpid();
+    rawdata.tid = get_thread_id();
+    rawdata.mallocSize = 0;
+    rawdata.addr = p;
+    prctl(PR_GET_NAME, rawdata.tname);
 
     std::unique_lock<std::recursive_timed_mutex> lck(g_ClientMutex, std::defer_lock);
     std::chrono::time_point<std::chrono::steady_clock> timeout =
@@ -339,12 +241,12 @@ void hook_free(void (*free_func)(void*), void* p)
         return;
     }
     if (g_hookClient != nullptr) {
-        g_hookClient->SendStack(buffer.get(), metaSize);
+        g_hookClient->SendStackWithPayload(&rawdata, sizeof(rawdata), stackptr, stackSize);
     }
 }
 
-void* hook_mmap(void* (*fn)(void*, size_t, int, int, int, off_t), void* addr, size_t length, int prot, int flags,
-                int fd, off_t offset)
+void* hook_mmap(void*(*fn)(void*, size_t, int, int, int, off_t),
+    void* addr, size_t length, int prot, int flags, int fd, off_t offset)
 {
     void* ret = nullptr;
     if (fn) {
@@ -359,15 +261,8 @@ void* hook_mmap(void* (*fn)(void*, size_t, int, int, int, off_t), void* addr, si
         return ret;
     }
 
-    int regCount = OHOS::Developtools::NativeDaemon::RegisterGetCount();
-    if (regCount <= 0) {
-        return ret;
-    }
-    uint64_t* regs = new (std::nothrow) uint64_t[regCount];
-    if (!regs) {
-        HILOG_ERROR(LOG_CORE, "new regs failed");
-        return ret;
-    }
+    StackRawData rawdata = {{0}};
+    uint64_t* regs = reinterpret_cast<uint64_t*>(&(rawdata.regs));
 
 #if defined(__arm__)
     asm volatile(
@@ -393,58 +288,14 @@ void* hook_mmap(void* (*fn)(void*, size_t, int, int, int, off_t), void* addr, si
     const char* stackendptr = nullptr;
     GetRuntimeStackEnd(stackptr, &stackendptr);  // stack end pointer
     int stackSize = stackendptr - stackptr;
-    pid_t pid = getpid();
-    pid_t tid = get_thread_id();
 
-    struct timespec ts = {};
-    clock_gettime(CLOCK_REALTIME, &ts);
-
-    uint32_t type = MMAP_MSG;
-
-    size_t metaSize = sizeof(ts) + sizeof(type) + sizeof(length) + sizeof(void*) + sizeof(stackSize) + stackSize +
-                      sizeof(pid_t) + sizeof(pid_t) + regCount * sizeof(uint64_t);
-    std::unique_ptr<uint8_t[]> buffer = std::make_unique<uint8_t[]>(metaSize);
-    size_t totalSize = metaSize;
-
-    if (memcpy_s(buffer.get(), totalSize, &ts, sizeof(ts)) != EOK) {
-        HILOG_ERROR(LOG_CORE, "memcpy_s ts failed");
-    }
-    metaSize = sizeof(ts);
-    if (memcpy_s(buffer.get() + metaSize, totalSize - metaSize, &type, sizeof(type)) != EOK) {
-        HILOG_ERROR(LOG_CORE, "memcpy_s type failed");
-    }
-    metaSize += sizeof(type);
-    if (memcpy_s(buffer.get() + metaSize, totalSize - metaSize, &length, sizeof(length)) != EOK) {
-        HILOG_ERROR(LOG_CORE, "memcpy_s length failed");
-    }
-    metaSize += sizeof(length);
-    if (memcpy_s(buffer.get() + metaSize, totalSize - metaSize, &ret, sizeof(void*)) != EOK) {
-        HILOG_ERROR(LOG_CORE, "memcpy_s addr failed");
-    }
-    metaSize += sizeof(ret);
-    if (memcpy_s(buffer.get() + metaSize, totalSize - metaSize, &stackSize, sizeof(stackSize)) != EOK) {
-        HILOG_ERROR(LOG_CORE, "memcpy_s stackSize failed");
-    }
-    metaSize += sizeof(stackSize);
-    if (stackSize > 0) {
-        if (memcpy_s(buffer.get() + metaSize, totalSize - metaSize, stackptr, stackSize) != EOK) {
-            HILOG_ERROR(LOG_CORE, "memcpy_s stackptr failed");
-        }
-    }
-    metaSize += stackSize;
-    if (memcpy_s(buffer.get() + metaSize, totalSize - metaSize, &pid, sizeof(pid)) != EOK) {
-        HILOG_ERROR(LOG_CORE, "memcpy_s stackptr failed");
-    }
-    metaSize += sizeof(pid_t);
-    if (memcpy_s(buffer.get() + metaSize, totalSize - metaSize, &tid, sizeof(tid)) != EOK) {
-        HILOG_ERROR(LOG_CORE, "memcpy_s tid failed");
-    }
-    metaSize += sizeof(pid_t);
-    if (memcpy_s(buffer.get() + metaSize, totalSize - metaSize, regs, regCount * sizeof(uint64_t)) != EOK) {
-        HILOG_ERROR(LOG_CORE, "memcpy_s regs failed");
-    }
-    metaSize += regCount * sizeof(uint64_t);
-    delete[] regs;
+    clock_gettime(CLOCK_REALTIME, &rawdata.ts);
+    rawdata.type = MMAP_MSG;
+    rawdata.pid = getpid();
+    rawdata.tid = get_thread_id();
+    rawdata.mallocSize = length;
+    rawdata.addr = ret;
+    prctl(PR_GET_NAME, rawdata.tname);
 
     std::unique_lock<std::recursive_timed_mutex> lck(g_ClientMutex, std::defer_lock);
     std::chrono::time_point<std::chrono::steady_clock> timeout =
@@ -454,12 +305,12 @@ void* hook_mmap(void* (*fn)(void*, size_t, int, int, int, off_t), void* addr, si
         return ret;
     }
     if (g_hookClient != nullptr) {
-        g_hookClient->SendStack(buffer.get(), metaSize);
+        g_hookClient->SendStackWithPayload(&rawdata, sizeof(rawdata), stackptr, stackSize);
     }
     return ret;
 }
 
-int hook_munmap(int (*fn)(void*, size_t), void* addr, size_t length)
+int hook_munmap(int(*fn)(void*, size_t), void* addr, size_t length)
 {
     int ret = -1;
     if (fn) {
@@ -474,15 +325,14 @@ int hook_munmap(int (*fn)(void*, size_t), void* addr, size_t length)
         return ret;
     }
 
-    int regCount = OHOS::Developtools::NativeDaemon::RegisterGetCount();
-    if (regCount <= 0) {
-        return ret;
-    }
-    uint64_t* regs = new (std::nothrow) uint64_t[regCount];
-    if (!regs) {
-        HILOG_ERROR(LOG_CORE, "new regs failed");
-        return ret;
-    }
+    int stackSize = 0;
+    StackRawData rawdata = {{0}};
+    const char* stackptr = nullptr;
+    const char* stackendptr = nullptr;
+
+    if (g_hookClient->GetMunmapStackData()) {
+
+        uint64_t* regs = reinterpret_cast<uint64_t*>(&(rawdata.regs));
 
 #if defined(__arm__)
     asm volatile(
@@ -504,66 +354,20 @@ int hook_munmap(int (*fn)(void*, size_t), void* addr, size_t length)
         :
         : "x12", "x13", "memory");
 #endif
-    const char* stackptr = reinterpret_cast<const char*>(regs[RegisterGetSP(buildArchType)]);
-    const char* stackendptr = nullptr;
-    int stackSize = 0;
-    if (g_hookClient->GetMunmapStackData()) {
+        stackptr = reinterpret_cast<const char*>(regs[RegisterGetSP(buildArchType)]);
         GetRuntimeStackEnd(stackptr, &stackendptr);  // stack end pointer
         stackSize = stackendptr - stackptr;
     }
-    pid_t pid = getpid();
-    pid_t tid = get_thread_id();
 
-    struct timespec ts = {};
-    clock_gettime(CLOCK_REALTIME, &ts);
+    clock_gettime(CLOCK_REALTIME, &rawdata.ts);
+    rawdata.type = MUNMAP_MSG;
+    rawdata.pid = getpid();
+    rawdata.tid = get_thread_id();
+    rawdata.mallocSize = length;
+    rawdata.addr = addr;
+    prctl(PR_GET_NAME, rawdata.tname);
 
-    uint32_t type = MUNMAP_MSG;
-
-    size_t metaSize = sizeof(ts) + sizeof(type) + sizeof(length) + sizeof(void*) + sizeof(stackSize) + stackSize +
-                      sizeof(pid_t) + sizeof(pid_t) + regCount * sizeof(uint64_t);
-
-    std::unique_ptr<uint8_t[]> buffer = std::make_unique<uint8_t[]>(metaSize);
-    size_t totalSize = metaSize;
-
-    if (memcpy_s(buffer.get(), totalSize, &ts, sizeof(ts)) != EOK) {
-        HILOG_ERROR(LOG_CORE, "memcpy_s ts failed");
-    }
-    metaSize = sizeof(ts);
-    if (memcpy_s(buffer.get() + metaSize, totalSize - metaSize, &type, sizeof(type)) != EOK) {
-        HILOG_ERROR(LOG_CORE, "memcpy_s type failed");
-    }
-    metaSize += sizeof(type);
-    if (memcpy_s(buffer.get() + metaSize, totalSize - metaSize, &length, sizeof(length)) != EOK) {
-        HILOG_ERROR(LOG_CORE, "memcpy_s length failed");
-    }
-    metaSize += sizeof(length);
-    if (memcpy_s(buffer.get() + metaSize, totalSize - metaSize, &addr, sizeof(void*)) != EOK) {
-        HILOG_ERROR(LOG_CORE, "memcpy_s addr failed");
-    }
-    metaSize += sizeof(addr);
-    if (memcpy_s(buffer.get() + metaSize, totalSize - metaSize, &stackSize, sizeof(stackSize)) != EOK) {
-        HILOG_ERROR(LOG_CORE, "memcpy_s stackSize failed");
-    }
-    metaSize += sizeof(stackSize);
-    if (memcpy_s(buffer.get() + metaSize, totalSize - metaSize, stackptr, stackSize) != EOK) {
-        HILOG_ERROR(LOG_CORE, "memcpy_s stackptr failed");
-    }
-    metaSize += stackSize;
-    if (memcpy_s(buffer.get() + metaSize, totalSize - metaSize, &pid, sizeof(pid)) != EOK) {
-        HILOG_ERROR(LOG_CORE, "memcpy_s stackptr failed");
-    }
-    metaSize += sizeof(pid_t);
-    if (memcpy_s(buffer.get() + metaSize, totalSize - metaSize, &tid, sizeof(tid)) != EOK) {
-        HILOG_ERROR(LOG_CORE, "memcpy_s tid failed");
-    }
-    metaSize += sizeof(pid_t);
-    if (memcpy_s(buffer.get() + metaSize, totalSize - metaSize, regs, regCount * sizeof(uint64_t)) != EOK) {
-        HILOG_ERROR(LOG_CORE, "memcpy_s regs failed");
-    }
-    metaSize += regCount * sizeof(uint64_t);
-    delete[] regs;
-
-    std::unique_lock<std::recursive_timed_mutex> lck(g_ClientMutex, std::defer_lock);
+    std::unique_lock<std::recursive_timed_mutex> lck(g_ClientMutex,std::defer_lock);
     std::chrono::time_point<std::chrono::steady_clock> timeout =
         std::chrono::steady_clock::now() + std::chrono::milliseconds(TIMEOUT_MSEC);
     if (!lck.try_lock_until(timeout)) {
@@ -571,12 +375,12 @@ int hook_munmap(int (*fn)(void*, size_t), void* addr, size_t length)
         return ret;
     }
     if (g_hookClient != nullptr) {
-        g_hookClient->SendStack(buffer.get(), metaSize);
+        g_hookClient->SendStackWithPayload(&rawdata, sizeof(rawdata), stackptr, stackSize);
     }
     return ret;
 }
 
-bool ohos_malloc_hook_initialize(const MallocDispatchType* malloc_dispatch, bool*, const char*)
+bool ohos_malloc_hook_initialize(const MallocDispatchType*malloc_dispatch, bool*, const char*)
 {
     g_dispatch.store(malloc_dispatch);
     InititalizeIPC();
@@ -673,33 +477,22 @@ int ohos_malloc_hook_munmap(void* addr, size_t length)
 void ohos_malloc_hook_memtag(void* addr, size_t size, char* tag, size_t tagLen)
 {
     __set_hook_flag(false);
-    uint32_t type = MEMORY_TAG;
 
-    size_t offset = 0;
-    struct timespec ts = {};
-    clock_gettime(CLOCK_REALTIME, &ts);
-    size_t totalSize = sizeof(ts) + sizeof(type) + sizeof(addr) + tagLen;
-    totalSize = (totalSize / 4 * 4 == totalSize) ? totalSize : ((totalSize / 4 + 1) * 4);
-    std::unique_ptr<uint8_t[]> buffer = std::make_unique<uint8_t[]>(totalSize);
+    if (g_hookClient == nullptr) {
+        return;
+    }
+    StackRawData rawdata = {{0}};
+    clock_gettime(CLOCK_REALTIME, &rawdata.ts);
+    rawdata.type = MEMORY_TAG;
+    rawdata.pid = getpid();
+    rawdata.tid = get_thread_id();
+    rawdata.mallocSize = size;
+    rawdata.addr = addr;
 
-    if (memset_s(buffer.get(), totalSize, 0, totalSize) != EOK) {
-        HILOG_ERROR(LOG_CORE, "memset_s data failed");
+    if (memcpy_s(rawdata.tname, sizeof(rawdata.tname), tag, tagLen) != EOK) {
+        HILOG_ERROR(LOG_CORE, "memcpy_s tag failed");
     }
-    if (memcpy_s(buffer.get(), totalSize, &ts, sizeof(ts)) != EOK) {
-        HILOG_ERROR(LOG_CORE, "memcpy_s ts failed");
-    }
-    offset = sizeof(ts);
-    if (memcpy_s(buffer.get() + offset, totalSize - offset, &type, sizeof(type)) != EOK) {
-        HILOG_ERROR(LOG_CORE, "memcpy_s type failed");
-    }
-    offset += sizeof(type);
-    if (memcpy_s(buffer.get() + offset, totalSize - offset, &addr, sizeof(addr)) != EOK) {
-        HILOG_ERROR(LOG_CORE, "memcpy_s stackSize failed");
-    }
-    offset += sizeof(addr);
-    if (memcpy_s(buffer.get() + offset, totalSize - offset, tag, tagLen) != EOK) {
-        HILOG_ERROR(LOG_CORE, "memcpy_s stackSize failed");
-    }
+    rawdata.tname[sizeof(rawdata.tname) - 1] = '\0';
 
     std::unique_lock<std::recursive_timed_mutex> lck(g_ClientMutex,std::defer_lock);
     std::chrono::time_point<std::chrono::steady_clock> timeout =
@@ -709,7 +502,7 @@ void ohos_malloc_hook_memtag(void* addr, size_t size, char* tag, size_t tagLen)
         return;
     }
     if (g_hookClient != nullptr) {
-        g_hookClient->SendStack(buffer.get(), totalSize);
+        g_hookClient->SendStack(&rawdata, sizeof(rawdata));
     }
     __set_hook_flag(true);
 }

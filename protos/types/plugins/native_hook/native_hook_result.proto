@@ -23,6 +23,8 @@ message Frame {
     string file_path = 4;
     uint64 offset = 5;
     uint64 symbol_offset = 6;
+    uint32 symbol_name_id = 7;
+    uint32 file_path_id = 8;
 }
 
 message AllocEvent {
@@ -31,6 +33,7 @@ message AllocEvent {
     uint64 addr = 3;
     uint32 size = 4;
     repeated Frame frame_info = 5;
+    uint32 thread_name_id = 6;
 }
 
 message FreeEvent {
@@ -38,6 +41,7 @@ message FreeEvent {
     int32 tid = 2;
     uint64 addr = 3;
     repeated Frame frame_info = 4;
+    uint32 thread_name_id = 5;
 }
 
 message MmapEvent {
@@ -47,6 +51,7 @@ message MmapEvent {
     string type = 4;
     uint32 size = 5;
     repeated Frame frame_info = 6;
+    uint32 thread_name_id = 7;
 }
 
 message MunmapEvent {
@@ -55,6 +60,28 @@ message MunmapEvent {
     uint64 addr = 3;
     uint32 size = 4;
     repeated Frame frame_info = 5;
+    uint32 thread_name_id = 6;
+}
+
+message MemTagEvent {
+    uint64 addr = 1;
+    uint32 size = 2;
+    string tag = 3;
+}
+
+message FilePathMap {
+    uint32 id = 1;
+    string name = 2;
+}
+
+message SymbolMap {
+    uint32 id = 1;
+    string name = 2;
+}
+
+message ThreadNameMap {
+    uint32 id = 1;
+    string name = 2;
 }
 
 message NativeHookData {
@@ -65,6 +92,10 @@ message NativeHookData {
         FreeEvent free_event = 4;
         MmapEvent mmap_event = 5;
         MunmapEvent munmap_event = 6;
+        MemTagEvent tag_event = 7;
+        FilePathMap file_path = 8;
+        SymbolMap symbol_name = 9;
+        ThreadNameMap thread_name_map = 10;
     }
 }
 

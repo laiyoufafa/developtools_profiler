@@ -68,12 +68,9 @@ public:
     void SetCommandPoller(const std::shared_ptr<CommandPoller>& p) override;
 
 private:
-    void writeFrames(const struct timespec& ts, HookContext& hookContext,
-        const std::vector<OHOS::Developtools::NativeDaemon::CallFrame>& callsFrames);
     void ReadShareMemory();
     void RegisterWriter(const BufferWriterPtr& writer);
     bool SendProtobufPackage(uint8_t *cache, size_t length);
-    void SetFrameInfo(Frame& frame, OHOS::Developtools::NativeDaemon::CallFrame& callsFrame);
     bool CheckProcess();
     void CheckProcessName();
     void SetHookData(HookContext& hookContext, struct timespec ts,
@@ -89,11 +86,7 @@ private:
     std::shared_ptr<EventNotifier> eventNotifier_;
     NativeHookConfig hookConfig_;
     std::string smbName_;
-    std::unique_ptr<FILE, decltype(&fclose)> fpHookData_;
-    std::shared_ptr<OHOS::Developtools::NativeDaemon::VirtualRuntime> runtime_instance;
     std::unique_ptr<uint8_t[]> buffer_;
-    std::mutex bufferMutex_;
-
     StackDataRepeaterPtr stackData_;
     std::shared_ptr<StackPreprocess> stackPreprocess_;
     int pid_;

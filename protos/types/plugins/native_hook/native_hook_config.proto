@@ -29,4 +29,7 @@ message NativeHookConfig {
     bool mmap_disable = 9;
     bool free_stack_report = 10;
     bool munmap_stack_report = 11;
+    uint32 malloc_free_matching_interval = 12;
+    uint32 malloc_free_matching_cnt = 13;
+    bool string_compressed = 14;
 }

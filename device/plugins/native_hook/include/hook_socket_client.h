@@ -57,6 +57,7 @@ public:
     }
 
     bool SendStack(const void* data, size_t size);
+    bool SendStackWithPayload(const void* data, size_t size, const void* payload, size_t payloadSize);
 private:
     std::shared_ptr<UnixSocketClient> unixSocketClient_;
     int smbFd_;
