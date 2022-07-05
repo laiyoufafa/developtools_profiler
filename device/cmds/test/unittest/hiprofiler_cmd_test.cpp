@@ -288,7 +288,7 @@ HWTEST_F(HiprofilerCmdTest, DFX_DFR_Hiprofiler_0110, Function | MediumTest | Lev
     content = "";
     cmd = DEFAULT_HIPROFILER_CMD_PATH + " -q";
     EXPECT_TRUE(RunCommand(cmd, content));
-    destStr = "FAIL";
+    destStr = "Service not started";
     EXPECT_EQ(strncmp(content.c_str(), destStr.c_str(), strlen(destStr.c_str())), 0);
 
     StartServerStub(DEFAULT_HIPROFILERD_PATH);
