@@ -132,10 +132,6 @@ static bool ExecuteProcess(const std::string& bin,
                            bool out2pipe,
                            bool err2pipe)
 {
-    CHECK_TRUE(close(STDIN_FILENO) != -1, false, "close stdin failed, %d", errno);
-    CHECK_TRUE(close(STDOUT_FILENO) != -1, false, "close stdout failed, %d", errno);
-    CHECK_TRUE(close(STDERR_FILENO) != -1, false, "close stderr failed, %d", errno);
-
     // redirect /dev/null to stdin
     int nullFd = open("/dev/null", O_RDONLY);
     int inFd = nullFd;
