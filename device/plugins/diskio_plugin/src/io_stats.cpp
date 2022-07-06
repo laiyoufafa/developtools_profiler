@@ -413,7 +413,7 @@ uint32_t IoStats::ParseLineFields(const std::string& line, std::string& name)
         if (*pTmp >= 'a' && *pTmp <= 'z') {
             char field[64];
             int len = 0;
-            int ret = sscanf_s(pTmp, "%63s %d", field, sizeof(field), &len);
+            int ret = sscanf_s(pTmp, "%63s %n", field, sizeof(field), &len);
             if (ret == 1 && *field) {
                 name = std::string(field, strlen(field));
                 pTmp += len;
