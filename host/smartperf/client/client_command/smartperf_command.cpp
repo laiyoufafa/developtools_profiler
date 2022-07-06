@@ -26,30 +26,24 @@ namespace OHOS {
 namespace SmartPerf {
 SmartPerfCommand::SmartPerfCommand(int argc, char *argv[])
 {
-    if (argc == ONE_PARAM) {
+    if (argc == oneParam) {
         daemon(0, 0);
-        initSomething();
-        SpThreadSocket SpThreadSocket;
-        std::thread tSocket(&SpThreadSocket::Process, SpThreadSocket);
+        InitSomething();
+        SpThreadSocket spThreadSocket;
+        std::thread tSocket(&SpThreadSocket::Process, spThreadSocket);
         tSocket.join();
     }
-    if (argc == TWO_PARAM) {
+    if (argc == twoParam) {
         auto iterator = commandHelpMap.begin();
         while (iterator != commandHelpMap.end()) {
             if (strcmp(argv[1], iterator->second.c_str()) == 0) {
-                if (iterator->first == CommandHelp::HELP) {
-                    std::cout << SmartPerf_MSG << std::endl;
-                    break;
-                }
-                if (iterator->first == CommandHelp::VERSION) {
-                    std::cout << SmartPerf_VERSION << std::endl;
-                    break;
-                }
+                HelpCommand(iterator->first);
+                break;
             }
             ++iterator;
         }
     }
-    if (argc >= THREE_PARAM_MORE) {
+    if (argc >= threeParamMore) {
         for (int i = 1; i <= argc - 1; i++) {
             std::string argStr = argv[i];
             std::string argStr1;
@@ -60,6 +54,15 @@ SmartPerfCommand::SmartPerfCommand(int argc, char *argv[])
                 HandleCommand(argStr, argStr1);
             }
         }
+    }
+}
+void SmartPerfCommand::HelpCommand(CommandHelp type)
+{
+    if (type == CommandHelp::HELP) {
+        std::cout << smartPerfMsg << std::endl;
+    }
+    if (type == CommandHelp::VERSION) {
+        std::cout << smartPerfVersion << std::endl;
     }
 }
 void SmartPerfCommand::HandleCommand(std::string argStr, std::string argStr1)
@@ -96,8 +99,8 @@ void SmartPerfCommand::HandleCommand(std::string argStr, std::string argStr1)
             std::cout << "other unknown args:" << argStr << std::endl;
             break;
     }
-    SpProfilerFactory::setProfilerPid(pid);
-    SpProfilerFactory::setProfilerPkg(pkgName);
+    SpProfilerFactory::SetProfilerPid(pid);
+    SpProfilerFactory::SetProfilerPkg(pkgName);
 }
 
 std::string SmartPerfCommand::ExecCommand()
@@ -111,19 +114,18 @@ std::string SmartPerfCommand::ExecCommand()
 
         for (size_t j = 0; j < configs.size(); j++) {
             std::string curParam = configs[j];
-            SpProfiler *profiler = SpProfilerFactory::getCmdProfilerItem(commandMap.at(curParam));
+            SpProfiler *profiler = SpProfilerFactory::GetCmdProfilerItem(commandMap.at(curParam));
             if (profiler != nullptr) {
                 std::map<std::string, std::string> data = profiler->ItemData();
                 std::map<std::string, std::string> tempData = spMap;
-                tempData.insert(data.begin(), data.end());
+                tempData.insert(data.cbegin(), data.cend());
                 spMap = tempData;
             }
         }
 
         std::cout << std::endl;
-        std::map<std::string, std::string>::iterator iter;
         int i = 0;
-        for (iter = spMap.begin(); iter != spMap.end(); ++iter) {
+        for (auto iter = spMap.cbegin(); iter != spMap.cend(); ++iter) {
             printf("order:%d %s=%s\n", i, iter->first.c_str(), iter->second.c_str());
             i++;
         }
@@ -135,10 +137,10 @@ std::string SmartPerfCommand::ExecCommand()
         sleep(1);
         index++;
     }
-    SpCsvUtil::writeCsv(std::string(outPath.c_str()), vmap);
+    SpCsvUtil::WriteCsv(std::string(outPath.c_str()), vmap);
     return std::string("command exec finished!");
 }
-void SmartPerfCommand::initSomething()
+void SmartPerfCommand::InitSomething()
 {
     std::string cmdResult;
     if (SPUtils::LoadCmd("chmod o+r /proc/stat", cmdResult) > 0) {

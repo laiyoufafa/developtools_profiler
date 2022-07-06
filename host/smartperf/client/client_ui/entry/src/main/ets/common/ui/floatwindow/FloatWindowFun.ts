@@ -75,7 +75,7 @@ export class FloatWindowFun {
         globalThis.CreateTitleWindow = (() => {
             wm.create(globalThis.abilityContext, 'TitleWindow', 2106).then((floatWin) => {
                 floatWin.moveTo(this.titleWindowOffsetX, this.titleWindowOffsetY).then(() => {
-                    floatWin.resetSize(350, 380).then(() => {
+                    floatWin.resetSize(350, globalThis.screenWith > 800 ? 480 : 360).then(() => {
                         floatWin.getProperties().then((property) => {
                             property.isTransparent = false
                         })

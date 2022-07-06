@@ -47,14 +47,14 @@ export struct Summary {
     var cpuMid: number = 0
     var cpuMax: number = 0
 
-    var currentNowSum: number = 0
-    var curVoltageSum: number = 0
     var normalCurrentNow: number = 0
 
 
     var socThermalTemp: number = 0
     var gpuLoadSum: number = 0
+    var gpuFreqSum: number = 0
     var ddrFreqSum: number = 0
+    var shellFrameTempSum: number = 0
 
     // fps和ram 为空时 过滤掉脏数据 0和空
     var fpsNullSum = 0
@@ -68,16 +68,13 @@ export struct Summary {
 
     for (var index = 0; index < this.gpData.length; index++) {
       const gpDataCur = this.gpData[index];
-
       let currentNow = Number(gpDataCur.currentNow).valueOf()
-      currentNowSum += Math.abs(currentNow)
-
       let curVoltage = Number(gpDataCur.voltageNow).valueOf() / 1e6
-      curVoltageSum += Math.abs(curVoltage)
       normalCurrentNow += Math.abs(currentNow) * Math.abs(curVoltage) / 3.8
-
       socThermalTemp += Number(gpDataCur.socThermalTemp).valueOf()
+      shellFrameTempSum += Number(gpDataCur.shellFrameTemp).valueOf()
       gpuLoadSum += Number(gpDataCur.gpuLoad).valueOf()
+      gpuFreqSum += Number(gpDataCur.gpuFrequency).valueOf()
       ddrFreqSum += Number(gpDataCur.ddrFrequency).valueOf()
       cpu0FreqSum += Number(gpDataCur.cpu0Frequency).valueOf()
       cpu1FreqSum += Number(gpDataCur.cpu1Frequency).valueOf()
@@ -114,37 +111,44 @@ export struct Summary {
     cpuFreqMap.set("cpu6FreqSum", cpu6FreqSum)
     cpuFreqMap.set("cpu7FreqSum", cpu7FreqSum)
 
-//    SPLogger.DEBUG(TAG,"Summary cpu0FreqSum" + cpu0FreqSum);
-//    SPLogger.DEBUG(TAG,"Summary cpu1FreqSum" + cpu1FreqSum);
-//    SPLogger.DEBUG(TAG,"Summary cpu2FreqSum" + cpu2FreqSum);
-//    SPLogger.DEBUG(TAG,"Summary cpu3FreqSum" + cpu3FreqSum);
-//    SPLogger.DEBUG(TAG,"Summary cpu4FreqSum" + cpu4FreqSum);
-//    SPLogger.DEBUG(TAG,"Summary cpu5FreqSum" + cpu5FreqSum);
-//    SPLogger.DEBUG(TAG,"Summary cpu6FreqSum" + cpu6FreqSum);
-//    SPLogger.DEBUG(TAG,"Summary cpu7FreqSum" + cpu7FreqSum);
-//    SPLogger.DEBUG(TAG,"Summary FpsJitters" + JSON.stringify(fpsJitters));
-//
-//    SPLogger.DEBUG(TAG,"Summary:aboutToAppear currentNowSum:" + currentNowSum);
-//    SPLogger.DEBUG(TAG,"Summary:aboutToAppear socThermalTemp:" + socThermalTemp);
-//    SPLogger.DEBUG(TAG,"Summary:aboutToAppear gpuLoadSum:" + gpuLoadSum);
-//    SPLogger.DEBUG(TAG,"Summary:aboutToAppear ddrFreqSum:" + ddrFreqSum);
-//    SPLogger.DEBUG(TAG,"Summary:aboutToAppear cpuFreqMap:" + JSON.stringify(cpuFreqMap));
-
-
     cpuMin = cpuFreqMap.get("cpu" + 0 + "FreqSum") / 1e3
-    cpuMid = cpuFreqMap.get("cpu" +1 + "FreqSum") / 1e3
+    cpuMid = cpuFreqMap.get("cpu" + 1 + "FreqSum") / 1e3
     cpuMax = cpuFreqMap.get("cpu" + 2 + "FreqSum") / 1e3
 
+    if (cpu4FreqSum > 0 && cpu7FreqSum > 0) {
+      cpuMid = cpuFreqMap.get("cpu" + 4 + "FreqSum") / 1e3
+      cpuMax = cpuFreqMap.get("cpu" + 7 + "FreqSum") / 1e3
+    }
+
     let calculationTest = new CalculationUtils(fpsList, CalculationUtils.calculateFPSNew(fpsList))
+
+    if (normalCurrentNow > 0) {
+      this.summaryItems.push(
+        new SummaryItem($r("app.media.icon_normalized_current"), "归一化电流", (normalCurrentNow / this.gpData.length).toFixed(0) + "mA", ""),
+      )
+    }
+    if (socThermalTemp > 0) {
+      this.summaryItems.push(
+        new SummaryItem($r("app.media.icon_max_temperature"), "soc温度", (socThermalTemp / this.gpData.length / 1000 ).toFixed(0) + "℃", "#fff8f8"),
+      )
+    }
+
+    if (shellFrameTempSum > 0) {
+      this.summaryItems.push(
+        new SummaryItem($r("app.media.icon_max_temperature"), "壳温", (shellFrameTempSum / this.gpData.length / 1000 ).toFixed(0) + "℃", "#fff8f8"),
+      )
+    }
+
     this.summaryItems.push(
-      new SummaryItem($r("app.media.icon_normalized_current"), "归一化电流", (normalCurrentNow / this.gpData.length).toFixed(0) + "mA", ""),
-      new SummaryItem($r("app.media.icon_max_temperature"), "soc温度", (socThermalTemp / this.gpData.length / 1000 ).toFixed(0) + "℃", "#fff8f8"),
       new SummaryItem($r("app.media.icon_jank_score"), "平均帧率", (fpsSum / (this.gpData.length - fpsNullSum)).toFixed(0) + "Hz", "#fcf4ee"),
       new SummaryItem($r("app.media.icon_jank_score"), "最高帧率", (fpsMax).toFixed(0) + "HZ", "#fcf4ee"),
       new SummaryItem($r("app.media.icon_jank_score"), "低帧率", (calculationTest.Low_Frame_Rate()).toFixed(2) + "%", "#fcf4ee"),
       new SummaryItem($r("app.media.icon_jank_score"), "抖动率", (calculationTest.Jitter_rate()).toFixed(2) + "%", "#fcf4ee"),
       new SummaryItem($r("app.media.icon_jank_score"), "卡顿次数", (calculationTest.calculateCaton(fpsJitters)).toFixed(0) + "次", "#fcf4ee"),
-      new SummaryItem($r("app.media.icon_frame_score"), "GPU负载", (gpuLoadSum / this.gpData.length).toFixed(0) + "%", "#fcf9f2"),
+      new SummaryItem(
+      $r("app.media.icon_frame_score"), "GPU负载",
+        (gpuFreqSum / this.gpData.length / 1e6).toFixed(0) + "MHZ" + "  " +
+        (gpuLoadSum / this.gpData.length).toFixed(0) + "%", "#fcf9f2"),
       new SummaryItem($r("app.media.icon_frame_score"), "DDR频率", (ddrFreqSum / this.gpData.length / 1e6).toFixed(0) + "MHZ", "#fcf9f2"),
       new SummaryItem($r("app.media.icon_average_frame_b"), "CPU0频率", (cpuMin / this.gpData.length).toFixed(0) + "MHZ", "#fcf9f2"),
       new SummaryItem($r("app.media.icon_average_frame_b"), "CPU1频率", (cpuMid / this.gpData.length).toFixed(0) + "MHZ", "#fcf9f2"),
@@ -160,9 +164,7 @@ export struct Summary {
           GridItem() {
             Row({ space: "8vp" }) {
               Image(item.icon).width('30vp').height('30vp')
-
               Text(item.content).fontSize('14fp').textAlign(TextAlign.Start)
-
               Text(item.value).fontSize('11fp').textAlign(TextAlign.Start)
             }.alignItems(VerticalAlign.Center).width('100%')
           }

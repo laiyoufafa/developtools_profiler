@@ -26,7 +26,7 @@ namespace SmartPerf {
 std::map<std::string, std::string> FPS::ItemData()
 {
     std::map<std::string, std::string> result;
-    FpsInfo fpsInfo = getFpsInfo();
+    FpsInfo fpsInfo = GetFpsInfo();
     result["fps"] = std::to_string(fpsInfo.fps);
     std::string jitterStr = "";
     std::string split = "";
@@ -38,37 +38,37 @@ std::map<std::string, std::string> FPS::ItemData()
     }
     result["fpsJitters"] = jitterStr;
     if (isCatchTrace > 0) {
-        ByTrace::GetInstance().checkFpsJitters(fpsInfo.jitters);
+        ByTrace::GetInstance().CheckFpsJitters(fpsInfo.jitters);
     }
     if (isCapture > 0) {
         Capture::GetInstance().TriggerGetCatch(SPUtils::GetCurTime());
     }
     return result;
 }
-void FPS::setTraceCatch()
+void FPS::SetTraceCatch()
 {
     isCatchTrace = 1;
 }
-void FPS::setCaptureOn()
+void FPS::SetCaptureOn()
 {
     isCapture = 1;
 }
-void FPS::setPackageName(std::string pkgName)
+void FPS::SetPackageName(std::string pName)
 {
-    pkg_name = std::move(pkgName);
+    pkgName = std::move(pName);
 }
-FpsInfo FPS::getFpsInfo()
+FpsInfo FPS::GetFpsInfo()
 {
     FpsInfo fpsInfoMax;
     fpsInfoMax.fps = -1;
 
-    if (pkg_name.empty()) {
+    if (pkgName.empty()) {
         return fpsInfoMax;
     }
 
     std::string layerName;
     std::vector<std::string> sps;
-    SPUtils::StrSplit(this->pkg_name, ".", sps);
+    SPUtils::StrSplit(this->pkgName, ".", sps);
     std::string addEndChar = "0";
     const int pNameLastPos = 2;
     std::string pkgSuffix = sps[pNameLastPos];
@@ -88,14 +88,14 @@ FpsInfo FPS::GetSurfaceFrame(std::string name)
     if (name == "") {
         return FpsInfo();
     }
-    static std::map<std::string, FpsInfo> fps_map;
-    if (fps_map.count(name) == 0) {
+    static std::map<std::string, FpsInfo> fpsMap;
+    if (fpsMap.count(name) == 0) {
         FpsInfo tmp;
         tmp.fps = 0;
-        tmp.pre_fps = 0;
-        fps_map[name] = tmp;
+        tmp.preFps = 0;
+        fpsMap[name] = tmp;
     }
-    FpsInfo &fpsInfo = fps_map[name];
+    FpsInfo &fpsInfo = fpsMap[name];
     fpsInfo.fps = 0;
     FILE *fp;
     static char tmp[1024];
@@ -104,11 +104,11 @@ FpsInfo FPS::GetSurfaceFrame(std::string name)
     if (fp == nullptr) {
         return fpsInfo;
     }
-    long long MOD = 1e9;
+    long long mod = 1e9;
     long long lastReadyTime = -1;
-    int fps_gb = 0;
-    if (!(fpsInfo.time_stamp_q).empty()) {
-        lastReadyTime = (fpsInfo.time_stamp_q).back();
+    int fpsGb = 0;
+    if (!(fpsInfo.timeStampQ).empty()) {
+        lastReadyTime = (fpsInfo.timeStampQ).back();
     }
     bool jump = false;
     bool refresh = false;
@@ -130,66 +130,66 @@ FpsInfo FPS::GetSurfaceFrame(std::string name)
             continue;
         }
         refresh = true;
-        long long t_frameReadyTime = frameReadyTime / MOD;
-        long long t_lastReadyTime = lastReadyTime / MOD;
+        long long tFrameReadyTime = frameReadyTime / mod;
+        long long tLastReadyTime = lastReadyTime / mod;
         long long lastFrame = -1;
-        if (t_frameReadyTime == t_lastReadyTime) {
-            (fpsInfo.time_stamp_q).push(frameReadyTime);
-        } else if (t_frameReadyTime == t_lastReadyTime + 1) {
+        if (tFrameReadyTime == tLastReadyTime) {
+            (fpsInfo.timeStampQ).push(frameReadyTime);
+        } else if (tFrameReadyTime == tLastReadyTime + 1) {
             jump = true;
-            lastFrame = fpsInfo.last_frame_ready_time;
+            lastFrame = fpsInfo.lastFrameReadyTime;
             lastReadyTime = frameReadyTime;
-            int fps_tmp = 0;
+            int fpsTmp = 0;
             fpsInfo.jitters.clear();
-            while (!(fpsInfo.time_stamp_q).empty()) {
-                fps_tmp++;
-                long long currFrame = (fpsInfo.time_stamp_q.front());
+            while (!(fpsInfo.timeStampQ).empty()) {
+                fpsTmp++;
+                long long currFrame = (fpsInfo.timeStampQ.front());
                 if (lastFrame != -1) {
                     long long jitter = currFrame - lastFrame;
                     fpsInfo.jitters.push_back(jitter);
                 }
                 lastFrame = currFrame;
-                (fpsInfo.time_stamp_q).pop();
+                (fpsInfo.timeStampQ).pop();
             }
 
-            fps_gb = fps_tmp;
+            fpsGb = fpsTmp;
 
-            (fpsInfo.time_stamp_q).push(frameReadyTime);
+            (fpsInfo.timeStampQ).push(frameReadyTime);
 
-            fpsInfo.last_frame_ready_time = lastFrame;
-        } else if (t_frameReadyTime > t_lastReadyTime + 1) {
+            fpsInfo.lastFrameReadyTime = lastFrame;
+        } else if (tFrameReadyTime > tLastReadyTime + 1) {
             jump = true;
             lastReadyTime = frameReadyTime;
 
-            while (!(fpsInfo.time_stamp_q).empty()) {
-                (fpsInfo.time_stamp_q).pop();
+            while (!(fpsInfo.timeStampQ).empty()) {
+                (fpsInfo.timeStampQ).pop();
             }
 
-            (fpsInfo.time_stamp_q).push(frameReadyTime);
+            (fpsInfo.timeStampQ).push(frameReadyTime);
         }
     }
 
     pclose(fp);
     const int maxZeroNum = 120;
     if (zeroNum >= maxZeroNum) {
-        while (!(fpsInfo.time_stamp_q.empty())) {
-            fpsInfo.time_stamp_q.pop();
+        while (!(fpsInfo.timeStampQ.empty())) {
+            fpsInfo.timeStampQ.pop();
         }
         fpsInfo.fps = 0;
         return fpsInfo;
     }
     const int minPrintLine = 5;
     if (cnt < minPrintLine) {
-        fpsInfo.fps = fpsInfo.pre_fps;
+        fpsInfo.fps = fpsInfo.preFps;
         return fpsInfo;
     }
 
-    if (fps_gb > 0) {
-        fpsInfo.fps = fps_gb;
-        fpsInfo.pre_fps = fps_gb;
+    if (fpsGb > 0) {
+        fpsInfo.fps = fpsGb;
+        fpsInfo.preFps = fpsGb;
         return fpsInfo;
     } else if (refresh && !jump) {
-        fpsInfo.fps = fpsInfo.pre_fps;
+        fpsInfo.fps = fpsInfo.preFps;
         return fpsInfo;
     } else {
         fpsInfo.fps = 0;

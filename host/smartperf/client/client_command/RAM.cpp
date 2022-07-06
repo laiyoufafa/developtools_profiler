@@ -14,6 +14,7 @@
  */
 #include <sstream>
 #include <fstream>
+#include <climits>
 #include "include/sp_utils.h"
 #include "include/RAM.h"
 namespace OHOS {
@@ -21,16 +22,16 @@ namespace SmartPerf {
 std::map<std::string, std::string> RAM::ItemData()
 {
     std::map<std::string, std::string> result;
-    std::map<std::string, std::string> ramInfo = RAM::getRamInfo();
+    std::map<std::string, std::string> ramInfo = RAM::GetRamInfo();
     result = ramInfo;
     return result;
 }
-void RAM::setProcessId(std::string pid)
+void RAM::SetProcessId(std::string pid)
 {
     processId = std::move(pid);
 }
 
-std::map<std::string, std::string> RAM::getRamInfo()
+std::map<std::string, std::string> RAM::GetRamInfo()
 {
     std::map<std::string, std::string> ramInfo;
     std::string pssValue = "";
@@ -43,7 +44,11 @@ std::map<std::string, std::string> RAM::getRamInfo()
         cmdGrep.str("");
         cmdGrep << "/proc/" << processId << "/smaps_rollup";
         std::string cmdRam = cmdGrep.str();
-        std::ifstream infile(cmdRam.c_str(), std::ios::in);
+        char realPath[PATH_MAX] = {0x00};
+        if (realpath(cmdRam.c_str(), realPath) == nullptr) {
+            std::cout << "" << std::endl;
+        }
+        std::ifstream infile(realPath, std::ios::in);
         if (!infile) {
             return ramInfo;
         }

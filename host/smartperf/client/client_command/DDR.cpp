@@ -19,10 +19,10 @@ namespace SmartPerf {
 std::map<std::string, std::string> DDR::ItemData()
 {
     std::map<std::string, std::string> result;
-    result["ddrFreq"] = std::to_string(getDdrFreq());
+    result["ddrFrequency"] = std::to_string(GetDdrFreq());
     return result;
 }
-long long DDR::getDdrFreq()
+long long DDR::GetDdrFreq()
 {
     long long curFreq = -1;
     std::string ddrfreq;

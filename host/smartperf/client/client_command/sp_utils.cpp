@@ -20,6 +20,7 @@
 #include <dirent.h>
 #include <cstdio>
 #include <cstdlib>
+#include <climits>
 #include "sys/time.h"
 #include "include/sp_utils.h"
 namespace OHOS {
@@ -30,7 +31,11 @@ bool SPUtils::FileAccess(const std::string &fileName)
 }
 bool SPUtils::LoadFile(const std::string &filePath, std::string &content)
 {
-    std::ifstream file(filePath.c_str());
+    char realPath[PATH_MAX] = {0x00};
+    if (realpath(filePath.c_str(), realPath) == nullptr) {
+        std::cout << "" << std::endl;
+    }
+    std::ifstream file(realPath);
     if (!file.is_open()) {
         return false;
     }
@@ -47,7 +52,8 @@ bool SPUtils::LoadFile(const std::string &filePath, std::string &content)
 }
 bool SPUtils::LoadCmd(const std::string &cmd, std::string &result)
 {
-    FILE *fd = popen(cmd.c_str(), "r");
+    std::string cmdExc = cmd;
+    FILE *fd = popen(cmdExc.c_str(), "r");
     if (fd == nullptr) {
         return false;
     }
@@ -110,15 +116,15 @@ void SPUtils::StrSplit(const std::string &content, const std::string &sp, std::v
 {
     size_t index = 0;
     while (index != std::string::npos) {
-        size_t t_end = content.find_first_of(sp, index);
-        std::string tmp = content.substr(index, t_end - index);
+        size_t tEnd = content.find_first_of(sp, index);
+        std::string tmp = content.substr(index, tEnd - index);
         if (tmp != "" && tmp != " ") {
             out.push_back(tmp);
         }
-        if (t_end == std::string::npos) {
+        if (tEnd == std::string::npos) {
             break;
         }
-        index = t_end + 1;
+        index = tEnd + 1;
     }
 }
 std::string SPUtils::ExtractNumber(const std::string &str)

@@ -24,9 +24,9 @@ public:
         return instance;
     }
     // 截图线程
-    void threadGetCatch(std::string curTime);
+    void ThreadGetCatch(std::string curTime) const;
     // 触发线程
-    void TriggerGetCatch(long long curTime);
+    void TriggerGetCatch(long long curTime) const;
 private:
     Capture() {};
     Capture(const Capture &);

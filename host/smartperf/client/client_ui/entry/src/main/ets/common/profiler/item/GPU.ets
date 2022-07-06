@@ -12,18 +12,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { fileOpen, createGPData, isAccess} from '../base/BaseProfilerUtils';
+import { fileOpen, createGPData, isAccess } from '../base/BaseProfilerUtils';
 import { BaseProfiler } from '../base/BaseProfiler'
 import { CollectorType } from '../base/ProfilerConstant'
 
-enum GPU_CONFIG {
-  GPU_FREQ_PATH = "/sys/class/devfreq/fde60000.gpu/cur_freq", //RK
-  GPU_LOAD_PATH = "/sys/class/devfreq/fde60000.gpu/load",   //RK
+let GPU_CONFIG = {
+  GPU_FREQ_PATH: [
+    "/sys/class/devfreq/fde60000.gpu/cur_freq", //RK
+    "/sys/class/devfreq/gpufreq/cur_freq"
+  ],
+  GPU_LOAD_PATH: [
+    "/sys/class/devfreq/fde60000.gpu/load", //RK
+    "/sys/class/devfreq/gpufreq/gpu_scene_aware/utilisation"
+  ]
 }
 
 export class GPU extends BaseProfiler {
   private gpuMap: Map<String, String> = new Map
-
   public static instance: GPU = null
   public static getInstance() {
     if (this.instance == null) {
@@ -36,27 +41,48 @@ export class GPU extends BaseProfiler {
     //初始化GPU
     return CollectorType.TYPE_GPU
   }
-  isSupport(){
-    if(isAccess(GPU_CONFIG.GPU_FREQ_PATH)&&isAccess(GPU_CONFIG.GPU_LOAD_PATH)){
+
+  isSupport() {
+    let curFreqPath = undefined
+    let curLoadPath = undefined
+    GPU_CONFIG.GPU_FREQ_PATH.forEach(path => {
+      if (isAccess(path)) {
+        curFreqPath = path
+      }
+    })
+    GPU_CONFIG.GPU_LOAD_PATH.forEach(path => {
+      if (isAccess(path)) {
+        curLoadPath = path
+      }
+    })
+    if (curFreqPath != undefined && curLoadPath != undefined) {
       return true
     }
     return false
   }
+
   readData() {
-    console.log("GPU:BaseProfiler called")
-    let gpuFreq = fileOpen(GPU_CONFIG.GPU_FREQ_PATH)
-    let gpuLoad = fileOpen(GPU_CONFIG.GPU_LOAD_PATH)
-    console.log("GPU:BaseProfiler called1111")
+    let gpuFreq:String = ""
+    let gpuLoad:String = ""
+    GPU_CONFIG.GPU_FREQ_PATH.forEach(path => {
+      if (isAccess(path)) {
+        gpuFreq = fileOpen(path)
+      }
+    })
+    GPU_CONFIG.GPU_LOAD_PATH.forEach(path => {
+      if (isAccess(path)) {
+        gpuLoad = fileOpen(path)
+      }
+    })
     let loadStr: string[] = gpuLoad.split("@")
     let load = "-1"
     if (loadStr.length > 0) {
       load = loadStr[0].toString()
-    }else{
+    } else {
       load = gpuLoad.toString()
     }
     this.gpuMap.set("gpuFreq", gpuFreq)
     this.gpuMap.set("gpuLoad", load)
-    console.log("GPU:BaseProfiler called2222")
     return createGPData("GPU", this.gpuMap)
   }
 }

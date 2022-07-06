@@ -153,18 +153,17 @@ export function createFloatWindow(floatName:string) {
     })
 }
 export function destoryAllFloatWindow() {
-  destoryFloatWindow("currentNow")
-  destoryFloatWindow("shellBackTemp")
-  destoryFloatWindow("ddrFrequency")
-  destoryFloatWindow("gpuFrequency")
-  destoryFloatWindow("cpu0Frequency")
-  destoryFloatWindow("cpu1Frequency")
-  destoryFloatWindow("cpu2Frequency")
-  destoryFloatWindow("RAM")
-  destoryFloatWindow("FPS")
-
+  destroyFloatWindow("currentNow")
+  destroyFloatWindow("shellBackTemp")
+  destroyFloatWindow("ddrFrequency")
+  destroyFloatWindow("gpuFrequency")
+  destroyFloatWindow("cpu0Frequency")
+  destroyFloatWindow("cpu1Frequency")
+  destroyFloatWindow("cpu2Frequency")
+  destroyFloatWindow("RAM")
+  destroyFloatWindow("FPS")
 }
-export function destoryFloatWindow(floatName:string) {
+export function destroyFloatWindow(floatName:string) {
 
     wm.find(floatName).then((fltWin) => {
       fltWin.destroy().then(() => {

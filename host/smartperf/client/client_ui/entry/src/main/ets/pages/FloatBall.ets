@@ -117,6 +117,9 @@ struct FloatBall {
   }
 
   clearAllInterVal(){
+    if(globalThis.collectConfigs.trace){
+      MainWorker.postMessage({"catch_trace_end":true})
+    }
     clearInterval(globalThis.collectIntervalCollect)
   }
 
@@ -144,7 +147,7 @@ struct FloatBall {
             colors: [[$r("app.color.colorPrimary"), 1.0], [$r("app.color.colorPrimary"), 1.0]]
           })
         Text('start')
-          .fontSize(20)
+          .fontSize(18)
           .textAlign(TextAlign.Center)
           .fontColor($r("app.color.color_fff"))
           .width('100%')
@@ -203,7 +206,7 @@ struct FloatBall {
             })
         }
         Text(secToTime(this.timerNum).toString())
-          .fontSize(20)
+          .fontSize('16fp')
           .textAlign(TextAlign.Center)
           .fontColor($r("app.color.color_fff"))
           .width('100%')

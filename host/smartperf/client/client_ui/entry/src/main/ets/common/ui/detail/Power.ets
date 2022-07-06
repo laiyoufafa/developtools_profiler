@@ -21,7 +21,7 @@ import { LineDataSet, ColorStop, Mode } from './chart/data/LineDataSet';
 import EntryOhos from './chart/data/EntryOhos';
 import { JArrayList } from './chart/utils/JArrayList';
 import ILineDataSet from './chart/interfaces/datasets/ILineDataSet'
-import { TIndexInfo } from '../../data/DatabaseEntity';
+import { TIndexInfo } from '../../entity/DatabaseEntity';
 
 
 @Entry
@@ -30,8 +30,8 @@ export struct Power {
   @State private gpData: Array<TIndexInfo> = new Array()
   topAxis: XAxis = new XAxis(); //顶部X轴
   bottomAxis: XAxis = new XAxis(); //底部X轴
-  width: number = 700; //表的宽度
-  height: number = 250; //表的高度
+  width: number = globalThis.screenWith > 800 ? 700 : 350 ; //表的宽度
+  height: number = globalThis.screenWith > 800 ? 200 : 300; //表的高度
   minOffset: number = 15; //X轴线偏移量
   leftAxis: YAxis = null;
   rightAxis: YAxis = null;

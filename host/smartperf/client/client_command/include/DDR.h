@@ -19,7 +19,7 @@ namespace OHOS {
 namespace SmartPerf {
 class DDR : public SpProfiler {
 public:
-    long long getDdrFreq();
+    long long GetDdrFreq();
     static DDR &GetInstance()
     {
         static DDR instance;

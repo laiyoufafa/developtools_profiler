@@ -14,8 +14,10 @@
  */
 import { TIndexInfo } from '../common/entity/DatabaseEntity'
 import { showFloatWindow, hideFloatWindow } from '../common/ui/floatwindow/utils/FloatWindowUtils'
-import { FPS, GPUFREQUENCY,SHELLBACKTEMP, CPU0FREQUENCY, CPU1FREQUENCY, CPU2FREQUENCY, RAM } from '../common/ui/floatwindow/FloatWindowConstant'
+import FloatWindowConstant from '../common/ui/floatwindow/FloatWindowConstant'
 import CommonEvent from '@ohos.commonEvent'
+
+
 @Component
 export struct ItemContent {
   private icon
@@ -25,13 +27,13 @@ export struct ItemContent {
 
   build() {
     Row() {
-      Image(this.icon).width('20vp').height('20vp').margin({ right: '2%' })
+      Image(this.icon).width(16).height(16).margin({ right: '2%' })
       Flex({ justifyContent: FlexAlign.SpaceBetween, alignItems: ItemAlign.Center }) {
-        Text(this.tittle).fontSize(20).fontColor(Color.White)
-        Text(this.value).fontSize(20).fontColor(Color.White)
-      }.width('88%').height('25vp')
+        Text(this.tittle).fontSize(10).fontColor(Color.White)
+        Text(this.value).fontSize(10).fontColor(Color.White)
+      }.width('88%').height(20)
     }
-    .height('26vp')
+    .height(22)
     .width('88%')
     .onClick(() => {
       this.onClickCallBack()
@@ -43,7 +45,6 @@ export struct ItemContent {
 @Component
 struct TitleWindowPage {
   private data: boolean[]= [false, false, false, false, false, false, false, false]
-
   @State tIndexInfo: TIndexInfo = new TIndexInfo()
   offsetX: number = -1
   offsetY: number = -1
@@ -60,18 +61,28 @@ struct TitleWindowPage {
     function SubscribeCallBack(err, data) {
       if (data.data == "") {
       } else {
-        console.error("subscriberCurData:"+ data.data);
+        console.error("subscriberCurData:" + data.data);
         that.tIndexInfo = JSON.parse(data.data)
-        globalThis.cpu0Frequency=that.tIndexInfo.cpu0Frequency
-        globalThis.cpu1Frequency=that.tIndexInfo.cpu1Frequency
-        globalThis.cpu2Frequency=that.tIndexInfo.cpu2Frequency
-        globalThis.currentNow=that.tIndexInfo.currentNow
-        globalThis.ddrFrequency=that.tIndexInfo.ddrFrequency
-        globalThis.lineFps=that.tIndexInfo.fps
-        globalThis.gpuFrequency=that.tIndexInfo.gpuFrequency
-        globalThis.pss=that.tIndexInfo.pss
-        globalThis.shellBackTemp=that.tIndexInfo.socThermalTemp
-        console.log("shellBackTemp---------------------111111111111111" + that.tIndexInfo.socThermalTemp)
+        globalThis.cpu0Frequency = that.tIndexInfo.cpu0Frequency
+        globalThis.cpu1Frequency = that.tIndexInfo.cpu1Frequency
+        globalThis.cpu2Frequency = that.tIndexInfo.cpu2Frequency
+
+        if (that.tIndexInfo.cpu4Frequency != undefined && that.tIndexInfo.cpu7Frequency != undefined) {
+          globalThis.cpu1Frequency = that.tIndexInfo.cpu4Frequency
+          globalThis.cpu2Frequency = that.tIndexInfo.cpu7Frequency
+          that.tIndexInfo.cpu1Frequency = that.tIndexInfo.cpu4Frequency
+          that.tIndexInfo.cpu2Frequency = that.tIndexInfo.cpu7Frequency
+          that.tIndexInfo.cpu1Load = that.tIndexInfo.cpu1Load
+          that.tIndexInfo.cpu2Load = that.tIndexInfo.cpu2Load
+        }
+
+        globalThis.currentNow = that.tIndexInfo.currentNow
+        globalThis.ddrFrequency = that.tIndexInfo.ddrFrequency
+        globalThis.lineFps = that.tIndexInfo.fps
+        globalThis.gpuFrequency = that.tIndexInfo.gpuFrequency
+        globalThis.pss = that.tIndexInfo.pss
+        globalThis.shellBackTemp = that.tIndexInfo.socThermalTemp
+
       }
     }
     //创建订阅者回调
@@ -108,104 +119,116 @@ struct TitleWindowPage {
       Column({ space: 2 }) {
 
         Row() {
-          Image($r("app.media.logo")).width('20vp').height('20vp').margin({ left: '2%' })
-          Text( "SmartPerf")
-            .fontSize('20fp')
+          Image($r("app.media.logo")).width(10).height(10).margin({ left: '2%' })
+          Text("SmartPerf")
+            .fontSize(12)
             .fontColor($r("app.color.color_fff")).margin({ left: '2%' })
-          Image($r("app.media.icon_close_small")).height('18vp').width('18vp').margin({ left: '55%' }).onClick(() => {
+          Image($r("app.media.icon_close_small")).height(15).width(15).margin({ left: '55%' }).onClick(() => {
             //关闭实时悬浮框
             globalThis.HideTitleWindow()
           })
-        } .height('26vp')
+        }.height(20)
         .width('95%')
 
-        ItemContent({
-          icon: $r("app.media.icon_average_frame_b"),
-          value: (this.tIndexInfo.fps.toString()) + "FPS",
-          tittle: "帧率",
-          onClickCallBack: () => {
-            this.floatWindowEvent("FPS",FPS)
-          }
-        })
 
-        ItemContent({
-          icon: $r("app.media.icon_counter"),
-          value: (parseInt(this.tIndexInfo.cpu0Frequency.toString()) / 1e3).toString() + "MHz",
-          tittle: "CPU0频率",
-          onClickCallBack: () => {
-            this.floatWindowEvent("cpu0Frequency", CPU0FREQUENCY)
-          }
-        })
-        ItemContent({
-          icon: $r("app.media.icon_counter"),
-          value: (parseInt(this.tIndexInfo.cpu1Frequency.toString()) / 1e3).toString() + "MHz",
-          tittle: "CPU1频率",
-          onClickCallBack: () => {
-            this.floatWindowEvent("cpu1Frequency", CPU1FREQUENCY)
-          }
-        })
-        ItemContent({
-          icon: $r("app.media.icon_counter"),
-          value: (parseInt(this.tIndexInfo.cpu2Frequency.toString()) / 1e3).toString() + "MHz",
-          tittle: "CPU2频率",
-          onClickCallBack: () => {
-            this.floatWindowEvent("cpu2Frequency", CPU2FREQUENCY)
-          }
-        })
-        ItemContent({
-          icon: $r("app.media.icon_frame_score"),
-          value: (parseInt(this.tIndexInfo.gpuFrequency.toString()) / 1e6).toString() + "MHz",
-          tittle: "GPU频点",
-          onClickCallBack: () => {
-            this.floatWindowEvent("gpuFrequency", GPUFREQUENCY)
-          }
-        })
-        ItemContent({
-          icon: $r("app.media.icon_jank_each_hour"),
-          value: this.tIndexInfo.pss + "KB",
-          tittle: "RAM",
-          onClickCallBack: () => {
-            this.floatWindowEvent("RAM", RAM)
-          }
-        })
-        ItemContent({
-          icon: $r("app.media.icon_max_temperature"),
-          value: (parseInt(this.tIndexInfo.socThermalTemp.toString()) / 1e3).toString() + "℃",
-          tittle: "SOC温度",
-          onClickCallBack: () => {
-            this.floatWindowEvent("shellBackTemp", SHELLBACKTEMP)
-          }
-        })
-        //ItemContent({
-        // icon: $r("app.media.icon_counter"),
-        //value: this.tIndexInfo.networkUpSpeed.toString() + "kbps" + " " +this.tIndexInfo.networkDownSpeed.toString() + "kbps",
-        // tittle: "带宽"
-        //})
-        //      ItemContent({
-        //        icon: $r("app.media.icon_max_temperature"),
-        //        value: (ParseIntValue(this.tIndexInfo.shellBackTemp.toString()) / 1e3).toString() + "℃",
-        //        tittle: "后壳温"
-        //      })
-        //      ItemContent({
-        //        icon: $r("app.media.icon_max_temperature"),
-        //        value: (ParseIntValue(this.tIndexInfo.shellFrontTemp.toString()) / 1e3).toString() + "℃",
-        //        tittle: "前壳温"
-        //      })
-        //      ItemContent({
-        //        icon: $r("app.media.icon_max_temperature"),
-        //        value: (ParseIntValue(this.tIndexInfo.shellFrameTemp.toString()) / 1e3).toString() + "℃",
-        //        tittle: "壳温"
-        //      })
-        //      ItemContent({
-        //        icon: $r("app.media.icon_normalized_current"),
-        //        value: this.tIndexInfo.currentNow + "mA",
-        //        tittle: "电流"
-        //      })
-        //      ItemContent({
-        //        icon: $r("app.media.icon_counter"),
-        //        value: (ParseIntValue(this.tIndexInfo.ddrFrequency.toString()) / 1e6).toString() + "MHz",
-        //        tittle: "DDR频点"
-        //      })
+        if (this.tIndexInfo.fps != undefined) {
+          ItemContent({
+            icon: $r("app.media.icon_average_frame_b"),
+            value: (this.tIndexInfo.fps.toString()) + "FPS",
+            tittle: "帧率",
+            onClickCallBack: () => {
+              this.floatWindowEvent("FPS", FloatWindowConstant.FPS)
+            }
+          })
+        }
+
+        if (this.tIndexInfo.currentNow != undefined) {
+          ItemContent({
+            icon: $r("app.media.icon_normalized_current"),
+            value:  (0 - Number(this.tIndexInfo.currentNow)).toString() + "mA",
+            tittle: "电流"
+          })
+        }
+        if (this.tIndexInfo.ddrFrequency != undefined) {
+          ItemContent({
+            icon: $r("app.media.icon_counter"),
+            value: (parseInt(this.tIndexInfo.ddrFrequency.toString()) / 1e6).toString() + "MHz",
+            tittle: "DDR频率"
+          })
+        }
+
+        if (this.tIndexInfo.cpu0Frequency != undefined) {
+          ItemContent({
+            icon: $r("app.media.icon_counter"),
+            value: (parseInt(this.tIndexInfo.cpu0Frequency.toString()) / 1e3).toString() + "MHz  " + this.tIndexInfo.cpu0Load + "%",
+            tittle: "CPU0频率",
+            onClickCallBack: () => {
+              this.floatWindowEvent("cpu0Frequency", FloatWindowConstant.CPU0_FREQUENCY)
+            }
+          })
+        }
+
+        if (this.tIndexInfo.cpu1Frequency != undefined) {
+          ItemContent({
+            icon: $r("app.media.icon_counter"),
+            value: (parseInt(this.tIndexInfo.cpu1Frequency.toString()) / 1e3).toString() + "MHz  " + this.tIndexInfo.cpu1Load + "%",
+            tittle: "CPU1频率",
+            onClickCallBack: () => {
+              this.floatWindowEvent("cpu1Frequency", FloatWindowConstant.CPU1_FREQUENCY)
+            }
+          })
+        }
+        if (this.tIndexInfo.cpu2Frequency != undefined) {
+
+          ItemContent({
+            icon: $r("app.media.icon_counter"),
+            value: (parseInt(this.tIndexInfo.cpu2Frequency.toString()) / 1e3).toString() + "MHz  " + this.tIndexInfo.cpu2Load + "%",
+            tittle: "CPU2频率",
+            onClickCallBack: () => {
+              this.floatWindowEvent("cpu2Frequency", FloatWindowConstant.CPU2_FREQUENCY)
+            }
+          })
+        }
+
+        if (this.tIndexInfo.gpuFrequency != undefined) {
+          ItemContent({
+            icon: $r("app.media.icon_frame_score"),
+            value: (parseInt(this.tIndexInfo.gpuFrequency.toString()) / 1e6).toString() + "MHz  " + this.tIndexInfo.gpuLoad + "%",
+            tittle: "GPU频点",
+            onClickCallBack: () => {
+              this.floatWindowEvent("gpuFrequency", FloatWindowConstant.GPU_FREQUENCY)
+            }
+          })
+        }
+        if (this.tIndexInfo.pss != undefined) {
+          ItemContent({
+            icon: $r("app.media.icon_jank_each_hour"),
+            value: this.tIndexInfo.pss + "KB",
+            tittle: "RAM",
+            onClickCallBack: () => {
+              this.floatWindowEvent("RAM", FloatWindowConstant.RAM)
+            }
+          })
+        }
+        if (this.tIndexInfo.socThermalTemp != undefined) {
+          ItemContent({
+            icon: $r("app.media.icon_max_temperature"),
+            value: (parseInt(this.tIndexInfo.socThermalTemp.toString()) / 1e3).toString() + "℃",
+            tittle: "SOC温度",
+            onClickCallBack: () => {
+              this.floatWindowEvent("shellBackTemp", FloatWindowConstant.SHELL_BACK_TEMP)
+            }
+          })
+        }
+
+        if (this.tIndexInfo.shellFrameTemp != undefined) {
+          ItemContent({
+            icon: $r("app.media.icon_max_temperature"),
+            value: (parseInt(this.tIndexInfo.shellFrameTemp.toString()) / 1e3).toString() + "℃",
+            tittle: "壳温"
+          })
+        }
+
       }.width('100%')
       .gesture(
       GestureGroup(GestureMode.Exclusive,

@@ -20,59 +20,68 @@
 #include "include/RAM.h"
 #include "include/Power.h"
 #include "include/Temperature.h"
+#include "include/ByTrace.h"
+#include "include/sp_utils.h"
 #include "include/sp_profiler_factory.h"
 namespace OHOS {
 namespace SmartPerf {
-SpProfiler *SpProfilerFactory::getProfilerItem(MessageType messageType)
+SpProfiler *SpProfilerFactory::GetProfilerItem(MessageType messageType)
 {
     SpProfiler *profiler = nullptr;
     switch (messageType) {
-        case MessageType::GetCpuNum:
-        case MessageType::GetCpuFreq:
-        case MessageType::GetCpuLoad:
+        case MessageType::GET_CPU_NUM:
+        case MessageType::GET_CPU_FREQ:
+        case MessageType::GET_CPU_LOAD:
             profiler = &CPU::GetInstance();
             break;
-        case MessageType::GetFpsAndJitters:
+        case MessageType::GET_FPS_AND_JITTERS:
             profiler = &FPS::GetInstance();
             break;
-        case MessageType::GetGpuFreq:
-        case MessageType::GetGpuLoad:
+        case MessageType::GET_GPU_FREQ:
+        case MessageType::GET_GPU_LOAD:
             profiler = &GPU::GetInstance();
             break;
-        case MessageType::GetDdrFreq:
+        case MessageType::GET_DDR_FREQ:
             profiler = &DDR::GetInstance();
             break;
-        case MessageType::GetRamInfo:
+        case MessageType::GET_RAM_INFO:
             profiler = &RAM::GetInstance();
             break;
-        case MessageType::GetTemperature:
+        case MessageType::GET_TEMPERATURE:
             profiler = &Temperature::GetInstance();
             break;
-        case MessageType::GetPower:
+        case MessageType::GET_POWER:
             profiler = &Power::GetInstance();
             break;
-        case MessageType::CatchTraceStart:
-            FPS::GetInstance().setTraceCatch();
+        case MessageType::CATCH_TRACE_START:
+            ByTrace::GetInstance().ThreadGetTrace();
             break;
-        case MessageType::GetCapture:
-            FPS::GetInstance().setCaptureOn();
+        case MessageType::CATCH_TRACE_FINISH: {
+            ByTrace::GetInstance().ThreadEndTrace();
+            long long curTimeStamp = SPUtils::GetCurTime();
+            std::string curTime = std::to_string(curTimeStamp);
+            ByTrace::GetInstance().ThreadFinishTrace(curTime);
+            break; 
+        } 
+        case MessageType::GET_CAPTURE:
+            FPS::GetInstance().SetCaptureOn();
             break;    
         default:
             break;
     }
     return profiler;
 }
-void SpProfilerFactory::setProfilerPkg(std::string pkg)
+void SpProfilerFactory::SetProfilerPkg(std::string pkg)
 {
     FPS &fps = FPS::GetInstance();
-    fps.setPackageName(pkg);
+    fps.SetPackageName(pkg);
 }
-void SpProfilerFactory::setProfilerPid(std::string pid)
+void SpProfilerFactory::SetProfilerPid(std::string pid)
 {
     RAM &ram = RAM::GetInstance();
-    ram.setProcessId(pid);
+    ram.SetProcessId(pid);
 }
-SpProfiler *SpProfilerFactory::getCmdProfilerItem(CommandType commandType)
+SpProfiler *SpProfilerFactory::GetCmdProfilerItem(CommandType commandType)
 {
     SpProfiler *profiler = nullptr;
     switch (commandType) {
@@ -100,10 +109,10 @@ SpProfiler *SpProfilerFactory::getCmdProfilerItem(CommandType commandType)
             profiler = &RAM::GetInstance();
             break;
         case CommandType::CT_TTRACE:
-            FPS::GetInstance().setTraceCatch();
+            FPS::GetInstance().SetTraceCatch();
             break;
         case CommandType::CT_SNAPSHOT:
-            FPS::GetInstance().setCaptureOn();
+            FPS::GetInstance().SetCaptureOn();
             break;        
         default:
             break;

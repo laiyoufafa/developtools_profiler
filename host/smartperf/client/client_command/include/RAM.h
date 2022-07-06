@@ -19,8 +19,8 @@ namespace OHOS {
 namespace SmartPerf {
 class RAM : public SpProfiler {
 public:
-    void setProcessId(std::string pid);
-    std::map<std::string, std::string> getRamInfo();
+    void SetProcessId(std::string pid);
+    std::map<std::string, std::string> GetRamInfo();
     static RAM &GetInstance()
     {
         static RAM instance;
