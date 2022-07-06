@@ -19,39 +19,46 @@
 #include "include/ByTrace.h"
 namespace OHOS {
 namespace SmartPerf {
-void ByTrace::setTraceConfig(int mSum, int mInterval, long long mThreshold)
+void ByTrace::SetTraceConfig(int mSum, int mInterval, long long mThreshold)
 {
     sum = mSum;
     interval = mInterval;
     threshold = mThreshold;
 }
 
-void ByTrace::threadGetTrace()
+void ByTrace::ThreadGetTrace() const
 {
     std::string result;
     SPUtils::LoadCmd(std::string("bytrace --trace_begin --overwrite"), result);
     std::cout << "TRACE threadGetTrace >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" << std::endl;
 }
-void ByTrace::threadFinishTrace(std::string &pathName)
+void ByTrace::ThreadEndTrace() const
+{
+    std::string result;
+    SPUtils::LoadCmd(std::string("bytrace --trace_finish --overwrite"), result);
+    std::cout << "TRACE threadGetTrace >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" << std::endl;
+}
+void ByTrace::ThreadFinishTrace(std::string &pathName) const
 {
     std::string result;
     std::stringstream sstream;
     sstream.str("");
-    sstream << "bytrace --overwrite sched ace app disk ohos graphic sync workq ability > /data/mynewtrace";
+    sstream << "bytrace --overwrite sched ace app disk ohos graphic sync workq ability";
+    sstream << " > /data/app/el2/100/base/com.ohos.gameperceptio/haps/entry/files/sptrace_";
     sstream << pathName << ".ftrace";
     const std::string &cmdTraceOverwrite = sstream.str();
     SPUtils::LoadCmd(cmdTraceOverwrite, result);
     std::cout << "TRACE threadFinishTrace >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" << std::endl;
 }
 
-TraceStatus ByTrace::checkFpsJitters(std::vector<long long> jitters)
+TraceStatus ByTrace::CheckFpsJitters(std::vector<long long> jitters)
 {
     long long curTime = SPUtils::GetCurTime();
     if (curNum <= sum && curTriggerFlag < 0) {
         for (size_t i = 0; i < jitters.size(); i++) {
             long long normalJitter = jitters[i] / 1e6;
             if (normalJitter > threshold) {
-                TriggerCatch(jitters, curTime);
+                TriggerCatch(curTime);
             }
         }
     }
@@ -62,17 +69,17 @@ TraceStatus ByTrace::checkFpsJitters(std::vector<long long> jitters)
         std::string result;
         SPUtils::LoadCmd(std::string("bytrace --trace_finish"), result);
         std::string pathName = std::to_string(curTime);
-        std::thread tFinish(&ByTrace::threadFinishTrace, this, std::ref(pathName));
+        std::thread tFinish(&ByTrace::ThreadFinishTrace, this, std::ref(pathName));
         curTriggerFlag = -1;
         std::cout << "TRACE FINISH >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" << std::endl;
         tFinish.detach();
     }
     return TraceStatus::TRACE_FINISH;
 }
-void ByTrace::TriggerCatch(std::vector<long long> jitters, long long curTime)
+void ByTrace::TriggerCatch(long long curTime) const
 {
     if ((curTime - lastTriggerTime) > interval) {
-        std::thread tStart(&ByTrace::threadGetTrace, this);
+        std::thread tStart(&ByTrace::ThreadGetTrace, this);
         curTriggerFlag = 1;
         lastTriggerTime = curTime;
         curNum++;

@@ -20,14 +20,14 @@ namespace SmartPerf {
 std::map<std::string, std::string> GPU::ItemData()
 {
     std::map<std::string, std::string> result;
-    int freq = getGpuFreq();
-    float load = getGpuLoad();
-    result["gpuFreq"] = std::to_string(freq);
+    int freq = GetGpuFreq();
+    float load = GetGpuLoad();
+    result["gpuFrequency"] = std::to_string(freq);
     result["gpuLoad"] = std::to_string(load);
     return result;
 }
 
-int GPU::getGpuFreq()
+int GPU::GetGpuFreq()
 {
     std::string gpuFreq;
     for (auto path : gpuCurFreqPaths) {
@@ -37,7 +37,7 @@ int GPU::getGpuFreq()
     }
     return atoi(gpuFreq.c_str());
 }
-float GPU::getGpuLoad()
+float GPU::GetGpuLoad()
 {
     std::vector<std::string> sps;
     std::string bufferLine;

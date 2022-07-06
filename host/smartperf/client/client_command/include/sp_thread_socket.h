@@ -21,13 +21,12 @@ namespace OHOS {
 namespace SmartPerf {
 class SpThreadSocket {
 public:
-    std::string mapToString(std::map<std::string, std::string> dataMap)
+    std::string MapToString(std::map<std::string, std::string> dataMap) const
     {
         std::string result;
-        std::map<std::string, std::string>::iterator iter;
         int i = 0;
         std::string splitStr = "";
-        for (iter = dataMap.begin(); iter != dataMap.end(); ++iter) {
+        for (auto iter = dataMap.cbegin(); iter != dataMap.cend(); ++iter) {
             printf("%s = %s\n", iter->first.c_str(), iter->second.c_str());
             if (i > 0) {
                 splitStr = "$$";
@@ -37,10 +36,10 @@ public:
         }
         return result;
     }
-    std::string resPkgOrPid(SpServerSocket *spSocket)
+    std::string ResPkgOrPid(SpServerSocket &spSocket) const
     {
         std::vector<std::string> sps;
-        SPUtils::StrSplit(spSocket->RecvBuf(), "::", sps);
+        SPUtils::StrSplit(spSocket.RecvBuf(), "::", sps);
         return sps[1];
     }
 
@@ -48,39 +47,40 @@ public:
     {
         std::string clientPkg = "";
         std::string clientPid = "";
-        SpServerSocket *spSocket = new SpServerSocket();
-        spSocket->Init();
-        while (true) {
-            spSocket->Recvfrom();
-            handleMsg(spSocket);
+        SpServerSocket spSocket;
+        spSocket.Init();
+        bool foreverLoop = true;
+        while (foreverLoop) {
+            spSocket.Recvfrom();
+            HandleMsg(spSocket);
         }
         std::cout << "Socket Process finished!" << std::endl;
-        spSocket->Close();
+        spSocket.Close();
     }
-    void handleMsg(SpServerSocket *spSocket)
+    void HandleMsg(SpServerSocket &spSocket)
     {
         auto iterator = messageMap.begin();
         while (iterator != messageMap.end()) {
-            if (SPUtils::IsSubString(spSocket->RecvBuf(), iterator->second)) {
-                SpProfiler *profiler = SpProfilerFactory::getProfilerItem(iterator->first);
-                if (profiler == nullptr && (iterator->first == MessageType::SetPkgName)) {
-                    std::string curPkgName = resPkgOrPid(spSocket);
-                    SpProfilerFactory::setProfilerPkg(curPkgName);
+            if (SPUtils::IsSubString(spSocket.RecvBuf(), iterator->second)) {
+                SpProfiler *profiler = SpProfilerFactory::GetProfilerItem(iterator->first);
+                if (profiler == nullptr && (iterator->first == MessageType::SET_PKG_NAME)) {
+                    std::string curPkgName = ResPkgOrPid(spSocket);
+                    SpProfilerFactory::SetProfilerPkg(curPkgName);
                     std::string pidCmd = "pidof " + curPkgName;
                     std::string pidResult;
                     if (SPUtils::LoadCmd(pidCmd, pidResult)) {
-                        SpProfilerFactory::setProfilerPid(pidResult);
+                        SpProfilerFactory::SetProfilerPid(pidResult);
                     }
-                    spSocket->Sendto(curPkgName);
-                } else if (profiler == nullptr && (iterator->first == MessageType::SetProcessId)) {
-                    SpProfilerFactory::setProfilerPid(resPkgOrPid(spSocket));
+                    spSocket.Sendto(curPkgName);
+                } else if (profiler == nullptr && (iterator->first == MessageType::SET_PROCESS_ID)) {
+                    SpProfilerFactory::SetProfilerPid(ResPkgOrPid(spSocket));
                 } else if (profiler == nullptr) {
                     std::string returnStr = iterator->second;
-                    spSocket->Sendto(returnStr);
+                    spSocket.Sendto(returnStr);
                 } else {
                     std::map<std::string, std::string> data = profiler->ItemData();
-                    std::string sendData = mapToString(data);
-                    spSocket->Sendto(sendData);
+                    std::string sendData = MapToString(data);
+                    spSocket.Sendto(sendData);
                 }
                 break;
             }

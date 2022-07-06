@@ -24,8 +24,8 @@ std::map<std::string, std::string> Power::ItemData()
     SPUtils::LoadFile(currentNowPath, currentNow);
     std::string voltageNow;
     SPUtils::LoadFile(voltageNowPath, voltageNow);
-    result["currentNow"] = currentNow;
-    result["voltageNow"] = voltageNow;
+    result["current_now"] = currentNow;
+    result["voltage_now"] = voltageNow;
     return result;
 }
 }

@@ -28,16 +28,16 @@ public:
     int Sendto(std::string &sendBuf);
     int Recvfrom();
     // 关闭
-    void Close();
+    void Close() const;
     std::string RecvBuf();
 
 private:
     int sock;
     struct sockaddr_in local;
     struct sockaddr_in client;
-    const int SOCK_PORT = 8283;
-    const static int BUFF_SIZE_RECV = 256;
-    char rbuf[BUFF_SIZE_RECV];
+    const int sockPort = 8283;
+    const static int buffSizeRecv = 256;
+    char rbuf[buffSizeRecv];
 };
 }
 }

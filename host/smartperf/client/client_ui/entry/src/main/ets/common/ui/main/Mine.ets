@@ -89,7 +89,7 @@ export struct Mine {
         }
         .width('100%')
         .backgroundColor(0xeeeeee)
-        .height('60vp')
+        .height('50vp')
         .borderRadius('5vp')
         .onClick(
           res => {
@@ -105,7 +105,7 @@ export struct Mine {
           Text('设置').fontSize('16vp').margin('5vp')
         }
         .width('100%')
-        .height('60vp')
+        .height('50vp')
         .backgroundColor(0xeeeeee)
         .borderRadius('5vp')
         .onClick(

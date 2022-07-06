@@ -19,6 +19,7 @@ import { FloatWindowFun } from '../common/ui/floatwindow/FloatWindowFun'
 import { NetWork } from '../common/profiler/item/NetWork';
 import { MainWorker } from '../common/profiler/MainWorkProfiler';
 import BundleManager from '../common/utils/BundleMangerUtils';
+import display from '@ohos.display' // 导入模块
 
 var abilityWindowStage
 export default class MainAbility extends Ability {
@@ -35,6 +36,11 @@ export default class MainAbility extends Ability {
         abilityWindowStage = windowStage;
         abilityWindowStage.setUIContent(this.context, "pages/LoginPage", null)
         globalThis.useDaemon = false
+        display.getDefaultDisplay().then((disp) => {
+            globalThis.screenWith = disp.width
+        }, (err) => {
+            console.log('display.getDefaultDisplay failed, error : ' + JSON.stringify(err));
+        })
     }
     onWindowStageDestroy() {}
     onForeground() {

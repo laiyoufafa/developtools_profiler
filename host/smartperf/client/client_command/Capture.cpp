@@ -19,17 +19,17 @@
 #include "include/Capture.h"
 namespace OHOS {
 namespace SmartPerf {
-void Capture::threadGetCatch(std::string curTime)
+void Capture::ThreadGetCatch(std::string curTime) const
 {
     std::string result;
     std::string cmdCapture = "snapshot_display -f /data/local/tmp/capture/" + curTime +".png";
     SPUtils::LoadCmd(cmdCapture, result);
     std::cout << "Screen Capture Thread >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" << std::endl;
 }
-void Capture::TriggerGetCatch(long long curTime)
+void Capture::TriggerGetCatch(long long curTime) const
 {
     std::string curTimeStr = std::to_string(curTime);
-    std::thread tStart(&Capture::threadGetCatch, this, curTimeStr);
+    std::thread tStart(&Capture::ThreadGetCatch, this, curTimeStr);
     tStart.detach();
 }
 }

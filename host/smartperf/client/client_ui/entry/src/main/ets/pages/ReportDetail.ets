@@ -17,11 +17,13 @@ import { secToTime } from '../common/utils/TimeUtils';
 import { TIndexInfo } from '../common/entity/DatabaseEntity';
 import router from '@system.router';
 import { Summary } from '../common/ui/detail/Summary';
+import { Power } from '../common/ui/detail/Power';
 import { Performance } from '../common/ui/detail/Performance';
-import { LoadRate } from '../common/ui/detail/LoadRate';
+import { Load } from '../common/ui/detail/Load';
 import { Temperature } from '../common/ui/detail/Temperature';
 import { StartTestTitleComponent } from '../common/ui/StartTestTitleComponent';
 import { ReportItem } from '../common/entity/LocalConfigEntity';
+import CheckEmptyUtils from'../common/utils/CheckEmptyUtils'
 
 
 @Entry
@@ -96,9 +98,17 @@ struct ReportDetail {
 
             TabContent() {
               Column() {
-                LoadRate({ gpData: this.gpData })
+                Load({ gpData: this.gpData })
               }.width('100%').height('100%')
             }.tabBar('负载')
+
+            if (!CheckEmptyUtils.checkStrIsEmpty(this.gpData[0].currentNow)) {
+              TabContent() {
+                Column() {
+                  Power({ gpData: this.gpData })
+                }.width('100%').height('100%')
+              }.tabBar('功耗')
+            }
 
             TabContent() {
               Column() {

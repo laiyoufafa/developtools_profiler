@@ -17,9 +17,8 @@ import { BaseProfiler } from '../base/BaseProfiler'
 import { CollectorType } from '../base/ProfilerConstant'
 import SPLogger from '../../../common/utils/SPLogger'
 enum POWER_CONFIG {
-  //此目录 fileio 无法读取 需自行适配
-  POWER_PATH = "/data/local/tmp/battery"
-    
+  //设备电源驱动默认节点
+  POWER_PATH = "/sys/class/power_supply/Battery"
 }
 
 export class Power extends BaseProfiler {

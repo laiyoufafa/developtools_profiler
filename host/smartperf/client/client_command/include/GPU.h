@@ -27,8 +27,8 @@ public:
         static GPU instance;
         return instance;
     }
-    int getGpuFreq();
-    float getGpuLoad();
+    int GetGpuFreq();
+    float GetGpuLoad();
 
 private:
     GPU() {};

@@ -16,6 +16,8 @@
 #include <sstream>
 #include <cstdio>
 #include <cstring>
+#include <climits>
+#include "securec.h"
 #include "include/sp_utils.h"
 #include "include/CPU.h"
 namespace OHOS {
@@ -24,25 +26,25 @@ std::map<std::string, std::string> CPU::ItemData()
 {
     std::map<std::string, std::string> result;
     if (mCpuNum < 0) {
-        getCpuNum();
+        GetCpuNum();
     }
-    std::vector<float> workloads = getCpuLoad();
+    std::vector<float> workloads = GetCpuLoad();
     std::string cpuLoadsStr = "";
     std::string cpuFreqStr = "";
     for (size_t i = 0; i < workloads.size(); i++) {
         cpuLoadsStr = std::to_string(workloads[i]);
-        cpuFreqStr = std::to_string(getCpuFreq(i));
-        result["cpuLoad" + std::to_string(i)] = cpuLoadsStr;
-        result["cpuFreq" + std::to_string(i)] = cpuFreqStr;
+        cpuFreqStr = std::to_string(GetCpuFreq(i));
+        result["cpu" + std::to_string(i) + "Load"] = cpuLoadsStr;
+        result["cpu" + std::to_string(i) + "Frequency"] = cpuFreqStr;
     }
     return result;
 }
-int CPU::getCpuNum()
+int CPU::GetCpuNum()
 {
     int cpuNum = 0;
     while (true) {
         std::stringstream cpuNodeStr;
-        cpuNodeStr << CpuBasePath.c_str() << "/cpu" << cpuNum;
+        cpuNodeStr << cpuBasePath.c_str() << "/cpu" << cpuNum;
         if (!SPUtils::FileAccess(cpuNodeStr.str())) {
             break;
         }
@@ -50,13 +52,13 @@ int CPU::getCpuNum()
     }
     return mCpuNum = cpuNum;
 }
-int CPU::getCpuFreq(int cpuId)
+int CPU::GetCpuFreq(int cpuId)
 {
     std::string curFreq = "-1";
     SPUtils::LoadFile(CpuScalingCurFreq(cpuId), curFreq);
     return atoi(curFreq.c_str());
 }
-std::vector<float> CPU::getCpuLoad()
+std::vector<float> CPU::GetCpuLoad()
 {
     if (mCpuNum <= 0) {
         std::vector<float> workload;
@@ -64,11 +66,15 @@ std::vector<float> CPU::getCpuLoad()
     }
     std::vector<float> workload;
 
-    static char pre_buffer[10][256] = {"\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0"};
-    if (!SPUtils::FileAccess(ProcStat)) {
+    static char preBuffer[10][256] = {"\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0", "\0"};
+    if (!SPUtils::FileAccess(procStat)) {
         return workload;
     }
-    FILE *fp = fopen(ProcStat.c_str(), "r");
+    char realPath[PATH_MAX] = {0x00};
+    if (realpath(procStat.c_str(), realPath) == nullptr) {
+        std::cout << "" << std::endl;
+    }
+    FILE *fp = fopen(realPath, "r");
     if (fp == nullptr) {
         for (int i = 0; i <= mCpuNum; ++i) {
             workload.push_back(-1.0f);
@@ -85,9 +91,11 @@ std::vector<float> CPU::getCpuLoad()
         const int length = 3;
         if (strlen(buffer) >= length && buffer[zeroPos] == 'c' && buffer[firstPos] == 'p' && buffer[secondPos] == 'u' &&
             line != 0) {
-            float b = cacWorkload(buffer, pre_buffer[line]);
+            float b = CacWorkload(buffer, preBuffer[line]);
             workload.push_back(b);
-            snprintf(pre_buffer[line], sizeof(pre_buffer[line]), "%s", buffer);
+            if (snprintf_s(preBuffer[line], sizeof(preBuffer[line]), sizeof(preBuffer[line]), "%s", buffer) < 0) {
+                std::cout << "snprintf_s turn fail" << std::endl;
+            }
         }
         ++line;
 
@@ -102,64 +110,64 @@ std::vector<float> CPU::getCpuLoad()
     return workload;
 }
 
-float CPU::cacWorkload(const char *buffer, const char *pre_buffer)
+float CPU::CacWorkload(const char *buffer, const char *preBuffer) const
 {
-    const size_t default_index = 4;
-    const size_t default_shift = 10;
-    const char default_start = '0';
-    const char default_end = '9';
+    const size_t defaultIndex = 4;
+    const size_t defaultShift = 10;
+    const char defaultStart = '0';
+    const char defaultEnd = '9';
 
-    size_t pre_len = strlen(pre_buffer);
+    size_t preLen = strlen(preBuffer);
     size_t len = strlen(buffer);
-    if (pre_len == 0 || len == 0) {
+    if (preLen == 0 || len == 0) {
         return -1.0f;
     }
-    size_t time[10];
-    size_t pre_time[10];
+    size_t time[10] = {0};
+    size_t preTime[10] = {0};
     size_t cnt = 0;
 
-    for (size_t i = default_index; i < len; ++i) {
+    for (size_t i = defaultIndex; i < len; ++i) {
         size_t tmp = 0;
-        if (buffer[i] < default_start || buffer[i] > default_end) {
+        if (buffer[i] < defaultStart || buffer[i] > defaultEnd) {
             continue;
         }
-        while (buffer[i] >= default_start && buffer[i] <= default_end) {
-            tmp = tmp * default_shift + (buffer[i] - default_start);
+        while (buffer[i] >= defaultStart && buffer[i] <= defaultEnd) {
+            tmp = tmp * defaultShift + (buffer[i] - defaultStart);
             i++;
         }
         time[cnt++] = tmp;
     }
 
-    size_t pre_cnt = 0;
-    for (size_t i = default_index; i < pre_len; ++i) {
+    size_t preCnt = 0;
+    for (size_t i = defaultIndex; i < preLen; ++i) {
         size_t tmp = 0;
-        if (pre_buffer[i] < default_start || pre_buffer[i] > default_end) {
+        if (preBuffer[i] < defaultStart || preBuffer[i] > defaultEnd) {
             continue;
         }
-        while (pre_buffer[i] >= default_start && pre_buffer[i] <= default_end) {
-            tmp = tmp * default_shift + (pre_buffer[i] - default_start);
+        while (preBuffer[i] >= defaultStart && preBuffer[i] <= defaultEnd) {
+            tmp = tmp * defaultShift + (preBuffer[i] - defaultStart);
             i++;
         }
-        pre_time[pre_cnt++] = tmp;
+        preTime[preCnt++] = tmp;
     }
 
-    size_t user = time[0] + time[1] - pre_time[0] - pre_time[1];
-    size_t sys = time[2] - pre_time[2];
-    size_t idle = time[3] - pre_time[3];
-    size_t iowait = time[4] - pre_time[4];
-    size_t irq = time[5] + time[6] - pre_time[5] - pre_time[6];
+    size_t user = time[0] + time[1] - preTime[0] - preTime[1];
+    size_t sys = time[2] - preTime[2];
+    size_t idle = time[3] - preTime[3];
+    size_t iowait = time[4] - preTime[4];
+    size_t irq = time[5] + time[6] - preTime[5] - preTime[6];
     size_t total = user + sys + idle + iowait + irq;
 
     if (user < 0 || sys < 0 || idle < 0 || iowait < 0 || irq < 0) {
         return 0.0f;
     }
 
-    double per_user = std::atof(std::to_string(user * 100.0 / total).c_str());
-    double per_sys = std::atof(std::to_string(sys * 100.0 / total).c_str());
-    double per_iowait = std::atof(std::to_string(iowait * 100.0 / total).c_str());
-    double per_irq = std::atof(std::to_string(irq * 100.0 / total).c_str());
+    double perUser = std::atof(std::to_string(user * 100.0 / total).c_str());
+    double perSys = std::atof(std::to_string(sys * 100.0 / total).c_str());
+    double periowait = std::atof(std::to_string(iowait * 100.0 / total).c_str());
+    double perirq = std::atof(std::to_string(irq * 100.0 / total).c_str());
 
-    double workload = per_user + per_sys + per_iowait + per_irq;
+    double workload = perUser + perSys + periowait + perirq;
 
     return static_cast<float>(workload);
 }

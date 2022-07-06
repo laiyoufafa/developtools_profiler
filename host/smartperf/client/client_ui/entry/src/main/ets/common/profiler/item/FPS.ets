@@ -46,18 +46,6 @@ export class FPS extends BaseProfiler implements SocketProfiler {
     if (globalThis.useDaemon) {
       this.readMessageQueue()
     }
-    //     else {
-    //      let fpsStr: string = globalThis.CreateNativeFps(globalThis.collectPkg)
-    //      if (fpsStr.length > 0) {
-    //        let fpsArr = fpsStr.split("|")
-    //        this.fpsMap.set("fps", extractNumber(fpsArr[0]))
-    //        let fpsJitters = "\"" + fpsArr[1].split("==").join(",") + "\""
-    //        this.fpsMap.set("fpsJitters", fpsJitters)
-    //        globalThis.fpsArr.push(fpsArr[0])
-    //        globalThis.fpsJitterArr.push(fpsArr[1])
-    //        globalThis.timerFps = fpsArr[0]
-    //      }
-    //    }
     return createGPData("FPS", this.fpsMap)
   }
 

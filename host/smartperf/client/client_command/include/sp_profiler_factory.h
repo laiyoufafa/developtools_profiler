@@ -20,10 +20,10 @@ namespace OHOS {
 namespace SmartPerf {
 class SpProfilerFactory {
 public:
-    static SpProfiler *getProfilerItem(MessageType messageType);
-    static void setProfilerPkg(std::string pkg);
-    static void setProfilerPid(std::string pid);
-    static SpProfiler *getCmdProfilerItem(CommandType commandType);
+    static SpProfiler *GetProfilerItem(MessageType messageType);
+    static void SetProfilerPkg(std::string pkg);
+    static void SetProfilerPid(std::string pid);
+    static SpProfiler *GetCmdProfilerItem(CommandType commandType);
 };
 }
 }

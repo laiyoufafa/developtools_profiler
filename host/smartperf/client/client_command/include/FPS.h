@@ -21,26 +21,26 @@ namespace OHOS {
 namespace SmartPerf {
 struct FpsInfo {
     int fps;
-    int pre_fps;
+    int preFps;
     std::vector<long long> jitters;
-    std::queue<long long> time_stamp_q;
-    long long last_frame_ready_time;
-    long long current_fps_time;
+    std::queue<long long> timeStampQ;
+    long long lastFrameReadyTime;
+    long long currentFpsTime;
     FpsInfo()
     {
         fps = 0;
-        pre_fps = 0;
-        last_frame_ready_time = 0;
-        current_fps_time = 0;
+        preFps = 0;
+        lastFrameReadyTime = 0;
+        currentFpsTime = 0;
     }
 };
 class FPS : public SpProfiler {
 public:
-    void setPackageName(std::string pkgName);
-    void setCaptureOn();
-    void setTraceCatch();
-    FpsInfo getFpsInfo();
-    FpsInfo m_fpsInfo;
+    void SetPackageName(std::string pName);
+    void SetCaptureOn();
+    void SetTraceCatch();
+    FpsInfo GetFpsInfo();
+    FpsInfo mFpsInfo;
     static FPS &GetInstance()
     {
         static FPS instance;
@@ -53,8 +53,8 @@ private:
     FPS(const FPS &);
     FPS &operator = (const FPS &);
 
-    std::string pkg_name;
-    std::string cur_layer_name;
+    std::string pkgName;
+    std::string curLayerName;
     int isCatchTrace = 0;
     int isCapture = 0;
     FpsInfo GetSurfaceFrame(std::string name);

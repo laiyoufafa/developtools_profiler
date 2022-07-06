@@ -115,6 +115,14 @@ parentPort.onmessage = function (e) {
             })
             console.log(workTag + "sub worker catch_trace_start :" + "catch_trace_start");
         }
+        if (socketCollectItems.catch_trace_end) {
+            let messageTrace = "catch_trace_end"
+            udp.send({
+                address: UdpSendAddress,
+                data: messageTrace
+            })
+            console.log(workTag + "sub worker catch_trace_end :" + "catch_trace_end");
+        }
     })
 }
 

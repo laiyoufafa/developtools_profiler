@@ -28,24 +28,24 @@ public:
     }
     std::map<std::string, std::string> ItemData() override;
 
-    int getCpuNum();
-    int getCpuFreq(int cpuId);
-    std::vector<float> getCpuLoad();
+    int GetCpuNum();
+    int GetCpuFreq(int cpuId);
+    std::vector<float> GetCpuLoad();
 
 private:
     CPU() {};
     CPU(const CPU &);
     CPU &operator = (const CPU &);
 
-    const std::string CpuBasePath = "/sys/devices/system/cpu";
-    const std::string ProcStat = "/proc/stat";
-    inline const std::string CpuScalingCurFreq(int CPUID)
+    const std::string cpuBasePath = "/sys/devices/system/cpu";
+    const std::string procStat = "/proc/stat";
+    inline const std::string CpuScalingCurFreq(int cpuId)
     {
-        return CpuBasePath + "/cpu" + std::to_string(CPUID) + "/cpufreq/scaling_cur_freq";
+        return cpuBasePath + "/cpu" + std::to_string(cpuId) + "/cpufreq/scaling_cur_freq";
     }
 
     int mCpuNum = -1;
-    float cacWorkload(const char *buffer, const char *pre_buffer);
+    float CacWorkload(const char *buffer, const char *preBuffer) const;
 };
 }
 }

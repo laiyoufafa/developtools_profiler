@@ -32,7 +32,7 @@ int SpServerSocket::Init()
         std::cout << "Socket Create Failed:" << sock << std::endl;
     }
     local.sin_family = AF_INET;
-    local.sin_port = htons(SOCK_PORT);
+    local.sin_port = htons(sockPort);
     local.sin_addr.s_addr = htonl(INADDR_ANY);
     if (::bind(sock, reinterpret_cast<struct sockaddr *>(&local), sizeof(local)) < 0) {
         std::cout << "Socket Bind failed:" << sock << std::endl;
@@ -47,7 +47,7 @@ int SpServerSocket::Sendto(std::string &sendBuf)
     return 0;
 }
 
-void SpServerSocket::Close()
+void SpServerSocket::Close() const
 {
     shutdown(sock, SHUT_RD);
 }
