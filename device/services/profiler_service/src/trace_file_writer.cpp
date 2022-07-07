@@ -48,25 +48,25 @@ bool TraceFileWriter::SetPluginConfig(const void* data, size_t size)
 
 void TraceFileWriter::SetTimeStamp()
 {
-    constexpr uint64_t NANOSECONDS = 1000000000;
+    constexpr uint64_t nanoSeconds = 1000000000;
     struct timespec ts;
     clock_gettime(CLOCK_BOOTTIME, &ts);
-    header_.data_.boottime_ = static_cast<uint64_t>(ts.tv_sec) * NANOSECONDS +
+    header_.data_.boottime = static_cast<uint64_t>(ts.tv_sec) * nanoSeconds +
         static_cast<uint64_t>(ts.tv_nsec);
     clock_gettime(CLOCK_REALTIME, &ts);
-    header_.data_.realtime_ = static_cast<uint64_t>(ts.tv_sec) * NANOSECONDS +
+    header_.data_.realtime = static_cast<uint64_t>(ts.tv_sec) * nanoSeconds +
         static_cast<uint64_t>(ts.tv_nsec);
     clock_gettime(CLOCK_REALTIME_COARSE, &ts);
-    header_.data_.realtime_coarse_ = static_cast<uint64_t>(ts.tv_sec) * NANOSECONDS +
+    header_.data_.realtimeCoarse = static_cast<uint64_t>(ts.tv_sec) * nanoSeconds +
         static_cast<uint64_t>(ts.tv_nsec);
     clock_gettime(CLOCK_MONOTONIC, &ts);
-    header_.data_.monotonic_ = static_cast<uint64_t>(ts.tv_sec) * NANOSECONDS +
+    header_.data_.monotonic = static_cast<uint64_t>(ts.tv_sec) * nanoSeconds +
         static_cast<uint64_t>(ts.tv_nsec);
     clock_gettime(CLOCK_MONOTONIC_COARSE, &ts);
-    header_.data_.monotonic_coarse_ = static_cast<uint64_t>(ts.tv_sec) * NANOSECONDS +
+    header_.data_.monotonicCoarse = static_cast<uint64_t>(ts.tv_sec) * nanoSeconds +
         static_cast<uint64_t>(ts.tv_nsec);
     clock_gettime(CLOCK_MONOTONIC_RAW, &ts);
-    header_.data_.monotonic_raw_ = static_cast<uint64_t>(ts.tv_sec) * NANOSECONDS +
+    header_.data_.monotonicRaw = static_cast<uint64_t>(ts.tv_sec) * nanoSeconds +
         static_cast<uint64_t>(ts.tv_nsec);
 }
 

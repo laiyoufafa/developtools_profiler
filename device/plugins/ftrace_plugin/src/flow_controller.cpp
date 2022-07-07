@@ -32,19 +32,19 @@
 
 namespace {
 #ifndef PAGE_SIZE
-constexpr uint32_t PAGE_SIZE = 4096;
+    constexpr uint32_t PAGE_SIZE = 4096;
 #endif
-constexpr int KB_PER_PAGE = PAGE_SIZE / 1024;
-constexpr uint32_t BYTE_PER_KB = 1024;
-constexpr uint32_t MAX_FLUSH_INTERVAL = 1800 * 1000;
-constexpr uint32_t MAX_FLUSH_THRESHOLD = 128 * 1024 * 1024;
-constexpr uint32_t MAX_TRACE_PERIOD_MS = 720 * 1000;
-constexpr uint32_t MAX_BUFFER_SIZE_KB = 64 * 1024; // 64MB
-constexpr uint32_t MIN_BUFFER_SIZE_KB = 1024;      // 1 MB
-constexpr uint32_t DEFAULT_TRACE_PERIOD_MS = 250;  // 250 ms
-constexpr uint32_t MAX_BLOCK_SIZE_PAGES = 4096;    // 16 MB
-constexpr uint32_t MIN_BLOCK_SIZE_PAGES = 256;     // 1  MB
-const std::set<std::string> g_availableClocks = {"boot", "global", "local", "mono"};
+    constexpr int KB_PER_PAGE = PAGE_SIZE / 1024;
+    constexpr uint32_t BYTE_PER_KB = 1024;
+    constexpr uint32_t MAX_FLUSH_INTERVAL = 1800 * 1000;
+    constexpr uint32_t MAX_FLUSH_THRESHOLD = 128 * 1024 * 1024;
+    constexpr uint32_t MAX_TRACE_PERIOD_MS = 720 * 1000;
+    constexpr uint32_t MAX_BUFFER_SIZE_KB = 64 * 1024; // 64MB
+    constexpr uint32_t MIN_BUFFER_SIZE_KB = 1024;      // 1 MB
+    constexpr uint32_t DEFAULT_TRACE_PERIOD_MS = 250;  // 250 ms
+    constexpr uint32_t MAX_BLOCK_SIZE_PAGES = 4096;    // 16 MB
+    constexpr uint32_t MIN_BLOCK_SIZE_PAGES = 256;     // 1  MB
+    const std::set<std::string> g_availableClocks = { "boot", "global", "local", "mono" };
 } // namespace
 
 FTRACE_NS_BEGIN
@@ -141,7 +141,7 @@ bool FlowController::CreateRawDataBuffers()
     for (int i = 0; i < platformCpuNum_; i++) {
         using u8ptr = std::unique_ptr<uint8_t>::pointer;
         auto buffer = std::shared_ptr<uint8_t>(reinterpret_cast<u8ptr>(memPool_->Allocate()),
-                                               [&](u8ptr block) { this->memPool_->Recycle(block); });
+            [&](u8ptr block) { this->memPool_->Recycle(block); });
         CHECK_NOTNULL(buffer, false, "create buffer %d failed!", i);
         ftraceBuffers_.push_back(buffer);
     };
@@ -163,8 +163,8 @@ bool FlowController::CreateRawDataCaches()
         std::regex fileNameRegex("[\\/:*?\"<>|]");
         size_t pos = path.rfind("/");
         if (pos != std::string::npos) {
-            std::string dirName = path.substr(0, pos+1);
-            std::string fileName = path.substr(pos+1, path.length()-pos-1);
+            std::string dirName = path.substr(0, pos + 1);
+            std::string fileName = path.substr(pos + 1, path.length() - pos - 1);
             if (std::regex_search(dirName, dirNameRegex) || std::regex_search(fileName, fileNameRegex)) {
                 HILOG_ERROR(LOG_CORE, "%s:path is invalid: %s, errno=%d", __func__, path.c_str(), errno);
                 return false;

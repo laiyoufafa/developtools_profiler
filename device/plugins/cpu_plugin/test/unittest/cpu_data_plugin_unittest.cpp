@@ -56,9 +56,9 @@ struct TestSystemStat {
 };
 
 struct TestCpuUsage {
-    double user_load;
-    double sys_load;
-    double total_load;
+    double userLoad;
+    double sysLoad;
+    double totalLoad;
 };
 
 struct TestStat {
@@ -238,9 +238,9 @@ void GetCpuUsage(TestCpuUsage& cpuUsage, int64_t Hz)
     int64_t sysTime = stat.system * Hz;
     int64_t totalTime = (stat.user + stat.nice + stat.system + stat.irq + stat.softirq + stat.steal) * Hz;
     int64_t bootTime = totalTime + (stat.idle + stat.iowait) * Hz;
-    cpuUsage.user_load = (static_cast<double>(userTime) / bootTime) * PERCENT;
-    cpuUsage.sys_load = (static_cast<double>(sysTime) / bootTime) * PERCENT;
-    cpuUsage.total_load = (static_cast<double>(totalTime) / bootTime) * PERCENT;
+    cpuUsage.userLoad = (static_cast<double>(userTime) / bootTime) * PERCENT;
+    cpuUsage.sysLoad = (static_cast<double>(sysTime) / bootTime) * PERCENT;
+    cpuUsage.totalLoad = (static_cast<double>(totalTime) / bootTime) * PERCENT;
 }
 
 /**
@@ -305,9 +305,9 @@ HWTEST_F(CpuDataPluginTest, TestPluginInfo, TestSize.Level1)
     EXPECT_EQ(cpuUsageInfo.system_cpu_time_ms(), systemCpuTime);
     EXPECT_EQ(cpuUsageInfo.system_boot_time_ms(), systemBootTime);
     EXPECT_EQ(cpuData.process_num(), 1);
-    EXPECT_FLOAT_EQ(cpuData.user_load(), cpuUsage.user_load);
-    EXPECT_FLOAT_EQ(cpuData.sys_load(), cpuUsage.sys_load);
-    EXPECT_FLOAT_EQ(cpuData.total_load(), cpuUsage.total_load);
+    EXPECT_FLOAT_EQ(cpuData.user_load(), cpuUsage.userLoad);
+    EXPECT_FLOAT_EQ(cpuData.sys_load(), cpuUsage.sysLoad);
+    EXPECT_FLOAT_EQ(cpuData.total_load(), cpuUsage.totalLoad);
 
     ASSERT_EQ(cpuUsageInfo.cores_size(), 6);
     for (int i = 1; i <= CORE_NUM; i++) {
