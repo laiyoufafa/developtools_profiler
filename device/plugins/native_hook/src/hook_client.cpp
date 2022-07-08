@@ -367,7 +367,7 @@ int hook_munmap(int(*fn)(void*, size_t), void* addr, size_t length)
     rawdata.addr = addr;
     prctl(PR_GET_NAME, rawdata.tname);
 
-    std::unique_lock<std::recursive_timed_mutex> lck(g_ClientMutex,std::defer_lock);
+    std::unique_lock<std::recursive_timed_mutex> lck(g_ClientMutex, std::defer_lock);
     std::chrono::time_point<std::chrono::steady_clock> timeout =
         std::chrono::steady_clock::now() + std::chrono::milliseconds(TIMEOUT_MSEC);
     if (!lck.try_lock_until(timeout)) {
@@ -494,7 +494,7 @@ void ohos_malloc_hook_memtag(void* addr, size_t size, char* tag, size_t tagLen)
     }
     rawdata.tname[sizeof(rawdata.tname) - 1] = '\0';
 
-    std::unique_lock<std::recursive_timed_mutex> lck(g_ClientMutex,std::defer_lock);
+    std::unique_lock<std::recursive_timed_mutex> lck(g_ClientMutex, std::defer_lock);
     std::chrono::time_point<std::chrono::steady_clock> timeout =
         std::chrono::steady_clock::now() + std::chrono::milliseconds(TIMEOUT_MSEC);
     if (!lck.try_lock_until(timeout)) {

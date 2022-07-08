@@ -38,7 +38,7 @@ std::string g_testPath = "";
 std::shared_ptr<ProcessDataPlugin> processPlugin = nullptr;
 
 struct PssData {
-    int32_t pss_info;
+    int32_t pssInfo;
 };
 
 struct DiskioData {
@@ -48,13 +48,13 @@ struct DiskioData {
     int64_t syscw;
     int64_t rbytes;
     int64_t wbytes;
-    int64_t cancelled_wbytes;
+    int64_t cancelledWbytes;
 };
 
 struct CpuData {
-    double cpu_usage;
-    int32_t thread_sum;
-    int64_t cpu_time_ms;
+    double cpuUsage;
+    int32_t threadSum;
+    int64_t cpuTimeMs;
 };
 
 struct ProcessStatus {
@@ -160,12 +160,12 @@ void GetCpuData(std::vector<CpuData>& cpuDataVec, int64_t Hz)
     int64_t bootTime = (g_bootData.user + g_bootData.nice + g_bootData.system + g_bootData.idle + g_bootData.iowait
                         + g_bootData.irq + g_bootData.softirq + g_bootData.steal) * Hz;
     for (int i = 0; i < PROCESS_NUM; i++) {
-        int cpu_time_ms = (g_processCpuData[i].utime + g_processCpuData[i].stime + g_processCpuData[i].cutime
+        int cpuTimeMs = (g_processCpuData[i].utime + g_processCpuData[i].stime + g_processCpuData[i].cutime
                             + g_processCpuData[i].cstime) * Hz;
-        double cpu_usage = static_cast<double>(cpu_time_ms) / bootTime * PERCENT;
-        cpuDataVec.push_back({cpu_usage, 1, cpu_time_ms});
+        double cpuUsage = static_cast<double>(cpuTimeMs) / bootTime * PERCENT;
+        cpuDataVec.push_back({cpuUsage, 1, cpuTimeMs});
     }
-    cpuDataVec[1].thread_sum = THREAD_NUM;
+    cpuDataVec[1].threadSum = THREAD_NUM;
 }
 
 /**
@@ -229,9 +229,9 @@ HWTEST_F(ProcessDataPluginTest, TestPluginReportCpu, TestSize.Level1)
     GetCpuData(cpuDataVec, Hz);
     for (int i = 0; i < PROCESS_NUM && i < processData.processesinfo().size(); i++) {
         CpuInfo cpuInfo = processData.processesinfo()[i].cpuinfo();
-        EXPECT_FLOAT_EQ(cpuInfo.cpu_usage(), cpuDataVec[i].cpu_usage);
-        EXPECT_EQ(cpuInfo.thread_sum(), cpuDataVec[i].thread_sum);
-        EXPECT_EQ(cpuInfo.cpu_time_ms(), cpuDataVec[i].cpu_time_ms);
+        EXPECT_FLOAT_EQ(cpuInfo.cpu_usage(), cpuDataVec[i].cpuUsage);
+        EXPECT_EQ(cpuInfo.thread_sum(), cpuDataVec[i].threadSum);
+        EXPECT_EQ(cpuInfo.cpu_time_ms(), cpuDataVec[i].cpuTimeMs);
     }
 
     EXPECT_EQ(processPlugin->Stop(), 0);
@@ -262,7 +262,7 @@ HWTEST_F(ProcessDataPluginTest, TestPluginReportDiskio, TestSize.Level1)
         EXPECT_EQ(diskinfo.syscw(), g_diskioData[i].syscw);
         EXPECT_EQ(diskinfo.rbytes(), g_diskioData[i].rbytes);
         EXPECT_EQ(diskinfo.wbytes(), g_diskioData[i].wbytes);
-        EXPECT_EQ(diskinfo.cancelled_wbytes(), g_diskioData[i].cancelled_wbytes);
+        EXPECT_EQ(diskinfo.cancelled_wbytes(), g_diskioData[i].cancelledWbytes);
     }
 
     EXPECT_EQ(processPlugin->Stop(), 0);
@@ -287,7 +287,7 @@ HWTEST_F(ProcessDataPluginTest, TestPluginReportPss, TestSize.Level1)
 
     for (int i = 0; i < PROCESS_NUM && i < processData.processesinfo().size(); i++) {
         PssInfo pssinfo = processData.processesinfo()[i].pssinfo();
-        EXPECT_EQ(pssinfo.pss_info(), g_pssData[i].pss_info);
+        EXPECT_EQ(pssinfo.pss_info(), g_pssData[i].pssInfo);
     }
 
     EXPECT_EQ(processPlugin->Stop(), 0);
@@ -324,17 +324,17 @@ HWTEST_F(ProcessDataPluginTest, TestPluginReportAll, TestSize.Level1)
         EXPECT_STREQ(processesinfo.name().c_str(), g_processStatus[i].name.c_str());
         EXPECT_EQ(processesinfo.ppid(), g_processStatus[i].ppid);
         EXPECT_EQ(processesinfo.uid(), g_processStatus[i].uid);
-        EXPECT_FLOAT_EQ(cpuInfo.cpu_usage(), cpuDataVec[i].cpu_usage);
-        EXPECT_EQ(cpuInfo.thread_sum(), cpuDataVec[i].thread_sum);
-        EXPECT_EQ(cpuInfo.cpu_time_ms(), cpuDataVec[i].cpu_time_ms);
+        EXPECT_FLOAT_EQ(cpuInfo.cpu_usage(), cpuDataVec[i].cpuUsage);
+        EXPECT_EQ(cpuInfo.thread_sum(), cpuDataVec[i].threadSum);
+        EXPECT_EQ(cpuInfo.cpu_time_ms(), cpuDataVec[i].cpuTimeMs);
         EXPECT_EQ(diskinfo.rchar(), g_diskioData[i].rchar);
         EXPECT_EQ(diskinfo.wchar(), g_diskioData[i].wchar);
         EXPECT_EQ(diskinfo.syscr(), g_diskioData[i].syscr);
         EXPECT_EQ(diskinfo.syscw(), g_diskioData[i].syscw);
         EXPECT_EQ(diskinfo.rbytes(), g_diskioData[i].rbytes);
         EXPECT_EQ(diskinfo.wbytes(), g_diskioData[i].wbytes);
-        EXPECT_EQ(diskinfo.cancelled_wbytes(), g_diskioData[i].cancelled_wbytes);
-        EXPECT_EQ(pssinfo.pss_info(), g_pssData[i].pss_info);
+        EXPECT_EQ(diskinfo.cancelled_wbytes(), g_diskioData[i].cancelledWbytes);
+        EXPECT_EQ(pssinfo.pss_info(), g_pssData[i].pssInfo);
     }
 
     EXPECT_EQ(processPlugin->Stop(), 0);

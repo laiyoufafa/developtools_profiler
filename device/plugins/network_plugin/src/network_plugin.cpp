@@ -91,36 +91,36 @@ int NetworkPlugin::Report(uint8_t* data, uint32_t dataSize)
         auto* systemInfo = dataProto.mutable_network_system_info();
         for (auto& it : systemData.details) {
             NetworkSystemDetails* data = systemInfo->add_details();
-            data->set_rx_bytes(it.rx_bytes + randNum * RX_BYTES_INDEX);
-            data->set_rx_packets(it.rx_packets + randNum * RX_PACKETS_INDEX);
-            data->set_tx_bytes(it.tx_bytes + randNum * TX_BYTES_INDEX);
-            data->set_tx_packets(it.tx_packets + randNum * TX_PACKETS_INDEX);
+            data->set_rx_bytes(it.rxBytes + randNum * RX_BYTES_INDEX);
+            data->set_rx_packets(it.rxPackets + randNum * RX_PACKETS_INDEX);
+            data->set_tx_bytes(it.txBytes + randNum * TX_BYTES_INDEX);
+            data->set_tx_packets(it.txPackets + randNum * TX_PACKETS_INDEX);
             data->set_type(it.type);
         }
         systemInfo->set_tv_sec(systemData.ts.tv_sec);
         systemInfo->set_tv_nsec(systemData.ts.tv_nsec);
-        systemInfo->set_rx_bytes(systemData.rx_bytes + (randNum * RX_BYTES_INDEX * systemData.details.size()));
-        systemInfo->set_rx_packets(systemData.rx_packets + (randNum * RX_PACKETS_INDEX * systemData.details.size()));
-        systemInfo->set_tx_bytes(systemData.tx_bytes + (randNum * TX_BYTES_INDEX * systemData.details.size()));
-        systemInfo->set_tx_packets(systemData.tx_packets + (randNum * TX_PACKETS_INDEX * systemData.details.size()));
+        systemInfo->set_rx_bytes(systemData.rxBytes + (randNum * RX_BYTES_INDEX * systemData.details.size()));
+        systemInfo->set_rx_packets(systemData.rxPackets + (randNum * RX_PACKETS_INDEX * systemData.details.size()));
+        systemInfo->set_tx_bytes(systemData.txBytes + (randNum * TX_BYTES_INDEX * systemData.details.size()));
+        systemInfo->set_tx_packets(systemData.txPackets + (randNum * TX_PACKETS_INDEX * systemData.details.size()));
     } else { // real data
         NetSystemData systemData = {};
         ReadSystemTxRxBytes(systemData);
         auto* systemInfo = dataProto.mutable_network_system_info();
         for (auto& it : systemData.details) {
             NetworkSystemDetails* data = systemInfo->add_details();
-            data->set_rx_bytes(it.rx_bytes);
-            data->set_rx_packets(it.rx_packets);
-            data->set_tx_bytes(it.tx_bytes);
-            data->set_tx_packets(it.tx_packets);
+            data->set_rx_bytes(it.rxBytes);
+            data->set_rx_packets(it.rxPackets);
+            data->set_tx_bytes(it.txBytes);
+            data->set_tx_packets(it.txPackets);
             data->set_type(it.type);
         }
         systemInfo->set_tv_sec(systemData.ts.tv_sec);
         systemInfo->set_tv_nsec(systemData.ts.tv_nsec);
-        systemInfo->set_rx_bytes(systemData.rx_bytes);
-        systemInfo->set_rx_packets(systemData.rx_packets);
-        systemInfo->set_tx_bytes(systemData.tx_bytes);
-        systemInfo->set_tx_packets(systemData.tx_packets);
+        systemInfo->set_rx_bytes(systemData.rxBytes);
+        systemInfo->set_rx_packets(systemData.rxPackets);
+        systemInfo->set_tx_bytes(systemData.txBytes);
+        systemInfo->set_tx_packets(systemData.txPackets);
     }
 
     uint32_t length = dataProto.ByteSizeLong();
@@ -227,14 +227,14 @@ bool NetworkPlugin::ReadTxRxBytes(int32_t pid, NetworkCell &cell)
                 break;
             }
             if (index == RX_BYTES_INDEX) {
-                uint64_t rx_bytes = value;
-                cache.rx = rx_bytes;
-                cell.rx += rx_bytes;
+                uint64_t rxBytes = value;
+                cache.rx = rxBytes;
+                cell.rx += rxBytes;
             }
             if (index == TX_BYTES_INDEX) {
-                uint64_t tx_bytes = value;
-                cache.tx = tx_bytes;
-                cell.tx += tx_bytes;
+                uint64_t txBytes = value;
+                cache.tx = txBytes;
+                cell.tx += txBytes;
                 AddNetDetails(cell, cache);
             }
         }
@@ -295,21 +295,21 @@ bool NetworkPlugin::ReadSystemTxRxBytes(NetSystemData &systemData)
             uint64_t value = static_cast<uint64_t>(strtoull(totalbuffer.CurWord(), &end, DEC_BASE));
             CHECK_TRUE(value >= 0, false, "%s:NetworkPlugin, strtoull value failed", __func__);
             if (index == RX_BYTES_INDEX) {
-                uint64_t rx_bytes = value;
-                systemCache.rx_bytes = rx_bytes;
-                systemData.rx_bytes += rx_bytes;
+                uint64_t rxBytes = value;
+                systemCache.rxBytes = rxBytes;
+                systemData.rxBytes += rxBytes;
             } else if (index == RX_PACKETS_INDEX) {
-                uint64_t rx_packets = value;
-                systemCache.rx_packets = rx_packets;
-                systemData.rx_packets += rx_packets;
+                uint64_t rxPackets = value;
+                systemCache.rxPackets = rxPackets;
+                systemData.rxPackets += rxPackets;
             } else if (index == TX_BYTES_INDEX) {
-                uint64_t tx_bytes = value;
-                systemCache.tx_bytes = tx_bytes;
-                systemData.tx_bytes += tx_bytes;
+                uint64_t txBytes = value;
+                systemCache.txBytes = txBytes;
+                systemData.txBytes += txBytes;
             } else if (index == TX_PACKETS_INDEX) {
-                uint64_t tx_packets = value;
-                systemCache.tx_packets = tx_packets;
-                systemData.tx_packets += tx_packets;
+                uint64_t txPackets = value;
+                systemCache.txPackets = txPackets;
+                systemData.txPackets += txPackets;
                 AddNetSystemDetails(systemData, systemCache);
             }
         }
@@ -327,10 +327,10 @@ void NetworkPlugin::AddNetSystemDetails(NetSystemData& systemData, NetSystemDeta
     // 处理重复数据
     for (auto it = systemData.details.begin(); it != systemData.details.end(); it++) {
         if (it->type == data.type) {
-            it->rx_bytes += data.rx_bytes;
-            it->rx_packets += data.rx_packets;
-            it->tx_bytes += data.tx_bytes;
-            it->tx_packets += data.tx_packets;
+            it->rxBytes += data.rxBytes;
+            it->rxPackets += data.rxPackets;
+            it->txBytes += data.txBytes;
+            it->txPackets += data.txPackets;
             finded = true;
         }
     }

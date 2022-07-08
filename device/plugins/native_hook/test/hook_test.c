@@ -310,7 +310,7 @@ char* MmapReadFile(char* pMap, int length)
     return data;
 }
 
-void RandSrand(void)
+static void RandSrand(void)
 {
     srand((unsigned)time(NULL));
 }

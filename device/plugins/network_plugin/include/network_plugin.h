@@ -53,18 +53,18 @@ struct NetworkCell {
 
 struct NetSystemDetails {
     std::string type;
-    uint64_t rx_bytes;
-    uint64_t rx_packets;
-    uint64_t tx_bytes;
-    uint64_t tx_packets;
+    uint64_t rxBytes;
+    uint64_t rxPackets;
+    uint64_t txBytes;
+    uint64_t txPackets;
 };
 
 struct NetSystemData {
     struct timespec ts;
-    uint64_t rx_bytes;
-    uint64_t rx_packets;
-    uint64_t tx_bytes;
-    uint64_t tx_packets;
+    uint64_t rxBytes;
+    uint64_t rxPackets;
+    uint64_t txBytes;
+    uint64_t txPackets;
     std::vector<NetSystemDetails> details;
 };
 

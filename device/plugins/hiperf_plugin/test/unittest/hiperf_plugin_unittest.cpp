@@ -166,14 +166,14 @@ void CheckRecordFile(const std::string& fileName)
     std::unique_ptr<FILE, int (*)(FILE*)> fp(fopen(fileName.c_str(), "rb"), fclose);
     ASSERT_NE(fp, nullptr);
 
-    constexpr long PERF_DATA_HEADER_LEN = 13 * 8;
+    constexpr long perfDataHeaderLen = 13 * 8;
     fseek(fp.get(), 0, SEEK_END);
-    ASSERT_GE(ftell(fp.get()), PERF_DATA_HEADER_LEN) << "perf.data should have data";
+    ASSERT_GE(ftell(fp.get()), perfDataHeaderLen) << "perf.data should have data";
     fseek(fp.get(), 0, SEEK_SET);
 
-    char buff[PERF_DATA_HEADER_LEN] = {0};
-    long rLen = fread(buff, 1, PERF_DATA_HEADER_LEN, fp.get());
-    ASSERT_EQ(rLen, PERF_DATA_HEADER_LEN);
+    char buff[perfDataHeaderLen] = {0};
+    long rLen = fread(buff, 1, perfDataHeaderLen, fp.get());
+    ASSERT_EQ(rLen, perfDataHeaderLen);
     ASSERT_EQ(strncmp(buff, "PERFILE2", strlen("PERFILE2")), 0) << "perf.data magic error";
 }
 

@@ -30,18 +30,18 @@ struct TraceFileHeader {
     static constexpr uint32_t TRACE_VERSION = (V_MAJOR << V_MAJOR_BITS) | V_MINOR;
 
     struct HeaderData {
-        uint64_t magic_ = HEADER_MAGIC;  // 魔数，用于区分离线文件
-        uint64_t length_ = HEADER_SIZE;  // 总长度，可用于检验文件是否被截断；
-        uint32_t version_ = TRACE_VERSION;
-        uint32_t segments_ = 0; // 载荷数据中的段个数, 段个数为偶数，一个描述长度 L，一个描述接下来的数据 V
-        uint8_t sha256_[SHA256_SIZE] = {}; // 载荷数据 的 SHA256 ，用于校验 载荷数据是否完整；
-        uint32_t dataType_ = DataType::HIPROFILER_PROTOBUF_BIN; // 存储数据类型
-        uint64_t boottime_ = 0;
-        uint64_t realtime_ = 0;
-        uint64_t realtime_coarse_ = 0;
-        uint64_t monotonic_ = 0;
-        uint64_t monotonic_coarse_ = 0;
-        uint64_t monotonic_raw_ = 0;
+        uint64_t magic = HEADER_MAGIC;  // 魔数，用于区分离线文件
+        uint64_t length = HEADER_SIZE;  // 总长度，可用于检验文件是否被截断；
+        uint32_t version = TRACE_VERSION;
+        uint32_t segments = 0; // 载荷数据中的段个数, 段个数为偶数，一个描述长度 L，一个描述接下来的数据 V
+        uint8_t sha256[SHA256_SIZE] = {}; // 载荷数据 的 SHA256 ，用于校验 载荷数据是否完整；
+        uint32_t dataType = DataType::HIPROFILER_PROTOBUF_BIN; // 存储数据类型
+        uint64_t boottime = 0;
+        uint64_t realtime = 0;
+        uint64_t realtimeCoarse = 0;
+        uint64_t monotonic = 0;
+        uint64_t monotonicCoarse = 0;
+        uint64_t monotonicRaw = 0;
     } __attribute__((packed));
     HeaderData data_ = {};
     uint8_t padding_[HEADER_SIZE - sizeof(data_)] = {};

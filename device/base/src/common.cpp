@@ -24,7 +24,6 @@
 #include <vector>
 
 namespace COMMON {
-constexpr int LINE_SIZE = 1000;
 constexpr int EXECVP_ERRNO = 2;
 const std::string DEFAULT_PATH = "/data/local/tmp/";
 
@@ -67,7 +66,8 @@ bool IsProcessExist(std::string& processName, int& pid)
     std::string findpid = "pidof " + processName;
     std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(findpid.c_str(), "r"), pclose);
 
-    char line[LINE_SIZE];
+    constexpr int lineSize = 1000;
+    char line[lineSize];
     do {
         if (fgets(line, sizeof(line), pipe.get()) == nullptr) {
             return false;
@@ -75,7 +75,7 @@ bool IsProcessExist(std::string& processName, int& pid)
             pid = atoi(line);
             return true;
         }
-    } while (1);
+    } while (true);
 }
 
 int StartProcess(const std::string& processBin, std::vector<char*>& argv)

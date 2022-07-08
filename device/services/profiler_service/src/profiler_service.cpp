@@ -381,7 +381,7 @@ void ProfilerService::MergeHiperfFile(const SessionContextPtr& sessionCtx)
 
     // get hiperf plugin ouput file
     std::string hiperfFile;
-    for (auto & config : sessionCtx->pluginConfigs) {
+    for (auto &config : sessionCtx->pluginConfigs) {
         if (config.name() != "hiperf-plugin") {
             continue;
         }
@@ -417,10 +417,10 @@ void ProfilerService::MergeHiperfFile(const SessionContextPtr& sessionCtx)
     int posHiperf = fsTarget.tellp(); // for update sha256
 
     TraceFileHeader header {};
-    header.data_.dataType_ = DataType::HIPERF_DATA;
+    header.data_.dataType = DataType::HIPERF_DATA;
     fsHiperf.seekg(0, std::ios_base::end);
     uint64_t fileSize = (uint64_t)(fsHiperf.tellg());
-    header.data_.length_ += fileSize;
+    header.data_.length += fileSize;
     fsTarget.write(reinterpret_cast<char*>(&header), sizeof(header));
     if (!fsTarget.good()) {
         HILOG_ERROR(LOG_CORE, "write file(%s) failed: %d\n", targetFile.c_str(), fsTarget.rdstate());
@@ -444,7 +444,7 @@ void ProfilerService::MergeHiperfFile(const SessionContextPtr& sessionCtx)
 
         SHA256_Update(&sha256Ctx, buf.data(), readSize);
     }
-    SHA256_Final(header.data_.sha256_, &sha256Ctx);
+    SHA256_Final(header.data_.sha256, &sha256Ctx);
     fsTarget.seekp(posHiperf, std::ios_base::beg);
     fsTarget.write(reinterpret_cast<char*>(&header), sizeof(header));
 

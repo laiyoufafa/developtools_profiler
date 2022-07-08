@@ -38,16 +38,16 @@ TraceFileHelper::~TraceFileHelper()
 
 bool TraceFileHelper::AddSegment(const uint8_t data[], uint32_t size)
 {
-    if (size > std::numeric_limits<decltype(header_.data_.length_)>::max() - header_.data_.length_ - sizeof(size)) {
+    if (size > std::numeric_limits<decltype(header_.data_.length)>::max() - header_.data_.length - sizeof(size)) {
         return false;
     }
 #if !is_mingw
     int retval = 0;
-    header_.data_.segments_ += 1;
+    header_.data_.segments += 1;
 
-    header_.data_.length_ += size;
+    header_.data_.length += size;
     retval = SHA256_Update(shaCtx_.get(), data, size);
-    CHECK_TRUE(retval, false, "[%u] SHA256_Update FAILED, s:%u, d:%p!", header_.data_.segments_, size, data);
+    CHECK_TRUE(retval, false, "[%u] SHA256_Update FAILED, s:%u, d:%p!", header_.data_.segments, size, data);
 #endif
     return true;
 }
@@ -56,8 +56,8 @@ bool TraceFileHelper::Finish()
 {
 #if !is_mingw
     int retval = 0;
-    retval = SHA256_Final(header_.data_.sha256_, shaCtx_.get());
-    CHECK_TRUE(retval, false, "[%u] SHA256_Final FAILED!", header_.data_.segments_);
+    retval = SHA256_Final(header_.data_.sha256, shaCtx_.get());
+    CHECK_TRUE(retval, false, "[%u] SHA256_Final FAILED!", header_.data_.segments);
 #endif
     return true;
 }
