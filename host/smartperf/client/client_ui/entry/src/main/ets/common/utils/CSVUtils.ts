@@ -34,6 +34,7 @@ export function csvTIndexInfo(tIndexInfos: Array<TIndexInfo>): string {
         for (let k of Object.keys(t)) {
             data += t[k] + ","
         }
+        data = data.substring(0, data.lastIndexOf(","))
         data += "\n"
     }
     let result = tittle + data

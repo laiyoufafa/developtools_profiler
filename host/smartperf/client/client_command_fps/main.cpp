@@ -263,12 +263,16 @@ int main(int argc, char *argv[])
             printf("set num:%d not valid arg\n", num);
         }
         for (int i = 0; i < num; i++) {
+            struct timeval start, end;
+            gettimeofday(&start, nullptr);
             std::string layerName = GetLayer();
             FpsConfig fpsConfig;
             gfpsInfo = GetSurfaceFrame(layerName, fpsConfig);
             printf("fps:%d|%lld\n", gfpsInfo.fps, gfpsInfo.currentFpsTime);
+            gettimeofday(&end, nullptr);
+            unsigned long runTime = end.tv_sec * 1e6 - start.tv_sec * 1e6 + end.tv_usec - start.tv_usec;
             fflush(stdout);
-            sleep(1);
+            usleep(1000000 - runTime);
         }
     }
     printf("GP_daemon_fps exec finished!\n");
