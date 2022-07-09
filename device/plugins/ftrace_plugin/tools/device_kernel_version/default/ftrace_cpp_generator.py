@@ -78,7 +78,8 @@ def fix_field_name(name):
     replace_map = {
         'errno': 'error_code',
         'sa_handler': 'sig_handler',
-        'sa_flags': 'sig_flags'
+        'sa_flags': 'sig_flags',
+        'new': 'seq_new'
     }
     if name in replace_map:
         name = replace_map[name]
@@ -203,9 +204,11 @@ class EventFormatterCodeGenerator(FtraceEventCodeGenerator):
                 if (category == "binder") :
                     f.write('#include "binder.h"\n')
                 f.write('#include "logging.h"\n')
-                if (category == "power") :
+                if (category == "f2fs") :
+                    f.write('#include "f2fs.h"\n')
+                elif (category == "power") :
                     f.write('#include "pm_qos.h"\n')
-                if (category == "writeback") :
+                elif (category == "writeback") :
                     f.write('#include "pq.h"\n')
                 elif (category == "compaction")  | (category == "kmem") | (category == "vmscan") :
                     f.write('#include "type.h"\n')
@@ -250,12 +253,14 @@ class EventFormatterCodeGenerator(FtraceEventCodeGenerator):
                 str.lower(event.name)))
             f.write("    char buffer[BUFFER_SIZE];\n")
             event.print_fmt = "\"" + event.name + ": " + event.print_fmt[2:]
-            event.print_fmt = str.replace(event.print_fmt, "=%zu", "=%llu")
-            event.print_fmt = str.replace(event.print_fmt, "pfn=%llu", "pfn=%\" PRIu64 \"")
-            if (category == "binder") :
-                event.print_fmt = str.replace(event.print_fmt, "%zd", "%\" PRIu64 \"")
-                event.print_fmt = str.replace(event.print_fmt, "%llu", "%\" PRIu64 \"")
-            elif (category == "net") :
+            event.print_fmt = str.replace(event.print_fmt, "%zu", "%\" PRIu64 \"")
+            event.print_fmt = str.replace(event.print_fmt, "%zd", "%\" PRIu64 \"")
+            event.print_fmt = str.replace(event.print_fmt, "%llu", "%\" PRIu64 \"")
+            event.print_fmt = str.replace(event.print_fmt, "%lld", "%\" PRIu64 \"")
+            event.print_fmt = str.replace(event.print_fmt, "%lx", "%\" PRIx64 \"")
+            event.print_fmt = str.replace(event.print_fmt, "%llx", "%\" PRIx64 \"")
+            event.print_fmt = str.replace(event.print_fmt, "(unsigned long long)", "")
+            if (category == "net") :
                 event.print_fmt = str.replace(event.print_fmt, "skbaddr=%p", "skbaddr=%\" PRIu64 \"")
             elif (category == "kmem") | (category == "filemap") :
                 event.print_fmt = str.replace(event.print_fmt, "page=%p", "page=%s")
@@ -266,11 +271,8 @@ class EventFormatterCodeGenerator(FtraceEventCodeGenerator):
                 event.print_fmt = str.replace(event.print_fmt, " name=%s\"", "\"")
                 event.print_fmt = str.replace(event.print_fmt, "REC->ptr, __get_str(name)", "REC->ptr")
                 event.print_fmt = str.replace(event.print_fmt, "%lu", "%\" PRIu64 \"")
-                event.print_fmt = str.replace(event.print_fmt, "%llu", "%\" PRIu64 \"")
-                event.print_fmt = str.replace(event.print_fmt, "%lx", "%\" PRIu64 \"")
             elif (category == "filelock") :
                 event.print_fmt = str.replace(event.print_fmt, "fl=%p", "fl=%\" PRIu64 \"")
-                event.print_fmt = str.replace(event.print_fmt, "ino=0x%lx", "ino=0x%\" PRIu64 \"")
                 event.print_fmt = str.replace(event.print_fmt, "fl_blocker=%p", "fl_blocker=%\" PRIu64 \"")
                 event.print_fmt = str.replace(event.print_fmt, "fl_owner=%p", "fl_owner=%\" PRId32 \"")
                 event.print_fmt = str.replace(event.print_fmt, "=%lu", "=%\" PRIu64 \"")
@@ -282,10 +284,7 @@ class EventFormatterCodeGenerator(FtraceEventCodeGenerator):
                 event.print_fmt = str.replace(event.print_fmt, "REC->fl_downgrade_time", "msg.fl_downgrade_time()")
                 event.print_fmt = str.replace(event.print_fmt, "REC->rcount", "msg.dcount()")
             elif (category == "ext4") :
-                event.print_fmt = str.replace(event.print_fmt, "%llu", "%\" PRIu64 \"")
                 event.print_fmt = str.replace(event.print_fmt, "%lu", "%\" PRIu64 \"")
-                event.print_fmt = str.replace(event.print_fmt, "%lld", "%\" PRIu64 \"")
-                event.print_fmt = str.replace(event.print_fmt, ", (unsigned long long)", ",")
                 event.print_fmt = str.replace(event.print_fmt, ", (unsigned long)", ",")
             elif (category == "timer") :
                 event.print_fmt = str.replace(event.print_fmt, "=%ps", "=%\" PRIu64 \"")
@@ -298,28 +297,19 @@ class EventFormatterCodeGenerator(FtraceEventCodeGenerator):
                 event.print_fmt = str.replace(event.print_fmt, "cgroup_ino=%lu", "cgroup_ino=%\" PRId32 \"")
                 event.print_fmt = str.replace(event.print_fmt, "%lu", "%\" PRIu64 \"")
                 event.print_fmt = str.replace(event.print_fmt, "%ld", "%\" PRIu64 \"")
-                event.print_fmt = str.replace(event.print_fmt, "%lx", "%\" PRIu64 \"")
             elif (category == "sunrpc") :
-                event.print_fmt = str.replace(event.print_fmt, "socket:[%llu]", "socket:[%\" PRIu64 \"]")
                 event.print_fmt = str.replace(event.print_fmt, "action=%ps", "action=%\" PRIu64 \"")
                 event.print_fmt = str.replace(event.print_fmt, "=%lu", "=%\" PRIu64 \"")
             elif (category == "sched") :
                 event.print_fmt = str.replace(event.print_fmt, "%Lu", "%\" PRIu64 \"")
-                event.print_fmt = str.replace(event.print_fmt, ", (unsigned long long)", ", ")
+            elif (category == "ftrace") :
+                event.print_fmt = str.replace(event.print_fmt, "(unsigned long)", "")
 
             if (event.name == "binder_command") :
                 event.print_fmt = "\"binder_command: cmd=0x%x\", msg.cmd()"
-            elif (event.name == "binder_ioctl") :
-                event.print_fmt = str.replace(event.print_fmt, "arg=0x%lx", "arg=0x%\" PRIu64 \"")
             elif (event.name == "binder_return") :
                 event.print_fmt = "\"binder_return: cmd=0x%x\", msg.cmd()"
-            elif (event.name == "mmiotrace_map") | (event.name == "mmiotrace_rw") :
-                event.print_fmt = str.replace(event.print_fmt, "%lx %lx %d", "%\" PRIu64 \" %\" PRIu64 \" %d")
-            elif (event.name == "funcgraph_exit") :
-                event.print_fmt = str.replace(event.print_fmt, "(start: %llx  end: %llx)", "(start: %\" PRIu64 \"  end: %\" PRIu64 \")")
-            elif (event.name == "task_newtask") :
-                event.print_fmt = str.replace(event.print_fmt, "clone_flags=%lx oom_score_adj=%hd", "clone_flags=%\" PRIu64 \" oom_score_adj=%d")
-            elif (event.name == "task_rename") :
+            elif (event.name == "task_newtask") | (event.name == "task_rename") :
                 event.print_fmt = str.replace(event.print_fmt, "oom_score_adj=%hd", "oom_score_adj=%d")
             elif (event.name == "branch_format"):
                 event.print_fmt = "\"branch: %u:%s:%s (%u)%s\", msg.line(), msg.func().c_str(), msg.file().c_str(), msg.correct(), msg.constant() ? \" CONSTANT\" : \"\""
@@ -329,8 +319,6 @@ class EventFormatterCodeGenerator(FtraceEventCodeGenerator):
                 event.print_fmt = "\"user_stack: tgid=%d, caller=%s\", msg.tgid(), msg.caller().c_str()"
             elif (event.name == "mm_lru_activate") | (event.name == "mm_lru_insertion") :
                 event.print_fmt = str.replace(event.print_fmt, "page=%p pfn=%lu", "page=%\" PRIu64 \" pfn=%\" PRIu64 \"")
-            elif (event.name == "task_rename") :
-                event.print_fmt = str.replace(event.print_fmt, "oom_score_adj=%hd", "oom_score_adj=%d")
             elif (event.name == "sched_stick_numa"):
                 event.print_fmt = "\"sched_stick_numa: src_pid=%d src_tgid=%d src_ngid=%d src_cpu=%d src_nid=%d dst_pid=%d dst_tgid=%d dst_ngid=%d dst_cpu=%d dst_nid=%d\", msg.pid(), msg.tgid(), msg.ngid(), msg.src_cpu(), msg.src_nid(), msg.pid(), msg.tgid(), msg.ngid(), msg.dst_cpu(), msg.dst_nid()"
             elif (event.name == "print"):
@@ -354,12 +342,9 @@ class EventFormatterCodeGenerator(FtraceEventCodeGenerator):
             elif (event.name == "i2c_reply") | (event.name == "i2c_write") :
                 event.print_fmt = str.replace(event.print_fmt, "l=%u [%*phD]", "l=%\" PRId32 \" [%\" PRId32 \"]")
                 event.print_fmt = str.replace(event.print_fmt, "REC->len, REC->len", "REC->len")
-            elif (event.name == "block_dirty_buffer") | (event.name == "block_touch_buffer") :
-                event.print_fmt = str.replace(event.print_fmt, "size=%llu", "size=%\" PRIu64 \"")
             elif (event.name == "mm_compaction_isolate_freepages") | (event.name == "mm_compaction_isolate_migratepages") \
                     | (event.name == "mm_compaction_begin") | (event.name == "mm_compaction_end") \
                     | (event.name == "mm_compaction_migratepages") :
-                event.print_fmt = str.replace(event.print_fmt, "0x%lx", "=0x%\" PRIu64 \"")
                 event.print_fmt = str.replace(event.print_fmt, "%lu", "=0x%\" PRIu64 \"")
             elif (event.name == "mm_compaction_defer_compaction") | (event.name == "mm_compaction_defer_reset") \
                     | (event.name == "mm_compaction_deferred") | (event.name == "mm_compaction_end") \
@@ -368,12 +353,11 @@ class EventFormatterCodeGenerator(FtraceEventCodeGenerator):
             elif (event.name == "cpuhp_enter") | (event.name == "cpuhp_multi_enter") :
                 event.print_fmt = str.replace(event.print_fmt, "(%ps)", "(%\" PRIu64 \")")
             elif (event.name == "signal_deliver") | (event.name == "signal_generate") :
-                event.print_fmt = str.replace(event.print_fmt, "=%lx", "=%\" PRIu64 \"")
                 event.print_fmt = str.replace(event.print_fmt, "REC->errno", "msg.error_code()")
                 event.print_fmt = str.replace(event.print_fmt, "REC->sa_handler", "msg.sig_handler()")
                 event.print_fmt = str.replace(event.print_fmt, "REC->sa_flags", "msg.sig_flags()")
             elif (event.name == "sys_enter"):
-                event.print_fmt = "\"sys_enter: NR %\" PRIu64 \" (%d, %d, %d, %d %d, %d)\", msg.id(), int(msg.args()[0]-'0'), int(msg.args()[1]-'0'), int(msg.args()[2]-'0'), int(msg.args()[3]-'0'), int(msg.args()[4]-'0'), int(msg.args()[5]-'0')"
+                event.print_fmt = "\"sys_enter: NR %\" PRIu64 \"(%s))\", msg.id(), msg.args().c_str()"
             elif (event.name == "sys_exit"):
                 event.print_fmt = str.replace(event.print_fmt, "%ld", "%\" PRIu64 \"")
             elif (event.name == "oom_score_adj_update"):
@@ -404,17 +388,13 @@ class EventFormatterCodeGenerator(FtraceEventCodeGenerator):
             elif (event.name == "itimer_state") :
                 event.print_fmt = str.replace(event.print_fmt, "it_value=%ld.%06ld it_interval=%ld.%06ld", "it_value=%\" PRIu64 \"it_interval=%\" PRIu64 \"")
                 event.print_fmt = str.replace(event.print_fmt, "REC->value_nsec / 1000L, REC->interval_sec, REC->interval_nsec / 1000L", "msg.interval_sec()")
-                event.print_fmt = str.replace(event.print_fmt, "expires=%llu", "expires=%\" PRIu64 \"")
             elif (event.name == "timer_expire_entry") :
                 event.print_fmt = str.replace(event.print_fmt, "now=%lu baseclk=%lu", "now=%\" PRIu64 \"")
                 event.print_fmt = str.replace(event.print_fmt, "REC->now, REC->baseclk", "msg.now()")
             elif (event.name == "timer_start") :
                 event.print_fmt = str.replace(event.print_fmt, "expires=%lu [timeout=%ld]", "expires=%\" PRIu64 \" [timeout=%\" PRIu64 \"]")
                 event.print_fmt = str.replace(event.print_fmt, ", (long)", ",")
-            elif (event.name == "itimer_expire") :
-                event.print_fmt = str.replace(event.print_fmt, "now=%llu", "now=%\" PRIu64 \"")
             elif (event.name == "mm_shrink_slab_end") | (event.name == "mm_shrink_slab_start") :
-                event.print_fmt = str.replace(event.print_fmt, "%lld", "%\" PRIu64 \"")
                 event.print_fmt = str.replace(event.print_fmt, " %pS %p", "%\" PRIu64 \"S %\" PRIu64 \"")
                 event.print_fmt = str.replace(event.print_fmt, "REC->shrink", "msg.shrink()")
             elif (event.name == "mm_vmscan_lru_shrink_inactive") :
@@ -454,17 +434,17 @@ class EventFormatterCodeGenerator(FtraceEventCodeGenerator):
                 event.print_fmt = event.print_fmt[:70] + " \"0000000000000000\"" + event.print_fmt[3742:]
             elif (event.name == "xprt_transmit"):
                 event.print_fmt = "\"xprt_transmit: xid=0x%08x status=%d\", msg.xid(), msg.status()"
-            elif (event.name == "v4l2_dqbuf") | (event.name == "v4l2_qbuf") :
-                event.print_fmt = str.replace(event.print_fmt, "timestamp = %llu", "timestamp = %\" PRId64 \"")
-            elif (event.name == "vb2_v4l2_buf_done") | (event.name == "vb2_v4l2_buf_queue") \
-                    | (event.name == "vb2_v4l2_dqbuf") | (event.name == "vb2_v4l2_qbuf") :
-                event.print_fmt = str.replace(event.print_fmt, "timestamp = %llu", "timestamp = %\" PRIu64 \"")
-            elif (event.name == "gpu_mem_total"):
-                event.print_fmt = str.replace(event.print_fmt, "size=%llu", "size=%\" PRIu64 \"")
-            elif (event.name == "sched_blocked_reason") :
+            elif (event.name == "sched_blocked_reason") | (event.name == "mmc_request_done") \
+                    | (event.name == "mmc_request_start") :
                 event.print_fmt = str.replace(event.print_fmt, "%p", "%\" PRIu64 \"")
             elif (event.name == "rss_stat") :
                 event.print_fmt = str.replace(event.print_fmt, "size=%ldB", "size=%\" PRIu64 \"B")
+            elif (event.name == "file_check_and_advance_wb_err") :
+                event.print_fmt = str.replace(event.print_fmt, "REC->new", "msg.seq_new()")
+            elif (event.name == "f2fs_sync_file_enter") :
+                event.print_fmt = str.replace(event.print_fmt, "i_mode = 0x%hx", "i_mode = 0x%x")
+            elif (event.name == "wakeup_source_activate") | (event.name == "wakeup_source_deactivate") :
+                event.print_fmt = str.replace(event.print_fmt, "(unsigned long)", "")
 
             for field_info in event.remain_fields:
                 field_name = fix_field_name(field_info.name)
@@ -482,12 +462,12 @@ class EventFormatterCodeGenerator(FtraceEventCodeGenerator):
                                                     "msg."+field_name+"()")
             if (event.name == "sched_switch"):
                 f.write("    if (msg.prev_state() > 0x0400) {\n")
-                f.write('        snprintf(buffer, sizeof(buffer), "sched_switch: prev_comm=%s prev_pid=%d prev_prio=%d prev_state=? ==> next_comm=%s next_pid=%d next_prio=%d", msg.prev_comm().c_str(), msg.prev_pid(), msg.prev_prio(), msg.next_comm().c_str(), msg.next_pid(), msg.next_prio());\n')
+                f.write('        snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "sched_switch: prev_comm=%s prev_pid=%d prev_prio=%d prev_state=? ==> next_comm=%s next_pid=%d next_prio=%d", msg.prev_comm().c_str(), msg.prev_pid(), msg.prev_prio(), msg.next_comm().c_str(), msg.next_pid(), msg.next_prio());\n')
                 f.write("    } else {\n")
-                f.write('        snprintf(buffer, sizeof(buffer), "sched_switch: prev_comm=%s prev_pid=%d prev_prio=%d prev_state=%s%s ==> next_comm=%s next_pid=%d next_prio=%d", msg.prev_comm().c_str(), msg.prev_pid(), msg.prev_prio(), (msg.prev_state() & ((((0x0000 | 0x0001 | 0x0002 | 0x0004 | 0x0008 | 0x0010 | 0x0020 | 0x0040) + 1) << 1) - 1)) ? __print_flags(msg.prev_state() & ((((0x0000 | 0x0001 | 0x0002 | 0x0004 | 0x0008 | 0x0010 | 0x0020 | 0x0040) + 1) << 1) - 1), "|", { 0x0001, "S" }, { 0x0002, "D" }, { 0x0004, "T" }, { 0x0008, "t" }, { 0x0010, "X" }, { 0x0020, "Z" }, { 0x0040, "I" }, { 0x0080, "K" }, { 0x0100, "W" }, { 0x0200, "P" }, { 0x0400, "N" }) : "R", msg.prev_state() & (((0x0000 | 0x0001 | 0x0002 | 0x0004 | 0x0008 | 0x0010 | 0x0020 | 0x0040) + 1) << 1) ? "+" : "", msg.next_comm().c_str(), msg.next_pid(), msg.next_prio());\n')
+                f.write('        snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "sched_switch: prev_comm=%s prev_pid=%d prev_prio=%d prev_state=%s%s ==> next_comm=%s next_pid=%d next_prio=%d", msg.prev_comm().c_str(), msg.prev_pid(), msg.prev_prio(), (msg.prev_state() & ((((0x0000 | 0x0001 | 0x0002 | 0x0004 | 0x0008 | 0x0010 | 0x0020 | 0x0040) + 1) << 1) - 1)) ? __print_flags(msg.prev_state() & ((((0x0000 | 0x0001 | 0x0002 | 0x0004 | 0x0008 | 0x0010 | 0x0020 | 0x0040) + 1) << 1) - 1), "|", { 0x0001, "S" }, { 0x0002, "D" }, { 0x0004, "T" }, { 0x0008, "t" }, { 0x0010, "X" }, { 0x0020, "Z" }, { 0x0040, "I" }, { 0x0080, "K" }, { 0x0100, "W" }, { 0x0200, "P" }, { 0x0400, "N" }) : "R", msg.prev_state() & (((0x0000 | 0x0001 | 0x0002 | 0x0004 | 0x0008 | 0x0010 | 0x0020 | 0x0040) + 1) << 1) ? "+" : "", msg.next_comm().c_str(), msg.next_pid(), msg.next_prio());\n')
                 f.write("    }\n")
             else :
-                f.write('    int len = snprintf(buffer, sizeof(buffer),{});\n'.format(event.print_fmt))
+                f.write('    int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, {});\n'.format(event.print_fmt))
                 f.write('    if (len >= BUFFER_SIZE - 1) {\n')
                 f.write('      HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");\n')
                 f.write('    }\n')

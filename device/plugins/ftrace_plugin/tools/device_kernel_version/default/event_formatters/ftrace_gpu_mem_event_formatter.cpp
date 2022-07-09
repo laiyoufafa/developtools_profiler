@@ -28,8 +28,8 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.gpu_mem_total_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "gpu_mem_total: gpu_id=%u pid=%u size=%" PRIu64 "", msg.gpu_id(),
-                           msg.pid(), msg.size());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "gpu_mem_total: gpu_id=%u pid=%u size=%" PRIu64 "",
+            msg.gpu_id(), msg.pid(), msg.size());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }

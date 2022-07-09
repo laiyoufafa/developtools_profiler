@@ -29,8 +29,8 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.binder_alloc_lru_end_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "binder_alloc_lru_end: proc=%d page_index=%" PRIu64 "", msg.proc(),
-                           msg.page_index());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
+            "binder_alloc_lru_end: proc=%d page_index=%" PRIu64 "", msg.proc(), msg.page_index());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -43,8 +43,8 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.binder_alloc_lru_start_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "binder_alloc_lru_start: proc=%d page_index=%" PRIu64 "", msg.proc(),
-                           msg.page_index());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
+            "binder_alloc_lru_start: proc=%d page_index=%" PRIu64 "", msg.proc(), msg.page_index());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -57,8 +57,8 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.binder_alloc_page_end_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "binder_alloc_page_end: proc=%d page_index=%" PRIu64 "", msg.proc(),
-                           msg.page_index());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
+            "binder_alloc_page_end: proc=%d page_index=%" PRIu64 "", msg.proc(), msg.page_index());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -71,8 +71,8 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.binder_alloc_page_start_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "binder_alloc_page_start: proc=%d page_index=%" PRIu64 "",
-                           msg.proc(), msg.page_index());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
+            "binder_alloc_page_start: proc=%d page_index=%" PRIu64 "", msg.proc(), msg.page_index());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -85,7 +85,7 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.binder_command_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "binder_command: cmd=0x%x", msg.cmd());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "binder_command: cmd=0x%x", msg.cmd());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -98,8 +98,8 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.binder_free_lru_end_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "binder_free_lru_end: proc=%d page_index=%" PRIu64 "", msg.proc(),
-                           msg.page_index());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
+            "binder_free_lru_end: proc=%d page_index=%" PRIu64 "", msg.proc(), msg.page_index());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -112,8 +112,8 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.binder_free_lru_start_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "binder_free_lru_start: proc=%d page_index=%" PRIu64 "", msg.proc(),
-                           msg.page_index());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
+            "binder_free_lru_start: proc=%d page_index=%" PRIu64 "", msg.proc(), msg.page_index());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -126,7 +126,8 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.binder_ioctl_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "binder_ioctl: cmd=0x%x arg=0x%" PRIu64 "", msg.cmd(), msg.arg());
+        int len = snprintf_s(
+            buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "binder_ioctl: cmd=0x%x arg=0x%" PRIx64 "", msg.cmd(), msg.arg());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -139,7 +140,7 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.binder_ioctl_done_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "binder_ioctl_done: ret=%d", msg.ret());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "binder_ioctl_done: ret=%d", msg.ret());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -152,7 +153,7 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.binder_lock_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "binder_lock: tag=%s", msg.tag().c_str());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "binder_lock: tag=%s", msg.tag().c_str());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -165,7 +166,7 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.binder_locked_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "binder_locked: tag=%s", msg.tag().c_str());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "binder_locked: tag=%s", msg.tag().c_str());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -178,7 +179,7 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.binder_read_done_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "binder_read_done: ret=%d", msg.ret());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "binder_read_done: ret=%d", msg.ret());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -191,7 +192,7 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.binder_return_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "binder_return: cmd=0x%x", msg.cmd());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "binder_return: cmd=0x%x", msg.cmd());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -204,8 +205,7 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.binder_transaction_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(
-            buffer, sizeof(buffer),
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
             "binder_transaction: transaction=%d dest_node=%d dest_proc=%d dest_thread=%d reply=%d flags=0x%x code=0x%x",
             msg.debug_id(), msg.target_node(), msg.to_proc(), msg.to_thread(), msg.reply(), msg.flags(), msg.code());
         if (len >= BUFFER_SIZE - 1) {
@@ -220,10 +220,10 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.binder_transaction_alloc_buf_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer),
-                           "binder_transaction_alloc_buf: transaction=%d data_size=%" PRIu64 " offsets_size=%" PRIu64
-                           " extra_buffers_size=%" PRIu64 "",
-                           msg.debug_id(), msg.data_size(), msg.offsets_size(), msg.extra_buffers_size());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
+            "binder_transaction_alloc_buf: transaction=%d data_size=%" PRIu64 " offsets_size=%" PRIu64
+            " extra_buffers_size=%" PRIu64 "",
+            msg.debug_id(), msg.data_size(), msg.offsets_size(), msg.extra_buffers_size());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -236,10 +236,10 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.binder_transaction_buffer_release_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer),
-                           "binder_transaction_buffer_release: transaction=%d data_size=%" PRIu64
-                           " offsets_size=%" PRIu64 " extra_buffers_size=%" PRIu64 "",
-                           msg.debug_id(), msg.data_size(), msg.offsets_size(), msg.extra_buffers_size());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
+            "binder_transaction_buffer_release: transaction=%d data_size=%" PRIu64 " offsets_size=%" PRIu64
+            " extra_buffers_size=%" PRIu64 "",
+            msg.debug_id(), msg.data_size(), msg.offsets_size(), msg.extra_buffers_size());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -254,10 +254,10 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.binder_transaction_failed_buffer_release_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer),
-                           "binder_transaction_failed_buffer_release: transaction=%d data_size=%" PRIu64
-                           " offsets_size=%" PRIu64 " extra_buffers_size=%" PRIu64 "",
-                           msg.debug_id(), msg.data_size(), msg.offsets_size(), msg.extra_buffers_size());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
+            "binder_transaction_failed_buffer_release: transaction=%d data_size=%" PRIu64 " offsets_size=%" PRIu64
+            " extra_buffers_size=%" PRIu64 "",
+            msg.debug_id(), msg.data_size(), msg.offsets_size(), msg.extra_buffers_size());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -270,8 +270,7 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.binder_transaction_node_to_ref_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(
-            buffer, sizeof(buffer),
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
             "binder_transaction_node_to_ref: transaction=%d node=%d src_ptr=0x%016llx ==> dest_ref=%d dest_desc=%d",
             msg.debug_id(), msg.node_debug_id(), (u64)msg.node_ptr(), msg.ref_debug_id(), msg.ref_desc());
         if (len >= BUFFER_SIZE - 1) {
@@ -286,7 +285,8 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.binder_transaction_received_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "binder_transaction_received: transaction=%d", msg.debug_id());
+        int len = snprintf_s(
+            buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "binder_transaction_received: transaction=%d", msg.debug_id());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -299,8 +299,7 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.binder_transaction_ref_to_node_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(
-            buffer, sizeof(buffer),
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
             "binder_transaction_ref_to_node: transaction=%d node=%d src_ref=%d src_desc=%d ==> dest_ptr=0x%016llx",
             msg.debug_id(), msg.node_debug_id(), msg.ref_debug_id(), msg.ref_desc(), (u64)msg.node_ptr());
         if (len >= BUFFER_SIZE - 1) {
@@ -315,8 +314,7 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.binder_transaction_ref_to_ref_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(
-            buffer, sizeof(buffer),
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
             "binder_transaction_ref_to_ref: transaction=%d node=%d src_ref=%d src_desc=%d ==> dest_ref=%d dest_desc=%d",
             msg.debug_id(), msg.node_debug_id(), msg.src_ref_debug_id(), msg.src_ref_desc(), msg.dest_ref_debug_id(),
             msg.dest_ref_desc());
@@ -332,7 +330,7 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.binder_unlock_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "binder_unlock: tag=%s", msg.tag().c_str());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "binder_unlock: tag=%s", msg.tag().c_str());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -345,8 +343,8 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.binder_unmap_kernel_end_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "binder_unmap_kernel_end: proc=%d page_index=%" PRIu64 "",
-                           msg.proc(), msg.page_index());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
+            "binder_unmap_kernel_end: proc=%d page_index=%" PRIu64 "", msg.proc(), msg.page_index());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -359,8 +357,8 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.binder_unmap_kernel_start_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "binder_unmap_kernel_start: proc=%d page_index=%" PRIu64 "",
-                           msg.proc(), msg.page_index());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
+            "binder_unmap_kernel_start: proc=%d page_index=%" PRIu64 "", msg.proc(), msg.page_index());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -373,8 +371,8 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.binder_unmap_user_end_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "binder_unmap_user_end: proc=%d page_index=%" PRIu64 "", msg.proc(),
-                           msg.page_index());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
+            "binder_unmap_user_end: proc=%d page_index=%" PRIu64 "", msg.proc(), msg.page_index());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -387,8 +385,8 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.binder_unmap_user_start_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "binder_unmap_user_start: proc=%d page_index=%" PRIu64 "",
-                           msg.proc(), msg.page_index());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
+            "binder_unmap_user_start: proc=%d page_index=%" PRIu64 "", msg.proc(), msg.page_index());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -401,9 +399,9 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.binder_update_page_range_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer),
-                           "binder_update_page_range: proc=%d allocate=%d offset=%" PRIu64 " size=%" PRIu64 "",
-                           msg.proc(), msg.allocate(), msg.offset(), msg.size());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
+            "binder_update_page_range: proc=%d allocate=%d offset=%" PRIu64 " size=%" PRIu64 "", msg.proc(),
+            msg.allocate(), msg.offset(), msg.size());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -416,9 +414,9 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.binder_wait_for_work_format();
         char buffer[BUFFER_SIZE];
-        int len =
-            snprintf(buffer, sizeof(buffer), "binder_wait_for_work: proc_work=%d transaction_stack=%d thread_todo=%d",
-                     msg.proc_work(), msg.transaction_stack(), msg.thread_todo());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
+            "binder_wait_for_work: proc_work=%d transaction_stack=%d thread_todo=%d", msg.proc_work(),
+            msg.transaction_stack(), msg.thread_todo());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -431,7 +429,7 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.binder_write_done_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "binder_write_done: ret=%d", msg.ret());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "binder_write_done: ret=%d", msg.ret());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }

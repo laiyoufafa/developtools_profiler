@@ -28,7 +28,7 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.ipi_entry_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "ipi_entry: (%s)", msg.reason().c_str());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "ipi_entry: (%s)", msg.reason().c_str());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -41,7 +41,7 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.ipi_exit_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "ipi_exit: (%s)", msg.reason().c_str());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "ipi_exit: (%s)", msg.reason().c_str());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -54,8 +54,8 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.ipi_raise_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "ipi_raise: target_mask=%" PRIu64 " (%s)", msg.target_cpus(),
-                           msg.reason().c_str());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "ipi_raise: target_mask=%" PRIu64 " (%s)",
+            msg.target_cpus(), msg.reason().c_str());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }

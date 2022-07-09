@@ -28,7 +28,7 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.clk_disable_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "clk_disable: %s", msg.name().c_str());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "clk_disable: %s", msg.name().c_str());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -41,7 +41,7 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.clk_disable_complete_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "clk_disable_complete: %s", msg.name().c_str());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "clk_disable_complete: %s", msg.name().c_str());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -54,7 +54,7 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.clk_enable_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "clk_enable: %s", msg.name().c_str());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "clk_enable: %s", msg.name().c_str());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -67,7 +67,7 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.clk_enable_complete_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "clk_enable_complete: %s", msg.name().c_str());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "clk_enable_complete: %s", msg.name().c_str());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -80,7 +80,7 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.clk_prepare_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "clk_prepare: %s", msg.name().c_str());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "clk_prepare: %s", msg.name().c_str());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -93,7 +93,7 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.clk_prepare_complete_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "clk_prepare_complete: %s", msg.name().c_str());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "clk_prepare_complete: %s", msg.name().c_str());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -106,7 +106,8 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.clk_set_parent_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "clk_set_parent: %s %s", msg.name().c_str(), msg.pname().c_str());
+        int len = snprintf_s(
+            buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "clk_set_parent: %s %s", msg.name().c_str(), msg.pname().c_str());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -119,8 +120,8 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.clk_set_parent_complete_format();
         char buffer[BUFFER_SIZE];
-        int len =
-            snprintf(buffer, sizeof(buffer), "clk_set_parent_complete: %s %s", msg.name().c_str(), msg.pname().c_str());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "clk_set_parent_complete: %s %s", msg.name().c_str(),
+            msg.pname().c_str());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -133,7 +134,8 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.clk_set_phase_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "clk_set_phase: %s %d", msg.name().c_str(), (int)msg.phase());
+        int len = snprintf_s(
+            buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "clk_set_phase: %s %d", msg.name().c_str(), (int)msg.phase());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -146,8 +148,8 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.clk_set_phase_complete_format();
         char buffer[BUFFER_SIZE];
-        int len =
-            snprintf(buffer, sizeof(buffer), "clk_set_phase_complete: %s %d", msg.name().c_str(), (int)msg.phase());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "clk_set_phase_complete: %s %d", msg.name().c_str(),
+            (int)msg.phase());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -160,8 +162,8 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.clk_set_rate_format();
         char buffer[BUFFER_SIZE];
-        int len =
-            snprintf(buffer, sizeof(buffer), "clk_set_rate: %s %lu", msg.name().c_str(), (unsigned long)msg.rate());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "clk_set_rate: %s %lu", msg.name().c_str(),
+            (unsigned long)msg.rate());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -174,8 +176,8 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.clk_set_rate_complete_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "clk_set_rate_complete: %s %lu", msg.name().c_str(),
-                           (unsigned long)msg.rate());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "clk_set_rate_complete: %s %lu", msg.name().c_str(),
+            (unsigned long)msg.rate());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -188,7 +190,7 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.clk_unprepare_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "clk_unprepare: %s", msg.name().c_str());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "clk_unprepare: %s", msg.name().c_str());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -201,7 +203,7 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.clk_unprepare_complete_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "clk_unprepare_complete: %s", msg.name().c_str());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "clk_unprepare_complete: %s", msg.name().c_str());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }

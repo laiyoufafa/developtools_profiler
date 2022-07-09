@@ -28,8 +28,8 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.i2c_read_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "i2c_read: i2c-%d #%u a=%03x f=%04x l=%u", msg.adapter_nr(),
-                           msg.msg_nr(), msg.addr(), msg.flags(), msg.len());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "i2c_read: i2c-%d #%u a=%03x f=%04x l=%u",
+            msg.adapter_nr(), msg.msg_nr(), msg.addr(), msg.flags(), msg.len());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -42,8 +42,9 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.i2c_reply_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "i2c_reply: i2c-%d #%u a=%03x f=%04x l=%" PRId32 " [%" PRId32 "]",
-                           msg.adapter_nr(), msg.msg_nr(), msg.addr(), msg.flags(), msg.len(), msg.buf());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
+            "i2c_reply: i2c-%d #%u a=%03x f=%04x l=%" PRId32 " [%" PRId32 "]", msg.adapter_nr(), msg.msg_nr(),
+            msg.addr(), msg.flags(), msg.len(), msg.buf());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -56,8 +57,8 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.i2c_result_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "i2c_result: i2c-%d n=%u ret=%d", msg.adapter_nr(), msg.nr_msgs(),
-                           msg.ret());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "i2c_result: i2c-%d n=%u ret=%d", msg.adapter_nr(),
+            msg.nr_msgs(), msg.ret());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -70,8 +71,9 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.i2c_write_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "i2c_write: i2c-%d #%u a=%03x f=%04x l=%" PRId32 " [%" PRId32 "]",
-                           msg.adapter_nr(), msg.msg_nr(), msg.addr(), msg.flags(), msg.len(), msg.buf());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
+            "i2c_write: i2c-%d #%u a=%03x f=%04x l=%" PRId32 " [%" PRId32 "]", msg.adapter_nr(), msg.msg_nr(),
+            msg.addr(), msg.flags(), msg.len(), msg.buf());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }

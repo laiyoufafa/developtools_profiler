@@ -28,15 +28,14 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.break_lease_block_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(
-            buffer, sizeof(buffer),
-            "break_lease_block: fl=%" PRIu64 " dev=0x%x:0x%x ino=0x%" PRIu64 " fl_blocker=%" PRIu64 " fl_owner=%" PRId32
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
+            "break_lease_block: fl=%" PRIu64 " dev=0x%x:0x%x ino=0x%" PRIx64 " fl_blocker=%" PRIu64 " fl_owner=%" PRId32
             " fl_flags=%s fl_type=%s fl_break_time=%" PRIu64 " fl_downgrade_time=%" PRIu64 "",
             msg.fl(), ((unsigned int)((msg.s_dev()) >> 20)), ((unsigned int)((msg.s_dev()) & ((1U << 20) - 1))),
             msg.i_ino(), msg.fl_next(), msg.fl_owner(),
             __print_flags(msg.fl_flags(), "|", {1, "FL_POSIX"}, {2, "FL_FLOCK"}, {4, "FL_DELEG"}, {8, "FL_ACCESS"},
-                          {16, "FL_EXISTS"}, {32, "FL_LEASE"}, {64, "FL_CLOSE"}, {128, "FL_SLEEP"},
-                          {256, "FL_DOWNGRADE_PENDING"}, {512, "FL_UNLOCK_PENDING"}, {1024, "FL_OFDLCK"}),
+                {16, "FL_EXISTS"}, {32, "FL_LEASE"}, {64, "FL_CLOSE"}, {128, "FL_SLEEP"}, {256, "FL_DOWNGRADE_PENDING"},
+                {512, "FL_UNLOCK_PENDING"}, {1024, "FL_OFDLCK"}),
             __print_symbolic(msg.fl_type(), {0, "F_RDLCK"}, {1, "F_WRLCK"}, {2, "F_UNLCK"}), msg.fl_break_time(),
             msg.fl_downgrade_time());
         if (len >= BUFFER_SIZE - 1) {
@@ -51,15 +50,14 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.break_lease_noblock_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(
-            buffer, sizeof(buffer),
-            "break_lease_noblock: fl=%" PRIu64 " dev=0x%x:0x%x ino=0x%" PRIu64 " fl_blocker=%" PRIu64
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
+            "break_lease_noblock: fl=%" PRIu64 " dev=0x%x:0x%x ino=0x%" PRIx64 " fl_blocker=%" PRIu64
             " fl_owner=%" PRId32 " fl_flags=%s fl_type=%s fl_break_time=%" PRIu64 " fl_downgrade_time=%" PRIu64 "",
             msg.fl(), ((unsigned int)((msg.s_dev()) >> 20)), ((unsigned int)((msg.s_dev()) & ((1U << 20) - 1))),
             msg.i_ino(), msg.fl_next(), msg.fl_owner(),
             __print_flags(msg.fl_flags(), "|", {1, "FL_POSIX"}, {2, "FL_FLOCK"}, {4, "FL_DELEG"}, {8, "FL_ACCESS"},
-                          {16, "FL_EXISTS"}, {32, "FL_LEASE"}, {64, "FL_CLOSE"}, {128, "FL_SLEEP"},
-                          {256, "FL_DOWNGRADE_PENDING"}, {512, "FL_UNLOCK_PENDING"}, {1024, "FL_OFDLCK"}),
+                {16, "FL_EXISTS"}, {32, "FL_LEASE"}, {64, "FL_CLOSE"}, {128, "FL_SLEEP"}, {256, "FL_DOWNGRADE_PENDING"},
+                {512, "FL_UNLOCK_PENDING"}, {1024, "FL_OFDLCK"}),
             __print_symbolic(msg.fl_type(), {0, "F_RDLCK"}, {1, "F_WRLCK"}, {2, "F_UNLCK"}), msg.fl_break_time(),
             msg.fl_downgrade_time());
         if (len >= BUFFER_SIZE - 1) {
@@ -74,15 +72,14 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.break_lease_unblock_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(
-            buffer, sizeof(buffer),
-            "break_lease_unblock: fl=%" PRIu64 " dev=0x%x:0x%x ino=0x%" PRIu64 " fl_blocker=%" PRIu64
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
+            "break_lease_unblock: fl=%" PRIu64 " dev=0x%x:0x%x ino=0x%" PRIx64 " fl_blocker=%" PRIu64
             " fl_owner=%" PRId32 " fl_flags=%s fl_type=%s fl_break_time=%" PRIu64 " fl_downgrade_time=%" PRIu64 "",
             msg.fl(), ((unsigned int)((msg.s_dev()) >> 20)), ((unsigned int)((msg.s_dev()) & ((1U << 20) - 1))),
             msg.i_ino(), msg.fl_next(), msg.fl_owner(),
             __print_flags(msg.fl_flags(), "|", {1, "FL_POSIX"}, {2, "FL_FLOCK"}, {4, "FL_DELEG"}, {8, "FL_ACCESS"},
-                          {16, "FL_EXISTS"}, {32, "FL_LEASE"}, {64, "FL_CLOSE"}, {128, "FL_SLEEP"},
-                          {256, "FL_DOWNGRADE_PENDING"}, {512, "FL_UNLOCK_PENDING"}, {1024, "FL_OFDLCK"}),
+                {16, "FL_EXISTS"}, {32, "FL_LEASE"}, {64, "FL_CLOSE"}, {128, "FL_SLEEP"}, {256, "FL_DOWNGRADE_PENDING"},
+                {512, "FL_UNLOCK_PENDING"}, {1024, "FL_OFDLCK"}),
             __print_symbolic(msg.fl_type(), {0, "F_RDLCK"}, {1, "F_WRLCK"}, {2, "F_UNLCK"}), msg.fl_break_time(),
             msg.fl_downgrade_time());
         if (len >= BUFFER_SIZE - 1) {
@@ -97,16 +94,15 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.generic_add_lease_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer),
-                           "generic_add_lease: dev=0x%x:0x%x ino=0x%" PRIu64
-                           " wcount=%d rcount=%d icount=%d fl_owner=%" PRId32 " fl_flags=%s fl_type=%s",
-                           ((unsigned int)((msg.s_dev()) >> 20)), ((unsigned int)((msg.s_dev()) & ((1U << 20) - 1))),
-                           msg.i_ino(), msg.wcount(), msg.dcount(), msg.icount(), msg.fl_owner(),
-                           __print_flags(msg.fl_flags(), "|", {1, "FL_POSIX"}, {2, "FL_FLOCK"}, {4, "FL_DELEG"},
-                                         {8, "FL_ACCESS"}, {16, "FL_EXISTS"}, {32, "FL_LEASE"}, {64, "FL_CLOSE"},
-                                         {128, "FL_SLEEP"}, {256, "FL_DOWNGRADE_PENDING"}, {512, "FL_UNLOCK_PENDING"},
-                                         {1024, "FL_OFDLCK"}),
-                           __print_symbolic(msg.fl_type(), {0, "F_RDLCK"}, {1, "F_WRLCK"}, {2, "F_UNLCK"}));
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
+            "generic_add_lease: dev=0x%x:0x%x ino=0x%" PRIx64 " wcount=%d rcount=%d icount=%d fl_owner=%" PRId32
+            " fl_flags=%s fl_type=%s",
+            ((unsigned int)((msg.s_dev()) >> 20)), ((unsigned int)((msg.s_dev()) & ((1U << 20) - 1))), msg.i_ino(),
+            msg.wcount(), msg.dcount(), msg.icount(), msg.fl_owner(),
+            __print_flags(msg.fl_flags(), "|", {1, "FL_POSIX"}, {2, "FL_FLOCK"}, {4, "FL_DELEG"}, {8, "FL_ACCESS"},
+                {16, "FL_EXISTS"}, {32, "FL_LEASE"}, {64, "FL_CLOSE"}, {128, "FL_SLEEP"}, {256, "FL_DOWNGRADE_PENDING"},
+                {512, "FL_UNLOCK_PENDING"}, {1024, "FL_OFDLCK"}),
+            __print_symbolic(msg.fl_type(), {0, "F_RDLCK"}, {1, "F_WRLCK"}, {2, "F_UNLCK"}));
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -119,15 +115,14 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.generic_delete_lease_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(
-            buffer, sizeof(buffer),
-            "generic_delete_lease: fl=%" PRIu64 " dev=0x%x:0x%x ino=0x%" PRIu64 " fl_blocker=%" PRIu64
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
+            "generic_delete_lease: fl=%" PRIu64 " dev=0x%x:0x%x ino=0x%" PRIx64 " fl_blocker=%" PRIu64
             " fl_owner=%" PRId32 " fl_flags=%s fl_type=%s fl_break_time=%" PRIu64 " fl_downgrade_time=%" PRIu64 "",
             msg.fl(), ((unsigned int)((msg.s_dev()) >> 20)), ((unsigned int)((msg.s_dev()) & ((1U << 20) - 1))),
             msg.i_ino(), msg.fl_next(), msg.fl_owner(),
             __print_flags(msg.fl_flags(), "|", {1, "FL_POSIX"}, {2, "FL_FLOCK"}, {4, "FL_DELEG"}, {8, "FL_ACCESS"},
-                          {16, "FL_EXISTS"}, {32, "FL_LEASE"}, {64, "FL_CLOSE"}, {128, "FL_SLEEP"},
-                          {256, "FL_DOWNGRADE_PENDING"}, {512, "FL_UNLOCK_PENDING"}, {1024, "FL_OFDLCK"}),
+                {16, "FL_EXISTS"}, {32, "FL_LEASE"}, {64, "FL_CLOSE"}, {128, "FL_SLEEP"}, {256, "FL_DOWNGRADE_PENDING"},
+                {512, "FL_UNLOCK_PENDING"}, {1024, "FL_OFDLCK"}),
             __print_symbolic(msg.fl_type(), {0, "F_RDLCK"}, {1, "F_WRLCK"}, {2, "F_UNLCK"}), msg.fl_break_time(),
             msg.fl_downgrade_time());
         if (len >= BUFFER_SIZE - 1) {
@@ -142,15 +137,14 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.time_out_leases_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(
-            buffer, sizeof(buffer),
-            "time_out_leases: fl=%" PRIu64 " dev=0x%x:0x%x ino=0x%" PRIu64 " fl_blocker=%" PRIu64 " fl_owner=%" PRId32
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
+            "time_out_leases: fl=%" PRIu64 " dev=0x%x:0x%x ino=0x%" PRIx64 " fl_blocker=%" PRIu64 " fl_owner=%" PRId32
             " fl_flags=%s fl_type=%s fl_break_time=%" PRIu64 " fl_downgrade_time=%" PRIu64 "",
             msg.fl(), ((unsigned int)((msg.s_dev()) >> 20)), ((unsigned int)((msg.s_dev()) & ((1U << 20) - 1))),
             msg.i_ino(), msg.fl_next(), msg.fl_owner(),
             __print_flags(msg.fl_flags(), "|", {1, "FL_POSIX"}, {2, "FL_FLOCK"}, {4, "FL_DELEG"}, {8, "FL_ACCESS"},
-                          {16, "FL_EXISTS"}, {32, "FL_LEASE"}, {64, "FL_CLOSE"}, {128, "FL_SLEEP"},
-                          {256, "FL_DOWNGRADE_PENDING"}, {512, "FL_UNLOCK_PENDING"}, {1024, "FL_OFDLCK"}),
+                {16, "FL_EXISTS"}, {32, "FL_LEASE"}, {64, "FL_CLOSE"}, {128, "FL_SLEEP"}, {256, "FL_DOWNGRADE_PENDING"},
+                {512, "FL_UNLOCK_PENDING"}, {1024, "FL_OFDLCK"}),
             __print_symbolic(msg.fl_type(), {0, "F_RDLCK"}, {1, "F_WRLCK"}, {2, "F_UNLCK"}), msg.fl_break_time(),
             msg.fl_downgrade_time());
         if (len >= BUFFER_SIZE - 1) {

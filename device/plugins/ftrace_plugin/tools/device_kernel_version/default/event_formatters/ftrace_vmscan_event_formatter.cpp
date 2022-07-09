@@ -29,11 +29,10 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.mm_shrink_slab_end_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer),
-                           "mm_shrink_slab_end:%" PRIu64 "S %" PRIu64 ": nid: %d unused scan count %" PRIu64
-                           " new scan count %" PRIu64 " total_scan %" PRIu64 " last shrinker return val %d",
-                           msg.shrink(), msg.shr(), msg.nid(), msg.unused_scan(), msg.new_scan(), msg.total_scan(),
-                           msg.retval());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
+            "mm_shrink_slab_end:%" PRIu64 "S %" PRIu64 ": nid: %d unused scan count %" PRIu64 " new scan count %" PRIu64
+            " total_scan %" PRIu64 " last shrinker return val %d",
+            msg.shrink(), msg.shr(), msg.nid(), msg.unused_scan(), msg.new_scan(), msg.total_scan(), msg.retval());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -46,44 +45,42 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.mm_shrink_slab_start_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(
-            buffer, sizeof(buffer),
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
             "mm_shrink_slab_start:%" PRIu64 "S %" PRIu64 ": nid: %d objects to shrink %" PRIu64
             " gfp_flags %s cache items %" PRIu64 " delta %" PRIu64 " total_scan %" PRIu64 " priority %d",
             msg.shrink(), msg.shr(), msg.nid(), msg.nr_objects_to_shrink(),
             (msg.gfp_flags())
-                ? __print_flags(
-                      msg.gfp_flags(), "|",
+                ? __print_flags(msg.gfp_flags(), "|",
                       {(unsigned long)((((((((gfp_t)(0x400u | 0x800u)) | ((gfp_t)0x40u) | ((gfp_t)0x80u) |
+                                               ((gfp_t)0x100000u)) |
+                                              ((gfp_t)0x02u)) |
+                                             ((gfp_t)0x08u)) |
+                                            ((gfp_t)0x40000u) | ((gfp_t)0x80000u) | ((gfp_t)0x2000u)) &
+                                           ~((gfp_t)(0x400u | 0x800u))) |
+                                       ((gfp_t)0x400u)),
+                          "GFP_TRANSHUGE"},
+                      {(unsigned long)(((((((gfp_t)(0x400u | 0x800u)) | ((gfp_t)0x40u) | ((gfp_t)0x80u) |
+                                              ((gfp_t)0x100000u)) |
+                                             ((gfp_t)0x02u)) |
+                                            ((gfp_t)0x08u)) |
+                                           ((gfp_t)0x40000u) | ((gfp_t)0x80000u) | ((gfp_t)0x2000u)) &
+                                       ~((gfp_t)(0x400u | 0x800u))),
+                          "GFP_TRANSHUGE_LIGHT"},
+                      {(unsigned long)(((((gfp_t)(0x400u | 0x800u)) | ((gfp_t)0x40u) | ((gfp_t)0x80u) |
                                             ((gfp_t)0x100000u)) |
                                            ((gfp_t)0x02u)) |
-                                          ((gfp_t)0x08u)) |
-                                         ((gfp_t)0x40000u) | ((gfp_t)0x80000u) | ((gfp_t)0x2000u)) &
-                                        ~((gfp_t)(0x400u | 0x800u))) |
-                                       ((gfp_t)0x400u)),
-                       "GFP_TRANSHUGE"},
-                      {(unsigned long)(((((((gfp_t)(0x400u | 0x800u)) | ((gfp_t)0x40u) | ((gfp_t)0x80u) |
-                                           ((gfp_t)0x100000u)) |
-                                          ((gfp_t)0x02u)) |
-                                         ((gfp_t)0x08u)) |
-                                        ((gfp_t)0x40000u) | ((gfp_t)0x80000u) | ((gfp_t)0x2000u)) &
-                                       ~((gfp_t)(0x400u | 0x800u))),
-                       "GFP_TRANSHUGE_LIGHT"},
-                      {(unsigned long)(((((gfp_t)(0x400u | 0x800u)) | ((gfp_t)0x40u) | ((gfp_t)0x80u) |
-                                         ((gfp_t)0x100000u)) |
-                                        ((gfp_t)0x02u)) |
                                        ((gfp_t)0x08u)),
-                       "GFP_HIGHUSER_MOVABLE"},
+                          "GFP_HIGHUSER_MOVABLE"},
                       {(unsigned long)((((gfp_t)(0x400u | 0x800u)) | ((gfp_t)0x40u) | ((gfp_t)0x80u) |
-                                        ((gfp_t)0x100000u)) |
+                                           ((gfp_t)0x100000u)) |
                                        ((gfp_t)0x02u)),
-                       "GFP_HIGHUSER"},
+                          "GFP_HIGHUSER"},
                       {(unsigned long)(((gfp_t)(0x400u | 0x800u)) | ((gfp_t)0x40u) | ((gfp_t)0x80u) |
                                        ((gfp_t)0x100000u)),
-                       "GFP_USER"},
+                          "GFP_USER"},
                       {(unsigned long)((((gfp_t)(0x400u | 0x800u)) | ((gfp_t)0x40u) | ((gfp_t)0x80u)) |
                                        ((gfp_t)0x400000u)),
-                       "GFP_KERNEL_ACCOUNT"},
+                          "GFP_KERNEL_ACCOUNT"},
                       {(unsigned long)(((gfp_t)(0x400u | 0x800u)) | ((gfp_t)0x40u) | ((gfp_t)0x80u)), "GFP_KERNEL"},
                       {(unsigned long)(((gfp_t)(0x400u | 0x800u)) | ((gfp_t)0x40u)), "GFP_NOFS"},
                       {(unsigned long)(((gfp_t)0x20u) | ((gfp_t)0x200u) | ((gfp_t)0x800u)), "GFP_ATOMIC"},
@@ -122,41 +119,40 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.mm_vmscan_direct_reclaim_begin_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(
-            buffer, sizeof(buffer), "mm_vmscan_direct_reclaim_begin: order=%d gfp_flags=%s", msg.order(),
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
+            "mm_vmscan_direct_reclaim_begin: order=%d gfp_flags=%s", msg.order(),
             (msg.gfp_flags())
-                ? __print_flags(
-                      msg.gfp_flags(), "|",
+                ? __print_flags(msg.gfp_flags(), "|",
                       {(unsigned long)((((((((gfp_t)(0x400u | 0x800u)) | ((gfp_t)0x40u) | ((gfp_t)0x80u) |
+                                               ((gfp_t)0x100000u)) |
+                                              ((gfp_t)0x02u)) |
+                                             ((gfp_t)0x08u)) |
+                                            ((gfp_t)0x40000u) | ((gfp_t)0x80000u) | ((gfp_t)0x2000u)) &
+                                           ~((gfp_t)(0x400u | 0x800u))) |
+                                       ((gfp_t)0x400u)),
+                          "GFP_TRANSHUGE"},
+                      {(unsigned long)(((((((gfp_t)(0x400u | 0x800u)) | ((gfp_t)0x40u) | ((gfp_t)0x80u) |
+                                              ((gfp_t)0x100000u)) |
+                                             ((gfp_t)0x02u)) |
+                                            ((gfp_t)0x08u)) |
+                                           ((gfp_t)0x40000u) | ((gfp_t)0x80000u) | ((gfp_t)0x2000u)) &
+                                       ~((gfp_t)(0x400u | 0x800u))),
+                          "GFP_TRANSHUGE_LIGHT"},
+                      {(unsigned long)(((((gfp_t)(0x400u | 0x800u)) | ((gfp_t)0x40u) | ((gfp_t)0x80u) |
                                             ((gfp_t)0x100000u)) |
                                            ((gfp_t)0x02u)) |
-                                          ((gfp_t)0x08u)) |
-                                         ((gfp_t)0x40000u) | ((gfp_t)0x80000u) | ((gfp_t)0x2000u)) &
-                                        ~((gfp_t)(0x400u | 0x800u))) |
-                                       ((gfp_t)0x400u)),
-                       "GFP_TRANSHUGE"},
-                      {(unsigned long)(((((((gfp_t)(0x400u | 0x800u)) | ((gfp_t)0x40u) | ((gfp_t)0x80u) |
-                                           ((gfp_t)0x100000u)) |
-                                          ((gfp_t)0x02u)) |
-                                         ((gfp_t)0x08u)) |
-                                        ((gfp_t)0x40000u) | ((gfp_t)0x80000u) | ((gfp_t)0x2000u)) &
-                                       ~((gfp_t)(0x400u | 0x800u))),
-                       "GFP_TRANSHUGE_LIGHT"},
-                      {(unsigned long)(((((gfp_t)(0x400u | 0x800u)) | ((gfp_t)0x40u) | ((gfp_t)0x80u) |
-                                         ((gfp_t)0x100000u)) |
-                                        ((gfp_t)0x02u)) |
                                        ((gfp_t)0x08u)),
-                       "GFP_HIGHUSER_MOVABLE"},
+                          "GFP_HIGHUSER_MOVABLE"},
                       {(unsigned long)((((gfp_t)(0x400u | 0x800u)) | ((gfp_t)0x40u) | ((gfp_t)0x80u) |
-                                        ((gfp_t)0x100000u)) |
+                                           ((gfp_t)0x100000u)) |
                                        ((gfp_t)0x02u)),
-                       "GFP_HIGHUSER"},
+                          "GFP_HIGHUSER"},
                       {(unsigned long)(((gfp_t)(0x400u | 0x800u)) | ((gfp_t)0x40u) | ((gfp_t)0x80u) |
                                        ((gfp_t)0x100000u)),
-                       "GFP_USER"},
+                          "GFP_USER"},
                       {(unsigned long)((((gfp_t)(0x400u | 0x800u)) | ((gfp_t)0x40u) | ((gfp_t)0x80u)) |
                                        ((gfp_t)0x400000u)),
-                       "GFP_KERNEL_ACCOUNT"},
+                          "GFP_KERNEL_ACCOUNT"},
                       {(unsigned long)(((gfp_t)(0x400u | 0x800u)) | ((gfp_t)0x40u) | ((gfp_t)0x80u)), "GFP_KERNEL"},
                       {(unsigned long)(((gfp_t)(0x400u | 0x800u)) | ((gfp_t)0x40u)), "GFP_NOFS"},
                       {(unsigned long)(((gfp_t)0x20u) | ((gfp_t)0x200u) | ((gfp_t)0x800u)), "GFP_ATOMIC"},
@@ -194,8 +190,8 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.mm_vmscan_direct_reclaim_end_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "mm_vmscan_direct_reclaim_end: nr_reclaimed=%" PRIu64 "",
-                           msg.nr_reclaimed());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
+            "mm_vmscan_direct_reclaim_end: nr_reclaimed=%" PRIu64 "", msg.nr_reclaimed());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -208,7 +204,7 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.mm_vmscan_kswapd_sleep_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "mm_vmscan_kswapd_sleep: nid=%d", msg.nid());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "mm_vmscan_kswapd_sleep: nid=%d", msg.nid());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -221,7 +217,8 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.mm_vmscan_kswapd_wake_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "mm_vmscan_kswapd_wake: nid=%d order=%d", msg.nid(), msg.order());
+        int len = snprintf_s(
+            buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "mm_vmscan_kswapd_wake: nid=%d order=%d", msg.nid(), msg.order());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -234,13 +231,13 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.mm_vmscan_lru_isolate_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer),
-                           "mm_vmscan_lru_isolate: isolate_mode=%d classzone=%d order=%d nr_requested=%" PRIu64
-                           " nr_scanned=%" PRIu64 " nr_skipped=%" PRIu64 " nr_taken=%" PRIu64 " lru=%s",
-                           msg.isolate_mode(), msg.classzone_idx(), msg.order(), msg.nr_requested(), msg.nr_scanned(),
-                           msg.nr_skipped(), msg.nr_taken(),
-                           __print_symbolic(msg.lru(), {0, "inactive_anon"}, {1, "active_anon"}, {2, "inactive_file"},
-                                            {3, "active_file"}, {4, "unevictable"}));
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
+            "mm_vmscan_lru_isolate: isolate_mode=%d classzone=%d order=%d nr_requested=%" PRIu64 " nr_scanned=%" PRIu64
+            " nr_skipped=%" PRIu64 " nr_taken=%" PRIu64 " lru=%s",
+            msg.isolate_mode(), msg.classzone_idx(), msg.order(), msg.nr_requested(), msg.nr_scanned(),
+            msg.nr_skipped(), msg.nr_taken(),
+            __print_symbolic(msg.lru(), {0, "inactive_anon"}, {1, "active_anon"}, {2, "inactive_file"},
+                {3, "active_file"}, {4, "unevictable"}));
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -253,17 +250,16 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.mm_vmscan_lru_shrink_inactive_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(
-            buffer, sizeof(buffer),
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
             "mm_vmscan_lru_shrink_inactive: nid=%d nr_scanned=%" PRIu64 " nr_reclaimed=%" PRIu64 " nr_dirty=%" PRIu64
             " nr_writeback=%" PRIu64 " nr_congested=%" PRIu64 " nr_immediate=%" PRIu64 " nr_activate=%" PRIu64
             " nr_ref_keep=%" PRIu64 " nr_unmap_fail=%" PRIu64 " priority=%d flags=%s",
             msg.nid(), msg.nr_scanned(), msg.nr_reclaimed(), msg.nr_dirty(), msg.nr_writeback(), msg.nr_congested(),
             msg.nr_immediate(), msg.nr_activate(), msg.nr_ref_keep(), msg.nr_unmap_fail(), msg.priority(),
-            (msg.reclaim_flags()) ? __print_flags(msg.reclaim_flags(), "|", {0x0001u, "RECLAIM_WB_ANON"},
-                                                  {0x0002u, "RECLAIM_WB_FILE"}, {0x0010u, "RECLAIM_WB_MIXED"},
-                                                  {0x0004u, "RECLAIM_WB_SYNC"}, {0x0008u, "RECLAIM_WB_ASYNC"})
-                                  : "RECLAIM_WB_NONE");
+            (msg.reclaim_flags())
+                ? __print_flags(msg.reclaim_flags(), "|", {0x0001u, "RECLAIM_WB_ANON"}, {0x0002u, "RECLAIM_WB_FILE"},
+                      {0x0010u, "RECLAIM_WB_MIXED"}, {0x0004u, "RECLAIM_WB_SYNC"}, {0x0008u, "RECLAIM_WB_ASYNC"})
+                : "RECLAIM_WB_NONE");
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -276,41 +272,40 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.mm_vmscan_wakeup_kswapd_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(
-            buffer, sizeof(buffer), "mm_vmscan_wakeup_kswapd: nid=%d order=%d gfp_flags=%s", msg.nid(), msg.order(),
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
+            "mm_vmscan_wakeup_kswapd: nid=%d order=%d gfp_flags=%s", msg.nid(), msg.order(),
             (msg.gfp_flags())
-                ? __print_flags(
-                      msg.gfp_flags(), "|",
+                ? __print_flags(msg.gfp_flags(), "|",
                       {(unsigned long)((((((((gfp_t)(0x400u | 0x800u)) | ((gfp_t)0x40u) | ((gfp_t)0x80u) |
+                                               ((gfp_t)0x100000u)) |
+                                              ((gfp_t)0x02u)) |
+                                             ((gfp_t)0x08u)) |
+                                            ((gfp_t)0x40000u) | ((gfp_t)0x80000u) | ((gfp_t)0x2000u)) &
+                                           ~((gfp_t)(0x400u | 0x800u))) |
+                                       ((gfp_t)0x400u)),
+                          "GFP_TRANSHUGE"},
+                      {(unsigned long)(((((((gfp_t)(0x400u | 0x800u)) | ((gfp_t)0x40u) | ((gfp_t)0x80u) |
+                                              ((gfp_t)0x100000u)) |
+                                             ((gfp_t)0x02u)) |
+                                            ((gfp_t)0x08u)) |
+                                           ((gfp_t)0x40000u) | ((gfp_t)0x80000u) | ((gfp_t)0x2000u)) &
+                                       ~((gfp_t)(0x400u | 0x800u))),
+                          "GFP_TRANSHUGE_LIGHT"},
+                      {(unsigned long)(((((gfp_t)(0x400u | 0x800u)) | ((gfp_t)0x40u) | ((gfp_t)0x80u) |
                                             ((gfp_t)0x100000u)) |
                                            ((gfp_t)0x02u)) |
-                                          ((gfp_t)0x08u)) |
-                                         ((gfp_t)0x40000u) | ((gfp_t)0x80000u) | ((gfp_t)0x2000u)) &
-                                        ~((gfp_t)(0x400u | 0x800u))) |
-                                       ((gfp_t)0x400u)),
-                       "GFP_TRANSHUGE"},
-                      {(unsigned long)(((((((gfp_t)(0x400u | 0x800u)) | ((gfp_t)0x40u) | ((gfp_t)0x80u) |
-                                           ((gfp_t)0x100000u)) |
-                                          ((gfp_t)0x02u)) |
-                                         ((gfp_t)0x08u)) |
-                                        ((gfp_t)0x40000u) | ((gfp_t)0x80000u) | ((gfp_t)0x2000u)) &
-                                       ~((gfp_t)(0x400u | 0x800u))),
-                       "GFP_TRANSHUGE_LIGHT"},
-                      {(unsigned long)(((((gfp_t)(0x400u | 0x800u)) | ((gfp_t)0x40u) | ((gfp_t)0x80u) |
-                                         ((gfp_t)0x100000u)) |
-                                        ((gfp_t)0x02u)) |
                                        ((gfp_t)0x08u)),
-                       "GFP_HIGHUSER_MOVABLE"},
+                          "GFP_HIGHUSER_MOVABLE"},
                       {(unsigned long)((((gfp_t)(0x400u | 0x800u)) | ((gfp_t)0x40u) | ((gfp_t)0x80u) |
-                                        ((gfp_t)0x100000u)) |
+                                           ((gfp_t)0x100000u)) |
                                        ((gfp_t)0x02u)),
-                       "GFP_HIGHUSER"},
+                          "GFP_HIGHUSER"},
                       {(unsigned long)(((gfp_t)(0x400u | 0x800u)) | ((gfp_t)0x40u) | ((gfp_t)0x80u) |
                                        ((gfp_t)0x100000u)),
-                       "GFP_USER"},
+                          "GFP_USER"},
                       {(unsigned long)((((gfp_t)(0x400u | 0x800u)) | ((gfp_t)0x40u) | ((gfp_t)0x80u)) |
                                        ((gfp_t)0x400000u)),
-                       "GFP_KERNEL_ACCOUNT"},
+                          "GFP_KERNEL_ACCOUNT"},
                       {(unsigned long)(((gfp_t)(0x400u | 0x800u)) | ((gfp_t)0x40u) | ((gfp_t)0x80u)), "GFP_KERNEL"},
                       {(unsigned long)(((gfp_t)(0x400u | 0x800u)) | ((gfp_t)0x40u)), "GFP_NOFS"},
                       {(unsigned long)(((gfp_t)0x20u) | ((gfp_t)0x200u) | ((gfp_t)0x800u)), "GFP_ATOMIC"},
@@ -348,13 +343,12 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.mm_vmscan_writepage_format();
         char buffer[BUFFER_SIZE];
-        int len =
-            snprintf(buffer, sizeof(buffer), "mm_vmscan_writepage: page=%s pfn=%" PRIu64 " flags=%s",
-                     "0000000000000000", msg.pfn(),
-                     (msg.reclaim_flags()) ? __print_flags(msg.reclaim_flags(), "|", {0x0001u, "RECLAIM_WB_ANON"},
-                                                           {0x0002u, "RECLAIM_WB_FILE"}, {0x0010u, "RECLAIM_WB_MIXED"},
-                                                           {0x0004u, "RECLAIM_WB_SYNC"}, {0x0008u, "RECLAIM_WB_ASYNC"})
-                                           : "RECLAIM_WB_NONE");
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
+            "mm_vmscan_writepage: page=%s pfn=%" PRIu64 " flags=%s", "0000000000000000", msg.pfn(),
+            (msg.reclaim_flags())
+                ? __print_flags(msg.reclaim_flags(), "|", {0x0001u, "RECLAIM_WB_ANON"}, {0x0002u, "RECLAIM_WB_FILE"},
+                      {0x0010u, "RECLAIM_WB_MIXED"}, {0x0004u, "RECLAIM_WB_SYNC"}, {0x0008u, "RECLAIM_WB_ASYNC"})
+                : "RECLAIM_WB_NONE");
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }

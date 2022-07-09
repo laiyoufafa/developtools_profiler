@@ -28,9 +28,8 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.sys_enter_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "sys_enter: NR %" PRIu64 " (%d, %d, %d, %d %d, %d)", msg.id(),
-                           int(msg.args()[0] - '0'), int(msg.args()[1] - '0'), int(msg.args()[2] - '0'),
-                           int(msg.args()[3] - '0'), int(msg.args()[4] - '0'), int(msg.args()[5] - '0'));
+        int len = snprintf_s(
+            buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "sys_enter: NR %" PRIu64 "(%s))", msg.id(), msg.args().c_str());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -43,7 +42,8 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.sys_exit_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "sys_exit: NR %" PRIu64 " = %" PRIu64 "", msg.id(), msg.ret());
+        int len = snprintf_s(
+            buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "sys_exit: NR %" PRIu64 " = %" PRIu64 "", msg.id(), msg.ret());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
