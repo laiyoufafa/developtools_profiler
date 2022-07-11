@@ -28,7 +28,6 @@
 
 namespace {
 constexpr uint32_t MAX_BUFFER_SIZE = 4 * 1024 * 1024;
-constexpr uint32_t READ_BUFFER_SIZE = 4096;
 const std::string SU_ROOT = "su root";
 const std::string HIPERF_CMD = " hiperf";
 const std::string HIPERF_RECORD_CMD = " record";
@@ -78,7 +77,8 @@ bool RunCommand(const std::string& cmd)
     std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd.c_str(), "r"), pclose);
     CHECK_TRUE(pipe, false, "HiperfPlugin::RunCommand: create popen FAILED!");
 
-    std::array<char, READ_BUFFER_SIZE> buffer;
+    constexpr uint32_t readBufferSize = 4096;
+    std::array<char, readBufferSize> buffer;
     std::string result;
     while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
         result += buffer.data();
