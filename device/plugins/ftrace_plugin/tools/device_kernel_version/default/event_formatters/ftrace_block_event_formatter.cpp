@@ -28,9 +28,10 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.block_bio_backmerge_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "block_bio_backmerge: %d,%d %s %llu + %u [%s]",
-                           ((unsigned int)((msg.dev()) >> 20)), ((unsigned int)((msg.dev()) & ((1U << 20) - 1))),
-                           msg.rwbs().c_str(), (unsigned long long)msg.sector(), msg.nr_sector(), msg.comm().c_str());
+        int len =
+            snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "block_bio_backmerge: %d,%d %s %" PRIu64 " + %u [%s]",
+                ((unsigned int)((msg.dev()) >> 20)), ((unsigned int)((msg.dev()) & ((1U << 20) - 1))),
+                msg.rwbs().c_str(), msg.sector(), msg.nr_sector(), msg.comm().c_str());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -43,9 +44,9 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.block_bio_bounce_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "block_bio_bounce: %d,%d %s %llu + %u [%s]",
-                           ((unsigned int)((msg.dev()) >> 20)), ((unsigned int)((msg.dev()) & ((1U << 20) - 1))),
-                           msg.rwbs().c_str(), (unsigned long long)msg.sector(), msg.nr_sector(), msg.comm().c_str());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "block_bio_bounce: %d,%d %s %" PRIu64 " + %u [%s]",
+            ((unsigned int)((msg.dev()) >> 20)), ((unsigned int)((msg.dev()) & ((1U << 20) - 1))), msg.rwbs().c_str(),
+            msg.sector(), msg.nr_sector(), msg.comm().c_str());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -58,9 +59,9 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.block_bio_complete_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "block_bio_complete: %d,%d %s %llu + %u [%d]",
-                           ((unsigned int)((msg.dev()) >> 20)), ((unsigned int)((msg.dev()) & ((1U << 20) - 1))),
-                           msg.rwbs().c_str(), (unsigned long long)msg.sector(), msg.nr_sector(), msg.error());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "block_bio_complete: %d,%d %s %" PRIu64 " + %u [%d]",
+            ((unsigned int)((msg.dev()) >> 20)), ((unsigned int)((msg.dev()) & ((1U << 20) - 1))), msg.rwbs().c_str(),
+            msg.sector(), msg.nr_sector(), msg.error());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -73,9 +74,10 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.block_bio_frontmerge_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "block_bio_frontmerge: %d,%d %s %llu + %u [%s]",
-                           ((unsigned int)((msg.dev()) >> 20)), ((unsigned int)((msg.dev()) & ((1U << 20) - 1))),
-                           msg.rwbs().c_str(), (unsigned long long)msg.sector(), msg.nr_sector(), msg.comm().c_str());
+        int len =
+            snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "block_bio_frontmerge: %d,%d %s %" PRIu64 " + %u [%s]",
+                ((unsigned int)((msg.dev()) >> 20)), ((unsigned int)((msg.dev()) & ((1U << 20) - 1))),
+                msg.rwbs().c_str(), msg.sector(), msg.nr_sector(), msg.comm().c_str());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -88,9 +90,9 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.block_bio_queue_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "block_bio_queue: %d,%d %s %llu + %u [%s]",
-                           ((unsigned int)((msg.dev()) >> 20)), ((unsigned int)((msg.dev()) & ((1U << 20) - 1))),
-                           msg.rwbs().c_str(), (unsigned long long)msg.sector(), msg.nr_sector(), msg.comm().c_str());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "block_bio_queue: %d,%d %s %" PRIu64 " + %u [%s]",
+            ((unsigned int)((msg.dev()) >> 20)), ((unsigned int)((msg.dev()) & ((1U << 20) - 1))), msg.rwbs().c_str(),
+            msg.sector(), msg.nr_sector(), msg.comm().c_str());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -103,11 +105,11 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.block_bio_remap_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "block_bio_remap: %d,%d %s %llu + %u <- (%d,%d) %llu",
-                           ((unsigned int)((msg.dev()) >> 20)), ((unsigned int)((msg.dev()) & ((1U << 20) - 1))),
-                           msg.rwbs().c_str(), (unsigned long long)msg.sector(), msg.nr_sector(),
-                           ((unsigned int)((msg.old_dev()) >> 20)),
-                           ((unsigned int)((msg.old_dev()) & ((1U << 20) - 1))), (unsigned long long)msg.old_sector());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
+            "block_bio_remap: %d,%d %s %" PRIu64 " + %u <- (%d,%d) %" PRIu64 "", ((unsigned int)((msg.dev()) >> 20)),
+            ((unsigned int)((msg.dev()) & ((1U << 20) - 1))), msg.rwbs().c_str(), msg.sector(), msg.nr_sector(),
+            ((unsigned int)((msg.old_dev()) >> 20)), ((unsigned int)((msg.old_dev()) & ((1U << 20) - 1))),
+            msg.old_sector());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -120,9 +122,9 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.block_dirty_buffer_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "block_dirty_buffer: %d,%d sector=%llu size=%" PRIu64 "",
-                           ((unsigned int)((msg.dev()) >> 20)), ((unsigned int)((msg.dev()) & ((1U << 20) - 1))),
-                           (unsigned long long)msg.sector(), msg.size());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
+            "block_dirty_buffer: %d,%d sector=%" PRIu64 " size=%" PRIu64 "", ((unsigned int)((msg.dev()) >> 20)),
+            ((unsigned int)((msg.dev()) & ((1U << 20) - 1))), msg.sector(), msg.size());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -135,9 +137,9 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.block_getrq_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "block_getrq: %d,%d %s %llu + %u [%s]",
-                           ((unsigned int)((msg.dev()) >> 20)), ((unsigned int)((msg.dev()) & ((1U << 20) - 1))),
-                           msg.rwbs().c_str(), (unsigned long long)msg.sector(), msg.nr_sector(), msg.comm().c_str());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "block_getrq: %d,%d %s %" PRIu64 " + %u [%s]",
+            ((unsigned int)((msg.dev()) >> 20)), ((unsigned int)((msg.dev()) & ((1U << 20) - 1))), msg.rwbs().c_str(),
+            msg.sector(), msg.nr_sector(), msg.comm().c_str());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -150,7 +152,7 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.block_plug_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "block_plug: [%s]", msg.comm().c_str());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "block_plug: [%s]", msg.comm().c_str());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -163,10 +165,10 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.block_rq_complete_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "block_rq_complete: %d,%d %s (%s) %llu + %u [%d]",
-                           ((unsigned int)((msg.dev()) >> 20)), ((unsigned int)((msg.dev()) & ((1U << 20) - 1))),
-                           msg.rwbs().c_str(), msg.cmd().c_str(), (unsigned long long)msg.sector(), msg.nr_sector(),
-                           msg.error());
+        int len =
+            snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "block_rq_complete: %d,%d %s (%s) %" PRIu64 " + %u [%d]",
+                ((unsigned int)((msg.dev()) >> 20)), ((unsigned int)((msg.dev()) & ((1U << 20) - 1))),
+                msg.rwbs().c_str(), msg.cmd().c_str(), msg.sector(), msg.nr_sector(), msg.error());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -179,10 +181,10 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.block_rq_insert_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "block_rq_insert: %d,%d %s %u (%s) %llu + %u [%s]",
-                           ((unsigned int)((msg.dev()) >> 20)), ((unsigned int)((msg.dev()) & ((1U << 20) - 1))),
-                           msg.rwbs().c_str(), msg.bytes(), msg.cmd().c_str(), (unsigned long long)msg.sector(),
-                           msg.nr_sector(), msg.comm().c_str());
+        int len =
+            snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "block_rq_insert: %d,%d %s %u (%s) %" PRIu64 " + %u [%s]",
+                ((unsigned int)((msg.dev()) >> 20)), ((unsigned int)((msg.dev()) & ((1U << 20) - 1))),
+                msg.rwbs().c_str(), msg.bytes(), msg.cmd().c_str(), msg.sector(), msg.nr_sector(), msg.comm().c_str());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -195,10 +197,10 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.block_rq_issue_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "block_rq_issue: %d,%d %s %u (%s) %llu + %u [%s]",
-                           ((unsigned int)((msg.dev()) >> 20)), ((unsigned int)((msg.dev()) & ((1U << 20) - 1))),
-                           msg.rwbs().c_str(), msg.bytes(), msg.cmd().c_str(), (unsigned long long)msg.sector(),
-                           msg.nr_sector(), msg.comm().c_str());
+        int len =
+            snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "block_rq_issue: %d,%d %s %u (%s) %" PRIu64 " + %u [%s]",
+                ((unsigned int)((msg.dev()) >> 20)), ((unsigned int)((msg.dev()) & ((1U << 20) - 1))),
+                msg.rwbs().c_str(), msg.bytes(), msg.cmd().c_str(), msg.sector(), msg.nr_sector(), msg.comm().c_str());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -211,11 +213,11 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.block_rq_remap_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(
-            buffer, sizeof(buffer), "block_rq_remap: %d,%d %s %llu + %u <- (%d,%d) %llu %u",
-            ((unsigned int)((msg.dev()) >> 20)), ((unsigned int)((msg.dev()) & ((1U << 20) - 1))), msg.rwbs().c_str(),
-            (unsigned long long)msg.sector(), msg.nr_sector(), ((unsigned int)((msg.old_dev()) >> 20)),
-            ((unsigned int)((msg.old_dev()) & ((1U << 20) - 1))), (unsigned long long)msg.old_sector(), msg.nr_bios());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
+            "block_rq_remap: %d,%d %s %" PRIu64 " + %u <- (%d,%d) %" PRIu64 " %u", ((unsigned int)((msg.dev()) >> 20)),
+            ((unsigned int)((msg.dev()) & ((1U << 20) - 1))), msg.rwbs().c_str(), msg.sector(), msg.nr_sector(),
+            ((unsigned int)((msg.old_dev()) >> 20)), ((unsigned int)((msg.old_dev()) & ((1U << 20) - 1))),
+            msg.old_sector(), msg.nr_bios());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -228,9 +230,10 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.block_rq_requeue_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "block_rq_requeue: %d,%d %s (%s) %llu + %u [%d]",
-                           ((unsigned int)((msg.dev()) >> 20)), ((unsigned int)((msg.dev()) & ((1U << 20) - 1))),
-                           msg.rwbs().c_str(), msg.cmd().c_str(), (unsigned long long)msg.sector(), msg.nr_sector(), 0);
+        int len =
+            snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "block_rq_requeue: %d,%d %s (%s) %" PRIu64 " + %u [%d]",
+                ((unsigned int)((msg.dev()) >> 20)), ((unsigned int)((msg.dev()) & ((1U << 20) - 1))),
+                msg.rwbs().c_str(), msg.cmd().c_str(), msg.sector(), msg.nr_sector(), 0);
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -243,9 +246,9 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.block_sleeprq_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "block_sleeprq: %d,%d %s %llu + %u [%s]",
-                           ((unsigned int)((msg.dev()) >> 20)), ((unsigned int)((msg.dev()) & ((1U << 20) - 1))),
-                           msg.rwbs().c_str(), (unsigned long long)msg.sector(), msg.nr_sector(), msg.comm().c_str());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "block_sleeprq: %d,%d %s %" PRIu64 " + %u [%s]",
+            ((unsigned int)((msg.dev()) >> 20)), ((unsigned int)((msg.dev()) & ((1U << 20) - 1))), msg.rwbs().c_str(),
+            msg.sector(), msg.nr_sector(), msg.comm().c_str());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -258,10 +261,10 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.block_split_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "block_split: %d,%d %s %llu / %llu [%s]",
-                           ((unsigned int)((msg.dev()) >> 20)), ((unsigned int)((msg.dev()) & ((1U << 20) - 1))),
-                           msg.rwbs().c_str(), (unsigned long long)msg.sector(), (unsigned long long)msg.new_sector(),
-                           msg.comm().c_str());
+        int len =
+            snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "block_split: %d,%d %s %" PRIu64 " / %" PRIu64 " [%s]",
+                ((unsigned int)((msg.dev()) >> 20)), ((unsigned int)((msg.dev()) & ((1U << 20) - 1))),
+                msg.rwbs().c_str(), msg.sector(), msg.new_sector(), msg.comm().c_str());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -274,9 +277,9 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.block_touch_buffer_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "block_touch_buffer: %d,%d sector=%llu size=%" PRIu64 "",
-                           ((unsigned int)((msg.dev()) >> 20)), ((unsigned int)((msg.dev()) & ((1U << 20) - 1))),
-                           (unsigned long long)msg.sector(), msg.size());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
+            "block_touch_buffer: %d,%d sector=%" PRIu64 " size=%" PRIu64 "", ((unsigned int)((msg.dev()) >> 20)),
+            ((unsigned int)((msg.dev()) & ((1U << 20) - 1))), msg.sector(), msg.size());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -289,7 +292,8 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.block_unplug_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "block_unplug: [%s] %d", msg.comm().c_str(), msg.nr_rq());
+        int len =
+            snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "block_unplug: [%s] %d", msg.comm().c_str(), msg.nr_rq());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }

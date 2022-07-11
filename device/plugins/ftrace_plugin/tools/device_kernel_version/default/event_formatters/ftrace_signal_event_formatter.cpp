@@ -28,9 +28,9 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.signal_deliver_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer),
-                           "signal_deliver: sig=%d errno=%d code=%d sa_handler=%" PRIu64 " sa_flags=%" PRIu64 "",
-                           msg.sig(), msg.error_code(), msg.code(), msg.sig_handler(), msg.sig_flags());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
+            "signal_deliver: sig=%d errno=%d code=%d sa_handler=%" PRIx64 " sa_flags=%" PRIx64 "", msg.sig(),
+            msg.error_code(), msg.code(), msg.sig_handler(), msg.sig_flags());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -43,9 +43,9 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.signal_generate_format();
         char buffer[BUFFER_SIZE];
-        int len =
-            snprintf(buffer, sizeof(buffer), "signal_generate: sig=%d errno=%d code=%d comm=%s pid=%d grp=%d res=%d",
-                     msg.sig(), msg.error_code(), msg.code(), msg.comm().c_str(), msg.pid(), msg.group(), msg.result());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
+            "signal_generate: sig=%d errno=%d code=%d comm=%s pid=%d grp=%d res=%d", msg.sig(), msg.error_code(),
+            msg.code(), msg.comm().c_str(), msg.pid(), msg.group(), msg.result());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }

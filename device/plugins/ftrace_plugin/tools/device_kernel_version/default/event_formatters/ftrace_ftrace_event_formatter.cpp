@@ -28,7 +28,8 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.bputs_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "bputs: %ps: %s", (void*)msg.ip(), msg.str().c_str());
+        int len =
+            snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "bputs: %ps: %s", (void*)msg.ip(), msg.str().c_str());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -41,8 +42,8 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.branch_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "branch: %u:%s:%s (%u)%s", msg.line(), msg.func().c_str(),
-                           msg.file().c_str(), msg.correct(), msg.constant() ? " CONSTANT" : "");
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "branch: %u:%s:%s (%u)%s", msg.line(),
+            msg.func().c_str(), msg.file().c_str(), msg.correct(), msg.constant() ? " CONSTANT" : "");
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -55,9 +56,9 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.context_switch_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "context_switch: %u:%u:%u  ==> %u:%u:%u [%03u]", msg.prev_pid(),
-                           msg.prev_prio(), msg.prev_state(), msg.next_pid(), msg.next_prio(), msg.next_state(),
-                           msg.next_cpu());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "context_switch: %u:%u:%u  ==> %u:%u:%u [%03u]",
+            msg.prev_pid(), msg.prev_prio(), msg.prev_state(), msg.next_pid(), msg.next_prio(), msg.next_state(),
+            msg.next_cpu());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -70,7 +71,8 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.funcgraph_entry_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "funcgraph_entry: --> %ps (%d)", (void*)msg.func(), msg.depth());
+        int len = snprintf_s(
+            buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "funcgraph_entry: --> %ps (%d)", (void*)msg.func(), msg.depth());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -83,9 +85,9 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.funcgraph_exit_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer),
-                           "funcgraph_exit: <-- %ps (%d) (start: %" PRIu64 "  end: %" PRIu64 ") over: %d",
-                           (void*)msg.func(), msg.depth(), msg.calltime(), msg.rettime(), msg.depth());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
+            "funcgraph_exit: <-- %ps (%d) (start: %" PRIx64 "  end: %" PRIx64 ") over: %d", (void*)msg.func(),
+            msg.depth(), msg.calltime(), msg.rettime(), msg.depth());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -98,7 +100,8 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.function_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "function:  %ps <-- %ps", (void*)msg.ip(), (void*)msg.parent_ip());
+        int len = snprintf_s(
+            buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "function:  %ps <-- %ps", (void*)msg.ip(), (void*)msg.parent_ip());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -111,8 +114,8 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.kernel_stack_format();
         char buffer[BUFFER_SIZE];
-        int len =
-            snprintf(buffer, sizeof(buffer), "kernel_stack: size=%d, caller=%" PRIu64 "", msg.size(), msg.caller());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "kernel_stack: size=%d, caller=%" PRIu64 "",
+            msg.size(), msg.caller());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -125,8 +128,9 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.mmiotrace_map_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "mmiotrace_map: %lx %" PRIu64 " %" PRIu64 " %d %x",
-                           (unsigned long)msg.phys(), msg.virt(), msg.len(), msg.map_id(), msg.opcode());
+        int len =
+            snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "mmiotrace_map: %" PRIx64 " %" PRIx64 " %" PRIx64 " %d %x",
+                msg.phys(), msg.virt(), msg.len(), msg.map_id(), msg.opcode());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -139,8 +143,9 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.mmiotrace_rw_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "mmiotrace_rw: %lx %" PRIu64 " %" PRIu64 " %d %x %x",
-                           (unsigned long)msg.phys(), msg.value(), msg.pc(), msg.map_id(), msg.opcode(), msg.width());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
+            "mmiotrace_rw: %" PRIx64 " %" PRIx64 " %" PRIx64 " %d %x %x", msg.phys(), msg.value(), msg.pc(),
+            msg.map_id(), msg.opcode(), msg.width());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -153,7 +158,7 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.print_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "print: %s", msg.buf().c_str());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "print: %s", msg.buf().c_str());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -166,7 +171,8 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.user_stack_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "user_stack: tgid=%d, caller=%s", msg.tgid(), msg.caller().c_str());
+        int len = snprintf_s(
+            buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "user_stack: tgid=%d, caller=%s", msg.tgid(), msg.caller().c_str());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -180,8 +186,8 @@ REGISTER_FTRACE_EVENT_FORMATTER(
         auto msg = event.wakeup_format();
         char buffer[BUFFER_SIZE];
         int len =
-            snprintf(buffer, sizeof(buffer), "wakeup: %u:%u:%u  ==+ %u:%u:%u [%03u]", msg.prev_pid(), msg.prev_prio(),
-                     msg.prev_state(), msg.next_pid(), msg.next_prio(), msg.next_state(), msg.next_cpu());
+            snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "wakeup: %u:%u:%u  ==+ %u:%u:%u [%03u]", msg.prev_pid(),
+                msg.prev_prio(), msg.prev_state(), msg.next_pid(), msg.next_prio(), msg.next_state(), msg.next_cpu());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }

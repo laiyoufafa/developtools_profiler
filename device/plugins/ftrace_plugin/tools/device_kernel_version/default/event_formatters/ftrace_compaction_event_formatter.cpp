@@ -29,10 +29,10 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.mm_compaction_isolate_freepages_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer),
-                           "mm_compaction_isolate_freepages: range=(=0x%" PRIu64 " ~ =0x%" PRIu64
-                           ") nr_scanned==0x%" PRIu64 " nr_taken==0x%" PRIu64 "",
-                           msg.start_pfn(), msg.end_pfn(), msg.nr_scanned(), msg.nr_taken());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
+            "mm_compaction_isolate_freepages: range=(0x%" PRIx64 " ~ 0x%" PRIx64 ") nr_scanned==0x%" PRIu64
+            " nr_taken==0x%" PRIu64 "",
+            msg.start_pfn(), msg.end_pfn(), msg.nr_scanned(), msg.nr_taken());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -45,10 +45,10 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.mm_compaction_isolate_migratepages_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer),
-                           "mm_compaction_isolate_migratepages: range=(=0x%" PRIu64 " ~ =0x%" PRIu64
-                           ") nr_scanned==0x%" PRIu64 " nr_taken==0x%" PRIu64 "",
-                           msg.start_pfn(), msg.end_pfn(), msg.nr_scanned(), msg.nr_taken());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
+            "mm_compaction_isolate_migratepages: range=(0x%" PRIx64 " ~ 0x%" PRIx64 ") nr_scanned==0x%" PRIu64
+            " nr_taken==0x%" PRIu64 "",
+            msg.start_pfn(), msg.end_pfn(), msg.nr_scanned(), msg.nr_taken());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }

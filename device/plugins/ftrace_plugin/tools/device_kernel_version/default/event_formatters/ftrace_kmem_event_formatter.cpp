@@ -29,8 +29,8 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.kfree_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "kfree: call_site=%" PRIu64 "S ptr=%" PRIu64 "", msg.call_site(),
-                           msg.ptr());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "kfree: call_site=%" PRIu64 "S ptr=%" PRIu64 "",
+            msg.call_site(), msg.ptr());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -43,44 +43,42 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.kmalloc_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(
-            buffer, sizeof(buffer),
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
             "kmalloc: call_site=%" PRIu64 "S ptr=%" PRIu64 " bytes_req=%" PRIu64 " bytes_alloc=%" PRIu64
             " gfp_flags=%s",
             msg.call_site(), msg.ptr(), msg.bytes_req(), msg.bytes_alloc(),
             (msg.gfp_flags())
-                ? __print_flags(
-                      msg.gfp_flags(), "|",
+                ? __print_flags(msg.gfp_flags(), "|",
                       {(unsigned long)((((((((gfp_t)(0x400u | 0x800u)) | ((gfp_t)0x40u) | ((gfp_t)0x80u) |
+                                               ((gfp_t)0x100000u)) |
+                                              ((gfp_t)0x02u)) |
+                                             ((gfp_t)0x08u)) |
+                                            ((gfp_t)0x40000u) | ((gfp_t)0x80000u) | ((gfp_t)0x2000u)) &
+                                           ~((gfp_t)(0x400u | 0x800u))) |
+                                       ((gfp_t)0x400u)),
+                          "GFP_TRANSHUGE"},
+                      {(unsigned long)(((((((gfp_t)(0x400u | 0x800u)) | ((gfp_t)0x40u) | ((gfp_t)0x80u) |
+                                              ((gfp_t)0x100000u)) |
+                                             ((gfp_t)0x02u)) |
+                                            ((gfp_t)0x08u)) |
+                                           ((gfp_t)0x40000u) | ((gfp_t)0x80000u) | ((gfp_t)0x2000u)) &
+                                       ~((gfp_t)(0x400u | 0x800u))),
+                          "GFP_TRANSHUGE_LIGHT"},
+                      {(unsigned long)(((((gfp_t)(0x400u | 0x800u)) | ((gfp_t)0x40u) | ((gfp_t)0x80u) |
                                             ((gfp_t)0x100000u)) |
                                            ((gfp_t)0x02u)) |
-                                          ((gfp_t)0x08u)) |
-                                         ((gfp_t)0x40000u) | ((gfp_t)0x80000u) | ((gfp_t)0x2000u)) &
-                                        ~((gfp_t)(0x400u | 0x800u))) |
-                                       ((gfp_t)0x400u)),
-                       "GFP_TRANSHUGE"},
-                      {(unsigned long)(((((((gfp_t)(0x400u | 0x800u)) | ((gfp_t)0x40u) | ((gfp_t)0x80u) |
-                                           ((gfp_t)0x100000u)) |
-                                          ((gfp_t)0x02u)) |
-                                         ((gfp_t)0x08u)) |
-                                        ((gfp_t)0x40000u) | ((gfp_t)0x80000u) | ((gfp_t)0x2000u)) &
-                                       ~((gfp_t)(0x400u | 0x800u))),
-                       "GFP_TRANSHUGE_LIGHT"},
-                      {(unsigned long)(((((gfp_t)(0x400u | 0x800u)) | ((gfp_t)0x40u) | ((gfp_t)0x80u) |
-                                         ((gfp_t)0x100000u)) |
-                                        ((gfp_t)0x02u)) |
                                        ((gfp_t)0x08u)),
-                       "GFP_HIGHUSER_MOVABLE"},
+                          "GFP_HIGHUSER_MOVABLE"},
                       {(unsigned long)((((gfp_t)(0x400u | 0x800u)) | ((gfp_t)0x40u) | ((gfp_t)0x80u) |
-                                        ((gfp_t)0x100000u)) |
+                                           ((gfp_t)0x100000u)) |
                                        ((gfp_t)0x02u)),
-                       "GFP_HIGHUSER"},
+                          "GFP_HIGHUSER"},
                       {(unsigned long)(((gfp_t)(0x400u | 0x800u)) | ((gfp_t)0x40u) | ((gfp_t)0x80u) |
                                        ((gfp_t)0x100000u)),
-                       "GFP_USER"},
+                          "GFP_USER"},
                       {(unsigned long)((((gfp_t)(0x400u | 0x800u)) | ((gfp_t)0x40u) | ((gfp_t)0x80u)) |
                                        ((gfp_t)0x400000u)),
-                       "GFP_KERNEL_ACCOUNT"},
+                          "GFP_KERNEL_ACCOUNT"},
                       {(unsigned long)(((gfp_t)(0x400u | 0x800u)) | ((gfp_t)0x40u) | ((gfp_t)0x80u)), "GFP_KERNEL"},
                       {(unsigned long)(((gfp_t)(0x400u | 0x800u)) | ((gfp_t)0x40u)), "GFP_NOFS"},
                       {(unsigned long)(((gfp_t)0x20u) | ((gfp_t)0x200u) | ((gfp_t)0x800u)), "GFP_ATOMIC"},
@@ -118,44 +116,42 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.kmalloc_node_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(
-            buffer, sizeof(buffer),
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
             "kmalloc_node: call_site=%" PRIu64 "S ptr=%" PRIu64 " bytes_req=%" PRIu64 " bytes_alloc=%" PRIu64
             " gfp_flags=%s node=%d",
             msg.call_site(), msg.ptr(), msg.bytes_req(), msg.bytes_alloc(),
             (msg.gfp_flags())
-                ? __print_flags(
-                      msg.gfp_flags(), "|",
+                ? __print_flags(msg.gfp_flags(), "|",
                       {(unsigned long)((((((((gfp_t)(0x400u | 0x800u)) | ((gfp_t)0x40u) | ((gfp_t)0x80u) |
+                                               ((gfp_t)0x100000u)) |
+                                              ((gfp_t)0x02u)) |
+                                             ((gfp_t)0x08u)) |
+                                            ((gfp_t)0x40000u) | ((gfp_t)0x80000u) | ((gfp_t)0x2000u)) &
+                                           ~((gfp_t)(0x400u | 0x800u))) |
+                                       ((gfp_t)0x400u)),
+                          "GFP_TRANSHUGE"},
+                      {(unsigned long)(((((((gfp_t)(0x400u | 0x800u)) | ((gfp_t)0x40u) | ((gfp_t)0x80u) |
+                                              ((gfp_t)0x100000u)) |
+                                             ((gfp_t)0x02u)) |
+                                            ((gfp_t)0x08u)) |
+                                           ((gfp_t)0x40000u) | ((gfp_t)0x80000u) | ((gfp_t)0x2000u)) &
+                                       ~((gfp_t)(0x400u | 0x800u))),
+                          "GFP_TRANSHUGE_LIGHT"},
+                      {(unsigned long)(((((gfp_t)(0x400u | 0x800u)) | ((gfp_t)0x40u) | ((gfp_t)0x80u) |
                                             ((gfp_t)0x100000u)) |
                                            ((gfp_t)0x02u)) |
-                                          ((gfp_t)0x08u)) |
-                                         ((gfp_t)0x40000u) | ((gfp_t)0x80000u) | ((gfp_t)0x2000u)) &
-                                        ~((gfp_t)(0x400u | 0x800u))) |
-                                       ((gfp_t)0x400u)),
-                       "GFP_TRANSHUGE"},
-                      {(unsigned long)(((((((gfp_t)(0x400u | 0x800u)) | ((gfp_t)0x40u) | ((gfp_t)0x80u) |
-                                           ((gfp_t)0x100000u)) |
-                                          ((gfp_t)0x02u)) |
-                                         ((gfp_t)0x08u)) |
-                                        ((gfp_t)0x40000u) | ((gfp_t)0x80000u) | ((gfp_t)0x2000u)) &
-                                       ~((gfp_t)(0x400u | 0x800u))),
-                       "GFP_TRANSHUGE_LIGHT"},
-                      {(unsigned long)(((((gfp_t)(0x400u | 0x800u)) | ((gfp_t)0x40u) | ((gfp_t)0x80u) |
-                                         ((gfp_t)0x100000u)) |
-                                        ((gfp_t)0x02u)) |
                                        ((gfp_t)0x08u)),
-                       "GFP_HIGHUSER_MOVABLE"},
+                          "GFP_HIGHUSER_MOVABLE"},
                       {(unsigned long)((((gfp_t)(0x400u | 0x800u)) | ((gfp_t)0x40u) | ((gfp_t)0x80u) |
-                                        ((gfp_t)0x100000u)) |
+                                           ((gfp_t)0x100000u)) |
                                        ((gfp_t)0x02u)),
-                       "GFP_HIGHUSER"},
+                          "GFP_HIGHUSER"},
                       {(unsigned long)(((gfp_t)(0x400u | 0x800u)) | ((gfp_t)0x40u) | ((gfp_t)0x80u) |
                                        ((gfp_t)0x100000u)),
-                       "GFP_USER"},
+                          "GFP_USER"},
                       {(unsigned long)((((gfp_t)(0x400u | 0x800u)) | ((gfp_t)0x40u) | ((gfp_t)0x80u)) |
                                        ((gfp_t)0x400000u)),
-                       "GFP_KERNEL_ACCOUNT"},
+                          "GFP_KERNEL_ACCOUNT"},
                       {(unsigned long)(((gfp_t)(0x400u | 0x800u)) | ((gfp_t)0x40u) | ((gfp_t)0x80u)), "GFP_KERNEL"},
                       {(unsigned long)(((gfp_t)(0x400u | 0x800u)) | ((gfp_t)0x40u)), "GFP_NOFS"},
                       {(unsigned long)(((gfp_t)0x20u) | ((gfp_t)0x200u) | ((gfp_t)0x800u)), "GFP_ATOMIC"},
@@ -194,44 +190,42 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.kmem_cache_alloc_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(
-            buffer, sizeof(buffer),
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
             "kmem_cache_alloc: call_site=%" PRIu64 "S ptr=%" PRIu64 " bytes_req=%" PRIu64 " bytes_alloc=%" PRIu64
             " gfp_flags=%s",
             msg.call_site(), msg.ptr(), msg.bytes_req(), msg.bytes_alloc(),
             (msg.gfp_flags())
-                ? __print_flags(
-                      msg.gfp_flags(), "|",
+                ? __print_flags(msg.gfp_flags(), "|",
                       {(unsigned long)((((((((gfp_t)(0x400u | 0x800u)) | ((gfp_t)0x40u) | ((gfp_t)0x80u) |
+                                               ((gfp_t)0x100000u)) |
+                                              ((gfp_t)0x02u)) |
+                                             ((gfp_t)0x08u)) |
+                                            ((gfp_t)0x40000u) | ((gfp_t)0x80000u) | ((gfp_t)0x2000u)) &
+                                           ~((gfp_t)(0x400u | 0x800u))) |
+                                       ((gfp_t)0x400u)),
+                          "GFP_TRANSHUGE"},
+                      {(unsigned long)(((((((gfp_t)(0x400u | 0x800u)) | ((gfp_t)0x40u) | ((gfp_t)0x80u) |
+                                              ((gfp_t)0x100000u)) |
+                                             ((gfp_t)0x02u)) |
+                                            ((gfp_t)0x08u)) |
+                                           ((gfp_t)0x40000u) | ((gfp_t)0x80000u) | ((gfp_t)0x2000u)) &
+                                       ~((gfp_t)(0x400u | 0x800u))),
+                          "GFP_TRANSHUGE_LIGHT"},
+                      {(unsigned long)(((((gfp_t)(0x400u | 0x800u)) | ((gfp_t)0x40u) | ((gfp_t)0x80u) |
                                             ((gfp_t)0x100000u)) |
                                            ((gfp_t)0x02u)) |
-                                          ((gfp_t)0x08u)) |
-                                         ((gfp_t)0x40000u) | ((gfp_t)0x80000u) | ((gfp_t)0x2000u)) &
-                                        ~((gfp_t)(0x400u | 0x800u))) |
-                                       ((gfp_t)0x400u)),
-                       "GFP_TRANSHUGE"},
-                      {(unsigned long)(((((((gfp_t)(0x400u | 0x800u)) | ((gfp_t)0x40u) | ((gfp_t)0x80u) |
-                                           ((gfp_t)0x100000u)) |
-                                          ((gfp_t)0x02u)) |
-                                         ((gfp_t)0x08u)) |
-                                        ((gfp_t)0x40000u) | ((gfp_t)0x80000u) | ((gfp_t)0x2000u)) &
-                                       ~((gfp_t)(0x400u | 0x800u))),
-                       "GFP_TRANSHUGE_LIGHT"},
-                      {(unsigned long)(((((gfp_t)(0x400u | 0x800u)) | ((gfp_t)0x40u) | ((gfp_t)0x80u) |
-                                         ((gfp_t)0x100000u)) |
-                                        ((gfp_t)0x02u)) |
                                        ((gfp_t)0x08u)),
-                       "GFP_HIGHUSER_MOVABLE"},
+                          "GFP_HIGHUSER_MOVABLE"},
                       {(unsigned long)((((gfp_t)(0x400u | 0x800u)) | ((gfp_t)0x40u) | ((gfp_t)0x80u) |
-                                        ((gfp_t)0x100000u)) |
+                                           ((gfp_t)0x100000u)) |
                                        ((gfp_t)0x02u)),
-                       "GFP_HIGHUSER"},
+                          "GFP_HIGHUSER"},
                       {(unsigned long)(((gfp_t)(0x400u | 0x800u)) | ((gfp_t)0x40u) | ((gfp_t)0x80u) |
                                        ((gfp_t)0x100000u)),
-                       "GFP_USER"},
+                          "GFP_USER"},
                       {(unsigned long)((((gfp_t)(0x400u | 0x800u)) | ((gfp_t)0x40u) | ((gfp_t)0x80u)) |
                                        ((gfp_t)0x400000u)),
-                       "GFP_KERNEL_ACCOUNT"},
+                          "GFP_KERNEL_ACCOUNT"},
                       {(unsigned long)(((gfp_t)(0x400u | 0x800u)) | ((gfp_t)0x40u) | ((gfp_t)0x80u)), "GFP_KERNEL"},
                       {(unsigned long)(((gfp_t)(0x400u | 0x800u)) | ((gfp_t)0x40u)), "GFP_NOFS"},
                       {(unsigned long)(((gfp_t)0x20u) | ((gfp_t)0x200u) | ((gfp_t)0x800u)), "GFP_ATOMIC"},
@@ -269,44 +263,42 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.kmem_cache_alloc_node_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(
-            buffer, sizeof(buffer),
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
             "kmem_cache_alloc_node: call_site=%" PRIu64 "S ptr=%" PRIu64 " bytes_req=%" PRIu64 " bytes_alloc=%" PRIu64
             " gfp_flags=%s node=%d",
             msg.call_site(), msg.ptr(), msg.bytes_req(), msg.bytes_alloc(),
             (msg.gfp_flags())
-                ? __print_flags(
-                      msg.gfp_flags(), "|",
+                ? __print_flags(msg.gfp_flags(), "|",
                       {(unsigned long)((((((((gfp_t)(0x400u | 0x800u)) | ((gfp_t)0x40u) | ((gfp_t)0x80u) |
+                                               ((gfp_t)0x100000u)) |
+                                              ((gfp_t)0x02u)) |
+                                             ((gfp_t)0x08u)) |
+                                            ((gfp_t)0x40000u) | ((gfp_t)0x80000u) | ((gfp_t)0x2000u)) &
+                                           ~((gfp_t)(0x400u | 0x800u))) |
+                                       ((gfp_t)0x400u)),
+                          "GFP_TRANSHUGE"},
+                      {(unsigned long)(((((((gfp_t)(0x400u | 0x800u)) | ((gfp_t)0x40u) | ((gfp_t)0x80u) |
+                                              ((gfp_t)0x100000u)) |
+                                             ((gfp_t)0x02u)) |
+                                            ((gfp_t)0x08u)) |
+                                           ((gfp_t)0x40000u) | ((gfp_t)0x80000u) | ((gfp_t)0x2000u)) &
+                                       ~((gfp_t)(0x400u | 0x800u))),
+                          "GFP_TRANSHUGE_LIGHT"},
+                      {(unsigned long)(((((gfp_t)(0x400u | 0x800u)) | ((gfp_t)0x40u) | ((gfp_t)0x80u) |
                                             ((gfp_t)0x100000u)) |
                                            ((gfp_t)0x02u)) |
-                                          ((gfp_t)0x08u)) |
-                                         ((gfp_t)0x40000u) | ((gfp_t)0x80000u) | ((gfp_t)0x2000u)) &
-                                        ~((gfp_t)(0x400u | 0x800u))) |
-                                       ((gfp_t)0x400u)),
-                       "GFP_TRANSHUGE"},
-                      {(unsigned long)(((((((gfp_t)(0x400u | 0x800u)) | ((gfp_t)0x40u) | ((gfp_t)0x80u) |
-                                           ((gfp_t)0x100000u)) |
-                                          ((gfp_t)0x02u)) |
-                                         ((gfp_t)0x08u)) |
-                                        ((gfp_t)0x40000u) | ((gfp_t)0x80000u) | ((gfp_t)0x2000u)) &
-                                       ~((gfp_t)(0x400u | 0x800u))),
-                       "GFP_TRANSHUGE_LIGHT"},
-                      {(unsigned long)(((((gfp_t)(0x400u | 0x800u)) | ((gfp_t)0x40u) | ((gfp_t)0x80u) |
-                                         ((gfp_t)0x100000u)) |
-                                        ((gfp_t)0x02u)) |
                                        ((gfp_t)0x08u)),
-                       "GFP_HIGHUSER_MOVABLE"},
+                          "GFP_HIGHUSER_MOVABLE"},
                       {(unsigned long)((((gfp_t)(0x400u | 0x800u)) | ((gfp_t)0x40u) | ((gfp_t)0x80u) |
-                                        ((gfp_t)0x100000u)) |
+                                           ((gfp_t)0x100000u)) |
                                        ((gfp_t)0x02u)),
-                       "GFP_HIGHUSER"},
+                          "GFP_HIGHUSER"},
                       {(unsigned long)(((gfp_t)(0x400u | 0x800u)) | ((gfp_t)0x40u) | ((gfp_t)0x80u) |
                                        ((gfp_t)0x100000u)),
-                       "GFP_USER"},
+                          "GFP_USER"},
                       {(unsigned long)((((gfp_t)(0x400u | 0x800u)) | ((gfp_t)0x40u) | ((gfp_t)0x80u)) |
                                        ((gfp_t)0x400000u)),
-                       "GFP_KERNEL_ACCOUNT"},
+                          "GFP_KERNEL_ACCOUNT"},
                       {(unsigned long)(((gfp_t)(0x400u | 0x800u)) | ((gfp_t)0x40u) | ((gfp_t)0x80u)), "GFP_KERNEL"},
                       {(unsigned long)(((gfp_t)(0x400u | 0x800u)) | ((gfp_t)0x40u)), "GFP_NOFS"},
                       {(unsigned long)(((gfp_t)0x20u) | ((gfp_t)0x200u) | ((gfp_t)0x800u)), "GFP_ATOMIC"},
@@ -345,8 +337,8 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.kmem_cache_free_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "kmem_cache_free: call_site=%" PRIu64 "S ptr=%" PRIu64 "",
-                           msg.call_site(), msg.ptr());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
+            "kmem_cache_free: call_site=%" PRIu64 "S ptr=%" PRIu64 "", msg.call_site(), msg.ptr());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -359,42 +351,41 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.mm_page_alloc_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(
-            buffer, sizeof(buffer), "mm_page_alloc: page=%s pfn=%" PRIu64 " order=%d migratetype=%d gfp_flags=%s",
-            "0000000000000000", msg.pfn() != -1UL ? msg.pfn() : 0, msg.order(), msg.migratetype(),
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
+            "mm_page_alloc: page=%s pfn=%" PRIu64 " order=%d migratetype=%d gfp_flags=%s", "0000000000000000",
+            msg.pfn() != -1UL ? msg.pfn() : 0, msg.order(), msg.migratetype(),
             (msg.gfp_flags())
-                ? __print_flags(
-                      msg.gfp_flags(), "|",
+                ? __print_flags(msg.gfp_flags(), "|",
                       {(unsigned long)((((((((gfp_t)(0x400u | 0x800u)) | ((gfp_t)0x40u) | ((gfp_t)0x80u) |
+                                               ((gfp_t)0x100000u)) |
+                                              ((gfp_t)0x02u)) |
+                                             ((gfp_t)0x08u)) |
+                                            ((gfp_t)0x40000u) | ((gfp_t)0x80000u) | ((gfp_t)0x2000u)) &
+                                           ~((gfp_t)(0x400u | 0x800u))) |
+                                       ((gfp_t)0x400u)),
+                          "GFP_TRANSHUGE"},
+                      {(unsigned long)(((((((gfp_t)(0x400u | 0x800u)) | ((gfp_t)0x40u) | ((gfp_t)0x80u) |
+                                              ((gfp_t)0x100000u)) |
+                                             ((gfp_t)0x02u)) |
+                                            ((gfp_t)0x08u)) |
+                                           ((gfp_t)0x40000u) | ((gfp_t)0x80000u) | ((gfp_t)0x2000u)) &
+                                       ~((gfp_t)(0x400u | 0x800u))),
+                          "GFP_TRANSHUGE_LIGHT"},
+                      {(unsigned long)(((((gfp_t)(0x400u | 0x800u)) | ((gfp_t)0x40u) | ((gfp_t)0x80u) |
                                             ((gfp_t)0x100000u)) |
                                            ((gfp_t)0x02u)) |
-                                          ((gfp_t)0x08u)) |
-                                         ((gfp_t)0x40000u) | ((gfp_t)0x80000u) | ((gfp_t)0x2000u)) &
-                                        ~((gfp_t)(0x400u | 0x800u))) |
-                                       ((gfp_t)0x400u)),
-                       "GFP_TRANSHUGE"},
-                      {(unsigned long)(((((((gfp_t)(0x400u | 0x800u)) | ((gfp_t)0x40u) | ((gfp_t)0x80u) |
-                                           ((gfp_t)0x100000u)) |
-                                          ((gfp_t)0x02u)) |
-                                         ((gfp_t)0x08u)) |
-                                        ((gfp_t)0x40000u) | ((gfp_t)0x80000u) | ((gfp_t)0x2000u)) &
-                                       ~((gfp_t)(0x400u | 0x800u))),
-                       "GFP_TRANSHUGE_LIGHT"},
-                      {(unsigned long)(((((gfp_t)(0x400u | 0x800u)) | ((gfp_t)0x40u) | ((gfp_t)0x80u) |
-                                         ((gfp_t)0x100000u)) |
-                                        ((gfp_t)0x02u)) |
                                        ((gfp_t)0x08u)),
-                       "GFP_HIGHUSER_MOVABLE"},
+                          "GFP_HIGHUSER_MOVABLE"},
                       {(unsigned long)((((gfp_t)(0x400u | 0x800u)) | ((gfp_t)0x40u) | ((gfp_t)0x80u) |
-                                        ((gfp_t)0x100000u)) |
+                                           ((gfp_t)0x100000u)) |
                                        ((gfp_t)0x02u)),
-                       "GFP_HIGHUSER"},
+                          "GFP_HIGHUSER"},
                       {(unsigned long)(((gfp_t)(0x400u | 0x800u)) | ((gfp_t)0x40u) | ((gfp_t)0x80u) |
                                        ((gfp_t)0x100000u)),
-                       "GFP_USER"},
+                          "GFP_USER"},
                       {(unsigned long)((((gfp_t)(0x400u | 0x800u)) | ((gfp_t)0x40u) | ((gfp_t)0x80u)) |
                                        ((gfp_t)0x400000u)),
-                       "GFP_KERNEL_ACCOUNT"},
+                          "GFP_KERNEL_ACCOUNT"},
                       {(unsigned long)(((gfp_t)(0x400u | 0x800u)) | ((gfp_t)0x40u) | ((gfp_t)0x80u)), "GFP_KERNEL"},
                       {(unsigned long)(((gfp_t)(0x400u | 0x800u)) | ((gfp_t)0x40u)), "GFP_NOFS"},
                       {(unsigned long)(((gfp_t)0x20u) | ((gfp_t)0x200u) | ((gfp_t)0x800u)), "GFP_ATOMIC"},
@@ -432,13 +423,12 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.mm_page_alloc_extfrag_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer),
-                           "mm_page_alloc_extfrag: page=%s pfn=%" PRIu64
-                           " alloc_order=%d fallback_order=%d pageblock_order=%d alloc_migratetype=%d "
-                           "fallback_migratetype=%d fragmenting=%d change_ownership=%d",
-                           "0000000000000000", msg.pfn(), msg.alloc_order(), msg.fallback_order(), (11 - 1),
-                           msg.alloc_migratetype(), msg.fallback_migratetype(), msg.fallback_order() < (11 - 1),
-                           msg.change_ownership());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
+            "mm_page_alloc_extfrag: page=%s pfn=%" PRIu64
+            " alloc_order=%d fallback_order=%d pageblock_order=%d alloc_migratetype=%d fallback_migratetype=%d "
+            "fragmenting=%d change_ownership=%d",
+            "0000000000000000", msg.pfn(), msg.alloc_order(), msg.fallback_order(), (11 - 1), msg.alloc_migratetype(),
+            msg.fallback_migratetype(), msg.fallback_order() < (11 - 1), msg.change_ownership());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -451,8 +441,7 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.mm_page_alloc_zone_locked_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(
-            buffer, sizeof(buffer),
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
             "mm_page_alloc_zone_locked: page=%s pfn=%" PRIu64 " order=%u migratetype=%d percpu_refill=%d",
             "0000000000000000", msg.pfn() != -1UL ? msg.pfn() : 0, msg.order(), msg.migratetype(), msg.order() == 0);
         if (len >= BUFFER_SIZE - 1) {
@@ -467,8 +456,8 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.mm_page_free_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "mm_page_free: page=%s pfn=%" PRIu64 " order=%d", "0000000000000000",
-                           msg.pfn(), msg.order());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "mm_page_free: page=%s pfn=%" PRIu64 " order=%d",
+            "0000000000000000", msg.pfn(), msg.order());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -481,8 +470,8 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.mm_page_free_batched_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "mm_page_free_batched: page=%s pfn=%" PRIu64 " order=0",
-                           "0000000000000000", msg.pfn());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
+            "mm_page_free_batched: page=%s pfn=%" PRIu64 " order=0", "0000000000000000", msg.pfn());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -495,9 +484,9 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.mm_page_pcpu_drain_format();
         char buffer[BUFFER_SIZE];
-        int len =
-            snprintf(buffer, sizeof(buffer), "mm_page_pcpu_drain: page=%s pfn=%" PRIu64 " order=%d migratetype=%d",
-                     "0000000000000000", msg.pfn(), msg.order(), msg.migratetype());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
+            "mm_page_pcpu_drain: page=%s pfn=%" PRIu64 " order=%d migratetype=%d", "0000000000000000", msg.pfn(),
+            msg.order(), msg.migratetype());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -510,8 +499,9 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.rss_stat_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "rss_stat: mm_id=%u curr=%d member=%d size=%" PRIu64 "B",
-                           msg.mm_id(), msg.curr(), msg.member(), msg.size());
+        int len =
+            snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "rss_stat: mm_id=%u curr=%d member=%d size=%" PRIu64 "B",
+                msg.mm_id(), msg.curr(), msg.member(), msg.size());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }

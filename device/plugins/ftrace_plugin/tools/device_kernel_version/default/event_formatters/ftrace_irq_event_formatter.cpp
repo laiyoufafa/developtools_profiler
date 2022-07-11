@@ -28,7 +28,8 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.irq_handler_entry_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "irq_handler_entry: irq=%d name=%s", msg.irq(), msg.name().c_str());
+        int len = snprintf_s(
+            buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "irq_handler_entry: irq=%d name=%s", msg.irq(), msg.name().c_str());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -41,8 +42,8 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.irq_handler_exit_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "irq_handler_exit: irq=%d ret=%s", msg.irq(),
-                           msg.ret() ? "handled" : "unhandled");
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "irq_handler_exit: irq=%d ret=%s", msg.irq(),
+            msg.ret() ? "handled" : "unhandled");
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -55,10 +56,9 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.softirq_entry_format();
         char buffer[BUFFER_SIZE];
-        int len =
-            snprintf(buffer, sizeof(buffer), "softirq_entry: vec=%u [action=%s]", msg.vec(),
-                     __print_symbolic(msg.vec(), {0, "HI"}, {1, "TIMER"}, {2, "NET_TX"}, {3, "NET_RX"}, {4, "BLOCK"},
-                                      {5, "IRQ_POLL"}, {6, "TASKLET"}, {7, "SCHED"}, {8, "HRTIMER"}, {9, "RCU"}));
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "softirq_entry: vec=%u [action=%s]", msg.vec(),
+            __print_symbolic(msg.vec(), {0, "HI"}, {1, "TIMER"}, {2, "NET_TX"}, {3, "NET_RX"}, {4, "BLOCK"},
+                {5, "IRQ_POLL"}, {6, "TASKLET"}, {7, "SCHED"}, {8, "HRTIMER"}, {9, "RCU"}));
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -71,10 +71,9 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.softirq_exit_format();
         char buffer[BUFFER_SIZE];
-        int len =
-            snprintf(buffer, sizeof(buffer), "softirq_exit: vec=%u [action=%s]", msg.vec(),
-                     __print_symbolic(msg.vec(), {0, "HI"}, {1, "TIMER"}, {2, "NET_TX"}, {3, "NET_RX"}, {4, "BLOCK"},
-                                      {5, "IRQ_POLL"}, {6, "TASKLET"}, {7, "SCHED"}, {8, "HRTIMER"}, {9, "RCU"}));
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "softirq_exit: vec=%u [action=%s]", msg.vec(),
+            __print_symbolic(msg.vec(), {0, "HI"}, {1, "TIMER"}, {2, "NET_TX"}, {3, "NET_RX"}, {4, "BLOCK"},
+                {5, "IRQ_POLL"}, {6, "TASKLET"}, {7, "SCHED"}, {8, "HRTIMER"}, {9, "RCU"}));
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -87,10 +86,9 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.softirq_raise_format();
         char buffer[BUFFER_SIZE];
-        int len =
-            snprintf(buffer, sizeof(buffer), "softirq_raise: vec=%u [action=%s]", msg.vec(),
-                     __print_symbolic(msg.vec(), {0, "HI"}, {1, "TIMER"}, {2, "NET_TX"}, {3, "NET_RX"}, {4, "BLOCK"},
-                                      {5, "IRQ_POLL"}, {6, "TASKLET"}, {7, "SCHED"}, {8, "HRTIMER"}, {9, "RCU"}));
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "softirq_raise: vec=%u [action=%s]", msg.vec(),
+            __print_symbolic(msg.vec(), {0, "HI"}, {1, "TIMER"}, {2, "NET_TX"}, {3, "NET_RX"}, {4, "BLOCK"},
+                {5, "IRQ_POLL"}, {6, "TASKLET"}, {7, "SCHED"}, {8, "HRTIMER"}, {9, "RCU"}));
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }

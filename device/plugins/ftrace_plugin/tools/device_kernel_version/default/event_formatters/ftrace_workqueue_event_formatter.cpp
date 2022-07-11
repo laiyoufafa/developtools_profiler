@@ -28,7 +28,8 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.workqueue_activate_work_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "workqueue_activate_work: work struct %" PRIu64 "", msg.work());
+        int len = snprintf_s(
+            buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "workqueue_activate_work: work struct %" PRIu64 "", msg.work());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -41,7 +42,8 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.workqueue_execute_end_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "workqueue_execute_end: work struct %" PRIu64 "", msg.work());
+        int len = snprintf_s(
+            buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "workqueue_execute_end: work struct %" PRIu64 "", msg.work());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -55,8 +57,8 @@ REGISTER_FTRACE_EVENT_FORMATTER(
         auto msg = event.workqueue_execute_start_format();
         char buffer[BUFFER_SIZE];
         std::string function = EventFormatter::GetInstance().kernelSymbols_[msg.function()];
-        int len = snprintf(buffer, sizeof(buffer), "workqueue_execute_start: work struct %" PRIu64 ": function %s",
-                           msg.work(), function.c_str());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
+            "workqueue_execute_start: work struct %" PRIu64 ": function %s", msg.work(), function.c_str());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -70,10 +72,9 @@ REGISTER_FTRACE_EVENT_FORMATTER(
         auto msg = event.workqueue_queue_work_format();
         char buffer[BUFFER_SIZE];
         std::string function = EventFormatter::GetInstance().kernelSymbols_[msg.function()];
-        int len = snprintf(buffer, sizeof(buffer),
-                           "workqueue_queue_work: work struct=%" PRIu64 " function=%s workqueue=%" PRIu64
-                           " req_cpu=%u cpu=%u",
-                           msg.work(), function.c_str(), msg.workqueue(), msg.req_cpu(), msg.cpu());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
+            "workqueue_queue_work: work struct=%" PRIu64 " function=%s workqueue=%" PRIu64 " req_cpu=%u cpu=%u",
+            msg.work(), function.c_str(), msg.workqueue(), msg.req_cpu(), msg.cpu());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }

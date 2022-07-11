@@ -29,8 +29,8 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.clock_disable_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "clock_disable: %s state=%lu cpu_id=%lu", msg.name().c_str(),
-                           (unsigned long)msg.state(), (unsigned long)msg.cpu_id());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "clock_disable: %s state=%lu cpu_id=%lu",
+            msg.name().c_str(), (unsigned long)msg.state(), (unsigned long)msg.cpu_id());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -43,8 +43,8 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.clock_enable_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "clock_enable: %s state=%lu cpu_id=%lu", msg.name().c_str(),
-                           (unsigned long)msg.state(), (unsigned long)msg.cpu_id());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "clock_enable: %s state=%lu cpu_id=%lu",
+            msg.name().c_str(), (unsigned long)msg.state(), (unsigned long)msg.cpu_id());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -57,8 +57,8 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.clock_set_rate_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "clock_set_rate: %s state=%lu cpu_id=%lu", msg.name().c_str(),
-                           (unsigned long)msg.state(), (unsigned long)msg.cpu_id());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "clock_set_rate: %s state=%lu cpu_id=%lu",
+            msg.name().c_str(), (unsigned long)msg.state(), (unsigned long)msg.cpu_id());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -71,8 +71,8 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.cpu_frequency_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "cpu_frequency: state=%lu cpu_id=%lu", (unsigned long)msg.state(),
-                           (unsigned long)msg.cpu_id());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "cpu_frequency: state=%lu cpu_id=%lu",
+            (unsigned long)msg.state(), (unsigned long)msg.cpu_id());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -85,8 +85,8 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.cpu_frequency_limits_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "cpu_frequency_limits: min=%lu max=%lu cpu_id=%lu",
-                           (unsigned long)msg.min_freq(), (unsigned long)msg.max_freq(), (unsigned long)msg.cpu_id());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "cpu_frequency_limits: min=%lu max=%lu cpu_id=%lu",
+            (unsigned long)msg.min_freq(), (unsigned long)msg.max_freq(), (unsigned long)msg.cpu_id());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -99,8 +99,8 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.cpu_idle_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "cpu_idle: state=%lu cpu_id=%lu", (unsigned long)msg.state(),
-                           (unsigned long)msg.cpu_id());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "cpu_idle: state=%lu cpu_id=%lu",
+            (unsigned long)msg.state(), (unsigned long)msg.cpu_id());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -113,11 +113,11 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.dev_pm_qos_add_request_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "dev_pm_qos_add_request: device=%s type=%s new_value=%d",
-                           msg.name().c_str(),
-                           __print_symbolic(msg.type(), {DEV_PM_QOS_RESUME_LATENCY, "DEV_PM_QOS_RESUME_LATENCY"},
-                                            {DEV_PM_QOS_FLAGS, "DEV_PM_QOS_FLAGS"}),
-                           msg.new_value());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
+            "dev_pm_qos_add_request: device=%s type=%s new_value=%d", msg.name().c_str(),
+            __print_symbolic(msg.type(), {DEV_PM_QOS_RESUME_LATENCY, "DEV_PM_QOS_RESUME_LATENCY"},
+                {DEV_PM_QOS_FLAGS, "DEV_PM_QOS_FLAGS"}),
+            msg.new_value());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -130,11 +130,11 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.dev_pm_qos_remove_request_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "dev_pm_qos_remove_request: device=%s type=%s new_value=%d",
-                           msg.name().c_str(),
-                           __print_symbolic(msg.type(), {DEV_PM_QOS_RESUME_LATENCY, "DEV_PM_QOS_RESUME_LATENCY"},
-                                            {DEV_PM_QOS_FLAGS, "DEV_PM_QOS_FLAGS"}),
-                           msg.new_value());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
+            "dev_pm_qos_remove_request: device=%s type=%s new_value=%d", msg.name().c_str(),
+            __print_symbolic(msg.type(), {DEV_PM_QOS_RESUME_LATENCY, "DEV_PM_QOS_RESUME_LATENCY"},
+                {DEV_PM_QOS_FLAGS, "DEV_PM_QOS_FLAGS"}),
+            msg.new_value());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -147,11 +147,11 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.dev_pm_qos_update_request_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "dev_pm_qos_update_request: device=%s type=%s new_value=%d",
-                           msg.name().c_str(),
-                           __print_symbolic(msg.type(), {DEV_PM_QOS_RESUME_LATENCY, "DEV_PM_QOS_RESUME_LATENCY"},
-                                            {DEV_PM_QOS_FLAGS, "DEV_PM_QOS_FLAGS"}),
-                           msg.new_value());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
+            "dev_pm_qos_update_request: device=%s type=%s new_value=%d", msg.name().c_str(),
+            __print_symbolic(msg.type(), {DEV_PM_QOS_RESUME_LATENCY, "DEV_PM_QOS_RESUME_LATENCY"},
+                {DEV_PM_QOS_FLAGS, "DEV_PM_QOS_FLAGS"}),
+            msg.new_value());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -164,8 +164,8 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.device_pm_callback_end_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "device_pm_callback_end: %s %s, err=%d", msg.driver().c_str(),
-                           msg.device().c_str(), msg.error());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "device_pm_callback_end: %s %s, err=%d",
+            msg.driver().c_str(), msg.device().c_str(), msg.error());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -178,11 +178,12 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.device_pm_callback_start_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "device_pm_callback_start: %s %s, parent: %s, %s[%s]",
-                           msg.driver().c_str(), msg.device().c_str(), msg.parent().c_str(), msg.pm_ops().c_str(),
-                           __print_symbolic(msg.event(), {0x0002, "suspend"}, {0x0010, "resume"}, {0x0001, "freeze"},
-                                            {0x0008, "quiesce"}, {0x0004, "hibernate"}, {0x0020, "thaw"},
-                                            {0x0040, "restore"}, {0x0080, "recover"}));
+        int len =
+            snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "device_pm_callback_start: %s %s, parent: %s, %s[%s]",
+                msg.driver().c_str(), msg.device().c_str(), msg.parent().c_str(), msg.pm_ops().c_str(),
+                __print_symbolic(msg.event(), {0x0002, "suspend"}, {0x0010, "resume"}, {0x0001, "freeze"},
+                    {0x0008, "quiesce"}, {0x0004, "hibernate"}, {0x0020, "thaw"}, {0x0040, "restore"},
+                    {0x0080, "recover"}));
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -195,7 +196,8 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.pm_qos_add_request_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "pm_qos_add_request: CPU_DMA_LATENCY value=%d", msg.value());
+        int len = snprintf_s(
+            buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "pm_qos_add_request: CPU_DMA_LATENCY value=%d", msg.value());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -208,7 +210,8 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.pm_qos_remove_request_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "pm_qos_remove_request: CPU_DMA_LATENCY value=%d", msg.value());
+        int len = snprintf_s(
+            buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "pm_qos_remove_request: CPU_DMA_LATENCY value=%d", msg.value());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -221,10 +224,11 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.pm_qos_update_flags_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "pm_qos_update_flags: action=%s prev_value=0x%x curr_value=0x%x",
-                           __print_symbolic(msg.action(), {PM_QOS_ADD_REQ, "ADD_REQ"},
-                                            {PM_QOS_UPDATE_REQ, "UPDATE_REQ"}, {PM_QOS_REMOVE_REQ, "REMOVE_REQ"}),
-                           msg.prev_value(), msg.curr_value());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
+            "pm_qos_update_flags: action=%s prev_value=0x%x curr_value=0x%x",
+            __print_symbolic(msg.action(), {PM_QOS_ADD_REQ, "ADD_REQ"}, {PM_QOS_UPDATE_REQ, "UPDATE_REQ"},
+                {PM_QOS_REMOVE_REQ, "REMOVE_REQ"}),
+            msg.prev_value(), msg.curr_value());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -237,7 +241,8 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.pm_qos_update_request_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "pm_qos_update_request: CPU_DMA_LATENCY value=%d", msg.value());
+        int len = snprintf_s(
+            buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "pm_qos_update_request: CPU_DMA_LATENCY value=%d", msg.value());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -250,10 +255,11 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.pm_qos_update_target_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "pm_qos_update_target: action=%s prev_value=%d curr_value=%d",
-                           __print_symbolic(msg.action(), {PM_QOS_ADD_REQ, "ADD_REQ"},
-                                            {PM_QOS_UPDATE_REQ, "UPDATE_REQ"}, {PM_QOS_REMOVE_REQ, "REMOVE_REQ"}),
-                           msg.prev_value(), msg.curr_value());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
+            "pm_qos_update_target: action=%s prev_value=%d curr_value=%d",
+            __print_symbolic(msg.action(), {PM_QOS_ADD_REQ, "ADD_REQ"}, {PM_QOS_UPDATE_REQ, "UPDATE_REQ"},
+                {PM_QOS_REMOVE_REQ, "REMOVE_REQ"}),
+            msg.prev_value(), msg.curr_value());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -266,8 +272,8 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.power_domain_target_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "power_domain_target: %s state=%lu cpu_id=%lu", msg.name().c_str(),
-                           (unsigned long)msg.state(), (unsigned long)msg.cpu_id());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "power_domain_target: %s state=%lu cpu_id=%lu",
+            msg.name().c_str(), (unsigned long)msg.state(), (unsigned long)msg.cpu_id());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -280,12 +286,12 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.pstate_sample_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer),
-                           "pstate_sample: core_busy=%lu scaled=%lu from=%lu to=%lu mperf=%llu aperf=%llu tsc=%llu "
-                           "freq=%lu io_boost=%lu",
-                           (unsigned long)msg.core_busy(), (unsigned long)msg.scaled_busy(), (unsigned long)msg.from(),
-                           (unsigned long)msg.to(), (unsigned long long)msg.mperf(), (unsigned long long)msg.aperf(),
-                           (unsigned long long)msg.tsc(), (unsigned long)msg.freq(), (unsigned long)msg.io_boost());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
+            "pstate_sample: core_busy=%lu scaled=%lu from=%lu to=%lu mperf=%" PRIu64 " aperf=%" PRIu64 " tsc=%" PRIu64
+            " freq=%lu io_boost=%lu",
+            (unsigned long)msg.core_busy(), (unsigned long)msg.scaled_busy(), (unsigned long)msg.from(),
+            (unsigned long)msg.to(), msg.mperf(), msg.aperf(), msg.tsc(), (unsigned long)msg.freq(),
+            (unsigned long)msg.io_boost());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -298,8 +304,8 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.suspend_resume_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "suspend_resume: %s[%u] %s", msg.action().c_str(),
-                           (unsigned int)msg.val(), (msg.start()) ? "begin" : "end");
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "suspend_resume: %s[%u] %s", msg.action().c_str(),
+            (unsigned int)msg.val(), (msg.start()) ? "begin" : "end");
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -312,8 +318,8 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.wakeup_source_activate_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "wakeup_source_activate: %s state=0x%lx", msg.name().c_str(),
-                           (unsigned long)msg.state());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "wakeup_source_activate: %s state=0x%" PRIx64 "",
+            msg.name().c_str(), msg.state());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -326,8 +332,8 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.wakeup_source_deactivate_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "wakeup_source_deactivate: %s state=0x%lx", msg.name().c_str(),
-                           (unsigned long)msg.state());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "wakeup_source_deactivate: %s state=0x%" PRIx64 "",
+            msg.name().c_str(), msg.state());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }

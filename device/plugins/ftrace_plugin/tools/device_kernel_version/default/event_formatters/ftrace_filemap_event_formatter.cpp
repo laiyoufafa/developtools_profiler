@@ -23,16 +23,47 @@ namespace {
 const int BUFFER_SIZE = 512;
 
 REGISTER_FTRACE_EVENT_FORMATTER(
+    file_check_and_advance_wb_err,
+    [](const ForStandard::FtraceEvent& event) -> bool { return event.has_file_check_and_advance_wb_err_format(); },
+    [](const ForStandard::FtraceEvent& event) -> std::string {
+        auto msg = event.file_check_and_advance_wb_err_format();
+        char buffer[BUFFER_SIZE];
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
+            "file_check_and_advance_wb_err: file=%" PRIu64 " dev=%d:%d ino=0x%" PRIx64 " old=0x%x new=0x%x", msg.file(),
+            ((unsigned int)((msg.s_dev()) >> 20)), ((unsigned int)((msg.s_dev()) & ((1U << 20) - 1))), msg.i_ino(),
+            msg.old(), msg.seq_new());
+        if (len >= BUFFER_SIZE - 1) {
+            HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
+        }
+        return std::string(buffer);
+    });
+
+REGISTER_FTRACE_EVENT_FORMATTER(
+    filemap_set_wb_err,
+    [](const ForStandard::FtraceEvent& event) -> bool { return event.has_filemap_set_wb_err_format(); },
+    [](const ForStandard::FtraceEvent& event) -> std::string {
+        auto msg = event.filemap_set_wb_err_format();
+        char buffer[BUFFER_SIZE];
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
+            "filemap_set_wb_err: dev=%d:%d ino=0x%" PRIx64 " errseq=0x%x", ((unsigned int)((msg.s_dev()) >> 20)),
+            ((unsigned int)((msg.s_dev()) & ((1U << 20) - 1))), msg.i_ino(), msg.errseq());
+        if (len >= BUFFER_SIZE - 1) {
+            HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
+        }
+        return std::string(buffer);
+    });
+
+REGISTER_FTRACE_EVENT_FORMATTER(
     mm_filemap_add_to_page_cache,
     [](const ForStandard::FtraceEvent& event) -> bool { return event.has_mm_filemap_add_to_page_cache_format(); },
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.mm_filemap_add_to_page_cache_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer),
-                           "mm_filemap_add_to_page_cache: dev %" PRIu64 ":%" PRIu64 " ino %" PRIu64
-                           " page=%s pfn=%" PRIu64 " ofs=%" PRIu64 "",
-                           (((msg.s_dev()) >> 20)), (((msg.s_dev()) & ((1U << 20) - 1))), msg.i_ino(),
-                           "0000000000000000", msg.pfn(), msg.index() << 12);
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
+            "mm_filemap_add_to_page_cache: dev %" PRIu64 ":%" PRIu64 " ino %" PRIu64 " page=%s pfn=%" PRIu64
+            " ofs=%" PRIu64 "",
+            (((msg.s_dev()) >> 20)), (((msg.s_dev()) & ((1U << 20) - 1))), msg.i_ino(), "0000000000000000", msg.pfn(),
+            msg.index() << 12);
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -45,11 +76,11 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.mm_filemap_delete_from_page_cache_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer),
-                           "mm_filemap_delete_from_page_cache: dev %" PRIu64 ":%" PRIu64 " ino %" PRIu64
-                           " page=%s pfn=%" PRIu64 " ofs=%" PRIu64 "",
-                           (((msg.s_dev()) >> 20)), (((msg.s_dev()) & ((1U << 20) - 1))), msg.i_ino(),
-                           "0000000000000000", msg.pfn(), msg.index() << 12);
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
+            "mm_filemap_delete_from_page_cache: dev %" PRIu64 ":%" PRIu64 " ino %" PRIu64 " page=%s pfn=%" PRIu64
+            " ofs=%" PRIu64 "",
+            (((msg.s_dev()) >> 20)), (((msg.s_dev()) & ((1U << 20) - 1))), msg.i_ino(), "0000000000000000", msg.pfn(),
+            msg.index() << 12);
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }

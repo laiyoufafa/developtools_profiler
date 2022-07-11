@@ -28,9 +28,9 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.cgroup_attach_task_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(
-            buffer, sizeof(buffer), "cgroup_attach_task: dst_root=%d dst_id=%d dst_level=%d dst_path=%s pid=%d comm=%s",
-            msg.dst_root(), msg.dst_id(), msg.dst_level(), msg.dst_path().c_str(), msg.pid(), msg.comm().c_str());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
+            "cgroup_attach_task: dst_root=%d dst_id=%d dst_level=%d dst_path=%s pid=%d comm=%s", msg.dst_root(),
+            msg.dst_id(), msg.dst_level(), msg.dst_path().c_str(), msg.pid(), msg.comm().c_str());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -43,8 +43,22 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.cgroup_destroy_root_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "cgroup_destroy_root: root=%d ss_mask=%#x name=%s", msg.root(),
-                           msg.ss_mask(), msg.name().c_str());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "cgroup_destroy_root: root=%d ss_mask=%#x name=%s",
+            msg.root(), msg.ss_mask(), msg.name().c_str());
+        if (len >= BUFFER_SIZE - 1) {
+            HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
+        }
+        return std::string(buffer);
+    });
+
+REGISTER_FTRACE_EVENT_FORMATTER(
+    cgroup_freeze,
+    [](const ForStandard::FtraceEvent& event) -> bool { return event.has_cgroup_freeze_format(); },
+    [](const ForStandard::FtraceEvent& event) -> std::string {
+        auto msg = event.cgroup_freeze_format();
+        char buffer[BUFFER_SIZE];
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "cgroup_freeze: root=%d id=%d level=%d path=%s",
+            msg.root(), msg.id(), msg.level(), msg.path().c_str());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -57,8 +71,38 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.cgroup_mkdir_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "cgroup_mkdir: root=%d id=%d level=%d path=%s", msg.root(), msg.id(),
-                           msg.level(), msg.path().c_str());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "cgroup_mkdir: root=%d id=%d level=%d path=%s",
+            msg.root(), msg.id(), msg.level(), msg.path().c_str());
+        if (len >= BUFFER_SIZE - 1) {
+            HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
+        }
+        return std::string(buffer);
+    });
+
+REGISTER_FTRACE_EVENT_FORMATTER(
+    cgroup_notify_frozen,
+    [](const ForStandard::FtraceEvent& event) -> bool { return event.has_cgroup_notify_frozen_format(); },
+    [](const ForStandard::FtraceEvent& event) -> std::string {
+        auto msg = event.cgroup_notify_frozen_format();
+        char buffer[BUFFER_SIZE];
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
+            "cgroup_notify_frozen: root=%d id=%d level=%d path=%s val=%d", msg.root(), msg.id(), msg.level(),
+            msg.path().c_str(), msg.val());
+        if (len >= BUFFER_SIZE - 1) {
+            HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
+        }
+        return std::string(buffer);
+    });
+
+REGISTER_FTRACE_EVENT_FORMATTER(
+    cgroup_notify_populated,
+    [](const ForStandard::FtraceEvent& event) -> bool { return event.has_cgroup_notify_populated_format(); },
+    [](const ForStandard::FtraceEvent& event) -> std::string {
+        auto msg = event.cgroup_notify_populated_format();
+        char buffer[BUFFER_SIZE];
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
+            "cgroup_notify_populated: root=%d id=%d level=%d path=%s val=%d", msg.root(), msg.id(), msg.level(),
+            msg.path().c_str(), msg.val());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -71,8 +115,8 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.cgroup_release_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "cgroup_release: root=%d id=%d level=%d path=%s", msg.root(),
-                           msg.id(), msg.level(), msg.path().c_str());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "cgroup_release: root=%d id=%d level=%d path=%s",
+            msg.root(), msg.id(), msg.level(), msg.path().c_str());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -85,8 +129,8 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.cgroup_remount_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "cgroup_remount: root=%d ss_mask=%#x name=%s", msg.root(),
-                           msg.ss_mask(), msg.name().c_str());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "cgroup_remount: root=%d ss_mask=%#x name=%s",
+            msg.root(), msg.ss_mask(), msg.name().c_str());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -99,8 +143,8 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.cgroup_rename_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "cgroup_rename: root=%d id=%d level=%d path=%s", msg.root(),
-                           msg.id(), msg.level(), msg.path().c_str());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "cgroup_rename: root=%d id=%d level=%d path=%s",
+            msg.root(), msg.id(), msg.level(), msg.path().c_str());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -113,8 +157,8 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.cgroup_rmdir_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "cgroup_rmdir: root=%d id=%d level=%d path=%s", msg.root(), msg.id(),
-                           msg.level(), msg.path().c_str());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "cgroup_rmdir: root=%d id=%d level=%d path=%s",
+            msg.root(), msg.id(), msg.level(), msg.path().c_str());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -127,8 +171,8 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.cgroup_setup_root_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "cgroup_setup_root: root=%d ss_mask=%#x name=%s", msg.root(),
-                           msg.ss_mask(), msg.name().c_str());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "cgroup_setup_root: root=%d ss_mask=%#x name=%s",
+            msg.root(), msg.ss_mask(), msg.name().c_str());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -141,10 +185,23 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.cgroup_transfer_tasks_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer),
-                           "cgroup_transfer_tasks: dst_root=%d dst_id=%d dst_level=%d dst_path=%s pid=%d comm=%s",
-                           msg.dst_root(), msg.dst_id(), msg.dst_level(), msg.dst_path().c_str(), msg.pid(),
-                           msg.comm().c_str());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
+            "cgroup_transfer_tasks: dst_root=%d dst_id=%d dst_level=%d dst_path=%s pid=%d comm=%s", msg.dst_root(),
+            msg.dst_id(), msg.dst_level(), msg.dst_path().c_str(), msg.pid(), msg.comm().c_str());
+        if (len >= BUFFER_SIZE - 1) {
+            HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
+        }
+        return std::string(buffer);
+    });
+
+REGISTER_FTRACE_EVENT_FORMATTER(
+    cgroup_unfreeze,
+    [](const ForStandard::FtraceEvent& event) -> bool { return event.has_cgroup_unfreeze_format(); },
+    [](const ForStandard::FtraceEvent& event) -> std::string {
+        auto msg = event.cgroup_unfreeze_format();
+        char buffer[BUFFER_SIZE];
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "cgroup_unfreeze: root=%d id=%d level=%d path=%s",
+            msg.root(), msg.id(), msg.level(), msg.path().c_str());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }

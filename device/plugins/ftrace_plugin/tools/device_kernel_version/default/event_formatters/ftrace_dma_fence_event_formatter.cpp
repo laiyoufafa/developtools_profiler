@@ -28,8 +28,9 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.dma_fence_destroy_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "dma_fence_destroy: driver=%s timeline=%s context=%u seqno=%u",
-                           msg.driver().c_str(), msg.timeline().c_str(), msg.context(), msg.seqno());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
+            "dma_fence_destroy: driver=%s timeline=%s context=%u seqno=%u", msg.driver().c_str(),
+            msg.timeline().c_str(), msg.context(), msg.seqno());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -42,8 +43,9 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.dma_fence_emit_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "dma_fence_emit: driver=%s timeline=%s context=%u seqno=%u",
-                           msg.driver().c_str(), msg.timeline().c_str(), msg.context(), msg.seqno());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
+            "dma_fence_emit: driver=%s timeline=%s context=%u seqno=%u", msg.driver().c_str(), msg.timeline().c_str(),
+            msg.context(), msg.seqno());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -56,8 +58,9 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.dma_fence_enable_signal_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "dma_fence_enable_signal: driver=%s timeline=%s context=%u seqno=%u",
-                           msg.driver().c_str(), msg.timeline().c_str(), msg.context(), msg.seqno());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
+            "dma_fence_enable_signal: driver=%s timeline=%s context=%u seqno=%u", msg.driver().c_str(),
+            msg.timeline().c_str(), msg.context(), msg.seqno());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -70,8 +73,9 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.dma_fence_init_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "dma_fence_init: driver=%s timeline=%s context=%u seqno=%u",
-                           msg.driver().c_str(), msg.timeline().c_str(), msg.context(), msg.seqno());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
+            "dma_fence_init: driver=%s timeline=%s context=%u seqno=%u", msg.driver().c_str(), msg.timeline().c_str(),
+            msg.context(), msg.seqno());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -84,8 +88,9 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.dma_fence_signaled_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "dma_fence_signaled: driver=%s timeline=%s context=%u seqno=%u",
-                           msg.driver().c_str(), msg.timeline().c_str(), msg.context(), msg.seqno());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
+            "dma_fence_signaled: driver=%s timeline=%s context=%u seqno=%u", msg.driver().c_str(),
+            msg.timeline().c_str(), msg.context(), msg.seqno());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -98,8 +103,9 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.dma_fence_wait_end_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "dma_fence_wait_end: driver=%s timeline=%s context=%u seqno=%u",
-                           msg.driver().c_str(), msg.timeline().c_str(), msg.context(), msg.seqno());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
+            "dma_fence_wait_end: driver=%s timeline=%s context=%u seqno=%u", msg.driver().c_str(),
+            msg.timeline().c_str(), msg.context(), msg.seqno());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -112,8 +118,9 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.dma_fence_wait_start_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "dma_fence_wait_start: driver=%s timeline=%s context=%u seqno=%u",
-                           msg.driver().c_str(), msg.timeline().c_str(), msg.context(), msg.seqno());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
+            "dma_fence_wait_start: driver=%s timeline=%s context=%u seqno=%u", msg.driver().c_str(),
+            msg.timeline().c_str(), msg.context(), msg.seqno());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }

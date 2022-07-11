@@ -28,9 +28,9 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.task_newtask_format();
         char buffer[BUFFER_SIZE];
-        int len =
-            snprintf(buffer, sizeof(buffer), "task_newtask: pid=%d comm=%s clone_flags=%" PRIu64 " oom_score_adj=%d",
-                     msg.pid(), msg.comm().c_str(), msg.clone_flags(), msg.oom_score_adj());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
+            "task_newtask: pid=%d comm=%s clone_flags=%" PRIx64 " oom_score_adj=%d", msg.pid(), msg.comm().c_str(),
+            msg.clone_flags(), msg.oom_score_adj());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
@@ -43,8 +43,9 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.task_rename_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf(buffer, sizeof(buffer), "task_rename: pid=%d oldcomm=%s newcomm=%s oom_score_adj=%d",
-                           msg.pid(), msg.oldcomm().c_str(), msg.newcomm().c_str(), msg.oom_score_adj());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
+            "task_rename: pid=%d oldcomm=%s newcomm=%s oom_score_adj=%d", msg.pid(), msg.oldcomm().c_str(),
+            msg.newcomm().c_str(), msg.oom_score_adj());
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }
