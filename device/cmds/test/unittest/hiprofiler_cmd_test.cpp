@@ -202,7 +202,7 @@ public:
         }
     }
 
-    std::string CreateCommand(std::string outFile, int time)
+    std::string CreateCommand(const std::string &outFile, int time) const
     {
         std::string cmdStr =
             "hiprofiler_cmd \\\n"
