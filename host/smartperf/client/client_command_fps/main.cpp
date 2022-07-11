@@ -272,7 +272,8 @@ int main(int argc, char *argv[])
             gettimeofday(&end, nullptr);
             unsigned long runTime = end.tv_sec * 1e6 - start.tv_sec * 1e6 + end.tv_usec - start.tv_usec;
             fflush(stdout);
-            usleep(1000000 - runTime);
+            unsigned long oneSec = 1000000;
+            usleep(oneSec - runTime);
         }
     }
     printf("GP_daemon_fps exec finished!\n");
