@@ -175,7 +175,7 @@ int main(int argc, char *argv[])
         }
         mallocTimes = atoi(argv[ARGC_MALLOC_TIMES]);
         if (argc == ARGC_NUM_MAX) {
-            g_stickDepth = atoi(argv[ARGC_STICK_DEPTH]);
+            g_stickDepth = static_cast<unsigned int>(atoi(argv[ARGC_STICK_DEPTH]));
         }
     } else {
         printf("command error\n");
