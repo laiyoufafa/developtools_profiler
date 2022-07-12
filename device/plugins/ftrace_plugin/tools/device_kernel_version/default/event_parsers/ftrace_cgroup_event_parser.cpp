@@ -161,6 +161,5 @@ REGISTER_FTRACE_EVENT_PARSE_FUNCTION(
         msg->set_level(FtraceFieldParser::ParseIntField<int32_t>(format.fields, i++, data, size));
         msg->set_path(FtraceFieldParser::ParseStrField(format.fields, i++, data, size));
     });
-
 } // namespace
 FTRACE_NS_END

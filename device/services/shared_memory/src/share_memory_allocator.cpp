@@ -14,11 +14,6 @@
  */
 
 #include "share_memory_allocator.h"
-#include <cstring>
-#include <sys/mman.h>
-#include <sys/socket.h>
-#include <sys/un.h>
-#include <unistd.h>
 #include "logging.h"
 #include "share_memory_block.h"
 
