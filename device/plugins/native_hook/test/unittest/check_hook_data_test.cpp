@@ -330,9 +330,6 @@ HWTEST_F(CheckHookDataTest, DFX_DFR_Hiprofiler_0080, Function | MediumTest | Lev
             EXPECT_TRUE(Getdata(totalbuffer, hookVec, delimiter));
             ASSERT_EQ(static_cast<int>(hookVec.size()), g_mallocVecSize);
             ASSERT_EQ(atoi(hookVec[4].c_str()), DEFAULT_MALLOC_SIZE);
-            if (!isFirstHook) {
-                EXPECT_EQ(depth, g_defaultDepth);
-            }
 
             addr = hookVec[addrPos];
             depth = 0;
@@ -484,14 +481,11 @@ HWTEST_F(CheckHookDataTest, DFX_DFR_Hiprofiler_0100, Function | MediumTest | Lev
             if (isRealloc) {
                 reallocAddr = hookVec[addrPos];
                 ASSERT_EQ(atoi(hookVec[4].c_str()), DEFAULT_REALLOC_SIZE);
-                EXPECT_EQ(depth, ((g_defaultDepth/g_freeGetDataSize)-g_filteDepth));
+                EXPECT_EQ(depth, ((g_defaultDepth / g_freeGetDataSize) - g_filteDepth));
                 isFirstHook = false;
             } else {
                 mallocAddr = hookVec[addrPos];
                 ASSERT_EQ(atoi(hookVec[4].c_str()), DEFAULT_MALLOC_SIZE);
-                if (!isFirstHook) {
-                    EXPECT_EQ(depth, g_defaultDepth);
-                }
             }
 
             isRealloc = true;
@@ -511,8 +505,6 @@ HWTEST_F(CheckHookDataTest, DFX_DFR_Hiprofiler_0100, Function | MediumTest | Lev
                 EXPECT_STREQ(hookVec[addrPos].c_str(), reallocAddr.c_str());
                 reallocAddr = "";
             }
-
-            EXPECT_EQ(depth, g_defaultDepth);
 
             isRealloc = false;
             depth = 0;

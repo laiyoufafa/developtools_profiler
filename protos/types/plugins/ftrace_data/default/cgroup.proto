@@ -35,12 +35,38 @@ message CgroupDestroyRootFormat {
     string name = 3;
 }
 
+// /sys/kernel/debug/tracing/events/cgroup/cgroup_freeze/format
+message CgroupFreezeFormat {
+    int32 root = 1;
+    int32 id = 2;
+    int32 level = 3;
+    string path = 4;
+}
+
 // /sys/kernel/debug/tracing/events/cgroup/cgroup_mkdir/format
 message CgroupMkdirFormat {
     int32 root = 1;
     int32 id = 2;
     int32 level = 3;
     string path = 4;
+}
+
+// /sys/kernel/debug/tracing/events/cgroup/cgroup_notify_frozen/format
+message CgroupNotifyFrozenFormat {
+    int32 root = 1;
+    int32 id = 2;
+    int32 level = 3;
+    string path = 4;
+    int32 val = 5;
+}
+
+// /sys/kernel/debug/tracing/events/cgroup/cgroup_notify_populated/format
+message CgroupNotifyPopulatedFormat {
+    int32 root = 1;
+    int32 id = 2;
+    int32 level = 3;
+    string path = 4;
+    int32 val = 5;
 }
 
 // /sys/kernel/debug/tracing/events/cgroup/cgroup_release/format
@@ -91,3 +117,10 @@ message CgroupTransferTasksFormat {
     string comm = 6;
 }
 
+// /sys/kernel/debug/tracing/events/cgroup/cgroup_unfreeze/format
+message CgroupUnfreezeFormat {
+    int32 root = 1;
+    int32 id = 2;
+    int32 level = 3;
+    string path = 4;
+}

@@ -159,7 +159,7 @@ HWTEST_F(SharedMemoryBlockTest, PutMessage, TestSize.Level1)
 
     NotifyResultResponse response;
     response.set_status(ResponseStatus::OK);
-    ASSERT_TRUE(shareMemoryBlock.PutMessage(response));
+    ASSERT_TRUE(shareMemoryBlock.PutMessage(response, "test"));
     EXPECT_EQ(shareMemoryBlock.GetDataSize(), response.ByteSizeLong());
     response.ParseFromArray(shareMemoryBlock.GetDataPoint(), shareMemoryBlock.GetDataSize());
     ASSERT_TRUE(response.status() == ResponseStatus::OK);
@@ -168,7 +168,7 @@ HWTEST_F(SharedMemoryBlockTest, PutMessage, TestSize.Level1)
     shareMemoryBlock.Next();
     NotifyResultResponse response2;
     response2.set_status(ResponseStatus::OK);
-    ASSERT_TRUE(shareMemoryBlock.PutMessage(response2));
+    ASSERT_TRUE(shareMemoryBlock.PutMessage(response2, "test"));
     EXPECT_EQ(shareMemoryBlock.GetDataSize(), response2.ByteSizeLong());
     response2.ParseFromArray(shareMemoryBlock.GetDataPoint(), shareMemoryBlock.GetDataSize());
     EXPECT_TRUE(response2.status() == ResponseStatus::OK);
@@ -176,7 +176,7 @@ HWTEST_F(SharedMemoryBlockTest, PutMessage, TestSize.Level1)
     // 调用next，设置空message
     shareMemoryBlock.Next();
     NotifyResultRequest request;
-    ASSERT_TRUE(shareMemoryBlock.PutMessage(request));
+    ASSERT_TRUE(shareMemoryBlock.PutMessage(request, "test"));
     EXPECT_EQ(shareMemoryBlock.GetDataSize(), request.ByteSizeLong());
 
     ASSERT_TRUE(shareMemoryBlock.ReleaseBlock());
@@ -195,7 +195,7 @@ HWTEST_F(SharedMemoryBlockTest, PutMessageAbnormal, TestSize.Level1)
 
     NotifyResultResponse response;
     response.set_status(ResponseStatus::OK);
-    ASSERT_TRUE(shareMemoryBlock.PutMessage(response));
+    ASSERT_TRUE(shareMemoryBlock.PutMessage(response, "test"));
     EXPECT_EQ(shareMemoryBlock.GetDataSize(), response.ByteSizeLong());
     response.ParseFromArray(shareMemoryBlock.GetDataPoint(), shareMemoryBlock.GetDataSize());
     ASSERT_TRUE(response.status() == ResponseStatus::OK);
@@ -203,7 +203,7 @@ HWTEST_F(SharedMemoryBlockTest, PutMessageAbnormal, TestSize.Level1)
     // 不调用next无法移动指针，取值出错
     NotifyResultResponse response2;
     response2.set_status(ResponseStatus::ERR);
-    ASSERT_TRUE(shareMemoryBlock.PutMessage(response2));
+    ASSERT_TRUE(shareMemoryBlock.PutMessage(response2, "test"));
     EXPECT_EQ(shareMemoryBlock.GetDataSize(), response2.ByteSizeLong());
     EXPECT_EQ(shareMemoryBlock.GetDataSize(), response.ByteSizeLong());
     response2.ParseFromArray(shareMemoryBlock.GetDataPoint(), shareMemoryBlock.GetDataSize());
@@ -260,7 +260,7 @@ HWTEST_F(SharedMemoryBlockTest, TakeData, TestSize.Level1)
 
     // 不匹配的空message
     NotifyResultRequest request;
-    ASSERT_TRUE(shareMemoryBlock.PutMessage(request));
+    ASSERT_TRUE(shareMemoryBlock.PutMessage(request, "test"));
     ASSERT_TRUE(shareMemoryBlock.GetDataSize() == 0);
     EXPECT_FALSE(shareMemoryBlock.TakeData(function));
 
@@ -268,28 +268,28 @@ HWTEST_F(SharedMemoryBlockTest, TakeData, TestSize.Level1)
     shareMemoryBlock.Next();
     NotifyResultResponse response;
     response.set_status(ResponseStatus::OK);
-    ASSERT_TRUE(shareMemoryBlock.PutMessage(response));
+    ASSERT_TRUE(shareMemoryBlock.PutMessage(response, "test"));
     EXPECT_FALSE(shareMemoryBlock.GetDataSize() == 0);
     EXPECT_FALSE(shareMemoryBlock.TakeData(function));
 
     // 匹配的空message
     shareMemoryBlock.Next();
     ProfilerPluginData data;
-    ASSERT_TRUE(shareMemoryBlock.PutMessage(data));
+    ASSERT_TRUE(shareMemoryBlock.PutMessage(data, "test"));
     ASSERT_TRUE(shareMemoryBlock.GetDataSize() == 0);
     EXPECT_FALSE(shareMemoryBlock.TakeData(function));
 
     // 匹配的非空message, 但DataSize设置为大值
     shareMemoryBlock.Next();
     data.set_name("test");
-    ASSERT_TRUE(shareMemoryBlock.PutMessage(data));
+    ASSERT_TRUE(shareMemoryBlock.PutMessage(data, "test"));
     EXPECT_FALSE(shareMemoryBlock.GetDataSize() == 0);
     EXPECT_FALSE(shareMemoryBlock.TakeData(functionErr));
 
     // 匹配的非空message,正确的DataSize
     shareMemoryBlock.Next();
     data.set_name("test");
-    ASSERT_TRUE(shareMemoryBlock.PutMessage(data));
+    ASSERT_TRUE(shareMemoryBlock.PutMessage(data, "test"));
     EXPECT_FALSE(shareMemoryBlock.GetDataSize() == 0);
     EXPECT_TRUE(shareMemoryBlock.TakeData(function));
 

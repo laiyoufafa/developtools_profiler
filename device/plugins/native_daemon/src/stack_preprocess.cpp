@@ -167,7 +167,7 @@ void StackPreprocess::TakeResults()
                 pluginData.set_clock_id(ProfilerPluginData::CLOCKID_REALTIME);
                 pluginData.set_tv_sec(ts.tv_sec);
                 pluginData.set_tv_nsec(ts.tv_nsec);
-                writer_->WriteMessage(pluginData);
+                writer_->WriteMessage(pluginData, "nativehook");
                 writer_->Flush();
             }
         }

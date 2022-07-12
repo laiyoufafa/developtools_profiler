@@ -81,16 +81,16 @@ long BufferWriter::Write(const void* data, size_t size)
     pluginData.set_tv_nsec(ts.tv_nsec);
 
     DoStats(pluginData.ByteSizeLong());
-    return shareMemoryBlock_->PutMessage(pluginData);
+    return shareMemoryBlock_->PutMessage(pluginData, pluginName_);
 }
 
-bool BufferWriter::WriteMessage(const google::protobuf::Message& pmsg)
+bool BufferWriter::WriteMessage(const google::protobuf::Message& pmsg, const std::string& pluginName)
 {
     if (shareMemoryBlock_ == nullptr) {
         return false;
     }
     DoStats(pmsg.ByteSizeLong());
-    return shareMemoryBlock_->PutMessage(pmsg);
+    return shareMemoryBlock_->PutMessage(pmsg, pluginName);
 }
 
 bool BufferWriter::Flush()

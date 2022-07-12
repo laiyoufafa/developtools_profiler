@@ -35,7 +35,7 @@ int g_smbFd2 = 0;
 int InitShareMemory1()
 {
     int fd = syscall(SYS_memfd_create, SMB1_NAME.c_str(), 0);
-    CHECK_TRUE(fd >= 0, false, "CreateBlock FAIL SYS_memfd_create");
+    CHECK_TRUE(fd >= 0, -1, "CreateBlock FAIL SYS_memfd_create");
 
     int check = ftruncate(fd, SMB1_SIZE);
     if (check < 0) {
@@ -72,7 +72,7 @@ int InitShareMemory1()
 int InitShareMemory2()
 {
     int fd = syscall(SYS_memfd_create, SMB2_NAME.c_str(), 0);
-    CHECK_TRUE(fd >= 0, false, "CreateBlock FAIL SYS_memfd_create");
+    CHECK_TRUE(fd >= 0, -1, "CreateBlock FAIL SYS_memfd_create");
 
     int check = ftruncate(fd, SMB2_SIZE);
     if (check < 0) {
@@ -186,7 +186,7 @@ HWTEST_F(BufferWriteTest, WriteMessageTest, TestSize.Level1)
     size_t size = configData.ByteSizeLong();
     configData.SerializeToArray(data, size);
 
-    EXPECT_TRUE(write->WriteMessage(configData));
+    EXPECT_TRUE(write->WriteMessage(configData, "111"));
     EXPECT_TRUE(CheckMessage(data, size));
 
     ProfilerPluginState stateData;
@@ -195,7 +195,7 @@ HWTEST_F(BufferWriteTest, WriteMessageTest, TestSize.Level1)
     size = stateData.ByteSizeLong();
     stateData.SerializeToArray(data, size);
 
-    EXPECT_TRUE(write->WriteMessage(stateData));
+    EXPECT_TRUE(write->WriteMessage(stateData, "111"));
     EXPECT_TRUE(CheckMessage(data, size));
 
 
@@ -210,7 +210,7 @@ HWTEST_F(BufferWriteTest, WriteMessageTest, TestSize.Level1)
     size = pluginData.ByteSizeLong();
     pluginData.SerializeToArray(data, size);
 
-    EXPECT_TRUE(write->WriteMessage(pluginData));
+    EXPECT_TRUE(write->WriteMessage(pluginData, "111"));
     EXPECT_TRUE(CheckMessage(data, size));
 }
 } // namespace

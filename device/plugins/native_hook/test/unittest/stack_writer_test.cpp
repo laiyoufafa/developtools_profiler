@@ -34,7 +34,7 @@ int g_smbFd = 0;
 int InitShareMemory()
 {
     int fd = syscall(SYS_memfd_create, SMB_NAME.c_str(), 0);
-    CHECK_TRUE(fd >= 0, false, "CreateBlock FAIL SYS_memfd_create");
+    CHECK_TRUE(fd >= 0, -1, "CreateBlock FAIL SYS_memfd_create");
 
     int check = ftruncate(fd, SMB_SIZE);
     if (check < 0) {

@@ -232,23 +232,11 @@ int FlowController::StartCapture(void)
     return 0;
 }
 
-static bool SetScheduler(int policy, int priority)
-{
-    HILOG_DEBUG(LOG_CORE, "before sched_setscheduler policy: %x", sched_getscheduler(0));
-    struct sched_param param = {};
-    param.sched_priority = priority;
-    int retval = sched_setscheduler(0, policy, &param);
-    CHECK_TRUE(retval != -1, false, "set sechedule policy failed!");
-    HILOG_DEBUG(LOG_CORE, "after sched_setscheduler policy: %x", sched_getscheduler(0));
-    return true;
-}
-
 void FlowController::CaptureWork()
 {
     pthread_setname_np(pthread_self(), "TraceReader");
-    HILOG_DEBUG(LOG_CORE, "FlowController::CaptureWork start!");
+    HILOG_INFO(LOG_CORE, "FlowController::CaptureWork start!");
 
-    UNUSED_PARAMETER(SetScheduler);
     auto tracePeriod = std::chrono::milliseconds(tracePeriodMs_);
     std::vector<long> rawDataBytes(platformCpuNum_, 0);
 
@@ -273,7 +261,9 @@ void FlowController::CaptureWork()
             }
             auto& file = rawDataDumpFile_[i];
             size_t writen = fwrite(ftraceBuffers_[i].get(), sizeof(uint8_t), rawDataBytes[i], file.get());
-            HILOG_INFO(LOG_CORE, "Append raw data to cache[%zu]: %zu/%ld bytes", i, writen, rawDataBytes[i]);
+            if (rawDataBytes[i] == 0) {
+                HILOG_INFO(LOG_CORE, "Append raw data to cache[%zu]: %zu/%ld bytes", i, writen, rawDataBytes[i]);
+            }
         }
 
         // parse ftrace metadata
@@ -287,7 +277,9 @@ void FlowController::CaptureWork()
                 return;
             }
             ParseEventData(i, rawDataBytes[i]);
-            HILOG_INFO(LOG_CORE, "Parse raw data for CPU%zu: %ld bytes...", i, rawDataBytes[i]);
+            if (rawDataBytes[i] == 0) {
+                HILOG_INFO(LOG_CORE, "Parse raw data for CPU%zu: %ld bytes...", i, rawDataBytes[i]);
+            }
         }
     }
 

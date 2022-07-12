@@ -307,7 +307,7 @@ bool ShareMemoryBlock::PutWithPayloadTimeout(const int8_t* header, uint32_t head
 }
 
 #ifndef NO_PROTOBUF
-bool ShareMemoryBlock::PutMessage(const google::protobuf::Message& pmsg)
+bool ShareMemoryBlock::PutMessage(const google::protobuf::Message& pmsg, const std::string& pluginName)
 {
     size_t size = pmsg.ByteSizeLong();
 
@@ -315,11 +315,15 @@ bool ShareMemoryBlock::PutMessage(const google::protobuf::Message& pmsg)
     PthreadLocker locker(header_->info.mutex_);
     int8_t* rawMemory = GetFreeMemory(size);
     if (rawMemory == nullptr) {
-        HILOG_ERROR(LOG_CORE, "PutMessage not enough space [%zu]", size);
+        HILOG_ERROR(LOG_CORE, "%s: PutMessage not enough space [%zu]", pluginName.c_str(), size);
         return false;
     }
 
-    pmsg.SerializeToArray(rawMemory, size);
+    int ret = pmsg.SerializeToArray(rawMemory, size);
+    if (ret <= 0) {
+        HILOG_ERROR(LOG_CORE, "%s: SerializeToArray failed with %d, size: %zu", __func__, ret, size);
+        return false;
+    }
     UseFreeMemory(rawMemory, size);
     ++header_->info.bytesCount_;
     ++header_->info.chunkCount_;

@@ -82,7 +82,7 @@ uint64_t EventNotifier::Take() const
 {
     uint64_t value = UINT64_MAX;
     int retval = TEMP_FAILURE_RETRY(read(fd_, &value, sizeof(value)));
-    CHECK_TRUE(retval == sizeof(value), false, "read value from eventfd %d failed, %d!", fd_, errno);
+    CHECK_TRUE(retval == sizeof(value), 0, "read value from eventfd %d failed, %d!", fd_, errno);
     return value;
 }
 

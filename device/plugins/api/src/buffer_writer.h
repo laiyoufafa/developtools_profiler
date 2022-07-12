@@ -35,7 +35,7 @@ public:
     long Write(const void* data, size_t size) override;
     bool Flush() override;
 
-    bool WriteMessage(const google::protobuf::Message& pmsg);
+    bool WriteMessage(const google::protobuf::Message& pmsg, const std::string& pluginName);
 private:
     void DoStats(long bytes);
     void Report() const;

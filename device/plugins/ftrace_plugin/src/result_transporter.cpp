@@ -68,8 +68,20 @@ long ResultTransporter::Write(ResultPtr&& packet)
         return 0;
     }
 
-    buffer_.resize(packet->ByteSizeLong());
-    packet->SerializeToArray(buffer_.data(), buffer_.size());
+    size_t size = packet->ByteSizeLong();
+    buffer_.resize(size);
+    if (buffer_.size() != size) {
+        HILOG_ERROR(LOG_CORE, "%s: buffer resize failed, size: %zu, buffer size: %zu, errno: %d(%s)",
+            __func__, size, buffer_.size(), errno, strerror(errno));
+        return -1;
+    }
+
+    int ret = packet->SerializeToArray(buffer_.data(), buffer_.size());
+    if (ret <= 0) {
+        HILOG_ERROR(LOG_CORE, "%s: SerializeToArray failed with %d, size: %zu", __func__, ret, size);
+        return ret;
+    }
+
     writer_->write(writer_, buffer_.data(), buffer_.size());
     return buffer_.size();
 }

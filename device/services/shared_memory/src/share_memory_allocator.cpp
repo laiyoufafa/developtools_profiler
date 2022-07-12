@@ -64,7 +64,7 @@ bool ShareMemoryAllocator::ReleaseMemoryBlockRemote(std::string name)
 ShareMemoryBlockPtr ShareMemoryAllocator::CreateMemoryBlockLocal(std::string name, uint32_t size)
 {
     CHECK_TRUE(memoryBlocks.find(name) == memoryBlocks.end(), nullptr, "%s already used", name.c_str());
-    CHECK_TRUE(size >= MIN_SHARE_MEMORY_SIZE, NULL, "%s %d size less than %d", name.c_str(), size,
+    CHECK_TRUE(size >= MIN_SHARE_MEMORY_SIZE, nullptr, "%s %d size less than %d", name.c_str(), size,
                MIN_SHARE_MEMORY_SIZE);
 
     auto block = std::make_shared<ShareMemoryBlock>(name, size);
@@ -79,7 +79,7 @@ ShareMemoryBlockPtr ShareMemoryAllocator::CreateMemoryBlockLocal(std::string nam
 ShareMemoryBlockPtr ShareMemoryAllocator::CreateMemoryBlockRemote(std::string name, uint32_t size, int fd)
 {
     CHECK_TRUE(memoryBlocks.find(name) == memoryBlocks.end(), nullptr, "%s already used", name.c_str());
-    CHECK_TRUE(size >= MIN_SHARE_MEMORY_SIZE, NULL, "%s %d size less than %d", name.c_str(), size,
+    CHECK_TRUE(size >= MIN_SHARE_MEMORY_SIZE, nullptr, "%s %d size less than %d", name.c_str(), size,
                MIN_SHARE_MEMORY_SIZE);
 
     auto block = std::make_shared<ShareMemoryBlock>(name, size, fd);
