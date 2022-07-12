@@ -43,7 +43,6 @@ const int MAX_PARA_LEN = 50;
 const int MAX_PARA_CNT = 20;
 const int PARAM_BUF_LEN = 128;
 const int QUERYNAME_LEN = 80;
-const int HOOK_SIGNAL = 36;
 const char COLON_CHR = ':';
 const char SLASH_CHR = '/';
 const char * const LIBC_HOOK_PARAM = "libc.hook_mode";
@@ -199,11 +198,12 @@ static bool MatchMallocHookStartupProp(const char *thisName)
 
 static int SetupMallocHookAtStartup(const char *thisName)
 {
+    const int hookSignal = 36;
     if (!MatchMallocHookStartupProp(thisName)) {
         return 0;
     }
     HILOG_INFO(LOG_CORE, "malloc send hook signal.");
-    return raise(HOOK_SIGNAL);
+    return raise(hookSignal);
 }
 } // namespace
 
