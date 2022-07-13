@@ -17,6 +17,78 @@
 FTRACE_NS_BEGIN
 namespace {
 REGISTER_FTRACE_EVENT_PARSE_FUNCTION(
+    regulator_bypass_disable,
+    [] (FtraceEvent& ftraceEvent, uint8_t data[], size_t size, const EventFormat& format) {
+        int i = 0;
+        auto msg = ftraceEvent.mutable_regulator_bypass_disable_format();
+        msg->set_name(FtraceFieldParser::ParseStrField(format.fields, i++, data, size));
+    });
+
+REGISTER_FTRACE_EVENT_PARSE_FUNCTION(
+    regulator_bypass_disable_complete,
+    [] (FtraceEvent& ftraceEvent, uint8_t data[], size_t size, const EventFormat& format) {
+        int i = 0;
+        auto msg = ftraceEvent.mutable_regulator_bypass_disable_complete_format();
+        msg->set_name(FtraceFieldParser::ParseStrField(format.fields, i++, data, size));
+    });
+
+REGISTER_FTRACE_EVENT_PARSE_FUNCTION(
+    regulator_bypass_enable,
+    [] (FtraceEvent& ftraceEvent, uint8_t data[], size_t size, const EventFormat& format) {
+        int i = 0;
+        auto msg = ftraceEvent.mutable_regulator_bypass_enable_format();
+        msg->set_name(FtraceFieldParser::ParseStrField(format.fields, i++, data, size));
+    });
+
+REGISTER_FTRACE_EVENT_PARSE_FUNCTION(
+    regulator_bypass_enable_complete,
+    [] (FtraceEvent& ftraceEvent, uint8_t data[], size_t size, const EventFormat& format) {
+        int i = 0;
+        auto msg = ftraceEvent.mutable_regulator_bypass_enable_complete_format();
+        msg->set_name(FtraceFieldParser::ParseStrField(format.fields, i++, data, size));
+    });
+
+REGISTER_FTRACE_EVENT_PARSE_FUNCTION(
+    regulator_disable,
+    [] (FtraceEvent& ftraceEvent, uint8_t data[], size_t size, const EventFormat& format) {
+        int i = 0;
+        auto msg = ftraceEvent.mutable_regulator_disable_format();
+        msg->set_name(FtraceFieldParser::ParseStrField(format.fields, i++, data, size));
+    });
+
+REGISTER_FTRACE_EVENT_PARSE_FUNCTION(
+    regulator_disable_complete,
+    [] (FtraceEvent& ftraceEvent, uint8_t data[], size_t size, const EventFormat& format) {
+        int i = 0;
+        auto msg = ftraceEvent.mutable_regulator_disable_complete_format();
+        msg->set_name(FtraceFieldParser::ParseStrField(format.fields, i++, data, size));
+    });
+
+REGISTER_FTRACE_EVENT_PARSE_FUNCTION(
+    regulator_enable,
+    [] (FtraceEvent& ftraceEvent, uint8_t data[], size_t size, const EventFormat& format) {
+        int i = 0;
+        auto msg = ftraceEvent.mutable_regulator_enable_format();
+        msg->set_name(FtraceFieldParser::ParseStrField(format.fields, i++, data, size));
+    });
+
+REGISTER_FTRACE_EVENT_PARSE_FUNCTION(
+    regulator_enable_complete,
+    [] (FtraceEvent& ftraceEvent, uint8_t data[], size_t size, const EventFormat& format) {
+        int i = 0;
+        auto msg = ftraceEvent.mutable_regulator_enable_complete_format();
+        msg->set_name(FtraceFieldParser::ParseStrField(format.fields, i++, data, size));
+    });
+
+REGISTER_FTRACE_EVENT_PARSE_FUNCTION(
+    regulator_enable_delay,
+    [] (FtraceEvent& ftraceEvent, uint8_t data[], size_t size, const EventFormat& format) {
+        int i = 0;
+        auto msg = ftraceEvent.mutable_regulator_enable_delay_format();
+        msg->set_name(FtraceFieldParser::ParseStrField(format.fields, i++, data, size));
+    });
+
+REGISTER_FTRACE_EVENT_PARSE_FUNCTION(
     regulator_set_voltage,
     [](FtraceEvent& ftraceEvent, uint8_t data[], size_t size, const EventFormat& format) {
         int i = 0;

@@ -166,6 +166,10 @@ ext4/ext4_writepages_result
 ext4/ext4_write_begin
 ext4/ext4_write_end
 ext4/ext4_zero_range
+f2fs/f2fs_sync_file_enter
+f2fs/f2fs_sync_file_exit
+f2fs/f2fs_write_begin
+f2fs/f2fs_write_end
 # fib/fib_table_lookup
 filelock/break_lease_block
 filelock/break_lease_noblock
@@ -173,6 +177,8 @@ filelock/break_lease_unblock
 filelock/generic_add_lease
 filelock/generic_delete_lease
 filelock/time_out_leases
+filemap/file_check_and_advance_wb_err
+filemap/filemap_set_wb_err
 filemap/mm_filemap_add_to_page_cache
 filemap/mm_filemap_delete_from_page_cache
 # ftrace/bprint
@@ -234,6 +240,8 @@ kmem/mm_page_pcpu_drain
 kmem/rss_stat
 # migrate/mm_migrate_pages
 # napi/napi_poll
+mmc/mmc_request_done
+mmc/mmc_request_start
 net/napi_gro_frags_entry
 net/napi_gro_receive_entry
 net/netif_receive_skb
@@ -347,6 +355,15 @@ rcu/rcu_utilization
 # regmap/regmap_reg_read
 # regmap/regmap_reg_read_cache
 # regmap/regmap_reg_write
+regulator/regulator_bypass_disable
+regulator/regulator_bypass_disable_complete
+regulator/regulator_bypass_enable
+regulator/regulator_bypass_enable_complete
+regulator/regulator_disable
+regulator/regulator_disable_complete
+regulator/regulator_enable
+regulator/regulator_enable_complete
+regulator/regulator_enable_delay
 regulator/regulator_set_voltage
 regulator/regulator_set_voltage_complete
 # rpm/rpm_idle
@@ -484,13 +501,17 @@ writeback/writeback_written
 #######################################
 cgroup/cgroup_attach_task
 cgroup/cgroup_destroy_root
+cgroup/cgroup_freeze
 cgroup/cgroup_mkdir
+cgroup/cgroup_notify_frozen
+cgroup/cgroup_notify_populated
 cgroup/cgroup_release
 cgroup/cgroup_remount
 cgroup/cgroup_rename
 cgroup/cgroup_rmdir
 cgroup/cgroup_setup_root
 cgroup/cgroup_transfer_tasks
+cgroup/cgroup_unfreeze
 cpuhp/cpuhp_enter
 cpuhp/cpuhp_exit
 cpuhp/cpuhp_multi_enter

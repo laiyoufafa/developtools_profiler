@@ -40,6 +40,17 @@ REGISTER_FTRACE_EVENT_PARSE_FUNCTION(
     });
 
 REGISTER_FTRACE_EVENT_PARSE_FUNCTION(
+    cgroup_freeze,
+    [](FtraceEvent& ftraceEvent, uint8_t data[], size_t size, const EventFormat& format) {
+        int i = 0;
+        auto msg = ftraceEvent.mutable_cgroup_freeze_format();
+        msg->set_root(FtraceFieldParser::ParseIntField<int32_t>(format.fields, i++, data, size));
+        msg->set_id(FtraceFieldParser::ParseIntField<int32_t>(format.fields, i++, data, size));
+        msg->set_level(FtraceFieldParser::ParseIntField<int32_t>(format.fields, i++, data, size));
+        msg->set_path(FtraceFieldParser::ParseStrField(format.fields, i++, data, size));
+    });
+
+REGISTER_FTRACE_EVENT_PARSE_FUNCTION(
     cgroup_mkdir,
     [](FtraceEvent& ftraceEvent, uint8_t data[], size_t size, const EventFormat& format) {
         int i = 0;
@@ -48,6 +59,30 @@ REGISTER_FTRACE_EVENT_PARSE_FUNCTION(
         msg->set_id(FtraceFieldParser::ParseIntField<int32_t>(format.fields, i++, data, size));
         msg->set_level(FtraceFieldParser::ParseIntField<int32_t>(format.fields, i++, data, size));
         msg->set_path(FtraceFieldParser::ParseStrField(format.fields, i++, data, size));
+    });
+
+REGISTER_FTRACE_EVENT_PARSE_FUNCTION(
+    cgroup_notify_frozen,
+    [](FtraceEvent& ftraceEvent, uint8_t data[], size_t size, const EventFormat& format) {
+        int i = 0;
+        auto msg = ftraceEvent.mutable_cgroup_notify_frozen_format();
+        msg->set_root(FtraceFieldParser::ParseIntField<int32_t>(format.fields, i++, data, size));
+        msg->set_id(FtraceFieldParser::ParseIntField<int32_t>(format.fields, i++, data, size));
+        msg->set_level(FtraceFieldParser::ParseIntField<int32_t>(format.fields, i++, data, size));
+        msg->set_path(FtraceFieldParser::ParseStrField(format.fields, i++, data, size));
+        msg->set_val(FtraceFieldParser::ParseIntField<int32_t>(format.fields, i++, data, size));
+    });
+
+REGISTER_FTRACE_EVENT_PARSE_FUNCTION(
+    cgroup_notify_populated,
+    [](FtraceEvent& ftraceEvent, uint8_t data[], size_t size, const EventFormat& format) {
+        int i = 0;
+        auto msg = ftraceEvent.mutable_cgroup_notify_populated_format();
+        msg->set_root(FtraceFieldParser::ParseIntField<int32_t>(format.fields, i++, data, size));
+        msg->set_id(FtraceFieldParser::ParseIntField<int32_t>(format.fields, i++, data, size));
+        msg->set_level(FtraceFieldParser::ParseIntField<int32_t>(format.fields, i++, data, size));
+        msg->set_path(FtraceFieldParser::ParseStrField(format.fields, i++, data, size));
+        msg->set_val(FtraceFieldParser::ParseIntField<int32_t>(format.fields, i++, data, size));
     });
 
 REGISTER_FTRACE_EVENT_PARSE_FUNCTION(
@@ -114,6 +149,17 @@ REGISTER_FTRACE_EVENT_PARSE_FUNCTION(
         msg->set_pid(FtraceFieldParser::ParseIntField<int32_t>(format.fields, i++, data, size));
         msg->set_dst_path(FtraceFieldParser::ParseStrField(format.fields, i++, data, size));
         msg->set_comm(FtraceFieldParser::ParseStrField(format.fields, i++, data, size));
+    });
+
+REGISTER_FTRACE_EVENT_PARSE_FUNCTION(
+    cgroup_unfreeze,
+    [](FtraceEvent& ftraceEvent, uint8_t data[], size_t size, const EventFormat& format) {
+        int i = 0;
+        auto msg = ftraceEvent.mutable_cgroup_unfreeze_format();
+        msg->set_root(FtraceFieldParser::ParseIntField<int32_t>(format.fields, i++, data, size));
+        msg->set_id(FtraceFieldParser::ParseIntField<int32_t>(format.fields, i++, data, size));
+        msg->set_level(FtraceFieldParser::ParseIntField<int32_t>(format.fields, i++, data, size));
+        msg->set_path(FtraceFieldParser::ParseStrField(format.fields, i++, data, size));
     });
 } // namespace
 FTRACE_NS_END

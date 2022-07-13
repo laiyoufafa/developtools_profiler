@@ -569,7 +569,10 @@ bool FtraceParser::ParseSavedTgid(const std::string& savedTgid)
     while (sin >> pid >> tgid) {
         tgidDict_[pid] = tgid;
     }
-    HILOG_INFO(LOG_CORE, "parsed tigds: %zu", tgidDict_.size());
+
+    if (tgidDict_.size() == 0) {
+        HILOG_WARN(LOG_CORE, "ParseSavedTgid: parsed tigds: %zu", tgidDict_.size());
+    }
     return true;
 }
 
@@ -592,7 +595,10 @@ bool FtraceParser::ParseSavedCmdlines(const std::string& savedCmdlines)
             retval = true;
         }
     }
-    HILOG_INFO(LOG_CORE, "ParseSavedCmdlines: parsed cmdlines: %zu", commDict_.size());
+
+    if (commDict_.size() == 0) {
+        HILOG_WARN(LOG_CORE, "ParseSavedCmdlines: parsed cmdlines: %zu", commDict_.size());
+    }
     return retval;
 }
 

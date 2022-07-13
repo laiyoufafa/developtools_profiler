@@ -379,7 +379,7 @@ bool HookManager::SendProtobufPackage(uint8_t *cache, size_t length)
     pluginData.set_tv_sec(ts.tv_sec);
     pluginData.set_tv_nsec(ts.tv_nsec);
 
-    g_buffWriter->WriteMessage(pluginData);
+    g_buffWriter->WriteMessage(pluginData, "nativehook");
     g_buffWriter->Flush();
     return true;
 }

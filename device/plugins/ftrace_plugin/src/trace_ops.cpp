@@ -110,6 +110,8 @@ bool TraceOps::EnableCategories(const std::vector<std::string>& categories, int 
     for (auto& category : categories) {
         if (HasCategory(category)) {
             targetCategories_.push_back(category);
+        } else {
+            HILOG_ERROR(LOG_CORE, "\"%s\" is not support category on this device", category.c_str());
         }
     }
 

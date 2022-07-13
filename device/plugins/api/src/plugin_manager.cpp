@@ -397,7 +397,7 @@ bool PluginManager::PullResult(uint32_t pluginId)
     auto writer = std::static_pointer_cast<BufferWriter>(pluginModules_[pluginId]->GetWriter());
     CHECK_NOTNULL(writer, false, "PullResult GetWriter nullptr");
 
-    writer->WriteMessage(pluginData);
+    writer->WriteMessage(pluginData, name);
     writer->Flush();
     return true;
 }

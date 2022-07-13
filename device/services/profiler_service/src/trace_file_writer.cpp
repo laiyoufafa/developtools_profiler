@@ -77,7 +77,7 @@ bool TraceFileWriter::Open(const std::string& path)
 
     // write initial header, makes file write position move forward
     stream_.write(reinterpret_cast<CharPtr>(&header_), sizeof(header_));
-    CHECK_TRUE(stream_, 0, "write initial header to %s failed!", path_.c_str());
+    CHECK_TRUE(stream_, false, "write initial header to %s failed!", path_.c_str());
     path_ = path;
     return true;
 }
@@ -121,12 +121,12 @@ bool TraceFileWriter::Finish()
 
     // move write position to begin of file
     stream_.seekp(0);
-    CHECK_TRUE(stream_, 0, "seek write position to head for %s failed!", path_.c_str());
+    CHECK_TRUE(stream_, false, "seek write position to head for %s failed!", path_.c_str());
 
     SetTimeStamp(); // add timestamp in header
     // write final header
     stream_.write(reinterpret_cast<CharPtr>(&header_), sizeof(header_));
-    CHECK_TRUE(stream_, 0, "write final header to %s failed!", path_.c_str());
+    CHECK_TRUE(stream_, false, "write final header to %s failed!", path_.c_str());
     return true;
 }
 

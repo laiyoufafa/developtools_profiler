@@ -35,7 +35,7 @@ public:
     bool PutRawTimeout(const int8_t* data, uint32_t size);
     bool PutWithPayloadTimeout(const int8_t* header, uint32_t headerSize, const int8_t* payload, uint32_t payloadSize);
 #ifndef NO_PROTOBUF
-    bool PutMessage(const google::protobuf::Message& pmsg);
+    bool PutMessage(const google::protobuf::Message& pmsg, const std::string& pluginName);
 #endif
     using DataHandler = std::function<bool(const int8_t*, uint32_t)>;
     bool TakeData(const DataHandler& func);

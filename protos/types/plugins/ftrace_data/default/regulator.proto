@@ -18,6 +18,51 @@ syntax = "proto3";
 option optimize_for = LITE_RUNTIME;
 
 // category: regulator
+// /sys/kernel/debug/tracing/events/regulator/regulator_bypass_disable/format
+message RegulatorBypassDisableFormat {
+    string name = 1;
+}
+
+// /sys/kernel/debug/tracing/events/regulator/regulator_bypass_disable_complete/format
+message RegulatorBypassDisableCompleteFormat {
+    string name = 1;
+}
+
+// /sys/kernel/debug/tracing/events/regulator/regulator_bypass_enable/format
+message RegulatorBypassEnableFormat {
+    string name = 1;
+}
+
+// /sys/kernel/debug/tracing/events/regulator/regulator_bypass_enable_complete/format
+message RegulatorBypassEnableCompleteFormat {
+    string name = 1;
+}
+
+// /sys/kernel/debug/tracing/events/regulator/regulator_disable/format
+message RegulatorDisableFormat {
+    string name = 1;
+}
+
+// /sys/kernel/debug/tracing/events/regulator/regulator_disable_complete/format
+message RegulatorDisableCompleteFormat {
+    string name = 1;
+}
+
+// /sys/kernel/debug/tracing/events/regulator/regulator_enable/format
+message RegulatorEnableFormat {
+    string name = 1;
+}
+
+// /sys/kernel/debug/tracing/events/regulator/regulator_enable_complete/format
+message RegulatorEnableCompleteFormat {
+    string name = 1;
+}
+
+// /sys/kernel/debug/tracing/events/regulator/regulator_enable_delay/format
+message RegulatorEnableDelayFormat {
+    string name = 1;
+}
+
 // /sys/kernel/debug/tracing/events/regulator/regulator_set_voltage/format
 message RegulatorSetVoltageFormat {
     string name = 1;
