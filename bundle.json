@@ -25,12 +25,21 @@
     "ram": "2000KB",
     "deps": {
       "components": [
-        "hilog",
-        "hiprofiler",
-        "hiprofiler_cmd",
-        "hiprofiler_plugins",
-        "ace_napi",
-        "init"
+        "hiviewdfx_hilog_native",
+        "ability_runtime",
+        "ability_base",
+        "common",
+        "zlib",
+        "hidumper",
+        "bundle_framework",
+        "hiview",
+        "bounds_checking_function",
+        "ipc",
+        "init",
+        "hilog_native",
+        "napi",
+        "samgr_standard",
+        "utils_base"
       ],
       "third_party": [
         "googletest",
