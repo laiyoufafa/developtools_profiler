@@ -18,6 +18,7 @@
 #include <cinttypes>
 
 #include "logging.h"
+#include "parameter.h"
 #include "socket_context.h"
 
 namespace {
@@ -63,6 +64,17 @@ bool HookService::ProtocolProc(SocketContext &context, uint32_t pnum, const int8
         return true;
     }
     if (pid_ == 0) {
+        // get target process from "param set libc.hook_mode startup:xxx"
+        const int len = 128;
+        char paramOutBuf[len] = {0};
+        int ret = GetParameter("libc.hook_mode", "", paramOutBuf, len - 1);
+        if (ret > 0) {
+            std::string hookValue = paramOutBuf;
+            if (hookValue.find("startup:") == 0) {
+                processName_ = hookValue.substr(strlen("startup:"), hookValue.size());
+            }
+        }
+      
         // check if the pid and process name is consistency
         std::string findpid = "pidof " + processName_;
         HILOG_INFO(LOG_CORE, "find pid command : %s", findpid.c_str());

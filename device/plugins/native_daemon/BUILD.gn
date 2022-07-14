@@ -93,9 +93,15 @@ ohos_executable("native_daemon") {
   if (current_toolchain != host_toolchain) {
     defines = [ "HAVE_HILOG" ]
     if (build_l2) {
-      external_deps = [ "shared_library:libhilog" ]
+      external_deps = [
+        "init:libbegetutil",
+        "shared_library:libhilog",
+      ]
     } else {
-      external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
+      external_deps = [
+        "hiviewdfx_hilog_native:libhilog",
+        "init:libbegetutil",
+      ]
     }
   }
   use_exceptions = true
