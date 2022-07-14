@@ -32,6 +32,7 @@ public:
     struct RawStack {
         StackRawData stackConext;
         bool reportFlag;
+        bool reduceStackFlag;
         uint32_t stackSize;
         std::unique_ptr<uint8_t[]> stackData;
     };
@@ -39,7 +40,8 @@ public:
     explicit StackDataRepeater(size_t maxSize);
     ~StackDataRepeater();
     bool PutRawStack(const std::shared_ptr<RawStack>& rawData);
-    std::shared_ptr<RawStack> TakeRawData(uint32_t during, uint32_t max_size);
+    std::shared_ptr<RawStack> TakeRawData(uint32_t during, uint32_t batchCount,
+        std::shared_ptr<RawStack> batchRawStack[]);
     void Close();
     void Reset();
     size_t Size();
@@ -49,7 +51,9 @@ private:
     std::condition_variable slotCondVar_;
     std::condition_variable itemCondVar_;
     std::deque<std::shared_ptr<RawStack>> rawDataQueue_;
+    std::unordered_map<void *, std::shared_ptr<RawStack>> mallocMap_ = {};
     size_t maxSize_;
+    uint64_t reducedStackCount_;
     bool closed_;
 
     DISALLOW_COPY_AND_MOVE(StackDataRepeater);

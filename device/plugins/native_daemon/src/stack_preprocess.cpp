@@ -23,6 +23,7 @@ constexpr uint32_t MAX_MATCH_INTERVAL = 2000;
 constexpr uint32_t LOG_PRINT_TIMES = 10000;
 constexpr uint32_t FUNCTION_MAP_LOG_PRINT = 100;
 constexpr uint32_t FILE_MAP_LOG_PRINT = 10;
+constexpr uint32_t MAX_BATCH_CNT = 5;
 
 using namespace OHOS::Developtools::NativeDaemon;
 
@@ -108,73 +109,85 @@ void StackPreprocess::TakeResults()
         return;
     }
 
+    size_t minStackDepth = hookConfig_.max_stack_depth() > MIN_STACK_DEPTH
+        ? MIN_STACK_DEPTH : hookConfig_.max_stack_depth();
+    minStackDepth += FILTER_STACK_DEPTH;
     HILOG_INFO(LOG_CORE, "TakeResults thread %d, start!", gettid());
     while (1) {
-        auto rawData = dataRepeater_->TakeRawData(hookConfig_.malloc_free_matching_interval(),
-            hookConfig_.malloc_free_matching_cnt());
-        if (!rawData || isStopTakeData_) {
+        RawStackPtr batchRawStack[MAX_BATCH_CNT] = {nullptr};
+        auto result = dataRepeater_->TakeRawData(hookConfig_.malloc_free_matching_interval(),
+            MAX_BATCH_CNT, batchRawStack);
+        if (!result || isStopTakeData_) {
             break;
         }
-
-        if (!rawData->reportFlag) {
-            ignoreCnts_++;
-            if (ignoreCnts_ % LOG_PRINT_TIMES == 0) {
-                HILOG_INFO(LOG_CORE, "ignoreCnts_ = %d quene size = %zu\n", ignoreCnts_, dataRepeater_->Size());
+        for (unsigned int i = 0; i < MAX_BATCH_CNT; i++) {
+            auto rawData = batchRawStack[i];
+            if (!rawData || isStopTakeData_) {
+                break;
             }
-            continue;
-        }
-        eventCnts_++;
-        if (eventCnts_ % LOG_PRINT_TIMES == 0) {
-            HILOG_INFO(LOG_CORE, "eventCnts_ = %d quene size = %zu\n", eventCnts_, dataRepeater_->Size());
-        }
 
-        std::vector<u64> u64regs;
-        int regCount = OHOS::Developtools::NativeDaemon::RegisterGetCount();
+            if (!rawData->reportFlag) {
+                ignoreCnts_++;
+                if (ignoreCnts_ % LOG_PRINT_TIMES == 0) {
+                    HILOG_INFO(LOG_CORE, "ignoreCnts_ = %d quene size = %zu\n", ignoreCnts_, dataRepeater_->Size());
+                }
+                continue;
+            }
+            eventCnts_++;
+            if (eventCnts_ % LOG_PRINT_TIMES == 0) {
+                HILOG_INFO(LOG_CORE, "eventCnts_ = %d quene size = %zu\n", eventCnts_, dataRepeater_->Size());
+            }
+
+            std::vector<CallFrame> callsFrames;
+            if (rawData->stackSize > 0) {
+                std::vector<u64> u64regs;
+                int regCount = OHOS::Developtools::NativeDaemon::RegisterGetCount();
 #if defined(__arm__)
-            uint32_t *regAddrArm = reinterpret_cast<uint32_t *>(rawData->stackConext.regs);
-            for (int idx = 0; idx < regCount; ++idx) {
-                u64regs.push_back(*regAddrArm++);
-            }
+                uint32_t *regAddrArm = reinterpret_cast<uint32_t *>(rawData->stackConext.regs);
+                for (int idx = 0; idx < regCount; ++idx) {
+                    u64regs.push_back(*regAddrArm++);
+                }
 #else
-            uint64_t *regAddrAarch64 = reinterpret_cast<uint64_t *>(rawData->stackConext.regs);
-            for (int idx = 0; idx < regCount; ++idx) {
-                u64regs.push_back(*regAddrAarch64++);
-            }
+                uint64_t *regAddrAarch64 = reinterpret_cast<uint64_t *>(rawData->stackConext.regs);
+                for (int idx = 0; idx < regCount; ++idx) {
+                    u64regs.push_back(*regAddrAarch64++);
+                }
 #endif
-
-        std::vector<CallFrame> callsFrames;
-        if (rawData->stackSize > 0) {
-            runtime_instance->UnwindStack(u64regs, rawData->stackData.get(), rawData->stackSize,
-                                          rawData->stackConext.pid, rawData->stackConext.tid, callsFrames,
-                                          (hookConfig_.max_stack_depth() > 0)
-                                              ? hookConfig_.max_stack_depth() + FILTER_STACK_DEPTH
-                                              : MAX_CALL_FRAME_UNWIND_SIZE);
-        }
-        if (hookConfig_.save_file()) {
-            writeFrames(rawData, callsFrames);
-        } else {
-            BatchNativeHookData stackData;
-            SetHookData(rawData, callsFrames, stackData);
-            size_t length = stackData.ByteSizeLong();
-            if (length < MAX_BUFFER_SIZE) {
-                stackData.SerializeToArray(buffer_.get(), length);
-                ProfilerPluginData pluginData;
-                pluginData.set_name("nativehook");
-                pluginData.set_status(0);
-                pluginData.set_data(buffer_.get(), length);
-                struct timespec ts;
-                clock_gettime(CLOCK_REALTIME, &ts);
-                pluginData.set_clock_id(ProfilerPluginData::CLOCKID_REALTIME);
-                pluginData.set_tv_sec(ts.tv_sec);
-                pluginData.set_tv_nsec(ts.tv_nsec);
-                writer_->WriteMessage(pluginData, "nativehook");
-                writer_->Flush();
+                size_t stackDepth = (hookConfig_.max_stack_depth() > 0)
+                    ? hookConfig_.max_stack_depth() + FILTER_STACK_DEPTH
+                    : MAX_CALL_FRAME_UNWIND_SIZE;
+                if (rawData->reduceStackFlag) {
+                    stackDepth = minStackDepth;
+                }
+                runtime_instance->UnwindStack(u64regs, rawData->stackData.get(), rawData->stackSize,
+                                              rawData->stackConext.pid, rawData->stackConext.tid, callsFrames,
+                                              stackDepth);
+            }
+            if (hookConfig_.save_file()) {
+                writeFrames(rawData, callsFrames);
+            } else {
+                BatchNativeHookData stackData;
+                SetHookData(rawData, callsFrames, stackData);
+                size_t length = stackData.ByteSizeLong();
+                if (length < MAX_BUFFER_SIZE) {
+                    stackData.SerializeToArray(buffer_.get(), length);
+                    ProfilerPluginData pluginData;
+                    pluginData.set_name("nativehook");
+                    pluginData.set_status(0);
+                    pluginData.set_data(buffer_.get(), length);
+                    struct timespec ts;
+                    clock_gettime(CLOCK_REALTIME, &ts);
+                    pluginData.set_clock_id(ProfilerPluginData::CLOCKID_REALTIME);
+                    pluginData.set_tv_sec(ts.tv_sec);
+                    pluginData.set_tv_nsec(ts.tv_nsec);
+                    writer_->WriteMessage(pluginData, "nativehook");
+                    writer_->Flush();
+                }
             }
         }
     }
     HILOG_INFO(LOG_CORE, "TakeResults thread %d, exit!", gettid());
 }
-
 
 void StackPreprocess::SetHookData(RawStackPtr rawStack,
     std::vector<CallFrame>& callsFrames, BatchNativeHookData& batchNativeHookData)

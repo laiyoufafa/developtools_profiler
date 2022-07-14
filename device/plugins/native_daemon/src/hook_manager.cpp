@@ -30,11 +30,11 @@
 #include "share_memory_allocator.h"
 #include "utilities.h"
 #include "virtual_runtime.h"
+#include "hook_common.h"
 
 using namespace OHOS::Developtools::NativeDaemon;
 
 namespace {
-const int STACK_DATA_SIZE = 10000;
 const int DEFAULT_EVENT_POLLING_INTERVAL = 5000;
 const int PAGE_BYTES = 4096;
 std::shared_ptr<BufferWriter> g_buffWriter;
@@ -252,6 +252,7 @@ void HookManager::ReadShareMemory()
                 return false;
             }
             rawStack->reportFlag = true;
+            rawStack->reduceStackFlag = false;
             rawStack->stackSize = size - sizeof(rawStack->stackConext);
             if (rawStack->stackSize > 0) {
                 rawStack->stackData = std::make_unique<uint8_t[]>(rawStack->stackSize);

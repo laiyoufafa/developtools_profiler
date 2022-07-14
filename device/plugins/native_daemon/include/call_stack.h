@@ -39,6 +39,7 @@ const int MAX_CALL_FRAME_EXPEND_CYCLE = 10;
 const size_t MAX_CALL_FRAME_EXPEND_CACHE_SIZE = 10;
 // Filter two layers of stack in libnative_hook.z.so
 const size_t MAX_CALL_FRAME_UNWIND_SIZE = 32;
+const int32_t MIN_STACK_DEPTH = 3;
 const size_t FILTER_STACK_DEPTH = 2;
 // if ip is 0 , 1 both not usefule
 const uint64_t BAD_IP_ADDRESS = 2;
