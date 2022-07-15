@@ -194,13 +194,11 @@ HWTEST_F(RegisterTest, RegisterGetName, TestSize.Level1)
  */
 HWTEST_F(RegisterTest, LibunwindRegIdToPerfReg, TestSize.Level1)
 {
-#if defined(__LP64__)
-    return;
-#endif
-
     EXPECT_EQ(LibunwindRegIdToPerfReg(ARM_R13_REG) >= 0, true);
     EXPECT_EQ(LibunwindRegIdToPerfReg(ARM_R15_REG) >= 0, true);
+#ifdef __arm__
     EXPECT_EQ(LibunwindRegIdToPerfReg(ARM_R15_REG + 1) < 0, true);
+#endif
     EXPECT_EQ(LibunwindRegIdToPerfReg(-1) < 0, true);
 }
 } // namespace NativeDaemon

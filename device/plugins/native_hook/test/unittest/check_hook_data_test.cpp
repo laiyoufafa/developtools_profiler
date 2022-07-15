@@ -39,7 +39,8 @@ std::string DEFAULT_PATH("/data/local/tmp/");
 const int g_shareMemorySize = 1000 * 4096;
 const int g_bufferSize = 100 * 1024;
 const int g_defaultDepth = 30;
-const int g_callocDepth = 16;
+const int g_callocDepth = 13;
+const int g_reallocDepth = 10;
 const int g_mallocVecSize = 5;
 const int g_freeVecSize = 4;
 const int g_mallocGetDataSize = 3;
@@ -290,10 +291,6 @@ private:
  */
 HWTEST_F(CheckHookDataTest, DFX_DFR_Hiprofiler_0080, Function | MediumTest | Level1)
 {
-#if defined(__LP64__)
-    return;
-#endif
-
     int setDepth = 100; // 递归深度大于hook默认深度30，测试文本
     int mallocPid = -1;
     std::string outFile = DEFAULT_PATH + "hooktest_malloc.txt";
@@ -330,6 +327,9 @@ HWTEST_F(CheckHookDataTest, DFX_DFR_Hiprofiler_0080, Function | MediumTest | Lev
             EXPECT_TRUE(Getdata(totalbuffer, hookVec, delimiter));
             ASSERT_EQ(static_cast<int>(hookVec.size()), g_mallocVecSize);
             ASSERT_EQ(atoi(hookVec[4].c_str()), DEFAULT_MALLOC_SIZE);
+            if (!isFirstHook) {
+                EXPECT_EQ(depth, g_defaultDepth);
+            }
 
             addr = hookVec[addrPos];
             depth = 0;
@@ -361,10 +361,6 @@ HWTEST_F(CheckHookDataTest, DFX_DFR_Hiprofiler_0080, Function | MediumTest | Lev
  */
 HWTEST_F(CheckHookDataTest, DFX_DFR_Hiprofiler_0090, Function | MediumTest | Level3)
 {
-#if defined(__LP64__)
-    return;
-#endif
-
     int setDepth = 1; // 递归深度小于hook深度100，测试文本
     int setHookDepth = 100;
     int callocPid = -1;
@@ -403,7 +399,7 @@ HWTEST_F(CheckHookDataTest, DFX_DFR_Hiprofiler_0090, Function | MediumTest | Lev
             ASSERT_EQ(static_cast<int>(hookVec.size()), g_mallocVecSize);
             ASSERT_EQ(atoi(hookVec[4].c_str()), DEFAULT_CALLOC_SIZE);
             if (!isFirstHook) {
-                EXPECT_EQ(depth, g_callocDepth - 1);
+                EXPECT_GE(depth, g_callocDepth);
             }
 
             addr = hookVec[addrPos];
@@ -416,7 +412,7 @@ HWTEST_F(CheckHookDataTest, DFX_DFR_Hiprofiler_0090, Function | MediumTest | Lev
             EXPECT_TRUE(Getdata(totalbuffer, hookVec, delimiter));
             ASSERT_EQ(static_cast<int>(hookVec.size()), g_freeVecSize);
             EXPECT_STREQ(hookVec[addrPos].c_str(), addr.c_str());
-            EXPECT_EQ(depth, g_callocDepth);
+            EXPECT_GE(depth, g_callocDepth);
 
             isFirstHook= false;
             addr = "";
@@ -436,10 +432,6 @@ HWTEST_F(CheckHookDataTest, DFX_DFR_Hiprofiler_0090, Function | MediumTest | Lev
  */
 HWTEST_F(CheckHookDataTest, DFX_DFR_Hiprofiler_0100, Function | MediumTest | Level3)
 {
-#if defined(__LP64__)
-    return;
-#endif
-
     int setDepth = 100; // realloc测试文本
     int reallocPid = -1;
     std::string outFile = DEFAULT_PATH + "hooktest_realloc.txt";
@@ -480,12 +472,15 @@ HWTEST_F(CheckHookDataTest, DFX_DFR_Hiprofiler_0100, Function | MediumTest | Lev
 
             if (isRealloc) {
                 reallocAddr = hookVec[addrPos];
-                ASSERT_EQ(atoi(hookVec[4].c_str()), DEFAULT_REALLOC_SIZE);
-                EXPECT_EQ(depth, ((g_defaultDepth / g_freeGetDataSize) - g_filteDepth));
+                ASSERT_GE(atoi(hookVec[4].c_str()), DEFAULT_REALLOC_SIZE);
+                EXPECT_GE(depth, g_reallocDepth);
                 isFirstHook = false;
             } else {
                 mallocAddr = hookVec[addrPos];
                 ASSERT_EQ(atoi(hookVec[4].c_str()), DEFAULT_MALLOC_SIZE);
+                if (!isFirstHook) {
+                    EXPECT_EQ(depth, g_defaultDepth);
+                }
             }
 
             isRealloc = true;
@@ -505,6 +500,8 @@ HWTEST_F(CheckHookDataTest, DFX_DFR_Hiprofiler_0100, Function | MediumTest | Lev
                 EXPECT_STREQ(hookVec[addrPos].c_str(), reallocAddr.c_str());
                 reallocAddr = "";
             }
+
+            EXPECT_EQ(depth, g_defaultDepth);
 
             isRealloc = false;
             depth = 0;
