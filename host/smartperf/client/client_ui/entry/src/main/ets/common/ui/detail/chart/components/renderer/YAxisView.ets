@@ -26,8 +26,6 @@ import Utils from '../../utils/Utils'
 @Component
 export default struct YAxisView {
   @State model: YAxisModel = new YAxisModel();
-  width: number = 300;
-  height: number = 300;
   yAxis: YAxis = null;
   minOffset: number = 15;
 

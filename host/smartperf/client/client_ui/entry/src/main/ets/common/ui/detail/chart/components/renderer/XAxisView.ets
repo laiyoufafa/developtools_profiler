@@ -34,10 +34,6 @@ export default struct XAxisView {
   @State
   bottomAxis:XAxis = new XAxis();
   @State
-  width:number = 300;
-  @State
-  height:number = 300;
-  @State
   minOffset:number = 15;
   @State
   yLeftLongestLabel:string="AAA"
@@ -48,7 +44,7 @@ export default struct XAxisView {
 
   @State
   scaleMode:ScaleMode=new ScaleMode()
-  public aboutToAppear(){
+  aboutToAppear(){
     this.scaleMode.xAixsMode.draw()
 //    let minYOffset=this.topAxis.getTextSize()+this.topAxis.getYOffset();
 //    this.minOffset=this.minOffset<minYOffset?minYOffset:this.minOffset
