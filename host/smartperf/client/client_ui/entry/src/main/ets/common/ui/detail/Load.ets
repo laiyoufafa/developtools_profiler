@@ -496,7 +496,7 @@ export struct Load {
 
     this.lineChartModel6.setTopAxis(this.topAxis6);
     this.lineChartModel6.setBottomAxis(this.bottomAxis6);
-    this.lineChartModel6.setWidth(this.width);
+    this.lineChartModel6.setWidth(this.atWidth);
     this.lineChartModel6.setHeight(this.atHeight);
     this.lineChartModel6.setMinOffset(this.minOffset);
     this.lineChartModel6.setLeftAxis(this.leftAxis6);
@@ -507,7 +507,7 @@ export struct Load {
 
     this.lineChartModel7.setTopAxis(this.topAxis7);
     this.lineChartModel7.setBottomAxis(this.bottomAxis7);
-    this.lineChartModel7.setWidth(this.width);
+    this.lineChartModel7.setWidth(this.atWidth);
     this.lineChartModel7.setHeight(this.atHeight);
     this.lineChartModel7.setMinOffset(this.minOffset);
     this.lineChartModel7.setLeftAxis(this.leftAxis7);
@@ -518,7 +518,7 @@ export struct Load {
 
     this.lineChartModel8.setTopAxis(this.topAxis8);
     this.lineChartModel8.setBottomAxis(this.bottomAxis8);
-    this.lineChartModel8.setWidth(this.width);
+    this.lineChartModel8.setWidth(this.atWidth);
     this.lineChartModel8.setHeight(this.atHeight);
     this.lineChartModel8.setMinOffset(this.minOffset);
     this.lineChartModel8.setLeftAxis(this.leftAxis8);
