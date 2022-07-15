@@ -20,6 +20,15 @@
 #include "utilities.h"
 
 #define MAX_THREAD_NAME (16)
+namespace OHOS {
+namespace Developtools {
+namespace NativeDaemon {
+const int STACK_DATA_SIZE = 40000;
+const int SPEED_UP_THRESHOLD = STACK_DATA_SIZE / 2;
+const int SLOW_DOWN_THRESHOLD = STACK_DATA_SIZE / 4;
+}
+}
+}
 
 constexpr size_t kMaxRegSize = sizeof(uint64_t)
     * OHOS::Developtools::NativeDaemon::PERF_REG_ARM64_MAX;
