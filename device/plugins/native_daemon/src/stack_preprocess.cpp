@@ -46,13 +46,17 @@ StackPreprocess::StackPreprocess(const StackDataRepeaterPtr& dataRepeater, Nativ
         hookConfig_.malloc_free_matching_interval(), hookConfig_.malloc_free_matching_cnt());
     // create file
     if (hookConfig_.save_file()) {
-        HILOG_DEBUG(LOG_CORE, "save file name = %s", hookConfig_.file_name().c_str());
-        FILE *fp = fopen(hookConfig_.file_name().c_str(), "wb+");
-        if (fp) {
-            fpHookData_.reset();
-            fpHookData_ = std::unique_ptr<FILE, decltype(&fclose)>(fp, fclose);
+        if (hookConfig_.file_name() != "") {
+            HILOG_DEBUG(LOG_CORE, "save file name = %s", hookConfig_.file_name().c_str());
+            FILE *fp = fopen(hookConfig_.file_name().c_str(), "wb+");
+            if (fp) {
+                fpHookData_.reset();
+                fpHookData_ = std::unique_ptr<FILE, decltype(&fclose)>(fp, fclose);
+            } else {
+                fpHookData_.reset();
+            }
         } else {
-            fpHookData_.reset();
+            HILOG_WARN(LOG_CORE, "If you need to save the file, please set the file_name");
         }
     }
 }
@@ -163,9 +167,9 @@ void StackPreprocess::TakeResults()
                                               rawData->stackConext.pid, rawData->stackConext.tid, callsFrames,
                                               stackDepth);
             }
-            if (hookConfig_.save_file()) {
+            if (hookConfig_.save_file() && hookConfig_.file_name() != "") {
                 writeFrames(rawData, callsFrames);
-            } else {
+            } else if (!hookConfig_.save_file()) {
                 BatchNativeHookData stackData;
                 SetHookData(rawData, callsFrames, stackData);
                 size_t length = stackData.ByteSizeLong();
@@ -278,6 +282,8 @@ uint32_t StackPreprocess::GetThreadIdx(std::string threadName, BatchNativeHookDa
 
 void StackPreprocess::writeFrames(RawStackPtr rawStack, const std::vector<CallFrame>& callsFrames)
 {
+    CHECK_TRUE(fpHookData_.get() != nullptr, NO_RETVAL, "fpHookData_ is nullptr, please check file_name(%s)",
+        hookConfig_.file_name().c_str());
     if (rawStack->stackConext.type == MEMORY_TAG) {
         fprintf(fpHookData_.get(), "memtag;%d;%d;%" PRId64 ";%ld;0x%" PRIx64 ":tag:%s\n",
             rawStack->stackConext.pid, rawStack->stackConext.tid,
