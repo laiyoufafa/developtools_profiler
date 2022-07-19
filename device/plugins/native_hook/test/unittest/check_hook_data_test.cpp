@@ -330,7 +330,6 @@ HWTEST_F(CheckHookDataTest, DFX_DFR_Hiprofiler_0080, Function | MediumTest | Lev
             if (!isFirstHook) {
                 EXPECT_EQ(depth, g_defaultDepth);
             }
-
             addr = hookVec[addrPos];
             depth = 0;
         } else if (hookVec[0] == "free") {
@@ -342,10 +341,8 @@ HWTEST_F(CheckHookDataTest, DFX_DFR_Hiprofiler_0080, Function | MediumTest | Lev
             ASSERT_EQ(static_cast<int>(hookVec.size()), g_freeVecSize);
             EXPECT_STREQ(hookVec[addrPos].c_str(), addr.c_str());
             EXPECT_EQ(depth, g_defaultDepth);
-
             isFirstHook= false;
             addr = "";
-            depth = 0;
         } else {
             depth++;
         }
@@ -401,7 +398,6 @@ HWTEST_F(CheckHookDataTest, DFX_DFR_Hiprofiler_0090, Function | MediumTest | Lev
             if (!isFirstHook) {
                 EXPECT_GE(depth, g_callocDepth);
             }
-
             addr = hookVec[addrPos];
             depth = 0;
         } else if (hookVec[0] == "free") {
@@ -413,10 +409,8 @@ HWTEST_F(CheckHookDataTest, DFX_DFR_Hiprofiler_0090, Function | MediumTest | Lev
             ASSERT_EQ(static_cast<int>(hookVec.size()), g_freeVecSize);
             EXPECT_STREQ(hookVec[addrPos].c_str(), addr.c_str());
             EXPECT_GE(depth, g_callocDepth);
-
             isFirstHook= false;
             addr = "";
-            depth = 0;
         } else {
             depth++;
         }
@@ -478,11 +472,7 @@ HWTEST_F(CheckHookDataTest, DFX_DFR_Hiprofiler_0100, Function | MediumTest | Lev
             } else {
                 mallocAddr = hookVec[addrPos];
                 ASSERT_EQ(atoi(hookVec[4].c_str()), DEFAULT_MALLOC_SIZE);
-                if (!isFirstHook) {
-                    EXPECT_EQ(depth, g_defaultDepth);
-                }
             }
-
             isRealloc = true;
             depth = 0;
         } else if (hookVec[0] == "free") {
@@ -496,13 +486,13 @@ HWTEST_F(CheckHookDataTest, DFX_DFR_Hiprofiler_0100, Function | MediumTest | Lev
             if (isRealloc) {
                 EXPECT_STREQ(hookVec[addrPos].c_str(), mallocAddr.c_str());
                 mallocAddr = "";
+                if (!isFirstHook) {
+                    EXPECT_EQ(depth, g_defaultDepth);
+                }
             } else {
                 EXPECT_STREQ(hookVec[addrPos].c_str(), reallocAddr.c_str());
                 reallocAddr = "";
             }
-
-            EXPECT_EQ(depth, g_defaultDepth);
-
             isRealloc = false;
             depth = 0;
         } else {
