@@ -30,7 +30,9 @@ export default class MainAbility extends Ability {
             globalThis.appList = appList
         })
     }
-    onDestroy() {}
+    onDestroy() {
+        MainWorker.terminate()
+    }
     onWindowStageCreate(windowStage) {
         globalThis.abilityContext = this.context
         abilityWindowStage = windowStage;
