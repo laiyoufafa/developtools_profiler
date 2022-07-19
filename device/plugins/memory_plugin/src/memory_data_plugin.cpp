@@ -467,15 +467,14 @@ int32_t MemoryDataPlugin::ReadFile(int fd)
 
 std::string MemoryDataPlugin::ReadFile(const std::string& path)
 {
-    const int maxSize = 256;
-    char realPath[maxSize + 1] = {0};
-
-    if ((path.length() >= maxSize) || (realpath(path.c_str(), realPath) == nullptr)) {
+    char realPath[PATH_MAX] = {0};
+    if ((path.length() >= PATH_MAX) || (realpath(path.c_str(), realPath) == nullptr)) {
         HILOG_ERROR(LOG_CORE, "%s:path is invalid: %s, errno=%d", __func__, path.c_str(), errno);
         return "";
     }
     int fd = open(realPath, O_RDONLY);
     if (fd == -1) {
+        const int maxSize = 256;
         char buf[maxSize] = { 0 };
         strerror_r(errno, buf, maxSize);
         HILOG_WARN(LOG_CORE, "open file %s FAILED: %s!", path.c_str(), buf);
