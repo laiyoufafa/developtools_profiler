@@ -327,9 +327,6 @@ HWTEST_F(CheckHookDataTest, DFX_DFR_Hiprofiler_0080, Function | MediumTest | Lev
             EXPECT_TRUE(Getdata(totalbuffer, hookVec, delimiter));
             ASSERT_EQ(static_cast<int>(hookVec.size()), g_mallocVecSize);
             ASSERT_EQ(atoi(hookVec[4].c_str()), DEFAULT_MALLOC_SIZE);
-            if (!isFirstHook) {
-                EXPECT_EQ(depth, g_defaultDepth);
-            }
             addr = hookVec[addrPos];
             depth = 0;
         } else if (hookVec[0] == "free") {
@@ -343,6 +340,7 @@ HWTEST_F(CheckHookDataTest, DFX_DFR_Hiprofiler_0080, Function | MediumTest | Lev
             EXPECT_EQ(depth, g_defaultDepth);
             isFirstHook= false;
             addr = "";
+            depth = 0;
         } else {
             depth++;
         }
