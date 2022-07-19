@@ -111,7 +111,8 @@ HWTEST_F(CallStackTest, UnwindCallStack, TestSize.Level1)
     sppcRegs[1] = regs[PERF_REG_ARM_PC_IDX];
     callStack.UnwindCallStack(thread, sppcRegs, 2, data.data(), data.size(),
                                   callFrames);
-        delete[] sppcRegs;
+    delete[] sppcRegs;
+    sppcRegs = nullptr;
 #ifdef __arm__
         ASSERT_LE(TEST_DWARF_FRAMES.size(), callFrames.size());
         for (size_t i = 0; i < TEST_DWARF_FRAMES.size(); i++) {
