@@ -41,8 +41,8 @@ export struct Performance {
   fpsJitterValues: Array<string> = new Array()
   topAxis: XAxis = new XAxis(); //顶部X轴
   bottomAxis: XAxis = new XAxis(); //底部X轴
-  width: number = globalThis.screenWith > 800 ? 700 : 350 ; //表的宽度
-  height: number = globalThis.screenWith > 800 ? 200 : 300; //表的高度
+  atWidth: number = globalThis.screenWith > 800 ? 700 : 350 ; //表的宽度
+  atHeight: number = globalThis.screenWith > 800 ? 200 : 300; //表的高度
   minOffset: number = 15; //X轴线偏移量
   leftAxis: YAxis = null;
   rightAxis: YAxis = null;
@@ -88,8 +88,8 @@ export struct Performance {
 
     this.lineChartModel.setTopAxis(this.topAxis);
     this.lineChartModel.setBottomAxis(this.bottomAxis);
-    this.lineChartModel.setWidth(this.width);
-    this.lineChartModel.setHeight(this.height);
+    this.lineChartModel.setWidth(this.atWidth);
+    this.lineChartModel.setHeight(this.atHeight);
     this.lineChartModel.setMinOffset(this.minOffset);
     this.lineChartModel.setLeftAxis(this.leftAxis);
     this.lineChartModel.setRightAxis(this.rightAxis);

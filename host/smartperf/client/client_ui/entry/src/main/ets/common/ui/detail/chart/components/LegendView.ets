@@ -24,7 +24,7 @@ import Paint,{LinePaint,CirclePaint,RectPaint,TextPaint} from '../data/Paint'
 struct LegendView {
   @State model: LegendView.Model = new LegendView.Model()
 
-  private aboutToAppear() {
+  aboutToAppear() {
     this.model.mLegend.calculateNeededSizes(this.model.mHandler);
     this.model.mHandler.setChartDimens(this.model.mWidth, (this.model.mLegend.mNeededHeight > this.model.mHeight) ? (this.model.mLegend.mNeededHeight + 5) : this.model.mHeight);
 
