@@ -81,10 +81,6 @@ HWTEST_F(CallStackTest, GetUnwErrorName, TestSize.Level1)
  */
 HWTEST_F(CallStackTest, UnwindCallStack, TestSize.Level1)
 {
-#if defined(__LP64__)
-    return;
-#endif
-
 #if is_linux
     return;
 #endif
@@ -116,12 +112,14 @@ HWTEST_F(CallStackTest, UnwindCallStack, TestSize.Level1)
     callStack.UnwindCallStack(thread, sppcRegs, 2, data.data(), data.size(),
                                   callFrames);
     delete[] sppcRegs;
-    ASSERT_LE(TEST_DWARF_FRAMES.size(), callFrames.size());
-
+    sppcRegs = nullptr;
+#ifdef __arm__
+        ASSERT_LE(TEST_DWARF_FRAMES.size(), callFrames.size());
         for (size_t i = 0; i < TEST_DWARF_FRAMES.size(); i++) {
             EXPECT_EQ(TEST_DWARF_FRAMES[i].ip, callFrames[i].ip_);
             EXPECT_EQ(TEST_DWARF_FRAMES[i].sp, callFrames[i].sp_);
         }
+#endif
     }
 }
 } // namespace NativeDaemon
