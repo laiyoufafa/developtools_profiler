@@ -30,8 +30,8 @@ export struct Temperature {
   @State private gpData: Array<TIndexInfo> = new Array()
   topAxis: XAxis = new XAxis(); //顶部X轴
   bottomAxis: XAxis = new XAxis(); //底部X轴
-  width: number = globalThis.screenWith > 800 ? 700 : 350 ; //表的宽度
-  height: number = globalThis.screenWith > 800 ? 200 : 300; //表的高度
+  atWidth: number = globalThis.screenWith > 800 ? 700 : 350 ; //表的宽度
+  atHeight: number = globalThis.screenWith > 800 ? 200 : 300; //表的高度
   minOffset: number = 15; //X轴线偏移量
   leftAxis: YAxis = null;
   rightAxis: YAxis = null;
@@ -333,8 +333,8 @@ export struct Temperature {
 
     this.lineChartModel.setTopAxis(this.topAxis);
     this.lineChartModel.setBottomAxis(this.bottomAxis);
-    this.lineChartModel.setWidth(this.width);
-    this.lineChartModel.setHeight(this.height);
+    this.lineChartModel.setWidth(this.atWidth);
+    this.lineChartModel.setHeight(this.atHeight);
     this.lineChartModel.setMinOffset(this.minOffset);
     this.lineChartModel.setLeftAxis(this.leftAxis);
     this.lineChartModel.setRightAxis(this.rightAxis);
@@ -344,8 +344,8 @@ export struct Temperature {
 
     this.lineChartModel1.setTopAxis(this.topAxis1);
     this.lineChartModel1.setBottomAxis(this.bottomAxis1);
-    this.lineChartModel1.setWidth(this.width);
-    this.lineChartModel1.setHeight(this.height);
+    this.lineChartModel1.setWidth(this.atWidth);
+    this.lineChartModel1.setHeight(this.atHeight);
     this.lineChartModel1.setMinOffset(this.minOffset);
     this.lineChartModel1.setLeftAxis(this.leftAxis1);
     this.lineChartModel1.setRightAxis(this.rightAxis1);
@@ -355,8 +355,8 @@ export struct Temperature {
 
     this.lineChartModel2.setTopAxis(this.topAxis2);
     this.lineChartModel2.setBottomAxis(this.bottomAxis2);
-    this.lineChartModel2.setWidth(this.width);
-    this.lineChartModel2.setHeight(this.height);
+    this.lineChartModel2.setWidth(this.atWidth);
+    this.lineChartModel2.setHeight(this.atHeight);
     this.lineChartModel2.setMinOffset(this.minOffset);
     this.lineChartModel2.setLeftAxis(this.leftAxis2);
     this.lineChartModel2.setRightAxis(this.rightAxis2);
@@ -366,8 +366,8 @@ export struct Temperature {
 
     this.lineChartModel3.setTopAxis(this.topAxis3);
     this.lineChartModel3.setBottomAxis(this.bottomAxis3);
-    this.lineChartModel3.setWidth(this.width);
-    this.lineChartModel3.setHeight(this.height);
+    this.lineChartModel3.setWidth(this.atWidth);
+    this.lineChartModel3.setHeight(this.atHeight);
     this.lineChartModel3.setMinOffset(this.minOffset);
     this.lineChartModel3.setLeftAxis(this.leftAxis3);
     this.lineChartModel3.setRightAxis(this.rightAxis3);
@@ -377,8 +377,8 @@ export struct Temperature {
 
     this.lineChartModel4.setTopAxis(this.topAxis4);
     this.lineChartModel4.setBottomAxis(this.bottomAxis4);
-    this.lineChartModel4.setWidth(this.width);
-    this.lineChartModel4.setHeight(this.height);
+    this.lineChartModel4.setWidth(this.atWidth);
+    this.lineChartModel4.setHeight(this.atHeight);
     this.lineChartModel4.setMinOffset(this.minOffset);
     this.lineChartModel4.setLeftAxis(this.leftAxis4);
     this.lineChartModel4.setRightAxis(this.rightAxis4);
@@ -388,8 +388,8 @@ export struct Temperature {
 
     this.lineChartModel5.setTopAxis(this.topAxis5);
     this.lineChartModel5.setBottomAxis(this.bottomAxis5);
-    this.lineChartModel5.setWidth(this.width);
-    this.lineChartModel5.setHeight(this.height);
+    this.lineChartModel5.setWidth(this.atWidth);
+    this.lineChartModel5.setHeight(this.atHeight);
     this.lineChartModel5.setMinOffset(this.minOffset);
     this.lineChartModel5.setLeftAxis(this.leftAxis5);
     this.lineChartModel5.setRightAxis(this.rightAxis5);
@@ -399,8 +399,8 @@ export struct Temperature {
 
     this.lineChartModel6.setTopAxis(this.topAxis6);
     this.lineChartModel6.setBottomAxis(this.bottomAxis6);
-    this.lineChartModel6.setWidth(this.width);
-    this.lineChartModel6.setHeight(this.height);
+    this.lineChartModel6.setWidth(this.atWidth);
+    this.lineChartModel6.setHeight(this.atHeight);
     this.lineChartModel6.setMinOffset(this.minOffset);
     this.lineChartModel6.setLeftAxis(this.leftAxis6);
     this.lineChartModel6.setRightAxis(this.rightAxis6);

@@ -31,7 +31,7 @@ export struct Home {
   @State private circleHeight: string = '180vp'
   @State private circleWidth: string = '180vp'
   @State private circleRadius: string = '90vp'
-  @State opacity: number = 0.6
+  @State atOpacity: number = 0.6
 
   build() {
     Flex({ direction: FlexDirection.Column, alignItems: ItemAlign.Start, justifyContent: FlexAlign.Start }) {
@@ -71,7 +71,7 @@ export struct Home {
             .width(this.circleWidth)
             .height(this.circleHeight)
             .border({ width: '1vp', radius: this.circleRadius, color: $r("app.color.color_80fff") })
-            .opacity(this.opacity)
+            .opacity(this.atOpacity)
             .animation({
               duration: 1000,
               iterations: -1,
@@ -80,7 +80,7 @@ export struct Home {
               this.circleWidth = '220vp'
               this.circleHeight = '220vp'
               this.circleRadius = '100vp'
-              this.opacity = 0
+              this.atOpacity = 0
             })
           }.onClick(() => {
             if (!globalThis.showFloatingWindow) {

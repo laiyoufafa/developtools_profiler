@@ -143,16 +143,16 @@ void SPUtils::ReplaceString(std::string &res)
 {
     std::string flagOne = "\r";
     std::string flagTwo = "\n";
-    int ret = res.find(flagOne);
-    while (ret != std::string::npos) {
-        if (ret != std::string::npos) {
+    std::string::size_type ret = res.find(flagOne);
+    while (ret != res.npos) {
+        if (ret != res.npos) {
             res.replace(ret, 1, "");
             ret = res.find(flagOne);
         }
     }
     ret = res.find(flagTwo);
-    while (ret != std::string::npos) {
-        if (ret != std::string::npos) {
+    while (ret != res.npos) {
+        if (ret != res.npos) {
             res.replace(ret, 1, "");
             ret = res.find(flagTwo);
         }
