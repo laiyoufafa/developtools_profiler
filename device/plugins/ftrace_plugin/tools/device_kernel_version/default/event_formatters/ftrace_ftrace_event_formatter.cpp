@@ -171,8 +171,12 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.user_stack_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf_s(
-            buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "user_stack: tgid=%d, caller=%s", msg.tgid(), msg.caller().c_str());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
+            "user_stack: \t=> %ps\n\t=> %ps\n\t=> %ps\n"
+            "\t=> %ps\n\t=> %ps\n\t=> %ps\n"
+            "\t=> %ps\n\t=> %ps\n",
+            (void*)msg.caller()[0], (void*)msg.caller()[1], (void*)msg.caller()[2], (void*)msg.caller()[3],
+            (void*)msg.caller()[4], (void*)msg.caller()[5], (void*)msg.caller()[6], (void*)msg.caller()[7]);
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }

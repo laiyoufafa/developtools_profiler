@@ -33,6 +33,28 @@ public:
         return retval;
     }
 
+    template <typename T> static std::vector<T> ParseVectorIntField(const std::vector<FieldFormat>& fields,
+        size_t id, uint8_t data[], size_t size)
+    {
+        static_assert(std::is_integral<T>::value, "Integral type T required.");
+        if (fields.size() <= id) {
+            return {};
+        }
+
+        FieldFormat format = fields[id];
+        std::vector<T> retvalVec = {};
+        size_t retvalSize = sizeof(unsigned long);
+        int count = format.size / retvalSize;
+        for (int i = 0; i < count; i++) {
+            auto start = data + format.offset + i * retvalSize;
+            auto end = start + retvalSize;
+            T retval = {};
+            ReadData(start, end, &retval, retvalSize);
+            retvalVec.push_back(retval);
+        }
+        return retvalVec;
+    }
+
     template <typename T>
     static T ParseIntField(const std::vector<FieldFormat>& fields, size_t id, uint8_t data[], size_t size)
     {
