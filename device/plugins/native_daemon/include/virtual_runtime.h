@@ -68,14 +68,14 @@ public:
         return userSpaceThreadMap_;
     }
 
-    void UnwindStack(std::vector<u64> regs,
+    bool UnwindStack(std::vector<u64> regs,
                      const u8* stack_addr,
                      int stack_size,
                      pid_t pid,
                      pid_t tid,
                      std::vector<CallFrame>& callsFrames,
                      size_t maxStackLevel);
-    void GetSymbolName(pid_t pid, pid_t tid, std::vector<CallFrame>& callsFrames);
+    bool GetSymbolName(pid_t pid, pid_t tid, std::vector<CallFrame>& callsFrames, int offset);
     void ClearMaps();
     // debug time
 #ifdef HIPERF_DEBUG_TIME

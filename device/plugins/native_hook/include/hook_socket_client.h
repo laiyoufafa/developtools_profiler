@@ -55,7 +55,14 @@ public:
     {
         return munmapStackData_;
     }
-
+    bool GetFpunwind()
+    {
+        return fpunwind_;
+    }
+    uint8_t GetMaxStackDepth()
+    {
+        return maxStackDepth_;
+    }
     bool SendStack(const void* data, size_t size);
     bool SendStackWithPayload(const void* data, size_t size, const void* payload, size_t payloadSize);
 private:
@@ -68,6 +75,8 @@ private:
     bool mmapDisable_;
     bool freeStackData_;
     bool munmapStackData_;
+    uint8_t maxStackDepth_;
+    bool fpunwind_ = false;
     std::shared_ptr<StackWriter> stackWriter_;
 };
 

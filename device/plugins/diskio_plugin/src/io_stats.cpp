@@ -20,7 +20,6 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-
 namespace {
 const int NUM_TWO = 2;
 const int NUM_ONEHUNDRED = 100;

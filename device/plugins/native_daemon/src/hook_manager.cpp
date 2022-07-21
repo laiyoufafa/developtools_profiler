@@ -41,6 +41,7 @@ std::shared_ptr<BufferWriter> g_buffWriter;
 constexpr uint32_t MAX_BUFFER_SIZE = 10 * 1024;
 const std::string STARTUP = "startup:";
 const std::string PARAM_NAME = "libc.hook_mode";
+const int MOVE_BIT_8 = 8;
 const int MOVE_BIT_16 = 16;
 const int MOVE_BIT_32 = 32;
 }  // namespace
@@ -205,21 +206,31 @@ bool HookManager::CreatePluginSession(const std::vector<ProfilerPluginConfig>& c
     HILOG_INFO(LOG_CORE, "hookservice smbFd = %d, eventFd = %d\n", shareMemoryBlock_->GetfileDescriptor(),
                eventNotifier_->GetFd());
 
-    // hook config |F F F F      F F F F      F F F F      F F F F|
-    //              malloctype   filtersize    sharememory  size
+    // hook config |F F            F F              F F F F       F F F F      F F F F|
+    //              stack depth    malloctype       filtersize    sharememory  size
 
-    uint64_t hookConfig = hookConfig_.malloc_disable() ? MALLOCDISABLE : 0;
+    if (hookConfig_.max_stack_depth() == 0) {
+        // set default max depth
+        hookConfig_.set_max_stack_depth(MAX_UNWIND_DEPTH);
+    }
+    uint64_t hookConfig = (uint8_t)hookConfig_.max_stack_depth();
+    hookConfig <<= MOVE_BIT_8;
+
+    hookConfig |= hookConfig_.malloc_disable() ? MALLOCDISABLE : 0;
     hookConfig |= hookConfig_.mmap_disable() ? MMAPDISABLE : 0;
     hookConfig |= hookConfig_.free_stack_report() ? FREEMSGSTACK : 0;
     hookConfig |= hookConfig_.munmap_stack_report() ? MUNMAPMSGSTACK : 0;
+    hookConfig |= hookConfig_.fp_unwind() ? FPUNWIND : 0;
 
     hookConfig <<= MOVE_BIT_16;
     hookConfig |= hookConfig_.filter_size();
     hookConfig <<= MOVE_BIT_32;
     hookConfig |= bufferSize;
 
-    HILOG_INFO(LOG_CORE, "hookConfig filter_size = %d, malloc disable = %d mmap disable = %d smb size = %u",
+    HILOG_INFO(LOG_CORE, "hookConfig filter size = %d, malloc disable = %d mmap disable = %d smb size = %u",
         hookConfig_.filter_size(), hookConfig_.malloc_disable(), hookConfig_.mmap_disable(), bufferSize);
+    HILOG_INFO(LOG_CORE, "hookConfig fp unwind = %d, max stack depth = %d",
+        hookConfig_.fp_unwind(), hookConfig_.max_stack_depth());
 
     hookService_ = std::make_shared<HookService>(shareMemoryBlock_->GetfileDescriptor(),
                                                 eventNotifier_->GetFd(), pid_, hookConfig_.process_name(), hookConfig);
@@ -266,7 +277,6 @@ void HookManager::ReadShareMemory()
         if (!ret) {
             break;
         }
-
         if (!stackData_->PutRawStack(rawStack)) {
             break;
         }

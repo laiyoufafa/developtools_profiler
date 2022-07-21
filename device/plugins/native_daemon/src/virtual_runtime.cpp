@@ -111,7 +111,7 @@ void VirtualRuntime::MakeCallFrame(Symbol &symbol, CallFrame &callFrame)
     }
 }
 
-void VirtualRuntime::GetSymbolName(pid_t pid, pid_t tid, std::vector<CallFrame>& callsFrames)
+bool VirtualRuntime::GetSymbolName(pid_t pid, pid_t tid, std::vector<CallFrame>& callsFrames, int offset)
 {
 #ifdef HIPERF_DEBUG_TIME
     const auto startTime = steady_clock::now();
@@ -120,7 +120,7 @@ void VirtualRuntime::GetSymbolName(pid_t pid, pid_t tid, std::vector<CallFrame>&
     HLOGV("total %zu frames", callsFrames.size());
 
     perf_callchain_context perfCallchainContext = PERF_CONTEXT_MAX;
-    for (auto callFrameIt = callsFrames.begin(); callFrameIt != callsFrames.end(); ++callFrameIt) {
+    for (auto callFrameIt = callsFrames.begin() + offset; callFrameIt != callsFrames.end(); ++callFrameIt) {
         auto &callFrame = callFrameIt.operator*();
         if (callFrame.ip_ >= PERF_CONTEXT_MAX) {
             // dont care, this is not issue.
@@ -132,8 +132,7 @@ void VirtualRuntime::GetSymbolName(pid_t pid, pid_t tid, std::vector<CallFrame>&
         if (symbol.isValid()) {
             MakeCallFrame(symbol, callFrame);
         } else {
-            // we need found out thre reason here.
-            continue;
+            return false;
         }
         int index = callFrameIt - callsFrames.begin();
         HLOGV(" (%u)unwind symbol: %*s%s", index, index, "", callFrame.ToSymbolString().c_str());
@@ -145,9 +144,10 @@ void VirtualRuntime::GetSymbolName(pid_t pid, pid_t tid, std::vector<CallFrame>&
     }
     symbolicRecordTimes_ += usedTime;
 #endif
+    return true;
 }
 
-void VirtualRuntime::UnwindStack(std::vector<u64> regs,
+bool VirtualRuntime::UnwindStack(std::vector<u64> regs,
                                  const u8* stack_addr,
                                  int stack_size,
                                  pid_t pid,
@@ -159,18 +159,28 @@ void VirtualRuntime::UnwindStack(std::vector<u64> regs,
     const auto startTime = steady_clock::now();
 #endif
     // if we have userstack ?
+    int offset = 0;
+    auto &thread = UpdateThread(pid, tid);
     if (stack_size > 0) {
-        auto &thread = UpdateThread(pid, tid);
         callstack_.UnwindCallStack(thread, &regs[0], regs.size(), stack_addr, stack_size, callsFrames, maxStackLevel);
+        if (callsFrames.size() <= FILTER_STACK_DEPTH) {
+            callsFrames.clear();
+            return false;
+        }
+        // Do not symbolize the first two frame, cause the two frame implement by tool itself
+        offset = FILTER_STACK_DEPTH;
 #ifdef HIPERF_DEBUG_TIME
         unwindCallStackTimes_ += duration_cast<microseconds>(steady_clock::now() - startTime);
 #endif
     }
-
 #ifdef HIPERF_DEBUG_TIME
     unwindFromRecordTimes_ += duration_cast<microseconds>(steady_clock::now() - startTime);
 #endif
-    GetSymbolName(pid, tid, callsFrames);
+    if (!GetSymbolName(pid, tid, callsFrames, offset)) {
+        callsFrames.clear();
+        return false;
+    }
+    return true;
 }
 
 void VirtualRuntime::UpdateSymbols(std::string fileName)
@@ -279,6 +289,7 @@ const Symbol VirtualRuntime::GetUserSymbol(uint64_t ip, const VirtualThread &thr
                   mmap->name_.c_str());
         }
     } else {
+        HLOGW("ReportVaddrMapMiss");
 #ifdef HIPERF_DEBUG
         thread.ReportVaddrMapMiss(ip);
 #endif
@@ -310,8 +321,6 @@ bool VirtualRuntime::GetSymbolCache(uint64_t ip, pid_t pid, pid_t tid, Symbol &s
     return false;
 }
 
-// void VirtualRuntime::UpdateSymbolCache(uint64_t ip, Symbol &symbol,
-//     std::map<uint64_t, Symbol> &cache)
 void VirtualRuntime::UpdateSymbolCache(uint64_t ip, Symbol &symbol,
     HashList<uint64_t, Symbol> &cache)
 {
@@ -334,17 +343,14 @@ const Symbol VirtualRuntime::GetSymbol(uint64_t ip, pid_t pid, pid_t tid,
     if (context == PERF_CONTEXT_USER or (context == PERF_CONTEXT_MAX and !symbol.isValid())) {
         // check userspace memmap
         symbol = GetUserSymbol(ip, GetThread(pid, tid));
-        threadSymbolCache_[tid][ip] = symbol;
+        if (symbol.isValid()) {
+            HLOGM("GetUserSymbol valid tid = %d ip = 0x%" PRIx64 "", tid, ip);
+            threadSymbolCache_[tid][ip] = symbol;
+        } else {
+            HLOGM("GetUserSymbol invalid!");
+        }
     }
 
-    if (context == PERF_CONTEXT_KERNEL or (context == PERF_CONTEXT_MAX and !symbol.isValid())) {
-        // check kernelspace
-        HLOGM("try found addr in kernelspace %zu maps ", kernelSpaceMemMaps_.size());
-        symbol = GetKernelSymbol(ip, kernelSpaceMemMaps_, GetThread(pid, tid));
-        HLOGM("add addr to kernel cache 0x%" PRIx64 " cache size %zu ", ip,
-              kernelSymbolCache_.size());
-        kernelSymbolCache_[ip] = symbol;
-    }
     return symbol;
 }
 

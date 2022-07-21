@@ -34,11 +34,16 @@
 
 static __thread bool ohos_malloc_hook_enable_hook_flag = true;
 namespace {
+static std::atomic<uint64_t> timeCost = 0;
+static std::atomic<uint64_t> mallocTimes = 0;
+static std::atomic<uint64_t> dataCounts = 0;
 using OHOS::Developtools::NativeDaemon::buildArchType;
 static std::shared_ptr<HookSocketClient> g_hookClient;
 std::recursive_timed_mutex g_ClientMutex;
 std::atomic<const MallocDispatchType*> g_dispatch {nullptr};
 constexpr int TIMEOUT_MSEC = 2000;
+constexpr int PRINT_INTERVAL = 5000;
+constexpr uint64_t S_TO_NS = 1000 * 1000 * 1000;
 const MallocDispatchType* GetDispatch()
 {
     return g_dispatch.load(std::memory_order_relaxed);
@@ -70,6 +75,23 @@ bool ohos_malloc_hook_on_end(void)
     return true;
 }
 
+static void inline __attribute__((always_inline)) FpUnwind(int max_depth, uint64_t *ip, int stackSize)
+{
+    void **startfp = (void **)__builtin_frame_address(0);
+    void **fp = startfp;
+    for (int i = 0; i < max_depth; i++) {
+        ip[i] = *(unsigned long *)(fp + 1);
+        void **next_fp = (void **)*fp;
+        if (next_fp <= fp) {
+            break;
+        }
+        if (((next_fp - startfp) * sizeof(void *)) > stackSize) {
+            break;
+        }
+        fp = next_fp;
+    }
+}
+
 void* hook_malloc(void* (*fn)(size_t), size_t size)
 {
     void* ret = nullptr;
@@ -84,34 +106,48 @@ void* hook_malloc(void* (*fn)(size_t), size_t size)
         return ret;
     }
 
-    StackRawData rawdata = {{0}};
-    uint64_t* regs = reinterpret_cast<uint64_t*>(&(rawdata.regs));
-#if defined(__arm__)
-    asm volatile(
-        "mov r3, r13\n"
-        "mov r4, r15\n"
-        "stmia %[base], {r3-r4}\n"
-        : [ base ] "+r"(regs)
-        :
-        : "r3", "r4", "memory");
-#elif defined(__aarch64__)
-    asm volatile(
-        "1:\n"
-        "stp x28, x29, [%[base], #224]\n"
-        "str x30, [%[base], #240]\n"
-        "mov x12, sp\n"
-        "adr x13, 1b\n"
-        "stp x12, x13, [%[base], #248]\n"
-        : [ base ] "+r"(regs)
-        :
-        : "x12", "x13", "memory");
+#ifdef PERFORMANCE_DEBUG
+    struct timespec start = {};
+    clock_gettime(CLOCK_REALTIME, &start);
 #endif
-    const char* stackptr = reinterpret_cast<const char*>(regs[RegisterGetSP(buildArchType)]);
+    StackRawData rawdata = {{{0}}};
+    const char* stackptr = nullptr;
     const char* stackendptr = nullptr;
-    GetRuntimeStackEnd(stackptr, &stackendptr);  // stack end pointer
-    int stackSize = stackendptr - stackptr;
+    int stackSize = 0;
     clock_gettime(CLOCK_REALTIME, &rawdata.ts);
 
+    if (g_hookClient->GetFpunwind()) {
+        stackptr = reinterpret_cast<const char*>(__builtin_frame_address(0));
+        GetRuntimeStackEnd(stackptr, &stackendptr);  // stack end pointer
+        stackSize = stackendptr - stackptr;
+        FpUnwind(g_hookClient->GetMaxStackDepth(), rawdata.ip, stackSize);
+        stackSize = 0;
+    } else {
+        uint64_t* regs = reinterpret_cast<uint64_t*>(&(rawdata.regs));
+#if defined(__arm__)
+        asm volatile(
+            "mov r3, r13\n"
+            "mov r4, r15\n"
+            "stmia %[base], {r3-r4}\n"
+            : [ base ] "+r"(regs)
+            :
+            : "r3", "r4", "memory");
+#elif defined(__aarch64__)
+        asm volatile(
+            "1:\n"
+            "stp x28, x29, [%[base], #224]\n"
+            "str x30, [%[base], #240]\n"
+            "mov x12, sp\n"
+            "adr x13, 1b\n"
+            "stp x12, x13, [%[base], #248]\n"
+            : [ base ] "+r"(regs)
+            :
+            : "x12", "x13", "memory");
+        stackptr = reinterpret_cast<const char*>(regs[RegisterGetSP(buildArchType)]);
+        GetRuntimeStackEnd(stackptr, &stackendptr);  // stack end pointer
+        stackSize = stackendptr - stackptr;
+#endif
+    }
     rawdata.type = MALLOC_MSG;
     rawdata.pid = getpid();
     rawdata.tid = get_thread_id();
@@ -129,6 +165,17 @@ void* hook_malloc(void* (*fn)(size_t), size_t size)
     if (g_hookClient != nullptr) {
         g_hookClient->SendStackWithPayload(&rawdata, sizeof(rawdata), stackptr, stackSize);
     }
+#ifdef PERFORMANCE_DEBUG
+    struct timespec end = {};
+    clock_gettime(CLOCK_REALTIME, &end);
+    timeCost += (end.tv_sec - start.tv_sec) * S_TO_NS + (end.tv_nsec - start.tv_nsec);
+    mallocTimes++;
+    dataCounts += stackSize;
+    if (mallocTimes % PRINT_INTERVAL == 0) {
+        HILOG_ERROR(LOG_CORE, "mallocTimes %" PRIu64" cost time = %" PRIu64" copy data bytes = %" PRIu64" mean cost = %" PRIu64"\n",
+            mallocTimes.load(), timeCost.load(), dataCounts.load(), timeCost.load() / mallocTimes.load() );
+    }
+#endif
     return ret;
 }
 
@@ -193,38 +240,46 @@ void hook_free(void (*free_func)(void*), void* p)
         return;
     }
 
-    int stackSize = 0;
-    StackRawData rawdata = {{0}};
+    StackRawData rawdata = {{{0}}};
     const char* stackptr = nullptr;
     const char* stackendptr = nullptr;
+    int stackSize = 0;
+    clock_gettime(CLOCK_REALTIME, &rawdata.ts);
 
     if (g_hookClient->GetFreeStackData()) {
-        uint64_t* regs = reinterpret_cast<uint64_t*>(&(rawdata.regs));
+        if (g_hookClient->GetFpunwind()) {
+            stackptr = reinterpret_cast<const char*>(__builtin_frame_address(0));
+            GetRuntimeStackEnd(stackptr, &stackendptr);  // stack end pointer
+            stackSize = stackendptr - stackptr;
+            FpUnwind(g_hookClient->GetMaxStackDepth(), rawdata.ip, stackSize);
+            stackSize = 0;
+        } else {
+            uint64_t* regs = reinterpret_cast<uint64_t*>(&(rawdata.regs));
 #if defined(__arm__)
-        asm volatile(
-        "mov r3, r13\n"
-        "mov r4, r15\n"
-        "stmia %[base], {r3-r4}\n"
-        : [ base ] "+r"(regs)
-        :
-        : "r3", "r4", "memory");
+            asm volatile(
+                "mov r3, r13\n"
+                "mov r4, r15\n"
+                "stmia %[base], {r3-r4}\n"
+                : [ base ] "+r"(regs)
+                :
+                : "r3", "r4", "memory");
 #elif defined(__aarch64__)
-    asm volatile(
-        "1:\n"
-        "stp x28, x29, [%[base], #224]\n"
-        "str x30, [%[base], #240]\n"
-        "mov x12, sp\n"
-        "adr x13, 1b\n"
-        "stp x12, x13, [%[base], #248]\n"
-        : [ base ] "+r"(regs)
-        :
-        : "x12", "x13", "memory");
+            asm volatile(
+                "1:\n"
+                "stp x28, x29, [%[base], #224]\n"
+                "str x30, [%[base], #240]\n"
+                "mov x12, sp\n"
+                "adr x13, 1b\n"
+                "stp x12, x13, [%[base], #248]\n"
+                : [ base ] "+r"(regs)
+                :
+                : "x12", "x13", "memory");
 #endif
-        stackptr = reinterpret_cast<const char*>(regs[RegisterGetSP(buildArchType)]);
-        GetRuntimeStackEnd(stackptr, &stackendptr);  // stack end pointer
-        stackSize = stackendptr - stackptr;
+            stackptr = reinterpret_cast<const char*>(regs[RegisterGetSP(buildArchType)]);
+            GetRuntimeStackEnd(stackptr, &stackendptr);  // stack end pointer
+            stackSize = stackendptr - stackptr;
+        }
     }
-    clock_gettime(CLOCK_REALTIME, &rawdata.ts);
 
     rawdata.type = FREE_MSG;
     rawdata.pid = getpid();
@@ -252,7 +307,6 @@ void* hook_mmap(void*(*fn)(void*, size_t, int, int, int, off_t),
     if (fn) {
         ret = fn(addr, length, prot, flags, fd, offset);
     }
-
     if (g_hookClient == nullptr) {
         return ret;
     }
@@ -261,35 +315,45 @@ void* hook_mmap(void*(*fn)(void*, size_t, int, int, int, off_t),
         return ret;
     }
 
-    StackRawData rawdata = {{0}};
-    uint64_t* regs = reinterpret_cast<uint64_t*>(&(rawdata.regs));
-
-#if defined(__arm__)
-    asm volatile(
-        "mov r3, r13\n"
-        "mov r4, r15\n"
-        "stmia %[base], {r3-r4}\n"
-        : [ base ] "+r"(regs)
-        :
-        : "r3", "r4", "memory");
-#elif defined(__aarch64__)
-    asm volatile(
-        "1:\n"
-        "stp x28, x29, [%[base], #224]\n"
-        "str x30, [%[base], #240]\n"
-        "mov x12, sp\n"
-        "adr x13, 1b\n"
-        "stp x12, x13, [%[base], #248]\n"
-        : [ base ] "+r"(regs)
-        :
-        : "x12", "x13", "memory");
-#endif
-    const char* stackptr = reinterpret_cast<const char*>(regs[RegisterGetSP(buildArchType)]);
+    StackRawData rawdata = {{{0}}};
+    const char* stackptr = nullptr;
     const char* stackendptr = nullptr;
-    GetRuntimeStackEnd(stackptr, &stackendptr);  // stack end pointer
-    int stackSize = stackendptr - stackptr;
-
+    int stackSize = 0;
     clock_gettime(CLOCK_REALTIME, &rawdata.ts);
+
+    if (g_hookClient->GetFpunwind()) {
+        stackptr = reinterpret_cast<const char*>(__builtin_frame_address(0));
+        GetRuntimeStackEnd(stackptr, &stackendptr);  // stack end pointer
+        stackSize = stackendptr - stackptr;
+        FpUnwind(g_hookClient->GetMaxStackDepth(), rawdata.ip, stackSize);
+        stackSize = 0;
+    } else {
+        uint64_t* regs = reinterpret_cast<uint64_t*>(&(rawdata.regs));
+#if defined(__arm__)
+        asm volatile(
+            "mov r3, r13\n"
+            "mov r4, r15\n"
+            "stmia %[base], {r3-r4}\n"
+            : [ base ] "+r"(regs)
+            :
+            : "r3", "r4", "memory");
+#elif defined(__aarch64__)
+        asm volatile(
+            "1:\n"
+            "stp x28, x29, [%[base], #224]\n"
+            "str x30, [%[base], #240]\n"
+            "mov x12, sp\n"
+            "adr x13, 1b\n"
+            "stp x12, x13, [%[base], #248]\n"
+            : [ base ] "+r"(regs)
+            :
+            : "x12", "x13", "memory");
+#endif
+        stackptr = reinterpret_cast<const char*>(regs[RegisterGetSP(buildArchType)]);
+        GetRuntimeStackEnd(stackptr, &stackendptr);  // stack end pointer
+        stackSize = stackendptr - stackptr;
+    }
+
     rawdata.type = MMAP_MSG;
     rawdata.pid = getpid();
     rawdata.tid = get_thread_id();
@@ -326,40 +390,46 @@ int hook_munmap(int(*fn)(void*, size_t), void* addr, size_t length)
     }
 
     int stackSize = 0;
-    StackRawData rawdata = {{0}};
+    StackRawData rawdata = {{{0}}};
     const char* stackptr = nullptr;
     const char* stackendptr = nullptr;
+    clock_gettime(CLOCK_REALTIME, &rawdata.ts);
 
     if (g_hookClient->GetMunmapStackData()) {
-
-        uint64_t* regs = reinterpret_cast<uint64_t*>(&(rawdata.regs));
-
+        if (g_hookClient->GetFpunwind()) {
+            stackptr = reinterpret_cast<const char*>(__builtin_frame_address(0));
+            GetRuntimeStackEnd(stackptr, &stackendptr);  // stack end pointer
+            stackSize = stackendptr - stackptr;
+            FpUnwind(g_hookClient->GetMaxStackDepth(), rawdata.ip, stackSize);
+            stackSize = 0;
+        } else {
+            uint64_t* regs = reinterpret_cast<uint64_t*>(&(rawdata.regs));
 #if defined(__arm__)
-    asm volatile(
-        "mov r3, r13\n"
-        "mov r4, r15\n"
-        "stmia %[base], {r3-r4}\n"
-        : [ base ] "+r"(regs)
-        :
-        : "r3", "r4", "memory");
+            asm volatile(
+                "mov r3, r13\n"
+                "mov r4, r15\n"
+                "stmia %[base], {r3-r4}\n"
+                : [ base ] "+r"(regs)
+                :
+                : "r3", "r4", "memory");
 #elif defined(__aarch64__)
-    asm volatile(
-        "1:\n"
-        "stp x28, x29, [%[base], #224]\n"
-        "str x30, [%[base], #240]\n"
-        "mov x12, sp\n"
-        "adr x13, 1b\n"
-        "stp x12, x13, [%[base], #248]\n"
-        : [ base ] "+r"(regs)
-        :
-        : "x12", "x13", "memory");
+            asm volatile(
+                "1:\n"
+                "stp x28, x29, [%[base], #224]\n"
+                "str x30, [%[base], #240]\n"
+                "mov x12, sp\n"
+                "adr x13, 1b\n"
+                "stp x12, x13, [%[base], #248]\n"
+                : [ base ] "+r"(regs)
+                :
+                : "x12", "x13", "memory");
 #endif
-        stackptr = reinterpret_cast<const char*>(regs[RegisterGetSP(buildArchType)]);
-        GetRuntimeStackEnd(stackptr, &stackendptr);  // stack end pointer
-        stackSize = stackendptr - stackptr;
+            stackptr = reinterpret_cast<const char*>(regs[RegisterGetSP(buildArchType)]);
+            GetRuntimeStackEnd(stackptr, &stackendptr);  // stack end pointer
+            stackSize = stackendptr - stackptr;
+        }
     }
 
-    clock_gettime(CLOCK_REALTIME, &rawdata.ts);
     rawdata.type = MUNMAP_MSG;
     rawdata.pid = getpid();
     rawdata.tid = get_thread_id();
@@ -481,7 +551,7 @@ void ohos_malloc_hook_memtag(void* addr, size_t size, char* tag, size_t tagLen)
     if (g_hookClient == nullptr) {
         return;
     }
-    StackRawData rawdata = {{0}};
+    StackRawData rawdata = {{{0}}};
     clock_gettime(CLOCK_REALTIME, &rawdata.ts);
     rawdata.type = MEMORY_TAG;
     rawdata.pid = getpid();
@@ -506,4 +576,5 @@ void ohos_malloc_hook_memtag(void* addr, size_t size, char* tag, size_t tagLen)
     }
     __set_hook_flag(true);
 }
+
 

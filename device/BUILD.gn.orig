@@ -30,7 +30,6 @@ group("hiprofiler_targets") {
     "plugins/native_hook:malloctest_cpp",
     "plugins/native_hook:nativetest_c",
     "plugins/native_hook:nativetest_cpp",
-    "plugins/native_hook:nativetest_so",
     "plugins/network_plugin:networkplugin",
     "plugins/process_plugin:processplugin",
     "plugins/sample_plugin:sampleplugin",

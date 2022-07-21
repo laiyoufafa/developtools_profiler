@@ -120,13 +120,11 @@ void HidumpPlugin::Loop(void)
     while (running_) {
         char buf[BUF_MAX_LEN] = { 0 };
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(SLEEP_TIME));
-        // format fps:0|1501960484673
-        if (fgets(buf, BUF_MAX_LEN - 1, fp_.get()) != nullptr) {
-            if (!ParseHidumpInfo(dataProto, buf, sizeof(buf))) {
-                continue;
-            }
-        } else {
+        if (fgets(buf, BUF_MAX_LEN - 1, fp_.get()) == nullptr) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(SLEEP_TIME));
+            continue;
+        }
+        if (!ParseHidumpInfo(dataProto, buf)) {
             continue;
         }
         if (dataProto.ByteSizeLong() >= CACHE_MAX_SIZE) {
@@ -146,8 +144,9 @@ void HidumpPlugin::Loop(void)
     HILOG_INFO(LOG_CORE, "HidumpPlugin: Loop exit");
 }
 
-bool HidumpPlugin::ParseHidumpInfo(HidumpInfo& dataProto, char *buf, int len)
+bool HidumpPlugin::ParseHidumpInfo(HidumpInfo& dataProto, char *buf)
 {
+    // format: fps:123|1501960484673
     if (strncmp(buf, "fps:", strlen("fps:")) != 0) {
         if (strstr(buf, "inaccessible or not found") != nullptr) {
             HILOG_ERROR(LOG_CORE, "HidumpPlugin: fps command not found!");
