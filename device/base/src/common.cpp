@@ -14,13 +14,13 @@
  */
 
 #include "common.h"
-#include "logging.h"
 #include <cinttypes>
 #include <csignal>
 #include <fcntl.h>
 #include <sys/file.h>
 #include <sys/wait.h>
 #include <unistd.h>
+#include "logging.h"
 
 namespace COMMON {
 constexpr int EXECVP_ERRNO = 2;

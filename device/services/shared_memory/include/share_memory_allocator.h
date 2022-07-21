@@ -16,9 +16,9 @@
 #ifndef SHARE_MEMORY_ALLOCATOR_H
 #define SHARE_MEMORY_ALLOCATOR_H
 
+#include <map>
 #include "share_memory_block.h"
 #include "logging.h"
-#include <map>
 
 using ShareMemoryBlockPtr = STD_PTR(shared, ShareMemoryBlock);
 
