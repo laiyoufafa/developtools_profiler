@@ -15,9 +15,9 @@
 
 #include <cinttypes>
 #include <unistd.h>
-#include "stack_writer.h"
 #include "logging.h"
 #include "share_memory_allocator.h"
+#include "stack_writer.h"
 
 StackWriter::StackWriter(std::string name,
                          uint32_t size,
