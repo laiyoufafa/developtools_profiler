@@ -21,8 +21,6 @@
 #endif
 #include <cstdint>
 #include <functional>
-#include <map>
-#include <pthread.h>
 #include <string>
 
 class ShareMemoryBlock {

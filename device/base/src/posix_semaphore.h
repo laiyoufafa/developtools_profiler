@@ -15,9 +15,7 @@
 #ifndef OHOS_PROFILER_POSIX_SEMAPHORE_H
 #define OHOS_PROFILER_POSIX_SEMAPHORE_H
 
-#include <memory>
 #include <semaphore.h>
-
 #include "i_semaphore.h"
 
 class PosixSemaphore : public ISemaphore {

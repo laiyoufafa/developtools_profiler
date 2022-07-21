@@ -15,9 +15,8 @@
 #ifndef OHOS_PROFILER_PTHREAD_SEMAPHORE_H
 #define OHOS_PROFILER_PTHREAD_SEMAPHORE_H
 
-#include <memory>
-#include <pthread.h>
 
+#include <pthread.h>
 #include "i_semaphore.h"
 
 class PthreadSemaphore : public ISemaphore {

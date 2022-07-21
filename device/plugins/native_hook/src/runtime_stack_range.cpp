@@ -22,11 +22,8 @@
 #include <cassert>
 #include <csignal>
 #include <cstdio>
-#include <cstdlib>
 #include <cstring>
-#include <iostream>
 #include <string>
-
 #include "get_thread_id.h"
 
 namespace {

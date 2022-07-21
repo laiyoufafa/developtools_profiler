@@ -18,6 +18,7 @@
 
 #include "share_memory_block.h"
 #include "logging.h"
+#include <map>
 
 using ShareMemoryBlockPtr = STD_PTR(shared, ShareMemoryBlock);
 

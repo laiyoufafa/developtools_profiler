@@ -29,7 +29,6 @@ const static char DEFAULT_UNIX_SOCKET_PATH[] = "/dev/unix/socket/hiprofiler_unix
 const static char DEFAULT_UNIX_SOCKET_HOOK_PATH[] = "/dev/unix/socket/hook_unix_socket";
 #endif
 
-class SocketContext;
 class ServiceBase;
 
 enum ClientState {

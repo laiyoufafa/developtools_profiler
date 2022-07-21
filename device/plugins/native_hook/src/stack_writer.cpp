@@ -16,10 +16,7 @@
 #include "stack_writer.h"
 #include "logging.h"
 #include "share_memory_allocator.h"
-
-#include <algorithm>
 #include <cinttypes>
-#include <thread>
 #include <unistd.h>
 
 StackWriter::StackWriter(std::string name,
@@ -34,7 +31,6 @@ StackWriter::StackWriter(std::string name,
         HILOG_DEBUG(LOG_CORE, "%s:create shareMemoryBlock_ failed!", __func__);
     }
     eventNotifier_ = EventNotifier::CreateWithFd(eventFd);
-
     lastFlushTime_ = std::chrono::steady_clock::now();
 }
 

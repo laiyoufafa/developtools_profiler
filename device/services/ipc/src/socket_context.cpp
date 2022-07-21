@@ -19,8 +19,6 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <vector>
-#include <fcntl.h>
-
 #include "logging.h"
 #include "securec.h"
 #include "service_base.h"

@@ -17,9 +17,9 @@
 #define COMMAND_LINE_H
 
 #include <vector>
+#include <map>
+#include <memory>
 #include "command_param.h"
-#include "command_param_switch.h"
-#include "command_param_text.h"
 
 #ifdef VT100_ENABLE
 #define VT100_RED "\033[31m"

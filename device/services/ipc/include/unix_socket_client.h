@@ -16,10 +16,8 @@
 #ifndef UNIX_SOCKET_CLIENT_H
 #define UNIX_SOCKET_CLIENT_H
 
-#include <cstdint>
 #include "socket_context.h"
-
-class ServiceBase;
+#include <string>
 
 class UnixSocketClient final : public SocketContext {
 public:

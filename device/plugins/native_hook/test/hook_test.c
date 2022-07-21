@@ -24,7 +24,6 @@
 #include <sys/types.h>
 #include <time.h>
 #include <unistd.h>
-#include <limits.h>
 #ifdef HOOK_ENABLE
 #include "memory_tag.h"
 #endif

@@ -1,0 +1,6 @@
+{
+    "files.associations": {
+        "csignal": "cpp",
+        "ctime": "cpp"
+    }
+}
