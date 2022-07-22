@@ -41,10 +41,6 @@ public:
  */
 HWTEST_F(NativeHookTest, NormalMallocHookTest, TestSize.Level1)
 {
-#if defined(__LP64__)
-    return;
-#endif
-
     EXPECT_TRUE(ohos_malloc_hook_initialize(&__libc_malloc_default_dispatch, NULL, NULL));
     EXPECT_TRUE(ohos_malloc_hook_on_start());
 
@@ -63,10 +59,6 @@ HWTEST_F(NativeHookTest, NormalMallocHookTest, TestSize.Level1)
  */
 HWTEST_F(NativeHookTest, NormalHookReallocTest, TestSize.Level1)
 {
-#if defined(__LP64__)
-    return;
-#endif
-
     EXPECT_TRUE(ohos_malloc_hook_initialize(&__libc_malloc_default_dispatch, NULL, NULL));
     EXPECT_TRUE(ohos_malloc_hook_on_start());
 
@@ -87,10 +79,6 @@ HWTEST_F(NativeHookTest, NormalHookReallocTest, TestSize.Level1)
  */
 HWTEST_F(NativeHookTest, NormalHookCallocTest, TestSize.Level1)
 {
-#if defined(__LP64__)
-    return;
-#endif
-
     EXPECT_TRUE(ohos_malloc_hook_initialize(&__libc_malloc_default_dispatch, NULL, NULL));
     EXPECT_TRUE(ohos_malloc_hook_on_start());
 
@@ -109,10 +97,6 @@ HWTEST_F(NativeHookTest, NormalHookCallocTest, TestSize.Level1)
  */
 HWTEST_F(NativeHookTest, NormalHookVallocTest, TestSize.Level1)
 {
-#if defined(__LP64__)
-    return;
-#endif
-
     EXPECT_TRUE(ohos_malloc_hook_initialize(&__libc_malloc_default_dispatch, NULL, NULL));
     EXPECT_TRUE(ohos_malloc_hook_on_start());
 
@@ -131,10 +115,6 @@ HWTEST_F(NativeHookTest, NormalHookVallocTest, TestSize.Level1)
  */
 HWTEST_F(NativeHookTest, NormalHookMemalignTest, TestSize.Level1)
 {
-#if defined(__LP64__)
-    return;
-#endif
-
     EXPECT_TRUE(ohos_malloc_hook_initialize(&__libc_malloc_default_dispatch, NULL, NULL));
     EXPECT_TRUE(ohos_malloc_hook_on_start());
 
@@ -154,10 +134,6 @@ HWTEST_F(NativeHookTest, NormalHookMemalignTest, TestSize.Level1)
  */
 HWTEST_F(NativeHookTest, NormalTest, TestSize.Level1)
 {
-#if defined(__LP64__)
-    return;
-#endif
-
     EXPECT_TRUE(ohos_malloc_hook_initialize(&__libc_malloc_default_dispatch, NULL, NULL));
     EXPECT_TRUE(ohos_malloc_hook_on_start());
 
@@ -188,10 +164,6 @@ HWTEST_F(NativeHookTest, NormalTest, TestSize.Level1)
  */
 HWTEST_F(NativeHookTest, NormalOtherTest, TestSize.Level1)
 {
-#if defined(__LP64__)
-    return;
-#endif
-
     EXPECT_TRUE(ohos_malloc_hook_initialize(&__libc_malloc_default_dispatch, NULL, NULL));
     EXPECT_TRUE(ohos_malloc_hook_on_start());
 
@@ -207,10 +179,6 @@ HWTEST_F(NativeHookTest, NormalOtherTest, TestSize.Level1)
  */
 HWTEST_F(NativeHookTest, FailureTest, TestSize.Level1)
 {
-#if defined(__LP64__)
-    return;
-#endif
-
     EXPECT_TRUE(ohos_malloc_hook_initialize(nullptr, NULL, NULL));
     EXPECT_TRUE(ohos_malloc_hook_on_start());
     EXPECT_TRUE(ohos_malloc_hook_on_end());
@@ -223,10 +191,6 @@ HWTEST_F(NativeHookTest, FailureTest, TestSize.Level1)
  */
 HWTEST_F(NativeHookTest, MallocHookFlag, TestSize.Level1)
 {
-#if defined(__LP64__)
-    return;
-#endif
-
     bool flag = true;
     bool flagPrev = ohos_malloc_hook_set_hook_flag(flag);
 

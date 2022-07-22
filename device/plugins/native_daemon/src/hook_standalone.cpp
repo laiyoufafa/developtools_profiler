@@ -66,6 +66,7 @@ void writeFrames(int type, const struct timespec& ts, void* addr, uint32_t mallo
                       item.ip_, item.sp_, std::string(item.symbolName_).c_str(),
                       std::string(item.filePath_).c_str(), item.offset_, item.symbolOffset_);
     }
+    fflush(g_fpHookFile.get());
 }
 
 void ReadShareMemory(uint64_t duration, const std::string& performance_filename)
