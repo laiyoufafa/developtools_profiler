@@ -15,8 +15,6 @@
 
 #include "hook_so.h"
 
-#include <chrono>
-
 #pragma clang optimize off
 
 namespace {

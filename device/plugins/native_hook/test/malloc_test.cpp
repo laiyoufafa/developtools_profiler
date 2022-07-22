@@ -186,7 +186,7 @@ static void ApplyForRealloc(int mallocSize)
     printf("realloc apply success, total time is %f\n", duration);
 }
 
-static oid NewString()
+static void NewString()
 {
     std::string* sp = new std::string("hello world");
     printf("string  sp = %s\n", sp->c_str());

@@ -80,7 +80,7 @@ static void inline __attribute__((always_inline)) FpUnwind(int max_depth, uint64
     void **startfp = (void **)__builtin_frame_address(0);
     void **fp = startfp;
     for (int i = 0; i < max_depth; i++) {
-        ip[i] = *(static_cast<unsigned long *>(fp + 1));
+        ip[i] = *(unsigned long *)(fp + 1);
         void **next_fp = (void **)*fp;
         if (next_fp <= fp) {
             break;
@@ -577,5 +577,3 @@ void ohos_malloc_hook_memtag(void* addr, size_t size, char* tag, size_t tagLen)
     }
     __set_hook_flag(true);
 }
-
-

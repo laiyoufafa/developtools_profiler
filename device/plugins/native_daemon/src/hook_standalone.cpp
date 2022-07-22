@@ -210,7 +210,6 @@ bool StartHook(HookData& hookData)
     // hook config |F F            F F              F F F F       F F F F      F F F F|
     //              stack depth    malloctype       filtersize    sharememory  size
 
-
     uint64_t hookConfig = (uint8_t)hookData.maxStackDepth;
     hookConfig <<= MOVE_BIT_8;
 
