@@ -213,7 +213,7 @@ static void* ThreadFuncC(void* param)
     if (tv == -1) {
         tv = 1;
     }
-    unsigned int seed = static_cast<unsigned int>tv;
+    unsigned int seed = (unsigned int)tv;
     while (g_runing) {
         randNum = rand_r(&seed) % TEST_BRANCH_NUM;
         if (randNum == 0) {
@@ -249,7 +249,7 @@ static void* ThreadFuncC(void* param)
 // 打开文件到内存中
 static int OpenFile(const char* fileName)
 {
-    int fd = open(fileName, O_RDWR | O_CREAT, static_cast<mode_t>0777);
+    int fd = open(fileName, O_RDWR | O_CREAT, (mode_t)0777);
     if (fd == -1) {
         printf("can not open the file\n");
         return -1;
@@ -321,7 +321,7 @@ static char* MmapReadFile(char* pMap, int length)
 
 static void RandSrand(void)
 {
-    srand(static_cast<unsigned>time(nullptr));
+    srand((unsigned)time(nullptr));
 }
 
 // 10 ~ 4096
