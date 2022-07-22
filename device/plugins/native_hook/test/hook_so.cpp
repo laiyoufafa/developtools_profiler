@@ -16,14 +16,6 @@
 #include "hook_so.h"
 
 #include <chrono>
-#include <cstdio>
-#include <cstdlib>
-#include <new>
-#include <pthread.h>
-#include <sys/syscall.h>
-#include <unistd.h>
-#include <thread>
-#include <sys/prctl.h>
 
 #pragma clang optimize off
 

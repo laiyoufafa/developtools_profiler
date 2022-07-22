@@ -80,7 +80,7 @@ static void inline __attribute__((always_inline)) FpUnwind(int max_depth, uint64
     void **startfp = (void **)__builtin_frame_address(0);
     void **fp = startfp;
     for (int i = 0; i < max_depth; i++) {
-        ip[i] = *(unsigned long *)(fp + 1);
+        ip[i] = *(static_cast<unsigned long *>(fp + 1));
         void **next_fp = (void **)*fp;
         if (next_fp <= fp) {
             break;
@@ -172,8 +172,9 @@ void* hook_malloc(void* (*fn)(size_t), size_t size)
     mallocTimes++;
     dataCounts += stackSize;
     if (mallocTimes % PRINT_INTERVAL == 0) {
-        HILOG_ERROR(LOG_CORE, "mallocTimes %" PRIu64" cost time = %" PRIu64" copy data bytes = %" PRIu64" mean cost = %" PRIu64"\n",
-            mallocTimes.load(), timeCost.load(), dataCounts.load(), timeCost.load() / mallocTimes.load() );
+        HILOG_ERROR(LOG_CORE,
+            "mallocTimes %" PRIu64" cost time = %" PRIu64" copy data bytes = %" PRIu64" mean cost = %" PRIu64"\n",
+            mallocTimes.load(), timeCost.load(), dataCounts.load(), timeCost.load() / mallocTimes.load());
     }
 #endif
     return ret;

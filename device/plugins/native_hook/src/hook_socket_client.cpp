@@ -70,7 +70,7 @@ bool HookSocketClient::ProtocolProc(SocketContext &context, uint32_t pnum, const
     filterSize_ = (uint16_t)(config >> MOVE_BIT_32);
 
     uint16_t mask = (uint16_t)(config >> MOVE_BIT_48);
-    maxStackDepth_ = (uint8_t)(mask >> 8);
+    maxStackDepth_ = (uint8_t)(mask >> MOVE_BIT_8);
     maxStackDepth_  = maxStackDepth_ > MAX_UNWIND_DEPTH ? MAX_UNWIND_DEPTH : maxStackDepth_;
     smbFd_ = context.ReceiveFileDiscriptor();
     eventFd_ = context.ReceiveFileDiscriptor();

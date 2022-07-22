@@ -130,14 +130,16 @@ void ReadShareMemory(uint64_t duration, const std::string& performance_filename)
                 }
             }
 
-            bool ret = g_runtimeInstance->UnwindStack(u64regs, stackData, stackSize, rawData->pid, rawData->tid, callsFrames,
-                    (g_maxStackDepth > 0) ? g_maxStackDepth + FILTER_STACK_DEPTH : MAX_CALL_FRAME_UNWIND_SIZE);
+            bool ret = g_runtimeInstance->UnwindStack(u64regs, stackData, stackSize, rawData->pid,
+                rawData->tid, callsFrames,
+                (g_maxStackDepth > 0) ? g_maxStackDepth + FILTER_STACK_DEPTH : MAX_CALL_FRAME_UNWIND_SIZE);
             if (!ret && !g_unwindErrorFlag) {
                 HILOG_ERROR(LOG_CORE, "unwind error, try unwind twice");
                 g_runtimeInstance = nullptr;
                 g_runtimeInstance = std::make_shared<VirtualRuntime>();
                 callsFrames.clear();
-                bool ret = g_runtimeInstance->UnwindStack(u64regs, stackData, stackSize, rawData->pid, rawData->tid, callsFrames,
+                bool ret = g_runtimeInstance->UnwindStack(u64regs, stackData, stackSize, rawData->pid,
+                    rawData->tid, callsFrames,
                     (g_maxStackDepth > 0) ? g_maxStackDepth + FILTER_STACK_DEPTH : MAX_CALL_FRAME_UNWIND_SIZE);
                 if (!ret) {
                     g_unwindErrorFlag = true;

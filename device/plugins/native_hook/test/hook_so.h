@@ -12,15 +12,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <chrono>
+
 #include <cstdio>
 #include <cstdlib>
 #include <new>
 #include <pthread.h>
-#include <sys/syscall.h>
 #include <unistd.h>
-#include <thread>
-#include <sys/prctl.h>
 
 #ifdef __cplusplus
 extern "C" {

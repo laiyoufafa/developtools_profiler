@@ -141,7 +141,7 @@ void* thread_func_cpp_hook(void* param)
     while (idx < times) {
         if (idx == DLOPEN_TRIGGER) {
             printf("dlopen!!!\n");
-            void* handle = dlopen(SO_PATH, RTLD_LAZY);
+            handle = dlopen(SO_PATH, RTLD_LAZY);
             if (handle == nullptr) {
                 printf("library not exist!\n");
                 exit(0);
