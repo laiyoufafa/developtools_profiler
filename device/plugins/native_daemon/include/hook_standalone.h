@@ -31,6 +31,7 @@ using HookData = struct {
     bool mmapDisable;
     bool freemsgstack;
     bool munmapmsgstack;
+    bool fpUnwind;
 };
 
 namespace OHOS {

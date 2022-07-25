@@ -129,6 +129,56 @@ ohos_executable("nativetest_cpp") {
     "-O3",
   ]
   ldflags = [ "-rdynamic" ]
+
+  install_enable = true
+  subsystem_name = "${OHOS_PROFILER_SUBSYS_NAME}"
+  part_name = "${OHOS_PROFILER_PART_NAME}"
+}
+
+ohos_shared_library("nativetest_so") {
+  output_name = "nativetest_so"
+  sources = [ "test/hook_so.cpp" ]
+
+  if (current_toolchain != host_toolchain) {
+    defines = [ "HAVE_HILOG" ]
+    if (build_l2) {
+      external_deps = [ "shared_library:libhilog" ]
+    } else {
+      external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
+    }
+  }
+
+  cflags = [
+    "-Wno-error=inline-asm",
+    "-O3",
+  ]
+
+  install_enable = false
+  subsystem_name = "${OHOS_PROFILER_SUBSYS_NAME}"
+  part_name = "${OHOS_PROFILER_PART_NAME}"
+}
+
+ohos_executable("malloctest_cpp") {
+  output_name = "malloctest_cpp"
+  sources = [ "test/malloc_test.cpp" ]
+
+  if (current_toolchain != host_toolchain) {
+    defines = [ "HAVE_HILOG" ]
+    if (build_l2) {
+      external_deps = [ "shared_library:libhilog" ]
+    } else {
+      external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
+    }
+  }
+
+  include_dirs = [ "//third_party/bounds_checking_function/include" ]
+  deps = [ "//third_party/bounds_checking_function:libsec_static" ]
+
+  cflags = [
+    "-Wno-error=inline-asm",
+    "-O3",
+  ]
+  ldflags = [ "-rdynamic" ]
   install_enable = false
   subsystem_name = "${OHOS_PROFILER_SUBSYS_NAME}"
   part_name = "${OHOS_PROFILER_PART_NAME}"

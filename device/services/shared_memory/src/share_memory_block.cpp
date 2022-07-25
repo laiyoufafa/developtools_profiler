@@ -14,10 +14,12 @@
  */
 
 #include "share_memory_block.h"
+
+#include <cstring>
+#include <fcntl.h>
 #include <sys/mman.h>
 #include <sys/syscall.h>
 #include <unistd.h>
-#include <pthread.h>
 #include "logging.h"
 #include "securec.h"
 

@@ -1344,9 +1344,11 @@ HWTEST_F(ProfilerServicePerformanceTest, DFX_DFR_Hiprofiler_0050, Function | Med
         HilogInfo hilogInfo;
         auto& data = pd.data();
         hilogInfo.ParseFromArray(data.data(), data.size());
-        EXPECT_GT(static_cast<int>(hilogInfo.info().size()), 1);
-        EXPECT_STRNE(hilogInfo.info(1).context().c_str(), "");
-        EXPECT_TRUE(hilogInfo.info(1).has_detail());
+        EXPECT_GT(static_cast<int>(hilogInfo.info().size()), 0);
+        EXPECT_TRUE(hilogInfo.info(0).has_detail());
+        if (hilogInfo.info(0).detail().pid() > 0) {
+            EXPECT_STRNE(hilogInfo.info(0).context().c_str(), "");
+        }
     }
     timeCost = timer.ElapsedUs();
     printf("FetchData cost %ldus.\n", timeCost);
