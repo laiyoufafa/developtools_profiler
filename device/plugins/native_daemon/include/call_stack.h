@@ -26,12 +26,11 @@
 #include <unordered_map>
 #include <vector>
 
+#include "hashlistpp.h"
+#include "perf_event_record.h"
 #include "register.h"
 #include "utilities.h"
-#include "hashlistpp.h"
 #include "virtual_thread.h"
-#include "perf_event_record.h"
-
 namespace OHOS {
 namespace Developtools {
 namespace NativeDaemon {
@@ -41,8 +40,6 @@ const size_t MAX_CALL_FRAME_EXPEND_CACHE_SIZE = 10;
 const size_t MAX_CALL_FRAME_UNWIND_SIZE = 32;
 const int32_t MIN_STACK_DEPTH = 3;
 const size_t FILTER_STACK_DEPTH = 2;
-// if ip is 0 , 1 both not usefule
-const uint64_t BAD_IP_ADDRESS = 2;
 
 #if HAVE_LIBUNWIND
 struct UnwindInfo;

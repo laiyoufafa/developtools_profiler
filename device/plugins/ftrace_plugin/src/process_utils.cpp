@@ -238,7 +238,7 @@ int ProcessUtils::Execute(const ExecuteArgs& args, std::string& output)
     CHECK_TRUE(pid >= 0, -1, "fork failed!");
     if (pid == 0) {
         // child process
-        CHECK_TRUE(close(pipeFds[RD]) != -1, false, "close pipeFds[RD] failed, %d", errno);
+        CHECK_TRUE(close(pipeFds[RD]) != -1, -1, "close pipeFds[RD] failed, %d", errno);
         ExecuteProcess(args.bin_, args.argv_, pipeFds[WR], args.out2pipe_, args.err2pipe_);
     }
 
@@ -247,12 +247,17 @@ int ProcessUtils::Execute(const ExecuteArgs& args, std::string& output)
 
     output = ReceiveOutputAndSigchld(pipeFds[RD], sigChldHandler);
     auto lines = StringUtils::Split(output, "\n");
-    HILOG_DEBUG(LOG_CORE, "ExecuteCommand(%s): output %zuB, %zuLn", cmdline.c_str(), output.size(), lines.size());
+    HILOG_INFO(LOG_CORE, "ExecuteCommand(%s): output %zuB, %zuLn", cmdline.c_str(), output.size(), lines.size());
 
     int retval = GetProcessExitCode(pid);
 
     // close pipe fds
     CHECK_TRUE(close(pipeFds[RD]) != -1, -1, "close pipe[RD] failed, %d", errno);
-    HILOG_DEBUG(LOG_CORE, "ExecuteCommand(%s): exit with %d", cmdline.c_str(), retval);
+    if (retval != 0 && cmdline != "bytrace -l") {
+        HILOG_ERROR(LOG_CORE, "ExecuteCommand(%s): exit with %d, bytrace output is %s", cmdline.c_str(),
+            retval, output.c_str());
+    } else {
+        HILOG_INFO(LOG_CORE, "ExecuteCommand(%s): exit with %d", cmdline.c_str(), retval);
+    }
     return retval;
 }

@@ -13,9 +13,14 @@
  * limitations under the License.
  */
 #include "stack_preprocess.h"
+
 #include <unistd.h>
+
 #include "logging.h"
 #include "plugin_service_types.pb.h"
+
+static std::atomic<uint64_t> timeCost = 0;
+static std::atomic<uint64_t> unwindTimes = 0;
 
 constexpr uint32_t MAX_BUFFER_SIZE = 10 * 1024;
 constexpr uint32_t MAX_MATCH_CNT = 1000;
@@ -63,7 +68,7 @@ StackPreprocess::StackPreprocess(const StackDataRepeaterPtr& dataRepeater, Nativ
 
 StackPreprocess::~StackPreprocess()
 {
-    isStopTakeData_= true;
+    isStopTakeData_ = true;
     if (dataRepeater_) {
         dataRepeater_->Close();
     }
@@ -96,7 +101,7 @@ bool StackPreprocess::StopTakeResults()
     CHECK_NOTNULL(dataRepeater_, false, "data repeater null");
     CHECK_TRUE(thread_.get_id() != std::thread::id(), false, "thread invalid");
 
-    isStopTakeData_= true;
+    isStopTakeData_ = true;
     dataRepeater_->PutRawStack(nullptr);
     HILOG_INFO(LOG_CORE, "Wait thread join");
 
@@ -118,6 +123,7 @@ void StackPreprocess::TakeResults()
     minStackDepth += FILTER_STACK_DEPTH;
     HILOG_INFO(LOG_CORE, "TakeResults thread %d, start!", gettid());
     while (1) {
+        BatchNativeHookData stackData;
         RawStackPtr batchRawStack[MAX_BATCH_CNT] = {nullptr};
         auto result = dataRepeater_->TakeRawData(hookConfig_.malloc_free_matching_interval(),
             MAX_BATCH_CNT, batchRawStack);
@@ -142,9 +148,19 @@ void StackPreprocess::TakeResults()
                 HILOG_INFO(LOG_CORE, "eventCnts_ = %d quene size = %zu\n", eventCnts_, dataRepeater_->Size());
             }
 
+            std::vector<u64> u64regs;
             std::vector<CallFrame> callsFrames;
-            if (rawData->stackSize > 0) {
-                std::vector<u64> u64regs;
+
+            if (hookConfig_.fp_unwind()) {
+                for (int idx = 1; idx < MAX_UNWIND_DEPTH; ++idx) {
+                    if (rawData->stackConext.ip[idx] == 0) {
+                        break;
+                    }
+                    OHOS::Developtools::NativeDaemon::CallFrame frame(0);
+                    frame.ip_ = rawData->stackConext.ip[idx];
+                    callsFrames.push_back(frame);
+                }
+            } else {
                 int regCount = OHOS::Developtools::NativeDaemon::RegisterGetCount();
 #if defined(__arm__)
                 uint32_t *regAddrArm = reinterpret_cast<uint32_t *>(rawData->stackConext.regs);
@@ -199,6 +215,8 @@ void StackPreprocess::SetHookData(RawStackPtr rawStack,
         NativeHookData* hookData = batchNativeHookData.add_events();
         hookData->set_tv_sec(rawStack->stackConext.ts.tv_sec);
         hookData->set_tv_nsec(rawStack->stackConext.ts.tv_nsec);
+        // ignore the first two frame if dwarf unwind
+        size_t idx = hookConfig_.fp_unwind() ? 0 : FILTER_STACK_DEPTH;
 
         if (rawStack->stackConext.type == MALLOC_MSG) {
             AllocEvent* allocEvent = hookData->mutable_alloc_event();
@@ -210,7 +228,7 @@ void StackPreprocess::SetHookData(RawStackPtr rawStack,
             if (!name.empty()) {
                 allocEvent->set_thread_name_id(GetThreadIdx(name, batchNativeHookData));
             }
-            for (size_t idx = FILTER_STACK_DEPTH; idx < callsFrames.size(); ++idx) {
+            for (; idx < callsFrames.size(); ++idx) {
                 Frame* frame = allocEvent->add_frame_info();
                 SetFrameInfo(*frame, callsFrames[idx], batchNativeHookData);
             }
@@ -223,7 +241,7 @@ void StackPreprocess::SetHookData(RawStackPtr rawStack,
             if (!name.empty()) {
                 freeEvent->set_thread_name_id(GetThreadIdx(name, batchNativeHookData));
             }
-            for (size_t idx = FILTER_STACK_DEPTH; idx < callsFrames.size(); ++idx) {
+            for (; idx < callsFrames.size(); ++idx) {
                 Frame* frame = freeEvent->add_frame_info();
                 SetFrameInfo(*frame, callsFrames[idx], batchNativeHookData);
             }
@@ -237,7 +255,7 @@ void StackPreprocess::SetHookData(RawStackPtr rawStack,
             if (!name.empty()) {
                 mmapEvent->set_thread_name_id(GetThreadIdx(name, batchNativeHookData));
             }
-            for (size_t idx = FILTER_STACK_DEPTH; idx < callsFrames.size(); ++idx) {
+            for (; idx < callsFrames.size(); ++idx) {
                 Frame* frame = mmapEvent->add_frame_info();
                 SetFrameInfo(*frame, callsFrames[idx], batchNativeHookData);
             }
@@ -251,7 +269,7 @@ void StackPreprocess::SetHookData(RawStackPtr rawStack,
             if (!name.empty()) {
                 munmapEvent->set_thread_name_id(GetThreadIdx(name, batchNativeHookData));
             }
-            for (size_t idx = FILTER_STACK_DEPTH; idx < callsFrames.size(); ++idx) {
+            for (; idx < callsFrames.size(); ++idx) {
                 Frame* frame = munmapEvent->add_frame_info();
                 SetFrameInfo(*frame, callsFrames[idx], batchNativeHookData);
             }
@@ -313,7 +331,7 @@ void StackPreprocess::writeFrames(RawStackPtr rawStack, const std::vector<CallFr
         rawStack->stackConext.pid, rawStack->stackConext.tid, (int64_t)rawStack->stackConext.ts.tv_sec,
         rawStack->stackConext.ts.tv_nsec, (uint64_t)rawStack->stackConext.addr, rawStack->stackConext.mallocSize);
 
-    for (size_t idx = FILTER_STACK_DEPTH; idx < callsFrames.size(); ++idx) {
+    for (size_t idx = 0; idx < callsFrames.size(); ++idx) {
         (void)fprintf(fpHookData_.get(), "0x%" PRIx64 ";0x%" PRIx64 ";%s;%s;0x%" PRIx64 ";%" PRIu64 "\n",
             callsFrames[idx].ip_, callsFrames[idx].sp_, std::string(callsFrames[idx].symbolName_).c_str(),
             std::string(callsFrames[idx].filePath_).c_str(), callsFrames[idx].offset_, callsFrames[idx].symbolOffset_);

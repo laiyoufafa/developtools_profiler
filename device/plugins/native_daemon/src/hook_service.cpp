@@ -74,7 +74,7 @@ bool HookService::ProtocolProc(SocketContext &context, uint32_t pnum, const int8
                 processName_ = hookValue.substr(strlen("startup:"), hookValue.size());
             }
         }
-      
+
         // check if the pid and process name is consistency
         std::string findpid = "pidof " + processName_;
         HILOG_INFO(LOG_CORE, "find pid command : %s", findpid.c_str());

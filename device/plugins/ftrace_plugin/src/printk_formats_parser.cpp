@@ -47,7 +47,7 @@ std::string PrintkFormatsParser::GetSymbol(uint64_t addr)
     if (it != printkFormats_.end()) {
         return it->second;
     }
-    return "";
+    return "NULL";
 }
 
 bool PrintkFormatsParser::Parse(const std::string& printkFormats)

@@ -18,7 +18,7 @@ FTRACE_NS_BEGIN
 namespace {
 REGISTER_FTRACE_EVENT_PARSE_FUNCTION(
     mmc_request_done,
-    [] (FtraceEvent& ftraceEvent, uint8_t data[], size_t size, const EventFormat& format) {
+    [](FtraceEvent& ftraceEvent, uint8_t data[], size_t size, const EventFormat& format) {
         int i = 0;
         auto msg = ftraceEvent.mutable_mmc_request_done_format();
         msg->set_cmd_opcode(FtraceFieldParser::ParseIntField<uint32_t>(format.fields, i++, data, size));
@@ -48,7 +48,7 @@ REGISTER_FTRACE_EVENT_PARSE_FUNCTION(
 
 REGISTER_FTRACE_EVENT_PARSE_FUNCTION(
     mmc_request_start,
-    [] (FtraceEvent& ftraceEvent, uint8_t data[], size_t size, const EventFormat& format) {
+    [](FtraceEvent& ftraceEvent, uint8_t data[], size_t size, const EventFormat& format) {
         int i = 0;
         auto msg = ftraceEvent.mutable_mmc_request_start_format();
         msg->set_cmd_opcode(FtraceFieldParser::ParseIntField<uint32_t>(format.fields, i++, data, size));

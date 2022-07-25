@@ -21,7 +21,7 @@ option optimize_for = LITE_RUNTIME;
 // /sys/kernel/debug/tracing/events/raw_syscalls/sys_enter/format
 message SysEnterFormat {
     uint64 id = 1;
-    string args = 2;
+    repeated uint64 args = 2;
 }
 
 // /sys/kernel/debug/tracing/events/raw_syscalls/sys_exit/format

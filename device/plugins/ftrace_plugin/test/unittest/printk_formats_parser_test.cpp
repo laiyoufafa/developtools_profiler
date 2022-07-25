@@ -160,7 +160,7 @@ HWTEST_F(PrintkFormatsParserTest, PrintkFormatsParserFalse, TestSize.Level1)
     EXPECT_FALSE(PrintkFormatsParser::GetInstance().Parse(input));
 
     std::string symbol = PrintkFormatsParser::GetInstance().GetSymbol(0);
-    EXPECT_EQ(symbol, "");
+    EXPECT_EQ(symbol, "NULL");
 }
 
 /*

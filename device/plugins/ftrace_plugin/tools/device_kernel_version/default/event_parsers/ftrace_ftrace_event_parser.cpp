@@ -130,7 +130,11 @@ REGISTER_FTRACE_EVENT_PARSE_FUNCTION(
         int i = 0;
         auto msg = ftraceEvent.mutable_user_stack_format();
         msg->set_tgid(FtraceFieldParser::ParseIntField<uint32_t>(format.fields, i++, data, size));
-        msg->set_caller(FtraceFieldParser::ParseStrField(format.fields, i++, data, size));
+        std::vector<uint64_t> retvalVec =
+            FtraceFieldParser::ParseVectorIntField<uint64_t>(format.fields, i++, data, size);
+        for (size_t i = 0; i < retvalVec.size(); i++) {
+            msg->add_caller(retvalVec[i]);
+        }
     });
 
 REGISTER_FTRACE_EVENT_PARSE_FUNCTION(
