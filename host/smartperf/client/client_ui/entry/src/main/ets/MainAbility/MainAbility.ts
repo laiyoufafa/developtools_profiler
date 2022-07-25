@@ -18,13 +18,13 @@ import { initDb } from '../common/database/LocalRepository'
 import { FloatWindowFun } from '../common/ui/floatwindow/FloatWindowFun'
 import { NetWork } from '../common/profiler/item/NetWork';
 import BundleManager from '../common/utils/BundleMangerUtils';
-import WorkHandler from '../common/profiler/WorkerHandler';
-import worker from '@ohos.worker'; // 导入worker模块
+import WorkerHandler from '../common/profiler/WorkerHandler';
+import worker from '@ohos.worker'; 
 
 let MainWorker = new worker.Worker("/entry/ets/workers/worker.js")
 
 MainWorker.onmessage = function (result) {
-    WorkHandler.socketHandler(result)
+    WorkerHandler.socketHandler(result)
 }
 
 var abilityWindowStage

@@ -16,12 +16,12 @@ import { createGPData, extractNumber } from '../base/BaseProfilerUtils';
 import { BaseProfiler } from '../base/BaseProfiler'
 import { CollectorType } from '../base/ProfilerConstant'
 import { SocketProfiler} from '../base/SocketProfiler'
-import worker from '@ohos.worker'; // 导入worker模块
-import WorkHandler from '../WorkerHandler';
+import worker from '@ohos.worker'; 
+import WorkerHandler from '../WorkerHandler';
 let MainWorker = new worker.Worker("/entry/ets/workers/worker.js")
 
 MainWorker.onmessage = function (result) {
-  WorkHandler.socketHandler(result)
+  WorkerHandler.socketHandler(result)
 }
 
 export class RAM extends BaseProfiler implements SocketProfiler{

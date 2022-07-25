@@ -1,5 +1,5 @@
 import { CatchTraceStatus } from './base/ProfilerConstant'
-export default class WorkHandler{
+export default class WorkerHandler{
 
    static socketHandler(result){
       let arr = result.data.split("$")

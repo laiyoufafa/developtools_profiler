@@ -16,12 +16,12 @@ import { secToTime } from '../common/utils/TimeUtils';
 import { TaskStatus }  from '../common/profiler/base/ProfilerConstant';
 import { ProfilerTask } from "../common/profiler/ProfilerTask"
 import { initFloatWindow,destoryAllFloatWindow } from '../common/ui/floatwindow/utils/FloatWindowUtils'
-import worker from '@ohos.worker'; // 导入worker模块
-import WorkHandler from '../WorkerHandler';
+import WorkerHandler from '../common/profiler/WorkerHandler';
+import worker from '@ohos.worker'; 
 let MainWorker = new worker.Worker("/entry/ets/workers/worker.js")
 
 MainWorker.onmessage = function (result) {
-  WorkHandler.socketHandler(result)
+    WorkerHandler.socketHandler(result)
 }
 @Entry
 @Component
