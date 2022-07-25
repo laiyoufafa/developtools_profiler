@@ -16,8 +16,15 @@ import { createGPData, extractNumber } from '../base/BaseProfilerUtils';
 import { BaseProfiler } from '../base/BaseProfiler'
 import { CollectorType } from '../base/ProfilerConstant'
 import { SocketProfiler } from '../base/SocketProfiler'
-import { MainWorker } from '../MainWorkProfiler'
 import SPLogger from '../../../common/utils/SPLogger'
+
+import worker from '@ohos.worker'; // 导入worker模块
+import WorkHandler from '../WorkerHandler';
+let MainWorker = new worker.Worker("/entry/ets/workers/worker.js")
+
+MainWorker.onmessage = function (result) {
+  WorkHandler.socketHandler(result)
+}
 
 export class FPS extends BaseProfiler implements SocketProfiler {
   private fpsMap: Map<String, String> = new Map
