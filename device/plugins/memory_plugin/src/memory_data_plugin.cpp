@@ -491,7 +491,7 @@ std::string MemoryDataPlugin::ReadFile(const std::string& path)
         if (nBytes <= 0) {
             break;
         }
-        count += static_cast<size_t>nBytes;
+        count += static_cast<size_t>(nBytes);
     }
     content.resize(count);
     CHECK_TRUE(close(fd) != -1, content, "close %s failed, %d", path.c_str(), errno);
