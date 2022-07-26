@@ -14,13 +14,10 @@
  */
 
 #include "unix_socket_client.h"
-
-#include <cstdio>
-#include <pthread.h>
+#include <cstdint>
 #include <sys/socket.h>
 #include <unistd.h>
 #include <linux/un.h>
-
 #include "logging.h"
 #include "securec.h"
 #include "service_base.h"

@@ -17,6 +17,7 @@
 
 #include "hook_common.h"
 #include "unix_socket_client.h"
+#include "logging.h"
 
 namespace {
 const int MOVE_BIT_8 = 8;

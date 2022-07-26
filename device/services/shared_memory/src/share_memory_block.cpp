@@ -18,11 +18,8 @@
 #include <cstring>
 #include <fcntl.h>
 #include <sys/mman.h>
-#include <sys/socket.h>
 #include <sys/syscall.h>
-#include <sys/un.h>
 #include <unistd.h>
-
 #include "logging.h"
 #include "securec.h"
 

@@ -13,14 +13,11 @@
  * limitations under the License.
  */
 
-#include "stack_writer.h"
+#include <cinttypes>
+#include <unistd.h>
 #include "logging.h"
 #include "share_memory_allocator.h"
-
-#include <algorithm>
-#include <cinttypes>
-#include <thread>
-#include <unistd.h>
+#include "stack_writer.h"
 
 StackWriter::StackWriter(std::string name,
                          uint32_t size,
@@ -34,7 +31,6 @@ StackWriter::StackWriter(std::string name,
         HILOG_DEBUG(LOG_CORE, "%s:create shareMemoryBlock_ failed!", __func__);
     }
     eventNotifier_ = EventNotifier::CreateWithFd(eventFd);
-
     lastFlushTime_ = std::chrono::steady_clock::now();
 }
 

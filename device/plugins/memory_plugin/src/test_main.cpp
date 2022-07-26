@@ -17,7 +17,6 @@
 #include <cstdlib>
 #include <cstring>
 #include <vector>
-
 #include "logging.h"
 
 #pragma clang optimize off

@@ -20,6 +20,7 @@
 #include <sys/syscall.h>
 
 #include "stack_writer.h"
+#include "logging.h"
 
 using namespace testing::ext;
 

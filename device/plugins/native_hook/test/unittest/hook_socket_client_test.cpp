@@ -22,6 +22,7 @@
 #include "plugin_service.ipc.h"
 #include "service_entry.h"
 #include "socket_context.h"
+#include "logging.h"
 
 using namespace testing::ext;
 

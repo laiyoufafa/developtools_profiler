@@ -16,7 +16,6 @@
 #include "command_param.h"
 #include <algorithm>
 #include <list>
-#include <map>
 
 void CommandParam::AddFilter(const std::string& filterName)
 {
