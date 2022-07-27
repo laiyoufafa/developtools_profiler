@@ -16,8 +16,13 @@ import { secToTime } from '../common/utils/TimeUtils';
 import { TaskStatus }  from '../common/profiler/base/ProfilerConstant';
 import { ProfilerTask } from "../common/profiler/ProfilerTask"
 import { initFloatWindow,destoryAllFloatWindow } from '../common/ui/floatwindow/utils/FloatWindowUtils'
-import { MainWorker } from '../common/profiler/MainWorkProfiler'
+import WorkerHandler from '../common/profiler/WorkerHandler';
+import worker from '@ohos.worker'; 
+let MainWorker = new worker.Worker("/entry/ets/workers/worker.js")
 
+MainWorker.onmessage = function (result) {
+    WorkerHandler.socketHandler(result)
+}
 @Entry
 @Component
 struct FloatBall {

@@ -16,7 +16,13 @@ import { createGPData, extractNumber } from '../base/BaseProfilerUtils';
 import { BaseProfiler } from '../base/BaseProfiler'
 import { CollectorType } from '../base/ProfilerConstant'
 import { SocketProfiler} from '../base/SocketProfiler'
-import { MainWorker } from '../MainWorkProfiler'
+import worker from '@ohos.worker'; 
+import WorkerHandler from '../WorkerHandler';
+let MainWorker = new worker.Worker("/entry/ets/workers/worker.js")
+
+MainWorker.onmessage = function (result) {
+  WorkerHandler.socketHandler(result)
+}
 
 export class RAM extends BaseProfiler implements SocketProfiler{
   private ramMap: Map<String, String> = new Map
@@ -53,5 +59,6 @@ export class RAM extends BaseProfiler implements SocketProfiler{
       let curRAM = ramQueue.pop()
       this.ramMap.set("pss", extractNumber(curRAM))
     }
+    MainWorker.terminate()
   }
 }
