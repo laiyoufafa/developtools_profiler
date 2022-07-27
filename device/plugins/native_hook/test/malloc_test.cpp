@@ -24,7 +24,9 @@
 #include <sys/types.h>
 #include <ctime>
 #include <unistd.h>
+#ifdef HOOK_ENABLE
 #include "memory_tag.h"
+#endif
 #include "securec.h"
 #pragma clang optimize off
 
@@ -279,8 +281,10 @@ static char* CreateMmap(void)
 
     char* pMap = (char*)mmap(nullptr, PAGE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, g_fd, 0);
 
+#ifdef HOOK_ENABLE
     const char *tag = "memtesttag";
-    MEM_TYPESET(pMap, PAGE_SIZE, tag, strlen(tag)+1);
+    MEM_TYPESET(pMap, PAGE_SIZE, tag, strlen(tag) + 1);
+#endif
     if (pMap == MAP_FAILED) {
         printf("mmap fail\n");
         CloseFile();

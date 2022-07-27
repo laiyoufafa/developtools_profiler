@@ -233,7 +233,7 @@ void MemoryDataPlugin::WriteZramData(MemoryData& data)
             std::string file = path + "/mm_stat";
             auto fptr = std::unique_ptr<FILE, decltype(&fclose)>{fopen(file.c_str(), "rb"), fclose};
             if (fptr != nullptr) {
-                int ret = fscanf_s(fptr.get(), "%*" PRIu64 " %*" PRIu64 " %" PRIu64, &zramValue, sizeof(uint64_t));
+                int ret = fscanf_s(fptr.get(), "%*" PRIu64 " %*" PRIu64 " %" PRIu64, &zramValue);
                 if (ret != 1) {
                     file = path + "/mem_used_total";
                     std::string content = ReadFile(file);
