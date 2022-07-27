@@ -283,9 +283,8 @@ static char* CreateMmap(void)
 
 #ifdef HOOK_ENABLE
     const char *tag = "memtesttag";
-    MEM_TYPESET(pMap, PAGE_SIZE, tag, strlen(tag)+1);
+    MEM_TYPESET(pMap, PAGE_SIZE, tag, strlen(tag) + 1);
 #endif
-    MEM_TYPESET(pMap, PAGE_SIZE, tag, strlen(tag)+1);
     if (pMap == MAP_FAILED) {
         printf("mmap fail\n");
         CloseFile();
