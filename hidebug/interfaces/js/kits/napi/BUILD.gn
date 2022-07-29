@@ -20,7 +20,6 @@ config("napi_hidebug_config") {
 
   include_dirs = [
     ".",
-    "include/",
     "//utils/native/base/include",
     "//third_party/node/src",
     "//foundation/arkui/napi",
