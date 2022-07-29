@@ -185,15 +185,15 @@ void StackPreprocess::TakeResults()
                 stackDepth = minStackDepth;
             }
             bool ret = runtime_instance->UnwindStack(u64regs, rawData->stackData.get(), rawData->stackSize,
-                                            rawData->stackConext.pid, rawData->stackConext.tid, callsFrames,
-                                            stackDepth);
-
+                rawData->stackConext.pid, rawData->stackConext.tid, callsFrames,
+                stackDepth);
             if (!ret && !unwindErrorFlag_) {
                 HILOG_ERROR(LOG_CORE, "unwind error, try unwind twice");
                 runtime_instance = nullptr;
                 runtime_instance = std::make_shared<VirtualRuntime>();
                 callsFrames.clear();
-                ret = runtime_instance->UnwindStack(u64regs, rawData->stackData.get(), rawData->stackSize, rawData->stackConext.pid,
+                ret = runtime_instance->UnwindStack(u64regs, rawData->stackData.get(),
+                    rawData->stackSize, rawData->stackConext.pid,
                     rawData->stackConext.tid, callsFrames,
                     stackDepth);
                 if (!ret) {
@@ -204,7 +204,8 @@ void StackPreprocess::TakeResults()
 #ifdef PERFORMANCE_DEBUG
                 struct timespec twiceEnd = {};
                 clock_gettime(CLOCK_REALTIME, &twiceEnd);
-                uint64_t diff = (twiceEnd.tv_sec - start.tv_sec) * 1000 * 1000 * 1000 + (twiceEnd.tv_nsec - start.tv_nsec);
+                uint64_t diff = (twiceEnd.tv_sec - start.tv_sec) * 1000 * 1000 * 1000 +
+                    (twiceEnd.tv_nsec - start.tv_nsec);
                 HILOG_ERROR(LOG_CORE, "unwind twice cost time = %" PRIu64"\n", diff);
 #endif
             }
