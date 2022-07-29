@@ -22,7 +22,7 @@
 static std::atomic<uint64_t> timeCost = 0;
 static std::atomic<uint64_t> unwindTimes = 0;
 
-constexpr uint32_t MAX_BUFFER_SIZE = 10 * 1024;
+constexpr uint32_t MAX_BUFFER_SIZE = 50 * 1024;
 constexpr uint32_t MAX_MATCH_CNT = 1000;
 constexpr uint32_t MAX_MATCH_INTERVAL = 2000;
 constexpr uint32_t LOG_PRINT_TIMES = 10000;

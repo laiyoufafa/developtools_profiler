@@ -133,7 +133,7 @@ void* thread_func_cpp_hook(void* param)
     std::string name = "thread";
     name = name + std::to_string(times);
     prctl(PR_SET_NAME, name.c_str());
-    constexpr int timeBase = 100;
+    constexpr int timeBase = 1000;
     void* handle = nullptr;
     DepthMallocSo mallocFunc = DepthMalloc;
     DepthFreeSo freeFunc = DepthFree;
