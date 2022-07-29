@@ -173,36 +173,73 @@ void StackPreprocess::TakeResults()
                     u64regs.push_back(*regAddrAarch64++);
                 }
 #endif
-                size_t stackDepth = (hookConfig_.max_stack_depth() > 0)
-                    ? hookConfig_.max_stack_depth() + FILTER_STACK_DEPTH
-                    : MAX_CALL_FRAME_UNWIND_SIZE;
-                if (rawData->reduceStackFlag) {
-                    stackDepth = minStackDepth;
-                }
-                runtime_instance->UnwindStack(u64regs, rawData->stackData.get(), rawData->stackSize,
-                                              rawData->stackConext.pid, rawData->stackConext.tid, callsFrames,
-                                              stackDepth);
             }
+#ifdef PERFORMANCE_DEBUG
+            struct timespec start = {};
+            clock_gettime(CLOCK_REALTIME, &start);
+#endif
+            size_t stackDepth = (hookConfig_.max_stack_depth() > 0)
+                        ? hookConfig_.max_stack_depth() + FILTER_STACK_DEPTH
+                        : MAX_CALL_FRAME_UNWIND_SIZE;
+            if (rawData->reduceStackFlag) {
+                stackDepth = minStackDepth;
+            }
+            bool ret = runtime_instance->UnwindStack(u64regs, rawData->stackData.get(), rawData->stackSize,
+                                            rawData->stackConext.pid, rawData->stackConext.tid, callsFrames,
+                                            stackDepth);
+
+            if (!ret && !unwindErrorFlag_) {
+                HILOG_ERROR(LOG_CORE, "unwind error, try unwind twice");
+                runtime_instance = nullptr;
+                runtime_instance = std::make_shared<VirtualRuntime>();
+                callsFrames.clear();
+                ret = runtime_instance->UnwindStack(u64regs, rawData->stackData.get(), rawData->stackSize, rawData->stackConext.pid,
+                    rawData->stackConext.tid, callsFrames,
+                    stackDepth);
+                if (!ret) {
+                    unwindErrorFlag_ = true;
+                    HILOG_ERROR(LOG_CORE, "unwind fatal error, do not try unwind twice!");
+                    continue;
+                }
+#ifdef PERFORMANCE_DEBUG
+                struct timespec twiceEnd = {};
+                clock_gettime(CLOCK_REALTIME, &twiceEnd);
+                uint64_t diff = (twiceEnd.tv_sec - start.tv_sec) * 1000 * 1000 * 1000 + (twiceEnd.tv_nsec - start.tv_nsec);
+                HILOG_ERROR(LOG_CORE, "unwind twice cost time = %" PRIu64"\n", diff);
+#endif
+            }
+
+#ifdef PERFORMANCE_DEBUG
+            struct timespec end = {};
+            clock_gettime(CLOCK_REALTIME, &end);
+            timeCost += (end.tv_sec - start.tv_sec) * 1000 * 1000 * 1000 + (end.tv_nsec - start.tv_nsec);
+            unwindTimes++;
+            if (unwindTimes % LOG_PRINT_TIMES == 0) {
+                HILOG_ERROR(LOG_CORE, "unwindTimes %" PRIu64" cost time = %" PRIu64" mean cost = %" PRIu64"\n",
+                    unwindTimes.load(), timeCost.load(), timeCost.load() / unwindTimes.load());
+            }
+#endif
             if (hookConfig_.save_file() && hookConfig_.file_name() != "") {
                 writeFrames(rawData, callsFrames);
             } else if (!hookConfig_.save_file()) {
-                BatchNativeHookData stackData;
                 SetHookData(rawData, callsFrames, stackData);
-                size_t length = stackData.ByteSizeLong();
-                if (length < MAX_BUFFER_SIZE) {
-                    stackData.SerializeToArray(buffer_.get(), length);
-                    ProfilerPluginData pluginData;
-                    pluginData.set_name("nativehook");
-                    pluginData.set_status(0);
-                    pluginData.set_data(buffer_.get(), length);
-                    struct timespec ts;
-                    clock_gettime(CLOCK_REALTIME, &ts);
-                    pluginData.set_clock_id(ProfilerPluginData::CLOCKID_REALTIME);
-                    pluginData.set_tv_sec(ts.tv_sec);
-                    pluginData.set_tv_nsec(ts.tv_nsec);
-                    writer_->WriteMessage(pluginData, "nativehook");
-                    writer_->Flush();
-                }
+            }
+        }
+        if (stackData.events().size() > 0) {
+            size_t length = stackData.ByteSizeLong();
+            if (length < MAX_BUFFER_SIZE) {
+                stackData.SerializeToArray(buffer_.get(), length);
+                ProfilerPluginData pluginData;
+                pluginData.set_name("nativehook");
+                pluginData.set_status(0);
+                pluginData.set_data(buffer_.get(), length);
+                struct timespec ts;
+                clock_gettime(CLOCK_REALTIME, &ts);
+                pluginData.set_clock_id(ProfilerPluginData::CLOCKID_REALTIME);
+                pluginData.set_tv_sec(ts.tv_sec);
+                pluginData.set_tv_nsec(ts.tv_nsec);
+                writer_->WriteMessage(pluginData, "nativehook");
+                writer_->Flush();
             }
         }
     }
