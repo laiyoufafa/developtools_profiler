@@ -139,7 +139,7 @@ void* thread_func_cpp_hook(void* param)
     DepthFreeSo freeFunc = DepthFree;
 
     while (idx < times) {
-        if (idx == DLOPEN_TRIGGER) {
+        if (idx == static_cast<int>(DLOPEN_TRIGGER)) {
             printf("dlopen!!!\n");
             handle = dlopen(SO_PATH, RTLD_LAZY);
             if (handle == nullptr) {
