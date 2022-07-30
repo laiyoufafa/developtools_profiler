@@ -39,7 +39,7 @@
         "hilog_native",
         "napi",
         "samgr_standard",
-        "utils_base"
+        "c_utils"
       ],
       "third_party": [
         "googletest",

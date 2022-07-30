@@ -34,7 +34,7 @@ ohos_fuzztest("hiprofiler_ts_bytrace_fuzz_test") {
     "../../../src/cfg",
     "../../../src/parser/htrace_parser",
     "../../../src/parser/htrace_parser/htrace_event_parser",
-    "//utils/native/base/include",
+    "//commonlibrary/c_utils/base/include",
     "//third_party/bounds_checking_function/include",
     "../../../src/parser/htrace_parser/htrace_cpu_parser",
     "//third_party/sqlite/include",

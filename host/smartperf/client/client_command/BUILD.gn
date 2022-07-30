@@ -48,13 +48,12 @@ ohos_executable("SP_daemon") {
   ]
   include_dirs = [
     "//developtools/profiler/host/smartperf/client/client_command/include",
-    "//utils/native/base/include",
+    "//commonlibrary/c_utils/base/include",
   ]
   configs = [ ":config" ]
 
-  deps = [ "//utils/native/base:utils" ]
-
   subsystem_name = "${OHOS_PROFILER_SUBSYS_NAME}"
   part_name = "${OHOS_PROFILER_PART_NAME}"
+  external_deps = [ "c_utils:utils" ]
 }
 ## Build so }}}

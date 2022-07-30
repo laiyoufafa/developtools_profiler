@@ -28,7 +28,7 @@ ohos_source_set("ftrace_event_formatters") {
     "${OHOS_PROFILER_DIR}/device/plugins/ftrace_plugin/tools/trace_converter/include/linux",
     "${OHOS_PROFILER_DIR}/device/plugins/ftrace_plugin/tools/trace_converter/include/trace",
     "${OHOS_PROFILER_DIR}/device/base/include",
-    "//utils/native/base/include",
+    "//commonlibrary/c_utils/base/include",
   ]
   deps = [
     "${OHOS_PROFILER_3RDPARTY_PROTOBUF_DIR}:protobuf",
@@ -48,7 +48,7 @@ ohos_source_set("ftrace_event_formatters") {
   } else {
     public_configs = [
       "${OHOS_PROFILER_DIR}/device/plugins/ftrace_plugin/tools/trace_converter:trace_converter_inner_config",
-      "//utils/native/base:utils_config",
+      "//commonlibrary/c_utils/base:utils_config",
     ]
   }
   subsystem_name = "${OHOS_PROFILER_SUBSYS_NAME}"

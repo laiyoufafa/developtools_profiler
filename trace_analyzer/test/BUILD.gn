@@ -73,7 +73,7 @@ ohos_unittest("hiprofiler_ts_ut") {
     "../src/parser/htrace_parser/htrace_cpu_parser",
     "..",
     "//third_party/googletest/googletest/include/gtest",
-    "//utils/native/base/include",
+    "//commonlibrary/c_utils/base/include",
     "//third_party/bounds_checking_function/include",
     "//third_party/protobuf/src",
     "${OHOS_PROTO_GEN}",
