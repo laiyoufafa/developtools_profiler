@@ -51,6 +51,7 @@ private:
     std::thread thread_ {};
     std::unique_ptr<uint8_t[]> buffer_;
     bool isStopTakeData_ = false;
+    bool unwindErrorFlag_ = false;
     std::shared_ptr<OHOS::Developtools::NativeDaemon::VirtualRuntime> runtime_instance;
     DISALLOW_COPY_AND_MOVE(StackPreprocess);
     std::unordered_map<std::string, uint32_t> functionMap_;

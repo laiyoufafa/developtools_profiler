@@ -170,12 +170,6 @@ HWTEST_F(VirtualRuntimeTest, GetSymbol, TestSize.Level1)
     symbol = runtime_->GetSymbol(0u, testTid, testTid);
     EXPECT_EQ(symbol.isValid(), false);
 
-    symbol = runtime_->GetSymbol(testKernelVaddr, testTid, testTid);
-    // in kernel
-    EXPECT_EQ(symbol.isValid(), true);
-    EXPECT_EQ(symbol.funcVaddr_, testKernelVaddr);
-    EXPECT_STREQ(symbol.name_.data(), "first_kernel_func");
-
     symbol = runtime_->GetSymbol(testUserVaddr + testUserMapBegin, testTid, testTid);
     // in user
     EXPECT_EQ(symbol.isValid(), true);

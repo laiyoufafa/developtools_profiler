@@ -21,6 +21,7 @@
 
 #define MAX_THREAD_NAME (16)
 #define MAX_UNWIND_DEPTH (30)
+
 namespace OHOS {
 namespace Developtools {
 namespace NativeDaemon {
