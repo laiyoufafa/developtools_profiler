@@ -161,6 +161,8 @@ class EventParserCodeGenerator(FtraceEventCodeGenerator):
         parse_func = None
         if type_info.tid == ProtoType.STRING:
             parse_func = 'ParseStrField'
+        elif type_info.tid == ProtoType.ARRAY:
+            parse_func = 'ParseVectorIntField'
         elif type_info.tid == ProtoType.INTEGER:
             assert type_info.size in [4, 8]
             c_type = None
@@ -173,8 +175,14 @@ class EventParserCodeGenerator(FtraceEventCodeGenerator):
             logger.warning('WARNING: unkown proto type:{} {}'.format(
                 event.name, field_name))
         assert parse_func
-        f.write('    msg->set_{}(FtraceFieldParser::'.format(field_name))
-        f.write('{}(format.fields, i++, data, size));\n'.format(parse_func))
+        if (type_info.tid == ProtoType.ARRAY):
+            f.write('    std::vector<uint64_t> retvalVec = FtraceFieldParser::ParseVectorIntField<uint64_t>(format.fields, i++, data, size);')
+            f.write('    for (size_t i = 0; i < retvalVec.size(); i++) {')
+            f.write('    msg->add_{}(retvalVec[i]);'.format(field_name))
+            f.write('    }')
+        else:
+            f.write('    msg->set_{}(FtraceFieldParser::'.format(field_name))
+            f.write('{}(format.fields, i++, data, size));\n'.format(parse_func))
 
 
 class EventFormatterCodeGenerator(FtraceEventCodeGenerator):
@@ -315,8 +323,6 @@ class EventFormatterCodeGenerator(FtraceEventCodeGenerator):
                 event.print_fmt = "\"branch: %u:%s:%s (%u)%s\", msg.line(), msg.func().c_str(), msg.file().c_str(), msg.correct(), msg.constant() ? \" CONSTANT\" : \"\""
             elif (event.name == "kernel_stack"):
                 event.print_fmt = "\"kernel_stack: size=%d, caller=%\" PRIu64 \"\", msg.size(), msg.caller()"
-            elif (event.name == "user_stack"):
-                event.print_fmt = "\"user_stack: tgid=%d, caller=%s\", msg.tgid(), msg.caller().c_str()"
             elif (event.name == "mm_lru_activate") | (event.name == "mm_lru_insertion") :
                 event.print_fmt = str.replace(event.print_fmt, "page=%p pfn=%lu", "page=%\" PRIu64 \" pfn=%\" PRIu64 \"")
             elif (event.name == "sched_stick_numa"):
@@ -356,9 +362,7 @@ class EventFormatterCodeGenerator(FtraceEventCodeGenerator):
                 event.print_fmt = str.replace(event.print_fmt, "REC->errno", "msg.error_code()")
                 event.print_fmt = str.replace(event.print_fmt, "REC->sa_handler", "msg.sig_handler()")
                 event.print_fmt = str.replace(event.print_fmt, "REC->sa_flags", "msg.sig_flags()")
-            elif (event.name == "sys_enter"):
-                event.print_fmt = "\"sys_enter: NR %\" PRIu64 \"(%s))\", msg.id(), msg.args().c_str()"
-            elif (event.name == "sys_exit"):
+            elif (event.name == "sys_enter") | (event.name == "sys_exit"):
                 event.print_fmt = str.replace(event.print_fmt, "%ld", "%\" PRIu64 \"")
             elif (event.name == "oom_score_adj_update"):
                 event.print_fmt = str.replace(event.print_fmt, "oom_score_adj=%hd", "oom_score_adj=%\" PRId32 \"")

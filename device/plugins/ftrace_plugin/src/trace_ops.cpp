@@ -120,6 +120,7 @@ bool TraceOps::EnableCategories(const std::vector<std::string>& categories, int 
 
     int retval = ExecuteCommand();
     HILOG_INFO(LOG_CORE, "exec %s exit %d!", bin_.c_str(), retval);
+    CHECK_TRUE(retval == 0, false, "exec %s failed with %d", bin_.c_str(), retval);
     return true;
 }
 
@@ -132,6 +133,7 @@ bool TraceOps::DisableCategories()
     HILOG_INFO(LOG_CORE, "exec %s exit %d!", bin_.c_str(), retval);
 
     targetCategories_.clear();
+    CHECK_TRUE(retval == 0, false, "exec %s failed with %d", bin_.c_str(), retval);
     return true;
 }
 

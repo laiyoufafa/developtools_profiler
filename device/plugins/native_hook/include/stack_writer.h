@@ -20,9 +20,9 @@
 #include <atomic>
 #include <chrono>
 #include <memory>
+#include <string>
 #include "event_notifier.h"
-
-#include "share_memory_allocator.h"
+#include "share_memory_block.h"
 #include "writer.h"
 
 class StackWriter : public Writer {

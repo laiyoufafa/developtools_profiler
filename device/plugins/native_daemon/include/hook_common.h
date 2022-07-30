@@ -20,6 +20,8 @@
 #include "utilities.h"
 
 #define MAX_THREAD_NAME (16)
+#define MAX_UNWIND_DEPTH (30)
+
 namespace OHOS {
 namespace Developtools {
 namespace NativeDaemon {
@@ -38,6 +40,7 @@ enum {
     MMAPDISABLE = (1u << 1),
     FREEMSGSTACK = (1u << 2),
     MUNMAPMSGSTACK = (1u << 3),
+    FPUNWIND = (1u << 4),
 };
 
 enum {
@@ -49,7 +52,10 @@ enum {
 };
 
 typedef struct alignas(8) {
-    char regs[kMaxRegSize];
+    union {
+        char regs[kMaxRegSize];
+        uint64_t ip[MAX_UNWIND_DEPTH];
+    };
     char tname[MAX_THREAD_NAME];
     struct timespec ts;
     void* addr;

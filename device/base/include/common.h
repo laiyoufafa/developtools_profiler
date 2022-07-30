@@ -15,7 +15,8 @@
 #ifndef COMMON_H
 #define COMMON_H
 
-#include "logging.h"
+#include <string>
+#include <vector>
 
 namespace COMMON {
 bool IsProcessRunning(); // add file lock, only one process can run

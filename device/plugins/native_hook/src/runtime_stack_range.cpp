@@ -15,18 +15,15 @@
 
 #include "runtime_stack_range.h"
 
-#include <pthread.h>
-#include <sys/types.h>
-#include <unistd.h>
-
 #include <cassert>
 #include <csignal>
 #include <cstdio>
-#include <cstdlib>
 #include <cstring>
 #include <iostream>
+#include <pthread.h>
 #include <string>
-
+#include <sys/types.h>
+#include <unistd.h>
 #include "get_thread_id.h"
 
 namespace {

@@ -29,7 +29,6 @@ ohos_unittest("hiperfplugin_ut") {
     "${OHOS_PROFILER_DIR}/device/plugins/hiperf_plugin:hiperfplugin",
     "${OHOS_PROFILER_DIR}/protos/types/plugins/hiperf_data:hiperf_data_cpp",
     "//third_party/googletest:gtest_main",
-    "//utils/native/base:utils",
   ]
   include_dirs = [
     "${OHOS_PROFILER_DIR}/device/plugins/hiperf_plugin/include",
@@ -37,13 +36,16 @@ ohos_unittest("hiperfplugin_ut") {
     "${OHOS_PROFILER_DIR}/interfaces/kits",
     "${OHOS_PROFILER_DIR}/device/base/include",
     "//third_party/googletest/googletest/include/gtest",
-    "//utils/native/base/include",
+    "//commonlibrary/c_utils/base/include",
   ]
   cflags = [
     "-Wno-inconsistent-missing-override",
     "-Dprivate=public",  #allow test code access private members
   ]
-  external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
+  external_deps = [
+    "c_utils:utils",
+    "hiviewdfx_hilog_native:libhilog",
+  ]
   configs = [ ":module_private_config" ]
   subsystem_name = "${OHOS_PROFILER_SUBSYS_NAME}"
   part_name = "${OHOS_PROFILER_PART_NAME}"

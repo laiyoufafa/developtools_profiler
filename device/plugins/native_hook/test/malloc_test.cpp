@@ -15,14 +15,14 @@
 
 #include <fcntl.h>
 #include <pthread.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdio>
+#include <cstdlib>
+#include <string>
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <sys/syscall.h>
 #include <sys/types.h>
-#include <time.h>
+#include <ctime>
 #include <unistd.h>
 #ifdef HOOK_ENABLE
 #include "memory_tag.h"
@@ -54,13 +54,13 @@ static int g_fd = -1;
 static int g_runing = 1;
 static int g_threadNum = 1;
 static int g_mallocSize = 1;
-static char* g_fileName = "./mmapTest";
+static const char* g_fileName = "./mmapTest";
 static unsigned int g_hook_flag = 0;
 
-char* DepthMalloc(int depth, int mallocSize)
+static char* DepthMalloc(int depth, int mallocSize)
 {
     if (mallocSize <= 0) {
-        return NULL;
+        return nullptr;
     }
     StaticSpace staticeData;
     if (depth == 0) {
@@ -70,7 +70,7 @@ char* DepthMalloc(int depth, int mallocSize)
     return (DepthMalloc(depth - 1, mallocSize));
 }
 
-char* DepthCalloc(int depth, int callocSize)
+static char* DepthCalloc(int depth, int callocSize)
 {
     StaticSpace staticeData;
     if (depth == 0) {
@@ -80,7 +80,7 @@ char* DepthCalloc(int depth, int callocSize)
     return (DepthCalloc(depth - 1, callocSize));
 }
 
-char* DepthRealloc(int depth, void* p, int reallocSize)
+static char* DepthRealloc(int depth, void* p, int reallocSize)
 {
     StaticSpace staticeData;
     if (depth == 0) {
@@ -90,7 +90,7 @@ char* DepthRealloc(int depth, void* p, int reallocSize)
     return (DepthRealloc(depth - 1, p, reallocSize));
 }
 
-void DepthFree(int depth, void* p)
+static void DepthFree(int depth, void* p)
 {
     StaticSpace staticeData;
     if (depth == 0) {
@@ -101,7 +101,7 @@ void DepthFree(int depth, void* p)
     return (DepthFree(depth - 1, p));
 }
 
-void ApplyForMalloc(int mallocSize)
+static void ApplyForMalloc(int mallocSize)
 {
     printf("\nstart malloc apply (size = %d)\n", mallocSize);
     clock_t timerStart, timerStop;
@@ -113,20 +113,20 @@ void ApplyForMalloc(int mallocSize)
         printf("malloc failure\n");
         return;
     }
-    duration += (double)(timerStop - timerStart) / CLOCKS_PER_SEC;
-    g_mallocDuration += (double)(timerStop - timerStart) / CLOCKS_PER_SEC;
+    duration += static_cast<double>(timerStop - timerStart) / CLOCKS_PER_SEC;
+    g_mallocDuration += static_cast<double>(timerStop - timerStart) / CLOCKS_PER_SEC;
     printf("malloc success, malloc (%d) time is %f\n", mallocSize, duration);
     printf("\nReady for free -- ");
     timerStart = clock();
     DepthFree(STATIC_DEPTH, p);
     timerStop = clock();
-    duration += (double)(timerStop - timerStart) / CLOCKS_PER_SEC;
-    g_freeDuration += (double)(timerStop - timerStart) / CLOCKS_PER_SEC;
-    printf("free success, free time is %f\n", (double)(timerStop - timerStart) / CLOCKS_PER_SEC);
+    duration += static_cast<double>(timerStop - timerStart) / CLOCKS_PER_SEC;
+    g_freeDuration += static_cast<double>(timerStop - timerStart) / CLOCKS_PER_SEC;
+    printf("free success, free time is %f\n", static_cast<double>(timerStop - timerStart) / CLOCKS_PER_SEC);
     printf("malloc apply success, total time is %f\n", duration);
 }
 
-void ApplyForCalloc(int mallocSize)
+static void ApplyForCalloc(int mallocSize)
 {
     int callocSize = mallocSize / sizeof(char);
     printf("\nstart calloc apply (size = %d)\n", callocSize);
@@ -139,20 +139,20 @@ void ApplyForCalloc(int mallocSize)
         printf("calloc failure\n");
         return;
     }
-    duration += (double)(timerStop - timerStart) / CLOCKS_PER_SEC;
-    g_callocDuration += (double)(timerStop - timerStart) / CLOCKS_PER_SEC;
+    duration += static_cast<double>(timerStop - timerStart) / CLOCKS_PER_SEC;
+    g_callocDuration += static_cast<double>(timerStop - timerStart) / CLOCKS_PER_SEC;
     printf("calloc success, calloc (%d) time is %f\n", callocSize, duration);
     printf("\nReady for free -- ");
     timerStart = clock();
     DepthFree(STATIC_DEPTH, p);
     timerStop = clock();
-    duration += (double)(timerStop - timerStart) / CLOCKS_PER_SEC;
-    g_freeDuration += (double)(timerStop - timerStart) / CLOCKS_PER_SEC;
-    printf("free success, free time is %f\n", (double)(timerStop - timerStart) / CLOCKS_PER_SEC);
+    duration += static_cast<double>(timerStop - timerStart) / CLOCKS_PER_SEC;
+    g_freeDuration += static_cast<double>(timerStop - timerStart) / CLOCKS_PER_SEC;
+    printf("free success, free time is %f\n", static_cast<double>(timerStop - timerStart) / CLOCKS_PER_SEC);
     printf("calloc apply success, total time is %f\n", duration);
 }
 
-void ApplyForRealloc(int mallocSize)
+static void ApplyForRealloc(int mallocSize)
 {
     int reallocSize = mallocSize * DEFAULT_REALLOC_SIZE;
     printf("\nstart realloc apply (size = %d)\n", reallocSize);
@@ -175,20 +175,33 @@ void ApplyForRealloc(int mallocSize)
         printf("realloc failure\n");
         return;
     }
-    duration += (double)(timerStop - timerStart) / CLOCKS_PER_SEC;
-    g_reallocDuration += (double)(timerStop - timerStart) / CLOCKS_PER_SEC;
+    duration += static_cast<double>(timerStop - timerStart) / CLOCKS_PER_SEC;
+    g_reallocDuration += static_cast<double>(timerStop - timerStart) / CLOCKS_PER_SEC;
     printf("realloc success, realloc (%d) time is %f\n", reallocSize, duration);
     printf("\nReady for free -- ");
     timerStart = clock();
     DepthFree(STATIC_DEPTH, np);
     timerStop = clock();
-    duration += (double)(timerStop - timerStart) / CLOCKS_PER_SEC;
-    g_freeDuration += (double)(timerStop - timerStart) / CLOCKS_PER_SEC;
-    printf("free success, free time is %f\n", (double)(timerStop - timerStart) / CLOCKS_PER_SEC);
+    duration += static_cast<double>(timerStop - timerStart) / CLOCKS_PER_SEC;
+    g_freeDuration += static_cast<double>(timerStop - timerStart) / CLOCKS_PER_SEC;
+    printf("free success, free time is %f\n", static_cast<double>(timerStop - timerStart) / CLOCKS_PER_SEC);
     printf("realloc apply success, total time is %f\n", duration);
 }
 
-void* ThreadFuncC(void* param)
+static void NewString()
+{
+    std::string* sp = new std::string("hello world");
+    printf("string  sp = %s\n", sp->c_str());
+    delete sp;
+}
+
+static void UniqueString()
+{
+    auto pName = std::make_unique<std::string>("Hello");
+}
+
+
+static void* ThreadFuncC(void* param)
 {
     int mallocCount = 0;
     int callocCount = 0;
@@ -198,7 +211,7 @@ void* ThreadFuncC(void* param)
     int tid = syscall(SYS_gettid);
     int mallocSize = *(int*)param;
     printf("start thread %d\n", tid);
-    time_t tv = time(NULL);
+    time_t tv = time(nullptr);
     if (tv == -1) {
         tv = 1;
     }
@@ -216,6 +229,9 @@ void* ThreadFuncC(void* param)
             reallocCount++;
         }
         freeCount++;
+
+        NewString();
+        UniqueString();
         sleep(SLEEP_TIME_SEC);
     }
 
@@ -229,11 +245,11 @@ void* ThreadFuncC(void* param)
         freeCount, g_freeDuration, g_freeDuration / freeCount);
     printf("finish thread %d\n", tid);
 
-    return NULL;
+    return nullptr;
 }
 
 // 打开文件到内存中
-int OpenFile(const char* fileName)
+static int OpenFile(const char* fileName)
 {
     int fd = open(fileName, O_RDWR | O_CREAT, (mode_t)0777);
     if (fd == -1) {
@@ -244,7 +260,7 @@ int OpenFile(const char* fileName)
 }
 
 // 关闭文件
-void CloseFile(void)
+static void CloseFile(void)
 {
     if (g_fd > 0) {
         close(g_fd);
@@ -253,19 +269,21 @@ void CloseFile(void)
 }
 
 // 给文件建立内存映射
-char* CreateMmap(void)
+static char* CreateMmap(void)
 {
     if (g_fd == -1) {
-        return NULL;
+        return nullptr;
     }
+
     int size = PAGE_SIZE;
     lseek(g_fd, size + 1, SEEK_SET);
     write(g_fd, "", 1);
 
-    char* pMap = (char*)mmap(0, PAGE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, g_fd, 0);
+    char* pMap = (char*)mmap(nullptr, PAGE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, g_fd, 0);
+
 #ifdef HOOK_ENABLE
-    char *tag = "memtesttag";
-    MEM_TYPESET(pMap, PAGE_SIZE, tag, strlen(tag)+1);
+    const char *tag = "memtesttag";
+    MEM_TYPESET(pMap, PAGE_SIZE, tag, strlen(tag) + 1);
 #endif
     if (pMap == MAP_FAILED) {
         printf("mmap fail\n");
@@ -275,13 +293,13 @@ char* CreateMmap(void)
 }
 
 // 关闭文件内存映射
-void RemoveMmap(char* pMap)
+static void RemoveMmap(char* pMap)
 {
     munmap(pMap, PAGE_SIZE);
 }
 
 // 给文件映射中写入
-void MmapWriteFile(char* pMap, int length, char* data)
+static void MmapWriteFile(char* pMap, int length, char* data)
 {
     if (memcpy_s(pMap, length, data, length) != EOK) {
         printf("memcpy_s type fail\n");
@@ -291,19 +309,15 @@ void MmapWriteFile(char* pMap, int length, char* data)
 }
 
 // 从文件映射中读取
-char* MmapReadFile(char* pMap, int length)
+static char* MmapReadFile(char* pMap, int length)
 {
     if (length <= 0) {
         printf("fail:malloc %d memory", length);
-        return NULL;
+        return nullptr;
     }
     char* data = (char*)malloc(length + 1);
-    if (data != NULL) {
-        if (memcpy_s(data, length+1, pMap, length) != EOK) {
-            printf("memcpy_s type fail\n");
-            free(data);
-            return NULL;
-        }
+    if (data != nullptr) {
+        memcpy_s(data, length, pMap, length);
         data[length] = '\0';
     }
     return data;
@@ -311,36 +325,36 @@ char* MmapReadFile(char* pMap, int length)
 
 static void RandSrand(void)
 {
-    srand((unsigned)time(NULL));
+    srand((unsigned)time(nullptr));
 }
 
 // 10 ~ 4096
-int RandInt(int Max, int Min)
+static int RandInt(int Max, int Min)
 {
     int value = (rand() % (Max - Min)) + Min;
     return value;
 }
 
 // 生成一个随机字符 (0x20 ~ 0x7E)
-char RandChar(void)
+static char RandChar(void)
 {
     // 可显示字符的范围
     int section = '~' - ' ';
     int randSection = RandInt(0, section);
-    char randChar = (char)('~' + (unsigned int)randSection);
+    char randChar = '~' + randSection;
     return randChar;
 }
 
 // 获取随机长度的字符串
-char* RandString(int maxLength)
+static char* RandString(int maxLength)
 {
     int strLength = RandInt(10, maxLength);
     if (strLength <= 0) {
         printf("fail:malloc %d memory", strLength);
-        return NULL;
+        return nullptr;
     }
     char* data = (char*)malloc(strLength + 1);
-    if (data != NULL) {
+    if (data != nullptr) {
         for (int i = 0; i < strLength; i++) {
             data[i] = RandChar();
         }
@@ -350,7 +364,7 @@ char* RandString(int maxLength)
 }
 
 // 初始化函数
-void mmapInit(void)
+static void mmapInit(void)
 {
     // 设置随机种子
     RandSrand();
@@ -359,7 +373,7 @@ void mmapInit(void)
 }
 
 // 写映射
-void WriteMmap(char* data)
+static void WriteMmap(char* data)
 {
     // 建立映射
     char* pMap = CreateMmap();
@@ -371,7 +385,7 @@ void WriteMmap(char* data)
 }
 
 // 读映射
-char* ReadMmap(int length)
+static char* ReadMmap(int length)
 {
     // 建立映射
     char* pMap = CreateMmap();
@@ -385,13 +399,15 @@ char* ReadMmap(int length)
     return outTestchar;
 }
 
-void* ThreadMmap(void* param)
+static void* ThreadMmap(void* param)
 {
     while (g_runing) {
         // 获取随机字符
         char* randString = RandString(PAGE_SIZE);
+
         // 写入映射
         WriteMmap(randString);
+
         // 从映射中读取
         char* outchar = ReadMmap(strlen(randString));
         printf("thread %ld : Mmap test OK! \n", syscall(SYS_gettid));
@@ -399,11 +415,11 @@ void* ThreadMmap(void* param)
         free(outchar);
         sleep(SLEEP_TIME_SEC);
     }
-    return NULL;
+    return nullptr;
 }
 
 // 维护hook test类型管理
-int bitMapNum(unsigned int data)
+static int bitMapNum(unsigned int data)
 {
     unsigned int tmp = data;
     int num = 0;
@@ -417,7 +433,7 @@ int bitMapNum(unsigned int data)
 }
 
 // 参数解析
-int CommandParse(int argc, char** argv)
+static int CommandParse(int argc, char** argv)
 {
     int result;
     opterr = 0;
@@ -475,7 +491,7 @@ int main(int argc, char* argv[])
         return 0;
     }
     int typeNum = bitMapNum(g_hook_flag);
-    printf(" g_hook_flag =  [%x] \n", g_hook_flag);
+    printf(" g_hook_flag =  [%u] \n", g_hook_flag);
     if (typeNum == 0) {
         // 未设置type时默认启动alloc
         g_hook_flag |= ALLOC_FLAG;
@@ -483,7 +499,7 @@ int main(int argc, char* argv[])
     }
 
     pthread_t** thrArrayList = (pthread_t**)malloc(sizeof(pthread_t*) * typeNum);
-    if (thrArrayList == NULL) {
+    if (thrArrayList == nullptr) {
         printf("malloc thrArrayList fail\n");
         return 0;
     }
@@ -497,17 +513,12 @@ int main(int argc, char* argv[])
 
         thrArrayList[type] = (pthread_t*)malloc(sizeof(pthread_t) * threadNum);
         // pthread_t* thrArray
-        if (thrArrayList[type] == NULL) {
+        if (thrArrayList[type] == nullptr) {
             printf("new thread failed.\n");
-            if (thrArrayList != NULL) {
-                free(thrArrayList);
-                thrArrayList = NULL;
-            }
-            return 0;
         }
         int idx;
         for (idx = 0; idx < threadNum; ++idx) {
-            if (pthread_create((thrArrayList[type]) + idx, NULL, ThreadFuncC, (void*)(&mallocSize))) {
+            if (pthread_create((thrArrayList[type]) + idx, nullptr, ThreadFuncC, static_cast<void*>(&mallocSize))) {
                 printf("Creating thread failed.\n");
             }
         }
@@ -520,19 +531,13 @@ int main(int argc, char* argv[])
         mmapInit();
 
         thrArrayList[type] = (pthread_t*)malloc(sizeof(pthread_t) * threadNum);
-        if (thrArrayList[type] == NULL) {
+        if (thrArrayList[type] == nullptr) {
             printf("new thread failed.\n");
-            if (thrArrayList != NULL) {
-                free(thrArrayList);
-                thrArrayList = NULL;
-            }
-            CloseFile();
-            return 0;
         }
 
         int idx;
         for (idx = 0; idx < threadNum; ++idx) {
-            if (pthread_create((thrArrayList[type]) + idx, NULL, ThreadMmap, NULL)) {
+            if (pthread_create((thrArrayList[type]) + idx, nullptr, ThreadMmap, nullptr)) {
                 printf("Creating thread failed.\n");
             }
         }
@@ -545,16 +550,16 @@ int main(int argc, char* argv[])
     int idx;
     for (type = 0; type < typeNum; type++) {
         for (idx = 0; idx < g_threadNum; ++idx) {
-            pthread_join((thrArrayList[type])[idx], NULL);
+            pthread_join((thrArrayList[type])[idx], nullptr);
         }
-        if (thrArrayList[type] != NULL) {
+        if (thrArrayList[type] != nullptr) {
             free(thrArrayList[type]);
-            thrArrayList[type] = NULL;
+            thrArrayList[type] = nullptr;
         }
     }
-    if (thrArrayList != NULL) {
+    if (thrArrayList != nullptr) {
         free(thrArrayList);
-        thrArrayList = NULL;
+        thrArrayList = nullptr;
     }
     CloseFile();
     return 0;

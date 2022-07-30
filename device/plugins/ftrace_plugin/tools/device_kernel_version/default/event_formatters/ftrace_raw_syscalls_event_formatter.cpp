@@ -28,8 +28,9 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.sys_enter_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf_s(
-            buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "sys_enter: NR %" PRIu64 "(%s))", msg.id(), msg.args().c_str());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
+            "sys_enter: NR %" PRIu64 " (%" PRIx64 ", %" PRIx64 ", %" PRIx64 ", %" PRIx64 ", %" PRIx64 ", %" PRIx64 ")",
+            msg.id(), msg.args()[0], msg.args()[1], msg.args()[2], msg.args()[3], msg.args()[4], msg.args()[5]);
         if (len >= BUFFER_SIZE - 1) {
             HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
         }

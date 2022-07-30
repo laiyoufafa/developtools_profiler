@@ -54,7 +54,7 @@ class FtraceEvent(object):
 
 
 class ProtoType(object):
-    INVALID, INTEGER, STRING, BYTES = 0, 1, 2, 3
+    INVALID, INTEGER, STRING, BYTES, ARRAY = 0, 1, 2, 3, 4
 
     def __init__(self, tid, size=0, signed=False):
         self.tid = tid  # type id
@@ -74,6 +74,8 @@ class ProtoType(object):
             return "string"
         elif self.tid == ProtoType.BYTES:
             return "string"
+        elif self.tid == ProtoType.ARRAY:
+            return "repeated uint64"
         elif self.tid == ProtoType.INTEGER:
             t = ''
             if not self.signed:
@@ -121,8 +123,10 @@ class FtraceEventField(object):
                re.findall(r'char\s*\w+\[.*\]', self.field) or \
                re.match(r'__u8\s+\w+\[\d+\]', self.field) or \
                re.match(r'__u8\s+\w+\[.*]', self.field) or \
-               re.match(r'u32\s+\w+\[\d+\]', self.field) or \
-               re.match(r'unsigned long\s+\w+\[\d*\]', self.field)
+               re.match(r'u32\s+\w+\[\d+\]', self.field)
+
+    def is_array_type(self):
+        return re.match(r'unsigned long\s+\w+\[\d*\]', self.field)
 
     def is_uintptr_type(self):
         return self.field.startswith('ino_t ') or \
@@ -142,6 +146,8 @@ class FtraceEventField(object):
 
         if self.is_string_type():
             return ProtoType(ProtoType.STRING)
+        if self.is_array_type():
+            return ProtoType(ProtoType.ARRAY)
         elif self.is_uintptr_type():
             return ProtoType(ProtoType.INTEGER, 8, False)
         elif 0 < self.size <= 4:

@@ -49,7 +49,7 @@ private:
 private:
     static FILE* CustomPopen(const char* command, const char* type);
     static int CustomPclose(FILE* fp);
-    bool ParseHidumpInfo(HidumpInfo& dataProto, char *buf, int len);
+    bool ParseHidumpInfo(HidumpInfo& dataProto, char *buf);
 
     HidumpConfig protoConfig_;
     std::vector<char> buffer_;

@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 #include "posix_semaphore.h"
-
+#include <memory>
 #include <ctime>
 
 namespace {

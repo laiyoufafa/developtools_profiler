@@ -15,14 +15,18 @@
 #include <chrono>
 #include <cstdio>
 #include <cstdlib>
+#include <dlfcn.h>
 #include <new>
 #include <pthread.h>
 #include <sys/syscall.h>
 #include <unistd.h>
 #include <thread>
 #include <sys/prctl.h>
+
 #pragma clang optimize off
 
+typedef char* (*DepthMallocSo)(int depth, int mallocSize);
+typedef void (*DepthFreeSo)(int depth, char *p);
 
 namespace {
 constexpr int MALLOC_SIZE = 1000;
@@ -33,7 +37,9 @@ constexpr int ARGC_NUM_MUST = 3;
 constexpr int ARGC_MALLOC_TIMES = 2;
 constexpr int ARGC_STICK_DEPTH = 3;
 unsigned int g_stickDepth = 100;
+unsigned int DLOPEN_TRIGGER = 30000;
 
+const static char SO_PATH[] = "libnativetest_so.z.so";
 using StaticSpace = struct {
     int data[DATA_SIZE];
 };
@@ -102,7 +108,7 @@ void* thread_func_cpp(void* param)
     std::string name = "thread";
     name = name + std::to_string(times);
     prctl(PR_SET_NAME, name.c_str());
-    
+
     constexpr int timeBase = 100;
     while (idx < times) {
         p = DepthMalloc(g_stickDepth, MALLOC_SIZE);
@@ -110,10 +116,54 @@ void* thread_func_cpp(void* param)
             printf("thread %ld malloc %d times\n", tid, idx);
         }
         if (p) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(timeBase));
             DepthFree(g_stickDepth, p);
         }
         idx++;
+    }
+    return nullptr;
+}
+
+void* thread_func_cpp_hook(void* param)
+{
+    char *p = nullptr;
+    long tid = syscall(SYS_gettid);
+    printf("start thread %ld\n", tid);
+    int times = *static_cast<int*>(param);
+    int idx = 0;
+    std::string name = "thread";
+    name = name + std::to_string(times);
+    prctl(PR_SET_NAME, name.c_str());
+    constexpr int timeBase = 1000;
+    void* handle = nullptr;
+    DepthMallocSo mallocFunc = DepthMalloc;
+    DepthFreeSo freeFunc = DepthFree;
+
+    while (idx < times) {
+        if (idx == static_cast<int>(DLOPEN_TRIGGER)) {
+            printf("dlopen!!!\n");
+            handle = dlopen(SO_PATH, RTLD_LAZY);
+            if (handle == nullptr) {
+                printf("library not exist!\n");
+                exit(0);
+            }
+            mallocFunc = (DepthMallocSo)dlsym(handle, "DepthMallocSo");
+            freeFunc = (DepthFreeSo)dlsym(handle, "DepthFreeSo");
+            if (mallocFunc == nullptr || freeFunc == nullptr) {
+                printf("function not exist!\n");
+                exit(0);
+            }
+        }
+        p = mallocFunc(g_stickDepth, MALLOC_SIZE);
+        if (idx % timeBase == 0) {
+            printf("thread %ld malloc %d times\n", tid, idx);
+        }
+        if (p) {
+            freeFunc(g_stickDepth, p);
+        }
+        idx++;
+    }
+    if (handle != nullptr) {
+        dlclose(handle);
     }
     return nullptr;
 }
@@ -150,7 +200,7 @@ int ThreadTimeCost(int threadNum, int mallocTimes) {
         return 1;
     }
     for (idx = 0; idx < threadNum; ++idx) {
-        if (pthread_create(thr_array_hook + idx, nullptr, thread_func_cpp, static_cast<void*>(&mallocTimes)) !=
+        if (pthread_create(thr_array_hook + idx, nullptr, thread_func_cpp_hook, static_cast<void*>(&mallocTimes)) !=
             0) {
             printf("Creating thread failed.\n");
         }

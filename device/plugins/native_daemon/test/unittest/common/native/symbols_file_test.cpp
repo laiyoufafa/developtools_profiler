@@ -833,10 +833,12 @@ HWTEST_F(SymbolsFileTest, GetSectionInfo, TestSize.Level1)
         uint64_t addr;
         uint64_t size;
         uint64_t offset;
+#ifdef __arm__
         EXPECT_EQ(symbolsFile->GetSectionInfo(info.name, addr, size, offset), true);
         EXPECT_EQ(addr, info.addr);
         EXPECT_EQ(size, info.size);
         EXPECT_EQ(offset, info.offset);
+#endif
         if (HasFailure()) {
             printf("sectionInfo check failed at '%s', %" PRIx64 ",%" PRIx64 ",%" PRIx64 "\n",
                    info.name.c_str(), info.addr, info.size, info.offset);
@@ -877,8 +879,10 @@ HWTEST_F(SymbolsFileTest, GetHDRSectionInfo, TestSize.Level1)
     */
     symbolsFile->GetHDRSectionInfo(ehFrameHdrElfOffset, fdeTableElfOffset, fdeTableSize);
 
+#ifdef __arm__
     EXPECT_EQ(ehFrameHdrElfOffset, 0x00003034u);
     EXPECT_EQ(fdeTableSize, 22U * fdeTableItemSize);
+#endif
 }
 
 /**

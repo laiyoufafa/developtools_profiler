@@ -71,6 +71,9 @@ bool ParseCommand(std::vector<std::string> args, HookData& hookData)
             if (std::to_string(hookData.filterSize) != args[idx + 1]) {
                 return false;
             }
+            if (hookData.filterSize > MAX_UNWIND_DEPTH) {
+                printf("set max depth = %d\n", MAX_UNWIND_DEPTH);
+            }
         } else if (args[idx] == "-d") {
             hookData.maxStackDepth = std::stoi(args[idx + 1], nullptr);
             if (std::to_string(hookData.maxStackDepth) != args[idx + 1]) {
@@ -84,6 +87,16 @@ bool ParseCommand(std::vector<std::string> args, HookData& hookData)
             if (idx + 1 < args.size()) {
                 hookData.performance_filename = args[idx + 1];
             }
+        } else if (args[idx] == "-u") {
+            std::string unwind = args[idx + 1];
+            if (unwind == "dwarf") {
+                hookData.fpUnwind = false;
+            } else if (unwind == "fp") {
+                hookData.fpUnwind = true;
+            } else {
+                return false;
+            }
+            printf("set unwind mode:%s\n", unwind.c_str());
         } else {
             printf("args[%d] = %s\n", idx, args[idx].c_str());
             return false;
@@ -168,13 +181,13 @@ int main(int argc, char* argv[])
         for (int i = 1; i < argc; i++) {
             args.push_back(argv[i]);
         }
-        HookData hookData = {0, 0, 0, 0, 0, "", "", "", false, false, false, false};
+        HookData hookData = {0, 0, 0, 0, MAX_UNWIND_DEPTH, "", "", "", false, false, false, false};
         if (VerifyCommand(args, hookData)) {
             GetHookedProceInfo(hookData);
         } else {
             printf(
                 "Usage: native_daemon [-o file] [-s smb_size] <-p pid> <-n process_name> "
-                "<-f filter_size> <-d max_stack_depth>\n");
+                "<-f filter_size> <-d max_stack_depth> <-u fp|dwarf>\n");
             return 0;
         }
     } else {

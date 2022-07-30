@@ -14,7 +14,6 @@
  */
 #include "i_semaphore.h"
 #include "posix_semaphore.h"
-#include "pthread_semaphore.h"
 #include "std_semaphore.h"
 
 ISemaphoreFactory& GetSemaphoreFactory(SemaphoreFactoryType type)

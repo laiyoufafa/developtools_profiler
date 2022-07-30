@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import worker from '@ohos.worker'; // 导入worker模块
+import worker from '@ohos.worker'; 
 import net_socket from '@ohos.net.socket';
 
 const workTag = "SmartPerf::Work:: "

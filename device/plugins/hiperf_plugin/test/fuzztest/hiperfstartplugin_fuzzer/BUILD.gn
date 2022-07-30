@@ -32,7 +32,6 @@ ohos_fuzztest("HiperfStartPluginFuzzTest") {
   ]
   deps = [
     "${OHOS_PROFILER_DIR}/protos/types/plugins/hiperf_data:hiperf_data_cpp",
-    "//utils/native/base:utils",
   ]
 
   include_dirs = [
@@ -40,8 +39,9 @@ ohos_fuzztest("HiperfStartPluginFuzzTest") {
     "${OHOS_PROFILER_DIR}/device/plugins/api/include",
     "${OHOS_PROFILER_DIR}/interfaces/kits",
     "${OHOS_PROFILER_DIR}/device/base/include",
-    "//utils/native/base/include",
+    "//commonlibrary/c_utils/base/include",
   ]
+  external_deps = [ "c_utils:utils" ]
 }
 
 ###############################################################################

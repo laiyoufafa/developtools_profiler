@@ -16,10 +16,10 @@
 #ifndef COMMAND_PARAM_H
 #define COMMAND_PARAM_H
 
-#include <cstdint>
 #include <list>
-#include <map>
-#include <ostream>
+#include <iosfwd>
+#include <string>
+
 
 enum PARAM_TYPE { PARAM_TYPE_SWITCH, PARAM_TYPE_TEXT };
 

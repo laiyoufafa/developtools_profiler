@@ -99,7 +99,7 @@ message PrintFormat {
 // /sys/kernel/debug/tracing/events/ftrace/user_stack/format
 message UserStackFormat {
     uint32 tgid = 1;
-    string caller = 2;
+    repeated uint64 caller = 2;
 }
 
 // /sys/kernel/debug/tracing/events/ftrace/wakeup/format

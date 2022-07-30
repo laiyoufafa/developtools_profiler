@@ -55,7 +55,7 @@ ohos_unittest("ftrace_plugin_ut") {
     "${OHOS_PROFILER_DIR}/device/base/include",
     "//third_party/googletest/googletest/include/gtest",
     "//third_party/bounds_checking_function/include",
-    "//utils/native/base/include",
+    "//commonlibrary/c_utils/base/include",
   ]
   cflags = [
     "-Wno-inconsistent-missing-override",
