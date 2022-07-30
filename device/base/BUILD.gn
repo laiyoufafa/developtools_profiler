@@ -40,7 +40,7 @@ config("hiprofiler_base_config") {
   include_dirs = [
     "include",
     "//third_party/bounds_checking_function/include",
-    "//utils/native/base/include",
+    "//commonlibrary/c_utils/base/include",
   ]
 }
 

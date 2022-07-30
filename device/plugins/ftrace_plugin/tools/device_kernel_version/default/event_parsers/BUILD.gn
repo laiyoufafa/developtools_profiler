@@ -22,7 +22,7 @@ ohos_source_set("ftrace_event_parsers") {
     ".",
     "${OHOS_PROFILER_DIR}/device/plugins/ftrace_plugin/include",
     "${OHOS_PROFILER_DIR}/device/base/include",
-    "//utils/native/base/include",
+    "//commonlibrary/c_utils/base/include",
   ]
   deps = [
     "${OHOS_PROFILER_3RDPARTY_PROTOBUF_DIR}:protobuf_lite",

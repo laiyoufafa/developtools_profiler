@@ -20,7 +20,7 @@ config("shared_memory_config") {
     "../../base/include",
     "${OHOS_PROFILER_DIR}/interfaces/innerkits",
     "//third_party/bounds_checking_function/include",
-    "//utils/native/base/include",
+    "//commonlibrary/c_utils/base/include",
   ]
 }
 
