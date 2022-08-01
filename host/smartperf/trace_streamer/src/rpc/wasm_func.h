@@ -24,10 +24,14 @@ namespace SysTuning {
 namespace TraceStreamer {
 extern "C" {
 int TraceStreamerParseData(const uint8_t* data, int dataLen);
+int TraceStreamerParseDataEx(int dataLen);
 int TraceStreamerParseDataOver();
 int TraceStreamerSqlOperate(const uint8_t* sql, int sqlLen);
+int TraceStreamerSqlOperateEx(int sqlLen);
 int TraceStreamerReset();
 int TraceStreamerSqlQuery(const uint8_t* sql, int sqlLen, uint8_t* out, int outLen);
+
+int TraceStreamerSqlQueryEx(int sqlLen);
 int TraceStreamerCancel();
 } // extern "C"
 } // namespace TraceStreamer

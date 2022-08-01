@@ -23,9 +23,9 @@ enum Index { ID = 0, STR, ADDR };
 }
 SymbolsTable::SymbolsTable(const TraceDataCache* dataCache) : TableBase(dataCache)
 {
-    tableColumn_.push_back(TableBase::ColumnInfo("id", "UNSIGNED INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("funcname", "STRING"));
-    tableColumn_.push_back(TableBase::ColumnInfo("addr", "UNSIGNED BIG INT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("id", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("funcname", "TEXT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("addr", "INTEGER"));
     tablePriKey_.push_back("id");
 }
 

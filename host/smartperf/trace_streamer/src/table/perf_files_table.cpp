@@ -22,11 +22,11 @@ enum Index { ID = 0, FILE_ID, SERIAL_ID, SYMBOL, PATH };
 }
 PerfFilesTable::PerfFilesTable(const TraceDataCache* dataCache) : TableBase(dataCache)
 {
-    tableColumn_.push_back(TableBase::ColumnInfo("id", "UNSIGNED INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("file_id", "UNSIGNED INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("serial_id", "INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("symbol", "STRING"));
-    tableColumn_.push_back(TableBase::ColumnInfo("path", "STRING"));
+    tableColumn_.push_back(TableBase::ColumnInfo("id", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("file_id", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("serial_id", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("symbol", "TEXT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("path", "TEXT"));
     tablePriKey_.push_back("id");
 }
 

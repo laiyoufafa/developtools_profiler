@@ -24,9 +24,9 @@ enum Index { ID = 0, TYPE, NAME };
 }
 SystemEventFilterTable::SystemEventFilterTable(const TraceDataCache* dataCache) : TableBase(dataCache)
 {
-    tableColumn_.push_back(TableBase::ColumnInfo("id", "UNSIGNED INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("type", "STRING"));
-    tableColumn_.push_back(TableBase::ColumnInfo("name", "STRING"));
+    tableColumn_.push_back(TableBase::ColumnInfo("id", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("type", "TEXT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("name", "TEXT"));
     tablePriKey_.push_back("id");
 }
 

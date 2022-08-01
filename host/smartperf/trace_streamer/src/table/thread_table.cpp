@@ -22,15 +22,15 @@ enum Index { ID = 0, ITID, TYPE, TID, NAME, START_TS, END_TS, INTERNAL_PID, IS_M
 }
 ThreadTable::ThreadTable(const TraceDataCache* dataCache) : TableBase(dataCache)
 {
-    tableColumn_.push_back(TableBase::ColumnInfo("id", "UNSIGNED INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("itid", "UNSIGNED INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("type", "STRING"));
-    tableColumn_.push_back(TableBase::ColumnInfo("tid", "UNSIGNED INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("name", "STRING"));
-    tableColumn_.push_back(TableBase::ColumnInfo("start_ts", "UNSIGNED BIG INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("end_ts", "UNSIGNED BIG INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("ipid", "UNSIGNED INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("is_main_thread", "UNSIGNED INT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("id", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("itid", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("type", "TEXT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("tid", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("name", "TEXT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("start_ts", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("end_ts", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("ipid", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("is_main_thread", "INTEGER"));
     tablePriKey_.push_back("id");
 }
 

@@ -32,15 +32,15 @@ enum Index {
 }
 PerfSampleTable::PerfSampleTable(const TraceDataCache* dataCache) : TableBase(dataCache)
 {
-    tableColumn_.push_back(TableBase::ColumnInfo("id", "UNSIGNED INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("sample_id", "UNSIGNED INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("timestamp", "UNSIGNED INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("thread_id", "UNSIGNED INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("event_count", "UNSIGNED INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("event_type_id", "UNSIGNED INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("timestamp_trace", "UNSIGNED INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("cpu_id", "UNSIGNED INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("thread_state", "STRING"));
+    tableColumn_.push_back(TableBase::ColumnInfo("id", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("sample_id", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("timestamp", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("thread_id", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("event_count", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("event_type_id", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("timestamp_trace", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("cpu_id", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("thread_state", "TEXT"));
     tablePriKey_.push_back("id");
 }
 

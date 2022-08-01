@@ -236,6 +236,7 @@ void PerfDataParser::ProcessSample(std::unique_ptr<PerfRecordSample>& sample)
                                         configIndex, newTimeStamp, sample->data_.cpu, threadStatIndex);
     sampleId_++;
 }
+
 void PerfDataParser::Finish()
 {
     streamFilters_->perfDataFilter_->Finish();

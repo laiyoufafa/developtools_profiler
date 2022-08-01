@@ -34,7 +34,7 @@ inline uint16_t GetNameASCIISumNoNum(const std::string& str)
         sum += std::isdigit(str.at(len)) ? 0 : str.at(len);
         len--;
     }
-    return sum % 16;
+    return sum % INTEGER_RADIX_TYPE_HEX;
 }
 inline std::optional<uint32_t> StrToUInt32(const std::string& str, int base = INTEGER_RADIX_TYPE_DEC)
 {

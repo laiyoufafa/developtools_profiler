@@ -137,5 +137,14 @@ int RpcServer::WasmSqlQuery(const uint8_t* data, size_t len, uint8_t* out, int o
     int ret = ts_->SearchDatabase(sql, out, outLen);
     return ret;
 }
+int RpcServer::WasmSqlQueryWithCallback(const uint8_t* data, size_t len, ResultCallBack callback)
+{
+    ts_->SetCancel(false);
+    std::string sql(reinterpret_cast<const char*>(data), len);
+    TS_LOGI("WASM RPC SqlQuery sql(%zu:%s)", len, sql.c_str());
+
+    int ret = ts_->SearchDatabase(sql, callback);
+    return ret;
+}
 } // namespace TraceStreamer
 } // namespace SysTuning

@@ -39,6 +39,21 @@ void ThreadState::SetDuration(TableRowId index, InternalTime dur)
     rowDatas_[index].duration = dur;
 }
 
+void DataDict::Finish()
+{
+    std::string::size_type pos(0);
+    for (auto i = 0; i < dataDict_.size(); i++) {
+        while ((pos = dataDict_[i].find("\"")) != std::string::npos) {
+            dataDict_[i].replace(pos, 1, "\'");
+        }
+        if (dataDict_[i].find("ispreproc") != std::string::npos) {
+            TS_LOGI("xx");
+        }
+        while (dataDict_[i].back() >= '\001' && dataDict_[i].back() <= '\007') {
+            dataDict_[i].pop_back();
+        }
+    }
+}
 TableRowId ThreadState::UpdateDuration(TableRowId index, InternalTime ts)
 {
     if (rowDatas_[index].duration == INVALID_TIME) {
@@ -56,6 +71,12 @@ void ThreadState::UpdateDuration(TableRowId index, InternalTime ts, TableRowId i
 {
     rowDatas_[index].duration = ts - rowDatas_[index].timeStamp;
     rowDatas_[index].idState = idState;
+}
+
+void ThreadState::UpdateTidAndPid(TableRowId index, InternalTid tid, InternalTid pid)
+{
+    rowDatas_[index].tid = tid;
+    rowDatas_[index].pid = pid;
 }
 
 TableRowId ThreadState::UpdateDuration(TableRowId index, InternalTime ts, InternalCpu cpu, TableRowId idState)
@@ -337,7 +358,10 @@ size_t ThreadMeasureFilter::AppendNewFilter(uint64_t filterId, uint32_t nameInde
     return Size() - 1;
 }
 
-size_t Instants::AppendInstantEventData(uint64_t timestamp, DataIndex nameIndex, int64_t internalTid, int64_t wakeupFromInternalPid)
+size_t Instants::AppendInstantEventData(uint64_t timestamp,
+                                        DataIndex nameIndex,
+                                        int64_t internalTid,
+                                        int64_t wakeupFromInternalPid)
 {
     internalTids_.emplace_back(internalTid);
     timeStamps_.emplace_back(timestamp);

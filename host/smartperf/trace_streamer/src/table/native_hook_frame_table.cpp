@@ -22,15 +22,15 @@ enum Index { ID = 0, EVENT_ID, DEPTH, IP, SP, SYMBOL_ID, FILE_ID, OFFSET, SYMBOL
 }
 NativeHookFrameTable::NativeHookFrameTable(const TraceDataCache* dataCache) : TableBase(dataCache)
 {
-    tableColumn_.push_back(TableBase::ColumnInfo("id", "UNSIGNED INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("eventId", "UNSIGNED BIG INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("depth", "UNSIGNED BIG INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("ip", "UNSIGNED BIG INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("sp", "UNSIGNED BIG INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("symbol_id", "UNSIGNED BIG INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("file_id", "UNSIGNED BIG INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("offset", "UNSIGNED BIG INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("symbol_offset", "UNSIGNED BIG INT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("id", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("eventId", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("depth", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("ip", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("sp", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("symbol_id", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("file_id", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("offset", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("symbol_offset", "INTEGER"));
     tablePriKey_.push_back("eventId");
 }
 

@@ -56,6 +56,7 @@ public:
     void ParseTraceDataSegment(std::unique_ptr<uint8_t[]> bufferStr, size_t size) override;
     void WaitForParserEnd();
 private:
+    bool ParseDataRecursively(std::deque<uint8_t>::iterator& packagesBegin, size_t& currentLength);
     void ParseTraceDataItem(const std::string& buffer) override;
     void FilterData(HtraceDataSegment& dataSeg);
     void ParserData(HtraceDataSegment& dataSeg);

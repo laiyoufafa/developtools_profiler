@@ -269,6 +269,7 @@ int TraceDataDB::SearchDatabase(const std::string& sql, ResultCallBack resultCal
     sqlite3_stmt* stmt = nullptr;
     int ret = sqlite3_prepare_v2(db_, sql.c_str(), static_cast<int>(sql.size()), &stmt, nullptr);
     if (ret != SQLITE_OK) {
+        resultCallBack("false\r\n");
         TS_LOGE("sqlite3_prepare_v2(%s) failed: %d:%s", sql.c_str(), ret, sqlite3_errmsg(db_));
         return ret;
     }
@@ -276,9 +277,7 @@ int TraceDataDB::SearchDatabase(const std::string& sql, ResultCallBack resultCal
         return ret;
     }
 
-    const size_t maxLenResponse = 4 * 1024;
     std::string res;
-    res.reserve(maxLenResponse);
     res = "ok\r\n";
     int colCount = sqlite3_column_count(stmt);
     if (colCount == 0) {
@@ -300,10 +299,6 @@ int TraceDataDB::SearchDatabase(const std::string& sql, ResultCallBack resultCal
     while (sqlite3_step(stmt) == SQLITE_ROW) {
         hasRow = true;
         GetRowString(stmt, colCount, row);
-        if (res.size() + row.size() + strlen(",]}\r\n") >= maxLenResponse) {
-            resultCallBack(res);
-            res.clear();
-        }
         res += row + ",";
     }
     if (hasRow) {

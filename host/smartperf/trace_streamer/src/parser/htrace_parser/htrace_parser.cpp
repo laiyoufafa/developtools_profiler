@@ -422,12 +422,8 @@ int HtraceParser::GetNextSegment()
     dataSegMux_.unlock();
     return head;
 }
-void HtraceParser::ParseTraceDataSegment(std::unique_ptr<uint8_t[]> bufferStr, size_t size)
+bool HtraceParser::ParseDataRecursively(std::deque<uint8_t>::iterator& packagesBegin, size_t& currentLength)
 {
-    packagesBuffer_.insert(packagesBuffer_.end(), &bufferStr[0], &bufferStr[size]);
-    auto packagesBegin = packagesBuffer_.begin();
-    auto currentLength = packagesBuffer_.size();
-READ_AGAIN:
     if (!hasGotHeader_) {
         if (InitProfilerTraceFileHeader()) {
             packagesBuffer_.erase(packagesBuffer_.begin(), packagesBuffer_.begin() + PACKET_HEADER_LENGTH);
@@ -438,7 +434,7 @@ READ_AGAIN:
             hasGotHeader_ = true;
         } else {
             TS_LOGE("get profiler trace file header failed");
-            return;
+            return false;
         }
     }
     if (profilerTraceFileHeader_.data.dataType == ProfilerTraceFileHeader::HIPERF_DATA) {
@@ -448,7 +444,7 @@ READ_AGAIN:
             packagesBuffer_.clear();
 #endif
         }
-        return;
+        return false;
     }
     while (1) {
         if (!hasGotSegLength_) {
@@ -482,10 +478,19 @@ READ_AGAIN:
             packagesBuffer_.erase(packagesBuffer_.begin(), packagesBegin);
             profilerTraceFileHeader_.data.dataType = ProfilerTraceFileHeader::UNKNOW_TYPE;
             TS_LOGW("read proto finished!");
-            goto READ_AGAIN;
+            return ParseDataRecursively(packagesBegin, currentLength);
         }
     }
-    packagesBuffer_.erase(packagesBuffer_.begin(), packagesBegin);
+    return true;
+}
+void HtraceParser::ParseTraceDataSegment(std::unique_ptr<uint8_t[]> bufferStr, size_t size)
+{
+    packagesBuffer_.insert(packagesBuffer_.end(), &bufferStr[0], &bufferStr[size]);
+    auto packagesBegin = packagesBuffer_.begin();
+    auto currentLength = packagesBuffer_.size();
+    if (ParseDataRecursively(packagesBegin, currentLength)) {
+        packagesBuffer_.erase(packagesBuffer_.begin(), packagesBegin);
+    }
     return;
 }
 

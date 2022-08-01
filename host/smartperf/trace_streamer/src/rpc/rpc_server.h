@@ -35,6 +35,7 @@ public:
 
     // only for wasm, no callback
     int WasmSqlQuery(const uint8_t* data, size_t len, uint8_t* out, int outLen);
+    int WasmSqlQueryWithCallback(const uint8_t* data, size_t len, ResultCallBack callback);
 
 private:
     std::unique_ptr<TraceStreamerSelector> ts_ = std::make_unique<TraceStreamerSelector>();

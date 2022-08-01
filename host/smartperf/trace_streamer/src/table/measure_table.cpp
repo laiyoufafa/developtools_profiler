@@ -23,10 +23,10 @@ enum Index { TYPE = 0, TS, VALUE, FILTER_ID };
 }
 MeasureTable::MeasureTable(const TraceDataCache* dataCache) : TableBase(dataCache)
 {
-    tableColumn_.push_back(TableBase::ColumnInfo("type", "STRING"));
-    tableColumn_.push_back(TableBase::ColumnInfo("ts", "UNSIGNED BIG INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("value", "UNSIGNED BIG INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("filter_id", "UNSIGNED INT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("type", "TEXT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("ts", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("value", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("filter_id", "INTEGER"));
     tablePriKey_.push_back("ts");
     tablePriKey_.push_back("filter_id");
 }

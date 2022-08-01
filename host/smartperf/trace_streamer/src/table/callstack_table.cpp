@@ -39,22 +39,22 @@ enum Index {
 }
 CallStackTable::CallStackTable(const TraceDataCache* dataCache) : TableBase(dataCache)
 {
-    tableColumn_.push_back(TableBase::ColumnInfo("id", "UNSIGNED BIG INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("ts", "UNSIGNED BIG INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("dur", "UNSIGNED BIG INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("callid", "UNSIGNED INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("cat", "STRING"));
-    tableColumn_.push_back(TableBase::ColumnInfo("identify", "UNSIGNED INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("name", "STRING"));
-    tableColumn_.push_back(TableBase::ColumnInfo("depth", "UNSIGNED INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("cookie", "UNSIGNED BIG INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("parent_id", "UNSIGNED INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("argsetid", "UNSIGNED INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("chainId", "STRING"));
-    tableColumn_.push_back(TableBase::ColumnInfo("spanId", "STRING"));
-    tableColumn_.push_back(TableBase::ColumnInfo("parentSpanId", "STRING"));
-    tableColumn_.push_back(TableBase::ColumnInfo("flag", "STRING"));
-    tableColumn_.push_back(TableBase::ColumnInfo("args", "STRING"));
+    tableColumn_.push_back(TableBase::ColumnInfo("id", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("ts", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("dur", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("callid", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("cat", "TEXT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("identify", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("name", "TEXT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("depth", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("cookie", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("parent_id", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("argsetid", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("chainId", "TEXT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("spanId", "TEXT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("parentSpanId", "TEXT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("flag", "TEXT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("args", "TEXT"));
     tablePriKey_.push_back("callid");
     tablePriKey_.push_back("ts");
     tablePriKey_.push_back("depth");

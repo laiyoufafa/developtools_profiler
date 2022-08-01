@@ -23,12 +23,12 @@ enum Index { TS = 0, NAME, REF, WAKEUP_FROM, REF_TYPE, VALUE };
 }
 InstantsTable::InstantsTable(const TraceDataCache* dataCache) : TableBase(dataCache)
 {
-    tableColumn_.push_back(TableBase::ColumnInfo("ts", "UNSIGNED BIG INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("name", "STRING"));
-    tableColumn_.push_back(TableBase::ColumnInfo("ref", "UNSIGNED INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("wakeup_from", "UNSIGNED INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("ref_type", "STRING"));
-    tableColumn_.push_back(TableBase::ColumnInfo("value", "DOUBLE"));
+    tableColumn_.push_back(TableBase::ColumnInfo("ts", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("name", "TEXT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("ref", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("wakeup_from", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("ref_type", "TEXT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("value", "REAL"));
     tablePriKey_.push_back("ts");
     tablePriKey_.push_back("ref");
 }

@@ -205,8 +205,9 @@ public:
 
 void BuildJson(sqlite3_context* ctx, int argc, sqlite3_value** argv)
 {
+    const int PAIR_ARGS_SIZE = 2;
     const auto* fn_ctx = static_cast<const JsonBuild*>(sqlite3_user_data(ctx));
-    if (argc % 2 != 0) {
+    if (argc % PAIR_ARGS_SIZE != 0) {
         TS_LOGI("BuildJson arg number error");
         sqlite3_result_error(ctx, "BuildJson arg number error", -1);
         return;
@@ -214,7 +215,7 @@ void BuildJson(sqlite3_context* ctx, int argc, sqlite3_value** argv)
 
     JsonBuild builder;
     builder.AppendHead();
-    for (int i = 0; i < argc; i += 2) {
+    for (int i = 0; i < argc; i += PAIR_ARGS_SIZE) {
         if (sqlite3_value_type(argv[i]) != SQLITE_TEXT) {
             TS_LOGI("BuildJson: Invalid args argc:%d, %d", argc, sqlite3_value_type(argv[i]));
             sqlite3_result_error(ctx, "BuildJson: Invalid args", -1);
@@ -244,6 +245,7 @@ void BuildJson(sqlite3_context* ctx, int argc, sqlite3_value** argv)
 
 void RepeatedJsonStep(sqlite3_context* ctx, int argc, sqlite3_value** argv)
 {
+    const int PAIR_ARGS_SIZE = 2;
     auto** jsonBuild = static_cast<JsonBuild**>(sqlite3_aggregate_context(ctx, sizeof(JsonBuild*)));
 
     if (*jsonBuild == nullptr) {
@@ -251,7 +253,7 @@ void RepeatedJsonStep(sqlite3_context* ctx, int argc, sqlite3_value** argv)
     }
     JsonBuild* builder = *jsonBuild;
     builder->AppendHead();
-    for (int i = 0; i < argc; i += 2) {
+    for (int i = 0; i < argc; i += PAIR_ARGS_SIZE) {
         if (sqlite3_value_type(argv[i]) != SQLITE_TEXT) {
             TS_LOGI("BuildJson: Invalid args argc:%d, %d", argc, sqlite3_value_type(argv[i]));
             sqlite3_result_error(ctx, "BuildJson: Invalid args", -1);
@@ -349,7 +351,7 @@ void ts_create_extend_function(sqlite3* db)
     if (ret) {
         TS_LOGF("Error while initializing BuildRepeatedJson");
     }
-    std::unique_ptr<JsonBuild> ctx(new JsonBuild());
+    std::unique_ptr<JsonBuild> ctx = std::make_unique<JsonBuild>();
     ret = sqlite3_create_function_v2(db, "BuildJson", -1, SQLITE_UTF8, ctx.release(), BuildJson, nullptr, nullptr,
                                      [](void* ptr) { delete static_cast<JsonBuild*>(ptr); });
     if (ret != SQLITE_OK) {

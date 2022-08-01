@@ -309,7 +309,8 @@ bool BytraceEventParser::WorkqueueExecuteStartEvent(const ArgsMap& args, const B
     UNUSED(args);
     auto splitStr = GetFunctionName(line.argsStr, "function ");
     auto splitStrIndex = traceDataCache_->GetDataIndex(splitStr);
-    bool result = streamFilters_->sliceFilter_->BeginSlice(line.task, line.ts, line.pid, 0, workQueueId_, splitStrIndex);
+    bool result =
+        streamFilters_->sliceFilter_->BeginSlice(line.task, line.ts, line.pid, 0, workQueueId_, splitStrIndex);
     traceDataCache_->GetInternalSlicesData()->AppendDistributeInfo();
     if (result) {
         streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_WORKQUEUE_EXECUTE_START, STAT_EVENT_RECEIVED);
@@ -594,7 +595,8 @@ void BytraceEventParser::GetDataSegArgs(BytraceLine& bufLine, ArgsMap& args, uin
 void BytraceEventParser::FilterAllEventsTemp()
 {
     size_t maxBuffSize = 1000 * 1000;
-    if (eventList_.size() < maxBuffSize * 2) {
+    size_t maxQueue = 2;
+    if (eventList_.size() < maxBuffSize * maxQueue) {
         return;
     }
     auto cmp = [](const std::unique_ptr<EventInfo>& a, const std::unique_ptr<EventInfo>& b) {
@@ -666,6 +668,7 @@ void BytraceEventParser::FilterAllEvents()
     eventList_.clear();
     streamFilters_->cpuFilter_->Finish();
     traceDataCache_->dataDict_.Finish();
+    traceDataCache_->UpdataZeroThreadInfo();
 }
 void BytraceEventParser::Clear()
 {

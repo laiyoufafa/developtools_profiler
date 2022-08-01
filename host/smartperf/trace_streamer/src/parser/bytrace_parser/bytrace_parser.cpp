@@ -164,6 +164,7 @@ int BytraceParser::GetNextSegment()
 
 void BytraceParser::GetDataSegAttr(DataSegment& seg, const std::smatch& matcheLine) const
 {
+    const uint64_t US_TO_NS = 1000;
     size_t index = 0;
     std::string pidStr = matcheLine[++index].str();
     std::optional<uint32_t> optionalPid = base::StrToUInt32(pidStr);
@@ -197,7 +198,7 @@ void BytraceParser::GetDataSegAttr(DataSegment& seg, const std::smatch& matcheLi
     seg.bufLine.pid = optionalPid.value();
     seg.bufLine.cpu = optionalCpu.value();
     seg.bufLine.ts = round(static_cast<uint64_t>(optionalTime.value() * 1e6)) + 1;
-    seg.bufLine.ts *= 1000;
+    seg.bufLine.ts *= US_TO_NS;
     seg.bufLine.tGidStr = tGidStr;
     seg.bufLine.eventName = eventName;
     seg.status = TS_PARSE_STATUS_PARSED;

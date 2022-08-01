@@ -93,6 +93,14 @@ void CpuFilter::Finish()
         traceDataCache_->GetSchedSliceData()->AppendInternalPid(
             traceDataCache_->GetThreadData(slice.InternalTidsData()[i])->internalPid_);
     }
+    auto threadState = traceDataCache_->GetConstThreadStateData();
+    size = threadState.Size();
+    auto rowData = threadState.RowData();
+    for (auto i = 0; i < size; i++) {
+        auto thread = traceDataCache_->GetThreadData(rowData[i].idTid);
+        auto process = traceDataCache_->GetProcessData(thread->internalPid_);
+        traceDataCache_->GetThreadStateData()->UpdateTidAndPid(i, thread->tid_, process->pid_);
+    }
 }
 void CpuFilter::Clear()
 {

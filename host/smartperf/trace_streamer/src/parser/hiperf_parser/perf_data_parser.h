@@ -19,7 +19,6 @@
 #include <cstdint>
 #include <deque>
 #include <set>
-#include "hashlist.h"
 #include "htrace_plugin_time_parser.h"
 #include "log.h"
 #include "perf_events.h"

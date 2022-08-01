@@ -165,6 +165,8 @@ void HtraceEventParser::ParseDataItem(const FtraceCpuDetailMsg* cpuDetail, Built
 }
 void HtraceEventParser::DealEvent(const FtraceEvent& event)
 {
+    streamFilters_->processFilter_->UpdateOrCreateThreadWithPidAndName(event.common_fields().pid(), event.tgid(),
+                                                                       event.comm());
     if (event.has_sched_switch_format()) {
         InvokeFunc(TRACE_EVENT_SCHED_SWITCH, event.sched_switch_format());
     } else if (event.has_task_rename_format()) {
@@ -362,29 +364,14 @@ bool HtraceEventParser::TaskRenameEvent(const MessageLite& event) const
     const auto msg = static_cast<const TaskRenameFormat&>(event);
     auto prevCommStr = msg.newcomm();
     auto pidValue = msg.pid();
-    // ignore temply streamFilters_->processFilter_->UpdateOrCreateProcessWithName(pidValue, prevCommStr);
     return true;
 }
 bool HtraceEventParser::TaskNewtaskEvent(const MessageLite& event) const
 {
     streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_TASK_NEWTASK, STAT_EVENT_RECEIVED);
-    const auto msg = static_cast<const TaskNewtaskFormat&>(event);
-    auto commonStr = msg.comm();
-    auto pidValue = msg.pid();
-
-    uint32_t ftracePid = 0;
-    if (eventPid_ != INVALID_UINT32) {
-        ftracePid = eventPid_;
-    }
-
-    static const uint32_t threadPid = 2;
-    static const uint32_t cloneThread = 0x00010000;
-    auto cloneFlags = msg.clone_flags();
-    if ((cloneFlags & cloneThread) == 0 && ftracePid != threadPid) {
-        streamFilters_->processFilter_->UpdateOrCreateProcessWithName(pidValue, commonStr);
-    } else if (ftracePid == threadPid) {
-        streamFilters_->processFilter_->GetOrCreateThreadWithPid(pidValue, threadPid);
-    }
+    // the clone flag from txt trace from kernel original is HEX, but when it is converted from proto
+    // based trace, it will be OCT number, it is not stable, so we decide to ignore it
+    streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_TASK_NEWTASK, STAT_EVENT_NOTSUPPORTED);
     return true;
 }
 bool HtraceEventParser::ParsePrintEvent(const MessageLite& event)
@@ -452,7 +439,7 @@ bool HtraceEventParser::SchedWakingEvent(const MessageLite& event) const
     std::optional<uint32_t> targetCpu = msg.target_cpu();
     if (targetCpu.has_value()) {
         traceDataCache_->GetRawData()->AppendRawData(0, eventTimestamp_, RAW_SCHED_WAKING, targetCpu.value(),
-                                                     internalTid);
+                                                     wakeupFromPid);
     }
     return true;
 }
@@ -682,7 +669,8 @@ bool HtraceEventParser::InvokeFunc(const SupportedTraceEventType& eventType, con
 void HtraceEventParser::FilterAllEventsTemp()
 {
     size_t maxBuffSize = 1000 * 1000;
-    if (eventList_.size() < maxBuffSize * 2) {
+    size_t maxQueue = 2;
+    if (eventList_.size() < maxBuffSize * maxQueue) {
         return;
     }
     auto cmp = [](const std::unique_ptr<EventInfo>& a, const std::unique_ptr<EventInfo>& b) {
@@ -729,6 +717,7 @@ void HtraceEventParser::FilterAllEvents()
     eventList_.clear();
     streamFilters_->cpuFilter_->Finish();
     traceDataCache_->dataDict_.Finish();
+    traceDataCache_->UpdataZeroThreadInfo();
 }
 void HtraceEventParser::Clear()
 {

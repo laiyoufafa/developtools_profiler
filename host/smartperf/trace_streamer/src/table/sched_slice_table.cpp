@@ -24,16 +24,16 @@ enum Index { ID = 0, TYPE, TS, DUR, TS_END, CPU, INTERNAL_TID, INTERNAL_PID, END
 }
 SchedSliceTable::SchedSliceTable(const TraceDataCache* dataCache) : TableBase(dataCache)
 {
-    tableColumn_.push_back(TableBase::ColumnInfo("id", "UNSIGNED INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("type", "STRING"));
-    tableColumn_.push_back(TableBase::ColumnInfo("ts", "INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("dur", "UNSIGNED BIG INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("ts_end", "UNSIGNED BIG INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("cpu", "UNSIGNED BIG INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("itid", "UNSIGNED BIG INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("ipid", "UNSIGNED BIG INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("end_state", "STRING"));
-    tableColumn_.push_back(TableBase::ColumnInfo("priority", "INT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("id", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("type", "TEXT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("ts", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("dur", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("ts_end", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("cpu", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("itid", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("ipid", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("end_state", "TEXT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("priority", "INTEGER"));
     tablePriKey_.push_back("id");
 }
 

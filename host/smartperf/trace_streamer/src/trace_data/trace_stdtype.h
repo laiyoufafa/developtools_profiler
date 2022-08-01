@@ -118,11 +118,14 @@ public:
     TableRowId UpdateDuration(TableRowId index, InternalTime ts);
     void UpdateState(TableRowId index, TableRowId idState);
     void UpdateDuration(TableRowId index, InternalTime ts, TableRowId idState);
+    void UpdateTidAndPid(TableRowId index, InternalTid tid, InternalTid pid);
     TableRowId UpdateDuration(TableRowId index, InternalTime ts, InternalCpu cpu, TableRowId idState);
     struct ColumnData {
         InternalTime timeStamp;
         InternalTime duration;
         TableRowId idTid;
+        InternalTid tid;
+        InternalPid pid;
         TableRowId idState;
         InternalCpu cpu;
     };
@@ -175,7 +178,7 @@ public:
     {
         internalPids_.emplace_back(ipid);
     }
-    virtual void Clear() override
+    void Clear() override
     {
         CacheBase::Clear();
         CpuCacheBase::Clear();
@@ -221,7 +224,7 @@ public:
     void SetDuration(size_t index, uint64_t timestamp);
     void SetDurationAndArg(size_t index, uint64_t timestamp, uint32_t argSetId);
     void SetTimeStamp(size_t index, uint64_t timestamp);
-    virtual void Clear() override
+    void Clear() override
     {
         CacheBase::Clear();
         CpuCacheBase::Clear();
@@ -288,7 +291,7 @@ public:
     {
         return sourceArgSetId_;
     }
-    virtual void Clear() override
+    void Clear() override
     {
         CacheBase::Clear();
         nameDeque_.clear();
@@ -317,7 +320,7 @@ public:
     {
         return filterIdDeque_;
     }
-    virtual void Clear() override
+    void Clear() override
     {
         CacheBase::Clear();
         typeDeque_.clear();
@@ -346,7 +349,7 @@ public:
     {
         return itidDeque_;
     }
-    virtual void Clear() override
+    void Clear() override
     {
         CacheBase::Clear();
         nameDeque_.clear();
@@ -416,7 +419,7 @@ public:
     {
         return name_;
     }
-    virtual void Clear() override
+    void Clear() override
     {
         CacheBase::Clear();
         cpu_.clear();
@@ -432,7 +435,10 @@ private:
 
 class Instants : public CacheBase {
 public:
-    size_t AppendInstantEventData(uint64_t timestamp, DataIndex nameIndex, int64_t internalTid, int64_t wakeupFromInternalPid);
+    size_t AppendInstantEventData(uint64_t timestamp,
+                                  DataIndex nameIndex,
+                                  int64_t internalTid,
+                                  int64_t wakeupFromInternalPid);
 
     const std::deque<DataIndex>& NameIndexsData() const
     {
@@ -442,7 +448,7 @@ public:
     {
         return wakeupFromInternalPids_;
     }
-    virtual void Clear() override
+    void Clear() override
     {
         CacheBase::Clear();
         NameIndexs_.clear();
@@ -467,7 +473,7 @@ public:
     {
         return names_;
     }
-    virtual void Clear() override
+    void Clear() override
     {
         CacheBase::Clear();
         internalPids_.clear();
@@ -495,7 +501,7 @@ public:
     {
         return types_;
     }
-    virtual void Clear() override
+    void Clear() override
     {
         CacheBase::Clear();
         cpus_.clear();
@@ -524,7 +530,7 @@ public:
     {
         return cpus_;
     }
-    virtual void Clear() override
+    void Clear() override
     {
         CacheBase::Clear();
         names_.clear();
@@ -556,7 +562,7 @@ public:
     {
         return rets_;
     }
-    virtual void Clear() override
+    void Clear() override
     {
         CacheBase::Clear();
         sysCallNums_.clear();
@@ -579,7 +585,7 @@ public:
     const std::deque<uint64_t>& ArgsData() const;
     const std::deque<DataIndex>& NamesData() const;
 
-    virtual void Clear() override
+    void Clear() override
     {
         CacheBase::Clear();
         names_.clear();
@@ -599,7 +605,7 @@ public:
     size_t AppendNewFilter(uint64_t filterId, DataIndex type, DataIndex nameId);
     const std::deque<DataIndex>& NamesData() const;
     const std::deque<DataIndex>& TypesData() const;
-    virtual void Clear() override
+    void Clear() override
     {
         CacheBase::Clear();
         types_.clear();
@@ -615,7 +621,7 @@ public:
     size_t AppendNewDataType(BaseDataType dataType, DataIndex dataDescIndex);
     const std::deque<BaseDataType>& DataTypes() const;
     const std::deque<DataIndex>& DataDesc() const;
-    virtual void Clear() override
+    void Clear() override
     {
         CacheBase::Clear();
         dataTypes_.clear();
@@ -643,7 +649,7 @@ public:
     const std::deque<DataIndex>& Tags() const;
     const std::deque<DataIndex>& Contexts() const;
     const std::deque<uint64_t>& OriginTimeStamData() const;
-    virtual void Clear() override
+    void Clear() override
     {
         CacheBase::Clear();
         hilogLineSeqs_.clear();
@@ -680,7 +686,7 @@ public:
     void UpdateHeapDuration(size_t row, uint64_t endTimestamp);
     void UpdateCurrentSizeDur(size_t row, uint64_t timeStamp);
     void UpdateMemMapSubType();
-    void UpdateAddrToMemMapSubType(uint64_t, int64_t, uint64_t);
+    void UpdateAddrToMemMapSubType(uint64_t addr, int64_t size, uint64_t tagId);
     const std::deque<uint64_t>& EventIds() const;
     const std::deque<uint32_t>& Ipids() const;
     const std::deque<uint32_t>& Itids() const;
@@ -692,7 +698,7 @@ public:
     const std::deque<int64_t>& MemSizes() const;
     const std::deque<int64_t>& AllMemSizes() const;
     const std::deque<uint64_t>& CurrentSizeDurs() const;
-    virtual void Clear() override
+    void Clear() override
     {
         CacheBase::Clear();
         eventIds_.clear();
@@ -739,8 +745,8 @@ public:
                                     DataIndex filePath,
                                     uint64_t offset,
                                     uint64_t symbolOffset);
-    void UpdateSymbolIdToNameMap(uint64_t, uint64_t);
-    void UpdateFilePathIdToNameMap(uint64_t, uint64_t);
+    void UpdateSymbolIdToNameMap(uint64_t originSymbolId, uint64_t symbolId);
+    void UpdateFilePathIdToNameMap(uint64_t originFilePathId, uint64_t filePathId);
     void UpdateSymbolId();
     void UpdateFileId();
     const std::deque<uint64_t>& EventIds() const;
@@ -994,15 +1000,7 @@ public:
         TS_ASSERT(id < dataDict_.size());
         return dataDict_[id];
     }
-    void Finish()
-    {
-        std::string::size_type pos(0);
-        for (auto i = 0; i < dataDict_.size(); i++) {
-            while ((pos = dataDict_[i].find("\"")) != std::string::npos){
-                dataDict_[i].replace(pos, 1, "\'");
-            }
-        }
-    }
+    void Finish();
     void Clear()
     {
         dataDict_.clear();
@@ -1039,7 +1037,7 @@ public:
     const std::deque<double>& PacketInSec() const;
     const std::deque<uint64_t>& PacketOut() const;
     const std::deque<double>& PacketOutSec() const;
-    virtual void Clear() override
+    void Clear() override
     {
         CacheBase::Clear();
         durs_.clear();
@@ -1091,7 +1089,7 @@ public:
     const std::deque<int64_t>& DiskWrites() const;
     const std::deque<int64_t>& DiskReads() const;
     const std::deque<uint64_t>& CpuTimes() const;
-    virtual void Clear() override
+    void Clear() override
     {
         CacheBase::Clear();
         durs_.clear();
@@ -1134,7 +1132,7 @@ public:
     const std::deque<double>& UserLoad() const;
     const std::deque<double>& SystemLoad() const;
     const std::deque<int64_t>& Threads() const;
-    virtual void Clear() override
+    void Clear() override
     {
         CacheBase::Clear();
         durs_.clear();

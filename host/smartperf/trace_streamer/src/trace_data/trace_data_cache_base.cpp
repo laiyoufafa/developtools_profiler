@@ -29,5 +29,13 @@ DataIndex TraceDataCacheBase::GetDataIndex(std::string_view str)
 {
     return dataDict_.GetStringIndex(str);
 }
+void TraceDataCacheBase::UpdataZeroThreadInfo()
+{
+    const std::string ZERO_THREAD_NAME = "swapper";
+    internalProcessesData_.front().cmdLine_ = ZERO_THREAD_NAME;
+    auto& thread = internalThreadsData_.front();
+    thread.internalPid_ = 0;
+    thread.nameIndex_ = dataDict_.GetStringIndex(ZERO_THREAD_NAME);
+}
 } // namespace TraceStreamer
 } // namespace SysTuning
