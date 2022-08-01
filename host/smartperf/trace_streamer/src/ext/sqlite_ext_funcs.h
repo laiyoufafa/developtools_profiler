@@ -16,12 +16,15 @@
 #define SQLITE_EXT_FUNCS_H 1
 #include <cstdint>
 #include "sqlite3.h"
-
+namespace SysTuning {
+namespace base {
 typedef struct StdevCtx StdevCtx;
 struct StdevCtx {
     double rMValue;
     double rSValue;
     int64_t cntValue;
 };
-void CreateExtendFunction(sqlite3* db);
+void ts_create_extend_function(sqlite3* db);
+} // namespace base
+} // namespace SysTuning
 #endif

@@ -53,29 +53,7 @@ void CpuMeasureFilterTable::EstimateFilterCost(FilterConstraints& fc, EstimatedI
     if (constraints.empty()) { // scan all rows
         filterCost = rowCount;
     } else {
-        for (int i = 0; i < static_cast<int>(constraints.size()); i++) {
-            if (rowCount <= 1) {
-                // only one row or nothing, needn't filter by constraint
-                filterCost += rowCount;
-                break;
-            }
-            const auto& c = constraints[i];
-            switch (c.col) {
-                case ID: {
-                    auto oldRowCount = rowCount;
-                    if (CanFilterSorted(c.op, rowCount)) {
-                        fc.UpdateConstraint(i, true);
-                        filterCost += log2(oldRowCount); // binary search
-                    } else {
-                        filterCost += oldRowCount;
-                    }
-                    break;
-                }
-                default: // other column
-                    filterCost += rowCount; // scan all rows
-                    break;
-            }
-        }
+        FilterByConstraint(fc, filterCost, rowCount);
     }
     ei.estimatedCost += filterCost;
     ei.estimatedRows = rowCount;
@@ -89,6 +67,34 @@ void CpuMeasureFilterTable::EstimateFilterCost(FilterConstraints& fc, EstimatedI
                 break;
             default: // other columns can be sorted by SQLite
                 ei.isOrdered = false;
+                break;
+        }
+    }
+}
+
+void CpuMeasureFilterTable::FilterByConstraint(FilterConstraints& fc, double& filterCost, size_t rowCount)
+{
+    auto fcConstraints = fc.GetConstraints();
+    for (int i = 0; i < static_cast<int>(fcConstraints.size()); i++) {
+        if (rowCount <= 1) {
+            // only one row or nothing, needn't filter by constraint
+            filterCost += rowCount;
+            break;
+        }
+        const auto& c = fcConstraints[i];
+        switch (c.col) {
+            case ID: {
+                auto oldRowCount = rowCount;
+                if (CanFilterSorted(c.op, rowCount)) {
+                    fc.UpdateConstraint(i, true);
+                    filterCost += log2(oldRowCount); // binary search
+                } else {
+                    filterCost += oldRowCount;
+                }
+                break;
+            }
+            default:                    // other column
+                filterCost += rowCount; // scan all rows
                 break;
         }
     }

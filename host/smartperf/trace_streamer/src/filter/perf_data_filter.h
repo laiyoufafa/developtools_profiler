@@ -24,7 +24,7 @@
 #include "double_map.h"
 namespace SysTuning {
 namespace TraceStreamer {
-class PerfDataFilter: private FilterBase {
+class PerfDataFilter : private FilterBase {
 public:
     PerfDataFilter(TraceDataCache*, const TraceStreamerFilters*);
     PerfDataFilter(const PerfDataFilter&) = delete;
@@ -39,6 +39,7 @@ public:
                                uint64_t fileId,
                                uint64_t symbolId);
     void Finish();
+
 private:
     DoubleMap<uint64_t, uint32_t, uint64_t> fileIdToRowInFileTable_;
     DoubleMap<uint64_t, uint64_t, uint64_t> fileIdToRowInChainTable_;

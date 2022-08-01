@@ -24,6 +24,7 @@ enum Index {
     DUR,
     CALL_ID,
     CAT,
+    IDENTIFY,
     NAME,
     DEPTH,
     COOKIE_ID,
@@ -43,6 +44,7 @@ CallStackTable::CallStackTable(const TraceDataCache* dataCache) : TableBase(data
     tableColumn_.push_back(TableBase::ColumnInfo("dur", "UNSIGNED BIG INT"));
     tableColumn_.push_back(TableBase::ColumnInfo("callid", "UNSIGNED INT"));
     tableColumn_.push_back(TableBase::ColumnInfo("cat", "STRING"));
+    tableColumn_.push_back(TableBase::ColumnInfo("identify", "UNSIGNED INT"));
     tableColumn_.push_back(TableBase::ColumnInfo("name", "STRING"));
     tableColumn_.push_back(TableBase::ColumnInfo("depth", "UNSIGNED INT"));
     tableColumn_.push_back(TableBase::ColumnInfo("cookie", "UNSIGNED BIG INT"));
@@ -215,6 +217,9 @@ int CallStackTable::Cursor::Column(int col) const
             }
             break;
         }
+        case IDENTIFY:
+            sqlite3_result_int(context_, slicesObj_.IdentifysData()[CurrentRow()]);
+            break;
         case NAME: {
             if (slicesObj_.NamesData()[CurrentRow()] != INVALID_UINT64) {
                 auto nameDataIndex = static_cast<size_t>(slicesObj_.NamesData()[CurrentRow()]);

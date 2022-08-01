@@ -15,20 +15,40 @@
 
 import {BaseStruct, ns2x, Rect} from "./ProcedureWorkerCommon.js";
 
-export function thread(list: Array<any>, res: Set<any>, startNS: number, endNS: number, totalNS: number, frame: any) {
-    res.clear();
-    if (list) {
-        for (let i = 0, len = list.length; i < len; i++) {
-            let it = list[i];
-            if ((it.startTime || 0) + (it.dur || 0) > startNS && (it.startTime || 0) < endNS) {
-                ThreadStruct.setThreadFrame(list[i], 5, startNS, endNS, totalNS, frame)
-                if (i > 0 && ((list[i - 1].frame?.x || 0) == (list[i].frame?.x || 0) && (list[i - 1].frame?.width || 0) == (list[i].frame?.width || 0))) {
-
-                } else {
-                    res.add(list[i])
-                }
+export function thread(list: Array<any>, res: Array<any>, startNS: number, endNS: number, totalNS: number, frame: any,use:boolean) {
+    if(use && res.length > 0){
+        for (let i = 0; i < res.length; i++) {
+            let it = res[i];
+            if((it.startTime || 0) + (it.dur || 0) > startNS && (it.startTime || 0) < endNS){
+                ThreadStruct.setThreadFrame(it, 5, startNS, endNS, totalNS, frame)
+            }else{
+                it.frame = null;
             }
         }
+        return;
+    }
+    res.length = 0;
+    if (list) {
+        let groups = list.filter(it => (it.startTime || 0) + (it.dur || 0) > startNS && (it.startTime || 0) < endNS).map(it => {
+            ThreadStruct.setThreadFrame(it, 5, startNS, endNS, totalNS, frame)
+            return it;
+        }).reduce((pre, current, index, arr) => {
+            (pre[`${current.frame.x}`] = pre[`${current.frame.x}`] || []).push(current);
+            return pre;
+        }, {});
+        Reflect.ownKeys(groups).map((kv => {
+            let arr = (groups[kv].sort((a: any, b: any) => b.frame.width - a.frame.width));
+            if (arr.length > 1) {
+                let idx = arr.findIndex((it: any) => it.state != "S")
+                if (idx != -1) {
+                    res.push(arr[idx]);
+                } else {
+                    res.push(arr[0]);
+                }
+            } else {
+                res.push(arr[0]);
+            }
+        }));
     }
 }
 

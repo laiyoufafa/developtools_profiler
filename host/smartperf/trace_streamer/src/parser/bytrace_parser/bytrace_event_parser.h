@@ -33,7 +33,9 @@ class BytraceEventParser : private EventParserBase {
 public:
     BytraceEventParser(TraceDataCache* dataCache, const TraceStreamerFilters* filter);
     void ParseDataItem(const BytraceLine& line);
+    void FilterAllEventsTemp();
     void FilterAllEvents();
+    void Clear();
 
 private:
     using FuncCall = std::function<bool(const ArgsMap& args, const BytraceLine line)>;

@@ -21,6 +21,7 @@ import {getTabProcessHistoryData} from "../../../database/SqlLite.js";
 import {Utils} from "../base/Utils.js";
 import {ProcessHistory} from "../../../bean/AbilityMonitor.js";
 import "../../../component/SpFilter.js";
+import {log} from "../../../../log/Log.js";
 
 @element('tabpane-history-processes')
 export class TabPaneHistoryProcesses extends BaseElement {
@@ -84,16 +85,21 @@ export class TabPaneHistoryProcesses extends BaseElement {
     queryDataByDB(val: SelectionParam | any) {
         getTabProcessHistoryData(val.leftNs, val.rightNs, val.processId, val.threadId).then(item => {
             if (item.length != null && item.length > 0) {
+                log("getTabProcessHistoryData result size : " + item.length)
                 for (const processHistory of item) {
                     processHistory.alive = processHistory.alive == '0' ? 'No' : 'Yes'
                     if (Number(processHistory.firstSeen) <= 0) {
                         processHistory.firstSeen = '0:000.000.000';
+                        processHistory.firstSeenNumber = 0;
                     } else {
-                        processHistory.firstSeen = Utils.getTimeStampHMS(Number(processHistory.firstSeen))
+                        processHistory.firstSeenNumber = Number(processHistory.firstSeen);
+                        processHistory.firstSeen = Utils.getTimeStampHMS(processHistory.firstSeenNumber)
                     }
-                    processHistory.lastSeen = Utils.getTimeStampHMS(Number(processHistory.lastSeen))
+                    processHistory.lastSeenNumber = Number(processHistory.lastSeen);
+                    processHistory.lastSeen = Utils.getTimeStampHMS(Number(processHistory.lastSeenNumber))
                     processHistory.processName = processHistory.processName + '(' + processHistory.processId + ')'
-                    processHistory.cpuTime = Utils.getDurString(Number(processHistory.cpuTime))
+                    processHistory.cpuTimeNumber = Number(processHistory.cpuTime);
+                    processHistory.cpuTime = this.timeFormat(processHistory.cpuTimeNumber)
                 }
                 this.source = item
                 this.queryResult = item;
@@ -104,6 +110,32 @@ export class TabPaneHistoryProcesses extends BaseElement {
                 this.tbl!.recycleDataSource = [];
             }
         })
+    }
+
+    timeFormat(ms: number): string {
+        let currentMs = ms
+        let hours = 3600000
+        let minute1 = 60000
+        let second1 = 1000;
+        let res = "";
+        if (currentMs >= hours) {
+            res += Math.floor(currentMs / hours) + " h ";
+            currentMs = currentMs - Math.floor(currentMs / hours) * hours
+        }
+        if (currentMs >= minute1) {
+            res += Math.floor(currentMs / minute1) + " min ";
+            currentMs = currentMs - Math.floor(currentMs / minute1) * minute1
+        }
+        if (currentMs >= second1) {
+            res += Math.floor(currentMs / second1) + " s ";
+            currentMs = currentMs - Math.floor(currentMs / second1) * second1;
+        }
+        if (currentMs > 0) {
+            res += currentMs + " ms ";
+        } else {
+            res += "0 ms ";
+        }
+        return res
     }
 
     initHtml(): string {
@@ -135,6 +167,12 @@ export class TabPaneHistoryProcesses extends BaseElement {
                 if (type === 'number') {
                     // @ts-ignore
                     return sort === 2 ? parseFloat(b[property]) - parseFloat(a[property]) : parseFloat(a[property]) - parseFloat(b[property]);
+                } else if (type === 'cpuTime') {
+                    return sort === 2 ? b.cpuTimeNumber - a.cpuTimeNumber : a.cpuTimeNumber - b.cpuTimeNumber;
+                } else if (type === 'lastSeen') {
+                    return sort === 2 ? b.lastSeenNumber - a.lastSeenNumber : a.lastSeenNumber - b.lastSeenNumber;
+                } else if (type === 'firstSeen') {
+                    return sort === 2 ? b.firstSeenNumber - a.firstSeenNumber : a.firstSeenNumber - b.firstSeenNumber;
                 } else if (type === 'alive') {
                     let aaaa = 0;
                     let bbbb = 0;
@@ -165,14 +203,16 @@ export class TabPaneHistoryProcesses extends BaseElement {
             }
         }
 
-        if (detail.key === 'startTime') {
+        if (detail.key === 'startTime' || detail.key === 'processName' ) {
             this.source.sort(compare(detail.key, detail.sort, 'string'))
+        } else if (detail.key == 'cpuTime') {
+            this.source.sort(compare(detail.key, detail.sort, 'cpuTime'))
         } else if (detail.key === 'alive') {
             this.source.sort(compare(detail.key, detail.sort, 'alive'))
         } else {
             this.source.sort(compare(detail.key, detail.sort, 'number'))
         }
-        this.tbl!.dataSource = this.source;
+        this.tbl!.recycleDataSource = this.source;
     }
 
 }

@@ -63,8 +63,12 @@ describe('TabPaneContextSwitch Test', () => {
         expect(result.get('').get(0).length).toBe(1);
     });
 
+
     it('TabPaneThreadSwitchTest04', function () {
-        expect(tabPaneThreadSwitch.data).toBeUndefined();
+        document.body.innerHTML = `<tabpane-thread-switch id="ThreadSwitch"></tabpane-thread-switch>`
+        let tabPaneThreadSwitch = document.querySelector('#ThreadSwitch') as TabPaneThreadSwitch
+        tabPaneThreadSwitch.data = false
+        expect(tabPaneThreadSwitch.data).toBeFalsy();
     });
 
     it('TabPaneThreadSwitchTest06', function () {

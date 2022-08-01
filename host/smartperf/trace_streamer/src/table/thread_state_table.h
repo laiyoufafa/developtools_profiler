@@ -57,6 +57,7 @@ private:
                 default:
                     break;
             }
+            return INVALID_UINT32;
         }
         int Next() override
         {
@@ -84,6 +85,7 @@ private:
                 default:
                     break;
             }
+            return INVALID_UINT32;
         }
     private:
         const std::deque<ThreadState::ColumnData>& rowData_;

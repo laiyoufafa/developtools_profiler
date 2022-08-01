@@ -25,6 +25,7 @@ import {LitCheckBox} from "../../../../base-ui/checkbox/LitCheckBox.js";
 import {LitIcon} from "../../../../base-ui/icon/LitIcon";
 import "../../../../base-ui/popover/LitPopoverV.js"
 import {LitPopover} from "../../../../base-ui/popover/LitPopoverV.js";
+import {info} from "../../../../log/Log.js";
 
 export class RangeSelectStruct {
     startX: number | undefined
@@ -32,6 +33,10 @@ export class RangeSelectStruct {
     startNS: number | undefined
     endNS: number | undefined
 }
+
+let collectList:Array<any> = [];
+let rowDragElement:EventTarget | undefined | null;
+let dragDirection:string = "";
 
 @element('trace-row')
 export class TraceRow<T extends BaseStruct> extends HTMLElement {
@@ -43,6 +48,8 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     static ROW_TYPE_HIPERF_CPU = "hiperf-cpu"
     static ROW_TYPE_HIPERF_PROCESS = "hiperf-process"
     static ROW_TYPE_HIPERF_THREAD = "hiperf-thread"
+    static ROW_TYPE_HIPERF_REPORT = "hiperf-report"
+    static ROW_TYPE_HIPERF_EVENT = "hiperf-event"
     static ROW_TYPE_PROCESS = "process"
     static ROW_TYPE_THREAD = "thread"
     static ROW_TYPE_MEM = "mem"
@@ -65,14 +72,13 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     onComplete: Function | undefined;
     isComplete: boolean = false;
     public dataList: undefined | Array<T>;
-    public describeEl: Element | null | undefined;
+    public describeEl: HTMLElement | null | undefined;
     public canvas: Array<HTMLCanvasElement> = [];
     public canvasContainer: HTMLDivElement | null | undefined;
     public tipEL: HTMLDivElement | null | undefined;
     public checkBoxEL: LitCheckBox | null | undefined;
     public collectEL: LitIcon | null | undefined;
-    public onDrawHandler: ((ctx: CanvasRenderingContext2D) => void) | undefined | null
-    public onThreadHandler: ((useCache: boolean) => void) | undefined | null
+    public onThreadHandler: ((useCache: boolean, buf: ArrayBuffer | undefined | null) => void) | undefined | null
     public onDrawTypeChangeHandler: ((type: number) => void) | undefined | null
     public supplier: (() => Promise<Array<T>>) | undefined | null
     public favoriteChangeHandler: ((fav: TraceRow<any>) => void) | undefined | null
@@ -90,6 +96,10 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     private _rangeSelect: boolean = false;
     private _drawType: number = 0
     private folderIconEL: LitIcon | null | undefined;
+    online: boolean = false;
+    static isUserInteraction: boolean;
+    asyncFuncName: string | undefined | null;
+    asyncFuncNamePID: number | undefined | null;
 
     constructor(args: { canvasNumber: number, alpha: boolean, contextId: string, isOffScreen: boolean }) {
         super();
@@ -102,8 +112,23 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
         return ["folder", "name", "expansion", "children", "height", "row-type", "row-id", "row-parent-id", "sleeping",
             "check-type",
             "collect-type",
-            "disabled-check"
+            "disabled-check",
+            "row-discard",
         ];
+    }
+
+    get rowDiscard(): boolean {
+        return this.hasAttribute("row-discard");
+    }
+
+    set rowDiscard(value: boolean) {
+        if (value) {
+            this.setAttribute("row-discard", "")
+            this.style.display = "none";
+        } else {
+            this.removeAttribute("row-discard")
+            this.style.display = "";
+        }
     }
 
     get collect() {
@@ -399,9 +424,29 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
         })
     }
 
+    drawLine(item:HTMLDivElement,direction:string/*string[top|bottom]*/) {
+        if (!item) return;
+        switch (direction) {
+            case "top":
+                item.classList.remove("line-bottom");
+                item.classList.add("line-top");
+                break;
+            case "bottom":
+                item.classList.remove("line-top");
+                item.classList.add("line-bottom");
+                break;
+            case "":
+                item.classList.remove("line-top");
+                item.classList.remove("line-bottom");
+                break;
+        }
+    }
+
     connectedCallback() {
         this.checkBoxEL!.onchange = (ev: any) => {
+            info("checkBoxEL onchange ");
             if (!ev.target.checked) {
+                info("checkBoxEL target not checked");
                 this.rangeSelect = false;
                 this.checkType = "0"
                 this.draw();
@@ -412,19 +457,72 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
             }
             this.setCheckBox(ev.target.checked);
         }
+        this.describeEl!.ondragstart = (ev: DragEvent) => this.rowDragstart(ev);
+        this.describeEl!.ondragleave = (ev:any) => {
+            this.drawLine(ev.currentTarget,'');
+            return undefined;
+        }
+        this.describeEl!.ondragend = (ev:any)=>{
+            rowDragElement = null;
+            ev.target.classList.remove("drag")
+            this.drawLine(ev.currentTarget,'');
+            return undefined;
+        }
+        this.describeEl!.ondragover = (ev:any) => {
+            if (!this.collect) return;
+            if (rowDragElement === this) return;
+            let rect = ev.currentTarget.getBoundingClientRect();
+            if (ev.clientY >= rect.top && ev.clientY < rect.top + rect.height / 2) {//上面
+                dragDirection = 'top';
+                this.drawLine(ev.currentTarget,'top');
+            } else if (ev.clientY <= rect.bottom && ev.clientY > rect.top + rect.height / 2) {//下面
+                dragDirection = 'bottom';
+                this.drawLine(ev.currentTarget,'bottom');
+            }
+            return undefined;
+        }
+        this.describeEl!.ondrop = (ev:any) => {
+            if (!this.collect) return;
+            this.drawLine(ev.currentTarget,'');
+            let spacer = this.parentElement!.previousElementSibling! as HTMLDivElement;
+            let startDragNode = collectList.findIndex((it) => it === rowDragElement);
+            let endDragNode = collectList.findIndex((it) => it === this);
+            if (startDragNode === -1 || endDragNode === -1) return;
+            if (startDragNode < endDragNode && dragDirection === "top") {
+                endDragNode--;
+            }else if (startDragNode > endDragNode && dragDirection === "bottom"){
+                endDragNode++;
+            }
+            collectList.splice(endDragNode,0,...collectList.splice(startDragNode,1))
+            collectList.forEach((it, i) => {
+                if (i == 0) {
+                    it.style.top = `${spacer.offsetTop + 48}px`;
+                } else {
+                    it.style.top = `${collectList[i - 1].offsetTop + collectList[i - 1].offsetHeight}px`;
+                }
+            })
+        }
         this.collectEL!.onclick = (e) => {
             this.collect = !this.collect;
+            if (this.collect) {
+                this.describeEl!.draggable = true;
+            } else {
+                this.describeEl!.draggable = false;
+            }
             let spacer = this.parentElement!.previousElementSibling! as HTMLDivElement;
             if (this.collect) {
+                let nodeList = this.parentElement!.querySelectorAll<TraceRow<any>>(`trace-row[collect-type]`);
+                if (nodeList.length == 1) collectList = [];
+                collectList.push(this);
                 spacer.style.height = `${spacer.offsetHeight + this.offsetHeight!}px`;
             } else {
+                collectList.splice(collectList.findIndex((it) => it === this),1);
                 spacer.style.height = `${spacer.offsetHeight - this.offsetHeight!}px`;
                 let parent = this.parentElement!.querySelector<TraceRow<any>>(`trace-row[row-id='${this.rowParentId}']`);
                 if (parent) {
                     this.rowHidden = !parent.expansion;
                 }
             }
-            let collectList = this.parentElement!.querySelectorAll<TraceRow<any>>(`trace-row[collect-type]`);
             collectList.forEach((it, i) => {
                 if (i == 0) {
                     it.style.top = `${spacer.offsetTop + 48}px`;
@@ -456,6 +554,11 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
                 this.onDrawTypeChangeHandler?.(1);
             }, 300);
         }
+    }
+
+    rowDragstart(ev: any){
+        rowDragElement = this;
+        ev.target.classList.add("drag")
     }
 
     setCheckBox(isCheck: boolean) {
@@ -542,7 +645,17 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     }
 
     draw(useCache: boolean = false) {
+        this.dpr = window.devicePixelRatio || 1;
         if (this.sleeping) {
+            return;
+        }
+        if (this.online) {
+            if (!useCache && !TraceRow.isUserInteraction) {
+                this.supplier?.().then(res => {
+                    this.onThreadHandler?.(useCache, res as any);
+                });
+            }
+            this.onThreadHandler?.(useCache, null);
             return;
         }
         if (!this.isComplete) {
@@ -569,7 +682,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
             }
         } else {
             if (this.onThreadHandler && this.dataList) {
-                this.onThreadHandler!(useCache)
+                this.onThreadHandler!(useCache, null);
             }
         }
     }
@@ -664,6 +777,18 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
             grid-template-columns: 248px 1fr;
             border-bottom: 1px solid var(--dark-border1,#dadada);
             box-sizing: border-box;
+        }
+        .root .drag{
+            background-color: var(--dark-background1,#eee);
+            box-shadow: 0 4px 12px -4px #999 inset;
+        }
+        .root .line-top{
+            box-shadow: 0 4px 2px -1px #4d7ab3 inset; 
+            transition: all 0.2s;
+        }
+        .root .line-bottom{
+            box-shadow: 0 -4px 2px -1px #4d7ab3 inset; 
+            transition: all 0.2s;
         }
         .describe{
             box-sizing: border-box;

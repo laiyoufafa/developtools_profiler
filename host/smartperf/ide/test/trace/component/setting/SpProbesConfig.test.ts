@@ -31,7 +31,6 @@ describe('SpProbesConfig Test', ()=>{
         expect(spEle.traceConfig).toEqual([])
         expect(spEle.traceEvents).toEqual([])
         expect(spEle.memoryConfig).toEqual([])
-        expect(spEle.hilogConfig).toEqual([])
     });
 
     it(' SpProbesConfig test', function () {

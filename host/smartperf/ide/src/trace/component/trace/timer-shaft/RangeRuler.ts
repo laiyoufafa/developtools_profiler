@@ -63,7 +63,7 @@ export class Mark extends Graph {
 
 export interface TimeRange {
     slicesTime: {
-        color: string|null|undefined;
+        color: string | null | undefined;
         startTime: number | null | undefined;
         endTime: number | null | undefined;
     };
@@ -74,6 +74,7 @@ export interface TimeRange {
     startNS: number
     endNS: number
     xs: Array<number>
+    refresh: boolean
     xsTxt: Array<string>
 }
 
@@ -82,6 +83,7 @@ export class RangeRuler extends Graph {
     public markA: Mark
     public markB: Mark
     public range: TimeRange;
+    private pressedKeys: Array<string> = [];
     mouseDownOffsetX = 0
     mouseDownMovingMarkX = 0
     movingMark: Mark | undefined | null;
@@ -91,14 +93,26 @@ export class RangeRuler extends Graph {
     markAX: number = 0;
     markBX: number = 0;
     isPress: boolean = false
-    pressFrameId: number = -1
+    pressFrameIdW: number = -1
+    pressFrameIdS: number = -1
+    pressFrameIdA: number = -1
+    pressFrameIdD: number = -1
+    upFrameIdW: number = -1
+    upFrameIdS: number = -1
+    upFrameIdA: number = -1
+    upFrameIdD: number = -1
     currentDuration: number = 0
+    cacheInterval: { interval: number, value: number, flag: boolean } = {
+        interval: 200,
+        value: 0,
+        flag: false
+    }
     centerXPercentage: number = 0;
     animaStartTime: number | undefined
-    animTime: number = 250;
-    p: number = 2000;
+    p: number = 1000;
     private readonly notifyHandler: (r: TimeRange) => void;
     private scale: number = 0;
+    private delayTimer:any = null
     //缩放级别
     private scales: Array<number> = [50, 100, 200, 500, 1_000, 2_000, 5_000, 10_000, 20_000, 50_000, 100_000, 200_000, 500_000,
         1_000_000, 2_000_000, 5_000_000, 10_000_000, 20_000_000, 50_000_000, 100_000_000, 200_000_000, 500_000_000,
@@ -212,6 +226,7 @@ export class RangeRuler extends Graph {
                 this.range.xs.push(startX)
                 this.range.xsTxt.push(ns2s(tmpNs))
             }
+
             if (!discardNotify) {
                 this.notifyHandler(this.range)
             }
@@ -250,6 +265,7 @@ export class RangeRuler extends Graph {
     }
 
     mouseMove(ev: MouseEvent) {
+        this.range.refresh = false;
         let x = ev.offsetX - (this.canvas?.offsetLeft || 0);
         let y = ev.offsetY - (this.canvas?.offsetTop || 0)
         this.centerXPercentage = x / (this.canvas?.clientWidth || 0)
@@ -277,7 +293,12 @@ export class RangeRuler extends Graph {
                 this.movingMark.frame.x = maxX
             }
             this.movingMark.inspectionFrame.x = this.movingMark.frame.x - markPadding
-            requestAnimationFrame(() => this.draw());
+            this.recordMovingS()
+            requestAnimationFrame(() => {
+                this.draw()
+                this.range.refresh = false;
+                this.delayDraw()
+            });
         } else if (this.rangeRect.containsWithPadding(x, y, markPadding, 0)) {
             document.body.style.cursor = "move"
         } else if (this.frame.containsWithMargin(x, y, 20, 0, 0, 0) && !this.rangeRect.containsWithMargin(x, y, 0, markPadding, 0, markPadding)) {
@@ -303,7 +324,12 @@ export class RangeRuler extends Graph {
                 this.markB.frame.x = maxX
             }
             this.markB.inspectionFrame.x = this.markB.frame.x - markPadding
-            requestAnimationFrame(() => this.draw());
+            this.recordMovingS()
+            requestAnimationFrame(() => {
+                this.draw()
+                this.range.refresh = false;
+                this.delayDraw()
+            });
         } else if (this.isNewRange) {
             this.markA.frame.x = this.mouseDownOffsetX;
             this.markA.inspectionFrame.x = this.mouseDownOffsetX - markPadding;
@@ -315,8 +341,41 @@ export class RangeRuler extends Graph {
                 this.markB.frame.x = maxX;
             }
             this.markB.inspectionFrame.x = this.markB.frame.x - markPadding;
-            requestAnimationFrame(() => this.draw());
+            this.recordMovingS()
+            requestAnimationFrame(() => {
+                this.draw()
+                this.range.refresh = false;
+                this.delayDraw()
+            });
         }
+    }
+
+    recordMovingS(){
+        if (this.animaStartTime == undefined) {
+            let dat = new Date();
+            dat.setTime(dat.getTime() - 400);
+            this.animaStartTime = dat.getTime();
+        }
+        this.currentDuration = (new Date().getTime() - this.animaStartTime);
+        if (Math.trunc(this.currentDuration / this.cacheInterval.interval) != this.cacheInterval.value) {
+            this.cacheInterval.flag = true;
+            this.cacheInterval.value = Math.trunc(this.currentDuration / this.cacheInterval.interval)
+        } else {
+            this.cacheInterval.flag = false;
+        }
+        this.range.refresh = this.cacheInterval.flag;
+    }
+
+    delayDraw() {
+        if(this.delayTimer){
+            clearTimeout(this.delayTimer)
+        }
+        this.delayTimer = setTimeout(()=>{
+            this.range.refresh = true;
+            this.draw()
+            this.range.refresh = false;
+            this.animaStartTime = undefined
+        },this.cacheInterval.interval+50)
     }
 
     mouseOut(ev: MouseEvent) {
@@ -347,131 +406,242 @@ export class RangeRuler extends Graph {
         return this.range;
     }
 
+    cancelPressFrame() {
+        if (this.pressFrameIdA != -1) cancelAnimationFrame(this.pressFrameIdA);
+        if (this.pressFrameIdD != -1) cancelAnimationFrame(this.pressFrameIdD);
+        if (this.pressFrameIdW != -1) cancelAnimationFrame(this.pressFrameIdW);
+        if (this.pressFrameIdS != -1) cancelAnimationFrame(this.pressFrameIdS);
+    }
+
+    cancelUpFrame() {
+        if (this.upFrameIdA != -1) cancelAnimationFrame(this.upFrameIdA);
+        if (this.upFrameIdD != -1) cancelAnimationFrame(this.upFrameIdD);
+        if (this.upFrameIdW != -1) cancelAnimationFrame(this.upFrameIdW);
+        if (this.upFrameIdS != -1) cancelAnimationFrame(this.upFrameIdS);
+    }
+
+
     keyPress(ev: KeyboardEvent) {
-        if (this.animaStartTime === undefined) {
-            this.animaStartTime = new Date().getTime();
+        let task = (key: string) => {
+            switch (key) {
+                case "w":
+                    let animW = () => {
+                        if (this.scale === 50) {
+                            this.range.refresh = true;
+                            this.notifyHandler(this.range);
+                            this.range.refresh = false;
+                            return;
+                        }
+                        this.range.startNS += (this.centerXPercentage * this.currentDuration * this.scale / this.p);
+                        this.range.endNS -= ((1 - this.centerXPercentage) * this.currentDuration * this.scale / this.p);
+                        this.fillX();
+                        this.draw();
+                        this.range.refresh = false;
+                        this.pressFrameIdW = requestAnimationFrame(animW)
+                    }
+                    this.pressFrameIdW = requestAnimationFrame(animW)
+                    break;
+                case "s":
+                    let animS = () => {
+                        if (this.range.startNS <= 0 && this.range.endNS >= this.range.totalNS) {
+                            this.range.refresh = true;
+                            this.notifyHandler(this.range);
+                            this.range.refresh = false;
+                            return;
+                        }
+                        this.range.startNS -= (this.centerXPercentage * this.scale / this.p * this.currentDuration);
+                        this.range.endNS += ((1 - this.centerXPercentage) * this.scale / this.p * this.currentDuration);
+                        this.fillX();
+                        this.draw();
+                        this.range.refresh = false;
+                        this.pressFrameIdS = requestAnimationFrame(animS)
+                    }
+                    this.pressFrameIdS = requestAnimationFrame(animS)
+                    break;
+                case "a":
+                    let animA = () => {
+                        if (this.range.startNS == 0) {
+                            this.range.refresh = true;
+                            this.notifyHandler(this.range);
+                            this.range.refresh = false;
+                            return;
+                        }
+                        let s = this.scale / this.p * this.currentDuration * .4;
+                        this.range.startNS -= s;
+                        this.range.endNS -= s;
+                        this.fillX();
+                        this.draw();
+                        this.range.refresh = false;
+                        this.pressFrameIdA = requestAnimationFrame(animA)
+                    }
+                    this.pressFrameIdA = requestAnimationFrame(animA)
+                    break;
+                case "d":
+                    let animD = () => {
+                        if (this.range.endNS >= this.range.totalNS) {
+                            this.range.refresh = true;
+                            this.notifyHandler(this.range);
+                            this.range.refresh = false;
+                            return;
+                        }
+                        let s = this.scale / this.p * this.currentDuration * .4;
+                        this.range.startNS += s;
+                        this.range.endNS += s;
+                        this.fillX();
+                        this.draw();
+                        this.range.refresh = false;
+                        this.pressFrameIdD = requestAnimationFrame(animD)
+                    }
+                    this.pressFrameIdD = requestAnimationFrame(animD)
+                    break;
+            }
         }
-        let startTime = new Date().getTime();
-        let duration = (startTime - this.animaStartTime);
-        if (duration < this.animTime * 2) duration = duration + this.animTime
-        this.currentDuration = duration
-        if (this.isPress) return
-        this.isPress = true
-        switch (ev.key.toLocaleLowerCase()) {
-            case "w":
-                let animW = () => {
-                    if (this.scale === 50) return;
-                    this.range.startNS += (this.centerXPercentage * this.currentDuration * 2 * this.scale / this.p);
-                    this.range.endNS -= ((1 - this.centerXPercentage) * this.currentDuration * 2 * this.scale / this.p);
-                    this.fillX();
-                    this.draw();
-                    this.pressFrameId = requestAnimationFrame(animW)
-                }
-                this.pressFrameId = requestAnimationFrame(animW)
-                break;
-            case "s":
-                let animS = () => {
-                    if (this.range.startNS <= 0 && this.range.endNS >= this.range.totalNS) return;
-                    this.range.startNS -= (this.centerXPercentage * this.currentDuration * 2 * this.scale / this.p);
-                    this.range.endNS += ((1 - this.centerXPercentage) * this.currentDuration * 2 * this.scale / this.p);
-                    this.fillX();
-                    this.draw();
-                    this.pressFrameId = requestAnimationFrame(animS)
-                }
-                this.pressFrameId = requestAnimationFrame(animS)
-                break;
-            case "a":
-                let animA = () => {
-                    if (this.range.startNS == 0) return;
-                    let s = this.scale / this.p * this.currentDuration;
-                    this.range.startNS -= s;
-                    this.range.endNS -= s;
-                    this.fillX();
-                    this.draw();
-                    this.pressFrameId = requestAnimationFrame(animA)
-                }
-                this.pressFrameId = requestAnimationFrame(animA)
-                break;
-            case "d":
-                let animD = () => {
-                    if (this.range.endNS >= this.range.totalNS) return;
-                    this.range.startNS += this.scale / this.p * this.currentDuration;
-                    this.range.endNS += this.scale / this.p * this.currentDuration;
-                    this.fillX();
-                    this.draw();
-                    this.pressFrameId = requestAnimationFrame(animD)
-                }
-                this.pressFrameId = requestAnimationFrame(animD)
-                break;
+        if (this.animaStartTime == undefined) {
+            let dat = new Date();
+            dat.setTime(dat.getTime() - 400);
+            this.animaStartTime = dat.getTime();
+        }
+        this.currentDuration = (new Date().getTime() - this.animaStartTime);
+        if (Math.trunc(this.currentDuration / this.cacheInterval.interval) != this.cacheInterval.value) {
+            this.cacheInterval.flag = true;
+            this.cacheInterval.value = Math.trunc(this.currentDuration / this.cacheInterval.interval)
+        } else {
+            this.cacheInterval.flag = false;
+        }
+        this.range.refresh = this.cacheInterval.flag;
+        if (this.pressedKeys.length > 0) {
+            if (this.pressedKeys[this.pressedKeys.length - 1] != ev.key.toLocaleLowerCase()) {
+                this.cancelPressFrame();
+                this.cancelUpFrame();
+                this.pressedKeys.push(ev.key.toLocaleLowerCase());
+                let dat = new Date();
+                dat.setTime(dat.getTime() - 400);
+                this.animaStartTime = dat.getTime();
+                task(this.pressedKeys[this.pressedKeys.length - 1]);
+            }
+        } else {
+            this.cancelPressFrame();
+            this.cancelUpFrame();
+            this.pressedKeys.push(ev.key.toLocaleLowerCase());
+            let dat = new Date();
+            dat.setTime(dat.getTime() - 400);
+            this.animaStartTime = dat.getTime();
+            task(this.pressedKeys[this.pressedKeys.length - 1]);
         }
     }
 
     keyUp(ev: KeyboardEvent) {
-        this.animaStartTime = undefined;
-        this.isPress = false
-        if (this.pressFrameId != -1) {
-            cancelAnimationFrame(this.pressFrameId)
-        }
-        let startTime = new Date().getTime();
-        switch (ev.key) {
-            case "w":
-                let animW = () => {
-                    if (this.scale === 50) return;
-                    let dur = (new Date().getTime() - startTime);
-                    this.range.startNS += (this.centerXPercentage * 100 * this.scale / this.p);
-                    this.range.endNS -= ((1 - this.centerXPercentage) * 100 * this.scale / this.p);
-                    this.fillX();
-                    this.draw();
-                    if (dur < 200) {
-                        requestAnimationFrame(animW)
-                    }
+        this.cacheInterval.value = 0;
+        if (this.pressedKeys.length > 0) {
+            let number = this.pressedKeys.findIndex((value) => value === ev.key.toLocaleLowerCase());
+            if (number == this.pressedKeys.length - 1) {
+                this.animaStartTime = undefined;
+                this.cancelPressFrame();
+                let startTime = new Date().getTime();
+                switch (ev.key) {
+                    case "w":
+                        let animW = () => {
+                            if (this.scale === 50) {
+                                this.range.refresh = true;
+                                this.notifyHandler(this.range);
+                                this.range.refresh = false;
+                                return;
+                            }
+                            let dur = (new Date().getTime() - startTime);
+                            this.range.startNS += (this.centerXPercentage * 100 * this.scale / this.p);
+                            this.range.endNS -= ((1 - this.centerXPercentage) * 100 * this.scale / this.p);
+                            this.fillX();
+                            this.draw();
+                            this.range.refresh = false;
+                            if (dur < 200) {
+                                this.upFrameIdW = requestAnimationFrame(animW);
+                            }else{
+                                this.range.refresh = true;
+                                this.notifyHandler(this.range);
+                                this.range.refresh = false;
+                            }
+                        }
+                        this.upFrameIdW = requestAnimationFrame(animW);
+                        break;
+                    case "s":
+                        let animS = () => {
+                            if (this.range.startNS <= 0 && this.range.endNS >= this.range.totalNS) {
+                                this.range.refresh = true;
+                                this.notifyHandler(this.range);
+                                this.range.refresh = false;
+                                return;
+                            }
+                            let dur = (new Date().getTime() - startTime);
+                            this.range.startNS -= (this.centerXPercentage * 100 * this.scale / this.p);
+                            this.range.endNS += ((1 - this.centerXPercentage) * 100 * this.scale / this.p);
+                            this.fillX();
+                            this.draw();
+                            this.range.refresh = false;
+                            if (dur < 200) {
+                                this.upFrameIdS = requestAnimationFrame(animS);
+                            }else{
+                                this.range.refresh = true;
+                                this.notifyHandler(this.range);
+                                this.range.refresh = false;
+                            }
+                        }
+                        this.upFrameIdS = requestAnimationFrame(animS);
+                        break;
+                    case "a":
+                        let animA = () => {
+                            if (this.range.startNS <= 0) {
+                                this.range.refresh = true;
+                                this.notifyHandler(this.range);
+                                this.range.refresh = false;
+                                return;
+                            }
+                            let dur = (new Date().getTime() - startTime);
+                            let s = this.scale * 80 / this.p;
+                            this.range.startNS -= s;
+                            this.range.endNS -= s;
+                            this.fillX();
+                            this.draw();
+                            this.range.refresh = false;
+                            if (dur < 200) {
+                                this.upFrameIdA = requestAnimationFrame(animA);
+                            }else{
+                                this.range.refresh = true;
+                                this.notifyHandler(this.range);
+                                this.range.refresh = false;
+                            }
+                        }
+                        this.upFrameIdA = requestAnimationFrame(animA);
+                        break;
+                    case "d":
+                        let animD = () => {
+                            if (this.range.endNS >= this.range.totalNS) {
+                                this.range.refresh = true;
+                                this.notifyHandler(this.range);
+                                this.range.refresh = false;
+                                return;
+                            }
+                            let dur = (new Date().getTime() - startTime);
+                            let s = this.scale * 80 / this.p;
+                            this.range.startNS += s;
+                            this.range.endNS += s;
+                            this.fillX();
+                            this.draw();
+                            this.range.refresh = false;
+                            if (dur < 200) {
+                                this.upFrameIdD = requestAnimationFrame(animD);
+                            }else{
+                                this.range.refresh = true;
+                                this.notifyHandler(this.range);
+                                this.range.refresh = false;
+                            }
+                        }
+                        this.upFrameIdD = requestAnimationFrame(animD);
+                        break;
                 }
-                requestAnimationFrame(animW)
-                break;
-            case "s":
-                let animS = () => {
-                    if (this.range.startNS <= 0 && this.range.endNS >= this.range.totalNS) return;
-                    let dur = (new Date().getTime() - startTime);
-                    this.range.startNS -= (this.centerXPercentage * 100 * this.scale / this.p);
-                    this.range.endNS += ((1 - this.centerXPercentage) * 100 * this.scale / this.p);
-                    this.fillX();
-                    this.draw();
-                    if (dur < 200) {
-                        requestAnimationFrame(animS)
-                    }
-                }
-                requestAnimationFrame(animS)
-                break;
-            case "a":
-                let animA = () => {
-                    if (this.range.startNS <= 0) return
-                    let dur = (new Date().getTime() - startTime);
-                    let s = this.scale * 80 / this.p;
-                    this.range.startNS -= s;
-                    this.range.endNS -= s;
-                    this.fillX();
-                    this.draw();
-                    if (dur < 200) {
-                        requestAnimationFrame(animA)
-                    }
-                }
-                animA();
-                break;
-            case "d":
-                let animD = () => {
-                    if (this.range.endNS >= this.range.totalNS) return;
-                    let dur = (new Date().getTime() - startTime);
-                    let s = this.scale * 80 / this.p;
-                    this.range.startNS += s;
-                    this.range.endNS += s;
-                    this.fillX();
-                    this.draw();
-                    if (dur < 200) {
-                        requestAnimationFrame(animD)
-                    }
-                }
-                animD();
-                break;
+            }
+            if (number != -1) {
+                this.pressedKeys.splice(number, 1);
+            }
         }
     }
 }

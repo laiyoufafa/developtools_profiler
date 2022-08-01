@@ -22,6 +22,11 @@ describe('LitSelectOption Test', ()=> {
        let inner =  document.querySelector("#aa") as LitSelectOption;
        expect(inner).not.toBeUndefined()
     });
+    it('LitSelectOptionTest03 ', function () {
+        expect(LitSelectOption.adoptedCallback).toBeUndefined()
+
+    });
+
 
     it('LitSelectOption02', function () {
        let litSelect = new LitSelectOption();

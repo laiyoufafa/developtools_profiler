@@ -21,7 +21,7 @@ describe('DistributeTermStrategy Test', () => {
         funName:"name",
         ts:"ts",
         dur:"",
-        flag:"C",
+        flag: 'fd,fdsf.fds',
         trace_name:"name1",
         chainId:"1",
         spanId:"span",

@@ -626,31 +626,10 @@ HWTEST_F(NativeHookParserTest, ParseBatchNativeHookWithOneFree, TestSize.Level1)
     HtraceNativeHookParser htraceNativeHookParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     htraceNativeHookParser.SortNativeHookData(*batchNativeHookData);
     htraceNativeHookParser.FinishParseNativeHookData();
-
-    // Verification parse NativeHook results
-    auto expect_ipid = stream_.streamFilters_->processFilter_->GetInternalPid(PID);
-    auto expect_itid = stream_.streamFilters_->processFilter_->GetInternalTid(TID_01);
-    NativeHookCache expectNativeHookCache(0, expect_ipid, expect_itid, FREEEVENT.c_str(), INVALID_UINT64, TIMESTAMP_01,
-                                          0, 0, MEM_ADDR_01, 0, 0, 0);
-    const NativeHook& nativeHook = stream_.traceDataCache_->GetConstNativeHookData();
-    NativeHookCache resultNativeHookCache(nativeHook, 0);
-    EXPECT_TRUE(expectNativeHookCache == resultNativeHookCache);
-
     auto size = stream_.traceDataCache_->GetConstNativeHookData().Size();
-    EXPECT_EQ(1, size);
-
-    // Verification parse NativeHook Frame results
-    const NativeHookFrame& nativeHookFrame = stream_.traceDataCache_->GetConstNativeHookFrameData();
-    auto expectSymbolData = stream_.traceDataCache_->dataDict_.GetStringIndex(SYMBOL_NAME_01);
-    auto expectFilePathData = stream_.traceDataCache_->dataDict_.GetStringIndex(FILE_PATH_01);
-    NativeHookFrameCache expectFrameCache(0, 0, CALL_STACK_IP_01, CALL_STACK_SP_01, expectSymbolData,
-                                          expectFilePathData, OFFSET_01, SYMBOL_OFFSET_01);
-    NativeHookFrameCache resultFrameCache(nativeHookFrame, 0);
-    EXPECT_TRUE(expectFrameCache == resultFrameCache);
-
-    size = nativeHookFrame.Size();
-    EXPECT_EQ(1, size);
-
+    EXPECT_EQ(0, size);
+    size = stream_.traceDataCache_->GetConstNativeHookFrameData().Size();
+    EXPECT_EQ(0, size);
     auto eventCount =
         stream_.traceDataCache_->GetConstStatAndInfo().GetValue(TRACE_NATIVE_HOOK_FREE, STAT_EVENT_RECEIVED);
     EXPECT_TRUE(1 == eventCount);
@@ -731,59 +710,9 @@ HWTEST_F(NativeHookParserTest, ParseBatchNativeHookWithMultipleFree, TestSize.Le
     // Calculate partial expectations
     const NativeHook& nativeHook = stream_.traceDataCache_->GetConstNativeHookData();
     const NativeHookFrame& nativeHookFrame = stream_.traceDataCache_->GetConstNativeHookFrameData();
-    auto expect_ipid = stream_.streamFilters_->processFilter_->GetInternalPid(PID);
-    auto expect_itid = stream_.streamFilters_->processFilter_->GetInternalTid(TID_01);
-    EXPECT_TRUE(0 == nativeHook.AllMemSizes()[0]);
-    EXPECT_TRUE(0 == nativeHook.CurrentSizeDurs()[0]);
+    EXPECT_TRUE(0 == nativeHook.Size());
+    EXPECT_TRUE(0 == nativeHookFrame.Size());
 
-    // Construct the nativehookcache object using the element with subscript 0 in nativehook and compare it with the
-    // expected value
-    NativeHookCache firstExpectNativeHookCache(0, expect_ipid, expect_itid, FREEEVENT.c_str(), INVALID_UINT64,
-                                               TIMESTAMP_01, 0, 0, MEM_ADDR_01, 0, 0, 0);
-    NativeHookCache firstResultNativeHookCache(nativeHook, 0);
-    EXPECT_TRUE(firstExpectNativeHookCache == firstResultNativeHookCache);
-
-    // construct first Malloc event's first frame expect value.
-    // Note: the nativehookframe data is parsed in reverse order
-    auto firstExpectSymbol = stream_.traceDataCache_->dataDict_.GetStringIndex(SYMBOL_NAME_02);
-    auto firstExpectFilePath = stream_.traceDataCache_->dataDict_.GetStringIndex(FILE_PATH_02);
-    auto secondExpectSymbol = stream_.traceDataCache_->dataDict_.GetStringIndex(SYMBOL_NAME_01);
-    auto secondExpectFilePath = stream_.traceDataCache_->dataDict_.GetStringIndex(FILE_PATH_01);
-    NativeHookFrameCache firstFreeExpectFirstFrame(0, 0, CALL_STACK_IP_02, CALL_STACK_SP_02, firstExpectSymbol,
-                                                   firstExpectFilePath, OFFSET_02, SYMBOL_OFFSET_02);
-    // Construct the NativeHookFrameCache object using the element with subscript 0 in NativeHookFrame and compare it
-    // with the expected value
-    NativeHookFrameCache firstFreeResultFirstFrame(nativeHookFrame, 0);
-    EXPECT_TRUE(firstFreeExpectFirstFrame == firstFreeResultFirstFrame);
-
-    // construct first Free event's second frame expect value.
-    NativeHookFrameCache firstFreeExpectSecondFrame(0, 1, CALL_STACK_IP_01, CALL_STACK_SP_01, secondExpectSymbol,
-                                                    secondExpectFilePath, OFFSET_01, SYMBOL_OFFSET_01);
-    NativeHookFrameCache firstFreeResultSecondFrame(nativeHookFrame, 1);
-    EXPECT_TRUE(firstFreeExpectSecondFrame == firstFreeResultSecondFrame);
-
-    // Construct the nativehookcache object using the element with subscript 1 in nativehook and compare it with the
-    // expected value
-    expect_itid = stream_.streamFilters_->processFilter_->GetInternalTid(TID_02);
-    NativeHookCache secondExpectNativeHookCache(1, expect_ipid, expect_itid, FREEEVENT.c_str(), INVALID_UINT64,
-                                                TIMESTAMP_02, 0, 0, MEM_ADDR_02, 0, 0, 0);
-    NativeHookCache secondResultNativeHookCache(nativeHook, 1);
-    EXPECT_TRUE(secondExpectNativeHookCache == secondResultNativeHookCache);
-
-    // construct second Free event's first frame expect value.
-    // Note: the nativehookframe data is parsed in reverse order
-    NativeHookFrameCache secondFreeExpectFirstFrame(1, 0, CALL_STACK_IP_02, CALL_STACK_SP_02, firstExpectSymbol,
-                                                    firstExpectFilePath, OFFSET_02, SYMBOL_OFFSET_02);
-    // Construct the NativeHookFrameCache object using the element with subscript 2 in NativeHookFrame and compare it
-    // with the expected value
-    NativeHookFrameCache secondFreeResultFirstFrame(nativeHookFrame, 2);
-    EXPECT_TRUE(secondFreeExpectFirstFrame == secondFreeResultFirstFrame);
-
-    // construct second Free event's second frame expect value.
-    NativeHookFrameCache secondFreeExpectSecondFrame(1, 1, CALL_STACK_IP_01, CALL_STACK_SP_01, secondExpectSymbol,
-                                                     secondExpectFilePath, OFFSET_01, SYMBOL_OFFSET_01);
-    NativeHookFrameCache secondFreeResultSecondFrame(nativeHookFrame, 3);
-    EXPECT_TRUE(secondFreeExpectSecondFrame == secondFreeResultSecondFrame);
     auto eventCount =
         stream_.traceDataCache_->GetConstStatAndInfo().GetValue(TRACE_NATIVE_HOOK_FREE, STAT_EVENT_RECEIVED);
     EXPECT_TRUE(2 == eventCount);
@@ -961,23 +890,8 @@ HWTEST_F(NativeHookParserTest, ParseBatchNativeHookWithNotMatchMallocAndFree, Te
     NativeHookFrameCache firstResultFrameCache(nativeHookFrame, 0);
     EXPECT_TRUE(firstExpectFrameCache == firstResultFrameCache);
 
-    // Verification parse Free event results
-    expect_itid = stream_.streamFilters_->processFilter_->GetInternalTid(TID_02);
-    NativeHookCache secondExpectNativeHookCache(1, expect_ipid, expect_itid, FREEEVENT.c_str(), INVALID_UINT64,
-                                                TIMESTAMP_02, 0, 0, MEM_ADDR_02, 0, MEM_SIZE_01, 0);
-    NativeHookCache secondResultNativeHookCache(nativeHook, 1);
-    EXPECT_TRUE(secondExpectNativeHookCache == secondResultNativeHookCache);
-
-    // Verification parse Free Event Frame results
-    expectSymbolData = stream_.traceDataCache_->dataDict_.GetStringIndex(SYMBOL_NAME_02);
-    expectFilePathData = stream_.traceDataCache_->dataDict_.GetStringIndex(FILE_PATH_02);
-    NativeHookFrameCache secondExpectFrameCache(1, 0, CALL_STACK_IP_02, CALL_STACK_SP_02, expectSymbolData,
-                                                expectFilePathData, OFFSET_02, SYMBOL_OFFSET_02);
-    NativeHookFrameCache secondResultFrameCache(nativeHookFrame, 1);
-    EXPECT_TRUE(secondExpectFrameCache == secondResultFrameCache);
-
     auto size = nativeHookFrame.Size();
-    EXPECT_EQ(2, size);
+    EXPECT_EQ(1, size);
 
     auto eventCount =
         stream_.traceDataCache_->GetConstStatAndInfo().GetValue(TRACE_NATIVE_HOOK_FREE, STAT_EVENT_RECEIVED);
@@ -1165,12 +1079,6 @@ HWTEST_F(NativeHookParserTest, ParseTwoMallocAndFreeEventPartialMatched, TestSiz
     NativeHookCache secondResultMallocCache(nativeHook, 2);
     EXPECT_TRUE(secondExpectMallocCache == secondResultMallocCache);
 
-    // Verification parse second Free event results
-    NativeHookCache secondExpectFreeCache(3, expect_ipid, expect_itid, FREEEVENT.c_str(), INVALID_UINT64, TIMESTAMP_04,
-                                          0, 0, MEM_ADDR_03, 0, MEM_SIZE_02, 0);
-    NativeHookCache secondResultFreeCache(nativeHook, 3);
-    EXPECT_TRUE(secondExpectFreeCache == secondResultFreeCache);
-
     auto eventCount =
         stream_.traceDataCache_->GetConstStatAndInfo().GetValue(TRACE_NATIVE_HOOK_FREE, STAT_EVENT_RECEIVED);
     EXPECT_TRUE(2 == eventCount);
@@ -1283,29 +1191,14 @@ HWTEST_F(NativeHookParserTest, ParseBatchNativeHookWithOneMunmap, TestSize.Level
     htraceNativeHookParser.SortNativeHookData(*batchNativeHookData);
     htraceNativeHookParser.FinishParseNativeHookData();
 
-    // Verification parse NativeHook results
-    auto expect_ipid = stream_.streamFilters_->processFilter_->GetInternalPid(PID);
-    auto expect_itid = stream_.streamFilters_->processFilter_->GetInternalTid(TID_01);
-    NativeHookCache expectNativeHookCache(0, expect_ipid, expect_itid, MUNMAPEVENT.c_str(), INVALID_UINT64,
-                                          TIMESTAMP_01, 0, 0, MEM_ADDR_01, MEM_SIZE_01, 0, 0);
-    const NativeHook& nativeHook = stream_.traceDataCache_->GetConstNativeHookData();
-    NativeHookCache resultNativeHookCache(nativeHook, 0);
-    EXPECT_TRUE(expectNativeHookCache == resultNativeHookCache);
-
     auto size = stream_.traceDataCache_->GetConstNativeHookData().Size();
-    EXPECT_EQ(1, size);
+    EXPECT_EQ(0, size);
 
     // Verification parse NativeHook Frame results
     const NativeHookFrame& nativeHookFrame = stream_.traceDataCache_->GetConstNativeHookFrameData();
-    auto expectSymbolData = stream_.traceDataCache_->dataDict_.GetStringIndex(SYMBOL_NAME_01);
-    auto expectFilePathData = stream_.traceDataCache_->dataDict_.GetStringIndex(FILE_PATH_01);
-    NativeHookFrameCache expectFrameCache(0, 0, CALL_STACK_IP_01, CALL_STACK_SP_01, expectSymbolData,
-                                          expectFilePathData, OFFSET_01, SYMBOL_OFFSET_01);
-    NativeHookFrameCache resultFrameCache(nativeHookFrame, 0);
-    EXPECT_TRUE(expectFrameCache == resultFrameCache);
 
     size = nativeHookFrame.Size();
-    EXPECT_EQ(1, size);
+    EXPECT_EQ(0, size);
 
     auto eventCount =
         stream_.traceDataCache_->GetConstStatAndInfo().GetValue(TRACE_NATIVE_HOOK_MUNMAP, STAT_EVENT_RECEIVED);
@@ -1472,40 +1365,14 @@ HWTEST_F(NativeHookParserTest, ParseBatchNativeHookWithMultipleMunmap, TestSize.
     htraceNativeHookParser.SortNativeHookData(*batchNativeHookData);
     htraceNativeHookParser.FinishParseNativeHookData();
 
-    // Verification parse NativeHook results
-    const NativeHook& nativeHook = stream_.traceDataCache_->GetConstNativeHookData();
-    auto expect_ipid = stream_.streamFilters_->processFilter_->GetInternalPid(PID);
-    auto expect_itid = stream_.streamFilters_->processFilter_->GetInternalTid(TID_01);
-    NativeHookCache firstExpectNativeHookCache(0, expect_ipid, expect_itid, MUNMAPEVENT.c_str(), INVALID_UINT64,
-                                               TIMESTAMP_01, 0, 0, MEM_ADDR_01, MEM_SIZE_01, 0, 0);
-    NativeHookCache firstResultNativeHookCache(nativeHook, 0);
-    EXPECT_TRUE(firstExpectNativeHookCache == firstResultNativeHookCache);
-    expect_itid = stream_.streamFilters_->processFilter_->GetInternalTid(TID_01);
-    NativeHookCache secondExpectNativeHookCache(1, expect_ipid, expect_itid, MUNMAPEVENT.c_str(), INVALID_UINT64,
-                                                TIMESTAMP_02, 0, 0, MEM_ADDR_02, MEM_SIZE_02, 0, 0);
-    NativeHookCache secondResultNativeHookCache(nativeHook, 1);
-    EXPECT_TRUE(secondExpectNativeHookCache == secondResultNativeHookCache);
-
     auto size = stream_.traceDataCache_->GetConstNativeHookData().Size();
-    EXPECT_EQ(2, size);
+    EXPECT_EQ(0, size);
 
     // Verification parse NativeHook Frame results
     const NativeHookFrame& nativeHookFrame = stream_.traceDataCache_->GetConstNativeHookFrameData();
-    auto expectSymbolData = stream_.traceDataCache_->dataDict_.GetStringIndex(SYMBOL_NAME_01);
-    auto expectFilePathData = stream_.traceDataCache_->dataDict_.GetStringIndex(FILE_PATH_01);
-    NativeHookFrameCache firstExpectFrameCache(0, 0, CALL_STACK_IP_01, CALL_STACK_SP_01, expectSymbolData,
-                                               expectFilePathData, OFFSET_01, SYMBOL_OFFSET_01);
-    NativeHookFrameCache firstResultFrameCache(nativeHookFrame, 0);
-    EXPECT_TRUE(firstExpectFrameCache == firstResultFrameCache);
-    expectSymbolData = stream_.traceDataCache_->dataDict_.GetStringIndex(SYMBOL_NAME_02);
-    expectFilePathData = stream_.traceDataCache_->dataDict_.GetStringIndex(FILE_PATH_02);
-    NativeHookFrameCache secondExpectFrameCache(1, 0, CALL_STACK_IP_02, CALL_STACK_SP_02, expectSymbolData,
-                                                expectFilePathData, OFFSET_02, SYMBOL_OFFSET_02);
-    NativeHookFrameCache secondResultFrameCache(nativeHookFrame, 1);
-    EXPECT_TRUE(secondExpectFrameCache == secondResultFrameCache);
 
     size = nativeHookFrame.Size();
-    EXPECT_EQ(2, size);
+    EXPECT_EQ(0, size);
 
     auto eventCount =
         stream_.traceDataCache_->GetConstStatAndInfo().GetValue(TRACE_NATIVE_HOOK_MUNMAP, STAT_EVENT_RECEIVED);
@@ -1679,13 +1546,8 @@ HWTEST_F(NativeHookParserTest, ParseNotMatchMmapAndMunmapEvent, TestSize.Level1)
     NativeHookCache firstResultNativeHookCache(nativeHook, 0);
     EXPECT_TRUE(firstExpectNativeHookCache == firstResultNativeHookCache);
 
-    NativeHookCache secondExpectNativeHookCache(1, expect_ipid, expect_itid, MUNMAPEVENT.c_str(), INVALID_UINT64,
-                                                TIMESTAMP_02, 0, 0, MEM_ADDR_02, MEM_SIZE_01, MEM_SIZE_01, 0);
-    NativeHookCache secondResultNativeHookCache(nativeHook, 1);
-    EXPECT_TRUE(secondExpectNativeHookCache == secondResultNativeHookCache);
-
     auto size = stream_.traceDataCache_->GetConstNativeHookData().Size();
-    EXPECT_EQ(2, size);
+    EXPECT_EQ(1, size);
 
     // Verification parse NativeHook Frame results
     const NativeHookFrame& nativeHookFrame = stream_.traceDataCache_->GetConstNativeHookFrameData();
@@ -1905,7 +1767,7 @@ HWTEST_F(NativeHookParserTest, ParsePartialMatchedMmapAndMunmapEvent, TestSize.L
     EXPECT_TRUE(secondExpectNativeHookCache == secondResultNativeHookCache);
 
     auto size = stream_.traceDataCache_->GetConstNativeHookData().Size();
-    EXPECT_EQ(4, size);
+    EXPECT_EQ(3, size);
 
     auto eventCount =
         stream_.traceDataCache_->GetConstStatAndInfo().GetValue(TRACE_NATIVE_HOOK_MMAP, STAT_EVENT_RECEIVED);

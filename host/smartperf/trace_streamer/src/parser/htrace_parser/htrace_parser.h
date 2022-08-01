@@ -36,7 +36,9 @@
 #include "htrace_symbols_detail_parser.h"
 #include "log.h"
 #include "parser_base.h"
+#if WITH_PERF
 #include "perf_data_parser.h"
+#endif
 #include "string_help.h"
 #include "trace_data/trace_data_cache.h"
 #include "trace_streamer_filters.h"
@@ -44,7 +46,9 @@
 namespace SysTuning {
 namespace TraceStreamer {
 using namespace SysTuning::base;
+#if WITH_PERF
 using namespace OHOS::Developtools::HiPerf;
+#endif
 class HtraceParser : public ParserBase {
 public:
     HtraceParser(TraceDataCache* dataCache, const TraceStreamerFilters* filters);
@@ -91,10 +95,12 @@ private:
     std::unique_ptr<HtraceNetworkParser> networkParser_;
     std::unique_ptr<HtraceDiskIOParser> diskIOParser_;
     std::unique_ptr<HtraceProcessParser> processParser_;
+#if WITH_PERF
     std::unique_ptr<PerfDataParser> perfDataParser_;
+#endif
     std::atomic<bool> filterThreadStarted_{false};
     const int MAX_SEG_ARRAY_SIZE = 10000;
-    std::unique_ptr<HtraceDataSegment[]> dataSegArray;
+    std::unique_ptr<HtraceDataSegment[]> dataSegArray_;
     int rawDataHead_ = 0;
     bool toExit_ = false;
     bool exited_ = false;

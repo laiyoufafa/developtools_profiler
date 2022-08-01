@@ -24,6 +24,7 @@ import {
 import {StateProcessThread} from "../../../bean/StateProcessThread.js";
 import {Utils} from "../base/Utils.js";
 import {SpSystemTrace} from "../../SpSystemTrace.js";
+import {log} from "../../../../log/Log.js";
 
 @element('tabpane-thread-switch')
 export class TabPaneThreadSwitch extends BaseElement {
@@ -58,6 +59,7 @@ export class TabPaneThreadSwitch extends BaseElement {
 
     async queryDataByCacheData(val: SelectionParam | any): Promise<Array<StateProcessThread>> {
         //1. 框选时间区间的数据过滤出来
+        log("queryDataByCacheData ")
         return new Promise<Array<StateProcessThread>>(((resolve, reject) => {
             let statesMap: Map<string, StateProcessThread> = new Map<string, StateProcessThread>();
             let spMap: Map<string, StateProcessThread> = new Map<string, StateProcessThread>();

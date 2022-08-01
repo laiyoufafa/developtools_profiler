@@ -28,9 +28,11 @@
 #include "ext/sqlite_ext_funcs.h"
 #include "file.h"
 #include "log.h"
+#include "string_help.h"
 
 namespace SysTuning {
 namespace TraceStreamer {
+using namespace SysTuning::base;
 TraceDataDB::TraceDataDB() : db_(nullptr)
 {
     if (sqlite3_threadsafe() > 0) {
@@ -46,7 +48,7 @@ TraceDataDB::TraceDataDB() : db_(nullptr)
     if (sqlite3_open(":memory:", &db_)) {
         TS_LOGF("open :memory db failed");
     }
-    CreateExtendFunction(db_);
+    ts_create_extend_function(db_);
 }
 
 TraceDataDB::~TraceDataDB()
@@ -323,7 +325,7 @@ int TraceDataDB::SearchDatabase(const std::string& sql, uint8_t* out, int outLen
         return -1;
     }
     char* res = reinterpret_cast<char*>(out);
-    int retSnprintf = std::snprintf(res, outLen, "%s", "ok\r\n");
+    int retSnprintf = snprintf_s(res, outLen, 1, "ok\r\n");
     if (retSnprintf < 0) {
         return -1;
     }
@@ -332,20 +334,20 @@ int TraceDataDB::SearchDatabase(const std::string& sql, uint8_t* out, int outLen
     if (colCount == 0) {
         return pos;
     }
-    retSnprintf = std::snprintf(res + pos, outLen - pos, "%s", "{\"columns\":[");
+    retSnprintf = snprintf_s(res + pos, outLen - pos, 1, "%s", "{\"columns\":[");
     if (retSnprintf < 0) {
         return -1;
     }
     pos += retSnprintf;
     for (int i = 0; i < colCount; i++) {
-        retSnprintf = std::snprintf(res + pos, outLen - pos, "%s%s%s", "\"", sqlite3_column_name(stmt, i), "\",");
+        retSnprintf = snprintf_s(res + pos, outLen - pos, 1, "%s%s%s", "\"", sqlite3_column_name(stmt, i), "\",");
         if (retSnprintf < 0) {
             return -1;
         }
         pos += retSnprintf;
     }
     pos--; // rmove the last ','
-    retSnprintf = std::snprintf(res + pos, outLen - pos, "%s", "],\"values\":[");
+    retSnprintf = snprintf_s(res + pos, outLen - pos, 1, "],\"values\":[");
     if (retSnprintf < 0) {
         return -1;
     }
@@ -358,7 +360,7 @@ int TraceDataDB::SearchDatabase(const std::string& sql, uint8_t* out, int outLen
         hasRow = true;
         GetRowString(stmt, colCount, row);
         if (pos + row.size() + strlen(",]}\r\n") >= size_t(outLen)) {
-            retSnprintf = std::snprintf(res + pos, outLen - pos, "%s", "]}\r\n");
+            retSnprintf = snprintf_s(res + pos, outLen - pos, 1, "]}\r\n");
             if (retSnprintf < 0) {
                 return -1;
             }
@@ -366,7 +368,7 @@ int TraceDataDB::SearchDatabase(const std::string& sql, uint8_t* out, int outLen
             sqlite3_finalize(stmt);
             return pos;
         }
-        retSnprintf = std::snprintf(res + pos, outLen - pos, "%s%s", row.c_str(), ",");
+        retSnprintf = snprintf_s(res + pos, outLen - pos, 1, "%s%s", row.c_str(), ",");
         if (retSnprintf < 0) {
             return -1;
         }
@@ -375,7 +377,7 @@ int TraceDataDB::SearchDatabase(const std::string& sql, uint8_t* out, int outLen
     if (hasRow) {
         pos--; // remove the last ','
     }
-    retSnprintf = std::snprintf(res + pos, outLen - pos, "%s", "]}\r\n");
+    retSnprintf = snprintf_s(res + pos, outLen - pos, 1, "]}\r\n");
     if (retSnprintf < 0) {
         return -1;
     }

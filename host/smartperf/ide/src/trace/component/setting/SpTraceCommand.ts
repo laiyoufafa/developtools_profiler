@@ -14,6 +14,7 @@
  */
 
 import {BaseElement, element} from "../../../base-ui/BaseElement.js";
+import {info} from "../../../log/Log.js";
 
 @element('trace-command')
 export class SpTraceCommand extends BaseElement {
@@ -21,11 +22,24 @@ export class SpTraceCommand extends BaseElement {
     private copyEl: HTMLElement | undefined | null;
     private codeCopyText: HTMLInputElement | undefined;
 
+    set show(show: boolean) {
+        if (show) {
+            this.setAttribute("show", '')
+        } else {
+            this.removeAttribute("show")
+        }
+    }
+
+    get show() {
+        return this.hasAttribute("show")
+    }
+
     get hdcCommon(): string {
         return this.codeHl!.textContent + "";
     }
 
     set hdcCommon(value: string) {
+        info("hdc Common is:", value)
         this.codeHl!.textContent = value;
     }
 
@@ -44,7 +58,7 @@ export class SpTraceCommand extends BaseElement {
 
     codeCopyEvent = (event: any) => {
         this.codeHl?.select();
-        document.execCommand('copy');
+        navigator.clipboard.writeText(this.codeHl?.textContent!).then(() => {})
     }
 
     textSelectEvent = (event: any) => {
@@ -69,7 +83,7 @@ export class SpTraceCommand extends BaseElement {
             opacity: 0.6;
             font-family: Helvetica;
             color: var(--dark-color,#000000);
-            padding: 56px;
+            padding: 20px 56px 5px 56px;
             font-size:1em;
             margin-left: 10px;
             line-height: 20px;
@@ -79,7 +93,7 @@ export class SpTraceCommand extends BaseElement {
             resize:none;
             /*overflow:auto;*/
             z-index: 2;
-            min-height: 560px;
+            min-height: 500px;
             background: var(--dark-background3,#FFFFFF);
         }
 
@@ -135,12 +149,32 @@ export class SpTraceCommand extends BaseElement {
           border-radius: 6px;
           background-color: var(--dark-background7,#e7c9c9);
         }
+        
+        #stop-button{
+            display: none;
+           border-radius: 15px;
+           background-color: #0A59F7;
+           width: 120px;
+           height: 32px;
+           font-family: Helvetica-Bold;
+           font-size: 14px;
+           color: #FFFFFF;
+           text-align: center;
+           line-height: 20px;
+           margin-left: 80%;
+           border: 1px solid #FFFFFF;
+        }
+        
+        :host([show]) #stop-button {
+            display: block
+        } 
         </style>
         <div id="text-cmd">
             <button id="copy-button">
                 <img id="copy-image" src="img/copy.png">
             </button>
             <textarea id="code-text" readonly></textarea>
+            <button id="stop-button">Stop Cmd</button>
         </div>
         `;
     }

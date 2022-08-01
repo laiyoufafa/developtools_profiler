@@ -40,6 +40,8 @@ import {initTraceStateStrategy} from "./metrics/TraceStatsStrategy.js";
 import {initTraceTaskStrategy} from "./metrics/TraceTaskStrategy.js";
 import {initMetaDataStrategy} from "./metrics/MetaDataStrategy.js";
 import {PluginConvertUtils} from "./setting/utils/PluginConvertUtils.js";
+import {info} from "../../log/Log.js";
+import {LitProgressBar} from "../../base-ui/progress-bar/LitProgressBar.js";
 
 @element('sp-metrics')
 export class SpMetrics extends BaseElement {
@@ -49,6 +51,7 @@ export class SpMetrics extends BaseElement {
     private runButtonEl: HTMLButtonElement | undefined | null;
     private responseJson: HTMLPreElement | undefined | null;
     private metricOptionalSelects: Array<MetricQueryItem> | undefined;
+    private progressLoad: LitProgressBar | undefined;
 
     static get observedAttributes() {
         return ["metric", "metricResult"]
@@ -71,7 +74,13 @@ export class SpMetrics extends BaseElement {
         this.setAttribute("metricResult", value);
     }
 
+    reset() {
+        this.selectMetricEl!.selectedIndex = 0
+        this.responseJson!.textContent = ''
+    }
+
     initElements(): void {
+        this.progressLoad = this.shadowRoot?.querySelector(".load-metric") as LitProgressBar;
         this.selectMetricEl = this.shadowRoot?.querySelector(".sql-select") as HTMLSelectElement;
         this.runButtonEl = this.shadowRoot?.querySelector(".sql-select-button") as HTMLButtonElement;
         this.responseJson = this.shadowRoot?.querySelector(".response-json") as HTMLPreElement;
@@ -84,14 +93,16 @@ export class SpMetrics extends BaseElement {
         this.initMetricSelectOption();
     }
 
-    initMetric(queryItem: MetricQueryItem) {
+    async initMetric(queryItem: MetricQueryItem) {
         this.initMetricData(queryItem).then(item => {
+            this.progressLoad!.loading = false
         })
     }
 
     async initMetricData(queryItem: MetricQueryItem) {
         let metricQuery = queryItem.metricQuery;
         let queryList = await metricQuery();
+        info("current Metric Data size is: ", queryList!.length)
         let metric = queryItem.metricResultHandle;
         let resultData = metric(queryList);
         let jsonText = PluginConvertUtils.BeanToCmdTxtWithObjName(resultData, true, queryItem.metricName, 4);
@@ -110,6 +121,7 @@ export class SpMetrics extends BaseElement {
     }
 
     runClickListener = (event: any) => {
+        this.progressLoad!.loading = true
         let selectedIndex = this.selectMetricEl!.selectedIndex;
         let value = this.selectMetricEl!.options[selectedIndex].value;
         let resultQuery = this.metricOptionalSelects?.filter((item) => {
@@ -141,26 +153,16 @@ export class SpMetrics extends BaseElement {
 
     initMetricDataHandle() {
         this.metricOptionalSelects = [
-            {
-                metricName: 'distributed_term',
-                metricQuery: queryDistributedTerm,
-                metricResultHandle: initDistributedTermData
-            },
-            {
-                metricName: 'trace_name',
-                metricQuery: querySelectTraceStats,
-                metricResultHandle: initTest,
-            },
-            {
-                metricName: 'trace_cpu',
-                metricQuery: queryTraceCpu,
-                metricResultHandle: initCpuStrategyData
-            },
-            {
-                metricName: 'trace_cpu_top10',
-                metricQuery: queryTraceCpuTop,
-                metricResultHandle: initCpuStrategyData,
-            },
+            // {
+            //     metricName: 'trace_cpu',
+            //     metricQuery: queryTraceCpu,
+            //     metricResultHandle: initCpuStrategyData
+            // },
+            // {
+            //     metricName: 'trace_cpu_top10',
+            //     metricQuery: queryTraceCpuTop,
+            //     metricResultHandle: initCpuStrategyData,
+            // },
             {
                 metricName: 'trace_mem',
                 metricQuery: queryTraceMemory,
@@ -196,11 +198,11 @@ export class SpMetrics extends BaseElement {
                 metricQuery: querySystemCalls,
                 metricResultHandle: initSysCallsStrategy
             },
-            {
-                metricName: 'sys_calls_top10',
-                metricQuery: querySystemCallsTop,
-                metricResultHandle: initSysCallsTopStrategy
-            },
+            // {
+            //     metricName: 'sys_calls_top10',
+            //     metricQuery: querySystemCallsTop,
+            //     metricResultHandle: initSysCallsTopStrategy
+            // },
         ]
     }
 
@@ -240,6 +242,7 @@ export class SpMetrics extends BaseElement {
         .request{
             min-height: 15vh;
             overflow: auto;
+            position: relative;
         }
 
         .sql-select{
@@ -318,6 +321,11 @@ export class SpMetrics extends BaseElement {
           border-radius: 6px;
           background-color: var(--dark-background7,rgba(0,0,0,0.1));
         }
+        
+        .load-metric{
+            width: 95%;
+            bottom: 0;
+        }
 
         </style>
 
@@ -327,6 +335,7 @@ export class SpMetrics extends BaseElement {
                 <select class="sql-select">
                 </select>
                 <button class="sql-select-button">&nbsp;&nbsp; Run &nbsp;&nbsp;</button>
+                <lit-progress-bar class="load-metric"></lit-progress-bar>
             </div>
             <div class="metric-select response">
                  <textarea class="response-json" readonly>

@@ -79,11 +79,10 @@ describe('checkBox Test', ()=>{
 "
         <style>
         :host{ 
-            display:inline-block;
+            display:flex;
             opacity: 0.86;
             font-family: Helvetica;
             font-size: 14px;
-            /*color: #212121;*/
             text-align: left;
             line-height: 16px;
             font-weight: 400;

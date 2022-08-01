@@ -26,6 +26,8 @@ export class TabPaneCpuUsage extends BaseElement {
     private orderByOldList: any[] = [];
 
     set data(val: SelectionParam | any) {
+        // @ts-ignore
+        this.tbl?.shadowRoot.querySelector(".table").style.height = (this.parentElement.clientHeight - 45) + "px"
         this.range!.textContent = "Selected range: " + parseFloat(((val.rightNs - val.leftNs) / 1000000.0).toFixed(5)) + " ms"
         Promise.all([getTabCpuUsage(val.cpus, val.leftNs, val.rightNs), getTabCpuFreq(val.cpus, val.leftNs, val.rightNs)]).then((result) => {
             let usages = result[0];
@@ -71,7 +73,7 @@ export class TabPaneCpuUsage extends BaseElement {
                 }
                 data.push(usage)
             }
-            this.tbl!.dataSource = data;
+            this.tbl!.recycleDataSource = data;
             this.orderByOldList = [...data]
         })
     }
@@ -79,21 +81,28 @@ export class TabPaneCpuUsage extends BaseElement {
     initElements(): void {
         this.tbl = this.shadowRoot?.querySelector<LitTable>('#tb-cpu-usage');
         this.range = this.shadowRoot?.querySelector('#time-range')
+        new ResizeObserver((entries) => {
+            if (this.parentElement?.clientHeight != 0) {
+                // @ts-ignore
+                this.tbl?.shadowRoot.querySelector(".table").style.height = (this.parentElement.clientHeight - 45) + "px"
+                this.tbl?.reMeauseHeight()
+            }
+        }).observe(this.parentElement!)
         this.tbl?.addEventListener("column-click", event => {
             // @ts-ignore
             let orderType = event.detail;
             if (orderType.sort == 1) {//倒序   注意  sort会改变原数组，需要传入table上的数组 不能传入缓存排序数组
-                this.sortTable(this.tbl!.dataSource, orderType.key, false)
+                this.sortTable(this.tbl!.recycleDataSource, orderType.key, false)
             } else if (orderType.sort == 2) {//正序
-                this.sortTable(this.tbl!.dataSource, orderType.key, true)
+                this.sortTable(this.tbl!.recycleDataSource, orderType.key, true)
             } else {//默认排序
-                this.tbl!.dataSource = [...this.orderByOldList];
+                this.tbl!.recycleDataSource = [...this.orderByOldList];
             }
         })
     }
 
     sortTable(arr: any[], key: string, sort: boolean) {
-        this.tbl!.dataSource = arr.sort((item1, item2) => {
+        this.tbl!.recycleDataSource = arr.sort((item1, item2) => {
             let value1 = Number(item1[key].toString().replace("%", ""));
             let value2 = Number(item2[key].toString().replace("%", ""));
             if (value1 > value2) {

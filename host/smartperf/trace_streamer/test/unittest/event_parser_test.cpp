@@ -28,6 +28,8 @@
 
 using namespace testing::ext;
 using namespace SysTuning::TraceStreamer;
+using namespace SysTuning::base;
+
 namespace SysTuning {
 namespace TraceStreamer {
 const uint32_t G_BUF_SIZE = 1024;

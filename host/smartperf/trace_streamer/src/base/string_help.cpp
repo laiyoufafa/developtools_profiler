@@ -17,6 +17,13 @@
 #include <string>
 #include <memory.h>
 #include <vector>
+namespace SysTuning {
+namespace base {
+#define UNUSED(expr)  \
+    do {              \
+        static_cast<void>(expr); \
+    } while (0)
+#if !is_mingw
 int memcpy_s(void* dest, uint32_t destSize, const void* src, size_t srcSize)
 {
     if (srcSize > destSize || src == nullptr || dest == nullptr) {
@@ -29,26 +36,6 @@ int memcpy_s(void* dest, uint32_t destSize, const void* src, size_t srcSize)
     }
     return 0;
 }
-void* memset_s(void* dest, size_t destSize, int ch, size_t n)
-{
-    return memset(dest, 0, n);
-}
-
-int snprintf_s(char* strDest, size_t destMax, size_t count, const char* format, ...)
-{
-    int ret;
-    va_list ap;
-    __builtin_va_start(ap, format);
-    ret = sprintf(strDest, format, ap);
-    __builtin_va_end(ap);
-    return ret;
-}
-
-int strncpy_s(char* strDest, size_t destMax, const char* strSrc, size_t count)
-{
-    return memcpy_s(strDest, destMax, strDest, count);
-}
-
 int sscanf_s(const char* buffer, const char* format, ...)
 {
     va_list ap;
@@ -57,11 +44,38 @@ int sscanf_s(const char* buffer, const char* format, ...)
     __builtin_va_end(ap);
     return ret;
 }
+
+int strncpy_s(char* strDest, size_t destMax, const char* strSrc, size_t count)
+{
+    return memcpy_s(strDest, destMax, strSrc, count);
+}
+#endif
+void* memset_s(void* dest, size_t destSize, int ch, size_t n)
+{
+    UNUSED(destSize);
+    UNUSED(ch);
+    return memset(dest, 0, n);
+}
+
+int snprintf_s(char* strDest, size_t destMax, size_t count, const char* format, ...)
+{
+    UNUSED(count);
+    int ret;
+    va_list ap;
+    __builtin_va_start(ap, format);
+    ret = vsnprintf(strDest, destMax, format, ap);
+    __builtin_va_end(ap);
+    return ret;
+}
+
 int sprintf_s(char* strDest, size_t destMax, const char* format, ...)
 {
+    UNUSED(destMax);
     va_list ap;
     __builtin_va_start(ap, format);
     int ret = sprintf(strDest, format, ap);
     __builtin_va_end(ap);
     return ret;
 }
+} // namespace base
+} // namespace SysTuning

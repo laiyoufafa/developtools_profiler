@@ -54,14 +54,14 @@ export class LitMainMenu extends BaseElement {
                 if (item.fileChoose) {
                     th.setAttribute('file', "");
                     th.addEventListener('file-change', e => {
-                        if (item.fileHandler) {
+                        if (item.fileHandler && !th.disabled) {
                             item.fileHandler(e)
                         }
                     })
                 } else {
                     th.removeAttribute('file');
                     th.addEventListener('click', e => {
-                        if (item.clickHandler) {
+                        if (item.clickHandler && !th.disabled) {
                             item.clickHandler(item)
                         }
                     })

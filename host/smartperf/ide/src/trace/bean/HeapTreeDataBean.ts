@@ -16,6 +16,8 @@
 export class HeapTreeDataBean {
     MoudleName: string | undefined
     AllocationFunction: string | undefined
+    symbolId: number = 0
+    fileId: number = 0
     startTs: number = 0
     endTs: number = 0
     eventType: string | undefined

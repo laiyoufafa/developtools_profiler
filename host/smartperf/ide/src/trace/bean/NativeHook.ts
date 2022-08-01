@@ -20,6 +20,7 @@ export class NativeHookStatistics {
     eventId: number = 0;
     eventType: string = "";
     subType: string = "";
+    subTypeId: number = 0;
     heapSize: number = 0;
     addr: string = "";
     startTs: number = 0;
@@ -28,17 +29,20 @@ export class NativeHookStatistics {
     max: number = 0;
     count: number = 0;
     tid: number = 0;
+    threadName: string = "";
     isSelected: boolean = false;
 }
 
 export class NativeHookMalloc {
     eventType: string = "";
     subType: string = "";
+    subTypeId: number = 0;
     heapSize: number = 0;
     allocByte: number = 0;
     allocCount: number = 0;
     freeByte: number = 0;
     freeCount: number = 0;
+    max: number = 0;
 }
 
 export class NativeEventHeap {
@@ -56,8 +60,10 @@ export class NativeHookStatisticsTableData {
     memoryTap: string = "";
     existing: number = 0;
     existingString: string = "";
+    freeByteString: string = "";
     allocCount: number = 0;
     freeCount: number = 0;
+    freeByte: number = 0;
     totalBytes: number = 0
     totalBytesString: string = "";
     maxStr: string = "";
@@ -73,12 +79,16 @@ export class NativeMemory {
     subType: string = "";
     addr: string = "";
     startTs: number = 0;
+    endTs: number = 0;
     timestamp: string = ""
     heapSize: number = 0;
     heapSizeUnit: string = "";
     symbol: string = "";
     library: string = "";
     isSelected: boolean = false;
+    state:string = "";
+    threadId:number = 0;
+    threadName:string = "";
 }
 
 export class NativeHookSamplerInfo {
@@ -95,6 +105,8 @@ export class NativeHookSamplerInfo {
     tempList: Array<NativeHookSamplerInfo> = [];
     timestamp: string = ""
     eventId: number = -1
+    threadId:number = 0;
+    threadName:string = "";
 
     merageObj(merageObj: NativeHookSamplerInfo) {
         this.currentSize += merageObj.currentSize
@@ -112,12 +124,15 @@ export class NativeHookSampleQueryInfo {
     current: number = 0
     eventType: string = "";
     subType: string = "";
+    subTypeId: number = 0;
     growth: number = 0;
     existing: number = 0;
     addr: string = "";
     startTs: number = 0;
     endTs: number = 0;
     total: number = 0;
+    threadId:number = 0;
+    threadName:string = "";
     children: Array<NativeHookSamplerInfo> = [];
 }
 
@@ -125,12 +140,23 @@ export class NativeHookCallInfo extends ChartStruct {
     id: string = "";
     pid: string | undefined;
     library: string = "";
+    symbolId:number = 0;
     title: string = "";
     count: number = 0;
+    countValue:string = ""
+    countPercent: string = "";
     type: number = 0;
     heapSize: number = 0;
+    heapPercent: string = "";
     heapSizeStr: string = "";
     eventId: number = 0;
     threadId: number = 0;
+    threadName: string = "";
     isSelected: boolean = false;
+}
+
+export class NativeEvent {
+    startTime:number = 0;
+    heapSize:number = 0;
+    eventType:string = "";
 }

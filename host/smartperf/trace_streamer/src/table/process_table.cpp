@@ -18,11 +18,12 @@
 namespace SysTuning {
 namespace TraceStreamer {
 namespace {
-enum Index {ID = 0, TYPE, PID, NAME, START_TS };
+enum Index {ID = 0, IPID, TYPE, PID, NAME, START_TS };
 }
 ProcessTable::ProcessTable(const TraceDataCache* dataCache) : TableBase(dataCache)
 {
     tableColumn_.push_back(TableBase::ColumnInfo("id", "UNSIGNED INT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("ipid", "UNSIGNED INT"));
     tableColumn_.push_back(TableBase::ColumnInfo("type", "STRING"));
     tableColumn_.push_back(TableBase::ColumnInfo("pid", "UNSIGNED INT"));
     tableColumn_.push_back(TableBase::ColumnInfo("name", "STRING"));
@@ -60,6 +61,7 @@ void ProcessTable::EstimateFilterCost(FilterConstraints& fc, EstimatedIndexInfo&
     auto orderbys = fc.GetOrderBys();
     for (auto i = 0; i < orderbys.size(); i++) {
         switch (orderbys[i].iColumn) {
+            case IPID:
             case ID:
                 break;
             default: // other columns can be sorted by SQLite
@@ -80,6 +82,7 @@ void ProcessTable::FilterByConstraint(FilterConstraints& fc, double& filterCost,
         }
         const auto& c = fcConstraints[i];
         switch (c.col) {
+            case IPID:
             case ID: {
                 if (CanFilterId(c.op, rowCount)) {
                     fc.UpdateConstraint(i, true);
@@ -168,6 +171,7 @@ int ProcessTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value** ar
         const auto& c = cs[i];
         switch (c.col) {
             case ID:
+            case IPID:
                 FilterId(c.op, argv[i]);
                 break;
             default:
@@ -180,6 +184,7 @@ int ProcessTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value** ar
         i--;
         switch (orderbys[i].iColumn) {
             case ID:
+            case IPID:
                 indexMap_->SortBy(orderbys[i].desc);
                 break;
             default:
@@ -195,6 +200,7 @@ int ProcessTable::Cursor::Column(int col) const
     const auto& process = dataCache_->GetConstProcessData(CurrentRow());
     switch (col) {
         case ID:
+        case IPID:
             sqlite3_result_int64(context_, CurrentRow());
             break;
         case TYPE:

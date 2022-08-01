@@ -17,14 +17,11 @@
 import {SpInfoAndStats} from "../../../dist/trace/component/SpInfoAndStas.js"
 
 describe('SpInfoAndStasTest', ()=> {
-    let spInfoAndStats =new SpInfoAndStats();
+    document.body.innerHTML = `<sp-info-and-stats id="ddd"></sp-info-and-stats>`
+    let spInfoAndStats = document.querySelector('#ddd') as SpInfoAndStats
     it('SpInfoAndStasTest01', function () {
+        let spInfoAndStats =new SpInfoAndStats();
         expect(spInfoAndStats.initElements()).toBeUndefined()
-    });
-
-    it('SpInfoAndStasTest02', function () {
-        spInfoAndStats.initInfoAndStatsData = jest.fn(()=>true)
-        expect(spInfoAndStats.initInfoAndStatsData()).toBeTruthy()
     });
 
     it('SpInfoAndStasTest03', function () {
@@ -33,6 +30,7 @@ describe('SpInfoAndStasTest', ()=> {
     });
 
     it('SpInfoAndStasTest04', function () {
+        let spInfoAndStats =new SpInfoAndStats();
         expect(spInfoAndStats.initDataTableStyle({children:
                 [{length:1,style:{backgroundColor:'var(--dark-background5,#F6F6F6)'}}]
         })).toBeUndefined()
@@ -52,7 +50,6 @@ describe('SpInfoAndStasTest', ()=> {
         expect(spInfoAndStats.attributeChangedCallback([],[],[])).toBeUndefined()
 
     });
-
 
     it('SpInfoAndStasTest05', function () {
         expect(spInfoAndStats.initHtml()).toMatchInlineSnapshot(`

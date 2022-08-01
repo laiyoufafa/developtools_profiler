@@ -53,7 +53,7 @@ export class SpHelp extends BaseElement {
                 describe: '',
                 children: [
                     {
-                        title: "快速启动hiprofiler_cmd", icon: "", clickHandler: function (item: MenuItem) {
+                        title: "快速抓取trace说明", icon: "", clickHandler: function (item: MenuItem) {
                             that.appContent!.innerHTML =
                                 "<object type=\"text/html\" data=" + "/application/doc/quickstart_hiprofiler_cmd.html?"
                                 + that.dark
@@ -61,10 +61,37 @@ export class SpHelp extends BaseElement {
                         }
                     },
                     {
-                        title: "网页加载trace 使用说明", icon: "", clickHandler: function (item: MenuItem) {
+                        title: "网页加载trace说明", icon: "", clickHandler: function (item: MenuItem) {
                             that.appContent!.innerHTML =
                                 "<object type=\"text/html\" data="
                                 + "/application/doc/quickstart_smartperf.html?"
+                                + that.dark
+                                + " width=\"100%\" height=\"100%\"></object>"
+                        }
+                    },
+                    {
+                        title: "Native Memory抓取和展示说明", icon: "", clickHandler: function (item: MenuItem) {
+                            that.appContent!.innerHTML =
+                                "<object type=\"text/html\" data="
+                                + "/application/doc/native_memory.html?"
+                                + that.dark
+                                + " width=\"100%\" height=\"100%\"></object>"
+                        }
+                    },
+                    {
+                        title: "Ability Monitor抓取和展示说明", icon: "", clickHandler: function (item: MenuItem) {
+                            that.appContent!.innerHTML =
+                                "<object type=\"text/html\" data="
+                                + "/application/doc/ability_monitor.html?"
+                                + that.dark
+                                + " width=\"100%\" height=\"100%\"></object>"
+                        }
+                    },
+                    {
+                        title: "Perf的抓取和展示说明", icon: "", clickHandler: function (item: MenuItem) {
+                            that.appContent!.innerHTML =
+                                "<object type=\"text/html\" data="
+                                + "/application/doc/perf.html?"
                                 + that.dark
                                 + " width=\"100%\" height=\"100%\"></object>"
                         }
@@ -154,6 +181,9 @@ export class SpHelp extends BaseElement {
             items.forEach(item => {
                 item.style.width = '290px'
             })
+            if(value.title == 'TraceStreamer' || value.title == 'SmartPerf'){
+                value.style.display = 'none';
+            }
         })
     }
 

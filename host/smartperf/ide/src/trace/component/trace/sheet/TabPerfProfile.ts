@@ -18,36 +18,73 @@ import {LitTable} from "../../../../base-ui/table/lit-table.js";
 import "./TabPaneFilter.js";
 import {FilterData, TabPaneFilter} from "./TabPaneFilter.js";
 import {SelectionParam} from "../../../bean/BoxSelection.js";
-import {perfDataQuery} from "../../hiperf/PerfDataQuery.js";
 import {PerfCallChainMerageData} from "../../../bean/PerfProfile.js";
 import "../../FrameChart.js";
-import { FrameChart } from "../../FrameChart.js";
-import { ChartMode } from "../../../database/ProcedureWorkerCommon.js";
+import {FrameChart} from "../../FrameChart.js";
+import {ChartMode} from "../../../database/ProcedureWorkerCommon.js";
+import '../../DisassemblingWindow.js'
+import {DisassemblingWindow} from "../../DisassemblingWindow.js";
+import {Cmd} from "../../../../command/Cmd.js";
+import {SpApplication} from "../../../SpApplication.js";
+import "../../../../base-ui/slicer/lit-slicer.js";
+import "../../../../base-ui/progress-bar/LitProgressBar.js";
+import {query, queryPerfSampleIdsByTimeRange} from "../../../database/SqlLite.js";
+import {LitProgressBar} from "../../../../base-ui/progress-bar/LitProgressBar.js";
 
 @element('tabpane-perf-profile')
 export class TabpanePerfProfile extends BaseElement {
     private tbl: LitTable | null | undefined;
     private tbr: LitTable | null | undefined;
+    private progressEL:LitProgressBar | null | undefined;
     private rightSource: Array<PerfCallChainMerageData> = [];
     private filter: any
-    private sampleIds:string[] = []
-    private dataSource:any[] = []
-    private currentSelectedData:any = undefined
+    private sampleIds: string[] = []
+    private dataSource: any[] = []
+    private sortKey = "weight";
+    private sortType = 0;
+    private currentSelectedData: any = undefined
     private frameChart: FrameChart | null | undefined;
     private isChartShow: boolean = false;
     private systmeRuleName = "/system/"
     private numRuleName = "/max/min/"
+    private modal: DisassemblingWindow | null | undefined;
+    private needShowMenu = true;
+    private searchValue: string = ""
+    private loadingList:number[] = []
+    private loadingPage:any;
 
     set data(val: SelectionParam | any) {
-        this.filter!.initializeFilterTree(true,true,true)
-        this.sampleIds = val.perfSampleIds
-        this.dataSource = perfDataQuery.getCallChainsBySampleIds(val.perfSampleIds,true)
-        this.frameChart!.mode = ChartMode.Count;
-        this.frameChart!.data = this.dataSource;
-        this.frameChart?.updateCanvas();
-        this.frameChart?.calculateChartData();
-        this.tbl!.recycleDataSource = this.dataSource;
-        this.tbr!.recycleDataSource = []
+        this.modal!.style.display = 'none';
+        this.tbl!.style.visibility = "visible";
+        if (this.parentElement!.clientHeight > this.filter!.clientHeight) {
+            this.filter!.style.display = "flex";
+        } else {
+            this.filter!.style.display = "none";
+        }
+        this.filter!.initializeFilterTree(true, true, true)
+        this.filter!.filterValue = ""
+        this.progressEL!.loading = true
+        this.loadingPage.style.visibility = "visible"
+        queryPerfSampleIdsByTimeRange(val.leftNs, val.rightNs, val.perfAll ? [] : val.perfCpus, val.perfAll ? [] : val.perfProcess, val.perfAll ? [] : val.perfThread)
+            .then((results) => {
+                this.sampleIds = results.map((sample) => {
+                    return sample.sampleId + ""
+                })
+                this.getDataByWorker([{
+                    funcName: "setSearchValue",
+                    funcArgs: [""]
+                }, {
+                    funcName: "getCallChainsBySampleIds",
+                    funcArgs: [this.sampleIds, true]
+                }], (results: any[]) => {
+                    this.setLTableData(results)
+                    this.tbr!.recycleDataSource = []
+                    this.frameChart!.mode = ChartMode.Count;
+                    this.frameChart!.data = this.dataSource;
+                    this.frameChart?.updateCanvas(true, this.clientWidth);
+                    this.frameChart?.calculateChartData();
+                })
+            })
     }
 
     getParentTree(src: Array<PerfCallChainMerageData>, target: PerfCallChainMerageData, parents: Array<PerfCallChainMerageData>): boolean {
@@ -99,6 +136,7 @@ export class TabpanePerfProfile extends BaseElement {
                 })
             }
         }
+
         findMaxStack(call);
         this.getChildTree(call.children as Array<PerfCallChainMerageData>, maxId, children);
         let arr = parents.reverse().concat(children.reverse());
@@ -107,19 +145,38 @@ export class TabpanePerfProfile extends BaseElement {
         }
         let len = arr.length;
         this.rightSource = arr;
-        this.tbr!.recycleDataSource = len == 0 ? [] : this.rightSource.slice(3,len);
+        this.tbr!.dataSource = len == 0 ? [] : this.rightSource.slice(3, len);
+    }
+
+    showButtomMenu(isShow: boolean) {
+        if (isShow) {
+            this.filter.setAttribute('tree', '');
+            this.filter.setAttribute('input', '');
+            this.filter.setAttribute('inputLeftText', '');
+        } else {
+            this.filter.removeAttribute('tree');
+            this.filter.removeAttribute('input');
+            this.filter.removeAttribute('inputLeftText')
+        }
     }
 
     initElements(): void {
         this.tbl = this.shadowRoot?.querySelector<LitTable>('#tb-perf-profile');
+        this.progressEL = this.shadowRoot?.querySelector('.progress') as LitProgressBar
         this.frameChart = this.shadowRoot?.querySelector<FrameChart>('#framechart');
-        let pageTab = this.shadowRoot?.querySelector('#show_table');
-        let pageChart = this.shadowRoot?.querySelector('#show_chart');
+        this.modal = this.shadowRoot?.querySelector<DisassemblingWindow>('tab-native-data-modal');
+        this.loadingPage = this.shadowRoot?.querySelector('.loading');
         this.parentElement!.onscroll = () => {
             this.frameChart!.tabPaneScrollTop = this.parentElement!.scrollTop;
         };
+        this.frameChart!.addChartClickListener((needShowMenu: boolean) => {
+            this.parentElement!.scrollTo(0, 0);
+            this.showButtomMenu(needShowMenu)
+            this.needShowMenu = needShowMenu;
+        });
         this.tbl!.rememberScrollTop = true;
-        this.tbl!.addEventListener('row-click', (evt:any) => {
+        this.filter = this.shadowRoot?.querySelector<TabPaneFilter>("#filter")
+        this.tbl!.addEventListener('row-click', (evt: any) => {
             // @ts-ignore
             let data = (evt.detail.data as PerfCallChainMerageData);
             this.setRightTableData(data);
@@ -128,13 +185,14 @@ export class TabpanePerfProfile extends BaseElement {
             this.tbr?.clearAllSelection(data);
             this.tbr?.setCurrentSelection(data);
             // @ts-ignore
-            if((evt.detail as any).callBack){
+            if ((evt.detail as any).callBack) {
                 // @ts-ignore
                 (evt.detail as any).callBack(true)
             }
         })
         this.tbr = this.shadowRoot?.querySelector<LitTable>('#tb-perf-list');
-        this.tbr!.addEventListener('row-click', (evt:any) => {
+        let lastClikTime = 0;
+        this.tbr!.addEventListener('row-click', (evt: any) => {
             // @ts-ignore
             let data = (evt.detail.data as PerfCallChainMerageData);
             this.tbl?.clearAllSelection(data);
@@ -145,7 +203,42 @@ export class TabpanePerfProfile extends BaseElement {
                 // @ts-ignore
                 (evt.detail as any).callBack(true)
             }
+            let spApplication = <SpApplication>document.getElementsByTagName("sp-application")[0];
+            if (Date.now() - lastClikTime < 200 && spApplication.vs) {
+                this.tbl!.style.visibility = "hidden";
+                this.filter.style.display = "none";
+                new ResizeObserver((entries) => {
+                    this.modal!.style.width = this.tbl!.clientWidth + 'px';
+                    this.modal!.style.height = this.tbl!.clientHeight + 'px';
+                }).observe(this.tbl!)
+                this.modal!.showLoading();
+                // @ts-ignore
+                let data = (evt.detail.data as PerfCallChainMerageData);
+                let path = data.path;
+                let addr = data.vaddrInFile;
+                let addrHex = addr.toString(16);
+                if (path.trim() === '[kernel.kallsyms]') {
+                    this.modal?.showContent(`error : Symbol ${data.symbol} lib is [kernel.kallsyms] ,not support `, addrHex);
+                } else if (path.trim() === '') {
+                    this.modal?.showContent(`error : Symbol ${data.symbol} lib is null `, addrHex);
+                } else if (addr < 0) {
+                    this.modal?.showContent(`error : Symbol ${data.symbol} current addr is error ` + addrHex, addrHex);
+                } else {
+                    const binDir = 'C:/binary_cache';
+                    let binPath = binDir + path;
+                    let cmd = 'C:/binary_cache/llvm-objdump.exe -S ' + binPath;
+                    Cmd.execObjDump(cmd, addrHex, (result: any) => {
+                        this.modal?.showContent(result, addrHex);
+                    })
+                }
+            }
+            lastClikTime = Date.now();
         })
+        this.modal!.setCloseListener(() => {
+            this.modal!.style.display = 'none';
+            this.tbl!.style.visibility = "visible";
+            this.shadowRoot!.querySelector<TabPaneFilter>("#filter")!.style.display = 'flex';
+        });
         this.tbr = this.shadowRoot?.querySelector<LitTable>('#tb-perf-list');
         let filterHeight = 0;
         new ResizeObserver((entries) => {
@@ -156,189 +249,347 @@ export class TabpanePerfProfile extends BaseElement {
             } else {
                 tabPaneFilter.style.display = "none";
             }
+            this.modal!.style.height = this.tbl!.clientHeight - 2 + 'px'; //2 is borderWidth
+            if (this.tbl!.style.visibility == "hidden") {
+                tabPaneFilter.style.display = "none";
+            }
             if (this.parentElement?.clientHeight != 0) {
-                if (!this.isChartShow) {
-                    // @ts-ignore
-                    this.tbl?.shadowRoot.querySelector(".table").style.height =  (this.parentElement.clientHeight - 10 - 35)+"px"
-                    this.tbl?.reMeauseHeight()
-                } else {
-                    // @ts-ignore
-                    this.frameChart?.updateCanvas();
+                if (this.isChartShow) {
+                    this.frameChart?.updateCanvas(false, entries[0].contentRect.width);
                     this.frameChart?.calculateChartData();
                 }
                 // @ts-ignore
+                this.tbl?.shadowRoot.querySelector(".table").style.height = (this.parentElement.clientHeight - 10 - 35) + "px"
+                this.tbl?.reMeauseHeight()
+                // @ts-ignore
                 this.tbr?.shadowRoot.querySelector(".table").style.height = (this.parentElement.clientHeight - 45 - 21) + "px"
                 this.tbr?.reMeauseHeight()
+                this.loadingPage.style.height = (this.parentElement!.clientHeight - 24) + "px"
             }
         }).observe(this.parentElement!)
-        this.filter = this.shadowRoot?.querySelector<TabPaneFilter>("#filter")
-        this.filter!.getDataMining((data:any)=>{
-            if(this.currentSelectedData&&this.currentSelectedData.symbolName == perfDataQuery.threadData[this.currentSelectedData.tid]?.processName){
-                return
-            }
+        let filterFunc = (data: any) => {
+            let args: any[] = []
             if (data.type == "check") {
-                if(data.item.checked) {
-                    perfDataQuery.splitTree(this.dataSource,data.item.name,data.item.select == "0",data.item.type=="symbol")
-                }else {
-                    perfDataQuery.resotreAllNode([data.item.name])
-                    perfDataQuery.resetAllNode(this.dataSource)
-                    perfDataQuery.clearSplitMapData(data.item.name)
+                if (data.item.checked) {
+                    args.push({
+                        funcName: "splitTree",
+                        funcArgs: [data.item.name, data.item.select == "0", data.item.type == "symbol"]
+                    })
+                } else {
+                    args.push({
+                        funcName: "resotreAllNode",
+                        funcArgs: [[data.item.name]]
+                    })
+                    args.push({
+                        funcName: "resetAllNode",
+                        funcArgs: []
+                    })
+                    args.push({
+                        funcName: "clearSplitMapData",
+                        funcArgs: [data.item.name]
+                    })
                 }
-            }else if (data.type == "select") {
-                perfDataQuery.resotreAllNode([data.item.name])
-                perfDataQuery.clearSplitMapData(data.item.name)
-                perfDataQuery.splitTree(this.dataSource,data.item.name,data.item.select == "0",data.item.type=="symbol")
-            }else if (data.type=="button") {
+            } else if (data.type == "select") {
+                args.push({
+                    funcName: "resotreAllNode",
+                    funcArgs: [[data.item.name]]
+                })
+                args.push({
+                    funcName: "clearSplitMapData",
+                    funcArgs: [data.item.name]
+                })
+                args.push({
+                    funcName: "splitTree",
+                    funcArgs: [data.item.name, data.item.select == "0", data.item.type == "symbol"]
+                })
+            } else if (data.type == "button") {
                 if (data.item == "symbol") {
-                    if (this.currentSelectedData != undefined) {
-                        this.filter!.addDataMining({name:this.currentSelectedData.symbolName},data.item)
-                        perfDataQuery.splitTree(this.dataSource,this.currentSelectedData.symbolName,true,true)
+                    if (this.currentSelectedData && !this.currentSelectedData.canCharge) {
+                        return
                     }
-                }else if (data.item == "library") {
                     if (this.currentSelectedData != undefined) {
-                        this.filter!.addDataMining({name:this.currentSelectedData.libName},data.item)
-                        perfDataQuery.splitTree(this.dataSource,this.currentSelectedData.libName,true,false)
+                        this.filter!.addDataMining({name: this.currentSelectedData.symbolName}, data.item)
+                        args.push({
+                            funcName: "splitTree",
+                            funcArgs: [this.currentSelectedData.symbolName, false, true]
+                        })
+                    } else {
+                        return
                     }
-                }else if (data.item == "restore") {
-                    if (data.remove != undefined&&data.remove.length > 0) {
-                        let list = data.remove.map((item:any)=>{
+                } else if (data.item == "library") {
+                    if (this.currentSelectedData && !this.currentSelectedData.canCharge) {
+                        return
+                    }
+                    if (this.currentSelectedData != undefined && this.currentSelectedData.libName != "") {
+                        this.filter!.addDataMining({name: this.currentSelectedData.libName}, data.item)
+                        args.push({
+                            funcName: "splitTree",
+                            funcArgs: [this.currentSelectedData.libName, false, false]
+                        })
+                    } else {
+                        return
+                    }
+                } else if (data.item == "restore") {
+                    if (data.remove != undefined && data.remove.length > 0) {
+                        let list = data.remove.map((item: any) => {
                             return item.name
                         })
-                        perfDataQuery.resotreAllNode(list)
-                        perfDataQuery.resetAllNode(this.dataSource)
-                        list.forEach((symbolName:string)=>{
-                            perfDataQuery.clearSplitMapData(symbolName)
+                        args.push({
+                            funcName: "resotreAllNode",
+                            funcArgs: [list]
+                        })
+                        args.push({
+                            funcName: "resetAllNode",
+                            funcArgs: []
+                        })
+                        list.forEach((symbolName: string) => {
+                            args.push({
+                                funcName: "clearSplitMapData",
+                                funcArgs: [symbolName]
+                            })
                         })
                     }
                 }
             }
-            this.tbl!.recycleDataSource = this.dataSource
-            this.frameChart!.data = this.dataSource;
-            if (this.isChartShow) this.frameChart?.calculateChartData();
-            this.tbl!.move1px()
-            if(this.currentSelectedData){
-                this.currentSelectedData.isSelected = false;
-                this.tbl?.clearAllSelection(this.currentSelectedData)
-                this.tbr!.recycleDataSource = []
-                this.currentSelectedData = undefined
-            }
-        })
-        this.filter!.getCallTreeData((data:any)=>{
-            if(data.value == 0){
-                this.refreshAllNode(this.filter!.getFilterTreeData())
-            }else {
-                if(data.checks[1]){
-                    this.hideSystemLibrary()
-                    perfDataQuery.resetAllNode(this.dataSource)
-                }else {
-                    perfDataQuery.resotreAllNode([this.systmeRuleName])
-                    perfDataQuery.resetAllNode(this.dataSource)
-                    perfDataQuery.clearSplitMapData(this.systmeRuleName)
-                }
-                this.tbl!.recycleDataSource = this.dataSource
+            this.getDataByWorker(args, (result: any[]) => {
+                this.setLTableData(result)
                 this.frameChart!.data = this.dataSource;
                 if (this.isChartShow) this.frameChart?.calculateChartData();
+                this.tbl!.move1px()
+                if (this.currentSelectedData) {
+                    this.currentSelectedData.isSelected = false;
+                    this.tbl?.clearAllSelection(this.currentSelectedData)
+                    this.tbr!.recycleDataSource = []
+                    this.currentSelectedData = undefined
+                }
+            })
+        }
+        this.filter!.getDataLibrary(filterFunc)
+        this.filter!.getDataMining(filterFunc)
+        this.filter!.getCallTreeData((data: any) => {
+            if (data.value == 0) {
+                this.refreshAllNode({...this.filter!.getFilterTreeData(), callTree: data.checks})
+            } else {
+                let args: any[] = []
+                if (data.checks[1]) {
+                    args.push({
+                        funcName: "hideSystemLibrary",
+                        funcArgs: []
+                    })
+                    args.push({
+                        funcName: "resetAllNode",
+                        funcArgs: []
+                    })
+                } else {
+                    args.push({
+                        funcName: "resotreAllNode",
+                        funcArgs: [[this.systmeRuleName]]
+                    })
+                    args.push({
+                        funcName: "resetAllNode",
+                        funcArgs: []
+                    })
+                    args.push({
+                        funcName: "clearSplitMapData",
+                        funcArgs: [this.systmeRuleName]
+                    })
+                }
+                this.getDataByWorker(args, (result: any[]) => {
+                    this.setLTableData(result)
+                    this.frameChart!.data = this.dataSource;
+                    if (this.isChartShow) this.frameChart?.calculateChartData();
+                })
+
             }
         })
-        this.filter!.getCallTreeConstraintsData((data:any)=>{
-            perfDataQuery.resotreAllNode([this.numRuleName])
-            perfDataQuery.clearSplitMapData(this.numRuleName)
-            if(data.checked){
-                this.hideNumMaxAndMin(parseInt(data.min),data.max)
+        this.filter!.getCallTreeConstraintsData((data: any) => {
+            let args: any[] = [{
+                funcName: "resotreAllNode",
+                funcArgs: [[this.numRuleName]]
+            }, {
+                funcName: "clearSplitMapData",
+                funcArgs: [this.numRuleName]
+            }]
+            if (data.checked) {
+                args.push({
+                    funcName: "hideNumMaxAndMin",
+                    funcArgs: [parseInt(data.min), data.max]
+                })
             }
-            perfDataQuery.resetAllNode(this.dataSource)
-            this.tbl!.recycleDataSource = this.dataSource
+            args.push({
+                funcName: "resetAllNode",
+                funcArgs: []
+            })
+            this.getDataByWorker(args, (result: any[]) => {
+                this.setLTableData(result)
+                this.frameChart!.data = this.dataSource;
+                if (this.isChartShow) this.frameChart?.calculateChartData();
+            })
+
         })
-        this.filter!.getFilterData((data:FilterData)=>{
-            if (data.icon == 'block'){
-                pageChart?.setAttribute('class', 'show');
-                pageTab?.setAttribute('class', '');
-                this.isChartShow = true;
-                this.frameChart?.calculateChartData();
-            } else if (data.icon == 'tree') {
-                pageChart?.setAttribute('class', '');
-                pageTab?.setAttribute('class', 'show');
-                this.isChartShow = false;
-                this.frameChart!.clearCanvas();
+        this.filter!.getFilterData((data: FilterData) => {
+            if (this.searchValue != this.filter!.filterValue) {
+                this.searchValue = this.filter!.filterValue
+                let args = [
+                    {
+                        funcName: "setSearchValue",
+                        funcArgs: [this.searchValue]
+                    },
+                    {
+                        funcName: "resetAllNode",
+                        funcArgs: []
+                    }
+                ]
+                this.getDataByWorker(args, (result: any[]) => {
+                    this.setLTableData(result)
+                    this.frameChart!.data = this.dataSource;
+                    this.switchFlameChart(data)
+                })
+            }else {
+                this.switchFlameChart(data)
             }
+
         })
+        this.tbl!.addEventListener('column-click', (evt) => {
+            // @ts-ignore
+            this.sortKey = evt.detail.key
+            // @ts-ignore
+            this.sortType = evt.detail.sort
+            // @ts-ignore
+            this.setLTableData(this.dataSource)
+            this.frameChart!.data = this.dataSource;
+        });
     }
 
-    filterSampleIds(checked:boolean,min:string,max:string):Array<string>{
-        let ids:Array<string> = [];
-        if(checked){
+    switchFlameChart(data:any){
+        let pageTab = this.shadowRoot?.querySelector('#show_table');
+        let pageChart = this.shadowRoot?.querySelector('#show_chart');
+        if (data.icon == 'block') {
+            pageChart?.setAttribute('class', 'show');
+            pageTab?.setAttribute('class', '');
+            this.isChartShow = true;
+            this.filter!.disabledMining = true;
+            this.showButtomMenu(this.needShowMenu);
+            this.frameChart!.data = this.dataSource;
+            this.frameChart?.calculateChartData();
+        } else if (data.icon == 'tree') {
+            pageChart?.setAttribute('class', '');
+            pageTab?.setAttribute('class', 'show');
+            this.showButtomMenu(true);
+            this.isChartShow = false;
+            this.filter!.disabledMining = false;
+            this.frameChart!.clearCanvas();
+            this.tbl!.reMeauseHeight()
+        }
+    }
+
+    filterSampleIds(checked: boolean, min: string, max: string): Array<string> {
+        let ids: Array<string> = [];
+        if (checked) {
             let minId = parseInt(min);
             let maxId = max == "∞" ? -999 : parseInt(max);
-            if(minId != NaN && maxId != NaN){
+            if (minId != NaN && maxId != NaN) {
                 for (let sampleId of this.sampleIds) {
                     let id = parseInt(sampleId);
-                    if(id != NaN){
-                        if(id >= minId) {
+                    if (id != NaN) {
+                        if (id >= minId) {
                             if (maxId == -999) {
                                 ids.push(sampleId);
                             } else if (id <= maxId) {
                                 ids.push(sampleId);
-                            }else{
+                            } else {
                                 continue;
                             }
                         }
                     }
                 }
             }
-        }else{
+        } else {
             ids.push(...this.sampleIds)
         }
         return ids;
     }
 
-    hideSystemLibrary(){
-        this.dataSource.forEach((item)=>{
-            item.children = []
-            perfDataQuery.recursionChargeByRule(item,this.systmeRuleName,(node)=>{
-                return node.path.startsWith(this.systmeRuleName)
-            })
-        })
-    }
-
-    hideNumMaxAndMin(startNum:number,endNum:string){
-        let max = endNum == "∞"?Number.POSITIVE_INFINITY :parseInt(endNum)
-        console.log(max);
-        this.dataSource.forEach((item)=>{
-            item.children = []
-            perfDataQuery.recursionChargeByRule(item,this.numRuleName,(node)=>{
-                return node.dur < startNum || node.dur > max
-            })
-        })
-    }
-
-    refreshAllNode(filterData:any){
-        let isTopDown:boolean = !filterData.callTree[0];
+    refreshAllNode(filterData: any) {
+        let args:any[] = []
+        let isTopDown: boolean = !filterData.callTree[0];
         let isHideSystemLibrary = filterData.callTree[1];
-        let list = filterData.dataMining;
-        this.dataSource = perfDataQuery.getCallChainsBySampleIds(this.sampleIds,isTopDown);
+        let list = filterData.dataMining.concat(filterData.dataLibrary);
+        args.push({
+            funcName: "getCallChainsBySampleIds",
+            funcArgs: [this.sampleIds, isTopDown]
+        })
         this.tbr!.recycleDataSource = []
-        if(isHideSystemLibrary){
-            this.hideSystemLibrary()
-        }
-        if(filterData.callTreeConstraints.checked){
-            this.hideNumMaxAndMin(parseInt(filterData.callTreeConstraints.inputs[0]),filterData.callTreeConstraints.inputs[1])
-        }
-        list.forEach((item:any)=>{
-            this.dataSource.forEach((process)=>{
-                if(item.select == "0"){
-                    perfDataQuery.recursionChargeInitTree(process, item.name, item.type == "symbol")
-                }else {
-                    perfDataQuery.recursionPruneInitTree(process, item.name, item.type == "symbol")
-                }
+        if (isHideSystemLibrary) {
+            args.push({
+                funcName: "hideSystemLibrary",
+                funcArgs: []
             })
-            if(!item.checked){
-                perfDataQuery.resotreAllNode([item.name])
+        }
+        if (filterData.callTreeConstraints.checked) {
+            args.push({
+                funcName: "hideNumMaxAndMin",
+                funcArgs: [parseInt(filterData.callTreeConstraints.inputs[0]), filterData.callTreeConstraints.inputs[1]]
+            })
+        }
+        args.push({
+            funcName: "splitAllProcess",
+            funcArgs: [list]
+        })
+        args.push({
+            funcName: "resetAllNode",
+            funcArgs: []
+        })
+        this.getDataByWorker(args, (result: any[]) => {
+            this.setLTableData(result)
+            this.frameChart!.data = this.dataSource;
+            if (this.isChartShow) this.frameChart?.calculateChartData();
+        })
+    }
+
+    setLTableData(resultData:any[]) {
+        this.dataSource = this.sortTree(resultData)
+        this.tbl!.recycleDataSource = this.dataSource
+    }
+
+    sortTree(arr: Array<any>): Array<any> {
+        let sortArr = arr.sort((a, b) => {
+            if (this.sortKey == 'self') {
+                if (this.sortType == 0) {
+                    return b.dur - a.dur;
+                } else if (this.sortType == 1) {
+                    return a.selfDur - b.selfDur;
+                } else {
+                    return b.selfDur - a.selfDur;
+                }
+            } else {
+                if (this.sortType == 0) {
+                    return b.dur - a.dur;
+                } else if (this.sortType == 1) {
+                    return a.dur - b.dur;
+                } else {
+                    return b.dur - a.dur;
+                }
             }
         })
-        perfDataQuery.resetAllNode(this.dataSource)
-        this.tbl!.recycleDataSource = this.dataSource
-        this.frameChart!.data = this.dataSource;
-        if (this.isChartShow) this.frameChart?.calculateChartData();
+        sortArr.map((call) => {
+            call.children = this.sortTree(call.children);
+        })
+        return sortArr;
+    }
+
+    getDataByWorker(args: any[], handler: Function) {
+        this.loadingList.push(1)
+        this.progressEL!.loading = true
+        this.loadingPage.style.visibility = "visible"
+        query("perfDataQuery", "", args, "perf-action").then((results) => {
+            handler(results)
+            this.loadingList.splice(0,1)
+            if(this.loadingList.length == 0) {
+                this.progressEL!.loading = false
+                this.loadingPage.style.visibility = "hidden"
+            }
+        })
     }
 
     initHtml(): string {
@@ -352,7 +603,6 @@ export class TabpanePerfProfile extends BaseElement {
         tab-pane-filter {
             border: solid rgb(216,216,216) 1px;
             float: left;
-            text-align: center;
             position: fixed;
             bottom: 0;
             width: 100%;
@@ -364,34 +614,57 @@ export class TabpanePerfProfile extends BaseElement {
             display: flex;
             flex: 1;
         }
+        .progress{
+            bottom: 33px;
+            position: absolute;
+            height: 1px;
+            left: 0;
+            right: 0;
+        }
+        .loading{
+            bottom: 0;
+            position: absolute;
+            left: 0;
+            right: 0;
+            width:100%;
+            background:transparent;
+            z-index: 999999;
+        }
     </style>
     <div style="display: flex;flex-direction: row">
+    
     <selector id='show_table' class="show">
-        <div style="width: 65%">
+        <lit-slicer style="width:100%">
+        <div id="left_table" style="width: 65%">
+            <tab-native-data-modal id="modal"></tab-native-data-modal>
             <lit-table id="tb-perf-profile" style="height: auto" tree>
                 <lit-table-column width="70%" title="Call Stack" data-index="symbol" key="symbol"  align="flex-start" ></lit-table-column>
-                <lit-table-column width="1fr" title="Local" data-index="self" key="self"  align="flex-start"  ></lit-table-column>
-                <lit-table-column width="1fr" title="Weight" data-index="weight" key="weight"  align="flex-start"  ></lit-table-column>
+                <lit-table-column width="1fr" title="Local" data-index="self" key="self"  align="flex-start"  order></lit-table-column>
+                <lit-table-column width="1fr" title="Weight" data-index="weight" key="weight"  align="flex-start"  order></lit-table-column>
+                <lit-table-column width="1fr" title="%" data-index="weightPercent" key="weightPercent"  align="flex-start"  order></lit-table-column>
             </lit-table>
+            
         </div>
-        <div style="width: 35%">
-            <div>Heaviest Stack Trace</div>
-                <lit-table id="tb-perf-list" no-head style="height: auto;border-left: 1px solid var(--dark-border1,#e2e2e2)">
-                    <lit-table-column width="60px" title="" data-index="type" key="type"  align="flex-start" >
-                        <template>
-                            <img src="img/library.png" size="20" v-if=" type == 1 ">
-                            <img src="img/function.png" size="20" v-if=" type == 0 ">
-                        </template>
-                    </lit-table-column>
-                    <lit-table-column width="1fr" title="" data-index="symbolName" key="symbolName"  align="flex-start"></lit-table-column>
-                </lit-table>
-            </div>
+        <lit-slicer-track ></lit-slicer-track>
+        <lit-table id="tb-perf-list" no-head style="height: auto;border-left: 1px solid var(--dark-border1,#e2e2e2)">
+            <span slot="head">Heaviest Stack Trace</span>
+            <lit-table-column width="60px" title="" data-index="type" key="type"  align="flex-start" >
+                <template>
+                    <img src="img/library.png" size="20" v-if=" type == 1 ">
+                    <img src="img/function.png" size="20" v-if=" type == 0 ">
+                </template>
+            </lit-table-column>
+            <lit-table-column width="1fr" title="" data-index="symbolName" key="symbolName"  align="flex-start"></lit-table-column>
+        </lit-table>
         </div>
+        </lit-slicer>
      </selector>
+     <tab-pane-filter id="filter" input inputLeftText icon tree></tab-pane-filter>
+     <lit-progress-bar class="progress"></lit-progress-bar>
     <selector id='show_chart'>
         <tab-framechart id='framechart' style='width: 100%;height: auto'> </tab-framechart>
-    </selector>
-    <tab-pane-filter id="filter" icon tree></tab-pane-filter>
-    <tab-native-data-modal style="display:none;"/>`;
+    </selector>  
+    <div class="loading"></div>
+    </div>`;
     }
 }

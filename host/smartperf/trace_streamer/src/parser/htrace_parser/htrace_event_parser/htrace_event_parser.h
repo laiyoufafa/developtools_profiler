@@ -39,7 +39,9 @@ public:
     HtraceEventParser(TraceDataCache* dataCache, const TraceStreamerFilters* filter);
     ~HtraceEventParser();
     void ParseDataItem(const FtraceCpuDetailMsg* cpuDetail, BuiltinClocks clock);
+    void FilterAllEventsTemp();
     void FilterAllEvents();
+    void Clear();
 private:
     void DealEvent(const FtraceEvent& event);
     bool BinderTractionEvent(const MessageLite& event) const;
@@ -79,16 +81,33 @@ private:
     bool SignalGenerateEvent(const MessageLite& event) const;
     bool SignalDeleverEvent(const MessageLite& event) const;
     bool InvokeFunc(const SupportedTraceEventType& eventType, const MessageLite& msgBase);
-    struct EventInfo {
-        uint64_t eventTimestamp;
-        uint32_t eventCpu;
-        uint32_t eventPid;
-        uint32_t eventTid;
-        FtraceEvent cpuDetail;
+    class EventInfo {
+    public:
+        EventInfo(const std::string& common,
+                  uint64_t eventTimestamp,
+                  uint32_t eventCpu,
+                  uint32_t eventPid,
+                  uint32_t eventTid,
+                  const FtraceEvent& cpuDetail)
+            : common_(common),
+              eventTimestamp_(eventTimestamp),
+              eventCpu_(eventCpu),
+              eventPid_(eventPid),
+              eventTid_(eventTid),
+              cpuDetail_(std::move(cpuDetail))
+        {
+        }
+        std::string common_;
+        uint64_t eventTimestamp_;
+        uint32_t eventCpu_;
+        uint32_t eventPid_;
+        uint32_t eventTid_;
+        FtraceEvent cpuDetail_;
     };
     using FuncCall = std::function<bool(const MessageLite& event)>;
     uint32_t eventCpu_ = INVALID_UINT32;
     uint64_t eventTimestamp_ = INVALID_UINT64;
+    std::string comm_ = "";
     uint32_t eventPid_ = INVALID_UINT32;
     uint32_t eventTid_ = INVALID_UINT32;
     std::map<std::string, FuncCall> eventToFunctionMap_ = {};
@@ -99,7 +118,7 @@ private:
     uint64_t lastOverwrite_ = 0;
     uint64_t ftraceStartTime_ = std::numeric_limits<uint64_t>::max();
     uint64_t ftraceEndTime_ = 0;
-    std::vector<EventInfo> eventList_ = {};
+    std::vector<std::unique_ptr<EventInfo>> eventList_ = {};
     const DataIndex signalGenerateId_ = traceDataCache_->GetDataIndex("signal_generate");
     const DataIndex signalDeliverId_ = traceDataCache_->GetDataIndex("signal_deliver");
     const DataIndex schedWakeupName_ = traceDataCache_->GetDataIndex("sched_wakeup");

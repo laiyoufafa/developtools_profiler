@@ -49,6 +49,7 @@ public:
     ~MeasureFilter() override;
     void AppendNewMeasureData(uint64_t internalTid, DataIndex nameIndex, uint64_t timestamp, int64_t value);
     uint32_t GetOrCreateFilterId(uint64_t internalTid, DataIndex nameIndex);
+    void Clear();
 private:
     void AddCertainFilterId(uint64_t internalTid, DataIndex nameIndex, uint64_t filterId);
     DoubleMap<uint64_t, DataIndex, uint64_t> tidStreamIdFilterIdMap_;

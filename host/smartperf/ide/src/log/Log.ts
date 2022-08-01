@@ -43,7 +43,7 @@ export const log = (message?: any) => {
 }
 
 class SpLog {
-    private static nowLogLevel: LogLevel = LogLevel.ALL;
+    private static nowLogLevel: LogLevel = LogLevel.OFF;
 
     public static getNowLogLevel(): LogLevel {
         return this.nowLogLevel;

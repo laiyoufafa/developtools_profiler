@@ -84,16 +84,34 @@ bool CpuFilter::InsertProcessFreeEvent(uint64_t ts, uint64_t pid)
     }
     return false;
 }
+
+void CpuFilter::Finish()
+{
+    auto slice = traceDataCache_->GetConstSchedSliceData();
+    auto size = slice.Size();
+    for (auto i = 0; i < size; i++) {
+        traceDataCache_->GetSchedSliceData()->AppendInternalPid(
+            traceDataCache_->GetThreadData(slice.InternalTidsData()[i])->internalPid_);
+    }
+}
+void CpuFilter::Clear()
+{
+    cpuToRowThreadState_.clear();
+    cpuToRowSched_.clear();
+    lastWakeUpMsg_.clear();
+    internalTidToRowThreadState_.clear();
+}
 void CpuFilter::InsertWakeupEvent(uint64_t ts, uint64_t internalTid)
 {
     /* repeated wakeup msg may come, we only record last wakeupmsg, and
     the wakeup will only insert to DataCache when a sched_switch comes
     */
-    if (lastWakeUpMsg.find(internalTid) != lastWakeUpMsg.end()) {
+    if (lastWakeUpMsg_.find(internalTid) != lastWakeUpMsg_.end()) {
         // waking event is alaways before wakeup event
-        // use waking event only lastWakeUpMsg.at(internalTid) = ts;
+        // use waking event only lastWakeUpMsg_.at(internalTid) = ts;
+        lastWakeUpMsg_.at(internalTid) = ts;
     } else {
-        lastWakeUpMsg.insert(std::make_pair(internalTid, ts));
+        lastWakeUpMsg_.insert(std::make_pair(internalTid, ts));
     }
 }
 uint64_t CpuFilter::RemberInternalTidInStateTable(uint64_t uid, uint64_t row, uint64_t state)
@@ -125,11 +143,11 @@ uint64_t CpuFilter::StateOfInternalTidInStateTable(uint64_t uid) const
 
 void CpuFilter::CheckWakeupEvent(uint64_t internalTid)
 {
-    if (lastWakeUpMsg.find(internalTid) == lastWakeUpMsg.end()) {
+    if (lastWakeUpMsg_.find(internalTid) == lastWakeUpMsg_.end()) {
         return;
     }
-    auto ts = lastWakeUpMsg.at(internalTid);
-    lastWakeUpMsg.erase(internalTid);
+    auto ts = lastWakeUpMsg_.at(internalTid);
+    lastWakeUpMsg_.erase(internalTid);
     uint64_t lastrow = RowOfInternalTidInStateTable(internalTid);
     auto lastState = StateOfInternalTidInStateTable(internalTid);
     if (lastState == TASK_RUNNING) {

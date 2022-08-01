@@ -140,6 +140,7 @@ void TraceStreamerConfig::InitEventNameMap()
                      {TRACE_PROCESS, TRACE_ACTION_PROCESS},
                      {TRACE_CPU_USAGE, TRACE_ACTION_CPU_USAGE},
                      {TRACE_NETWORK, TRACE_ACTION_NETWORK},
+                     {TRACE_PERF, TRACE_ACTION_PERF},
                      {TRACE_EVENT_SIGNAL_GENERATE, TRACE_ACTION_SIGNAL_GENERATE},
                      {TRACE_EVENT_SIGNAL_DELIVER, TRACE_ACTION_SIGNAL_DELIVER},
                      {TRACE_EVENT_BLOCK_BIO_BACKMERGE, TRACE_ACTION_BLOCK_BIO_BACKMERGE},
@@ -880,6 +881,16 @@ void TraceStreamerConfig::InitSecurityMap()
         },
         {
             TRACE_NETWORK,
+            {
+                {STAT_EVENT_RECEIVED, STAT_SEVERITY_LEVEL_INFO},
+                {STAT_EVENT_DATA_LOST, STAT_SEVERITY_LEVEL_ERROR},
+                {STAT_EVENT_NOTMATCH, STAT_SEVERITY_LEVEL_INFO},
+                {STAT_EVENT_NOTSUPPORTED, STAT_SEVERITY_LEVEL_WARN},
+                {STAT_EVENT_DATA_INVALID, STAT_SEVERITY_LEVEL_ERROR},
+            },
+        },
+        {
+            TRACE_PERF,
             {
                 {STAT_EVENT_RECEIVED, STAT_SEVERITY_LEVEL_INFO},
                 {STAT_EVENT_DATA_LOST, STAT_SEVERITY_LEVEL_ERROR},

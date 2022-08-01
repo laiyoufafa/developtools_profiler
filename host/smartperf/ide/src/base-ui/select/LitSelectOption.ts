@@ -74,7 +74,7 @@ export class LitSelectOption extends BaseElement {
             <lit-icon class="selected" name="check"></lit-icon>
         </div>
         <slot></slot>
-        <lit-icon class="check" name="check"></lit-icon>
+<!--        <lit-icon class="check" name="check"></lit-icon>-->
         `
     }
 

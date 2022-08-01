@@ -16,7 +16,7 @@
 import {BaseElement, element} from "../../../../base-ui/BaseElement.js";
 import {LitTable} from "../../../../base-ui/table/lit-table.js";
 import {SelectionData, SelectionParam} from "../../../bean/BoxSelection.js";
-import {getTabSlices} from "../../../database/SqlLite.js";
+import {getTabSlices, getTabSlicesAsyncFunc} from "../../../database/SqlLite.js";
 
 @element('tabpane-slices')
 export class TabPaneSlices extends BaseElement {
@@ -26,28 +26,37 @@ export class TabPaneSlices extends BaseElement {
 
     set data(val: SelectionParam | any) {
         this.range!.textContent = "Selected range: " + parseFloat(((val.rightNs - val.leftNs) / 1000000.0).toFixed(5)) + " ms"
-        getTabSlices(val.funTids, val.leftNs, val.rightNs).then((result) => {
-            if (result != null && result.length > 0) {
-                let sumWall = 0.0;
-                let sumOcc = 0;
-                for (let e of result) {
-                    e.name = e.name == null ? "" : e.name
-                    sumWall += e.wallDuration
-                    sumOcc += e.occurrences
-                    e.wallDuration = parseFloat((e.wallDuration / 1000000.0).toFixed(5));
-                    e.avgDuration = parseFloat((e.avgDuration / 1000000.0).toFixed(5));
+        let asyncNames: Array<string> = [];
+        let asyncPid: Array<number> = [];
+        val.funAsync.forEach((it: any) => {
+            asyncNames.push(it.name)
+            asyncPid.push(it.pid)
+        })
+        getTabSlicesAsyncFunc(asyncNames, asyncPid, val.leftNs, val.rightNs).then(res => {
+            getTabSlices(val.funTids, val.leftNs, val.rightNs).then((res2) => {
+                let result = (res || []).concat(res2 || []);
+                if (result != null && result.length > 0) {
+                    let sumWall = 0.0;
+                    let sumOcc = 0;
+                    for (let e of result) {
+                        e.name = e.name == null ? "" : e.name
+                        sumWall += e.wallDuration
+                        sumOcc += e.occurrences
+                        e.wallDuration = parseFloat((e.wallDuration / 1000000.0).toFixed(5));
+                        e.avgDuration = parseFloat((e.avgDuration / 1000000.0).toFixed(5));
+                    }
+                    let count = new SelectionData()
+                    count.process = " ";
+                    count.wallDuration = parseFloat((sumWall / 1000000.0).toFixed(5));
+                    count.occurrences = sumOcc;
+                    result.splice(0, 0, count)
+                    this.source = result
+                    this.tbl!.recycleDataSource = result
+                } else {
+                    this.source = [];
+                    this.tbl!.recycleDataSource = this.source;
                 }
-                let count = new SelectionData()
-                count.process = " ";
-                count.wallDuration = parseFloat((sumWall / 1000000.0).toFixed(5));
-                count.occurrences = sumOcc;
-                result.splice(0, 0, count)
-                this.source = result
-                this.tbl!.dataSource = result
-            } else {
-                this.source = [];
-                this.tbl!.dataSource = this.source;
-            }
+            });
         });
     }
 
@@ -58,6 +67,13 @@ export class TabPaneSlices extends BaseElement {
             // @ts-ignore
             this.sortByColumn(evt.detail)
         });
+        new ResizeObserver((entries) => {
+            if (this.parentElement?.clientHeight != 0) {
+                // @ts-ignore
+                this.tbl?.shadowRoot.querySelector(".table").style.height = (this.parentElement.clientHeight - 45) + "px"
+                this.tbl?.reMeauseHeight()
+            }
+        }).observe(this.parentElement!)
     }
 
     initHtml(): string {
@@ -113,7 +129,7 @@ export class TabPaneSlices extends BaseElement {
         } else {
             this.source.sort(compare(detail.key, detail.sort, 'number'))
         }
-        this.tbl!.dataSource = this.source;
+        this.tbl!.recycleDataSource = this.source;
     }
 
 }

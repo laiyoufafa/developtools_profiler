@@ -6,6 +6,31 @@
 本工具默认编译方式是使用gn
 + 编译方式
 ```
+third_party部分安装方式
+third_party相关控件下载链接：https://gitee.com/organizations/openharmony/projects
+在src路径下创建同级目录third_party。
+一、sqlite：
+1.打开上方链接，搜索sqlite。
+2.点击搜索结果进入下载界面，下载sqlite组件。
+3.把下载的文件解压后，文件夹命名为sqlite，并用代码路径中\prebuilts\buildsqlite\sqlite3build.gn文件替换sqlite目录中的BUILD.gn文件。
+4.把sqlite文件夹放入third_party目录中。
+二、protobuf：
+1.按上述下载方法，下载protobuf组件。
+2.把下载的文件解压后，文件夹命名为protobuf，并用代码路径中\prebuilts\buildprotobuf\protobufbuild.gn文件替换protobuf目录中的BUILD.gn文件。
+3.把protobuf文件夹放入third_party目录中。
+三、googletest：
+1.按上述下载方法，下载googletest相关组件。
+2.把下载的文件解压后，文件夹命名为googletest，并用代码路径中\prebuilts\buildgoogletest\googletestbuild.gn文件替换googletest目录中的BUILD.gn文件。
+3.把googletest文件夹放入third_party目录中。
+4.找到文件\googletest\include\gtest\internal\ gtest-port.h 把286行 #include <sstream>  // NOLINT修改为  
+#undef private
+#define private private
+#include <sstream>  // NOLINT
+#undef private
+#define private public
+```
+编译不同版本：linux, WebAssembly, mac
+```
 ./build.sh linux/wasm/macx
 ```
 如果需要编译WebAssembly版本，您需要在prebuilts/目录下安装emsdk

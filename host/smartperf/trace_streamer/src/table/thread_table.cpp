@@ -18,11 +18,12 @@
 namespace SysTuning {
 namespace TraceStreamer {
 namespace {
-enum Index { ID = 0, TYPE, TID, NAME, START_TS, END_TS, INTERNAL_PID, IS_MAIN_THREAD };
+enum Index { ID = 0, ITID, TYPE, TID, NAME, START_TS, END_TS, INTERNAL_PID, IS_MAIN_THREAD };
 }
 ThreadTable::ThreadTable(const TraceDataCache* dataCache) : TableBase(dataCache)
 {
     tableColumn_.push_back(TableBase::ColumnInfo("id", "UNSIGNED INT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("itid", "UNSIGNED INT"));
     tableColumn_.push_back(TableBase::ColumnInfo("type", "STRING"));
     tableColumn_.push_back(TableBase::ColumnInfo("tid", "UNSIGNED INT"));
     tableColumn_.push_back(TableBase::ColumnInfo("name", "STRING"));
@@ -63,6 +64,7 @@ void ThreadTable::EstimateFilterCost(FilterConstraints& fc, EstimatedIndexInfo& 
     auto orderbys = fc.GetOrderBys();
     for (auto i = 0; i < orderbys.size(); i++) {
         switch (orderbys[i].iColumn) {
+            case ITID:
             case ID:
                 break;
             default: // other columns can be sorted by SQLite
@@ -83,6 +85,7 @@ void ThreadTable::FilterByConstraint(FilterConstraints& fc, double& filterCost, 
         }
         const auto& c = fcConstraints[i];
         switch (c.col) {
+            case ITID:
             case ID: {
                 if (CanFilterId(c.op, rowCount)) {
                     fc.UpdateConstraint(i, true);
@@ -144,6 +147,7 @@ int ThreadTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value** arg
         const auto& c = cs[i];
         switch (c.col) {
             case ID:
+            case ITID:
                 FilterId(c.op, argv[i]);
                 break;
             default:
@@ -156,6 +160,7 @@ int ThreadTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value** arg
         i--;
         switch (orderbys[i].iColumn) {
             case ID:
+            case ITID:
                 indexMap_->SortBy(orderbys[i].desc);
                 break;
             default:
@@ -170,7 +175,8 @@ int ThreadTable::Cursor::Column(int col) const
 {
     const auto& thread = dataCache_->GetConstThreadData(CurrentRow());
     switch (col) {
-        case ID: {
+        case ID:
+        case ITID: {
             sqlite3_result_int64(context_, CurrentRow());
             break;
         }

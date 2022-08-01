@@ -13,7 +13,10 @@
  * limitations under the License.
  */
 
+import {info} from "../../../log/Log.js";
+
 export const initTraceStateStrategy = (metricData: Array<any>): StatListItem => {
+    info("Trace State Strategy data length is:", metricData.length)
     let statListItems: Array<StatItem> = []
     for (let sqlIndex = 0; sqlIndex < metricData.length; sqlIndex++) {
         let names = metricData[sqlIndex].event_name;

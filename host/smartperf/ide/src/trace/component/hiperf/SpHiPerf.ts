@@ -19,6 +19,9 @@ import {procedurePool} from "../../database/Procedure.js";
 import {
     queryHiPerfCpuData,
     queryHiPerfCpuMergeData,
+    queryHiPerfEventData,
+    queryHiPerfEventList,
+    queryHiPerfEventListData,
     queryHiPerfProcessData,
     queryHiPerfThreadData,
     queryPerfCmdline,
@@ -29,16 +32,18 @@ import {PerfThread} from "../../bean/PerfProfile.js";
 import {HiPerfCpuStruct} from "../../database/ProcedureWorkerHiPerfCPU.js";
 import {HiPerfThreadStruct} from "../../database/ProcedureWorkerHiPerfThread.js";
 import {HiPerfProcessStruct} from "../../database/ProcedureWorkerHiPerfProcess.js";
-import {PerfDataQuery} from "./PerfDataQuery.js";
+import {info} from "../../../log/Log.js";
+import {HiPerfEventStruct} from "../../database/ProcedureWorkerHiPerfEvent.js";
 
 export interface ResultData {
     existA: boolean | null | undefined,
     existF: boolean | null | undefined,
-    fValue: string | null | undefined,
+    fValue: number
 }
 
 export class SpHiPerf {
     static hoverCpuStruct: HiPerfCpuStruct | undefined;
+    static hoverEventuctStruct: HiPerfEventStruct | undefined;
     static selectCpuStruct: HiPerfCpuStruct | undefined;
     static hoverProcessStruct: HiPerfProcessStruct | undefined;
     static selectProcessStruct: HiPerfProcessStruct | undefined;
@@ -52,6 +57,7 @@ export class SpHiPerf {
     private perfThreads: Array<PerfThread> | undefined;
     private trace: SpSystemTrace;
     private group: any;
+    private eventTypeList: Array<{ id: number, report_value: string }> = [];
 
     constructor(trace: SpSystemTrace) {
         this.trace = trace;
@@ -60,6 +66,8 @@ export class SpHiPerf {
     async init() {
         await this.initCmdLine()
         this.perfThreads = await queryPerfThread();
+        this.eventTypeList = await queryHiPerfEventList();
+        info("PerfThread Data size is: ", this.perfThreads!.length)
         this.group = Utils.groupBy(this.perfThreads || [], "pid");
         this.cpuData = await queryHiPerfCpuMergeData();
         this.maxCpuId = this.cpuData.length > 0 ? this.cpuData.reduce((max, v) => max.cpu_id >= v.cpu_id ? max : v).cpu_id : -Infinity;
@@ -67,30 +75,32 @@ export class SpHiPerf {
             await this.initFolder();
             await this.initCpuMerge();
             await this.initCpu();
+            // await this.initReport();
             await this.initProcess();
         }
+        info("HiPerf Data initialized")
     }
 
-    getStringResult(s:string = ""){
+    getStringResult(s: string = "") {
         let list = s.split(" ").filter((e) => e);
         let sA = list.findIndex((item) => item == "-a");
         let sF = list.findIndex((item) => item == "-f");
         SpHiPerf.stringResult = {
-            existA: sA!==-1,
-            existF: sF!==-1,
-            fValue: sF!==-1?list[sF + 1]:"1000",
+            existA: sA !== -1,
+            existF: sF !== -1,
+            fValue: Number((1000 / (sF !== -1 ? parseInt(list[sF + 1]) : 1000)).toFixed(1)),
         }
     }
 
-    async initCmdLine(){
+    async initCmdLine() {
         let perfCmdLines = await queryPerfCmdline();
-        if(perfCmdLines.length > 0){
+        if (perfCmdLines.length > 0) {
             this.getStringResult(perfCmdLines[0].report_value)
-        }else {
+        } else {
             SpHiPerf.stringResult = {
                 existA: true,
                 existF: false,
-                fValue: "1000",
+                fValue: 1,
             }
         }
     }
@@ -122,7 +132,7 @@ export class SpHiPerf {
         row.onThreadHandler = (useCache) => {
             procedurePool.submitWithName(`process${row.index}`, `HiPerf-Group`, {
                 list: row.must ? row.dataList : undefined,
-                offscreen: row.must ? row.offscreen[0] : undefined,
+                offscreen: !row.isTransferCanvas ? row.offscreen[0] : undefined,
                 xs: TraceRow.range?.xs,
                 dpr: row.dpr,
                 isHover: row.isHover,
@@ -141,10 +151,13 @@ export class SpHiPerf {
                 totalNS: TraceRow.range?.totalNS || 0,
                 slicesTime: TraceRow.range?.slicesTime,
                 scale: TraceRow.range?.scale || 50,
+                intervalPerf: SpHiPerf.stringResult?.fValue || 1,
+                range:TraceRow.range,
                 frame: row.frame
-            }, row.must && row.args.isOffScreen ? row.offscreen[0] : undefined, (res: any) => {
+            }, !row.isTransferCanvas ? row.offscreen[0] : undefined, (res: any) => {
                 row.must = false;
             })
+            row.isTransferCanvas = true;
         }
         this.rowFolder = row;
         this.trace.rowsEL?.appendChild(row)
@@ -172,7 +185,7 @@ export class SpHiPerf {
         row.onThreadHandler = (useCache) => {
             procedurePool.submitWithName(`freq${row.index}`, `HiPerf-Cpu-Merge`, {
                 list: row.must ? row.dataList : undefined,
-                offscreen: row.must ? row.offscreen[0] : undefined,
+                offscreen: !row.isTransferCanvas ? row.offscreen[0] : undefined,
                 xs: TraceRow.range?.xs,
                 dpr: row.dpr,
                 isHover: row.isHover,
@@ -193,15 +206,17 @@ export class SpHiPerf {
                 totalNS: TraceRow.range?.totalNS || 0,
                 slicesTime: TraceRow.range?.slicesTime,
                 scale: TraceRow.range?.scale || 50,
+                intervalPerf: SpHiPerf.stringResult?.fValue || 1,
+                range:TraceRow.range,
                 frame: row.frame,
                 maxCpu: (this.maxCpuId + 1)
-            }, row.must && row.args.isOffScreen ? row.offscreen[0] : undefined, (res: any, hover: any) => {
+            }, !row.isTransferCanvas ? row.offscreen[0] : undefined, (res: any, hover: any) => {
                 row.must = false;
                 if (row.isHover) {
                     SpHiPerf.hoverCpuStruct = hover;
-                    // this.trace.visibleRows.filter(it => it.rowType === TraceRow.ROW_TYPE_HIPERF_CPU && it.name !== row.name).forEach(it => it.draw(true));
                 }
             })
+            row.isTransferCanvas = true;
         }
         this.trace.rowsEL?.appendChild(row)
     }
@@ -229,7 +244,7 @@ export class SpHiPerf {
             row.onThreadHandler = (useCache) => {
                 procedurePool.submitWithName(`cpu${row.index}`, `HiPerf-Cpu-${i}`, {
                     list: row.must ? row.dataList : undefined,
-                    offscreen: row.must ? row.offscreen[0] : undefined,
+                    offscreen: !row.isTransferCanvas ? row.offscreen[0] : undefined,
                     xs: TraceRow.range?.xs,
                     dpr: row.dpr,
                     isHover: row.isHover,
@@ -250,18 +265,135 @@ export class SpHiPerf {
                     totalNS: TraceRow.range?.totalNS || 0,
                     slicesTime: TraceRow.range?.slicesTime,
                     scale: TraceRow.range?.scale || 50,
+                    intervalPerf: SpHiPerf.stringResult?.fValue || 1,
+                    range:TraceRow.range,
                     frame: row.frame,
                     maxCpu: undefined
-                }, row.must && row.args.isOffScreen ? row.offscreen[0] : undefined, (res: any, hover: any) => {
+                }, !row.isTransferCanvas ? row.offscreen[0] : undefined, (res: any, hover: any) => {
                     row.must = false;
                     if (row.isHover) {
                         SpHiPerf.hoverCpuStruct = hover;
-                        // this.trace.visibleRows.filter(it => it.rowType === TraceRow.ROW_TYPE_HIPERF_CPU && it.name !== row.name).forEach(it => it.draw(true));
                     }
                 })
+                row.isTransferCanvas = true;
             }
             this.trace.rowsEL?.appendChild(row)
         }
+    }
+
+    async initReport() {
+        this.eventTypeList.forEach((it, index) => {
+            let fold = new TraceRow({
+                canvasNumber: 1,
+                alpha: false,
+                contextId: '2d',
+                isOffScreen: SpSystemTrace.isCanvasOffScreen
+            });
+            fold.rowId = `Perf-Report-${it.id}-${it.report_value}`;
+            fold.index = index;
+            fold.rowType = TraceRow.ROW_TYPE_HIPERF_REPORT
+            fold.rowParentId = 'HiPerf';
+            fold.rowHidden = !this.rowFolder.expansion
+            fold.folder = true;
+            fold.name = `Event :${it.report_value}`;
+            fold.folderPaddingLeft = 30;
+            fold.favoriteChangeHandler = this.trace.favoriteChangeHandler;
+            fold.selectChangeHandler = this.trace.selectChangeHandler;
+            let that = this;
+            fold.supplier = () => queryHiPerfEventListData(it.id);
+            fold.onThreadHandler = (useCache) => {
+                procedurePool.submitWithName(`process${(fold.index) % procedurePool.processLen.length}`, `HiPerf-Report-Fold-${it.report_value}-${it.id}`, {
+                    list: fold.must ? fold.dataList : undefined,
+                    offscreen: !fold.isTransferCanvas ? fold.offscreen[0] : undefined,
+                    xs: TraceRow.range?.xs,
+                    dpr: fold.dpr,
+                    isHover: fold.isHover,
+                    flagMoveInfo: this.trace.hoverFlag,
+                    flagSelectedInfo: this.trace.selectFlag,
+                    hoverX: fold.hoverX,
+                    hoverY: fold.hoverY,
+                    canvasWidth: fold.canvasWidth,
+                    canvasHeight: fold.canvasHeight,
+                    isRangeSelect: fold.rangeSelect,
+                    rangeSelectObject: TraceRow.rangeSelectObject,
+                    useCache: useCache,
+                    lineColor: fold.getLineColor(),
+                    startNS: TraceRow.range?.startNS || 0,
+                    endNS: TraceRow.range?.endNS || 0,
+                    totalNS: TraceRow.range?.totalNS || 0,
+                    slicesTime: TraceRow.range?.slicesTime,
+                    scale: TraceRow.range?.scale || 50,
+                    intervalPerf: SpHiPerf.stringResult?.fValue || 1,
+                    range:TraceRow.range,
+                    frame: fold.frame
+                }, !fold.isTransferCanvas ? fold.offscreen[0] : undefined, (res: any, hover: any) => {
+                    fold.must = false;
+                    if (fold.isHover) {
+                    }
+                })
+                fold.isTransferCanvas = true;
+            }
+            this.trace.rowsEL?.appendChild(fold)
+
+            for (let i = 0; i <= this.maxCpuId; i++) {
+                let row = new TraceRow({
+                    canvasNumber: 1,
+                    alpha: false,
+                    contextId: '2d',
+                    isOffScreen: SpSystemTrace.isCanvasOffScreen
+                });
+                row.rowId = `HiPerf-Report-Event-${it.report_value}-${i}`;
+                row.index = i;
+                row.rowType = TraceRow.ROW_TYPE_HIPERF_EVENT
+                row.rowParentId = fold.rowId;
+                row.rowHidden = !fold.expansion
+                row.folder = false;
+                row.name = `Cpu ${i}`;
+                row.setAttribute('children', '')
+                row.favoriteChangeHandler = this.trace.favoriteChangeHandler;
+                row.selectChangeHandler = this.trace.selectChangeHandler;
+                let that = this;
+                row.supplier = () => queryHiPerfEventData(it.id, row.index);
+                row.onThreadHandler = (useCache) => {
+                    procedurePool.submitWithName(`process${row.index % procedurePool.processLen.length}`, `HiPerf-Report-Event-${it.report_value}-${i}`, {
+                        list: row.must ? row.dataList : undefined,
+                        offscreen: !row.isTransferCanvas ? row.offscreen[0] : undefined,
+                        xs: TraceRow.range?.xs,
+                        dpr: row.dpr,
+                        isHover: row.isHover,
+                        flagMoveInfo: this.trace.hoverFlag,
+                        flagSelectedInfo: this.trace.selectFlag,
+                        hoverX: row.hoverX,
+                        hoverY: row.hoverY,
+                        canvasWidth: row.canvasWidth,
+                        canvasHeight: row.canvasHeight,
+                        hoverStruct: SpHiPerf.hoverEventuctStruct,
+                        selectStruct: SpHiPerf.selectCpuStruct,
+                        isRangeSelect: row.rangeSelect,
+                        rangeSelectObject: TraceRow.rangeSelectObject,
+                        useCache: useCache,
+                        lineColor: row.getLineColor(),
+                        startNS: TraceRow.range?.startNS || 0,
+                        endNS: TraceRow.range?.endNS || 0,
+                        totalNS: TraceRow.range?.totalNS || 0,
+                        slicesTime: TraceRow.range?.slicesTime,
+                        scale: TraceRow.range?.scale || 50,
+                        intervalPerf: SpHiPerf.stringResult?.fValue || 1,
+                        range:TraceRow.range,
+                        frame: row.frame,
+                        maxCpu: undefined
+                    }, !row.isTransferCanvas ? row.offscreen[0] : undefined, (res: any, hover: any) => {
+                        row.must = false;
+                        if (row.isHover) {
+                            SpHiPerf.hoverEventuctStruct = hover;
+                            // this.trace.visibleRows.filter(it => it.rowType === TraceRow.ROW_TYPE_HIPERF_CPU && it.name !== row.name).forEach(it => it.draw(true));
+                        }
+                    })
+                    row.isTransferCanvas = true;
+                }
+                this.trace.rowsEL?.appendChild(row)
+            }
+        })
     }
 
     async initProcess() {
@@ -280,7 +412,7 @@ export class SpHiPerf {
             row.rowParentId = 'HiPerf';
             row.rowHidden = !this.rowFolder.expansion
             row.folder = true;
-            row.name = `${process.processName} [${process.pid}]`;
+            row.name = `${process.processName||'Process'} [${process.pid}]`;
             row.folderPaddingLeft = 30;
             row.favoriteChangeHandler = this.trace.favoriteChangeHandler;
             row.selectChangeHandler = this.trace.selectChangeHandler;
@@ -289,7 +421,7 @@ export class SpHiPerf {
             row.onThreadHandler = (useCache) => {
                 procedurePool.submitWithName(`process${(row.index) % procedurePool.processLen.length}`, `HiPerf-Process-${row.index}`, {
                     list: row.must ? row.dataList : undefined,
-                    offscreen: row.must ? row.offscreen[0] : undefined,
+                    offscreen: !row.isTransferCanvas ? row.offscreen[0] : undefined,
                     xs: TraceRow.range?.xs,
                     dpr: row.dpr,
                     isHover: row.isHover,
@@ -310,14 +442,17 @@ export class SpHiPerf {
                     totalNS: TraceRow.range?.totalNS || 0,
                     slicesTime: TraceRow.range?.slicesTime,
                     scale: TraceRow.range?.scale || 50,
+                    intervalPerf: SpHiPerf.stringResult?.fValue || 1,
+                    range:TraceRow.range,
                     frame: row.frame
-                }, row.must && row.args.isOffScreen ? row.offscreen[0] : undefined, (res: any, hover: any) => {
+                }, !row.isTransferCanvas ? row.offscreen[0] : undefined, (res: any, hover: any) => {
                     row.must = false;
                     if (row.isHover) {
                         SpHiPerf.hoverProcessStruct = hover;
                         // this.trace.visibleRows.filter(it => it.rowType === TraceRow.ROW_TYPE_HIPERF_PROCESS && it.name !== row.name).forEach(it => it.draw(true));
                     }
                 })
+                row.isTransferCanvas = true;
             }
             this.trace.rowsEL?.appendChild(row)
 
@@ -334,7 +469,7 @@ export class SpHiPerf {
                 thread.rowParentId = row.rowId;
                 thread.rowHidden = !row.expansion
                 thread.folder = false;
-                thread.name = `${thObj.threadName} [${thObj.tid}]`;
+                thread.name = `${thObj.threadName||'Thread'} [${thObj.tid}]`;
                 thread.setAttribute('children', '')
                 thread.folderPaddingLeft = 30;
                 thread.favoriteChangeHandler = this.trace.favoriteChangeHandler;
@@ -344,7 +479,7 @@ export class SpHiPerf {
                 thread.onThreadHandler = (useCache) => {
                     procedurePool.submitWithName(`process${(thread.index) % procedurePool.processLen.length}`, `HiPerf-Thread-${row.index}-${thread.index}`, {
                         list: thread.must ? thread.dataList : undefined,
-                        offscreen: thread.must ? thread.offscreen[0] : undefined,
+                        offscreen: !thread.isTransferCanvas ? thread.offscreen[0] : undefined,
                         xs: TraceRow.range?.xs,
                         dpr: thread.dpr,
                         isHover: thread.isHover,
@@ -365,13 +500,16 @@ export class SpHiPerf {
                         totalNS: TraceRow.range?.totalNS || 0,
                         slicesTime: TraceRow.range?.slicesTime,
                         scale: TraceRow.range?.scale || 50,
+                        intervalPerf: SpHiPerf.stringResult?.fValue || 1,
+                        range:TraceRow.range,
                         frame: thread.frame
-                    }, thread.must && thread.args.isOffScreen ? thread.offscreen[0] : undefined, (res: any, hover: any) => {
+                    }, !thread.isTransferCanvas ? thread.offscreen[0] : undefined, (res: any, hover: any) => {
                         thread.must = false;
                         if (thread.isHover) {
                             SpHiPerf.hoverThreadStruct = hover;
                         }
                     })
+                    thread.isTransferCanvas = true;
                 }
                 this.trace.rowsEL?.appendChild(thread)
             });

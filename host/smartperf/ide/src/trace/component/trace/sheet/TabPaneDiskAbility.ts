@@ -21,6 +21,7 @@ import {SystemDiskIOSummary} from "../../../bean/AbilityMonitor.js";
 import {Utils} from "../base/Utils.js";
 import {ColorUtils} from "../base/ColorUtils.js";
 import "../../../component/SpFilter.js";
+import {log} from "../../../../log/Log.js";
 
 @element('tabpane-disk-ability')
 export class TabPaneDiskAbility extends BaseElement {
@@ -83,6 +84,7 @@ export class TabPaneDiskAbility extends BaseElement {
 
     queryDataByDB(val: SelectionParam | any) {
         getTabDiskAbilityData(val.leftNs, val.rightNs).then((result) => {
+            log("getTabDiskAbilityData result size : " + result.length)
             if (result.length != null && result.length > 0) {
                 for (const systemDiskIOSummary of result) {
                     if (systemDiskIOSummary.startTime <= 0) {
@@ -152,6 +154,24 @@ export class TabPaneDiskAbility extends BaseElement {
                 if (type === 'number') {
                     // @ts-ignore
                     return sort === 2 ? parseFloat(b[property]) - parseFloat(a[property]) : parseFloat(a[property]) - parseFloat(b[property]);
+                } else if (type === 'durationStr') {
+                    return sort === 2 ? b.duration - a.duration : a.duration - b.duration;
+                } else if (type === 'dataReadStr') {
+                    return sort === 2 ? b.dataRead - a.dataRead : a.dataRead - b.dataRead;
+                } else if (type === 'dataReadSecStr') {
+                    return sort === 2 ? b.dataReadSec - a.dataReadSec : a.dataReadSec - b.dataReadSec;
+                } else if (type === 'dataWriteStr') {
+                    return sort === 2 ? b.dataWrite - a.dataWrite : a.dataWrite - b.dataWrite;
+                } else if (type === 'dataWriteSecStr') {
+                    return sort === 2 ? b.dataWriteSec - a.dataWriteSec : a.dataWriteSec - b.dataWriteSec;
+                } else if (type === 'readsInStr') {
+                    return sort === 2 ? b.readsIn - a.readsIn : a.readsIn - b.readsIn;
+                } else if (type === 'readsInSecStr') {
+                    return sort === 2 ? b.readsInSec - a.readsInSec : a.readsInSec - b.readsInSec;
+                } else if (type === 'writeOutStr') {
+                    return sort === 2 ? b.writeOut - a.writeOut : a.writeOut - b.writeOut;
+                } else if (type === 'writeOutSecStr') {
+                    return sort === 2 ? b.writeOutSec - a.writeOutSec : a.writeOutSec - b.writeOutSec;
                 } else {
                     // @ts-ignore
                     if (b[property] > a[property]) {
@@ -169,10 +189,28 @@ export class TabPaneDiskAbility extends BaseElement {
 
         if (detail.key === 'startTime') {
             this.source.sort(compare(detail.key, detail.sort, 'string'))
+        } else if (detail.key === 'durationStr') {
+            this.source.sort(compare(detail.key, detail.sort, 'durationStr'))
+        } else if (detail.key === 'dataReadStr') {
+            this.source.sort(compare(detail.key, detail.sort, 'dataReadStr'))
+        } else if (detail.key === 'dataReadSecStr') {
+            this.source.sort(compare(detail.key, detail.sort, 'dataReadSecStr'))
+        } else if (detail.key === 'dataWriteStr') {
+            this.source.sort(compare(detail.key, detail.sort, 'dataWriteStr'))
+        } else if (detail.key === 'dataWriteSecStr') {
+            this.source.sort(compare(detail.key, detail.sort, 'dataWriteSecStr'))
+        } else if (detail.key === 'readsInStr') {
+            this.source.sort(compare(detail.key, detail.sort, 'readsInStr'))
+        } else if (detail.key === 'readsInSecStr') {
+            this.source.sort(compare(detail.key, detail.sort, 'readsInSecStr'))
+        } else if (detail.key === 'writeOutStr') {
+            this.source.sort(compare(detail.key, detail.sort, 'writeOutStr'))
+        } else if (detail.key === 'writeOutSecStr') {
+            this.source.sort(compare(detail.key, detail.sort, 'writeOutSecStr'))
         } else {
             this.source.sort(compare(detail.key, detail.sort, 'number'))
         }
-        this.tbl!.dataSource = this.source;
+        this.tbl!.recycleDataSource = this.source;
     }
 
 }

@@ -21,6 +21,7 @@ import {SystemCpuSummary} from "../../../bean/AbilityMonitor.js";
 import {Utils} from "../base/Utils.js";
 import {ColorUtils} from "../base/ColorUtils.js";
 import "../../../component/SpFilter.js";
+import {log} from "../../../../log/Log.js";
 
 @element('tabpane-cpu-ability')
 export class TabPaneCpuAbility extends BaseElement {
@@ -81,6 +82,7 @@ export class TabPaneCpuAbility extends BaseElement {
 
     queryDataByDB(val: SelectionParam | any) {
         getTabCpuAbilityData(val.leftNs, val.rightNs).then(result => {
+            log("getTabCpuAbilityData size :" + result.length);
             if (result.length != null && result.length > 0) {
                 for (const systemCpuSummary of result) {
                     if (systemCpuSummary.startTime == 0) {
@@ -139,6 +141,14 @@ export class TabPaneCpuAbility extends BaseElement {
                 if (type === 'number') {
                     // @ts-ignore
                     return sort === 2 ? parseFloat(b[property]) - parseFloat(a[property]) : parseFloat(a[property]) - parseFloat(b[property]);
+                } else if (type === 'durationStr') {
+                    return sort === 2 ? b.duration - a.duration : a.duration - b.duration;
+                } else if (type === 'totalLoadStr') {
+                    return sort === 2 ? b.totalLoad - a.totalLoad : a.totalLoad - b.totalLoad;
+                } else if (type === 'userLoadStr') {
+                    return sort === 2 ? b.userLoad - a.userLoad : a.userLoad - b.userLoad;
+                } else if (type === 'systemLoadStr') {
+                    return sort === 2 ? b.systemLoad - a.systemLoad : a.systemLoad - b.systemLoad;
                 } else {
                     // @ts-ignore
                     if (b[property] > a[property]) {
@@ -156,10 +166,18 @@ export class TabPaneCpuAbility extends BaseElement {
 
         if (detail.key === 'startTime') {
             this.source.sort(compare(detail.key, detail.sort, 'string'))
+        } else if (detail.key === 'durationStr') {
+            this.source.sort(compare(detail.key, detail.sort, 'durationStr'))
+        } else if (detail.key === 'totalLoadStr') {
+            this.source.sort(compare(detail.key, detail.sort, 'totalLoadStr'))
+        } else if (detail.key === 'userLoadStr') {
+            this.source.sort(compare(detail.key, detail.sort, 'userLoadStr'))
+        } else if (detail.key === 'systemLoadStr') {
+            this.source.sort(compare(detail.key, detail.sort, 'systemLoadStr'))
         } else {
             this.source.sort(compare(detail.key, detail.sort, 'number'))
         }
-        this.tbl!.dataSource = this.source;
+        this.tbl!.recycleDataSource = this.source;
     }
 
 }

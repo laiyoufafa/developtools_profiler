@@ -26,6 +26,7 @@
 
 using namespace testing::ext;
 using namespace SysTuning::TraceStreamer;
+using namespace SysTuning::base;
 
 namespace SysTuning {
 namespace TraceStreamer {
@@ -54,7 +55,7 @@ HWTEST_F(BytraceParserTest, ParseNoData, TestSize.Level1)
     auto buf = std::make_unique<uint8_t[]>(1);
     BytraceParser bytraceParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     bytraceParser.ParseTraceDataSegment(std::move(buf), 1);
-    bytraceParser.WaitForParserEnd();;
+    bytraceParser.WaitForParserEnd();
     EXPECT_TRUE(bytraceParser.TraceCommentLines() == 0);
     EXPECT_TRUE(bytraceParser.ParsedTraceValidLines() == 0);
     EXPECT_TRUE(bytraceParser.ParsedTraceInvalidLines() == 0);
@@ -145,8 +146,8 @@ HWTEST_F(BytraceParserTest, ParseInvalidLines, TestSize.Level1)
     TS_LOGI("test1-5");
     constexpr uint32_t bufSize = 1024;
     auto buf = std::make_unique<uint8_t[]>(bufSize);
-    auto realBufSize = strlen("\nafafda\n");
-    if (memcpy_s(buf.get(), bufSize, "\nafafda\n", realBufSize)) {
+    auto realBufSize = strlen(" \nafafda\n");
+    if (memcpy_s(buf.get(), bufSize, " \nafafda\n", realBufSize)) {
         EXPECT_TRUE(false);
         return;
     }

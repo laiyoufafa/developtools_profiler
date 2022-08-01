@@ -80,4 +80,11 @@ describe('TabPaneContextSwitch Test', () => {
         "
 `);
     });
+
+    it('TabPaneContextSwitchTest06', function () {
+        document.body.innerHTML = `<tabpane-context-switch id="Switch"></tabpane-context-switch>`
+        let tabPaneContextSwitch = document.querySelector('#Switch') as TabPaneContextSwitch
+        tabPaneContextSwitch.data = false
+        expect(tabPaneContextSwitch.data).toBeFalsy();
+    });
 })

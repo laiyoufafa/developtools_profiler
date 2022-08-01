@@ -15,8 +15,62 @@
 
 import {BaseStruct, ColorUtils} from "./ProcedureWorkerCommon.js";
 
-export function cpu(list: Array<any>, res: Set<any>, startNS: number, endNS: number, totalNS: number, frame: any) {
-    res.clear();
+let dec = new TextDecoder();
+export function rtCpu(buf: ArrayBuffer | null | undefined, res: Array<any>, startNS: number, endNS: number, totalNS: number, frame: any) {
+    if (buf) {
+        res.length=0;
+        let pns = (endNS - startNS) / frame.width;
+        let y = frame.y + 5;
+        let height = frame.height - 10;
+
+        let str = dec.decode(buf);
+        str = str.substring(str.indexOf("\n") + 1);
+        let parse = JSON.parse(str);
+        let columns = parse.columns;
+        let values = parse.values;
+        for (let i = 0; i < values.length; i++) {
+            let obj: any = {}
+            for (let j = 0; j < columns.length; j++) {
+                obj[columns[j]] = values[i][j]
+            }
+            obj.frame = {
+                // x: obj.x1,
+                y: frame.y + 5,
+                // width: obj.x2 - obj.x1 > 0 ? obj.x2 - obj.x1 : 1,
+                height: frame.height - 10,
+            }
+            CpuStruct.setCpuFrame(obj, pns, startNS, endNS, frame)
+            res.push(obj);
+        }
+    }else{
+        let pns = (endNS - startNS) / frame.width;
+        res.forEach(it=>{
+            CpuStruct.setCpuFrame(it, pns, startNS, endNS, frame)
+        })
+    }
+}
+
+export function cpu(list: Array<any>, res: Array<any>, startNS: number, endNS: number, totalNS: number, frame: any,use:boolean) {
+    if(use && res.length > 0){
+        let pns = (endNS - startNS) / frame.width;
+        let y = frame.y + 5;
+        let height = frame.height - 10;
+        for (let i = 0, len = res.length; i < len; i++) {
+            let it = res[i];
+            if ((it.startTime || 0) + (it.dur || 0) > startNS && (it.startTime || 0) < endNS) {
+                if (!res[i].frame) {
+                    res[i].frame = {};
+                    res[i].frame.y = y;
+                    res[i].frame.height = height;
+                }
+                CpuStruct.setCpuFrame(res[i], pns, startNS, endNS, frame)
+            }else{
+                res[i].frame = null;
+            }
+        }
+        return;
+    }
+    res.length = 0;
     if (list) {
         let pns = (endNS - startNS) / frame.width;
         let y = frame.y + 5;
@@ -24,7 +78,6 @@ export function cpu(list: Array<any>, res: Set<any>, startNS: number, endNS: num
         for (let i = 0, len = list.length; i < len; i++) {
             let it = list[i];
             if ((it.startTime || 0) + (it.dur || 0) > startNS && (it.startTime || 0) < endNS) {
-                // setCpuFrame(list[i], 5, startNS, endNS, totalNS, frame)
                 if (!list[i].frame) {
                     list[i].frame = {};
                     list[i].frame.y = y;
@@ -34,8 +87,10 @@ export function cpu(list: Array<any>, res: Set<any>, startNS: number, endNS: num
                 if (i > 0 && ((list[i - 1].frame?.x || 0) == (list[i].frame?.x || 0) && ((list[i - 1].frame?.width || 0) == (list[i].frame?.width || 0)))) {
 
                 } else {
-                    res.add(list[i])
+                    res.push(list[i])
                 }
+            }else{
+                it.frame = null;
             }
         }
     }
@@ -59,25 +114,6 @@ export class CpuStruct extends BaseStruct {
     tid: number | undefined
     type: string | undefined
 
-    // static setFrame(node: CpuStruct, padding: number, startNS: number, endNS: number, totalNS: number, frame: Rect) {
-    //     let x1: number;
-    //     let x2: number;
-    //     if ((node.startTime || 0) < startNS) {
-    //         x1 = 0;
-    //     } else {
-    //         x1 = ns2x((node.startTime || 0), startNS, endNS, totalNS, frame);
-    //     }
-    //     if ((node.startTime || 0) + (node.dur || 0) > endNS) {
-    //         x2 = frame.width;
-    //     } else {
-    //         x2 = ns2x((node.startTime || 0) + (node.dur || 0), startNS, endNS, totalNS, frame);
-    //     }
-    //     let getV: number = x2 - x1 <= 1 ? 1 : x2 - x1;
-    //     let rectangle: Rect = new Rect(Math.floor(x1), frame.y + padding, Math.ceil(getV), frame.height - padding * 2);
-    //     node.frame = rectangle;
-    //     node.isHover = false;
-    // }
-
     static draw(ctx: CanvasRenderingContext2D, data: CpuStruct) {
         if (data.frame) {
             let width = data.frame.width || 0;
@@ -95,7 +131,6 @@ export class CpuStruct extends BaseStruct {
                 let processCharWidth = Math.round(processMeasure.width / process.length)
                 let threadCharWidth = Math.round(threadMeasure.width / thread.length)
                 ctx.fillStyle = "#ffffff"
-                ctx.font = "11px sans-serif";
                 let y = data.frame.height / 2 + data.frame.y;
                 if (processMeasure.width < width - textPadding * 2) {
                     let x1 = Math.floor(width / 2 - processMeasure.width / 2 + data.frame.x + textPadding)

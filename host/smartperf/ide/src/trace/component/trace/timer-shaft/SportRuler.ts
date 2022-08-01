@@ -25,7 +25,7 @@ export class SportRuler extends Graph {
     static isMouseInSportRuler = false;
     public flagList: Array<Flag> = [];
     isRangeSelect: boolean = false;//region selection
-    private hoverFlag: Flag = new Flag(0, 0, 0, 0, 0);
+    private hoverFlag: Flag = new Flag(-1, 0, 0, 0, 0);
     private lineColor: string | null = null;
     private rulerW = 0;
     private _range: TimeRange = {} as TimeRange;
@@ -264,7 +264,6 @@ export class SportRuler extends Graph {
             this.c.lineTo(endX, 132);
             this.c.lineTo(endX, 141);
             this.c.lineTo(endX - 9, 132);
-            // this.c.fill()
             this.c.closePath()
             this.c.stroke();
 
@@ -302,6 +301,7 @@ export class SportRuler extends Graph {
 
     //绘制旗子
     drawFlag(x: number, color: string = "#999999", isFill: boolean = false, text: string = "", type: string = "") {
+        if (x < 0) return;
         this.c.beginPath();
         this.c.fillStyle = color;
         this.c.strokeStyle = color;

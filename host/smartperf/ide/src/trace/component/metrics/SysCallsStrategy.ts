@@ -13,13 +13,16 @@
  * limitations under the License.
  */
 
+import {info} from "../../../log/Log.js";
+
 export const initSysCallsStrategy = (metricData: Array<any>): FunctionListItem => {
+    info("System Calls Strategy data length is:", metricData.length)
     let functionListItems: Array<FunctionItem> = []
     for (let sqlIndex = 0; sqlIndex < metricData.length; sqlIndex++) {
         let functionNames = metricData[sqlIndex].funName;
         let durMaxes = metricData[sqlIndex].maxDur;
         let durMines = metricData[sqlIndex].minDur;
-        let durAvgs = metricData[sqlIndex].avgDur;
+        let durAvgs = Math.floor(metricData[sqlIndex].avgDur).toString();
         let functionItem: FunctionItem = {
             functionName: functionNames,
             durMax: durMaxes,

@@ -200,7 +200,7 @@ export class TabPaneContextSwitch extends BaseElement {
                     thread.children = states ?? [];
                 }
             }
-            this.tbl!.dataSource = processes;
+            this.tbl!.recycleDataSource = processes;
         })
     }
 

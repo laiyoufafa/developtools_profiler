@@ -24,7 +24,7 @@ enum Index {
     IPID,
     ITID,
     EVENT_TYPE,
-    SUB_TYPE,
+    SUB_TYPE_ID,
     START_TS,
     END_TS,
     DURATION,
@@ -41,7 +41,7 @@ NativeHookTable::NativeHookTable(const TraceDataCache* dataCache) : TableBase(da
     tableColumn_.push_back(TableBase::ColumnInfo("ipid", "UNSIGNED BIG INT"));
     tableColumn_.push_back(TableBase::ColumnInfo("itid", "UNSIGNED BIG INT"));
     tableColumn_.push_back(TableBase::ColumnInfo("event_type", "STRING"));
-    tableColumn_.push_back(TableBase::ColumnInfo("sub_type", "STRING"));
+    tableColumn_.push_back(TableBase::ColumnInfo("sub_type_id", "UNSIGNED BIG INT"));
     tableColumn_.push_back(TableBase::ColumnInfo("start_ts", "UNSIGNED BIG INT"));
     tableColumn_.push_back(TableBase::ColumnInfo("end_ts", "UNSIGNED BIG INT"));
     tableColumn_.push_back(TableBase::ColumnInfo("dur", "UNSIGNED BIG INT"));
@@ -209,14 +209,9 @@ int NativeHookTable::Cursor::Column(int column) const
             }
             break;
         }
-        case SUB_TYPE: {
+        case SUB_TYPE_ID: {
             if (nativeHookObj_.SubTypes()[CurrentRow()] != INVALID_UINT64) {
-                auto subTypeIndex = static_cast<size_t>(nativeHookObj_.SubTypes()[CurrentRow()]);
-                if (dataCache_->GetDataFromDict(subTypeIndex).empty()) {
-                    break;
-                }
-                sqlite3_result_text(context_, dataCache_->GetDataFromDict(subTypeIndex).c_str(), STR_DEFAULT_LEN,
-                                    nullptr);
+                sqlite3_result_int64(context_, static_cast<int64_t>(nativeHookObj_.SubTypes()[CurrentRow()]));
             }
             break;
         }

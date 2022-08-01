@@ -18,6 +18,8 @@ import {queryCustomizeSelect, querySelectTraceStats} from "../database/SqlLite.j
 import {LitTable} from "../../base-ui/table/lit-table.js";
 import "../../base-ui/table/lit-table.js";
 import {LitTableColumn} from "../../base-ui/table/lit-table-column.js";
+import {info} from "../../log/Log.js";
+import {LitProgressBar} from "../../base-ui/progress-bar/LitProgressBar.js";
 
 @element('sp-query-sql')
 export class SpQuerySQL extends BaseElement {
@@ -27,46 +29,111 @@ export class SpQuerySQL extends BaseElement {
     private notSupportList: Array<string> | undefined;
     private querySize: HTMLElement | undefined;
     private keyList: Array<string> | undefined;
-    private selector: HTMLInputElement | undefined;
+    private selector: HTMLTextAreaElement | undefined;
     private isSupportSql: boolean = true;
     private querySelectTables: string = '';
     private response: HTMLDivElement | undefined;
     private statDataArray: any = []
     private querySqlErrorText: string = ''
-    private _queryStr?: string;
-
-    static get observedAttributes() {
-        return ["queryStr"]
-    }
-
-    get queryStr(): string {
-        return this.queryStr;
-    }
-
-    set queryStr(value: string) {
-        this._queryStr = value;
-    }
+    private progressLoad: LitProgressBar | undefined;
 
     initElements(): void {
-        this.selector = this.shadowRoot?.querySelector('.sql-select') as HTMLInputElement;
+        this.progressLoad = this.shadowRoot?.querySelector(".load-metric") as LitProgressBar;
+        this.selector = this.shadowRoot?.querySelector('.sql-select') as HTMLTextAreaElement;
         this.queryTableEl = new LitTable()
         this.querySize = this.shadowRoot?.querySelector('.query_size') as HTMLElement;
         this.response = this.shadowRoot?.querySelector('#dataResult') as HTMLDivElement;
         this.notSupportList?.push('insert', 'delete', 'update', 'drop', 'alter', 'truncate');
+        let htmlDivElement = this.queryTableEl.shadowRoot?.querySelector('.table') as HTMLDivElement;
+        htmlDivElement.style.overflowX = "scroll"
+
+        window.addEventListener('resize',()=>{
+            this.freshTableHeadResizeStyle()
+        })
     }
 
-    selectEventListener = async (event: any) => {
-        if (event.ctrlKey && event.keyCode == 13) {
-            this.queryTableEl!.innerHTML = ''
-            this.queryText = this.selector!.value;
-            this.initDataElement();
-
-            this.response!.appendChild(this.queryTableEl!);
-            setTimeout(() => {
-                this.queryTableEl!.dataSource = this.statDataArray;
-                this.initData()
-            }, 20)
+    freshTableHeadResizeStyle(){
+        let th = this.queryTableEl!.shadowRoot?.querySelector<HTMLDivElement>(".th")
+        if (th) {
+            let td = th.querySelectorAll<HTMLDivElement>(".td")
+            let firstChild = this.queryTableEl!.shadowRoot?.querySelector<HTMLDivElement>(".body")!.firstElementChild
+            if(firstChild){
+                let bodyList = firstChild.querySelectorAll<HTMLDivElement>('.td');
+                for (let index = 0; index < bodyList.length; index++) {
+                    td[index].style.width = bodyList[index].offsetWidth + 'px'
+                    td[index].style.overflow = 'hidden'
+                }
+            }
         }
+    }
+
+    selectEventListener = (event: any) => {
+        if (event.ctrlKey && event.keyCode == 13) {
+            if (!this.isSupportSql) {
+                this.querySize!.textContent = this.querySqlErrorText
+                this.queryTableEl!.dataSource = []
+                this.response!.innerHTML = ''
+                return
+            }
+            this.progressLoad!.loading = true
+            let startData = new Date().getTime();
+            this.getInputSqlResult(this.selector!.value).then(resultList => {
+                let dur = new Date().getTime() - startData;
+                this.statDataArray = []
+                this.keyList = [];
+                for (let index = 0; index < resultList.length; index++) {
+                    const dataResult = resultList[index];
+                    let keys = Object.keys(dataResult);
+                    let values = Object.values(dataResult);
+                    let jsonText = '{';
+                    for (let keyIndex = 0; keyIndex < keys.length; keyIndex++) {
+                        let key = keys[keyIndex];
+                        if (this.keyList.indexOf(key) <= -1) {
+                            this.keyList.push(key)
+                        }
+                        let value = values[keyIndex];
+                        if (typeof value == "string") {
+                            value = value.replace(/</gi, "&lt;").replace(/>/gi, "&gt;")
+                        }
+                        jsonText += '"' + key + '"' + ': ' + '"' + value + '"';
+                        if (keyIndex != keys.length - 1) {
+                            jsonText += ','
+                        } else {
+                            jsonText += '}';
+                        }
+                    }
+                    this.statDataArray.push(JSON.parse(jsonText))
+                }
+
+                this.queryTableEl!.innerHTML = ''
+                this.queryText = this.selector!.value;
+                this.initDataElement();
+                this.response!.appendChild(this.queryTableEl!);
+
+                setTimeout(() => {
+                    this.queryTableEl!.recycleDataSource = this.statDataArray;
+                    this.freshTableHeadResizeStyle()
+                    new ResizeObserver(() => {
+                        if (this.parentElement?.clientHeight != 0) {
+                            this.queryTableEl!.style.height = '100%'
+                            this.queryTableEl!.reMeauseHeight()
+                        }
+                    }).observe(this.parentElement!)
+                    info("metric query Sql result Data size is: ", this.statDataArray!.length)
+                    this.initData()
+                    this.progressLoad!.loading = false
+                },200)
+            })
+        }
+    }
+
+    reset() {
+        this.response!.innerHTML = ''
+        this.keyList = [];
+        this.statDataArray = [];
+        this.selector!.value = ''
+        this.querySize!.textContent = 'Query result - ' + ' 0 counts'
+        this.resizeSqlHeight().then(()=>{});
     }
 
     initDataTableStyle(styleTable: HTMLDivElement): void {
@@ -106,14 +173,23 @@ export class SpQuerySQL extends BaseElement {
         let result = noSupportChart.filter(item => {
             return this.selector!.value.indexOf(item) > -1;
         });
-        return result.length > 0;
+        if(result.length > 0){
+            this.querySqlErrorText = 'Error: Statement contains a change action keyword,The change operation is not supported.';
+            this.isSupportSql = false;
+            return true
+        } else {
+            return false
+        }
     }
 
     checkSafetySelectSql(): boolean {
         let split = this.selector?.value.trim().split(' ');
-        // if (!this.selector?.value.match('^\\s*?[sS]+$')) return
-        return !(split && split[0] == 'select');
-
+        if (split) {
+            this.querySqlErrorText = 'Error: Incomplete query statement:  ' + this.selector!.value;
+            this.isSupportSql = false;
+            return !split[0].toLowerCase().startsWith('select');
+        }
+        return false;
     }
 
     getSelectSqlField(): string {
@@ -159,6 +235,7 @@ export class SpQuerySQL extends BaseElement {
 
     initDataElement() {
         if (this.keyList) {
+            info("Metric query Table Colum size is: ", this.keyList.length)
             this.keyList.forEach((item) => {
                 let htmlElement = document.createElement('lit-table-column') as LitTableColumn;
                 htmlElement.setAttribute('title', item);
@@ -180,55 +257,49 @@ export class SpQuerySQL extends BaseElement {
         this.addEventListener("keydown", this.selectEventListener);
         this.selector!.addEventListener('input', this.inputSqlListener)
         this.selector!.addEventListener('change', this.inputSqlListener)
+        this.selector!.addEventListener('keydown', this.deleteSqlListener)
+    }
+
+    deleteSqlListener = (event: any) => {
+        if (event.key == 'Backspace') {
+            this.resizeSqlHeight().then(()=>{});
+        }
+    }
+
+    async resizeSqlHeight() {
+        let valueLength = this.selector?.value.split('\n').length;
+        let rowNumber = Number(valueLength) - 1;
+        let selectHeight = '3.2em'
+        if (rowNumber > 0) {
+            if (rowNumber <= 10) {
+                let allLength = 1.2 * rowNumber + 2;
+                selectHeight = allLength + 'em';
+            } else {
+                selectHeight = '14em'
+            }
+        }
+        // @ts-ignore
+        this.selector?.style.height = selectHeight
     }
 
     inputSqlListener = async (event: any) => {
+        this.resizeSqlHeight().then(()=>{});
         let startData = new Date().getTime();
-        if (!this.selector || this.selector!.value == null) {
-            this.querySqlErrorText = 'Query result - ' + ' 0 counts';
-            return;
+        if (this.selector!.value.trim() == '') {
+            this.querySqlErrorText = 'Please enter a query';
+            this.querySize!.textContent = this.querySqlErrorText
+            this.queryTableEl!.dataSource = []
+            this.response!.innerHTML = ''
+            return
         }
+        this.checkSafetySelectSql()
+        this.checkSupportSqlAbility()
         if (this.selector!.value.length < 15) {
-            this.isSupportSql = false;
-            this.querySqlErrorText = 'Query result - ' + ' 0 counts:  ' + this.selector!.value;
-            if (this.checkSafetySelectSql() || this.checkSupportSqlAbility()) {
-                this.querySqlErrorText = 'Error: Statement contains a change action keyword,The change operation is not supported.';
-                return;
-            }
-            return;
-        }
-        if (this.checkSafetySelectSql() || this.checkSupportSqlAbility()) {
-            this.isSupportSql = false;
             return;
         }
         this.querySelectTables = this.getSelectSqlTableName('from').concat(this.getSelectSqlTableName('join')).toLocaleString();
+        info("metric query sql table size is: ", this.querySelectTables.length)
         this.isSupportSql = true;
-
-        this.getInputSqlResult(this.selector!.value).then(resultList => {
-            let dur = new Date().getTime() - startData;
-            this.statDataArray = []
-            this.keyList = [];
-            for (let index = 0; index < resultList.length; index++) {
-                const dataResult = resultList[index];
-                let keys = Object.keys(dataResult);
-                let values = Object.values(dataResult);
-                let jsonText = '{';
-                for (let keyIndex = 0; keyIndex < keys.length; keyIndex++) {
-                    let key = keys[keyIndex];
-                    if (this.keyList.indexOf(key) <= -1) {
-                        this.keyList.push(key)
-                    }
-                    let value = values[keyIndex];
-                    jsonText += '"' + key + '"' + ': ' + '"' + value + '"';
-                    if (keyIndex != keys.length - 1) {
-                        jsonText += ','
-                    } else {
-                        jsonText += '}';
-                    }
-                }
-                this.statDataArray.push(JSON.parse(jsonText))
-            }
-        })
     }
 
     async getInputSqlResult(sql: string): Promise<any> {
@@ -239,6 +310,7 @@ export class SpQuerySQL extends BaseElement {
         this.removeEventListener("keydown", this.selectEventListener);
         this.selector!.removeEventListener('input', this.inputSqlListener)
         this.selector!.removeEventListener('change', this.inputSqlListener)
+        this.selector!.removeEventListener('keydown', this.deleteSqlListener)
     }
 
     initData() {
@@ -251,6 +323,20 @@ export class SpQuerySQL extends BaseElement {
         } else {
             this.querySize!.textContent = this.querySqlErrorText;
         }
+
+        let queryHeadStyle: HTMLDivElement | undefined | null = this.queryTableEl?.shadowRoot?.querySelector('div.th') as HTMLDivElement
+        if (queryHeadStyle && queryHeadStyle.hasChildNodes()) {
+            for (let index = 0; index < queryHeadStyle.children.length; index++) {
+                // @ts-ignore
+                queryHeadStyle.children[index].style.gridArea = null
+            }
+        }
+
+        this.queryTableEl!.style.height = '100%'
+    }
+
+    static get observedAttributes() {
+        return ["queryStr"]
     }
 
     attributeChangedCallback(name: string, oldValue: string, newValue: string) {
@@ -261,6 +347,16 @@ export class SpQuerySQL extends BaseElement {
                 queryDataSty.children[index].style.backgroundColor = 'var(--dark-background5,#F6F6F6)'
             }
         }
+    }
+
+    private _queryStr?: string;
+
+    get queryStr(): string {
+        return this.queryStr;
+    }
+
+    set queryStr(value: string) {
+        this._queryStr = value;
     }
 
     initHtml(): string {
@@ -275,19 +371,21 @@ export class SpQuerySQL extends BaseElement {
             padding: 0;
         }
 
-        input{
+        .sql-select{
             box-sizing: border-box;
             width: 95%;
             font-family: Helvetica,serif;
-            font-size: 0.875em;
+            font-size: inherit;
             color: var(--dark-color1,#212121);
             text-align: left;
-            line-height: 1em;
+            line-height: 1.2em;
             font-weight: 400;
-            height: 32px;
+            height: 3.2em;
             margin-left: 10px;
+            resize: vertical;
+            border-width: 2px;
         }
-
+        
         .query{
             display: flex;
             flex-direction: column;
@@ -310,6 +408,7 @@ export class SpQuerySQL extends BaseElement {
         .request{
             display: flex;
             flex-direction: column;
+            position: relative;
         }
 
         .response{
@@ -350,7 +449,6 @@ export class SpQuerySQL extends BaseElement {
 
         .sql-select{
             background-color: var(--dark-background5, #F6F6F6);
-            border: 0 solid;
         }
 
         /*Define the height, width and background of the scroll bar*/
@@ -366,12 +464,18 @@ export class SpQuerySQL extends BaseElement {
           border-radius: 6px;
           background-color: var(--dark-background7,rgba(0,0,0,0.1));
         }
+        
+        .load-metric{
+            width: 95%;
+            bottom: 0;
+        }
 
         </style>
         <div class="query">
             <div class="query-message request">
                 <p class="query_select">Enter query and press cmd/ctrl + Enter</p>
-                <input class="sql-select"/>
+                <textarea class="sql-select"></textarea>
+                <lit-progress-bar class="load-metric"></lit-progress-bar>
             </div>
             <div class="query-message response">
                    <p class="query_size">Query result - 0 counts</p>

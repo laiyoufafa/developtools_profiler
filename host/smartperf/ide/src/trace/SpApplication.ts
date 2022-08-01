@@ -29,7 +29,7 @@ import {LitProgressBar} from "../base-ui/progress-bar/LitProgressBar.js";
 import {SpRecordTrace} from "./component/SpRecordTrace.js";
 import {SpWelcomePage} from "./component/SpWelcomePage.js";
 import {LitSearch} from "./component/trace/search/Search.js";
-import {threadPool} from "./database/SqlLite.js";
+import {DbPool, threadPool} from "./database/SqlLite.js";
 import "./component/trace/search/Search.js";
 import "./component/SpWelcomePage.js";
 import "./component/SpSystemTrace.js";
@@ -37,6 +37,12 @@ import "./component/SpRecordTrace.js";
 import "./component/SpMetrics.js";
 import "./component/SpInfoAndStas.js";
 import "./component/trace/base/TraceRow.js";
+import {info, log} from "../log/Log.js";
+import {LitMainMenuGroup} from "../base-ui/menu/LitMainMenuGroup.js";
+import {LitMainMenuItem} from "../base-ui/menu/LitMainMenuItem.js";
+import {LitIcon} from "../base-ui/icon/LitIcon.js";
+import {Cmd} from "../command/Cmd.js";
+import {TraceRow} from "./component/trace/base/TraceRow.js";
 
 @element('sp-application')
 export class SpApplication extends BaseElement {
@@ -120,12 +126,24 @@ export class SpApplication extends BaseElement {
         return this.hasAttribute("query-sql")
     }
 
+    set querySql(isShowMetric) {
+        if (isShowMetric) {
+            this.setAttribute('query-sql','')
+        } else {
+            this.removeAttribute('query-sql')
+        }
+    }
+
     set search(search: boolean) {
         if (search) {
             this.setAttribute('search', '')
         } else {
             this.removeAttribute('search')
         }
+    }
+
+    get search(): boolean {
+        return this.hasAttribute("search")
     }
 
     addSkinListener(handler: Function) {
@@ -206,7 +224,7 @@ export class SpApplication extends BaseElement {
             left: 0;
             right: 0;
         }
-        :host(:not([search])) #lit-search  {
+        :host(:not([search])) .search-container  {
            display: none;
         }
 
@@ -322,11 +340,11 @@ export class SpApplication extends BaseElement {
                 </sp-system-trace>
                 <sp-record-trace style="width:100%;height:100%;overflow:auto;visibility:hidden;top:0px;left:0px;right:0;bottom:0px;position:absolute;z-index: 102" id="sp-record-trace">
                 </sp-record-trace>
-                <sp-metrics style="width:100%;height:100%;overflow:auto;visibility:hidden;top:0;left:0;right:0;bottom:0;position:absolute;" id="sp-metrics">
+                <sp-metrics style="width:100%;height:100%;overflow:auto;visibility:hidden;top:0;left:0;right:0;bottom:0;position:absolute;z-index: 97" id="sp-metrics">
                 </sp-metrics>
-                <sp-query-sql style="width:100%;height:100%;overflow:auto;visibility:hidden;top:0;left:0;right:0;bottom:0;position:absolute;" id="sp-query-sql">
+                <sp-query-sql style="width:100%;height:100%;overflow:auto;visibility:hidden;top:0;left:0;right:0;bottom:0;position:absolute;z-index: 98" id="sp-query-sql">
                 </sp-query-sql>
-                <sp-info-and-stats style="width:100%;height:100%;overflow:auto;visibility:hidden;top:0;left:0;right:0;bottom:0;position:absolute;" id="sp-info-and-stats">
+                <sp-info-and-stats style="width:100%;height:100%;overflow:auto;visibility:hidden;top:0;left:0;right:0;bottom:0;position:absolute;z-index: 99" id="sp-info-and-stats">
                 </sp-info-and-stats>
                 <sp-help style="width:100%;height:100%;overflow:auto;visibility:hidden;top:0px;left:0px;right:0;bottom:0px;position:absolute;z-index: 103" id="sp-help">
                 </sp-help>
@@ -337,6 +355,7 @@ export class SpApplication extends BaseElement {
 
     initElements() {
         let that = this;
+        this.querySql = true
         this.rootEL = this.shadowRoot!.querySelector<HTMLDivElement>(".root")
         let spWelcomePage = this.shadowRoot!.querySelector("#sp-welcome") as SpWelcomePage
         let spMetrics = this.shadowRoot!.querySelector<SpMetrics>("#sp-metrics") as SpMetrics // new SpMetrics();
@@ -348,8 +367,10 @@ export class SpApplication extends BaseElement {
         let spRecordTrace = this.shadowRoot!.querySelector<SpRecordTrace>("#sp-record-trace")
         let appContent = this.shadowRoot?.querySelector('#app-content') as HTMLDivElement;
         let mainMenu = this.shadowRoot?.querySelector('#main-menu') as LitMainMenu
+        let menu = mainMenu.shadowRoot?.querySelector('.menu-button') as HTMLDivElement
         let progressEL = this.shadowRoot?.querySelector('.progress') as LitProgressBar
         let litSearch = this.shadowRoot?.querySelector('#lit-search') as LitSearch
+        let search = this.shadowRoot?.querySelector('.search-container') as HTMLElement
         let sidebarButton: HTMLDivElement | undefined | null = this.shadowRoot?.querySelector('.sidebar-button')
         let childNodes = [spSystemTrace, spRecordTrace, spWelcomePage, spMetrics, spQuerySQL, spInfoAndStats, this.spHelp]
         litSearch.addEventListener("focus", () => {
@@ -359,17 +380,19 @@ export class SpApplication extends BaseElement {
             spSystemTrace!.keyboardEnable = true
         })
         litSearch.addEventListener("previous-data", (ev: any) => {
-            litSearch.index = spSystemTrace!.showPreCpuStruct(litSearch.index, litSearch.list);
+            litSearch.index = spSystemTrace!.showStruct(true, litSearch.index, litSearch.list);
             litSearch.blur();
         })
         litSearch.addEventListener("next-data", (ev: any) => {
-            litSearch.index = spSystemTrace!.showNextCpuStruct(litSearch.index, litSearch.list);
+            litSearch.index = spSystemTrace!.showStruct(false, litSearch.index, litSearch.list);
             litSearch.blur();
-            // spSystemTrace!.search(e.detail.value)
         })
         litSearch.valueChangeHandler = (value: string) => {
             if (value.length > 0) {
-                litSearch.list = spSystemTrace!.searchCPU(value);
+                let list = spSystemTrace!.searchCPU(value);
+                spSystemTrace!.searchFunction(list, value).then((mixedResults) => {
+                    litSearch.list = mixedResults
+                })
             } else {
                 litSearch.list = [];
                 spSystemTrace?.visibleRows.forEach(it => {
@@ -380,10 +403,10 @@ export class SpApplication extends BaseElement {
             }
         }
         spSystemTrace?.addEventListener("previous-data", (ev: any) => {
-            litSearch.index = spSystemTrace!.showPreCpuStruct(litSearch.index, litSearch.list);
+            litSearch.index = spSystemTrace!.showStruct(true, litSearch.index, litSearch.list);
         })
         spSystemTrace?.addEventListener("next-data", (ev: any) => {
-            litSearch.index = spSystemTrace!.showNextCpuStruct(litSearch.index, litSearch.list);
+            litSearch.index = spSystemTrace!.showStruct(false, litSearch.index, litSearch.list);
         })
         //打开侧边栏
         sidebarButton!.onclick = (e) => {
@@ -400,6 +423,7 @@ export class SpApplication extends BaseElement {
             }
         }
         let icon: HTMLDivElement | undefined | null = this.shadowRoot?.querySelector("#main-menu")?.shadowRoot?.querySelector("div.header > div")
+        icon!.style.pointerEvents = 'none'
         icon!.onclick = (e) => {
             let menu: HTMLElement | undefined | null = this.shadowRoot?.querySelector("#main-menu")
             let menuButton: HTMLElement | undefined | null = this.shadowRoot?.querySelector('.sidebar-button')
@@ -415,6 +439,16 @@ export class SpApplication extends BaseElement {
         }
 
         function showContent(showNode: HTMLElement) {
+            if (showNode === spSystemTrace) {
+                menu!.style.pointerEvents = 'auto'
+                sidebarButton!.style.pointerEvents = 'auto'
+                that.search = true
+            } else {
+                menu!.style.pointerEvents = 'none'
+                sidebarButton!.style.pointerEvents = 'none'
+                that.search = litSearch.isLoading
+            }
+            log("show pages" + showNode.id)
             childNodes.forEach((node) => {
                 if (node === showNode) {
                     showNode.style.visibility = 'visible'
@@ -425,6 +459,7 @@ export class SpApplication extends BaseElement {
         }
 
         function postLog(filename: string, fileSize: string) {
+            log("postLog filename is: " + filename + " fileSize: " + fileSize)
             fetch(`https://${window.location.host.split(':')[0]}:9000/logger`, {
                 method: 'POST',
                 headers: {
@@ -440,16 +475,21 @@ export class SpApplication extends BaseElement {
         }
 
         function openTraceFile(ev: any) {
+            info("openTraceFile")
             litSearch.clear();
             showContent(spSystemTrace!)
             that.search = true
             progressEL.loading = true
             let fileName = (ev as any).name
-            let fileSize = ((ev as any).size / 1000000).toFixed(1)
+            let fileSize = ((ev as any).size / 1048576).toFixed(1)
             postLog(fileName, fileSize)
-            document.title = `${fileName.substring(0, fileName.lastIndexOf('.'))} (${fileSize}M)`
+            let showFileName = fileName.lastIndexOf('.') == -1 ? fileName : fileName.substring(0, fileName.lastIndexOf('.'))
+            document.title = `${showFileName} (${fileSize}M)`
+            TraceRow.rangeSelectObject = undefined;
             if (that.server) {
+                info("Parse trace using server mode ")
                 threadPool.init("server").then(() => {
+                    info("init server ok");
                     litSearch.setPercent("parse trace", 1);
                     // Load the trace file and send it to the background parse to return the db file path
                     const fd = new FormData()
@@ -459,22 +499,66 @@ export class SpApplication extends BaseElement {
                     if (that.vs) {
                         uploadPath = `http://${window.location.host.split(':')[0]}:${window.location.port}/upload`
                     }
+                    info("upload trace")
+                    let dbName = "";
                     fetch(uploadPath, {
                         method: 'POST',
                         body: fd,
                     }).then(res => {
                         litSearch.setPercent("load database", 5);
                         if (res.ok) {
+                            info(" server Parse trace file success");
                             let menus = [
                                 {
-                                    title: `${fileName.substring(0, fileName.lastIndexOf('.'))} (${fileSize}M)`,
+                                    title: `${showFileName} (${fileSize}M)`,
                                     icon: "file-fill",
                                     clickHandler: function () {
                                         that.search = true
                                         showContent(spSystemTrace!)
                                     }
+                                },
+                                {
+                                    title: "DownLoad",
+                                    icon: "download",
+                                    clickHandler: function () {
+                                        if (that.vs) {
+                                            that.vsDownload(mainMenu, fileName, true, dbName);
+                                        } else {
+                                            that.download(mainMenu, fileName, true, dbName);
+                                        }
+                                    }
                                 }
                             ];
+
+                            if (that.querySql) {
+                                if (spQuerySQL) {
+                                    spQuerySQL.reset()
+                                    menus.push({
+                                        title: "Query (SQL)", icon: "filesearch", clickHandler: () => {
+                                            showContent(spQuerySQL)
+                                        }
+                                    });
+                                }
+
+                                if (spMetrics) {
+                                    spMetrics.reset()
+                                    menus.push({
+                                        title: "Metrics", icon: "metric", clickHandler: () => {
+                                            showContent(spMetrics)
+                                        }
+                                    });
+                                }
+
+                                if (spInfoAndStats) {
+                                    spInfoAndStats.reset()
+                                    menus.push({
+                                        title: "Info and stats", icon: "info", clickHandler: () => {
+                                            spInfoAndStats.initInfoAndStatsData();
+                                            showContent(spInfoAndStats)
+                                        }
+                                    });
+                                }
+                            }
 
                             mainMenu.menus!.splice(1, 1, {
                                 collapsed: false,
@@ -487,6 +571,7 @@ export class SpApplication extends BaseElement {
                             return res.text();
                         } else {
                             if (res.status == 404) {
+                                info(" server Parse trace file failed");
                                 litSearch.setPercent("This File is not supported!", -1)
                                 progressEL.loading = false;
                                 that.freshMenuDisable(false)
@@ -495,13 +580,17 @@ export class SpApplication extends BaseElement {
                         }
                     }).then(res => {
                         if (res != undefined) {
+                            dbName = res;
+                            info("get trace db");
                             let loadPath = `https://${window.location.host.split(':')[0]}:9000`
                             if (that.vs) {
                                 loadPath = `http://${window.location.host.split(':')[0]}:${window.location.port}`
                             }
                             spSystemTrace!.loadDatabaseUrl(loadPath + res, (command: string, percent: number) => {
+                                info("setPercent ：" + command + "percent :" + percent);
                                 litSearch.setPercent(command + '  ', percent);
                             }, (res) => {
+                                info("loadDatabaseUrl success");
                                 litSearch.setPercent("", 101);
                                 progressEL.loading = false;
                                 that.freshMenuDisable(false)
@@ -517,12 +606,14 @@ export class SpApplication extends BaseElement {
                 return;
             }
             if (that.sqlite) {
+                info("Parse trace using sql mode")
                 litSearch.setPercent("", 0);
                 threadPool.init("sqlite").then(res => {
                     let reader = new FileReader();
                     reader.readAsArrayBuffer(ev as any)
                     reader.onloadend = function (ev) {
                         spSystemTrace!.loadDatabaseArrayBuffer(this.result as ArrayBuffer, (command: string, percent: number) => {
+                            info("setPercent ：" + command + "percent :" + percent);
                             litSearch.setPercent(command + '  ', percent);
                         }, () => {
                             litSearch.setPercent("", 101);
@@ -534,38 +625,99 @@ export class SpApplication extends BaseElement {
                 return;
             }
             if (that.wasm) {
+                info("Parse trace using wasm mode ")
                 litSearch.setPercent("", 1);
                 threadPool.init("wasm").then(res => {
                     let reader = new FileReader();
                     reader.readAsArrayBuffer(ev as any)
                     reader.onloadend = function (ev) {
+                        info("read file onloadend");
                         litSearch.setPercent("ArrayBuffer loaded  ", 2);
                         that.freshMenuDisable(true)
                         let menus = [
                             {
-                                title: `${fileName.substring(0, fileName.lastIndexOf('.'))} (${fileSize}M)`,
+                                title: `${showFileName} (${fileSize}M)`,
                                 icon: "file-fill",
                                 clickHandler: function () {
                                     that.search = true
                                     showContent(spSystemTrace!)
                                 }
+                            },
+                            {
+                                title: "DownLoad",
+                                icon: "download",
+                                clickHandler: function () {
+                                    if (that.vs) {
+                                        that.vsDownload(mainMenu, fileName, false);
+                                    } else {
+                                        that.download(mainMenu, fileName, false);
+                                    }
+                                }
                             }
                         ];
+                        if (that.querySql) {
+                            if (spQuerySQL) {
+                                spQuerySQL.reset()
+                                menus.push({
+                                    title: "Query (SQL)", icon: "filesearch", clickHandler: () => {
+                                        showContent(spQuerySQL)
+                                    }
+                                });
+                            }
 
+                            if (spMetrics) {
+                                spMetrics.reset()
+                                menus.push({
+                                    title: "Metrics", icon: "metric", clickHandler: () => {
+                                        showContent(spMetrics)
+                                    }
+                                });
+                            }
+
+                            if (spInfoAndStats) {
+                                spInfoAndStats.reset()
+                                menus.push({
+                                    title: "Info and stats", icon: "info", clickHandler: () => {
+                                        spInfoAndStats.initInfoAndStatsData();
+                                        showContent(spInfoAndStats)
+                                    }
+                                });
+                            }
+                        }
                         mainMenu.menus!.splice(1, 1, {
                             collapsed: false,
                             title: "Current Trace",
                             describe: "Actions on the current trace",
                             children: menus
                         })
+                        mainMenu.menus!.splice(2, 1, {
+                            collapsed: false,
+                            title: 'Support',
+                            describe: 'Support',
+                            children: [
+                                {
+                                    title: "Help Documents",
+                                    icon: "folder",
+                                    clickHandler: function (item: MenuItem) {
+                                        that.search = false
+                                        that.spHelp!.dark = that.dark
+                                        showContent(that.spHelp!)
+                                    }
+                                },
+                            ]
+                        })
                         spSystemTrace!.loadDatabaseArrayBuffer(this.result as ArrayBuffer, (command: string, percent: number) => {
+                            info("setPercent ：" + command + "percent :" + percent);
                             litSearch.setPercent(command + '  ', percent);
                         }, (res) => {
                             if (res.status) {
+                                info("loadDatabaseArrayBuffer success");
+                                showContent(spSystemTrace!)
                                 litSearch.setPercent("", 101);
                                 progressEL.loading = false;
                                 that.freshMenuDisable(false)
                             } else {
+                                info("loadDatabaseArrayBuffer failed");
                                 litSearch.setPercent("This File is not supported!", -1)
                                 progressEL.loading = false;
                                 that.freshMenuDisable(false)
@@ -595,12 +747,31 @@ export class SpApplication extends BaseElement {
                     },
                     {
                         title: "Record new trace", icon: "copyhovered", clickHandler: function (item: MenuItem) {
-                            that.search = false
+                            if (that.vs) {
+                                spRecordTrace!.vs = true;
+                                spRecordTrace!.startRefreshDeviceList()
+                            }
                             showContent(spRecordTrace!)
                         }
                     }
                 ]
             },
+            {
+                collapsed: false,
+                title: 'Support',
+                describe: 'Support',
+                children: [
+                    {
+                        title: "Help Documents",
+                        icon: "folder",
+                        clickHandler: function (item: MenuItem) {
+                            that.search = false
+                            that.spHelp!.dark = that.dark
+                            showContent(that.spHelp!)
+                        }
+                    },
+                ]
+            }
         ]
 
         let body = document.querySelector("body");
@@ -641,7 +812,7 @@ export class SpApplication extends BaseElement {
                 }
             }
         }, false);
-        document.addEventListener("keydown",(event)=> {
+        document.addEventListener("keydown", (event) => {
             const e = event || window.event;
             const ctrlKey = e.ctrlKey || e.metaKey;
             if (ctrlKey && (this.keyCodeMap as any)[e.keyCode]) {
@@ -661,7 +832,116 @@ export class SpApplication extends BaseElement {
                     return false;
                 }
             }
-        }, { passive: false });
+        }, {passive: false});
+    }
+
+
+    private download(mainMenu: LitMainMenu, fileName: string, isServer: boolean, dbName?: string) {
+        let a = document.createElement("a");
+        if (isServer) {
+            if (dbName != "") {
+                let file = dbName?.substring(0, dbName?.lastIndexOf(".")) + fileName.substring(fileName.lastIndexOf("."));
+                a.href = `https://${window.location.host.split(':')[0]}:9000` + file
+            } else {
+                return;
+            }
+        } else {
+            a.href = URL.createObjectURL(new Blob([DbPool.sharedBuffer!]));
+        }
+        a.download = fileName;
+        a.click()
+        let querySelectorAll = mainMenu.shadowRoot?.querySelectorAll<LitMainMenuGroup>("lit-main-menu-group");
+        querySelectorAll!.forEach((menuGroup) => {
+            let attribute = menuGroup.getAttribute("title");
+            if (attribute === "Current Trace") {
+                let querySelectors = menuGroup.querySelectorAll<LitMainMenuItem>("lit-main-menu-item");
+                querySelectors.forEach(item => {
+                    if (item.getAttribute("title") == "DownLoad") {
+                        item!.setAttribute("icon", "convert-loading");
+                        let querySelector1 =
+                            item!.shadowRoot?.querySelector(".icon") as LitIcon;
+                        querySelector1.setAttribute('spin', '')
+                    }
+                })
+            }
+        })
+        window.URL.revokeObjectURL(a.href);
+        let timer = setInterval(function () {
+            let querySelectorAll = mainMenu.shadowRoot?.querySelectorAll<LitMainMenuGroup>("lit-main-menu-group");
+            querySelectorAll!.forEach((menuGroup) => {
+                let attribute = menuGroup.getAttribute("title");
+                if (attribute === "Current Trace") {
+                    let querySelectors = menuGroup.querySelectorAll<LitMainMenuItem>("lit-main-menu-item");
+                    querySelectors.forEach(item => {
+                        if (item.getAttribute("title") == "DownLoad") {
+                            item!.setAttribute("icon", "download");
+                            let querySelector1 =
+                                item!.shadowRoot?.querySelector(".icon") as LitIcon;
+                            querySelector1.removeAttribute("spin");
+                        }
+                    })
+                    clearInterval(timer);
+                }
+            })
+        }, 4000);
+    }
+
+    private vsDownload(mainMenu: LitMainMenu, fileName: string, isServer: boolean, dbName?: string) {
+        Cmd.showSaveFile((filePath: string) => {
+            if (filePath != "") {
+                let querySelectorAll = mainMenu.shadowRoot?.querySelectorAll<LitMainMenuGroup>("lit-main-menu-group");
+                querySelectorAll!.forEach((menuGroup) => {
+                    let attribute = menuGroup.getAttribute("title");
+                    if (attribute === "Current Trace") {
+                        let querySelectors = menuGroup.querySelectorAll<LitMainMenuItem>("lit-main-menu-item");
+                        querySelectors.forEach(item => {
+                            if (item.getAttribute("title") == "DownLoad") {
+                                item!.setAttribute("icon", "convert-loading");
+                                let querySelector1 =
+                                    item!.shadowRoot?.querySelector(".icon") as LitIcon;
+                                querySelector1.setAttribute('spin', '')
+                            }
+                        })
+                    }
+                })
+                if (isServer) {
+                    if (dbName != "") {
+                        let file = dbName?.substring(0, dbName?.lastIndexOf(".")) + fileName.substring(fileName.lastIndexOf("."));
+                        Cmd.copyFile(file, filePath, (res: Response) => {
+                            this.stopDownLoading(mainMenu);
+                        })
+                    }
+                } else {
+                    const fd = new FormData()
+                    fd.append("convertType", "download")
+                    fd.append("filePath", filePath)
+                    fd.append('file', new File([DbPool.sharedBuffer!], fileName))
+                    Cmd.uploadFile(fd, (res: Response) => {
+                        if (res.ok) {
+                            this.stopDownLoading(mainMenu);
+                        }
+                    })
+                }
+            }
+        })
+    }
+
+    private stopDownLoading(mainMenu: LitMainMenu) {
+        let querySelectorAll = mainMenu.shadowRoot?.querySelectorAll<LitMainMenuGroup>("lit-main-menu-group");
+        querySelectorAll!.forEach((menuGroup) => {
+            let attribute = menuGroup.getAttribute("title");
+            if (attribute === "Current Trace") {
+                let querySelectors = menuGroup.querySelectorAll<LitMainMenuItem>("lit-main-menu-item");
+                querySelectors.forEach(item => {
+                    if (item.getAttribute("title") == "DownLoad") {
+                        item!.setAttribute("icon", "download");
+                        let querySelector1 =
+                            item!.shadowRoot?.querySelector(".icon") as LitIcon;
+                        querySelector1.removeAttribute("spin");
+                    }
+                })
+            }
+        })
     }
 
     freshMenuDisable(disable: boolean) {

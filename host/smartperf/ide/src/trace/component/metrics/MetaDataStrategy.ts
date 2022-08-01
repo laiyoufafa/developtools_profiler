@@ -13,7 +13,10 @@
  * limitations under the License.
  */
 
+import {info} from "../../../log/Log.js";
+
 export const initMetaDataStrategy = (metricData: Array<any>): TraceMetadata => {
+    info("Meta Strategy data length is:", metricData.length)
     let traceMetaDataList: Array<TraceMetadataItem> = []
     let statDataArray = [];
     let jsonText = `{`;

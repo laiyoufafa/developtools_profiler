@@ -13,7 +13,10 @@
  * limitations under the License.
  */
 
+import {info} from "../../../log/Log.js";
+
 export const initMemoryAggStrategy = (metricData: Array<any>): ProcessValuesListItem => {
+    info("Memory Agg Strategy data length is:", metricData.length)
     let processValuesListItems: Array<ProcessValuesItem> = []
     const splitChar: string = ','
     for (let sqlIndex = 0; sqlIndex < metricData.length; sqlIndex++) {

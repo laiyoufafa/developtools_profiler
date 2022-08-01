@@ -31,6 +31,7 @@ private:
     void EstimateFilterCost(FilterConstraints& fc, EstimatedIndexInfo& ei) override;
     // the column is sorted
     bool CanFilterSorted(const char op, size_t& rowCount);
+    void FilterByConstraint(FilterConstraints& fc, double& filterCost, size_t rowCount);
 
     class Cursor : public TableBase::Cursor {
     public:

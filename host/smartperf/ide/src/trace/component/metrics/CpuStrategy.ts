@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+import {info} from "../../../log/Log.js";
+
 export const initTest = (metricData: Array<any>): ProcessInfoListItem => {
     let processInfoListItems: Array<ProcessInfoItem> = [];
     for (let index = 0; index < metricData.length; index++) {
@@ -45,6 +47,7 @@ export const initTest = (metricData: Array<any>): ProcessInfoListItem => {
 }
 
 export const initCpuStrategyData = (metricData: Array<any>): ProcessInfoListItem => {
+    info("Cpu Strategy data length is:", metricData.length)
     let processInfoListItems: Array<ProcessInfoItem> = [];
     if (metricData.length == 10) {
 
@@ -60,7 +63,7 @@ export const initCpuStrategyData = (metricData: Array<any>): ProcessInfoListItem
         let minFrequencies = metricData[sqlIndex].min_freq.split(splitChar);
         let maxFrequencies = metricData[sqlIndex].max_freq.split(splitChar);
         let avgFrequencies = metricData[sqlIndex].avg_frequency.split(splitChar);
-        let durations = metricData[sqlIndex].duration.split(splitChar);
+        let durations = metricData[sqlIndex].dur.split(splitChar);
 
         let arrayCpu = [];
         for (let index = 0; index < cpus.length; index++) {
@@ -74,9 +77,7 @@ export const initCpuStrategyData = (metricData: Array<any>): ProcessInfoListItem
             arrayCpu.push(cpuIndex);
         }
         let processInfoSource: ProcessInfoItem = {
-            processName: metricData[sqlIndex].process_name,
             threads: {
-                threadName: metricData[sqlIndex].thread_name,
                 cpu: arrayCpu,
             }
         }
@@ -92,12 +93,10 @@ export interface ProcessInfoListItem {
 }
 
 export interface ProcessInfoItem {
-    processName: string;
     threads: ThreadsItem;
 }
 
 export interface ThreadsItem {
-    threadName: string;
     cpu: Array<CpuItem>;
 }
 

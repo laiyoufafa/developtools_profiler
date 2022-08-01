@@ -26,6 +26,7 @@
 #include "slice_filter.h"
 #include "stat_filter.h"
 #include "symbols_filter.h"
+#include "system_event_measure_filter.h"
 #include "thread_state.h"
 namespace SysTuning {
 namespace TraceStreamer {
@@ -132,6 +133,7 @@ void HtraceEventParser::ParseDataItem(const FtraceCpuDetailMsg* cpuDetail, Built
     for (auto i = 0; i < events.size(); i++) {
         auto event = cpuDetail->event(i);
         eventTimestamp_ = event.timestamp();
+        comm_ = event.comm();
         ftraceStartTime_ = std::min(ftraceStartTime_, eventTimestamp_);
         ftraceEndTime_ = std::max(ftraceEndTime_, eventTimestamp_);
         eventTimestamp_ = streamFilters_->clockFilter_->ToPrimaryTraceTime(clock, eventTimestamp_);
@@ -154,7 +156,11 @@ void HtraceEventParser::ParseDataItem(const FtraceCpuDetailMsg* cpuDetail, Built
             streamFilters_->processFilter_->GetOrCreateThreadWithPid(eventTid_, eventPid_);
         }
         // remember all event
-        eventList_.push_back(std::move(EventInfo{eventTimestamp_, eventCpu_, eventPid_, eventTid_, std::move(event)}));
+        eventList_.push_back(std::move(
+            std::make_unique<EventInfo>(comm_, eventTimestamp_, eventCpu_, eventPid_, eventTid_, std::move(event))));
+        // push all events in queue and finally release it, the data may not be released
+        // this may limit the max size of data, so we parser data periodicity
+        FilterAllEventsTemp();
     }
 }
 void HtraceEventParser::DealEvent(const FtraceEvent& event)
@@ -240,7 +246,7 @@ bool HtraceEventParser::BinderTractionAllocBufEvent(const MessageLite& event) co
     const auto msg = static_cast<const BinderTransactionAllocBufFormat&>(event);
     uint64_t dataSize = msg.data_size();
     uint64_t offsetsSize = msg.offsets_size();
-    streamFilters_->binderFilter_->TransactionAllocBuf(eventTimestamp_, eventPid_, dataSize, offsetsSize);
+    streamFilters_->binderFilter_->TransactionAllocBuf(eventTimestamp_, eventTid_, dataSize, offsetsSize);
     TS_LOGD("dataSize:%lu, offsetSize:%lu", dataSize, offsetsSize);
     return true;
 }
@@ -256,7 +262,7 @@ bool HtraceEventParser::BinderTractionEvent(const MessageLite& event) const
     uint32_t flags = msg.flags();
     TS_LOGD("destNode:%d, destTgid:%d, destTid:%d, transactionId:%d, isReply:%d flags:%d, code:%d", destNode, destTgid,
             destTid, transactionId, isReply, flags, msg.code());
-    streamFilters_->binderFilter_->SendTraction(eventTimestamp_, eventPid_, transactionId, destNode, destTgid, destTid,
+    streamFilters_->binderFilter_->SendTraction(eventTimestamp_, eventTid_, transactionId, destNode, destTgid, destTid,
                                                 isReply, flags, msg.code());
     return true;
 }
@@ -265,7 +271,7 @@ bool HtraceEventParser::BinderTractionReceivedEvent(const MessageLite& event) co
     streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_BINDER_TRANSACTION_RECEIVED, STAT_EVENT_RECEIVED);
     const auto msg = static_cast<const BinderTransactionReceivedFormat&>(event);
     int32_t transactionId = msg.debug_id();
-    streamFilters_->binderFilter_->ReceiveTraction(eventTimestamp_, eventPid_, transactionId);
+    streamFilters_->binderFilter_->ReceiveTraction(eventTimestamp_, eventTid_, transactionId);
     TS_LOGD("transactionId:%d", transactionId);
     return true;
 }
@@ -274,7 +280,7 @@ bool HtraceEventParser::BinderTractionLockEvent(const MessageLite& event) const
     streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_BINDER_TRANSACTION_LOCK, STAT_EVENT_RECEIVED);
     const auto msg = static_cast<const BinderLockFormat&>(event);
     std::string tag = msg.tag();
-    streamFilters_->binderFilter_->TractionLock(eventTimestamp_, eventPid_, tag);
+    streamFilters_->binderFilter_->TractionLock(eventTimestamp_, eventTid_, tag);
     TS_LOGD("tag:%s", tag.c_str());
     return true;
 }
@@ -283,7 +289,7 @@ bool HtraceEventParser::BinderTractionLockedEvent(const MessageLite& event) cons
     streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_BINDER_TRANSACTION_LOCKED, STAT_EVENT_RECEIVED);
     const auto msg = static_cast<const BinderLockedFormat&>(event);
     std::string tag = msg.tag();
-    streamFilters_->binderFilter_->TractionLocked(eventTimestamp_, eventPid_, tag);
+    streamFilters_->binderFilter_->TractionLocked(eventTimestamp_, eventTid_, tag);
     return true;
 }
 bool HtraceEventParser::BinderTractionUnLockEvent(const MessageLite& event) const
@@ -292,7 +298,7 @@ bool HtraceEventParser::BinderTractionUnLockEvent(const MessageLite& event) cons
     const auto msg = static_cast<const BinderUnlockFormat&>(event);
     std::string tag = msg.tag();
     TS_LOGD("tag:%s", tag.c_str());
-    streamFilters_->binderFilter_->TractionUnlock(eventTimestamp_, eventPid_, tag);
+    streamFilters_->binderFilter_->TractionUnlock(eventTimestamp_, eventTid_, tag);
     return true;
 }
 bool HtraceEventParser::SchedSwitchEvent(const MessageLite& event)
@@ -356,7 +362,7 @@ bool HtraceEventParser::TaskRenameEvent(const MessageLite& event) const
     const auto msg = static_cast<const TaskRenameFormat&>(event);
     auto prevCommStr = msg.newcomm();
     auto pidValue = msg.pid();
-    streamFilters_->processFilter_->UpdateOrCreateProcessWithName(pidValue, prevCommStr);
+    // ignore temply streamFilters_->processFilter_->UpdateOrCreateProcessWithName(pidValue, prevCommStr);
     return true;
 }
 bool HtraceEventParser::TaskNewtaskEvent(const MessageLite& event) const
@@ -385,7 +391,7 @@ bool HtraceEventParser::ParsePrintEvent(const MessageLite& event)
 {
     streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_PRINT, STAT_EVENT_RECEIVED);
     const auto msg = static_cast<const PrintFormat&>(event);
-    printEventParser_.ParsePrintEvent(eventTimestamp_, eventTid_, msg.buf().c_str());
+    printEventParser_.ParsePrintEvent(comm_, eventTimestamp_, eventTid_, msg.buf().c_str());
     if (!tids_.count(eventTid_)) {
         tids_.insert(eventTid_);
     }
@@ -398,8 +404,8 @@ bool HtraceEventParser::SchedWakeupEvent(const MessageLite& event) const
     auto instants = traceDataCache_->GetInstantsData();
 
     InternalTid internalTid = streamFilters_->processFilter_->UpdateOrCreateThread(eventTimestamp_, msg.pid());
-    instants->AppendInstantEventData(eventTimestamp_, schedWakeupName_, internalTid);
-    streamFilters_->cpuFilter_->InsertWakeupEvent(eventTimestamp_, internalTid);
+    InternalTid wakeupFromPid = streamFilters_->processFilter_->UpdateOrCreateThread(eventTimestamp_, eventTid_);
+    instants->AppendInstantEventData(eventTimestamp_, schedWakeupName_, internalTid, wakeupFromPid);
     std::optional<uint32_t> targetCpu = msg.target_cpu();
     if (targetCpu.has_value()) {
         traceDataCache_->GetRawData()->AppendRawData(0, eventTimestamp_, RAW_SCHED_WAKEUP, targetCpu.value(),
@@ -416,9 +422,8 @@ bool HtraceEventParser::SchedWakeupNewEvent(const MessageLite& event) const
     auto instants = traceDataCache_->GetInstantsData();
 
     InternalTid internalTid = streamFilters_->processFilter_->UpdateOrCreateThread(eventTimestamp_, msg.pid());
-    instants->AppendInstantEventData(eventTimestamp_, schedWakeupNewName_, internalTid);
-    streamFilters_->cpuFilter_->InsertWakeupEvent(eventTimestamp_, internalTid);
-
+    InternalTid wakeupFromPid = streamFilters_->processFilter_->UpdateOrCreateThread(eventTimestamp_, eventTid_);
+    instants->AppendInstantEventData(eventTimestamp_, schedWakeupNewName_, internalTid, wakeupFromPid);
     std::optional<uint32_t> targetCpu = msg.target_cpu();
     if (targetCpu.has_value()) {
         traceDataCache_->GetRawData()->AppendRawData(0, eventTimestamp_, RAW_SCHED_WAKEUP, targetCpu.value(),
@@ -441,7 +446,8 @@ bool HtraceEventParser::SchedWakingEvent(const MessageLite& event) const
     auto instants = traceDataCache_->GetInstantsData();
     InternalTid internalTid =
         streamFilters_->processFilter_->UpdateOrCreateThread(eventTimestamp_, wakePidValue.value());
-    instants->AppendInstantEventData(eventTimestamp_, schedWakingName_, internalTid);
+    InternalTid wakeupFromPid = streamFilters_->processFilter_->UpdateOrCreateThread(eventTimestamp_, eventTid_);
+    instants->AppendInstantEventData(eventTimestamp_, schedWakingName_, internalTid, wakeupFromPid);
     streamFilters_->cpuFilter_->InsertWakeupEvent(eventTimestamp_, internalTid);
     std::optional<uint32_t> targetCpu = msg.target_cpu();
     if (targetCpu.has_value()) {
@@ -513,7 +519,7 @@ bool HtraceEventParser::WorkqueueExecuteStartEvent(const MessageLite& event) con
 {
     streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_WORKQUEUE_EXECUTE_START, STAT_EVENT_RECEIVED);
     const auto msg = static_cast<const WorkqueueExecuteStartFormat&>(event);
-    auto result = streamFilters_->sliceFilter_->BeginSlice(eventTimestamp_, eventPid_, eventPid_, workQueueId_,
+    auto result = streamFilters_->sliceFilter_->BeginSlice(comm_, eventTimestamp_, eventPid_, eventPid_, workQueueId_,
                                                            streamFilters_->symbolsFilter_->GetFunc(msg.function()));
 
     traceDataCache_->GetInternalSlicesData()->AppendDistributeInfo();
@@ -673,19 +679,76 @@ bool HtraceEventParser::InvokeFunc(const SupportedTraceEventType& eventType, con
     it->second(msgBase);
     return true;
 }
+void HtraceEventParser::FilterAllEventsTemp()
+{
+    size_t maxBuffSize = 1000 * 1000;
+    if (eventList_.size() < maxBuffSize * 2) {
+        return;
+    }
+    auto cmp = [](const std::unique_ptr<EventInfo>& a, const std::unique_ptr<EventInfo>& b) {
+        return a->eventTimestamp_ < b->eventTimestamp_;
+    };
+    std::sort(eventList_.begin(), eventList_.end(), cmp);
+
+    auto endOfList = eventList_.begin() + maxBuffSize;
+    for (auto itor = eventList_.begin(); itor != endOfList; itor++) {
+        EventInfo* event = itor->get();
+        eventTimestamp_ = event->eventTimestamp_;
+        eventCpu_ = event->eventCpu_;
+        eventPid_ = event->eventPid_;
+        eventTid_ = event->eventTid_;
+        comm_ = event->common_;
+        DealEvent(event->cpuDetail_);
+        itor->reset();
+    }
+    eventList_.erase(eventList_.begin(), endOfList);
+}
 void HtraceEventParser::FilterAllEvents()
 {
-    auto cmp = [](const EventInfo& a, const EventInfo& b) { return a.eventTimestamp < b.eventTimestamp; };
+    auto cmp = [](const std::unique_ptr<EventInfo>& a, const std::unique_ptr<EventInfo>& b) {
+        return a->eventTimestamp_ < b->eventTimestamp_;
+    };
     std::sort(eventList_.begin(), eventList_.end(), cmp);
-    for (auto itor = eventList_.begin(); itor != eventList_.end(); itor++) {
-        EventInfo& event = *itor;
-        eventTimestamp_ = event.eventTimestamp;
-        eventCpu_ = event.eventCpu;
-        eventPid_ = event.eventPid;
-        eventTid_ = event.eventTid;
-        DealEvent(event.cpuDetail);
+    size_t maxBuffSize = 1000 * 1000;
+
+    while (eventList_.size()) {
+        int size = std::min(maxBuffSize, eventList_.size());
+        auto endOfList = eventList_.begin() + size;
+        for (auto itor = eventList_.begin(); itor != endOfList; itor++) {
+            EventInfo* event = itor->get();
+            eventTimestamp_ = event->eventTimestamp_;
+            eventCpu_ = event->eventCpu_;
+            eventPid_ = event->eventPid_;
+            eventTid_ = event->eventTid_;
+            comm_ = event->common_;
+            DealEvent(event->cpuDetail_);
+                itor->reset();
+        }
+        eventList_.erase(eventList_.begin(), endOfList);
     }
     eventList_.clear();
+    streamFilters_->cpuFilter_->Finish();
+    traceDataCache_->dataDict_.Finish();
+}
+void HtraceEventParser::Clear()
+{
+    streamFilters_->binderFilter_->Clear();
+    streamFilters_->sliceFilter_->Clear();
+    streamFilters_->cpuFilter_->Clear();
+    streamFilters_->irqFilter_->Clear();
+    streamFilters_->cpuMeasureFilter_->Clear();
+    streamFilters_->threadMeasureFilter_->Clear();
+    streamFilters_->threadFilter_->Clear();
+    streamFilters_->processMeasureFilter_->Clear();
+    streamFilters_->processFilterFilter_->Clear();
+    streamFilters_->symbolsFilter_->Clear();
+    streamFilters_->clockEnableFilter_->Clear();
+    streamFilters_->clockDisableFilter_->Clear();
+    streamFilters_->clkRateFilter_->Clear();
+    streamFilters_->clkDisableFilter_->Clear();
+    streamFilters_->binderFilter_->Clear();
+    streamFilters_->sysEventMemMeasureFilter_->Clear();
+    streamFilters_->sysEventVMemMeasureFilter_->Clear();
 }
 } // namespace TraceStreamer
 } // namespace SysTuning

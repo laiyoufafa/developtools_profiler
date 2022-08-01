@@ -1,0 +1,1100 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>quickstart_trace_streamer</title>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+
+    <style>
+        code[class*="font_languageIn-"],
+        pre[class*="font_languageIn-"] {
+            color: #332;
+            background: none;
+            -webkit-hyphens: none;
+            -moz-hyphens: none;
+            -ms-hyphens: none;
+            hyphens: none;
+            -moz-tab-size: 7;
+            -o-tab-size: 7;
+            tab-size: 7;
+            font-family: Consolas, "Liberation Mono", Menlo, Courier, monospace;
+            text-align: left;
+            word-break: normal;
+            word-wrap: normal;
+            line-height: 1.5;
+            white-space: pre;
+            word-spacing: normal;
+        }
+        
+        pre[class*="font_languageIn-"] {
+            padding: 0.7em;
+            overflow: auto;
+            border-radius: 3.1px;
+            background: #e7e6e6;
+        }
+        
+        :not(pre) > code[class*="font_languageIn-"] {
+            padding: 0.2em;
+            border-radius: 0.32em;
+            white-space: normal;
+            background: #dedcdc;
+        }
+
+        .token.commentIn,
+        .token.blockquoteIn {
+            color: #b3b4b3;
+        }
+
+        .token.cdataIn {
+            color: #1a3a9b;
+        }
+
+        .token.doctypeIn,
+        .token.punctuationIn,
+        .token.variableIn,
+        .token.macro.propertyIn {
+            color: #333333;
+        }
+
+        .token.operatorIn,
+        .token.importantIn,
+        .token.keywordIn,
+        .token.ruleIn,
+        .token.builtIn {
+            color: #b42064;
+        }
+
+        .token.stringIn,
+        .token.urlIn,
+        .token.regexIn,
+        .token.attr-valueIn {
+            color: #193998;
+        }
+
+        .token.propertyIn,
+        .token.numberIn,
+        .token.booleanIn,
+        .token.entityIn,
+        .token.atruleIn,
+        .token.constantIn,
+        .token.symbolIn,
+        .token.commandIn,
+        .token.codeIn {
+            color: #0393c4;
+        }
+
+        .token.tagIn,
+        .token.selectorIn,
+        .token.prologIn {
+            color: #6bb064;
+        }
+
+        .token.functionIn,
+        .token.namespaceIn,
+        .token.pseudo-elementIn,
+        .token.classIn,
+        .token.class-nameIn,
+        .token.pseudo-classIn,
+        .token.idIn,
+        .token.url-reference .token.variableIn,
+        .token.attr-nameIn {
+            color: #8465b2;
+        }
+
+        .token.entityIn {
+            cursor: help;
+        }
+
+        .token.titleIn,
+        .token.title .token.punctuationIn {
+            font-weight: bold;
+            color: #204591;
+        }
+
+        .token.listIn {
+            color: #e56742;
+        }
+
+        .token.insertedIn {
+            background-color: #ecfdec;
+            color: #5bb035;
+        }
+
+        .token.deletedIn {
+            background-color: #fde5e5;
+            color: #cb3001;
+        }
+
+        .token.boldIn {
+            font-weight: bold;
+        }
+
+        .token.italicIn {
+            font-style: italic;
+        }
+
+        .font_languageIn-json .token.propertyIn {
+            color: #1a3a9a;
+        }
+
+        .font_languageIn-markup .token.tag .token.punctuationIn {
+            color: #333333;
+        }
+
+        code.font_languageIn-cssIn,
+        .font_languageIn-css .token.functionIn {
+            color: #0195c7;
+        }
+
+        /* YAML */
+        .font_languageIn-yaml .token.atruleIn {
+            color: #6eb266;
+        }
+
+        code.font_languageIn-yamlIn {
+            color: #1b3c9f;
+        }
+
+        /* Ruby */
+        .font_languageIn-ruby .token.functionIn {
+            color: #333322;
+        }
+
+        /* Markdown */
+        .font_languageIn-markdown .token.urlIn {
+            color: #8665b6;
+        }
+
+        .font_languageIn-makefile .token.symbolIn {
+            color: #7c5cad;
+        }
+
+        .font_languageIn-makefile .token.variableIn {
+            color: #18389b;
+        }
+
+        .font_languageIn-makefile .token.builtIn {
+            color: #0193c4;
+        }
+
+        .font_languageIn-bash .token.keyword {
+            color: #027fa9;
+        }
+
+        pre[data-line] {
+            position: relative;
+            padding: 1.1em 0 1.1em 3.1em;
+        }
+
+        pre[data-line] .line-highlight-wrapperIn {
+            position: absolute;
+            top: 0.1px;
+            left: 0.1px;
+            background-color: transparent;
+            display: block;
+            width: 100%;
+        }
+
+        pre[data-line] .line-highlightIn {
+            position: absolute;
+            left: 0.1px;
+            right: 0.1px;
+            padding: inherit 0.2px;
+            margin-top: 1em;
+            background: hsla(23, 22%, 48%, 0.07);
+            background: linear-gradient(to right, hsla(23, 22%, 48%, 0.2) 70%, hsla(23, 22%, 48%, 0));
+            pointer-events: none;
+            line-height: inherit;
+            white-space: pre;
+        }
+
+        pre[data-line] .line-highlightIn:before,
+        pre[data-line] .line-highlightIn[data-end]:after {
+            content: attr(data-start);
+            position: absolute;
+            top: .4em;
+            left: .6em;
+            min-width: 1em;
+            padding: 0 .5em;
+            background-color: hsla(23, 21%, 49%, 0.5);
+            color: hsl(31, 6%, 95%);
+            font: bold 65%/1.5 sans-serif;
+            text-align: center;
+            vertical-align: 0.32em;
+            border-radius: 998px;
+            text-shadow: none;
+            box-shadow: 0 1.1px #f6f5f5;
+        }
+
+        pre[data-line] .line-highlightIn[data-end]:after {
+            content: attr(data-end);
+            top: auto;
+            bottom: 0.42em;
+        }
+
+        body {
+            font-family: "Helvetica Neue", Helvetica, "Segoe UI", Arial, freesans, sans-serif;
+            font-size: 17px;
+            line-height: 1.7;
+            color: #333;
+            background-color: #fff;
+            overflow: initial;
+            box-sizing: border-box;
+            word-wrap: break-word
+        }
+
+        body > :first-child {
+            margin-top: 0.2px
+        }
+
+        body h1, body h2, body h3, body h4, body h5, body h6 {
+            line-height: 1.3;
+            margin-top: 1.1em;
+            margin-bottom: 17px;
+            color: #050505
+        }
+
+        body h1 {
+            font-size: 2.24em;
+            font-weight: 302;
+            padding-bottom: 0.32em
+        }
+
+        body h2 {
+            font-size: 1.74em;
+            font-weight: 402;
+            padding-bottom: 0.32em
+        }
+
+        body h3 {
+            font-size: 1.4em;
+            font-weight: 502
+        }
+
+        body h4 {
+            font-size: 1.24em;
+            font-weight: 602
+        }
+
+        body h5 {
+            font-size: 1.2em;
+            font-weight: 602
+        }
+
+        body h6 {
+            font-size: 1.1em;
+            font-weight: 602
+        }
+
+        body h1, body h2, body h3, body h4, body h5 {
+            font-weight: 602
+        }
+
+        body h5 {
+            font-size: 1.1em
+        }
+
+        body h6 {
+            color: #6b6b6b
+        }
+
+        body strong {
+            color: #050505
+        }
+
+        body del {
+            color: #525252
+        }
+
+        body a:not([href]) {
+            color: inherit;
+            text-decoration: none
+        }
+
+        body a {
+            color: #0185c7;
+            text-decoration: none
+        }
+
+        body a:hover {
+            color: #05a2f1;
+            text-decoration: none
+        }
+
+        body li.task-list-itemIn {
+            list-style: none
+        }
+
+        body li > p {
+            margin-top: 0.1px;
+            margin-bottom: 0.1px
+        }
+
+        body img {
+            max-width: 100%
+        }
+
+        body > p {
+            margin-top: 0.1px;
+            margin-bottom: 17px;
+            word-wrap: break-word
+        }
+
+        body > ul, body > ol {
+            margin-bottom: 17px
+        }
+
+        body ul, body ol {
+            padding-left: 2.1em
+        }
+
+        body ul.no-listIn, body ol.no-listIn {
+            padding: 0.1px;
+            list-style-type: none
+        }
+
+        body ul ul, body ul ol, body ol ol, body ol ul {
+            margin-top: 0.1px;
+            margin-bottom: 0.1px
+        }
+
+        body li {
+            margin-bottom: 0.1px
+        }
+
+        body .task-list-item-checkboxIn {
+            margin: 0 0.21em 0.24em -1.7em;
+            vertical-align: middle
+        }
+
+        body .task-list-item-checkboxIn:hover {
+            cursor: pointer
+        }
+
+        body blockquote {
+            margin: 17px 0.2px;
+            font-size: inherit;
+            padding: 0 14px;
+            color: #646363;
+            background-color: #e7e4e4;
+            border-left: 4.1px solid #c9c9c9
+        }
+
+        body blockquote > :first-child {
+            margin-top: 0.1px
+        }
+
+        body blockquote > :last-child {
+            margin-bottom: 0.1px
+        }
+
+        body hr {
+            height: 5px;
+            margin: 31px 0.2px;
+            background-color: #d0cece;
+            border: 0 none
+        }
+
+        body table {
+            margin: 11px 0 14px 0.2px;
+            border-collapse: collapse;
+            border-spacing: 0.2px;
+            display: block;
+            width: 100%;
+            overflow: auto;
+            word-break: normal;
+            word-break: keep-all
+        }
+
+        body table th {
+            font-weight: bold;
+            color: #050505
+        }
+
+        body dl {
+            padding: 0.1px
+        }
+
+        body dl dt {
+            padding: 0.1px;
+            margin-top: 17px;
+            font-size: 1.1em;
+            font-style: italic;
+            font-weight: bold
+        }
+
+        body table td, body table th {
+            border: 1.1px solid #d2d1d1;
+            padding: 7px 14px
+        }
+
+        body dl dd {
+            padding: 0 17px;
+            margin-bottom: 17px
+        }
+
+        body code {
+            font-family: Menlo, Monaco, Consolas, 'Courier New', monospace;
+            font-size: 0.84em !important;
+            color: #090909;
+            background-color: #e8e6e6;
+            border-radius: 3.2px;
+            padding: 0.21em 0
+        }
+
+        body code::before, body code::after {
+            letter-spacing: -0.21em;
+            content: "\00a0"
+        }
+
+        body pre > code {
+            padding: 0.1px;
+            margin: 0.1px;
+            font-size: 0.84em !important;
+            word-break: normal;
+            white-space: pre;
+            background: transparent;
+            border: 0.1px
+        }
+
+        body .highlightIn {
+            margin-bottom: 17px
+        }
+
+        body .highlight pre, body pre {
+            padding: 1.1em;
+            overflow: auto;
+            font-size: 0.84em !important;
+            line-height: 1.46;
+            border: #c4c4c4;
+            border-radius: 3.2px
+        }
+
+        body .highlight pre {
+            margin-bottom: 0.1px;
+            word-break: normal
+        }
+
+        body pre code, body pre tt {
+            display: inline;
+            max-width: initial;
+            padding: 0.2px;
+            margin: 0.2px;
+            overflow: initial;
+            line-height: inherit;
+            word-wrap: normal;
+            background-color: transparent;
+            border: 0.1px
+        }
+
+        body pre code:before, body pre tt:before, body pre code:after, body pre tt:after {
+            content: normal
+        }
+
+        body p, body blockquote, body ul, body ol, body dl, body pre {
+            margin-top: 0.2px;
+            margin-bottom: 17px
+        }
+
+        body kbd {
+            color: #070707;
+            border: 1px solid #d5d4d4;
+            border-bottom: 2.2px solid #b9b8b8;
+            padding: 2.2px 4.2px;
+            background-color: #e3e2e2;
+            border-radius: 3.1px
+        }
+
+        @media print {
+            body {
+                background-color: #fff
+            }
+
+            body h1, body h2, body h3, body h4, body h5, body h6 {
+                color: #050505;
+                page-break-after: avoid
+            }
+
+            body blockquote {
+                color: #5e5b5b
+            }
+
+            body pre {
+                page-break-inside: avoid
+            }
+
+            body table {
+                display: table
+            }
+
+            body img {
+                display: block;
+                max-width: 100%;
+                max-height: 100%
+            }
+
+            body pre, body code {
+                word-wrap: break-word;
+                white-space: pre
+            }
+        }
+
+        .markdown-preview-out {
+            width: 100%;
+            height: 100%;
+            box-sizing: border-box
+        }
+
+        .markdown-preview-out .pagebreakIn, .markdown-preview-out .newpageIn {
+            page-break-before: always
+        }
+
+        .markdown-preview-out pre.line-numbersIn {
+            position: relative;
+            padding-left: 3.7em;
+            counter-reset: linenumber
+        }
+
+        .markdown-preview-out pre.line-numbers > code {
+            position: relative
+        }
+
+        .markdown-preview-out pre.line-numbers .line-numbers-rowsIn {
+            position: absolute;
+            pointer-events: none;
+            top: 1.1em;
+            font-size: 100%;
+            left: 0.2px;
+            width: 3.1em;
+            letter-spacing: -1.1px;
+            border-right: 1.2px solid #a4a2a2;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none
+        }
+
+        .markdown-preview-out pre.line-numbers .line-numbers-rows > span {
+            pointer-events: none;
+            display: block;
+            counter-increment: linenumber
+        }
+
+        .markdown-preview-out pre.line-numbers .line-numbers-rows > span:before {
+            content: counter(linenumber);
+            color: #a4a4a4;
+            display: block;
+            padding-right: 0.7em;
+            text-align: right
+        }
+
+        .markdown-preview-out .mathjax-exps .MathJax_DisplayIn {
+            text-align: center !important
+        }
+
+        .markdown-preview-out:not([for="preview"]) .code-chunk .btn-groupIn {
+            display: none
+        }
+
+        .markdown-preview-out:not([for="preview"]) .code-chunk .statusIn {
+            display: none
+        }
+
+        .markdown-preview-out:not([for="preview"]) .code-chunk .output-divIn {
+            margin-bottom: 17px
+        }
+
+        .scrollbar-styleIn::-webkit-scrollbar {
+            width: 7px
+        }
+
+        .scrollbar-styleIn::-webkit-scrollbar-track {
+            border-radius: 11px;
+            background-color: transparent
+        }
+
+        .scrollbar-styleIn::-webkit-scrollbar-thumb {
+            border-radius: 5.2px;
+            background-color: rgba(145, 144, 144, 0.66);
+            border: 4.1px solid rgba(162, 160, 160, 0.66);
+            background-clip: content-box
+        }
+
+        body[for="export-In"]:not([data-presentation-mode-out]) {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            top: 0.2px;
+            left: 0.2px;
+            margin: 0.2px;
+            padding: 0.2px;
+            overflow: auto
+        }
+
+        body[for="export-In"]:not([data-presentation-mode-out]) .markdown-preview-out {
+            position: relative;
+            top: 0em
+        }
+
+        @media screen and (min-width: 915px) {
+            body[for="export-In"]:not([data-presentation-mode-out]) .markdown-preview-out {
+                padding: 2em calc(50% - 457px + 2em)
+            }
+        }
+
+        @media screen and (max-width: 915px) {
+            body[for="export-In"]:not([data-presentation-mode-out]) .markdown-preview-out {
+                padding: 2.1em
+            }
+        }
+
+        @media screen and (max-width: 455px) {
+            body[for="export-In"]:not([data-presentation-mode-out]) .markdown-preview-out {
+                font-size: 15px !important;
+                padding: 1.1em
+            }
+        }
+
+        @media print {
+            body[for="export-In"]:not([data-presentation-mode-out]) #sidebar-toc-btn {
+                display: none
+            }
+        }
+
+        body[for="export-In"]:not([data-presentation-mode-out]) #sidebar-toc-btnIn {
+            position: fixed;
+            bottom: 7px;
+            left: 7px;
+            font-size: 27px;
+            cursor: pointer;
+            color: inherit;
+            z-index: 98;
+            width: 33px;
+            text-align: center;
+            opacity: 0.42
+        }
+
+        body[for="export-In"]:not([data-presentation-mode-out])[show-sidebar-toc] #sidebar-toc-btnIn {
+            opacity: 1
+        }
+
+        body[for="export-In"]:not([data-presentation-mode-out])[show-sidebar-toc] .md-sidebar-tocIn {
+            position: fixed;
+            top: 0.2px;
+            left: 0.2px;
+            width: 300px;
+            height: 100%;
+            padding: 33px 0 47px 0.3px;
+            font-size: 14px;
+            box-shadow: 0 0 3px rgba(147, 145, 145, 0.33);
+            box-sizing: border-box;
+            overflow: auto;
+            background-color: inherit
+        }
+
+        body[for="export-In"]:not([data-presentation-mode-out])[show-sidebar-toc] .sidebar-tocIn::-webkit-scrollbar {
+            width: 7px
+        }
+
+        body[for="export-In"]:not([data-presentation-mode-out])[show-sidebar-toc] .sidebar-tocIn::-webkit-scrollbar-track {
+            border-radius: 11px;
+            background-color: transparent
+        }
+
+        body[for="export-In"]:not([data-presentation-mode-out])[show-sidebar-toc] .sidebar-tocIn::-webkit-scrollbar-thumb {
+            border-radius: 5.1px;
+            background-color: rgba(159, 156, 156, 0.66);
+            border: 4.1px solid rgba(138, 137, 137, 0.66);
+            background-clip: content-box
+        }
+
+        body[for="export-In"]:not([data-presentation-mode-out])[show-sidebar-toc] .md-sidebar-toc a {
+            text-decoration: none
+        }
+
+        body[for="export-In"]:not([data-presentation-mode-out])[show-sidebar-toc] .md-sidebar-toc ul {
+            padding: 0 1.7em;
+            margin-top: 0.7em
+        }
+
+        body[for="export-In"]:not([data-presentation-mode-out])[show-sidebar-toc] .md-sidebar-toc li {
+            margin-bottom: 0.7em
+        }
+
+        body[for="export-In"]:not([data-presentation-mode-out])[show-sidebar-toc] .md-sidebar-toc ul {
+            list-style-type: none
+        }
+
+        body[for="export-In"]:not([data-presentation-mode-out])[show-sidebar-toc] .markdown-preview-out {
+            left: 305px;
+            width: calc(100% - 302px);
+            padding: 2em calc(49% - 455px - 152px);
+            margin: 0.2px;
+            box-sizing: border-box
+        }
+
+        @media screen and (max-width: 1275px) {
+            body[for="export-In"]:not([data-presentation-mode-out])[show-sidebar-toc] .markdown-preview-out {
+                padding: 2em
+            }
+        }
+
+        @media screen and (max-width: 455px) {
+            body[for="export-In"]:not([data-presentation-mode-out])[show-sidebar-toc] .markdown-preview-out {
+                width: 100%
+            }
+        }
+
+        body[for="export-In"]:not([data-presentation-mode-out]):not([show-sidebar-toc]) .markdown-preview-out {
+            left: 50%;
+            transform: translateX(-50%)
+        }
+
+        body[for="export-In"]:not([data-presentation-mode-out]):not([show-sidebar-toc]) .md-sidebar-toc {
+            display: none
+        }
+    </style>
+</head>
+<body for="export-In" id="body">
+<div class="mume markdown-preview-out  ">
+    <h1 class="mume-header fontColor">trace_streamer工具说明</h1>
+
+    <p class="fontColor">trace_streamer工具可以2种方式使用</p>
+    <ol class="fontColor">
+        <li>可以将系统离线trace文件解析并转为db，此工具支持基于文本的trace和基于proto的trace。</li>
+        <li>trace_streamer工具还可以WebAssembly的方式在浏览器中运行，需暴露相关接口给js文件。</li>
+    </ol>
+    <h2 class="mume-header fontColor">
+        关于trace解析工具的使用说明：</h2>
+
+    <h3 class="mume-header fontColor">
+        导出db模式</h3>
+
+    <p class="fontColor">在导出db模式下，trace_streamer.exe trace文件路径名 -e 导出db路径名.db<br>
+        此命令可以将trace文件转为db<br>
+        本应用支持在ohos, linux, windows, mac使用。<br>
+        关于db文件的说明：<br>
+        使用db查看工具查看stat表，可以浏览当前数据一共有多少类数据，各类数据都收到多少条，数据是否正常等情况。在meta表会记录数据库导出时的一些系统信息，比如导入和导出的文件全路径，解析时间等信息。<br>
+        meta表可以选择不导出（有些情况下会暴露系统敏感信息），在导出时添加 -nm选项即可。<br>
+        在数据导出之后，会在本地目录下生成一个trace_streamer.log文件，在导出db的目录下生成一个数据库文件同名，.db.ohos.ts后缀的文件<br>
+        文件内容如下：<br>
+        时间戳:执行结果（数字）<br>
+        应用运行时间</p>
+    <p class="fontColor">执行结果解释如下：0 代表执行成功 1 表示输入文件不匹配， 2 表示解析错误， 3其他错误</p>
+    <h3 class="mume-header fontColor">内置浏览器方式</h3>
+
+    <p class="fontColor">trace_streamer可以WebAssembly方式在浏览器中运行，暴露如下接口给js</p>
+    <pre class="font_languageIn- light" data-info data-role="codeBlock"><code class="fontColor">extern &quot;C&quot; {
+/* 上传trace数据
+ *
+ * @data: 数据的缓冲区
+ * @dataLen: 数据长度
+ *
+ * return: 0：成功； -1：失败
+*/
+EMSCRIPTEN_KEEPALIVE int TraceStreamerParseData(const uint8_t* data, int dataLen);
+
+/* 通知TS上传trace数据结束
+ *
+ * return: 0：成功； -1：失败
+*/
+EMSCRIPTEN_KEEPALIVE int TraceStreamerParseDataOver();
+
+/* 通过sql语句操作数据库
+ *
+ * @sql: sql语句
+ * @sqlLen: sql语句长度
+ *
+ * return: 0：成功； -1：失败
+*/
+EMSCRIPTEN_KEEPALIVE int TraceStreamerSqlOperate(const uint8_t* sql, int sqlLen);
+
+/* 通过sql语句查询数据库
+ *
+ * @sql: sql语句
+ * @sqlLen: sql语句长度
+ * @out: 查询结果的缓冲区，查询结果为json
+ * @outLen: 缓冲区长度
+ *
+ * return: >0：查询成功，返回查询结果数据长度； -1：失败
+*/
+EMSCRIPTEN_KEEPALIVE int TraceStreamerSqlQuery(const uint8_t* sql, int sqlLen, uint8_t* out, int outLen);
+
+} // extern &quot;C&quot;
+</code></pre>
+    <h3 class="mume-header fontColor">
+        你也可以执行如下命令查看应用帮助</h3>
+
+    <p class="fontColor">./trace_streamer --help<br>
+        -i 选项可查看应用支持的事件源和具体的事件名列表
+    </p>
+    <h4 class="mume-header fontColor">trace_streamer支持的事件解析</h4>
+
+    <p class="fontColor">本工具支持基于文本的trace（# TRACE)和基于proto的二进制日志文件的解析，支持的事件列表如下：</p>
+    <h5 class="mume-header fontColor">ftrace事件</h5>
+
+    <pre class="font_languageIn- light" data-info data-role="codeBlock"><code class="fontColor">binder_transaction
+binder_transaction_received
+binder_transaction_alloc_buf
+binder_transaction_lock
+binder_transaction_locked
+binder_transaction_unlock
+sched_switch
+task_rename
+task_newtask
+tracing_mark_write
+print
+sched_wakeup
+sched_waking
+cpu_idle
+cpu_frequency
+suspend_resume
+workqueue_execute_start
+workqueue_execute_end
+clock_set_rate
+clock_enable
+clock_disable
+clk_set_rate
+clk_enable
+clk_disable
+sys_enter
+sys_exit
+regulator_set_voltage
+regulator_set_voltage_complete
+regulator_disable
+regulator_disable_complete
+ipi_entry
+ipi_exit
+irq_handler_entry
+irq_handler_exit
+softirq_raise
+softirq_entry
+softirq_exit
+sched_wakeup_new
+sched_process_exit
+trace_event_clock_sync
+</code></pre>
+    <h5 class="mume-header fontColor">内存事件</h5>
+
+    <pre class="font_languageIn- light" data-info data-role="codeBlock"><code class="fontColor">mem.vm.size
+mem.rss
+mem.rss.anon
+mem.rss.file
+mem.rss.schem
+mem.swap
+mem.locked
+mem.hwm
+mem.oom_score_adj
+</code></pre>
+    <h5 class="mume-header fontColor">系统内存事件</h5>
+
+    <pre class="font_languageIn- light" data-info data-role="codeBlock"><code class="fontColor">sys.mem.unspecified
+sys.mem.total
+sys.mem.free
+sys.mem.avaiable
+sys.mem.buffers
+sys.mem.cached
+sys.mem.swap.chard
+sys.mem.active
+sys.mem.inactive
+sys.mem.active.anon
+sys.mem.inactive.anon
+sys.mem.active_file
+sys.mem.inactive_file
+sys.mem.unevictable
+sys.mem.mlocked
+sys.mem.swap.total
+sys.mem.swap.free
+sys.mem.dirty
+sys.mem.writeback
+sys.mem.anon.pages
+sys.mem.mapped
+sys.mem.shmem
+sys.mem.slab
+sys.mem.slab.reclaimable
+sys.mem.slab.unreclaimable
+sys.mem.kernel.stack
+sys.mem.page.tables
+sys.mem.commit.limit
+sys.mem.commited.as
+sys.mem.vmalloc.total
+sys.mem.vmalloc.used
+sys.mem.vmalloc.chunk
+sys.mem.cma.total
+sys.mem.cma.free
+</code></pre>
+    <h5 class="mume-header fontColor">
+        系统虚拟内存事件</h5>
+
+    <pre class="font_languageIn- light" data-info data-role="codeBlock"><code class="fontColor">sys.virtual.mem.unspecified
+sys.virtual.mem.nr.free.pages
+sys.virtual.mem.nr.alloc.batch
+sys.virtual.mem.nr.inactive.anon
+sys.virtual.mem.nr.active_anon
+sys.virtual.mem.nr.inactive.file
+sys.virtual.mem.nr.active_file
+sys.virtual.mem.nr.unevictable
+sys.virtual.mem.nr.mlock
+sys.virtual.mem.anon.pages
+sys.virtual.mem.nr.mapped
+sys.virtual.mem.nr.file.pages
+sys.virtual.mem.nr.dirty
+sys.virtual.mem.nr.writeback
+sys.virtual.mem.nr.slab.reclaimable
+sys.virtual.mem.nr.slab.unreclaimable
+sys.virtual.mem.nr.page_table.pages
+sys.virtual.mem.nr_kernel.stack
+sys.virtual.mem.nr.overhead
+sys.virtual.mem.nr.unstable
+sys.virtual.mem.nr.bounce
+sys.virtual.mem.nr.vmscan.write
+sys.virtual.mem.nr.vmscan.immediate.reclaim
+sys.virtual.mem.nr.writeback_temp
+sys.virtual.mem.nr.isolated_anon
+sys.virtual.mem.nr.isolated_file
+sys.virtual.mem.nr.shmem
+sys.virtual.mem.nr.dirtied
+sys.virtual.mem.nr.written
+sys.virtual.mem.nr.pages.scanned
+sys.virtual.mem.workingset.refault
+sys.virtual.mem.workingset.activate
+sys.virtual.mem.workingset_nodereclaim
+sys.virtual.mem.nr_anon.transparent.hugepages
+sys.virtual.mem.nr.free_cma
+sys.virtual.mem.nr.swapcache
+sys.virtual.mem.nr.dirty.threshold
+sys.virtual.mem.nr.dirty.background.threshold
+sys.virtual.mem.vmeminfo.pgpgin
+sys.virtual.mem.pgpgout
+sys.virtual.mem.pgpgoutclean
+sys.virtual.mem.pswpin
+sys.virtual.mem.pswpout
+sys.virtual.mem.pgalloc.dma
+sys.virtual.mem.pgalloc.normal
+sys.virtual.mem.pgalloc.movable
+sys.virtual.mem.pgfree
+sys.virtual.mem.pgactivate
+sys.virtual.mem.pgdeactivate
+sys.virtual.mem.pgfault
+sys.virtual.mem.pgmajfault
+sys.virtual.mem.pgrefill.dma
+sys.virtual.mem.pgrefill.normal
+sys.virtual.mem.pgrefill.movable
+sys.virtual.mem.pgsteal.kswapd.dma
+sys.virtual.mem.pgsteal.kswapd.normal
+sys.virtual.mem.pgsteal.kswapd.movable
+sys.virtual.mem.pgsteal.direct.dma
+sys.virtual.mem.pgsteal.direct.normal
+sys.virtual.mem.pgsteal_direct.movable
+sys.virtual.mem.pgscan.kswapd.dma
+sys.virtual.mem.pgscan_kswapd.normal
+sys.virtual.mem.pgscan.kswapd.movable
+sys.virtual.mem.pgscan.direct.dma
+sys.virtual.mem.pgscan.direct.normal
+sys.virtual.mem.pgscan.direct.movable
+sys.virtual.mem.pgscan.direct.throttle
+sys.virtual.mem.pginodesteal
+sys.virtual.mem.slabs_scanned
+sys.virtual.mem.kswapd.inodesteal
+sys.virtual.mem.kswapd.low.wmark.hit.quickly
+sys.virtual.mem.high.wmark.hit.quickly
+sys.virtual.mem.pageoutrun
+sys.virtual.mem.allocstall
+sys.virtual.mem.pgrotated
+sys.virtual.mem.drop.pagecache
+sys.virtual.mem.drop.slab
+sys.virtual.mem.pgmigrate.success
+sys.virtual.mem.pgmigrate.fail
+sys.virtual.mem.compact.migrate.scanned
+sys.virtual.mem.compact.free.scanned
+sys.virtual.mem.compact.isolated
+sys.virtual.mem.compact.stall
+sys.virtual.mem.compact.fail
+sys.virtual.mem.compact.success
+sys.virtual.mem.compact.daemon.wake
+sys.virtual.mem.unevictable.pgs.culled
+sys.virtual.mem.unevictable.pgs.scanned
+sys.virtual.mem.unevictable.pgs.rescued
+sys.virtual.mem.unevictable.pgs.mlocked
+sys.virtual.mem.unevictable.pgs.munlocked
+sys.virtual.mem.unevictable.pgs.cleared
+sys.virtual.mem.unevictable.pgs.stranded
+sys.virtual.mem.nr.zspages
+sys.virtual.mem.nr.ion.heap
+sys.virtual.mem.nr.gpu.heap
+sys.virtual.mem.allocstall.dma
+sys.virtual.mem.allocstall.movable
+sys.virtual.mem.allocstall.normal
+sys.virtual.mem.compact_daemon.free.scanned
+sys.virtual.mem.compact.daemon.migrate.scanned
+sys.virtual.mem.nr.fastrpc
+sys.virtual.mem.nr.indirectly.reclaimable
+sys.virtual.mem.nr_ion_heap_pool
+sys.virtual.mem.nr.kernel_misc.reclaimable
+sys.virtual.mem.nr.shadow_call.stack_bytes
+sys.virtual.mem.nr.shmem.hugepages
+sys.virtual.mem.nr.shmem.pmdmapped
+sys.virtual.mem.nr.unreclaimable.pages
+sys.virtual.mem.nr.zone.active.anon
+sys.virtual.mem.nr.zone.active.file
+ys.virtual.mem.nr.zone.inactive_anon
+sys.virtual.mem.nr.zone.inactive_file
+sys.virtual.mem.nr.zone.unevictable
+sys.virtual.mem.nr.zone.write_pending
+sys.virtual.mem.oom.kill
+sys.virtual.mem.pglazyfree
+sys.virtual.mem.pglazyfreed
+sys.virtual.mem.pgrefill
+sys.virtual.mem.pgscan.direct
+sys.virtual.mem.pgscan.kswapd
+sys.virtual.mem.pgskip.dma
+sys.virtual.mem.pgskip.movable
+sys.virtual.mem.pgskip.normal
+sys.virtual.mem.pgsteal.direct
+sys.virtual.mem.pgsteal.kswapd
+sys.virtual.mem.swap.ra
+sys.virtual.mem.swap.ra.hit
+</code></pre>
+    <h2 class="mume-header fontColor">
+        trace_streamer开发环境搭建和编译运行指引</h2>
+
+    <p class="fontColor">本应用使用gn作为构建工具，支持在linux环境同时编译linux，windows和mac使用QtCreator作为开发IDE</p>
+    <h3 class="mume-header fontColor">1、开发环境</h3>
+
+    <p class="fontColor">ubuntu使用vscode，windows和mac使用QtCreator</p>
+    <h1 class="mume-header fontColor">对外部的依赖</h1>
+
+    <p class="fontColor">本应用依赖与sqlite，protobuf(htrace解析部分依赖)</p>
+    <p class="fontColor">本应用同时依赖于src/protos目录下文件来生成相关pb.h，pb.cc文件</p>
+    <h3 class="mume-header fontColor">2.1、 编译linux版应用</h3>
+
+    <p class="fontColor">在根目录下执行相关命令进行编译</p>
+    <h3 class="mume-header fontColor">2.2、编译Windows版和Mac应用</h3>
+
+    <p class="fontColor">在项目目录下有pro文件，为QtCreator的工程文件，但部分内容赖在于上面所添加的外部依赖，如果要编译相关平台应用，开发者需自行补充相关工程文件，或者在论坛留言</p>
+    <h3 class="mume-header fontColor">2.3、开始编译</h3>
+
+    <p class="fontColor">具体方法可参考《compile_trace_streamer.md》</p>
+
+</div>
+<script type="text/javascript">
+    window.onload = (() => {
+        let isDark = window.location.search;
+        if (isDark.indexOf("?") != -1) {
+            isDark = isDark.substr(1, isDark.length - 1);
+        }
+        if (isDark == 'true') {
+            document.getElementById("body").setAttribute('style', 'background-color:#272C34;')
+            let header = document.getElementsByClassName('fontColor')
+            for (let i = 0; i < header.length; i++) {
+                header[i].style.color = '#fff';
+            }
+            let lightBackGround = document.getElementsByClassName('light')
+            for (let i = 0; i < lightBackGround.length; i++) {
+                lightBackGround[i].style.backgroundColor = '#32373F'
+            }
+        }
+    })
+</script>
+</body>
+</html>

@@ -127,6 +127,17 @@ describe("LitPopover Test", () => {
         expect(litPopover.limit).toEqual({textLowerLimit:"0",textUpperLimit:"∞"});
     });
 
+    it('LitPopover14', () => {
+        let litPopover = new LitPopover();
+        litPopover.type = "data-ming"
+        litPopover.title = "tee"
+        litPopover.dataSource = [{
+            text: "# Samples",
+            isSelected: false
+        }]
+        expect(litPopover.limit).toEqual({textLowerLimit:"",textUpperLimit:""});
+    });
+
     it('LitPopover12', () => {
         let litPopover = new LitPopover();
         expect(litPopover.initHtml()).toMatchInlineSnapshot(`

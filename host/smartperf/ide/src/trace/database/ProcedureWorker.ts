@@ -30,9 +30,13 @@ import {networkAbility, NetworkAbilityMonitorStruct} from "./ProcedureWorkerNetw
 import {hiPerfCpu, HiPerfCpuStruct} from "./ProcedureWorkerHiPerfCPU.js";
 import {hiPerfProcess, HiPerfProcessStruct} from "./ProcedureWorkerHiPerfProcess.js";
 import {hiPerfThread, HiPerfThreadStruct} from "./ProcedureWorkerHiPerfThread.js";
-
+import {HiPerfEvent, HiPerfEventStruct} from "./ProcedureWorkerHiPerfEvent.js";
+import {HiPerfReportStruct} from "./ProcedureWorkerHiPerfReport.js";
 
 let dataList: any = {}
+let dataList2: any = {}
+let dataList3: any = {}
+let dataList4: any = {}
 let dataFilter: any = {}
 let canvasList: any = {}
 let contextList: any = {}
@@ -106,9 +110,15 @@ function drawWakeUp(context: CanvasRenderingContext2D | any, wake: WakeupBean | 
     }
 }
 
+function drawLoading(ctx: CanvasRenderingContext2D, startNS: number, endNS: number, totalNS: number, frame: any, left: number, right: number) {
+}
+
 self.onmessage = function (e: any) {
     if ((e.data.type as string).startsWith("clear")) {
         dataList = {};
+        dataList2 = {};
+        dataList3 = {};
+        dataList4 = {};
         dataFilter = {};
         canvasList = {};
         contextList = {};
@@ -123,7 +133,7 @@ self.onmessage = function (e: any) {
     let res: any
     if (e.data.params.list) {
         dataList[e.data.type] = e.data.params.list;
-        dataFilter[e.data.type] = new Set();
+        // dataFilter[e.data.type] = new Set();
         if (e.data.params.offscreen) {
             canvasList[e.data.type] = e.data.params.offscreen;
             contextList[e.data.type] = e.data.params.offscreen!.getContext('2d');
@@ -131,12 +141,14 @@ self.onmessage = function (e: any) {
         }
     }
     if (!dataFilter[e.data.type]) {
-        dataFilter[e.data.type] = new Set();
+        dataFilter[e.data.type] = []//new Set();
     }
     let canvas = canvasList[e.data.type];
     let context = contextList[e.data.type];
     let type = e.data.type as string;
     let params = e.data.params;
+    let online = e.data.params.online;
+    let buf = e.data.params.buf;
     let isRangeSelect = e.data.params.isRangeSelect;
     let isHover = e.data.params.isHover;
     let xs = e.data.params.xs;
@@ -149,12 +161,15 @@ self.onmessage = function (e: any) {
     let endNS = e.data.params.endNS;
     let totalNS = e.data.params.totalNS;
     let slicesTime: { startTime: number | null, endTime: number | null, color: string | null } = e.data.params.slicesTime;
+    let range = e.data.params.range;
     let scale = e.data.params.scale;
     let canvasWidth = e.data.params.canvasWidth;
     let canvasHeight = e.data.params.canvasHeight;
     let useCache = e.data.params.useCache;
     let lineColor = e.data.params.lineColor;
     let wakeupBean: WakeupBean | null = e.data.params.wakeupBean;
+    let intervalPerf: number = e.data.params.intervalPerf;
+    let lazyRefresh = false;
     if (canvas) {
         if (canvas.width !== canvasWidth || canvas.height !== canvasHeight) {
             canvas.width = canvasWidth;
@@ -184,17 +199,25 @@ self.onmessage = function (e: any) {
             results: null,
         });
     } else if (type.startsWith("cpu")) {
-        if (!useCache) {
-            cpu(dataList[type], dataFilter[type], startNS, endNS, totalNS, frame);
+        if (lazyRefresh) {
+            cpu(dataList[type], dataFilter[type], startNS, endNS, totalNS, frame, useCache || !range.refresh);
+        } else {
+            if (!useCache) {
+                cpu(dataList[type], dataFilter[type], startNS, endNS, totalNS, frame, false);
+            }
         }
         if (canvas) {
             context.clearRect(0, 0, canvas.width, canvas.height);
+            let arr = dataFilter[type];
+            if (arr.length > 0 && !range.refresh && !useCache && lazyRefresh) {
+                drawLoading(context, startNS, endNS, totalNS, frame, arr[0].startTime, arr[arr.length - 1].startTime + arr[arr.length - 1].dur)
+            }
             context.beginPath();
             drawLines(context, xs, frame.height, lineColor);
             CpuStruct.hoverCpuStruct = undefined;
             if (isHover) {
                 for (let re of dataFilter[e.data.type]) {
-                    if (hoverX >= re.frame.x && hoverX <= re.frame.x + re.frame.width && hoverY >= re.frame.y && hoverY <= re.frame.y + re.frame.height) {
+                    if (re.frame && hoverX >= re.frame.x && hoverX <= re.frame.x + re.frame.width && hoverY >= re.frame.y && hoverY <= re.frame.y + re.frame.height) {
                         CpuStruct.hoverCpuStruct = re;
                         break;
                     }
@@ -203,6 +226,7 @@ self.onmessage = function (e: any) {
                 CpuStruct.hoverCpuStruct = e.data.params.hoverCpuStruct;
             }
             CpuStruct.selectCpuStruct = e.data.params.selectCpuStruct;
+            context.font = "11px sans-serif";
             for (let re of dataFilter[type]) {
                 CpuStruct.draw(context, re);
             }
@@ -220,13 +244,32 @@ self.onmessage = function (e: any) {
             hover: CpuStruct.hoverCpuStruct
         });
     } else if (type.startsWith("fps")) {
-        if (!useCache) {
-            fps(dataList[type], dataFilter[type], startNS, endNS, totalNS, frame);
+        if (lazyRefresh) {
+            fps(dataList[type], dataFilter[type], startNS, endNS, totalNS, frame, useCache || !range.refresh);
+        } else {
+            if (!useCache) {
+                fps(dataList[type], dataFilter[type], startNS, endNS, totalNS, frame, false);
+            }
         }
         if (canvas) {
             context.clearRect(0, 0, canvas.width, canvas.height);
+            let arr = dataFilter[type];
+            if (arr.length > 0 && !range.refresh && !useCache && lazyRefresh) {
+                drawLoading(context, startNS, endNS, totalNS, frame, arr[0].startNS, arr[arr.length - 1].startNS + arr[arr.length - 1].dur)
+            }
             context.beginPath();
             drawLines(context, xs, frame.height, lineColor)
+            FpsStruct.hoverFpsStruct = undefined;
+            if (isHover) {
+                for (let re of dataFilter[e.data.type]) {
+                    if (re.frame && hoverX >= re.frame.x && hoverX <= re.frame.x + re.frame.width && hoverY >= re.frame.y && hoverY <= re.frame.y + re.frame.height) {
+                        FpsStruct.hoverFpsStruct = re;
+                        break;
+                    }
+                }
+            } else {
+                FpsStruct.hoverFpsStruct = e.data.params.hoverFpsStruct;
+            }
             for (let re of dataFilter[type]) {
                 FpsStruct.draw(context, re)
             }
@@ -245,13 +288,26 @@ self.onmessage = function (e: any) {
             drawFlagLine(context, flagMoveInfo, flagSelectedInfo, startNS, endNS, totalNS, frame, slicesTime);
         }
         // @ts-ignore
-        self.postMessage({id: e.data.id, type: type, results: canvas ? undefined : dataFilter[type], hover: undefined});
+        self.postMessage({
+            id: e.data.id,
+            type: type,
+            results: canvas ? undefined : dataFilter[type],
+            hover: FpsStruct.hoverFpsStruct
+        });
     } else if (type.startsWith("freq")) {
-        if (!useCache) {
-            freq(dataList[type], dataFilter[type], startNS, endNS, totalNS, frame)
+        if (lazyRefresh) {
+            freq(dataList[type], dataFilter[type], startNS, endNS, totalNS, frame, useCache || !range.refresh);
+        } else {
+            if (!useCache) {
+                freq(dataList[type], dataFilter[type], startNS, endNS, totalNS, frame, false);
+            }
         }
         if (canvas) {
             context.clearRect(0, 0, canvas.width, canvas.height);
+            let arr = dataFilter[type];
+            if (arr.length > 0 && !range.refresh && !useCache && lazyRefresh) {
+                drawLoading(context, startNS, endNS, totalNS, frame, arr[0].startNS, arr[arr.length - 1].startNS + arr[arr.length - 1].dur)
+            }
             context.beginPath();
             CpuFreqStruct.maxFreq = e.data.params.maxFreq;
             CpuFreqStruct.maxFreqName = e.data.params.maxFreqName;
@@ -259,7 +315,7 @@ self.onmessage = function (e: any) {
             CpuFreqStruct.hoverCpuFreqStruct = undefined;
             if (isHover) {
                 for (let re of dataFilter[type]) {
-                    if (hoverX >= re.frame.x && hoverX <= re.frame.x + re.frame.width && hoverY >= re.frame.y && hoverY <= re.frame.y + re.frame.height) {
+                    if (re.frame && hoverX >= re.frame.x && hoverX <= re.frame.x + re.frame.width && hoverY >= re.frame.y && hoverY <= re.frame.y + re.frame.height) {
                         CpuFreqStruct.hoverCpuFreqStruct = re;
                         break;
                     }
@@ -293,17 +349,30 @@ self.onmessage = function (e: any) {
             hover: CpuFreqStruct.hoverCpuFreqStruct
         });
     } else if (type.startsWith("process")) {
-        if (!useCache) {
-            proc(dataList[type], dataFilter[type], startNS, endNS, totalNS, frame)
+        if (lazyRefresh) {
+            proc(dataList[type], dataFilter[type], startNS, endNS, totalNS, frame, useCache || !range.refresh);
+        } else {
+            if (!useCache) {
+                proc(dataList[type], dataFilter[type], startNS, endNS, totalNS, frame, false);
+            }
         }
         if (canvas) {
             context.clearRect(0, 0, canvas.width, canvas.height);
+            let arr = dataFilter[type];
+            if (arr.length > 0 && !range.refresh && !useCache && lazyRefresh) {
+                drawLoading(context, startNS, endNS, totalNS, frame, arr[0].startTime, arr[arr.length - 1].startTime + arr[arr.length - 1].dur)
+            }
             context.beginPath();
             CpuStruct.cpuCount = e.data.params.cpuCount;
             drawLines(context, xs, frame.height, lineColor)
+            let path = new Path2D();
+            let miniHeight: number = 0;
+            miniHeight = Math.round((frame.height - (CpuStruct.cpuCount * 2)) / CpuStruct.cpuCount)
+            context.fillStyle = ColorUtils.colorForTid(e.data.params.pid || 0)
             for (let re of dataFilter[type]) {
-                ProcessStruct.draw(context, re)
+                ProcessStruct.draw(context, path, re, miniHeight);
             }
+            context.fill(path);
             drawSelection(context, params);
             drawWakeUp(context, wakeupBean, startNS, endNS, totalNS, frame);
             context.closePath();
@@ -312,17 +381,25 @@ self.onmessage = function (e: any) {
         // @ts-ignore
         self.postMessage({id: e.data.id, type: type, results: canvas ? undefined : dataFilter[type], hover: undefined});
     } else if (type.startsWith("heap")) {
-        if (!useCache) {
-            heap(dataList[type], dataFilter[type], startNS, endNS, totalNS, frame);
+        if (lazyRefresh) {
+            heap(dataList[type], dataFilter[type], startNS, endNS, totalNS, frame, useCache || !range.refresh);
+        } else {
+            if (!useCache) {
+                heap(dataList[type], dataFilter[type], startNS, endNS, totalNS, frame, false);
+            }
         }
         if (canvas) {
             context.clearRect(0, 0, canvas.width, canvas.height);
+            let arr = dataFilter[type];
+            if (arr.length > 0 && !range.refresh && !useCache && lazyRefresh) {
+                drawLoading(context, startNS, endNS, totalNS, frame, arr[0].startTime, arr[arr.length - 1].startTime + arr[arr.length - 1].dur)
+            }
             context.beginPath();
             drawLines(context, xs, frame.height, lineColor)
             HeapStruct.hoverHeapStruct = undefined;
             if (isHover) {
                 for (let re of dataFilter[e.data.type]) {
-                    if (hoverX >= re.frame.x && hoverX <= re.frame.x + re.frame.width && hoverY >= re.frame.y && hoverY <= re.frame.y + re.frame.height) {
+                    if (re.frame && hoverX >= re.frame.x && hoverX <= re.frame.x + re.frame.width && hoverY >= re.frame.y && hoverY <= re.frame.y + re.frame.height) {
                         HeapStruct.hoverHeapStruct = re;
                         break;
                     }
@@ -347,13 +424,32 @@ self.onmessage = function (e: any) {
             hover: HeapStruct.hoverHeapStruct
         });
     } else if (type.startsWith("mem")) {
-        if (!useCache) {
-            mem(dataList[type], dataFilter[type], startNS, endNS, totalNS, frame)
+        if (lazyRefresh) {
+            mem(dataList[type], dataFilter[type], startNS, endNS, totalNS, frame, useCache || !range.refresh);
+        } else {
+            if (!useCache) {
+                mem(dataList[type], dataFilter[type], startNS, endNS, totalNS, frame, false);
+            }
         }
         if (canvas) {
             context.clearRect(0, 0, canvas.width, canvas.height);
+            let arr = dataFilter[type];
+            if (arr.length > 0 && !range.refresh && !useCache && lazyRefresh) {
+                drawLoading(context, startNS, endNS, totalNS, frame, arr[0].startTime, arr[arr.length - 1].startTime + arr[arr.length - 1].dur)
+            }
             context.beginPath();
             drawLines(context, xs, frame.height, lineColor)
+            ProcessMemStruct.hoverProcessMemStruct = undefined;
+            if (isHover) {
+                for (let re of dataFilter[type]) {
+                    if (re.frame && hoverX >= re.frame.x && hoverX <= re.frame.x + re.frame.width && hoverY >= re.frame.y && hoverY <= re.frame.y + re.frame.height) {
+                        ProcessMemStruct.hoverProcessMemStruct = re;
+                        break;
+                    }
+                }
+            } else {
+                ProcessMemStruct.hoverProcessMemStruct = e.data.params.hoverProcessMemStruct;
+            }
             for (let re of dataFilter[type]) {
                 ProcessMemStruct.draw(context, re)
             }
@@ -363,19 +459,32 @@ self.onmessage = function (e: any) {
             drawFlagLine(context, flagMoveInfo, flagSelectedInfo, startNS, endNS, totalNS, frame, slicesTime);
         }
         // @ts-ignore
-        self.postMessage({id: e.data.id, type: type, results: canvas ? undefined : dataFilter[type], hover: undefined});
+        self.postMessage({
+            id: e.data.id,
+            type: type,
+            results: canvas ? undefined : dataFilter[type],
+            hover: ProcessMemStruct.hoverProcessMemStruct
+        });
     } else if (type.startsWith("thread")) {
-        if (!useCache) {
-            thread(dataList[type], dataFilter[type], startNS, endNS, totalNS, frame)
+        if (lazyRefresh) {
+            thread(dataList[type], dataFilter[type], startNS, endNS, totalNS, frame, useCache || !range.refresh);
+        } else {
+            if (!useCache) {
+                thread(dataList[type], dataFilter[type], startNS, endNS, totalNS, frame, false);
+            }
         }
         if (canvas) {
             context.clearRect(0, 0, canvas.width, canvas.height);
+            let arr = dataFilter[type];
+            if (arr.length > 0 && !range.refresh && !useCache && lazyRefresh) {
+                drawLoading(context, startNS, endNS, totalNS, frame, arr[0].startTime, arr[arr.length - 1].startTime + arr[arr.length - 1].dur)
+            }
             context.beginPath();
             drawLines(context, xs, frame.height, lineColor)
             ThreadStruct.hoverThreadStruct = undefined;
             if (isHover) {
                 for (let re of dataFilter[e.data.type]) {
-                    if (hoverX >= re.frame.x && hoverX <= re.frame.x + re.frame.width && hoverY >= re.frame.y && hoverY <= re.frame.y + re.frame.height) {
+                    if (re.frame && hoverX >= re.frame.x && hoverX <= re.frame.x + re.frame.width && hoverY >= re.frame.y && hoverY <= re.frame.y + re.frame.height) {
                         ThreadStruct.hoverThreadStruct = re;
                         break;
                     }
@@ -400,8 +509,21 @@ self.onmessage = function (e: any) {
             hover: ThreadStruct.hoverThreadStruct
         });
     } else if (type.startsWith("func")) {
-        if (!useCache) {
-            func(dataList[type], dataFilter[type], startNS, endNS, totalNS, frame)
+        if (!e.data.params.isLive){
+            self.postMessage({
+                id: e.data.id,
+                type: type,
+                results: canvas ? undefined : dataFilter[type],
+                hover: undefined
+            });
+            return;
+        }
+        if (lazyRefresh) {
+            func(dataList[type], dataFilter[type], startNS, endNS, totalNS, frame, useCache || !range.refresh);
+        } else {
+            if (!useCache) {
+                func(dataList[type], dataFilter[type], startNS, endNS, totalNS, frame, false);
+            }
         }
         if (canvas) {
             if (canvas.height == 150) {
@@ -412,14 +534,25 @@ self.onmessage = function (e: any) {
             // canvasList[type]!.width = frame.width;
             // canvasList[type]!.height = frame.height;
             context.clearRect(0, 0, canvas.width, canvas.height);
+            let arr = dataFilter[type];
+            if (arr.length > 0 && !range.refresh && !useCache && lazyRefresh) {
+                drawLoading(context, startNS, endNS, totalNS, frame, arr[0].startTs, arr[arr.length - 1].startTs + arr[arr.length - 1].dur)
+            }
             context.beginPath();
             drawLines(context, xs, frame.height, lineColor)
             FuncStruct.hoverFuncStruct = undefined;
             if (isHover) {
                 for (let re of dataFilter[type]) {
-                    if (re.dur && re.dur > 0 && hoverX >= re.frame.x && hoverX <= re.frame.x + re.frame.width && hoverY >= re.frame.y + (re.depth * 20) && hoverY <= re.frame.y + re.frame.height + (re.depth * 20)) {
-                        FuncStruct.hoverFuncStruct = re;
-                        break;
+                    if (re.dur == 0 || re.dur == null || re.dur == undefined) {
+                        if (re.frame && hoverX >= re.frame.x - 5 && hoverX <= re.frame.x + 5 && hoverY >= re.frame.y + (re.depth * 20) && hoverY <= re.frame.y + re.frame.height + (re.depth * 20)) {
+                            FuncStruct.hoverFuncStruct = re;
+                            break;
+                        }
+                    } else {
+                        if (re.frame && hoverX >= re.frame.x && hoverX <= re.frame.x + re.frame.width && hoverY >= re.frame.y + (re.depth * 20) && hoverY <= re.frame.y + re.frame.height + (re.depth * 20)) {
+                            FuncStruct.hoverFuncStruct = re;
+                            break;
+                        }
                     }
                 }
             } else {
@@ -427,7 +560,7 @@ self.onmessage = function (e: any) {
             }
             FuncStruct.selectFuncStruct = e.data.params.selectFuncStruct;
             for (let re of dataFilter[type]) {
-                FuncStruct.draw(context, re)
+                FuncStruct.draw(context, re, totalNS)
             }
             drawSelection(context, params);
             drawWakeUp(context, wakeupBean, startNS, endNS, totalNS, frame);
@@ -475,11 +608,19 @@ self.onmessage = function (e: any) {
         });
     } else if (type.startsWith("HiPerf-Cpu")) {
         let groupBy10MS = scale > 100_000_000;
-        if (!useCache) {
-            hiPerfCpu(dataList[type], dataFilter[type], startNS, endNS, totalNS, frame, groupBy10MS,e.data.params.maxCpu);
+        if (lazyRefresh) {
+            hiPerfCpu(dataList[type], dataList2, type, dataFilter[type], startNS, endNS, totalNS, frame, groupBy10MS, e.data.params.maxCpu, intervalPerf, useCache || !range.refresh);
+        } else {
+            if (!useCache) {
+                hiPerfCpu(dataList[type], dataList2, type, dataFilter[type], startNS, endNS, totalNS, frame, groupBy10MS, e.data.params.maxCpu, intervalPerf, false);
+            }
         }
         if (canvas) {
             context.clearRect(0, 0, canvas.width, canvas.height);
+            let arr = dataFilter[type];
+            if (arr.length > 0 && !range.refresh && !useCache && lazyRefresh) {
+                drawLoading(context, startNS, endNS, totalNS, frame, arr[0].startNS, arr[arr.length - 1].startNS + arr[arr.length - 1].dur)
+            }
             drawLines(context, xs, frame.height, lineColor)
             context.stroke();
             context.beginPath();
@@ -487,7 +628,7 @@ self.onmessage = function (e: any) {
             if (isHover) {
                 let offset = groupBy10MS ? 0 : 3;
                 for (let re of dataFilter[e.data.type]) {
-                    if (hoverX >= re.frame.x - offset && hoverX <= re.frame.x + re.frame.width + offset) {//&& hoverY >= re.frame.y && hoverY <= re.frame.y + re.frame.height
+                    if (re.frame && hoverX >= re.frame.x - offset && hoverX <= re.frame.x + re.frame.width + offset) {//&& hoverY >= re.frame.y && hoverY <= re.frame.y + re.frame.height
                         HiPerfCpuStruct.hoverStruct = re;
                         break;
                     }
@@ -498,11 +639,16 @@ self.onmessage = function (e: any) {
             HiPerfCpuStruct.selectStruct = e.data.params.selectStruct;
             context.fillStyle = ColorUtils.FUNC_COLOR[0];
             context.strokeStyle = ColorUtils.FUNC_COLOR[0];
+            let path = new Path2D();
             for (let re of dataFilter[type]) {
-                HiPerfCpuStruct.draw(context, re, groupBy10MS);
+                HiPerfCpuStruct.draw(context, path, re, groupBy10MS);
+            }
+            if (groupBy10MS) {
+                context.fill(path);
+            } else {
+                context.stroke(path);
             }
             drawSelection(context, params);
-            context.stroke();
             context.closePath();
             drawFlagLine(context, flagMoveInfo, flagSelectedInfo, startNS, endNS, totalNS, frame, slicesTime);
         }
@@ -515,11 +661,19 @@ self.onmessage = function (e: any) {
         });
     } else if (type.startsWith("HiPerf-Process")) {
         let groupBy10MS = scale > 100_000_000;
-        if (!useCache) {
-            hiPerfProcess(dataList[type], dataFilter[type], startNS, endNS, totalNS, frame, groupBy10MS);
+        if (lazyRefresh) {
+            hiPerfProcess(dataList[type], dataFilter[type], startNS, endNS, totalNS, frame, groupBy10MS, intervalPerf, useCache || !range.refresh);
+        } else {
+            if (!useCache) {
+                hiPerfProcess(dataList[type], dataFilter[type], startNS, endNS, totalNS, frame, groupBy10MS, intervalPerf, false);
+            }
         }
         if (canvas) {
             context.clearRect(0, 0, canvas.width, canvas.height);
+            let arr = dataFilter[type];
+            if (arr.length > 0 && !range.refresh && !useCache && lazyRefresh) {
+                drawLoading(context, startNS, endNS, totalNS, frame, arr[0].startNS, arr[arr.length - 1].startNS + arr[arr.length - 1].dur)
+            }
             drawLines(context, xs, frame.height, lineColor)
             context.stroke();
             context.beginPath();
@@ -529,7 +683,7 @@ self.onmessage = function (e: any) {
             if (isHover) {
                 let offset = groupBy10MS ? 0 : 3;
                 for (let re of dataFilter[e.data.type]) {
-                    if (hoverX >= re.frame.x - offset && hoverX <= re.frame.x + re.frame.width + offset) {//&& hoverY >= re.frame.y && hoverY <= re.frame.y + re.frame.height
+                    if (re.frame && hoverX >= re.frame.x - offset && hoverX <= re.frame.x + re.frame.width + offset) {//&& hoverY >= re.frame.y && hoverY <= re.frame.y + re.frame.height
                         HiPerfProcessStruct.hoverStruct = re;
                         break;
                     }
@@ -538,12 +692,13 @@ self.onmessage = function (e: any) {
                 HiPerfProcessStruct.hoverStruct = e.data.params.hoverStruct;
             }
             HiPerfProcessStruct.selectStruct = e.data.params.selectStruct;
+            let path = new Path2D();
             for (let re of dataFilter[type]) {
-                HiPerfProcessStruct.draw(context, re, groupBy10MS);
+                HiPerfProcessStruct.draw(context, path, re, groupBy10MS);
             }
-            drawSelection(context, params);
-            context.stroke();
+            groupBy10MS ? context.fill(path) : context.stroke(path);
             context.closePath();
+            drawSelection(context, params);
             drawFlagLine(context, flagMoveInfo, flagSelectedInfo, startNS, endNS, totalNS, frame, slicesTime);
         }
         // @ts-ignore
@@ -555,11 +710,19 @@ self.onmessage = function (e: any) {
         });
     } else if (type.startsWith("HiPerf-Thread")) {
         let groupBy10MS = scale > 100_000_000;
-        if (!useCache) {
-            hiPerfThread(dataList[type], dataFilter[type], startNS, endNS, totalNS, frame, groupBy10MS);
+        if (lazyRefresh) {
+            hiPerfThread(dataList[type], dataFilter[type], startNS, endNS, totalNS, frame, groupBy10MS, intervalPerf, useCache || !range.refresh);
+        } else {
+            if (!useCache) {
+                hiPerfThread(dataList[type], dataFilter[type], startNS, endNS, totalNS, frame, groupBy10MS, intervalPerf, false);
+            }
         }
         if (canvas) {
             context.clearRect(0, 0, canvas.width, canvas.height);
+            let arr = dataFilter[type];
+            if (arr.length > 0 && !range.refresh && !useCache && lazyRefresh) {
+                drawLoading(context, startNS, endNS, totalNS, frame, arr[0].startNS, arr[arr.length - 1].startNS + arr[arr.length - 1].dur)
+            }
             drawLines(context, xs, frame.height, lineColor)
             context.stroke();
             context.beginPath();
@@ -569,7 +732,7 @@ self.onmessage = function (e: any) {
             if (isHover) {
                 let offset = groupBy10MS ? 0 : 3;
                 for (let re of dataFilter[e.data.type]) {
-                    if (hoverX >= re.frame.x - offset && hoverX <= re.frame.x + re.frame.width + offset) {//&& hoverY >= re.frame.y && hoverY <= re.frame.y + re.frame.height
+                    if (re.frame && hoverX >= re.frame.x - offset && hoverX <= re.frame.x + re.frame.width + offset) {//&& hoverY >= re.frame.y && hoverY <= re.frame.y + re.frame.height
                         HiPerfThreadStruct.hoverStruct = re;
                         break;
                     }
@@ -578,12 +741,14 @@ self.onmessage = function (e: any) {
                 HiPerfThreadStruct.hoverStruct = e.data.params.hoverStruct;
             }
             HiPerfThreadStruct.selectStruct = e.data.params.selectStruct;
+            let path = new Path2D();
             for (let re of dataFilter[type]) {
-                HiPerfThreadStruct.draw(context, re, groupBy10MS);
+                HiPerfThreadStruct.draw(context, path, re, groupBy10MS);
             }
-            drawSelection(context, params);
+            groupBy10MS ? context.fill(path) : context.stroke(path);
             context.stroke();
             context.closePath();
+            drawSelection(context, params);
             drawFlagLine(context, flagMoveInfo, flagSelectedInfo, startNS, endNS, totalNS, frame, slicesTime);
         }
         // @ts-ignore
@@ -594,11 +759,19 @@ self.onmessage = function (e: any) {
             hover: HiPerfThreadStruct.hoverStruct
         });
     } else if (type.startsWith("monitorCpu")) {
-        if (!useCache) {
-            cpuAbility(dataList[type], dataFilter[type], startNS, endNS, totalNS, frame)
+        if (lazyRefresh) {
+            cpuAbility(dataList[type], dataFilter[type], startNS, endNS, totalNS, frame, useCache || !range.refresh);
+        } else {
+            if (!useCache) {
+                cpuAbility(dataList[type], dataFilter[type], startNS, endNS, totalNS, frame, false);
+            }
         }
         if (canvas) {
             context.clearRect(0, 0, canvas.width, canvas.height);
+            let arr = dataFilter[type];
+            if (arr.length > 0 && !range.refresh && !useCache && lazyRefresh) {
+                drawLoading(context, startNS, endNS, totalNS, frame, arr[0].startNS, arr[arr.length - 1].startNS + arr[arr.length - 1].dur)
+            }
             context.beginPath();
             CpuAbilityMonitorStruct.maxCpuUtilization = e.data.params.maxCpuUtilization;
             CpuAbilityMonitorStruct.maxCpuUtilizationName = e.data.params.maxCpuUtilizationName;
@@ -606,7 +779,7 @@ self.onmessage = function (e: any) {
             CpuAbilityMonitorStruct.hoverCpuAbilityStruct = undefined;
             if (isHover) {
                 for (let re of dataFilter[type]) {
-                    if (hoverX >= re.frame.x && hoverX <= re.frame.x + re.frame.width && hoverY >= re.frame.y && hoverY <= re.frame.y + re.frame.height) {
+                    if (re.frame && hoverX >= re.frame.x && hoverX <= re.frame.x + re.frame.width && hoverY >= re.frame.y && hoverY <= re.frame.y + re.frame.height) {
                         CpuAbilityMonitorStruct.hoverCpuAbilityStruct = re;
                         break;
                     }
@@ -638,11 +811,19 @@ self.onmessage = function (e: any) {
             hover: CpuAbilityMonitorStruct.hoverCpuAbilityStruct
         });
     } else if (type.startsWith("monitorMemory")) {
-        if (!useCache) {
-            memoryAbility(dataList[type], dataFilter[type], startNS, endNS, totalNS, frame)
+        if (lazyRefresh) {
+            memoryAbility(dataList[type], dataFilter[type], startNS, endNS, totalNS, frame, useCache || !range.refresh);
+        } else {
+            if (!useCache) {
+                memoryAbility(dataList[type], dataFilter[type], startNS, endNS, totalNS, frame, false);
+            }
         }
         if (canvas) {
             context.clearRect(0, 0, canvas.width, canvas.height);
+            let arr = dataFilter[type];
+            if (arr.length > 0 && !range.refresh && !useCache && lazyRefresh) {
+                drawLoading(context, startNS, endNS, totalNS, frame, arr[0].startNS, arr[arr.length - 1].startNS + arr[arr.length - 1].dur)
+            }
             context.beginPath();
             MemoryAbilityMonitorStruct.maxMemoryByte = e.data.params.maxMemoryByte;
             MemoryAbilityMonitorStruct.maxMemoryByteName = e.data.params.maxMemoryByteName;
@@ -650,7 +831,7 @@ self.onmessage = function (e: any) {
             MemoryAbilityMonitorStruct.hoverMemoryAbilityStruct = undefined;
             if (isHover) {
                 for (let re of dataFilter[type]) {
-                    if (hoverX >= re.frame.x && hoverX <= re.frame.x + re.frame.width && hoverY >= re.frame.y && hoverY <= re.frame.y + re.frame.height) {
+                    if (re.frame && hoverX >= re.frame.x && hoverX <= re.frame.x + re.frame.width && hoverY >= re.frame.y && hoverY <= re.frame.y + re.frame.height) {
                         MemoryAbilityMonitorStruct.hoverMemoryAbilityStruct = re;
                         break;
                     }
@@ -683,11 +864,19 @@ self.onmessage = function (e: any) {
         });
 
     } else if (type.startsWith("monitorDiskIo")) {
-        if (!useCache) {
-            diskIoAbility(dataList[type], dataFilter[type], startNS, endNS, totalNS, frame)
+        if (lazyRefresh) {
+            diskIoAbility(dataList[type], dataFilter[type], startNS, endNS, totalNS, frame, useCache || !range.refresh);
+        } else {
+            if (!useCache) {
+                diskIoAbility(dataList[type], dataFilter[type], startNS, endNS, totalNS, frame, false);
+            }
         }
         if (canvas) {
             context.clearRect(0, 0, canvas.width, canvas.height);
+            let arr = dataFilter[type];
+            if (arr.length > 0 && !range.refresh && !useCache && lazyRefresh) {
+                drawLoading(context, startNS, endNS, totalNS, frame, arr[0].startNS, arr[arr.length - 1].startNS + arr[arr.length - 1].dur)
+            }
             context.beginPath();
             let maxDiskRate = e.data.params.maxDiskRate;
             let maxDiskRateName = e.data.params.maxDiskRateName;
@@ -695,7 +884,7 @@ self.onmessage = function (e: any) {
             DiskAbilityMonitorStruct.hoverDiskAbilityStruct = undefined;
             if (isHover) {
                 for (let re of dataFilter[type]) {
-                    if (hoverX >= re.frame.x && hoverX <= re.frame.x + re.frame.width && hoverY >= re.frame.y && hoverY <= re.frame.y + re.frame.height) {
+                    if (re.frame && hoverX >= re.frame.x && hoverX <= re.frame.x + re.frame.width && hoverY >= re.frame.y && hoverY <= re.frame.y + re.frame.height) {
                         DiskAbilityMonitorStruct.hoverDiskAbilityStruct = re;
                         break;
                     }
@@ -726,11 +915,19 @@ self.onmessage = function (e: any) {
             hover: DiskAbilityMonitorStruct.hoverDiskAbilityStruct
         });
     } else if (type.startsWith("monitorNetwork")) {
-        if (!useCache) {
-            networkAbility(dataList[type], dataFilter[type], startNS, endNS, totalNS, frame)
+        if (lazyRefresh) {
+            networkAbility(dataList[type], dataFilter[type], startNS, endNS, totalNS, frame, useCache || !range.refresh)
+        } else {
+            if (!useCache) {
+                networkAbility(dataList[type], dataFilter[type], startNS, endNS, totalNS, frame, false)
+            }
         }
         if (canvas) {
             context.clearRect(0, 0, canvas.width, canvas.height);
+            let arr = dataFilter[type];
+            if (arr.length > 0 && !range.refresh && !useCache && lazyRefresh) {
+                drawLoading(context, startNS, endNS, totalNS, frame, arr[0].startNS, arr[arr.length - 1].startNS + arr[arr.length - 1].dur)
+            }
             context.beginPath();
             let maxNetworkRate = e.data.params.maxNetworkRate;
             let maxNetworkRateName = e.data.params.maxNetworkRateName;
@@ -738,7 +935,7 @@ self.onmessage = function (e: any) {
             NetworkAbilityMonitorStruct.hoverNetworkAbilityStruct = undefined;
             if (isHover) {
                 for (let re of dataFilter[type]) {
-                    if (hoverX >= re.frame.x && hoverX <= re.frame.x + re.frame.width && hoverY >= re.frame.y && hoverY <= re.frame.y + re.frame.height) {
+                    if (re.frame && hoverX >= re.frame.x && hoverX <= re.frame.x + re.frame.width && hoverY >= re.frame.y && hoverY <= re.frame.y + re.frame.height) {
                         NetworkAbilityMonitorStruct.hoverNetworkAbilityStruct = re;
                         break;
                     }
@@ -769,11 +966,115 @@ self.onmessage = function (e: any) {
             hover: NetworkAbilityMonitorStruct.hoverNetworkAbilityStruct
         });
 
+    } else if (type.startsWith("HiPerf-Report-Fold")) {
+        let groupBy10MS = scale > 100_000_000;
+        if (lazyRefresh) {
+            HiPerfEvent(dataList[type], dataList3, type, dataFilter[type], startNS, endNS, totalNS, frame, groupBy10MS, intervalPerf, useCache || !range.refresh);
+        } else {
+            if (!useCache) {
+                HiPerfEvent(dataList[type], dataList3, type, dataFilter[type], startNS, endNS, totalNS, frame, groupBy10MS, intervalPerf, false);
+            }
+        }
+        if (canvas) {
+            context.clearRect(0, 0, canvas.width, canvas.height);
+            let arr = dataFilter[type];
+            if (arr.length > 0 && !range.refresh && !useCache && lazyRefresh) {
+                drawLoading(context, startNS, endNS, totalNS, frame, arr[0].startNS, arr[arr.length - 1].startNS + arr[arr.length - 1].dur)
+            }
+            drawLines(context, xs, frame.height, lineColor)
+            context.stroke();
+            context.beginPath();
+            HiPerfReportStruct.hoverStruct = undefined;
+            context.fillStyle = ColorUtils.FUNC_COLOR[0];
+            context.strokeStyle = ColorUtils.FUNC_COLOR[0];
+            if (isHover) {
+                let offset = groupBy10MS ? 0 : 3;
+                for (let re of dataFilter[e.data.type]) {
+                    if (re.frame && hoverX >= re.frame.x - offset && hoverX <= re.frame.x + re.frame.width + offset) {//&& hoverY >= re.frame.y && hoverY <= re.frame.y + re.frame.height
+                        HiPerfReportStruct.hoverStruct = re;
+                        break;
+                    }
+                }
+            } else {
+                HiPerfReportStruct.hoverStruct = e.data.params.hoverStruct;
+            }
+            HiPerfReportStruct.selectStruct = e.data.params.selectStruct;
+            let path = new Path2D();
+            for (let re of dataFilter[type]) {
+                HiPerfReportStruct.draw(context, path, re, groupBy10MS);
+            }
+            groupBy10MS ? context.fill(path) : context.stroke(path);
+            context.closePath();
+            drawSelection(context, params);
+            drawFlagLine(context, flagMoveInfo, flagSelectedInfo, startNS, endNS, totalNS, frame, slicesTime);
+        }
+        // @ts-ignore
+        self.postMessage({
+            id: e.data.id,
+            type: type,
+            results: canvas ? undefined : dataFilter[type],
+            hover: HiPerfReportStruct.hoverStruct
+        });
+    } else if (type.startsWith("HiPerf-Report-Event")) {
+        let groupBy10MS = scale > 100_000_000;
+        if (lazyRefresh) {
+            HiPerfEvent(dataList[type], dataList4, type, dataFilter[type], startNS, endNS, totalNS, frame, groupBy10MS, intervalPerf, useCache || !range.refresh);
+        } else {
+            if (!useCache) {
+                HiPerfEvent(dataList[type], dataList4, type, dataFilter[type], startNS, endNS, totalNS, frame, groupBy10MS, intervalPerf, false);
+            }
+        }
+        if (canvas) {
+            context.clearRect(0, 0, canvas.width, canvas.height);
+            let arr = dataFilter[type];
+            if (arr.length > 0 && !range.refresh && !useCache && lazyRefresh) {
+                drawLoading(context, startNS, endNS, totalNS, frame, arr[0].startNS, arr[arr.length - 1].startNS + arr[arr.length - 1].dur)
+            }
+            drawLines(context, xs, frame.height, lineColor)
+            context.stroke();
+            context.beginPath();
+            HiPerfEventStruct.hoverStruct = undefined;
+            context.fillStyle = ColorUtils.FUNC_COLOR[0];
+            context.strokeStyle = ColorUtils.FUNC_COLOR[0];
+            if (isHover) {
+                let offset = groupBy10MS ? 0 : 3;
+                for (let re of dataFilter[e.data.type]) {
+                    if (re.frame && hoverX >= re.frame.x - offset && hoverX <= re.frame.x + re.frame.width + offset) {//&& hoverY >= re.frame.y && hoverY <= re.frame.y + re.frame.height
+                        HiPerfEventStruct.hoverStruct = re;
+                        break;
+                    }
+                }
+            } else {
+                HiPerfEventStruct.hoverStruct = e.data.params.hoverStruct;
+            }
+            HiPerfEventStruct.selectStruct = e.data.params.selectStruct;
+            let path = new Path2D();
+            for (let re of dataFilter[type]) {
+                HiPerfEventStruct.draw(context, path, re, groupBy10MS);
+            }
+            groupBy10MS ? context.fill(path) : context.stroke(path);
+            drawSelection(context, params);
+            let maxEvent = HiPerfEventStruct.maxEvent!.get(type) || 0;
+            let textMetrics = context.measureText(maxEvent);
+            context.globalAlpha = 0.8
+            context.fillStyle = "#f0f0f0"
+            context.fillRect(0, 5, textMetrics.width + 8, 18)
+            context.globalAlpha = 1
+            context.fillStyle = "#333"
+            context.textBaseline = "middle"
+            context.fillText(maxEvent, 4, 5 + 9);
+            context.stroke();
+            context.closePath();
+            drawFlagLine(context, flagMoveInfo, flagSelectedInfo, startNS, endNS, totalNS, frame, slicesTime);
+        }
+        // @ts-ignore
+        self.postMessage({
+            id: e.data.id,
+            type: type,
+            results: canvas ? undefined : dataFilter[type],
+            hover: HiPerfEventStruct.hoverStruct
+        });
     }
 };
 self.onmessageerror = function (e: any) {
 }
-
-
-
-

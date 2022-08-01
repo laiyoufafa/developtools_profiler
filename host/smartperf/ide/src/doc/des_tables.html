@@ -1,0 +1,1555 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>des_tables</title>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+
+    <style>
+        code[class*="font_languageIn-"],
+        pre[class*="font_languageIn-"] {
+            font-family: Consolas, "Liberation Mono", Menlo, Courier, monospace;
+            text-align: left;
+            color: #333333;
+            background: none;
+            word-break: normal;
+            word-wrap: normal;
+            line-height: 1.5;
+
+            -moz-tab-size: 7;
+            -webkit-hyphens: none;
+            -moz-hyphens: none;
+            -ms-hyphens: none;
+            hyphens: none;
+            -o-tab-size: 7;
+            tab-size: 7;
+            white-space: pre;
+            word-spacing: normal;
+        }
+
+        pre[class*="font_languageIn-"] {
+            padding: 0.7em;
+            overflow: auto;
+            border-radius: 3.2px;
+            background: #f5f5f6;
+        }
+
+        :not(pre) > code[class*="font_languageIn-"] {
+            padding: .1em;
+            border-radius: .3em;
+            white-space: normal;
+            background: #f5f5f6;
+        }
+
+        .token.commitIn,
+        .token.blockIn {
+            color: #969895;
+        }
+
+        .token.dataIn {
+            color: #183692;
+        }
+
+        .token.doctypeIn,
+        .token.punctuationIn,
+        .token.variableIn,
+        .token.macro.propertyIn {
+            color: #333333;
+        }
+
+        .token.operatorIn,
+        .token.importantIn,
+        .token.keywordIn,
+        .token.ruleIn,
+        .token.builtIn {
+            color: #a71d6d;
+        }
+
+        .token.stringIn,
+        .token.urlIn,
+        .token.regexIn,
+        .token.attr-valueIn {
+            color: #183692;
+        }
+
+        .token.propertyIn,
+        .token.numberIn,
+        .token.booleanIn,
+        .token.entityIn,
+        .token.atruleIn,
+        .token.constantIn,
+        .token.symbolIn,
+        .token.commandIn,
+        .token.codeIn {
+            color: #0086b5;
+        }
+
+        .token.tagIn,
+        .token.selectorIn,
+        .token.prologIn {
+            color: #63a36c;
+        }
+
+        .token.functionIn,
+        .token.namespaceIn,
+        .token.pseudo-elementIn,
+        .token.classIn,
+        .token.class-nameIn,
+        .token.pseudo-classIn,
+        .token.idIn,
+        .token.url-reference .token.variableIn,
+        .token.attr-name {
+            color: #795da4;
+        }
+
+        .token.entityIn {
+            cursor: help;
+        }
+
+        .token.titleIn,
+        .token.title .token.punctuationIn {
+            font-weight: bold;
+            color: #1d3e82;
+        }
+
+        .token.listIn {
+            color: #ed6a45;
+        }
+
+        .token.insertedIn {
+            background-color: #effcef;
+            color: #55a930;
+        }
+
+        .token.deletedIn {
+            background-color: #ffe9e9;
+            color: #c93103;
+        }
+
+        .token.boldIn {
+            font-weight: bold;
+        }
+
+        .token.italicIn {
+            font-style: italic;
+        }
+
+        .font_languageIn-json .token.propertyIn {
+            color: #183692;
+        }
+
+        .font_languageIn-markup .token.tag .token.punctuationIn {
+            color: #333333;
+        }
+        
+        code.font_languageIn-cssIn,
+        .font_languageIn-css .token.functionIn {
+            color: #0086b5;
+        }
+        
+        .font_languageIn-yaml .token.atruleIn {
+            color: #63a36c;
+        }
+
+        code.font_languageIn-yamlIn {
+            color: #183693;
+        }
+        
+        .font_languageIn-ruby .token.functionIn {
+            color: #333333;
+        }
+        
+        .font_languageIn-markdown .token.urlIn {
+            color: #795da5;
+        }
+        
+        .font_languageIn-makefile .token.symbolIn {
+            color: #795da5;
+        }
+
+        .font_languageIn-makefile .token.variableIn {
+            color: #183695;
+        }
+
+        .font_languageIn-makefile .token.builtIn {
+            color: #0086b5;
+        }
+
+        .font_languageIn-bash .token.keywordIn {
+            color: #0086b5;
+        }
+        
+        pre[data-line] {
+            position: relative;
+            padding: 1.1em 0 1.1em 3.1em;
+        }
+
+        pre[data-line] .line-highlight-wrapperIn {
+            display: block;
+            width: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            background-color: transparent;
+        }
+
+        pre[data-line] .line-highlightIn{
+            position: absolute;
+            left: 0;
+            right: 0;
+            padding: inherit 0;
+            pointer-events: none;
+            line-height: inherit;
+            white-space: pre;
+            margin-top: 1.2em;
+            background: hsla(24, 20%, 50%, .08);
+            background: linear-gradient(to right, hsla(23, 21%, 49%, 0.2) 72%, hsla(24, 21%, 49%, 0));
+        }
+
+        pre[data-line] .line-highlightIn:before,
+        pre[data-line] .line-highlightIn[data-end]:after {
+            content: attr(data-start);
+            position: absolute;
+            top: 0.5em;
+            left: 0.7em;
+            min-width: 1.1em;
+            padding: 0 0.6em;
+            background-color: hsla(24, 21%, 49%, 0.3);
+            color: hsl(24, 21%, 94%);
+            font: bold 65%/1.5 sans-serif;
+            text-align: center;
+            vertical-align: 0.2em;
+            border-radius: 998px;
+            text-shadow: none;
+            box-shadow: 0 1px white;
+        }
+
+        pre[data-line] .line-highlightIn[data-end]:after {
+            content: attr(data-end);
+            top: auto;
+            bottom: 0.3em;
+        }
+
+        body {
+            font-family: "Helvetica Neue", Helvetica, "Segoe UI", Arial, freesans, sans-serif;
+            font-size: 17px;
+            line-height: 1.7;
+            overflow: initial;
+            box-sizing: border-box;
+            word-wrap: break-word;
+            color: #333333;
+            background-color: #ffffff;
+        }
+
+        body > :first-child {
+            margin-top: 0.2px
+        }
+
+        body h1, body h2, body h3, body h4, body h5, body h6 {
+            line-height: 1.2;
+            margin-top: 1.2em;
+            margin-bottom: 17px;
+            color: #090909
+        }
+
+        body h1 {
+            font-size: 2.23em;
+            font-weight: 302;
+            padding-bottom: 0.4em
+        }
+
+        body h2 {
+            font-size: 1.76em;
+            font-weight: 402;
+            padding-bottom: 0.4em
+        }
+
+        body h3 {
+            font-size: 1.6em;
+            font-weight: 502
+        }
+
+        body h4 {
+            font-size: 1.26em;
+            font-weight: 602
+        }
+
+        body h5 {
+            font-size: 1.2em;
+            font-weight: 602
+        }
+
+        body h6 {
+            font-size: 1.1em;
+            font-weight: 602
+        }
+
+        body h1, body h2, body h3, body h4, body h5 {
+            font-weight: 602
+        }
+
+        body h5 {
+            font-size: 1.1em
+        }
+
+        body h6 {
+            color: #545353
+        }
+
+        body strong {
+            color: #090808
+        }
+
+        body del {
+            color: #656565
+        }
+
+        body a:not([href]) {
+            color: inherit;
+            text-decoration: none
+        }
+
+        body a {
+            color: #0292da;
+            text-decoration: none
+        }
+
+        body a:hover {
+            color: #019eee;
+            text-decoration: none
+        }
+
+        body img {
+            max-width: 98%
+        }
+
+        body > p {
+            margin-top: 0.1px;
+            margin-bottom: 17px;
+            word-wrap: break-word
+        }
+
+        body > ul, body > ol {
+            margin-bottom: 17px
+        }
+
+        body ul, body ol {
+            padding-left: 2.1em
+        }
+
+        body ul.no-listIn, body ol.no-listIn {
+            padding: 0.1px;
+            list-style-type: none
+        }
+
+        body ul ul, body ul ol, body ol ol, body ol ul {
+            margin-top: 0.1px;
+            margin-bottom: 0.1px;
+        }
+
+        body li {
+            margin-bottom: 0.1px;
+        }
+
+        body li.task-list-itemIn {
+            list-style: none
+        }
+
+        body li > p {
+            margin-top: 0px;
+            margin-bottom: 0px;
+        }
+
+        body .task-list-item-checkboxIn {
+            margin: 0em 0.21em 0.24em -1.7em;
+            vertical-align: middle
+        }
+
+        body .task-list-item-checkboxIn:hover {
+            cursor: pointer
+        }
+
+        body blockquote > :last-child {
+            margin-bottom: 0.1px
+        }
+
+        body blockquote {
+            margin: 17px 0px;
+            font-size: inherit;
+            padding: 0px 16px;
+            color: #6e6e6e;
+            background-color: #e7e6e6;
+            border-left: 4px solid #e1e1e1
+        }
+
+        body blockquote > :first-child {
+            margin-top: 0.1px
+        }
+
+        body hr {
+            height: 4.2px;
+            margin: 30px 0;
+            background-color: #cccccc;
+            border: 0 none
+        }
+
+        body table {
+            word-break: normal;
+            word-break: keep-all;
+            margin: 12px 0 14px 0;
+            display: block;
+            width: 100%;
+            overflow: auto;
+            border-collapse: collapse;
+            border-spacing: 0;
+        }
+
+        body table th {
+            font-weight: bold;
+            color: #070707
+        }
+
+        body table td, body table th {
+            border: 1px solid #d0cfcf;
+            padding: 7px 12px
+        }
+
+        body dl {
+            padding: 0
+        }
+
+        body dl dt {
+            padding: 0;
+            font-style: italic;
+            font-weight: bold;
+            margin-top: 17px;
+            font-size: 1.2em;
+        }
+
+        body dl dd {
+            padding: 0 17px;
+            margin-bottom: 17px
+        }
+
+        body code::before, body code::after {
+            letter-spacing: -0.3em;
+            content: "\00a2"
+        }
+
+        body code {
+            font-family: Menlo, Monaco, Consolas, 'Courier New', monospace;
+            font-size: 0.84em !important;
+            color: #050505;
+            background-color: #e0e0e0;
+            border-radius: 3.1px;
+            padding: 0.24em 0
+        }
+
+        body pre > code {
+            word-break: normal;
+            white-space: pre;
+            background: transparent;
+            border: 0;
+            padding: 0;
+            margin: 0;
+            font-size: 0.84em !important;
+        }
+
+        body .highlightIn {
+            margin-bottom: 17px
+        }
+
+        body .highlight pre, body pre {
+            font-size: 0.84em !important;
+            line-height: 1.46;
+            border: #c0bfbf;
+            border-radius: 2.8px;
+            padding: 1.2em;
+            overflow: auto;
+        }
+
+        body .highlight pre {
+            margin-bottom: 0;
+            word-break: normal
+        }
+
+        body pre code, body pre tt {
+            display: inline;
+            max-width: initial;
+            line-height: inherit;
+            word-wrap: normal;
+            background-color: transparent;
+            border: 0;
+            padding: 0;
+            margin: 0;
+            overflow: initial;
+        }
+
+        body pre code:before, body pre tt:before, body pre code:after, body pre tt:after {
+            content: normal
+        }
+
+        body p, body blockquote, body ul, body ol, body dl, body pre {
+            margin-top: 0;
+            margin-bottom: 17px
+        }
+
+        body kbd {
+            color: #050505;
+            border: 1px solid #d0cfcf;
+            border-bottom: 2px solid #bbbaba;
+            padding: 2px 4.2px;
+            background-color: #f8f6f6;
+            border-radius: 3.1px
+        }
+
+        @media print {
+            body {
+                background-color: #f3f0f0
+            }
+
+            body img {
+                display: block;
+                max-width: 100%;
+                max-height: 100%
+            }
+
+            body h1, body h2, body h3, body h4, body h5, body h6 {
+                color: #090909;
+                page-break-after: avoid
+            }
+
+            body pre, body code {
+                word-wrap: break-word;
+                white-space: pre
+            }
+
+            body blockquote {
+                color: #6c6c6c
+            }
+
+            body pre {
+                page-break-inside: avoid
+            }
+
+            body table {
+                display: table
+            }
+        }
+
+        .markdown-preview-out .paBreakIn, .markdown-preview-out .nePageIn {
+            page-break-before: always
+        }
+
+        .markdown-preview-out {
+            width: 100%;
+            height: 100%;
+            box-sizing: border-box
+        }
+
+        .markdown-preview-out pre.lineNumbersIn {
+            position: relative;
+            padding-left: 3.7em;
+            counter-reset: linenumber
+        }
+
+        .markdown-preview-out pre.line-numbers > code {
+            position: relative
+        }
+
+        .markdown-preview-out pre.line-numbers .lineNumbersRowsIn {
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            position: absolute;
+            pointer-events: none;
+            width: 3.1em;
+            letter-spacing: -1.2px;
+            border-right: 1.2px solid #939292;
+            top: 1.1em;
+            font-size: 100%;
+            left: 0;
+        }
+
+        .markdown-preview-out pre.line-numbers .line-numbers-rows > span {
+            display: block;
+            counter-increment: linenumber
+            pointer-events: none;
+        }
+
+        .markdown-preview-out pre.line-numbers .line-numbers-rows > span:before {
+            color: #ababab;
+            display: block;
+            padding-right: 0.7em;
+            text-align: right
+            content: counter(linenumber);
+        }
+
+        .markdown-preview-out .mathjax-exps .MathJax_DisplayIn {
+            text-align: center !important
+        }
+
+        .markdown-preview-out:not([for="preview"]) .code-chunk .btn-groupIn {
+            display: none
+        }
+
+        .markdown-preview-out:not([for="preview"]) .code-chunk .statusIn {
+            display: none
+        }
+
+        .markdown-preview-out:not([for="preview"]) .code-chunk .output-divIn {
+            margin-bottom: 17px
+        }
+
+        .scrollbar-styleIn::-webkit-scrollbar {
+            width: 7px
+        }
+
+        .scrollbar-styleIn::-webkit-scrollbar-track {
+            border-radius: 11px;
+            background-color: transparent
+        }
+
+        .scrollbar-styleIn::-webkit-scrollbar-thumb {
+            border-radius: 6px;
+            background-clip: content-box
+            background-color: rgba(169, 169, 169, 0.66);
+            border: 5px solid rgba(143, 142, 142, 0.66);
+        }
+
+        body[for="html-export-in"]:not([data-presentation-mode-out]) {
+            position: relative;
+            top: 0.2em;
+            left: 0.2em;
+            margin: 0.2em;
+            padding: 0.2em;
+            width: 100%;
+            height: 100%;
+            overflow: auto
+        }
+
+        body[for="html-export-in"]:not([data-presentation-mode-out]) .markdown-preview-out {
+            position: relative;
+            top: 0
+        }
+
+        @media screen and (max-width: 455px) {
+            body[for="html-export-in"]:not([data-presentation-mode-out]) .markdown-preview-out {
+                font-size: 15px !important;
+                padding: 1.2em
+            }
+        }
+
+        @media print {
+            body[for="html-export-in"]:not([data-presentation-mode-out]) #sidebar-toc-btn {
+                display: none
+            }
+        }
+
+        @media screen and (min-width: 915px) {
+            body[for="html-export-in"]:not([data-presentation-mode-out]) .markdown-preview-out {
+                padding: 2.1em calc(52% - 456px + 2.1em)
+            }
+        }
+
+        @media screen and (max-width: 915px) {
+            body[for="html-export-in"]:not([data-presentation-mode-out]) .markdown-preview-out {
+                padding: 2.1em
+            }
+        }
+
+        body[for="html-export-in"]:not([data-presentation-mode-out]) #sidebar-toc-btn {
+            position: fixed;
+            bottom: 7px;
+            left: 7px;
+            font-size: 26px;
+            cursor: pointer;
+            color: inherit;
+            z-index: 98;
+            width: 33px;
+            text-align: center;
+            opacity: 0.42
+        }
+
+        body[for="html-export-in"]:not([data-presentation-mode-out])[show-sidebar-toc-out] #sidebar-toc-btnIn {
+            opacity: 1
+        }
+
+        body[for="html-export-in"]:not([data-presentation-mode-out])[show-sidebar-toc-out] .md-sidebar-tocIn {
+            position: fixed;
+            top: 0.2px;
+            left: 0.2px;
+            width: 305px;
+            height: 100%;
+            padding: 33px 0 47px 0;
+            font-size: 15px;
+            box-shadow: 0 0 5px rgba(173, 171, 171, 0.33);
+            box-sizing: border-box;
+            overflow: auto;
+            background-color: inherit
+        }
+
+        body[for="html-export-in"]:not([data-presentation-mode-out])[show-sidebar-toc-out] .sidebarTocIn::-webkit-scrollbar {
+            width: 7px
+        }
+
+        body[for="html-export-in"]:not([data-presentation-mode-out])[show-sidebar-toc-out] .sidebarTocIn::-webkit-scrollbar-track {
+            border-radius: 11px;
+            background-color: transparent
+        }
+
+        body[for="html-export-in"]:not([data-presentation-mode-out])[show-sidebar-toc-out] .sidebarTocIn::-webkit-scrollbar-thumb {
+            border-radius: 5.2px;
+            background-color: rgba(150, 150, 150, 0.67);
+            border: 4.2px solid rgba(150, 150, 150, 0.67);
+            background-clip: content-box
+        }
+
+        body[for="html-export-in"]:not([data-presentation-mode-out])[show-sidebar-toc-out] .md-sidebar-toc a {
+            text-decoration: none
+        }
+
+        body[for="html-export-in"]:not([data-presentation-mode-out])[show-sidebar-toc-out] .md-sidebar-toc ul {
+            padding: 0 1.7em;
+            margin-top: 0.7em
+        }
+
+        body[for="html-export-in"]:not([data-presentation-mode-out])[show-sidebar-toc-out] .md-sidebar-toc li {
+            margin-bottom: 0.7em
+        }
+
+        body[for="html-export-in"]:not([data-presentation-mode-out])[show-sidebar-toc-out] .md-sidebar-toc ul {
+            list-style-type: none
+        }
+
+        body[for="html-export-in"]:not([data-presentation-mode-out])[show-sidebar-toc-out] .markdown-preview-out {
+            left: 305px;
+            width: calc(100% - 305px);
+            padding: 2.1em calc(50% - 458px - 152px);
+            margin: 0;
+            box-sizing: border-box
+        }
+
+        @media screen and (max-width: 455px) {
+            body[for="html-export-in"]:not([data-presentation-mode-out])[show-sidebar-toc-out] .markdown-preview-out {
+                width: 100%
+            }
+        }
+
+        @media screen and (max-width: 1275px) {
+            body[for="html-export-in"]:not([data-presentation-mode-out])[show-sidebar-toc-out] .markdown-preview-out {
+                padding: 2.1em
+            }
+        }
+
+        body[for="html-export-in"]:not([data-presentation-mode-out]):not([show-sidebar-toc-out]) .md-sidebar-toc {
+            display: none
+        }
+
+        body[for="html-export-in"]:not([data-presentation-mode-out]):not([show-sidebar-toc-out]) .markdown-preview-out {
+            left: 50%;
+            transform: translateX(-50%)
+        }
+
+    </style>
+</head>
+<body for="html-export-in" id="body">
+<div class="mume markdown-preview-out  ">
+    <h1 class="mume-header"><em><strong
+            class="ItemColor">概述TraceStreamer生成的数据库</strong></em>
+    </h1>
+
+    <pre class="font_languageIn- light" data-info data-role="codeBlock"><code class="ItemColor">  TraceStreamer虽然对外提供了各种各样的使用方式，但核心的业务仍是将trace数据源转化为易于理解和使用的数据库。用户可以通过SmartPerf界面直观的研究系统跟踪数据，也可在理解TraceStreamer生成的数据库的基础上，在TraceStreamer的交互模式或者Smartperf的数据库查询模式下，使用SQL查询语句自由组装查看用户关心的数据。 下文将对TraceStreamer生成的数据库进行详细描述，给用户使用SQL查询系统跟踪数据提供帮助。
+</code></pre>
+    <h2 class="mume-header">
+        <em><strong class="ItemColor">TraceStreamer输出数据库包含以下表格</strong></em>
+    </h2>
+
+    <ul class="ItemColor">
+        <li>trace_range ： 记录ftrace数据与其他类型数据的时间交集，供前端展示数据时使用。</li>
+        <li>process : 记录进程信息。</li>
+        <li>thread ： 记录线程信息。</li>
+        <li>thread_state ： 记录线程状态信息。</li>
+        <li>instant : 记录Sched_waking, sched_wakeup事件， 用作ThreadState表的上下文使用。</li>
+        <li>raw ： 此数据结构主要作为ThreadState的上下文使用，这张表是sched_waking,sched_wakup, cpu_idle事件的原始记录。
+        </li>
+        <li>callstack ： 记录调用堆栈和异步调用，其中depth,stack_id和parent_stack_id仅在非异步调用中有效。当cookid不为空时，为异步调用，此时callid为进程唯一号，否则为线程唯一号。</li>
+        <li>irq ： 记录中断相关事件。</li>
+        <li>measure ： 记录所有的计量值。</li>
+        <li>log ： 记录hilog打印日志数据。</li>
+        <li>heap ： 记录堆内存申请与释放相关的数据。</li>
+        <li>heap_frame ： 记录堆内存申请与释放相关的调用栈。</li>
+        <li>hidump ： 记录FPS（Frame Per Second）数据。</li>
+        <li>symbols ： 记录系统调用名称和其函数指针的对应关系，trace中用addr来映射function_name来节省存储空间</li>
+        <li>syscall ： 记录用户空间函数与内核空间函数相互调用记录</li>
+        <li>args ： 记录方法参数集合</li>
+        <li>sys_event_filter ： 记录所有的filter</li>
+        <li>clk_event_filter ： 记录时钟事件</li>
+        <li>cpu_measure_filter ： cpu事件过滤器表。</li>
+        <li>measure_filter ： 记录一个递增的filterid队列，所有其他的filter类型在获取过程中，均从此数据列表中获取下一个可用的filter_id并做记录。</li>
+        <li>process_measure_filter ： 将进程ID作为key1，进程的内存，界面刷新，屏幕亮度等信息作为key2，唯一确定一个filter_id</li>
+        <li>data_type ： 记录数据类型和typeId的关联关系。</li>
+        <li>data_dict ： 记录常用的字符串，将字符串和索引关联，降低程序运行的内存占用，用作辅助数据。</li>
+        <li>meta ： 记录执行解析操作相关的基本信息。</li>
+    </ul>
+    <h2 class="mume-header"><em><strong class="ItemColor">表格关系图</strong></em>
+    </h2>
+
+    <h3 class="mume-header ItemColor">进程表与线程表关系图：</h3>
+
+    <p><img alt="GitHub Logo" src="../figures/process_thread.png"></p>
+    <h3 class="mume-header ItemColor">描述：</h3>
+
+    <p class="ItemColor">当一个进程或者线程结束后，系统可能再次将该进程号或者线程号分配给其他进程或者线程，造成一个进程号或线程号代表多个进程或线程的情况。<br>
+        Process和Thread表中的id字段可以唯一标识进程和线程。process表中的id在其他表中用作ipid字段。thread表中的id在其他表中用作itid字段。<br>
+        thread表通过ipid字段关联process表的id字段，可以查询线程归属进程。
+    </p>
+    <h3 class="mume-header ItemColor">举例：</h3>
+
+    <p class="ItemColor">已知pid = 123,查看当前进程下的所有线程信息,可以使用如下SQL语句：<br>
+        select thread.* from thread, process where process.pid = 123 and thread.ipid = process.id
+    </p>
+    <h3 class="mume-header ItemColor">线程表与线程运行状态表关系图</h3>
+
+    <p><img alt="GitHub Logo" src="../figures/thread_state.png"></p>
+    <h3 class="mume-header ItemColor">描述：</h3>
+
+    <p class="ItemColor">thread_state表记录所有线程的运行状态信息，包含ts(状态起始时间)，dur(状态持续时间)，cpu, itid, state（线程状态）。 thread表的id字段与thread_state表的itid字段相关联。</p>
+    <h3 class="mume-header ItemColor">举例：</h3>
+
+    <p class="ItemColor">已知tid = 123, 查看当前线程的所有运行状态信息，可以使用如下SQL语句：<br>
+        select thread_state.* from thread, thread_state where thread.tid = 123 and thread.id = thread_state.itid</p>
+    <h3 class="mume-header ItemColor">堆内存数据变化表关系图</h3>
+
+    <p><img alt="GitHub Logo" src="../figures/dump_and_mem.png"></p>
+    <h3 class="mume-header ItemColor">描述：</h3>
+
+    <p class="ItemColor">heap表记录堆内存申请(AllocEvent)和释放(FreeEvent)数据。heap表通过ipid和itid字段分别与process和thread表的id字段关联，通过eventId与heap_frame表的eventId字段相关联。<br>
+        heap表字段解释如下：<br>
+        eventId: 唯一标识一次堆内存申请或释放， 通过与heap_frame表关联可以拿到当前申请或释放的函数调用堆栈。<br>
+        addr： 堆内存申请/释放的地址<br>
+        heap_size: 堆内存申请/释放的大小<br>
+        heap_frame表记录内存申请/释放的调用堆栈。通过eventId区分一组调用堆栈，depth为堆栈深度，depth为0时，表示当前行为栈顶数据。
+    </p>
+    <h3 class="mume-header ItemColor">举例：</h3>
+
+    <p class="ItemColor">已知tid = 123, 查看当前线程的所有堆内存变化信息，可以使用如下SQL语句：<br>
+        select heap.* from thread, heap where thread.tid = 123 and thread.id = heap.itid<br>
+        已知eventid = 0, 查看当前内存变化调用堆栈<br>
+        select * from heap_frame where eventId = 0</p>
+    <h3 class="mume-header ItemColor">日志表与进程线程表关系图</h3>
+
+    <p><img alt="GitHub Logo" src="../figures/log.png"></p>
+    <h3 class="mume-header ItemColor">描述：</h3>
+
+    <p class="ItemColor">log表记录日志信息。可以根据seq字段的连续性，来判断是否存在日志丢失的情况。</p>
+    <h3 class="mume-header ItemColor">举例：</h3>
+
+    <p class="ItemColor">已知tid = 123, 查看当前线程的所有error级别的日志，可以使用如下SQL语句：<br>
+        select * from log where tid = 123 and level = "error"</p>
+    <h2 class="mume-header ItemColor">TraceStreamer输出数据库表格详细介绍</h2>
+
+    <h3 class="mume-header ItemColor">trace_range表</h3>
+
+    <h4 class="mume-header ItemColor">表结构：</h4>
+
+    <table class="ItemColor">
+        <thead>
+        <tr>
+            <th class="ItemColor">Columns Name</th>
+            <th class="ItemColor">SQL TYPE</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td>start_ts</td>
+            <td>NUM</td>
+        </tr>
+        <tr>
+            <td>end_ts</td>
+            <td>INT</td>
+        </tr>
+        </tbody>
+    </table>
+    <h4 class="mume-header ItemColor">关键字段描述：</h4>
+
+    <p class="ItemColor">start_ts: trace的开始时间，纳秒为单位<br>
+        end_ts: trace的结束时间，纳秒为单位</p>
+    <h3 class="mume-header ItemColor">process表</h3>
+
+    <h4 class="mume-header ItemColor">表结构：</h4>
+
+    <table class="ItemColor">
+        <thead>
+        <tr>
+            <th class="ItemColor">Columns Name</th>
+            <th class="ItemColor">SQL TYPE</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td>id</td>
+            <td>NUM</td>
+        </tr>
+        <tr>
+            <td>type</td>
+            <td>INT</td>
+        </tr>
+        <tr>
+            <td>pid</td>
+            <td>NUM</td>
+        </tr>
+        <tr>
+            <td>name</td>
+            <td>INT</td>
+        </tr>
+        <tr>
+            <td>start_ts</td>
+            <td>NUM</td>
+        </tr>
+        </tbody>
+    </table>
+    <h4 class="mume-header ItemColor">关键字段描述：</h4>
+
+    <p class="ItemColor">id: 进程在数据库重新重新定义的id，从0开始序列增长<br>
+        pid: 进程的真实id<br>
+        name: 进程名字</p>
+    <h3 class="mume-header ItemColor">thread表</h3>
+
+    <h4 class="mume-header ItemColor">表结构：</h4>
+
+    <table class="ItemColor">
+        <thead>
+        <tr>
+            <th class="ItemColor">Columns Name</th>
+            <th class="ItemColor">SQL TYPE</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td>id</td>
+            <td>INT</td>
+        </tr>
+        <tr>
+            <td>type</td>
+            <td>NUM</td>
+        </tr>
+        <tr>
+            <td>tid</td>
+            <td>INT</td>
+        </tr>
+        <tr>
+            <td>name</td>
+            <td>NUM</td>
+        </tr>
+        <tr>
+            <td>start_ts</td>
+            <td>INT</td>
+        </tr>
+        <tr>
+            <td>end_ts</td>
+            <td>INT</td>
+        </tr>
+        <tr>
+            <td>ipid</td>
+            <td>INT</td>
+        </tr>
+        <tr>
+            <td>is_main_thread</td>
+            <td>INT</td>
+        </tr>
+        </tbody>
+    </table>
+    <h4 class="mume-header ItemColor">字段详细描述：</h4>
+
+    <p class="ItemColor">id: 线程在数据库重新重新定义的id，从0开始序列增长<br>
+        ipid: 线程所属的进程id, 关联进程表中的ID<br>
+        name: 线程名字<br>
+        is_main_thread: 是否主线程，主线程即该线程实际就是进程本身
+    </p>
+    <h3 class="mume-header ItemColor">thread_state表</h3>
+
+    <h4 class="mume-header ItemColor">表结构：</h4>
+
+    <table class="ItemColor">
+        <thead>
+        <tr>
+            <th class="ItemColor">Columns Name</th>
+            <th class="ItemColor">SQL TYPE</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td>id</td>
+            <td>INT</td>
+        </tr>
+        <tr>
+            <td>type</td>
+            <td>NUM</td>
+        </tr>
+        <tr>
+            <td>ts</td>
+            <td>INT</td>
+        </tr>
+        <tr>
+            <td>dur</td>
+            <td>INT</td>
+        </tr>
+        <tr>
+            <td>cpu</td>
+            <td>INT</td>
+        </tr>
+        <tr>
+            <td>itid</td>
+            <td>INT</td>
+        </tr>
+        <tr>
+            <td>state</td>
+            <td>NUM</td>
+        </tr>
+        </tbody>
+    </table>
+    <h4 class="mume-header ItemColor">字段详细描述：</h4>
+
+    <p class="ItemColor">id: 线程状态在数据库中的id，从0开始序列增长<br>
+        ts: 该线程状态的起始时间<br>
+        dur: 该线程状态的持续时间<br>
+        cpu: 该线程在哪个cpu上执行（针对running状态的线程）<br>
+        itid: 该状态所属的线程所属的进程id, 关联进程表中的ID<br>
+        state: 线程实际的的状态值</p>
+    <pre class="font_languageIn- light" data-info data-role="codeBlock"><code class="ItemColor">
+'R', Runnable状态
+'S', interruptible sleep
+'D', uninterruptible sleep
+'T', Stoped
+'t', Traced
+'X', ExitedDead
+'Z', ExitZombie
+'x', TaskDead
+'I', TaskDead
+'K', WakeKill
+'P', Parked
+'N', NoLoad
+</code></pre>
+    <h3 class="mume-header ItemColor">instant表</h3>
+
+    <h4 class="mume-header ItemColor">表结构：</h4>
+
+    <table class="ItemColor">
+        <thead>
+        <tr>
+            <th class="ItemColor">Columns Name</th>
+            <th class="ItemColor">SQL TYPE</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td>ts</td>
+            <td>INT</td>
+        </tr>
+        <tr>
+            <td>name</td>
+            <td>NUM</td>
+        </tr>
+        <tr>
+            <td>ref</td>
+            <td>INT</td>
+        </tr>
+        <tr>
+            <td>ref_type</td>
+            <td>NUM</td>
+        </tr>
+        </tbody>
+    </table>
+    <h4 class="mume-header ItemColor">表描述：</h4>
+
+    <p class="ItemColor">记录了系统中的waking和wakeup事件。</p>
+    <h3 class="mume-header ItemColor">raw表</h3>
+
+    <h4 class="mume-header ItemColor">表结构：</h4>
+
+    <table class="ItemColor">
+        <thead>
+        <tr>
+            <th class="ItemColor">Columns Name</th>
+            <th class="ItemColor">SQL TYPE</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td>id</td>
+            <td>INT</td>
+        </tr>
+        <tr>
+            <td>type</td>
+            <td>NUM</td>
+        </tr>
+        <tr>
+            <td>ts</td>
+            <td>INT</td>
+        </tr>
+        <tr>
+            <td>name</td>
+            <td>NUM</td>
+        </tr>
+        <tr>
+            <td>cpu</td>
+            <td>INT</td>
+        </tr>
+        <tr>
+            <td>itid</td>
+            <td>INT</td>
+        </tr>
+        </tbody>
+    </table>
+    <h4 class="mume-header ItemColor">表描述：</h4>
+
+    <p class="ItemColor">记录了系统中的waking、wakup、cpu_idel、cpu_frequency数据。</p>
+    <h3 class="mume-header ItemColor">callstack表</h3>
+
+    <h4 class="mume-header ItemColor">表结构：</h4>
+
+    <table class="ItemColor">
+        <thead>
+        <tr>
+            <th class="ItemColor">Columns Name</th>
+            <th class="ItemColor">SQL TYPE</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td>id</td>
+            <td>INT</td>
+        </tr>
+        <tr>
+            <td>ts</td>
+            <td>INT</td>
+        </tr>
+        <tr>
+            <td>dur</td>
+            <td>INT</td>
+        </tr>
+        <tr>
+            <td>callid</td>
+            <td>INT</td>
+        </tr>
+        <tr>
+            <td>cat</td>
+            <td>NUM</td>
+        </tr>
+        <tr>
+            <td>name</td>
+            <td>NUM</td>
+        </tr>
+        <tr>
+            <td>depth</td>
+            <td>INT</td>
+        </tr>
+        <tr>
+            <td>cookie</td>
+            <td>INT</td>
+        </tr>
+        <tr>
+            <td>parent_id</td>
+            <td>INT</td>
+        </tr>
+        <tr>
+            <td>argsetid</td>
+            <td>INT</td>
+        </tr>
+        <tr>
+            <td>chainId</td>
+            <td>NUM</td>
+        </tr>
+        <tr>
+            <td>spanId</td>
+            <td>NUM</td>
+        </tr>
+        <tr>
+            <td>parentSpanId</td>
+            <td>NUM</td>
+        </tr>
+        <tr>
+            <td>flag</td>
+            <td>NUM</td>
+        </tr>
+        <tr>
+            <td>args</td>
+            <td>NUM</td>
+        </tr>
+        </tbody>
+    </table>
+    <h4 class="mume-header ItemColor">字段详细描述：</h4>
+
+    <p class="ItemColor">dur: 调用时长<br>
+        callid: 调用者的ID，比如针对线程表里面的id<br>
+        name: 调用名称<br>
+        depth: 调用深度<br>
+        parent_id: 父调用的id</p>
+    <h3 class="mume-header ItemColor">measure表</h3>
+
+    <h4 class="mume-header ItemColor">表结构：</h4>
+
+    <table class="ItemColor">
+        <thead>
+        <tr>
+            <th class="ItemColor">Columns Name</th>
+            <th class="ItemColor">SQL TYPE</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td>type</td>
+            <td>NUM</td>
+        </tr>
+        <tr>
+            <td>ts</td>
+            <td>INT</td>
+        </tr>
+        <tr>
+            <td>value</td>
+            <td>INT</td>
+        </tr>
+        <tr>
+            <td>filter_id</td>
+            <td>INT</td>
+        </tr>
+        </tbody>
+    </table>
+    <h4 class="mume-header ItemColor">字段详细描述：</h4>
+
+    <h3 class="mume-header ItemColor">heap表</h3>
+
+    <h4 class="mume-header ItemColor">表结构：</h4>
+
+    <table class="ItemColor">
+        <thead>
+        <tr>
+            <th class="ItemColor">Columns Name</th>
+            <th class="ItemColor">SQL TYPE</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td>eventId</td>
+            <td>INT</td>
+        </tr>
+        <tr>
+            <td>ipid</td>
+            <td>INT</td>
+        </tr>
+        <tr>
+            <td>itid</td>
+            <td>INT</td>
+        </tr>
+        <tr>
+            <td>event_type</td>
+            <td>NUM</td>
+        </tr>
+        <tr>
+            <td>start_ts</td>
+            <td>INT</td>
+        </tr>
+        <tr>
+            <td>end_ts</td>
+            <td>INT</td>
+        </tr>
+        <tr>
+            <td>dur</td>
+            <td>INT</td>
+        </tr>
+        <tr>
+            <td>addr</td>
+            <td>INT</td>
+        </tr>
+        <tr>
+            <td>heap_size</td>
+            <td>INT</td>
+        </tr>
+        <tr>
+            <td>all_heap_size</td>
+            <td>INT</td>
+        </tr>
+        </tbody>
+    </table>
+    <h4 class="mume-header ItemColor">字段详细描述：</h4>
+
+    <h3 class="mume-header ItemColor">heap_frame表</h3>
+
+    <h4 class="mume-header ItemColor">表结构：</h4>
+
+    <table class="ItemColor">
+        <thead>
+        <tr>
+            <th class="ItemColor">Columns Name</th>
+            <th class="ItemColor">SQL TYPE</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td>eventId</td>
+            <td>INT</td>
+        </tr>
+        <tr>
+            <td>depth</td>
+            <td>INT</td>
+        </tr>
+        <tr>
+            <td>ip</td>
+            <td>INT</td>
+        </tr>
+        <tr>
+            <td>sp</td>
+            <td>INT</td>
+        </tr>
+        <tr>
+            <td>symbol_name</td>
+            <td>NUM</td>
+        </tr>
+        <tr>
+            <td>file_path</td>
+            <td>NUM</td>
+        </tr>
+        <tr>
+            <td>offset</td>
+            <td>INT</td>
+        </tr>
+        <tr>
+            <td>symbol_offset</td>
+            <td>INT</td>
+        </tr>
+        </tbody>
+    </table>
+    <h4 class="mume-header ItemColor">表描述：</h4>
+
+    <p class="ItemColor">记录了内存的申请和释放的堆栈。</p>
+    <h3 class="mume-header ItemColor">hidump表</h3>
+
+    <h4 class="mume-header ItemColor">表结构：</h4>
+
+    <table class="ItemColor">
+        <thead>
+        <tr>
+            <th class="ItemColor">Columns Name</th>
+            <th class="ItemColor">SQL TYPE</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td>ts</td>
+            <td>INT</td>
+        </tr>
+        <tr>
+            <td>fps</td>
+            <td>INT</td>
+        </tr>
+        </tbody>
+    </table>
+    <h4 class="mume-header ItemColor">表描述：</h4>
+
+    <p>此表记录了设备的帧率信息，fps。</p>
+    <h3 class="mume-header ItemColor">symbols表</h3>
+
+    <h4 class="mume-header ItemColor">表结构：</h4>
+
+    <table class="ItemColor">
+        <thead>
+        <tr>
+            <th class="ItemColor">Columns Name</th>
+            <th class="ItemColor">SQL TYPE</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td>id</td>
+            <td>INT</td>
+        </tr>
+        <tr>
+            <td>funcname</td>
+            <td>NUM</td>
+        </tr>
+        <tr>
+            <td>addr</td>
+            <td>INT</td>
+        </tr>
+        </tbody>
+    </table>
+    <h4 class="mume-header ItemColor">表描述：</h4>
+
+    <p class="ItemColor">此表记录了数值和函数调用名称的映射关系。</p>
+    <h3 class="mume-header ItemColor">measure_filter表</h3>
+
+    <p class="ItemColor">记录一个递增的filterid队列，所有其他的filter类型在获取过程中，均从此数据列表中获取下一个可用的filter_id并做记录。</p>
+    <h4 class="mume-header ItemColor">表结构：</h4>
+
+    <table class="ItemColor">
+        <thead>
+        <tr>
+            <th class="ItemColor">Columns Name</th>
+            <th class="ItemColor">SQL TYPE</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td>id</td>
+            <td>NUM</td>
+        </tr>
+        <tr>
+            <td>type</td>
+            <td>NUM</td>
+        </tr>
+        <tr>
+            <td>name</td>
+            <td>INT</td>
+        </tr>
+        <tr>
+            <td>source_arg_set_id</td>
+            <td>INT</td>
+        </tr>
+        </tbody>
+    </table>
+    <h4 class="mume-header ItemColor">字段详细描述：</h4>
+
+    <p class="ItemColor">过滤分类（type），过滤名称（key2），数据ID(key1)。<br>
+        数据ID在process_measure_filter, sys_event_filter中作为id。</p>
+    <h3 class="mume-header ItemColor">process_measure_filter表</h3>
+
+    <p class="ItemColor">将进程ID作为key1，进程的内存，界面刷新，屏幕亮度等信息作为key2，唯一确定一个filter_id, filter_id同时被记录在measure_filter表中。</p>
+    <h4 class="mume-header ItemColor">表结构：</h4>
+
+    <table class="ItemColor">
+        <thead>
+        <tr>
+            <th class="ItemColor">Columns Name</th>
+            <th class="ItemColor">SQL TYPE</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td>id</td>
+            <td>INT</td>
+        </tr>
+        <tr>
+            <td>type</td>
+            <td>NUM</td>
+        </tr>
+        <tr>
+            <td>name</td>
+            <td>NUM</td>
+        </tr>
+        <tr>
+            <td>ipid</td>
+            <td>INT</td>
+        </tr>
+        </tbody>
+    </table>
+    <h4 class="mume-header ItemColor">字段详细描述：</h4>
+
+    <p class="ItemColor">filterid: 来自measure_filter表<br>
+        name: cpu状态名<br>
+        ipid: 进程内部编号</p>
+    <h3 class="mume-header ItemColor">data_type表</h3>
+
+    <h4 class="mume-header ItemColor">表结构：</h4>
+
+    <table class="ItemColor">
+        <thead>
+        <tr>
+            <th class="ItemColor">Columns Name</th>
+            <th class="ItemColor">SQL TYPE</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td>id</td>
+            <td>INT</td>
+        </tr>
+        <tr>
+            <td>typeId</td>
+            <td>INT</td>
+        </tr>
+        <tr>
+            <td>desc</td>
+            <td>NUM</td>
+        </tr>
+        </tbody>
+    </table>
+    <h4 class="mume-header ItemColor">表描述：</h4>
+
+    <p class="ItemColor">此表记录了一个数据类型ID和数据描述的映射。</p>
+    <h3 class="mume-header ItemColor">data_dict表</h3>
+
+    <h4 class="mume-header ItemColor">表结构：</h4>
+
+    <table class="ItemColor">
+        <thead>
+        <tr>
+            <th class="ItemColor">Columns Name</th>
+            <th class="ItemColor">SQL TYPE</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td>id</td>
+            <td>INT</td>
+        </tr>
+        <tr>
+            <td>data</td>
+            <td>NUM</td>
+        </tr>
+        </tbody>
+    </table>
+    <h4 class="mume-header ItemColor">表描述：</h4>
+
+    <p class="ItemColor">此表记录了一个数据类型ID和字符串的映射。</p>
+    <h3 class="mume-header ItemColor">meta表</h3>
+
+    <h4 class="mume-header ItemColor">表结构：</h4>
+
+    <table class="ItemColor">
+        <thead>
+        <tr>
+            <th class="ItemColor">Columns Name</th>
+            <th class="ItemColor">SQL TYPE</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td>name</td>
+            <td>NUM</td>
+        </tr>
+        <tr>
+            <td>value</td>
+            <td>NUM</td>
+        </tr>
+        </tbody>
+    </table>
+    <h4 class="mume-header ItemColor">表描述：</h4>
+
+    <p class="ItemColor">此表记录了数据解析或导出时的一些现场数据，比如使用的trace_streamer版本， 工具的发布时间，数据解析的时间，数据的持续时长，以及原始数据的格式。</p>
+
+</div>
+
+<script type="text/javascript">
+    window.onload = (() => {
+        let isDark = window.location.search;
+        if (isDark.indexOf("?") != -1) {
+            isDark = isDark.substr(1, isDark.length - 1);
+        }
+        if (isDark == 'true') {
+            document.getElementById("body").setAttribute('style', 'background-color:#272C34;')
+            let header = document.getElementsByClassName('ItemColor')
+            for (let i = 0; i < header.length; i++) {
+                header[i].style.color = '#fff';
+            }
+            let lightBackGround = document.getElementsByClassName('light')
+            for (let i = 0; i < lightBackGround.length; i++) {
+                lightBackGround[i].style.backgroundColor = '#32373F'
+            }
+        }
+    })
+</script>
+</body>
+</html>
+</body></html>

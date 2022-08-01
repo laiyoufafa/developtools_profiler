@@ -109,7 +109,7 @@ describe('PlugConvertUtils Test', ()=>{
     });
 
     it('PlugConvertUtils03', function () {
-        expect(PluginConvertUtils.BeanToCmdTxt(request, false)).not.toBeNull()
+        expect(PluginConvertUtils.BeanToCmdTxtWithObjName(request, false,'',1)).not.toBeNull()
     });
 
 })

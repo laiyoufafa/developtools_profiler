@@ -15,20 +15,30 @@
 
 import {BaseStruct, ColorUtils, ns2x, Rect} from "./ProcedureWorkerCommon.js";
 
-export function func(list: Array<any>, res: Set<any>, startNS: number, endNS: number, totalNS: number, frame: any) {
-    res.clear();
-    if (list) {
-        for (let i = 0, len = list.length; i < len; i++) {
-            let it = list[i];
-            if ((it.startTs || 0) + (it.dur || 0) > (startNS || 0) && (it.startTs || 0) < (endNS || 0)) {
-                FuncStruct.setFuncFrame(list[i], 0, startNS || 0, endNS || 0, totalNS || 0, frame)
-                if (i > 0 && (list[i - 1].frame?.y || 0) == (list[i].frame?.y || 0) && ((list[i - 1].frame?.x || 0) == (list[i].frame?.x || 0) && (list[i - 1].frame?.width || 0) == (list[i].frame?.width || 0))) {
-
-                } else {
-                    res.add(list[i])
-                }
+export function func(list: Array<any>, res: Array<any>, startNS: number, endNS: number, totalNS: number, frame: any, use: boolean) {
+    if (use && res.length > 0) {
+        for (let i = 0, len = res.length; i < len; i++) {
+            if ((res[i].startTs || 0) + (res[i].dur || 0) >= startNS && (res[i].startTs || 0) <= endNS) {
+                FuncStruct.setFuncFrame(res[i], 0, startNS, endNS, totalNS, frame)
+            }else{
+                res[i].frame = null;
             }
         }
+        return;
+    }
+    res.length = 0;
+    if (list) {
+        let groups = list.filter(it => (it.startTs || 0) + (it.dur || 0) >= startNS && (it.startTs || 0) <= endNS).map(it => {
+            FuncStruct.setFuncFrame(it, 0, startNS, endNS, totalNS, frame)
+            return it;
+        }).reduce((pre, current, index, arr) => {
+            (pre[`${current.frame.x}`] = pre[`${current.frame.x}`] || []).push(current);
+            return pre;
+        }, {});
+        Reflect.ownKeys(groups).map((kv => {
+            let arr = (groups[kv].sort((a: any, b: any) => b.dur - a.dur));
+            res.push(arr[0]);
+        }));
     }
 }
 
@@ -45,53 +55,56 @@ export class FuncStruct extends BaseStruct {
     startTs: number | undefined // 9729867000
     threadName: string | undefined // "Thread-15"
     tid: number | undefined // 2785
+    identify: number | undefined
     track_id: number | undefined // 414
 
     static setFuncFrame(node: any, padding: number, startNS: number, endNS: number, totalNS: number, frame: any) {
         let x1: number, x2: number;
-        if ((node.startTs || 0) < startNS) {
-            x1 = 0;
-        } else {
+        if ((node.startTs || 0) > startNS && (node.startTs || 0) < endNS) {
             x1 = ns2x((node.startTs || 0), startNS, endNS, totalNS, frame);
-        }
-        if ((node.startTs || 0) + (node.dur || 0) > endNS) {
-            x2 = frame.width;
         } else {
-            x2 = ns2x((node.startTs || 0) + (node.dur || 0), startNS, endNS, totalNS, frame);
+            x1 = 0;
         }
-        let getV: number = x2 - x1 <= 1 ? 1 : x2 - x1;
+        if ((node.startTs || 0) + (node.dur || 0) > startNS && (node.startTs || 0) + (node.dur || 0) < endNS) {
+            x2 = ns2x((node.startTs || 0) + (node.dur || 0), startNS, endNS, totalNS, frame);
+        } else {
+            x2 = frame.width;
+        }
         if (!node.frame) {
             node.frame = {};
         }
+        let getV: number = x2 - x1 <= 1 ? 1 : x2 - x1;
         node.frame.x = Math.floor(x1);
         node.frame.y = 0;
         node.frame.width = Math.floor(getV);
         node.frame.height = 20;
     }
 
-    static getInt(str:string):number{
+    static getInt(data: FuncStruct): number {
+        let str = data.funName || "";
         let sum = 0;
         for (let i = 0; i < str.length; i++) {
-            sum+=str.charCodeAt(i)
+            sum += str.charCodeAt(i)
         }
-        return sum % ColorUtils.FUNC_COLOR.length;
+        return (sum + (data?.depth || 0)) % ColorUtils.FUNC_COLOR.length;
     }
-    static draw(ctx: CanvasRenderingContext2D, data: FuncStruct) {
+
+    static draw(ctx: CanvasRenderingContext2D, data: FuncStruct, totalNS: number) {
         if (data.frame) {
             let isBinder = FuncStruct.isBinder(data);
             if (data.dur == undefined || data.dur == null || data.dur == 0) {
             } else {
-                ctx.fillStyle = ColorUtils.FUNC_COLOR[FuncStruct.getInt(data.funName||"")]
+                ctx.fillStyle = ColorUtils.FUNC_COLOR[ColorUtils.hashFunc(data.funName || '', 0, ColorUtils.FUNC_COLOR.length)];//data.depth ||
                 let miniHeight = 20
                 ctx.fillRect(data.frame.x, data.frame.y, data.frame.width, miniHeight - padding * 2)
                 if (data.frame.width > 10) {
                     ctx.fillStyle = "#fff"
-                    FuncStruct.drawString(ctx, data.funName || '', 5, data.frame)
+                    FuncStruct.drawString(ctx, `${data.funName || ''}`, 5, data.frame)
                 }
                 if (FuncStruct.isSelected(data)) {
                     ctx.strokeStyle = "#000"
-                    ctx.lineWidth = 1
-                    ctx.strokeRect(data.frame.x, data.frame.y, data.frame.width, miniHeight - padding * 2)
+                    ctx.lineWidth = 2
+                    ctx.strokeRect(data.frame.x, data.frame.y + 1, data.frame.width, miniHeight - padding * 2 - 2)
                 }
             }
         }
@@ -117,15 +130,13 @@ export class FuncStruct extends BaseStruct {
     static isSelected(data: FuncStruct): boolean {
         return (FuncStruct.selectFuncStruct != undefined &&
             FuncStruct.selectFuncStruct.startTs == data.startTs &&
-            FuncStruct.selectFuncStruct.depth == data.depth &&
-            FuncStruct.selectFuncStruct.dur == data.dur &&
-            FuncStruct.selectFuncStruct.funName == data.funName)
+            FuncStruct.selectFuncStruct.depth == data.depth)
     }
 
     static isBinder(data: FuncStruct): boolean {
         if (data.funName != null &&
             (
-                data.funName.toLowerCase().startsWith("binder transaction")
+                data.funName.toLowerCase().startsWith("binder transaction async")
                 || data.funName.toLowerCase().startsWith("binder async")
                 || data.funName.toLowerCase().startsWith("binder reply")
             )
@@ -138,3 +149,4 @@ export class FuncStruct extends BaseStruct {
 }
 
 const padding = 1;
+

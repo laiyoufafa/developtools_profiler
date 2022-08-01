@@ -43,4 +43,13 @@ describe('HiProfilerClient Test', ()=>{
         expect(ProfilerClient.profiler_proto).toBeTruthy()
     });
 
+    it('HiProfilerClientTest07 ', function () {
+        expect(ProfilerClient.shutdown).toBeUndefined()
+
+    });
+    it('HiProfilerClientTest08', function () {
+        ProfilerClient.getChannel = jest.fn(()=>true)
+        expect(ProfilerClient.getChannel()).toBeTruthy();
+    });
+
 })

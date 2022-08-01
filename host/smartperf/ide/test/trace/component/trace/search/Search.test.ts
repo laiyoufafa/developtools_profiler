@@ -71,6 +71,13 @@ describe(" SearchTest", () => {
         expect(search.clear()).toBeUndefined();
     });
 
+    it('Search Test11', function () {
+        let search = new LitSearch();
+        search.search = jest.fn(()=>undefined)
+        search.search.blur = jest.fn(()=>true)
+        expect(search.blur()).toBeUndefined();
+    });
+
     it('Search Test10', () => {
         let search = new LitSearch();
         expect(search.initHtml()).toMatchInlineSnapshot(`

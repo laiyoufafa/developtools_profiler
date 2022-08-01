@@ -20,8 +20,10 @@ import "../../../../base-ui/table/lit-table-column.js";
 
 import {
     queryBinderArgsByArgset,
-    queryWakeUpThread_WakeThread,
-    queryWakeUpThread_WakeTime
+    queryThreadWakeUp,
+    queryThreadWakeUpFrom,
+    queryWakeUpFromThread_WakeThread,
+    queryWakeUpFromThread_WakeTime,
 } from "../../../database/SqlLite.js";
 import {WakeupBean} from "../../../bean/WakeupBean.js";
 import {ThreadStruct} from "../../../bean/ThreadStruct.js";
@@ -100,12 +102,8 @@ export class TabPaneCurrentSelection extends BaseElement {
             leftTitle.innerText = "Slice Details"
         }
         let list: any[] = []
-        let process = data.processName
-        let processId = data.processId
-        if (process == null || process == "") {
-            process = data.name
-            processId = data.tid
-        }
+        let process = data.processName || "Process";
+        let processId = data.processId || data.tid;
         let state = ""
         if (data.end_state) {
             state = STATUS_MAP[data.end_state]
@@ -116,18 +114,27 @@ export class TabPaneCurrentSelection extends BaseElement {
         }
 
         list.push({name: 'Process', value: `${process || 'Process'} [${processId}]`})
-        list.push({
-            name: 'Thread', value: `<div style="margin-left: 5px;white-space: nowrap;display: flex;align-items: center">
+        if(data.processId){
+            list.push({
+                name: 'Thread', value: `<div style="margin-left: 5px;white-space: nowrap;display: flex;align-items: center">
 <div style="white-space:pre-wrap">${data.name || 'Process'} [${data.tid}]</div>
 <lit-icon style="cursor:pointer;transform: scaleX(-1);margin-left: 5px" id="thread-id" name="select" color="#7fa1e7" size="20"></lit-icon>
 </div>`
-        })
+            })
+        }else {
+            list.push({
+                name: 'Thread', value: `<div style="margin-left: 5px;white-space: nowrap;display: flex;align-items: center">
+<div style="white-space:pre-wrap">${data.name || 'Process'} [${data.tid}]</div>
+</div>`
+            })
+        }
+
         list.push({name: 'CmdLine', value: `${data.processCmdLine}`})
         list.push({name: 'StartTime', value: getTimeString(data.startTime || 0)})
         list.push({name: 'Duration', value: getTimeString(data.dur || 0)})
         list.push({name: 'Prio', value: data.priority || 0})
         list.push({name: 'End State', value: state})
-        this.queryWakeUpData(data).then((bean) => {
+        this.queryCPUWakeUpFromData(data).then((bean) => {
             if (callback) {
                 callback(bean)
             }
@@ -209,7 +216,7 @@ export class TabPaneCurrentSelection extends BaseElement {
 
     }
 
-    setThreadData(data: ThreadStruct, scrollCallback: ((d: any) => void) | undefined) {//线程信息
+    setThreadData(data: ThreadStruct, scrollCallback: ((d: any) => void) | undefined,scrollWakeUp:(d:any) => void | undefined) {//线程信息
         this.initCanvas()
         let leftTitle: HTMLElement | null | undefined = this?.shadowRoot?.querySelector("#leftTitle");
         let rightTitle: HTMLElement | null | undefined = this?.shadowRoot?.querySelector("#rightTitle");
@@ -217,7 +224,7 @@ export class TabPaneCurrentSelection extends BaseElement {
             rightTitle.style.visibility = "hidden"
         }
         if (leftTitle) {
-            leftTitle.innerText = "Counter Details"
+            leftTitle.innerText = "Thread State"
         }
         let list: any[] = []
         list.push({name: 'StartTime', value: getTimeString(data.startTime || 0)})
@@ -241,28 +248,82 @@ export class TabPaneCurrentSelection extends BaseElement {
             <div style="white-space:pre-wrap">${state}</div>
             <lit-icon style="cursor:pointer;transform: scaleX(-1);margin-left: 5px" id="state-click" name="select" color="#7fa1e7" size="20"></lit-icon>
             </div>`
-            })
+                    })
         }
         let processName = data.processName;
         if (processName == null || processName == "" || processName.toLowerCase() == "null") {
             processName = data.name;
         }
         list.push({name: 'Process', value: processName + " [" + data.pid + "] "})
-        this.tbl!.dataSource = list
-        this.tbl?.shadowRoot?.querySelector("#state-click")?.addEventListener("click", () => {
-            //线程点击
-            if (scrollCallback) {
-                scrollCallback(data)
+        let cpu = new CpuStruct();
+        cpu.id = data.id;
+        cpu.startTime = data.startTime;
+        Promise.all([this.queryThreadWakeUpFromData(data.id!,data.startTime!,data.dur!),this.queryThreadWakeUpData(data.id!,data.startTime!,data.dur!)]).then((result)=>{
+            let fromBean = result[0]
+            let wakeUps = result[1];
+            if(fromBean != null && fromBean != undefined && fromBean.pid != 0 && fromBean.tid != 0){
+                list.push({
+                    name: 'wakeup from tid', value: `<div style="margin-left: 5px;white-space: nowrap;display: flex;align-items: center">
+            <div style="white-space:pre-wrap">${fromBean.tid}</div>
+            <lit-icon style="cursor:pointer;transform: scaleX(-1);margin-left: 5px" id="wakeup-from"  class="wakeup-click"  name="select" color="#7fa1e7" size="20"></lit-icon>
+            </div>`
+                })
+            }
+            if(wakeUps != null){
+                for (let key in wakeUps) {
+                    list.push({
+                        name: 'wakeup tid', value: `<div style="margin-left: 5px;white-space: nowrap;display: flex;align-items: center">
+            <div style="white-space:pre-wrap">${wakeUps[key].tid}</div>
+            <lit-icon style="cursor:pointer;transform: scaleX(-1);margin-left: 5px" id="wakeup-${key}" class="wakeup-click" name="select" color="#7fa1e7" size="20"></lit-icon>
+            </div>`
+                    })
+                }
+            }
+            this.tbl!.dataSource = list
+            this.tbl?.shadowRoot?.querySelector("#state-click")?.addEventListener("click", () => {
+                //线程点击
+                if (scrollCallback) {
+                    scrollCallback(data)
+                }
+            })
+            this.tbl?.shadowRoot?.querySelector("#wakeup-from")?.addEventListener("click", (e) => {
+                //点击跳转，唤醒和被唤醒的 线程
+               if(fromBean && scrollWakeUp){
+                   scrollWakeUp({
+                       processId: fromBean.pid,
+                       tid: fromBean.tid,
+                       startTime: fromBean.ts,
+                   })
+               }
+            })
+            if(wakeUps){
+                for (let key in wakeUps) {
+                    this.tbl?.shadowRoot?.querySelector(`#wakeup-${key}`)?.addEventListener("click", (e) => {
+                        //点击跳转，唤醒和被唤醒的 线程
+                        let up = wakeUps[key];
+                        if(up && scrollWakeUp != undefined){
+                            scrollWakeUp({
+                                tid: up.tid,
+                                startTime: up.ts,
+                                processId:up.pid,
+                            })
+                        }
+                    })
+                }
             }
         })
     }
 
-    async queryWakeUpData(data: CpuStruct) {
+    /**
+     * 查询出 线程被唤醒的 线程信息
+     * @param data
+     */
+    async queryCPUWakeUpFromData(data: CpuStruct) {
         let wb: WakeupBean | null = null
         if (data.id == undefined || data.startTime == undefined) {
             return null
         }
-        let wakeupTimes = await queryWakeUpThread_WakeTime(data.id, data.startTime)//  3,4835380000
+        let wakeupTimes = await queryWakeUpFromThread_WakeTime(data.id, data.startTime)//  3,4835380000
         if (wakeupTimes != undefined && wakeupTimes.length > 0) {
             let wakeupTime = wakeupTimes[0]
             if (wakeupTime.wakeTs != undefined && wakeupTime.preRow != undefined && wakeupTime.wakeTs < wakeupTime.preRow) {
@@ -271,7 +332,7 @@ export class TabPaneCurrentSelection extends BaseElement {
             if (wakeupTime.wakeTs == undefined) {
                 return null
             }
-            let wakeupBeans = await queryWakeUpThread_WakeThread(wakeupTime.wakeTs)
+            let wakeupBeans = await queryWakeUpFromThread_WakeThread(wakeupTime.wakeTs)
             if (wakeupBeans != undefined && wakeupBeans.length > 0) {
                 wb = wakeupBeans[0]
                 if (wb != null) {
@@ -290,6 +351,32 @@ export class TabPaneCurrentSelection extends BaseElement {
             }
         }
         return wb
+    }
+
+    /**
+     * 查询出 线程唤醒了哪些线程信息
+     * @param data
+     */
+    async queryThreadWakeUpFromData(itid: number, startTime: number,dur:number) : Promise<WakeupBean|undefined> {
+        let wakeUps = await queryThreadWakeUpFrom(itid, startTime,dur)//  3,4835380000
+        if (wakeUps != undefined && wakeUps.length > 0) {
+            return wakeUps[0];
+        }
+    }
+    /**
+     * 查询出 线程唤醒了哪些线程信息
+     * @param data
+     */
+    async queryThreadWakeUpData(itid: number, startTime: number,dur:number) : Promise<Array<WakeupBean>> {
+        let list :Array<WakeupBean> = [];
+        if (itid == undefined || startTime == undefined) {
+            return list
+        }
+        let wakeUps = await queryThreadWakeUp(itid, startTime,dur)//  3,4835380000
+        if (wakeUps != undefined && wakeUps.length > 0) {
+            list.push(...wakeUps)
+        }
+        return list
     }
 
     initCanvas(): HTMLCanvasElement | null {
@@ -342,7 +429,7 @@ export class TabPaneCurrentSelection extends BaseElement {
             let strList = []
             strList.push("wakeup @ " + getTimeString(wakeupBean?.wakeupTime || 0) + " on CPU " + wakeupBean?.cpu + " by")
             strList.push("P:" + wakeupBean?.process + " [ " + wakeupBean?.pid + " ]")
-            strList.push("F:" + wakeupBean?.thread + " [ " + wakeupBean?.tid + " ]")
+            strList.push("T:" + wakeupBean?.thread + " [ " + wakeupBean?.tid + " ]")
             strList.forEach((str, index) => {
                 if (context != null) {
                     context.fillText(str, 40, 40 + 16 * index)

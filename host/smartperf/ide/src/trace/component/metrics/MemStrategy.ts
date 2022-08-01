@@ -13,11 +13,14 @@
  * limitations under the License.
  */
 
+import {info} from "../../../log/Log.js";
+
 export const initMemoryStrategy = (metricData: Array<any>): ProcessMetricsListItems => {
+    info("Memory Strategy data length is:", metricData.length)
     let processMetricsListItems: Array<ProcessMetricsItems> = []
     for (let sqlIndex = 0; sqlIndex < metricData.length; sqlIndex++) {
         let processName = metricData[sqlIndex].processName;
-        let minNum = metricData[sqlIndex].minNum;
+        let minNum = metricData[sqlIndex].minNum < 0 ? 0 : metricData[sqlIndex].minNum;
         let maxNum = metricData[sqlIndex].maxNum;
         let avgNum = metricData[sqlIndex].avgNum;
         let processInfoSource: ProcessMetricsItems = {

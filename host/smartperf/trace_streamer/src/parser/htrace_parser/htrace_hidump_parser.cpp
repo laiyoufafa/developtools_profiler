@@ -24,7 +24,7 @@ HtraceHidumpParser::HtraceHidumpParser(TraceDataCache* dataCache, const TraceStr
 
 HtraceHidumpParser::~HtraceHidumpParser()
 {
-    TS_LOGI("native hook data ts MIN:%llu, MAX:%llu", static_cast<unsigned long long>(GetPluginStartTime()),
+    TS_LOGI("Fps data ts MIN:%llu, MAX:%llu", static_cast<unsigned long long>(GetPluginStartTime()),
             static_cast<unsigned long long>(GetPluginEndTime()));
 }
 void HtraceHidumpParser::Parse(HidumpInfo& tracePacket)

@@ -15,6 +15,7 @@
 import {BaseElement, element} from "../../../../base-ui/BaseElement.js";
 import {TraceRowObject} from "./TraceRowObject.js";
 import {TraceRow} from "./TraceRow.js";
+import {log} from "../../../../log/Log.js";
 
 @element("trace-row-recycler-view")
 export class TraceRowRecyclerView extends BaseElement {
@@ -33,6 +34,7 @@ export class TraceRowRecyclerView extends BaseElement {
     }
 
     set dataSource(value: Array<TraceRowObject<any>>) {
+        log("dataSource TraceRowObject size :" +  value.length);
         this._dataSource = value;
         this.measureHeight();
         this.initUI();

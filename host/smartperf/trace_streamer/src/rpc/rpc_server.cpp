@@ -21,6 +21,11 @@
 
 #include "log.h"
 #include "meta.h"
+
+#define UNUSED(expr)  \
+    do {              \
+        static_cast<void>(expr); \
+    } while (0)
 namespace SysTuning {
 namespace TraceStreamer {
 bool RpcServer::ParseData(const uint8_t* data, size_t len, ResultCallBack resultCallBack)
@@ -49,6 +54,8 @@ bool RpcServer::ParseData(const uint8_t* data, size_t len, ResultCallBack result
 
 bool RpcServer::ParseDataOver(const uint8_t* data, size_t len, ResultCallBack resultCallBack)
 {
+    UNUSED(data);
+    UNUSED(len);
     MetaData* metaData = ts_->GetMetaData();
     metaData->SetSourceFileName("input stream mode");
     metaData->SetOutputFileName("wasm mode");
@@ -108,6 +115,8 @@ void RpcServer::CancelSqlQuery()
 
 bool RpcServer::Reset(const uint8_t* data, size_t len, ResultCallBack resultCallBack)
 {
+    UNUSED(data);
+    UNUSED(len);
     TS_LOGI("RPC reset trace_streamer");
 
     ts_->WaitForParserEnd();

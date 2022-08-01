@@ -391,5 +391,26 @@ describe('LitTable Test', () => {
         litTable.tableElement.scrollTop = jest.fn(()=>1)
         expect(litTable.move1px()).toBeUndefined();
     })
+
+    it('LitTableTest28', () => {
+        document.body.innerHTML = `<lit-table id="aaa"></lit-table>`
+        let litTable = document.querySelector('#aaa') as LitTable
+        expect(litTable.renderTreeTable()).toBeUndefined();
+    })
+
+    it('LitTableTest29', () => {
+        document.body.innerHTML = `<lit-table id="aaa"></lit-table>`
+        let litTable = document.querySelector('#aaa') as LitTable
+        expect(litTable.setMouseIn(true,[])).toBeUndefined();
+    })
+
+    it('LitTableTest30', () => {
+        document.body.innerHTML = `<lit-table id="aaa"></lit-table>`
+        let litTable = document.querySelector('#aaa') as LitTable
+        const data = {
+            isSelected:true
+        }
+        expect(litTable.setCurrentSelection(data)).toBeUndefined();
+    })
 })
 

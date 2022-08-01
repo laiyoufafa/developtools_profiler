@@ -77,6 +77,14 @@ public:
             }
         }
     }
+    bool Empty()
+    {
+        return internalMap_.size() == 0 ? true : false;
+    }
+    void Clear()
+    {
+        internalMap_.clear();
+    }
 
 private:
     std::map<T1, std::map<T2, T3>> internalMap_;

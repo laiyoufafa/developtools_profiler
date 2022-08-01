@@ -13,9 +13,12 @@
  * limitations under the License.
  */
 
-import {queryPerfCallchains, queryPerfFiles, queryPerfThread} from "../../database/SqlLite.js";
-import {PerfCallChain, PerfCallChainMerageData, PerfFile} from "../../bean/PerfProfile.js";
-import {Utils} from "../trace/base/Utils.js";
+import {
+    queryPerfFiles,
+    query,
+} from "../../database/SqlLite.js";
+import {PerfCall, PerfCallChain, PerfCallChainMerageData, PerfFile} from "../../bean/PerfProfile.js";
+import {info} from "../../../log/Log.js";
 
 export class PerfDataQuery {
 
@@ -26,50 +29,29 @@ export class PerfDataQuery {
     splitMapData: any = {}
     currentTreeMapData: any = {}
     currentTreeList: any[] = []
-    private textEncoder = new TextEncoder()
+    searchValue: string = ""
+    callChainMap: Map<number,PerfCall> = new Map<number, PerfCall>()
 
-    initPrefData() {
+    async initPerfCache(){
+        await this.initPerfCallChainMap()
+        await this.initPerfFiles();
+    }
 
+    async initPerfCallChainMap(){
+        this.callChainMap.clear();
     }
 
     async initPerfFiles() {
         let files = await queryPerfFiles()
+        info("PerfFiles Data size is: ", files!.length)
         files.forEach((file) => {
             this.filesData[file.fileId] = this.filesData[file.fileId] || []
             PerfFile.setFileName(file)
             this.filesData[file.fileId].push(file)
         })
-        let threads = await queryPerfThread()
-        threads.forEach((thread) => {
-            this.threadData[thread.tid] = thread
-        })
-        let callChains = await queryPerfCallchains()
-        this.initCallChainBottomUp(callChains)
-    }
-
-    initCallChain(callChains: PerfCallChain[]) {
-        callChains.forEach((callChain, index) => {
-            if (this.threadData[callChain.tid] == undefined) {
-                return
-            }
-            callChain.name = this.setCallChainName(callChain)
-            this.callChainData[callChain.sampleId] = this.callChainData[callChain.sampleId] || []
-            if (callChain.callChainId == 0) {
-                this.addProcessThreadStateData(callChain)
-            } else {
-                PerfCallChain.setNextNode(callChains[index - 1], callChain)
-            }
-            this.callChainData[callChain.sampleId].push(callChain)
-            callChain.depth = callChain.callChainId + 2
-            if (callChains.length == index + 1 || callChains[index + 1].callChainId == 0) {
-                let previousNode = callChain.previousNode
-                callChain.bottomUpMerageId = callChain.name
-                while (previousNode != undefined) {
-                    previousNode = previousNode.previousNode
-                }
-            }
-            this.addGroupData(callChain)
-        })
+        let results = await query("initPerfFiles","","","perf-init")
+        this.callChainMap = (results as any)
+        info("Perf Files Data initialized")
     }
 
     initCallChainBottomUp(callChains: PerfCallChain[]) {
@@ -79,16 +61,18 @@ export class PerfDataQuery {
             }
             callChain.name = this.setCallChainName(callChain)
             this.addGroupData(callChain)
-            if (index + 1 < callChains.length && callChains[index + 1].callChainId != 0) {
+            if (index + 1 < callChains.length && callChains[index + 1].sampleId == callChain.sampleId) {
                 PerfCallChain.setPreviousNode(callChain, callChains[index + 1])
             }
-            if (callChains.length == index + 1 || callChains[index + 1].callChainId == 0) {
+            if (callChains.length == index + 1 || callChains[index + 1].sampleId != callChain.sampleId) {
                 this.addProcessThreadStateData(callChain)
             }
         })
     }
 
     setCallChainName(callChain: PerfCallChain): string {//设置调用栈的名称
+        callChain.pid = this.threadData[callChain.tid].pid;
+        callChain.canCharge = true;
         if (callChain.symbolId == -1) {
             if (this.filesData[callChain.fileId] && this.filesData[callChain.fileId].length > 0) {
                 callChain.fileName = this.filesData[callChain.fileId][0].fileName
@@ -114,11 +98,13 @@ export class PerfDataQuery {
         let threadCallChain = new PerfCallChain()//新增的线程数据
         threadCallChain.depth = 0
         PerfCallChain.merageCallChain(threadCallChain, callChain)
-        threadCallChain.name = this.threadData[callChain.tid].threadName + "(" + callChain.tid + ")"
+        threadCallChain.canCharge = false
+        threadCallChain.name = this.threadData[callChain.tid].threadName||"Thead" + "(" + callChain.tid + ")"
         let threadStateCallChain = new PerfCallChain()//新增的线程状态数据
         PerfCallChain.merageCallChain(threadStateCallChain, callChain)
         threadStateCallChain.name = callChain.threadState || "Unkown State"
-        threadStateCallChain.fileName = "Unkown Thead State"
+        threadStateCallChain.fileName = threadStateCallChain.name == "-" ? "Unkown Thead State" : ""
+        threadStateCallChain.canCharge = false
         this.addGroupData(threadStateCallChain)
         this.addGroupData(threadCallChain)
         PerfCallChain.setNextNode(threadCallChain, threadStateCallChain)
@@ -131,100 +117,21 @@ export class PerfDataQuery {
     }
 
     getCallChainsBySampleIds(sampleIds: string[], isTopDown: boolean) {
-        return this.groupNewTreeNoId(sampleIds,isTopDown)
-        this.splitMapData = {};
-        this.currentTreeMapData = {}
-        let topCallChains: PerfCallChain[] = []
-        for (let i = 0; i < sampleIds.length; i++) {
-            let callChain = this.callChainData[sampleIds[i]]
-            if (callChain != undefined && callChain.length > 0) {
-                if (isTopDown) {
-                    topCallChains.push(callChain[callChain.length - 1])
-                } else {
-                    topCallChains.push(callChain[0])
-                }
-            }
-        }
-        let roots = this.groupByCallChain(topCallChains, isTopDown)
-
-        return roots;
+        return this.groupNewTreeNoId(sampleIds, isTopDown)
     }
 
-    groupByCallChain(callChains: PerfCallChain[], isTopDown: boolean) {
-        let merageMap: any = {}
-        callChains.forEach((rootCallChain) => {
-            this.recursionCreateData(merageMap, rootCallChain, isTopDown)
-        })
-        this.currentTreeMapData = merageMap;
-        let rootMerageMap: any = {}
-        Object.values(merageMap).forEach((merageData: any) => {
-            this.recursionCreateTree(merageData);
-            merageData.total = callChains.length//设置weight的分母 数量为当前调用栈数量 一个算1ms
-            if (merageData.parentId == '') {
-                if (rootMerageMap[merageData.pid] == undefined) {
-                    let processMerageData = new PerfCallChainMerageData()//新增进程的节点数据
-                    processMerageData.symbolName = this.threadData[merageData.tid].processName
-                    processMerageData.symbol = processMerageData.symbolName
-                    processMerageData.tid = merageData.tid
-                    processMerageData.children.push(merageData)
-                    processMerageData.initChildren.push(merageData)
-                    processMerageData.dur = merageData.dur;
-                    processMerageData.total = callChains.length;
-                    rootMerageMap[merageData.pid] = processMerageData
-                } else {
-                    rootMerageMap[merageData.pid].children.push(merageData)
-                    rootMerageMap[merageData.pid].initChildren.push(merageData)
-                    rootMerageMap[merageData.pid].dur += merageData.dur;
-                    rootMerageMap[merageData.pid].total = callChains.length
-                }
-                merageData.parentNode = rootMerageMap[merageData.pid]//子节点添加父节点的引用
-            }
-        })
-        return Object.values(rootMerageMap)
-    }
-
-    recursionCreateData(merageMap: any, currentCallChain: any, isTopDown: boolean) {
-        let nextKey = isTopDown ? "nextNode" : "previousNode";
-        this.mapGroupBy(merageMap, currentCallChain, isTopDown)
-        if (currentCallChain[nextKey] != undefined) {
-            this.recursionCreateData(merageMap, currentCallChain[nextKey], isTopDown)
-        }
-    }
-
-    recursionCreateTree(merageData: any) {
-        let parentNode = this.currentTreeMapData[merageData.parentId]
-        while (parentNode != undefined && parentNode.isStore != 0) {
-            parentNode = this.currentTreeMapData[parentNode.parentId]
-        }
-        if (parentNode) {
-            parentNode.children.push(merageData)
-            parentNode.initChildren.push(merageData)
-            merageData.parentNode = parentNode//子节点添加父节点的引用
-        }
-    }
-
-    mapGroupBy(map: any, callChain: PerfCallChain, isTopDown: boolean) {
-        let id = isTopDown ? callChain.topDownMerageId : callChain.bottomUpMerageId
-        if (map[id] == undefined) {
-            let merageData = new PerfCallChainMerageData()
-            PerfCallChainMerageData.merageCallChain(merageData, callChain, isTopDown)
-            map[id] = merageData
-        } else {
-            PerfCallChainMerageData.merageCallChain(map[id], callChain, isTopDown)
-        }
-    }
 
     groupNewTreeNoId(sampleIds: string[], isTopDown: boolean) {
         this.currentTreeMapData = {}
         this.currentTreeList = []
         for (let i = 0; i < sampleIds.length; i++) {
             let callChains = this.callChainData[sampleIds[i]]
-            let topIndex = isTopDown?(callChains.length - 1):0;
+            if (callChains == undefined) continue
+            let topIndex = isTopDown ? (callChains.length - 1) : 0;
             if (callChains.length > 0) {
                 let root = this.currentTreeMapData[callChains[topIndex].name + callChains[topIndex].pid];
                 if (root == undefined) {
                     root = new PerfCallChainMerageData();
-                    root.id = Utils.uuid()
                     this.currentTreeMapData[callChains[topIndex].name + callChains[topIndex].pid] = root;
                     this.currentTreeList.push(root)
                 }
@@ -236,18 +143,17 @@ export class PerfDataQuery {
         Object.values(this.currentTreeMapData).forEach((merageData: any) => {
             if (rootMerageMap[merageData.pid] == undefined) {
                 let processMerageData = new PerfCallChainMerageData()//新增进程的节点数据
-                processMerageData.symbolName = this.threadData[merageData.tid].processName
+                processMerageData.canCharge = false
+                processMerageData.symbolName = this.threadData[merageData.tid].processName||`Process(${merageData.pid})`
                 processMerageData.symbol = processMerageData.symbolName
                 processMerageData.tid = merageData.tid
                 processMerageData.children.push(merageData)
                 processMerageData.initChildren.push(merageData)
                 processMerageData.dur = merageData.dur;
-                processMerageData.count =  merageData.dur;
+                processMerageData.count = merageData.dur;
                 processMerageData.total = sampleIds.length;
-                processMerageData.id = Utils.uuid()
                 rootMerageMap[merageData.pid] = processMerageData
             } else {
-                merageData.parentId = rootMerageMap[merageData.pid].id
                 rootMerageMap[merageData.pid].children.push(merageData)
                 rootMerageMap[merageData.pid].initChildren.push(merageData)
                 rootMerageMap[merageData.pid].dur += merageData.dur;
@@ -256,14 +162,26 @@ export class PerfDataQuery {
             }
             merageData.parentNode = rootMerageMap[merageData.pid]//子节点添加父节点的引用
         })
+        let id = 0;
         this.currentTreeList.forEach((node) => {
             node.total = sampleIds.length;
+            if (node.id == "") {
+                node.id = id + ""
+                id++
+            }
+            if(node.parentNode){
+                if (node.parentNode.id == "") {
+                    node.parentNode.id = id + ""
+                    id++
+                }
+                node.parentId = node.parentNode.id
+            }
         })
         return Object.values(rootMerageMap)
     }
 
     merageChildren(currentNode: PerfCallChainMerageData, callChain: any, isTopDown: boolean) {
-        let nextNodeKey = isTopDown?"nextNode":"previousNode"
+        let nextNodeKey = isTopDown ? "nextNode" : "previousNode"
         if (callChain[nextNodeKey] == undefined) return
         let node;
         if (currentNode.initChildren.filter((child: PerfCallChainMerageData) => {
@@ -276,8 +194,6 @@ export class PerfDataQuery {
         }).length == 0) {
             node = new PerfCallChainMerageData()
             PerfCallChainMerageData.merageCallChain(node, callChain[nextNodeKey], isTopDown)
-            node.id = Utils.uuid()
-            node.parentId = currentNode.id
             currentNode.children.push(node)
             currentNode.initChildren.push(node)
             this.currentTreeList.push(node)
@@ -349,14 +265,14 @@ export class PerfDataQuery {
         }
     }
 
-    recursionChargeByRule(node: PerfCallChainMerageData,ruleName: string,rule:(node: PerfCallChainMerageData)=>boolean){
+    recursionChargeByRule(node: PerfCallChainMerageData, ruleName: string, rule: (node: PerfCallChainMerageData) => boolean) {
         if (node.initChildren.length > 0) {
             node.initChildren.forEach((child) => {
                 if (rule(child)) {
                     (this.splitMapData[ruleName] = this.splitMapData[ruleName] || []).push(child)
                     child.isStore++;
                 }
-                this.recursionChargeByRule(child,ruleName,rule)
+                this.recursionChargeByRule(child, ruleName, rule)
             })
         }
     }
@@ -387,7 +303,15 @@ export class PerfDataQuery {
     }
 
     resetAllNode(data: PerfCallChainMerageData[]) {
+        this.clearSearchNode()
+        data.forEach((process) => {
+            process.searchShow = true
+        })
         this.resetNewAllNode(data)
+        if (this.searchValue != "") {
+            this.findSearchNode(data, this.searchValue, false)
+            this.resetNewAllNode(data)
+        }
     }
 
     resetNewAllNode(data: PerfCallChainMerageData[]) {
@@ -400,9 +324,9 @@ export class PerfDataQuery {
         })
         values.forEach((item: any) => {
             if (item.parentNode != undefined) {
-                if (item.isStore == 0) {
+                if (item.isStore == 0 && item.searchShow) {
                     let parentNode = item.parentNode
-                    while (parentNode != undefined && parentNode.isStore != 0 ) {
+                    while (parentNode != undefined && !(parentNode.isStore == 0 && parentNode.searchShow)) {
                         parentNode = parentNode.parentNode
                     }
                     if (parentNode) {
@@ -414,31 +338,26 @@ export class PerfDataQuery {
         })
     }
 
-    searchData(data: PerfCallChainMerageData[],search: string){
-        this.clearSearchNode()
-        this.findSearchNode(data,search)
-    }
-
-    findSearchNode(data: PerfCallChainMerageData[],search: string){
-        data.forEach((node)=>{
-            if(node.symbol.includes(search)){
+    findSearchNode(data: PerfCallChainMerageData[], search: string, parentSearch: boolean) {
+        data.forEach((node) => {
+            if ((node.symbol&&node.symbol.includes(search)) || parentSearch) {
                 node.searchShow = true
-                let parentNode = node.parentNode
-                while(parentNode!=undefined&&!parentNode.searchShow){
+                let parentNode = node.currentTreeParentNode
+                while (parentNode != undefined && !parentNode.searchShow) {
                     parentNode.searchShow = true
-                    parentNode = parentNode.parentNode
+                    parentNode = parentNode.currentTreeParentNode
                 }
-            }else {
+            } else {
                 node.searchShow = false
             }
-            if(node.initChildren.length > 0){
-                this.findSearchNode(node.initChildren,search)
+            if (node.children.length > 0) {
+                this.findSearchNode(node.children, search, node.searchShow)
             }
         })
     }
 
-    clearSearchNode(){
-        this.currentTreeList.forEach((node)=>{
+    clearSearchNode() {
+        this.currentTreeList.forEach((node) => {
             node.searchShow = true
         })
     }

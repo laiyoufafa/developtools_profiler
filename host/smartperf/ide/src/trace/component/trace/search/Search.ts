@@ -54,9 +54,22 @@ export class LitSearch extends BaseElement {
         this.totalEL!.textContent = value.toString();
     }
 
+    get isLoading(): boolean{
+        return this.hasAttribute('isLoading')
+    }
+
+    set isLoading(va){
+        if (va) {
+            this.setAttribute('isLoading','');
+        } else {
+            this.removeAttribute('isLoading')
+        }
+    }
+
     setPercent(name: string = "", value: number) {
         let searchHide = this.shadowRoot!.querySelector<HTMLElement>(".root")
         let searchIcon = this.shadowRoot!.querySelector<HTMLElement>("#search-icon")
+        this.isLoading = false
         if (value > 0 && value <= 100) {
             searchHide!.style.display = "flex"
             searchHide!.style.backgroundColor = "var(--dark-background5,#e3e3e3)"
@@ -64,6 +77,7 @@ export class LitSearch extends BaseElement {
             this.search!.setAttribute('placeholder', `${name}${value}%`);
             this.search!.setAttribute('readonly', "");
             this.search!.className = "readonly"
+            this.isLoading = true
         } else if (value > 100) {
             searchHide!.style.display = "flex"
             searchHide!.style.backgroundColor = "var(--dark-background5,#fff)"
@@ -117,18 +131,21 @@ export class LitSearch extends BaseElement {
                     this.dispatchEvent(new CustomEvent("previous-data", {
                         detail: {
                             value: this.search!.value
-                        }
+                        },
+                        composed:false
                     }));
                 } else {
                     this.dispatchEvent(new CustomEvent("next-data", {
                         detail: {
                             value: this.search!.value
-                        }
+                        },
+                        composed:false
                     }));
                 }
             } else {
                 this.valueChangeHandler?.(this.search!.value);
             }
+            e.stopPropagation();
         });
         this.shadowRoot?.querySelector("#arrow-left")?.addEventListener("click", (e) => {
             this.dispatchEvent(new CustomEvent("previous-data", {

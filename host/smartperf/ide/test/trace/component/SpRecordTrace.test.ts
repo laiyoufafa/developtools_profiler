@@ -15,6 +15,8 @@
 
 // @ts-ignore
 import {SpRecordTrace} from "../../../dist/trace/component/SpRecordTrace.js"
+// @ts-ignore
+import {SpAllocations} from "../../../dist/trace/component/setting/SpAllocations";
 
 window.ResizeObserver = window.ResizeObserver ||
     jest.fn().mockImplementation(() => ({
@@ -24,6 +26,8 @@ window.ResizeObserver = window.ResizeObserver ||
     }));
 
 describe('SpRecordTrace Test', () => {
+    document.body.innerHTML = `<sp-record-trace id="aaa"></sp-record-trace>`
+    let spRecordTrace = document.querySelector('#aaa') as SpRecordTrace
     it('SpRecordTraceTest01', function () {
         expect(SpRecordTrace.initHtml).not.toBe('')
     });
@@ -37,5 +41,14 @@ describe('SpRecordTrace Test', () => {
         let traceEvents = SpRecordTrace.createTraceEvents = ['Scheduling details', 'CPU Frequency and idle states',
             'High frequency memory', 'Advanced ftrace config', 'Syscalls' , 'Board voltages & frequency'];
         expect(traceEvents[0].indexOf('binder/binder_lock')).toBe(-1)
+    });
+
+    it('SpRecordTraceTest05', function () {
+        SpAllocations.appProcess = jest.fn(()=>"")
+        expect(spRecordTrace.createNativePluginConfig({},1)).not.toBeUndefined()
+    });
+
+    it('SpRecordTraceTest06', function () {
+        expect(spRecordTrace.createFpsPluginConfig()).not.toBeUndefined()
     });
 })

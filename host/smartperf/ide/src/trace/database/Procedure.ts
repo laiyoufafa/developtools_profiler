@@ -36,7 +36,15 @@ class ProcedureThread extends Worker {
         }
         if (transfer) {
             try {
+                if (Array.isArray(transfer) ) {
+                    if(transfer.length > 0){
+                        this.postMessage(pam, [...transfer]);
+                    }else{
+                        this.postMessage(pam);
+                    }
+                } else {
                 this.postMessage(pam, [transfer]);
+                }
             } catch (e: any) {
             }
         } else {
@@ -59,9 +67,8 @@ class ProcedurePool {
     cpusLen = ProcedurePool.build('cpu', 8);
     freqLen = ProcedurePool.build('freq', 2);
     processLen = ProcedurePool.build('process', 8);
-    ability = ProcedurePool.build('ability', 4);
-    // names = [...this.cpusLen, ...this.freqLen, ...this.processLen, ...this.memLen, ...this.threadLen, ...this.funcLen];
-    names = [...this.cpusLen, ...this.processLen, ...this.freqLen, ...this.ability];
+    names = [...this.cpusLen, ...this.processLen, ...this.freqLen];
+
     onComplete: Function | undefined;//任务完成回调
 
     constructor(threadBuild: (() => ProcedureThread) | undefined = undefined) {
@@ -136,6 +143,22 @@ class ProcedurePool {
             thread!.queryFunc(type, args, transfer, handler)
         }
         return thread;
+    }
+
+    submitWithNamePromise(name: string, type: string, args: any, transfer: any): Promise<any>{
+        return new Promise((resolve, reject) => {
+            let noBusyThreads = this.works.filter(it => it.name === name);
+            let thread: ProcedureThread | undefined
+            if (noBusyThreads.length > 0) { //取第一个空闲的线程进行任务
+                thread = noBusyThreads[0];
+                thread!.queryFunc(type, args, transfer, (res:any,hover:any)=>{
+                    resolve({
+                        res:res,
+                        hover:hover,
+                    })
+                });
+            }
+        })
     }
 
     isIdle() {

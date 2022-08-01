@@ -19,12 +19,7 @@ describe('ProcedureWorkerHiPerfCPU Test', ()=>{
 
     it('ProcedureWorkerHiPerfCPUTest01',()=>{
         const data = {
-            frame:{
-                width:10,
-                height:10,
-                x:1,
-                y:1,
-            },
+            frame:undefined,
             cpu:1,
             startNs:1,
             value:1,
@@ -33,7 +28,7 @@ describe('ProcedureWorkerHiPerfCPU Test', ()=>{
         canvas.width = 1;
         canvas.height = 1;
         const ctx = canvas.getContext('2d');
-        expect(HiPerfProcessStruct.draw(ctx,data)).toBeUndefined();
+        expect(HiPerfProcessStruct.draw(ctx,'',data,true)).toBeUndefined();
     });
 
     it('ProcedureWorkerHiPerfCPUTest02', function () {
