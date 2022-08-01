@@ -277,8 +277,7 @@ int TraceDataDB::SearchDatabase(const std::string& sql, ResultCallBack resultCal
         return ret;
     }
 
-    std::string res;
-    res = "ok\r\n";
+    std::string res = "ok\r\n";
     int colCount = sqlite3_column_count(stmt);
     if (colCount == 0) {
         resultCallBack(res);

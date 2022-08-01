@@ -60,7 +60,7 @@ void HtraceClockDetailParser::Parse(const base::ProfilerTraceFileHeader* profile
         TS_LOGW("already has clock snapshot!!!");
         return;
     }
-    if (0 == profilerTraceFileHeader->data.boottime) {
+    if (!profilerTraceFileHeader->data.boottime) {
         TS_LOGW("Profiler header has no clock snapshot!!!");
         return;
     }
