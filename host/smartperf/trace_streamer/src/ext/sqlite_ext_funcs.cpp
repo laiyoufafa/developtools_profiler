@@ -238,7 +238,7 @@ void BuildJson(sqlite3_context* ctx, int argc, sqlite3_value** argv)
         sqlite3_result_blob(ctx, "", 0, nullptr);
         return;
     }
-    std::unique_ptr<uint8_t[]> data(static_cast<uint8_t*>(malloc(raw.size())));
+    std::unique_ptr<uint8_t[]> data = std::make_unique<uint8_t[]>(raw.size());
     memcpy(data.get(), raw.data(), raw.size());
     sqlite3_result_blob(ctx, data.release(), static_cast<int>(raw.size()), free);
 }
@@ -312,7 +312,7 @@ void RepeatedFieldFinal(sqlite3_context* ctx)
         return;
     }
 
-    std::unique_ptr<uint8_t[]> data(static_cast<uint8_t*>(malloc(raw.size())));
+    std::unique_ptr<uint8_t[]> data = std::make_unique<uint8_t[]>(raw.size());
     memcpy(data.get(), raw.data(), raw.size());
     sqlite3_result_blob(ctx, data.release(), static_cast<int>(raw.size()), free);
 }
@@ -334,7 +334,7 @@ void RepeatedJsonFinal(sqlite3_context* ctx)
         return;
     }
 
-    std::unique_ptr<uint8_t[]> data(static_cast<uint8_t*>(malloc(raw.size())));
+    std::unique_ptr<uint8_t[]> data = std::make_unique<uint8_t[]>(raw.size());
     memcpy(data.get(), raw.data(), raw.size());
     sqlite3_result_blob(ctx, data.release(), static_cast<int>(raw.size()), free);
 }

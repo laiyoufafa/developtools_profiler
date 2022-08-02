@@ -189,7 +189,8 @@ int NativeHookFrameTable::Cursor::Column(int column) const
         }
         case SYMBOL_ID:
             if (nativeHookFrameInfoObj_.SymbolNames()[CurrentRow()] != INVALID_UINT64) {
-                sqlite3_result_int64(context_, static_cast<int64_t>(nativeHookFrameInfoObj_.SymbolNames()[CurrentRow()]));
+                sqlite3_result_int64(context_,
+                                     static_cast<int64_t>(nativeHookFrameInfoObj_.SymbolNames()[CurrentRow()]));
             }
             break;
         case FILE_ID: {
