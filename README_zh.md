@@ -361,6 +361,482 @@ int main(int argc, char** argv)
      return 0;
 ```
 
+# hiprofiler_cmd 使用说明
+
+## 参数说明
+
+ 执行hiprofiler_cmd 为调优业务的离线命令行抓取工具，具体使用方法及命令行参数介绍如下。
+
+可以使用`-h`或者`--help`参数查看命令的使用描述信息：
+
+```sh
+# hiprofiler_cmd -h
+help :
+  --getport        -q     : get grpc address
+  --time           -t     : trace time
+  --out            -o     : output file name
+  --help           -h     : make some help
+  --list           -l     : plugin list
+  --start          -s     : start dependent process
+  --kill           -k     : kill dependent process
+  --config         -c     : start trace by config file
+```
+
+其余参数使用说明如下：
+
+* `-q`或者`--getport`选项，用于查询服务的端口信息；
+* `-t`或者`--time`选项，用于指定抓取时间，单位是秒；
+* `-o`或者`--out`选项，用于指定输出的离线数据文件名；
+* `-h`或者`--help`选项，用于输出帮助信息；
+* `-l`或者`--list`选项，用于查询插件列表；
+* `-s`或者`--start`选项，用于启动依赖的进程；
+* `-k`或者`--kill`选项，用于关闭依赖的进程；
+* `-c`或者`--config`选项，用于指定配置文件；
+
+# 命令展示
+
+## 基础配置参数
+
+```sh
+# hiprofiler_cmd \
+  -c - \
+  -o /data/local/tmp/hiprofiler_data.htrace \
+  -t 50 \
+  -s \
+  -k \
+<<CONFIG
+ request_id: 1
+ session_config {
+  buffers {
+   pages: 16384
+  }
+  result_file: "/data/local/tmp/hiprofiler_data.htrace"
+  sample_duration: 50000
+ }
+CONFIG
+```
+
+命令参数说明：
+
+* request_id:本次请求的id
+* pages:存储trace数据的buffer大小（4 * pages kb）
+* result_file:结果输出的文件路径，与-o参数对应
+* sample_duration:抓取时长（ms），与-t参数对应
+
+## ftrace抓取场景示例
+
+```sh
+# hiprofiler_cmd \
+  -c - \
+  -o /data/local/tmp/hiprofiler_data.htrace \
+  -t 50 \
+  -s \
+  -k \
+<<CONFIG
+ request_id: 1
+ session_config {
+  buffers {
+   pages: 16384
+  }
+  result_file: "/data/local/tmp/hiprofiler_data.htrace"
+  sample_duration: 50000
+ }
+ plugin_configs {
+  plugin_name: "ftrace-plugin"
+  sample_interval: 1000
+  config_data {
+   ftrace_events: "sched/sched_switch"
+   ftrace_events: "power/suspend_resume"
+   ftrace_events: "sched/sched_wakeup"
+   ftrace_events: "sched/sched_wakeup_new"
+   ftrace_events: "sched/sched_waking"
+   ftrace_events: "sched/sched_process_exit"
+   ftrace_events: "sched/sched_process_free"
+   ftrace_events: "task/task_newtask"
+   ftrace_events: "task/task_rename"
+   buffer_size_kb: 2048
+   flush_interval_ms: 1000
+   flush_threshold_kb: 4096
+   parse_ksyms: true
+   clock: "mono"
+   trace_period_ms: 200
+   debug_on: false
+   hitrace_time: 50
+  }
+ }
+CONFIG
+```
+
+命令参数说明：
+
+* sample_interval:轮循模式下,插件上报数据的间隔时间（ms）
+* trace_period_ms:ftrace插件读取内核缓冲区数据的间隔时间（ms）
+* hitrace_time:hitrace命令行抓取时间，与hiprofiler_cmd下发的-t配置联动
+
+## 内存信息抓取场景示例
+
+### 内核内存信息
+
+使用如下命令：
+
+```sh
+hiprofiler_cmd \
+  -c - \
+  -o /data/local/tmp/hiprofiler_data.htrace \
+  -t 50 \
+  -s \
+  -k \
+<<CONFIG
+ request_id: 1
+ session_config {
+  buffers {
+   pages: 16384
+  }
+  result_file: "/data/local/tmp/hiprofiler_data.htrace"
+  sample_duration: 50000
+ }
+ plugin_configs {
+  plugin_name: "memory-plugin"
+  sample_interval: 5000
+  config_data {
+   report_process_tree: true
+   report_sysmem_mem_info: true
+   sys_meminfo_counters: PMEM_ACTIVE
+   sys_meminfo_counters: PMEM_ACTIVE_ANON
+   sys_meminfo_counters: PMEM_ACTIVE_FILE
+   sys_meminfo_counters: PMEM_ANON_PAGES
+   sys_meminfo_counters: PMEM_BUFFERS
+   sys_meminfo_counters: PMEM_CACHED
+   sys_meminfo_counters: PMEM_CMA_FREE
+   sys_meminfo_counters: PMEM_CMA_TOTAL
+   sys_meminfo_counters: PMEM_COMMIT_LIMIT
+   sys_meminfo_counters: PMEM_COMMITED_AS
+   sys_meminfo_counters: PMEM_DIRTY
+   sys_meminfo_counters: PMEM_INACTIVE
+   sys_meminfo_counters: PMEM_INACTIVE_ANON
+   sys_meminfo_counters: PMEM_INACTIVE_FILE
+   sys_meminfo_counters: PMEM_KERNEL_STACK
+   sys_meminfo_counters: PMEM_MAPPED
+   sys_meminfo_counters: PMEM_MEM_AVAILABLE
+   sys_meminfo_counters: PMEM_MEM_FREE
+   sys_meminfo_counters: PMEM_MEM_TOTAL
+   sys_meminfo_counters: PMEM_MLOCKED
+   sys_meminfo_counters: PMEM_PAGE_TABLES
+   sys_meminfo_counters: PMEM_SHMEM
+   sys_meminfo_counters: PMEM_SLAB
+   sys_meminfo_counters: PMEM_SLAB_RECLAIMABLE
+   sys_meminfo_counters: PMEM_SLAB_UNRECLAIMABLE
+   sys_meminfo_counters: PMEM_SWAP_CACHED
+   sys_meminfo_counters: PMEM_SWAP_FREE
+   sys_meminfo_counters: PMEM_SWAP_TOTAL
+   sys_meminfo_counters: PMEM_UNEVICTABLE
+   sys_meminfo_counters: PMEM_VMALLOC_CHUNK
+   sys_meminfo_counters: PMEM_VMALLOC_TOTAL
+   sys_meminfo_counters: PMEM_VMALLOC_USED
+   sys_meminfo_counters: PMEM_WRITEBACK
+   sys_meminfo_counters: PMEM_KERNEL_RECLAIMABLE
+   report_sysmem_vmem_info: true
+   report_process_mem_info: true
+   report_app_mem_info: false
+   report_app_mem_by_memory_service: false
+  }
+ }
+CONFIG
+```
+
+### 虚拟内存统计
+
+使用如下命令：
+
+```sh
+hiprofiler_cmd \
+  -c - \
+  -o /data/local/tmp/hiprofiler_data.htrace \
+  -t 50 \
+  -s \
+  -k \
+<<CONFIG
+ request_id: 1
+ session_config {
+  buffers {
+   pages: 16384
+  }
+  result_file: "/data/local/tmp/hiprofiler_data.htrace"
+  sample_duration: 50000
+ }
+ plugin_configs {
+  plugin_name: "memory-plugin"
+  sample_interval: 5000
+  config_data {
+   report_process_tree: true
+   report_sysmem_mem_info: true
+   report_sysmem_vmem_info: true
+   sys_vmeminfo_counters: VMEMINFO_UNSPECIFIED
+   sys_vmeminfo_counters: VMEMINFO_NR_FREE_PAGES
+   sys_vmeminfo_counters: VMEMINFO_NR_ALLOC_BATCH
+   sys_vmeminfo_counters: VMEMINFO_NR_INACTIVE_ANON
+   sys_vmeminfo_counters: VMEMINFO_NR_ACTIVE_ANON
+   sys_vmeminfo_counters: VMEMINFO_NR_INACTIVE_FILE
+   sys_vmeminfo_counters: VMEMINFO_NR_ACTIVE_FILE
+   sys_vmeminfo_counters: VMEMINFO_NR_UNEVICTABLE
+   sys_vmeminfo_counters: VMEMINFO_NR_MLOCK
+   sys_vmeminfo_counters: VMEMINFO_NR_ANON_PAGES
+   sys_vmeminfo_counters: VMEMINFO_NR_MAPPED
+   sys_vmeminfo_counters: VMEMINFO_NR_FILE_PAGES
+   sys_vmeminfo_counters: VMEMINFO_NR_DIRTY
+   sys_vmeminfo_counters: VMEMINFO_NR_WRITEBACK
+   sys_vmeminfo_counters: VMEMINFO_NR_SLAB_RECLAIMABLE
+   sys_vmeminfo_counters: VMEMINFO_NR_SLAB_UNRECLAIMABLE
+   sys_vmeminfo_counters: VMEMINFO_NR_PAGE_TABLE_PAGES
+   sys_vmeminfo_counters: VMEMINFO_NR_KERNEL_STACK
+   sys_vmeminfo_counters: VMEMINFO_NR_OVERHEAD
+   sys_vmeminfo_counters: VMEMINFO_NR_UNSTABLE
+   sys_vmeminfo_counters: VMEMINFO_NR_BOUNCE
+   sys_vmeminfo_counters: VMEMINFO_NR_VMSCAN_WRITE
+   sys_vmeminfo_counters: VMEMINFO_NR_VMSCAN_IMMEDIATE_RECLAIM
+   sys_vmeminfo_counters: VMEMINFO_NR_WRITEBACK_TEMP
+   sys_vmeminfo_counters: VMEMINFO_NR_ISOLATED_ANON
+   sys_vmeminfo_counters: VMEMINFO_NR_ISOLATED_FILE
+   sys_vmeminfo_counters: VMEMINFO_NR_SHMEM
+   sys_vmeminfo_counters: VMEMINFO_NR_DIRTIED
+   sys_vmeminfo_counters: VMEMINFO_NR_WRITTEN
+   sys_vmeminfo_counters: VMEMINFO_NR_PAGES_SCANNED
+   sys_vmeminfo_counters: VMEMINFO_WORKINGSET_REFAULT
+   sys_vmeminfo_counters: VMEMINFO_WORKINGSET_ACTIVATE
+   sys_vmeminfo_counters: VMEMINFO_WORKINGSET_NODERECLAIM
+   sys_vmeminfo_counters: VMEMINFO_NR_ANON_TRANSPARENT_HUGEPAGES
+   sys_vmeminfo_counters: VMEMINFO_NR_FREE_CMA
+   sys_vmeminfo_counters: VMEMINFO_NR_SWAPCACHE
+   sys_vmeminfo_counters: VMEMINFO_NR_DIRTY_THRESHOLD
+   sys_vmeminfo_counters: VMEMINFO_NR_DIRTY_BACKGROUND_THRESHOLD
+   sys_vmeminfo_counters: VMEMINFO_PGPGIN
+   sys_vmeminfo_counters: VMEMINFO_PGPGOUT
+   sys_vmeminfo_counters: VMEMINFO_PGPGOUTCLEAN
+   sys_vmeminfo_counters: VMEMINFO_PSWPIN
+   sys_vmeminfo_counters: VMEMINFO_PSWPOUT
+   sys_vmeminfo_counters: VMEMINFO_PGALLOC_DMA
+   sys_vmeminfo_counters: VMEMINFO_PGALLOC_NORMAL
+   sys_vmeminfo_counters: VMEMINFO_PGALLOC_MOVABLE
+   sys_vmeminfo_counters: VMEMINFO_PGFREE
+   sys_vmeminfo_counters: VMEMINFO_PGACTIVATE
+   sys_vmeminfo_counters: VMEMINFO_PGDEACTIVATE
+   sys_vmeminfo_counters: VMEMINFO_PGFAULT
+   sys_vmeminfo_counters: VMEMINFO_PGMAJFAULT
+   sys_vmeminfo_counters: VMEMINFO_PGREFILL_DMA
+   sys_vmeminfo_counters: VMEMINFO_PGREFILL_NORMAL
+   sys_vmeminfo_counters: VMEMINFO_PGREFILL_MOVABLE
+   sys_vmeminfo_counters: VMEMINFO_PGSTEAL_KSWAPD_DMA
+   sys_vmeminfo_counters: VMEMINFO_PGSTEAL_KSWAPD_NORMAL
+   sys_vmeminfo_counters: VMEMINFO_PGSTEAL_KSWAPD_MOVABLE
+   sys_vmeminfo_counters: VMEMINFO_PGSTEAL_DIRECT_DMA
+   sys_vmeminfo_counters: VMEMINFO_PGSTEAL_DIRECT_NORMAL
+   sys_vmeminfo_counters: VMEMINFO_PGSTEAL_DIRECT_MOVABLE
+   sys_vmeminfo_counters: VMEMINFO_PGSCAN_KSWAPD_DMA
+   sys_vmeminfo_counters: VMEMINFO_PGSCAN_KSWAPD_NORMAL
+   sys_vmeminfo_counters: VMEMINFO_PGSCAN_KSWAPD_MOVABLE
+   sys_vmeminfo_counters: VMEMINFO_PGSCAN_DIRECT_DMA
+   sys_vmeminfo_counters: VMEMINFO_PGSCAN_DIRECT_NORMAL
+   sys_vmeminfo_counters: VMEMINFO_PGSCAN_DIRECT_MOVABLE
+   sys_vmeminfo_counters: VMEMINFO_PGSCAN_DIRECT_THROTTLE
+   sys_vmeminfo_counters: VMEMINFO_PGINODESTEAL
+   sys_vmeminfo_counters: VMEMINFO_SLABS_SCANNED
+   sys_vmeminfo_counters: VMEMINFO_KSWAPD_INODESTEAL
+   sys_vmeminfo_counters: VMEMINFO_KSWAPD_LOW_WMARK_HIT_QUICKLY
+   sys_vmeminfo_counters: VMEMINFO_KSWAPD_HIGH_WMARK_HIT_QUICKLY
+   sys_vmeminfo_counters: VMEMINFO_PAGEOUTRUN
+   sys_vmeminfo_counters: VMEMINFO_ALLOCSTALL
+   sys_vmeminfo_counters: VMEMINFO_PGROTATED
+   sys_vmeminfo_counters: VMEMINFO_DROP_PAGECACHE
+   sys_vmeminfo_counters: VMEMINFO_DROP_SLAB
+   sys_vmeminfo_counters: VMEMINFO_PGMIGRATE_SUCCESS
+   sys_vmeminfo_counters: VMEMINFO_PGMIGRATE_FAIL
+   sys_vmeminfo_counters: VMEMINFO_COMPACT_MIGRATE_SCANNED
+   sys_vmeminfo_counters: VMEMINFO_COMPACT_FREE_SCANNED
+   sys_vmeminfo_counters: VMEMINFO_COMPACT_ISOLATED
+   sys_vmeminfo_counters: VMEMINFO_COMPACT_STALL
+   sys_vmeminfo_counters: VMEMINFO_COMPACT_FAIL
+   sys_vmeminfo_counters: VMEMINFO_COMPACT_SUCCESS
+   sys_vmeminfo_counters: VMEMINFO_COMPACT_DAEMON_WAKE
+   sys_vmeminfo_counters: VMEMINFO_UNEVICTABLE_PGS_CULLED
+   sys_vmeminfo_counters: VMEMINFO_UNEVICTABLE_PGS_SCANNED 
+   sys_vmeminfo_counters: VMEMINFO_UNEVICTABLE_PGS_RESCUED
+   sys_vmeminfo_counters: VMEMINFO_UNEVICTABLE_PGS_MLOCKED
+   sys_vmeminfo_counters: VMEMINFO_UNEVICTABLE_PGS_MUNLOCKED
+   sys_vmeminfo_counters: VMEMINFO_UNEVICTABLE_PGS_CLEARED
+   sys_vmeminfo_counters: VMEMINFO_UNEVICTABLE_PGS_STRANDED
+   sys_vmeminfo_counters: VMEMINFO_NR_ZSPAGES
+   sys_vmeminfo_counters: VMEMINFO_NR_ION_HEAP
+   sys_vmeminfo_counters: VMEMINFO_NR_GPU_HEAP
+   sys_vmeminfo_counters: VMEMINFO_ALLOCSTALL_DMA
+   sys_vmeminfo_counters: VMEMINFO_ALLOCSTALL_MOVABLE
+   sys_vmeminfo_counters: VMEMINFO_ALLOCSTALL_NORMAL
+   sys_vmeminfo_counters: VMEMINFO_COMPACT_DAEMON_FREE_SCANNED
+   sys_vmeminfo_counters: VMEMINFO_COMPACT_DAEMON_MIGRATE_SCANNED
+   sys_vmeminfo_counters: VMEMINFO_NR_FASTRPC
+   sys_vmeminfo_counters: VMEMINFO_NR_INDIRECTLY_RECLAIMABLE
+   sys_vmeminfo_counters: VMEMINFO_NR_ION_HEAP_POOL
+   sys_vmeminfo_counters: VMEMINFO_NR_KERNEL_MISC_RECLAIMABLE
+   sys_vmeminfo_counters: VMEMINFO_NR_SHADOW_CALL_STACK_BYTES
+   sys_vmeminfo_counters: VMEMINFO_NR_SHMEM_HUGEPAGES
+   sys_vmeminfo_counters: VMEMINFO_NR_SHMEM_PMDMAPPED
+   sys_vmeminfo_counters: VMEMINFO_NR_UNRECLAIMABLE_PAGES
+   sys_vmeminfo_counters: VMEMINFO_NR_ZONE_ACTIVE_ANON
+   sys_vmeminfo_counters: VMEMINFO_NR_ZONE_ACTIVE_FILE
+   sys_vmeminfo_counters: VMEMINFO_NR_ZONE_INACTIVE_ANON
+   sys_vmeminfo_counters: VMEMINFO_NR_ZONE_INACTIVE_FILE
+   sys_vmeminfo_counters: VMEMINFO_NR_ZONE_UNEVICTABLE
+   sys_vmeminfo_counters: VMEMINFO_NR_ZONE_WRITE_PENDING
+   sys_vmeminfo_counters: VMEMINFO_OOM_KILL 
+   sys_vmeminfo_counters: VMEMINFO_PGLAZYFREE
+   sys_vmeminfo_counters: VMEMINFO_PGLAZYFREED
+   sys_vmeminfo_counters: VMEMINFO_PGREFILL
+   sys_vmeminfo_counters: VMEMINFO_PGSCAN_DIRECT
+   sys_vmeminfo_counters: VMEMINFO_PGSCAN_KSWAPD
+   sys_vmeminfo_counters: VMEMINFO_PGSKIP_DMA
+   sys_vmeminfo_counters: VMEMINFO_PGSKIP_MOVABLE
+   sys_vmeminfo_counters: VMEMINFO_PGSKIP_NORMAL
+   sys_vmeminfo_counters: VMEMINFO_PGSTEAL_DIRECT
+   sys_vmeminfo_counters: VMEMINFO_PGSTEAL_KSWAPD
+   sys_vmeminfo_counters: VMEMINFO_SWAP_RA
+   sys_vmeminfo_counters: VMEMINFO_SWAP_RA_HIT
+   sys_vmeminfo_counters: VMEMINFO_WORKINGSET_RESTORE
+   report_process_mem_info: true
+   report_app_mem_info: false
+   report_app_mem_by_memory_service: false
+  }
+ }
+CONFIG
+```
+
+### 进程内存使用跟踪
+
+如配置抓取的进程名是com.ohos.mms
+
+``` sh
+hiprofiler_cmd \
+  -c - \
+  -o /data/local/tmp/hiprofiler_data.htrace \
+  -t 50 \
+  -s \
+  -k \
+<<CONFIG
+ request_id: 1
+ session_config {
+  buffers {
+   pages: 16384
+  }
+  result_file: "/data/local/tmp/hiprofiler_data.htrace"
+  sample_duration: 50000
+ }
+ plugin_configs {
+  plugin_name: "nativehook"
+  sample_interval: 5000
+  config_data {
+   save_file: false
+   filter_size: 4096
+   smb_pages: 16384
+   max_stack_depth: 10
+   process_name: "com.ohos.mms"
+   malloc_free_matching_interval: 1000
+   malloc_free_matching_cnt: 1000
+   string_compressed: true
+   fp_unwind: true
+  }
+ }
+CONFIG
+```
+
+配置参数说明：
+
+* pid/process_name:设置抓取的进程ID或者进程名
+* max_stack_depth:抓取的栈的深度
+* smb_pages:native_daemon和native_hook进程之间存储数据的共享内存大小（4KB的倍数）
+* filter_size:只抓取大于该size的malloc数据（free不受影响）
+
+## bytrace/hitrace场景示例
+
+运行如下命令：
+
+```
+hiprofiler_cmd \
+  -c - \
+  -o /data/local/tmp/hiprofiler_data.htrace \
+  -t 30 \
+  -s \
+<<CONFIG
+ request_id: 1
+ session_config {
+  buffers {
+   pages: 1000
+  }
+  result_file: "/data/local/tmp/hiprofiler_data.htrace"
+  sample_duration: 30000
+ }
+ plugin_configs {
+  plugin_name: "ftrace-plugin"
+  sample_interval: 1000
+  config_data {
+   hitrace_time: 10
+   hitrace_categories: "ability"
+   hitrace_categories: "ace"
+   hitrace_categories: "binder"
+   hitrace_categories: "dsoftbus"
+   hitrace_categories: "freq"
+   hitrace_categories: "graphic"
+   hitrace_categories: "idle"
+   hitrace_categories: "memory"
+   hitrace_categories: "dcamera"
+   hitrace_categories: "ohos"
+   hitrace_categories: "rpc"
+   hitrace_categories: "sched"
+   hitrace_categories: "sync"
+   hitrace_categories: "window"
+   buffer_size_kb: 51200
+   flush_interval_ms: 1000
+   flush_threshold_kb: 4096
+   parse_ksyms: true
+   clock: "mono"
+   trace_period_ms: 200
+   debug_on: false
+  }
+ }
+CONFIG
+```
+
+## hiperf场景示例
+
+运行如下命令：
+
+``` sh
+hiprofiler_cmd \
+  -c - \
+  -o /data/local/tmp/hiprofiler_data.htrace \
+  -t 50 \
+  -s \
+  -k \
+<<CONFIG
+ request_id: 1
+ session_config {
+  buffers {
+   pages: 16384
+  }
+  result_file: "/data/local/tmp/hiprofiler_data.htrace"
+  sample_duration: 50000
+ }
+ plugin_configs {
+  plugin_name: "hiperf-plugin"
+  sample_interval: 5000
+  config_data {
+   is_root: false
+   outfile_name: "/data/local/tmp/perf.data"
+   record_args: "-f 1000 -a  --cpu-limit 100 -e hw-cpu-cycles,sched:sched_waking --call-stack dwarf --clockid monotonic --offcpu -m 256"
+  }
+ }
+CONFIG
+```
+
+
+
 ## 相关仓<a name="section1293495681320"></a>
 
 [研发工具链子系统]()
