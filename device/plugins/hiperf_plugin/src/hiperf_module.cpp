@@ -73,7 +73,7 @@ bool ParseConfigToCmd(const HiperfPluginConfig& config, std::vector<std::string>
 
 bool RunCommand(const std::string& cmd)
 {
-    HILOG_DEBUG(LOG_CORE, "run command: %s", cmd.c_str());
+    HILOG_INFO(LOG_CORE, "run command: %s", cmd.c_str());
     std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd.c_str(), "r"), pclose);
     CHECK_TRUE(pipe, false, "HiperfPlugin::RunCommand: create popen FAILED!");
 
@@ -83,7 +83,7 @@ bool RunCommand(const std::string& cmd)
     while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
         result += buffer.data();
     }
-    HILOG_DEBUG(LOG_CORE, "run command result: %s", result.c_str());
+    HILOG_INFO(LOG_CORE, "run command result: %s", result.c_str());
     bool res = result.find(HIPERF_RECORD_OK) != std::string::npos;
     CHECK_TRUE(res, false, "HiperfPlugin::RunCommand: execute command FAILED!");
     return true;
@@ -119,7 +119,7 @@ int HiperfPluginSessionStop(void)
     cmd += HIPERF_CMD + g_logLevel + HIPERF_RECORD_CMD;
     cmd += HIPERF_RECORD_STOP;
     RunCommand(cmd);
-
+    usleep(250000); // 250000: wait for perf.data
     return 0;
 }
 
