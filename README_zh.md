@@ -7,7 +7,17 @@
     -   [接口说明](#section558917318367)
     -   [使用说明](#section681316903611)
     -   [调测验证](#section35362541215)
-
+    -   [hiprofiler_cmd 使用说明](#section35362541216)
+        -   [参数说明](#section35362541290)
+        -   [命令展示](#section35362541500)
+            -   [基础配置参数](#section35362541219)
+            -   [ftrace抓取场景示例](#section35362541220)
+            -   [内存信息抓取场景示例](#section35362541221)
+                -   [内核内存信息](#section35362541222)
+                -   [虚拟内存统计](#section35362541223)
+                -   [进程内存使用跟踪](#section35362541224)
+            -   [bytrace/hitrace场景示例](#section35362541225)
+            -   [hiperf场景示例](#section35362541226)
 -   [相关仓](#section1293495681320)
 
 ## 简介<a name="section6874544183112"></a>
@@ -361,9 +371,9 @@ int main(int argc, char** argv)
      return 0;
 ```
 
-# hiprofiler_cmd 使用说明
+## hiprofiler_cmd 使用说明<a name="section35362541216"></a>
 
-## 参数说明
+### 参数说明<a name="section35362541290"></a>
 
  执行hiprofiler_cmd 为调优业务的离线命令行抓取工具，具体使用方法及命令行参数介绍如下。
 
@@ -393,9 +403,9 @@ help :
 * `-k`或者`--kill`选项，用于关闭依赖的进程；
 * `-c`或者`--config`选项，用于指定配置文件；
 
-# 命令展示
+### 命令展示<a name="section35362541500"></a>
 
-## 基础配置参数
+#### 基础配置参数<a name="section35362541219"></a>
 
 ```sh
 # hiprofiler_cmd \
@@ -423,7 +433,7 @@ CONFIG
 * result_file:结果输出的文件路径，与-o参数对应
 * sample_duration:抓取时长（ms），与-t参数对应
 
-## ftrace抓取场景示例
+#### ftrace抓取场景示例<a name="section35362541220"></a>
 
 ```sh
 # hiprofiler_cmd \
@@ -473,9 +483,9 @@ CONFIG
 * trace_period_ms:ftrace插件读取内核缓冲区数据的间隔时间（ms）
 * hitrace_time:hitrace命令行抓取时间，与hiprofiler_cmd下发的-t配置联动
 
-## 内存信息抓取场景示例
+#### 内存信息抓取场景示例<a name="section35362541221"></a>
 
-### 内核内存信息
+##### 内核内存信息<a name="section35362541222"></a>
 
 使用如下命令：
 
@@ -544,7 +554,7 @@ hiprofiler_cmd \
 CONFIG
 ```
 
-### 虚拟内存统计
+##### 虚拟内存统计<a name="section35362541223"></a>
 
 使用如下命令：
 
@@ -708,7 +718,7 @@ hiprofiler_cmd \
 CONFIG
 ```
 
-### 进程内存使用跟踪
+##### 进程内存使用跟踪<a name="section35362541224"></a>
 
 如配置抓取的进程名是com.ohos.mms
 
@@ -753,7 +763,7 @@ CONFIG
 * smb_pages:native_daemon和native_hook进程之间存储数据的共享内存大小（4KB的倍数）
 * filter_size:只抓取大于该size的malloc数据（free不受影响）
 
-## bytrace/hitrace场景示例
+#### bytrace/hitrace场景示例<a name="section35362541225"></a>
 
 运行如下命令：
 
@@ -803,7 +813,7 @@ hiprofiler_cmd \
 CONFIG
 ```
 
-## hiperf场景示例
+#### hiperf场景示例<a name="section35362541226"></a>
 
 运行如下命令：
 
