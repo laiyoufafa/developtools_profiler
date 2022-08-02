@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-importScripts("trace_streamer_builtin.js", "TempSql.js");
+importScripts("trace_streamer_builtin.js", "TempSql.js", "TraceWorkerPerfDataQuery.js", "TraceWorkerNativeMemory.js");
 self.onerror = function (error: any) {
 }
 let Module: any = null;
@@ -40,21 +40,56 @@ function initWASM() {
     })
 }
 
-const REQ_BUF_SIZE = 64 * 1024 * 1024;
+const REQ_BUF_SIZE = 4 * 1024 * 1024;
+let reqBufferAddr:number = -1;
+let _response:Function|undefined|null = undefined;
 self.onmessage = async (e: MessageEvent) => {
     if (e.data.action === "open") {
         await initWASM();
         // @ts-ignore
-        self.postMessage({id: e.data.id, action: "open", ready: true, index: 0});
+        self.postMessage({id: e.data.id, action: e.data.action, ready: true, index: 0});
         let uint8Array = new Uint8Array(e.data.buffer);
-        let p = Module._malloc(uint8Array.length);
-        Module.HEAPU8.set(uint8Array, p);
-        let r1 = Module._TraceStreamerParseData(p, uint8Array.length);
-        let r2 = Module._TraceStreamerParseDataOver();
-        Module._free(p);
-        if (r1 == -1) {
+        let callback = (heapPtr: number, size: number) => {
+            let out = Module.HEAPU8.subarray(heapPtr, heapPtr + size);
+            let str = dec.decode(out);
+            arr.length = 0;
+            str = str.substring(str.indexOf("\n") + 1);
+            if (!str) {
+            }else{
+                let parse = JSON.parse(str);
+                let columns = parse.columns;
+                let values = parse.values;
+                for (let i = 0; i < values.length; i++) {
+                    let obj: any = {}
+                    for (let j = 0; j < columns.length; j++) {
+                        obj[columns[j]] = values[i][j]
+                    }
+                    arr.push(obj)
+                }
+            }
+            if (e.data.action === "exec") {
+                // @ts-ignore
+                self.postMessage({id: e.data.id, action: e.data.action, results: arr});
+            }
+        }
+        let fn = Module.addFunction(callback, "vii");
+        reqBufferAddr = Module._Initialize(fn,REQ_BUF_SIZE);
+        let wrSize = 0;
+        let r2 = -1;
+        while (wrSize < uint8Array.length) {
+            const sliceLen = Math.min(uint8Array.length - wrSize, REQ_BUF_SIZE);
+            const dataSlice = uint8Array.subarray(wrSize, wrSize + sliceLen);
+            Module.HEAPU8.set(dataSlice, reqBufferAddr);
+            wrSize += sliceLen;
+            r2 = Module._TraceStreamerParseDataEx(sliceLen);
+            if (r2 == -1) {
+                break;
+            }
+        }
+        Module._TraceStreamerParseDataOver();
+        if (r2 == -1) {
             // @ts-ignore
-            self.postMessage({id: e.data.id, action: "open", init: false, msg: "parse data error"});
+            self.postMessage({id: e.data.id, action: e.data.action, init: false, msg: "parse data error"});
             return;
         }
         // @ts-ignore
@@ -64,11 +99,37 @@ self.onmessage = async (e: MessageEvent) => {
             self.postMessage({id: e.data.id, ready: true, index: index + 1});
         });
         // @ts-ignore
-        self.postMessage({id: e.data.id, action: "open", init: true, msg: "ok"});
+        self.postMessage({id: e.data.id, action: e.data.action, init: true, msg: "ok", buffer: e.data.buffer},  [e.data.buffer]);
     } else if (e.data.action === "exec") {
-        let arr = query(e.data.name, e.data.sql, e.data.params);
+        query(e.data.name, e.data.sql, e.data.params);
         // @ts-ignore
-        self.postMessage({id: e.data.id, action: "exec", results: arr});
+        self.postMessage({id: e.data.id, action: e.data.action, results: arr});
+    } else if (e.data.action == "exec-buf") {
+        let arr = queryArrayBuffer(e.data.name, e.data.sql, e.data.params);
+        // @ts-ignore
+        self.postMessage({id: e.data.id, action: e.data.action, results: arr}, [arr]);
+    } else if (e.data.action == "perf-init") {
+        // @ts-ignore
+        perfDataQuery.initPerfFiles(query)
+        self.postMessage({id: e.data.id, action: e.data.action, results: perfDataQuery.callChainMap, msg: "ok"});
+    } else if (e.data.action == "perf-action") {
+        // @ts-ignore
+        self.postMessage({id: e.data.id, action: e.data.action, results: perfDataQuery.resolvingAction(e.data.params)});
+    } else if (e.data.action == "native-memory-init") {
+        // @ts-ignore
+        self.postMessage({
+            id: e.data.id,
+            action: e.data.action,
+            results: nativeMemoryWorker.initNativeMemory(query),
+            msg: "ok"
+        });
+    } else if (e.data.action == "native-memory-action") {
+        // @ts-ignore
+        self.postMessage({
+            id: e.data.id,
+            action: e.data.action,
+            results: nativeMemoryWorker.resolvingAction(e.data.params)
+        });
     }
 }
 
@@ -81,7 +142,7 @@ function createView(sql: string) {
     return res;
 }
 
-function query(name: string, sql: string, params: any) {
+function queryArrayBuffer(name: string, sql: string, params: any) {
     if (params) {
         Reflect.ownKeys(params).forEach((key: any) => {
             if (typeof params[key] === "string") {
@@ -96,26 +157,30 @@ function query(name: string, sql: string, params: any) {
     let dec = new TextDecoder();
     let sqlPtr = Module._malloc(sql.length);
     let outPtr = Module._malloc(REQ_BUF_SIZE);
-    Module.HEAPU8.set(enc.encode(sql), sqlPtr);
-    let a = new Date().getTime();
+    let sqlUintArray = enc.encode(sql);
+    Module.HEAPU8.set(sqlUintArray, sqlPtr);
     let res = Module._TraceStreamerSqlQuery(sqlPtr, sql.length, outPtr, REQ_BUF_SIZE);
     let out = Module.HEAPU8.subarray(outPtr, outPtr + res);
-    let str = dec.decode(out);
     Module._free(sqlPtr);
     Module._free(outPtr);
-    str = str.substring(str.indexOf("\n") + 1);
-    if (!str) {
-        return []
+    out = out.buffer.slice(out.byteOffset, out.byteLength + out.byteOffset)
+    return out;
+}
+let enc = new TextEncoder();
+let dec = new TextDecoder();
+let arr: Array<any> = []
+function query(name: string, sql: string, params: any) {
+    if (params) {
+        Reflect.ownKeys(params).forEach((key: any) => {
+            if (typeof params[key] === "string") {
+                sql = sql.replace(new RegExp(`\\${key}`, "g"), `'${params[key]}'`);
+            } else {
+                sql = sql.replace(new RegExp(`\\${key}`, "g"), params[key]);
+            }
+        });
     }
-    let parse = JSON.parse(str);
-    let columns = parse.columns;
-    let values = parse.values;
-    for (let i = 0; i < values.length; i++) {
-        let obj: any = {}
-        for (let j = 0; j < columns.length; j++) {
-            obj[columns[j]] = values[i][j]
-        }
-        arr.push(obj)
-    }
+    let sqlUintArray = enc.encode(sql);
+    Module.HEAPU8.set(sqlUintArray, reqBufferAddr);
+    Module._TraceStreamerSqlQueryEx(sqlUintArray.length);
     return arr
 }

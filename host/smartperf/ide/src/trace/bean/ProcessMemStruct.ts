@@ -17,6 +17,7 @@ import {BaseStruct} from "./BaseStruct.js";
 import {ColorUtils} from "../component/trace/base/ColorUtils.js";
 
 export class ProcessMemStruct extends BaseStruct {
+    static hoverProcessMemStruct: ProcessMemStruct | undefined;
     trackId: number | undefined
     processName: string | undefined
     pid: number | undefined
@@ -33,12 +34,29 @@ export class ProcessMemStruct extends BaseStruct {
     static draw(ctx: CanvasRenderingContext2D, data: ProcessMemStruct) {
         if (data.frame) {
             let width = data.frame.width || 0;
-            ctx.fillStyle = ColorUtils.colorForTid(data.maxValue || 0)
-            ctx.strokeStyle = ColorUtils.colorForTid(data.maxValue || 0)
-            ctx.globalAlpha = 0.6;
-            ctx.lineWidth = 1;
-            let drawHeight: number = ((data.value || 0) * (data.frame.height || 0) * 1.0) / (data.maxValue || 1);
-            ctx.fillRect(data.frame.x, data.frame.y + data.frame.height - drawHeight, width, drawHeight)
+            if (data.startTime === ProcessMemStruct.hoverProcessMemStruct?.startTime) {
+                ctx.lineWidth = 1;
+                ctx.globalAlpha = 0.6;
+                let drawHeight: number = Math.floor(((data.value || 0) * (data.frame.height || 0) * 1.0) / (data.maxValue || 0));
+                ctx.fillRect(data.frame.x, data.frame.y + data.frame.height - drawHeight, width, drawHeight)
+                ctx.beginPath()
+                ctx.arc(data.frame.x, data.frame.y + data.frame.height - drawHeight, 3, 0, 2 * Math.PI, true)
+                ctx.fill()
+                ctx.globalAlpha = 1.0;
+                ctx.stroke();
+                ctx.beginPath()
+                ctx.moveTo(data.frame.x + 3, data.frame.y + data.frame.height - drawHeight);
+                ctx.lineWidth = 3;
+                ctx.lineTo(data.frame.x + width, data.frame.y + data.frame.height - drawHeight)
+                ctx.stroke();
+            } else {
+                ctx.fillStyle = ColorUtils.colorForTid(data.maxValue || 0)
+                ctx.strokeStyle = ColorUtils.colorForTid(data.maxValue || 0)
+                ctx.globalAlpha = 0.6;
+                ctx.lineWidth = 1;
+                let drawHeight: number = ((data.value || 0) * (data.frame.height || 0) * 1.0) / (data.maxValue || 1);
+                ctx.fillRect(data.frame.x, data.frame.y + data.frame.height - drawHeight, width, drawHeight)
+            }
         }
         ctx.globalAlpha = 1.0;
         ctx.lineWidth = 1;

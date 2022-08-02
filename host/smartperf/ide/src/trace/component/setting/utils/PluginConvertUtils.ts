@@ -18,11 +18,13 @@ export class PluginConvertUtils {
     private static leftBrace: string = "{"
     private static rightBrace: string = "}"
 
-    public static createHdcCmd(requestString: string, time: number) {
+    public static createHdcCmd(requestString: string, outputPath: string, time: number) {
         return "hiprofiler_cmd \\" + this.crlf
             + "  -c - \\" + this.crlf
-            + "  -o /data/local/tmp/hiprofiler_data.htrace \\" + this.crlf
+            + "  -o " + outputPath + " \\" + this.crlf
             + "  -t " + time + " \\" + this.crlf
+            + "  -s \\" + this.crlf
+            + "  -k \\" + this.crlf
             + "<<CONFIG"
             + requestString
             + "CONFIG"
@@ -44,78 +46,80 @@ export class PluginConvertUtils {
         } else {
             prefixText = prefixText + " ".repeat(spacesNumber) + this.leftBrace + this.crlf;
         }
-        for (const [key, value] of Object.entries(bean)) {
-            const repeatedKey = Array.isArray(value);
-            if (repeatedKey) {
-                prefixText = prefixText + this.handleArray(key, value, indentation, needColon, spacesNumber);
-            } else {
-                switch (typeof value) {
-                    case "bigint":
-                        prefixText = prefixText
-                            + ' '.repeat(spacesNumber).repeat(indentation + 1)
-                            + this.humpToSnake(key)
-                            + ": "
-                            + value.toString()
-                            + this.crlf
-                        break
-                    case "boolean":
-                        prefixText = prefixText
-                            + ' '.repeat(spacesNumber).repeat(indentation + 1)
-                            + this.humpToSnake(key)
-                            + ": "
-                            + value.toString()
-                            + this.crlf
-                        break
-                    case "number":
-                        if (value == 0 && !needColon) {
-                            break;
-                        }
-                        prefixText = prefixText
-                            + ' '.repeat(spacesNumber).repeat(indentation + 1)
-                            + this.humpToSnake(key)
-                            + ": "
-                            + value.toString()
-                            + this.crlf
-                        break
-                    case "string":
-                        if (value == '') {
+        if (bean) {
+            for (const [key, value] of Object.entries(bean)) {
+                const repeatedKey = Array.isArray(value);
+                if (repeatedKey) {
+                    prefixText = prefixText + this.handleArray(key, value, indentation, needColon, spacesNumber);
+                } else {
+                    switch (typeof value) {
+                        case "bigint":
+                            prefixText = prefixText
+                                + ' '.repeat(spacesNumber).repeat(indentation + 1)
+                                + this.humpToSnake(key)
+                                + ": "
+                                + value.toString()
+                                + this.crlf
                             break
-                        }
-                        if (value.startsWith("LOG_") || value.startsWith("IO_REPORT")) {
+                        case "boolean":
                             prefixText = prefixText
                                 + ' '.repeat(spacesNumber).repeat(indentation + 1)
                                 + this.humpToSnake(key)
                                 + ": "
                                 + value.toString()
                                 + this.crlf
-                        } else {
-                            prefixText = prefixText
-                                + ' '.repeat(spacesNumber).repeat(indentation + 1)
-                                + this.humpToSnake(key)
-                                + ": \""
-                                + value.toString()
-                                + "\""
-                                + this.crlf
-                        }
-                        break
-                    case "object":
-                    default:
-                        if (needColon) {
+                            break
+                        case "number":
+                            if (value == 0 && !needColon) {
+                                break;
+                            }
                             prefixText = prefixText
                                 + ' '.repeat(spacesNumber).repeat(indentation + 1)
                                 + this.humpToSnake(key)
                                 + ": "
-                                + this.handleObj(value, indentation + 1, needColon, spacesNumber)
-                                + ""
+                                + value.toString()
                                 + this.crlf
-                        } else {
-                            prefixText = prefixText
-                                + ' '.repeat(spacesNumber).repeat(indentation + 1)
-                                + this.humpToSnake(key)
-                                + this.handleObj(value, indentation + 1, needColon, spacesNumber)
-                                + ""
-                                + this.crlf
-                        }
+                            break
+                        case "string":
+                            if (value == '') {
+                                break
+                            }
+                            if (value.startsWith("LOG_") || value.startsWith("IO_REPORT")) {
+                                prefixText = prefixText
+                                    + ' '.repeat(spacesNumber).repeat(indentation + 1)
+                                    + this.humpToSnake(key)
+                                    + ": "
+                                    + value.toString()
+                                    + this.crlf
+                            } else {
+                                prefixText = prefixText
+                                    + ' '.repeat(spacesNumber).repeat(indentation + 1)
+                                    + this.humpToSnake(key)
+                                    + ": \""
+                                    + value.toString()
+                                    + "\""
+                                    + this.crlf
+                            }
+                            break
+                        case "object":
+                        default:
+                            if (needColon) {
+                                prefixText = prefixText
+                                    + ' '.repeat(spacesNumber).repeat(indentation + 1)
+                                    + this.humpToSnake(key)
+                                    + ": "
+                                    + this.handleObj(value, indentation + 1, needColon, spacesNumber)
+                                    + ""
+                                    + this.crlf
+                            } else {
+                                prefixText = prefixText
+                                    + ' '.repeat(spacesNumber).repeat(indentation + 1)
+                                    + this.humpToSnake(key)
+                                    + this.handleObj(value, indentation + 1, needColon, spacesNumber)
+                                    + ""
+                                    + this.crlf
+                            }
+                    }
                 }
             }
         }

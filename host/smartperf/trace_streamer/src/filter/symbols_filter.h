@@ -31,6 +31,7 @@ public:
     void RegisterFunc(uint64_t addr, DataIndex funcNameDictIndex);
 
     const DataIndex& GetFunc(uint64_t addr) const;
+    void Clear();
 private:
     std::map<uint64_t, DataIndex> symbolsMap_ = {};
 };

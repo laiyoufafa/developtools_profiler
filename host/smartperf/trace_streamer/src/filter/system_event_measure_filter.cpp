@@ -59,5 +59,10 @@ void SystemEventMeasureFilter::AddCertainFilterId(DataIndex nameIndex, uint64_t 
                                                                     static_cast<uint32_t>(nameIndex));
     }
 }
+
+void SystemEventMeasureFilter::Clear()
+{
+    tidStreamIdFilterIdMap_.clear();
+}
 } // namespace TraceStreamer
 } // namespace SysTuning

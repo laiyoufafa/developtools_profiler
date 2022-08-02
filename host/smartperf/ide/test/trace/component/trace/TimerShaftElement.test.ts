@@ -191,4 +191,19 @@ describe('TimerShaftElement Test', () => {
         timerShaftElement._sportRuler.removeTriangle = jest.fn(()=>true)
         expect(timerShaftElement.removeTriangle()).toBeUndefined();
     });
+
+    it('TimerShaftElementTest27', function () {
+        timerShaftElement._sportRuler = jest.fn(()=>undefined)
+        timerShaftElement._sportRuler.setSlicesMark = jest.fn(()=>true)
+        expect(timerShaftElement.setSlicesMark()).toBeUndefined();
+    });
+
+
+    it('TimerShaftElementTest28', function () {
+        timerShaftElement.rangeRuler = jest.fn(()=>undefined)
+        timerShaftElement.rangeRuler.render = jest.fn(()=>true)
+        expect(timerShaftElement.render()).not.toBeUndefined();
+    });
+
+
 })

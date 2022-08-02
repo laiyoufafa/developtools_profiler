@@ -20,6 +20,7 @@ import "../../StackBar.js"
 import {getTabThreadStates} from "../../../database/SqlLite.js";
 import {Utils} from "../base/Utils.js";
 import {StackBar} from "../../StackBar.js";
+import {log} from "../../../../log/Log.js";
 
 @element('tabpane-thread-states')
 export class TabPaneThreadStates extends BaseElement {
@@ -29,10 +30,13 @@ export class TabPaneThreadStates extends BaseElement {
     private source: Array<SelectionData> = []
 
     set data(val: SelectionParam | any) {
+        //@ts-ignore
+        this.tbl?.shadowRoot?.querySelector(".table")?.style?.height = (this.parentElement!.clientHeight - 45) + "px";
         // // @ts-ignore
         this.range!.textContent = "Selected range: " + ((val.rightNs - val.leftNs) / 1000000.0).toFixed(5) + " ms"
         getTabThreadStates(val.threadIds, val.leftNs, val.rightNs).then((result) => {
             if (result != null && result.length > 0) {
+                log("getTabThreadStates result size : " + result.length)
                 let sumWall = 0.0;
                 let sumOcc = 0;
                 for (let e of result) {
@@ -52,12 +56,12 @@ export class TabPaneThreadStates extends BaseElement {
                 count.occurrences = sumOcc;
                 result.splice(0, 0, count)
                 this.source = result;
-                this.tbl!.dataSource = result
+                this.tbl!.recycleDataSource = result
                 this.stackBar!.data = result;
             } else {
                 this.source = []
                 this.stackBar!.data = []
-                this.tbl!.dataSource = []
+                this.tbl!.recycleDataSource = []
             }
         })
     }
@@ -69,6 +73,13 @@ export class TabPaneThreadStates extends BaseElement {
         this.tbl!.addEventListener('column-click', (evt: any) => {
             this.sortByColumn(evt.detail)
         });
+        new ResizeObserver((entries) => {
+            if (this.parentElement?.clientHeight != 0) {
+                // @ts-ignore
+                this.tbl?.shadowRoot.querySelector(".table").style.height = (this.parentElement.clientHeight - 45) + "px"
+                this.tbl?.reMeauseHeight()
+            }
+        }).observe(this.parentElement!)
     }
 
     initHtml(): string {
@@ -130,7 +141,7 @@ export class TabPaneThreadStates extends BaseElement {
         } else {
             this.source.sort(compare(detail.key, detail.sort, 'number'))
         }
-        this.tbl!.dataSource = this.source;
+        this.tbl!.recycleDataSource = this.source;
     }
 
 }

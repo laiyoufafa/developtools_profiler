@@ -56,8 +56,8 @@ public:
     SymbolsData* GetSymbolsData();
     SysCall* GetSysCallData();
     LogInfo* GetHilogData();
-    NativeHook* GetHeapData();
-    NativeHookFrame* GetHeapFrameData();
+    NativeHook* GetNativeHookData();
+    NativeHookFrame* GetNativeHookFrameData();
     Hidump* GetHidumpData();
     PerfCallChain* GetPerfCallChainData();
     PerfFiles* GetPerfFilesData();

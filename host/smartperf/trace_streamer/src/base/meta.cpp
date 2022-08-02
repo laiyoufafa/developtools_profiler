@@ -14,5 +14,5 @@
  */
 #include "meta.h"
 size_t g_loadSize = 0;
-std::string TRACE_STREAM_VERSION = "2.5.112";           // version
-std::string TRACE_STREAM_PUBLISHVERSION = "2022/6/2";  // publish datetime
+std::string TRACE_STREAM_VERSION = "2.6.104";           // version
+std::string TRACE_STREAM_PUBLISHVERSION = "2022/8/1";  // publish datetime

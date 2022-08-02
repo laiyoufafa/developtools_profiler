@@ -13,7 +13,10 @@
  * limitations under the License.
  */
 
+import {info} from "../../../log/Log.js";
+
 export const initDistributedTermData = (metricData: Array<any>): DistributedTermListItem => {
+    info("Distributed Term data length is:", metricData.length)
     let distributedTermListItems: Array<DistributedTermItem> = []
     const splitChar = ','
     for (let sqlIndex = 0; sqlIndex < metricData.length; sqlIndex++) {
@@ -38,7 +41,7 @@ export const initDistributedTermData = (metricData: Array<any>): DistributedTerm
             let receiverTime: number = 0;
             let senderTime: number = 0;
             let delay: number = 0;
-            if (flag.contains('S,C') || flag.contains('C,S')) {
+            if (flag.indexOf('S,C') > -1 || flag.indexOf('C,S') > -1) {
                 across = false;
                 if (flagList[index] == 'S') receiverTime = timeList[index]
                 if (flagList[index] == 'C') senderTime = timeList[index]

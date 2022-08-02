@@ -22,16 +22,18 @@ import {Utils} from "../base/Utils.js";
 import {HeapBean} from "../../../bean/HeapBean.js";
 import {HeapTreeDataBean} from "../../../bean/HeapTreeDataBean.js";
 import {SpSystemTrace} from "../../SpSystemTrace.js";
+import {log} from "../../../../log/Log.js";
 
 @element('tabpane-heap')
 export class TabPaneHeap extends BaseElement {
     private tbl: LitTable | null | undefined;
     private range: HTMLLabelElement | null | undefined;
-
+    private HEAP_FRAME_DATA : Array<HeapTreeDataBean> = [];
     set data(val: SelectionParam | any) {
         // @ts-ignore
         this.tbl?.shadowRoot.querySelector(".table").style.height = (this.parentElement.clientHeight - 20) + "px"
         queryHeapAllData(val.leftNs, val.rightNs, val.heapIds).then((allHeap) => {
+            log("queryHeapAllData result size : " + allHeap.length)
             if (allHeap.length > 0) {
                 let groups: any = {};
                 let treeGroup: any = {}
@@ -39,7 +41,7 @@ export class TabPaneHeap extends BaseElement {
                 allHeap.forEach((heapData) => {
                     groups[heapData.eventId] = heapData
                 })
-                SpSystemTrace.HEAP_FRAME_DATA.map((frame) => {
+                this.HEAP_FRAME_DATA.map((frame) => {
                     if (groups[frame.eventId]) {
                         treeGroup[frame.eventId] = treeGroup[frame.eventId] || []
                         frame.heapSize = groups[frame.eventId].heapSize

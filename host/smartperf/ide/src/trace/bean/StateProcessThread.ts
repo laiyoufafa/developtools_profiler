@@ -62,3 +62,27 @@ export class SPT {
     priority: string = "-"
     note: string = "-"
 }
+
+export class ThreadState{
+    itid:number = 0
+    state:string = ""
+    dur:number = 0
+    ts:number = 0
+    end_ts:number = 0
+    start_ts:number = 0
+    cpu:number = 0
+}
+
+export class ThreadProcess{
+    id:number = 0
+    threadId :number = 0
+    thread :string = ""
+    processId : number = 0
+    process : string = ""
+}
+
+export class SptSlice{
+    itid :number = 0
+    ts : number = 0
+    priority : number = 0
+}

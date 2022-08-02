@@ -16,26 +16,28 @@ package main
 //遇到报错请在当前目录下执行这个命令： go mod download golang.org/x/text
 import (
     "bufio"
+    "bytes"
     "crypto/rand"
     "crypto/rsa"
     "crypto/x509"
     "crypto/x509/pkix"
-	"encoding/json"
+    "encoding/json"
     "encoding/pem"
-    "math/big"
-    "net"
-    "bytes"
     "fmt"
     "io"
     "io/ioutil"
     "log"
+    "math/big"
     "mime"
+    "net"
     "net/http"
     "os"
     "os/exec"
     "path"
     "path/filepath"
+    "regexp"
     "runtime"
+    "strconv"
     "strings"
     "time"
 )
@@ -105,6 +107,7 @@ func genSSL() {
     keyOut.Close()
 }
 func main() {
+    checkPort(HttpPort)
     genSSL()
     exPath = getCurrentAbPath()
     fmt.Println(exPath)
@@ -135,6 +138,25 @@ func main() {
         CheckErr(err)
     }()
     select {}
+}
+
+func getPidByPort(portNumber int) int {
+    resPid := -1
+    var out bytes.Buffer
+    cmdRes := exec.Command("cmd", "/c", fmt.Sprintf("netstat -ano -p tcp | findstr %d", portNumber))
+    cmdRes.Stdout = &out
+    cmdRes.Run()
+    cmdResStr := out.String()
+    findStr := regexp.MustCompile(`\s\d+\s`).FindAllString(cmdResStr, -1)
+    if len(findStr) > 0 {
+        pid, err := strconv.Atoi(strings.TrimSpace(findStr[0]))
+        if err != nil {
+            resPid = -1
+        } else {
+            resPid = pid
+        }
+    }
+    return resPid
 }
 
 type LoggerReq struct {
@@ -372,4 +394,14 @@ func getCurrentAbPathByExecutable() string {
     }
     res, _ := filepath.EvalSymlinks(filepath.Dir(exePath))
     return res
+}
+
+func checkPort(port int){
+    if isWindows() {
+        pid := getPidByPort(port)
+        if pid != -1 {
+            res := exec.Command("cmd", "/c", fmt.Sprintf("taskkill /F /PID %d /T",pid))
+            res.Run()
+        }
+    }
 }

@@ -18,6 +18,7 @@ export class SelectionParam {
     threadIds: Array<number> = [];
     trackIds: Array<number> = [];
     funTids: Array<number> = [];
+    funAsync: Array<{name:string,pid:number}> = [];
     heapIds: Array<number> = [];
     nativeMemory: Array<String> = [];
     cpuAbilityIds: Array<string> = []

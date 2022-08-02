@@ -37,7 +37,6 @@ export function ns2s(ns: number): string {
 
 export function ns2x(ns: number, startNS: number, endNS: number, duration: number, rect: any) {
     // @ts-ignore
-    // return _ns2x(ns,startNS,endNS,duration,rect.width);
     if (endNS == 0) {
         endNS = duration;
     }
@@ -145,7 +144,6 @@ export class BaseStruct {
 
 
 export class ColorUtils {
-    // public static   GREY_COLOR:string = Color.getHSBColor(0, 0, 62); // grey
     public static GREY_COLOR: string = "#f0f0f0"
     /**
      * Color array of all current columns
@@ -171,32 +169,25 @@ export class ColorUtils {
         "#ffe593",// yellow 0xffec3d
     ];
     public static FUNC_COLOR: Array<string> = [
-        "#3391ff", // purple
-        "#2db4e2",
-        "#2db3aa", // deep purple
-        "#ffd44a",
-        "#535da6", // indigo
-        "#008078", // blue
-        "#ff9201",
+        "#46B1E3",
+        "#0094c6", // orange
         "#38428c",
-        "#3391ff",// red
+        "#38778c",
+        "#90708c",
+        "#9c27b0",
         "#0076ff",// pink
         "#66adff",// purple
-        "#2db3aa",// deep purple
-        "#008078",// indigo
-        "#73e6de",// blue
-        "#535da6",// light blue
-        "#38428c", // cyan
-        "#7a84cc",// teal
-        "#ff9201",// green
-        "#ff7500",// light green
-        "#ffab40",// lime
-        "#2db4e2",// amber 0xffc105
-        "#0094c6", // orange
+        "#2db4e2",
         "#7cdeff",// deep orange
-        "#ffd44a", // brown
-        "#fbbf00",// blue gray
-        "#ffe593",// yellow 0xffec3d
+        "#73e6de",// blue
+        "#bcaaa4",
+        "#2db3aa", // deep purple
+        "#008078", // blue
+        "#795548",
+        // "#ffab40",// lime
+        // "#c0ca33",
+        "#ff7500",// light green
+        "#ec407a",
     ];
 
     /**
@@ -220,6 +211,20 @@ export class ColorUtils {
         return Math.abs(hash) % max;
     }
 
+    public static hashFunc(str: string, depth: number, max: number): number {
+        let colorA: number = 0x811c9dc5;
+        let colorB: number = 0xfffffff;
+        let colorC: number = 16777619;
+        let colorD: number = 0xffffffff;
+        let hash: number = colorA & colorB;
+        let st = str.replace(/[0-9]+/g, "");
+        for (let index: number = 0; index < st.length; index++) {
+            hash ^= st.charCodeAt(index);
+            hash = (hash * colorC) & colorD;
+        }
+        return (Math.abs(hash) + depth) % max;
+    }
+
     /**
      * Get color according to tid
      *
@@ -241,7 +246,7 @@ export class ColorUtils {
     }
 }
 
-export function drawLines(ctx: any, xs: Array<any>, height: number, lineColor: string) {
+export function drawLines(ctx: CanvasRenderingContext2D, xs: Array<any>, height: number, lineColor: string) {
     if (ctx) {
         ctx.lineWidth = 1;
         ctx.strokeStyle = lineColor || "#dadada";
@@ -253,7 +258,7 @@ export function drawLines(ctx: any, xs: Array<any>, height: number, lineColor: s
     }
 }
 
-export function drawFlagLine(ctx: any, hoverFlag: any, selectFlag: any, startNS: number, endNS: number, totalNS: number, frame: any, slicesTime: { startTime: number | null, endTime: number | null ,color:string|null}) {
+export function drawFlagLine(ctx: any, hoverFlag: any, selectFlag: any, startNS: number, endNS: number, totalNS: number, frame: any, slicesTime: { startTime: number | null, endTime: number | null, color: string | null }) {
     if (ctx) {
         if (hoverFlag) {
             ctx.beginPath();
@@ -277,7 +282,7 @@ export function drawFlagLine(ctx: any, hoverFlag: any, selectFlag: any, startNS:
         if (slicesTime && slicesTime.startTime && slicesTime.endTime) {
             ctx.beginPath();
             ctx.lineWidth = 1;
-            ctx.strokeStyle = slicesTime.color||"#dadada";
+            ctx.strokeStyle = slicesTime.color || "#dadada";
             let x1 = ns2x(slicesTime.startTime, startNS, endNS, totalNS, frame);
             let x2 = ns2x(slicesTime.endTime, startNS, endNS, totalNS, frame);
             ctx.moveTo(Math.floor(x1), 0)
@@ -303,23 +308,6 @@ export function getHeatColor(widthPercentage: number) {
     };
 }
 
-/**
- * get framechart color by percent
- * @param percent proportion of function
- * @param funName function name
- * @returns
- */
-export function getFrameChartColor(percent: number, funName: string) {
-    let heatColor;
-    let keyword = ''; // TODO search function reserved
-    if (keyword && keyword.length > 0 && funName.indexOf(keyword) != -1) {
-        heatColor = {r: 0x66, g: 0xad, b: 0xff};
-    } else {
-        heatColor = getHeatColor(percent);
-    }
-    return heatColor;
-}
-
 export enum ChartMode {
     Call,
     Byte,
@@ -329,7 +317,9 @@ export enum ChartMode {
 export class ChartStruct extends BaseStruct {
     static hoverFuncStruct: ChartStruct | undefined;
     static selectFuncStruct: ChartStruct | undefined;
+    static lastSelectFuncStruct: ChartStruct | undefined;
     static padding: number = 1;
+    needShow = false;
     depth: number = 0;
     symbol: string = '';
     size: number = 0;
@@ -349,7 +339,7 @@ export class ChartStruct extends BaseStruct {
             node.frame = new Rect(0, 0, 0, 0);
         }
         // filter depth is 0
-        if (node.parent instanceof ChartStruct) {
+        if (node.parent) {
             let idx = node.parent.children.indexOf(node);
             if (idx == 0) {
                 node.frame!.x = node.parent.frame!.x;
@@ -357,15 +347,11 @@ export class ChartStruct extends BaseStruct {
                 // set x by left frame. left frame is parent.children[idx - 1]
                 node.frame.x = node.parent.children[idx - 1].frame!.x + node.parent.children[idx - 1].frame!.width
             }
-            let width = 0;
             if (mode == ChartMode.Byte) {
-                width = node.size / total * canvas_frame.width;
+                node.frame!.width = Math.floor(node.size / total * canvas_frame.width);
             } else {
-                width = node.count / total * canvas_frame.width;
+                node.frame!.width = Math.floor(node.count / total * canvas_frame.width);
             }
-            // ensure every rect at least draw 1px
-            width = (width < 1) ? Math.ceil(width) : Math.floor(width);
-            node.frame!.width = width;
             node.frame!.y = node.parent.frame!.y + 20;
             node.frame!.height = 20;
         }
@@ -381,11 +367,14 @@ export class ChartStruct extends BaseStruct {
         let spApplication = <SpApplication>document.getElementsByTagName("sp-application")[0]
         if (data.frame) {
             // draw rect
-            let color = getFrameChartColor(percent, data.symbol);
             let miniHeight = 20;
-            ctx.fillStyle = `rgba(${color.r}, ${color.g}, ${color.b}, 0.9)`;
+            if (ChartStruct.isSelected(data)) {
+                ctx.fillStyle = `rgba(${82}, ${145}, ${255}, 0.9)`;
+            } else {
+                let color = getHeatColor(percent);
+                ctx.fillStyle = `rgba(${color.r}, ${color.g}, ${color.b}, 0.9)`;
+            }
             ctx.fillRect(data.frame.x, data.frame.y, data.frame.width, miniHeight - ChartStruct.padding * 2);
-
             //draw border
             if (ChartStruct.isHover(data)) {
                 if (spApplication.dark) {
@@ -405,7 +394,7 @@ export class ChartStruct extends BaseStruct {
 
             //draw symbol name
             if (data.frame.width > 10) {
-                if (spApplication.dark) {
+                if (percent > 0.6 || ChartStruct.isSelected(data)) {
                     ctx.fillStyle = "#fff";
                 } else {
                     ctx.fillStyle = "#000";
@@ -443,6 +432,10 @@ export class ChartStruct extends BaseStruct {
 
     static isHover(data: ChartStruct): boolean {
         return ChartStruct.hoverFuncStruct == data;
+    }
+
+    static isSelected(data: ChartStruct): boolean {
+        return ChartStruct.lastSelectFuncStruct == data;
     }
 
 

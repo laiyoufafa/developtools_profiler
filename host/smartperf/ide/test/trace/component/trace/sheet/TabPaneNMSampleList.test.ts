@@ -15,6 +15,8 @@
 
 // @ts-ignore
 import {TabPaneNMSampleList} from "../../../../../dist/trace/component/trace/sheet/TabPaneNMSampleList.js"
+// @ts-ignore
+import {LitTable} from "../../../../../dist/base-ui/table/lit-table";
 const sqlit = require("../../../../../dist/trace/database/SqlLite.js")
 jest.mock("../../../../../dist/trace/database/SqlLite.js");
 
@@ -31,6 +33,23 @@ describe('TabPaneNMSampleList Test', () => {
     let mockGetNativeHookEventId = sqlit.queryNativeHookEventId
     let mockGetNativeHookSnapshot = sqlit.queryNativeHookSnapshot
     let mockGetNativeHookSnapshotTypes = sqlit.queryNativeHookSnapshotTypes
+
+    TabPaneNMSampleList.source = [{
+        current: "",
+        currentSize: 0,
+        startTs: 0,
+        heapSize: 0,
+        snapshot: "",
+        growth: "",
+        total: 0,
+        totalGrowth: "",
+        existing: 0,
+        children: [],
+        tempList: [],
+        timestamp: "",
+        eventId: -1,
+    }]
+    TabPaneNMSampleList.filterSelect = '0'
 
     tabPaneNMSampleList.currentSelection = jest.fn(()=>true)
     let dat = {

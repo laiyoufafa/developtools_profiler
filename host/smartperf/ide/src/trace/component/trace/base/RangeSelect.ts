@@ -16,6 +16,7 @@
 import {RangeSelectStruct, TraceRow} from "./TraceRow.js";
 import {Rect} from "../timer-shaft/Rect.js";
 import {ns2x, TimerShaftElement} from "../TimerShaftElement.js";
+import {info} from "../../../../log/Log.js";
 
 export class RangeSelect {
     rowsEL: HTMLDivElement | undefined | null;
@@ -111,7 +112,8 @@ export class RangeSelect {
     }
 
     mouseMove(rows: Array<TraceRow<any>>, ev: MouseEvent) {
-        if (this.isTouchMark(ev)) {
+        if (this.isTouchMark(ev) && TraceRow.rangeSelectObject) {
+            info( "isTouchMark");
             let markA = ns2x(TraceRow.rangeSelectObject!.startNS!, TraceRow.range!.startNS, TraceRow.range!.endNS, TraceRow.range!.totalNS!, {width: this.timerShaftEL?.canvas?.clientWidth || 0} as Rect);
             let markB = ns2x(TraceRow.rangeSelectObject!.endNS!, TraceRow.range!.startNS, TraceRow.range!.endNS, TraceRow.range!.totalNS!, {width: this.timerShaftEL?.canvas?.clientWidth || 0} as Rect);
             this.mark = {startMark: markA, endMark: markB};

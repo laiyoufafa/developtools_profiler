@@ -23,6 +23,7 @@
 
 namespace SysTuning {
 namespace TraceStreamer {
+using namespace SysTuning::base;
 bool BytraceParserFuzzTest(const uint8_t* data, size_t size)
 {
     if (!size) {

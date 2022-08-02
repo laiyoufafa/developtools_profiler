@@ -845,8 +845,12 @@ export interface NativeHookConfig {
     fileName: string,
     filterSize: number,
     smbPages: number,
-    maxStackDepth: number
-    processName: string
+    maxStackDepth: number,
+    processName: string,
+    mallocFreeMatchingInterval: number,
+    mallocFreeMatchingCnt: number,
+    stringCompressed: boolean
+    fpUnwind: boolean
 }
 
 export interface FpsConfig {

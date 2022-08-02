@@ -49,6 +49,18 @@ export class LitMainMenuItem extends BaseElement {
         }
     }
 
+    get back(): boolean {
+        return this.hasAttribute("back")
+    }
+
+    set back(isShowBack: boolean) {
+        if (isShowBack) {
+            this.setAttribute("back", '');
+        } else {
+            this.removeAttribute("back");
+        }
+    }
+
     initElements(): void {
         this.rootEL = this.shadowRoot?.querySelector('.root');
         this.titleEl = this.shadowRoot?.querySelector('.name');
@@ -144,6 +156,11 @@ export class LitMainMenuItem extends BaseElement {
             :host([file]) .icon{
                 pointer-events: none;
             }
+            
+            :host([back]) {
+                background-color: var(--dark-background8,#0A59F7);
+            } 
+            
         </style>
         <input id="file" class="file" type="file" style="display:none;pointer-events: none" />
         <label class="root" for="file">

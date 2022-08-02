@@ -45,13 +45,16 @@ export class TabPaneFilter extends BaseElement {
     private iconEL: LitIcon | null | undefined;
     private getFilter: ((e: FilterData) => void) | undefined;
     private getMining: ((e: MiningData) => void) | undefined;
+    private getLibrary: ((e: MiningData) => void) | undefined;
     private getCallTree: ((e: any) => void) | undefined;
     private getCallTreeConstraints: ((e: any) => void) | undefined;
 
     private cutList: Array<any> | undefined;
+    private libraryList: Array<any> | undefined;
 
     initElements(): void {
         this.cutList = [];
+        this.libraryList = [];
         this.filterInputEL = this.shadowRoot?.querySelector("#filter-input")
         this.markButtonEL = this.shadowRoot?.querySelector("#mark")
         this.iconEL = this.shadowRoot?.querySelector<LitIcon>("#icon")
@@ -97,7 +100,6 @@ export class TabPaneFilter extends BaseElement {
 
         this.filterInputEL?.addEventListener("keydown", (event: any) => {
             if (event.keyCode == 13) {
-                this.iconEL!.name = "menu"
                 if (this.getFilter) {
                     this.getFilter({
                         inputValue: event.target.value,
@@ -108,6 +110,7 @@ export class TabPaneFilter extends BaseElement {
                     })
                 }
             }
+            event.stopPropagation();
         });
 
         this.setSelectList()
@@ -118,17 +121,11 @@ export class TabPaneFilter extends BaseElement {
 
         this.initializeMining()
 
+        this.initializeLibrary()
+
         this.shadowRoot!.querySelectorAll<HTMLDivElement>(".mining-button").forEach((e, idx) => {
             e!.onclick = (ev) => {
                 if (idx == 0) {
-                    if (this.getMining) {
-                        this.getMining({type: "button", item: "symbol"});
-                    }
-                } else if (idx == 1) {
-                    if (this.getMining) {
-                        this.getMining({type: "button", item: "library"});
-                    }
-                } else if (idx == 2) {
                     const restoreList = this.cutList!.filter(item => item.highlight === true)
                     const list = this.cutList!.filter(item => item.highlight === false)
                     this.cutList = list;
@@ -139,6 +136,26 @@ export class TabPaneFilter extends BaseElement {
                 }
             }
         })
+        this.shadowRoot!.querySelector<HTMLDivElement>(".library-button")!.onclick = (ev)=>{
+            const restoreList = this.libraryList!.filter(item => item.highlight === true)
+            const list = this.libraryList!.filter(item => item.highlight === false)
+            this.libraryList = list;
+            if (this.getLibrary) {
+                this.getLibrary({type: "button", item: "restore", remove: restoreList});
+            }
+            this.initializeLibrary();
+        }
+
+        this.shadowRoot!.querySelector<HTMLDivElement>("#data-mining")!.onclick = (e)=>{
+            if (this.getMining) {
+                this.getMining({type: "button", item: "symbol"});
+            }
+        }
+        this.shadowRoot!.querySelector<HTMLDivElement>("#data-library")!.onclick = (e)=>{
+            if (this.getLibrary) {
+                this.getLibrary({type: "button", item: "library"});
+            }
+        }
     }
 
     set firstSelect(value: string) {
@@ -190,6 +207,18 @@ export class TabPaneFilter extends BaseElement {
         } else if (value == "tree") {
             this.iconEL!.name = "statistics";
             this.iconEL!.size = 16;
+        }
+    }
+
+    get disabledMining(){
+        return this.hasAttribute("disabledMining")
+    }
+
+    set disabledMining(value:boolean){
+        if (value) {
+            this.setAttribute("disabledMining","")
+        }else {
+            this.removeAttribute("disabledMining")
         }
     }
 
@@ -344,12 +373,7 @@ export class TabPaneFilter extends BaseElement {
         this.cutList!.forEach((a, b) => {
             html += `<div style="display: flex;padding: 4px 7px;" class="mining-checked" ${a.highlight ? "highlight" : ""}>
                         <lit-check-box class="lit-check-box" not-close ${a.checked ? "checked" : ""} style="display: flex"></lit-check-box>
-                        <div id="title" title="${a.name}">${a.name}</div>
-                        <lit-select default-value="${a.select}" border='false' style="width: 100px;" ${a.highlight ? "highlight" : ""} adaptive-expansion not-close>    
-                            <lit-select-option value="0">Charge</lit-select-option>`;
-            html += `<lit-select-option value="1">Prune</lit-select-option>`;
-            html += `</lit-select>
-                       </div>`
+                        <div id="title" title="${a.name}">${a.name}</div></div>`;
         })
 
         this.shadowRoot!.querySelector<HTMLDivElement>("#mining-row")!.innerHTML = html;
@@ -359,23 +383,10 @@ export class TabPaneFilter extends BaseElement {
             e!.querySelector("#title")!.onclick = (ev: any) => {
                 if (e.getAttribute("highlight") == "") {
                     e.removeAttribute("highlight")
-                    e.querySelector("lit-select").removeAttribute("highlight");
                     this.cutList![idx].highlight = false;
                 } else {
                     e.setAttribute("highlight", "");
-                    e.querySelector("lit-select").setAttribute("highlight", "");
                     this.cutList![idx].highlight = true;
-                }
-            }
-            // @ts-ignore
-            e!.querySelector<LitSelect>("lit-select")!.onchange = (ev) => {
-                // @ts-ignore
-                this.cutList[idx].select = e!.querySelector<LitSelect>("lit-select")!.value;
-                // @ts-ignore
-                e!.querySelector<LitCheckBox>("lit-check-box")!.checked = true;
-                this.cutList![idx].checked = true;
-                if (this.getMining) {
-                    this.getMining({type: "select", item: this.cutList![idx]});
                 }
             }
             // @ts-ignore
@@ -389,18 +400,57 @@ export class TabPaneFilter extends BaseElement {
         })
     }
 
+    initializeLibrary() {
+        let html = ``;
+        this.libraryList!.forEach((a, b) => {
+            html += `<div style="display: flex;padding: 4px 7px;" class="library-checked" ${a.highlight ? "highlight" : ""}>
+                        <lit-check-box class="lit-check-box" not-close ${a.checked ? "checked" : ""} style="display: flex"></lit-check-box>
+                        <div id="title" title="${a.name}">${a.name}</div></div>`;
+        })
+
+        this.shadowRoot!.querySelector<HTMLDivElement>("#library-row")!.innerHTML = html;
+
+        let row = this.shadowRoot!.querySelector("#library-row")!.childNodes;
+        row!.forEach((e: any, idx) => {
+            e!.querySelector("#title")!.onclick = (ev: any) => {
+                if (e.getAttribute("highlight") == "") {
+                    e.removeAttribute("highlight")
+                    this.libraryList![idx].highlight = false;
+                } else {
+                    e.setAttribute("highlight", "");
+                    this.libraryList![idx].highlight = true;
+                }
+            }
+
+            // @ts-ignore
+            e!.querySelector<LitCheckBox>("lit-check-box")!.onchange = (ev) => {
+                // @ts-ignore
+                this.libraryList[idx].checked = e!.querySelector<LitCheckBox>("lit-check-box")!.checked;
+                if (this.getLibrary) {
+                    this.getLibrary({type: "check", item: this.libraryList![idx]});
+                }
+            }
+        })
+    }
+
     getDataMining(getMining: (v: MiningData) => void) {
         this.getMining = getMining
     }
 
+    getDataLibrary(getLibrary: (v: MiningData) => void) {
+        this.getLibrary = getLibrary
+    }
+
     addDataMining(data: any, type: string) {
-        let idx = this.cutList!.findIndex((e) => e.name == data.name)
+        let list:Array<any> = (type=="symbol"?this.cutList:this.libraryList) ||[];
+        let idx = list!.findIndex((e) => e.name == data.name)
         if (idx == -1) {
-            this.cutList!.push({type: type, name: data.name, checked: true, select: "0", data: data, highlight: false});
+            list!.push({type: type, name: data.name, checked: true, select: "1", data: data, highlight: false});
         } else {
-            this.cutList![idx] = {type: type, name: data.name, checked: true, select: "0", data: data, highlight: false}
+            list![idx] = {type: type, name: data.name, checked: true, select: "1", data: data, highlight: false}
         }
         this.initializeMining();
+        this.initializeLibrary();
         return idx;
     }
 
@@ -415,6 +465,7 @@ export class TabPaneFilter extends BaseElement {
                 inputs: [inputs[0].value == "" ? "0" : inputs[0].value, inputs[1].value == "" ? "∞" : inputs[1].value]
             },
             dataMining: this.cutList,
+            dataLibrary: this.libraryList,
         }
         return data;
     }
@@ -438,7 +489,9 @@ export class TabPaneFilter extends BaseElement {
         }
         if (mining) {
             this.cutList = [];
+            this.libraryList = [];
             this.initializeMining();
+            this.initializeLibrary();
         }
     }
 
@@ -536,6 +589,12 @@ export class TabPaneFilter extends BaseElement {
         :host(:not([tree])) .tree{
             display: none;
         }
+        :host([disabledMining]) #data-mining{
+            display: none;
+        }
+        :host([disabledMining]) #data-library{
+            display: none;
+        }
         :host(:not([icon])) #icon{
             display: none;
         }
@@ -564,7 +623,18 @@ export class TabPaneFilter extends BaseElement {
             background: var(--dark-background3,#F4F3F4);
             border: 1px solid var(--dark-background8,#F4F3F4);
             border-radius: 16px;
-            padding: 2px 8px;
+            padding: 2px 18px;
+        }
+        .library-button{
+            opacity: 0.9;
+            font-size: 13px;
+            color: #0A59F7;
+            text-align: center;
+            line-height: 16px;
+            background: var(--dark-background3,#F4F3F4);
+            border: 1px solid var(--dark-background8,#F4F3F4);
+            border-radius: 16px;
+            padding: 2px 18px;
         }
         
         #call-tree-popover[visible="true"] #call-tree{
@@ -581,6 +651,13 @@ export class TabPaneFilter extends BaseElement {
             color: #FFFFFF;
             background: #0C65D1;
         }
+        #data-library-popover[visible="true"] #data-library{
+            color: #0A59F7;
+        }
+        .library-checked[highlight]{
+            color: #FFFFFF;
+            background: #0C65D1;
+        }
         #title{
             overflow: hidden;
             white-space: nowrap;
@@ -589,6 +666,13 @@ export class TabPaneFilter extends BaseElement {
             text-align: left;
         }
         #mining-row{
+            background: var(--dark-background4,#F2F2F2);
+            border-radius: 2px;
+            height: 135px;
+            width: 250px;
+            overflow-y: auto;
+        }
+        #library-row{
             background: var(--dark-background4,#F2F2F2);
             border-radius: 2px;
             height: 135px;
@@ -632,15 +716,24 @@ export class TabPaneFilter extends BaseElement {
        <lit-popover placement="topLeft" class="popover" haveRadio="true" trigger="click" id="data-mining-popover">
            <div slot="content">
                 <div id="mining-row">
-                
+                    
                 </div>
                 <div style="display: flex;justify-content: space-around; margin-top: 8px">
-                    <div class="mining-button">Symbol</div>
-                    <div class="mining-button">Library</div>
-                    <div class="mining-button">Restore</div>
+                    <div class="mining-button">Reset</div>
                 </div>
            </div>
-           <span class="describe tree max-spacing" id="data-mining">Data Mining</span>
+           <span class="describe tree max-spacing" id="data-mining">Symbol Filter</span>
+       </lit-popover>
+       <lit-popover placement="topLeft" class="popover" haveRadio="true" trigger="click" id="data-library-popover">
+           <div slot="content">
+                <div id="library-row">
+                    
+                </div>
+                <div style="display: flex;justify-content: space-around; margin-top: 8px">
+                    <div class="library-button">Reset</div>
+                </div>
+           </div>
+           <span class="describe tree max-spacing" id="data-library">Library Filter</span>
        </lit-popover>
         `;
     }

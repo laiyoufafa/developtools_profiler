@@ -15,8 +15,12 @@
 
 import {BaseStruct, ColorUtils, ns2x} from "./ProcedureWorkerCommon.js";
 
-export function freq(list: Array<any>, res: Set<any>, startNS: number, endNS: number, totalNS: number, frame: any) {
-    res.clear();
+export function freq(list: Array<any>, res: Array<any>, startNS: number, endNS: number, totalNS: number, frame: any, use: boolean) {
+    if (use && res.length > 0) {
+        res.forEach(it => CpuFreqStruct.setFreqFrame(it, 5, startNS || 0, endNS || 0, totalNS || 0, frame));
+        return;
+    }
+    res.length = 0;
     if (list) {
         for (let i = 0, len = list.length; i < len; i++) {
             let it = list[i];
@@ -30,7 +34,7 @@ export function freq(list: Array<any>, res: Set<any>, startNS: number, endNS: nu
                 if (i > 0 && ((list[i - 1].frame?.x || 0) == (list[i].frame?.x || 0) && (list[i - 1].frame?.width || 0) == (list[i].frame?.width || 0))) {
 
                 } else {
-                    res.add(it)
+                    res.push(it)
                 }
             }
         }

@@ -16,9 +16,8 @@
 import "../../../../base-ui/table/lit-table-column.js";
 import {BaseElement, element} from "../../../../base-ui/BaseElement.js";
 import {LitTable} from "../../../../base-ui/table/lit-table.js";
-import {SelectionData, SelectionParam} from "../../../bean/BoxSelection.js";
-import {queryAllHookData, queryNativeHookSnapshot, queryNativeHookSnapshotTypes} from "../../../database/SqlLite.js";
-import {SpSystemTrace} from "../../SpSystemTrace.js";
+import {SelectionParam} from "../../../bean/BoxSelection.js";
+import {query, queryAllHookData, queryNativeHookSnapshotTypes} from "../../../database/SqlLite.js";
 import {
     NativeHookCallInfo,
     NativeHookSampleQueryInfo,
@@ -28,6 +27,7 @@ import {
 import {Utils} from "../base/Utils.js";
 import "./TabPaneFilter.js"
 import {FilterData, TabPaneFilter} from "./TabPaneFilter.js";
+import "../../../../base-ui/slicer/lit-slicer.js";
 
 @element('tabpane-native-sample')
 export class TabPaneNMSampleList extends BaseElement {
@@ -36,7 +36,6 @@ export class TabPaneNMSampleList extends BaseElement {
     static filter: any
     static filterSelect: string = "0"
     static source: Array<NativeHookSamplerInfo> = [];
-    static groups: any = undefined;
     static types: Array<string> = []
     static native_type: Array<string> = ["All Heap & Anonymous VM", "All Heap", "All Anonymous VM"];
     static tableMarkData: Array<NativeMemory> = []
@@ -82,65 +81,16 @@ export class TabPaneNMSampleList extends BaseElement {
             return
         }
         TabPaneNMSampleList.tableMarkData.push(data)
-        this.initGroups()
         let rootSample = new NativeHookSamplerInfo()
         rootSample.snapshot = "Snapshot" + this.numberToWord(this.source.length + 1)
         rootSample.startTs = data.startTs
         rootSample.timestamp = Utils.getTimeString(data.startTs)
         rootSample.eventId = data.eventId
+        rootSample.threadId = data.threadId
+        rootSample.threadName = data.threadName
         this.queryAllHookInfo(data, rootSample)
     }
 
-    static querySnapshot(data: any, rootSample: NativeHookSamplerInfo) {
-        let copyTypes = this.sampleTypes.map((type) => {
-            let copyType = new NativeHookSampleQueryInfo()
-            copyType.eventType = type.eventType
-            copyType.subType = type.subType
-            return copyType
-        })
-        queryNativeHookSnapshot(data.startTs).then((result) => {
-            if (result.length > 0) {
-                let nameGroup: any = {}
-                copyTypes.forEach((item) => {
-                    nameGroup[item.eventType] = nameGroup[item.eventType] || []
-                    nameGroup[item.eventType].push(item)
-                })
-                result.forEach((item) => {
-                    if (nameGroup[item.eventType] != undefined) {
-                        if (item.subType == null) {
-                            nameGroup[item.eventType][0].existing = item.existing
-                            nameGroup[item.eventType][0].growth = item.growth
-                        } else {
-                            let filter = nameGroup[item.eventType].filter((type: any) => {
-                                return type.subType == item.subType
-                            })
-                            if (filter.length > 0) {
-                                filter[0].existing = item.existing
-                                filter[0].growth = item.growth
-                            }
-                        }
-                    }
-                })
-                if (this.sampleTypesList.length > 0) {
-                    let sampleTypesListElement = this.sampleTypesList[this.sampleTypesList.length - 1];
-                    sampleTypesListElement.forEach((item: any, index: number) => {
-                        copyTypes[index].current = copyTypes[index].growth
-                        if (index < copyTypes.length) {
-                            copyTypes[index].growth -= item.current
-                        }
-                    })
-                } else {
-                    copyTypes.forEach((item: any, index: number) => {
-                        item.current = item.growth
-                    })
-                }
-                this.sampleTypesList.push(copyTypes)
-                this.createTree(nameGroup, rootSample)
-                rootSample.tempList = [...rootSample.children]
-                this.source.push(rootSample)
-            }
-        })
-    }
 
     static merageSampleData(leftTime: number, startNs: number, rootSample: NativeHookSampleQueryInfo, merageSample: NativeHookSampleQueryInfo) {
         if (merageSample.endTs >= startNs) {
@@ -156,6 +106,8 @@ export class TabPaneNMSampleList extends BaseElement {
             childSample.totalGrowth = childSample.growth
             childSample.startTs = merageSample.startTs
             childSample.timestamp = Utils.getTimeString(merageSample.startTs);
+            childSample.threadId = merageSample.threadId;
+            childSample.threadName = merageSample.threadName;
             (childSample as any).existing = ""
             rootSample.children.push(childSample)
         }
@@ -178,6 +130,8 @@ export class TabPaneNMSampleList extends BaseElement {
                 })
                 let leftTime = TabPaneNMSampleList.tableMarkData.length == 1 ? 0 : TabPaneNMSampleList.tableMarkData[TabPaneNMSampleList.tableMarkData.length - 2].startTs
                 result.forEach((item) => {
+                    item.threadId = rootSample.threadId;
+                    item.threadName = rootSample.threadName;
                     if (nameGroup[item.eventType] != undefined) {
                         if (item.subType == null) {
                             this.merageSampleData(leftTime, data.startTs, nameGroup[item.eventType][0], item)
@@ -213,16 +167,6 @@ export class TabPaneNMSampleList extends BaseElement {
         })
     }
 
-    static initGroups() {
-        if (this.groups == undefined) {
-            this.groups = {}
-            SpSystemTrace.HEAP_FRAME_DATA.map((frame) => {
-                this.groups[frame.eventId] = this.groups[frame.eventId] || []
-                this.groups[frame.eventId].push(frame)
-            })
-        }
-    }
-
     static createTree(nameGroup: any, rootSample: NativeHookSamplerInfo) {
         Object.keys(nameGroup).forEach((key) => {
             let parentSample = new NativeHookSamplerInfo()
@@ -238,6 +182,8 @@ export class TabPaneNMSampleList extends BaseElement {
                     childSample.existing = child.existing
                     childSample.currentSize = child.current
                     childSample.current = Utils.getByteWithUnit(child.current)
+                    childSample.threadName = rootSample.threadName
+                    childSample.threadId = rootSample.threadId
                     parentSample.merageObj(childSample)
                     if (childSample.snapshot != parentSample.snapshot) {//根据名称是否一致来判断是否需要添加子节点
                         childSample.children.push(...child.children)
@@ -291,32 +237,37 @@ export class TabPaneNMSampleList extends BaseElement {
         return word.toUpperCase()
     }
 
-    setRightTableData(eventId: number) {
-        let arr: Array<NativeHookCallInfo> = [];
-        let frameArr = TabPaneNMSampleList.groups[eventId];
-        if (frameArr) {
-            frameArr.map((frame: any) => {
-                let target = new NativeHookCallInfo();
-                target.eventId = parseInt(frame.eventId);
-                target.depth = frame.depth;
-                let sym_arr = frame.AllocationFunction?.split("/");
-                let lib_arr = frame.MoudleName?.split("/");
-                target.symbol = sym_arr![sym_arr!.length - 1];
-                target.library = lib_arr![lib_arr!.length - 1];
-                target.title = `[ ${target.symbol} ]  ${target.library}`;
-                target.type = (target.library.endsWith(".so.1") || target.library.endsWith(".dll") || target.library.endsWith(".so")) ? 0 : 1;
-                arr.push(target);
-            })
-        }
-        // @ts-ignore
-        TabPaneNMSampleList.tblData?.recycleDataSource = arr;
+    startWorker(args: Map<string,any>, handler: Function) {
+        query("NativeMemory", "", args, "native-memory-action").then((results) => {
+            handler(results)
+        })
+    }
+
+    setRightTableData(sample: NativeHookSamplerInfo) {
+        let args = new Map<string,any>();
+        args.set("eventId",sample.eventId);
+        args.set("actionType","memory-stack");
+        this.startWorker(args,(results: any[]) => {
+            let source = [];
+            if(results.length > 0){
+                let thread = new NativeHookCallInfo();
+                thread.threadId = sample.threadId;
+                thread.threadName = sample.threadName;
+                thread.title = `${sample.threadName ?? ""}【${sample.threadId}】`;
+                thread.type = -1
+                source.push(thread)
+                source.push(...results)
+            }
+            // @ts-ignore
+            TabPaneNMSampleList.tblData?.recycleDataSource = source;
+        })
     }
 
     initElements(): void {
         TabPaneNMSampleList.tbl = this.shadowRoot?.querySelector<LitTable>('#tb-native-sample');
         TabPaneNMSampleList.tbl!.addEventListener('row-click', (evt: any) => {
             // @ts-ignore
-            this.setRightTableData(evt.detail.data.eventId);
+            this.setRightTableData(evt.detail.data);
         })
         TabPaneNMSampleList.tblData = this.shadowRoot?.querySelector<LitTable>('#tb-native-data');
         new ResizeObserver((entries) => {
@@ -395,7 +346,7 @@ export class TabPaneNMSampleList extends BaseElement {
             padding: 10px 10px 0 10px;
         }
         </style>
-        <div style="display: flex;flex-direction: row">
+        <lit-slicer style="width:100%">
         <div style="width: 65%">
             <lit-table id="tb-native-sample" style="height: auto" tree>
                 <lit-table-column width="25%" title="Snapshot" data-index="snapshot" key="snapshot"  align="flex-start" >
@@ -411,48 +362,19 @@ export class TabPaneNMSampleList extends BaseElement {
             </lit-table>
             <tab-pane-filter id="filter" first></tab-pane-filter>
         </div>
-        <div style="width: 35%">
-                <lit-table id="tb-native-data" no-head style="height: auto;border-left: 1px solid var(--dark-border1,#e2e2e2)">
-                    <lit-table-column width="60px" title="" data-index="type" key="type"  align="flex-start" >
-                        <template>
-                            <img src="img/library.png" size="20" v-if=" type == 1 ">
-                            <img src="img/function.png" size="20" v-if=" type == 0 ">
-                        </template>
-                    </lit-table-column>
-                    <lit-table-column width="1fr" title="" data-index="title" key="title"  align="flex-start">
-                    </lit-table-column>
-                </lit-table>
-            </div>
-        </div>
+        <lit-slicer-track ></lit-slicer-track>
+        <lit-table id="tb-native-data" no-head style="height: auto;border-left: 1px solid var(--dark-border1,#e2e2e2)">
+            <lit-table-column width="60px" title="" data-index="type" key="type"  align="flex-start" >
+                <template>
+                    <div v-if=" type == -1 ">Thread:</div>
+                    <img src="img/library.png" size="20" v-if=" type == 1 ">
+                    <img src="img/function.png" size="20" v-if=" type == 0 ">
+                </template>
+            </lit-table-column>
+            <lit-table-column width="1fr" title="" data-index="title" key="title"  align="flex-start">
+            </lit-table-column>
+        </lit-table>
+        </lit-slicer>
         `;
     }
-
-    sortByColumn(detail: any) {
-        // @ts-ignore
-        function compare(property, sort, type) {
-            return function (a: SelectionData, b: SelectionData) {
-                if (a.process == " " || b.process == " ") {
-                    return 0;
-                }
-                if (type === 'number') {
-                    // @ts-ignore
-                    return sort === 2 ? parseFloat(b[property]) - parseFloat(a[property]) : parseFloat(a[property]) - parseFloat(b[property]);
-                } else {
-                    // @ts-ignore
-                    if (b[property] > a[property]) {
-                        return sort === 2 ? 1 : -1;
-                    } else { // @ts-ignore
-                        if (b[property] == a[property]) {
-                            return 0;
-                        } else {
-                            return sort === 2 ? -1 : 1;
-                        }
-                    }
-                }
-            }
-        }
-
-        TabPaneNMSampleList.tbl!.recycleDataSource = TabPaneNMSampleList.source;
-    }
-
 }

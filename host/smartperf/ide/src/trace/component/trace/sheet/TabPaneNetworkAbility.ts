@@ -21,6 +21,7 @@ import {SystemNetworkSummary} from "../../../bean/AbilityMonitor.js";
 import {Utils} from "../base/Utils.js";
 import "../../../component/SpFilter.js";
 import {ColorUtils} from "../base/ColorUtils.js";
+import {log} from "../../../../log/Log.js";
 
 @element('tabpane-network-ability')
 export class TabPaneNetworkAbility extends BaseElement {
@@ -84,6 +85,7 @@ export class TabPaneNetworkAbility extends BaseElement {
 
     queryDataByDB(val: SelectionParam | any) {
         getTabNetworkAbilityData(val.leftNs, val.rightNs).then(item => {
+            log("getTabNetworkAbilityData result size : " + item.length)
             if (item.length != null && item.length > 0) {
                 for (const systemNetworkSummary of item) {
                     if (systemNetworkSummary.startTime == 0) {
@@ -143,6 +145,24 @@ export class TabPaneNetworkAbility extends BaseElement {
                 if (type === 'number') {
                     // @ts-ignore
                     return sort === 2 ? parseFloat(b[property]) - parseFloat(a[property]) : parseFloat(a[property]) - parseFloat(b[property]);
+                } else if (type === 'durationStr') {
+                    return sort === 2 ? b.duration - a.duration : a.duration - b.duration;
+                } else if (type === 'dataReceivedStr') {
+                    return sort === 2 ? b.dataReceived - a.dataReceived : a.dataReceived - b.dataReceived;
+                } else if (type === 'dataReceivedSecStr') {
+                    return sort === 2 ? b.dataReceivedSec - a.dataReceivedSec : a.dataReceivedSec - b.dataReceivedSec;
+                } else if (type === 'dataSendStr') {
+                    return sort === 2 ? b.dataSend - a.dataSend : a.dataSend - b.dataSend;
+                } else if (type === 'dataSendSecStr') {
+                    return sort === 2 ? b.dataSendSec - a.dataSendSec : a.dataSendSec - b.dataSendSec;
+                } else if (type === 'packetsInStr') {
+                    return sort === 2 ? b.packetsIn - a.packetsIn : a.packetsIn - b.packetsIn;
+                } else if (type === 'packetsInSecStr') {
+                    return sort === 2 ? b.packetsInSec - a.packetsInSec : a.packetsInSec - b.packetsInSec;
+                } else if (type === 'packetsOutStr') {
+                    return sort === 2 ? b.packetsOut - a.packetsOut : a.packetsOut - b.packetsOut;
+                } else if (type === 'packetsOutSecStr') {
+                    return sort === 2 ? b.packetsOutSec - a.packetsOutSec : a.packetsOutSec - b.packetsOutSec;
                 } else {
                     // @ts-ignore
                     if (b[property] > a[property]) {
@@ -160,9 +180,27 @@ export class TabPaneNetworkAbility extends BaseElement {
 
         if (detail.key === 'startTime') {
             this.source.sort(compare(detail.key, detail.sort, 'string'))
+        } else if (detail.key === 'durationStr') {
+            this.source.sort(compare(detail.key, detail.sort, 'durationStr'))
+        } else if (detail.key === 'dataReceivedStr') {
+            this.source.sort(compare(detail.key, detail.sort, 'dataReceivedStr'))
+        } else if (detail.key === 'dataReceivedSecStr') {
+            this.source.sort(compare(detail.key, detail.sort, 'dataReceivedSecStr'))
+        } else if (detail.key === 'dataSendStr') {
+            this.source.sort(compare(detail.key, detail.sort, 'dataSendStr'))
+        } else if (detail.key === 'dataSendSecStr') {
+            this.source.sort(compare(detail.key, detail.sort, 'dataSendSecStr'))
+        } else if (detail.key === 'packetsInStr') {
+            this.source.sort(compare(detail.key, detail.sort, 'packetsInStr'))
+        } else if (detail.key === 'packetsInSecStr') {
+            this.source.sort(compare(detail.key, detail.sort, 'packetsInSecStr'))
+        } else if (detail.key === 'packetsOutStr') {
+            this.source.sort(compare(detail.key, detail.sort, 'packetsOutStr'))
+        } else if (detail.key === 'packetsOutSecStr') {
+            this.source.sort(compare(detail.key, detail.sort, 'packetsOutSecStr'))
         } else {
             this.source.sort(compare(detail.key, detail.sort, 'number'))
         }
-        this.tbl!.dataSource = this.source;
+        this.tbl!.recycleDataSource = this.source;
     }
 }

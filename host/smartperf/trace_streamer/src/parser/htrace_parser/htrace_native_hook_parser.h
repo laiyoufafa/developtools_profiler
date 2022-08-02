@@ -19,7 +19,7 @@
 #include <string>
 #include "double_map.h"
 #include "htrace_event_parser.h"
-#include "htrace_plugin_time.h"
+#include "htrace_plugin_time_parser.h"
 #include "native_hook_result.pb.h"
 #include "trace_streamer_config.h"
 #include "trace_streamer_filters.h"
@@ -35,16 +35,21 @@ public:
     void Finish();
 
 private:
+    template<class T1, class T2>
+    void UpdateMap(std::unordered_map<T1, T2>& sourceMap, T1 key, T2 value);
     void MaybeParseNativeHookData();
     void ParseNativeHookData(const uint64_t timeStamp, const NativeHookData* nativeHookData);
     void ParseNativeHookFrame(const RepeatedPtrField< ::Frame >& frameInfo);
     void MaybeUpdateCurrentSizeDur(uint64_t row, uint64_t timeStamp, bool isMalloc);
+    void UpdateThreadNameWithNativeHookData();
     uint64_t eventId_ = 0;
     DoubleMap<uint32_t, uint64_t, uint64_t> addrToAllocEventRow_;
     DoubleMap<uint32_t, uint64_t, uint64_t> addrToMmapEventRow_;
     uint64_t lastMallocEventRaw_ = INVALID_UINT64;
     uint64_t lastMmapEventRaw_ = INVALID_UINT64;
     std::multimap<uint64_t, std::unique_ptr<NativeHookData>> tsNativeHookQueue_;
+    std::unordered_map<uint32_t, uint64_t> threadNameIdToThreadName_;
+    std::unordered_map<uint32_t, uint32_t> itidToThreadNameId_;
     const size_t MAX_CACHE_SIZE = 200000;
 };
 } // namespace TraceStreamer

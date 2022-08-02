@@ -16,8 +16,12 @@
 import {BaseStruct, ColorUtils, ns2x} from "./ProcedureWorkerCommon.js";
 import {CpuStruct} from "./ProcedureWorkerCPU.js";
 
-export function proc(list: Array<any>, res: Set<any>, startNS: number, endNS: number, totalNS: number, frame: any) {
-    res.clear();
+export function proc(list: Array<any>, res: Array<any>, startNS: number, endNS: number, totalNS: number, frame: any,use:boolean) {
+    if(use && res.length > 0){
+        res.forEach(it=>ProcessStruct.setProcessFrame(it, 5, startNS || 0, endNS || 0, totalNS || 0, frame))
+        return;
+    }
+    res.length = 0 ;
     if (list) {
         for (let i = 0, len = list.length; i < len; i++) {
             let it = list[i];
@@ -26,7 +30,7 @@ export function proc(list: Array<any>, res: Set<any>, startNS: number, endNS: nu
                 if (i > 0 && ((list[i - 1].frame?.x || 0) == (list[i].frame?.x || 0) && (list[i - 1].frame?.width || 0) == (list[i].frame?.width || 0))) {
 
                 } else {
-                    res.add(list[i])
+                    res.push(list[i])
                 }
             }
         }
@@ -49,12 +53,9 @@ export class ProcessStruct extends BaseStruct {
     type: string | undefined
     utid: number | undefined
 
-    static draw(ctx: CanvasRenderingContext2D, data: ProcessStruct) {
+    static draw(ctx: CanvasRenderingContext2D,path:Path2D, data: ProcessStruct,miniHeight:number) {
         if (data.frame) {
-            let width = data.frame.width || 0;
-            ctx.fillStyle = ColorUtils.colorForTid(data.pid || 0)
-            let miniHeight = Math.round(data.frame.height / CpuStruct.cpuCount)
-            ctx.fillRect(data.frame.x, data.frame.y + (data.cpu || 0) * miniHeight + padding, data.frame.width, miniHeight - padding * 2)
+            path.rect(data.frame.x, data.frame.y + (data.cpu || 0) * miniHeight + padding, data.frame.width, miniHeight)
         }
     }
 
@@ -92,7 +93,7 @@ export class ProcessStruct extends BaseStruct {
             node.frame = {};
         }
         node.frame.x = Math.floor(x1);
-        node.frame.y = Math.floor(frame.y + padding);
+        node.frame.y = Math.floor(frame.y + 2);
         node.frame.width = Math.ceil(getV);
         node.frame.height = Math.floor(frame.height - padding * 2);
     }

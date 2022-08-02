@@ -15,7 +15,6 @@
 
 // @ts-ignore
 import {FrameChart} from "../../../dist/trace/component/FrameChart.js"
-import {SpApplication} from "../../../src/trace/SpApplication";
 
 describe('FrameChart Test', () => {
 
@@ -24,54 +23,29 @@ describe('FrameChart Test', () => {
         {children:{length:1}}
     ]
     let selectData = [length=1]
-    const e = {
-        button:0,
-        clientX:1,
-        clientY:1,
-
-    }
+    document.body.innerHTML = '<tab-framechart id="ccc"></tab-framechart>'
+    let frameChart = document.querySelector('#ccc') as FrameChart
 
     it('FrameChartTest01', function () {
-        let frameChart = new FrameChart();
         frameChart.tabPaneScrollTop = false;
         expect(frameChart.tabPaneScrollTop).toBeFalsy();
     });
 
     it('FrameChartTest02', function () {
-            let frameChart = new FrameChart();
             expect(frameChart.updateFloatHint()).toBeUndefined();
         });
 
     it('FrameChartTest03', function () {
-        let frameChart = new FrameChart();
         frameChart.calculateChartData = jest.fn(()=>true)
         expect(frameChart.redrawChart(selectData)).toBeUndefined();
     });
 
-    it('FrameChartTest04', function () {
-        let frameChart = new FrameChart();
-        expect(frameChart.scale()).toBeUndefined();
-    });
-
     it('FrameChartTest05', function () {
-        let frameChart = new FrameChart();
         let index = frameChart.scale(2)
         expect(index).toBe(undefined);
     });
 
-    it('FrameChartTest06', function () {
-        let frameChart = new FrameChart();
-        let index = frameChart.scale(-1)
-        expect(index).toBe(undefined);
-    });
-
-    it('FrameChartTest07', function () {
-        let frameChart = new FrameChart();
-        expect(frameChart.scale()).toBeUndefined();
-    });
-
     it('FrameChartTest08', function () {
-        let frameChart = new FrameChart();
         frameChart.translationDraw = jest.fn(()=>true)
         expect(frameChart.translation()).toBeUndefined();
     });
@@ -83,25 +57,17 @@ describe('FrameChart Test', () => {
     });
 
     it('FrameChartTest09', function () {
-        let frameChart = new FrameChart();
-        frameChart.selectTotalCount = true;
-        expect(frameChart.selectTotalCount).toBeUndefined();
-    });
-
-    it('FrameChartTest10', function () {
-        let frameChart = new FrameChart();
-        frameChart.data = true;
-        expect(frameChart.data).toBeUndefined();
+        frameChart.selectTotalCount = false;
+        expect(frameChart.selectTotalCount).toBeFalsy();
     });
 
     it('FrameChartTest11', function () {
         let frameChart = new FrameChart();
         frameChart.drawScale = jest.fn(()=>true)
-        expect(frameChart.calculateChartData()).toBeUndefined();
+        expect(frameChart.calculateChartData()).not.toBeUndefined();
     });
 
     it('FrameChartTest12', function () {
-        let frameChart = new FrameChart();
         expect(frameChart.updateCanvas()).toBeUndefined();
     });
 
@@ -126,7 +92,6 @@ describe('FrameChart Test', () => {
         expect(frameChart.translationByScale(1)).toBe(undefined);
     });
     it('FrameChartTest211', function () {
-        let frameChart = new FrameChart();
         expect(frameChart.searchData([],2,2)).toBeNull();
     });
 
@@ -138,7 +103,6 @@ describe('FrameChart Test', () => {
     });
 
     it('FrameChartTest16', function () {
-        let frameChart = new FrameChart();
         expect(frameChart.onMouseClick({button:0})).toBeUndefined();
     });
 
@@ -168,9 +132,7 @@ describe('FrameChart Test', () => {
             }
             </style>
             <canvas id=\\"canvas\\"></canvas>
-            <div id =\\"float_hint\\" class=\\"tip\\">
-            </div>
-            "
+            <div id =\\"float_hint\\" class=\\"tip\\"></div>"
 `);
     });
 
@@ -187,38 +149,49 @@ describe('FrameChart Test', () => {
     });
 
     it('FrameChartTest20', function () {
-        let frameChart = new FrameChart();
         expect(frameChart.searchData([],1,1)).toBeNull();
     });
 
     it('FrameChartTest23', function () {
-        let frameChart = new FrameChart();
         expect(frameChart.onMouseClick({button:2})).toBeUndefined();
     });
 
     it('FrameChartTest24', function () {
-        let frameChart = new FrameChart();
-        frameChart.drawScale = jest.fn(()=>true)
+        document.body.innerHTML  = `<sp-application></sp-application>`
         expect(frameChart.drawScale()).toBeUndefined();
     });
 
     it('FrameChartTest25', function () {
         let frameChart = new FrameChart();
-        frameChart.selectTotalSize = true;
-        expect(frameChart.selectTotalSize).toBeUndefined();
+        frameChart.selectTotalSize = false;
+        expect(frameChart.selectTotalSize).toBeFalsy();
     });
 
     it('FrameChartTest26', function () {
         let frameChart = new FrameChart();
-        frameChart.maxDepth = true;
-        expect(frameChart.maxDepth).toBeUndefined();
+        frameChart.maxDepth = false;
+        expect(frameChart.maxDepth).toBeFalsy();
     });
 
 
     it('FrameChartTest27 ', function () {
         let frameChart = new FrameChart();
         expect(frameChart.calMaxDepth(node,1)).toBeUndefined()
-
     });
 
+    it('FrameChartTest28 ', function () {
+        let frameChart = new FrameChart();
+        expect(frameChart.mode).toBeUndefined()
+    });
+
+    it('FrameChartTest29', function () {
+        let frameChart = new FrameChart();
+        frameChart.mode  =false
+        expect(frameChart.mode).toBeFalsy()
+    });
+
+    it('FrameChartTest30', function () {
+        frameChart.caldrawArgs  = jest.fn(()=>true)
+        expect(frameChart.caldrawArgs()).toBeTruthy()
+    });
 })

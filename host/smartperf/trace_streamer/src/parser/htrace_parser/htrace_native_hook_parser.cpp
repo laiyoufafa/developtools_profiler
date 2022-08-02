@@ -40,6 +40,16 @@ void HtraceNativeHookParser::SortNativeHookData(BatchNativeHookData& tracePacket
     }
     return;
 }
+template <class T1, class T2>
+void HtraceNativeHookParser::UpdateMap(std::unordered_map<T1, T2>& sourceMap, T1 key, T2 value)
+{
+    auto itor = sourceMap.find(key);
+    if (itor != sourceMap.end()) {
+        itor->second = value;
+    } else {
+        sourceMap.insert(std::make_pair(key, value));
+    }
+}
 void HtraceNativeHookParser::MaybeParseNativeHookData()
 {
     if (tsNativeHookQueue_.size() > MAX_CACHE_SIZE) {
@@ -52,15 +62,23 @@ void HtraceNativeHookParser::FinishParseNativeHookData()
     for (auto it = tsNativeHookQueue_.begin(); it != tsNativeHookQueue_.end(); it++) {
         ParseNativeHookData(it->first, it->second.get());
     }
+    traceDataCache_->GetNativeHookData()->UpdateMemMapSubType();
+    traceDataCache_->GetNativeHookFrameData()->UpdateSymbolId();
+    traceDataCache_->GetNativeHookFrameData()->UpdateFileId();
+    UpdateThreadNameWithNativeHookData();
     tsNativeHookQueue_.clear();
+    threadNameIdToThreadName_.clear();
+    itidToThreadNameId_.clear();
 }
 
 void HtraceNativeHookParser::ParseNativeHookData(const uint64_t timeStamp, const NativeHookData* nativeHookData)
 {
-    auto newTimeStamp = streamFilters_->clockFilter_->ToPrimaryTraceTime(TS_CLOCK_REALTIME, timeStamp);
-    UpdatePluginTimeRange(TS_CLOCK_REALTIME, timeStamp, newTimeStamp);
-    // kAllocEvent = 3  kFreeEvent = 4 kMmapEvent = 5 kMunmapEvent = 6, EVENT_NOT_SET = 0
     auto eventCase = nativeHookData->event_case();
+    uint64_t newTimeStamp = 0;
+    if (eventCase >= NativeHookData::kAllocEvent && eventCase <= NativeHookData::kMunmapEvent) {
+        newTimeStamp = streamFilters_->clockFilter_->ToPrimaryTraceTime(TS_CLOCK_REALTIME, timeStamp);
+        UpdatePluginTimeRange(TS_CLOCK_REALTIME, timeStamp, newTimeStamp);
+    }
     switch (eventCase) {
         case NativeHookData::kAllocEvent: {
             streamFilters_->statFilter_->IncreaseStat(TRACE_NATIVE_HOOK_MALLOC, STAT_EVENT_RECEIVED);
@@ -70,7 +88,10 @@ void HtraceNativeHookParser::ParseNativeHookData(const uint64_t timeStamp, const
             auto allocEvent = nativeHookData->alloc_event();
             auto itid = streamFilters_->processFilter_->GetOrCreateThreadWithPid(allocEvent.tid(), allocEvent.pid());
             auto ipid = streamFilters_->processFilter_->GetInternalPid(allocEvent.pid());
-            auto row = traceDataCache_->GetHeapData()->AppendNewNativeHookData(
+            if (allocEvent.thread_name_id() != 0) {
+                UpdateMap(itidToThreadNameId_, itid, allocEvent.thread_name_id());
+            }
+            auto row = traceDataCache_->GetNativeHookData()->AppendNewNativeHookData(
                 eventId_, ipid, itid, allocEvent.GetTypeName(), INVALID_UINT64, newTimeStamp, 0, 0, allocEvent.addr(),
                 allocEvent.size(), allocEvent.size());
             addrToAllocEventRow_.Insert(ipid, allocEvent.addr(), static_cast<uint64_t>(row));
@@ -87,17 +108,21 @@ void HtraceNativeHookParser::ParseNativeHookData(const uint64_t timeStamp, const
             auto freeEvent = nativeHookData->free_event();
             auto itid = streamFilters_->processFilter_->GetOrCreateThreadWithPid(freeEvent.tid(), freeEvent.pid());
             auto ipid = streamFilters_->processFilter_->GetInternalPid(freeEvent.pid());
+            if (freeEvent.thread_name_id() != 0) {
+                UpdateMap(itidToThreadNameId_, itid, freeEvent.thread_name_id());
+            }
             int64_t freeHeapSize = 0;
             auto row = addrToAllocEventRow_.Find(ipid, freeEvent.addr());
-            if (row != INVALID_UINT64 && newTimeStamp > traceDataCache_->GetHeapData()->TimeStamData()[row]) {
+            if (row != INVALID_UINT64 && newTimeStamp > traceDataCache_->GetNativeHookData()->TimeStamData()[row]) {
                 addrToAllocEventRow_.Erase(ipid, freeEvent.addr());
-                traceDataCache_->GetHeapData()->UpdateHeapDuration(row, newTimeStamp);
-                freeHeapSize = traceDataCache_->GetHeapData()->MemSizes()[row];
+                traceDataCache_->GetNativeHookData()->UpdateHeapDuration(row, newTimeStamp);
+                freeHeapSize = traceDataCache_->GetNativeHookData()->MemSizes()[row];
             } else if (row == INVALID_UINT64) {
                 TS_LOGW("func addr:%lu is empty", freeEvent.addr());
                 streamFilters_->statFilter_->IncreaseStat(TRACE_NATIVE_HOOK_FREE, STAT_EVENT_DATA_INVALID);
+                break;
             }
-            row = traceDataCache_->GetHeapData()->AppendNewNativeHookData(
+            row = traceDataCache_->GetNativeHookData()->AppendNewNativeHookData(
                 eventId_, ipid, itid, freeEvent.GetTypeName(), INVALID_UINT64, newTimeStamp, 0, 0, freeEvent.addr(),
                 freeHeapSize, (-1) * freeHeapSize);
             if (freeHeapSize != 0) {
@@ -115,8 +140,16 @@ void HtraceNativeHookParser::ParseNativeHookData(const uint64_t timeStamp, const
             auto mMapEvent = nativeHookData->mmap_event();
             auto itid = streamFilters_->processFilter_->GetOrCreateThreadWithPid(mMapEvent.tid(), mMapEvent.pid());
             auto ipid = streamFilters_->processFilter_->GetInternalPid(mMapEvent.pid());
-            auto subType = traceDataCache_->dataDict_.GetStringIndex(mMapEvent.type());
-            auto row = traceDataCache_->GetHeapData()->AppendNewNativeHookData(
+            if (mMapEvent.thread_name_id() != 0) {
+                UpdateMap(itidToThreadNameId_, itid, mMapEvent.thread_name_id());
+            }
+            DataIndex subType = INVALID_UINT64;
+            if (!mMapEvent.type().empty()) {
+                subType = traceDataCache_->dataDict_.GetStringIndex(mMapEvent.type());
+                traceDataCache_->GetNativeHookData()->UpdateAddrToMemMapSubType(mMapEvent.addr(), mMapEvent.size(),
+                                                                                subType);
+            }
+            auto row = traceDataCache_->GetNativeHookData()->AppendNewNativeHookData(
                 eventId_, ipid, itid, mMapEvent.GetTypeName(), subType, newTimeStamp, 0, 0, mMapEvent.addr(),
                 mMapEvent.size(), mMapEvent.size());
             addrToMmapEventRow_.Insert(ipid, mMapEvent.addr(), static_cast<uint64_t>(row));
@@ -133,17 +166,21 @@ void HtraceNativeHookParser::ParseNativeHookData(const uint64_t timeStamp, const
             auto mUnMapEvent = nativeHookData->munmap_event();
             auto itid = streamFilters_->processFilter_->GetOrCreateThreadWithPid(mUnMapEvent.tid(), mUnMapEvent.pid());
             auto ipid = streamFilters_->processFilter_->GetInternalPid(mUnMapEvent.pid());
+            if (mUnMapEvent.thread_name_id() != 0) {
+                UpdateMap(itidToThreadNameId_, itid, mUnMapEvent.thread_name_id());
+            }
             auto row = addrToMmapEventRow_.Find(ipid, mUnMapEvent.addr());
             int64_t effectiveMUnMapSize = 0;
-            if (row != INVALID_UINT64 && newTimeStamp > traceDataCache_->GetHeapData()->TimeStamData()[row]) {
+            if (row != INVALID_UINT64 && newTimeStamp > traceDataCache_->GetNativeHookData()->TimeStamData()[row]) {
                 addrToMmapEventRow_.Erase(ipid, mUnMapEvent.addr());
-                traceDataCache_->GetHeapData()->UpdateHeapDuration(row, newTimeStamp);
+                traceDataCache_->GetNativeHookData()->UpdateHeapDuration(row, newTimeStamp);
                 effectiveMUnMapSize = static_cast<int64_t>(mUnMapEvent.size());
             } else if (row == INVALID_UINT64) {
                 TS_LOGW("func addr:%lu is empty", mUnMapEvent.addr());
                 streamFilters_->statFilter_->IncreaseStat(TRACE_NATIVE_HOOK_MUNMAP, STAT_EVENT_DATA_INVALID);
+                break;
             }
-            row = traceDataCache_->GetHeapData()->AppendNewNativeHookData(
+            row = traceDataCache_->GetNativeHookData()->AppendNewNativeHookData(
                 eventId_, ipid, itid, mUnMapEvent.GetTypeName(), INVALID_UINT64, newTimeStamp, 0, 0, mUnMapEvent.addr(),
                 mUnMapEvent.size(), (-1) * effectiveMUnMapSize);
             if (effectiveMUnMapSize != 0) {
@@ -151,6 +188,35 @@ void HtraceNativeHookParser::ParseNativeHookData(const uint64_t timeStamp, const
             }
             ParseNativeHookFrame(mUnMapEvent.frame_info());
             eventId_++;
+            break;
+        }
+        case NativeHookData::kTagEvent: {
+            auto memMapTagEvent = nativeHookData->tag_event();
+            auto addr = memMapTagEvent.addr();
+            auto size = memMapTagEvent.size();
+            auto tagIndex = traceDataCache_->dataDict_.GetStringIndex(memMapTagEvent.tag());
+            traceDataCache_->GetNativeHookData()->UpdateAddrToMemMapSubType(addr, static_cast<int64_t>(size), tagIndex);
+            break;
+        }
+        case NativeHookData::kFilePath: {
+            auto filePathMapMessage = nativeHookData->file_path();
+            auto id = filePathMapMessage.id();
+            auto nameIndex = traceDataCache_->dataDict_.GetStringIndex(filePathMapMessage.name());
+            traceDataCache_->GetNativeHookFrameData()->UpdateFilePathIdToNameMap(id, nameIndex);
+            break;
+        }
+        case NativeHookData::kSymbolName: {
+            auto symbolMapMessage = nativeHookData->symbol_name();
+            auto id = symbolMapMessage.id();
+            auto nameIndex = traceDataCache_->dataDict_.GetStringIndex(symbolMapMessage.name());
+            traceDataCache_->GetNativeHookFrameData()->UpdateSymbolIdToNameMap(id, nameIndex);
+            break;
+        }
+        case NativeHookData::kThreadNameMap: {
+            auto threadNameMapMessage = nativeHookData->thread_name_map();
+            auto id = threadNameMapMessage.id();
+            auto nameIndex = traceDataCache_->dataDict_.GetStringIndex(threadNameMapMessage.name());
+            UpdateMap(threadNameIdToThreadName_, id, nameIndex);
             break;
         }
         default:
@@ -162,23 +228,50 @@ void HtraceNativeHookParser::MaybeUpdateCurrentSizeDur(uint64_t row, uint64_t ti
 {
     auto& lastAnyEventRaw = isMalloc ? lastMallocEventRaw_ : lastMmapEventRaw_;
     if (lastAnyEventRaw != INVALID_UINT64) {
-        traceDataCache_->GetHeapData()->UpdateCurrentSizeDur(lastAnyEventRaw, timeStamp);
+        traceDataCache_->GetNativeHookData()->UpdateCurrentSizeDur(lastAnyEventRaw, timeStamp);
     }
     lastAnyEventRaw = row;
 }
 void HtraceNativeHookParser::ParseNativeHookFrame(const RepeatedPtrField<::Frame>& repeatedFrame)
 {
-    // the callstack form nativehook of sourcedata is reverse order
+    // the callstack from nativehook of sourcedata is reverse order
     // we need to show the last frame firstly
     auto depth = 0;
     for (auto i = repeatedFrame.size() - 1; i >= 0; i--) {
         auto frame = repeatedFrame.Get(i);
-        DataIndex symbolNameIndex = traceDataCache_->dataDict_.GetStringIndex(frame.symbol_name().c_str());
-        DataIndex filePathIndex = traceDataCache_->dataDict_.GetStringIndex(frame.file_path().c_str());
-        traceDataCache_->GetHeapFrameData()->AppendNewNativeHookFrame(eventId_, depth, frame.ip(), frame.sp(),
-                                                                      symbolNameIndex, filePathIndex, frame.offset(),
-                                                                      frame.symbol_offset());
+        DataIndex symbolNameIndex = INVALID_UINT64;
+        DataIndex filePathIndex = INVALID_UINT64;
+        if (!frame.symbol_name().empty()) {
+            symbolNameIndex = traceDataCache_->dataDict_.GetStringIndex(frame.symbol_name().c_str());
+            traceDataCache_->GetNativeHookFrameData()->UpdateSymbolIdToNameMap(symbolNameIndex, symbolNameIndex);
+        } else if (frame.symbol_name_id()) {
+            symbolNameIndex = frame.symbol_name_id();
+        }
+        if (!frame.file_path().empty()) {
+            filePathIndex = traceDataCache_->dataDict_.GetStringIndex(frame.file_path().c_str());
+            traceDataCache_->GetNativeHookFrameData()->UpdateFilePathIdToNameMap(filePathIndex, filePathIndex);
+        } else if (frame.file_path_id()) {
+            filePathIndex = frame.file_path_id();
+        }
+        traceDataCache_->GetNativeHookFrameData()->AppendNewNativeHookFrame(eventId_, depth, frame.ip(), frame.sp(),
+                                                                            symbolNameIndex, filePathIndex,
+                                                                            frame.offset(), frame.symbol_offset());
         depth++;
+    }
+}
+void HtraceNativeHookParser::UpdateThreadNameWithNativeHookData()
+{
+    if (itidToThreadNameId_.empty() || threadNameIdToThreadName_.empty()) {
+        return;
+    }
+    for (auto itor = itidToThreadNameId_.begin(); itor != itidToThreadNameId_.end(); ++itor) {
+        auto thread = traceDataCache_->GetThreadData(itor->first);
+        if (thread->nameIndex_ == 0) {
+            auto threadNameMapItor = threadNameIdToThreadName_.find(itor->second);
+            if (threadNameMapItor != threadNameIdToThreadName_.end()) {
+                thread->nameIndex_ = threadNameMapItor->second;
+            }
+        }
     }
 }
 void HtraceNativeHookParser::Finish()

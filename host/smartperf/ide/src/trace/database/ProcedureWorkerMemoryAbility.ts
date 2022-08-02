@@ -15,8 +15,19 @@
 
 import {BaseStruct, ColorUtils, ns2x} from "./ProcedureWorkerCommon.js";
 
-export function memoryAbility(list: Array<any>, res: Set<any>, startNS: number, endNS: number, totalNS: number, frame: any) {
-    res.clear();
+export function memoryAbility(list: Array<any>, res: Array<any>, startNS: number, endNS: number, totalNS: number, frame: any, use: boolean) {
+    if (use && res.length > 0) {
+        for (let i = 0; i < res.length; i++) {
+            let item = res[i];
+            if ((item.startNS || 0) + (item.dur || 0) > (startNS || 0) && (item.startNS || 0) < (endNS || 0)) {
+                MemoryAbilityMonitorStruct.setMemoryFrame(item, 5, startNS || 0, endNS || 0, totalNS || 0, frame)
+            } else {
+                item.frame = null;
+            }
+        }
+        return;
+    }
+    res.length = 0;
     if (list) {
         for (let index = 0; index < list.length; index++) {
             let item = list[index];
@@ -30,7 +41,7 @@ export function memoryAbility(list: Array<any>, res: Set<any>, startNS: number, 
                 if (index > 0 && ((list[index - 1].frame?.x || 0) == (list[index].frame?.x || 0) && (list[index - 1].frame?.width || 0) == (list[index].frame?.width || 0))) {
 
                 } else {
-                    res.add(item)
+                    res.push(item)
                 }
             }
         }

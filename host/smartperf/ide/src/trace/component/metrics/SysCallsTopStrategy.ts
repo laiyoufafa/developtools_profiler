@@ -13,24 +13,23 @@
  * limitations under the License.
  */
 
+import {info} from "../../../log/Log.js";
+
 export const initSysCallsTopStrategy = (metricData: Array<any>): ProcessInfoListItem => {
+    info("System Calls Strategy data length is:", metricData.length)
     let ProcessInfoListItems: Array<ProcessInfoItem> = []
 
     for (let sqlIndex = 0; sqlIndex < metricData.length; sqlIndex++) {
-        let processNameList = metricData[sqlIndex].process_name;
         let pidList = metricData[sqlIndex].pid;
-        let threadNameList = metricData[sqlIndex].ThreadName;
         let tidList = metricData[sqlIndex].tid;
         let functionNames = metricData[sqlIndex].funName;
         let durMaxes = metricData[sqlIndex].maxDur;
-        let durMines = metricData[sqlIndex].minDur;
-        let durAvgs = metricData[sqlIndex].avgDur;
+        let durMines = metricData[sqlIndex].minDur < 0 ? 0 : metricData[sqlIndex].minDur;
+        let durAvgs = Math.floor(metricData[sqlIndex].avgDur).toString();
 
         let processInfoItem: ProcessInfoItem = {
-            name: processNameList,
             pid: pidList,
             threads: {
-                name: threadNameList,
                 tid: tidList,
                 function: {
                     functionName: functionNames,
@@ -52,14 +51,12 @@ export interface ProcessInfoListItem {
 }
 
 export interface ProcessInfoItem {
-    name: string
     pid: string
     threads: ThreadsItem
 }
 
 
 export interface ThreadsItem {
-    name: string
     tid: string
     function: FunctionItem
 }

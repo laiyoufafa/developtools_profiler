@@ -17,6 +17,7 @@ import {BaseElement, element} from "../../../../base-ui/BaseElement.js";
 import {LitTable} from "../../../../base-ui/table/lit-table.js";
 import {SelectionData, SelectionParam} from "../../../bean/BoxSelection.js";
 import {getTabCpuByThread} from "../../../database/SqlLite.js";
+import {log} from "../../../../log/Log.js";
 
 @element('tabpane-cpu-thread')
 export class TabPaneCpuByThread extends BaseElement {
@@ -28,6 +29,7 @@ export class TabPaneCpuByThread extends BaseElement {
         this.range!.textContent = "Selected range: " + parseFloat(((val.rightNs - val.leftNs) / 1000000.0).toFixed(5)) + " ms"
         getTabCpuByThread(val.cpus, val.leftNs, val.rightNs).then((result) => {
             if (result != null && result.length > 0) {
+                log("getTabCpuByThread size :" +  result.length);
                 let sumWall = 0.0;
                 let sumOcc = 0;
                 for (let e of result) {
@@ -44,10 +46,10 @@ export class TabPaneCpuByThread extends BaseElement {
                 count.occurrences = sumOcc;
                 result.splice(0, 0, count)
                 this.source = result
-                this.tbl!.dataSource = result
+                this.tbl!.recycleDataSource = result
             } else {
                 this.source = [];
-                this.tbl!.dataSource = this.source
+                this.tbl!.recycleDataSource = this.source
             }
         })
     }
@@ -59,7 +61,13 @@ export class TabPaneCpuByThread extends BaseElement {
             // @ts-ignore
             this.sortByColumn(evt.detail)
         });
-
+        new ResizeObserver((entries) => {
+            if (this.parentElement?.clientHeight != 0) {
+                // @ts-ignore
+                this.tbl?.shadowRoot.querySelector(".table").style.height = (this.parentElement.clientHeight - 45) + "px"
+                this.tbl?.reMeauseHeight()
+            }
+        }).observe(this.parentElement!)
     }
 
     initHtml(): string {
@@ -121,7 +129,7 @@ export class TabPaneCpuByThread extends BaseElement {
         } else {
             this.source.sort(compare(detail.key, detail.sort, 'string'))
         }
-        this.tbl!.dataSource = this.source;
+        this.tbl!.recycleDataSource = this.source;
     }
 
 }

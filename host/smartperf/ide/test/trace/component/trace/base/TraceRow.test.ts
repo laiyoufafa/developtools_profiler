@@ -171,6 +171,7 @@ describe("TraceRow Test", () => {
 
     it('TraceRow Test23', () => {
         let traceRow = new TraceRow<any>({canvasNumber:1,alpha: true, contextId: '2d', isOffScreen: true});
+        traceRow.folder = false;
         expect(traceRow.folder).toBeFalsy();
     });
 
@@ -182,6 +183,7 @@ describe("TraceRow Test", () => {
 
     it('TraceRow Test25', () => {
         let traceRow = new TraceRow<any>({canvasNumber:1,alpha: true, contextId: '2d', isOffScreen: true});
+        traceRow.expansion = false;
         expect(traceRow.expansion).toBeFalsy();
     });
 
@@ -206,6 +208,28 @@ describe("TraceRow Test", () => {
         let traceRow = new TraceRow<any>({canvasNumber:1,alpha: true, contextId: '2d', isOffScreen: true});
         traceRow.frame = [0,0,0];
         expect(traceRow.frame).toBeTruthy();
+    });
+
+    it('TraceRow Test60', () => {
+        let traceRow = new TraceRow<any>({canvasNumber:1,alpha: true, contextId: '2d', isOffScreen: true});
+        expect(traceRow.disabledCheck).not.toBeUndefined();
+    });
+
+    it('TraceRow Test61', () => {
+        let traceRow = new TraceRow<any>({canvasNumber:1,alpha: true, contextId: '2d', isOffScreen: true});
+        traceRow.disabledCheck = true;
+        expect(traceRow.disabledCheck).toBeTruthy();
+    });
+
+    it('TraceRow Test62', () => {
+        let traceRow = new TraceRow<any>({canvasNumber: 1, alpha: true, contextId: '2d', isOffScreen: true});
+        expect(traceRow.folderPaddingLeft).toBeUndefined();
+    });
+
+    it('TraceRow Test63', () => {
+        document.body.innerHTML = '<div id="ddd"><trace-row class="ccc" row-parent-id="ddd" check-type="0"></trace-row></div>'
+        let traceRow = document.querySelector('.ccc') as TraceRow
+        expect(traceRow.setCheckBox()).toBeUndefined();
     });
 
     it('TraceRow Test30', () => {

@@ -28,11 +28,12 @@ config("trace_cfg") {
 
     # "-std=gnu++17",
     "-fvisibility=hidden",
+    "-Wno-unused-variable",
   ]
   if (!is_test) {
     cflags_cc += [
       "-fno-rtti",
-      # "-fno-exceptions",
+      "-fno-exceptions",
     ]
   }
 }
@@ -50,6 +51,7 @@ config("default") {
     "-fstrict-aliasing",
     "-g",
     "-Wformat",
+    "-Wno-unused-variable",
   ]
 
   if (is_linux || is_macx) {
@@ -68,8 +70,13 @@ config("default") {
       ]
     }
 
-    cflags += [ "-D USE_VTABLE" ]
-    cflags += [ "-D BINDER_EXP" ]
+    # cflags += [ "-D USE_VTABLE" ]
+    if (use_wasm) {
+      cflags += [ "-D IS_WASM" ]
+    }
+
+    # cflags += [ "-D BINDER_ARGS" ]
+    # cflags += [ "-D BINDER_ASYNC" ]
     libs += [ "pthread" ]
     if (!is_macx) {
       libs += [ "rt" ]
@@ -80,10 +87,19 @@ config("default") {
         "-fPIC",
       ]
     }
-    if (is_win) {
-      cflags += [ "/W0" ]
-      defines = [ "WIN32_LEAN_AND_MEAN" ]
-    }
+  }
+  if (is_win) {
+    cflags += [ "-D is_mingw" ]
+    defines = [ "WIN32_LEAN_AND_MEAN" ]
+    libs += [ "wsock32" ]
+    libs += [ "Ws2_32" ]
+    cflags += [
+      "-D SECUREC_IS_DLL_LIBRARY",
+      "-D __KERNEL__",
+    ]
+  }
+  if (with_perf) {
+    cflags += [ "-D WITH_PERF" ]
   }
 }
 
@@ -103,11 +119,13 @@ config("release") {
   cflags += [ "-O3" ]
   ldflags = [ "-fstack-protector" ]
   if (!is_macx) {
-    ldflags += [
-      "-fuse-ld=gold",
-      "-Wl,--gc-sections",
-      "-Wl,-O1",
-    ]
+    ldflags += [ "-Wl,-O1" ]
+    if (!is_win) {
+      ldflags += [
+        "-fuse-ld=gold",
+        "-Wl,--gc-sections",
+      ]
+    }
   }
 
   if (!is_win && !is_macx) {
@@ -133,7 +151,7 @@ config("executable") {
   if (is_linux || (is_macx && !use_wasm)) {
     ldflags += []
   }
-  if (!is_macx && !use_wasm) {
+  if (!is_macx && !use_wasm && !is_win) {
     ldflags = [
       "-Wl,--disable-new-dtags",
       "-Wl,-z,noexecstack",
@@ -141,10 +159,15 @@ config("executable") {
       "-fuse-ld=gold",
       "-Wl,-z,now",
       "-Wl,-z,relro",
-      "-fpie",
-      "-pie",
     ]
   }
+  if (!is_macx && !use_wasm) {
+    ldflags += [ "-fpie" ]
+  }
+  if (!is_macx && !use_wasm && !is_win) {
+    ldflags += [ "-pie" ]
+  }
+
   if (is_macx) {
     ldflags += [
       "-Wl,-U,__sanitizer_options_link_helper",

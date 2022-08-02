@@ -92,7 +92,7 @@ private:
     int parserThreadCount_ = 0;
     bool toExit_ = false;
     bool exited_ = false;
-    std::unique_ptr<DataSegment[]> dataSegArray;
+    std::unique_ptr<DataSegment[]> dataSegArray_;
     int rawDataHead_ = 0;
     int filterHead_ = 0;
     const int sleepDur_ = 100;

@@ -20,17 +20,19 @@
 namespace SysTuning {
 namespace TraceStreamer {
 namespace {
-enum Index { ID = 0, TYPE, TS, DUR, CPU, INTERNAL_TID, STATE };
+enum Index { ID = 0, TYPE, TS, DUR, CPU, INTERNAL_TID, TID, PID, STATE };
 }
 ThreadStateTable::ThreadStateTable(const TraceDataCache* dataCache) : TableBase(dataCache)
 {
-    tableColumn_.push_back(TableBase::ColumnInfo("id", "UNSIGNED INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("type", "STRING"));
-    tableColumn_.push_back(TableBase::ColumnInfo("ts", "INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("dur", "UNSIGNED BIG INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("cpu", "UNSIGNED BIG INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("itid", "INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("state", "STRING"));
+    tableColumn_.push_back(TableBase::ColumnInfo("id", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("type", "TEXT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("ts", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("dur", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("cpu", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("itid", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("tid", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("pid", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("state", "TEXT"));
     tablePriKey_.push_back("id");
 }
 
@@ -228,6 +230,12 @@ int ThreadStateTable::Cursor::Column(int col) const
             break;
         case INTERNAL_TID:
             sqlite3_result_int64(context_, static_cast<sqlite3_int64>(rowData_[CurrentRow()].idTid));
+            break;
+        case TID:
+            sqlite3_result_int64(context_, static_cast<sqlite3_int64>(rowData_[CurrentRow()].tid));
+            break;
+        case PID:
+            sqlite3_result_int64(context_, static_cast<sqlite3_int64>(rowData_[CurrentRow()].pid));
             break;
         case STATE: {
             const std::string& str = dataCache_->GetConstSchedStateData(rowData_[CurrentRow()].idState);

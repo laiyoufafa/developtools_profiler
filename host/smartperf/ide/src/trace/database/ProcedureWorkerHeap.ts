@@ -15,8 +15,19 @@
 
 import {BaseStruct, ns2x, Rect} from "./ProcedureWorkerCommon.js";
 
-export function heap(list: Array<any>, res: Set<any>, startNS: number, endNS: number, totalNS: number, frame: any) {
-    res.clear();
+export function heap(list: Array<any>, res: Array<any>, startNS: number, endNS: number, totalNS: number, frame: any, use: boolean) {
+    if (use && res.length > 0) {
+        for (let i = 0; i < res.length; i++) {
+            let it = res[i];
+            if ((it.startTime || 0) + (it.dur || 0) > (startNS || 0) && (it.startTime || 0) < (endNS || 0)) {
+                HeapStruct.setFrame(res[i], 5, startNS || 0, endNS || 0, totalNS || 0, frame)
+            } else {
+                res[i].frame = null;
+            }
+        }
+        return;
+    }
+    res.length = 0;
     if (list) {
         for (let i = 0; i < list.length; i++) {
             let it = list[i];
@@ -25,7 +36,7 @@ export function heap(list: Array<any>, res: Set<any>, startNS: number, endNS: nu
                 if (i > 0 && ((list[i - 1].frame?.x || 0) == (list[i].frame?.x || 0) && (list[i - 1].frame?.width || 0) == (list[i].frame?.width || 0))) {
 
                 } else {
-                    res.add(list[i])
+                    res.push(list[i])
                 }
             }
         }

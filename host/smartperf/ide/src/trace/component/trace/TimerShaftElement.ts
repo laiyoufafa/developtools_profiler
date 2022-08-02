@@ -20,6 +20,8 @@ import {RangeRuler, TimeRange} from "./timer-shaft/RangeRuler.js";
 import {SportRuler} from "./timer-shaft/SportRuler.js";
 import {procedurePool} from "../../database/Procedure.js";
 import {Flag} from "./timer-shaft/Flag.js";
+import {info} from "../../../log/Log.js";
+import {TraceRow} from "./base/TraceRow.js";
 
 //随机生成十六位进制颜色
 export function randomRgbColor() {
@@ -103,6 +105,7 @@ export class TimerShaftElement extends BaseElement {
     }
 
     set cpuUsage(value: Array<{ cpu: number, ro: number, rate: number }>) {
+        info("set cpuUsage values :", value);
         this._cpuUsage = value;
         if (this.rangeRuler) {
             this.rangeRuler.cpuUsage = this._cpuUsage;
@@ -114,6 +117,7 @@ export class TimerShaftElement extends BaseElement {
     }
 
     set totalNS(value: number) {
+        info("set totalNS values :", value);
         this._totalNS = value;
         if (this.timeRuler) this.timeRuler.totalNS = value;
         if (this.rangeRuler) this.rangeRuler.range.totalNS = value;
@@ -149,6 +153,7 @@ export class TimerShaftElement extends BaseElement {
             this.rangeRuler.cpuUsage = []
             this.sportRuler!.flagList.length = 0
             this.sportRuler!.isRangeSelect = false
+            this.setSlicesMark();
         }
         this.removeTriangle("inverted");
         this.totalNS = 10_000_000_000;
@@ -203,6 +208,7 @@ export class TimerShaftElement extends BaseElement {
                 startNS: 0,
                 endNS: this.totalNS,
                 totalNS: this.totalNS,
+                refresh:true,
                 xs: [],
                 xsTxt: []
             }, (a) => {
@@ -223,6 +229,7 @@ export class TimerShaftElement extends BaseElement {
     }
 
     setRangeNS(startNS: number, endNS: number) {
+        info("set startNS values :" + startNS + "endNS values : " +  endNS);
         this.rangeRuler?.setRangeNS(startNS, endNS);
     }
 
@@ -276,7 +283,7 @@ export class TimerShaftElement extends BaseElement {
 
     disconnectedCallback() {
     }
-
+    firstRender = true;
     render() {
         if (this.ctx) {
             this.ctx.fillStyle = 'transparent';
@@ -308,6 +315,14 @@ export class TimerShaftElement extends BaseElement {
     modifyFlagList(flag: Flag | null | undefined) {
         this._sportRuler?.modifyFlagList(flag);
     }
+
+    cancelPressFrame() {
+        this.rangeRuler?.cancelPressFrame();
+    }
+    cancelUpFrame(){
+        this.rangeRuler?.cancelUpFrame();
+    }
+
 
     drawTriangle(time: number, type: string) {
         return this._sportRuler?.drawTriangle(time, type);

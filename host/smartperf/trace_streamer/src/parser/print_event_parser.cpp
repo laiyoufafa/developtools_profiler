@@ -24,19 +24,20 @@ PrintEventParser::PrintEventParser(TraceDataCache* dataCache, const TraceStreame
 {
 }
 
-void PrintEventParser::ParsePrintEvent(uint64_t ts, uint32_t pid, std::string_view event)
+bool PrintEventParser::ParsePrintEvent(const std::string& comm, uint64_t ts, uint32_t pid, std::string_view event)
 {
+    streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_TRACING_MARK_WRITE, STAT_EVENT_RECEIVED);
     TracePoint point;
     if (GetTracePoint(event, point) != SUCCESS) {
         streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_TRACING_MARK_WRITE, STAT_EVENT_DATA_INVALID);
-        return;
+        return false;
     }
     if (point.tgid_) {
         streamFilters_->processFilter_->GetOrCreateInternalPid(ts, point.tgid_);
     }
     switch (point.phase_) {
         case 'B': {
-            if (streamFilters_->sliceFilter_->BeginSlice(ts, pid, point.tgid_, 0,
+            if (streamFilters_->sliceFilter_->BeginSlice(comm, ts, pid, point.tgid_, INVALID_DATAINDEX,
                 traceDataCache_->GetDataIndex(point.name_))) {
                 // add distributed data
                 traceDataCache_->GetInternalSlicesData()->AppendDistributeInfo(
@@ -74,57 +75,9 @@ void PrintEventParser::ParsePrintEvent(uint64_t ts, uint32_t pid, std::string_vi
         }
         default:
             TS_LOGD("point missing!");
-            break;
+            return false;
     }
-}
-
-void PrintEventParser::ParseTracePoint(uint64_t ts, uint32_t pid, TracePoint point) const
-{
-    if (point.tgid_) {
-        streamFilters_->processFilter_->GetOrCreateInternalPid(ts, point.tgid_);
-    }
-    switch (point.phase_) {
-        case 'B': {
-            if (streamFilters_->sliceFilter_->BeginSlice(ts, pid, point.tgid_, 0,
-                traceDataCache_->GetDataIndex(point.name_))) {
-                // add distributed data
-                traceDataCache_->GetInternalSlicesData()->AppendDistributeInfo(
-                    point.chainId_, point.spanId_, point.parentSpanId_, point.flag_, point.args_);
-            } else {
-                streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_TRACING_MARK_WRITE, STAT_EVENT_DATA_LOST);
-            }
-            break;
-        }
-        case 'E': {
-            streamFilters_->sliceFilter_->EndSlice(ts, pid, point.tgid_);
-            break;
-        }
-        case 'S': {
-            auto cookie = static_cast<int64_t>(point.value_);
-            streamFilters_->sliceFilter_->StartAsyncSlice(ts, pid, point.tgid_, cookie,
-                traceDataCache_->GetDataIndex(point.name_));
-            break;
-        }
-        case 'F': {
-            auto cookie = static_cast<int64_t>(point.value_);
-            streamFilters_->sliceFilter_->FinishAsyncSlice(ts, pid, point.tgid_, cookie,
-                traceDataCache_->GetDataIndex(point.name_));
-            break;
-        }
-        case 'C': {
-            DataIndex nameIndex = traceDataCache_->GetDataIndex(point.name_);
-            uint32_t internalPid = streamFilters_->processFilter_->GetInternalPid(point.tgid_);
-            if (internalPid != INVALID_ID) {
-                streamFilters_->processMeasureFilter_->AppendNewMeasureData(internalPid, nameIndex, ts, point.value_);
-            } else {
-                streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_TRACING_MARK_WRITE, STAT_EVENT_DATA_INVALID);
-            }
-            break;
-        }
-        default:
-            TS_LOGD("point missing!");
-            break;
-    }
+    return true;
 }
 
 ParseResult PrintEventParser::CheckTracePoint(std::string_view pointStr) const

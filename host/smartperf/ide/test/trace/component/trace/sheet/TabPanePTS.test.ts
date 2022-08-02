@@ -15,13 +15,55 @@
 
 // @ts-ignore
 import {TabPanePTS} from "../../../../../dist/trace/component/trace/sheet/TabPanePTS.js"
+// @ts-ignore
+import {SpSystemTrace} from "../../../../../dist/trace/component/SpSystemTrace.js";
 window.ResizeObserver = window.ResizeObserver ||jest.fn().mockImplementation(() => ({
     disconnect: jest.fn(),
     observe: jest.fn(),
     unobserve: jest.fn(),
 }));
 describe('TabPanePTS Test', () => {
+    document.body.innerHTML = `<div><tabpane-pts class="pts"></tabpane-pts></div>`
+    let tabPane = document.querySelector('.pts') as TabPanePTS;
     let tabPanePTS = new TabPanePTS();
+
+    SpSystemTrace.SPT_DATA = [{
+        process: "",
+        processId: 0,
+        thread: "",
+        threadId: 0,
+        state: '',
+        dur: 0,
+        start_ts: 0,
+        end_ts: 0,
+        cpu: 0,
+        priority: "-",
+        note: "-",
+    },{
+        process: "",
+        processId: 1,
+        thread: "",
+        threadId: 1,
+        state: '',
+        dur: 0,
+        start_ts: 0,
+        end_ts: 0,
+        cpu: 0,
+        priority: "-",
+        note: "-",
+    },{
+        process: "",
+        processId: 2,
+        thread: "",
+        threadId: 2,
+        state: '',
+        dur: 0,
+        start_ts: 0,
+        end_ts: 0,
+        cpu: 0,
+        priority: "-",
+        note: "-",
+    }]
 
     let dataArray = [{
         id: "",
@@ -54,6 +96,32 @@ describe('TabPanePTS Test', () => {
     it('TabPanePTSTest03', function () {
         let result = tabPanePTS.groupByThreadToMap(dataArray)
         expect(result.get(0).length).toBe(1);
+    });
+
+    it('TabPanePTSTest05', function () {
+        let data = {
+            cpus: [],
+            threadIds: [],
+            trackIds: [],
+            funTids: [],
+            heapIds: [],
+            nativeMemory: [],
+            cpuAbilityIds: [],
+            memoryAbilityIds: [],
+            diskAbilityIds: [],
+            networkAbilityIds: [],
+            leftNs: 0,
+            rightNs: 0,
+            hasFps: false,
+            statisticsSelectData: undefined,
+            perfSampleIds: [],
+            perfCpus: [],
+            perfProcess: [],
+            perfThread: [],
+            perfAll: false,
+        }
+        let queryDataInCacheData = tabPanePTS.queryDataInCacheData(data);
+        expect(queryDataInCacheData.length).toBeUndefined()
     });
 
     it('TabPanePTSTest04', function () {

@@ -121,9 +121,8 @@ export class LitSlider extends BaseElement {
 
     set percent(value: string) {
         this.setAttribute('percent', value);
-        if (Number(this.sliderStyle.defaultValue)) {
-            this.currentValue = Number(this.sliderStyle.defaultValue)
-        }
+        let resultNumber = (Number(value) - this.sliderStyle!.minRange) * 100 / (this.sliderStyle!.maxRange - this.sliderStyle!.minRange);
+        this.litSlider!.style.backgroundSize = resultNumber + '%';
     }
 
     get resultUnit() {

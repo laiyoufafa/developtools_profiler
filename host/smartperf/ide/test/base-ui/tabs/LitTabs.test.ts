@@ -22,7 +22,6 @@ describe('LitSwitch Test', ()=>{
     litTabs.position = 'position'
     litTabs.mode = 'mode'
     litTabs.activekey = 'activekey'
-    litTabs.onTabClick = 'onTabClick'
 
 
         litTabs.nav = jest.fn(()=>{
@@ -56,8 +55,9 @@ describe('LitSwitch Test', ()=>{
     })
 
     it('litTabsTest01', ()=>{
-        expect(litTabs.onTabClick).toBe('onTabClick');
+        expect(litTabs.onTabClick).toBeUndefined();
     })
+
     it('litTabsTest02', ()=>{
         litTabs.nav = jest.fn(()=> true)
         litTabs.nav.querySelector = jest.fn(()=> {
@@ -65,15 +65,6 @@ describe('LitSwitch Test', ()=>{
         })
         litTabs.nav.querySelectorAll = jest.fn(()=> true)
         expect(litTabs.updateDisabled('key', 'value')).toBeUndefined();
-    })
-
-    it('litTabsTest003', ()=>{
-        litTabs.nav = jest.fn(()=> true)
-        litTabs.nav.querySelector = jest.fn(()=> {
-            return document.createElement('div') as HTMLDivElement
-        })
-        litTabs.nav.querySelectorAll = jest.fn(()=> true)
-        expect(litTabs.updateLabel('key', 'value')).toBeUndefined();
     })
 
     it('litTabsTest03', ()=>{

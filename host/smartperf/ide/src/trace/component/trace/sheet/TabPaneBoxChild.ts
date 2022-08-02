@@ -72,18 +72,17 @@ export class TabPaneBoxChild extends BaseElement {
                 })
                 this.source = result;
                 // @ts-ignore
-                this.tbl?.dataSource = result;
+                this.tbl?.recycleDataSource = result;
             } else {
                 this.source = [];
                 // @ts-ignore
-                this.tbl?.dataSource = []
+                this.tbl?.recycleDataSource = []
             }
         })
     }
 
     getDataByCache(val: BoxJumpParam): Promise<Array<SPTChild>> {
         return new Promise<Array<SPTChild>>((resolve, reject) => {
-            let time = Date.now();
             let arr: Array<SPTChild> = [];
             SpSystemTrace.SPT_DATA.map((spt) => {
                 let b1 = (val.state != undefined && val.state != '') ? spt.state == val.state : true
@@ -158,7 +157,7 @@ export class TabPaneBoxChild extends BaseElement {
 
         // @ts-ignore
         this.source.sort(compare(detail.key, detail.sort, 'string'))
-        this.tbl!.dataSource = this.source;
+        this.tbl!.recycleDataSource = this.source;
     }
 
 }

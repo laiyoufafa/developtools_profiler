@@ -15,37 +15,66 @@
 
 import {BaseStruct} from "./ProcedureWorkerCommon.js";
 
-export function hiPerfCpu(arr: Array<any>, res: Set<any>, startNS: number, endNS: number, totalNS: number, frame: any, groupBy10MS: boolean,maxCpu:number|undefined) {
-    res.clear();
-    if (arr) {
-        let list = groupBy10MS ? HiPerfCpuStruct.groupBy10MS(arr,maxCpu) : arr;
+export function hiPerfCpu(arr: Array<any>, arr2: any, type: string, res: Array<any>, startNS: number, endNS: number, totalNS: number, frame: any, groupBy10MS: boolean, maxCpu: number | undefined, intervalPerf: number, use: boolean) {
+    if (use && res.length > 0 && !groupBy10MS) {
         let pns = (endNS - startNS) / frame.width;
         let y = frame.y;
-        for (let i = 0, len = list.length; i < len; i++) {
-            let it = list[i];
-            if ((it.startNS || 0) + (it.dur || 0) > startNS && (it.startNS || 0) < endNS) {
-                if (!list[i].frame) {
-                    list[i].frame = {};
-                    list[i].frame.y = y;
+        for (let i = 0; i < res.length; i++) {
+            let it = res[i];
+            if((it.startNS || 0) + (it.dur || 0) > startNS && (it.startNS || 0) < endNS){
+                if (!it.frame) {
+                    it.frame = {};
+                    it.frame.y = y;
                 }
-                list[i].frame.height = it.height;
-                HiPerfCpuStruct.setFrame(list[i], pns, startNS, endNS, frame)
-                if (groupBy10MS) {
-                    if (i > 0 && ((list[i - 1].frame?.x || 0) == (list[i].frame?.x || 0)
-                    )) {
-
-                    } else {
-                        res.add(list[i])
-                    }
-                } else {
-                    if (i > 0 && (Math.abs((list[i - 1].frame?.x || 0) - (list[i].frame?.x || 0)) < 3)) {
-                    } else {
-                        res.add(list[i])
-                    }
-                }
-
+                it.frame.height = it.height;
+                HiPerfCpuStruct.setFrame(it, pns, startNS, endNS, frame);
+            }else{
+                it.frame = null;
             }
         }
+        return;
+    }
+    res.length = 0;
+    if (arr) {
+        let list: Array<any>;
+        if (groupBy10MS) {
+            if (arr2[type] && arr2[type].length > 0) {
+                list = arr2[type];
+            } else {
+                list = HiPerfCpuStruct.groupBy10MS(arr, maxCpu, intervalPerf);
+                arr2[type] = list;
+            }
+        } else {
+            list = arr;
+        }
+        let pns = (endNS - startNS) / frame.width;
+        let y = frame.y;
+
+        let groups = list.filter(it => (it.startNS || 0) + (it.dur || 0) > startNS && (it.startNS || 0) < endNS).map(it => {
+            if (!it.frame) {
+                it.frame = {};
+                it.frame.y = y;
+            }
+            it.frame.height = it.height;
+            HiPerfCpuStruct.setFrame(it, pns, startNS, endNS, frame);
+            return it;
+        }).reduce((pre, current, index, arr) => {
+            if (!pre[`${current.frame.x}`]) {
+                pre[`${current.frame.x}`] = [];
+                pre[`${current.frame.x}`].push(current);
+                if (groupBy10MS) {
+                    res.push(current);
+                } else {
+                    if (res.length == 0) {
+                        res.push(current);
+                    }
+                    if (res[res.length - 1] && Math.abs(current.frame.x - res[res.length - 1].frame.x) > 4) {
+                        res.push(current);
+                    }
+                }
+            }
+            return pre;
+        }, {});
     }
 }
 
@@ -68,20 +97,33 @@ export class HiPerfCpuStruct extends BaseStruct {
     height: number | undefined;
     cpu: number | undefined;
 
-    static draw(ctx: CanvasRenderingContext2D, data: HiPerfCpuStruct, groupBy10MS: boolean) {
+    static draw(ctx: CanvasRenderingContext2D, path: Path2D, data: HiPerfCpuStruct, groupBy10MS: boolean) {
         if (data.frame) {
             if (groupBy10MS) {
                 let width = data.frame.width;
-                ctx.fillRect(data.frame.x, 40 - (data.height || 0), width, data.height || 0)
+                path.rect(data.frame.x, 40 - (data.height || 0), width, data.height || 0)
             } else {
-                ctx.fillText("R", data.frame.x - 3, 20 + 4);//data.frame.height = undefined;
-                ctx.moveTo(data.frame.x + 7, 20);
-                ctx.arc(data.frame.x, 20, 7, 0, Math.PI * 2, true);
-                ctx.moveTo(data.frame.x, 27);
-                ctx.lineTo(data.frame.x, 33);
-                // ctx.stroke(HiPerfCpuStruct.path);
+                path.moveTo(data.frame.x + 7, 20);
+                HiPerfCpuStruct.drawRoundRectPath(path, data.frame.x - 7, 20 - 7, 14, 14, 3)
+                path.moveTo(data.frame.x, 27);
+                path.lineTo(data.frame.x, 33);
             }
         }
+    }
+
+    static drawRoundRectPath(cxt: Path2D, x: number, y: number, width: number, height: number, radius: number) {
+        cxt.arc(x + width - radius, y + height - radius, radius, 0, Math.PI / 2);
+        cxt.lineTo(x + radius, y + height);
+        cxt.arc(x + radius, y + height - radius, radius, Math.PI / 2, Math.PI);
+        cxt.lineTo(x + 0, y + radius);
+        cxt.arc(x + radius, y + radius, radius, Math.PI, Math.PI * 3 / 2);
+        cxt.lineTo(x + width - radius, y + 0);
+        cxt.arc(x + width - radius, y + radius, radius, Math.PI * 3 / 2, Math.PI * 2);
+        cxt.lineTo(x + width, y + height - radius);
+        cxt.moveTo(x + width / 3, y + height / 5);
+        cxt.lineTo(x + width / 3, y + height / 5 * 4);
+        cxt.moveTo(x + width / 3, y + height / 5);
+        cxt.bezierCurveTo(x + width / 3 + 7, y + height / 5 - 2, x + width / 3 + 7, y + height / 5 + 6, x + width / 3, y + height / 5 + 4);
     }
 
     static setFrame(node: any, pns: number, startNS: number, endNS: number, frame: any) {
@@ -100,7 +142,7 @@ export class HiPerfCpuStruct extends BaseStruct {
         }
     }
 
-    static groupBy10MS(array: Array<any>,maxCpu: number|undefined): Array<any> {
+    static groupBy10MS(array: Array<any>, maxCpu: number | undefined, intervalPerf: number): Array<any> {
         let obj = array.map(it => {
             it.timestamp_group = Math.trunc(it.startNS / 1_000_000_0) * 1_000_000_0;
             return it;
@@ -112,10 +154,10 @@ export class HiPerfCpuStruct extends BaseStruct {
         for (let aKey in obj) {
             let ns = parseInt(aKey);
             let height: number = 0;
-            if(maxCpu!=undefined){
-                height = Math.floor(obj[aKey].length / 10 / maxCpu * 40);
-            }else{
-                height = Math.floor(obj[aKey].length / 10 * 40);
+            if (maxCpu != undefined) {
+                height = Math.floor(obj[aKey].length / (10 / intervalPerf) / maxCpu * 40);
+            } else {
+                height = Math.floor(obj[aKey].length / (10 / intervalPerf) * 40);
             }
             arr.push({
                 startNS: ns,

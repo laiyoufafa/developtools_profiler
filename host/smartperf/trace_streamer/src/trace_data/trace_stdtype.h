@@ -20,6 +20,7 @@
 #include <deque>
 #include <limits>
 #include <map>
+#include <mutex>
 #include <optional>
 #include <sstream>
 #include <stdexcept>
@@ -28,6 +29,7 @@
 #include <vector>
 
 #include "cfg/trace_streamer_config.h"
+#include "double_map.h"
 #include "log.h"
 #include "ts_common.h"
 
@@ -53,7 +55,7 @@ public:
     {
         return internalTids_;
     }
-    void Clear()
+    virtual void Clear()
     {
         internalTids_.clear();
         timeStamps_.clear();
@@ -77,12 +79,15 @@ public:
     {
         return cpus_;
     }
-    void Clear()
+    virtual void Clear()
     {
         durs_.clear();
         cpus_.clear();
     }
-
+    void SetDur(uint64_t index, uint64_t dur)
+    {
+        durs_[index] = dur;
+    }
 public:
     std::deque<uint64_t> durs_;
     std::deque<uint64_t> cpus_;
@@ -113,11 +118,14 @@ public:
     TableRowId UpdateDuration(TableRowId index, InternalTime ts);
     void UpdateState(TableRowId index, TableRowId idState);
     void UpdateDuration(TableRowId index, InternalTime ts, TableRowId idState);
+    void UpdateTidAndPid(TableRowId index, InternalTid tid, InternalTid pid);
     TableRowId UpdateDuration(TableRowId index, InternalTime ts, InternalCpu cpu, TableRowId idState);
     struct ColumnData {
         InternalTime timeStamp;
         InternalTime duration;
         TableRowId idTid;
+        InternalTid tid;
+        InternalPid pid;
         TableRowId idState;
         InternalCpu cpu;
     };
@@ -158,15 +166,31 @@ public:
     {
         return priority_;
     }
-    void Clear()
+    const std::deque<uint64_t>& TsEndData() const
+    {
+        return tsEnds_;
+    }
+    const std::deque<InternalPid>& InternalPidsData() const
+    {
+        return internalPids_;
+    }
+    void AppendInternalPid(InternalPid ipid)
+    {
+        internalPids_.emplace_back(ipid);
+    }
+    void Clear() override
     {
         CacheBase::Clear();
         CpuCacheBase::Clear();
         endStates_.clear();
         priority_.clear();
+        internalPids_.clear();
+        tsEnds_.clear();
     }
 
 private:
+    std::deque<InternalPid> internalPids_ = {};
+    std::deque<uint64_t> tsEnds_ = {};
     std::deque<uint64_t> endStates_ = {};
     std::deque<uint64_t> priority_ = {};
 };
@@ -174,17 +198,19 @@ private:
 class CallStack : public CacheBase, public CpuCacheBase {
 public:
     size_t AppendInternalAsyncSlice(uint64_t startT,
-                                    uint64_t durationNs,
+                                    int32_t durationNs,
                                     InternalTid internalTid,
                                     DataIndex cat,
+                                    uint16_t nameIdentify,
                                     DataIndex name,
                                     uint8_t depth,
                                     uint64_t cookid,
                                     const std::optional<uint64_t>& parentId);
     size_t AppendInternalSlice(uint64_t startT,
-                               uint64_t durationNs,
+                               int32_t durationNs,
                                InternalTid internalTid,
                                DataIndex cat,
+                               uint16_t nameIdentify,
                                DataIndex name,
                                uint8_t depth,
                                const std::optional<uint64_t>& parentId);
@@ -198,7 +224,7 @@ public:
     void SetDuration(size_t index, uint64_t timestamp);
     void SetDurationAndArg(size_t index, uint64_t timestamp, uint32_t argSetId);
     void SetTimeStamp(size_t index, uint64_t timestamp);
-    void Clear()
+    void Clear() override
     {
         CacheBase::Clear();
         CpuCacheBase::Clear();
@@ -221,6 +247,7 @@ public:
     const std::deque<uint8_t>& Depths() const;
     const std::deque<uint64_t>& Cookies() const;
     const std::deque<uint64_t>& CallIds() const;
+    const std::deque<uint16_t>& IdentifysData() const;
     const std::deque<std::string>& ChainIds() const;
     const std::deque<std::string>& SpanIds() const;
     const std::deque<std::string>& ParentSpanIds() const;
@@ -229,7 +256,7 @@ public:
     const std::deque<uint32_t>& ArgSetIdsData() const;
 
 private:
-    void AppendCommonInfo(uint64_t startT, uint64_t durationNs, InternalTid internalTid);
+    void AppendCommonInfo(uint64_t startT, int32_t durationNs, InternalTid internalTid);
     void AppendCallStack(DataIndex cat, DataIndex name, uint8_t depth, std::optional<uint64_t> parentId);
 
 private:
@@ -237,6 +264,7 @@ private:
     std::deque<DataIndex> cats_ = {};
     std::deque<uint64_t> cookies_ = {};
     std::deque<uint64_t> callIds_ = {};
+    std::deque<uint16_t> identifys_ = {};
     std::deque<DataIndex> names_ = {};
     std::deque<uint8_t> depths_ = {};
 
@@ -263,7 +291,7 @@ public:
     {
         return sourceArgSetId_;
     }
-    void Clear()
+    void Clear() override
     {
         CacheBase::Clear();
         nameDeque_.clear();
@@ -292,7 +320,7 @@ public:
     {
         return filterIdDeque_;
     }
-    void Clear()
+    void Clear() override
     {
         CacheBase::Clear();
         typeDeque_.clear();
@@ -321,7 +349,7 @@ public:
     {
         return itidDeque_;
     }
-    void Clear()
+    void Clear() override
     {
         CacheBase::Clear();
         nameDeque_.clear();
@@ -391,7 +419,7 @@ public:
     {
         return name_;
     }
-    void Clear()
+    void Clear() override
     {
         CacheBase::Clear();
         cpu_.clear();
@@ -407,20 +435,29 @@ private:
 
 class Instants : public CacheBase {
 public:
-    size_t AppendInstantEventData(uint64_t timestamp, DataIndex nameIndex, int64_t internalTid);
+    size_t AppendInstantEventData(uint64_t timestamp,
+                                  DataIndex nameIndex,
+                                  int64_t internalTid,
+                                  int64_t wakeupFromInternalPid);
 
     const std::deque<DataIndex>& NameIndexsData() const
     {
         return NameIndexs_;
     }
-    void Clear()
+    const std::deque<int64_t>& WakeupFromPidsData() const
+    {
+        return wakeupFromInternalPids_;
+    }
+    void Clear() override
     {
         CacheBase::Clear();
         NameIndexs_.clear();
+        wakeupFromInternalPids_.clear();
     }
 
 private:
     std::deque<DataIndex> NameIndexs_;
+    std::deque<int64_t> wakeupFromInternalPids_;
 };
 
 class ProcessMeasureFilter : public CacheBase {
@@ -436,7 +473,7 @@ public:
     {
         return names_;
     }
-    void Clear()
+    void Clear() override
     {
         CacheBase::Clear();
         internalPids_.clear();
@@ -464,7 +501,7 @@ public:
     {
         return types_;
     }
-    void Clear()
+    void Clear() override
     {
         CacheBase::Clear();
         cpus_.clear();
@@ -493,7 +530,7 @@ public:
     {
         return cpus_;
     }
-    void Clear()
+    void Clear() override
     {
         CacheBase::Clear();
         names_.clear();
@@ -525,7 +562,7 @@ public:
     {
         return rets_;
     }
-    void Clear()
+    void Clear() override
     {
         CacheBase::Clear();
         sysCallNums_.clear();
@@ -548,7 +585,7 @@ public:
     const std::deque<uint64_t>& ArgsData() const;
     const std::deque<DataIndex>& NamesData() const;
 
-    void Clear()
+    void Clear() override
     {
         CacheBase::Clear();
         names_.clear();
@@ -568,7 +605,7 @@ public:
     size_t AppendNewFilter(uint64_t filterId, DataIndex type, DataIndex nameId);
     const std::deque<DataIndex>& NamesData() const;
     const std::deque<DataIndex>& TypesData() const;
-    void Clear()
+    void Clear() override
     {
         CacheBase::Clear();
         types_.clear();
@@ -584,7 +621,7 @@ public:
     size_t AppendNewDataType(BaseDataType dataType, DataIndex dataDescIndex);
     const std::deque<BaseDataType>& DataTypes() const;
     const std::deque<DataIndex>& DataDesc() const;
-    void Clear()
+    void Clear() override
     {
         CacheBase::Clear();
         dataTypes_.clear();
@@ -612,7 +649,7 @@ public:
     const std::deque<DataIndex>& Tags() const;
     const std::deque<DataIndex>& Contexts() const;
     const std::deque<uint64_t>& OriginTimeStamData() const;
-    void Clear()
+    void Clear() override
     {
         CacheBase::Clear();
         hilogLineSeqs_.clear();
@@ -648,6 +685,8 @@ public:
                                    int64_t allMemSize);
     void UpdateHeapDuration(size_t row, uint64_t endTimestamp);
     void UpdateCurrentSizeDur(size_t row, uint64_t timeStamp);
+    void UpdateMemMapSubType();
+    void UpdateAddrToMemMapSubType(uint64_t addr, int64_t size, uint64_t tagId);
     const std::deque<uint64_t>& EventIds() const;
     const std::deque<uint32_t>& Ipids() const;
     const std::deque<uint32_t>& Itids() const;
@@ -659,7 +698,7 @@ public:
     const std::deque<int64_t>& MemSizes() const;
     const std::deque<int64_t>& AllMemSizes() const;
     const std::deque<uint64_t>& CurrentSizeDurs() const;
-    void Clear()
+    void Clear() override
     {
         CacheBase::Clear();
         eventIds_.clear();
@@ -687,6 +726,7 @@ private:
     std::deque<int64_t> memSizes_ = {};
     std::deque<int64_t> allMemSizes_ = {};
     std::deque<uint64_t> currentSizeDurs_ = {};
+    DoubleMap<uint64_t, int64_t, uint64_t> addrToMmapTag_ = INVALID_UINT64;
     int64_t countHeapSizes_ = 0;
     int64_t countMmapSizes_ = 0;
     const std::string ALLOC_EVET = "AllocEvent";
@@ -705,6 +745,10 @@ public:
                                     DataIndex filePath,
                                     uint64_t offset,
                                     uint64_t symbolOffset);
+    void UpdateSymbolIdToNameMap(uint64_t originSymbolId, uint64_t symbolId);
+    void UpdateFilePathIdToNameMap(uint64_t originFilePathId, uint64_t filePathId);
+    void UpdateSymbolId();
+    void UpdateFileId();
     const std::deque<uint64_t>& EventIds() const;
     const std::deque<uint64_t>& Depths() const;
     const std::deque<uint64_t>& Ips() const;
@@ -738,6 +782,8 @@ private:
     std::deque<DataIndex> filePaths_ = {};
     std::deque<uint64_t> offsets_ = {};
     std::deque<uint64_t> symbolOffsets_ = {};
+    std::map<uint32_t, uint64_t> filePathIdToFilePathName_;
+    std::map<uint32_t, uint64_t> symbolIdToSymbolName_;
 };
 
 class Hidump : public CacheBase {
@@ -780,8 +826,9 @@ public:
     const std::deque<DataIndex>& Symbols() const;
     const std::deque<DataIndex>& FilePaths() const;
     const std::deque<uint32_t>& Serials() const;
+
 private:
-    std::deque<uint64_t> fileIds_= {};
+    std::deque<uint64_t> fileIds_ = {};
     std::deque<uint32_t> serials_ = {};
     std::deque<DataIndex> symbols_ = {};
     std::deque<DataIndex> filePaths_ = {};
@@ -953,6 +1000,7 @@ public:
         TS_ASSERT(id < dataDict_.size());
         return dataDict_[id];
     }
+    void Finish();
     void Clear()
     {
         dataDict_.clear();
@@ -964,6 +1012,7 @@ public:
 
 private:
     std::hash<std::string_view> hashFun;
+    std::mutex mutex_;
 };
 class NetDetailData : public CacheBase {
 public:
@@ -988,7 +1037,7 @@ public:
     const std::deque<double>& PacketInSec() const;
     const std::deque<uint64_t>& PacketOut() const;
     const std::deque<double>& PacketOutSec() const;
-    void Clear()
+    void Clear() override
     {
         CacheBase::Clear();
         durs_.clear();
@@ -1040,7 +1089,7 @@ public:
     const std::deque<int64_t>& DiskWrites() const;
     const std::deque<int64_t>& DiskReads() const;
     const std::deque<uint64_t>& CpuTimes() const;
-    void Clear()
+    void Clear() override
     {
         CacheBase::Clear();
         durs_.clear();
@@ -1083,7 +1132,7 @@ public:
     const std::deque<double>& UserLoad() const;
     const std::deque<double>& SystemLoad() const;
     const std::deque<int64_t>& Threads() const;
-    void Clear()
+    void Clear() override
     {
         CacheBase::Clear();
         durs_.clear();

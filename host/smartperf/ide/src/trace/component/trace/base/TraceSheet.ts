@@ -81,6 +81,7 @@ import {TabPaneLiveProcesses} from "../sheet/TabPaneLiveProcesses.js";
 import "../sheet/TabPaneLiveProcesses.js";
 import {TabpanePerfProfile} from "../sheet/TabPerfProfile.js";
 import {TabPanePerfSample} from "../sheet/TabPerfSampleList.js";
+import {info, log} from "../../../../log/Log.js";
 
 @element("trace-sheet")
 export class TraceSheet extends BaseElement {
@@ -218,8 +219,8 @@ export class TraceSheet extends BaseElement {
         this.tabNativeStatistics!.addEventListener("row-click", (e) => {
             // @ts-ignore
             this.selection!.statisticsSelectData = e.detail
-            this.tabNativeMemory?.fromStastics(this.selection)
             this.litTabs?.activeByKey("18");
+            this.tabNativeMemory?.fromStastics(this.selection)
         })
     }
 
@@ -383,8 +384,8 @@ export class TraceSheet extends BaseElement {
                         </tabpane-pts>
                     </lit-tabpane>
                     <lit-tabpane id="box-ts" key="14" hidden tab="Thread Switches" class="tabHeight">
-                        <tabpane-thread-switch id="tab-ts"><
-                        /tabpane-thread-switch>
+                        <tabpane-thread-switch id="tab-ts">
+                        </tabpane-thread-switch>
                     </lit-tabpane>
                     <lit-tabpane id="box-cpu-child" key="15" hidden tab="" closeable class="tabHeight">
                         <tabpane-box-child id="tab-box-child">
@@ -442,19 +443,22 @@ export class TraceSheet extends BaseElement {
     }
 
     clear() {
+        log("clear tabpane ");
         this.shadowRoot?.querySelectorAll("lit-tabpane").forEach(it => this.litTabs?.removeChild(it))
     }
 
-    displayThreadData(data: ThreadStruct, scrollCallback: ((e: ThreadStruct) => void) | undefined) {
+    displayThreadData(data: ThreadStruct, scrollCallback: ((e: ThreadStruct) => void) | undefined, scrollWakeUp: (d: any) => void | undefined) {
+        log("displayThreadData");
         this.setAttribute("mode", "max")
         this.tabCurrentSelection!.hidden = false;
         this.hideBoxTab();
         this.litTabs?.activeByKey("1")
         let tabCpu = this.shadowRoot!.querySelector<TabPaneCurrentSelection>('#tabpane-cpu');
-        tabCpu!.setThreadData(data, scrollCallback);
+        tabCpu!.setThreadData(data, scrollCallback, scrollWakeUp);
     }
 
     displayMemData(data: ProcessMemStruct) {
+        log("displayMemData");
         this.setAttribute("mode", "max")
         this.tabCurrentSelection!.hidden = false;
         this.hideBoxTab();
@@ -464,6 +468,7 @@ export class TraceSheet extends BaseElement {
     }
 
     displayFuncData(data: FuncStruct) {
+        log("displayFuncData");
         this.setAttribute("mode", "max")
         this.tabCurrentSelection!.hidden = false;
         this.hideBoxTab();
@@ -475,6 +480,7 @@ export class TraceSheet extends BaseElement {
     displayCpuData(data: CpuStruct,
                    callback: ((data: WakeupBean | null) => void) | undefined = undefined,
                    scrollCallback?: (data: CpuStruct) => void) {
+        log("displayCpuData");
         this.setAttribute("mode", "max")
         this.tabCurrentSelection!.hidden = false;
         this.hideBoxTab();
@@ -484,6 +490,7 @@ export class TraceSheet extends BaseElement {
     }
 
     displayFlagData(flagObj: Flag) {
+        log("displayFlagData");
         this.setAttribute("mode", "max")
         this.tabCurrentSelection!.hidden = true;
         this.hideBoxTab();
@@ -497,7 +504,7 @@ export class TraceSheet extends BaseElement {
         this.tabBoxChild!.hidden = true;
         this.selection = selection;
         if (selection.hasFps || selection.cpus.length > 0 || selection.threadIds.length > 0
-            || selection.funTids.length > 0 || selection.trackIds.length > 0 || selection.heapIds.length > 0
+            || selection.funTids.length > 0 || selection.funAsync.length > 0 || selection.trackIds.length > 0 || selection.heapIds.length > 0
             || selection.nativeMemory.length > 0 || selection.cpuAbilityIds.length > 0 || selection.memoryAbilityIds.length > 0 || selection.diskAbilityIds.length > 0 || selection.networkAbilityIds.length > 0
             || selection.perfSampleIds.length > 0) {
             this.setAttribute("mode", "max")
@@ -511,7 +518,7 @@ export class TraceSheet extends BaseElement {
             this.tabBoxContextSwitch!.hidden = selection.cpus.length == 0;
             this.tabBoxThreadSwitch!.hidden = selection.cpus.length == 0;
             this.tabBoxThreadStates!.hidden = selection.threadIds.length == 0;
-            this.tabBoxSlices!.hidden = selection.funTids.length == 0;
+            this.tabBoxSlices!.hidden = selection.funTids.length == 0 && selection.funAsync.length==0;
             this.tabBoxCounters!.hidden = selection.trackIds.length == 0;
             this.tabBoxFps!.hidden = !selection.hasFps;
             this.tabBoxHeap!.hidden = selection.heapIds.length == 0;
@@ -546,7 +553,7 @@ export class TraceSheet extends BaseElement {
         this.tabBoxContextSwitch!.hidden = !(this.selection!.cpus.length > 0);
         this.tabBoxThreadSwitch!.hidden = !(this.selection!.cpus.length > 0);
         this.tabBoxThreadStates!.hidden = !(this.selection!.threadIds.length > 0);
-        this.tabBoxSlices!.hidden = !(this.selection!.funTids.length > 0);
+        this.tabBoxSlices!.hidden = (this.selection!.funTids.length <= 0) && (this.selection!.funAsync.length <= 0);
         this.tabBoxCounters!.hidden = !(this.selection!.trackIds.length > 0)
         this.tabBoxHeap!.hidden = !(this.selection!.heapIds.length > 0)
         this.tabBoxFps!.hidden = !this.selection?.hasFps;
@@ -565,7 +572,7 @@ export class TraceSheet extends BaseElement {
         } else if (val.threadIds.length > 0) {
             this.litTabs?.activeByKey("4")
             this.loadTabPaneData("4")
-        } else if (val.funTids.length > 0) {
+        } else if (val.funTids.length > 0 || val.funAsync.length > 0) {
             this.litTabs?.activeByKey("5")
             this.loadTabPaneData("5")
         } else if (val.trackIds.length > 0) {
@@ -602,6 +609,7 @@ export class TraceSheet extends BaseElement {
     }
 
     loadTabPaneData(key: string) {
+        info("loadTabPaneData key : ", key);
         if (key == "2") {
             let tabCpuThread = this.shadowRoot!.querySelector<TabPaneCpuByThread>('#tab-cpu-thread');
             tabCpuThread!.data = this.selection;
@@ -684,6 +692,12 @@ export class TraceSheet extends BaseElement {
         this.tabBoxNMSample!.hidden = true;
         this.tabBoxPerfProfile!.hidden = true;
         this.tabBoxPerfSample!.hidden = true;
+        this.tabBoxLiveProcesses!.hidden = true;
+        this.tabBoxHistoryProcesses!.hidden = true;
+        this.tabBoxSystemCpu!.hidden = true;
+        this.tabBoxSystemMemory!.hidden = true;
+        this.tabBoxSystemDiskIo!.hidden = true;
+        this.tabBoxSystemNetwork!.hidden = true;
     }
 
     hideOtherBoxTab(key: string) {
@@ -724,6 +738,7 @@ export class TraceSheet extends BaseElement {
     }
 
     jumpBoxChild(key: string, e: any) {
+        info("jumpBoxChild key : ", key);
         this.hideOtherBoxTab(key)
         this.tabBoxChild!.tab = e.detail.title
         let param = new BoxJumpParam();

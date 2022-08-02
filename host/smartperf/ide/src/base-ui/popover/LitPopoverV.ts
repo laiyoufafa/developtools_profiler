@@ -444,6 +444,9 @@ export class LitPopover extends BaseElement {
             checkbox.checked = !checkbox.checked;
             this.visible = checkbox.checked
         }
+        popover.onmouseleave = () => {
+            this.focus();
+        }
         this.onblur = (ev: any) => {
             if (ev.relatedTarget && this.haveRadio) {
                 if (ev.relatedTarget.hasAttribute("not-close")) {

@@ -511,10 +511,12 @@ bool CallStack::UnwindCallStack(const VirtualThread &thread, bool abi32, u64 *re
 void CallStack::LogFrame(const std::string msg, const std::vector<CallFrame> &frames)
 {
     HLOGM("%s", msg.c_str());
+#ifndef NDEBUG
     int level = 0;
     for (auto frame : frames) {
         HLOGM("%d:%s", level++, frame.ToString().c_str());
     }
+#endif
 }
 
 /*
@@ -537,8 +539,6 @@ size_t CallStack::DoExpandCallStack(std::vector<CallFrame> &newCallFrames,
                                     const std::vector<CallFrame> &cachedCallFrames,
                                     size_t expandLimit)
 {
-    int maxCycle = 0;
-
     if (expandLimit == 0 or newCallFrames.size() < expandLimit or
         cachedCallFrames.size() < expandLimit) {
         HLOGM("expandLimit %zu not match new %zu cache %zu", expandLimit, newCallFrames.size(),
@@ -556,7 +556,6 @@ size_t CallStack::DoExpandCallStack(std::vector<CallFrame> &newCallFrames,
 
     // first frame search, from called - > caller
     // for case 2 it should found B
-    size_t distances = expandLimit - 1;
     auto cachedIt = find(cachedCallFrames.begin(), cachedCallFrames.end(), *newIt);
     if (cachedIt == cachedCallFrames.end()) {
         HLOGM("not found in first search");

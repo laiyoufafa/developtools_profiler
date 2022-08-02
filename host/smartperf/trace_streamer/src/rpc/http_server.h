@@ -57,7 +57,7 @@ private:
     bool CreateSocket(int port);
     void ProcessClient(HttpSocket& client);
     void ProcessRequest(HttpSocket& client, RequestST& request);
-    void HttpResponse(HttpSocket& client, const std::string& status, bool hasBody = false, uint32_t bodyLength = 0);
+    void HttpResponse(HttpSocket& client, const std::string& status, bool hasBody = false);
     void ParseRequest(const uint8_t* requst, size_t& len, RequestST& httpReq);
     void ClearDeadClientThread();
     std::vector<std::string_view> StringSplit(std::string_view source, std::string_view split);

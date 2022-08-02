@@ -25,6 +25,8 @@ export class TabPaneCounter extends BaseElement {
     private source: Array<SelectionData> = []
 
     set data(val: SelectionParam | any) {
+        //@ts-ignore
+        this.tbl?.shadowRoot?.querySelector(".table")?.style?.height = (this.parentElement!.clientHeight - 45) + "px";
         this.range!.textContent = "Selected range: " + parseFloat(((val.rightNs - val.leftNs) / 1000000.0).toFixed(5)) + " ms"
         getTabCounters(val.trackIds, val.rightNs).then((result) => {
             if (result != null && result.length > 0) {
@@ -49,10 +51,10 @@ export class TabPaneCounter extends BaseElement {
                 sumData.process = " ";
                 dataSource.splice(0, 0, sumData);
                 this.source = dataSource
-                this.tbl!.dataSource = dataSource
+                this.tbl!.recycleDataSource = dataSource
             } else {
                 this.source = [];
-                this.tbl!.dataSource = this.source
+                this.tbl!.recycleDataSource = this.source
             }
         });
     }
@@ -64,6 +66,13 @@ export class TabPaneCounter extends BaseElement {
             // @ts-ignore
             this.sortByColumn(evt.detail)
         });
+        new ResizeObserver((entries) => {
+            if (this.parentElement?.clientHeight != 0) {
+                // @ts-ignore
+                this.tbl?.shadowRoot.querySelector(".table").style.height = (this.parentElement.clientHeight - 45) + "px"
+                this.tbl?.reMeauseHeight()
+            }
+        }).observe(this.parentElement!)
     }
 
     initHtml(): string {
@@ -175,7 +184,7 @@ export class TabPaneCounter extends BaseElement {
         } else {
             this.source.sort(compare(detail.key, detail.sort, 'number'))
         }
-        this.tbl!.dataSource = this.source;
+        this.tbl!.recycleDataSource = this.source;
     }
 
 }

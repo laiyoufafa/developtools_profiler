@@ -150,6 +150,12 @@ describe('TabPaneFilter Test', () => {
         :host(:not([tree])) .tree{
             display: none;
         }
+        :host([disabledMining]) #data-mining{
+            display: none;
+        }
+        :host([disabledMining]) #data-library{
+            display: none;
+        }
         :host(:not([icon])) #icon{
             display: none;
         }
@@ -178,7 +184,18 @@ describe('TabPaneFilter Test', () => {
             background: var(--dark-background3,#F4F3F4);
             border: 1px solid var(--dark-background8,#F4F3F4);
             border-radius: 16px;
-            padding: 2px 8px;
+            padding: 2px 18px;
+        }
+        .library-button{
+            opacity: 0.9;
+            font-size: 13px;
+            color: #0A59F7;
+            text-align: center;
+            line-height: 16px;
+            background: var(--dark-background3,#F4F3F4);
+            border: 1px solid var(--dark-background8,#F4F3F4);
+            border-radius: 16px;
+            padding: 2px 18px;
         }
         
         #call-tree-popover[visible=\\"true\\"] #call-tree{
@@ -195,11 +212,19 @@ describe('TabPaneFilter Test', () => {
             color: #FFFFFF;
             background: #0C65D1;
         }
+        #data-library-popover[visible=\\"true\\"] #data-library{
+            color: #0A59F7;
+        }
+        .library-checked[highlight]{
+            color: #FFFFFF;
+            background: #0C65D1;
+        }
         #title{
             overflow: hidden;
             white-space: nowrap;
             text-overflow: ellipsis;
             flex: 1;
+            text-align: left;
         }
         #mining-row{
             background: var(--dark-background4,#F2F2F2);
@@ -208,10 +233,21 @@ describe('TabPaneFilter Test', () => {
             width: 250px;
             overflow-y: auto;
         }
-
+        #library-row{
+            background: var(--dark-background4,#F2F2F2);
+            border-radius: 2px;
+            height: 135px;
+            width: 250px;
+            overflow-y: auto;
+        }
+        .tree-check{
+            margin-bottom: 5px;
+            display: flex;
+            align-content: center;
+        }
 </style>
     <lit-icon name=\\"statistics\\" class=\\"spacing\\" id=\\"icon\\" size=\\"16\\"></lit-icon>
-    <span class=\\"describe left-text\\">Input Filter</span>
+    <span class=\\"describe left-text spacing\\">Input Filter</span>
     <input id=\\"filter-input\\" class=\\"spacing\\" placeholder=\\"Detail Filter\\"/>
     <button id=\\"mark\\" class=\\"spacing\\">Mark Snapshot</button>
     <div id=\\"load\\" style=\\"display: flex\\">
@@ -219,15 +255,14 @@ describe('TabPaneFilter Test', () => {
     </div>
        <lit-popover placement=\\"topLeft\\" class=\\"popover\\" haveRadio=\\"true\\" trigger=\\"click\\" id=\\"call-tree-popover\\">
             <div slot=\\"content\\">
-                <div class=\\"tree-check\\" style=\\"margin-bottom: 5px\\"><lit-check-box class=\\"lit-check-box\\" not-close></lit-check-box><span>Invert</span></div>
-                <div class=\\"tree-check\\" style=\\"margin-bottom: 5px\\"><lit-check-box class=\\"lit-check-box\\" not-close></lit-check-box><span>Hide System so</span></div>
+                <div class=\\"tree-check\\"><lit-check-box class=\\"lit-check-box\\" not-close></lit-check-box><div>Invert</div></div>
+                <div class=\\"tree-check\\"><lit-check-box class=\\"lit-check-box\\" not-close></lit-check-box><div>Hide System so</div></div>
             </div>
             <span class=\\"describe tree max-spacing\\" id=\\"call-tree\\">Options</span>
        </lit-popover>
        <lit-popover placement=\\"topLeft\\" class=\\"popover\\" haveRadio=\\"true\\" trigger=\\"click\\" id=\\"tree-constraints-popover\\">
             <div slot=\\"content\\" style=\\"display: flex; align-items: flex-end\\">
                 <lit-check-box id=\\"constraints-check\\" not-close></lit-check-box>
-                <div># Samples</div>
                 <input class=\\"constraints-input\\" disabled value=\\"0\\" not-close/>
                 <lit-popover placement=\\"topLeft\\" class=\\"popover\\" haveRadio=\\"true\\" not-close>
                     <div slot=\\"content\\">
@@ -242,15 +277,24 @@ describe('TabPaneFilter Test', () => {
        <lit-popover placement=\\"topLeft\\" class=\\"popover\\" haveRadio=\\"true\\" trigger=\\"click\\" id=\\"data-mining-popover\\">
            <div slot=\\"content\\">
                 <div id=\\"mining-row\\">
-                
+                    
                 </div>
                 <div style=\\"display: flex;justify-content: space-around; margin-top: 8px\\">
-                    <div class=\\"mining-button\\">Symbol</div>
-                    <div class=\\"mining-button\\">Library</div>
-                    <div class=\\"mining-button\\">Restore</div>
+                    <div class=\\"mining-button\\">Reset</div>
                 </div>
            </div>
-           <span class=\\"describe tree max-spacing\\" id=\\"data-mining\\">Data Mining</span>
+           <span class=\\"describe tree max-spacing\\" id=\\"data-mining\\">Symbol Filter</span>
+       </lit-popover>
+       <lit-popover placement=\\"topLeft\\" class=\\"popover\\" haveRadio=\\"true\\" trigger=\\"click\\" id=\\"data-library-popover\\">
+           <div slot=\\"content\\">
+                <div id=\\"library-row\\">
+                    
+                </div>
+                <div style=\\"display: flex;justify-content: space-around; margin-top: 8px\\">
+                    <div class=\\"library-button\\">Reset</div>
+                </div>
+           </div>
+           <span class=\\"describe tree max-spacing\\" id=\\"data-library\\">Library Filter</span>
        </lit-popover>
         "
 `);
@@ -266,5 +310,14 @@ describe('TabPaneFilter Test', () => {
 
     it('TabPaneFilterTest12', function () {
         expect(tabPaneFilter.initializeFilterTree(true,true,true)).toBeUndefined();
+    });
+
+    it('TabPaneFilterTest13', function () {
+        expect(tabPaneFilter.disabledMining).toBeFalsy();
+    });
+
+    it('TabPaneFilterTest14', function () {
+        tabPaneFilter.disabledMining = true
+        expect(tabPaneFilter.disabledMining).toBeTruthy();
     });
 })

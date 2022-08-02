@@ -20,6 +20,7 @@ import {getTabMemoryAbilityData, queryStartTime} from "../../../database/SqlLite
 import {SystemMemorySummary} from "../../../bean/AbilityMonitor.js";
 import {Utils} from "../base/Utils.js";
 import "../../../component/SpFilter.js";
+import {log} from "../../../../log/Log.js";
 
 @element('tabpane-memory-ability')
 export class TabPaneMemoryAbility extends BaseElement {
@@ -81,6 +82,7 @@ export class TabPaneMemoryAbility extends BaseElement {
         queryStartTime().then(res => {
             let startTime = res[0].start_ts;
             getTabMemoryAbilityData(val.leftNs + startTime, val.rightNs + startTime).then(items => {
+                log("getTabMemoryAbilityData result size : " + items.length)
                 this.source = []
                 this.queryResult = [];
                 if (items.length != null && items.length > 0) {
@@ -93,8 +95,10 @@ export class TabPaneMemoryAbility extends BaseElement {
                             systemMemorySummary.startTimeStr = Utils.getTimeStampHMS(item.startTime - startTime);
                         }
                         if (lastTime !== 0) {
-                            systemMemorySummary.durationStr = Utils.getDurString(item.startTime - lastTime);
+                            systemMemorySummary.durationNumber = item.startTime - lastTime;
+                            systemMemorySummary.durationStr = Utils.getDurString(systemMemorySummary.durationNumber);
                         } else {
+                            systemMemorySummary.durationNumber = 0;
                             systemMemorySummary.durationStr = '-';
                         }
                         lastTime = item.startTime;
@@ -178,8 +182,11 @@ export class TabPaneMemoryAbility extends BaseElement {
                     this.tbl!.recycleDataSource = [];
                 }
             })
-
         });
+        if (this.tbl) {
+            let th = this.tbl.shadowRoot?.querySelector<HTMLDivElement>(".th")
+            th!.style.gridColumnGap = "5px";
+        }
     }
 
     initHtml(): string {
@@ -196,28 +203,28 @@ export class TabPaneMemoryAbility extends BaseElement {
 </style>
    <lit-table id="tb-memory-ability" style="height: auto">
     <lit-table-column order width="150px" title="StartTime" data-index="startTimeStr" key="startTimeStr" align="flex-start"></lit-table-column>
-    <lit-table-column order width="100px" title="Duration" data-index="durationStr" key="durationStr" align="flex-end" ></lit-table-column>
-    <lit-table-column order width="100px" title="MemTotal" data-index="memoryTotal" key="memoryTotal" align="flex-end" ></lit-table-column>
-    <lit-table-column order width="100px" title="MemFree" data-index="memFree" key="memFree" align="flex-end" ></lit-table-column>
-    <lit-table-column order width="100px" title="Buffers" data-index="buffers" key="buffers" align="flex-end" ></lit-table-column>
-    <lit-table-column order width="100px" title="Cached" data-index="cached" key="cached" align="flex-end" ></lit-table-column>
-    <lit-table-column order width="100px" title="Shmem" data-index="shmem" key="shmem" align="flex-end" ></lit-table-column>
-    <lit-table-column order width="100px" title="Slab" data-index="slab" key="slab" align="flex-end" ></lit-table-column>
-    <lit-table-column order width="120px" title="SUnreclaim" data-index="sUnreclaim" key="sUnreclaim" align="flex-end" ></lit-table-column>
-    <lit-table-column order width="100px" title="SwapTotal" data-index="swapTotal" key="swapTotal" align="flex-end" ></lit-table-column>
-    <lit-table-column order width="100px" title="SwapFree" data-index="swapFree" key="swapFree" align="flex-end" ></lit-table-column>
-    <lit-table-column order width="100px" title="Mapped" data-index="mapped" key="mapped" align="flex-end" ></lit-table-column>
-    <lit-table-column order width="120px" title="VmallocUsed" data-index="vmallocUsed" key="vmallocUsed" align="flex-end" ></lit-table-column>
-    <lit-table-column order width="100px" title="PageTables" data-index="pageTables" key="pageTables" align="flex-end" ></lit-table-column>
-    <lit-table-column order width="120px" title="KernelStack" data-index="kernelStack" key="kernelStack" align="flex-end" ></lit-table-column>
-    <lit-table-column order width="120px" title="KReclaimable" data-index="kReclaimable" key="kReclaimable" align="flex-end" ></lit-table-column>
-    <lit-table-column order width="100px" title="Active" data-index="active" key="active" align="flex-end" ></lit-table-column>
-    <lit-table-column order width="100px" title="Inactive" data-index="inactive" key="inactive" align="flex-end" ></lit-table-column>
-    <lit-table-column order width="120px" title="Unevictable" data-index="unevictable" key="unevictable" align="flex-end" ></lit-table-column>
-    <lit-table-column order width="120px" title="VmallocTotal" data-index="vmallocTotal" key="vmallocTotal" align="flex-end" ></lit-table-column>
-    <lit-table-column order width="100px" title="CmaTotal" data-index="cmaTotal" key="cmaTotal" align="flex-end" ></lit-table-column>
-    <lit-table-column order width="100px" title="CmaFree" data-index="cmaFree" key="cmaFree" align="flex-end" ></lit-table-column>
-    <lit-table-column order width="100px" title="Zram" data-index="zram" key="zram" align="flex-end" ></lit-table-column>
+    <lit-table-column order width="100px" title="Duration" data-index="durationStr" key="durationStr" align="flex-start" ></lit-table-column>
+    <lit-table-column order width="100px" title="MemTotal" data-index="memoryTotal" key="memoryTotal" align="flex-start" ></lit-table-column>
+    <lit-table-column order width="100px" title="MemFree" data-index="memFree" key="memFree" align="flex-start" ></lit-table-column>
+    <lit-table-column order width="100px" title="Buffers" data-index="buffers" key="buffers" align="flex-start" ></lit-table-column>
+    <lit-table-column order width="100px" title="Cached" data-index="cached" key="cached" align="flex-start" ></lit-table-column>
+    <lit-table-column order width="100px" title="Shmem" data-index="shmem" key="shmem" align="flex-start" ></lit-table-column>
+    <lit-table-column order width="100px" title="Slab" data-index="slab" key="slab" align="flex-start" ></lit-table-column>
+    <lit-table-column order width="120px" title="SUnreclaim" data-index="sUnreclaim" key="sUnreclaim" align="flex-start" ></lit-table-column>
+    <lit-table-column order width="100px" title="SwapTotal" data-index="swapTotal" key="swapTotal" align="flex-start" ></lit-table-column>
+    <lit-table-column order width="100px" title="SwapFree" data-index="swapFree" key="swapFree" align="flex-start" ></lit-table-column>
+    <lit-table-column order width="100px" title="Mapped" data-index="mapped" key="mapped" align="flex-start" ></lit-table-column>
+    <lit-table-column order width="120px" title="VmallocUsed" data-index="vmallocUsed" key="vmallocUsed" align="flex-start" ></lit-table-column>
+    <lit-table-column order width="100px" title="PageTables" data-index="pageTables" key="pageTables" align="flex-start" ></lit-table-column>
+    <lit-table-column order width="120px" title="KernelStack" data-index="kernelStack" key="kernelStack" align="flex-start" ></lit-table-column>
+    <lit-table-column order width="120px" title="KReclaimable" data-index="kReclaimable" key="kReclaimable" align="flex-start" ></lit-table-column>
+    <lit-table-column order width="100px" title="Active" data-index="active" key="active" align="flex-start" ></lit-table-column>
+    <lit-table-column order width="100px" title="Inactive" data-index="inactive" key="inactive" align="flex-start" ></lit-table-column>
+    <lit-table-column order width="120px" title="Unevictable" data-index="unevictable" key="unevictable" align="flex-start" ></lit-table-column>
+    <lit-table-column order width="120px" title="VmallocTotal" data-index="vmallocTotal" key="vmallocTotal" align="flex-start" ></lit-table-column>
+    <lit-table-column order width="100px" title="CmaTotal" data-index="cmaTotal" key="cmaTotal" align="flex-start" ></lit-table-column>
+    <lit-table-column order width="100px" title="CmaFree" data-index="cmaFree" key="cmaFree" align="flex-start" ></lit-table-column>
+    <lit-table-column order width="100px" title="Zram" data-index="zram" key="zram" align="flex-start" ></lit-table-column>
 </lit-table>
         `;
     }
@@ -229,6 +236,8 @@ export class TabPaneMemoryAbility extends BaseElement {
                 if (type === 'number') {
                     // @ts-ignore
                     return sort === 2 ? parseFloat(b[property]) - parseFloat(a[property]) : parseFloat(a[property]) - parseFloat(b[property]);
+                } else if (type === 'durationStr') {
+                    return sort === 2 ? b.durationNumber - a.durationNumber : a.durationNumber - b.durationNumber;
                 } else {
                     // @ts-ignore
                     if (b[property] > a[property]) {
@@ -246,10 +255,12 @@ export class TabPaneMemoryAbility extends BaseElement {
 
         if (detail.key === 'startTime') {
             this.source.sort(compare(detail.key, detail.sort, 'string'))
+        } else if (detail.key === 'durationStr') {
+            this.source.sort(compare(detail.key, detail.sort, 'durationStr'))
         } else {
             this.source.sort(compare(detail.key, detail.sort, 'number'))
         }
-        this.tbl!.dataSource = this.source;
+        this.tbl!.recycleDataSource = this.source;
     }
 }
 

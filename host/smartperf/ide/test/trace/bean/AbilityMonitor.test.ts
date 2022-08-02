@@ -12,9 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import {SystemCpuSummary, SystemDiskIOSummary, ProcessHistory, LiveProcess, SystemNetworkSummary, SystemMemorySummary}
-from "../../../dist/trace/bean/AbilityMonitor.js"
+//@ts-ignore
+import {SystemCpuSummary, SystemDiskIOSummary, ProcessHistory, LiveProcess, SystemNetworkSummary, SystemMemorySummary} from "../../../dist/trace/bean/AbilityMonitor.js"
 
 describe('AbilityMonitor Test', ()=>{
     let systemCpuSummary = new SystemCpuSummary();

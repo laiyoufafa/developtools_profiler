@@ -14,10 +14,50 @@
  */
 //@ts-ignore
 import {TabpanePerfProfile} from "../../../../../dist/trace/component/trace/sheet/TabPerfProfile.js"
+//@ts-ignore
+import {perfDataQuery} from "../../../../../dist/trace/component/hiperf/PerfDataQuery.js";
+
+window.ResizeObserver = window.ResizeObserver ||
+    jest.fn().mockImplementation(() => ({
+        disconnect: jest.fn(),
+        observe: jest.fn(),
+        unobserve: jest.fn(),
+    }));
 
 describe('TabPerfProfile Test', () => {
 
+    document.body.innerHTML = `<tabpane-perf-profile id="perfprofile"></tabpane-perf-profile>`
+    let tabpanePerfProfile = document.querySelector('#perfprofile') as TabpanePerfProfile
+
     it('TabpanePerfProfileTest01 ', function () {
-        expect(TabpanePerfProfile.data).toBeUndefined();
+        TabpanePerfProfile.getParentTree = jest.fn(()=>true)
+        expect(tabpanePerfProfile.getParentTree([],{},[])).not.toBeUndefined();
+    });
+
+    it('TabpanePerfProfileTest02 ', function () {
+        expect(tabpanePerfProfile.getChildTree([],"1",[])).not.toBeUndefined();
+    });
+
+    it('TabpanePerfProfileTest03 ', function () {
+        let call = {
+            id:"1",
+            dur:1,
+            children:[]
+        }
+        expect(tabpanePerfProfile.setRightTableData(call)).toBeUndefined();
+    });
+
+    it('TabpanePerfProfileTest04 ', function () {
+        expect(tabpanePerfProfile.filterSampleIds(true,"1","112")).not.toBeUndefined();
+    });
+
+    it('TabpanePerfProfileTest05 ', function () {
+        expect(tabpanePerfProfile.hideSystemLibrary()).toBeUndefined();
+    });
+
+    it('TabpanePerfProfileTest06 ', function () {
+        let startNum = 1
+        let endNum = "∞"
+        expect(tabpanePerfProfile.hideNumMaxAndMin(startNum,endNum)).toBeUndefined();
     });
 })

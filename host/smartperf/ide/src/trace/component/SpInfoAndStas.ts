@@ -17,6 +17,8 @@ import {BaseElement, element} from "../../base-ui/BaseElement.js";
 import {querySelectTraceStats, queryTraceMetaData,} from "../database/SqlLite.js";
 import {LitTable} from "../../base-ui/table/lit-table.js";
 import "../../base-ui/table/lit-table.js";
+import {info} from "../../log/Log.js";
+import {LitProgressBar} from "../../base-ui/progress-bar/LitProgressBar.js";
 
 @element('sp-info-and-stats')
 export class SpInfoAndStats extends BaseElement {
@@ -27,12 +29,19 @@ export class SpInfoAndStats extends BaseElement {
     private th: HTMLElement | undefined;
     private backgroundMetaTable: HTMLDivElement | undefined;
     private backgroundInfoTable: HTMLDivElement | undefined;
+    private progressLoad: LitProgressBar | undefined;
 
     static get observedAttributes() {
         return []
     }
 
+    reset(){
+        this.metaTableEl!.dataSource = [];
+        this.infoTableEl!.dataSource = [];
+    }
+
     initElements(): void {
+        this.progressLoad = this.shadowRoot?.querySelector(".load-metric") as LitProgressBar;
         this.metaTableEl = this.shadowRoot!.querySelector<LitTable>('#metaData-table') as LitTable;
         this.infoTableEl = this.shadowRoot!.querySelector<LitTable>('#stats-table') as LitTable;
 
@@ -44,9 +53,27 @@ export class SpInfoAndStats extends BaseElement {
     }
 
     initInfoAndStatsData() {
+        this.progressLoad!.loading = true
+        let time = new Date().getTime();
         this.initMetricItemData().then(() => {
-            this.metaTableEl!.dataSource = this.metaData;
-            this.infoTableEl!.dataSource = this.infoData;
+            let durTime = new Date().getTime() - time;
+            info("InfoAndStatsData query time is: " + durTime + "ms")
+            this.metaTableEl!.recycleDataSource = this.metaData;
+            new ResizeObserver(() => {
+                if (this.parentElement?.clientHeight != 0) {
+                    this.metaTableEl!.style.height = '100%'
+                    this.metaTableEl!.reMeauseHeight()
+                }
+            }).observe(this.parentElement!)
+            info("metaData(metric) size is: ", this.metaData.length)
+            this.infoTableEl!.recycleDataSource = this.infoData;
+            new ResizeObserver(() => {
+                if (this.parentElement?.clientHeight != 0) {
+                    this.infoTableEl!.style.height = '100%'
+                    this.infoTableEl!.reMeauseHeight()
+                }
+            }).observe(this.parentElement!)
+            info("infoData(metric) size is: ", this.infoData.length)
             let metaDataStyle: HTMLDivElement | undefined | null = this.shadowRoot?.querySelector('#metaData-table')?.shadowRoot?.querySelector('div.body') as HTMLDivElement
             let metaDataHeadStyle: HTMLDivElement | undefined | null = this.shadowRoot?.querySelector('#metaData-table')?.shadowRoot?.querySelector('div.thead') as HTMLDivElement
             let statsStyle: HTMLDivElement | undefined | null = this.shadowRoot?.querySelector('#stats-table')?.shadowRoot?.querySelector('div.body') as HTMLDivElement
@@ -55,6 +82,7 @@ export class SpInfoAndStats extends BaseElement {
             statsHeadStyle.style.backgroundColor = 'var(--dark-background5,#F6F6F6)'
             this.initDataTableStyle(metaDataStyle);
             this.initDataTableStyle(statsStyle);
+            this.progressLoad!.loading = false
         });
     }
 
@@ -130,6 +158,7 @@ export class SpInfoAndStats extends BaseElement {
                 margin: 1% 2.5% 0 2.5%;
                 border-radius: 16px;
                 background-color: var(--dark-background3,#FFFFFF);
+                position: relative;
             }
        
             #metaData-table{
@@ -204,6 +233,11 @@ export class SpInfoAndStats extends BaseElement {
               border-radius: 6px;
               background-color: var(--dark-background7,rgba(0,0,0,0.1));
             }
+            
+            .load-metric{
+                width: 95%;
+                bottom: 0;
+            }
 
         </style>
 
@@ -218,6 +252,7 @@ export class SpInfoAndStats extends BaseElement {
                             </lit-table-column>
                     </lit-table>
                 </div>
+                <lit-progress-bar class="load-metric"></lit-progress-bar>
             </div>
             <div class="metadata stats">
                 <p>Debugging stats</p>

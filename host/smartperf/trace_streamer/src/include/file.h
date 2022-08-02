@@ -28,7 +28,8 @@ enum TraceParserStatus {
     TRACE_PARSER_ABNORMAL = 3
 };
 struct ProfilerTraceFileHeader {
-    static constexpr uint32_t HEADER_SIZE = 1024; // 预留了一些空间，方便后续在头部添加字段
+    // Some space is reserved to facilitate the subsequent addition of fields in the header
+    static constexpr uint32_t HEADER_SIZE = 1024;
     static constexpr uint32_t SHA256_SIZE = 256 / 8;
     static constexpr uint64_t HEADER_MAGIC = 0x464F5250534F484FuLL;
     static constexpr uint32_t V_MAJOR = 0x0001;
@@ -41,15 +42,27 @@ struct ProfilerTraceFileHeader {
         UNKNOW_TYPE = 1024,
     };
     struct HeaderData {
-        uint64_t magic_ = HEADER_MAGIC;  // 魔数，用于区分离线文件
-        uint64_t length_ = HEADER_SIZE;  // 总长度，可用于检验文件是否被截断；
-        uint32_t version_ = TRACE_VERSION;
-        uint32_t segments_ = 0; // 载荷数据中的段个数, 段个数为偶数，一个描述长度 L，一个描述接下来的数据 V
-        uint8_t sha256_[SHA256_SIZE] = {}; // 载荷数据 的 SHA256 ，用于校验 载荷数据是否完整；
-        DataType data_type = UNKNOW_TYPE;
+        // Magic number, used to distinguish offline files
+        uint64_t magic = HEADER_MAGIC;
+        // Total length, which can be used to check whether the document is truncated;
+        uint64_t length = HEADER_SIZE;
+        uint32_t version = TRACE_VERSION;
+        // The number of segments in the load data. The number of segments is even. One describes the length L and the
+        // other describes the next data v
+        uint32_t segments = 0;
+        // Sha256 of load data is used to verify whether the load data is complete;
+        uint8_t sha256[SHA256_SIZE] = {};
+        uint32_t dataType = UNKNOW_TYPE;
+        // clock
+        uint64_t boottime = 0;
+        uint64_t realtime = 0;
+        uint64_t realtimeCoarse = 0;
+        uint64_t monotonic = 0;
+        uint64_t monotonicCoarse = 0;
+        uint64_t monotonicRaw = 0;
     } __attribute__((packed));
-    HeaderData data_ = {};
-    uint8_t padding_[HEADER_SIZE - sizeof(data_)] = {};
+    HeaderData data = {};
+    uint8_t padding_[HEADER_SIZE - sizeof(data)] = {};
 };
 
 void SetAnalysisResult(TraceParserStatus stat);

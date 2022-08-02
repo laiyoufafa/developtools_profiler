@@ -14,15 +14,29 @@
  */
 
 import {BaseElement, element} from "../../../base-ui/BaseElement.js";
+import {LitSelectV} from "../../../base-ui/select/LitSelectV.js";
 import {LitSelect} from "../../../base-ui/select/LitSelect.js";
 import {LitSlider} from "../../../base-ui/slider/LitSlider.js";
 import LitSwitch from "../../../base-ui/switch/lit-switch.js";
+import "../../../base-ui/select/LitSelectV.js";
+import "../../../base-ui/select/LitSelect.js";
+
 import "../../../base-ui/switch/lit-switch.js";
+import {info, log} from "../../../log/Log.js";
+import {HdcDeviceManager} from "../../../hdc/HdcDeviceManager.js";
+import {SpRecordTrace} from "../SpRecordTrace.js";
+import {SpApplication} from "../../SpApplication.js";
+import {LitSearch} from "../trace/search/Search.js";
+import {Cmd} from "../../../command/Cmd.js";
+import {CmdConstant} from "../../../command/CmdConstant.js";
 
 @element("sp-record-perf")
 export class SpRecordPerf extends BaseElement {
     private addOptionButton: HTMLButtonElement | undefined | null;
-    private processSelect: LitSelect | undefined | null;
+    private processSelect: LitSelectV | undefined | null;
+    private cpuSelect: LitSelectV | undefined | null;
+    private eventSelect: LitSelectV | undefined | null;
+
     private frequencySetInput: HTMLInputElement | undefined | null;
     private offCPUSwitch: LitSwitch | undefined | null;
     private callSelect: LitSelect | undefined | null;
@@ -55,15 +69,15 @@ export class SpRecordPerf extends BaseElement {
     getPerfConfig(): PerfConfig | undefined {
         let configVal = this.shadowRoot?.querySelectorAll<HTMLElement>(".config");
         let perfConfig: PerfConfig = {
-            process:"ALL",
+            process: "ALL",
             cpu: "select ALL",
-            eventList: "select ALL",
+            eventList: "NONE",
             cpuPercent: 100,
             frequency: 1000,
             period: 1,
-            isOffCpu: false,
+            isOffCpu: true,
             noInherit: false,
-            callStack: "none",
+            callStack: "dwarf",
             branch: "none",
             mmap: 256,
             clockType: "monotonic"
@@ -71,21 +85,30 @@ export class SpRecordPerf extends BaseElement {
         configVal!.forEach(value => {
             switch (value.title) {
                 case "Process":
-                    let processSelect = value as LitSelect;
+                    let processSelect = value as LitSelectV;
+                    if (processSelect.all) {
+                        perfConfig.process = "ALL"
+                        break
+                    }
                     if (processSelect.value.length > 0) {
-                        perfConfig.process = processSelect.value
+                        let result = processSelect.value.match(/\((.+?)\)/g)
+                        if (result) {
+                            perfConfig.process = result.toString().replaceAll("(", "").replaceAll(")", "")
+                        } else {
+                            perfConfig.process = processSelect.value;
+                        }
                     }
                     break;
                 case "CPU":
-                    let selectV = value as LitSelect;
+                    let selectV = value as LitSelectV;
                     if (selectV.value.length > 0) {
                         perfConfig.cpu = selectV.value
                     }
                     break;
                 case "Event List":
-                    let selectList = value as LitSelect;
+                    let selectList = value as LitSelectV;
                     if (selectList.value.length > 0) {
-                        perfConfig.eventList = selectList.value;
+                        perfConfig.eventList = selectList.value.replace(/\s/g, ",");
                     }
                     break;
                 case "CPU Percent":
@@ -108,7 +131,7 @@ export class SpRecordPerf extends BaseElement {
                         perfConfig.period = Number(periodInput.value);
                     }
                     break;
-                case "Is Off CPU":
+                case "Off CPU":
                     let cpuImage = value as LitSwitch;
                     perfConfig.isOffCpu = cpuImage.checked;
                     break;
@@ -133,7 +156,7 @@ export class SpRecordPerf extends BaseElement {
                     let parent = value.parentElement;
                     if (parent!.hasAttribute("percent")) {
                         let pagesPercent = parent!.getAttribute("percent");
-                        perfConfig.cpuPercent = Number(pagesPercent);
+                        perfConfig.mmap = Math.pow(2, Number(pagesPercent));
                     }
                     break;
                 case "Clock Type":
@@ -144,10 +167,12 @@ export class SpRecordPerf extends BaseElement {
                     break;
             }
         })
+        info("perfConfig  is : ", perfConfig)
         return perfConfig;
     }
 
     initElements(): void {
+        let that = this
         this.initConfigList();
         let configList = this.shadowRoot?.querySelector<HTMLDivElement>(".configList");
         this.addOptionButton = this.shadowRoot?.querySelector<HTMLButtonElement>("#addOptions");
@@ -171,16 +196,20 @@ export class SpRecordPerf extends BaseElement {
             switch (config.type) {
                 case "select-multiple":
                     let html = '';
-                    html += `<lit-select default-value="" rounded="" class="select config" mode="multiple" canInsert="" title="${config.title}" rounded placement = "bottom" placeholder="${config.selectArray[0]}">`
+                    let placeholder = config.selectArray[0]
+                    if (config.title == "Event List") {
+                        placeholder = "NONE"
+                    }
+                    html += `<lit-select-v default-value="" rounded="" class="select config" mode="multiple" canInsert="" title="${config.title}" rounded placement = "bottom" placeholder="${placeholder}">`
                     config.selectArray.forEach((value: string) => {
                         html += `<lit-select-option value="${value}">${value}</lit-select-option>`
                     })
-                    html += `</lit-select>`
+                    html += `</lit-select-v>`
                     div.innerHTML = div.innerHTML + html;
                     break;
                 case "lit-slider":
                     let silder = `<div class="sliderBody"><lit-slider defaultColor="var(--dark-color3,#46B1E3)" open dir="right" class="silderclass config" title="${config.title}"></lit-slider>
-                              <input class="sliderInput" type="text" value = '    ${config.litSliderStyle.defaultValue} ${config.litSliderStyle.resultUnit}' >
+                              <input readonly class="sliderInput" type="text" value = '    ${config.litSliderStyle.defaultValue} ${config.litSliderStyle.resultUnit}' >
                                </div>`
                     div.innerHTML = div.innerHTML + silder;
                     let litSlider = div.querySelector<LitSlider>(".silderclass");
@@ -192,12 +221,33 @@ export class SpRecordPerf extends BaseElement {
                     })
                     litSlider!.sliderStyle = config.litSliderStyle;
                     break;
+                case "Mmap-lit-slider":
+                    let defaultValue = Math.pow(2, config.litSliderStyle.defaultValue);
+                    let mapsilder = `<div class="sliderBody"><lit-slider defaultColor="var(--dark-color3,#46B1E3)" open dir="right" class="silderclass config" title="${config.title}"></lit-slider>
+                              <input readonly class="sliderInput" type="text" value = '    ${defaultValue} ${config.litSliderStyle.resultUnit}' >
+                               </div>`
+                    div.innerHTML = div.innerHTML + mapsilder;
+                    let maplitSlider = div.querySelector<LitSlider>(".silderclass");
+                    maplitSlider!.percent = config.litSliderStyle.defaultValue
+                    let mapsliderBody = div.querySelector<HTMLDivElement>(".sliderBody");
+                    let mapbufferInput = div?.querySelector('.sliderInput') as HTMLInputElement;
+                    maplitSlider!.addEventListener('input', evt => {
+                        let percnet = mapsliderBody!.getAttribute("percent");
+                        if (percnet != null) {
+                            mapbufferInput.value = Math.pow(2, Number(percnet)) + config.litSliderStyle.resultUnit;
+                        }
+                    })
+                    maplitSlider!.sliderStyle = config.litSliderStyle;
+                    break;
                 case "input":
                     let input = document.createElement("input");
                     input.className = "input config";
                     input.textContent = config.value;
                     input.value = config.value;
                     input.title = config.title;
+                    input.oninput = (ev) => {
+                        input.value = input.value.replace(/\D/g, '')
+                    }
                     div.appendChild(input);
                     break;
                 case "select":
@@ -218,12 +268,13 @@ export class SpRecordPerf extends BaseElement {
                     } else {
                         switch1.checked = false;
                     }
-                    if (config.title == "Is Start Hiperf Sampling") {
+                    if (config.title == "Start Hiperf Sampling") {
                         switch1.addEventListener("change", (event: any) => {
                             let detail = event.detail;
                             if (detail.checked) {
                                 this.startSamp = true;
                                 this.unDisable();
+                                this.dispatchEvent(new CustomEvent('addProbe', {}));
                             } else {
                                 this.startSamp = false;
                                 this.addOptionButton!.style.display = "unset";
@@ -239,9 +290,196 @@ export class SpRecordPerf extends BaseElement {
             }
             configList!.appendChild(div);
         })
-        this.processSelect = this.shadowRoot?.querySelector<LitSelect>("lit-select[title='Process']");
+        let sp = document.querySelector("sp-application") as SpApplication;
+        let litSearch = sp.shadowRoot?.querySelector('#lit-search') as LitSearch;
+        this.processSelect = this.shadowRoot?.querySelector<LitSelectV>("lit-select-v[title='Process']");
+        let querySelector = this.processSelect!.shadowRoot?.querySelector("input") as HTMLInputElement;
+        let processData: Array<string> = []
+        querySelector.addEventListener('mousedown', ev => {
+            if (SpRecordTrace.serialNumber == '') {
+                this.processSelect!.dataSource([], 'ALL-Process')
+            }
+        })
+        querySelector!.addEventListener('mouseup', () => {
+            if (SpRecordTrace.serialNumber == '') {
+                this.processSelect?.dataSource([], 'ALL-Process')
+            } else {
+                if (sp.search) {
+                    sp.search = false;
+                    litSearch.clear();
+                }
+                if (SpRecordTrace.isVscode) {
+                    let cmd = Cmd.formatString(CmdConstant.CMD_GET_PROCESS_DEVICES, [SpRecordTrace.serialNumber])
+                    Cmd.execHdcCmd(cmd, (res: string) => {
+                        processData = []
+                        let lineValues: string[] = res.replace(/\r\n/g, "\r").replace(/\n/g, "\r").split(/\r/);
+                        for (let lineVal of lineValues) {
+                            if (lineVal.indexOf("__progname") != -1 || lineVal.indexOf("PID CMD") != -1) {
+                                continue;
+                            }
+                            let process: string[] = lineVal.trim().split(" ");
+                            if (process.length == 2) {
+                                let processId = process[0]
+                                let processName = process[1]
+                                processData.push(processName + "(" + processId + ")")
+                            }
+                        }
+                        this.processSelect?.dataSource(processData, 'ALL-Process')
+                    })
+                } else {
+                    HdcDeviceManager.connect(SpRecordTrace.serialNumber).then(conn => {
+                        if (conn) {
+                            HdcDeviceManager.shellResultAsString(CmdConstant.CMD_GET_PROCESS, false).then(res => {
+                                processData = []
+                                if (res) {
+                                    let lineValues: string[] = res.replace(/\r\n/g, "\r").replace(/\n/g, "\r").split(/\r/);
+                                    for (let lineVal of lineValues) {
+                                        if (lineVal.indexOf("__progname") != -1 || lineVal.indexOf("PID CMD") != -1) {
+                                            continue;
+                                        }
+                                        let process: string[] = lineVal.trim().split(" ");
+                                        if (process.length == 2) {
+                                            let processId = process[0]
+                                            let processName = process[1]
+                                            processData.push(processName + "(" + processId + ")")
+                                        }
+                                    }
+                                }
+                                this.processSelect?.dataSource(processData, 'ALL-Process')
+                            })
+                        } else {
+                            sp.search = true;
+                            litSearch.clear();
+                            litSearch.setPercent("please kill other hdc-server !", -1);
+                        }
+                    })
+                }
+            }
+        })
+
+        this.cpuSelect = this.shadowRoot?.querySelector<LitSelectV>("lit-select-v[title='CPU']");
+        let inputCpu = this.cpuSelect!.shadowRoot?.querySelector("input") as HTMLInputElement;
+        let cpuData: Array<string> = []
+        inputCpu.addEventListener('mousedown', ev => {
+            if (SpRecordTrace.serialNumber == '') {
+                this.cpuSelect!.dataSource([], 'ALL-CPU')
+            }
+        })
+        inputCpu!.addEventListener("mouseup", () => {
+            if (SpRecordTrace.serialNumber == '') {
+                this.cpuSelect?.dataSource([], '')
+            } else {
+                if (sp.search) {
+                    sp.search = false;
+                    litSearch.clear();
+                }
+                if (SpRecordTrace.isVscode) {
+                    let cmd = Cmd.formatString(CmdConstant.CMD_GET_CPU_COUNT_DEVICES, [SpRecordTrace.serialNumber])
+                    Cmd.execHdcCmd(cmd, (res: string) => {
+                        cpuData = []
+                        let cpuCount = res!.trim();
+                        let cpus = Number(cpuCount);
+                        for (let index = 0; index < cpus; index++) {
+                            cpuData.push(String(index))
+                        }
+                        this.cpuSelect?.dataSource(cpuData, 'ALL-CPU');
+                    })
+                } else {
+                    HdcDeviceManager.connect(SpRecordTrace.serialNumber).then(conn => {
+                        cpuData = []
+                        if (conn) {
+                            HdcDeviceManager.shellResultAsString(CmdConstant.CMD_GET_CPU_COUNT, false).then(res => {
+                                let cpuCount = res!.trim();
+                                let cpus = Number(cpuCount);
+                                for (let index = 0; index < cpus; index++) {
+                                    cpuData.push(String(index))
+                                }
+                                this.cpuSelect?.dataSource(cpuData, 'ALL-CPU');
+                            })
+                        } else {
+                            sp.search = true;
+                            litSearch.clear();
+                            litSearch.setPercent("please kill other hdc-server !", -1);
+                        }
+                    });
+                }
+            }
+        })
+        this.eventSelect = this.shadowRoot?.querySelector<LitSelectV>("lit-select-v[title='Event List']");
+        let inputEvent = this.eventSelect!.shadowRoot?.querySelector("input") as HTMLInputElement;
+        let eventData: Array<string> = [];
+        inputEvent.addEventListener('mousedown', ev => {
+            if (SpRecordTrace.serialNumber == '') {
+                this.eventSelect!.dataSource([], '')
+            }
+        })
+        inputEvent!.addEventListener("click", () => {
+            if (SpRecordTrace.serialNumber == '') {
+                this.eventSelect?.dataSource(["hw-cpu-cycles",
+                    "hw-instructions",
+                    "hw-cache-references",
+                    "hw-cache-misses",
+                    "hw-branch-instructions",
+                    "hw-branch-misses",
+                    "hw-bus-cycles",
+                    "hw-stalled-cycles-backend",
+                    "hw-stalled-cycles-frontend",
+                    "sw-cpu-clock",
+                    "sw-task-clock",
+                    "sw-page-faults",
+                    "sw-context-switches",
+                    "sw-cpu-migrations",
+                    "sw-page-faults-min",
+                    "sw-page-faults-maj",
+                    "sw-alignment-faults",
+                    "sw-emulation-faults",
+                    "sw-dummy",
+                    "sw-bpf-output"], '');
+            } else {
+                if (sp.search) {
+                    sp.search = false;
+                    litSearch.clear();
+                }
+                if (SpRecordTrace.isVscode) {
+                    let cmd = Cmd.formatString(CmdConstant.CMD_GET_HIPERF_EVENTS_DEVICES, [SpRecordTrace.serialNumber]);
+                    Cmd.execHdcCmd(cmd, (res: string) => {
+                        let eventMap = that.parseEvent(res);
+                        let eventList = that.getSoftHardWareEvents(eventMap);
+                        if (eventList) {
+                            for (let eventListElement of eventList) {
+                                eventData.push(eventListElement.trim())
+                            }
+                        }
+                        this.eventSelect!.dataSource(eventData, '');
+                    });
+                } else {
+                    HdcDeviceManager.connect(SpRecordTrace.serialNumber).then(conn => {
+                        eventData = [];
+                        if (conn) {
+                            HdcDeviceManager.shellResultAsString(CmdConstant.CMD_GET_HIPERF_EVENTS, false).then(res => {
+                                if (res) {
+                                    let eventMap = that.parseEvent(res);
+                                    let eventList = that.getSoftHardWareEvents(eventMap);
+                                    if (eventList) {
+                                        for (let eventListElement of eventList) {
+                                            eventData.push(eventListElement.trim())
+                                        }
+                                    }
+                                    this.eventSelect!.dataSource(eventData, '');
+                                }
+                            })
+                        } else {
+                            sp.search = true;
+                            litSearch.clear();
+                            litSearch.setPercent("please kill other hdc-server !", -1);
+                        }
+                    });
+                }
+            }
+        })
+
         this.frequencySetInput = this.shadowRoot?.querySelector<HTMLInputElement>("input[title='Frequency']");
-        this.offCPUSwitch = this.shadowRoot?.querySelector<LitSwitch>("lit-switch[title='Is Off CPU']");
+        this.offCPUSwitch = this.shadowRoot?.querySelector<LitSwitch>("lit-switch[title='Off CPU']");
         this.callSelect = this.shadowRoot?.querySelector<LitSelect>("lit-select[title='Call Stack']");
         this.addOptionButton!.addEventListener("click", (event) => {
             if (!this.startSamp) {
@@ -252,6 +490,48 @@ export class SpRecordPerf extends BaseElement {
         });
         this.disable();
     }
+
+    getSoftHardWareEvents(eventListResult: Map<string, string[]>) {
+        let shEvents = [];
+        let hardwareEvents = eventListResult.get("hardware");
+        if (hardwareEvents) {
+            for (let hardwareEvent of hardwareEvents) {
+                shEvents.push(hardwareEvent);
+            }
+        }
+        let softwareEvents = eventListResult.get("software");
+        if (softwareEvents) {
+            for (let softwareEvent of softwareEvents) {
+                shEvents.push(softwareEvent);
+            }
+        }
+        return shEvents;
+    }
+
+    parseEvent(eventListResult: string): Map<string, Array<string>> {
+        let eventMap: Map<string, Array<string>> = new Map<string, Array<string>>();
+        let events: Array<string> = [];
+        let type: string = "";
+        let lineValues: string[] = eventListResult.replace(/\r\n/g, "\r").replace(/\n/g, "\r").split(/\r/);
+        for (let line of lineValues) {
+            if (line.startsWith("Supported")) {
+                let startSign: string = "for";
+                type = line.substring(line.indexOf(startSign) + startSign.length, line.lastIndexOf(":")).trim();
+                events = new Array();
+                eventMap.set(type, events);
+            } else if (line.indexOf("not support") != -1 || line.trim().length == 0 || line.indexOf("Text file busy") != -1) {
+                // do not need deal with it
+            } else {
+                let event: string = line.split(" ")[0];
+                let ventMap = eventMap.get(type);
+                if (ventMap != null) {
+                    ventMap.push(event);
+                }
+            }
+        }
+        return eventMap;
+    }
+
 
     private unDisable() {
         if (this.processSelect) {
@@ -292,7 +572,7 @@ export class SpRecordPerf extends BaseElement {
     initConfigList(): void {
         this.configList = [
             {
-                title: "Is Start Hiperf Sampling",
+                title: "Start Hiperf Sampling",
                 des: "",
                 hidden: false,
                 type: "switch",
@@ -304,7 +584,7 @@ export class SpRecordPerf extends BaseElement {
                 hidden: false,
                 type: "select-multiple",
                 selectArray: [
-                    "ALL-Process"
+                    ""
                 ]
             },
             {
@@ -313,7 +593,7 @@ export class SpRecordPerf extends BaseElement {
                 hidden: true,
                 type: "select-multiple",
                 selectArray: [
-                    "ALL-CPU"
+                    ""
                 ]
             }, {
                 title: "Event List",
@@ -321,7 +601,7 @@ export class SpRecordPerf extends BaseElement {
                 hidden: true,
                 type: "select-multiple",
                 selectArray: [
-                    "ALL-EVENTS"
+                    ""
                 ]
             }, {
                 title: "CPU Percent",
@@ -353,11 +633,11 @@ export class SpRecordPerf extends BaseElement {
                 value: "1"
             },
             {
-                title: "Is Off CPU",
+                title: "Off CPU",
                 des: "Trace when threads are scheduled off cpu",
                 hidden: false,
                 type: "switch",
-                value: false
+                value: true
             },
             {
                 title: "No Inherit",
@@ -371,7 +651,7 @@ export class SpRecordPerf extends BaseElement {
                 des: "Setup and enable call stack recording",
                 hidden: false,
                 type: "select",
-                selectArray: ["none", "fp", "dwarf"]
+                selectArray: ["dwarf", "fp", "none"]
             },
             {
                 title: "Branch",
@@ -384,11 +664,11 @@ export class SpRecordPerf extends BaseElement {
                 title: "Mmap Pages",
                 des: "Used to receiving record data from kernel",
                 hidden: true,
-                type: "lit-slider",
+                type: "Mmap-lit-slider",
                 litSliderStyle: {
-                    minRange: 0,
-                    maxRange: 1024,
-                    defaultValue: "256",
+                    minRange: 1,
+                    maxRange: 10,
+                    defaultValue: "8",
                     resultUnit: "MB",
                     stepSize: 1,
                     lineColor: "var(--dark-color3,#46B1E3)",
@@ -400,7 +680,7 @@ export class SpRecordPerf extends BaseElement {
                 des: "Set the clock id to use for the various time fields in the perf_event_type records",
                 hidden: true,
                 type: "select",
-                selectArray: ["monotonic", "monotonic_raw", "realtime", "boottime", "perf"]
+                selectArray: ["realtime", "monotonic", "monotonic_raw", "boottime", "perf"]
             },
         ]
     }
@@ -556,7 +836,7 @@ export class SpRecordPerf extends BaseElement {
 }
 
 export interface PerfConfig {
-    process:string;
+    process: string;
     cpu: string;
     eventList: string;
     cpuPercent: number;

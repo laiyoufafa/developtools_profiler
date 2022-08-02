@@ -14,48 +14,138 @@
  */
 
 import {BaseElement, element} from "../../../base-ui/BaseElement.js";
+import {log} from "../../../log/Log.js";
+import {HdcDeviceManager} from "../../../hdc/HdcDeviceManager.js";
+import {LitAllocationSelect} from "../../../base-ui/select/LitAllocationSelect.js";
+import "../../../base-ui/select/LitAllocationSelect.js";
+import {SpApplication} from "../../SpApplication.js";
+import {LitSearch} from "../trace/search/Search.js";
+import {SpRecordTrace} from "../SpRecordTrace.js";
+import {Cmd} from "../../../command/Cmd.js";
+import {CmdConstant} from "../../../command/CmdConstant.js";
+import LitSwitch from "../../../base-ui/switch/lit-switch.js";
 
 @element('sp-allocations')
 export class SpAllocations extends BaseElement {
-    private processId: HTMLInputElement | null | undefined;
+    private processId: LitAllocationSelect | null | undefined;
     private unwindEL: HTMLInputElement | null | undefined;
     private shareMemory: HTMLInputElement | null | undefined;
     private shareMemoryUnit: HTMLSelectElement | null | undefined;
     private filterMemory: HTMLInputElement | null | undefined;
     private filterMemoryUnit: HTMLSelectElement | null | undefined;
+    private fpUnWind: LitSwitch | null | undefined;
 
     get appProcess(): string {
-        return this.processId!.value;
+        return this.processId!.value || "";
     }
 
     get unwind(): number {
+        log("unwind value is :" + this.unwindEL!.value)
         return Number(this.unwindEL!.value);
     }
 
     get shared(): number {
         let value = this.shareMemory?.value || "";
+        log("shareMemory value is :" + value)
         if (value != "") {
-            let unit = this.shareMemoryUnit?.value || "";
-            return this.convertToValue(value, unit);
+            let unit = Number(this.shareMemory?.value) || 16384;
+            return unit;
         }
-        return 8192;
+        return 16384;
     }
 
     get filter(): number {
         let value = this.filterMemory?.value || "";
+        log("filter value is :" + value)
         if (value != "") {
             return Number(value);
         }
-        return 0;
+        return 4096;
+    }
+
+    get fp_unwind(): boolean {
+        let value = this.fpUnWind?.checked
+        if (value != undefined) {
+            return value;
+        }
+        return true
     }
 
     initElements(): void {
-        this.processId = this.shadowRoot?.getElementById("pid") as HTMLInputElement
+        this.processId = this.shadowRoot?.getElementById("pid") as LitAllocationSelect
+        let input = this.processId.shadowRoot?.querySelector('.root') as HTMLDivElement
+        let sp = document.querySelector("sp-application") as SpApplication;
+        let litSearch = sp.shadowRoot?.querySelector('#lit-search') as LitSearch;
+        let processData: Array<string> = []
+        input.addEventListener('mousedown', ev => {
+            if (SpRecordTrace.serialNumber == '') {
+                this.processId!.processData = []
+            }
+        })
+        input.addEventListener('valuable', ev => {
+            this.dispatchEvent(new CustomEvent('addProbe', {}));
+        })
+        input.addEventListener('inputClick', () => {
+            processData = []
+            if (SpRecordTrace.serialNumber != '') {
+                if (SpRecordTrace.isVscode) {
+                    let cmd = Cmd.formatString(CmdConstant.CMD_GET_PROCESS_DEVICES, [SpRecordTrace.serialNumber])
+                    Cmd.execHdcCmd(cmd, (res: string) => {
+                        let lineValues: string[] = res.replace(/\r\n/g, "\r").replace(/\n/g, "\r").split(/\r/);
+                        for (let lineVal of lineValues) {
+                            if (lineVal.indexOf("__progname") != -1 || lineVal.indexOf("PID CMD") != -1) {
+                                continue;
+                            }
+                            let process: string[] = lineVal.trim().split(" ");
+                            if (process.length == 2) {
+                                let processId = process[0]
+                                let processName = process[1]
+                                processData.push(processName + "(" + processId + ")")
+                            }
+                        }
+                        this.processId!.processData = processData
+                        this.processId!.initData()
+                    })
+                } else {
+                    HdcDeviceManager.connect(SpRecordTrace.serialNumber).then(rr => {
+                        if (sp.search) {
+                            sp.search = false;
+                            litSearch.clear();
+                        }
+                        if (rr) {
+                            HdcDeviceManager.shellResultAsString(CmdConstant.CMD_GET_PROCESS, false).then(res => {
+                                if (res) {
+                                    let lineValues: string[] = res.replace(/\r\n/g, "\r").replace(/\n/g, "\r").split(/\r/);
+                                    for (let lineVal of lineValues) {
+                                        if (lineVal.indexOf("__progname") != -1 || lineVal.indexOf("PID CMD") != -1) {
+                                            continue;
+                                        }
+                                        let process: string[] = lineVal.trim().split(" ");
+                                        if (process.length == 2) {
+                                            let processId = process[0]
+                                            let processName = process[1]
+                                            processData.push(processName + "(" + processId + ")")
+                                        }
+                                    }
+                                }
+                                this.processId!.processData = processData
+                                this.processId!.initData()
+                            })
+                        } else {
+                            sp.search = true;
+                            litSearch.clear();
+                            litSearch.setPercent("please kill other hdc-server! ", -1);
+                        }
+                    })
+                }
+            }
+        })
         this.unwindEL = this.shadowRoot?.getElementById("unwind") as HTMLInputElement
         this.shareMemory = this.shadowRoot?.getElementById("shareMemory") as HTMLInputElement
         this.shareMemoryUnit = this.shadowRoot?.getElementById("shareMemoryUnit") as HTMLSelectElement
         this.filterMemory = this.shadowRoot?.getElementById("filterSized") as HTMLInputElement
         this.filterMemoryUnit = this.shadowRoot?.getElementById("filterSizedUnit") as HTMLSelectElement
+        this.fpUnWind = this.shadowRoot?.getElementById("use_fp_unwind") as LitSwitch
     }
 
     initHtml(): string {
@@ -123,10 +213,19 @@ export class SpAllocations extends BaseElement {
             border-radius: 16px;
         }
         .application{
-         display: flex;
-         flex-direction: column;
-         grid-gap: 15px;
-         margin-top: 40px;
+           display: flex;
+           flex-direction: column;
+           grid-gap: 15px;
+           margin-top: 40px;
+        }
+        .switchstyle{
+           margin-top: 40px;
+           display: flex;
+        }
+        #fp-unwind {
+          display:flex;
+          width:25%; 
+          margin-top: 3px;
         }
         .inputstyle{
             background: var(--dark-background5,#FFFFFF);
@@ -153,36 +252,41 @@ export class SpAllocations extends BaseElement {
         #two_kb{
             background-color:var(--dark-background5, #FFFFFF)
         }
+        .processSelect {
+          border-radius: 15px;
+          width: 84%;
+        }
         </style>
         <div class="root">
           <div class = "title">
-            <span class="font-style">Allocations</span>
+            <span class="font-style">Native Memory</span>
           </div>
           <div class="application">
              <span class="inner-font-style">ProcessId or ProcessName :</span>
-             <input id= "pid" class="inputstyle" type="text" placeholder="Enter the pid or ProcessName" oninput="if(this.value > 4194304) this.value = ''">
+             <lit-allocation-select show-search class="processSelect" rounded default-value="" id="pid" placement="bottom" title="process" placeholder="please select process">
+             </lit-allocation-select>
           </div>
           <div class="application">
             <span class="inner-font-style" >Max unwind level :</span>
-            <input id= "unwind"  class="inputstyle" type="text" placeholder="Enter the Max Unwind Level" oninput="if(this.value > 2147483647) this.value = ''" onkeyup="this.value=this.value.replace(/\\D/g,'')" value="10">
+            <input id= "unwind"  class="inputstyle" type="text" placeholder="Enter the Max Unwind Level" oninput="if(this.value > 30) this.value = '30'" onkeyup="this.value=this.value.replace(/\\D/g,'')" value="10">
           </div>
           <div class="application">
-            <span class="inner-font-style">Shared Memory Size (Must be a multiple of 4 KB) :</span>
+            <span class="inner-font-style">Shared Memory Size (One page equals 4 KB) :</span>
             <div>
-              <input id = "shareMemory" class="inputstyle" type="text" placeholder="Enter the Shared Memory Size" oninput="if(this.value > 2147483647) this.value = ''" onkeyup="this.value=this.value.replace(/\\D/g,'')" value="8192">
-              <select class="select" id="shareMemoryUnit" >
-                <option id= "one_kb" class="select" value="KB">KB</option>
-              </select>
+              <input id = "shareMemory" class="inputstyle" type="text" placeholder="Enter the Shared Memory Size" oninput="if(this.value > 2147483647) this.value = ''" onkeyup="this.value=this.value.replace(/\\D/g,'')" value="16384">
+              <span>Page</span>
             </div>
           </div>
           <div class="application">
             <span class="inner-font-style" >Filter Memory Size :</span>
             <div>
-                <input id = "filterSized" class="inputstyle" type="text" placeholder="Enter the Filter Memory Size" oninput="if(this.value > 65535) this.value = ''" onkeyup="this.value=this.value.replace(/\\\\D/g,'')" value="0">
-                <select class="select" id="filterSizedUnit">
-                   <option id= "two_kb" class="select" value="Byte">Byte</option>
-                 </select>
+                <input id = "filterSized" class="inputstyle" type="text" placeholder="Enter the Filter Memory Size" oninput="if(this.value > 65535) this.value = ''" onkeyup="this.value=this.value.replace(/\\\\D/g,'')" value="4096">
+                 <span>Byte</span>
             </div>
+          </div>
+          <div class="switchstyle">
+              <span class="inner-font-style" id="fp-unwind">Use Fp Unwind :</span> 
+              <lit-switch id="use_fp_unwind" title="fp unwind" checked="true"></lit-switch>
           </div>
         </div>
         `;
@@ -202,7 +306,7 @@ export class SpAllocations extends BaseElement {
         }
         let number = value / 4096;
         if (number > 0 && number < 1) {
-            return 8192;
+            return 16384;
         }
         return parseInt(String(number));
     }

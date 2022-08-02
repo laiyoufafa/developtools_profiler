@@ -15,9 +15,13 @@
 
 import {BaseStruct, ns2x, Rect} from "./ProcedureWorkerCommon.js";
 
-export function fps(list: Array<any>, res: Set<any>, startNS: number, endNS: number, totalNS: number, frame: any) {
-    res.clear();
+export function fps(list: Array<any>, res: Array<any>, startNS: number, endNS: number, totalNS: number, frame: any,use:boolean) {
+    if(use && res.length > 0){
+        res.forEach(it => FpsStruct.setFrame(it, 5, startNS, endNS, totalNS, frame));
+        return;
+    }
     FpsStruct.maxFps = 0
+    res.length = 0 ;
     if (list) {
         for (let i = 0, len = list.length; i < len; i++) {
             let it = list[i];
@@ -34,7 +38,7 @@ export function fps(list: Array<any>, res: Set<any>, startNS: number, endNS: num
                 if (i > 0 && ((list[i - 1].frame?.x || 0) == (list[i].frame?.x || 0) && (list[i - 1].frame?.width || 0) == (list[i].frame?.width || 0))) {
 
                 } else {
-                    res.add(list[i])
+                    res.push(list[i])
                 }
             }
         }

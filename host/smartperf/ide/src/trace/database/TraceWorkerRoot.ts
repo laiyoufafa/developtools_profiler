@@ -23,6 +23,9 @@ self.onmessage = (e)=>{
         worker.postMessage(e.data,[e.data.buffer]);
     } else if (e.data.action === "exec") {
         worker.postMessage(e.data);
+    } else if (e.data.action == "exec-buf") {
+        // @ts-ignore
+        worker.postMessage(e.data);
     }
 }
 self.onerror = event => {

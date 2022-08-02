@@ -159,7 +159,6 @@ export class LitSelect extends BaseElement {
             position: relative;
             overflow: visible;
             cursor: pointer;
-            transition: all .3s;
             border-radius: 2px;
             outline: none;
             -webkit-user-select:none ;
@@ -176,7 +175,6 @@ export class LitSelect extends BaseElement {
             outline: none;
             background-color: transparent;
             cursor: pointer;
-            transition: all .3s;
             -webkit-user-select:none ;
             -moz-user-select:none;
             user-select:none;
@@ -201,7 +199,6 @@ export class LitSelect extends BaseElement {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            transition: all .3s;
             border-radius: 2px;
             outline: none;
             font-size: 1rem;
@@ -220,7 +217,6 @@ export class LitSelect extends BaseElement {
             margin-top: 2px;
             background-color: var(--dark-background4,#fff);
             width: 100%;
-            transition: all 0.2s;
             transform: scaleY(.6);
             visibility: hidden;
             opacity: 0;

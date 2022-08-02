@@ -22,10 +22,10 @@ enum Index { ID = 0, THREAD_ID, PROCESS_ID, THREAD_NAME };
 }
 PerfThreadTable::PerfThreadTable(const TraceDataCache* dataCache) : TableBase(dataCache)
 {
-    tableColumn_.push_back(TableBase::ColumnInfo("id", "UNSIGNED INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("thread_id", "UNSIGNED INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("process_id", "UNSIGNED INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("thread_name", "STRING"));
+    tableColumn_.push_back(TableBase::ColumnInfo("id", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("thread_id", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("process_id", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("thread_name", "TEXT"));
     tablePriKey_.push_back("id");
 }
 

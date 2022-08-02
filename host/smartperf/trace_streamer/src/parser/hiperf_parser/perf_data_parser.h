@@ -14,13 +14,12 @@
  */
 #ifndef PERF_DATA_PARSER_H
 #define PERF_DATA_PARSER_H
+#include <linux/perf_event.h>
 #include <cstddef>
 #include <cstdint>
 #include <deque>
-#include <linux/perf_event.h>
 #include <set>
-#include "hashlist.h"
-#include "htrace_plugin_time.h"
+#include "htrace_plugin_time_parser.h"
 #include "log.h"
 #include "perf_events.h"
 #include "perf_file_format.h"

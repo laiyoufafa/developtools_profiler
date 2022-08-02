@@ -31,6 +31,7 @@ export class FuncStruct extends BaseStruct {
     startTs: number | undefined
     threadName: string | undefined
     tid: number | undefined
+    identify:number |undefined
     track_id: number | undefined
 
     static draw(ctx: CanvasRenderingContext2D, data: FuncStruct) {

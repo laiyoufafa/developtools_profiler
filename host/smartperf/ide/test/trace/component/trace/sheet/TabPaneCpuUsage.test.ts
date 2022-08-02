@@ -15,9 +15,43 @@
 
 // @ts-ignore
 import {TabPaneCpuUsage} from "../../../../../dist/trace/component/trace/sheet/TabPaneCpuUsage.js"
+const sqlit = require("../../../../../dist/trace/database/SqlLite.js")
+jest.mock("../../../../../dist/trace/database/SqlLite.js");
+
 
 describe('TabPaneCpuUsage Test', () => {
     let tabPaneCpuUsage = new TabPaneCpuUsage();
+
+    let mockGetTabCpuUsage =  sqlit.getTabCpuUsage
+    let mockGetTabCpuFreq =  sqlit.getTabCpuFreq
+
+    mockGetTabCpuUsage.mockResolvedValue([])
+    mockGetTabCpuFreq.mockResolvedValue([])
+
+    let selectionData = {
+        cpus: [],
+        threadIds: [],
+        trackIds: [],
+        funTids: [],
+        heapIds: [],
+        nativeMemory: [],
+        cpuAbilityIds: [],
+        memoryAbilityIds: [],
+        diskAbilityIds: [],
+        networkAbilityIds: [],
+        leftNs: 0,
+        rightNs: 0,
+        hasFps: false,
+        statisticsSelectData: undefined,
+        perfSampleIds: [],
+        perfCpus: [],
+        perfProcess: [],
+        perfThread: [],
+        perfAll: false,
+    }
+
+    tabPaneCpuUsage.data = selectionData
+
 
     it('TabPaneCpuUsageTest02', function () {
         expect(tabPaneCpuUsage.sortTable([[1,2,3,9,6,4],[5,2,1,4,9,6]],1,true)).toBeUndefined();

@@ -56,11 +56,14 @@ export class ProcessHistory {
     processId: number = -1
     alive: string = '' // 0 alive and 1 dead
     firstSeen: string = ''
+    firstSeenNumber: number = -1
     lastSeen: string = ''
+    lastSeenNumber: number = -1
     processName: string = ""
     responsibleProcess: string = ""
     userName: string = ""
     cpuTime: string = ''
+    cpuTimeNumber: number = -1
     pss: number = -1
 }
 
@@ -72,6 +75,7 @@ export class LiveProcess {
     cpu: string = ''
     threads: number = -1
     memory: string = ''
+    memoryNumber: number = -1;
     diskWrite: number = -1
     diskReads: number = -1
     cpuTime: string = ""
@@ -104,6 +108,7 @@ export class SystemNetworkSummary {
 export class SystemMemorySummary {
     startTimeStr: string = "0"
     durationStr: string = "0"
+    durationNumber: number = -1
     memoryTotal: string = "0";
     memFree: string = "0";
     buffers: string = "0";

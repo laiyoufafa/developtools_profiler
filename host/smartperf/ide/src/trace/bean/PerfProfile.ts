@@ -53,6 +53,12 @@ export class PerfThread {
     processName: string = "";
 }
 
+export class PerfCall{
+    sampleId: number = 0;
+    depth: number = 0;
+    name: string = "";
+}
+
 export class PerfCallChain {
     tid: number = 0;
     pid: number = 0;
@@ -74,6 +80,7 @@ export class PerfCallChain {
     bottomUpMerageId: string = ""//bottom up合并使用的id
     bottomUpMerageParentId: string = ""//bottom up合并使用的id
     depth: number = 0;
+    canCharge:boolean = true
     previousNode: PerfCallChain | undefined = undefined;//将list转换为一个链表结构
     nextNode: PerfCallChain | undefined = undefined;
 
@@ -109,11 +116,13 @@ export class PerfCallChainMerageData extends ChartStruct {
     path: string = ""
     self: string = "0s"
     weight: string = ""
+    weightPercent: string = ""
     selfDur: number = 0;
     dur: number = 0;
     tid: number = 0;
     pid: number = 0;
     isStore = 0;
+    canCharge:boolean = true
     children: PerfCallChainMerageData[] = []
     initChildren: PerfCallChainMerageData[] = []
     type: number = 0;
@@ -132,7 +141,8 @@ export class PerfCallChainMerageData extends ChartStruct {
 
     set total(data: number) {
         this.#total = data;
-        this.weight = `${Utils.timeMsFormat2p(this.dur * 1000 / parseInt(SpHiPerf.stringResult?.fValue || "1000"))} ${(this.dur / data * 100).toFixed(1)}%`
+        this.weight = `${Utils.timeMsFormat2p(this.dur * (SpHiPerf.stringResult?.fValue || 1))}`
+        this.weightPercent = `${(this.dur / data * 100).toFixed(1)}%`
     }
 
     get total() {
@@ -146,6 +156,8 @@ export class PerfCallChainMerageData extends ChartStruct {
             currentNode.pid = callChain.pid
             currentNode.tid = callChain.tid
             currentNode.libName = callChain.fileName
+            currentNode.vaddrInFile = callChain.vaddrInFile;
+            currentNode.canCharge = callChain.canCharge
             if (callChain.path) {
                 currentNode.path = callChain.path
             }
@@ -179,11 +191,13 @@ export class PerfSample {
 
 export class PerfStack {
     symbol: string = "";
+    symbolId: number = 0;
     path: string = "";
     fileId: number = 0;
     type: number = 0;
+    vaddrInFile: number = 0;
 }
 
-export class PerfCmdLine{
-    report_value:string = "";
+export class PerfCmdLine {
+    report_value: string = "";
 }

@@ -17,6 +17,7 @@ import {BaseElement, element} from "../../../base-ui/BaseElement.js";
 import {checkDesBean, SpCheckDesBox} from "./SpCheckDesBox.js";
 import {LitCheckBox} from "../../../base-ui/checkbox/LitCheckBox.js";
 import {LitRadioGroup} from "../../../base-ui/radiobox/LitRadioGroup.js";
+import {info, log} from "../../../log/Log.js";
 
 @element('probes-config')
 export class SpProbesConfig extends BaseElement {
@@ -37,6 +38,7 @@ export class SpProbesConfig extends BaseElement {
         if (this.hitrace && this.hitrace.checked) {
             values.push(this.hitrace.value)
         }
+        info("traceConfig is :", values)
         return values;
     }
 
@@ -46,6 +48,7 @@ export class SpProbesConfig extends BaseElement {
         for (const litCheckBoxElement of selectedMemory) {
             values.push(litCheckBoxElement.value)
         }
+        log("memoryConfig size is :" + values.length)
         return values
     }
 
@@ -58,6 +61,7 @@ export class SpProbesConfig extends BaseElement {
                 values.push(litCheckBoxElement.value)
             }
         }
+        log("traceEvents size is :" + values.length)
         return values;
     }
 
@@ -75,18 +79,8 @@ export class SpProbesConfig extends BaseElement {
         this.traceConfigList = [
             {value: 'Scheduling details', isSelect: false, des: "enables high-detailed tracking of scheduling events"}
             , {
-                value: "Board voltages & frequency", isSelect: false,
-                des: "Tracks voltage and frequency changes from board sensors"
-            }
-            , {
                 value: "CPU Frequency and idle states", isSelect: false,
                 des: "Records cpu frequency and idle state change viaftrace"
-            }
-            , {
-                value: "High frequency memory", isSelect: false,
-                des: "Allows to track short memory splikes and transitories through ftrace's mm_event." +
-                    " rss_stat and ion events. " +
-                    "Available only on recent Kernel version >= 4.19"
             }
             , {
                 value: "Advanced ftrace config", isSelect: false,
@@ -94,8 +88,7 @@ export class SpProbesConfig extends BaseElement {
                     + "The events enabled here are in addition to those from"
                     + " enabled by other probes."
             }
-            , {value: "Syscalls", isSelect: false, des: "Tracks the enter and exit of all syscalls"}
-            , {value: "FPS", isSelect: false, des: "Tracks the FPS"}, {
+            , {
                 value: "AbilityMonitor",
                 isSelect: false,
                 des: "Tracks the AbilityMonitor"
@@ -106,6 +99,9 @@ export class SpProbesConfig extends BaseElement {
             checkDesBox.value = configBean.value;
             checkDesBox.checked = configBean.isSelect;
             checkDesBox.des = configBean.des;
+            checkDesBox.addEventListener("onchange", (ev: any) => {
+                this.dispatchEvent(new CustomEvent('addProbe', {}));
+            })
             this._traceConfig?.appendChild(checkDesBox)
         })
         this.memoryConfigList = [
@@ -123,6 +119,9 @@ export class SpProbesConfig extends BaseElement {
             checkDesBox.value = configBean.value;
             checkDesBox.checked = configBean.isSelect;
             checkDesBox.des = configBean.des;
+            checkDesBox.addEventListener("onchange", (ev: any) => {
+                this.dispatchEvent(new CustomEvent('addProbe', {}));
+            })
             this._memoryConfig?.appendChild(checkDesBox)
         })
         this.hitraceConfigList = ["ability", "ace", "app", "ark", "binder", "disk", "distributeddatamgr"
@@ -152,6 +151,7 @@ export class SpProbesConfig extends BaseElement {
                         this.hitrace.checked = hasChecked
                     }
                 }
+                this.dispatchEvent(new CustomEvent('addProbe', {}));
             })
             parent.append(litCheckBox)
         })
@@ -202,6 +202,7 @@ export class SpProbesConfig extends BaseElement {
            border-style: solid none none none;
            border-color: #D5D5D5;
            padding-top: 15px;
+           margin-top: 15px;
            gap: 10px;
         }
 
@@ -262,6 +263,7 @@ export class SpProbesConfig extends BaseElement {
             siblingNode.forEach(node => {
                 node.checked = detail.checked
             })
+            this.dispatchEvent(new CustomEvent('addProbe', {}));
         })
     }
 }

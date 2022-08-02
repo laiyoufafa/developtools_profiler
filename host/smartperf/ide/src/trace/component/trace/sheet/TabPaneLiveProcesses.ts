@@ -20,6 +20,7 @@ import {getTabLiveProcessData} from "../../../database/SqlLite.js";
 import {LiveProcess} from "../../../bean/AbilityMonitor.js";
 import "../../../component/SpFilter.js";
 import {Utils} from "../base/Utils.js";
+import {log} from "../../../../log/Log.js";
 
 @element('tabpane-live-processes')
 export class TabPaneLiveProcesses extends BaseElement {
@@ -84,11 +85,13 @@ export class TabPaneLiveProcesses extends BaseElement {
     queryDataByDB(val: SelectionParam | any) {
         getTabLiveProcessData(val.leftNs, val.rightNs).then(item => {
             if (item.length != null && item.length > 0) {
+                log("getTabLiveProcessData result size : " + item.length)
                 for (const liveProcess of item) {
                     liveProcess.processName = liveProcess.processName + '(' + liveProcess.processId + ')'
-                    liveProcess.memory = Utils.getBinaryByteWithUnit(Number(liveProcess.memory))
+                    liveProcess.memoryNumber = Number(liveProcess.memory);
+                    liveProcess.memory = Utils.getBinaryByteWithUnit(liveProcess.memoryNumber)
                     if (Number(liveProcess.cpu) > 0) {
-                        liveProcess.cpu = Number(liveProcess.cpu).toFixed(3) + "%"
+                        liveProcess.cpu = Number(Number(liveProcess.cpu).toFixed(3)) + "%"
                     } else {
                         liveProcess.cpu = "0%";
                     }
@@ -108,26 +111,31 @@ export class TabPaneLiveProcesses extends BaseElement {
 
 
     timeFormat(ms: number): string {
-        let currentNs = ms
+        let currentMs = ms
+        let hours = 3600000
         let minute1 = 60000
         let second1 = 1000;
-        let millisecond1 = 1;
         let res = "";
-        if (currentNs >= minute1) {
-            res += Math.floor(currentNs / minute1) + ":";
-            currentNs = currentNs - Math.floor(ms / minute1) * minute1
+        if (currentMs >= hours) {
+            res += Math.floor(currentMs / hours) + " h ";
+            currentMs = currentMs - Math.floor(currentMs / hours) * hours
         }
-        if (currentNs >= second1) {
-            res += Math.floor(currentNs / second1) + ".";
-            currentNs = currentNs - Math.floor(currentNs / second1) * second1;
-            res += Math.floor(currentNs / millisecond1) + "s ";
-            return res;
+        if (currentMs >= minute1) {
+            res += Math.floor(currentMs / minute1) + " min ";
+            currentMs = currentMs - Math.floor(currentMs / minute1) * minute1
         }
-        if (res == "") {
-            res = ms + "ms";
+        if (currentMs >= second1) {
+            res += Math.floor(currentMs / second1) + " s ";
+            currentMs = currentMs - Math.floor(currentMs / second1) * second1;
+        }
+        if (currentMs > 0) {
+            res += currentMs + " ms ";
+        } else {
+            res += "0 ms ";
         }
         return res
     }
+
     initHtml(): string {
         return `
 <style>
@@ -161,6 +169,8 @@ export class TabPaneLiveProcesses extends BaseElement {
                     return sort === 2 ? parseFloat(b[property]) - parseFloat(a[property]) : parseFloat(a[property]) - parseFloat(b[property]);
                 } else if (type === 'cpuTime') {
                     return sort === 2 ? b.cpuTimeNumber - a.cpuTimeNumber : a.cpuTimeNumber - b.cpuTimeNumber;
+                } else if (type === 'memory') {
+                    return sort === 2 ? b.memoryNumber - a.memoryNumber : a.memoryNumber - b.memoryNumber;
                 } else {
                     // @ts-ignore
                     if (b[property] > a[property]) {
@@ -176,13 +186,15 @@ export class TabPaneLiveProcesses extends BaseElement {
             }
         }
 
-        if (detail.key == 'startTime') {
+        if (detail.key == 'startTime' || detail.key == 'processName') {
             this.source.sort(compare(detail.key, detail.sort, 'string'))
         } else if (detail.key == 'cpuTime') {
             this.source.sort(compare(detail.key, detail.sort, 'cpuTime'))
+        } else if (detail.key == 'memory') {
+            this.source.sort(compare(detail.key, detail.sort, 'memory'))
         } else {
             this.source.sort(compare(detail.key, detail.sort, 'number'))
         }
-        this.tbl!.dataSource = this.source;
+        this.tbl!.recycleDataSource = this.source;
     }
 }

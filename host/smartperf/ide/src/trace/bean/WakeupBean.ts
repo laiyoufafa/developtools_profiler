@@ -22,4 +22,5 @@ export class WakeupBean {
     tid: number | undefined
     schedulingLatency: number | undefined
     schedulingDesc: string | undefined
+    ts: number | undefined
 }

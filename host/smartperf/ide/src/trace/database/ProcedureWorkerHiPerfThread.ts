@@ -14,11 +14,30 @@
  */
 
 import {BaseStruct} from "./ProcedureWorkerCommon.js";
+import {HiPerfCpuStruct} from "./ProcedureWorkerHiPerfCPU.js";
 
-export function hiPerfThread(arr: Array<any>, res: Set<any>, startNS: number, endNS: number, totalNS: number, frame: any, groupBy10MS: boolean) {
-    res.clear();
+export function hiPerfThread(arr: Array<any>, res: Array<any>, startNS: number, endNS: number, totalNS: number, frame: any, groupBy10MS: boolean, intervalPerf: number,use:boolean) {
+    if (use && res.length > 0 && !groupBy10MS) {
+        let pns = (endNS - startNS) / frame.width;
+        let y = frame.y;
+        for (let i = 0; i < res.length; i++) {
+            let it = res[i];
+            if((it.startNS || 0) + (it.dur || 0) > startNS && (it.startNS || 0) < endNS){
+                if (!it.frame) {
+                    it.frame = {};
+                    it.frame.y = y;
+                }
+                it.frame.height = it.height;
+                HiPerfThreadStruct.setFrame(it, pns, startNS, endNS, frame);
+            }else{
+                it.frame = null;
+            }
+        }
+        return;
+    }
+    res.length = 0;
     if (arr) {
-        let list = groupBy10MS ? HiPerfThreadStruct.groupBy10MS(arr) : arr;
+        let list = groupBy10MS ? HiPerfThreadStruct.groupBy10MS(arr, intervalPerf) : arr;
         let pns = (endNS - startNS) / frame.width;
         let y = frame.y;
         for (let i = 0, len = list.length; i < len; i++) {
@@ -37,12 +56,12 @@ export function hiPerfThread(arr: Array<any>, res: Set<any>, startNS: number, en
                     )) {
 
                     } else {
-                        res.add(list[i])
+                        res.push(list[i])
                     }
                 } else {
-                    if (i > 0 && (Math.abs((list[i - 1].frame?.x || 0) - (list[i].frame?.x || 0)) < 3)) {
+                    if (i > 0 && (Math.abs((list[i - 1].frame?.x || 0) - (list[i].frame?.x || 0)) < 4)) {
                     } else {
-                        res.add(list[i])
+                        res.push(list[i])
                     }
                 }
             }
@@ -68,17 +87,16 @@ export class HiPerfThreadStruct extends BaseStruct {
     height: number | undefined;
     cpu: number | undefined;
 
-    static draw(ctx: CanvasRenderingContext2D, data: HiPerfThreadStruct, groupBy10MS: boolean) {
+    static draw(ctx: CanvasRenderingContext2D, path: Path2D, data: HiPerfThreadStruct, groupBy10MS: boolean) {
         if (data.frame) {
             if (groupBy10MS) {
                 let width = data.frame.width;
-                ctx.fillRect(data.frame.x, 40 - (data.height || 0), width, data.height || 0)
+                path.rect(data.frame.x, 40 - (data.height || 0), width, data.height || 0)
             } else {
-                ctx.fillText("R", data.frame.x - 3, 20 + 4);//data.frame.height = undefined;
-                ctx.moveTo(data.frame.x + 7, 20);
-                ctx.arc(data.frame.x, 20, 7, 0, Math.PI * 2, true);
-                ctx.moveTo(data.frame.x, 27);
-                ctx.lineTo(data.frame.x, 33);
+                path.moveTo(data.frame.x + 7, 20);
+                HiPerfCpuStruct.drawRoundRectPath(path, data.frame.x - 7, 20 - 7, 14, 14, 3)
+                path.moveTo(data.frame.x, 27);
+                path.lineTo(data.frame.x, 33);
             }
         }
     }
@@ -99,7 +117,7 @@ export class HiPerfThreadStruct extends BaseStruct {
         }
     }
 
-    static groupBy10MS(array: Array<any>): Array<any> {
+    static groupBy10MS(array: Array<any>, intervalPerf: number): Array<any> {
         let obj = array.map(it => {
             it.timestamp_group = Math.trunc(it.startNS / 1_000_000_0) * 1_000_000_0;
             return it;
@@ -111,18 +129,13 @@ export class HiPerfThreadStruct extends BaseStruct {
         for (let aKey in obj) {
             let ns = parseInt(aKey);
             let height: number = 0;
-            height = Math.floor(obj[aKey].length / 10 * 40);
+            height = Math.floor(obj[aKey].length / (10 / intervalPerf) * 40);
             arr.push({
                 startNS: ns,
                 height: height,
                 dur: 1_000_000_0,
             })
         }
-        // for (let i = 0; i < arr.length; i++) {
-        //     if (i < arr.length - 1) {
-        //         arr[i].dur = arr[i + 1].startNS - arr[i].startNS;
-        //     }
-        // }
         return arr;
     }
 }
