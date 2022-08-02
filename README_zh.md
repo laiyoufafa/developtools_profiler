@@ -393,9 +393,9 @@ help :
 * `-k`或者`--kill`选项，用于关闭依赖的进程；
 * `-c`或者`--config`选项，用于指定配置文件；
 
-## 命令展示
+### 命令展示
 
-### 基础配置参数
+#### 基础配置参数
 
 ```sh
 # hiprofiler_cmd \
@@ -423,7 +423,7 @@ CONFIG
 * result_file:结果输出的文件路径，与-o参数对应
 * sample_duration:抓取时长（ms），与-t参数对应
 
-### ftrace抓取场景示例
+#### ftrace抓取场景示例
 
 ```sh
 # hiprofiler_cmd \
@@ -473,9 +473,9 @@ CONFIG
 * trace_period_ms:ftrace插件读取内核缓冲区数据的间隔时间（ms）
 * hitrace_time:hitrace命令行抓取时间，与hiprofiler_cmd下发的-t配置联动
 
-### 内存信息抓取场景示例
+#### 内存信息抓取场景示例
 
-#### 内核内存信息
+##### 内核内存信息
 
 使用如下命令：
 
@@ -544,7 +544,7 @@ hiprofiler_cmd \
 CONFIG
 ```
 
-#### 虚拟内存统计
+##### 虚拟内存统计
 
 使用如下命令：
 
@@ -708,7 +708,7 @@ hiprofiler_cmd \
 CONFIG
 ```
 
-#### 进程内存使用跟踪
+##### 进程内存使用跟踪
 
 如配置抓取的进程名是com.ohos.mms
 
@@ -753,7 +753,7 @@ CONFIG
 * smb_pages:native_daemon和native_hook进程之间存储数据的共享内存大小（4KB的倍数）
 * filter_size:只抓取大于该size的malloc数据（free不受影响）
 
-### bytrace/hitrace场景示例
+#### bytrace/hitrace场景示例
 
 运行如下命令：
 
@@ -803,7 +803,7 @@ hiprofiler_cmd \
 CONFIG
 ```
 
-### hiperf场景示例
+#### hiperf场景示例
 
 运行如下命令：
 
