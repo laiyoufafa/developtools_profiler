@@ -22,7 +22,7 @@
 #define LOG_TAG "Hiprofiler"
 #endif
 
-#define PROFILER_SUBSYSTEM 0x0000
+#define PROFILER_SUBSYSTEM 0xD002D0C
 #ifndef LOG_DOMAIN
 #define LOG_DOMAIN PROFILER_SUBSYSTEM
 #endif
