@@ -44,6 +44,7 @@ std::atomic<const MallocDispatchType*> g_dispatch {nullptr};
 constexpr int TIMEOUT_MSEC = 2000;
 constexpr int PRINT_INTERVAL = 5000;
 constexpr uint64_t S_TO_NS = 1000 * 1000 * 1000;
+static pid_t g_hookPid = 0;
 const MallocDispatchType* GetDispatch()
 {
     return g_dispatch.load(std::memory_order_relaxed);
@@ -64,6 +65,7 @@ bool ohos_malloc_hook_on_start(void)
         g_hookClient = std::make_shared<HookSocketClient>(getpid());
     }
     GetMainThreadRuntimeStackRange();
+    g_hookPid = getpid();
     return true;
 }
 
@@ -98,7 +100,9 @@ void* hook_malloc(void* (*fn)(size_t), size_t size)
     if (fn) {
         ret = fn(size);
     }
-
+    if (g_hookPid != getpid()) {
+        return ret;
+    }
     if (g_hookClient == nullptr) {
         return ret;
     }
@@ -232,7 +236,9 @@ void hook_free(void (*free_func)(void*), void* p)
     if (free_func) {
         free_func(p);
     }
-
+    if (g_hookPid != getpid()) {
+        return;
+    }
     if (g_hookClient == nullptr) {
         return;
     }
@@ -308,10 +314,12 @@ void* hook_mmap(void*(*fn)(void*, size_t, int, int, int, off_t),
     if (fn) {
         ret = fn(addr, length, prot, flags, fd, offset);
     }
+    if (g_hookPid != getpid()) {
+        return ret;
+    }
     if (g_hookClient == nullptr) {
         return ret;
     }
-
     if (g_hookClient->GetMmapDisable()) {
         return ret;
     }
@@ -381,7 +389,9 @@ int hook_munmap(int(*fn)(void*, size_t), void* addr, size_t length)
     if (fn) {
         ret = fn(addr, length);
     }
-
+    if (g_hookPid != getpid()) {
+        return ret;
+    }
     if (g_hookClient == nullptr) {
         return ret;
     }
@@ -548,7 +558,9 @@ int ohos_malloc_hook_munmap(void* addr, size_t length)
 void ohos_malloc_hook_memtag(void* addr, size_t size, char* tag, size_t tagLen)
 {
     __set_hook_flag(false);
-
+    if (g_hookPid != getpid()) {
+        return;
+    }
     if (g_hookClient == nullptr) {
         return;
     }
