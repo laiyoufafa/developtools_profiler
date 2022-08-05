@@ -452,17 +452,17 @@ int main(int argc, char* argv[])
     std::string config = "";
     while (true) {
         struct option long_options[] = {
-            {"getport", no_argument, NULL, 'q'},
-            {"time", required_argument, NULL, 't'},
-            {"out", required_argument, NULL, 'o'},
-            {"help", no_argument, NULL, 'h'},
-            {"list", no_argument, NULL, 'l'},
-            {"start", no_argument,  NULL, 's'},
-            {"kill", no_argument,  NULL, 'k'},
-            {"config", required_argument, NULL, 'c'},
-            {0, 0, 0, 0}
+            {"getport", no_argument, nullptr, 'q'},
+            {"time", required_argument, nullptr, 't'},
+            {"out", required_argument, nullptr, 'o'},
+            {"help", no_argument, nullptr, 'h'},
+            {"list", no_argument, nullptr, 'l'},
+            {"start", no_argument,  nullptr, 's'},
+            {"kill", no_argument,  nullptr, 'k'},
+            {"config", required_argument, nullptr, 'c'},
+            {nullptr, 0, nullptr, 0}
         };
-        int option = getopt_long(argc, argv, "c:t:o:qhlsk", long_options, NULL);
+        int option = getopt_long(argc, argv, "c:t:o:qhlsk", long_options, nullptr);
         if (option == -1) {
             break;  // CONFIG.
         }
