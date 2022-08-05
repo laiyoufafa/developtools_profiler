@@ -451,7 +451,18 @@ int main(int argc, char* argv[])
 {
     std::string config = "";
     while (true) {
-        int option = getopt(argc, argv, "c:t:o:qhlsk");
+        struct option long_options[] = {
+            {"getport", no_argument, NULL, 'q'},
+            {"time", required_argument, NULL, 't'},
+            {"out", required_argument, NULL, 'o'},
+            {"help", no_argument, NULL, 'h'},
+            {"list", no_argument, NULL, 'l'},
+            {"start", no_argument,  NULL, 's'},
+            {"kill", no_argument,  NULL, 'k'},
+            {"config", required_argument, NULL, 'c'},
+            {0, 0, 0, 0}
+        };
+        int option = getopt_long(argc, argv, "c:t:o:qhlsk", long_options, NULL);
         if (option == -1) {
             break;  // CONFIG.
         }
@@ -474,7 +485,8 @@ int main(int argc, char* argv[])
 
     std::vector<std::string> argvVector;
     for (int i = 0; i < argc; i++) {
-        if ((i + 1) < argc && strcmp(argv[i], "-c") == 0 && strcmp(argv[i + 1], "-") == 0) {
+        if (((i + 1) < argc) && (strcmp(argv[i], "-c") == 0 || strcmp(argv[i], "--config") == 0)
+            && (strcmp(argv[i + 1], "-") == 0)) {
             i++;
         } else {
             argvVector.push_back(argv[i]);
