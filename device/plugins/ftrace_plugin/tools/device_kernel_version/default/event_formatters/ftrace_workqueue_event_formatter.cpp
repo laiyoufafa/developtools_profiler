@@ -28,10 +28,11 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.workqueue_activate_work_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf_s(
-            buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "workqueue_activate_work: work struct %" PRIu64 "", msg.work());
+        int len =
+            snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "workqueue_activate_work: work struct %p", msg.work());
         if (len >= BUFFER_SIZE - 1) {
-            HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
+            HILOG_WARN(
+                LOG_CORE, "maybe, the contents of print event(workqueue_activate_work) msg had be cut off in outfile");
         }
         return std::string(buffer);
     });
@@ -42,10 +43,10 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.workqueue_execute_end_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf_s(
-            buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "workqueue_execute_end: work struct %" PRIu64 "", msg.work());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "workqueue_execute_end: work struct %p", msg.work());
         if (len >= BUFFER_SIZE - 1) {
-            HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
+            HILOG_WARN(
+                LOG_CORE, "maybe, the contents of print event(workqueue_execute_end) msg had be cut off in outfile");
         }
         return std::string(buffer);
     });
@@ -56,11 +57,18 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.workqueue_execute_start_format();
         char buffer[BUFFER_SIZE];
-        std::string function = EventFormatter::GetInstance().kernelSymbols_[msg.function()];
-        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
-            "workqueue_execute_start: work struct %" PRIu64 ": function %s", msg.work(), function.c_str());
+        int len = 0;
+        std::string functionStr = EventFormatter::GetInstance().kernelSymbols_[msg.function()];
+        if (functionStr != "") {
+            len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
+                "workqueue_execute_start: work struct %p: function %s", msg.work(), functionStr.c_str());
+        } else {
+            len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
+                "workqueue_execute_start: work struct %p: function %p", msg.work(), msg.function());
+        }
         if (len >= BUFFER_SIZE - 1) {
-            HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
+            HILOG_WARN(
+                LOG_CORE, "maybe, the contents of print event(workqueue_execute_start) msg had be cut off in outfile");
         }
         return std::string(buffer);
     });
@@ -71,12 +79,20 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.workqueue_queue_work_format();
         char buffer[BUFFER_SIZE];
-        std::string function = EventFormatter::GetInstance().kernelSymbols_[msg.function()];
-        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
-            "workqueue_queue_work: work struct=%" PRIu64 " function=%s workqueue=%" PRIu64 " req_cpu=%u cpu=%u",
-            msg.work(), function.c_str(), msg.workqueue(), msg.req_cpu(), msg.cpu());
+        int len = 0;
+        std::string functionStr = EventFormatter::GetInstance().kernelSymbols_[msg.function()];
+        if (functionStr != "") {
+            len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
+                "workqueue_queue_work: work struct=%p function=%s workqueue=%p req_cpu=%u cpu=%u", msg.work(),
+                functionStr.c_str(), msg.workqueue(), msg.req_cpu(), msg.cpu());
+        } else {
+            len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
+                "workqueue_queue_work: work struct=%p function=%p workqueue=%p req_cpu=%u cpu=%u", msg.work(),
+                msg.function(), msg.workqueue(), msg.req_cpu(), msg.cpu());
+        }
         if (len >= BUFFER_SIZE - 1) {
-            HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
+            HILOG_WARN(
+                LOG_CORE, "maybe, the contents of print event(workqueue_queue_work) msg had be cut off in outfile");
         }
         return std::string(buffer);
     });

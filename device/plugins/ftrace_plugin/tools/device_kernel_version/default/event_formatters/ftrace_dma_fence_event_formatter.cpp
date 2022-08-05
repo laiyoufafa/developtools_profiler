@@ -32,7 +32,7 @@ REGISTER_FTRACE_EVENT_FORMATTER(
             "dma_fence_destroy: driver=%s timeline=%s context=%u seqno=%u", msg.driver().c_str(),
             msg.timeline().c_str(), msg.context(), msg.seqno());
         if (len >= BUFFER_SIZE - 1) {
-            HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
+            HILOG_WARN(LOG_CORE, "maybe, the contents of print event(dma_fence_destroy) msg had be cut off in outfile");
         }
         return std::string(buffer);
     });
@@ -47,7 +47,7 @@ REGISTER_FTRACE_EVENT_FORMATTER(
             "dma_fence_emit: driver=%s timeline=%s context=%u seqno=%u", msg.driver().c_str(), msg.timeline().c_str(),
             msg.context(), msg.seqno());
         if (len >= BUFFER_SIZE - 1) {
-            HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
+            HILOG_WARN(LOG_CORE, "maybe, the contents of print event(dma_fence_emit) msg had be cut off in outfile");
         }
         return std::string(buffer);
     });
@@ -62,7 +62,8 @@ REGISTER_FTRACE_EVENT_FORMATTER(
             "dma_fence_enable_signal: driver=%s timeline=%s context=%u seqno=%u", msg.driver().c_str(),
             msg.timeline().c_str(), msg.context(), msg.seqno());
         if (len >= BUFFER_SIZE - 1) {
-            HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
+            HILOG_WARN(
+                LOG_CORE, "maybe, the contents of print event(dma_fence_enable_signal) msg had be cut off in outfile");
         }
         return std::string(buffer);
     });
@@ -77,7 +78,7 @@ REGISTER_FTRACE_EVENT_FORMATTER(
             "dma_fence_init: driver=%s timeline=%s context=%u seqno=%u", msg.driver().c_str(), msg.timeline().c_str(),
             msg.context(), msg.seqno());
         if (len >= BUFFER_SIZE - 1) {
-            HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
+            HILOG_WARN(LOG_CORE, "maybe, the contents of print event(dma_fence_init) msg had be cut off in outfile");
         }
         return std::string(buffer);
     });
@@ -92,7 +93,8 @@ REGISTER_FTRACE_EVENT_FORMATTER(
             "dma_fence_signaled: driver=%s timeline=%s context=%u seqno=%u", msg.driver().c_str(),
             msg.timeline().c_str(), msg.context(), msg.seqno());
         if (len >= BUFFER_SIZE - 1) {
-            HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
+            HILOG_WARN(
+                LOG_CORE, "maybe, the contents of print event(dma_fence_signaled) msg had be cut off in outfile");
         }
         return std::string(buffer);
     });
@@ -107,7 +109,8 @@ REGISTER_FTRACE_EVENT_FORMATTER(
             "dma_fence_wait_end: driver=%s timeline=%s context=%u seqno=%u", msg.driver().c_str(),
             msg.timeline().c_str(), msg.context(), msg.seqno());
         if (len >= BUFFER_SIZE - 1) {
-            HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
+            HILOG_WARN(
+                LOG_CORE, "maybe, the contents of print event(dma_fence_wait_end) msg had be cut off in outfile");
         }
         return std::string(buffer);
     });
@@ -122,7 +125,8 @@ REGISTER_FTRACE_EVENT_FORMATTER(
             "dma_fence_wait_start: driver=%s timeline=%s context=%u seqno=%u", msg.driver().c_str(),
             msg.timeline().c_str(), msg.context(), msg.seqno());
         if (len >= BUFFER_SIZE - 1) {
-            HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
+            HILOG_WARN(
+                LOG_CORE, "maybe, the contents of print event(dma_fence_wait_start) msg had be cut off in outfile");
         }
         return std::string(buffer);
     });

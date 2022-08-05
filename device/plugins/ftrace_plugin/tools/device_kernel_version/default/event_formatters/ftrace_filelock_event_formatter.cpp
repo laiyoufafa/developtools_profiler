@@ -29,8 +29,8 @@ REGISTER_FTRACE_EVENT_FORMATTER(
         auto msg = event.break_lease_block_format();
         char buffer[BUFFER_SIZE];
         int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
-            "break_lease_block: fl=%" PRIu64 " dev=0x%x:0x%x ino=0x%" PRIx64 " fl_blocker=%" PRIu64 " fl_owner=%" PRId32
-            " fl_flags=%s fl_type=%s fl_break_time=%" PRIu64 " fl_downgrade_time=%" PRIu64 "",
+            "break_lease_block: fl=%p dev=0x%x:0x%x ino=0x%" PRIx64
+            " fl_blocker=%p fl_owner=%p fl_flags=%s fl_type=%s fl_break_time=%" PRIu64 " fl_downgrade_time=%" PRIu64 "",
             msg.fl(), ((unsigned int)((msg.s_dev()) >> 20)), ((unsigned int)((msg.s_dev()) & ((1U << 20) - 1))),
             msg.i_ino(), msg.fl_next(), msg.fl_owner(),
             __print_flags(msg.fl_flags(), "|", {1, "FL_POSIX"}, {2, "FL_FLOCK"}, {4, "FL_DELEG"}, {8, "FL_ACCESS"},
@@ -39,7 +39,7 @@ REGISTER_FTRACE_EVENT_FORMATTER(
             __print_symbolic(msg.fl_type(), {0, "F_RDLCK"}, {1, "F_WRLCK"}, {2, "F_UNLCK"}), msg.fl_break_time(),
             msg.fl_downgrade_time());
         if (len >= BUFFER_SIZE - 1) {
-            HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
+            HILOG_WARN(LOG_CORE, "maybe, the contents of print event(break_lease_block) msg had be cut off in outfile");
         }
         return std::string(buffer);
     });
@@ -51,8 +51,8 @@ REGISTER_FTRACE_EVENT_FORMATTER(
         auto msg = event.break_lease_noblock_format();
         char buffer[BUFFER_SIZE];
         int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
-            "break_lease_noblock: fl=%" PRIu64 " dev=0x%x:0x%x ino=0x%" PRIx64 " fl_blocker=%" PRIu64
-            " fl_owner=%" PRId32 " fl_flags=%s fl_type=%s fl_break_time=%" PRIu64 " fl_downgrade_time=%" PRIu64 "",
+            "break_lease_noblock: fl=%p dev=0x%x:0x%x ino=0x%" PRIx64
+            " fl_blocker=%p fl_owner=%p fl_flags=%s fl_type=%s fl_break_time=%" PRIu64 " fl_downgrade_time=%" PRIu64 "",
             msg.fl(), ((unsigned int)((msg.s_dev()) >> 20)), ((unsigned int)((msg.s_dev()) & ((1U << 20) - 1))),
             msg.i_ino(), msg.fl_next(), msg.fl_owner(),
             __print_flags(msg.fl_flags(), "|", {1, "FL_POSIX"}, {2, "FL_FLOCK"}, {4, "FL_DELEG"}, {8, "FL_ACCESS"},
@@ -61,7 +61,8 @@ REGISTER_FTRACE_EVENT_FORMATTER(
             __print_symbolic(msg.fl_type(), {0, "F_RDLCK"}, {1, "F_WRLCK"}, {2, "F_UNLCK"}), msg.fl_break_time(),
             msg.fl_downgrade_time());
         if (len >= BUFFER_SIZE - 1) {
-            HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
+            HILOG_WARN(
+                LOG_CORE, "maybe, the contents of print event(break_lease_noblock) msg had be cut off in outfile");
         }
         return std::string(buffer);
     });
@@ -73,8 +74,8 @@ REGISTER_FTRACE_EVENT_FORMATTER(
         auto msg = event.break_lease_unblock_format();
         char buffer[BUFFER_SIZE];
         int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
-            "break_lease_unblock: fl=%" PRIu64 " dev=0x%x:0x%x ino=0x%" PRIx64 " fl_blocker=%" PRIu64
-            " fl_owner=%" PRId32 " fl_flags=%s fl_type=%s fl_break_time=%" PRIu64 " fl_downgrade_time=%" PRIu64 "",
+            "break_lease_unblock: fl=%p dev=0x%x:0x%x ino=0x%" PRIx64
+            " fl_blocker=%p fl_owner=%p fl_flags=%s fl_type=%s fl_break_time=%" PRIu64 " fl_downgrade_time=%" PRIu64 "",
             msg.fl(), ((unsigned int)((msg.s_dev()) >> 20)), ((unsigned int)((msg.s_dev()) & ((1U << 20) - 1))),
             msg.i_ino(), msg.fl_next(), msg.fl_owner(),
             __print_flags(msg.fl_flags(), "|", {1, "FL_POSIX"}, {2, "FL_FLOCK"}, {4, "FL_DELEG"}, {8, "FL_ACCESS"},
@@ -83,7 +84,8 @@ REGISTER_FTRACE_EVENT_FORMATTER(
             __print_symbolic(msg.fl_type(), {0, "F_RDLCK"}, {1, "F_WRLCK"}, {2, "F_UNLCK"}), msg.fl_break_time(),
             msg.fl_downgrade_time());
         if (len >= BUFFER_SIZE - 1) {
-            HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
+            HILOG_WARN(
+                LOG_CORE, "maybe, the contents of print event(break_lease_unblock) msg had be cut off in outfile");
         }
         return std::string(buffer);
     });
@@ -95,8 +97,8 @@ REGISTER_FTRACE_EVENT_FORMATTER(
         auto msg = event.generic_add_lease_format();
         char buffer[BUFFER_SIZE];
         int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
-            "generic_add_lease: dev=0x%x:0x%x ino=0x%" PRIx64 " wcount=%d rcount=%d icount=%d fl_owner=%" PRId32
-            " fl_flags=%s fl_type=%s",
+            "generic_add_lease: dev=0x%x:0x%x ino=0x%" PRIx64
+            " wcount=%d rcount=%d icount=%d fl_owner=%p fl_flags=%s fl_type=%s",
             ((unsigned int)((msg.s_dev()) >> 20)), ((unsigned int)((msg.s_dev()) & ((1U << 20) - 1))), msg.i_ino(),
             msg.wcount(), msg.dcount(), msg.icount(), msg.fl_owner(),
             __print_flags(msg.fl_flags(), "|", {1, "FL_POSIX"}, {2, "FL_FLOCK"}, {4, "FL_DELEG"}, {8, "FL_ACCESS"},
@@ -104,7 +106,7 @@ REGISTER_FTRACE_EVENT_FORMATTER(
                 {512, "FL_UNLOCK_PENDING"}, {1024, "FL_OFDLCK"}),
             __print_symbolic(msg.fl_type(), {0, "F_RDLCK"}, {1, "F_WRLCK"}, {2, "F_UNLCK"}));
         if (len >= BUFFER_SIZE - 1) {
-            HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
+            HILOG_WARN(LOG_CORE, "maybe, the contents of print event(generic_add_lease) msg had be cut off in outfile");
         }
         return std::string(buffer);
     });
@@ -116,8 +118,8 @@ REGISTER_FTRACE_EVENT_FORMATTER(
         auto msg = event.generic_delete_lease_format();
         char buffer[BUFFER_SIZE];
         int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
-            "generic_delete_lease: fl=%" PRIu64 " dev=0x%x:0x%x ino=0x%" PRIx64 " fl_blocker=%" PRIu64
-            " fl_owner=%" PRId32 " fl_flags=%s fl_type=%s fl_break_time=%" PRIu64 " fl_downgrade_time=%" PRIu64 "",
+            "generic_delete_lease: fl=%p dev=0x%x:0x%x ino=0x%" PRIx64
+            " fl_blocker=%p fl_owner=%p fl_flags=%s fl_type=%s fl_break_time=%" PRIu64 " fl_downgrade_time=%" PRIu64 "",
             msg.fl(), ((unsigned int)((msg.s_dev()) >> 20)), ((unsigned int)((msg.s_dev()) & ((1U << 20) - 1))),
             msg.i_ino(), msg.fl_next(), msg.fl_owner(),
             __print_flags(msg.fl_flags(), "|", {1, "FL_POSIX"}, {2, "FL_FLOCK"}, {4, "FL_DELEG"}, {8, "FL_ACCESS"},
@@ -126,7 +128,8 @@ REGISTER_FTRACE_EVENT_FORMATTER(
             __print_symbolic(msg.fl_type(), {0, "F_RDLCK"}, {1, "F_WRLCK"}, {2, "F_UNLCK"}), msg.fl_break_time(),
             msg.fl_downgrade_time());
         if (len >= BUFFER_SIZE - 1) {
-            HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
+            HILOG_WARN(
+                LOG_CORE, "maybe, the contents of print event(generic_delete_lease) msg had be cut off in outfile");
         }
         return std::string(buffer);
     });
@@ -138,8 +141,8 @@ REGISTER_FTRACE_EVENT_FORMATTER(
         auto msg = event.time_out_leases_format();
         char buffer[BUFFER_SIZE];
         int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
-            "time_out_leases: fl=%" PRIu64 " dev=0x%x:0x%x ino=0x%" PRIx64 " fl_blocker=%" PRIu64 " fl_owner=%" PRId32
-            " fl_flags=%s fl_type=%s fl_break_time=%" PRIu64 " fl_downgrade_time=%" PRIu64 "",
+            "time_out_leases: fl=%p dev=0x%x:0x%x ino=0x%" PRIx64
+            " fl_blocker=%p fl_owner=%p fl_flags=%s fl_type=%s fl_break_time=%" PRIu64 " fl_downgrade_time=%" PRIu64 "",
             msg.fl(), ((unsigned int)((msg.s_dev()) >> 20)), ((unsigned int)((msg.s_dev()) & ((1U << 20) - 1))),
             msg.i_ino(), msg.fl_next(), msg.fl_owner(),
             __print_flags(msg.fl_flags(), "|", {1, "FL_POSIX"}, {2, "FL_FLOCK"}, {4, "FL_DELEG"}, {8, "FL_ACCESS"},
@@ -148,7 +151,7 @@ REGISTER_FTRACE_EVENT_FORMATTER(
             __print_symbolic(msg.fl_type(), {0, "F_RDLCK"}, {1, "F_WRLCK"}, {2, "F_UNLCK"}), msg.fl_break_time(),
             msg.fl_downgrade_time());
         if (len >= BUFFER_SIZE - 1) {
-            HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
+            HILOG_WARN(LOG_CORE, "maybe, the contents of print event(time_out_leases) msg had be cut off in outfile");
         }
         return std::string(buffer);
     });

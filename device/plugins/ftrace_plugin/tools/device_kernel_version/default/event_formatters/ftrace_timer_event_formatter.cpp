@@ -29,10 +29,9 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.hrtimer_cancel_format();
         char buffer[BUFFER_SIZE];
-        int len =
-            snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "hrtimer_cancel: hrtimer=%" PRIu64 "", msg.hrtimer());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "hrtimer_cancel: hrtimer=%p", msg.hrtimer());
         if (len >= BUFFER_SIZE - 1) {
-            HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
+            HILOG_WARN(LOG_CORE, "maybe, the contents of print event(hrtimer_cancel) msg had be cut off in outfile");
         }
         return std::string(buffer);
     });
@@ -43,11 +42,20 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.hrtimer_expire_entry_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
-            "hrtimer_expire_entry: hrtimer=%" PRIu64 " function=%" PRIu64 " now=%" PRIu64 "", msg.hrtimer(),
-            msg.function(), msg.now());
+        int len = 0;
+        std::string functionStr = EventFormatter::GetInstance().kernelSymbols_[msg.function()];
+        if (functionStr != "") {
+            len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
+                "hrtimer_expire_entry: hrtimer=%p function=%s now=%" PRIu64 "", msg.hrtimer(), functionStr.c_str(),
+                msg.now());
+        } else {
+            len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
+                "hrtimer_expire_entry: hrtimer=%p function=%p now=%" PRIu64 "", msg.hrtimer(), msg.function(),
+                msg.now());
+        }
         if (len >= BUFFER_SIZE - 1) {
-            HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
+            HILOG_WARN(
+                LOG_CORE, "maybe, the contents of print event(hrtimer_expire_entry) msg had be cut off in outfile");
         }
         return std::string(buffer);
     });
@@ -58,10 +66,10 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.hrtimer_expire_exit_format();
         char buffer[BUFFER_SIZE];
-        int len =
-            snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "hrtimer_expire_exit: hrtimer=%" PRIu64 "", msg.hrtimer());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "hrtimer_expire_exit: hrtimer=%p", msg.hrtimer());
         if (len >= BUFFER_SIZE - 1) {
-            HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
+            HILOG_WARN(
+                LOG_CORE, "maybe, the contents of print event(hrtimer_expire_exit) msg had be cut off in outfile");
         }
         return std::string(buffer);
     });
@@ -72,8 +80,8 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.hrtimer_init_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
-            "hrtimer_init: hrtimer=%" PRIu64 " clockid=%s mode=%s", msg.hrtimer(),
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "hrtimer_init: hrtimer=%p clockid=%s mode=%s",
+            msg.hrtimer(),
             __print_symbolic(
                 msg.clockid(), {0, "CLOCK_REALTIME"}, {1, "CLOCK_MONOTONIC"}, {7, "CLOCK_BOOTTIME"}, {11, "CLOCK_TAI"}),
             __print_symbolic(msg.mode(), {HRTIMER_MODE_ABS, "ABS"}, {HRTIMER_MODE_REL, "REL"},
@@ -81,7 +89,7 @@ REGISTER_FTRACE_EVENT_FORMATTER(
                 {HRTIMER_MODE_ABS_SOFT, "ABS|SOFT"}, {HRTIMER_MODE_REL_SOFT, "REL|SOFT"},
                 {HRTIMER_MODE_ABS_PINNED_SOFT, "ABS|PINNED|SOFT"}, {HRTIMER_MODE_REL_PINNED_SOFT, "REL|PINNED|SOFT"}));
         if (len >= BUFFER_SIZE - 1) {
-            HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
+            HILOG_WARN(LOG_CORE, "maybe, the contents of print event(hrtimer_init) msg had be cut off in outfile");
         }
         return std::string(buffer);
     });
@@ -92,16 +100,29 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.hrtimer_start_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
-            "hrtimer_start: hrtimer=%" PRIu64 " function=%" PRIu64 " expires=%" PRIu64 " softexpires=%" PRIu64
-            " mode=%s",
-            msg.hrtimer(), msg.function(), msg.expires(), msg.softexpires(),
-            __print_symbolic(msg.mode(), {HRTIMER_MODE_ABS, "ABS"}, {HRTIMER_MODE_REL, "REL"},
-                {HRTIMER_MODE_ABS_PINNED, "ABS|PINNED"}, {HRTIMER_MODE_REL_PINNED, "REL|PINNED"},
-                {HRTIMER_MODE_ABS_SOFT, "ABS|SOFT"}, {HRTIMER_MODE_REL_SOFT, "REL|SOFT"},
-                {HRTIMER_MODE_ABS_PINNED_SOFT, "ABS|PINNED|SOFT"}, {HRTIMER_MODE_REL_PINNED_SOFT, "REL|PINNED|SOFT"}));
+        int len = 0;
+        std::string functionStr = EventFormatter::GetInstance().kernelSymbols_[msg.function()];
+        if (functionStr != "") {
+            len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
+                "hrtimer_start: hrtimer=%p function=%s expires=%" PRIu64 " softexpires=%" PRIu64 " mode=%s",
+                msg.hrtimer(), functionStr.c_str(), msg.expires(), msg.softexpires(),
+                __print_symbolic(msg.mode(), {HRTIMER_MODE_ABS, "ABS"}, {HRTIMER_MODE_REL, "REL"},
+                    {HRTIMER_MODE_ABS_PINNED, "ABS|PINNED"}, {HRTIMER_MODE_REL_PINNED, "REL|PINNED"},
+                    {HRTIMER_MODE_ABS_SOFT, "ABS|SOFT"}, {HRTIMER_MODE_REL_SOFT, "REL|SOFT"},
+                    {HRTIMER_MODE_ABS_PINNED_SOFT, "ABS|PINNED|SOFT"},
+                    {HRTIMER_MODE_REL_PINNED_SOFT, "REL|PINNED|SOFT"}));
+        } else {
+            len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
+                "hrtimer_start: hrtimer=%p function=%p expires=%" PRIu64 " softexpires=%" PRIu64 " mode=%s",
+                msg.hrtimer(), msg.function(), msg.expires(), msg.softexpires(),
+                __print_symbolic(msg.mode(), {HRTIMER_MODE_ABS, "ABS"}, {HRTIMER_MODE_REL, "REL"},
+                    {HRTIMER_MODE_ABS_PINNED, "ABS|PINNED"}, {HRTIMER_MODE_REL_PINNED, "REL|PINNED"},
+                    {HRTIMER_MODE_ABS_SOFT, "ABS|SOFT"}, {HRTIMER_MODE_REL_SOFT, "REL|SOFT"},
+                    {HRTIMER_MODE_ABS_PINNED_SOFT, "ABS|PINNED|SOFT"},
+                    {HRTIMER_MODE_REL_PINNED_SOFT, "REL|PINNED|SOFT"}));
+        }
         if (len >= BUFFER_SIZE - 1) {
-            HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
+            HILOG_WARN(LOG_CORE, "maybe, the contents of print event(hrtimer_start) msg had be cut off in outfile");
         }
         return std::string(buffer);
     });
@@ -115,7 +136,7 @@ REGISTER_FTRACE_EVENT_FORMATTER(
         int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "itimer_expire: which=%d pid=%d now=%" PRIu64 "",
             msg.which(), (int)msg.pid(), msg.now());
         if (len >= BUFFER_SIZE - 1) {
-            HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
+            HILOG_WARN(LOG_CORE, "maybe, the contents of print event(itimer_expire) msg had be cut off in outfile");
         }
         return std::string(buffer);
     });
@@ -130,7 +151,7 @@ REGISTER_FTRACE_EVENT_FORMATTER(
             "itimer_state: which=%d expires=%" PRIu64 " it_value=%" PRIu64 "it_interval=%" PRIu64 "", msg.which(),
             msg.expires(), msg.value_sec(), msg.interval_sec());
         if (len >= BUFFER_SIZE - 1) {
-            HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
+            HILOG_WARN(LOG_CORE, "maybe, the contents of print event(itimer_state) msg had be cut off in outfile");
         }
         return std::string(buffer);
     });
@@ -141,9 +162,9 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.timer_cancel_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "timer_cancel: timer=%" PRIu64 "", msg.timer());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "timer_cancel: timer=%p", msg.timer());
         if (len >= BUFFER_SIZE - 1) {
-            HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
+            HILOG_WARN(LOG_CORE, "maybe, the contents of print event(timer_cancel) msg had be cut off in outfile");
         }
         return std::string(buffer);
     });
@@ -154,11 +175,19 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.timer_expire_entry_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
-            "timer_expire_entry: timer=%" PRIu64 " function=%" PRIu64 " now=%" PRIu64 "", msg.timer(), msg.function(),
-            msg.now());
+        int len = 0;
+        std::string functionStr = EventFormatter::GetInstance().kernelSymbols_[msg.function()];
+        if (functionStr != "") {
+            len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
+                "timer_expire_entry: timer=%p function=%s now=%" PRIu64 "", msg.timer(), functionStr.c_str(),
+                msg.now());
+        } else {
+            len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
+                "timer_expire_entry: timer=%p function=%p now=%" PRIu64 "", msg.timer(), msg.function(), msg.now());
+        }
         if (len >= BUFFER_SIZE - 1) {
-            HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
+            HILOG_WARN(
+                LOG_CORE, "maybe, the contents of print event(timer_expire_entry) msg had be cut off in outfile");
         }
         return std::string(buffer);
     });
@@ -169,9 +198,9 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.timer_expire_exit_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "timer_expire_exit: timer=%" PRIu64 "", msg.timer());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "timer_expire_exit: timer=%p", msg.timer());
         if (len >= BUFFER_SIZE - 1) {
-            HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
+            HILOG_WARN(LOG_CORE, "maybe, the contents of print event(timer_expire_exit) msg had be cut off in outfile");
         }
         return std::string(buffer);
     });
@@ -182,9 +211,9 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.timer_init_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "timer_init: timer=%" PRIu64 "", msg.timer());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "timer_init: timer=%p", msg.timer());
         if (len >= BUFFER_SIZE - 1) {
-            HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
+            HILOG_WARN(LOG_CORE, "maybe, the contents of print event(timer_init) msg had be cut off in outfile");
         }
         return std::string(buffer);
     });
@@ -195,15 +224,25 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.timer_start_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
-            "timer_start: timer=%" PRIu64 " function=%" PRIu64 " expires=%" PRIu64 " [timeout=%" PRIu64
-            "] cpu=%u idx=%u flags=%s",
-            msg.timer(), msg.function(), msg.expires(), msg.expires() - msg.now(), msg.flags() & 0x0003FFFF,
-            msg.flags() >> 22,
-            __print_flags(msg.flags() & (0x00040000 | 0x00080000 | 0x00100000 | 0x00200000), "|", {0x00040000, "M"},
-                {0x00080000, "D"}, {0x00100000, "P"}, {0x00200000, "I"}));
+        int len = 0;
+        std::string functionStr = EventFormatter::GetInstance().kernelSymbols_[msg.function()];
+        if (functionStr != "") {
+            len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
+                "timer_start: timer=%p function=%s expires=%" PRIu64 " [timeout=%" PRIu64 "] cpu=%u idx=%u flags=%s",
+                msg.timer(), functionStr.c_str(), msg.expires(), msg.expires() - msg.now(), msg.flags() & 0x0003FFFF,
+                msg.flags() >> 22,
+                __print_flags(msg.flags() & (0x00040000 | 0x00080000 | 0x00100000 | 0x00200000), "|", {0x00040000, "M"},
+                    {0x00080000, "D"}, {0x00100000, "P"}, {0x00200000, "I"}));
+        } else {
+            len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
+                "timer_start: timer=%p function=%p expires=%" PRIu64 " [timeout=%" PRIu64 "] cpu=%u idx=%u flags=%s",
+                msg.timer(), msg.function(), msg.expires(), msg.expires() - msg.now(), msg.flags() & 0x0003FFFF,
+                msg.flags() >> 22,
+                __print_flags(msg.flags() & (0x00040000 | 0x00080000 | 0x00100000 | 0x00200000), "|", {0x00040000, "M"},
+                    {0x00080000, "D"}, {0x00100000, "P"}, {0x00200000, "I"}));
+        }
         if (len >= BUFFER_SIZE - 1) {
-            HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
+            HILOG_WARN(LOG_CORE, "maybe, the contents of print event(timer_start) msg had be cut off in outfile");
         }
         return std::string(buffer);
     });

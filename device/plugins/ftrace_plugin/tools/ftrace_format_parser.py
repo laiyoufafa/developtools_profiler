@@ -108,9 +108,6 @@ class FtraceEventField(object):
         if self.event == ('ftrace', 'print') and self.name == 'buf':
             # ftrace/print: char buf[];
             return ProtoType(ProtoType.STRING)
-        if self.event == ('ftrace', 'kernel_stack') and self.name == 'caller':
-            # ftrace/kernel_stack: unsigned long caller;
-            return ProtoType(ProtoType.INTEGER, 8, False)
         if self.size == 0:
             logger.fatal('zero size field {}!'.format(self))
         return None

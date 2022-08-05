@@ -28,10 +28,11 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.sched_blocked_reason_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
-            "sched_blocked_reason: pid=%d iowait=%d caller=%" PRIu64 "S", msg.pid(), msg.io_wait(), msg.caller());
+        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "sched_blocked_reason: pid=%d iowait=%d caller=%p",
+            msg.pid(), msg.io_wait(), msg.caller());
         if (len >= BUFFER_SIZE - 1) {
-            HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
+            HILOG_WARN(
+                LOG_CORE, "maybe, the contents of print event(sched_blocked_reason) msg had be cut off in outfile");
         }
         return std::string(buffer);
     });
@@ -45,7 +46,8 @@ REGISTER_FTRACE_EVENT_FORMATTER(
         int len = snprintf_s(
             buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "sched_kthread_stop: comm=%s pid=%d", msg.comm().c_str(), msg.pid());
         if (len >= BUFFER_SIZE - 1) {
-            HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
+            HILOG_WARN(
+                LOG_CORE, "maybe, the contents of print event(sched_kthread_stop) msg had be cut off in outfile");
         }
         return std::string(buffer);
     });
@@ -58,7 +60,8 @@ REGISTER_FTRACE_EVENT_FORMATTER(
         char buffer[BUFFER_SIZE];
         int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "sched_kthread_stop_ret: ret=%d", msg.ret());
         if (len >= BUFFER_SIZE - 1) {
-            HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
+            HILOG_WARN(
+                LOG_CORE, "maybe, the contents of print event(sched_kthread_stop_ret) msg had be cut off in outfile");
         }
         return std::string(buffer);
     });
@@ -73,7 +76,8 @@ REGISTER_FTRACE_EVENT_FORMATTER(
             "sched_migrate_task: comm=%s pid=%d prio=%d orig_cpu=%d dest_cpu=%d", msg.comm().c_str(), msg.pid(),
             msg.prio(), msg.orig_cpu(), msg.dest_cpu());
         if (len >= BUFFER_SIZE - 1) {
-            HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
+            HILOG_WARN(
+                LOG_CORE, "maybe, the contents of print event(sched_migrate_task) msg had be cut off in outfile");
         }
         return std::string(buffer);
     });
@@ -88,7 +92,7 @@ REGISTER_FTRACE_EVENT_FORMATTER(
             "sched_move_numa: pid=%d tgid=%d ngid=%d src_cpu=%d src_nid=%d dst_cpu=%d dst_nid=%d", msg.pid(),
             msg.tgid(), msg.ngid(), msg.src_cpu(), msg.src_nid(), msg.dst_cpu(), msg.dst_nid());
         if (len >= BUFFER_SIZE - 1) {
-            HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
+            HILOG_WARN(LOG_CORE, "maybe, the contents of print event(sched_move_numa) msg had be cut off in outfile");
         }
         return std::string(buffer);
     });
@@ -103,7 +107,7 @@ REGISTER_FTRACE_EVENT_FORMATTER(
             snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "sched_pi_setprio: comm=%s pid=%d oldprio=%d newprio=%d",
                 msg.comm().c_str(), msg.pid(), msg.oldprio(), msg.newprio());
         if (len >= BUFFER_SIZE - 1) {
-            HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
+            HILOG_WARN(LOG_CORE, "maybe, the contents of print event(sched_pi_setprio) msg had be cut off in outfile");
         }
         return std::string(buffer);
     });
@@ -117,7 +121,8 @@ REGISTER_FTRACE_EVENT_FORMATTER(
         int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "sched_process_exec: filename=%s pid=%d old_pid=%d",
             msg.filename().c_str(), msg.pid(), msg.old_pid());
         if (len >= BUFFER_SIZE - 1) {
-            HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
+            HILOG_WARN(
+                LOG_CORE, "maybe, the contents of print event(sched_process_exec) msg had be cut off in outfile");
         }
         return std::string(buffer);
     });
@@ -131,7 +136,8 @@ REGISTER_FTRACE_EVENT_FORMATTER(
         int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "sched_process_exit: comm=%s pid=%d prio=%d",
             msg.comm().c_str(), msg.pid(), msg.prio());
         if (len >= BUFFER_SIZE - 1) {
-            HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
+            HILOG_WARN(
+                LOG_CORE, "maybe, the contents of print event(sched_process_exit) msg had be cut off in outfile");
         }
         return std::string(buffer);
     });
@@ -146,7 +152,8 @@ REGISTER_FTRACE_EVENT_FORMATTER(
             "sched_process_fork: comm=%s pid=%d child_comm=%s child_pid=%d", msg.parent_comm().c_str(),
             msg.parent_pid(), msg.child_comm().c_str(), msg.child_pid());
         if (len >= BUFFER_SIZE - 1) {
-            HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
+            HILOG_WARN(
+                LOG_CORE, "maybe, the contents of print event(sched_process_fork) msg had be cut off in outfile");
         }
         return std::string(buffer);
     });
@@ -160,7 +167,8 @@ REGISTER_FTRACE_EVENT_FORMATTER(
         int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "sched_process_free: comm=%s pid=%d prio=%d",
             msg.comm().c_str(), msg.pid(), msg.prio());
         if (len >= BUFFER_SIZE - 1) {
-            HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
+            HILOG_WARN(
+                LOG_CORE, "maybe, the contents of print event(sched_process_free) msg had be cut off in outfile");
         }
         return std::string(buffer);
     });
@@ -174,7 +182,8 @@ REGISTER_FTRACE_EVENT_FORMATTER(
         int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "sched_process_wait: comm=%s pid=%d prio=%d",
             msg.comm().c_str(), msg.pid(), msg.prio());
         if (len >= BUFFER_SIZE - 1) {
-            HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
+            HILOG_WARN(
+                LOG_CORE, "maybe, the contents of print event(sched_process_wait) msg had be cut off in outfile");
         }
         return std::string(buffer);
     });
@@ -188,7 +197,8 @@ REGISTER_FTRACE_EVENT_FORMATTER(
         int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
             "sched_stat_blocked: comm=%s pid=%d delay=%" PRIu64 " [ns]", msg.comm().c_str(), msg.pid(), msg.delay());
         if (len >= BUFFER_SIZE - 1) {
-            HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
+            HILOG_WARN(
+                LOG_CORE, "maybe, the contents of print event(sched_stat_blocked) msg had be cut off in outfile");
         }
         return std::string(buffer);
     });
@@ -202,7 +212,7 @@ REGISTER_FTRACE_EVENT_FORMATTER(
         int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
             "sched_stat_iowait: comm=%s pid=%d delay=%" PRIu64 " [ns]", msg.comm().c_str(), msg.pid(), msg.delay());
         if (len >= BUFFER_SIZE - 1) {
-            HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
+            HILOG_WARN(LOG_CORE, "maybe, the contents of print event(sched_stat_iowait) msg had be cut off in outfile");
         }
         return std::string(buffer);
     });
@@ -217,7 +227,8 @@ REGISTER_FTRACE_EVENT_FORMATTER(
             "sched_stat_runtime: comm=%s pid=%d runtime=%" PRIu64 " [ns] vruntime=%" PRIu64 " [ns]", msg.comm().c_str(),
             msg.pid(), msg.runtime(), msg.vruntime());
         if (len >= BUFFER_SIZE - 1) {
-            HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
+            HILOG_WARN(
+                LOG_CORE, "maybe, the contents of print event(sched_stat_runtime) msg had be cut off in outfile");
         }
         return std::string(buffer);
     });
@@ -231,7 +242,7 @@ REGISTER_FTRACE_EVENT_FORMATTER(
         int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
             "sched_stat_sleep: comm=%s pid=%d delay=%" PRIu64 " [ns]", msg.comm().c_str(), msg.pid(), msg.delay());
         if (len >= BUFFER_SIZE - 1) {
-            HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
+            HILOG_WARN(LOG_CORE, "maybe, the contents of print event(sched_stat_sleep) msg had be cut off in outfile");
         }
         return std::string(buffer);
     });
@@ -245,7 +256,7 @@ REGISTER_FTRACE_EVENT_FORMATTER(
         int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
             "sched_stat_wait: comm=%s pid=%d delay=%" PRIu64 " [ns]", msg.comm().c_str(), msg.pid(), msg.delay());
         if (len >= BUFFER_SIZE - 1) {
-            HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
+            HILOG_WARN(LOG_CORE, "maybe, the contents of print event(sched_stat_wait) msg had be cut off in outfile");
         }
         return std::string(buffer);
     });
@@ -262,7 +273,7 @@ REGISTER_FTRACE_EVENT_FORMATTER(
             msg.pid(), msg.tgid(), msg.ngid(), msg.src_cpu(), msg.src_nid(), msg.pid(), msg.tgid(), msg.ngid(),
             msg.dst_cpu(), msg.dst_nid());
         if (len >= BUFFER_SIZE - 1) {
-            HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
+            HILOG_WARN(LOG_CORE, "maybe, the contents of print event(sched_stick_numa) msg had be cut off in outfile");
         }
         return std::string(buffer);
     });
@@ -279,7 +290,7 @@ REGISTER_FTRACE_EVENT_FORMATTER(
             msg.src_pid(), msg.src_tgid(), msg.src_ngid(), msg.src_cpu(), msg.src_nid(), msg.dst_pid(), msg.dst_tgid(),
             msg.dst_ngid(), msg.dst_cpu(), msg.dst_nid());
         if (len >= BUFFER_SIZE - 1) {
-            HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
+            HILOG_WARN(LOG_CORE, "maybe, the contents of print event(sched_swap_numa) msg had be cut off in outfile");
         }
         return std::string(buffer);
     });
@@ -290,14 +301,15 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.sched_switch_format();
         char buffer[BUFFER_SIZE];
+        int len = 0;
         if (msg.prev_state() > 0x0400) {
-            snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
+            len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
                 "sched_switch: prev_comm=%s prev_pid=%d prev_prio=%d prev_state=? ==> next_comm=%s next_pid=%d "
                 "next_prio=%d",
                 msg.prev_comm().c_str(), msg.prev_pid(), msg.prev_prio(), msg.next_comm().c_str(), msg.next_pid(),
                 msg.next_prio());
         } else {
-            snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
+            len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
                 "sched_switch: prev_comm=%s prev_pid=%d prev_prio=%d prev_state=%s%s ==> next_comm=%s next_pid=%d "
                 "next_prio=%d",
                 msg.prev_comm().c_str(), msg.prev_pid(), msg.prev_prio(),
@@ -315,6 +327,9 @@ REGISTER_FTRACE_EVENT_FORMATTER(
                     : "",
                 msg.next_comm().c_str(), msg.next_pid(), msg.next_prio());
         }
+        if (len >= BUFFER_SIZE - 1) {
+            HILOG_WARN(LOG_CORE, "maybe, the contents of print event(sched_switch) msg had be cut off in outfile");
+        }
         return std::string(buffer);
     });
 
@@ -327,7 +342,7 @@ REGISTER_FTRACE_EVENT_FORMATTER(
         int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "sched_wait_task: comm=%s pid=%d prio=%d",
             msg.comm().c_str(), msg.pid(), msg.prio());
         if (len >= BUFFER_SIZE - 1) {
-            HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
+            HILOG_WARN(LOG_CORE, "maybe, the contents of print event(sched_wait_task) msg had be cut off in outfile");
         }
         return std::string(buffer);
     });
@@ -340,7 +355,8 @@ REGISTER_FTRACE_EVENT_FORMATTER(
         char buffer[BUFFER_SIZE];
         int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "sched_wake_idle_without_ipi: cpu=%d", msg.cpu());
         if (len >= BUFFER_SIZE - 1) {
-            HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
+            HILOG_WARN(LOG_CORE,
+                "maybe, the contents of print event(sched_wake_idle_without_ipi) msg had be cut off in outfile");
         }
         return std::string(buffer);
     });
@@ -355,7 +371,7 @@ REGISTER_FTRACE_EVENT_FORMATTER(
             snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "sched_wakeup: comm=%s pid=%d prio=%d target_cpu=%03d",
                 msg.comm().c_str(), msg.pid(), msg.prio(), msg.target_cpu());
         if (len >= BUFFER_SIZE - 1) {
-            HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
+            HILOG_WARN(LOG_CORE, "maybe, the contents of print event(sched_wakeup) msg had be cut off in outfile");
         }
         return std::string(buffer);
     });
@@ -370,7 +386,7 @@ REGISTER_FTRACE_EVENT_FORMATTER(
             snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "sched_wakeup_new: comm=%s pid=%d prio=%d target_cpu=%03d",
                 msg.comm().c_str(), msg.pid(), msg.prio(), msg.target_cpu());
         if (len >= BUFFER_SIZE - 1) {
-            HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
+            HILOG_WARN(LOG_CORE, "maybe, the contents of print event(sched_wakeup_new) msg had be cut off in outfile");
         }
         return std::string(buffer);
     });
@@ -385,7 +401,7 @@ REGISTER_FTRACE_EVENT_FORMATTER(
             snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "sched_waking: comm=%s pid=%d prio=%d target_cpu=%03d",
                 msg.comm().c_str(), msg.pid(), msg.prio(), msg.target_cpu());
         if (len >= BUFFER_SIZE - 1) {
-            HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
+            HILOG_WARN(LOG_CORE, "maybe, the contents of print event(sched_waking) msg had be cut off in outfile");
         }
         return std::string(buffer);
     });
