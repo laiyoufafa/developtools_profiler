@@ -38,7 +38,7 @@
         "init",
         "hilog_native",
         "napi",
-        "samgr_standard",
+        "samgr",
         "c_utils"
       ],
       "third_party": [
