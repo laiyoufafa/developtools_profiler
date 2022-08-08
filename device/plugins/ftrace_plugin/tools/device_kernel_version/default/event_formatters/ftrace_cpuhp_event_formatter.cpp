@@ -28,11 +28,17 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.cpuhp_enter_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
-            "cpuhp_enter: cpu: %04u target: %3d step: %3d (%" PRIu64 ")", msg.cpu(), msg.target(), msg.idx(),
-            msg.fun());
+        int len = 0;
+        std::string functionStr = EventFormatter::GetInstance().kernelSymbols_[msg.fun()];
+        if (functionStr != "") {
+            len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "cpuhp_enter: cpu: %04u target: %3d step: %3d (%s)",
+                msg.cpu(), msg.target(), msg.idx(), functionStr.c_str());
+        } else {
+            len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "cpuhp_enter: cpu: %04u target: %3d step: %3d (%p)",
+                msg.cpu(), msg.target(), msg.idx(), msg.fun());
+        }
         if (len >= BUFFER_SIZE - 1) {
-            HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
+            HILOG_WARN(LOG_CORE, "maybe, the contents of print event(cpuhp_enter) msg had be cut off in outfile");
         }
         return std::string(buffer);
     });
@@ -46,7 +52,7 @@ REGISTER_FTRACE_EVENT_FORMATTER(
         int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
             "cpuhp_exit:  cpu: %04u  state: %3d step: %3d ret: %d", msg.cpu(), msg.state(), msg.idx(), msg.ret());
         if (len >= BUFFER_SIZE - 1) {
-            HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
+            HILOG_WARN(LOG_CORE, "maybe, the contents of print event(cpuhp_exit) msg had be cut off in outfile");
         }
         return std::string(buffer);
     });
@@ -57,11 +63,19 @@ REGISTER_FTRACE_EVENT_FORMATTER(
     [](const ForStandard::FtraceEvent& event) -> std::string {
         auto msg = event.cpuhp_multi_enter_format();
         char buffer[BUFFER_SIZE];
-        int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
-            "cpuhp_multi_enter: cpu: %04u target: %3d step: %3d (%" PRIu64 ")", msg.cpu(), msg.target(), msg.idx(),
-            msg.fun());
+        int len = 0;
+        std::string functionStr = EventFormatter::GetInstance().kernelSymbols_[msg.fun()];
+        if (functionStr != "") {
+            len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
+                "cpuhp_multi_enter: cpu: %04u target: %3d step: %3d (%s)", msg.cpu(), msg.target(), msg.idx(),
+                functionStr.c_str());
+        } else {
+            len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
+                "cpuhp_multi_enter: cpu: %04u target: %3d step: %3d (%p)", msg.cpu(), msg.target(), msg.idx(),
+                msg.fun());
+        }
         if (len >= BUFFER_SIZE - 1) {
-            HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
+            HILOG_WARN(LOG_CORE, "maybe, the contents of print event(cpuhp_multi_enter) msg had be cut off in outfile");
         }
         return std::string(buffer);
     });

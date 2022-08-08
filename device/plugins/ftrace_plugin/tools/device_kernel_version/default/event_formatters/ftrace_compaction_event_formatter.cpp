@@ -34,7 +34,8 @@ REGISTER_FTRACE_EVENT_FORMATTER(
             " nr_taken==0x%" PRIu64 "",
             msg.start_pfn(), msg.end_pfn(), msg.nr_scanned(), msg.nr_taken());
         if (len >= BUFFER_SIZE - 1) {
-            HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
+            HILOG_WARN(LOG_CORE,
+                "maybe, the contents of print event(mm_compaction_isolate_freepages) msg had be cut off in outfile");
         }
         return std::string(buffer);
     });
@@ -50,7 +51,8 @@ REGISTER_FTRACE_EVENT_FORMATTER(
             " nr_taken==0x%" PRIu64 "",
             msg.start_pfn(), msg.end_pfn(), msg.nr_scanned(), msg.nr_taken());
         if (len >= BUFFER_SIZE - 1) {
-            HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
+            HILOG_WARN(LOG_CORE,
+                "maybe, the contents of print event(mm_compaction_isolate_migratepages) msg had be cut off in outfile");
         }
         return std::string(buffer);
     });

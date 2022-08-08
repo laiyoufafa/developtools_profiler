@@ -30,11 +30,12 @@ REGISTER_FTRACE_EVENT_FORMATTER(
         auto msg = event.mm_shrink_slab_end_format();
         char buffer[BUFFER_SIZE];
         int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
-            "mm_shrink_slab_end:%" PRIu64 "S %" PRIu64 ": nid: %d unused scan count %" PRIu64 " new scan count %" PRIu64
+            "mm_shrink_slab_end: %p %p: nid: %d unused scan count %" PRIu64 " new scan count %" PRIu64
             " total_scan %" PRIu64 " last shrinker return val %d",
             msg.shrink(), msg.shr(), msg.nid(), msg.unused_scan(), msg.new_scan(), msg.total_scan(), msg.retval());
         if (len >= BUFFER_SIZE - 1) {
-            HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
+            HILOG_WARN(
+                LOG_CORE, "maybe, the contents of print event(mm_shrink_slab_end) msg had be cut off in outfile");
         }
         return std::string(buffer);
     });
@@ -46,8 +47,8 @@ REGISTER_FTRACE_EVENT_FORMATTER(
         auto msg = event.mm_shrink_slab_start_format();
         char buffer[BUFFER_SIZE];
         int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
-            "mm_shrink_slab_start:%" PRIu64 "S %" PRIu64 ": nid: %d objects to shrink %" PRIu64
-            " gfp_flags %s cache items %" PRIu64 " delta %" PRIu64 " total_scan %" PRIu64 " priority %d",
+            "mm_shrink_slab_start: %p %p: nid: %d objects to shrink %" PRIu64 " gfp_flags %s cache items %" PRIu64
+            " delta %" PRIu64 " total_scan %" PRIu64 " priority %d",
             msg.shrink(), msg.shr(), msg.nid(), msg.nr_objects_to_shrink(),
             (msg.gfp_flags())
                 ? __print_flags(msg.gfp_flags(), "|",
@@ -108,7 +109,8 @@ REGISTER_FTRACE_EVENT_FORMATTER(
                 : "none",
             msg.cache_items(), msg.delta(), msg.total_scan(), msg.priority());
         if (len >= BUFFER_SIZE - 1) {
-            HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
+            HILOG_WARN(
+                LOG_CORE, "maybe, the contents of print event(mm_shrink_slab_start) msg had be cut off in outfile");
         }
         return std::string(buffer);
     });
@@ -179,7 +181,8 @@ REGISTER_FTRACE_EVENT_FORMATTER(
                       {(unsigned long)((gfp_t)0x800u), "__GFP_KSWAPD_RECLAIM"})
                 : "none");
         if (len >= BUFFER_SIZE - 1) {
-            HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
+            HILOG_WARN(LOG_CORE,
+                "maybe, the contents of print event(mm_vmscan_direct_reclaim_begin) msg had be cut off in outfile");
         }
         return std::string(buffer);
     });
@@ -193,7 +196,8 @@ REGISTER_FTRACE_EVENT_FORMATTER(
         int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
             "mm_vmscan_direct_reclaim_end: nr_reclaimed=%" PRIu64 "", msg.nr_reclaimed());
         if (len >= BUFFER_SIZE - 1) {
-            HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
+            HILOG_WARN(LOG_CORE,
+                "maybe, the contents of print event(mm_vmscan_direct_reclaim_end) msg had be cut off in outfile");
         }
         return std::string(buffer);
     });
@@ -206,7 +210,8 @@ REGISTER_FTRACE_EVENT_FORMATTER(
         char buffer[BUFFER_SIZE];
         int len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "mm_vmscan_kswapd_sleep: nid=%d", msg.nid());
         if (len >= BUFFER_SIZE - 1) {
-            HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
+            HILOG_WARN(
+                LOG_CORE, "maybe, the contents of print event(mm_vmscan_kswapd_sleep) msg had be cut off in outfile");
         }
         return std::string(buffer);
     });
@@ -220,7 +225,8 @@ REGISTER_FTRACE_EVENT_FORMATTER(
         int len = snprintf_s(
             buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "mm_vmscan_kswapd_wake: nid=%d order=%d", msg.nid(), msg.order());
         if (len >= BUFFER_SIZE - 1) {
-            HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
+            HILOG_WARN(
+                LOG_CORE, "maybe, the contents of print event(mm_vmscan_kswapd_wake) msg had be cut off in outfile");
         }
         return std::string(buffer);
     });
@@ -239,7 +245,8 @@ REGISTER_FTRACE_EVENT_FORMATTER(
             __print_symbolic(msg.lru(), {0, "inactive_anon"}, {1, "active_anon"}, {2, "inactive_file"},
                 {3, "active_file"}, {4, "unevictable"}));
         if (len >= BUFFER_SIZE - 1) {
-            HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
+            HILOG_WARN(
+                LOG_CORE, "maybe, the contents of print event(mm_vmscan_lru_isolate) msg had be cut off in outfile");
         }
         return std::string(buffer);
     });
@@ -261,7 +268,8 @@ REGISTER_FTRACE_EVENT_FORMATTER(
                       {0x0010u, "RECLAIM_WB_MIXED"}, {0x0004u, "RECLAIM_WB_SYNC"}, {0x0008u, "RECLAIM_WB_ASYNC"})
                 : "RECLAIM_WB_NONE");
         if (len >= BUFFER_SIZE - 1) {
-            HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
+            HILOG_WARN(LOG_CORE,
+                "maybe, the contents of print event(mm_vmscan_lru_shrink_inactive) msg had be cut off in outfile");
         }
         return std::string(buffer);
     });
@@ -332,7 +340,8 @@ REGISTER_FTRACE_EVENT_FORMATTER(
                       {(unsigned long)((gfp_t)0x800u), "__GFP_KSWAPD_RECLAIM"})
                 : "none");
         if (len >= BUFFER_SIZE - 1) {
-            HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
+            HILOG_WARN(
+                LOG_CORE, "maybe, the contents of print event(mm_vmscan_wakeup_kswapd) msg had be cut off in outfile");
         }
         return std::string(buffer);
     });
@@ -350,7 +359,8 @@ REGISTER_FTRACE_EVENT_FORMATTER(
                       {0x0010u, "RECLAIM_WB_MIXED"}, {0x0004u, "RECLAIM_WB_SYNC"}, {0x0008u, "RECLAIM_WB_ASYNC"})
                 : "RECLAIM_WB_NONE");
         if (len >= BUFFER_SIZE - 1) {
-            HILOG_WARN(LOG_CORE, "maybe, the contents of print event msg had be cut off in outfile");
+            HILOG_WARN(
+                LOG_CORE, "maybe, the contents of print event(mm_vmscan_writepage) msg had be cut off in outfile");
         }
         return std::string(buffer);
     });
