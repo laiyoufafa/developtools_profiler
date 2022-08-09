@@ -40,7 +40,7 @@
 namespace OHOS {
 namespace HiviewDFX {
 namespace {
-constexpr HiLogLabel LABEL = { LOG_CORE, 0xD002D00, "HiDebug_NAPI" };
+constexpr HiLogLabel LABEL = { LOG_CORE, 0xD002D0A, "HiDebug_NAPI" };
 constexpr int ONE_VALUE_LIMIT = 1;
 constexpr int ARRAY_INDEX_FIRST = 0;
 constexpr int BUF_MAX = 128;
