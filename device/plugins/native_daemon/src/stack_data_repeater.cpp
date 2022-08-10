@@ -59,6 +59,11 @@ bool StackDataRepeater::PutRawStack(const RawStackPtr& rawData)
 {
     bool needInsert = true;
     std::unique_lock<std::mutex> lock(mutex_);
+
+    if ((rawData == nullptr) && (rawDataQueue_.size() > 0)) {
+        HILOG_INFO(LOG_CORE, "no need put nullptr if queue has data, rawDataQueue_.size() = %zu", rawDataQueue_.size());
+        return true;
+    }
     while (rawDataQueue_.size() >= maxSize_ && !closed_) {
         slotCondVar_.wait(lock);
     }

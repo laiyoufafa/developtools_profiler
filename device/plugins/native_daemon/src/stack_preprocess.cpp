@@ -98,6 +98,7 @@ bool StackPreprocess::StartTakeResults()
 
 bool StackPreprocess::StopTakeResults()
 {
+    HILOG_INFO(LOG_CORE, "start StopTakeResults");
     CHECK_NOTNULL(dataRepeater_, false, "data repeater null");
     CHECK_TRUE(thread_.get_id() != std::thread::id(), false, "thread invalid");
 
