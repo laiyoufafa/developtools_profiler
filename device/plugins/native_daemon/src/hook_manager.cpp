@@ -342,6 +342,7 @@ bool HookManager::StopPluginSession(const std::vector<uint32_t>& pluginIds)
     }
 
     CHECK_TRUE(stackPreprocess_ != nullptr, false, "stop StackPreprocess FAIL");
+    HILOG_INFO(LOG_CORE, "start StopTakeResults");
     stackPreprocess_->StopTakeResults();
 
     HILOG_INFO(LOG_CORE, "StopTakeResults success");

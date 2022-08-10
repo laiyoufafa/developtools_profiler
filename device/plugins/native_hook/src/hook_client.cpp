@@ -121,11 +121,13 @@ void* hook_malloc(void* (*fn)(size_t), size_t size)
     clock_gettime(CLOCK_REALTIME, &rawdata.ts);
 
     if (g_hookClient->GetFpunwind()) {
+#ifdef __aarch64__
         stackptr = reinterpret_cast<const char*>(__builtin_frame_address(0));
         GetRuntimeStackEnd(stackptr, &stackendptr);  // stack end pointer
         stackSize = stackendptr - stackptr;
         FpUnwind(g_hookClient->GetMaxStackDepth(), rawdata.ip, stackSize);
         stackSize = 0;
+#endif
     } else {
         uint64_t* regs = reinterpret_cast<uint64_t*>(&(rawdata.regs));
 #if defined(__arm__)
@@ -147,11 +149,12 @@ void* hook_malloc(void* (*fn)(size_t), size_t size)
             : [ base ] "+r"(regs)
             :
             : "x12", "x13", "memory");
+#endif
         stackptr = reinterpret_cast<const char*>(regs[RegisterGetSP(buildArchType)]);
         GetRuntimeStackEnd(stackptr, &stackendptr);  // stack end pointer
         stackSize = stackendptr - stackptr;
-#endif
     }
+
     rawdata.type = MALLOC_MSG;
     rawdata.pid = getpid();
     rawdata.tid = get_thread_id();
@@ -255,11 +258,13 @@ void hook_free(void (*free_func)(void*), void* p)
 
     if (g_hookClient->GetFreeStackData()) {
         if (g_hookClient->GetFpunwind()) {
+#ifdef __aarch64__
             stackptr = reinterpret_cast<const char*>(__builtin_frame_address(0));
             GetRuntimeStackEnd(stackptr, &stackendptr);  // stack end pointer
             stackSize = stackendptr - stackptr;
             FpUnwind(g_hookClient->GetMaxStackDepth(), rawdata.ip, stackSize);
             stackSize = 0;
+#endif
         } else {
             uint64_t* regs = reinterpret_cast<uint64_t*>(&(rawdata.regs));
 #if defined(__arm__)
@@ -331,11 +336,13 @@ void* hook_mmap(void*(*fn)(void*, size_t, int, int, int, off_t),
     clock_gettime(CLOCK_REALTIME, &rawdata.ts);
 
     if (g_hookClient->GetFpunwind()) {
+#ifdef __aarch64__
         stackptr = reinterpret_cast<const char*>(__builtin_frame_address(0));
         GetRuntimeStackEnd(stackptr, &stackendptr);  // stack end pointer
         stackSize = stackendptr - stackptr;
         FpUnwind(g_hookClient->GetMaxStackDepth(), rawdata.ip, stackSize);
         stackSize = 0;
+#endif
     } else {
         uint64_t* regs = reinterpret_cast<uint64_t*>(&(rawdata.regs));
 #if defined(__arm__)
@@ -408,11 +415,13 @@ int hook_munmap(int(*fn)(void*, size_t), void* addr, size_t length)
 
     if (g_hookClient->GetMunmapStackData()) {
         if (g_hookClient->GetFpunwind()) {
+#ifdef __aarch64__
             stackptr = reinterpret_cast<const char*>(__builtin_frame_address(0));
             GetRuntimeStackEnd(stackptr, &stackendptr);  // stack end pointer
             stackSize = stackendptr - stackptr;
             FpUnwind(g_hookClient->GetMaxStackDepth(), rawdata.ip, stackSize);
             stackSize = 0;
+#endif
         } else {
             uint64_t* regs = reinterpret_cast<uint64_t*>(&(rawdata.regs));
 #if defined(__arm__)
