@@ -169,17 +169,31 @@ static bool MatchMallocHookStartupProp(const char *thisName)
         HILOG_ERROR(LOG_CORE, "malloc hook parse startup value failed");
         return false;
     }
-
-    if (strncmp(targetProcName, "init", strlen(targetProcName)) == 0 ||
-        strncmp(targetProcName, "appspawn", strlen(targetProcName)) == 0) {
+    if (strncmp(thisName, targetProcName, strlen(targetProcName) + 1) != 0) {
+        return false;
+    }
+    if (strncmp(targetProcName, "init", strlen(targetProcName) + 1) == 0 ||
+        strncmp(targetProcName, "appspawn", strlen(targetProcName) + 1) == 0) {
         HILOG_INFO(LOG_CORE, "malloc hook: this target proc '%{public}s' no hook", targetProcName);
         return false;
     }
-
-    if (strncmp(thisName, targetProcName, strlen(targetProcName)) == 0) {
-        return true;
+    char *programName = (char *)calloc(PARAM_BUF_LEN, sizeof(char));
+    if (programName == nullptr) {
+        return false;
     }
-    return false;
+    readlink("/proc/self/exe", programName, PARAM_BUF_LEN - 1);
+    const char *fileName = programName;
+    const char *posLastSlash = strrchr(programName, '/');
+    if (posLastSlash != nullptr) {
+        fileName = posLastSlash + 1;
+    }
+    bool res = false;
+    if (strncmp(fileName, "init", strlen(fileName) + 1) == 0 ||
+        strncmp(fileName, "appspawn", strlen(fileName) + 1) == 0) {
+        res = true;
+    }
+    free(programName);
+    return res;
 }
 
 static int SetupMallocHookAtStartup(const char *thisName)
