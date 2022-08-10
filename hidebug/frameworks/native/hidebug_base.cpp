@@ -170,13 +170,14 @@ static bool MatchMallocHookStartupProp(const char *thisName)
         return false;
     }
 
-    if (strncmp(targetProcName, "init", strlen(targetProcName)) == 0 ||
-        strncmp(targetProcName, "appspawn", strlen(targetProcName)) == 0) {
+    const int targetProcNameSize = strlen(targetProcName);
+    if (strncmp(targetProcName, "init", targetProcNameSize) == 0 ||
+        strncmp(targetProcName, "appspawn", targetProcNameSize) == 0) {
         HILOG_INFO(LOG_CORE, "malloc hook: this target proc '%{public}s' no hook", targetProcName);
         return false;
     }
 
-    if (strncmp(thisName, targetProcName, strlen(targetProcName)) == 0) {
+    if (strncmp(thisName, targetProcName, targetProcNameSize) == 0) {
         return true;
     }
     return false;
