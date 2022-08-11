@@ -18,7 +18,7 @@ import { CollectorType } from '../base/ProfilerConstant'
 import { SocketProfiler} from '../base/SocketProfiler'
 import worker from '@ohos.worker'; 
 import WorkerHandler from '../WorkerHandler';
-let MainWorker = new worker.Worker("/entry/ets/workers/worker.js")
+let MainWorker = globalThis.MainWorker
 
 MainWorker.onmessage = function (result) {
   WorkerHandler.socketHandler(result)
