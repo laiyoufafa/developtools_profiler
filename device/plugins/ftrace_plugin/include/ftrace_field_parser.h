@@ -44,8 +44,8 @@ public:
         FieldFormat format = fields[id];
         std::vector<T> retvalVec = {};
         size_t retvalSize = sizeof(unsigned long);
-        int count = format.size / retvalSize;
-        for (int i = 0; i < count; i++) {
+        size_t count = format.size / retvalSize;
+        for (size_t i = 0; i < count; i++) {
             auto start = data + format.offset + i * retvalSize;
             auto end = start + retvalSize;
             T retval = {};

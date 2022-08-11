@@ -205,7 +205,7 @@ void StackPreprocess::TakeResults()
 #ifdef PERFORMANCE_DEBUG
                 struct timespec twiceEnd = {};
                 clock_gettime(CLOCK_REALTIME, &twiceEnd);
-                uint64_t diff = (twiceEnd.tv_sec - start.tv_sec) * 1000 * 1000 * 1000 +
+                uint64_t diff = (twiceEnd.tv_sec - start.tv_sec) * MAX_MATCH_CNT * MAX_MATCH_CNT * MAX_MATCH_CNT +
                     (twiceEnd.tv_nsec - start.tv_nsec);
                 HILOG_ERROR(LOG_CORE, "unwind twice cost time = %" PRIu64"\n", diff);
 #endif
@@ -214,7 +214,8 @@ void StackPreprocess::TakeResults()
 #ifdef PERFORMANCE_DEBUG
             struct timespec end = {};
             clock_gettime(CLOCK_REALTIME, &end);
-            timeCost += (end.tv_sec - start.tv_sec) * 1000 * 1000 * 1000 + (end.tv_nsec - start.tv_nsec);
+            timeCost += (end.tv_sec - start.tv_sec) * MAX_MATCH_CNT * MAX_MATCH_CNT * MAX_MATCH_CNT +
+                (end.tv_nsec - start.tv_nsec);
             unwindTimes++;
             if (unwindTimes % LOG_PRINT_TIMES == 0) {
                 HILOG_ERROR(LOG_CORE, "unwindTimes %" PRIu64" cost time = %" PRIu64" mean cost = %" PRIu64"\n",

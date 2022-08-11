@@ -77,20 +77,20 @@ bool ohos_malloc_hook_on_end(void)
     return true;
 }
 
-static void inline __attribute__((always_inline)) FpUnwind(int max_depth, uint64_t *ip, int stackSize)
+static void inline __attribute__((always_inline)) FpUnwind(int maxDepth, uint64_t *ip, int stackSize)
 {
     void **startfp = (void **)__builtin_frame_address(0);
     void **fp = startfp;
-    for (int i = 0; i < max_depth; i++) {
+    for (int i = 0; i < maxDepth; i++) {
         ip[i] = *(unsigned long *)(fp + 1);
-        void **next_fp = (void **)*fp;
-        if (next_fp <= fp) {
+        void **nextFp = (void **)*fp;
+        if (nextFp <= fp) {
             break;
         }
-        if (((next_fp - startfp) * sizeof(void *)) > stackSize) {
+        if (((nextFp - startfp) * sizeof(void *)) > stackSize) {
             break;
         }
-        fp = next_fp;
+        fp = nextFp;
     }
 }
 

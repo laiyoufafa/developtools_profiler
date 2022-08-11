@@ -209,13 +209,13 @@ static void* ThreadFuncC(void* param)
     int freeCount = 0;
     int randNum = 0;
     int tid = syscall(SYS_gettid);
-    int mallocSize = *(int*)param;
+    int mallocSize = *static_cast<int*>(param);
     printf("start thread %d\n", tid);
     time_t tv = time(nullptr);
     if (tv == -1) {
         tv = 1;
     }
-    unsigned int seed = (unsigned int)tv;
+    unsigned int seed = static_cast<unsigned int>(tv);
     while (g_runing) {
         randNum = rand_r(&seed) % TEST_BRANCH_NUM;
         if (randNum == 0) {
@@ -299,7 +299,7 @@ static void RemoveMmap(char* pMap)
 }
 
 // 给文件映射中写入
-static void MmapWriteFile(char* pMap, int length, char* data)
+static void MmapWriteFile(char* pMap, int length, const char* data)
 {
     if (memcpy_s(pMap, length, data, length) != EOK) {
         printf("memcpy_s type fail\n");
@@ -309,7 +309,7 @@ static void MmapWriteFile(char* pMap, int length, char* data)
 }
 
 // 从文件映射中读取
-static char* MmapReadFile(char* pMap, int length)
+static char* MmapReadFile(const char* pMap, int length)
 {
     if (length <= 0) {
         printf("fail:malloc %d memory", length);
@@ -325,13 +325,13 @@ static char* MmapReadFile(char* pMap, int length)
 
 static void RandSrand(void)
 {
-    srand((unsigned)time(nullptr));
+    srand(static_cast<unsigned>(time(nullptr)));
 }
 
 // 10 ~ 4096
-static int RandInt(int Max, int Min)
+static int RandInt(int max, int min)
 {
-    int value = (rand() % (Max - Min)) + Min;
+    int value = (rand() % (max - min)) + min;
     return value;
 }
 
@@ -341,7 +341,7 @@ static char RandChar(void)
     // 可显示字符的范围
     int section = '~' - ' ';
     int randSection = RandInt(0, section);
-    char randChar = '~' + randSection;
+    char randChar = '~' + static_cast<unsigned int>(randSection);
     return randChar;
 }
 
@@ -364,7 +364,7 @@ static char* RandString(int maxLength)
 }
 
 // 初始化函数
-static void mmapInit(void)
+static void MmapInit(void)
 {
     // 设置随机种子
     RandSrand();
@@ -373,7 +373,7 @@ static void mmapInit(void)
 }
 
 // 写映射
-static void WriteMmap(char* data)
+static void WriteMmap(const char* data)
 {
     // 建立映射
     char* pMap = CreateMmap();
@@ -419,7 +419,7 @@ static void* ThreadMmap(void* param)
 }
 
 // 维护hook test类型管理
-static int bitMapNum(unsigned int data)
+static int BitMapNum(unsigned int data)
 {
     unsigned int tmp = data;
     int num = 0;
@@ -490,7 +490,7 @@ int main(int argc, char* argv[])
     if (ret == -1) {
         return 0;
     }
-    int typeNum = bitMapNum(g_hook_flag);
+    int typeNum = BitMapNum(g_hook_flag);
     printf(" g_hook_flag =  [%u] \n", g_hook_flag);
     if (typeNum == 0) {
         // 未设置type时默认启动alloc
@@ -528,7 +528,7 @@ int main(int argc, char* argv[])
     if (g_hook_flag & MMAP_FLAG) {
         int threadNum = g_threadNum;
         // 初始化
-        mmapInit();
+        MmapInit();
 
         thrArrayList[type] = (pthread_t*)malloc(sizeof(pthread_t) * threadNum);
         if (thrArrayList[type] == nullptr) {
