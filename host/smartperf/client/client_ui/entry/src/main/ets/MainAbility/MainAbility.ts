@@ -22,6 +22,7 @@ import WorkerHandler from '../common/profiler/WorkerHandler';
 import worker from '@ohos.worker'; 
 
 let MainWorker = new worker.Worker("/entry/ets/workers/worker.js")
+globalThis.MainWorker = MainWorker
 
 MainWorker.onmessage = function (result) {
     WorkerHandler.socketHandler(result)

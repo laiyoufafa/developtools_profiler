@@ -254,7 +254,8 @@ int main(int argc, char *argv[])
 {
     FpsInfo gfpsInfo;
     int num = 1;
-    if (!strcmp(argv[1], "")) {
+    int oneParam = 1;
+    if (argc == oneParam) {
         printf("the args of num must be not-null!\n");
     } else {
         num = atoi(argv[1]);
