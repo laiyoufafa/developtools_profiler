@@ -16,6 +16,7 @@
 #include "hook_service.h"
 
 #include <cinttypes>
+
 #include "logging.h"
 #include "parameter.h"
 #include "socket_context.h"
