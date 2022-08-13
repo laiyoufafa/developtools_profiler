@@ -89,21 +89,21 @@ bool HookService::ProtocolProc(SocketContext &context, uint32_t pnum, const int8
         do {
             std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(findPid.c_str(), "r"), pclose);
             if (pipe == nullptr) {
-                HILOG_ERROR(LOG_CORE, "popen file: %s error!",findPid.c_str());
+                HILOG_ERROR(LOG_CORE, "popen file: %s error!", findPid.c_str());
                 return false;
             }
             if (fgets(line, sizeof(line), pipe.get()) != nullptr) {
-                printf("Process:%s new pid:%s\n", processName_, line);
+                printf("Process:%s new pid:%s\n", processName_.c_str(), line);
                 break;
             }
-            printf("Wait for process: %s\n", processName_);
+            printf("Wait for process: %s\n", processName_.c_str());
             usleep(100000); // 100000: wait for process
         } while (true);
 
         if (strlen(line) > 0 && isdigit((unsigned char)(line[0]))) {
             pid_ = (int)atoi(line);
             if (peerConfig != (uint64_t)pid_) {
-                HILOG_ERROR(LOG_CORE,"pid not equal. peerConfig:%" PRIu64 ", pid:%" PRIu64 ".",
+                HILOG_ERROR(LOG_CORE, "pid not equal. peerConfig:%" PRIu64 ", pid:%" PRIu64 ".",
                     peerConfig, (uint64_t)pid_);
                 return false;
             }
