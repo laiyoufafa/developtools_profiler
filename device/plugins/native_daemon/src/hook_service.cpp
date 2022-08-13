@@ -58,48 +58,18 @@ bool HookService::ProtocolProc(SocketContext &context, uint32_t pnum, const int8
     if (size != sizeof(uint64_t)) {
         HILOG_ERROR(LOG_CORE, "ProtocolProc hook config error");
     }
-    uint64_t peerconfig = *const_cast<uint64_t *>(reinterpret_cast<const uint64_t *>(buf));
-
-    if (peerconfig == -1u) {
+    uint64_t peerConfig = *const_cast<uint64_t *>(reinterpret_cast<const uint64_t *>(buf));
+    if (peerConfig == -1u) {
         return true;
     }
     if (pid_ == 0) {
-        // get target process from "param set libc.hook_mode startup:xxx"
-        const int len = 128;
-        char paramOutBuf[len] = {0};
-        int ret = GetParameter("libc.hook_mode", "", paramOutBuf, len - 1);
-        if (ret > 0) {
-            std::string hookValue = paramOutBuf;
-            if (hookValue.find("startup:") == 0) {
-                processName_ = hookValue.substr(strlen("startup:"), hookValue.size());
-            }
-        }
-
-        // check if the pid and process name is consistency
-        std::string findpid = "pidof " + processName_;
-        HILOG_INFO(LOG_CORE, "find pid command : %s", findpid.c_str());
-        std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(findpid.c_str(), "r"), pclose);
-
-        char line[LINE_SIZE];
-        do {
-            if (fgets(line, sizeof(line), pipe.get()) == nullptr) {
-                return false;
-            } else if (strlen(line) > 0 && isdigit((unsigned char)(line[0]))) {
-                pid_ = (int)atoi(line);
-                if (peerconfig != (uint64_t)pid_) {
-                    return false;
-                }
-                printf("Process %" PRIu64 " hook started.\n", peerconfig);
-                break;
-            }
-        } while (1);
-    } else if (peerconfig != (uint64_t)pid_) {
-        HILOG_ERROR(LOG_CORE, "ProtocolProc receive peerconfig %" PRIu64 " not expected", peerconfig);
+        printf("Process %" PRIu64 " hook started.\n", peerConfig);
+        pid_ = static_cast<int>(peerConfig);
+    } else if (peerConfig != (uint64_t)pid_) {
+        HILOG_ERROR(LOG_CORE, "ProtocolProc receive peerConfig:%" PRIu64 " not expected", peerConfig);
         return false;
     }
-
     HILOG_DEBUG(LOG_CORE, "ProtocolProc, receive message from hook client, and send hook config to process %d", pid_);
-
     context.SendHookConfig(hookConfig_);
     context.SendFileDescriptor(smbFd_);
     context.SendFileDescriptor(eventFd_);
