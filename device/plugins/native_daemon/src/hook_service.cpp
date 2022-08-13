@@ -64,15 +64,6 @@ bool HookService::ProtocolProc(SocketContext &context, uint32_t pnum, const int8
     }
     if (pid_ == 0) {
         // get target process from "param set libc.hook_mode startup:xxx"
-        printf("Please execute: param set libc.hook_mode startup:PROCNAME\n");
-        printf("3\n");
-        sleep(1);
-        printf("2\n");
-        sleep(1);
-        printf("1\n");
-        sleep(1);
-        printf("Please restart PROCNAME\n");
-
         const int len = 128;
         char paramOutBuf[len] = {0};
         int ret = GetParameter("libc.hook_mode", "", paramOutBuf, len - 1);
@@ -97,7 +88,7 @@ bool HookService::ProtocolProc(SocketContext &context, uint32_t pnum, const int8
                 break;
             }
             printf("Wait for process: %s\n", processName_.c_str());
-            usleep(100000); // 100000: wait for process
+            usleep(10000); // 10000: wait for process
         } while (true);
 
         if (strlen(line) > 0 && isdigit((unsigned char)(line[0]))) {

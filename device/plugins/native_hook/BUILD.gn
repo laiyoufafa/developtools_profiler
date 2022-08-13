@@ -130,7 +130,7 @@ ohos_executable("nativetest_cpp") {
   ]
   ldflags = [ "-rdynamic" ]
 
-  install_enable = true
+  install_enable = false
   subsystem_name = "${OHOS_PROFILER_SUBSYS_NAME}"
   part_name = "${OHOS_PROFILER_PART_NAME}"
 }
