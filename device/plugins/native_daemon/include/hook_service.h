@@ -25,7 +25,11 @@ class HookService : public ServiceBase {
 public:
     HookService(int smbFd, int eventFd, int pid, std::string processName, uint64_t config);
     ~HookService();
-    bool ProtocolProc(SocketContext &context, uint32_t pnum, const int8_t *buf, const uint32_t size) override;
+    bool ProtocolProc(SocketContext &context, uint32_t pnum, const int8_t *buf, const uint32_t size) override; 
+    inline int GetPid()
+    {
+        return pid_;
+    }
 private:
     bool StartService(const std::string& unixSocketName);
     std::shared_ptr<ServiceEntry> serviceEntry_;
@@ -34,11 +38,6 @@ private:
     uint64_t hookConfig_;
     int pid_;
     std::string processName_;
-public:
-    inline int GetPid() {
-        return pid_;
-    }
-
 };
 
 #define LINE_SIZE 1000
