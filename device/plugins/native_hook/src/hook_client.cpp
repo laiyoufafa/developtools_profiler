@@ -52,9 +52,9 @@ std::atomic<const MallocDispatchType*> g_dispatch {nullptr};
 constexpr int TIMEOUT_MSEC = 2000;
 constexpr int PARAM_BUFFER_LEN = 128;
 static pid_t g_hookPid = 0;
-static int g_MinSize = 0;
-static int g_MaxSize = INT_MAX;
-static std::unordered_set<void *> g_MallocIgnoreSet;
+static uint32_t g_minSize = 0;
+static uint32_t g_maxSize = INT_MAX;
+static std::unordered_set<void *> g_mallocIgnoreSet;
 const MallocDispatchType* GetDispatch()
 {
     return g_dispatch.load(std::memory_order_relaxed);
@@ -76,18 +76,18 @@ bool ohos_malloc_hook_on_start(void)
     }
     GetMainThreadRuntimeStackRange();
     g_hookPid = getpid();
-    g_MinSize = g_hookClient->GetFilterSize();
+    g_minSize = g_hookClient->GetFilterSize();
     char paramOutBuf[PARAM_BUFFER_LEN] = {0};
     int ret = GetParameter("persist.hiviewdfx.profiler.mem.filter", "", paramOutBuf, PARAM_BUFFER_LEN);
     if (ret >= 0) {
         int min = 0;
         int max = 0;
         if (sscanf_s(paramOutBuf, "%d,%d", &min, &max) != -1) {
-            g_MaxSize = max > 0 ? max : INT_MAX;
-            g_MinSize = min > 0 ? min : 0;
+            g_maxSize = max > 0 ? max : INT_MAX;
+            g_minSize = min > 0 ? min : 0;
         }
         HILOG_INFO(LOG_CORE, "persist.hiviewdfx.profiler.mem.filter %s, min %d, max %d",
-            paramOutBuf, g_MinSize, g_MaxSize);
+            paramOutBuf, g_minSize, g_maxSize);
     }
     HILOG_INFO(LOG_CORE, "ohos_malloc_hook_on_start");
     return true;
@@ -97,7 +97,7 @@ bool ohos_malloc_hook_on_end(void)
 {
     std::lock_guard<std::recursive_timed_mutex> guard(g_ClientMutex);
     g_hookClient = nullptr;
-    g_MallocIgnoreSet.clear();
+    g_mallocIgnoreSet.clear();
     HILOG_INFO(LOG_CORE, "ohos_malloc_hook_on_end");
     return true;
 }
@@ -131,15 +131,15 @@ void* hook_malloc(void* (*fn)(size_t), size_t size)
     if (g_hookClient == nullptr) {
         return ret;
     }
-    if ((size < g_MinSize) || (size > g_MaxSize) || g_hookClient->GetMallocDisable()) {
+    if ((size < g_minSize) || (size > g_maxSize) || g_hookClient->GetMallocDisable()) {
         std::lock_guard<std::recursive_timed_mutex> guard(g_ClientMutex);
-        g_MallocIgnoreSet.insert(ret);
+        g_mallocIgnoreSet.insert(ret);
 #ifdef PERFORMANCE_DEBUG
         mallocIgnoreTimes++;
         if (mallocIgnoreTimes % PRINT_INTERVAL == 0) {
             HILOG_ERROR(LOG_CORE,
                 "mallocIgnoreTimes %" PRIu64" freeIgnoreTimes = %" PRIu64" , Set Size %d.\n",
-                mallocIgnoreTimes.load(), freeIgnoreTimes.load(), g_MallocIgnoreSet.size());
+                mallocIgnoreTimes.load(), freeIgnoreTimes.load(), g_mallocIgnoreSet.size());
         }
 #endif
         return ret;
@@ -286,11 +286,11 @@ void hook_free(void (*free_func)(void*), void* p)
     }
     {
         std::lock_guard<std::recursive_timed_mutex> guard(g_ClientMutex);
-        auto record = g_MallocIgnoreSet.find(p);
-        if (record != g_MallocIgnoreSet.end()) {
-            g_MallocIgnoreSet.erase(record);
+        auto record = g_mallocIgnoreSet.find(p);
+        if (record != g_mallocIgnoreSet.end()) {
+            g_mallocIgnoreSet.erase(record);
 #ifdef PERFORMANCE_DEBUG
-        freeIgnoreTimes++;
+            freeIgnoreTimes++;
 #endif
             return;
         }
