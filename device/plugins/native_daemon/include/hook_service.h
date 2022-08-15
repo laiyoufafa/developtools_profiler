@@ -26,6 +26,10 @@ public:
     HookService(int smbFd, int eventFd, int pid, std::string processName, uint64_t config);
     ~HookService();
     bool ProtocolProc(SocketContext &context, uint32_t pnum, const int8_t *buf, const uint32_t size) override;
+    inline int GetPid()
+    {
+        return pid_;
+    }
 private:
     bool StartService(const std::string& unixSocketName);
     std::shared_ptr<ServiceEntry> serviceEntry_;
