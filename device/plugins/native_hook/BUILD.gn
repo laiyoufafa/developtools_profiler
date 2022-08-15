@@ -59,6 +59,7 @@ ohos_shared_library("native_hook") {
   deps = [
     "${OHOS_PROFILER_DIR}/device/services/shared_memory:shared_memory_lite",
     "../../base:hiprofiler_base",
+    "//base/startup/init/interfaces/innerkits:libbegetutil",
     "//third_party/bounds_checking_function:libsec_static",
     "//third_party/zlib:libz",
   ]
