@@ -34,6 +34,11 @@ private:
     uint64_t hookConfig_;
     int pid_;
     std::string processName_;
+public:
+    inline int GetPid() {
+        return pid_;
+    }
+
 };
 
 #define LINE_SIZE 1000

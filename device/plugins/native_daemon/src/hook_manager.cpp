@@ -333,6 +333,9 @@ bool HookManager::StartPluginSession(const std::vector<uint32_t>& pluginIds,
 bool HookManager::StopPluginSession(const std::vector<uint32_t>& pluginIds)
 {
     // send signal
+    if (pid_ == 0) {
+        pid_ = hookService_->GetPid();
+    }
     if (pid_ > 0) {
         std::string stopCmd = "kill -37 " + std::to_string(pid_);
         HILOG_INFO(LOG_CORE, "stop command : %s", stopCmd.c_str());
