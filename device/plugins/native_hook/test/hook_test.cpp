@@ -25,8 +25,8 @@
 
 #pragma clang optimize off
 
-typedef char* (*DepthMallocSo)(int depth, int mallocSize);
-typedef void (*DepthFreeSo)(int depth, char *p);
+typedef static char* (*DepthMallocSo)(int depth, int mallocSize);
+typedef static void (*DepthFreeSo)(int depth, char *p);
 
 namespace {
 constexpr int MALLOC_SIZE = 1000;
@@ -37,7 +37,6 @@ constexpr int ARGC_NUM_MUST = 3;
 constexpr int ARGC_MALLOC_TIMES = 2;
 constexpr int ARGC_STICK_DEPTH = 3;
 unsigned int g_stickDepth = 100;
-unsigned int DLOPEN_TRIGGER = 30000;
 
 const static char SO_PATH[] = "libnativetest_so.z.so";
 using StaticSpace = struct {
@@ -138,8 +137,9 @@ void* thread_func_cpp_hook(void* param)
     DepthMallocSo mallocFunc = DepthMalloc;
     DepthFreeSo freeFunc = DepthFree;
 
+    constexpr unsigned int dlopenTrigger = 30000;
     while (idx < times) {
-        if (idx == static_cast<int>(DLOPEN_TRIGGER)) {
+        if (idx == static_cast<int>(dlopenTrigger)) {
             printf("dlopen!!!\n");
             handle = dlopen(SO_PATH, RTLD_LAZY);
             if (handle == nullptr) {
