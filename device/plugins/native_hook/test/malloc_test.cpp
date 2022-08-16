@@ -519,9 +519,9 @@ int main(int argc, char* argv[])
         }
         int idx;
         for (idx = 0; idx < threadNum; ++idx) {
-            int ret = pthread_create((thrArrayList[type]) + idx, nullptr,
+            int result = pthread_create((thrArrayList[type]) + idx, nullptr,
                 ThreadFuncC, static_cast<void*>(&mallocSize));
-            if (ret != 0) {
+            if (result != 0) {
                 printf("Creating thread failed.\n");
             }
         }
@@ -540,9 +540,9 @@ int main(int argc, char* argv[])
 
         int idx;
         for (idx = 0; idx < threadNum; ++idx) {
-            int ret = pthread_create((thrArrayList[type]) + idx,
+            int result = pthread_create((thrArrayList[type]) + idx,
                 nullptr, ThreadMmap, nullptr)
-            if (ret != 0) {
+            if (result != 0) {
                 printf("Creating thread failed.\n");
             }
         }
