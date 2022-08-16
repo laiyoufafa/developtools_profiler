@@ -25,8 +25,8 @@
 
 #pragma clang optimize off
 
-typedef static char* (*DepthMallocSo)(int depth, int mallocSize);
-typedef static void (*DepthFreeSo)(int depth, char *p);
+typedef char* (*DepthMallocSo)(int depth, int mallocSize);
+typedef void (*DepthFreeSo)(int depth, char *p);
 
 namespace {
 constexpr int MALLOC_SIZE = 1000;

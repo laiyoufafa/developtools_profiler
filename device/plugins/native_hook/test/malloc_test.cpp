@@ -39,7 +39,7 @@
 
 const static int STATIC_DEPTH = 5;
 
-typedef static struct {
+typedef struct {
     int data[DATA_SIZE];
 } StaticSpace;
 
