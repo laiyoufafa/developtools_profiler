@@ -39,7 +39,7 @@
 
 const static int STATIC_DEPTH = 5;
 
-typedef struct {
+typedef static struct {
     int data[DATA_SIZE];
 } StaticSpace;
 
@@ -541,7 +541,7 @@ int main(int argc, char* argv[])
         int idx;
         for (idx = 0; idx < threadNum; ++idx) {
             int result = pthread_create((thrArrayList[type]) + idx,
-                nullptr, ThreadMmap, nullptr)
+                nullptr, ThreadMmap, nullptr);
             if (result != 0) {
                 printf("Creating thread failed.\n");
             }
