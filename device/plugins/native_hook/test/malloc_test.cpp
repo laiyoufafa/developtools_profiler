@@ -37,9 +37,7 @@
 #define ALLOC_FLAG (1 << 0)
 #define MMAP_FLAG (1 << 1)
 
-const int DEFAULT_REALLOC_SIZE = 100;
-const int TEST_BRANCH_NUM = 3;
-const int STATIC_DEPTH = 5;
+const static int STATIC_DEPTH = 5;
 
 typedef struct {
     int data[DATA_SIZE];
@@ -154,7 +152,8 @@ static void ApplyForCalloc(int mallocSize)
 
 static void ApplyForRealloc(int mallocSize)
 {
-    int reallocSize = mallocSize * DEFAULT_REALLOC_SIZE;
+    const int defaultReallocSize = 100;
+    int reallocSize = mallocSize * defaultReallocSize;
     printf("\nstart realloc apply (size = %d)\n", reallocSize);
     if (mallocSize <= 0) {
         printf("Invalid mallocSize.\n");
@@ -215,9 +214,11 @@ static void* ThreadFuncC(void* param)
     if (tv == -1) {
         tv = 1;
     }
+
     unsigned int seed = static_cast<unsigned int>(tv);
-    while (g_runing) {
-        randNum = rand_r(&seed) % TEST_BRANCH_NUM;
+    const int testBranchNum = 3;
+    while (g_runing != 0) {
+        randNum = rand_r(&seed) % testBranchNum;
         if (randNum == 0) {
             ApplyForMalloc(mallocSize);
             mallocCount++;
@@ -401,7 +402,7 @@ static char* ReadMmap(int length)
 
 static void* ThreadMmap(void* param)
 {
-    while (g_runing) {
+    while (g_runing != 0) {
         // 获取随机字符
         char* randString = RandString(PAGE_SIZE);
 
@@ -423,8 +424,8 @@ static int BitMapNum(unsigned int data)
 {
     unsigned int tmp = data;
     int num = 0;
-    while (tmp) {
-        if (tmp & 1) {
+    while (tmp != 0) {
+        if ((tmp & 1) != 0) {
             num++;
         }
         tmp >>= 1;
@@ -504,7 +505,7 @@ int main(int argc, char* argv[])
         return 0;
     }
     int type = 0;
-    if (g_hook_flag & ALLOC_FLAG) {
+    if ((g_hook_flag & ALLOC_FLAG) != 0) {
         int threadNum = g_threadNum;
         int mallocSize = g_mallocSize;
 
@@ -518,14 +519,16 @@ int main(int argc, char* argv[])
         }
         int idx;
         for (idx = 0; idx < threadNum; ++idx) {
-            if (pthread_create((thrArrayList[type]) + idx, nullptr, ThreadFuncC, static_cast<void*>(&mallocSize))) {
+            int result = pthread_create((thrArrayList[type]) + idx, nullptr,
+                ThreadFuncC, static_cast<void*>(&mallocSize));
+            if (result != 0) {
                 printf("Creating thread failed.\n");
             }
         }
         type++;
     }
 
-    if (g_hook_flag & MMAP_FLAG) {
+    if ((g_hook_flag & MMAP_FLAG) != 0) {
         int threadNum = g_threadNum;
         // 初始化
         MmapInit();
@@ -537,7 +540,9 @@ int main(int argc, char* argv[])
 
         int idx;
         for (idx = 0; idx < threadNum; ++idx) {
-            if (pthread_create((thrArrayList[type]) + idx, nullptr, ThreadMmap, nullptr)) {
+            int result = pthread_create((thrArrayList[type]) + idx,
+                nullptr, ThreadMmap, nullptr);
+            if (result != 0) {
                 printf("Creating thread failed.\n");
             }
         }

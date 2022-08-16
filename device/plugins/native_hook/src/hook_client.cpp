@@ -50,7 +50,6 @@ static std::shared_ptr<HookSocketClient> g_hookClient;
 std::recursive_timed_mutex g_ClientMutex;
 std::atomic<const MallocDispatchType*> g_dispatch {nullptr};
 constexpr int TIMEOUT_MSEC = 2000;
-constexpr int PARAM_BUFFER_LEN = 128;
 static pid_t g_hookPid = 0;
 static uint32_t g_minSize = 0;
 static uint32_t g_maxSize = INT_MAX;
@@ -77,8 +76,9 @@ bool ohos_malloc_hook_on_start(void)
     GetMainThreadRuntimeStackRange();
     g_hookPid = getpid();
     g_minSize = g_hookClient->GetFilterSize();
-    char paramOutBuf[PARAM_BUFFER_LEN] = {0};
-    int ret = GetParameter("persist.hiviewdfx.profiler.mem.filter", "", paramOutBuf, PARAM_BUFFER_LEN);
+    constexpr int paramBufferLen = 128;
+    char paramOutBuf[paramBufferLen] = {0};
+    int ret = GetParameter("persist.hiviewdfx.profiler.mem.filter", "", paramOutBuf, paramBufferLen);
     if (ret >= 0) {
         int min = 0;
         int max = 0;
