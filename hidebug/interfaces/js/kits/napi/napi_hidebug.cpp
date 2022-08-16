@@ -43,8 +43,6 @@ namespace {
 constexpr HiLogLabel LABEL = { LOG_CORE, 0xD002D0A, "HiDebug_NAPI" };
 constexpr int ONE_VALUE_LIMIT = 1;
 constexpr int ARRAY_INDEX_FIRST = 0;
-constexpr int BUF_MAX = 128;
-constexpr mode_t DEFAULT_MODE = S_IRUSR | S_IWUSR | S_IRGRP; // -rw-r-----
 const std::string PROC_PATH = "/proc/";
 const std::string ROOT_DIR = "/root";
 const std::string SLASH_STR = "/";
@@ -66,7 +64,8 @@ static bool CreateFile(const std::string &path)
         HiLog::Error(LABEL, "file existed.");
         return false;
     }
-    int fd = creat(path.c_str(), DEFAULT_MODE);
+    const mode_t defaultMode = S_IRUSR | S_IWUSR | S_IRGRP; // -rw-r-----
+    int fd = creat(path.c_str(), defaultMode);
     if (fd == -1) {
         HiLog::Error(LABEL, "file create failed, errno = %{public}d", errno);
         return false;
@@ -136,7 +135,8 @@ static std::string GetFileNameParam(napi_env env, napi_callback_info info)
         HiLog::Error(LABEL, "Get input filename param length failed.");
         return DEFAULT_FILENAME;
     }
-    if (bufLen > BUF_MAX || bufLen == 0) {
+    const int bufMax = 128;
+    if (bufLen > bufMax || bufLen == 0) {
         HiLog::Error(LABEL, "input filename param length is illegal.");
         return DEFAULT_FILENAME;
     }
