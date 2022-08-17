@@ -22,7 +22,7 @@ ohos_hap("SmartPerf") {
   certificate_profile = "signature/openharmony_smartperf.p7b"
   subsystem_name = "${OHOS_PROFILER_SUBSYS_NAME}"
   part_name = "${OHOS_PROFILER_PART_NAME}"
-  module_install_dir = "app/com.ohos.smartperf"
+  module_install_dir = "app/com.ohos.gameperceptio"
   js_build_mode = "debug"
 }
 
