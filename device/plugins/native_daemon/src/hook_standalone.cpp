@@ -30,7 +30,6 @@ namespace Developtools {
 namespace Profiler {
 namespace Hook {
 const int DEFAULT_EVENT_POLLING_INTERVAL = 5000;
-const int MOVE_BIT_8 = 8;
 const int MOVE_BIT_16 = 16;
 const int MOVE_BIT_32 = 32;
 std::string g_smbName = "hooknativesmb";
@@ -211,7 +210,8 @@ bool StartHook(HookData& hookData)
     //              stack depth    malloctype       filtersize    sharememory  size
 
     uint64_t hookConfig = (uint8_t)hookData.maxStackDepth;
-    hookConfig <<= MOVE_BIT_8;
+    const int moveBit8 = 8;
+    hookConfig <<= moveBit8;
 
     hookConfig |= hookData.mallocDisable ? MALLOCDISABLE : 0;
     hookConfig |= hookData.mmapDisable ? MMAPDISABLE : 0;
