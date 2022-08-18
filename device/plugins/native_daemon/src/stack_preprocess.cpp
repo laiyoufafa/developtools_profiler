@@ -22,13 +22,13 @@
 static std::atomic<uint64_t> timeCost = 0;
 static std::atomic<uint64_t> unwindTimes = 0;
 
-constexpr uint32_t MAX_BUFFER_SIZE = 50 * 1024;
-constexpr uint32_t MAX_MATCH_CNT = 1000;
-constexpr uint32_t MAX_MATCH_INTERVAL = 2000;
-constexpr uint32_t LOG_PRINT_TIMES = 10000;
-constexpr uint32_t FUNCTION_MAP_LOG_PRINT = 100;
-constexpr uint32_t FILE_MAP_LOG_PRINT = 10;
-constexpr uint32_t MAX_BATCH_CNT = 5;
+constexpr static uint32_t MAX_BUFFER_SIZE = 50 * 1024;
+constexpr static uint32_t MAX_MATCH_CNT = 1000;
+constexpr static uint32_t MAX_MATCH_INTERVAL = 2000;
+constexpr static uint32_t LOG_PRINT_TIMES = 10000;
+constexpr static uint32_t FUNCTION_MAP_LOG_PRINT = 100;
+constexpr static uint32_t FILE_MAP_LOG_PRINT = 10;
+constexpr static uint32_t MAX_BATCH_CNT = 5;
 
 using namespace OHOS::Developtools::NativeDaemon;
 

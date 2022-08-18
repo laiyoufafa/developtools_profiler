@@ -485,8 +485,8 @@ int main(int argc, char* argv[])
 
     std::vector<std::string> argvVector;
     for (int i = 0; i < argc; i++) {
-        if (((i + 1) < argc) && (strcmp(argv[i], "-c") == 0 || strcmp(argv[i], "--config") == 0)
-            && (strcmp(argv[i + 1], "-") == 0)) {
+        if (((i + 1) < argc) && (strcmp(argv[i], "-c") == 0 || strcmp(argv[i], "--config") == 0) &&
+            (strcmp(argv[i + 1], "-") == 0)) {
             i++;
         } else {
             argvVector.push_back(argv[i]);

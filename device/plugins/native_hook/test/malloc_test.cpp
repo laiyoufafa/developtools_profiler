@@ -37,11 +37,12 @@
 #define ALLOC_FLAG (1 << 0)
 #define MMAP_FLAG (1 << 1)
 
-const static int STATIC_DEPTH = 5;
-
+namespace {
 typedef struct {
     int data[DATA_SIZE];
 } StaticSpace;
+
+const static int STATIC_DEPTH = 5;
 
 static double g_mallocDuration = 0;
 static double g_callocDuration = 0;
@@ -483,6 +484,7 @@ static int CommandParse(int argc, char** argv)
     }
     return opterr;
 }
+} // namespace
 
 int main(int argc, char* argv[])
 {
