@@ -1,7 +1,0 @@
-/buildtools/clang
-/buildtools/linux64
-.vscode/settings.json
-/buildtools/third_party_sqlite
-/out
-/.vscode
-.vscode

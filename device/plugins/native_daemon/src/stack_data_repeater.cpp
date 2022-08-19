@@ -15,8 +15,8 @@
 #include "stack_data_repeater.h"
 #include "hook_common.h"
 
-constexpr uint32_t DEFAULT_SLEEP_TIME_MS = 100; // milliseconds
-constexpr uint32_t DEFAULT_SLEEP_TIME_US = DEFAULT_SLEEP_TIME_MS * 1000;
+constexpr static uint32_t DEFAULT_SLEEP_TIME_MS = 100; // milliseconds
+constexpr static uint32_t DEFAULT_SLEEP_TIME_US = DEFAULT_SLEEP_TIME_MS * 1000;
 using namespace OHOS::Developtools::NativeDaemon;
 
 StackDataRepeater::StackDataRepeater(size_t maxSize)
