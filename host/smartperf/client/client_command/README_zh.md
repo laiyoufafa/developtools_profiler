@@ -1,16 +1,55 @@
-## 工具介绍
+## 一、简介
 
-> OpenHarmony性能测试工具,通过采集设备性能指标，对采集数据进行实时展示、导出csv。
+- OpenHarmony性能测试工具SmartPerf 命令行版本，可采集CPU、GPU、Temperature、Power、应用RAM、FPS等指标，通过设置采集指标，对采集数据进行实时打印、导出csv。
 
-## 支持功能
+- 带屏幕的设备且性能较好的设备推荐使用UI版本，性能较差或无屏幕设备请使用[命令行版本](https://gitee.com/openharmony/developtools_profiler/blob/master/host/smartperf/client/client_command/README.md)
 
-> 当前版本支持如下功能
+## 二、代码目录
+```
+/developtools/profiler/host/smartperf/client/client_command
+├── include                                     # 头文件目录
+├── BUILD.gn                                    # SP_daemon bin打包配置文件
+├── ByTrace.cpp                                 # trace抓取代码文件
+├── Capture.cpp                                 # 截图代码文件
+├── CPU.cpp                                     # CPU采集代码文件
+├── DDR.cpp                                     # DDR采集代码文件
+├── FPS.cpp                                     # FPS采集代码文件
+├── GPU.cpp                                     # GPU采集代码文件
+├── Power.cpp                                   # 功耗采集代码文件
+├── RAM.cpp                                     # 内存采集代码文件
+├── smartperf_command.cpp                       # 程序执行文件
+├── smartperf_main.cpp                          # 程序入口文件
+├── sp_profiler_factory.cpp                     # 采集工厂文件
+├── sp_server_socket.cpp                        # 与SmartPerf hap通讯代码文件
+├── sp_utils.cpp                                # 工具类
+├── Temperature.cpp                             # 温度采集代码文件
+```
 
-- 支持RK3568、Hi3516;
-- 支持Shell启动;
-- 支持采集整机CPU、GPU、POWER、TEMPERATURE、应用的FPS、RAM;
+## 三、约束条件
+1、SmartPerf应用在3.2系统版本后开始预制使用;
 
-## 使用方式
+## 四、功能特性
+
+**1、参数说明**
+
+| 命令   | 功能                   |是否必选|
+| :-----| :--------------------- |:-----|
+| -N    | 设置采集次数             |是|
+| -PKG  | 设置包名                |否|
+| -PID  | 设置进程pid(对于ram适用) |否|
+| -OUT  | 设置csv输出目录          |否|
+| -c    | 是否采集cpu             |否|
+| -g    | 是否采集gpu             |否|
+| -f    | 是否采集fps             |否|
+| -t    | 是否采集温度             |否|
+| -p    | 是否采集电流             |否|
+| -r    | 是否采集内存(需指定进程pid)             |否|
+| -snapshot    | 是否截图            |否|
+
+---
+
+
+**2、使用方式**
 >1、目前命令行版本已系统预制，可以进入shell，执行SP_daemon --help查看
 
 ```bash
@@ -84,20 +123,13 @@ cpu0freq,cpu0load,cpu1freq,cpu1load,cpu2freq,cpu2load,cpu3freq,cpu3load,current_
 ```
 ---
 
-## 参数说明
 
-| 命令   | 功能                   |是否必选|
-| :-----| :--------------------- |:-----|
-| -N    | 设置采集次数             |是|
-| -PKG  | 设置包名                |否|
-| -PID  | 设置进程pid(对于ram适用) |否|
-| -OUT  | 设置csv输出目录          |否|
-| -c    | 是否采集cpu             |否|
-| -g    | 是否采集gpu             |否|
-| -f    | 是否采集fps             |否|
-| -t    | 是否采集温度             |否|
-| -p    | 是否采集电流             |否|
-| -r    | 是否采集内存(需指定进程pid)             |否|
-| -snapshot    | 是否截图            |否|
 
----
+## 五、发布版本
+
+**1、3.2.0.0版本**
+
+>**发布内容：预制SP_daemon bin文件，支持以下功能**<br>
+1、支持RK3568、Hi3516;<br>
+2、支持Shell启动;<br>
+3、支持采集整机CPU、GPU、POWER、TEMPERATURE、应用的FPS、RAM。
