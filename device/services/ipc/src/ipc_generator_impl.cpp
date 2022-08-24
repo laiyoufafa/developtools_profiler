@@ -338,12 +338,24 @@ const std::string CLIENT_PROC_IMPL_STRING = R"(
     }
         break;
 )";
+const std::string CLIENT_PROC_NOTIFYRESULT_STRING = R"(
+    case IpcProtocol#BASE_NAME##REQUEST_NAME#:{
+        #PACKAGE_NAME##REQUEST_NAME# request;
+        #PACKAGE_NAME##RESPONSE_NAME# response;
+        request.ParseFromArray(buf, size);
+        #METHOD_NAME#(context, request, response);
+    }
+        break;
+)";
 }
 std::string IpcGeneratorImpl::GenClientProcImpl(int servicep)
 {
     std::string ret = "";
     for (int j = 0; j < serviceList_[servicep].methodCount_; j++) {
         std::string tmp = ReplaceStr(CLIENT_PROC_IMPL_STRING, "#BASE_NAME#", baseName_);
+        if (serviceList_[servicep].methodList_[j] == "NotifyResult") {
+            tmp = ReplaceStr(CLIENT_PROC_NOTIFYRESULT_STRING, "#BASE_NAME#", baseName_);
+        }
         tmp = ReplaceStr(tmp, "#PACKAGE_NAME#", packageName_);
         tmp = ReplaceStr(tmp, "#METHOD_NAME#", serviceList_[servicep].methodList_[j]);
         tmp = ReplaceStr(tmp, "#REQUEST_NAME#", serviceList_[servicep].requestList_[j]);
