@@ -54,6 +54,6 @@ HWTEST_F(HookServiceTest, ProtocolProc, TestSize.Level1)
     uint32_t head_size = sizeof(struct ProtocolHead);
     auto hookService = std::make_shared<HookService>(smbFd, eventFd, 0, "", 0);
     ASSERT_TRUE(hookService != nullptr);
-    ASSERT_FALSE(hookService->ProtocolProc(socketContext, 0, pph->datas, head_size));
+    ASSERT_TRUE(hookService->ProtocolProc(socketContext, 0, pph->datas, head_size));
 }
 } // namespace
