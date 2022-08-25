@@ -333,7 +333,7 @@ bool HookManager::StartPluginSession(const std::vector<uint32_t>& pluginIds,
 bool HookManager::StopPluginSession(const std::vector<uint32_t>& pluginIds)
 {
     // send signal
-    if (pid_ == 0) {
+    if (pid_ == 0 && hookService_ != nullptr) {
         pid_ = hookService_->GetPid();
     }
     if (pid_ > 0) {
