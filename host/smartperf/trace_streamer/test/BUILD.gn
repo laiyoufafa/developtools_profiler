@@ -72,7 +72,6 @@ if (target == "test") {
       "../prebuilts/emsdk/emsdk/emscripten/system/include",
       "..",
       "//third_party/googletest/googletest/include/gtest",
-      "//utils/native/base/include",
       "//third_party/protobuf/src",
       "${OHOS_PROTO_GEN}",
       "${OHOS_FTRACE_PROTO_DIR}",
