@@ -79,6 +79,7 @@ ohos_shared_library("native_hook") {
     "-Wno-error=inline-asm",
     "-DPERF_TEST_DATA",
     "-O3",
+    "-fno-emulated-tls",
   ]
   install_enable = true
   subsystem_name = "${OHOS_PROFILER_SUBSYS_NAME}"

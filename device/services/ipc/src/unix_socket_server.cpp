@@ -119,6 +119,10 @@ bool UnixSocketServer::StartServer(const std::string& addrname, ServiceEntry& p)
     CHECK_TRUE(bind(sock, (struct sockaddr*)&addr, sizeof(struct sockaddr_un)) == 0, close(sock) != 0,
                "StartServer FAIL bind ERR : %d", errno);
 
+    std::string chmodCmd = "chmod 666 " + addrname;
+    HILOG_INFO(LOG_CORE, "chmod command : %s", chmodCmd.c_str());
+    std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(chmodCmd.c_str(), "r"), pclose);
+
     CHECK_TRUE(listen(sock, UNIX_SOCKET_LISTEN_COUNT) != -1, close(sock) != 0 && unlink(addrname.c_str()) == 0,
                "StartServer FAIL listen ERR : %d", errno);
 
