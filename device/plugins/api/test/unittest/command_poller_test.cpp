@@ -110,6 +110,11 @@ public:
     {
         this->commandPoller_ = p;
     }
+
+    virtual bool ReportPluginBasicData(const std::vector<uint32_t>& pluginIds)
+    {
+        return true;
+    }
 private:
     CommandPollerPtr commandPoller_;
 };

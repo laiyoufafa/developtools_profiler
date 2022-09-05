@@ -123,7 +123,8 @@ private:
 
     bool RemoveSessionContext(uint32_t sessionId);
 
-    void MergeHiperfFile(const SessionContextPtr& sessionCtx);
+    void MergeStandaloneFile(const std::string& resultFile,
+        const std::string& pluginName, const std::string& outputFile);
 
 private:
     mutable std::mutex sessionContextMutex_ = {};

@@ -41,6 +41,7 @@ public:
     std::string GetName();
     uint32_t GetSize();
     int GetfileDescriptor();
+    void ClearShareMemoryBlock();
 
     bool Valid() const;
 

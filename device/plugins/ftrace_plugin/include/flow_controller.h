@@ -45,6 +45,7 @@ public:
 
     int StartCapture(void);
     int StopCapture(void);
+    bool ParseBasicData(void);
 
 private:
     DISALLOW_COPY_AND_MOVE(FlowController);

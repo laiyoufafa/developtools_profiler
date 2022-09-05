@@ -15,15 +15,18 @@
 #include "result_demuxer.h"
 
 #include <unistd.h>
+
 #include "logging.h"
+#include "trace_file_header.h"
 
 namespace {
 constexpr auto DEFAULT_FLUSH_INTERVAL = std::chrono::milliseconds(1000);
 } // namespace
 
-ResultDemuxer::ResultDemuxer(const ProfilerDataRepeaterPtr& dataRepeater)
+ResultDemuxer::ResultDemuxer(const ProfilerDataRepeaterPtr& dataRepeater, PluginSessionManagerPtr pluginSessionManager)
     : dataRepeater_(dataRepeater), flushInterval_(DEFAULT_FLUSH_INTERVAL)
 {
+    pluginSessionManager_ = pluginSessionManager;
 }
 
 ResultDemuxer::~ResultDemuxer()
@@ -74,7 +77,7 @@ bool ResultDemuxer::StopTakeResults()
 
 void ResultDemuxer::TakeResults()
 {
-    if (!dataRepeater_) {
+    if (!dataRepeater_ || !pluginSessionManager_) {
         return;
     }
 
@@ -87,7 +90,12 @@ void ResultDemuxer::TakeResults()
         }
 
         if (traceWriter_) {
-            traceWriter_->Write(*pluginData);
+            int ret = traceWriter_->Write(*pluginData);
+            if (ret == -1) {
+                HILOG_DEBUG(LOG_CORE, "need to clear queue and report the basic data");
+                dataRepeater_->ClearQueue();
+                pluginSessionManager_->RefreshPluginSession();
+            }
             auto currentTime = std::chrono::steady_clock::now();
             auto elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(currentTime - lastFlushTime_);
             if (elapsedTime >= flushInterval_) {
@@ -99,6 +107,5 @@ void ResultDemuxer::TakeResults()
         }
     }
     traceWriter_->Finish();
-    traceWriter_->Flush();
     HILOG_INFO(LOG_CORE, "TakeResults thread %d, exit!", gettid());
 }

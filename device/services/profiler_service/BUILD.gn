@@ -23,6 +23,7 @@ config("profiler_service_config") {
     "src",
     "${OHOS_PROFILER_DIR}/device/services/ipc/include",
     "${OHOS_PROFILER_DIR}/device/base/include",
+    "${OHOS_PROFILER_DIR}/interfaces/kits",
   ]
   if (current_toolchain != host_toolchain) {
     cflags = [ "-DHAVE_HILOG" ]

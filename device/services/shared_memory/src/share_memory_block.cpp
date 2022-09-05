@@ -393,3 +393,13 @@ int ShareMemoryBlock::GetfileDescriptor()
 {
     return fileDescriptor_;
 }
+
+void ShareMemoryBlock::ClearShareMemoryBlock()
+{
+    // clear header infos
+    PthreadLocker locker(header_->info.mutex_);
+    header_->info.readOffset_ = 0;
+    header_->info.writeOffset_ = 0;
+    header_->info.bytesCount_ = 0;
+    header_->info.chunkCount_ = 0;
+}

@@ -88,6 +88,21 @@ GetCommandResponsePtr PluginCommandBuilder::BuildStopSessionCmd(uint32_t pluginI
     return cmd;
 }
 
+GetCommandResponsePtr PluginCommandBuilder::BuildRefreshSessionCmd(uint32_t pluginId)
+{
+    auto cmd = std::make_shared<GetCommandResponse>();
+    cmd->set_status(ResponseStatus::OK);
+    cmd->set_has_more(false);
+    cmd->set_command_id(cmdIdAutoIncrease_);
+
+    RefreshSessionCmd* rsc = cmd->mutable_refresh_session_cmd();
+    rsc->add_plugin_ids(pluginId);
+
+    commandHistory_[cmdIdAutoIncrease_] = cmd;
+    cmdIdAutoIncrease_++;
+    return cmd;
+}
+
 bool PluginCommandBuilder::GetedCommandResponse(uint32_t cmdId)
 {
     if (commandHistory_.find(cmdId) == commandHistory_.end()) {

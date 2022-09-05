@@ -31,6 +31,9 @@ message RegisterPluginRequest {
 
     string name = 4;
     uint32 buffer_size_hint = 5;
+
+    bool is_standalone_data = 6;
+    string out_file_name = 7;
 }
 
 message RegisterPluginResponse {
@@ -71,6 +74,10 @@ message StopSessionCmd {
     repeated uint32 plugin_ids = 1;
 }
 
+message RefreshSessionCmd {
+    repeated uint32 plugin_ids = 1;
+}
+
 message GetCommandResponse {
     ResponseStatus status = 1;
     bool has_more = 2;
@@ -80,6 +87,7 @@ message GetCommandResponse {
         DestroySessionCmd destroy_session_cmd = 11;
         StartSessionCmd start_session_cmd = 12;
         StopSessionCmd stop_session_cmd = 13;
+        RefreshSessionCmd refresh_session_cmd = 14;
     }
 }
 

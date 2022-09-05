@@ -51,6 +51,12 @@ void ProfilerDataRepeater::Close()
 bool ProfilerDataRepeater::PutPluginData(const ProfilerPluginDataPtr& pluginData)
 {
     std::unique_lock<std::mutex> lock(mutex_);
+
+    if ((pluginData == nullptr) && (dataQueue_.size() > 0)) {
+        HILOG_INFO(LOG_CORE, "no need put nullptr if queue has data, dataQueue_.size() = %zu", dataQueue_.size());
+        return true;
+    }
+
     while (dataQueue_.size() >= maxSize_ && !closed_) {
         slotCondVar_.wait(lock);
     }
@@ -104,4 +110,10 @@ int ProfilerDataRepeater::TakePluginData(std::vector<ProfilerPluginDataPtr>& plu
 
     slotCondVar_.notify_one();
     return count;
+}
+
+void ProfilerDataRepeater::ClearQueue()
+{
+    std::unique_lock<std::mutex> lock(mutex_);
+    dataQueue_.clear();
 }

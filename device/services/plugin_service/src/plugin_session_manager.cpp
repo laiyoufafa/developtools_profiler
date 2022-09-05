@@ -152,6 +152,7 @@ bool PluginSessionManager::InvalidatePluginSessions(const std::vector<std::strin
 bool PluginSessionManager::StartPluginSessions(const std::vector<std::string>& nameList)
 {
     CHECK_TRUE(nameList.size() > 0, false, "nameList empty!");
+    pluginNameList_ = std::move(nameList);
     // start each plugin sessions
     size_t failureCount = 0;
     std::unique_lock<std::mutex> lock(mutex_);
@@ -180,6 +181,23 @@ bool PluginSessionManager::StopPluginSessions(const std::vector<std::string>& na
         }
         if (!it->second->Stop()) {
             HILOG_INFO(LOG_CORE, "stop session %s FAILED!", it->first.c_str());
+            failureCount++;
+        }
+    }
+    return failureCount == 0;
+}
+
+bool PluginSessionManager::RefreshPluginSession()
+{
+    size_t failureCount = 0;
+    std::unique_lock<std::mutex> lock(mutex_);
+    for (auto& name : pluginNameList_) {
+        auto it = pluginSessions_.find(name);
+        if (it == pluginSessions_.end()) {
+            continue;
+        }
+        if (!it->second->Refresh()) {
+            HILOG_INFO(LOG_CORE, "refresh data %s FAILED!", it->first.c_str());
             failureCount++;
         }
     }

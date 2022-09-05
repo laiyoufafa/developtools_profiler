@@ -19,6 +19,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <climits>
 
 #ifdef __cplusplus
 extern "C" {
@@ -63,6 +64,13 @@ typedef int (*PluginReportResultCallback)(uint8_t* bufferData, uint32_t bufferSi
  * @return Return 0 for success and -1 for failure.
  */
 typedef int (*PluginSessionStopCallback)(void);
+
+/**
+ * @brief interface type of plugin session stop,
+ * Called when stopping plugin sessions
+ * @return Return 0 for success and -1 for failure.
+ */
+typedef int (*PluginReportBasicDataCallback)(void);
 
 /**
  * WriterStruct type forward declaration
@@ -136,6 +144,11 @@ struct PluginModuleCallbacks {
      * flow reporting results of plugin management framework
      */
     RegisterWriterStructCallback onRegisterWriterStruct;
+
+    /**
+     * report plugin basic data
+     */
+    PluginReportBasicDataCallback onReportBasicDataCallback = 0;
 };
 
 /**
@@ -164,6 +177,10 @@ struct PluginModuleStruct {
      * module to call the data reporting interface to use the memory buffer byte number
      */
     uint32_t resultBufferSizeHint;
+
+    bool isStandaloneFileData = false;
+
+    char outFileName[PATH_MAX + 1];
 };
 
 /**

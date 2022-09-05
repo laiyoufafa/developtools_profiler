@@ -183,14 +183,8 @@ bool FlowController::CreateRawDataCaches()
     return true;
 }
 
-int FlowController::StartCapture(void)
+bool FlowController::ParseBasicData()
 {
-    CHECK_TRUE(ftraceSupported_, -1, "current kernel not support ftrace!");
-    CHECK_NOTNULL(ftraceParser_, -1, "create FtraceParser FAILED!");
-    CHECK_NOTNULL(ksymsParser_, -1, "create KernelSymbolsParser FAILED!");
-    CHECK_NOTNULL(tansporter_, -1, "crated ResultTransporter FAILED!");
-    CHECK_NOTNULL(traceOps_, -1, "create TraceOps FAILED!");
-
     // get clock times
     if (getClockTimes_) {
         CHECK_TRUE(ReportClockTimes(), -1, "report clock times FAILED!");
@@ -203,6 +197,19 @@ int FlowController::StartCapture(void)
 
     // parse per cpu stats
     CHECK_TRUE(ParsePerCpuStatus(TRACE_START), -1, "parse TRACE_START stats failed!");
+
+    return 0;
+}
+
+int FlowController::StartCapture(void)
+{
+    CHECK_TRUE(ftraceSupported_, -1, "current kernel not support ftrace!");
+    CHECK_NOTNULL(ftraceParser_, -1, "create FtraceParser FAILED!");
+    CHECK_NOTNULL(ksymsParser_, -1, "create KernelSymbolsParser FAILED!");
+    CHECK_NOTNULL(tansporter_, -1, "crated ResultTransporter FAILED!");
+    CHECK_NOTNULL(traceOps_, -1, "create TraceOps FAILED!");
+
+    CHECK_TRUE(ParseBasicData() == 0, -1, "parse basic data failed!");
 
     // create memory pool, and raw data readers, buffers, caches.
     CHECK_TRUE(CreatePagedMemoryPool(), -1, "create paged memory pool failed!");

@@ -15,9 +15,12 @@
 #ifndef TRACE_FILE_HEADER_H
 #define TRACE_FILE_HEADER_H
 
+#include "plugin_module_api.h"
+
 enum DataType {
     HIPROFILER_PROTOBUF_BIN = 0,
     HIPERF_DATA,
+    STANDALONE_DATA = 1000,
 };
 
 struct TraceFileHeader {
@@ -42,8 +45,10 @@ struct TraceFileHeader {
         uint64_t monotonic = 0;
         uint64_t monotonicCoarse = 0;
         uint64_t monotonicRaw = 0;
+        char standalonePluginName[PLUGIN_MODULE_NAME_MAX + 1] = "";
     } __attribute__((packed));
     HeaderData data_ = {};
+    static_assert(sizeof(data_) < HEADER_SIZE, "The max length of the reserved header is 1024 bytes");
     uint8_t padding_[HEADER_SIZE - sizeof(data_)] = {};
 };
 

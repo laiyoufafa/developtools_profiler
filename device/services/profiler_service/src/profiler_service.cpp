@@ -26,6 +26,7 @@
 #include "trace_file_writer.h"
 
 using namespace ::grpc;
+using PluginContextPtr = std::shared_ptr<PluginContext>;
 
 #define CHECK_REQUEST_RESPONSE(context, request, response)         \
     do {                                                          \
@@ -269,7 +270,7 @@ Status ProfilerService::CreateSession(ServerContext* context,
     CHECK_POINTER_NOTNULL(dataRepeater, "alloc ProfilerDataRepeater failed!");
 
     // create ResultDemuxer
-    auto resultDemuxer = std::make_shared<ResultDemuxer>(dataRepeater);
+    auto resultDemuxer = std::make_shared<ResultDemuxer>(dataRepeater, pluginSessionManager_);
     CHECK_POINTER_NOTNULL(resultDemuxer, "alloc ResultDemuxer failed!");
 
     // create TraceFileWriter for offline mode
@@ -277,7 +278,8 @@ Status ProfilerService::CreateSession(ServerContext* context,
     if (sessionConfig.session_mode() == ProfilerSessionConfig::OFFLINE) {
         auto resultFile = sessionConfig.result_file();
         CHECK_EXPRESSION_TRUE(resultFile.size() > 0, "result_file empty!");
-        traceWriter = std::make_shared<TraceFileWriter>(resultFile);
+        traceWriter = std::make_shared<TraceFileWriter>(resultFile, sessionConfig.split_file(),
+            sessionConfig.single_file_max_size_mb());
         CHECK_POINTER_NOTNULL(traceWriter, "alloc TraceFileWriter failed!");
         resultDemuxer->SetTraceWriter(traceWriter);
         for (int i = 0; i < nConfigs; i++) {
@@ -290,6 +292,7 @@ Status ProfilerService::CreateSession(ServerContext* context,
             }
             traceWriter->SetPluginConfig(msgData.data(), msgData.size());
         }
+        traceWriter->Flush();
     }
 
     // create session context
@@ -370,60 +373,48 @@ bool ProfilerService::RemoveSessionContext(uint32_t sessionId)
     return false;
 }
 
-void ProfilerService::MergeHiperfFile(const SessionContextPtr& sessionCtx)
+void ProfilerService::MergeStandaloneFile(const std::string& resultFile,
+    const std::string& pluginName, const std::string& outputFile)
 {
-    auto it = std::find(sessionCtx->pluginNames.begin(), sessionCtx->pluginNames.end(), "hiperf-plugin");
-    if (it == sessionCtx->pluginNames.end()) {
-        return;
-    } else if (sessionCtx->sessionConfig.session_mode() != ProfilerSessionConfig::OFFLINE) {
+    if (pluginName.empty() || outputFile.empty()) {
+        HILOG_ERROR(LOG_CORE, "pluginName(%s) didn't set output file(%s)", pluginName.c_str(), outputFile.c_str());
         return;
     }
 
-    // get hiperf plugin ouput file
-    std::string hiperfFile;
-    for (auto &config : sessionCtx->pluginConfigs) {
-        if (config.name() != "hiperf-plugin") {
-            continue;
-        }
-
-        HiperfPluginConfig hiperfConfig;
-        if (!hiperfConfig.ParseFromArray(config.config_data().data(), config.config_data().size())) {
-            HILOG_ERROR(LOG_CORE, "parse hiperf config failed");
-            return;
-        }
-        hiperfFile = hiperfConfig.outfile_name();
-        break;
-    }
-    if (hiperfFile.empty()) {
-        HILOG_ERROR(LOG_CORE, "didn't set hiperf output file");
+    std::ifstream fsFile {}; // read from output file
+    fsFile.open(outputFile, std::ios_base::in | std::ios_base::binary);
+    if (!fsFile.good()) {
+        HILOG_ERROR(LOG_CORE, "open file(%s) failed: %d", outputFile.c_str(), fsFile.rdstate());
         return;
     }
 
-    std::ifstream fsHiperf {}; // read from hiperf output file
-    fsHiperf.open(hiperfFile, std::ios_base::in | std::ios_base::binary);
-    if (!fsHiperf.good()) {
-        HILOG_ERROR(LOG_CORE, "open file(%s) failed: %d", hiperfFile.c_str(), fsHiperf.rdstate());
-        return;
-    }
-
-    std::string targetFile = sessionCtx->sessionConfig.result_file();
     std::ofstream fsTarget {}; // write to profiler ouput file
-    fsTarget.open(targetFile, std::ios_base::in | std::ios_base::out | std::ios_base::binary);
+    fsTarget.open(resultFile, std::ios_base::in | std::ios_base::out | std::ios_base::binary);
     if (!fsTarget.good()) {
-        HILOG_ERROR(LOG_CORE, "open file(%s) failed: %d", targetFile.c_str(), fsTarget.rdstate());
+        HILOG_ERROR(LOG_CORE, "open file(%s) failed: %d", resultFile.c_str(), fsTarget.rdstate());
         return;
     }
     fsTarget.seekp(0, std::ios_base::end);
-    int posHiperf = fsTarget.tellp(); // for update sha256
+    int posFile = fsTarget.tellp(); // for update sha256
 
     TraceFileHeader header {};
-    header.data_.dataType = DataType::HIPERF_DATA;
-    fsHiperf.seekg(0, std::ios_base::end);
-    uint64_t fileSize = (uint64_t)(fsHiperf.tellg());
+    if (pluginName == "hiperf-plugin") {
+        header.data_.dataType = DataType::HIPERF_DATA;
+    } else {
+        header.data_.dataType = DataType::STANDALONE_DATA;
+    }
+    fsFile.seekg(0, std::ios_base::end);
+    uint64_t fileSize = (uint64_t)(fsFile.tellg());
     header.data_.length += fileSize;
+    size_t pluginSize = sizeof(header.data_.standalonePluginName);
+    int ret = strncpy_s(header.data_.standalonePluginName, pluginSize, pluginName.c_str(), pluginSize - 1);
+    if (ret != EOK) {
+        HILOG_ERROR(LOG_CORE, "strncpy_s error! pluginName is %s", pluginName.c_str());
+        return;
+    }
     fsTarget.write(reinterpret_cast<char*>(&header), sizeof(header));
     if (!fsTarget.good()) {
-        HILOG_ERROR(LOG_CORE, "write file(%s) failed: %d\n", targetFile.c_str(), fsTarget.rdstate());
+        HILOG_ERROR(LOG_CORE, "write file(%s) header failed: %d\n", resultFile.c_str(), fsTarget.rdstate());
         return;
     }
 
@@ -432,12 +423,12 @@ void ProfilerService::MergeHiperfFile(const SessionContextPtr& sessionCtx)
     constexpr uint64_t bufSize = 4 * 1024 * 1024;
     std::vector<char> buf(bufSize);
     uint64_t readSize = 0;
-    fsHiperf.seekg(0);
+    fsFile.seekg(0);
     while ((readSize = std::min(bufSize, fileSize)) > 0) {
-        fsHiperf.read(buf.data(), readSize);
+        fsFile.read(buf.data(), readSize);
         fsTarget.write(buf.data(), readSize);
         if (!fsTarget.good()) {
-            HILOG_ERROR(LOG_CORE, "write file(%s) failed: %d\n", targetFile.c_str(), fsTarget.rdstate());
+            HILOG_ERROR(LOG_CORE, "write file(%s) failed: %d\n", resultFile.c_str(), fsTarget.rdstate());
             return;
         }
         fileSize -= readSize;
@@ -445,13 +436,13 @@ void ProfilerService::MergeHiperfFile(const SessionContextPtr& sessionCtx)
         SHA256_Update(&sha256Ctx, buf.data(), readSize);
     }
     SHA256_Final(header.data_.sha256, &sha256Ctx);
-    fsTarget.seekp(posHiperf, std::ios_base::beg);
+    fsTarget.seekp(posFile, std::ios_base::beg);
     fsTarget.write(reinterpret_cast<char*>(&header), sizeof(header));
 
-    fsHiperf.close();
+    fsFile.close();
     fsTarget.close();
 
-    HILOG_INFO(LOG_CORE, "write hiperf file done");
+    HILOG_INFO(LOG_CORE, "write standalone(%s) to result(%s) done", outputFile.c_str(), resultFile.c_str());
 }
 
 Status ProfilerService::StartSession(ServerContext* context,
@@ -577,7 +568,10 @@ Status ProfilerService::StopSession(ServerContext* context,
 
     auto ctx = GetSessionContext(sessionId);
     CHECK_POINTER_NOTNULL(ctx, "session_id invalid!");
-
+    if (ctx->sessionConfig.session_mode() == ProfilerSessionConfig::OFFLINE) {
+        CHECK_POINTER_NOTNULL(ctx->traceFileWriter, "traceFileWriter invalid!");
+        ctx->traceFileWriter.get()->SetStopSplitFile(true);
+    }
     CHECK_EXPRESSION_TRUE(ctx->StopPluginSessions(), "stop plugin sessions failed!");
     HILOG_INFO(LOG_CORE, "StopSession %d %u done!", request->request_id(), sessionId);
     return Status::OK;
@@ -601,7 +595,21 @@ Status ProfilerService::DestroySession(ServerContext* context,
                           "remove plugin session FAILED!");
     HILOG_INFO(LOG_CORE, "DestroySession %d %u done!", request->request_id(), sessionId);
 
-    MergeHiperfFile(ctx);
+    if (ctx->sessionConfig.session_mode() == ProfilerSessionConfig::OFFLINE) {
+        uint32_t pluginId = 0;
+        PluginContextPtr pluginCtx = nullptr;
+        for (size_t i = 0; i < ctx->pluginNames.size(); i++) {
+            auto pluginName = ctx->pluginNames[i];
+            std::tie(pluginId, pluginCtx) = pluginService_->GetPluginContext(pluginName);
+            if (pluginCtx->isStandaloneFileData == true) {
+                std::string file = ctx->sessionConfig.result_file();
+                if (ctx->sessionConfig.split_file() && ctx->sessionConfig.single_file_max_size_mb() > 0) {
+                    file = ctx->traceFileWriter.get()->Path();
+                }
+                MergeStandaloneFile(file, pluginName, pluginCtx->outFileName);
+            }
+        }
+    }
 
     return Status::OK;
 }
