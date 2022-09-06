@@ -21,12 +21,9 @@
 #include <sys/time.h>
 #include <pthread.h>
 #include <sys/prctl.h>
-#include <unordered_set>
-
 #include "hook_common.h"
 #include "hook_socket_client.h"
 #include "musl_preinit_common.h"
-#include "parameter.h"
 #include "stack_writer.h"
 #include "runtime_stack_range.h"
 #include "register.h"
@@ -36,24 +33,17 @@
 
 static __thread bool ohos_malloc_hook_enable_hook_flag = true;
 namespace {
-#ifdef PERFORMANCE_DEBUG
 static std::atomic<uint64_t> timeCost = 0;
 static std::atomic<uint64_t> mallocTimes = 0;
-static std::atomic<uint64_t> mallocIgnoreTimes = 0;
-static std::atomic<uint64_t> freeIgnoreTimes = 0;
 static std::atomic<uint64_t> dataCounts = 0;
-constexpr int PRINT_INTERVAL = 5000;
-constexpr uint64_t S_TO_NS = 1000 * 1000 * 1000;
-#endif
 using OHOS::Developtools::NativeDaemon::buildArchType;
 static std::shared_ptr<HookSocketClient> g_hookClient;
 std::recursive_timed_mutex g_ClientMutex;
 std::atomic<const MallocDispatchType*> g_dispatch {nullptr};
 constexpr int TIMEOUT_MSEC = 2000;
+constexpr int PRINT_INTERVAL = 5000;
+constexpr uint64_t S_TO_NS = 1000 * 1000 * 1000;
 static pid_t g_hookPid = 0;
-static uint32_t g_minSize = 0;
-static uint32_t g_maxSize = INT_MAX;
-static std::unordered_set<void *> g_mallocIgnoreSet;
 const MallocDispatchType* GetDispatch()
 {
     return g_dispatch.load(std::memory_order_relaxed);
@@ -75,21 +65,6 @@ bool ohos_malloc_hook_on_start(void)
     }
     GetMainThreadRuntimeStackRange();
     g_hookPid = getpid();
-    g_minSize = g_hookClient->GetFilterSize();
-    constexpr int paramBufferLen = 128;
-    char paramOutBuf[paramBufferLen] = {0};
-    int ret = GetParameter("persist.hiviewdfx.profiler.mem.filter", "", paramOutBuf, paramBufferLen);
-    if (ret >= 0) {
-        int min = 0;
-        int max = 0;
-        if (sscanf_s(paramOutBuf, "%d,%d", &min, &max) != -1) {
-            g_maxSize = max > 0 ? max : INT_MAX;
-            g_minSize = min > 0 ? min : 0;
-        }
-        HILOG_INFO(LOG_CORE, "persist.hiviewdfx.profiler.mem.filter %s, min %d, max %d",
-            paramOutBuf, g_minSize, g_maxSize);
-    }
-    HILOG_INFO(LOG_CORE, "ohos_malloc_hook_on_start");
     return true;
 }
 
@@ -97,8 +72,6 @@ bool ohos_malloc_hook_on_end(void)
 {
     std::lock_guard<std::recursive_timed_mutex> guard(g_ClientMutex);
     g_hookClient = nullptr;
-    g_mallocIgnoreSet.clear();
-    HILOG_INFO(LOG_CORE, "ohos_malloc_hook_on_end");
     return true;
 }
 
@@ -131,20 +104,9 @@ void* hook_malloc(void* (*fn)(size_t), size_t size)
     if (g_hookClient == nullptr) {
         return ret;
     }
-    if ((size < g_minSize) || (size > g_maxSize) || g_hookClient->GetMallocDisable()) {
-        std::lock_guard<std::recursive_timed_mutex> guard(g_ClientMutex);
-        g_mallocIgnoreSet.insert(ret);
-#ifdef PERFORMANCE_DEBUG
-        mallocIgnoreTimes++;
-        if (mallocIgnoreTimes % PRINT_INTERVAL == 0) {
-            HILOG_ERROR(LOG_CORE,
-                "mallocIgnoreTimes %" PRIu64" freeIgnoreTimes = %" PRIu64" , Set Size %d.\n",
-                mallocIgnoreTimes.load(), freeIgnoreTimes.load(), g_mallocIgnoreSet.size());
-        }
-#endif
+    if ((size < g_hookClient->GetFilterSize()) || g_hookClient->GetMallocDisable()) {
         return ret;
     }
-
 #ifdef PERFORMANCE_DEBUG
     struct timespec start = {};
     clock_gettime(CLOCK_REALTIME, &start);
@@ -284,23 +246,11 @@ void hook_free(void (*free_func)(void*), void* p)
     if (g_hookClient->GetMallocDisable()) {
         return;
     }
-    {
-        std::lock_guard<std::recursive_timed_mutex> guard(g_ClientMutex);
-        auto record = g_mallocIgnoreSet.find(p);
-        if (record != g_mallocIgnoreSet.end()) {
-            g_mallocIgnoreSet.erase(record);
-#ifdef PERFORMANCE_DEBUG
-            freeIgnoreTimes++;
-#endif
-            return;
-        }
-    }
     StackRawData rawdata = {{{0}}};
     const char* stackptr = nullptr;
     const char* stackendptr = nullptr;
     int stackSize = 0;
     clock_gettime(CLOCK_REALTIME, &rawdata.ts);
-
     if (g_hookClient->GetFreeStackData()) {
         if (g_hookClient->GetFpunwind()) {
 #ifdef __aarch64__
