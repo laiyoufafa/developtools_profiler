@@ -603,7 +603,7 @@ Status ProfilerService::DestroySession(ServerContext* context,
             std::tie(pluginId, pluginCtx) = pluginService_->GetPluginContext(pluginName);
             if (pluginCtx->isStandaloneFileData == true) {
                 std::string file = ctx->sessionConfig.result_file();
-                if (ctx->sessionConfig.split_file() && ctx->sessionConfig.single_file_max_size_mb() > 0) {
+                if (ctx->sessionConfig.split_file()) {
                     file = ctx->traceFileWriter.get()->Path();
                 }
                 MergeStandaloneFile(file, pluginName, pluginCtx->outFileName);
