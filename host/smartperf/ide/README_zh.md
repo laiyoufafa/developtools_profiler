@@ -43,7 +43,7 @@ npm install -g typescript
 ### 1.2 go 编译环境安装:
 - ubuntu 环境下直接使用apt安装:
 ```
-   apt-get install golang-go
+  apt-get install golang-go
 ```
 - centos 系统中 使用yum 安装，命令如下：
 
