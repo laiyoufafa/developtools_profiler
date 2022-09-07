@@ -22,8 +22,9 @@
 StackWriter::StackWriter(std::string name,
                          uint32_t size,
                          int smbFd,
-                         int eventFd)
-    : pluginName_(name)
+                         int eventFd,
+                         bool blocked)
+    : pluginName_(name), blocked_(blocked)
 {
     HILOG_INFO(LOG_CORE, "%s:%s %d [%d] [%d]", __func__, name.c_str(), size, smbFd, eventFd);
     shareMemoryBlock_ = ShareMemoryAllocator::GetInstance().CreateMemoryBlockRemote(name, size, smbFd);
@@ -76,8 +77,13 @@ long StackWriter::WriteWithPayloadTimeout(const void* data, size_t size, const v
     if (shareMemoryBlock_ == nullptr || data == nullptr || size == 0) {
         return false;
     }
+    if (blocked_) {
+    return shareMemoryBlock_->PutWithPayloadSync(
+        reinterpret_cast<const int8_t*>(data), size, reinterpret_cast<const int8_t*>(payload), payloadSize);
+    } else {
     return shareMemoryBlock_->PutWithPayloadTimeout(
         reinterpret_cast<const int8_t*>(data), size, reinterpret_cast<const int8_t*>(payload), payloadSize);
+    }
 }
 
 bool StackWriter::Flush()

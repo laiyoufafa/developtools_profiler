@@ -41,6 +41,7 @@ enum {
     FREEMSGSTACK = (1u << 2),
     MUNMAPMSGSTACK = (1u << 3),
     FPUNWIND = (1u << 4),
+    BLOCKED = (1u << 5),
 };
 
 enum {

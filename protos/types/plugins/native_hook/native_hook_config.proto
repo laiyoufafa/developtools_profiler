@@ -33,4 +33,5 @@ message NativeHookConfig {
     uint32 malloc_free_matching_cnt = 13;
     bool string_compressed = 14;
     bool fp_unwind = 15;
+    bool blocked = 16;
 }
