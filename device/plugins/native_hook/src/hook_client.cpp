@@ -65,10 +65,10 @@ bool ohos_malloc_hook_on_start(void)
     }
     g_hookPid = getpid();
     g_hookClient = std::make_shared<HookSocketClient>(g_hookPid);
-    GetMainThreadRuntimeStackRange();
     pthread_key_create(&g_disableHookFlag, nullptr);
     pthread_setspecific(g_disableHookFlag, nullptr);
     HILOG_INFO(LOG_CORE, "ohos_malloc_hook_on_start");
+    GetMainThreadRuntimeStackRange();
     return true;
 }
 
@@ -484,56 +484,56 @@ void ohos_malloc_hook_finalize(void)
 
 void* ohos_malloc_hook_malloc(size_t size)
 {
-    ohos_malloc_hook_set_hook_flag(false);
+    __set_hook_flag(false);
     void* ret = hook_malloc(GetDispatch()->malloc, size);
-    ohos_malloc_hook_set_hook_flag(true);
+    __set_hook_flag(true);
     return ret;
 }
 
 void* ohos_malloc_hook_realloc(void* ptr, size_t size)
 {
-    ohos_malloc_hook_set_hook_flag(false);
+    __set_hook_flag(false);
     void* ret = hook_realloc(GetDispatch()->realloc, ptr, size);
-    ohos_malloc_hook_set_hook_flag(true);
+    __set_hook_flag(true);
     return ret;
 }
 
 void* ohos_malloc_hook_calloc(size_t number, size_t size)
 {
-    ohos_malloc_hook_set_hook_flag(false);
+    __set_hook_flag(false);
     void* ret = hook_calloc(GetDispatch()->calloc, number, size);
-    ohos_malloc_hook_set_hook_flag(true);
+    __set_hook_flag(true);
     return ret;
 }
 
 void* ohos_malloc_hook_valloc(size_t size)
 {
-    ohos_malloc_hook_set_hook_flag(false);
+    __set_hook_flag(false);
     void* ret = hook_valloc(GetDispatch()->valloc, size);
-    ohos_malloc_hook_set_hook_flag(true);
+    __set_hook_flag(true);
     return ret;
 }
 
 void ohos_malloc_hook_free(void* p)
 {
-    ohos_malloc_hook_set_hook_flag(false);
+    __set_hook_flag(false);
     hook_free(GetDispatch()->free, p);
-    ohos_malloc_hook_set_hook_flag(true);
+    __set_hook_flag(true);
 }
 
 void* ohos_malloc_hook_memalign(size_t alignment, size_t bytes)
 {
-    ohos_malloc_hook_set_hook_flag(false);
+    __set_hook_flag(false);
     void* ret = hook_memalign(GetDispatch()->memalign, alignment, bytes);
-    ohos_malloc_hook_set_hook_flag(true);
+    __set_hook_flag(true);
     return ret;
 }
 
 size_t ohos_malloc_hook_malloc_usable_size(void* mem)
 {
-    ohos_malloc_hook_set_hook_flag(false);
+    __set_hook_flag(false);
     size_t ret = hook_malloc_usable_size(GetDispatch()->malloc_usable_size, mem);
-    ohos_malloc_hook_set_hook_flag(true);
+    __set_hook_flag(true);
     return ret;
 }
 
@@ -555,23 +555,23 @@ bool ohos_malloc_hook_set_hook_flag(bool flag)
 
 void* ohos_malloc_hook_mmap(void* addr, size_t length, int prot, int flags, int fd, off_t offset)
 {
-    ohos_malloc_hook_set_hook_flag(false);
+    __set_hook_flag(false);
     void* ret = hook_mmap(GetDispatch()->mmap, addr, length, prot, flags, fd, offset);
-    ohos_malloc_hook_set_hook_flag(true);
+    __set_hook_flag(true);
     return ret;
 }
 
 int ohos_malloc_hook_munmap(void* addr, size_t length)
 {
-    ohos_malloc_hook_set_hook_flag(false);
+    __set_hook_flag(false);
     int ret = hook_munmap(GetDispatch()->munmap, addr, length);
-    ohos_malloc_hook_set_hook_flag(true);
+    __set_hook_flag(true);
     return ret;
 }
 
 void ohos_malloc_hook_memtag(void* addr, size_t size, char* tag, size_t tagLen)
 {
-    ohos_malloc_hook_set_hook_flag(false);
+    __set_hook_flag(false);
     if (g_hookPid != getpid()) {
         return;
     }
@@ -601,5 +601,5 @@ void ohos_malloc_hook_memtag(void* addr, size_t size, char* tag, size_t tagLen)
     if (g_hookClient != nullptr) {
         g_hookClient->SendStack(&rawdata, sizeof(rawdata));
     }
-    ohos_malloc_hook_set_hook_flag(true);
+    __set_hook_flag(true);
 }
