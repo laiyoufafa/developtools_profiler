@@ -74,7 +74,6 @@ ohos_unittest("nativehook_ut") {
     "-Wno-inconsistent-missing-override",
     "-Dprivate=public",  #allow test code access private members
     "-Dprotected=public",  #allow test code access private members
-    "-fno-emulated-tls",
   ]
 
   external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
