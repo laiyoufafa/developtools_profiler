@@ -78,11 +78,11 @@ long StackWriter::WriteWithPayloadTimeout(const void* data, size_t size, const v
         return false;
     }
     if (blocked_) {
-    return shareMemoryBlock_->PutWithPayloadSync(
-        reinterpret_cast<const int8_t*>(data), size, reinterpret_cast<const int8_t*>(payload), payloadSize);
+        return shareMemoryBlock_->PutWithPayloadSync(
+            reinterpret_cast<const int8_t*>(data), size, reinterpret_cast<const int8_t*>(payload), payloadSize);
     } else {
-    return shareMemoryBlock_->PutWithPayloadTimeout(
-        reinterpret_cast<const int8_t*>(data), size, reinterpret_cast<const int8_t*>(payload), payloadSize);
+        return shareMemoryBlock_->PutWithPayloadTimeout(
+            reinterpret_cast<const int8_t*>(data), size, reinterpret_cast<const int8_t*>(payload), payloadSize);
     }
 }
 
