@@ -21,7 +21,6 @@ config("cflags_config") {
     "-Wno-shift-count-overflow",
     "-Wno-missing-braces",
     "-O3",
-    "-fno-emulated-tls",
   ]
 }
 
