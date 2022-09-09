@@ -49,12 +49,13 @@ enum {
     MMAP_MSG,
     MUNMAP_MSG,
     MEMORY_TAG,
+    PR_SET_VMA_MSG,
 };
 
 typedef struct alignas(8) {
     union {
         char regs[kMaxRegSize];
-        uint64_t ip[MAX_UNWIND_DEPTH];
+        uint64_t ip[MAX_UNWIND_DEPTH + 1];
     };
     char tname[MAX_THREAD_NAME];
     struct timespec ts;
@@ -64,5 +65,15 @@ typedef struct alignas(8) {
     uint32_t tid;
     uint32_t type;
 } StackRawData;
+
+typedef struct {
+    uint32_t filterSize_;
+    bool mallocDisable_;
+    bool mmapDisable_;
+    bool freeStackData_;
+    bool munmapStackData_;
+    uint8_t maxStackDepth_;
+    bool fpunwind_;
+} ClientConfig;
 
 #endif // HOOK_SERVICE_H

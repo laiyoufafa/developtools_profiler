@@ -75,7 +75,7 @@ public:
                      pid_t tid,
                      std::vector<CallFrame>& callsFrames,
                      size_t maxStackLevel);
-    bool GetSymbolName(pid_t pid, pid_t tid, std::vector<CallFrame>& callsFrames, int offset);
+    bool GetSymbolName(pid_t pid, pid_t tid, std::vector<CallFrame>& callsFrames, int offset, bool first);
     void ClearMaps();
     // debug time
 #ifdef HIPERF_DEBUG_TIME
@@ -87,6 +87,8 @@ public:
 #endif
     const bool loadSymboleWhenNeeded_ = true; // thie is a feature config
     void UpdateSymbols(std::string filename);
+    bool IsSymbolExist(std::string fileName);
+    void UpdateMaps(pid_t pid, pid_t tid);
 private:
     CallStack callstack_;
     // pid map with user space thread
@@ -124,6 +126,7 @@ private:
     friend class VirtualThread;
     pthread_mutex_t threadMemMapsLock_;
     std::vector<MemMapItem> processMemMaps_;
+    std::unordered_set<uint64_t> failedIPs_;
 };
 } // namespace NativeDaemon
 } // namespace Developtools

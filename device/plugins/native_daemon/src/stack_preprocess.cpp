@@ -153,7 +153,7 @@ void StackPreprocess::TakeResults()
             std::vector<CallFrame> callsFrames;
 
             if (hookConfig_.fp_unwind()) {
-                for (int idx = 1; idx < MAX_UNWIND_DEPTH; ++idx) {
+                for (int idx = 1; idx < MAX_UNWIND_DEPTH + 1; ++idx) {
                     if (rawData->stackConext.ip[idx] == 0) {
                         break;
                     }
@@ -188,29 +188,20 @@ void StackPreprocess::TakeResults()
             bool ret = runtime_instance->UnwindStack(u64regs, rawData->stackData.get(), rawData->stackSize,
                 rawData->stackConext.pid, rawData->stackConext.tid, callsFrames,
                 stackDepth);
-            if (!ret && !unwindErrorFlag_) {
-                HILOG_ERROR(LOG_CORE, "unwind error, try unwind twice");
-                runtime_instance = nullptr;
-                runtime_instance = std::make_shared<VirtualRuntime>();
-                callsFrames.clear();
-                ret = runtime_instance->UnwindStack(u64regs, rawData->stackData.get(),
-                    rawData->stackSize, rawData->stackConext.pid,
-                    rawData->stackConext.tid, callsFrames,
-                    stackDepth);
-                if (!ret) {
-                    unwindErrorFlag_ = true;
-                    HILOG_ERROR(LOG_CORE, "unwind fatal error, do not try unwind twice!");
-                    continue;
-                }
-#ifdef PERFORMANCE_DEBUG
-                struct timespec twiceEnd = {};
-                clock_gettime(CLOCK_REALTIME, &twiceEnd);
-                uint64_t diff = (twiceEnd.tv_sec - start.tv_sec) * MAX_MATCH_CNT * MAX_MATCH_CNT * MAX_MATCH_CNT +
-                    (twiceEnd.tv_nsec - start.tv_nsec);
-                HILOG_ERROR(LOG_CORE, "unwind twice cost time = %" PRIu64"\n", diff);
-#endif
+            if (!ret) {
+                HILOG_ERROR(LOG_CORE, "unwind fatal error");
+                continue;
             }
-
+            if (rawData->stackConext.type == MMAP_MSG) {
+                // if mmap msg trigger by dlopen, update maps voluntarily
+                for (auto &callsFrame : callsFrames) {
+                    if (callsFrame.symbolName_ == "dlopen") {
+                        HILOG_INFO(LOG_CORE, "mmap msg trigger by dlopen, update maps voluntarily");
+                        runtime_instance->UpdateMaps(rawData->stackConext.pid, rawData->stackConext.tid);
+                        break;
+                    }
+                 }
+            }
 #ifdef PERFORMANCE_DEBUG
             struct timespec end = {};
             clock_gettime(CLOCK_REALTIME, &end);
