@@ -1,10 +1,11 @@
-## 一、简介
+# SP_daemon
+## 简介
 
 - OpenHarmony性能测试工具SmartPerf 命令行版本，可采集CPU、GPU、Temperature、Power、应用RAM、FPS等指标，通过设置采集指标，对采集数据进行实时打印、导出csv。
 
-- 带屏幕的设备且性能较好的设备推荐使用UI版本，性能较差或无屏幕设备请使用[命令行版本](https://gitee.com/openharmony/developtools_profiler/blob/master/host/smartperf/client/client_command/README.md)
+- 性能较差或无屏幕设备请使用命令行版本,带屏幕的设备且性能较好的设备推荐使用[UI版本](https://gitee.com/openharmony/developtools_profiler/blob/master/host/smartperf/client/client_ui/README_zh.md)。
 
-## 二、代码目录
+## 代码目录
 ```
 /developtools/profiler/host/smartperf/client/client_command
 ├── include                                     # 头文件目录
@@ -25,32 +26,31 @@
 ├── Temperature.cpp                             # 温度采集代码文件
 ```
 
-## 三、约束条件
-1、SmartPerf应用在3.2系统版本后开始预制使用;
+## 约束条件
+   SmartPerf应用在3.2系统版本后开始预制使用。
 
-## 四、功能特性
+## 功能特性
 
-**1、参数说明**
+**1. 参数说明**
 
 | 命令   | 功能                   |是否必选|
 | :-----| :--------------------- |:-----|
-| -N    | 设置采集次数             |是|
-| -PKG  | 设置包名                |否|
-| -PID  | 设置进程pid(对于ram适用) |否|
-| -OUT  | 设置csv输出目录          |否|
-| -c    | 是否采集cpu             |否|
-| -g    | 是否采集gpu             |否|
-| -f    | 是否采集fps             |否|
-| -t    | 是否采集温度             |否|
-| -p    | 是否采集电流             |否|
-| -r    | 是否采集内存(需指定进程pid)             |否|
-| -snapshot    | 是否截图            |否|
+| -N    | 设置采集次数。             |是|
+| -PKG  | 设置包名。                |否|
+| -PID  | 设置进程pid(对于ram适用)。 |否|
+| -OUT  | 设置csv输出目录。          |否|
+| -c    | 是否采集cpu。            |否|
+| -g    | 是否采集gpu。             |否|
+| -f    | 是否采集fps。             |否|
+| -t    | 是否采集温度。             |否|
+| -p    | 是否采集电流。             |否|
+| -r    | 是否采集内存(需指定进程pid)。             |否|
+| -snapshot    | 是否截图。            |否|
 
 ---
 
-
-**2、使用方式**
->1、目前命令行版本已系统预制，可以进入shell，执行SP_daemon --help查看
+**2. 使用方式**<br>
+1）目前命令行版本已系统预制，可以进入shell，执行SP_daemon --help查看。
 
 ```bash
 C:\Users\test>hdc_std shell
@@ -76,7 +76,7 @@ Example: SP_daemon -N 20 -PKG ohos.samples.ecg -c -g -t -p -f
 command exec finished!
 #
 ```
->2、执行示例命令：SP_daemon -N 20 -PKG ohos.samples.ecg -c -g -t -p -f
+2）执行示例命令：SP_daemon -N 20 -PKG ohos.samples.ecg -c -g -t -p -f。
 ```
 ----------------------------------Print START------------------------------------
 order:0 cpu0freq=1992000
@@ -113,7 +113,7 @@ order:13 timestamp=1501925597848
 order:14 voltage_now=4123456.000000
 ----------------------------------Print END--------------------------------------
 ```
->3、执行完毕后会在data/local/tmp生成data.csv文件，每次执行命令覆盖写入
+3）执行完毕后会在data/local/tmp生成data.csv文件，每次执行命令覆盖写入。
 ```bash
 # cat /data/local/tmp/data.csv
 cpu0freq,cpu0load,cpu1freq,cpu1load,cpu2freq,cpu2load,cpu3freq,cpu3load,current_now,gpu-thermal,gpufreq,gpuload,soc-thermal,timestamp,voltage_now
@@ -123,13 +123,9 @@ cpu0freq,cpu0load,cpu1freq,cpu1load,cpu2freq,cpu2load,cpu3freq,cpu3load,current_
 ```
 ---
 
+## 发布版本
 
-
-## 五、发布版本
-
-**1、3.2.0.0版本**
-
->**发布内容：预制SP_daemon bin文件，支持以下功能**<br>
-1、支持RK3568、Hi3516;<br>
-2、支持Shell启动;<br>
-3、支持采集整机CPU、GPU、POWER、TEMPERATURE、应用的FPS、RAM。
+**3.2.0.0版本发布内容：预制SP_daemon bin文件，支持以下功能：**<br>
+1. 支持RK3568、Hi3516。<br>
+2. 支持Shell启动。<br>
+3. 支持采集整机CPU、GPU、POWER、TEMPERATURE、应用的FPS、RAM。

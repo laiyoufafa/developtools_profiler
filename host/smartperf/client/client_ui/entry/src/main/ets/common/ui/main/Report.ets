@@ -73,6 +73,10 @@ export struct Report {
                   })
 
               }.margin({ left: '5%', top: '2%', bottom: '2%', right: '2%' }).onClick(() => {
+                if(item.testDuration <= 3) {
+                  prompt.showToast({message: "测试时长过短", duration: 1000})
+                  return
+                }
                 let databasePath: string = item.dbPath
                 //截取时间戳
                 let timeStamp = databasePath.substring(databasePath.lastIndexOf("/") + 1, databasePath.length)
