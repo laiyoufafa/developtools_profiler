@@ -31,7 +31,7 @@
 #include "get_thread_id.h"
 #include "hook_client.h"
 
-static __thread bool ohos_malloc_hook_enable_hook_flag = true;
+static pthread_key_t g_disableHookFlag;
 namespace {
 static std::atomic<uint64_t> timeCost = 0;
 static std::atomic<uint64_t> mallocTimes = 0;
@@ -44,6 +44,7 @@ constexpr int TIMEOUT_MSEC = 2000;
 constexpr int PRINT_INTERVAL = 5000;
 constexpr uint64_t S_TO_NS = 1000 * 1000 * 1000;
 static pid_t g_hookPid = 0;
+static ClientConfig g_ClientConfig = {0};
 const MallocDispatchType* GetDispatch()
 {
     return g_dispatch.load(std::memory_order_relaxed);
@@ -59,12 +60,17 @@ void FinalizeIPC() {}
 bool ohos_malloc_hook_on_start(void)
 {
     std::lock_guard<std::recursive_timed_mutex> guard(g_ClientMutex);
-
-    if (g_hookClient == nullptr) {
-        g_hookClient = std::make_shared<HookSocketClient>(getpid());
-    }
-    GetMainThreadRuntimeStackRange();
     g_hookPid = getpid();
+    if (g_hookClient != nullptr) {
+        HILOG_INFO(LOG_CORE, "hook already started");
+        return true;
+    } else {
+        g_hookClient = std::make_shared<HookSocketClient>(g_hookPid, &g_ClientConfig);
+    }
+    pthread_key_create(&g_disableHookFlag, nullptr);
+    pthread_setspecific(g_disableHookFlag, nullptr);
+    HILOG_INFO(LOG_CORE, "ohos_malloc_hook_on_start");
+    GetMainThreadRuntimeStackRange();
     return true;
 }
 
@@ -72,6 +78,8 @@ bool ohos_malloc_hook_on_end(void)
 {
     std::lock_guard<std::recursive_timed_mutex> guard(g_ClientMutex);
     g_hookClient = nullptr;
+    pthread_key_delete(g_disableHookFlag);
+    HILOG_INFO(LOG_CORE, "ohos_malloc_hook_on_end");
     return true;
 }
 
@@ -79,7 +87,7 @@ static void inline __attribute__((always_inline)) FpUnwind(int maxDepth, uint64_
 {
     void **startfp = (void **)__builtin_frame_address(0);
     void **fp = startfp;
-    for (int i = 0; i < maxDepth; i++) {
+    for (int i = 0; i < maxDepth + 1; i++) {
         ip[i] = *(unsigned long *)(fp + 1);
         void **nextFp = (void **)*fp;
         if (nextFp <= fp) {
@@ -98,15 +106,10 @@ void* hook_malloc(void* (*fn)(size_t), size_t size)
     if (fn) {
         ret = fn(size);
     }
-    if (g_hookPid != getpid()) {
-        return ret;
-    }
-    if (g_hookClient == nullptr) {
-        return ret;
-    }
-    if ((size < g_hookClient->GetFilterSize()) || g_hookClient->GetMallocDisable()) {
-        return ret;
-    }
+    if ((g_hookPid != getpid())
+        || g_ClientConfig.mallocDisable_ || (size < g_ClientConfig.filterSize_)) {
+         return ret;
+     }
 #ifdef PERFORMANCE_DEBUG
     struct timespec start = {};
     clock_gettime(CLOCK_REALTIME, &start);
@@ -117,12 +120,12 @@ void* hook_malloc(void* (*fn)(size_t), size_t size)
     int stackSize = 0;
     clock_gettime(CLOCK_REALTIME, &rawdata.ts);
 
-    if (g_hookClient->GetFpunwind()) {
+    if (g_ClientConfig.fpunwind_) {
 #ifdef __aarch64__
         stackptr = reinterpret_cast<const char*>(__builtin_frame_address(0));
         GetRuntimeStackEnd(stackptr, &stackendptr);  // stack end pointer
         stackSize = stackendptr - stackptr;
-        FpUnwind(g_hookClient->GetMaxStackDepth(), rawdata.ip, stackSize);
+        FpUnwind(g_ClientConfig.maxStackDepth_, rawdata.ip, stackSize);
         stackSize = 0;
 #endif
     } else {
@@ -151,7 +154,6 @@ void* hook_malloc(void* (*fn)(size_t), size_t size)
         GetRuntimeStackEnd(stackptr, &stackendptr);  // stack end pointer
         stackSize = stackendptr - stackptr;
     }
-
     rawdata.type = MALLOC_MSG;
     rawdata.pid = getpid();
     rawdata.tid = get_thread_id();
@@ -166,6 +168,7 @@ void* hook_malloc(void* (*fn)(size_t), size_t size)
         HILOG_ERROR(LOG_CORE, "lock hook_malloc failed!");
         return ret;
     }
+
     if (g_hookClient != nullptr) {
         g_hookClient->SendStackWithPayload(&rawdata, sizeof(rawdata), stackptr, stackSize);
     }
@@ -236,28 +239,22 @@ void hook_free(void (*free_func)(void*), void* p)
     if (free_func) {
         free_func(p);
     }
-    if (g_hookPid != getpid()) {
-        return;
-    }
-    if (g_hookClient == nullptr) {
-        return;
-    }
-
-    if (g_hookClient->GetMallocDisable()) {
-        return;
+    if ((g_hookPid != getpid()) || g_ClientConfig.mallocDisable_) {
+         return;
     }
     StackRawData rawdata = {{{0}}};
     const char* stackptr = nullptr;
     const char* stackendptr = nullptr;
     int stackSize = 0;
     clock_gettime(CLOCK_REALTIME, &rawdata.ts);
-    if (g_hookClient->GetFreeStackData()) {
-        if (g_hookClient->GetFpunwind()) {
+
+    if (g_ClientConfig.freeStackData_) {
+        if (g_ClientConfig.fpunwind_) {
 #ifdef __aarch64__
             stackptr = reinterpret_cast<const char*>(__builtin_frame_address(0));
             GetRuntimeStackEnd(stackptr, &stackendptr);  // stack end pointer
             stackSize = stackendptr - stackptr;
-            FpUnwind(g_hookClient->GetMaxStackDepth(), rawdata.ip, stackSize);
+            FpUnwind(g_ClientConfig.maxStackDepth_, rawdata.ip, stackSize);
             stackSize = 0;
 #endif
         } else {
@@ -302,6 +299,7 @@ void hook_free(void (*free_func)(void*), void* p)
         HILOG_ERROR(LOG_CORE, "lock hook_free failed!");
         return;
     }
+
     if (g_hookClient != nullptr) {
         g_hookClient->SendStackWithPayload(&rawdata, sizeof(rawdata), stackptr, stackSize);
     }
@@ -314,28 +312,21 @@ void* hook_mmap(void*(*fn)(void*, size_t, int, int, int, off_t),
     if (fn) {
         ret = fn(addr, length, prot, flags, fd, offset);
     }
-    if (g_hookPid != getpid()) {
+    if (g_hookPid != getpid() || g_ClientConfig.mmapDisable_) {
         return ret;
     }
-    if (g_hookClient == nullptr) {
-        return ret;
-    }
-    if (g_hookClient->GetMmapDisable()) {
-        return ret;
-    }
-
     StackRawData rawdata = {{{0}}};
     const char* stackptr = nullptr;
     const char* stackendptr = nullptr;
     int stackSize = 0;
     clock_gettime(CLOCK_REALTIME, &rawdata.ts);
 
-    if (g_hookClient->GetFpunwind()) {
+    if (g_ClientConfig.fpunwind_) {
 #ifdef __aarch64__
         stackptr = reinterpret_cast<const char*>(__builtin_frame_address(0));
         GetRuntimeStackEnd(stackptr, &stackendptr);  // stack end pointer
         stackSize = stackendptr - stackptr;
-        FpUnwind(g_hookClient->GetMaxStackDepth(), rawdata.ip, stackSize);
+        FpUnwind(g_ClientConfig.maxStackDepth_, rawdata.ip, stackSize);
         stackSize = 0;
 #endif
     } else {
@@ -391,30 +382,22 @@ int hook_munmap(int(*fn)(void*, size_t), void* addr, size_t length)
     if (fn) {
         ret = fn(addr, length);
     }
-    if (g_hookPid != getpid()) {
+    if (g_hookPid != getpid() || g_ClientConfig.mmapDisable_) {
         return ret;
     }
-    if (g_hookClient == nullptr) {
-        return ret;
-    }
-
-    if (g_hookClient->GetMmapDisable()) {
-        return ret;
-    }
-
     int stackSize = 0;
     StackRawData rawdata = {{{0}}};
     const char* stackptr = nullptr;
     const char* stackendptr = nullptr;
     clock_gettime(CLOCK_REALTIME, &rawdata.ts);
 
-    if (g_hookClient->GetMunmapStackData()) {
-        if (g_hookClient->GetFpunwind()) {
+    if (g_ClientConfig.munmapStackData_) {
+        if (g_ClientConfig.fpunwind_) {
 #ifdef __aarch64__
             stackptr = reinterpret_cast<const char*>(__builtin_frame_address(0));
             GetRuntimeStackEnd(stackptr, &stackendptr);  // stack end pointer
             stackSize = stackendptr - stackptr;
-            FpUnwind(g_hookClient->GetMaxStackDepth(), rawdata.ip, stackSize);
+            FpUnwind(g_ClientConfig.maxStackDepth_, rawdata.ip, stackSize);
             stackSize = 0;
 #endif
         } else {
@@ -461,6 +444,43 @@ int hook_munmap(int(*fn)(void*, size_t), void* addr, size_t length)
     }
     if (g_hookClient != nullptr) {
         g_hookClient->SendStackWithPayload(&rawdata, sizeof(rawdata), stackptr, stackSize);
+    }
+    return ret;
+}
+
+int hook_prctl(int(*fn)(int, ...),
+    int option, unsigned long arg2, unsigned long arg3, unsigned long arg4, unsigned long arg5)
+{
+    int ret = -1;
+    if (fn) {
+        ret = fn(option,arg2, arg3, arg4, arg5);
+    }
+    if (g_hookPid != getpid()) {
+        return ret;
+    }
+    if (option == PR_SET_VMA && arg2 == PR_SET_VMA_ANON_NAME) {
+        StackRawData rawdata = {{{0}}};
+        clock_gettime(CLOCK_REALTIME, &rawdata.ts);
+        rawdata.type = PR_SET_VMA_MSG;
+        rawdata.pid = getpid();
+        rawdata.tid = get_thread_id();
+        rawdata.mallocSize = arg4;
+        rawdata.addr = reinterpret_cast<void*>(arg3);
+        size_t tagLen = strlen(reinterpret_cast<char*>(arg5))+1;
+        if (memcpy_s(rawdata.tname, sizeof(rawdata.tname), reinterpret_cast<char*>(arg5), tagLen) != EOK) {
+            HILOG_ERROR(LOG_CORE, "memcpy_s tag failed");
+        }
+        rawdata.tname[sizeof(rawdata.tname) - 1] = '\0';
+        std::unique_lock<std::recursive_timed_mutex> lck(g_ClientMutex, std::defer_lock);
+        std::chrono::time_point<std::chrono::steady_clock> timeout =
+        std::chrono::steady_clock::now() + std::chrono::milliseconds(TIMEOUT_MSEC);
+        if (!lck.try_lock_until(timeout)) {
+            HILOG_ERROR(LOG_CORE, "lock failed!");
+            return ret;
+        }
+        if (g_hookClient != nullptr) {
+            g_hookClient->SendStack(&rawdata, sizeof(rawdata));
+        }
     }
     return ret;
 }
@@ -533,14 +553,18 @@ size_t ohos_malloc_hook_malloc_usable_size(void* mem)
 
 bool ohos_malloc_hook_get_hook_flag(void)
 {
-    return ohos_malloc_hook_enable_hook_flag;
+    return pthread_getspecific(g_disableHookFlag) == nullptr;
 }
 
 bool ohos_malloc_hook_set_hook_flag(bool flag)
 {
-    bool before_lag = ohos_malloc_hook_enable_hook_flag;
-    ohos_malloc_hook_enable_hook_flag = flag;
-    return before_lag;
+    bool oldFlag = ohos_malloc_hook_get_hook_flag();
+    if (flag) {
+        pthread_setspecific(g_disableHookFlag, nullptr);
+    } else {
+        pthread_setspecific(g_disableHookFlag, reinterpret_cast<void *>(1));
+    }
+    return oldFlag;
 }
 
 void* ohos_malloc_hook_mmap(void* addr, size_t length, int prot, int flags, int fd, off_t offset)
@@ -563,9 +587,6 @@ void ohos_malloc_hook_memtag(void* addr, size_t size, char* tag, size_t tagLen)
 {
     __set_hook_flag(false);
     if (g_hookPid != getpid()) {
-        return;
-    }
-    if (g_hookClient == nullptr) {
         return;
     }
     StackRawData rawdata = {{{0}}};

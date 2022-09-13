@@ -241,13 +241,6 @@ bool VirtualThread::IsLegalFileName(const std::string &fileName)
     return true;
 }
 
-#if is_mingw
-void VirtualThread::ParseMap()
-{
-    // only linux support read maps in runtime
-    return;
-}
-#else
 constexpr const int MMAP_LINE_MIN_TOKEN = 5;
 constexpr const int MMAP_LINE_TOKEN_INDEX_FLAG = 1;
 constexpr const int MMAP_LINE_TOKEN_INDEX_OFFSET = 2;
@@ -256,10 +249,12 @@ constexpr const int MMAP_LINE_TOKEN_INDEX_INODE = 4;
 constexpr const int MMAP_LINE_TOKEN_INDEX_NAME = 5;
 constexpr const int MMAP_LINE_MAX_TOKEN = 6;
 
-void VirtualThread::ParseMap(std::vector<MemMapItem>& memMaps)
+bool VirtualThread::ParseMap(std::vector<MemMapItem>& memMaps, bool update)
 {
     std::string mapPath = StringPrintf("/proc/%d/maps", pid_);
     std::string mapContent = ReadFileToString(mapPath);
+    bool mapsAdded = !update;
+    std::set<std::string> addSymbolFile;
     if (mapContent.size() > 0) {
         std::istringstream s(mapContent);
         std::string line;
@@ -366,20 +361,43 @@ void VirtualThread::ParseMap(std::vector<MemMapItem>& memMaps)
             // system/lib/libdl.so
             if (mapTokens.size() == MMAP_LINE_MAX_TOKEN) {
                 memMapItem.name_ = mapTokens[MMAP_LINE_TOKEN_INDEX_NAME];
+                if (memMapItem.name_.find("/data/storage") == 0 && access(memMapItem.name_.c_str(), F_OK) != 0) {
+                    memMapItem.name_ = "/proc/" + std::to_string(pid_) + "/root/" + memMapItem.name_;
+                }
             }
             if (!IsLegalFileName(memMapItem.name_)) {
                 continue;
             }
 
-            memMaps.push_back(memMapItem);
-            virtualruntime_->UpdateSymbols(memMapItem.name_);
-            pid_t pid = getpid();
-            HLOGD("%d %d memMap add '%s'", pid_, tid_, memMapItem.name_.c_str());
+            memMapItem.nameHold_ = OHOS::Developtools::NativeDaemon::memHolder.HoldStringView(memMapItem.name_);
+            if (!update) {
+                memMaps.push_back(memMapItem);
+                virtualruntime_->UpdateSymbols(memMapItem.name_);
+                HLOGD("%d %d memMap add '%s'", pid_, tid_, memMapItem.name_.c_str());
+            } else if (!virtualruntime_->IsSymbolExist(memMapItem.name_)) {
+                mapsAdded = true;
+                memMaps.push_back(memMapItem);
+                addSymbolFile.emplace(memMapItem.name_);
+                HLOGD("%d %d memMap update '%s'", pid_, tid_, memMapItem.name_.c_str());
+            }
+
         }
     }
-    SortMemMaps();
+
+    for (auto it : addSymbolFile) {
+        virtualruntime_->UpdateSymbols(it);
+        HLOGD("add symbol file %s", it.c_str());
+    }
+
+    if (mapsAdded) {
+        HILOG_INFO(LOG_CORE, "maps changed and need sort");
+        SortMemMaps();
+    } else {
+        HILOG_INFO(LOG_CORE, "maps no change");
+        return false;
+    }
+    return true;
 }
-#endif
 
 void VirtualThread::SortMemMaps()
 {

@@ -42,7 +42,6 @@ VirtualRuntime::VirtualRuntime(bool onDevice)
 {
     threadMapsLock_ = PTHREAD_MUTEX_INITIALIZER;
     threadMemMapsLock_ = PTHREAD_MUTEX_INITIALIZER;
-    UpdateThread(0, 0, "swapper");
 }
 VirtualRuntime::~VirtualRuntime()
 {
@@ -111,7 +110,7 @@ void VirtualRuntime::MakeCallFrame(Symbol &symbol, CallFrame &callFrame)
     }
 }
 
-bool VirtualRuntime::GetSymbolName(pid_t pid, pid_t tid, std::vector<CallFrame>& callsFrames, int offset)
+bool VirtualRuntime::GetSymbolName(pid_t pid, pid_t tid, std::vector<CallFrame>& callsFrames, int offset, bool first)
 {
 #ifdef HIPERF_DEBUG_TIME
     const auto startTime = steady_clock::now();
@@ -132,7 +131,23 @@ bool VirtualRuntime::GetSymbolName(pid_t pid, pid_t tid, std::vector<CallFrame>&
         if (symbol.isValid()) {
             MakeCallFrame(symbol, callFrame);
         } else {
-            return false;
+#ifdef TRY_UNWIND_TWICE
+            if (first) {
+                if (failedIPs_.find(callFrame.ip_) == failedIPs_.end()) {
+                    return false;
+                } else {
+                    callsFrames.erase(callFrameIt, callsFrames.end());
+                    return true;
+                }
+            } else {
+                failedIPs_.insert(callFrame.ip_);
+                callsFrames.erase(callFrameIt, callsFrames.end());
+                return true;
+            }
+#else
+            callsFrames.erase(callFrameIt, callsFrames.end());
+            return true;
+#endif
         }
         int index = callFrameIt - callsFrames.begin();
         HLOGV(" (%u)unwind symbol: %*s%s", index, index, "", callFrame.ToSymbolString().c_str());
@@ -145,6 +160,16 @@ bool VirtualRuntime::GetSymbolName(pid_t pid, pid_t tid, std::vector<CallFrame>&
     symbolicRecordTimes_ += usedTime;
 #endif
     return true;
+}
+
+void VirtualRuntime::UpdateMaps(pid_t pid, pid_t tid)
+{
+    auto &thread = UpdateThread(pid, tid);
+    if (thread.ParseMap(processMemMaps_, true)) {
+        HILOG_INFO(LOG_CORE, "voluntarily update maps succeed");
+    } else {
+        HILOG_INFO(LOG_CORE, "voluntarily update maps ignore");
+    }
 }
 
 bool VirtualRuntime::UnwindStack(std::vector<u64> regs,
@@ -176,12 +201,40 @@ bool VirtualRuntime::UnwindStack(std::vector<u64> regs,
 #ifdef HIPERF_DEBUG_TIME
     unwindFromRecordTimes_ += duration_cast<microseconds>(steady_clock::now() - startTime);
 #endif
-    if (!GetSymbolName(pid, tid, callsFrames, offset)) {
-        callsFrames.clear();
-        return false;
+    if (!GetSymbolName(pid, tid, callsFrames, offset, true)) {
+#ifdef TRY_UNWIND_TWICE
+        HLOGD("clear and unwind one more time");
+        if (!thread.ParseMap(processMemMaps_, true)) {
+            GetSymbolName(pid, tid, callsFrames, offset, false);
+            return false;
+        }
+        if (stack_size > 0) {
+            callsFrames.clear();
+            callstack_.UnwindCallStack(thread, &regs[0], regs.size(), stack_addr, stack_size, callsFrames, maxStackLevel);
+        }
+        if (callsFrames.size() <= FILTER_STACK_DEPTH) {
+            callsFrames.clear();
+            return false;
+        }
+        if (!GetSymbolName(pid, tid, callsFrames, offset, false)) {
+            return false;
+        }
+#endif
     }
     return true;
 }
+
+bool VirtualRuntime::IsSymbolExist(std::string fileName)
+{
+    for (auto &symbolsFile : symbolsFiles_) {
+        if (symbolsFile->filePath_ == fileName) {
+            HLOGV("already have '%s'", fileName.c_str());
+            return true;
+        }
+    }
+    return false;
+}
+
 
 void VirtualRuntime::UpdateSymbols(std::string fileName)
 {
@@ -269,7 +322,7 @@ const Symbol VirtualRuntime::GetUserSymbol(uint64_t ip, const VirtualThread &thr
         if (symbolsFile != nullptr) {
             vaddrSymbol.fileVaddr_ =
                 symbolsFile->GetVaddrInSymbols(ip, mmap->begin_, mmap->pageoffset_);
-            vaddrSymbol.module_ = mmap->name_;
+            vaddrSymbol.module_ = mmap->nameHold_;
             HLOGV("found symbol vaddr 0x%" PRIx64 " for runtime vaddr 0x%" PRIx64 " at '%s'",
                   vaddrSymbol.fileVaddr_, ip, mmap->name_.c_str());
             if (!symbolsFile->SymbolsLoaded()) {

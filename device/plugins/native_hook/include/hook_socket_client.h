@@ -16,6 +16,7 @@
 #ifndef HOOK_SOCKET_CLIENT
 #define HOOK_SOCKET_CLIENT
 
+#include "hook_common.h"
 #include "service_base.h"
 #include "stack_writer.h"
 
@@ -23,7 +24,7 @@ class UnixSocketClient;
 
 class HookSocketClient : public ServiceBase {
 public:
-    HookSocketClient(int pid);
+    HookSocketClient(int pid, ClientConfig *config);
     ~HookSocketClient();
     bool Connect(const std::string addrname);
     bool ProtocolProc(SocketContext &context, uint32_t pnum, const int8_t *buf, const uint32_t size) override;
@@ -35,34 +36,6 @@ public:
     {
         return eventFd_;
     }
-    uint32_t GetFilterSize()
-    {
-        return filterSize_;
-    }
-    bool GetMallocDisable()
-    {
-        return mallocDisable_;
-    }
-    bool GetMmapDisable()
-    {
-        return mmapDisable_;
-    }
-    bool GetFreeStackData()
-    {
-        return freeStackData_;
-    }
-    bool GetMunmapStackData()
-    {
-        return munmapStackData_;
-    }
-    bool GetFpunwind()
-    {
-        return fpunwind_;
-    }
-    uint8_t GetMaxStackDepth()
-    {
-        return maxStackDepth_;
-    }
     bool SendStack(const void* data, size_t size);
     bool SendStackWithPayload(const void* data, size_t size, const void* payload, size_t payloadSize);
 private:
@@ -70,13 +43,7 @@ private:
     int smbFd_;
     int eventFd_;
     int pid_;
-    uint32_t filterSize_;
-    bool mallocDisable_;
-    bool mmapDisable_;
-    bool freeStackData_;
-    bool munmapStackData_;
-    uint8_t maxStackDepth_;
-    bool fpunwind_ = false;
+    ClientConfig *config_ = nullptr;
     std::shared_ptr<StackWriter> stackWriter_;
 };
 

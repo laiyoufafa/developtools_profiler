@@ -73,7 +73,7 @@ public:
         return *memMaps_;
     }
 
-    void ParseMap(std::vector<MemMapItem> &memMaps);
+    bool ParseMap(std::vector<MemMapItem> &memMaps, bool update = false);
     void CreateMapItem(const std::string filename, uint64_t begin, uint64_t len, uint64_t offset);
     const MemMapItem *FindMapByAddr(uint64_t addr) const;
     const MemMapItem *FindMapByAddr2(uint64_t addr) const;

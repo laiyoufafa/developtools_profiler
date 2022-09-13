@@ -31,6 +31,7 @@ constexpr int SLEEP_TIME = 30000;
 constexpr int MOBILE_BIT = 32;
 constexpr int32_t FILTER_SIZE = 100;
 constexpr int32_t SMB_SIZE = 409600;
+static ClientConfig g_ClientConfigTest = {0};
 
 class HookSocketClientTest : public ::testing::Test {
 public:
@@ -50,7 +51,7 @@ HWTEST_F(HookSocketClientTest, ProtocolProc, TestSize.Level1)
     uint64_t config = FILTER_SIZE;
     config <<= MOBILE_BIT;
     config |= SMB_SIZE;
-    HookSocketClient hookClient(1);
+    HookSocketClient hookClient(1, &g_ClientConfigTest);
     SocketContext socketContext;
     auto ptr = reinterpret_cast<const int8_t*>(&config);
     auto size = sizeof(uint64_t);
@@ -67,7 +68,7 @@ HWTEST_F(HookSocketClientTest, SendStack, TestSize.Level1)
     uint64_t config = FILTER_SIZE;
     config <<= MOBILE_BIT;
     config |= SMB_SIZE;
-    HookSocketClient hookClient(1);
+    HookSocketClient hookClient(1, &g_ClientConfigTest);
     SocketContext socketContext;
     auto ptr = reinterpret_cast<const int8_t*>(&config);
     auto size = sizeof(uint64_t);
@@ -97,7 +98,7 @@ HWTEST_F(HookSocketClientTest, GetSmbFd, TestSize.Level1)
     SocketContext socketContext;
     auto ptr = reinterpret_cast<const int8_t*>(&config);
     auto size = sizeof(uint64_t);
-    HookSocketClient hookClient(1);
+    HookSocketClient hookClient(1, &g_ClientConfigTest);
     ASSERT_TRUE(hookClient.ProtocolProc(socketContext, 0, ptr, size));
     ASSERT_EQ(hookClient.GetSmbFd(), -1);
 }
@@ -115,7 +116,7 @@ HWTEST_F(HookSocketClientTest, GetEventFd, TestSize.Level1)
     SocketContext socketContext;
     auto ptr = reinterpret_cast<const int8_t*>(&config);
     auto size = sizeof(uint64_t);
-    HookSocketClient hookClient(1);
+    HookSocketClient hookClient(1, &g_ClientConfigTest);
     ASSERT_TRUE(hookClient.ProtocolProc(socketContext, 0, ptr, size));
     ASSERT_EQ(hookClient.GetEventFd(), -1);
 }
