@@ -75,6 +75,7 @@ typedef struct {
     bool munmapStackData_;
     uint8_t maxStackDepth_;
     bool fpunwind_;
+    bool isBlocked;
 } ClientConfig;
 
 #endif // HOOK_SERVICE_H
