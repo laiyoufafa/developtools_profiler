@@ -32,6 +32,7 @@ public:
     GetCommandResponsePtr BuildDestroySessionCmd(uint32_t pluginId);
     GetCommandResponsePtr BuildStartSessionCmd(const ProfilerPluginConfig& config, uint32_t pluginId);
     GetCommandResponsePtr BuildStopSessionCmd(uint32_t pluginId);
+    GetCommandResponsePtr BuildRefreshSessionCmd(uint32_t pluginId);
 
     bool GetedCommandResponse(uint32_t cmdId);
 

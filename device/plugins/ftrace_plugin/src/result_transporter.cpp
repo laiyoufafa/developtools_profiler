@@ -101,14 +101,20 @@ void ResultTransporter::Flush()
 
 bool ResultTransporter::Submit(ResultPtr&& packet)
 {
+    std::unique_lock<std::mutex> lock(mutex_);
     long nbytes = Write(std::move(packet));
-    CHECK_TRUE(nbytes >= 0, false, "send result FAILED!");
+    if (nbytes < 0) {
+        HILOG_ERROR(LOG_CORE, "send result FAILED!");
+        lock.unlock();
+        return false;
+    }
     bytesCount_ += nbytes;
     bytesPending_ += nbytes;
 
     if (IsFlushTime() || bytesPending_ >= flushThreshold_) {
         Flush();
     }
+    lock.unlock();
     return true;
 }
 FTRACE_NS_END

@@ -48,6 +48,8 @@ struct PluginInfo {
     std::string path;
     std::string sha256;
     uint32_t bufferSizeHint;
+    bool isStandaloneFileData = false;
+    std::string outFileName = "";
     SocketContext* context = nullptr;
 };
 
@@ -56,6 +58,8 @@ struct PluginContext {
     std::string path;
     std::string sha256;
     uint32_t bufferSizeHint;
+    bool isStandaloneFileData = false;
+    std::string outFileName = "";
     SocketContext* context = nullptr;
     ProfilerPluginConfig config;
     ProfilerDataRepeaterPtr profilerDataRepeater;
@@ -80,6 +84,7 @@ public:
     bool StartPluginSession(const ProfilerPluginConfig& config);
     bool StopPluginSession(const std::string& pluginName);
     bool DestroyPluginSession(const std::string& pluginName);
+    bool RefreshPluginSession(const std::string& pluginName);
 
     bool AddPluginInfo(const PluginInfo& pluginInfo);
     bool GetPluginInfo(const std::string& pluginName, PluginInfo& pluginInfo);
@@ -93,13 +98,13 @@ public:
     void SetPluginSessionManager(const PluginSessionManagerPtr& pluginSessionManager);
     void SetProfilerSessionConfig(const ProfilerSessionConfig& profilerSessionConfig);
 
+    std::pair<uint32_t, PluginContextPtr> GetPluginContext(const std::string& pluginName);
+
 private:
     bool StartService(const std::string& unixSocketName);
 
     SemaphorePtr GetSemaphore(uint32_t) const;
     void ReadShareMemory(PluginContext&);
-
-    std::pair<uint32_t, PluginContextPtr> GetPluginContext(const std::string& pluginName);
     PluginContextPtr GetPluginContextById(uint32_t id);
 
     bool RemovePluginSessionCtx(const std::string& pluginName);

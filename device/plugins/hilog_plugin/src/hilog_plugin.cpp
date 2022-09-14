@@ -100,6 +100,7 @@ int HilogPlugin::Start(const uint8_t* configData, uint32_t configSize)
     g_id = 1;
     std::unique_lock<std::mutex> locker(mutex_);
     running_ = true;
+    locker.unlock();
     workThread_ = std::thread(&HilogPlugin::Run, this);
 
     return 0;

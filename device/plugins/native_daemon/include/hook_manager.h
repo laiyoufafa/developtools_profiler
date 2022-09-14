@@ -62,6 +62,7 @@ public:
     bool StartPluginSession(const std::vector<uint32_t>& pluginIds,
                             const std::vector<ProfilerPluginConfig>& config) override;
     bool StopPluginSession(const std::vector<uint32_t>& pluginIds) override;
+    bool ReportPluginBasicData(const std::vector<uint32_t>& pluginIds) override;
 
     bool CreateWriter(std::string pluginName, uint32_t bufferSize, int smbFd, int eventFd) override;
     bool ResetWriter(uint32_t pluginId) override;

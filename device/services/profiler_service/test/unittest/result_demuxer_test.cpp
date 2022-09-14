@@ -28,6 +28,7 @@ class ResultDemuxerTest : public ::testing::Test {
 protected:
     std::string path = "demux.bin";
     ProfilerDataRepeaterPtr repeater;
+    PluginSessionManagerPtr pluginSessionManager;
 
     static void SetUpTestCase() {}
     static void TearDownTestCase() {}
@@ -35,6 +36,7 @@ protected:
     void SetUp() override
     {
         repeater = std::make_shared<ProfilerDataRepeater>(DATA_MAX_SIZE);
+        pluginSessionManager = std::make_shared<PluginSessionManager>(std::make_shared<PluginService>());
     }
 
     void TearDown() override {}
@@ -47,7 +49,7 @@ protected:
  */
 HWTEST_F(ResultDemuxerTest, CtorDtor, TestSize.Level1)
 {
-    auto demuxer = std::make_shared<ResultDemuxer>(repeater);
+    auto demuxer = std::make_shared<ResultDemuxer>(repeater, pluginSessionManager);
     EXPECT_NE(demuxer, nullptr);
 }
 
@@ -58,7 +60,7 @@ HWTEST_F(ResultDemuxerTest, CtorDtor, TestSize.Level1)
  */
 HWTEST_F(ResultDemuxerTest, SetTraceWriter, TestSize.Level1)
 {
-    auto demuxer = std::make_shared<ResultDemuxer>(repeater);
+    auto demuxer = std::make_shared<ResultDemuxer>(repeater, pluginSessionManager);
     ASSERT_NE(demuxer, nullptr);
 
     demuxer->SetTraceWriter(nullptr);
@@ -75,7 +77,7 @@ HWTEST_F(ResultDemuxerTest, SetTraceWriter, TestSize.Level1)
  */
 HWTEST_F(ResultDemuxerTest, SetServerWriter, TestSize.Level1)
 {
-    auto demuxer = std::make_shared<ResultDemuxer>(repeater);
+    auto demuxer = std::make_shared<ResultDemuxer>(repeater, pluginSessionManager);
     ASSERT_NE(demuxer, nullptr);
 }
 
@@ -86,7 +88,7 @@ HWTEST_F(ResultDemuxerTest, SetServerWriter, TestSize.Level1)
  */
 HWTEST_F(ResultDemuxerTest, StartTakeResults, TestSize.Level1)
 {
-    auto demuxer = std::make_shared<ResultDemuxer>(repeater);
+    auto demuxer = std::make_shared<ResultDemuxer>(repeater, pluginSessionManager);
     ASSERT_NE(demuxer, nullptr);
 
     auto writer = std::make_shared<TraceFileWriter>(path);
@@ -120,7 +122,7 @@ HWTEST_F(ResultDemuxerTest, StartTakeResults, TestSize.Level1)
  */
 HWTEST_F(ResultDemuxerTest, StopTakeResults, TestSize.Level1)
 {
-    auto demuxer = std::make_shared<ResultDemuxer>(repeater);
+    auto demuxer = std::make_shared<ResultDemuxer>(repeater, pluginSessionManager);
     ASSERT_NE(demuxer, nullptr);
 
     auto writer = std::make_shared<TraceFileWriter>(path);

@@ -236,6 +236,21 @@ bool PluginService::DestroyPluginSession(const std::string& pluginName)
     return true;
 }
 
+bool PluginService::RefreshPluginSession(const std::string& pluginName)
+{
+    uint32_t pluginId = 0;
+    PluginContextPtr pluginCtx = nullptr;
+    std::tie(pluginId, pluginCtx) = GetPluginContext(pluginName);
+    CHECK_NOTNULL(pluginCtx, false, "get PluginContext failed!");
+
+    auto cmd = pluginCommandBuilder_->BuildRefreshSessionCmd(pluginId);
+    CHECK_TRUE(cmd != nullptr, false, "RefreshPluginSession BuildRefreshSessionCmd FAIL %s", pluginName.c_str());
+
+    pluginServiceImpl_->PushCommand(*pluginCtx->context, cmd);
+    HILOG_INFO(LOG_CORE, "RefreshPluginSession %s done!", pluginName.c_str());
+    return true;
+}
+
 bool PluginService::RemovePluginSessionCtx(const std::string& pluginName)
 {
     PluginContextPtr pluginCtx = GetPluginContext(pluginName).second;
@@ -295,6 +310,8 @@ bool PluginService::AddPluginInfo(const PluginInfo& pluginInfo)
         pluginCtx->profilerPluginState.set_state(ProfilerPluginState::REGISTERED);
         pluginCtx->sha256 = pluginInfo.sha256;
         pluginCtx->bufferSizeHint = pluginInfo.bufferSizeHint;
+        pluginCtx->isStandaloneFileData = pluginInfo.isStandaloneFileData;
+        pluginCtx->outFileName = pluginInfo.outFileName;
 
         uint32_t pluginId = ++pluginIdCounter_;
         std::unique_lock<std::mutex> lock(mutex_);
@@ -313,6 +330,12 @@ bool PluginService::AddPluginInfo(const PluginInfo& pluginInfo)
         }
         if (pluginInfo.bufferSizeHint != 0) {
             pluginCtx->bufferSizeHint = pluginInfo.bufferSizeHint;
+        }
+        if (pluginInfo.isStandaloneFileData != false) {
+            pluginCtx->isStandaloneFileData = pluginInfo.isStandaloneFileData;
+        }
+        if (pluginInfo.outFileName != "") {
+            pluginCtx->outFileName = pluginInfo.outFileName;
         }
     }
     HILOG_DEBUG(LOG_CORE, "AddPluginInfo for %s done!", pluginInfo.name.c_str());

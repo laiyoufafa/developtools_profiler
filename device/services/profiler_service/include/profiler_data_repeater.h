@@ -42,6 +42,8 @@ public:
 
     size_t Size();
 
+    void ClearQueue();
+
 private:
     std::mutex mutex_;
     std::condition_variable slotCondVar_;

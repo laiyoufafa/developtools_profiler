@@ -59,6 +59,12 @@ bool ParseConfigToCmd(const HiperfPluginConfig& config, std::vector<std::string>
     prepareCmd += HIPERF_CMD + g_logLevel + HIPERF_RECORD_CMD + HIPERF_RECORD_PREPARE;
     if (!config.outfile_name().empty()) {
         prepareCmd += " -o " + config.outfile_name();
+        size_t fileSize = sizeof(g_pluginModule.outFileName);
+        int ret = strncpy_s(g_pluginModule.outFileName, fileSize, config.outfile_name().c_str(), fileSize - 1);
+        if (ret != EOK) {
+            HILOG_ERROR(LOG_CORE, "strncpy_s error! outfile is %s", config.outfile_name().c_str());
+            return false;
+        }
     }
     if (!config.record_args().empty()) {
         prepareCmd += " " + config.record_args();
@@ -136,4 +142,4 @@ static PluginModuleCallbacks g_callbacks = {
     HiperfRegisterWriterStruct,
 };
 
-PluginModuleStruct g_pluginModule = {&g_callbacks, "hiperf-plugin", MAX_BUFFER_SIZE};
+PluginModuleStruct g_pluginModule = {&g_callbacks, "hiperf-plugin", MAX_BUFFER_SIZE, true, "/data/local/tmp/perf.data"};

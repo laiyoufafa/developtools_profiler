@@ -54,6 +54,17 @@ int TracePluginStartSession(const uint8_t configData[], const uint32_t configSiz
     return result;
 }
 
+int TracePluginReportBasicData()
+{
+    std::unique_lock<std::mutex> lock(g_mutex);
+    CHECK_NOTNULL(g_mainController, -1, "no FlowController created!");
+
+    HILOG_INFO(LOG_CORE, "%s: %d", __func__, __LINE__);
+    int result = g_mainController->ParseBasicData();
+    HILOG_INFO(LOG_CORE, "%s: %d", __func__, __LINE__);
+    return result;
+}
+
 int TracePluginStopSession()
 {
     std::unique_lock<std::mutex> lock(g_mutex);
@@ -72,6 +83,7 @@ static PluginModuleCallbacks moduleCallbacks = {
     .onPluginReportResult = 0,
     .onPluginSessionStop = TracePluginStopSession,
     .onRegisterWriterStruct = TracePluginRegisterWriter,
+    .onReportBasicDataCallback = TracePluginReportBasicData, // report ftrace_plugin basic data
 };
 
 PluginModuleStruct g_pluginModule = {

@@ -132,6 +132,22 @@ bool PluginSession::Start()
     return retval;
 }
 
+bool PluginSession::Refresh()
+{
+    std::unique_lock<std::mutex> lock(mutex_);
+    HILOG_INFO(LOG_CORE, "Refresh for %s...", pluginConfig_.name().c_str());
+    CHECK_TRUE(state_ == STARTED, false, "plugin state %d invalid!", state_);
+
+    auto pluginService = pluginService_.lock();
+    CHECK_NOTNULL(pluginService, false, "PluginSession::%s pluginService promote failed!", __func__);
+
+    bool retval = pluginService->RefreshPluginSession(pluginConfig_.name());
+    HILOG_INFO(LOG_CORE, "RefreshPluginSession for %s %s!", pluginConfig_.name().c_str(), retval ? "OK" : "FAIL");
+    CHECK_TRUE(retval, false, "call PluginService::RefreshPluginSession failed!");
+
+    return retval;
+}
+
 bool PluginSession::Stop()
 {
     std::unique_lock<std::mutex> lock(mutex_);

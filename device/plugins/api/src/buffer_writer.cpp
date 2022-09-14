@@ -101,3 +101,12 @@ bool BufferWriter::Flush()
     bytesPending_ = 0;
     return true;
 }
+
+bool BufferWriter::Clear()
+{
+    if (shareMemoryBlock_ == nullptr) {
+        return false;
+    }
+    shareMemoryBlock_->ClearShareMemoryBlock();
+    return true;
+}

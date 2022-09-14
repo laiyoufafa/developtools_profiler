@@ -40,6 +40,7 @@ public:
 
     bool StartPluginSessions(const std::vector<std::string>& nameList);
     bool StopPluginSessions(const std::vector<std::string>& nameList);
+    bool RefreshPluginSession();
 
     bool CheckStatus(const std::vector<std::string>& nameList, PluginSession::State state);
     std::vector<PluginSession::State> GetStatus(const std::vector<std::string>& nameList);
@@ -59,6 +60,7 @@ private:
 
     // plugin session data:
     std::map<std::string, PluginSessionPtr> pluginSessions_;
+    std::vector<std::string> pluginNameList_;
 };
 
 #endif // PLUGIN_SESSION_MANAGER_H

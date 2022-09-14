@@ -38,6 +38,7 @@ public:
     bool OnDestroySessionCmd(const DestroySessionCmd& cmd) const;
     bool OnStartSessionCmd(const StartSessionCmd& cmd) const;
     bool OnStopSessionCmd(const StopSessionCmd& cmd) const;
+    bool OnReportBasicDataCmd(const RefreshSessionCmd& cmd) const;
 
     uint32_t GetRequestId();
     bool OnConnect();

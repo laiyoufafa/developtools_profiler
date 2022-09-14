@@ -197,6 +197,15 @@ bool PluginService::DestroyPluginSession(const std::string& pluginName)
     return true;
 }
 
+bool PluginService::RefreshPluginSession(const std::string& pluginName)
+{
+    uint32_t pluginId = 0;
+    PluginContextPtr pluginCtx = nullptr;
+    std::tie(pluginId, pluginCtx) = GetPluginContext(pluginName);
+    HILOG_INFO(LOG_CORE, "RefreshPluginSession %s done!", pluginName.c_str());
+    return true;
+}
+
 std::pair<uint32_t, PluginContextPtr> PluginService::GetPluginContext(const std::string& pluginName)
 {
     std::unique_lock<std::mutex> lock(mutex_);
