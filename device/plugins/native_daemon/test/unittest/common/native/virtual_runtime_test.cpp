@@ -188,7 +188,7 @@ HWTEST_F(VirtualRuntimeTest, GetThread, TestSize.Level1)
     runtime_->GetThread(3, 4);
     runtime_->GetThread(5, 6);
     // runtime have 0 thread, so here need +1u
-    EXPECT_EQ(runtime_->GetThreads().size(), 4u);
+    EXPECT_EQ(runtime_->GetThreads().size(), 3u);
     if (HasFailure()) {
         for (auto &pair : runtime_->GetThreads()) {
             printf("pid %d tid %d\n", pair.second.pid_, pair.second.tid_);
