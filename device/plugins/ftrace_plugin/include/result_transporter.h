@@ -61,6 +61,7 @@ private:
 
     WriterStructPtr writer_ = nullptr;
     std::vector<char> buffer_;
+    std::mutex mutex_;
 };
 FTRACE_NS_END
 #endif // RESULT_TRANSPORTER_H

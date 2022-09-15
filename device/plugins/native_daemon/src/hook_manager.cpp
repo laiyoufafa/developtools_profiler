@@ -358,6 +358,11 @@ bool HookManager::StopPluginSession(const std::vector<uint32_t>& pluginIds)
     return true;
 }
 
+bool HookManager::ReportPluginBasicData(const std::vector<uint32_t>& pluginIds)
+{
+    return true;
+}
+
 bool HookManager::CreateWriter(std::string pluginName, uint32_t bufferSize, int smbFd, int eventFd)
 {
     HILOG_DEBUG(LOG_CORE, "agentIndex_ %d", agentIndex_);

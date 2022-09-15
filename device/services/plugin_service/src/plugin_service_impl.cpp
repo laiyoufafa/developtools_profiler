@@ -33,9 +33,16 @@ bool PluginServiceImpl::RegisterPlugin(SocketContext& context,
     pluginInfo.path = request.path();
     pluginInfo.sha256 = request.sha256();
     pluginInfo.bufferSizeHint = request.buffer_size_hint();
+    pluginInfo.isStandaloneFileData = request.is_standalone_data();
+    pluginInfo.outFileName = request.out_file_name();
     pluginInfo.context = &context;
 
+    int pluginId = pluginService->GetPluginIdByName(pluginInfo.name);
     if (pluginService->AddPluginInfo(pluginInfo)) {
+        if (pluginId != 0) { // update plugin not need reply response
+            HILOG_DEBUG(LOG_CORE, "UpdatePlugin OK");
+            return false;
+        }
         response.set_status(ResponseStatus::OK);
         response.set_plugin_id(pluginService->GetPluginIdByName(pluginInfo.name));
         HILOG_DEBUG(LOG_CORE, "RegisterPlugin OK");

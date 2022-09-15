@@ -22,9 +22,22 @@
 using CharPtr = std::unique_ptr<char>::pointer;
 using ConstCharPtr = std::unique_ptr<const char>::pointer;
 
-TraceFileWriter::TraceFileWriter(const std::string& path) : path_(path), writeBytes_(0)
+namespace {
+const int MB_TO_BYTE = 1024 * 1024;
+const int MIN_BYTE = 200;
+} // namespace
+
+TraceFileWriter::TraceFileWriter(const std::string& path, bool splitFile, uint32_t SingleFileMaxSizeMb)
+    : path_(path), writeBytes_(0)
 {
-    Open(path);
+    isSplitFile_ = splitFile;
+    SingleFileMaxSize_ = (SingleFileMaxSizeMb < MIN_BYTE) ? (MIN_BYTE * MB_TO_BYTE) :
+        (SingleFileMaxSizeMb * MB_TO_BYTE);
+    oldPath_ = path;
+    fileNum_ = 1;
+
+    WriteHeader();
+    Flush();
 }
 
 TraceFileWriter::~TraceFileWriter()
@@ -42,6 +55,13 @@ std::string TraceFileWriter::Path() const
 
 bool TraceFileWriter::SetPluginConfig(const void* data, size_t size)
 {
+    if (isSplitFile_) {
+        std::vector<char> configVec;
+        auto configData = reinterpret_cast<ConstCharPtr>(data);
+        configVec.insert(configVec.end(), configData, configData + size);
+        pluginConfigsData_.push_back(std::move(configVec));
+    }
+
     Write(data, size);
     return true;
 }
@@ -70,15 +90,37 @@ void TraceFileWriter::SetTimeStamp()
         static_cast<uint64_t>(ts.tv_nsec);
 }
 
-bool TraceFileWriter::Open(const std::string& path)
+static std::string GetCurrentTime()
 {
-    stream_.open(path, std::ios_base::out | std::ios_base::binary);
-    CHECK_TRUE(stream_.is_open(), false, "open %s failed, %d!", path.c_str(), errno);
+    const int usMs = 1000;
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    return std::to_string(tv.tv_sec * usMs + tv.tv_usec / usMs);
+}
+
+bool TraceFileWriter::WriteHeader()
+{
+    if (isSplitFile_) {
+        std::string timeStr = GetCurrentTime();
+        int pos = (int)(oldPath_.find_last_of('.'));
+        if (pos != 0) {
+            path_ = oldPath_.substr(0, pos) + "_" + timeStr + "_" + std::to_string(fileNum_) +
+                oldPath_.substr(pos, oldPath_.size());
+        } else {
+            path_ = oldPath_ + "_" + timeStr + "_" + std::to_string(fileNum_);
+        }
+    }
+
+    stream_.open(path_, std::ios_base::out | std::ios_base::binary);
+    CHECK_TRUE(stream_.is_open(), false, "open %s failed, %d!", path_.c_str(), errno);
 
     // write initial header, makes file write position move forward
+    helper_ = {};
+    header_ = {};
     stream_.write(reinterpret_cast<CharPtr>(&header_), sizeof(header_));
     CHECK_TRUE(stream_, false, "write initial header to %s failed!", path_.c_str());
-    path_ = path;
+    dataSize_ = header_.HEADER_SIZE;
+    HILOG_INFO(LOG_CORE, "write file(%s) header end", path_.c_str());
     return true;
 }
 
@@ -105,10 +147,43 @@ long TraceFileWriter::Write(const void* data, size_t size)
     return nbytes;
 }
 
+bool TraceFileWriter::IsSplitFile(uint32_t size)
+{
+    dataSize_ += sizeof(uint32_t) + size;
+    if (dataSize_ >= SingleFileMaxSize_) {
+        HILOG_INFO(LOG_CORE, "need to split the file(%s), data size:%d, size: %d, SingleFileMaxSize_:%d",
+            path_.c_str(), dataSize_, size, SingleFileMaxSize_);
+
+        // update old file header
+        Finish();
+        if (stream_.is_open()) {
+            stream_.close();
+        }
+        fileNum_++;
+
+        // write header of the new file
+        WriteHeader();
+        // write the plugin config of the new file
+        for (size_t i = 0; i < pluginConfigsData_.size(); i++) {
+            Write(pluginConfigsData_[i].data(), pluginConfigsData_[i].size());
+        }
+        Flush();
+        return true;
+    }
+    return false;
+}
+
 long TraceFileWriter::Write(const MessageLite& message)
 {
+    auto size = message.ByteSizeLong();
+    if (isSplitFile_ && !isStop_) {
+        if (IsSplitFile(size)) {
+            return -1;
+        }
+    }
+
     // serialize message to bytes array
-    std::vector<char> msgData(message.ByteSizeLong());
+    std::vector<char> msgData(size);
     CHECK_TRUE(message.SerializeToArray(msgData.data(), msgData.size()), 0, "SerializeToArray failed!");
 
     return Write(msgData.data(), msgData.size());
@@ -120,13 +195,16 @@ bool TraceFileWriter::Finish()
     helper_.Update(header_);
 
     // move write position to begin of file
+    CHECK_TRUE(stream_.is_open(), false, "binary file %s not open or open failed!", path_.c_str());
     stream_.seekp(0);
     CHECK_TRUE(stream_, false, "seek write position to head for %s failed!", path_.c_str());
 
     SetTimeStamp(); // add timestamp in header
+
     // write final header
     stream_.write(reinterpret_cast<CharPtr>(&header_), sizeof(header_));
     CHECK_TRUE(stream_, false, "write final header to %s failed!", path_.c_str());
+    CHECK_TRUE(stream_.flush(), false, "binary file %s flush failed!", path_.c_str());
     return true;
 }
 
@@ -136,4 +214,9 @@ bool TraceFileWriter::Flush()
     CHECK_TRUE(stream_.flush(), false, "binary file %s flush failed!", path_.c_str());
     HILOG_INFO(LOG_CORE, "flush: %s, bytes: %" PRIu64 ", count: %" PRIu64, path_.c_str(), writeBytes_, writeCount_);
     return true;
+}
+
+void TraceFileWriter::SetStopSplitFile(bool isStop)
+{
+    isStop_ = isStop;
 }

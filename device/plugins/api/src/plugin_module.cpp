@@ -75,6 +75,8 @@ bool PluginModule::GetInfo(PluginModuleInfo& info)
         }
         info.bufferSizeHint = structPtr_->resultBufferSizeHint;
         info.name.assign(structPtr_->name);
+        info.isStandaloneFileData = structPtr_->isStandaloneFileData;
+        info.outFileName.assign(structPtr_->outFileName);
         return true;
     }
     return false;
@@ -124,6 +126,47 @@ bool PluginModule::GetBufferSizeHint(uint32_t& bufferSizeHint)
         return true;
     }
     return false;
+}
+
+bool PluginModule::GetStandaloneFileData()
+{
+    if (handle_ != nullptr) {
+        if (structPtr_ == nullptr) {
+            return false;
+        }
+        return structPtr_->isStandaloneFileData;
+    }
+    return false;
+}
+
+bool PluginModule::GetOutFileName(std::string& outFileName)
+{
+    if (handle_ != nullptr) {
+        if (structPtr_ == nullptr) {
+            return false;
+        }
+        outFileName.assign(structPtr_->outFileName);
+        return true;
+    }
+    return false;
+}
+
+std::string PluginModule::GetPath()
+{
+    return path_;
+}
+
+std::string PluginModule::GetPluginName()
+{
+    if (pluginName_ == "") {
+        if (handle_ != nullptr) {
+            if (structPtr_ == nullptr) {
+                return "";
+            }
+            pluginName_.assign(structPtr_->name);
+        }
+    }
+    return pluginName_;
 }
 
 bool PluginModule::IsLoaded()
@@ -192,6 +235,24 @@ bool PluginModule::StopSession()
         if (structPtr_->callbacks->onPluginSessionStop != nullptr) {
             running_ = false;
             return (structPtr_->callbacks->onPluginSessionStop() == 0);
+        }
+    }
+    return false;
+}
+
+bool PluginModule::ReportBasicData()
+{
+    HILOG_INFO(LOG_CORE, "%s:report basic data ready!", __func__);
+    if (handle_ == nullptr) {
+        HILOG_ERROR(LOG_CORE, "%s:plugin not load", __func__);
+        return false;
+    }
+    if (structPtr_ != nullptr && structPtr_->callbacks != nullptr) {
+        if (structPtr_->callbacks->onReportBasicDataCallback != nullptr) {
+            auto write = GetWriter();
+            CHECK_NOTNULL(write, false, "%s:get write falied!", __func__);
+            write->Clear(); // clear share memory block
+            return (structPtr_->callbacks->onReportBasicDataCallback() == 0);
         }
     }
     return false;

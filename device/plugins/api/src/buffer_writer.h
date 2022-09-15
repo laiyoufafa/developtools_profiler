@@ -34,6 +34,7 @@ public:
     ~BufferWriter();
     long Write(const void* data, size_t size) override;
     bool Flush() override;
+    bool Clear() override;
 
     bool WriteMessage(const google::protobuf::Message& pmsg, const std::string& pluginName);
 private:

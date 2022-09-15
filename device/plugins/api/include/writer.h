@@ -23,6 +23,11 @@ public:
     virtual ~Writer() {}
     virtual long Write(const void* data, size_t size) = 0;
     virtual bool Flush() = 0;
+
+    virtual bool Clear()
+    {
+        return true;
+    }
 };
 
 #endif // !WRITER_H

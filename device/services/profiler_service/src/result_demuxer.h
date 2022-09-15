@@ -20,13 +20,16 @@
 
 #include "logging.h"
 #include "nocopyable.h"
+#include "plugin_session_manager.h"
 #include "profiler_data_repeater.h"
 #include "profiler_service.grpc.pb.h"
 #include "trace_file_writer.h"
 
+using PluginSessionManagerPtr = STD_PTR(shared, PluginSessionManager);
+
 class ResultDemuxer {
 public:
-    explicit ResultDemuxer(const ProfilerDataRepeaterPtr& dataRepeater);
+    explicit ResultDemuxer(const ProfilerDataRepeaterPtr& dataRepeater, PluginSessionManagerPtr pluginSessionManager);
 
     ~ResultDemuxer();
 
@@ -48,6 +51,7 @@ private:
     std::chrono::steady_clock::time_point lastFlushTime_ {};
     std::thread demuxerThread_ {};
     bool isStopTakeData_ = false;
+    PluginSessionManagerPtr pluginSessionManager_ = nullptr;
 
     DISALLOW_COPY_AND_MOVE(ResultDemuxer);
 };

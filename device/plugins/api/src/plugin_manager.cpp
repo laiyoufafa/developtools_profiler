@@ -63,7 +63,14 @@ std::string ComputeFileSha256(const std::string& path)
 }
 }  // namespace
 
-PluginManager::~PluginManager() {}
+PluginManager::~PluginManager()
+{
+    for (size_t i = 0; i < updateThreadVec_.size(); i++) {
+        if (updateThreadVec_[i].joinable()) {
+            updateThreadVec_[i].join();
+        }
+    }
+}
 
 void PluginManager::SetCommandPoller(const CommandPollerPtr& p)
 {
@@ -101,12 +108,23 @@ bool PluginManager::AddPlugin(const std::string& pluginPath)
         return false;
     }
 
+    return RegisterPlugin(plugin, pluginPath, pluginName);
+}
+
+bool PluginManager::RegisterPlugin(const PluginModulePtr& plugin,
+    const std::string& pluginPath, const std::string& pluginName)
+{
+    std::string outputFileName = "";
+    plugin->GetOutFileName(outputFileName);
+
     RegisterPluginRequest request;
     request.set_request_id(commandPoller_->GetRequestId());
     request.set_path(pluginPath);
     request.set_sha256(ComputeFileSha256(pluginPath));
     request.set_name(pluginName);
     request.set_buffer_size_hint(0);
+    request.set_is_standalone_data(plugin->GetStandaloneFileData());
+    request.set_out_file_name(outputFileName);
     RegisterPluginResponse response;
 
     if (commandPoller_->RegisterPlugin(request, response)) {
@@ -284,6 +302,7 @@ bool PluginManager::StartPluginSession(const std::vector<uint32_t>& pluginIds,
         if (!plugin->StartSession(reinterpret_cast<const uint8_t*>(cfgData.c_str()), cfgData.size())) {
             return false;
         }
+
         if (plugin->GetSampleMode() == PluginModule::SampleMode::POLLING) {
             if (idx > config.size()) {
                 HILOG_WARN(LOG_CORE, "%s:idx %zu out of size %zu", __func__, idx, config.size());
@@ -304,10 +323,26 @@ bool PluginManager::StartPluginSession(const std::vector<uint32_t>& pluginIds,
             }
         }
 
+        // need update standalone plugin info
+        if (plugin->GetStandaloneFileData()) {
+            auto updateThread_ = std::thread(&PluginManager::UpdatePluginInfo, this, plugin);
+            updateThreadVec_.push_back(std::move(updateThread_));
+        }
+
         idx++;
     }
 
     return true;
+}
+
+void PluginManager::UpdatePluginInfo(const PluginModulePtr& plugin)
+{
+    // update plugin info
+    auto name = plugin.get()->GetPluginName();
+    auto path = plugin.get()->GetPath();
+    if (!RegisterPlugin(plugin, path, name)) {
+        HILOG_ERROR(LOG_CORE, "%s failed, name:%s, path:%s", __func__, name.c_str(), path.c_str());
+    }
 }
 
 bool PluginManager::StopPluginSession(const std::vector<uint32_t>& pluginIds)
@@ -329,6 +364,23 @@ bool PluginManager::StopPluginSession(const std::vector<uint32_t>& pluginIds)
             }
         }
         if (!pluginModules_[id]->StopSession()) {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool PluginManager::ReportPluginBasicData(const std::vector<uint32_t>& pluginIds)
+{
+    HILOG_INFO(LOG_CORE, "%s:ready!", __func__);
+    for (uint32_t id : pluginIds) {
+        if (pluginModules_.find(id) == pluginModules_.end()) {
+            HILOG_ERROR(LOG_CORE, "%s:plugin not find", __func__);
+            return false;
+        }
+        // notify plugin to report basic data
+        if (!pluginModules_[id]->ReportBasicData()) {
+            HILOG_ERROR(LOG_CORE, "%s:report basic data failed", __func__);
             return false;
         }
     }

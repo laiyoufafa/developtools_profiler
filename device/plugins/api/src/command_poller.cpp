@@ -153,6 +153,27 @@ bool CommandPoller::OnStopSessionCmd(const StopSessionCmd& cmd) const
     return true;
 }
 
+bool CommandPoller::OnReportBasicDataCmd(const RefreshSessionCmd& cmd) const
+{
+    HILOG_DEBUG(LOG_CORE, "%s:proc", __func__);
+    if (cmd.plugin_ids().size() == 0) {
+        HILOG_ERROR(LOG_CORE, "%s:cmd invalid!", __func__);
+        return false;
+    }
+    std::vector<uint32_t> pluginIds;
+    pluginIds.push_back(cmd.plugin_ids(0));
+
+    auto pluginManager = pluginManager_.lock(); // promote to shared_ptr
+    CHECK_NOTNULL(pluginManager, false, "promote FAILED!");
+
+    if (!pluginManager->ReportPluginBasicData(pluginIds)) {
+        HILOG_ERROR(LOG_CORE, "%s:report basic data failed!", __func__);
+        return false;
+    }
+    HILOG_INFO(LOG_CORE, "%s:ok", __func__);
+    return true;
+}
+
 bool CommandPoller::OnGetCommandResponse(SocketContext& context, ::GetCommandResponse& response)
 {
     HILOG_DEBUG(LOG_CORE, "%s:proc", __func__);
@@ -187,6 +208,9 @@ bool CommandPoller::OnGetCommandResponse(SocketContext& context, ::GetCommandRes
         } else {
             status->set_state(ProfilerPluginState::IN_SESSION);
         }
+    } else if (response.has_refresh_session_cmd()) {
+        OnReportBasicDataCmd(response.refresh_session_cmd());
+        status->set_state(ProfilerPluginState::IN_SESSION);
     } else {
         HILOG_DEBUG(LOG_CORE, "%s:command Response failed!", __func__);
         return false;

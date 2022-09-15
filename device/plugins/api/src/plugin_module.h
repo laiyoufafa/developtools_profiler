@@ -26,6 +26,8 @@
 struct PluginModuleInfo {
     std::string name;
     uint32_t bufferSizeHint = 0;
+    bool isStandaloneFileData = false;
+    std::string outFileName = "";
 };
 
 struct PluginModuleStruct;
@@ -51,6 +53,10 @@ public:
     bool GetInfo(PluginModuleInfo& info);
     bool GetPluginName(std::string& pluginName);
     bool GetBufferSizeHint(uint32_t& bufferSizeHint);
+    bool GetStandaloneFileData();
+    bool GetOutFileName(std::string& outFileName);
+    std::string GetPath();
+    std::string GetPluginName();
     bool IsRunning();
     bool IsLoaded();
     bool BindFunctions();
@@ -58,6 +64,7 @@ public:
     bool StartSession(const uint8_t* buffer, uint32_t size);
     bool StopSession();
     int32_t ReportResult(uint8_t* buffer, uint32_t size);
+    bool ReportBasicData();
 
     bool RegisterWriter(const BufferWriterPtr writer);
     WriterPtr GetWriter();
