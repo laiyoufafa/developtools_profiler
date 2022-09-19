@@ -20,9 +20,11 @@ config("hook_config") {
     "HAVE_LIBUNWIND=1",
     "HIPERF_DEBUG",
     "CONFIG_NO_HILOG",
-    "HOOK_ENABLE",
   ]
   defines += [ "target_cpu_${target_cpu}" ]
+  if (!is_asan) {
+    defines += [ "HOOK_ENABLE" ]
+  }
 }
 
 ohos_shared_library("native_hook") {
@@ -90,7 +92,7 @@ ohos_executable("nativetest_c") {
 
   if (current_toolchain != host_toolchain) {
     defines = [ "HAVE_HILOG" ]
-    if (use_musl) {
+    if (use_musl && !is_asan) {
       defines += [ "HOOK_ENABLE" ]
     }
     if (build_l2) {
