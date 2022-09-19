@@ -5,7 +5,7 @@
       注意:在linux编译环境安装时以root或者其他 sudo 用户身份运行下面的命令
 ### 1.1 node 环境安装:
 #####  1.1.1 下载Node js安装包(windows推荐, linux跳过此步骤)
-        从网站 下载node js安装包 https://nodejs.org/en/download/current/
+      从网站 下载node js安装包 https://nodejs.org/en/download/current/
 #####  1.1.2 安装nodejs.
 - ubuntu 20.04 与Debian 11系统中, 直接用apt-get安装,命令如下:
 ```
@@ -43,7 +43,7 @@ npm install -g typescript
 ### 1.2 go 编译环境安装:
 - ubuntu 环境下直接使用apt安装:
 ```
-   apt-get install golang-go
+  apt-get install golang-go
 ```
 - centos 系统中 使用yum 安装，命令如下：
 
@@ -61,8 +61,8 @@ npm install -g typescript
 ``` 
 ## 2. 项目编译:
 ####  2.1 先下载sql.js的二进制包,:
-		从如下 https://github.com/sql-js/sql.js/releases/download/v1.6.2/sqljs-all.zip 获取到sql.js的二进制包.
-		将压缩包解压后, 将文件放置到项目third-party 目录下.
+	    从如下 https://github.com/sql-js/sql.js/releases/download/v1.6.2/sqljs-all.zip 获取到sql.js的二进制包.
+	    将压缩包解压后, 将文件放置到项目third-party 目录下.
 
 
 ####  2.2 先编译获取trace_streamer 的二进制包:
