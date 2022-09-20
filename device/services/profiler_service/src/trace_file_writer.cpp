@@ -102,7 +102,7 @@ bool TraceFileWriter::WriteHeader()
 {
     if (isSplitFile_) {
         std::string timeStr = GetCurrentTime();
-        int pos = (int)(oldPath_.find_last_of('.'));
+        int pos = static_cast<int>(oldPath_.find_last_of('.'));
         if (pos != 0) {
             path_ = oldPath_.substr(0, pos) + "_" + timeStr + "_" + std::to_string(fileNum_) +
                 oldPath_.substr(pos, oldPath_.size());

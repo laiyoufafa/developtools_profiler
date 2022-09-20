@@ -30,16 +30,16 @@ namespace Developtools {
 namespace NativeDaemon {
 namespace UnitTest {
 namespace {
-const std::string file32 {"resource/testdata/elf32_test"};
-const std::string file64 {"resource/testdata/elf_test"};
-const std::string ehdr32 {"resource/testdata/ehdr_from_readelf_32"};
-const std::string ehdr64 {"resource/testdata/ehdr_from_readelf_64"};
-const std::string shdrs32 {"resource/testdata/shdrs_from_readelf_32"};
-const std::string shdrs64 {"resource/testdata/shdrs_from_readelf_64"};
-const std::string phdrs32 {"resource/testdata/phdrs_from_readelf_32"};
-const std::string phdrs64 {"resource/testdata/phdrs_from_readelf_64"};
-const std::string syms32 {"resource/testdata/syms_from_readelf_32"};
-const std::string syms64 {"resource/testdata/syms_from_readelf_64"};
+const std::string FILE32 {"resource/testdata/elf32_test"};
+const std::string FILE64 {"resource/testdata/elf_test"};
+const std::string EHDR32 {"resource/testdata/ehdr_from_readelf_32"};
+const std::string EHDR64 {"resource/testdata/ehdr_from_readelf_64"};
+const std::string SHDRS32 {"resource/testdata/shdrs_from_readelf_32"};
+const std::string SHDRS64 {"resource/testdata/shdrs_from_readelf_64"};
+const std::string PHDRS32 {"resource/testdata/phdrs_from_readelf_32"};
+const std::string PHDRS64 {"resource/testdata/phdrs_from_readelf_64"};
+const std::string SYMS32 {"resource/testdata/syms_from_readelf_32"};
+const std::string SYMS64 {"resource/testdata/syms_from_readelf_64"};
 } // namespace
 
 static const std::string GetNextLine(FILE *fp, int *status)
@@ -80,39 +80,39 @@ static int MemCmp(void *p1, void *p2, std::size_t num)
 ElfFileFromReadelf::ElfFileFromReadelf(ElfFileType fileType)
 {
     if (fileType == ElfFileType::ELF32) {
-        ehdrFP_ = fopen(ehdr32.c_str(), "rb");
+        ehdrFP_ = fopen(EHDR32.c_str(), "rb");
         if (ehdrFP_ == nullptr) {
-            HLOGV("fopen(ehdr32, \"r\") failed");
+            HLOGV("fopen(EHDR32, \"r\") failed");
         }
-        shdrsFP_ = fopen(shdrs32.c_str(), "rb");
+        shdrsFP_ = fopen(SHDRS32.c_str(), "rb");
         if (shdrsFP_ == nullptr) {
-            HLOGV("fopen(shdrs32, \"r\") failed");
+            HLOGV("fopen(SHDRS32, \"r\") failed");
         }
-        phdrsFP_ = fopen(phdrs32.c_str(), "rb");
+        phdrsFP_ = fopen(PHDRS32.c_str(), "rb");
         if (phdrsFP_ == nullptr) {
-            HLOGV("fopen(phdrs32, \"r\") failed");
+            HLOGV("fopen(PHDRS32, \"r\") failed");
         }
-        symTabFP_ = fopen(syms32.c_str(), "rb");
+        symTabFP_ = fopen(SYMS32.c_str(), "rb");
         if (symTabFP_ == nullptr) {
-            HLOGV("fopen(syms32, \"r\") failed");
+            HLOGV("fopen(SYMS32, \"r\") failed");
         }
     }
     if (fileType == ElfFileType::ELF64) {
-        ehdrFP_ = fopen(ehdr64.c_str(), "rb");
+        ehdrFP_ = fopen(EHDR64.c_str(), "rb");
         if (ehdrFP_ == nullptr) {
-            HLOGV("fopen(ehdr64, \"r\") failed");
+            HLOGV("fopen(EHDR64, \"r\") failed");
         }
-        shdrsFP_ = fopen(shdrs64.c_str(), "rb");
+        shdrsFP_ = fopen(SHDRS64.c_str(), "rb");
         if (shdrsFP_ == nullptr) {
-            HLOGV("fopen(shdrs64, \"r\") failed");
+            HLOGV("fopen(SHDRS64, \"r\") failed");
         }
-        phdrsFP_ = fopen(phdrs64.c_str(), "rb");
+        phdrsFP_ = fopen(PHDRS64.c_str(), "rb");
         if (phdrsFP_ == nullptr) {
-            HLOGV("fopen(phdrs64, \"r\") failed");
+            HLOGV("fopen(PHDRS64, \"r\") failed");
         }
-        symTabFP_ = fopen(syms64.c_str(), "rb");
+        symTabFP_ = fopen(SYMS64.c_str(), "rb");
         if (symTabFP_ == nullptr) {
-            HLOGV("fopen(syms64, \"r\") failed");
+            HLOGV("fopen(SYMS64, \"r\") failed");
         }
     }
 }
@@ -1410,10 +1410,10 @@ void ElfParserTest::TearDownTestCase() {}
 
 void ElfParserTest::SetUp()
 {
-    elfFile64_ = ElfFile::MakeUnique(file64);
+    elfFile64_ = ElfFile::MakeUnique(FILE64);
     ASSERT_FALSE(elfFile64_ == nullptr);
     HLOGD("elfFile64_ setup");
-    elfFile32_ = ElfFile::MakeUnique(file32);
+    elfFile32_ = ElfFile::MakeUnique(FILE32);
     ASSERT_FALSE(elfFile32_ == nullptr);
     HLOGD("elfFile32_ setup");
     elfFile64FromReadelf_ = ElfFileFromReadelf::MakeUnique(ElfFileFromReadelf::ElfFileType::ELF64);

@@ -28,7 +28,7 @@ using namespace testing::ext;
 namespace {
 class PluginManagerStub final : public ManagerInterface {
 public:
-    virtual bool LoadPlugin(const std::string& pluginPath) override
+    bool LoadPlugin(const std::string& pluginPath) override
     {
         if (pluginPath == "existplugin") {
             return true;

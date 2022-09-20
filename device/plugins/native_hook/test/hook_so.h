@@ -13,6 +13,9 @@
  * limitations under the License.
  */
 
+#ifndef HOOK_SO
+#define HOOK_SO
+
 #include <cstdio>
 #include <cstdlib>
 #include <new>

@@ -153,7 +153,7 @@ public:
         StaticSpace staticeData;
         if (depth == 0) {
             staticeData.data[0] = 1;
-            return (char *)malloc(DEFAULT_MALLOC_SIZE);
+            return reinterpret_cast<char *>(malloc(DEFAULT_MALLOC_SIZE));
         }
         return (DepthMalloc(depth - 1));
     }
@@ -189,7 +189,7 @@ public:
         StaticSpace staticeData;
         if (depth == 0) {
             staticeData.data[0] = 1;
-            return (char *)calloc(sizeof(char), callocSize);
+            return reinterpret_cast<char *>(calloc(sizeof(char), callocSize));
         }
         return (DepthCalloc(depth - 1, callocSize));
     }
@@ -226,7 +226,7 @@ public:
         StaticSpace staticeData;
         if (depth == 0) {
             staticeData.data[0] = 1;
-            return (char *)realloc(p, reallocSize);
+            return reinterpret_cast<char *>(realloc(p, reallocSize));
         }
         return (DepthRealloc(depth - 1, p, reallocSize));
     }
@@ -234,7 +234,7 @@ public:
     void ApplyForRealloc(int depth)
     {
         int reallocSize = DEFAULT_REALLOC_SIZE;
-        char *p = (char *)malloc(DEFAULT_MALLOC_SIZE);
+        char *p = reinterpret_cast<char *>(malloc(DEFAULT_MALLOC_SIZE));
         if (!p) {
             const int bufSize = 256;
             char buf[bufSize] = { 0 };
@@ -339,7 +339,7 @@ HWTEST_F(CheckHookDataTest, DFX_DFR_Hiprofiler_0080, Function | MediumTest | Lev
             EXPECT_STREQ(hookVec[addrPos].c_str(), addr.c_str());
             EXPECT_EQ(depth, g_defaultDepth);
 
-            isFirstHook= false;
+            isFirstHook = false;
             addr = "";
             depth = 0;
         } else {

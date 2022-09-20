@@ -931,7 +931,7 @@ public:
             return true;
         }
     }
-    virtual bool LoadSymbols(const std::string &symbolFilePath) override
+    bool LoadSymbols(const std::string &symbolFilePath) override
     {
         symbolsLoaded_ = true;
         HLOGV("KernelSymbols try read '%s' search paths size %zu, inDeviceRecord %d",
@@ -966,7 +966,7 @@ public:
         // try vmlinux
         return ElfFileSymbols::LoadSymbols(KERNEL_ELF_NAME);
     }
-    virtual uint64_t GetVaddrInSymbols(uint64_t ip, uint64_t mapStart, uint64_t) const override
+    uint64_t GetVaddrInSymbols(uint64_t ip, uint64_t mapStart, uint64_t) const override
     {
         // ip is vaddr in /proc/kallsyms
         return ip;
@@ -984,7 +984,7 @@ public:
     }
     ~KernelModuleSymbols() override {};
 
-    virtual bool LoadSymbols(const std::string &symbolFilePath) override
+    bool LoadSymbols(const std::string &symbolFilePath) override
     {
         symbolsLoaded_ = true;
         if (module_ == filePath_ and onRecording_) {
@@ -1009,7 +1009,7 @@ public:
         }
         return false;
     }
-    virtual uint64_t GetVaddrInSymbols(uint64_t ip, uint64_t mapStart, uint64_t) const override
+    uint64_t GetVaddrInSymbols(uint64_t ip, uint64_t mapStart, uint64_t) const override
     {
         return ip - mapStart;
     }
@@ -1038,14 +1038,14 @@ public:
     {
         symbolFileType_ = SYMBOL_KERNEL_FILE;
     }
-    virtual bool LoadSymbols(const std::string &symbolFilePath) override
+    bool LoadSymbols(const std::string &symbolFilePath) override
     {
         symbolsLoaded_ = true;
         return false;
     }
     ~JavaFileSymbols() override {}
 
-    virtual uint64_t GetVaddrInSymbols(uint64_t ip, uint64_t mapStart,
+    uint64_t GetVaddrInSymbols(uint64_t ip, uint64_t mapStart,
                                        uint64_t mapPageOffset) const override
     {
         // this is different with elf
@@ -1060,7 +1060,7 @@ public:
     {
         symbolFileType_ = SYMBOL_KERNEL_FILE;
     }
-    virtual bool LoadSymbols(const std::string &symbolFilePath) override
+    bool LoadSymbols(const std::string &symbolFilePath) override
     {
         symbolsLoaded_ = true;
         return false;
@@ -1074,7 +1074,7 @@ public:
         : SymbolsFile(SYMBOL_UNKNOW_FILE, symbolFilePath)
     {
     }
-    virtual bool LoadSymbols(const std::string &symbolFilePath) override
+    bool LoadSymbols(const std::string &symbolFilePath) override
     {
         symbolsLoaded_ = true;
         return false;

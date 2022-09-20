@@ -48,8 +48,8 @@ struct TestElement {
     std::vector<NetDetails> details;
 };
 
-TestElement g_expect_begin = {9553, 10194, 0, 0};
-TestElement g_expect_end = {9553, 10194, 27085, 751549, {{27085, 751549, std::string("wlan0")}}};
+TestElement g_expectBegin = {9553, 10194, 0, 0};
+TestElement g_expectEnd = {9553, 10194, 27085, 751549, {{27085, 751549, std::string("wlan0")}}};
 
 std::string GetFullPath(std::string path);
 
@@ -154,15 +154,15 @@ HWTEST_F(NetworkPluginTest, TestNetworkDataNull, TestSize.Level1)
     NetworkDatas networkData;
     plugin.setPathForTest(g_path + std::string("/begin"));
 
-    std::vector<int> pidList = {g_expect_begin.pid};
+    std::vector<int> pidList = {g_expectBegin.pid};
     NetworkConfig config;
     EXPECT_TRUE(SetConfig(pidList, config));
     EXPECT_TRUE(PluginStub(plugin, networkData, config));
 
     for (uint32_t i = 0; i < pidList.size(); ++i) {
-        EXPECT_EQ(g_expect_begin.uid, plugin.GetUid(pidList[i]));
-        EXPECT_EQ(g_expect_begin.rx, networkData.mutable_networkinfo(i)->rx_bytes());
-        EXPECT_EQ(g_expect_begin.tx, networkData.mutable_networkinfo(i)->tx_bytes());
+        EXPECT_EQ(g_expectBegin.uid, plugin.GetUid(pidList[i]));
+        EXPECT_EQ(g_expectBegin.rx, networkData.mutable_networkinfo(i)->rx_bytes());
+        EXPECT_EQ(g_expectBegin.tx, networkData.mutable_networkinfo(i)->tx_bytes());
         int index = networkData.mutable_networkinfo(i)->details_size();
         EXPECT_EQ(index, 0);
     }
@@ -182,21 +182,21 @@ HWTEST_F(NetworkPluginTest, TestGetNetworkData, TestSize.Level1)
     NetworkDatas networkData;
     plugin.setPathForTest(g_path + std::string("/end"));
 
-    std::vector<int> pidList = {g_expect_end.pid};
+    std::vector<int> pidList = {g_expectEnd.pid};
     NetworkConfig config;
     EXPECT_TRUE(SetConfig(pidList, config));
     EXPECT_TRUE(PluginStub(plugin, networkData, config));
 
     for (uint32_t i = 0; i < pidList.size(); ++i) {
-        EXPECT_EQ(g_expect_end.uid, plugin.GetUid(pidList[i]));
-        EXPECT_EQ(g_expect_end.rx, networkData.mutable_networkinfo(i)->rx_bytes());
-        EXPECT_EQ(g_expect_end.tx, networkData.mutable_networkinfo(i)->tx_bytes());
+        EXPECT_EQ(g_expectEnd.uid, plugin.GetUid(pidList[i]));
+        EXPECT_EQ(g_expectEnd.rx, networkData.mutable_networkinfo(i)->rx_bytes());
+        EXPECT_EQ(g_expectEnd.tx, networkData.mutable_networkinfo(i)->tx_bytes());
         int index = networkData.mutable_networkinfo(i)->details_size();
         EXPECT_EQ(index, 1);
         for (int j = 0; j < index; ++j) {
-            EXPECT_EQ(g_expect_end.details[j].tx, networkData.mutable_networkinfo(i)->mutable_details(j)->tx_bytes());
-            EXPECT_EQ(g_expect_end.details[j].rx, networkData.mutable_networkinfo(i)->mutable_details(j)->rx_bytes());
-            EXPECT_EQ(g_expect_end.details[j].type, networkData.mutable_networkinfo(i)->mutable_details(j)->type());
+            EXPECT_EQ(g_expectEnd.details[j].tx, networkData.mutable_networkinfo(i)->mutable_details(j)->tx_bytes());
+            EXPECT_EQ(g_expectEnd.details[j].rx, networkData.mutable_networkinfo(i)->mutable_details(j)->rx_bytes());
+            EXPECT_EQ(g_expectEnd.details[j].type, networkData.mutable_networkinfo(i)->mutable_details(j)->type());
         }
     }
 

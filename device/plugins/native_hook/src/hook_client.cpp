@@ -88,7 +88,7 @@ static void inline __attribute__((always_inline)) FpUnwind(int maxDepth, uint64_
     void **startfp = (void **)__builtin_frame_address(0);
     void **fp = startfp;
     for (int i = 0; i < maxDepth + 1; i++) {
-        ip[i] = *(unsigned long *)(fp + 1);
+        ip[i] = *(reinterpret_cast<unsigned long *>(fp + 1));
         void **nextFp = (void **)*fp;
         if (nextFp <= fp) {
             break;
@@ -466,7 +466,7 @@ int hook_prctl(int(*fn)(int, ...),
         rawdata.tid = get_thread_id();
         rawdata.mallocSize = arg4;
         rawdata.addr = reinterpret_cast<void*>(arg3);
-        size_t tagLen = strlen(reinterpret_cast<char*>(arg5))+1;
+        size_t tagLen = strlen(reinterpret_cast<char*>(arg5)) + 1;
         if (memcpy_s(rawdata.tname, sizeof(rawdata.tname), reinterpret_cast<char*>(arg5), tagLen) != EOK) {
             HILOG_ERROR(LOG_CORE, "memcpy_s tag failed");
         }

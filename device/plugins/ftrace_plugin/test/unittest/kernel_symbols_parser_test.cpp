@@ -109,8 +109,8 @@ HWTEST_F(KernelSymbolsParserTest, KernelSymbolsParserSingle, TestSize.Level1)
 
     kernelSymbols->Accept(visitor);
 
-    std::string Symbols = "1 T name.cfi";
-    EXPECT_TRUE(kernelSymbols->Parse(Symbols));
+    std::string symbols = "1 T name.cfi";
+    EXPECT_TRUE(kernelSymbols->Parse(symbols));
 }
 
 /*
@@ -125,8 +125,8 @@ HWTEST_F(KernelSymbolsParserTest, KernelSymbolsParserNormalMulti, TestSize.Level
 
     kernelSymbols->Accept(visitor);
 
-    std::string Symbols = "1 T name1.cfi\n2 t name2.cfi\n3 T name3.cfi\n4 t name4.cfi";
-    EXPECT_TRUE(kernelSymbols->Parse(Symbols));
+    std::string symbols = "1 T name1.cfi\n2 t name2.cfi\n3 T name3.cfi\n4 t name4.cfi";
+    EXPECT_TRUE(kernelSymbols->Parse(symbols));
 }
 
 /*
@@ -141,8 +141,8 @@ HWTEST_F(KernelSymbolsParserTest, KernelSymbolsParserNormalFalse, TestSize.Level
 
     kernelSymbols->Accept(visitor);
 
-    std::string Symbols = "0 T name1.cfi\n2 a name2.cfi\n3 T $name3.cfi\n0 t name4.cfi\n4 t .cfi";
-    EXPECT_FALSE(kernelSymbols->Parse(Symbols));
+    std::string symbols = "0 T name1.cfi\n2 a name2.cfi\n3 T $name3.cfi\n0 t name4.cfi\n4 t .cfi";
+    EXPECT_FALSE(kernelSymbols->Parse(symbols));
 }
 
 /*
@@ -157,11 +157,11 @@ HWTEST_F(KernelSymbolsParserTest, KernelSymbolsParserNormalOther, TestSize.Level
 
     kernelSymbols->Accept(visitor);
 
-    std::string SymbolsName = "1 T nameA\n1 T nameB\n1 T nameC\n1 T nameD\n";
-    EXPECT_TRUE(kernelSymbols->Parse(SymbolsName));
+    std::string symbolsName = "1 T nameA\n1 T nameB\n1 T nameC\n1 T nameD\n";
+    EXPECT_TRUE(kernelSymbols->Parse(symbolsName));
 
-    std::string SymbolsNameType = "2 t name\n2 T name\n2 t name\n2 T name\n";
-    EXPECT_TRUE(kernelSymbols->Parse(SymbolsNameType));
+    std::string symbolsNameType = "2 t name\n2 T name\n2 t name\n2 T name\n";
+    EXPECT_TRUE(kernelSymbols->Parse(symbolsNameType));
 }
 
 /*

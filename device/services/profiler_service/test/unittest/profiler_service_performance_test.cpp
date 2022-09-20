@@ -50,8 +50,8 @@ using namespace testing::ext;
 namespace {
 const std::string DEFAULT_HIPROFILERD_PATH("/system/bin/hiprofilerd");
 const std::string DEFAULT_HIPROFILER_PLUGINS_PATH("/system/bin/hiprofiler_plugins");
-const std::string writeFile = "/data/local/tmp/diskio_write_test.txt";
-const std::string hilogResultFile = "/data/local/tmp/hilog.txt";
+const std::string WRITE_FILE = "/data/local/tmp/diskio_write_test.txt";
+const std::string HILOG_RESULT_FILE = "/data/local/tmp/hilog.txt";
 constexpr int ROUND_COUNT = 50;
 constexpr int SAMPLE_INTERVAL = 40;
 constexpr int TIMEOUT_US = 3 * 1000 * 1000;
@@ -235,7 +235,7 @@ protected:
             sessionConfig->set_session_mode(ProfilerSessionConfig::ONLINE);
         } else {
             sessionConfig->set_session_mode(ProfilerSessionConfig::OFFLINE);
-            sessionConfig->set_result_file(hilogResultFile);
+            sessionConfig->set_result_file(HILOG_RESULT_FILE);
         }
     }
 
@@ -456,7 +456,7 @@ protected:
         }
 
         // 写100K数据
-        FILE* writeFp = fopen(writeFile.c_str(), "w");
+        FILE* writeFp = fopen(WRITE_FILE.c_str(), "w");
         if (writeFp == nullptr) {
             HILOG_ERROR(LOG_CORE, "fopen() error");
             return;
@@ -485,7 +485,7 @@ protected:
         }
 
         // delete file
-        std::string command = "rm " + writeFile;
+        std::string command = "rm " + WRITE_FILE;
         system(command.c_str());
     }
     void StartTestDiskioProcess(int& diskioPid)
@@ -1395,7 +1395,7 @@ HWTEST_F(ProfilerServicePerformanceTest, DFX_DFR_Hiprofiler_0050, Function | Med
 
     EXPECT_TRUE(StartPluginSession(sessionId2));
     usleep(TIMEOUT_US);
-    EXPECT_EQ(access(hilogResultFile.c_str(), F_OK), 0);
+    EXPECT_EQ(access(HILOG_RESULT_FILE.c_str(), F_OK), 0);
     EXPECT_TRUE(StopPluginSession(sessionId2));
     EXPECT_TRUE(DestroyPluginSession(sessionId2));
     // 销毁会话之后停止心跳发送

@@ -70,7 +70,7 @@ bool IsProcessExist(std::string& processName, int& pid)
     do {
         if (fgets(line, sizeof(line), pipe.get()) == nullptr) {
             return false;
-        } else if (strlen(line) > 0 && isdigit((unsigned char)(line[0]))) {
+        } else if (strlen(line) > 0 && isdigit(static_cast<unsigned char>(line[0]))) {
             pid = atoi(line);
             return true;
         }
