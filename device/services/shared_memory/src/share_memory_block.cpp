@@ -26,6 +26,7 @@
 namespace {
 const int HEAD_OFFSET_LEN = 4;
 constexpr uint32_t TIMEOUT_SEC = 1;
+const int WAIT_RELEASE_TIMEOUT_US = 10;
 #ifndef PAGE_SIZE
 constexpr uint32_t PAGE_SIZE = 4096;
 #endif
@@ -267,7 +268,6 @@ bool ShareMemoryBlock::PutWithPayloadTimeout(const int8_t* header, uint32_t head
     const int8_t* payload, uint32_t payloadSize)
 {
     CHECK_NOTNULL(header_, false, "header not ready!");
-
     struct timespec time_out;
     clock_gettime(CLOCK_REALTIME, &time_out);
     time_out.tv_sec += TIMEOUT_SEC;
@@ -394,6 +394,43 @@ int ShareMemoryBlock::GetfileDescriptor()
     return fileDescriptor_;
 }
 
+bool ShareMemoryBlock::PutWithPayloadSync(const int8_t* header, uint32_t headerSize,
+    const int8_t* payload, uint32_t payloadSize)
+{
+    CHECK_NOTNULL(header_, false, "header not ready!");
+    pthread_mutex_lock(&header_->info.mutex_);
+    int8_t* rawMemory = GetFreeMemory(headerSize + payloadSize);
+    if (rawMemory == nullptr) {
+        HILOG_ERROR(LOG_CORE, "PutRawTimeout not enough space [%d]", headerSize + payloadSize);
+        while (true) {
+            if (rawMemory == nullptr) {
+                pthread_mutex_unlock(&header_->info.mutex_);
+                usleep(WAIT_RELEASE_TIMEOUT_US);
+                pthread_mutex_lock(&header_->info.mutex_);
+                rawMemory = GetFreeMemory(headerSize + payloadSize);
+                continue;
+            }
+            break;
+        }
+    }
+    if (memcpy_s(rawMemory, headerSize, header, headerSize) != EOK) {
+        HILOG_ERROR(LOG_CORE, "memcpy_s header error");
+        pthread_mutex_unlock(&header_->info.mutex_);
+        return false;
+    }
+    if (payloadSize > 0) {
+        if (memcpy_s(rawMemory + headerSize, payloadSize, payload, payloadSize) != EOK) {
+            HILOG_ERROR(LOG_CORE, "memcpy_s payload error");
+            pthread_mutex_unlock(&header_->info.mutex_);
+            return false;
+        }
+    }
+    UseFreeMemory(rawMemory, headerSize + payloadSize);
+    ++header_->info.bytesCount_;
+    ++header_->info.chunkCount_;
+    pthread_mutex_unlock(&header_->info.mutex_);
+    return true;
+}
 void ShareMemoryBlock::ClearShareMemoryBlock()
 {
     // clear header infos

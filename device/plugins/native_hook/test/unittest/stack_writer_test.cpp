@@ -189,4 +189,25 @@ HWTEST_F(StackWriterTest, WriteProcessTest, TestSize.Level1)
     EXPECT_EQ((int)write->writeCount_, 2);
     EXPECT_EQ((int)write->flushCount_, 2);
 }
+
+/**
+ * @tc.name: StackWriter
+ * @tc.desc: Write data to shared memory with blocked mode.
+ * @tc.type: FUNC
+ */
+HWTEST_F(StackWriterTest, WriterSyncTest, TestSize.Level1)
+{
+    auto write = std::make_shared<StackWriter>(PLUGIN_NAME, SMB_SIZE, g_smbFd, -1,true);
+    EXPECT_NE(write->shareMemoryBlock_, nullptr);
+    uint8_t buffer1[] = {0x55, 0xAA, 0x55, 0xAA};
+    uint8_t buffer2[] = {0x11, 0x22, 0x33, 0x44};
+    uint8_t buffer3[] = {0xAA, 0xBB, 0xCC, 0xDD};
+    uint8_t buffer4[] = {0xCC, 0xDD, 0xBB, 0xEE};
+
+    EXPECT_TRUE(write->WriteWithPayloadTimeout((const void*)buffer1, sizeof(buffer1), (const void*)buffer2, sizeof(buffer2)));
+    EXPECT_TRUE(CheckBuffer(buffer1, sizeof(buffer1)));
+    EXPECT_TRUE(write->WriteWithPayloadTimeout((const void*)buffer3, sizeof(buffer3), (const void*)buffer4, sizeof(buffer4)));
+    EXPECT_TRUE(CheckBuffer(buffer3, sizeof(buffer3)));
+    EXPECT_FALSE(write->Write(nullptr, 0));
+}
 } // namespace

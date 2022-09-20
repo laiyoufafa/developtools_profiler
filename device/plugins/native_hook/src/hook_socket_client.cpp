@@ -88,11 +88,15 @@ bool HookSocketClient::ProtocolProc(SocketContext &context, uint32_t pnum, const
     if (mask & FPUNWIND) {
         config_->fpunwind_ = true;
     } 
+    if ((mask & BLOCKED) != 0) {
+        config_->isBlocked = true;
+    }
     HILOG_INFO(LOG_CORE, "%s: mallocDisable = %d mmapDisable = %d", __func__, config_->mallocDisable_, config_->mmapDisable_);
     HILOG_INFO(LOG_CORE, "%s: freeStackData = %d munmapStackData = %d", __func__, config_->freeStackData_, config_->munmapStackData_);
     HILOG_INFO(LOG_CORE, "%s: filter size = %u smb size = %u", __func__, config_->filterSize_, smbSize);
-    HILOG_INFO(LOG_CORE, "%s: maxStackDepth = %u fpunwind = %d", __func__, config_->maxStackDepth_, config_->fpunwind_);
-    stackWriter_ = std::make_shared<StackWriter>("hooknativesmb", smbSize, smbFd_, eventFd_);
+    HILOG_INFO(LOG_CORE, "%s: maxStackDepth = %u fpunwind = %d isBlocked = %d", __func__, config_->maxStackDepth_,
+               config_->fpunwind_, config_->isBlocked);
+    stackWriter_ = std::make_shared<StackWriter>("hooknativesmb", smbSize, smbFd_, eventFd_, config_->isBlocked);
     return true;
 }
 

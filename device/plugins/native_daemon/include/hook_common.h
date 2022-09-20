@@ -41,6 +41,7 @@ enum {
     FREEMSGSTACK = (1u << 2),
     MUNMAPMSGSTACK = (1u << 3),
     FPUNWIND = (1u << 4),
+    BLOCKED = (1u << 5),
 };
 
 enum {
@@ -74,6 +75,7 @@ typedef struct {
     bool munmapStackData_;
     uint8_t maxStackDepth_;
     bool fpunwind_;
+    bool isBlocked;
 } ClientConfig;
 
 #endif // HOOK_SERVICE_H

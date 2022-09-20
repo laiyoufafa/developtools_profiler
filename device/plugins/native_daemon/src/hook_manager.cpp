@@ -221,6 +221,7 @@ bool HookManager::CreatePluginSession(const std::vector<ProfilerPluginConfig>& c
     hookConfig |= hookConfig_.free_stack_report() ? FREEMSGSTACK : 0;
     hookConfig |= hookConfig_.munmap_stack_report() ? MUNMAPMSGSTACK : 0;
     hookConfig |= hookConfig_.fp_unwind() ? FPUNWIND : 0;
+    hookConfig |= hookConfig_.blocked() ? BLOCKED : 0;
 
     hookConfig <<= MOVE_BIT_16;
     hookConfig |= hookConfig_.filter_size();
