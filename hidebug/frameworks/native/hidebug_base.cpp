@@ -121,13 +121,11 @@ static int GetMallocHookStartupValue(const char *param, char *path, int size)
     }
 
     const char *ptr = param;
-    const char *posColon = nullptr;
 
     while (*ptr && *ptr != ':') {
         ++ptr;
     }
     if (*ptr == ':') {
-        posColon = ptr;
         ++ptr;
     }
     const int paramLength = 7;
