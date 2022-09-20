@@ -117,7 +117,7 @@ void RandData(uint8_t* data, int size)
  */
 HWTEST_F(StackWriterTest, WriteaNormalTest, TestSize.Level1)
 {
-    auto write = std::make_shared<StackWriter>(PLUGIN_NAME, SMB_SIZE, g_smbFd, -1, false);
+    auto write = std::make_shared<StackWriter>(PLUGIN_NAME, SMB_SIZE, g_smbFd, -1);
     EXPECT_NE(write->shareMemoryBlock_, nullptr);
     uint8_t buffer1[] = {0x55, 0xAA, 0x55, 0xAA};
     uint8_t buffer2[] = {0x11, 0x22, 0x33, 0x44};
@@ -140,7 +140,7 @@ HWTEST_F(StackWriterTest, WriteaNormalTest, TestSize.Level1)
  */
 HWTEST_F(StackWriterTest, WriteaFalseTest, TestSize.Level1)
 {
-    auto write = std::make_shared<StackWriter>(PLUGIN_NAME, SMB_SIZE, 0, -1, false);
+    auto write = std::make_shared<StackWriter>(PLUGIN_NAME, SMB_SIZE, 0, -1);
     EXPECT_EQ(write->shareMemoryBlock_, nullptr);
     uint8_t buffer1[] = {0x55, 0xAA, 0x55, 0xAA};
     uint8_t buffer2[] = {0x11, 0x22, 0x33, 0x44};
@@ -165,7 +165,7 @@ HWTEST_F(StackWriterTest, WriteProcessTest, TestSize.Level1)
 {
     uint8_t data[BUFFER_SIZE];
     RandData(data, BUFFER_SIZE);
-    auto write = std::make_shared<StackWriter>(PLUGIN_NAME, SMB_SIZE, g_smbFd, -1, false);
+    auto write = std::make_shared<StackWriter>(PLUGIN_NAME, SMB_SIZE, g_smbFd, -1);
     EXPECT_NE(write->shareMemoryBlock_, nullptr);
     long bytes = BUFFER_SIZE;
 
