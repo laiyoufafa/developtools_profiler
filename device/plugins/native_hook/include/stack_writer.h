@@ -31,7 +31,7 @@ public:
                  uint32_t size,
                  int smbFd,
                  int eventFd,
-                 bool blocked);
+                 bool blocked = false);
     ~StackWriter();
     long Write(const void* data, size_t size) override;
     long WriteTimeout(const void* data, size_t size);
@@ -45,7 +45,7 @@ private:
 
 private:
     std::string pluginName_;
-    bool blocked_;
+    bool blocked_ = false;
     std::shared_ptr<ShareMemoryBlock> shareMemoryBlock_;
     EventNotifierPtr eventNotifier_ = nullptr;
     std::chrono::steady_clock::time_point lastFlushTime_;

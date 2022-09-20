@@ -26,7 +26,7 @@
 namespace {
 const int HEAD_OFFSET_LEN = 4;
 constexpr uint32_t TIMEOUT_SEC = 1;
-const int WAIT_RELEASE_TIMEOUT = 10; // 10 us
+const int WAIT_RELEASE_TIMEOUT_US = 10;
 #ifndef PAGE_SIZE
 constexpr uint32_t PAGE_SIZE = 4096;
 #endif
@@ -405,7 +405,7 @@ bool ShareMemoryBlock::PutWithPayloadSync(const int8_t* header, uint32_t headerS
         while (true) {
             if (rawMemory == nullptr) {
                 pthread_mutex_unlock(&header_->info.mutex_);
-                usleep(WAIT_RELEASE_TIMEOUT);
+                usleep(WAIT_RELEASE_TIMEOUT_US);
                 pthread_mutex_lock(&header_->info.mutex_);
                 rawMemory = GetFreeMemory(headerSize + payloadSize);
                 continue;
