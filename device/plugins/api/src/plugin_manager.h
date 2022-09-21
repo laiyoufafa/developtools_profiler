@@ -45,7 +45,8 @@ public:
     // CommandPoller will call the following four interfaces after receiving the command
     bool CreatePluginSession(const std::vector<ProfilerPluginConfig>& config);
     bool DestroyPluginSession(const std::vector<uint32_t>& pluginIds);
-    bool StartPluginSession(const std::vector<uint32_t>& pluginIds, const std::vector<ProfilerPluginConfig>& config);
+    bool StartPluginSession(const std::vector<uint32_t>& pluginIds, const std::vector<ProfilerPluginConfig>& config,
+                                PluginResult& result);
     bool StopPluginSession(const std::vector<uint32_t>& pluginIds);
     bool ReportPluginBasicData(const std::vector<uint32_t>& pluginIds);
 
@@ -58,8 +59,8 @@ public:
     bool CreateWriter(std::string pluginName, uint32_t bufferSize, int smbFd, int eventFd);
     bool ResetWriter(uint32_t pluginId);
     void SetCommandPoller(const CommandPollerPtr& p);
-    bool RegisterPlugin(const PluginModulePtr& plugin, const std::string& pluginPath, const std::string& pluginName);
-    void UpdatePluginInfo(const PluginModulePtr& pluginIds);
+    bool RegisterPlugin(const PluginModulePtr& plugin, const std::string& pluginPath,
+                            const PluginModuleInfo& pluginInfo);
 
 private:
     std::map<uint32_t, std::shared_ptr<PluginModule>> pluginModules_;
@@ -67,7 +68,6 @@ private:
     CommandPollerPtr commandPoller_;
     ScheduleTaskManager scheduleTaskManager_;
     std::map<std::string, std::string> pluginPathAndNameMap_;
-    std::vector<std::thread> updateThreadVec_;
 };
 
 #endif // PLUGIN_MANAGER_H

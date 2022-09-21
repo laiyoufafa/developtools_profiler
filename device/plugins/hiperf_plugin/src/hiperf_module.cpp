@@ -136,10 +136,17 @@ int HiperfRegisterWriterStruct(const WriterStruct* writer)
 }
 
 static PluginModuleCallbacks g_callbacks = {
-    HiperfPluginSessionStart,
-    nullptr, // onPluginReportResult
-    HiperfPluginSessionStop,
-    HiperfRegisterWriterStruct,
+    .onPluginSessionStart = HiperfPluginSessionStart,
+    .onPluginReportResult = 0,
+    .onPluginSessionStop = HiperfPluginSessionStop,
+    .onRegisterWriterStruct = HiperfRegisterWriterStruct,
 };
 
-PluginModuleStruct g_pluginModule = {&g_callbacks, "hiperf-plugin", MAX_BUFFER_SIZE, true, "/data/local/tmp/perf.data"};
+PluginModuleStruct g_pluginModule = {
+    .callbacks = &g_callbacks,
+    .name = "hiperf-plugin",
+    .version = "1.01",
+    .resultBufferSizeHint = MAX_BUFFER_SIZE,
+    .isStandaloneFileData = true,
+    .outFileName = "/data/local/tmp/perf.data",
+};

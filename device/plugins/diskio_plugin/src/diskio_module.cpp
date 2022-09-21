@@ -46,9 +46,14 @@ static int DiskioPluginSessionStop()
 }
 
 static PluginModuleCallbacks g_callbacks = {
-    DiskioDataPluginSessionStart,
-    DiskioPluginReportResult,
-    DiskioPluginSessionStop,
+    .onPluginSessionStart = DiskioDataPluginSessionStart,
+    .onPluginReportResult = DiskioPluginReportResult,
+    .onPluginSessionStop = DiskioPluginSessionStop,
 };
 
-PluginModuleStruct g_pluginModule = {&g_callbacks, "diskio-plugin", MAX_BUFFER_SIZE};
+PluginModuleStruct g_pluginModule = {
+    .callbacks = &g_callbacks,
+    .name = "diskio-plugin",
+    .version = "1.01",
+    .resultBufferSizeHint = MAX_BUFFER_SIZE,
+};

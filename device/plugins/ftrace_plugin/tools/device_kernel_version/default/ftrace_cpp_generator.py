@@ -443,8 +443,11 @@ class EventFormatterCodeGenerator(FtraceEventCodeGenerator):
                     self.handle_format_ps_functions(event, f, "func", True)
                 elif (event.name == "kernel_stack") | (event.name == "user_stack") :
                     f.write("    int len = 0;\n")
+                    f.write("    std::string kernelSymbolsStr = \"\";\n")
                     f.write("    auto kernelSymbols = EventFormatter::GetInstance().kernelSymbols_;\n")
-                    f.write("    auto kernelSymbolsStr = kernelSymbols[msg.caller()[0]];\n")
+                    f.write("    if (kernelSymbols.count(msg.caller()[0]) > 0) {\n")
+                    f.write("        kernelSymbolsStr = kernelSymbols[msg.caller()[0]];\n")
+                    f.write("    }\n")
                     f.write("    if (kernelSymbolsStr != \"\") {\n        ")
                     print_fmt = event.print_fmt
                     event.print_fmt = str.replace(event.print_fmt, "%ps", "%s")
@@ -494,7 +497,12 @@ class EventFormatterCodeGenerator(FtraceEventCodeGenerator):
 
     def handle_format_ps_functions(self, event, f, filed_name, is_void=False):
         f.write("    int len = 0;\n")
-        f.write("    std::string functionStr = EventFormatter::GetInstance().kernelSymbols_[msg.{}()];\n".format(filed_name))
+        f.write("    std::string functionStr = \"\";\n")
+        f.write("    auto kernelSymbols = EventFormatter::GetInstance().kernelSymbols_;\n")
+        f.write("    if (kernelSymbols.count(msg.{}()) > 0) ".format(filed_name))
+        f.write("{\n")
+        f.write("        functionStr = kernelSymbols[msg.{}()];\n".format(filed_name))
+        f.write("    }\n")
         f.write("    if (functionStr != \"\") {\n        ")
         print_fmt = event.print_fmt
         event.print_fmt = str.replace(event.print_fmt, "%ps", "%s")

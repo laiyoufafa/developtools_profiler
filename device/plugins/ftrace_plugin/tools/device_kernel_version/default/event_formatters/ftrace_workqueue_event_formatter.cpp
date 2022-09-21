@@ -58,7 +58,11 @@ REGISTER_FTRACE_EVENT_FORMATTER(
         auto msg = event.workqueue_execute_start_format();
         char buffer[BUFFER_SIZE];
         int len = 0;
-        std::string functionStr = EventFormatter::GetInstance().kernelSymbols_[msg.function()];
+        std::string functionStr = "";
+        auto kernelSymbols = EventFormatter::GetInstance().kernelSymbols_;
+        if (kernelSymbols.count(msg.function()) > 0) {
+            functionStr = kernelSymbols[msg.function()];
+        }
         if (functionStr != "") {
             len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
                 "workqueue_execute_start: work struct %p: function %s", msg.work(), functionStr.c_str());
@@ -80,7 +84,11 @@ REGISTER_FTRACE_EVENT_FORMATTER(
         auto msg = event.workqueue_queue_work_format();
         char buffer[BUFFER_SIZE];
         int len = 0;
-        std::string functionStr = EventFormatter::GetInstance().kernelSymbols_[msg.function()];
+        std::string functionStr = "";
+        auto kernelSymbols = EventFormatter::GetInstance().kernelSymbols_;
+        if (kernelSymbols.count(msg.function()) > 0) {
+            functionStr = kernelSymbols[msg.function()];
+        }
         if (functionStr != "") {
             len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
                 "workqueue_queue_work: work struct=%p function=%s workqueue=%p req_cpu=%u cpu=%u", msg.work(),

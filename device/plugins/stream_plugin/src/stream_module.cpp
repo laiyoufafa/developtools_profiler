@@ -48,10 +48,15 @@ static int StreamRegisterWriterStruct(WriterStruct* writer)
 }
 
 static PluginModuleCallbacks g_callbacks = {
-    StreamPluginSessionStart,
-    0,
-    StreamPluginSessionStop,
-    (RegisterWriterStructCallback)StreamRegisterWriterStruct,
+    .onPluginSessionStart = StreamPluginSessionStart,
+    .onPluginReportResult = 0,
+    .onPluginSessionStop = StreamPluginSessionStop,
+    .onRegisterWriterStruct = (RegisterWriterStructCallback)StreamRegisterWriterStruct,
 };
 
-PluginModuleStruct g_pluginModule = {&g_callbacks, "stream-plugin", MAX_BUFFER_SIZE};
+PluginModuleStruct g_pluginModule = {
+    .callbacks = &g_callbacks,
+    .name = "stream-plugin",
+    .version = "1.01",
+    .resultBufferSizeHint = MAX_BUFFER_SIZE,
+};

@@ -63,14 +63,7 @@ std::string ComputeFileSha256(const std::string& path)
 }
 }  // namespace
 
-PluginManager::~PluginManager()
-{
-    for (size_t i = 0; i < updateThreadVec_.size(); i++) {
-        if (updateThreadVec_[i].joinable()) {
-            updateThreadVec_[i].join();
-        }
-    }
-}
+PluginManager::~PluginManager() {}
 
 void PluginManager::SetCommandPoller(const CommandPollerPtr& p)
 {
@@ -108,32 +101,29 @@ bool PluginManager::AddPlugin(const std::string& pluginPath)
         return false;
     }
 
-    return RegisterPlugin(plugin, pluginPath, pluginName);
+    return RegisterPlugin(plugin, pluginPath, info);
 }
 
-bool PluginManager::RegisterPlugin(const PluginModulePtr& plugin,
-    const std::string& pluginPath, const std::string& pluginName)
+bool PluginManager::RegisterPlugin(const PluginModulePtr& plugin,const std::string& pluginPath,
+    const std::string& pluginfo)
 {
-    std::string outputFileName = "";
-    plugin->GetOutFileName(outputFileName);
-
     RegisterPluginRequest request;
     request.set_request_id(commandPoller_->GetRequestId());
     request.set_path(pluginPath);
     request.set_sha256(ComputeFileSha256(pluginPath));
-    request.set_name(pluginName);
-    request.set_buffer_size_hint(0);
-    request.set_is_standalone_data(plugin->GetStandaloneFileData());
-    request.set_out_file_name(outputFileName);
     RegisterPluginResponse response;
-
+    request.set_name(pluginInfo.name);
+    request.set_buffer_size_hint(pluginInfo.bufferSizeHint);
+    request.set_is_standalone_data(pluginInfo.isStandaloneFileData);
+    request.set_out_file_name(pluginInfo.outFileName);
+    request.set_plugin_version(pluginInfo.pluginVersion);
     if (commandPoller_->RegisterPlugin(request, response)) {
         if (response.status() == ResponseStatus::OK) {
             HILOG_DEBUG(LOG_CORE, "%s:response.plugin_id() = %d", __func__, response.plugin_id());
-            pluginIds_[pluginName] = response.plugin_id();
+            pluginIds_[pluginInfo.name] = response.plugin_id();
             pluginModules_.insert(std::pair<uint32_t, std::shared_ptr<PluginModule>>(response.plugin_id(), plugin));
             pluginPathAndNameMap_.insert(
-                {pluginPath, pluginName}
+                {pluginPath, pluginInfo.name}
             );
             HILOG_DEBUG(LOG_CORE, "%s:registerPlugin ok", __func__);
         } else {
@@ -286,7 +276,7 @@ bool PluginManager::DestroyPluginSession(const std::vector<uint32_t>& pluginIds)
 }
 
 bool PluginManager::StartPluginSession(const std::vector<uint32_t>& pluginIds,
-                                       const std::vector<ProfilerPluginConfig>& config)
+                                       const std::vector<ProfilerPluginConfig>& config, PluginResult& result)
 {
     HILOG_INFO(LOG_CORE, "%s:ready!", __func__);
     size_t idx = 0;
@@ -323,26 +313,18 @@ bool PluginManager::StartPluginSession(const std::vector<uint32_t>& pluginIds,
             }
         }
 
-        // need update standalone plugin info
+        // need update standalone plugin output file name
         if (plugin->GetStandaloneFileData()) {
-            auto updateThread_ = std::thread(&PluginManager::UpdatePluginInfo, this, plugin);
-            updateThreadVec_.push_back(std::move(updateThread_));
+            std::string pluginOutFileName = "";
+            plugin->GetOutFileName(pluginOutFileName);
+            result.set_plugin_id(id);
+            result.set_out_file_name(pluginOutFileName);
         }
 
         idx++;
     }
 
     return true;
-}
-
-void PluginManager::UpdatePluginInfo(const PluginModulePtr& plugin)
-{
-    // update plugin info
-    auto name = plugin.get()->GetPluginName();
-    auto path = plugin.get()->GetPath();
-    if (!RegisterPlugin(plugin, path, name)) {
-        HILOG_ERROR(LOG_CORE, "%s failed, name:%s, path:%s", __func__, name.c_str(), path.c_str());
-    }
 }
 
 bool PluginManager::StopPluginSession(const std::vector<uint32_t>& pluginIds)
@@ -416,6 +398,7 @@ bool PluginManager::PullResult(uint32_t pluginId)
 {
     uint32_t size = 0;
     std::string name = "";
+    std::string version = "";
     auto it = pluginModules_.find(pluginId);
     if (it == pluginModules_.end()) {
         HILOG_DEBUG(LOG_CORE, "%s:plugin not find", __func__);
@@ -423,6 +406,7 @@ bool PluginManager::PullResult(uint32_t pluginId)
     }
     pluginModules_[pluginId]->GetBufferSizeHint(size);
     pluginModules_[pluginId]->GetPluginName(name);
+    pluginModules_[pluginId]->GetPluginVersion(version);
     std::unique_ptr<uint8_t[]> buffer(new (std::nothrow) uint8_t[size]);
     if (buffer == nullptr) {
         HILOG_DEBUG(LOG_CORE, "%s:buffer new failed!", __func__);
@@ -436,6 +420,7 @@ bool PluginManager::PullResult(uint32_t pluginId)
 
     ProfilerPluginData pluginData;
     pluginData.set_name(name);
+    pluginData.set_version(version);
     pluginData.set_status(0);
     pluginData.set_data(buffer.get(), length);
 
@@ -465,8 +450,10 @@ bool PluginManager::CreateWriter(std::string pluginName, uint32_t bufferSize, in
 
     if (bufferSize > 0) {
         HILOG_DEBUG(LOG_CORE, "%s:%s Use ShareMemory %d", __func__, pluginName.c_str(), bufferSize);
+        std::string pluginVersion = "";
+        pluginModules_[index]->GetPluginVersion(pluginVersion);
         pluginModules_[index]->RegisterWriter(
-            std::make_shared<BufferWriter>(pluginName, bufferSize, smbFd, eventFd, index));
+            std::make_shared<BufferWriter>(pluginName, pluginVersion, bufferSize, smbFd, eventFd, index));
     } else {
         HILOG_ERROR(LOG_CORE, "%s:no shared memory buffer allocated!", __func__);
         return false;

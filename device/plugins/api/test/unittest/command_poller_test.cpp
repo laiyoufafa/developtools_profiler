@@ -71,7 +71,7 @@ public:
         return true;
     }
     virtual bool StartPluginSession(const std::vector<uint32_t>& pluginIds,
-                                        const std::vector<ProfilerPluginConfig>& config)
+                                        const std::vector<ProfilerPluginConfig>& config, PluginResult& result)
     {
         if (pluginIds[0] == 0) {
             return false;
@@ -173,9 +173,10 @@ HWTEST_F(CommandPollerTest, StartCmdTest, TestSize.Level1)
     failed2Cmd.add_plugin_ids(1);
     failed2Cmd.add_plugin_configs()->set_name("noexistplugin");
 
-    EXPECT_TRUE(commandPoller->OnStartSessionCmd(successCmd));
-    EXPECT_FALSE(commandPoller->OnStartSessionCmd(failed1Cmd));
-    EXPECT_FALSE(commandPoller->OnStartSessionCmd(failed2Cmd));
+    PluginResult result;
+    EXPECT_TRUE(commandPoller->OnStartSessionCmd(successCmd, result));
+    EXPECT_FALSE(commandPoller->OnStartSessionCmd(failed1Cmd, result));
+    EXPECT_FALSE(commandPoller->OnStartSessionCmd(failed2Cmd, result));
 }
 
 HWTEST_F(CommandPollerTest, StopCmdTest, TestSize.Level1)

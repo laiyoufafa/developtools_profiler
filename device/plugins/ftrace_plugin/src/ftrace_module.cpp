@@ -89,5 +89,6 @@ static PluginModuleCallbacks moduleCallbacks = {
 PluginModuleStruct g_pluginModule = {
     .callbacks = &moduleCallbacks,
     .name = "ftrace-plugin",
+    .version = "1.01",
     .resultBufferSizeHint = MAX_BUFFER_SIZE,
 };

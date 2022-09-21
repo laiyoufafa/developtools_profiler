@@ -36,7 +36,7 @@ public:
 
     bool OnCreateSessionCmd(const CreateSessionCmd& cmd, SocketContext& context) const;
     bool OnDestroySessionCmd(const DestroySessionCmd& cmd) const;
-    bool OnStartSessionCmd(const StartSessionCmd& cmd) const;
+    bool OnStartSessionCmd(const StartSessionCmd& cmd, PluginResult& result) const;
     bool OnStopSessionCmd(const StopSessionCmd& cmd) const;
     bool OnReportBasicDataCmd(const RefreshSessionCmd& cmd) const;
 

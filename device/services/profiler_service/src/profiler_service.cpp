@@ -373,8 +373,8 @@ bool ProfilerService::RemoveSessionContext(uint32_t sessionId)
     return false;
 }
 
-void ProfilerService::MergeStandaloneFile(const std::string& resultFile,
-    const std::string& pluginName, const std::string& outputFile)
+void ProfilerService::MergeStandaloneFile(const std::string& resultFile, const std::string& pluginName,
+    const std::string& outputFile, const std::string& pluginVersion)
 {
     if (pluginName.empty() || outputFile.empty()) {
         HILOG_ERROR(LOG_CORE, "pluginName(%s) didn't set output file(%s)", pluginName.c_str(), outputFile.c_str());
@@ -410,6 +410,12 @@ void ProfilerService::MergeStandaloneFile(const std::string& resultFile,
     int ret = strncpy_s(header.data_.standalonePluginName, pluginSize, pluginName.c_str(), pluginSize - 1);
     if (ret != EOK) {
         HILOG_ERROR(LOG_CORE, "strncpy_s error! pluginName is %s", pluginName.c_str());
+        return;
+    }
+    pluginSize = sizeof(header.data_.pluginVersion);
+    ret = strncpy_s(header.data_.pluginVersion, pluginSize, pluginVersion.c_str(), pluginSize - 1);
+    if (ret != EOK) {
+        HILOG_ERROR(LOG_CORE, "strncpy_s error! pluginVersion is %s", pluginVersion.c_str());
         return;
     }
     fsTarget.write(reinterpret_cast<char*>(&header), sizeof(header));
@@ -606,7 +612,7 @@ Status ProfilerService::DestroySession(ServerContext* context,
                 if (ctx->sessionConfig.split_file()) {
                     file = ctx->traceFileWriter.get()->Path();
                 }
-                MergeStandaloneFile(file, pluginName, pluginCtx->outFileName);
+                MergeStandaloneFile(file, pluginName, pluginCtx->outFileName, pluginCtx->pluginVersion);
             }
         }
     }

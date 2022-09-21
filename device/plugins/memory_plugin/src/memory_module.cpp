@@ -51,10 +51,15 @@ static int MemRegisterWriterStruct(const WriterStruct* writer)
 }
 
 static PluginModuleCallbacks g_callbacks = {
-    MemDataPluginSessionStart,
-    MemPluginReportResult,
-    MemPluginSessionStop,
-    MemRegisterWriterStruct,
+    .onPluginSessionStart = MemDataPluginSessionStart,
+    .onPluginReportResult = MemPluginReportResult,
+    .onPluginSessionStop = MemPluginSessionStop,
+    .onRegisterWriterStruct = MemRegisterWriterStruct,
 };
 
-PluginModuleStruct g_pluginModule = {&g_callbacks, "memory-plugin", MAX_BUFFER_SIZE};
+PluginModuleStruct g_pluginModule = {
+    .callbacks = &g_callbacks,
+    .name = "memory-plugin",
+    .version = "1.01",
+    .resultBufferSizeHint = MAX_BUFFER_SIZE,
+};

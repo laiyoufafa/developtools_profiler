@@ -26,11 +26,12 @@
 #include <unistd.h>
 
 BufferWriter::BufferWriter(std::string name,
+                           std::string version,
                            uint32_t size,
                            int smbFd,
                            int eventFd,
                            uint32_t pluginId)
-    : pluginName_(name)
+    : pluginName_(name), pluginVersion_(version)
 {
     HILOG_INFO(LOG_CORE, "%s:%s %d [%d] [%d]", __func__, name.c_str(), size, smbFd, eventFd);
     shareMemoryBlock_ = ShareMemoryAllocator::GetInstance().CreateMemoryBlockRemote(name, size, smbFd);
@@ -70,6 +71,7 @@ long BufferWriter::Write(const void* data, size_t size)
 
     ProfilerPluginData pluginData;
     pluginData.set_name(pluginName_);
+    pluginData.set_version(pluginVersion_);
     pluginData.set_status(0);
     pluginData.set_data(data, size);
 
