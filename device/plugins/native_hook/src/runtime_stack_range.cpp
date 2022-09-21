@@ -125,7 +125,7 @@ static void GetAnUnlimitedLine(FILE* fp, std::string& buf)
     } while (1);
 }
 
-static void GetMainThreadRuntimeStackRange()
+void GetMainThreadRuntimeStackRange()
 {
     std::string line;
     int buf_size = 0;
@@ -161,7 +161,7 @@ static bool IfContained(const char* start, const char* end, const char* ptr)
     return ret;
 }
 
-void GetRuntimeSigalAltStackRange(char** start, char** end)
+static void GetRuntimeSigalAltStackRange(char** start, char** end)
 {
     *start = nullptr;
     *end = nullptr;
