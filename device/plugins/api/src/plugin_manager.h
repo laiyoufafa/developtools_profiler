@@ -60,7 +60,7 @@ public:
     bool ResetWriter(uint32_t pluginId);
     void SetCommandPoller(const CommandPollerPtr& p);
     bool RegisterPlugin(const PluginModulePtr& plugin, const std::string& pluginPath,
-                            const PluginModuleInfo& pluginInfo);
+                        const PluginModuleInfo& pluginInfo);
 
 private:
     std::map<uint32_t, std::shared_ptr<PluginModule>> pluginModules_;

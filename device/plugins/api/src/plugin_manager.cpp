@@ -105,7 +105,7 @@ bool PluginManager::AddPlugin(const std::string& pluginPath)
 }
 
 bool PluginManager::RegisterPlugin(const PluginModulePtr& plugin,const std::string& pluginPath,
-    const std::string& pluginfo)
+                                   const PluginModuleInfo& pluginInfo)
 {
     RegisterPluginRequest request;
     request.set_request_id(commandPoller_->GetRequestId());
