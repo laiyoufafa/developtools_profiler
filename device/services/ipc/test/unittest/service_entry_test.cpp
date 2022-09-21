@@ -68,10 +68,10 @@ HWTEST_F(ServiceEntryTest, GetTimeMS, TestSize.Level1)
 {
     struct timespec ts;
     clock_gettime(CLOCK_BOOTTIME, &ts);
-    long t1= ts.tv_sec * MS_PER_S + ts.tv_nsec / NS_PER_MS;
-    long t2=GetTimeMS();
+    long t1 = ts.tv_sec * MS_PER_S + ts.tv_nsec / NS_PER_MS;
+    long t2 = GetTimeMS();
 
-    ASSERT_TRUE(t2-t1>=0);
+    ASSERT_TRUE(t2 - t1 >= 0);
 }
 
 /**

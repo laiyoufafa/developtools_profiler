@@ -150,9 +150,10 @@ void VirtualThreadTest::MakeMapsFromDlpi(const std::string &dlpiName,
             continue;
         }
         HLOGV("    %2d: [%14p; memsz:%7jx] align %jx flags: %#jx [(%#x)]", i,
-              (void *)(info->dlpi_addr + info->dlpi_phdr[i].p_vaddr),
-              (uintmax_t)info->dlpi_phdr[i].p_memsz, (uintmax_t)info->dlpi_phdr[i].p_align,
-              (uintmax_t)info->dlpi_phdr[i].p_flags, phdrType);
+              reinterpret_cast<void *>(info->dlpi_addr + info->dlpi_phdr[i].p_vaddr),
+              static_cast<uintmax_t>(info->dlpi_phdr[i].p_memsz),
+              static_cast<uintmax_t>(info->dlpi_phdr[i].p_align),
+              static_cast<uintmax_t>(info->dlpi_phdr[i].p_flags), phdrType);
 
         MemMapItem &item = phdrMaps.emplace_back();
         item.begin_ = (info->dlpi_addr + info->dlpi_phdr[i].p_vaddr);

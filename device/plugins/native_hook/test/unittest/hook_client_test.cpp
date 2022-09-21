@@ -120,7 +120,7 @@ HWTEST_F(NativeHookTest, NormalHookMemalignTest, TestSize.Level1)
 
     void* memalignBlack = ohos_malloc_hook_memalign(g_size, g_resize);
     EXPECT_EQ(memalignBlack, nullptr);
-    EXPECT_EQ((int)ohos_malloc_hook_malloc_usable_size(memalignBlack), 0);
+    EXPECT_EQ(static_cast<int>(ohos_malloc_hook_malloc_usable_size(memalignBlack)), 0);
 
     ohos_malloc_hook_free(memalignBlack);
 

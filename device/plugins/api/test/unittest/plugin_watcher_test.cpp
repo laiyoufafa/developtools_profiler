@@ -42,7 +42,7 @@ const std::string NO_EXIST_TEST_PATH = "/data/local/tmp/noexist/";
 
 class PluginWatchTest : public ::testing::Test {
 protected:
-    static constexpr int TEMP_DELAY = 10 * 1000;
+    static constexpr int tempDelay = 10 * 1000;
     static void SetUpTestCase() {}
     static void TearDownTestCase() {}
 
@@ -172,12 +172,12 @@ HWTEST_F(PluginWatchTest, SingleWatchDirTest, TestSize.Level1)
 
     EXPECT_TRUE(watcher.ScanPlugins(DEFAULT_TEST_PATH_1));
     EXPECT_TRUE(watcher.WatchPlugins(DEFAULT_TEST_PATH_1));
-    usleep(TEMP_DELAY);
+    usleep(tempDelay);
     AddFile(DEFAULT_TEST_PATH_1);
-    usleep(TEMP_DELAY);
+    usleep(tempDelay);
     EXPECT_EQ(CheckFileList(DEFAULT_TEST_PATH_1), true);
     DeleteFile(DEFAULT_TEST_PATH_1);
-    usleep(TEMP_DELAY);
+    usleep(tempDelay);
     EXPECT_EQ(cmpFileList.size(), 0);
 }
 
@@ -198,34 +198,34 @@ HWTEST_F(PluginWatchTest, MultiWatchDirTest, TestSize.Level1)
     CreateFile(DEFAULT_TEST_PATH_1);
     EXPECT_TRUE(watcher.ScanPlugins(DEFAULT_TEST_PATH_1));
     EXPECT_TRUE(watcher.WatchPlugins(DEFAULT_TEST_PATH_1));
-    usleep(TEMP_DELAY);
+    usleep(tempDelay);
     AddFile(DEFAULT_TEST_PATH_1);
-    usleep(TEMP_DELAY);
+    usleep(tempDelay);
     EXPECT_EQ(CheckFileList(DEFAULT_TEST_PATH_1), true);
     DeleteFile(DEFAULT_TEST_PATH_1);
-    usleep(TEMP_DELAY);
+    usleep(tempDelay);
     EXPECT_EQ(cmpFileList.size(), 0);
 
     CreateFile(DEFAULT_TEST_PATH_2);
     EXPECT_TRUE(watcher.ScanPlugins(DEFAULT_TEST_PATH_2));
     EXPECT_TRUE(watcher.WatchPlugins(DEFAULT_TEST_PATH_2));
-    usleep(TEMP_DELAY);
+    usleep(tempDelay);
     AddFile(DEFAULT_TEST_PATH_2);
-    usleep(TEMP_DELAY);
+    usleep(tempDelay);
     EXPECT_EQ(CheckFileList(DEFAULT_TEST_PATH_2), true);
     DeleteFile(DEFAULT_TEST_PATH_2);
-    usleep(TEMP_DELAY);
+    usleep(tempDelay);
     EXPECT_EQ(cmpFileList.size(), 0);
 
     CreateFile(DEFAULT_TEST_PATH_3);
     EXPECT_TRUE(watcher.ScanPlugins(DEFAULT_TEST_PATH_3));
     EXPECT_TRUE(watcher.WatchPlugins(DEFAULT_TEST_PATH_3));
-    usleep(TEMP_DELAY);
+    usleep(tempDelay);
     AddFile(DEFAULT_TEST_PATH_3);
-    usleep(TEMP_DELAY);
+    usleep(tempDelay);
     EXPECT_EQ(CheckFileList(DEFAULT_TEST_PATH_3), true);
     DeleteFile(DEFAULT_TEST_PATH_3);
-    usleep(TEMP_DELAY);
+    usleep(tempDelay);
     EXPECT_EQ(cmpFileList.size(), 0);
 }
 

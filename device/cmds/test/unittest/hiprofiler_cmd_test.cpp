@@ -253,7 +253,7 @@ public:
             if (fgets(line, sizeof(line), pipe.get()) == nullptr) {
                 HILOG_INFO(LOG_CORE, "not find processName : %s", processName.c_str());
                 return;
-            } else if (strlen(line) > 0 && isdigit((unsigned char)(line[0]))) {
+            } else if (strlen(line) > 0 && isdigit(static_cast<unsigned char>(line[0]))) {
                 pid = atoi(line);
                 HILOG_INFO(LOG_CORE, "find processName : %s, pid: %d", processName.c_str(), pid);
                 break;

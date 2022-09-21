@@ -370,19 +370,15 @@ static bool ParseCommonIntType(FieldFormat& field, bool sign)
         case sizeof(int8_t):
             field.filedType = sign ? FIELD_TYPE_INT8 : FIELD_TYPE_UINT8;
             return true;
-            break;
         case sizeof(int16_t):
             field.filedType = sign ? FIELD_TYPE_INT16 : FIELD_TYPE_UINT16;
             return true;
-            break;
         case sizeof(int32_t):
             field.filedType = sign ? FIELD_TYPE_INT32 : FIELD_TYPE_UINT32;
             return true;
-            break;
         case sizeof(int64_t):
             field.filedType = sign ? FIELD_TYPE_INT64 : FIELD_TYPE_UINT64;
             return true;
-            break;
         default:
             break;
     }

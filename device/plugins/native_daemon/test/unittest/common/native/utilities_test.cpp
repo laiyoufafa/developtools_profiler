@@ -50,7 +50,7 @@ void UtilitiesTest::TearDown() {}
 
 void UtilitiesTest::TestThread()
 {
-    printf("threads %ld create\n", (long)gettid());
+    printf("threads %ld create\n", static_cast<long>(gettid()));
     int ret = fflush(nullptr);
     if (ret == EOF) {
         printf("fflush() error\n");
@@ -60,7 +60,7 @@ void UtilitiesTest::TestThread()
     while (!exitThreads_) {
         std::this_thread::sleep_for(std::chrono::milliseconds(sleepTime_));
     }
-    printf("threads %ld exited\n", (long)gettid());
+    printf("threads %ld exited\n", static_cast<long>(gettid()));
     ret = fflush(nullptr);
     if (ret == EOF) {
         printf("fflush() error\n");
