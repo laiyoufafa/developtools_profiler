@@ -35,7 +35,6 @@ ohos_shared_library("shared_memory") {
   ]
 
   public_deps = [
-    "${OHOS_PROFILER_3RDPARTY_PROTOBUF_DIR}:protobuf",
     "${OHOS_PROFILER_3RDPARTY_PROTOBUF_DIR}:protobuf_lite",
     "//third_party/bounds_checking_function:libsec_static",
   ]
