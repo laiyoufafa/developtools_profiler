@@ -114,7 +114,7 @@ void* hook_malloc(void* (*fn)(size_t), size_t size)
     struct timespec start = {};
     clock_gettime(CLOCK_REALTIME, &start);
 #endif
-    g_stackRawData rawdata = {{{0}}};
+    StackRawData rawdata = {{{0}}};
     const char* stackptr = nullptr;
     const char* stackendptr = nullptr;
     int stackSize = 0;
@@ -242,7 +242,7 @@ void hook_free(void (*free_func)(void*), void* p)
     if ((g_hookPid != getpid()) || g_ClientConfig.mallocDisable_) {
         return;
     }
-    g_stackRawData rawdata = {{{0}}};
+    StackRawData rawdata = {{{0}}};
     const char* stackptr = nullptr;
     const char* stackendptr = nullptr;
     int stackSize = 0;
@@ -315,7 +315,7 @@ void* hook_mmap(void*(*fn)(void*, size_t, int, int, int, off_t),
     if (g_hookPid != getpid() || g_ClientConfig.mmapDisable_) {
         return ret;
     }
-    g_stackRawData rawdata = {{{0}}};
+    StackRawData rawdata = {{{0}}};
     const char* stackptr = nullptr;
     const char* stackendptr = nullptr;
     int stackSize = 0;
@@ -386,7 +386,7 @@ int hook_munmap(int(*fn)(void*, size_t), void* addr, size_t length)
         return ret;
     }
     int stackSize = 0;
-    g_stackRawData rawdata = {{{0}}};
+    StackRawData rawdata = {{{0}}};
     const char* stackptr = nullptr;
     const char* stackendptr = nullptr;
     clock_gettime(CLOCK_REALTIME, &rawdata.ts);
@@ -459,7 +459,7 @@ int hook_prctl(int(*fn)(int, ...),
         return ret;
     }
     if (option == PR_SET_VMA && arg2 == PR_SET_VMA_ANON_NAME) {
-        g_stackRawData rawdata = {{{0}}};
+        StackRawData rawdata = {{{0}}};
         clock_gettime(CLOCK_REALTIME, &rawdata.ts);
         rawdata.type = PR_SET_VMA_MSG;
         rawdata.pid = getpid();
@@ -589,7 +589,7 @@ void ohos_malloc_hook_memtag(void* addr, size_t size, char* tag, size_t tagLen)
     if (g_hookPid != getpid()) {
         return;
     }
-    g_stackRawData rawdata = {{{0}}};
+    StackRawData rawdata = {{{0}}};
     clock_gettime(CLOCK_REALTIME, &rawdata.ts);
     rawdata.type = MEMORY_TAG;
     rawdata.pid = getpid();

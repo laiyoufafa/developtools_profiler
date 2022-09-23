@@ -27,12 +27,12 @@ const int MB_TO_BYTE = 1024 * 1024;
 const int MIN_BYTE = 200;
 } // namespace
 
-TraceFileWriter::TraceFileWriter(const std::string& path, bool splitFile, uint32_t SingleFileMaxSizeMb)
+TraceFileWriter::TraceFileWriter(const std::string& path, bool splitFile, uint32_t singleFileMaxSizeMb)
     : path_(path), writeBytes_(0)
 {
     isSplitFile_ = splitFile;
-    SingleFileMaxSize_ = (SingleFileMaxSizeMb < MIN_BYTE) ? (MIN_BYTE * MB_TO_BYTE) :
-        (SingleFileMaxSizeMb * MB_TO_BYTE);
+    singleFileMaxSize_ = (singleFileMaxSizeMb < MIN_BYTE) ? (MIN_BYTE * MB_TO_BYTE) :
+        (singleFileMaxSizeMb * MB_TO_BYTE);
     oldPath_ = path;
     fileNum_ = 1;
 
@@ -150,9 +150,9 @@ long TraceFileWriter::Write(const void* data, size_t size)
 bool TraceFileWriter::IsSplitFile(uint32_t size)
 {
     dataSize_ += sizeof(uint32_t) + size;
-    if (dataSize_ >= SingleFileMaxSize_) {
-        HILOG_INFO(LOG_CORE, "need to split the file(%s), data size:%d, size: %d, SingleFileMaxSize_:%d",
-            path_.c_str(), dataSize_, size, SingleFileMaxSize_);
+    if (dataSize_ >= singleFileMaxSize_) {
+        HILOG_INFO(LOG_CORE, "need to split the file(%s), data size:%d, size: %d, singleFileMaxSize_:%d",
+            path_.c_str(), dataSize_, size, singleFileMaxSize_);
 
         // update old file header
         Finish();

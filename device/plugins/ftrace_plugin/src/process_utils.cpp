@@ -51,7 +51,7 @@ struct PipedSigHandler {
 private:
     int Init()
     {
-        handler_ = signal(sig_, &PipedSigHandler::SigHandler);
+        handler = signal(sig_, &PipedSigHandler::SigHandler);
         HILOG_INFO(LOG_CORE, "set signal handler for sig %d done!", sig_);
 
         CHECK_TRUE(pipe(pipe_) != -1, -1, "create pipe failed, %d", errno);
@@ -64,8 +64,8 @@ private:
         CHECK_TRUE(close(pipe_[RD]) != -1, -1, "close pipe_[RD] failed, %d", errno);
         CHECK_TRUE(close(pipe_[WR]) != -1, -1, "close pipe_[WR] failed, %d", errno);
 
-        if (handler_ != nullptr) {
-            signal(sig_, handler_);
+        if (handler != nullptr) {
+            signal(sig_, handler);
             HILOG_INFO(LOG_CORE, "restore signal handler for sig %d done!", sig_);
         }
         return 0;
@@ -79,7 +79,7 @@ private:
 private:
     int sig_ = 0;
     static int pipe_[2];
-    sighandler_t handler_ = nullptr;
+    sighandler_t handler = nullptr;
 };
 
 int PipedSigHandler::pipe_[2] = {-1, -1};

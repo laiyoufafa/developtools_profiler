@@ -435,12 +435,12 @@ HWTEST_F(BufferSplitterUnittest, MemInfoBufferTEST, TestSize.Level1)
             continue;
         }
 
-        int counter_id = it->second;
+        int counterId = it->second;
         if (!totalbuffer.NextWord(' ')) {
             continue;
         }
         auto value = static_cast<uint64_t>(strtoll(totalbuffer.CurWord(), nullptr, 10));
-        EXPECT_EQ((uint64_t)counter_id, value);
+        EXPECT_EQ((uint64_t)counterId, value);
     } while (totalbuffer.NextLine());
 }
 } // namespace
