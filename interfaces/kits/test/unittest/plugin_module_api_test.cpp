@@ -227,7 +227,10 @@ HWTEST_F(PluginModuleApiTest, StreamPluginRegister2, TestSize.Level1)
     streamCallbacks_ = &callbacks;
 
     EXPECT_NE(streamCallbacks_->onRegisterWriterStruct, nullptr);
-    WriterStruct writer;
+    WriterStruct writer = {
+        Write,
+        Flush,
+    };
     writer_ = &writer;
     EXPECT_EQ(streamCallbacks_->onRegisterWriterStruct(writer_), 0);
     EXPECT_NE(streamPlugin, nullptr);
