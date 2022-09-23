@@ -210,7 +210,8 @@ bool VirtualRuntime::UnwindStack(std::vector<u64> regs,
         }
         if (stack_size > 0) {
             callsFrames.clear();
-            callstack_.UnwindCallStack(thread, &regs[0], regs.size(), stack_addr, stack_size, callsFrames, maxStackLevel);
+            callstack_.UnwindCallStack(thread, &regs[0], regs.size(), stack_addr,
+                stack_size, callsFrames, maxStackLevel);
         }
         if (callsFrames.size() <= FILTER_STACK_DEPTH) {
             callsFrames.clear();

@@ -13,6 +13,9 @@
  * limitations under the License.
  */
 
+#ifndef HOOK_SO_H
+#define HOOK_SO_H
+
 #include <cstdio>
 #include <cstdlib>
 #include <new>
@@ -27,3 +30,5 @@ void DepthFreeSo(int depth, char *p);
 #ifdef __cplusplus
 }
 #endif
+
+#endif /* HOOK_SO_H */

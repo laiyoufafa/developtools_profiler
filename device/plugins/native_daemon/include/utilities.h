@@ -216,7 +216,7 @@ std::string PlatformPathConvert(const std::string &path);
 // data align
 
 // some time u will meet signal 7 (SIGBUS), code 1 (BUS_ADRALN) in 32 or 64 arch cpu
-#define HIPERF_BUF_ALIGN alignas(64)
+#define HIPERF_BUF_ALIGN Alignas(64)
 
 uint32_t RoundUp(uint32_t x, const int align);
 

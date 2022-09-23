@@ -299,14 +299,15 @@ void IoStats::CalcCpuStats(const CpuDatasPtr& cpuData, CpuStats* cpuInfo)
 
 double IoStats::KeepTowDigits(const uint64_t& data, uint64_t div)
 {
+    double result = 0.00; 
     if (data <= 0 || div == 0) {
-        return 0.00;
+        return result;
     }
     double ddiv = div;
     if (ddiv != NUM_TWO) {
         ddiv = div * NUM_ZERO_POINTZEROONE;
     }
-    double result = static_cast<double>(data) / ddiv;
+    result = static_cast<double>(data) / ddiv;
     return result;
 }
 

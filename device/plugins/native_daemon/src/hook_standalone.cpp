@@ -43,7 +43,7 @@ bool g_unwindErrorFlag = false;
 bool g_fpUnwind = false;
 std::unique_ptr<FILE, decltype(&fclose)> g_fpHookFile(nullptr, nullptr);
 
-void writeFrames(StackRawData *data, const std::vector<CallFrame>& callsFrames)
+void writeFrames(g_stackRawData *data, const std::vector<CallFrame>& callsFrames)
 {
     if (data->type == MALLOC_MSG) {
         fprintf(g_fpHookFile.get(), "malloc;%" PRId64 ";%ld;0x%" PRIx64 ";%zu\n",
@@ -86,13 +86,13 @@ void ReadShareMemory(uint64_t duration, const std::string& performance_filename)
 
     while (true) {
         bool ret = g_shareMemoryBlock->TakeData([&](const int8_t data[], uint32_t size) -> bool {
-            if (size < sizeof(StackRawData)) {
+            if (size < sizeof(g_stackRawData)) {
                 HILOG_ERROR(LOG_CORE, "stack data invalid!");
                 return false;
             }
-            StackRawData *rawData = reinterpret_cast<StackRawData *>(const_cast<int8_t *>(data));
-            const uint8_t *stackData = reinterpret_cast<const uint8_t *>(data + sizeof(StackRawData));
-            uint32_t stackSize = size - sizeof(StackRawData);
+            g_stackRawData *rawData = reinterpret_cast<g_stackRawData *>(const_cast<int8_t *>(data));
+            const uint8_t *stackData = reinterpret_cast<const uint8_t *>(data + sizeof(g_stackRawData));
+            uint32_t stackSize = size - sizeof(g_stackRawData);
 
             std::vector<u64> u64regs;
             std::vector<CallFrame> callsFrames;

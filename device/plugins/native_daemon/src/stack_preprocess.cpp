@@ -200,7 +200,7 @@ void StackPreprocess::TakeResults()
                         runtime_instance->UpdateMaps(rawData->stackConext.pid, rawData->stackConext.tid);
                         break;
                     }
-                 }
+                }
             }
 #ifdef PERFORMANCE_DEBUG
             struct timespec end = {};

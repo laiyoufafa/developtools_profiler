@@ -30,7 +30,7 @@ using BatchNativeHookDataPtr = STD_PTR(shared, BatchNativeHookData);
 class StackDataRepeater {
 public:
     struct RawStack {
-        StackRawData stackConext;
+        g_stackRawData stackConext;
         bool reportFlag;
         bool reduceStackFlag;
         uint32_t stackSize;

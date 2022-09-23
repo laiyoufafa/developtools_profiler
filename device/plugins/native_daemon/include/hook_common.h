@@ -53,7 +53,7 @@ enum {
     PR_SET_VMA_MSG,
 };
 
-typedef struct alignas(8) {
+typedef struct Alignas(8) {
     union {
         char regs[kMaxRegSize];
         uint64_t ip[MAX_UNWIND_DEPTH + 1];
@@ -65,7 +65,7 @@ typedef struct alignas(8) {
     uint32_t pid;
     uint32_t tid;
     uint32_t type;
-} StackRawData;
+} g_stackRawData;
 
 typedef struct {
     uint32_t filterSize_;

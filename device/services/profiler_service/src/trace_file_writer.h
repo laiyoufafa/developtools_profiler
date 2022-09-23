@@ -30,7 +30,7 @@ using google::protobuf::MessageLite;
 
 class TraceFileWriter : public Writer {
 public:
-    explicit TraceFileWriter(const std::string& path, bool splitFile = false, uint32_t SingleFileMaxSizeMb = 0);
+    explicit TraceFileWriter(const std::string& path, bool splitFile = false, uint32_t singleFileMaxSizeMb = 0);
 
     ~TraceFileWriter();
 
@@ -65,7 +65,7 @@ private:
     TraceFileHelper helper_ {};
     uint32_t dataSize_;
     bool isSplitFile_ = false;
-    uint32_t SingleFileMaxSize_;
+    uint32_t singleFileMaxSize_;
     std::vector<std::vector<char>> pluginConfigsData_;
     bool isStop_ = false;
     int fileNum_;

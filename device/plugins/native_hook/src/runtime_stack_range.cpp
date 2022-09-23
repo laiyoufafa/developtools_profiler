@@ -35,7 +35,7 @@ struct StackScope {
     const char* start;
     const char* end;
 };
-static StackScope mainStack;
+static StackScope g_mainStack;
 }  // namespace
 
 static void GetThreadRuntimeStackRange(const char** start, const char** end)
@@ -144,8 +144,8 @@ void GetMainThreadRuntimeStackRange()
             if (concatPos == static_cast<std::string::size_type>(-1)) {
                 continue;
             }
-            mainStack.start = reinterpret_cast<char*>(CvtStrToInt(line.c_str(), BASE_MAX));
-            mainStack.end = reinterpret_cast<char*>(CvtStrToInt(line.c_str() + concatPos + 1, BASE_MAX));
+            g_mainStack.start = reinterpret_cast<char*>(CvtStrToInt(line.c_str(), BASE_MAX));
+            g_mainStack.end = reinterpret_cast<char*>(CvtStrToInt(line.c_str() + concatPos + 1, BASE_MAX));
 
             break;
         }
@@ -191,8 +191,8 @@ void GetRuntimeStackEnd(const char* stackptr, const char** end)
     if (isSubThread) {
         GetThreadRuntimeStackRange(&start, end);
     } else {
-        start = mainStack.start;
-        *end = mainStack.end;
+        start = g_mainStack.start;
+        *end = g_mainStack.end;
     }
     if (!IfContained(start, *end, stackptr)) {
         char *sigStackStart, *sigStackEnd;

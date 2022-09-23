@@ -407,7 +407,7 @@ HWTEST_F(CheckHookDataTest, DFX_DFR_Hiprofiler_0090, Function | MediumTest | Lev
             EXPECT_STREQ(hookVec[addrPos].c_str(), addr.c_str());
             EXPECT_GE(depth, g_callocDepth);
 
-            isFirstHook= false;
+            isFirstHook = false;
             addr = "";
             depth = 0;
         } else {

@@ -33,9 +33,9 @@
 
 static pthread_key_t g_disableHookFlag;
 namespace {
-static std::atomic<uint64_t> timeCost = 0;
-static std::atomic<uint64_t> mallocTimes = 0;
-static std::atomic<uint64_t> dataCounts = 0;
+static std::atomic<uint64_t> g_timeCost = 0;
+static std::atomic<uint64_t> g_mallocTimes = 0;
+static std::atomic<uint64_t> g_dataCounts = 0;
 using OHOS::Developtools::NativeDaemon::buildArchType;
 static std::shared_ptr<HookSocketClient> g_hookClient;
 std::recursive_timed_mutex g_ClientMutex;
@@ -108,13 +108,13 @@ void* hook_malloc(void* (*fn)(size_t), size_t size)
     }
     if ((g_hookPid != getpid())
         || g_ClientConfig.mallocDisable_ || (size < g_ClientConfig.filterSize_)) {
-         return ret;
+        return ret;
      }
 #ifdef PERFORMANCE_DEBUG
     struct timespec start = {};
     clock_gettime(CLOCK_REALTIME, &start);
 #endif
-    StackRawData rawdata = {{{0}}};
+    g_stackRawData rawdata = {{{0}}};
     const char* stackptr = nullptr;
     const char* stackendptr = nullptr;
     int stackSize = 0;
@@ -175,13 +175,13 @@ void* hook_malloc(void* (*fn)(size_t), size_t size)
 #ifdef PERFORMANCE_DEBUG
     struct timespec end = {};
     clock_gettime(CLOCK_REALTIME, &end);
-    timeCost += (end.tv_sec - start.tv_sec) * S_TO_NS + (end.tv_nsec - start.tv_nsec);
-    mallocTimes++;
-    dataCounts += stackSize;
-    if (mallocTimes % PRINT_INTERVAL == 0) {
+    g_timeCost += (end.tv_sec - start.tv_sec) * S_TO_NS + (end.tv_nsec - start.tv_nsec);
+    g_mallocTimes++;
+    g_dataCounts += stackSize;
+    if (g_mallocTimes % PRINT_INTERVAL == 0) {
         HILOG_ERROR(LOG_CORE,
-            "mallocTimes %" PRIu64" cost time = %" PRIu64" copy data bytes = %" PRIu64" mean cost = %" PRIu64"\n",
-            mallocTimes.load(), timeCost.load(), dataCounts.load(), timeCost.load() / mallocTimes.load());
+            "g_mallocTimes %" PRIu64" cost time = %" PRIu64" copy data bytes = %" PRIu64" mean cost = %" PRIu64"\n",
+            g_mallocTimes.load(), g_timeCost.load(), g_dataCounts.load(), g_timeCost.load() / g_mallocTimes.load());
     }
 #endif
     return ret;
@@ -240,9 +240,9 @@ void hook_free(void (*free_func)(void*), void* p)
         free_func(p);
     }
     if ((g_hookPid != getpid()) || g_ClientConfig.mallocDisable_) {
-         return;
+        return;
     }
-    StackRawData rawdata = {{{0}}};
+    g_stackRawData rawdata = {{{0}}};
     const char* stackptr = nullptr;
     const char* stackendptr = nullptr;
     int stackSize = 0;
@@ -315,7 +315,7 @@ void* hook_mmap(void*(*fn)(void*, size_t, int, int, int, off_t),
     if (g_hookPid != getpid() || g_ClientConfig.mmapDisable_) {
         return ret;
     }
-    StackRawData rawdata = {{{0}}};
+    g_stackRawData rawdata = {{{0}}};
     const char* stackptr = nullptr;
     const char* stackendptr = nullptr;
     int stackSize = 0;
@@ -386,7 +386,7 @@ int hook_munmap(int(*fn)(void*, size_t), void* addr, size_t length)
         return ret;
     }
     int stackSize = 0;
-    StackRawData rawdata = {{{0}}};
+    g_stackRawData rawdata = {{{0}}};
     const char* stackptr = nullptr;
     const char* stackendptr = nullptr;
     clock_gettime(CLOCK_REALTIME, &rawdata.ts);
@@ -453,13 +453,13 @@ int hook_prctl(int(*fn)(int, ...),
 {
     int ret = -1;
     if (fn) {
-        ret = fn(option,arg2, arg3, arg4, arg5);
+        ret = fn(option, arg2, arg3, arg4, arg5);
     }
     if (g_hookPid != getpid()) {
         return ret;
     }
     if (option == PR_SET_VMA && arg2 == PR_SET_VMA_ANON_NAME) {
-        StackRawData rawdata = {{{0}}};
+        g_stackRawData rawdata = {{{0}}};
         clock_gettime(CLOCK_REALTIME, &rawdata.ts);
         rawdata.type = PR_SET_VMA_MSG;
         rawdata.pid = getpid();
@@ -589,7 +589,7 @@ void ohos_malloc_hook_memtag(void* addr, size_t size, char* tag, size_t tagLen)
     if (g_hookPid != getpid()) {
         return;
     }
-    StackRawData rawdata = {{{0}}};
+    g_stackRawData rawdata = {{{0}}};
     clock_gettime(CLOCK_REALTIME, &rawdata.ts);
     rawdata.type = MEMORY_TAG;
     rawdata.pid = getpid();
