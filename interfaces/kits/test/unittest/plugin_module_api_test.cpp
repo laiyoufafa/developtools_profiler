@@ -58,9 +58,9 @@ protected:
         memoryCallbacks_ = nullptr;
         sampleCallbacks_ = nullptr;
         streamCallbacks_ = nullptr;
-        memoryModule_ = {memoryCallbacks_, "memory-plugin", MAX_BUFFER_SIZE};
-        sampleModule_ = {sampleCallbacks_, "sample-plugin", MAX_BUFFER_SIZE};
-        streamModule_ = {streamCallbacks_, "stream-plugin", MAX_BUFFER_SIZE};
+        memoryModule_ = {memoryCallbacks_, "memory-plugin", "1.01", MAX_BUFFER_SIZE};
+        sampleModule_ = {sampleCallbacks_, "sample-plugin", "1.01", MAX_BUFFER_SIZE};
+        streamModule_ = {streamCallbacks_, "stream-plugin", "1.01", MAX_BUFFER_SIZE};
         writer_ = nullptr;
     }
 

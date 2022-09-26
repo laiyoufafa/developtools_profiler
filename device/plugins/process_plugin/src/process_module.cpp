@@ -52,10 +52,15 @@ static int ProcessRegisterWriterStruct(const WriterStruct* writer)
 }
 
 static PluginModuleCallbacks g_callbacks = {
-    ProcessDataPluginSessionStart,
-    ProcessPluginReportResult,
-    ProcessPluginSessionStop,
-    ProcessRegisterWriterStruct,
+    .onPluginSessionStart = ProcessDataPluginSessionStart,
+    .onPluginReportResult = ProcessPluginReportResult,
+    .onPluginSessionStop = ProcessPluginSessionStop,
+    .onRegisterWriterStruct = ProcessRegisterWriterStruct,
 };
 
-PluginModuleStruct g_pluginModule = {&g_callbacks, "process-plugin", MAX_BUFFER_SIZE};
+PluginModuleStruct g_pluginModule = {
+    .callbacks = &g_callbacks,
+    .name = "process-plugin",
+    .version = "1.01",
+    .resultBufferSizeHint = MAX_BUFFER_SIZE,
+};

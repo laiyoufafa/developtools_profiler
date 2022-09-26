@@ -157,6 +157,11 @@ struct PluginModuleCallbacks {
 #define PLUGIN_MODULE_NAME_MAX 127
 
 /**
+ * @brief The maximum length of the plugin version and it does not contain the ending character(\0)
+ */
+#define PLUGIN_MODULE_VERSION_MAX 7
+
+/**
  * PluginModuleStruct type forward declaration
  */
 typedef struct PluginModuleStruct PluginModuleStruct;
@@ -171,6 +176,11 @@ struct PluginModuleStruct {
      * Plugin name
      */
     char name[PLUGIN_MODULE_NAME_MAX + 1];
+
+    /**
+     * Plugin version
+     */
+    char version[PLUGIN_MODULE_VERSION_MAX + 1];
 
     /**
      * (polling type needed)result buffer byte number prompt, used to prompt the plugin management

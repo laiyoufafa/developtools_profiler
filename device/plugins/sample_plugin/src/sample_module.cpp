@@ -52,10 +52,15 @@ static int SampleRegisterWriterStruct(const WriterStruct* writer)
 }
 
 static PluginModuleCallbacks g_callbacks = {
-    SamplePluginSessionStart,
-    SamplePluginReportResult,
-    SamplePluginSessionStop,
-    SampleRegisterWriterStruct,
+    .onPluginSessionStart = SamplePluginSessionStart,
+    .onPluginReportResult = SamplePluginReportResult,
+    .onPluginSessionStop = SamplePluginSessionStop,
+    .onRegisterWriterStruct = SampleRegisterWriterStruct,
 };
 
-PluginModuleStruct g_pluginModule = {&g_callbacks, "sample-plugin", MAX_BUFFER_SIZE};
+PluginModuleStruct g_pluginModule = {
+    .callbacks = &g_callbacks,
+    .name = "sample-plugin",
+    .version = "1.01",
+    .resultBufferSizeHint = MAX_BUFFER_SIZE,
+};

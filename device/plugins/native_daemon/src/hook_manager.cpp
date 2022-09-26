@@ -44,6 +44,7 @@ const std::string PARAM_NAME = "libc.hook_mode";
 const int MOVE_BIT_8 = 8;
 const int MOVE_BIT_16 = 16;
 const int MOVE_BIT_32 = 32;
+const std::string VERSION = "1.01";
 }  // namespace
 
 bool HookManager::CheckProcess()
@@ -314,7 +315,7 @@ bool HookManager::DestroyPluginSession(const std::vector<uint32_t>& pluginIds)
 }
 
 bool HookManager::StartPluginSession(const std::vector<uint32_t>& pluginIds,
-                                     const std::vector<ProfilerPluginConfig>& config)
+                                     const std::vector<ProfilerPluginConfig>& config, PluginResult& result)
 {
     UNUSED_PARAMETER(config);
     CHECK_TRUE(stackPreprocess_ != nullptr, false, "start StackPreprocess FAIL");
@@ -366,7 +367,7 @@ bool HookManager::ReportPluginBasicData(const std::vector<uint32_t>& pluginIds)
 bool HookManager::CreateWriter(std::string pluginName, uint32_t bufferSize, int smbFd, int eventFd)
 {
     HILOG_DEBUG(LOG_CORE, "agentIndex_ %d", agentIndex_);
-    RegisterWriter(std::make_shared<BufferWriter>(pluginName, bufferSize, smbFd, eventFd, agentIndex_));
+    RegisterWriter(std::make_shared<BufferWriter>(pluginName, VERSION, bufferSize, smbFd, eventFd, agentIndex_));
     return true;
 }
 

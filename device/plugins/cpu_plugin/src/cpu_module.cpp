@@ -46,9 +46,14 @@ static int CpuPluginSessionStop()
 }
 
 static PluginModuleCallbacks g_callbacks = {
-    CpuDataPluginSessionStart,
-    CpuPluginReportResult,
-    CpuPluginSessionStop,
+    .onPluginSessionStart = CpuDataPluginSessionStart,
+    .onPluginReportResult = CpuPluginReportResult,
+    .onPluginSessionStop = CpuPluginSessionStop,
 };
 
-PluginModuleStruct g_pluginModule = {&g_callbacks, "cpu-plugin", MAX_BUFFER_SIZE};
+PluginModuleStruct g_pluginModule = {
+    .callbacks = &g_callbacks,
+    .name = "cpu-plugin",
+    .version = "1.01",
+    .resultBufferSizeHint = MAX_BUFFER_SIZE,
+};

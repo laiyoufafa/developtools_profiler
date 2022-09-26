@@ -35,6 +35,7 @@ bool PluginServiceImpl::RegisterPlugin(SocketContext& context,
     pluginInfo.bufferSizeHint = request.buffer_size_hint();
     pluginInfo.isStandaloneFileData = request.is_standalone_data();
     pluginInfo.outFileName = request.out_file_name();
+    pluginInfo.pluginVersion = request.plugin_version();
     pluginInfo.context = &context;
 
     int pluginId = pluginService->GetPluginIdByName(pluginInfo.name);

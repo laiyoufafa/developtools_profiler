@@ -60,7 +60,7 @@ public:
     bool CreatePluginSession(const std::vector<ProfilerPluginConfig>& config) override;
     bool DestroyPluginSession(const std::vector<uint32_t>& pluginIds) override;
     bool StartPluginSession(const std::vector<uint32_t>& pluginIds,
-                            const std::vector<ProfilerPluginConfig>& config) override;
+                            const std::vector<ProfilerPluginConfig>& config, PluginResult& result) override;
     bool StopPluginSession(const std::vector<uint32_t>& pluginIds) override;
     bool ReportPluginBasicData(const std::vector<uint32_t>& pluginIds) override;
 

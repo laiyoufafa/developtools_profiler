@@ -36,7 +36,9 @@ bool StartSessionTest(const uint8_t* data, size_t size)
     if (!successCmd.ParseFromArray(data, size)) {
         return true;
     }
-    commandPoller->OnStartSessionCmd(successCmd);
+
+    PluginResult result;
+    commandPoller->OnStartSessionCmd(successCmd, result);
     return true;
 }
 } // namespace OHOS

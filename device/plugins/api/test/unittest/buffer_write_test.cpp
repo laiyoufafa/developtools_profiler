@@ -27,6 +27,7 @@ constexpr uint32_t SMB2_SIZE = 10 * 4096;
 const std::string SMB1_NAME = "testsmb1";
 const std::string SMB2_NAME = "testsmb2";
 const std::string PLUGIN_NAME = "testplugin";
+const std::string PLUGIN_VERSION = "1.01";
 void *g_smbAddr1 = nullptr;
 void *g_smbAddr2 = nullptr;
 int g_smbFd1 = 0;
@@ -154,7 +155,7 @@ bool CheckMessage(uint8_t *buffer, size_t size)
  */
 HWTEST_F(BufferWriteTest, WriteTest, TestSize.Level1)
 {
-    auto write = std::make_shared<BufferWriter>(PLUGIN_NAME, SMB1_SIZE, g_smbFd1, -1, 0);
+    auto write = std::make_shared<BufferWriter>(PLUGIN_NAME, PLUGIN_VERSION, SMB1_SIZE, g_smbFd1, -1, 0);
 
     uint8_t buffer1[] = {0x55, 0xAA, 0x55, 0xAA};
     uint8_t buffer2[] = {0x11, 0x22, 0x33, 0x44};
@@ -177,7 +178,7 @@ HWTEST_F(BufferWriteTest, WriteTest, TestSize.Level1)
 HWTEST_F(BufferWriteTest, WriteMessageTest, TestSize.Level1)
 {
     uint8_t data[1024];
-    auto write = std::make_shared<BufferWriter>(PLUGIN_NAME, SMB2_SIZE, g_smbFd2, -1, 0);
+    auto write = std::make_shared<BufferWriter>(PLUGIN_NAME, PLUGIN_VERSION, SMB2_SIZE, g_smbFd2, -1, 0);
 
     ProfilerPluginConfig configData;
     configData.set_name("111");

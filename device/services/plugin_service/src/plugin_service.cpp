@@ -312,6 +312,7 @@ bool PluginService::AddPluginInfo(const PluginInfo& pluginInfo)
         pluginCtx->bufferSizeHint = pluginInfo.bufferSizeHint;
         pluginCtx->isStandaloneFileData = pluginInfo.isStandaloneFileData;
         pluginCtx->outFileName = pluginInfo.outFileName;
+        pluginCtx->pluginVersion = pluginInfo.pluginVersion;
 
         uint32_t pluginId = ++pluginIdCounter_;
         std::unique_lock<std::mutex> lock(mutex_);
@@ -336,6 +337,9 @@ bool PluginService::AddPluginInfo(const PluginInfo& pluginInfo)
         }
         if (pluginInfo.outFileName != "") {
             pluginCtx->outFileName = pluginInfo.outFileName;
+        }
+        if (pluginInfo.pluginVersion != "") {
+            pluginCtx->pluginVersion = pluginInfo.pluginVersion;
         }
     }
     HILOG_DEBUG(LOG_CORE, "AddPluginInfo for %s done!", pluginInfo.name.c_str());
@@ -435,6 +439,11 @@ bool PluginService::AppendResult(NotifyResultRequest& request)
             if (!pluginCtx->profilerDataRepeater->PutPluginData(pluginData)) {
                 return false;
             }
+        } else if (pr.out_file_name() != "") { // updata plugin outFileName
+            std::unique_lock<std::mutex> lock(mutex_);
+            auto pluginId = pr.plugin_id();
+            CHECK_TRUE(pluginContext_.count(pluginId) > 0, false, "plugin id %u not found!", pluginId);
+            pluginContext_[pluginId]->outFileName = pr.out_file_name();
         } else {
             HILOG_DEBUG(LOG_CORE, "Flush?Data From ShareMemory?");
         }

@@ -37,7 +37,7 @@ public:
     virtual bool CreatePluginSession(const std::vector<ProfilerPluginConfig>& config) = 0;
     virtual bool DestroyPluginSession(const std::vector<uint32_t>& pluginIds) = 0;
     virtual bool StartPluginSession(const std::vector<uint32_t>& pluginIds,
-                                        const std::vector<ProfilerPluginConfig>& config) = 0;
+                                        const std::vector<ProfilerPluginConfig>& config, PluginResult& result) = 0;
     virtual bool StopPluginSession(const std::vector<uint32_t>& pluginIds) = 0;
     virtual bool ReportPluginBasicData(const std::vector<uint32_t>& pluginIds) = 0;
 

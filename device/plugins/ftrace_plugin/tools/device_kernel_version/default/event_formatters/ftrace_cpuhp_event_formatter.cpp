@@ -29,7 +29,11 @@ REGISTER_FTRACE_EVENT_FORMATTER(
         auto msg = event.cpuhp_enter_format();
         char buffer[BUFFER_SIZE];
         int len = 0;
-        std::string functionStr = EventFormatter::GetInstance().kernelSymbols_[msg.fun()];
+        std::string functionStr = "";
+        auto kernelSymbols = EventFormatter::GetInstance().kernelSymbols_;
+        if (kernelSymbols.count(msg.fun()) > 0) {
+            functionStr = kernelSymbols[msg.fun()];
+        }
         if (functionStr != "") {
             len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1, "cpuhp_enter: cpu: %04u target: %3d step: %3d (%s)",
                 msg.cpu(), msg.target(), msg.idx(), functionStr.c_str());
@@ -64,7 +68,11 @@ REGISTER_FTRACE_EVENT_FORMATTER(
         auto msg = event.cpuhp_multi_enter_format();
         char buffer[BUFFER_SIZE];
         int len = 0;
-        std::string functionStr = EventFormatter::GetInstance().kernelSymbols_[msg.fun()];
+        std::string functionStr = "";
+        auto kernelSymbols = EventFormatter::GetInstance().kernelSymbols_;
+        if (kernelSymbols.count(msg.fun()) > 0) {
+            functionStr = kernelSymbols[msg.fun()];
+        }
         if (functionStr != "") {
             len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
                 "cpuhp_multi_enter: cpu: %04u target: %3d step: %3d (%s)", msg.cpu(), msg.target(), msg.idx(),

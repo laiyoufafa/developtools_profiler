@@ -138,11 +138,12 @@ HWTEST_F(HookManagerTest, PluginSession, TestSize.Level1)
     config.set_plugin_sha256("");
     config.set_sample_interval(20);
 
+    PluginResult result;
     std::vector<ProfilerPluginConfig> configVec;
     configVec.push_back(config);
 
     EXPECT_FALSE(hookManager->CreatePluginSession(configVec));
-    EXPECT_FALSE(hookManager->StartPluginSession(pluginIds, configVec));
+    EXPECT_FALSE(hookManager->StartPluginSession(pluginIds, configVec, result));
     EXPECT_TRUE(hookManager->CreateWriter("name", 0, 0, 0));
     EXPECT_TRUE(hookManager->ResetWriter(0));
     EXPECT_FALSE(hookManager->StopPluginSession(pluginIds));

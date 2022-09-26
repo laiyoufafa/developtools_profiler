@@ -109,7 +109,7 @@ bool CommandPoller::OnDestroySessionCmd(const DestroySessionCmd& cmd) const
     return true;
 }
 
-bool CommandPoller::OnStartSessionCmd(const StartSessionCmd& cmd) const
+bool CommandPoller::OnStartSessionCmd(const StartSessionCmd& cmd, PluginResult& result) const
 {
     HILOG_DEBUG(LOG_CORE, "%s:proc", __func__);
     if (cmd.plugin_ids().size() == 0 || cmd.plugin_configs().size() == 0) {
@@ -124,7 +124,7 @@ bool CommandPoller::OnStartSessionCmd(const StartSessionCmd& cmd) const
     auto pluginManager = pluginManager_.lock(); // promote to shared_ptr
     CHECK_NOTNULL(pluginManager, false, "promote FAILED!");
 
-    if (!pluginManager->StartPluginSession(pluginIds, configVec)) {
+    if (!pluginManager->StartPluginSession(pluginIds, configVec, result)) {
         HILOG_DEBUG(LOG_CORE, "%s:start Session failed!", __func__);
         return false;
     }
@@ -197,7 +197,7 @@ bool CommandPoller::OnGetCommandResponse(SocketContext& context, ::GetCommandRes
             status->set_state(ProfilerPluginState::LOADED);
         }
     } else if (response.has_start_session_cmd()) {
-        if (OnStartSessionCmd(response.start_session_cmd())) {
+        if (OnStartSessionCmd(response.start_session_cmd(), *pr)) {
             status->set_state(ProfilerPluginState::IN_SESSION);
         } else {
             status->set_state(ProfilerPluginState::LOADED);

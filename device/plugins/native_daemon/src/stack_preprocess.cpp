@@ -225,6 +225,7 @@ void StackPreprocess::TakeResults()
                 stackData.SerializeToArray(buffer_.get(), length);
                 ProfilerPluginData pluginData;
                 pluginData.set_name("nativehook");
+                pluginData.set_version("1.01");
                 pluginData.set_status(0);
                 pluginData.set_data(buffer_.get(), length);
                 struct timespec ts;
