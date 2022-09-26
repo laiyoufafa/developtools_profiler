@@ -39,14 +39,9 @@ if (target_os == "linux" || target_os == "macx" || target_os == "windows") {
   } else {
     enable_ts_utest = false
   }
-  is_openharmony = false
 } else {
   enable_ts_utest = true
   use_wasm = false
-  kernel_version = "."
-  is_fuzz = false
-  target = "trace_streamer"
-  is_openharmony = true
   OHOS_FTRACE_PROTO_DIR = "//developtools/profiler/protos/types/plugins/ftrace_data/${kernel_version}"
   OHOS_MEMORY_PROTO_DIR =
       "//developtools/profiler/protos/types/plugins/memory_data"
@@ -57,5 +52,6 @@ if (target_os == "linux" || target_os == "macx" || target_os == "windows") {
   OHOS_HIDUMP_PROTO_DIR =
       "//developtools/profiler/protos/types/plugins/hidump_data"
   OHOS_SERVICE_PROTO_DIR = "//developtools/profiler/protos/services"
-  OHOS_PROTO_GEN = "//out/ohos-arm-release/gen/cpp/developtools/profiler/protos"
+  OHOS_PROTO_GEN =
+      "//developtools/profiler/trace_analyzer/third_party/protogen/"
 }

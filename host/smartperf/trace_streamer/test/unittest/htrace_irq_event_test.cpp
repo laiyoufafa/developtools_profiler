@@ -70,7 +70,6 @@ HWTEST_F(HtraceIrqEventTest, IrqHandlerEntryTest, TestSize.Level1)
     eventParser.ParseDataItem(&ftraceCpuDetail, TS_CLOCK_BOOTTIME);
     eventParser.FilterAllEvents();
     EXPECT_TRUE(stream_.traceDataCache_->GetConstIrqData().Size() == 1);
-    eventParser.Clear();
 }
 
 /**
@@ -123,7 +122,6 @@ HWTEST_F(HtraceIrqEventTest, IrqHandlerEntryTestNotMatch, TestSize.Level1)
     auto eventCount =
         stream_.traceDataCache_->GetConstStatAndInfo().GetValue(TRACE_EVENT_IRQ_HANDLER_ENTRY, STAT_EVENT_DATA_LOST);
     EXPECT_TRUE(1 == eventCount);
-    eventParser.Clear();
 }
 
 /**
@@ -161,7 +159,6 @@ HWTEST_F(HtraceIrqEventTest, IrqHandlerExitTestEmpty, TestSize.Level1)
     auto eventCount =
         stream_.traceDataCache_->GetConstStatAndInfo().GetValue(TRACE_EVENT_IRQ_HANDLER_EXIT, STAT_EVENT_NOTMATCH);
     EXPECT_TRUE(1 == eventCount);
-    eventParser.Clear();
 }
 
 /**
@@ -214,7 +211,6 @@ HWTEST_F(HtraceIrqEventTest, IrqHandlerEnterAndExitTest, TestSize.Level1)
 
     EXPECT_TRUE(stream_.traceDataCache_->GetConstIrqData().Size() == 1);
     EXPECT_TRUE(stream_.traceDataCache_->GetConstIrqData().ArgSetIdsData()[0] == 0);
-    eventParser.Clear();
 }
 
 /**
@@ -289,7 +285,6 @@ HWTEST_F(HtraceIrqEventTest, IrqHandlerEnterAndExitTestTwice, TestSize.Level1)
     eventParser.FilterAllEvents();
     EXPECT_TRUE(stream_.traceDataCache_->GetConstIrqData().Size() == 1);
     EXPECT_TRUE(stream_.traceDataCache_->GetConstIrqData().ArgSetIdsData()[0] == 0);
-    eventParser.Clear();
 }
 
 /**
@@ -321,7 +316,6 @@ HWTEST_F(HtraceIrqEventTest, SoftIrqEntryTest, TestSize.Level1)
     eventParser.ParseDataItem(&ftraceCpuDetail, TS_CLOCK_BOOTTIME);
     eventParser.FilterAllEvents();
     EXPECT_TRUE(stream_.traceDataCache_->GetConstIrqData().Size() == 1);
-    eventParser.Clear();
 }
 
 /**
@@ -371,7 +365,6 @@ HWTEST_F(HtraceIrqEventTest, SoftIrqEntryNotMatch, TestSize.Level1)
     EXPECT_TRUE(stream_.traceDataCache_->GetConstIrqData().Size() == 2);
     EXPECT_TRUE(
         stream_.traceDataCache_->GetConstStatAndInfo().GetValue(TRACE_EVENT_SOFTIRQ_ENTRY, STAT_EVENT_DATA_LOST) == 1);
-    eventParser.Clear();
 }
 
 /**
@@ -405,7 +398,6 @@ HWTEST_F(HtraceIrqEventTest, SoftIrqExitEmptyTest, TestSize.Level1)
     EXPECT_TRUE(stream_.traceDataCache_->GetConstIrqData().Size() == 0);
     EXPECT_TRUE(
         stream_.traceDataCache_->GetConstStatAndInfo().GetValue(TRACE_EVENT_SOFTIRQ_EXIT, STAT_EVENT_DATA_LOST) == 1);
-    eventParser.Clear();
 }
 
 /**
@@ -438,7 +430,6 @@ HWTEST_F(HtraceIrqEventTest, SoftIrqTest, TestSize.Level1)
     eventParser.FilterAllEvents();
 
     EXPECT_TRUE(stream_.traceDataCache_->GetConstIrqData().Size() == 1);
-    eventParser.Clear();
     ts1 = 150;
     SoftirqExitFormat* softirqExitEvent = new SoftirqExitFormat();
     softirqExitEvent->set_vec(vec);
@@ -454,7 +445,6 @@ HWTEST_F(HtraceIrqEventTest, SoftIrqTest, TestSize.Level1)
     eventParser.ParseDataItem(&ftraceCpuDetail2, TS_CLOCK_BOOTTIME);
     eventParser.FilterAllEvents();
     EXPECT_TRUE(stream_.traceDataCache_->GetConstIrqData().Size() == 1);
-    eventParser.Clear();
 }
 
 /**
@@ -486,7 +476,6 @@ HWTEST_F(HtraceIrqEventTest, SoftIrqTestNotMatch, TestSize.Level1)
     eventParser.ParseDataItem(&ftraceCpuDetail, TS_CLOCK_BOOTTIME);
     eventParser.FilterAllEvents();
     EXPECT_TRUE(stream_.traceDataCache_->GetConstIrqData().Size() == 1);
-    eventParser.Clear();
     ts1 = 150;
     cpu1 = 2;
 
@@ -506,7 +495,6 @@ HWTEST_F(HtraceIrqEventTest, SoftIrqTestNotMatch, TestSize.Level1)
     EXPECT_TRUE(stream_.traceDataCache_->GetConstIrqData().Size() == 1);
     EXPECT_TRUE(stream_.traceDataCache_->GetConstStatAndInfo().GetValue(TRACE_EVENT_SOFTIRQ_EXIT,
                                                                         STAT_EVENT_DATA_LOST) == 1);
-    eventParser.Clear();
 }
 } // namespace TraceStreamer
 } // namespace SysTuning

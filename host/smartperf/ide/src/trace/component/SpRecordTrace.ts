@@ -26,10 +26,10 @@ import {SpTraceCommand} from "./setting/SpTraceCommand.js";
 import {
     CpuConfig,
     CreateSessionRequest,
-    DiskioConfig,
+    DiskioConfig, FileSystemConfig,
     FpsConfig,
     HilogConfig,
-    HiperfPluginConfig,
+    HiperfPluginConfig, HiSystemEventConfig,
     levelFromJSON,
     MemoryConfig,
     NativeHookConfig,
@@ -56,6 +56,9 @@ import {LitProgressBar} from "../../base-ui/progress-bar/LitProgressBar.js";
 import {info, log} from "../../log/Log.js";
 import {CmdConstant} from "../../command/CmdConstant.js";
 import {Cmd} from "../../command/Cmd.js";
+import {SpFileSystem} from "./setting/SpFileSystem.js";
+import {SpSdkConfig} from "./setting/SpSdkConfig.js";
+import {SpVmTracker} from "./setting/SpVmTracker.js";
 
 @element('sp-record-trace')
 export class SpRecordTrace extends BaseElement {
@@ -70,7 +73,7 @@ export class SpRecordTrace extends BaseElement {
             this.setAttribute("vs", '')
         } else {
             SpRecordTrace.isVscode = false;
-            this.removeAttribute("");
+            this.removeAttribute("vs");
         }
     }
 
@@ -224,6 +227,9 @@ export class SpRecordTrace extends BaseElement {
     private traceCommand: SpTraceCommand | undefined;
     private spAllocations: SpAllocations | undefined;
     private spRecordPerf: SpRecordPerf | undefined;
+    private spFileSystem: SpFileSystem | undefined;
+    private spSdkConfig: SpSdkConfig | undefined;
+    private spVmTracker: SpVmTracker | undefined;
 
     private menuGroup: LitMainMenuGroup | undefined | null;
     private appContent: HTMLElement | undefined | null;
@@ -351,6 +357,9 @@ export class SpRecordTrace extends BaseElement {
         this.traceCommand = new SpTraceCommand();
         this.spAllocations = new SpAllocations();
         this.spRecordPerf = new SpRecordPerf();
+        this.spFileSystem = new SpFileSystem();
+        this.spSdkConfig = new SpSdkConfig();
+        this.spVmTracker = new SpVmTracker();
         this.recordButton = this.shadowRoot?.querySelector(".record") as LitButton;
         this.sp = document.querySelector("sp-application") as SpApplication;
         this.progressEL = this.sp.shadowRoot?.querySelector('.progress') as LitProgressBar
@@ -426,6 +435,7 @@ export class SpRecordTrace extends BaseElement {
                 clickHandler: function (ev: InputEvent) {
                     that.appContent!.innerHTML = ""
                     that.appContent!.append(that.recordSetting!)
+                    that.freshMenuItemsStatus('Record setting')
                 }
             },
             {
@@ -433,6 +443,7 @@ export class SpRecordTrace extends BaseElement {
                 icon: "dbsetbreakpoint",
                 fileChoose: false,
                 clickHandler: function (ev: InputEvent) {
+                    that.freshMenuItemsStatus('Trace command')
                     let request = that.makeRequest();
                     that.appContent!.innerHTML = ""
                     that.appContent!.append(that.traceCommand!)
@@ -446,6 +457,7 @@ export class SpRecordTrace extends BaseElement {
                 clickHandler: function (ev: InputEvent) {
                     that.appContent!.innerHTML = ""
                     that.appContent!.append(that.probesConfig!)
+                    that.freshMenuItemsStatus('Probes config')
                 }
             },
             {
@@ -455,6 +467,7 @@ export class SpRecordTrace extends BaseElement {
                 clickHandler: function (ev: InputEvent) {
                     that.appContent!.innerHTML = ""
                     that.appContent!.append(that.spAllocations!)
+                    that.freshMenuItemsStatus('Native Memory')
                 }
             },
             {
@@ -462,6 +475,31 @@ export class SpRecordTrace extends BaseElement {
                 clickHandler: function (ev: InputEvent) {
                     that.appContent!.innerHTML = ""
                     that.appContent!.append(that.spRecordPerf!)
+                    that.freshMenuItemsStatus('Hiperf')
+                }
+            },
+            {
+                title: "eBPF Config", icon: "file-config", fileChoose: false,
+                clickHandler: function (ev: InputEvent) {
+                    that.appContent!.innerHTML = ""
+                    that.appContent!.append(that.spFileSystem!)
+                    that.freshMenuItemsStatus('eBPF Config')
+                }
+            },
+            {
+                title: "VM Tracker", icon: "vm-tracker", fileChoose: false,
+                clickHandler: function (ev: InputEvent) {
+                    that.appContent!.innerHTML = ""
+                    that.appContent!.append(that.spVmTracker!)
+                    that.freshMenuItemsStatus('VM Tracker')
+                }
+            },
+            {
+                title: "SDK Config", icon: "file-config", fileChoose: false,
+                clickHandler: function (ev: InputEvent) {
+                    that.appContent!.innerHTML = ""
+                    that.appContent!.append(that.spSdkConfig!)
+                    that.freshMenuItemsStatus('SDK Config')
                 }
             }
         ]
@@ -508,12 +546,19 @@ export class SpRecordTrace extends BaseElement {
         for (let index = 0; index < this.deviceSelect!.children.length; index++) {
             let option = this.deviceSelect!.children[index] as HTMLOptionElement;
             if (option.value == disConnectDevice.serialNumber) {
-                if (SpRecordTrace.serialNumber == option.value) {
-                    SpRecordTrace.serialNumber = '';
-                }
-                HdcDeviceManager.disConnect(option.value).then(() => {
+                let optValue = option.value;
+                HdcDeviceManager.disConnect(optValue).then(() => {
                 });
                 this.deviceSelect!.removeChild(option);
+                if (SpRecordTrace.serialNumber == optValue) {
+                    let options = this.deviceSelect!.options
+                    if (options.length > 0) {
+                        let selectedOpt = options[this.deviceSelect!.selectedIndex]
+                        SpRecordTrace.serialNumber = selectedOpt.value;
+                    } else {
+                        SpRecordTrace.serialNumber = '';
+                    }
+                }
             }
         }
     }
@@ -544,6 +589,7 @@ export class SpRecordTrace extends BaseElement {
             this.traceCommand!.hdcCommon =
                 PluginConvertUtils.createHdcCmd(
                     PluginConvertUtils.BeanToCmdTxt(config, false), this.recordSetting!.output, this.recordSetting!.maxDur)
+            this.freshMenuItemsStatus('Trace command')
             Cmd.execHdcCmd(Cmd.formatString(CmdConstant.CMS_HDC_STOP, [SpRecordTrace.serialNumber]), (stopRes: string) => {
                 let cmd = Cmd.formatString(CmdConstant.CMD_MOUNT_DEVICES, [SpRecordTrace.serialNumber]);
                 Cmd.execHdcCmd(cmd, (res: string) => {
@@ -590,6 +636,7 @@ export class SpRecordTrace extends BaseElement {
                         this.traceCommand!.hdcCommon =
                             PluginConvertUtils.createHdcCmd(
                                 PluginConvertUtils.BeanToCmdTxt(config, false), this.recordSetting!.output, this.recordSetting!.maxDur)
+                        this.freshMenuItemsStatus('Trace command')
                         try {
                             HdcDeviceManager.stopHiprofiler(CmdConstant.CMS_STOP, true).then(() => {
                                 HdcDeviceManager.shellResultAsString(CmdConstant.CMD_MOUNT, true).then(() => {
@@ -675,9 +722,10 @@ export class SpRecordTrace extends BaseElement {
     private makeRequest = () => {
         let request = this.createSessionRequest();
         let hasMonitorMemory = false;
+        let hasSamps = false;
         if (this.probesConfig!.traceConfig.length > 0) {
             if (this.probesConfig!.traceConfig.find(value => {
-                return value != "FPS" && value != "AbilityMonitor"
+                return value != "FPS" && value != "AbilityMonitor" && value != "HiSystemEvent"
             })) {
                 request.pluginConfigs.push(this.createHtracePluginConfig())
             }
@@ -688,6 +736,9 @@ export class SpRecordTrace extends BaseElement {
                 hasMonitorMemory = true;
                 this.createMonitorPlugin(this, request);
             }
+            if (this.probesConfig!.traceConfig.indexOf("HiSystemEvent") != -1) {
+                request.pluginConfigs.push(this.createHiSystemEventPluginConfig())
+            }
         }
         let reportingFrequency: number;
         if (this.recordSetting!.maxDur > 20) {
@@ -695,14 +746,23 @@ export class SpRecordTrace extends BaseElement {
         } else {
             reportingFrequency = 2
         }
-        if (this.probesConfig!.memoryConfig.length > 0 || hasMonitorMemory) {
-            request.pluginConfigs.push(this.createMemoryPluginConfig(reportingFrequency, hasMonitorMemory))
+        if (this.spVmTracker!.startSamp && this.spVmTracker!.process != "") {
+            hasSamps = true;
+        }
+        if (this.probesConfig!.memoryConfig.length > 0 || hasMonitorMemory || hasSamps) {
+            request.pluginConfigs.push(this.createMemoryPluginConfig(reportingFrequency,this.probesConfig!.memoryConfig.length > 0, hasMonitorMemory, hasSamps))
         }
         if (this.spAllocations!.appProcess != "") {
             request.pluginConfigs.push(this.createNativePluginConfig(reportingFrequency))
         }
         if (this.spRecordPerf!.startSamp) {
             request.pluginConfigs.push(this.createHiperConfig(reportingFrequency))
+        }
+        if (this.spFileSystem!.startRecord) {
+            request.pluginConfigs.push(this.createSystemConfig(reportingFrequency))
+        }
+        if (this.spSdkConfig!.startSamp && this.spSdkConfig!.getPlugName() != "") {
+            request.pluginConfigs.push(this.createSdkConfig(reportingFrequency))
         }
         return request;
     }
@@ -893,7 +953,7 @@ export class SpRecordTrace extends BaseElement {
            margin-left: 14px;
            margin-right: 24px;
            background: var(--dark-background1,#ffffff);
-           border: 1px solid rgba(0,0,0,0.60);
+           border: 1px solid var(--dark-color1,#4D4D4D);
            border-radius: 16px;
            opacity: 0.6;
            font-family: Helvetica;
@@ -902,6 +962,9 @@ export class SpRecordTrace extends BaseElement {
            text-align: center;
            line-height: 20px;
            font-weight: 400;
+           padding: 5px 10px 5px 10px;
+           -webkit-appearance: none;
+           background: url('img/down.png') no-repeat 96% center;
         }
         .body{
             width: 90%;
@@ -944,7 +1007,7 @@ export class SpRecordTrace extends BaseElement {
                <select class="select" id = "device-select">
                </select>
               <lit-button style="width: 180px"class="add" height="32px" width="164px" color="#0A59F7" font_size="14px" border="1px solid #0A59F7" 
-              padding="0 0 0 12px" justify_content="left" icon="add" margin_icon="0 0 0 20px">Add HDC Device</lit-button>
+              padding="0 0 0 12px" justify_content="left" icon="add" margin_icon="0 10px 0 8px">Add HDC Device</lit-button>
               <div class="header-right">
               <lit-button class="record" height="32px" width="96px" font_size="14px" justify_content="center" color="#FFFFFF"
               border_radius="16px" back='#0A59F7'>Record</lit-button>
@@ -1041,6 +1104,32 @@ export class SpRecordTrace extends BaseElement {
         return hiPerfPluginConfig;
     }
 
+    private createSystemConfig(reportingFrequency: number) {
+        let systemConfig = this.spFileSystem!.getSystemConfig();
+        let recordArgs = "hiebpf";
+        if (this.spFileSystem?.startFileSystem && this.spFileSystem?.startVirtualMemory) {
+            recordArgs += " --events fs,ptrace "
+        } else if (this.spFileSystem?.startFileSystem) {
+            recordArgs += " --events fs "
+        } else if (this.spFileSystem?.startVirtualMemory) {
+            recordArgs += " --events ptrace "
+        }
+        recordArgs += "--duration " + this.recordSetting?.maxDur
+        if (systemConfig?.process && !systemConfig?.process.includes("ALL") && systemConfig?.process.length > 0) {
+            recordArgs = recordArgs + " --pids " + systemConfig?.process;
+        }
+        let systemPluginConfig: FileSystemConfig = {
+            cmdLine: recordArgs,
+            outfileName: "/data/local/tmp/ebpf.data",
+        }
+        let ebpfPluginConfig: ProfilerPluginConfig<FileSystemConfig> = {
+            pluginName: "hiebpf-plugin",
+            sampleInterval: 1000,
+            configData: systemPluginConfig,
+        }
+        return ebpfPluginConfig;
+    }
+
     private createNativePluginConfig(reportingFrequency: number) {
         let appProcess = this.spAllocations!.appProcess;
         let re = /^[0-9]+.?[0-9]*/;
@@ -1078,17 +1167,28 @@ export class SpRecordTrace extends BaseElement {
         return nativePluginConfig;
     }
 
-    private createMemoryPluginConfig(reportingFrequency: number, hasMonitorMemory: boolean) {
+    private createMemoryPluginConfig(reportingFrequency: number, hasmemoryConfig: boolean, hasMonitorMemory: boolean, hasSmaps: boolean) {
         let memoryconfig: MemoryConfig = {
-            reportProcessTree: true,
-            reportSysmemMemInfo: true,
+            reportProcessTree: false,
+            reportSysmemMemInfo: false,
             sysMeminfoCounters: [],
-            reportSysmemVmemInfo: true,
+            reportSysmemVmemInfo: false,
             sysVmeminfoCounters: [],
-            reportProcessMemInfo: true,
+            reportProcessMemInfo: false,
             reportAppMemInfo: false,
             reportAppMemByMemoryService: false,
             pid: []
+        }
+        if (hasmemoryConfig || hasMonitorMemory) {
+            memoryconfig.reportProcessTree = true;
+            memoryconfig.reportSysmemMemInfo = true;
+            memoryconfig.reportSysmemVmemInfo = true;
+            memoryconfig.reportProcessMemInfo = true;
+        }
+        if (hasSmaps) {
+            memoryconfig.reportSmapsMemInfo = true
+            let pid = Number(this.spVmTracker?.process);
+            memoryconfig.pid.push(pid)
         }
         if (hasMonitorMemory) {
             SpRecordTrace.ABALITY_MEM_INFO.forEach(va => {
@@ -1136,6 +1236,18 @@ export class SpRecordTrace extends BaseElement {
         return fpsPlugin;
     }
 
+    private createHiSystemEventPluginConfig() {
+        let hiSystemEventConfig: HiSystemEventConfig = {
+            msg: ''
+        }
+        let hiSystemEventPlugin: ProfilerPluginConfig<HiSystemEventConfig> = {
+            pluginName: "hisysevent-plugin",
+            sampleInterval: 1000,
+            configData: hiSystemEventConfig
+        }
+        return hiSystemEventPlugin;
+    }
+
     private createHtracePluginConfig() {
         let tracePluginConfig: TracePluginConfig = {
             ftraceEvents: this.createTraceEvents(this.probesConfig!.traceConfig),
@@ -1162,6 +1274,17 @@ export class SpRecordTrace extends BaseElement {
         }
         return htraceProfilerPluginConfig;
     }
+
+    private createSdkConfig(reportingFrequency: number) {
+        let gpuConfig = this.spSdkConfig!.getGpuConfig();
+        let gpuPluginConfig: ProfilerPluginConfig<any> = {
+            pluginName: this.spSdkConfig!.getPlugName(),
+            sampleInterval: this.spSdkConfig!.getSampleInterval(),
+            configData: gpuConfig,
+        }
+        return gpuPluginConfig;
+    }
+
 
     freshConfigMenuDisable(disable: boolean) {
         let querySelectors = this.shadowRoot?.querySelectorAll<LitMainMenuItem>('lit-main-menu-item')
@@ -1195,5 +1318,13 @@ export class SpRecordTrace extends BaseElement {
             this.addButton!.style.pointerEvents = 'auto';
             this.deviceSelect!.style.pointerEvents = 'auto';
         }
+    }
+
+    freshMenuItemsStatus(currentValue: string) {
+        let litMainMenuGroup = this.shadowRoot?.querySelector<LitMainMenuGroup>('lit-main-menu-group');
+        let litMainMenuItemNodeListOf = litMainMenuGroup!.querySelectorAll<LitMainMenuItem>('lit-main-menu-item');
+        litMainMenuItemNodeListOf.forEach(item =>{
+            item.back = item.title == currentValue;
+        })
     }
 }

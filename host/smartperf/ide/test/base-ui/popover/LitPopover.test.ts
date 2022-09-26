@@ -40,7 +40,6 @@ describe("LitPopover Test", () => {
         expect(litPopover.open).toBeFalsy()
     });
 
-
     it('LitPopover05', () => {
         let litPopover = new LitPopover();
         litPopover.direction = "topleft"
@@ -82,7 +81,6 @@ describe("LitPopover Test", () => {
         expect(litPopover.select).toEqual(["# Samples"])
     });
 
-
     it('LitPopover09', () => {
         let litPopover = new LitPopover();
         litPopover.type = "radio"
@@ -105,17 +103,6 @@ describe("LitPopover Test", () => {
         expect(litPopover.trigger).not.toBeUndefined();
     });
 
-    it('LitPopover10', () => {
-        let litPopover = new LitPopover();
-        litPopover.type = "multiple-text"
-        litPopover.title = "tee"
-        litPopover.dataSource = [{
-            text: "# Samples",
-            isSelected: true
-        }]
-        expect(litPopover.limit).toEqual({textLowerLimit:"0",textUpperLimit:"∞"});
-    });
-
     it('LitPopover11', () => {
         let litPopover = new LitPopover();
         litPopover.type = "multiple-text"
@@ -136,6 +123,17 @@ describe("LitPopover Test", () => {
             isSelected: false
         }]
         expect(litPopover.limit).toEqual({textLowerLimit:"",textUpperLimit:""});
+    });
+
+    it('LitPopover15', () => {
+        let litPopover = new LitPopover();
+        litPopover.type = "multiple-text"
+        litPopover.title = "tee"
+        litPopover.dataSource = [{
+            text: "# Samples",
+            isSelected: true
+        }]
+        expect(litPopover.limit).toEqual({textLowerLimit:"0",textUpperLimit:"∞"});
     });
 
     it('LitPopover12', () => {
@@ -418,5 +416,18 @@ describe("LitPopover Test", () => {
     it('LitPopover13', () => {
         let litPopover = new LitPopover();
         expect(litPopover.connectedCallback()).toBeUndefined()
+    });
+
+    it('LitPopover16', () => {
+        const onclick = jest.fn();
+        let litPopover = document.body.innerHTML = `
+            <lit-popover id='popover'></lit-popover>
+        `
+        const popover = document.getElementById('popover');
+        expect(onclick).not.toBeCalled();
+        popover!.onclick = onclick;
+        popover!.click();
+        expect(onclick).toBeCalled();
+        expect(onclick).toHaveBeenCalledTimes(1);
     });
 })

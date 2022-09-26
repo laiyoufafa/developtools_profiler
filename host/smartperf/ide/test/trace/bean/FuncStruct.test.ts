@@ -73,4 +73,24 @@ describe('FuncStruct Test', ()=>{
         })).toBeFalsy();
     });
 
+    it('FuncStructTest07', function () {
+        expect(FuncStruct.drawString(ctx,300,durData,durData.frame)).toBeUndefined()
+
+    });
+
+    it('FuncStructTest08', function () {
+        expect(FuncStruct.isBinderAsync({
+            startTs: 10,
+            dur: 10,
+            funName: null
+        })).toBeFalsy();
+    });
+
+    it('FuncStructTest09', function () {
+        expect(FuncStruct.isBinderAsync({
+            startTs: 20,
+            dur: 20,
+            funName: 'funName'
+        })).toBeFalsy();
+    });
 })

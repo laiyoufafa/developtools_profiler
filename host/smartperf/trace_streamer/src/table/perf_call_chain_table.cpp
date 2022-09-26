@@ -22,13 +22,13 @@ enum Index { ID = 0, SAMPLE_ID, CALLCHAIN_ID, VADDR_IN_FILE, FILE_ID, SYMBOL_ID,
 }
 PerfCallChainTable::PerfCallChainTable(const TraceDataCache* dataCache) : TableBase(dataCache)
 {
-    tableColumn_.push_back(TableBase::ColumnInfo("id", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("sample_id", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("callchain_id", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("vaddr_in_file", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("file_id", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("symbol_id", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("name", "TEXT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("id", "UNSIGNED INT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("sample_id", "UNSIGNED INT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("callchain_id", "UNSIGNED INT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("vaddr_in_file", "UNSIGNED INT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("file_id", "UNSIGNED INT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("symbol_id", "UNSIGNED INT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("name", "string"));
     tablePriKey_.push_back("id");
 }
 

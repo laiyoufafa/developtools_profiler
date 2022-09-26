@@ -19,40 +19,39 @@ export class ColorUtils {
     public static GREY_COLOR: string = "#f0f0f0"
 
     public static MD_PALETTE: Array<string> = [
-        "#3391ff",// red
-        "#0076ff",// pink
-        "#66adff",// purple
-        "#2db3aa",// deep purple
-        "#008078",// indigo
-        "#73e6de",// blue
-        "#535da6",// light blue
-        "#38428c", // cyan
-        "#7a84cc",// teal
-        "#ff9201",// green
-        "#ff7500",// light green
-        "#ffab40",// lime
-        "#2db4e2",// amber 0xffc105
-        "#0094c6", // orange
-        "#7cdeff",// deep orange
-        "#f90000",// blue gray
+        "#00bdd6",
+        "#86C8F0",
+        "#94B5F4",
+        "#66BDF1",
+        "#7AD7E6",
+        "#509B8D",
+        "#42B7A4",
+        "#67B898",
+        "#7EC6BB",
+        "#9AD9D1",
+        "#7786C9",
+        "#6ABAE5",
+        "#5E8BE2",
+        "#7786C9",
+        "#E97978",
+        "#E69553",
     ];
     public static FUNC_COLOR: Array<string> = [
-        "#3391ff",
-        "#f48fb1",
-        "#2db4e2",
-        "#2db3aa",
-        "#81c784",
-        "#ffab40",
-        "#535da6",
-        "#cddc39",
-        "#0094c6",
-        "#ff7043",
-        "#008078",
-        "#e65100",
-        "#673ab7",
-        "#ea80fc",
-        "#7a84cc",
-        "#7cdeff",
+        "#00bdd6",
+        "#9785D3",
+        "#A27F7E",
+        "#94B5F4",
+        "#B282F6",
+        "#E97978",
+        "#7AD7E6",
+        "#A1C38A",
+        "#DB8E86",
+        "#42B7A4",
+        "#AACEA0",
+        "#E69553",
+        "#7EC6BB",
+        "#C6D9F2",
+        "#DAD154",
     ];
 
     public static hash(str: string, max: number): number {
@@ -89,5 +88,19 @@ export class ColorUtils {
             t += l[i] + ((i + 1) % 3 == 0 && (i + 1) != l.length ? "," : "");
         }
         return t.split("").reverse().join("")
+    }
+
+    public static hashFunc(str: string, depth: number, max: number): number {
+        let colorA: number = 0x811c9dc5;
+        let colorB: number = 0xfffffff;
+        let colorC: number = 16777619;
+        let colorD: number = 0xffffffff;
+        let hash: number = colorA & colorB;
+        let st = str.replace(/[0-9]+/g, "");
+        for (let index: number = 0; index < st.length; index++) {
+            hash ^= st.charCodeAt(index);
+            hash = (hash * colorC) & colorD;
+        }
+        return (Math.abs(hash) + depth) % max;
     }
 }

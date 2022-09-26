@@ -77,21 +77,26 @@ export class SpProbesConfig extends BaseElement {
 
     initElements(): void {
         this.traceConfigList = [
-            {value: 'Scheduling details', isSelect: false, des: "enables high-detailed tracking of scheduling events"}
-            , {
+            {value: 'Scheduling details', isSelect: false, des: "enables high-detailed tracking of scheduling events"},
+            {
                 value: "CPU Frequency and idle states", isSelect: false,
                 des: "Records cpu frequency and idle state change viaftrace"
-            }
-            , {
+            },
+            {
                 value: "Advanced ftrace config", isSelect: false,
                 des: "Enable individual events and tune the kernel-tracng(ftrace) module."
                     + "The events enabled here are in addition to those from"
                     + " enabled by other probes."
-            }
-            , {
+            },
+            {
                 value: "AbilityMonitor",
                 isSelect: false,
                 des: "Tracks the AbilityMonitor"
+            },
+            {
+                value: "HiSystemEvent",
+                isSelect: false,
+                des: "Tracks the HiSystemEvent"
             }]
         this._traceConfig = this.shadowRoot?.querySelector(".trace-config") as HTMLElement
         this.traceConfigList.forEach(configBean => {

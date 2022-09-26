@@ -22,11 +22,11 @@ enum Index { EVENT_NAME = 0, STAT_EVENT_TYPE = 1, COUNT = 2, SEVERITY = 3, SOURC
 }
 StatTable::StatTable(const TraceDataCache* dataCache) : TableBase(dataCache)
 {
-    tableColumn_.push_back(TableBase::ColumnInfo("event_name", "TEXT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("stat_type", "TEXT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("count", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("serverity", "TEXT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("source", "TEXT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("event_name", "STRING"));
+    tableColumn_.push_back(TableBase::ColumnInfo("stat_type", "STRING"));
+    tableColumn_.push_back(TableBase::ColumnInfo("count", "INT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("serverity", "STRING"));
+    tableColumn_.push_back(TableBase::ColumnInfo("source", "STRING"));
     tablePriKey_.push_back("event_name");
     tablePriKey_.push_back("stat_type");
 }

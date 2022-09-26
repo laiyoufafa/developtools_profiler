@@ -74,7 +74,7 @@ describe("TraceRow Test", () => {
         traceRow.name = "111"
         traceRow.height = 20
         traceRow.height = 30
-        expect(traceRow.clearCanvas()).toBeUndefined();
+        expect(traceRow.clearCanvas(ctx)).toBeUndefined();
     });
 
     it('TraceRow Test11', () => {
@@ -92,7 +92,7 @@ describe("TraceRow Test", () => {
         traceRow.name = "111"
         traceRow.height = 20
         traceRow.height = 30
-        expect(traceRow.drawLines()).toBeUndefined();
+        expect(traceRow.drawLines(ctx)).toBeUndefined();
     });
 
     it('TraceRow Test12', () => {
@@ -110,7 +110,7 @@ describe("TraceRow Test", () => {
         traceRow.name = "111"
         traceRow.height = 20
         traceRow.height = 30
-        expect(traceRow.drawSelection()).toBeUndefined();
+        expect(traceRow.drawSelection(ctx)).toBeUndefined();
     });
 
     it('TraceRow Test13', () => {
@@ -224,12 +224,6 @@ describe("TraceRow Test", () => {
     it('TraceRow Test62', () => {
         let traceRow = new TraceRow<any>({canvasNumber: 1, alpha: true, contextId: '2d', isOffScreen: true});
         expect(traceRow.folderPaddingLeft).toBeUndefined();
-    });
-
-    it('TraceRow Test63', () => {
-        document.body.innerHTML = '<div id="ddd"><trace-row class="ccc" row-parent-id="ddd" check-type="0"></trace-row></div>'
-        let traceRow = document.querySelector('.ccc') as TraceRow
-        expect(traceRow.setCheckBox()).toBeUndefined();
     });
 
     it('TraceRow Test30', () => {
@@ -386,8 +380,7 @@ describe("TraceRow Test", () => {
         }
         :host(:not([row-hidden])){
             box-sizing: border-box;
-            display: flex;
-            flex-direction: column;
+            display: block;
             width: 100%;
             height: min-content;
         }
@@ -403,6 +396,18 @@ describe("TraceRow Test", () => {
             grid-template-columns: 248px 1fr;
             border-bottom: 1px solid var(--dark-border1,#dadada);
             box-sizing: border-box;
+        }
+        .root .drag{
+            background-color: var(--dark-background1,#eee);
+            box-shadow: 0 4px 12px -4px #999 inset;
+        }
+        .root .line-top{
+            box-shadow: 0 4px 2px -1px #4d7ab3 inset; 
+            transition: all 0.2s;
+        }
+        .root .line-bottom{
+            box-shadow: 0 -4px 2px -1px #4d7ab3 inset; 
+            transition: all 0.2s;
         }
         .describe{
             box-sizing: border-box;
@@ -450,6 +455,7 @@ describe("TraceRow Test", () => {
             text-align: left;
             overflow: hidden;
             user-select: none;
+            text-overflow: ellipsis;
         }
         :host([highlight]) .name{
             color: #4b5766;
@@ -466,13 +472,13 @@ describe("TraceRow Test", () => {
             margin-left: 10px;
         }
         :host([folder]){
-            background-color: var(--dark-background1,#f5fafb);
+            /*background-color: var(--dark-background1,#f5fafb);*/
         }
         :host([folder]) .icon{
             display: flex;
         }
         :host(:not([folder])){
-            background-color: var(--dark-background,#FFFFFF);
+            /*background-color: var(--dark-background,#FFFFFF);*/
         }
         :host(:not([folder]):not([children])) {
         }
@@ -558,7 +564,7 @@ describe("TraceRow Test", () => {
         :host(:not([folder])) .describe:hover .collect{
             display: block;
         }
-        :host([row-type=\\"native-memory\\"]) .popover{
+        :host([row-type=\\"native-memory\\"]) #nativeRadioList{
             display: flex;
         }
         .popover{
@@ -581,6 +587,21 @@ describe("TraceRow Test", () => {
         :host([highlight]) .flash{
             background-color: #ffe263;
         }
+        
+        :host([row-type=\\"energy\\"]) #appNameList{
+            display: flex;
+        }
+        
+         #listprocess::-webkit-scrollbar{
+         width: 6px;
+        }
+        
+        /*定义滑块 内阴影+圆角*/
+        #listprocess::-webkit-scrollbar-thumb
+        {
+          border-radius: 6px;
+          background-color: var(--dark-background7,#e7c9c9);
+        }
 
         </style>
         <div class=\\"root\\">
@@ -588,12 +609,17 @@ describe("TraceRow Test", () => {
                 <lit-icon class=\\"icon\\" name=\\"caret-down\\" size=\\"13\\"></lit-icon>
                 <label class=\\"name\\"></label>
                 <lit-icon class=\\"collect\\" name=\\"star-fill\\" size=\\"17\\"></lit-icon>
-                <lit-popover placement=\\"bottomLeft\\" trigger=\\"click\\" class=\\"popover\\" haveRadio=\\"true\\">
-                    <div slot=\\"content\\">
+                <lit-popover placement=\\"bottomLeft\\" trigger=\\"click\\" id = \\"nativeRadioList\\" class=\\"popover\\" haveRadio=\\"true\\">
+                    <div style=\\"display: block\\" slot=\\"content\\">
                         <div id=\\"first-radio\\" style=\\"margin-bottom: 5px\\">
                         <input class=\\"radio\\" name=\\"status\\" type=\\"radio\\" value=\\"0\\" />Current Bytes</div>
                         <div id=\\"second-radio\\" style=\\"margin-bottom: 5px\\">
                         <input class=\\"radio\\" name=\\"status\\" type=\\"radio\\" value=\\"1\\" />Native Memory Density</div>
+                    </div>
+                    <lit-icon name=\\"setting\\" size=\\"17\\" id=\\"setting\\"></lit-icon>
+                </lit-popover>
+                <lit-popover placement=\\"bottomLeft\\" trigger=\\"click\\" id=\\"appNameList\\" class=\\"popover\\" haveRadio=\\"true\\">
+                    <div slot=\\"content\\" id=\\"listprocess\\" style=\\"height:200px;overflow-y:auto\\">
                     </div>
                     <lit-icon name=\\"setting\\" size=\\"17\\" id=\\"setting\\"></lit-icon>
                 </lit-popover>
@@ -608,5 +634,33 @@ describe("TraceRow Test", () => {
         </div>
         "
 `);
+    });
+    it('TraceRow Test57', () => {
+        let traceRow = new TraceRow<any>({canvasNumber:1,alpha: true, contextId: '2d', isOffScreen: true});
+        expect(traceRow.rowDiscard).toBeFalsy()
+    });
+    it('TraceRow Test58', () => {
+        let traceRow = new TraceRow<any>({canvasNumber:1,alpha: true, contextId: '2d', isOffScreen: true});
+        traceRow.rowDiscard =true
+        expect(traceRow.rowDiscard).toBeTruthy()
+    });
+    it('TraceRow Test58', () => {
+        let traceRow = new TraceRow<any>({canvasNumber:1,alpha: true, contextId: '2d', isOffScreen: true});
+        traceRow.rowDiscard = false
+        expect(traceRow.rowDiscard).toBeFalsy()
+    });
+    it('TraceRow Test59', () => {
+        let traceRow = new TraceRow<any>({canvasNumber:1,alpha: true, contextId: '2d', isOffScreen: true});
+        traceRow.disabledCheck = false
+        expect(traceRow.disabledCheck).toBeFalsy()
+    });
+    it('TraceRow Test64', () => {
+        let traceRow = new TraceRow<any>({canvasNumber:1,alpha: true, contextId: '2d', isOffScreen: true});
+        traceRow.folderPaddingLeft = 1
+        expect(traceRow.folderPaddingLeft).toBeUndefined()
+    });
+    it('TraceRow Test65', () => {
+        let traceRow = new TraceRow<any>({canvasNumber:1,alpha: true, contextId: '2d', isOffScreen: true});
+        expect(traceRow.getTransferArray()).toStrictEqual([undefined])
     });
 })

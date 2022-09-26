@@ -182,4 +182,24 @@ describe('LitSlider Test', ()=>{
         "
 `);
     });
+
+    it('LitSliderTest14', ()=>{
+        litSliderPanel.disabledX = false;
+        expect(litSliderPanel.disabledX).toBeFalsy();
+    });
+
+    it('LitSliderTest15', ()=>{
+        litSliderPanel.customSlider = false;
+        expect(litSliderPanel.customSlider).toBeFalsy();
+    });
+
+    it('LitSliderTest16', ()=>{
+        expect(litSliderPanel.formatSeconds(36000)).toBe('10:00:00');
+    });
+
+    it('LitSliderTest17', ()=>{
+        expect(litSliderPanel.formatSeconds(4000)).toBe('01:06:40');
+    })
+
+
 })

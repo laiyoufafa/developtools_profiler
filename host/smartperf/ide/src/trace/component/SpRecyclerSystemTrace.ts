@@ -93,7 +93,7 @@ export class SpRecyclerSystemTrace extends BaseElement {
             // 款选的函数的 线程id ,无则不传
             selection.funTids = [];
             // 框选的 内存 trackId ,无则不传
-            selection.trackIds = [];
+            selection.processTrackIds = [];
             // 框选的起始时间
             selection.leftNs = 0;
             // 框选的结束时间
@@ -119,7 +119,7 @@ export class SpRecyclerSystemTrace extends BaseElement {
                     selection.rightNs = it.rangeSelect.endNS;
                 }
             })
-            this.traceSheetEL?.boxSelection(selection)
+            this.traceSheetEL?.rangeSelect(selection)
         }
         // @ts-ignore
         new ResizeObserver((entries) => {

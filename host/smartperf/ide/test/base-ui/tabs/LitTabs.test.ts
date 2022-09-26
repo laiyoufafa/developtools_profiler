@@ -16,6 +16,13 @@
 // @ts-ignore
 import {LitTabs} from "../../../dist/base-ui/tabs/lit-tabs.js";
 
+window.ResizeObserver = window.ResizeObserver ||
+    jest.fn().mockImplementation(() => ({
+        disconnect: jest.fn(),
+        observe: jest.fn(),
+        unobserve: jest.fn(),
+    }));
+
 describe('LitSwitch Test', ()=>{
     let litTabs = new LitTabs();
 
@@ -40,15 +47,6 @@ describe('LitSwitch Test', ()=>{
     LitTabs.nav.querySelectorAll = jest.fn(()=>{
         return ['fd']
     })
-
-    // it('litTabsTest01', ()=>{
-    //     litTabs.nav = jest.fn(()=> true)
-    //     litTabs.nav.querySelector = jest.fn(()=> {
-    //         return document.createElement('div') as HTMLDivElement
-    //     })
-    //     litTabs.nav.querySelectorAll = jest.fn(()=> true)
-    //     expect(litTabs.updateLabel('key', 'value')).toBeUndefined();
-    // })
 
     it('litTabsTest1', ()=>{
         expect(litTabs.activekey).toBe('activekey');
@@ -154,7 +152,8 @@ describe('LitSwitch Test', ()=>{
             display: inline-flex;
             justify-content: center;
             align-items: center;
-            padding: 6px 0px 6px 12px;
+            /*padding: 6px 0px 6px 12px;*/
+            padding: 0px 6px;
             font-size: .9rem;
             font-weight: normal;
             cursor: pointer;
@@ -191,8 +190,9 @@ describe('LitSwitch Test', ()=>{
         :host([position^='top']) .nav-root{
             display: flex;
             position: relative;
-            justify-content: center;
-            align-items: center;
+            height: 38px;
+            /*justify-content: center;*/
+            /*align-items: center;*/
         }
         :host(:not([mode]):not([position])) .tab-line,/*移动的线条*/
         :host([mode='flat'][position^='top']) .tab-line{
@@ -202,14 +202,20 @@ describe('LitSwitch Test', ()=>{
         :host(:not([position])) .tab-nav-container,
         :host([position^='top']) .tab-nav-container{
             display: flex;
-            position: relative;
-            flex-direction: column;
-            overflow-y: hidden;
-            overflow-x: auto;
-            overflow: -moz-scrollbars-none; 
-            -ms-overflow-style: none;
-            transition: all 0.3s;
-            flex: 1;
+            /*position: relative;*/
+            /*flex-direction: column;*/
+            /*overflow-y: hidden;*/
+            /*overflow-x: auto;*/
+            /*overflow: -moz-scrollbars-none; */
+            /*-ms-overflow-style: none;*/
+            /*transition: all 0.3s;*/
+            position: absolute;
+            overflow: auto;
+            height: 850px;
+            transform: rotateZ(-90deg) rotateY(180deg);
+            transform-origin: left top;
+            overflow-x: hidden;
+            width: 38px;
         }
         :host([position='top']) .tab-nav,
         :host([position='top-left']) .tab-nav{
@@ -220,6 +226,11 @@ describe('LitSwitch Test', ()=>{
             user-select: none;
             margin-top: 6px;
             margin-left: 5px;
+
+            transform: translateY(-38px) rotateZ(90deg) rotateX(180deg) translateY(38px);
+            transform-origin: left bottom;
+            flex-wrap: nowrap;
+            height: 38px;
         }
         :host([position='top-center']) .tab-nav{
             display: flex;
@@ -505,6 +516,7 @@ describe('LitSwitch Test', ()=>{
                     <div class=\\"tab-nav\\" id=\\"nav\\"></div>
                     <div class=\\"tab-line\\" id=\\"tab-line\\"></div>
                 </div>
+                <div id=\\"tab-filling\\" style=\\"flex: 1\\"></div>
                 <slot name=\\"right\\" style=\\"flex:1\\"></slot>
             </div>
             <div class=\\"tab-content\\">
@@ -513,5 +525,27 @@ describe('LitSwitch Test', ()=>{
         </div>
         "
 `);
+    })
+
+    it('litTabsTest14', ()=>{
+        litTabs.nav = jest.fn(()=> true);
+        litTabs.nav.querySelector = jest.fn(()=> {
+            return document.createElement('div') as HTMLDivElement
+        });
+        litTabs.nav.querySelectorAll = jest.fn(()=> true);
+        expect(litTabs.updateDisabled('key', undefined)).toBeUndefined();
+    });
+
+    it('litTabsTest15', ()=>{
+        litTabs.nav = jest.fn(()=> true);
+        litTabs.nav.querySelector = jest.fn(()=> {
+            return document.createElement('div') as HTMLDivElement
+        });
+        litTabs.nav.querySelectorAll = jest.fn(()=> true);
+        expect(litTabs.updateCloseable('key', undefined)).toBeUndefined();
+    });
+
+    it('litTabsTest19', ()=>{
+        expect(litTabs.activePane(null)).toBe(false);
     })
 })

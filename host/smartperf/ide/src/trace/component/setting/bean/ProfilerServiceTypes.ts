@@ -85,6 +85,10 @@ export interface ProfilerPluginConfig<T> {
     configData: T;
 }
 
+export interface FileSystemConfig {
+    cmdLine: string;
+    outfileName: string;
+}
 
 export interface MemoryConfig {
     /** set true to report process list */
@@ -108,6 +112,8 @@ export interface MemoryConfig {
     reportAppMemByMemoryService: boolean;
     /** set required pid list */
     pid: number[];
+    /** set true to report smaps meminfo from /proc/${pid}/smaps */
+    reportSmapsMemInfo?: boolean;
 }
 
 
@@ -888,4 +894,8 @@ export interface HiperfPluginConfig {
     isRoot: boolean;
     outfileName: string;
     recordArgs: string;
+}
+
+export interface HiSystemEventConfig {
+    msg:string;
 }

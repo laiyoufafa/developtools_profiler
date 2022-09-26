@@ -26,11 +26,10 @@
 using namespace testing::ext;
 namespace SysTuning {
 namespace TraceStreamer {
-using namespace SysTuning::base;
-#define UNUSED(expr)             \
-    do {                         \
-        static_cast<void>(expr); \
-    } while (0)
+#define UNUSED(expr)  \
+do {              \
+    static_cast<void>(expr); \
+} while (0)
 
 const uint32_t MAX_TESET_BUF_SIZE = 1024;
 std::string g_parserData(
@@ -129,8 +128,8 @@ HWTEST_F(HttpServerTest, HttpCorrectRequest, TestSize.Level1)
 
     ret = rpcServer.ParseData((const uint8_t*)g_parserData.c_str(), g_parserData.length(), ResultCallbackFunc);
     ret = rpcServer.ParseDataOver(nullptr, 0, ResultCallbackFunc);
-    ret = rpcServer.SqlOperate((const uint8_t*)g_sqlOPerateInsert.c_str(), g_sqlOPerateInsert.length(),
-                               ResultCallbackFunc);
+    ret = rpcServer.SqlOperate((const uint8_t*)g_sqlOPerateInsert.c_str(),
+                               g_sqlOPerateInsert.length(), ResultCallbackFunc);
     ret = rpcServer.SqlQuery((const uint8_t*)g_sqlQuery.c_str(), g_sqlQuery.length(), ResultCallbackFunc);
 
     httpServer.RegisterRpcFunction(&rpcServer);
@@ -141,11 +140,12 @@ HWTEST_F(HttpServerTest, HttpCorrectRequest, TestSize.Level1)
     }
 
     sleep(1);
-    std::string bufToSend =
-        "GET /sqlquery HTTP/1.1\r\nHost: 127.0.0.1\r\nContent-Length:\
-                23\r\n\r\nselect * from measure\r\n";
+    char bufToSend[MAX_TESET_BUF_SIZE] = {0};
+    sprintf(bufToSend,
+            "GET /sqlquery HTTP/1.1\r\nHost: 127.0.0.1\r\nContent-Length:\
+                23\r\n\r\nselect * from measure\r\n");
 
-    ret = HttpClient(bufToSend.c_str());
+    ret = HttpClient(bufToSend);
     if (ret < 0) {
         TS_LOGE("Client fail");
     }
@@ -155,12 +155,12 @@ HWTEST_F(HttpServerTest, HttpCorrectRequest, TestSize.Level1)
         TS_LOGE("Server pthread jion fail");
     }
     char targetStr[MAX_TESET_BUF_SIZE] = {
-        "HTTP/1.1 200 OK\r\nConnection: Keep-Alive\r\nContent-Type: application/json\r\nTransfer-Encoding: "
-        "chunked\r\n\r\n48\r\nok\r\n{\"columns\":[\"type\",\"ts\",\"value\",\"filter_id\"],\"values\":[[1,1,1,1]]}"
-        "\r\n\r\n0\r\n\r\n"};
+        "HTTP/1.1 200 OK\r\nConnection: Keep-Alive\r\nContent-Type: "
+        "application/json\r\nTransfer-Encoding: chunked\r\nContent-Length:"
+        "72\r\n\r\nok\r\n{\"columns\":[\"type\",\"ts\",\"value\",\"filter_id\"],\"values\":[[1,1,1,1]]}\r\n"};
 
-    ret = rpcServer.SqlOperate((const uint8_t*)g_sqlOPerateDelete.c_str(), g_sqlOPerateDelete.length(),
-                               ResultCallbackFunc);
+    ret = rpcServer.SqlOperate((const uint8_t*)g_sqlOPerateDelete.c_str(),
+                               g_sqlOPerateDelete.length(), ResultCallbackFunc);
     ret = rpcServer.SqlQuery((const uint8_t*)g_sqlQuery.c_str(), g_sqlQuery.length(), ResultCallbackFunc);
 
     EXPECT_STREQ(targetStr, g_clientRecvBuf);
@@ -186,11 +186,12 @@ HWTEST_F(HttpServerTest, OthreAgreement, TestSize.Level1)
     }
 
     sleep(1);
-    std::string bufToSend =
-              "GET /sqlquery HTTP/0.9\r\nHost: 127.0.0.1\r\nContent-Length:\
-               23\r\n\r\nselect * from measure\r\n";
+    char bufToSend[MAX_TESET_BUF_SIZE] = {0};
+    sprintf(bufToSend,
+            "GET /sqlquery HTTP/0.9\r\nHost: 127.0.0.1\r\nContent-Length:\
+                    23\r\n\r\nselect * from measure\r\n");
 
-    ret = HttpClient(bufToSend.c_str());
+    ret = HttpClient(bufToSend);
     if (ret < 0) {
         TS_LOGE("Client fail");
     }
@@ -224,11 +225,12 @@ HWTEST_F(HttpServerTest, OthreProtocols, TestSize.Level1)
     }
 
     sleep(1);
-    std::string bufToSend =
-              "HEAD /sqlquery HTTP/1.1\r\nHost: 127.0.0.1\r\nContent-Length:\
-               23\r\n\r\nselect * from measure\r\n";
+    char bufToSend[MAX_TESET_BUF_SIZE] = {0};
+    sprintf(bufToSend,
+            "HEAD /sqlquery HTTP/1.1\r\nHost: 127.0.0.1\r\nContent-Length:\
+                23\r\n\r\nselect * from measure\r\n");
 
-    ret = HttpClient(bufToSend.c_str());
+    ret = HttpClient(bufToSend);
     if (ret < 0) {
         TS_LOGE("Client fail");
     }
@@ -262,11 +264,12 @@ HWTEST_F(HttpServerTest, RequestLineFormatError, TestSize.Level1)
     }
 
     sleep(1);
-    std::string bufToSend =
-              "POST /sqlqueryHTTP/0.9\r\nHost: 127.0.0.1\r\nContent-Length:\
-               20\r\n\r\nselect * from meta\r\n";
+    char bufToSend[MAX_TESET_BUF_SIZE] = {0};
+    sprintf(bufToSend,
+            "POST /sqlqueryHTTP/0.9\r\nHost: 127.0.0.1\r\nContent-Length:\
+                20\r\n\r\nselect * from meta\r\n");
 
-    ret = HttpClient(bufToSend.c_str());
+    ret = HttpClient(bufToSend);
     if (ret < 0) {
         TS_LOGE("Client fail");
     }
@@ -300,11 +303,12 @@ HWTEST_F(HttpServerTest, RequestOverHttp, TestSize.Level1)
     }
 
     sleep(1);
-    std::string bufToSend =
-              "POST /query HTTP/1.1\r\nHost: 127.0.0.1\r\nContent-Length:20\r\n\r\n\
-               select * from meta\r\n";
+    char bufToSend[MAX_TESET_BUF_SIZE] = {0};
+    sprintf(bufToSend,
+            "POST /query HTTP/1.1\r\nHost: 127.0.0.1\r\nContent-Length:20\r\n\r\n\
+            select * from meta\r\n");
 
-    ret = HttpClient(bufToSend.c_str());
+    ret = HttpClient(bufToSend);
     if (ret < 0) {
         TS_LOGE("Client fail");
     }

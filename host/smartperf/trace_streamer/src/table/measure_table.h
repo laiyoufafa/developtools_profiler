@@ -28,70 +28,21 @@ public:
     std::unique_ptr<TableBase::Cursor> CreateCursor() override;
 
 private:
-    void EstimateFilterCost(FilterConstraints& fc, EstimatedIndexInfo& ei) override;
-    void FilterByConstraint(FilterConstraints& fc, double& filterCost, size_t rowCount);
-    bool CanFilterSorted(const char op, size_t& rowCount);
+    void EstimateFilterCost(FilterConstraints& fc, EstimatedIndexInfo& ei) override {}
 
     class Cursor : public TableBase::Cursor {
     public:
         explicit Cursor(const TraceDataCache* dataCache, TableBase* table);
         ~Cursor() override;
-        int Filter(const FilterConstraints& fc, sqlite3_value** argv) override;
+        int Filter(const FilterConstraints& fc, sqlite3_value** argv) override
+        {
+            return 0;
+        }
+
         int Column(int column) const override;
-        void FilterSorted(int col, unsigned char op, sqlite3_value* argv);
-        void FilterTS(unsigned char op, sqlite3_value* argv);
-        void FilterIndex(int col, unsigned char op, sqlite3_value* argv);
-        void FilterFilterId(unsigned char op, uint64_t value);
-        uint32_t CurrentRow() const override
-        {
-            switch (indexType_) {
-                case INDEX_TYPE_ID:
-                    return indexMap_->CurrentRow();
-                case INDEX_TYPE_OUTER_INDEX:
-                    return rowIndex_[index_];
-                default:
-                    break;
-            }
-            return INVALID_UINT32;
-        }
-        int Next() override
-        {
-            switch (indexType_) {
-                case INDEX_TYPE_ID:
-                    /* code */
-                    indexMap_->Next();
-                    break;
-                case INDEX_TYPE_OUTER_INDEX:
-                    /* code */
-                    index_++;
-                    break;
-                default:
-                    break;
-            }
-            return SQLITE_OK;
-        }
-        int Eof() override
-        {
-            switch (indexType_) {
-                case INDEX_TYPE_ID:
-                    return dataCache_->Cancel() || indexMap_->Eof();
-                case INDEX_TYPE_OUTER_INDEX:
-                    return dataCache_->Cancel() || (index_ == indexSize_);
-                default:
-                    break;
-            }
-            return INVALID_UINT32;
-        }
+
     private:
         const Measure& measureObj;
-        std::deque<uint64_t> rowIndex_;
-        enum IndexType {
-            INDEX_TYPE_ID,
-            INDEX_TYPE_OUTER_INDEX,
-        };
-        IndexType indexType_ = INDEX_TYPE_ID;
-        uint32_t index_ = 0;
-        uint32_t indexSize_ = 0;
     };
 };
 } // namespace TraceStreamer

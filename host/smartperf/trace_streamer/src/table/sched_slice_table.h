@@ -44,61 +44,9 @@ private:
 
         void FilterId(unsigned char op, sqlite3_value* argv);
         void FilterSorted(int col, unsigned char op, sqlite3_value* argv);
-        void FilterTS(unsigned char op, sqlite3_value* argv);
-        void FilterIndex(int col, unsigned char op, sqlite3_value* argv);
-        void FilterItid(unsigned char op, uint64_t value);
-        void FilterIpid(unsigned char op, uint64_t value);
-        uint32_t CurrentRow() const override
-        {
-            switch (indexType_) {
-                case INDEX_TYPE_ID:
-                    return indexMap_->CurrentRow();
-                case INDEX_TYPE_OUTER_INDEX:
-                    return rowIndex_[index_];
-                default:
-                    break;
-            }
-            return INVALID_UINT32;
-        }
-        int Next() override
-        {
-            switch (indexType_) {
-                case INDEX_TYPE_ID:
-                    /* code */
-                    indexMap_->Next();
-                    break;
-                case INDEX_TYPE_OUTER_INDEX:
-                    /* code */
-                    index_++;
-                    break;
-                default:
-                    break;
-            }
-            return SQLITE_OK;
-        }
-        int Eof() override
-        {
-            switch (indexType_) {
-                case INDEX_TYPE_ID:
-                    return dataCache_->Cancel() || indexMap_->Eof();
-                case INDEX_TYPE_OUTER_INDEX:
-                    return dataCache_->Cancel() || (index_ == indexSize_);
-                default:
-                    break;
-            }
-            return INVALID_UINT32;
-        }
 
     private:
         const SchedSlice& schedSliceObj_;
-        std::deque<uint64_t> rowIndex_;
-        enum IndexType {
-            INDEX_TYPE_ID,
-            INDEX_TYPE_OUTER_INDEX,
-        };
-        IndexType indexType_ = INDEX_TYPE_ID;
-        uint32_t index_ = 0;
-        uint32_t indexSize_ = 0;
     };
 };
 } // namespace TraceStreamer

@@ -18,7 +18,7 @@ import "../../base-ui/popover/LitPopover.js"
 import {LitPopover} from "../../base-ui/popover/LitPopover.js";
 
 @element('sp-text')
-export class Sptext extends BaseElement {
+export class SpText extends BaseElement {
     initElements(): void {
         let litPopover = this.shadowRoot?.querySelector<LitPopover>('lit-popover');
         litPopover!.dataSource = [{

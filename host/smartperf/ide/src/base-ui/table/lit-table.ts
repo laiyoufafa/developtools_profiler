@@ -39,7 +39,7 @@ export class LitTable extends HTMLElement {
     private colCount: number = 0
     private currentScrollTop: number = 0
     private isRecycleList: boolean = true
-    private scrollX: boolean = false;
+    private isScrollXOutSide: boolean = false;
     constructor() {
         super();
         const shadowRoot = this.attachShadow({mode: 'open'});
@@ -213,7 +213,7 @@ export class LitTable extends HTMLElement {
 
         <slot id="slot" style="display: none"></slot>
         <slot name="head"></slot>
-        <div class="table" style="overflow-x:overlay;">
+        <div class="table" style="overflow-x:auto;">
             <div class="thead"></div>
             <div class="tbody">
                 <div class="tree"></div>
@@ -267,6 +267,7 @@ export class LitTable extends HTMLElement {
     }
 
     set recycleDataSource(value) {
+        this.isScrollXOutSide = this.tableElement!.scrollWidth > this.tableElement!.clientWidth
         this.isRecycleList = true
         this.ds = value;
         if (this.rememberScrollTop) {
@@ -348,6 +349,29 @@ export class LitTable extends HTMLElement {
         this.tbodyElement = this.shadowRoot?.querySelector('.body');
         this.tableColumns = this.querySelectorAll<LitTableColumn>('lit-table-column');
         this.colCount = this.tableColumns!.length;
+        this.tableElement?.addEventListener("copy",(e)=>{
+            // @ts-ignore
+            let clipboardData = e.clipboardData || window.clipboardData;
+            if(!clipboardData) return ;
+            // @ts-ignore
+            let text = window.getSelection().toString();
+            if(text){
+                e.preventDefault();
+                let length = this.tableColumns?.length||1;
+                let strings = text.split("\n");
+                let formatStr = ""
+                for (let i = 0; i < strings.length; i++) {
+                    if(i%length != 0){
+                        formatStr+="    "
+                    }
+                    formatStr+=strings[i]
+                    if(i!=0&&i%length == length - 1){
+                        formatStr += "\n"
+                    }
+                }
+                clipboardData.setData('text/plain', formatStr)
+            }
+        })
         this.st?.addEventListener('slotchange', () => {
             this.theadElement!.innerHTML = '';
             setTimeout(() => {
@@ -598,7 +622,7 @@ export class LitTable extends HTMLElement {
                     if (cl.hasAttribute('fixed')) {
                         this.fixed(td, cl.getAttribute('fixed') || '', "#ffffff")
                     }
-                    td.innerHTML = rowData[dataIndex];
+                    td.innerHTML = this.formatName(rowData[dataIndex]);
                     rowElement.append(td);
                 }
 
@@ -708,7 +732,7 @@ export class LitTable extends HTMLElement {
                                 this.fixed(td, cl.getAttribute('fixed') || '', "#ffffff")
                             }
                             // @ts-ignore
-                            td.innerHTML = rowData[dataIndex];
+                            td.innerHTML = this.formatName(rowData[dataIndex]);
                         }
                         rowElement.append(td)
                     } else {
@@ -733,7 +757,7 @@ export class LitTable extends HTMLElement {
                                 this.fixed(td, cl.getAttribute('fixed') || '', "#ffffff")
                             }
                             // @ts-ignore
-                            td.innerHTML = rowData[dataIndex];
+                            td.innerHTML = this.formatName(rowData[dataIndex]);
                         }
                         if (rowData.children && rowData.children.length > 0) {
                             let btn = document.createElement('lit-icon');
@@ -806,7 +830,7 @@ export class LitTable extends HTMLElement {
         this.tbodyElement && (this.tbodyElement.style.width = head?.clientWidth + "px")
         this.currentRecycleList = []
         let headHeight = 0
-        let totalHeight = headHeight
+        let totalHeight = headHeight;
         let visibleObjects: TableRowObject[] = [];
         list.forEach((rowData, index) => {
             let height = this.meauseElementHeight(rowData);
@@ -824,7 +848,7 @@ export class LitTable extends HTMLElement {
             totalHeight += height
             visibleObjects.push(tableRowObject)
         })
-        this.tbodyElement && (this.tbodyElement.style.height = totalHeight + "px")
+        this.tbodyElement && (this.tbodyElement.style.height = totalHeight + (this.isScrollXOutSide?0:0) + "px")
         this.tableElement && (this.tableElement.onscroll = (event) => {
             let top = this.tableElement!.scrollTop;
             let skip = 0;
@@ -941,7 +965,7 @@ export class LitTable extends HTMLElement {
                     td.template = column.template
                 } else {
                     td = document.createElement('div')
-                    td.innerHTML = rowData.data[dataIndex];
+                    td.innerHTML = this.formatName(rowData.data[dataIndex]);
                     td.dataIndex = dataIndex
                 }
                 if (rowData.data.children && rowData.data.children.length > 0) {
@@ -992,7 +1016,7 @@ export class LitTable extends HTMLElement {
                     td.appendChild(column.template.render(rowData.data).content.cloneNode(true));
                     td.template = column.template
                 } else {
-                    td.innerHTML = rowData.data[dataIndex];
+                    td.innerHTML = this.formatName(rowData.data[dataIndex]);
                 }
                 newTableElement.append(td)
             }
@@ -1085,7 +1109,7 @@ export class LitTable extends HTMLElement {
                 totalHeight += it.height
             }
         })
-        this.tbodyElement && (this.tbodyElement.style.height = totalHeight + "px")
+        this.tbodyElement && (this.tbodyElement.style.height = totalHeight + (this.isScrollXOutSide?0:0) + "px")
         this.treeElement!.style.height = (this.tableElement!.clientHeight - this.theadElement!.clientHeight) + "px"
         let visibleObjects = this.recycleDs.filter((item) => {
             return !item.rowHidden
@@ -1147,7 +1171,7 @@ export class LitTable extends HTMLElement {
                 td.appendChild(column.template.render(rowData.data).content.cloneNode(true));
                 td.template = column.template
             } else {
-                td.innerHTML = rowData.data[dataIndex];
+                td.innerHTML = this.formatName(rowData.data[dataIndex]);
             }
             newTableElement.append(td)
         })
@@ -1185,7 +1209,7 @@ export class LitTable extends HTMLElement {
                     firstElement.innerHTML = (this.columns![0] as any).template.render(rowObject.data).content.cloneNode(true).innerHTML
                 } else {
                     let dataIndex = this.columns![0].getAttribute('data-index') || '1';
-                    firstElement.innerHTML = rowObject.data[dataIndex]
+                    firstElement.innerHTML = this.formatName(rowObject.data[dataIndex])
                     firstElement.title = rowObject.data[dataIndex]
                 }
                 if (rowObject.children && rowObject.children.length > 0) {
@@ -1211,7 +1235,7 @@ export class LitTable extends HTMLElement {
                 (child as HTMLElement).appendChild((this.columns![idx] as any).template.render(rowObject.data).content.cloneNode(true));
                 (child as HTMLElement).title = rowObject.data[dataIndex];
             } else {
-                (child as HTMLElement).innerHTML = rowObject.data[dataIndex];
+                (child as HTMLElement).innerHTML = this.formatName(rowObject.data[dataIndex]);
                 (child as HTMLElement).title = rowObject.data[dataIndex];
             }
         })
@@ -1357,5 +1381,12 @@ export class LitTable extends HTMLElement {
                 }
             }, composed: true,
         }));
+    }
+
+    formatName(name:any){
+        if(name!=undefined&&name!==null){
+            return name.toString().replace("<","&lt;").replace(">","&gt;")
+        }
+        return ""
     }
 }

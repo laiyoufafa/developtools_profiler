@@ -41,33 +41,33 @@ describe('AbilityMonitor Test', ()=>{
 
         expect(systemCpuSummary).not.toBeUndefined()
         expect(systemCpuSummary).toMatchInlineSnapshot({
-            startTime: expect.any(Number),
-            startTimeStr: expect.any(String),
-            duration: expect.any(Number),
-            durationStr: expect.any(String),
-            totalLoad: expect.any(Number),
-            totalLoadStr: expect.any(String),
-            userLoad: expect.any(Number),
-            userLoadStr: expect.any(String),
-            systemLoad: expect.any(Number),
-            systemLoadStr: expect.any(String),
-            threads: expect.any(Number),
-            threadsStr: expect.any(String) }, `
-            Object {
-              "duration": Any<Number>,
-              "durationStr": Any<String>,
-              "startTime": Any<Number>,
-              "startTimeStr": Any<String>,
-              "systemLoad": Any<Number>,
-              "systemLoadStr": Any<String>,
-              "threads": Any<Number>,
-              "threadsStr": Any<String>,
-              "totalLoad": Any<Number>,
-              "totalLoadStr": Any<String>,
-              "userLoad": Any<Number>,
-              "userLoadStr": Any<String>,
-            }
-        `);
+  startTime: expect.any(Number),
+  startTimeStr: expect.any(String),
+  duration: expect.any(Number),
+  durationStr: expect.any(String),
+  totalLoad: expect.any(Number),
+  totalLoadStr: expect.any(String),
+  userLoad: expect.any(Number),
+  userLoadStr: expect.any(String),
+  systemLoad: expect.any(Number),
+  systemLoadStr: expect.any(String),
+  threads: expect.any(Number),
+  threadsStr: expect.any(String) }, `
+Object {
+  "duration": Any<Number>,
+  "durationStr": Any<String>,
+  "startTime": Any<Number>,
+  "startTimeStr": Any<String>,
+  "systemLoad": Any<Number>,
+  "systemLoadStr": Any<String>,
+  "threads": Any<Number>,
+  "threadsStr": Any<String>,
+  "totalLoad": Any<Number>,
+  "totalLoadStr": Any<String>,
+  "userLoad": Any<Number>,
+  "userLoadStr": Any<String>,
+}
+`);
     });
 
     it('SystemCpuSummaryTest', function () {
@@ -95,49 +95,49 @@ describe('AbilityMonitor Test', ()=>{
         }
         expect(systemDiskIOSummary).not.toBeUndefined();
         expect(systemDiskIOSummary).toMatchInlineSnapshot({
-            startTime: expect.any(Number),
-            startTimeStr: expect.any(String),
-            duration: expect.any(Number),
-            durationStr: expect.any(String),
-            dataRead: expect.any(Number),
-            dataReadStr: expect.any(String),
-            dataReadSec: expect.any(Number),
-            dataReadSecStr: expect.any(String),
-            dataWrite: expect.any(Number),
-            dataWriteStr: expect.any(String),
-            dataWriteSec: expect.any(Number),
-            dataWriteSecStr: expect.any(String),
-            readsIn: expect.any(Number),
-            readsInStr: expect.any(String),
-            readsInSec: expect.any(Number),
-            readsInSecStr: expect.any(String),
-            writeOut: expect.any(Number),
-            writeOutStr: expect.any(String),
-            writeOutSec: expect.any(Number),
-            writeOutSecStr: expect.any(String) }, `
-            Object {
-              "dataRead": Any<Number>,
-              "dataReadSec": Any<Number>,
-              "dataReadSecStr": Any<String>,
-              "dataReadStr": Any<String>,
-              "dataWrite": Any<Number>,
-              "dataWriteSec": Any<Number>,
-              "dataWriteSecStr": Any<String>,
-              "dataWriteStr": Any<String>,
-              "duration": Any<Number>,
-              "durationStr": Any<String>,
-              "readsIn": Any<Number>,
-              "readsInSec": Any<Number>,
-              "readsInSecStr": Any<String>,
-              "readsInStr": Any<String>,
-              "startTime": Any<Number>,
-              "startTimeStr": Any<String>,
-              "writeOut": Any<Number>,
-              "writeOutSec": Any<Number>,
-              "writeOutSecStr": Any<String>,
-              "writeOutStr": Any<String>,
-            }
-        `);
+  startTime: expect.any(Number),
+  startTimeStr: expect.any(String),
+  duration: expect.any(Number),
+  durationStr: expect.any(String),
+  dataRead: expect.any(Number),
+  dataReadStr: expect.any(String),
+  dataReadSec: expect.any(Number),
+  dataReadSecStr: expect.any(String),
+  dataWrite: expect.any(Number),
+  dataWriteStr: expect.any(String),
+  dataWriteSec: expect.any(Number),
+  dataWriteSecStr: expect.any(String),
+  readsIn: expect.any(Number),
+  readsInStr: expect.any(String),
+  readsInSec: expect.any(Number),
+  readsInSecStr: expect.any(String),
+  writeOut: expect.any(Number),
+  writeOutStr: expect.any(String),
+  writeOutSec: expect.any(Number),
+  writeOutSecStr: expect.any(String) }, `
+Object {
+  "dataRead": Any<Number>,
+  "dataReadSec": Any<Number>,
+  "dataReadSecStr": Any<String>,
+  "dataReadStr": Any<String>,
+  "dataWrite": Any<Number>,
+  "dataWriteSec": Any<Number>,
+  "dataWriteSecStr": Any<String>,
+  "dataWriteStr": Any<String>,
+  "duration": Any<Number>,
+  "durationStr": Any<String>,
+  "readsIn": Any<Number>,
+  "readsInSec": Any<Number>,
+  "readsInSecStr": Any<String>,
+  "readsInStr": Any<String>,
+  "startTime": Any<Number>,
+  "startTimeStr": Any<String>,
+  "writeOut": Any<Number>,
+  "writeOutSec": Any<Number>,
+  "writeOutSecStr": Any<String>,
+  "writeOutStr": Any<String>,
+}
+`);
     });
 
     it('SystemCpuSummaryTest', function () {
@@ -165,49 +165,49 @@ describe('AbilityMonitor Test', ()=>{
             }
             expect(systemDiskIOSummary).not.toBeUndefined();
             expect(systemDiskIOSummary).toMatchInlineSnapshot({
-                startTime: expect.any(Number),
-                startTimeStr: expect.any(String),
-                duration: expect.any(Number),
-                durationStr: expect.any(String),
-                dataRead: expect.any(Number),
-                dataReadStr: expect.any(String),
-                dataReadSec: expect.any(Number),
-                dataReadSecStr: expect.any(String),
-                dataWrite: expect.any(Number),
-                dataWriteStr: expect.any(String),
-                dataWriteSec: expect.any(Number),
-                dataWriteSecStr: expect.any(String),
-                readsIn: expect.any(Number),
-                readsInStr: expect.any(String),
-                readsInSec: expect.any(Number),
-                readsInSecStr: expect.any(String),
-                writeOut: expect.any(Number),
-                writeOutStr: expect.any(String),
-                writeOutSec: expect.any(Number),
-                writeOutSecStr: expect.any(String) }, `
-                Object {
-                  "dataRead": Any<Number>,
-                  "dataReadSec": Any<Number>,
-                  "dataReadSecStr": Any<String>,
-                  "dataReadStr": Any<String>,
-                  "dataWrite": Any<Number>,
-                  "dataWriteSec": Any<Number>,
-                  "dataWriteSecStr": Any<String>,
-                  "dataWriteStr": Any<String>,
-                  "duration": Any<Number>,
-                  "durationStr": Any<String>,
-                  "readsIn": Any<Number>,
-                  "readsInSec": Any<Number>,
-                  "readsInSecStr": Any<String>,
-                  "readsInStr": Any<String>,
-                  "startTime": Any<Number>,
-                  "startTimeStr": Any<String>,
-                  "writeOut": Any<Number>,
-                  "writeOutSec": Any<Number>,
-                  "writeOutSecStr": Any<String>,
-                  "writeOutStr": Any<String>,
-                }
-            `);
+  startTime: expect.any(Number),
+  startTimeStr: expect.any(String),
+  duration: expect.any(Number),
+  durationStr: expect.any(String),
+  dataRead: expect.any(Number),
+  dataReadStr: expect.any(String),
+  dataReadSec: expect.any(Number),
+  dataReadSecStr: expect.any(String),
+  dataWrite: expect.any(Number),
+  dataWriteStr: expect.any(String),
+  dataWriteSec: expect.any(Number),
+  dataWriteSecStr: expect.any(String),
+  readsIn: expect.any(Number),
+  readsInStr: expect.any(String),
+  readsInSec: expect.any(Number),
+  readsInSecStr: expect.any(String),
+  writeOut: expect.any(Number),
+  writeOutStr: expect.any(String),
+  writeOutSec: expect.any(Number),
+  writeOutSecStr: expect.any(String) }, `
+Object {
+  "dataRead": Any<Number>,
+  "dataReadSec": Any<Number>,
+  "dataReadSecStr": Any<String>,
+  "dataReadStr": Any<String>,
+  "dataWrite": Any<Number>,
+  "dataWriteSec": Any<Number>,
+  "dataWriteSecStr": Any<String>,
+  "dataWriteStr": Any<String>,
+  "duration": Any<Number>,
+  "durationStr": Any<String>,
+  "readsIn": Any<Number>,
+  "readsInSec": Any<Number>,
+  "readsInSecStr": Any<String>,
+  "readsInStr": Any<String>,
+  "startTime": Any<Number>,
+  "startTimeStr": Any<String>,
+  "writeOut": Any<Number>,
+  "writeOutSec": Any<Number>,
+  "writeOutSecStr": Any<String>,
+  "writeOutStr": Any<String>,
+}
+`);
         });
 
     it('ProcessHistoryTest', function () {
@@ -223,25 +223,25 @@ describe('AbilityMonitor Test', ()=>{
         }
         expect(processHistory).not.toBeUndefined();
         expect(processHistory).toMatchInlineSnapshot({
-            processId: expect.any(Number),
-            alive: expect.any(String),
-            firstSeen: expect.any(String),
-            lastSeen: expect.any(String),
-            processName: expect.any(String),
-            responsibleProcess: expect.any(String),
-            userName: expect.any(String),
-            cpuTime: expect.any(String) }, `
-            Object {
-              "alive": Any<String>,
-              "cpuTime": Any<String>,
-              "firstSeen": Any<String>,
-              "lastSeen": Any<String>,
-              "processId": Any<Number>,
-              "processName": Any<String>,
-              "responsibleProcess": Any<String>,
-              "userName": Any<String>,
-            }
-        `);
+  processId: expect.any(Number),
+  alive: expect.any(String),
+  firstSeen: expect.any(String),
+  lastSeen: expect.any(String),
+  processName: expect.any(String),
+  responsibleProcess: expect.any(String),
+  userName: expect.any(String),
+  cpuTime: expect.any(String) }, `
+Object {
+  "alive": Any<String>,
+  "cpuTime": Any<String>,
+  "firstSeen": Any<String>,
+  "lastSeen": Any<String>,
+  "processId": Any<Number>,
+  "processName": Any<String>,
+  "responsibleProcess": Any<String>,
+  "userName": Any<String>,
+}
+`);
     });
 
     it('LiveProcessTest', function () {
@@ -255,21 +255,21 @@ describe('AbilityMonitor Test', ()=>{
         }
         expect(liveProcess).not.toBeUndefined();
         expect(liveProcess).toMatchInlineSnapshot({
-            processId: expect.any(Number),
-            processName: expect.any(String),
-            responsibleProcess: expect.any(String),
-            userName: expect.any(String),
-            cpu: expect.any(String),
-            threads: expect.any(Number) }, `
-            Object {
-              "cpu": Any<String>,
-              "processId": Any<Number>,
-              "processName": Any<String>,
-              "responsibleProcess": Any<String>,
-              "threads": Any<Number>,
-              "userName": Any<String>,
-            }
-        `)
+  processId: expect.any(Number),
+  processName: expect.any(String),
+  responsibleProcess: expect.any(String),
+  userName: expect.any(String),
+  cpu: expect.any(String),
+  threads: expect.any(Number) }, `
+Object {
+  "cpu": Any<String>,
+  "processId": Any<Number>,
+  "processName": Any<String>,
+  "responsibleProcess": Any<String>,
+  "threads": Any<Number>,
+  "userName": Any<String>,
+}
+`)
     });
 
     it('SystemNetworkSummaryTest', function () {
@@ -293,41 +293,41 @@ describe('AbilityMonitor Test', ()=>{
         }
         expect(systemNetworkSummary).not.toBeUndefined();
         expect(systemNetworkSummary).toMatchInlineSnapshot({
-            startTime: expect.any(Number),
-            startTimeStr: expect.any(String),
-            duration: expect.any(Number),
-            durationStr: expect.any(String),
-            dataReceived: expect.any(Number),
-            dataReceivedStr: expect.any(String),
-            dataReceivedSec: expect.any(Number),
-            dataReceivedSecStr: expect.any(String),
-            dataSend: expect.any(Number),
-            dataSendStr: expect.any(String),
-            dataSendSec: expect.any(Number),
-            dataSendSecStr: expect.any(String),
-            packetsIn: expect.any(Number),
-            packetsInSec: expect.any(Number),
-            packetsOut: expect.any(Number),
-            packetsOutSec: expect.any(Number) }, `
-            Object {
-              "dataReceived": Any<Number>,
-              "dataReceivedSec": Any<Number>,
-              "dataReceivedSecStr": Any<String>,
-              "dataReceivedStr": Any<String>,
-              "dataSend": Any<Number>,
-              "dataSendSec": Any<Number>,
-              "dataSendSecStr": Any<String>,
-              "dataSendStr": Any<String>,
-              "duration": Any<Number>,
-              "durationStr": Any<String>,
-              "packetsIn": Any<Number>,
-              "packetsInSec": Any<Number>,
-              "packetsOut": Any<Number>,
-              "packetsOutSec": Any<Number>,
-              "startTime": Any<Number>,
-              "startTimeStr": Any<String>,
-            }
-        `)
+  startTime: expect.any(Number),
+  startTimeStr: expect.any(String),
+  duration: expect.any(Number),
+  durationStr: expect.any(String),
+  dataReceived: expect.any(Number),
+  dataReceivedStr: expect.any(String),
+  dataReceivedSec: expect.any(Number),
+  dataReceivedSecStr: expect.any(String),
+  dataSend: expect.any(Number),
+  dataSendStr: expect.any(String),
+  dataSendSec: expect.any(Number),
+  dataSendSecStr: expect.any(String),
+  packetsIn: expect.any(Number),
+  packetsInSec: expect.any(Number),
+  packetsOut: expect.any(Number),
+  packetsOutSec: expect.any(Number) }, `
+Object {
+  "dataReceived": Any<Number>,
+  "dataReceivedSec": Any<Number>,
+  "dataReceivedSecStr": Any<String>,
+  "dataReceivedStr": Any<String>,
+  "dataSend": Any<Number>,
+  "dataSendSec": Any<Number>,
+  "dataSendSecStr": Any<String>,
+  "dataSendStr": Any<String>,
+  "duration": Any<Number>,
+  "durationStr": Any<String>,
+  "packetsIn": Any<Number>,
+  "packetsInSec": Any<Number>,
+  "packetsOut": Any<Number>,
+  "packetsOutSec": Any<Number>,
+  "startTime": Any<Number>,
+  "startTimeStr": Any<String>,
+}
+`)
     });
 
     it('systemMemorySummaryTest', function () {
@@ -351,40 +351,40 @@ describe('AbilityMonitor Test', ()=>{
         }
         expect(systemMemorySummary).not.toBeUndefined();
         expect(systemMemorySummary).toMatchInlineSnapshot({
-            startTime: expect.any(Number),
-            startTimeStr: expect.any(String),
-            duration: expect.any(Number),
-            durationStr: expect.any(String),
-            memoryTotal: expect.any(Number),
-            memoryTotalStr: expect.any(String),
-            cached: expect.any(Number),
-            cachedStr: expect.any(String),
-            swapTotal: expect.any(Number),
-            swapTotalStr: expect.any(String),
-            appMemory: expect.any(Number),
-            cachedFiles: expect.any(Number),
-            compressed: expect.any(Number),
-            memoryUsed: expect.any(Number),
-            wiredMemory: expect.any(Number),
-            swapUsed: expect.any(Number) }, `
-            Object {
-              "appMemory": Any<Number>,
-              "cached": Any<Number>,
-              "cachedFiles": Any<Number>,
-              "cachedStr": Any<String>,
-              "compressed": Any<Number>,
-              "duration": Any<Number>,
-              "durationStr": Any<String>,
-              "memoryTotal": Any<Number>,
-              "memoryTotalStr": Any<String>,
-              "memoryUsed": Any<Number>,
-              "startTime": Any<Number>,
-              "startTimeStr": Any<String>,
-              "swapTotal": Any<Number>,
-              "swapTotalStr": Any<String>,
-              "swapUsed": Any<Number>,
-              "wiredMemory": Any<Number>,
-            }
-        `)
+  startTime: expect.any(Number),
+  startTimeStr: expect.any(String),
+  duration: expect.any(Number),
+  durationStr: expect.any(String),
+  memoryTotal: expect.any(Number),
+  memoryTotalStr: expect.any(String),
+  cached: expect.any(Number),
+  cachedStr: expect.any(String),
+  swapTotal: expect.any(Number),
+  swapTotalStr: expect.any(String),
+  appMemory: expect.any(Number),
+  cachedFiles: expect.any(Number),
+  compressed: expect.any(Number),
+  memoryUsed: expect.any(Number),
+  wiredMemory: expect.any(Number),
+  swapUsed: expect.any(Number) }, `
+Object {
+  "appMemory": Any<Number>,
+  "cached": Any<Number>,
+  "cachedFiles": Any<Number>,
+  "cachedStr": Any<String>,
+  "compressed": Any<Number>,
+  "duration": Any<Number>,
+  "durationStr": Any<String>,
+  "memoryTotal": Any<Number>,
+  "memoryTotalStr": Any<String>,
+  "memoryUsed": Any<Number>,
+  "startTime": Any<Number>,
+  "startTimeStr": Any<String>,
+  "swapTotal": Any<Number>,
+  "swapTotalStr": Any<String>,
+  "swapUsed": Any<Number>,
+  "wiredMemory": Any<Number>,
+}
+`)
     });
 })

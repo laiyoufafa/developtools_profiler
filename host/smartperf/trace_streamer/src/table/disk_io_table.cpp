@@ -33,16 +33,16 @@ enum Index {
 }
 DiskIOTable::DiskIOTable(const TraceDataCache* dataCache) : TableBase(dataCache)
 {
-    tableColumn_.push_back(TableBase::ColumnInfo("ts", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("dur", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("rd", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("wr", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("rd_speed", "REAL"));
-    tableColumn_.push_back(TableBase::ColumnInfo("wr_speed", "REAL"));
-    tableColumn_.push_back(TableBase::ColumnInfo("rd_count", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("wr_count", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("rd_count_speed", "REAL"));
-    tableColumn_.push_back(TableBase::ColumnInfo("wr_count_speed", "REAL"));
+    tableColumn_.push_back(TableBase::ColumnInfo("ts", "UNSIGNED BIG INT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("dur", "UNSIGNED BIG INT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("rd", "UNSIGNED BIG INT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("wr", "UNSIGNED BIG INT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("rd_speed", "DOUBLE"));
+    tableColumn_.push_back(TableBase::ColumnInfo("wr_speed", "DOUBLE"));
+    tableColumn_.push_back(TableBase::ColumnInfo("rd_count", "UNSIGNED BIG INT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("wr_count", "UNSIGNED BIG INT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("rd_count_speed", "DOUBLE"));
+    tableColumn_.push_back(TableBase::ColumnInfo("wr_count_speed", "DOUBLE"));
     tablePriKey_.push_back("ts");
 }
 

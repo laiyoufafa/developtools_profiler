@@ -89,6 +89,18 @@ export class FuncStruct extends BaseStruct {
             return false;
         }
     }
+
+    static isBinderAsync(data: FuncStruct): boolean {
+        if (data.funName != null &&
+            (
+                data.funName.toLowerCase().includes("async")
+            )
+        ) {
+            return true;
+        } else {
+            return false;
+        }
+    }
 }
 
 const padding = 1;

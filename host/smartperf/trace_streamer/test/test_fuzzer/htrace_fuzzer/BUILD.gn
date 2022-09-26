@@ -31,6 +31,7 @@ ohos_fuzztest("ts_htrace_fuzz_test") {
     "../../../src/cfg",
     "../../../src/parser/htrace_parser",
     "../../../src/parser/htrace_parser/htrace_event_parser",
+    "//utils/native/base/include",
     "../../../src/parser/htrace_parser/htrace_cpu_parser",
     "//third_party/sqlite/include",
     "${OHOS_PROTO_GEN}/types/plugins/memory_data",

@@ -18,8 +18,8 @@ declare_args() {
     cxx = "/usr/bin/clang++"
     pic = "-fPIC"
   } else if (target_os == "windows") {
-    cc = "gcc.exe"
-    cxx = "g++.exe"
+    cc = "clang.exe"
+    cxx = "clang++.exe"
     pic = ""
   }
   if (use_wasm == true) {

@@ -17,16 +17,10 @@
 
 #include <cstdint>
 #include <sys/types.h>
-namespace SysTuning {
-namespace base {
-#if !is_mingw
 int memcpy_s(void* dest, uint32_t destSize, const void* src, size_t srcSize);
-int sscanf_s(const char* buffer, const char* format, ...);
-int strncpy_s(char* strDest, size_t destMax, const char* strSrc, size_t count);
-#endif
 void* memset_s(void* dest, size_t destSize, int ch, size_t n);
 int snprintf_s(char* strDest, size_t destMax, size_t count, const char* format, ...);
+int strncpy_s(char* strDest, size_t destMax, const char* strSrc, size_t count);
+int sscanf_s(const char* buffer, const char* format, ...);
 int sprintf_s(char* strDest, size_t destMax, const char* format, ...);
-} // namespace base
-} // namespace SysTuning
 #endif // SRC_TRACE_BASE_STRINGHELP_H

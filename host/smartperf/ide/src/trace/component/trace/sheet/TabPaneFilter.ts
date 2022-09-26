@@ -18,7 +18,6 @@ import "../../../../base-ui/select/LitSelect.js";
 import "../../../../base-ui/select/LitSelectOption.js";
 import '../../../../base-ui/icon/LitIcon.js'
 import {LitIcon} from "../../../../base-ui/icon/LitIcon.js";
-import {LitSelect} from "../../../../base-ui/select/LitSelect.js";
 import "../../../../base-ui/popover/LitPopoverV.js"
 import {LitCheckBox} from "../../../../base-ui/checkbox/LitCheckBox.js";
 
@@ -28,6 +27,7 @@ export interface FilterData {
     secondSelect: string | null | undefined,
     mark: boolean | null | undefined,
     icon: string | null,
+    type: string,
 }
 
 export interface MiningData {
@@ -43,14 +43,28 @@ export class TabPaneFilter extends BaseElement {
     private secondSelectEL: HTMLSelectElement | null | undefined;
     private markButtonEL: HTMLButtonElement | null | undefined;
     private iconEL: LitIcon | null | undefined;
+    private statisticsName: HTMLDivElement | null | undefined;
     private getFilter: ((e: FilterData) => void) | undefined;
     private getMining: ((e: MiningData) => void) | undefined;
     private getLibrary: ((e: MiningData) => void) | undefined;
     private getCallTree: ((e: any) => void) | undefined;
     private getCallTreeConstraints: ((e: any) => void) | undefined;
+    private getStatisticsType: ((e: any) => void) | undefined;
 
     private cutList: Array<any> | undefined;
     private libraryList: Array<any> | undefined;
+
+    filterData(type:string,data:object = {}){
+        return {
+            type: type,
+            inputValue: this.filterInputEL!.value,
+            firstSelect: this.firstSelectEL?.value,
+            secondSelect: this.secondSelectEL?.value,
+            mark: false,
+            icon: this.icon,
+            ...data
+        }
+    }
 
     initElements(): void {
         this.cutList = [];
@@ -58,58 +72,39 @@ export class TabPaneFilter extends BaseElement {
         this.filterInputEL = this.shadowRoot?.querySelector("#filter-input")
         this.markButtonEL = this.shadowRoot?.querySelector("#mark")
         this.iconEL = this.shadowRoot?.querySelector<LitIcon>("#icon")
+        this.statisticsName = this.shadowRoot?.querySelector<HTMLDivElement>(".statistics-name");
         this.iconEL!.onclick = (e) => {
             if (this.iconEL!.name == "statistics") {
                 this.iconEL!.name = "menu";
                 this.iconEL!.size = 18;
                 if (this.getFilter) {
-                    this.getFilter({
-                        inputValue: this.filterInputEL!.value,
-                        firstSelect: this.firstSelectEL?.value,
-                        secondSelect: this.secondSelectEL?.value,
-                        mark: false,
-                        icon: this.icon
-                    })
+                    this.getFilter(this.filterData("icon"))
                 }
             } else if (this.iconEL!.name == "menu") {
                 this.iconEL!.name = "statistics";
                 this.iconEL!.size = 16;
                 if (this.getFilter) {
-                    this.getFilter({
-                        inputValue: this.filterInputEL!.value,
-                        firstSelect: this.firstSelectEL?.value,
-                        secondSelect: this.secondSelectEL?.value,
-                        mark: false,
-                        icon: this.icon
-                    })
+                    this.getFilter(this.filterData("icon"))
                 }
             }
         }
 
         this.markButtonEL!.onclick = (e) => {
             if (this.getFilter) {
-                this.getFilter({
-                    inputValue: this.filterInputEL!.value,
-                    firstSelect: this.firstSelectEL?.value,
-                    secondSelect: this.secondSelectEL?.value,
-                    mark: true,
-                    icon: this.icon
-                })
+                this.getFilter(this.filterData("mark",{mark: true}))
             }
         }
 
-        this.filterInputEL?.addEventListener("keydown", (event: any) => {
+        this.filterInputEL?.addEventListener("keyup", (event: any) => {
             if (event.keyCode == 13) {
                 if (this.getFilter) {
-                    this.getFilter({
-                        inputValue: event.target.value,
-                        firstSelect: this.firstSelectEL?.value,
-                        secondSelect: this.secondSelectEL?.value,
-                        mark: false,
-                        icon: this.icon
-                    })
+                    this.getFilter(this.filterData("inputValue",{inputValue: event.target.value}))
                 }
             }
+            event.stopPropagation();
+        });
+
+        this.filterInputEL?.addEventListener("keypress", (event: any) => {
             event.stopPropagation();
         });
 
@@ -154,6 +149,13 @@ export class TabPaneFilter extends BaseElement {
         this.shadowRoot!.querySelector<HTMLDivElement>("#data-library")!.onclick = (e)=>{
             if (this.getLibrary) {
                 this.getLibrary({type: "button", item: "library"});
+            }
+        }
+        this.shadowRoot!.querySelector<HTMLDivElement>(".sort")!.onclick =(e)=>{
+            let statisticsType = this.statisticsName!.textContent == "Statistics by Operation"
+            this.statisticsName!.textContent = statisticsType?"Statistics by Thread":"Statistics by Operation";
+            if (this.getStatisticsType) {
+                this.getStatisticsType(statisticsType?"thread":"operation");
             }
         }
     }
@@ -234,22 +236,31 @@ export class TabPaneFilter extends BaseElement {
         this.getFilter = getFilter
     }
 
+    getStatisticsTypeData(getStatisticsType: (v: any) => void) {
+        this.getStatisticsType = getStatisticsType
+    }
+
     setSelectList(firstList: Array<any> | null | undefined = ["All Allocations", "Created & Existing", "Created & Destroyed"],
-                  secondList: Array<any> | null | undefined = ["All Heap & Anonymous VM", "All Heap", "All Anonymous VM"]) {
+                  secondList: Array<any> | null | undefined = ["All Heap & Anonymous VM", "All Heap", "All Anonymous VM"],
+                  firstTitle = "Allocation Lifespan",secondTitle = "Allocation Type") {
         if (!firstList && !secondList) return;
         let sLE = this.shadowRoot?.querySelector("#load")
         let html = ``;
         if (firstList) {
-            html += `<lit-select default-value="" id="first-select" class="spacing" placeholder="please choose">
-            <lit-select-option value="Allocation Lifespan" disabled>Allocation Lifespan</lit-select-option>`
+            html += `<lit-select default-value="" id="first-select" class="spacing" placeholder="please choose">`
+            if(firstTitle != ""){
+                html += `<lit-select-option value="${firstTitle}" disabled>${firstTitle}</lit-select-option>`
+            }
             firstList!.forEach((a, b) => {
                 html += `<lit-select-option value="${b}">${a}</lit-select-option>`
             })
             html += `</lit-select>`
         }
         if (secondList) {
-            html += `<lit-select default-value="" id="second-select" class="spacing" placeholder="please choose">
-            <lit-select-option value="Allocation Type" disabled>Allocation Type</lit-select-option>`
+            html += `<lit-select default-value="" id="second-select" class="spacing" placeholder="please choose">`
+            if(secondTitle != ""){
+                html += `<lit-select-option value="${secondTitle}" disabled>${secondTitle}</lit-select-option>`
+            }
             secondList!.forEach((a, b) => {
                 html += `<lit-select-option value="${b}">${a}</lit-select-option>`
             })
@@ -268,24 +279,12 @@ export class TabPaneFilter extends BaseElement {
 
         this.firstSelectEL!.onchange = (e) => {
             if (this.getFilter) {
-                this.getFilter({
-                    inputValue: this.filterInputEL!.value,
-                    firstSelect: this.firstSelectEL?.value,
-                    secondSelect: this.secondSelectEL?.value,
-                    mark: false,
-                    icon: this.icon
-                })
+                this.getFilter(this.filterData("firstSelect"))
             }
         }
         this.secondSelectEL!.onchange = (e) => {
             if (this.getFilter) {
-                this.getFilter({
-                    inputValue: this.filterInputEL!.value,
-                    firstSelect: this.firstSelectEL?.value,
-                    secondSelect: this.secondSelectEL?.value,
-                    mark: false,
-                    icon: this.icon
-                })
+                this.getFilter(this.filterData("secondSelect"))
             }
         }
     }
@@ -351,7 +350,8 @@ export class TabPaneFilter extends BaseElement {
                 // @ts-ignore
                 this.value = this.value.replace(/\D/g, '');
             }
-            e.addEventListener("keydown", (event: any) => {
+            e.addEventListener("keyup", (event: any) => {
+                event.stopPropagation();
                 if (event.keyCode == "13") {
                     if (event?.target.value == "") {
                         inputs[idx].value = idx == 0 ? "0" : "∞"
@@ -503,6 +503,7 @@ export class TabPaneFilter extends BaseElement {
             background: var(--dark-background4,#F2F2F2);
             border-top: 1px solid var(--dark-border1,#c9d0da);display: flex;align-items: center;z-index: 2;
             margin-left: -10px;
+            width: calc(100% + 20px);
         }
 
         .chosen-single {
@@ -684,6 +685,14 @@ export class TabPaneFilter extends BaseElement {
             display: flex;
             align-content: center;
         }
+        .sort{
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+        :host(:not([sort])) .sort{
+            display: none;
+        }
 </style>
     <lit-icon name="statistics" class="spacing" id="icon" size="16"></lit-icon>
     <span class="describe left-text spacing">Input Filter</span>
@@ -692,49 +701,53 @@ export class TabPaneFilter extends BaseElement {
     <div id="load" style="display: flex">
     
     </div>
-       <lit-popover placement="topLeft" class="popover" haveRadio="true" trigger="click" id="call-tree-popover">
+        <lit-popover placement="topLeft" class="popover" haveRadio="true" trigger="click" id="call-tree-popover">
+             <div slot="content">
+                 <div class="tree-check"><lit-check-box class="lit-check-box" not-close></lit-check-box><div>Invert</div></div>
+                 <div class="tree-check"><lit-check-box class="lit-check-box" not-close></lit-check-box><div>Hide System so</div></div>
+             </div>
+             <span class="describe tree max-spacing" id="call-tree">Options</span>
+        </lit-popover>
+        <lit-popover placement="topLeft" class="popover" haveRadio="true" trigger="click" id="tree-constraints-popover">
+             <div slot="content" style="display: flex; align-items: flex-end">
+                 <lit-check-box id="constraints-check" not-close></lit-check-box>
+                 <input class="constraints-input" disabled value="0" not-close/>
+                 <lit-popover placement="topLeft" class="popover" haveRadio="true" not-close>
+                     <div slot="content">
+                         <div style="font-size: 0.7rem">Constraints：Only enabled with data and while stopped；</div>
+                         <div style="font-size: 0.7rem">filters data to thresholds. </div>
+                     </div>
+                     <input class="constraints-input" disabled value="∞" not-close/>
+                  </lit-popover>
+             </div>
+             <span class="describe tree max-spacing" id="tree-constraints">Sample Count Filter</span>
+        </lit-popover>
+         <lit-popover placement="topLeft" class="popover" haveRadio="true" trigger="click" id="data-mining-popover">
             <div slot="content">
-                <div class="tree-check"><lit-check-box class="lit-check-box" not-close></lit-check-box><div>Invert</div></div>
-                <div class="tree-check"><lit-check-box class="lit-check-box" not-close></lit-check-box><div>Hide System so</div></div>
+                 <div id="mining-row">
+                     
+                 </div>
+                 <div style="display: flex;justify-content: space-around; margin-top: 8px">
+                     <div class="mining-button">Reset</div>
+                 </div>
             </div>
-            <span class="describe tree max-spacing" id="call-tree">Options</span>
-       </lit-popover>
-       <lit-popover placement="topLeft" class="popover" haveRadio="true" trigger="click" id="tree-constraints-popover">
-            <div slot="content" style="display: flex; align-items: flex-end">
-                <lit-check-box id="constraints-check" not-close></lit-check-box>
-                <input class="constraints-input" disabled value="0" not-close/>
-                <lit-popover placement="topLeft" class="popover" haveRadio="true" not-close>
-                    <div slot="content">
-                        <div style="font-size: 0.7rem">Constraints：Only enabled with data and while stopped；</div>
-                        <div style="font-size: 0.7rem">filters data to thresholds. </div>
-                    </div>
-                    <input class="constraints-input" disabled value="∞" not-close/>
-                 </lit-popover>
+            <span class="describe tree max-spacing" id="data-mining">Symbol Filter</span>
+        </lit-popover>
+        <lit-popover placement="topLeft" class="popover" haveRadio="true" trigger="click" id="data-library-popover">
+            <div slot="content">
+                 <div id="library-row">
+                     
+                 </div>
+                 <div style="display: flex;justify-content: space-around; margin-top: 8px">
+                     <div class="library-button">Reset</div>
+                 </div>
             </div>
-            <span class="describe tree max-spacing" id="tree-constraints">Sample Count Filter</span>
-       </lit-popover>
-       <lit-popover placement="topLeft" class="popover" haveRadio="true" trigger="click" id="data-mining-popover">
-           <div slot="content">
-                <div id="mining-row">
-                    
-                </div>
-                <div style="display: flex;justify-content: space-around; margin-top: 8px">
-                    <div class="mining-button">Reset</div>
-                </div>
-           </div>
-           <span class="describe tree max-spacing" id="data-mining">Symbol Filter</span>
-       </lit-popover>
-       <lit-popover placement="topLeft" class="popover" haveRadio="true" trigger="click" id="data-library-popover">
-           <div slot="content">
-                <div id="library-row">
-                    
-                </div>
-                <div style="display: flex;justify-content: space-around; margin-top: 8px">
-                    <div class="library-button">Reset</div>
-                </div>
-           </div>
-           <span class="describe tree max-spacing" id="data-library">Library Filter</span>
-       </lit-popover>
+            <span class="describe tree max-spacing" id="data-library">Library Filter</span>
+        </lit-popover>
+        <div class="sort">
+            <lit-icon name="swap" class="spacing" size="16"></lit-icon>
+            <div style="margin-left: 5px" class="statistics-name">Statistics by Thread</div>
+        </div>
         `;
     }
 }

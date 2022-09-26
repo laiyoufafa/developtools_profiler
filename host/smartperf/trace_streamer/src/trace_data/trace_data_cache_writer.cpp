@@ -163,12 +163,12 @@ LogInfo* TraceDataCacheWriter::GetHilogData()
     return &hilogData_;
 }
 
-NativeHook* TraceDataCacheWriter::GetNativeHookData()
+NativeHook* TraceDataCacheWriter::GetHeapData()
 {
     return &nativeHookData_;
 }
 
-NativeHookFrame* TraceDataCacheWriter::GetNativeHookFrameData()
+NativeHookFrame* TraceDataCacheWriter::GetHeapFrameData()
 {
     return &nativeHookFrameData_;
 }
@@ -269,14 +269,6 @@ void TraceDataCacheWriter::Clear()
     sysEvent_.Clear();
     networkData_.Clear();
     networkDetailData_.Clear();
-    perfSample_.Clear();
-    perfCallChain_.Clear();
-    perfThread_.Clear();
-    perfFiles_.Clear();
-    perfReport_.Clear();
-    cpuUsageData_.Clear();
-    diskIOData_.Clear();
-    liveProcessDetailData_.Clear();
 }
 } // namespace TraceStreamer
 } // namespace SysTuning

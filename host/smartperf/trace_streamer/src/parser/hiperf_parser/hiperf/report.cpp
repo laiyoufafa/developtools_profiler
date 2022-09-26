@@ -15,7 +15,6 @@
 #define HILOG_TAG "Report"
 
 #include "report.h"
-#include "log.h"
 
 #include <memory>
 #include <set>
@@ -74,7 +73,6 @@ void Report::AddReportItem(const PerfRecordSample &sample, bool includeCallStack
             ReportItem &item = configs_[configIndex].reportItems_.emplace_back(
                 sample.data_.pid, sample.data_.tid, thread.name_, frameIt->filePath_,
                 frameIt->symbolName_, frameIt->vaddrInFile_, sample.data_.period);
-            item.ToDebugString().c_str();
             HLOGV("%s", item.ToDebugString().c_str());
             HLOG_ASSERT(!item.func_.empty());
         }
@@ -131,9 +129,7 @@ void Report::FilterDisplayRecords()
     // remove the item with not in fliter
     for (auto &config : configs_) {
         size_t filterOuts = 0;
-#ifndef NDEBUG
         size_t totalReportCount = config.reportItems_.size();
-#endif
         for (auto &reportKeyPair : reportKeyMap_) {
             auto reportKey = reportKeyPair.second;
             if (reportKey.displayFilter_.size() != 0) {
@@ -154,10 +150,8 @@ void Report::FilterDisplayRecords()
                 }
             }
         }
-#ifndef NDEBUG
         HLOGD("filter out %zu, %zu -> %zu", filterOuts, totalReportCount,
               config.reportItems_.size());
-#endif
     }
 }
 
@@ -186,7 +180,6 @@ void Report::AdjustReportItems()
 {
     HLOGD("Adjust Record Order ....");
     for (auto &config : configs_) {
-#ifndef NDEBUG
         uint64_t totalReportCount = config.reportItems_.size();
         if (option_.debug_) {
             for (auto &reportItem : config.reportItems_) {
@@ -195,18 +188,15 @@ void Report::AdjustReportItems()
         }
         // sort first.
         HLOGD("MultiLevelSorting %" PRIu64 "", totalReportCount);
-#endif
         std::sort(config.reportItems_.begin(), config.reportItems_.end(),
                   std::bind(&Report::MultiLevelSorting, this, _1, _2));
         HLOGD("MultiLevelSorting %" PRIu64 " done", totalReportCount);
         // reorder the callstack
-#ifndef NDEBUG
         if (option_.debug_) {
             for (auto &reportItem : config.reportItems_) {
                 HLOGV("reportItem %s", reportItem.ToDebugString().c_str());
             }
         }
-#endif
         StatisticsRecords();
         FilterDisplayRecords();
 
@@ -266,12 +256,10 @@ void Report::MergeCallFrameCount(ReportItem &leftItem, ReportItem &rightItem)
         auto leftFrameIt = std::find(leftCallFrames->begin(), leftCallFrames->end(), rightFrame);
         if (leftFrameIt == leftCallFrames->end()) {
             // new callfames
-#ifndef NDEBUG
             auto &leftCallFrame = leftCallFrames->emplace_back(rightFrame);
             HLOGV("%*s create frame %s in %s", level, "", leftCallFrame.ToDebugString().c_str(),
                   leftItem.ToDebugString().c_str());
             HLOG_ASSERT(leftCallFrame.eventCount_ <= maxEventCount);
-#endif
             // this is a new call stack ,
             // all the child in rightFrame has been copy to left.
             break;
@@ -440,6 +428,24 @@ bool Report::OutputStdCallFrame(int indent, const std::string_view &funcName, ui
 
 void Report::PrepareConsole()
 {
+#if is_mingw
+    CONSOLE_SCREEN_BUFFER_INFO csbi;
+    GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi);
+    consoleWidth_ = static_cast<unsigned int>(csbi.srWindow.Right - csbi.srWindow.Left + 1);
+    const auto handle = GetStdHandle(STD_OUTPUT_HANDLE);
+    DWORD mode;
+    GetConsoleMode(handle, &mode);
+    mode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+    SetConsoleMode(handle, mode);
+#else
+    struct winsize w = {0, 0, 0, 0};
+    ioctl(fileno(stdout), TIOCGWINSZ, &w);
+    consoleWidth_ = static_cast<unsigned int>(w.ws_col);
+#endif
+    if (consoleWidth_ == 0) {
+        consoleWidth_ = ConsoleDefaultWidth;
+    }
+    HLOGD("consoleWidth_:%d", consoleWidth_);
 }
 
 void Report::OutputStdCallFrames(int indent, const ReportItemCallFrame &callFrame,

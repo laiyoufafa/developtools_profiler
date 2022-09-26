@@ -65,10 +65,6 @@ public:
     uint64_t ToPrimaryTraceTime(ClockId srcClockId, uint64_t srcTs) const;
     uint64_t Convert(ClockId srcClockId, uint64_t srcTs, ClockId desClockId) const;
     void AddClockSnapshot(const std::vector<SnapShot>& snapShot);
-    bool HasInitSnapShot()
-    {
-        return hasInitSnapShot_;
-    }
 
 private:
     std::string GenClockKey(ClockId srcClockId, ClockId desClockId) const;
@@ -78,7 +74,6 @@ private:
     std::unordered_map<std::string, ConvertClockMap> clockMaps_ = {};
 
     ClockId primaryClock_;
-    bool hasInitSnapShot_ = false;
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

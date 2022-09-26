@@ -13,11 +13,11 @@
  * limitations under the License.
  */
 // @ts-ignore
-import {Sptext} from "../../../dist/trace/component/Sptext.js"
+import {SpText} from "../../../dist/trace/component/Sptext.js"
 
 describe('Sptext Test', () => {
 
-    let sptext = new Sptext();
+    let sptext = new SpText();
 
     it('SptextTest01', function () {
         expect(sptext.initElements()).toBeUndefined()

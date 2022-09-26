@@ -73,9 +73,9 @@ export class SpAllocations extends BaseElement {
 
     initElements(): void {
         this.processId = this.shadowRoot?.getElementById("pid") as LitAllocationSelect
-        let input = this.processId.shadowRoot?.querySelector('.root') as HTMLDivElement
+        let input = this.processId.shadowRoot?.querySelector('.multipleSelect') as HTMLDivElement
         let sp = document.querySelector("sp-application") as SpApplication;
-        let litSearch = sp.shadowRoot?.querySelector('#lit-search') as LitSearch;
+        let litSearch = sp?.shadowRoot?.querySelector('#lit-search') as LitSearch;
         let processData: Array<string> = []
         input.addEventListener('mousedown', ev => {
             if (SpRecordTrace.serialNumber == '') {

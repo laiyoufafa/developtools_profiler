@@ -108,8 +108,7 @@ struct HtraceDataSegment {
 class TracePoint {
 public:
     TracePoint() {}
-    TracePoint(const TracePoint& point)
-    {
+    TracePoint(const TracePoint& point) {
         phase_ = point.phase_;
         tgid_ = point.tgid_;
         name_ = point.name_;
@@ -121,8 +120,7 @@ public:
         flag_ = point.flag_;
         args_ = point.args_;
     }
-    void operator=(const TracePoint& point)
-    {
+    void operator=(const TracePoint& point) {
         phase_ = point.phase_;
         tgid_ = point.tgid_;
         name_ = point.name_;

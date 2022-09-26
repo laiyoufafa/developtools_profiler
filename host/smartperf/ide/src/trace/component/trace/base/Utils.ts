@@ -106,6 +106,32 @@ export class Utils {
         return res
     }
 
+    public static getProbablyTime(ns: number): string {
+        let currentNs = ns
+        let hour1 = 3600_000_000_000
+        let minute1 = 60_000_000_000
+        let second1 = 1_000_000_000;
+        let millisecond1 = 1_000_000;
+        let microsecond1 = 1_000;
+        let res = "";
+        if (currentNs >= hour1) {
+            res += (currentNs / hour1).toFixed(2) + "h ";
+        }else if (currentNs >= minute1) {
+            res += (currentNs / minute1).toFixed(2) + "m ";
+        }else if (currentNs >= second1) {
+            res += (currentNs / second1).toFixed(2) + "s ";
+        }else if (currentNs >= millisecond1) {
+            res += (currentNs / millisecond1).toFixed(2) + "ms ";
+        }else if (currentNs >= microsecond1) {
+            res += (currentNs / microsecond1).toFixed(2) + "μs ";
+        }else if (currentNs > 0) {
+            res += currentNs + "ns ";
+        }else if (res == "") {
+            res = ns + "";
+        }
+        return res
+    }
+
     public static getTimeStringHMS(ns: number): string {
         let currentNs = ns
         let hour1 = 3600_000_000_000
@@ -225,11 +251,11 @@ export class Utils {
         let mib1 = 1024 * 1024
         let gib1 = 1024 * 1024 * 1024;
         let res = ""
-        if (currentBytes > gib1) {
+        if (currentBytes >= gib1) {
             res += (currentBytes / gib1).toFixed(2) + "Gib";
-        } else if (currentBytes > mib1) {
+        } else if (currentBytes >= mib1) {
             res += (currentBytes / mib1).toFixed(2) + "Mib";
-        } else if (currentBytes > kib1) {
+        } else if (currentBytes >= kib1) {
             res += (currentBytes / kib1).toFixed(2) + "kib";
         } else {
             res += currentBytes.toFixed(2) + "Bytes";

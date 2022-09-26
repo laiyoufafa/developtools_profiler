@@ -37,13 +37,11 @@
 #include "native_hook_frame_table.h"
 #include "native_hook_table.h"
 #include "network_table.h"
-#if WITH_PERF
 #include "perf_call_chain_table.h"
 #include "perf_files_table.h"
 #include "perf_sample_table.h"
 #include "perf_thread_table.h"
 #include "perf_report_table.h"
-#endif
 #include "process_filter_table.h"
 #include "process_measure_filter_table.h"
 #include "process_table.h"
@@ -88,7 +86,8 @@ void TraceDataCache::InitDB()
     TableBase::TableDeclare<SymbolsTable>(*db_, this, "symbols");
     TableBase::TableDeclare<DataTypeTable>(*db_, this, "data_type");
     TableBase::TableDeclare<HidumpTable>(*db_, this, "hidump");
-    TableBase::TableDeclare<NativeHookTable>(*db_, this, "native_hook");
+    TableBase::TableDeclare<NativeHookTable>(*db_, this, "native_hook"); // change _heap to _native_hook in new mode
+    // change _heap_frame to _native_hook_frame in new mode
     TableBase::TableDeclare<NativeHookFrameTable>(*db_, this, "native_hook_frame");
 
     // no id
@@ -113,13 +112,11 @@ void TraceDataCache::InitDB()
     TableBase::TableDeclare<DiskIOTable>(*db_, this, "diskio");
     TableBase::TableDeclare<CpuUsageInfoTable>(*db_, this, "cpu_usage");
     TableBase::TableDeclare<LiveProcessTable>(*db_, this, "live_process");
-#if WITH_PERF
     TableBase::TableDeclare<PerfReportTable>(*db_, this, "perf_report");
     TableBase::TableDeclare<PerfSampleTable>(*db_, this, "perf_sample");
     TableBase::TableDeclare<PerfCallChainTable>(*db_, this, "perf_callchain");
     TableBase::TableDeclare<PerfThreadTable>(*db_, this, "perf_thread");
     TableBase::TableDeclare<PerfFilesTable>(*db_, this, "perf_files");
-#endif
 #else
     TableBase::TableDeclare<ProcessTable>(*db_, this, "_process");
     TableBase::TableDeclare<SchedSliceTable>(*db_, this, "_sched_slice");
@@ -135,7 +132,8 @@ void TraceDataCache::InitDB()
     TableBase::TableDeclare<SymbolsTable>(*db_, this, "_symbols");
     TableBase::TableDeclare<DataTypeTable>(*db_, this, "_data_type");
     TableBase::TableDeclare<HidumpTable>(*db_, this, "_hidump");
-    TableBase::TableDeclare<NativeHookTable>(*db_, this, "_native_hook");
+    TableBase::TableDeclare<NativeHookTable>(*db_, this, "_native_hook"); // change _heap to _native_hook in new mode
+    // change _heap_frame to _native_hook_frame in new mode
     TableBase::TableDeclare<NativeHookFrameTable>(*db_, this, "_native_hook_frame");
 
     // no id
@@ -159,13 +157,11 @@ void TraceDataCache::InitDB()
     TableBase::TableDeclare<DiskIOTable>(*db_, this, "_diskio");
     TableBase::TableDeclare<CpuUsageInfoTable>(*db_, this, "_cpu_usage");
     TableBase::TableDeclare<LiveProcessTable>(*db_, this, "_live_process");
-#if WITH_PERF
     TableBase::TableDeclare<PerfReportTable>(*db_, this, "_perf_report");
     TableBase::TableDeclare<PerfSampleTable>(*db_, this, "_perf_sample");
     TableBase::TableDeclare<PerfCallChainTable>(*db_, this, "_perf_callchain");
     TableBase::TableDeclare<PerfThreadTable>(*db_, this, "_perf_thread");
     TableBase::TableDeclare<PerfFilesTable>(*db_, this, "_perf_files");
-#endif
 #endif
     dbInited = true;
 }

@@ -31,34 +31,6 @@ export class PayloadHead extends Object implements BaseBean {
         this._dataSize = dataSize;
     }
 
-    static getFlagOneLength() {
-        return 1
-    }
-
-    static getFlagTwoLength() {
-        return 1
-    }
-
-    static getReserveOneLength() {
-        return 1
-    }
-
-    static getReserveTwoLength() {
-        return 1
-    }
-
-    static getProtocolVerLength() {
-        return 1
-    }
-
-    static getHeadSize() {
-        return 2
-    }
-
-    static getDataSizeLength() {
-        return 4
-    }
-
     static getPayloadHeadLength() {
         return 11;
     }
@@ -96,22 +68,6 @@ export class PayloadHead extends Object implements BaseBean {
 
     set flag(value: Array<number>) {
         this._flag = value;
-    }
-
-    get reserve(): Array<number> {
-        return this._reserve;
-    }
-
-    set reserve(value: Array<number>) {
-        this._reserve = value;
-    }
-
-    get protocolVer(): number {
-        return this._protocolVer;
-    }
-
-    set protocolVer(value: number) {
-        this._protocolVer = value;
     }
 
     get headSize(): number {

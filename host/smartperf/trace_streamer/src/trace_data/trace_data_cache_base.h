@@ -44,7 +44,6 @@ public:
         return internalProcessesData_.size();
     }
 
-    void UpdataZeroThreadInfo();
     size_t DataDictSize() const
     {
         return dataDict_.Size();

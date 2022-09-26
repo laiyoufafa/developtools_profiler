@@ -91,4 +91,9 @@ describe("LitPopCont Test", () => {
         let litPopContent = new LitPopContent();
         expect(litPopContent.attributeChangedCallback("open","",null || "false")).toBeUndefined()
     });
+
+    it('LitPopCont07', () => {
+        let litPopContent = new LitPopContent();
+        expect(litPopContent.attributeChangedCallback("name","",'')).toBeUndefined();
+    });
 })

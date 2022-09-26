@@ -13,8 +13,10 @@
  * limitations under the License.
  */
 #include "perf_data_parser.h"
+#include <bitset>
+#include <fstream>
+#include <iostream>
 #include "perf_data_filter.h"
-#include "stat_filter.h"
 
 namespace SysTuning {
 namespace TraceStreamer {
@@ -24,7 +26,7 @@ PerfDataParser::PerfDataParser(TraceDataCache* dataCache, const TraceStreamerFil
     configNameIndex_ = traceDataCache_->dataDict_.GetStringIndex("config_name");
     workloaderIndex_ = traceDataCache_->dataDict_.GetStringIndex("workload_cmd");
     cmdlineIndex_ = traceDataCache_->dataDict_.GetStringIndex("cmdline");
-    runingStateIndex_ = traceDataCache_->dataDict_.GetStringIndex("Running");
+    runingStateIndex_ = traceDataCache_->dataDict_.GetStringIndex("Runing");
     suspendStatIndex_ = traceDataCache_->dataDict_.GetStringIndex("Suspend");
     unkonwnStateIndex_ = traceDataCache_->dataDict_.GetStringIndex("-");
 }
@@ -37,8 +39,6 @@ void PerfDataParser::InitPerfDataAndLoad(const std::deque<uint8_t> dequeBuffer)
 }
 PerfDataParser::~PerfDataParser()
 {
-    TS_LOGI("perf data ts MIN:%llu, MAX:%llu", static_cast<unsigned long long>(GetPluginStartTime()),
-            static_cast<unsigned long long>(GetPluginEndTime()));
 }
 
 bool PerfDataParser::LoadPerfData()
@@ -101,7 +101,7 @@ void PerfDataParser::LoadEventDesc()
         }
         // when cpuOffMode_ , don't use count mode , use time mode.
         auto& config = report_.configs_.emplace_back(fileAttr.name, fileAttr.attr.type, fileAttr.attr.config,
-                                                     cpuOffMode_ ? false : true);
+                                                        cpuOffMode_ ? false : true);
         config.ids_ = fileAttr.ids;
         TS_ASSERT(config.ids_.size() > 0);
 
@@ -158,7 +158,6 @@ void PerfDataParser::UpdateSymbolAndFilesData()
         uint32_t serial = 0;
         for (auto& symbol : symbolsFile->GetSymbols()) {
             auto symbolIndex = traceDataCache_->dataDict_.GetStringIndex(symbol.Name().data());
-            streamFilters_->statFilter_->IncreaseStat(TRACE_PERF, STAT_EVENT_RECEIVED);
             streamFilters_->perfDataFilter_->AppendPerfFiles(fileId, serial++, symbolIndex, filePathIndex);
         }
         ++fileId;
@@ -210,8 +209,7 @@ void PerfDataParser::ProcessSample(std::unique_ptr<PerfRecordSample>& sample)
             }
         }
         auto symbolId = frame.symbolIndex_;
-        streamFilters_->perfDataFilter_->AppendPerfCallChain(sampleId_, callChainId, frame.vaddrInFile_, fileId,
-                                                             symbolId);
+        streamFilters_->perfDataFilter_->AppendPerfCallChain(sampleId_, callChainId, frame.vaddrInFile_, fileId, symbolId);
         callChainId++;
     }
     auto perfSampleData = traceDataCache_->GetPerfSampleData();
@@ -236,7 +234,6 @@ void PerfDataParser::ProcessSample(std::unique_ptr<PerfRecordSample>& sample)
                                         configIndex, newTimeStamp, sample->data_.cpu, threadStatIndex);
     sampleId_++;
 }
-
 void PerfDataParser::Finish()
 {
     streamFilters_->perfDataFilter_->Finish();

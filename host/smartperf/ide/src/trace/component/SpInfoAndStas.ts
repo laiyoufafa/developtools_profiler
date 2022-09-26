@@ -35,11 +35,6 @@ export class SpInfoAndStats extends BaseElement {
         return []
     }
 
-    reset(){
-        this.metaTableEl!.dataSource = [];
-        this.infoTableEl!.dataSource = [];
-    }
-
     initElements(): void {
         this.progressLoad = this.shadowRoot?.querySelector(".load-metric") as LitProgressBar;
         this.metaTableEl = this.shadowRoot!.querySelector<LitTable>('#metaData-table') as LitTable;
@@ -58,7 +53,11 @@ export class SpInfoAndStats extends BaseElement {
         this.initMetricItemData().then(() => {
             let durTime = new Date().getTime() - time;
             info("InfoAndStatsData query time is: " + durTime + "ms")
-            this.metaTableEl!.recycleDataSource = this.metaData;
+            if (this.metaData.length > 0) {
+                this.metaTableEl!.recycleDataSource = this.metaData;
+            } else {
+                this.metaTableEl!.recycleDataSource = [];
+            }
             new ResizeObserver(() => {
                 if (this.parentElement?.clientHeight != 0) {
                     this.metaTableEl!.style.height = '100%'
@@ -66,10 +65,13 @@ export class SpInfoAndStats extends BaseElement {
                 }
             }).observe(this.parentElement!)
             info("metaData(metric) size is: ", this.metaData.length)
-            this.infoTableEl!.recycleDataSource = this.infoData;
+            if (this.infoData.length > 0) {
+                this.infoTableEl!.recycleDataSource = this.infoData;
+            } else {
+                this.infoTableEl!.recycleDataSource = []
+            }
             new ResizeObserver(() => {
                 if (this.parentElement?.clientHeight != 0) {
-                    this.infoTableEl!.style.height = '100%'
                     this.infoTableEl!.reMeauseHeight()
                 }
             }).observe(this.parentElement!)
@@ -78,10 +80,14 @@ export class SpInfoAndStats extends BaseElement {
             let metaDataHeadStyle: HTMLDivElement | undefined | null = this.shadowRoot?.querySelector('#metaData-table')?.shadowRoot?.querySelector('div.thead') as HTMLDivElement
             let statsStyle: HTMLDivElement | undefined | null = this.shadowRoot?.querySelector('#stats-table')?.shadowRoot?.querySelector('div.body') as HTMLDivElement
             let statsHeadStyle: HTMLDivElement | undefined | null = this.shadowRoot?.querySelector('#stats-table')?.shadowRoot?.querySelector('div.thead') as HTMLDivElement
-            metaDataHeadStyle.style.backgroundColor = 'var(--dark-background5,#F6F6F6)'
-            statsHeadStyle.style.backgroundColor = 'var(--dark-background5,#F6F6F6)'
-            this.initDataTableStyle(metaDataStyle);
-            this.initDataTableStyle(statsStyle);
+
+            setTimeout(()=>{
+                this.initDataTableStyle(metaDataStyle!);
+                this.initDataTableStyle(metaDataHeadStyle!);
+                this.initDataTableStyle(statsStyle!);
+                this.initDataTableStyle(statsHeadStyle!);
+            }, 20)
+
             this.progressLoad!.loading = false
         });
     }
@@ -220,18 +226,6 @@ export class SpInfoAndStats extends BaseElement {
             
             .tr{
                background-color: var(--dark-background5,#F6F6F6); 
-            }
-            
-            ::-webkit-scrollbar
-            {
-              width: 8px;
-              background-color: var(--dark-background3,#FFFFFF);
-            }
-             
-            ::-webkit-scrollbar-thumb
-            {
-              border-radius: 6px;
-              background-color: var(--dark-background7,rgba(0,0,0,0.1));
             }
             
             .load-metric{

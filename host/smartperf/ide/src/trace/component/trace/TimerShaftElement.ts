@@ -197,10 +197,10 @@ export class TimerShaftElement extends BaseElement {
         }
         if (!this.rangeRuler) {
             this.rangeRuler = new RangeRuler(this, new Rect(0, 25, width, 75), {
-                slicesTime:{
-                    startTime:null,
-                    endTime:null,
-                    color:null,
+                slicesTime: {
+                    startTime: null,
+                    endTime: null,
+                    color: null,
                 },
                 scale: 0,
                 startX: 0,
@@ -208,7 +208,7 @@ export class TimerShaftElement extends BaseElement {
                 startNS: 0,
                 endNS: this.totalNS,
                 totalNS: this.totalNS,
-                refresh:true,
+                refresh: true,
                 xs: [],
                 xsTxt: []
             }, (a) => {
@@ -229,7 +229,7 @@ export class TimerShaftElement extends BaseElement {
     }
 
     setRangeNS(startNS: number, endNS: number) {
-        info("set startNS values :" + startNS + "endNS values : " +  endNS);
+        info("set startNS values :" + startNS + "endNS values : " + endNS);
         this.rangeRuler?.setRangeNS(startNS, endNS);
     }
 
@@ -238,6 +238,7 @@ export class TimerShaftElement extends BaseElement {
     }
 
     updateWidth(width: number) {
+        this.dpr = window.devicePixelRatio || 1;
         this.canvas!.width = width - (this.totalEL?.clientWidth || 0);
         this.canvas!.height = this.shadowRoot!.host.clientHeight || 0;
         let oldWidth = this.canvas!.width;
@@ -256,10 +257,12 @@ export class TimerShaftElement extends BaseElement {
     }
 
     documentOnMouseDown = (ev: MouseEvent) => {
+        if ((window as any).isSheetMove) return;
         this.rangeRuler?.mouseDown(ev);
     }
 
     documentOnMouseUp = (ev: MouseEvent) => {
+        if ((window as any).isSheetMove) return;
         this.rangeRuler?.mouseUp(ev);
         this.sportRuler?.mouseUp(ev);
     }
@@ -274,17 +277,24 @@ export class TimerShaftElement extends BaseElement {
     }
 
     documentOnKeyPress = (ev: KeyboardEvent) => {
+        if ((window as any).isSheetMove) return;
+        if ((window as any).flagInputFocus) return;
         this.rangeRuler?.keyPress(ev);
     }
 
     documentOnKeyUp = (ev: KeyboardEvent) => {
+        if ((window as any).isSheetMove) return;
+        if ((window as any).flagInputFocus) return;
         this.rangeRuler?.keyUp(ev);
     }
 
     disconnectedCallback() {
     }
+
     firstRender = true;
+
     render() {
+        this.dpr = window.devicePixelRatio||1;
         if (this.ctx) {
             this.ctx.fillStyle = 'transparent';
             this.ctx?.fillRect(0, 0, this.canvas?.width || 0, this.canvas?.height || 0)
@@ -319,7 +329,8 @@ export class TimerShaftElement extends BaseElement {
     cancelPressFrame() {
         this.rangeRuler?.cancelPressFrame();
     }
-    cancelUpFrame(){
+
+    cancelUpFrame() {
         this.rangeRuler?.cancelUpFrame();
     }
 
@@ -332,8 +343,8 @@ export class TimerShaftElement extends BaseElement {
         this._sportRuler?.removeTriangle(type)
     }
 
-    setSlicesMark(startTime: null | number = null,endTime: null | number = null) {
-        this._sportRuler?.setSlicesMark(startTime,endTime)
+    setSlicesMark(startTime: null | number = null, endTime: null | number = null) {
+        this._sportRuler?.setSlicesMark(startTime, endTime)
     }
 
     initHtml(): string {

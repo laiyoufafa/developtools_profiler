@@ -22,12 +22,12 @@ enum Index { ID = 0, TYPE, TS, NAME, CPU, INTERNAL_TID };
 }
 RawTable::RawTable(const TraceDataCache* dataCache) : TableBase(dataCache)
 {
-    tableColumn_.push_back(TableBase::ColumnInfo("id", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("type", "TEXT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("ts", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("name", "TEXT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("cpu", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("itid", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("id", "UNSIGNED INT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("type", "STRING"));
+    tableColumn_.push_back(TableBase::ColumnInfo("ts", "UNSIGNED BIG INT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("name", "STRING"));
+    tableColumn_.push_back(TableBase::ColumnInfo("cpu", "UNSIGNED INT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("itid", "UNSIGNED INT"));
     tablePriKey_.push_back("id");
 }
 

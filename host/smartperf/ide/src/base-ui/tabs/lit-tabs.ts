@@ -46,7 +46,8 @@ export class LitTabs extends HTMLElement {
             display: inline-flex;
             justify-content: center;
             align-items: center;
-            padding: 6px 0px 6px 12px;
+            /*padding: 6px 0px 6px 12px;*/
+            padding-left: 12px;
             font-size: .9rem;
             font-weight: normal;
             cursor: pointer;
@@ -83,8 +84,9 @@ export class LitTabs extends HTMLElement {
         :host([position^='top']) .nav-root{
             display: flex;
             position: relative;
-            justify-content: center;
-            align-items: center;
+            height: 38px;
+            /*justify-content: center;*/
+            /*align-items: center;*/
         }
         :host(:not([mode]):not([position])) .tab-line,/*移动的线条*/
         :host([mode='flat'][position^='top']) .tab-line{
@@ -94,14 +96,24 @@ export class LitTabs extends HTMLElement {
         :host(:not([position])) .tab-nav-container,
         :host([position^='top']) .tab-nav-container{
             display: flex;
-            position: relative;
-            flex-direction: column;
-            overflow-y: hidden;
-            overflow-x: auto;
-            overflow: -moz-scrollbars-none; 
-            -ms-overflow-style: none;
-            transition: all 0.3s;
-            flex: 1;
+            /*position: relative;*/
+            /*flex-direction: column;*/
+            /*overflow-y: hidden;*/
+            /*overflow-x: auto;*/
+            /*overflow: -moz-scrollbars-none; */
+            /*-ms-overflow-style: none;*/
+            /*transition: all 0.3s;*/
+            
+            position: absolute;
+            overflow: auto;
+            height: 850px;
+            transform: rotateZ(-90deg) rotateY(180deg);
+            transform-origin: left top;
+            overflow-x: hidden;
+            width: 38px;
+            
+            cursor: row-resize;
+            user-select: none;
         }
         :host([position='top']) .tab-nav,
         :host([position='top-left']) .tab-nav{
@@ -112,6 +124,11 @@ export class LitTabs extends HTMLElement {
             user-select: none;
             margin-top: 6px;
             margin-left: 5px;
+            
+            transform: translateY(-38px) rotateZ(90deg) rotateX(180deg) translateY(38px);
+            transform-origin: left bottom;
+            flex-wrap: nowrap;
+            height: 38px;
         }
         :host([position='top-center']) .tab-nav{
             display: flex;
@@ -397,6 +414,7 @@ export class LitTabs extends HTMLElement {
                     <div class="tab-nav" id="nav" ></div>
                     <div class="tab-line" id="tab-line"></div>
                 </div>
+                <div id="tab-filling" style="flex: 1"></div>
                 <slot name="right" style="flex:1"></slot>
             </div>
             <div class="tab-content">
@@ -595,6 +613,13 @@ export class LitTabs extends HTMLElement {
             let label = (e.target! as HTMLElement).closest('div')!.querySelector('span')!.textContent;
             this.dispatchEvent(new CustomEvent('onTabClick', {detail: {key: key, tab: label}}))
         };
+
+        new ResizeObserver((entries) => {
+            let filling =  this.shadowRoot!.querySelector<HTMLDivElement>("#tab-filling")
+
+            this.shadowRoot!.querySelector<HTMLDivElement>(".tab-nav-container")!.style.height = filling!.offsetWidth+"px"
+
+        }).observe(this.shadowRoot!.querySelector("#tab-filling")!);
     }
 
     activeByKey(key: string) {

@@ -18,12 +18,25 @@ import {BaseElement, element} from "../BaseElement.js";
 @element('lit-allocation-select')
 export class LitAllocationSelect extends BaseElement {
     private inputElement: HTMLInputElement | null | undefined;
-    private options:any;
+    private inputContent: HTMLDivElement | undefined;
+    private options: any;
 
     static get observedAttributes() {
         return [
-            'value',
+            'value','disabled','placeholder'
         ];
+    }
+
+    get defaultPlaceholder() {
+        return this.getAttribute('placeholder') || '';
+    }
+
+    get placeholder() {
+        return this.getAttribute('placeholder') || this.defaultPlaceholder;
+    }
+
+    set placeholder(value) {
+        this.setAttribute('placeholder', value);
     }
 
     get value() {
@@ -69,12 +82,23 @@ export class LitAllocationSelect extends BaseElement {
     }
 
     initElements(): void {
-        let inputContent = this.shadowRoot!.querySelector('.root') as HTMLDivElement;
-        inputContent!.addEventListener('click', () => {
-            this.options.style.visibility = 'visible';
-            this.options.style.opacity = '1';
-            inputContent.dispatchEvent(new CustomEvent('inputClick', {}));
+        this.inputContent = this.shadowRoot!.querySelector('.multipleSelect') as HTMLDivElement;
+        this.addEventListener('click', () => {
+            if (this.options.style.visibility == 'visible') {
+                this.options.style.visibility = 'hidden';
+                this.options.style.opacity = '0';
+            } else {
+                this.options.style.visibility = 'visible';
+                this.options.style.opacity = '1';
+            }
+            this.inputContent!.dispatchEvent(new CustomEvent('inputClick', {}));
         })
+        this.addEventListener('focusout', (e) => {
+            setTimeout(()=>{
+                this.options.style.visibility = 'hidden';
+                this.options.style.opacity = '0';
+            }, 200)
+            })
         this.initData();
     }
 
@@ -110,7 +134,7 @@ export class LitAllocationSelect extends BaseElement {
             z-index: 8999;
             width:100%;
         }
-        .root{
+        .multipleSelect{
             position: relative;
             padding: 3px 6px;
             display: flex;
@@ -156,16 +180,20 @@ export class LitAllocationSelect extends BaseElement {
             transition: none;
             transform: none;
         }
-        :host(:not([disabled]):focus)  input{
-            color: var(--dark-color,#bebebe);
+ 
+        :host([disabled]) {
+           pointer-events: none;
+           background-color: var(--dark-background1,#f5f5f5);
+            cursor: not-allowed;
         }
+        
         .multipleRoot input::-webkit-input-placeholder {
                 color: var(--dark-color,#aab2bd);
-            }
+        }
         </style>
-        <div class="root" tabindex="0">
+        <div class="multipleSelect" tabindex="0">
             <div class="multipleRoot" id="select" style="width:100%">
-            <input placeholder="please select process">
+            <input id="input" placeholder="${this.placeholder}"/>
         </div>
             <lit-icon class="icon" name='down' color="#c3c3c3"></lit-icon>
         </div>
@@ -180,7 +208,6 @@ export class LitAllocationSelect extends BaseElement {
     }
 
     initData() {
-        let inputContent = this.shadowRoot!.querySelector('.root') as HTMLDivElement;
         this.inputElement = this.shadowRoot!.querySelector('input');
         this.options = this.shadowRoot!.querySelector('.body') as HTMLDivElement;
         this.inputElement?.addEventListener('keyup', () => {
@@ -192,7 +219,7 @@ export class LitAllocationSelect extends BaseElement {
                 }
             });
             this.value = this.inputElement!.value
-            inputContent.dispatchEvent(new CustomEvent('valuable', {}));
+            this.inputContent!.dispatchEvent(new CustomEvent('valuable', {}));
         })
         this.shadowRoot?.querySelectorAll('.option').forEach(a => {
             a.addEventListener('click', (e) => {
@@ -206,16 +233,9 @@ export class LitAllocationSelect extends BaseElement {
             a.addEventListener('onSelected', (e: any) => {
                 this.inputElement!.value = e.detail.text;
                 this.value = e.detail.text;
-                inputContent.dispatchEvent(new CustomEvent('valuable', {}));
+                this.inputContent!.dispatchEvent(new CustomEvent('valuable', {}));
             })
         })
-
-        this.inputElement!.onblur = (ev: any) => {
-            setTimeout(()=>{
-                this.options.style.visibility = 'hidden';
-                this.options.style.opacity = '0';
-            }, 200)
-        }
     }
 
 }

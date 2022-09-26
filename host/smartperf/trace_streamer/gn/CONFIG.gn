@@ -14,7 +14,6 @@ is_win = false
 is_linux = false
 is_macx = false
 is_protoc = false
-with_perf = true
 declare_args() {
   ar = "ar"
   is_debug = true

@@ -61,19 +61,21 @@ describe('SpQuerySQL Test', () => {
             padding: 0;
         }
 
-        input{
+        .sql-select{
             box-sizing: border-box;
             width: 95%;
             font-family: Helvetica,serif;
-            font-size: 0.875em;
+            font-size: inherit;
             color: var(--dark-color1,#212121);
             text-align: left;
-            line-height: 1em;
+            line-height: 1.2em;
             font-weight: 400;
-            height: 32px;
+            height: 3.2em;
             margin-left: 10px;
+            resize: vertical;
+            border-width: 2px;
         }
-
+        
         .query{
             display: flex;
             flex-direction: column;
@@ -96,6 +98,7 @@ describe('SpQuerySQL Test', () => {
         .request{
             display: flex;
             flex-direction: column;
+            position: relative;
         }
 
         .response{
@@ -104,8 +107,7 @@ describe('SpQuerySQL Test', () => {
             display: flex;
             flex-direction: column;
             min-height: inherit;
-            max-height: 60vh;
-
+            max-height: 70vh;
         }
 
         #dataResult{
@@ -136,7 +138,6 @@ describe('SpQuerySQL Test', () => {
 
         .sql-select{
             background-color: var(--dark-background5, #F6F6F6);
-            border: 0 solid;
         }
 
         /*Define the height, width and background of the scroll bar*/
@@ -152,15 +153,50 @@ describe('SpQuerySQL Test', () => {
           border-radius: 6px;
           background-color: var(--dark-background7,rgba(0,0,0,0.1));
         }
+        
+        .load-metric{
+            width: 95%;
+            bottom: 0;
+        }
+        
+        #copy-button{
+           margin-right: 10%;
+           cursor:pointer
+        }
+        
+        #close-button{
+           margin-right: 5%;
+           cursor:pointer
+        }
+        
+        .button-option{
+           border-radius: 15px;
+           background-color: #0A59F7;
+           width: 120px;
+           height: 25px;
+           font-family: Helvetica-Bold;
+           color: var(--dark-background3,#FFFFFF);
+           text-align: center;
+           line-height: 20px;
+           font-weight: 400;
+           border:0 solid;
+        }
 
         </style>
         <div class=\\"query\\">
             <div class=\\"query-message request\\">
                 <p class=\\"query_select\\">Enter query and press cmd/ctrl + Enter</p>
-                <input class=\\"sql-select\\"/>
+                <textarea class=\\"sql-select\\"></textarea>
+                <lit-progress-bar class=\\"load-metric\\"></lit-progress-bar>
             </div>
             <div class=\\"query-message response\\">
-                   <p class=\\"query_size\\">Query result - 0 counts</p>
+                   <div style=\\"display: flex;justify-content: space-between\\">
+                       <p class=\\"query_size\\">Query result - 0 counts</p>
+                       <div style=\\"display: flex; align-items: center\\">
+                           <button id=\\"copy-button\\" class=\\"button-option\\">Copy as.tsv</button>
+                           <button id=\\"close-button\\" class=\\"button-option\\">Close</button>
+                        </div>
+                    </div>
                    <div id=\\"dataResult\\"></div>
             </div>
         </div>
@@ -171,4 +207,40 @@ describe('SpQuerySQL Test', () => {
     it('SpQuerySQLTest09', function () {
         expect(spQuerySQL.initDataTableStyle({children:[{length:3,style:{backgroundColor:'var(--dark-background5,#F6F6F6)'}}]})).toBeUndefined()
     });
+
+    it('SpQuerySQLTest010', function () {
+        expect(spQuerySQL.freshTableHeadResizeStyle()).toBeUndefined();
+    });
+
+    it('SpQuerySQLTest011', function () {
+        expect(spQuerySQL.reset()).toBeUndefined();
+    });
+
+    it('SpQuerySQLTest012', function () {
+        let spQuerySQL =new SpQuerySQL();
+        expect(spQuerySQL.initDataTableStyle({children:
+                [{length:1,style:{backgroundColor:'var(--dark-background5,#F6F6F6)'}}]
+        })).toBeUndefined()
+    });
+
+    it('SpQuerySQLTest013', function () {
+        expect(spQuerySQL.initDataElement()).toBeUndefined();
+    });
+
+    it('SpQuerySQLTest014', function () {
+        expect(spQuerySQL.connectedCallback()).toBeUndefined();
+    });
+
+    it('SpQuerySQLTest015', function () {
+        expect(spQuerySQL.disconnectedCallback()).toBeUndefined();
+    });
+
+    it('SpQuerySQLTest016', function () {
+        expect(spQuerySQL.initData()).toBeUndefined();
+    });
+
+    it('SpQuerySQLTest017', function () {
+        expect(spQuerySQL.attributeChangedCallback('','','')).toBeUndefined();
+    });
+
 })

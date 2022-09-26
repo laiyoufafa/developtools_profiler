@@ -20,7 +20,7 @@ describe("testColorUtils Test", () => {
     beforeAll(() => {
     })
     it('testColorUtils01', () => {
-        expect(ColorUtils.hash("mm",ColorUtils.MD_PALETTE.length)).toBe(6);
+        expect(ColorUtils.hash("mm",ColorUtils.MD_PALETTE.length)).toBe(0);
     });
     it('testColorUtils02', () => {
         // @ts-ignore
@@ -30,7 +30,7 @@ describe("testColorUtils Test", () => {
     it('testColorUtils03', () => {
         // @ts-ignore
         let thread = {processId:1}
-        expect(ColorUtils.colorForThread(thread)).toEqual("#fbbf00");
+        expect(ColorUtils.colorForThread(thread)).toEqual("#7AD7E6");
     });
 
     it('testColorUtils03', () => {
@@ -39,7 +39,7 @@ describe("testColorUtils Test", () => {
                 processId:0,
                 tid:1
         }
-        expect(ColorUtils.colorForThread(thread)).toEqual("#fbbf00");
+        expect(ColorUtils.colorForThread(thread)).toEqual("#7AD7E6");
     });
 
     it('testColorUtils04', () => {

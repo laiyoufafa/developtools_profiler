@@ -35,7 +35,13 @@ describe('SpCheckDesBox Test', () => {
     });
 
     it('SpCheckDesBoxTest05', function () {
-        expect(spCheckDesBox.checked).toBe(false);
+        spCheckDesBox.checked = false;
+        expect(spCheckDesBox.checked).toBeFalsy();
+    });
+
+    it('SpCheckDesBoxTest07', function () {
+        spCheckDesBox.checked = true;
+        expect(spCheckDesBox.checked).toBeTruthy();
     });
 
     it('SpCheckDesBoxTest06 ', function () {

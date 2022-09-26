@@ -14,10 +14,10 @@
  */
 
 // @ts-ignore
-import {debug, error, info, log, trace, warn} from "../../dist/log/Log.js";
+import {debug, error, info, log, trace, warn, SpLog, LogLevel} from "../../dist/log/Log.js";
 
 describe(' logTest', () => {
-
+    ``
     it('LogTest01', () => {
         error("111")
     })
@@ -33,7 +33,7 @@ describe(' logTest', () => {
     it('LogTest05', () => {
         trace("111")
     })
-    it('LogTest05', () => {
+    it('LogTest06', () => {
         log("111")
     })
 });

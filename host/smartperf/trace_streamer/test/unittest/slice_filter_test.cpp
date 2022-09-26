@@ -54,7 +54,7 @@ HWTEST_F(SliceFilterTest, SliceTestOnceCall, TestSize.Level1)
     uint32_t threadGroupId1 = 2519;
     DataIndex cat = stream_.traceDataCache_->GetDataIndex("Catalog");
     DataIndex splitStrIndex = stream_.traceDataCache_->GetDataIndex("call_function_one");
-    stream_.streamFilters_->sliceFilter_->BeginSlice("comm", ts, pid1, threadGroupId1, cat, splitStrIndex);
+    stream_.streamFilters_->sliceFilter_->BeginSlice(ts, pid1, threadGroupId1, cat, splitStrIndex);
     stream_.streamFilters_->sliceFilter_->EndSlice(ts2, pid1, threadGroupId1);
     auto slices = stream_.traceDataCache_->GetInternalSlicesData();
     EXPECT_TRUE(slices->Size() == 1);
@@ -74,10 +74,10 @@ HWTEST_F(SliceFilterTest, SliceTestNestedTwoMethod, TestSize.Level1)
     uint32_t threadGroupId1 = 1298;
     DataIndex cat = stream_.traceDataCache_->GetDataIndex("Catalog");
     DataIndex splitStrIndex = stream_.traceDataCache_->GetDataIndex("call_function_one");
-    stream_.streamFilters_->sliceFilter_->BeginSlice("comm", ts1, pid1, threadGroupId1, cat, splitStrIndex);
+    stream_.streamFilters_->sliceFilter_->BeginSlice(ts1, pid1, threadGroupId1, cat, splitStrIndex);
     splitStrIndex = stream_.traceDataCache_->GetDataIndex("call_function_two");
     uint64_t ts2 = 168758670523000;
-    stream_.streamFilters_->sliceFilter_->BeginSlice("comm", ts2, pid1, threadGroupId1, cat, splitStrIndex);
+    stream_.streamFilters_->sliceFilter_->BeginSlice(ts2, pid1, threadGroupId1, cat, splitStrIndex);
     uint64_t ts3 = 168758670720000;
     stream_.streamFilters_->sliceFilter_->EndSlice(ts3, pid1, threadGroupId1);
     uint64_t ts4 = 168758670732000;
@@ -102,15 +102,15 @@ HWTEST_F(SliceFilterTest, SliceTestNestedTwoMethodStackAndOneMethodStack, TestSi
     uint32_t threadGroupId1 = 2519;
     DataIndex cat = stream_.traceDataCache_->GetDataIndex("Catalog");
     DataIndex splitStrIndex = stream_.traceDataCache_->GetDataIndex("thread_one_call_function_one");
-    stream_.streamFilters_->sliceFilter_->BeginSlice("comm", ts1, pid1, threadGroupId1, cat, splitStrIndex); // slice 0
+    stream_.streamFilters_->sliceFilter_->BeginSlice(ts1, pid1, threadGroupId1, cat, splitStrIndex); // slice 0
     splitStrIndex = stream_.traceDataCache_->GetDataIndex("thread_two_call_function_one");
     uint64_t ts2 = 168758663028000;
     uint32_t pid2 = 2533;
     uint32_t threadGroupId2 = 2529;
-    stream_.streamFilters_->sliceFilter_->BeginSlice("comm", ts2, pid2, threadGroupId2, cat, splitStrIndex);
+    stream_.streamFilters_->sliceFilter_->BeginSlice(ts2, pid2, threadGroupId2, cat, splitStrIndex);
     splitStrIndex = stream_.traceDataCache_->GetDataIndex("thread_one_call_function_two");
     uint64_t ts3 = 168758679303000;
-    stream_.streamFilters_->sliceFilter_->BeginSlice("comm", ts3, pid1, threadGroupId1, cat, splitStrIndex); // slice 2
+    stream_.streamFilters_->sliceFilter_->BeginSlice(ts3, pid1, threadGroupId1, cat, splitStrIndex); // slice 2
     // end thread_one_call_function_two
     uint64_t ts4 = 168758682466000;
     stream_.streamFilters_->sliceFilter_->EndSlice(ts4, pid1, threadGroupId1);
@@ -159,24 +159,24 @@ HWTEST_F(SliceFilterTest, SliceTestWithMultiNestedCall, TestSize.Level1)
     uint32_t threadGroupId1 = 2519;
     DataIndex cat = stream_.traceDataCache_->GetDataIndex("Catalog");
     DataIndex splitStrIndex = stream_.traceDataCache_->GetDataIndex("thread_one_call_function_one");
-    stream_.streamFilters_->sliceFilter_->BeginSlice("comm", ts1, pid1, threadGroupId1, cat, splitStrIndex); // slice 0
+    stream_.streamFilters_->sliceFilter_->BeginSlice(ts1, pid1, threadGroupId1, cat, splitStrIndex); // slice 0
     splitStrIndex = stream_.traceDataCache_->GetDataIndex("thread_two_call_function_one");
     uint64_t ts2 = 168758663028000;
     uint32_t pid2 = 2533;
     uint32_t threadGroupId2 = 2529;
-    stream_.streamFilters_->sliceFilter_->BeginSlice("comm", ts2, pid2, threadGroupId2, cat, splitStrIndex);
+    stream_.streamFilters_->sliceFilter_->BeginSlice(ts2, pid2, threadGroupId2, cat, splitStrIndex);
     splitStrIndex = stream_.traceDataCache_->GetDataIndex("thread_one_call_function_two");
     uint64_t ts3 = 168758679303000;
-    stream_.streamFilters_->sliceFilter_->BeginSlice("comm", ts3, pid1, threadGroupId1, cat, splitStrIndex); // slice 2
+    stream_.streamFilters_->sliceFilter_->BeginSlice(ts3, pid1, threadGroupId1, cat, splitStrIndex); // slice 2
     splitStrIndex = stream_.traceDataCache_->GetDataIndex("thread_two_call_function_two");
     uint64_t ts4 = 168758679312000;
-    stream_.streamFilters_->sliceFilter_->BeginSlice("comm", ts4, pid2, threadGroupId2, cat, splitStrIndex);
+    stream_.streamFilters_->sliceFilter_->BeginSlice(ts4, pid2, threadGroupId2, cat, splitStrIndex);
     splitStrIndex = stream_.traceDataCache_->GetDataIndex("thread_one_call_function_three");
     uint64_t ts5 = 168758679313000;
-    stream_.streamFilters_->sliceFilter_->BeginSlice("comm", ts5, pid1, threadGroupId1, cat, splitStrIndex); // slice 4
+    stream_.streamFilters_->sliceFilter_->BeginSlice(ts5, pid1, threadGroupId1, cat, splitStrIndex); // slice 4
     splitStrIndex = stream_.traceDataCache_->GetDataIndex("thread_two_call_function_three");
     uint64_t ts6 = 168758679323000;
-    stream_.streamFilters_->sliceFilter_->BeginSlice("comm", ts6, pid2, threadGroupId2, cat, splitStrIndex);
+    stream_.streamFilters_->sliceFilter_->BeginSlice(ts6, pid2, threadGroupId2, cat, splitStrIndex);
     // end thread_one_call_function_three
     uint64_t ts7 = 168758682456000;
     stream_.streamFilters_->sliceFilter_->EndSlice(ts7, pid1, threadGroupId1);
@@ -360,7 +360,7 @@ HWTEST_F(SliceFilterTest, BeginSliceMultiTimes, TestSize.Level1)
 
     DataIndex splitStrIndex6 = stream_.traceDataCache_->GetDataIndex("thread_two_call_function_three");
     uint64_t ts6 = 168758679323000;
-    stream_.streamFilters_->sliceFilter_->StartAsyncSlice(ts6, pid2, threadGroupId2, cat3, splitStrIndex6); // slice 5
+    stream_.streamFilters_->sliceFilter_->StartAsyncSlice(ts6, pid2, threadGroupId2, cat2, splitStrIndex6); // slice 5
 
     // end thread_one_call_function_three
     uint64_t ts7 = 168758682456000;
@@ -369,7 +369,7 @@ HWTEST_F(SliceFilterTest, BeginSliceMultiTimes, TestSize.Level1)
 
     // end thread_one_call_function_two
     uint64_t ts8 = 168758682466000;
-    stream_.streamFilters_->sliceFilter_->FinishAsyncSlice(ts8, pid2, threadGroupId2, cat,
+    stream_.streamFilters_->sliceFilter_->FinishAsyncSlice(ts8, pid1, threadGroupId2, cat,
                                                            splitStrIndex2); // end slice 1
 
     // end thread_one_call_function_one
@@ -384,12 +384,12 @@ HWTEST_F(SliceFilterTest, BeginSliceMultiTimes, TestSize.Level1)
 
     // end thread_two_call_function_two slice 3
     uint64_t ts11 = 168758679344000;
-    stream_.streamFilters_->sliceFilter_->FinishAsyncSlice(ts11, pid1, threadGroupId1, cat3,
+    stream_.streamFilters_->sliceFilter_->FinishAsyncSlice(ts11, pid2, threadGroupId1, cat3,
                                                            splitStrIndex5); // end slice 4
 
     // end thread_two_call_function_one slice 1
     uint64_t ts12 = 168758689323000;
-    stream_.streamFilters_->sliceFilter_->FinishAsyncSlice(ts12, pid2, threadGroupId2, cat3,
+    stream_.streamFilters_->sliceFilter_->FinishAsyncSlice(ts12, pid2, threadGroupId2, cat2,
                                                            splitStrIndex6); // end slice 5
 
     auto slices = stream_.traceDataCache_->GetInternalSlicesData();
@@ -401,10 +401,10 @@ HWTEST_F(SliceFilterTest, BeginSliceMultiTimes, TestSize.Level1)
     EXPECT_TRUE(slices->Depths()[1] == 0);
 
     EXPECT_TRUE(slices->DursData()[2] == ts9 - ts3); // slice 2
-    EXPECT_TRUE(slices->Depths()[2] == 0);
+    EXPECT_TRUE(slices->Depths()[2] == 1);
 
     EXPECT_TRUE(slices->DursData()[3] == ts10 - ts4); // slice 3
-    EXPECT_TRUE(slices->Depths()[3] == 0);
+    EXPECT_TRUE(slices->Depths()[3] == 1);
 
     EXPECT_TRUE(slices->DursData()[4] == ts11 - ts5); // slice 4
 

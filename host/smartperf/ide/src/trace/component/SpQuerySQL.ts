@@ -43,12 +43,24 @@ export class SpQuerySQL extends BaseElement {
         this.queryTableEl = new LitTable()
         this.querySize = this.shadowRoot?.querySelector('.query_size') as HTMLElement;
         this.response = this.shadowRoot?.querySelector('#dataResult') as HTMLDivElement;
-        this.notSupportList?.push('insert', 'delete', 'update', 'drop', 'alter', 'truncate');
+        this.notSupportList?.push('insert', 'delete', 'update', 'drop', 'alter', 'truncate', 'create');
         let htmlDivElement = this.queryTableEl.shadowRoot?.querySelector('.table') as HTMLDivElement;
         htmlDivElement.style.overflowX = "scroll"
 
         window.addEventListener('resize',()=>{
             this.freshTableHeadResizeStyle()
+        })
+
+        let copyButtonEl = this.shadowRoot?.querySelector('#copy-button') as HTMLButtonElement;
+        copyButtonEl.addEventListener('click',()=>{
+            this.copyTableData()
+        })
+
+        let closeButtonEl = this.shadowRoot?.querySelector('#close-button') as HTMLButtonElement;
+        closeButtonEl.addEventListener('click',()=>{
+            this.querySize!.textContent = 'Query result - 0 counts'
+            this.queryTableEl!.dataSource = []
+            this.response!.innerHTML = ''
         })
     }
 
@@ -65,6 +77,22 @@ export class SpQuerySQL extends BaseElement {
                 }
             }
         }
+    }
+
+    copyTableData(){
+        let copyResult = ''
+        for (let keyListKey of this.keyList!) {
+            copyResult += keyListKey + "\t"
+        }
+        copyResult += "\n"
+        for (const value of this.statDataArray) {
+            this.keyList?.forEach((key) =>{
+                copyResult += value[key] + "\t";
+            })
+            copyResult += "\n"
+        }
+        navigator.clipboard.writeText(copyResult).then(()=>{
+        })
     }
 
     selectEventListener = (event: any) => {
@@ -160,16 +188,16 @@ export class SpQuerySQL extends BaseElement {
                 };
             }
             if (this.querySize) {
-                this.querySize!.textContent = 'Query result - ' + statList.length + ' counts:  select * from stat';
+                this.querySize!.textContent = 'Query result - ' + statList.length + ' counts';
             }
-            this.resultText = 'Query result - ' + statList.length + ' counts:  select * from stat';
+            this.resultText = 'Query result - ' + statList.length + ' counts';
         } else {
             return this.statDataArray
         }
     }
 
     checkSupportSqlAbility(): boolean {
-        let noSupportChart = ['insert', 'delete', 'update', 'drop', 'alter', 'truncate']
+        let noSupportChart = ['insert', 'delete', 'update', 'drop', 'alter', 'truncate', 'create']
         let result = noSupportChart.filter(item => {
             return this.selector!.value.indexOf(item) > -1;
         });
@@ -288,8 +316,6 @@ export class SpQuerySQL extends BaseElement {
         if (this.selector!.value.trim() == '') {
             this.querySqlErrorText = 'Please enter a query';
             this.querySize!.textContent = this.querySqlErrorText
-            this.queryTableEl!.dataSource = []
-            this.response!.innerHTML = ''
             return
         }
         this.checkSafetySelectSql()
@@ -319,7 +345,7 @@ export class SpQuerySQL extends BaseElement {
         }
         if (this.isSupportSql) {
             let sqlField = this.keyList?.length == 0 ? '*' : this.keyList?.toLocaleString();
-            this.querySize!.textContent = 'Query result - ' + this.statDataArray.length + ' counts:  select ' + sqlField + ' from ' + this.querySelectTables;
+            this.querySize!.textContent = 'Query result - ' + this.statDataArray.length + ' counts';
         } else {
             this.querySize!.textContent = this.querySqlErrorText;
         }
@@ -417,8 +443,7 @@ export class SpQuerySQL extends BaseElement {
             display: flex;
             flex-direction: column;
             min-height: inherit;
-            max-height: 60vh;
-
+            max-height: 70vh;
         }
 
         #dataResult{
@@ -469,6 +494,29 @@ export class SpQuerySQL extends BaseElement {
             width: 95%;
             bottom: 0;
         }
+        
+        #copy-button{
+           margin-right: 10%;
+           cursor:pointer
+        }
+        
+        #close-button{
+           margin-right: 5%;
+           cursor:pointer
+        }
+        
+        .button-option{
+           border-radius: 15px;
+           background-color: #0A59F7;
+           width: 120px;
+           height: 25px;
+           font-family: Helvetica-Bold;
+           color: var(--dark-background3,#FFFFFF);
+           text-align: center;
+           line-height: 20px;
+           font-weight: 400;
+           border:0 solid;
+        }
 
         </style>
         <div class="query">
@@ -478,7 +526,13 @@ export class SpQuerySQL extends BaseElement {
                 <lit-progress-bar class="load-metric"></lit-progress-bar>
             </div>
             <div class="query-message response">
-                   <p class="query_size">Query result - 0 counts</p>
+                   <div style="display: flex;justify-content: space-between">
+                       <p class="query_size">Query result - 0 counts</p>
+                       <div style="display: flex; align-items: center">
+                           <button id="copy-button" class="button-option">Copy as.tsv</button>
+                           <button id="close-button" class="button-option">Close</button>
+                        </div>
+                    </div>
                    <div id="dataResult"></div>
             </div>
         </div>

@@ -137,7 +137,7 @@ export class Cmd {
     static copyFile(fileName: string, distFile: string, callback: Function) {
         const data = {
             filename: fileName,
-            distfile:distFile
+            distfile: distFile,
         };
         let uri = `http://${window.location.host.split(':')[0]}:${window.location.port}/copyfile`;
         fetch(uri, {
@@ -151,4 +151,10 @@ export class Cmd {
         });
     }
 
+    static async openFileDialog() {
+        let uri = `http://${window.location.host.split(':')[0]}:${window.location.port}/showOpenDialog`;
+        let res = await fetch(uri, {method: 'POST'})
+        let result = res.ok ? await res.text() : "";
+        return result;
+    }
 }

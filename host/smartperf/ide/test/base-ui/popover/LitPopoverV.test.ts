@@ -438,4 +438,9 @@ describe("LitPopoverV Test", () => {
         "
 `);
     });
+    it('LitPopoverV14', () => {
+        document.body.innerHTML =  `<lit-popover id="litpop"></lit-popover>`
+        let popver = document.querySelector("#litpop") as LitPopover;
+        expect(popver.adoptedCallback()).toBeUndefined()
+    });
 });

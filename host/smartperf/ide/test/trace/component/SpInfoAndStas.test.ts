@@ -81,6 +81,7 @@ describe('SpInfoAndStasTest', ()=> {
                 margin: 1% 2.5% 0 2.5%;
                 border-radius: 16px;
                 background-color: var(--dark-background3,#FFFFFF);
+                position: relative;
             }
        
             #metaData-table{
@@ -144,16 +145,9 @@ describe('SpInfoAndStasTest', ()=> {
                background-color: var(--dark-background5,#F6F6F6); 
             }
             
-            ::-webkit-scrollbar
-            {
-              width: 8px;
-              background-color: var(--dark-background3,#FFFFFF);
-            }
-             
-            ::-webkit-scrollbar-thumb
-            {
-              border-radius: 6px;
-              background-color: var(--dark-background7,rgba(0,0,0,0.1));
+            .load-metric{
+                width: 95%;
+                bottom: 0;
             }
 
         </style>
@@ -169,6 +163,7 @@ describe('SpInfoAndStasTest', ()=> {
                             </lit-table-column>
                     </lit-table>
                 </div>
+                <lit-progress-bar class=\\"load-metric\\"></lit-progress-bar>
             </div>
             <div class=\\"metadata stats\\">
                 <p>Debugging stats</p>
@@ -187,4 +182,11 @@ describe('SpInfoAndStasTest', ()=> {
         "
 `);
     });
+
+    it('SpInfoAndStasTest9', function () {
+        expect(spInfoAndStats.initMetricItemData()).toBeTruthy();
+    });
+
+
+
 })

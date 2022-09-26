@@ -458,6 +458,8 @@ bool PerfFileReader::ReadFeatureSection()
                 return false;
             }
         }
+
+
         std::vector<char> buf(sectionHeader.size);
         if (!Read(&buf[0], sectionHeader.offset, buf.size())) {
             // read failed ??

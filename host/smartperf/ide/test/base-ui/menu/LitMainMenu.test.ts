@@ -132,4 +132,30 @@ describe("LitMainMenu Test", () => {
         "
 `);
     });
+
+    it('LitMainMenu04', () => {
+        let litMainMenu = new LitMainMenu();
+        litMainMenu.menus = [
+            {
+                collapsed: true,
+                title: 'Navigation',
+                describe: 'Open or record a new trace',
+                children: [
+                    {
+                        title: "Open trace file",
+                        icon: "folder",
+                        fileChoose: true,
+                        fileHandler: function (ev: InputEvent) {
+                        }
+
+                    },
+                    {
+                        title: "Record new trace", icon: "copyhovered", clickHandler: function (item: MenuItem) {
+                        }
+                    }
+                ]
+            }
+        ]
+        expect(litMainMenu.menus.length).toBe(1)
+    });
 })

@@ -21,7 +21,6 @@
 #include "cpu_filter.h"
 #include "htrace_cpu_detail_parser.h"
 #include "parser/common_types.h"
-#include "src/filter/symbols_filter.h"
 #include "trace_streamer_filters.h"
 #include "trace_streamer_selector.h"
 
@@ -336,8 +335,6 @@ HWTEST_F(HtraceEventParserTest, ParseCpuFrequencyEvent, TestSize.Level1)
 HWTEST_F(HtraceEventParserTest, ParseWorkqueueExecuteStartEvent, TestSize.Level1)
 {
     TS_LOGI("test10-10");
-    stream_.streamFilters_->symbolsFilter_->RegisterFunc(1, 1);
-    auto funcNum = stream_.streamFilters_->symbolsFilter_->GetFunc(1);
     WorkqueueExecuteStartFormat* workqueueExecuteStartEvent = new WorkqueueExecuteStartFormat();
     workqueueExecuteStartEvent->set_work(0);
     workqueueExecuteStartEvent->set_function(1);

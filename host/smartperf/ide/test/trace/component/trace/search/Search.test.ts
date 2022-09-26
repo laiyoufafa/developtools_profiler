@@ -152,4 +152,15 @@ describe(" SearchTest", () => {
         "
 `);
     });
+
+    it('Search Test12', () => {
+        let search = new LitSearch();
+        expect(search.searchValue).toBe('');
+    });
+
+    it('Search Test13', () => {
+        let search = new LitSearch();
+        expect(search.isLoading).toBeFalsy();
+    });
+
 });

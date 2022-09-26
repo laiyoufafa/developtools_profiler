@@ -78,7 +78,6 @@ enum SupportedTraceEventType {
     TRACE_PROCESS,
     TRACE_CPU_USAGE,
     TRACE_NETWORK,
-    TRACE_PERF,
     TRACE_EVENT_SIGNAL_GENERATE,
     TRACE_EVENT_SIGNAL_DELIVER,
     TRACE_EVENT_BLOCK_BIO_BACKMERGE,
@@ -242,7 +241,6 @@ private:
     const std::string TRACE_ACTION_PROCESS = "trace_process";
     const std::string TRACE_ACTION_CPU_USAGE = "trace_cpu_usage";
     const std::string TRACE_ACTION_NETWORK = "trace_network";
-    const std::string TRACE_ACTION_PERF = "trace_perf";
     const std::string TRACE_ACTION_OTHER = "other";
 
     const std::string MEM_INFO_VM_SIZE_DESC = "mem.vm.size";

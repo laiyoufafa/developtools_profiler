@@ -95,6 +95,42 @@ export class SpHelp extends BaseElement {
                                 + that.dark
                                 + " width=\"100%\" height=\"100%\"></object>"
                         }
+                    },
+                    {
+                        title: "Sql分析和Metrics说明", icon: "", clickHandler: function (item: MenuItem) {
+                            that.appContent!.innerHTML =
+                                "<object type=\"text/html\" data="
+                                + "/application/doc/des_metris_support.html?"
+                                + that.dark
+                                + " width=\"100%\" height=\"100%\"></object>"
+                        }
+                    },
+                    {
+                        title: "在线抓取trace说明", icon: "", clickHandler: function (item: MenuItem) {
+                            that.appContent!.innerHTML =
+                                "<object type=\"text/html\" data="
+                                + "/application/doc/capture_online.html?"
+                                + that.dark
+                                + " width=\"100%\" height=\"100%\"></object>"
+                        }
+                    },
+                    {
+                        title: "FileSystem抓取和展示说明", icon: "", clickHandler: function (item: MenuItem) {
+                            that.appContent!.innerHTML =
+                                "<object type=\"text/html\" data="
+                                + "/application/doc/file_system.html?"
+                                + that.dark
+                                + " width=\"100%\" height=\"100%\"></object>"
+                        }
+                    },
+                    {
+                        title: "页内存抓取和展示说明", icon: "", clickHandler: function (item: MenuItem) {
+                            that.appContent!.innerHTML =
+                                "<object type=\"text/html\" data="
+                                + "/application/doc/memory_fetching.html?"
+                                + that.dark
+                                + " width=\"100%\" height=\"100%\"></object>"
+                        }
                     }
                 ]
             },
@@ -103,6 +139,16 @@ export class SpHelp extends BaseElement {
                 title: 'TraceStreamer',
                 describe: '',
                 children: [
+                    {
+                        title: "TraceStreamer数据库说明",
+                        icon: "",
+                        clickHandler: function (item: MenuItem) {
+                            that.appContent!.innerHTML = "<object type=\"text/html\" data="
+                                + "/application/doc/des_tables.html?"
+                                + that.dark
+                                + " width=\"100%\" height=\"100%\"></object>"
+                        }
+                    },
                     {
                         title: "编译Trace_streamer",
                         icon: "",
@@ -119,16 +165,6 @@ export class SpHelp extends BaseElement {
                         clickHandler: function (item: MenuItem) {
                             that.appContent!.innerHTML = "<object type=\"text/html\" data="
                                 + "/application/doc/des_stat.html?"
-                                + that.dark
-                                + " width=\"100%\" height=\"100%\"></object>"
-                        }
-                    },
-                    {
-                        title: "概述TraceStreamer生成的数据库",
-                        icon: "",
-                        clickHandler: function (item: MenuItem) {
-                            that.appContent!.innerHTML = "<object type=\"text/html\" data="
-                                + "/application/doc/des_tables.html?"
                                 + that.dark
                                 + " width=\"100%\" height=\"100%\"></object>"
                         }
@@ -153,6 +189,25 @@ export class SpHelp extends BaseElement {
                                 + " width=\"100%\" height=\"100%\"></object>"
                         }
                     },
+                    {
+                        title: "binder事件上下文如何关联", icon: "", clickHandler: function (item: MenuItem) {
+                            that.appContent!.innerHTML =
+                                "<object type=\"text/html\" data="
+                                + "/application/doc/des_binder.html?"
+                                + that.dark
+                                + " width=\"100%\" height=\"100%\"></object>"
+                        }
+                    },
+                    {
+                        title: "wakeup唤醒说明",
+                        icon: "",
+                        clickHandler: function (item: MenuItem) {
+                            that.appContent!.innerHTML = "<object type=\"text/html\" data="
+                                + "/application/doc/des_wakup.html?"
+                                + that.dark
+                                + " width=\"100%\" height=\"100%\"></object>"
+                        }
+                    }
                 ]
             },
             {
@@ -181,7 +236,15 @@ export class SpHelp extends BaseElement {
             items.forEach(item => {
                 item.style.width = '290px'
             })
-            if(value.title == 'TraceStreamer' || value.title == 'SmartPerf'){
+            if(value.title == 'TraceStreamer'){
+                let items = value.querySelectorAll<LitMainMenuItem>('lit-main-menu-item');
+                items.forEach(i =>{
+                    if(i.title != 'TraceStreamer数据库说明'){
+                        i.style.display = 'none';
+                    }
+                })
+            }
+            if(value.title == 'SmartPerf'){
                 value.style.display = 'none';
             }
         })

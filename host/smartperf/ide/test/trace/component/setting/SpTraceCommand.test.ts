@@ -54,7 +54,7 @@ describe('SPTraceCommand Test', ()=>{
             opacity: 0.6;
             font-family: Helvetica;
             color: var(--dark-color,#000000);
-            padding: 56px;
+            padding: 20px 56px 5px 56px;
             font-size:1em;
             margin-left: 10px;
             line-height: 20px;
@@ -64,7 +64,7 @@ describe('SPTraceCommand Test', ()=>{
             resize:none;
             /*overflow:auto;*/
             z-index: 2;
-            min-height: 560px;
+            min-height: 500px;
             background: var(--dark-background3,#FFFFFF);
         }
 
@@ -120,14 +120,48 @@ describe('SPTraceCommand Test', ()=>{
           border-radius: 6px;
           background-color: var(--dark-background7,#e7c9c9);
         }
+        
+        #stop-button{
+            display: none;
+           border-radius: 15px;
+           background-color: #0A59F7;
+           width: 120px;
+           height: 32px;
+           font-family: Helvetica-Bold;
+           font-size: 14px;
+           color: #FFFFFF;
+           text-align: center;
+           line-height: 20px;
+           margin-left: 80%;
+           border: 1px solid #FFFFFF;
+        }
+        
+        :host([show]) #stop-button {
+            display: block
+        } 
         </style>
         <div id=\\"text-cmd\\">
             <button id=\\"copy-button\\">
                 <img id=\\"copy-image\\" src=\\"img/copy.png\\">
             </button>
             <textarea id=\\"code-text\\" readonly></textarea>
+            <button id=\\"stop-button\\">Stop Cmd</button>
         </div>
         "
 `)
     });
+    it(' SpTraceCommandtest01', function () {
+        let spEle = document.querySelector("#command") as SpTraceCommand
+        spEle.show = false
+        expect(spEle.show).toBeFalsy()
+    })
+    it(' SpTraceCommandtest02', function () {
+        let spEle = document.querySelector("#command") as SpTraceCommand
+        spEle.show = true
+        expect(spEle.show).toBeTruthy()
+    })
+    it(' SpTraceCommandtest03', function () {
+        let spEle = document.querySelector("#command") as SpTraceCommand
+        expect(spEle.disconnectedCallback()).toBeUndefined()
+    })
 })

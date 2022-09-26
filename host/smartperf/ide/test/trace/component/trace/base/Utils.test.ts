@@ -160,15 +160,15 @@ describe("Utils Test", () => {
     });
 
     it('Utils Test40', () => {
-        expect(Utils.getDurString(61_000_000_000)).toBe("1:1.0s ")
+        expect(Utils.getDurString(61_000_000_000)).toBe("61.000 s ")
     });
 
     it('Utils Test34', () => {
-        expect(Utils.getDurString(2_000_000_000)).toBe("2.0s ")
+        expect(Utils.getDurString(2_000_000_000)).toBe("2.000 s ")
     });
 
     it('Utils Test35', () => {
-        expect(Utils.getDurString(1_800_000)).toBe("1ms ")
+        expect(Utils.getDurString(1_800_000)).toBe("1 ms ")
     });
 
     it('Utils Test36', () => {
@@ -185,6 +185,90 @@ describe("Utils Test", () => {
 
     it('Utils Test39', () => {
         expect(Utils.timeMsFormat2p(1)).toBe("1.00ms")
+    });
+
+    it('Utils Test41', () => {
+        expect(Utils.getProbablyTime(3600_000_000_000)).toBe("1.00h ");
+    });
+
+    it('Utils Test42', () => {
+        expect(Utils.getProbablyTime(60_000_000_000)).toBe("1.00m ");
+    });
+
+    it('Utils Test43', () => {
+        expect(Utils.getProbablyTime(1_000_000_000)).toBe("1.00s ");
+    });
+
+    it('Utils Test44', () => {
+        expect(Utils.getProbablyTime(1_000_000)).toBe("1.00ms ");
+    });
+
+    it('Utils Test45', () => {
+        expect(Utils.getProbablyTime(1_000)).toBe("1.00μs ");
+    });
+
+    it('Utils Test46', () => {
+        expect(Utils.getProbablyTime(0)).toBe("0");
+    });
+
+    it('Utils Test47', () => {
+        expect(Utils.groupByMap([],'')).not.toBeUndefined();
+    });
+
+    it('Utils Test48', () => {
+        expect(Utils.uuid).not.toBeUndefined();
+    });
+
+    it('Utils Test49', () => {
+        expect(Utils.removeDuplicates([10],[11],"pid")).not.toBeUndefined();
+    });
+
+    it('Utils Test50', () => {
+        expect(Utils.groupBy([],'')).not.toBeUndefined();
+    });
+
+    it('Utils Test51', () => {
+        expect(Utils.getTimeStringHMS(0)).toBe("0");
+    });
+
+    it('Utils Test52', () => {
+        expect(Utils.timeMsFormat2p(0)).toBe("0s");
+    });
+
+    it('Utils Test53', () => {
+        expect(Utils.getBinaryByteWithUnit(1)).toBe("1.00Bytes");
+    });
+
+    it('Utils Test54', () => {
+        expect(Utils.getTimeStampHMS(0)).toBe("00:000.000");
+    });
+
+    it('Utils Test55', () => {
+        expect(Utils.getDurString(1)).toBe("1")
+    });
+
+    it('Utils Test56', () => {
+        expect(Utils.getCompletionTime(300,3)).toBe('300');
+    });
+
+    it('Utils Test57', () => {
+        expect(Utils.getCompletionTime(30,3)).toBe('030');
+    });
+
+    it('Utils Test58', () => {
+        expect(Utils.getCompletionTime(0,0)).toBe('0');
+    });
+
+    it('Utils Test59', () => {
+        expect(Utils.groupByMap([10],'pid')).not.toBeUndefined();
+    });
+
+    it('Utils Test60', () => {
+        expect(Utils.getProbablyTime(1)).toBe("1ns ");
+    });
+
+    it('Utils Test61', () => {
+        expect(Utils.groupBy([10],'pid')).not.toBeUndefined();
     });
 
     afterAll(() => {

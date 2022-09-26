@@ -22,10 +22,10 @@ enum Index { ID = 0, TYPE, NAME, SOURCE_ARG_SET_ID };
 }
 FilterTable::FilterTable(const TraceDataCache* dataCache) : TableBase(dataCache)
 {
-    tableColumn_.push_back(TableBase::ColumnInfo("id", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("type", "TEXT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("name", "TEXT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("source_arg_set_id", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("id", "UNSIGNED INT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("type", "STRING"));
+    tableColumn_.push_back(TableBase::ColumnInfo("name", "STRING"));
+    tableColumn_.push_back(TableBase::ColumnInfo("source_arg_set_id", "UNSIGNED BIG INT"));
     tablePriKey_.push_back("id");
 }
 

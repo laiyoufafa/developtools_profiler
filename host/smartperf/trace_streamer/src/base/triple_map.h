@@ -70,10 +70,6 @@ public:
             (*streamIdHookidMap).second.Erase(t2, t3);
         }
     }
-    void Clear()
-    {
-        internalMap_.clear();
-    }
 
 private:
     std::map<T1, DoubleMap<T2, T3, T4>> internalMap_;

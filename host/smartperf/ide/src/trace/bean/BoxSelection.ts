@@ -13,10 +13,26 @@
  * limitations under the License.
  */
 
+import {CpuFreqLimitsStruct} from "../database/ui-worker/ProcedureWorkerCpuFreqLimits.js";
+
 export class SelectionParam {
+    recordStartNs:number = 0
+    leftNs: number = 0;
+    rightNs: number = 0;
+    hasFps: boolean = false;
+    statisticsSelectData: any = undefined
+    fileSystemVMData: any = undefined
+    perfAll: boolean = false;
+    fileSysVirtualMemory: boolean = false;
+    diskIOLatency:boolean = false;
+
     cpus: Array<number> = [];
+    cpuStateFilterIds: Array<number> = [];
+    cpuFreqFilterIds: Array<number> = [];
+    cpuFreqLimitDatas:Array<Array<CpuFreqLimitsStruct>> = [];
     threadIds: Array<number> = [];
-    trackIds: Array<number> = [];
+    processTrackIds: Array<number> = [];
+    virtualTrackIds: Array<number> = [];
     funTids: Array<number> = [];
     funAsync: Array<{name:string,pid:number}> = [];
     heapIds: Array<number> = [];
@@ -25,15 +41,18 @@ export class SelectionParam {
     memoryAbilityIds: Array<string> = []
     diskAbilityIds: Array<string> = []
     networkAbilityIds: Array<string> = []
-    leftNs: number = 0;
-    rightNs: number = 0;
-    hasFps: boolean = false;
-    statisticsSelectData: any = undefined
     perfSampleIds: Array<number> = [];
     perfCpus: Array<number> = [];
     perfProcess: Array<number> = [];
     perfThread: Array<number> = [];
-    perfAll: boolean = false;
+    fileSystemType:Array<number> = [];
+    sdkCounterIds: Array<string> = [];
+    sdkSliceIds: Array<string> = [];
+    diskIOipids:Array<number> = [];
+    systemEnergy: Array<string> = []
+    powerEnergy: Array<string> = []
+    anomalyEnergy: Array<string> = []
+    smapsType:Array<string> = [];
 }
 
 export class BoxJumpParam {

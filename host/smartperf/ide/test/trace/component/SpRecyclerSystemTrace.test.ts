@@ -145,4 +145,15 @@ describe('SpRecyclerSystemTrace Test', ()=>{
         "
 `)
     });
+    it('SpRecyclerSystemTraceTest18', function () {
+        const newEl=1;
+        const targetEl = {
+            parentNode:{
+                insertBefore:jest.fn(()=>true)
+            },
+            nextSibling:1
+        }
+
+        expect(spRecyclerSystemTrace.insertAfter(newEl, targetEl)).toBeUndefined()
+    });
 })

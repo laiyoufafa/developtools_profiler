@@ -14,7 +14,7 @@
  */
 
 // @ts-ignore
-import {ClientContainer} from "../../../dist/trace/grpc/ProfilerController.js"
+import {ClientContainer, SettingRegistry} from "../../../dist/trace/grpc/ProfilerController.js"
 
 describe('HiProfilerClient Test', ()=>{
 
@@ -51,6 +51,10 @@ describe('HiProfilerClient Test', ()=>{
         profilerController.loadSettings = jest.fn(()=>true)
         expect(profilerController.loadSettings()).toBeTruthy();
     });
-
-
+    it('ProfilerClientTest08', function () {
+        expect(profilerController. registryClient()).toBeUndefined()
+    });
+    it('ProfilerClientTest09', function () {
+        expect(SettingRegistry. registry()).toBeUndefined()
+    });
 })

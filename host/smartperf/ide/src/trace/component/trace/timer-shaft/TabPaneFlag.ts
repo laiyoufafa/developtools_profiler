@@ -29,13 +29,21 @@ export class TabPaneFlag extends BaseElement {
                 document.dispatchEvent(new CustomEvent('flag-change', {detail: this.flag}));
             }
         });
-        this.shadowRoot?.querySelector("#text-input")?.addEventListener("keydown", (event: any) => {
+        this.shadowRoot?.querySelector("#text-input")?.addEventListener("keyup", (event: any) => {
+            event.stopPropagation();
             if (event.keyCode == "13") {
                 if (this.flag) {
+                    (window as any).flagInputFocus = false;
                     this.flag.text = event?.target.value
                     document.dispatchEvent(new CustomEvent('flag-change', {detail: this.flag}));
                 }
             }
+        });
+        this.shadowRoot?.querySelector("#text-input")?.addEventListener("blur", (event: any) => {
+            (window as any).flagInputFocus = false;
+        });
+        this.shadowRoot?.querySelector("#text-input")?.addEventListener("focus", (event: any) => {
+            (window as any).flagInputFocus = true;
         });
         this.shadowRoot?.querySelector("#remove-flag")?.addEventListener("click", (event: any) => {
             if (this.flag) {

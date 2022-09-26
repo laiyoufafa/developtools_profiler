@@ -55,6 +55,16 @@ describe('TabPaneFilter Test', () => {
         expect(tabPaneFilter.icon).toBe("");
     });
 
+    it('TabPaneFilterTest010', function () {
+        tabPaneFilter.icon = "block"
+        expect(tabPaneFilter.icon).toBe("block");
+    });
+
+    it('TabPaneFilterTest011', function () {
+        tabPaneFilter.icon = "tree"
+        expect(tabPaneFilter.icon).toBe("tree");
+    });
+
     it('TabPaneFilterTest07', function () {
         expect(tabPaneFilter.initHtml()).toMatchInlineSnapshot(`
 "
@@ -245,6 +255,14 @@ describe('TabPaneFilter Test', () => {
             display: flex;
             align-content: center;
         }
+        .sort{
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+        :host(:not([sort])) .sort{
+            display: none;
+        }
 </style>
     <lit-icon name=\\"statistics\\" class=\\"spacing\\" id=\\"icon\\" size=\\"16\\"></lit-icon>
     <span class=\\"describe left-text spacing\\">Input Filter</span>
@@ -253,49 +271,53 @@ describe('TabPaneFilter Test', () => {
     <div id=\\"load\\" style=\\"display: flex\\">
     
     </div>
-       <lit-popover placement=\\"topLeft\\" class=\\"popover\\" haveRadio=\\"true\\" trigger=\\"click\\" id=\\"call-tree-popover\\">
+        <lit-popover placement=\\"topLeft\\" class=\\"popover\\" haveRadio=\\"true\\" trigger=\\"click\\" id=\\"call-tree-popover\\">
+             <div slot=\\"content\\">
+                 <div class=\\"tree-check\\"><lit-check-box class=\\"lit-check-box\\" not-close></lit-check-box><div>Invert</div></div>
+                 <div class=\\"tree-check\\"><lit-check-box class=\\"lit-check-box\\" not-close></lit-check-box><div>Hide System so</div></div>
+             </div>
+             <span class=\\"describe tree max-spacing\\" id=\\"call-tree\\">Options</span>
+        </lit-popover>
+        <lit-popover placement=\\"topLeft\\" class=\\"popover\\" haveRadio=\\"true\\" trigger=\\"click\\" id=\\"tree-constraints-popover\\">
+             <div slot=\\"content\\" style=\\"display: flex; align-items: flex-end\\">
+                 <lit-check-box id=\\"constraints-check\\" not-close></lit-check-box>
+                 <input class=\\"constraints-input\\" disabled value=\\"0\\" not-close/>
+                 <lit-popover placement=\\"topLeft\\" class=\\"popover\\" haveRadio=\\"true\\" not-close>
+                     <div slot=\\"content\\">
+                         <div style=\\"font-size: 0.7rem\\">Constraints：Only enabled with data and while stopped；</div>
+                         <div style=\\"font-size: 0.7rem\\">filters data to thresholds. </div>
+                     </div>
+                     <input class=\\"constraints-input\\" disabled value=\\"∞\\" not-close/>
+                  </lit-popover>
+             </div>
+             <span class=\\"describe tree max-spacing\\" id=\\"tree-constraints\\">Sample Count Filter</span>
+        </lit-popover>
+         <lit-popover placement=\\"topLeft\\" class=\\"popover\\" haveRadio=\\"true\\" trigger=\\"click\\" id=\\"data-mining-popover\\">
             <div slot=\\"content\\">
-                <div class=\\"tree-check\\"><lit-check-box class=\\"lit-check-box\\" not-close></lit-check-box><div>Invert</div></div>
-                <div class=\\"tree-check\\"><lit-check-box class=\\"lit-check-box\\" not-close></lit-check-box><div>Hide System so</div></div>
+                 <div id=\\"mining-row\\">
+                     
+                 </div>
+                 <div style=\\"display: flex;justify-content: space-around; margin-top: 8px\\">
+                     <div class=\\"mining-button\\">Reset</div>
+                 </div>
             </div>
-            <span class=\\"describe tree max-spacing\\" id=\\"call-tree\\">Options</span>
-       </lit-popover>
-       <lit-popover placement=\\"topLeft\\" class=\\"popover\\" haveRadio=\\"true\\" trigger=\\"click\\" id=\\"tree-constraints-popover\\">
-            <div slot=\\"content\\" style=\\"display: flex; align-items: flex-end\\">
-                <lit-check-box id=\\"constraints-check\\" not-close></lit-check-box>
-                <input class=\\"constraints-input\\" disabled value=\\"0\\" not-close/>
-                <lit-popover placement=\\"topLeft\\" class=\\"popover\\" haveRadio=\\"true\\" not-close>
-                    <div slot=\\"content\\">
-                        <div style=\\"font-size: 0.7rem\\">Constraints：Only enabled with data and while stopped；</div>
-                        <div style=\\"font-size: 0.7rem\\">filters data to thresholds. </div>
-                    </div>
-                    <input class=\\"constraints-input\\" disabled value=\\"∞\\" not-close/>
-                 </lit-popover>
+            <span class=\\"describe tree max-spacing\\" id=\\"data-mining\\">Symbol Filter</span>
+        </lit-popover>
+        <lit-popover placement=\\"topLeft\\" class=\\"popover\\" haveRadio=\\"true\\" trigger=\\"click\\" id=\\"data-library-popover\\">
+            <div slot=\\"content\\">
+                 <div id=\\"library-row\\">
+                     
+                 </div>
+                 <div style=\\"display: flex;justify-content: space-around; margin-top: 8px\\">
+                     <div class=\\"library-button\\">Reset</div>
+                 </div>
             </div>
-            <span class=\\"describe tree max-spacing\\" id=\\"tree-constraints\\">Sample Count Filter</span>
-       </lit-popover>
-       <lit-popover placement=\\"topLeft\\" class=\\"popover\\" haveRadio=\\"true\\" trigger=\\"click\\" id=\\"data-mining-popover\\">
-           <div slot=\\"content\\">
-                <div id=\\"mining-row\\">
-                    
-                </div>
-                <div style=\\"display: flex;justify-content: space-around; margin-top: 8px\\">
-                    <div class=\\"mining-button\\">Reset</div>
-                </div>
-           </div>
-           <span class=\\"describe tree max-spacing\\" id=\\"data-mining\\">Symbol Filter</span>
-       </lit-popover>
-       <lit-popover placement=\\"topLeft\\" class=\\"popover\\" haveRadio=\\"true\\" trigger=\\"click\\" id=\\"data-library-popover\\">
-           <div slot=\\"content\\">
-                <div id=\\"library-row\\">
-                    
-                </div>
-                <div style=\\"display: flex;justify-content: space-around; margin-top: 8px\\">
-                    <div class=\\"library-button\\">Reset</div>
-                </div>
-           </div>
-           <span class=\\"describe tree max-spacing\\" id=\\"data-library\\">Library Filter</span>
-       </lit-popover>
+            <span class=\\"describe tree max-spacing\\" id=\\"data-library\\">Library Filter</span>
+        </lit-popover>
+        <div class=\\"sort\\">
+            <lit-icon name=\\"swap\\" class=\\"spacing\\" size=\\"16\\"></lit-icon>
+            <div style=\\"margin-left: 5px\\" class=\\"statistics-name\\">Statistics by Thread</div>
+        </div>
         "
 `);
     });

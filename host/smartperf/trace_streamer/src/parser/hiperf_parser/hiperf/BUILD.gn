@@ -42,6 +42,7 @@ ohos_source_set("hiperf_src") {
     "include/symbols_file.h",
     "section_header.cpp",
     "subcommand.cpp",
+    "subcommand_dump.cpp",
     "symbols_file.cpp",
     "utilities.cpp",
     "virtual_runtime.cpp",
@@ -58,8 +59,6 @@ ohos_source_set("hiperf_src") {
     "../../../",
     "../../../trace_streamer",
     "//third_party/perf_include",
-    "//third_party/perf_include/linux",
-    "//third_party/perf_include/include",
   ]
 }
 
@@ -69,7 +68,7 @@ group("hiperf") {
     "//third_party/protobuf:protobuf",
     "//third_party/protobuf:protobuf_lite",
   ]
-  if (target != "test" && !is_openharmony) {
+  if (target != "test") {
     deps += [ "//prebuilts/protos:ts_proto_data_cpp" ]
   }
 }
