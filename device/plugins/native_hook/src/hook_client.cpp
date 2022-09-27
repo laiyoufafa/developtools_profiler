@@ -49,7 +49,7 @@ static pid_t g_hookPid = 0;
 static ClientConfig g_ClientConfig = {0};
 static uint32_t g_minSize = 0;
 static uint32_t g_maxSize = INT_MAX;
-static std::unordered_set<void *> g_mallocIgnoreSet;
+static std::unordered_set<void*> g_mallocIgnoreSet;
 const MallocDispatchType* GetDispatch()
 {
     return g_dispatch.load(std::memory_order_relaxed);
@@ -76,7 +76,7 @@ bool ohos_malloc_hook_on_start(void)
     pthread_setspecific(g_disableHookFlag, nullptr);
     HILOG_INFO(LOG_CORE, "ohos_malloc_hook_on_start");
     GetMainThreadRuntimeStackRange();
-    g_minSize =g_ClientConfig.filterSize_;
+    g_minSize = g_ClientConfig.filterSize_;
     constexpr int paramBufferLen = 128;
     char paramOutBuf[paramBufferLen] = {0};
     int ret = GetParameter("persist.hiviewdfx.profiler.mem.filter", "", paramOutBuf, paramBufferLen);
@@ -87,8 +87,8 @@ bool ohos_malloc_hook_on_start(void)
             g_maxSize = max > 0 ? max : INT_MAX;
             g_minSize = min > 0 ? min : 0;
         }
-        HILOG_INFO(LOG_CORE, "persist.hiviewdfx.profiler.mem.filter %s, min %d, max %d",
-            paramOutBuf, g_minSize, g_maxSize);
+        HILOG_INFO(LOG_CORE, "persist.hiviewdfx.profiler.mem.filter %s, min %d, max %d", paramOutBuf, g_minSize,
+                   g_maxSize);
     }
     return true;
 }
@@ -126,10 +126,9 @@ void* hook_malloc(void* (*fn)(size_t), size_t size)
     if (fn) {
         ret = fn(size);
     }
-    if ((g_hookPid != getpid())
-        || g_ClientConfig.mallocDisable_ ) {
-         return ret;
-     }
+    if ((g_hookPid != getpid()) || g_ClientConfig.mallocDisable_) {
+        return ret;
+    }
 #ifdef PERFORMANCE_DEBUG
     struct timespec start = {};
     clock_gettime(CLOCK_REALTIME, &start);
@@ -180,7 +179,7 @@ void* hook_malloc(void* (*fn)(size_t), size_t size)
     rawdata.mallocSize = size;
     rawdata.addr = ret;
     prctl(PR_GET_NAME, rawdata.tname);
-    if(!ohos_set_filter_size(size, ret)){
+    if (!ohos_set_filter_size(size, ret)) {
         return ret;
     }
 
@@ -646,12 +645,12 @@ void ohos_malloc_hook_memtag(void* addr, size_t size, char* tag, size_t tagLen)
     __set_hook_flag(true);
 }
 
-bool ohos_set_filter_size(size_t size, void* ret) 
+bool ohos_set_filter_size(size_t size, void* ret)
 {
-     if ((size < g_minSize) || (size > g_maxSize) ) {
+    if ((size < g_minSize) || (size > g_maxSize)) {
         std::lock_guard<std::recursive_timed_mutex> guard(g_ClientMutex);
         g_mallocIgnoreSet.insert(ret);
         return false;
-     }
-     return true;
+    }
+    return true;
 }
