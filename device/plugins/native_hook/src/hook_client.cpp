@@ -80,10 +80,10 @@ bool ohos_malloc_hook_on_start(void)
     constexpr int paramBufferLen = 128;
     char paramOutBuf[paramBufferLen] = {0};
     int ret = GetParameter("persist.hiviewdfx.profiler.mem.filter", "", paramOutBuf, paramBufferLen);
-    if (ret >= 0) {
+    if (ret > 0) {
         int min = 0;
         int max = 0;
-        if (sscanf_s(paramOutBuf, "%d,%d", &min, &max) != -1) {
+        if (sscanf_s(paramOutBuf, "%d,%d", &min, &max) == 2) { // min,max: two parameters.
             g_maxSize = max > 0 ? max : INT_MAX;
             g_minSize = min > 0 ? min : 0;
         }
