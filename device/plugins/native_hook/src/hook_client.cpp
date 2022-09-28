@@ -83,7 +83,7 @@ bool ohos_malloc_hook_on_start(void)
     if (ret > 0) {
         int min = 0;
         int max = 0;
-        if (sscanf_s(paramOutBuf, "%d,%d", &min, &max) == 2) { // min,max: two parameters.
+        if (sscanf_s(paramOutBuf, "%d,%d", &min, &max) == 2) { // 2: two parameters.
             g_maxSize = max > 0 ? max : INT_MAX;
             g_minSize = min > 0 ? min : 0;
         }
