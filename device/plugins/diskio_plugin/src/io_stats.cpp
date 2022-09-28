@@ -299,7 +299,7 @@ void IoStats::CalcCpuStats(const CpuDatasPtr& cpuData, CpuStats* cpuInfo)
 
 double IoStats::KeepTowDigits(const uint64_t& data, uint64_t div)
 {
-    double result = 0.00; 
+    double result = 0.00;
     if (data <= 0 || div == 0) {
         return result;
     }
