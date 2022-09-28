@@ -129,6 +129,9 @@ void* hook_malloc(void* (*fn)(size_t), size_t size)
     if ((g_hookPid != getpid()) || g_ClientConfig.mallocDisable_) {
         return ret;
     }
+    if (!ohos_set_filter_size(size, ret)) {
+        return ret;
+    }
 #ifdef PERFORMANCE_DEBUG
     struct timespec start = {};
     clock_gettime(CLOCK_REALTIME, &start);
@@ -179,9 +182,7 @@ void* hook_malloc(void* (*fn)(size_t), size_t size)
     rawdata.mallocSize = size;
     rawdata.addr = ret;
     prctl(PR_GET_NAME, rawdata.tname);
-    if (!ohos_set_filter_size(size, ret)) {
-        return ret;
-    }
+   
 
     std::unique_lock<std::recursive_timed_mutex> lck(g_ClientMutex, std::defer_lock);
     std::chrono::time_point<std::chrono::steady_clock> timeout =
