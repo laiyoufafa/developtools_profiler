@@ -52,10 +52,15 @@ static int NetworkRegisterWriterStruct(const WriterStruct* writer)
 }
 
 static PluginModuleCallbacks g_callbacks = {
-    NetworkPluginSessionStart,
-    NetworkPluginReportResult,
-    NetworkPluginSessionStop,
-    NetworkRegisterWriterStruct,
+    .onPluginSessionStart = NetworkPluginSessionStart,
+    .onPluginReportResult = NetworkPluginReportResult,
+    .onPluginSessionStop = NetworkPluginSessionStop,
+    .onRegisterWriterStruct = NetworkRegisterWriterStruct,
 };
 
-PluginModuleStruct g_pluginModule = {&g_callbacks, "network-plugin", MAX_BUFFER_SIZE};
+PluginModuleStruct g_pluginModule = {
+    .callbacks = &g_callbacks,
+    .name = "network-plugin",
+    .version = "1.01",
+    .resultBufferSizeHint = MAX_BUFFER_SIZE,
+};

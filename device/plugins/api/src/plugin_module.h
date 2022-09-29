@@ -28,6 +28,7 @@ struct PluginModuleInfo {
     uint32_t bufferSizeHint = 0;
     bool isStandaloneFileData = false;
     std::string outFileName = "";
+    std::string pluginVersion = "";
 };
 
 struct PluginModuleStruct;
@@ -55,6 +56,7 @@ public:
     bool GetBufferSizeHint(uint32_t& bufferSizeHint);
     bool GetStandaloneFileData();
     bool GetOutFileName(std::string& outFileName);
+    bool GetPluginVersion(std::string& pluginVersion);
     std::string GetPath();
     std::string GetPluginName();
     bool IsRunning();

@@ -50,6 +50,7 @@ struct PluginInfo {
     uint32_t bufferSizeHint;
     bool isStandaloneFileData = false;
     std::string outFileName = "";
+    std::string pluginVersion = "";
     SocketContext* context = nullptr;
 };
 
@@ -60,6 +61,7 @@ struct PluginContext {
     uint32_t bufferSizeHint;
     bool isStandaloneFileData = false;
     std::string outFileName = "";
+    std::string pluginVersion = "";
     SocketContext* context = nullptr;
     ProfilerPluginConfig config;
     ProfilerDataRepeaterPtr profilerDataRepeater;

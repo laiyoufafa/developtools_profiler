@@ -27,6 +27,7 @@
 class BufferWriter : public Writer {
 public:
     BufferWriter(std::string name,
+                 std::string version,
                  uint32_t size,
                  int smbFd,
                  int eventFd,
@@ -43,6 +44,7 @@ private:
 
 private:
     std::string pluginName_;
+    std::string pluginVersion_;
     std::shared_ptr<ShareMemoryBlock> shareMemoryBlock_;
     EventNotifierPtr eventNotifier_ = nullptr;
     std::chrono::steady_clock::time_point lastFlushTime_;

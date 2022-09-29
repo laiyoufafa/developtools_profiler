@@ -43,7 +43,11 @@ REGISTER_FTRACE_EVENT_FORMATTER(
         auto msg = event.hrtimer_expire_entry_format();
         char buffer[BUFFER_SIZE];
         int len = 0;
-        std::string functionStr = EventFormatter::GetInstance().kernelSymbols_[msg.function()];
+        std::string functionStr = "";
+        auto kernelSymbols = EventFormatter::GetInstance().kernelSymbols_;
+        if (kernelSymbols.count(msg.function()) > 0) {
+            functionStr = kernelSymbols[msg.function()];
+        }
         if (functionStr != "") {
             len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
                 "hrtimer_expire_entry: hrtimer=%p function=%s now=%" PRIu64 "", msg.hrtimer(), functionStr.c_str(),
@@ -101,7 +105,11 @@ REGISTER_FTRACE_EVENT_FORMATTER(
         auto msg = event.hrtimer_start_format();
         char buffer[BUFFER_SIZE];
         int len = 0;
-        std::string functionStr = EventFormatter::GetInstance().kernelSymbols_[msg.function()];
+        std::string functionStr = "";
+        auto kernelSymbols = EventFormatter::GetInstance().kernelSymbols_;
+        if (kernelSymbols.count(msg.function()) > 0) {
+            functionStr = kernelSymbols[msg.function()];
+        }
         if (functionStr != "") {
             len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
                 "hrtimer_start: hrtimer=%p function=%s expires=%" PRIu64 " softexpires=%" PRIu64 " mode=%s",
@@ -176,7 +184,11 @@ REGISTER_FTRACE_EVENT_FORMATTER(
         auto msg = event.timer_expire_entry_format();
         char buffer[BUFFER_SIZE];
         int len = 0;
-        std::string functionStr = EventFormatter::GetInstance().kernelSymbols_[msg.function()];
+        std::string functionStr = "";
+        auto kernelSymbols = EventFormatter::GetInstance().kernelSymbols_;
+        if (kernelSymbols.count(msg.function()) > 0) {
+            functionStr = kernelSymbols[msg.function()];
+        }
         if (functionStr != "") {
             len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
                 "timer_expire_entry: timer=%p function=%s now=%" PRIu64 "", msg.timer(), functionStr.c_str(),
@@ -225,7 +237,11 @@ REGISTER_FTRACE_EVENT_FORMATTER(
         auto msg = event.timer_start_format();
         char buffer[BUFFER_SIZE];
         int len = 0;
-        std::string functionStr = EventFormatter::GetInstance().kernelSymbols_[msg.function()];
+        std::string functionStr = "";
+        auto kernelSymbols = EventFormatter::GetInstance().kernelSymbols_;
+        if (kernelSymbols.count(msg.function()) > 0) {
+            functionStr = kernelSymbols[msg.function()];
+        }
         if (functionStr != "") {
             len = snprintf_s(buffer, BUFFER_SIZE, BUFFER_SIZE - 1,
                 "timer_start: timer=%p function=%s expires=%" PRIu64 " [timeout=%" PRIu64 "] cpu=%u idx=%u flags=%s",

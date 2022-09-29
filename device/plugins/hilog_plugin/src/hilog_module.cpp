@@ -49,10 +49,15 @@ static int HilogPluginRegisterWriterStruct(WriterStruct* writer)
 }
 
 static PluginModuleCallbacks g_callbacks = {
-    HilogPluginSessionStart,
-    0,
-    HilogPluginSessionStop,
-    (RegisterWriterStructCallback)HilogPluginRegisterWriterStruct,
+    .onPluginSessionStart = HilogPluginSessionStart,
+    .onPluginReportResult = 0,
+    .onPluginSessionStop = HilogPluginSessionStop,
+    .onRegisterWriterStruct = (RegisterWriterStructCallback)HilogPluginRegisterWriterStruct,
 };
 
-PluginModuleStruct g_pluginModule = {&g_callbacks, "hilog-plugin", MAX_BUFFER_SIZE};
+PluginModuleStruct g_pluginModule = {
+    .callbacks = &g_callbacks,
+    .name = "hilog-plugin",
+    .version = "1.01",
+    .resultBufferSizeHint = MAX_BUFFER_SIZE,
+};

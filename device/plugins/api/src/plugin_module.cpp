@@ -77,6 +77,7 @@ bool PluginModule::GetInfo(PluginModuleInfo& info)
         info.name.assign(structPtr_->name);
         info.isStandaloneFileData = structPtr_->isStandaloneFileData;
         info.outFileName.assign(structPtr_->outFileName);
+        info.pluginVersion.assign(structPtr_->version);
         return true;
     }
     return false;
@@ -146,6 +147,18 @@ bool PluginModule::GetOutFileName(std::string& outFileName)
             return false;
         }
         outFileName.assign(structPtr_->outFileName);
+        return true;
+    }
+    return false;
+}
+
+bool PluginModule::GetPluginVersion(std::string& pluginVersion)
+{
+    if (handle_ != nullptr) {
+        if (structPtr_ == nullptr) {
+            return false;
+        }
+        pluginVersion.assign(structPtr_->version);
         return true;
     }
     return false;

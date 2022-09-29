@@ -101,9 +101,10 @@ HWTEST_F(PluginManagerTest, SuccessPlugin, TestSize.Level1)
     EXPECT_TRUE(pluginManage->LoadPlugin(pluginName));
 
     std::vector<ProfilerPluginConfig> configVec;
+    PluginResult result;
     configVec.push_back(config);
     EXPECT_TRUE(pluginManage->CreatePluginSession(configVec));
-    EXPECT_TRUE(pluginManage->StartPluginSession(pluginIdsVector, configVec));
+    EXPECT_TRUE(pluginManage->StartPluginSession(pluginIdsVector, configVec, result));
     std::this_thread::sleep_for(TEMP_DELAY);
     EXPECT_TRUE(pluginManage->StopPluginSession(pluginIdsVector));
     EXPECT_TRUE(pluginManage->DestroyPluginSession(pluginIdsVector));
@@ -153,7 +154,7 @@ HWTEST_F(PluginManagerTest, PluginManager, TestSize.Level1)
     EXPECT_FALSE(pluginModule.GetBufferSizeHint(num));
     EXPECT_FALSE(pluginModule.IsLoaded());
 
-    BufferWriter bufferWriter("test", DEFAULT_BUFFER_SIZE, -1, -1, 0);
+    BufferWriter bufferWriter("test", "1.01", DEFAULT_BUFFER_SIZE, -1, -1, 0);
 
     EXPECT_EQ(bufferWriter.shareMemoryBlock_, nullptr);
     EXPECT_FALSE(bufferWriter.Write(str.data(), str.size()));

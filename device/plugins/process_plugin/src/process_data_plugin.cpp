@@ -146,7 +146,7 @@ int32_t ProcessDataPlugin::ReadProcPidFile(int32_t pid, const char* pFileName)
         return RET_FAIL;
     }
     bytesRead = read(fd, buffer_.get(), READ_BUFFER_SIZE - 1);
-    if (bytesRead <= 0) {
+    if (bytesRead < 0) {
         close(fd);
         HILOG_INFO(LOG_CORE, "%s:failed to read(%s), errno=%d", __func__, fileName, errno);
         err_ = errno;

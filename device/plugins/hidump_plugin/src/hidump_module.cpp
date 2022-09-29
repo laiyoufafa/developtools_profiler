@@ -48,10 +48,15 @@ static int HidumpRegisterWriterStruct(WriterStruct* writer)
 }
 
 static PluginModuleCallbacks g_callbacks = {
-    HidumpSessionStart,
-    0,
-    HidumpSessionStop,
-    (RegisterWriterStructCallback)HidumpRegisterWriterStruct,
+    .onPluginSessionStart = HidumpSessionStart,
+    .onPluginReportResult = 0,
+    .onPluginSessionStop = HidumpSessionStop,
+    .onRegisterWriterStruct = (RegisterWriterStructCallback)HidumpRegisterWriterStruct,
 };
 
-PluginModuleStruct g_pluginModule = {&g_callbacks, "hidump-plugin", MAX_BUFFER_SIZE};
+PluginModuleStruct g_pluginModule = {
+    .callbacks = &g_callbacks,
+    .name = "hidump-plugin",
+    .version = "1.01",
+    .resultBufferSizeHint = MAX_BUFFER_SIZE,
+};

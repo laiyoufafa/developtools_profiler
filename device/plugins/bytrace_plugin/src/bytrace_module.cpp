@@ -158,10 +158,15 @@ int BytraceRegisterWriterStruct(const WriterStruct* writer)
 }
 
 static PluginModuleCallbacks g_callbacks = {
-    BytracePluginSessionStart,
-    nullptr, // onPluginReportResult
-    BytracePluginSessionStop,
-    BytraceRegisterWriterStruct,
+    .onPluginSessionStart = BytracePluginSessionStart,
+    .onPluginReportResult = nullptr,
+    .onPluginSessionStop = BytracePluginSessionStop,
+    .onRegisterWriterStruct = BytraceRegisterWriterStruct,
 };
 
-PluginModuleStruct g_pluginModule = {&g_callbacks, "bytrace_plugin", MAX_BUFFER_SIZE};
+PluginModuleStruct g_pluginModule = {
+    .callbacks = &g_callbacks,
+    .name = "bytrace_plugin",
+    .version = "1.01",
+    .resultBufferSizeHint = MAX_BUFFER_SIZE,
+};
