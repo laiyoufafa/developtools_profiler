@@ -21,9 +21,11 @@
 #include <sys/time.h>
 #include <pthread.h>
 #include <sys/prctl.h>
+#include <unordered_set>
 #include "hook_common.h"
 #include "hook_socket_client.h"
 #include "musl_preinit_common.h"
+#include "parameter.h"
 #include "stack_writer.h"
 #include "runtime_stack_range.h"
 #include "register.h"
@@ -45,6 +47,9 @@ constexpr int PRINT_INTERVAL = 5000;
 constexpr uint64_t S_TO_NS = 1000 * 1000 * 1000;
 static pid_t g_hookPid = 0;
 static ClientConfig g_ClientConfig = {0};
+static uint32_t g_minSize = 0;
+static uint32_t g_maxSize = INT_MAX;
+static std::unordered_set<void*> g_mallocIgnoreSet;
 const MallocDispatchType* GetDispatch()
 {
     return g_dispatch.load(std::memory_order_relaxed);
@@ -71,6 +76,20 @@ bool ohos_malloc_hook_on_start(void)
     pthread_setspecific(g_disableHookFlag, nullptr);
     HILOG_INFO(LOG_CORE, "ohos_malloc_hook_on_start");
     GetMainThreadRuntimeStackRange();
+    g_minSize = g_ClientConfig.filterSize_;
+    constexpr int paramBufferLen = 128;
+    char paramOutBuf[paramBufferLen] = {0};
+    int ret = GetParameter("persist.hiviewdfx.profiler.mem.filter", "", paramOutBuf, paramBufferLen);
+    if (ret > 0) {
+        int min = 0;
+        int max = 0;
+        if (sscanf_s(paramOutBuf, "%d,%d", &min, &max) == 2) { // 2: two parameters.
+            g_maxSize = max > 0 ? max : INT_MAX;
+            g_minSize = min > 0 ? min : 0;
+        }
+        HILOG_INFO(LOG_CORE, "persist.hiviewdfx.profiler.mem.filter %s, min %d, max %d", paramOutBuf, g_minSize,
+                   g_maxSize);
+    }
     return true;
 }
 
@@ -79,6 +98,7 @@ bool ohos_malloc_hook_on_end(void)
     std::lock_guard<std::recursive_timed_mutex> guard(g_ClientMutex);
     g_hookClient = nullptr;
     pthread_key_delete(g_disableHookFlag);
+    g_mallocIgnoreSet.clear();
     HILOG_INFO(LOG_CORE, "ohos_malloc_hook_on_end");
     return true;
 }
@@ -106,10 +126,12 @@ void* hook_malloc(void* (*fn)(size_t), size_t size)
     if (fn) {
         ret = fn(size);
     }
-    if ((g_hookPid != getpid())
-        || g_ClientConfig.mallocDisable_ || (size < g_ClientConfig.filterSize_)) {
-         return ret;
-     }
+    if ((g_hookPid != getpid()) || g_ClientConfig.mallocDisable_) {
+        return ret;
+    }
+    if (!ohos_set_filter_size(size, ret)) {
+        return ret;
+    }
 #ifdef PERFORMANCE_DEBUG
     struct timespec start = {};
     clock_gettime(CLOCK_REALTIME, &start);
@@ -160,7 +182,6 @@ void* hook_malloc(void* (*fn)(size_t), size_t size)
     rawdata.mallocSize = size;
     rawdata.addr = ret;
     prctl(PR_GET_NAME, rawdata.tname);
-
     std::unique_lock<std::recursive_timed_mutex> lck(g_ClientMutex, std::defer_lock);
     std::chrono::time_point<std::chrono::steady_clock> timeout =
         std::chrono::steady_clock::now() + std::chrono::milliseconds(TIMEOUT_MSEC);
@@ -241,6 +262,14 @@ void hook_free(void (*free_func)(void*), void* p)
     }
     if ((g_hookPid != getpid()) || g_ClientConfig.mallocDisable_) {
          return;
+    }
+    {
+        std::lock_guard<std::recursive_timed_mutex> guard(g_ClientMutex);
+        auto record = g_mallocIgnoreSet.find(p);
+        if (record != g_mallocIgnoreSet.end()) {
+            g_mallocIgnoreSet.erase(record);
+            return;
+        }
     }
     StackRawData rawdata = {{{0}}};
     const char* stackptr = nullptr;
@@ -613,4 +642,14 @@ void ohos_malloc_hook_memtag(void* addr, size_t size, char* tag, size_t tagLen)
         g_hookClient->SendStack(&rawdata, sizeof(rawdata));
     }
     __set_hook_flag(true);
+}
+
+bool ohos_set_filter_size(size_t size, void* ret)
+{
+    if ((size < g_minSize) || (size > g_maxSize)) {
+        std::lock_guard<std::recursive_timed_mutex> guard(g_ClientMutex);
+        g_mallocIgnoreSet.insert(ret);
+        return false;
+    }
+    return true;
 }
