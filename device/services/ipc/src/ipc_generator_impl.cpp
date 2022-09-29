@@ -241,7 +241,7 @@ std::string IpcGeneratorImpl::GenHeader()
     std::string header_str = BASE_HEADER_STRING;
     std::string tmp1;
     header_str = ReplaceStr(header_str, "#HEAD_FILE_NAME#", headFileName_);
-    int numTwo = 2;
+    const int numTwo = 2;
 
     if (serviceCount_ > 0) {
         tmp1 = "enum {\n";
