@@ -67,7 +67,7 @@ bool HookSocketClient::ProtocolProc(SocketContext &context, uint32_t pnum, const
     config_->filterSize_ = (uint16_t)(config >> MOVE_BIT_32);
 
     uint16_t mask = (uint16_t)(config >> MOVE_BIT_48);
-    config_->maxStackDepth_ = (uint8_t)(mask >> 8);
+    config_->maxStackDepth_ = (uint8_t)(mask >> MOVE_BIT_8);
     config_->maxStackDepth_  = config_->maxStackDepth_ > MAX_UNWIND_DEPTH ? MAX_UNWIND_DEPTH : config_->maxStackDepth_;
     smbFd_ = context.ReceiveFileDiscriptor();
     eventFd_ = context.ReceiveFileDiscriptor();
@@ -80,19 +80,20 @@ bool HookSocketClient::ProtocolProc(SocketContext &context, uint32_t pnum, const
     }
     if (mask & FREEMSGSTACK) {
         config_->freeStackData_ = true;
-
     }
     if (mask & MUNMAPMSGSTACK) {
         config_->munmapStackData_ = true;
     }
     if (mask & FPUNWIND) {
         config_->fpunwind_ = true;
-    } 
+    }
     if ((mask & BLOCKED) != 0) {
         config_->isBlocked = true;
     }
-    HILOG_INFO(LOG_CORE, "%s: mallocDisable = %d mmapDisable = %d", __func__, config_->mallocDisable_, config_->mmapDisable_);
-    HILOG_INFO(LOG_CORE, "%s: freeStackData = %d munmapStackData = %d", __func__, config_->freeStackData_, config_->munmapStackData_);
+    HILOG_INFO(LOG_CORE, "%s: mallocDisable = %d mmapDisable = %d", __func__,
+        config_->mallocDisable_, config_->mmapDisable_);
+    HILOG_INFO(LOG_CORE, "%s: freeStackData = %d munmapStackData = %d", __func__,
+        config_->freeStackData_, config_->munmapStackData_);
     HILOG_INFO(LOG_CORE, "%s: filter size = %u smb size = %u", __func__, config_->filterSize_, smbSize);
     HILOG_INFO(LOG_CORE, "%s: maxStackDepth = %u fpunwind = %d isBlocked = %d", __func__, config_->maxStackDepth_,
                config_->fpunwind_, config_->isBlocked);

@@ -241,15 +241,16 @@ std::string IpcGeneratorImpl::GenHeader()
     std::string header_str = BASE_HEADER_STRING;
     std::string tmp1;
     header_str = ReplaceStr(header_str, "#HEAD_FILE_NAME#", headFileName_);
+    const int numTwo = 2;
 
     if (serviceCount_ > 0) {
         tmp1 = "enum {\n";
         for (int i = 0; i < serviceCount_; i++) {
             for (int j = 0; j < serviceList_[i].methodCount_; j++) {
                 tmp1 += "\tIpcProtocol" + baseName_ + serviceList_[i].requestList_[j];
-                tmp1 += "=" + std::to_string(j * 2) + ",\n";
+                tmp1 += "=" + std::to_string(j * numTwo) + ",\n";
                 tmp1 += "\tIpcProtocol" + baseName_ + serviceList_[i].responseList_[j];
-                tmp1 += "=" + std::to_string(j * 2 + 1) + ",\n";
+                tmp1 += "=" + std::to_string(j * numTwo + 1) + ",\n";
             }
         }
         tmp1 += "};";

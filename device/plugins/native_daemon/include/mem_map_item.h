@@ -35,7 +35,8 @@ public:
 
     MemMapItem() {}
     MemMapItem(uint64_t begin, uint64_t end, uint64_t offset, const std::string &name)
-        : begin_(begin), end_(end), pageoffset_(offset), name_(name), nameHold_(OHOS::Developtools::NativeDaemon::memHolder.HoldStringView(name))
+        : begin_(begin), end_(end), pageoffset_(offset), name_(name),
+        nameHold_(OHOS::Developtools::NativeDaemon::memHolder.HoldStringView(name))
     {
     }
 

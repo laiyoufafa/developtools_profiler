@@ -86,7 +86,7 @@ HWTEST_F(ServiceEntryTest, GetTimeUS, TestSize.Level1)
     long t1= ts.tv_sec * US_PER_S + ts.tv_nsec / NS_PER_US;
     long t2 = GetTimeUS();
 
-    ASSERT_TRUE(t2-t1>=0);
+    ASSERT_TRUE(t2 - t1 >= 0);
 }
 
 /**
@@ -100,6 +100,6 @@ HWTEST_F(ServiceEntryTest, GetTimeNS, TestSize.Level1)
     clock_gettime(CLOCK_BOOTTIME, &ts);
     long t1 = ts.tv_sec * NS_PER_S + ts.tv_nsec;
     long t2 = GetTimeNS();
-    ASSERT_TRUE(t2-t1>=0);
+    ASSERT_TRUE(t2 - t1 >= 0);
 }
 } // namespace

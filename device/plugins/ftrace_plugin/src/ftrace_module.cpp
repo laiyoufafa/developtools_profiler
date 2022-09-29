@@ -54,7 +54,7 @@ int TracePluginStartSession(const uint8_t configData[], const uint32_t configSiz
     return result;
 }
 
-int TracePluginReportBasicData()
+static int TracePluginReportBasicData()
 {
     std::unique_lock<std::mutex> lock(g_mutex);
     CHECK_NOTNULL(g_mainController, -1, "no FlowController created!");

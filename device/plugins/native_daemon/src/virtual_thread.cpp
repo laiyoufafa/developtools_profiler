@@ -380,7 +380,6 @@ bool VirtualThread::ParseMap(std::vector<MemMapItem>& memMaps, bool update)
                 addSymbolFile.emplace(memMapItem.name_);
                 HLOGD("%d %d memMap update '%s'", pid_, tid_, memMapItem.name_.c_str());
             }
-
         }
     }
 
