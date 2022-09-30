@@ -33,8 +33,6 @@ ohos_source_set("hiperf_parser_src") {
     "${OHOS_PROTO_GEN}/types/plugins/memory_data",
     "//third_party/protobuf/src",
     "//third_party/perf_include",
-    "//third_party/perf_include/linux",
-    "//third_party/perf_include/include",
   ]
 }
 
@@ -45,7 +43,7 @@ group("hiperf_parser") {
     "//third_party/protobuf:protobuf",
     "//third_party/protobuf:protobuf_lite",
   ]
-  if (target != "test" && !is_openharmony) {
+  if (target != "test") {
     deps += [ "//prebuilts/protos:ts_proto_data_cpp" ]
   }
 }

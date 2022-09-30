@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
+import { ColorUtils } from "../component/trace/base/ColorUtils.js";
 import {BaseStruct} from "./BaseStruct.js";
-import {ColorUtils} from "../database/ProcedureWorkerCommon.js";
 
 export class NetworkAbilityMonitorStruct extends BaseStruct {
     static maxNetworkRate: number = 0

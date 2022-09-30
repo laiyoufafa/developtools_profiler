@@ -82,11 +82,10 @@ describe('SpMetrics Test', () => {
         .request{
             min-height: 15vh;
             overflow: auto;
+            position: relative;
         }
 
         .sql-select{
-            background-color: var(--dark-background5, #F6F6F6);
-            display: table-cell;
             font-family: Helvetica,serif;
             color: var(--dark-color1,#212121);
             font-size:0.875em;
@@ -97,6 +96,11 @@ describe('SpMetrics Test', () => {
             height: 32px;
             flex-wrap: wrap;
             margin-top: 1%;
+            border: 1px solid var(--dark-color1,#4D4D4D);
+            border-radius: 16px;
+            padding: 5px 10px 5px 10px;
+            -webkit-appearance: none;
+            background: url('img/down.png') no-repeat 98% center;
         }
 
         button{
@@ -120,7 +124,7 @@ describe('SpMetrics Test', () => {
         }
 
         .response-json{
-            background-color: var(--dark-background5, #F6F6F6);
+            background-color: var(--dark-background3,#FFFFFF);
             border-radius: 16px;
             display: table-cell;
             font-family: Helvetica,serif;
@@ -160,6 +164,11 @@ describe('SpMetrics Test', () => {
           border-radius: 6px;
           background-color: var(--dark-background7,rgba(0,0,0,0.1));
         }
+        
+        .load-metric{
+            width: 95%;
+            bottom: 0;
+        }
 
         </style>
 
@@ -169,6 +178,7 @@ describe('SpMetrics Test', () => {
                 <select class=\\"sql-select\\">
                 </select>
                 <button class=\\"sql-select-button\\">&nbsp;&nbsp; Run &nbsp;&nbsp;</button>
+                <lit-progress-bar class=\\"load-metric\\"></lit-progress-bar>
             </div>
             <div class=\\"metric-select response\\">
                  <textarea class=\\"response-json\\" readonly>
@@ -178,4 +188,29 @@ describe('SpMetrics Test', () => {
         "
 `);
     });
+
+    it('SpMetricsTest09', function () {
+        expect(spMetrics.reset()).toBeUndefined()
+    });
+
+    it('SpMetricsTest10', function () {
+        expect(spMetrics.connectedCallback()).toBeUndefined();
+    });
+
+    it('SpMetricsTest11', function () {
+        expect(spMetrics.disconnectedCallback()).toBeUndefined();
+    });
+
+    it('SpMetricsTest12', function () {
+        expect(spMetrics.initMetricSelectOption()).toBeUndefined();
+    });
+
+    it('SpMetricsTest13', function () {
+        expect(spMetrics.initMetricDataHandle()).toBeUndefined();
+    });
+
+
+
+
+
 })

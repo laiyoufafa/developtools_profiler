@@ -14,8 +14,8 @@
  */
 
 import {Utils} from "../component/trace/base/Utils.js";
-import {ChartStruct} from "../database/ProcedureWorkerCommon.js";
-import {SpHiPerf} from "../component/hiperf/SpHiPerf.js";
+import {ChartStruct} from "../../trace/bean/FrameChartStruct.js";
+import {SpHiPerf} from "../component/chart/SpHiPerf.js";
 
 export class PerfFile {
     fileId: number = 0;

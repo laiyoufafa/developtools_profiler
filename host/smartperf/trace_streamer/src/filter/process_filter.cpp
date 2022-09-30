@@ -44,7 +44,7 @@ uint32_t ProcessFilter::UpdateOrCreateThread(uint64_t timestamp, uint32_t tid)
 {
     return UpdateOrCreateThreadWithNameIndex(timestamp, tid, 0);
 }
-uint32_t ProcessFilter::UpdateOrCreateThreadWithPidAndName(uint32_t tid, uint32_t pid, std::string_view name)
+void ProcessFilter::UpdateOrCreateThreadWithPidAndName(uint32_t tid, uint32_t pid, std::string_view name)
 {
     uint32_t internalTid = GetOrCreateThreadWithPid(tid, pid);
     auto thread = traceDataCache_->GetThreadData(internalTid);
@@ -54,7 +54,6 @@ uint32_t ProcessFilter::UpdateOrCreateThreadWithPidAndName(uint32_t tid, uint32_
     if (tid == pid) {
         UpdateOrCreateProcessWithName(pid, name);
     }
-    return internalTid;
 }
 
 uint32_t ProcessFilter::GetOrCreateThreadWithPid(uint32_t tid, uint32_t pid)
@@ -215,11 +214,6 @@ std::tuple<uint32_t, TraceStdtype::Process*> ProcessFilter::CreateProcessMaybe(u
     }
 
     return std::make_tuple(internalPid, process);
-}
-void ProcessFilter::Clear()
-{
-    tidMappingSet_.clear();
-    pidToInternalPidMap_.clear();
 }
 } // namespace TraceStreamer
 } // namespace SysTuning

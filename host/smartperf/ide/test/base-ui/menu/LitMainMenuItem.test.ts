@@ -138,6 +138,11 @@ describe("litMainMenuItem Test", () => {
             :host([file]) .icon{
                 pointer-events: none;
             }
+            
+            :host([back]) {
+                background-color: var(--dark-background8,#0A59F7);
+            } 
+            
         </style>
         <input id=\\"file\\" class=\\"file\\" type=\\"file\\" style=\\"display:none;pointer-events: none\\" />
         <label class=\\"root\\" for=\\"file\\">
@@ -146,5 +151,28 @@ describe("litMainMenuItem Test", () => {
         </label>
         "
 `);
+    });
+    it('litMainMenuItem10', () => {
+        let litMainMenuItem = new LitMainMenuItem();
+        litMainMenuItem.back = true
+        expect(litMainMenuItem.back).toBeTruthy()
+    })
+    it('litMainMenuItem11', () => {
+        let litMainMenuItem = new LitMainMenuItem();
+        litMainMenuItem.back = false
+        expect(litMainMenuItem.back).toBeFalsy()
+    })
+
+    it('litMainMenuItem12', () => {
+        const onclick = jest.fn();
+        let menuItem = document.body.innerHTML = `
+            <lit-main-menu-item id='menu'></lit-main-menu-item>
+        `
+        const menu = document.getElementById('menu');
+        expect(onclick).not.toBeCalled();
+        menu!.onclick = onclick;
+        menu!.click();
+        expect(onclick).toBeCalled();
+        expect(onclick).toHaveBeenCalledTimes(1);
     });
 })

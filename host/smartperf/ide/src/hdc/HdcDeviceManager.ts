@@ -59,18 +59,11 @@ export class HdcDeviceManager {
                 if (SpRecordTrace.serialNumber == serialNumber) {
                     SpRecordTrace.serialNumber = ''
                 }
-                await this.disConnect(serialNumber);
                 log("device Usb not Open")
                 return false;
             }
         } else {
             let connectDevice = await this.getDeviceBySerialNumber(serialNumber);
-            if (this.currentHdcClient) {
-                if (connectDevice.serialNumber != this.currentHdcClient!.usbDevice!.serialNumber && this
-                    .currentHdcClient.usbDevice!.serialNumber != undefined) {
-                    await this.disConnect(this.currentHdcClient.usbDevice!.serialNumber);
-                }
-            }
             let usbChannel = await UsbTransmissionChannel.openHdcDevice(connectDevice);
             if (usbChannel) {
                 let hdcClient = new HdcClient(usbChannel, connectDevice);

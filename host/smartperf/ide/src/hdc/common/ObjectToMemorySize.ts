@@ -29,7 +29,7 @@ export class objectToMemorySize{
         const objType = typeof object
         switch (objType) {
             case 'string':
-                return object.length() * 2
+                return object.length * 2
             case 'boolean':
                 return 4
             case 'number':

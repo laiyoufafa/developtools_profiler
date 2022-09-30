@@ -31,4 +31,13 @@ describe('DisassemblingWindow Test', () => {
         let disassemblingWindow = document.querySelector('#ccc') as DisassemblingWindow
         expect(disassemblingWindow.showLoading()).toBeUndefined();
     });
+
+    it('DisassemblingWindowTest04', function () {
+        expect(disassemblingWindow.removeCloseListener()).toBeUndefined();
+    });
+
+    it('DisassemblingWindowTest05', function () {
+        expect(disassemblingWindow.showContent("error","")).toBeUndefined();
+    });
+
 })

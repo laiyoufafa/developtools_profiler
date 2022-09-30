@@ -443,7 +443,7 @@ export class SpRecordSetting extends BaseElement {
             </lit-slider>
             <div class='resultValue'>
                 <input class="max_duration_result" type="text" value = '00:00:50' >
-                <span style="text-align: center; margin: 8px"> h:m:s </span>
+                <span style="text-align: center; margin: 8px 8px 8px 0"> h:m:s </span>
             </div>
             
           </div>

@@ -21,6 +21,8 @@ describe('CpuStruct Test', ()=>{
     canvas.width = 1;
     canvas.height = 1;
     const ctx = canvas.getContext('2d');
+    CpuStruct.selectCpuStruct = {};
+
 
     const data = {
         frame: {
@@ -32,30 +34,83 @@ describe('CpuStruct Test', ()=>{
         startNS: 200,
         value: 50
     }
+    const data1 = {
+        frame: {
+            x: 100,
+            y: 100,
+            width: 10,
+            height: 10
+        },
+        startNS: 1000,
+        value: 500
+    }
+
 
 
     it('CpuStructTest01', function () {
         expect(CpuStruct.draw(ctx, data)).toBeUndefined()
         expect(data).toMatchInlineSnapshot({
-        startNS: expect.any(Number),
-        value: expect.any(Number) }, `
-        Object {
-          "frame": Object {
-            "height": 100,
-            "width": 100,
-            "x": 20,
-            "y": 20,
-          },
-          "startNS": Any<Number>,
-          "value": Any<Number>,
-        }
-    `);
+  startNS: expect.any(Number),
+  value: expect.any(Number) }, `
+Object {
+  "frame": Object {
+    "height": 100,
+    "width": 100,
+    "x": 20,
+    "y": 20,
+  },
+  "startNS": Any<Number>,
+  "value": Any<Number>,
+}
+`);
     });
 
     it('CpuStructTest02', function () {
         expect(CpuStruct.equals({}, data)).toBeTruthy();
     });
 
+    it('CpuStructTest03', function () {
+        expect(CpuStruct.equals(data, data)).toBeTruthy();
+    });
 
+    it('CpuStructTest04', function () {
+        expect(CpuStruct.equals(data, data1)).toBeTruthy();
+    });
 
+    it('CpuStructTest05', function () {
+        expect(CpuStruct.draw(ctx, data1)).toBeUndefined()
+        expect(data1).toMatchInlineSnapshot({
+  startNS: expect.any(Number),
+  value: expect.any(Number) }, `
+Object {
+  "frame": Object {
+    "height": 10,
+    "width": 10,
+    "x": 100,
+    "y": 100,
+  },
+  "startNS": Any<Number>,
+  "value": Any<Number>,
+}
+`);
+    });
+
+    it('CpuStructTest06', function () {
+        expect(CpuStruct.equals({}, data)).toBeTruthy();
+        expect(CpuStruct.draw(ctx, data1)).toBeUndefined()
+        expect(data1).toMatchInlineSnapshot({
+  startNS: expect.any(Number),
+  value: expect.any(Number) }, `
+Object {
+  "frame": Object {
+    "height": 10,
+    "width": 10,
+    "x": 100,
+    "y": 100,
+  },
+  "startNS": Any<Number>,
+  "value": Any<Number>,
+}
+`);
+    });
 })

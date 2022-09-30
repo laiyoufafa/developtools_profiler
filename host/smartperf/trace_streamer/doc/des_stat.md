@@ -82,22 +82,6 @@ ftrace相关事件属于系统内核事件，具体请参考linux内核相关技
 | ----                          |
 |native_hook_free               |
 |native_hook_malloc             |
-## 磁盘读写事件统计
-|事件名称                     |
-| ----                          |
-|trace_diskio                   |
-## 进程事件统计
-|事件名称                     |
-| ----                          |
-|trace_process                  |
-## CPU使用率事件解析
-|事件名称                     |
-| ----                          |
-|trace_cpu_usage                |
-## 网络数据事件解析
-|事件名称                     |
-| ----                          |
-|trace_network                  |
 
 ## 事件对应解析状态： 
 每种事件解析数据都有5种状态，描述如下表：
@@ -353,26 +337,6 @@ ftrace相关事件属于系统内核事件，具体请参考linux内核相关技
 |	native_hook_free	|	not_match	|	info	|
 |	native_hook_free	|	not_supported	|	warn	|
 |	native_hook_free	|	invalid_data	|	error	|
-|	trace_diskio	|	received	|	info	|
-|	trace_diskio	|	data_lost	|	error	|
-|	trace_diskio	|	not_match	|	info	|
-|	trace_diskio	|	not_supported	|	warn	|
-|	trace_diskio	|	invalid_data	|	error	|
-|	trace_process	|	received	|	info	|
-|	trace_process	|	data_lost	|	error	|
-|	trace_process	|	not_match	|	info	|
-|	trace_process	|	not_supported	|	warn	|
-|	trace_process	|	invalid_data	|	error	|
-|	trace_cpu_usage	|	received	|	info	|
-|	trace_cpu_usage	|	data_lost	|	error	|
-|	trace_cpu_usage	|	not_match	|	info	|
-|	trace_cpu_usage	|	not_supported	|	warn	|
-|	trace_cpu_usage	|	invalid_data	|	error	|
-|	trace_network	|	received	|	info	|
-|	trace_network	|	data_lost	|	error	|
-|	trace_network	|	not_match	|	info	|
-|	trace_network	|	not_supported	|	warn	|
-|	trace_network	|	invalid_data	|	error	|
 |	sys_memory	|	received	|	info	|
 |	sys_memory	|	data_lost	|	error	|
 |	sys_memory	|	not_match	|	info	|

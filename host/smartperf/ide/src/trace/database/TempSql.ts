@@ -336,14 +336,43 @@ update thread set ipid = (select id from process where  thread.tid = process.pid
 let temp_create_cpu_freq_view = `CREATE VIEW cpu_freq_view AS SELECT B.cpu, A.ts, LEAD(A.ts, 1, (SELECT end_ts FROM trace_range)) OVER (PARTITION BY A.filter_id ORDER BY ts) AS end_ts,LEAD(A.ts, 1, (SELECT end_ts FROM trace_range)) OVER (PARTITION BY A.filter_id ORDER BY ts) - ts AS dur,value AS freq FROM measure AS A, cpu_measure_filter AS B WHERE B.name = 'cpu_frequency' AND A.filter_id = B.id`;
 let temp_create_virtual_table = `CREATE VIRTUAL table result USING SPAN_JOIN(cpu_freq_view partitioned cpu, sched_slice partitioned cpu)`;
 
-let delete_callstack_binder_data = `DELETE FROM callstack WHERE dur<-1;`;
+let queryThreadWakeUpFrom = `
+select TB.tid,TB.name as thread,TA.cpu,(TA.ts - TR.start_ts) as ts,TC.pid,TC.name as process
+from
+(select ts as wakeTs,wakeup_from as wakeupFromTid from instant,trace_range
+where name = 'sched_wakeup'
+and ref = $itid
+and ts > start_ts + $startTime
+and ts < start_ts + $startTime + $dur
+order by ts) TW
+left join thread_state TA on TW.wakeupFromTid = TA.itid and TA.ts < TW.wakeTs and TA.ts + TA.dur >= TW.wakeTs
+left join thread TB on TA.itid = TB.id
+left join process TC on TB.ipid = TC.id
+left join trace_range TR
+where TB.ipid not null
+limit 1;
+`;
+
+let queryThreadWakeUp = `
+select TB.tid,TB.name as thread,min(TA.ts - TR.start_ts) as ts,TC.pid,TC.name as process
+from
+(select min(ts) as wakeTs,ref as itid from instant,trace_range
+where name = 'sched_wakeup'
+and wakeup_from = $itid
+and ts > start_ts + $startTime
+and ts < start_ts + $startTime + $dur
+group by ref
+) TW
+left join thread_state TA on TW.itid = TA.itid and TA.ts > TW.wakeTs
+left join thread TB on TA.itid = TB.id
+left join process TC on TB.ipid = TC.id
+left join trace_range TR
+where TB.ipid not null
+group by TB.tid, TB.name,TC.pid, TC.name;
+`;
+
+let delete_callstack_binder_data = `DELETE FROM callstack WHERE dur<-1 or name = 'binder transaction async' or name = 'binder async rcv';`;
+
 let temp_init_sql_list = [
-    createProcessNoId,
-    delete_callstack_binder_data,
     temp_query_process,
-    temp_query_cpu_data,
-    temp_query_process_data,
-    temp_query_thread_function,
-    temp_query_thread_data,
-    temp_get_cpu_rate,
 ];

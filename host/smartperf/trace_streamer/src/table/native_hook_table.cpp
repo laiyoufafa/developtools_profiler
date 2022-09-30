@@ -24,7 +24,7 @@ enum Index {
     IPID,
     ITID,
     EVENT_TYPE,
-    SUB_TYPE_ID,
+    SUB_TYPE,
     START_TS,
     END_TS,
     DURATION,
@@ -36,19 +36,19 @@ enum Index {
 }
 NativeHookTable::NativeHookTable(const TraceDataCache* dataCache) : TableBase(dataCache)
 {
-    tableColumn_.push_back(TableBase::ColumnInfo("id", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("eventId", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("ipid", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("itid", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("event_type", "TEXT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("sub_type_id", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("start_ts", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("end_ts", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("dur", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("addr", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("heap_size", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("all_heap_size", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("current_size_dur", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("id", "UNSIGNED INT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("eventId", "UNSIGNED BIG INT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("ipid", "UNSIGNED BIG INT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("itid", "UNSIGNED BIG INT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("event_type", "STRING"));
+    tableColumn_.push_back(TableBase::ColumnInfo("sub_type", "STRING"));
+    tableColumn_.push_back(TableBase::ColumnInfo("start_ts", "UNSIGNED BIG INT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("end_ts", "UNSIGNED BIG INT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("dur", "UNSIGNED BIG INT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("addr", "UNSIGNED BIG INT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("heap_size", "UNSIGNED INT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("all_heap_size", "UNSIGNED INT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("current_size_dur", "UNSIGNED INT"));
     tablePriKey_.push_back("eventId");
 }
 
@@ -209,9 +209,14 @@ int NativeHookTable::Cursor::Column(int column) const
             }
             break;
         }
-        case SUB_TYPE_ID: {
+        case SUB_TYPE: {
             if (nativeHookObj_.SubTypes()[CurrentRow()] != INVALID_UINT64) {
-                sqlite3_result_int64(context_, static_cast<int64_t>(nativeHookObj_.SubTypes()[CurrentRow()]));
+                auto subTypeIndex = static_cast<size_t>(nativeHookObj_.SubTypes()[CurrentRow()]);
+                if (dataCache_->GetDataFromDict(subTypeIndex).empty()) {
+                    break;
+                }
+                sqlite3_result_text(context_, dataCache_->GetDataFromDict(subTypeIndex).c_str(), STR_DEFAULT_LEN,
+                                    nullptr);
             }
             break;
         }

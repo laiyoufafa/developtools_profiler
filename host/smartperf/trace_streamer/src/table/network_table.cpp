@@ -34,17 +34,17 @@ enum Index {
 }
 NetworkTable::NetworkTable(const TraceDataCache* dataCache) : TableBase(dataCache)
 {
-    tableColumn_.push_back(TableBase::ColumnInfo("ts", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("dur", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("tx", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("rx", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("tx_speed", "REAL"));
-    tableColumn_.push_back(TableBase::ColumnInfo("rx_speed", "REAL"));
-    tableColumn_.push_back(TableBase::ColumnInfo("packet_in", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("packet_in_sec", "REAL"));
-    tableColumn_.push_back(TableBase::ColumnInfo("packet_out", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("packet_out_sec", "REAL"));
-    tableColumn_.push_back(TableBase::ColumnInfo("net_type", "TEXT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("ts", "UNSIGNED BIG INT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("dur", "UNSIGNED BIG INT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("tx", "UNSIGNED BIG INT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("rx", "UNSIGNED BIG INT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("tx_speed", "DOUBLE"));
+    tableColumn_.push_back(TableBase::ColumnInfo("rx_speed", "DOUBLE"));
+    tableColumn_.push_back(TableBase::ColumnInfo("packet_in", "UNSIGNED BIG INT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("packet_in_sec", "DOUBLE"));
+    tableColumn_.push_back(TableBase::ColumnInfo("packet_out", "UNSIGNED BIG INT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("packet_out_sec", "DOUBLE"));
+    tableColumn_.push_back(TableBase::ColumnInfo("net_type", "STRING"));
     tablePriKey_.push_back("ts");
 }
 

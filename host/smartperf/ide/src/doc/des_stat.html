@@ -741,13 +741,17 @@
 <div class="mume md-preview  ">
     <h1 class="mume-header fontColor">TraceStreamer 解析数据状态表</h1>
 
-    <p class="fontColor">TraceStreamer使用stat表统计解析trace数据源过程遇到的重要事件状态。通过stat表可以对trace数据源中各个类型事件的数据有一个基本了解。</p>
+    <p class="fontColor">TraceStreamer使用stat表统计解析trace数据源过程遇到的重要事件状态。通过stat表可以对trace数据源中各个类型事件的数据的数量，数据质量有一个基本了解。<br>
+        我们对不同类型的数据，统计了收到多少条，数据逻辑是否匹配，是否有不合法数据，是否有数据丢失情况，所有这些，是基于对数据格式本身和数据前后关系的主观认识。欢迎开发者提供更多的思路来帮我们完善数据本身的校验工作。
+    </p>
     <h2 class="mume-header fontColor">stat表支持统计的事件列表如下：</h2>
+    <h3 class="mume-header fontColor">ftrace事件统计</h3>
+    <p class="fontColor">ftrace相关事件属于系统内核事件，具体请参考linux内核相关技术网站(www.kernel.org)</p>
 
     <table class="fontColor">
         <thead>
         <tr>
-            <th class="fontColor">event_name</th>
+            <th class="fontColor">事件名称</th>
         </tr>
         </thead>
         <tbody>
@@ -794,12 +798,6 @@
             <td>cpu_idle</td>
         </tr>
         <tr>
-            <td>hidump_fps</td>
-        </tr>
-        <tr>
-            <td>hilog</td>
-        </tr>
-        <tr>
             <td>ipi_entry</td>
         </tr>
         <tr>
@@ -812,19 +810,10 @@
             <td>irq_handler_exit</td>
         </tr>
         <tr>
-            <td>memory</td>
-        </tr>
-        <tr>
-            <td>native_hook_free</td>
-        </tr>
-        <tr>
-            <td>native_hook_malloc</td>
+            <td>memory (进程内存)</td>
         </tr>
         <tr>
             <td>oom_score_adj_update</td>
-        </tr>
-        <tr>
-            <td>other</td>
         </tr>
         <tr>
             <td>print</td>
@@ -882,12 +871,6 @@
         </tr>
         <tr>
             <td>sys_exit</td>
-        </tr>
-        <tr>
-            <td>sys_memory</td>
-        </tr>
-        <tr>
-            <td>sys_virtual_memory</td>
         </tr>
         <tr>
             <td>task_newtask</td>
@@ -948,6 +931,124 @@
         </tr>
         </tbody>
     </table>
+    <h2 class="mume-header fontColor">fps事件统计</h2>
+
+    <table class="fontColor">
+        <thead>
+        <tr>
+            <th class="fontColor">事件名称</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td>hidump_fps</td>
+        </tr>
+        </tbody>
+    </table>
+    <h2 class="mume-header fontColor">日志事件统计</h2>
+
+    <table class="fontColor">
+        <thead>
+        <tr>
+            <th class="fontColor">事件名称</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td>hilog</td>
+        </tr>
+        </tbody>
+    </table>
+    <h2 class="mume-header fontColor">系统内存和系统虚拟内存事件</h2>
+
+    <table class="fontColor">
+        <thead>
+        <tr>
+            <th class="fontColor">事件名称</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td>sys_memory</td>
+        </tr>
+        <tr>
+            <td>sys_virtual_memory</td>
+        </tr>
+        </tbody>
+    </table>
+    <h2 class="mume-header fontColor">内存申请和释放事件</h2>
+
+    <table class="fontColor">
+        <thead>
+        <tr>
+            <th class="fontColor">事件名称</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td>native_hook_free</td>
+        </tr>
+        <tr>
+            <td>native_hook_malloc</td>
+        </tr>
+        </tbody>
+    </table>
+    <h2 class="mume-header fontColor">磁盘读写事件统计</h2>
+
+    <table class="fontColor">
+        <thead>
+        <tr>
+            <th class="fontColor">事件名称</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td>trace_diskio</td>
+        </tr>
+        </tbody>
+    </table>
+    <h2 class="mume-header fontColor">进程事件统计</h2>
+
+    <table class="fontColor">
+        <thead>
+        <tr>
+            <th class="fontColor">事件名称</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td>trace_process</td>
+        </tr>
+        </tbody>
+    </table>
+    <h2 class="mume-header fontColor">CPU使用率事件解析</h2>
+
+    <table class="fontColor">
+        <thead>
+        <tr>
+            <th class="fontColor">事件名称</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td>trace_cpu_usage</td>
+        </tr>
+        </tbody>
+    </table>
+    <h2 class="mume-header fontColor">网络数据事件解析</h2>
+
+    <table class="fontColor">
+        <thead>
+        <tr>
+            <th class="fontColor">事件名称</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td>trace_network</td>
+        </tr>
+        </tbody>
+    </table>
     <h2 class="mume-header fontColor">事件对应解析状态：</h2>
 
     <p class="fontColor">每种事件解析数据都有5种状态，描述如下表：</p>
@@ -973,8 +1074,7 @@
         </tr>
         <tr>
             <td>not_supported</td>
-            <td>统计有多少暂不支持解析该事件（一个事件可能包含多种类型的子事件， TraceStreamer可能支持该事件的一部分子事件）。
-            </td>
+            <td>统计有多少暂不支持解析该事件（一个事件可能包含多种类型的子事件， TraceStreamer可能支持该事件的一部分子事件）。</td>
         </tr>
         <tr>
             <td>invalid_data</td>
@@ -984,9 +1084,8 @@
     </table>
     <h2 class="mume-header fontColor">数据状态级别</h2>
 
-    <p class="fontColor">数据状态级别总共有4种，分别是：info, warn, error,fatal。由于数据的重要性不同，不同事件的同一种状态可能对应不同的级别。<br>
-        例如binder_transaction_received的 not_supported状态的数据为info级别，而binder_transaction_alloc_buf的not_supported状态数据为warn级别。
-    </p>
+    <p class="fontColor">数据状态级别总共有4种，分别是：info, warn, error,fatal。由于数据的重要性不同，不同事件的同一种状态可能对应不同的级别。 例如binder_transaction_received的 not_supported状态的数据为info级别，而binder_transaction_alloc_buf的not_supported状态数据为warn级别。</p>
+    <p class="fontColor">您可以在src/cfg/trace_streamer_config.cpp的InitSecurityMap方法中自行定义相关事件的优先级。</p>
     <h2 class="mume-header fontColor">事件，状态与级别对应关系</h2>
 
     <table class="fontColor">
@@ -2170,6 +2269,106 @@
         </tr>
         <tr>
             <td>native_hook_free</td>
+            <td>invalid_data</td>
+            <td>error</td>
+        </tr>
+        <tr>
+            <td>trace_diskio</td>
+            <td>received</td>
+            <td>info</td>
+        </tr>
+        <tr>
+            <td>trace_diskio</td>
+            <td>data_lost</td>
+            <td>error</td>
+        </tr>
+        <tr>
+            <td>trace_diskio</td>
+            <td>not_match</td>
+            <td>info</td>
+        </tr>
+        <tr>
+            <td>trace_diskio</td>
+            <td>not_supported</td>
+            <td>warn</td>
+        </tr>
+        <tr>
+            <td>trace_diskio</td>
+            <td>invalid_data</td>
+            <td>error</td>
+        </tr>
+        <tr>
+            <td>trace_process</td>
+            <td>received</td>
+            <td>info</td>
+        </tr>
+        <tr>
+            <td>trace_process</td>
+            <td>data_lost</td>
+            <td>error</td>
+        </tr>
+        <tr>
+            <td>trace_process</td>
+            <td>not_match</td>
+            <td>info</td>
+        </tr>
+        <tr>
+            <td>trace_process</td>
+            <td>not_supported</td>
+            <td>warn</td>
+        </tr>
+        <tr>
+            <td>trace_process</td>
+            <td>invalid_data</td>
+            <td>error</td>
+        </tr>
+        <tr>
+            <td>trace_cpu_usage</td>
+            <td>received</td>
+            <td>info</td>
+        </tr>
+        <tr>
+            <td>trace_cpu_usage</td>
+            <td>data_lost</td>
+            <td>error</td>
+        </tr>
+        <tr>
+            <td>trace_cpu_usage</td>
+            <td>not_match</td>
+            <td>info</td>
+        </tr>
+        <tr>
+            <td>trace_cpu_usage</td>
+            <td>not_supported</td>
+            <td>warn</td>
+        </tr>
+        <tr>
+            <td>trace_cpu_usage</td>
+            <td>invalid_data</td>
+            <td>error</td>
+        </tr>
+        <tr>
+            <td>trace_network</td>
+            <td>received</td>
+            <td>info</td>
+        </tr>
+        <tr>
+            <td>trace_network</td>
+            <td>data_lost</td>
+            <td>error</td>
+        </tr>
+        <tr>
+            <td>trace_network</td>
+            <td>not_match</td>
+            <td>info</td>
+        </tr>
+        <tr>
+            <td>trace_network</td>
+            <td>not_supported</td>
+            <td>warn</td>
+        </tr>
+        <tr>
+            <td>trace_network</td>
             <td>invalid_data</td>
             <td>error</td>
         </tr>

@@ -14,7 +14,7 @@
  */
 
 import {Utils} from "../component/trace/base/Utils.js";
-import {ChartStruct} from "../database/ProcedureWorkerCommon.js";
+import {ChartStruct} from "../bean/FrameChartStruct.js";
 
 export class NativeHookStatistics {
     eventId: number = 0;

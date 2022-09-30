@@ -20,7 +20,7 @@
 #include <map>
 #include <stdexcept>
 #include <string>
-#include "htrace_plugin_time_parser.h"
+#include "htrace_plugin_time.h"
 #include "memory_plugin_result.pb.h"
 #include "trace_data/trace_data_cache.h"
 #include "trace_streamer_config.h"

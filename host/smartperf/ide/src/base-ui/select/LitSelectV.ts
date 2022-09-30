@@ -99,7 +99,7 @@ export class LitSelectV extends BaseElement {
         this.setAttribute('placeholder', value);
     }
 
-    set all(isAll:boolean){
+    set all(isAll: boolean) {
         if (isAll) {
             this.setAttribute('is-all', '');
         } else {
@@ -107,7 +107,7 @@ export class LitSelectV extends BaseElement {
         }
     }
 
-    get all(){
+    get all() {
         return this.hasAttribute('is-all');
     }
 
@@ -119,11 +119,9 @@ export class LitSelectV extends BaseElement {
             this.itemValue = value;
             if (valueStr != "") {
                 let option = document.createElement("lit-select-option");
-                if (this.showItems.length >= value.length) {
+                if (this.all) {
                     option.setAttribute("selected", "");
-                    this.all = true;
-                } else {
-                    this.all = false;
+                    this.showItems = value
                 }
                 option.setAttribute('value', valueStr);
                 option.textContent = valueStr;
@@ -134,22 +132,20 @@ export class LitSelectV extends BaseElement {
                 this.initDataItem(value);
                 this.initOptions()
             }
-            this.inputElement!.setAttribute("readonly", "readonly")
         } else {
             this.options!.style.display = "none"
-            this.inputElement!.removeAttribute("readonly")
         }
-        if(this.title == 'Event List'){
+        if (this.title == 'Event List') {
             let inputElement = this.shadowRoot?.querySelector('input') as HTMLInputElement;
             inputElement.readOnly = false
         }
     }
 
-    initDataItem(value: Array<string>){
+    initDataItem(value: Array<string>) {
         value.forEach(
             item => {
                 let option = document.createElement("lit-select-option");
-                if (this.showItems.indexOf(item) > -1) {
+                if (this.showItems.indexOf(item) > -1 || this.all) {
                     option.setAttribute("selected", "")
                 }
                 option.setAttribute('value', item);

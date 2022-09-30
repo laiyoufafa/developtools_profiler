@@ -19,9 +19,13 @@ const child_process = require("child_process");
 const os = require("os");
 const log4js = require("log4js");
 
-
 const compileServer = true
 const outDir = "dist"
+
+const sdkWams = [
+    "trace_streamer_sdk_builtin.js",
+    "trace_streamer_sdk_builtin.wasm"
+]
 
 const staticPath = [
     "/src/img",
@@ -33,7 +37,8 @@ const staticPath = [
 const staticFiles = [
     "/server/version.txt",
     "/src/index.html",
-    "/src/base-ui/icon.svg"
+    "/src/base-ui/icon.svg",
+    "/server/wasm.json"
 ]
 
 const thirdParty = [
@@ -138,6 +143,11 @@ function main() {
         // to mv traceStream Wasm and js
         cpFile(traceStreamer + "/trace_streamer_builtin.js", rootPath + outDir + "/trace/database/trace_streamer_builtin.js")
         cpFile(traceStreamer + "/trace_streamer_builtin.wasm", rootPath + outDir + "/trace/database/trace_streamer_builtin.wasm")
+        if (sdkWams.length > 0) {
+            sdkWams.forEach(fileName => {
+                cpFile(traceStreamer + "/" + fileName, rootPath + outDir + "/trace/database/"+ fileName)
+            })
+        }
     } else {
         log.error("traceStreamer dir is not Exits")
         return;

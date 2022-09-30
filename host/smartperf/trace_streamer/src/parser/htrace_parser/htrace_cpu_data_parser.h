@@ -19,7 +19,7 @@
 #include <string>
 #include "cpu_plugin_result.pb.h"
 #include "hilog_plugin_result.pb.h"
-#include "htrace_plugin_time_parser.h"
+#include "htrace_plugin_time.h"
 #include "trace_data/trace_data_cache.h"
 #include "trace_streamer_config.h"
 #include "trace_streamer_filters.h"

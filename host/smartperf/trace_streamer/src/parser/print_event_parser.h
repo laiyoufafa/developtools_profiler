@@ -27,8 +27,9 @@ namespace TraceStreamer {
 class PrintEventParser : private EventParserBase {
 public:
     PrintEventParser(TraceDataCache* dataCache, const TraceStreamerFilters* filter);
-    bool ParsePrintEvent(const std::string& comm, uint64_t ts, uint32_t pid, std::string_view event);
+    void ParsePrintEvent(uint64_t ts, uint32_t pid, std::string_view event);
 private:
+    void ParseTracePoint(uint64_t ts, uint32_t pid, TracePoint point) const;
     ParseResult GetTracePoint(std::string_view str, TracePoint& out) const;
     ParseResult CheckTracePoint(std::string_view pointStr) const;
     uint32_t GetThreadGroupId(std::string_view pointStr, size_t& length) const;

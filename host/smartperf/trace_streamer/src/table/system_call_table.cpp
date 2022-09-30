@@ -22,11 +22,11 @@ enum Index { SYSCALL_NUM = 0, TYPE, IPID, TS, RET };
 }
 SystemCallTable::SystemCallTable(const TraceDataCache* dataCache) : TableBase(dataCache)
 {
-    tableColumn_.push_back(TableBase::ColumnInfo("syscall_num", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("type", "TEXT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("ipid", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("ts", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("ret", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("syscall_num", "INT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("type", "STRING"));
+    tableColumn_.push_back(TableBase::ColumnInfo("ipid", "UNSIGNED INT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("ts", "UNSIGNED INT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("ret", "INT"));
     tablePriKey_.push_back("syscall_num");
 }
 

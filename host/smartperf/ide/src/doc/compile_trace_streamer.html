@@ -727,8 +727,33 @@
     <ul class="fontColor">
         <li>编译方式</li>
     </ul>
-    <pre class="font- light" data-info data-role="codeBlock"><code class="fontColor">./build.sh linux/wasm
+    <pre class="font- light" data-info data-role="codeBlock"><code class="fontColor">third_party部分安装方式
+third_party相关控件下载链接：https://gitee.com/organizations/openharmony/projects
+在src路径下创建同级目录third_party。
+一、sqlite：
+1.打开上方链接，搜索sqlite。
+2.点击搜索结果进入下载界面，下载sqlite组件。
+3.把下载的文件解压后，文件夹命名为sqlite，并用代码路径中\prebuilts\buildsqlite\sqlite3build.gn文件替换sqlite目录中的BUILD.gn文件。
+4.把sqlite文件夹放入third_party目录中。
+二、protobuf：
+1.按上述下载方法，下载protobuf组件。
+2.把下载的文件解压后，文件夹命名为protobuf，并用代码路径中\prebuilts\buildprotobuf\protobufbuild.gn文件替换protobuf目录中的BUILD.gn文件。
+3.把protobuf文件夹放入third_party目录中。
+三、googletest：
+1.按上述下载方法，下载googletest相关组件。
+2.把下载的文件解压后，文件夹命名为googletest，并用代码路径中\prebuilts\buildgoogletest\googletestbuild.gn文件替换googletest目录中的BUILD.gn文件。
+3.把googletest文件夹放入third_party目录中。
+4.找到文件\googletest\include\gtest\internal\ gtest-port.h 把286行 #include &lt;sstream&gt; // NOLINT修改为
+#undef private
+#define private private
+#include &lt;sstream&gt;  // NOLINT
+#undef private
+#define private public</code></pre>
+
+    <p class="fontColor">编译不同版本：linux, WebAssembly, mac</p>
+    <pre class="font- light" data-info data-role="codeBlock"><code class="fontColor">./build.sh linux/wasm/macx
 </code></pre>
+
     <p class="fontColor">如果需要编译WebAssembly版本，您需要在prebuilts/目录下安装emsdk</p>
     <pre class="font- light" data-info data-role="codeBlock"><code class="fontColor">git clone https://github.com/juj/emsdk.git --depth=1
 cd emsdk
@@ -740,7 +765,6 @@ git pull
 </code></pre>
     <p class="fontColor">安装之后，目录结构当如：</p>
     <pre class="font- light" data-info data-role="codeBlock"><code class="fontColor">prebuilts/emsdk
-prebuilts/emsdk
 ├── prebuilts/emsdk/emsdk
 │   ├── prebuilts/emsdk/emsdk/bin
 │   ├── prebuilts/emsdk/emsdk/emscripten
@@ -768,98 +792,6 @@ prebuilts/emsdk
 </code></pre>
     <p class="fontColor">之后调用</p>
     <pre class="font- light" data-info data-role="codeBlock"><code class="fontColor">./build.sh wasm进行编译，您需要将sh脚本进行部分修改，因为这个脚本内置了一些库的下载和解析方式
-</code></pre>
-    <p class="fontColor">本工具还支持使用QtCreator来编译。</p>
-    <p class="fontColor">src/trace_streamer.pro 是工程文件，编译本工具需要依赖Sqlite库和一些基于proto的pb.h文件</p>
-    <h2 class="mume-header fontColor">2 准备工程</h2>
-
-    <h3 class="mume-header fontColor">2.1 基于proto文件生成pb文件</h3>
-
-    <p class="fontColor">您需要自行下载并编译一个当前系统（linux)可用的proobuf/protoc程序，此全路径为位于out/linux/protoc
-        src/protos目录下有一个protogen.sh文件，运行该文件可以在third_party/protogen目录下生成项目需要的pb相关文件
-        序列化二进制的解析依赖于基于proto生成的.pb.cc文件。
-        在执行protogen.sh脚本之后
-        你的目录结构当类似如下结构：
-    </p>
-    <pre class="font- light" data-info data-role="codeBlock"><code class="fontColor">third_party/protogen/types/plugins/ftrace_data/*.pb.cc
-third_party/sqlite/*.
-third_party/protobuf/*
-</code></pre>
-    <h3 class="mume-header fontColor">2.2 获取第三方依赖库;</h3>
-
-    <p class="fontColor">从<br>
-        <a href="https://gitee.com/openharmony/third_party_sqlite" target="_blank">https://gitee.com/openharmony/third_party_sqlite</a><br>
-        获取sqlite3目录到代码根目录的third_party目录<br>
-        从<br>
-        <a href="https://gitee.com/openharmony/third_party_protobuf" target="_blank">https://gitee.com/openharmony/third_party_protobuf</a><br>
-        获取protobuf目录到代码根目录的third_party目录<br>
-        之后，你的目录当如下所示<br>
-        trace_streamer/third_party/protobuf<br>
-        trace_streamer/third_party/sqlite</p>
-    <h1 class="mume-header fontColor">3.（linux和ohos平台）使用gn编译TraceStreamer</h1>
-
-    <p class="fontColor">在编译WebAssembly目标时，需要将sqlite3和protobuf里面相关的ohos_xxx_library统一修改为source_set</p>
-    <h2 class="mume-header fontColor">3.1 准备gn</h2>
-
-    <p class="fontColor">在自己的项目中使用gn，必须遵循以下要求：<br>
-        在根目录创建.gn文件，该文件用于指定CONFIG.gn文件的位置；<br>
-        在BUILDCONFIG.gn中指定编译时使用的编译工具链；<br>
-        在独立的gn文件中定义编译使用的工具链；<br>
-        在项目根目录下创建BUILD.gn文件，指定编译的目标。
-    </p>
-    <pre class="font- light" data-info data-role="codeBlock"><code class="fontColor">cp prebuilts/gn ./
-</code></pre>
-    <p class="fontColor">不同的操作系统下，你需要获取不同的gn</p>
-    <h2 class="mume-header fontColor">3.2 执行编译</h2>
-
-    <p class="fontColor">./build.sh linux debug<br>
-        或./build.sh linux debug<br>
-        ./build.sh将直接编译linux的release版本<br>
-        <a href="http://build.sh">build.sh</a> wasm 命令将可以编译WebAssembly版本<br>
-        特别说明：编译WebAssembly版本需要emSDK支持，你需要将build.sh里面的相关路径做更改，以保证编译时必须的文件是存在的
-    </p>
-    <h1 class="mume-header fontColor" >4 编译Windows版本或Mac版本</h1>
-
-    <h2 class="mume-header fontColor" >4.1 编译依赖文件</h2>
-
-    <h3 class="mume-header fontColor">4.1.1 编译SqliteLib</h3>
-
-    <p class="fontColor">使用QtCreator打开prebuiltsprebuilts/buildprotobuf/sqlite.pro</p>
-    <h3 class="mume-header fontColor">4.1.2 编译ProtobufLib</h3>
-
-    <p class="fontColor">使用QtCreator打开prebuilts/buildprotobuf/protobuf.pro<br>
-        编译之后，文件结构当如下所示：
-    </p>
-    <pre class="font- light" data-info data-role="codeBlock"><code class="fontColor">lib
-lib
-├── linux
-│   ├── libdl.so
-│   └── libsqlite.a
-├── linux_debug
-│   ├── libprotobuf.a
-│   └── libsqlite.a
-├── macx
-│   ├── libprotobuf.a
-│   └── libsqlite.a
-├── macx_debug
-│   ├── libprotobuf.a
-│   └── libsqlite.a
-├── windows
-│   ├── libprotobuf.a
-│   └── libsqlite.a
-└── windows_debug
-    ├── libprotobuf.a
-    └── libsqlite.a
-</code></pre>
-    <h2 class="mume-header fontColor">4.2 编译TraceStreamer</h2>
-
-    <p class="fontColor">之后，使用QtCreator打开src/trace_streamer.pro，选择合适的构建工具，执行 Ctrl + b 即可编译</p>
-    <p class="fontColor">编译之后的可执行文件位于out目录</p>
-    <pre class="font- light" data-info data-role="codeBlock"><code class="fontColor">- out
-- out
----- linux (Linux平台下QtCreator或gn生成)
----- macx (mac平台下QtCreator或gn生成)
----- windows (windows平台下QtCreator或gn生成)
 </code></pre>
 </div>
 <script type="text/javascript">

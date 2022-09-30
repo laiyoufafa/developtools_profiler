@@ -234,11 +234,16 @@ describe('RangeRuler Test', () => {
         rangeRuler.clearRect = jest.fn(() => true)
         expect(rangeRuler.draw()).toBeUndefined();
 
-    })
+    });
 
     it('RangeRulerTest20', function () {
         rangeRuler.setRangeNS(0, 2000)
         expect(rangeRuler.getRange().startX).toBe(0)
 
-    })
+    });
+
+    it('RangeRulerTest25', function () {
+        expect(rangeRuler.delayDraw()).toBeUndefined();
+    });
+
 })

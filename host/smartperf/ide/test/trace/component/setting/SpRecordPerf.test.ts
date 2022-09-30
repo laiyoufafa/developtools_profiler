@@ -32,6 +32,25 @@ describe('SpRecordPerf Test', ()=>{
         expect(spRecordPerf.show).toBeTruthy();
     });
 
+    it('SpRecordPerfTest08', function () {
+        spRecordPerf.show = false;
+        expect(spRecordPerf.show).toBeFalsy();
+    });
+
+    it('SpRecordPerfTest09', function () {
+        expect(spRecordPerf.startSamp).toBeFalsy();
+    });
+
+    it('SpRecordPerfTest10', function () {
+        spRecordPerf.startSamp = true;
+        expect(spRecordPerf.startSamp).toBeTruthy();
+    });
+
+    it('SpRecordPerfTest11', function () {
+        spRecordPerf.startSamp = false;
+        expect(spRecordPerf.startSamp).toBeFalsy();
+    });
+
     it('SpRecordPerfTest05', function () {
         expect(spRecordPerf.unDisable()).toBeUndefined();
     });

@@ -85,16 +85,26 @@ bool GetValueFromString(const std::string &optionValue, const std::string &optio
 
 bool GetValueFromString(const std::string &optionValue, const std::string &optionName, int &value)
 {
-    value = std::stoi(optionValue);
-    HLOGD("get int result:'%s':'%d'", optionName.c_str(), value);
-    return true;
+    try {
+        value = std::stoi(optionValue);
+        HLOGD("get int result:'%s':'%d'", optionName.c_str(), value);
+        return true;
+    } catch (...) {
+        // what can we do here ?
+    }
+    return false;
 }
 
 bool GetValueFromString(const std::string &optionValue, const std::string &optionName, float &value)
 {
-    value = std::stof(optionValue);
-    HLOGD("get float result:'%s':'%f'", optionName.c_str(), value);
-    return true;
+    try {
+        value = std::stof(optionValue);
+        HLOGD("get float result:'%s':'%f'", optionName.c_str(), value);
+        return true;
+    } catch (...) {
+        // what can we do here ?
+    }
+    return false;
 }
 
 bool GetValueFromString(const std::string &optionValue, const std::string &optionName,
@@ -109,11 +119,17 @@ bool GetValueFromString(const std::string &optionValue, const std::string &optio
 {
     std::vector<std::string> stringValues = StringSplit(optionValue, ",");
     HLOGD("split int result:'%s':'%s'", optionName.c_str(), VectorToString(stringValues).c_str());
-    while (!stringValues.empty()) {
-        values.push_back(std::stoi(stringValues.front()));
-        stringValues.erase(stringValues.begin()); // remove for next process
+    try {
+        while (!stringValues.empty()) {
+            values.push_back(std::stoi(stringValues.front()));
+            stringValues.erase(stringValues.begin()); // remove for next process
+        }
+        return values.size() > 0; // convert successed ?
+    } catch (...) {
+        // what can we do here ?
+        HLOGD("stoi failed with %s", stringValues.front().c_str());
     }
-    return values.size() > 0; // convert successed ?
+    return false;
 }
 
 bool GetValueFromString(const std::string &optionValue, const std::string &optionName,

@@ -277,5 +277,14 @@ describe('SportRuler Test', () => {
         expect(sportRuler.mouseUp({offsetX: 20})).toBeUndefined();
     })
 
+    it('SportRulerTest24', function () {
+        sportRuler.drawSlicesMark(null,null)
+
+    })
+
+    it('SportRulerTest25', function () {
+        sportRuler.setSlicesMark(null,null)
+
+    })
 
 })

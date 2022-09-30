@@ -15,7 +15,6 @@
 
 // @ts-ignore
 import {SpApplication} from "../../dist/trace/SpApplication.js";
-import {LitMainMenu} from "../../src/base-ui/menu/LitMainMenu";
 
 window.ResizeObserver = window.ResizeObserver ||
     jest.fn().mockImplementation(() => ({
@@ -25,104 +24,100 @@ window.ResizeObserver = window.ResizeObserver ||
     }));
 
 describe('spApplication Test', ()=>{
-    it('spApplicationTest01', function () {
-        let spApplication = new SpApplication();
-        expect(spApplication).not.toBeUndefined()
-    });
 
+    it('spApplicationTest01',function (){
+        document.body.innerHTML= `<sp-application></sp-application>`
+        let element = new SpApplication();
+        element.dark = 'dark'
+        expect(element.dark).toBeTruthy()
+    })
 
-    it('spApplicationTest02', function () {
-        let spApplication = new SpApplication();
-        expect(spApplication.sqlite).toBeFalsy()
-    });
+    it('spApplicationTest02',function (){
+            document.body.innerHTML= `<sp-application></sp-application>`
+            let element = new SpApplication();
+            element.dark = ''
+            expect(element.dark).toBeFalsy()
+        })
 
+    it('spApplicationTest03',function (){
+        document.body.innerHTML= `<sp-application></sp-application>`
+        let element = new SpApplication();
+        element.vs = 'vs'
+        expect(element.vs).toBeTruthy()
+    })
 
-    it('spApplicationTest03', function () {
-        let spApplication = new SpApplication();
-        expect(spApplication.wasm).toBeFalsy()
-    });
+    it('spApplicationTest04',function (){
+        document.body.innerHTML= `<sp-application></sp-application>`
+        let element = new SpApplication();
+        element.vs = ''
+        expect(element.vs).toBeFalsy()
+    })
 
-    it('spApplicationTest04', function () {
-        let spApplication = new SpApplication();
-        expect(spApplication.server).toBeFalsy()
-    });
+    it('spApplicationTest05',function (){
+        document.body.innerHTML= `<sp-application></sp-application>`
+        let element = new SpApplication();
+        element.server = "server"
+        expect(element.server).toBeTruthy()
+    })
 
+    it('spApplicationTest06',function (){
+        document.body.innerHTML= `<sp-application></sp-application>`
+        let element = new SpApplication();
+        element.server = ""
+        expect(element.server).toBeFalsy()
+    })
 
-    it('spApplicationTest05', function () {
-        let spApplication = new SpApplication();
-        spApplication.server = true;
-        expect(spApplication.server).toBeTruthy()
-    });
+    it('spApplicationTest07',function (){
+        document.body.innerHTML= `<sp-application></sp-application>`
+        let element = new SpApplication();
+        element.querySql = "querySql"
+        expect(element.querySql).toBeTruthy()
+    })
 
-    it('spApplicationTest06', function () {
-        let spApplication = new SpApplication();
-        spApplication.server = false;
-        expect(spApplication.server).toBeFalsy()
-    });
+    it('spApplicationTest08',function (){
+        document.body.innerHTML= `<sp-application></sp-application>`
+        let element = new SpApplication();
+        element.querySql = ""
+        expect(element.querySql).toBeFalsy()
+    })
 
-    it('spApplicationTest07', function () {
-        let spApplication = new SpApplication();
-        spApplication.search = false;
-        expect(spApplication.search).toBeFalsy()
-    });
+    it('spApplicationTest09',function (){
+        document.body.innerHTML= `<sp-application></sp-application>`
+        let element = new SpApplication();
+        element.search = "search"
+        expect(element.querySql).toBeTruthy()
+    })
 
-    it('spApplicationTest08', function () {
-        let spApplication = new SpApplication();
-        spApplication.search = true;
-        expect(spApplication.search).toBeUndefined()
-    });
+    it('spApplicationTest10',function (){
+        document.body.innerHTML= `<sp-application></sp-application>`
+        let element = new SpApplication();
+        element.search = ""
+        expect(element.search).toBeFalsy()
+    })
 
-    it('spApplicationTest09', function () {
-        let spApplication = new SpApplication();
-        expect(spApplication.dark).toBeFalsy()
-    });
-    it('spApplicationTest010', function () {
-        let spApplication = new SpApplication();
-        spApplication.dark = true;
-        expect(spApplication.dark).toBeTruthy()
-    });
-
-    it('spApplicationTest11', function () {
-        let spApplication = new SpApplication();
-        spApplication.dark = false;
-        expect(spApplication.dark).toBeFalsy()
-    });
-
-    it('spApplicationTest12', function () {
-        let spApplication = new SpApplication();
-        expect(spApplication.vs).toBeFalsy()
-    });
-    it('spApplicationTest013', function () {
-        let spApplication = new SpApplication();
-        spApplication.vs = true;
-        expect(spApplication.vs).toBeTruthy()
-    });
-
-    it('spApplicationTest14', function () {
-        let spApplication = new SpApplication();
-        spApplication.vs = false;
-        expect(spApplication.vs).toBeFalsy()
-    });
-    it('spApplicationTest20', function () {
-        let spApplication = new SpApplication();
-        expect(spApplication.querySql).toBeFalsy()
-    });
+    it('spApplicationTest11',function (){
+        document.body.innerHTML= `<sp-application></sp-application>`
+        let element = new SpApplication();
+        expect(element.removeSkinListener()).toBeUndefined()
+    })
 
     it('spApplicationTest15',function (){
-        let spApplication = new SpApplication();
-        expect(spApplication.freshMenuDisable()).toBeUndefined()
+        document.body.innerHTML = '<sp-application id="sss"></sp-application>';
+        let spApplication = document.querySelector('#sss') as SpApplication;
+        expect(spApplication.freshMenuDisable()).toBeUndefined();
     })
 
     it('spApplicationTest16',function (){
-        let spApplication = new SpApplication();
-        expect(spApplication.addSkinListener()).toBeUndefined()
+        document.body.innerHTML = '<sp-application id="sss"></sp-application>';
+        let spApplication = document.querySelector('#sss') as SpApplication;
+        expect(spApplication.addSkinListener()).toBeUndefined();
     })
 
     it('spApplicationTest17',function (){
-        let spApplication = new SpApplication();
+        document.body.innerHTML = '<sp-application id="sss"></sp-application>';
+        let spApplication = document.querySelector('#sss') as SpApplication;
         expect(spApplication.removeSkinListener()).toBeUndefined()
     })
-
 
     it('spApplicationTest18',function (){
         document.body.innerHTML= "<sp-application id='sp'></sp-application>"
@@ -134,23 +129,18 @@ describe('spApplication Test', ()=>{
         document.body.innerHTML= "<sp-application id='sp'></sp-application>"
         let element = document.querySelector("#sp") as SpApplication;
         element.dispatchEvent(new Event("drop"))
-        //expect(SpApplication.removeSkinListener()).toBeUndefined()
-    })
-
-    it('spApplicationTest19',function (){
-        document.body.innerHTML= "<sp-application id='sp'></sp-application>"
-        let element = document.querySelector("#sp") as SpApplication;
-        element.dispatchEvent(new Event("drop"))
-        //expect(SpApplication.removeSkinListener()).toBeUndefined()
+        SpApplication.removeSkinListener = jest.fn(()=>undefined)
+        expect(SpApplication.removeSkinListener()).toBeUndefined()
     })
     it('spApplicationTest21', function () {
-        let spApplication = new SpApplication();
-        spApplication.showContent = true;
-        expect(spApplication.showContent).toBeTruthy()
+        document.body.innerHTML= "<sp-application id='sp'></sp-application>"
+        let element = document.querySelector("#sp") as SpApplication;
+        expect(element.vsDownload()).toBeUndefined()
     });
 
     it('spApplicationTest22', function () {
-        let spApplication = new SpApplication();
+        document.body.innerHTML = '<sp-application id="sss"></sp-application>';
+        let spApplication = document.querySelector('#sss') as SpApplication;
         spApplication.showConten = false;
         expect(spApplication.showContent).toBeFalsy()
     });
@@ -168,7 +158,8 @@ describe('spApplication Test', ()=>{
     });
 
     it('spApplicationTest25', function () {
-        let spApplication = new SpApplication();
+        document.body.innerHTML = '<sp-application id="sss"></sp-application>';
+        let spApplication = document.querySelector('#sss') as SpApplication;
         expect(spApplication.initHtml()).toMatchInlineSnapshot(`
 "
         <style>
@@ -239,7 +230,7 @@ describe('spApplication Test', ()=>{
             left: 0;
             right: 0;
         }
-        :host(:not([search])) #lit-search  {
+        :host(:not([search])) .search-container  {
            display: none;
         }
 
@@ -355,11 +346,11 @@ describe('spApplication Test', ()=>{
                 </sp-system-trace>
                 <sp-record-trace style=\\"width:100%;height:100%;overflow:auto;visibility:hidden;top:0px;left:0px;right:0;bottom:0px;position:absolute;z-index: 102\\" id=\\"sp-record-trace\\">
                 </sp-record-trace>
-                <sp-metrics style=\\"width:100%;height:100%;overflow:auto;visibility:hidden;top:0;left:0;right:0;bottom:0;position:absolute;\\" id=\\"sp-metrics\\">
+                <sp-metrics style=\\"width:100%;height:100%;overflow:auto;visibility:hidden;top:0;left:0;right:0;bottom:0;position:absolute;z-index: 97\\" id=\\"sp-metrics\\">
                 </sp-metrics>
-                <sp-query-sql style=\\"width:100%;height:100%;overflow:auto;visibility:hidden;top:0;left:0;right:0;bottom:0;position:absolute;\\" id=\\"sp-query-sql\\">
+                <sp-query-sql style=\\"width:100%;height:100%;overflow:auto;visibility:hidden;top:0;left:0;right:0;bottom:0;position:absolute;z-index: 98\\" id=\\"sp-query-sql\\">
                 </sp-query-sql>
-                <sp-info-and-stats style=\\"width:100%;height:100%;overflow:auto;visibility:hidden;top:0;left:0;right:0;bottom:0;position:absolute;\\" id=\\"sp-info-and-stats\\">
+                <sp-info-and-stats style=\\"width:100%;height:100%;overflow:auto;visibility:hidden;top:0;left:0;right:0;bottom:0;position:absolute;z-index: 99\\" id=\\"sp-info-and-stats\\">
                 </sp-info-and-stats>
                 <sp-help style=\\"width:100%;height:100%;overflow:auto;visibility:hidden;top:0px;left:0px;right:0;bottom:0px;position:absolute;z-index: 103\\" id=\\"sp-help\\">
                 </sp-help>
@@ -368,4 +359,37 @@ describe('spApplication Test', ()=>{
         "
 `);
     });
+
+    it('spApplicationTest26', function () {
+        document.body.innerHTML = '<SpApplication id="sss"></SpApplication>';
+        let spApplication = document.querySelector('#sss') as SpApplication;
+        spApplication.dark = false;
+        spApplication.skinChangeArray = ['item'];
+        expect(spApplication.dark).toBeFalsy();
+    });
+
+    it('spApplicationTest27', function () {
+        document.body.innerHTML = '<SpApplication id="sss"></SpApplication>';
+        let spApplication = document.querySelector('#sss') as SpApplication;
+        spApplication.dark = true;
+        spApplication.skinChange = jest.fn(()=>true);
+        expect(spApplication.dark).toBeTruthy();
+    });
+
+    it('spApplicationTest28', function () {
+        document.body.innerHTML = '<SpApplication id="sss"></SpApplication>';
+        let spApplication = document.querySelector('#sss') as SpApplication;
+        spApplication.dark = false;
+        spApplication.skinChange2 = jest.fn(()=>true);
+        expect(spApplication.dark).toBeFalsy();
+    });
+
+    it('spApplicationTest29', function () {
+        document.body.innerHTML = '<sp-application id="sss"></sp-application>';
+        let spApplication = document.querySelector('#sss') as SpApplication;
+        spApplication.querySql = false;
+        expect(spApplication.querySql).toBeFalsy();
+    });
+
+
 })

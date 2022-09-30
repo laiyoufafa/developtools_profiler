@@ -15,11 +15,13 @@
 
 #ifndef HIPERF_HASHLIST_HPP
 #define HIPERF_HASHLIST_HPP
+
 #include "hashlist.h"
 
 namespace OHOS {
 namespace Developtools {
 namespace HiPerf {
+
 } // namespace HiPerf
 } // namespace Developtools
 } // namespace OHOS

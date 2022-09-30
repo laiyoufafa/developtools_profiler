@@ -44,4 +44,15 @@ export class Utils {
         }
         return formatCommand;
     }
+
+    public static  numToHexString(num: number): string {
+        if(num == undefined||num == null||isNaN(num)){
+            return "0x0"
+        }
+        if(num < 0){
+            return "0x"+(num >>> 0).toString(16)
+        }else {
+            return "0x"+num.toString(16)
+        }
+    }
 }

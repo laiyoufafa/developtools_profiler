@@ -85,9 +85,5 @@ void MeasureFilter::AddCertainFilterId(uint64_t internalTid, DataIndex nameIndex
             static_cast<uint32_t>(nameIndex), internalTid);
     }
 }
-void MeasureFilter::Clear()
-{
-    tidStreamIdFilterIdMap_.Clear();
-}
 } // namespace TraceStreamer
 } // namespace SysTuning

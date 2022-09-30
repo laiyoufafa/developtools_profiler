@@ -15,6 +15,7 @@
 
 // @ts-ignore
 import {LitButton, LitSelect} from "../../../dist/base-ui/select/LitSelect.js";
+import {LitSelectOption} from "../../../src/base-ui/select/LitSelectOption";
 
 describe('LitSelect Test', ()=>{
 
@@ -100,13 +101,12 @@ describe('LitSelect Test', ()=>{
         let newTag =select.newTag("111","111");
         expect(newTag.text).toBe("111");
     });
-
     it('LitSelectTest14', function () {
         document.body.innerHTML =  `<lit-select id="litSelect" mode="multiple" allow-clear></lit-select>`
         let select = document.querySelector("#litSelect") as LitSelect;
         select.dataSource =  [{key:"111"}]
         let cleart = select.clearElement as HTMLElement;
-        cleart.click()
+        cleart.click();
         expect(select.inputElement.value).toBe("");
 
     });
@@ -158,7 +158,6 @@ describe('LitSelect Test', ()=>{
             position: relative;
             overflow: visible;
             cursor: pointer;
-            transition: all .3s;
             border-radius: 2px;
             outline: none;
             -webkit-user-select:none ;
@@ -175,7 +174,6 @@ describe('LitSelect Test', ()=>{
             outline: none;
             background-color: transparent;
             cursor: pointer;
-            transition: all .3s;
             -webkit-user-select:none ;
             -moz-user-select:none;
             user-select:none;
@@ -200,7 +198,6 @@ describe('LitSelect Test', ()=>{
             display: flex;
             align-items: center;
             justify-content: space-between;
-            transition: all .3s;
             border-radius: 2px;
             outline: none;
             font-size: 1rem;
@@ -219,7 +216,6 @@ describe('LitSelect Test', ()=>{
             margin-top: 2px;
             background-color: var(--dark-background4,#fff);
             width: 100%;
-            transition: all 0.2s;
             transform: scaleY(.6);
             visibility: hidden;
             opacity: 0;
@@ -370,5 +366,50 @@ describe('LitSelect Test', ()=>{
         let select = document.querySelector("#litSelect") as LitSelect;
         select.canInsert = true
         expect(select.canInsert).toBeTruthy();
+    });
+    it('LitSelectTest24', function () {
+        document.body.innerHTML =  `<lit-select id="litSelect" allow-clear></lit-select>`
+        let select = document.querySelector("#litSelect") as LitSelect;
+        select.rounded =false
+        expect(select.rounded).toBeFalsy()
+    });
+    it('LitSelectTest25', function () {
+        document.body.innerHTML =  `<lit-select id="litSelect" allow-clear></lit-select>`
+        let select = document.querySelector("#litSelect") as LitSelect;
+        select.placement =false
+        expect(select.placement).toBeFalsy()
+    });
+    it('LitSelectTest26', function () {
+        document.body.innerHTML =  `<lit-select id="litSelect" allow-clear></lit-select>`
+        let select = document.querySelector("#litSelect") as LitSelect;
+        select.border =true
+        expect(select.border).toBeTruthy()
+    });
+    it('LitSelectTest27', function () {
+        document.body.innerHTML =  `<lit-select id="litSelect" allow-clear></lit-select>`
+        let select = document.querySelector("#litSelect") as LitSelect;
+        select.canInsert =false
+        expect(select.canInsert).toBeFalsy()
+    });
+    it('LitSelectTest28', function () {
+        document.body.innerHTML =  `<lit-select id="litSelect" allow-clear></lit-select>`
+        let select = document.querySelector("#litSelect") as LitSelect;
+        select.loading =false
+        expect(select.loading).toBeFalsy()
+    });
+
+    it('LitSelectTest29', function () {
+        let lit = new LitSelect();
+        lit.border = false;
+        expect(lit.border).toBe('false');
+    });
+
+    it('LitSelectTest30', function () {
+        let litSelect = document.body.innerHTML =  `<lit-select id="litSelect" allow-clear>
+            <lit-select-option id="litSelectOption1" selected></lit-select-option>
+            <lit-select-option id="litSelectOption2"></lit-select-option>
+        </lit-select>` as LitSelect;
+        let select = document.querySelector("#litSelect") as LitSelect;
+        expect(select.reset()).toBeUndefined();
     });
 })

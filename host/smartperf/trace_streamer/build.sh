@@ -33,16 +33,6 @@ case "$OSTYPE" in
 esac
 usage="Usage: $basename $0 wasm/test/fuzz/protoc debug/release/clean"
 
-
-if [ "$1" == 'windows' ];then
-    echo "gn only support linux and wasm build currently"
-    if [ ! -d "out/windows" ];then
-        mkdir out/windows
-    fi
-    touch out/windows/trace_streamer.exe
-    exit
-fi
-
 if [ "$#" -ne "0" ];then
     if [ "$1" == "wasm" ];then
         if [ ! -d "prebuilts/emsdk" ];then
@@ -77,13 +67,9 @@ if [ "$#" -eq "2" ];then
 	exit
     fi
     if [ "$2" != "debug" -a "$2" != "release" -a "$2" != "clean" ];then
-    if [ "$2" == "protoc" ];then
-    target="$2"
-    else
 	echo "failed"
     	echo "$usage"
 	exit
-    fi
     fi
     if [ "$2" == "debug" ];then
 	is_debug='true'
@@ -91,6 +77,14 @@ if [ "$#" -eq "2" ];then
 	is_clean='true'
     else
 	is_debug='false'
+    fi
+    if [ "$target_os" == "windows" ];then
+        echo "gn only support linux and wasm build currently"
+        if [ ! -d "out/windows" ];then
+            mkdir out/windows
+        fi
+        touch out/windows/trace_streamer.exe
+        exit
     fi
     echo "platform is $target_os"
     echo "isdebug: $is_debug"

@@ -123,6 +123,28 @@ describe('TabPaneCurrentSelection Test', () => {
         type: "thread",
 
     }]
+    let scrollWakeUp = [{
+        startTime:0,
+        pid:11,
+        tid:22,
+
+    }]
+    let data = [{
+        cpu: 1,
+        dur: 1,
+        end_state: 'string',
+        id: 12,
+        name: 'name',
+        priority: 11,
+        processCmdLine: 'processCmdLine',
+        processId: 111,
+        processName: 'processName',
+        schedId: 22,
+        startTime: 0,
+        tid: 100,
+        type: 'type',
+
+    }]
 
     tabPaneCurrentSelection.queryWakeUpData = jest.fn(()=> 'WakeUpData')
     tabPaneCurrentSelection.queryWakeUpData.wb = jest.fn(()=>null)
@@ -139,63 +161,66 @@ describe('TabPaneCurrentSelection Test', () => {
         expect(result).toBeUndefined();
     });
 
-    it('TabPaneCurrentSelectionTest12', function () {
-        let result = tabPaneCurrentSelection.queryWakeUpData(queryData)
-        expect(result).toBeTruthy();
-    });
-
     it('TabPaneCurrentSelectionTest03', function () {
-        let result = tabPaneCurrentSelection.setThreadData(threadData)
-        expect(result).toBeUndefined();
+        let result = getTimeString(3600_000_000_002)
+        expect(result).toBe('1h 2ns ');
     });
 
     it('TabPaneCurrentSelectionTest04', function () {
-        // @ts-ignore
-        document.body.innerHTML = `<sp-application> </sp-application>`;
-        expect(tabPaneCurrentSelection.drawRight(canvas, wakeupBean)).toBeUndefined();
-    });
-
-    it('TabPaneCurrentSelectionTest06', function () {
-        let result = getTimeString(3600000000001)
-        expect(result).toBe('1h 1ns ');
-    });
-
-    it('TabPaneCurrentSelectionTest07', function () {
         let result = getTimeString(60000000001)
         expect(result).toBe('1m 1ns ');
     });
 
-    it('TabPaneCurrentSelectionTest08', function () {
+    it('TabPaneCurrentSelectionTest05', function () {
         let result = getTimeString(1000000001)
         expect(result).toBe('1s 1ns ');
     });
 
-    it('TabPaneCurrentSelectionTest9', function () {
+    it('TabPaneCurrentSelectionTest06', function () {
         let result = getTimeString(1000001)
         expect(result).toBe('1ms 1ns ');
     });
 
-    it('TabPaneCurrentSelectionTest10', function () {
+    it('TabPaneCurrentSelectionTest07', function () {
         let result = getTimeString(1001)
         expect(result).toBe('1μs 1ns ');
     });
 
-    it('TabPaneCurrentSelectionTest11', function () {
+    it('TabPaneCurrentSelectionTest08', function () {
         let result = getTimeString(101)
         expect(result).toBe('101ns ');
     });
 
-    it('TabPaneCurrentSelectionTest13',function(){
+    it('TabPaneCurrentSelectionTest09',function(){
         tabPaneCurrentSelection.setCpuData = jest.fn(()=>true);
         tabPaneCurrentSelection.data = jest.fn(()=>true);
         expect(tabPaneCurrentSelection.data).toBeUndefined();
     });
 
-    it('TabPaneCurrentSelectionTest14',function(){
-        expect(tabPaneCurrentSelection.setCpuData(cpuData,undefined,1)).not.toBeUndefined();
+    it('TabPaneCurrentSelectionTest10',function(){
+        expect(tabPaneCurrentSelection.setCpuData(cpuData,undefined,1)).toBeTruthy();
     });
 
-    it('TabPaneCurrentSelectionTest15',function(){
+    it('TabPaneCurrentSelectionTest13', function () {
+        expect(tabPaneCurrentSelection.initCanvas()).not.toBeUndefined();
+    });
+
+    it('TabPaneCurrentSelectionTest14', function () {
+        let str = {
+            length:0
+        }
+        expect(tabPaneCurrentSelection.transferString(str)).toBe("");
+    });
+
+    it('TabPaneCurrentSelectionTest15', function () {
+        expect(tabPaneCurrentSelection.transferString("&amp;")).not.toBeUndefined();
+    });
+
+    it('TabPaneCurrentSelectionTest16', function () {
+        expect(tabPaneCurrentSelection.drawRight(null)).toBeUndefined();
+    });
+
+    it('TabPaneCurrentSelectionTest11',function(){
         expect(tabPaneCurrentSelection.initHtml()).toMatchInlineSnapshot(`
 "
         <style>

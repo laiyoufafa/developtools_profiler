@@ -34,7 +34,7 @@ describe('SpSystemTrace Test', ()=>{
     const rowId=""
     const rowParentId=""
     const rowType=""
-    const smooth=true
+    let smooth=true
 
     spSystemTrace.initElements = jest.fn(()=> true)
 
@@ -100,7 +100,7 @@ describe('SpSystemTrace Test', ()=>{
 
     it('SpSystemTraceTest15', function () {
         spSystemTrace.rowsEL = jest.fn(()=>true)
-        spSystemTrace.rowsEL.scrollTo = jest.fn(()=>true)
+        spSystemTrace.rowsEL.scrollTo = jest.fn(()=>offset)
         spSystemTrace.rowsEL.removeEventListener = jest.fn(()=>true)
         spSystemTrace.rowsEL.addEventListener = jest.fn(()=>true)
         expect(spSystemTrace.rowScrollTo(offset,callback)).toBeUndefined()
@@ -136,11 +136,12 @@ describe('SpSystemTrace Test', ()=>{
         }
         .rows{
             color: #fff;
-            display: flex;
+            display: block;
             box-sizing: border-box;
-            flex-direction: column;
+            /*flex-direction: column;*/
             /*overflow-y: auto;*/
             overflow: overlay;
+            overflow-anchor: none;
             max-height: calc(100vh - 147px - 48px);
             flex: 1;
             width: 100%;
@@ -154,6 +155,9 @@ describe('SpSystemTrace Test', ()=>{
             display: grid;
             grid-template-columns: 1fr;
             grid-template-rows: min-content min-content 1fr min-content;
+        }
+        .trace-sheet{
+            cursor: default;
         }
 
         </style>
@@ -192,10 +196,38 @@ describe('SpSystemTrace Test', ()=>{
         procedurePool.clearCache = jest.fn(()=>true)
         expect(spSystemTrace.reset()).toBeUndefined()
     });
-
     it('SpSystemTraceTest23', function () {
         let spSystemTrace = new SpSystemTrace<any>({canvasNumber:1,alpha: true, contextId: '2d', isOffScreen: true});
-
-        expect(spSystemTrace.hasTable([],"")).toBeUndefined()
+        let structs = [{
+            length:1,
+            starttime:1,
+        }]
+        let previous = 1;
+        let currentIndex = 1;
+        TraceRow.range = jest.fn(()=>undefined)
+        TraceRow.range.startNS = jest.fn(()=>1)
+        expect(spSystemTrace.showStruct(previous, currentIndex, structs)).not.toBeUndefined()
+    });
+    it('SpSystemTraceTest24', function () {
+        let spSystemTrace = new SpSystemTrace<any>({canvasNumber:1,alpha: true, contextId: '2d', isOffScreen: true});
+        TraceRow.range = jest.fn(()=>undefined)
+        TraceRow.range.startNS = jest.fn(()=>1)
+        expect(spSystemTrace.closeAllExpandRows()).toBeUndefined()
+    });
+    it('SpSystemTraceTest25', function () {
+        let spSystemTrace = new SpSystemTrace<any>({canvasNumber:1,alpha: true, contextId: '2d', isOffScreen: true});
+        spSystemTrace.rowsEL = jest.fn(()=>true)
+        spSystemTrace.rowsEL.scroll = jest.fn(()=>true)
+        expect(spSystemTrace.scrollToProcess()).toBeUndefined()
+    });
+    it('SpSystemTraceTest26', function () {
+        let spSystemTrace = new SpSystemTrace<any>({canvasNumber:1,alpha: true, contextId: '2d', isOffScreen: true});
+        spSystemTrace.rowsEL = jest.fn(()=>true)
+        spSystemTrace.rowsEL.scroll = jest.fn(()=>true)
+        expect(spSystemTrace.scrollToDepth()).toBeUndefined()
+    });
+    it('SpSystemTraceTest27', function () {
+        let spSystemTrace = new SpSystemTrace<any>({canvasNumber:1,alpha: true, contextId: '2d', isOffScreen: true});
+        expect(spSystemTrace.searchThreadsAndProcesses()).toStrictEqual([])
     });
 })

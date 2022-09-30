@@ -32,24 +32,24 @@ describe('HeapTreeDataBean Test', ()=>{
         }
         expect(heapTreeDataBean).not.toBeUndefined()
         expect(heapTreeDataBean).toMatchInlineSnapshot({
-            MoudleName: expect.any(String),
-            AllocationFunction: expect.any(String),
-            startTs: expect.any(Number),
-            endTs: expect.any(Number),
-            eventType: expect.any(String),
-            depth: expect.any(Number),
-            heapSize: expect.any(Number),
-            eventId: expect.any(String) }, `
-            Object {
-              "AllocationFunction": Any<String>,
-              "MoudleName": Any<String>,
-              "depth": Any<Number>,
-              "endTs": Any<Number>,
-              "eventId": Any<String>,
-              "eventType": Any<String>,
-              "heapSize": Any<Number>,
-              "startTs": Any<Number>,
-            }
-        `)
+  MoudleName: expect.any(String),
+  AllocationFunction: expect.any(String),
+  startTs: expect.any(Number),
+  endTs: expect.any(Number),
+  eventType: expect.any(String),
+  depth: expect.any(Number),
+  heapSize: expect.any(Number),
+  eventId: expect.any(String) }, `
+Object {
+  "AllocationFunction": Any<String>,
+  "MoudleName": Any<String>,
+  "depth": Any<Number>,
+  "endTs": Any<Number>,
+  "eventId": Any<String>,
+  "eventType": Any<String>,
+  "heapSize": Any<Number>,
+  "startTs": Any<Number>,
+}
+`)
     });
 })

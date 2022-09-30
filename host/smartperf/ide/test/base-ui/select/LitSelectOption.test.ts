@@ -22,11 +22,20 @@ describe('LitSelectOption Test', ()=> {
        let inner =  document.querySelector("#aa") as LitSelectOption;
        expect(inner).not.toBeUndefined()
     });
-    it('LitSelectOptionTest03 ', function () {
+    it('LitSelectOptionTest03', function () {
         expect(LitSelectOption.adoptedCallback).toBeUndefined()
 
     });
 
+    it('LitSelectOptionTest04', function () {
+        expect(LitSelectOption.disconnectedCallback).toBeUndefined()
+
+    });
+
+    it('LitSelectOptionTest05', function () {
+        expect(LitSelectOption.attributeChangedCallback).toBeUndefined()
+
+    });
 
     it('LitSelectOption02', function () {
        let litSelect = new LitSelectOption();
@@ -81,7 +90,7 @@ describe('LitSelectOption Test', ()=> {
             <lit-icon class=\\"selected\\" name=\\"check\\"></lit-icon>
         </div>
         <slot></slot>
-        <lit-icon class=\\"check\\" name=\\"check\\"></lit-icon>
+<!--        <lit-icon class=\\"check\\" name=\\"check\\"></lit-icon>-->
         "
 `);
     });

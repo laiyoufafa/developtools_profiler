@@ -18,6 +18,12 @@ import {LitTable} from "../../../dist/base-ui/table/lit-table.js";
 import {LitTableColumn} from "../../../src/base-ui/table/lit-table-column.js";
 
 describe('LitTable Test', () => {
+    window.ResizeObserver = window.ResizeObserver ||
+    jest.fn().mockImplementation(() => ({
+        disconnect: jest.fn(),
+        observe: jest.fn(),
+        unobserve: jest.fn(),
+    }));
     let litTable = new LitTable();
     litTable.selectable = true
     litTable.selectable = false
@@ -188,7 +194,8 @@ describe('LitTable Test', () => {
         }
         .tr{
             display: grid;
-            width:100%;
+            grid-column-gap: 5px;
+            min-width:100%;
         }
         .tr:nth-of-type(even){
         }
@@ -200,7 +207,6 @@ describe('LitTable Test', () => {
             background-color: var(--dark-background6,#DEEDFF);
         }
         .td{
-            background-color: inherit;
             box-sizing: border-box;
             padding: 3px;
             display: flex;
@@ -208,6 +214,12 @@ describe('LitTable Test', () => {
             align-items: center;
             width: 100%;
             height: auto;
+            cursor: pointer;
+        }
+        .td text{
+            overflow: hidden; 
+            text-overflow: ellipsis; 
+            white-space: nowrap;
         }
         .tr[selected]{
             background-color: var(--dark-background6,#DEEDFF);
@@ -249,13 +261,16 @@ describe('LitTable Test', () => {
             column-gap: 1px;
         }
         .tree{
-            overflow-x:overlay;
+            overflow-x:hidden;
             overflow-y:hidden;
             display: grid;
             grid-template-columns: 1fr;
             row-gap: 1px;
             column-gap: 1px;
             position:relative;
+        }
+        .tree:hover{
+            overflow-x: overlay;
         }
         .tree-first-body{
             min-width: 100%;
@@ -281,7 +296,9 @@ describe('LitTable Test', () => {
             background-color: #f0f0f0;
         }
         .th{
+            grid-column-gap: 5px;
             display: grid;
+            background-color: var(--dark-background,#FFFFFF);
         }
 
         .tree-icon{
@@ -323,10 +340,21 @@ describe('LitTable Test', () => {
         .mouse-in{
             background-color: var(--dark-background6,#DEEDFF);
         }
+        .export{
+            width:30px;
+            height:30px;
+            cursor:pointer;
+            color:var(--dark-background6,#262626);
+            box-sizing: border-box;
+            position:fixed;
+            right:30px;
+            bottom:15px;
+        }
         </style>
 
         <slot id=\\"slot\\" style=\\"display: none\\"></slot>
-        <div class=\\"table\\" style=\\"overflow-x:overlay;\\">
+        <slot name=\\"head\\"></slot>
+        <div class=\\"table\\" style=\\"overflow-x:auto;\\">
             <div class=\\"thead\\"></div>
             <div class=\\"tbody\\">
                 <div class=\\"tree\\"></div>
@@ -412,5 +440,59 @@ describe('LitTable Test', () => {
         }
         expect(litTable.setCurrentSelection(data)).toBeUndefined();
     })
+
+    it("LitTableTest31",() => {
+        document.body.innerHTML = `<lit-table id="aaa"></lit-table>`;
+        let litTable = document.querySelector('#aaa') as LitTable;
+        litTable.formatName =true;
+        expect(litTable.formatName).toBeTruthy();
+    })
+    it("LitTableTest32",() => {
+        let litTable =new LitTable();
+        expect(litTable.formatName()).toBe("");
+    })
+
+    it("LitTableTest33",() => {
+        let litTable =new LitTable();
+        expect(litTable.dataExportInit()).toBeUndefined();
+    })
+    it("LitTableTest34",() => {
+        let litTable =new LitTable();
+        expect(litTable.exportData()).toBeUndefined();
+    })
+
+    it('LitTableTest35', () => {
+        expect(litTable.formatExportData()).not.toBeUndefined();
+    })
+
+    it('LitTableTest36', () => {
+        expect(litTable.setSelectedRow(true,[])).toBeUndefined();
+
+    })
+
+    it('LitTableTest37', () => {
+        document.body.innerHTML = `<lit-table id="aaa"></lit-table>`;
+        let litTable = document.querySelector('#aaa') as LitTable;
+        litTable.setAttribute('tree',true);
+        expect(litTable.dataSource).toStrictEqual([]);
+    });
+
+    it('LitTableTest38', () => {
+        document.body.innerHTML = `<lit-table id="aaa"></lit-table>`;
+        let litTable = document.querySelector('#aaa') as LitTable;
+        litTable.rememberScrollTop = true;
+        expect(litTable.recycleDataSource).toStrictEqual([]);
+    });
+
+    it("LitTableTest39",() => {
+        let litTable =new LitTable();
+        expect(litTable.dataExportInit()).toBeUndefined();
+    });
+
+    it('LitTableTest40', () => {
+        litTable.columns = undefined;
+        expect(litTable.formatExportData()).toStrictEqual([]);
+    });
+
 })
 

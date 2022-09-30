@@ -22,16 +22,23 @@ describe('SpAllocations Test', ()=>{
             <sp-allocations id = "sp"><sp-allocations>
         `
     })
-    it('new SpAllocations', function () {
-        expect(new SpAllocations()).not.toBeUndefined();
-    });
 
     it(' SpAllocations get Default attrValue', function () {
         let spEle = document.querySelector("#sp") as SpAllocations
+        spEle.unwindEL = jest.fn(()=>true)
+        spEle.unwindEL.value = jest.fn(()=>true)
+        spEle.shareMemory = jest.fn(()=>true)
+        spEle.shareMemory.value = jest.fn(()=>true)
+        spEle.shareMemoryUnit = jest.fn(()=>true)
+        spEle.shareMemoryUnit.value = jest.fn(()=>true)
+        spEle.filterMemory = jest.fn(()=>true)
+        spEle.filterMemory.value = jest.fn(()=>true)
+        spEle.filterMemoryUnit = jest.fn(()=>true)
+        spEle.filterMemoryUnit.value = jest.fn(()=>true)
         expect(spEle.pid).toEqual(undefined)
-        expect(spEle.unwind).toEqual(10)
-        expect(spEle.shared).toEqual(2048)
-        expect(spEle.filter).toEqual(0)
+        expect(spEle.unwind).toBeNaN()
+        expect(spEle.shared).toBe(16384)
+        expect(spEle.filter).toBeNaN()
     });
 
     it(' SpAllocations set  attrValue', function () {
@@ -44,36 +51,34 @@ describe('SpAllocations Test', ()=>{
         spEle.filterMemoryUnit.value = "MB"
         expect(spEle.pid).toEqual(undefined)
         expect(spEle.unwind).toEqual(111)
-        expect(spEle.shared).toEqual(0)
+        expect(spEle.shared).toEqual(222)
         expect(spEle.filter).toEqual(111)
 
     });
 
-    it(' SpAllocations set  attrValue', function () {
+    it(' SpAllocations set  attrValue2', function () {
         let spEle = document.querySelector("#sp") as SpAllocations
         spEle.processId.value ="3"
         spEle.unwindEL.value = "1121"
-        spEle.shareMemory.value = "222"
+        spEle.shareMemory!.value = "222"
         spEle.shareMemoryUnit.value = "KB"
         spEle.filterMemory.value = "111"
         spEle.filterMemoryUnit.value = "KB"
         expect(spEle.pid).toEqual(undefined)
         expect(spEle.unwind).toEqual(1121)
-        expect(spEle.shared).toEqual(55)
+        expect(spEle.shared).toEqual(222)
         expect(spEle.filter).toEqual(111)
     });
 
     it(' SpAllocations set  attrValue03', function () {
-        let spEle = document.querySelector("#sp") as SpAllocations
+        let spEle =  new SpAllocations();
         spEle.processId.value ="3"
         spEle.unwindEL.value = "1121"
         spEle.shareMemory.value = "222"
-        spEle.shareMemoryUnit.value = "G"
         spEle.filterMemory.value = "111"
-        spEle.filterMemoryUnit.value = "G"
         expect(spEle.pid).toEqual(undefined)
         expect(spEle.unwind).toEqual(1121)
-        expect(spEle.shared).toEqual(0)
+        expect(spEle.shared).toEqual(222)
         expect(spEle.filter).toEqual(111)
     });
 
@@ -144,10 +149,19 @@ describe('SpAllocations Test', ()=>{
             border-radius: 16px;
         }
         .application{
-         display: flex;
-         flex-direction: column;
-         grid-gap: 15px;
-         margin-top: 40px;
+           display: flex;
+           flex-direction: column;
+           grid-gap: 15px;
+           margin-top: 40px;
+        }
+        .switchstyle{
+           margin-top: 40px;
+           display: flex;
+        }
+        #fp-unwind {
+          display:flex;
+          width:25%; 
+          margin-top: 3px;
         }
         .inputstyle{
             background: var(--dark-background5,#FFFFFF);
@@ -174,36 +188,41 @@ describe('SpAllocations Test', ()=>{
         #two_kb{
             background-color:var(--dark-background5, #FFFFFF)
         }
+        .processSelect {
+          border-radius: 15px;
+          width: 84%;
+        }
         </style>
         <div class=\\"root\\">
           <div class = \\"title\\">
-            <span class=\\"font-style\\">Allocations</span>
+            <span class=\\"font-style\\">Native Memory</span>
           </div>
           <div class=\\"application\\">
              <span class=\\"inner-font-style\\">ProcessId or ProcessName :</span>
-             <input id= \\"pid\\" class=\\"inputstyle\\" type=\\"text\\" placeholder=\\"Enter the pid or ProcessName\\" oninput=\\"if(this.value > 4194304) this.value = ''\\">
+             <lit-allocation-select show-search class=\\"processSelect\\" rounded default-value=\\"\\" id=\\"pid\\" placement=\\"bottom\\" title=\\"process\\" placeholder=\\"please select process\\">
+             </lit-allocation-select>
           </div>
           <div class=\\"application\\">
             <span class=\\"inner-font-style\\" >Max unwind level :</span>
-            <input id= \\"unwind\\"  class=\\"inputstyle\\" type=\\"text\\" placeholder=\\"Enter the Max Unwind Level\\" oninput=\\"if(this.value > 2147483647) this.value = ''\\" onkeyup=\\"this.value=this.value.replace(/\\\\D/g,'')\\" value=\\"10\\">
+            <input id= \\"unwind\\"  class=\\"inputstyle\\" type=\\"text\\" placeholder=\\"Enter the Max Unwind Level\\" oninput=\\"if(this.value > 30) this.value = '30'\\" onkeyup=\\"this.value=this.value.replace(/\\\\D/g,'')\\" value=\\"10\\">
           </div>
           <div class=\\"application\\">
-            <span class=\\"inner-font-style\\">Shared Memory Size (Must be a multiple of 4 KB) :</span>
+            <span class=\\"inner-font-style\\">Shared Memory Size (One page equals 4 KB) :</span>
             <div>
-              <input id = \\"shareMemory\\" class=\\"inputstyle\\" type=\\"text\\" placeholder=\\"Enter the Shared Memory Size\\" oninput=\\"if(this.value > 2147483647) this.value = ''\\" onkeyup=\\"this.value=this.value.replace(/\\\\D/g,'')\\" value=\\"8192\\">
-              <select class=\\"select\\" id=\\"shareMemoryUnit\\" >
-                <option id= \\"one_kb\\" class=\\"select\\" value=\\"KB\\">KB</option>
-              </select>
+              <input id = \\"shareMemory\\" class=\\"inputstyle\\" type=\\"text\\" placeholder=\\"Enter the Shared Memory Size\\" oninput=\\"if(this.value > 2147483647) this.value = ''\\" onkeyup=\\"this.value=this.value.replace(/\\\\D/g,'')\\" value=\\"16384\\">
+              <span>Page</span>
             </div>
           </div>
           <div class=\\"application\\">
             <span class=\\"inner-font-style\\" >Filter Memory Size :</span>
             <div>
-                <input id = \\"filterSized\\" class=\\"inputstyle\\" type=\\"text\\" placeholder=\\"Enter the Filter Memory Size\\" oninput=\\"if(this.value > 65535) this.value = ''\\" onkeyup=\\"this.value=this.value.replace(/\\\\\\\\D/g,'')\\" value=\\"0\\">
-                <select class=\\"select\\" id=\\"filterSizedUnit\\">
-                   <option id= \\"two_kb\\" class=\\"select\\" value=\\"Byte\\">Byte</option>
-                 </select>
+                <input id = \\"filterSized\\" class=\\"inputstyle\\" type=\\"text\\" placeholder=\\"Enter the Filter Memory Size\\" oninput=\\"if(this.value > 65535) this.value = ''\\" onkeyup=\\"this.value=this.value.replace(/\\\\\\\\D/g,'')\\" value=\\"4096\\">
+                 <span>Byte</span>
             </div>
+          </div>
+          <div class=\\"switchstyle\\">
+              <span class=\\"inner-font-style\\" id=\\"fp-unwind\\">Use Fp Unwind :</span> 
+              <lit-switch id=\\"use_fp_unwind\\" title=\\"fp unwind\\" checked=\\"true\\"></lit-switch>
           </div>
         </div>
         "
@@ -211,17 +230,26 @@ describe('SpAllocations Test', ()=>{
     });
 
     it('SpAllocations test05', function () {
-        let spAllocations = new SpAllocations();
-        expect(spAllocations.appProcess).toBe("")
+        let spAllocations = document.querySelector("#sp") as SpAllocations;
+        expect(spAllocations.appProcess).toBe("3")
     });
 
     it('SpAllocations test06', function () {
-        let spAllocations = new SpAllocations();
-        expect(spAllocations.convertToValue("","MB")).toBe(0)
+        let spAllocations = document.querySelector("#sp") as SpAllocations;
+        expect(spAllocations.convertToValue("0","MB")).toBe(0);
     });
 
     it('SpAllocations test07', function () {
-        let spAllocations = new SpAllocations();
-        expect(spAllocations.convertToValue("","KB")).toBe(0)
-    })
+        let spAllocations = document.querySelector("#sp") as SpAllocations;
+        expect(spAllocations.convertToValue("1","KB")).toBe(16384);
+    });
+
+    it('SpAllocations test08', function () {
+        let spAllocations = document.querySelector("#sp") as SpAllocations;
+        expect(spAllocations.convertToValue("1","")).toBe(0);
+    });
+    it('SpAllocations test09', function () {
+        let spAllocations = document.querySelector("#sp") as SpAllocations;
+        expect(spAllocations.fp_unwind).toBeTruthy()
+    });
 })

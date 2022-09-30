@@ -48,8 +48,7 @@ public:
     void InsertWakeupEvent(uint64_t ts, uint64_t internalTid);
     bool InsertProcessExitEvent(uint64_t ts, uint64_t cpu, uint64_t pid);
     bool InsertProcessFreeEvent(uint64_t ts, uint64_t pid);
-    void Finish();
-    void Clear();
+
 private:
     void CheckWakeupEvent(uint64_t internalTid);
     uint64_t RemberInternalTidInStateTable(uint64_t uid, uint64_t row, uint64_t state = TASK_INVALID);
@@ -57,7 +56,8 @@ private:
     uint64_t StateOfInternalTidInStateTable(uint64_t uid) const;
     std::map<uint64_t, uint64_t> cpuToRowThreadState_ = {};
     std::map<uint64_t, uint64_t> cpuToRowSched_ = {};
-    std::map<uint64_t, uint64_t> lastWakeUpMsg_ = {};
+    std::map<uint64_t, uint64_t> lastWakeUpMsg = {};
+
     struct TPthread {
         uint64_t row_;
         uint64_t state_;

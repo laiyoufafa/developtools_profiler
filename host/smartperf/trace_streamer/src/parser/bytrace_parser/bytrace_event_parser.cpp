@@ -184,7 +184,8 @@ bool BytraceEventParser::TaskNewtaskEvent(const ArgsMap& args, const BytraceLine
 bool BytraceEventParser::TracingMarkWriteOrPrintEvent(const ArgsMap& args, const BytraceLine& line)
 {
     UNUSED(args);
-    return printEventParser_.ParsePrintEvent(line.task, line.ts, line.pid, line.argsStr.c_str());
+    printEventParser_.ParsePrintEvent(line.ts, line.pid, line.argsStr.c_str());
+    return true;
 }
 // prefer to use waking, unless no waking, can use wakeup
 bool BytraceEventParser::SchedWakeupEvent(const ArgsMap& args, const BytraceLine& line) const
@@ -202,10 +203,8 @@ bool BytraceEventParser::SchedWakeupEvent(const ArgsMap& args, const BytraceLine
     }
     auto instants = traceDataCache_->GetInstantsData();
     InternalTid internalTid = streamFilters_->processFilter_->UpdateOrCreateThread(line.ts, wakePidValue.value_or(0));
-
-    InternalTid wakeupFromPid = streamFilters_->processFilter_->UpdateOrCreateThread(line.ts, line.pid);
-
-    instants->AppendInstantEventData(line.ts, schedWakeupName_, internalTid, wakeupFromPid);
+    streamFilters_->cpuFilter_->InsertWakeupEvent(line.ts, internalTid);
+    instants->AppendInstantEventData(line.ts, schedWakeupName_, internalTid);
     std::optional<uint32_t> targetCpu = base::StrToUInt32(args.at("target_cpu"));
     if (targetCpu.has_value()) {
         traceDataCache_->GetRawData()->AppendRawData(0, line.ts, RAW_SCHED_WAKEUP, targetCpu.value(), internalTid);
@@ -237,8 +236,7 @@ bool BytraceEventParser::SchedWakingEvent(const ArgsMap& args, const BytraceLine
     InternalTid internalTidWakeup =
         streamFilters_->processFilter_->UpdateOrCreateThreadWithNameIndex(line.ts, line.pid, wakeByPidStrIndex);
     streamFilters_->cpuFilter_->InsertWakeupEvent(line.ts, internalTid);
-    InternalTid wakeupFromPid = streamFilters_->processFilter_->UpdateOrCreateThread(line.ts, line.pid);
-    instants->AppendInstantEventData(line.ts, schedWakingName_, internalTid, wakeupFromPid);
+    instants->AppendInstantEventData(line.ts, schedWakingName_, internalTid);
     std::optional<uint32_t> targetCpu = base::StrToUInt32(args.at("target_cpu"));
     if (targetCpu.has_value()) {
         traceDataCache_->GetRawData()->AppendRawData(0, line.ts, RAW_SCHED_WAKING, targetCpu.value(),
@@ -309,8 +307,7 @@ bool BytraceEventParser::WorkqueueExecuteStartEvent(const ArgsMap& args, const B
     UNUSED(args);
     auto splitStr = GetFunctionName(line.argsStr, "function ");
     auto splitStrIndex = traceDataCache_->GetDataIndex(splitStr);
-    bool result =
-        streamFilters_->sliceFilter_->BeginSlice(line.task, line.ts, line.pid, 0, workQueueId_, splitStrIndex);
+    bool result = streamFilters_->sliceFilter_->BeginSlice(line.ts, line.pid, 0, workQueueId_, splitStrIndex);
     traceDataCache_->GetInternalSlicesData()->AppendDistributeInfo();
     if (result) {
         streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_WORKQUEUE_EXECUTE_START, STAT_EVENT_RECEIVED);
@@ -592,44 +589,6 @@ void BytraceEventParser::GetDataSegArgs(BytraceLine& bufLine, ArgsMap& args, uin
         args.emplace(std::move(key), std::move(value));
     }
 }
-void BytraceEventParser::FilterAllEventsTemp()
-{
-    size_t maxBuffSize = 1000 * 1000;
-    size_t maxQueue = 2;
-    if (eventList_.size() < maxBuffSize * maxQueue) {
-        return;
-    }
-    auto cmp = [](const std::unique_ptr<EventInfo>& a, const std::unique_ptr<EventInfo>& b) {
-        return a->eventTimestamp < b->eventTimestamp;
-    };
-    std::sort(eventList_.begin(), eventList_.end(), cmp);
-    auto endOfList = eventList_.begin() + maxBuffSize;
-    for (auto itor = eventList_.begin(); itor != endOfList; itor++) {
-        EventInfo* event = itor->get();
-        auto it = eventToFunctionMap_.find(event->line.eventName);
-        if (it != eventToFunctionMap_.end()) {
-            uint32_t tgid;
-            ArgsMap args;
-            GetDataSegArgs(event->line, args, tgid);
-            if (tgid) {
-                streamFilters_->processFilter_->UpdateOrCreateThreadWithPidAndName(event->line.pid, tgid,
-                                                                                   event->line.task);
-            } else {
-                // When tgid is zero, only use tid create thread
-                streamFilters_->processFilter_->GetOrCreateThreadWithPid(event->line.pid, tgid);
-            }
-            if (it->second(args, event->line)) {
-                traceDataCache_->UpdateTraceTime(event->line.ts);
-            }
-        } else {
-            traceDataCache_->GetStatAndInfo()->IncreaseStat(TRACE_EVENT_OTHER, STAT_EVENT_NOTSUPPORTED);
-            TS_LOGW("UnRecognizable event name:%s", event->line.eventName.c_str());
-        }
-        itor->reset();
-    }
-    eventList_.erase(eventList_.begin(), endOfList);
-}
-
 void BytraceEventParser::FilterAllEvents()
 {
     auto cmp = [](const std::unique_ptr<EventInfo>& a, const std::unique_ptr<EventInfo>& b) {
@@ -654,38 +613,16 @@ void BytraceEventParser::FilterAllEvents()
                     // When tgid is zero, only use tid create thread
                     streamFilters_->processFilter_->GetOrCreateThreadWithPid(event->line.pid, tgid);
                 }
-                if (it->second(args, event->line)) {
-                    traceDataCache_->UpdateTraceTime(event->line.ts);
-                }
+                traceDataCache_->UpdateTraceTime(event->line.ts);
+                it->second(args, event->line);
             } else {
                 traceDataCache_->GetStatAndInfo()->IncreaseStat(TRACE_EVENT_OTHER, STAT_EVENT_NOTSUPPORTED);
                 TS_LOGW("UnRecognizable event name:%s", event->line.eventName.c_str());
             }
-            itor->reset();
         }
         eventList_.erase(eventList_.begin(), endOfList);
     }
     eventList_.clear();
-    streamFilters_->cpuFilter_->Finish();
-    traceDataCache_->dataDict_.Finish();
-    traceDataCache_->UpdataZeroThreadInfo();
-}
-void BytraceEventParser::Clear()
-{
-    streamFilters_->binderFilter_->Clear();
-    streamFilters_->sliceFilter_->Clear();
-    streamFilters_->cpuFilter_->Clear();
-    streamFilters_->irqFilter_->Clear();
-    streamFilters_->cpuMeasureFilter_->Clear();
-    streamFilters_->threadMeasureFilter_->Clear();
-    streamFilters_->threadFilter_->Clear();
-    streamFilters_->processMeasureFilter_->Clear();
-    streamFilters_->processFilterFilter_->Clear();
-    streamFilters_->clockEnableFilter_->Clear();
-    streamFilters_->clockDisableFilter_->Clear();
-    streamFilters_->clkRateFilter_->Clear();
-    streamFilters_->clkDisableFilter_->Clear();
-    streamFilters_->binderFilter_->Clear();
 }
 } // namespace TraceStreamer
 } // namespace SysTuning

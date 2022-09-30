@@ -24,10 +24,7 @@
 #include "filter_constraints.h"
 #include "index_map.h"
 #include "trace_data_cache.h"
-#define UNUSED(expr)  \
-    do {              \
-        static_cast<void>(expr); \
-    } while (0)
+
 namespace SysTuning {
 namespace TraceStreamer {
 class TableBase;
@@ -71,7 +68,7 @@ public:
 
         virtual uint32_t CurrentRow() const
         {
-            return indexMap_->CurrentRow();
+             return indexMap_->CurrentRow();
         }
 
         virtual int RowId(sqlite3_int64* id);
@@ -96,6 +93,11 @@ public:
 
 protected:
     explicit TableBase(const TraceDataCache* dataCache) : dataCache_(dataCache), cursor_(nullptr) {}
+    std::vector<ColumnInfo> tableColumn_ = {};
+    std::vector<std::string> tablePriKey_ = {};
+    const TraceDataCache* dataCache_;
+    TraceDataCache* wdataCache_;
+    std::unique_ptr<Cursor> cursor_;
 
     struct EstimatedIndexInfo {
         int64_t estimatedRows;
@@ -103,7 +105,8 @@ protected:
         bool isOrdered = false;
     };
 
-    static void TableRegister(sqlite3& db, TraceDataCache* cache, const std::string& name, TabTemplate tmplate);
+    static void TableRegister(sqlite3& db, TraceDataCache* cache, const std::string& name,
+        TabTemplate tmplate);
     virtual int Update(int argc, sqlite3_value** argv, sqlite3_int64* pRowid)
     {
         return SQLITE_READONLY;
@@ -113,19 +116,13 @@ protected:
     virtual void EstimateFilterCost(FilterConstraints& fc, EstimatedIndexInfo& ei) = 0;
     virtual std::unique_ptr<Cursor> CreateCursor() = 0;
     int Open(sqlite3_vtab_cursor** ppCursor);
-
-public:
-    std::string name_;
-protected:
-    std::vector<ColumnInfo> tableColumn_ = {};
-    std::vector<std::string> tablePriKey_ = {};
-    const TraceDataCache* dataCache_;
-    TraceDataCache* wdataCache_;
-    std::unique_ptr<Cursor> cursor_;
 private:
     uint16_t bestIndexNum_ = 0;
     int cacheIdxNum_ = 0;
     FilterConstraints cacheConstraint_;
+
+public:
+    std::string name_;
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

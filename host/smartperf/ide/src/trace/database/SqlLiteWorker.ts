@@ -13,9 +13,9 @@
  * limitations under the License.
  */
 
-importScripts('sql-wasm.js', "TempSql.js","TraceWorkerPerfDataQuery.js", "TraceWorkerNativeMemory.js");
+importScripts('sql-wasm.js', "TempSql.js");
 let conn: any = null;
-
+let encoder = new TextEncoder();
 function initIndexedDB() {
     return new Promise((resolve, reject) => {
         let request = indexedDB.open("systrace");
@@ -63,6 +63,20 @@ function deleteConnection(store: IDBObjectStore, id: number) {
     })
 }
 
+let mergedUnitArray = (bufferSlice:Array<Uint8Array>)=>{
+    let length = 0;
+    bufferSlice.forEach(item => {
+        length += item.length;
+    });
+    let mergedArray = new Uint8Array(length);
+    let offset = 0;
+    bufferSlice.forEach(item => {
+        mergedArray.set(item, offset);
+        offset += item.length;
+    });
+    return mergedArray;
+}
+
 self.onerror = function (error) {
 }
 
@@ -84,7 +98,7 @@ self.onmessage = async (e: any) => {
             self.postMessage({id: e.data.id, init: true});
         });
     } else if (e.data.action === "close") {
-    } else if (e.data.action === "exec") {
+    } else if (e.data.action === "exec"||e.data.action === "exec-buf") {
         try {
             let action = e.data.action; //: "exec"
             let sql = e.data.sql;
@@ -102,39 +116,5 @@ self.onmessage = async (e: any) => {
             // @ts-ignore
             self.postMessage({id: e.data.id, results: [], error: err.message});
         }
-    }else if (e.data.action == "perf-init") {
-        let query = (name:string,sql:any,params:any)=>{
-            const stmt = conn.prepare(sql);
-            stmt.bind(params);
-            let res = [];
-            while (stmt.step()) {
-                res.push(stmt.getAsObject());
-            }
-            stmt.free();
-            return res
-        }
-        // @ts-ignore
-        perfDataQuery.initPerfFiles(query)
-        self.postMessage({id: e.data.id, action: e.data.action, results: perfDataQuery.callChainMap,msg: "ok"});
-    } else if (e.data.action == "perf-action"){
-        // @ts-ignore
-        self.postMessage({id: e.data.id, action: e.data.action, results: perfDataQuery.resolvingAction(e.data.params)});
-    }else if (e.data.action == "native-memory-init") {
-        let query = (name:string,sql:any,params:any)=>{
-            const stmt = conn.prepare(sql);
-            stmt.bind(params);
-            let res = [];
-            while (stmt.step()) {
-                res.push(stmt.getAsObject());
-            }
-            stmt.free();
-            return res
-        }
-        // @ts-ignore
-        nativeMemoryWorker.initNativeMemory(query)
-        self.postMessage({id: e.data.id, action: e.data.action, results: [],msg: "ok"});
-    } else if (e.data.action == "native-memory-action"){
-        // @ts-ignore
-        self.postMessage({id: e.data.id, action: e.data.action, results: nativeMemoryWorker.resolvingAction(e.data.params)});
     }
 }

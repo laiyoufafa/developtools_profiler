@@ -18,19 +18,19 @@
 namespace SysTuning {
 namespace TraceStreamer {
 namespace {
-enum Index { ID = 0, EVENT_ID, DEPTH, IP, SP, SYMBOL_ID, FILE_ID, OFFSET, SYMBOL_OFFSET };
+enum Index { ID = 0, EVENT_ID, DEPTH, IP, SP, SYMBOL_NAME, FILE_PATH, OFFSET, SYMBOL_OFFSET };
 }
 NativeHookFrameTable::NativeHookFrameTable(const TraceDataCache* dataCache) : TableBase(dataCache)
 {
-    tableColumn_.push_back(TableBase::ColumnInfo("id", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("eventId", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("depth", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("ip", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("sp", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("symbol_id", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("file_id", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("offset", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("symbol_offset", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("id", "UNSIGNED INT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("eventId", "UNSIGNED BIG INT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("depth", "UNSIGNED BIG INT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("ip", "UNSIGNED BIG INT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("sp", "UNSIGNED BIG INT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("symbol_name", "STRING"));
+    tableColumn_.push_back(TableBase::ColumnInfo("file_path", "STRING"));
+    tableColumn_.push_back(TableBase::ColumnInfo("offset", "UNSIGNED BIG INT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("symbol_offset", "UNSIGNED BIG INT"));
     tablePriKey_.push_back("eventId");
 }
 
@@ -187,15 +187,18 @@ int NativeHookFrameTable::Cursor::Column(int column) const
             sqlite3_result_int64(context_, static_cast<int64_t>(nativeHookFrameInfoObj_.Sps()[CurrentRow()]));
             break;
         }
-        case SYMBOL_ID:
+        case SYMBOL_NAME:
             if (nativeHookFrameInfoObj_.SymbolNames()[CurrentRow()] != INVALID_UINT64) {
-                sqlite3_result_int64(context_,
-                                     static_cast<int64_t>(nativeHookFrameInfoObj_.SymbolNames()[CurrentRow()]));
+                auto symbolNameDataIndex = static_cast<int64_t>(nativeHookFrameInfoObj_.SymbolNames()[CurrentRow()]);
+                sqlite3_result_text(context_, dataCache_->GetDataFromDict(symbolNameDataIndex).c_str(), STR_DEFAULT_LEN,
+                                    nullptr);
             }
             break;
-        case FILE_ID: {
+        case FILE_PATH: {
             if (nativeHookFrameInfoObj_.FilePaths()[CurrentRow()] != INVALID_UINT64) {
-                sqlite3_result_int64(context_, static_cast<int64_t>(nativeHookFrameInfoObj_.FilePaths()[CurrentRow()]));
+                auto filePathDataIndex = static_cast<size_t>(nativeHookFrameInfoObj_.FilePaths()[CurrentRow()]);
+                sqlite3_result_text(context_, dataCache_->GetDataFromDict(filePathDataIndex).c_str(), STR_DEFAULT_LEN,
+                                    nullptr);
             }
             break;
         }

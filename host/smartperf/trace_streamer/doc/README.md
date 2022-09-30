@@ -1,5 +1,5 @@
 # trace_streamer工具说明
-trace_streamer是一个trace数据流转化器，可以将一个trace文本文件或者基于proto序列化的二进制文件转换成为sqlite数据库的形式。 trace_streamer使用C++实现，支持在ohos, linux, mac等系统上使用，具有良好的跨平台特性。  
+trace_streamer是一个trace数据流转化器，可以将一个trace文本文件或者基于proto序列化的二进制文件转换成为sqlite数据库的形式。 trace_streamer使用C++实现，支持在ohos, linux, windows, mac等系统上使用，具有良好的跨平台特性。  
 ![GitHub Logo](.././figures/trace_streamer_stream.png)   
 ## 关于trace解析工具的使用说明：
 trace_streamer工具可以2种方式使用  
@@ -9,7 +9,7 @@ trace_streamer工具可以2种方式使用
 ### 导出db模式
 在导出db模式下，trace_streamer.exe trace文件路径名 -e 导出db路径名.db
 此命令可以将trace文件转为db
-本应用支持在ohos, linux, mac使用。
+本应用支持在ohos, linux, windows, mac使用。
 关于db文件的说明：
 使用db查看工具查看stat表，可以浏览当前数据一共有多少类数据，各类数据都收到多少条，数据是否正常等情况。在meta表会记录数据库导出时的一些系统信息，比如导入和导出的文件全路径，解析时间等信息。
 meta表可以选择不导出（有些情况下会暴露系统敏感信息），在导出时添加 -nm选项即可。
@@ -77,16 +77,16 @@ TraceStreamer在解析数据过程中，使用ipid(internal pid)唯一标识进�
 用来记录系统中各种随时间连续变化的数值。例如： CPU的频率， 内存的使用量， 界面刷新频率。
 #### 举例
 CPU频率：  
-![GitHub Logo](.././figures/cpu_frequency.png)  
+![GitHub Logo][../figures/cpu_frequency.png]  
 内存占用：  
-![GitHub Logo](.././figures/mem_usage.png)
+![GitHub Logo][../figures/mem_usage.png]
 
 ### 3. 过滤器
 TraceStreamer设计过程中使用了流式处理的思想，数据从入口进入以后，就像进入一条河流，从上游流向下游，在河道中央有很多过滤器，每种过滤器会将流过的数据中自己关注的内容吸附捕捉到。最终，每个过滤器都拥有了大量同类型的数据，而且这些数据都是按时间序列排列的。TraceStreamer使用filterid来标识同一种用途的数据，可以方便在UI中绘制。   
 ![image][filterimageid]  
 
 ## Stat表设计
-具体内容参见 [des_stat](.././des_stat.md)
+具体内容参见 [des_stat](./des_stat.md)
 ## trace_streamer开发环境搭建和编译运行指引
 
 本应用使用gn作为构建工具。
@@ -104,4 +104,4 @@ ubuntu和mac使用vscode
 在根目录下执行相关命令进行编译
 
 ### 2.3、开始编译
-具体方法可参考[compile_trace_streamer](.././compile_trace_streamer.md)
+具体方法可参考[compile_trace_streamer](./compile_trace_streamer.md)

@@ -19,7 +19,7 @@ import {LitTable} from "../../../../base-ui/table/lit-table.js";
 import "../../../../base-ui/table/lit-table-column.js";
 
 import {
-    queryBinderArgsByArgset,
+    queryBinderArgsByArgset, queryBinderByArgsId, queryBinderBySliceId,
     queryThreadWakeUp,
     queryThreadWakeUpFrom,
     queryWakeUpFromThread_WakeThread,
@@ -30,6 +30,7 @@ import {ThreadStruct} from "../../../bean/ThreadStruct.js";
 import {ProcessMemStruct} from "../../../bean/ProcessMemStruct.js";
 import {FuncStruct} from "../../../bean/FuncStruct.js";
 import {SpApplication} from "../../../SpApplication.js";
+import {TraceRow} from "../base/TraceRow.js";
 
 const STATUS_MAP: any = {
     D: "Uninterruptible Sleep",
@@ -102,7 +103,7 @@ export class TabPaneCurrentSelection extends BaseElement {
             leftTitle.innerText = "Slice Details"
         }
         let list: any[] = []
-        let process = data.processName || "Process";
+        let process = this.transferString( data.processName || "Process");
         let processId = data.processId || data.tid;
         let state = ""
         if (data.end_state) {
@@ -114,17 +115,18 @@ export class TabPaneCurrentSelection extends BaseElement {
         }
 
         list.push({name: 'Process', value: `${process || 'Process'} [${processId}]`})
+        let name = this.transferString(data.name ?? "");
         if(data.processId){
             list.push({
                 name: 'Thread', value: `<div style="margin-left: 5px;white-space: nowrap;display: flex;align-items: center">
-<div style="white-space:pre-wrap">${data.name || 'Process'} [${data.tid}]</div>
+<div style="white-space:pre-wrap">${name || 'Process'} [${data.tid}]</div>
 <lit-icon style="cursor:pointer;transform: scaleX(-1);margin-left: 5px" id="thread-id" name="select" color="#7fa1e7" size="20"></lit-icon>
 </div>`
             })
         }else {
             list.push({
                 name: 'Thread', value: `<div style="margin-left: 5px;white-space: nowrap;display: flex;align-items: center">
-<div style="white-space:pre-wrap">${data.name || 'Process'} [${data.tid}]</div>
+<div style="white-space:pre-wrap">${name || 'Process'} [${data.tid}]</div>
 </div>`
             })
         }
@@ -170,7 +172,7 @@ export class TabPaneCurrentSelection extends BaseElement {
         })
     }
 
-    setFunctionData(data: FuncStruct) {//方法信息
+    setFunctionData(data: FuncStruct,scrollCallback:Function) {//方法信息
         this.initCanvas()
         let leftTitle: HTMLElement | null | undefined = this?.shadowRoot?.querySelector("#leftTitle");
         let rightTitle: HTMLElement | null | undefined = this?.shadowRoot?.querySelector("#rightTitle");
@@ -181,24 +183,99 @@ export class TabPaneCurrentSelection extends BaseElement {
             leftTitle.innerText = "Slice Details"
         }
         let list: any[] = []
-        list.push({name: 'Name', value: data.funName})
-        // list.push({name: 'Category', value:data.category}) 暂无参数
-        list.push({name: 'StartTime', value: getTimeString(data.startTs || 0)})
-        list.push({name: 'Duration', value: getTimeString(data.dur || 0)})
-        if (FuncStruct.isBinder(data)) {
-            if (data.argsetid != undefined) {
+        let name = this.transferString(data.funName ?? "");
+        let isBinder = FuncStruct.isBinder(data);
+        let isAsyncBinder = isBinder&&FuncStruct.isBinderAsync(data);
+        if (data.argsetid != undefined&&data.argsetid != null) {
+            if(isAsyncBinder){
+                Promise.all([queryBinderByArgsId(data.argsetid!,data.startTs!,!data.funName!.endsWith("rcv")),queryBinderArgsByArgset(data.argsetid)]).then((result)=>{
+                    let asyncBinderRes = result[0]
+                    let argsBinderRes = result[1]
+                    let asyncBinderStract:any;
+                    if(asyncBinderRes.length > 0){
+                        asyncBinderRes[0].type = TraceRow.ROW_TYPE_FUNC
+                        asyncBinderStract = asyncBinderRes[0]
+                    }
+                    if(argsBinderRes.length > 0){
+                        argsBinderRes.forEach((item) => {
+                            list.push({name: item.keyName, value: item.strValue})
+                        })
+                    }
+                    if(asyncBinderStract != undefined){
+                        list.unshift({
+                            name: 'Name', value: `<div style="margin-left: 5px;white-space: nowrap;display: flex;align-items: center">
+<div style="white-space:pre-wrap">${name || 'binder'}</div>
+<lit-icon style="cursor:pointer;transform: scaleX(-1);margin-left: 5px" id="function-jump" name="select" color="#7fa1e7" size="20"></lit-icon>
+</div>`
+                        })
+                    }else {
+                        list.unshift({name: 'Name', value:name})
+                    }
+                    list.push({name: 'StartTime', value: getTimeString(data.startTs || 0)})
+                    list.push({name: 'Duration', value: getTimeString(data.dur || 0)})
+                    list.push({name: 'depth', value: data.depth})
+                    list.push({name: 'arg_set_id', value: data.argsetid})
+                    this.tbl!.dataSource = list;
+                    let funcClick = this.tbl?.shadowRoot?.querySelector("#function-jump")
+                    funcClick?.addEventListener("click", () => {
+                        scrollCallback(asyncBinderStract)
+                    })
+                })
+            } else if(isBinder){
                 queryBinderArgsByArgset(data.argsetid).then((argset) => {
+                    let binderSliceId = -1;
+                    argset.forEach((item) => {
+                        if(item.keyName == 'destination slice id'){
+                            binderSliceId = Number(item.strValue)
+                            list.unshift({
+                                name: 'Name', value: `<div style="margin-left: 5px;white-space: nowrap;display: flex;align-items: center">
+<div style="white-space:pre-wrap">${name || 'binder'}</div>
+<lit-icon style="cursor:pointer;transform: scaleX(-1);margin-left: 5px" id="function-jump" name="select" color="#7fa1e7" size="20"></lit-icon>
+</div>`
+                            })
+                        }
+                        list.push({name: item.keyName, value: item.strValue})
+                    })
+                    if(binderSliceId  == -1) {
+                       list.unshift({name: 'Name', value:name})
+                    }
+                    list.push({name: 'StartTime', value: getTimeString(data.startTs || 0)})
+                    list.push({name: 'Duration', value: getTimeString(data.dur || 0)})
+                    list.push({name: 'depth', value: data.depth})
+                    list.push({name: 'arg_set_id', value: data.argsetid})
+                    this.tbl!.dataSource = list;
+                    let funcClick = this.tbl?.shadowRoot?.querySelector("#function-jump")
+                    funcClick?.addEventListener("click", () => {
+                        if (!Number.isNaN(binderSliceId)&&binderSliceId!=-1) {
+                            queryBinderBySliceId(binderSliceId).then((result:any[])=>{
+                                if(result.length > 0){
+                                    result[0].type = TraceRow.ROW_TYPE_FUNC
+                                    scrollCallback(result[0])
+                                }
+                            })
+                        }
+                    })
+                });
+            } else {
+                queryBinderArgsByArgset(data.argsetid).then((argset) => {
+                    list.push({name: 'Name', value:name})
                     argset.forEach((item) => {
                         list.push({name: item.keyName, value: item.strValue})
                     })
-
-                });
+                    list.push({name: 'StartTime', value: getTimeString(data.startTs || 0)})
+                    list.push({name: 'Duration', value: getTimeString(data.dur || 0)})
+                    list.push({name: 'depth', value: data.depth})
+                    list.push({name: 'arg_set_id', value: data.argsetid})
+                    this.tbl!.dataSource = list;
+                })
             }
+        }else {
+            list.push({name: 'Name', value:name})
+            list.push({name: 'StartTime', value: getTimeString(data.startTs || 0)})
+            list.push({name: 'Duration', value: getTimeString(data.dur || 0)})
             list.push({name: 'depth', value: data.depth})
-            list.push({name: 'arg_set_id', value: data.argsetid})
+            this.tbl!.dataSource = list;
         }
-        this.tbl!.dataSource = list
-
     }
 
     setMemData(data: ProcessMemStruct) {//时钟信息
@@ -254,7 +331,7 @@ export class TabPaneCurrentSelection extends BaseElement {
         if (processName == null || processName == "" || processName.toLowerCase() == "null") {
             processName = data.name;
         }
-        list.push({name: 'Process', value: processName + " [" + data.pid + "] "})
+        list.push({name: 'Process', value: this.transferString(processName ?? "") + " [" + data.pid + "] "})
         let cpu = new CpuStruct();
         cpu.id = data.id;
         cpu.startTime = data.startTime;
@@ -323,7 +400,7 @@ export class TabPaneCurrentSelection extends BaseElement {
         if (data.id == undefined || data.startTime == undefined) {
             return null
         }
-        let wakeupTimes = await queryWakeUpFromThread_WakeTime(data.id, data.startTime)//  3,4835380000
+        let wakeupTimes = await queryWakeUpFromThread_WakeTime(data.id, data.startTime)
         if (wakeupTimes != undefined && wakeupTimes.length > 0) {
             let wakeupTime = wakeupTimes[0]
             if (wakeupTime.wakeTs != undefined && wakeupTime.preRow != undefined && wakeupTime.wakeTs < wakeupTime.preRow) {
@@ -358,7 +435,7 @@ export class TabPaneCurrentSelection extends BaseElement {
      * @param data
      */
     async queryThreadWakeUpFromData(itid: number, startTime: number,dur:number) : Promise<WakeupBean|undefined> {
-        let wakeUps = await queryThreadWakeUpFrom(itid, startTime,dur)//  3,4835380000
+        let wakeUps = await queryThreadWakeUpFrom(itid, startTime,dur)
         if (wakeUps != undefined && wakeUps.length > 0) {
             return wakeUps[0];
         }
@@ -459,6 +536,22 @@ export class TabPaneCurrentSelection extends BaseElement {
             })
 
         }
+    }
+
+    transferString(str:string): string{
+        let s = ""
+        if(str.length == 0){
+            return "";
+        }
+        s = str.replace(/&/g,"&amp;")
+        s = s.replace(/</g,"&lt;")
+        s = s.replace(/>/g,"&gt;")
+        s = s.replace(/ /g,"&nbsp;")
+        s = s.replace(/\'/g,"&#39;")
+        s = s.replace(/\"/g,"&#quat;")
+        // s = s.replace(/(/g,"&amp;")
+        // s = s.replace(/)/g,"&amp;")
+        return s
     }
 
     initElements(): void {

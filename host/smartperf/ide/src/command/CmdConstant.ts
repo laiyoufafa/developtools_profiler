@@ -25,7 +25,7 @@ export class CmdConstant {
     static CMD_GET_CPU_COUNT_DEVICES =  "hdc_std -t {0} shell grep -c 'processor' /proc/cpuinfo"
     static CMD_GET_HIPERF_EVENTS_DEVICES = "hdc_std -t {0} shell hiperf list"
     static CMD_FIEL_RECV_DEVICES = "hdc_std -t {0} file recv {1} ./"
-    static CMS_HDC_STOP = "hdc_std -t {0} shell killall hiprofilerd hiprofiler_plugins native_daemon hiperf" +
+    static CMS_HDC_STOP = "hdc_std -t {0} shell killall hiprofilerd hiprofiler_plugins native_daemon hiperf hiebpf" +
         " hiprofiler_cmd"
-    static CMS_STOP = "hdc_std shell killall hiprofilerd hiprofiler_plugins native_daemon hiperf hiprofiler_cmd"
+    static CMS_STOP = "hdc_std shell killall hiprofilerd hiprofiler_plugins native_daemon hiperf hiebpf hiprofiler_cmd"
 }

@@ -53,9 +53,5 @@ const DataIndex& SymbolsFilter::GetFunc(uint64_t addr) const
         return symbolsMap_.at(addr);
     }
 }
-void SymbolsFilter::Clear()
-{
-    symbolsMap_.clear();
-}
 } // namespace TraceStreamer
 } // namespace SysTuning

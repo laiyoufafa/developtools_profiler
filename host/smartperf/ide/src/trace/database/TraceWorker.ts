@@ -13,10 +13,22 @@
  * limitations under the License.
  */
 
-importScripts("trace_streamer_builtin.js", "TempSql.js", "TraceWorkerPerfDataQuery.js", "TraceWorkerNativeMemory.js");
+importScripts("trace_streamer_builtin.js", "TempSql.js");
 self.onerror = function (error: any) {
 }
 let Module: any = null;
+let enc = new TextEncoder();
+let dec = new TextDecoder();
+let arr: Uint8Array;
+let start: number;
+const REQ_BUF_SIZE = 4 * 1024 * 1024;
+let reqBufferAddr:number = -1;
+let bufferSlice:Array<any> = []
+let json:string;
+
+let headUnitArray:Uint8Array;
+let thirdWasmMap = new Map();
+let thirdJsonResult = new Map();
 
 function initWASM() {
     return new Promise((resolve, reject) => {
@@ -40,40 +52,141 @@ function initWASM() {
     })
 }
 
-const REQ_BUF_SIZE = 4 * 1024 * 1024;
-let reqBufferAddr:number = -1;
-let _response:Function|undefined|null = undefined;
+function initThirdWASM(wasmFunctionName:string) {
+    function callModelFun(functionName: string) {
+        let func = eval(functionName);
+        return new func({
+            locateFile: (s: any) => {
+                return s
+            },
+            print: (line: any) => {
+            },
+            printErr: (line: any) => {
+            },
+            onRuntimeInitialized: () => {
+            },
+            onAbort: () => {
+            }
+        });
+    }
+    return callModelFun(wasmFunctionName)
+}
+
+let merged = ()=>{
+    let length = 0;
+    bufferSlice.forEach(item => {
+        length += item.length;
+    });
+    let mergedArray = new Uint8Array(length);
+    let offset = 0;
+    bufferSlice.forEach(item => {
+        mergedArray.set(item, offset);
+        offset += item.length;
+    });
+    return mergedArray;
+}
+let convertJSON = ()=>{
+    let str = dec.decode(arr);
+    let jsonArray = [];
+    str = str.substring(str.indexOf("\n") + 1);
+    if (!str) {
+    }else{
+        let parse = JSON.parse(str);
+        let columns = parse.columns;
+        let values = parse.values;
+        for (let i = 0; i < values.length; i++) {
+            let obj: any = {}
+            for (let j = 0; j < columns.length; j++) {
+                obj[columns[j]] = values[i][j]
+            }
+            jsonArray.push(obj)
+        }
+    }
+    return jsonArray;
+}
 self.onmessage = async (e: MessageEvent) => {
     if (e.data.action === "open") {
         await initWASM();
         // @ts-ignore
         self.postMessage({id: e.data.id, action: e.data.action, ready: true, index: 0});
         let uint8Array = new Uint8Array(e.data.buffer);
-        let callback = (heapPtr: number, size: number) => {
-            let out = Module.HEAPU8.subarray(heapPtr, heapPtr + size);
-            let str = dec.decode(out);
-            arr.length = 0;
-            str = str.substring(str.indexOf("\n") + 1);
-            if (!str) {
-            }else{
-                let parse = JSON.parse(str);
-                let columns = parse.columns;
-                let values = parse.values;
-                for (let i = 0; i < values.length; i++) {
-                    let obj: any = {}
-                    for (let j = 0; j < columns.length; j++) {
-                        obj[columns[j]] = values[i][j]
-                    }
-                    arr.push(obj)
-                }
-            }
-            if (e.data.action === "exec") {
-                // @ts-ignore
-                self.postMessage({id: e.data.id, action: e.data.action, results: arr});
+        let callback = (heapPtr: number, size: number, isEnd: number) => {
+            let out:Uint8Array = Module.HEAPU8.slice(heapPtr, heapPtr + size);
+            bufferSlice.push(out);
+            if(isEnd == 1){
+                arr = merged();
+                bufferSlice.length = 0;
             }
         }
-        let fn = Module.addFunction(callback, "vii");
-        reqBufferAddr = Module._Initialize(fn,REQ_BUF_SIZE);
+        let fn = Module.addFunction(callback, "viii");
+        reqBufferAddr = Module._Initialize(fn, REQ_BUF_SIZE);
+        let wasmConfigStr = e.data.wasmConfig
+        if (wasmConfigStr != "") {
+            let wasmConfig = JSON.parse(wasmConfigStr);
+            let wasmConfigs = wasmConfig.WasmFiles
+            let itemArray = wasmConfigs.map((item:any) => {return item.componentId + ";" + item.pluginName})
+            let thirdWasmStr: string = itemArray.join(";")
+            let configUintArray = enc.encode(thirdWasmStr + ";");
+            Module.HEAPU8.set(configUintArray, reqBufferAddr);
+            Module._TraceStreamer_Init_ThirdParty_Config(configUintArray.length);
+            let first = true;
+            let sendDataCallback = (heapPtr: number, size: number, componentID: number) => {
+                if (componentID == 100) {
+                    if (first) {
+                        first = false;
+                        headUnitArray = Module.HEAPU8.slice(heapPtr, heapPtr + size);
+                    }
+                    return;
+                }
+                let configs = wasmConfigs.filter((wasmConfig: any) => {
+                    return wasmConfig.componentId == componentID;
+                })
+                if (configs.length > 0) {
+                    let config = configs[0];
+                    let model = thirdWasmMap.get(componentID)
+                    if (model == null && config.componentId == componentID) {
+                        importScripts(config.wasmJsName)
+                        let thirdMode = initThirdWASM(config.wasmName)
+                        let thirdQueryDataCallBack = (heapPtr: number, size: number, isEnd: number, isConfig: number) => {
+                            if (isConfig == 1) {
+                                let out: Uint8Array = thirdMode.HEAPU8.slice(heapPtr, heapPtr + size);
+                                thirdJsonResult.set(componentID, dec.decode(out))
+                            } else  {
+                                let out: Uint8Array = thirdMode.HEAPU8.slice(heapPtr, heapPtr + size);
+                                bufferSlice.push(out);
+                                if (isEnd == 1) {
+                                    arr = merged();
+                                    bufferSlice.length = 0;
+                                }
+                            }
+                        }
+                        let fn = thirdMode.addFunction(thirdQueryDataCallBack, "viiii");
+                        let thirdreqBufferAddr = thirdMode._Init(fn, REQ_BUF_SIZE)
+                        let updateTraceTimeCallBack = (heapPtr: number, size: number) => {
+                            let out: Uint8Array = thirdMode.HEAPU8.slice(heapPtr, heapPtr + size);
+                            Module.HEAPU8.set(out, reqBufferAddr);
+                            Module._UpdateTraceTime(out.length);
+                        }
+                        let traceRangeFn = thirdMode.addFunction(updateTraceTimeCallBack, "vii");
+                        let mm = thirdMode._InitTraceRange(traceRangeFn, 1024)
+                        thirdMode._TraceStreamer_In_JsonConfig();
+                        thirdMode.HEAPU8.set(headUnitArray, thirdreqBufferAddr);
+                        thirdMode._ParserData(headUnitArray.length, 100);
+                        let out: Uint8Array = Module.HEAPU8.slice(heapPtr, heapPtr + size);
+                        thirdMode.HEAPU8.set(out, thirdreqBufferAddr);
+                        thirdMode._ParserData(out.length, componentID);
+                        thirdWasmMap.set(componentID, {"model": thirdMode, "bufferAddr":thirdreqBufferAddr})
+                    } else {
+                        let mm = model.model
+                        let out: Uint8Array = Module.HEAPU8.slice(heapPtr, heapPtr + size);
+                        mm.HEAPU8.set(out, model.bufferAddr);
+                        mm._ParserData(out.length, componentID);
+                    }
+                }
+            }
+            let fn1 = Module.addFunction(sendDataCallback, "viii");
+            let reqBufferAddr1 = Module._TraceStreamer_Set_ThirdParty_DataDealer(fn1, REQ_BUF_SIZE);
+        }
         let wrSize = 0;
         let r2 = -1;
         while (wrSize < uint8Array.length) {
@@ -87,6 +200,9 @@ self.onmessage = async (e: MessageEvent) => {
             }
         }
         Module._TraceStreamerParseDataOver();
+        for (let value of thirdWasmMap.values()) {
+            value.model._TraceStreamer_In_ParseDataOver();
+        }
         if (r2 == -1) {
             // @ts-ignore
             self.postMessage({id: e.data.id, action: e.data.action, init: false, msg: "parse data error"});
@@ -99,76 +215,37 @@ self.onmessage = async (e: MessageEvent) => {
             self.postMessage({id: e.data.id, ready: true, index: index + 1});
         });
         // @ts-ignore
-        self.postMessage({id: e.data.id, action: e.data.action, init: true, msg: "ok", buffer: e.data.buffer},  [e.data.buffer]);
+        self.postMessage({id: e.data.id, action: e.data.action, init: true, msg: "ok", configSqlMap:thirdJsonResult, buffer: e.data.buffer},  [e.data.buffer]);
     } else if (e.data.action === "exec") {
         query(e.data.name, e.data.sql, e.data.params);
+        let jsonArray = convertJSON();
         // @ts-ignore
-        self.postMessage({id: e.data.id, action: e.data.action, results: arr});
+        self.postMessage({id: e.data.id, action: e.data.action, results: jsonArray});
     } else if (e.data.action == "exec-buf") {
-        let arr = queryArrayBuffer(e.data.name, e.data.sql, e.data.params);
+        query(e.data.name, e.data.sql, e.data.params);
         // @ts-ignore
-        self.postMessage({id: e.data.id, action: e.data.action, results: arr}, [arr]);
-    } else if (e.data.action == "perf-init") {
+        self.postMessage({id: e.data.id, action: e.data.action, results: arr.buffer}, [arr.buffer]);
+    } else if (e.data.action.startsWith("exec-sdk")) {
+        querySdk(e.data.name, e.data.sql, e.data.params, e.data.action);
+        let jsonArray = convertJSON();
         // @ts-ignore
-        perfDataQuery.initPerfFiles(query)
-        self.postMessage({id: e.data.id, action: e.data.action, results: perfDataQuery.callChainMap, msg: "ok"});
-    } else if (e.data.action == "perf-action") {
-        // @ts-ignore
-        self.postMessage({id: e.data.id, action: e.data.action, results: perfDataQuery.resolvingAction(e.data.params)});
-    } else if (e.data.action == "native-memory-init") {
-        // @ts-ignore
-        self.postMessage({
-            id: e.data.id,
-            action: e.data.action,
-            results: nativeMemoryWorker.initNativeMemory(query),
-            msg: "ok"
-        });
-    } else if (e.data.action == "native-memory-action") {
-        // @ts-ignore
-        self.postMessage({
-            id: e.data.id,
-            action: e.data.action,
-            results: nativeMemoryWorker.resolvingAction(e.data.params)
-        });
+        self.postMessage({id: e.data.id, action: e.data.action, results: jsonArray});
     }
 }
 
 function createView(sql: string) {
     let enc = new TextEncoder();
-    let dec = new TextDecoder();
     let sqlPtr = Module._malloc(sql.length);
     Module.HEAPU8.set(enc.encode(sql), sqlPtr);
     let res = Module._TraceStreamerSqlOperate(sqlPtr, sql.length);
     return res;
 }
 
-function queryArrayBuffer(name: string, sql: string, params: any) {
-    if (params) {
-        Reflect.ownKeys(params).forEach((key: any) => {
-            if (typeof params[key] === "string") {
-                sql = sql.replace(new RegExp(`\\${key}`, "g"), `'${params[key]}'`);
-            } else {
-                sql = sql.replace(new RegExp(`\\${key}`, "g"), params[key]);
-            }
-        });
-    }
-    let arr: Array<any> = []
-    let enc = new TextEncoder();
-    let dec = new TextDecoder();
-    let sqlPtr = Module._malloc(sql.length);
-    let outPtr = Module._malloc(REQ_BUF_SIZE);
-    let sqlUintArray = enc.encode(sql);
-    Module.HEAPU8.set(sqlUintArray, sqlPtr);
-    let res = Module._TraceStreamerSqlQuery(sqlPtr, sql.length, outPtr, REQ_BUF_SIZE);
-    let out = Module.HEAPU8.subarray(outPtr, outPtr + res);
-    Module._free(sqlPtr);
-    Module._free(outPtr);
-    out = out.buffer.slice(out.byteOffset, out.byteLength + out.byteOffset)
-    return out;
+function queryJSON(name: string, sql: string, params: any) {
+    query(name,sql,params);
+    return convertJSON();
 }
-let enc = new TextEncoder();
-let dec = new TextDecoder();
-let arr: Array<any> = []
+
 function query(name: string, sql: string, params: any) {
     if (params) {
         Reflect.ownKeys(params).forEach((key: any) => {
@@ -179,8 +256,27 @@ function query(name: string, sql: string, params: any) {
             }
         });
     }
+    start = new Date().getTime();
     let sqlUintArray = enc.encode(sql);
     Module.HEAPU8.set(sqlUintArray, reqBufferAddr);
     Module._TraceStreamerSqlQueryEx(sqlUintArray.length);
-    return arr
+}
+
+function querySdk(name: string, sql: string, params: any, action: string) {
+    if (params) {
+        Reflect.ownKeys(params).forEach((key: any) => {
+            if (typeof params[key] === "string") {
+                sql = sql.replace(new RegExp(`\\${key}`, "g"), `'${params[key]}'`);
+            } else {
+                sql = sql.replace(new RegExp(`\\${key}`, "g"), params[key]);
+            }
+        });
+    }
+    let sqlUintArray = enc.encode(sql);
+    let commentId = action.substring(action.lastIndexOf("-") + 1)
+    let key = Number(commentId)
+    let wasm = thirdWasmMap.get(key);
+    let wasmModel = wasm.model
+    wasmModel.HEAPU8.set(sqlUintArray, wasm.bufferAddr);
+    wasmModel._TraceStreamerSqlQueryEx(sqlUintArray.length);
 }

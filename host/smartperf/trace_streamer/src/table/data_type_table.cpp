@@ -23,9 +23,9 @@ enum Index { ID = 0, TYPEID, DESC };
 }
 DataTypeTable::DataTypeTable(const TraceDataCache* dataCache) : TableBase(dataCache)
 {
-    tableColumn_.push_back(TableBase::ColumnInfo("id", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("typeId", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("desc", "TEXT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("id", "UNSIGNED INT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("typeId", "UNSIGNED INT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("desc", "STRING"));
     tablePriKey_.push_back("id");
 }
 

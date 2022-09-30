@@ -37,7 +37,6 @@ void HtraceCpuDetailParser::Parse(TracePluginResult* tracePacket, BuiltinClocks 
 void HtraceCpuDetailParser::FilterAllEvents()
 {
     eventParser_->FilterAllEvents();
-    eventParser_->Clear();
 }
 } // namespace TraceStreamer
 } // namespace SysTuning

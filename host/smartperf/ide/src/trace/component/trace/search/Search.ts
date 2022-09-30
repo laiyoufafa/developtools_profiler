@@ -43,6 +43,10 @@ export class LitSearch extends BaseElement {
         this.indexEL!.textContent = `${value + 1}`;
     }
 
+    get searchValue(){
+        return this.search?.value
+    }
+
     get total(): number {
         return this._total;
     }
@@ -125,6 +129,10 @@ export class LitSearch extends BaseElement {
                 }
             }));
         });
+        this.search!.addEventListener('change', (event) => {
+            this.index = -1;
+        });
+
         this.search!.addEventListener("keyup", (e: KeyboardEvent) => {
             if (e.code == "Enter") {
                 if (e.shiftKey) {

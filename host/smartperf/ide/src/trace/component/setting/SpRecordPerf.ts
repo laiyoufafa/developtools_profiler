@@ -38,6 +38,7 @@ export class SpRecordPerf extends BaseElement {
     private eventSelect: LitSelectV | undefined | null;
 
     private frequencySetInput: HTMLInputElement | undefined | null;
+    private processInput: HTMLInputElement | undefined | null;
     private offCPUSwitch: LitSwitch | undefined | null;
     private callSelect: LitSelect | undefined | null;
     private configList: Array<any> = [];
@@ -57,8 +58,10 @@ export class SpRecordPerf extends BaseElement {
     set startSamp(start: boolean) {
         if (start) {
             this.setAttribute("startSamp", "");
+            this.processInput!.removeAttribute("readonly");
         } else {
             this.removeAttribute("startSamp")
+            this.processInput!.setAttribute("readonly", 'readonly');
         }
     }
 
@@ -291,8 +294,9 @@ export class SpRecordPerf extends BaseElement {
             configList!.appendChild(div);
         })
         let sp = document.querySelector("sp-application") as SpApplication;
-        let litSearch = sp.shadowRoot?.querySelector('#lit-search') as LitSearch;
+        let litSearch = sp?.shadowRoot?.querySelector('#lit-search') as LitSearch;
         this.processSelect = this.shadowRoot?.querySelector<LitSelectV>("lit-select-v[title='Process']");
+        this.processInput = this.processSelect?.shadowRoot?.querySelector<HTMLInputElement>('input');
         let querySelector = this.processSelect!.shadowRoot?.querySelector("input") as HTMLInputElement;
         let processData: Array<string> = []
         querySelector.addEventListener('mousedown', ev => {
@@ -324,6 +328,9 @@ export class SpRecordPerf extends BaseElement {
                                 processData.push(processName + "(" + processId + ")")
                             }
                         }
+                        if(processData.length > 0 && this.startSamp){
+                            this.processInput!.setAttribute("readonly", "readonly")
+                        }
                         this.processSelect?.dataSource(processData, 'ALL-Process')
                     })
                 } else {
@@ -344,6 +351,9 @@ export class SpRecordPerf extends BaseElement {
                                             processData.push(processName + "(" + processId + ")")
                                         }
                                     }
+                                }
+                                if(processData.length > 0 && this.startSamp){
+                                    this.processInput!.setAttribute("readonly", "readonly")
                                 }
                                 this.processSelect?.dataSource(processData, 'ALL-Process')
                             })

@@ -153,16 +153,6 @@ export class SpMetrics extends BaseElement {
 
     initMetricDataHandle() {
         this.metricOptionalSelects = [
-            // {
-            //     metricName: 'trace_cpu',
-            //     metricQuery: queryTraceCpu,
-            //     metricResultHandle: initCpuStrategyData
-            // },
-            // {
-            //     metricName: 'trace_cpu_top10',
-            //     metricQuery: queryTraceCpuTop,
-            //     metricResultHandle: initCpuStrategyData,
-            // },
             {
                 metricName: 'trace_mem',
                 metricQuery: queryTraceMemory,
@@ -198,11 +188,6 @@ export class SpMetrics extends BaseElement {
                 metricQuery: querySystemCalls,
                 metricResultHandle: initSysCallsStrategy
             },
-            // {
-            //     metricName: 'sys_calls_top10',
-            //     metricQuery: querySystemCallsTop,
-            //     metricResultHandle: initSysCallsTopStrategy
-            // },
         ]
     }
 
@@ -246,8 +231,6 @@ export class SpMetrics extends BaseElement {
         }
 
         .sql-select{
-            background-color: var(--dark-background5, #F6F6F6);
-            display: table-cell;
             font-family: Helvetica,serif;
             color: var(--dark-color1,#212121);
             font-size:0.875em;
@@ -258,6 +241,11 @@ export class SpMetrics extends BaseElement {
             height: 32px;
             flex-wrap: wrap;
             margin-top: 1%;
+            border: 1px solid var(--dark-color1,#4D4D4D);
+            border-radius: 16px;
+            padding: 5px 10px 5px 10px;
+            -webkit-appearance: none;
+            background: url('img/down.png') no-repeat 98% center var(--dark-background3,#FFFFFF);
         }
 
         button{
@@ -281,7 +269,7 @@ export class SpMetrics extends BaseElement {
         }
 
         .response-json{
-            background-color: var(--dark-background5, #F6F6F6);
+            background-color: var(--dark-background3,#FFFFFF);
             border-radius: 16px;
             display: table-cell;
             font-family: Helvetica,serif;

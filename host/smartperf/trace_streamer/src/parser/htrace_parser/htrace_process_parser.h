@@ -17,7 +17,7 @@
 #include <cstdint>
 #include <map>
 #include <string>
-#include "htrace_plugin_time_parser.h"
+#include "htrace_plugin_time.h"
 #include "process_plugin_result.pb.h"
 #include "trace_streamer_filters.h"
 #include "cpu_plugin_result.pb.h"

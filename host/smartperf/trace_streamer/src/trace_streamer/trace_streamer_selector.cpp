@@ -28,9 +28,7 @@
 #include "measure_filter.h"
 #include "parser/bytrace_parser/bytrace_parser.h"
 #include "parser/htrace_parser/htrace_parser.h"
-#if WITH_PERF
 #include "perf_data_filter.h"
-#endif
 #include "process_filter.h"
 #include "slice_filter.h"
 #include "stat_filter.h"
@@ -124,9 +122,7 @@ void TraceStreamerSelector::InitFilter()
         std::make_unique<SystemEventMeasureFilter>(traceDataCache_.get(), streamFilters_.get(), E_SYS_MEMORY_FILTER);
     streamFilters_->sysEventVMemMeasureFilter_ = std::make_unique<SystemEventMeasureFilter>(
         traceDataCache_.get(), streamFilters_.get(), E_SYS_VIRTUAL_MEMORY_FILTER);
-#if WITH_PERF
     streamFilters_->perfDataFilter_ = std::make_unique<PerfDataFilter>(traceDataCache_.get(), streamFilters_.get());
-#endif
 }
 
 void TraceStreamerSelector::WaitForParserEnd()

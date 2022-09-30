@@ -38,30 +38,28 @@ describe('BoxSelection Test', ()=>{
 
         expect(selectionParam).not.toBeUndefined()
         expect(selectionParam).toMatchInlineSnapshot({
-          cpus: expect.any(Number),
-          threadIds: expect.any(Number),
-          trackIds: expect.any(Number),
-          funTids: expect.any(Number),
-          heapIds: expect.any(Number),
-          nativeMemory: expect.any(Number),
-          leftNs: expect.any(Number),
-          rightNs: expect.any(Number),
-          hasFps: expect.any(Boolean)
-          },
-          `
-          Object {
-            "cpus": Any<Number>,
-            "funTids": Any<Number>,
-            "hasFps": Any<Boolean>,
-            "heapIds": Any<Number>,
-            "leftNs": Any<Number>,
-            "nativeMemory": Any<Number>,
-            "rightNs": Any<Number>,
-            "statisticsSelectData": 1,
-            "threadIds": Any<Number>,
-            "trackIds": Any<Number>,
-          }
-        `);
+  cpus: expect.any(Number),
+  threadIds: expect.any(Number),
+  trackIds: expect.any(Number),
+  funTids: expect.any(Number),
+  heapIds: expect.any(Number),
+  nativeMemory: expect.any(Number),
+  leftNs: expect.any(Number),
+  rightNs: expect.any(Number),
+  hasFps: expect.any(Boolean) }, `
+Object {
+  "cpus": Any<Number>,
+  "funTids": Any<Number>,
+  "hasFps": Any<Boolean>,
+  "heapIds": Any<Number>,
+  "leftNs": Any<Number>,
+  "nativeMemory": Any<Number>,
+  "rightNs": Any<Number>,
+  "statisticsSelectData": 1,
+  "threadIds": Any<Number>,
+  "trackIds": Any<Number>,
+}
+`);
     });
 
     it('BoxSelectionTest02', function () {
@@ -74,19 +72,19 @@ describe('BoxSelection Test', ()=>{
         };
         expect(boxJumpParam).not.toBeUndefined()
         expect(boxJumpParam).toMatchInlineSnapshot({
-            leftNs: expect.any(Number),
-            rightNs: expect.any(Number),
-            state: expect.any(String),
-            processId: expect.any(Number),
-            threadId: expect.any(Number) }, `
-            Object {
-              "leftNs": Any<Number>,
-              "processId": Any<Number>,
-              "rightNs": Any<Number>,
-              "state": Any<String>,
-              "threadId": Any<Number>,
-            }
-           `);
+  leftNs: expect.any(Number),
+  rightNs: expect.any(Number),
+  state: expect.any(String),
+  processId: expect.any(Number),
+  threadId: expect.any(Number) }, `
+Object {
+  "leftNs": Any<Number>,
+  "processId": Any<Number>,
+  "rightNs": Any<Number>,
+  "state": Any<String>,
+  "threadId": Any<Number>,
+}
+`);
         });
 
     it('BoxSelectionTest03', function () {
@@ -113,46 +111,46 @@ describe('BoxSelection Test', ()=>{
         };
         expect(selectionData).not.toBeUndefined()
         expect(selectionData).toMatchInlineSnapshot({
-            process: expect.any(String),
-            pid: expect.any(String),
-            thread: expect.any(String),
-            tid: expect.any(String),
-            wallDuration: expect.any(Number),
-            avgDuration: expect.any(String),
-            occurrences: expect.any(Number),
-            state: expect.any(String),
-            trackId: expect.any(Number),
-            delta: expect.any(String),
-            rate: expect.any(String),
-            avgWeight: expect.any(String),
-            count: expect.any(String),
-            first: expect.any(String),
-            last: expect.any(String),
-            min: expect.any(String),
-            max: expect.any(String),
-            stateJX: expect.any(String) }, `
-            Object {
-              "avgDuration": Any<String>,
-              "avgWeight": Any<String>,
-              "count": Any<String>,
-              "delta": Any<String>,
-              "first": Any<String>,
-              "last": Any<String>,
-              "max": Any<String>,
-              "min": Any<String>,
-              "name": "name",
-              "occurrences": Any<Number>,
-              "pid": Any<String>,
-              "process": Any<String>,
-              "rate": Any<String>,
-              "state": Any<String>,
-              "stateJX": Any<String>,
-              "thread": Any<String>,
-              "tid": Any<String>,
-              "trackId": Any<Number>,
-              "wallDuration": Any<Number>,
-            }
-        `);
+  process: expect.any(String),
+  pid: expect.any(String),
+  thread: expect.any(String),
+  tid: expect.any(String),
+  wallDuration: expect.any(Number),
+  avgDuration: expect.any(String),
+  occurrences: expect.any(Number),
+  state: expect.any(String),
+  trackId: expect.any(Number),
+  delta: expect.any(String),
+  rate: expect.any(String),
+  avgWeight: expect.any(String),
+  count: expect.any(String),
+  first: expect.any(String),
+  last: expect.any(String),
+  min: expect.any(String),
+  max: expect.any(String),
+  stateJX: expect.any(String) }, `
+Object {
+  "avgDuration": Any<String>,
+  "avgWeight": Any<String>,
+  "count": Any<String>,
+  "delta": Any<String>,
+  "first": Any<String>,
+  "last": Any<String>,
+  "max": Any<String>,
+  "min": Any<String>,
+  "name": "name",
+  "occurrences": Any<Number>,
+  "pid": Any<String>,
+  "process": Any<String>,
+  "rate": Any<String>,
+  "state": Any<String>,
+  "stateJX": Any<String>,
+  "thread": Any<String>,
+  "tid": Any<String>,
+  "trackId": Any<Number>,
+  "wallDuration": Any<Number>,
+}
+`);
      });
 
     it('BoxSelectionTest04', function () {
@@ -165,19 +163,19 @@ describe('BoxSelection Test', ()=>{
         };
         expect(counter).not.toBeUndefined()
         expect(counter).toMatchInlineSnapshot({
-            id: expect.any(Number),
-            trackId: expect.any(Number),
-            name: expect.any(String),
-            value: expect.any(Number),
-            startTime: expect.any(Number) }, `
-            Object {
-              "id": Any<Number>,
-              "name": Any<String>,
-              "startTime": Any<Number>,
-              "trackId": Any<Number>,
-              "value": Any<Number>,
-            }
-        `)
+  id: expect.any(Number),
+  trackId: expect.any(Number),
+  name: expect.any(String),
+  value: expect.any(Number),
+  startTime: expect.any(Number) }, `
+Object {
+  "id": Any<Number>,
+  "name": Any<String>,
+  "startTime": Any<Number>,
+  "trackId": Any<Number>,
+  "value": Any<Number>,
+}
+`)
     });
 
     it('BoxSelectionTest05', function () {
@@ -188,14 +186,14 @@ describe('BoxSelection Test', ()=>{
         };
         expect(fps).not.toBeUndefined()
         expect(fps).toMatchInlineSnapshot({
-            startNS: expect.any(Number),
-            timeStr: expect.any(String),
-            fps: expect.any(Number) }, `
-            Object {
-              "fps": Any<Number>,
-              "startNS": Any<Number>,
-              "timeStr": Any<String>,
-            }
-        `);
+  startNS: expect.any(Number),
+  timeStr: expect.any(String),
+  fps: expect.any(Number) }, `
+Object {
+  "fps": Any<Number>,
+  "startNS": Any<Number>,
+  "timeStr": Any<String>,
+}
+`);
     });
 })

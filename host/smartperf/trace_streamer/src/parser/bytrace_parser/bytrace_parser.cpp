@@ -14,7 +14,6 @@
  */
 
 #include "bytrace_parser.h"
-#include <cmath>
 #include <unistd.h>
 #include "binder_filter.h"
 #include "cpu_filter.h"
@@ -28,9 +27,9 @@ BytraceParser::BytraceParser(TraceDataCache* dataCache, const TraceStreamerFilte
 {
 #ifdef SUPPORTTHREAD
     supportThread_ = true;
-    dataSegArray_ = std::make_unique<DataSegment[]>(MAX_SEG_ARRAY_SIZE);
+    dataSegArray = std::make_unique<DataSegment[]>(MAX_SEG_ARRAY_SIZE);
 #else
-    dataSegArray_ = std::make_unique<DataSegment[]>(1);
+    dataSegArray = std::make_unique<DataSegment[]>(1);
 #endif
 }
 
@@ -45,8 +44,6 @@ void BytraceParser::WaitForParserEnd()
         }
     }
     eventParser_->FilterAllEvents();
-    eventParser_->Clear();
-    dataSegArray_.reset();
 }
 void BytraceParser::ParseTraceDataSegment(std::unique_ptr<uint8_t[]> bufferStr, size_t size)
 {
@@ -60,12 +57,6 @@ void BytraceParser::ParseTraceDataSegment(std::unique_ptr<uint8_t[]> bufferStr, 
         if (packagesLine == packagesBuffer_.end()) {
             break;
         }
-        if (packagesLine == packagesBuffer_.begin()) {
-            packagesLine++;
-            packagesBegin = packagesLine;
-            continue;
-        }
-        // Support parsing windows file format(ff=dos)
         auto extra = *(packagesLine - 1) == '\r' ? 1 : 0;
         std::string bufferLine(packagesBegin, packagesLine - extra);
 
@@ -100,20 +91,19 @@ void BytraceParser::ParseTraceDataSegment(std::unique_ptr<uint8_t[]> bufferStr, 
 void BytraceParser::ParseTraceDataItem(const std::string& buffer)
 {
     if (!supportThread_) {
-        dataSegArray_[rawDataHead_].seg = std::move(buffer);
-        ParserData(dataSegArray_[rawDataHead_]);
+        dataSegArray[rawDataHead_].seg = std::move(buffer);
+        ParserData(dataSegArray[rawDataHead_]);
         return;
     }
     int head = rawDataHead_;
     while (!toExit_) {
-        if (dataSegArray_[head].status.load() != TS_PARSE_STATUS_INIT) {
-            TS_LOGD("rawDataHead_:\t%d, parseHead_:\t%d, filterHead_:\t%d status:\t%d\n", rawDataHead_, parseHead_,
-                    filterHead_, dataSegArray_[head].status.load());
+        if (dataSegArray[head].status.load() != TS_PARSE_STATUS_INIT) {
+            TS_LOGD("rawDataHead_:\t%d, parseHead_:\t%d, filterHead_:\t%d\n", rawDataHead_, parseHead_, filterHead_);
             usleep(sleepDur_);
             continue;
         }
-        dataSegArray_[head].seg = std::move(buffer);
-        dataSegArray_[head].status = TS_PARSE_STATUS_SEPRATED;
+        dataSegArray[head].seg = std::move(buffer);
+        dataSegArray[head].status = TS_PARSE_STATUS_SEPRATED;
         rawDataHead_ = (rawDataHead_ + 1) % MAX_SEG_ARRAY_SIZE;
         break;
     }
@@ -134,7 +124,7 @@ int BytraceParser::GetNextSegment()
     int head;
     dataSegMux_.lock();
     head = parseHead_;
-    DataSegment& seg = dataSegArray_[head];
+    DataSegment& seg = dataSegArray[head];
     if (seg.status.load() != TS_PARSE_STATUS_SEPRATED) {
         if (toExit_) {
             parserThreadCount_--;
@@ -145,14 +135,13 @@ int BytraceParser::GetNextSegment()
             }
             return ERROR_CODE_EXIT;
         }
-        if (seg.status.load() == TS_PARSE_STATUS_PARSING) {
+        if (seg.status == TS_PARSE_STATUS_PARSING) {
             dataSegMux_.unlock();
             usleep(sleepDur_);
             return ERROR_CODE_NODATA;
         }
         dataSegMux_.unlock();
-        TS_LOGD("ParseThread watting:\t%d, parseHead_:\t%d, filterHead_:\t%d status:\t%d\n", rawDataHead_, parseHead_,
-                filterHead_, seg.status.load());
+        TS_LOGD("ParseThread watting:\t%d, parseHead_:\t%d, filterHead_:\t%d\n", rawDataHead_, parseHead_, filterHead_);
         usleep(sleepDur_);
         return ERROR_CODE_NODATA;
     }
@@ -164,7 +153,6 @@ int BytraceParser::GetNextSegment()
 
 void BytraceParser::GetDataSegAttr(DataSegment& seg, const std::smatch& matcheLine) const
 {
-    const uint64_t US_TO_NS = 1000;
     size_t index = 0;
     std::string pidStr = matcheLine[++index].str();
     std::optional<uint32_t> optionalPid = base::StrToUInt32(pidStr);
@@ -197,8 +185,7 @@ void BytraceParser::GetDataSegAttr(DataSegment& seg, const std::smatch& matcheLi
     seg.bufLine.argsStr = StrTrim(matcheLine.suffix());
     seg.bufLine.pid = optionalPid.value();
     seg.bufLine.cpu = optionalCpu.value();
-    seg.bufLine.ts = round(static_cast<uint64_t>(optionalTime.value() * 1e6)) + 1;
-    seg.bufLine.ts *= US_TO_NS;
+    seg.bufLine.ts = static_cast<uint64_t>(optionalTime.value() * 1e9);
     seg.bufLine.tGidStr = tGidStr;
     seg.bufLine.eventName = eventName;
     seg.status = TS_PARSE_STATUS_PARSED;
@@ -216,7 +203,7 @@ void BytraceParser::ParseThread()
             }
             return;
         }
-        DataSegment& seg = dataSegArray_[head];
+        DataSegment& seg = dataSegArray[head];
         ParserData(seg);
     }
 }
@@ -226,9 +213,9 @@ void BytraceParser::ParserData(DataSegment& seg)
     std::smatch matcheLine;
     if (!std::regex_search(seg.seg, matcheLine, bytraceMatcher_)) {
         TS_LOGD("Not support this event (line: %s)", seg.seg.c_str());
-        streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_OTHER, STAT_EVENT_DATA_INVALID);
         seg.status = TS_PARSE_STATUS_INVALID;
         parsedTraceInvalidLines_++;
+        FilterData(seg);
         return;
     } else {
         parsedTraceValidLines_++;
@@ -247,7 +234,7 @@ void BytraceParser::ParserData(DataSegment& seg)
 void BytraceParser::FilterThread()
 {
     while (1) {
-        DataSegment& seg = dataSegArray_[filterHead_];
+        DataSegment& seg = dataSegArray[filterHead_];
         if (!FilterData(seg)) {
             return;
         }
@@ -256,17 +243,17 @@ void BytraceParser::FilterThread()
 bool BytraceParser::FilterData(DataSegment& seg)
 {
     if (!supportThread_) {
-        if (seg.status.load() != TS_PARSE_STATUS_INVALID) {
-            eventParser_->ParseDataItem(seg.bufLine);
-            seg.status = TS_PARSE_STATUS_INIT;
-            return true;
-        }
-        streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_OTHER, STAT_EVENT_DATA_INVALID);
-        return false;
+        eventParser_->ParseDataItem(seg.bufLine);
+        return true;
     }
     if (seg.status.load() == TS_PARSE_STATUS_INVALID) {
+        seg.status = TS_PARSE_STATUS_INIT;
         filterHead_ = (filterHead_ + 1) % MAX_SEG_ARRAY_SIZE;
         streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_OTHER, STAT_EVENT_DATA_INVALID);
+        return true;
+    }
+    if (!supportThread_) {
+        eventParser_->ParseDataItem(seg.bufLine);
         seg.status = TS_PARSE_STATUS_INIT;
         return true;
     }

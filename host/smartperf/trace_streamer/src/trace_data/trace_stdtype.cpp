@@ -39,21 +39,6 @@ void ThreadState::SetDuration(TableRowId index, InternalTime dur)
     rowDatas_[index].duration = dur;
 }
 
-void DataDict::Finish()
-{
-    std::string::size_type pos(0);
-    for (auto i = 0; i < dataDict_.size(); i++) {
-        while ((pos = dataDict_[i].find("\"")) != std::string::npos) {
-            dataDict_[i].replace(pos, 1, "\'");
-        }
-        if (dataDict_[i].find("ispreproc") != std::string::npos) {
-            TS_LOGI("xx");
-        }
-        while (dataDict_[i].back() >= '\001' && dataDict_[i].back() <= '\007') {
-            dataDict_[i].pop_back();
-        }
-    }
-}
 TableRowId ThreadState::UpdateDuration(TableRowId index, InternalTime ts)
 {
     if (rowDatas_[index].duration == INVALID_TIME) {
@@ -71,12 +56,6 @@ void ThreadState::UpdateDuration(TableRowId index, InternalTime ts, TableRowId i
 {
     rowDatas_[index].duration = ts - rowDatas_[index].timeStamp;
     rowDatas_[index].idState = idState;
-}
-
-void ThreadState::UpdateTidAndPid(TableRowId index, InternalTid tid, InternalTid pid)
-{
-    rowDatas_[index].tid = tid;
-    rowDatas_[index].pid = pid;
 }
 
 TableRowId ThreadState::UpdateDuration(TableRowId index, InternalTime ts, InternalCpu cpu, TableRowId idState)
@@ -97,7 +76,6 @@ size_t SchedSlice::AppendSchedSlice(uint64_t ts,
     timeStamps_.emplace_back(ts);
     durs_.emplace_back(dur);
     cpus_.emplace_back(cpu);
-    tsEnds_.emplace_back(0);
     internalTids_.emplace_back(internalTid);
     endStates_.emplace_back(endState);
     priority_.emplace_back(priority);
@@ -107,7 +85,6 @@ size_t SchedSlice::AppendSchedSlice(uint64_t ts,
 void SchedSlice::SetDuration(size_t index, uint64_t duration)
 {
     durs_[index] = duration;
-    tsEnds_[index] = timeStamps_[index] + duration;
 }
 
 void SchedSlice::Update(uint64_t index, uint64_t ts, uint64_t state, uint64_t pior)
@@ -118,10 +95,9 @@ void SchedSlice::Update(uint64_t index, uint64_t ts, uint64_t state, uint64_t pi
 }
 
 size_t CallStack::AppendInternalAsyncSlice(uint64_t startT,
-                                           int32_t durationNs,
+                                           uint64_t durationNs,
                                            InternalTid internalTid,
                                            DataIndex cat,
-                                           uint16_t nameIdentify,
                                            DataIndex name,
                                            uint8_t depth,
                                            uint64_t cookid,
@@ -132,27 +108,24 @@ size_t CallStack::AppendInternalAsyncSlice(uint64_t startT,
     AppendDistributeInfo();
     cookies_.emplace_back(cookid);
     ids_.emplace_back(ids_.size());
-    identifys_.emplace_back(nameIdentify + depth);
     return Size() - 1;
 }
 size_t CallStack::AppendInternalSlice(uint64_t startT,
-                                      int32_t durationNs,
+                                      uint64_t durationNs,
                                       InternalTid internalTid,
                                       DataIndex cat,
-                                      uint16_t nameIdentify,
                                       DataIndex name,
                                       uint8_t depth,
                                       const std::optional<uint64_t>& parentId)
 {
     AppendCommonInfo(startT, durationNs, internalTid);
     AppendCallStack(cat, name, depth, parentId);
-    identifys_.emplace_back(nameIdentify + depth);
     ids_.emplace_back(ids_.size());
     cookies_.emplace_back(INVALID_UINT64);
     return Size() - 1;
 }
 
-void CallStack::AppendCommonInfo(uint64_t startT, int32_t durationNs, InternalTid internalTid)
+void CallStack::AppendCommonInfo(uint64_t startT, uint64_t durationNs, InternalTid internalTid)
 {
     timeStamps_.emplace_back(startT);
     durs_.emplace_back(durationNs);
@@ -218,10 +191,6 @@ const std::deque<std::optional<uint64_t>>& CallStack::ParentIdData() const
 const std::deque<DataIndex>& CallStack::CatsData() const
 {
     return cats_;
-}
-const std::deque<uint16_t>& CallStack::IdentifysData() const
-{
-    return identifys_;
 }
 const std::deque<DataIndex>& CallStack::NamesData() const
 {
@@ -358,15 +327,11 @@ size_t ThreadMeasureFilter::AppendNewFilter(uint64_t filterId, uint32_t nameInde
     return Size() - 1;
 }
 
-size_t Instants::AppendInstantEventData(uint64_t timestamp,
-                                        DataIndex nameIndex,
-                                        int64_t internalTid,
-                                        int64_t wakeupFromInternalPid)
+size_t Instants::AppendInstantEventData(uint64_t timestamp, DataIndex nameIndex, int64_t internalTid)
 {
     internalTids_.emplace_back(internalTid);
     timeStamps_.emplace_back(timestamp);
     NameIndexs_.emplace_back(nameIndex);
-    wakeupFromInternalPids_.emplace_back(wakeupFromInternalPid);
     return Size() - 1;
 }
 size_t LogInfo::AppendNewLogInfo(uint64_t seq,
@@ -458,24 +423,6 @@ void NativeHook::UpdateCurrentSizeDur(size_t row, uint64_t timeStamp)
 {
     currentSizeDurs_[row] = timeStamp - timeStamps_[row];
 }
-void NativeHook::UpdateMemMapSubType()
-{
-    if (addrToMmapTag_.Empty()) {
-        return;
-    }
-    for (auto i = 0; i < Size(); ++i) {
-        if (eventTypes_[i].compare(MMAP_EVENT) == 0) {
-            auto tagId = addrToMmapTag_.Find(addrs_[i], memSizes_[i]);
-            if (tagId != INVALID_UINT64) {
-                subTypes_[i] = tagId;
-            }
-        }
-    }
-}
-void NativeHook::UpdateAddrToMemMapSubType(uint64_t addr, int64_t size, uint64_t tagId)
-{
-    addrToMmapTag_.Insert(addr, size, tagId);
-}
 const std::deque<uint64_t>& NativeHook::EventIds() const
 {
     return eventIds_;
@@ -540,39 +487,6 @@ size_t NativeHookFrame::AppendNewNativeHookFrame(uint64_t eventId,
     symbolOffsets_.emplace_back(symbolOffset);
     return Size() - 1;
 }
-void NativeHookFrame::UpdateSymbolIdToNameMap(uint64_t originSymbolId, uint64_t symbolId)
-{
-    symbolIdToSymbolName_.insert(std::make_pair(originSymbolId, symbolId));
-}
-void NativeHookFrame::UpdateFilePathIdToNameMap(uint64_t originFilePathId, uint64_t filePathId)
-{
-    filePathIdToFilePathName_.insert(std::make_pair(originFilePathId, filePathId));
-}
-void NativeHookFrame::UpdateSymbolId()
-{
-    if (symbolIdToSymbolName_.empty()) {
-        return;
-    }
-    for (auto i = 0; i < Size(); ++i) {
-        auto symbolIt = symbolIdToSymbolName_.find(symbolNames_[i]);
-        if (symbolIt != symbolIdToSymbolName_.end()) {
-            symbolNames_[i] = symbolIt->second;
-        }
-    }
-}
-void NativeHookFrame::UpdateFileId()
-{
-    if (filePathIdToFilePathName_.empty()) {
-        return;
-    }
-    for (auto i = 0; i < Size(); ++i) {
-        auto symbolIt = filePathIdToFilePathName_.find(filePaths_[i]);
-        if (symbolIt != filePathIdToFilePathName_.end()) {
-            filePaths_[i] = symbolIt->second;
-        }
-    }
-}
-
 const std::deque<uint64_t>& NativeHookFrame::EventIds() const
 {
     return eventIds_;
@@ -942,11 +856,9 @@ DataIndex DataDict::GetStringIndex(std::string_view str)
     if (itor != dataDictInnerMap_.end()) {
         return itor->second;
     }
-    mutex_.lock();
     dataDict_.emplace_back(std::string(str));
     DataIndex stringIdentity = dataDict_.size() - 1;
     dataDictInnerMap_.emplace(hashValue, stringIdentity);
-    mutex_.unlock();
     return stringIdentity;
 }
 size_t CpuUsageDetailData::AppendNewData(uint64_t newTimeStamp,

@@ -62,7 +62,7 @@ export class SpApplication extends BaseElement {
     };
 
     static get observedAttributes() {
-        return ["server", "sqlite", "wasm", "dark", "vs", "query-sql"]
+        return ["server", "sqlite", "wasm", "dark", "vs", "query-sql","subsection"]
     }
 
     get dark() {
@@ -391,7 +391,9 @@ export class SpApplication extends BaseElement {
             if (value.length > 0) {
                 let list = spSystemTrace!.searchCPU(value);
                 spSystemTrace!.searchFunction(list, value).then((mixedResults) => {
-                    litSearch.list = mixedResults
+                    if(litSearch.searchValue != ""){
+                        litSearch.list = mixedResults
+                    }
                 })
             } else {
                 litSearch.list = [];
@@ -474,166 +476,32 @@ export class SpApplication extends BaseElement {
             });
         }
 
-        function openTraceFile(ev: any) {
-            info("openTraceFile")
-            litSearch.clear();
-            showContent(spSystemTrace!)
-            that.search = true
-            progressEL.loading = true
-            let fileName = (ev as any).name
-            let fileSize = ((ev as any).size / 1048576).toFixed(1)
-            postLog(fileName, fileSize)
-            let showFileName = fileName.lastIndexOf('.') == -1 ? fileName : fileName.substring(0, fileName.lastIndexOf('.'))
-            document.title = `${showFileName} (${fileSize}M)`
-            TraceRow.rangeSelectObject = undefined;
-            if (that.server) {
-                info("Parse trace using server mode ")
-                threadPool.init("server").then(() => {
-                    info("init server ok");
-                    litSearch.setPercent("parse trace", 1);
-                    // Load the trace file and send it to the background parse to return the db file path
-                    const fd = new FormData()
-                    that.freshMenuDisable(true)
+        function handleServerMode(ev: any, showFileName: string, fileSize: string, fileName: string, isClickHandle?: boolean) {
+            threadPool.init("server").then(() => {
+                info("init server ok");
+                litSearch.setPercent("parse trace", 1);
+                // Load the trace file and send it to the background parse to return the db file path
+                const fd = new FormData()
+                that.freshMenuDisable(true)
+                if (that.vs && isClickHandle) {
+                    fd.append("convertType", "vsUpload");
+                    fd.append('filePath', ev as any)
+                } else {
                     fd.append('file', ev as any)
-                    let uploadPath = `https://${window.location.host.split(':')[0]}:9000/upload`
-                    if (that.vs) {
-                        uploadPath = `http://${window.location.host.split(':')[0]}:${window.location.port}/upload`
-                    }
-                    info("upload trace")
-                    let dbName = "";
-                    fetch(uploadPath, {
-                        method: 'POST',
-                        body: fd,
-                    }).then(res => {
-                        litSearch.setPercent("load database", 5);
-                        if (res.ok) {
-                            info(" server Parse trace file success");
-                            let menus = [
-                                {
-                                    title: `${showFileName} (${fileSize}M)`,
-                                    icon: "file-fill",
-                                    clickHandler: function () {
-                                        that.search = true
-                                        showContent(spSystemTrace!)
-                                    }
-                                },
-                                {
-                                    title: "DownLoad",
-                                    icon: "download",
-                                    clickHandler: function () {
-                                        if (that.vs) {
-                                            that.vsDownload(mainMenu, fileName, true, dbName);
-                                        } else {
-                                            that.download(mainMenu, fileName, true, dbName);
-                                        }
-                                    }
-                                }
-                            ];
-
-                            if (that.querySql) {
-                                if (spQuerySQL) {
-                                    spQuerySQL.reset()
-                                    menus.push({
-                                        title: "Query (SQL)", icon: "filesearch", clickHandler: () => {
-                                            showContent(spQuerySQL)
-                                        }
-                                    });
-                                }
-
-                                if (spMetrics) {
-                                    spMetrics.reset()
-                                    menus.push({
-                                        title: "Metrics", icon: "metric", clickHandler: () => {
-                                            showContent(spMetrics)
-                                        }
-                                    });
-                                }
-
-                                if (spInfoAndStats) {
-                                    spInfoAndStats.reset()
-                                    menus.push({
-                                        title: "Info and stats", icon: "info", clickHandler: () => {
-                                            spInfoAndStats.initInfoAndStatsData();
-                                            showContent(spInfoAndStats)
-                                        }
-                                    });
-                                }
-                            }
-
-                            mainMenu.menus!.splice(1, 1, {
-                                collapsed: false,
-                                title: "Current Trace",
-                                describe: "Actions on the current trace",
-                                children: menus
-                            })
-
-                            that.freshMenuDisable(true)
-                            return res.text();
-                        } else {
-                            if (res.status == 404) {
-                                info(" server Parse trace file failed");
-                                litSearch.setPercent("This File is not supported!", -1)
-                                progressEL.loading = false;
-                                that.freshMenuDisable(false)
-                                return Promise.reject();
-                            }
-                        }
-                    }).then(res => {
-                        if (res != undefined) {
-                            dbName = res;
-                            info("get trace db");
-                            let loadPath = `https://${window.location.host.split(':')[0]}:9000`
-                            if (that.vs) {
-                                loadPath = `http://${window.location.host.split(':')[0]}:${window.location.port}`
-                            }
-                            spSystemTrace!.loadDatabaseUrl(loadPath + res, (command: string, percent: number) => {
-                                info("setPercent ：" + command + "percent :" + percent);
-                                litSearch.setPercent(command + '  ', percent);
-                            }, (res) => {
-                                info("loadDatabaseUrl success");
-                                litSearch.setPercent("", 101);
-                                progressEL.loading = false;
-                                that.freshMenuDisable(false)
-                            })
-                        } else {
-                            litSearch.setPercent("", 101)
-                            progressEL.loading = false;
-                            that.freshMenuDisable(false)
-                        }
-
-                    })
-                })
-                return;
-            }
-            if (that.sqlite) {
-                info("Parse trace using sql mode")
-                litSearch.setPercent("", 0);
-                threadPool.init("sqlite").then(res => {
-                    let reader = new FileReader();
-                    reader.readAsArrayBuffer(ev as any)
-                    reader.onloadend = function (ev) {
-                        spSystemTrace!.loadDatabaseArrayBuffer(this.result as ArrayBuffer, (command: string, percent: number) => {
-                            info("setPercent ：" + command + "percent :" + percent);
-                            litSearch.setPercent(command + '  ', percent);
-                        }, () => {
-                            litSearch.setPercent("", 101);
-                            progressEL.loading = false;
-                            that.freshMenuDisable(false)
-                        })
-                    }
-                })
-                return;
-            }
-            if (that.wasm) {
-                info("Parse trace using wasm mode ")
-                litSearch.setPercent("", 1);
-                threadPool.init("wasm").then(res => {
-                    let reader = new FileReader();
-                    reader.readAsArrayBuffer(ev as any)
-                    reader.onloadend = function (ev) {
-                        info("read file onloadend");
-                        litSearch.setPercent("ArrayBuffer loaded  ", 2);
-                        that.freshMenuDisable(true)
+                }
+                let uploadPath = `https://${window.location.host.split(':')[0]}:9000/upload`
+                if (that.vs) {
+                    uploadPath = `http://${window.location.host.split(':')[0]}:${window.location.port}/upload`
+                }
+                info("upload trace")
+                let dbName = "";
+                fetch(uploadPath, {
+                    method: 'POST',
+                    body: fd,
+                }).then(res => {
+                    litSearch.setPercent("load database", 5);
+                    if (res.ok) {
+                        info(" server Parse trace file success");
                         let menus = [
                             {
                                 title: `${showFileName} (${fileSize}M)`,
@@ -648,13 +516,14 @@ export class SpApplication extends BaseElement {
                                 icon: "download",
                                 clickHandler: function () {
                                     if (that.vs) {
-                                        that.vsDownload(mainMenu, fileName, false);
+                                        that.vsDownload(mainMenu, fileName, true, dbName);
                                     } else {
-                                        that.download(mainMenu, fileName, false);
+                                        that.download(mainMenu, fileName, true, dbName);
                                     }
                                 }
                             }
                         ];
+
                         if (that.querySql) {
                             if (spQuerySQL) {
                                 spQuerySQL.reset()
@@ -675,59 +544,252 @@ export class SpApplication extends BaseElement {
                             }
 
                             if (spInfoAndStats) {
-                                spInfoAndStats.reset()
                                 menus.push({
                                     title: "Info and stats", icon: "info", clickHandler: () => {
-                                        spInfoAndStats.initInfoAndStatsData();
                                         showContent(spInfoAndStats)
                                     }
                                 });
                             }
                         }
+
                         mainMenu.menus!.splice(1, 1, {
                             collapsed: false,
                             title: "Current Trace",
                             describe: "Actions on the current trace",
                             children: menus
                         })
-                        mainMenu.menus!.splice(2, 1, {
-                            collapsed: false,
-                            title: 'Support',
-                            describe: 'Support',
-                            children: [
-                                {
-                                    title: "Help Documents",
-                                    icon: "folder",
-                                    clickHandler: function (item: MenuItem) {
-                                        that.search = false
-                                        that.spHelp!.dark = that.dark
-                                        showContent(that.spHelp!)
-                                    }
-                                },
-                            ]
-                        })
-                        spSystemTrace!.loadDatabaseArrayBuffer(this.result as ArrayBuffer, (command: string, percent: number) => {
+
+                        that.freshMenuDisable(true)
+                        return res.text();
+                    } else {
+                        if (res.status == 404) {
+                            info(" server Parse trace file failed");
+                            litSearch.setPercent("This File is not supported!", -1)
+                            progressEL.loading = false;
+                            that.freshMenuDisable(false)
+                            return Promise.reject();
+                        }
+                    }
+                }).then(res => {
+                    if (res != undefined) {
+                        dbName = res;
+                        info("get trace db");
+                        let loadPath = `https://${window.location.host.split(':')[0]}:9000`
+                        if (that.vs) {
+                            loadPath = `http://${window.location.host.split(':')[0]}:${window.location.port}`
+                        }
+                        spSystemTrace!.loadDatabaseUrl(loadPath + res, (command: string, percent: number) => {
                             info("setPercent ：" + command + "percent :" + percent);
                             litSearch.setPercent(command + '  ', percent);
                         }, (res) => {
-                            if (res.status) {
-                                info("loadDatabaseArrayBuffer success");
+                            info("loadDatabaseUrl success");
+                            litSearch.setPercent("", 101);
+                            progressEL.loading = false;
+                            that.freshMenuDisable(false)
+                        })
+                    } else {
+                        litSearch.setPercent("", 101)
+                        progressEL.loading = false;
+                        that.freshMenuDisable(false)
+                    }
+                    spInfoAndStats.initInfoAndStatsData();
+                })
+            })
+        }
+
+        function handleWasmMode(ev: any, showFileName: string, fileSize: string, fileName: string) {
+            litSearch.setPercent("", 1);
+            threadPool.init("wasm").then(res => {
+                let reader = new FileReader();
+                reader.readAsArrayBuffer(ev as any)
+                reader.onloadend = function (ev) {
+                    info("read file onloadend");
+                    litSearch.setPercent("ArrayBuffer loaded  ", 2);
+                    that.freshMenuDisable(true)
+                    let menus = [
+                        {
+                            title: `${showFileName} (${fileSize}M)`,
+                            icon: "file-fill",
+                            clickHandler: function () {
+                                that.search = true
                                 showContent(spSystemTrace!)
+                            }
+                        },
+                        {
+                            title: "DownLoad",
+                            icon: "download",
+                            clickHandler: function () {
+                                if (that.vs) {
+                                    that.vsDownload(mainMenu, fileName, false);
+                                } else {
+                                    that.download(mainMenu, fileName, false);
+                                }
+                            }
+                        }
+                    ];
+                    if (that.querySql) {
+                        if (spQuerySQL) {
+                            spQuerySQL.reset()
+                            menus.push({
+                                title: "Query (SQL)", icon: "filesearch", clickHandler: () => {
+                                    showContent(spQuerySQL)
+                                }
+                            });
+                        }
+
+                        if (spMetrics) {
+                            spMetrics.reset()
+                            menus.push({
+                                title: "Metrics", icon: "metric", clickHandler: () => {
+                                    showContent(spMetrics)
+                                }
+                            });
+                        }
+
+                        if (spInfoAndStats) {
+                            menus.push({
+                                title: "Info and stats", icon: "info", clickHandler: () => {
+                                    showContent(spInfoAndStats)
+                                }
+                            });
+                        }
+                    }
+                    mainMenu.menus!.splice(1, 1, {
+                        collapsed: false,
+                        title: "Current Trace",
+                        describe: "Actions on the current trace",
+                        children: menus
+                    })
+                    mainMenu.menus!.splice(2, 1, {
+                        collapsed: false,
+                        title: 'Support',
+                        describe: 'Support',
+                        children: [
+                            {
+                                title: "Help Documents",
+                                icon: "smart-help",
+                                clickHandler: function (item: MenuItem) {
+                                    that.search = false
+                                    that.spHelp!.dark = that.dark
+                                    showContent(that.spHelp!)
+                                }
+                            },
+                        ]
+                    })
+                    let wasmUrl = `https://${window.location.host.split(':')[0]}:${window.location.port}/application/wasm.json`
+                    if (that.vs) {
+                        wasmUrl = `http://${window.location.host.split(':')[0]}:${window.location.port}/wasm.json`
+                    }
+                    spSystemTrace!.loadDatabaseArrayBuffer(this.result as ArrayBuffer, wasmUrl,(command: string, percent: number) => {
+                        info("setPercent ：" + command + "percent :" + percent);
+                        litSearch.setPercent(command + '  ', percent);
+                    }, (res) => {
+                        if (res.status) {
+                            info("loadDatabaseArrayBuffer success");
+                            showContent(spSystemTrace!)
+                            litSearch.setPercent("", 101);
+                            progressEL.loading = false;
+                            that.freshMenuDisable(false)
+                        } else {
+                            info("loadDatabaseArrayBuffer failed");
+                            litSearch.setPercent("This File is not supported!", -1)
+                            progressEL.loading = false;
+                            that.freshMenuDisable(false)
+                            mainMenu.menus!.splice(1, 1);
+                            mainMenu.menus = mainMenu.menus!;
+                        }
+                        spInfoAndStats.initInfoAndStatsData();
+                    })
+                }
+            })
+        }
+
+        function openTraceFile(ev: any, isClickHandle?: boolean) {
+            info("openTraceFile")
+            if (that.vs && isClickHandle) {
+                Cmd.openFileDialog().then((res: string) => {
+                    if (res != "") {
+                        litSearch.clear();
+                        showContent(spSystemTrace!)
+                        that.search = true
+                        progressEL.loading = true
+                        let openResult = JSON.parse(res)
+                        let fileName = openResult.fileName
+                        let fileSize = (openResult.fileSize / 1048576).toFixed(1)
+                        let showFileName = fileName.lastIndexOf('.') == -1 ? fileName : fileName.substring(0, fileName.lastIndexOf('.'))
+                        document.title = `${showFileName} (${fileSize}M)`
+                        TraceRow.rangeSelectObject = undefined;
+                        if (that.server) {
+                            info("Parse trace using server mode ")
+                            handleServerMode(openResult.filePath, showFileName, fileSize, fileName, isClickHandle);
+                            return;
+                        }
+                        if (that.wasm) {
+                            info("Parse trace using wasm mode ")
+                            const vsUpload = new FormData();
+                            vsUpload.append("convertType", "vsUpload");
+                            vsUpload.append("isTransform", "");
+                            vsUpload.append('filePath', openResult.filePath)
+                            info("openResult.filePath   ", openResult.filePath)
+                            litSearch.setPercent("upload file ", 1);
+                            Cmd.uploadFile(vsUpload, (response:Response) => {
+                                if (response.ok) {
+                                    response.text().then(traceFile => {
+                                        let traceFilePath = `http://${window.location.host.split(':')[0]}:${window.location.port}` + traceFile
+                                        fetch(traceFilePath).then(res => {
+                                            res.arrayBuffer().then(arrayBuf => {
+                                                handleWasmMode( new File([arrayBuf],fileName), showFileName, fileSize, fileName);
+                                            })
+                                        })
+                                    });
+                                }
+                            })
+                            return;
+                        }
+                    } else {
+                        return;
+                    }
+                })
+            } else {
+                litSearch.clear();
+                showContent(spSystemTrace!)
+                that.search = true
+                progressEL.loading = true
+                let fileName = (ev as any).name
+                let fileSize = ((ev as any).size / 1048576).toFixed(1)
+                postLog(fileName, fileSize)
+                let showFileName = fileName.lastIndexOf('.') == -1 ? fileName : fileName.substring(0, fileName.lastIndexOf('.'))
+                document.title = `${showFileName} (${fileSize}M)`
+                TraceRow.rangeSelectObject = undefined;
+                if (that.server) {
+                    info("Parse trace using server mode ")
+                    handleServerMode(ev, showFileName, fileSize, fileName);
+                    return;
+                }
+                if (that.sqlite) {
+                    info("Parse trace using sql mode")
+                    litSearch.setPercent("", 0);
+                    threadPool.init("sqlite").then(res => {
+                        let reader = new FileReader();
+                        reader.readAsArrayBuffer(ev as any)
+                        reader.onloadend = function (ev) {
+                            spSystemTrace!.loadDatabaseArrayBuffer(this.result as ArrayBuffer, "",(command: string, percent: number) => {
+                                info("setPercent ：" + command + "percent :" + percent);
+                                litSearch.setPercent(command + '  ', percent);
+                            }, () => {
                                 litSearch.setPercent("", 101);
                                 progressEL.loading = false;
                                 that.freshMenuDisable(false)
-                            } else {
-                                info("loadDatabaseArrayBuffer failed");
-                                litSearch.setPercent("This File is not supported!", -1)
-                                progressEL.loading = false;
-                                that.freshMenuDisable(false)
-                                mainMenu.menus!.splice(1, 1);
-                                mainMenu.menus = mainMenu.menus!;
-                            }
-                        })
-                    }
-                })
-                return;
+                            })
+                        }
+                    })
+                    return;
+                }
+                if (that.wasm) {
+                    info("Parse trace using wasm mode ")
+                    handleWasmMode(ev, showFileName, fileSize, fileName);
+                    return;
+                }
             }
         }
 
@@ -740,9 +802,12 @@ export class SpApplication extends BaseElement {
                     {
                         title: "Open trace file",
                         icon: "folder",
-                        fileChoose: true,
+                        fileChoose: !that.vs,
                         fileHandler: function (ev: InputEvent) {
                             openTraceFile(ev.detail as any);
+                        },
+                        clickHandler: function (hand: any) {
+                            openTraceFile(hand, true);
                         }
                     },
                     {
@@ -763,7 +828,7 @@ export class SpApplication extends BaseElement {
                 children: [
                     {
                         title: "Help Documents",
-                        icon: "folder",
+                        icon: "smart-help",
                         clickHandler: function (item: MenuItem) {
                             that.search = false
                             that.spHelp!.dark = that.dark

@@ -20,20 +20,18 @@
 namespace SysTuning {
 namespace TraceStreamer {
 namespace {
-enum Index { ID = 0, TYPE, TS, DUR, TS_END, CPU, INTERNAL_TID, INTERNAL_PID, END_STATE, PRIORITY };
+enum Index { ID = 0, TYPE, TS, DUR, CPU, INTERNAL_TID, END_STATE, PRIORITY };
 }
 SchedSliceTable::SchedSliceTable(const TraceDataCache* dataCache) : TableBase(dataCache)
 {
-    tableColumn_.push_back(TableBase::ColumnInfo("id", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("type", "TEXT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("ts", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("dur", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("ts_end", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("cpu", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("itid", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("ipid", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("end_state", "TEXT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("priority", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("id", "UNSIGNED INT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("type", "STRING"));
+    tableColumn_.push_back(TableBase::ColumnInfo("ts", "INT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("dur", "UNSIGNED BIG INT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("cpu", "UNSIGNED BIG INT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("itid", "UNSIGNED BIG INT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("end_state", "STRING"));
+    tableColumn_.push_back(TableBase::ColumnInfo("priority", "INT"));
     tablePriKey_.push_back("id");
 }
 
@@ -219,17 +217,11 @@ int SchedSliceTable::Cursor::Column(int col) const
         case DUR:
             sqlite3_result_int64(context_, static_cast<sqlite3_int64>(schedSliceObj_.DursData()[CurrentRow()]));
             break;
-        case TS_END:
-            sqlite3_result_int64(context_, static_cast<sqlite3_int64>(schedSliceObj_.TsEndData()[CurrentRow()]));
-            break;
         case CPU:
             sqlite3_result_int64(context_, static_cast<sqlite3_int64>(schedSliceObj_.CpusData()[CurrentRow()]));
             break;
         case INTERNAL_TID:
             sqlite3_result_int64(context_, static_cast<sqlite3_int64>(schedSliceObj_.InternalTidsData()[CurrentRow()]));
-            break;
-        case INTERNAL_PID:
-            sqlite3_result_int64(context_, static_cast<sqlite3_int64>(schedSliceObj_.InternalPidsData()[CurrentRow()]));
             break;
         case END_STATE: {
             const std::string& str = dataCache_->GetConstSchedStateData(schedSliceObj_.EndStatesData()[CurrentRow()]);
@@ -319,90 +311,6 @@ void SchedSliceTable::Cursor::FilterSorted(int col, unsigned char op, sqlite3_va
             // can't filter, all rows
             break;
     }
-}
-
-void SchedSliceTable::Cursor::FilterItid(unsigned char op, uint64_t value)
-{
-    rowIndex_.clear();
-    auto size = schedSliceObj_.internalTids_.size();
-    indexType_  = INDEX_TYPE_OUTER_INDEX;
-    switch (op) {
-        case SQLITE_INDEX_CONSTRAINT_EQ:
-            for (auto i = 0; i < size; i++) {
-                if (schedSliceObj_.internalTids_[i] == value) {
-                    rowIndex_.push_back(i);
-                }
-            }
-            indexSize_ = rowIndex_.size();
-            break;
-        default:
-            break;
-    } // end of switch (op)
-}
-void SchedSliceTable::Cursor::FilterIpid(unsigned char op, uint64_t value)
-{
-    rowIndex_.clear();
-    auto size = schedSliceObj_.InternalPidsData().size();
-    indexType_  = INDEX_TYPE_OUTER_INDEX;
-    switch (op) {
-        case SQLITE_INDEX_CONSTRAINT_EQ:
-            for (auto i = 0; i < size; i++) {
-                if (schedSliceObj_.InternalPidsData()[i] == value) {
-                    rowIndex_.push_back(i);
-                }
-            }
-            indexSize_ = rowIndex_.size();
-            break;
-        default:
-            break;
-    } // end of switch (op)
-}
-void SchedSliceTable::Cursor::FilterIndex(int col, unsigned char op, sqlite3_value* argv)
-{
-    auto type = sqlite3_value_type(argv);
-    if (type != SQLITE_INTEGER) {
-        // other type consider it NULL, filter out nothing
-        indexMap_->Intersect(0, 0);
-        return;
-    }
-
-    switch (col) {
-        case INTERNAL_TID:
-            FilterItid(op, static_cast<uint64_t>(sqlite3_value_int64(argv)));
-            break;
-        case INTERNAL_PID:
-            FilterIpid(op, static_cast<uint64_t>(sqlite3_value_int64(argv)));
-            break;
-        default:
-            // we can't filter all rows
-            break;
-    }
-}
-void SchedSliceTable::Cursor::FilterTS(unsigned char op, sqlite3_value* argv)
-{
-    auto v = static_cast<uint64_t>(sqlite3_value_int64(argv));
-    auto getValue = [](const uint32_t& row) {
-        return row;
-    };
-    switch (op) {
-        case SQLITE_INDEX_CONSTRAINT_EQ:
-            indexMap_->IntersectabcEqual(schedSliceObj_.TimeStamData(), v, getValue);
-            break;
-        case SQLITE_INDEX_CONSTRAINT_GT:
-            v++;
-        case SQLITE_INDEX_CONSTRAINT_GE: {
-            indexMap_->IntersectGreaterEqual(schedSliceObj_.TimeStamData(), v, getValue);
-            break;
-        }
-        case SQLITE_INDEX_CONSTRAINT_LE:
-            v++;
-        case SQLITE_INDEX_CONSTRAINT_LT: {
-            indexMap_->IntersectLessEqual(schedSliceObj_.TimeStamData(), v, getValue);
-            break;
-        }
-        default:
-            break;
-    } // end of switch (op)
 }
 } // namespace TraceStreamer
 } // namespace SysTuning

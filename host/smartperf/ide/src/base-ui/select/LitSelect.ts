@@ -571,6 +571,12 @@ export class LitSelect extends BaseElement {
                     a.setAttribute('selected', '');
                 }
             }
+            a.addEventListener('mouseup',(e)=>{
+               e.stopPropagation()
+            });
+            a.addEventListener('mousedown',(e)=>{
+                e.stopPropagation()
+            });
             a.addEventListener('onSelected', (e: any) => {
                 if (this.isMultiple()) {
                     if (a.hasAttribute('selected')) {

@@ -15,6 +15,7 @@
 
 // @ts-ignore
 import {SpProbesConfig} from "../../../../dist/trace/component/setting/SpProbesConfig.js";
+import {LitCheckBox} from "../../../../src/base-ui/checkbox/LitCheckBox";
 
 describe('SpProbesConfig Test', ()=>{
     beforeAll(() => {
@@ -80,6 +81,7 @@ describe('SpProbesConfig Test', ()=>{
            border-style: solid none none none;
            border-color: #D5D5D5;
            padding-top: 15px;
+           margin-top: 15px;
            gap: 10px;
         }
 

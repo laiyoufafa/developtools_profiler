@@ -13,6 +13,9 @@
  * limitations under the License.
  */
 
+
+import {query} from "./SqlLite.js";
+
 class ProcedureThread extends Worker {
     busy: boolean = false;
     isCancelled: boolean = false;
@@ -36,14 +39,14 @@ class ProcedureThread extends Worker {
         }
         if (transfer) {
             try {
-                if (Array.isArray(transfer) ) {
-                    if(transfer.length > 0){
+                if (Array.isArray(transfer)) {
+                    if (transfer.length > 0) {
                         this.postMessage(pam, [...transfer]);
-                    }else{
+                    } else {
                         this.postMessage(pam);
                     }
                 } else {
-                this.postMessage(pam, [transfer]);
+                    this.postMessage(pam, [transfer]);
                 }
             } catch (e: any) {
             }
@@ -62,12 +65,13 @@ class ProcedurePool {
     static cpuCount = Math.floor((window.navigator.hardwareConcurrency || 4) / 2);
     maxThreadNumber: number = 1
     works: Array<ProcedureThread> = []
-    proxyRunningNum: any;
     timelineChange: ((a: any) => void) | undefined | null = null;
     cpusLen = ProcedurePool.build('cpu', 8);
     freqLen = ProcedurePool.build('freq', 2);
     processLen = ProcedurePool.build('process', 8);
+    logicDataLen = ProcedurePool.build('logic', 2);
     names = [...this.cpusLen, ...this.processLen, ...this.freqLen];
+    logicDataHandles = [...this.logicDataLen]
 
     onComplete: Function | undefined;//任务完成回调
 
@@ -84,10 +88,13 @@ class ProcedurePool {
         for (let i = 0; i < this.maxThreadNumber; i++) {
             this.newThread();
         }
+        for (let j = 0; j < this.logicDataHandles.length; j++) {
+            this.logicDataThread()
+        }
     }
 
     newThread() {
-        let thread: ProcedureThread = new ProcedureThread("trace/database/ProcedureWorker.js", {type: "module"})
+        let thread: ProcedureThread = new ProcedureThread("trace/database/ui-worker/ProcedureWorker.js", {type: "module"})
         thread.name = this.names[this.works.length]
         thread.onmessage = (event: MessageEvent) => {
             thread.busy = false;
@@ -95,6 +102,57 @@ class ProcedurePool {
                 this.timelineChange && this.timelineChange(event.data.results);
                 thread.busy = false;
                 return;
+            }
+            if (Reflect.has(thread.taskMap, event.data.id)) {
+                if (event.data) {
+                    let fun = thread.taskMap[event.data.id];
+                    if (fun) {
+                        fun(event.data.results, event.data.hover);
+                    }
+                    Reflect.deleteProperty(thread.taskMap, event.data.id)
+                }
+            }
+            if (this.isIdle() && this.onComplete) {
+                this.onComplete();
+            }
+        }
+        thread.onmessageerror = e => {
+        }
+        thread.onerror = e => {
+        }
+        thread.id = this.works.length
+        thread.busy = false
+        this.works?.push(thread)
+        return thread;
+    }
+
+    logicDataThread(){
+        let thread: ProcedureThread = new ProcedureThread("trace/database/logic-worker/ProcedureLogicWorker.js", {type: "module"})
+        thread.name = this.logicDataHandles[this.works.length - this.names.length]
+        thread.onmessage = (event: MessageEvent) => {
+            thread.busy = false;
+            if(event.data.isQuery){
+                query(event.data.type,event.data.sql,event.data.args,"exec-buf").then((res:any)=>{
+                    thread.postMessage({
+                        type:event.data.type,
+                        params:{
+                            list:res
+                        },
+                        id:event.data.id
+                    })
+                })
+                return
+            }
+            if(event.data.isSending){
+                if (Reflect.has(thread.taskMap, event.data.id)) {
+                    if (event.data) {
+                        let fun = thread.taskMap[event.data.id];
+                        if (fun) {
+                            fun(event.data.results, event.data.hover);
+                        }
+                        return;
+                    }
+                }
             }
             if (Reflect.has(thread.taskMap, event.data.id)) {
                 if (event.data) {
@@ -145,16 +203,16 @@ class ProcedurePool {
         return thread;
     }
 
-    submitWithNamePromise(name: string, type: string, args: any, transfer: any): Promise<any>{
+    submitWithNamePromise(name: string, type: string, args: any, transfer: any): Promise<any> {
         return new Promise((resolve, reject) => {
             let noBusyThreads = this.works.filter(it => it.name === name);
             let thread: ProcedureThread | undefined
             if (noBusyThreads.length > 0) { //取第一个空闲的线程进行任务
                 thread = noBusyThreads[0];
-                thread!.queryFunc(type, args, transfer, (res:any,hover:any)=>{
+                thread!.queryFunc(type, args, transfer, (res: any, hover: any) => {
                     resolve({
-                        res:res,
-                        hover:hover,
+                        res: res,
+                        hover: hover,
                     })
                 });
             }
