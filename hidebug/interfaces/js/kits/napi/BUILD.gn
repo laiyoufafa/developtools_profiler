@@ -19,7 +19,6 @@ config("napi_hidebug_config") {
   visibility = [ ":*" ]
 
   include_dirs = [
-    ".",
     "//commonlibrary/c_utils/base/include",
     "//third_party/node/src",
     "//foundation/arkui/napi",
@@ -37,7 +36,6 @@ ohos_shared_library("hidebug") {
 
   deps = [
     "//base/hiviewdfx/hidumper/interfaces/innerkits:lib_dump_usage",
-    "//base/hiviewdfx/hiview/adapter/utility:hiview_adapter_utility",
     "//foundation/ability/ability_runtime/frameworks/native/appkit:app_context",
     "//foundation/arkui/napi:ace_napi",
   ]

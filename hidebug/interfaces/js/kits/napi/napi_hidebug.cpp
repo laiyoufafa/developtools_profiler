@@ -21,21 +21,19 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <ctime>
-#include <iservice_registry.h>
 #include <malloc.h>
+#include <unistd.h>
 
 #include "application_context.h"
 #include "context.h"
 #include "directory_ex.h"
 #include "dump_usage.h"
-#include "file_ex.h"
-#include "file_util.h"
 #include "hilog/log.h"
+#include "iservice_registry.h"
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
 #include "native_engine/native_engine.h"
-#include "securec.h"
-#include "unistd.h"
+#include "refbase.h"
 
 namespace OHOS {
 namespace HiviewDFX {
@@ -60,8 +58,10 @@ static bool MatchValueType(napi_env env, napi_value value, napi_valuetype target
 
 static bool CreateFile(const std::string &path)
 {
-    if (FileUtil::FileExists(path)) {
-        HiLog::Error(LABEL, "file existed.");
+    if (access(path.c_str(), F_OK) == 0) {
+        if (access(path.c_str(), W_OK) == 0) {
+            return true;
+        }
         return false;
     }
     const mode_t defaultMode = S_IRUSR | S_IWUSR | S_IRGRP; // -rw-r-----
@@ -73,6 +73,15 @@ static bool CreateFile(const std::string &path)
         close(fd);
         return true;
     }
+}
+
+static bool IsLegalPath(const std::string& path)
+{
+    if (path.find("./") != std::string::npos ||
+        path.find("../") != std::string::npos) {
+        return false;
+    }
+    return true;
 }
 
 static std::string GetLocalTimeStr()
@@ -161,7 +170,7 @@ static std::string SetDumpFilePath(uint32_t serviceAbilityId)
     std::string timeStr = GetLocalTimeStr();
     std::string dumpFilePath = PROC_PATH + std::to_string(getpid()) + ROOT_DIR + filesDir + SLASH_STR +
         "service_" + std::to_string(serviceAbilityId) + "_" + timeStr + ".dump";
-    if (!FileUtil::IsLegalPath(dumpFilePath)) {
+    if (!IsLegalPath(dumpFilePath)) {
         HiLog::Error(LABEL, "dumpFilePath is not legal.");
         return "";
     }
@@ -201,7 +210,7 @@ napi_value StartProfiling(napi_env env, napi_callback_info info)
     }
     std::string filePath = PROC_PATH + std::to_string(getpid()) + ROOT_DIR + filesDir + SLASH_STR +
         fileName + JSON_FILE;
-    if (!FileUtil::IsLegalPath(filePath)) {
+    if (!IsLegalPath(filePath)) {
         return CreateErrorMessage(env, "input fileName is illegal.");
     }
     if (!CreateFile(filePath)) {
@@ -232,7 +241,7 @@ napi_value DumpHeapData(napi_env env, napi_callback_info info)
     }
     std::string filePath = PROC_PATH + std::to_string(getpid()) + ROOT_DIR + filesDir + SLASH_STR +
         fileName + HEAPSNAPSHOT_FILE;
-    if (!FileUtil::IsLegalPath(filePath)) {
+    if (!IsLegalPath(filePath)) {
         return CreateErrorMessage(env, "input fileName is illegal.");
     }
     if (!CreateFile(filePath)) {
