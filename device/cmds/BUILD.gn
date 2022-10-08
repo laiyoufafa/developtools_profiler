@@ -44,6 +44,7 @@ ohos_executable("hiprofiler_cmd") {
     "${OHOS_PROFILER_DIR}/protos/types/plugins/hidump_data:hidump_data_cpp_standard",
     "${OHOS_PROFILER_DIR}/protos/types/plugins/hilog_data:hilog_data_cpp_standard",
     "${OHOS_PROFILER_DIR}/protos/types/plugins/hiperf_data:hiperf_data_cpp_standard",
+    "${OHOS_PROFILER_DIR}/protos/types/plugins/hisysevent_data:hisysevent_data_cpp_standard",
     "${OHOS_PROFILER_DIR}/protos/types/plugins/memory_data:memory_data_cpp_standard",
     "${OHOS_PROFILER_DIR}/protos/types/plugins/native_hook:native_hook_cpp_standard",
     "${OHOS_PROFILER_DIR}/protos/types/plugins/network_data:network_data_cpp_standard",
