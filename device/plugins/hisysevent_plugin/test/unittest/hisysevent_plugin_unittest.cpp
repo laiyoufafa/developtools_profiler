@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -92,6 +92,7 @@ bool PluginStart(HisyseventPlugin& plugin, HisyseventConfig& config)
  * @tc.name: hisysevent plugin
  * @tc.desc: Test default cmd
  * @tc.type: FUNC
+ * @tc.require: issueI5UGTK
  */
 HWTEST_F(HisyseventPluginTest, TestDefaultCmd, TestSize.Level1)
 {
@@ -123,9 +124,10 @@ HWTEST_F(HisyseventPluginTest, TestDefaultCmd, TestSize.Level1)
 }
 
 /**
- * @tc.name: hilog plugin
+ * @tc.name: hisysevent plugin
  * @tc.desc: Framework test
  * @tc.type: FUNC
+ * @tc.require: issueI5UGTK
  */
 HWTEST_F(HisyseventPluginTest, TestFramework, TestSize.Level1)
 {
@@ -172,6 +174,7 @@ HWTEST_F(HisyseventPluginTest, TestFramework, TestSize.Level1)
  * @tc.name: hisysevent plugin
  * @tc.desc: start fail test
  * @tc.type: FUNC
+ * @tc.require: issueI5UGTK
  */
 HWTEST_F(HisyseventPluginTest, TestStartFail, TestSize.Level1)
 {
