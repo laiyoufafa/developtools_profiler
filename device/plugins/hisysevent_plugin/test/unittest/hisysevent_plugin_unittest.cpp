@@ -12,7 +12,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 #include <cstring>
 #include <dlfcn.h>
 #include <fcntl.h>
@@ -28,7 +27,7 @@
 
 using namespace testing::ext;
 
-namespace{
+namespace {
 #if defined(__LP64__)
 const std::string DEFAULT_TEST_PATH("/system/lib64/");
 #else

@@ -73,16 +73,16 @@ int HisyseventPlugin::Start(const uint8_t* configData, uint32_t configSize)
 {
     HILOG_INFO(LOG_CORE, "BEGN %s: ready!", __func__);
     if (configData == nullptr || configSize <= 0) {
-        HILOG_ERROR(LOG_CORE,"NOTE %s: param invalid", __func__);
+        HILOG_ERROR(LOG_CORE, "NOTE %s: param invalid", __func__);
         return -1;
     }
 
     if (protoConfig_.ParseFromArray(configData, configSize) <= 0) {
-        HILOG_ERROR(LOG_CORE,"NOTE HisyseventPlugin: ParseFromArray failed");
+        HILOG_ERROR(LOG_CORE, "NOTE HisyseventPlugin: ParseFromArray failed");
         return -1;
     }
 
-    HILOG_DEBUG(LOG_CORE,"NOTE configData ParseFromArray sucessed,sourse data:%s",protoConfig_.msg().c_str());
+    HILOG_DEBUG(LOG_CORE, "NOTE configData ParseFromArray sucessed,sourse data:%s", protoConfig_.msg().c_str());
 
     if (!InitHisyseventCmd()) {
         HILOG_ERROR(LOG_CORE, "TODO HisyseventPlugin: Init HisyseventCmd failed");
@@ -130,7 +130,7 @@ void HisyseventPlugin::Run(void)
         return;
     }
 
-    HILOG_DEBUG(LOG_CORE,"NOTE hisysevent_plugin_result.proto->HisyseventInfo:dataProto;Ready to output the result!");
+    HILOG_DEBUG(LOG_CORE, "NOTE hisysevent_plugin_result.proto->HisyseventInfo:dataProto;Ready to output the result!");
     HisyseventInfo dataProto;
     fcntl(fileno(fp_.get()), F_SETFL, O_NONBLOCK);
 
@@ -142,7 +142,7 @@ void HisyseventPlugin::Run(void)
         }
 
         if (dataProto.ByteSizeLong() >= BYTE_BUFFER_SIZE) {
-            // Cmd result resize and SerializeToArray and after save to protoBuffer_ ;Then write and flush;Then clear_info
+            // Cmd result resize and SerializeToArray and after save to protoBuffer_ ;write and flush;clear_info
             protoBuffer_.resize(dataProto.ByteSizeLong());
             dataProto.SerializeToArray(protoBuffer_.data(), protoBuffer_.size());
 
@@ -165,7 +165,7 @@ void HisyseventPlugin::Run(void)
 inline bool HisyseventPlugin::ParseSyseventLineInfo(const char* data, size_t len, HisyseventInfo& dataProto)
 {
     if (data == nullptr || len < MIN_STRING_LEN) {
-        HILOG_ERROR(LOG_CORE,"NOTE %s: param invalid", __func__);
+        HILOG_ERROR(LOG_CORE, "NOTE %s: param invalid", __func__);
         return false;
     }
 
@@ -175,7 +175,7 @@ inline bool HisyseventPlugin::ParseSyseventLineInfo(const char* data, size_t len
         info->set_context(data, strlen(data) - 1);  // - \n
         g_id++;
     } else {
-        HILOG_ERROR(LOG_CORE,"NOTE HisyseventPlugin: hisysevent context include invalid UTF-8 data");
+        HILOG_ERROR(LOG_CORE, "NOTE HisyseventPlugin: hisysevent context include invalid UTF-8 data");
         return false;
     }
 
