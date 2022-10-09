@@ -45,6 +45,7 @@ std::vector<std::string> presetPluginVec = {
     "libhidumpplugin.z.so",
     "libhilogplugin.z.so",
     "libhiperfplugin.z.so",
+    "libhisyseventplugin.z.so",
     "libmemdataplugin.z.so",
     "libnetworkplugin.z.so",
     "libprocessplugin.z.so",
