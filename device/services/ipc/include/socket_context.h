@@ -24,6 +24,7 @@
 
 #if defined(__i386__) || defined(__x86_64__)
 const static char DEFAULT_UNIX_SOCKET_PATH[] = "hiprofiler_unix_socket";
+const static char DEFAULT_UNIX_SOCKET_HOOK_PATH[] = "hook_unix_socket";
 #else
 const static char DEFAULT_UNIX_SOCKET_PATH[] = "/dev/unix/socket/hiprofiler_unix_socket";
 const static char DEFAULT_UNIX_SOCKET_HOOK_PATH[] = "/dev/unix/socket/hook_unix_socket";
