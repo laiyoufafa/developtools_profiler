@@ -33,6 +33,16 @@ case "$OSTYPE" in
 esac
 usage="Usage: $basename $0 wasm/test/fuzz/protoc debug/release/clean"
 
+
+if [ "$1" == 'windows' ];then
+    echo "gn only support linux and wasm build currently"
+    if [ ! -d "out/windows" ];then
+        mkdir out/windows
+    fi
+    touch out/windows/trace_streamer.exe
+    exit
+fi
+
 if [ "$#" -ne "0" ];then
     if [ "$1" == "wasm" ];then
         if [ ! -d "prebuilts/emsdk" ];then
@@ -59,17 +69,24 @@ if [ "$#" -ne "0" ];then
     if [ "$1" == "protoc" ];then
         target='protoc'
     fi
+    if [ "$1" == "sdkdemo" ];then
+        target='sdkdemo'
+    fi
 fi
 if [ "$#" -eq "2" ];then
-    if [ "$1" != 'trace' ] && [ "$1" != "linux" ]&& [ "$1" != "windows" ]&& [ "$1" != "trace_streamer" ] && [ "$1" != "wasm" ] && [ "$1" != "test" ] && [ "$1" != "fuzz" ] && [ "$1" != "protoc" ];then
+    if [ "$1" != 'trace' ] && [ "$1" != "linux" ] && [ "$1" != "windows" ] && [ "$1" != "macx" ] && [ "$1" != "trace_streamer" ] && [ "$1" != "wasm" ] && [ "$1" != "test" ] && [ "$1" != "fuzz" ] && [ "$1" != "protoc" ];then
 	echo "failed"
     echo "$usage"
 	exit
     fi
     if [ "$2" != "debug" -a "$2" != "release" -a "$2" != "clean" ];then
+    if [ "$2" == "protoc" ];then
+    target="$2"
+    else
 	echo "failed"
     	echo "$usage"
 	exit
+    fi
     fi
     if [ "$2" == "debug" ];then
 	is_debug='true'
@@ -77,14 +94,6 @@ if [ "$#" -eq "2" ];then
 	is_clean='true'
     else
 	is_debug='false'
-    fi
-    if [ "$target_os" == "windows" ];then
-        echo "gn only support linux and wasm build currently"
-        if [ ! -d "out/windows" ];then
-            mkdir out/windows
-        fi
-        touch out/windows/trace_streamer.exe
-        exit
     fi
     echo "platform is $target_os"
     echo "isdebug: $is_debug"
@@ -134,7 +143,7 @@ if [ ! -f "prebuilts/$gn_path/ninja" ];then
 	exit
 fi
 echo "$is_clean"
-if [ $target == 'test' ] || [ $target == 'fuzz' ] || [ $target='wasm' ];then
+if [ $target == 'test' ] || [ $target == 'fuzz' ] || [ $target='wasm' ] || [ $target='sdkdemo' ];then
     target_dir=$target
 else
     target_dir=$target_os
