@@ -19,7 +19,7 @@ module_output_path = "${OHOS_PROFILER_TEST_MODULE_OUTPUT_PATH}/device"
 ##############################fuzztest##########################################
 ohos_fuzztest("HiperfStartPluginFuzzTest") {
   module_out_path = module_output_path
-
+  fuzz_config_file = "${OHOS_PROFILER_DIR}/device/plugins/hiperf_plugin/test/fuzztest/hiperfstartplugin_fuzzer"
   cflags = [
     "-g",
     "-O0",
