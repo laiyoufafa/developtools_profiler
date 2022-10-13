@@ -18,8 +18,8 @@ declare_args() {
     cxx = "/usr/bin/clang++"
     pic = "-fPIC"
   } else if (target_os == "windows") {
-    cc = "clang.exe"
-    cxx = "clang++.exe"
+    cc = "gcc.exe"
+    cxx = "g++.exe"
     pic = ""
   }
   if (use_wasm == true) {
@@ -32,7 +32,9 @@ declare_args() {
 toolchain("wasm") {
   # emsdk_dir and em_config are defined in wasm.gni.
   print("use gcc_like_chain wasm")
-  ar = "$emsdk_dir/emscripten/emar --em-config $em_config"
+  if (!is_macx) {
+    ar = "$emsdk_dir/emscripten/emar --em-config $em_config"
+  }
   cc = "$emsdk_dir/emscripten/emcc --em-config $em_config"
   cxx = "$emsdk_dir/emscripten/em++ --em-config $em_config"
 
@@ -83,7 +85,11 @@ toolchain("wasm") {
   tool("alink") {
     rspfile = "{{output}}.rsp"  # must be defined
     rspfile_content = "{{inputs}}"
-    command = "rm -rf {{output}} && $ar rcsD {{output}} @$rspfile"
+    if (is_macx) {
+      command = "rm -f {{output}} && libtool -static {{arflags}} -o {{output}} -filelist $rspfile"
+    } else {
+      command = "rm -rf {{output}} && $ar rcsD {{output}} @$rspfile"
+    }
     outputfiles = "{{root_out_dir}}/{{target_output_name}}{{output_extension}}"
     outputs = [ outputfiles ]
     output_prefix = "lib"
@@ -142,8 +148,13 @@ toolchain("gcc_like") {
   }
   tool("alink") {
     rspfile = "{{output}}.rsp"  # this must be defined
-    rspfile_content = "{{inputs}}"  # this must be defined
-    command = "rm -f {{output}} && $ar rcsD {{output}} @$rspfile"
+    if (is_macx) {
+      rspfile_content = "{{inputs_newline}}"
+      command = "rm -f {{output}} && libtool -static {{arflags}} -filelist $rspfile -o {{output}}"
+    } else {
+      rspfile_content = "{{inputs}}"  # this must be defined
+      command = "rm -f {{output}} && $ar rcsD {{output}} @$rspfile"
+    }
     outputsfiles = "{{root_out_dir}}/{{target_output_name}}{{output_extension}}"
     outputs = [ outputsfiles ]
     default_output_extension = ".a"
