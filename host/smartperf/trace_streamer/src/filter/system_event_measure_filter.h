@@ -27,7 +27,7 @@
 
 namespace SysTuning {
 namespace TraceStreamer {
-enum SysEventType { E_SYS_MEMORY_FILTER, E_SYS_VIRTUAL_MEMORY_FILTER };
+enum SysEventType { E_SYS_MEMORY_FILTER, E_SYS_VIRTUAL_MEMORY_FILTER, E_SYS_EVENT_SOURCE_FILTER };
 
 class SystemEventMeasureFilter : private FilterBase {
 public:
@@ -36,7 +36,8 @@ public:
     SystemEventMeasureFilter& operator=(const SystemEventMeasureFilter&) = delete;
     ~SystemEventMeasureFilter() override;
     void AppendNewMeasureData(DataIndex nameIndex, uint64_t timestamp, int64_t value);
-
+    uint32_t AppendNewMeasureFilter(DataIndex nameIndex);
+    void Clear();
 private:
     uint32_t GetOrCreateFilterId(DataIndex nameIndex);
     void AddCertainFilterId(DataIndex nameIndex, uint64_t filterId);
@@ -45,9 +46,11 @@ private:
 
     const std::map<SysEventType, std::string> filterTypeValue = {
         {E_SYS_MEMORY_FILTER, "sys_memory_filter"},
-        {E_SYS_VIRTUAL_MEMORY_FILTER, "sys_virtual_memory_filter"}};
+        {E_SYS_VIRTUAL_MEMORY_FILTER, "sys_virtual_memory_filter"},
+        {E_SYS_EVENT_SOURCE_FILTER, "sys_event_source_filter"}};
     const DataIndex sysMemoryFilterId_ = traceDataCache_->GetDataIndex("sys_memory_filter");
     const DataIndex sysVMemoryFilterId_ = traceDataCache_->GetDataIndex("sys_virtual_memory_filter");
+    const DataIndex sysEventSourceFilterId_ = traceDataCache_->GetDataIndex("sys_event_source_filter");
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

@@ -89,6 +89,7 @@ void ClockFilter::AddClockSnapshot(const std::vector<SnapShot>& snapShot)
             AddConvertClockMap(desClockId, srcClockId, desTs, srcTs);
         }
     }
+    hasInitSnapShot_ = true;
 }
 } // namespace TraceStreamer
 } // namespace SysTuning

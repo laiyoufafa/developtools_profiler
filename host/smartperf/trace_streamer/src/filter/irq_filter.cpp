@@ -61,5 +61,13 @@ void IrqFilter::SoftIrqExit(int64_t ts, uint32_t cpu, uint32_t vec)
     streamFilters_->sliceFilter_->SoftIrqExit(ts, cpu, args);
     return;
 }
+void IrqFilter::Clear()
+{
+    lastEventTs_.clear();
+    transReplyWaitingReply_.clear();
+    transWaitingRcv_.clear();
+    transNoNeedReply_.clear();
+    binderFlagDescs_.clear();
+}
 } // namespace TraceStreamer
 } // namespace SysTuning

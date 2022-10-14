@@ -32,7 +32,11 @@ SystemEventMeasureFilter::~SystemEventMeasureFilter() {}
 void SystemEventMeasureFilter::AppendNewMeasureData(DataIndex nameIndex, uint64_t timestamp, int64_t value)
 {
     auto filterId = GetOrCreateFilterId(nameIndex);
-    traceDataCache_->GetMeasureData()->AppendMeasureData(0, timestamp, value, filterId);
+    traceDataCache_->GetSysMemMeasureData()->AppendMeasureData(0, timestamp, value, filterId);
+}
+uint32_t SystemEventMeasureFilter::AppendNewMeasureFilter(DataIndex nameIndex)
+{
+    return GetOrCreateFilterId(nameIndex);
 }
 uint32_t SystemEventMeasureFilter::GetOrCreateFilterId(DataIndex nameIndex)
 {
@@ -57,7 +61,15 @@ void SystemEventMeasureFilter::AddCertainFilterId(DataIndex nameIndex, uint64_t 
     } else if (filterType_ == E_SYS_VIRTUAL_MEMORY_FILTER) {
         traceDataCache_->GetSysMeasureFilterData()->AppendNewFilter(filterId, sysVMemoryFilterId_,
                                                                     static_cast<uint32_t>(nameIndex));
+    } else if (filterType_ == E_SYS_EVENT_SOURCE_FILTER) {
+        traceDataCache_->GetSysMeasureFilterData()->AppendNewFilter(filterId, sysEventSourceFilterId_,
+                                                                    static_cast<uint32_t>(nameIndex));
     }
+}
+
+void SystemEventMeasureFilter::Clear()
+{
+    tidStreamIdFilterIdMap_.clear();
 }
 } // namespace TraceStreamer
 } // namespace SysTuning

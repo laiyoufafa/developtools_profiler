@@ -75,12 +75,19 @@ void BinderFilter::SendTraction(int64_t ts,
     argsSend.AppendArg(callingTid_, BASE_DATA_TYPE_INT, tid);
 
     if (isReply) {
-        // Add dest information to Reply slices, the Begin msg is from TAG-2
-        InternalTid dstItid = streamFilters_->processFilter_->UpdateOrCreateThread(ts, destTid);
-        const auto destThreadName = traceDataCache_->GetConstThreadData(dstItid).nameIndex_;
-        argsSend.AppendArg(destThreadId_, BASE_DATA_TYPE_INT, destTid);
-        argsSend.AppendArg(destThreadNameId_, BASE_DATA_TYPE_STRING, destThreadName);
-        streamFilters_->sliceFilter_->EndBinder(ts, tid, nullStringId_, nullStringId_, argsSend);
+        // sometime a reply-binder from a tid appear repeated to different dest, we only chose the right one
+        if (transReplyFilter_.count(tid) && transReplyFilter_[tid] == destTid) {
+            // Add dest information to Reply slices, the Begin msg is from TAG-2
+            InternalTid dstItid = streamFilters_->processFilter_->UpdateOrCreateThread(ts, destTid);
+            const auto destThreadName = traceDataCache_->GetConstThreadData(dstItid).nameIndex_;
+            ArgsSet destArgs;
+            destArgs.AppendArg(destThreadId_, BASE_DATA_TYPE_INT, destTid);
+            destArgs.AppendArg(destThreadNameId_, BASE_DATA_TYPE_STRING, destThreadName);
+            streamFilters_->sliceFilter_->AddArgs(tid, binderCatalogId_, replyId_, destArgs);
+            transReplyFilter_.erase(tid);
+        }
+        // the flowing code should be under the ubove conditions, but this will bring a big impact to the UI-SHOW
+        streamFilters_->sliceFilter_->EndBinder(ts, tid, INVALID_UINT64, INVALID_UINT64, argsSend);
         transReplyWaitingReply_.insert(transactionId);
         return;
     } else {
@@ -88,13 +95,13 @@ void BinderFilter::SendTraction(int64_t ts,
         if (needReply) {
             // transaction needs reply TAG-1
             streamFilters_->sliceFilter_->BeginBinder(ts, tid, binderCatalogId_, transSliceId_, argsSend);
-            transWaitingRcv_[transactionId] = tid;
+            transNeedReply_[transactionId] = tid;
         } else {
-            // transaction not need reply
+            // transaction do not need reply
             // tid calling id
             // a binder event only care the transactionId and the callint tid
-            streamFilters_->sliceFilter_->BeginAsyncBinder(ts, tid, binderCatalogId_, transAsyncId_, argsSend);
-            transNoNeedReply_[transactionId] = argsSend;
+            streamFilters_->sliceFilter_->AsyncBinder(ts, tid, binderCatalogId_, transAsyncId_, argsSend);
+            asyncBinderEvents_[transactionId] = argsSend;
         }
     }
 }
@@ -108,9 +115,10 @@ void BinderFilter::ReceiveTraction(int64_t ts, uint32_t pid, uint64_t transactio
         return;
     }
 
-    if (transWaitingRcv_.count(transactionId)) {
+    if (transNeedReply_.count(transactionId)) {
         // First, begin the reply, the reply will be end in "SendTraction" func, and the isReply will be true, TAG-2
         auto replySliceid = streamFilters_->sliceFilter_->BeginBinder(ts, pid, binderCatalogId_, replyId_);
+        transReplyFilter_[pid] = transNeedReply_[transactionId];
         // Add dest info to the reply
         ArgsSet args;
         args.AppendArg(destThreadId_, BASE_DATA_TYPE_INT, pid);
@@ -119,25 +127,28 @@ void BinderFilter::ReceiveTraction(int64_t ts, uint32_t pid, uint64_t transactio
             args.AppendArg(destSliceId_, BASE_DATA_TYPE_INT, replySliceid);
         }
         // Add dest args
-        auto transSliceId = streamFilters_->sliceFilter_->AddArgs(transWaitingRcv_[transactionId], binderCatalogId_,
+        uint64_t transSliceId = INVALID_UINT64;
+        uint32_t argSetId = INVALID_UINT32;
+        std::tie(transSliceId, argSetId) = streamFilters_->sliceFilter_->AddArgs(transNeedReply_[transactionId], binderCatalogId_,
                                                                   transSliceId_, args);
 
-        // remeber dest slice-id to the argset form "SendTraction" TAG-1
+        // remeber dest slice-id to the argset from "SendTraction" TAG-1
         ArgsSet replyDestInserter;
         if (IsValidUint32(transSliceId)) {
             replyDestInserter.AppendArg(destSliceId_, BASE_DATA_TYPE_INT, transSliceId);
         }
-        streamFilters_->sliceFilter_->AddArgs(pid, binderCatalogId_, replyId_, replyDestInserter);
-        transWaitingRcv_.erase(transactionId);
+        std::tie(transSliceId, argSetId) = streamFilters_->sliceFilter_->AddArgs(pid, binderCatalogId_, replyId_, replyDestInserter);
+        traceDataCache_->GetInternalSlicesData()->SetArgSetId(transSliceId, argSetId);
+        transNeedReply_.erase(transactionId);
         return;
     }
     // the code below can be hard to understand, may be a EndBinder will be better
     // this problem can be test after the IDE is finished
-    if (transNoNeedReply_.count(transactionId)) {
-        auto args = transNoNeedReply_[transactionId];
-        streamFilters_->sliceFilter_->BeginAsyncBinder(ts, pid, binderCatalogId_, asyncRcvId_, args);
+    if (asyncBinderEvents_.count(transactionId)) {
+        auto args = asyncBinderEvents_[transactionId];
+        streamFilters_->sliceFilter_->AsyncBinder(ts, pid, binderCatalogId_, asyncRcvId_, args);
         // maybe you can use the flowing code: streamFilters_->sliceFilter_->EndBinder(ts, pid);
-        transNoNeedReply_.erase(transactionId);
+        asyncBinderEvents_.erase(transactionId);
         return;
     }
 }
@@ -151,11 +162,13 @@ void BinderFilter::TransactionAllocBuf(int64_t ts, uint32_t pid, uint64_t dataSi
 }
 void BinderFilter::TractionLock(int64_t ts, uint32_t pid, const std::string& tag)
 {
+    UNUSED(tag);
     lastEventTs_[pid] = ts;
     streamFilters_->sliceFilter_->BeginBinder(ts, pid, binderCatalogId_, lockTryId_);
 }
 void BinderFilter::TractionLocked(int64_t ts, uint32_t pid, const std::string& tag)
 {
+    UNUSED(tag);
     if (!lastEventTs_.count(pid)) {
         streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_BINDER_TRANSACTION_LOCKED, STAT_EVENT_NOTMATCH);
         return;
@@ -167,13 +180,22 @@ void BinderFilter::TractionLocked(int64_t ts, uint32_t pid, const std::string& t
 }
 void BinderFilter::TractionUnlock(int64_t ts, uint32_t pid, const std::string& tag)
 {
+    UNUSED(tag);
     if (!lastEventTs_.count(pid)) {
         streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_BINDER_TRANSACTION_UNLOCK, STAT_EVENT_NOTMATCH);
         return;
     }
-    streamFilters_->sliceFilter_->EndBinder(ts, pid);
+    streamFilters_->sliceFilter_->EndBinder(ts, pid, binderCatalogId_, lockHoldId_);
     lastEventTs_.erase(pid);
     lastEventTs_[pid] = ts;
+}
+void BinderFilter::Clear()
+{
+    lastEventTs_.clear();
+    transReplyWaitingReply_.clear();
+    transNeedReply_.clear();
+    asyncBinderEvents_.clear();
+    binderFlagDescs_.clear();
 }
 } // namespace TraceStreamer
 } // namespace SysTuning

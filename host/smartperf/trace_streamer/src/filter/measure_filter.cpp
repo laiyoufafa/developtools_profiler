@@ -29,10 +29,15 @@ MeasureFilter::MeasureFilter(TraceDataCache* dataCache, const TraceStreamerFilte
 
 MeasureFilter::~MeasureFilter() {}
 
-void MeasureFilter::AppendNewMeasureData(uint64_t internalTid, DataIndex nameIndex, uint64_t timestamp, int64_t value)
+bool MeasureFilter::AppendNewMeasureData(uint64_t internalTid, DataIndex nameIndex, uint64_t timestamp, int64_t value)
 {
     auto filterId = GetOrCreateFilterId(internalTid, nameIndex);
-    traceDataCache_->GetMeasureData()->AppendMeasureData(0, timestamp, value, filterId);
+    if (filterType_ == E_PROCESS_MEASURE_FILTER) {
+        traceDataCache_->GetProcessMeasureData()->AppendMeasureData(0, timestamp, value, filterId);
+    } else {
+        traceDataCache_->GetMeasureData()->AppendMeasureData(0, timestamp, value, filterId);
+    }
+    return value != 0;
 }
 uint32_t MeasureFilter::GetOrCreateFilterId(uint64_t internalTid, DataIndex nameIndex)
 {
@@ -84,6 +89,10 @@ void MeasureFilter::AddCertainFilterId(uint64_t internalTid, DataIndex nameIndex
         traceDataCache_->GetClkEventFilterData()->AppendNewFilter(filterId, clkDisableDataIndex_,
             static_cast<uint32_t>(nameIndex), internalTid);
     }
+}
+void MeasureFilter::Clear()
+{
+    tidStreamIdFilterIdMap_.Clear();
 }
 } // namespace TraceStreamer
 } // namespace SysTuning

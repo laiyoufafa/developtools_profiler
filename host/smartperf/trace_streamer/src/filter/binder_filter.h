@@ -45,7 +45,7 @@ public:
     void TractionLock(int64_t ts, uint32_t pid, const std::string& tag);
     void TractionLocked(int64_t ts, uint32_t pid, const std::string& tag);
     void TractionUnlock(int64_t ts, uint32_t pid, const std::string& tag);
-
+    void Clear();
 private:
     std::string GetBinderFlagsDesc(uint32_t flag);
     bool IsValidUint32(uint32_t value) const
@@ -79,8 +79,9 @@ private:
     const DataIndex nullStringId_ = traceDataCache_->GetDataIndex("null");
     std::unordered_map<uint64_t, int64_t> lastEventTs_ = {};
     std::unordered_set<uint64_t> transReplyWaitingReply_ = {};
-    std::unordered_map<uint64_t, FilterId> transWaitingRcv_ = {};
-    std::unordered_map<uint64_t, ArgsSet> transNoNeedReply_ = {};
+    std::unordered_map<uint64_t, FilterId> transNeedReply_ = {};
+    std::unordered_map<uint64_t, FilterId> transReplyFilter_ = {};
+    std::unordered_map<uint64_t, ArgsSet> asyncBinderEvents_ = {};
     std::unordered_map<int, std::string> binderFlagDescs_ = {};
 };
 } // namespace TraceStreamer
