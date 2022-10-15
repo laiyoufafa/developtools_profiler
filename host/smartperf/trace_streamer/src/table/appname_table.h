@@ -13,38 +13,39 @@
  * limitations under the License.
  */
 
-#ifndef SRC_CLOCK_EVENT_FILTER_TABLE_H
-#define SRC_CLOCK_EVENT_FILTER_TABLE_H
-
+#ifndef APPNAME_TABLE_H
+#define APPNAME_TABLE_H
 
 #include "table_base.h"
 #include "trace_data_cache.h"
 
 namespace SysTuning {
 namespace TraceStreamer {
-class ClockEventFilterTable : public TableBase {
+class AppnameTable : public TableBase {
 public:
-    explicit ClockEventFilterTable(const TraceDataCache* dataCache);
-    ~ClockEventFilterTable() override;
+    explicit AppnameTable(const TraceDataCache*);
+    ~AppnameTable() override;
     std::unique_ptr<TableBase::Cursor> CreateCursor() override;
 
 private:
-    void EstimateFilterCost(FilterConstraints& fc, EstimatedIndexInfo& ei) override;
-    // the column is sorted
-    bool CanFilterSorted(const char op, size_t& rowCount) const;
-    void FilterByConstraint(FilterConstraints& fc, double& filterCost, size_t rowCount);
+    void EstimateFilterCost(FilterConstraints& fc, EstimatedIndexInfo& ei) override {}
 
     class Cursor : public TableBase::Cursor {
     public:
         explicit Cursor(const TraceDataCache* dataCache, TableBase* table);
         ~Cursor() override;
-        int Filter(const FilterConstraints& fc, sqlite3_value** argv) override;
-        int Column(int col) const override;
+        int Filter(const FilterConstraints& fc, sqlite3_value** argv) override
+        {
+            UNUSED(fc);
+            UNUSED(argv);
+            return 0;
+        }
 
-        void FilterSorted(int col, unsigned char op, sqlite3_value* argv);
+        int Column(int column) const override;
+    private:
+        const AppNames& appName_;
     };
 };
 } // namespace TraceStreamer
 } // namespace SysTuning
-
-#endif // SRC_CLOCK_EVENT_FILTER_TABLE_H
+#endif // APPNAME_TABLE_H

@@ -12,33 +12,46 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-#include "args_table.h"
+#include "ebpf_elf_table.h"
 
 namespace SysTuning {
 namespace TraceStreamer {
 namespace {
-enum Index { ID = 0, KEY, DATATYPE, VALUE, ARGSETID };
+enum Index {
+    ID = 0,
+    ELF_ID,
+    TEXT_VADDR,
+    TEXT_OFFSET,
+    STR_TAB_LEN,
+    SYM_TAB_LEN,
+    FILE_NAME_LEN,
+    SYM_ENT_LEN,
+    FILE_PATH_ID,
+};
 }
-ArgsTable::ArgsTable(const TraceDataCache* dataCache) : TableBase(dataCache)
+EbpfElfTable::EbpfElfTable(const TraceDataCache* dataCache) : TableBase(dataCache)
 {
     tableColumn_.push_back(TableBase::ColumnInfo("id", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("key", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("datatype", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("value", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("argset", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("elf_id", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("text_vaddr", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("text_offset", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("str_tab_len", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("sym_tab_len", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("file_name_len", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("sym_ent_len", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("file_path_id", "INTEGER"));
     tablePriKey_.push_back("id");
 }
 
-ArgsTable::~ArgsTable() {}
+EbpfElfTable::~EbpfElfTable() {}
 
-void ArgsTable::EstimateFilterCost(FilterConstraints& fc, EstimatedIndexInfo& ei)
+void EbpfElfTable::EstimateFilterCost(FilterConstraints& fc, EstimatedIndexInfo& ei)
 {
     constexpr double filterBaseCost = 1000.0; // set-up and tear-down
     constexpr double indexCost = 2.0;
     ei.estimatedCost = filterBaseCost;
 
-    auto rowCount = dataCache_->GetConstArgSetData().Size();
+    auto rowCount = dataCache_->GetConstHidumpData().Size();
     if (rowCount == 0 || rowCount == 1) {
         ei.estimatedRows = rowCount;
         ei.estimatedCost += indexCost * rowCount;
@@ -69,7 +82,7 @@ void ArgsTable::EstimateFilterCost(FilterConstraints& fc, EstimatedIndexInfo& ei
     }
 }
 
-void ArgsTable::FilterByConstraint(FilterConstraints& fc, double& filterCost, size_t rowCount)
+void EbpfElfTable::FilterByConstraint(FilterConstraints& fc, double& filterCost, size_t rowCount)
 {
     auto fcConstraints = fc.GetConstraints();
     for (int i = 0; i < static_cast<int>(fcConstraints.size()); i++) {
@@ -96,7 +109,7 @@ void ArgsTable::FilterByConstraint(FilterConstraints& fc, double& filterCost, si
     }
 }
 
-bool ArgsTable::CanFilterId(const char op, size_t& rowCount)
+bool EbpfElfTable::CanFilterId(const char op, size_t& rowCount)
 {
     switch (op) {
         case SQLITE_INDEX_CONSTRAINT_EQ:
@@ -115,20 +128,20 @@ bool ArgsTable::CanFilterId(const char op, size_t& rowCount)
     return true;
 }
 
-std::unique_ptr<TableBase::Cursor> ArgsTable::CreateCursor()
+std::unique_ptr<TableBase::Cursor> EbpfElfTable::CreateCursor()
 {
     return std::make_unique<Cursor>(dataCache_, this);
 }
 
-ArgsTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
-    : TableBase::Cursor(dataCache, table, static_cast<uint32_t>(dataCache->GetConstArgSetData().Size())),
-      argSet_(dataCache->GetConstArgSetData())
+EbpfElfTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
+    : TableBase::Cursor(dataCache, table, static_cast<uint32_t>(dataCache->GetConstEbpfElf().Size())),
+      ebpfElfObj_(dataCache->GetConstEbpfElf())
 {
 }
 
-ArgsTable::Cursor::~Cursor() {}
+EbpfElfTable::Cursor::~Cursor() {}
 
-int ArgsTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value** argv)
+int EbpfElfTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value** argv)
 {
     // reset indexMap_
     indexMap_ = std::make_unique<IndexMap>(0, rowCount_);
@@ -164,32 +177,56 @@ int ArgsTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value** argv)
     return SQLITE_OK;
 }
 
-int ArgsTable::Cursor::Column(int col) const
+int EbpfElfTable::Cursor::Column(int column) const
 {
-    switch (col) {
+    switch (column) {
         case ID:
-            sqlite3_result_int64(context_, CurrentRow()); // IdsData() will be optimized
+            sqlite3_result_int64(context_, static_cast<int32_t>(ebpfElfObj_.IdsData()[CurrentRow()]));
             break;
-        case KEY:
-            sqlite3_result_int64(context_, static_cast<int64_t>(argSet_.NamesData()[CurrentRow()]));
+        case ELF_ID:
+            sqlite3_result_int64(context_, static_cast<int64_t>(ebpfElfObj_.ElfIds()[CurrentRow()]));
             break;
-        case DATATYPE:
-            sqlite3_result_int64(context_, static_cast<int64_t>(argSet_.DataTypes()[CurrentRow()]));
+        case TEXT_VADDR:
+            sqlite3_result_int64(context_, static_cast<int64_t>(ebpfElfObj_.TextVaddrs()[CurrentRow()]));
             break;
-        case VALUE:
-            sqlite3_result_int64(context_, static_cast<int64_t>(argSet_.ValuesData()[CurrentRow()]));
+        case TEXT_OFFSET:
+            sqlite3_result_int64(context_, static_cast<int64_t>(ebpfElfObj_.TextOffsets()[CurrentRow()]));
             break;
-        case ARGSETID:
-            sqlite3_result_int64(context_, static_cast<int64_t>(argSet_.ArgsData()[CurrentRow()]));
+        case STR_TAB_LEN:
+            sqlite3_result_int64(context_, static_cast<int64_t>(ebpfElfObj_.StrTabLens()[CurrentRow()]));
             break;
+        case SYM_TAB_LEN: {
+            if (ebpfElfObj_.SymTabLens()[CurrentRow()] != INVALID_UINT64) {
+                sqlite3_result_int64(context_, static_cast<int64_t>(ebpfElfObj_.SymTabLens()[CurrentRow()]));
+            }
+            break;
+        }
+        case FILE_NAME_LEN: {
+            if (ebpfElfObj_.FileNameLens()[CurrentRow()] != INVALID_UINT64) {
+                sqlite3_result_int64(context_, static_cast<int64_t>(ebpfElfObj_.FileNameLens()[CurrentRow()]));
+            }
+            break;
+        }
+        case SYM_ENT_LEN: {
+            if (ebpfElfObj_.SymEntLens()[CurrentRow()] != INVALID_UINT64) {
+                sqlite3_result_int64(context_, static_cast<int64_t>(ebpfElfObj_.SymEntLens()[CurrentRow()]));
+            }
+            break;
+        }
+        case FILE_PATH_ID: {
+            if (ebpfElfObj_.FileNameIndexs()[CurrentRow()] != INVALID_UINT64) {
+                sqlite3_result_int64(context_, static_cast<int64_t>(ebpfElfObj_.FileNameIndexs()[CurrentRow()]));
+            }
+            break;
+        }
         default:
-            TS_LOGF("Unregistered column : %d", col);
+            TS_LOGF("Unregistered column : %d", column);
             break;
     }
     return SQLITE_OK;
 }
 
-void ArgsTable::Cursor::FilterId(unsigned char op, sqlite3_value* argv)
+void EbpfElfTable::Cursor::FilterId(unsigned char op, sqlite3_value* argv)
 {
     auto type = sqlite3_value_type(argv);
     if (type != SQLITE_INTEGER) {
