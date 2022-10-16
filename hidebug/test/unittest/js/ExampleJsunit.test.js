@@ -15,6 +15,7 @@
 import hidebug from '@ohos.hidebug'
 import fileio from '@ohos.fileio'
 import process from '@ohos.process'
+import featureAbility from '@ohos.ability.featureAbility'
 
 import {describe, beforeAll, beforeEach, afterEach, afterAll, it, expect} from 'deccjsunit/index'
 
@@ -84,5 +85,168 @@ describe("HidebugJsTest", function () {
             console.error('HidebugJsTest_001 has failed for ' + err);
             expect(false).assertTrue();
         }
+    })
+
+    /**
+     * @tc.name: HidebugJsTest_002
+     * @tc.desc: startJsCpuProfiling/stopJsCpuProfiling的正常测试, startProfiling/stopProfiling的更新版本
+     * @tc.type: FUNC
+     * @tc.require: issueI5VY8L
+     */
+     it('HidebugJsTest_002', 0, function () {
+        console.info("---------------------------HidebugJsTest_002----------------------------------");
+        try {
+            let timestamp = Date.now();
+            let filename = "cpuprofiler_" + timestamp.toString();
+            hidebug.startJsCpuProfiling(filename);
+            for (var i = 0; i < 3; i++) {
+                hidebug.getSharedDirty();
+            }
+            hidebug.stopJsCpuProfiling();
+            var pid = process.pid;
+            let path = "/proc/" + pid + "/root/data/storage/el2/base/files/" + filename + ".json";
+            let data = fileio.readTextSync(path);
+            if (data.includes("napi")) {
+                expect(true).assertTrue();
+            } else {
+                expect(false).assertTrue();
+            }
+        } catch (err) {
+            console.error('HidebugJsTest_001 has failed for ' + err);
+            expect(false).assertTrue();
+        }
+    })
+
+    /**
+     * @tc.name: HidebugJsTest_003
+     * @tc.desc: startJsCpuProfiling/stopJsCpuProfiling的异常测试, startProfiling/stopProfiling的更新版本
+     * @tc.type: FUNC
+     * @tc.require: issueI5VY8L
+     */
+     it('HidebugJsTest_003', 0, function () {
+        console.info("---------------------------HidebugJsTest_003----------------------------------");
+        try {
+            hidebug.startJsCpuProfiling();
+            for (var i = 0; i < 3; i++) {
+                hidebug.getSharedDirty();
+            }
+            hidebug.stopJsCpuProfiling();
+        } catch (error) {
+            console.info(error.code);
+            console.info(error.message);
+            expect(error.code == 401).assertTrue();
+        }
+    })
+
+    /**
+     * @tc.name: HidebugJsTest_004
+     * @tc.desc: dumpJsHeapData的正常测试, dumpHeapData的更新版本
+     * @tc.type: FUNC
+     * @tc.require: issueI5VY8L
+     */
+     it('HidebugJsTest_004', 0, function () {
+        console.info("---------------------------HidebugJsTest_004----------------------------------");
+        try {
+            hidebug.dumpJsHeapData("heapData");
+            expect(true).assertTrue();
+        } catch (error) {
+            console.info(error.code);
+            console.info(error.message);
+        }
+    })
+
+    /**
+     * @tc.name: HidebugJsTest_005
+     * @tc.desc: dumpJsHeapData的异常测试, dumpHeapData的更新版本
+     * @tc.type: FUNC
+     * @tc.require: issueI5VY8L
+     */
+     it('HidebugJsTest_005', 0, function () {
+        console.info("---------------------------HidebugJsTest_005----------------------------------");
+        try {
+            hidebug.dumpJsHeapData();
+        } catch (error) {
+            console.info(error.code);
+            console.info(error.message);
+            expect(error.code == 401).assertTrue();
+        }
+    })
+
+    /**
+     * @tc.name: HidebugJsTest_006
+     * @tc.desc: getServiceDump的正常测试
+     * @tc.type: FUNC
+     * @tc.require: issueI5VY8L
+     */
+     it('HidebugJsTest_006', 0, function () {
+        console.info("---------------------------HidebugJsTest_006----------------------------------");
+        let context = featureAbility.getContext();
+        context.getFilesDir().then((data) => {
+            var path = data + "/serviceInfo1.txt"
+            console.info("output path: " + path)
+            let fd = fileio.openSync(path, 0o102, 0o666)
+            var serviceId = 10
+            var args = new Array("allInfo")
+            try {
+              hidebug.getServiceDump(serviceId, fd, args)
+              expect(true).assertTrue();
+            } catch (error) {
+              console.info(error.code)
+              console.info(error.message)
+            }
+            fileio.closeSync(fd);
+        })
+    })
+    
+    /**
+     * @tc.name: HidebugJsTest_007
+     * @tc.desc: getServiceDump的异常测试，参数错误
+     * @tc.type: FUNC
+     * @tc.require: issueI5VY8L
+     */
+     it('HidebugJsTest_007', 0, function () {
+        console.info("---------------------------HidebugJsTest_007----------------------------------");
+        let context = featureAbility.getContext();
+        context.getFilesDir().then((data) => {
+            var path = data + "/serviceInfo2.txt"
+            console.info("output path: " + path)
+            let fd = fileio.openSync(path, 0o102, 0o666)
+            var serviceId = 10
+            var args = new Array("allInfo")
+            try {
+                hidebug.getServiceDump(serviceId)
+            } catch (error) {
+              console.info(error.code)
+              console.info(error.message)
+              expect(error.code == 401).assertTrue();
+            }
+            fileio.closeSync(fd);
+        })
+    })
+
+    /**
+     * @tc.name: HidebugJsTest_008
+     * @tc.desc: getServiceDump的异常测试，查询system ability失败
+     * @tc.type: FUNC
+     * @tc.require: issueI5VY8L
+     */
+     it('HidebugJsTest_008', 0, function () {
+        console.info("---------------------------HidebugJsTest_008----------------------------------");
+        let context = featureAbility.getContext();
+        context.getFilesDir().then((data) => {
+            var path = data + "/serviceInfo3.txt"
+            console.info("output path: " + path)
+            let fd = fileio.openSync(path, 0o102, 0o666)
+            var serviceId = -10
+            var args = new Array("allInfo")
+            try {
+                hidebug.getServiceDump(serviceId, fd, args)
+            } catch (error) {
+              console.info(error.code)
+              console.info(error.message)
+              expect(error.code == 11400101).assertTrue();
+            }
+            fileio.closeSync(fd);
+        })
     })
 })
