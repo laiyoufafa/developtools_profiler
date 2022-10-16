@@ -14,6 +14,7 @@
  */
 
 #include <cerrno>
+#include <codecvt>
 #include <fstream>
 #include <string>
 #include <memory>
@@ -47,6 +48,12 @@ const std::string SLASH_STR = "/";
 const std::string DEFAULT_FILENAME = "undefined";
 const std::string JSON_FILE = ".json";
 const std::string HEAPSNAPSHOT_FILE = ".heapsnapshot";
+enum ErrorCode {
+    PERMISSION_ERROR = 201,
+    PARAMETER_ERROR = 401,
+    VERSION_ERROR = 801,
+    SYSTEM_ABILITY_NOT_FOUND = 11400101
+};
 }
 
 static bool MatchValueType(napi_env env, napi_value value, napi_valuetype targetType)
@@ -84,43 +91,69 @@ static bool IsLegalPath(const std::string& path)
     return true;
 }
 
-static std::string GetLocalTimeStr()
+static bool IsArrayForNapiValue(napi_env env, napi_value param, uint32_t &arraySize)
 {
-    time_t timep;
-    (void)time(&timep);
-    char tmp[128] = {0};
-    struct tm* localTime = localtime(&timep);
-    if (!localTime) {
-        HiLog::Error(LABEL, "get local time error.");
-        return "0";
+    bool isArray = false;
+    arraySize = 0;
+    if (napi_is_array(env, param, &isArray) != napi_ok || isArray == false) {
+        return false;
     }
-    (void)strftime(tmp, sizeof(tmp), "%Y%m%d_%H%M%S", localTime);
-    std::string timeStr = tmp;
-    return timeStr;
+    if (napi_get_array_length(env, param, &arraySize) != napi_ok) {
+        return false;
+    }
+    return true;
 }
 
-static uint32_t GetServiceAbilityIdParam(napi_env env, napi_callback_info info)
+static bool GetDumpParam(napi_env env, napi_callback_info info,
+    int& serviceId, int& fd, std::vector<std::u16string>& args)
 {
-    size_t argc = ONE_VALUE_LIMIT;
-    napi_value argv[ONE_VALUE_LIMIT] = { nullptr };
+    const int valueNum = 3;
+    size_t argc = valueNum;
+    napi_value argv[valueNum] = {nullptr};
     napi_value thisVar = nullptr;
     void *data = nullptr;
     napi_get_cb_info(env, info, &argc, argv, &thisVar, &data);
-    if (argc != ONE_VALUE_LIMIT) {
+    if (argc != valueNum) {
         HiLog::Error(LABEL, "invalid number = %{public}d of params.", ONE_VALUE_LIMIT);
-        return 0;
+        return false;
     }
-    if (!MatchValueType(env, argv[ARRAY_INDEX_FIRST], napi_number)) {
-        HiLog::Error(LABEL, "Type error, should be number type!");
-        return 0;
+    int thirdPos = 2;
+    if (!MatchValueType(env, argv[0], napi_number) &&
+        !MatchValueType(env, argv[1], napi_number) &&
+        !MatchValueType(env, argv[thirdPos], napi_object)) {
+        HiLog::Error(LABEL, "params type error.");
+        return false;
     }
-    uint32_t serviceAbilityId = 0;
-    napi_status status = napi_get_value_uint32(env, argv[0], &serviceAbilityId);
-    if (status != napi_ok) {
-        HiLog::Error(LABEL, "Get input serviceAbilityId failed.");
-        return 0;
+    if (napi_get_value_int32(env, argv[0], &serviceId) != napi_ok) {
+        HiLog::Error(LABEL, "Get input serviceId failed.");
+        return false;
     }
-    return serviceAbilityId;
+    if (napi_get_value_int32(env, argv[1], &fd) != napi_ok) {
+        HiLog::Error(LABEL, "Get input fd failed.");
+        return false;
+    }
+    uint32_t arraySize = 0;
+    if (!IsArrayForNapiValue(env, argv[thirdPos], arraySize)) {
+        HiLog::Error(LABEL, "Get input args failed.");
+        return false;
+    }
+    for (uint32_t i = 0; i < arraySize; i++) {
+        napi_value jsValue = nullptr;
+        if (napi_get_element(env, argv[thirdPos], i, &jsValue) != napi_ok) {
+            HiLog::Error(LABEL, "get_element -> Get input args failed.");
+            return false;
+        }
+        const size_t bufSize = 256;
+        size_t bufLen = 0;
+        char buf[bufSize] = {0};
+        if (napi_get_value_string_utf8(env, jsValue, buf, bufSize - 1, &bufLen) != napi_ok) {
+            HiLog::Error(LABEL, "get_value -> Get input args failed.");
+            return false;
+        }
+        std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> strCnv;
+        args.push_back(strCnv.from_bytes(buf));
+    }
+    return true;
 }
 
 static std::string GetFileNameParam(napi_env env, napi_callback_info info)
@@ -155,30 +188,38 @@ static std::string GetFileNameParam(napi_env env, napi_callback_info info)
     return fileName;
 }
 
-static std::string SetDumpFilePath(uint32_t serviceAbilityId)
+static bool GetFileNameParamThrowErrorVersion(napi_env env, napi_callback_info info, std::string &fileName)
 {
-    auto context = OHOS::AbilityRuntime::Context::GetApplicationContext();
-    if (context == nullptr) {
-        HiLog::Error(LABEL, "ApplicationContext is null.");
-        return "";
+    size_t argc = ONE_VALUE_LIMIT;
+    napi_value argv[ONE_VALUE_LIMIT] = { nullptr };
+    napi_value thisVar = nullptr;
+    void *data = nullptr;
+    napi_get_cb_info(env, info, &argc, argv, &thisVar, &data);
+    if (argc != ONE_VALUE_LIMIT) {
+        HiLog::Error(LABEL, "invalid number = %{public}d of params.", ONE_VALUE_LIMIT);
+        std::string errorMessage = "Invalid parameter, only one parameter is allowed.";
+        return false;
     }
-    std::string filesDir = context->GetFilesDir();
-    if (filesDir.empty()) {
-        HiLog::Error(LABEL, "The files dir obtained from context is empty.");
-        return "";
+    if (!MatchValueType(env, argv[ARRAY_INDEX_FIRST], napi_string)) {
+        HiLog::Error(LABEL, "Type error, should be string type!");
+        std::string errorMessage = "invalid parameter, only one parameter is allowed.";
+        return false;
     }
-    std::string timeStr = GetLocalTimeStr();
-    std::string dumpFilePath = PROC_PATH + std::to_string(getpid()) + ROOT_DIR + filesDir + SLASH_STR +
-        "service_" + std::to_string(serviceAbilityId) + "_" + timeStr + ".dump";
-    if (!IsLegalPath(dumpFilePath)) {
-        HiLog::Error(LABEL, "dumpFilePath is not legal.");
-        return "";
+    size_t bufLen = 0;
+    napi_status status = napi_get_value_string_utf8(env, argv[0], NULL, 0, &bufLen);
+    if (status != napi_ok) {
+        HiLog::Error(LABEL, "Get input filename param length failed.");
+        return false;
     }
-    if (!CreateFile(dumpFilePath)) {
-        HiLog::Error(LABEL, "dumpFilePath create failed.");
-        return "";
+    const int bufMax = 128;
+    if (bufLen > bufMax || bufLen == 0) {
+        HiLog::Error(LABEL, "input filename param length is illegal.");
+        return false;
     }
-    return dumpFilePath;
+    char buf[bufLen + 1];
+    napi_get_value_string_utf8(env, argv[0], buf, bufLen + 1, &bufLen);
+    fileName = buf;
+    return true;
 }
 
 static napi_value CreateUndefined(napi_env env)
@@ -221,7 +262,44 @@ napi_value StartProfiling(napi_env env, napi_callback_info info)
     return CreateUndefined(env);
 }
 
+napi_value StartJsCpuProfiling(napi_env env, napi_callback_info info)
+{
+    std::string fileName;
+    if (!GetFileNameParamThrowErrorVersion(env, info, fileName)) {
+        std::string paramErrorMessage = "Invalid parameter, require a string parameter.";
+        napi_throw_error(env, std::to_string(ErrorCode::PARAMETER_ERROR).c_str(), paramErrorMessage.c_str());
+        return CreateUndefined(env);
+    }
+    HiLog::Info(LABEL, "filename: %{public}s.", fileName.c_str());
+    auto context = OHOS::AbilityRuntime::Context::GetApplicationContext();
+    if (context == nullptr) {
+        return CreateErrorMessage(env, "Get ApplicationContext failed.");
+    }
+    std::string filesDir = context->GetFilesDir();
+    if (filesDir.empty()) {
+        return CreateErrorMessage(env, "Get App files dir failed.");
+    }
+    std::string filePath = PROC_PATH + std::to_string(getpid()) + ROOT_DIR + filesDir + SLASH_STR +
+        fileName + JSON_FILE;
+    if (!IsLegalPath(filePath)) {
+        return CreateErrorMessage(env, "input fileName is illegal.");
+    }
+    if (!CreateFile(filePath)) {
+        return CreateErrorMessage(env, "file created failed.");
+    }
+    NativeEngine *engine = reinterpret_cast<NativeEngine*>(env);
+    engine->StartCpuProfiler(filePath);
+    return CreateUndefined(env);
+}
+
 napi_value StopProfiling(napi_env env, napi_callback_info info)
+{
+    NativeEngine *engine = reinterpret_cast<NativeEngine*>(env);
+    engine->StopCpuProfiler();
+    return CreateUndefined(env);
+}
+
+napi_value StopJsCpuProfiling(napi_env env, napi_callback_info info)
 {
     NativeEngine *engine = reinterpret_cast<NativeEngine*>(env);
     engine->StopCpuProfiler();
@@ -231,6 +309,36 @@ napi_value StopProfiling(napi_env env, napi_callback_info info)
 napi_value DumpHeapData(napi_env env, napi_callback_info info)
 {
     std::string fileName = GetFileNameParam(env, info);
+    auto context = OHOS::AbilityRuntime::Context::GetApplicationContext();
+    if (context == nullptr) {
+        return CreateErrorMessage(env, "Get ApplicationContext failed.");
+    }
+    std::string filesDir = context->GetFilesDir();
+    if (filesDir.empty()) {
+        return CreateErrorMessage(env, "Get App files dir failed.");
+    }
+    std::string filePath = PROC_PATH + std::to_string(getpid()) + ROOT_DIR + filesDir + SLASH_STR +
+        fileName + HEAPSNAPSHOT_FILE;
+    if (!IsLegalPath(filePath)) {
+        return CreateErrorMessage(env, "input fileName is illegal.");
+    }
+    if (!CreateFile(filePath)) {
+        return CreateErrorMessage(env, "file created failed.");
+    }
+    NativeEngine *engine = reinterpret_cast<NativeEngine*>(env);
+    engine->DumpHeapSnapshot(filePath);
+    return CreateUndefined(env);
+}
+
+napi_value DumpJsHeapData(napi_env env, napi_callback_info info)
+{
+    std::string fileName;
+    if (!GetFileNameParamThrowErrorVersion(env, info, fileName)) {
+        std::string paramErrorMessage = "Invalid parameter, require a string parameter.";
+        napi_throw_error(env, std::to_string(ErrorCode::PARAMETER_ERROR).c_str(), paramErrorMessage.c_str());
+        return CreateUndefined(env);
+    }
+    HiLog::Error(LABEL, "filename: %{public}s.", fileName.c_str());
     auto context = OHOS::AbilityRuntime::Context::GetApplicationContext();
     if (context == nullptr) {
         return CreateErrorMessage(env, "Get ApplicationContext failed.");
@@ -347,49 +455,29 @@ napi_value GetNativeHeapFreeSize(napi_env env, napi_callback_info info)
 
 static napi_value GetServiceDump(napi_env env, napi_callback_info info)
 {
-    napi_value errorStr;
-    napi_value successStr;
-    uint32_t serviceAbilityId = 0;
-    serviceAbilityId = GetServiceAbilityIdParam(env, info);
-    if (serviceAbilityId == 0) {
-        HiLog::Error(LABEL, "invalid param.");
-        std::string errorInfo = "Error: invalid param";
-        napi_create_string_utf8(env, errorInfo.c_str(), NAPI_AUTO_LENGTH, &errorStr);
-        return errorStr;
+    int serviceAbilityId = 0;
+    int fd = 0;
+    std::vector<std::u16string> args;
+    if (!GetDumpParam(env, info, serviceAbilityId, fd, args)) {
+        std::string paramErrorMessage = "The parameter check failed.";
+        napi_throw_error(env, std::to_string(ErrorCode::PARAMETER_ERROR).c_str(), paramErrorMessage.c_str());
+        return CreateUndefined(env);
     }
+
     sptr<ISystemAbilityManager> sam = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     if (!sam) {
-        std::string errorInfo = "Error: get system ability manager failed";
-        napi_create_string_utf8(env, errorInfo.c_str(), NAPI_AUTO_LENGTH, &errorStr);
-        return errorStr;
+        return CreateUndefined(env);
     }
     sptr<IRemoteObject> sa = sam->CheckSystemAbility(serviceAbilityId);
-    if (!sa) {
-        HiLog::Error(LABEL, "no such system ability for ability id %{public}d!", serviceAbilityId);
-        std::string errorInfo = "Error: no such system ability service.";
-        napi_create_string_utf8(env, errorInfo.c_str(), NAPI_AUTO_LENGTH, &errorStr);
-        return errorStr;
+    if (sa == nullptr) {
+        HiLog::Error(LABEL, "no this system ability.");
+        std::string idErrorMessage = "service id is invalid, system ability is not exist.";
+        napi_throw_error(env, std::to_string(ErrorCode::SYSTEM_ABILITY_NOT_FOUND).c_str(), idErrorMessage.c_str());
+        return CreateUndefined(env);
     }
-    std::string dumpFilePath = SetDumpFilePath(serviceAbilityId);
-    if (dumpFilePath == "") {
-        std::string errorInfo = "Error: create dump file path failed";
-        napi_create_string_utf8(env, errorInfo.c_str(), NAPI_AUTO_LENGTH, &errorStr);
-        return errorStr;
-    }
-    int fd = open(dumpFilePath.c_str(), O_RDWR | O_APPEND | O_CREAT, 0644);
-    if (fd == -1) {
-        std::string errorInfo = "Error: open filepath failed, filepath: " + dumpFilePath;
-        napi_create_string_utf8(env, errorInfo.c_str(), NAPI_AUTO_LENGTH, &errorStr);
-        close(fd);
-        return errorStr;
-    }
-    std::vector<std::u16string> args;
     int dumpResult = sa->Dump(fd, args);
-    HiLog::Info(LABEL, "dump result returned by sa id %{public}d", dumpResult);
-    close(fd);
-    std::string successInfo = "Success: " + dumpFilePath;
-    napi_create_string_utf8(env, successInfo.c_str(), NAPI_AUTO_LENGTH, &successStr);
-    return successStr;
+    HiLog::Info(LABEL, "Dump result: %{public}d", dumpResult);
+    return CreateUndefined(env);
 }
 
 napi_value DeclareHiDebugInterface(napi_env env, napi_value exports)
@@ -398,6 +486,9 @@ napi_value DeclareHiDebugInterface(napi_env env, napi_value exports)
         DECLARE_NAPI_FUNCTION("startProfiling", StartProfiling),
         DECLARE_NAPI_FUNCTION("stopProfiling", StopProfiling),
         DECLARE_NAPI_FUNCTION("dumpHeapData", DumpHeapData),
+        DECLARE_NAPI_FUNCTION("startJsCpuProfiling", StartJsCpuProfiling),
+        DECLARE_NAPI_FUNCTION("stopJsCpuProfiling", StopJsCpuProfiling),
+        DECLARE_NAPI_FUNCTION("dumpJsHeapData", DumpJsHeapData),
         DECLARE_NAPI_FUNCTION("getPss", GetPss),
         DECLARE_NAPI_FUNCTION("getSharedDirty", GetSharedDirty),
         DECLARE_NAPI_FUNCTION("getPrivateDirty", GetPrivateDirty),
