@@ -24,11 +24,12 @@
 
 namespace COMMON {
 constexpr int EXECVP_ERRNO = 2;
+const int SHELL_UID = 2000;
 const std::string DEFAULT_PATH = "/data/local/tmp/";
 
 bool IsProcessRunning()
 {
-    setgid(2000);
+    setgid(SHELL_UID);
     char buffer[PATH_MAX + 1] = {0};
     readlink("/proc/self/exe", buffer, PATH_MAX);
     std::string processName = buffer;
