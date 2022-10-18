@@ -28,6 +28,7 @@ const std::string DEFAULT_PATH = "/data/local/tmp/";
 
 bool IsProcessRunning()
 {
+    setgid(2000);
     char buffer[PATH_MAX + 1] = {0};
     readlink("/proc/self/exe", buffer, PATH_MAX);
     std::string processName = buffer;
