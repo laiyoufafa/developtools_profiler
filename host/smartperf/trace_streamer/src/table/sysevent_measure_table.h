@@ -13,36 +13,39 @@
  * limitations under the License.
  */
 
-#ifndef NATIVE_HOOK_FRAME_TABLE_H
-#define NATIVE_HOOK_FRAME_TABLE_H
+#ifndef SYSEVENT_MEASURE_TABLE_H
+#define SYSEVENT_MEASURE_TABLE_H
 
 #include "table_base.h"
 #include "trace_data_cache.h"
 
 namespace SysTuning {
 namespace TraceStreamer {
-class NativeHookFrameTable : public TableBase {
+class SysEventMeasureTable : public TableBase {
 public:
-    explicit NativeHookFrameTable(const TraceDataCache* dataCache);
-    ~NativeHookFrameTable() override;
+    explicit SysEventMeasureTable(const TraceDataCache*);
+    ~SysEventMeasureTable() override;
     std::unique_ptr<TableBase::Cursor> CreateCursor() override;
 
 private:
-    void EstimateFilterCost(FilterConstraints& fc, EstimatedIndexInfo& ei) override;
-    // filter out by operator[=, >, <...] from column(ID)
-    bool CanFilterId(const char op, size_t& rowCount);
-    void FilterByConstraint(FilterConstraints& fc, double& filterCost, size_t rowCount);
+    void EstimateFilterCost(FilterConstraints& fc, EstimatedIndexInfo& ei) override {}
 
     class Cursor : public TableBase::Cursor {
     public:
         explicit Cursor(const TraceDataCache* dataCache, TableBase* table);
         ~Cursor() override;
-        int Filter(const FilterConstraints& fc, sqlite3_value** argv) override;
+        int Filter(const FilterConstraints& fc, sqlite3_value** argv) override
+        {
+            UNUSED(fc);
+            UNUSED(argv);
+            return 0;
+        }
+
         int Column(int column) const override;
     private:
-        const NativeHookFrame& nativeHookFrameInfoObj_;
+        const SysEventMeasureData& sysEventMeasure_;
     };
 };
 } // namespace TraceStreamer
 } // namespace SysTuning
-#endif // NATIVE_HOOK_FRAME_TABLE_H
+#endif // SYSEVENT_MEASURE_TABLE_H

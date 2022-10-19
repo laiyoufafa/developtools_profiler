@@ -32,7 +32,7 @@ private:
     // filter out by operator[=, >, <...] from column(ID)
     bool CanFilterId(const char op, size_t& rowCount);
     // the column is sorted
-    bool CanFilterSorted(const char op, size_t& rowCount);
+    bool CanFilterSorted(const char op, size_t& rowCount) const;
     void FilterByConstraint(FilterConstraints& fc, double& filterCost, size_t rowCount);
 
     class Cursor : public TableBase::Cursor {
@@ -41,10 +41,6 @@ private:
         ~Cursor() override;
         int Filter(const FilterConstraints& fc, sqlite3_value** argv) override;
         int Column(int col) const override;
-
-        void FilterId(unsigned char op, sqlite3_value* argv);
-        void FilterSorted(int col, unsigned char op, sqlite3_value* argv);
-
     private:
         const SchedSlice& schedSliceObj_;
     };

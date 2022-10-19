@@ -22,10 +22,10 @@ enum Index { ID = 0, TYPE, NAME, INTERNAL_TID };
 }
 MeasureFilterTable::MeasureFilterTable(const TraceDataCache* dataCache) : TableBase(dataCache)
 {
-    tableColumn_.push_back(TableBase::ColumnInfo("id", "UNSIGNED INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("type", "STRING"));
-    tableColumn_.push_back(TableBase::ColumnInfo("name", "STRING"));
-    tableColumn_.push_back(TableBase::ColumnInfo("itid", "UNSIGNED INT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("id", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("type", "TEXT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("name", "TEXT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("itid", "INTEGER"));
     tablePriKey_.push_back("id");
 }
 
@@ -61,7 +61,8 @@ int MeasureFilterTable::Cursor::Column(int column) const
             break;
         }
         case INTERNAL_TID:
-            sqlite3_result_int64(context_,
+            sqlite3_result_int64(
+                context_,
                 static_cast<int32_t>(dataCache_->GetConstThreadMeasureFilterData().InternalTidData()[CurrentRow()]));
             break;
         default:

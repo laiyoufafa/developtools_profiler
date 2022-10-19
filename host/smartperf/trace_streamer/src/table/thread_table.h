@@ -31,16 +31,24 @@ private:
     void EstimateFilterCost(FilterConstraints& fc, EstimatedIndexInfo& ei) override;
     // filter out by operator[=, >, <...] from column(ID)
     bool CanFilterId(const char op, size_t& rowCount);
+    int Update(int argc, sqlite3_value** argv, sqlite3_int64* pRowid) override;
     void FilterByConstraint(FilterConstraints& fc, double& filterCost, size_t rowCount);
 
     class Cursor : public TableBase::Cursor {
     public:
         explicit Cursor(const TraceDataCache* dataCache, TableBase* table);
         ~Cursor() override;
+        void FilterIpid(unsigned char op, uint64_t value);
+        void FilterTid(unsigned char op, uint64_t value);
+        void FilterSwitchCount(unsigned char op, uint64_t value);
+        void FilterIndex(int col, unsigned char op, sqlite3_value* argv);
         int Filter(const FilterConstraints& fc, sqlite3_value** argv) override;
         int Column(int col) const override;
 
-        void FilterId(unsigned char op, sqlite3_value* argv);
+        void FilterId(unsigned char op, sqlite3_value* argv) override;
+    private:
+        std::vector<TableRowId> rowIndexBak_;
+        IndexMap* indexMapBack_ = nullptr;
     };
 };
 } // namespace TraceStreamer
