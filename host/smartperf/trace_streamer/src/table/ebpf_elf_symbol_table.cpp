@@ -12,35 +12,38 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-#include "clk_event_filter_table.h"
-
-#include <cmath>
+#include "ebpf_elf_symbol_table.h"
 
 namespace SysTuning {
 namespace TraceStreamer {
 namespace {
-enum Index { ID = 0, TYPE, NAME, CPU };
+enum Index {
+    ID = 0,
+    ELF_ID,
+    ST_NAME,
+    ST_VALUE,
+    ST_SIZE,
+};
 }
-ClkEventFilterTable::ClkEventFilterTable(const TraceDataCache* dataCache) : TableBase(dataCache)
+EbpfElfSymbolTable::EbpfElfSymbolTable(const TraceDataCache* dataCache) : TableBase(dataCache)
 {
     tableColumn_.push_back(TableBase::ColumnInfo("id", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("type", "TEXT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("name", "TEXT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("cpu", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("elf_id", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("st_name", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("st_value", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("st_size", "INTEGER"));
     tablePriKey_.push_back("id");
 }
 
-ClkEventFilterTable::~ClkEventFilterTable() {}
+EbpfElfSymbolTable::~EbpfElfSymbolTable() {}
 
-
-void ClkEventFilterTable::EstimateFilterCost(FilterConstraints& fc, EstimatedIndexInfo& ei)
+void EbpfElfSymbolTable::EstimateFilterCost(FilterConstraints& fc, EstimatedIndexInfo& ei)
 {
     constexpr double filterBaseCost = 1000.0; // set-up and tear-down
     constexpr double indexCost = 2.0;
     ei.estimatedCost = filterBaseCost;
 
-    auto rowCount = dataCache_->GetConstClkEventFilterData().Size();
+    auto rowCount = dataCache_->GetConstHidumpData().Size();
     if (rowCount == 0 || rowCount == 1) {
         ei.estimatedRows = rowCount;
         ei.estimatedCost += indexCost * rowCount;
@@ -71,7 +74,7 @@ void ClkEventFilterTable::EstimateFilterCost(FilterConstraints& fc, EstimatedInd
     }
 }
 
-void ClkEventFilterTable::FilterByConstraint(FilterConstraints& fc, double& filterCost, size_t rowCount)
+void EbpfElfSymbolTable::FilterByConstraint(FilterConstraints& fc, double& filterCost, size_t rowCount)
 {
     auto fcConstraints = fc.GetConstraints();
     for (int i = 0; i < static_cast<int>(fcConstraints.size()); i++) {
@@ -83,12 +86,11 @@ void ClkEventFilterTable::FilterByConstraint(FilterConstraints& fc, double& filt
         const auto& c = fcConstraints[i];
         switch (c.col) {
             case ID: {
-                auto oldRowCount = rowCount;
-                if (CanFilterSorted(c.op, rowCount)) {
+                if (CanFilterId(c.op, rowCount)) {
                     fc.UpdateConstraint(i, true);
-                    filterCost += log2(oldRowCount); // binary search
+                    filterCost += 1; // id can position by 1 step
                 } else {
-                    filterCost += oldRowCount;
+                    filterCost += rowCount; // scan all rows
                 }
                 break;
             }
@@ -99,16 +101,17 @@ void ClkEventFilterTable::FilterByConstraint(FilterConstraints& fc, double& filt
     }
 }
 
-bool ClkEventFilterTable::CanFilterSorted(const char op, size_t& rowCount) const
+bool EbpfElfSymbolTable::CanFilterId(const char op, size_t& rowCount)
 {
     switch (op) {
         case SQLITE_INDEX_CONSTRAINT_EQ:
-            rowCount = rowCount / log2(rowCount);
+            rowCount = 1;
             break;
         case SQLITE_INDEX_CONSTRAINT_GT:
         case SQLITE_INDEX_CONSTRAINT_GE:
         case SQLITE_INDEX_CONSTRAINT_LE:
         case SQLITE_INDEX_CONSTRAINT_LT:
+            // assume filter out a half of rows
             rowCount = (rowCount >> 1);
             break;
         default:
@@ -117,19 +120,20 @@ bool ClkEventFilterTable::CanFilterSorted(const char op, size_t& rowCount) const
     return true;
 }
 
-std::unique_ptr<TableBase::Cursor> ClkEventFilterTable::CreateCursor()
+std::unique_ptr<TableBase::Cursor> EbpfElfSymbolTable::CreateCursor()
 {
     return std::make_unique<Cursor>(dataCache_, this);
 }
 
-ClkEventFilterTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
-    : TableBase::Cursor(dataCache, table, static_cast<uint32_t>(dataCache->GetConstClkEventFilterData().Size()))
+EbpfElfSymbolTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
+    : TableBase::Cursor(dataCache, table, static_cast<uint32_t>(dataCache->GetConstEbpfElfSymbol().Size())),
+      ebpfElfSymbolObj_(dataCache->GetConstEbpfElfSymbol())
 {
 }
 
-ClkEventFilterTable::Cursor::~Cursor() {}
+EbpfElfSymbolTable::Cursor::~Cursor() {}
 
-int ClkEventFilterTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value** argv)
+int EbpfElfSymbolTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value** argv)
 {
     // reset indexMap_
     indexMap_ = std::make_unique<IndexMap>(0, rowCount_);
@@ -143,7 +147,7 @@ int ClkEventFilterTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_val
         const auto& c = cs[i];
         switch (c.col) {
             case ID:
-                FilterSorted(c.col, c.op, argv[i]);
+                FilterId(c.op, argv[i]);
                 break;
             default:
                 break;
@@ -165,73 +169,59 @@ int ClkEventFilterTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_val
     return SQLITE_OK;
 }
 
-int ClkEventFilterTable::Cursor::Column(int col) const
+int EbpfElfSymbolTable::Cursor::Column(int column) const
 {
-    switch (col) {
+    switch (column) {
         case ID:
-            sqlite3_result_int64(context_,
-                static_cast<sqlite3_int64>(dataCache_->GetConstClkEventFilterData().IdsData()[CurrentRow()]));
+            sqlite3_result_int64(context_, static_cast<int64_t>(ebpfElfSymbolObj_.IdsData()[CurrentRow()]));
             break;
-        case TYPE: {
-            size_t typeId = static_cast<size_t>(dataCache_->GetConstClkEventFilterData().RatesData()[CurrentRow()]);
-            sqlite3_result_text(context_, dataCache_->GetDataFromDict(typeId).c_str(), STR_DEFAULT_LEN, nullptr);
+        case ELF_ID:
+            sqlite3_result_int64(context_, static_cast<int64_t>(ebpfElfSymbolObj_.ElfIds()[CurrentRow()]));
             break;
-        }
-        case NAME: {
-            size_t strId =
-                static_cast<size_t>(dataCache_->GetConstClkEventFilterData().NamesData()[CurrentRow()]);
-            sqlite3_result_text(context_, dataCache_->GetDataFromDict(strId).c_str(), STR_DEFAULT_LEN, nullptr);
+        case ST_NAME:
+            sqlite3_result_int64(context_, static_cast<int64_t>(ebpfElfSymbolObj_.StNames()[CurrentRow()]));
             break;
-        }
-        case CPU:
-            sqlite3_result_int64(context_,
-                static_cast<sqlite3_int64>(dataCache_->GetConstClkEventFilterData().CpusData()[CurrentRow()]));
+        case ST_VALUE:
+            sqlite3_result_int64(context_, static_cast<int64_t>(ebpfElfSymbolObj_.StValues()[CurrentRow()]));
+            break;
+        case ST_SIZE:
+            sqlite3_result_int64(context_, static_cast<int64_t>(ebpfElfSymbolObj_.StSizes()[CurrentRow()]));
             break;
         default:
-            TS_LOGF("Unregistered column : %d", col);
+            TS_LOGF("Unregistered column : %d", column);
             break;
     }
     return SQLITE_OK;
 }
 
-void ClkEventFilterTable::Cursor::FilterSorted(int col, unsigned char op, sqlite3_value* argv)
+void EbpfElfSymbolTable::Cursor::FilterId(unsigned char op, sqlite3_value* argv)
 {
     auto type = sqlite3_value_type(argv);
     if (type != SQLITE_INTEGER) {
-        // other type consider it NULL, filter out nothing
+        // other type consider it NULL
         indexMap_->Intersect(0, 0);
         return;
     }
 
-    switch (col) {
-        case ID: {
-            auto v = static_cast<uint64_t>(sqlite3_value_int64(argv));
-            auto getValue = [](const uint32_t& row) {
-                return row;
-            };
-            switch (op) {
-                case SQLITE_INDEX_CONSTRAINT_EQ:
-                    indexMap_->IntersectabcEqual(
-                        dataCache_->GetConstClkEventFilterData().IdsData(), v, getValue);
-                    break;
-                case SQLITE_INDEX_CONSTRAINT_GT:
-                    v++;
-                case SQLITE_INDEX_CONSTRAINT_GE: {
-                    indexMap_->IntersectGreaterEqual(
-                        dataCache_->GetConstClkEventFilterData().IdsData(), v, getValue);
-                    break;
-                }
-                case SQLITE_INDEX_CONSTRAINT_LE:
-                    v++;
-                case SQLITE_INDEX_CONSTRAINT_LT: {
-                    indexMap_->IntersectLessEqual(
-                        dataCache_->GetConstClkEventFilterData().IdsData(), v, getValue);
-                    break;
-                }
-                default:
-                    break;
-            } // end of switch (op)
-        } // end of case TS
+    auto v = static_cast<TableRowId>(sqlite3_value_int64(argv));
+    switch (op) {
+        case SQLITE_INDEX_CONSTRAINT_EQ:
+            indexMap_->Intersect(v, v + 1);
+            break;
+        case SQLITE_INDEX_CONSTRAINT_GE:
+            indexMap_->Intersect(v, rowCount_);
+            break;
+        case SQLITE_INDEX_CONSTRAINT_GT:
+            v++;
+            indexMap_->Intersect(v, rowCount_);
+            break;
+        case SQLITE_INDEX_CONSTRAINT_LE:
+            v++;
+            indexMap_->Intersect(0, v);
+            break;
+        case SQLITE_INDEX_CONSTRAINT_LT:
+            indexMap_->Intersect(0, v);
+            break;
         default:
             // can't filter, all rows
             break;
