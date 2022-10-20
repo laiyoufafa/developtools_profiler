@@ -29,15 +29,15 @@ public:
     int Recvfrom();
     // 关闭
     void Close() const;
-    std::string RecvBuf();
+    std::string RecvBuf() const;
 
 private:
-    int sock;
+    int sock = -1;
     struct sockaddr_in local;
     struct sockaddr_in client;
     const int sockPort = 8283;
     const static int buffSizeRecv = 256;
-    char rbuf[buffSizeRecv];
+    char rbuf[buffSizeRecv] = "";
 };
 }
 }

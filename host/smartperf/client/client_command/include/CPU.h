@@ -39,7 +39,7 @@ private:
 
     const std::string cpuBasePath = "/sys/devices/system/cpu";
     const std::string procStat = "/proc/stat";
-    inline const std::string CpuScalingCurFreq(int cpuId)
+    inline const std::string CpuScalingCurFreq(int cpuId) const
     {
         return cpuBasePath + "/cpu" + std::to_string(cpuId) + "/cpufreq/scaling_cur_freq";
     }

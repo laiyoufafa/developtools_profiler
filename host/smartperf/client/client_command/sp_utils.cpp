@@ -145,17 +145,13 @@ void SPUtils::ReplaceString(std::string &res)
     std::string flagTwo = "\n";
     std::string::size_type ret = res.find(flagOne);
     while (ret != res.npos) {
-        if (ret != res.npos) {
-            res.replace(ret, 1, "");
-            ret = res.find(flagOne);
-        }
+        res.replace(ret, 1, "");
+        ret = res.find(flagOne);
     }
     ret = res.find(flagTwo);
     while (ret != res.npos) {
-        if (ret != res.npos) {
-            res.replace(ret, 1, "");
-            ret = res.find(flagTwo);
-        }
+        res.replace(ret, 1, "");
+        ret = res.find(flagTwo);
     }
 }
 long long SPUtils::GetCurTime()

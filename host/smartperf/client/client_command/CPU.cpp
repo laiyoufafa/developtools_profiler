@@ -29,8 +29,8 @@ std::map<std::string, std::string> CPU::ItemData()
         GetCpuNum();
     }
     std::vector<float> workloads = GetCpuLoad();
-    std::string cpuLoadsStr = "";
-    std::string cpuFreqStr = "";
+    std::string cpuLoadsStr;
+    std::string cpuFreqStr;
     for (size_t i = 0; i < workloads.size(); i++) {
         cpuLoadsStr = std::to_string(workloads[i]);
         cpuFreqStr = std::to_string(GetCpuFreq(i));
@@ -157,10 +157,6 @@ float CPU::CacWorkload(const char *buffer, const char *preBuffer) const
     size_t iowait = time[4] - preTime[4];
     size_t irq = time[5] + time[6] - preTime[5] - preTime[6];
     size_t total = user + sys + idle + iowait + irq;
-
-    if (user < 0 || sys < 0 || idle < 0 || iowait < 0 || irq < 0) {
-        return 0.0f;
-    }
 
     double perUser = std::atof(std::to_string(user * 100.0 / total).c_str());
     double perSys = std::atof(std::to_string(sys * 100.0 / total).c_str());
