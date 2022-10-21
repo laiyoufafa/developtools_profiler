@@ -25,13 +25,13 @@ public:
         return instance;
     }
     // trace配置
-    void SetTraceConfig(int mSum, int mInterval, long long mThreshold);
+    void SetTraceConfig(int mSum, int mInterval, long long mThreshold) const;
     // 开始抓trace线程
     void ThreadGetTrace() const;
     // 结束trace线程
     void ThreadEndTrace() const;
     // 结束抓trace线程
-    void ThreadFinishTrace(std::string &pathName) const;
+    void ThreadFinishTrace(const std::string &pathName) const;
     // 校验fps-jitters
     TraceStatus CheckFpsJitters(std::vector<long long> jitters);
     // 触发trace

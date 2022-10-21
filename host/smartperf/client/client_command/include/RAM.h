@@ -20,7 +20,8 @@ namespace SmartPerf {
 class RAM : public SpProfiler {
 public:
     void SetProcessId(std::string pid);
-    std::map<std::string, std::string> GetRamInfo();
+    std::map<std::string, std::string> GetRamInfo() const
+    ;
     static RAM &GetInstance()
     {
         static RAM instance;
