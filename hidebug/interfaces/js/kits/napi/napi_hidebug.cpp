@@ -42,8 +42,6 @@ namespace {
 constexpr HiLogLabel LABEL = { LOG_CORE, 0xD002D0A, "HiDebug_NAPI" };
 constexpr int ONE_VALUE_LIMIT = 1;
 constexpr int ARRAY_INDEX_FIRST = 0;
-const std::string PROC_PATH = "/proc/";
-const std::string ROOT_DIR = "/root";
 const std::string SLASH_STR = "/";
 const std::string DEFAULT_FILENAME = "undefined";
 const std::string JSON_FILE = ".json";
@@ -249,8 +247,7 @@ napi_value StartProfiling(napi_env env, napi_callback_info info)
     if (filesDir.empty()) {
         return CreateErrorMessage(env, "Get App files dir failed.");
     }
-    std::string filePath = PROC_PATH + std::to_string(getpid()) + ROOT_DIR + filesDir + SLASH_STR +
-        fileName + JSON_FILE;
+    std::string filePath = filesDir + SLASH_STR + fileName + JSON_FILE;
     if (!IsLegalPath(filePath)) {
         return CreateErrorMessage(env, "input fileName is illegal.");
     }
@@ -279,8 +276,7 @@ napi_value StartJsCpuProfiling(napi_env env, napi_callback_info info)
     if (filesDir.empty()) {
         return CreateErrorMessage(env, "Get App files dir failed.");
     }
-    std::string filePath = PROC_PATH + std::to_string(getpid()) + ROOT_DIR + filesDir + SLASH_STR +
-        fileName + JSON_FILE;
+    std::string filePath = filesDir + SLASH_STR + fileName + JSON_FILE;
     if (!IsLegalPath(filePath)) {
         return CreateErrorMessage(env, "input fileName is illegal.");
     }
@@ -317,8 +313,7 @@ napi_value DumpHeapData(napi_env env, napi_callback_info info)
     if (filesDir.empty()) {
         return CreateErrorMessage(env, "Get App files dir failed.");
     }
-    std::string filePath = PROC_PATH + std::to_string(getpid()) + ROOT_DIR + filesDir + SLASH_STR +
-        fileName + HEAPSNAPSHOT_FILE;
+    std::string filePath = filesDir + SLASH_STR + fileName + HEAPSNAPSHOT_FILE;
     if (!IsLegalPath(filePath)) {
         return CreateErrorMessage(env, "input fileName is illegal.");
     }
@@ -347,8 +342,7 @@ napi_value DumpJsHeapData(napi_env env, napi_callback_info info)
     if (filesDir.empty()) {
         return CreateErrorMessage(env, "Get App files dir failed.");
     }
-    std::string filePath = PROC_PATH + std::to_string(getpid()) + ROOT_DIR + filesDir + SLASH_STR +
-        fileName + HEAPSNAPSHOT_FILE;
+    std::string filePath = filesDir + SLASH_STR + fileName + HEAPSNAPSHOT_FILE;
     if (!IsLegalPath(filePath)) {
         return CreateErrorMessage(env, "input fileName is illegal.");
     }
