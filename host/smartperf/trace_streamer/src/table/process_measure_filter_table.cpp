@@ -24,10 +24,10 @@ enum Index { ID = 0, TYPE, NAME, INTERNAL_PID };
 }
 ProcessMeasureFilterTable::ProcessMeasureFilterTable(const TraceDataCache* dataCache) : TableBase(dataCache)
 {
-    tableColumn_.push_back(TableBase::ColumnInfo("id", "INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("type", "STRING"));
-    tableColumn_.push_back(TableBase::ColumnInfo("name", "STRING"));
-    tableColumn_.push_back(TableBase::ColumnInfo("ipid", "INT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("id", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("type", "TEXT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("name", "TEXT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("ipid", "INTEGER"));
     tablePriKey_.push_back("id");
 }
 
@@ -98,7 +98,7 @@ void ProcessMeasureFilterTable::FilterByConstraint(FilterConstraints& fc, double
     }
 }
 
-bool ProcessMeasureFilterTable::CanFilterSorted(const char op, size_t& rowCount)
+bool ProcessMeasureFilterTable::CanFilterSorted(const char op, size_t& rowCount) const
 {
     switch (op) {
         case SQLITE_INDEX_CONSTRAINT_EQ:
@@ -142,7 +142,18 @@ int ProcessMeasureFilterTable::Cursor::Filter(const FilterConstraints& fc, sqlit
         const auto& c = cs[i];
         switch (c.col) {
             case ID:
-                FilterSorted(c.col, c.op, argv[i]);
+                indexMap_->MixRange(c.op, static_cast<uint64_t>(sqlite3_value_int64(argv[i])),
+                                    dataCache_->GetConstProcessMeasureFilterData().IdsData());
+                break;
+            case INTERNAL_PID:
+                indexMap_->MixRange(c.op, static_cast<uint32_t>(sqlite3_value_int(argv[i])),
+                                    dataCache_->GetConstProcessMeasureFilterData().UpidsData());
+                break;
+            case NAME:
+                indexMap_->MixRange(c.op,
+                                    dataCache_->GetConstDataIndex(
+                                        std::string(reinterpret_cast<const char*>(sqlite3_value_text(argv[i])))),
+                                    dataCache_->GetConstProcessMeasureFilterData().NamesData());
                 break;
             default:
                 break;
@@ -190,50 +201,6 @@ int ProcessMeasureFilterTable::Cursor::Column(int col) const
             break;
     }
     return SQLITE_OK;
-}
-
-void ProcessMeasureFilterTable::Cursor::FilterSorted(int col, unsigned char op, sqlite3_value* argv)
-{
-    auto type = sqlite3_value_type(argv);
-    if (type != SQLITE_INTEGER) {
-        // other type consider it NULL, filter out nothing
-        indexMap_->Intersect(0, 0);
-        return;
-    }
-
-    switch (col) {
-        case ID: {
-            auto v = static_cast<uint64_t>(sqlite3_value_int64(argv));
-            auto getValue = [](const uint32_t& row) {
-                return row;
-            };
-            switch (op) {
-                case SQLITE_INDEX_CONSTRAINT_EQ:
-                    indexMap_->IntersectabcEqual(
-                        dataCache_->GetConstProcessMeasureFilterData().IdsData(), v, getValue);
-                    break;
-                case SQLITE_INDEX_CONSTRAINT_GT:
-                    v++;
-                case SQLITE_INDEX_CONSTRAINT_GE: {
-                    indexMap_->IntersectGreaterEqual(
-                        dataCache_->GetConstProcessMeasureFilterData().IdsData(), v, getValue);
-                    break;
-                }
-                case SQLITE_INDEX_CONSTRAINT_LE:
-                    v++;
-                case SQLITE_INDEX_CONSTRAINT_LT: {
-                    indexMap_->IntersectLessEqual(
-                        dataCache_->GetConstProcessMeasureFilterData().IdsData(), v, getValue);
-                    break;
-                }
-                default:
-                    break;
-            } // end of switch (op)
-        } // end of case TS
-        default:
-            // can't filter, all rows
-            break;
-    }
 }
 } // namespace TraceStreamer
 } // namespace SysTuning

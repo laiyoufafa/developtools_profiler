@@ -22,10 +22,10 @@ enum Index { ID = 0, TYPE, NAME, INTERNAL_TID };
 }
 ThreadFilterTable::ThreadFilterTable(const TraceDataCache* dataCache) : TableBase(dataCache)
 {
-    tableColumn_.push_back(TableBase::ColumnInfo("id", "UNSIGNED INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("type", "STRING"));
-    tableColumn_.push_back(TableBase::ColumnInfo("name", "STRING"));
-    tableColumn_.push_back(TableBase::ColumnInfo("itid", "UNSIGNED INT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("id", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("type", "TEXT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("name", "TEXT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("itid", "INTEGER"));
     tablePriKey_.push_back("id");
 }
 
@@ -47,8 +47,8 @@ int ThreadFilterTable::Cursor::Column(int column) const
 {
     switch (column) {
         case ID:
-            sqlite3_result_int64(context_,
-                static_cast<sqlite3_int64>(dataCache_->GetConstThreadFilterData().FilterIdData()[CurrentRow()]));
+            sqlite3_result_int64(context_, static_cast<sqlite3_int64>(
+                                               dataCache_->GetConstThreadFilterData().FilterIdData()[CurrentRow()]));
             break;
         case TYPE:
             sqlite3_result_text(context_, "thread_filter", STR_DEFAULT_LEN, nullptr);
@@ -60,8 +60,8 @@ int ThreadFilterTable::Cursor::Column(int column) const
             break;
         }
         case INTERNAL_TID:
-            sqlite3_result_int64(context_,
-                static_cast<sqlite3_int64>(dataCache_->GetConstThreadFilterData().InternalTidData()[CurrentRow()]));
+            sqlite3_result_int64(context_, static_cast<sqlite3_int64>(
+                                               dataCache_->GetConstThreadFilterData().InternalTidData()[CurrentRow()]));
             break;
         default:
             TS_LOGF("Unregistered column : %d", column);

@@ -24,9 +24,9 @@ enum Index { ID = 0, TYPE, NAME };
 }
 SystemEventFilterTable::SystemEventFilterTable(const TraceDataCache* dataCache) : TableBase(dataCache)
 {
-    tableColumn_.push_back(TableBase::ColumnInfo("id", "UNSIGNED INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("type", "STRING"));
-    tableColumn_.push_back(TableBase::ColumnInfo("name", "STRING"));
+    tableColumn_.push_back(TableBase::ColumnInfo("id", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("type", "TEXT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("name", "TEXT"));
     tablePriKey_.push_back("id");
 }
 
@@ -97,7 +97,7 @@ void SystemEventFilterTable::FilterByConstraint(FilterConstraints& fc, double& f
     }
 }
 
-bool SystemEventFilterTable::CanFilterSorted(const char op, size_t& rowCount)
+bool SystemEventFilterTable::CanFilterSorted(const char op, size_t& rowCount) const
 {
     switch (op) {
         case SQLITE_INDEX_CONSTRAINT_EQ:
@@ -197,9 +197,7 @@ void SystemEventFilterTable::Cursor::FilterSorted(int col, unsigned char op, sql
     switch (col) {
         case ID: {
             auto v = static_cast<uint64_t>(sqlite3_value_int64(argv));
-            auto getValue = [](const uint32_t& row) {
-                return row;
-            };
+            auto getValue = [](const uint32_t& row) { return row; };
             switch (op) {
                 case SQLITE_INDEX_CONSTRAINT_EQ:
                     indexMap_->IntersectabcEqual(sysEventObj_.IdsData(), v, getValue);

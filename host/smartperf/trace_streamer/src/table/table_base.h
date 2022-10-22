@@ -25,6 +25,10 @@
 #include "index_map.h"
 #include "trace_data_cache.h"
 
+#define UNUSED(expr)             \
+    do {                         \
+        static_cast<void>(expr); \
+    } while (0)
 namespace SysTuning {
 namespace TraceStreamer {
 class TableBase;
@@ -55,26 +59,18 @@ public:
             indexMap_ = std::make_unique<IndexMap>(0, rowCount_);
         }
 
-        virtual int Next()
-        {
-            indexMap_->Next();
-            return SQLITE_OK;
-        }
+        virtual int Next();
 
-        virtual int Eof()
-        {
-            return dataCache_->Cancel() || indexMap_->Eof();
-        }
+        virtual int Eof();
 
-        virtual uint32_t CurrentRow() const
-        {
-             return indexMap_->CurrentRow();
-        }
+        virtual uint32_t CurrentRow() const;
+        virtual void FilterTS(unsigned char op, sqlite3_value* argv, const std::deque<InternalTime>& times);
 
         virtual int RowId(sqlite3_int64* id);
         virtual int Filter(const FilterConstraints& fc, sqlite3_value** argv) = 0;
         virtual int Column(int n) const = 0;
-
+        virtual void FilterId(unsigned char op, sqlite3_value* argv);
+        virtual void FilterEnd();
     public:
         sqlite3_context* context_;
         TableBase* table_ = nullptr;
@@ -93,11 +89,6 @@ public:
 
 protected:
     explicit TableBase(const TraceDataCache* dataCache) : dataCache_(dataCache), cursor_(nullptr) {}
-    std::vector<ColumnInfo> tableColumn_ = {};
-    std::vector<std::string> tablePriKey_ = {};
-    const TraceDataCache* dataCache_;
-    TraceDataCache* wdataCache_;
-    std::unique_ptr<Cursor> cursor_;
 
     struct EstimatedIndexInfo {
         int64_t estimatedRows;
@@ -105,8 +96,7 @@ protected:
         bool isOrdered = false;
     };
 
-    static void TableRegister(sqlite3& db, TraceDataCache* cache, const std::string& name,
-        TabTemplate tmplate);
+    static void TableRegister(sqlite3& db, TraceDataCache* cache, const std::string& name, TabTemplate tmplate);
     virtual int Update(int argc, sqlite3_value** argv, sqlite3_int64* pRowid)
     {
         return SQLITE_READONLY;
@@ -116,13 +106,25 @@ protected:
     virtual void EstimateFilterCost(FilterConstraints& fc, EstimatedIndexInfo& ei) = 0;
     virtual std::unique_ptr<Cursor> CreateCursor() = 0;
     int Open(sqlite3_vtab_cursor** ppCursor);
+    virtual void Init(int, const char* const*)
+    {
+        return;
+    };
+
+public:
+    std::string name_;
+
+protected:
+    std::vector<ColumnInfo> tableColumn_ = {};
+    std::vector<std::string> tablePriKey_ = {};
+    const TraceDataCache* dataCache_;
+    TraceDataCache* wdataCache_;
+    std::unique_ptr<Cursor> cursor_;
+
 private:
     uint16_t bestIndexNum_ = 0;
     int cacheIdxNum_ = 0;
     FilterConstraints cacheConstraint_;
-
-public:
-    std::string name_;
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

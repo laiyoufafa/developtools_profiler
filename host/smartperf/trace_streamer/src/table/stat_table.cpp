@@ -22,11 +22,11 @@ enum Index { EVENT_NAME = 0, STAT_EVENT_TYPE = 1, COUNT = 2, SEVERITY = 3, SOURC
 }
 StatTable::StatTable(const TraceDataCache* dataCache) : TableBase(dataCache)
 {
-    tableColumn_.push_back(TableBase::ColumnInfo("event_name", "STRING"));
-    tableColumn_.push_back(TableBase::ColumnInfo("stat_type", "STRING"));
-    tableColumn_.push_back(TableBase::ColumnInfo("count", "INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("serverity", "STRING"));
-    tableColumn_.push_back(TableBase::ColumnInfo("source", "STRING"));
+    tableColumn_.push_back(TableBase::ColumnInfo("event_name", "TEXT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("stat_type", "TEXT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("count", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("serverity", "TEXT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("source", "TEXT"));
     tablePriKey_.push_back("event_name");
     tablePriKey_.push_back("stat_type");
 }
@@ -53,19 +53,20 @@ int StatTable::Cursor::Column(int column) const
     switch (column) {
         case EVENT_NAME:
             sqlite3_result_text(context_, dataCache_->GetConstStatAndInfo().GetEvent(eventType).c_str(),
-                STR_DEFAULT_LEN, nullptr);
+                                STR_DEFAULT_LEN, nullptr);
             break;
         case STAT_EVENT_TYPE:
-            sqlite3_result_text(context_, dataCache_->GetConstStatAndInfo().GetStat(statType).c_str(),
-                STR_DEFAULT_LEN, nullptr);
+            sqlite3_result_text(context_, dataCache_->GetConstStatAndInfo().GetStat(statType).c_str(), STR_DEFAULT_LEN,
+                                nullptr);
             break;
         case COUNT:
-            sqlite3_result_int64(context_, static_cast<int64_t>(dataCache_->GetConstStatAndInfo().GetValue(eventType,
-                statType)));
+            sqlite3_result_int64(context_,
+                                 static_cast<int64_t>(dataCache_->GetConstStatAndInfo().GetValue(eventType, statType)));
             break;
         case SEVERITY:
-            sqlite3_result_text(context_, dataCache_->GetConstStatAndInfo().GetSeverityDesc(eventType,
-                statType).c_str(), STR_DEFAULT_LEN, nullptr);
+            sqlite3_result_text(context_,
+                                dataCache_->GetConstStatAndInfo().GetSeverityDesc(eventType, statType).c_str(),
+                                STR_DEFAULT_LEN, nullptr);
             break;
         case SOURCE:
             sqlite3_result_text(context_, "trace", STR_DEFAULT_LEN, nullptr);

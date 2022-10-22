@@ -13,18 +13,18 @@
  * limitations under the License.
  */
 
-#ifndef NATIVE_HOOK_FRAME_TABLE_H
-#define NATIVE_HOOK_FRAME_TABLE_H
+#ifndef PAGED_MEMORY_SAMPLE_TABLE_H
+#define PAGED_MEMORY_SAMPLE_TABLE_H
 
 #include "table_base.h"
 #include "trace_data_cache.h"
 
 namespace SysTuning {
 namespace TraceStreamer {
-class NativeHookFrameTable : public TableBase {
+class PagedMemorySampleTable : public TableBase {
 public:
-    explicit NativeHookFrameTable(const TraceDataCache* dataCache);
-    ~NativeHookFrameTable() override;
+    explicit PagedMemorySampleTable(const TraceDataCache* dataCache);
+    ~PagedMemorySampleTable() override;
     std::unique_ptr<TableBase::Cursor> CreateCursor() override;
 
 private:
@@ -39,10 +39,14 @@ private:
         ~Cursor() override;
         int Filter(const FilterConstraints& fc, sqlite3_value** argv) override;
         int Column(int column) const override;
+
+        void FilterId(unsigned char op, sqlite3_value* argv);
+
     private:
-        const NativeHookFrame& nativeHookFrameInfoObj_;
+        const PagedMemorySampleData& PagedMemorySampleDataObj_;
     };
 };
 } // namespace TraceStreamer
 } // namespace SysTuning
-#endif // NATIVE_HOOK_FRAME_TABLE_H
+
+#endif // PAGED_MEMORY_SAMPLE_TABLE_H
