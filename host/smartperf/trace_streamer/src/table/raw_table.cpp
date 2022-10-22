@@ -14,36 +14,25 @@
  */
 
 #include "raw_table.h"
+
 namespace SysTuning {
 namespace TraceStreamer {
 namespace {
 enum Index { ID = 0, TYPE, TS, NAME, CPU, INTERNAL_TID };
 }
-enum RawType { RAW_CPU_IDLE = 1, RAW_SCHED_WAKEUP = 2, RAW_SCHED_WAKING = 3 };
-uint32_t GetNameIndex(const std::string& name)
-{
-    if (name == "cpu_idle") {
-        return RAW_CPU_IDLE;
-    } else if (name == "sched_wakeup") {
-        return RAW_SCHED_WAKEUP;
-    } else if (name == "sched_waking") {
-        return RAW_SCHED_WAKING;
-    } else {
-        return INVALID_UINT32;
-    }
-}
 RawTable::RawTable(const TraceDataCache* dataCache) : TableBase(dataCache)
 {
-    tableColumn_.push_back(TableBase::ColumnInfo("id", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("type", "TEXT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("ts", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("name", "TEXT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("cpu", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("itid", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("id", "UNSIGNED INT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("type", "STRING"));
+    tableColumn_.push_back(TableBase::ColumnInfo("ts", "UNSIGNED BIG INT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("name", "STRING"));
+    tableColumn_.push_back(TableBase::ColumnInfo("cpu", "UNSIGNED INT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("itid", "UNSIGNED INT"));
     tablePriKey_.push_back("id");
 }
 
 RawTable::~RawTable() {}
+
 
 void RawTable::EstimateFilterCost(FilterConstraints& fc, EstimatedIndexInfo& ei)
 {
@@ -140,6 +129,7 @@ RawTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
 }
 
 RawTable::Cursor::~Cursor() {}
+
 int RawTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value** argv)
 {
     // reset indexMap_
@@ -155,18 +145,6 @@ int RawTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value** argv)
         switch (c.col) {
             case ID:
                 FilterId(c.op, argv[i]);
-                break;
-            case NAME:
-                indexMap_->MixRange(
-                    c.op, GetNameIndex(std::string(reinterpret_cast<const char*>(sqlite3_value_text(argv[i])))),
-                    rawObj_.NameData());
-                break;
-            case TS:
-                FilterTS(c.op, argv[i], rawObj_.TimeStamData());
-                break;
-            case INTERNAL_TID:
-                indexMap_->MixRange(c.op, static_cast<uint32_t>(sqlite3_value_int(argv[i])),
-                                    rawObj_.InternalTidsData());
                 break;
             default:
                 break;
@@ -201,11 +179,11 @@ int RawTable::Cursor::Column(int column) const
             sqlite3_result_int64(context_, static_cast<int64_t>(rawObj_.TimeStamData()[CurrentRow()]));
             break;
         case NAME: {
-            if (rawObj_.NameData()[CurrentRow()] == RAW_CPU_IDLE) {
+            if (rawObj_.NameData()[CurrentRow()] == CPU_IDLE) {
                 sqlite3_result_text(context_, "cpu_idle", STR_DEFAULT_LEN, nullptr);
-            } else if (rawObj_.NameData()[CurrentRow()] == RAW_SCHED_WAKEUP) {
+            } else if (rawObj_.NameData()[CurrentRow()] == SCHED_WAKEUP) {
                 sqlite3_result_text(context_, "sched_wakeup", STR_DEFAULT_LEN, nullptr);
-            } else if (rawObj_.NameData()[CurrentRow()] == RAW_SCHED_WAKING) {
+            } else {
                 sqlite3_result_text(context_, "sched_waking", STR_DEFAULT_LEN, nullptr);
             }
             break;
@@ -221,6 +199,40 @@ int RawTable::Cursor::Column(int column) const
             break;
     }
     return SQLITE_OK;
+}
+
+void RawTable::Cursor::FilterId(unsigned char op, sqlite3_value* argv)
+{
+    auto type = sqlite3_value_type(argv);
+    if (type != SQLITE_INTEGER) {
+        // other type consider it NULL
+        indexMap_->Intersect(0, 0);
+        return;
+    }
+
+    auto v = static_cast<TableRowId>(sqlite3_value_int64(argv));
+    switch (op) {
+        case SQLITE_INDEX_CONSTRAINT_EQ:
+            indexMap_->Intersect(v, v + 1);
+            break;
+        case SQLITE_INDEX_CONSTRAINT_GE:
+            indexMap_->Intersect(v, rowCount_);
+            break;
+        case SQLITE_INDEX_CONSTRAINT_GT:
+            v++;
+            indexMap_->Intersect(v, rowCount_);
+            break;
+        case SQLITE_INDEX_CONSTRAINT_LE:
+            v++;
+            indexMap_->Intersect(0, v);
+            break;
+        case SQLITE_INDEX_CONSTRAINT_LT:
+            indexMap_->Intersect(0, v);
+            break;
+        default:
+            // can't filter, all rows
+            break;
+    }
 }
 } // namespace TraceStreamer
 } // namespace SysTuning

@@ -32,7 +32,7 @@ private:
     // filter out by operator[=, >, <...] from column(ID)
     bool CanFilterId(const char op, size_t& rowCount);
     // the column is sorted
-    bool CanFilterSorted(const char op, size_t& rowCount) const;
+    bool CanFilterSorted(const char op, size_t& rowCount);
     void FilterByConstraint(FilterConstraints& fc, double& filterCost, size_t rowCount);
 
     class Cursor : public TableBase::Cursor {
@@ -41,8 +41,60 @@ private:
         ~Cursor() override;
         int Filter(const FilterConstraints& fc, sqlite3_value** argv) override;
         int Column(int col) const override;
+
+        void FilterId(unsigned char op, sqlite3_value* argv);
+        void FilterSorted(int col, unsigned char op, sqlite3_value* argv);
+        void FilterTS(unsigned char op, sqlite3_value* argv);
+        void FilterIndex(int col, unsigned char op, sqlite3_value* argv);
+        void FilterItid(unsigned char op, uint64_t value);
+        uint32_t CurrentRow() const override
+        {
+            switch (indexType_) {
+                case INDEX_TYPE_ID:
+                    return indexMap_->CurrentRow();
+                case INDEX_TYPE_OUTER_INDEX:
+                    return rowIndex_[index_];
+                default:
+                    break;
+            }
+        }
+        int Next() override
+        {
+            switch (indexType_) {
+                case INDEX_TYPE_ID:
+                    /* code */
+                    indexMap_->Next();
+                    break;
+                case INDEX_TYPE_OUTER_INDEX:
+                    /* code */
+                    index_++;
+                    break;
+                default:
+                    break;
+            }
+            return SQLITE_OK;
+        }
+        int Eof() override
+        {
+            switch (indexType_) {
+                case INDEX_TYPE_ID:
+                    return dataCache_->Cancel() || indexMap_->Eof();
+                case INDEX_TYPE_OUTER_INDEX:
+                    return dataCache_->Cancel() || (index_ == indexSize_);
+                default:
+                    break;
+            }
+        }
     private:
-        const ThreadState& threadStateObj_;
+        const std::deque<ThreadState::ColumnData>& rowData_;
+        std::deque<uint64_t> rowIndex_;
+        enum IndexType {
+            INDEX_TYPE_ID,
+            INDEX_TYPE_OUTER_INDEX,
+        };
+        IndexType indexType_ = INDEX_TYPE_ID;
+        uint32_t index_ = 0;
+        uint32_t indexSize_ = 0;
     };
 };
 } // namespace TraceStreamer

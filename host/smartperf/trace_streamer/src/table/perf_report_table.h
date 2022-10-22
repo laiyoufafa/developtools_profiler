@@ -36,8 +36,6 @@ private:
         ~Cursor() override;
         int Filter(const FilterConstraints& fc, sqlite3_value** argv) override
         {
-            UNUSED(fc);
-            UNUSED(argv);
             return 0;
         }
         int Column(int column) const override;

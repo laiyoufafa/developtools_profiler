@@ -23,6 +23,7 @@ namespace SysTuning {
 namespace TraceStreamer {
 class RawTable : public TableBase {
 public:
+    enum EventName : uint32_t { CPU_IDLE = 1, SCHED_WAKEUP = 2, SCHED_WAKING = 3 };
     explicit RawTable(const TraceDataCache* dataCache);
     ~RawTable() override;
     std::unique_ptr<TableBase::Cursor> CreateCursor() override;
@@ -39,6 +40,8 @@ private:
         ~Cursor() override;
         int Filter(const FilterConstraints& fc, sqlite3_value** argv) override;
         int Column(int column) const override;
+
+        void FilterId(unsigned char op, sqlite3_value* argv);
 
     private:
         const Raw& rawObj_;

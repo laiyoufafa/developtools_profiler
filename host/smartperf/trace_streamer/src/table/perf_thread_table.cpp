@@ -22,10 +22,10 @@ enum Index { ID = 0, THREAD_ID, PROCESS_ID, THREAD_NAME };
 }
 PerfThreadTable::PerfThreadTable(const TraceDataCache* dataCache) : TableBase(dataCache)
 {
-    tableColumn_.push_back(TableBase::ColumnInfo("id", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("thread_id", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("process_id", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("thread_name", "TEXT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("id", "UNSIGNED INT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("thread_id", "UNSIGNED INT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("process_id", "UNSIGNED INT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("thread_name", "STRING"));
     tablePriKey_.push_back("id");
 }
 
@@ -144,10 +144,7 @@ int PerfThreadTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value**
                 FilterId(c.op, argv[i]);
                 break;
             case THREAD_ID:
-                indexMap_->MixRange(c.op, static_cast<uint64_t>(sqlite3_value_int64(argv[i])), perfThreadObj_.Tids());
-                break;
-            case PROCESS_ID:
-                indexMap_->MixRange(c.op, static_cast<uint64_t>(sqlite3_value_int64(argv[i])), perfThreadObj_.Pids());
+                FilterThreadId(c.op, argv[i]);
                 break;
             default:
                 break;
@@ -196,6 +193,64 @@ int PerfThreadTable::Cursor::Column(int column) const
             break;
     }
     return SQLITE_OK;
+}
+
+void PerfThreadTable::Cursor::FilterThreadId(unsigned char op, sqlite3_value* argv)
+{
+    auto type = sqlite3_value_type(argv);
+    if (type != SQLITE_INTEGER) {
+        // other type consider it NULL
+        indexMap_->Intersect(0, 0);
+        return;
+    }
+    auto size = perfThreadObj_.Size();
+    auto v = static_cast<TableRowId>(sqlite3_value_int64(argv));
+    switch (op) {
+        case SQLITE_INDEX_CONSTRAINT_EQ:
+            for (auto i = 0; i < size; i++) {
+                if (perfThreadObj_.Tids()[i] == v) {
+                    indexMap_->Set(i, i + 1);
+                    break;
+                }
+            }
+            break;
+        default:
+            // can't filter, all rows
+            break;
+    }
+}
+void PerfThreadTable::Cursor::FilterId(unsigned char op, sqlite3_value* argv)
+{
+    auto type = sqlite3_value_type(argv);
+    if (type != SQLITE_INTEGER) {
+        // other type consider it NULL
+        indexMap_->Intersect(0, 0);
+        return;
+    }
+
+    auto v = static_cast<TableRowId>(sqlite3_value_int64(argv));
+    switch (op) {
+        case SQLITE_INDEX_CONSTRAINT_EQ:
+            indexMap_->Intersect(v, v + 1);
+            break;
+        case SQLITE_INDEX_CONSTRAINT_GE:
+            indexMap_->Intersect(v, rowCount_);
+            break;
+        case SQLITE_INDEX_CONSTRAINT_GT:
+            v++;
+            indexMap_->Intersect(v, rowCount_);
+            break;
+        case SQLITE_INDEX_CONSTRAINT_LE:
+            v++;
+            indexMap_->Intersect(0, v);
+            break;
+        case SQLITE_INDEX_CONSTRAINT_LT:
+            indexMap_->Intersect(0, v);
+            break;
+        default:
+            // can't filter, all rows
+            break;
+    }
 }
 } // namespace TraceStreamer
 } // namespace SysTuning

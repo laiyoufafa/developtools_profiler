@@ -22,12 +22,12 @@ enum Index { TS = 0, DUR, TOTAL_LOAD, USER_LOAD, SYSTEM_LOAD, THREADS };
 }
 CpuUsageInfoTable::CpuUsageInfoTable(const TraceDataCache* dataCache) : TableBase(dataCache)
 {
-    tableColumn_.push_back(TableBase::ColumnInfo("ts", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("dur", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("total_load", "REAL"));
-    tableColumn_.push_back(TableBase::ColumnInfo("user_load", "REAL"));
-    tableColumn_.push_back(TableBase::ColumnInfo("system_load", "REAL"));
-    tableColumn_.push_back(TableBase::ColumnInfo("process_num", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("ts", "UNSIGNED BIG INT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("dur", "UNSIGNED BIG INT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("total_load", "DOUBLE"));
+    tableColumn_.push_back(TableBase::ColumnInfo("user_load", "DOUBLE"));
+    tableColumn_.push_back(TableBase::ColumnInfo("system_load", "DOUBLE"));
+    tableColumn_.push_back(TableBase::ColumnInfo("process_num", "INT"));
     tablePriKey_.push_back("ts");
 }
 

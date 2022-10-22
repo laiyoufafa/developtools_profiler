@@ -38,7 +38,10 @@ private:
         explicit Cursor(const TraceDataCache* dataCache, TableBase* table);
         ~Cursor() override;
         int Filter(const FilterConstraints& fc, sqlite3_value** argv) override;
-        int Column(int column) const override;
+        int Column(int col) const override;
+
+        void FilterThreadId(unsigned char op, sqlite3_value* argv);
+        void FilterId(unsigned char op, sqlite3_value* argv);
 
     private:
         const PerfSample& perfSampleObj_;

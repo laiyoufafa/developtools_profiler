@@ -22,8 +22,8 @@ enum Index { NAMEINDEX = 0, VALUE };
 }
 MetaTable::MetaTable(const TraceDataCache* dataCache) : TableBase(dataCache)
 {
-    tableColumn_.push_back(TableBase::ColumnInfo("name", "TEXT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("value", "TEXT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("name", "STRING"));
+    tableColumn_.push_back(TableBase::ColumnInfo("value", "STRING"));
     tablePriKey_.push_back("name");
 }
 

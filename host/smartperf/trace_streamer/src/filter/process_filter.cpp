@@ -40,32 +40,11 @@ uint32_t ProcessFilter::UpdateOrCreateThreadWithName(uint64_t timeStamp, uint32_
     return UpdateOrCreateThreadWithNameIndex(timeStamp, tid, nameIndex);
 }
 
-void ProcessFilter::AddProcessMemory(uint32_t ipid)
-{
-    traceDataCache_->GetProcessData(ipid)->memSize_ = 1;
-}
-
-void ProcessFilter::AddThreadSliceNum(uint32_t itid)
-{
-    traceDataCache_->GetThreadData(itid)->sliceSize_ = 1;
-}
-void ProcessFilter::AddProcessSliceNum(uint32_t ipid)
-{
-    traceDataCache_->GetProcessData(ipid)->sliceSize_ = 1;
-}
-
-void ProcessFilter::AddCpuStateCount(uint32_t itid)
-{
-    auto thread = traceDataCache_->GetThreadData(itid);
-    if (thread) {
-        thread->cpuStatesCount_++;
-    }
-}
 uint32_t ProcessFilter::UpdateOrCreateThread(uint64_t timestamp, uint32_t tid)
 {
     return UpdateOrCreateThreadWithNameIndex(timestamp, tid, 0);
 }
-uint32_t ProcessFilter::UpdateOrCreateThreadWithPidAndName(uint32_t tid, uint32_t pid, std::string_view name)
+void ProcessFilter::UpdateOrCreateThreadWithPidAndName(uint32_t tid, uint32_t pid, std::string_view name)
 {
     uint32_t internalTid = GetOrCreateThreadWithPid(tid, pid);
     auto thread = traceDataCache_->GetThreadData(internalTid);
@@ -75,7 +54,6 @@ uint32_t ProcessFilter::UpdateOrCreateThreadWithPidAndName(uint32_t tid, uint32_
     if (tid == pid) {
         UpdateOrCreateProcessWithName(pid, name);
     }
-    return internalTid;
 }
 
 uint32_t ProcessFilter::GetOrCreateThreadWithPid(uint32_t tid, uint32_t pid)
@@ -93,7 +71,7 @@ uint32_t ProcessFilter::GetOrCreateThreadWithPid(uint32_t tid, uint32_t pid)
         std::tie(internalTid, thread) = NewThread(tid);
     }
 
-    if (thread->internalPid_ == INVALID_UINT32 && pid != 0) {
+    if (!thread->internalPid_ && pid != 0) {
         std::tie(thread->internalPid_, std::ignore) = CreateProcessMaybe(pid, thread->startT_);
     }
 
@@ -142,7 +120,7 @@ uint32_t ProcessFilter::GetInternalTid(uint32_t tid, uint32_t pid) const
     for (auto it = tidsPair.first; it != tidsPair.second; it++) {
         uint32_t iterItid = it->second;
         auto iterThread = traceDataCache_->GetThreadData(iterItid);
-        if (iterThread->internalPid_ == INVALID_UINT32) {
+        if (!iterThread->internalPid_) {
             internalTid = iterItid;
             continue;
         }
@@ -188,7 +166,7 @@ InternalPid ProcessFilter::GetInternalPid(uint32_t pid) const
     return INVALID_ID;
 }
 
-InternalPid ProcessFilter::GetOrCreateInternalPid(uint64_t timestamp, uint32_t pid)
+InternalTid ProcessFilter::GetOrCreateInternalPid(uint64_t timestamp, uint32_t pid)
 {
     auto ipid = GetInternalPid(pid);
     if (ipid != INVALID_ID) {
@@ -236,11 +214,6 @@ std::tuple<uint32_t, TraceStdtype::Process*> ProcessFilter::CreateProcessMaybe(u
     }
 
     return std::make_tuple(internalPid, process);
-}
-void ProcessFilter::Clear()
-{
-    tidMappingSet_.clear();
-    pidToInternalPidMap_.clear();
 }
 } // namespace TraceStreamer
 } // namespace SysTuning

@@ -18,18 +18,20 @@
 namespace SysTuning {
 namespace TraceStreamer {
 namespace {
-enum Index { ID = 0, CALLCHAIN_ID, DEPTH, SYMBOL_ID, FILE_ID, OFFSET, SYMBOL_OFFSET };
+enum Index { ID = 0, EVENT_ID, DEPTH, IP, SP, SYMBOL_NAME, FILE_PATH, OFFSET, SYMBOL_OFFSET };
 }
 NativeHookFrameTable::NativeHookFrameTable(const TraceDataCache* dataCache) : TableBase(dataCache)
 {
-    tableColumn_.push_back(TableBase::ColumnInfo("id", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("callchain_id", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("depth", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("symbol_id", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("file_id", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("offset", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("symbol_offset", "INTEGER"));
-    tablePriKey_.push_back("id");
+    tableColumn_.push_back(TableBase::ColumnInfo("id", "UNSIGNED INT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("eventId", "UNSIGNED BIG INT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("depth", "UNSIGNED BIG INT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("ip", "UNSIGNED BIG INT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("sp", "UNSIGNED BIG INT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("symbol_name", "STRING"));
+    tableColumn_.push_back(TableBase::ColumnInfo("file_path", "STRING"));
+    tableColumn_.push_back(TableBase::ColumnInfo("offset", "UNSIGNED BIG INT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("symbol_offset", "UNSIGNED BIG INT"));
+    tablePriKey_.push_back("eventId");
 }
 
 NativeHookFrameTable::~NativeHookFrameTable() {}
@@ -146,18 +148,6 @@ int NativeHookFrameTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_va
             case ID:
                 FilterId(c.op, argv[i]);
                 break;
-            case CALLCHAIN_ID:
-                indexMap_->MixRange(c.op, static_cast<uint64_t>(sqlite3_value_int64(argv[i])),
-                                    nativeHookFrameInfoObj_.CallChainIds());
-                break;
-            case SYMBOL_ID:
-                indexMap_->MixRange(c.op, static_cast<uint64_t>(sqlite3_value_int64(argv[i])),
-                                    nativeHookFrameInfoObj_.SymbolNames());
-                break;
-            case FILE_ID:
-                indexMap_->MixRange(c.op, static_cast<uint64_t>(sqlite3_value_int64(argv[i])),
-                                    nativeHookFrameInfoObj_.FilePaths());
-                break;
             default:
                 break;
         }
@@ -184,21 +174,31 @@ int NativeHookFrameTable::Cursor::Column(int column) const
         case ID:
             sqlite3_result_int64(context_, static_cast<int32_t>(CurrentRow()));
             break;
-        case CALLCHAIN_ID:
-            sqlite3_result_int64(context_, static_cast<int64_t>(nativeHookFrameInfoObj_.CallChainIds()[CurrentRow()]));
+        case EVENT_ID:
+            sqlite3_result_int64(context_, static_cast<int64_t>(nativeHookFrameInfoObj_.EventIds()[CurrentRow()]));
             break;
         case DEPTH:
             sqlite3_result_int64(context_, static_cast<int64_t>(nativeHookFrameInfoObj_.Depths()[CurrentRow()]));
             break;
-        case SYMBOL_ID:
+        case IP:
+            sqlite3_result_int64(context_, static_cast<int64_t>(nativeHookFrameInfoObj_.Ips()[CurrentRow()]));
+            break;
+        case SP: {
+            sqlite3_result_int64(context_, static_cast<int64_t>(nativeHookFrameInfoObj_.Sps()[CurrentRow()]));
+            break;
+        }
+        case SYMBOL_NAME:
             if (nativeHookFrameInfoObj_.SymbolNames()[CurrentRow()] != INVALID_UINT64) {
-                sqlite3_result_int64(context_,
-                                     static_cast<int64_t>(nativeHookFrameInfoObj_.SymbolNames()[CurrentRow()]));
+                auto symbolNameDataIndex = static_cast<int64_t>(nativeHookFrameInfoObj_.SymbolNames()[CurrentRow()]);
+                sqlite3_result_text(context_, dataCache_->GetDataFromDict(symbolNameDataIndex).c_str(), STR_DEFAULT_LEN,
+                                    nullptr);
             }
             break;
-        case FILE_ID: {
+        case FILE_PATH: {
             if (nativeHookFrameInfoObj_.FilePaths()[CurrentRow()] != INVALID_UINT64) {
-                sqlite3_result_int64(context_, static_cast<int64_t>(nativeHookFrameInfoObj_.FilePaths()[CurrentRow()]));
+                auto filePathDataIndex = static_cast<size_t>(nativeHookFrameInfoObj_.FilePaths()[CurrentRow()]);
+                sqlite3_result_text(context_, dataCache_->GetDataFromDict(filePathDataIndex).c_str(), STR_DEFAULT_LEN,
+                                    nullptr);
             }
             break;
         }
@@ -215,6 +215,40 @@ int NativeHookFrameTable::Cursor::Column(int column) const
             break;
     }
     return SQLITE_OK;
+}
+
+void NativeHookFrameTable::Cursor::FilterId(unsigned char op, sqlite3_value* argv)
+{
+    auto type = sqlite3_value_type(argv);
+    if (type != SQLITE_INTEGER) {
+        // other type consider it NULL
+        indexMap_->Intersect(0, 0);
+        return;
+    }
+
+    auto v = static_cast<TableRowId>(sqlite3_value_int64(argv));
+    switch (op) {
+        case SQLITE_INDEX_CONSTRAINT_EQ:
+            indexMap_->Intersect(v, v + 1);
+            break;
+        case SQLITE_INDEX_CONSTRAINT_GE:
+            indexMap_->Intersect(v, rowCount_);
+            break;
+        case SQLITE_INDEX_CONSTRAINT_GT:
+            v++;
+            indexMap_->Intersect(v, rowCount_);
+            break;
+        case SQLITE_INDEX_CONSTRAINT_LE:
+            v++;
+            indexMap_->Intersect(0, v);
+            break;
+        case SQLITE_INDEX_CONSTRAINT_LT:
+            indexMap_->Intersect(0, v);
+            break;
+        default:
+            // can't filter, all rows
+            break;
+    }
 }
 } // namespace TraceStreamer
 } // namespace SysTuning

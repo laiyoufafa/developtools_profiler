@@ -14,7 +14,6 @@
  */
 
 #include "cpu_filter.h"
-#include "process_filter.h"
 
 namespace SysTuning {
 namespace TraceStreamer {
@@ -59,11 +58,6 @@ void CpuFilter::InsertSwitchEvent(uint64_t ts,
         auto lastRow = RowOfInternalTidInStateTable(prevPid);
         if (lastRow != INVALID_UINT64) {
             traceDataCache_->GetThreadStateData()->UpdateDuration(static_cast<TableRowId>(lastRow), ts);
-            streamFilters_->processFilter_->AddCpuStateCount(prevPid);
-            auto thread = traceDataCache_->GetThreadData(prevPid);
-            if (thread){
-                thread->switchCount_ = 1;
-            }
         }
         auto temp = traceDataCache_->GetThreadStateData()->AppendThreadState(ts, INVALID_TIME, INVALID_CPU,
                                                                              prevPid, prevState);
@@ -90,69 +84,17 @@ bool CpuFilter::InsertProcessFreeEvent(uint64_t ts, uint64_t pid)
     }
     return false;
 }
-
-void CpuFilter::Finish() const
-{
-    auto size = traceDataCache_->ThreadSize();
-    for (auto i = 0; i < size; i++) {
-        auto thread = traceDataCache_->GetThreadData(i);
-        if (thread->internalPid_ != INVALID_UINT32) {
-            traceDataCache_->GetProcessData(thread->internalPid_)->threadCount_++;
-            traceDataCache_->GetProcessData(thread->internalPid_)->cpuStatesCount_ += thread->cpuStatesCount_;
-            traceDataCache_->GetProcessData(thread->internalPid_)->sliceSize_ += thread->sliceSize_;
-            traceDataCache_->GetProcessData(thread->internalPid_)->switchCount_ += thread->switchCount_;
-            continue;
-        }
-        auto ipid = traceDataCache_->AppendNewProcessData(
-            thread->tid_, traceDataCache_->GetDataFromDict(thread->nameIndex_), thread->startT_);
-        thread->internalPid_ = ipid;
-        traceDataCache_->GetProcessData(thread->internalPid_)->threadCount_++;
-        traceDataCache_->GetProcessData(thread->internalPid_)->cpuStatesCount_ += thread->cpuStatesCount_;
-        traceDataCache_->GetProcessData(thread->internalPid_)->sliceSize_ += thread->sliceSize_;
-        traceDataCache_->GetProcessData(thread->internalPid_)->switchCount_ += thread->switchCount_;
-    }
-    auto threadState = traceDataCache_->GetConstThreadStateData();
-    size = threadState.Size();
-    auto rowData = threadState.ItidsData();
-    for (auto i = 0; i < size; i++) {
-        auto thread = traceDataCache_->GetThreadData(rowData[i]);
-        if (thread->internalPid_ == INVALID_UINT32) {
-            continue;
-        }
-        auto process = traceDataCache_->GetProcessData(thread->internalPid_);
-        traceDataCache_->GetThreadStateData()->UpdateTidAndPid(i, thread->tid_, process->pid_);
-    }
-    auto slice = traceDataCache_->GetConstSchedSliceData();
-    size = slice.Size();
-    for (auto i = 0; i < size; i++) {
-        traceDataCache_->GetSchedSliceData()->AppendInternalPid(
-            traceDataCache_->GetThreadData(slice.InternalTidsData()[i])->internalPid_);
-    }
-    traceDataCache_->OperateDatabase(
-        "update thread set ipid = \
-        (select id from process where \
-        thread.tid = process.pid) where thread.ipid is null;");
-}
-void CpuFilter::Clear()
-{
-    cpuToRowThreadState_.clear();
-    cpuToRowSched_.clear();
-    lastWakeUpMsg_.clear();
-    internalTidToRowThreadState_.clear();
-}
 void CpuFilter::InsertWakeupEvent(uint64_t ts, uint64_t internalTid)
 {
-    uint64_t lastrow = RowOfInternalTidInStateTable(internalTid);
-    auto lastState = StateOfInternalTidInStateTable(internalTid);
-    if (lastState == TASK_RUNNING) {
-        return;
+    /* repeated wakeup msg may come, we only record last wakeupmsg, and
+    the wakeup will only insert to DataCache when a sched_switch comes
+    */
+    if (lastWakeUpMsg.find(internalTid) != lastWakeUpMsg.end()) {
+        // waking event is alaways before wakeup event
+        // use waking event only lastWakeUpMsg.at(internalTid) = ts;
+    } else {
+        lastWakeUpMsg.insert(std::make_pair(internalTid, ts));
     }
-    if (lastrow != INVALID_UINT64) {
-        traceDataCache_->GetThreadStateData()->UpdateDuration(static_cast<TableRowId>(lastrow), ts);
-    }
-    auto index = traceDataCache_->GetThreadStateData()->AppendThreadState(ts, INVALID_TIME, INVALID_CPU,
-                                                                          internalTid, TASK_RUNNABLE);
-    RemberInternalTidInStateTable(internalTid, index, TASK_RUNNABLE);
 }
 uint64_t CpuFilter::RemberInternalTidInStateTable(uint64_t uid, uint64_t row, uint64_t state)
 {
@@ -183,7 +125,22 @@ uint64_t CpuFilter::StateOfInternalTidInStateTable(uint64_t uid) const
 
 void CpuFilter::CheckWakeupEvent(uint64_t internalTid)
 {
-    return;
+    if (lastWakeUpMsg.find(internalTid) == lastWakeUpMsg.end()) {
+        return;
+    }
+    auto ts = lastWakeUpMsg.at(internalTid);
+    lastWakeUpMsg.erase(internalTid);
+    uint64_t lastrow = RowOfInternalTidInStateTable(internalTid);
+    auto lastState = StateOfInternalTidInStateTable(internalTid);
+    if (lastState == TASK_RUNNING) {
+        return;
+    }
+    if (lastrow != INVALID_UINT64) {
+        traceDataCache_->GetThreadStateData()->UpdateDuration(static_cast<TableRowId>(lastrow), ts);
+    }
+    auto index = traceDataCache_->GetThreadStateData()->AppendThreadState(ts, INVALID_TIME, INVALID_CPU,
+                                                                          internalTid, TASK_RUNNABLE);
+    RemberInternalTidInStateTable(internalTid, index, TASK_RUNNABLE);
 }
 } // namespace TraceStreamer
 } // namespace SysTuning

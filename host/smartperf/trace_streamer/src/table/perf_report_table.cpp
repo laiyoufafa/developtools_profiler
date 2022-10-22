@@ -22,9 +22,9 @@ enum Index { ID = 0, REPORT_TYPE, REPORT_VALUE, };
 }
 PerfReportTable::PerfReportTable(const TraceDataCache* dataCache) : TableBase(dataCache)
 {
-    tableColumn_.push_back(TableBase::ColumnInfo("id", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("report_type", "TEXT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("report_value", "TEXT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("id", "UNSIGNED BIG INT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("report_type", "STRING"));
+    tableColumn_.push_back(TableBase::ColumnInfo("report_value", "STRING"));
     tablePriKey_.push_back("id");
 }
 
