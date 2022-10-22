@@ -39,7 +39,7 @@ private:
     void ParseMemInfoEasy(const MemoryData& tracePacket, uint64_t timeStamp) const;
     void ParseVMemInfo(const MemoryData& tracePacket, uint64_t timeStamp) const;
     void ParseVMemInfoEasy(const MemoryData& tracePacket, uint64_t timeStamp) const;
-    void ParseSmapsInfoEasy(ProcessMemoryInfo memInfo, uint64_t timeStamp) const;
+    void ParseSmapsInfoEasy(const ProcessMemoryInfo& memInfo, uint64_t timeStamp) const;
     std::map<MemInfoType, DataIndex> memNameDictMap_ = {};
     std::map<SysMeminfoType, DataIndex> sysMemNameDictMap_ = {};
     std::map<SysVMeminfoType, DataIndex> sysVMemNameDictMap_ = {};

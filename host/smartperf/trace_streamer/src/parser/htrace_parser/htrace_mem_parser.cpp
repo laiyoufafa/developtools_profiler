@@ -98,7 +98,7 @@ void HtraceMemParser::ParseProcessInfo(const MemoryData& tracePacket, uint64_t t
     }
 }
 
-void HtraceMemParser::ParseSmapsInfoEasy(ProcessMemoryInfo memInfo, uint64_t timeStamp) const
+void HtraceMemParser::ParseSmapsInfoEasy(const ProcessMemoryInfo& memInfo, uint64_t timeStamp) const
 {
     streamFilters_->statFilter_->IncreaseStat(TRACE_SMAPS, STAT_EVENT_RECEIVED);
     for (auto itor = memInfo.smapinfo().begin(); itor != memInfo.smapinfo().end(); itor++) {
