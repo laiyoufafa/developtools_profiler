@@ -36,19 +36,19 @@ enum Index {
 }
 LiveProcessTable::LiveProcessTable(const TraceDataCache* dataCache) : TableBase(dataCache)
 {
-    tableColumn_.push_back(TableBase::ColumnInfo("ts", "UNSIGNED BIG INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("dur", "UNSIGNED BIG INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("cpu_time", "UNSIGNED BIG INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("process_id", "UNSIGNED INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("process_name", "STRING"));
-    tableColumn_.push_back(TableBase::ColumnInfo("parent_process_id", "UNSIGNED INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("uid", "UNSIGNED INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("user_name", "STRING"));
-    tableColumn_.push_back(TableBase::ColumnInfo("cpu_usage", "DOUBLE"));
-    tableColumn_.push_back(TableBase::ColumnInfo("pss_info", "UNSIGNED INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("thread_num", "UNSIGNED INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("disk_writes", "UNSIGNED INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("disk_reads", "UNSIGNED INT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("ts", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("dur", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("cpu_time", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("process_id", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("process_name", "TEXT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("parent_process_id", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("uid", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("user_name", "TEXT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("cpu_usage", "REAL"));
+    tableColumn_.push_back(TableBase::ColumnInfo("pss_info", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("thread_num", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("disk_writes", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("disk_reads", "INTEGER"));
     tablePriKey_.push_back("ts");
 }
 

@@ -23,8 +23,9 @@ namespace SysTuning {
 namespace TraceStreamer {
 class RpcServer {
 public:
-    using ResultCallBack = std::function<void(const std::string /* result */)>;
+    using ResultCallBack = std::function<void(const std::string /* result */, int)>;
 
+    using SendDataCallBack = std::function<void(const char*, int, int)>;
     // In order to bind HTTP, maintain a unified interface, even if some parameters are useless
     bool ParseData(const uint8_t* data, size_t len, ResultCallBack resultCallBack);
     bool ParseDataOver(const uint8_t* data, size_t len, ResultCallBack resultCallBack);
@@ -35,7 +36,10 @@ public:
 
     // only for wasm, no callback
     int WasmSqlQuery(const uint8_t* data, size_t len, uint8_t* out, int outLen);
-
+    int WasmSqlQueryWithCallback(const uint8_t* data, size_t len, ResultCallBack callback) const;
+    int UpdateTraceTime(const uint8_t* data, int len);
+    int TraceStreamer_Init_ThirdParty_Config(const uint8_t* data, int len);
+    std::map<int, std::string> g_thirdPartyConfig;
 private:
     std::unique_ptr<TraceStreamerSelector> ts_ = std::make_unique<TraceStreamerSelector>();
     size_t lenParseData_ = 0;

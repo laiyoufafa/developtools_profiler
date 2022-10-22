@@ -22,9 +22,9 @@ enum Index { ID = 0, TS, FPS };
 }
 HidumpTable::HidumpTable(const TraceDataCache* dataCache) : TableBase(dataCache)
 {
-    tableColumn_.push_back(TableBase::ColumnInfo("id", "UNSIGNED INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("ts", "UNSIGNED BIG INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("fps", "UNSIGNED INT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("id", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("ts", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("fps", "INTEGER"));
     tablePriKey_.push_back("ts");
 }
 
@@ -142,6 +142,13 @@ int HidumpTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value** arg
             case ID:
                 FilterId(c.op, argv[i]);
                 break;
+            case TS:
+                indexMap_->MixRange(c.op, static_cast<uint64_t>(sqlite3_value_int64(argv[i])),
+                                    hidumpObj_.TimeStamData());
+                break;
+            case FPS:
+                indexMap_->MixRange(c.op, static_cast<uint32_t>(sqlite3_value_int(argv[i])), hidumpObj_.Fpss());
+                break;
             default:
                 break;
         }
@@ -180,40 +187,6 @@ int HidumpTable::Cursor::Column(int column) const
             break;
     }
     return SQLITE_OK;
-}
-
-void HidumpTable::Cursor::FilterId(unsigned char op, sqlite3_value* argv)
-{
-    auto type = sqlite3_value_type(argv);
-    if (type != SQLITE_INTEGER) {
-        // other type consider it NULL
-        indexMap_->Intersect(0, 0);
-        return;
-    }
-
-    auto v = static_cast<TableRowId>(sqlite3_value_int64(argv));
-    switch (op) {
-        case SQLITE_INDEX_CONSTRAINT_EQ:
-            indexMap_->Intersect(v, v + 1);
-            break;
-        case SQLITE_INDEX_CONSTRAINT_GE:
-            indexMap_->Intersect(v, rowCount_);
-            break;
-        case SQLITE_INDEX_CONSTRAINT_GT:
-            v++;
-            indexMap_->Intersect(v, rowCount_);
-            break;
-        case SQLITE_INDEX_CONSTRAINT_LE:
-            v++;
-            indexMap_->Intersect(0, v);
-            break;
-        case SQLITE_INDEX_CONSTRAINT_LT:
-            indexMap_->Intersect(0, v);
-            break;
-        default:
-            // can't filter, all rows
-            break;
-    }
 }
 } // namespace TraceStreamer
 } // namespace SysTuning

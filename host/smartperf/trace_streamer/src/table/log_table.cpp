@@ -22,14 +22,14 @@ enum Index { SEQ = 0, TS, PID, TID, LEVEL, TAG, CONTEXT, ORIGINTS };
 }
 LogTable::LogTable(const TraceDataCache* dataCache) : TableBase(dataCache)
 {
-    tableColumn_.push_back(TableBase::ColumnInfo("seq", "UNSIGNED BIG INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("ts", "UNSIGNED BIG INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("pid", "UNSIGNED INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("tid", "UNSIGNED INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("level", "STRING"));
-    tableColumn_.push_back(TableBase::ColumnInfo("tag", "STRING"));
-    tableColumn_.push_back(TableBase::ColumnInfo("context", "STRING"));
-    tableColumn_.push_back(TableBase::ColumnInfo("origints", "UNSIGNED BIG INT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("seq", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("ts", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("pid", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("tid", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("level", "TEXT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("tag", "TEXT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("context", "TEXT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("origints", "INTEGER"));
     tablePriKey_.push_back("ts");
 }
 

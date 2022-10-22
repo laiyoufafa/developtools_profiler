@@ -20,17 +20,19 @@
 namespace SysTuning {
 namespace TraceStreamer {
 namespace {
-enum Index { ID = 0, TYPE, TS, DUR, CPU, INTERNAL_TID, STATE };
+enum Index { ID = 0, TYPE, TS, DUR, CPU, INTERNAL_TID, TID, PID, STATE };
 }
 ThreadStateTable::ThreadStateTable(const TraceDataCache* dataCache) : TableBase(dataCache)
 {
-    tableColumn_.push_back(TableBase::ColumnInfo("id", "UNSIGNED INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("type", "STRING"));
-    tableColumn_.push_back(TableBase::ColumnInfo("ts", "INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("dur", "UNSIGNED BIG INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("cpu", "UNSIGNED BIG INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("itid", "INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("state", "STRING"));
+    tableColumn_.push_back(TableBase::ColumnInfo("id", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("type", "TEXT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("ts", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("dur", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("cpu", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("itid", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("tid", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("pid", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("state", "TEXT"));
     tablePriKey_.push_back("id");
 }
 
@@ -42,7 +44,7 @@ void ThreadStateTable::EstimateFilterCost(FilterConstraints& fc, EstimatedIndexI
     constexpr double indexCost = 2.0;
     ei.estimatedCost = filterBaseCost;
 
-    auto rowCount = dataCache_->GetConstThreadStateData().RowData().size();
+    auto rowCount = dataCache_->GetConstThreadStateData().Size();
     if (rowCount == 0 || rowCount == 1) {
         ei.estimatedRows = rowCount;
         ei.estimatedCost += indexCost * rowCount;
@@ -130,7 +132,7 @@ bool ThreadStateTable::CanFilterId(const char op, size_t& rowCount)
     return true;
 }
 
-bool ThreadStateTable::CanFilterSorted(const char op, size_t& rowCount)
+bool ThreadStateTable::CanFilterSorted(const char op, size_t& rowCount) const
 {
     switch (op) {
         case SQLITE_INDEX_CONSTRAINT_EQ:
@@ -154,8 +156,8 @@ std::unique_ptr<TableBase::Cursor> ThreadStateTable::CreateCursor()
 }
 
 ThreadStateTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
-    : TableBase::Cursor(dataCache, table, dataCache->GetConstThreadStateData().RowData().size()),
-      rowData_(dataCache->GetConstThreadStateData().RowData())
+    : TableBase::Cursor(dataCache, table, dataCache->GetConstThreadStateData().Size()),
+      threadStateObj_(dataCache->GetConstThreadStateData())
 {
 }
 
@@ -164,28 +166,55 @@ ThreadStateTable::Cursor::~Cursor() {}
 int ThreadStateTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value** argv)
 {
     // reset
-    indexType_ = INDEX_TYPE_ID;
-    indexMap_ = std::make_unique<IndexMap>(0, rowCount_);
-
     if (rowCount_ <= 0) {
         return SQLITE_OK;
+    }
+    IndexMap* indexMapBack = indexMap_.get();
+    if (indexMap_->HasData()) {
+        indexMapBack = std::make_unique<IndexMap>(0, rowCount_).get();
     }
     auto& cs = fc.GetConstraints();
     for (size_t i = 0; i < cs.size(); i++) {
         const auto& c = cs[i];
         switch (c.col) {
             case ID:
-                FilterId(c.op, argv[i]);
+                indexMapBack->FilterId(c.op, argv[i]);
                 break;
             case TS:
-                FilterSorted(c.col, c.op, argv[i]);
+                indexMapBack->FilterTS(c.op, argv[i], threadStateObj_.TimeStamsData());
                 break;
             case INTERNAL_TID:
-                FilterIndex(c.col, c.op, argv[i]);
+                indexMapBack->MixRange(c.op, static_cast<uint32_t>(sqlite3_value_int(argv[i])),
+                                       threadStateObj_.ItidsData());
+                break;
+            case TID:
+                indexMapBack->MixRange(c.op, static_cast<uint32_t>(sqlite3_value_int(argv[i])),
+                                       threadStateObj_.TidsData());
+                break;
+            case PID:
+                indexMapBack->MixRange(c.op, static_cast<uint32_t>(sqlite3_value_int(argv[i])),
+                                       threadStateObj_.PidsData());
+                break;
+            case DUR:
+                indexMapBack->MixRange(c.op, static_cast<uint64_t>(sqlite3_value_int64(argv[i])),
+                                       threadStateObj_.DursData());
+                break;
+            case CPU:
+                indexMapBack->MixRange(c.op, static_cast<uint32_t>(sqlite3_value_int(argv[i])),
+                                       threadStateObj_.CpusData());
+                break;
+            case STATE:
+                indexMapBack->MixRange(c.op,
+                                       dataCache_->GetConstDataIndex(
+                                           std::string(reinterpret_cast<const char*>(sqlite3_value_text(argv[i])))),
+                                       threadStateObj_.StatesData());
                 break;
             default:
                 break;
         }
+    }
+    if (indexMap_->HasData()) {
+        indexMap_->Merge(indexMapBack);
     }
 
     auto orderbys = fc.GetOrderBys();
@@ -214,23 +243,29 @@ int ThreadStateTable::Cursor::Column(int col) const
             sqlite3_result_text(context_, "thread_state", STR_DEFAULT_LEN, nullptr);
             break;
         case TS:
-            sqlite3_result_int64(context_, static_cast<sqlite3_int64>(rowData_[CurrentRow()].timeStamp));
+            sqlite3_result_int64(context_, static_cast<sqlite3_int64>(threadStateObj_.TimeStamsData()[CurrentRow()]));
             break;
         case DUR:
-            if (static_cast<sqlite3_int64>(rowData_[CurrentRow()].duration) != INVALID_TIME) {
-                sqlite3_result_int64(context_, static_cast<sqlite3_int64>(rowData_[CurrentRow()].duration));
+            if (static_cast<sqlite3_int64>(threadStateObj_.DursData()[CurrentRow()]) != INVALID_TIME) {
+                sqlite3_result_int64(context_, static_cast<sqlite3_int64>(threadStateObj_.DursData()[CurrentRow()]));
             }
             break;
         case CPU:
-            if (rowData_[CurrentRow()].cpu != INVALID_CPU) {
-                sqlite3_result_int64(context_, static_cast<sqlite3_int64>(rowData_[CurrentRow()].cpu));
+            if (threadStateObj_.CpusData()[CurrentRow()] != INVALID_CPU) {
+                sqlite3_result_int64(context_, static_cast<sqlite3_int64>(threadStateObj_.CpusData()[CurrentRow()]));
             }
             break;
         case INTERNAL_TID:
-            sqlite3_result_int64(context_, static_cast<sqlite3_int64>(rowData_[CurrentRow()].idTid));
+            sqlite3_result_int64(context_, static_cast<sqlite3_int64>(threadStateObj_.ItidsData()[CurrentRow()]));
+            break;
+        case TID:
+            sqlite3_result_int64(context_, static_cast<sqlite3_int64>(threadStateObj_.TidsData()[CurrentRow()]));
+            break;
+        case PID:
+            sqlite3_result_int64(context_, static_cast<sqlite3_int64>(threadStateObj_.PidsData()[CurrentRow()]));
             break;
         case STATE: {
-            const std::string& str = dataCache_->GetConstSchedStateData(rowData_[CurrentRow()].idState);
+            const std::string& str = dataCache_->GetConstSchedStateData(threadStateObj_.StatesData()[CurrentRow()]);
             sqlite3_result_text(context_, str.c_str(), STR_DEFAULT_LEN, nullptr);
             break;
         }
@@ -239,120 +274,6 @@ int ThreadStateTable::Cursor::Column(int col) const
             break;
     }
     return SQLITE_OK;
-}
-
-void ThreadStateTable::Cursor::FilterId(unsigned char op, sqlite3_value* argv)
-{
-    auto type = sqlite3_value_type(argv);
-    if (type != SQLITE_INTEGER) {
-        // other type consider it NULL
-        indexMap_->Intersect(0, 0);
-        return;
-    }
-
-    auto v = static_cast<TableRowId>(sqlite3_value_int64(argv));
-    switch (op) {
-        case SQLITE_INDEX_CONSTRAINT_EQ:
-            indexMap_->Intersect(v, v + 1);
-            break;
-        case SQLITE_INDEX_CONSTRAINT_GE:
-            indexMap_->Intersect(v, rowCount_);
-            break;
-        case SQLITE_INDEX_CONSTRAINT_GT:
-            v++;
-            indexMap_->Intersect(v, rowCount_);
-            break;
-        case SQLITE_INDEX_CONSTRAINT_LE:
-            v++;
-            indexMap_->Intersect(0, v);
-            break;
-        case SQLITE_INDEX_CONSTRAINT_LT:
-            indexMap_->Intersect(0, v);
-            break;
-        default:
-            // can't filter, all rows
-            break;
-    }
-}
-void ThreadStateTable::Cursor::FilterItid(unsigned char op, uint64_t value)
-{
-    rowIndex_.clear();
-    auto size = rowData_.size();
-    indexType_  = INDEX_TYPE_OUTER_INDEX;
-    switch (op) {
-        case SQLITE_INDEX_CONSTRAINT_EQ:
-            for (auto i = 0; i < size; i++) {
-                if (rowData_[i].idTid == value) {
-                    rowIndex_.push_back(i);
-                }
-            }
-            indexSize_ = rowIndex_.size();
-            break;
-        default:
-            break;
-    } // end of switch (op)
-}
-void ThreadStateTable::Cursor::FilterIndex(int col, unsigned char op, sqlite3_value* argv)
-{
-    auto type = sqlite3_value_type(argv);
-    if (type != SQLITE_INTEGER) {
-        // other type consider it NULL, filter out nothing
-        indexMap_->Intersect(0, 0);
-        return;
-    }
-
-    switch (col) {
-        case INTERNAL_TID:
-            FilterItid(op, static_cast<uint64_t>(sqlite3_value_int64(argv)));
-            break;
-        default:
-            // we can't filter all rows
-            break;
-    }
-}
-void ThreadStateTable::Cursor::FilterTS(unsigned char op, sqlite3_value* argv)
-{
-    auto v = static_cast<uint64_t>(sqlite3_value_int64(argv));
-    auto getValue = [](const ThreadState::ColumnData& row) {
-        return row.timeStamp;
-    };
-    switch (op) {
-        case SQLITE_INDEX_CONSTRAINT_EQ:
-            indexMap_->IntersectabcEqual(rowData_, v, getValue);
-            break;
-        case SQLITE_INDEX_CONSTRAINT_GT:
-            v++;
-        case SQLITE_INDEX_CONSTRAINT_GE: {
-            indexMap_->IntersectGreaterEqual(rowData_, v, getValue);
-            break;
-        }
-        case SQLITE_INDEX_CONSTRAINT_LE:
-            v++;
-        case SQLITE_INDEX_CONSTRAINT_LT: {
-            indexMap_->IntersectLessEqual(rowData_, v, getValue);
-            break;
-        }
-        default:
-            break;
-    } // end of switch (op)
-}
-void ThreadStateTable::Cursor::FilterSorted(int col, unsigned char op, sqlite3_value* argv)
-{
-    auto type = sqlite3_value_type(argv);
-    if (type != SQLITE_INTEGER) {
-        // other type consider it NULL, filter out nothing
-        indexMap_->Intersect(0, 0);
-        return;
-    }
-
-    switch (col) {
-        case TS:
-            FilterTS(op, argv);
-            break;
-        default:
-            // can't filter, all rows
-            break;
-    }
 }
 } // namespace TraceStreamer
 } // namespace SysTuning

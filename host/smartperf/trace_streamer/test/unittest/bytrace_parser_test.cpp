@@ -26,6 +26,7 @@
 
 using namespace testing::ext;
 using namespace SysTuning::TraceStreamer;
+using namespace SysTuning::base;
 
 namespace SysTuning {
 namespace TraceStreamer {
@@ -50,11 +51,11 @@ public:
  */
 HWTEST_F(BytraceParserTest, ParseNoData, TestSize.Level1)
 {
-    TS_LOGI("test1-1");
+    TS_LOGI("test2-1");
     auto buf = std::make_unique<uint8_t[]>(1);
     BytraceParser bytraceParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     bytraceParser.ParseTraceDataSegment(std::move(buf), 1);
-    bytraceParser.WaitForParserEnd();;
+    bytraceParser.WaitForParserEnd();
     EXPECT_TRUE(bytraceParser.TraceCommentLines() == 0);
     EXPECT_TRUE(bytraceParser.ParsedTraceValidLines() == 0);
     EXPECT_TRUE(bytraceParser.ParsedTraceInvalidLines() == 0);
@@ -67,7 +68,7 @@ HWTEST_F(BytraceParserTest, ParseNoData, TestSize.Level1)
  */
 HWTEST_F(BytraceParserTest, ParseNoDataWhithLineFlag, TestSize.Level1)
 {
-    TS_LOGI("test1-2");
+    TS_LOGI("test2-2");
     constexpr uint32_t bufSize = 1024;
     auto buf = std::make_unique<uint8_t[]>(bufSize);
     auto realBufSize = strlen(" \n");
@@ -92,7 +93,7 @@ HWTEST_F(BytraceParserTest, ParseNoDataWhithLineFlag, TestSize.Level1)
  */
 HWTEST_F(BytraceParserTest, ParseInvalidData, TestSize.Level1)
 {
-    TS_LOGI("test1-3");
+    TS_LOGI("test2-3");
     constexpr uint32_t bufSize = 1024;
     auto buf = std::make_unique<uint8_t[]>(bufSize);
     auto realBufSize = strlen("0123456789\n");
@@ -117,7 +118,7 @@ HWTEST_F(BytraceParserTest, ParseInvalidData, TestSize.Level1)
  */
 HWTEST_F(BytraceParserTest, ParseComment, TestSize.Level1)
 {
-    TS_LOGI("test1-4");
+    TS_LOGI("test2-4");
     constexpr uint32_t bufSize = 1024;
     auto buf = std::make_unique<uint8_t[]>(bufSize);
     auto realBufSize = strlen("TRACE: \n# tracer: nop \n# \n");
@@ -142,11 +143,11 @@ HWTEST_F(BytraceParserTest, ParseComment, TestSize.Level1)
  */
 HWTEST_F(BytraceParserTest, ParseInvalidLines, TestSize.Level1)
 {
-    TS_LOGI("test1-5");
+    TS_LOGI("test2-5");
     constexpr uint32_t bufSize = 1024;
     auto buf = std::make_unique<uint8_t[]>(bufSize);
-    auto realBufSize = strlen("\nafafda\n");
-    if (memcpy_s(buf.get(), bufSize, "\nafafda\n", realBufSize)) {
+    auto realBufSize = strlen(" \nafafda\n");
+    if (memcpy_s(buf.get(), bufSize, " \nafafda\n", realBufSize)) {
         EXPECT_TRUE(false);
         return;
     }
@@ -167,7 +168,7 @@ HWTEST_F(BytraceParserTest, ParseInvalidLines, TestSize.Level1)
  */
 HWTEST_F(BytraceParserTest, ParseNormal, TestSize.Level1)
 {
-    TS_LOGI("test1-6");
+    TS_LOGI("test2-6");
     std::string str(
         "ACCS0-2716  ( 2519) [000] ...1 168758.662861: binder_transaction: \
         transaction=25137708 dest_node=4336 dest_proc=924 dest_thread=0 reply=0 flags=0x10 code=0x3 \n");
@@ -187,7 +188,7 @@ HWTEST_F(BytraceParserTest, ParseNormal, TestSize.Level1)
  */
 HWTEST_F(BytraceParserTest, LineParser_abnormal_pid_err, TestSize.Level1)
 {
-    TS_LOGI("test1-7");
+    TS_LOGI("test2-7");
     std::string str(
         "ACCS0-27X6  ( 2519) [000] ...1 168758.662861: binder_transaction: \
         transaction=25137708 dest_node=4336 dest_proc=924 dest_thread=0 reply=0 flags=0x10 code=0x3 \n");
@@ -207,7 +208,7 @@ HWTEST_F(BytraceParserTest, LineParser_abnormal_pid_err, TestSize.Level1)
  */
 HWTEST_F(BytraceParserTest, LineParserWithInvalidCpu, TestSize.Level1)
 {
-    TS_LOGI("test1-8");
+    TS_LOGI("test2-8");
     std::string str(
         "ACCS0-2716  ( 2519) [00X] ...1 168758.662861: binder_transaction: \
         transaction=25137708 dest_node=4336 dest_proc=924 dest_thread=0 reply=0 flags=0x10 code=0x3 \n");
@@ -227,7 +228,7 @@ HWTEST_F(BytraceParserTest, LineParserWithInvalidCpu, TestSize.Level1)
  */
 HWTEST_F(BytraceParserTest, LineParserWithInvalidTs, TestSize.Level1)
 {
-    TS_LOGI("test1-9");
+    TS_LOGI("test2-9");
     std::string str(
         "ACCS0-2716  ( 2519) [000] ...1 168758.662X61: binder_transaction: \
         transaction=25137708 dest_node=4336 dest_proc=924 dest_thread=0 reply=0 flags=0x10 code=0x3 \n");

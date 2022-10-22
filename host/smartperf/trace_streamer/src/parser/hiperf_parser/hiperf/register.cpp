@@ -14,7 +14,7 @@
  */
 
 // for libunwind.h empty struct has size 0 in c, size 1 in c++
-#define UNW_EMPTY_STRUCT uint8_t unused;
+#define UNW_EMPTY_STRUCT uint8_t unused
 
 #include "register.h"
 
@@ -113,13 +113,13 @@ int LibunwindRegIdToPerfReg(int libUnwindReg)
 }
 #endif
 
-const std::string UpdatePerfContext(uint64_t addr, perf_callchain_context &perfCallchainContext)
+const std::string UpdatePerfContext(uint64_t addr, perf_callchain_context &perfCallChainContext)
 {
     if (PERF_CONTEXT_NAME.count(addr) != 0) {
-        perfCallchainContext = static_cast<perf_callchain_context>(addr);
+        perfCallChainContext = static_cast<perf_callchain_context>(addr);
         return StringPrintf("%s: %" PRIx64 "", PERF_CONTEXT_NAME.at(addr).c_str(), addr);
     } else {
-        perfCallchainContext = PERF_CONTEXT_MAX;
+        perfCallChainContext = PERF_CONTEXT_MAX;
         return StringPrintf("unknow context: %" PRIx64 "", addr);
     }
 }

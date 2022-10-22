@@ -196,7 +196,8 @@ int CheckArgs(int argc, char** argv, TraceExportOption& traceExportOption, HttpO
 {
     for (int i = 1; i < argc; i++) {
         if (!strcmp(argv[i], "-e")) {
-            if (++i == argc) {
+            i++;
+            if (i == argc) {
                 ShowHelpInfo(argv[0]);
                 return 1;
             }

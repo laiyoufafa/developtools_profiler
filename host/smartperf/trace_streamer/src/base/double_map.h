@@ -60,6 +60,14 @@ public:
             return invalidValue_;
         }
     }
+    const std::map<T2, T3>* Find(T1 t1) const
+    {
+        auto streamIdHookidMap = internalMap_.find(t1);
+        if (streamIdHookidMap != internalMap_.end()) {
+            return &streamIdHookidMap->second;
+        }
+        return nullptr;
+    }
     void Erase(T1 t1)
     {
         auto streamIdHookidMap = internalMap_.find(t1);
@@ -76,6 +84,14 @@ public:
                 (*streamIdHookidMap).second.erase(hookId);
             }
         }
+    }
+    bool Empty()
+    {
+        return internalMap_.size() == 0 ? true : false;
+    }
+    void Clear()
+    {
+        internalMap_.clear();
     }
 
 private:

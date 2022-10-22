@@ -35,7 +35,7 @@ public:
     void IrqHandlerExit(int64_t ts, uint32_t cpu, uint32_t ret);
     void SoftIrqEntry(int64_t ts, uint32_t cpu, uint32_t vec);
     void SoftIrqExit(int64_t ts, uint32_t cpu, uint32_t vec);
-
+    void Clear();
 private:
     const DataIndex irqId_ = traceDataCache_->GetDataIndex("irq_id");
     const DataIndex irqRet_ = traceDataCache_->GetDataIndex("irq_ret");

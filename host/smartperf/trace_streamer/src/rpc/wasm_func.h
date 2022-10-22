@@ -17,17 +17,35 @@
 #define RPC_WASM_FUNC_H
 
 #include <cstdio>
+#ifndef UT_MAC
 #include <emscripten.h>
+#endif
+#ifdef UT_MAC
+#define EMSCRIPTEN_KEEPALIVE __attribute__((used))
+
+#ifdef __wasm__
+#define EM_IMPORT(NAME) __attribute__((import_module("env"), import_name(#NAME)))
+#else
+#define EM_IMPORT(NAME)
+#endif
+
+#endif
 #include "rpc_server.h"
 
 namespace SysTuning {
 namespace TraceStreamer {
 extern "C" {
 int TraceStreamerParseData(const uint8_t* data, int dataLen);
+int TraceStreamerParseDataEx(int dataLen);
 int TraceStreamerParseDataOver();
 int TraceStreamerSqlOperate(const uint8_t* sql, int sqlLen);
+int TraceStreamerSqlOperateEx(int sqlLen);
 int TraceStreamerReset();
 int TraceStreamerSqlQuery(const uint8_t* sql, int sqlLen, uint8_t* out, int outLen);
+int TraceStreamer_Plugin_Out_SendData(const char* pluginData, int len, int componentId);
+int TraceStreamer_Plugin_Out_Filter(const char* pluginData, int len, const std::string componentName);
+
+int TraceStreamerSqlQueryEx(int sqlLen);
 int TraceStreamerCancel();
 } // extern "C"
 } // namespace TraceStreamer

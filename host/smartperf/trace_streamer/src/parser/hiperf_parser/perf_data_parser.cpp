@@ -13,32 +13,32 @@
  * limitations under the License.
  */
 #include "perf_data_parser.h"
-#include <bitset>
-#include <fstream>
-#include <iostream>
 #include "perf_data_filter.h"
+#include "stat_filter.h"
 
 namespace SysTuning {
 namespace TraceStreamer {
 PerfDataParser::PerfDataParser(TraceDataCache* dataCache, const TraceStreamerFilters* ctx)
-    : HtracePluginTimeParser(dataCache, ctx)
+    : HtracePluginTimeParser(dataCache, ctx), frameToCallChainId_(INVALID_UINT64)
 {
     configNameIndex_ = traceDataCache_->dataDict_.GetStringIndex("config_name");
     workloaderIndex_ = traceDataCache_->dataDict_.GetStringIndex("workload_cmd");
     cmdlineIndex_ = traceDataCache_->dataDict_.GetStringIndex("cmdline");
-    runingStateIndex_ = traceDataCache_->dataDict_.GetStringIndex("Runing");
+    runingStateIndex_ = traceDataCache_->dataDict_.GetStringIndex("Running");
     suspendStatIndex_ = traceDataCache_->dataDict_.GetStringIndex("Suspend");
     unkonwnStateIndex_ = traceDataCache_->dataDict_.GetStringIndex("-");
 }
-void PerfDataParser::InitPerfDataAndLoad(const std::deque<uint8_t> dequeBuffer)
+void PerfDataParser::InitPerfDataAndLoad(const std::deque<uint8_t> dequeBuffer, uint64_t size)
 {
-    bufferSize_ = dequeBuffer.size();
-    buffer_ = std::make_unique<uint8_t[]>(dequeBuffer.size());
-    std::copy(dequeBuffer.begin(), dequeBuffer.end(), buffer_.get());
+    bufferSize_ = size;
+    buffer_ = std::make_unique<uint8_t[]>(size);
+    std::copy(dequeBuffer.begin(), dequeBuffer.begin() + size, buffer_.get());
     LoadPerfData();
 }
 PerfDataParser::~PerfDataParser()
 {
+    TS_LOGI("perf data ts MIN:%llu, MAX:%llu", static_cast<unsigned long long>(GetPluginStartTime()),
+            static_cast<unsigned long long>(GetPluginEndTime()));
 }
 
 bool PerfDataParser::LoadPerfData()
@@ -101,7 +101,7 @@ void PerfDataParser::LoadEventDesc()
         }
         // when cpuOffMode_ , don't use count mode , use time mode.
         auto& config = report_.configs_.emplace_back(fileAttr.name, fileAttr.attr.type, fileAttr.attr.config,
-                                                        cpuOffMode_ ? false : true);
+                                                     cpuOffMode_ ? false : true);
         config.ids_ = fileAttr.ids;
         TS_ASSERT(config.ids_.size() > 0);
 
@@ -111,7 +111,7 @@ void PerfDataParser::LoadEventDesc()
     }
 }
 
-void PerfDataParser::UpdateReportWorkloadInfo()
+void PerfDataParser::UpdateReportWorkloadInfo() const
 {
     // workload
     auto featureSection = recordDataReader_->GetFeatureSection(FEATURE::HIPERF_WORKLOAD_CMD);
@@ -132,7 +132,7 @@ void PerfDataParser::UpdateReportWorkloadInfo()
     perfReportData->AppendNewPerfReport(workloaderIndex_, workloaderValueIndex);
 }
 
-void PerfDataParser::UpdateCmdlineInfo()
+void PerfDataParser::UpdateCmdlineInfo() const
 {
     auto cmdline = recordDataReader_->GetFeatureString(FEATURE::CMDLINE);
     auto perfReportData = traceDataCache_->GetPerfReportData();
@@ -158,8 +158,10 @@ void PerfDataParser::UpdateSymbolAndFilesData()
         uint32_t serial = 0;
         for (auto& symbol : symbolsFile->GetSymbols()) {
             auto symbolIndex = traceDataCache_->dataDict_.GetStringIndex(symbol.Name().data());
+            streamFilters_->statFilter_->IncreaseStat(TRACE_PERF, STAT_EVENT_RECEIVED);
             streamFilters_->perfDataFilter_->AppendPerfFiles(fileId, serial++, symbolIndex, filePathIndex);
         }
+        fileDataDictIdToFileId_.insert(std::make_pair(filePathIndex, fileId));
         ++fileId;
     }
 }
@@ -179,7 +181,8 @@ bool PerfDataParser::RecordCallBack(std::unique_ptr<PerfEventRecord> record)
 
     if (record->GetType() == PERF_RECORD_SAMPLE) {
         std::unique_ptr<PerfRecordSample> sample(static_cast<PerfRecordSample*>(record.release()));
-        ProcessSample(sample);
+        auto callChainId = UpdatePerfCallChainData(sample);
+        UpdatePerfSampleData(callChainId, sample);
     } else if (record->GetType() == PERF_RECORD_COMM) {
         auto recordComm = static_cast<PerfRecordComm*>(record.get());
         auto range = tidToPid_.equal_range(recordComm->data_.tid);
@@ -196,22 +199,62 @@ bool PerfDataParser::RecordCallBack(std::unique_ptr<PerfEventRecord> record)
     return true;
 }
 
-void PerfDataParser::ProcessSample(std::unique_ptr<PerfRecordSample>& sample)
+uint64_t PerfDataParser::UpdatePerfCallChainData(std::unique_ptr<PerfRecordSample>& sample)
 {
-    uint64_t callChainId = 0;
-    for (const CallFrame& frame : sample->callFrames_) {
-        auto fileId = 0;
-        for (auto fileIt = report_.virtualRuntime_.GetSymbolsFiles().begin();
-             fileIt != report_.virtualRuntime_.GetSymbolsFiles().end(); fileIt++) {
-            if (fileIt->get()->filePath_ == frame.filePath_) {
-                fileId = fileIt - report_.virtualRuntime_.GetSymbolsFiles().begin();
+    uint64_t depth = 0;
+    bool callStackNotExist = false;
+    uint64_t callChainId = INVALID_UINT64;
+    std::vector<std::unique_ptr<CallStackTemp>> callStackTemp = {};
+    // Filter callstack unuse data
+    for (auto frame = sample->callFrames_.rbegin(); frame != sample->callFrames_.rend(); ++frame) {
+        auto symbolId = frame->symbolIndex_;
+        if (symbolId == -1 && frame->vaddrInFile_ == 0) {
+            continue;
+        }
+        auto fileDataIndex = traceDataCache_->dataDict_.GetStringIndex(frame->filePath_);
+        auto itor = fileDataDictIdToFileId_.find(fileDataIndex);
+        if (itor == fileDataDictIdToFileId_.end()) {
+            continue;
+        }
+        auto fileId = itor->second;
+        callStackTemp.emplace_back(
+            std::move(std::make_unique<CallStackTemp>(depth, frame->vaddrInFile_, fileId, symbolId)));
+        depth++;
+    }
+    // Determine whether to write callstack data to cache
+    auto size = callStackTemp.size();
+    for (auto itor = callStackTemp.begin(); itor != callStackTemp.end(); itor++) {
+        auto callstack = itor->get();
+        auto ret = frameToCallChainId_.Find(callstack->fileId_, callstack->symbolId_, callstack->depth_, size);
+        if (ret != INVALID_UINT64) { // find it
+            if (callChainId == INVALID_UINT64) {
+                callChainId = ret;
+            } else if (callChainId != ret) {
+                callStackNotExist = true;
                 break;
             }
+        } else { // not find it
+            callStackNotExist = true;
+            break;
         }
-        auto symbolId = frame.symbolIndex_;
-        streamFilters_->perfDataFilter_->AppendPerfCallChain(sampleId_, callChainId, frame.vaddrInFile_, fileId, symbolId);
-        callChainId++;
     }
+    // write callstack data to cache
+    if (callStackNotExist) {
+        callChainId = ++callChainId_;
+        for (auto itor = callStackTemp.begin(); itor != callStackTemp.end(); itor++) {
+            auto callstack = itor->get();
+            frameToCallChainId_.Insert(callstack->fileId_, callstack->symbolId_, callstack->depth_,
+                                       callStackTemp.size(), callChainId);
+            streamFilters_->perfDataFilter_->AppendPerfCallChain(
+                callChainId, callstack->depth_, callstack->vaddrInFile_, callstack->fileId_, callstack->symbolId_);
+        }
+    }
+    callStackTemp.clear();
+    return callChainId;
+}
+
+void PerfDataParser::UpdatePerfSampleData(uint64_t callChainId, std::unique_ptr<PerfRecordSample>& sample)
+{
     auto perfSampleData = traceDataCache_->GetPerfSampleData();
     uint64_t newTimeStamp = 0;
     if (useClockId_ == 0) {
@@ -230,14 +273,18 @@ void PerfDataParser::ProcessSample(std::unique_ptr<PerfRecordSample>& sample)
         threadStatIndex = suspendStatIndex_;
     }
     auto configIndex = report_.GetConfigIndex(sample->data_.id);
-    perfSampleData->AppendNewPerfSample(sampleId_, sample->data_.time, sample->data_.tid, sample->data_.period,
+    perfSampleData->AppendNewPerfSample(callChainId, sample->data_.time, sample->data_.tid, sample->data_.period,
                                         configIndex, newTimeStamp, sample->data_.cpu, threadStatIndex);
-    sampleId_++;
 }
+
 void PerfDataParser::Finish()
 {
     streamFilters_->perfDataFilter_->Finish();
-    traceDataCache_->MixTraceTime(GetPluginStartTime(), GetPluginEndTime());
+    // Update trace_range when there is only perf data in the trace file
+    if (traceDataCache_->traceStartTime_ == INVALID_UINT64 || traceDataCache_->traceEndTime_ == 0) {
+        traceDataCache_->MixTraceTime(GetPluginStartTime(), GetPluginEndTime());
+    }
+    frameToCallChainId_.Clear();
 }
 } // namespace TraceStreamer
 } // namespace SysTuning

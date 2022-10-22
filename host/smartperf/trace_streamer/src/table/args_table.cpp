@@ -22,11 +22,11 @@ enum Index { ID = 0, KEY, DATATYPE, VALUE, ARGSETID };
 }
 ArgsTable::ArgsTable(const TraceDataCache* dataCache) : TableBase(dataCache)
 {
-    tableColumn_.push_back(TableBase::ColumnInfo("id", "UNSIGNED INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("key", "UNSIGNED INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("datatype", "UNSIGNED SHORT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("value", "BIG INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("argset", "UNSIGNED INT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("id", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("key", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("datatype", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("value", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("argset", "INTEGER"));
     tablePriKey_.push_back("id");
 }
 

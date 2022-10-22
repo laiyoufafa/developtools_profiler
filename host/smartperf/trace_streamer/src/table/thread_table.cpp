@@ -18,18 +18,20 @@
 namespace SysTuning {
 namespace TraceStreamer {
 namespace {
-enum Index { ID = 0, TYPE, TID, NAME, START_TS, END_TS, INTERNAL_PID, IS_MAIN_THREAD };
+enum Index { ID = 0, ITID, TYPE, TID, NAME, START_TS, END_TS, INTERNAL_PID, IS_MAIN_THREAD, SWITCH_COUNT };
 }
 ThreadTable::ThreadTable(const TraceDataCache* dataCache) : TableBase(dataCache)
 {
-    tableColumn_.push_back(TableBase::ColumnInfo("id", "UNSIGNED INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("type", "STRING"));
-    tableColumn_.push_back(TableBase::ColumnInfo("tid", "UNSIGNED INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("name", "STRING"));
-    tableColumn_.push_back(TableBase::ColumnInfo("start_ts", "UNSIGNED BIG INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("end_ts", "UNSIGNED BIG INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("ipid", "UNSIGNED INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("is_main_thread", "UNSIGNED INT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("id", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("itid", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("type", "TEXT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("tid", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("name", "TEXT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("start_ts", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("end_ts", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("ipid", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("is_main_thread", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("switch_count", "INTEGER"));
     tablePriKey_.push_back("id");
 }
 
@@ -63,6 +65,7 @@ void ThreadTable::EstimateFilterCost(FilterConstraints& fc, EstimatedIndexInfo& 
     auto orderbys = fc.GetOrderBys();
     for (auto i = 0; i < orderbys.size(); i++) {
         switch (orderbys[i].iColumn) {
+            case ITID:
             case ID:
                 break;
             default: // other columns can be sorted by SQLite
@@ -83,6 +86,7 @@ void ThreadTable::FilterByConstraint(FilterConstraints& fc, double& filterCost, 
         }
         const auto& c = fcConstraints[i];
         switch (c.col) {
+            case ITID:
             case ID: {
                 if (CanFilterId(c.op, rowCount)) {
                     fc.UpdateConstraint(i, true);
@@ -129,26 +133,273 @@ ThreadTable::Cursor::Cursor(const TraceDataCache* dataCache, TableBase* table)
 }
 
 ThreadTable::Cursor::~Cursor() {}
-
+void ThreadTable::Cursor::FilterTid(unsigned char op, uint64_t value)
+{
+    bool remove = false;
+    if (indexMapBack_->HasData()) {
+        indexMapBack_->CovertToIndexMap();
+        remove = true;
+    }
+    const auto& threadQueue = dataCache_->GetConstThreadData();
+    auto size = threadQueue.size();
+    switch (op) {
+        case SQLITE_INDEX_CONSTRAINT_EQ:
+            if (remove) {
+                for (auto i = indexMapBack_->rowIndex_.begin(); i != indexMapBack_->rowIndex_.end();) {
+                    if (threadQueue[*i].tid_ != value) {
+                        i = indexMapBack_->rowIndex_.erase(i);
+                    } else {
+                        i++;
+                    }
+                }
+            } else {
+                for (auto i = 0; i < size; i++) {
+                    if (threadQueue[i].tid_ == value) {
+                        indexMapBack_->rowIndex_.push_back(i);
+                    }
+                }
+            }
+            indexMapBack_->FixSize();
+            break;
+        case SQLITE_INDEX_CONSTRAINT_ISNOT:
+        case SQLITE_INDEX_CONSTRAINT_NE:
+            if (remove) {
+                for (auto i = indexMapBack_->rowIndex_.begin(); i != indexMapBack_->rowIndex_.end();) {
+                    if (threadQueue[*i].tid_ == value) {
+                        i = indexMapBack_->rowIndex_.erase(i);
+                    } else {
+                        i++;
+                    }
+                }
+            } else {
+                for (auto i = 0; i < size; i++) {
+                    if (threadQueue[i].tid_ != value) {
+                        indexMapBack_->rowIndex_.push_back(i);
+                    }
+                }
+            }
+            indexMapBack_->FixSize();
+            break;
+        default:
+            break;
+    } // end of switch (op)
+}
+void ThreadTable::Cursor::FilterIpid(unsigned char op, uint64_t value)
+{
+    bool remove = false;
+    if (indexMapBack_->HasData()) {
+        indexMapBack_->CovertToIndexMap();
+        remove = true;
+    }
+    const auto& threadQueue = dataCache_->GetConstThreadData();
+    auto size = threadQueue.size();
+    rowIndexBak_.clear();
+    bool changed = false;
+    switch (op) {
+        case SQLITE_INDEX_CONSTRAINT_EQ:
+            if (remove) {
+                for (auto i = indexMapBack_->rowIndex_.begin(); i != indexMapBack_->rowIndex_.end();) {
+                    if (threadQueue[*i].internalPid_ != value) {
+                        i++;
+                    } else {
+                        changed = true;
+                        rowIndexBak_.push_back(*i);
+                        i++;
+                    }
+                }
+                if (changed) {
+                    indexMapBack_->rowIndex_ = rowIndexBak_;
+                }
+            } else {
+                for (auto i = 0; i < size; i++) {
+                    if (threadQueue[i].internalPid_ == value) {
+                        indexMapBack_->rowIndex_.push_back(i);
+                    }
+                }
+            }
+            indexMapBack_->FixSize();
+            break;
+        case SQLITE_INDEX_CONSTRAINT_ISNULL:
+            if (remove) {
+                for (auto i = indexMapBack_->rowIndex_.begin(); i != indexMapBack_->rowIndex_.end();) {
+                    if (threadQueue[*i].internalPid_ != INVALID_UINT32) {
+                        i++;
+                    } else {
+                        changed = true;
+                        rowIndexBak_.push_back(*i);
+                        i++;
+                    }
+                }
+                if (changed) {
+                    indexMapBack_->rowIndex_ = rowIndexBak_;
+                }
+            } else {
+                for (auto i = 0; i < size; i++) {
+                    if (threadQueue[i].internalPid_ == INVALID_UINT32) {
+                        indexMapBack_->rowIndex_.push_back(i);
+                    }
+                }
+            }
+            indexMapBack_->FixSize();
+            break;
+        case SQLITE_INDEX_CONSTRAINT_ISNOTNULL:
+            if (remove) {
+                for (auto i = indexMapBack_->rowIndex_.begin(); i != indexMapBack_->rowIndex_.end();) {
+                    if (threadQueue[*i].internalPid_ == INVALID_UINT32) {
+                        i++;
+                    } else {
+                        changed = true;
+                        rowIndexBak_.push_back(*i);
+                        i++;
+                    }
+                }
+                if (changed) {
+                    indexMapBack_->rowIndex_ = rowIndexBak_;
+                }
+            } else {
+                for (auto i = 0; i < size; i++) {
+                    if (threadQueue[i].internalPid_ != INVALID_UINT32) {
+                        indexMapBack_->rowIndex_.push_back(i);
+                    }
+                }
+            }
+            indexMapBack_->FixSize();
+            break;
+        default:
+            break;
+    } // end of switch (op)
+}
+void ThreadTable::Cursor::FilterSwitchCount(unsigned char op, uint64_t value)
+{
+    bool remove = false;
+    if (indexMapBack_->HasData()) {
+        indexMapBack_->CovertToIndexMap();
+        remove = true;
+    }
+    const auto& threadQueue = dataCache_->GetConstThreadData();
+    auto size = threadQueue.size();
+    rowIndexBak_.clear();
+    bool changed = false;
+    switch (op) {
+        case SQLITE_INDEX_CONSTRAINT_EQ:
+            if (remove) {
+                for (auto i = indexMapBack_->rowIndex_.begin(); i != indexMapBack_->rowIndex_.end();) {
+                    if (threadQueue[*i].switchCount_ != value) {
+                        i++;
+                    } else {
+                        changed = true;
+                        rowIndexBak_.push_back(*i);
+                        i++;
+                    }
+                }
+                if (changed) {
+                    indexMapBack_->rowIndex_ = rowIndexBak_;
+                }
+            } else {
+                for (auto i = 0; i < size; i++) {
+                    if (threadQueue[i].switchCount_ == value) {
+                        indexMapBack_->rowIndex_.push_back(i);
+                    }
+                }
+            }
+            indexMapBack_->FixSize();
+            break;
+        case SQLITE_INDEX_CONSTRAINT_ISNULL:
+            if (remove) {
+                for (auto i = indexMapBack_->rowIndex_.begin(); i != indexMapBack_->rowIndex_.end();) {
+                    if (threadQueue[*i].switchCount_ != INVALID_UINT32) {
+                        i++;
+                    } else {
+                        changed = true;
+                        rowIndexBak_.push_back(*i);
+                        i++;
+                    }
+                }
+                if (changed) {
+                    indexMapBack_->rowIndex_ = rowIndexBak_;
+                }
+            } else {
+                for (auto i = 0; i < size; i++) {
+                    if (threadQueue[i].switchCount_ == INVALID_UINT32) {
+                        indexMapBack_->rowIndex_.push_back(i);
+                    }
+                }
+            }
+            indexMapBack_->FixSize();
+            break;
+        case SQLITE_INDEX_CONSTRAINT_ISNOTNULL:
+            if (remove) {
+                for (auto i = indexMapBack_->rowIndex_.begin(); i != indexMapBack_->rowIndex_.end();) {
+                    if (threadQueue[*i].switchCount_ == INVALID_UINT32) {
+                        i++;
+                    } else {
+                        changed = true;
+                        rowIndexBak_.push_back(*i);
+                        i++;
+                    }
+                }
+                if (changed) {
+                    indexMapBack_->rowIndex_ = rowIndexBak_;
+                }
+            } else {
+                for (auto i = 0; i < size; i++) {
+                    if (threadQueue[i].switchCount_ != INVALID_UINT32) {
+                        indexMapBack_->rowIndex_.push_back(i);
+                    }
+                }
+            }
+            indexMapBack_->FixSize();
+            break;
+        default:
+            break;
+    } // end of switch (op)
+}
+void ThreadTable::Cursor::FilterIndex(int col, unsigned char op, sqlite3_value* argv)
+{
+    switch (col) {
+        case INTERNAL_PID:
+            FilterIpid(op, static_cast<uint64_t>(sqlite3_value_int64(argv)));
+            break;
+        case TID:
+            FilterTid(op, static_cast<uint64_t>(sqlite3_value_int64(argv)));
+            break;
+        case SWITCH_COUNT:
+            FilterSwitchCount(op, static_cast<uint64_t>(sqlite3_value_int64(argv)));
+            break;
+        default:
+            // we can't filter all rows
+            break;
+    }
+}
 int ThreadTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value** argv)
 {
-    // reset indexMap_
-    indexMap_ = std::make_unique<IndexMap>(0, rowCount_);
-
+    // reset indexMapBack_
     if (rowCount_ <= 0) {
         return SQLITE_OK;
     }
-
+    indexMapBack_ = indexMap_.get();
+    if (indexMap_->HasData()) {
+        indexMapBack_ = std::make_unique<IndexMap>(0, rowCount_).get();
+    }
     auto& cs = fc.GetConstraints();
     for (size_t i = 0; i < cs.size(); i++) {
         const auto& c = cs[i];
         switch (c.col) {
             case ID:
+            case ITID:
                 FilterId(c.op, argv[i]);
+                break;
+            case TID:
+            case INTERNAL_PID:
+            case SWITCH_COUNT:
+                FilterIndex(c.col, c.op, argv[i]);
                 break;
             default:
                 break;
         }
+    }
+    if (indexMap_->HasData()) {
+        indexMap_->Merge(indexMapBack_);
     }
 
     auto orderbys = fc.GetOrderBys();
@@ -156,6 +407,7 @@ int ThreadTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value** arg
         i--;
         switch (orderbys[i].iColumn) {
             case ID:
+            case ITID:
                 indexMap_->SortBy(orderbys[i].desc);
                 break;
             default:
@@ -170,7 +422,8 @@ int ThreadTable::Cursor::Column(int col) const
 {
     const auto& thread = dataCache_->GetConstThreadData(CurrentRow());
     switch (col) {
-        case ID: {
+        case ID:
+        case ITID: {
             sqlite3_result_int64(context_, CurrentRow());
             break;
         }
@@ -202,20 +455,26 @@ int ThreadTable::Cursor::Column(int col) const
             break;
         }
         case INTERNAL_PID: {
-            if (thread.internalPid_) {
+            if (thread.internalPid_ != INVALID_UINT32) {
                 sqlite3_result_int(context_, static_cast<int>(thread.internalPid_));
             }
             break;
         }
         case IS_MAIN_THREAD: {
             // When it is not clear which process the thread belongs to, is_main_thread should be set to null
-            if (!thread.internalPid_) {
+            if (thread.internalPid_ == INVALID_UINT32) {
                 break;
             }
             const auto& process = dataCache_->GetConstProcessData(thread.internalPid_);
             sqlite3_result_int(context_, thread.tid_ == process.pid_);
             break;
         }
+        case SWITCH_COUNT: {
+            // When it is not clear which process the thread belongs to, is_main_thread should be set to null
+            sqlite3_result_int(context_, thread.switchCount_);
+            break;
+        }
+        
         default:
             TS_LOGF("Unregistered column : %d", col);
             break;
@@ -223,33 +482,57 @@ int ThreadTable::Cursor::Column(int col) const
     return SQLITE_OK;
 }
 
+int ThreadTable::Update(int argc, sqlite3_value** argv, sqlite3_int64* pRowid)
+{
+    if (argc <= 1) {
+        return SQLITE_READONLY;
+    }
+    if (sqlite3_value_type(argv[0]) == SQLITE_NULL) {
+        return SQLITE_READONLY;
+    }
+    auto id = sqlite3_value_int64(argv[0]);
+    auto thread = wdataCache_->GetThreadData(static_cast<InternalPid>(id));
+    constexpr int colOffset = 2;
+    for (auto i = colOffset; i < argc; i++) {
+        auto col = i - colOffset;
+        if (col != INTERNAL_PID) {
+            continue;
+        }
+        auto ipid = static_cast<uint32_t>(sqlite3_value_int(argv[i]));
+        if (ipid) {
+            thread->internalPid_ = ipid;
+        }
+        break;
+    }
+    return SQLITE_OK;
+}
 void ThreadTable::Cursor::FilterId(unsigned char op, sqlite3_value* argv)
 {
     auto type = sqlite3_value_type(argv);
     if (type != SQLITE_INTEGER) {
         // other type consider it NULL
-        indexMap_->Intersect(0, 0);
+        indexMapBack_->Intersect(0, 0);
         return;
     }
 
     auto v = static_cast<TableRowId>(sqlite3_value_int64(argv));
     switch (op) {
         case SQLITE_INDEX_CONSTRAINT_EQ:
-            indexMap_->Intersect(v, v + 1);
+            indexMapBack_->Intersect(v, v + 1);
             break;
         case SQLITE_INDEX_CONSTRAINT_GE:
-            indexMap_->Intersect(v, rowCount_);
+            indexMapBack_->Intersect(v, rowCount_);
             break;
         case SQLITE_INDEX_CONSTRAINT_GT:
             v++;
-            indexMap_->Intersect(v, rowCount_);
+            indexMapBack_->Intersect(v, rowCount_);
             break;
         case SQLITE_INDEX_CONSTRAINT_LE:
             v++;
-            indexMap_->Intersect(0, v);
+            indexMapBack_->Intersect(0, v);
             break;
         case SQLITE_INDEX_CONSTRAINT_LT:
-            indexMap_->Intersect(0, v);
+            indexMapBack_->Intersect(0, v);
             break;
         default:
             // can't filter, all rows

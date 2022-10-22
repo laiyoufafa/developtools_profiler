@@ -21,6 +21,7 @@
 #include "cpu_filter.h"
 #include "htrace_cpu_detail_parser.h"
 #include "parser/common_types.h"
+#include "src/filter/symbols_filter.h"
 #include "trace_streamer_filters.h"
 #include "trace_streamer_selector.h"
 
@@ -55,7 +56,7 @@ public:
  */
 HWTEST_F(HtraceEventParserTest, ParseSchedSwitchEvent, TestSize.Level1)
 {
-    TS_LOGI("test10-1");
+    TS_LOGI("test14-1");
     SchedSwitchFormat* event = new SchedSwitchFormat();
     event->set_prev_prio(PRIORITY_01);
     event->set_next_prio(PRIORITY_02);
@@ -92,7 +93,7 @@ HWTEST_F(HtraceEventParserTest, ParseSchedSwitchEvent, TestSize.Level1)
  */
 HWTEST_F(HtraceEventParserTest, ParseFtraceCpuDetailMsgHasNoEvent, TestSize.Level1)
 {
-    TS_LOGI("test10-2");
+    TS_LOGI("test14-2");
     FtraceCpuDetailMsg ftraceCpuDetail;
     ftraceCpuDetail.set_cpu(0);
     ftraceCpuDetail.set_overwrite(0);
@@ -112,7 +113,7 @@ HWTEST_F(HtraceEventParserTest, ParseFtraceCpuDetailMsgHasNoEvent, TestSize.Leve
  */
 HWTEST_F(HtraceEventParserTest, ParseFtraceCpuDetailMsgOverwriteTrue, TestSize.Level1)
 {
-    TS_LOGI("test10-3");
+    TS_LOGI("test14-3");
     SchedSwitchFormat* event = new SchedSwitchFormat();
     event->set_prev_prio(PRIORITY_01);
     event->set_next_prio(PRIORITY_02);
@@ -146,7 +147,7 @@ HWTEST_F(HtraceEventParserTest, ParseFtraceCpuDetailMsgOverwriteTrue, TestSize.L
  */
 HWTEST_F(HtraceEventParserTest, ParseTaskRenameEvent, TestSize.Level1)
 {
-    TS_LOGI("test10-4");
+    TS_LOGI("test14-4");
     TaskRenameFormat* taskRenameEvent = new TaskRenameFormat();
     taskRenameEvent->set_pid(PID_01);
     taskRenameEvent->set_oldcomm(THREAD_NAME_01);
@@ -178,7 +179,7 @@ HWTEST_F(HtraceEventParserTest, ParseTaskRenameEvent, TestSize.Level1)
  */
 HWTEST_F(HtraceEventParserTest, ParseTaskNewtaskEvent, TestSize.Level1)
 {
-    TS_LOGI("test10-5");
+    TS_LOGI("test14-5");
     TaskNewtaskFormat* newTaskEvent = new TaskNewtaskFormat();
     newTaskEvent->set_pid(PID_01);
     newTaskEvent->set_comm(THREAD_NAME_01);
@@ -210,7 +211,7 @@ HWTEST_F(HtraceEventParserTest, ParseTaskNewtaskEvent, TestSize.Level1)
  */
 HWTEST_F(HtraceEventParserTest, ParseSchedWakeupEvent, TestSize.Level1)
 {
-    TS_LOGI("test10-6");
+    TS_LOGI("test14-6");
     SchedWakeupFormat* wakeupEvent = new SchedWakeupFormat();
     wakeupEvent->set_comm(THREAD_NAME_01);
     wakeupEvent->set_pid(PRIORITY_02);
@@ -242,7 +243,7 @@ HWTEST_F(HtraceEventParserTest, ParseSchedWakeupEvent, TestSize.Level1)
  */
 HWTEST_F(HtraceEventParserTest, ParseSchedWakingEvent, TestSize.Level1)
 {
-    TS_LOGI("test10-7");
+    TS_LOGI("test14-7");
     SchedWakingFormat* wakingEvent = new SchedWakingFormat();
     wakingEvent->set_comm(THREAD_NAME_01);
     wakingEvent->set_pid(PRIORITY_02);
@@ -274,7 +275,7 @@ HWTEST_F(HtraceEventParserTest, ParseSchedWakingEvent, TestSize.Level1)
  */
 HWTEST_F(HtraceEventParserTest, ParseCpuIdleEvent, TestSize.Level1)
 {
-    TS_LOGI("test10-8");
+    TS_LOGI("test14-8");
     CpuIdleFormat* cpuIdleEvent = new CpuIdleFormat();
     cpuIdleEvent->set_cpu_id(0);
     cpuIdleEvent->set_state(1);
@@ -304,7 +305,7 @@ HWTEST_F(HtraceEventParserTest, ParseCpuIdleEvent, TestSize.Level1)
  */
 HWTEST_F(HtraceEventParserTest, ParseCpuFrequencyEvent, TestSize.Level1)
 {
-    TS_LOGI("test10-9");
+    TS_LOGI("test14-9");
     CpuFrequencyFormat* cpuFrequencyEvent = new CpuFrequencyFormat();
     cpuFrequencyEvent->set_cpu_id(0);
     cpuFrequencyEvent->set_state(1);
@@ -334,7 +335,9 @@ HWTEST_F(HtraceEventParserTest, ParseCpuFrequencyEvent, TestSize.Level1)
  */
 HWTEST_F(HtraceEventParserTest, ParseWorkqueueExecuteStartEvent, TestSize.Level1)
 {
-    TS_LOGI("test10-10");
+    TS_LOGI("test14-10");
+    stream_.streamFilters_->symbolsFilter_->RegisterFunc(1, 1);
+    auto funcNum = stream_.streamFilters_->symbolsFilter_->GetFunc(1);
     WorkqueueExecuteStartFormat* workqueueExecuteStartEvent = new WorkqueueExecuteStartFormat();
     workqueueExecuteStartEvent->set_work(0);
     workqueueExecuteStartEvent->set_function(1);
@@ -364,7 +367,7 @@ HWTEST_F(HtraceEventParserTest, ParseWorkqueueExecuteStartEvent, TestSize.Level1
  */
 HWTEST_F(HtraceEventParserTest, ParseWorkqueueExecuteEndEvent, TestSize.Level1)
 {
-    TS_LOGI("test10-11");
+    TS_LOGI("test14-11");
     WorkqueueExecuteEndFormat* workqueueExecuteEndEvent = new WorkqueueExecuteEndFormat();
     workqueueExecuteEndEvent->set_work(0);
 
@@ -393,7 +396,7 @@ HWTEST_F(HtraceEventParserTest, ParseWorkqueueExecuteEndEvent, TestSize.Level1)
  */
 HWTEST_F(HtraceEventParserTest, ParseClockDisableEvent, TestSize.Level1)
 {
-    TS_LOGI("test10-12");
+    TS_LOGI("test14-12");
     ClockDisableFormat* clockDisableEvent = new ClockDisableFormat();
     clockDisableEvent->set_name(THREAD_NAME_02);
     clockDisableEvent->set_cpu_id(0);
@@ -424,7 +427,7 @@ HWTEST_F(HtraceEventParserTest, ParseClockDisableEvent, TestSize.Level1)
  */
 HWTEST_F(HtraceEventParserTest, ParseClockEnableEvent, TestSize.Level1)
 {
-    TS_LOGI("test10-13");
+    TS_LOGI("test14-13");
     ClockEnableFormat* clockEnableEvent = new ClockEnableFormat();
     clockEnableEvent->set_name(THREAD_NAME_02);
     clockEnableEvent->set_cpu_id(0);
@@ -455,7 +458,7 @@ HWTEST_F(HtraceEventParserTest, ParseClockEnableEvent, TestSize.Level1)
  */
 HWTEST_F(HtraceEventParserTest, ParseClockSetRateEvent, TestSize.Level1)
 {
-    TS_LOGI("test10-14");
+    TS_LOGI("test14-14");
     ClockSetRateFormat* clockSetRateEvent = new ClockSetRateFormat();
     clockSetRateEvent->set_name(THREAD_NAME_02);
     clockSetRateEvent->set_cpu_id(0);
@@ -486,7 +489,7 @@ HWTEST_F(HtraceEventParserTest, ParseClockSetRateEvent, TestSize.Level1)
  */
 HWTEST_F(HtraceEventParserTest, ParseClkDisableEvent, TestSize.Level1)
 {
-    TS_LOGI("test10-15");
+    TS_LOGI("test14-15");
     ClkDisableFormat* clkDisableEvent = new ClkDisableFormat();
     clkDisableEvent->set_name(THREAD_NAME_02);
 
@@ -515,7 +518,7 @@ HWTEST_F(HtraceEventParserTest, ParseClkDisableEvent, TestSize.Level1)
  */
 HWTEST_F(HtraceEventParserTest, ParseClkEnableEvent, TestSize.Level1)
 {
-    TS_LOGI("test10-16");
+    TS_LOGI("test14-16");
     ClkEnableFormat* clkEnableEvent = new ClkEnableFormat();
     clkEnableEvent->set_name(THREAD_NAME_02);
 
@@ -544,7 +547,7 @@ HWTEST_F(HtraceEventParserTest, ParseClkEnableEvent, TestSize.Level1)
  */
 HWTEST_F(HtraceEventParserTest, ParseClkSetRateEvent, TestSize.Level1)
 {
-    TS_LOGI("test10-17");
+    TS_LOGI("test14-17");
     ClkSetRateFormat* clkSetRateEvent = new ClkSetRateFormat();
     clkSetRateEvent->set_name(THREAD_NAME_02);
     clkSetRateEvent->set_rate(1);
@@ -574,7 +577,7 @@ HWTEST_F(HtraceEventParserTest, ParseClkSetRateEvent, TestSize.Level1)
  */
 HWTEST_F(HtraceEventParserTest, ParseSysEnterEvent, TestSize.Level1)
 {
-    TS_LOGI("test10-18");
+    TS_LOGI("test14-18");
     SysEnterFormat* sysEnterEvent = new SysEnterFormat();
     sysEnterEvent->set_id(1);
     sysEnterEvent->set_args(THREAD_NAME_02);
@@ -603,7 +606,7 @@ HWTEST_F(HtraceEventParserTest, ParseSysEnterEvent, TestSize.Level1)
  */
 HWTEST_F(HtraceEventParserTest, ParseSystemExitEvent, TestSize.Level1)
 {
-    TS_LOGI("test10-19");
+    TS_LOGI("test14-19");
     SysExitFormat* sysExitEvent = new SysExitFormat();
     sysExitEvent->set_id(1);
     sysExitEvent->set_ret(1);

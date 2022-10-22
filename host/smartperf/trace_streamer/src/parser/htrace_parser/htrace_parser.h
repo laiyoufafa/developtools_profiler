@@ -22,13 +22,16 @@
 #include <string>
 #include <thread>
 #include "common_types.h"
+#include "ebpf_data_parser.h"
 #include "file.h"
 #include "htrace_clock_detail_parser.h"
 #include "htrace_cpu_detail_parser.h"
 #include "htrace_cpu_data_parser.h"
 #include "htrace_disk_io_parser.h"
+#include "htrace_file_header.h"
 #include "htrace_hidump_parser.h"
 #include "htrace_hilog_parser.h"
+#include "htrace_hisysevent_parser.h"
 #include "htrace_mem_parser.h"
 #include "htrace_native_hook_parser.h"
 #include "htrace_network_parser.h"
@@ -36,15 +39,20 @@
 #include "htrace_symbols_detail_parser.h"
 #include "log.h"
 #include "parser_base.h"
+#if WITH_PERF
 #include "perf_data_parser.h"
+#endif
 #include "string_help.h"
 #include "trace_data/trace_data_cache.h"
 #include "trace_streamer_filters.h"
+#include "ts_common.h"
 
 namespace SysTuning {
 namespace TraceStreamer {
 using namespace SysTuning::base;
+#if WITH_PERF
 using namespace OHOS::Developtools::HiPerf;
+#endif
 class HtraceParser : public ParserBase {
 public:
     HtraceParser(TraceDataCache* dataCache, const TraceStreamerFilters* filters);
@@ -52,8 +60,9 @@ public:
     void ParseTraceDataSegment(std::unique_ptr<uint8_t[]> bufferStr, size_t size) override;
     void WaitForParserEnd();
 private:
+    bool ParseDataRecursively(std::deque<uint8_t>::iterator& packagesBegin, size_t& currentLength);
     void ParseTraceDataItem(const std::string& buffer) override;
-    void FilterData(HtraceDataSegment& dataSeg);
+    void FilterData(HtraceDataSegment& seg);
     void ParserData(HtraceDataSegment& dataSeg);
 private:
     void ParseMemory(const ProfilerPluginData& pluginData, HtraceDataSegment &dataSeg);
@@ -65,6 +74,7 @@ private:
     void ParseNetwork(const ProfilerPluginData& pluginData, HtraceDataSegment &dataSeg);
     void ParseDiskIO(const ProfilerPluginData& pluginData, HtraceDataSegment &dataSeg);
     void ParseProcess(const ProfilerPluginData& pluginData, HtraceDataSegment &dataSeg);
+    void ParseHisysevent(const ProfilerPluginData& pluginData, HtraceDataSegment &dataSeg);
     void ParseThread();
     int GetNextSegment();
     void FilterThread();
@@ -80,6 +90,7 @@ private:
     uint32_t nextLength_ = 0;
     const size_t PACKET_SEG_LENGTH = 4;
     const size_t PACKET_HEADER_LENGTH = 1024;
+    TraceDataCache* traceDataCache_;
     std::unique_ptr<HtraceCpuDetailParser> htraceCpuDetailParser_;
     std::unique_ptr<HtraceSymbolsDetailParser> htraceSymbolsDetailParser_;
     std::unique_ptr<HtraceMemParser> htraceMemParser_;
@@ -91,10 +102,14 @@ private:
     std::unique_ptr<HtraceNetworkParser> networkParser_;
     std::unique_ptr<HtraceDiskIOParser> diskIOParser_;
     std::unique_ptr<HtraceProcessParser> processParser_;
+    std::unique_ptr<HtraceHisyseventParser> hisyseventParser_;
+#if WITH_PERF
     std::unique_ptr<PerfDataParser> perfDataParser_;
+#endif
+    std::unique_ptr<EbpfDataParser> ebpfDataParser_;
     std::atomic<bool> filterThreadStarted_{false};
     const int MAX_SEG_ARRAY_SIZE = 10000;
-    std::unique_ptr<HtraceDataSegment[]> dataSegArray;
+    std::unique_ptr<HtraceDataSegment[]> dataSegArray_;
     int rawDataHead_ = 0;
     bool toExit_ = false;
     bool exited_ = false;
@@ -106,8 +121,18 @@ private:
     bool parseThreadStarted_ = false;
     const int maxThread_ = 4; // 4 is the best on ubuntu 113MB/s, max 138MB/s, 6 is best on mac m1 21MB/s,
     int parserThreadCount_ = 0;
-    std::mutex dataSegMux_;
+    std::mutex dataSegMux_ = {};
     bool supportThread_ = false;
+    ClockId dataSourceTypeTraceClockid_ = TS_CLOCK_UNKNOW;
+    ClockId dataSourceTypeMemClockid_ = TS_CLOCK_UNKNOW;
+    ClockId dataSourceTypeHilogClockid_ = TS_CLOCK_UNKNOW;
+    ClockId dataSourceTypeAllocationClockid_ = TS_CLOCK_UNKNOW;
+    ClockId dataSourceTypeFpsClockid_ = TS_CLOCK_UNKNOW;
+    ClockId dataSourceTypeNetworkClockid_ = TS_CLOCK_UNKNOW;
+    ClockId dataSourceTypeDiskioClockid_ = TS_CLOCK_UNKNOW;
+    ClockId dataSourceTypeCpuClockid_ = TS_CLOCK_UNKNOW;
+    ClockId dataSourceTypeProcessClockid_ = TS_CLOCK_UNKNOW;
+    ClockId dataSourceTypeHisyseventClockid_ = TS_CLOCK_UNKNOW;
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

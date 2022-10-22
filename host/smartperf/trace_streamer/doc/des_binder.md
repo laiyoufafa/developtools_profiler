@@ -1,8 +1,8 @@
 # binder事件上下文如何关联
-binder事件相对复杂，这里是从ftrace事件中抽离出来的binder相关消息，用来作为开发者或用户追踪binder事件的参考
+binder事件相对复杂，这里是从ftrace事件中抽离出来的binder相关消息，用来作为开发者或用户追踪binder事件的参考  
 a binder event is identified by the sender and receive device, and a reply message only end
-the last binder msg which reply the calling one.
-the alloc_buf msg can always flow the binder_transaction, so we no need to identify the alloc msg with transactionID
+the last binder msg which reply the calling one.  
+the alloc_buf msg can always flow the binder_transaction, so we no need to identify the alloc msg with transactionID  
 
 ## TAG TT need reply!!!  needReply = !isReply && !(flags & 0x01);
 ```

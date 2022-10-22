@@ -16,6 +16,7 @@
 #ifndef TRACE_DATA_CACHE_H
 #define TRACE_DATA_CACHE_H
 
+#include <memory>
 #include "trace_data_cache_reader.h"
 #include "trace_data_cache_writer.h"
 #include "trace_data_db.h"

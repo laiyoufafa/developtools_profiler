@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 #include "utilities.h"
-// #include <zlib.h>
 #if is_mingw
 #include <io.h>
 #endif
@@ -26,20 +25,14 @@ const char *MemoryHold::HoldStringView(std::string_view view)
     if (view.size() == 0) {
         return "";
     }
-    try {
-        // for null end
-        char *p = new char[view.size() + 1];
-        if (p == nullptr) {
-            return "";
-        }
-        p[view.size()] = '\0';
-        std::copy(view.data(), view.data() + view.size(), p);
-        holder_.emplace_back(p);
-        return p;
-    } catch (...) {
+    char *p = new char[view.size() + 1];
+    if (p == nullptr) {
         return "";
     }
-    return "";
+    p[view.size()] = '\0';
+    std::copy(view.data(), view.data() + view.size(), p);
+    holder_.emplace_back(p);
+    return p;
 }
 
 std::string CanonicalizeSpecPath(const char* src)
@@ -358,81 +351,12 @@ bool WriteIntToProcFile(const std::string &path, int value)
 // compress specified dataFile into gzip file
 bool CompressFile(const std::string &dataFile, const std::string &destFile)
 {
-    // std::string resolvedPath = CanonicalizeSpecPath(dataFile.c_str());
-    // FILE *fp = fopen(resolvedPath.c_str(), "rb");
-    // if (fp == nullptr) {
-    //     HLOGE("Fail to open data file %s", dataFile.c_str());
-    //     perror("Fail to fopen(rb)");
-    //     return false;
-    // }
-
-    // std::unique_ptr<gzFile_s, decltype(&gzclose)> fgz(gzopen(destFile.c_str(), "wb"), gzclose);
-    // if (fgz == nullptr) {
-    //     HLOGE("Fail to call gzopen(%s)", destFile.c_str());
-    //     fclose(fp);
-    //     return false;
-    // }
-
-    // std::vector<char> buf(COMPRESS_READ_BUF_SIZE);
-    // size_t len = 0;
-    // while ((len = fread(buf.data(), sizeof(uint8_t), buf.size(), fp))) {
-    //     if (gzwrite(fgz.get(), buf.data(), len) == 0) {
-    //         HLOGE("Fail to call gzwrite for %zu bytes", len);
-    //         fclose(fp);
-    //         return false;
-    //     }
-    // }
-    // if (!feof(fp)) {
-    //     if (ferror(fp) != 0) {
-    //         HLOGE("ferror return err");
-    //         fclose(fp);
-    //         return false;
-    //     }
-    // }
-    // if (fclose(fp) < 0) {
-    //     return false;
-    // }
     return true;
 }
 
 // uncompress specified gzip file into dataFile
 bool UncompressFile(const std::string &gzipFile, const std::string &dataFile)
 {
-    // std::string resolvedPath = CanonicalizeSpecPath(dataFile.c_str());
-    // FILE *fp = fopen(resolvedPath.c_str(), "wb");
-    // if (fp == nullptr) {
-    //     HLOGE("Fail to open data file %s", dataFile.c_str());
-    //     perror("Fail to fopen(rb)");
-    //     return false;
-    // }
-    // std::unique_ptr<gzFile_s, decltype(&gzclose)> fgz(gzopen(gzipFile.c_str(), "rb"), gzclose);
-    // if (fgz == nullptr) {
-    //     HLOGE("Fail to call gzopen(%s)", gzipFile.c_str());
-    //     fclose(fp);
-    //     return false;
-    // }
-
-    // std::vector<char> buf(COMPRESS_READ_BUF_SIZE);
-    // z_size_t len = 0;
-    // while ((len = gzfread(buf.data(), sizeof(uint8_t), buf.size(), fgz.get()))) {
-    //     if (len != fwrite(buf.data(), sizeof(uint8_t), len, fp)) {
-    //         HLOGE("Fail to call fwrite for %zu bytes", len);
-    //         fclose(fp);
-    //         return false;
-    //     }
-    // }
-    // if (!gzeof(fgz.get())) {
-    //     int rc = 0;
-    //     const char *err = gzerror(fgz.get(), &rc);
-    //     if (rc != Z_OK) {
-    //         HLOGE("gzfread return %d:%s", rc, err);
-    //         fclose(fp);
-    //         return false;
-    //     }
-    // }
-    // if (fclose(fp) < 0) {
-    //     return false;
-    // }
     return true;
 }
 

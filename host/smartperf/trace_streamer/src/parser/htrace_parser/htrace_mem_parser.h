@@ -20,7 +20,7 @@
 #include <map>
 #include <stdexcept>
 #include <string>
-#include "htrace_plugin_time.h"
+#include "htrace_plugin_time_parser.h"
 #include "memory_plugin_result.pb.h"
 #include "trace_data/trace_data_cache.h"
 #include "trace_streamer_config.h"
@@ -39,11 +39,13 @@ private:
     void ParseMemInfoEasy(const MemoryData& tracePacket, uint64_t timeStamp) const;
     void ParseVMemInfo(const MemoryData& tracePacket, uint64_t timeStamp) const;
     void ParseVMemInfoEasy(const MemoryData& tracePacket, uint64_t timeStamp) const;
+    void ParseSmapsInfoEasy(ProcessMemoryInfo memInfo, uint64_t timeStamp) const;
     std::map<MemInfoType, DataIndex> memNameDictMap_ = {};
     std::map<SysMeminfoType, DataIndex> sysMemNameDictMap_ = {};
     std::map<SysVMeminfoType, DataIndex> sysVMemNameDictMap_ = {};
     uint64_t zram_ = 0;
     const DataIndex zramIndex_ =  traceDataCache_->GetDataIndex("sys.mem.zram");
+    TraceStreamerConfig config_{};
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

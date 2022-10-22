@@ -73,8 +73,7 @@ std::string GetExecutionDirectoryPath()
     readlink("/proc/self/exe", currPath, sizeof(currPath) - 1);
 #endif
     std::string str(currPath);
-    str = str.substr(0, str.find_last_of('/'));
-    return str;
+    return str.substr(0, str.find_last_of('/'));
 }
 } // namespace base
 } // namespace SysTuning

@@ -25,6 +25,7 @@ network_data_dir = "$proto_dir/types/plugins/network_data"
 cpu_data_dir = "$proto_dir/types/plugins/cpu_data"
 diskio_data_dir = "$proto_dir/types/plugins/diskio_data"
 process_data_dir = "$proto_dir/types/plugins/process_data"
+hisysevent_data_dir = "$proto_dir/types/plugins/hisysevent_data"
 config("ts_proto_include_config") {
   include_dirs = [
     "$ftrace_data_dir",
@@ -32,6 +33,7 @@ config("ts_proto_include_config") {
     "$hilog_data_dir",
     "$native_hook_dir",
     "$hidump_data_dir",
+    "$hisysevent_data_dir",
   ]
 }
 source_set("ts_proto_data_cpp") {
@@ -110,6 +112,7 @@ source_set("ts_proto_data_cpp") {
     "$native_hook_dir/native_hook_result.pb.cc",
     "${cpu_data_dir}/cpu_plugin_result.pb.cc",
     "${diskio_data_dir}/diskio_plugin_result.pb.cc",
+    "${hisysevent_data_dir}/hisysevent_plugin_result.pb.cc",
     "${network_data_dir}/network_plugin_result.pb.cc",
     "${process_data_dir}/process_plugin_result.pb.cc",
     "${services_dir}/common_types.pb.cc",

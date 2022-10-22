@@ -19,14 +19,20 @@ if (target == "test") {
   ohos_unittest("trace_streamer_ut") {
     sources = [
       "unittest/binder_filter_test.cpp",
+      "unittest/bio_parser_test.cpp",
       "unittest/bytrace_parser_test.cpp",
       "unittest/clock_filter_test.cpp",
       "unittest/cpu_filter_test.cpp",
       "unittest/event_parser_test.cpp",
+      "unittest/ebpf_parser_test.cpp",
+      "unittest/ebpf_file_system_test.cpp",
       "unittest/filter_filter_test.cpp",
       "unittest/hidump_parser_test.cpp",
       "unittest/hilog_parser_test.cpp",
+      "unittest/hisys_event_parser_test.cpp",
       "unittest/htrace_binder_event_test.cpp",
+      "unittest/htrace_cpu_data_parser_test.cpp",
+      "unittest/htrace_cpu_detail_parser_test.cpp",
       "unittest/htrace_diskio_parser_test.cpp",
       "unittest/htrace_event_parser_test.cpp",
       "unittest/htrace_irq_event_test.cpp",
@@ -39,10 +45,14 @@ if (target == "test") {
       "unittest/irq_filter_test.cpp",
       "unittest/measure_filter_test.cpp",
       "unittest/native_hook_parser_test.cpp",
+      "unittest/paged_memory_parser_test.cpp",
       "unittest/parser_test.cpp",
       "unittest/process_filter_test.cpp",
       "unittest/rpc_server_test.cpp",
       "unittest/slice_filter_test.cpp",
+      "unittest/smaps_parser_test.cpp",
+      "unittest/span_join_test.cpp",
+      "unittest/table_test.cpp",
       "unittest/wasm_func_test.cpp",
     ]
     deps = [
@@ -69,11 +79,13 @@ if (target == "test") {
       "../src/parser/htrace_parser",
       "../src/parser/htrace_parser/htrace_event_parser",
       "../src/parser/htrace_parser/htrace_cpu_parser",
+      "../src/parser/ebpf_parser",
       "../prebuilts/emsdk/emsdk/emscripten/system/include",
       "..",
       "//third_party/googletest/googletest/include/gtest",
-      "//utils/native/base/include",
       "//third_party/protobuf/src",
+      "//third_party/json-master/include",
+      "//third_party/json-master/include/nlohmann",
       "${OHOS_PROTO_GEN}",
       "${OHOS_FTRACE_PROTO_DIR}",
       "${OHOS_MEMORY_PROTO_DIR}",
@@ -89,6 +101,7 @@ if (target == "test") {
     cflags = [
       "-Wno-inconsistent-missing-override",
       "-Dprivate=public",  #allow test code access private members
+      "-Dprotected=public",  #allow test code access protect members
       "-fprofile-arcs",
       "-ftest-coverage",
       "-Wno-unused-command-line-argument",
@@ -108,7 +121,11 @@ if (target == "test") {
       "-mllvm",
       "-limited-coverage-experimental=true",
       "-fno-use-cxa-atexit",
+      "-DUT_MAC",
     ]
+    if (is_macx) {
+      lib_dirs = [ "/usr/local/opt/llvm/lib" ]
+    }
     libs = [ "LLVMCore" ]
   }
 }

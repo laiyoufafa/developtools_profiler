@@ -18,52 +18,77 @@
 #include <ctime>
 namespace SysTuning {
 namespace TraceStdtype {
+void CpuCacheBase::SetDur(uint64_t index, uint64_t dur)
+{
+    durs_[index] = dur;
+}
 TableRowId ThreadState::AppendThreadState(InternalTime ts,
                                           InternalTime dur,
                                           InternalCpu cpu,
-                                          TableRowId idTid,
+                                          InternalTid itid,
                                           TableRowId idState)
 {
-    ColumnData& row = rowDatas_.emplace_back();
-    row.timeStamp = ts;
-    row.duration = dur;
-    row.cpu = cpu;
-    row.idTid = idTid;
-    row.idState = idState;
-
-    return rowDatas_.size() - 1;
+    timeStamps_.emplace_back(ts);
+    durations_.emplace_back(dur);
+    itids_.emplace_back(itid);
+    tids_.emplace_back(INVALID_UINT32);
+    pids_.emplace_back(INVALID_UINT32);
+    states_.emplace_back(idState);
+    cpus_.emplace_back(cpu);
+    return itids_.size() - 1;
 }
 
 void ThreadState::SetDuration(TableRowId index, InternalTime dur)
 {
-    rowDatas_[index].duration = dur;
+    durations_[index] = dur;
 }
 
+void DataDict::Finish()
+{
+    std::string::size_type pos(0);
+    for (auto i = 0; i < dataDict_.size(); i++) {
+        while ((pos = dataDict_[i].find("\"")) != std::string::npos) {
+            dataDict_[i].replace(pos, 1, "\'");
+        }
+        if (dataDict_[i].find("ispreproc") != std::string::npos) {
+            TS_LOGI("xx");
+        }
+        while (dataDict_[i].back() >= '\001' && dataDict_[i].back() <= '\007') {
+            dataDict_[i].pop_back();
+        }
+    }
+}
 TableRowId ThreadState::UpdateDuration(TableRowId index, InternalTime ts)
 {
-    if (rowDatas_[index].duration == INVALID_TIME) {
-        rowDatas_[index].duration = ts - rowDatas_[index].timeStamp;
+    if (durations_[index] == INVALID_TIME) {
+        durations_[index] = ts - timeStamps_[index];
     }
-    return rowDatas_[index].idTid;
+    return itids_[index];
 }
 
 void ThreadState::UpdateState(TableRowId index, TableRowId idState)
 {
-    rowDatas_[index].idState = idState;
+    states_[index] = idState;
 }
 
 void ThreadState::UpdateDuration(TableRowId index, InternalTime ts, TableRowId idState)
 {
-    rowDatas_[index].duration = ts - rowDatas_[index].timeStamp;
-    rowDatas_[index].idState = idState;
+    durations_[index] = ts - timeStamps_[index];
+    states_[index] = idState;
+}
+
+void ThreadState::UpdateTidAndPid(TableRowId index, InternalTid tid, InternalTid pid)
+{
+    tids_[index] = tid;
+    pids_[index] = pid;
 }
 
 TableRowId ThreadState::UpdateDuration(TableRowId index, InternalTime ts, InternalCpu cpu, TableRowId idState)
 {
-    rowDatas_[index].cpu = cpu;
-    rowDatas_[index].duration = ts - rowDatas_[index].timeStamp;
-    rowDatas_[index].idState = idState;
-    return rowDatas_[index].idTid;
+    cpus_[index] = cpu;
+    durations_[index] = ts - timeStamps_[index];
+    states_[index] = idState;
+    return itids_[index];
 }
 
 size_t SchedSlice::AppendSchedSlice(uint64_t ts,
@@ -76,6 +101,7 @@ size_t SchedSlice::AppendSchedSlice(uint64_t ts,
     timeStamps_.emplace_back(ts);
     durs_.emplace_back(dur);
     cpus_.emplace_back(cpu);
+    tsEnds_.emplace_back(0);
     internalTids_.emplace_back(internalTid);
     endStates_.emplace_back(endState);
     priority_.emplace_back(priority);
@@ -85,6 +111,7 @@ size_t SchedSlice::AppendSchedSlice(uint64_t ts,
 void SchedSlice::SetDuration(size_t index, uint64_t duration)
 {
     durs_[index] = duration;
+    tsEnds_[index] = timeStamps_[index] + duration;
 }
 
 void SchedSlice::Update(uint64_t index, uint64_t ts, uint64_t state, uint64_t pior)
@@ -98,6 +125,7 @@ size_t CallStack::AppendInternalAsyncSlice(uint64_t startT,
                                            uint64_t durationNs,
                                            InternalTid internalTid,
                                            DataIndex cat,
+                                           uint16_t nameIdentify,
                                            DataIndex name,
                                            uint8_t depth,
                                            uint64_t cookid,
@@ -108,20 +136,24 @@ size_t CallStack::AppendInternalAsyncSlice(uint64_t startT,
     AppendDistributeInfo();
     cookies_.emplace_back(cookid);
     ids_.emplace_back(ids_.size());
+    identifys_.emplace_back(nameIdentify + depth);
     return Size() - 1;
 }
 size_t CallStack::AppendInternalSlice(uint64_t startT,
                                       uint64_t durationNs,
                                       InternalTid internalTid,
                                       DataIndex cat,
+                                      uint16_t nameIdentify,
                                       DataIndex name,
                                       uint8_t depth,
                                       const std::optional<uint64_t>& parentId)
 {
     AppendCommonInfo(startT, durationNs, internalTid);
     AppendCallStack(cat, name, depth, parentId);
+    identifys_.emplace_back(nameIdentify + depth);
     ids_.emplace_back(ids_.size());
     cookies_.emplace_back(INVALID_UINT64);
+    AppendDistributeInfo();
     return Size() - 1;
 }
 
@@ -137,6 +169,20 @@ void CallStack::AppendCallStack(DataIndex cat, DataIndex name, uint8_t depth, st
     cats_.emplace_back(cat);
     names_.emplace_back(name);
     depths_.emplace_back(depth);
+}
+void CallStack::SetDistributeInfo(size_t index,
+                                  const std::string& chainId,
+                                  const std::string& spanId,
+                                  const std::string& parentSpanId,
+                                  const std::string& flag,
+                                  const std::string& args)
+{
+    chainIds_[index] = chainId;
+    spanIds_[index] = spanId;
+    parentSpanIds_[index] = parentSpanId;
+    flags_[index] = flag;
+    args_[index] = args;
+    argSet_[index] = INVALID_UINT32;
 }
 void CallStack::AppendDistributeInfo(const std::string& chainId,
                                      const std::string& spanId,
@@ -160,21 +206,12 @@ void CallStack::AppendDistributeInfo()
     args_.emplace_back("");
     argSet_.emplace_back(INVALID_UINT32);
 }
-void CallStack::AppendArgSet(uint32_t argSetId)
-{
-    chainIds_.emplace_back("");
-    spanIds_.emplace_back("");
-    parentSpanIds_.emplace_back("");
-    flags_.emplace_back("");
-    args_.emplace_back("");
-    argSet_.emplace_back(argSetId);
-}
 void CallStack::SetDuration(size_t index, uint64_t timestamp)
 {
     durs_[index] = timestamp - timeStamps_[index];
 }
 
-void CallStack::SetDurationAndArg(size_t index, uint64_t timestamp, uint32_t argSetId)
+void CallStack::SetIrqDurAndArg(size_t index, uint64_t timestamp, uint32_t argSetId)
 {
     SetTimeStamp(index, timestamp);
     argSet_[index] = argSetId;
@@ -184,6 +221,14 @@ void CallStack::SetTimeStamp(size_t index, uint64_t timestamp)
     timeStamps_[index] = timestamp;
 }
 
+void CallStack::SetDepth(size_t index, uint8_t depth)
+{
+    depths_[index] = depth;
+}
+void CallStack::SetArgSetId(size_t index, uint32_t argSetId)
+{
+    argSet_[index] = argSetId;
+}
 const std::deque<std::optional<uint64_t>>& CallStack::ParentIdData() const
 {
     return parentIds_;
@@ -191,6 +236,10 @@ const std::deque<std::optional<uint64_t>>& CallStack::ParentIdData() const
 const std::deque<DataIndex>& CallStack::CatsData() const
 {
     return cats_;
+}
+const std::deque<uint16_t>& CallStack::IdentifysData() const
+{
+    return identifys_;
 }
 const std::deque<DataIndex>& CallStack::NamesData() const
 {
@@ -204,7 +253,7 @@ const std::deque<uint64_t>& CallStack::Cookies() const
 {
     return cookies_;
 }
-const std::deque<uint64_t>& CallStack::CallIds() const
+const std::deque<uint32_t>& CallStack::CallIds() const
 {
     return callIds_;
 }
@@ -327,11 +376,15 @@ size_t ThreadMeasureFilter::AppendNewFilter(uint64_t filterId, uint32_t nameInde
     return Size() - 1;
 }
 
-size_t Instants::AppendInstantEventData(uint64_t timestamp, DataIndex nameIndex, int64_t internalTid)
+size_t Instants::AppendInstantEventData(uint64_t timestamp,
+                                        DataIndex nameIndex,
+                                        int64_t internalTid,
+                                        int64_t wakeupFromInternalPid)
 {
     internalTids_.emplace_back(internalTid);
     timeStamps_.emplace_back(timestamp);
     NameIndexs_.emplace_back(nameIndex);
+    wakeupFromInternalPids_.emplace_back(wakeupFromInternalPid);
     return Size() - 1;
 }
 size_t LogInfo::AppendNewLogInfo(uint64_t seq,
@@ -382,7 +435,7 @@ const std::deque<uint64_t>& LogInfo::OriginTimeStamData() const
     return originTs_;
 }
 
-size_t NativeHook::AppendNewNativeHookData(uint64_t eventId,
+size_t NativeHook::AppendNewNativeHookData(uint64_t callChainId,
                                            uint32_t ipid,
                                            uint32_t itid,
                                            std::string eventType,
@@ -392,9 +445,9 @@ size_t NativeHook::AppendNewNativeHookData(uint64_t eventId,
                                            uint64_t duration,
                                            uint64_t addr,
                                            int64_t memSize,
-                                           int64_t curMemSize)
+                                           int64_t allMemSize)
 {
-    eventIds_.emplace_back(eventId);
+    callChainIds_.emplace_back(callChainId);
     ipids_.emplace_back(ipid);
     itids_.emplace_back(itid);
     eventTypes_.emplace_back(eventType);
@@ -405,13 +458,14 @@ size_t NativeHook::AppendNewNativeHookData(uint64_t eventId,
     addrs_.emplace_back(addr);
     memSizes_.emplace_back(memSize);
     if (eventType == ALLOC_EVET || eventType == FREE_EVENT) {
-        countHeapSizes_ += curMemSize;
+        countHeapSizes_ += allMemSize;
         allMemSizes_.emplace_back(countHeapSizes_);
     } else if (eventType == MMAP_EVENT || eventType == MUNMAP_EVENT) {
-        countMmapSizes_ += curMemSize;
+        countMmapSizes_ += allMemSize;
         allMemSizes_.emplace_back(countMmapSizes_);
     }
     currentSizeDurs_.emplace_back(0);
+    lastCallerPathIndexs_.emplace_back(INVALID_UINT64);
     return Size() - 1;
 }
 void NativeHook::UpdateHeapDuration(size_t row, uint64_t endTimestamp)
@@ -423,9 +477,41 @@ void NativeHook::UpdateCurrentSizeDur(size_t row, uint64_t timeStamp)
 {
     currentSizeDurs_[row] = timeStamp - timeStamps_[row];
 }
-const std::deque<uint64_t>& NativeHook::EventIds() const
+void NativeHook::UpdateMemMapSubType()
 {
-    return eventIds_;
+    if (addrToMmapTag_.Empty()) {
+        return;
+    }
+    for (auto i = 0; i < Size(); ++i) {
+        if (eventTypes_[i].compare(MMAP_EVENT) == 0) {
+            auto tagId = addrToMmapTag_.Find(addrs_[i], memSizes_[i]);
+            if (tagId != INVALID_UINT64) {
+                subTypes_[i] = tagId;
+            }
+        }
+    }
+}
+void NativeHook::UpdateAddrToMemMapSubType(uint64_t addr, int64_t size, uint64_t tagId)
+{
+    addrToMmapTag_.Insert(addr, size, tagId);
+}
+void NativeHook::UpdateLastCallerPathIndexs(std::map<uint64_t, uint64_t>& callIdToLasLibId)
+{
+    if (callIdToLasLibId.empty()) {
+        return;
+    }
+    for (auto i = 0; i < Size(); ++i) {
+        auto symbolIt = callIdToLasLibId.find(callChainIds_[i]);
+        if (symbolIt != callIdToLasLibId.end()) {
+            lastCallerPathIndexs_[i] = symbolIt->second;
+        } else {
+            lastCallerPathIndexs_[i] = INVALID_UINT64;
+        }
+    }
+}
+const std::deque<uint64_t>& NativeHook::CallChainIds() const
+{
+    return callChainIds_;
 }
 const std::deque<uint32_t>& NativeHook::Ipids() const
 {
@@ -467,8 +553,11 @@ const std::deque<uint64_t>& NativeHook::CurrentSizeDurs() const
 {
     return currentSizeDurs_;
 }
-
-size_t NativeHookFrame::AppendNewNativeHookFrame(uint64_t eventId,
+const std::deque<uint64_t>& NativeHook::LastCallerPathIndexs() const
+{
+    return lastCallerPathIndexs_;
+}
+size_t NativeHookFrame::AppendNewNativeHookFrame(uint64_t callChainId,
                                                  uint64_t depth,
                                                  uint64_t ip,
                                                  uint64_t sp,
@@ -477,19 +566,73 @@ size_t NativeHookFrame::AppendNewNativeHookFrame(uint64_t eventId,
                                                  uint64_t offset,
                                                  uint64_t symbolOffset)
 {
-    eventIds_.emplace_back(eventId);
-    depths_.emplace_back(depth);
+    callChainIds_.emplace_back(callChainId);
     ips_.emplace_back(ip);
     sps_.emplace_back(sp);
+    depths_.emplace_back(depth);
     symbolNames_.emplace_back(symbolName);
     filePaths_.emplace_back(filePath);
     offsets_.emplace_back(offset);
     symbolOffsets_.emplace_back(symbolOffset);
     return Size() - 1;
 }
-const std::deque<uint64_t>& NativeHookFrame::EventIds() const
+void NativeHookFrame::UpdateSymbolIdToNameMap(uint64_t originSymbolId, uint64_t symbolId)
 {
-    return eventIds_;
+    symbolIdToSymbolName_.insert(std::make_pair(originSymbolId, symbolId));
+}
+
+void NativeHookFrame::UpdateSymbolId()
+{
+    if (symbolIdToSymbolName_.empty()) {
+        return;
+    }
+    for (auto i = 0; i < Size(); ++i) {
+        auto symbolIt = symbolIdToSymbolName_.find(symbolNames_[i]);
+        if (symbolIt != symbolIdToSymbolName_.end()) {
+            symbolNames_[i] = symbolIt->second;
+        }
+    }
+}
+void NativeHookFrame::UpdateFileId(std::map<uint32_t, uint64_t>& filePathIdToFilePathName)
+{
+    if (filePathIdToFilePathName.empty()) {
+        return;
+    }
+    for (auto i = 0; i < Size(); ++i) {
+        auto symbolIt = filePathIdToFilePathName.find(filePaths_[i]);
+        if (symbolIt != filePathIdToFilePathName.end()) {
+            filePaths_[i] = symbolIt->second;
+        }
+    }
+}
+void NativeHookFrame::GetCallIdToLastLibId(const std::set<DataIndex>& invalidLibs,
+                                           std::map<uint64_t, uint64_t>& callIdToLastCallerPathIndex)
+{
+    uint64_t lastLibId = INVALID_UINT64;
+    auto size = static_cast<int64_t>(Size());
+    uint32_t lastCallChainId = INVALID_UINT32;
+    bool foundLast = false;
+    for (auto i = size - 1; i > -1; i--) {
+        auto callChainId = callChainIds_[i];
+        if (callChainId == lastCallChainId) {
+            if (foundLast) {
+                continue;
+            }
+        }
+        if (callChainId != lastCallChainId) {
+            lastCallChainId = callChainId;
+            foundLast = false;
+        }
+        auto lower = std::lower_bound(invalidLibs.begin(), invalidLibs.end(), filePaths_[i]);
+        if (lower == invalidLibs.end() || *lower != filePaths_[i]) { // found
+            callIdToLastCallerPathIndex.insert(std::make_pair(callChainIds_[i], filePaths_[i]));
+            foundLast = true;
+        }
+    }
+}
+const std::deque<uint64_t>& NativeHookFrame::CallChainIds() const
+{
+    return callChainIds_;
 }
 const std::deque<uint64_t>& NativeHookFrame::Depths() const
 {
@@ -532,14 +675,14 @@ const std::deque<uint32_t>& Hidump::Fpss() const
 }
 
 size_t PerfCallChain::AppendNewPerfCallChain(uint64_t sampleId,
-                                             uint64_t callchainId,
+                                             uint64_t callChainId,
                                              uint64_t vaddrInFile,
                                              uint64_t fileId,
                                              uint64_t symbolId)
 {
     ids_.emplace_back(Size());
     sampleIds_.emplace_back(sampleId);
-    callchainIds_.emplace_back(callchainId);
+    callChainIds_.emplace_back(callChainId);
     vaddrInFiles_.emplace_back(vaddrInFile);
     fileIds_.emplace_back(fileId);
     symbolIds_.emplace_back(symbolId);
@@ -550,9 +693,9 @@ const std::deque<uint64_t>& PerfCallChain::SampleIds() const
 {
     return sampleIds_;
 }
-const std::deque<uint64_t>& PerfCallChain::CallchainIds() const
+const std::deque<uint64_t>& PerfCallChain::CallChainIds() const
 {
-    return callchainIds_;
+    return callChainIds_;
 }
 const std::deque<uint64_t>& PerfCallChain::VaddrInFiles() const
 {
@@ -746,6 +889,12 @@ StatAndInfo::StatAndInfo()
             statCount_[i][j] = 0;
         }
     }
+    clockid2ClockNameMap_ = {
+        {TS_CLOCK_UNKNOW, "unknown"},        {TS_CLOCK_BOOTTIME, "boottime"},
+        {TS_CLOCK_REALTIME, "realtime"},     {TS_CLOCK_REALTIME_COARSE, "realtime_corse"},
+        {TS_MONOTONIC, "monotonic"},         {TS_MONOTONIC_COARSE, "monotonic-coarse"},
+        {TS_MONOTONIC_RAW, "monotonic-raw"},
+    };
 }
 void StatAndInfo::IncreaseStat(SupportedTraceEventType eventType, StatType type)
 {
@@ -771,6 +920,7 @@ const StatSeverityLevel& StatAndInfo::GetSeverity(SupportedTraceEventType eventT
 {
     return statSeverity_[eventType][type];
 }
+
 uint64_t SymbolsData::Size() const
 {
     return addrs_.size();
@@ -856,10 +1006,21 @@ DataIndex DataDict::GetStringIndex(std::string_view str)
     if (itor != dataDictInnerMap_.end()) {
         return itor->second;
     }
+    mutex_.lock();
     dataDict_.emplace_back(std::string(str));
     DataIndex stringIdentity = dataDict_.size() - 1;
     dataDictInnerMap_.emplace(hashValue, stringIdentity);
+    mutex_.unlock();
     return stringIdentity;
+}
+DataIndex DataDict::GetStringIndexNoWrite(std::string_view str) const
+{
+    auto hashValue = hashFun(str);
+    auto itor = dataDictInnerMap_.find(hashValue);
+    if (itor != dataDictInnerMap_.end()) {
+        return itor->second;
+    }
+    return INVALID_UINT64;
 }
 size_t CpuUsageDetailData::AppendNewData(uint64_t newTimeStamp,
                                          uint64_t dur,
@@ -1100,6 +1261,689 @@ const std::deque<uint64_t>& DiskIOData::RdCountDatas() const
 const std::deque<uint64_t>& DiskIOData::WrCountDatas() const
 {
     return wrCountDatas_;
+}
+
+size_t FileSystemSample::AppendNewData(uint64_t callChainId,
+                                       uint16_t type,
+                                       uint32_t ipid,
+                                       uint32_t itid,
+                                       uint64_t startTs,
+                                       uint64_t endTs,
+                                       uint64_t dur,
+                                       DataIndex returnValue,
+                                       DataIndex errorCode,
+                                       size_t size,
+                                       int32_t fd,
+                                       DataIndex fileId,
+                                       DataIndex firstArgument,
+                                       DataIndex secondArgument,
+                                       DataIndex thirdArgument,
+                                       DataIndex fourthArgument)
+{
+    callChainIds_.emplace_back(callChainId);
+    types_.emplace_back(type);
+    ipids_.emplace_back(ipid);
+    itids_.emplace_back(itid);
+    startTs_.emplace_back(startTs);
+    endTs_.emplace_back(endTs);
+    durs_.emplace_back(dur);
+    returnValues_.emplace_back(returnValue);
+    errorCodes_.emplace_back(errorCode);
+    fds_.emplace_back(fd);
+    fileIds_.emplace_back(fileId);
+    Sizes_.emplace_back(size);
+    firstArguments_.emplace_back(firstArgument);
+    secondArguments_.emplace_back(secondArgument);
+    thirdArguments_.emplace_back(thirdArgument);
+    fourthArguments_.emplace_back(fourthArgument);
+    ids_.emplace_back(Size());
+    return Size() - 1;
+}
+const std::deque<uint64_t>& FileSystemSample::CallChainIds() const
+{
+    return callChainIds_;
+}
+const std::deque<uint16_t>& FileSystemSample::Types() const
+{
+    return types_;
+}
+const std::deque<uint32_t>& FileSystemSample::Ipids() const
+{
+    return ipids_;
+}
+const std::deque<uint32_t>& FileSystemSample::Itids() const
+{
+    return itids_;
+}
+const std::deque<uint64_t>& FileSystemSample::StartTs() const
+{
+    return startTs_;
+}
+const std::deque<uint64_t>& FileSystemSample::EndTs() const
+{
+    return endTs_;
+}
+const std::deque<uint64_t>& FileSystemSample::Durs() const
+{
+    return durs_;
+}
+const std::deque<DataIndex>& FileSystemSample::ReturnValues() const
+{
+    return returnValues_;
+}
+const std::deque<DataIndex>& FileSystemSample::ErrorCodes() const
+{
+    return errorCodes_;
+}
+const std::deque<int32_t>& FileSystemSample::Fds() const
+{
+    return fds_;
+}
+const std::deque<DataIndex>& FileSystemSample::FileIds() const
+{
+    return fileIds_;
+}
+const std::deque<size_t>& FileSystemSample::Sizes() const
+{
+    return Sizes_;
+}
+const std::deque<DataIndex>& FileSystemSample::FirstArguments() const
+{
+    return firstArguments_;
+}
+const std::deque<DataIndex>& FileSystemSample::SecondArguments() const
+{
+    return secondArguments_;
+}
+const std::deque<DataIndex>& FileSystemSample::ThirdArguments() const
+{
+    return thirdArguments_;
+}
+const std::deque<DataIndex>& FileSystemSample::FourthArguments() const
+{
+    return fourthArguments_;
+}
+
+size_t PagedMemorySampleData::AppendNewData(uint64_t callChainId,
+                                              uint16_t type,
+                                              uint32_t ipid,
+                                              uint64_t startTs,
+                                              uint64_t endTs,
+                                              uint64_t dur,
+                                              size_t size,
+                                              DataIndex addr,
+                                              uint32_t itid)
+{
+    callChainIds_.emplace_back(callChainId);
+    types_.emplace_back(type);
+    ipids_.emplace_back(ipid);
+    startTs_.emplace_back(startTs);
+    endTs_.emplace_back(endTs);
+    durs_.emplace_back(dur);
+    Sizes_.emplace_back(size);
+    addrs_.emplace_back(addr);
+    itids_.emplace_back(itid);
+    ids_.emplace_back(Size());
+    return Size() - 1;
+}
+const std::deque<uint64_t>& PagedMemorySampleData::CallChainIds() const
+{
+    return callChainIds_;
+}
+const std::deque<uint16_t>& PagedMemorySampleData::Types() const
+{
+    return types_;
+}
+const std::deque<uint32_t>& PagedMemorySampleData::Ipids() const
+{
+    return ipids_;
+}
+const std::deque<uint32_t>& PagedMemorySampleData::Itids() const
+{
+    return itids_;
+}
+const std::deque<uint64_t>& PagedMemorySampleData::StartTs() const
+{
+    return startTs_;
+}
+const std::deque<uint64_t>& PagedMemorySampleData::EndTs() const
+{
+    return endTs_;
+}
+const std::deque<uint64_t>& PagedMemorySampleData::Durs() const
+{
+    return durs_;
+}
+const std::deque<size_t>& PagedMemorySampleData::Sizes() const
+{
+    return Sizes_;
+}
+const std::deque<DataIndex>& PagedMemorySampleData::Addr() const
+{
+    return addrs_;
+}
+
+size_t EbpfCallStackData::AppendNewData(uint64_t callChainId,
+                                        uint32_t depth,
+                                        uint64_t ip,
+                                        uint64_t symbolId,
+                                        uint64_t filePathId)
+{
+    callChainIds_.emplace_back(callChainId);
+    depths_.emplace_back(depth);
+    ips_.emplace_back(ip);
+    symbolIds_.emplace_back(symbolId);
+    filePathIds_.emplace_back(filePathId);
+    ids_.emplace_back(Size());
+    return Size() - 1;
+}
+const std::deque<uint64_t>& EbpfCallStackData::CallChainIds() const
+{
+    return callChainIds_;
+}
+const std::deque<uint32_t>& EbpfCallStackData::Depths() const
+{
+    return depths_;
+}
+const std::deque<uint64_t>& EbpfCallStackData::Ips() const
+{
+    return ips_;
+}
+const std::deque<uint64_t>& EbpfCallStackData::SymbolIds() const
+{
+    return symbolIds_;
+}
+const std::deque<uint64_t>& EbpfCallStackData::FilePathIds() const
+{
+    return filePathIds_;
+}
+#if WITH_EBPF_HELP
+size_t EbpfProcessMaps::AppendNewData(uint64_t start,
+                                      uint64_t end,
+                                      uint32_t offset,
+                                      uint32_t pid,
+                                      uint32_t fileNameLen,
+                                      uint64_t fileNameIndex)
+{
+    starts_.emplace_back(start);
+    ends_.emplace_back(end);
+    offsets_.emplace_back(offset);
+    pids_.emplace_back(pid);
+    fileNameLens_.emplace_back(fileNameLen);
+    fileNameIndexs_.emplace_back(fileNameIndex);
+    ids_.emplace_back(Size());
+    return Size() - 1;
+}
+
+const std::deque<uint64_t>& EbpfProcessMaps::Starts() const
+{
+    return starts_;
+}
+const std::deque<uint64_t>& EbpfProcessMaps::Ends() const
+{
+    return ends_;
+}
+const std::deque<uint32_t>& EbpfProcessMaps::Offsets() const
+{
+    return offsets_;
+}
+const std::deque<uint32_t>& EbpfProcessMaps::Pids() const
+{
+    return pids_;
+}
+const std::deque<uint32_t>& EbpfProcessMaps::FileNameLens() const
+{
+    return fileNameLens_;
+}
+const std::deque<uint64_t>& EbpfProcessMaps::FileNameIndexs() const
+{
+    return fileNameIndexs_;
+}
+
+size_t EbpfElf::AppendNewData(uint64_t elfId,
+                              uint64_t textVaddr,
+                              uint32_t textOffset,
+                              uint32_t strTabLen,
+                              uint32_t symTabLen,
+                              uint32_t fileNameLen,
+                              uint32_t symEntLen,
+                              uint64_t fileNameIndex)
+{
+    elfIds_.emplace_back(elfId);
+    textVaddrs_.emplace_back(textVaddr);
+    textOffsets_.emplace_back(textOffset);
+    strTabLens_.emplace_back(strTabLen);
+    symTabLens_.emplace_back(symTabLen);
+    fileNameLens_.emplace_back(fileNameLen);
+    symEntLens_.emplace_back(symEntLen);
+    fileNameIndexs_.emplace_back(fileNameIndex);
+    ids_.emplace_back(Size());
+    return Size() - 1;
+}
+const std::deque<uint64_t>& EbpfElf::ElfIds() const
+{
+    return elfIds_;
+}
+const std::deque<uint64_t>& EbpfElf::TextVaddrs() const
+{
+    return textVaddrs_;
+}
+const std::deque<uint32_t>& EbpfElf::TextOffsets() const
+{
+    return textOffsets_;
+}
+const std::deque<uint32_t>& EbpfElf::StrTabLens() const
+{
+    return strTabLens_;
+}
+const std::deque<uint32_t>& EbpfElf::SymTabLens() const
+{
+    return symTabLens_;
+}
+const std::deque<uint32_t>& EbpfElf::FileNameLens() const
+{
+    return fileNameLens_;
+}
+const std::deque<uint32_t>& EbpfElf::SymEntLens() const
+{
+    return symEntLens_;
+}
+const std::deque<uint64_t>& EbpfElf::FileNameIndexs() const
+{
+    return fileNameIndexs_;
+}
+
+size_t EbpfElfSymbol::AppendNewData(uint64_t elfId, uint32_t stName, uint64_t stValue, uint64_t stSize)
+{
+    elfIds_.emplace_back(elfId);
+    stNames_.emplace_back(stName);
+    stValues_.emplace_back(stValue);
+    stSizes_.emplace_back(stSize);
+    ids_.emplace_back(Size());
+    return Size() - 1;
+}
+const std::deque<uint64_t>& EbpfElfSymbol::ElfIds() const
+{
+    return elfIds_;
+}
+const std::deque<uint32_t>& EbpfElfSymbol::StNames() const
+{
+    return stNames_;
+}
+const std::deque<uint64_t>& EbpfElfSymbol::StValues() const
+{
+    return stValues_;
+}
+const std::deque<uint64_t>& EbpfElfSymbol::StSizes() const
+{
+    return stSizes_;
+}
+#endif
+uint32_t AppNames::AppendAppName(uint8_t flags, DataIndex eventSource, DataIndex appName)
+{
+    flags_.push_back(flags);
+    appNames_.push_back(eventSource);
+    keyNames_.push_back(appName);
+    ids_.push_back(keyNames_.size() - 1);
+    return Size() - 1;
+}
+const std::deque<uint8_t>& AppNames::Falgs() const
+{
+    return flags_;
+}
+const std::deque<DataIndex>& AppNames::EventSourceId() const
+{
+    return appNames_;
+}
+const std::deque<DataIndex>& AppNames::AppName() const
+{
+    return keyNames_;
+}
+
+void SysEventMeasureData::AppendData(uint64_t serial,
+                                     uint64_t ts,
+                                     uint32_t nameId,
+                                     uint32_t keyId,
+                                     int32_t type,
+                                     double numericValue,
+                                     DataIndex stringValue)
+{
+    serial_.emplace_back(serial);
+    ts_.emplace_back(ts);
+    nameFilterIds_.emplace_back(nameId);
+    appKeyFilterIds_.emplace_back(keyId);
+    types_.emplace_back(type);
+    numValues_.emplace_back(numericValue);
+    stringValues_.emplace_back(stringValue);
+    ids_.push_back(rowCount_);
+    rowCount_++;
+}
+const std::deque<uint64_t>& SysEventMeasureData::Serial() const
+{
+    return serial_;
+}
+const std::deque<uint64_t>& SysEventMeasureData::Ts() const
+{
+    return ts_;
+}
+const std::deque<uint32_t>& SysEventMeasureData::NameFilterId() const
+{
+    return nameFilterIds_;
+}
+const std::deque<uint32_t>& SysEventMeasureData::AppKeyFilterId() const
+{
+    return appKeyFilterIds_;
+}
+const std::deque<int32_t>& SysEventMeasureData::Type() const
+{
+    return types_;
+}
+const std::deque<double>& SysEventMeasureData::NumValue() const
+{
+    return numValues_;
+}
+const std::deque<DataIndex>& SysEventMeasureData::StringValue() const
+{
+    return stringValues_;
+}
+void DeviceStateData::AppendNewData(int32_t brightness,
+                                    int32_t btState,
+                                    int32_t location,
+                                    int32_t wifi,
+                                    int32_t streamDefault,
+                                    int32_t voiceCall,
+                                    int32_t music,
+                                    int32_t streamRing,
+                                    int32_t media,
+                                    int32_t voiceAssistant,
+                                    int32_t system,
+                                    int32_t alarm,
+                                    int32_t notification,
+                                    int32_t btSco,
+                                    int32_t enforcedAudible,
+                                    int32_t streamDtmf,
+                                    int32_t streamTts,
+                                    int32_t accessibility,
+                                    int32_t recording,
+                                    int32_t streamAll)
+{
+    brightness_.emplace_back(brightness);
+    btStates_.emplace_back(btState);
+    locations_.emplace_back(location);
+    wifis_.emplace_back(wifi);
+    streamDefaults_.emplace_back(streamDefault);
+    voiceCalls_.emplace_back(voiceCall);
+    musics_.emplace_back(music);
+    streamRings_.emplace_back(streamRing);
+    medias_.emplace_back(media);
+    voiceAssistants_.emplace_back(voiceAssistant);
+    systems_.emplace_back(system);
+    alarms_.emplace_back(alarm);
+    notifications_.emplace_back(notification);
+    btScos_.emplace_back(btSco);
+    enforcedAudibles_.emplace_back(enforcedAudible);
+    streamDtmfs_.emplace_back(streamDtmf);
+    streamTts_.emplace_back(streamTts);
+    accessibilitys_.emplace_back(accessibility);
+    recordings_.emplace_back(recording);
+    streamAlls_.emplace_back(streamAll);
+    ids_.push_back(rowCounts_);
+    rowCounts_++;
+}
+const std::deque<int32_t>& DeviceStateData::Brightness() const
+{
+    return brightness_;
+}
+const std::deque<int32_t>& DeviceStateData::BtState() const
+{
+    return btStates_;
+}
+const std::deque<int32_t>& DeviceStateData::Location() const
+{
+    return locations_;
+}
+const std::deque<int32_t>& DeviceStateData::Wifi() const
+{
+    return wifis_;
+}
+const std::deque<int32_t>& DeviceStateData::StreamDefault() const
+{
+    return streamDefaults_;
+}
+const std::deque<int32_t>& DeviceStateData::VoiceCall() const
+{
+    return voiceCalls_;
+}
+const std::deque<int32_t>& DeviceStateData::Music() const
+{
+    return musics_;
+}
+const std::deque<int32_t>& DeviceStateData::StreamRing() const
+{
+    return streamRings_;
+}
+const std::deque<int32_t>& DeviceStateData::Media() const
+{
+    return medias_;
+}
+const std::deque<int32_t>& DeviceStateData::VoiceAssistant() const
+{
+    return voiceAssistants_;
+}
+const std::deque<int32_t>& DeviceStateData::System() const
+{
+    return systems_;
+}
+const std::deque<int32_t>& DeviceStateData::Alarm() const
+{
+    return alarms_;
+}
+const std::deque<int32_t>& DeviceStateData::Notification() const
+{
+    return notifications_;
+}
+const std::deque<int32_t>& DeviceStateData::BtSco() const
+{
+    return btScos_;
+}
+const std::deque<int32_t>& DeviceStateData::EnforcedAudible() const
+{
+    return enforcedAudibles_;
+}
+const std::deque<int32_t>& DeviceStateData::StreamDtmf() const
+{
+    return streamDtmfs_;
+}
+const std::deque<int32_t>& DeviceStateData::StreamTts() const
+{
+    return streamTts_;
+}
+const std::deque<int32_t>& DeviceStateData::Accessibility() const
+{
+    return accessibilitys_;
+}
+const std::deque<int32_t>& DeviceStateData::Recording() const
+{
+    return recordings_;
+}
+const std::deque<int32_t>& DeviceStateData::StreamAll() const
+{
+    return streamAlls_;
+}
+void SmapsData::AppendNewData(uint64_t timeStamp,
+                              std::string startAddr,
+                              std::string endAddr,
+                              uint64_t dirty,
+                              uint64_t swapper,
+                              uint64_t rss,
+                              uint64_t pss,
+                              uint64_t size,
+                              double reside,
+                              DataIndex protectionId,
+                              DataIndex pathId)
+{
+    timeStamps_.emplace_back(timeStamp);
+    startAddrs_.emplace_back(startAddr);
+    endAddrs_.emplace_back(endAddr);
+    dirtys_.emplace_back(dirty);
+    swappers_.emplace_back(swapper);
+    rss_.emplace_back(rss);
+    pss_.emplace_back(pss);
+    sizes_.emplace_back(size);
+    resides_.emplace_back(reside);
+    protectionIds_.emplace_back(protectionId);
+    pathIds_.emplace_back(pathId);
+    ids_.push_back(rowCount_);
+    rowCount_++;
+}
+const std::deque<uint64_t>& SmapsData::TimeStamps() const
+{
+    return timeStamps_;
+}
+const std::deque<std::string>& SmapsData::StartAddrs() const
+{
+    return startAddrs_;
+}
+const std::deque<std::string>& SmapsData::EndAddrs() const
+{
+    return endAddrs_;
+}
+const std::deque<uint64_t>& SmapsData::Dirtys() const
+{
+    return dirtys_;
+}
+const std::deque<uint64_t>& SmapsData::Swappers() const
+{
+    return swappers_;
+}
+const std::deque<uint64_t>& SmapsData::Rss() const
+{
+    return rss_;
+}
+const std::deque<uint64_t>& SmapsData::Pss() const
+{
+    return pss_;
+}
+const std::deque<uint64_t>& SmapsData::Sizes() const
+{
+    return sizes_;
+}
+const std::deque<double>& SmapsData::Resides() const
+{
+    return resides_;
+}
+const std::deque<DataIndex>& SmapsData::ProtectionIds() const
+{
+    return protectionIds_;
+}
+const std::deque<DataIndex>& SmapsData::PathIds() const
+{
+    return pathIds_;
+}
+void BioLatencySampleData::AppendNewData(uint64_t callChainId,
+                                        uint64_t type,
+                                        uint64_t ipid,
+                                        uint64_t itid,
+                                        uint64_t startTs,
+                                        uint64_t endTs,
+                                        uint64_t latencyDur,
+                                        uint32_t tier,
+                                        uint64_t size,
+                                        uint64_t blockNumber,
+                                        uint64_t filePathId,
+                                        uint64_t durPer4k)
+{
+    callChainIds_.emplace_back(callChainId);
+    types_.emplace_back(type);
+    ipids_.emplace_back(ipid);
+    itids_.emplace_back(itid);
+    startTs_.emplace_back(startTs);
+    endTs_.emplace_back(endTs);
+    latencyDurs_.emplace_back(latencyDur);
+    tiers_.emplace_back(tier);
+    sizes_.emplace_back(size);
+    blockNumbers_.emplace_back(blockNumber);
+    filePathIds_.emplace_back(filePathId);
+    durPer4ks_.emplace_back(durPer4k);
+    ids_.emplace_back(rowCount_);
+    rowCount_++;
+}
+const std::deque<uint64_t>& BioLatencySampleData::CallChainIds() const
+{
+    return callChainIds_;
+}
+const std::deque<uint64_t>& BioLatencySampleData::Types() const
+{
+    return types_;
+}
+const std::deque<uint64_t>& BioLatencySampleData::Ipids() const
+{
+    return ipids_;
+}
+const std::deque<uint64_t>& BioLatencySampleData::Itids() const
+{
+    return itids_;
+}
+const std::deque<uint64_t>& BioLatencySampleData::StartTs() const
+{
+    return startTs_;
+}
+const std::deque<uint64_t>& BioLatencySampleData::EndTs() const
+{
+    return endTs_;
+}
+const std::deque<uint64_t>& BioLatencySampleData::LatencyDurs() const
+{
+    return latencyDurs_;
+}
+const std::deque<uint32_t>& BioLatencySampleData::Tiers() const
+{
+    return tiers_;
+}
+const std::deque<uint64_t>& BioLatencySampleData::Sizes() const
+{
+    return sizes_;
+}
+const std::deque<uint64_t>& BioLatencySampleData::BlockNumbers() const
+{
+    return blockNumbers_;
+}
+const std::deque<uint64_t>& BioLatencySampleData::FilePathIds() const
+{
+    return filePathIds_;
+}
+const std::deque<uint64_t>& BioLatencySampleData::DurPer4k() const
+{
+    return durPer4ks_;
+}
+DataSourceClockIdData::DataSourceClockIdData()
+{
+    dataSource2PluginNameMap_ = {
+        {DATA_SOURCE_TYPE_TRACE, "ftrace-plugin"},    {DATA_SOURCE_TYPE_MEM, "memory-plugin"},
+        {DATA_SOURCE_TYPE_HILOG, "hilog-plugin"},     {DATA_SOURCE_TYPE_ALLOCATION, "nativehook"},
+        {DATA_SOURCE_TYPE_FPS, "hidump-plugin"},      {DATA_SOURCE_TYPE_NETWORK, "network-plugin"},
+        {DATA_SOURCE_TYPE_DISKIO, "diskio-plugin"},   {DATA_SOURCE_TYPE_CPU, "cpu-plugin"},
+        {DATA_SOURCE_TYPE_PROCESS, "process-plugin"}, {DATA_SOURCE_TYPE_HISYSEVENT, "hisysevent-plugin"}};
+    dataSource2ClockIdMap_ = {
+        {DATA_SOURCE_TYPE_TRACE, TS_CLOCK_UNKNOW},   {DATA_SOURCE_TYPE_MEM, TS_CLOCK_UNKNOW},
+        {DATA_SOURCE_TYPE_HILOG, TS_CLOCK_UNKNOW},   {DATA_SOURCE_TYPE_ALLOCATION, TS_CLOCK_UNKNOW},
+        {DATA_SOURCE_TYPE_FPS, TS_CLOCK_UNKNOW},     {DATA_SOURCE_TYPE_NETWORK, TS_CLOCK_UNKNOW},
+        {DATA_SOURCE_TYPE_DISKIO, TS_CLOCK_UNKNOW},  {DATA_SOURCE_TYPE_CPU, TS_CLOCK_UNKNOW},
+        {DATA_SOURCE_TYPE_PROCESS, TS_CLOCK_UNKNOW}, {DATA_SOURCE_TYPE_HISYSEVENT, TS_CLOCK_UNKNOW}};
+}
+
+void DataSourceClockIdData::Finish()
+{
+    for (auto i = dataSource2ClockIdMap_.begin(); i != dataSource2ClockIdMap_.end(); i++) {
+        if (i->second) { // ignore the empty datasource, for which the clockid is default TS_CLOCK_UNKNOW 0
+            dataSourceNames_.emplace_back(dataSource2PluginNameMap_.at(i->first));
+            clockIds_.emplace_back(i->second);
+        }
+    }
+}
+void DataSourceClockIdData::SetDataSourceClockId(DataSourceType source, uint32_t id)
+{
+    dataSource2ClockIdMap_.at(source) = id;
 }
 } // namespace TraceStdtype
 } // namespace SysTuning

@@ -39,8 +39,6 @@ private:
         ~Cursor() override;
         int Filter(const FilterConstraints& fc, sqlite3_value** argv) override;
         int Column(int col) const override;
-
-        void FilterId(unsigned char op, sqlite3_value* argv);
     };
 };
 } // namespace TraceStreamer

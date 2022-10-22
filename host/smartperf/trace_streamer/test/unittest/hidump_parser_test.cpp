@@ -52,9 +52,9 @@ public:
  * @tc.desc: Parse an empty HidumpInfo
  * @tc.type: FUNC
  */
-HWTEST_F(HidumpParserTest, ParserEmptyHidumpInfo, TestSize.Level1)
+HWTEST_F(HidumpParserTest, ParseEmptyHidumpInfo, TestSize.Level1)
 {
-    TS_LOGI("test6-1");
+    TS_LOGI("test7-1");
     HidumpInfo hidumpInfo;
     HtraceHidumpParser htraceHidumpParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     htraceHidumpParser.Parse(hidumpInfo);
@@ -69,7 +69,7 @@ HWTEST_F(HidumpParserTest, ParserEmptyHidumpInfo, TestSize.Level1)
  */
 HWTEST_F(HidumpParserTest, ParseLegalHidumpInfo, TestSize.Level1)
 {
-    TS_LOGI("test6-2");
+    TS_LOGI("test7-2");
     const uint32_t FPS = 120;
     const uint32_t TV_SEC = 16326755;
     const uint32_t TV_NSEC = 39656070;
@@ -101,7 +101,7 @@ HWTEST_F(HidumpParserTest, ParseLegalHidumpInfo, TestSize.Level1)
  */
 HWTEST_F(HidumpParserTest, ParseMultipleReasonableHidumpInfo, TestSize.Level1)
 {
-    TS_LOGI("test6-3");
+    TS_LOGI("test7-3");
     const uint32_t FPS_00 = 120;
     const uint32_t TV_SEC_00 = 1632675525;
     const uint32_t TV_NSEC_00 = 996560700;

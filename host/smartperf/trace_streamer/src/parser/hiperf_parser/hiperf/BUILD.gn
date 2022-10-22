@@ -42,7 +42,6 @@ ohos_source_set("hiperf_src") {
     "include/symbols_file.h",
     "section_header.cpp",
     "subcommand.cpp",
-    "subcommand_dump.cpp",
     "symbols_file.cpp",
     "utilities.cpp",
     "virtual_runtime.cpp",
@@ -59,6 +58,13 @@ ohos_source_set("hiperf_src") {
     "../../../",
     "../../../trace_streamer",
     "//third_party/perf_include",
+    "//third_party/perf_include/linux",
+    "//third_party/perf_include/include",
+  ]
+  include_dirs += [
+    "//third_party/libunwind/include",
+    "//third_party/libunwind/src",
+    "//third_party/libunwind/include/tdep-x86_64",
   ]
 }
 
@@ -68,7 +74,7 @@ group("hiperf") {
     "//third_party/protobuf:protobuf",
     "//third_party/protobuf:protobuf_lite",
   ]
-  if (target != "test") {
+  if (target != "test" && !is_openharmony) {
     deps += [ "//prebuilts/protos:ts_proto_data_cpp" ]
   }
 }
