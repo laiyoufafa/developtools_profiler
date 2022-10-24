@@ -29,6 +29,8 @@ HtracePluginTimeParser::HtracePluginTimeParser(TraceDataCache* dataCache, const 
 }
 void HtracePluginTimeParser::UpdatePluginTimeRange(ClockId clockId, uint64_t asyncTimestamp, uint64_t syncTimestamp)
 {
+    minTs_ = std::min(minTs_, asyncTimestamp);
+    maxTs_ = std::max(maxTs_, asyncTimestamp);
     if (clockId == streamFilters_->clockFilter_->GetPrimaryClock()) {
         syncHtracePluginStartTime_ = std::min(syncHtracePluginStartTime_, syncTimestamp);
         syncHtracePluginEndTime_ = std::max(syncHtracePluginEndTime_, syncTimestamp);

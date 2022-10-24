@@ -25,10 +25,13 @@ ohos_source_set("htrace_parser_src") {
     "htrace_disk_io_parser.h",
     "htrace_event_parser/htrace_event_parser.cpp",
     "htrace_event_parser/htrace_event_parser.h",
+    "htrace_file_header.h",
     "htrace_hidump_parser.cpp",
     "htrace_hidump_parser.h",
     "htrace_hilog_parser.cpp",
     "htrace_hilog_parser.h",
+    "htrace_hisysevent_parser.cpp",
+    "htrace_hisysevent_parser.h",
     "htrace_mem_parser.cpp",
     "htrace_mem_parser.h",
     "htrace_native_hook_parser.cpp",
@@ -36,8 +39,8 @@ ohos_source_set("htrace_parser_src") {
     "htrace_network_parser.cpp",
     "htrace_network_parser.h",
     "htrace_parser.cpp",
-    "htrace_plugin_time.cpp",
-    "htrace_plugin_time.h",
+    "htrace_plugin_time_parser.cpp",
+    "htrace_plugin_time_parser.h",
     "htrace_process_parser.cpp",
     "htrace_process_parser.h",
     "htrace_symbols_detail_parser.cpp",
@@ -47,9 +50,6 @@ ohos_source_set("htrace_parser_src") {
     ".",
     "htrace_event_parser",
     "htrace_cpu_parser",
-    "../hiperf_parser/hiperf/linux",
-    "../hiperf_parser/hiperf/include",
-    "../hiperf_parser/hiperf/kernel",
     "${OHOS_PROTO_GEN}",
     "${OHOS_PROTO_GEN}/types/plugins/memory_data",
     "${OHOS_PROTO_GEN}/types/plugins/ftrace_data/${kernel_version}",
@@ -60,6 +60,7 @@ ohos_source_set("htrace_parser_src") {
     "${OHOS_PROTO_GEN}/types/plugins/cpu_data",
     "${OHOS_PROTO_GEN}/types/plugins/diskio_data",
     "${OHOS_PROTO_GEN}/types/plugins/process_data",
+    "${OHOS_PROTO_GEN}/types/plugins/hisysevent_data",
     "../../include",
     "../../",
     "../",
@@ -68,12 +69,28 @@ ohos_source_set("htrace_parser_src") {
     "../../trace_streamer",
     "//third_party/protobuf/src",
     "//third_party/sqlite/include",
-    "//third_party/perf_include",
+    "//third_party/json-master/include",
+    "//third_party/json-master/include/nlohmann",
     "../../filter",
     "../../base",
-    "../hiperf_parser",
-    "../hiperf_parser/include",
+    "../ebpf_parser",
   ]
+  include_dirs += [
+    "//third_party/libunwind/include",
+    "//third_party/libunwind/src",
+  ]
+  if (with_perf) {
+    include_dirs += [
+      "../hiperf_parser/hiperf/linux",
+      "../hiperf_parser/hiperf/include",
+      "../hiperf_parser/hiperf/kernel",
+      "//third_party/perf_include/include",
+      "//third_party/perf_include",
+      "//third_party/perf_include/linux",
+      "../hiperf_parser",
+      "../hiperf_parser/include",
+    ]
+  }
   if (enable_ts_utest && !use_wasm) {
     cflags = [
       "-fprofile-arcs",
@@ -94,7 +111,10 @@ group("htrace_parser") {
     "//third_party/protobuf:protobuf",
     "//third_party/protobuf:protobuf_lite",
   ]
-  if (target != "test") {
+  if (!use_wasm && !is_win && !is_macx && !is_test) {
+    deps += [ "//third_party/libunwind:libunwind" ]
+  }
+  if (target != "test" && !is_openharmony) {
     deps += [ "//prebuilts/protos:ts_proto_data_cpp" ]
   }
 }

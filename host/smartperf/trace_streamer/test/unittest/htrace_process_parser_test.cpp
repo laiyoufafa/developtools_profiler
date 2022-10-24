@@ -48,7 +48,7 @@ public:
  */
 HWTEST_F(HtraceProcessParserTest, ParseHtraceProcessWithoutProcessData, TestSize.Level1)
 {
-    TS_LOGI("test24-1");
+    TS_LOGI("test18-1");
     auto processData = std::make_unique<ProcessData>();
     uint64_t ts = 100;
     HtraceProcessParser htraceProcessParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
@@ -64,7 +64,7 @@ HWTEST_F(HtraceProcessParserTest, ParseHtraceProcessWithoutProcessData, TestSize
  */
 HWTEST_F(HtraceProcessParserTest, ParseHtraceProcessWithProcessData, TestSize.Level1)
 {
-    TS_LOGI("test24-2");
+    TS_LOGI("test18-2");
     uint64_t ts = 100;
     const uint32_t PID = 312;
     const string NAME = "resource_schedu";
@@ -93,7 +93,7 @@ HWTEST_F(HtraceProcessParserTest, ParseHtraceProcessWithProcessData, TestSize.Le
  */
 HWTEST_F(HtraceProcessParserTest, ParseHtraceProcessWithTwoProcessData, TestSize.Level1)
 {
-    TS_LOGI("test24-3");
+    TS_LOGI("test18-3");
     uint64_t ts = 100;
     const uint32_t PID_01 = 311;
     const string NAME_01 = "resource_schedu01";
@@ -144,7 +144,7 @@ HWTEST_F(HtraceProcessParserTest, ParseHtraceProcessWithTwoProcessData, TestSize
  */
 HWTEST_F(HtraceProcessParserTest, ParseHtraceProcessWithThreeProcessData, TestSize.Level1)
 {
-    TS_LOGI("test24-4");
+    TS_LOGI("test18-4");
     uint64_t ts = 100;
     const uint32_t PID_01 = 311;
     const string NAME_01 = "resource_schedu01";
@@ -213,7 +213,7 @@ HWTEST_F(HtraceProcessParserTest, ParseHtraceProcessWithThreeProcessData, TestSi
  */
 HWTEST_F(HtraceProcessParserTest, ParseHtraceProcessWithMultipleProcessData, TestSize.Level1)
 {
-    TS_LOGI("test24-5");
+    TS_LOGI("test18-5");
     uint64_t ts = 100;
     const uint32_t PID_01 = 311;
     const string NAME_01 = "resource_schedu01";

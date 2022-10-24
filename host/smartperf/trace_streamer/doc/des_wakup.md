@@ -1,3 +1,0 @@
-各应用程序对于trace事件的waking和wakeup处理是略有区别的。
-waking是开始唤醒线程，wakeup是线程正式被唤醒，进入runnable（可运行状态）
-我们的策略是：被唤醒才是真正进入runnable状态，在没有wakeup事件的情况下，以waking为准。

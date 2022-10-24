@@ -61,9 +61,9 @@ void ProcessFilter::AddCpuStateCount(uint32_t itid)
         thread->cpuStatesCount_++;
     }
 }
-uint32_t ProcessFilter::UpdateOrCreateThread(uint64_t timestamp, uint32_t tid)
+uint32_t ProcessFilter::UpdateOrCreateThread(uint64_t timeStamp, uint32_t tid)
 {
-    return UpdateOrCreateThreadWithNameIndex(timestamp, tid, 0);
+    return UpdateOrCreateThreadWithNameIndex(timeStamp, tid, 0);
 }
 uint32_t ProcessFilter::UpdateOrCreateThreadWithPidAndName(uint32_t tid, uint32_t pid, std::string_view name)
 {
@@ -188,7 +188,7 @@ InternalPid ProcessFilter::GetInternalPid(uint32_t pid) const
     return INVALID_ID;
 }
 
-InternalPid ProcessFilter::GetOrCreateInternalPid(uint64_t timestamp, uint32_t pid)
+InternalPid ProcessFilter::GetOrCreateInternalPid(uint64_t timeStamp, uint32_t pid)
 {
     auto ipid = GetInternalPid(pid);
     if (ipid != INVALID_ID) {
@@ -197,7 +197,7 @@ InternalPid ProcessFilter::GetOrCreateInternalPid(uint64_t timestamp, uint32_t p
 
     uint32_t internalPid = 0;
     TraceStdtype::Process* process = nullptr;
-    std::tie(internalPid, process) = CreateProcessMaybe(pid, timestamp);
+    std::tie(internalPid, process) = CreateProcessMaybe(pid, timeStamp);
     return internalPid;
 }
 std::tuple<uint32_t, TraceStdtype::Thread*> ProcessFilter::NewThread(uint32_t tid)

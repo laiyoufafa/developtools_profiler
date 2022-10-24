@@ -51,7 +51,7 @@ public:
  */
 HWTEST_F(IrqFilterTest, IrqHandlerEntryTest, TestSize.Level1)
 {
-    TS_LOGI("test16-1");
+    TS_LOGI("test22-1");
     int64_t ts1 = 100;
     uint32_t cpu1 = 1;
     DataIndex nameId1 = 1;
@@ -66,7 +66,7 @@ HWTEST_F(IrqFilterTest, IrqHandlerEntryTest, TestSize.Level1)
  */
 HWTEST_F(IrqFilterTest, IrqHandlerEntryTestNotMatch, TestSize.Level1)
 {
-    TS_LOGI("test16-2");
+    TS_LOGI("test22-2");
     int64_t ts1 = 120;
     uint32_t cpu1 = 1;
     DataIndex nameId1 = 1;
@@ -89,7 +89,7 @@ HWTEST_F(IrqFilterTest, IrqHandlerEntryTestNotMatch, TestSize.Level1)
  */
 HWTEST_F(IrqFilterTest, IrqHandlerExitTestEmpty, TestSize.Level1)
 {
-    TS_LOGI("test16-3");
+    TS_LOGI("test22-3");
     int64_t ts1 = 100;
     uint32_t cpu1 = 1;
     uint32_t ret = 1; // 1 for handled, else for unhandled
@@ -108,7 +108,7 @@ HWTEST_F(IrqFilterTest, IrqHandlerExitTestEmpty, TestSize.Level1)
  */
 HWTEST_F(IrqFilterTest, IrqHandlerEnterAndExitTest, TestSize.Level1)
 {
-    TS_LOGI("test16-4");
+    TS_LOGI("test22-4");
     int64_t ts1 = 100;
     uint32_t cpu1 = 1;
     DataIndex nameId1 = 1;
@@ -133,7 +133,7 @@ HWTEST_F(IrqFilterTest, IrqHandlerEnterAndExitTest, TestSize.Level1)
  */
 HWTEST_F(IrqFilterTest, IrqHandlerDoubleEnterAndExitTest, TestSize.Level1)
 {
-    TS_LOGI("test16-5");
+    TS_LOGI("test22-5");
     int64_t ts1 = 100;
     uint32_t cpu1 = 1;
     DataIndex nameId1 = 1;
@@ -160,7 +160,7 @@ HWTEST_F(IrqFilterTest, IrqHandlerDoubleEnterAndExitTest, TestSize.Level1)
  */
 HWTEST_F(IrqFilterTest, IrqHandlerTripleEnterAndExitTest, TestSize.Level1)
 {
-    TS_LOGI("test1-6");
+    TS_LOGI("test22-6");
     int64_t ts1 = 100;
     uint32_t cpu1 = 1;
     DataIndex nameId1 = 1;
@@ -193,7 +193,7 @@ HWTEST_F(IrqFilterTest, IrqHandlerTripleEnterAndExitTest, TestSize.Level1)
  */
 HWTEST_F(IrqFilterTest, SoftIrqEntryTest, TestSize.Level1)
 {
-    TS_LOGI("test16-7");
+    TS_LOGI("test22-7");
     int64_t ts1 = 100;
     uint32_t cpu1 = 1;
     uint32_t vec = 1;
@@ -208,7 +208,7 @@ HWTEST_F(IrqFilterTest, SoftIrqEntryTest, TestSize.Level1)
  */
 HWTEST_F(IrqFilterTest, SoftIrqEntryNotMatch, TestSize.Level1)
 {
-    TS_LOGI("test16-8");
+    TS_LOGI("test22-8");
     int64_t ts1 = 100;
     uint32_t cpu1 = 1;
     uint32_t vec = 1;
@@ -228,7 +228,7 @@ HWTEST_F(IrqFilterTest, SoftIrqEntryNotMatch, TestSize.Level1)
  */
 HWTEST_F(IrqFilterTest, SoftIrqExitEmptyTest, TestSize.Level1)
 {
-    TS_LOGI("test16-9");
+    TS_LOGI("test22-9");
     int64_t ts1 = 100;
     uint32_t cpu1 = 1;
     uint32_t vec = 1;
@@ -245,7 +245,7 @@ HWTEST_F(IrqFilterTest, SoftIrqExitEmptyTest, TestSize.Level1)
  */
 HWTEST_F(IrqFilterTest, SoftIrqTest, TestSize.Level1)
 {
-    TS_LOGI("test16-10");
+    TS_LOGI("test22-10");
     int64_t ts1 = 100;
     uint32_t cpu1 = 1;
     uint32_t vec = 1;
@@ -271,7 +271,7 @@ HWTEST_F(IrqFilterTest, SoftIrqTest, TestSize.Level1)
  */
 HWTEST_F(IrqFilterTest, SoftIrqTestWithIrqEntryAndExit, TestSize.Level1)
 {
-    TS_LOGI("test16-11");
+    TS_LOGI("test22-11");
     int64_t ts1 = 100;
     uint32_t cpu1 = 1;
     uint32_t vec = 1;
@@ -292,7 +292,7 @@ HWTEST_F(IrqFilterTest, SoftIrqTestWithIrqEntryAndExit, TestSize.Level1)
  */
 HWTEST_F(IrqFilterTest, SoftIrqTestOneEntryTwoNotMatchExit, TestSize.Level1)
 {
-    TS_LOGI("test16-12");
+    TS_LOGI("test22-12");
     int64_t ts1 = 100;
     uint32_t cpu1 = 1;
     uint32_t vec = 1;
@@ -319,7 +319,7 @@ HWTEST_F(IrqFilterTest, SoftIrqTestOneEntryTwoNotMatchExit, TestSize.Level1)
  */
 HWTEST_F(IrqFilterTest, SoftIrqTestWithSingleNotMatchExit, TestSize.Level1)
 {
-    TS_LOGI("test16-13");
+    TS_LOGI("test22-13");
     int64_t ts1 = 100;
     uint32_t cpu1 = 1;
     uint32_t vec = 1;

@@ -44,6 +44,26 @@ public:
                              int32_t type,
                              double numericValue,
                              DataIndex strValue);
+    void AppendNewValue(int32_t brightnessState,
+                        int32_t btState,
+                        int32_t locationState,
+                        int32_t wifiState,
+                        int32_t streamDefault,
+                        int32_t voiceCall,
+                        int32_t music,
+                        int32_t streamRing,
+                        int32_t media,
+                        int32_t voiceAssistant,
+                        int32_t system,
+                        int32_t alarm,
+                        int32_t notification,
+                        int32_t bluetoolthSco,
+                        int32_t enforcedAudible,
+                        int32_t streamDtmf,
+                        int32_t streamTts,
+                        int32_t accessibility,
+                        int32_t recording,
+                        int32_t streamAll);
     void Clear();
 
 private:

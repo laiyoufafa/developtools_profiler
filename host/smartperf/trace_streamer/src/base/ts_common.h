@@ -25,14 +25,16 @@ const uint64_t INVALID_UTID = std::numeric_limits<uint32_t>::max();
 const uint64_t INVALID_UINT64 = std::numeric_limits<uint64_t>::max();
 const uint64_t MAX_UINT32 = std::numeric_limits<uint32_t>::max();
 const uint64_t MAX_UINT64 = std::numeric_limits<uint64_t>::max();
+const uint32_t INVALID_UINT16 = std::numeric_limits<uint16_t>::max();
 const uint32_t INVALID_UINT32 = std::numeric_limits<uint32_t>::max();
 const uint32_t INVALID_INT32 = std::numeric_limits<int32_t>::max();
+const int64_t INVALID_INT64 = std::numeric_limits<int64_t>::max();
 const uint64_t INVALID_DATAINDEX = std::numeric_limits<uint64_t>::max();
 const size_t MAX_SIZE_T = std::numeric_limits<size_t>::max();
 const uint32_t INVALID_ID = std::numeric_limits<uint32_t>::max();
 const uint64_t SEC_TO_NS = 1000 * 1000 * 1000;
 const int STR_DEFAULT_LEN = -1;
-const auto INVALID_CPU = INVALID_UINT64;
+const auto INVALID_CPU = INVALID_UINT32;
 const auto INVALID_TIME = INVALID_UINT64;
 enum BuiltinClocks {
     TS_CLOCK_UNKNOW = 0,
@@ -100,13 +102,25 @@ enum SchedWakeType {
     SCHED_WAKING = 0, // sched_waking
     SCHED_WAKEUP = 1, // sched_wakeup
 };
+enum DataSourceType {
+    DATA_SOURCE_TYPE_TRACE,
+    DATA_SOURCE_TYPE_MEM,
+    DATA_SOURCE_TYPE_HILOG,
+    DATA_SOURCE_TYPE_ALLOCATION,
+    DATA_SOURCE_TYPE_FPS,
+    DATA_SOURCE_TYPE_NETWORK,
+    DATA_SOURCE_TYPE_DISKIO,
+    DATA_SOURCE_TYPE_CPU,
+    DATA_SOURCE_TYPE_PROCESS,
+    DATA_SOURCE_TYPE_HISYSEVENT,
+};
 using DataIndex = uint64_t;
-using TableRowId = uint32_t;
+using TableRowId = int32_t;
 using InternalPid = uint32_t;
 using InternalTid = uint32_t;
 using InternalTime = uint64_t;
 using FilterId = uint32_t;
-using InternalCpu = uint64_t; // how many cpus? could change to int8_t?
+using InternalCpu = uint32_t; // how many cpus? could change to int8_t?
 
 enum BaseDataType {
     BASE_DATA_TYPE_INT,

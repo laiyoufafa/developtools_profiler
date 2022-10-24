@@ -24,7 +24,7 @@ HtraceHidumpParser::HtraceHidumpParser(TraceDataCache* dataCache, const TraceStr
 
 HtraceHidumpParser::~HtraceHidumpParser()
 {
-    TS_LOGI("native hook data ts MIN:%llu, MAX:%llu", static_cast<unsigned long long>(GetPluginStartTime()),
+    TS_LOGI("Fps data ts MIN:%llu, MAX:%llu", static_cast<unsigned long long>(GetPluginStartTime()),
             static_cast<unsigned long long>(GetPluginEndTime()));
 }
 void HtraceHidumpParser::Parse(HidumpInfo& tracePacket)
@@ -38,6 +38,7 @@ void HtraceHidumpParser::Parse(HidumpInfo& tracePacket)
         auto timeStamp = hidumpData->time().tv_nsec() + hidumpData->time().tv_sec() * SEC_TO_NS;
         auto newTimeStamp = streamFilters_->clockFilter_->ToPrimaryTraceTime(hidumpData->id(), timeStamp);
         UpdatePluginTimeRange(hidumpData->id(), timeStamp, newTimeStamp);
+        clockId_ = hidumpData->id();
         auto fps = hidumpData->fps();
         traceDataCache_->GetHidumpData()->AppendNewHidumpInfo(newTimeStamp, fps);
     }

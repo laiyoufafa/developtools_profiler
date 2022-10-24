@@ -14,20 +14,20 @@
  */
 
 #include "selector_fuzzer.h"
+#include <cstddef>
 #include <cstdint>
 #include <memory>
-#include <stddef.h> // include stddef will not work
-#include <stdint.h> // include stdint will not work
 #include "common_types.h"
 #include "string_help.h"
 #include "trace_streamer_selector.h"
 
 namespace SysTuning {
 namespace TraceStreamer {
+using namespace SysTuning::base;
 bool TraceStreamerSelectorFuzzTest(const uint8_t* data, size_t size)
 {
     TraceStreamerSelector stream_ = {};
-    std::unique_ptr<uint8_t[]> buf = std::make_unique<uint8_t[]>(std::move(size));
+    std::unique_ptr<uint8_t[]> buf = std::make_unique<uint8_t[]>(size);
     if (memcpy_s(buf.get(), size, data, size)) {
         return false;
     }

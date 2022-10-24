@@ -40,13 +40,13 @@ public:
     TableBase& operator=(const TableBase&) = delete;
 
     template<typename T>
-    static void TableDeclare(sqlite3& db, TraceDataCache* dataCache, const std::string& name)
+    static void TableDeclare(sqlite3& db, TraceDataCache* dataCache, const std::string& tableName)
     {
-        TableRegister(db, dataCache, name,
+        TableRegister(db, dataCache, tableName,
             [](const TraceDataCache* cache) {
                 return std::unique_ptr<TableBase>(std::make_unique<T>(cache));
             });
-        dataCache->AppendNewTable(name);
+        dataCache->AppendNewTable(tableName);
     }
     std::string CreateTableSql() const;
 
@@ -91,12 +91,12 @@ protected:
     explicit TableBase(const TraceDataCache* dataCache) : dataCache_(dataCache), cursor_(nullptr) {}
 
     struct EstimatedIndexInfo {
-        int64_t estimatedRows;
-        double estimatedCost;
+        int64_t estimatedRows = 0;
+        double estimatedCost = 0.0;
         bool isOrdered = false;
     };
 
-    static void TableRegister(sqlite3& db, TraceDataCache* cache, const std::string& name, TabTemplate tmplate);
+    static void TableRegister(sqlite3& db, TraceDataCache* cache, const std::string& tableName, TabTemplate tmplate);
     virtual int Update(int argc, sqlite3_value** argv, sqlite3_int64* pRowid)
     {
         return SQLITE_READONLY;
@@ -118,7 +118,7 @@ protected:
     std::vector<ColumnInfo> tableColumn_ = {};
     std::vector<std::string> tablePriKey_ = {};
     const TraceDataCache* dataCache_;
-    TraceDataCache* wdataCache_;
+    TraceDataCache* wdataCache_ = nullptr;
     std::unique_ptr<Cursor> cursor_;
 
 private:

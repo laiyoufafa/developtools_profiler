@@ -47,7 +47,7 @@ BioLatencySampleTable::BioLatencySampleTable(const TraceDataCache* dataCache) : 
     tableColumn_.push_back(TableBase::ColumnInfo("tier", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("size", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("block_number", "TEXT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("path", "TEXT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("path_id", "TEXT"));
     tableColumn_.push_back(TableBase::ColumnInfo("dur_per_4k", "INTEGER"));
     tablePriKey_.push_back("id");
 }
@@ -250,9 +250,7 @@ int BioLatencySampleTable::Cursor::Column(int column) const
         }
         case PATH: {
             if (bioLatencySampleObj_.FilePathIds()[CurrentRow()] != INVALID_UINT64) {
-                auto returnValueIndex1 = bioLatencySampleObj_.FilePathIds()[CurrentRow()];
-                sqlite3_result_text(context_, dataCache_->GetDataFromDict(returnValueIndex1).c_str(), STR_DEFAULT_LEN,
-                                    nullptr);
+                sqlite3_result_int64(context_, static_cast<int64_t>(bioLatencySampleObj_.FilePathIds()[CurrentRow()]));
             }
             break;
         }

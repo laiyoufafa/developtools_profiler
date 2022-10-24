@@ -299,7 +299,7 @@ bool SpanJoin::CaclSpan::GetNextState()
             if (endTs_ == std::numeric_limits<int64_t>::max()) {
                 partitionState_ = PartitionState::TS_MISSING;
                 if (isEof_) {
-                    missPartitionEnd_ = std::numeric_limits<int64_t>::max();
+                    missPartitionEnd_ = std::numeric_limits<int32_t>::max();
                 } else {
                     missPartitionEnd_ = sqlite3_column_int64(stmt_, static_cast<int>(desc_->partitionIdx));
                 }
@@ -313,7 +313,7 @@ bool SpanJoin::CaclSpan::GetNextState()
             return true;
         }
         case PartitionState::TS_MISSING: {
-            if (missPartitionEnd_ == std::numeric_limits<int64_t>::max()) {
+            if (missPartitionEnd_ == std::numeric_limits<int32_t>::max()) {
                 partitionState_ = PartitionState::TS_EOF;
             } else {
                 partitionState_ = PartitionState::TS_PARTITION;

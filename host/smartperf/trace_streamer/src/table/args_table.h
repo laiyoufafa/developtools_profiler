@@ -24,7 +24,7 @@ namespace TraceStreamer {
 class ArgsTable : public TableBase {
 public:
     enum Column { ID = 0, TYPE = 1, NAME = 2, ARG_ID = 3 };
-    explicit ArgsTable(const TraceDataCache* storage);
+    explicit ArgsTable(const TraceDataCache* dataCache);
     ~ArgsTable() override;
     std::unique_ptr<TableBase::Cursor> CreateCursor() override;
 
