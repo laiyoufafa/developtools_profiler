@@ -43,6 +43,7 @@ bool ohos_set_filter_size(size_t size, void* ret);
 pid_t ohos_get_real_pid(void);
 int ohos_convert_pid(char* buf);
 bool ohos_pid_changed(void);
+void* ohos_release_on_end(void*);
 
 #ifdef __cplusplus
 }
