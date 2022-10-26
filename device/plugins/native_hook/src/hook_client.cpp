@@ -97,13 +97,25 @@ bool ohos_malloc_hook_on_start(void)
     return true;
 }
 
-bool ohos_malloc_hook_on_end(void)
+void* ohos_release_on_end(void*)
 {
     std::lock_guard<std::recursive_timed_mutex> guard(g_ClientMutex);
     g_hookClient = nullptr;
     pthread_key_delete(g_disableHookFlag);
     g_mallocIgnoreSet.clear();
     HILOG_INFO(LOG_CORE, "ohos_malloc_hook_on_end");
+    return nullptr;
+}
+
+bool ohos_malloc_hook_on_end(void)
+{
+    pthread_t thread_end;
+    if(pthread_create(&thread_end,NULL,ohos_release_on_end,NULL))
+    {
+        HILOG_INFO(LOG_CORE, "create ohos_release_on_end fail");
+        return false;
+    }
+    pthread_detach(thread_end);
     return true;
 }
 
