@@ -121,6 +121,9 @@ void StackPreprocess::TakeResults()
 
     size_t minStackDepth = hookConfig_.max_stack_depth() > MIN_STACK_DEPTH
         ? MIN_STACK_DEPTH : hookConfig_.max_stack_depth();
+    if (hookConfig_.blocked()) {
+        minStackDepth = hookConfig_.max_stack_depth();
+    }
     minStackDepth += FILTER_STACK_DEPTH;
     HILOG_INFO(LOG_CORE, "TakeResults thread %d, start!", gettid());
     while (1) {
