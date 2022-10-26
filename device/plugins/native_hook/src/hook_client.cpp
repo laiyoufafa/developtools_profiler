@@ -109,13 +109,12 @@ void* ohos_release_on_end(void*)
 
 bool ohos_malloc_hook_on_end(void)
 {
-    pthread_t thread_end;
-    if(pthread_create(&thread_end,NULL,ohos_release_on_end,NULL))
-    {
+    pthread_t threadEnd;
+    if (pthread_create(&threadEnd,nullptr,ohos_release_on_end,nullptr)) {
         HILOG_INFO(LOG_CORE, "create ohos_release_on_end fail");
         return false;
     }
-    pthread_detach(thread_end);
+    pthread_detach(threadEnd);
     return true;
 }
 
