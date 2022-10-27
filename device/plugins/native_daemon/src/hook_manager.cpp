@@ -214,6 +214,9 @@ bool HookManager::CreatePluginSession(const std::vector<ProfilerPluginConfig>& c
         // set default max depth
         hookConfig_.set_max_stack_depth(MAX_UNWIND_DEPTH);
     }
+#if defined(__arm__)
+    hookConfig_.set_fp_unwind(false); // if OS is 32-bit,set fp_unwind false.
+#endif
     uint64_t hookConfig = (uint8_t)hookConfig_.max_stack_depth();
     hookConfig <<= MOVE_BIT_8;
 
