@@ -70,6 +70,7 @@ bool ohos_malloc_hook_on_start(void)
 {
     std::lock_guard<std::recursive_timed_mutex> guard(g_ClientMutex);
     g_hookPid = ohos_get_real_pid();
+    g_mallocTimes = 0;
     if (g_hookClient != nullptr) {
         HILOG_INFO(LOG_CORE, "hook already started");
         return true;
