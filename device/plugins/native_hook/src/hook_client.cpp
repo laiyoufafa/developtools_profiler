@@ -103,7 +103,7 @@ void* ohos_release_on_end(void*)
     g_hookClient = nullptr;
     pthread_key_delete(g_disableHookFlag);
     g_mallocIgnoreSet.clear();
-    HILOG_INFO(LOG_CORE, "ohos_malloc_hook_on_end");
+    HILOG_INFO(LOG_CORE, "ohos_malloc_hook_on_end, mallocTimes :%" PRIu64, g_mallocTimes.load());
     return nullptr;
 }
 
@@ -210,11 +210,11 @@ void* hook_malloc(void* (*fn)(size_t), size_t size)
     if (g_hookClient != nullptr) {
         g_hookClient->SendStackWithPayload(&rawdata, sizeof(rawdata), stackptr, stackSize);
     }
+    g_mallocTimes++;
 #ifdef PERFORMANCE_DEBUG
     struct timespec end = {};
     clock_gettime(CLOCK_REALTIME, &end);
     g_timeCost += (end.tv_sec - start.tv_sec) * S_TO_NS + (end.tv_nsec - start.tv_nsec);
-    g_mallocTimes++;
     g_dataCounts += stackSize;
     if (g_mallocTimes % PRINT_INTERVAL == 0) {
         HILOG_ERROR(LOG_CORE,
