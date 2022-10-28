@@ -42,13 +42,13 @@ public:
 };
 
 /**
- * @tc.name: HilogParseWithoutHilogLine
+ * @tc.name: ParseHilogInfoWithoutHilogLine
  * @tc.desc: Parse a HilogInfo that does not contain any hiloglines
  * @tc.type: FUNC
  */
 HWTEST_F(HilogParserTest, ParseHilogInfoWithoutHilogLine, TestSize.Level1)
 {
-    TS_LOGI("test7-1");
+    TS_LOGI("test8-1");
     HilogInfo* hilogInfo = new HilogInfo();
     HtraceHiLogParser htraceHiLogParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     htraceHiLogParser.Parse(*hilogInfo);
@@ -63,7 +63,7 @@ HWTEST_F(HilogParserTest, ParseHilogInfoWithoutHilogLine, TestSize.Level1)
  */
 HWTEST_F(HilogParserTest, ParseHilogInfoWithOneHilogLine, TestSize.Level1)
 {
-    TS_LOGI("test7-2");
+    TS_LOGI("test8-2");
     const uint64_t TV_SEC = 1632675525;
     const uint64_t TV_NSEC = 996560700;
     const std::string LOG_TAG = "HwMSDPMovementService";
@@ -129,7 +129,7 @@ HWTEST_F(HilogParserTest, ParseHilogInfoWithOneHilogLine, TestSize.Level1)
  */
 HWTEST_F(HilogParserTest, ParseHilogInfoWithMultipleHilogLine, TestSize.Level1)
 {
-    TS_LOGI("test7-3");
+    TS_LOGI("test8-3");
     const uint64_t TV_SEC_01 = 1632675525;
     const uint64_t TV_NSEC_01 = 996560700;
     const uint32_t PID_01 = 2716;
@@ -239,7 +239,7 @@ HWTEST_F(HilogParserTest, ParseHilogInfoWithMultipleHilogLine, TestSize.Level1)
  */
 HWTEST_F(HilogParserTest, ParseHilogInfoWithErrLevelHilogLine, TestSize.Level1)
 {
-    TS_LOGI("test7-4");
+    TS_LOGI("test8-4");
     const uint64_t TV_SEC = 1632675525;
     const uint64_t TV_NSEC = 996560700;
     const std::string LOG_TAG = "HwMSDPMovementService";
@@ -279,7 +279,7 @@ HWTEST_F(HilogParserTest, ParseHilogInfoWithErrLevelHilogLine, TestSize.Level1)
  */
 HWTEST_F(HilogParserTest, ParseHilogInfoLostHilogLine, TestSize.Level1)
 {
-    TS_LOGI("test7-5");
+    TS_LOGI("test8-5");
     const uint64_t TV_SEC = 1632675525;
     const uint64_t TV_NSEC = 996560700;
     const std::string LOG_TAG = "HwMSDPMovementService";
@@ -319,7 +319,7 @@ HWTEST_F(HilogParserTest, ParseHilogInfoLostHilogLine, TestSize.Level1)
  */
 HWTEST_F(HilogParserTest, ParseHilogInfoHasDuplicateHilogLine, TestSize.Level1)
 {
-    TS_LOGI("test7-6");
+    TS_LOGI("test8-6");
     const uint64_t TV_SEC = 1632675525;
     const uint64_t TV_NSEC = 996560700;
     const std::string LOG_TAG = "HwMSDPMovementService";

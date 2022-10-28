@@ -18,7 +18,7 @@
 #include <map>
 #include <string>
 #include <vector>
-#include "htrace_plugin_time.h"
+#include "htrace_plugin_time_parser.h"
 #include "network_plugin_result.pb.h"
 #include "trace_streamer_config.h"
 #include "trace_streamer_filters.h"

@@ -55,4 +55,5 @@ message ProfilerPluginData {
     ClockId clock_id = 4;
     uint64 tv_sec = 5;
     uint64 tv_nsec = 6;
+    string version = 7; // "1.01"
 }

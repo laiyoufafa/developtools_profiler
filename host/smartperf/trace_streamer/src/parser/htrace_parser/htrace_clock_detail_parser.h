@@ -20,6 +20,8 @@
 #include <stdexcept>
 #include <string>
 #include "event_parser_base.h"
+#include "file.h"
+#include "htrace_file_header.h"
 #include "trace_data/trace_data_cache.h"
 #include "trace_plugin_result.pb.h"
 #include "trace_streamer_config.h"
@@ -32,9 +34,11 @@ public:
     HtraceClockDetailParser(TraceDataCache* dataCache, const TraceStreamerFilters* filters);
     ~HtraceClockDetailParser();
     void Parse(TracePluginResult* tracePacket) const;
+    void Parse(const ProfilerTraceFileHeader* profilerTraceFileHeader) const;
 
 private:
     std::map<MemInfoType, DataIndex> memNameDictMap_ = {};
+    TraceStreamerConfig config_{};
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

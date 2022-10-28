@@ -22,26 +22,27 @@
 #include "filter/process_filter.h"
 #include "filter/slice_filter.h"
 #include "string_to_numerical.h"
+#include "trace_streamer_config.h"
 namespace SysTuning {
 namespace TraceStreamer {
 class PrintEventParser : private EventParserBase {
 public:
     PrintEventParser(TraceDataCache* dataCache, const TraceStreamerFilters* filter);
-    void ParsePrintEvent(uint64_t ts, uint32_t pid, std::string_view event);
+    bool ParsePrintEvent(const std::string& comm, uint64_t ts, uint32_t pid, std::string_view event);
 private:
-    void ParseTracePoint(uint64_t ts, uint32_t pid, TracePoint point) const;
-    ParseResult GetTracePoint(std::string_view str, TracePoint& out) const;
+    ParseResult GetTracePoint(std::string_view pointStr, TracePoint& outPoint) const;
     ParseResult CheckTracePoint(std::string_view pointStr) const;
     uint32_t GetThreadGroupId(std::string_view pointStr, size_t& length) const;
     std::string_view GetPointNameForBegin(std::string_view pointStr, size_t tGidlength) const;
     ParseResult HandlerB(std::string_view pointStr, TracePoint& outPoint, size_t tGidlength) const;
-    ParseResult HandlerE(void) const;
+    static ParseResult HandlerE(void);
     ParseResult HandlerCSF(std::string_view pointStr, TracePoint& outPoint, size_t tGidlength) const;
-    size_t GetNameLength(std::string_view pointStr, size_t nameIndex) const;
+    static size_t GetNameLength(std::string_view pointStr, size_t nameIndex);
     size_t GetValueLength(std::string_view pointStr, size_t valueIndex) const;
 private:
     const uint32_t pointLength_;
     const uint32_t maxPointLength_;
+    TraceStreamerConfig config_{};
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

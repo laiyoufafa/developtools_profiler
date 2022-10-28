@@ -23,11 +23,12 @@
 
 namespace SysTuning {
 namespace TraceStreamer {
+using namespace SysTuning::base;
 bool HtraceParserFuzzTest(const uint8_t* data, size_t size)
 {
     TraceStreamerSelector stream_ = {};
     stream_.SetDataType(TRACE_FILETYPE_H_TRACE);
-    std::unique_ptr<uint8_t[]> buf = std::make_unique<uint8_t[]>(std::move(size));
+    std::unique_ptr<uint8_t[]> buf = std::make_unique<uint8_t[]>(size);
     if (memcpy_s(buf.get(), size, data, size)) {
         return false;
     }

@@ -23,10 +23,14 @@
 #include "services/common_types.pb.h"
 #include "stat_filter.h"
 #include "trace_plugin_result.pb.h"
+#if IS_WASM
+#include "../rpc/wasm_func.h"
+#endif
 namespace SysTuning {
 namespace TraceStreamer {
 HtraceParser::HtraceParser(TraceDataCache* dataCache, const TraceStreamerFilters* filters)
     : ParserBase(filters),
+      traceDataCache_(dataCache),
       htraceCpuDetailParser_(std::make_unique<HtraceCpuDetailParser>(dataCache, filters)),
       htraceSymbolsDetailParser_(std::make_unique<HtraceSymbolsDetailParser>(dataCache, filters)),
       htraceMemParser_(std::make_unique<HtraceMemParser>(dataCache, filters)),
@@ -37,14 +41,18 @@ HtraceParser::HtraceParser(TraceDataCache* dataCache, const TraceStreamerFilters
       cpuUsageParser_(std::make_unique<HtraceCpuDataParser>(dataCache, filters)),
       networkParser_(std::make_unique<HtraceNetworkParser>(dataCache, filters)),
       diskIOParser_(std::make_unique<HtraceDiskIOParser>(dataCache, filters)),
-      processParser_((std::make_unique<HtraceProcessParser>(dataCache, filters))),
-      perfDataParser_(std::make_unique<PerfDataParser>(dataCache, filters))
+      processParser_(std::make_unique<HtraceProcessParser>(dataCache, filters)),
+      ebpfDataParser_(std::make_unique<EbpfDataParser>(dataCache, filters)),
+      hisyseventParser_(std::make_unique<HtraceHisyseventParser>(dataCache, filters))
 {
+#if WITH_PERF
+      perfDataParser_ = std::make_unique<PerfDataParser>(dataCache, filters);
+#endif
 #ifdef SUPPORTTHREAD
     supportThread_ = true;
-    dataSegArray = std::make_unique<HtraceDataSegment[]>(MAX_SEG_ARRAY_SIZE);
+    dataSegArray_ = std::make_unique<HtraceDataSegment[]>(MAX_SEG_ARRAY_SIZE);
 #else
-    dataSegArray = std::make_unique<HtraceDataSegment[]>(1);
+    dataSegArray_ = std::make_unique<HtraceDataSegment[]>(1);
 #endif
 }
 
@@ -65,31 +73,56 @@ void HtraceParser::WaitForParserEnd()
     htraceNativeHookParser_->FinishParseNativeHookData();
     htraceHiLogParser_->Finish();
     htraceMemParser_->Finish();
-    perfDataParser_->Finish();
     htraceNativeHookParser_->Finish();
     htraceHidumpParser_->Finish();
     cpuUsageParser_->Finish();
     networkParser_->Finish();
     processParser_->Finish();
     diskIOParser_->Finish();
+    hisyseventParser_->Finish();
+    // keep final upate perf and ebpf data time range
+    ebpfDataParser_->Finish();
+#if WITH_PERF
+    perfDataParser_->Finish();
+#endif
+
+    traceDataCache_->GetDataSourceClockIdData()->SetDataSourceClockId(DATA_SOURCE_TYPE_TRACE,
+                                                                      dataSourceTypeTraceClockid_);
+    traceDataCache_->GetDataSourceClockIdData()->SetDataSourceClockId(DATA_SOURCE_TYPE_MEM, dataSourceTypeMemClockid_);
+    traceDataCache_->GetDataSourceClockIdData()->SetDataSourceClockId(DATA_SOURCE_TYPE_HILOG,
+                                                                      dataSourceTypeHilogClockid_);
+    traceDataCache_->GetDataSourceClockIdData()->SetDataSourceClockId(DATA_SOURCE_TYPE_ALLOCATION,
+                                                                      dataSourceTypeAllocationClockid_);
+    traceDataCache_->GetDataSourceClockIdData()->SetDataSourceClockId(DATA_SOURCE_TYPE_FPS, dataSourceTypeFpsClockid_);
+    traceDataCache_->GetDataSourceClockIdData()->SetDataSourceClockId(DATA_SOURCE_TYPE_NETWORK,
+                                                                      dataSourceTypeNetworkClockid_);
+    traceDataCache_->GetDataSourceClockIdData()->SetDataSourceClockId(DATA_SOURCE_TYPE_DISKIO,
+                                                                      dataSourceTypeDiskioClockid_);
+    traceDataCache_->GetDataSourceClockIdData()->SetDataSourceClockId(DATA_SOURCE_TYPE_CPU, dataSourceTypeCpuClockid_);
+    traceDataCache_->GetDataSourceClockIdData()->SetDataSourceClockId(DATA_SOURCE_TYPE_PROCESS,
+                                                                      dataSourceTypeProcessClockid_);
+    traceDataCache_->GetDataSourceClockIdData()->SetDataSourceClockId(DATA_SOURCE_TYPE_HISYSEVENT,
+                                                                      dataSourceTypeHisyseventClockid_);
+    traceDataCache_->GetDataSourceClockIdData()->Finish();
+    dataSegArray_.reset();
 }
 
 void HtraceParser::ParseTraceDataItem(const std::string& buffer)
 {
     int head = rawDataHead_;
     if (!supportThread_) {
-        dataSegArray[head].seg = std::move(buffer);
-        dataSegArray[head].status = TS_PARSE_STATUS_SEPRATED;
-        ParserData(dataSegArray[head]);
+        dataSegArray_[head].seg = std::move(buffer);
+        dataSegArray_[head].status = TS_PARSE_STATUS_SEPRATED;
+        ParserData(dataSegArray_[head]);
         return;
     }
     while (!toExit_) {
-        if (dataSegArray[head].status.load() != TS_PARSE_STATUS_INIT) {
+        if (dataSegArray_[head].status.load() != TS_PARSE_STATUS_INIT) {
             usleep(sleepDur_);
             continue;
         }
-        dataSegArray[head].seg = std::move(buffer);
-        dataSegArray[head].status = TS_PARSE_STATUS_SEPRATED;
+        dataSegArray_[head].seg = std::move(buffer);
+        dataSegArray_[head].status = TS_PARSE_STATUS_SEPRATED;
         rawDataHead_ = (rawDataHead_ + 1) % MAX_SEG_ARRAY_SIZE;
         break;
     }
@@ -124,6 +157,7 @@ void HtraceParser::FilterData(HtraceDataSegment& seg)
         htraceNativeHookParser_->SortNativeHookData(seg.batchNativeHookData);
     } else if (seg.dataType == DATA_SOURCE_TYPE_FPS) {
         htraceHidumpParser_->Parse(seg.hidumpInfo);
+        dataSourceTypeFpsClockid_ = htraceHidumpParser_->ClockId();
     } else if (seg.dataType == DATA_SOURCE_TYPE_NETWORK) {
         networkParser_->Parse(seg.networkInfo, seg.timeStamp);
     } else if (seg.dataType == DATA_SOURCE_TYPE_CPU) {
@@ -132,6 +166,8 @@ void HtraceParser::FilterData(HtraceDataSegment& seg)
         processParser_->Parse(seg.processInfo, seg.timeStamp);
     } else if (seg.dataType == DATA_SOURCE_TYPE_DISKIO) {
         diskIOParser_->Parse(seg.diskIOInfo, seg.timeStamp);
+    } else if (seg.dataType == DATA_SOURCE_TYPE_HISYSEVENT) {
+        hisyseventParser_->Parse(seg.hisyseventInfo, seg.timeStamp);
     }
     if (supportThread_) {
         filterHead_ = (filterHead_ + 1) % MAX_SEG_ARRAY_SIZE;
@@ -142,7 +178,7 @@ void HtraceParser::FilterThread()
 {
     TS_LOGI("filter thread start work!");
     while (1) {
-        HtraceDataSegment& seg = dataSegArray[filterHead_];
+        HtraceDataSegment& seg = dataSegArray_[filterHead_];
         if (seg.status.load() == TS_PARSE_STATUS_INVALID) {
             seg.status = TS_PARSE_STATUS_INIT;
             filterHead_ = (filterHead_ + 1) % MAX_SEG_ARRAY_SIZE;
@@ -195,8 +231,12 @@ void HtraceParser::ParserData(HtraceDataSegment& dataSeg)
         ParseDiskIO(pluginData, dataSeg);
     } else if (pluginData.name() == "process-plugin") {
         ParseProcess(pluginData, dataSeg);
-    }  else {
-        TS_LOGE("unrecognized pluginData.name():%s", pluginData.name().c_str());
+    } else if (pluginData.name() == "hisysevent-plugin") {
+        ParseHisysevent(pluginData, dataSeg);
+    } else {
+#if IS_WASM
+        TraceStreamer_Plugin_Out_Filter(pluginData.data().data(), pluginData.data().length(), pluginData.name());
+#endif
         dataSeg.status = TS_PARSE_STATUS_INVALID;
         streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_OTHER, STAT_EVENT_DATA_INVALID);
         return;
@@ -224,7 +264,7 @@ void HtraceParser::ParseThread()
                 continue;
             }
         }
-        HtraceDataSegment& dataSeg = dataSegArray[head];
+        HtraceDataSegment& dataSeg = dataSegArray_[head];
         ParserData(dataSeg);
     }
 }
@@ -237,6 +277,7 @@ void HtraceParser::ParseMemory(const ProfilerPluginData& pluginData, HtraceDataS
     if (clockIdTemp == ProfilerPluginData_ClockId_CLOCKID_REALTIME) {
         clockId = TS_CLOCK_REALTIME;
     }
+    dataSourceTypeMemClockid_ = clockId;
     dataSeg.memData.Clear();
     if (!dataSeg.memData.ParseFromArray(pluginData.data().data(), static_cast<int>(pluginData.data().size()))) {
         TS_LOGW("tracePacketParseFromArray failed\n");
@@ -262,7 +303,7 @@ void HtraceParser::ParseMemory(const ProfilerPluginData& pluginData, HtraceDataS
 void HtraceParser::ParseHilog(const ProfilerPluginData& pluginData, HtraceDataSegment& dataSeg)
 {
     dataSeg.dataType = DATA_SOURCE_TYPE_HILOG;
-
+    dataSourceTypeHilogClockid_ = TS_CLOCK_REALTIME;
     if (!dataSeg.logData.ParseFromArray(pluginData.data().data(), static_cast<int>(pluginData.data().size()))) {
         TS_LOGW("tracePacketParseFromArray failed\n");
         dataSeg.status = TS_PARSE_STATUS_PARSED;
@@ -296,6 +337,7 @@ void HtraceParser::ParseFtrace(const ProfilerPluginData& pluginData, HtraceDataS
         dataSeg.status = TS_PARSE_STATUS_PARSED;
         return;
     }
+    dataSourceTypeTraceClockid_ = TS_CLOCK_BOOTTIME;
     if (dataSeg.traceData->clocks_detail_size() || dataSeg.traceData->ftrace_cpu_detail_size() ||
         dataSeg.traceData->symbols_detail_size()) {
         dataSeg.status = TS_PARSE_STATUS_PARSED;
@@ -306,6 +348,7 @@ void HtraceParser::ParseFtrace(const ProfilerPluginData& pluginData, HtraceDataS
 
 void HtraceParser::ParseNativeHook(const ProfilerPluginData& pluginData, HtraceDataSegment& dataSeg)
 {
+    dataSourceTypeAllocationClockid_ = TS_CLOCK_REALTIME;
     dataSeg.dataType = DATA_SOURCE_TYPE_ALLOCATION;
     if (!dataSeg.batchNativeHookData.ParseFromArray(pluginData.data().data(),
                                                     static_cast<int>(pluginData.data().size()))) {
@@ -337,6 +380,7 @@ void HtraceParser::ParseFPS(const ProfilerPluginData& pluginData, HtraceDataSegm
 
 void HtraceParser::ParseCpuUsage(const ProfilerPluginData& pluginData, HtraceDataSegment &dataSeg)
 {
+    dataSourceTypeProcessClockid_ = TS_CLOCK_REALTIME;
     dataSeg.dataType = DATA_SOURCE_TYPE_CPU;
     if (!dataSeg.cpuInfo.ParseFromArray(pluginData.data().data(), static_cast<int>(pluginData.data().size()))) {
         streamFilters_->statFilter_->IncreaseStat(TRACE_CPU_USAGE, STAT_EVENT_DATA_INVALID);
@@ -352,6 +396,7 @@ void HtraceParser::ParseCpuUsage(const ProfilerPluginData& pluginData, HtraceDat
 }
 void HtraceParser::ParseNetwork(const ProfilerPluginData& pluginData, HtraceDataSegment &dataSeg)
 {
+    dataSourceTypeProcessClockid_ = TS_CLOCK_REALTIME;
     dataSeg.dataType = DATA_SOURCE_TYPE_NETWORK;
     if (!dataSeg.networkInfo.ParseFromArray(pluginData.data().data(), static_cast<int>(pluginData.data().size()))) {
         streamFilters_->statFilter_->IncreaseStat(TRACE_NETWORK, STAT_EVENT_DATA_INVALID);
@@ -363,6 +408,7 @@ void HtraceParser::ParseNetwork(const ProfilerPluginData& pluginData, HtraceData
 }
 void HtraceParser::ParseDiskIO(const ProfilerPluginData& pluginData, HtraceDataSegment &dataSeg)
 {
+    dataSourceTypeProcessClockid_ = TS_CLOCK_REALTIME;
     dataSeg.dataType = DATA_SOURCE_TYPE_DISKIO;
     if (!dataSeg.diskIOInfo.ParseFromArray(pluginData.data().data(), static_cast<int>(pluginData.data().size()))) {
         streamFilters_->statFilter_->IncreaseStat(TRACE_DISKIO, STAT_EVENT_DATA_INVALID);
@@ -375,6 +421,7 @@ void HtraceParser::ParseDiskIO(const ProfilerPluginData& pluginData, HtraceDataS
 
 void HtraceParser::ParseProcess(const ProfilerPluginData& pluginData, HtraceDataSegment &dataSeg)
 {
+    dataSourceTypeProcessClockid_ = TS_CLOCK_BOOTTIME;
     dataSeg.dataType = DATA_SOURCE_TYPE_PROCESS;
     if (!dataSeg.processInfo.ParseFromArray(pluginData.data().data(), static_cast<int>(pluginData.data().size()))) {
         streamFilters_->statFilter_->IncreaseStat(TRACE_PROCESS, STAT_EVENT_DATA_INVALID);
@@ -385,12 +432,26 @@ void HtraceParser::ParseProcess(const ProfilerPluginData& pluginData, HtraceData
     dataSeg.timeStamp = pluginData.tv_nsec() + pluginData.tv_sec() * SEC_TO_NS;
     dataSeg.status = TS_PARSE_STATUS_PARSED;
 }
+
+void HtraceParser::ParseHisysevent(const ProfilerPluginData& pluginData, HtraceDataSegment &dataSeg)
+{
+    dataSourceTypeHisyseventClockid_ = TS_CLOCK_REALTIME;
+    dataSeg.dataType = DATA_SOURCE_TYPE_HISYSEVENT;
+    if (!dataSeg.hisyseventInfo.ParseFromArray(pluginData.data().data(), static_cast<int>(pluginData.data().size()))) {
+        streamFilters_->statFilter_->IncreaseStat(TRACE_HISYSEVENT, STAT_EVENT_DATA_INVALID);
+        TS_LOGW("tracePacketParseFromArray failed\n");
+        dataSeg.status = TS_PARSE_STATUS_INVALID;
+        return;
+    }
+    dataSeg.status = TS_PARSE_STATUS_PARSED;
+}
+
 int HtraceParser::GetNextSegment()
 {
     int head;
     dataSegMux_.lock();
     head = parseHead_;
-    HtraceDataSegment& seg = dataSegArray[head];
+    HtraceDataSegment& seg = dataSegArray_[head];
     if (seg.status.load() != TS_PARSE_STATUS_SEPRATED) {
         if (toExit_) {
             parserThreadCount_--;
@@ -417,39 +478,60 @@ int HtraceParser::GetNextSegment()
     dataSegMux_.unlock();
     return head;
 }
-void HtraceParser::ParseTraceDataSegment(std::unique_ptr<uint8_t[]> bufferStr, size_t size)
+bool HtraceParser::ParseDataRecursively(std::deque<uint8_t>::iterator& packagesBegin, size_t& currentLength)
 {
-    packagesBuffer_.insert(packagesBuffer_.end(), &bufferStr[0], &bufferStr[size]);
-    if (profilerTraceFileHeader_.data_.data_type == ProfilerTraceFileHeader::HIPERF_DATA) {
-        if (packagesBuffer_.size() == profilerTraceFileHeader_.data_.length_ - PACKET_HEADER_LENGTH) {
-            perfDataParser_->InitPerfDataAndLoad(packagesBuffer_);
-            packagesBuffer_.clear();
-        }
-        return;
-    }
-    auto packagesBegin = packagesBuffer_.begin();
-    auto currentLength = packagesBuffer_.size();
-
     if (!hasGotHeader_) {
         if (InitProfilerTraceFileHeader()) {
-            if (profilerTraceFileHeader_.data_.data_type == ProfilerTraceFileHeader::HIPERF_DATA) {
-                packagesBegin += PACKET_HEADER_LENGTH;
-                packagesBuffer_.erase(packagesBuffer_.begin(), packagesBuffer_.begin() + PACKET_HEADER_LENGTH);
-                if (profilerTraceFileHeader_.data_.length_ == packagesBuffer_.size() + PACKET_HEADER_LENGTH) {
-                    perfDataParser_->InitPerfDataAndLoad(packagesBuffer_);
-                    packagesBuffer_.clear();
-                }
-                return;
-            }
+            packagesBuffer_.erase(packagesBuffer_.begin(), packagesBuffer_.begin() + PACKET_HEADER_LENGTH);
             currentLength -= PACKET_HEADER_LENGTH;
             packagesBegin += PACKET_HEADER_LENGTH;
-            htraceCurentLength_ = profilerTraceFileHeader_.data_.length_;
+            htraceCurentLength_ = profilerTraceFileHeader_.data.length;
             htraceCurentLength_ -= PACKET_HEADER_LENGTH;
             hasGotHeader_ = true;
+            if (!currentLength) {
+                return false;
+            }
         } else {
             TS_LOGE("get profiler trace file header failed");
-            return;
+            return false;
         }
+    }
+    if (profilerTraceFileHeader_.data.dataType == ProfilerTraceFileHeader::HIPERF_DATA) {
+        if (packagesBuffer_.size() >= profilerTraceFileHeader_.data.length - PACKET_HEADER_LENGTH) {
+#if WITH_PERF
+            auto size = profilerTraceFileHeader_.data.length - PACKET_HEADER_LENGTH;
+            perfDataParser_->InitPerfDataAndLoad(packagesBuffer_, size);
+            currentLength -= size;
+            packagesBegin += size;
+            profilerTraceFileHeader_.data.dataType = ProfilerTraceFileHeader::UNKNOW_TYPE;
+            hasGotHeader_ = false;
+            return true;
+#endif
+        }
+        return false;
+    }
+    if (profilerTraceFileHeader_.data.dataType == ProfilerTraceFileHeader::STANDALONE_DATA) {
+        if (EBPF_PLUGIN_NAME.compare(profilerTraceFileHeader_.data.standalonePluginName) == 0 &&
+            packagesBuffer_.size() >= profilerTraceFileHeader_.data.length - PACKET_HEADER_LENGTH) {
+            auto size = profilerTraceFileHeader_.data.length - PACKET_HEADER_LENGTH;
+            ebpfDataParser_->InitAndParseEbpfData(packagesBuffer_, size);
+            currentLength -= size;
+            packagesBegin += size;
+            profilerTraceFileHeader_.data.dataType = ProfilerTraceFileHeader::UNKNOW_TYPE;
+            hasGotHeader_ = false;
+            return true;
+        }
+#if IS_WASM
+        if (packagesBuffer_.size() >= profilerTraceFileHeader_.data.length - PACKET_HEADER_LENGTH) {
+            auto thirdPartySize = profilerTraceFileHeader_.data.length - PACKET_HEADER_LENGTH;
+            auto buffer = std::make_unique<uint8_t[]>(thirdPartySize).get();
+            std::copy(packagesBuffer_.begin(), packagesBuffer_.begin() + thirdPartySize, buffer);
+            TraceStreamer_Plugin_Out_Filter(reinterpret_cast<const char*>(buffer), thirdPartySize,
+                                            profilerTraceFileHeader_.data.standalonePluginName);
+            return true;
+        }
+#endif
+        return false;
     }
     while (1) {
         if (!hasGotSegLength_) {
@@ -474,17 +556,26 @@ void HtraceParser::ParseTraceDataSegment(std::unique_ptr<uint8_t[]> bufferStr, s
         packagesBegin += nextLength_;
         currentLength -= nextLength_;
         if (nextLength_ > htraceCurentLength_) {
-            TS_LOGE("fatal error, data length not match nextLength_:%u, htraceCurentLength_:%llu", nextLength_, htraceCurentLength_);
+            TS_LOGE("fatal error, data length not match nextLength_:%u, htraceCurentLength_:%llu", nextLength_,
+                    htraceCurentLength_);
         }
         htraceCurentLength_ -= nextLength_;
         if (htraceCurentLength_ == 0) {
             hasGotHeader_ = false;
-            profilerTraceFileHeader_.data_.data_type = ProfilerTraceFileHeader::UNKNOW_TYPE;
+            packagesBuffer_.erase(packagesBuffer_.begin(), packagesBegin);
+            profilerTraceFileHeader_.data.dataType = ProfilerTraceFileHeader::UNKNOW_TYPE;
             TS_LOGW("read proto finished!");
-            break;
+            return ParseDataRecursively(packagesBegin, currentLength);
         }
     }
-    if (profilerTraceFileHeader_.data_.data_type != ProfilerTraceFileHeader::HIPERF_DATA) {
+    return true;
+}
+void HtraceParser::ParseTraceDataSegment(std::unique_ptr<uint8_t[]> bufferStr, size_t size)
+{
+    packagesBuffer_.insert(packagesBuffer_.end(), &bufferStr[0], &bufferStr[size]);
+    auto packagesBegin = packagesBuffer_.begin();
+    auto currentLength = packagesBuffer_.size();
+    if (ParseDataRecursively(packagesBegin, currentLength)) {
         packagesBuffer_.erase(packagesBuffer_.begin(), packagesBegin);
     }
     return;
@@ -497,21 +588,29 @@ bool HtraceParser::InitProfilerTraceFileHeader()
         return false;
     }
     uint8_t buffer[PACKET_HEADER_LENGTH];
+    memset_s(buffer, PACKET_HEADER_LENGTH, 0, PACKET_HEADER_LENGTH);
     int i = 0;
     for (auto it = packagesBuffer_.begin(); it != packagesBuffer_.begin() + PACKET_HEADER_LENGTH; ++it, ++i) {
         buffer[i] = *it;
     }
     auto ret = memcpy_s(&profilerTraceFileHeader_, sizeof(profilerTraceFileHeader_), buffer, PACKET_HEADER_LENGTH);
-    if (ret == -1 || profilerTraceFileHeader_.data_.magic_ != ProfilerTraceFileHeader::HEADER_MAGIC) {
-        TS_LOGE("Get profiler trace file header failed! ret = -1, magic = %llx", profilerTraceFileHeader_.data_.magic_);
+    if (ret == -1 || profilerTraceFileHeader_.data.magic != ProfilerTraceFileHeader::HEADER_MAGIC) {
+        TS_LOGE("Get profiler trace file header failed! ret = %d, magic = %lx", ret,
+                profilerTraceFileHeader_.data.magic);
         return false;
     }
-    if (profilerTraceFileHeader_.data_.length_ <= PACKET_HEADER_LENGTH) {
+    if (profilerTraceFileHeader_.data.length <= PACKET_HEADER_LENGTH) {
         TS_LOGE("Profiler Trace data is truncated!!!");
         return false;
     }
-    TS_LOGI("magic = %llx, length = %llu, data_type = %x", profilerTraceFileHeader_.data_.magic_,
-            profilerTraceFileHeader_.data_.length_, profilerTraceFileHeader_.data_.data_type);
+    TS_LOGI("magic = %llx, length = %llx, dataType = %llx, boottime = %llx", profilerTraceFileHeader_.data.magic,
+            profilerTraceFileHeader_.data.length, profilerTraceFileHeader_.data.dataType, profilerTraceFileHeader_.data.boottime);
+#if IS_WASM
+    const int DATA_TYPE_CLOCK = 100;
+    int componentId = DATA_TYPE_CLOCK;
+    TraceStreamer_Plugin_Out_SendData(reinterpret_cast<char*>(&profilerTraceFileHeader_), sizeof(profilerTraceFileHeader_), DATA_TYPE_CLOCK);
+#endif
+    htraceClockDetailParser_->Parse(&profilerTraceFileHeader_);
     return true;
 }
 } // namespace TraceStreamer

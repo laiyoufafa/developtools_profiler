@@ -22,6 +22,7 @@
 #include <thread>
 
 #include "bytrace_event_parser.h"
+#include "json.hpp"
 #include "log.h"
 #include "parser_base.h"
 #include "string_to_numerical.h"
@@ -48,6 +49,11 @@ public:
     {
         return traceCommentLines_;
     }
+    void EnableBytrace(bool enable) {
+        isBytrace_ = enable;
+    }
+
+
     void WaitForParserEnd();
 
 private:
@@ -70,7 +76,26 @@ private:
     void ParseThread();
     void ParserData(DataSegment& seg);
     bool FilterData(DataSegment& seg);
-
+private:
+    using json = nlohmann::json;
+    typedef struct {
+        std::string eventSource;
+        uint64_t timestamp;
+        std::vector<std::string> appName;
+        std::vector<std::string> appVersions;
+        std::vector<std::string> key;
+        std::vector<json> value;
+    } JsonData;
+    void NoArrayDataParse(JsonData jData, std::vector<size_t> noArrayIndex, DataIndex eventSourceIndex);
+    void
+        ArrayDataParse(JsonData jData, std::vector<size_t> arrayIndex, DataIndex eventSourceIndex, size_t maxArraySize);
+    void CommonDataParser(JsonData jData, DataIndex eventSourceIndex);
+    int32_t JGetData(json& jMessage,
+                  JsonData& jData,
+                  size_t& maxArraySize,
+                  std::vector<size_t>& noArrayIndex,
+                  std::vector<size_t>& arrayIndex);
+    void ParseJsonData(const std::string& buffer);
 private:
     using ArgsMap = std::unordered_map<std::string, std::string>;
     bool isParsingOver_ = false;
@@ -79,6 +104,42 @@ private:
                                                   R"([a-zA-Z0-9.]{0,5}\s+(\d+\.\d+):\s+(\S+):)");
 
     const std::string script_ = R"(</script>)";
+
+    std::vector<std::string> eventsAccordingAppNames = {"POWER_IDE_BATTERY",
+                                                        "POWER_IDE_CPU",
+                                                        "POWER_IDE_LOCATION",
+                                                        "POWER_IDE_GPU",
+                                                        "POWER_IDE_DISPLAY",
+                                                        "POWER_IDE_CAMERA",
+                                                        "POWER_IDE_BLUETOOTH",
+                                                        "POWER_IDE_FLASHLIGHT",
+                                                        "POWER_IDE_AUDIO",
+                                                        "POWER_IDE_WIFISCAN",
+                                                        "BRIGHTNESS_NIT",
+                                                        "SIGNAL_LEVEL",
+                                                        "WIFI_EVENT_RECEIVED",
+                                                        "AUDIO_STREAM_CHANGE",
+                                                        "AUDIO_VOLUME_CHANGE",
+                                                        "WIFI_STATE",
+                                                        "BLUETOOTH_BR_SWITCH_STATE",
+                                                        "LOCATION_SWITCH_STATE",
+                                                        "ENABLE_SENSOR",
+                                                        "DISABLE_SENSOR",
+                                                        "WORK_REMOVE",
+                                                        "WORK_START",
+                                                        "WORK_STOP",
+                                                        "WORK_ADD",
+                                                        "POWER_RUNNINGLOCK",
+                                                        "GNSS_STATE",
+                                                        "ANOMALY_SCREEN_OFF_ENERGY",
+                                                        "ANOMALY_ALARM_WAKEUP",
+                                                        "ANOMALY_KERNEL_WAKELOCK",
+                                                        "ANOMALY_RUNNINGLOCK",
+                                                        "ANORMALY_APP_ENERGY",
+                                                        "ANOMALY_GNSS_ENERGY",
+                                                        "ANOMALY_CPU_HIGH_FREQUENCY",
+                                                        "ANOMALY_CPU_ENERGY",
+                                                        "ANOMALY_WAKEUP"};
 
     size_t parsedTraceValidLines_ = 0;
     size_t parsedTraceInvalidLines_ = 0;
@@ -92,11 +153,12 @@ private:
     int parserThreadCount_ = 0;
     bool toExit_ = false;
     bool exited_ = false;
-    std::unique_ptr<DataSegment[]> dataSegArray;
+    std::unique_ptr<DataSegment[]> dataSegArray_;
     int rawDataHead_ = 0;
     int filterHead_ = 0;
     const int sleepDur_ = 100;
     bool supportThread_ = false;
+    bool isBytrace_ = true;
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

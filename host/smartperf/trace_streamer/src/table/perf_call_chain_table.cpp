@@ -18,17 +18,17 @@
 namespace SysTuning {
 namespace TraceStreamer {
 namespace {
-enum Index { ID = 0, SAMPLE_ID, CALLCHAIN_ID, VADDR_IN_FILE, FILE_ID, SYMBOL_ID, NAME };
+enum Index { ID = 0, CALLCHAIN_ID, DEPTH, VADDR_IN_FILE, FILE_ID, SYMBOL_ID, NAME };
 }
 PerfCallChainTable::PerfCallChainTable(const TraceDataCache* dataCache) : TableBase(dataCache)
 {
-    tableColumn_.push_back(TableBase::ColumnInfo("id", "UNSIGNED INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("sample_id", "UNSIGNED INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("callchain_id", "UNSIGNED INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("vaddr_in_file", "UNSIGNED INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("file_id", "UNSIGNED INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("symbol_id", "UNSIGNED INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("name", "string"));
+    tableColumn_.push_back(TableBase::ColumnInfo("id", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("callchain_id", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("depth", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("vaddr_in_file", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("file_id", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("symbol_id", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("name", "TEXT"));
     tablePriKey_.push_back("id");
 }
 
@@ -146,6 +146,18 @@ int PerfCallChainTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_valu
             case ID:
                 FilterId(c.op, argv[i]);
                 break;
+            case CALLCHAIN_ID:
+                indexMap_->MixRange(c.op, static_cast<uint64_t>(sqlite3_value_int64(argv[i])),
+                                    perfCallChainObj_.SampleIds());
+                break;
+            case FILE_ID:
+                indexMap_->MixRange(c.op, static_cast<uint64_t>(sqlite3_value_int64(argv[i])),
+                                    perfCallChainObj_.FileIds());
+                break;
+            case SYMBOL_ID:
+                indexMap_->MixRange(c.op, static_cast<uint64_t>(sqlite3_value_int64(argv[i])),
+                                    perfCallChainObj_.SymbolIds());
+                break;
             default:
                 break;
         }
@@ -172,11 +184,11 @@ int PerfCallChainTable::Cursor::Column(int column) const
         case ID:
             sqlite3_result_int64(context_, static_cast<uint64_t>(perfCallChainObj_.IdsData()[CurrentRow()]));
             break;
-        case SAMPLE_ID:
+        case CALLCHAIN_ID:
             sqlite3_result_int64(context_, static_cast<uint64_t>(perfCallChainObj_.SampleIds()[CurrentRow()]));
             break;
-        case CALLCHAIN_ID:
-            sqlite3_result_int64(context_, static_cast<uint64_t>(perfCallChainObj_.CallchainIds()[CurrentRow()]));
+        case DEPTH:
+            sqlite3_result_int64(context_, static_cast<uint64_t>(perfCallChainObj_.CallChainIds()[CurrentRow()]));
             break;
         case VADDR_IN_FILE:
             sqlite3_result_int64(context_, static_cast<uint64_t>(perfCallChainObj_.VaddrInFiles()[CurrentRow()]));
@@ -195,40 +207,6 @@ int PerfCallChainTable::Cursor::Column(int column) const
             break;
     }
     return SQLITE_OK;
-}
-
-void PerfCallChainTable::Cursor::FilterId(unsigned char op, sqlite3_value* argv)
-{
-    auto type = sqlite3_value_type(argv);
-    if (type != SQLITE_INTEGER) {
-        // other type consider it NULL
-        indexMap_->Intersect(0, 0);
-        return;
-    }
-
-    auto v = static_cast<TableRowId>(sqlite3_value_int64(argv));
-    switch (op) {
-        case SQLITE_INDEX_CONSTRAINT_EQ:
-            indexMap_->Intersect(v, v + 1);
-            break;
-        case SQLITE_INDEX_CONSTRAINT_GE:
-            indexMap_->Intersect(v, rowCount_);
-            break;
-        case SQLITE_INDEX_CONSTRAINT_GT:
-            v++;
-            indexMap_->Intersect(v, rowCount_);
-            break;
-        case SQLITE_INDEX_CONSTRAINT_LE:
-            v++;
-            indexMap_->Intersect(0, v);
-            break;
-        case SQLITE_INDEX_CONSTRAINT_LT:
-            indexMap_->Intersect(0, v);
-            break;
-        default:
-            // can't filter, all rows
-            break;
-    }
 }
 } // namespace TraceStreamer
 } // namespace SysTuning

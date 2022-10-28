@@ -1,5 +1,9 @@
-# TraceStreamer支持解析事件列表
+# TraceStreamer支持识别事件列表
+trace事件是指系统在运行过程中输出的日志。trace事件有内核输出的，也有用户输出的，系统或用户在输出日志时，都可以添加特定的标识，以特定的格式输出。  
+所谓事件，是指特定的标签，指定了其事件类型。  
 ## ftrace事件
+ftrace属于linux标准内核事件。  
+ftrace相关事件属于系统内核事件，具体请参考linux内核相关技术网站(www.kernel.org)。
 ```
 binder_transaction
 binder_transaction_received
@@ -27,12 +31,6 @@ clk_enable
 clk_disable
 sys_enter
 sys_exit
-regulator_set_voltage
-regulator_set_voltage_complete
-regulator_disable
-regulator_disable_complete
-ipi_entry
-ipi_exit
 irq_handler_entry
 irq_handler_exit
 softirq_raise
@@ -41,8 +39,55 @@ softirq_exit
 sched_wakeup_new
 sched_process_exit
 trace_event_clock_sync
+// 下面的事件，属于ftrace，TraceStream可以识别并记录，但并不做业务解析。
+ipi_entry
+ipi_exit
+regulator_set_voltage
+regulator_set_voltage_complete
+regulator_disable
+regulator_disable_complete
+signal_generate
+signal_deliver
+trace_block_bio_backmerge
+trace_block_bio_bounce
+trace_block_bio_complete
+trace_block_bio_frontmerge
+trace_bblock_bio_queue
+trace_block_bio_remap
+trace_block_dirty_buffer
+trace_block_getrq
+trace_block_plug
+trace_block_rq_complete
+trace_block_rq_insert
+trace_block_rq_remap
+trace_block_rq_issue
 ```
-## 内存事件
+## 其他插件数据
+以下的数据，来自于htrace（序列化后的trace）的其他插件。  
+注：如果是文本的trace的话，只支持ftrace
+```
+memory
+hilog
+hidump_fps
+native_hook_malloc
+native_hook_free
+native_hook_mmap
+native_hook_munmap
+sys_memory
+sys_virtual_memory
+trace_diskio
+trace_process
+trace_cpu_usage
+trace_network
+trace_perf
+trace_ebpf
+trace_ebpf_file_system
+trace_ebpf_paged_memory
+trace_ebpf_bio_latency
+trace_hisys_event
+trace_smaps
+```
+## 进程的内存事件
 ```
 mem.vm.size
 mem.rss

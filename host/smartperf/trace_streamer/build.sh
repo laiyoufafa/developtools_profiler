@@ -72,6 +72,9 @@ if [ "$#" -ne "0" ];then
     if [ "$1" == "sdkdemo" ];then
         target='sdkdemo'
     fi
+    if [ "$1" == "sdkdemotest" ];then
+        target='sdkdemotest'
+    fi
 fi
 if [ "$#" -eq "2" ];then
     if [ "$1" != 'trace' ] && [ "$1" != "linux" ] && [ "$1" != "windows" ] && [ "$1" != "macx" ] && [ "$1" != "trace_streamer" ] && [ "$1" != "wasm" ] && [ "$1" != "test" ] && [ "$1" != "fuzz" ] && [ "$1" != "protoc" ];then
@@ -143,7 +146,7 @@ if [ ! -f "prebuilts/$gn_path/ninja" ];then
 	exit
 fi
 echo "$is_clean"
-if [ $target == 'test' ] || [ $target == 'fuzz' ] || [ $target='wasm' ] || [ $target='sdkdemo' ];then
+if [ $target == 'test' ] || [ $target == 'fuzz' ] || [ $target='wasm' ] || [ $target='sdkdemo' ] || [ $target='sdkdemotest' ];then
     target_dir=$target
 else
     target_dir=$target_os

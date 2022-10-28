@@ -42,10 +42,7 @@ TableBase::~TableBase()
     cursor_ = nullptr;
 }
 
-void TableBase::TableRegister(sqlite3& db,
-                              TraceDataCache* cache,
-                              const std::string& tableName,
-                              TabTemplate tmplate)
+void TableBase::TableRegister(sqlite3& db, TraceDataCache* cache, const std::string& tableName, TabTemplate tmplate)
 {
     std::unique_ptr<TableContext> context(std::make_unique<TableContext>());
     context->dataCache = cache;
@@ -54,22 +51,26 @@ void TableBase::TableRegister(sqlite3& db,
     sqlite3_module& module = context->module;
     module = {0};
 
-    auto createFn = [](sqlite3* xdb, void* pAux, int argc, const char* const*argv,
-                       sqlite3_vtab** ppVTab, char** pzErr) {
+    auto createFn = [](sqlite3* xdb, void* pAux, int argc, const char* const* argv, sqlite3_vtab** ppVTab,
+                       char** pzErr) {
         UNUSED(argc);
         UNUSED(argv);
         UNUSED(pzErr);
         auto xdesc = static_cast<const TableContext*>(pAux);
         auto table = xdesc->tmplate(xdesc->dataCache);
         table->name_ = xdesc->tableName;
-        if (table->name_ == "process") {
+        if (table->name_ == "process" || table->name_ == "thread") {
             table->wdataCache_ = xdesc->dataCache;
         }
 
+        table->Init(argc, argv);
         std::string createStmt = table->CreateTableSql();
         TS_LOGD("xCreate table %s, statement: %s", table->name_.c_str(), createStmt.c_str());
         int ret = sqlite3_declare_vtab(xdb, createStmt.c_str());
         if (ret != SQLITE_OK) {
+            if ((table->name_ == "span_join") || (table->name_ == "_span_join")) {
+                return ret;
+            }
             TS_LOGE("sqlite3_declare_vtab %s faild: %s", table->name_.c_str(), createStmt.c_str());
             return ret;
         }
@@ -87,7 +88,7 @@ void TableBase::TableRegister(sqlite3& db,
     module.xDisconnect = destroyFn;
     module.xDestroy = destroyFn;
 
-    module.xOpen = [](sqlite3_vtab *pVTab, sqlite3_vtab_cursor **ppCursor) {
+    module.xOpen = [](sqlite3_vtab* pVTab, sqlite3_vtab_cursor** ppCursor) {
         TS_LOGD("xOpen: %s", static_cast<TableBase*>(pVTab)->name_.c_str());
         return static_cast<TableBase*>(pVTab)->Open(ppCursor);
     };
@@ -99,13 +100,11 @@ void TableBase::TableRegister(sqlite3& db,
     };
 
     module.xBestIndex = [](sqlite3_vtab* pVTab, sqlite3_index_info* idxInfo) {
-        TS_LOGD("xBestIndex: %s %d", static_cast<TableBase*>(pVTab)->name_.c_str(),
-            idxInfo->nConstraint);
+        TS_LOGD("xBestIndex: %s %d", static_cast<TableBase*>(pVTab)->name_.c_str(), idxInfo->nConstraint);
         return static_cast<TableBase*>(pVTab)->BestIndex(idxInfo);
     };
 
-    module.xFilter = [](sqlite3_vtab_cursor* vc, int idxNum, const char* idxStr, int argc,
-                        sqlite3_value** argv) {
+    module.xFilter = [](sqlite3_vtab_cursor* vc, int idxNum, const char* idxStr, int argc, sqlite3_value** argv) {
         auto* c = static_cast<Cursor*>(vc);
         c->Reset();
         TS_LOGD("xFilter %s: [%d]%s", static_cast<Cursor*>(vc)->table_->name_.c_str(), idxNum, idxStr);
@@ -117,17 +116,13 @@ void TableBase::TableRegister(sqlite3& db,
         return c->Filter(c->table_->cacheConstraint_, argv);
     };
 
-    module.xNext = [](sqlite3_vtab_cursor* vc) {
-        return static_cast<TableBase::Cursor*>(vc)->Next();
-    };
-    module.xEof = [](sqlite3_vtab_cursor* vc) {
-        return static_cast<TableBase::Cursor*>(vc)->Eof();
-    };
+    module.xNext = [](sqlite3_vtab_cursor* vc) { return static_cast<TableBase::Cursor*>(vc)->Next(); };
+    module.xEof = [](sqlite3_vtab_cursor* vc) { return static_cast<TableBase::Cursor*>(vc)->Eof(); };
     module.xColumn = [](sqlite3_vtab_cursor* vc, sqlite3_context* ctx, int col) {
         static_cast<TableBase::Cursor*>(vc)->context_ = ctx;
         return static_cast<TableBase::Cursor*>(vc)->Column(col);
     };
-    if (tableName == "process") {
+    if (tableName == "process" || tableName == "thread") {
         module.xUpdate = [](sqlite3_vtab* pVTab, int argc, sqlite3_value** argv, sqlite3_int64* pRowid) {
             TS_LOGD("xUpdate: %s", static_cast<TableBase*>(pVTab)->name_.c_str());
             return static_cast<TableBase*>(pVTab)->Update(argc, argv, pRowid);
@@ -154,7 +149,24 @@ std::string TableBase::CreateTableSql() const
     stmt += ")) WITHOUT ROWID;";
     return stmt;
 }
+int TableBase::Cursor::Next()
+{
+    indexMap_->Next();
+    return SQLITE_OK;
+}
 
+int TableBase::Cursor::Eof()
+{
+    return dataCache_->Cancel() || indexMap_->Eof();
+}
+uint32_t TableBase::Cursor::CurrentRow() const
+{
+    return indexMap_->CurrentRow();
+}
+void TableBase::Cursor::FilterEnd()
+{
+    indexMap_->Sort();
+}
 int TableBase::BestIndex(sqlite3_index_info* idxInfo)
 {
     FilterConstraints filterConstraints;
@@ -218,6 +230,34 @@ TableBase::Cursor::~Cursor()
     context_ = nullptr;
     dataCache_ = nullptr;
 }
+void TableBase::Cursor::FilterTS(unsigned char op, sqlite3_value* argv, const std::deque<InternalTime>& times)
+{
+    auto v = static_cast<uint64_t>(sqlite3_value_int64(argv));
+    auto getValue = [](const uint64_t& row) { return row; };
+    switch (op) {
+        case SQLITE_INDEX_CONSTRAINT_EQ:
+            indexMap_->IntersectabcEqual(times, v, getValue);
+            break;
+        case SQLITE_INDEX_CONSTRAINT_GT:
+            v++;
+        case SQLITE_INDEX_CONSTRAINT_GE: {
+            indexMap_->IntersectGreaterEqual(times, v, getValue);
+            break;
+        }
+        case SQLITE_INDEX_CONSTRAINT_LE:
+            v++;
+        case SQLITE_INDEX_CONSTRAINT_LT: {
+            indexMap_->IntersectLessEqual(times, v, getValue);
+            break;
+        case SQLITE_INDEX_CONSTRAINT_ISNOTNULL: {
+            indexMap_->RemoveNullElements(times, v);
+            break;
+        }
+            default:
+                break;
+        } // end of switch (op)
+    }
+}
 
 int TableBase::Cursor::RowId(sqlite3_int64* id)
 {
@@ -226,6 +266,42 @@ int TableBase::Cursor::RowId(sqlite3_int64* id)
     }
     *id = static_cast<sqlite3_int64>(indexMap_->CurrentRow());
     return SQLITE_OK;
+}
+void TableBase::Cursor::FilterId(unsigned char op, sqlite3_value* argv)
+{
+    auto type = sqlite3_value_type(argv);
+    if (type != SQLITE_INTEGER) {
+        // other type consider it NULL
+        indexMap_->Intersect(0, 0);
+        return;
+    }
+    if (indexMap_->HasData()) {
+        indexMap_->CovertToIndexMap();
+    }
+
+    auto v = static_cast<TableRowId>(sqlite3_value_int64(argv));
+    switch (op) {
+        case SQLITE_INDEX_CONSTRAINT_EQ:
+            indexMap_->Intersect(v, v + 1);
+            break;
+        case SQLITE_INDEX_CONSTRAINT_GE:
+            indexMap_->Intersect(v, rowCount_);
+            break;
+        case SQLITE_INDEX_CONSTRAINT_GT:
+            v++;
+            indexMap_->Intersect(v, rowCount_);
+            break;
+        case SQLITE_INDEX_CONSTRAINT_LE:
+            v++;
+            indexMap_->Intersect(0, v);
+            break;
+        case SQLITE_INDEX_CONSTRAINT_LT:
+            indexMap_->Intersect(0, v);
+            break;
+        default:
+            // can't filter, all rows
+            break;
+    }
 }
 } // namespace TraceStreamer
 } // namespace SysTuning

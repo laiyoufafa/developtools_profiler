@@ -16,7 +16,6 @@
 #ifndef SRC_EVENT_PARSER_BASE_H
 #define SRC_EVENT_PARSER_BASE_H
 #include "trace_data_cache.h"
-#include "trace_streamer_config.h"
 #include "trace_streamer_filters.h"
 namespace SysTuning {
 namespace TraceStreamer {
@@ -29,8 +28,6 @@ public:
 public:
     const TraceStreamerFilters* streamFilters_;
     TraceDataCache* traceDataCache_;
-protected:
-    TraceStreamerConfig config_;
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

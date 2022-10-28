@@ -26,14 +26,25 @@ public:
     HtracePluginTimeParser(const HtracePluginTimeParser&) = delete;
     HtracePluginTimeParser& operator=(const HtracePluginTimeParser&) = delete;
     ~HtracePluginTimeParser() = default;
-    void UpdatePluginTimeRange(ClockId clockId, uint64_t asyncTimestamp, uint64_t syncTimestamep);
+    void UpdatePluginTimeRange(ClockId clockId, uint64_t asyncTimestamp, uint64_t syncTimestamp);
     uint64_t GetPluginStartTime();
     uint64_t GetPluginEndTime();
+    uint64_t MinTs()
+    {
+        return minTs_;
+    }
+    uint64_t MaxTs()
+    {
+        return maxTs_;
+    }
+
 private:
     uint64_t syncHtracePluginStartTime_ = std::numeric_limits<uint64_t>::max();
     uint64_t syncHtracePluginEndTime_ = 0;
     uint64_t asyncHtracePluginStartTime_ = std::numeric_limits<uint64_t>::max();
     uint64_t asyncHtracePluginEndTime_ = 0;
+    uint64_t minTs_ = std::numeric_limits<uint64_t>::max();
+    uint64_t maxTs_ = 0;
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

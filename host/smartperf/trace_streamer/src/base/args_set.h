@@ -28,6 +28,9 @@ public:
     ArgsSet& operator=(const ArgsSet& other)
     {
         this->valuesMap_ = other.valuesMap_;
+        this->argSetId_ = other.argSetId_;
+        this->sliceId_ = other.sliceId_;
+        this->inserted_ = other.inserted_;
         return *this;
     }
     void AppendArg(DataIndex dataIndex, BaseDataType datatype, uint64_t value)
@@ -38,6 +41,9 @@ public:
         valuesMap_.emplace(dataIndex, data);
     }
     std::map<DataIndex, ArgsData> valuesMap_;
+    uint32_t argSetId_ = 0;
+    uint32_t sliceId_ = 0;
+    bool inserted_ = false;
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

@@ -45,7 +45,7 @@ public:
  */
 HWTEST_F(FilterFilterTest, AddCpuCounterFilter, TestSize.Level1)
 {
-    TS_LOGI("test5-1");
+    TS_LOGI("test6-1");
     uint32_t filterId = streamFilters_.filterFilter_->AddFilter("cpu_counter_filter", "cpu1", 1);
     EXPECT_EQ(filterId, static_cast<uint32_t>(0));
 
@@ -57,13 +57,13 @@ HWTEST_F(FilterFilterTest, AddCpuCounterFilter, TestSize.Level1)
 }
 
 /**
- * @tc.name: AddCpuCounterFilter
+ * @tc.name: AddThreadFilter
  * @tc.desc: Add thread_counter_filter & thread_filter through AddFilter interface
  * @tc.type: FUNC
  */
 HWTEST_F(FilterFilterTest, AddThreadFilter, TestSize.Level1)
 {
-    TS_LOGI("test5-2");
+    TS_LOGI("test6-2");
     uint32_t threadFilterId = streamFilters_.filterFilter_->AddFilter("thread_counter_filter", "threadCount1", 1);
     EXPECT_EQ(threadFilterId, static_cast<uint32_t>(0));
 

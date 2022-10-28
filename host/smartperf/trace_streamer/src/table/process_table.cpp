@@ -18,15 +18,20 @@
 namespace SysTuning {
 namespace TraceStreamer {
 namespace {
-enum Index {ID = 0, TYPE, PID, NAME, START_TS };
+enum Index {ID = 0, IPID, TYPE, PID, NAME, START_TS, SWITCH_COUNT, THREAD_COUNT, SLICE_COUNT, MEM_COUNT };
 }
 ProcessTable::ProcessTable(const TraceDataCache* dataCache) : TableBase(dataCache)
 {
-    tableColumn_.push_back(TableBase::ColumnInfo("id", "UNSIGNED INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("type", "STRING"));
-    tableColumn_.push_back(TableBase::ColumnInfo("pid", "UNSIGNED INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("name", "STRING"));
-    tableColumn_.push_back(TableBase::ColumnInfo("start_ts", "UNSIGNED BIG INT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("id", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("ipid", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("type", "TEXT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("pid", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("name", "TEXT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("start_ts", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("swtich_count", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("thread_count", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("slice_count", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("mem_count", "INTEGER"));
     tablePriKey_.push_back("id");
 }
 
@@ -60,6 +65,7 @@ void ProcessTable::EstimateFilterCost(FilterConstraints& fc, EstimatedIndexInfo&
     auto orderbys = fc.GetOrderBys();
     for (auto i = 0; i < orderbys.size(); i++) {
         switch (orderbys[i].iColumn) {
+            case IPID:
             case ID:
                 break;
             default: // other columns can be sorted by SQLite
@@ -80,6 +86,7 @@ void ProcessTable::FilterByConstraint(FilterConstraints& fc, double& filterCost,
         }
         const auto& c = fcConstraints[i];
         switch (c.col) {
+            case IPID:
             case ID: {
                 if (CanFilterId(c.op, rowCount)) {
                     fc.UpdateConstraint(i, true);
@@ -168,7 +175,11 @@ int ProcessTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value** ar
         const auto& c = cs[i];
         switch (c.col) {
             case ID:
+            case IPID:
                 FilterId(c.op, argv[i]);
+                break;
+            case PID:
+                FilterIndex(c.col, c.op, argv[i]);
                 break;
             default:
                 break;
@@ -180,6 +191,7 @@ int ProcessTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value** ar
         i--;
         switch (orderbys[i].iColumn) {
             case ID:
+            case IPID:
                 indexMap_->SortBy(orderbys[i].desc);
                 break;
             default:
@@ -195,6 +207,7 @@ int ProcessTable::Cursor::Column(int col) const
     const auto& process = dataCache_->GetConstProcessData(CurrentRow());
     switch (col) {
         case ID:
+        case IPID:
             sqlite3_result_int64(context_, CurrentRow());
             break;
         case TYPE:
@@ -214,6 +227,18 @@ int ProcessTable::Cursor::Column(int col) const
                 sqlite3_result_int64(context_, static_cast<int64_t>(process.startT_));
             }
             break;
+        case SWITCH_COUNT:
+            sqlite3_result_int64(context_, process.switchCount_);
+            break;
+        case THREAD_COUNT:
+            sqlite3_result_int64(context_, process.threadCount_);
+            break;
+        case SLICE_COUNT:
+            sqlite3_result_int64(context_, process.sliceSize_);
+            break;
+        case MEM_COUNT:
+            sqlite3_result_int64(context_, process.memSize_);
+            break;
         default:
             TS_LOGF("Unregistered column : %d", col);
             break;
@@ -221,15 +246,74 @@ int ProcessTable::Cursor::Column(int col) const
     return SQLITE_OK;
 }
 
+void ProcessTable::Cursor::FilterPid(unsigned char op, uint64_t value)
+{
+    bool remove = false;
+    if (indexMap_->HasData()) {
+        indexMap_->CovertToIndexMap();
+        remove = true;
+    }
+    const auto& processQueue = dataCache_->GetConstProcessData();
+    auto size = processQueue.size();
+    switch (op) {
+        case SQLITE_INDEX_CONSTRAINT_EQ:
+            if (remove) {
+                for (auto i = indexMap_->rowIndex_.begin(); i != indexMap_->rowIndex_.end();) {
+                    if (processQueue[*i].pid_ != value) {
+                        i = indexMap_->rowIndex_.erase(i);
+                    } else {
+                        i++;
+                    }
+                }
+            } else {
+                for (auto i = 0; i < size; i++) {
+                    if (processQueue[i].pid_ == value) {
+                        indexMap_->rowIndex_.push_back(i);
+                    }
+                }
+            }
+            indexMap_->FixSize();
+            break;
+        case SQLITE_INDEX_CONSTRAINT_NE:
+            if (remove) {
+                for (auto i = indexMap_->rowIndex_.begin(); i != indexMap_->rowIndex_.end();) {
+                    if (processQueue[*i].pid_ == value) {
+                        i = indexMap_->rowIndex_.erase(i);
+                    } else {
+                        i++;
+                    }
+                }
+            } else {
+                for (auto i = 0; i < size; i++) {
+                    if (processQueue[i].pid_ != value) {
+                        indexMap_->rowIndex_.push_back(i);
+                    }
+                }
+            }
+            indexMap_->FixSize();
+            break;
+        case SQLITE_INDEX_CONSTRAINT_ISNOTNULL:
+            break;
+        default:
+            break;
+    } // end of switch (op)
+}
+void ProcessTable::Cursor::FilterIndex(int col, unsigned char op, sqlite3_value* argv)
+{
+    auto type = sqlite3_value_type(argv);
+    switch (col) {
+        case PID:
+            /* code */
+            FilterPid(op, static_cast<uint64_t>(sqlite3_value_int64(argv)));
+            break;
+
+        default:
+            break;
+    }
+}
 void ProcessTable::Cursor::FilterId(unsigned char op, sqlite3_value* argv)
 {
     auto type = sqlite3_value_type(argv);
-    if (type != SQLITE_INTEGER) {
-        // other type consider it NULL
-        indexMap_->Intersect(0, 0);
-        return;
-    }
-
     auto v = static_cast<TableRowId>(sqlite3_value_int64(argv));
     switch (op) {
         case SQLITE_INDEX_CONSTRAINT_EQ:

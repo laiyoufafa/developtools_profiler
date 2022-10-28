@@ -41,26 +41,15 @@ constexpr int MAX_TESET_BUF_SIZE = 1024;
  */
 HWTEST_F(WasmFuncTest, CorrectTraceData, TestSize.Level1)
 {
-    TS_LOGI("test23-1");
-    std::string parseData(
-        "ACCS0-2716  ( 2519) [000] ...1 168758.662861: binder_transaction: \
-        transaction=25137708 dest_node=4336 dest_proc=924 dest_thread=0 reply=0 flags=0x10 code=0x3");
+    TS_LOGI("test32-1");
+    std::string parseData("sugov:0-178   (  178) [001] .... 28462.257501: cpu_frequency: state=816000 cpu_id=0 \n");
     std::string sqlQuery("select * from measure;");
-    std::string sqlOperateInsert("insert into measure values (1, 1, 1, 1);");
-    std::string sqlOperateDelete("delete from measure;");
 
     char out[MAX_TESET_BUF_SIZE] = {0};
 
     int ret = TraceStreamerParseData((const uint8_t*)parseData.c_str(), parseData.length());
     EXPECT_EQ(0, ret);
     ret = TraceStreamerParseDataOver();
-    EXPECT_EQ(0, ret);
-    ret = TraceStreamerSqlOperate((const uint8_t*)sqlOperateInsert.c_str(), sqlOperateInsert.length());
-    EXPECT_EQ(0, ret);
-    ret = TraceStreamerSqlQuery((const uint8_t*)sqlQuery.c_str(), sqlQuery.length(), (uint8_t*)out, MAX_TESET_BUF_SIZE);
-    TS_LOGI("sql value:%s", out);
-    EXPECT_NE(-1, ret);
-    ret = TraceStreamerSqlOperate((const uint8_t*)sqlOperateDelete.c_str(), sqlOperateDelete.length());
     EXPECT_EQ(0, ret);
     ret = TraceStreamerSqlQuery((const uint8_t*)sqlQuery.c_str(), sqlQuery.length(), (uint8_t*)out, MAX_TESET_BUF_SIZE);
     TS_LOGI("sql value:%s", out);
@@ -76,27 +65,16 @@ HWTEST_F(WasmFuncTest, CorrectTraceData, TestSize.Level1)
  */
 HWTEST_F(WasmFuncTest, WrongTraceData, TestSize.Level1)
 {
-    TS_LOGI("test23-2");
-    std::string parseData(
-        "ACCS0  ( 2519) [000] ...1 168758.662861: binder_transaction: \
-        transaction=25137708 dest_node=4336 dest_proc=924 dest_thread=0 reply=0 flags=0x10 code=0x3");
+    TS_LOGI("test32-2");
+    std::string parseData("sugov:0-178   (  178) [001] .... 28462.277458: cpu_frequency: state=600000 cpu_id=2 \n");
     std::string sqlQuery("select * from measure_a;");
-    std::string sqlOperateInsert("insert into measure_a values (1, 1, 1, 1);");
-    std::string sqlOperateDelete("delete from measure_a;");
 
     char out[MAX_TESET_BUF_SIZE] = {0};
 
     int ret = TraceStreamerParseData((const uint8_t*)parseData.c_str(), parseData.length());
-    EXPECT_EQ(-1, ret);
+    EXPECT_EQ(0, ret);
     ret = TraceStreamerParseDataOver();
     EXPECT_EQ(0, ret);
-    ret = TraceStreamerSqlOperate((const uint8_t*)sqlOperateInsert.c_str(), sqlOperateInsert.length());
-    EXPECT_EQ(-1, ret);
-    ret = TraceStreamerSqlQuery((const uint8_t*)sqlQuery.c_str(), sqlQuery.length(), (uint8_t*)out, MAX_TESET_BUF_SIZE);
-    TS_LOGI("sql value:%s", out);
-    EXPECT_EQ(-1, ret);
-    ret = TraceStreamerSqlOperate((const uint8_t*)sqlOperateDelete.c_str(), sqlOperateDelete.length());
-    EXPECT_EQ(-1, ret);
     ret = TraceStreamerSqlQuery((const uint8_t*)sqlQuery.c_str(), sqlQuery.length(), (uint8_t*)out, MAX_TESET_BUF_SIZE);
     TS_LOGI("sql value:%s", out);
     EXPECT_EQ(-1, ret);

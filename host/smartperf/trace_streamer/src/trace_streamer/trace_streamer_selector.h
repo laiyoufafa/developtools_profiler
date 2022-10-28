@@ -24,25 +24,26 @@ namespace SysTuning {
 namespace TraceStreamer {
 class BytraceParser;
 class HtraceParser;
-enum TraceFileType { TRACE_FILETYPE_BY_TRACE, TRACE_FILETYPE_H_TRACE, TRACE_FILETYPE_UN_KNOW };
+enum TraceFileType { TRACE_FILETYPE_BY_TRACE, TRACE_FILETYPE_H_TRACE, TRACE_FILETYPE_SYSEVENT, TRACE_FILETYPE_UN_KNOW };
 class TraceStreamerSelector {
 public:
     TraceStreamerSelector();
     ~TraceStreamerSelector();
     bool ParseTraceDataSegment(std::unique_ptr<uint8_t[]> data, size_t size);
     void EnableMetaTable(bool enabled);
-    void SetCleanMode(bool cleanMode);
+    static void SetCleanMode(bool cleanMode);
     int ExportDatabase(const std::string& outputName) const;
     int SearchData();
     int OperateDatabase(const std::string& sql);
     int SearchDatabase(const std::string& sql, TraceDataDB::ResultCallBack resultCallBack);
     int SearchDatabase(const std::string& sql, uint8_t* out, int outLen);
+    int UpdateTraceRangeTime(uint8_t* data, int len);
     void WaitForParserEnd();
     void Clear();
     MetaData* GetMetaData();
     void SetDataType(TraceFileType type);
     void SetCancel(bool cancel);
-    TraceFileType DataType()
+    TraceFileType DataType() const
     {
         return fileType_;
     }

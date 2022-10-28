@@ -29,12 +29,22 @@
 namespace SysTuning {
 namespace TraceStreamer {
 using ArgsMap = std::unordered_map<std::string, std::string>;
-class BytraceEventParser : private EventParserBase {
+class BytraceEventParser : public EventParserBase {
+private:
+    class EventInfo {
+    public:
+        EventInfo(uint64_t ts, BytraceLine li) : eventTimestamp(ts), line(li) {}
+        uint64_t eventTimestamp;
+        BytraceLine line;
+    };
+
 public:
     BytraceEventParser(TraceDataCache* dataCache, const TraceStreamerFilters* filter);
     void ParseDataItem(const BytraceLine& line);
+    void FilterAllEventsTemp();
     void FilterAllEvents();
-
+    void BeginFilterEvents(EventInfo* event);
+    void Clear() const;
 private:
     using FuncCall = std::function<bool(const ArgsMap& args, const BytraceLine line)>;
     bool SchedSwitchEvent(const ArgsMap& args, const BytraceLine& line) const;
@@ -45,6 +55,7 @@ private:
     bool SchedWakingEvent(const ArgsMap& args, const BytraceLine& line) const;
     bool CpuIdleEvent(const ArgsMap& args, const BytraceLine& line) const;
     bool CpuFrequencyEvent(const ArgsMap& args, const BytraceLine& line) const;
+    bool CpuFrequencyLimitsEvent(const ArgsMap& args, const BytraceLine& line) const;
     bool WorkqueueExecuteStartEvent(const ArgsMap& args, const BytraceLine& line) const;
     bool WorkqueueExecuteEndEvent(const ArgsMap& args, const BytraceLine& line) const;
     bool ProcessExitEvent(const ArgsMap& args, const BytraceLine& line) const;
@@ -66,13 +77,7 @@ private:
     bool BinderTransactionReceived(const ArgsMap& args, const BytraceLine& line) const;
     bool BinderTransactionAllocBufEvent(const ArgsMap& args, const BytraceLine& line) const;
     void GetDataSegArgs(BytraceLine& bufLine, ArgsMap& args, uint32_t& tgid) const;
-private:
-    class EventInfo {
-    public:
-        EventInfo(uint64_t ts, BytraceLine li) : eventTimestamp(ts), line(li) {}
-        uint64_t eventTimestamp;
-        BytraceLine line;
-    };
+
     std::map<std::string, FuncCall> eventToFunctionMap_ = {};
     const unsigned int MIN_SCHED_SWITCH_ARGS_COUNT = 6;
     const unsigned int MIN_SCHED_WAKEUP_ARGS_COUNT = 2;
@@ -99,6 +104,10 @@ private:
     const DataIndex workQueueId_ = traceDataCache_->GetDataIndex("workqueue");
     const DataIndex schedWakeupId_ = traceDataCache_->GetDataIndex("sched_wakeup");
     const DataIndex schedBlockedReasonId_ = traceDataCache_->GetDataIndex("sched_blocked_reason");
+    const DataIndex cpuFrequencyLimitMaxNameId = traceDataCache_->GetDataIndex("cpu_frequency_limits_max");
+    const DataIndex cpuFrequencyLimitMinNameId = traceDataCache_->GetDataIndex("cpu_frequency_limits_min");
+protected:
+    TraceStreamerConfig config_{};
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

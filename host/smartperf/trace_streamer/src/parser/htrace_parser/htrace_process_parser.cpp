@@ -28,6 +28,8 @@ HtraceProcessParser::~HtraceProcessParser()
 {
     TS_LOGI("process ts MIN:%llu, MAX:%llu", static_cast<unsigned long long>(GetPluginStartTime()),
             static_cast<unsigned long long>(GetPluginEndTime()));
+    TS_LOGI("process real ts MIN:%llu, MAX:%llu", static_cast<unsigned long long>(MinTs()),
+            static_cast<unsigned long long>(MaxTs()));
 }
 void HtraceProcessParser::Parse(ProcessData& tracePacket, uint64_t ts)
 {
@@ -58,8 +60,9 @@ void HtraceProcessParser::Finish()
     bool first = true;
     uint64_t lastTs = 0;
     for (auto itor = liveProcessData_.begin(); itor != liveProcessData_.end(); itor++) {
+        auto tsOld = (*itor)->ts_;
         (*itor)->ts_ = streamFilters_->clockFilter_->ToPrimaryTraceTime(TS_CLOCK_REALTIME, (*itor)->ts_);
-        UpdatePluginTimeRange(TS_CLOCK_REALTIME, (*itor)->ts_, (*itor)->ts_);
+        UpdatePluginTimeRange(TS_CLOCK_REALTIME, tsOld, (*itor)->ts_);
         if (first) {
             lastTs = (*itor)->ts_;
             first = false;

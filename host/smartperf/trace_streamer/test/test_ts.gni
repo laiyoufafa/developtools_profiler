@@ -11,6 +11,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 OHOS_PROTO_DIR = ""
+kernel_version = "."
 if (target_os == "linux" || target_os == "windows" || target_os == "macx") {
   OHOS_FTRACE_PROTO_DIR = "//src/multi_platform"
   OHOS_MEMORY_PROTO_DIR = "//src/multi_platform"
@@ -22,6 +23,7 @@ if (target_os == "linux" || target_os == "windows" || target_os == "macx") {
     OHOS_DISKIO_PROTO_DIR = "$OHOS_PROTO_GEN/types/plugins/diskio_data"
     OHOS_CPUDATA_PROTO_DIR = "$OHOS_PROTO_GEN/types/plugins/cpu_data"
     OHOS_PROCESS_PROTO_DIR = "$OHOS_PROTO_GEN/types/plugins/process_data"
+    OHOS_HISYSEVENT_PROTO_DIR = "$OHOS_PROTO_GEN/types/plugins/hisysevent_data"
     enable_ts_utest = true
     OHOS_HILOG_PROTO_DIR = "//src/multi_platform"
     OHOS_NATIVE_HOOK_PROTO_DIR = "//src/multi_platform"

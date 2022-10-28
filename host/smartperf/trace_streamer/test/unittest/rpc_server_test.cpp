@@ -32,7 +32,7 @@ public:
     TraceStreamerSelector stream_ = {};
 };
 std::string g_result;
-void res(const std::string result)
+void res(const std::string result, int finish)
 {
     TS_LOGI("%s", result.c_str());
     g_result = result;
@@ -45,28 +45,15 @@ void res(const std::string result)
  */
 HWTEST_F(RpcServerTest, CorrectTraceData, TestSize.Level1)
 {
-    TS_LOGI("test21-1");
-    std::string PARSERDATA(
-        "ACCS0-2716  ( 2519) [000] ...1 168758.662861: binder_transaction: \
-        transaction=25137708 dest_node=4336 dest_proc=924 dest_thread=0 reply=0 flags=0x10 code=0x3");
+    TS_LOGI("test27-1");
+    std::string PARSERDATA("sugov:0-178   (  178) [001] .... 28462.257501: cpu_frequency: state=816000 cpu_id=0 \n");
     std::string SQLQUERY("select * from measure;");
-    std::string SQLOPERATE_C("insert into measure values (1, 1, 1, 1);");
-    std::string SQLOPERATE_D("delete from measure;");
 
     RpcServer rpcServer;
     auto ret = rpcServer.ParseData((const uint8_t*)PARSERDATA.c_str(), PARSERDATA.length(), res);
     EXPECT_TRUE(res);
     EXPECT_TRUE(ret);
     ret = rpcServer.ParseDataOver((const uint8_t*)PARSERDATA.c_str(), PARSERDATA.length(), res);
-    EXPECT_TRUE(res);
-    EXPECT_TRUE(ret);
-    ret = rpcServer.SqlOperate((const uint8_t*)SQLOPERATE_C.c_str(), SQLOPERATE_C.length(), res);
-    EXPECT_TRUE(res);
-    EXPECT_TRUE(ret);
-    ret = rpcServer.SqlQuery((const uint8_t*)SQLQUERY.c_str(), SQLQUERY.length(), res);
-    EXPECT_TRUE(res);
-    EXPECT_TRUE(ret);
-    ret = rpcServer.SqlOperate((const uint8_t*)SQLOPERATE_D.c_str(), SQLOPERATE_D.length(), res);
     EXPECT_TRUE(res);
     EXPECT_TRUE(ret);
     ret = rpcServer.SqlQuery((const uint8_t*)SQLQUERY.c_str(), SQLQUERY.length(), res);
@@ -81,29 +68,19 @@ HWTEST_F(RpcServerTest, CorrectTraceData, TestSize.Level1)
  */
 HWTEST_F(RpcServerTest, WrongTraceData, TestSize.Level1)
 {
-    TS_LOGI("test21-2");
-    std::string PARSERDATA(
-        "ACCS0  ( 2519) [000] ...1 168758.662861: binder_transaction: \
-        transaction=25137708 dest_node=4336 dest_proc=924 dest_thread=0 reply=0 flags=0x10 code=0x3");
+    TS_LOGI("test27-2");
+    std::string PARSERDATA("sugov:0-178   (  178) [001] .... 28462.277458: cpu_frequency: state=600000 cpu_id=2 \n");
     std::string SQLQUERY("select * from measure_e;");
-    std::string SQLOPERATE_C("insert into measure_e values (1, 1, 1, 1);");
-    std::string SQLOPERATE_D("delete from measure_e;");
 
-    TS_LOGD("---TESR:Error Parse Data---\n");
     RpcServer rpcServer;
     auto ret = rpcServer.ParseData((const uint8_t*)PARSERDATA.c_str(), PARSERDATA.length(), res);
-    EXPECT_FALSE(ret);
-    TS_LOGD("---TESR:SQL operation statement error---\n");
-    ret = rpcServer.SqlOperate((const uint8_t*)SQLOPERATE_C.c_str(), SQLOPERATE_C.length(), res);
-    EXPECT_FALSE(ret);
-    TS_LOGD("---TESR:SQL query statement error---\n");
+    EXPECT_TRUE(res);
+    EXPECT_TRUE(ret);
+    ret = rpcServer.ParseDataOver((const uint8_t*)PARSERDATA.c_str(), PARSERDATA.length(), res);
+    EXPECT_TRUE(res);
+    EXPECT_TRUE(ret);
     ret = rpcServer.SqlQuery((const uint8_t*)SQLQUERY.c_str(), SQLQUERY.length(), res);
-    EXPECT_FALSE(ret);
-    TS_LOGD("---TESR:SQL operation statement error---\n");
-    ret = rpcServer.SqlOperate((const uint8_t*)SQLOPERATE_D.c_str(), SQLOPERATE_D.length(), res);
-    EXPECT_FALSE(ret);
-    TS_LOGD("---TESR:SQL query statement error---\n");
-    ret = rpcServer.SqlQuery((const uint8_t*)SQLQUERY.c_str(), SQLQUERY.length(), res);
+    EXPECT_TRUE(g_result == "dberror\r\n");
     EXPECT_FALSE(ret);
 }
 } // namespace TraceStreamer

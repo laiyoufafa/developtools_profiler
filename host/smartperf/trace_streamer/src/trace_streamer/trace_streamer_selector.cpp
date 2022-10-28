@@ -24,11 +24,14 @@
 #include "cpu_filter.h"
 #include "file.h"
 #include "filter_filter.h"
+#include "hi_sysevent_measure_filter.h"
 #include "irq_filter.h"
 #include "measure_filter.h"
 #include "parser/bytrace_parser/bytrace_parser.h"
 #include "parser/htrace_parser/htrace_parser.h"
+#if WITH_PERF
 #include "perf_data_filter.h"
+#endif
 #include "process_filter.h"
 #include "slice_filter.h"
 #include "stat_filter.h"
@@ -51,6 +54,12 @@ TraceFileType GuessFileType(const uint8_t* data, size_t size)
     }
     if (start.find("# TRACE") != std::string::npos) {
         return TRACE_FILETYPE_BY_TRACE;
+    }
+    if (start.find("# SYSEVENT") != std::string::npos) {
+        return TRACE_FILETYPE_SYSEVENT;
+    }
+    if (start.find("# sysevent") != std::string::npos) {
+        return TRACE_FILETYPE_SYSEVENT;
     }
     if ((start.compare(0, std::string("<!DOCTYPE html>").length(), "<!DOCTYPE html>") == 0) ||
         (start.compare(0, std::string("<html>").length(), "<html>") == 0)) {
@@ -122,7 +131,13 @@ void TraceStreamerSelector::InitFilter()
         std::make_unique<SystemEventMeasureFilter>(traceDataCache_.get(), streamFilters_.get(), E_SYS_MEMORY_FILTER);
     streamFilters_->sysEventVMemMeasureFilter_ = std::make_unique<SystemEventMeasureFilter>(
         traceDataCache_.get(), streamFilters_.get(), E_SYS_VIRTUAL_MEMORY_FILTER);
+#if WITH_PERF
     streamFilters_->perfDataFilter_ = std::make_unique<PerfDataFilter>(traceDataCache_.get(), streamFilters_.get());
+#endif
+    streamFilters_->sysEventSourceFilter_ = std::make_unique<SystemEventMeasureFilter>(
+        traceDataCache_.get(), streamFilters_.get(), E_SYS_EVENT_SOURCE_FILTER);
+    streamFilters_->hiSysEventMeasureFilter_ =
+        std::make_unique<HiSysEventMeasureFilter>(traceDataCache_.get(), streamFilters_.get());
 }
 
 void TraceStreamerSelector::WaitForParserEnd()
@@ -159,8 +174,9 @@ bool TraceStreamerSelector::ParseTraceDataSegment(std::unique_ptr<uint8_t[]> dat
         fileType_ = GuessFileType(data.get(), size);
         if (fileType_ == TRACE_FILETYPE_H_TRACE) {
             htraceParser_ = std::make_unique<HtraceParser>(traceDataCache_.get(), streamFilters_.get());
-        } else if (fileType_ == TRACE_FILETYPE_BY_TRACE) {
+        } else if (fileType_ == TRACE_FILETYPE_BY_TRACE || fileType_ == TRACE_FILETYPE_SYSEVENT) {
             bytraceParser_ = std::make_unique<BytraceParser>(traceDataCache_.get(), streamFilters_.get());
+            bytraceParser_->EnableBytrace(fileType_ == TRACE_FILETYPE_BY_TRACE);
         }
         if (fileType_ == TRACE_FILETYPE_UN_KNOW) {
             SetAnalysisResult(TRACE_PARSER_FILE_TYPE_ERROR);
@@ -173,8 +189,7 @@ bool TraceStreamerSelector::ParseTraceDataSegment(std::unique_ptr<uint8_t[]> dat
     }
     if (fileType_ == TRACE_FILETYPE_H_TRACE) {
         htraceParser_->ParseTraceDataSegment(std::move(data), size);
-    }
-    if (fileType_ == TRACE_FILETYPE_BY_TRACE) {
+    } else if (fileType_ == TRACE_FILETYPE_BY_TRACE || fileType_ == TRACE_FILETYPE_SYSEVENT) {
         bytraceParser_->ParseTraceDataSegment(std::move(data), size);
     }
     SetAnalysisResult(TRACE_PARSER_NORMAL);
@@ -215,6 +230,30 @@ int TraceStreamerSelector::SearchDatabase(const std::string& sql,
 int TraceStreamerSelector::SearchDatabase(const std::string& sql, uint8_t* out, int outLen)
 {
     return traceDataCache_->SearchDatabase(sql, out, outLen);
+}
+int TraceStreamerSelector::UpdateTraceRangeTime(uint8_t* data, int len)
+{
+    std::string traceRangeStr;
+    memcpy(&traceRangeStr, data, len);
+    int pos;
+    int size = traceRangeStr.size();
+    std::vector<string> vTraceRangeStr;
+    for (int i = 0; i < size; i++) {
+        pos = traceRangeStr.find(";", i);
+        if (pos == std::string::npos) {
+            break;
+        }
+        if (pos < size) {
+            std::string s = traceRangeStr.substr(i, pos - i);
+            vTraceRangeStr.push_back(s);
+            i = pos;
+        }
+    }
+    uint64_t minTs = std::stoull(vTraceRangeStr.at(0));
+    uint64_t maxTs = std::stoull(vTraceRangeStr.at(1));
+    traceDataCache_->UpdateTraceTime(minTs);
+    traceDataCache_->UpdateTraceTime(maxTs);
+    return 0;
 }
 void TraceStreamerSelector::SetCancel(bool cancel)
 {

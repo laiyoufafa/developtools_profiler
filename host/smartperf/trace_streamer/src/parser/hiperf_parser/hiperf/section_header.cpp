@@ -20,19 +20,19 @@ namespace OHOS {
 namespace Developtools {
 namespace HiPerf {
 enum class NUMBER : int {
-    ZERO = 0,
-    ONE = 1,
-    TWO = 2,
-    THREE = 3,
-    FOUR = 4,
-    FIVE = 5,
-    SIX = 6,
-    SEVEN = 7,
-    EIGHT = 8,
-    NINE = 9,
-    TEN = 10,
-    ELEVEN = 11,
-    TWELVE = 12,
+    NUMBER_ZERO = 0,
+    NUMBER_ONE = 1,
+    NUMBER_TWO = 2,
+    NUMBER_THREE = 3,
+    NUMBER_FOUR = 4,
+    NUMBER_FIVE = 5,
+    NUMBER_SIX = 6,
+    NUMBER_SEVEN = 7,
+    NUMBER_EIGHT = 8,
+    NUMBER_NINE = 9,
+    NUMBER_TEN = 10,
+    NUMBER_ELEVEN = 11,
+    NUMBER_TWELVE = 12,
 };
 
 std::unique_ptr<SectionHeader> SectionHeader::MakeUnique(char * const shdrBuf, const size_t bufSize,
@@ -55,23 +55,23 @@ bool SectionHeader::ParseSecHeader32(char * const shdrBuf)
     uint32_t *u4Buf = reinterpret_cast<uint32_t *>(shdrBuf);
     int index {0};
     nameIndex_ = u4Buf[index];
-    index = static_cast<int>(NUMBER::ONE);
+    index = static_cast<int>(NUMBER::NUMBER_ONE);
     secType_ = u4Buf[index];
-    index = static_cast<int>(NUMBER::TWO);
+    index = static_cast<int>(NUMBER::NUMBER_TWO);
     secFlags_ = u4Buf[index];
-    index = static_cast<int>(NUMBER::SIX);
+    index = static_cast<int>(NUMBER::NUMBER_SIX);
     link_ = u4Buf[index];
-    index = static_cast<int>(NUMBER::SEVEN);
+    index = static_cast<int>(NUMBER::NUMBER_SEVEN);
     info_ = u4Buf[index];
-    index = static_cast<int>(NUMBER::THREE);
+    index = static_cast<int>(NUMBER::NUMBER_THREE);
     secVaddr_ = u4Buf[index];
-    index = static_cast<int>(NUMBER::FOUR);
+    index = static_cast<int>(NUMBER::NUMBER_FOUR);
     fileOffset_ = u4Buf[index];
-    index = static_cast<int>(NUMBER::FIVE);
+    index = static_cast<int>(NUMBER::NUMBER_FIVE);
     secSize_ = u4Buf[index];
-    index = static_cast<int>(NUMBER::EIGHT);
+    index = static_cast<int>(NUMBER::NUMBER_EIGHT);
     secAddrAlign_ = u4Buf[index];
-    index = static_cast<int>(NUMBER::NINE);
+    index = static_cast<int>(NUMBER::NUMBER_NINE);
     secEntrySize_ = u4Buf[index];
     return true;
 }
@@ -82,22 +82,22 @@ bool SectionHeader::ParseSecHeader64(char * const shdrBuf)
     uint32_t *u4Buf = reinterpret_cast<uint32_t *>(shdrBuf);
     size_t index {0};
     nameIndex_ = u4Buf[index];
-    index = static_cast<size_t>(NUMBER::ONE);
+    index = static_cast<size_t>(NUMBER::NUMBER_ONE);
     secType_ = u4Buf[index];
     secFlags_ = u8Buf[index];
-    index = static_cast<size_t>(NUMBER::TEN);
+    index = static_cast<size_t>(NUMBER::NUMBER_TEN);
     link_ = u4Buf[index];
-    index = static_cast<size_t>(NUMBER::ELEVEN);
+    index = static_cast<size_t>(NUMBER::NUMBER_ELEVEN);
     info_ = u4Buf[index];
-    index = static_cast<size_t>(NUMBER::TWO);
+    index = static_cast<size_t>(NUMBER::NUMBER_TWO);
     secVaddr_ = u8Buf[index];
-    index = static_cast<size_t>(NUMBER::THREE);
+    index = static_cast<size_t>(NUMBER::NUMBER_THREE);
     fileOffset_ = u8Buf[index];
-    index = static_cast<size_t>(NUMBER::FOUR);
+    index = static_cast<size_t>(NUMBER::NUMBER_FOUR);
     secSize_ = u8Buf[index];
-    index = static_cast<size_t>(NUMBER::SIX);
+    index = static_cast<size_t>(NUMBER::NUMBER_SIX);
     secAddrAlign_ = u8Buf[index];
-    index = static_cast<size_t>(NUMBER::SEVEN);
+    index = static_cast<size_t>(NUMBER::NUMBER_SEVEN);
     secEntrySize_ = u8Buf[index];
     return true;
 }

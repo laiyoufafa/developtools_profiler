@@ -48,7 +48,7 @@ public:
  */
 HWTEST_F(HtraceNetworkParserTest, ParseHtraceNetworkWithoutNetworkData, TestSize.Level1)
 {
-    TS_LOGI("test26-1");
+    TS_LOGI("test17-1");
     uint64_t ts = 100;
     auto networkDatas = std::make_unique<NetworkDatas>();
     HtraceNetworkParser htraceProcessParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
@@ -64,7 +64,7 @@ HWTEST_F(HtraceNetworkParserTest, ParseHtraceNetworkWithoutNetworkData, TestSize
  */
 HWTEST_F(HtraceNetworkParserTest, ParseHtraceNetworkWithNetworkData, TestSize.Level1)
 {
-    TS_LOGI("test26-2");
+    TS_LOGI("test17-2");
     uint64_t ts = 100;
     const uint64_t DURS = 1999632780;
     const uint64_t TX = 712924;
@@ -94,7 +94,7 @@ HWTEST_F(HtraceNetworkParserTest, ParseHtraceNetworkWithNetworkData, TestSize.Le
  */
 HWTEST_F(HtraceNetworkParserTest, ParseHtraceNetworkWithTwoNetworkData, TestSize.Level1)
 {
-    TS_LOGI("test26-3");
+    TS_LOGI("test17-3");
     uint64_t ts = 100;
     auto networkDatas = std::make_unique<NetworkDatas>();
 
@@ -143,7 +143,7 @@ HWTEST_F(HtraceNetworkParserTest, ParseHtraceNetworkWithTwoNetworkData, TestSize
  */
 HWTEST_F(HtraceNetworkParserTest, ParseHtraceNetworkWithThreeNetworkData, TestSize.Level1)
 {
-    TS_LOGI("test26-4");
+    TS_LOGI("test17-4");
     uint64_t ts = 100;
     auto networkDatas = std::make_unique<NetworkDatas>();
 
@@ -213,7 +213,7 @@ HWTEST_F(HtraceNetworkParserTest, ParseHtraceNetworkWithThreeNetworkData, TestSi
  */
 HWTEST_F(HtraceNetworkParserTest, ParseHtraceNetworkWithMultipleNetworkData, TestSize.Level1)
 {
-    TS_LOGI("test26-5");
+    TS_LOGI("test17-5");
     uint64_t ts = 100;
     auto networkDatas = std::make_unique<NetworkDatas>();
 

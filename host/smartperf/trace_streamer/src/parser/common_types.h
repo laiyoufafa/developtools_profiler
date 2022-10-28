@@ -23,6 +23,7 @@
 #include "diskio_plugin_result.pb.h"
 #include "hidump_plugin_result.pb.h"
 #include "hilog_plugin_result.pb.h"
+#include "hisysevent_plugin_result.pb.h"
 #include "memory_plugin_result.pb.h"
 #include "native_hook_result.pb.h"
 #include "network_plugin_result.pb.h"
@@ -35,7 +36,6 @@ namespace SysTuning {
 namespace TraceStreamer {
 enum ParseResult { ERROR = 0, SUCCESS };
 enum RawType { RAW_CPU_IDLE = 1, RAW_SCHED_WAKEUP = 2, RAW_SCHED_WAKING = 3 };
-
 enum Stat : uint32_t {
     RUNNABLE = 0,
     INTERRUPTABLESLEEP = 1,
@@ -76,17 +76,6 @@ struct DataSegment {
     BytraceLine bufLine;
     std::atomic<ParseStatus> status{TS_PARSE_STATUS_INIT};
 };
-enum DataSourceType {
-    DATA_SOURCE_TYPE_TRACE,
-    DATA_SOURCE_TYPE_MEM,
-    DATA_SOURCE_TYPE_HILOG,
-    DATA_SOURCE_TYPE_ALLOCATION,
-    DATA_SOURCE_TYPE_FPS,
-    DATA_SOURCE_TYPE_NETWORK,
-    DATA_SOURCE_TYPE_DISKIO,
-    DATA_SOURCE_TYPE_CPU,
-    DATA_SOURCE_TYPE_PROCESS,
-};
 // 注意使用完之后恢复初始化状态，保证下次使用不会出现数据混乱。
 struct HtraceDataSegment {
     std::string seg;
@@ -98,6 +87,7 @@ struct HtraceDataSegment {
     NetworkDatas networkInfo;
     DiskioData diskIOInfo;
     ProcessData processInfo;
+    HisyseventInfo hisyseventInfo;
     uint64_t timeStamp;
     std::unique_ptr<TracePluginResult> traceData;
     BuiltinClocks clockId;
@@ -108,7 +98,8 @@ struct HtraceDataSegment {
 class TracePoint {
 public:
     TracePoint() {}
-    TracePoint(const TracePoint& point) {
+    TracePoint(const TracePoint& point)
+    {
         phase_ = point.phase_;
         tgid_ = point.tgid_;
         name_ = point.name_;
@@ -120,7 +111,8 @@ public:
         flag_ = point.flag_;
         args_ = point.args_;
     }
-    void operator=(const TracePoint& point) {
+    void operator=(const TracePoint& point)
+    {
         phase_ = point.phase_;
         tgid_ = point.tgid_;
         name_ = point.name_;
