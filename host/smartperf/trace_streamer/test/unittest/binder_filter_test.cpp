@@ -53,7 +53,7 @@ public:
  */
 HWTEST_F(BinderFilterTest, BinderSenderfilterNeedReply, TestSize.Level1)
 {
-    TS_LOGI("test9-1");
+    TS_LOGI("test1-1");
     uint64_t ts1 = 100;
     uint32_t tid1 = 1;
     uint64_t transactionId1 = 1;
@@ -78,7 +78,7 @@ HWTEST_F(BinderFilterTest, BinderSenderfilterNeedReply, TestSize.Level1)
  */
 HWTEST_F(BinderFilterTest, BinderSenderfilterNeedReplyAndReceive, TestSize.Level1)
 {
-    TS_LOGI("test9-2");
+    TS_LOGI("test1-2");
     int64_t ts1 = 100;
     uint32_t tid1 = 1;
     uint64_t transactionId1 = 1;
@@ -122,7 +122,7 @@ HWTEST_F(BinderFilterTest, BinderSenderfilterNeedReplyAndReceive, TestSize.Level
  */
 HWTEST_F(BinderFilterTest, BinderSenderfilterNeedReplyAndReceiveWithAlloc, TestSize.Level1)
 {
-    TS_LOGI("test9-3");
+    TS_LOGI("test1-3");
     int64_t ts1 = 100;
     uint32_t tid1 = 1;
     uint64_t transactionId1 = 1;
@@ -160,7 +160,7 @@ HWTEST_F(BinderFilterTest, BinderSenderfilterNeedReplyAndReceiveWithAlloc, TestS
  */
 HWTEST_F(BinderFilterTest, BinderSenderfilterNeedReplyAndReceiveNotmatch, TestSize.Level1)
 {
-    TS_LOGI("test9-4");
+    TS_LOGI("test1-4");
     int64_t ts1 = 100;
     uint32_t tid1 = 1;
     uint64_t transactionId1 = 1;
@@ -189,7 +189,7 @@ HWTEST_F(BinderFilterTest, BinderSenderfilterNeedReplyAndReceiveNotmatch, TestSi
  */
 HWTEST_F(BinderFilterTest, BinderSenderfilterNoNeedReply, TestSize.Level1)
 {
-    TS_LOGI("test9-5");
+    TS_LOGI("test1-5");
     int64_t ts1 = 100;
     uint32_t tid1 = 1;
     uint64_t transactionId1 = 1;
@@ -211,7 +211,7 @@ HWTEST_F(BinderFilterTest, BinderSenderfilterNoNeedReply, TestSize.Level1)
  */
 HWTEST_F(BinderFilterTest, BinderSenderNoneedReplyAndReceivefilter, TestSize.Level1)
 {
-    TS_LOGI("test9-6");
+    TS_LOGI("test1-6");
     int64_t ts1 = 100;
     uint32_t tid1 = 1;
     uint64_t transactionId1 = 1;
@@ -231,7 +231,7 @@ HWTEST_F(BinderFilterTest, BinderSenderNoneedReplyAndReceivefilter, TestSize.Lev
     streamFilters_.binderFilter_->ReceiveTraction(ts1, pid1, transactionId1); // receive binder
     EXPECT_TRUE(traceDataCache_.GetConstInternalSlicesData().Size() == 2);
     EXPECT_TRUE(traceDataCache_.GetConstInternalSlicesData().ArgSetIdsData()[0] == 0);
-    EXPECT_TRUE(traceDataCache_.GetConstInternalSlicesData().ArgSetIdsData()[1] == 1);
+    EXPECT_TRUE(traceDataCache_.GetConstInternalSlicesData().ArgSetIdsData()[1] == 0);
 }
 
 /**
@@ -241,7 +241,7 @@ HWTEST_F(BinderFilterTest, BinderSenderNoneedReplyAndReceivefilter, TestSize.Lev
  */
 HWTEST_F(BinderFilterTest, BinderSenderNoneedReplyAndReceivefilterNotmatch, TestSize.Level1)
 {
-    TS_LOGI("test9-7");
+    TS_LOGI("test1-7");
     int64_t ts1 = 100;
     uint32_t tid1 = 1;
     uint64_t transactionId1 = 1;
@@ -271,7 +271,7 @@ HWTEST_F(BinderFilterTest, BinderSenderNoneedReplyAndReceivefilterNotmatch, Test
  */
 HWTEST_F(BinderFilterTest, BinderSenderfilterWrongReply, TestSize.Level1)
 {
-    TS_LOGI("test9-8");
+    TS_LOGI("test1-8");
     int64_t ts1 = 100;
     uint32_t tid1 = 1;
     uint64_t transactionId1 = 1;

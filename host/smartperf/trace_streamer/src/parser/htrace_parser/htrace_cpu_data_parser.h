@@ -19,7 +19,7 @@
 #include <string>
 #include "cpu_plugin_result.pb.h"
 #include "hilog_plugin_result.pb.h"
-#include "htrace_plugin_time.h"
+#include "htrace_plugin_time_parser.h"
 #include "trace_data/trace_data_cache.h"
 #include "trace_streamer_config.h"
 #include "trace_streamer_filters.h"
@@ -35,7 +35,11 @@ public:
     enum TSCpuDataType { TSCpuDataType_Usage, TSCpuDataType_ThreadInfo, TSCpuDataType_Load };
     class TsCpuData {
     public:
-        TsCpuData() {}
+        TsCpuData()
+        {
+            ts_ = 0;
+            cpuDataType_ = TSCpuDataType_Usage;
+        }
         void SetCpuUsage(uint64_t ts, CpuUsageInfo& usage)
         {
             ts_ = ts;

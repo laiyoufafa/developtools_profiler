@@ -16,11 +16,13 @@
 #define HTRACE_NATIVE_HOOK_PARSER_H
 #include <cstdint>
 #include <map>
+#include <set>
 #include <string>
 #include "double_map.h"
 #include "htrace_event_parser.h"
-#include "htrace_plugin_time.h"
+#include "htrace_plugin_time_parser.h"
 #include "native_hook_result.pb.h"
+#include "quatra_map.h"
 #include "trace_streamer_config.h"
 #include "trace_streamer_filters.h"
 
@@ -35,16 +37,48 @@ public:
     void Finish();
 
 private:
+    class NativeHookFrameTemp {
+    public:
+        NativeHookFrameTemp() {}
+        NativeHookFrameTemp(uint64_t fileId, uint64_t symbolId, uint32_t depth, uint64_t offset, uint64_t symbolOffset)
+            : fileId_(fileId), symbolId_(symbolId), depth_(depth), offset_(offset), symbolOffset_(symbolOffset)
+        {
+        }
+        ~NativeHookFrameTemp() {}
+        uint64_t fileId_ = 0;
+        uint64_t symbolId_ = 0;
+        uint32_t depth_ = 0;
+        uint32_t ip_ = 0;
+        uint32_t sp_ = 0;
+        uint64_t offset_ = 0;
+        uint64_t symbolOffset_ = 0;
+    };
+    template <class T1, class T2>
+    void UpdateMap(std::unordered_map<T1, T2>& sourceMap, T1 key, T2 value);
     void MaybeParseNativeHookData();
     void ParseNativeHookData(const uint64_t timeStamp, const NativeHookData* nativeHookData);
-    void ParseNativeHookFrame(const RepeatedPtrField< ::Frame >& frameInfo);
+    uint64_t ParseNativeHookFrame(const RepeatedPtrField<::Frame>& repeatedFrame);
     void MaybeUpdateCurrentSizeDur(uint64_t row, uint64_t timeStamp, bool isMalloc);
-    uint64_t eventId_ = 0;
+    void UpdateThreadNameWithNativeHookData() const;
+    void ParseAllocEvent(uint64_t newTimeStamp, const NativeHookData* nativeHookData);
+    void ParseFreeEvent(uint64_t newTimeStamp, const NativeHookData* nativeHookData);
+    void ParseMmapEvent(uint64_t newTimeStamp, const NativeHookData* nativeHookData);
+    void ParseMunmapEvent(uint64_t newTimeStamp, const NativeHookData* nativeHookData);
+    void ParseTagEvent(const NativeHookData* nativeHookData);
+    void ParseFileEvent(const NativeHookData* nativeHookData);
+    void ParseSymbolEvent(const NativeHookData* nativeHookData);
+    void ParseThreadEvent(const NativeHookData* nativeHookData);
+    uint64_t callChainId_ = 0;
     DoubleMap<uint32_t, uint64_t, uint64_t> addrToAllocEventRow_;
     DoubleMap<uint32_t, uint64_t, uint64_t> addrToMmapEventRow_;
     uint64_t lastMallocEventRaw_ = INVALID_UINT64;
     uint64_t lastMmapEventRaw_ = INVALID_UINT64;
-    std::multimap<uint64_t, std::unique_ptr<NativeHookData>> tsNativeHookQueue_;
+    std::multimap<uint64_t, std::unique_ptr<NativeHookData>> tsNativeHookQueue_ = {};
+    std::unordered_map<uint32_t, uint64_t> threadNameIdToThreadName_ = {};
+    std::unordered_map<uint32_t, uint32_t> itidToThreadNameId_ = {};
+    QuatraMap<uint64_t, uint64_t, uint64_t, uint64_t, uint64_t> frameToFrameId_;
+    std::set<DataIndex> invalidLibPathIndexs_ = {};
+    std::map<uint32_t, uint64_t> filePathIdToFilePathName_ = {};
     const size_t MAX_CACHE_SIZE = 200000;
 };
 } // namespace TraceStreamer

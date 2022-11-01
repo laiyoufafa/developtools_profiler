@@ -48,13 +48,13 @@ public:
 };
 
 /**
- * @tc.name: ParseSysMemParseWithRandomValue
+ * @tc.name: ParseSysVMemParse
  * @tc.desc: Virtual memory parsing test, input a random reasonable value
  * @tc.type: FUNC
  */
 HWTEST_F(HtraceSysVMemParserTest, ParseSysVMemParse, TestSize.Level1)
 {
-    TS_LOGI("test14-1");
+    TS_LOGI("test20-1");
     HtraceMemParser* memParser = new HtraceMemParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
 
     MemoryData tracePacket;
@@ -78,8 +78,8 @@ HWTEST_F(HtraceSysVMemParserTest, ParseSysVMemParse, TestSize.Level1)
     auto eventCount =
         stream_.traceDataCache_->GetConstStatAndInfo().GetValue(TRACE_SYS_VIRTUAL_MEMORY, STAT_EVENT_RECEIVED);
     EXPECT_TRUE(1 == eventCount);
-    EXPECT_TRUE(stream_.traceDataCache_->GetConstMeasureData().Size() == 1);
-    EXPECT_TRUE(stream_.traceDataCache_->GetConstMeasureData().ValuesData()[0] == static_cast<int64_t>(value));
+    EXPECT_TRUE(stream_.traceDataCache_->GetConstSysMemMeasureData().Size() == 1);
+    EXPECT_TRUE(stream_.traceDataCache_->GetConstSysMemMeasureData().ValuesData()[0] == static_cast<int64_t>(value));
 }
 
 /**
@@ -89,7 +89,7 @@ HWTEST_F(HtraceSysVMemParserTest, ParseSysVMemParse, TestSize.Level1)
  */
 HWTEST_F(HtraceSysVMemParserTest, ParseSysVMemNomal, TestSize.Level1)
 {
-    TS_LOGI("test14-2");
+    TS_LOGI("test20-2");
     HtraceMemParser* memParser = new HtraceMemParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
 
     MemoryData tracePacket;
@@ -122,9 +122,9 @@ HWTEST_F(HtraceSysVMemParserTest, ParseSysVMemNomal, TestSize.Level1)
     auto eventCount =
         stream_.traceDataCache_->GetConstStatAndInfo().GetValue(TRACE_SYS_VIRTUAL_MEMORY, STAT_EVENT_RECEIVED);
     EXPECT_TRUE(1 == eventCount);
-    EXPECT_TRUE(stream_.traceDataCache_->GetConstMeasureData().Size() == 2);
-    EXPECT_TRUE(stream_.traceDataCache_->GetConstMeasureData().ValuesData()[0] == static_cast<int64_t>(value));
-    EXPECT_TRUE(stream_.traceDataCache_->GetConstMeasureData().ValuesData()[1] == static_cast<int64_t>(value2));
+    EXPECT_TRUE(stream_.traceDataCache_->GetConstSysMemMeasureData().Size() == 2);
+    EXPECT_TRUE(stream_.traceDataCache_->GetConstSysMemMeasureData().ValuesData()[0] == static_cast<int64_t>(value));
+    EXPECT_TRUE(stream_.traceDataCache_->GetConstSysMemMeasureData().ValuesData()[1] == static_cast<int64_t>(value2));
 }
 
 /**
@@ -134,7 +134,7 @@ HWTEST_F(HtraceSysVMemParserTest, ParseSysVMemNomal, TestSize.Level1)
  */
 HWTEST_F(HtraceSysVMemParserTest, ParseSysVMemAbnomal, TestSize.Level1)
 {
-    TS_LOGI("test14-3");
+    TS_LOGI("test20-3");
     HtraceMemParser* memParser = new HtraceMemParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
 
     MemoryData tracePacket;
@@ -169,8 +169,8 @@ HWTEST_F(HtraceSysVMemParserTest, ParseSysVMemAbnomal, TestSize.Level1)
     eventCount =
         stream_.traceDataCache_->GetConstStatAndInfo().GetValue(TRACE_SYS_VIRTUAL_MEMORY, STAT_EVENT_DATA_INVALID);
     EXPECT_TRUE(0 == eventCount);
-    EXPECT_TRUE(stream_.traceDataCache_->GetConstMeasureData().Size() == 2);
-    EXPECT_TRUE(stream_.traceDataCache_->GetConstMeasureData().ValuesData()[0] == static_cast<int64_t>(value));
+    EXPECT_TRUE(stream_.traceDataCache_->GetConstSysMemMeasureData().Size() == 2);
+    EXPECT_TRUE(stream_.traceDataCache_->GetConstSysMemMeasureData().ValuesData()[0] == static_cast<int64_t>(value));
 }
 
 /**
@@ -180,7 +180,7 @@ HWTEST_F(HtraceSysVMemParserTest, ParseSysVMemAbnomal, TestSize.Level1)
  */
 HWTEST_F(HtraceSysVMemParserTest, ParseSysVMemWithMutiNomal, TestSize.Level1)
 {
-    TS_LOGI("test14-4");
+    TS_LOGI("test20-4");
     HtraceMemParser* memParser = new HtraceMemParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
 
     MemoryData tracePacket;
@@ -224,8 +224,8 @@ HWTEST_F(HtraceSysVMemParserTest, ParseSysVMemWithMutiNomal, TestSize.Level1)
     eventCount =
         stream_.traceDataCache_->GetConstStatAndInfo().GetValue(TRACE_SYS_VIRTUAL_MEMORY, STAT_EVENT_DATA_INVALID);
     EXPECT_TRUE(2 == eventCount);
-    EXPECT_TRUE(stream_.traceDataCache_->GetConstMeasureData().Size() == 1);
-    EXPECT_TRUE(stream_.traceDataCache_->GetConstMeasureData().ValuesData()[0] == static_cast<int64_t>(value));
+    EXPECT_TRUE(stream_.traceDataCache_->GetConstSysMemMeasureData().Size() == 1);
+    EXPECT_TRUE(stream_.traceDataCache_->GetConstSysMemMeasureData().ValuesData()[0] == static_cast<int64_t>(value));
 }
 
 /**
@@ -235,7 +235,7 @@ HWTEST_F(HtraceSysVMemParserTest, ParseSysVMemWithMutiNomal, TestSize.Level1)
  */
 HWTEST_F(HtraceSysVMemParserTest, ParseSysVMemWithRandomValue, TestSize.Level1)
 {
-    TS_LOGI("test14-5");
+    TS_LOGI("test20-5");
     HtraceMemParser* memParser = new HtraceMemParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
 
     MemoryData tracePacket;
@@ -267,7 +267,7 @@ HWTEST_F(HtraceSysVMemParserTest, ParseSysVMemWithRandomValue, TestSize.Level1)
     EXPECT_TRUE(1 == eventCount);
 
     for (auto i = 0; i < SysVMeminfoType::VMEMINFO_WORKINGSET_RESTORE + 1; i++) {
-        EXPECT_TRUE(stream_.traceDataCache_->GetConstMeasureData().ValuesData()[i] ==
+        EXPECT_TRUE(stream_.traceDataCache_->GetConstSysMemMeasureData().ValuesData()[i] ==
                     sysVMemValueMap_.at(static_cast<SysVMeminfoType>(i)));
     }
 }

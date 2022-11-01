@@ -14,17 +14,17 @@
  */
 #ifndef PERF_DATA_PARSER_H
 #define PERF_DATA_PARSER_H
+#include <linux/perf_event.h>
 #include <cstddef>
 #include <cstdint>
 #include <deque>
-#include <linux/perf_event.h>
 #include <set>
-#include "hashlist.h"
-#include "htrace_plugin_time.h"
+#include "htrace_plugin_time_parser.h"
 #include "log.h"
 #include "perf_events.h"
 #include "perf_file_format.h"
 #include "perf_file_reader.h"
+#include "quatra_map.h"
 #include "report.h"
 #include "trace_data/trace_data_cache.h"
 #include "trace_streamer_filters.h"
@@ -36,21 +36,35 @@ class PerfDataParser : public HtracePluginTimeParser {
 public:
     PerfDataParser(TraceDataCache* dataCache, const TraceStreamerFilters* ctx);
     ~PerfDataParser();
-    void InitPerfDataAndLoad(const std::deque<uint8_t> dequeBuffer);
+    void InitPerfDataAndLoad(const std::deque<uint8_t> dequeBuffer, uint64_t size);
     void Finish();
 
 private:
     bool LoadPerfData();
     void UpdateEventConfigInfo();
-    void UpdateCmdlineInfo();
+    void UpdateCmdlineInfo() const;
     void LoadEventDesc();
-    void UpdateReportWorkloadInfo();
+    void UpdateReportWorkloadInfo() const;
     void UpdateSymbolAndFilesData();
     void UpdateClockType();
     bool RecordCallBack(std::unique_ptr<PerfEventRecord> record);
-    void ProcessSample(std::unique_ptr<PerfRecordSample>&);
+    void UpdatePerfSampleData(uint64_t callChainId, std::unique_ptr<PerfRecordSample>& sample);
+    uint64_t UpdatePerfCallChainData(std::unique_ptr<PerfRecordSample>& sample);
 
-    uint64_t sampleId_ = 0;
+    class CallStackTemp {
+    public:
+        CallStackTemp() {}
+        CallStackTemp(uint32_t depth, uint64_t vaddr, uint64_t fileId, uint64_t symbolId)
+            : depth_(depth), vaddrInFile_(vaddr), fileId_(fileId), symbolId_(symbolId)
+        {
+        }
+        ~CallStackTemp() {}
+        uint32_t depth_ = 0;
+        uint64_t vaddrInFile_ = 0;
+        uint64_t fileId_ = 0;
+        uint64_t symbolId_ = 0;
+    };
+    uint64_t callChainId_ = 0;
     std::unique_ptr<PerfFileReader> recordDataReader_ = nullptr;
     const std::string cpuOffEventName_ = "sched:sched_switch";
     const std::string wakingEventName_ = "sched:sched_waking";
@@ -68,12 +82,6 @@ private:
         PERF_CLOCK_MONOTONIC_RAW = 4,
         PERF_CLOCK_BOOTTIME = 7,
     };
-    std::map<uint32_t, uint32_t> perfToTSClockType_ = {
-        {PERF_CLOCK_REALTIME, TS_CLOCK_REALTIME},
-        {PERF_CLOCK_MONOTONIC, TS_MONOTONIC},
-        {PERF_CLOCK_MONOTONIC_RAW, TS_MONOTONIC_RAW},
-        {PERF_CLOCK_BOOTTIME, TS_CLOCK_BOOTTIME}
-    };
     DataIndex configNameIndex_ = 0;
     DataIndex workloaderIndex_ = 0;
     DataIndex cmdlineIndex_ = 0;
@@ -81,6 +89,14 @@ private:
     DataIndex suspendStatIndex_ = 0;
     DataIndex unkonwnStateIndex_ = 0;
     std::unordered_multimap<uint64_t, uint64_t> tidToPid_ = {};
+    const std::map<uint32_t, uint32_t> perfToTSClockType_ = {
+        {PERF_CLOCK_REALTIME, TS_CLOCK_REALTIME},
+        {PERF_CLOCK_MONOTONIC, TS_MONOTONIC},
+        {PERF_CLOCK_MONOTONIC_RAW, TS_MONOTONIC_RAW},
+        {PERF_CLOCK_BOOTTIME, TS_CLOCK_BOOTTIME}
+    };
+    std::map<uint64_t, uint64_t> fileDataDictIdToFileId_ = {};
+    QuatraMap<uint64_t, uint64_t, uint64_t, uint64_t, uint64_t> frameToCallChainId_;
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

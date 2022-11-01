@@ -33,7 +33,25 @@ ohos_source_set("hiperf_parser_src") {
     "${OHOS_PROTO_GEN}/types/plugins/memory_data",
     "//third_party/protobuf/src",
     "//third_party/perf_include",
+    "//third_party/perf_include/linux",
+    "//third_party/perf_include/include",
   ]
+  include_dirs += [ "//third_party/libunwind/include" ]
+
+  if (enable_ts_utest && !use_wasm) {
+    cflags = [
+      "-fprofile-arcs",
+      "-ftest-coverage",
+    ]
+    ldflags = [
+      "-fprofile-arcs",
+      "-ftest-coverage",
+      "--coverage",
+    ]
+    if (is_macx && is_test) {
+      cflags += [ "-D UT_MAC" ]
+    }
+  }
 }
 
 group("hiperf_parser") {
@@ -43,7 +61,7 @@ group("hiperf_parser") {
     "//third_party/protobuf:protobuf",
     "//third_party/protobuf:protobuf_lite",
   ]
-  if (target != "test") {
+  if (target != "test" && !is_openharmony) {
     deps += [ "//prebuilts/protos:ts_proto_data_cpp" ]
   }
 }

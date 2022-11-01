@@ -17,6 +17,7 @@
 #include <chrono>
 #include <csignal>
 #include <cstdint>
+#include <strings.h> // for macx
 #include <thread>
 #ifdef _WIN32
 #include <WinSock2.h>
@@ -101,7 +102,7 @@ void HttpServer::Run(int port)
         }
     }
 
-    for (auto& it : clientThreads_) {
+    for (const auto& it : clientThreads_) {
         if (it->thread_.joinable()) {
             it->sock_.Close();
             it->thread_.join();
@@ -114,7 +115,9 @@ void HttpServer::Run(int port)
 #else
 void HttpServer::Run(int port)
 {
-    signal(SIGPIPE, SIG_IGN);
+    if (signal(SIGPIPE, SIG_IGN) == SIG_ERR) {
+        return;
+    }
 
     if (!CreateSocket(port)) {
         return;
@@ -144,7 +147,7 @@ void HttpServer::Run(int port)
         }
     }
 
-    for (auto& it : clientThreads_) {
+    for (const auto& it : clientThreads_) {
         if (it->thread_.joinable()) {
             it->sock_.Close();
             it->thread_.join();
@@ -328,14 +331,27 @@ void HttpServer::ProcessRequest(HttpSocket& client, RequestST& request)
         HttpResponse(client, "404 Not Found\r\n");
         return;
     }
-    auto resultCallback = [&](const std::string result) {
-        HttpResponse(client, "200 OK\r\n", true, result.size());
+    HttpResponse(client, "200 OK\r\n", true);
+    auto resultCallback = [&client](const std::string& result, int) {
+        std::stringstream chunkLenbuff;
+        chunkLenbuff << std::hex << result.size() << "\r\n";
+        if (!client.Send(chunkLenbuff.str().data(), chunkLenbuff.str().size())) {
+            TS_LOGE("send client socket(%d) error", client.GetFd());
+            return;
+        }
         if (!client.Send(result.data(), result.size())) {
+            TS_LOGE("send client socket(%d) error", client.GetFd());
+            return;
+        }
+        if (!client.Send("\r\n", strlen("\r\n"))) {
             TS_LOGE("send client socket(%d) error", client.GetFd());
             return;
         }
     };
     it->second(request.body, request.bodyLen, resultCallback);
+    if (!client.Send("0\r\n\r\n", strlen("0\r\n\r\n"))) { // chunk tail
+        TS_LOGE("send client socket(%d) error", client.GetFd());
+    }
 }
 
 void HttpServer::ParseRequest(const uint8_t* requst, size_t& len, RequestST& httpReq)
@@ -398,7 +414,7 @@ void HttpServer::ParseRequest(const uint8_t* requst, size_t& len, RequestST& htt
     return;
 }
 
-void HttpServer::HttpResponse(HttpSocket& client, const std::string& status, bool hasBody, uint32_t bodyLength)
+void HttpServer::HttpResponse(HttpSocket& client, const std::string& status, bool hasBody)
 {
     std::string res;
     const size_t maxLenResponse = 1024;
@@ -407,11 +423,9 @@ void HttpServer::HttpResponse(HttpSocket& client, const std::string& status, boo
     res += status;
 
     res += "Connection: Keep-Alive\r\n";
-
     if (hasBody) {
         res += "Content-Type: application/json\r\n";
         res += "Transfer-Encoding: chunked\r\n";
-        res += "Content-Length:" + base::number(bodyLength) + "\r\n";
     }
     res += "\r\n";
     if (!client.Send(res.data(), res.size())) {

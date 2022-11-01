@@ -28,6 +28,7 @@
 #include "print_event_parser.h"
 #include "trace_data/trace_data_cache.h"
 #include "trace_plugin_result.pb.h"
+#include "trace_streamer_config.h"
 #include "trace_streamer_filters.h"
 #include "ts_common.h"
 
@@ -39,7 +40,9 @@ public:
     HtraceEventParser(TraceDataCache* dataCache, const TraceStreamerFilters* filter);
     ~HtraceEventParser();
     void ParseDataItem(const FtraceCpuDetailMsg* cpuDetail, BuiltinClocks clock);
+    void FilterAllEventsTemp();
     void FilterAllEvents();
+    void Clear() const;
 private:
     void DealEvent(const FtraceEvent& event);
     bool BinderTractionEvent(const MessageLite& event) const;
@@ -59,6 +62,7 @@ private:
     bool SchedWakingEvent(const MessageLite& event) const;
     bool CpuIdleEvent(const MessageLite& event) const;
     bool CpuFrequencyEvent(const MessageLite& event) const;
+    bool CpuFrequencyLimitsEvent(const MessageLite& event) const;
     bool SuspendResumeEvent(const MessageLite& event) const;
     bool WorkqueueExecuteStartEvent(const MessageLite& event) const;
     bool WorkqueueExecuteEndEvent(const MessageLite& event) const;
@@ -79,16 +83,33 @@ private:
     bool SignalGenerateEvent(const MessageLite& event) const;
     bool SignalDeleverEvent(const MessageLite& event) const;
     bool InvokeFunc(const SupportedTraceEventType& eventType, const MessageLite& msgBase);
-    struct EventInfo {
-        uint64_t eventTimestamp;
-        uint32_t eventCpu;
-        uint32_t eventPid;
-        uint32_t eventTid;
-        FtraceEvent cpuDetail;
+    class EventInfo {
+    public:
+        EventInfo(const std::string& common,
+                  uint64_t eventTimestamp,
+                  uint32_t eventCpu,
+                  uint32_t eventPid,
+                  uint32_t eventTid,
+                  const FtraceEvent& cpuDetail)
+            : common_(common),
+              eventTimestamp_(eventTimestamp),
+              eventCpu_(eventCpu),
+              eventPid_(eventPid),
+              eventTid_(eventTid),
+              cpuDetail_(std::move(cpuDetail))
+        {
+        }
+        std::string common_;
+        uint64_t eventTimestamp_;
+        uint32_t eventCpu_;
+        uint32_t eventPid_;
+        uint32_t eventTid_;
+        FtraceEvent cpuDetail_;
     };
     using FuncCall = std::function<bool(const MessageLite& event)>;
     uint32_t eventCpu_ = INVALID_UINT32;
     uint64_t eventTimestamp_ = INVALID_UINT64;
+    std::string comm_ = "";
     uint32_t eventPid_ = INVALID_UINT32;
     uint32_t eventTid_ = INVALID_UINT32;
     std::map<std::string, FuncCall> eventToFunctionMap_ = {};
@@ -99,7 +120,7 @@ private:
     uint64_t lastOverwrite_ = 0;
     uint64_t ftraceStartTime_ = std::numeric_limits<uint64_t>::max();
     uint64_t ftraceEndTime_ = 0;
-    std::vector<EventInfo> eventList_ = {};
+    std::vector<std::unique_ptr<EventInfo>> eventList_ = {};
     const DataIndex signalGenerateId_ = traceDataCache_->GetDataIndex("signal_generate");
     const DataIndex signalDeliverId_ = traceDataCache_->GetDataIndex("signal_deliver");
     const DataIndex schedWakeupName_ = traceDataCache_->GetDataIndex("sched_wakeup");
@@ -107,9 +128,12 @@ private:
     const DataIndex schedWakeupNewName_ = traceDataCache_->GetDataIndex("sched_wakeup_new");
     const DataIndex cpuIdleName_ = traceDataCache_->GetDataIndex("cpu_idle");
     const DataIndex cpuFrequencyName_ = traceDataCache_->GetDataIndex("cpu_frequency");
+    const DataIndex cpuFrequencyLimitMaxNameId = traceDataCache_->GetDataIndex("cpu_frequency_limits_max");
+    const DataIndex cpuFrequencyLimitMinNameId = traceDataCache_->GetDataIndex("cpu_frequency_limits_min");
     const DataIndex sysEnterName_ = traceDataCache_->GetDataIndex("sys_enter");
     const DataIndex sysExitName_ = traceDataCache_->GetDataIndex("sys_exit");
     const DataIndex oomScoreAdjName_ = traceDataCache_->GetDataIndex("oom_score_adj");
+    TraceStreamerConfig config_{};
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

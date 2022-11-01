@@ -29,6 +29,7 @@ network_data_dir="$proto_dir/types/plugins/network_data"
 cpu_data_dir="$proto_dir/types/plugins/cpu_data"
 diskio_data_dir="$proto_dir/types/plugins/diskio_data"
 process_data_dir="$proto_dir/types/plugins/process_data"
+hisysevent_data_dir="$proto_dir/types/plugins/hisysevent_data"
 proto_array=("${services_dir}/common_types.proto"
     "$ftrace_data_dir/trace_plugin_result.proto"
     "$ftrace_data_dir/ftrace_event.proto"
@@ -78,7 +79,8 @@ proto_array=("${services_dir}/common_types.proto"
     "$network_data_dir/network_plugin_result.proto"
     "$cpu_data_dir/cpu_plugin_result.proto"
     "$diskio_data_dir/diskio_plugin_result.proto"
-    "$process_data_dir/process_plugin_result.proto")
+    "$process_data_dir/process_plugin_result.proto"
+    "$hisysevent_data_dir/hisysevent_plugin_result.proto")
 
 export LD_LIBRARY_PATH=../../out/linux
 for ((i = 0; i < ${#proto_array[@]}; i ++))
@@ -87,6 +89,6 @@ do
    newpath=${newpath:2}
    cppout=../../third_party/protogen/$newpath
    mkdir -p $cppout
-   ../../out/linux/protoc --proto_path=$memory_data_dir:$native_hook_dir:$hidump_data_dir:$hilog_data_dir:$ftrace_data_dir:$services_dir:$network_data_dir:$cpu_data_dir:$diskio_data_dir:$process_data_dir --cpp_out=$cppout ${proto_array[$i]}
+   ../../out/linux/protoc --proto_path=$memory_data_dir:$native_hook_dir:$hidump_data_dir:$hilog_data_dir:$ftrace_data_dir:$services_dir:$network_data_dir:$cpu_data_dir:$diskio_data_dir:$process_data_dir:$hisysevent_data_dir --cpp_out=$cppout ${proto_array[$i]}
 done
 echo "generate proto based files over"

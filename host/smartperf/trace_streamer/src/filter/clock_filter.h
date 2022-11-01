@@ -58,7 +58,7 @@ public:
     {
         primaryClock_ = primary;
     }
-    ClockId GetPrimaryClock()
+    ClockId GetPrimaryClock() const
     {
         return primaryClock_;
     }
@@ -71,7 +71,7 @@ public:
     }
 
 private:
-    std::string GenClockKey(ClockId srcClockId, ClockId desClockId) const;
+    static std::string GenClockKey(ClockId srcClockId, ClockId desClockId);
     void AddConvertClockMap(ClockId srcClockId, ClockId dstClockId, uint64_t srcTs, uint64_t dstTs);
 
 private:
@@ -79,6 +79,7 @@ private:
 
     ClockId primaryClock_;
     bool hasInitSnapShot_ = false;
+    TraceDataCache* dataCache_;
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

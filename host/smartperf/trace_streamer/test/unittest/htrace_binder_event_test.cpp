@@ -47,7 +47,7 @@ public:
  */
 HWTEST_F(HtraceBinderEventTest, BinderSenderfilterNeedReply, TestSize.Level1)
 {
-    TS_LOGI("test8-1");
+    TS_LOGI("test10-1");
     std::string appName = "app1";
     int64_t ts1 = 100;
     uint32_t tid1 = 1;
@@ -92,7 +92,7 @@ HWTEST_F(HtraceBinderEventTest, BinderSenderfilterNeedReply, TestSize.Level1)
  */
 HWTEST_F(HtraceBinderEventTest, BinderSenderfilterNeedReplyAndReceive, TestSize.Level1)
 {
-    TS_LOGI("test8-2");
+    TS_LOGI("test10-2");
     std::string appName = "app1";
     int64_t ts1 = 100;
     uint32_t tid1 = 1;
@@ -157,7 +157,7 @@ HWTEST_F(HtraceBinderEventTest, BinderSenderfilterNeedReplyAndReceive, TestSize.
  */
 HWTEST_F(HtraceBinderEventTest, BinderSenderfilterNeedReplyAndReceiveWithAlloc, TestSize.Level1)
 {
-    TS_LOGI("test8-3");
+    TS_LOGI("test10-3");
     int64_t ts1 = 100;
     std::string appName = "app1";
     uint32_t tid1 = 1;
@@ -242,7 +242,7 @@ HWTEST_F(HtraceBinderEventTest, BinderSenderfilterNeedReplyAndReceiveWithAlloc, 
  */
 HWTEST_F(HtraceBinderEventTest, BinderSenderfilterNeedReplyAndReceiveNotmatch, TestSize.Level1)
 {
-    TS_LOGI("test8-4");
+    TS_LOGI("test10-4");
     std::string appName = "app1";
     int64_t ts1 = 100;
     uint32_t tid1 = 1;
@@ -305,7 +305,7 @@ HWTEST_F(HtraceBinderEventTest, BinderSenderfilterNeedReplyAndReceiveNotmatch, T
  */
 HWTEST_F(HtraceBinderEventTest, BinderSenderfilterNoNeedReply, TestSize.Level1)
 {
-    TS_LOGI("test8-5");
+    TS_LOGI("test10-5");
     std::string appName = "app1";
     int64_t ts1 = 100;
     uint32_t tid1 = 1;
@@ -348,7 +348,7 @@ HWTEST_F(HtraceBinderEventTest, BinderSenderfilterNoNeedReply, TestSize.Level1)
  */
 HWTEST_F(HtraceBinderEventTest, BinderSenderNoneedReplyAndReceivefilter, TestSize.Level1)
 {
-    TS_LOGI("test8-6");
+    TS_LOGI("test10-6");
     std::string appName = "app1";
     int64_t ts1 = 100;
     uint32_t tid1 = 1;
@@ -401,7 +401,7 @@ HWTEST_F(HtraceBinderEventTest, BinderSenderNoneedReplyAndReceivefilter, TestSiz
     eventParser.FilterAllEvents();
     EXPECT_TRUE(stream_.traceDataCache_->GetConstInternalSlicesData().Size() == 2);
     EXPECT_TRUE(stream_.traceDataCache_->GetConstInternalSlicesData().ArgSetIdsData()[0] == 0);
-    EXPECT_TRUE(stream_.traceDataCache_->GetConstInternalSlicesData().ArgSetIdsData()[1] == 1);
+    EXPECT_TRUE(stream_.traceDataCache_->GetConstInternalSlicesData().ArgSetIdsData()[1] == 0);
 }
 
 /**
@@ -411,7 +411,7 @@ HWTEST_F(HtraceBinderEventTest, BinderSenderNoneedReplyAndReceivefilter, TestSiz
  */
 HWTEST_F(HtraceBinderEventTest, BinderSenderNoneedReplyAndReceivefilterNotmatch, TestSize.Level1)
 {
-    TS_LOGI("test8-7");
+    TS_LOGI("test10-7");
     std::string appName = "app1";
     int64_t ts1 = 100;
     uint32_t tid1 = 1;
@@ -474,7 +474,7 @@ HWTEST_F(HtraceBinderEventTest, BinderSenderNoneedReplyAndReceivefilterNotmatch,
  */
 HWTEST_F(HtraceBinderEventTest, BinderSenderfilterWrongReply, TestSize.Level1)
 {
-    TS_LOGI("test8-8");
+    TS_LOGI("test10-8");
     std::string appName = "app1";
     int64_t ts1 = 100;
     uint32_t tid1 = 1;

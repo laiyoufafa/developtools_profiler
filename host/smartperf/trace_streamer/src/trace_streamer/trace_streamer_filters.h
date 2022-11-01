@@ -31,12 +31,14 @@ class BinderFilter;
 class ArgsFilter;
 class IrqFilter;
 class SystemEventMeasureFilter;
+class HiSysEventMeasureFilter;
+#if WITH_PERF
 class PerfDataFilter;
+#endif
 class TraceStreamerFilters {
 public:
     TraceStreamerFilters();
     ~TraceStreamerFilters();
-
     std::unique_ptr<ClockFilter> clockFilter_;
     std::unique_ptr<FilterFilter> filterFilter_;
     std::unique_ptr<SliceFilter> sliceFilter_;
@@ -60,7 +62,11 @@ public:
     std::unique_ptr<IrqFilter> irqFilter_;
     std::unique_ptr<SystemEventMeasureFilter> sysEventMemMeasureFilter_;
     std::unique_ptr<SystemEventMeasureFilter> sysEventVMemMeasureFilter_;
+    std::unique_ptr<SystemEventMeasureFilter> sysEventSourceFilter_;
+    std::unique_ptr<HiSysEventMeasureFilter> hiSysEventMeasureFilter_;
+#if WITH_PERF
     std::unique_ptr<PerfDataFilter> perfDataFilter_;
+#endif
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

@@ -37,10 +37,37 @@ DataIndex HiSysEventMeasureFilter::AppendNewValue(uint64_t serial,
                                                   DataIndex strValue)
 {
     uint64_t appKeyId = GetOrCreateFilterIdInternal(appNameId, key);
-    traceDataCache_->GetSyseventMeasureData()->AppendData(serial, timestamp, appNameId, appKeyId, type, numericValue, strValue);
+    traceDataCache_->GetSyseventMeasureData()->
+    AppendData(serial, timestamp, appNameId, appKeyId, type, numericValue, strValue);
     return appNameId;
 }
-
+void HiSysEventMeasureFilter::AppendNewValue(int32_t brightnessState,
+                                             int32_t btState,
+                                             int32_t locationState,
+                                             int32_t wifiState,
+                                             int32_t streamDefault,
+                                             int32_t voiceCall,
+                                             int32_t music,
+                                             int32_t streamRing,
+                                             int32_t media,
+                                             int32_t voiceAssistant,
+                                             int32_t system,
+                                             int32_t alarm,
+                                             int32_t notification,
+                                             int32_t bluetoolthSco,
+                                             int32_t enforcedAudible,
+                                             int32_t streamDtmf,
+                                             int32_t streamTts,
+                                             int32_t accessibility,
+                                             int32_t recording,
+                                             int32_t streamAll)
+{
+    traceDataCache_->GetDeviceStateData()->AppendNewData(
+        brightnessState, btState, locationState, wifiState, streamDefault, voiceCall, music, streamRing, media,
+        voiceAssistant, system, alarm, notification, bluetoolthSco, enforcedAudible, streamDtmf, streamTts,
+        accessibility, recording, streamAll);
+    return;
+}
 DataIndex HiSysEventMeasureFilter::GetOrCreateFilterIdInternal(DataIndex appNameId, DataIndex key)
 {
     uint64_t appKeyId = appKey_.Find(appNameId, key);

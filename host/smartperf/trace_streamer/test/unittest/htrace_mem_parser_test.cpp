@@ -55,7 +55,7 @@ public:
  */
 HWTEST_F(HtraceMemParserTest, ParseMemParse, TestSize.Level1)
 {
-    TS_LOGI("test12-1");
+    TS_LOGI("test16-1");
     HtraceMemParser* memParser = new HtraceMemParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
 
     MemoryData tracePacket;
@@ -85,7 +85,7 @@ HWTEST_F(HtraceMemParserTest, ParseMemParse, TestSize.Level1)
  */
 HWTEST_F(HtraceMemParserTest, ParseMemParseTestMeasureDataSize, TestSize.Level1)
 {
-    TS_LOGI("test12-2");
+    TS_LOGI("test16-2");
     HtraceMemParser* memParser = new HtraceMemParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
 
     MemoryData tracePacket;
@@ -119,21 +119,22 @@ HWTEST_F(HtraceMemParserTest, ParseMemParseTestMeasureDataSize, TestSize.Level1)
     EXPECT_TRUE(1 == eventCount);
 
     EXPECT_TRUE(stream_.traceDataCache_->GetConstProcessData(1).pid_ == pid);
-    EXPECT_TRUE(stream_.traceDataCache_->GetConstMeasureData().Size() == MEM_MAX * 1);
+    EXPECT_TRUE(stream_.traceDataCache_->GetConstProcessMeasureData().Size() == MEM_MAX * 1);
+    EXPECT_EQ(stream_.traceDataCache_->GetConstProcessData().size(), 2);
 
     for (auto i = 0; i < MEM_MAX; i++) {
-        if (stream_.traceDataCache_->GetConstMeasureData().filterIdDeque_[i] ==
+        if (stream_.traceDataCache_->GetConstProcessMeasureData().filterIdDeque_[i] ==
             memParser->memNameDictMap_.at(MEM_VM_SIZE)) {
-            EXPECT_TRUE(stream_.traceDataCache_->GetConstMeasureData().valuesDeque_[i] == memKb);
-        } else if (stream_.traceDataCache_->GetConstMeasureData().filterIdDeque_[i] ==
+            EXPECT_TRUE(stream_.traceDataCache_->GetConstProcessMeasureData().valuesDeque_[i] == memKb);
+        } else if (stream_.traceDataCache_->GetConstProcessMeasureData().filterIdDeque_[i] ==
                    memParser->memNameDictMap_.at(MEM_VM_RSS)) {
-            EXPECT_TRUE(stream_.traceDataCache_->GetConstMeasureData().valuesDeque_[i] == memRssKb);
-        } else if (stream_.traceDataCache_->GetConstMeasureData().filterIdDeque_[i] ==
+            EXPECT_TRUE(stream_.traceDataCache_->GetConstProcessMeasureData().valuesDeque_[i] == memRssKb);
+        } else if (stream_.traceDataCache_->GetConstProcessMeasureData().filterIdDeque_[i] ==
                    memParser->memNameDictMap_.at(MEM_VM_ANON)) {
-            EXPECT_TRUE(stream_.traceDataCache_->GetConstMeasureData().valuesDeque_[i] == memAnonKb);
-        } else if (stream_.traceDataCache_->GetConstMeasureData().filterIdDeque_[i] ==
+            EXPECT_TRUE(stream_.traceDataCache_->GetConstProcessMeasureData().valuesDeque_[i] == memAnonKb);
+        } else if (stream_.traceDataCache_->GetConstProcessMeasureData().filterIdDeque_[i] ==
                    memParser->memNameDictMap_.at(MEM_RSS_FILE)) {
-            EXPECT_TRUE(stream_.traceDataCache_->GetConstMeasureData().valuesDeque_[i] == memFileKb);
+            EXPECT_TRUE(stream_.traceDataCache_->GetConstProcessMeasureData().valuesDeque_[i] == memFileKb);
         }
     }
 }
@@ -145,7 +146,7 @@ HWTEST_F(HtraceMemParserTest, ParseMemParseTestMeasureDataSize, TestSize.Level1)
  */
 HWTEST_F(HtraceMemParserTest, ParseMemParseTestMutiMeasureData, TestSize.Level1)
 {
-    TS_LOGI("test12-3");
+    TS_LOGI("test16-3");
     HtraceMemParser* memParser = new HtraceMemParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
 
     MemoryData tracePacket;
@@ -198,7 +199,7 @@ HWTEST_F(HtraceMemParserTest, ParseMemParseTestMutiMeasureData, TestSize.Level1)
  */
 HWTEST_F(HtraceMemParserTest, ParseMultiEmptyProcessMemoryInfo, TestSize.Level1)
 {
-    TS_LOGI("test12-4");
+    TS_LOGI("test16-4");
     HtraceMemParser* memParser = new HtraceMemParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
 
     MemoryData tracePacket;
@@ -225,7 +226,7 @@ HWTEST_F(HtraceMemParserTest, ParseMultiEmptyProcessMemoryInfo, TestSize.Level1)
     auto eventCount = stream_.traceDataCache_->GetConstStatAndInfo().GetValue(TRACE_MEMORY, STAT_EVENT_RECEIVED);
     EXPECT_TRUE(1 == eventCount);
 
-    EXPECT_TRUE(stream_.traceDataCache_->GetConstMeasureData().Size() == MEM_MAX * 2);
+    EXPECT_TRUE(stream_.traceDataCache_->GetConstProcessMeasureData().Size() == MEM_MAX * 2);
 }
 
 /**
@@ -235,7 +236,7 @@ HWTEST_F(HtraceMemParserTest, ParseMultiEmptyProcessMemoryInfo, TestSize.Level1)
  */
 HWTEST_F(HtraceMemParserTest, ParseEmptyMemoryData, TestSize.Level1)
 {
-    TS_LOGI("test12-5");
+    TS_LOGI("test16-5");
     HtraceMemParser* memParser = new HtraceMemParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
 
     MemoryData tracePacket;

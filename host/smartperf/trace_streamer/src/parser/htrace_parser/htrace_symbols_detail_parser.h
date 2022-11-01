@@ -37,5 +37,4 @@ private:
 };
 } // namespace TraceStreamer
 } // namespace SysTuning
-
 #endif // HTRACE_SYMBOLS_DETAIL_PARSER_H

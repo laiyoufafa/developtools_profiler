@@ -18,9 +18,12 @@
 #include <map>
 #include <string>
 #include "memory_plugin_common.pb.h"
+#include "ts_common.h"
 namespace SysTuning {
 namespace TraceCfg {
 // all supported events should be defined here
+#define CPU_IDEL_INVALID_KEY 4294967295
+#define CPU_IDEL_INVALID_VALUE 4
 enum SupportedTraceEventType {
     TRACE_EVENT_START = 0,
     TRACE_EVENT_BINDER_TRANSACTION = TRACE_EVENT_START,
@@ -38,6 +41,7 @@ enum SupportedTraceEventType {
     TRACE_EVENT_SCHED_WAKING,
     TRACE_EVENT_CPU_IDLE,
     TRACE_EVENT_CPU_FREQUENCY,
+    TRACE_EVENT_CPU_FREQUENCY_LIMITS,
     TRACE_EVENT_SUSPEND_RESUME,
     TRACE_EVENT_WORKQUEUE_EXECUTE_START,
     TRACE_EVENT_WORKQUEUE_EXECUTE_END,
@@ -65,19 +69,6 @@ enum SupportedTraceEventType {
     TRACE_EVENT_PROCESS_EXIT,
     TRACE_EVENT_PROCESS_FREE,
     TRACE_EVENT_CLOCK_SYNC,
-    TRACE_MEMORY,
-    TRACE_HILOG,
-    TRACE_HIDUMP_FPS,
-    TRACE_NATIVE_HOOK_MALLOC,
-    TRACE_NATIVE_HOOK_FREE,
-    TRACE_NATIVE_HOOK_MMAP,
-    TRACE_NATIVE_HOOK_MUNMAP,
-    TRACE_SYS_MEMORY,
-    TRACE_SYS_VIRTUAL_MEMORY,
-    TRACE_DISKIO,
-    TRACE_PROCESS,
-    TRACE_CPU_USAGE,
-    TRACE_NETWORK,
     TRACE_EVENT_SIGNAL_GENERATE,
     TRACE_EVENT_SIGNAL_DELIVER,
     TRACE_EVENT_BLOCK_BIO_BACKMERGE,
@@ -93,6 +84,26 @@ enum SupportedTraceEventType {
     TRACE_EVENT_BLOCK_RQ_INSERT,
     TRACE_EVENT_BLOCK_RQ_REMAP,
     TRACE_EVENT_BLOCK_RQ_ISSUE,
+    TRACE_MEMORY,
+    TRACE_HILOG,
+    TRACE_HIDUMP_FPS,
+    TRACE_NATIVE_HOOK_MALLOC,
+    TRACE_NATIVE_HOOK_FREE,
+    TRACE_NATIVE_HOOK_MMAP,
+    TRACE_NATIVE_HOOK_MUNMAP,
+    TRACE_SYS_MEMORY,
+    TRACE_SYS_VIRTUAL_MEMORY,
+    TRACE_DISKIO,
+    TRACE_PROCESS,
+    TRACE_CPU_USAGE,
+    TRACE_NETWORK,
+    TRACE_PERF,
+    TRACE_EVENT_EBPF,
+    TRACE_EVENT_EBPF_FILE_SYSTEM,
+    TRACE_EVENT_EBPF_PAGED_MEMORY,
+    TRACE_EVENT_EBPF_BIO_LATENCY,
+    TRACE_HISYSEVENT,
+    TRACE_SMAPS,
     TRACE_EVENT_OTHER,
     TRACE_EVENT_MAX
 };
@@ -148,7 +159,7 @@ public:
     TraceStreamerConfig();
     ~TraceStreamerConfig() = default;
     void PrintInfo() const;
-
+    uint32_t GetStateValue(uint32_t state) const;
 public:
     std::map<SupportedTraceEventType, std::string> eventNameMap_ = {};
     std::map<StatType, std::string> eventErrorDescMap_ = {};
@@ -162,7 +173,6 @@ public:
     std::map<SysMeminfoType, std::string> sysMemNameMap_ = {};
     // sys virtual memorty info desc
     std::map<SysVMeminfoType, std::string> sysVirtualMemNameMap_ = {};
-
 private:
     void InitEventNameMap();
     void InitSysMemMap();
@@ -180,6 +190,7 @@ private:
     const std::string TRACE_ACTION_SCHED_WAKING = "sched_waking";
     const std::string TRACE_ACTION_CPU_IDLE = "cpu_idle";
     const std::string TRACE_ACTION_CPU_FREQUENCY = "cpu_frequency";
+    const std::string TRACE_ACTION_CPU_FREQUENCY_LIMITS = "cpu_frequency_limits";
     const std::string TRACE_ACTION_SUSPEND_RESUME = "suspend_resume";
     const std::string TRACE_ACTION_WORKQUEUE_EXECUTE_START = "workqueue_execute_start";
     const std::string TRACE_ACTION_WORKQUEUE_EXECUTE_END = "workqueue_execute_end";
@@ -241,6 +252,13 @@ private:
     const std::string TRACE_ACTION_PROCESS = "trace_process";
     const std::string TRACE_ACTION_CPU_USAGE = "trace_cpu_usage";
     const std::string TRACE_ACTION_NETWORK = "trace_network";
+    const std::string TRACE_ACTION_PERF = "trace_perf";
+    const std::string TRACE_ACTION_EBPF = "trace_ebpf";
+    const std::string TRACE_ACTION_EBPF_FILE_SYSTEM = "trace_ebpf_file_system";
+    const std::string TRACE_ACTION_EBPF_PAGED_MEMORY = "trace_ebpf_paged_memory";
+    const std::string TRACE_ACTION_EBPF_BIO_LATENCY = "trace_ebpf_bio_latency";
+    const std::string TRACE_ACTION_HISYS_EVENT = "trace_hisys_event";
+    const std::string TRACE_ACTION_SMAPS = "trace_smaps";
     const std::string TRACE_ACTION_OTHER = "other";
 
     const std::string MEM_INFO_VM_SIZE_DESC = "mem.vm.size";

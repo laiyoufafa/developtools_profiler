@@ -42,13 +42,13 @@ public:
 };
 
 /**
- * @tc.name: ParseHtraceWithoutDiskioData
+ * @tc.name: ParseHtracediskioWithoutDiskioData
  * @tc.desc: Parse a diskio that does not contain any DiskioData
  * @tc.type: FUNC
  */
 HWTEST_F(HtracediskioParserTest, ParseHtracediskioWithoutDiskioData, TestSize.Level1)
 {
-    TS_LOGI("test25-1");
+    TS_LOGI("test13-1");
     uint64_t ts = 100;
     auto diskioData = std::make_unique<DiskioData>();
     HtraceDiskIOParser htraceDiskIOParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
@@ -64,7 +64,7 @@ HWTEST_F(HtracediskioParserTest, ParseHtracediskioWithoutDiskioData, TestSize.Le
  */
 HWTEST_F(HtracediskioParserTest, ParseHtracediskioWithOneDiskioData, TestSize.Level1)
 {
-    TS_LOGI("test25-2");
+    TS_LOGI("test13-2");
     uint64_t ts = 100;
     const uint64_t RD = 100;
     const uint64_t WR = 101;
@@ -94,7 +94,7 @@ HWTEST_F(HtracediskioParserTest, ParseHtracediskioWithOneDiskioData, TestSize.Le
  */
 HWTEST_F(HtracediskioParserTest, ParseHtracediskioWithTwoDiskioData, TestSize.Level1)
 {
-    TS_LOGI("test25-3");
+    TS_LOGI("test13-3");
     uint64_t ts = 100;
     const uint64_t RD_01 = 100;
     const uint64_t WR_01 = 101;
@@ -152,7 +152,7 @@ HWTEST_F(HtracediskioParserTest, ParseHtracediskioWithTwoDiskioData, TestSize.Le
  */
 HWTEST_F(HtracediskioParserTest, ParseHtracediskioWithThreeDiskioData, TestSize.Level1)
 {
-    TS_LOGI("test25-4");
+    TS_LOGI("test13-4");
     uint64_t ts = 100;
     const uint64_t RD_01 = 100;
     const uint64_t WR_01 = 101;
@@ -232,7 +232,7 @@ HWTEST_F(HtracediskioParserTest, ParseHtracediskioWithThreeDiskioData, TestSize.
  */
 HWTEST_F(HtracediskioParserTest, ParseHtracediskioWithMultipleDiskioData, TestSize.Level1)
 {
-    TS_LOGI("test25-5");
+    TS_LOGI("test13-5");
     uint64_t ts = 100;
     const uint64_t RD_01 = 100;
     const uint64_t WR_01 = 101;

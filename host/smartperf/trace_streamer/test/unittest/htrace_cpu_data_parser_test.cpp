@@ -35,7 +35,7 @@ public:
         stream_.InitFilter();
     }
 
-    void TearDown() {}
+    void TearDown() const{}
 
 public:
     SysTuning::TraceStreamer::TraceStreamerSelector stream_ = {};
@@ -48,7 +48,7 @@ public:
  */
 HWTEST_F(HtraceCpuDataParserTest, ParseHtraceWithoutCpuData, TestSize.Level1)
 {
-    TS_LOGI("test27-1");
+    TS_LOGI("test11-1");
     uint64_t ts = 100;
     auto cpuData = std::make_unique<CpuData>();
     HtraceCpuDataParser htraceCpuDataParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
@@ -64,17 +64,17 @@ HWTEST_F(HtraceCpuDataParserTest, ParseHtraceWithoutCpuData, TestSize.Level1)
  */
 HWTEST_F(HtraceCpuDataParserTest, ParseHtraceWithOneCpuData, TestSize.Level1)
 {
-    TS_LOGI("test27-2");
+    TS_LOGI("test11-2");
     uint64_t ts = 102;
-    const uint64_t TOTALLOAD = 2;
-    const uint64_t USERLOAD = 42;
-    const uint64_t SYSTEMLOAD = 32;
+    const uint64_t TOTAL_LOAD = 2;
+    const uint64_t USER_LOAD = 42;
+    const uint64_t SYSTEM_LOAD = 32;
     const uint64_t PROCESS_NUM = 202;
 
     auto cpuDataInfo(std::make_unique<CpuData>());
-    cpuDataInfo->set_total_load(TOTALLOAD);
-    cpuDataInfo->set_user_load(USERLOAD);
-    cpuDataInfo->set_sys_load(SYSTEMLOAD);
+    cpuDataInfo->set_total_load(TOTAL_LOAD);
+    cpuDataInfo->set_user_load(USER_LOAD);
+    cpuDataInfo->set_sys_load(SYSTEM_LOAD);
     cpuDataInfo->set_process_num(PROCESS_NUM);
 
     HtraceCpuDataParser htraceCpuDataParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
@@ -85,13 +85,13 @@ HWTEST_F(HtraceCpuDataParserTest, ParseHtraceWithOneCpuData, TestSize.Level1)
 }
 
 /**
- * @tc.name: ParseHtraceWithTwoCpuDataData
+ * @tc.name: ParseHtraceWithTwoCpuData
  * @tc.desc: Parse a cpu with two cpudata
  * @tc.type: FUNC
  */
 HWTEST_F(HtraceCpuDataParserTest, ParseHtraceWithTwoCpuData, TestSize.Level1)
 {
-    TS_LOGI("test27-3");
+    TS_LOGI("test11-3");
     uint64_t ts = 103;
     const uint64_t TOTALLOAD_01 = 2;
     const uint64_t USERLOAD_01 = 42;
@@ -139,13 +139,13 @@ HWTEST_F(HtraceCpuDataParserTest, ParseHtraceWithTwoCpuData, TestSize.Level1)
 }
 
 /**
- * @tc.name: ParseHtraceWithThreeCpuDataData
+ * @tc.name: ParseHtraceWithThreeCpuData
  * @tc.desc: Parse a cpu with Three cpudata
  * @tc.type: FUNC
  */
 HWTEST_F(HtraceCpuDataParserTest, ParseHtraceWithThreeCpuData, TestSize.Level1)
 {
-    TS_LOGI("test27-4");
+    TS_LOGI("test11-4");
     uint64_t ts = 104;
     const uint64_t TOTALLOAD_01 = 4;
     const uint64_t USERLOAD_01 = 44;
@@ -220,7 +220,7 @@ HWTEST_F(HtraceCpuDataParserTest, ParseHtraceWithThreeCpuData, TestSize.Level1)
  */
 HWTEST_F(HtraceCpuDataParserTest, ParseHtraceWithMultipleCpuData, TestSize.Level1)
 {
-    TS_LOGI("test27-5");
+    TS_LOGI("test11-5");
     uint64_t ts = 104;
     const uint64_t TOTALLOAD_01 = 4;
     const uint64_t USERLOAD_01 = 44;

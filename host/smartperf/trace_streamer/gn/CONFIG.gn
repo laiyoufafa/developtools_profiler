@@ -19,6 +19,7 @@ with_ebpf_help_table = false
 is_mingw = false
 with_libunwind = false
 is_sdkdemo = false
+is_sdkdemo_test = false
 target_cpu = "x64"
 declare_args() {
   ar = "ar"
@@ -26,6 +27,7 @@ declare_args() {
   use_wasm = false
   is_test = false
   is_sdkdemo = false
+  is_sdkdemo_test = false
   testonly = false
   is_fuzz = false
   is_macx = false
@@ -56,6 +58,9 @@ if (target == "wasm") {
 } else if (target == "sdkdemo") {
   is_sdkdemo = true
   use_wasm = true
+} else if (target == "sdkdemotest") {
+  is_sdkdemo_test = true
+  testonly = true
 } else if (target == "trace_streamer" || target == "streamer") {
   print("build " + target)
 } else {

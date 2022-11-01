@@ -44,6 +44,7 @@ public:
         return internalProcessesData_.size();
     }
 
+    void UpdataZeroThreadInfo();
     size_t DataDictSize() const
     {
         return dataDict_.Size();
@@ -53,6 +54,7 @@ public:
         metaData_.SetTraceDuration((traceEndTime_ - traceStartTime_) / SEC_TO_NS);
     }
     DataIndex GetDataIndex(std::string_view str);
+    DataIndex GetConstDataIndex(std::string_view str) const;
     std::map<uint64_t, std::string> statusString_ = {
         {TASK_RUNNABLE, "R"},    {TASK_INTERRUPTIBLE, "S"}, {TASK_UNINTERRUPTIBLE, "D"}, {TASK_RUNNING, "Running"},
         {TASK_INTERRUPTED, "I"}, {TASK_TRACED, "T"},        {TASK_EXIT_DEAD, "X"},       {TASK_ZOMBIE, "Z"},
@@ -91,6 +93,8 @@ public:
     std::deque<Thread> internalThreadsData_ = {};
 
     Measure measureData_;
+    Measure sysMemMeasureData_;
+    Measure processMeasureData_;
     CpuMeasureFilter cpuMeasureData_;
 
     StatAndInfo stat_;
@@ -105,6 +109,21 @@ public:
     CpuUsageDetailData cpuUsageData_;
     DiskIOData diskIOData_;
     LiveProcessDetailData liveProcessDetailData_;
+    FileSystemSample fileSamplingTableData_;
+    EbpfCallStackData ebpfCallStackData_;
+    PagedMemorySampleData PagedMemorySampleData_;
+#if WITH_EBPF_HELP
+    EbpfProcessMaps ebpfProcessMaps_;
+    EbpfElf ebpfElf_;
+    EbpfElfSymbol ebpfElfSymbol_;
+#endif
+    AppNames appNames_;
+    SysEventMeasureData sysEventMeasureData_;
+    DeviceStateData deviceStateData_;
+    SmapsData smapsData_;
+    BioLatencySampleData bioLatencySampleData_;
+    ClockSnapshotData clockSnapshotData_;
+    DataSourceClockIdData dataSourceClockIdData_;
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

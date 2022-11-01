@@ -39,10 +39,6 @@ private:
         ~Cursor() override;
         int Filter(const FilterConstraints& fc, sqlite3_value** argv) override;
         int Column(int column) const override;
-
-        void FilterThreadId(unsigned char op, sqlite3_value* argv);
-        void FilterId(unsigned char op, sqlite3_value* argv);
-
     private:
         const PerfThread& perfThreadObj_;
     };

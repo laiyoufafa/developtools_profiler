@@ -239,13 +239,8 @@ void VirtualThread::ParseMap()
             }
 
             // b0023000 / b0024000
-            try {
-                memMapItem.begin_ = std::stoull(addrRanges[0], nullptr, NUMBER_FORMAT_HEX_BASE);
-                memMapItem.end_ = std::stoull(addrRanges[1], nullptr, NUMBER_FORMAT_HEX_BASE);
-            } catch (...) {
-                // next line
-                continue;
-            }
+            memMapItem.begin_ = std::stoull(addrRanges[0], nullptr, NUMBER_FORMAT_HEX_BASE);
+            memMapItem.end_ = std::stoull(addrRanges[1], nullptr, NUMBER_FORMAT_HEX_BASE);
 
             constexpr const int MMAP_PROT_CHARS = 4;
             int index = 0;
@@ -294,25 +289,18 @@ void VirtualThread::ParseMap()
                 memMapItem.flags = MAP_SHARED;
             }
 
-            try {
-                // 00000000
-                memMapItem.pageoffset_ = std::stoull(mapTokens[MMAP_LINE_TOKEN_INDEX_OFFSET],
-                                                     nullptr, NUMBER_FORMAT_HEX_BASE);
+            memMapItem.pageoffset_ =
+                std::stoull(mapTokens[MMAP_LINE_TOKEN_INDEX_OFFSET], nullptr, NUMBER_FORMAT_HEX_BASE);
 
-                // major:minor
-                std::vector<std::string> mm = StringSplit(mapTokens[MMAP_LINE_TOKEN_INDEX_MM], ":");
+            // major:minor
+            std::vector<std::string> mm = StringSplit(mapTokens[MMAP_LINE_TOKEN_INDEX_MM], ":");
 
-                // b3:05
-                memMapItem.major_ = std::stoull(mm.at(0), nullptr, NUMBER_FORMAT_HEX_BASE);
-                memMapItem.minor_ = std::stoull(mm.at(1), nullptr, NUMBER_FORMAT_HEX_BASE);
+            // b3:05
+            memMapItem.major_ = std::stoull(mm.at(0), nullptr, NUMBER_FORMAT_HEX_BASE);
+            memMapItem.minor_ = std::stoull(mm.at(1), nullptr, NUMBER_FORMAT_HEX_BASE);
 
-                // 959
-                memMapItem.inode = std::stoull(mapTokens[MMAP_LINE_TOKEN_INDEX_INODE], nullptr,
-                                               NUMBER_FORMAT_HEX_BASE);
-            } catch (...) {
-                // next line
-                continue;
-            }
+            // 959
+            memMapItem.inode = std::stoull(mapTokens[MMAP_LINE_TOKEN_INDEX_INODE], nullptr, NUMBER_FORMAT_HEX_BASE);
 
             // system/lib/libdl.so
             if (mapTokens.size() == MMAP_LINE_MAX_TOKEN) {

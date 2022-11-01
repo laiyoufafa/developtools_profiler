@@ -22,6 +22,8 @@ group("trace_streamer") {
     deps = [ "//third_party/protobuf:protoc" ]
   } else if (is_sdkdemo) {
     deps = [ "sdk:trace_streamer_sdk_builtin" ]
+  } else if (is_sdkdemo_test) {
+    deps = [ "sdk/test:sdkunittest" ]
   } else if (use_wasm) {
     deps = [ "src:trace_streamer_builtin" ]
   } else {

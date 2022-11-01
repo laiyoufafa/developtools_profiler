@@ -26,6 +26,16 @@ enum IntegerRadixType {
     INTEGER_RADIX_TYPE_DEC = 10,
     INTEGER_RADIX_TYPE_HEX = 16
 };
+inline uint16_t GetNameASCIISumNoNum(const std::string& str)
+{
+    uint32_t sum = 0;
+    int len = str.length() - 1;
+    while (len >= 0) {
+        sum += std::isdigit(str.at(len)) ? 0 : str.at(len);
+        len--;
+    }
+    return sum % INTEGER_RADIX_TYPE_HEX;
+}
 inline std::optional<uint32_t> StrToUInt32(const std::string& str, int base = INTEGER_RADIX_TYPE_DEC)
 {
     if (!str.empty()) {

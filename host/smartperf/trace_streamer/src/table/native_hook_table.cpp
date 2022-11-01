@@ -20,36 +20,38 @@ namespace TraceStreamer {
 namespace {
 enum Index {
     ID = 0,
-    EVENT_ID,
+    CALLCHAIN_ID,
     IPID,
     ITID,
     EVENT_TYPE,
-    SUB_TYPE,
+    SUB_TYPE_ID,
     START_TS,
     END_TS,
     DURATION,
     ADDR,
     MEM_SIZE,
     ALL_MEM_SIZE,
-    CURRENT_SIZE_DUR
+    CURRENT_SIZE_DUR,
+    LAST_LIB_ID
 };
 }
 NativeHookTable::NativeHookTable(const TraceDataCache* dataCache) : TableBase(dataCache)
 {
-    tableColumn_.push_back(TableBase::ColumnInfo("id", "UNSIGNED INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("eventId", "UNSIGNED BIG INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("ipid", "UNSIGNED BIG INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("itid", "UNSIGNED BIG INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("event_type", "STRING"));
-    tableColumn_.push_back(TableBase::ColumnInfo("sub_type", "STRING"));
-    tableColumn_.push_back(TableBase::ColumnInfo("start_ts", "UNSIGNED BIG INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("end_ts", "UNSIGNED BIG INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("dur", "UNSIGNED BIG INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("addr", "UNSIGNED BIG INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("heap_size", "UNSIGNED INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("all_heap_size", "UNSIGNED INT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("current_size_dur", "UNSIGNED INT"));
-    tablePriKey_.push_back("eventId");
+    tableColumn_.push_back(TableBase::ColumnInfo("id", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("callchain_id", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("ipid", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("itid", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("event_type", "TEXT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("sub_type_id", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("start_ts", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("end_ts", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("dur", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("addr", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("heap_size", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("all_heap_size", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("current_size_dur", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("last_lib_id", "INTEGER"));
+    tablePriKey_.push_back("id");
 }
 
 NativeHookTable::~NativeHookTable() {}
@@ -166,6 +168,16 @@ int NativeHookTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value**
             case ID:
                 FilterId(c.op, argv[i]);
                 break;
+            case IPID:
+                indexMap_->MixRange(c.op, static_cast<uint32_t>(sqlite3_value_int(argv[i])), nativeHookObj_.Ipids());
+                break;
+            case ITID:
+                indexMap_->MixRange(c.op, static_cast<uint32_t>(sqlite3_value_int(argv[i])), nativeHookObj_.Itids());
+                break;
+            case CALLCHAIN_ID:
+                indexMap_->MixRange(c.op, static_cast<uint64_t>(sqlite3_value_int64(argv[i])),
+                                    nativeHookObj_.CallChainIds());
+                break;
             default:
                 break;
         }
@@ -192,8 +204,8 @@ int NativeHookTable::Cursor::Column(int column) const
         case ID:
             sqlite3_result_int64(context_, static_cast<int32_t>(CurrentRow()));
             break;
-        case EVENT_ID:
-            sqlite3_result_int64(context_, static_cast<int64_t>(nativeHookObj_.EventIds()[CurrentRow()]));
+        case CALLCHAIN_ID:
+            sqlite3_result_int64(context_, static_cast<int64_t>(nativeHookObj_.CallChainIds()[CurrentRow()]));
             break;
         case IPID:
             sqlite3_result_int64(context_, static_cast<int64_t>(nativeHookObj_.Ipids()[CurrentRow()]));
@@ -203,20 +215,14 @@ int NativeHookTable::Cursor::Column(int column) const
             break;
         case EVENT_TYPE: {
             if (!nativeHookObj_.EventTypes()[CurrentRow()].empty()) {
-                sqlite3_result_text(context_,
-                                    nativeHookObj_.EventTypes()[CurrentRow()].c_str(),
-                                    STR_DEFAULT_LEN, nullptr);
+                sqlite3_result_text(context_, nativeHookObj_.EventTypes()[CurrentRow()].c_str(), STR_DEFAULT_LEN,
+                                    nullptr);
             }
             break;
         }
-        case SUB_TYPE: {
+        case SUB_TYPE_ID: {
             if (nativeHookObj_.SubTypes()[CurrentRow()] != INVALID_UINT64) {
-                auto subTypeIndex = static_cast<size_t>(nativeHookObj_.SubTypes()[CurrentRow()]);
-                if (dataCache_->GetDataFromDict(subTypeIndex).empty()) {
-                    break;
-                }
-                sqlite3_result_text(context_, dataCache_->GetDataFromDict(subTypeIndex).c_str(), STR_DEFAULT_LEN,
-                                    nullptr);
+                sqlite3_result_int64(context_, static_cast<int64_t>(nativeHookObj_.SubTypes()[CurrentRow()]));
             }
             break;
         }
@@ -249,45 +255,18 @@ int NativeHookTable::Cursor::Column(int column) const
             sqlite3_result_int64(context_, static_cast<int64_t>(nativeHookObj_.CurrentSizeDurs()[CurrentRow()]));
             break;
         }
+        case LAST_LIB_ID: {
+            if (nativeHookObj_.LastCallerPathIndexs()[CurrentRow()] != INVALID_UINT64) {
+                sqlite3_result_int64(context_,
+                                     static_cast<int64_t>(nativeHookObj_.LastCallerPathIndexs()[CurrentRow()]));
+            }
+            break;
+        }
         default:
             TS_LOGF("Unregistered column : %d", column);
             break;
     }
     return SQLITE_OK;
-}
-
-void NativeHookTable::Cursor::FilterId(unsigned char op, sqlite3_value* argv)
-{
-    auto type = sqlite3_value_type(argv);
-    if (type != SQLITE_INTEGER) {
-        // other type consider it NULL
-        indexMap_->Intersect(0, 0);
-        return;
-    }
-
-    auto v = static_cast<TableRowId>(sqlite3_value_int64(argv));
-    switch (op) {
-        case SQLITE_INDEX_CONSTRAINT_EQ:
-            indexMap_->Intersect(v, v + 1);
-            break;
-        case SQLITE_INDEX_CONSTRAINT_GE:
-            indexMap_->Intersect(v, rowCount_);
-            break;
-        case SQLITE_INDEX_CONSTRAINT_GT:
-            v++;
-            indexMap_->Intersect(v, rowCount_);
-            break;
-        case SQLITE_INDEX_CONSTRAINT_LE:
-            v++;
-            indexMap_->Intersect(0, v);
-            break;
-        case SQLITE_INDEX_CONSTRAINT_LT:
-            indexMap_->Intersect(0, v);
-            break;
-        default:
-            // can't filter, all rows
-            break;
-    }
 }
 } // namespace TraceStreamer
 } // namespace SysTuning

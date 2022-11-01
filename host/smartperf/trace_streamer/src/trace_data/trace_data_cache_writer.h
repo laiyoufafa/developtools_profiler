@@ -32,6 +32,7 @@ public:
 public:
     InternalPid GetProcessInternalPid(uint32_t pid);
     Process* GetProcessData(InternalPid internalPid);
+    uint32_t AppendNewProcessData(uint32_t pid, const std::string& name, uint64_t startTs);
     InternalTid NewInternalThread(uint32_t tid);
     Thread* GetThreadData(InternalTid internalTid);
     void UpdateTraceTime(uint64_t timestamp);
@@ -41,6 +42,8 @@ public:
     Filter* GetFilterData();
     Raw* GetRawData();
     Measure* GetMeasureData();
+    Measure* GetSysMemMeasureData();
+    Measure* GetProcessMeasureData();
     ThreadState* GetThreadStateData();
     SchedSlice* GetSchedSliceData();
     CpuMeasureFilter* GetCpuMeasuresData();
@@ -56,8 +59,8 @@ public:
     SymbolsData* GetSymbolsData();
     SysCall* GetSysCallData();
     LogInfo* GetHilogData();
-    NativeHook* GetHeapData();
-    NativeHookFrame* GetHeapFrameData();
+    NativeHook* GetNativeHookData();
+    NativeHookFrame* GetNativeHookFrameData();
     Hidump* GetHidumpData();
     PerfCallChain* GetPerfCallChainData();
     PerfFiles* GetPerfFilesData();
@@ -72,6 +75,21 @@ public:
     DiskIOData* GetDiskIOData();
     CpuUsageDetailData* GetCpuUsageInfoData();
     LiveProcessDetailData* GetLiveProcessData();
+    FileSystemSample* GetFileSystemSample();
+    EbpfCallStackData* GetEbpfCallStack();
+    PagedMemorySampleData* GetPagedMemorySampleData();
+#if WITH_EBPF_HELP
+    EbpfProcessMaps* GetEbpfProcessMaps();
+    EbpfElf* GetEbpfElf();
+    EbpfElfSymbol* GetEbpfElfSymbol();
+#endif
+    AppNames* GetAppNamesData();
+    SysEventMeasureData* GetSyseventMeasureData();
+    DeviceStateData* GetDeviceStateData();
+    SmapsData* GetSmapsData();
+    BioLatencySampleData* GetBioLatencySampleData();
+    ClockSnapshotData* GetClockSnapshotData();
+    DataSourceClockIdData* GetDataSourceClockIdData();
 };
 } // namespace TraceStreamer
 } // namespace SysTuning
