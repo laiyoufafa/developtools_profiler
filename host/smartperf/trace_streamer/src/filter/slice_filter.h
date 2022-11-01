@@ -75,9 +75,11 @@ public:
                     uint32_t threadGroupId,
                     DataIndex category = INVALID_UINT64,
                     DataIndex name = INVALID_UINT64);
-    void StartAsyncSlice(uint64_t timestamp, uint32_t pid, uint32_t threadGroupId, uint64_t cookie, DataIndex nameIndex);
+    void StartAsyncSlice(uint64_t timestamp, uint32_t pid,
+                         uint32_t threadGroupId, uint64_t cookie, DataIndex nameIndex);
     void
-        FinishAsyncSlice(uint64_t timestamp, uint32_t pid, uint32_t threadGroupId, uint64_t cookie, DataIndex nameIndex);
+        FinishAsyncSlice(uint64_t timestamp, uint32_t pid,
+                         uint32_t threadGroupId, uint64_t cookie, DataIndex nameIndex);
     void IrqHandlerEntry(uint64_t timestamp, uint32_t cpu, DataIndex catalog, DataIndex nameIndex);
     std::tuple<uint64_t, uint32_t> AddArgs(uint32_t tid, DataIndex key1, DataIndex key2, ArgsSet& args);
     void IrqHandlerExit(uint64_t timestamp, uint32_t cpu, ArgsSet args);
@@ -95,8 +97,6 @@ private:
     using SlicesStack = std::vector<SliceData>;
     using StackOfSlices = StackInfo;
     using StackOnDepth = std::map<uint32_t, bool>;
-    // uint64_t GenHashByStack(const StackOfSlices& sliceStack) const;
-    // bool BeginSliceInternal(const SliceData& sliceData);
     void RememberSliceData(InternalTid internalTid,
                            std::unordered_map<InternalTid, StackOfSlices>& stackMap,
                            SliceData& slice,

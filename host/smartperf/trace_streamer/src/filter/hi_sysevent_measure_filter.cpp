@@ -37,7 +37,8 @@ DataIndex HiSysEventMeasureFilter::AppendNewValue(uint64_t serial,
                                                   DataIndex strValue)
 {
     uint64_t appKeyId = GetOrCreateFilterIdInternal(appNameId, key);
-    traceDataCache_->GetSyseventMeasureData()->AppendData(serial, timestamp, appNameId, appKeyId, type, numericValue, strValue);
+    traceDataCache_->GetSyseventMeasureData()->AppendData(serial,
+                                                          timestamp, appNameId, appKeyId, type, numericValue, strValue);
     return appNameId;
 }
 void HiSysEventMeasureFilter::AppendNewValue(int32_t brightnessState,
