@@ -104,7 +104,7 @@ bool PluginManager::AddPlugin(const std::string& pluginPath)
     return RegisterPlugin(plugin, pluginPath, info);
 }
 
-bool PluginManager::RegisterPlugin(const PluginModulePtr& plugin,const std::string& pluginPath,
+bool PluginManager::RegisterPlugin(const PluginModulePtr& plugin, const std::string& pluginPath,
                                    const PluginModuleInfo& pluginInfo)
 {
     RegisterPluginRequest request;
