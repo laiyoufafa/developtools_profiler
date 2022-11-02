@@ -184,7 +184,6 @@ int MeasureTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value** ar
 
 int MeasureTable::Cursor::Column(int column) const
 {
-    // printf("row:%d\n", CurrentRow());
     switch (column) {
         case TYPE:
             sqlite3_result_text(context_, "measure", STR_DEFAULT_LEN, nullptr);

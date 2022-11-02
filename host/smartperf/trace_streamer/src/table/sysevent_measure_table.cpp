@@ -73,8 +73,8 @@ int SysEventMeasureTable::Cursor::Column(int column) const
             sqlite3_result_double(context_, dataCache_->GetConstSyseventMeasureData().NumValue()[CurrentRow()]);
             break;
         case STRING_VALUE:
-            sqlite3_result_text(context_, dataCache_->GetDataFromDict(sysEventMeasure_.StringValue()[CurrentRow()]).c_str(),
-                                STR_DEFAULT_LEN, nullptr);
+            sqlite3_result_text(context_,
+                                 dataCache_->GetDataFromDict(sysEventMeasure_.StringValue()[CurrentRow()]).c_str(), STR_DEFAULT_LEN, nullptr);
             break;
         default:
             TS_LOGF("Unregistered column : %d", column);

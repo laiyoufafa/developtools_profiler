@@ -261,7 +261,8 @@ bool EbpfDataReader::ReadItemEventPagedMemory(const uint8_t* buffer, uint32_t si
         return false;
     }
     auto pagedMemoryFixedHeaderAddr = reinterpret_cast<const PagedMemoryFixedHeader*>(buffer);
-    endTsToPagedMemoryFixedHeader_.insert(std::make_pair(pagedMemoryFixedHeaderAddr->endTime, pagedMemoryFixedHeaderAddr));
+    endTsToPagedMemoryFixedHeader_.insert(std::make_pair(pagedMemoryFixedHeaderAddr->endTime,
+                                                         pagedMemoryFixedHeaderAddr));
     return true;
 }
 

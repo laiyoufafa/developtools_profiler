@@ -529,10 +529,10 @@ bool HtraceEventParser::WorkqueueExecuteStartEvent(const MessageLite& event) con
         std::string addrStr = "0x" + base::number(msg.function(), base::INTEGER_RADIX_TYPE_HEX);
         auto addStrIndex = traceDataCache_->GetDataIndex(addrStr);
         result = streamFilters_->sliceFilter_->BeginSlice(comm_, eventTimestamp_, eventPid_, eventPid_,
-                                                               workQueueId_, addStrIndex);
+                                                          workQueueId_, addStrIndex);
     } else {
         result = streamFilters_->sliceFilter_->BeginSlice(comm_, eventTimestamp_, eventPid_, eventPid_,
-                                                               workQueueId_, funcNameIndex);
+                                                          workQueueId_, funcNameIndex);
     }
 
     traceDataCache_->GetInternalSlicesData()->AppendDistributeInfo();

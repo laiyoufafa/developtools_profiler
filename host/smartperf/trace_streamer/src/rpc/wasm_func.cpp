@@ -53,7 +53,8 @@ void ThirdPary_SendDataCallback(const char* pluginData, int len, int componentId
     }
 }
 
-EMSCRIPTEN_KEEPALIVE uint8_t* TraceStreamer_Set_ThirdParty_DataDealer(SendDataCallBack sendDataCallBack, uint32_t reqBufferSize)
+EMSCRIPTEN_KEEPALIVE uint8_t* TraceStreamer_Set_ThirdParty_DataDealer(SendDataCallBack sendDataCallBack,
+                                                                      uint32_t reqBufferSize)
 {
     g_sendData = sendDataCallBack;
     g_sendDataBuf = new uint8_t[reqBufferSize];

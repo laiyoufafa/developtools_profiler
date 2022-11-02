@@ -87,12 +87,12 @@ void HtraceHisyseventParser::NoArrayDataParse(JsonData jData,
         if (value.is_string()) {
             std::string strValue = value;
             DataIndex valueIndex = traceDataCache_->GetDataIndex(strValue);
-            streamFilters_->hiSysEventMeasureFilter_->AppendNewValue(serial, jData.timestamp, eventSourceIndex, keyIndex, 1, 0,
-                                                                     valueIndex);
+            streamFilters_->hiSysEventMeasureFilter_->AppendNewValue(serial, jData.timestamp,
+                                                                     eventSourceIndex, keyIndex, 1, 0, valueIndex);
         } else {
             double valueIndex = value;
-            streamFilters_->hiSysEventMeasureFilter_->AppendNewValue(serial, jData.timestamp, eventSourceIndex, keyIndex, 0,
-                                                                     valueIndex, 0);
+            streamFilters_->hiSysEventMeasureFilter_->AppendNewValue(serial, jData.timestamp,
+                                                                     eventSourceIndex, keyIndex, 0, valueIndex, 0);
         }
     }
 }
@@ -110,13 +110,13 @@ void HtraceHisyseventParser::ArrayDataParse(JsonData jData,
             streamFilters_->hiSysEventMeasureFilter_->GetOrCreateFilterId(eventSourceIndex);
             if (value.is_number()) {
                 double valueIndex = value;
-                streamFilters_->hiSysEventMeasureFilter_->AppendNewValue(serial, jData.timestamp, eventSourceIndex, keyIndex, 0,
-                                                                         valueIndex, 0);
+                streamFilters_->hiSysEventMeasureFilter_->AppendNewValue(serial, jData.timestamp,
+                                                                         eventSourceIndex, keyIndex, 0, valueIndex, 0);
             } else if (value.is_string()) {
                 std::string strValue = value;
                 DataIndex valueIndex = traceDataCache_->GetDataIndex(strValue);
-                streamFilters_->hiSysEventMeasureFilter_->AppendNewValue(serial, jData.timestamp, eventSourceIndex, keyIndex, 1,
-                                                                         0, valueIndex);
+                streamFilters_->hiSysEventMeasureFilter_->AppendNewValue(serial, jData.timestamp,
+                                                                         eventSourceIndex, keyIndex, 1, 0, valueIndex);
             }
         }
     }
@@ -131,12 +131,12 @@ void HtraceHisyseventParser::CommonDataParser(JsonData jData, DataIndex eventSou
         if (value.is_string()) {
             std::string strValue = value;
             DataIndex valueIndex = traceDataCache_->GetDataIndex(strValue);
-            streamFilters_->hiSysEventMeasureFilter_->AppendNewValue(serial, jData.timestamp, eventSourceIndex, keyIndex, 1, 0,
-                                                                     valueIndex);
+            streamFilters_->hiSysEventMeasureFilter_->AppendNewValue(serial, jData.timestamp,
+                                                                     eventSourceIndex, keyIndex, 1, 0, valueIndex);
         } else {
             double valueIndex = value;
-            streamFilters_->hiSysEventMeasureFilter_->AppendNewValue(serial, jData.timestamp, eventSourceIndex, keyIndex, 0,
-                                                                     valueIndex, 0);
+            streamFilters_->hiSysEventMeasureFilter_->AppendNewValue(serial, jData.timestamp, eventSourceIndex,
+                                                                     keyIndex, 0, valueIndex, 0);
         }
     }
 }

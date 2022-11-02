@@ -536,7 +536,8 @@ HWTEST_F(TableTest, HisysEventMeasureTableTest, TestSize.Level1)
     double numericValue = 0;
     DataIndex stringValue = stream_.traceDataCache_->GetDataIndex("stringValue");
 
-    stream_.traceDataCache_->GetSyseventMeasureData()->AppendData(ts, nameId, keyId, type, numericValue, stringValue, serial);
+    stream_.traceDataCache_->GetSyseventMeasureData()->AppendData(ts,
+                                                                  nameId, keyId, type, numericValue, stringValue, serial);
     auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect.c_str(), false);
     EXPECT_EQ(row, 1);
 }
@@ -835,8 +836,8 @@ HWTEST_F(TableTest, NativeHookTableTest, TestSize.Level1)
 
     stream_.traceDataCache_->GetNativeHookData()->AppendNewNativeHookData(
         callChainId, ipid, itid, eventType, subType, timestamp, endTimestamp, duration, addr, memSize, curMemSize);
-    stream_.traceDataCache_->GetNativeHookData()->AppendNewNativeHookData(
-        callChainId1, ipid1, itid1, eventType1, subType1, timestamp1, endTimestamp1, duration1, addr1, memSize1, curMemSize1);
+    stream_.traceDataCache_->GetNativeHookData()->AppendNewNativeHookData(callChainId1, ipid1, itid1,
+                                                                          eventType1, subType1, timestamp1, endTimestamp1, duration1, addr1, memSize1, curMemSize1);
     auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect.c_str(), false);
     EXPECT_EQ(row, 2);
     row = stream_.traceDataCache_->SearchDatabase(sqlSelect1.c_str(), false);
@@ -948,8 +949,8 @@ HWTEST_F(TableTest, PerfCallchainTableTest, TestSize.Level1)
     stream_.traceDataCache_->GetPerfCallChainData()->AppendNewPerfCallChain(sampleId, callChainId, vaddrInFile, fileId,
                                                                             symbolId);
 
-    stream_.traceDataCache_->GetPerfCallChainData()->AppendNewPerfCallChain(sampleId1, callChainId1, vaddrInFile1, fileId1,
-                                                                            symbolId1);
+    stream_.traceDataCache_->GetPerfCallChainData()->AppendNewPerfCallChain(sampleId1, callChainId1,
+                                                                            vaddrInFile1, fileId1, symbolId1);
     auto row = stream_.traceDataCache_->SearchDatabase(sqlSelect.c_str(), false);
     EXPECT_EQ(row, 2);
     row = stream_.traceDataCache_->SearchDatabase(sqlSelect1.c_str(), false);

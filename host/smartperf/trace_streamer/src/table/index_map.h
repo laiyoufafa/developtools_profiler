@@ -244,8 +244,6 @@ public:
                 indexType_ = INDEX_TYPE_OUTER_INDEX;
                 FixSize();
                 break;
-
-
             default:
                 break;
         } // end of switch (op)
