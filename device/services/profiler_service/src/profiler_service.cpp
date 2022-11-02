@@ -351,7 +351,6 @@ ProfilerService::SessionContextPtr ProfilerService::GetSessionContext(uint32_t s
     auto it = sessionContext_.find(sessionId);
     if (it != sessionContext_.end()) {
         auto ptr = it->second;
-        HILOG_INFO(LOG_CORE, "GetCtx %p use_count: %ld", ptr.get(), ptr.use_count());
         return ptr;
     }
     return nullptr;
