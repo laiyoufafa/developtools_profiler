@@ -408,7 +408,7 @@ bool ShareMemoryBlock::PutWithPayloadSync(const int8_t* header, uint32_t headerS
             break;
         }
     }
-    if (memcpy_s(rawMemory, headerSize, header, headerSize) != EOK) {
+    if (memcpy_s(rawMemory, sizeof(rawMemory), header, headerSize) != EOK) {
         pthread_mutex_unlock(&header_->info.mutex_);
         return false;
     }
