@@ -123,7 +123,7 @@ private:
 
     bool RemoveSessionContext(uint32_t sessionId);
 
-    void MergeStandaloneFile(const std::string& resultFile,const std::string& pluginName,
+    void MergeStandaloneFile(const std::string& resultFile, const std::string& pluginName,
         const std::string& outputFile, const std::string& pluginVersion);
 
 private:
