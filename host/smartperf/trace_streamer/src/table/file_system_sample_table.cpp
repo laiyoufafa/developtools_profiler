@@ -204,7 +204,8 @@ int FileSystemSampleTable::Cursor::Column(int column) const
             sqlite3_result_int64(context_, static_cast<int32_t>(fileSystemSampleTableObj_.IdsData()[CurrentRow()]));
             break;
         case CALLCHAIN_ID:
-            sqlite3_result_int64(context_, static_cast<int64_t>(fileSystemSampleTableObj_.CallChainIds()[CurrentRow()]));
+            sqlite3_result_int64(context_,
+                                 static_cast<int64_t>(fileSystemSampleTableObj_.CallChainIds()[CurrentRow()]));
             break;
         case TYPE:
             sqlite3_result_int64(context_, static_cast<int64_t>(fileSystemSampleTableObj_.Types()[CurrentRow()]));

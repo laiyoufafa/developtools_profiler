@@ -52,8 +52,6 @@ public:
     void EnableBytrace(bool enable) {
         isBytrace_ = enable;
     }
-
-
     void WaitForParserEnd();
 
 private:

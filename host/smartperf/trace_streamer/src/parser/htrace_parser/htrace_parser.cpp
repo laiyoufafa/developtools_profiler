@@ -604,11 +604,13 @@ bool HtraceParser::InitProfilerTraceFileHeader()
         return false;
     }
     TS_LOGI("magic = %llx, length = %llx, dataType = %llx, boottime = %llx", profilerTraceFileHeader_.data.magic,
-            profilerTraceFileHeader_.data.length, profilerTraceFileHeader_.data.dataType, profilerTraceFileHeader_.data.boottime);
+            profilerTraceFileHeader_.data.length, profilerTraceFileHeader_.data.dataType,
+            profilerTraceFileHeader_.data.boottime);
 #if IS_WASM
     const int DATA_TYPE_CLOCK = 100;
     int componentId = DATA_TYPE_CLOCK;
-    TraceStreamer_Plugin_Out_SendData(reinterpret_cast<char*>(&profilerTraceFileHeader_), sizeof(profilerTraceFileHeader_), DATA_TYPE_CLOCK);
+    TraceStreamer_Plugin_Out_SendData(reinterpret_cast<char*>(&profilerTraceFileHeader_),
+                                      sizeof(profilerTraceFileHeader_), DATA_TYPE_CLOCK);
 #endif
     htraceClockDetailParser_->Parse(&profilerTraceFileHeader_);
     return true;

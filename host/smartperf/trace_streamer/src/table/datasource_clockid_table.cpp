@@ -46,7 +46,6 @@ DataSourceClockIdTableTable::Cursor::~Cursor() {}
 
 int DataSourceClockIdTableTable::Cursor::Column(int column) const
 {
-    // printf("row:%d\n", CurrentRow());
     switch (column) {
         case ID:
             sqlite3_result_int64(context_, CurrentRow());

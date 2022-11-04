@@ -330,8 +330,8 @@ uint64_t HtraceNativeHookParser::ParseNativeHookFrame(const RepeatedPtrField<::F
             frameToFrameId_.Insert(callstack->fileId_, callstack->symbolId_, callstack->depth_, callStackTemp.size(),
                                    callChainId);
             traceDataCache_->GetNativeHookFrameData()->AppendNewNativeHookFrame(
-                callChainId, callstack->depth_, callstack->ip_, callstack->sp_, callstack->symbolId_, callstack->fileId_, callstack->offset_,
-                callstack->symbolOffset_);
+                callChainId, callstack->depth_, callstack->ip_, callstack->sp_,
+                callstack->symbolId_, callstack->fileId_, callstack->offset_, callstack->symbolOffset_);
         }
     }
     callStackTemp.clear();

@@ -151,12 +151,12 @@ void BytraceParser::NoArrayDataParse(JsonData jData, std::vector<size_t> noArray
         if (value.is_string()) {
             std::string strValue = value;
             DataIndex valueIndex = eventParser_->traceDataCache_->GetDataIndex(strValue);
-            streamFilters_->hiSysEventMeasureFilter_->AppendNewValue(0, jData.timestamp, eventSourceIndex, keyIndex, 1, 0,
-                                                                     valueIndex);
+            streamFilters_->hiSysEventMeasureFilter_->AppendNewValue(0, jData.timestamp,
+                                                                     eventSourceIndex, keyIndex, 1, 0, valueIndex);
         } else {
             DataIndex valueIndex = value;
-            streamFilters_->hiSysEventMeasureFilter_->AppendNewValue(0, jData.timestamp, eventSourceIndex, keyIndex, 0,
-                                                                     valueIndex, 0);
+            streamFilters_->hiSysEventMeasureFilter_->AppendNewValue(0, jData.timestamp,
+                                                                     eventSourceIndex, keyIndex, 0, valueIndex, 0);
         }
     }
 }
@@ -173,13 +173,13 @@ void BytraceParser::ArrayDataParse(JsonData jData,
             streamFilters_->hiSysEventMeasureFilter_->GetOrCreateFilterId(eventSourceIndex);
             if (value.is_number()) {
                 DataIndex valueIndex = value;
-                streamFilters_->hiSysEventMeasureFilter_->AppendNewValue(0, jData.timestamp, eventSourceIndex, keyIndex, 0,
-                                                                         valueIndex, 0);
+                streamFilters_->hiSysEventMeasureFilter_->AppendNewValue(0, jData.timestamp,
+                                                                         eventSourceIndex, keyIndex, 0, valueIndex, 0);
             } else if (value.is_string()) {
                 std::string strValue = value;
                 DataIndex valueIndex = eventParser_->traceDataCache_->GetDataIndex(strValue);
-                streamFilters_->hiSysEventMeasureFilter_->AppendNewValue(0, jData.timestamp, eventSourceIndex, keyIndex, 1,
-                                                                         0, valueIndex);
+                streamFilters_->hiSysEventMeasureFilter_->AppendNewValue(0, jData.timestamp,
+                                                                         eventSourceIndex, keyIndex, 1, 0, valueIndex);
             }
         }
     }
@@ -194,12 +194,12 @@ void BytraceParser::CommonDataParser(JsonData jData, DataIndex eventSourceIndex)
         if (value.is_string()) {
             std::string strValue = value;
             DataIndex valueIndex = eventParser_->traceDataCache_->GetDataIndex(strValue);
-            streamFilters_->hiSysEventMeasureFilter_->AppendNewValue(0, jData.timestamp, eventSourceIndex, keyIndex, 1, 0,
-                                                                     valueIndex);
+            streamFilters_->hiSysEventMeasureFilter_->AppendNewValue(0, jData.timestamp,
+                                                                     eventSourceIndex, keyIndex, 1, 0, valueIndex);
         } else {
             DataIndex valueIndex = value;
-            streamFilters_->hiSysEventMeasureFilter_->AppendNewValue(0, jData.timestamp, eventSourceIndex, keyIndex, 0,
-                                                                     valueIndex, 0);
+            streamFilters_->hiSysEventMeasureFilter_->AppendNewValue(0, jData.timestamp,
+                                                                     eventSourceIndex, keyIndex, 0, valueIndex, 0);
         }
     }
 }
