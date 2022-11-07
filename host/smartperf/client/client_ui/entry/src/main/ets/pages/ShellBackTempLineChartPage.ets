@@ -62,10 +62,10 @@ struct ShellBackTempLineChartPage {
     Stack({ alignContent: Alignment.Top }) {
       FloatWindowComponent({ title: `shellBackTemp`, data: this.data })
       Flex({ justifyContent: FlexAlign.SpaceBetween, alignItems: ItemAlign.Center }) {
-        Text(this.floatName + ":" + this.shellBackTemp + "℃")
+        Text("壳温" + ":" + parseInt(this.shellBackTemp.toString())/ 1e3 + "℃")
           .fontSize('10fp')
           .fontColor($r("app.color.color_fff"))
-          .margin({ left: 5, top: 3 }) //文本显示
+          .margin({ left: 5, top: 1 }) //文本显示
         Text(this.random + "")
           .fontSize('1fp')
           .fontColor($r("app.color.color_fff")).visibility(Visibility.None)

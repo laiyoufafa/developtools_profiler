@@ -80,7 +80,7 @@ export class FloatWindowFun {
                             property.isTransparent = false
                         })
                         floatWin.loadContent('pages/TitleWindowPage').then(() => {
-                            floatWin.setBackgroundColor("#4d000000")
+                            floatWin.setBackgroundColor("#00000000")
                             floatWin.hide()
                             SPLogger.DEBUG(TAG, 'CreateTitleWindow Done')
                         })

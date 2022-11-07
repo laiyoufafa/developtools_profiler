@@ -51,7 +51,7 @@ export struct Power {
     this.topAxis.setPosition(XAxisPosition.TOP);
     this.topAxis.setAxisMinimum(0);
     this.topAxis.setAxisMaximum(this.gpData.length - 1);
-
+    this.topAxis.setDrawAxisLine(false);
     if (this.gpData.length < 10) {
       this.bottomAxis.setLabelCount(this.gpData.length, false);
     } else {
@@ -60,6 +60,7 @@ export struct Power {
     this.bottomAxis.setPosition(XAxisPosition.BOTTOM);
     this.bottomAxis.setAxisMinimum(0);
     this.bottomAxis.setAxisMaximum(this.gpData.length - 1);
+    this.bottomAxis.setDrawAxisLine(false);
 
     this.leftAxis = new YAxis(AxisDependency.LEFT);
     this.leftAxis.setLabelCount(10, false);
@@ -68,6 +69,7 @@ export struct Power {
     this.leftAxis.setAxisMinimum(this.lineData.getYMin() - 50); // this replaces setStartAtZero(true)
     this.leftAxis.setAxisMaximum(this.lineData.getYMax() + 50);
     this.leftAxis.enableGridDashedLine(10, 10, 0)
+    this.leftAxis.setAxisLineColor(Color.White)
 
     this.rightAxis = new YAxis(AxisDependency.RIGHT);
     this.rightAxis.setDrawGridLines(false);
@@ -75,6 +77,7 @@ export struct Power {
     this.rightAxis.setSpaceTop(15);
     this.rightAxis.setAxisMinimum(this.lineData.getYMin() - 50); // this replaces setStartAtZero(true)
     this.rightAxis.setAxisMaximum(this.lineData.getYMax() + 50);
+    this.rightAxis.setAxisLineColor(Color.White)
 
     this.lineChartModel.setTopAxis(this.topAxis);
     this.lineChartModel.setBottomAxis(this.bottomAxis);
@@ -116,7 +119,7 @@ export struct Power {
     let dataSet = new JArrayList<ILineDataSet>();
 
     let set1 = new LineDataSet(values, "Power Info(归一化电流 MA)");
-    set1.setDrawFilled(false);
+
     set1.setMode(Mode.CUBIC_BEZIER);
     set1.setGradientFillColor(gradientFillColor)
     set1.setColorByColor(Color.Blue);
@@ -129,6 +132,10 @@ export struct Power {
     set1.setCircleHoleRadius(4)
     set1.setCircleHoleColor(Color.Blue)
     set1.setDrawCircleHole(false)
+    set1.setDrawFilled(false);
+
+
+
     dataSet.add(set1);
     return new LineData(dataSet)
   }

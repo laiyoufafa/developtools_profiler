@@ -38,7 +38,7 @@ export function createFloatWindow(floatName:string) {
     //5.5SP2  2106 改成 8
     wm.create(globalThis.abilityContext, floatName, 2106).then((floatWin) => {
         floatWin.moveTo(lineChartWindowOffsetX, lineChartWindowOffsetY).then(() => {
-          floatWin.resetSize(200,150).then(() => {
+          floatWin.resetSize(240,180).then(() => {
             floatWin.getProperties().then((property) => {
               property.isTransparent = false
             })

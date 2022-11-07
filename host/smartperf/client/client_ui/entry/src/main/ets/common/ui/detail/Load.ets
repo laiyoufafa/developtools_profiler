@@ -123,7 +123,7 @@ export struct Load {
     this.topAxis.setPosition(XAxisPosition.TOP);
     this.topAxis.setAxisMinimum(0);
     this.topAxis.setAxisMaximum(this.gpData.length - 1);
-
+    this.topAxis.setDrawAxisLine(false);
     if (this.gpData.length < 10) {
       this.bottomAxis.setLabelCount(this.gpData.length, false);
     } else {
@@ -132,6 +132,7 @@ export struct Load {
     this.bottomAxis.setPosition(XAxisPosition.BOTTOM);
     this.bottomAxis.setAxisMinimum(0);
     this.bottomAxis.setAxisMaximum(this.gpData.length - 1);
+    this.bottomAxis.setDrawAxisLine(false);
 
     this.leftAxis = new YAxis(AxisDependency.LEFT);
     this.leftAxis.setLabelCount(11, false);
@@ -140,13 +141,15 @@ export struct Load {
     this.leftAxis.setAxisMinimum(this.lineData.getYMin() - 10);
     this.leftAxis.setAxisMaximum(this.lineData.getYMax() + 10);
     this.leftAxis.enableGridDashedLine(10, 10, 0)
+    this.leftAxis.setAxisLineColor(Color.White)
+
     this.rightAxis = new YAxis(AxisDependency.RIGHT);
     this.rightAxis.setDrawGridLines(false);
     this.rightAxis.setLabelCount(11, false);
     this.rightAxis.setSpaceTop(15);
     this.rightAxis.setAxisMinimum(this.lineData.getYMin() - 10); // this replaces setStartAtZero(true)
     this.rightAxis.setAxisMaximum(this.lineData.getYMax() + 10);
-
+    this.rightAxis.setAxisLineColor(Color.White)
 
     //CPUFre0
     this.lineData1 = this.initCpu0FreData();
@@ -159,7 +162,7 @@ export struct Load {
     this.topAxis1.setPosition(XAxisPosition.TOP);
     this.topAxis1.setAxisMinimum(0);
     this.topAxis1.setAxisMaximum(this.gpData.length - 1);
-
+    this.topAxis1.setDrawAxisLine(false);
     if (this.gpData.length < 10) {
       this.bottomAxis1.setLabelCount(this.gpData.length, false);
     } else {
@@ -168,7 +171,7 @@ export struct Load {
     this.bottomAxis1.setPosition(XAxisPosition.BOTTOM);
     this.bottomAxis1.setAxisMinimum(0);
     this.bottomAxis1.setAxisMaximum(this.gpData.length - 1);
-
+    this.bottomAxis1.setDrawAxisLine(false);
     this.leftAxis1 = new YAxis(AxisDependency.LEFT);
     this.leftAxis1.setLabelCount(11, false);
     this.leftAxis1.setPosition(YAxisLabelPosition.OUTSIDE_CHART);
@@ -176,13 +179,14 @@ export struct Load {
     this.leftAxis1.setAxisMinimum(this.lineData1.getYMin() - 500);
     this.leftAxis1.setAxisMaximum(this.lineData1.getYMax() + 500);
     this.leftAxis1.enableGridDashedLine(10, 10, 0)
+    this.leftAxis1.setAxisLineColor(Color.White)
     this.rightAxis1 = new YAxis(AxisDependency.RIGHT);
     this.rightAxis1.setDrawGridLines(false);
     this.rightAxis1.setLabelCount(11, false);
     this.rightAxis1.setSpaceTop(15);
     this.rightAxis1.setAxisMinimum(this.lineData1.getYMin() - 500); // this replaces setStartAtZero(true)
     this.rightAxis1.setAxisMaximum(this.lineData1.getYMax() + 500);
-
+    this.rightAxis1.setAxisLineColor(Color.White)
     //CPULoad4 CPULoad5 CPULoad6
     this.lineData2 = this.initCpuLoad4to6Data();
     if (this.gpData.length < 10) {
@@ -194,6 +198,7 @@ export struct Load {
     this.topAxis2.setPosition(XAxisPosition.TOP);
     this.topAxis2.setAxisMinimum(0);
     this.topAxis2.setAxisMaximum(this.gpData.length - 1);
+    this.topAxis2.setDrawAxisLine(false);
 
     if (this.gpData.length < 10) {
       this.bottomAxis2.setLabelCount(this.gpData.length, false);
@@ -204,6 +209,8 @@ export struct Load {
     this.bottomAxis2.setAxisMinimum(0);
     this.bottomAxis2.setAxisMaximum(this.gpData.length - 1);
 
+    this.bottomAxis2.setDrawAxisLine(false);
+
     this.leftAxis2 = new YAxis(AxisDependency.LEFT);
     this.leftAxis2.setLabelCount(11, false);
     this.leftAxis2.setPosition(YAxisLabelPosition.OUTSIDE_CHART);
@@ -211,6 +218,9 @@ export struct Load {
     this.leftAxis2.setAxisMinimum(this.lineData2.getYMin() - 10);
     this.leftAxis2.setAxisMaximum(this.lineData2.getYMax() + 10);
     this.leftAxis2.enableGridDashedLine(10, 10, 0)
+
+    this.leftAxis2.setAxisLineColor(Color.White)
+
     this.rightAxis2 = new YAxis(AxisDependency.RIGHT);
     this.rightAxis2.setDrawGridLines(false);
     this.rightAxis2.setLabelCount(11, false);
@@ -218,6 +228,7 @@ export struct Load {
     this.rightAxis2.setAxisMinimum(this.lineData2.getYMin() - 10); // this replaces setStartAtZero(true)
     this.rightAxis2.setAxisMaximum(this.lineData2.getYMax() + 10);
 
+    this.rightAxis2.setAxisLineColor(Color.White)
     //CPUFre4
     this.lineData3 = this.initCpuFre4Data();
     if (this.gpData.length < 10) {
@@ -229,6 +240,7 @@ export struct Load {
     this.topAxis3.setPosition(XAxisPosition.TOP);
     this.topAxis3.setAxisMinimum(0);
     this.topAxis3.setAxisMaximum(this.gpData.length - 1);
+    this.topAxis3.setDrawAxisLine(false);
 
     if (this.gpData.length < 10) {
       this.bottomAxis3.setLabelCount(this.gpData.length, false);
@@ -239,6 +251,8 @@ export struct Load {
     this.bottomAxis3.setAxisMinimum(0);
     this.bottomAxis3.setAxisMaximum(this.gpData.length - 1);
 
+    this.bottomAxis3.setDrawAxisLine(false);
+
     this.leftAxis3 = new YAxis(AxisDependency.LEFT);
     this.leftAxis3.setLabelCount(11, false);
     this.leftAxis3.setPosition(YAxisLabelPosition.OUTSIDE_CHART);
@@ -246,6 +260,9 @@ export struct Load {
     this.leftAxis3.setAxisMinimum(this.lineData3.getYMin() - 500);
     this.leftAxis3.setAxisMaximum(this.lineData3.getYMax() + 500);
     this.leftAxis3.enableGridDashedLine(10, 10, 0)
+
+    this.leftAxis3.setAxisLineColor(Color.White)
+
     this.rightAxis3 = new YAxis(AxisDependency.RIGHT);
     this.rightAxis3.setDrawGridLines(false);
     this.rightAxis3.setLabelCount(11, false);
@@ -253,6 +270,7 @@ export struct Load {
     this.rightAxis3.setAxisMinimum(this.lineData3.getYMin() - 500); // this replaces setStartAtZero(true)
     this.rightAxis3.setAxisMaximum(this.lineData3.getYMax() + 500);
 
+    this.rightAxis3.setAxisLineColor(Color.White)
     //CPULoad7
     this.lineData4 = this.initCpuLoad7Data();
     if (this.gpData.length < 10) {
@@ -264,6 +282,7 @@ export struct Load {
     this.topAxis4.setPosition(XAxisPosition.TOP);
     this.topAxis4.setAxisMinimum(0);
     this.topAxis4.setAxisMaximum(this.gpData.length - 1);
+    this.topAxis4.setDrawAxisLine(false);
 
     if (this.gpData.length < 10) {
       this.bottomAxis4.setLabelCount(this.gpData.length, false);
@@ -274,6 +293,8 @@ export struct Load {
     this.bottomAxis4.setAxisMinimum(0);
     this.bottomAxis4.setAxisMaximum(this.gpData.length - 1);
 
+    this.bottomAxis4.setDrawAxisLine(false);
+
     this.leftAxis4 = new YAxis(AxisDependency.LEFT);
     this.leftAxis4.setLabelCount(8, false);
     this.leftAxis4.setPosition(YAxisLabelPosition.OUTSIDE_CHART);
@@ -281,6 +302,11 @@ export struct Load {
     this.leftAxis4.setAxisMinimum(this.lineData2.getYMin() - 10);
     this.leftAxis4.setAxisMaximum(this.lineData4.getYMax() + 10);
     this.leftAxis4.enableGridDashedLine(10, 10, 0)
+
+
+    this.leftAxis4.setAxisLineColor(Color.White)
+
+
     this.rightAxis4 = new YAxis(AxisDependency.RIGHT);
     this.rightAxis4.setDrawGridLines(false);
     this.rightAxis4.setLabelCount(8, false);
@@ -288,6 +314,7 @@ export struct Load {
     this.rightAxis4.setAxisMinimum(this.lineData2.getYMin() - 10); // this replaces setStartAtZero(true)
     this.rightAxis4.setAxisMaximum(this.lineData4.getYMax() + 10);
 
+    this.rightAxis4.setAxisLineColor(Color.White)
     //CPUFre7
     this.lineData5 = this.initCpuFre7Data();
     if (this.gpData.length < 10) {
@@ -299,6 +326,7 @@ export struct Load {
     this.topAxis5.setPosition(XAxisPosition.TOP);
     this.topAxis5.setAxisMinimum(0);
     this.topAxis5.setAxisMaximum(this.gpData.length - 1);
+    this.topAxis5.setDrawAxisLine(false);
 
     if (this.gpData.length < 10) {
       this.bottomAxis5.setLabelCount(this.gpData.length, false);
@@ -309,6 +337,8 @@ export struct Load {
     this.bottomAxis5.setAxisMinimum(0);
     this.bottomAxis5.setAxisMaximum(this.gpData.length - 1);
 
+    this.bottomAxis5.setDrawAxisLine(false);
+
     this.leftAxis5 = new YAxis(AxisDependency.LEFT);
     this.leftAxis5.setLabelCount(8, false);
     this.leftAxis5.setPosition(YAxisLabelPosition.OUTSIDE_CHART);
@@ -316,13 +346,16 @@ export struct Load {
     this.leftAxis5.setAxisMinimum(this.lineData5.getYMin() - 500);
     this.leftAxis5.setAxisMaximum(this.lineData5.getYMax() + 500);
     this.leftAxis5.enableGridDashedLine(10, 10, 0)
+
+    this.leftAxis5.setAxisLineColor(Color.White)
+
     this.rightAxis5 = new YAxis(AxisDependency.RIGHT);
     this.rightAxis5.setDrawGridLines(false);
     this.rightAxis5.setLabelCount(8, false);
     this.rightAxis5.setSpaceTop(15);
     this.rightAxis5.setAxisMinimum(this.lineData5.getYMin() - 500); // this replaces setStartAtZero(true)
     this.rightAxis5.setAxisMaximum(this.lineData5.getYMax() + 500);
-
+    this.rightAxis5.setAxisLineColor(Color.White)
     //GPULoad
     this.lineData6 = this.initGpuLoadData();
     if (this.gpData.length < 10) {
@@ -357,7 +390,10 @@ export struct Load {
     this.rightAxis6.setSpaceTop(15);
     this.rightAxis6.setAxisMinimum(this.lineData6.getYMin() - 10); // this replaces setStartAtZero(true)
     this.rightAxis6.setAxisMaximum(this.lineData6.getYMax() + 10);
-
+    this.topAxis6.setDrawAxisLine(false);
+    this.bottomAxis6.setDrawAxisLine(false);
+    this.leftAxis6.setAxisLineColor(Color.White)
+    this.rightAxis6.setAxisLineColor(Color.White)
     //GPUFre
     this.lineData7 = this.initGPUFreData();
     if (this.gpData.length < 10) {
@@ -392,7 +428,10 @@ export struct Load {
     this.rightAxis7.setSpaceTop(15);
     this.rightAxis7.setAxisMinimum(this.lineData7.getYMin() - 500); // this replaces setStartAtZero(true)
     this.rightAxis7.setAxisMaximum(this.lineData7.getYMax() + 500);
-
+    this.topAxis7.setDrawAxisLine(false);
+    this.bottomAxis7.setDrawAxisLine(false);
+    this.leftAxis7.setAxisLineColor(Color.White)
+    this.rightAxis7.setAxisLineColor(Color.White)
     //DDRFre
     this.lineData8 = this.initDDRFreData();
     if (this.gpData.length < 10) {
@@ -427,7 +466,10 @@ export struct Load {
     this.rightAxis8.setSpaceTop(15);
     this.rightAxis8.setAxisMinimum(this.lineData8.getYMin() - 500); // this replaces setStartAtZero(true)
     this.rightAxis8.setAxisMaximum(this.lineData8.getYMax() + 500);
-
+    this.topAxis8.setDrawAxisLine(false);
+    this.bottomAxis8.setDrawAxisLine(false);
+    this.leftAxis8.setAxisLineColor(Color.White)
+    this.rightAxis8.setAxisLineColor(Color.White)
     this.lineChartModel.setTopAxis(this.topAxis);
     this.lineChartModel.setBottomAxis(this.bottomAxis);
     this.lineChartModel.setWidth(this.atWidth);
