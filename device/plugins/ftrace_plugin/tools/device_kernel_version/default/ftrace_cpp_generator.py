@@ -97,58 +97,61 @@ class EventParserCodeGenerator(FtraceEventCodeGenerator):
         super().__init__(events_dir, allow_list)
 
     def parser_file_path(self, category):
-        file_name = 'ftrace_{}_event_parser.cpp'.format(category)
+        file_name = "ftrace_{}_event_parser.cpp".format(category)
         return os.path.join(self.output_dir, file_name)
 
     def generate_code(self):
         generated_cpp_sources = []
 
         for event in self.target_event_formats:
-            type_name = '{}/{}'.format(event.category, event.name)
-            logger.info('ftrace_events: "{}"'.format(type_name))
+            type_name = "{}/{}".format(event.category, event.name)
+            Common.logger.info('ftrace_events: "{}"'.format(type_name))
 
         # generate sub event parser code
         for category in self.grouped_event_formats:
             parser_src_file = self.parser_file_path(category)
             generated_cpp_sources.append(parser_src_file)
 
-            logger.info('Generate {} ...'.format(parser_src_file))
+            Common.logger.info("Generate {} ...".format(parser_src_file))
             ensure_dir_exists(parser_src_file)
 
-            with open(parser_src_file, 'w', encoding='utf-8') as f:
-                f.write(CPP_COPYRIGHT_HEADER)
+            with open(parser_src_file, "w", encoding="utf-8") as f:
+                f.write(Common.cpp_copyright_header)
                 f.write('#include "sub_event_parser.h"\n')
-                f.write('\n')
+                f.write("\n")
                 f.write("FTRACE_NS_BEGIN\n")
                 f.write("namespace {\n")
                 self.generate_parse_functions(category, f)
                 f.write("} // namespace\n")
                 f.write("FTRACE_NS_END\n")
-                f.write('\n')
+                f.write("\n")
 
         # generate .gni
-        generated_cpp_gni = os.path.join(self.output_dir, AUTO_GENERATED_GNI)
-        logger.info('Generate {} ...'.format(generated_cpp_gni))
-        with open(generated_cpp_gni, 'w', encoding='utf-8') as f:
-            f.write(GN_COPYRIGHT_HEADER)
-            f.write('\n')
-            f.write('auto_generated_cpp_sources = [\n')
+        generated_cpp_gni = os.path.join(self.output_dir, Common.auto_generated_gni)
+        Common.logger.info("Generate {} ...".format(generated_cpp_gni))
+        with open(generated_cpp_gni, "w", encoding="utf-8") as f:
+            f.write(Common.gn_copyright_header)
+            f.write("\n")
+            f.write("auto_generated_cpp_sources = [\n")
             for path in generated_cpp_sources:
-                src = '{}'.format(os.path.basename(path))
+                src = "{}".format(os.path.basename(path))
                 f.write('  "{}",\n'.format(src))
-            f.write(']\n')
+            f.write("]\n")
 
     def generate_parse_functions(self, category, f):
         count = 0
         for event in self.grouped_event_formats[category]:
             count += 1
             if count > 1:
-                f.write('\n')
-            f.write('{}({},\n'.format(PARSE_REGISTER_MACRO, event.name))
-            f.write('[] {} {{\n'.format(PARSE_FUNCTION_ARGS))
-            f.write('    int i = 0;\n')
-            f.write('    auto msg = ftraceEvent.mutable_{}_format();\n'.format(
-                str.lower(event.name)))
+                f.write("\n")
+            f.write("{}({},\n".format(Common.parse_register_macro, event.name))
+            f.write("[] {} {{\n".format(Common.parse_function_args))
+            f.write("    int i = 0;\n")
+            f.write(
+                "    auto msg = ftraceEvent.mutable_{}_format();\n".format(
+                    str.lower(event.name)
+                )
+            )
             for i in range(len(event.remain_fields)):
                 self.generate_parse_field_lines(event, f, i)
             f.write("});\n")
@@ -160,29 +163,33 @@ class EventParserCodeGenerator(FtraceEventCodeGenerator):
         type_info = field_info.to_proto_type()
         parse_func = None
         if type_info.tid == ProtoType.STRING:
-            parse_func = 'ParseStrField'
+            parse_func = "ParseStrField"
         elif type_info.tid == ProtoType.ARRAY:
-            parse_func = 'ParseVectorIntField'
+            parse_func = "ParseVectorIntField"
         elif type_info.tid == ProtoType.INTEGER:
-            assert type_info.size in [4, 8]
-            c_type = None
-            if type_info.size == 4:
-                c_type = 'int32_t' if type_info.signed else 'uint32_t'
-            elif type_info.size == 8:
-                c_type = 'int64_t' if type_info.signed else 'uint64_t'
-            parse_func = 'ParseIntField<{}>'.format(c_type)
-        else:
-            logger.warning('WARNING: unkown proto type:{} {}'.format(
-                event.name, field_name))
-        assert parse_func
-        if (type_info.tid == ProtoType.ARRAY):
-            f.write('    std::vector<uint64_t> retvalVec = FtraceFieldParser::ParseVectorIntField<uint64_t>(format.fields, i++, data, size);')
-            f.write('    for (size_t i = 0; i < retvalVec.size(); i++) {')
-            f.write('    msg->add_{}(retvalVec[i]);'.format(field_name))
-            f.write('    }')
-        else:
-            f.write('    msg->set_{}(FtraceFieldParser::'.format(field_name))
-            f.write('{}(format.fields, i++, data, size));\n'.format(parse_func))
+            if type_info.size in [4, 8]:
+                c_type = None
+                if type_info.size == 4:
+                    c_type = "int32_t" if type_info.signed else "uint32_t"
+                elif type_info.size == 8:
+                    c_type = "int64_t" if type_info.signed else "uint64_t"
+                parse_func = "ParseIntField<{}>".format(c_type)
+        elif type_info.tid != ProtoType.INVALID:
+            Common.logger.warning(
+                "WARNING: unkown proto type:{} {}".format(event.name, field_name)
+            )
+        if parse_func != None:
+            if type_info.tid == ProtoType.ARRAY:
+                f.write(
+                    "    std::vector<uint64_t> retvalVec = FtraceFieldParser::ParseVectorIntField<uint64_t>"
+                    "(format.fields, i++, data, size);"
+                )
+                f.write("    for (size_t i = 0; i < retvalVec.size(); i++) {")
+                f.write("    msg->add_{}(retvalVec[i]);".format(field_name))
+                f.write("    }")
+            else:
+                f.write("    msg->set_{}(FtraceFieldParser::".format(field_name))
+                f.write("{}(format.fields, i++, data, size));\n".format(parse_func))
 
 
 class EventFormatterCodeGenerator(FtraceEventCodeGenerator):
@@ -190,7 +197,7 @@ class EventFormatterCodeGenerator(FtraceEventCodeGenerator):
         super().__init__(events_dir, allow_list)
 
     def formatter_file_path(self, category):
-        file_name = 'ftrace_{}_event_formatter.cpp'.format(category)
+        file_name = "ftrace_{}_event_formatter.cpp".format(category)
         return os.path.join(self.output_dir, file_name)
 
     def generate_code(self):
@@ -517,17 +524,33 @@ class EventFormatterCodeGenerator(FtraceEventCodeGenerator):
         self.handle_field_name_functions(event, f)
         f.write("    }\n")
 
+
 def main():
-    parser = argparse.ArgumentParser(
-        description='FTrace C++ code generator.')
-    parser.add_argument('-a', dest='allow_list', required=True, type=str,
-                        help='event allow list file path')
-    parser.add_argument('-e', dest='events_dir', required=True, type=str,
-                        help='event formats directory')
-    parser.add_argument('-p', dest='parser_out', required=False, type=str,
-                        help='parser code output directory')
-    parser.add_argument('-f', dest='formatter_out', required=False, type=str,
-                        help='formaater code output directory')
+    parser = argparse.ArgumentParser(description="FTrace C++ code generator.")
+    parser.add_argument(
+        "-a",
+        dest="allow_list",
+        required=True,
+        type=str,
+        help="event allow list file path",
+    )
+    parser.add_argument(
+        "-e", dest="events_dir", required=True, type=str, help="event formats directory"
+    )
+    parser.add_argument(
+        "-p",
+        dest="parser_out",
+        required=False,
+        type=str,
+        help="parser code output directory",
+    )
+    parser.add_argument(
+        "-f",
+        dest="formatter_out",
+        required=False,
+        type=str,
+        help="formaater code output directory",
+    )
 
     args = parser.parse_args(sys.argv[1:])
     allow_list = args.allow_list
