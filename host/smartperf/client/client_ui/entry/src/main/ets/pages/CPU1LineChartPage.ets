@@ -25,7 +25,7 @@ struct CPU1LineChartPage {
 
   offsetX: number = -1 //悬浮框移动触摸点 X
   offsetY: number = -1 //悬浮框移动触摸点 X
-  private floatName: string= "cpu1Frequency"
+  private floatName: string= "cpu1频率"
   task_state = 1
 
   aboutToAppear() {
@@ -44,7 +44,7 @@ struct CPU1LineChartPage {
           if (this.cpu1Frequency == 0) {
             this.data.push(0)
           } else {
-            let lineCount: number = this.cpu1Frequency / 30
+            let lineCount: number = this.cpu1Frequency / 50
             this.data.push(Math.abs(lineCount)) //在末尾填充一个元素
           }
           this.random = Math.random()
@@ -63,12 +63,12 @@ struct CPU1LineChartPage {
         Text(this.floatName + ":" + this.cpu1Frequency + "MHz")
           .fontSize('10fp')
           .fontColor($r("app.color.color_fff"))
-          .margin({ left: 5, top: 3 }) //文本显示
+          .margin({ left: 5, top:1 }) //文本显示
         Text(this.random + "")
           .fontSize('1fp')
           .fontColor($r("app.color.color_fff")).visibility(Visibility.None)
         Image($r("app.media.icon_close_small")).width('20vp').height('20vp').onClick(() => {
-          hideFloatWindow(this.floatName)
+          hideFloatWindow("cpu1Frequency")
           console.log("hideFloatWindow---------------------" + this.floatName)
         }).align(Alignment.TopEnd)
       }.height('20vp').width('100%')

@@ -112,7 +112,10 @@ export struct Temperature {
     this.rightAxis.setSpaceTop(15);
     this.rightAxis.setAxisMinimum(this.lineData.getYMin() - 5); // this replaces setStartAtZero(true)
     this.rightAxis.setAxisMaximum(this.lineData.getYMax() + 5);
-
+    this.topAxis.setDrawAxisLine(false);
+    this.bottomAxis.setDrawAxisLine(false);
+    this.leftAxis.setAxisLineColor(Color.White)
+    this.rightAxis.setAxisLineColor(Color.White)
     this.lineData1 = this.initCurveData1();
 
     if (this.gpData.length < 10) {
@@ -147,7 +150,10 @@ export struct Temperature {
     this.rightAxis1.setSpaceTop(15);
     this.rightAxis1.setAxisMinimum(this.lineData1.getYMin() - 5); // this replaces setStartAtZero(true)
     this.rightAxis1.setAxisMaximum(this.lineData1.getYMax() + 5);
-
+    this.topAxis1.setDrawAxisLine(false);
+    this.bottomAxis1.setDrawAxisLine(false);
+    this.leftAxis1.setAxisLineColor(Color.White)
+    this.rightAxis1.setAxisLineColor(Color.White)
 
     this.lineData2 = this.initCurveData2();
 
@@ -183,7 +189,10 @@ export struct Temperature {
     this.rightAxis2.setSpaceTop(15);
     this.rightAxis2.setAxisMinimum(this.lineData2.getYMin() - 5); // this replaces setStartAtZero(true)
     this.rightAxis2.setAxisMaximum(this.lineData2.getYMax() + 5);
-
+    this.topAxis2.setDrawAxisLine(false);
+    this.bottomAxis2.setDrawAxisLine(false);
+    this.leftAxis2.setAxisLineColor(Color.White)
+    this.rightAxis2.setAxisLineColor(Color.White)
 
     this.lineData3 = this.initCurveData3();
 
@@ -219,7 +228,10 @@ export struct Temperature {
     this.rightAxis3.setSpaceTop(15);
     this.rightAxis3.setAxisMinimum(this.lineData3.getYMin() - 5); // this replaces setStartAtZero(true)
     this.rightAxis3.setAxisMaximum(this.lineData3.getYMax() + 5);
-
+    this.topAxis3.setDrawAxisLine(false);
+    this.bottomAxis3.setDrawAxisLine(false);
+    this.leftAxis3.setAxisLineColor(Color.White)
+    this.rightAxis3.setAxisLineColor(Color.White)
 
     this.lineData4 = this.initCurveData4();
 
@@ -255,7 +267,10 @@ export struct Temperature {
     this.rightAxis4.setSpaceTop(15);
     this.rightAxis4.setAxisMinimum(this.lineData4.getYMin() - 5); // this replaces setStartAtZero(true)
     this.rightAxis4.setAxisMaximum(this.lineData4.getYMax() + 5);
-
+    this.topAxis4.setDrawAxisLine(false);
+    this.bottomAxis4.setDrawAxisLine(false);
+    this.leftAxis4.setAxisLineColor(Color.White)
+    this.rightAxis4.setAxisLineColor(Color.White)
 
     this.lineData5 = this.initCurveData5();
 
@@ -291,7 +306,10 @@ export struct Temperature {
     this.rightAxis5.setSpaceTop(15);
     this.rightAxis5.setAxisMinimum(this.lineData5.getYMin() - 5); // this replaces setStartAtZero(true)
     this.rightAxis5.setAxisMaximum(this.lineData5.getYMax() + 5);
-
+    this.topAxis5.setDrawAxisLine(false);
+    this.bottomAxis5.setDrawAxisLine(false);
+    this.leftAxis5.setAxisLineColor(Color.White)
+    this.rightAxis5.setAxisLineColor(Color.White)
 
     this.lineData6 = this.initCurveData6();
 
@@ -328,7 +346,10 @@ export struct Temperature {
     this.rightAxis6.setAxisMinimum(this.lineData6.getYMin() - 5); // this replaces setStartAtZero(true)
     this.rightAxis6.setAxisMaximum(this.lineData6.getYMax() + 5);
 
-
+    this.topAxis6.setDrawAxisLine(false);
+    this.bottomAxis6.setDrawAxisLine(false);
+    this.leftAxis6.setAxisLineColor(Color.White)
+    this.rightAxis6.setAxisLineColor(Color.White)
 
 
     this.lineChartModel.setTopAxis(this.topAxis);

@@ -25,7 +25,7 @@ struct GPULineChartPage {
 
   offsetX: number = -1 //悬浮框移动触摸点 X
   offsetY: number = -1 //悬浮框移动触摸点 X
-  private floatName: string= "gpuFrequency"
+  private floatName: string= "gpu频点"
   task_state = 1
 
   aboutToAppear() {
@@ -63,12 +63,12 @@ struct GPULineChartPage {
         Text(this.floatName + ":" + this.gpuFrequency + "MHz")
           .fontSize('10fp')
           .fontColor($r("app.color.color_fff"))
-          .margin({ left: 5, top: 3 }) //文本显示
+          .margin({ left: 5, top: 1 }) //文本显示
         Text(this.random + "")
           .fontSize('1fp')
           .fontColor($r("app.color.color_fff")).visibility(Visibility.None)
         Image($r("app.media.icon_close_small")).width('20vp').height('20vp').onClick(() => {
-          hideFloatWindow(this.floatName)
+          hideFloatWindow("gpuFrequency")
 
           console.log("hideFloatWindow---------------------" + this.floatName)
         }).align(Alignment.TopEnd)

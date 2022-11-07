@@ -44,7 +44,7 @@ struct CurrentNowLineChartPage {
           if (this.currentNow == 0) {
             this.data.push(0)
           } else {
-            let lineCount: number = this.currentNow / 30
+            let lineCount: number = this.currentNow / 40
             this.data.push(Math.abs(lineCount)) //在末尾填充一个元素
           }
           this.random = Math.random()
@@ -59,10 +59,10 @@ struct CurrentNowLineChartPage {
     Stack({ alignContent: Alignment.Top }) {
       FloatWindowComponent({ title: `currentNow`, data: this.data })
       Flex({ justifyContent: FlexAlign.SpaceBetween, alignItems: ItemAlign.Center }) {
-        Text(this.floatName + ":" + this.currentNow + "mA")
+        Text("电流" + ":" + (0-this.currentNow) + "mA")
           .fontSize('10fp')
           .fontColor($r("app.color.color_fff"))
-          .margin({ left: 5, top: 3 }) //文本显示
+          .margin({ left: 5, top: 1 }) //文本显示
         Text(this.random + "")
           .fontSize('1fp')
           .fontColor($r("app.color.color_fff")).visibility(Visibility.None)

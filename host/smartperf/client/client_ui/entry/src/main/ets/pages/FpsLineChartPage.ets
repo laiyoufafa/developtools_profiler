@@ -54,9 +54,9 @@ struct FpsLineChartPage {
       FloatWindowComponent({ title: `FPS`, data: this.data })
       Flex({ justifyContent: FlexAlign.SpaceBetween, alignItems: ItemAlign.Center }) {
         Text(this.floatName + ":" + this.LineFps + "fps")
-          .fontSize('6fp')
+          .fontSize('10fp')
           .fontColor($r("app.color.color_fff"))
-          .margin({ left: 5, top: 3 }) //文本显示
+          .margin({ left: 5, top: 1 }) //文本显示
         Text(this.random + "")
           .fontSize('1fp')
           .fontColor($r("app.color.color_fff")).visibility(Visibility.None)
