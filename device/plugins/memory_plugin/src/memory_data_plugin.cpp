@@ -392,10 +392,14 @@ int MemoryDataPlugin::Report(uint8_t* data, uint32_t dataSize)
             WriteProcinfoByPidfds(processinfo, pid);
         }
 
-        if (protoConfig_.report_app_mem_info() && !protoConfig_.report_app_mem_by_memory_service()) {
+        bool isReportApp = protoConfig_.report_app_mem_info() && !protoConfig_.report_app_mem_by_memory_service();
+        bool isReportSmaps = protoConfig_.report_smaps_mem_info();
+        if (i == 0 && (isReportApp || isReportSmaps)) {
             SmapsStats smapInfo;
-            smapInfo.ParseMaps(pid);
-            WriteAppsummary(processinfo, smapInfo);
+            smapInfo.ParseMaps(pid, *processinfo, isReportApp, isReportSmaps);
+            if (isReportApp) {
+                WriteAppsummary(processinfo, smapInfo);
+            }
         }
     }
     length = dataProto.ByteSizeLong();

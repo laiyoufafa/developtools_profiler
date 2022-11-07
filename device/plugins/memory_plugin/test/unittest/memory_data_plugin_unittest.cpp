@@ -80,13 +80,7 @@ class MemoryDataPluginTest : public ::testing::Test {
 public:
     static void SetUpTestCase();
 
-    static void TearDownTestCase()
-    {
-        if (access(g_path.c_str(), F_OK) == 0) {
-            std::string str = "rm -rf " + GetFullPath(DEFAULT_TEST_PATH) + "utresources";
-            system(str.c_str());
-        }
-    }
+    static void TearDownTestCase() {}
     void SetUp() {}
     void TearDown() {}
 };
@@ -400,7 +394,9 @@ HWTEST_F(MemoryDataPluginTest, Testpluginforpids, TestSize.Level1)
 
         EXPECT_EQ(g_pidtarget[i].oom_score_adj, it.oom_score_adj());
 
-        EXPECT_TRUE(it.has_memsummary());
+        if (i == 0) {
+            EXPECT_TRUE(it.has_memsummary());
+        }
     }
 
     memoryPlugin.Stop();
@@ -417,7 +413,8 @@ HWTEST_F(MemoryDataPluginTest, TestSmapsStatsInfo, TestSize.Level1)
 
     SmapsStats smap(std::string(g_path + "/"));
     for (size_t i = 0; i < expectPidList.size(); i++) {
-        EXPECT_TRUE(smap.ParseMaps(expectPidList[i]));
+        ProcessMemoryInfo processMemoryInfo;
+        EXPECT_TRUE(smap.ParseMaps(expectPidList[i], processMemoryInfo, true, false));
         EXPECT_EQ(g_pidtarget[i].java_heap, (uint64_t)(smap.GetProcessJavaHeap()));
         EXPECT_EQ(g_pidtarget[i].native_heap, (uint64_t)(smap.GetProcessNativeHeap()));
         EXPECT_EQ(g_pidtarget[i].code, (uint64_t)(smap.GetProcessCode()));

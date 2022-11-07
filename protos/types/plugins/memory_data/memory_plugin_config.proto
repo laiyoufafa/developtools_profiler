@@ -39,4 +39,6 @@ message MemoryConfig {
     bool report_app_mem_by_memory_service = 8;
     // set required pid list
     repeated int32 pid = 9;
+    // set true to report smaps meminfo from /proc/${pid}/smaps
+    bool report_smaps_mem_info = 10;
 }
