@@ -79,7 +79,6 @@ void* ohos_release_on_end(void*)
     std::lock_guard<std::recursive_timed_mutex> guard(g_ClientMutex);
     g_hookClient = nullptr;
     pthread_key_delete(g_disableHookFlag);
-    g_mallocIgnoreSet.clear();
     HILOG_INFO(LOG_CORE, "ohos_malloc_hook_on_end");
     return nullptr;
 }
