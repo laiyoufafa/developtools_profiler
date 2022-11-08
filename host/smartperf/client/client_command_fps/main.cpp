@@ -65,7 +65,6 @@ struct FpsConfig {
 };
 }
 
-
 static void StrSplit(const std::string &content, const std::string &sp, std::vector<std::string> &out)
 {
     size_t index = 0;
@@ -253,9 +252,9 @@ static FpsInfo GetSurfaceFrame(std::string name, FpsConfig &fpsConfig)
 int main(int argc, char *argv[])
 {
     FpsInfo gfpsInfo;
+    FpsInfo gfpsUniteInfo;
     int num = 1;
-    int oneParam = 1;
-    if (argc == oneParam) {
+    if (!strcmp(argv[1], "")) {
         printf("the args of num must be not-null!\n");
     } else {
         num = atoi(argv[1]);
@@ -269,7 +268,15 @@ int main(int argc, char *argv[])
             std::string layerName = GetLayer();
             FpsConfig fpsConfig;
             gfpsInfo = GetSurfaceFrame(layerName, fpsConfig);
-            printf("fps:%d|%lld\n", gfpsInfo.fps, gfpsInfo.currentFpsTime);
+            FpsConfig fpsUniteConfig;
+            std::string uniteLayer = "DisplayNode";
+            gfpsUniteInfo = GetSurfaceFrame(uniteLayer, fpsUniteConfig);
+            if (gfpsUniteInfo.fps > gfpsInfo.fps)
+            {
+                printf("fps:%d|%lld\n", gfpsUniteInfo.fps, gfpsUniteInfo.currentFpsTime);
+            } else {
+                printf("fps:%d|%lld\n", gfpsInfo.fps, gfpsInfo.currentFpsTime);
+            }
             gettimeofday(&end, nullptr);
             unsigned long runTime = end.tv_sec * 1e6 - start.tv_sec * 1e6 + end.tv_usec - start.tv_usec;
             fflush(stdout);
