@@ -40,6 +40,7 @@ void* ohos_malloc_hook_mmap(void*, size_t, int, int, int, off_t);
 int ohos_malloc_hook_munmap(void*, size_t);
 void ohos_malloc_hook_memtag(void* addr, size_t size, char* tag, size_t tagLen);
 bool ohos_set_filter_size(size_t size, void* ret);
+void* ohos_release_on_end(void*);
 
 #ifdef __cplusplus
 }
