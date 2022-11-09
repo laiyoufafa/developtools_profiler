@@ -29,6 +29,7 @@ bool SPUtils::FileAccess(const std::string &fileName)
 {
     return (access(fileName.c_str(), F_OK) == 0);
 }
+
 bool SPUtils::LoadFile(const std::string &filePath, std::string &content)
 {
     char realPath[PATH_MAX] = {0x00};
@@ -50,6 +51,7 @@ bool SPUtils::LoadFile(const std::string &filePath, std::string &content)
     ReplaceString(content);
     return true;
 }
+
 bool SPUtils::LoadCmd(const std::string &cmd, std::string &result)
 {
     std::string cmdExc = cmd;
@@ -78,6 +80,7 @@ std::string SPUtils::IncludePathDelimiter(const std::string &path)
 
     return path;
 }
+
 void SPUtils::ForDirFiles(const std::string &path, std::vector<std::string> &files)
 {
     std::string pathStringWithDelimiter;
@@ -104,6 +107,7 @@ void SPUtils::ForDirFiles(const std::string &path, std::vector<std::string> &fil
     }
     closedir(dir);
 }
+
 bool SPUtils::IsSubString(const std::string &str, const std::string &sub)
 {
     if (sub.empty() || str.empty()) {
@@ -112,6 +116,7 @@ bool SPUtils::IsSubString(const std::string &str, const std::string &sub)
 
     return str.find(sub) != std::string::npos;
 }
+
 void SPUtils::StrSplit(const std::string &content, const std::string &sp, std::vector<std::string> &out)
 {
     size_t index = 0;
@@ -127,6 +132,7 @@ void SPUtils::StrSplit(const std::string &content, const std::string &sp, std::v
         index = tEnd + 1;
     }
 }
+
 std::string SPUtils::ExtractNumber(const std::string &str)
 {
     int cntInt = 0;
@@ -139,6 +145,7 @@ std::string SPUtils::ExtractNumber(const std::string &str)
     }
     return std::to_string(cntInt);
 }
+
 void SPUtils::ReplaceString(std::string &res)
 {
     std::string flagOne = "\r";
@@ -154,6 +161,7 @@ void SPUtils::ReplaceString(std::string &res)
         ret = res.find(flagTwo);
     }
 }
+
 long long SPUtils::GetCurTime()
 {
     struct timeval tv;
@@ -161,5 +169,17 @@ long long SPUtils::GetCurTime()
     long long timestamp = tv.tv_sec * 1000 + tv.tv_usec / 1000;
     return timestamp;
 }
+
+std::string SPUtils::GetTopPkgName()
+{
+    std::string cmd = "hidumper -s AbilityManagerService -a '-a' | grep 'bundle name' | head -n 1";
+    std::string curTopPkgStr = "";
+    LoadCmd(cmd, curTopPkgStr);
+    int left = curTopPkgStr.find_first_of("[");
+	int right = curTopPkgStr.find_first_of("]");
+	std::string topPkg = curTopPkgStr.substr(left + 1, right - left - 1);
+    return topPkg;
+}
+
 }
 }
