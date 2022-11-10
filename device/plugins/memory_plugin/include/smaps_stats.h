@@ -25,7 +25,9 @@
 #include <memory>
 #include <string>
 #include <sys/mman.h>
+
 #include "logging.h"
+#include "memory_plugin_result.pb.h"
 
 struct MemUsageInfo {
     uint64_t vss;
@@ -106,6 +108,13 @@ struct MapPiecesInfo {
     uint64_t endAddr;
 
     std::string name;
+};
+
+struct SmapsHeadInfo {
+    std::string startAddrStr;
+    std::string endAddrStr;
+    std::string permission;
+    std::string path;
 };
 
 enum VmemifoType {
@@ -256,7 +265,7 @@ public:
     SmapsStats() {}
     SmapsStats(const std::string path) : testpath_(path){};
     ~SmapsStats() {}
-    bool ParseMaps(int pid);
+    bool ParseMaps(int pid, ProcessMemoryInfo& processinfo, bool isReportApp, bool isReportSmaps);
     int GetProcessJavaHeap();
     int GetProcessNativeHeap();
     int GetProcessCode();
@@ -277,8 +286,8 @@ private:
     int GetTotalSwappedOutPss();
     void ReviseStatsData();
 
-    bool ReadVmemareasFile(const std::string& path);
-    bool ParseMapHead(std::string& line, MapPiecesInfo& head);
+    bool ReadVmemareasFile(const std::string& path, ProcessMemoryInfo& processinfo, bool isReportApp, bool isReportSmaps);
+    bool ParseMapHead(std::string& line, MapPiecesInfo& head, SmapsHeadInfo& smapsHeadInfo);
     bool SetMapAddrInfo(std::string& line, MapPiecesInfo& head);
     bool GetMemUsageField(std::string& line, MemUsageInfo& memusage);
     void CollectVmemAreasData(const MapPiecesInfo& mempic,

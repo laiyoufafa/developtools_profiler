@@ -27,6 +27,7 @@ ohos_unittest("memdataplugin_ut") {
   sources = [
     "unittest/buffer_splitter_unittest.cpp",
     "unittest/memory_data_plugin_unittest.cpp",
+    "unittest/smaps_stats_unittest.cpp",
   ]
   deps = [
     "${OHOS_PROFILER_DIR}/device/plugins/memory_plugin:memdataplugin",

@@ -31,11 +31,16 @@ message SysVMeminfo {
 };
 
 message SmapsInfo {
-    string mapinfo = 1;
-    int32 size = 2;
-    int32 rss = 3;
-    int32 pss = 4;
-    int32 anonymous = 5;
+    string start_addr = 1;
+    string end_addr = 2;
+    string permission = 3;
+    string path = 4;
+    uint64 size = 5;
+    uint64 rss = 6;
+    uint64 pss = 7;
+    double reside = 8;
+    uint64 dirty = 9;
+    uint64 swapper = 10;
 };
 
 message AppSummary {

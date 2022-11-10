@@ -25,6 +25,7 @@ using namespace testing::ext;
 
 namespace {
 const std::string DEFAULT_TEST_PATH("/data/local/tmp/utresources/");
+const int PERCENT = 100;
 
 class SmapsStatsTest : public ::testing::Test {
 public:
@@ -47,16 +48,22 @@ public:
  */
 HWTEST_F(SmapsStatsTest, TestParseMapHead1, TestSize.Level1)
 {
-    std::string line = "00400000-00409000\n";
+    std::string line = "00400000-00409000 \n";
     SmapsStats plugin;
     MapPiecesInfo expectMappic = {0x00400000, 0x00409000, ""};
     MapPiecesInfo targetMappic = {0};
+    SmapsHeadInfo expectSmapsHeadInfo = {"00400000", "00409000", "", ""};
+    SmapsHeadInfo smapsHeadInfo = {};
 
-    ASSERT_FALSE(plugin.ParseMapHead(line, targetMappic));
+    ASSERT_FALSE(plugin.ParseMapHead(line, targetMappic, smapsHeadInfo));
     // test result
     EXPECT_EQ(expectMappic.startAddr, targetMappic.startAddr);
     EXPECT_EQ(expectMappic.endAddr, targetMappic.endAddr);
     EXPECT_STREQ(expectMappic.name.c_str(), targetMappic.name.c_str());
+    EXPECT_STREQ(expectSmapsHeadInfo.startAddrStr.c_str(), smapsHeadInfo.startAddrStr.c_str());
+    EXPECT_STREQ(expectSmapsHeadInfo.startAddrStr.c_str(), smapsHeadInfo.startAddrStr.c_str());
+    EXPECT_STREQ(expectSmapsHeadInfo.permission.c_str(), smapsHeadInfo.permission.c_str());
+    EXPECT_STREQ(expectSmapsHeadInfo.path.c_str(), smapsHeadInfo.path.c_str());
 }
 
 /**
@@ -70,12 +77,18 @@ HWTEST_F(SmapsStatsTest, TestParseMapHead2, TestSize.Level1)
     SmapsStats plugin;
     MapPiecesInfo expectMappic = {0x00400000, 0x00409000, ""};
     MapPiecesInfo targetMappic = {0};
+    SmapsHeadInfo expectSmapsHeadInfo = {"00400000", "00409000", "", ""};
+    SmapsHeadInfo smapsHeadInfo = {};
 
-    ASSERT_FALSE(plugin.ParseMapHead(line, targetMappic));
+    ASSERT_FALSE(plugin.ParseMapHead(line, targetMappic, smapsHeadInfo));
     // test result
     EXPECT_EQ(expectMappic.startAddr, targetMappic.startAddr);
     EXPECT_EQ(expectMappic.endAddr, targetMappic.endAddr);
     EXPECT_STREQ(expectMappic.name.c_str(), targetMappic.name.c_str());
+    EXPECT_STREQ(expectSmapsHeadInfo.startAddrStr.c_str(), smapsHeadInfo.startAddrStr.c_str());
+    EXPECT_STREQ(expectSmapsHeadInfo.startAddrStr.c_str(), smapsHeadInfo.startAddrStr.c_str());
+    EXPECT_STREQ(expectSmapsHeadInfo.permission.c_str(), smapsHeadInfo.permission.c_str());
+    EXPECT_STREQ(expectSmapsHeadInfo.path.c_str(), smapsHeadInfo.path.c_str());
 }
 
 /**
@@ -89,12 +102,18 @@ HWTEST_F(SmapsStatsTest, TestParseMapHead3, TestSize.Level1)
     SmapsStats plugin;
     MapPiecesInfo expectMappic = {0x00400000, 0x00409000, ""};
     MapPiecesInfo targetMappic = {0};
+    SmapsHeadInfo expectSmapsHeadInfo = {"00400000", "00409000", "r-x", ""};
+    SmapsHeadInfo smapsHeadInfo = {};
 
-    ASSERT_FALSE(plugin.ParseMapHead(line, targetMappic));
+    ASSERT_FALSE(plugin.ParseMapHead(line, targetMappic, smapsHeadInfo));
     // test result
     EXPECT_EQ(expectMappic.startAddr, targetMappic.startAddr);
     EXPECT_EQ(expectMappic.endAddr, targetMappic.endAddr);
     EXPECT_STREQ(expectMappic.name.c_str(), targetMappic.name.c_str());
+    EXPECT_STREQ(expectSmapsHeadInfo.startAddrStr.c_str(), smapsHeadInfo.startAddrStr.c_str());
+    EXPECT_STREQ(expectSmapsHeadInfo.startAddrStr.c_str(), smapsHeadInfo.startAddrStr.c_str());
+    EXPECT_STREQ(expectSmapsHeadInfo.permission.c_str(), smapsHeadInfo.permission.c_str());
+    EXPECT_STREQ(expectSmapsHeadInfo.path.c_str(), smapsHeadInfo.path.c_str());
 }
 
 /**
@@ -108,12 +127,18 @@ HWTEST_F(SmapsStatsTest, TestParseMapHead4, TestSize.Level1)
     SmapsStats plugin;
     MapPiecesInfo expectMappic = {0x00400000, 0x00409000, ""};
     MapPiecesInfo targetMappic = {0};
+    SmapsHeadInfo expectSmapsHeadInfo = {"00400000", "00409000", "r-x", ""};
+    SmapsHeadInfo smapsHeadInfo = {};
 
-    ASSERT_FALSE(plugin.ParseMapHead(line, targetMappic));
+    ASSERT_FALSE(plugin.ParseMapHead(line, targetMappic, smapsHeadInfo));
     // test result
     EXPECT_EQ(expectMappic.startAddr, targetMappic.startAddr);
     EXPECT_EQ(expectMappic.endAddr, targetMappic.endAddr);
     EXPECT_STREQ(expectMappic.name.c_str(), targetMappic.name.c_str());
+    EXPECT_STREQ(expectSmapsHeadInfo.startAddrStr.c_str(), smapsHeadInfo.startAddrStr.c_str());
+    EXPECT_STREQ(expectSmapsHeadInfo.startAddrStr.c_str(), smapsHeadInfo.startAddrStr.c_str());
+    EXPECT_STREQ(expectSmapsHeadInfo.permission.c_str(), smapsHeadInfo.permission.c_str());
+    EXPECT_STREQ(expectSmapsHeadInfo.path.c_str(), smapsHeadInfo.path.c_str());
 }
 
 /**
@@ -127,12 +152,18 @@ HWTEST_F(SmapsStatsTest, TestParseMapHead5, TestSize.Level1)
     SmapsStats plugin;
     MapPiecesInfo expectMappic = {0x00400000, 0x00409000, ""};
     MapPiecesInfo targetMappic = {0};
+    SmapsHeadInfo expectSmapsHeadInfo = {"00400000", "00409000", "r-x", ""};
+    SmapsHeadInfo smapsHeadInfo = {};
 
-    ASSERT_FALSE(plugin.ParseMapHead(line, targetMappic));
+    ASSERT_FALSE(plugin.ParseMapHead(line, targetMappic, smapsHeadInfo));
     // test result
     EXPECT_EQ(expectMappic.startAddr, targetMappic.startAddr);
     EXPECT_EQ(expectMappic.endAddr, targetMappic.endAddr);
     EXPECT_STREQ(expectMappic.name.c_str(), targetMappic.name.c_str());
+    EXPECT_STREQ(expectSmapsHeadInfo.startAddrStr.c_str(), smapsHeadInfo.startAddrStr.c_str());
+    EXPECT_STREQ(expectSmapsHeadInfo.startAddrStr.c_str(), smapsHeadInfo.startAddrStr.c_str());
+    EXPECT_STREQ(expectSmapsHeadInfo.permission.c_str(), smapsHeadInfo.permission.c_str());
+    EXPECT_STREQ(expectSmapsHeadInfo.path.c_str(), smapsHeadInfo.path.c_str());
 }
 
 /**
@@ -146,12 +177,18 @@ HWTEST_F(SmapsStatsTest, TestParseMapHead6, TestSize.Level1)
     SmapsStats plugin;
     MapPiecesInfo expectMappic = {0x00400000, 0x00409000, "/usr/lib/gvfs/gvfsd-http"};
     MapPiecesInfo targetMappic = {0};
+    SmapsHeadInfo expectSmapsHeadInfo = {"00400000", "00409000", "r-x", "/usr/lib/gvfs/gvfsd-http"};
+    SmapsHeadInfo smapsHeadInfo = {};
 
-    ASSERT_TRUE(plugin.ParseMapHead(line, targetMappic));
+    ASSERT_TRUE(plugin.ParseMapHead(line, targetMappic, smapsHeadInfo));
     // test result
     EXPECT_EQ(expectMappic.startAddr, targetMappic.startAddr);
     EXPECT_EQ(expectMappic.endAddr, targetMappic.endAddr);
     EXPECT_STREQ(expectMappic.name.c_str(), targetMappic.name.c_str());
+    EXPECT_STREQ(expectSmapsHeadInfo.startAddrStr.c_str(), smapsHeadInfo.startAddrStr.c_str());
+    EXPECT_STREQ(expectSmapsHeadInfo.startAddrStr.c_str(), smapsHeadInfo.startAddrStr.c_str());
+    EXPECT_STREQ(expectSmapsHeadInfo.permission.c_str(), smapsHeadInfo.permission.c_str());
+    EXPECT_STREQ(expectSmapsHeadInfo.path.c_str(), smapsHeadInfo.path.c_str());
 }
 
 /**
@@ -165,12 +202,18 @@ HWTEST_F(SmapsStatsTest, TestParseMapHead7, TestSize.Level1)
     SmapsStats plugin;
     MapPiecesInfo expectMappic = {0x00400000, 0x00409000, "/usr/lib/gvfs/gvfsd-htt"};
     MapPiecesInfo targetMappic = {0};
+    SmapsHeadInfo expectSmapsHeadInfo = {"00400000", "00409000", "r-x", "/usr/lib/gvfs/gvfsd-htt"};
+    SmapsHeadInfo smapsHeadInfo = {};
 
-    ASSERT_TRUE(plugin.ParseMapHead(line, targetMappic));
+    ASSERT_TRUE(plugin.ParseMapHead(line, targetMappic, smapsHeadInfo));
     // test result
     EXPECT_EQ(expectMappic.startAddr, targetMappic.startAddr);
     EXPECT_EQ(expectMappic.endAddr, targetMappic.endAddr);
     EXPECT_STREQ(expectMappic.name.c_str(), targetMappic.name.c_str());
+    EXPECT_STREQ(expectSmapsHeadInfo.startAddrStr.c_str(), smapsHeadInfo.startAddrStr.c_str());
+    EXPECT_STREQ(expectSmapsHeadInfo.startAddrStr.c_str(), smapsHeadInfo.startAddrStr.c_str());
+    EXPECT_STREQ(expectSmapsHeadInfo.permission.c_str(), smapsHeadInfo.permission.c_str());
+    EXPECT_STREQ(expectSmapsHeadInfo.path.c_str(), smapsHeadInfo.path.c_str());
 }
 
 /**
@@ -184,12 +227,18 @@ HWTEST_F(SmapsStatsTest, TestParseMapHead8, TestSize.Level1)
     SmapsStats plugin;
     MapPiecesInfo expectMappic = {0x564045dbe000, 0x564045ddf000, "[heap"};
     MapPiecesInfo targetMappic = {0};
+    SmapsHeadInfo expectSmapsHeadInfo = {"564045dbe000", "564045ddf000", "rw-", "[heap"};
+    SmapsHeadInfo smapsHeadInfo = {};
 
-    ASSERT_TRUE(plugin.ParseMapHead(line, targetMappic));
+    ASSERT_TRUE(plugin.ParseMapHead(line, targetMappic, smapsHeadInfo));
     // test result
     EXPECT_EQ(expectMappic.startAddr, targetMappic.startAddr);
     EXPECT_EQ(expectMappic.endAddr, targetMappic.endAddr);
     EXPECT_STREQ(expectMappic.name.c_str(), targetMappic.name.c_str());
+    EXPECT_STREQ(expectSmapsHeadInfo.startAddrStr.c_str(), smapsHeadInfo.startAddrStr.c_str());
+    EXPECT_STREQ(expectSmapsHeadInfo.startAddrStr.c_str(), smapsHeadInfo.startAddrStr.c_str());
+    EXPECT_STREQ(expectSmapsHeadInfo.permission.c_str(), smapsHeadInfo.permission.c_str());
+    EXPECT_STREQ(expectSmapsHeadInfo.path.c_str(), smapsHeadInfo.path.c_str());
 }
 
 /**
@@ -775,6 +824,7 @@ HWTEST_F(SmapsStatsTest, TestFramework, TestSize.Level1)
     bool findMapHead = false;
     MapPiecesInfo mappic = {0};
     MemUsageInfo memusage = {0};
+    SmapsHeadInfo smapsHeadInfo = {};
     // 3036, 4256, 288, 748, 0, 1388
     uint64_t prevEnd = 0;
     int prevHeap = 0;
@@ -791,7 +841,7 @@ HWTEST_F(SmapsStatsTest, TestFramework, TestSize.Level1)
     while (std::getline(ss, line)) {
         line += '\n';
         if (!findMapHead) {
-            ASSERT_TRUE(plugin.ParseMapHead(line, mappic));
+            ASSERT_TRUE(plugin.ParseMapHead(line, mappic, smapsHeadInfo));
             findMapHead = true;
             continue;
         }
@@ -831,17 +881,39 @@ HWTEST_F(SmapsStatsTest, TestFrameworkForPath, TestSize.Level1)
     uint64_t graphics = 0;
     uint64_t private_other = 20;
 
+    uint64_t size = 4;
+    uint64_t rss = 4;
+    uint64_t pss = 4;
+    uint64_t dirty = 0;
+    uint64_t swapper = 0;
+    double reside = static_cast<double>(rss) / size * PERCENT;
+    uint64_t dirty2 = 4;
+
     ASSERT_EQ(access(DEFAULT_TEST_PATH.c_str(), F_OK), 0);
     SmapsStats plugin(DEFAULT_TEST_PATH + std::string("proc/"));
 
     // test result
-    ASSERT_TRUE(plugin.ParseMaps(pid));
+    ProcessMemoryInfo processMemoryInfo;
+    ASSERT_TRUE(plugin.ParseMaps(pid, processMemoryInfo, true, true));
     EXPECT_EQ(java_heap, (uint64_t)(plugin.GetProcessJavaHeap()));
     EXPECT_EQ(native_heap, (uint64_t)(plugin.GetProcessNativeHeap()));
     EXPECT_EQ(code, (uint64_t)(plugin.GetProcessCode()));
     EXPECT_EQ(stack, (uint64_t)(plugin.GetProcessStack()));
     EXPECT_EQ(graphics, (uint64_t)(plugin.GetProcessGraphics()));
     EXPECT_EQ(private_other, (uint64_t)(plugin.GetProcessPrivateOther()));
+
+    EXPECT_EQ(size, processMemoryInfo.smapinfo(0).size());
+    EXPECT_EQ(rss, processMemoryInfo.smapinfo(0).rss());
+    EXPECT_EQ(pss, processMemoryInfo.smapinfo(0).pss());
+    EXPECT_EQ(dirty, processMemoryInfo.smapinfo(0).dirty());
+    EXPECT_EQ(swapper, processMemoryInfo.smapinfo(0).swapper());
+    EXPECT_EQ(reside, processMemoryInfo.smapinfo(0).reside());
+    EXPECT_EQ(size, processMemoryInfo.smapinfo(1).size());
+    EXPECT_EQ(rss, processMemoryInfo.smapinfo(1).rss());
+    EXPECT_EQ(pss, processMemoryInfo.smapinfo(1).pss());
+    EXPECT_EQ(dirty2, processMemoryInfo.smapinfo(1).dirty());
+    EXPECT_EQ(swapper, processMemoryInfo.smapinfo(1).swapper());
+    EXPECT_EQ(reside, processMemoryInfo.smapinfo(1).reside());
 }
 
 /**
@@ -854,6 +926,7 @@ HWTEST_F(SmapsStatsTest, TestCheckFramework, TestSize.Level1)
     bool findMapHead = false;
     MapPiecesInfo mappic = {0};
     MemUsageInfo memusage = {0};
+    SmapsHeadInfo smapsHeadInfo = {};
     uint64_t prevEnd = 0;
     int prevHeap = 0;
     SmapsStats testPlugin;
@@ -864,7 +937,7 @@ HWTEST_F(SmapsStatsTest, TestCheckFramework, TestSize.Level1)
     while (std::getline(ss, line)) {
         line += '\n';
         if (!findMapHead) {
-            ASSERT_TRUE(testPlugin.ParseMapHead(line, mappic));
+            ASSERT_TRUE(testPlugin.ParseMapHead(line, mappic, smapsHeadInfo));
             findMapHead = true;
             continue;
         }
@@ -881,7 +954,8 @@ HWTEST_F(SmapsStatsTest, TestCheckFramework, TestSize.Level1)
 
     ASSERT_EQ(access(DEFAULT_TEST_PATH.c_str(), F_OK), 0);
     SmapsStats targetPlugin(DEFAULT_TEST_PATH + std::string("proc/"));
-    ASSERT_TRUE(targetPlugin.ParseMaps(pid));
+    ProcessMemoryInfo processMemoryInfo;
+    ASSERT_TRUE(targetPlugin.ParseMaps(pid, processMemoryInfo, true, false));
 
     // test result
     EXPECT_EQ(testPlugin.GetProcessJavaHeap(), targetPlugin.GetProcessJavaHeap());

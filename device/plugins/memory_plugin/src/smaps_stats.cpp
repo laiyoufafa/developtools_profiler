@@ -17,6 +17,8 @@
 #include "securec.h"
 
 namespace {
+const int PERCENT = 100;
+
 bool MatchHead(const std::string& name, const char* str)
 {
     return strncmp(name.c_str(), str, strlen(str)) == 0;
@@ -31,22 +33,27 @@ bool MatchTail(const std::string& name, std::string str)
     return (name.substr(index) == str);
 }
 } // namespace
-bool SmapsStats::ParseMaps(int pid)
+bool SmapsStats::ParseMaps(int pid, ProcessMemoryInfo& processinfo, bool isReportApp, bool isReportSmaps)
 {
     std::string smaps_path = std::string("/proc/") + std::to_string(pid) + std::string("/smaps");
     if (testpath_.size() > 0) {
         smaps_path = testpath_ + std::to_string(pid) + std::string("/smaps");
     }
-    ReadVmemareasFile(smaps_path);
-    ReviseStatsData();
+    ReadVmemareasFile(smaps_path, processinfo, isReportApp, isReportSmaps);
+    if (isReportApp) {
+        ReviseStatsData();
+    }
     return true;
 }
 
-bool SmapsStats::ReadVmemareasFile(const std::string& path)
+bool SmapsStats::ReadVmemareasFile(const std::string& path, ProcessMemoryInfo& processinfo, bool isReportApp,
+                                    bool isReportSmaps)
 {
+    SmapsInfo* smapsInfo = nullptr;
     bool findMapHead = false;
     MapPiecesInfo mappic = {0};
     MemUsageInfo memusage = {0};
+    SmapsHeadInfo smapsHeadInfo = {};
     uint64_t prevEnd = 0;
     int prevHeap = 0;
     std::ifstream input(path, std::ios::in);
@@ -63,16 +70,34 @@ bool SmapsStats::ReadVmemareasFile(const std::string& path)
         line += '\n';
         if (!findMapHead) {
             // 00400000-00409000 r-xp 00000000 fc:00 426998  /usr/lib/gvfs/gvfsd-http
-            ParseMapHead(line, mappic);
+            ParseMapHead(line, mappic, smapsHeadInfo);
             findMapHead = true;
+            if (isReportSmaps) {
+                smapsInfo = processinfo.add_smapinfo();
+                smapsInfo->set_start_addr(smapsHeadInfo.startAddrStr);
+                smapsInfo->set_end_addr(smapsHeadInfo.endAddrStr);
+                smapsInfo->set_permission(smapsHeadInfo.permission);
+                smapsInfo->set_path(smapsHeadInfo.path);
+            }
             continue;
         }
         if (findMapHead && GetMemUsageField(line, memusage)) {
             if (!lastline_) {
                 continue;
             }
+            if (isReportSmaps) {
+                smapsInfo->set_size(memusage.vss);
+                smapsInfo->set_rss(memusage.rss);
+                smapsInfo->set_pss(memusage.pss);
+                smapsInfo->set_dirty(memusage.privateDirty + memusage.sharedDirty);
+                smapsInfo->set_swapper(memusage.swap + memusage.swapPss);
+                smapsInfo->set_reside(static_cast<double>(memusage.rss) / memusage.vss * PERCENT);
+            }
         }
-        CollectVmemAreasData(mappic, memusage, prevEnd, prevHeap);
+
+        if (isReportApp) {
+            CollectVmemAreasData(mappic, memusage, prevEnd, prevHeap);
+        }
         findMapHead = false;
         lastline_ = false;
     } while (!input.eof());
@@ -212,11 +237,8 @@ bool SmapsStats::SetMapAddrInfo(std::string& line, MapPiecesInfo& head)
     return true;
 }
 
-bool SmapsStats::ParseMapHead(std::string& line, MapPiecesInfo& head)
+bool SmapsStats::ParseMapHead(std::string& line, MapPiecesInfo& head, SmapsHeadInfo& smapsHeadInfo)
 {
-    if (!SetMapAddrInfo(line, head)) {
-        return false;
-    }
     std::string newline = line;
     for (int i = 0; i < FIFTH_FIELD; i++) {
         std::string word = newline;
@@ -225,11 +247,23 @@ bool SmapsStats::ParseMapHead(std::string& line, MapPiecesInfo& head)
             return false;
         }
         word = newline.substr(0, wordsz);
+        if (i == 0) {
+            size_t pos = word.find("-");
+            if (pos != std::string::npos) {
+                smapsHeadInfo.startAddrStr = word.substr(0, pos);
+                smapsHeadInfo.endAddrStr = word.substr(pos + 1, word.size());
+                head.startAddr = strtoull(smapsHeadInfo.startAddrStr.c_str(), nullptr, HEX_BASE);
+                head.endAddr = strtoull(smapsHeadInfo.endAddrStr.c_str(), nullptr, HEX_BASE);
+            }
+        } else if (i == 1) {
+            smapsHeadInfo.permission = word.substr(0, word.size() - 1);
+        }
 
         size_t newlineops = newline.find_first_not_of(" ", wordsz);
         newline = newline.substr(newlineops);
     }
     head.name = newline.substr(0, newline.size() - 1);
+    smapsHeadInfo.path = head.name;
     return true;
 }
 
