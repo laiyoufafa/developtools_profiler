@@ -45,19 +45,16 @@ public:
 
     void Process()
     {
-        std::string clientPkg = "";
-        std::string clientPid = "";
         SpServerSocket spSocket;
         spSocket.Init();
-        bool foreverLoop = true;
-        while (foreverLoop) {
+        while (1) {
             spSocket.Recvfrom();
             HandleMsg(spSocket);
         }
         std::cout << "Socket Process finished!" << std::endl;
         spSocket.Close();
     }
-    void HandleMsg(SpServerSocket &spSocket)
+    void HandleMsg(SpServerSocket &spSocket) const
     {
         auto iterator = messageMap.begin();
         while (iterator != messageMap.end()) {

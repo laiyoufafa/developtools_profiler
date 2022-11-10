@@ -41,8 +41,8 @@ export struct Performance {
   fpsJitterValues: Array<string> = new Array()
   topAxis: XAxis = new XAxis(); //顶部X轴
   bottomAxis: XAxis = new XAxis(); //底部X轴
-  atWidth: number = globalThis.screenWith > 800 ? 700 : 350 ; //表的宽度
-  atHeight: number = globalThis.screenWith > 800 ? 200 : 300; //表的高度
+  atWidth: number =350 ; //表的宽度
+  atHeight: number = 300; //表的高度
   minOffset: number = 15; //X轴线偏移量
   leftAxis: YAxis = null;
   rightAxis: YAxis = null;
@@ -61,7 +61,7 @@ export struct Performance {
     this.topAxis.setPosition(XAxisPosition.TOP);
     this.topAxis.setAxisMinimum(0);
     this.topAxis.setAxisMaximum(this.gpData.length - 1);
-
+     this.topAxis.setDrawAxisLine(false)
     if (this.gpData.length < 10) {
       this.bottomAxis.setLabelCount(this.gpData.length, false);
     } else {
@@ -70,28 +70,30 @@ export struct Performance {
     this.bottomAxis.setPosition(XAxisPosition.BOTTOM);
     this.bottomAxis.setAxisMinimum(0);
     this.bottomAxis.setAxisMaximum(this.gpData.length - 1);
+    this.bottomAxis.setDrawAxisLine(false);
 
     this.leftAxis = new YAxis(AxisDependency.LEFT);
+    this.leftAxis.setDrawAxisLine(true)
     this.leftAxis.setLabelCount(11, false);
-    this.leftAxis.setPosition(YAxisLabelPosition.OUTSIDE_CHART);
     this.leftAxis.setSpaceTop(15);
     this.leftAxis.setAxisMinimum(-10);
     this.leftAxis.setAxisMaximum(this.lineData.getYMax() * 2);
     this.leftAxis.enableGridDashedLine(10, 10, 0)
-
+    this.leftAxis.setAxisLineColor(Color.White)
     this.rightAxis = new YAxis(AxisDependency.RIGHT);
     this.rightAxis.setDrawGridLines(false);
     this.rightAxis.setLabelCount(7, false);
     this.rightAxis.setSpaceTop(11);
     this.rightAxis.setAxisMinimum(-10); // this replaces setStartAtZero(true)
     this.rightAxis.setAxisMaximum(this.lineData.getYMax() * 2);
-
+    this.rightAxis.setAxisLineColor(Color.White)
     this.lineChartModel.setTopAxis(this.topAxis);
     this.lineChartModel.setBottomAxis(this.bottomAxis);
     this.lineChartModel.setWidth(this.atWidth);
     this.lineChartModel.setHeight(this.atHeight);
     this.lineChartModel.setMinOffset(this.minOffset);
     this.lineChartModel.setLeftAxis(this.leftAxis);
+
     this.lineChartModel.setRightAxis(this.rightAxis);
     this.lineChartModel.setLineData(this.lineData);
     this.lineChartModel.setIsShowLegend(false);

@@ -63,7 +63,7 @@ int SpServerSocket::Recvfrom()
     return l;
 }
 
-std::string SpServerSocket::RecvBuf()
+std::string SpServerSocket::RecvBuf() const
 {
     std::string recvBuf = rbuf;
     return recvBuf;

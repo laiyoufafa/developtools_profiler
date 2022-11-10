@@ -27,14 +27,13 @@ export class FloatWindowFun {
     static lineChartWindowOffsetY: number= 200
     static windowWidth: number = 2560
     static windowHeight: number = 1600
-
-
+    static atWidth: number =  95
     static initAllFun() {
         globalThis.CreateFloatingWindow = (() => {
             //5.5SP2  2106 改成 8
-            wm.create(globalThis.abilityContext, 'floatingWindow', 2106).then((floatWin) => {
+            wm.create(globalThis.abilityContext, 'sp_floatingWindow', 2106).then((floatWin) => {
                 floatWin.moveTo(this.floatingWindowOffsetX, this.floatingWindowOffsetY).then(() => {
-                    floatWin.resetSize(95, 95).then(() => {
+                    floatWin.resetSize(this.atWidth*globalThis.coefficient, this.atWidth*globalThis.coefficient).then(() => {
                         floatWin.getProperties().then((property) => {
                             property.isTransparent = false
                         })
@@ -43,7 +42,6 @@ export class FloatWindowFun {
                                 floatWin.show().then(() => {
                                     globalThis.showFloatingWindow = true
                                 })
-
                             })
                         })
                     })
@@ -54,7 +52,7 @@ export class FloatWindowFun {
             var xx = (this.floatingWindowOffsetX + offsetX * 2) < 0 ? 0 : ((this.floatingWindowOffsetX + offsetX * 2) > (this.windowWidth - 200) ? (this.windowWidth - 200) : (this.floatingWindowOffsetX + offsetX * 2))
             var yy = (this.floatingWindowOffsetY + offsetY * 2) < 0 ? 0 : ((this.floatingWindowOffsetY + offsetY * 2) > (this.windowHeight - 200) ? (this.windowHeight - 200) : (this.floatingWindowOffsetY + offsetY * 2))
 
-            wm.find("floatingWindow").then((fltWin) => {
+            wm.find("sp_floatingWindow").then((fltWin) => {
                 fltWin.moveTo(xx, yy)
             })
         })
@@ -65,7 +63,7 @@ export class FloatWindowFun {
         })
 
         globalThis.DestroyFloatingWindow = (() => {
-            wm.find("floatingWindow").then((fltWin) => {
+            wm.find("sp_floatingWindow").then((fltWin) => {
                 fltWin.destroy().then(() => {
                     globalThis.showFloatingWindow = false
                 })
@@ -73,14 +71,14 @@ export class FloatWindowFun {
         })
 
         globalThis.CreateTitleWindow = (() => {
-            wm.create(globalThis.abilityContext, 'TitleWindow', 2106).then((floatWin) => {
+            wm.create(globalThis.abilityContext, 'sp_TitleWindow', 2106).then((floatWin) => {
                 floatWin.moveTo(this.titleWindowOffsetX, this.titleWindowOffsetY).then(() => {
-                    floatWin.resetSize(350, globalThis.screenWith > 800 ? 480 : 360).then(() => {
+                    floatWin.resetSize(350*globalThis.coefficient, 480*globalThis.coefficient).then(() => {
                         floatWin.getProperties().then((property) => {
                             property.isTransparent = false
                         })
                         floatWin.loadContent('pages/TitleWindowPage').then(() => {
-                            floatWin.setBackgroundColor("#4d000000")
+                            floatWin.setBackgroundColor("#00000000")
                             floatWin.hide()
                             SPLogger.DEBUG(TAG, 'CreateTitleWindow Done')
                         })
@@ -92,7 +90,7 @@ export class FloatWindowFun {
         globalThis.MoveTitleWindow = ((offsetX: number, offsetY: number) => {
             var xx = (this.titleWindowOffsetX + offsetX * 2) < 0 ? 0 : ((this.titleWindowOffsetX + offsetX * 2) > (this.windowWidth - 500) ? (this.windowWidth - 500) : (this.titleWindowOffsetX + offsetX * 2))
             var yy = (this.titleWindowOffsetY + offsetY * 2) < 0 ? 0 : ((this.titleWindowOffsetY + offsetY * 2) > (this.windowHeight - 330) ? (this.windowHeight - 330) : (this.titleWindowOffsetY + offsetY * 2))
-            wm.find("TitleWindow").then((fltWin) => {
+            wm.find("sp_TitleWindow").then((fltWin) => {
                 fltWin.moveTo(xx, yy)
             })
         })
@@ -103,20 +101,20 @@ export class FloatWindowFun {
         })
 
         globalThis.DestroyTitleWindow = (() => {
-            wm.find("TitleWindow").then((fltWin) => {
+            wm.find("sp_TitleWindow").then((fltWin) => {
                 fltWin.destroy().then(() => {
                 })
             })
         })
 
         globalThis.HideTitleWindow = (() => {
-            wm.find("TitleWindow").then((fltWin) => {
+            wm.find("sp_TitleWindow").then((fltWin) => {
                 fltWin.hide()
             })
         })
 
         globalThis.ShowTitleWindow = (() => {
-            wm.find("TitleWindow").then((fltWin) => {
+            wm.find("sp_TitleWindow").then((fltWin) => {
                 fltWin.show()
             })
         })

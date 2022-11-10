@@ -41,7 +41,7 @@ struct FpsLineChartPage {
         if(this.LineFps==0){
           this.data.push(0)
         }else{
-          let lineCount: number = this.LineFps / 2
+          let lineCount: number = this.LineFps / 1.5
           this.data.push(lineCount)//在末尾填充一个元素
         }
       }
@@ -51,22 +51,27 @@ struct FpsLineChartPage {
 
   build() {
     Stack({ alignContent: Alignment.Top }) {
-      FloatWindowComponent({ title: `FPS`, data: this.data })
+      FloatWindowComponent({ title: `sp_FPS`, data: this.data })
       Flex({ justifyContent: FlexAlign.SpaceBetween, alignItems: ItemAlign.Center }) {
-        Text(this.floatName + ":" + this.LineFps + "fps")
-          .fontSize('6fp')
+        Text(this.floatName  + ":" )
+          .fontSize('10fp')
           .fontColor($r("app.color.color_fff"))
-          .margin({ left: 5, top: 3 }) //文本显示
+          .margin({ left: 5, top: 1 }) //文本显示
+        Text(  this.LineFps + "fps")
+          .fontSize('20fp')
+          .fontColor('#FF0000')
+          .fontWeight(5)
+          .margin({ left: 1,top: 1 }) //文本显示
         Text(this.random + "")
           .fontSize('1fp')
           .fontColor($r("app.color.color_fff")).visibility(Visibility.None)
         Image($r("app.media.icon_close_small")).width('15vp').height('15vp').onClick(() => {
-          hideFloatWindow(this.floatName)
-
+          hideFloatWindow("sp_FPS")
           console.log("hideFloatWindow---------------------" + this.floatName)
         }).align(Alignment.TopEnd)
-      }.height('15vp').width('100%')
+      }.height('25vp').width('100%')
 
     }
+
   }
 }

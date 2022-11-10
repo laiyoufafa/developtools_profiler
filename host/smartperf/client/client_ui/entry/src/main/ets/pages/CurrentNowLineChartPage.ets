@@ -44,7 +44,7 @@ struct CurrentNowLineChartPage {
           if (this.currentNow == 0) {
             this.data.push(0)
           } else {
-            let lineCount: number = this.currentNow / 30
+            let lineCount: number = this.currentNow / 25
             this.data.push(Math.abs(lineCount)) //在末尾填充一个元素
           }
           this.random = Math.random()
@@ -57,17 +57,22 @@ struct CurrentNowLineChartPage {
 
   build() {
     Stack({ alignContent: Alignment.Top }) {
-      FloatWindowComponent({ title: `currentNow`, data: this.data })
+      FloatWindowComponent({ title: `sp_currentNow`, data: this.data })
       Flex({ justifyContent: FlexAlign.SpaceBetween, alignItems: ItemAlign.Center }) {
-        Text(this.floatName + ":" + this.currentNow + "mA")
+        Text("电流" + ":" )
           .fontSize('10fp')
           .fontColor($r("app.color.color_fff"))
-          .margin({ left: 5, top: 3 }) //文本显示
+          .margin({ left: 5, top: 1 }) //文本显示
+        Text( (0-this.currentNow) + "mA")
+          .fontSize('20fp')
+          .fontColor('#FF0000')
+          .fontWeight(900)
+          .margin({ left: 1,top: 1 }) //文本显示
         Text(this.random + "")
           .fontSize('1fp')
           .fontColor($r("app.color.color_fff")).visibility(Visibility.None)
         Image($r("app.media.icon_close_small")).width('20vp').height('20vp').onClick(() => {
-          hideFloatWindow(this.floatName)
+          hideFloatWindow("sp_currentNow")
           console.log("hideFloatWindow---------------------" + this.floatName)
         }).align(Alignment.TopEnd)
       }.height('20vp').width('100%')

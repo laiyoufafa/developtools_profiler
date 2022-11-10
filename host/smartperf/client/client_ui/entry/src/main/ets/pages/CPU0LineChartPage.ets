@@ -25,7 +25,7 @@ struct CPU0LineChartPage {
 
   offsetX: number = -1 //悬浮框移动触摸点 X
   offsetY: number = -1 //悬浮框移动触摸点 X
-  private floatName: string= "cpu0Frequency"
+  private floatName: string= "cpu0频率"
   task_state = 1
 
   aboutToAppear() {
@@ -57,17 +57,22 @@ struct CPU0LineChartPage {
 
   build() {
     Stack({ alignContent: Alignment.Top }) {
-      FloatWindowComponent({ title: `cpu0Frequency`, data: this.data })
+      FloatWindowComponent({ title: `sp_cpu0Frequency`, data: this.data })
       Flex({ justifyContent: FlexAlign.SpaceBetween, alignItems: ItemAlign.Center }) {
-        Text(this.floatName + ":" + this.cpu0Frequency + "MHz")
+        Text(this.floatName  + ":" )
           .fontSize('10fp')
           .fontColor($r("app.color.color_fff"))
-          .margin({ left: 5, top: 3 }) //文本显示
+          .margin({ left: 5, top: 1 }) //文本显示
+        Text( this.cpu0Frequency + "MHz")
+          .fontSize('20fp')
+          .fontColor('#FF0000')
+          .fontWeight(5)
+          .margin({ left: 1,top: 1 }) //文本显示
         Text(this.random + "")
           .fontSize('1fp')
           .fontColor($r("app.color.color_fff")).visibility(Visibility.None)
         Image($r("app.media.icon_close_small")).width('20vp').height('20vp').onClick(() => {
-          hideFloatWindow(this.floatName)
+          hideFloatWindow("sp_cpu0Frequency")
 
         }).align(Alignment.TopEnd)
       }.height('20vp').width('100%')
