@@ -11,10 +11,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-group("unittest") {
-  testonly = true
+import("//build/test.gni")
+
+module_output_path = "developtools/profiler/hidebug/test/"
+
+ohos_unittest("hidebug_test") {
+  module_out_path = module_output_path
+  sources = [ "./hidebug_test.cpp" ]
+
   deps = [
-    "./js:HidebugJsTest",
-    "./native:hidebug_test",
+    "//developtools/profiler/hidebug/interfaces/native/innerkits:libhidebug",
+    "//third_party/googletest:gtest_main",
+  ]
+
+  include_dirs = [
+    "//developtools/profiler/hidebug/interfaces/native/innerkits/include",
+    "//third_party/googletest/googletest/include/gtest",
   ]
 }
