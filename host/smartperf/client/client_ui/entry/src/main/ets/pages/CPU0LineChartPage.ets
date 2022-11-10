@@ -43,7 +43,7 @@ struct CPU0LineChartPage {
           if (this.cpu0Frequency == 0) {
             this.data.push(0)
           } else {
-            let lineCount: number = this.cpu0Frequency / 50
+            let lineCount: number = this.cpu0Frequency / 30
             this.data.push(Math.abs(lineCount)) //在末尾填充一个元素
           }
           this.random = Math.random()
@@ -57,17 +57,22 @@ struct CPU0LineChartPage {
 
   build() {
     Stack({ alignContent: Alignment.Top }) {
-      FloatWindowComponent({ title: `cpu0Frequency`, data: this.data })
+      FloatWindowComponent({ title: `sp_cpu0Frequency`, data: this.data })
       Flex({ justifyContent: FlexAlign.SpaceBetween, alignItems: ItemAlign.Center }) {
-        Text(this.floatName + ":" + this.cpu0Frequency + "MHz")
+        Text(this.floatName  + ":" )
           .fontSize('10fp')
           .fontColor($r("app.color.color_fff"))
           .margin({ left: 5, top: 1 }) //文本显示
+        Text( this.cpu0Frequency + "MHz")
+          .fontSize('20fp')
+          .fontColor('#FF0000')
+          .fontWeight(5)
+          .margin({ left: 1,top: 1 }) //文本显示
         Text(this.random + "")
           .fontSize('1fp')
           .fontColor($r("app.color.color_fff")).visibility(Visibility.None)
         Image($r("app.media.icon_close_small")).width('20vp').height('20vp').onClick(() => {
-          hideFloatWindow("cpu0Frequency")
+          hideFloatWindow("sp_cpu0Frequency")
 
         }).align(Alignment.TopEnd)
       }.height('20vp').width('100%')

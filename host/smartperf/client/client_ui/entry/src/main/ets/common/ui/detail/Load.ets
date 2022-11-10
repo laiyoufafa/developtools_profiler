@@ -33,8 +33,8 @@ import CheckEmptyUtils from'../../utils/CheckEmptyUtils'
 @Component
 export struct Load {
   @State private gpData: Array<TIndexInfo> = new Array()
-  atWidth: number = globalThis.screenWith > 800 ? 700 : 350 ; //表的宽度
-  atHeight: number = globalThis.screenWith > 800 ? 200 : 300; //表的高度
+  atWidth: number =350 ; //表的宽度
+  atHeight: number = 300; //表的高度
   minOffset: number = 15; //X轴线偏移量
 
   //cpuLoad0 cpuLoad1 cpuLoad2 cpuLoad3

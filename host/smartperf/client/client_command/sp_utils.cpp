@@ -176,7 +176,7 @@ std::string SPUtils::GetTopPkgName()
     std::string curTopPkgStr = "";
     LoadCmd(cmd, curTopPkgStr);
     int left = curTopPkgStr.find_first_of("[");
-	int right = curTopPkgStr.find_first_of("]");
+    int right = curTopPkgStr.find_first_of("]");
 	std::string topPkg = curTopPkgStr.substr(left + 1, right - left - 1);
     return topPkg;
 }

@@ -44,7 +44,7 @@ struct DDRNowLineChartPage {
           if (this.DDR == 0) {
             this.data.push(0)
           } else {
-            let lineCount: number = this.DDR / 30
+            let lineCount: number = this.DDR / 20
             this.data.push(Math.abs(lineCount)) //在末尾填充一个元素
           }
           this.random = Math.random()
@@ -57,17 +57,22 @@ struct DDRNowLineChartPage {
 
   build() {
     Stack({ alignContent: Alignment.Top }) {
-      FloatWindowComponent({ title: `ddrFrequency`, data: this.data })
+      FloatWindowComponent({ title: `sp_ddrFrequency`, data: this.data })
       Flex({ justifyContent: FlexAlign.SpaceBetween, alignItems: ItemAlign.Center }) {
-        Text(this.floatName + ":" + this.DDR + "MHz")
+        Text(this.floatName  + ":" )
           .fontSize('10fp')
           .fontColor($r("app.color.color_fff"))
           .margin({ left: 5, top: 1 }) //文本显示
+        Text(  this.DDR + "MHz")
+          .fontSize('20fp')
+          .fontColor('#FF0000')
+          .fontWeight(5)
+          .margin({ left: 1,top: 1 }) //文本显示
         Text(this.random + "")
           .fontSize('1fp')
           .fontColor($r("app.color.color_fff")).visibility(Visibility.None)
         Image($r("app.media.icon_close_small")).width('20vp').height('20vp').onClick(() => {
-          hideFloatWindow("ddrFrequency")
+          hideFloatWindow("sp_ddrFrequency")
 
           console.log("hideFloatWindow---------------------" + this.floatName)
         }).align(Alignment.TopEnd)

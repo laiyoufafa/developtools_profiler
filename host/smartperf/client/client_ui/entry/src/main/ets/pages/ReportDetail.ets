@@ -55,7 +55,7 @@ struct ReportDetail {
             Image(globalThis.iconMap.get(this.reportItem.packageName))
               .width('60vp')
               .height('60vp')
-              .margin({ top: '20vp', left: '20vp' })
+              .margin({ top: '10vp', left: '20vp' })
           }.margin({ left: '4%' })
 
 
@@ -80,7 +80,7 @@ struct ReportDetail {
             .fontSize('13fp')
             .fontColor($r("app.color.color_666"))
             .margin({ top: '5vp' })
-        }.width('100%').margin({ left: '10vp', top: '10vp' }).height('80')
+        }.width('100%').margin({ left: '10vp' }).height('95')
       }.margin({ left: '4%' })
 
       Row() {

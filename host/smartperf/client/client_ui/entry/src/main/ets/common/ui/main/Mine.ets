@@ -40,44 +40,47 @@ export struct Mine {
       Flex({ direction: FlexDirection.Row, justifyContent: FlexAlign.SpaceAround }) {
         Column() {
           Image($r('app.media.test_apps_count'))
-            .width('40vp')
-            .height('40vp')
+            .width('30vp')
+            .height('30vp')
 
           Text('测试总app数')
-            .fontSize('16vp')
+            .fontSize('12vp')
             .margin('20vp')
             .fontColor(0xeeeeee)
 
           Text(String(globalThis.sumTestApp))
             .fontColor(0xeeeeee)
+            .fontSize('10vp')
         }
 
         Column() {
           Image($r('app.media.test_session_count'))
-            .width('40vp')
-            .height('40vp')
+            .width('30vp')
+            .height('30vp')
 
           Text('测试总局数')
-            .fontSize('16vp')
+            .fontSize('12vp')
             .margin('20vp')
             .fontColor(0xeeeeee)
 
           Text(String(globalThis.sumTest))
             .fontColor(0xeeeeee)
+            .fontSize('10vp')
         }
 
         Column() {
           Image($r('app.media.test_times_count'))
-            .width('40vp')
-            .height('40vp')
+            .width('30vp')
+            .height('30vp')
 
           Text('测试总时长')
-            .fontSize('16vp')
+            .fontSize('12vp')
             .margin('20vp')
             .fontColor(0xeeeeee)
 
           Text(secToTime(globalThis.sumTestTime).toString())
             .fontColor(0xeeeeee)
+            .fontSize('10vp')
         }
 
       }.margin({ top: '15vp' })

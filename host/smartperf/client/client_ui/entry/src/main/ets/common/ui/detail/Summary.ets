@@ -162,17 +162,17 @@ export struct Summary {
       Grid() {
         ForEach(this.summaryItems, item => {
           GridItem() {
-            Row({ space: "8vp" }) {
-              Image(item.icon).width('30vp').height('30vp')
-              Text(item.content).fontSize('14fp').textAlign(TextAlign.Start)
-              Text(item.value).fontSize('11fp').textAlign(TextAlign.Start)
+            Row({ space: "3vp" }) {
+              Image(item.icon).width('25vp').height('25vp')
+              Text(item.content).fontSize('12fp').textAlign(TextAlign.Start)
+              Text(item.value).fontSize('10fp').textAlign(TextAlign.Start)
             }.alignItems(VerticalAlign.Center).width('100%')
           }
           .width("90%")
           .align(Alignment.Center)
           .backgroundColor(item.backColor)
           .border({ radius: '5vp', color: '#ffffff' }).shadow({radius : 5})
-          .margin({top: '30vp'})
+          .margin({top: '20vp'})
           .padding("10vp")
         }, item => item.content)
       }.margin({ bottom: "30%", left: "15%", right: "15%" }).width('90%')
