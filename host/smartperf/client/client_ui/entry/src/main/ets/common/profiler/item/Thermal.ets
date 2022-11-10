@@ -51,17 +51,17 @@ export class Thermal extends BaseProfiler {
       }
       let name: String = dirent.name
       SPLogger.DEBUG(Thermal.name,"thermal_zone name:" + name)
-      if (name.match("thermal_zone")) {
-        let typeName = fileOpen(THERMAL_CONFIG.THERMAL_BASE + "/" + dirent.name + "/type")
-        if (this.enableSupportItem.length > 0) {
-          this.enableSupportItem.find((item: String) => {
-            if (typeName.match(item.toString())) {
-              SPLogger.DEBUG(Thermal.name,"thermal_zone match name:" + typeName)
-              this.supportItemMap.set(name, item)
-              SPLogger.DEBUG(Thermal.name,"thermal_zone match name this.supportItemMap:" + this.supportItemMap.size)
-            }
-          })
-        }
+      if (name.match("thermal_zone") && name.match("thermal_zone1") == null) {
+          let typeName = fileOpen(THERMAL_CONFIG.THERMAL_BASE + "/" + dirent.name + "/type")
+          if (this.enableSupportItem.length > 0) {
+            this.enableSupportItem.find((item: String) => {
+              if (typeName.match(item.toString())) {
+                SPLogger.DEBUG(Thermal.name,"thermal_zone match name:" + typeName)
+                this.supportItemMap.set(name, item)
+                SPLogger.DEBUG(Thermal.name,"thermal_zone match name this.supportItemMap:" + this.supportItemMap.size)
+              }
+            })
+          }
       }
     } while (dirent != null)
     return CollectorType.TYPE_TEMPERATURE

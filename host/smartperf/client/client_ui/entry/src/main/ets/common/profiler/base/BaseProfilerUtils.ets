@@ -61,6 +61,10 @@ export function fileOpen(path: string): String {
     return util.printf("%s", result.substring(0, lastIndex(result))).toString()
   } catch (err) {
     SPLogger.ERROR(TAG,"fileOpen path:" + path + " error:" + err);
+    let errStr:String = err
+    if(errStr.indexOf("denied")>0){
+      return "null"
+    }
   } finally {
     fileio.closeSync(fd)
   }

@@ -137,7 +137,7 @@ struct TitleWindowPage {
             value: (this.tIndexInfo.fps.toString()) + "FPS",
             tittle: "帧率",
             onClickCallBack: () => {
-              this.floatWindowEvent("FPS", FloatWindowConstant.FPS)
+              this.floatWindowEvent("sp_FPS", FloatWindowConstant.FPS)
             }
           })
         }
@@ -148,7 +148,7 @@ struct TitleWindowPage {
             value:  (0 - Number(this.tIndexInfo.currentNow)).toString() + "mA",
             tittle: "电流",
             onClickCallBack: () => {
-              this.floatWindowEvent("currentNow", FloatWindowConstant.CURRENT_NOW)
+              this.floatWindowEvent("sp_currentNow", FloatWindowConstant.CURRENT_NOW)
             }
           })
         }
@@ -158,7 +158,7 @@ struct TitleWindowPage {
             value: (parseInt(this.tIndexInfo.ddrFrequency.toString()) / 1e6).toString() + "MHz",
             tittle: "DDR频率",
             onClickCallBack: () => {
-              this.floatWindowEvent("ddrFrequency", FloatWindowConstant.DDR_FREQUENCY)
+              this.floatWindowEvent("sp_ddrFrequency", FloatWindowConstant.DDR_FREQUENCY)
             }
           })
         }
@@ -169,7 +169,7 @@ struct TitleWindowPage {
             value: (parseInt(this.tIndexInfo.cpu0Frequency.toString()) / 1e3).toString() + "MHz  " + this.tIndexInfo.cpu0Load + "%",
             tittle: "CPU0频率",
             onClickCallBack: () => {
-              this.floatWindowEvent("cpu0Frequency", FloatWindowConstant.CPU0_FREQUENCY)
+              this.floatWindowEvent("sp_cpu0Frequency", FloatWindowConstant.CPU0_FREQUENCY)
             }
           })
         }
@@ -180,7 +180,7 @@ struct TitleWindowPage {
             value: (parseInt(this.tIndexInfo.cpu1Frequency.toString()) / 1e3).toString() + "MHz  " + this.tIndexInfo.cpu1Load + "%",
             tittle: "CPU1频率",
             onClickCallBack: () => {
-              this.floatWindowEvent("cpu1Frequency", FloatWindowConstant.CPU1_FREQUENCY)
+              this.floatWindowEvent("sp_cpu1Frequency", FloatWindowConstant.CPU1_FREQUENCY)
             }
           })
         }
@@ -191,7 +191,7 @@ struct TitleWindowPage {
             value: (parseInt(this.tIndexInfo.cpu2Frequency.toString()) / 1e3).toString() + "MHz  " + this.tIndexInfo.cpu2Load + "%",
             tittle: "CPU2频率",
             onClickCallBack: () => {
-              this.floatWindowEvent("cpu2Frequency", FloatWindowConstant.CPU2_FREQUENCY)
+              this.floatWindowEvent("sp_cpu2Frequency", FloatWindowConstant.CPU2_FREQUENCY)
             }
           })
         }
@@ -202,7 +202,7 @@ struct TitleWindowPage {
             value: (parseInt(this.tIndexInfo.gpuFrequency.toString()) / 1e6).toString() + "MHz  " + this.tIndexInfo.gpuLoad + "%",
             tittle: "GPU频点",
             onClickCallBack: () => {
-              this.floatWindowEvent("gpuFrequency", FloatWindowConstant.GPU_FREQUENCY)
+              this.floatWindowEvent("sp_gpuFrequency", FloatWindowConstant.GPU_FREQUENCY)
             }
           })
         }
@@ -212,7 +212,7 @@ struct TitleWindowPage {
             value: this.tIndexInfo.pss + "KB",
             tittle: "RAM",
             onClickCallBack: () => {
-              this.floatWindowEvent("RAM", FloatWindowConstant.RAM)
+              this.floatWindowEvent("sp_RAM", FloatWindowConstant.RAM)
             }
           })
         }
@@ -222,7 +222,7 @@ struct TitleWindowPage {
             value: (parseInt(this.tIndexInfo.socThermalTemp.toString()) / 1e3).toString() + "℃",
             tittle: "SOC温度",
             onClickCallBack: () => {
-              this.floatWindowEvent("shellBackTemp", FloatWindowConstant.SHELL_BACK_TEMP)
+              this.floatWindowEvent("sp_shellBackTemp", FloatWindowConstant.SHELL_BACK_TEMP)
             }
           })
         }
@@ -233,7 +233,7 @@ struct TitleWindowPage {
             value: (parseInt(this.tIndexInfo.shellFrameTemp.toString()) / 1e3).toString() + "℃",
             tittle: "壳温",
             onClickCallBack: () => {
-              this.floatWindowEvent("shellBackTemp", FloatWindowConstant.SHELL_BACK_TEMP)
+              this.floatWindowEvent("sp_shellBackTemp", FloatWindowConstant.SHELL_BACK_TEMP)
             }
           })
         }

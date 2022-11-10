@@ -19,8 +19,8 @@
 @Component
 export struct HomeBottomPage {
   @Link currentPage: number
-  imgW = '60px'
-  imgH = '60px'
+  imgW = '32vp'
+  imgH = '32vp'
 
   build() {
     Flex({ alignItems: ItemAlign.Center, justifyContent: FlexAlign.Center }) {

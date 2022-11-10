@@ -45,7 +45,7 @@ struct GPULineChartPage {
           if (this.gpuFrequency == 0) {
             this.data.push(0)
           } else {
-            let lineCount: number = this.gpuFrequency / 15
+            let lineCount: number = this.gpuFrequency / 10
             this.data.push(Math.abs(lineCount)) //在末尾填充一个元素
           }
           this.random = Math.random()
@@ -58,19 +58,25 @@ struct GPULineChartPage {
 
   build() {
     Stack({ alignContent: Alignment.Top }) {
-      FloatWindowComponent({ title: `gpuFrequency`, data: this.data })
+      FloatWindowComponent({ title: `sp_gpuFrequency`, data: this.data })
       Flex({ justifyContent: FlexAlign.SpaceBetween, alignItems: ItemAlign.Center }) {
-        Text(this.floatName + ":" + this.gpuFrequency + "MHz")
+
+        Text(this.floatName  + ":" )
           .fontSize('10fp')
           .fontColor($r("app.color.color_fff"))
           .margin({ left: 5, top: 1 }) //文本显示
+        Text(  this.gpuFrequency + "MHz")
+          .fontSize('20fp')
+          .fontColor('#FF0000')
+          .fontWeight(5)
+          .margin({ left: 1,top: 1 }) //文本显示
         Text(this.random + "")
           .fontSize('1fp')
           .fontColor($r("app.color.color_fff")).visibility(Visibility.None)
         Image($r("app.media.icon_close_small")).width('20vp').height('20vp').onClick(() => {
-          hideFloatWindow("gpuFrequency")
+          hideFloatWindow("sp_gpuFrequency")
 
-          console.log("hideFloatWindow---------------------" + this.floatName)
+
         }).align(Alignment.TopEnd)
       }.height('20vp').width('100%')
 

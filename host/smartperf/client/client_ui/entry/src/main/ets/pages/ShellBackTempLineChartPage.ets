@@ -48,7 +48,6 @@ struct ShellBackTempLineChartPage {
             let lineCount: number = parseInt(this.shellBackTemp.toString())/ 1e3
             console.log("shellBackTemp---------------------lineCount:" + lineCount)
             this.data.push(Math.abs(lineCount)) //在末尾填充一个元素
-
           }
           this.random = Math.random()
         }
@@ -60,18 +59,23 @@ struct ShellBackTempLineChartPage {
 
   build() {
     Stack({ alignContent: Alignment.Top }) {
-      FloatWindowComponent({ title: `shellBackTemp`, data: this.data })
+      FloatWindowComponent({ title: `sp_shellBackTemp`, data: this.data })
       Flex({ justifyContent: FlexAlign.SpaceBetween, alignItems: ItemAlign.Center }) {
-        Text("壳温" + ":" + parseInt(this.shellBackTemp.toString())/ 1e3 + "℃")
+        Text("壳温"  + ":" )
           .fontSize('10fp')
           .fontColor($r("app.color.color_fff"))
           .margin({ left: 5, top: 1 }) //文本显示
+        Text(  parseInt(this.shellBackTemp.toString())/ 1e3 + "℃")
+          .fontSize('20fp')
+          .fontColor('#FF0000')
+          .fontWeight(5)
+          .margin({ left: 1,top: 1 }) //文本显示
         Text(this.random + "")
           .fontSize('1fp')
           .fontColor($r("app.color.color_fff")).visibility(Visibility.None)
 
         Image($r("app.media.icon_close_small")).width('20vp').height('20vp').onClick(() => {
-          hideFloatWindow(this.floatName)
+          hideFloatWindow("sp_shellBackTemp")
 
         }).align(Alignment.TopEnd)
       }.height('20vp').width('100%')

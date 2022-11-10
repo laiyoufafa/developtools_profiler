@@ -64,8 +64,8 @@ void FPS::SetPackageName(std::string pName)
 FpsInfo FPS::GetFpsInfo()
 {
     FpsInfo fpsInfoMax;
-    fpsInfoMax.fps = -1;
-    int fpsValue = -1;
+    fpsInfoMax.fps = 0;
+    int fpsValue = 0;
 
     if (pkgName.empty()) {
         return fpsInfoMax;
@@ -79,23 +79,31 @@ FpsInfo FPS::GetFpsInfo()
     std::string pkgSuffix = sps[pNameLastPos - 1];
     layerName = std::string(pkgSuffix.c_str() + addEndChar);
     std::string uniteLayer = "DisplayNode";
-    std::string topPkgName = GetLayer();
+    std::string spSurfacePrefix = "sp_";
+    std::string line = GetLayer(layerName);
+    std::vector<std::string> params;
+    SPUtils::StrSplit(line, ":", params);
+    std::string pkgZOrd = params[1];
+    std::string zOrd = "-1";
+    std::string focusSurface = params[0];
     FpsInfo uniteFpsInfo;
-    if (topPkgName.find(layerName) != std::string::npos) {
+    if (focusSurface.find(layerName) != std::string::npos) {
         uniteFpsInfo = GetSurfaceFrame(uniteLayer);
     }
-
+    if ((focusSurface.find(spSurfacePrefix) != std::string::npos) && (strcmp(pkgZOrd.c_str(), zOrd.c_str()) != 0)) {   
+        if (uniteFpsInfo.fps <= fpsValue) {
+           uniteFpsInfo = GetSurfaceFrame(uniteLayer);
+        }
+    } 
     FpsInfo fpsInfo = GetSurfaceFrame(layerName); 
     if (fpsInfo.fps > uniteFpsInfo.fps) {
         fpsInfoMax = fpsInfo;
     } else {
         fpsInfoMax = uniteFpsInfo;
     }
-
     if (fpsInfoMax.fps < fpsValue) {
         fpsInfoMax.fps = fpsValue;
     }
-    
     return fpsInfoMax;
 }
 
@@ -213,7 +221,7 @@ FpsInfo FPS::GetSurfaceFrame(std::string name)
     }
 }
 
-std::string FPS::GetLayer()
+std::string FPS::GetLayer(std::string pkgSurface)
 {
     std::vector<DumpEntity> dumpEntityList;
     std::string curFocusId = "-1";
@@ -239,17 +247,17 @@ std::string FPS::GetLayer()
             }
             std::vector<std::string> params;
             SPUtils::StrSplit(line, " ", params);
-            if (params[windowNameIndex].find("WindowName")!= std::string::npos &&
-                params[windowIdIndex].find("WinId")!= std::string::npos) {
+            if (params[windowNameIndex].find("WindowName") != std::string::npos &&
+                params[windowIdIndex].find("WinId") != std::string::npos) {
                 continue;
             }
             if (params.size() == paramFifteen) {
-                DumpEntity dumpEntity { params[0], params[1], params[2], params[3] };
+                DumpEntity dumpEntity { params[0], params[1], params[2], params[3], params[7]};
                 dumpEntityList.push_back(dumpEntity);
             }
             if (params.size() == paramFourteen) {
                 DumpEntity dumpEntity { params[0], params[1], params[2].substr(0, 4),
-                    params[2].substr(5, params[2].size() - 1) };
+                    params[2].substr(5, params[2].size() - 1),  params[6]};
                 dumpEntityList.push_back(dumpEntity);
             }
             if (params.size() == paramThree) {
@@ -261,16 +269,21 @@ std::string FPS::GetLayer()
         pclose(fd);
     }
 
-    std::string resultWindowName = "NA";
+    std::string focusWindowName = "NA";
+    std::string pkgZOrd = "-1";
     int curId = std::stoi(curFocusId);
     for (size_t i = 0; i < dumpEntityList.size(); i++) {
         DumpEntity dumpItem = dumpEntityList[i];
         int curWinId = std::stoi(dumpItem.windId);
         if (curId == curWinId) {
-            resultWindowName = dumpItem.windowName;
+            focusWindowName = dumpItem.windowName;
+        }
+        if (dumpItem.windowName.find(pkgSurface) != std::string::npos)
+        {
+            pkgZOrd = dumpItem.zOrd;
         }
     }
-    return resultWindowName;
+    return focusWindowName + ":" + pkgZOrd;
 }
 }
 }

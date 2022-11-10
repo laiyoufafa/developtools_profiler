@@ -25,11 +25,11 @@ export struct FloatWindowComponent {
   private context: CanvasRenderingContext2D = new CanvasRenderingContext2D(this.settings)
   @State title: string = "SmartPerf"
   private XPoint: number = 5  //x起始坐标
-  private YPoint: number = 73   //Y起始坐标
-  private XScale: number = 5 //刻度
-  private YScale: number = 15 //刻度
-  private XLength: number = 110 //X轴长度
-  private YLength: number = 70  //Y轴长度
+  private YPoint: number = 108   //Y起始坐标
+  private XScale: number =8 //刻度
+  private YScale: number = 21 //刻度
+  private XLength: number = 168 //X轴长度
+  private YLength: number = 105  //Y轴长度
   @State data: number[]= [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]   //数据集合
   private MaxDataSize: number= this.XLength / this.XScale  //数据集合的最大长度
   @State NumericalValue: number= 0   //数值
@@ -76,7 +76,7 @@ export struct FloatWindowComponent {
         })
     }
     .width('100%')
-    .height('100%').margin({  top: 14 }).gesture(
+    .height('100%').margin({  top: 20 }).gesture(
     GestureGroup(GestureMode.Exclusive,
     PanGesture({})
       .onActionStart((event: GestureEvent) => {
