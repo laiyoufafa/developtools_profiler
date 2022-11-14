@@ -18,8 +18,9 @@ import { initDb } from '../common/database/LocalRepository'
 import { FloatWindowFun } from '../common/ui/floatwindow/FloatWindowFun'
 import { NetWork } from '../common/profiler/item/NetWork';
 import BundleManager from '../common/utils/BundleMangerUtils';
+import display from '@ohos.display' // 导入模块
 import WorkerHandler from '../common/profiler/WorkerHandler';
-import worker from '@ohos.worker'; 
+import worker from '@ohos.worker';
 
 let MainWorker = new worker.Worker("/entry/ets/workers/worker.js")
 globalThis.MainWorker = MainWorker
@@ -45,12 +46,28 @@ export default class MainAbility extends Ability {
         abilityWindowStage = windowStage;
         abilityWindowStage.setUIContent(this.context, "pages/LoginPage", null)
         globalThis.useDaemon = false
+        display.getDefaultDisplay().then((disp) => {
+            globalThis.screenWith = disp.width
+            if(globalThis.screenWith>1400){
+                globalThis.coefficient=1
+                console.log('globalThis.screenWith :coefficient-- ' +  globalThis.coefficient);
+            }else if( globalThis.screenWith>800&&globalThis.screenWith<1400){
+             globalThis.coefficient=1.8
+             console.log('globalThis.screenWith :coefficient-- ' +  globalThis.coefficient);
+            }else{
+                globalThis.coefficient=1
+                console.log('globalThis.screenWith :coefficient-- ' +  globalThis.coefficient);
+            }
+            console.log('globalThis.screenWith : ' + globalThis.screenWith);
+        }, (err) => {
+            console.log('display.getDefaultDisplay failed, error : ' + JSON.stringify(err));
+        })
     }
     onWindowStageDestroy() {}
     onForeground() {
         initDb()
         FloatWindowFun.initAllFun()
-        NetWork.getInstance().init()
+        //NetWork.getInstance().init()
         MainWorker.postMessage({ "testConnection": true })
     }
     onBackground() {}

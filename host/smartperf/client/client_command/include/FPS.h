@@ -40,6 +40,7 @@ public:
     void SetCaptureOn();
     void SetTraceCatch();
     FpsInfo GetFpsInfo();
+    std::string GetLayer(std::string pkgSurface);
     FpsInfo mFpsInfo;
     static FPS &GetInstance()
     {
@@ -59,6 +60,15 @@ private:
     int isCapture = 0;
     FpsInfo GetSurfaceFrame(std::string name);
 };
+
+struct DumpEntity {
+    const std::string windowName;
+    const std::string displayId;
+    const std::string pid;
+    const std::string windId;
+    const std::string zOrd;
+};
+
 }
 }
 #endif

@@ -19,7 +19,7 @@
 #include "include/ByTrace.h"
 namespace OHOS {
 namespace SmartPerf {
-void ByTrace::SetTraceConfig(int mSum, int mInterval, long long mThreshold)
+void ByTrace::SetTraceConfig(int mSum, int mInterval, long long mThreshold) const
 {
     sum = mSum;
     interval = mInterval;
@@ -38,7 +38,7 @@ void ByTrace::ThreadEndTrace() const
     SPUtils::LoadCmd(std::string("bytrace --trace_finish --overwrite"), result);
     std::cout << "TRACE threadGetTrace >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" << std::endl;
 }
-void ByTrace::ThreadFinishTrace(std::string &pathName) const
+void ByTrace::ThreadFinishTrace(const std::string &pathName) const
 {
     std::string result;
     std::stringstream sstream;

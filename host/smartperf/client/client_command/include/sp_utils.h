@@ -93,6 +93,11 @@ void ReplaceString(std::string &res);
  *
  */
 long long GetCurTime();
+/**
+ * @brief get top pkg 
+ *
+ */
+std::string GetTopPkgName();
 };
 }
 }

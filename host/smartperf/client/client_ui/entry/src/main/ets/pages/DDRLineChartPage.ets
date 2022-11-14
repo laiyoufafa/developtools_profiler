@@ -25,7 +25,7 @@ struct DDRNowLineChartPage {
 
   offsetX: number = -1 //悬浮框移动触摸点 X
   offsetY: number = -1 //悬浮框移动触摸点 X
-  private floatName: string= "ddrFrequency"
+  private floatName: string= "ddr频率"
   task_state = 1
 
   aboutToAppear() {
@@ -36,15 +36,15 @@ struct DDRNowLineChartPage {
 
           this.data.shift() //移除第一个元素
         }
-        if (globalThis.ddrFreq == undefined) {
+        if (globalThis.ddrFrequency == undefined) {
           this.DDR = 0
         } else {
-          this.DDR = Number(globalThis.ddrFreq / 1e6).valueOf()
+          this.DDR = Number(globalThis.ddrFrequency / 1e6).valueOf()
 
           if (this.DDR == 0) {
             this.data.push(0)
           } else {
-            let lineCount: number = this.DDR / 15
+            let lineCount: number = this.DDR / 20
             this.data.push(Math.abs(lineCount)) //在末尾填充一个元素
           }
           this.random = Math.random()
@@ -57,17 +57,22 @@ struct DDRNowLineChartPage {
 
   build() {
     Stack({ alignContent: Alignment.Top }) {
-      FloatWindowComponent({ title: `ddrFrequency`, data: this.data })
+      FloatWindowComponent({ title: `sp_ddrFrequency`, data: this.data })
       Flex({ justifyContent: FlexAlign.SpaceBetween, alignItems: ItemAlign.Center }) {
-        Text(this.floatName + ":" + this.DDR + "MHz")
+        Text(this.floatName  + ":" )
           .fontSize('10fp')
           .fontColor($r("app.color.color_fff"))
-          .margin({ left: 5, top: 3 }) //文本显示
+          .margin({ left: 5, top: 1 }) //文本显示
+        Text(  this.DDR + "MHz")
+          .fontSize('20fp')
+          .fontColor('#FF0000')
+          .fontWeight(5)
+          .margin({ left: 1,top: 1 }) //文本显示
         Text(this.random + "")
           .fontSize('1fp')
           .fontColor($r("app.color.color_fff")).visibility(Visibility.None)
         Image($r("app.media.icon_close_small")).width('20vp').height('20vp').onClick(() => {
-          hideFloatWindow(this.floatName)
+          hideFloatWindow("sp_ddrFrequency")
 
           console.log("hideFloatWindow---------------------" + this.floatName)
         }).align(Alignment.TopEnd)

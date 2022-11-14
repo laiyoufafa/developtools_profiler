@@ -31,7 +31,7 @@ void RAM::SetProcessId(std::string pid)
     processId = std::move(pid);
 }
 
-std::map<std::string, std::string> RAM::GetRamInfo()
+std::map<std::string, std::string> RAM::GetRamInfo() const
 {
     std::map<std::string, std::string> ramInfo;
     std::string pssValue = "";

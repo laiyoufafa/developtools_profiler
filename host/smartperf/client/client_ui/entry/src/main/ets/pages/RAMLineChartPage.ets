@@ -44,7 +44,7 @@ struct RAMLineChartPage {
           if (this.pss == 0) {
             this.data.push(0)
           } else {
-            let lineCount: number = this.pss / 2000
+            let lineCount: number = this.pss / 1500
 
             this.data.push(Math.abs(lineCount)) //在末尾填充一个元素
 
@@ -59,17 +59,22 @@ struct RAMLineChartPage {
 
   build() {
     Stack({ alignContent: Alignment.Top }) {
-      FloatWindowComponent({ title: `RAM`, data: this.data })
+      FloatWindowComponent({ title: `sp_RAM`, data: this.data })
       Flex({ justifyContent: FlexAlign.SpaceBetween, alignItems: ItemAlign.Center }) {
-        Text(this.floatName + ":" + this.pss + "KB")
+        Text(this.floatName  + ":" )
           .fontSize('10fp')
           .fontColor($r("app.color.color_fff"))
-          .margin({ left: 5, top: 3 }) //文本显示
+          .margin({ left: 5, top: 1 }) //文本显示
+        Text(  this.pss + "KB")
+          .fontSize('20fp')
+          .fontColor('#FF0000')
+          .fontWeight(5)
+          .margin({ left: 1,top: 1 }) //文本显示
         Text(this.random + "")
           .fontSize('1fp')
           .fontColor($r("app.color.color_fff")).visibility(Visibility.None)
         Image($r("app.media.icon_close_small")).width('20vp').height('20vp').onClick(() => {
-          hideFloatWindow(this.floatName)
+          hideFloatWindow("sp_RAM")
 
         }).align(Alignment.TopEnd)
       }.height('20vp').width('100%')

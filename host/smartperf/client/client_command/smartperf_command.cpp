@@ -56,7 +56,7 @@ SmartPerfCommand::SmartPerfCommand(int argc, char *argv[])
         }
     }
 }
-void SmartPerfCommand::HelpCommand(CommandHelp type)
+void SmartPerfCommand::HelpCommand(CommandHelp type) const
 {
     if (type == CommandHelp::HELP) {
         std::cout << smartPerfMsg << std::endl;
@@ -143,7 +143,7 @@ std::string SmartPerfCommand::ExecCommand()
 void SmartPerfCommand::InitSomething()
 {
     std::string cmdResult;
-    if (SPUtils::LoadCmd("chmod o+r /proc/stat", cmdResult) > 0) {
+    if (SPUtils::LoadCmd("chmod o+r /proc/stat", cmdResult)) {
         printf("Privilege escalation! \n");
     };
     if (!SPUtils::FileAccess("/data/local/tmp/capture")) {

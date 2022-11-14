@@ -49,9 +49,9 @@ public:
     const int threeParamMore = 3;
     SmartPerfCommand(int argc, char *argv[]);
     ~SmartPerfCommand() {};
-    void InitSomething();
+    static void InitSomething();
     std::string ExecCommand();
-    void HelpCommand(CommandHelp type);
+    void HelpCommand(CommandHelp type) const;
     void HandleCommand(std::string argStr, std::string argStr1);
     // 采集次数
     int num = 0;

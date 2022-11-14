@@ -45,22 +45,27 @@ std::map<std::string, std::string> FPS::ItemData()
     }
     return result;
 }
+
 void FPS::SetTraceCatch()
 {
     isCatchTrace = 1;
 }
+
 void FPS::SetCaptureOn()
 {
     isCapture = 1;
 }
+
 void FPS::SetPackageName(std::string pName)
 {
     pkgName = std::move(pName);
 }
+
 FpsInfo FPS::GetFpsInfo()
 {
     FpsInfo fpsInfoMax;
-    fpsInfoMax.fps = -1;
+    fpsInfoMax.fps = 0;
+    int fpsValue = 0;
 
     if (pkgName.empty()) {
         return fpsInfoMax;
@@ -70,19 +75,43 @@ FpsInfo FPS::GetFpsInfo()
     std::vector<std::string> sps;
     SPUtils::StrSplit(this->pkgName, ".", sps);
     std::string addEndChar = "0";
-    const int pNameLastPos = 2;
-    std::string pkgSuffix = sps[pNameLastPos];
+    const int pNameLastPos = sps.size();
+    std::string pkgSuffix = sps[pNameLastPos - 1];
     layerName = std::string(pkgSuffix.c_str() + addEndChar);
-    if (pkgSuffix.find("camera") != std::string::npos) {
-        layerName = std::string("RosenRenderXComponent");
+    std::string uniteLayer = "DisplayNode";
+    std::string spSurfacePrefix = "sp_";
+    std::string line = GetLayer(layerName);
+    std::vector<std::string> params;
+    SPUtils::StrSplit(line, ":", params);
+    std::string pkgZOrd = params[1];
+    std::string zOrd = "-1";
+    std::string focusSurface = params[0];
+    FpsInfo uniteFpsInfo;
+    if (focusSurface.find(layerName) != std::string::npos) {
+        uniteFpsInfo = GetSurfaceFrame(uniteLayer);
     }
 
-    FpsInfo fpsInfo = GetSurfaceFrame(layerName);
-    if (fpsInfo.fps > fpsInfoMax.fps) {
+    if ((focusSurface.find(spSurfacePrefix) != std::string::npos) && (strcmp(pkgZOrd.c_str(), zOrd.c_str()) != 0))
+    {   
+        if (uniteFpsInfo.fps <= 0)
+        {
+           uniteFpsInfo = GetSurfaceFrame(uniteLayer);
+        }
+    } 
+
+    FpsInfo fpsInfo = GetSurfaceFrame(layerName); 
+    if (fpsInfo.fps > uniteFpsInfo.fps) {
         fpsInfoMax = fpsInfo;
+    } else {
+        fpsInfoMax = uniteFpsInfo;
+    }
+
+    if (fpsInfoMax.fps < fpsValue) {
+        fpsInfoMax.fps = fpsValue;
     }
     return fpsInfoMax;
 }
+
 FpsInfo FPS::GetSurfaceFrame(std::string name)
 {
     if (name == "") {
@@ -195,6 +224,71 @@ FpsInfo FPS::GetSurfaceFrame(std::string name)
         fpsInfo.fps = 0;
         return fpsInfo;
     }
+}
+
+std::string FPS::GetLayer(std::string pkgSurface)
+{
+    std::vector<DumpEntity> dumpEntityList;
+    std::string curFocusId = "-1";
+    const std::string cmd = "hidumper -s WindowManagerService -a -a";
+    std::string cmdExc = cmd;
+    FILE *fd = popen(cmdExc.c_str(), "r");
+    if (fd != nullptr) {
+        int lineNum = 0;
+        std::string line;
+        char buf[1024] = {'\0'};
+
+        const int paramFifteen = 15;
+        const int paramFourteen = 14;
+        const int paramThree = 3;
+        const int windowNameIndex = 0;
+        const int windowIdIndex = 3;
+        const int focusNameIndex = 2;
+
+        while ((fgets(buf, sizeof(buf), fd)) != nullptr) {
+            line = buf;
+            if (line[0] == '-' || line[0] == ' ') {
+                continue;
+            }
+            std::vector<std::string> params;
+            SPUtils::StrSplit(line, " ", params);
+            if (params[windowNameIndex].find("WindowName") != std::string::npos &&
+                params[windowIdIndex].find("WinId") != std::string::npos) {
+                continue;
+            }
+            if (params.size() == paramFifteen) {
+                DumpEntity dumpEntity { params[0], params[1], params[2], params[3], params[7]};
+                dumpEntityList.push_back(dumpEntity);
+            }
+            if (params.size() == paramFourteen) {
+                DumpEntity dumpEntity { params[0], params[1], params[2].substr(0, 4),
+                    params[2].substr(5, params[2].size() - 1),  params[6]};
+                dumpEntityList.push_back(dumpEntity);
+            }
+            if (params.size() == paramThree) {
+                curFocusId = params[focusNameIndex];
+                break;
+            }
+            lineNum++;
+        }
+        pclose(fd);
+    }
+
+    std::string focusWindowName = "NA";
+    std::string pkgZOrd = "-1";
+    int curId = std::stoi(curFocusId);
+    for (size_t i = 0; i < dumpEntityList.size(); i++) {
+        DumpEntity dumpItem = dumpEntityList[i];
+        int curWinId = std::stoi(dumpItem.windId);
+        if (curId == curWinId) {
+            focusWindowName = dumpItem.windowName;
+        }
+        if (dumpItem.windowName.find(pkgSurface) != std::string::npos)
+        {
+            pkgZOrd = dumpItem.zOrd;
+        }
+    }
+    return focusWindowName + ":" + pkgZOrd;
 }
 }
 }
