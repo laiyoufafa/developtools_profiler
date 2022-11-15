@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -22,6 +22,7 @@
 #include <pthread.h>
 #include <sys/prctl.h>
 #include <unordered_set>
+#include "common.h"
 #include "hook_common.h"
 #include "hook_socket_client.h"
 #include "musl_preinit_common.h"
@@ -69,6 +70,7 @@ void FinalizeIPC() {}
 bool ohos_malloc_hook_on_start(void)
 {
     std::lock_guard<std::recursive_timed_mutex> guard(g_ClientMutex);
+    COMMON::PrintMallinfoLog("before hook(byte) => ");
     g_hookPid = ohos_get_real_pid();
     g_mallocTimes = 0;
     if (g_hookClient != nullptr) {
@@ -105,6 +107,7 @@ void* ohos_release_on_end(void*)
     pthread_key_delete(g_disableHookFlag);
     g_mallocIgnoreSet.clear();
     HILOG_INFO(LOG_CORE, "ohos_malloc_hook_on_end, mallocTimes :%" PRIu64, g_mallocTimes.load());
+    COMMON::PrintMallinfoLog("after hook(byte) => ");
     return nullptr;
 }
 
