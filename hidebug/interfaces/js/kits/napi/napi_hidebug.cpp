@@ -197,12 +197,10 @@ static bool GetFileNameParamThrowErrorVersion(napi_env env, napi_callback_info i
     napi_get_cb_info(env, info, &argc, argv, &thisVar, &data);
     if (argc != ONE_VALUE_LIMIT) {
         HiLog::Error(LABEL, "invalid number = %{public}d of params.", ONE_VALUE_LIMIT);
-        std::string errorMessage = "Invalid parameter, only one parameter is allowed.";
         return false;
     }
     if (!MatchValueType(env, argv[ARRAY_INDEX_FIRST], napi_string)) {
         HiLog::Error(LABEL, "Type error, should be string type!");
-        std::string errorMessage = "invalid parameter, only one parameter is allowed.";
         return false;
     }
     size_t bufLen = 0;
@@ -421,11 +419,7 @@ napi_value GetNativeHeapSize(napi_env env, napi_callback_info info)
 {
     struct mallinfo mi = mallinfo();
     napi_value nativeHeapSize;
-    if (mi.usmblks >= 0) {
-        napi_create_bigint_uint64(env, mi.usmblks, &nativeHeapSize);
-    } else {
-        napi_create_bigint_uint64(env, 0, &nativeHeapSize);
-    }
+    napi_create_bigint_uint64(env, uint64_t(mi.uordblks + mi.fordblks), &nativeHeapSize);
     return nativeHeapSize;
 }
 
@@ -433,11 +427,7 @@ napi_value GetNativeHeapAllocatedSize(napi_env env, napi_callback_info info)
 {
     struct mallinfo mi = mallinfo();
     napi_value nativeHeapAllocatedSize;
-    if (mi.uordblks >= 0) {
-        napi_create_bigint_uint64(env, mi.uordblks, &nativeHeapAllocatedSize);
-    } else {
-        napi_create_bigint_uint64(env, 0, &nativeHeapAllocatedSize);
-    }
+    napi_create_bigint_uint64(env, uint64_t(mi.uordblks), &nativeHeapAllocatedSize);
     return nativeHeapAllocatedSize;
 }
 
@@ -445,11 +435,7 @@ napi_value GetNativeHeapFreeSize(napi_env env, napi_callback_info info)
 {
     struct mallinfo mi = mallinfo();
     napi_value nativeHeapFreeSize;
-    if (mi.fordblks >= 0) {
-        napi_create_bigint_uint64(env, mi.fordblks, &nativeHeapFreeSize);
-    } else {
-        napi_create_bigint_uint64(env, 0, &nativeHeapFreeSize);
-    }
+    napi_create_bigint_uint64(env, uint64_t(mi.fordblks), &nativeHeapFreeSize);
     return nativeHeapFreeSize;
 }
 
