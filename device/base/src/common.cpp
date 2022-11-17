@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,7 +17,6 @@
 #include <cinttypes>
 #include <csignal>
 #include <fcntl.h>
-#include <malloc.h>
 #include <sys/file.h>
 #include <sys/wait.h>
 #include <unistd.h>
@@ -112,19 +111,4 @@ int KillProcess(int pid)
 
     return stat;
 }
-
-void PrintMallinfoLog(const std::string& mallInfoPrefix)
-{
-    struct mallinfo2 mallinfo = mallinfo2();
-    std::string mallinfoLog = mallInfoPrefix;
-    mallinfoLog += "arena = " + std::to_string(mallinfo.arena) + ", ordblks = " + std::to_string(mallinfo.ordblks);
-    mallinfoLog += ", smblks = " + std::to_string(mallinfo.smblks) + ", hblks = " + std::to_string(mallinfo.hblks);
-    mallinfoLog += ", hblkhd = " + std::to_string(mallinfo.hblkhd) + ", usmblks = " + std::to_string(mallinfo.usmblks);
-    mallinfoLog += ", fsmblks = " + std::to_string(mallinfo.fsmblks) +
-                   ", uordblks = " + std::to_string(mallinfo.uordblks);
-    mallinfoLog += ", fordblks = " + std::to_string(mallinfo.fordblks) +
-                   ", keepcost = " + std::to_string(mallinfo.keepcost);
-    HILOG_INFO(LOG_CORE, "%s", mallinfoLog.c_str());
-}
-
 } // COMMON
