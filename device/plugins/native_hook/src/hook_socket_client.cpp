@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,6 +15,7 @@
 
 #include "hook_socket_client.h"
 
+#include "common.h"
 #include "hook_common.h"
 #include "unix_socket_client.h"
 #include "logging.h"
@@ -98,6 +99,8 @@ bool HookSocketClient::ProtocolProc(SocketContext &context, uint32_t pnum, const
     HILOG_INFO(LOG_CORE, "%s: maxStackDepth = %u fpunwind = %d isBlocked = %d", __func__, config_->maxStackDepth_,
                config_->fpunwind_, config_->isBlocked);
     stackWriter_ = std::make_shared<StackWriter>("hooknativesmb", smbSize, smbFd_, eventFd_, config_->isBlocked);
+
+    COMMON::PrintMallinfoLog("stackWriter init(byte) => ");
     return true;
 }
 
