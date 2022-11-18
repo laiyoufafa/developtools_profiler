@@ -380,7 +380,7 @@ int main(int argc, char** argv)
 可以使用`-h`或者`--help`参数查看命令的使用描述信息：
 
 ```sh
-# hiprofiler_cmd -h
+hiprofiler_cmd -h
 help :
   --getport        -q     : get grpc address
   --time           -t     : trace time
@@ -408,7 +408,7 @@ help :
 #### 基础配置参数<a name="section35362541219"></a>
 
 ```sh
-# hiprofiler_cmd \
+hiprofiler_cmd \
   -c - \
   -o /data/local/tmp/hiprofiler_data.htrace \
   -t 50 \
@@ -436,7 +436,7 @@ CONFIG
 #### ftrace抓取场景示例<a name="section35362541220"></a>
 
 ```sh
-# hiprofiler_cmd \
+hiprofiler_cmd \
   -c - \
   -o /data/local/tmp/hiprofiler_data.htrace \
   -t 50 \
