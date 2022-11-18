@@ -25,6 +25,8 @@ const int MOVE_BIT_8 = 8;
 const int MOVE_BIT_32 = 32;
 const int MOVE_BIT_48 = 48;
 const int MOVE_BIT_56 = 56;
+constexpr int FLUSH_FLAG = 20;
+int g_flushCount = 0;
 } // namespace
 
 HookSocketClient::HookSocketClient(int pid, ClientConfig *config) : pid_(pid), config_(config)
@@ -126,12 +128,18 @@ bool HookSocketClient::SendStackWithPayload(const void* data, size_t size, const
         return true;
     }
 
-    if (!unixSocketClient_->SendHeartBeat()) {
-        return false;
-    }
-
     stackWriter_->WriteWithPayloadTimeout(data, size, payload, payloadSize);
-    stackWriter_->Flush();
-
+    g_flushCount++;
+    if (g_flushCount % FLUSH_FLAG == 0) {
+        stackWriter_->Flush();
+    }
     return true;
+}
+
+void HookSocketClient::Flush()
+{
+    if (stackWriter_ == nullptr || unixSocketClient_ == nullptr) {
+        return;
+    }
+    stackWriter_->Flush();
 }

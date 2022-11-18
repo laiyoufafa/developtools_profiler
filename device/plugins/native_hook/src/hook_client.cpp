@@ -35,6 +35,7 @@
 #include "hook_client.h"
 
 static pthread_key_t g_disableHookFlag;
+static pthread_key_t g_hookTid;
 namespace {
 static std::atomic<uint64_t> g_timeCost = 0;
 static std::atomic<uint64_t> g_mallocTimes = 0;
@@ -67,6 +68,14 @@ bool InititalizeIPC()
 void FinalizeIPC() {}
 }  // namespace
 
+pid_t inline __attribute__((always_inline)) GetCurThreadId()
+{
+    if (pthread_getspecific(g_hookTid) == nullptr) {
+        pthread_setspecific(g_hookTid, reinterpret_cast<void *>(get_thread_id()));
+    }
+    return reinterpret_cast<long>((pthread_getspecific(g_hookTid)));
+}
+
 bool ohos_malloc_hook_on_start(void)
 {
     std::lock_guard<std::recursive_timed_mutex> guard(g_ClientMutex);
@@ -81,6 +90,8 @@ bool ohos_malloc_hook_on_start(void)
     }
     pthread_key_create(&g_disableHookFlag, nullptr);
     pthread_setspecific(g_disableHookFlag, nullptr);
+    pthread_key_create(&g_hookTid, nullptr);
+    pthread_setspecific(g_hookTid, nullptr);
     HILOG_INFO(LOG_CORE, "ohos_malloc_hook_on_start");
     GetMainThreadRuntimeStackRange();
     g_minSize = g_ClientConfig.filterSize_;
@@ -105,6 +116,7 @@ void* ohos_release_on_end(void*)
     std::lock_guard<std::recursive_timed_mutex> guard(g_ClientMutex);
     g_hookClient = nullptr;
     pthread_key_delete(g_disableHookFlag);
+    pthread_key_delete(g_hookTid);
     g_mallocIgnoreSet.clear();
     HILOG_INFO(LOG_CORE, "ohos_malloc_hook_on_end, mallocTimes :%" PRIu64, g_mallocTimes.load());
     COMMON::PrintMallinfoLog("after hook(byte) => ");
@@ -113,6 +125,9 @@ void* ohos_release_on_end(void*)
 
 bool ohos_malloc_hook_on_end(void)
 {
+    if (g_hookClient != nullptr) {
+        g_hookClient->Flush();
+    }
     pthread_t threadEnd;
     if (pthread_create(&threadEnd, nullptr, ohos_release_on_end, nullptr)) {
         HILOG_INFO(LOG_CORE, "create ohos_release_on_end fail");
@@ -166,7 +181,7 @@ void* hook_malloc(void* (*fn)(size_t), size_t size)
     if (g_ClientConfig.fpunwind_) {
 #ifdef __aarch64__
         stackptr = reinterpret_cast<const char*>(__builtin_frame_address(0));
-        GetRuntimeStackEnd(stackptr, &stackendptr);  // stack end pointer
+        GetRuntimeStackEnd(stackptr, &stackendptr, g_hookPid, GetCurThreadId());  // stack end pointer
         stackSize = stackendptr - stackptr;
         FpUnwind(g_ClientConfig.maxStackDepth_, rawdata.ip, stackSize);
         stackSize = 0;
@@ -194,12 +209,12 @@ void* hook_malloc(void* (*fn)(size_t), size_t size)
             : "x12", "x13", "memory");
 #endif
         stackptr = reinterpret_cast<const char*>(regs[RegisterGetSP(buildArchType)]);
-        GetRuntimeStackEnd(stackptr, &stackendptr);  // stack end pointer
+        GetRuntimeStackEnd(stackptr, &stackendptr, g_hookPid, GetCurThreadId());  // stack end pointer
         stackSize = stackendptr - stackptr;
     }
     rawdata.type = MALLOC_MSG;
     rawdata.pid = g_hookPid;
-    rawdata.tid = get_thread_id();
+    rawdata.tid = GetCurThreadId();
     rawdata.mallocSize = size;
     rawdata.addr = ret;
     prctl(PR_GET_NAME, rawdata.tname);
@@ -260,7 +275,7 @@ void* hook_calloc(void* (*fn)(size_t, size_t), size_t number, size_t size)
     if (g_ClientConfig.fpunwind_) {
 #ifdef __aarch64__
         stackptr = reinterpret_cast<const char*>(__builtin_frame_address(0));
-        GetRuntimeStackEnd(stackptr, &stackendptr);  // stack end pointer
+        GetRuntimeStackEnd(stackptr, &stackendptr, g_hookPid, GetCurThreadId());  // stack end pointer
         stackSize = stackendptr - stackptr;
         FpUnwind(g_ClientConfig.maxStackDepth_, rawdata.ip, stackSize);
         stackSize = 0;
@@ -288,12 +303,12 @@ void* hook_calloc(void* (*fn)(size_t, size_t), size_t number, size_t size)
             : "x12", "x13", "memory");
 #endif
         stackptr = reinterpret_cast<const char*>(regs[RegisterGetSP(buildArchType)]);
-        GetRuntimeStackEnd(stackptr, &stackendptr);  // stack end pointer
+        GetRuntimeStackEnd(stackptr, &stackendptr, g_hookPid, GetCurThreadId());  // stack end pointer
         stackSize = stackendptr - stackptr;
     }
     rawdata.type = MALLOC_MSG;
     rawdata.pid = g_hookPid;
-    rawdata.tid = get_thread_id();
+    rawdata.tid = GetCurThreadId();
     rawdata.mallocSize = number * size;
     rawdata.addr = pRet;
     prctl(PR_GET_NAME, rawdata.tname);
@@ -343,7 +358,7 @@ void* hook_realloc(void* (*fn)(void*, size_t), void* ptr, size_t size)
     if (g_ClientConfig.fpunwind_) {
 #ifdef __aarch64__
         stackptr = reinterpret_cast<const char*>(__builtin_frame_address(0));
-        GetRuntimeStackEnd(stackptr, &stackendptr);  // stack end pointer
+        GetRuntimeStackEnd(stackptr, &stackendptr, g_hookPid, GetCurThreadId());  // stack end pointer
         stackSize = stackendptr - stackptr;
         FpUnwind(g_ClientConfig.maxStackDepth_, rawdata.ip, stackSize);
         stackSize = 0;
@@ -371,12 +386,12 @@ void* hook_realloc(void* (*fn)(void*, size_t), void* ptr, size_t size)
             : "x12", "x13", "memory");
 #endif
         stackptr = reinterpret_cast<const char*>(regs[RegisterGetSP(buildArchType)]);
-        GetRuntimeStackEnd(stackptr, &stackendptr);  // stack end pointer
+        GetRuntimeStackEnd(stackptr, &stackendptr, g_hookPid, GetCurThreadId());  // stack end pointer
         stackSize = stackendptr - stackptr;
     }
     rawdata.type = MALLOC_MSG;
     rawdata.pid = g_hookPid;
-    rawdata.tid = get_thread_id();
+    rawdata.tid = GetCurThreadId();
     rawdata.mallocSize = size;
     rawdata.addr = pRet;
     prctl(PR_GET_NAME, rawdata.tname);
@@ -431,7 +446,7 @@ void hook_free(void (*free_func)(void*), void* p)
         if (g_ClientConfig.fpunwind_) {
 #ifdef __aarch64__
             stackptr = reinterpret_cast<const char*>(__builtin_frame_address(0));
-            GetRuntimeStackEnd(stackptr, &stackendptr);  // stack end pointer
+            GetRuntimeStackEnd(stackptr, &stackendptr, g_hookPid, GetCurThreadId());  // stack end pointer
             stackSize = stackendptr - stackptr;
             FpUnwind(g_ClientConfig.maxStackDepth_, rawdata.ip, stackSize);
             stackSize = 0;
@@ -459,14 +474,14 @@ void hook_free(void (*free_func)(void*), void* p)
                 : "x12", "x13", "memory");
 #endif
             stackptr = reinterpret_cast<const char*>(regs[RegisterGetSP(buildArchType)]);
-            GetRuntimeStackEnd(stackptr, &stackendptr);  // stack end pointer
+            GetRuntimeStackEnd(stackptr, &stackendptr, g_hookPid, GetCurThreadId());  // stack end pointer
             stackSize = stackendptr - stackptr;
         }
     }
 
     rawdata.type = FREE_MSG;
     rawdata.pid = g_hookPid;
-    rawdata.tid = get_thread_id();
+    rawdata.tid = GetCurThreadId();
     rawdata.mallocSize = 0;
     rawdata.addr = p;
     prctl(PR_GET_NAME, rawdata.tname);
@@ -503,7 +518,7 @@ void* hook_mmap(void*(*fn)(void*, size_t, int, int, int, off_t),
     if (g_ClientConfig.fpunwind_) {
 #ifdef __aarch64__
         stackptr = reinterpret_cast<const char*>(__builtin_frame_address(0));
-        GetRuntimeStackEnd(stackptr, &stackendptr);  // stack end pointer
+        GetRuntimeStackEnd(stackptr, &stackendptr, g_hookPid, GetCurThreadId());  // stack end pointer
         stackSize = stackendptr - stackptr;
         FpUnwind(g_ClientConfig.maxStackDepth_, rawdata.ip, stackSize);
         stackSize = 0;
@@ -531,13 +546,13 @@ void* hook_mmap(void*(*fn)(void*, size_t, int, int, int, off_t),
             : "x12", "x13", "memory");
 #endif
         stackptr = reinterpret_cast<const char*>(regs[RegisterGetSP(buildArchType)]);
-        GetRuntimeStackEnd(stackptr, &stackendptr);  // stack end pointer
+        GetRuntimeStackEnd(stackptr, &stackendptr, g_hookPid, GetCurThreadId());  // stack end pointer
         stackSize = stackendptr - stackptr;
     }
 
     rawdata.type = MMAP_MSG;
     rawdata.pid = g_hookPid;
-    rawdata.tid = get_thread_id();
+    rawdata.tid = GetCurThreadId();
     rawdata.mallocSize = length;
     rawdata.addr = ret;
     prctl(PR_GET_NAME, rawdata.tname);
@@ -574,7 +589,7 @@ int hook_munmap(int(*fn)(void*, size_t), void* addr, size_t length)
         if (g_ClientConfig.fpunwind_) {
 #ifdef __aarch64__
             stackptr = reinterpret_cast<const char*>(__builtin_frame_address(0));
-            GetRuntimeStackEnd(stackptr, &stackendptr);  // stack end pointer
+            GetRuntimeStackEnd(stackptr, &stackendptr, g_hookPid, GetCurThreadId());  // stack end pointer
             stackSize = stackendptr - stackptr;
             FpUnwind(g_ClientConfig.maxStackDepth_, rawdata.ip, stackSize);
             stackSize = 0;
@@ -602,14 +617,14 @@ int hook_munmap(int(*fn)(void*, size_t), void* addr, size_t length)
                 : "x12", "x13", "memory");
 #endif
             stackptr = reinterpret_cast<const char*>(regs[RegisterGetSP(buildArchType)]);
-            GetRuntimeStackEnd(stackptr, &stackendptr);  // stack end pointer
+            GetRuntimeStackEnd(stackptr, &stackendptr, g_hookPid, GetCurThreadId());  // stack end pointer
             stackSize = stackendptr - stackptr;
         }
     }
 
     rawdata.type = MUNMAP_MSG;
     rawdata.pid = g_hookPid;
-    rawdata.tid = get_thread_id();
+    rawdata.tid = GetCurThreadId();
     rawdata.mallocSize = length;
     rawdata.addr = addr;
     prctl(PR_GET_NAME, rawdata.tname);
@@ -642,7 +657,7 @@ int hook_prctl(int(*fn)(int, ...),
         clock_gettime(CLOCK_REALTIME, &rawdata.ts);
         rawdata.type = PR_SET_VMA_MSG;
         rawdata.pid = g_hookPid;
-        rawdata.tid = get_thread_id();
+        rawdata.tid = GetCurThreadId();
         rawdata.mallocSize = arg4;
         rawdata.addr = reinterpret_cast<void*>(arg3);
         size_t tagLen = strlen(reinterpret_cast<char*>(arg5)) + 1;
@@ -772,7 +787,7 @@ void ohos_malloc_hook_memtag(void* addr, size_t size, char* tag, size_t tagLen)
     clock_gettime(CLOCK_REALTIME, &rawdata.ts);
     rawdata.type = MEMORY_TAG;
     rawdata.pid = getpid();
-    rawdata.tid = get_thread_id();
+    rawdata.tid = GetCurThreadId();
     rawdata.mallocSize = size;
     rawdata.addr = addr;
 

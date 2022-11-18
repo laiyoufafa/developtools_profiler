@@ -176,18 +176,16 @@ static void GetRuntimeSigalAltStackRange(char** start, char** end)
     }
 }
 
-static bool IfSubThread()
+static bool IfSubThread(pid_t pid, pid_t tid)
 {
-    pid_t pid = getpid();
-    pid_t tid = get_thread_id();
     return pid != tid;
 }
 
-void GetRuntimeStackEnd(const char* stackptr, const char** end)
+void GetRuntimeStackEnd(const char* stackptr, const char** end, pid_t pid, pid_t tid)
 {
     const char* start = nullptr;
     *end = nullptr;
-    bool isSubThread = IfSubThread();
+    bool isSubThread = IfSubThread(pid, tid);
     if (isSubThread) {
         GetThreadRuntimeStackRange(&start, end);
     } else {
