@@ -15,100 +15,118 @@
 
 #include "hidebug_base.h"
 
-#include <cerrno>
-#include <cinttypes>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#include <climits>
+#include <errno.h>
+#include <inttypes.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <limits.h>
 #include <dlfcn.h>
 #include <unistd.h>
-#include <string>
-#include <csignal>
+#include <signal.h>
 
-#include <parameter.h>
-#include <sysparam_errno.h>
-
-#include "hilog/log.h"
 #include "securec.h"
 
+#ifdef HIDEBUG_IN_INIT
+#include <init_param.h>
+#include <init_log.h>
+#define HIDEBUG_LOGE(...) INIT_LOGE(__VA_ARGS__)
+#define HIDEBUG_LOGI(...) INIT_LOGI(__VA_ARGS__)
+#define LOG_PRIV_PUBLIC ""
+#else
+#include <parameter.h>
+#include <sysparam_errno.h>
+#include <hilog/log.h>
 
 #undef LOG_DOMAIN
 #undef LOG_TAG
 #define LOG_DOMAIN 0xD002D0A
 #define LOG_TAG "HiDebug_Native"
 
-namespace {
-const int MAX_PARA_LEN = 50;
-const int MAX_PARA_CNT = 20;
-const int PARAM_BUF_LEN = 128;
-const int QUERYNAME_LEN = 80;
-const char COLON_CHR = ':';
-const char SLASH_CHR = '/';
+#define HIDEBUG_LOGE(...) HILOG_ERROR(LOG_CORE, __VA_ARGS__)
+#define HIDEBUG_LOGI(...) HILOG_INFO(LOG_CORE, __VA_ARGS__)
+#define LOG_PRIV_PUBLIC "{public}"
+#endif
+
+#define MAX_PARA_LEN 50
+#define MAX_PARA_CNT 20
+#define PARAM_BUF_LEN 128
+#define QUERYNAME_LEN 80
+#define COLON_CHR ':'
+#define SLASH_CHR '/'
 const char * const LIBC_HOOK_PARAM = "libc.hook_mode";
 
-struct Params {
+static struct Params {
     char key[MAX_PARA_LEN];
     char value[MAX_PARA_LEN];
 } g_params[MAX_PARA_CNT];
 
 int g_paramCnt = 0;
 
-void ParseKeyValue(const char *input)
+static void ParseKeyValue(const char *input)
 {
     if (g_paramCnt >= MAX_PARA_CNT) {
-        HILOG_ERROR(LOG_CORE, "Parameters is Full.");
+        HIDEBUG_LOGE("Parameters is Full.");
         return;
     }
     const char *colonPos = strchr(input, COLON_CHR);
-    if (colonPos == nullptr) {
-        HILOG_ERROR(LOG_CORE, "params is illegal.");
+    if (colonPos == NULL) {
+        HIDEBUG_LOGE("params is illegal.");
         return;
     }
     errno_t err = strncpy_s(g_params[g_paramCnt].key, MAX_PARA_LEN, input, colonPos - input);
     if (err != EOK) {
-        HILOG_ERROR(LOG_CORE, "strncpy_s copy key strings failed.");
+        HIDEBUG_LOGE("strncpy_s copy key strings failed.");
         return;
     }
     err = strncpy_s(g_params[g_paramCnt].value, MAX_PARA_LEN, colonPos + 1, strlen(colonPos + 1));
     if (err != EOK) {
-        HILOG_ERROR(LOG_CORE, "strncpy_s copy value strings failed.");
+        HIDEBUG_LOGE("strncpy_s copy value strings failed.");
         return;
     }
     g_paramCnt++;
 }
 
-void SplitParams(char *input)
+static void SplitParams(char *input)
 {
     g_paramCnt = 0;
     const char space[] = " ";
     char *param;
-    char *next = nullptr;
+    char *next = NULL;
     param = strtok_s(input, space, &next);
-    while (param != nullptr) {
+    while (param != NULL) {
         ParseKeyValue(param);
-        param = strtok_s(nullptr, space, &next);
+        param = strtok_s(NULL, space, &next);
     }
 }
 
-int QueryParams(const char *queryName)
+static int QueryParams(const char *queryName)
 {
     g_paramCnt = 0;
     char paramOutBuf[PARAM_BUF_LEN] = { 0 };
+#ifdef HIDEBUG_IN_INIT
+    uint32_t size = PARAM_BUF_LEN;
+    int retLen = SystemGetParameter(queryName, paramOutBuf, &size);
+    if (retLen != 0 || size <= 0) {
+        return 0;
+    }
+    retLen = size;
+#else
     char defStrValue[PARAM_BUF_LEN] = { 0 };
     int retLen = GetParameter(queryName, defStrValue, paramOutBuf, PARAM_BUF_LEN);
     if (retLen == 0) {
         return 0;
     }
+#endif
     paramOutBuf[retLen] = '\0';
     SplitParams(paramOutBuf);
     return g_paramCnt;
 }
 
-const char* FilterServiceName(const char *inputName)
+static const char* FilterServiceName(const char *inputName)
 {
     const char *ret = strrchr(inputName, SLASH_CHR);
-    if (ret == nullptr) {
+    if (ret == NULL) {
         return inputName;
     }
     return ret + 1;
@@ -116,7 +134,7 @@ const char* FilterServiceName(const char *inputName)
 
 static int GetMallocHookStartupValue(const char *param, char *path, int size)
 {
-    if (path == nullptr || size <= 0) {
+    if (path == NULL || size <= 0) {
         return -1;
     }
 
@@ -151,27 +169,36 @@ static int GetMallocHookStartupValue(const char *param, char *path, int size)
 static bool MatchMallocHookStartupProp(const char *thisName)
 {
     char paramOutBuf[PARAM_BUF_LEN] = { 0 };
-    char defStrValue[PARAM_BUF_LEN] = { 0 };
     char targetProcName[PARAM_BUF_LEN] = { 0 };
 
+#ifdef HIDEBUG_IN_INIT
+    uint32_t size = PARAM_BUF_LEN;
+    int retLen = SystemGetParameter(LIBC_HOOK_PARAM, paramOutBuf, &size);
+    if (retLen != 0 || size <= 0) {
+        return 0;
+    }
+    retLen = size;
+#else
+    char defStrValue[PARAM_BUF_LEN] = { 0 };
     int retLen = GetParameter(LIBC_HOOK_PARAM, defStrValue, paramOutBuf, PARAM_BUF_LEN);
     if (retLen == 0) {
-        return false;
+        return 0;
     }
+#endif
     const int paramLength = 8;
     if (strncmp(paramOutBuf, "startup:", paramLength) != 0) {
         return false;
     }
     retLen = GetMallocHookStartupValue(paramOutBuf, targetProcName, PARAM_BUF_LEN);
     if (retLen == -1) {
-        HILOG_ERROR(LOG_CORE, "malloc hook parse startup value failed");
+        HIDEBUG_LOGE("malloc hook parse startup value failed");
         return false;
     }
 
     const int targetProcNameSize = strlen(targetProcName);
     if (strncmp(targetProcName, "init", targetProcNameSize) == 0 ||
         strncmp(targetProcName, "appspawn", targetProcNameSize) == 0) {
-        HILOG_INFO(LOG_CORE, "malloc hook: this target proc '%{public}s' no hook", targetProcName);
+        HIDEBUG_LOGI("malloc hook: this target proc '%" LOG_PRIV_PUBLIC "s' no hook", targetProcName);
         return false;
     }
 
@@ -187,20 +214,19 @@ static int SetupMallocHookAtStartup(const char *thisName)
     if (!MatchMallocHookStartupProp(thisName)) {
         return 0;
     }
-    HILOG_INFO(LOG_CORE, "malloc send hook signal.");
+    HIDEBUG_LOGI("malloc send hook signal.");
     return raise(hookSignal);
 }
-} // namespace
 
 bool InitEnvironmentParam(const char *inputName)
 {
-    if (inputName == nullptr) {
-        HILOG_ERROR(LOG_CORE, "input service name is null.");
+    if (inputName == NULL) {
+        HIDEBUG_LOGE("input service name is null.");
         return false;
     }
     const char *serviceName = FilterServiceName(inputName);
     if (*serviceName == '\0') {
-        HILOG_ERROR(LOG_CORE, "input service name is illegal.");
+        HIDEBUG_LOGE("input service name is illegal.");
         return false;
     }
     errno_t err = 0;
@@ -208,12 +234,12 @@ bool InitEnvironmentParam(const char *inputName)
     char onceName[QUERYNAME_LEN] = "hiviewdfx.debugenv.";
     err = strcat_s(onceName, sizeof(onceName), serviceName);
     if (err != EOK) {
-        HILOG_ERROR(LOG_CORE, "strcat_s query name failed.");
+        HIDEBUG_LOGE("strcat_s query name failed.");
         return false;
     }
     err = strcat_s(persistName, sizeof(persistName), serviceName);
     if (err != EOK) {
-        HILOG_ERROR(LOG_CORE, "strcat_s persist query name failed.");
+        HIDEBUG_LOGE("strcat_s persist query name failed.");
         return false;
     }
 
@@ -227,7 +253,7 @@ bool InitEnvironmentParam(const char *inputName)
     }
     for (int i = 0; i < g_paramCnt; ++i) {
         if (setenv(g_params[i].key, g_params[i].value, 1) != 0) { // 1 : overwrite
-            HILOG_ERROR(LOG_CORE, "setenv failed, errno = %{public}d.", errno);
+            HIDEBUG_LOGE("setenv failed, err: %" LOG_PRIV_PUBLIC "s", strerror(errno));
         }
     }
     return true;

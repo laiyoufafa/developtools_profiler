@@ -64,6 +64,15 @@
             ]
           },
           "name": "//developtools/profiler/hidebug/interfaces/native/innerkits:libhidebug"
+        },
+        {
+          "header": {
+            "header_base": "//developtools/profiler/hidebug/interfaces/native/innerkits/include",
+            "header_files": [
+              "hidebug_base.h"
+            ]
+          },
+          "name": "//developtools/profiler/hidebug/interfaces/native/innerkits:libhidebug_init"
         }
       ],
       "test": [

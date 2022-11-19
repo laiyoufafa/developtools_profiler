@@ -21,11 +21,29 @@ ohos_source_set("libhidebug_source") {
     "//developtools/profiler/hidebug/interfaces/native/innerkits/include",
   ]
 
-  sources = [ "hidebug_base.cpp" ]
+  sources = [ "hidebug_base.c" ]
 
   external_deps = [
     "c_utils:utils",
     "hilog_native:libhilog",
     "init:libbegetutil",
+  ]
+}
+
+ohos_source_set("libhidebug_init_source") {
+  part_name = "profiler"
+
+  defines = [ "HIDEBUG_IN_INIT" ]
+
+  include_dirs = [
+    "//commonlibrary/c_utils/base/include",
+    "//developtools/profiler/hidebug/interfaces/native/innerkits/include",
+  ]
+
+  sources = [ "hidebug_base.c" ]
+
+  deps = [
+    "//base/startup/init/services/param/base:parameterbase_ext",
+    "//third_party/bounds_checking_function:libsec_static",
   ]
 }

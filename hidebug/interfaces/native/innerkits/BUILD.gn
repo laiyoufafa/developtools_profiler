@@ -40,3 +40,16 @@ ohos_shared_library("libhidebug") {
   part_name = "profiler"
   subsystem_name = "developtools"
 }
+
+ohos_static_library("libhidebug_init") {
+  public_configs = [ ":hidebug_native_config" ]
+
+  deps = [
+    "//developtools/profiler/hidebug/frameworks/native:libhidebug_init_source",
+  ]
+
+  external_deps = [ "init:libinit_module_engine" ]
+
+  part_name = "profiler"
+  subsystem_name = "developtools"
+}
