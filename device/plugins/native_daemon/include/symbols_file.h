@@ -70,6 +70,7 @@ struct Symbol {
     std::string_view demangle_ = ""; // demangle string
     std::string_view module_ = "";   // maybe empty
     std::string_view comm_ = "";     // we need a comm name like comm@0x1234
+    std::string_view symbolName_ = "";
     mutable std::string_view unknow_ = "";
     mutable bool matched_ = false; // if some callstack match this
     int32_t hit_ = 0;

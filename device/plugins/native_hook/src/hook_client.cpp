@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -22,6 +22,7 @@
 #include <pthread.h>
 #include <sys/prctl.h>
 #include <unordered_set>
+#include "common.h"
 #include "hook_common.h"
 #include "hook_socket_client.h"
 #include "musl_preinit_common.h"
@@ -34,6 +35,7 @@
 #include "hook_client.h"
 
 static pthread_key_t g_disableHookFlag;
+static pthread_key_t g_hookTid;
 namespace {
 static std::atomic<uint64_t> g_timeCost = 0;
 static std::atomic<uint64_t> g_mallocTimes = 0;
@@ -50,6 +52,10 @@ static ClientConfig g_ClientConfig = {0};
 static uint32_t g_minSize = 0;
 static uint32_t g_maxSize = INT_MAX;
 static std::unordered_set<void*> g_mallocIgnoreSet;
+constexpr int PID_STR_SIZE = 4;
+constexpr int STATUS_LINE_SIZE = 512;
+constexpr int PID_NAMESPACE_ID = 1; // 1: pid is 1 after pid namespace used
+static bool g_isPidChanged = false;
 const MallocDispatchType* GetDispatch()
 {
     return g_dispatch.load(std::memory_order_relaxed);
@@ -62,10 +68,20 @@ bool InititalizeIPC()
 void FinalizeIPC() {}
 }  // namespace
 
+pid_t inline __attribute__((always_inline)) GetCurThreadId()
+{
+    if (pthread_getspecific(g_hookTid) == nullptr) {
+        pthread_setspecific(g_hookTid, reinterpret_cast<void *>(get_thread_id()));
+    }
+    return reinterpret_cast<long>((pthread_getspecific(g_hookTid)));
+}
+
 bool ohos_malloc_hook_on_start(void)
 {
     std::lock_guard<std::recursive_timed_mutex> guard(g_ClientMutex);
-    g_hookPid = getpid();
+    COMMON::PrintMallinfoLog("before hook(byte) => ");
+    g_hookPid = ohos_get_real_pid();
+    g_mallocTimes = 0;
     if (g_hookClient != nullptr) {
         HILOG_INFO(LOG_CORE, "hook already started");
         return true;
@@ -74,6 +90,8 @@ bool ohos_malloc_hook_on_start(void)
     }
     pthread_key_create(&g_disableHookFlag, nullptr);
     pthread_setspecific(g_disableHookFlag, nullptr);
+    pthread_key_create(&g_hookTid, nullptr);
+    pthread_setspecific(g_hookTid, nullptr);
     HILOG_INFO(LOG_CORE, "ohos_malloc_hook_on_start");
     GetMainThreadRuntimeStackRange();
     g_minSize = g_ClientConfig.filterSize_;
@@ -98,13 +116,18 @@ void* ohos_release_on_end(void*)
     std::lock_guard<std::recursive_timed_mutex> guard(g_ClientMutex);
     g_hookClient = nullptr;
     pthread_key_delete(g_disableHookFlag);
+    pthread_key_delete(g_hookTid);
     g_mallocIgnoreSet.clear();
-    HILOG_INFO(LOG_CORE, "ohos_malloc_hook_on_end");
+    HILOG_INFO(LOG_CORE, "ohos_malloc_hook_on_end, mallocTimes :%" PRIu64, g_mallocTimes.load());
+    COMMON::PrintMallinfoLog("after hook(byte) => ");
     return nullptr;
 }
 
 bool ohos_malloc_hook_on_end(void)
 {
+    if (g_hookClient != nullptr) {
+        g_hookClient->Flush();
+    }
     pthread_t threadEnd;
     if (pthread_create(&threadEnd, nullptr, ohos_release_on_end, nullptr)) {
         HILOG_INFO(LOG_CORE, "create ohos_release_on_end fail");
@@ -139,7 +162,7 @@ void* hook_malloc(void* (*fn)(size_t), size_t size)
     if (fn) {
         ret = fn(size);
     }
-    if ((g_hookPid != getpid()) || g_ClientConfig.mallocDisable_) {
+    if (g_ClientConfig.mallocDisable_ || ohos_pid_changed()) {
         return ret;
     }
     if (!ohos_set_filter_size(size, ret)) {
@@ -158,7 +181,7 @@ void* hook_malloc(void* (*fn)(size_t), size_t size)
     if (g_ClientConfig.fpunwind_) {
 #ifdef __aarch64__
         stackptr = reinterpret_cast<const char*>(__builtin_frame_address(0));
-        GetRuntimeStackEnd(stackptr, &stackendptr);  // stack end pointer
+        GetRuntimeStackEnd(stackptr, &stackendptr, g_hookPid, GetCurThreadId());  // stack end pointer
         stackSize = stackendptr - stackptr;
         FpUnwind(g_ClientConfig.maxStackDepth_, rawdata.ip, stackSize);
         stackSize = 0;
@@ -186,12 +209,12 @@ void* hook_malloc(void* (*fn)(size_t), size_t size)
             : "x12", "x13", "memory");
 #endif
         stackptr = reinterpret_cast<const char*>(regs[RegisterGetSP(buildArchType)]);
-        GetRuntimeStackEnd(stackptr, &stackendptr);  // stack end pointer
+        GetRuntimeStackEnd(stackptr, &stackendptr, g_hookPid, GetCurThreadId());  // stack end pointer
         stackSize = stackendptr - stackptr;
     }
     rawdata.type = MALLOC_MSG;
-    rawdata.pid = getpid();
-    rawdata.tid = get_thread_id();
+    rawdata.pid = g_hookPid;
+    rawdata.tid = GetCurThreadId();
     rawdata.mallocSize = size;
     rawdata.addr = ret;
     prctl(PR_GET_NAME, rawdata.tname);
@@ -206,11 +229,11 @@ void* hook_malloc(void* (*fn)(size_t), size_t size)
     if (g_hookClient != nullptr) {
         g_hookClient->SendStackWithPayload(&rawdata, sizeof(rawdata), stackptr, stackSize);
     }
+    g_mallocTimes++;
 #ifdef PERFORMANCE_DEBUG
     struct timespec end = {};
     clock_gettime(CLOCK_REALTIME, &end);
     g_timeCost += (end.tv_sec - start.tv_sec) * S_TO_NS + (end.tv_nsec - start.tv_nsec);
-    g_mallocTimes++;
     g_dataCounts += stackSize;
     if (g_mallocTimes % PRINT_INTERVAL == 0) {
         HILOG_ERROR(LOG_CORE,
@@ -236,127 +259,13 @@ void* hook_calloc(void* (*fn)(size_t, size_t), size_t number, size_t size)
     if (fn) {
         pRet = fn(number, size);
     }
-    return pRet;
-}
-
-void* hook_memalign(void* (*fn)(size_t, size_t), size_t align, size_t bytes)
-{
-    void* pRet = nullptr;
-    if (fn) {
-        pRet = fn(align, bytes);
+    if (g_ClientConfig.mallocDisable_ || ohos_pid_changed()) {
+        return pRet;
     }
-    return pRet;
-}
-
-void* hook_realloc(void* (*fn)(void*, size_t), void* ptr, size_t size)
-{
-    void* pRet = nullptr;
-    if (fn) {
-        pRet = fn(ptr, size);
+    if (!ohos_set_filter_size(number * size, pRet)) {
+        return pRet;
     }
 
-    return pRet;
-}
-
-size_t hook_malloc_usable_size(size_t (*fn)(void*), void* ptr)
-{
-    size_t ret = 0;
-    if (fn) {
-        ret = fn(ptr);
-    }
-
-    return ret;
-}
-
-void hook_free(void (*free_func)(void*), void* p)
-{
-    if (free_func) {
-        free_func(p);
-    }
-    if ((g_hookPid != getpid()) || g_ClientConfig.mallocDisable_) {
-        return;
-    }
-    {
-        std::lock_guard<std::recursive_timed_mutex> guard(g_ClientMutex);
-        auto record = g_mallocIgnoreSet.find(p);
-        if (record != g_mallocIgnoreSet.end()) {
-            g_mallocIgnoreSet.erase(record);
-            return;
-        }
-    }
-    StackRawData rawdata = {{{0}}};
-    const char* stackptr = nullptr;
-    const char* stackendptr = nullptr;
-    int stackSize = 0;
-    clock_gettime(CLOCK_REALTIME, &rawdata.ts);
-
-    if (g_ClientConfig.freeStackData_) {
-        if (g_ClientConfig.fpunwind_) {
-#ifdef __aarch64__
-            stackptr = reinterpret_cast<const char*>(__builtin_frame_address(0));
-            GetRuntimeStackEnd(stackptr, &stackendptr);  // stack end pointer
-            stackSize = stackendptr - stackptr;
-            FpUnwind(g_ClientConfig.maxStackDepth_, rawdata.ip, stackSize);
-            stackSize = 0;
-#endif
-        } else {
-            uint64_t* regs = reinterpret_cast<uint64_t*>(&(rawdata.regs));
-#if defined(__arm__)
-            asm volatile(
-                "mov r3, r13\n"
-                "mov r4, r15\n"
-                "stmia %[base], {r3-r4}\n"
-                : [ base ] "+r"(regs)
-                :
-                : "r3", "r4", "memory");
-#elif defined(__aarch64__)
-            asm volatile(
-                "1:\n"
-                "stp x28, x29, [%[base], #224]\n"
-                "str x30, [%[base], #240]\n"
-                "mov x12, sp\n"
-                "adr x13, 1b\n"
-                "stp x12, x13, [%[base], #248]\n"
-                : [ base ] "+r"(regs)
-                :
-                : "x12", "x13", "memory");
-#endif
-            stackptr = reinterpret_cast<const char*>(regs[RegisterGetSP(buildArchType)]);
-            GetRuntimeStackEnd(stackptr, &stackendptr);  // stack end pointer
-            stackSize = stackendptr - stackptr;
-        }
-    }
-
-    rawdata.type = FREE_MSG;
-    rawdata.pid = getpid();
-    rawdata.tid = get_thread_id();
-    rawdata.mallocSize = 0;
-    rawdata.addr = p;
-    prctl(PR_GET_NAME, rawdata.tname);
-
-    std::unique_lock<std::recursive_timed_mutex> lck(g_ClientMutex, std::defer_lock);
-    std::chrono::time_point<std::chrono::steady_clock> timeout =
-        std::chrono::steady_clock::now() + std::chrono::milliseconds(TIMEOUT_MSEC);
-    if (!lck.try_lock_until(timeout)) {
-        HILOG_ERROR(LOG_CORE, "lock hook_free failed!");
-        return;
-    }
-
-    if (g_hookClient != nullptr) {
-        g_hookClient->SendStackWithPayload(&rawdata, sizeof(rawdata), stackptr, stackSize);
-    }
-}
-
-void* hook_mmap(void*(*fn)(void*, size_t, int, int, int, off_t),
-    void* addr, size_t length, int prot, int flags, int fd, off_t offset)
-{
-    void* ret = nullptr;
-    if (fn) {
-        ret = fn(addr, length, prot, flags, fd, offset);
-    }
-    if (g_hookPid != getpid() || g_ClientConfig.mmapDisable_) {
-        return ret;
-    }
     StackRawData rawdata = {{{0}}};
     const char* stackptr = nullptr;
     const char* stackendptr = nullptr;
@@ -366,7 +275,7 @@ void* hook_mmap(void*(*fn)(void*, size_t, int, int, int, off_t),
     if (g_ClientConfig.fpunwind_) {
 #ifdef __aarch64__
         stackptr = reinterpret_cast<const char*>(__builtin_frame_address(0));
-        GetRuntimeStackEnd(stackptr, &stackendptr);  // stack end pointer
+        GetRuntimeStackEnd(stackptr, &stackendptr, g_hookPid, GetCurThreadId());  // stack end pointer
         stackSize = stackendptr - stackptr;
         FpUnwind(g_ClientConfig.maxStackDepth_, rawdata.ip, stackSize);
         stackSize = 0;
@@ -394,50 +303,150 @@ void* hook_mmap(void*(*fn)(void*, size_t, int, int, int, off_t),
             : "x12", "x13", "memory");
 #endif
         stackptr = reinterpret_cast<const char*>(regs[RegisterGetSP(buildArchType)]);
-        GetRuntimeStackEnd(stackptr, &stackendptr);  // stack end pointer
+        GetRuntimeStackEnd(stackptr, &stackendptr, g_hookPid, GetCurThreadId());  // stack end pointer
         stackSize = stackendptr - stackptr;
     }
-
-    rawdata.type = MMAP_MSG;
-    rawdata.pid = getpid();
-    rawdata.tid = get_thread_id();
-    rawdata.mallocSize = length;
-    rawdata.addr = ret;
+    rawdata.type = MALLOC_MSG;
+    rawdata.pid = g_hookPid;
+    rawdata.tid = GetCurThreadId();
+    rawdata.mallocSize = number * size;
+    rawdata.addr = pRet;
     prctl(PR_GET_NAME, rawdata.tname);
-
     std::unique_lock<std::recursive_timed_mutex> lck(g_ClientMutex, std::defer_lock);
     std::chrono::time_point<std::chrono::steady_clock> timeout =
         std::chrono::steady_clock::now() + std::chrono::milliseconds(TIMEOUT_MSEC);
     if (!lck.try_lock_until(timeout)) {
-        HILOG_ERROR(LOG_CORE, "lock hook_mmap failed!");
-        return ret;
+        HILOG_ERROR(LOG_CORE, "lock hook_calloc failed!");
+        return pRet;
     }
+
     if (g_hookClient != nullptr) {
         g_hookClient->SendStackWithPayload(&rawdata, sizeof(rawdata), stackptr, stackSize);
     }
-    return ret;
+    g_mallocTimes++;
+    return pRet;
 }
 
-int hook_munmap(int(*fn)(void*, size_t), void* addr, size_t length)
+void* hook_memalign(void* (*fn)(size_t, size_t), size_t align, size_t bytes)
 {
-    int ret = -1;
+    void* pRet = nullptr;
     if (fn) {
-        ret = fn(addr, length);
+        pRet = fn(align, bytes);
     }
-    if (g_hookPid != getpid() || g_ClientConfig.mmapDisable_) {
-        return ret;
+    return pRet;
+}
+
+void* hook_realloc(void* (*fn)(void*, size_t), void* ptr, size_t size)
+{
+    void* pRet = nullptr;
+    if (fn) {
+        pRet = fn(ptr, size);
     }
-    int stackSize = 0;
+    if (g_ClientConfig.mallocDisable_ || ohos_pid_changed()) {
+        return pRet;
+    }
+    if (!ohos_set_filter_size(size, pRet)) {
+        return pRet;
+    }
+
     StackRawData rawdata = {{{0}}};
     const char* stackptr = nullptr;
     const char* stackendptr = nullptr;
+    int stackSize = 0;
     clock_gettime(CLOCK_REALTIME, &rawdata.ts);
 
-    if (g_ClientConfig.munmapStackData_) {
+    if (g_ClientConfig.fpunwind_) {
+#ifdef __aarch64__
+        stackptr = reinterpret_cast<const char*>(__builtin_frame_address(0));
+        GetRuntimeStackEnd(stackptr, &stackendptr, g_hookPid, GetCurThreadId());  // stack end pointer
+        stackSize = stackendptr - stackptr;
+        FpUnwind(g_ClientConfig.maxStackDepth_, rawdata.ip, stackSize);
+        stackSize = 0;
+#endif
+    } else {
+        uint64_t* regs = reinterpret_cast<uint64_t*>(&(rawdata.regs));
+#if defined(__arm__)
+        asm volatile(
+            "mov r3, r13\n"
+            "mov r4, r15\n"
+            "stmia %[base], {r3-r4}\n"
+            : [ base ] "+r"(regs)
+            :
+            : "r3", "r4", "memory");
+#elif defined(__aarch64__)
+        asm volatile(
+            "1:\n"
+            "stp x28, x29, [%[base], #224]\n"
+            "str x30, [%[base], #240]\n"
+            "mov x12, sp\n"
+            "adr x13, 1b\n"
+            "stp x12, x13, [%[base], #248]\n"
+            : [ base ] "+r"(regs)
+            :
+            : "x12", "x13", "memory");
+#endif
+        stackptr = reinterpret_cast<const char*>(regs[RegisterGetSP(buildArchType)]);
+        GetRuntimeStackEnd(stackptr, &stackendptr, g_hookPid, GetCurThreadId());  // stack end pointer
+        stackSize = stackendptr - stackptr;
+    }
+    rawdata.type = MALLOC_MSG;
+    rawdata.pid = g_hookPid;
+    rawdata.tid = GetCurThreadId();
+    rawdata.mallocSize = size;
+    rawdata.addr = pRet;
+    prctl(PR_GET_NAME, rawdata.tname);
+    std::unique_lock<std::recursive_timed_mutex> lck(g_ClientMutex, std::defer_lock);
+    std::chrono::time_point<std::chrono::steady_clock> timeout =
+        std::chrono::steady_clock::now() + std::chrono::milliseconds(TIMEOUT_MSEC);
+    if (!lck.try_lock_until(timeout)) {
+        HILOG_ERROR(LOG_CORE, "lock hook_realloc failed!");
+        return pRet;
+    }
+
+    if (g_hookClient != nullptr) {
+        g_hookClient->SendStackWithPayload(&rawdata, sizeof(rawdata), stackptr, stackSize);
+    }
+    g_mallocTimes++;
+    return pRet;
+}
+
+size_t hook_malloc_usable_size(size_t (*fn)(void*), void* ptr)
+{
+    size_t ret = 0;
+    if (fn) {
+        ret = fn(ptr);
+    }
+
+    return ret;
+}
+
+void hook_free(void (*free_func)(void*), void* p)
+{
+    if (free_func) {
+        free_func(p);
+    }
+    if (g_ClientConfig.mallocDisable_ || ohos_pid_changed()) {
+        return;
+    }
+    {
+        std::lock_guard<std::recursive_timed_mutex> guard(g_ClientMutex);
+        auto record = g_mallocIgnoreSet.find(p);
+        if (record != g_mallocIgnoreSet.end()) {
+            g_mallocIgnoreSet.erase(record);
+            return;
+        }
+    }
+    StackRawData rawdata = {{{0}}};
+    const char* stackptr = nullptr;
+    const char* stackendptr = nullptr;
+    int stackSize = 0;
+    clock_gettime(CLOCK_REALTIME, &rawdata.ts);
+
+    if (g_ClientConfig.freeStackData_) {
         if (g_ClientConfig.fpunwind_) {
 #ifdef __aarch64__
             stackptr = reinterpret_cast<const char*>(__builtin_frame_address(0));
-            GetRuntimeStackEnd(stackptr, &stackendptr);  // stack end pointer
+            GetRuntimeStackEnd(stackptr, &stackendptr, g_hookPid, GetCurThreadId());  // stack end pointer
             stackSize = stackendptr - stackptr;
             FpUnwind(g_ClientConfig.maxStackDepth_, rawdata.ip, stackSize);
             stackSize = 0;
@@ -465,14 +474,157 @@ int hook_munmap(int(*fn)(void*, size_t), void* addr, size_t length)
                 : "x12", "x13", "memory");
 #endif
             stackptr = reinterpret_cast<const char*>(regs[RegisterGetSP(buildArchType)]);
-            GetRuntimeStackEnd(stackptr, &stackendptr);  // stack end pointer
+            GetRuntimeStackEnd(stackptr, &stackendptr, g_hookPid, GetCurThreadId());  // stack end pointer
+            stackSize = stackendptr - stackptr;
+        }
+    }
+
+    rawdata.type = FREE_MSG;
+    rawdata.pid = g_hookPid;
+    rawdata.tid = GetCurThreadId();
+    rawdata.mallocSize = 0;
+    rawdata.addr = p;
+    prctl(PR_GET_NAME, rawdata.tname);
+
+    std::unique_lock<std::recursive_timed_mutex> lck(g_ClientMutex, std::defer_lock);
+    std::chrono::time_point<std::chrono::steady_clock> timeout =
+        std::chrono::steady_clock::now() + std::chrono::milliseconds(TIMEOUT_MSEC);
+    if (!lck.try_lock_until(timeout)) {
+        HILOG_ERROR(LOG_CORE, "lock hook_free failed!");
+        return;
+    }
+
+    if (g_hookClient != nullptr) {
+        g_hookClient->SendStackWithPayload(&rawdata, sizeof(rawdata), stackptr, stackSize);
+    }
+}
+
+void* hook_mmap(void*(*fn)(void*, size_t, int, int, int, off_t),
+    void* addr, size_t length, int prot, int flags, int fd, off_t offset)
+{
+    void* ret = nullptr;
+    if (fn) {
+        ret = fn(addr, length, prot, flags, fd, offset);
+    }
+    if (g_ClientConfig.mmapDisable_ || ohos_pid_changed()) {
+        return ret;
+    }
+    StackRawData rawdata = {{{0}}};
+    const char* stackptr = nullptr;
+    const char* stackendptr = nullptr;
+    int stackSize = 0;
+    clock_gettime(CLOCK_REALTIME, &rawdata.ts);
+
+    if (g_ClientConfig.fpunwind_) {
+#ifdef __aarch64__
+        stackptr = reinterpret_cast<const char*>(__builtin_frame_address(0));
+        GetRuntimeStackEnd(stackptr, &stackendptr, g_hookPid, GetCurThreadId());  // stack end pointer
+        stackSize = stackendptr - stackptr;
+        FpUnwind(g_ClientConfig.maxStackDepth_, rawdata.ip, stackSize);
+        stackSize = 0;
+#endif
+    } else {
+        uint64_t* regs = reinterpret_cast<uint64_t*>(&(rawdata.regs));
+#if defined(__arm__)
+        asm volatile(
+            "mov r3, r13\n"
+            "mov r4, r15\n"
+            "stmia %[base], {r3-r4}\n"
+            : [ base ] "+r"(regs)
+            :
+            : "r3", "r4", "memory");
+#elif defined(__aarch64__)
+        asm volatile(
+            "1:\n"
+            "stp x28, x29, [%[base], #224]\n"
+            "str x30, [%[base], #240]\n"
+            "mov x12, sp\n"
+            "adr x13, 1b\n"
+            "stp x12, x13, [%[base], #248]\n"
+            : [ base ] "+r"(regs)
+            :
+            : "x12", "x13", "memory");
+#endif
+        stackptr = reinterpret_cast<const char*>(regs[RegisterGetSP(buildArchType)]);
+        GetRuntimeStackEnd(stackptr, &stackendptr, g_hookPid, GetCurThreadId());  // stack end pointer
+        stackSize = stackendptr - stackptr;
+    }
+
+    rawdata.type = MMAP_MSG;
+    rawdata.pid = g_hookPid;
+    rawdata.tid = GetCurThreadId();
+    rawdata.mallocSize = length;
+    rawdata.addr = ret;
+    prctl(PR_GET_NAME, rawdata.tname);
+
+    std::unique_lock<std::recursive_timed_mutex> lck(g_ClientMutex, std::defer_lock);
+    std::chrono::time_point<std::chrono::steady_clock> timeout =
+        std::chrono::steady_clock::now() + std::chrono::milliseconds(TIMEOUT_MSEC);
+    if (!lck.try_lock_until(timeout)) {
+        HILOG_ERROR(LOG_CORE, "lock hook_mmap failed!");
+        return ret;
+    }
+    if (g_hookClient != nullptr) {
+        g_hookClient->SendStackWithPayload(&rawdata, sizeof(rawdata), stackptr, stackSize);
+    }
+    return ret;
+}
+
+int hook_munmap(int(*fn)(void*, size_t), void* addr, size_t length)
+{
+    int ret = -1;
+    if (fn) {
+        ret = fn(addr, length);
+    }
+    if (g_ClientConfig.mmapDisable_ || ohos_pid_changed()) {
+        return ret;
+    }
+    int stackSize = 0;
+    StackRawData rawdata = {{{0}}};
+    const char* stackptr = nullptr;
+    const char* stackendptr = nullptr;
+    clock_gettime(CLOCK_REALTIME, &rawdata.ts);
+
+    if (g_ClientConfig.munmapStackData_) {
+        if (g_ClientConfig.fpunwind_) {
+#ifdef __aarch64__
+            stackptr = reinterpret_cast<const char*>(__builtin_frame_address(0));
+            GetRuntimeStackEnd(stackptr, &stackendptr, g_hookPid, GetCurThreadId());  // stack end pointer
+            stackSize = stackendptr - stackptr;
+            FpUnwind(g_ClientConfig.maxStackDepth_, rawdata.ip, stackSize);
+            stackSize = 0;
+#endif
+        } else {
+            uint64_t* regs = reinterpret_cast<uint64_t*>(&(rawdata.regs));
+#if defined(__arm__)
+            asm volatile(
+                "mov r3, r13\n"
+                "mov r4, r15\n"
+                "stmia %[base], {r3-r4}\n"
+                : [ base ] "+r"(regs)
+                :
+                : "r3", "r4", "memory");
+#elif defined(__aarch64__)
+            asm volatile(
+                "1:\n"
+                "stp x28, x29, [%[base], #224]\n"
+                "str x30, [%[base], #240]\n"
+                "mov x12, sp\n"
+                "adr x13, 1b\n"
+                "stp x12, x13, [%[base], #248]\n"
+                : [ base ] "+r"(regs)
+                :
+                : "x12", "x13", "memory");
+#endif
+            stackptr = reinterpret_cast<const char*>(regs[RegisterGetSP(buildArchType)]);
+            GetRuntimeStackEnd(stackptr, &stackendptr, g_hookPid, GetCurThreadId());  // stack end pointer
             stackSize = stackendptr - stackptr;
         }
     }
 
     rawdata.type = MUNMAP_MSG;
-    rawdata.pid = getpid();
-    rawdata.tid = get_thread_id();
+    rawdata.pid = g_hookPid;
+    rawdata.tid = GetCurThreadId();
     rawdata.mallocSize = length;
     rawdata.addr = addr;
     prctl(PR_GET_NAME, rawdata.tname);
@@ -497,15 +649,15 @@ int hook_prctl(int(*fn)(int, ...),
     if (fn) {
         ret = fn(option, arg2, arg3, arg4, arg5);
     }
-    if (g_hookPid != getpid()) {
+    if (ohos_pid_changed()) {
         return ret;
     }
     if (option == PR_SET_VMA && arg2 == PR_SET_VMA_ANON_NAME) {
         StackRawData rawdata = {{{0}}};
         clock_gettime(CLOCK_REALTIME, &rawdata.ts);
         rawdata.type = PR_SET_VMA_MSG;
-        rawdata.pid = getpid();
-        rawdata.tid = get_thread_id();
+        rawdata.pid = g_hookPid;
+        rawdata.tid = GetCurThreadId();
         rawdata.mallocSize = arg4;
         rawdata.addr = reinterpret_cast<void*>(arg3);
         size_t tagLen = strlen(reinterpret_cast<char*>(arg5)) + 1;
@@ -628,14 +780,14 @@ int ohos_malloc_hook_munmap(void* addr, size_t length)
 void ohos_malloc_hook_memtag(void* addr, size_t size, char* tag, size_t tagLen)
 {
     __set_hook_flag(false);
-    if (g_hookPid != getpid()) {
+    if (ohos_pid_changed()) {
         return;
     }
     StackRawData rawdata = {{{0}}};
     clock_gettime(CLOCK_REALTIME, &rawdata.ts);
     rawdata.type = MEMORY_TAG;
     rawdata.pid = getpid();
-    rawdata.tid = get_thread_id();
+    rawdata.tid = GetCurThreadId();
     rawdata.mallocSize = size;
     rawdata.addr = addr;
 
@@ -665,4 +817,62 @@ bool ohos_set_filter_size(size_t size, void* ret)
         return false;
     }
     return true;
+}
+
+pid_t ohos_get_real_pid(void)
+{
+    const char *path = "/proc/self/status";
+    char buf[STATUS_LINE_SIZE] = {0};
+    FILE *fp = fopen(path, "r");
+    if (fp == nullptr) {
+        return -1;
+    }
+    while (!feof(fp)) {
+        if (fgets(buf, STATUS_LINE_SIZE, fp) == nullptr) {
+            fclose(fp);
+            return -1;
+        }
+        if (strncmp(buf, "Pid:", PID_STR_SIZE) == 0) {
+            break;
+        }
+    }
+    (void)fclose(fp);
+    return static_cast<pid_t>(ohos_convert_pid(buf));
+}
+
+int ohos_convert_pid(char* buf)
+{
+    int count = 0;
+    char pidBuf[11] = {0}; /* 11: 32 bits to the maximum length of a string */
+    char *str = buf;
+    while (*str != '\0') {
+        if ((*str >= '0') && (*str <= '9')) {
+            pidBuf[count] = *str;
+            count++;
+            str++;
+            continue;
+        }
+
+        if (count > 0) {
+            break;
+        }
+        str++;
+    }
+    return atoi(pidBuf);
+}
+
+bool ohos_pid_changed(void)
+{
+    if (g_isPidChanged) {
+        return true;
+    }
+    int pid = getpid();
+    // hap app after pid namespace used
+    if (pid == PID_NAMESPACE_ID) {
+        return false;
+    } else {
+        // native app & sa service
+        g_isPidChanged = (g_hookPid != pid);
+    }
+    return g_isPidChanged;
 }

@@ -99,7 +99,7 @@ VirtualThread &VirtualRuntime::GetThread(pid_t pid, pid_t tid)
 void VirtualRuntime::MakeCallFrame(Symbol &symbol, CallFrame &callFrame)
 {
     callFrame.vaddrInFile_ = symbol.funcVaddr_;
-    callFrame.symbolName_ = symbol.Name();
+    callFrame.symbolName_ = symbol.symbolName_;
     callFrame.symbolIndex_ = symbol.index_;
     callFrame.filePath_ = symbol.module_.empty() ? symbol.comm_ : symbol.module_;
     callFrame.symbolOffset_ = symbol.offset_;
@@ -324,6 +324,7 @@ const Symbol VirtualRuntime::GetUserSymbol(uint64_t ip, const VirtualThread &thr
             vaddrSymbol.fileVaddr_ =
                 symbolsFile->GetVaddrInSymbols(ip, mmap->begin_, mmap->pageoffset_);
             vaddrSymbol.module_ = mmap->nameHold_;
+            vaddrSymbol.symbolName_ = vaddrSymbol.Name();
             HLOGV("found symbol vaddr 0x%" PRIx64 " for runtime vaddr 0x%" PRIx64 " at '%s'",
                   vaddrSymbol.fileVaddr_, ip, mmap->name_.c_str());
             if (!symbolsFile->SymbolsLoaded()) {
@@ -331,6 +332,7 @@ const Symbol VirtualRuntime::GetUserSymbol(uint64_t ip, const VirtualThread &thr
             }
             Symbol foundSymbols = symbolsFile->GetSymbolWithVaddr(vaddrSymbol.fileVaddr_);
             foundSymbols.taskVaddr_ = ip;
+            foundSymbols.symbolName_ = foundSymbols.Name();
             if (!foundSymbols.isValid()) {
                 HLOGW("addr 0x%" PRIx64 " vaddr  0x%" PRIx64 " NOT found in symbol file %s", ip,
                       vaddrSymbol.fileVaddr_, mmap->name_.c_str());

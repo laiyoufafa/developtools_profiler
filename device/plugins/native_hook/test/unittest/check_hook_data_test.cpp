@@ -32,6 +32,7 @@ const int DEFAULT_MALLOC_SIZE = 10;
 const int DEFAULT_CALLOC_SIZE = 100;
 const int DEFAULT_REALLOC_SIZE = 1000;
 const int DATA_SIZE = 50;
+const int WAIT_KILL_SIGNL = 4;
 const int SLEEP_TIME = 5;
 
 const std::string DEFAULT_NATIVE_DAEMON_PATH("/system/bin/native_daemon");
@@ -212,6 +213,9 @@ public:
     {
         int processNum = fork();
         if (processNum == 0) {
+            sleep(WAIT_KILL_SIGNL);
+            auto ret = malloc(DEFAULT_MALLOC_SIZE);
+            free(ret);
             while (1) {
                 ApplyForCalloc(depth);
                 sleep(1);
@@ -484,11 +488,11 @@ HWTEST_F(CheckHookDataTest, DFX_DFR_Hiprofiler_0100, Function | MediumTest | Lev
             ASSERT_EQ(static_cast<int>(hookVec.size()), g_freeVecSize);
 
             if (isRealloc) {
-                EXPECT_STREQ(hookVec[addrPos].c_str(), mallocAddr.c_str());
-                mallocAddr = "";
-            } else {
                 EXPECT_STREQ(hookVec[addrPos].c_str(), reallocAddr.c_str());
                 reallocAddr = "";
+            } else {
+                EXPECT_STREQ(hookVec[addrPos].c_str(), mallocAddr.c_str());
+                mallocAddr = "";
             }
 
             isRealloc = false;
