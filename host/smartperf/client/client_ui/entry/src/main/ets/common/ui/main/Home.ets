@@ -16,12 +16,11 @@ import deviceInfo from '@ohos.deviceInfo';
 import router from '@system.router';
 import prompt from '@system.prompt';
 import { TopComponent } from '../main/TopComponent';
-import { otherSupportList, OtherSupport, TestMode } from '../../entity/LocalConfigEntity';
+import { OtherSupport, TestMode } from '../../entity/LocalConfigEntity';
 import SPLogger from '../../utils/SPLogger'
 import batteryinfo from '@ohos.batteryInfo';
 
 const TAG = "Home"
-
 /*
   home页
  */
@@ -34,8 +33,9 @@ export struct Home {
   @State private circleWidth: string = '180vp'
   @State private circleRadius: string = '90vp'
   @State atOpacity: number = 0.6
-  @State times: number = 5
+
   @State state: string = '电池状态'
+
   aboutToAppear() {
 
     globalThis.collectIntervalPower= setInterval(() => {
@@ -45,7 +45,7 @@ export struct Home {
       let temperature = batteryinfo.batteryTemperature
 
       this.state = "剩余电量：" + remainingEnergy.toString() + "mAh     瞬时电流："
-      + nowCurrent.toString() + "mA     \n瞬时电压:" + voltage.toString() + "mV          电池温度：" + (temperature/10).toFixed(1).toString() + "℃"
+      + nowCurrent.toString() + "mA     \n瞬时电压：" + voltage.toString() + "mV       电池温度：" + (temperature/10).toFixed(1).toString() + "℃"
     }, 1000)
 
 
@@ -131,7 +131,9 @@ export struct Home {
 
 @Component
 struct GridExample {
-  @State support: Array<OtherSupport> = otherSupportList
+  @State support: Array<OtherSupport> =new Array(
+    new OtherSupport('亮度调节', '调节屏幕亮度', TestMode.BRIGHTNESS, $r("app.media.icon_brightness_plus"))
+  )
 
 
   build() {

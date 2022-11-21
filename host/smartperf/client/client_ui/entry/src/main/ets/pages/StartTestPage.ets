@@ -15,7 +15,7 @@
 
 import { commonStartAbility } from '../common/utils/AbilityUtils';
 import router from '@system.router';
-import { switchList, SwitchItem, CollectItem } from '../common/entity/LocalConfigEntity';
+import {  SwitchItem, CollectItem } from '../common/entity/LocalConfigEntity';
 import { StartTestTitleComponent } from '../common/ui/StartTestTitleComponent';
 import { ProfilerTask } from '../common/profiler/ProfilerTask'
 import { CollectorType } from '../common/profiler/base/ProfilerConstant'
@@ -34,7 +34,10 @@ struct StartTestPage {
   @State selectApp: string = "请选择一个应用"
   @State selectAppIcon: string = ""
   @State private collectConfigs: Array<CollectItem> = new Array()
-  @State private switchList: any = new Array()
+  @State private switchList: any =new Array(
+    new SwitchItem("trace", '是否抓取trace', $r("app.media.icon_average_frame_b"), false, true),
+    new SwitchItem("screen_capture", '是否开启截图', $r("app.media.icon_screencap"), false, true)
+  )
   @State private testName: string = "" // 测试名称
 
   dialogController: CustomDialogController = new CustomDialogController({
@@ -75,8 +78,7 @@ struct StartTestPage {
         new CollectItem(key, val, val)
       )
     }
-    this.switchList = switchList
-    SPLogger.DEBUG(TAG, "this.switchList value" + JSON.stringify(this.switchList))
+
   }
 
   build() {

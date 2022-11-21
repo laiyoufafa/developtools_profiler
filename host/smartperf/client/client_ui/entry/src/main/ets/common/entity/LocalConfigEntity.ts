@@ -125,14 +125,7 @@ export class ReportItem {
     }
 }
 
-export const otherSupportList = new Array(
-    new OtherSupport('亮度调节', '调节屏幕亮度', TestMode.BRIGHTNESS, $r("app.media.icon_brightness_plus")),
-)
 
-export let switchList = new Array(
-    new SwitchItem("trace", '是否抓取trace', $r("app.media.icon_average_frame_b"), false, true),
-    new SwitchItem("screen_capture", '是否开启截图', $r("app.media.icon_screencap"), false, true)
-)
 
 export class QuestionItem {
     public question: string
