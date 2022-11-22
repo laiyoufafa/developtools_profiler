@@ -226,8 +226,7 @@ std::string FPS::GetLayer(std::string pkgSurface)
     std::vector<DumpEntity> dumpEntityList;
     std::string curFocusId = "-1";
     const std::string cmd = "hidumper -s WindowManagerService -a -a";
-    std::string cmdExc = cmd;
-    FILE *fd = popen(cmdExc.c_str(), "r");
+    FILE *fd = popen(cmd.c_str(), "r");
     if (fd != nullptr) {
         int lineNum = 0;
         std::string line;

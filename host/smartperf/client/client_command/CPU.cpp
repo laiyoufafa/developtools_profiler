@@ -52,7 +52,7 @@ int CPU::GetCpuNum()
     }
     return mCpuNum = cpuNum;
 }
-int CPU::GetCpuFreq(int cpuId)
+int CPU::GetCpuFreq(int cpuId) const
 {
     std::string curFreq = "-1";
     SPUtils::LoadFile(CpuScalingCurFreq(cpuId), curFreq);

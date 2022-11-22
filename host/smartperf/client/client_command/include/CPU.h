@@ -29,7 +29,7 @@ public:
     std::map<std::string, std::string> ItemData() override;
 
     int GetCpuNum();
-    int GetCpuFreq(int cpuId);
+    int GetCpuFreq(int cpuId) const;
     std::vector<float> GetCpuLoad();
 
 private:
