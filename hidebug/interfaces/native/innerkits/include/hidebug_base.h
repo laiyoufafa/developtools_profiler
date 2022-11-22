@@ -16,6 +16,8 @@
 #ifndef HIVIEWDFX_HIDEBUG_BASE_H
 #define HIVIEWDFX_HIDEBUG_BASE_H
 
+#include <stdbool.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
