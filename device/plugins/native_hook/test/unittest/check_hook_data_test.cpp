@@ -302,6 +302,8 @@ HWTEST_F(CheckHookDataTest, DFX_DFR_Hiprofiler_0080, Function | MediumTest | Lev
     system(cmd.c_str());
 
     sleep(SLEEP_TIME); // 等待生成文本
+    std::string cmdEnd = "kill -37 " + std::to_string(mallocPid);
+    system(cmdEnd.c_str());
     StopProcess(mallocPid);
     StopProcess(g_daemonPid);
 
@@ -370,6 +372,8 @@ HWTEST_F(CheckHookDataTest, DFX_DFR_Hiprofiler_0090, Function | MediumTest | Lev
     system(cmd.c_str());
 
     sleep(SLEEP_TIME); // 等待生成文本
+    std::string cmdEnd = "kill -37 " + std::to_string(callocPid);
+    system(cmdEnd.c_str());
     StopProcess(callocPid);
     StopProcess(g_daemonSetDepthPid);
 
@@ -437,6 +441,8 @@ HWTEST_F(CheckHookDataTest, DFX_DFR_Hiprofiler_0100, Function | MediumTest | Lev
     system(cmd.c_str());
 
     sleep(SLEEP_TIME); // 等待生成文本
+    std::string cmdEnd = "kill -37 " + std::to_string(reallocPid);
+    system(cmdEnd.c_str());
     StopProcess(reallocPid);
     StopProcess(g_daemonPid);
 
