@@ -34,6 +34,7 @@ const int DEFAULT_REALLOC_SIZE = 1000;
 const int DATA_SIZE = 50;
 const int WAIT_KILL_SIGNL = 4;
 const int SLEEP_TIME = 5;
+const int WAIT_FLUSH = 2;
 
 const std::string DEFAULT_NATIVE_DAEMON_PATH("/system/bin/native_daemon");
 std::string DEFAULT_PATH("/data/local/tmp/");
@@ -308,7 +309,7 @@ HWTEST_F(CheckHookDataTest, DFX_DFR_Hiprofiler_0080, Function | MediumTest | Lev
     sleep(SLEEP_TIME); // 等待生成文本
     std::string cmdEnd = "kill -37 " + std::to_string(mallocPid);
     system(cmdEnd.c_str());
-    sleep(2);
+    sleep(WAIT_FLUSH);
     StopProcess(mallocPid);
     StopProcess(g_daemonPid);
 
@@ -325,7 +326,7 @@ HWTEST_F(CheckHookDataTest, DFX_DFR_Hiprofiler_0080, Function | MediumTest | Lev
         char delimiter = ';';
         Getdata(totalbuffer, hookVec, delimiter);
 
-        if (hookVec[0] == "malloc" && (!isFirstHook)) {
+        if (hookVec[0] == "malloc" && !isFirstHook) {
             for (int i = 0; i < g_mallocGetDataSize; i++) {
                 EXPECT_TRUE(Getdata(totalbuffer, hookVec, delimiter));
             }
@@ -336,7 +337,7 @@ HWTEST_F(CheckHookDataTest, DFX_DFR_Hiprofiler_0080, Function | MediumTest | Lev
 
             addr = hookVec[addrPos];
             depth = 0;
-        } else if (hookVec[0] == "free" && (!isFirstHook)) {
+        } else if (hookVec[0] == "free" && !isFirstHook) {
             for (int i = 0; i < g_freeGetDataSize; i++) {
                 EXPECT_TRUE(Getdata(totalbuffer, hookVec, delimiter));
             }
@@ -379,7 +380,7 @@ HWTEST_F(CheckHookDataTest, DFX_DFR_Hiprofiler_0090, Function | MediumTest | Lev
     sleep(SLEEP_TIME); // 等待生成文本
     std::string cmdEnd = "kill -37 " + std::to_string(callocPid);
     system(cmdEnd.c_str());
-    sleep(2);
+    sleep(WAIT_FLUSH);
     StopProcess(callocPid);
     StopProcess(g_daemonSetDepthPid);
 
@@ -396,7 +397,7 @@ HWTEST_F(CheckHookDataTest, DFX_DFR_Hiprofiler_0090, Function | MediumTest | Lev
         char delimiter = ';';
         Getdata(totalbuffer, hookVec, delimiter);
 
-        if (hookVec[0] == "malloc" && (!isFirstHook)) {
+        if (hookVec[0] == "malloc" && !isFirstHook) {
             for (int i = 0; i < g_mallocGetDataSize; i++) {
                 EXPECT_TRUE(Getdata(totalbuffer, hookVec, delimiter));
             }
@@ -407,7 +408,7 @@ HWTEST_F(CheckHookDataTest, DFX_DFR_Hiprofiler_0090, Function | MediumTest | Lev
 
             addr = hookVec[addrPos];
             depth = 0;
-        } else if (hookVec[0] == "free" && (!isFirstHook)) {
+        } else if (hookVec[0] == "free" && !isFirstHook) {
             for (int i = 0; i < g_freeGetDataSize; i++) {
                 EXPECT_TRUE(Getdata(totalbuffer, hookVec, delimiter));
             }
@@ -449,7 +450,7 @@ HWTEST_F(CheckHookDataTest, DFX_DFR_Hiprofiler_0100, Function | MediumTest | Lev
     sleep(SLEEP_TIME); // 等待生成文本
     std::string cmdEnd = "kill -37 " + std::to_string(reallocPid);
     system(cmdEnd.c_str());
-    sleep(2);
+    sleep(WAIT_FLUSH);
     StopProcess(reallocPid);
     StopProcess(g_daemonPid);
 
@@ -468,7 +469,7 @@ HWTEST_F(CheckHookDataTest, DFX_DFR_Hiprofiler_0100, Function | MediumTest | Lev
         char delimiter = ';';
         Getdata(totalbuffer, hookVec, delimiter);
 
-        if (hookVec[0] == "malloc" && (!isFirstHook)) {
+        if (hookVec[0] == "malloc" && !isFirstHook) {
             for (int i = 0; i < g_mallocGetDataSize; i++) {
                 EXPECT_TRUE(Getdata(totalbuffer, hookVec, delimiter));
             }
@@ -488,7 +489,7 @@ HWTEST_F(CheckHookDataTest, DFX_DFR_Hiprofiler_0100, Function | MediumTest | Lev
 
             isRealloc = true;
             depth = 0;
-        } else if (hookVec[0] == "free" && (!isFirstHook)) {
+        } else if (hookVec[0] == "free" && !isFirstHook) {
             for (int i = 0; i < g_freeGetDataSize; i++) {
                 EXPECT_TRUE(Getdata(totalbuffer, hookVec, delimiter));
             }
