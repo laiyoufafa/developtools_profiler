@@ -175,8 +175,8 @@ std::string SPUtils::GetTopPkgName()
     std::string cmd = "hidumper -s AbilityManagerService -a '-a' | grep 'bundle name' | head -n 1";
     std::string curTopPkgStr = "";
     LoadCmd(cmd, curTopPkgStr);
-    int left = curTopPkgStr.find_first_of("[");
-    int right = curTopPkgStr.find_first_of("]");
+    uint64_t left = curTopPkgStr.find_first_of("[");
+    uint64_t right = curTopPkgStr.find_first_of("]");
 	std::string topPkg = curTopPkgStr.substr(left + 1, right - left - 1);
     return topPkg;
 }

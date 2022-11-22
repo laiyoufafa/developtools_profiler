@@ -19,7 +19,7 @@
 #include "include/Capture.h"
 namespace OHOS {
 namespace SmartPerf {
-void Capture::ThreadGetCatch(const std::string curTime) const
+void Capture::ThreadGetCatch(const std::string &curTime) const
 {
     std::string result;
     std::string cmdCapture = "snapshot_display -f /data/local/tmp/capture/" + curTime +".png";

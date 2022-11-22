@@ -43,7 +43,7 @@ public:
         return sps[1];
     }
 
-    void Process()
+    void Process() const
     {
         SpServerSocket spSocket;
         spSocket.Init();
