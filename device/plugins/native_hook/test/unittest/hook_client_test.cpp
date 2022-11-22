@@ -65,7 +65,7 @@ HWTEST_F(NativeHookTest, NormalHookReallocTest, TestSize.Level1)
     void* mallocBlack = ohos_malloc_hook_malloc(g_size);
     EXPECT_NE(mallocBlack, nullptr);
     void* reallocBlack = ohos_malloc_hook_realloc(mallocBlack, g_resize);
-    EXPECT_EQ(reallocBlack, nullptr);
+    EXPECT_NE(reallocBlack, nullptr);
 
     ohos_malloc_hook_free(reallocBlack);
 
@@ -83,7 +83,7 @@ HWTEST_F(NativeHookTest, NormalHookCallocTest, TestSize.Level1)
     EXPECT_TRUE(ohos_malloc_hook_on_start());
 
     void* callocBlack = ohos_malloc_hook_calloc(g_size, g_resize);
-    EXPECT_EQ(callocBlack, nullptr);
+    EXPECT_NE(callocBlack, nullptr);
 
     ohos_malloc_hook_free(callocBlack);
 
@@ -140,9 +140,9 @@ HWTEST_F(NativeHookTest, NormalTest, TestSize.Level1)
     void* mallocBlack = ohos_malloc_hook_malloc(g_size);
     EXPECT_NE(mallocBlack, nullptr);
     void* reallocBlack = ohos_malloc_hook_realloc(mallocBlack, g_resize);
-    EXPECT_EQ(reallocBlack, nullptr);
+    EXPECT_NE(reallocBlack, nullptr);
     void* callocBlack = ohos_malloc_hook_calloc(g_size, g_resize);
-    EXPECT_EQ(callocBlack, nullptr);
+    EXPECT_NE(callocBlack, nullptr);
     void* vallocBlack = ohos_malloc_hook_valloc(g_size);
     EXPECT_EQ(vallocBlack, nullptr);
     void* memalignBlack = ohos_malloc_hook_memalign(g_size, g_resize);
