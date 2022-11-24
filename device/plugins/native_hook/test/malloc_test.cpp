@@ -319,7 +319,7 @@ static char* MmapReadFile(const char* pMap, int length)
     }
     char* data = (char*)malloc(length + 1);
     if (data != nullptr) {
-        memcpy_s(data, length, pMap, length);
+        memcpy_s(data, length + 1, pMap, length);
         data[length] = '\0';
     }
     return data;

@@ -196,6 +196,9 @@ bool ElfFile::ParseSecNamesStr()
         secNamesBuf = nullptr;
         return false;
     }
+    if (secNamesBuf == nullptr) {
+        return false;
+    }
     secNamesStr_ = std::string(secNamesBuf, secNamesBuf + secSize);
     delete[] secNamesBuf;
     secNamesBuf = nullptr;

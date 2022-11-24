@@ -96,7 +96,7 @@ void HookManager::CheckProcessName()
     } while (1);
 }
 
-HookManager::HookManager() : buffer_(new (std::nothrow) uint8_t[MAX_BUFFER_SIZE]) { }
+HookManager::HookManager() : buffer_(new (std::nothrow) uint8_t[MAX_BUFFER_SIZE]), pid_(0) { }
 
 void HookManager::SetCommandPoller(const std::shared_ptr<CommandPoller>& p)
 {
