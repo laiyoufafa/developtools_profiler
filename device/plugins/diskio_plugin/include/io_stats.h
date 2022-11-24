@@ -129,7 +129,6 @@ public:
     IoStats(DiskioConfig::IoReportType type = DiskioConfig::UNSPECIFIED);
     ~IoStats() {}
     bool GetIoData();
-    bool OutputData();
     bool PutPluginStatsData(StatsData* pluginStats);
 private:
     bool ParseCpuStats();
