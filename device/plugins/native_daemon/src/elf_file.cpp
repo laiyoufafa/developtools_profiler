@@ -191,6 +191,8 @@ bool ElfFile::ParseSecNamesStr()
         return false;
     }
     if (memset_s(secNamesBuf, secSize, '\0', secSize) != EOK) {
+        delete[] secNamesBuf;
+        secNamesBuf = nullptr;
         HLOGE("memset_s failed");
     }
     ret = ReadFile(secNamesBuf, secSize);
