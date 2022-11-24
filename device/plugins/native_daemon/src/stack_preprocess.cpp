@@ -338,7 +338,7 @@ void StackPreprocess::writeFrames(RawStackPtr rawStack, const std::vector<CallFr
     CHECK_TRUE(fpHookData_.get() != nullptr, NO_RETVAL, "fpHookData_ is nullptr, please check file_name(%s)",
         hookConfig_.file_name().c_str());
     if (rawStack->stackConext.type == MEMORY_TAG) {
-        fprintf(fpHookData_.get(), "memtag;%ld;%ld;%" PRId64 ";%ld;tag:%s\n",
+        fprintf(fpHookData_.get(), "memtag;%u;%u;%" PRId64 ";%ld;tag:%s\n",
             rawStack->stackConext.pid, rawStack->stackConext.tid,
             (int64_t)rawStack->stackConext.ts.tv_sec, rawStack->stackConext.ts.tv_nsec,
             rawStack->stackConext.tname);
@@ -362,7 +362,7 @@ void StackPreprocess::writeFrames(RawStackPtr rawStack, const std::vector<CallFr
             break;
     }
 
-    fprintf(fpHookData_.get(), "%s;%ld;%ld;%" PRId64 ";%ld;%zu\n", tag.c_str(),
+    fprintf(fpHookData_.get(), "%s;%u;%u;%" PRId64 ";%ld;%zu\n", tag.c_str(),
         rawStack->stackConext.pid, rawStack->stackConext.tid, (int64_t)rawStack->stackConext.ts.tv_sec,
         rawStack->stackConext.ts.tv_nsec, rawStack->stackConext.mallocSize);
 
