@@ -213,8 +213,8 @@ void* hook_malloc(void* (*fn)(size_t), size_t size)
         stackSize = stackendptr - stackptr;
     }
     rawdata.type = MALLOC_MSG;
-    rawdata.pid = g_hookPid;
-    rawdata.tid = GetCurThreadId();
+    rawdata.pid = static_cast<uint32_t>(g_hookPid);
+    rawdata.tid = static_cast<uint32_t>(GetCurThreadId());
     rawdata.mallocSize = size;
     rawdata.addr = ret;
     prctl(PR_GET_NAME, rawdata.tname);
@@ -307,8 +307,8 @@ void* hook_calloc(void* (*fn)(size_t, size_t), size_t number, size_t size)
         stackSize = stackendptr - stackptr;
     }
     rawdata.type = MALLOC_MSG;
-    rawdata.pid = g_hookPid;
-    rawdata.tid = GetCurThreadId();
+    rawdata.pid = static_cast<uint32_t>(g_hookPid);
+    rawdata.tid = static_cast<uint32_t>(GetCurThreadId());
     rawdata.mallocSize = number * size;
     rawdata.addr = pRet;
     prctl(PR_GET_NAME, rawdata.tname);
@@ -390,8 +390,8 @@ void* hook_realloc(void* (*fn)(void*, size_t), void* ptr, size_t size)
         stackSize = stackendptr - stackptr;
     }
     rawdata.type = MALLOC_MSG;
-    rawdata.pid = g_hookPid;
-    rawdata.tid = GetCurThreadId();
+    rawdata.pid = static_cast<uint32_t>(g_hookPid);
+    rawdata.tid = static_cast<uint32_t>(GetCurThreadId());
     rawdata.mallocSize = size;
     rawdata.addr = pRet;
     prctl(PR_GET_NAME, rawdata.tname);
@@ -480,8 +480,8 @@ void hook_free(void (*free_func)(void*), void* p)
     }
 
     rawdata.type = FREE_MSG;
-    rawdata.pid = g_hookPid;
-    rawdata.tid = GetCurThreadId();
+    rawdata.pid = static_cast<uint32_t>(g_hookPid);
+    rawdata.tid = static_cast<uint32_t>(GetCurThreadId());
     rawdata.mallocSize = 0;
     rawdata.addr = p;
     prctl(PR_GET_NAME, rawdata.tname);
@@ -551,8 +551,8 @@ void* hook_mmap(void*(*fn)(void*, size_t, int, int, int, off_t),
     }
 
     rawdata.type = MMAP_MSG;
-    rawdata.pid = g_hookPid;
-    rawdata.tid = GetCurThreadId();
+    rawdata.pid = static_cast<uint32_t>(g_hookPid);
+    rawdata.tid = static_cast<uint32_t>(GetCurThreadId());
     rawdata.mallocSize = length;
     rawdata.addr = ret;
     prctl(PR_GET_NAME, rawdata.tname);
@@ -623,8 +623,8 @@ int hook_munmap(int(*fn)(void*, size_t), void* addr, size_t length)
     }
 
     rawdata.type = MUNMAP_MSG;
-    rawdata.pid = g_hookPid;
-    rawdata.tid = GetCurThreadId();
+    rawdata.pid = static_cast<uint32_t>(g_hookPid);
+    rawdata.tid = static_cast<uint32_t>(GetCurThreadId());
     rawdata.mallocSize = length;
     rawdata.addr = addr;
     prctl(PR_GET_NAME, rawdata.tname);
@@ -656,8 +656,8 @@ int hook_prctl(int(*fn)(int, ...),
         StackRawData rawdata = {{{0}}};
         clock_gettime(CLOCK_REALTIME, &rawdata.ts);
         rawdata.type = PR_SET_VMA_MSG;
-        rawdata.pid = g_hookPid;
-        rawdata.tid = GetCurThreadId();
+        rawdata.pid = static_cast<uint32_t>(g_hookPid);
+        rawdata.tid = static_cast<uint32_t>(GetCurThreadId());
         rawdata.mallocSize = arg4;
         rawdata.addr = reinterpret_cast<void*>(arg3);
         size_t tagLen = strlen(reinterpret_cast<char*>(arg5)) + 1;
@@ -787,7 +787,7 @@ void ohos_malloc_hook_memtag(void* addr, size_t size, char* tag, size_t tagLen)
     clock_gettime(CLOCK_REALTIME, &rawdata.ts);
     rawdata.type = MEMORY_TAG;
     rawdata.pid = getpid();
-    rawdata.tid = GetCurThreadId();
+    rawdata.tid = static_cast<uint32_t>(GetCurThreadId());
     rawdata.mallocSize = size;
     rawdata.addr = addr;
 
