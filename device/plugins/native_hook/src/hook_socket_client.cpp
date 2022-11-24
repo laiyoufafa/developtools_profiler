@@ -29,8 +29,10 @@ constexpr int FLUSH_FLAG = 20;
 int g_flushCount = 0;
 } // namespace
 
-HookSocketClient::HookSocketClient(int pid, ClientConfig *config) : pid_(pid), config_(config), smbFd_(0), eventFd_(0)
+HookSocketClient::HookSocketClient(int pid, ClientConfig *config) : pid_(pid), config_(config)
 {
+    smbFd_ = 0;
+    eventFd_ = 0;
     unixSocketClient_ = nullptr;
     serviceName_ = "HookService";
     Connect(DEFAULT_UNIX_SOCKET_HOOK_PATH);
