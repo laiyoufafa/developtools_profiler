@@ -229,7 +229,6 @@ std::string FPS::GetLayer(std::string pkgSurface)
     FILE *fd = popen(cmd.c_str(), "r");
     if (fd != nullptr) {
         int lineNum = 0;
-        std::string line;
         char buf[1024] = {'\0'};
 
         const int paramFifteen = 15;
@@ -240,7 +239,7 @@ std::string FPS::GetLayer(std::string pkgSurface)
         const int focusNameIndex = 2;
 
         while ((fgets(buf, sizeof(buf), fd)) != nullptr) {
-            line = buf;
+            std::string line = buf;
             if (line[0] == '-' || line[0] == ' ') {
                 continue;
             }
