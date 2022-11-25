@@ -33,6 +33,7 @@ public:
     bool SetSerializeDiskioConfig(const std::string& pluginName, ProfilerPluginConfig& pluginConfig);
     bool SetSerializeFtraceConfig(const std::string& pluginName, ProfilerPluginConfig& pluginConfig);
     bool SetSerializeHidumpConfig(const std::string& pluginName, ProfilerPluginConfig& pluginConfig);
+    bool SetSerializeHiebpfConfig(const std::string& pluginName, ProfilerPluginConfig& pluginConfig);
     bool SetSerializeHilogConfig(const std::string& pluginName, ProfilerPluginConfig& pluginConfig);
     bool SetSerializeMemoryConfig(const std::string& pluginName, ProfilerPluginConfig& pluginConfig);
     bool SetSerializeHookConfig(const std::string& pluginName, ProfilerPluginConfig& pluginConfig);

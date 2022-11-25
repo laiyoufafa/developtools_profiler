@@ -26,6 +26,7 @@ group("hiprofiler_targets") {
     "plugins/hilog_plugin:hilogplugin",
     "plugins/hiperf_plugin:hiperfplugin",
     "plugins/hisysevent_plugin:hisyseventplugin",
+    "plugins/hiebpf_plugin:ebpf_targets",
     "plugins/memory_plugin:memdataplugin",
     "plugins/memory_plugin:memorytest",
     "plugins/native_hook:malloctest_cpp",

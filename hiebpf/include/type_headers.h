@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -12,19 +12,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef COMMON_H
-#define COMMON_H
 
-#include <string>
-#include <vector>
+#ifndef TYPE_HEADERS_H
+#define TYPE_HEADERS_H
 
-namespace COMMON {
-bool IsProcessRunning(); // add file lock, only one process can run
-bool IsProcessExist(std::string& processName, int& pid); // Check if the process exists and get PID
-int StartProcess(const std::string& processBin, std::vector<char*>& argv);
-std::vector<int> GetProcessIds(std::string& processName);
-int KillProcess(int pid);
-void PrintMallinfoLog(const std::string& mallInfoPrefix);
-} // COMMON
+#include <sys/types.h>
+#include <asm/types.h>
+#include <inttypes.h>
+#include <stdint.h>
+#include <linux/types.h>
+#include "linux/types-extra.h" // linux/types-extra.h is the complement of linux/tyeps.h,
+                               // and it must be included after linux/types.h
 
-#endif // COMMON_H
+#include "hiebpf_types.h"      // this header must be included after the above headers
+
+#endif

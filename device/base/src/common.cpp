@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include <array>
 #include "common.h"
 #include <cinttypes>
 #include <csignal>
@@ -29,6 +30,8 @@ namespace COMMON {
 constexpr int EXECVP_ERRNO = 2;
 const int SHELL_UID = 2000;
 const std::string DEFAULT_PATH = "/data/local/tmp/";
+constexpr int DEC_BASE = 10;
+constexpr uint32_t READ_BUFFER_SIZE = 1024;
 
 bool IsProcessRunning()
 {
@@ -131,4 +134,25 @@ void PrintMallinfoLog(const std::string& mallInfoPrefix)
 #endif // HOOK_ENABLE
 }
 
+std::vector<int> GetProcessIds(std::string& processName)
+{
+    std::vector<int> pids;
+    std::string findpid = "ps -ef | grep \"" + processName + "\" | grep -v grep";
+    std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(findpid.c_str(), "r"), pclose);
+
+    std::array<char, READ_BUFFER_SIZE> buffer;
+    while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
+        std::string content = buffer.data();
+        size_t startPos = content.find(" ");
+        if (startPos != std::string::npos) {
+            char* end = nullptr;
+            int pid = static_cast<int>(strtoul(content.substr(startPos, content.size()).c_str(), &end, DEC_BASE));
+            if (pid > 0) {
+                pids.push_back(pid);
+            }
+        }
+    }
+
+    return pids;
+}
 } // COMMON

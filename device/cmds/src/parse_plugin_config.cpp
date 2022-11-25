@@ -19,6 +19,7 @@
 #include "diskio_plugin_config_standard.pb.h"
 #include "google/protobuf/text_format.h"
 #include "hidump_plugin_config_standard.pb.h"
+#include "hiebpf_plugin_config_standard.pb.h"
 #include "hilog_plugin_config_standard.pb.h"
 #include "hiperf_plugin_config_standard.pb.h"
 #include "hisysevent_plugin_config_standard.pb.h"
@@ -106,6 +107,8 @@ bool ParsePluginConfig::SetSerializePluginsConfig(const std::string& pluginName,
         ret = SetSerializeFtraceConfig(pluginName, pluginConfig);
     } else if (pluginName == "hidump-plugin") {
         ret = SetSerializeHidumpConfig(pluginName, pluginConfig);
+    } else if (pluginName == "hiebpf-plugin") {
+        ret = SetSerializeHiebpfConfig(pluginName, pluginConfig);
     } else if (pluginName == "hilog-plugin") {
         ret = SetSerializeHilogConfig(pluginName, pluginConfig);
     } else if (pluginName == "memory-plugin") {
@@ -197,6 +200,31 @@ bool ParsePluginConfig::SetSerializeHidumpConfig(const std::string& pluginName, 
         return false;
     }
     pluginConfig.set_config_data((const void*)configDataVec.data(), configDataVec.size());
+    return true;
+}
+
+bool ParsePluginConfig::SetSerializeHiebpfConfig(const std::string& pluginName, ProfilerPluginConfig& pluginConfig)
+{
+    auto iter = pluginConfigMap.find(pluginName);
+    if (iter == pluginConfigMap.end()) {
+        printf("find %s failed\n", pluginName.c_str());
+        return false;
+    }
+    auto hiebpfConfigNolite = std::make_unique<ForStandard::HiebpfConfig>();
+    if (hiebpfConfigNolite == nullptr) {
+        printf("hiebpfConfigNolite is nullptr\n");
+        return false;
+    }
+    if (!TextFormat::ParseFromString(iter->second, hiebpfConfigNolite.get())) {
+        printf("hiebpf config parse failed!\n");
+        return false;
+    }
+    std::vector<uint8_t> config(hiebpfConfigNolite->ByteSizeLong());
+    if (hiebpfConfigNolite->SerializeToArray(config.data(), config.size()) <= 0) {
+        printf("hiebpf serialize failed!\n");
+        return false;
+    }
+    pluginConfig.set_config_data(static_cast<const void*>(config.data()), config.size());
     return true;
 }
 
