@@ -51,7 +51,7 @@ do
         echo "current skeleton name: "${SKEL_NAME}
         SKEL_PATH=${DEST_DIR}"/"${SKEL_NAME}
         echo "current skeleton path: "${SKEL_PATH}
-        bpftool gen skeleton ${OBJ_PATH} > ${SKEL_PATH}
+        ../../prebuilts/develop_tools/bpftool/bin/bpftool skeleton ${OBJ_PATH} > ${SKEL_PATH}
         replacement="#include \"libbpf.h\""
         sed -i "s/#include <bpf\/libbpf.h>/${replacement}/g" ${SKEL_PATH}
     done
