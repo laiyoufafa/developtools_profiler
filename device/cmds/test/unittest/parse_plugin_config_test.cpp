@@ -66,7 +66,7 @@ public:
  * @tc.desc: Test parse plugin config.
  * @tc.type: FUNC
  */
-HWTEST_F(ParsePluginConfigTest, DFX_DFR_Hiprofiler_0140, TestSize.Level1)
+HWTEST_F(ParsePluginConfigTest, TestParsePluginConfig, TestSize.Level1)
 {
     ParsePluginConfig parseConfig;
     std::string config;
