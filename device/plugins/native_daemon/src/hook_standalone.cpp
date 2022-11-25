@@ -49,14 +49,14 @@ void writeFrames(StackRawData *data, const std::vector<CallFrame>& callsFrames)
         fprintf(g_fpHookFile.get(), "malloc;%" PRId64 ";%ld;0x%" PRIx64 ";%zu\n",
                 (int64_t)data->ts.tv_sec, data->ts.tv_nsec, (uint64_t)data->addr, data->mallocSize);
     } else if (data->type == FREE_MSG) {
-        fprintf(g_fpHookFile.get(), "free;%" PRId64 ";%ld;\n",
-                (int64_t)data->ts.tv_sec, data->ts.tv_nsec);
+        fprintf(g_fpHookFile.get(), "free;%" PRId64 ";%ld;0x%" PRIx64 "\n",
+                (int64_t)data->ts.tv_sec, data->ts.tv_nsec, (uint64_t)data->addr);
     } else if (data->type == MMAP_MSG) {
-        fprintf(g_fpHookFile.get(), "mmap;%" PRId64 ";%ld;%zu\n",
-                (int64_t)data->ts.tv_sec, data->ts.tv_nsec, data->mallocSize);
+        fprintf(g_fpHookFile.get(), "mmap;%" PRId64 ";%ld;0x%" PRIx64 ";%zu\n",
+                (int64_t)data->ts.tv_sec, data->ts.tv_nsec, (uint64_t)data->addr, data->mallocSize);
     } else if (data->type == MUNMAP_MSG) {
-        fprintf(g_fpHookFile.get(), "munmap;%" PRId64 ";%ld;%zu\n",
-                (int64_t)data->ts.tv_sec, data->ts.tv_nsec, data->mallocSize);
+        fprintf(g_fpHookFile.get(), "munmap;%" PRId64 ";%ld;0x%" PRIx64 ";%zu\n",
+                (int64_t)data->ts.tv_sec, data->ts.tv_nsec, (uint64_t)data->addr, data->mallocSize);
     } else {
         return;
     }
