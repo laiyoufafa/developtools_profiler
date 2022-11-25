@@ -122,7 +122,7 @@ void StackPreprocess::TakeResults()
     size_t minStackDepth = hookConfig_.max_stack_depth() > MIN_STACK_DEPTH
         ? MIN_STACK_DEPTH : hookConfig_.max_stack_depth();
     if (hookConfig_.blocked()) {
-        minStackDepth = hookConfig_.max_stack_depth();
+        minStackDepth = static_cast<size_t>(hookConfig_.max_stack_depth());
     }
     minStackDepth += FILTER_STACK_DEPTH;
     HILOG_INFO(LOG_CORE, "TakeResults thread %d, start!", gettid());
@@ -338,7 +338,7 @@ void StackPreprocess::writeFrames(RawStackPtr rawStack, const std::vector<CallFr
     CHECK_TRUE(fpHookData_.get() != nullptr, NO_RETVAL, "fpHookData_ is nullptr, please check file_name(%s)",
         hookConfig_.file_name().c_str());
     if (rawStack->stackConext.type == MEMORY_TAG) {
-        fprintf(fpHookData_.get(), "memtag;%d;%d;%" PRId64 ";%ld;0x%" PRIx64 ":tag:%s\n",
+        fprintf(fpHookData_.get(), "memtag;%u;%u;%" PRId64 ";%ld;0x%" PRIx64 ":tag:%s\n",
             rawStack->stackConext.pid, rawStack->stackConext.tid,
             (int64_t)rawStack->stackConext.ts.tv_sec, rawStack->stackConext.ts.tv_nsec,
             (uint64_t)rawStack->stackConext.addr, rawStack->stackConext.tname);
@@ -362,7 +362,7 @@ void StackPreprocess::writeFrames(RawStackPtr rawStack, const std::vector<CallFr
             break;
     }
 
-    fprintf(fpHookData_.get(), "%s;%d;%d;%" PRId64 ";%ld;0x%" PRIx64 ";%zu\n", tag.c_str(),
+    fprintf(fpHookData_.get(), "%s;%u;%u;%" PRId64 ";%ld;0x%" PRIx64 ";%zu\n", tag.c_str(),
         rawStack->stackConext.pid, rawStack->stackConext.tid, (int64_t)rawStack->stackConext.ts.tv_sec,
         rawStack->stackConext.ts.tv_nsec, (uint64_t)rawStack->stackConext.addr, rawStack->stackConext.mallocSize);
 
