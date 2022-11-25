@@ -36,7 +36,7 @@ public:
         }
         return result;
     }
-    std::string ResPkgOrPid(SpServerSocket &spSocket) const
+    std::string ResPkgOrPid(const SpServerSocket &spSocket) const
     {
         std::vector<std::string> sps;
         SPUtils::StrSplit(spSocket.RecvBuf(), "::", sps);
