@@ -22,7 +22,7 @@
 #include "profiler_data_repeater.h"
 #include "profiler_service_types.pb.h"
 #include "socket_context.h"
-#include "../../src/plugin_service_impl.h"
+#include "plugin_service_impl.h"
 
 using namespace testing::ext;
 
