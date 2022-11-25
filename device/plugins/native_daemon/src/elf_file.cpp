@@ -194,7 +194,7 @@ bool ElfFile::ParseSecNamesStr()
         delete[] secNamesBuf;
         secNamesBuf = nullptr;
         HLOGE("memset_s failed");
-        return;
+        return false;
     }
     ret = ReadFile(secNamesBuf, secSize);
     if (ret != static_cast<int64_t>(secSize)) {
