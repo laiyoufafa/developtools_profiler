@@ -362,9 +362,9 @@ void StackPreprocess::writeFrames(RawStackPtr rawStack, const std::vector<CallFr
             break;
     }
 
-    fprintf(fpHookData_.get(), "%s;%u;%u;%" PRId64 ";%ld;%zu\n", tag.c_str(),
+    fprintf(fpHookData_.get(), "%s;%u;%u;%" PRId64 ";%ld;0x%" PRIx64 ";%zu\n", tag.c_str(),
         rawStack->stackConext.pid, rawStack->stackConext.tid, (int64_t)rawStack->stackConext.ts.tv_sec,
-        rawStack->stackConext.ts.tv_nsec, rawStack->stackConext.mallocSize);
+        rawStack->stackConext.ts.tv_nsec, (uint64_t)rawStack->stackConext.addr, rawStack->stackConext.mallocSize);
 
     for (size_t idx = 0; idx < callsFrames.size(); ++idx) {
         (void)fprintf(fpHookData_.get(), "0x%" PRIx64 ";0x%" PRIx64 ";%s;%s;0x%" PRIx64 ";%" PRIu64 "\n",
