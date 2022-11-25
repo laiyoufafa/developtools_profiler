@@ -14,6 +14,7 @@
  */
 
 #include <iostream>
+#include <vector>
 #include <hwext/gtest-ext.h>
 #include <hwext/gtest-tag.h>
 
@@ -30,21 +31,20 @@ public:
 
     void CreateCommand(string ConfigName, ParsePluginConfig &parseConfig, string &config) const
     {
-        std::string cmdStr = 
-        " request_id: 1"
-        " session_config {"
-        "  buffers {"
-        "   pages: 16384"
-        "  }"
-        "  result_file: \"/data/local/tmp/hiprofiler_data.htrace\""
-        "  sample_duration: 50000"
-        " }"
-        " plugin_configs {"
-        "  plugin_name: \"" + ConfigName + "\""
-        "  sample_interval: 1000"
-        "  config_data {"
-        "  }"
-        " }";
+        std::string cmdStr = " request_id: 1"
+            " session_config {"
+            "  buffers {"
+            "   pages: 16384"
+            "  }"
+            "  result_file: \"/data/local/tmp/hiprofiler_data.htrace\""
+            "  sample_duration: 50000"
+            " }"
+            " plugin_configs {"
+            "  plugin_name: \"" + ConfigName + "\""
+            "  sample_interval: 1000"
+            "  config_data {"
+            "  }"
+            " }";
         config = parseConfig.GetPluginsConfig(cmdStr);
     }
 
@@ -66,11 +66,11 @@ public:
  * @tc.desc: Test parse plugin config.
  * @tc.type: FUNC
  */
-HWTEST_F(ParsePluginConfigTest, DFX_DFR_Hiprofiler_0140, TestSize.Level1)
+HWTEST_F(ParsePluginConfigTest, TestParsePluginConfig, TestSize.Level1)
 {
     ParsePluginConfig parseConfig;
-    std::string config = "";
-    std::string pluginName[] = {
+    std::string config;
+    vector<std::string> pluginNames{
         "cpu-plugin",
         "diskio-plugin",
         "ftrace-plugin",
@@ -82,13 +82,15 @@ HWTEST_F(ParsePluginConfigTest, DFX_DFR_Hiprofiler_0140, TestSize.Level1)
         "process-plugin",
         "hiperf-plugin",
         "hisysevent-plugin",
-        };
-    for (unsigned int i = 0; i < (sizeof(pluginName) / sizeof(pluginName[0])); i++) {
-        CreateCommand(pluginName[i], parseConfig, config);
+    };
+    for (const std::string &pluginName : pluginNames) {
+        CreateCommand(pluginName, parseConfig, config);
         auto profilerConfig = GetProfilerPluginConfig(config);
-        bool res = parseConfig.SetSerializePluginsConfig(pluginName[i], profilerConfig);
-        printf("%s parse success \n", pluginName[i].c_str());
+        bool res = parseConfig.SetSerializePluginsConfig(pluginName, profilerConfig);
         EXPECT_TRUE(res);
     }
+    ProfilerPluginConfig profilerConfig;
+    bool res = parseConfig.SetSerializePluginsConfig("testplugin", profilerConfig);
+    EXPECT_TRUE(!res);
 }
 }
