@@ -187,8 +187,14 @@ bool ElfFile::ParseSecNamesStr()
     ret = lseek(fd_, secOffset, SEEK_SET);
     HLOG_ASSERT(ret == static_cast<int64_t>(secOffset));
     char *secNamesBuf = new (std::nothrow) char[secSize];
+    if (secNamesBuf == nullptr) {
+        return false;
+    }
     if (memset_s(secNamesBuf, secSize, '\0', secSize) != EOK) {
+        delete[] secNamesBuf;
+        secNamesBuf = nullptr;
         HLOGE("memset_s failed");
+        return false;
     }
     ret = ReadFile(secNamesBuf, secSize);
     if (ret != static_cast<int64_t>(secSize)) {
