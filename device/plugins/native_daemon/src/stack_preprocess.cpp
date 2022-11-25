@@ -338,10 +338,10 @@ void StackPreprocess::writeFrames(RawStackPtr rawStack, const std::vector<CallFr
     CHECK_TRUE(fpHookData_.get() != nullptr, NO_RETVAL, "fpHookData_ is nullptr, please check file_name(%s)",
         hookConfig_.file_name().c_str());
     if (rawStack->stackConext.type == MEMORY_TAG) {
-        fprintf(fpHookData_.get(), "memtag;%u;%u;%" PRId64 ";%ld;tag:%s\n",
+        fprintf(fpHookData_.get(), "memtag;%u;%u;%" PRId64 ";%ld;0x%" PRIx64 ":tag:%s\n",
             rawStack->stackConext.pid, rawStack->stackConext.tid,
             (int64_t)rawStack->stackConext.ts.tv_sec, rawStack->stackConext.ts.tv_nsec,
-            rawStack->stackConext.tname);
+            (uint64_t)rawStack->stackConext.addr, rawStack->stackConext.tname);
         return;
     }
     std::string tag = "";
@@ -362,9 +362,9 @@ void StackPreprocess::writeFrames(RawStackPtr rawStack, const std::vector<CallFr
             break;
     }
 
-    fprintf(fpHookData_.get(), "%s;%u;%u;%" PRId64 ";%ld;%zu\n", tag.c_str(),
+    fprintf(fpHookData_.get(), "%s;%u;%u;%" PRId64 ";%ld;0x%" PRIx64 ";%zu\n", tag.c_str(),
         rawStack->stackConext.pid, rawStack->stackConext.tid, (int64_t)rawStack->stackConext.ts.tv_sec,
-        rawStack->stackConext.ts.tv_nsec, rawStack->stackConext.mallocSize);
+        rawStack->stackConext.ts.tv_nsec, (uint64_t)rawStack->stackConext.addr, rawStack->stackConext.mallocSize);
 
     for (size_t idx = 0; idx < callsFrames.size(); ++idx) {
         (void)fprintf(fpHookData_.get(), "0x%" PRIx64 ";0x%" PRIx64 ";%s;%s;0x%" PRIx64 ";%" PRIu64 "\n",
