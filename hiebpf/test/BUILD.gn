@@ -54,5 +54,7 @@ ohos_unittest("hiebpf_ut") {
 
 group("unittest") {
   testonly = true
-  deps = [ ":hiebpf_ut" ]
+  if (target_cpu == "arm64") {
+    deps = [ ":hiebpf_ut" ]
+  }
 }

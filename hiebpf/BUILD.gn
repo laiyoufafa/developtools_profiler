@@ -15,8 +15,7 @@ import("//build/ohos.gni")
 import("//developtools/profiler/device/base/config.gni")
 
 skel_src_dir = "$target_out_dir/src"
-skel_out_dir =
-    "$root_gen_dir/cpp/developtools/profiler/hiebpf/ebpf_skeleton"
+skel_out_dir = "$root_gen_dir/cpp/developtools/profiler/hiebpf/ebpf_skeleton"
 
 config("common_config") {
   cflags = [

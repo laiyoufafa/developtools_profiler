@@ -48,9 +48,7 @@ ohos_executable("ebpf_converter") {
   if (!is_mingw) {
     defines = [ "_GNU_SOURCE" ]
   } else {
-    public_configs = [
-      ":ebpf_converter_inner_config",
-    ]
+    public_configs = [ ":ebpf_converter_inner_config" ]
   }
 
   sources = [ "src/ebpf_converter.cpp" ]
