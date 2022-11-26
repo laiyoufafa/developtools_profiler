@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -12,19 +12,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef COMMON_H
-#define COMMON_H
 
-#include <string>
-#include <vector>
+#ifndef BPF_LOG_EVENT_H
+#define BPF_LOG_EVENT_H
 
-namespace COMMON {
-bool IsProcessRunning(); // add file lock, only one process can run
-bool IsProcessExist(std::string& processName, int& pid); // Check if the process exists and get PID
-int StartProcess(const std::string& processBin, std::vector<char*>& argv);
-std::vector<int> GetProcessIds(std::string& processName);
-int KillProcess(int pid);
-void PrintMallinfoLog(const std::string& mallInfoPrefix);
-} // COMMON
+// bpf log levels
+#define BPF_LOG_DEBUG    0
+#define BPF_LOG_INFO     1
+#define BPF_LOG_WARN     2
+#define BPF_LOG_ERROR    3
+#define BPF_LOG_FATAL    4
+#define BPF_LOG_NONE     5
 
-#endif // COMMON_H
+#define BPF_TRUE    1
+#define BPF_FALSE   0
+
+#endif

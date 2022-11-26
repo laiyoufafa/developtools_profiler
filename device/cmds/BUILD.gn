@@ -42,6 +42,7 @@ ohos_executable("hiprofiler_cmd") {
     "${OHOS_PROFILER_DIR}/protos/types/plugins/diskio_data:diskio_data_cpp_standard",
     "${OHOS_PROFILER_DIR}/protos/types/plugins/ftrace_data/${device_kernel_version}:ftrace_data_cpp_standard",
     "${OHOS_PROFILER_DIR}/protos/types/plugins/hidump_data:hidump_data_cpp_standard",
+    "${OHOS_PROFILER_DIR}/protos/types/plugins/hiebpf_data:hiebpf_data_cpp_standard",
     "${OHOS_PROFILER_DIR}/protos/types/plugins/hilog_data:hilog_data_cpp_standard",
     "${OHOS_PROFILER_DIR}/protos/types/plugins/hiperf_data:hiperf_data_cpp_standard",
     "${OHOS_PROFILER_DIR}/protos/types/plugins/hisysevent_data:hisysevent_data_cpp_standard",

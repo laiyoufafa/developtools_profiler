@@ -43,6 +43,7 @@ std::vector<std::string> presetPluginVec = {
     "libdiskiodataplugin.z.so",
     "libftrace_plugin.z.so",
     "libhidumpplugin.z.so",
+    "libhiebpfplugin.z.so",
     "libhilogplugin.z.so",
     "libhiperfplugin.z.so",
     "libhisyseventplugin.z.so",
