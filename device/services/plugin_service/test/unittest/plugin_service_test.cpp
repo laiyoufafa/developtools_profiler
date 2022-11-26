@@ -22,6 +22,7 @@
 #include "profiler_data_repeater.h"
 #include "profiler_service_types.pb.h"
 #include "socket_context.h"
+#include "plugin_service_impl.h"
 
 using namespace testing::ext;
 
@@ -44,6 +45,7 @@ public:
         pluginService_ = std::make_unique<PluginService>();
         usleep(100000); // sleep for 100000 us.
         pluginClient_ = std::make_unique<PluginClientTest>();
+        pluginServiceImp_ = std::make_unique<PluginServiceImpl>(*pluginService_);
     }
 
     void TearDown()
@@ -55,6 +57,7 @@ public:
 public:
     std::unique_ptr<PluginService> pluginService_ = nullptr;
     std::unique_ptr<PluginClientTest> pluginClient_ = nullptr;
+    std::unique_ptr<PluginServiceImpl> pluginServiceImp_ = nullptr;
     uint32_t pluginId_;
 };
 
@@ -771,5 +774,40 @@ HWTEST_F(UnitTestPluginService, GetPluginStatus5, TestSize.Level1)
 HWTEST_F(UnitTestPluginService, GetPluginIdByName5, TestSize.Level1)
 {
     ASSERT_TRUE(pluginService_->GetPluginIdByName("sample.so") == 0);
+}
+
+/**
+ * @tc.name: Service
+ * @tc.desc: test function RegisterPlugin.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UnitTestPluginService, PluginServiceImpl_RegisterPlugin, TestSize.Level1)
+{
+    RegisterPluginRequest request;
+    RegisterPluginResponse response;
+    SocketContext ctx;
+
+    request.set_request_id(5);
+    request.set_path("sample.so");
+    request.set_sha256("");
+    request.set_name("abc.so");
+    request.set_buffer_size_hint(0);
+    EXPECT_TRUE(pluginServiceImp_->RegisterPlugin(ctx, request, response));
+    request.set_sha256("abcdsfdsfad");
+    EXPECT_FALSE(pluginServiceImp_->RegisterPlugin(ctx, request, response));
+}
+
+/**
+ * @tc.name: Service
+ * @tc.desc: test function UnregisterPlugin
+ * @tc.type: FUNC
+ */
+HWTEST_F(UnitTestPluginService, PluginServiceImpl_UnregisterPlugin, TestSize.Level1)
+{
+    UnregisterPluginRequest request;
+    UnregisterPluginResponse response;
+    SocketContext ctx;
+    request.set_plugin_id(1);
+    EXPECT_FALSE(pluginServiceImp_->UnregisterPlugin(ctx, request, response));
 }
 } // namespace
