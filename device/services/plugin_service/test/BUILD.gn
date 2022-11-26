@@ -33,7 +33,7 @@ ohos_unittest("plugin_service_ut") {
     "//third_party/googletest:gtest",
     "//third_party/googletest:gtest_main",
   ]
-  include_dirs = [ 
+  include_dirs = [
     "../src",
     "//third_party/googletest/googletest/include/gtest",
   ]
