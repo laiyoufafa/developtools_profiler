@@ -66,6 +66,48 @@ bool InititalizeIPC()
     return true;
 }
 void FinalizeIPC() {}
+
+int ConvertPid(char* buf)
+{
+    int count = 0;
+    char pidBuf[11] = {0}; /* 11: 32 bits to the maximum length of a string */
+    char *str = buf;
+    while (*str != '\0') {
+        if ((*str >= '0') && (*str <= '9') && (count < sizeof(pidBuf) - 1)) {
+            pidBuf[count] = *str;
+            count++;
+            str++;
+            continue;
+        }
+
+        if (count > 0) {
+            break;
+        }
+        str++;
+    }
+    return atoi(pidBuf);
+}
+
+pid_t GetRealPid(void)
+{
+    const char *path = "/proc/self/status";
+    char buf[STATUS_LINE_SIZE] = {0};
+    FILE *fp = fopen(path, "r");
+    if (fp == nullptr) {
+        return -1;
+    }
+    while (!feof(fp)) {
+        if (fgets(buf, STATUS_LINE_SIZE, fp) == nullptr) {
+            fclose(fp);
+            return -1;
+        }
+        if (strncmp(buf, "Pid:", PID_STR_SIZE) == 0) {
+            break;
+        }
+    }
+    (void)fclose(fp);
+    return static_cast<pid_t>(ConvertPid(buf));
+}
 }  // namespace
 
 pid_t inline __attribute__((always_inline)) GetCurThreadId()
@@ -80,7 +122,7 @@ bool ohos_malloc_hook_on_start(void)
 {
     std::lock_guard<std::recursive_timed_mutex> guard(g_ClientMutex);
     COMMON::PrintMallinfoLog("before hook(byte) => ");
-    g_hookPid = ohos_get_real_pid();
+    g_hookPid = GetRealPid();
     g_mallocTimes = 0;
     if (g_hookClient != nullptr) {
         HILOG_INFO(LOG_CORE, "hook already started");
@@ -817,48 +859,6 @@ bool ohos_set_filter_size(size_t size, void* ret)
         return false;
     }
     return true;
-}
-
-pid_t ohos_get_real_pid(void)
-{
-    const char *path = "/proc/self/status";
-    char buf[STATUS_LINE_SIZE] = {0};
-    FILE *fp = fopen(path, "r");
-    if (fp == nullptr) {
-        return -1;
-    }
-    while (!feof(fp)) {
-        if (fgets(buf, STATUS_LINE_SIZE, fp) == nullptr) {
-            fclose(fp);
-            return -1;
-        }
-        if (strncmp(buf, "Pid:", PID_STR_SIZE) == 0) {
-            break;
-        }
-    }
-    (void)fclose(fp);
-    return static_cast<pid_t>(ohos_convert_pid(buf));
-}
-
-int ohos_convert_pid(char* buf)
-{
-    int count = 0;
-    char pidBuf[11] = {0}; /* 11: 32 bits to the maximum length of a string */
-    char *str = buf;
-    while (*str != '\0') {
-        if ((*str >= '0') && (*str <= '9')) {
-            pidBuf[count] = *str;
-            count++;
-            str++;
-            continue;
-        }
-
-        if (count > 0) {
-            break;
-        }
-        str++;
-    }
-    return atoi(pidBuf);
 }
 
 bool ohos_pid_changed(void)

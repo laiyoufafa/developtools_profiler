@@ -90,12 +90,12 @@ FpsInfo FPS::GetFpsInfo()
     if (focusSurface.find(layerName) != std::string::npos) {
         uniteFpsInfo = GetSurfaceFrame(uniteLayer);
     }
-    if ((focusSurface.find(spSurfacePrefix) != std::string::npos) && (strcmp(pkgZOrd.c_str(), zOrd.c_str()) != 0)) {   
+    if ((focusSurface.find(spSurfacePrefix) != std::string::npos) && (strcmp(pkgZOrd.c_str(), zOrd.c_str()) != 0)) {
         if (uniteFpsInfo.fps <= fpsValue) {
            uniteFpsInfo = GetSurfaceFrame(uniteLayer);
         }
-    } 
-    FpsInfo fpsInfo = GetSurfaceFrame(layerName); 
+    }
+    FpsInfo fpsInfo = GetSurfaceFrame(layerName);
     if (fpsInfo.fps > uniteFpsInfo.fps) {
         fpsInfoMax = fpsInfo;
     } else {
