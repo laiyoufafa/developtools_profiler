@@ -56,7 +56,7 @@ struct BPFConfig {
     __u32 traceDuration_ {0};
     __u32 maxStackDepth_ {MAX_STACK_LIMIT};
     __u32 epollTimeout_ {100};
-    __u32 pipelines_ {1}; // Number of pipeline channels that process data in user mode
+    __u32 pipelines_ {1}; // Numbers of pipeline channels that process data in user mode
     std::string cmd_;
     std::vector<pid_t> targetPids_ {};
     std::set<HiebpfEventGroup> selectEventGroups_ {};
@@ -100,6 +100,7 @@ private:
     int ConfigLIBBPFLogger() const;
     int ConfigReceivers();
     int32_t ConfigDlopenBPFProg();
+    uint64_t GetSymOffset(const std::string &path, const std::string &symbol);
     std::weak_ptr<BPFEventReceiver> NextActiveReceiver();
 
     int BPFEventLoopOnce() const

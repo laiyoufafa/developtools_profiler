@@ -61,6 +61,9 @@
 #define PAGE_SHIFT					12
 #endif
 
+#define FILE_TYPE_BITS              20
+#define DCACHE_REGULAR_TYPE         (0x00400000 >> FILE_TYPE_BITS) /* Regular file type (or fallthru to such) */
+#define DCACHE_DIRECTORY_TYPE       (0x00200000 >> FILE_TYPE_BITS) /* Normal directory */
 
 // the following definitions have to be stay consistent with their
 // counterparts in linux 5.10.0

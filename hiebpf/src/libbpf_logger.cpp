@@ -37,17 +37,14 @@ std::unique_ptr<LIBBPFLogger> LIBBPFLogger::MakeUnique(const std::string& logFil
     return logger;
 }
 
-int LIBBPFLogger::Printf(int logLevel, const char* format, ...)
+int LIBBPFLogger::Printf(int logLevel, const char* format, va_list args)
 {
     HHLOGI(true, "current libbpf log level = %d, target level = %d", logLevel, logLevel_);
     if (logLevel > logLevel_) {
         return 0;
     }
 #if defined(BPF_LOGGER_DEBUG) || defined(BPF_LOGGER_INFO) || defined(BPF_LOGGER_WARN) || defined(BPF_LOGGER_ERROR) || defined(BPF_LOGGER_FATAL)
-    char buffer[MAX_LIBBPF_LOG_LEN];
-    va_list args;
-    int ret = sprintf(buffer, format, args);
-    return write(fd_, buffer, ret);
+    return vdprintf(fd_, format, args);
 #endif
     return 0;
 }

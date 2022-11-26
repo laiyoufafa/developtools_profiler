@@ -27,6 +27,8 @@
 			VM_FAULT_HWPOISON_LARGE | VM_FAULT_FALLBACK)
 #endif
 
+extern int LINUX_KERNEL_VERSION __kconfig;
+
 // global configuration data
 // const volatile int tracer_pid = -1;
 // const volatile int bpf_log_level = BPF_LOG_DEBUG;
@@ -63,7 +65,6 @@ struct {
 /**********************
 *************************************************************************************/
 
-
 /******************************** BPF maps BEGIN*************************************/
 /*start event map*/
 struct {
@@ -97,7 +98,6 @@ struct {
     __uint(max_entries, NUM_STACK_TRACE_MAPS);
 } ustack_maps_array SEC(".maps");
 /********************************* BPF maps END *************************************/
-
 
 /******************************** inline funcs BEGIN ********************************/
 static __always_inline
@@ -366,8 +366,6 @@ int emit_pftrace_event(void* ctx, int64_t retval)
         cmplt_event->ustack_id = (int64_t) bpf_get_stackid(ctx, ustack_map_ptr, USER_STACKID_FLAGS);
         if (cmplt_event->ustack_id < 0) {
             BPFLOGD(BPF_TRUE, "pftrace event discarded: failed to unwind user callchain");
-            // bpf_ringbuf_discard(cmplt_event, BPF_RB_NO_WAKEUP);
-            // return -1;
             cmplt_event->nips = 0;
         } else {
             cmplt_event->nips = MAX_STACK_DEPTH;
@@ -432,10 +430,6 @@ int check_current_pid(const int32_t pid, const int32_t tgid)
     if (curr_tgid < 0) {
         curr_tgid = (bpf_get_current_pid_tgid() >> 32);
     }
-    // BPFLOGD(
-    //     BPF_TRUE,
-    //     "tracer pid = %d, curr_pid = %d, curr_tgid = %d",
-    //     tracer_pid, curr_pid, curr_tgid);
     if (curr_pid == tracer_pid || curr_tgid == tracer_pid) {
         // currrent process is not a target process
         return -1;
@@ -470,62 +464,26 @@ int check_current_pid(const int32_t pid, const int32_t tgid)
 static __always_inline
 int get_mountpoint_by_inode(char *filename, int len, const struct inode *host)
 {
-    const struct super_block *superBlock = NULL;
-    if (0 != bpf_probe_read_kernel(&superBlock, sizeof(superBlock), &host->i_sb)) {
-        BPFLOGD(BPF_TRUE, "failed to get super block");
-        return 0;
-    }
-    const struct list_head *mountsHead = NULL;
-    if (0 != bpf_probe_read_kernel(&mountsHead, sizeof(mountsHead), &superBlock->s_mounts.next)) {
-        BPFLOGD(BPF_TRUE, "failed to get mount point");
-        return 0;
-    }
+    struct list_head *mountsHead = BPF_CORE_READ(host, i_sb, s_mounts.next);
     struct mount *mnt = NULL;
     mnt = list_entry(mountsHead, struct mount, mnt_instance);
     const u32 MAX_MOUNT_POINT = 5;
     size_t pos = 0;
     for (u32 cnt = MAX_MOUNT_POINT; cnt != 0; --cnt) {
-        const struct dentry *mpDentry = NULL;
-        if (0 != bpf_probe_read_kernel(&mpDentry, sizeof(mpDentry), &mnt->mnt_mountpoint)) {
-            BPFLOGD(BPF_TRUE, "failed to get dentry of mount point");
-            break;
-        }
-
-        struct qstr d_name = {0};
-        if (0 != bpf_probe_read_kernel(&d_name, sizeof(d_name), &mpDentry->d_name)) {
-            BPFLOGD(BPF_TRUE, "failed to get dentry name");
-            break;
-        }
-        if (d_name.len < 1) {
-            BPFLOGD(BPF_TRUE, "failed to read dentry name from qstr");
-            break;
-        }
-        if (pos + d_name.len + 1 >= len) {
-            break;
-        }
-
         int name_len = 0;
-        char buffer[MAX_DENTRY_NAME_LEN];
-        __builtin_memset(buffer, 0, MAX_DENTRY_NAME_LEN);
-        name_len = bpf_probe_read_kernel_str(buffer, MAX_DENTRY_NAME_LEN, d_name.name);
-        if (buffer[0] == '/') { // && name_len == 2
-            BPFLOGD(BPF_TRUE, "reach root mount point");
+        const u8 *name = BPF_CORE_READ(mnt, mnt_mountpoint, d_name.name);
+        if (BPF_CORE_READ(mnt, mnt_mountpoint, d_name.len) <= 1) {
             break;
         }
-        name_len = bpf_probe_read_kernel_str(filename + pos, MAX_DENTRY_NAME_LEN, buffer);
+        name_len = bpf_probe_read_kernel_str(filename + pos, MAX_DENTRY_NAME_LEN, name);
         if (name_len <= 1) {
             BPFLOGD(BPF_TRUE, "failed to read dentry name from kernel stack buffer");
             break;
         }
         pos += name_len;
         filename[pos - 1] = '/';
-
-        if (0 != bpf_probe_read_kernel(&mnt, sizeof(mnt), &mnt->mnt_parent)) {
-            BPFLOGD(BPF_TRUE, "failed to get parent mount point");
-            break;
-        }
+        mnt = BPF_CORE_READ(mnt, mnt_parent);
     }
-
     return pos;
 }
 
@@ -533,15 +491,7 @@ static __always_inline
 int get_filename_by_inode(char *filename, const size_t len, const struct inode *host)
 {
     int err = 0;
-    // walk through the dentry-tree from leaf to root
-    struct hlist_head hlist_head_node = {};
-    __builtin_memset(&hlist_head_node, 0, sizeof(struct hlist_head));
-    err = bpf_probe_read_kernel(&hlist_head_node, sizeof(struct hlist_head), &host->i_dentry);
-    if (err) {
-        BPFLOGD(BPF_TRUE, "failed to get head node of dentry list");
-        return -1;
-    }
-    const struct hlist_node *curr_hlist_node = hlist_head_node.first;
+    struct hlist_node *curr_hlist_node = BPF_CORE_READ(host, i_dentry.first);
     if (curr_hlist_node == NULL) {
         BPFLOGD(BPF_TRUE, "failed to get alias dentries of the inode");
         return -1;
@@ -551,24 +501,25 @@ int get_filename_by_inode(char *filename, const size_t len, const struct inode *
     const u32 MAX_ALIAS_DENTRY = 100;
     for (u32 cnt = MAX_ALIAS_DENTRY; cnt != 0; --cnt) {
         curr_dentry = container_of(curr_hlist_node, struct dentry, d_u);
-        struct inode *curr_inode = NULL;
-        err = bpf_probe_read_kernel(&curr_inode, sizeof(curr_inode), &curr_dentry->d_inode);
-        if (err || curr_inode == NULL) {
+        struct inode *curr_inode = BPF_CORE_READ(curr_dentry, d_inode);
+        if (curr_inode == NULL) {
             BPFLOGD(BPF_TRUE, "failed to get the current inode");
             return -1;
         }
         if (curr_inode == host) {
             break;
         }
-        err = bpf_probe_read_kernel(
-            &curr_hlist_node,
-            sizeof(curr_hlist_node),
-            &curr_hlist_node->next);
-        if (err || curr_hlist_node == NULL) {
+        curr_hlist_node = BPF_CORE_READ(curr_hlist_node, next);
+        if (curr_hlist_node == NULL) {
             BPFLOGD(BPF_TRUE, "failed to get the next hlist_node");
-            curr_dentry = NULL;
             break;
         }
+    }
+
+    unsigned int flags = BPF_CORE_READ(curr_dentry, d_flags);
+    flags = (flags & 0xFFFFFF) >> FILE_TYPE_BITS;
+    if (flags != DCACHE_DIRECTORY_TYPE && flags != DCACHE_REGULAR_TYPE) {
+        return 0;
     }
 
     size_t pos = 0;
@@ -577,34 +528,23 @@ int get_filename_by_inode(char *filename, const size_t len, const struct inode *
         if (err || curr_dentry == NULL) {
             break;
         }
-        struct qstr d_name = {};
-        __builtin_memset(&d_name, 0, sizeof(d_name));
-        err = bpf_probe_read_kernel(&d_name, sizeof(d_name), &curr_dentry->d_name);
-        if (err) {
-            BPFLOGD(BPF_TRUE, "failed to get dentry name");
+        int name_len = BPF_CORE_READ(curr_dentry, d_name.len);
+        const u8 *name = BPF_CORE_READ(curr_dentry, d_name.name);
+        if (name_len <= 1) {
             break;
         }
-        if (pos + d_name.len >= len) {
-            break;
-        }
-
-        int name_len = 0;
-        char buffer[MAX_DENTRY_NAME_LEN];
-        __builtin_memset(buffer, 0, MAX_DENTRY_NAME_LEN);
-        name_len = bpf_probe_read_kernel_str(buffer, MAX_DENTRY_NAME_LEN, d_name.name);
-        if (d_name.len <= 1) {
-            BPFLOGD(BPF_TRUE, "failed to read dentry name from qstr");
-            break;
-        }
-        name_len = bpf_probe_read_kernel_str(filename + pos, MAX_DENTRY_NAME_LEN, buffer);
+        name_len = bpf_probe_read_kernel_str(filename + pos, MAX_DENTRY_NAME_LEN, name);
         if (name_len <= 1) {
             BPFLOGD(BPF_TRUE, "failed to read dentry name from kernel stack buffer");
             break;
         }
         pos += name_len;
         filename[pos - 1] = '/';
-        err = bpf_probe_read_kernel(&curr_dentry, sizeof(curr_dentry), &curr_dentry->d_parent);
-        BPFLOGD(err, "failed to get parent dentry");
+        struct dentry *temp_dentry = BPF_CORE_READ(curr_dentry, d_parent);
+        if (temp_dentry == curr_dentry || temp_dentry == NULL) {
+            break;
+        }
+        curr_dentry = temp_dentry;
     }
     pos += get_mountpoint_by_inode(filename + pos, len - pos, host);
     return pos + 1;
@@ -617,35 +557,8 @@ int get_filename_by_bio(char *filename, const size_t len, const struct bio *bio)
         BPFLOGD(BPF_TRUE, "get_filename_by_bio() error: invalid argument");
         return -1;
     }
-    int err = 0;
-    //find the bio_vec object address
-    const struct bio_vec *bi_io_vec = NULL;
-    err = bpf_probe_read_kernel(&bi_io_vec, sizeof(bi_io_vec), &bio->bi_io_vec);
-    if (err || bi_io_vec == NULL) {
-        BPFLOGD(BPF_TRUE, "failed to get the bio associated page address");
-        return -1;
-    }
-
-    // find the page object address
-    const struct page *bv_page = NULL;
-    err = bpf_probe_read_kernel(&bv_page, sizeof(bv_page), &bi_io_vec->bv_page);
-    if (err || bv_page == NULL) {
-        BPFLOGD(BPF_TRUE, "failed to get the bio associated page address");
-        return -1;
-    }
-
-    // find the address_space address
-    const struct address_space *as = NULL;
-    err = bpf_probe_read_kernel(&as, sizeof(as), &bv_page->mapping);
-    if (err || as == NULL) {
-        BPFLOGD(BPF_TRUE, "failed to get the bio associated address_space object");
-        return -1;
-    }
-
-    // find the inode object address
-    const struct inode *host= NULL;
-    err = bpf_probe_read_kernel(&host, sizeof(host), &as->host);
-    if (err || host == NULL) {
+    struct inode *host = BPF_CORE_READ(bio, bi_io_vec, bv_page, mapping, host);
+    if (host == NULL) {
         BPFLOGD(BPF_TRUE, "failed to get the bio associated inode");
         return -1;
     }
@@ -660,31 +573,17 @@ struct file* get_file_by_fd(const struct files_struct *files, const unsigned int
         BPFLOGD(BPF_TRUE, "get_file_by_fd() error: invalid argument");
         return NULL;
     }
-    int err = 0;
-    const struct fdtable *fdt = NULL;
-    err = bpf_probe_read_kernel(&fdt, sizeof(fdt), &files->fdt);
-    if (err || fdt == NULL) {
-        BPFLOGD(BPF_TRUE, "failed to get fdtable");
-        return NULL;
-    }
-    unsigned int max_fds = -1U;
-    err = bpf_probe_read_kernel(&max_fds, sizeof(max_fds), &fdt->max_fds);
-    if (err) {
-        BPFLOGD(BPF_TRUE, "failed to get max number of fds");
-        return NULL;
-    }
-    if (fd >= max_fds) {
+    if (fd >= BPF_CORE_READ(files, fdt, max_fds)) {
         BPFLOGD(BPF_TRUE, "get_file_by_fd() error: invalid argument");
         return NULL;
     }
-    const struct file **fd_array = NULL;
-    err = bpf_probe_read_kernel(&fd_array, sizeof(fd_array), &fdt->fd);
-    if (err || fd_array == NULL) {
+    struct file **fd_array = BPF_CORE_READ(files, fdt, fd);
+    if (fd_array == NULL) {
         BPFLOGD(BPF_TRUE, "failed to get fd array");
         return NULL;
     }
     struct file *filp = NULL;
-    err = bpf_probe_read_kernel(&filp, sizeof(filp), &fd_array[fd]);
+    int err = bpf_probe_read_kernel(&filp, sizeof(filp), &fd_array[fd]);
     if (err || filp == NULL) {
         BPFLOGD(BPF_TRUE, "failed to get file");
         return NULL;
@@ -699,10 +598,8 @@ int get_filename_by_file(char *filename, const size_t len, const struct file *fi
         BPFLOGD(BPF_TRUE, "get_filename_by_file() error: invalid argument");
         return -1;
     }
-    int err = 0;
-    struct inode *f_inode = NULL;
-    err = bpf_probe_read_kernel(&f_inode, sizeof(f_inode), &filp->f_inode);
-    if (err || f_inode == NULL) {
+    struct inode *f_inode = BPF_CORE_READ(filp, f_inode);
+    if (f_inode == NULL) {
         BPFLOGD(BPF_TRUE, "failed to get inode");
         return -1;
     }
@@ -741,6 +638,12 @@ int emit_strtrace_event(u64 stime, u32 type, const void *addr, u32 stracer)
                 err = bpf_probe_read_user_str(cmplt_event->filename, MAX_FILENAME_LEN, addr);
                 break;
             }
+            if (type == SYS_CLOSE) {
+                const struct sys_close_args_t *args = (const struct sys_close_args_t *) addr;
+                const struct file *filp = get_file_by_fd(args->files, args->fd);
+                err = get_filename_by_file(cmplt_event->filename, MAX_FILENAME_LEN, filp);
+                break;
+            }
             BPFLOGD(BPF_TRUE, "strtrace event discarded: bad source event type = %d of fstrace", type);
             bpf_ringbuf_discard(cmplt_event, BPF_RB_NO_WAKEUP);
             return -1;
@@ -765,121 +668,6 @@ int emit_strtrace_event(u64 stime, u32 type, const void *addr, u32 stracer)
 static __always_inline
 u32 get_biotrace_event_type_by_flags(unsigned int cmd_flags)
 {
-    // include/linux/blk_types.h:
-    // 	struct bio {
-    // 		struct bio		*bi_next;	// request queue link
-    // 		struct gendisk		*bi_disk;
-    // 		unsigned int		bi_opf;		// bottom bits req flags,
-    // 										// top bits REQ_OP. Use
-    // 										// accessors.
-    // 		...
-    // 	}
-    //
-    // 	#define REQ_OP_BITS	8
-    // 	#define REQ_OP_MASK	((1 << REQ_OP_BITS) - 1)
-    // 	#define REQ_FLAG_BITS	24
-    //
-    // 	enum req_opf {
-    // 		/* read sectors from the device */
-    // 		REQ_OP_READ		= 0,
-    // 		/* write sectors to the device */
-    // 		REQ_OP_WRITE		= 1,
-    // 		/* flush the volatile write cache */
-    // 		REQ_OP_FLUSH		= 2,
-    // 		/* discard sectors */
-    // 		REQ_OP_DISCARD		= 3,
-    // 		/* securely erase sectors */
-    // 		REQ_OP_SECURE_ERASE	= 5,
-    // 		/* write the same sector many times */
-    // 		REQ_OP_WRITE_SAME	= 7,
-    // 		/* write the zero filled sector many times */
-    // 		REQ_OP_WRITE_ZEROES	= 9,
-    // 		/* Open a zone */
-    // 		REQ_OP_ZONE_OPEN	= 10,
-    // 		/* Close a zone */
-    // 		REQ_OP_ZONE_CLOSE	= 11,
-    // 		/* Transition a zone to full */
-    // 		REQ_OP_ZONE_FINISH	= 12,
-    // 		/* write data at the current zone write pointer */
-    // 		REQ_OP_ZONE_APPEND	= 13,
-    // 		/* reset a zone write pointer */
-    // 		REQ_OP_ZONE_RESET	= 15,
-    // 		/* reset all the zone present on the device */
-    // 		REQ_OP_ZONE_RESET_ALL	= 17,
-    //
-    // 		/* SCSI passthrough using struct scsi_request */
-    // 		REQ_OP_SCSI_IN		= 32,
-    // 		REQ_OP_SCSI_OUT		= 33,
-    // 		/* Driver private requests */
-    // 		REQ_OP_DRV_IN		= 34,
-    // 		REQ_OP_DRV_OUT		= 35,
-    //
-    // 		REQ_OP_LAST,
-    // 	};
-    //
-    // 	enum req_flag_bits {
-    // 		__REQ_FAILFAST_DEV =	/* no driver retries of device errors */
-    // 			REQ_OP_BITS,
-    // 		__REQ_FAILFAST_TRANSPORT, /* no driver retries of transport errors */
-    // 		__REQ_FAILFAST_DRIVER,	/* no driver retries of driver errors */
-    // 		__REQ_SYNC,		/* request is sync (sync write or read) */
-    // 		__REQ_META,		/* metadata io request */
-    // 		__REQ_PRIO,		/* boost priority in cfq */
-    // 		__REQ_NOMERGE,		/* don't touch this for merging */
-    // 		__REQ_IDLE,		/* anticipate more IO after this one */
-    // 		__REQ_INTEGRITY,	/* I/O includes block integrity payload */
-    // 		__REQ_FUA,		/* forced unit access */
-    // 		__REQ_PREFLUSH,		/* request for cache flush */
-    // 		__REQ_RAHEAD,		/* read ahead, can fail anytime */
-    // 		__REQ_BACKGROUND,	/* background IO */
-    // 		__REQ_NOWAIT,           /* Don't wait if request will block */
-    // 		/*
-    // 		 * When a shared kthread needs to issue a bio for a cgroup, doing
-    // 		 * so synchronously can lead to priority inversions as the kthread
-    // 		 * can be trapped waiting for that cgroup.  CGROUP_PUNT flag makes
-    // 		 * submit_bio() punt the actual issuing to a dedicated per-blkcg
-    // 		 * work item to avoid such priority inversions.
-    // 		 */
-    // 		__REQ_CGROUP_PUNT,
-    //
-    // 		/* command specific flags for REQ_OP_WRITE_ZEROES: */
-    // 		__REQ_NOUNMAP,		/* do not free blocks when zeroing */
-    //
-    // 		__REQ_HIPRI,
-    //
-    // 		/* for driver use */
-    // 		__REQ_DRV,
-    // 		__REQ_SWAP,		/* swapping request. */
-    // 		__REQ_NR_BITS,		/* stops here */
-    // 	};
-    //
-    // 	#define REQ_FAILFAST_DEV	(1ULL << __REQ_FAILFAST_DEV)
-    // 	#define REQ_FAILFAST_TRANSPORT	(1ULL << __REQ_FAILFAST_TRANSPORT)
-    // 	#define REQ_FAILFAST_DRIVER	(1ULL << __REQ_FAILFAST_DRIVER)
-    // 	#define REQ_SYNC		(1ULL << __REQ_SYNC)
-    // 	#define REQ_META		(1ULL << __REQ_META)
-    // 	#define REQ_PRIO		(1ULL << __REQ_PRIO)
-    // 	#define REQ_NOMERGE		(1ULL << __REQ_NOMERGE)
-    // 	#define REQ_IDLE		(1ULL << __REQ_IDLE)
-    // 	#define REQ_INTEGRITY		(1ULL << __REQ_INTEGRITY)
-    // 	#define REQ_FUA			(1ULL << __REQ_FUA)
-    // 	#define REQ_PREFLUSH		(1ULL << __REQ_PREFLUSH)
-    // 	#define REQ_RAHEAD		(1ULL << __REQ_RAHEAD)
-    // 	#define REQ_BACKGROUND		(1ULL << __REQ_BACKGROUND)
-    // 	#define REQ_NOWAIT		(1ULL << __REQ_NOWAIT)
-    // 	#define REQ_CGROUP_PUNT		(1ULL << __REQ_CGROUP_PUNT)
-    //
-    // 	#define REQ_NOUNMAP		(1ULL << __REQ_NOUNMAP)
-    // 	#define REQ_HIPRI		(1ULL << __REQ_HIPRI)
-    //
-    // 	#define REQ_DRV			(1ULL << __REQ_DRV)
-    // 	#define REQ_SWAP		(1ULL << __REQ_SWAP)
-    //
-    // 	#define REQ_FAILFAST_MASK \
-    // 		(REQ_FAILFAST_DEV | REQ_FAILFAST_TRANSPORT | REQ_FAILFAST_DRIVER)
-    //
-    // 	#define REQ_NOMERGE_FLAGS \
-    // 		(REQ_NOMERGE | REQ_PREFLUSH | REQ_FUA)
     if (cmd_flags & REQ_META) {
         if ((cmd_flags & REQ_OP_MASK) == REQ_OP_READ) {
             return BIO_METADATA_READ;
@@ -911,7 +699,6 @@ u32 get_biotrace_event_type_by_flags(unsigned int cmd_flags)
 }
 /***************************** inline funcs END **********************************/
 
-
 /***************************** pftrace BPF progs BEGING *****************************/
 SEC("kprobe/__do_fault")
 int BPF_KPROBE(__do_fault_entry, struct vm_fault *vmf)
@@ -933,55 +720,6 @@ int BPF_KRETPROBE(__do_fault_exit, int64_t vmf_flags)
     return emit_event(ctx, vmf_flags, PFTRACE);
 }
 
-// SEC("kprobe/do_async_mmap_readahead")
-// int BPF_KPROBE(do_async_mmap_readahead_entry, struct vm_fault *vmf)
-// {
-//     if (check_current_pid(-1, -1) != 0) {
-//         // not any one of target processes, skip it
-//         return 0;
-//     }
-//     return handle_pftrace_start_event(vmf, (u32) PF_PAGE_CACHE_HIT);
-// }
-
-// SEC("kretprobe/do_async_mmap_readahead")
-// int BPF_KRETPROBE(do_async_mmap_readahead_exit, int64_t fpin)
-// {
-//     if (check_current_pid(-1, -1) != 0) {
-//         // not any one of target processes, skip it
-//         return 0;
-//     }
-//     return emit_event(ctx, fpin, PFTRACE);
-// }
-
-// SEC("kprobe/do_anonymous_page")
-// int BPF_KPROBE(do_anonymous_page_entry, struct vm_fault *vmf)
-// {
-//     if (check_current_pid(-1, -1) != 0) {
-//         // not any one of target processes, skip it
-//         return 0;
-//     }
-//     u64 flags = 0;
-//     int err = bpf_probe_read_kernel(&flags, sizeof(vmf->flags), &vmf->flags);
-//     if (err) {
-//         BPFLOGW(BPF_TRUE, "failed to read vm_fault flags");
-//         return -1;
-//     }
-//     if (!(flags & FAULT_FLAG_WRITE)) {
-//         return handle_pftrace_start_event(vmf, (u32) PF_FAKE_ZERO_PAGE);
-//     }
-//     return handle_pftrace_start_event(vmf, (u32) PF_ZERO_FILL_PAGE);
-// }
-
-// SEC("kretprobe/do_anonymous_page")
-// int BPF_KRETPROBE(do_anonymous_page_exit, int64_t vmf_flags)
-// {
-//     if (check_current_pid(-1, -1) != 0) {
-//         // not any one of target processes, skip it
-//         return 0;
-//     }
-//     return emit_event(ctx, vmf_flags, PFTRACE);
-// }
-
 SEC("kprobe/do_swap_page")
 int BPF_KPROBE(do_swap_page_entry, struct vm_fault *vmf)
 {
@@ -1001,16 +739,6 @@ int BPF_KRETPROBE(do_swap_page_exit, int64_t vmf_flags)
     }
     return emit_event(ctx, vmf_flags, PFTRACE);
 }
-
-// SEC("kprobe/zram_rw_page")
-// int BPF_KPROBE(zram_rw_page_entry)
-// {
-//     if (check_current_pid(-1, -1) != 0) {
-//         // not any one of target processes, skip it
-//         return 0;
-//     }
-//     return read_modify_update_current_type(PF_SWAP_FROM_ZRAM);
-// }
 
 SEC("kprobe/do_wp_page")
 int BPF_KPROBE(do_wp_page_entry, struct vm_fault *vmf)
@@ -1033,325 +761,79 @@ int BPF_KRETPROBE(do_wp_page_exit, int64_t vmf_flags)
 }
 /*************************** pftrace BPF progs END *******************************/
 
-
-/***************************** bio BPF progs BEGING *****************************/
-// SEC("kprobe/blk_account_io_start")
-// int BPF_KPROBE(blk_account_io_start_entry, struct request *rq)
-// {
-//     if (check_current_pid(-1, -1) != 0) {
-//         // not any one of target processes, skip it
-//         return 0;
-//     }
-//     struct start_event_t start_event = {};
-//     __builtin_memset(&start_event, 0, sizeof(start_event));
-//     struct biotrace_start_event_t *bio_se = &start_event.bio_se;
-
-//     // get start time as soon as possible
-//     bio_se->stime = bpf_ktime_get_ns();
-
-//     // get event type by request command flags
-//     unsigned int cmd_flags = 0;
-//     int err = bpf_probe_read_kernel(&cmd_flags, sizeof(cmd_flags), &rq->cmd_flags);
-//     const u64 rq_addr = (const u64) rq;
-//     struct start_event_t *se_ptr = bpf_map_lookup_elem(&start_event_map, &rq_addr);
-//     if (err) {
-//         BPFLOGD(BPF_TRUE, "failed to get bio request command flags");
-//         if (se_ptr) {
-//             // clear the start event to indicate error
-//             __builtin_memset(&start_event, 0, sizeof(start_event));
-//             err = (int) bpf_map_update_elem(&start_event_map, &rq_addr, &start_event, BPF_ANY);
-//             BPFLOGE((err != 0), "failed to store biotrace start event");
-//         }
-//         return -1;
-//     }
-//     bio_se->type = get_biotrace_event_type_by_flags(cmd_flags);
-//     if (bio_se->type == 0) {
-//         BPFLOGD(BPF_TRUE, "failed to get biotrace event type");
-//         if (se_ptr) {
-//             // clear the start event to indicate error
-//             __builtin_memset(&start_event, 0, sizeof(start_event));
-//             err = (int) bpf_map_update_elem(&start_event_map, &rq_addr, &start_event, BPF_ANY);
-//             BPFLOGE((err != 0), "failed to store biotrace start event");
-//         }
-//         return -1;
-//     }
-
-//     // get file path
-//     err = emit_strtrace_event(bio_se->stime, bio_se->type, rq, BIOTRACE);
-//     BPFLOGI(err, "failed to emit path for bio with address = %p", rq);
-
-//     // get tag info
-//     u64 tgid_pid = bpf_get_current_pid_tgid();
-//     bio_se->pid = (u32) tgid_pid;
-//     bio_se->tgid = (u32) (tgid_pid >> 32);
-//     if (bpf_get_current_comm(bio_se->comm, MAX_COMM_LEN) != 0) {
-//         BPFLOGD(BPF_TRUE, "failed to get process command");
-//         if  (se_ptr) {
-//             // clear the start event to indicate error
-//             __builtin_memset(&start_event, 0, sizeof(start_event));
-//             err = (int) bpf_map_update_elem(&start_event_map, &rq_addr, &start_event, BPF_ANY);
-//             BPFLOGE((err != 0), "failed to store biotrace start event");
-//         }
-//         return -1;
-//     }
-
-//     // get counter
-//     u32 blk_size = 10;
-//     err = bpf_probe_read_kernel(&blk_size, sizeof(unsigned int), &rq->__data_len);
-//     BPFLOGI(BPF_TRUE, "blk_size = %u", blk_size);
-
-//     // get user callchain
-//     if (unwind_stack()) {
-//         const u32 ustack_map_key = BIOTRACE_STACK_TRACE_INDEX;
-//         void *ustack_map_ptr = bpf_map_lookup_elem(&ustack_maps_array, &ustack_map_key);
-//         BPFLOGI(BPF_TRUE, "biotrace context pointer = %p", ctx);
-//         BPFLOGI(BPF_TRUE, "biotrace ustack map pointer = %p", ustack_map_ptr);
-//         if (ustack_map_ptr == NULL) {
-//             BPFLOGD(BPF_TRUE, "biotrace event discarded: failed to lookup ustack map");
-//             if (se_ptr) {
-//                 // clear the start event to indicate error
-//                 __builtin_memset(&start_event, 0, sizeof(start_event));
-//                 err = (int) bpf_map_update_elem(&start_event_map, &rq_addr, &start_event, BPF_ANY);
-//                 BPFLOGE((err != 0), "failed to store biotrace start event");
-//             }
-//             return -1;
-//         }
-//         // bio_se->ustack_id = (int64_t) bpf_get_stackid(ctx, ustack_map_ptr, USER_STACKID_FLAGS);
-//         bio_se->ustack_id = (int64_t) bpf_get_stackid(ctx, ustack_map_ptr, 0);
-//         BPFLOGI(BPF_TRUE, "bio ustack_id = %lld", bio_se->ustack_id);
-//         if (bio_se->ustack_id < 0) {
-//             BPFLOGD(BPF_TRUE, "biotrace event discarded: failed to unwind user callchain");
-//             if (se_ptr) {
-//                 // clear the start event to indicate error
-//                 __builtin_memset(&start_event, 0, sizeof(start_event));
-//                 err = (int) bpf_map_update_elem(&start_event_map, &rq_addr, &start_event, BPF_ANY);
-//                 BPFLOGE((err != 0), "failed to store biotrace start event");
-//             }
-//             return -1;
-//         }
-//     }
-
-//     err = (int) bpf_map_update_elem(&start_event_map, &rq_addr, &start_event, BPF_ANY);
-//     BPFLOGE((err != 0), "failed to store biotrace start event");
-//     return 0;
-// }
-
-// SEC("kprobe/blk_account_io_merge_bio")
-// int BPF_KPROBE(blk_account_io_merge_bio_entry, struct request *rq)
-// {
-//     char mesg[] = "blk_account_io_merge_bio_entry called";
-//     bpf_trace_printk(mesg, sizeof(mesg));
-//     return 0;
-// }
-
-// SEC("kprobe/blk_account_io_done")
-// int BPF_KPROBE(blk_account_io_done_entry, struct request *rq)
-// {
-//    u64 ctime = bpf_ktime_get_ns();
-//    const u64 rq_addr = (u64) rq;
-//    const u64 event_size = sizeof(struct biotrace_cmplt_event_t);
-//    struct biotrace_cmplt_event_t *cmplt_event = bpf_ringbuf_reserve(&bpf_ringbuf_map, event_size, 0);
-//    if (cmplt_event == NULL) {
-//        BPFLOGD(BPF_TRUE, "failed to reserve memory for biotrace event");
-//        return -1;
-//    }
-//    const struct biotrace_start_event_t *start_event = bpf_map_lookup_elem(&start_event_map, &rq_addr);
-//    int err = bpf_probe_read_kernel(&cmplt_event->start_event, sizeof(struct biotrace_start_event_t), start_event);
-//    if (err) {
-//        BPFLOGD(BPF_TRUE, "biotrace event discarded: failed to read biotrace_start_event");
-//        bpf_ringbuf_discard(cmplt_event, BPF_RB_NO_WAKEUP);
-//        return -1;
-//    }
-//    if (cmplt_event->start_event.type == 0) {
-//        BPFLOGI(BPF_TRUE, "biotrace event discarded: invalide biotrace start event");
-//        bpf_ringbuf_discard(cmplt_event, BPF_RB_NO_WAKEUP);
-//        return -1;
-//    }
-//    if (check_current_pid(cmplt_event->start_event.pid, cmplt_event->start_event.tgid) != 0) {
-//        BPFLOGI(BPF_TRUE,
-//            "current pid = %d, tgid = %d is not any one of target processes",
-//            cmplt_event->start_event.pid, cmplt_event->start_event.tgid);
-//        bpf_ringbuf_discard(cmplt_event, BPF_RB_NO_WAKEUP);
-//        return -1;
-//    }
-//    cmplt_event->tracer = BIOTRACE;
-//    cmplt_event->ctime = ctime;
-//    err = bpf_probe_read_kernel(&cmplt_event->prio, sizeof(unsigned short), &rq->ioprio);
-//    if (err) {
-//        BPFLOGD(BPF_TRUE, "biotrace event discarded: failed to get bio priority");
-//        bpf_ringbuf_discard(cmplt_event, BPF_RB_NO_WAKEUP);
-//        return -1;
-//    }
-//    err = bpf_probe_read_kernel(&cmplt_event->blkcnt, sizeof(sector_t), &rq->__sector);
-//    if (err) {
-//        BPFLOGD(BPF_TRUE, "biotrace event discarded: failed to get bio block number");
-//        bpf_ringbuf_discard(cmplt_event, BPF_RB_NO_WAKEUP);
-//        return -1;
-//    }
-//    cmplt_event->size = 10;
-//    err = bpf_probe_read_kernel(&cmplt_event->size, sizeof(unsigned int), &rq->__data_len);
-//    BPFLOGI(BPF_TRUE, "biotrace io size = %u", cmplt_event->size);
-//    if (err) {
-//        BPFLOGD(BPF_TRUE, "biotrace event discarded: failed to get bio size");
-//        bpf_ringbuf_discard(cmplt_event, BPF_RB_NO_WAKEUP);
-//        return -1;
-//    }
-
-//    cmplt_event->nips = 0;
-//    if (unwind_stack()) {
-//        cmplt_event->nips = get_max_stack_depth();
-//    }
-//    bpf_ringbuf_submit(cmplt_event, 0);
-//    return 0;
-//     return 0;
-// }
-
-SEC("kprobe/submit_bio")
-int BPF_KPROBE(submit_bio_entry, struct bio *bio)
+/**************************** bio BPF progs BEGING *******************************/
+SEC("tp_btf/block_rq_issue")
+int block_issue(u64 *ctx)
 {
     if (check_current_pid(-1, -1) != 0) {
-        // not any one of target processes, skip it
         return 0;
     }
+    struct request *rq = NULL;
+    if (LINUX_KERNEL_VERSION < KERNEL_VERSION(5, 10, 137)) {
+        rq = (void *)ctx[1];
+    } else {
+        rq = (void *)ctx[0];
+    }
+    const u64 start_event_map_key = (const u64)rq;
     struct start_event_t start_event = {};
     __builtin_memset(&start_event, 0, sizeof(start_event));
     struct biotrace_start_event_t *bio_se = &start_event.bio_se;
     bio_se->stime = bpf_ktime_get_ns();
-    unsigned short bi_opf = 0;
-    int err = bpf_probe_read_kernel(&bi_opf, sizeof(bi_opf), &bio->bi_opf);
-    const u64 bio_addr = (const u64) bio;
-    struct start_event_t *se_ptr = bpf_map_lookup_elem(&start_event_map, &bio_addr);
-    if (err) {
-        BPFLOGD(BPF_TRUE, "biotrace event discarded: failed to get bio operation flags");
-        if (se_ptr) {
-            // clear the start event to indicate error
-            __builtin_memset(&start_event, 0, sizeof(start_event));
-            err = (int) bpf_map_update_elem(&start_event_map, &bio_addr, &start_event, BPF_ANY);
-            BPFLOGE((err != 0), "failed to store biotrace start event");
-        }
-        return -1;
-    }
-    bio_se->type = get_biotrace_event_type_by_flags(bi_opf);
+    bio_se->type = get_biotrace_event_type_by_flags(BPF_CORE_READ(rq, cmd_flags));
     if (bio_se->type == 0) {
         BPFLOGD(BPF_TRUE, "failed to get biotrace event type");
-        if (se_ptr) {
-            // clear the start event to indicate error
-            __builtin_memset(&start_event, 0, sizeof(start_event));
-            err = (int) bpf_map_update_elem(&start_event_map, &bio_addr, &start_event, BPF_ANY);
-            BPFLOGE((err != 0), "failed to store biotrace start event");
-        }
-        return -1;
+        return 0;
     }
-    err = emit_strtrace_event(bio_se->stime, bio_se->type, bio, BIOTRACE);
-    BPFLOGI(err, "failed to emit path for bio with address = %p", bio);
+    emit_strtrace_event(bio_se->stime, bio_se->type, BPF_CORE_READ(rq, bio), BIOTRACE);
     u64 tgid_pid = bpf_get_current_pid_tgid();
     bio_se->pid = (u32) tgid_pid;
     bio_se->tgid = (u32) (tgid_pid >> 32);
-    if (bpf_get_current_comm(bio_se->comm, MAX_COMM_LEN) != 0) {
-        BPFLOGD(BPF_TRUE, "failed to get process command");
-        if (se_ptr) {
-            // clear the start event to indicate error
-            __builtin_memset(&start_event, 0, sizeof(start_event));
-            err = (int) bpf_map_update_elem(&start_event_map, &bio_addr, &start_event, BPF_ANY);
-            BPFLOGE((err != 0), "failed to store biotrace start event");
-        }
-        return -1;
-    }
+    bpf_get_current_comm(bio_se->comm, MAX_COMM_LEN);
+    bio_se->size = BPF_CORE_READ(rq, bio, bi_iter.bi_size);
+    bpf_map_update_elem(&start_event_map, &start_event_map_key, &start_event, BPF_ANY);
+    return 0;
+}
 
-    err = bpf_probe_read_kernel(&bio_se->size, sizeof(unsigned int), &bio->bi_iter.bi_size);
-    BPFLOGI(BPF_TRUE, "bio size = %u", bio_se->size);
-    if (err) {
-        BPFLOGD(BPF_TRUE, "biotrace event discarded: failed to get bio size");
-        if (se_ptr) {
-            // clear the start event to indicate error
-            __builtin_memset(&start_event, 0, sizeof(start_event));
-            err = (int) bpf_map_update_elem(&start_event_map, &bio_addr, &start_event, BPF_ANY);
-            BPFLOGE((err != 0), "failed to store biotrace start event");
-        }
-        return -1;
+SEC("kprobe/blk_update_request")
+int BPF_PROG(blk_update_request, struct request *rq)
+{
+    if (check_current_pid(-1, -1) != 0) {
+        return 0;
     }
-
-    // get callchain
+    u64 ctime = bpf_ktime_get_ns();
+    const u64 event_size = sizeof(struct biotrace_cmplt_event_t);
+    struct biotrace_cmplt_event_t *cmplt_event= bpf_ringbuf_reserve(&bpf_ringbuf_map, event_size, 0);
+    if (cmplt_event == NULL) {
+        BPFLOGD(BPF_TRUE, "failed to reserve space for biotrace event from BPF ringbuffer");
+        return 0;
+    }
+    __builtin_memset(cmplt_event, 0, event_size);
+    const u64 start_event_map_key = (const u64)rq;
+    const struct biotrace_start_event_t *start_event = bpf_map_lookup_elem(&start_event_map, &start_event_map_key);
+    if (start_event == NULL) {
+        bpf_ringbuf_discard(cmplt_event, BPF_RB_NO_WAKEUP);
+        return 0;
+    }
+    cmplt_event->start_event = *start_event;
+    if (cmplt_event->start_event.type == 0) {
+        BPFLOGI(BPF_TRUE, "biotrace event discarded: invalide biotrace start event");
+        bpf_ringbuf_discard(cmplt_event, BPF_RB_NO_WAKEUP);
+        return 0;
+    }
+    cmplt_event->tracer = BIOTRACE;
+    cmplt_event->ctime = ctime;
+    cmplt_event->prio = BPF_CORE_READ(rq, bio, bi_ioprio);
+    cmplt_event->blkcnt = BPF_CORE_READ(rq, bio, bi_iter.bi_sector);
     if (unwind_stack()) {
+        cmplt_event->nips = get_max_stack_depth();
         const u32 ustack_map_key = BIOTRACE_STACK_TRACE_INDEX;
         void *ustack_map_ptr = bpf_map_lookup_elem(&ustack_maps_array, &ustack_map_key);
         if (ustack_map_ptr == NULL) {
             BPFLOGD(BPF_TRUE, "biotrace event discarded: failed to lookup ustack map");
-            if (se_ptr) {
-                // clear the start event to indicate error
-                __builtin_memset(&start_event, 0, sizeof(start_event));
-                err = (int) bpf_map_update_elem(&start_event_map, &bio_addr, &start_event, BPF_ANY);
-                BPFLOGE((err != 0), "failed to store biotrace start event");
-            }
-            return -1;
+            bpf_ringbuf_discard(cmplt_event, BPF_RB_NO_WAKEUP);
+            return 0;
         }
-        bio_se->ustack_id = (int64_t) bpf_get_stackid(ctx, ustack_map_ptr, 0);
-        BPFLOGI(BPF_TRUE, "bio kern stack_id = %lld", bio_se->ustack_id);
-        if (bio_se->ustack_id < 0) {
-            BPFLOGD(BPF_TRUE, "biotrace event discarded: failed to unwind user callchain");
-            if (se_ptr) {
-                // clear the start event to indicate error
-                __builtin_memset(&start_event, 0, sizeof(start_event));
-                err = (int) bpf_map_update_elem(&start_event_map, &bio_addr, &start_event, BPF_ANY);
-                BPFLOGE((err != 0), "failed to store biotrace start event");
-            }
-            return -1;
-        }
-    }
-
-    err = (int) bpf_map_update_elem(&start_event_map, &bio_addr, &start_event, BPF_ANY);
-    BPFLOGE((err != 0), "failed to store biotrace start event");
-    return 0;
-}
-
-SEC("kprobe/bio_endio")
-int BPF_KPROBE(bio_endio_entry, struct bio *bio)
-{
-    u64 ctime = bpf_ktime_get_ns();
-    const u64 bio_addr = (u64) bio;
-    const u64 event_size = sizeof(struct biotrace_cmplt_event_t);
-    struct biotrace_cmplt_event_t *cmplt_event = bpf_ringbuf_reserve(&bpf_ringbuf_map, event_size, 0);
-    if (cmplt_event == NULL) {
-        BPFLOGD(BPF_TRUE, "failed to reserve space for biotrace event from BPF ringbuffer");
-        return -1;
-    }
-    const struct biotrace_start_event_t *start_event = bpf_map_lookup_elem(&start_event_map, &bio_addr);
-    int err = bpf_probe_read_kernel(&cmplt_event->start_event, sizeof(struct biotrace_start_event_t), start_event);
-    if (err) {
-        BPFLOGD(BPF_TRUE, "biotrace event discarded: failed to read biotrace_start_event");
-        bpf_ringbuf_discard(cmplt_event, BPF_RB_NO_WAKEUP);
-        return -1;
-    }
-    if (cmplt_event->start_event.type == 0) {
-        BPFLOGI(BPF_TRUE, "biotrace event discarded: invalide biotrace start event");
-        bpf_ringbuf_discard(cmplt_event, BPF_RB_NO_WAKEUP);
-        return -1;
-    }
-    if (check_current_pid(cmplt_event->start_event.pid, cmplt_event->start_event.tgid) != 0) {
-        BPFLOGI(BPF_TRUE,
-            "current pid = %d, tgid = %d is not any one of target processes",
-            cmplt_event->start_event.pid, cmplt_event->start_event.tgid);
-        bpf_ringbuf_discard(cmplt_event, BPF_RB_NO_WAKEUP);
-        return -1;
-    }
-    cmplt_event->tracer = BIOTRACE;
-    cmplt_event->ctime = ctime;
-    err = bpf_probe_read_kernel(&cmplt_event->prio, sizeof(short unsigned int), &bio->bi_ioprio);
-    if (err) {
-        BPFLOGD(BPF_TRUE, "biotrace event discarded: failed to get bio priority");
-        bpf_ringbuf_discard(cmplt_event, BPF_RB_NO_WAKEUP);
-        return -1;
-    }
-    err = bpf_probe_read_kernel(&cmplt_event->blkcnt, sizeof(sector_t), &bio->bi_iter.bi_sector);
-    if (err) {
-        BPFLOGD(BPF_TRUE, "biotrace event discarded: failed to get bio block number");
-        bpf_ringbuf_discard(cmplt_event, BPF_RB_NO_WAKEUP);
-        return -1;
-    }
-
-    cmplt_event->nips = 0;
-    if (unwind_stack()) {
-        cmplt_event->nips = get_max_stack_depth();
+        cmplt_event->start_event.ustack_id = (int64_t)bpf_get_stackid(ctx, ustack_map_ptr, 0);
     }
     bpf_ringbuf_submit(cmplt_event, 2);
     return 0;

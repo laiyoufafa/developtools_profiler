@@ -66,7 +66,7 @@ public:
         }
         char buffer[MAX_HHLOG_SIZE];
         memcpy_s(buffer, nbytes, ftime.c_str(), nbytes);
-        int ret = sprintf(buffer + nbytes, format, args);
+        int ret = vsnprintf(buffer + nbytes, sizeof(buffer) - nbytes, format, args);
         va_end(args);
         if (ret < 0) {
             return -1;
@@ -86,11 +86,7 @@ public:
 
     inline bool IsStopped()
     {
-        bool stop = stop_.test_and_set();
-        if (!stop) {
-            stop_.clear();
-        }
-        return stop;
+        return stop_.load();
     }
 
     enum SizeConsts:std::size_t {
@@ -98,7 +94,7 @@ public:
         MAX_FORMAT_SIZE = 512,
         MAX_HHLOG_SIZE = 1024,
     };
-    
+
 private:
     HHLogger() = default;
     std::string GetLogFileName() const;
@@ -109,7 +105,7 @@ private:
 
     int fd_ {-1};
     int logLevel_ {HHLOG_NONE};
-    std::atomic_flag stop_ {ATOMIC_FLAG_INIT};
+    std::atomic<bool> stop_ {false};
     std::atomic<struct timeval> timer_;
     std::unique_ptr<RingBuffer> buf_ {nullptr};
     std::thread logSaver_;

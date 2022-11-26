@@ -393,7 +393,7 @@ int BPF_KPROBE(__close_fd_entry, struct files_struct * files, unsigned fd)
     struct sys_close_args_t* args = &fs_se->close_args;
     args->files = files;
     args->fd = fd;
-
+    emit_strtrace_event(fs_se->stime, fs_se->type, args, FSTRACE);
     // store the start event with pid as key
     int err = (int) bpf_map_update_elem(&start_event_map, &pid_tgid, &start_event, BPF_ANY);
     if (err != 0) {

@@ -81,11 +81,11 @@ Note:If the text contains special characters, please escape them according to th
                 <filteritem type="filepath" name="device/services/profiler_service/test/fuzztest/profilerdestroysession_fuzzer/corpus/init" desc="test resource file, no license header"/>
                 <filteritem type="filepath" name="device/plugins/native_daemon/test/unittest/resource/testdata/.*" desc="test resource file, no license header"/>
                 <filteritem type="filepath" name="trace_analyzer/test/resource/.*" desc="test resource file, no license header"/>
-                <filteritem type="filepath" name="hiebpf/test/resources/.*" desc="test resource file, no license header"/>
                 <filteritem type="filepath" name="host/smartperf/trace_streamer/test/resource/.*" desc="the trace_streamer test file, no license header"/>
                 <filteritem type="filepath" name="host/smartperf/trace_streamer/prebuilts/buildgoogletest/.*.patch" desc="the third_party patch file, no license header"/>
                 <filteritem type="filepath" name="host/smartperf/trace_streamer/prebuilts/buildprotobuf/.*.patch" desc="the third_party patch file, no license header"/>
                 <filteritem type="filepath" name="host/smartperf/trace_streamer/prebuilts/buildsqlite/.*.patch" desc="the third_party patch file, no license header"/>
+                <filteritem type="filepath" name="hiebpf/test/resources/.*" desc="test resource file, no license header"/>
             </filefilter>
             <filefilter name="copyrightPolicyFilter" desc="Filters for copyright header policies" >
                 <filteritem type="filepath" name="device/plugins/memory_plugin/test/utresources/proc/.*" desc="test resource file, no copyright header"/>
@@ -111,11 +111,11 @@ Note:If the text contains special characters, please escape them according to th
                 <filteritem type="filepath" name="device/services/profiler_service/test/fuzztest/profilerdestroysession_fuzzer/corpus/init" desc="test resource file, no copyright header"/>
                 <filteritem type="filepath" name="device/plugins/native_daemon/test/unittest/resource/testdata/.*" desc="test resource file, no copyright header"/>
                 <filteritem type="filepath" name="trace_analyzer/test/resource/.*" desc="test resource file, no copyright header"/>
-                <filteritem type="filepath" name="hiebpf/test/resources/.*" desc="test resource file, no copyright header"/>
                 <filteritem type="filepath" name="host/smartperf/trace_streamer/test/resource/.*" desc="the trace_streamer test file, no copyright header"/>
                 <filteritem type="filepath" name="host/smartperf/trace_streamer/prebuilts/buildgoogletest/.*.patch" desc="the third_party patch file, no copyright header"/>
                 <filteritem type="filepath" name="host/smartperf/trace_streamer/prebuilts/buildprotobuf/.*.patch" desc="the third_party patch file, no copyright header"/>
                 <filteritem type="filepath" name="host/smartperf/trace_streamer/prebuilts/buildsqlite/.*.patch" desc="the third_party patch file, no copyright header"/>
+                <filteritem type="filepath" name="hiebpf/test/resources/.*" desc="test resource file, no copyright header"/>
             </filefilter>
             <filefilter name="binaryFileTypePolicyFilter" desc="Filters for binary file policies" >
                 <filteritem type="filepath" name="device/plugins/native_daemon/test/unittest/resource/testdata/.*" desc="test binary file, the file is self-developed"/>
@@ -134,12 +134,12 @@ Note:If the text contains special characters, please escape them according to th
                 <filteritem type="filepath" name="trace_analyzer/test/resource/.*" desc="the trace_streamer test file, the file is self-developed"/>
                 <filteritem type="filepath" name="trace_analyzer/test/resource/ut_bytrace_input_thread_gold.db" desc="the trace_streamer test file, the file is self-developed"/>
                 <filteritem type="filepath" name="trace_analyzer/test/resource/ut_bytrace_input_full_gold.db" desc="the trace_streamer test file, the file is self-developed"/>
-                <filteritem type="filepath" name="hiebpf/test/resources/elf32.unstripped" desc="the hiebpf test file, the file is self-developed"/>
-                <filteritem type="filepath" name="hiebpf/test/resources/elf64.stripped" desc="the hiebpf test file, the file is self-developed"/>
                 <filteritem type="filepath" name="host/smartperf/trace_streamer/test/resource/.*" desc="the trace_streamer test file, the file is self-developed"/>
                 <filteritem type="filepath" name="host/smartperf/trace_streamer/prebuilts/buildgoogletest/.*.patch" desc="the third_party patch file, the file is self-developed"/>
                 <filteritem type="filepath" name="host/smartperf/trace_streamer/prebuilts/buildprotobuf/.*.patch" desc="the third_party patch file, the file is self-developed"/>
                 <filteritem type="filepath" name="host/smartperf/trace_streamer/prebuilts/buildsqlite/.*.patch" desc="the third_party patch file, the file is self-developed"/>
+                <filteritem type="filepath" name="hiebpf/test/resources/elf32.unstripped" desc="the hiebpf test file, the file is self-developed"/>
+                <filteritem type="filepath" name="hiebpf/test/resources/elf64.stripped" desc="the hiebpf test file, the file is self-developed"/>
             </filefilter>
         </filefilterlist>
     </oatconfig>

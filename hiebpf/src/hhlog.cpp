@@ -17,7 +17,7 @@
 
 HHLogger::~HHLogger()
 {
-    stop_.test_and_set();
+    stop_.store(true);
     if (logSaver_.joinable()) {
         logSaver_.join();
     }
@@ -30,7 +30,6 @@ int HHLogger::InitLogger(const int logLevel, const std::string& logFile)
 {
     // Init logLevel, stop_, timer_ and buf_
     logLevel_ = logLevel;
-    stop_.clear();
     if(UpdateTimer() != 0) {
         return -1;
     }
@@ -147,13 +146,13 @@ int HHLogger::SaveLog()
             return -1;
         }
         auto dataSize = buf_->GetDataSize();
-        if (IsStopped() and (dataSize == 0)) {
+        if (stop_.load() and (dataSize == 0)) {
             return 0;
         }
         if (dataSize) {
             ssize_t ret = buf_->Write(fd_, dataSize);
             if (ret <= 0) {
-                stop_.test_and_set();
+                stop_.store(true);
                 return -1;
             }
         }

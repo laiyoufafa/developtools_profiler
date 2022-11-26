@@ -42,6 +42,8 @@ HWTEST_F(BpfControllerTest, Normal, TestSize.Level1)
 {
     BPFConfig cfg;
     cfg.selectEventGroups_.insert(HiebpfEventGroup::FS_GROUP_OPEN);
+    cfg.LIBBPFLogLevel_ = LIBBPF_NONE;
+    cfg.BPFLogLevel_ = BPF_LOG_NONE;
     const uint32_t duration = 10;
     cfg.traceDuration_ = duration;
     std::unique_ptr<BPFController> pCtx = BPFController::MakeUnique(cfg);

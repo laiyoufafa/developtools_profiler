@@ -34,7 +34,7 @@ public:
     }
 
     static std::unique_ptr<LIBBPFLogger> MakeUnique(const std::string& logFile, int logLevel);
-    int Printf(int logLevel, const char* format, ...);
+    int Printf(int logLevel, const char* format, va_list args);
 
     enum Constants:int {
         MAX_LIBBPF_LOG_LEN = 1024,

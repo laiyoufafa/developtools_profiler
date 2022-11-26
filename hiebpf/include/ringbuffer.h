@@ -77,20 +77,16 @@ public:
         }
         if (head_ + len > bufSize_) {
             // data splitted
-            strncpy_s(dest, bufSize_ - head_, buffer_ + head_, bufSize_ - head_);
-            strncpy_s(dest + bufSize_ - head_, len + head_ - bufSize_, buffer_, len + head_ - bufSize_);
+            memcpy_s(dest, bufSize_ - head_, buffer_ + head_, bufSize_ - head_);
+            memcpy_s(dest + bufSize_ - head_, len + head_ - bufSize_, buffer_, len + head_ - bufSize_);
         } else {
-            strncpy_s(dest, len, buffer_ + head_, len);
+            memcpy_s(dest, len, buffer_ + head_, len);
         }
         return 0;
     }
 
     ssize_t Read(const int fd, const std::size_t len);
     ssize_t Write(const int fd, const std::size_t len);
-    std::size_t GetLine(char* dest, const char eol);
-    std::size_t GetLine(char* dest, const std::string &eol);
-    std::string GetLine(char eol);
-    std::string GetLine(const std::string &eol);
     std::size_t Get(char* dest, const std::size_t len);
     int Put(const char* str, const std::size_t len);
     int Put(const std::string& str);

@@ -36,11 +36,13 @@
 #include "bpf.h"
 #include "libbpf_logger.h"
 #include "bpf_controller.h"
+#include "elf_file.h"
 
 namespace {
 std::unique_ptr<LIBBPFLogger> libbpfLogger {nullptr};
-constexpr size_t DLOPEN_ADDR = 0x633C8;
 const std::string THIRD_PARTY_MUSL_ADDR = "/system/lib/ld-musl-aarch64.so.1";
+constexpr int32_t SYM_32_VALUE_OFFSET = 4;
+constexpr int32_t SYM_64_VALUE_OFFSET = 8;
 } // namespace
 
 int BPFController::LIBBPFPrintFunc(enum libbpf_print_level level, const char *format, va_list args)
@@ -163,13 +165,18 @@ int BPFController::VerifyConfigurations()
 
 int BPFController::SetUpBPF()
 {
+    if (ConfigLIBBPFLogger() != 0 ) {
+        HHLOGD(true, "failed to configure LIBBPF logger");
+        return -1;
+    }
+    HHLOGI(true, "ConfigLIBBPFLogger() done");
+
     // set up libbpf deubug level
     libbpf_set_strict_mode(LIBBPF_STRICT_ALL);
     // set RLIMIT_MEMLOCK
     struct rlimit r = {RLIM_INFINITY, RLIM_INFINITY};
     setrlimit(RLIMIT_MEMLOCK, &r);
-    // LIBBPF_OPTS(bpf_object_open_opts, openOpts_);
-    libbpf_set_print(BPFController::LIBBPFPrintFunc);
+
     skel_ = hiebpf_bpf__open();
     int err = libbpf_get_error(skel_);
     if (err) {
@@ -266,8 +273,8 @@ int BPFController::FilterProgByEvents()
         bpf_program__set_autoload(skel_->progs.do_wp_page_exit, false);
     }
     if (selectEventGroups_.find(BIO_GROUP_ALL) == selectEventGroups_.end()) {
-        bpf_program__set_autoload(skel_->progs.submit_bio_entry, false);
-        bpf_program__set_autoload(skel_->progs.bio_endio_entry, false);
+        bpf_program__set_autoload(skel_->progs.block_issue, false);
+        bpf_program__set_autoload(skel_->progs.blk_update_request, false);
     } else {
         dataFile_->WriteKernelSymbol();
     }
@@ -548,13 +555,74 @@ int BPFController::ConfigReceivers()
     return 0;
 }
 
+uint64_t BPFController::GetSymOffset(const std::string &path, const std::string &symbol)
+{
+    if (access(path.c_str(), F_OK) != 0) {
+        HHLOGD(true, "the file does not exist");
+        return 0;
+    }
+    using namespace OHOS::Developtools::Hiebpf;
+    std::unique_ptr<ElfFile> elfFile = ElfFile::MakeUnique(path);
+    if (elfFile == nullptr) {
+        HHLOGD(true, "ELF file open failed");
+        return 0;
+    }
+    const std::string dynsym {".dynsym"};
+    if (elfFile->shdrs_.find(dynsym) == elfFile->shdrs_.end()) {
+        HHLOGD(true, "section dynsym failed to obtain data");
+        return 0;
+    }
+    const auto &sym = elfFile->shdrs_[dynsym];
+    const uint8_t *symData = elfFile->GetSectionData(sym->secIndex_);
+
+    const std::string dynstr {".dynstr"};
+    if (elfFile->shdrs_.find(dynstr) == elfFile->shdrs_.end()) {
+        HHLOGD(true, "section dynstr failed to obtain data");
+        return 0;
+    }
+    const auto &str = elfFile->shdrs_[dynstr];
+    const uint8_t *strData = elfFile->GetSectionData(str->secIndex_);
+
+    uint32_t st_name = 0;
+    uint64_t stepLength = 0;
+    uint64_t vaddr = 0;
+    while (stepLength < sym->secSize_) {
+        memcpy_s(&st_name, sizeof(uint32_t), symData + stepLength, sizeof(uint32_t));
+        auto name = const_cast<uint8_t*>(strData + st_name);
+        if (std::string(reinterpret_cast<char*>(name)).compare(symbol) == 0) {
+            int32_t valueOffset = sym->secEntrySize_ == sizeof(Elf64_Sym) ? SYM_64_VALUE_OFFSET : SYM_32_VALUE_OFFSET;
+            int32_t valueSize = valueOffset == SYM_64_VALUE_OFFSET ? sizeof(uint64_t) : sizeof(uint32_t);
+            memcpy_s(&vaddr, valueSize, symData + stepLength + valueOffset, valueSize);
+            break;
+        }
+        stepLength += sym->secEntrySize_;
+    }
+    if (vaddr == 0) {
+        HHLOGD(true, "get vaddr failed");
+        return 0;
+    }
+
+    const std::string text {".text"};
+    if (elfFile->shdrs_.find(text) == elfFile->shdrs_.end()) {
+        HHLOGD(true, "section text failed to obtain data");
+        return 0;
+    }
+    const auto &textPtr = elfFile->shdrs_[text];
+    return vaddr - textPtr->secVaddr_ + textPtr->fileOffset_;
+}
+
 int32_t BPFController::ConfigDlopenBPFProg()
 {
+    uint64_t symOffset = GetSymOffset(THIRD_PARTY_MUSL_ADDR, "dlopen");
+    if (symOffset == 0) {
+        HHLOGD(true, "get symOffset failed");
+        return -1;
+    }
     skel_->links.uretprobe_dlopen = bpf_program__attach_uprobe(skel_->progs.uretprobe_dlopen,
                                                                true,
                                                                -1,
                                                                THIRD_PARTY_MUSL_ADDR.c_str(),
-                                                               DLOPEN_ADDR);
+                                                               symOffset);
     if (!skel_->links.uretprobe_dlopen) {
         HHLOGD(true, "failed to attach uretprobe_dlopen");
         return -1;
@@ -579,11 +647,6 @@ int BPFController::ConfigureBPF()
         return -1;
     }
     HHLOGI(true, "ConfigBPFLogger() done");
-    if (ConfigLIBBPFLogger() != 0 ) {
-        HHLOGD(true, "failed to configure LIBBPF logger");
-        return -1;
-    }
-    HHLOGI(true, "ConfigLIBBPFLogger() done");
     if (ConfigReceivers() != 0) {
         HHLOGD(true, "failed to configure BPF ringbuffer");
         return -1;

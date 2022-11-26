@@ -14,8 +14,8 @@
 # limitations under the License
 
 CWD=$(pwd)
-BASE_DIR=${CWD}"/"$1
-DEST_DIR=${CWD}"/../../"$2
+BASE_DIR=${CWD}"/../.."${1#\/}
+DEST_DIR=${CWD}"/../.."${2#\/}
 
 echo ${BASE_DIR}
 echo ${DEST_DIR}
@@ -51,7 +51,14 @@ do
         echo "current skeleton name: "${SKEL_NAME}
         SKEL_PATH=${DEST_DIR}"/"${SKEL_NAME}
         echo "current skeleton path: "${SKEL_PATH}
-        ../../prebuilts/develop_tools/bpftool/bin/bpftool skeleton ${OBJ_PATH} > ${SKEL_PATH}
+        ../../prebuilts/develop_tools/bpftool/bin/bpftool gen skeleton ${OBJ_PATH} > ${SKEL_PATH}
+        if [ ! -s "${SKEL_PATH}" ]
+        then
+            echo ${SKEL_PATH}" is empty"
+            rm -rf ${SKEL_PATH}
+            exit -1
+        fi
+
         replacement="#include \"libbpf.h\""
         sed -i "s/#include <bpf\/libbpf.h>/${replacement}/g" ${SKEL_PATH}
     done

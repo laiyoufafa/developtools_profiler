@@ -14,6 +14,10 @@
 import("//build/ohos.gni")
 import("//developtools/profiler/device/base/config.gni")
 
+skel_src_dir = "$target_out_dir/src"
+skel_out_dir =
+    "$root_gen_dir/cpp/developtools/profiler/hiebpf/ebpf_skeleton"
+
 config("common_config") {
   cflags = [
     "-Wno-unused-command-line-argument",
@@ -35,6 +39,7 @@ config("common_config") {
     "HH_LOGGER_DEBUG",
   ]
   include_dirs = [
+    "$skel_out_dir",
     "./include",
     "//third_party/libbpf/src",
   ]
@@ -75,12 +80,10 @@ ohos_source_set("hiebpf.bpf") {
   output_name = "hiebpf.bpf.o"
 }
 
-skel_src_dir = "obj/developtools/profiler/hiebpf/src"
-skel_out_dir = "developtools/profiler/hiebpf/include"
 action("gen_bpf_skeleton") {
   script = "./scripts/gen_skeleton.sh"
   sources = []
-  outputs = [ "$target_out_dir/hiebpf.skel.hpp" ]
+  outputs = [ "$skel_out_dir/hiebpf.skel.h" ]
   args = [
     skel_src_dir,
     skel_out_dir,
@@ -115,19 +118,17 @@ ohos_source_set("hiebpf_source_common") {
 
   public_deps = [
     ":gen_bpf_skeleton",
-    "//third_party/libbpf:libbpf",
     "//third_party/bounds_checking_function:libsec_static",
+    "//third_party/libbpf:libbpf",
   ]
 
   part_name = "profiler"
 }
 
 ohos_executable("hiebpf") {
-  sources = [ "./src/hiebpf.cpp" ] # this is main()
+  sources = [ "./src/hiebpf.cpp" ]  # this is main()
 
-  deps = [
-    ":hiebpf_source_common"
-  ]
+  deps = [ ":hiebpf_source_common" ]
 
   subsystem_name = "developtools"
   part_name = "profiler"

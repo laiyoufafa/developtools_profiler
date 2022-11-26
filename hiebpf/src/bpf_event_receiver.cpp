@@ -395,7 +395,7 @@ int BPFEventReceiver::EncodeSTRTraceEvent(
         char *filename = (char*) tlvItem;
         filename += sizeof(struct FixedSTRTraceTLVItem);
         strncpy_s(filename, MAX_FILENAME_LEN, cmplt_event->filename, item->strLen_);
-        if (item->srcTracer_ == BIOTRACE) {
+        if (item->srcTracer_ == BIOTRACE || (item->srcTracer_ == FSTRACE && item->srcType_ == SYS_CLOSE)) {
             ReverseStr(filename, filename + item->strLen_ - 2);
             char* start = filename;
             while (*start != '\0') {

@@ -110,7 +110,7 @@ static int QueryParams(const char *queryName)
     if (retLen != 0 || size <= 0) {
         return 0;
     }
-    retLen = size;
+    retLen = (int)size;
 #else
     char defStrValue[PARAM_BUF_LEN] = { 0 };
     int retLen = GetParameter(queryName, defStrValue, paramOutBuf, PARAM_BUF_LEN);
@@ -177,7 +177,7 @@ static bool MatchMallocHookStartupProp(const char *thisName)
     if (retLen != 0 || size <= 0) {
         return 0;
     }
-    retLen = size;
+    retLen = (int)size;
 #else
     char defStrValue[PARAM_BUF_LEN] = { 0 };
     int retLen = GetParameter(LIBC_HOOK_PARAM, defStrValue, paramOutBuf, PARAM_BUF_LEN);
