@@ -19,7 +19,7 @@ export default class WorkerHandler{
                   let tempQueue: Array<String> = globalThis.fpsJitterArr
                   let curJitter = tempQueue.pop()
                   let tempJitterArr = curJitter.split("==")
-                  for (var i = 0; i < tempJitterArr.length; i++) {
+                  for (let i = 0; i < tempJitterArr.length; i++) {
                      let tmp = tempJitterArr[i]
                      let jitter = parseInt(tmp) / 1e6
                      if (jitter > 100) {

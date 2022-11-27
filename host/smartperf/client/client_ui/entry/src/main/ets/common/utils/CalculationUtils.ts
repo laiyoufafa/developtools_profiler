@@ -157,7 +157,7 @@ export default class CalculationUtils {
         for (let i = 0; i < fpsJitterList.length; i++) {
             let jitter = fpsJitterList[i].split(",");
             for (let j = 0; j < jitter.length; j++) {
-                var n = Number(jitter[j]);
+                const n = Number(jitter[j]);
                 if (!isNaN(n) && (n / 1e6 > 100)) {
                     num++
                 }

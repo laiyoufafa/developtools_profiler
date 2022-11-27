@@ -57,7 +57,7 @@ export class NetWork extends BaseProfiler{
   }
 
   handleMessage(){
-    var that = this
+    const that = this;
     connection.getDefaultNet().then(function (netHandle) {
       connection.getNetCapabilities(netHandle).then(function (info) {
         SPLogger.DEBUG(NetWork.name,"networkInfo up:" + info["linkUpBandwidthKbps"] )

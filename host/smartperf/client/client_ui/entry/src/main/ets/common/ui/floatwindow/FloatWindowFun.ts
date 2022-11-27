@@ -49,8 +49,8 @@ export class FloatWindowFun {
             })
         })
         globalThis.MoveFloatingWindow = ((offsetX: number, offsetY: number) => {
-            var xx = (this.floatingWindowOffsetX + offsetX * 2) < 0 ? 0 : ((this.floatingWindowOffsetX + offsetX * 2) > (this.windowWidth - 200) ? (this.windowWidth - 200) : (this.floatingWindowOffsetX + offsetX * 2))
-            var yy = (this.floatingWindowOffsetY + offsetY * 2) < 0 ? 0 : ((this.floatingWindowOffsetY + offsetY * 2) > (this.windowHeight - 200) ? (this.windowHeight - 200) : (this.floatingWindowOffsetY + offsetY * 2))
+            const xx = (this.floatingWindowOffsetX + offsetX * 2) < 0 ? 0 : ((this.floatingWindowOffsetX + offsetX * 2) > (this.windowWidth - 200) ? (this.windowWidth - 200) : (this.floatingWindowOffsetX + offsetX * 2));
+            const yy = (this.floatingWindowOffsetY + offsetY * 2) < 0 ? 0 : ((this.floatingWindowOffsetY + offsetY * 2) > (this.windowHeight - 200) ? (this.windowHeight - 200) : (this.floatingWindowOffsetY + offsetY * 2));
 
             wm.find("sp_floatingWindow").then((fltWin) => {
                 fltWin.moveTo(xx, yy)
@@ -88,8 +88,8 @@ export class FloatWindowFun {
         })
 
         globalThis.MoveTitleWindow = ((offsetX: number, offsetY: number) => {
-            var xx = (this.titleWindowOffsetX + offsetX * 2) < 0 ? 0 : ((this.titleWindowOffsetX + offsetX * 2) > (this.windowWidth - 500) ? (this.windowWidth - 500) : (this.titleWindowOffsetX + offsetX * 2))
-            var yy = (this.titleWindowOffsetY + offsetY * 2) < 0 ? 0 : ((this.titleWindowOffsetY + offsetY * 2) > (this.windowHeight - 330) ? (this.windowHeight - 330) : (this.titleWindowOffsetY + offsetY * 2))
+            const xx = (this.titleWindowOffsetX + offsetX * 2) < 0 ? 0 : ((this.titleWindowOffsetX + offsetX * 2) > (this.windowWidth - 500) ? (this.windowWidth - 500) : (this.titleWindowOffsetX + offsetX * 2));
+            const yy = (this.titleWindowOffsetY + offsetY * 2) < 0 ? 0 : ((this.titleWindowOffsetY + offsetY * 2) > (this.windowHeight - 330) ? (this.windowHeight - 330) : (this.titleWindowOffsetY + offsetY * 2));
             wm.find("sp_TitleWindow").then((fltWin) => {
                 fltWin.moveTo(xx, yy)
             })
