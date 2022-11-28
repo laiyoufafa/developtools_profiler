@@ -31,7 +31,7 @@ public:
 
     void CreateCommand(string ConfigName, ParsePluginConfig &parseConfig, string &config) const
     {
-         std::string cmdStr = " request_id: 1"
+        std::string cmdStr = " request_id: 1"
             " session_config {"
             "  buffers {"
             "   pages: 16384"
