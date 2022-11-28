@@ -69,11 +69,11 @@ describe("HidebugJsTest", function () {
             let timestamp = Date.now();
             let filename = "cpuprofiler_" + timestamp.toString();
             hidebug.startProfiling(filename);
-            for (var i = 0; i < 3; i++) {
+            for (let i = 0; i < 3; i++) {
                 hidebug.getSharedDirty();
             }
             hidebug.stopProfiling();
-            var pid = process.pid;
+            const pid = process.pid;
             let path = "/proc/" + pid + "/root/data/storage/el2/base/files/" + filename + ".json";
             let data = fileio.readTextSync(path);
             if (data.includes("napi")) {
@@ -99,11 +99,11 @@ describe("HidebugJsTest", function () {
             let timestamp = Date.now();
             let filename = "cpuprofiler_" + timestamp.toString();
             hidebug.startJsCpuProfiling(filename);
-            for (var i = 0; i < 3; i++) {
+            for (let i = 0; i < 3; i++) {
                 hidebug.getSharedDirty();
             }
             hidebug.stopJsCpuProfiling();
-            var pid = process.pid;
+            const pid = process.pid;
             let path = "/proc/" + pid + "/root/data/storage/el2/base/files/" + filename + ".json";
             let data = fileio.readTextSync(path);
             if (data.includes("napi")) {
@@ -127,14 +127,14 @@ describe("HidebugJsTest", function () {
         console.info("---------------------------HidebugJsTest_003----------------------------------");
         try {
             hidebug.startJsCpuProfiling();
-            for (var i = 0; i < 3; i++) {
+            for (let i = 0; i < 3; i++) {
                 hidebug.getSharedDirty();
             }
             hidebug.stopJsCpuProfiling();
         } catch (error) {
             console.info(error.code);
             console.info(error.message);
-            expect(error.code == 401).assertTrue();
+            expect(error.code === 401).assertTrue();
         }
     })
 
@@ -168,7 +168,7 @@ describe("HidebugJsTest", function () {
         } catch (error) {
             console.info(error.code);
             console.info(error.message);
-            expect(error.code == 401).assertTrue();
+            expect(error.code === 401).assertTrue();
         }
     })
 
@@ -182,11 +182,11 @@ describe("HidebugJsTest", function () {
         console.info("---------------------------HidebugJsTest_006----------------------------------");
         let context = featureAbility.getContext();
         context.getFilesDir().then((data) => {
-            var path = data + "/serviceInfo1.txt"
+            const path = data + "/serviceInfo1.txt";
             console.info("output path: " + path)
             let fd = fileio.openSync(path, 0o102, 0o666)
-            var serviceId = 10
-            var args = new Array("allInfo")
+            const serviceId = 10;
+            const args = new Array("allInfo");
             try {
               hidebug.getServiceDump(serviceId, fd, args)
               expect(true).assertTrue();
@@ -208,17 +208,17 @@ describe("HidebugJsTest", function () {
         console.info("---------------------------HidebugJsTest_007----------------------------------");
         let context = featureAbility.getContext();
         context.getFilesDir().then((data) => {
-            var path = data + "/serviceInfo2.txt"
+            const path = data + "/serviceInfo2.txt";
             console.info("output path: " + path)
             let fd = fileio.openSync(path, 0o102, 0o666)
-            var serviceId = 10
-            var args = new Array("allInfo")
+            const serviceId = 10;
+            const args = new Array("allInfo");
             try {
                 hidebug.getServiceDump(serviceId)
             } catch (error) {
               console.info(error.code)
               console.info(error.message)
-              expect(error.code == 401).assertTrue();
+              expect(error.code === 401).assertTrue();
             }
             fileio.closeSync(fd);
         })
@@ -234,17 +234,17 @@ describe("HidebugJsTest", function () {
         console.info("---------------------------HidebugJsTest_008----------------------------------");
         let context = featureAbility.getContext();
         context.getFilesDir().then((data) => {
-            var path = data + "/serviceInfo3.txt"
+            const path = data + "/serviceInfo3.txt";
             console.info("output path: " + path)
             let fd = fileio.openSync(path, 0o102, 0o666)
-            var serviceId = -10
-            var args = new Array("allInfo")
+            const serviceId = -10;
+            const args = new Array("allInfo");
             try {
                 hidebug.getServiceDump(serviceId, fd, args)
             } catch (error) {
               console.info(error.code)
               console.info(error.message)
-              expect(error.code == 11400101).assertTrue();
+              expect(error.code === 11400101).assertTrue();
             }
             fileio.closeSync(fd);
         })

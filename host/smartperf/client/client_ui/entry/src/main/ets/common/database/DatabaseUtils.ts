@@ -39,7 +39,7 @@ export default {
 
     //插入表( T_GENERAL_INFO)
     insertGeneraData(tableName: string, tGeneralInfo: TGeneralInfo) {
-        var strMap = new Map;
+        const strMap = new Map;
         for (let k of Object.keys(tGeneralInfo)) {
             strMap.set(k, tGeneralInfo[k])
         }
@@ -89,7 +89,7 @@ export default {
     //插入表(T_INDEX_INFO)
     insertData(tableName: string, pathSuffix: number, tIndexInfo: TIndexInfo) {
 
-        var strMap = new Map;
+        const strMap = new Map;
         for (let k of Object.keys(tIndexInfo)) {
             strMap.set(k, tIndexInfo[k]);
         }
@@ -284,11 +284,11 @@ export default {
      * @param gpDatas
      */
     gpArray2Index(gpDatas: Array<GPData>): TIndexInfo{
-        var tIndexInfo: TIndexInfo = new TIndexInfo()
+        const tIndexInfo: TIndexInfo = new TIndexInfo();
         tIndexInfo.setTaskId("18")
         tIndexInfo.setTimeStamp(new Date().getTime().toString())
         if (gpDatas != null) {
-            for (var index = 0; index < gpDatas.length; index++) {
+            for (let index = 0; index < gpDatas.length; index++) {
                 let curGPData: GPData = gpDatas[index]
                 let map = curGPData.values
                 switch (curGPData.moduleType) {
