@@ -242,4 +242,25 @@ HWTEST_F(DiskioDataPluginTest, TestSystemFile, TestSize.Level1)
     plugin1.Stop();
     plugin2.Stop();
 }
+
+/**
+ * @tc.name: diskio plugin
+ * @tc.desc: test io_stats.cpp
+ * @tc.type: FUNC
+ */
+HWTEST_F(DiskioDataPluginTest, TestIOStats, TestSize.Level1)
+{
+    IoStats ioStats;
+    std::unique_ptr<StatsData> statsData = std::make_unique<StatsData>();
+    EXPECT_TRUE(ioStats.GetIoData());
+    EXPECT_TRUE(ioStats.PutPluginStatsData(statsData.get()));
+
+    IoStats ioStatsIoReport(DiskioConfig::IO_REPORT);
+    EXPECT_TRUE(ioStatsIoReport.GetIoData());
+    EXPECT_TRUE(ioStatsIoReport.PutPluginStatsData(statsData.get()));
+
+    IoStats ioStatsIoReportEx(DiskioConfig::IO_REPORT_EX);
+    EXPECT_TRUE(ioStatsIoReportEx.GetIoData());
+    EXPECT_TRUE(ioStatsIoReportEx.PutPluginStatsData(statsData.get()));
+}
 } // namespace

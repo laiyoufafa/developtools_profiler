@@ -33,7 +33,10 @@ ohos_unittest("plugin_service_ut") {
     "//third_party/googletest:gtest",
     "//third_party/googletest:gtest_main",
   ]
-  include_dirs = [ "//third_party/googletest/googletest/include/gtest" ]
+  include_dirs = [
+    "../src",
+    "//third_party/googletest/googletest/include/gtest",
+  ]
   cflags = [
     "-Wno-inconsistent-missing-override",
     "-Dprivate=public",  #allow test code access private members
