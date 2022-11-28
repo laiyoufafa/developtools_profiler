@@ -808,6 +808,6 @@ HWTEST_F(UnitTestPluginService, PluginServiceImpl_UnregisterPlugin, TestSize.Lev
     UnregisterPluginResponse response;
     SocketContext ctx;
     request.set_plugin_id(1);
-    EXPECT_FALSE(pluginServiceImp_->UnregisterPlugin(ctx, request, response), false);
+    EXPECT_FALSE(pluginServiceImp_->UnregisterPlugin(ctx, request, response));
 }
 } // namespace
