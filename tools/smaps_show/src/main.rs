@@ -121,7 +121,7 @@ fn print_smaps_verbose(infos: Vec<VmStruct>) {
         ("Size",          "d"),
         ("Rss",           "d"),
         ("Pss",           "d"),
-        ("Shared\nClean","d"),
+        ("Shared\nClean", "d"),
         ("Shared\nDirty", "d"),
         ("Private\nClean","d"),
         ("Private\nDirty","d"),
@@ -131,7 +131,8 @@ fn print_smaps_verbose(infos: Vec<VmStruct>) {
     let info_keys = vec![
         ("Start",         ""),
         ("End",           ""),
-        ("Name",          ""),
+        ("Perm",          ""),
+        ("Name",          "")
     ];
     print_smaps_core(infos, &value_keys, &info_keys);
 }
