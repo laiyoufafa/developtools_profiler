@@ -48,6 +48,10 @@ void* HiebpfDataFile::Reserve(const std::size_t size)
             return nullptr;
         }
     }
+
+    if (mapAddr_ == nullptr) {
+        return nullptr;
+    }
     char* buffer = (char *)mapAddr_;
     buffer += offset_;
     memset(buffer, 0, size);
@@ -75,6 +79,9 @@ void HiebpfDataFile::WriteKernelSymbol()
     std::vector<uint8_t> buf;
     uint32_t bufSize = OHOS::Developtools::Hiebpf::KernelSymbolInfo::GetSymbolData(buf);
     char *tmp = (char *)Reserve(bufSize + sizeof(uint32_t) * 2);
+    if (tmp == nullptr) {
+        return;
+    }
     uint32_t *type = (uint32_t *)tmp;
     (*type) = KERNEL_SYM;
     uint32_t *len = type + 1;
