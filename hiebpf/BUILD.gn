@@ -116,11 +116,12 @@ ohos_source_set("hiebpf_source_common") {
   ]
 
   public_deps = [
-    ":gen_bpf_skeleton",
     "//third_party/bounds_checking_function:libsec_static",
     "//third_party/libbpf:libbpf",
   ]
-
+  if (!is_asan) {
+    public_deps += [ ":gen_bpf_skeleton" ]
+  }
   part_name = "profiler"
 }
 
@@ -136,10 +137,10 @@ ohos_executable("hiebpf") {
 
 group("hiebpf_tool") {
   if (current_toolchain == "//build/toolchain/ohos:ohos_clang_arm64") {
-    deps = [
-      ":hiebpf",
-      ":hiebpf.bpf",
-    ]
+    deps = [ ":hiebpf" ]
+    if (!is_asan) {
+      deps += [ ":hiebpf.bpf" ]
+    }
   }
 }
 
