@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include <stdio.h>
+#include <cstdio>
 #include <string>
 
 #include <gtest/gtest.h>
@@ -21,7 +21,7 @@
 #include "libbpf_logger.h"
 
 using namespace testing::ext;
-
+using namespace std;
 namespace OHOS {
 namespace Developtools {
 namespace Hiebpf {

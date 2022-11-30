@@ -13,14 +13,14 @@
  * limitations under the License.
  */
 
-#include <stdio.h>
+#include <cstdio>
 
 #include <gtest/gtest.h>
 
 #include "hiebpf_data_file.h"
 
 using namespace testing::ext;
-
+using namespace std;
 namespace {
 const std::string FILE_NAME = "/data/local/tmp/hiebpf.txt";
 } // namespace

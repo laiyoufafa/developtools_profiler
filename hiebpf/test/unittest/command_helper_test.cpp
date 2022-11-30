@@ -13,14 +13,14 @@
  * limitations under the License.
  */
 
-#include <stdio.h>
+#include <cstdio>
 
 #include <gtest/gtest.h>
 
 #include "command_helper.h"
 
 using namespace testing::ext;
-
+using namespace std;
 namespace OHOS {
 namespace Developtools {
 namespace Hiebpf {

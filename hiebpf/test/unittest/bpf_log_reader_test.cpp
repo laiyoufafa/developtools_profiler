@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include <stdio.h>
+#include <cstdio>
 #include <string>
 
 #include <gtest/gtest.h>
@@ -21,7 +21,7 @@
 #include "bpf_log_reader.h"
 
 using namespace testing::ext;
-
+using namespace std;
 namespace {
 const std::string FILE_NAME = "/data/local/tmp/libebpf.log";
 } // namespace
