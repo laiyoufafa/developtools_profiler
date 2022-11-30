@@ -34,6 +34,7 @@ ohos_unittest("hiprofiler_base_ut") {
     "unittest/epoll_event_poller_test.cpp",
     "unittest/schedule_task_manager_test.cpp",
     "unittest/semaphore_test.cpp",
+    "unittest/common_test.cpp",
   ]
   cflags = [
     "-Wno-inconsistent-missing-override",
