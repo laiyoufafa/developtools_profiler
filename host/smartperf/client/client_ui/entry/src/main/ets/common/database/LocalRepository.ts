@@ -69,10 +69,10 @@ export function initDb(): void {
 
 
 export async function getReportListDb(): Promise<Array<ReportItem>> {
-    const result = Array<ReportItem>();
+    var result = Array<ReportItem>()
     await database.queryGeneralData().then(generals => {
-        for (let i = 0; i < generals.length; i++) {
-            const curGeneralInfo = generals[i];
+        for (var i = 0; i < generals.length; i++) {
+            var curGeneralInfo = generals[i]
             result.push(
                 new ReportItem(
                 curGeneralInfo.taskId.toString(),
