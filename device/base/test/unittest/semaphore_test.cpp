@@ -41,7 +41,6 @@ HWTEST_F(SemaphoreTest, CtorDtor, TestSize.Level1)
     EXPECT_NE(semaphore, nullptr);
     EXPECT_TRUE(semaphore->TryWait());
     EXPECT_FALSE(semaphore->TimedWait(1, 0));
-    
 }
 
 /**

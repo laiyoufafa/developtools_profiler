@@ -35,13 +35,13 @@ protected:
  */
 HWTEST_F(CommonTest, IsProcessExist, TestSize.Level1)
 {
-    std::string procName = "hiview";
+    std::string procName = "hiprofiler_base_ut";
     int pid = 0;
-    EXPECT_TRUE(COMMON::IsProcessExist(procName,pid));
+    EXPECT_TRUE(COMMON::IsProcessExist(procName, pid));
     EXPECT_NE(pid, 0);
     procName = "ls";
     pid = 0;
-    EXPECT_FALSE(COMMON::IsProcessExist(procName,pid));
+    EXPECT_FALSE(COMMON::IsProcessExist(procName, pid));
     EXPECT_EQ(pid, 0);
 }
 
@@ -60,6 +60,6 @@ HWTEST_F(CommonTest, StartAndKillProcess, TestSize.Level1)
     int procPid = COMMON::StartProcess(profilerProcName, argvVec);
     EXPECT_NE(procPid, 0);
     std::this_thread::sleep_for(std::chrono::milliseconds(waitProcMills));
-    EXPECT_NE(COMMON::KillProcess(procPid), -1); 
+    EXPECT_NE(COMMON::KillProcess(procPid), -1);
 }
 } // namespace
