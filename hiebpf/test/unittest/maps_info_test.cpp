@@ -58,6 +58,8 @@ HWTEST_F(MapsInofTest, Cache, TestSize.Level1)
     ASSERT_FALSE(mapsInfo.IsCached(1));
     mapsInfo.CachePid(1);
     ASSERT_TRUE(mapsInfo.IsCached(1));
+    mapsInfo.RemovePid(1);
+    ASSERT_FALSE(mapsInfo.IsCached(1));
 }
 
 HWTEST_F(MapsInofTest, GetBinary, TestSize.Level1)

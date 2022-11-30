@@ -17,7 +17,6 @@
 #include <math.h>
 #include <stdio.h>
 #include <string>
-#include <thread>
 #include <vector>
 
 #include <gtest/gtest.h>
@@ -38,7 +37,17 @@ namespace Hiebpf {
 class RingbufferTest : public ::testing::Test {
 public:
     static void SetUpTestCase() {};
-    static void TearDownTestCase() {};
+    static void TearDownTestCase()
+    {
+        if (access(READ_FILE_NAME.c_str(), F_OK) == 0) {
+            std::string cmd = "rm " + READ_FILE_NAME;
+            system(cmd.c_str());
+        }
+        if (access(WRITE_FILE_NAME.c_str(), F_OK) == 0) {
+            std::string cmd = "rm " + WRITE_FILE_NAME;
+            system(cmd.c_str());
+        }
+    }
 
     void SetUp() {}
     void TearDown() {}

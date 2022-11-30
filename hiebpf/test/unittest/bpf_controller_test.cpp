@@ -21,13 +21,30 @@
 
 using namespace testing::ext;
 
+namespace {
+constexpr int ROUND_COUNT = 1000;
+constexpr int BUF_SIZE = 512;
+const std::string FILE_NAME = "/data/local/tmp/hiebpf.txt";
+const std::string HIEBPF_FILE_NAME = "/data/local/tmp/hiebpf.data";
+} // namespace
+
 namespace OHOS {
 namespace Developtools {
 namespace Hiebpf {
 class BpfControllerTest : public ::testing::Test {
 public:
     static void SetUpTestCase() {};
-    static void TearDownTestCase() {};
+    static void TearDownTestCase()
+    {
+        if (access(FILE_NAME.c_str(), F_OK) == 0) {
+            std::string cmd = "rm " + FILE_NAME;
+            system(cmd.c_str());
+        }
+        if (access(HIEBPF_FILE_NAME.c_str(), F_OK) == 0) {
+            std::string cmd = "rm " + HIEBPF_FILE_NAME;
+            system(cmd.c_str());
+        }
+    }
 
     void SetUp() {}
     void TearDown() {}
@@ -41,7 +58,9 @@ public:
 HWTEST_F(BpfControllerTest, Normal, TestSize.Level1)
 {
     BPFConfig cfg;
-    cfg.selectEventGroups_.insert(HiebpfEventGroup::FS_GROUP_OPEN);
+    cfg.selectEventGroups_.insert(HiebpfEventGroup::FS_GROUP_ALL);
+    cfg.selectEventGroups_.insert(HiebpfEventGroup::MEM_GROUP_ALL);
+    cfg.selectEventGroups_.insert(HiebpfEventGroup::BIO_GROUP_ALL);
     cfg.LIBBPFLogLevel_ = LIBBPF_NONE;
     cfg.BPFLogLevel_ = BPF_LOG_NONE;
     const uint32_t duration = 10;
@@ -51,6 +70,29 @@ HWTEST_F(BpfControllerTest, Normal, TestSize.Level1)
     std::thread threadContol([&]() {
         ASSERT_EQ(pCtx->Start(), 0);
     });
+    sleep(1);
+
+    // create fs/bio data
+    int fd = open(FILE_NAME.c_str(), O_RDWR | O_CREAT);
+    ASSERT_GT(fd, 0);
+    char buf[BUF_SIZE] = {0};
+    memset_s(buf, sizeof(buf), '1', sizeof(buf));
+    off_t offset = 0;
+    for (int i = 0; i < ROUND_COUNT; i++) {
+        pwrite(fd, buf, sizeof(buf), offset);
+        fsync(fd);
+        pread(fd, buf, sizeof(buf), offset);
+        offset += sizeof(buf);
+    }
+    close(fd);
+
+    // create mem data
+    int num = 1;
+    pid_t pid = fork();
+    if (pid == 0) {
+        num++;
+        exit(0);
+    }
 
     sleep(1);
     pCtx->Stop();
