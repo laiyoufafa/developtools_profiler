@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import worker from '@ohos.worker'; 
+import worker from '@ohos.worker'; // 导入worker模块
 import net_socket from '@ohos.net.socket';
 
 const workTag = "SmartPerf::Work:: "
@@ -74,8 +74,16 @@ parentPort.onmessage = function (e) {
             }
         }
 
+        if (socketCollectItems.setDuBaiDb) {
+            udp.send({
+                address: UdpSendAddress,
+                data: "set_dubai_db"
+            })
+            console.log(workTag + "Worker socket ‘set_dubai_db’ send");
+        }
+
         if (flagPackageNum < 2) {
-            if (socketCollectItems.pkg !== undefined) {
+            if (socketCollectItems.pkg != undefined) {
                 udp.send({
                     address: UdpSendAddress,
                     data: messageSetPkg
@@ -141,10 +149,10 @@ udp.on("message", function (data) {
         if (includes(str, "pss")) {
             parentPort.postMessage("RAM$" + str)
         } else if (includes(str, "fps")) {
-            if (str.indexOf("$$") !== -1) {
+            if (str.indexOf("$$") != -1) {
                 let arrStr = str.split("$$")
                 if (arrStr.length > 0) {
-                    if (arrStr[0].indexOf("||") !== -1 && arrStr[1].indexOf("||") !== -1) {
+                    if (arrStr[0].indexOf("||") != -1 && arrStr[1].indexOf("||") != -1) {
                         let fps = arrStr[0].split("||")
                         let fpsJitter = arrStr[1].split("||")
                         parentPort.postMessage("FPS$" + fps[1].toString() + "$" + fpsJitter[1].toString())
@@ -164,13 +172,13 @@ function includes(all, sub) {
     all = all.toLowerCase();
     sub = sub.toLowerCase();
 
-    const firstChar = sub.substring(0, 1);
-    const subLength = sub.length;
+    var firstChar = sub.substring(0, 1);
+    var subLength = sub.length;
 
     for (let i = 0; i < all.length - subLength + 1; i++) {
 
-        if (all.charAt(i) === firstChar) {
-            if (all.substring(i, i + subLength) === sub) {
+        if (all.charAt(i) == firstChar) {
+            if (all.substring(i, i + subLength) == sub) {
                 return true;
             }
         }

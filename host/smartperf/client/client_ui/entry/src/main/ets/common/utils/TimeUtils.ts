@@ -52,10 +52,10 @@ export function dateFormat(time?: number, format: string='Y-m-d h:i:s') {
  * @param time
  */
 export function secToTime(time: number): String {
-    let timeStr: String = null;
-    let hour: number = 0;
-    let minute: number = 0;
-    let second: number = 0;
+    var timeStr: String = null
+    var hour: number = 0
+    var minute: number = 0
+    var second: number = 0
     if (time <= 0) {
         return "00:00"
     } else {
@@ -75,7 +75,7 @@ export function secToTime(time: number): String {
 }
 
 export function unitFormat(i: number): String {
-    let retStr: String;
+    var retStr: String
     if (i >= 0 && i < 10) {
         retStr = "0" + i.toString()
     } else {

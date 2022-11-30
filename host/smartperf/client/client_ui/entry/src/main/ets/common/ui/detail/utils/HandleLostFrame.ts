@@ -51,7 +51,7 @@ export default class HandleLostFrame {
 
             let doubleJank = jitters[i] / 1e6
             console.log(TAG + "for jitters[" + i + "]" + doubleJank)
-            let jankRange = 0;
+            var jankRange = 0
             jankRange = this.getJankRange(2, doubleJank)
             console.log(TAG + "for jankRange" + jankRange)
             if (jankRange != 0) {
