@@ -107,14 +107,14 @@ static int QueryParams(const char *queryName)
 #ifdef HIDEBUG_IN_INIT
     uint32_t size = PARAM_BUF_LEN;
     int retLen = SystemGetParameter(queryName, paramOutBuf, &size);
-    if (retLen != 0 || size <= 0) {
+    if (retLen != 0 || size <= 0 || size > PARAM_BUF_LEN - 1) {
         return 0;
     }
     retLen = (int)size;
 #else
     char defStrValue[PARAM_BUF_LEN] = { 0 };
     int retLen = GetParameter(queryName, defStrValue, paramOutBuf, PARAM_BUF_LEN);
-    if (retLen == 0) {
+    if (retLen == 0 || retLen > PARAM_BUF_LEN - 1) {
         return 0;
     }
 #endif
