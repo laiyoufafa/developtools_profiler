@@ -67,3 +67,10 @@ group("unittest") {
     deps = [ ":hiebpf_ut" ]
   }
 }
+
+ohos_executable("hiebpf_test_demo") {
+  cflags = [ "-O0" ]
+  sources = [ "hiebpf_test_demo.cpp" ]
+  subsystem_name = "${OHOS_PROFILER_SUBSYS_NAME}"
+  part_name = "${OHOS_PROFILER_PART_NAME}"
+}
