@@ -38,7 +38,7 @@ config("hiprofiler_test_config") {
 
 config("hiprofiler_base_config") {
   defines = []
-  if (!is_asan) {
+  if (use_musl && !is_asan) {
     defines += [ "HOOK_ENABLE" ]
   }
   include_dirs = [
