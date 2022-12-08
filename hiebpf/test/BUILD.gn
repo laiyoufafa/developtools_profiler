@@ -63,7 +63,7 @@ ohos_unittest("hiebpf_ut") {
 
 group("unittest") {
   testonly = true
-  if (target_cpu == "arm64") {
+  if (target_cpu == "arm64" && !is_asan && use_musl) {
     deps = [ ":hiebpf_ut" ]
   }
 }
