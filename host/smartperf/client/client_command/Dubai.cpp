@@ -35,7 +35,8 @@ void Dubai::MoveDubaiDb() const
     std::string result;
     const std::string dubaiName = "dubai.db";
     const std::string dubaiPath = "/data/system_ce/0/dubai/" + dubaiName;
-    const std::string devicePath = "/data/app/el2/100/database/com.ohos.gameperceptio/entry/rdb";
+    const std::string devicePath = "/data/app/el2/100/database/com.ohos.smartperf/entry/rdb";
+    SPUtils::LoadCmd("rm -rf " + devicePath + "/" + dubaiName, result);
     SPUtils::LoadCmd("cp " + dubaiPath + " " + devicePath, result);
     SPUtils::LoadCmd("chmod 777 " + devicePath + "/" + dubaiName, result);
 }
