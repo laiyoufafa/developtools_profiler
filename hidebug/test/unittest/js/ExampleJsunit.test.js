@@ -134,7 +134,7 @@ describe("HidebugJsTest", function () {
         } catch (error) {
             console.info(error.code);
             console.info(error.message);
-            expect(error.code === 401).assertTrue();
+            expect(error.code === "401").assertTrue();
         }
     })
 
@@ -168,7 +168,7 @@ describe("HidebugJsTest", function () {
         } catch (error) {
             console.info(error.code);
             console.info(error.message);
-            expect(error.code === 401).assertTrue();
+            expect(error.code === "401").assertTrue();
         }
     })
 
@@ -218,7 +218,7 @@ describe("HidebugJsTest", function () {
             } catch (error) {
               console.info(error.code)
               console.info(error.message)
-              expect(error.code === 401).assertTrue();
+              expect(error.code === "401").assertTrue();
             }
             fileio.closeSync(fd);
         })
@@ -244,7 +244,7 @@ describe("HidebugJsTest", function () {
             } catch (error) {
               console.info(error.code)
               console.info(error.message)
-              expect(error.code === 11400101).assertTrue();
+              expect(error.code === "11400101").assertTrue();
             }
             fileio.closeSync(fd);
         })
