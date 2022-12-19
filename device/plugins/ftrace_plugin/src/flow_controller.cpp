@@ -46,7 +46,7 @@ namespace {
     constexpr uint32_t MIN_BLOCK_SIZE_PAGES = 256;     // 1  MB
     const std::set<std::string> g_availableClocks = { "boot", "global", "local", "mono" };
 
-    int CommonUtils::GetProcessorNumFromString(char *str)
+    int GetProcessorNumFromString(char *str)
     {
         int processorNum = 0;
         int lastNum = -1;
@@ -70,7 +70,7 @@ namespace {
         return processorNum;
     }
 
-    int CommonUtils::GetProcessorNum()
+    int GetProcessorNum()
     {
         FILE *fp = fopen("/sys/devices/system/cpu/online", "r");
         if (fp == nullptr) {
