@@ -44,7 +44,6 @@ constexpr int ONE_VALUE_LIMIT = 1;
 constexpr int ARRAY_INDEX_FIRST = 0;
 const std::string SLASH_STR = "/";
 const std::string DEFAULT_FILENAME = "undefined";
-const std::string JSON_FILE = ".json";
 const std::string CPUPROFILE_FILE = ".cpuprofile";
 const std::string HEAPSNAPSHOT_FILE = ".heapsnapshot";
 enum ErrorCode {
