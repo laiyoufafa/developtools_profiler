@@ -45,6 +45,7 @@ constexpr int ARRAY_INDEX_FIRST = 0;
 const std::string SLASH_STR = "/";
 const std::string DEFAULT_FILENAME = "undefined";
 const std::string JSON_FILE = ".json";
+const std::string CPUPROFILE_FILE = ".cpuprofile";
 const std::string HEAPSNAPSHOT_FILE = ".heapsnapshot";
 enum ErrorCode {
     PERMISSION_ERROR = 201,
@@ -245,7 +246,7 @@ napi_value StartProfiling(napi_env env, napi_callback_info info)
     if (filesDir.empty()) {
         return CreateErrorMessage(env, "Get App files dir failed.");
     }
-    std::string filePath = filesDir + SLASH_STR + fileName + JSON_FILE;
+    std::string filePath = filesDir + SLASH_STR + fileName + CPUPROFILE_FILE;
     if (!IsLegalPath(filePath)) {
         return CreateErrorMessage(env, "input fileName is illegal.");
     }
@@ -274,7 +275,7 @@ napi_value StartJsCpuProfiling(napi_env env, napi_callback_info info)
     if (filesDir.empty()) {
         return CreateErrorMessage(env, "Get App files dir failed.");
     }
-    std::string filePath = filesDir + SLASH_STR + fileName + JSON_FILE;
+    std::string filePath = filesDir + SLASH_STR + fileName + CPUPROFILE_FILE;
     if (!IsLegalPath(filePath)) {
         return CreateErrorMessage(env, "input fileName is illegal.");
     }
