@@ -80,7 +80,8 @@ static int32_t HiebpfSessionStop()
     HILOG_DEBUG(LOG_CORE, "enter");
     std::string stop = "hiebpf --stop true";
     RunCmd(stop);
-    std::this_thread::sleep_for(std::chrono::seconds(2));
+    int sleepSeconds = 2;
+    std::this_thread::sleep_for(std::chrono::seconds(sleepSeconds));
     HILOG_DEBUG(LOG_CORE, "leave");
     return RET_OK;
 }
