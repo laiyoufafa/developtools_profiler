@@ -762,17 +762,12 @@ int BPF_KRETPROBE(do_wp_page_exit, int64_t vmf_flags)
 /*************************** pftrace BPF progs END *******************************/
 
 /**************************** bio BPF progs BEGING *******************************/
-SEC("tp_btf/block_rq_issue")
-int block_issue(u64 *ctx)
+static __always_inline
+int handle_blk_issue(struct request *rq)
 {
-    if (check_current_pid(-1, -1) != 0) {
+    if (rq == NULL) {
+        BPFLOGD(BPF_TRUE, "request is NULL");
         return 0;
-    }
-    struct request *rq = NULL;
-    if (LINUX_KERNEL_VERSION < KERNEL_VERSION(5, 10, 137)) {
-        rq = (void *)ctx[1];
-    } else {
-        rq = (void *)ctx[0];
     }
     const u64 start_event_map_key = (const u64)rq;
     struct start_event_t start_event = {};
@@ -792,6 +787,19 @@ int block_issue(u64 *ctx)
     bio_se->size = BPF_CORE_READ(rq, bio, bi_iter.bi_size);
     bpf_map_update_elem(&start_event_map, &start_event_map_key, &start_event, BPF_ANY);
     return 0;
+}
+
+SEC("tp_btf/block_rq_issue")
+int block_issue(u64 *ctx)
+{
+    if (check_current_pid(-1, -1) != 0) {
+        return 0;
+    }
+    if (LINUX_KERNEL_VERSION < KERNEL_VERSION(5, 10, 137)) {
+        return handle_blk_issue((void *)ctx[1]);
+    } else {
+        return handle_blk_issue((void *)ctx[0]);
+    }
 }
 
 SEC("kprobe/blk_update_request")

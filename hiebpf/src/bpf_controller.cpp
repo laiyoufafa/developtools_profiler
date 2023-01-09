@@ -506,6 +506,7 @@ inline int BPFController::ConfigLIBBPFLogger() const
 {
     // set up libbpf print callback
     HHLOGI(true, "libbpf logger: file = %s, level = %d", config_.LIBBPFLogFile_.c_str(), config_.LIBBPFLogLevel_);
+    libbpf_set_print(BPFController::LIBBPFPrintFunc);
     if (config_.LIBBPFLogLevel_ == LIBBPF_NONE) {
         HHLOGD(true, "libbpf log level is NONE!");
         return 0;
@@ -514,7 +515,6 @@ inline int BPFController::ConfigLIBBPFLogger() const
     if (libbpfLogger == nullptr) {
         return -1;
     }
-    libbpf_set_print(BPFController::LIBBPFPrintFunc);
     return 0;
 }
 
