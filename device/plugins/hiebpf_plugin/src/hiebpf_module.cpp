@@ -12,6 +12,8 @@
  * limitations under the License.
  */
 
+#include <chrono>
+#include <thread>
 #include <mutex>
 #include <unistd.h>
 #include <array>
@@ -78,6 +80,8 @@ static int32_t HiebpfSessionStop()
     HILOG_DEBUG(LOG_CORE, "enter");
     std::string stop = "hiebpf --stop true";
     RunCmd(stop);
+    int sleepSeconds = 2;
+    std::this_thread::sleep_for(std::chrono::seconds(sleepSeconds));
     HILOG_DEBUG(LOG_CORE, "leave");
     return RET_OK;
 }
