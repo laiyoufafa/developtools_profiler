@@ -69,6 +69,7 @@ config("kern_common_config") {
 }
 
 ohos_source_set("hiebpf.bpf") {
+  remove_configs = [ "//build/config/coverage:default_coverage" ]
   sources = [ "./src/hiebpf.bpf.c" ]
   configs = [
     ":common_config",
