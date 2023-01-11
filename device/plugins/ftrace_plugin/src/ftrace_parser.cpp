@@ -768,6 +768,7 @@ bool FtraceParser::ParseFtraceEvent(FtraceEvent& ftraceEvent,
             }
             if (comm.size() > 0) {
                 comm.pop_back(); // /proc/xxx/comm end with `\n`
+                commDict_.insert(std::pair<int32_t, std::string>(pid, comm));
             }
         }
         if (comm.size() > 0) {
