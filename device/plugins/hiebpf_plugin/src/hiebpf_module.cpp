@@ -93,7 +93,7 @@ static PluginModuleCallbacks g_callbacks = {
     .onRegisterWriterStruct = nullptr,
 };
 
-PluginModuleStruct g_pluginModule = {
+EXPORT_API PluginModuleStruct g_pluginModule = {
     .callbacks = &g_callbacks,
     .name = "hiebpf-plugin",
     .resultBufferSizeHint = MAX_BUFFER_SIZE,
