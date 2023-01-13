@@ -25,6 +25,7 @@ int StartProcess(const std::string& processBin, std::vector<char*>& argv);
 std::vector<int> GetProcessIds(std::string& processName);
 int KillProcess(int pid);
 void PrintMallinfoLog(const std::string& mallInfoPrefix);
+int GetServicePort();
 } // COMMON
 
 #endif // COMMON_H
