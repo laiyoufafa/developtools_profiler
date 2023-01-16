@@ -12,8 +12,6 @@
  * limitations under the License.
  */
 
-#include <chrono>
-#include <thread>
 #include <mutex>
 #include <unistd.h>
 #include <array>
@@ -33,7 +31,7 @@ constexpr int32_t RET_OK = 0;
 constexpr int32_t RET_ERR = -1;
 std::string HIEBPF_COMMAND = "hiebpf";
 bool g_releaseResources = false;
-volatile pid_t childPid = -1;
+volatile pid_t g_childPid = -1;
 
 std::vector<std::string> StringSplit(std::string source, std::string split)
 {
@@ -82,10 +80,10 @@ void RunCmd(std::string& cmd)
             exit(EXIT_FAILURE);
         }
     }
-    childPid = pid;
+    g_childPid = pid;
 
     int stat = 0;
-    while (waitpid(childPid, &stat, 0) == -1) {
+    while (waitpid(g_childPid, &stat, 0) == -1) {
         if (errno == EINTR) {
             continue;
         } else {
@@ -116,11 +114,6 @@ static int32_t HiebpfSessionStart(const uint8_t* configData, uint32_t configSize
         HILOG_ERROR(LOG_CORE,"The out file path more than %zu bytes", defaultSize);
         return RET_ERR;
     }
-    // int32_t ret = strncpy_s(g_pluginModule.outFileName, defaultSize, config.outfile_name().c_str(), defaultSize - 1);
-    // if (ret != EOK) {
-    //     HILOG_ERROR(LOG_CORE, "strncpy_s error! outfile is %s", config.outfile_name().c_str());
-    //     return RET_ERR;
-    // }
     std::string ret = config.cmd_line();
     ret += " --start true";
     RunCmd(ret);
@@ -135,8 +128,6 @@ static int32_t HiebpfSessionStop()
     HILOG_DEBUG(LOG_CORE, "enter");
     std::string stop = "hiebpf --stop true";
     RunCmd(stop);
-    int sleepSeconds = 2;
-    std::this_thread::sleep_for(std::chrono::seconds(sleepSeconds));
     HILOG_DEBUG(LOG_CORE, "leave");
     return RET_OK;
 }
