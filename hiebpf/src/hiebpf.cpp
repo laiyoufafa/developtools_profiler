@@ -200,8 +200,6 @@ int main(int argc, char* argv[])
 
     if (FLAGS_stop) {
         StopHiebpfServer();
-        int sleepSeconds = 2;
-        std::this_thread::sleep_for(std::chrono::seconds(sleepSeconds));
         return 0;
     }
 

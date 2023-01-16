@@ -12,8 +12,6 @@
  * limitations under the License.
  */
 
-#include <chrono>
-#include <thread>
 #include <mutex>
 #include <unistd.h>
 #include <array>
@@ -33,11 +31,66 @@ constexpr int32_t RET_OK = 0;
 constexpr int32_t RET_ERR = -1;
 std::string HIEBPF_COMMAND = "hiebpf";
 bool g_releaseResources = false;
-std::unique_ptr<FILE, decltype(&pclose)> g_pipe(nullptr, nullptr);
+volatile pid_t g_childPid = -1;
 
-void RunCmd(std::string cmd)
+std::vector<std::string> StringSplit(std::string source, std::string split)
 {
-    std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd.c_str(), "r"), pclose);
+    size_t pos = 0;
+    std::vector<std::string> result;
+
+    // find
+    if (!split.empty()) {
+        while ((pos = source.find(split)) != std::string::npos) {
+            // split
+            std::string token = source.substr(0, pos);
+            if (!token.empty()) {
+                result.push_back(token);
+            }
+            source.erase(0, pos + split.length());
+        }
+    }
+    // add last token
+    if (!source.empty()) {
+        result.push_back(source);
+    }
+    return result;
+}
+
+void RunCmd(std::string& cmd)
+{
+    auto splitCmd = StringSplit(cmd, " ");
+    if (splitCmd[0].compare("hiebpf") == 0) {
+        splitCmd[0] = "/bin/hiebpf";
+    } else {
+        HILOG_ERROR(LOG_CORE, "hiebpf-plugin command line parameter is incorrect cmd: %s", cmd.c_str());
+        return;
+    }
+
+    pid_t pid = fork();
+    if (pid == 0) {
+        int32_t fd = open("/dev/null", O_WRONLY);
+        dup2(fd, STDOUT_FILENO);
+        std::vector<char*> argv(splitCmd.size() + 1, nullptr);
+        for (size_t i = 0, cmdSize = splitCmd.size(); i < cmdSize; i++) {
+            argv[i] = const_cast<char*>(splitCmd[i].data());
+        }
+
+        if (execve(argv[0], &argv[0], nullptr) == -1) {
+            HILOG_INFO(LOG_CORE, "execve failed {%s:%s}",  __func__, strerror(errno));
+            exit(EXIT_FAILURE);
+        }
+    }
+    g_childPid = pid;
+
+    int stat = 0;
+    while (waitpid(g_childPid, &stat, 0) == -1) {
+        if (errno == EINTR) {
+            continue;
+        } else {
+            HILOG_INFO(LOG_CORE, "%s: success!%s.", __func__, strerror(errno));
+            return;
+        }
+    }
 }
 } // namespace
 
@@ -61,11 +114,6 @@ static int32_t HiebpfSessionStart(const uint8_t* configData, uint32_t configSize
         HILOG_ERROR(LOG_CORE,"The out file path more than %zu bytes", defaultSize);
         return RET_ERR;
     }
-    // int32_t ret = strncpy_s(g_pluginModule.outFileName, defaultSize, config.outfile_name().c_str(), defaultSize - 1);
-    // if (ret != EOK) {
-    //     HILOG_ERROR(LOG_CORE, "strncpy_s error! outfile is %s", config.outfile_name().c_str());
-    //     return RET_ERR;
-    // }
     std::string ret = config.cmd_line();
     ret += " --start true";
     RunCmd(ret);
@@ -80,8 +128,6 @@ static int32_t HiebpfSessionStop()
     HILOG_DEBUG(LOG_CORE, "enter");
     std::string stop = "hiebpf --stop true";
     RunCmd(stop);
-    int sleepSeconds = 2;
-    std::this_thread::sleep_for(std::chrono::seconds(sleepSeconds));
     HILOG_DEBUG(LOG_CORE, "leave");
     return RET_OK;
 }
