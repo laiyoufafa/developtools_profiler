@@ -502,9 +502,16 @@ FILE* HilogPlugin::CustomPopen(const char* command, const char* type)
             close(fd[WRITE]);
             dup2(fd[READ], 0); // Redirect stdin to pipe
         }
-
         setpgid(pid, pid);
-        execl(BIN_COMMAND.c_str(), BIN_COMMAND.c_str(), "-c", command, NULL);
+        std::vector<std::string> cmdArg;
+        COMMON::SplitString(std::string(command), " ", cmdArg);
+        std::vector<char*> vectArgv;
+        for (auto& item : cmdArg) {
+            vectArgv.push_back(const_cast<char*>(item.c_str()));
+        }
+        // execv : the last argv must be nullptr.
+        vectArgv.push_back(nullptr);
+        execv(BIN_COMMAND.c_str(), &vectArgv[0]);
         exit(0);
     } else {
         if (!strncmp(type, "r", strlen(type))) {
