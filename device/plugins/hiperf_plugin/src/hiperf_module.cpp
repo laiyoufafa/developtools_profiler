@@ -88,7 +88,7 @@ bool RunCommand(const std::string& cmd)
     int childPid = -1;
     bool res = false;
     std::vector<std::string> cmdArg;
-    COMMON::SplitString(cmd,cmdArg," ");
+    COMMON::SplitString(cmd, cmdArg, " ");
     FILE* fp = COMMON::CustomPopen(childPid, HIPERF_BIN_PATH, cmdArg, "r");
     if (fp == nullptr) {
         HILOG_ERROR(LOG_CORE, "HiperfPlugin::RunCommand CustomPopen FAILED!r");

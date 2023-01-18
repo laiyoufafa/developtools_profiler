@@ -43,7 +43,6 @@ const int FILE_PATH_SIZE = 512;
 const int BUFFER_SIZE = 1024;
 const int INVALID_PID = -1;
 
-const std::string BIN_COMMAND("/bin/sh");
 
 bool IsProcessRunning()
 {
