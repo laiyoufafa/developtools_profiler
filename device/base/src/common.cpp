@@ -273,23 +273,23 @@ int GetServicePort()
     return port;
 }
 
-void SplitString(const std::string& str, std::vector<std::string>& ret, const std::string& sep)
+void SplitString(const std::string& str, const std::string &sep, std::vector<std::string>& ret)
 {
     if (str.empty()) {
         HILOG_ERROR(LOG_CORE, "The string splited is empty!");
         return;
     }
-    std::string::size_type posBegin = str.find_first_not_of(sep);
+    std::string::size_type beginPos = str.find_first_not_of(sep);
     std::string::size_type findPos = 0;
-    while (posBegin != std::string::npos) {
-        findPos = str.find(sep, posBegin);
+    while (beginPos != std::string::npos) {
+        findPos = str.find(sep, beginPos);
         std::string tmp;
         if (findPos != std::string::npos) {
-            tmp = str.substr(posBegin, findPos - posBegin);
-            posBegin = findPos + sep.length();
+            tmp = str.substr(beginPos, findPos - beginPos);
+            beginPos = findPos + sep.length();
         } else {
-            tmp = str.substr(posBegin);
-            posBegin = findPos;
+            tmp = str.substr(beginPos);
+            beginPos = findPos;
         }
         if (!tmp.empty()) {
             ret.push_back(tmp);

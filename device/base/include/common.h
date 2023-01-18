@@ -27,7 +27,7 @@ void PrintMallinfoLog(const std::string& mallInfoPrefix);
 FILE* CustomPopen(int& childPid, const std::string& filePath, std::vector<std::string>& argv, const char* type);
 int CustomPclose(FILE* fp, int childPid);
 int GetServicePort();
-void SplitString(const std::string& str, std::vector<std::string>& ret, const std::string &sep );
+void SplitString(const std::string& str, const std::string &sep, std::vector<std::string>& ret);
 } // COMMON
 
 #endif // COMMON_H

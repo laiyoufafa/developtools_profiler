@@ -78,7 +78,7 @@ int HilogPlugin::Start(const uint8_t* configData, uint32_t configSize)
         fullCmd_ = ClearHilog();
         int childPid = -1;
         std::vector<std::string> cmdArg;
-        COMMON::SplitString(fullCmd_, cmdArg, " ");
+        COMMON::SplitString(fullCmd_, " ", cmdArg);
         FILE* fp = COMMON::CustomPopen(childPid, BIN_COMMAND, cmdArg, "r");
         if (fp == nullptr) {
             HILOG_ERROR(LOG_CORE, "%s:clear hilog error", __func__);
