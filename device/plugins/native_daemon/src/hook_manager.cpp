@@ -240,7 +240,6 @@ bool HookManager::CreatePluginSession(const std::vector<ProfilerPluginConfig>& c
     hookService_ = std::make_shared<HookService>(shareMemoryBlock_->GetfileDescriptor(),
                                                 eventNotifier_->GetFd(), pid_, hookConfig_.process_name(), hookConfig);
     CHECK_NOTNULL(hookService_, false, "HookService create failed!");
-
     stackData_ = std::make_shared<StackDataRepeater>(STACK_DATA_SIZE);
     CHECK_TRUE(stackData_ != nullptr, false, "Create StackDataRepeater FAIL");
     stackPreprocess_ = std::make_shared<StackPreprocess>(stackData_, hookConfig_);
