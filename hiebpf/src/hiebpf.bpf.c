@@ -189,7 +189,7 @@ int emit_fstrace_event(void* ctx, int64_t retval)
     }
 
 	// send out the complete event data to perf event buffer
-    bpf_ringbuf_submit(cmplt_event, 0);
+    bpf_ringbuf_submit(cmplt_event, BPF_RB_FORCE_WAKEUP);
     return 0;
 }
 
@@ -377,8 +377,8 @@ int emit_pftrace_event(void* ctx, int64_t retval)
         bpf_ringbuf_discard(cmplt_event, BPF_RB_NO_WAKEUP);
         return -1;
     }
-    bpf_ringbuf_submit(cmplt_event, 0);
 
+    bpf_ringbuf_submit(cmplt_event, BPF_RB_FORCE_WAKEUP);
     return 0;
 }
 
@@ -661,7 +661,7 @@ int emit_strtrace_event(u64 stime, u32 type, const void *addr, u32 stracer)
         return -1;
     }
     cmplt_event->len = err;
-    bpf_ringbuf_submit(cmplt_event, 0);
+    bpf_ringbuf_submit(cmplt_event, BPF_RB_FORCE_WAKEUP);
     return 0;
 }
 
@@ -843,7 +843,7 @@ int BPF_PROG(blk_update_request, struct request *rq)
         }
         cmplt_event->start_event.ustack_id = (int64_t)bpf_get_stackid(ctx, ustack_map_ptr, 0);
     }
-    bpf_ringbuf_submit(cmplt_event, 2);
+    bpf_ringbuf_submit(cmplt_event, BPF_RB_FORCE_WAKEUP);
     return 0;
 }
 /*************************** bio BPF progs END *******************************/
@@ -868,7 +868,7 @@ int BPF_KRETPROBE(uretprobe_dlopen, void *ret)
     start_event->type = DLOPEN_TRACE;
     u64 tgid_pid = bpf_get_current_pid_tgid();
     start_event->tgid = (u32)(tgid_pid >> 32);
-    bpf_ringbuf_submit(start_event, 2);
+    bpf_ringbuf_submit(start_event, BPF_RB_FORCE_WAKEUP);
     return 0;
 }
 /*************************** user BPF progs END ****************************/
