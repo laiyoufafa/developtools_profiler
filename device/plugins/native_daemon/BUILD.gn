@@ -34,6 +34,13 @@ config("hook_config") {
   defines += [ "target_cpu_${target_cpu}" ]
 }
 
+ohos_prebuilt_etc("hiprofiler_daemon.cfg") {
+  source = "config/hiprofiler_daemon.cfg"
+  relative_install_dir = "init"
+  part_name = "${OHOS_PROFILER_PART_NAME}"
+  subsystem_name = "${OHOS_PROFILER_SUBSYS_NAME}"
+}
+
 ohos_executable("native_daemon") {
   output_name = "native_daemon"
   sources = [
@@ -85,6 +92,7 @@ ohos_executable("native_daemon") {
     "//third_party/bounds_checking_function:libsec_static",
     "//third_party/libunwind:unwind_source_${target_cpu}",
     "//third_party/zlib:libz",
+    ":hiprofiler_daemon.cfg",
   ]
   configs = [ ":cflags_config" ]
   public_configs = [
