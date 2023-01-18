@@ -226,6 +226,7 @@ bool HookManager::CreatePluginSession(const std::vector<ProfilerPluginConfig>& c
     hookConfig |= hookConfig_.munmap_stack_report() ? MUNMAPMSGSTACK : 0;
     hookConfig |= hookConfig_.fp_unwind() ? FPUNWIND : 0;
     hookConfig |= hookConfig_.blocked() ? BLOCKED : 0;
+
     hookConfig <<= MOVE_BIT_16;
     hookConfig |= hookConfig_.filter_size();
     hookConfig <<= MOVE_BIT_32;
@@ -239,6 +240,7 @@ bool HookManager::CreatePluginSession(const std::vector<ProfilerPluginConfig>& c
     hookService_ = std::make_shared<HookService>(shareMemoryBlock_->GetfileDescriptor(),
                                                 eventNotifier_->GetFd(), pid_, hookConfig_.process_name(), hookConfig);
     CHECK_NOTNULL(hookService_, false, "HookService create failed!");
+
     stackData_ = std::make_shared<StackDataRepeater>(STACK_DATA_SIZE);
     CHECK_TRUE(stackData_ != nullptr, false, "Create StackDataRepeater FAIL");
     stackPreprocess_ = std::make_shared<StackPreprocess>(stackData_, hookConfig_);
