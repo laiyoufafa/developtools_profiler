@@ -279,11 +279,11 @@ void SplitString(const std::string& str, std::vector<std::string>& ret, const st
         HILOG_ERROR(LOG_CORE, "The string splited is empty!");
         return;
     }
-    std::string tmp;
     std::string::size_type posBegin = str.find_first_not_of(sep);
     std::string::size_type findPos = 0;
     while (posBegin != std::string::npos) {
         findPos = str.find(sep, posBegin);
+        std::string tmp;
         if (findPos != std::string::npos) {
             tmp = str.substr(posBegin, findPos - posBegin);
             posBegin = findPos + sep.length();
@@ -297,5 +297,4 @@ void SplitString(const std::string& str, std::vector<std::string>& ret, const st
         }
     }
 }
-
 } // namespace COMMON
