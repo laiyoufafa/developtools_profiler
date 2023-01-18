@@ -24,6 +24,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
+#include "common.h"
 
 namespace {
 std::atomic<uint64_t> g_id(1);
@@ -76,11 +77,13 @@ int HilogPlugin::Start(const uint8_t* configData, uint32_t configSize)
 
     if (protoConfig_.need_clear()) {
         fullCmd_ = ClearHilog();
-        std::unique_ptr<FILE, int (*)(FILE*)> fp(popen(fullCmd_.c_str(), "r"), pclose);
-        if (!fp) {
+        int childPid = -1;
+        FILE* fp = COMMON::CustomPopen(childPid, fullCmd_, "r");
+        if (fp == nullptr) {
             HILOG_ERROR(LOG_CORE, "%s:clear hilog error", __func__);
             return false;
         }
+        COMMON::CustomPclose(fp, childPid);
     }
 
     if (!InitHilogCmd()) {
