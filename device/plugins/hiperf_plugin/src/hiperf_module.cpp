@@ -37,6 +37,7 @@ const std::string HIPERF_RECORD_START = " --control start";
 const std::string HIPERF_RECORD_STOP = " --control stop";
 const std::string HIPERF_RECORD_OK = "sampling success";
 const int WAIT_HIPERF_TIME = 10;
+const std::string HIPERF_BIN_PATH = "/system/bin/hiperf";
 
 std::mutex g_taskMutex;
 bool g_isRoot = false;
@@ -86,7 +87,9 @@ bool RunCommand(const std::string& cmd)
     HILOG_INFO(LOG_CORE, "run command: %s", cmd.c_str());
     int childPid = -1;
     bool res = false;
-    FILE* fp = COMMON::CustomPopen(childPid, cmd, "r");
+    std::vector<std::string> cmdArg;
+    COMMON::SplitString(cmd,cmdArg," ");
+    FILE* fp = COMMON::CustomPopen(childPid, HIPERF_BIN_PATH, cmdArg, "r");
     if (fp == nullptr) {
         HILOG_ERROR(LOG_CORE, "HiperfPlugin::RunCommand CustomPopen FAILED!r");
         return false;

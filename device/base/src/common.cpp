@@ -181,7 +181,7 @@ void PrintMallinfoLog(const std::string& mallInfoPrefix)
 #endif  // HOOK_ENABLE
 }
 
-FILE* CustomPopen(int& childPid, const std::string& command, const char* type)
+FILE* CustomPopen(int& childPid, const std::string& filePath, std::vector<std::string>& argv, const char* type)
 {
     if (type == nullptr) {
         HILOG_ERROR(LOG_CORE, "Common:%s param invalid", __func__);
@@ -205,7 +205,13 @@ FILE* CustomPopen(int& childPid, const std::string& command, const char* type)
             dup2(fd[READ], 0);  // Redirect stdin to pipe
         }
         setpgid(pid, pid);
-        execl(BIN_COMMAND.c_str(), BIN_COMMAND.c_str(), "-c", command.c_str(), NULL);
+        std::vector<char*> vectArgv;
+        for (auto& item : argv) {
+            vectArgv.push_back(const_cast<char*>(item.c_str()));
+        }
+        // execv : the last argv must be nullptr.
+        vectArgv.push_back(nullptr);
+        execv(filePath.c_str(), &vectArgv[0]);
         exit(0);
     } else {
         if (!strncmp(type, "r", strlen(type))) {
@@ -267,4 +273,30 @@ int GetServicePort()
     HILOG_DEBUG(LOG_CORE, "Service port is: %d", port);
     return port;
 }
-} // COMMON
+
+void SplitString(const std::string& str, std::vector<std::string>& ret, const std::string& sep)
+{
+    if (str.empty()) {
+        HILOG_ERROR(LOG_CORE, "The string splited is empty!");
+        return;
+    }
+    std::string tmp;
+    std::string::size_type posBegin = str.find_first_not_of(sep);
+    std::string::size_type findPos = 0;
+    while (posBegin != std::string::npos) {
+        findPos = str.find(sep, posBegin);
+        if (findPos != std::string::npos) {
+            tmp = str.substr(posBegin, findPos - posBegin);
+            posBegin = findPos + sep.length();
+        } else {
+            tmp = str.substr(posBegin);
+            posBegin = findPos;
+        }
+        if (!tmp.empty()) {
+            ret.push_back(tmp);
+            tmp.clear();
+        }
+    }
+}
+
+} // namespace COMMON

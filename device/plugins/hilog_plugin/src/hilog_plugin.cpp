@@ -43,7 +43,7 @@ static pid_t volatile g_child;
 const int READ = 0;
 const int WRITE = 1;
 const int PIPE_LEN = 2;
-const std::string BIN_COMMAND("/bin/sh");
+const std::string BIN_COMMAND("/system/bin/hilog");
 } // namespace
 
 HilogPlugin::HilogPlugin() : fp_(nullptr, nullptr) {}
@@ -74,18 +74,18 @@ int HilogPlugin::Start(const uint8_t* configData, uint32_t configSize)
         HILOG_ERROR(LOG_CORE, "HilogPlugin: ParseFromArray failed");
         return -1;
     }
-
     if (protoConfig_.need_clear()) {
         fullCmd_ = ClearHilog();
         int childPid = -1;
-        FILE* fp = COMMON::CustomPopen(childPid, fullCmd_, "r");
+        std::vector<std::string> cmdArg;
+        COMMON::SplitString(fullCmd_,cmdArg," ");
+        FILE* fp = COMMON::CustomPopen(childPid, BIN_COMMAND, cmdArg, "r");
         if (fp == nullptr) {
             HILOG_ERROR(LOG_CORE, "%s:clear hilog error", __func__);
             return false;
         }
         COMMON::CustomPclose(fp, childPid);
     }
-
     if (!InitHilogCmd()) {
         HILOG_ERROR(LOG_CORE, "HilogPlugin: Init HilogCmd failed");
         return -1;
