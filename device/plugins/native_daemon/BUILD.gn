@@ -84,6 +84,7 @@ ohos_executable("native_daemon") {
     "//third_party/googletest/googletest/include",
   ]
   deps = [
+    ":hiprofiler_daemon.cfg",
     "${OHOS_PROFILER_DIR}/device/services/shared_memory:shared_memory",
     "${OHOS_PROFILER_DIR}/protos/services:plugin_service_proto",
     "${OHOS_PROFILER_DIR}/protos/services:profiler_service_all_type_source",
@@ -92,7 +93,6 @@ ohos_executable("native_daemon") {
     "//third_party/bounds_checking_function:libsec_static",
     "//third_party/libunwind:unwind_source_${target_cpu}",
     "//third_party/zlib:libz",
-    ":hiprofiler_daemon.cfg",
   ]
   configs = [ ":cflags_config" ]
   public_configs = [
