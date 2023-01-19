@@ -229,11 +229,11 @@ bool HookManager::CreatePluginSession(const std::vector<ProfilerPluginConfig>& c
     hookConfig <<= MOVE_BIT_32;
     hookConfig |= bufferSize;
 
-    recordAccurately_ = hookConfig_.record_accurately();
+    isRecordAccurately_ = hookConfig_.record_accurately();
     HILOG_INFO(LOG_CORE, "hookConfig filter size = %d, malloc disable = %d mmap disable = %d smb size = %u",
         hookConfig_.filter_size(), hookConfig_.malloc_disable(), hookConfig_.mmap_disable(), bufferSize);
     HILOG_INFO(LOG_CORE, "hookConfig fp unwind = %d, max stack depth = %d, record_accurately=%d",
-        hookConfig_.fp_unwind(), hookConfig_.max_stack_depth(), recordAccurately_);
+        hookConfig_.fp_unwind(), hookConfig_.max_stack_depth(), isRecordAccurately_);
 
     hookService_ = std::make_shared<HookService>(shareMemoryBlock_->GetfileDescriptor(),
                                                 eventNotifier_->GetFd(), pid_, hookConfig_.process_name(), hookConfig);
@@ -280,7 +280,7 @@ void HookManager::ReadShareMemory()
         if (!ret) {
             break;
         }
-        if (!stackData_->PutRawStack(rawStack, recordAccurately_)) {
+        if (!stackData_->PutRawStack(rawStack, isRecordAccurately_)) {
             break;
         }
     }

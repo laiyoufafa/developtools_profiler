@@ -91,7 +91,7 @@ private:
     StackDataRepeaterPtr stackData_;
     std::shared_ptr<StackPreprocess> stackPreprocess_;
     int pid_;
-    bool recordAccurately_ = false;
+    bool isRecordAccurately_ = false;
 };
 
 #endif // AGENT_MANAGER_H

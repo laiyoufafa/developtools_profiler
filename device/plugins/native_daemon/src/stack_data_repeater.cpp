@@ -55,7 +55,7 @@ void StackDataRepeater::Close()
     itemCondVar_.notify_all();
 }
 
-bool StackDataRepeater::PutRawStack(const RawStackPtr& rawData, bool recordAccurately)
+bool StackDataRepeater::PutRawStack(const RawStackPtr& rawData, bool isRecordAccurately)
 {
     bool needInsert = true;
     std::unique_lock<std::mutex> lock(mutex_);
@@ -71,25 +71,26 @@ bool StackDataRepeater::PutRawStack(const RawStackPtr& rawData, bool recordAccur
         return false;
     }
 
-    if (__builtin_expect(rawData != nullptr, true)) {
-        if (!recordAccurately) {
-            if (rawData->stackConext.type == FREE_MSG) {
-                auto temp = mallocMap_.find(rawData->stackConext.addr);
-                // true  : pair of malloc and free matched, both malloc and free will be ignored
-                // false : can not match, send free's data anyway
-                if (temp != mallocMap_.end()) {
-                    temp->second->reportFlag = false; // will be ignore later
-                    mallocMap_.erase(rawData->stackConext.addr);
-                    needInsert = false;
-                }
-            } else if (rawData->stackConext.type == MALLOC_MSG) {
-                mallocMap_.insert(std::pair<void*, std::shared_ptr<RawStack>>(rawData->stackConext.addr, rawData));
+    if (__builtin_expect((rawData != nullptr) && !isRecordAccurately, true)) {
+        if (rawData->stackConext.type == FREE_MSG) {
+            auto temp = mallocMap_.find(rawData->stackConext.addr);
+            // true  : pair of malloc and free matched, both malloc and free will be ignored
+            // false : can not match, send free's data anyway
+            if (temp != mallocMap_.end()) {
+                temp->second->reportFlag = false; // will be ignore later
+                mallocMap_.erase(rawData->stackConext.addr);
+                needInsert = false;
             }
+        } else if (rawData->stackConext.type == MALLOC_MSG) {
+            mallocMap_.insert(std::pair<void*, std::shared_ptr<RawStack>>(rawData->stackConext.addr, rawData));
         }
-    }
-    if (needInsert) {
+        if (needInsert) {
+            rawDataQueue_.push_back(rawData);
+        }
+    } else {
         rawDataQueue_.push_back(rawData);
     }
+
     lock.unlock();
     itemCondVar_.notify_one();
     return true;
