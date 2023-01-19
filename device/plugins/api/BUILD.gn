@@ -76,9 +76,9 @@ ohos_prebuilt_etc("hiprofiler_plugins.cfg") {
 
 ohos_executable("hiprofiler_plugins") {
   deps = [
-    ":plugins_sources",
     ":hiprofiler_plugins.cfg",
-    ]
+    ":plugins_sources",
+  ]
   sources = [ "src/main.cpp" ]
   if (current_toolchain != host_toolchain) {
     defines = [ "HAVE_HILOG" ]
