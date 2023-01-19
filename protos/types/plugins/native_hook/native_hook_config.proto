@@ -34,4 +34,5 @@ message NativeHookConfig {
     bool string_compressed = 14;
     bool fp_unwind = 15;
     bool blocked = 16;
+    bool record_accurately = 17;
 }

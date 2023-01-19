@@ -55,7 +55,7 @@ void StackDataRepeater::Close()
     itemCondVar_.notify_all();
 }
 
-bool StackDataRepeater::PutRawStack(const RawStackPtr& rawData)
+bool StackDataRepeater::PutRawStack(const RawStackPtr& rawData, bool recordAccurately)
 {
     bool needInsert = true;
     std::unique_lock<std::mutex> lock(mutex_);
@@ -72,17 +72,19 @@ bool StackDataRepeater::PutRawStack(const RawStackPtr& rawData)
     }
 
     if (__builtin_expect(rawData != nullptr, true)) {
-        if (rawData->stackConext.type == FREE_MSG) {
-            auto temp = mallocMap_.find(rawData->stackConext.addr);
-            // true  : pair of malloc and free matched, both malloc and free will be ignored
-            // false : can not match, send free's data anyway
-            if (temp != mallocMap_.end()) {
-                temp->second->reportFlag = false; // will be ignore later
-                mallocMap_.erase(rawData->stackConext.addr);
-                needInsert = false;
+        if (!recordAccurately) {
+            if (rawData->stackConext.type == FREE_MSG) {
+                auto temp = mallocMap_.find(rawData->stackConext.addr);
+                // true  : pair of malloc and free matched, both malloc and free will be ignored
+                // false : can not match, send free's data anyway
+                if (temp != mallocMap_.end()) {
+                    temp->second->reportFlag = false; // will be ignore later
+                    mallocMap_.erase(rawData->stackConext.addr);
+                    needInsert = false;
+                }
+            } else if (rawData->stackConext.type == MALLOC_MSG) {
+                mallocMap_.insert(std::pair<void*, std::shared_ptr<RawStack>>(rawData->stackConext.addr, rawData));
             }
-        } else if (rawData->stackConext.type == MALLOC_MSG) {
-            mallocMap_.insert(std::pair<void *, std::shared_ptr<RawStack>>(rawData->stackConext.addr, rawData));
         }
     }
     if (needInsert) {
