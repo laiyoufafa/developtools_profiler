@@ -103,7 +103,7 @@ bool StackPreprocess::StopTakeResults()
     CHECK_TRUE(thread_.get_id() != std::thread::id(), false, "thread invalid");
 
     isStopTakeData_ = true;
-    dataRepeater_->PutRawStack(nullptr);
+    dataRepeater_->PutRawStack(nullptr, false);
     HILOG_INFO(LOG_CORE, "Wait thread join");
 
     if (thread_.joinable()) {
