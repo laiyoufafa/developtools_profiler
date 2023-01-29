@@ -161,7 +161,8 @@ void ApplyForRealloc(int mallocSize)
         printf("Invalid mallocSize.\n");
         return;
     }
-    clock_t timerStart, timerStop;
+    clock_t timerStart = 0;
+    clock_t timerStop = 0;
     double duration = 0;
     char* p = (char*)malloc(mallocSize);
     if (!p) {
