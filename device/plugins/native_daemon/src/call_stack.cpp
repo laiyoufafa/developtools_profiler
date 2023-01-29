@@ -473,7 +473,8 @@ bool CallStack::UnwindCallStack(const VirtualThread &thread, u64 *regs, u64 regs
         stackEnd_ = stackPoint_ + stackSize_;
     }
 
-    uint64_t ip, sp;
+    uint64_t ip = 0;
+    uint64_t sp = 0;
     if (!GetIpSP(ip, sp, regs_, regsNum_)) {
         HLOGW("unable get sp or sp , unable unwind");
         return false;
