@@ -16,8 +16,10 @@
 
 #include <climits>
 #include <cstring>
+#ifdef is_mingw
 #if !is_mingw
 #include <openssl/sha.h>
+#endif
 #endif
 #include <securec.h>
 #include "logging.h"
