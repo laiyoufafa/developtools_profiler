@@ -41,7 +41,7 @@ def main():
 
     # generate proto file
     proto_path = "{}/../../../../protos/types/plugins/ftrace_data/{}/".format(os.getcwd(), version)
-    proto_cmd = "python ftrace_proto_generator.py -a allowlist.txt -e {}{} -o ".format(events_file, proto_path)
+    proto_cmd = "python ftrace_proto_generator.py -a allowlist.txt -e {} -o {}".format(events_file, proto_path)
     if (subprocess.run(proto_cmd) != 0):
         logger.error('Execution python failed! cmd: {}'.format(proto_cmd))
         exit(2)

@@ -247,7 +247,7 @@ class EventFormatterCodeGenerator(FtraceEventCodeGenerator):
             f.write('    auto msg = event.{}_format();\n'.format(
                 str.lower(event.name)))
             f.write("    char buffer[BUFFER_SIZE];\n")
-            event.print_fmt = "\"{}: {}".format(event.name,event.print_fmt[2:])
+            event.print_fmt = "\"{}: {}".format(event.name, event.print_fmt[2:])
             event.print_fmt = str.replace(event.print_fmt, "=%zu", "=%llu")
             event.print_fmt = str.replace(event.print_fmt, "pfn=%llu", "pfn=%\" PRId64 \"")
             if (category == "binder") :
