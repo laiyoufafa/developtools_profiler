@@ -34,7 +34,7 @@ def main():
     version = args.version
 
     version_path = "device_kernel_version/{}".format(version)
-    events_file = version_path + "/events"
+    events_file = "{}/events".format(version_path)
     if not Path(events_file).is_dir():
         logger.error('device kernel events directory does not exist({})'.format(events_file))
         exit(1)
