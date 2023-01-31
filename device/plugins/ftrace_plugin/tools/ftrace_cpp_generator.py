@@ -456,7 +456,7 @@ class EventFormatterCodeGenerator(FtraceEventCodeGenerator):
             for field_info in event.remain_fields:
                 field_name = fix_field_name(field_info.name)
                 event.print_fmt = str.replace(event.print_fmt, "__get_str({})".format(field_name),
-                                                "msg.{}().c_str()".format(field_name))
+                                                    "msg.{}().c_str()".format(field_name))
                 event.print_fmt = str.replace(event.print_fmt, "__get_dynamic_array({})".format(field_name),
                                                     "msg.{}()".format(field_name))
                 if field_info.field.startswith('char {}['.format(field_name)) \
