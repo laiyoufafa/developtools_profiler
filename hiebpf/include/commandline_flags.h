@@ -24,6 +24,8 @@
 #include <cstdint>
 #include <type_traits>
 #include <typeinfo>
+#include <cstdlib>
+#include <climits>
 
 namespace CommandLineFlags {
 enum class FlagTypes {
@@ -271,128 +273,129 @@ static inline int ParseBoolFlag(const std::string& flag, const std::string& valS
 // just let exceptions abort the process.
 static inline int ParseInt8Flag(const std::string& flag, const std::string& valStr)
 {
-    std::size_t pos {0};
-    int8_t tmpVal = static_cast<int8_t>(std::stoi(valStr, &pos));
-    if (pos != valStr.length()) {
+    char* pos = nullptr;
+    long int tmpVal = strtol(valStr.c_str(), &pos, 10);
+    if (tmpVal == 0L || tmpVal == LONG_MAX || tmpVal == LONG_MIN) {
         std::cout << "CommandLineFlags ERROR: argument " << flag
                   << " of numeric type should only be assigned with number but "
                   << valStr << " is given" << std::endl;
         return -1;
     }
     int8_t* val = (int8_t*) flags_[flag].addr_;
-    *val = tmpVal;
+    *val = static_cast<int8_t>(tmpVal);
     return 0;
 }
 
 static inline int ParseInt16Flag(const std::string& flag, const std::string& valStr)
 {
-    std::size_t pos {0};
-    int16_t tmpVal = static_cast<int16_t>(std::stoi(valStr, &pos));
-    if (pos != valStr.length()) {
+    char* pos = nullptr;
+    long int tmpVal = strtol(valStr.c_str(), &pos, 10);
+    if (tmpVal == 0L || tmpVal == LONG_MAX || tmpVal == LONG_MIN) {
         std::cout << "CommandLineFlags ERROR: argument " << flag
                   << " of numeric type should only be assigned with number but "
                   << valStr << " is given" << std::endl;
         return -1;
     }
     int16_t* val = (int16_t*) flags_[flag].addr_;
-    *val = tmpVal;
+    *val = static_cast<int16_t>(tmpVal);
     return 0;
 }
 
 static inline int ParseInt32Flag(const std::string& flag, const std::string& valStr)
 {
-    std::size_t pos {0};
-    int32_t tmpVal = static_cast<int32_t>(std::stoi(valStr, &pos));
-    if (pos != valStr.length()) {
+    char* pos = nullptr;
+    long int tmpVal = strtol(valStr.c_str(), &pos, 10);
+    if (tmpVal == 0L || tmpVal == LONG_MAX || tmpVal == LONG_MIN) {
         std::cout << "CommandLineFlags ERROR: argument " << flag
                   << " of numeric type should only be assigned with number but "
                   << valStr << " is given" << std::endl;
         return -1;
     }
     int32_t* val = (int32_t*) flags_[flag].addr_;
-    *val = tmpVal;
+    *val = static_cast<int32_t>(tmpVal);
     return 0;
 }
 
 static inline int ParseInt64Flag(const std::string& flag, const std::string& valStr)
 {
-    std::size_t pos {0};
-    int64_t tmpVal = static_cast<int64_t>(std::stoll(valStr, &pos));
-    if (pos != valStr.length()) {
+    char* pos = nullptr;
+    long int tmpVal = strtol(valStr.c_str(), &pos, 10);
+    if (tmpVal == 0L || tmpVal == LONG_MAX || tmpVal == LONG_MIN) {
         std::cout << "CommandLineFlags ERROR: argument " << flag
                   << " of numeric type should only be assigned with number but "
                   << valStr << " is given" << std::endl;
         return -1;
     }
     int64_t* val = (int64_t*) flags_[flag].addr_;
-    *val = tmpVal;
+    *val = static_cast<int64_t>(tmpVal);
     return 0;
 }
 
 static inline int ParseUint8Flag(const std::string& flag, const std::string& valStr)
 {
-    std::size_t pos {0};
-    uint8_t tmpVal = static_cast<uint8_t>(std::stoull(valStr, &pos));
-    if (pos != valStr.length()) {
+    char* pos = nullptr;
+    unsigned long long int tmpVal = strtoull(valStr.c_str(), &pos, 10);
+    if (tmpVal == 0ULL || tmpVal == ULONG_MAX) {
         std::cout << "CommandLineFlags ERROR: argument " << flag
                   << " of numeric type should only be assigned with number but "
                   << valStr << " is given" << std::endl;
         return -1;
     }
     uint8_t* val = (uint8_t*) flags_[flag].addr_;
-    *val = tmpVal;
+    *val = static_cast<uint8_t>(tmpVal);
     return 0;
 }
 
 static inline int ParseUint16Flag(const std::string& flag, const std::string& valStr)
 {
-    std::size_t pos {0};
-    uint16_t tmpVal = static_cast<uint16_t>(std::stoull(valStr, &pos));
-    if (pos != valStr.length()) {
+    char* pos = nullptr;
+    unsigned long long int tmpVal = strtoull(valStr.c_str(), &pos, 10);
+    if (tmpVal == 0ULL || tmpVal == ULONG_MAX) {
         std::cout << "CommandLineFlags ERROR: argument " << flag
                   << " of numeric type should only be assigned with number but "
                   << valStr << " is given" << std::endl;
         return -1;
     }
     uint16_t* val = (uint16_t*) flags_[flag].addr_;
-    *val = tmpVal;
+    *val = static_cast<uint16_t>(tmpVal);
     return 0;
 }
 
 static inline int ParseUint32Flag(const std::string& flag, const std::string& valStr)
 {
-    uint32_t* val = (uint32_t*) flags_[flag].addr_;
-    std::size_t pos {0};
-    *val = static_cast<uint32_t>(std::stoull(valStr, &pos));
-    if (pos != valStr.length()) {
+    char* pos = nullptr;
+    unsigned long long int tmpVal = strtoull(valStr.c_str(), &pos, 10);
+    if (tmpVal == 0ULL || tmpVal == ULONG_MAX) {
         std::cout << "CommandLineFlags ERROR: argument " << flag
                   << " of numeric type should only be assigned with number but "
                   << valStr << " is given" << std::endl;
         return -1;
     }
+    uint32_t* val = (uint32_t*) flags_[flag].addr_;
+    *val = static_cast<uint32_t>(tmpVal);
     return 0;
 }
 
 static inline int ParseUint64Flag(const std::string& flag, const std::string& valStr)
 {
-    std::size_t pos {0};
-    uint64_t tmpVal = static_cast<uint64_t>(std::stoull(valStr, &pos));
-    if (pos != valStr.length()) {
+    char* pos = nullptr;
+    unsigned long long int tmpVal = strtoull(valStr.c_str(), &pos, 10);
+    if (tmpVal == 0ULL || tmpVal == ULONG_MAX) {
         std::cout << "CommandLineFlags ERROR: argument " << flag
                   << " of numeric type should only be assigned with number but "
                   << valStr << " is given" << std::endl;
         return -1;
     }
     uint64_t* val = (uint64_t*) flags_[flag].addr_;
-    *val = tmpVal;
+    *val = static_cast<uint64_t>(tmpVal);
     return 0;
 }
 
 static inline int ParseDoubleFlag(const std::string& flag, const std::string& valStr)
 {
-    std::size_t pos {0};
-    double tmpVal = static_cast<double>(std::stod(valStr, &pos));
-    if (pos != valStr.length()) {
+    char* pos = nullptr;
+    double tmpVal = strtod(valStr.c_str(), &pos);
+    if (tmpVal == 0.0 || tmpVal == HUGE_VAL) {
         std::cout << "CommandLineFlags ERROR: argument " << flag
                   << " of numeric type should only be assigned with number but "
                   << valStr << " is given" << std::endl;
@@ -447,16 +450,16 @@ static inline int ParseInt8ArrayFlag(const std::string& flag, const std::string&
                 continue;
             }
             auto str = valStr.substr(start, end - start);
-            std::size_t pos {0};
-            int8_t tmpVal = static_cast<int8_t>(std::stoi(str, &pos));
-            if (pos != str.length()) {
+            char* pos = nullptr;
+            long int tmpVal = strtol(valStr.c_str(), &pos, 10);
+            if (tmpVal == 0L || tmpVal == LONG_MAX || tmpVal == LONG_MIN) {
                 std::cout << "CommandLineFlags ERROR: argument " << flag
-                          << " of numeric array type should only be assigned with numbers but "
-                          << valStr << " is given" << std::endl;
+                  << " of numeric type should only be assigned with number but "
+                  << valStr << " is given" << std::endl;
                 val->clear();
                 return -1;
             }
-            val->push_back(tmpVal);
+            val->push_back(static_cast<int8_t>(tmpVal));
             start =  end + 1;
         }
     }
@@ -473,16 +476,16 @@ static inline int ParseInt16ArrayFlag(const std::string& flag, const std::string
                 continue;
             }
             auto str = valStr.substr(start, end - start);
-            std::size_t pos {0};
-            int16_t tmpVal = static_cast<int16_t>(std::stoi(str, &pos));
-            if (pos != str.length()) {
+            char* pos = nullptr;
+            long int tmpVal = strtol(valStr.c_str(), &pos, 10);
+            if (tmpVal == 0L || tmpVal == LONG_MAX || tmpVal == LONG_MIN) {
                 std::cout << "CommandLineFlags ERROR: argument " << flag
-                          << " of numeric array type should only be assigned with numbers but "
-                          << valStr << " is given" << std::endl;
+                  << " of numeric type should only be assigned with number but "
+                  << valStr << " is given" << std::endl;
                 val->clear();
                 return -1;
             }
-            val->push_back(tmpVal);
+            val->push_back(static_cast<int16_t>(tmpVal));
             start =  end + 1;
         }
     }
@@ -499,16 +502,16 @@ static inline int ParseInt32ArrayFlag(const std::string& flag, const std::string
                 continue;
             }
             auto str = valStr.substr(start, end - start);
-            std::size_t pos {0};
-            int32_t tmpVal = std::stoi(str, &pos);
-            if (pos != str.length()) {
+            char* pos = nullptr;
+            long int tmpVal = strtol(valStr.c_str(), &pos, 10);
+            if (tmpVal == 0L || tmpVal == LONG_MAX || tmpVal == LONG_MIN) {
                 std::cout << "CommandLineFlags ERROR: argument " << flag
-                          << " of numeric array type should only be assigned with numbers but "
-                          << valStr << " is given" << std::endl;
+                  << " of numeric type should only be assigned with number but "
+                  << valStr << " is given" << std::endl;
                 val->clear();
                 return -1;
             }
-            val->push_back(tmpVal);
+            val->push_back(static_cast<int32_t>(tmpVal));
             start =  end + 1;
         }
     }
@@ -525,16 +528,16 @@ static inline int ParseInt64ArrayFlag(const std::string& flag, const std::string
                 continue;
             }
             auto str = valStr.substr(start, end - start);
-            std::size_t pos {0};
-            int64_t tmpVal = std::stoll(str, &pos);
-            if (pos != str.length()) {
+            char* pos = nullptr;
+            long int tmpVal = strtol(valStr.c_str(), &pos, 10);
+            if (tmpVal == 0L || tmpVal == LONG_MAX || tmpVal == LONG_MIN) {
                 std::cout << "CommandLineFlags ERROR: argument " << flag
-                          << " of numeric array type should only be assigned with numbers but "
-                          << valStr << " is given" << std::endl;
+                  << " of numeric type should only be assigned with number but "
+                  << valStr << " is given" << std::endl;
                 val->clear();
                 return -1;
             }
-            val->push_back(tmpVal);
+            val->push_back(static_cast<int64_t>(tmpVal));
             start =  end + 1;
         }
     }
@@ -551,16 +554,16 @@ static inline int ParseUint8ArrayFlag(const std::string& flag, const std::string
                 continue;
             }
             auto str = valStr.substr(start, end - start);
-            std::size_t pos {0};
-            uint8_t tmpVal = static_cast<uint8_t>(std::stoull(str, &pos));
-            if (pos != str.length()) {
+            char* pos = nullptr;
+            unsigned long long int tmpVal = strtoull(valStr.c_str(), &pos, 10);
+            if (tmpVal == 0ULL || tmpVal == ULONG_MAX) {
                 std::cout << "CommandLineFlags ERROR: argument " << flag
-                          << " of numeric array type should only be assigned with numbers but "
+                          << " of numeric type should only be assigned with number but "
                           << valStr << " is given" << std::endl;
                 val->clear();
                 return -1;
             }
-            val->push_back(tmpVal);
+            val->push_back(static_cast<uint8_t>(tmpVal));
             start =  end + 1;
         }
     }
@@ -577,16 +580,16 @@ static inline int ParseUint16ArrayFlag(const std::string& flag, const std::strin
                 continue;
             }
             auto str = valStr.substr(start, end - start);
-            std::size_t pos {0};
-            uint16_t tmpVal = static_cast<uint16_t>(std::stoull(str, &pos));
-            if (pos != str.length()) {
+            char* pos = nullptr;
+            unsigned long long int tmpVal = strtoull(valStr.c_str(), &pos, 10);
+            if (tmpVal == 0ULL || tmpVal == ULONG_MAX) {
                 std::cout << "CommandLineFlags ERROR: argument " << flag
-                          << " of numeric array type should only be assigned with numbers but "
+                          << " of numeric type should only be assigned with number but "
                           << valStr << " is given" << std::endl;
                 val->clear();
                 return -1;
             }
-            val->push_back(tmpVal);
+            val->push_back(static_cast<uint16_t>(tmpVal));
             start =  end + 1;
         }
     }
@@ -603,16 +606,16 @@ static inline int ParseUint32ArrayFlag(const std::string& flag, const std::strin
                 continue;
             }
             auto str = valStr.substr(start, end - start);
-            std::size_t pos {0};
-            uint32_t tmpVal = static_cast<uint32_t>(std::stoull(str, &pos));
-            if (pos != str.length()) {
+            char* pos = nullptr;
+            unsigned long long int tmpVal = strtoull(valStr.c_str(), &pos, 10);
+            if (tmpVal == 0ULL || tmpVal == ULONG_MAX) {
                 std::cout << "CommandLineFlags ERROR: argument " << flag
-                          << " of numeric array type should only be assigned with numbers but "
+                          << " of numeric type should only be assigned with number but "
                           << valStr << " is given" << std::endl;
                 val->clear();
                 return -1;
             }
-            val->push_back(tmpVal);
+            val->push_back(static_cast<uint32_t>(tmpVal));
             start =  end + 1;
         }
     }
@@ -629,16 +632,16 @@ static inline int ParseUint64ArrayFlag(const std::string& flag, const std::strin
                 continue;
             }
             auto str = valStr.substr(start, end - start);
-            std::size_t pos {0};
-            uint64_t tmpVal = std::stoull(str, &pos);
-            if (pos != str.length()) {
+            char* pos = nullptr;
+            unsigned long long int tmpVal = strtoull(valStr.c_str(), &pos, 10);
+            if (tmpVal == 0ULL || tmpVal == ULONG_MAX) {
                 std::cout << "CommandLineFlags ERROR: argument " << flag
-                          << " of numeric array type should only be assigned with numbers but "
+                          << " of numeric type should only be assigned with number but "
                           << valStr << " is given" << std::endl;
                 val->clear();
                 return -1;
             }
-            val->push_back(tmpVal);
+            val->push_back(static_cast<uint64_t>(tmpVal));
             start =  end + 1;
         }
     }
@@ -655,11 +658,11 @@ static inline int ParseDoubleArrayFlag(const std::string& flag, const std::strin
                 continue;
             }
             auto str = valStr.substr(start, end - start);
-            std::size_t pos {0};
-            double tmpVal = std::stod(str, &pos);
-            if (pos != str.length()) {
+            char* pos = nullptr;
+            double tmpVal = strtod(valStr.c_str(), &pos);
+            if (tmpVal == 0.0 || tmpVal == HUGE_VAL) {
                 std::cout << "CommandLineFlags ERROR: argument " << flag
-                          << " of numeric array type should only be assigned with numbers but "
+                          << " of numeric type should only be assigned with number but "
                           << valStr << " is given" << std::endl;
                 val->clear();
                 return -1;
