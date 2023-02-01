@@ -28,7 +28,8 @@ public:
     static std::unique_ptr<BPFLogReader> MakeUnique(const std::string& logFile = "/data/local/tmp/bpf_log.txt");
     inline int Start()
     {
-#if defined(BPF_LOGGER_DEBUG) || defined(BPF_LOGGER_INFO) || defined(BPF_LOGGER_WARN) || defined(BPF_LOGGER_ERROR) || defined(BPF_LOGGER_FATAL)
+#if defined(BPF_LOGGER_DEBUG) || defined(BPF_LOGGER_INFO) || defined(BPF_LOGGER_WARN) ||  \
+    defined(BPF_LOGGER_ERROR) || defined(BPF_LOGGER_FATAL)
         worker_ = std::thread(&BPFLogReader::MoveBPFLog, this);
 #endif
         return 0;

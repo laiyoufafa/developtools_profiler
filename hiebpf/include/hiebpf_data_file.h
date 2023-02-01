@@ -80,9 +80,9 @@ private:
     HiebpfDataFile(
         const std::string& cmd,
         const std::string& filename,
-        const std::size_t pages = DEFAULT_MMAP_PAGES):
-        hiebpfCmd_ {cmd},
-        filename_ {filename}
+        const std::size_t pages = DEFAULT_MMAP_PAGES)
+        : hiebpfCmd_ {cmd},
+          filename_ {filename}
     {
         long pageSize = sysconf(_SC_PAGE_SIZE);
         HHLOGI(true, "page size of the current OS: %u bytes", pageSize);

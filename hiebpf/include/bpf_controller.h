@@ -138,7 +138,7 @@ private:
     static int DumpFSTraceEvent(BPFController *bpfctlr, void *data, size_t dataSize);
     static int DumpPFTraceEvent(BPFController *bpfctlr, void *data, size_t dataSize);
     static int DumpBIOTraceEvent(BPFController *bpfctlr, void *data, size_t dataSize);
-    static int DumpSTRTraceEvent(/* BPFController *bpfctlr, */void *data, size_t dataSize);
+    static int DumpSTRTraceEvent(void *data, size_t dataSize);
     static int DumpCallChain(BPFController *bpfctlr, const __u32 nips, const int64_t ustack_id);
 
     bool loopStop_ {false};

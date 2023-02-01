@@ -271,7 +271,6 @@ void EbpfConverter::SymbolInfoParsing()
             << "  fileName: " << info.fileName << '\n'
             << "  strTabAddr: 0x" << std::hex << record_[info.fileName].strTabAddr << std::dec << '\n'
             << "  symTabAddr: 0x" << std::hex << record_[info.fileName].symTabAddr << std::dec << '\n';
-
 }
 
 void EbpfConverter::EventMemParsing()
@@ -430,7 +429,10 @@ std::pair<std::string, std::vector<std::string>> EbpfConverter::GetSymbolInfo(ui
             Elf32_Sym sym;
             memset(&sym, 0, sizeof(sym));
             memcpy(&sym, symItem->second.strTab + count, SYM_ENT_LEN_32);
-            if (vaddr >= sym.st_value && vaddr <= sym.st_value + sym.st_size && (sym.st_info & STT_FUNC) && sym.st_value != 0) {
+            if (vaddr >= sym.st_value &&
+                vaddr <= sym.st_value + sym.st_size &&
+                (sym.st_info & STT_FUNC) &&
+                sym.st_value != 0) {
                 char *ret = abi::__cxa_demangle(symItem->second.strTab + sym.st_name, nullptr, nullptr, nullptr);
                 ret == nullptr ? symbolInfos.second.push_back(std::string(symItem->second.strTab + sym.st_name))
                     : symbolInfos.second.push_back(std::string(ret));

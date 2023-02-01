@@ -30,7 +30,7 @@ int HHLogger::InitLogger(const int logLevel, const std::string& logFile)
 {
     // Init logLevel, stop_, timer_ and buf_
     logLevel_ = logLevel;
-    if(UpdateTimer() != 0) {
+    if (UpdateTimer() != 0) {
         return -1;
     }
     constexpr enum RingBuffer::MemAlignShift memAlign {RingBuffer::MemAlignShift::W_ALIGN_SHIFT};
@@ -75,7 +75,8 @@ int HHLogger::Start(const int logLevel, const std::string& logFile)
         HHLOGD(true, "hhlog level is NONE!");
         return 0;
     }
-#if defined(HH_LOGGER_DEBUG) || defined(HH_LOGGER_INFO) || defined(HH_LOGGER_WARN) || defined(HH_LOGGER_ERROR) || defined(HH_LOGGER_FATAL)
+#if defined(HH_LOGGER_DEBUG) || defined(HH_LOGGER_INFO) || defined(HH_LOGGER_WARN) ||   \
+    defined(HH_LOGGER_ERROR) || defined(HH_LOGGER_FATAL)
     if (InitLogger(logLevel, logFile) != 0) {
         return -1;
     }
@@ -141,7 +142,7 @@ int HHLogger::UpdateTimer()
 
 int HHLogger::SaveLog()
 {
-    while(true) {
+    while (true) {
         if (UpdateTimer() != 0) {
             return -1;
         }

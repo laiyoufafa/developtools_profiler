@@ -30,7 +30,7 @@ int CommandHelper::Start(int* argc, char*** argv, const std::string& help)
         bool printTip {false};
         for (int count = 1; count < (*argc); ++count) {
             if ((*argv)[count] and strlen((*argv)[count]) != 0) {
-                // undefined commandline argument specified, we speculate the user may do 
+                // undefined commandline argument specified, we speculate the user may do
                 // not know the command usage. Hence print the usage help and continue
                 printTip = true;
                 std::cout << "CommandHelper WARN: argument " << (*argv)[count]

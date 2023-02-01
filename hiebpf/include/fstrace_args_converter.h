@@ -18,8 +18,8 @@
 
 #include "type_headers.h"
 
-
+constexpr int MAX_LEN = 20;
 using ConverterType = int (*) (__u64*, const struct fstrace_start_event_t *);
-extern ConverterType gArgsConverterTable[];
+extern ConverterType g_argsConverterTable[MAX_LEN];
 
 #endif
