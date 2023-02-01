@@ -259,7 +259,7 @@ int main(int argc, char* argv[])
 static inline std::vector<pid_t> GetTargetPidsFromFlag()
 {
     std::vector<pid_t> pids {};
-    for (int k = 0; k < FLAGS_pids.size(); ++ k) {
+    for (size_t k = 0; k < FLAGS_pids.size(); ++ k) {
         pids.push_back(static_cast<pid_t>(FLAGS_pids[k]));
     }
     return pids;
@@ -278,7 +278,7 @@ static inline std::set<HiebpfEventGroup> GetTargetEventsFromFlag()
     };
 
     std::set<HiebpfEventGroup> result {};
-    for (int k = 0; k < FLAGS_events.size(); ++k) {
+    for (size_t k = 0; k < FLAGS_events.size(); ++k) {
         const auto& it = eventGroupMap.find(FLAGS_events[k]);
         if (it == eventGroupMap.end()) {
             // cmdline input error, how notify cmdline?
@@ -289,7 +289,7 @@ static inline std::set<HiebpfEventGroup> GetTargetEventsFromFlag()
     return result;
 }
 
-static inline int GetBPFLogLevelFromFlag()
+static inline __u32 GetBPFLogLevelFromFlag()
 {
     if (FLAGS_bpf_log_level.compare("DEBUG") == 0 or
         FLAGS_bpf_log_level.compare("debug") == 0) {

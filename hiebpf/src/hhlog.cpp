@@ -15,6 +15,8 @@
 
 #include "hhlog.h"
 
+static constexpr int FILE_MODE = 0644;
+
 HHLogger::~HHLogger()
 {
     stop_.store(true);
@@ -57,7 +59,7 @@ int HHLogger::InitLogger(const int logLevel, const std::string& logFile)
     if (fileName.length() == 0) {
         return -1;
     }
-    fd_ = open(fileName.c_str(), O_WRONLY | O_CREAT);
+    fd_ = open(fileName.c_str(), O_WRONLY | O_CREAT, FILE_MODE);
     if (fd_ < 0) {
         return -1;
     }

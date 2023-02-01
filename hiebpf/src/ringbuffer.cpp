@@ -96,7 +96,7 @@ ssize_t RingBuffer::Read(const int fd, const std::size_t len)
     ssize_t ret = readv(fd, destBufs, numDests);
     if (ret != -1) {
         // update buffer status
-        tail_ += ret;
+        tail_ += static_cast<std::size_t>(ret);
         while (tail_ >= bufSize_) {
             tail_ -= bufSize_;
         }
@@ -135,7 +135,7 @@ ssize_t RingBuffer::Write(const int fd, std::size_t len)
     ssize_t ret = writev(fd, srcBufs, numSrcs);
     if (ret != -1) {
         // update buffer status
-        head_ += ret;
+        head_ += static_cast<std::size_t>(ret);
         while (head_ >= bufSize_) {
             head_ -= bufSize_;
         }
@@ -158,10 +158,16 @@ std::size_t RingBuffer::Get(char* dest, const std::size_t len)
     }
     if (head_ + len > bufSize_) {
         // data splitted
-        memcpy_s(dest, bufSize_ - head_, buffer_ + head_, bufSize_ - head_);
-        memcpy_s(dest + bufSize_ - head_, len + head_ - bufSize_, buffer_, len + head_ - bufSize_);
+        if (memcpy_s(dest, len, buffer_ + head_, bufSize_ - head_) != EOK) {
+            return 0;
+        }
+        if (memcpy_s(dest + bufSize_ - head_, len + head_ - bufSize_, buffer_, len + head_ - bufSize_) != EOK) {
+            return 0;
+        }
     } else {
-        memcpy_s(dest, len, buffer_ + head_, len);
+        if (memcpy_s(dest, len, buffer_ + head_, len) != EOK) {
+            return 0;
+        }
     }
     // update buffer status
     head_ += len;
@@ -189,11 +195,17 @@ int RingBuffer::Put(const char* str, const std::size_t len)
     }
     if (tail_ + len < bufSize_) {
         // continuous free space
-        memcpy_s(buffer_ + tail_, len, str, len);
+        if (memcpy_s(buffer_ + tail_, bufSize_ - tail_, str, len) != EOK) {
+            return -1;
+        }
     } else {
         // splitted free space
-        memcpy_s(buffer_ + tail_, bufSize_ - tail_, str, bufSize_ - tail_);
-        memcpy_s(buffer_, len + tail_ - bufSize_, str + bufSize_ - tail_, len + tail_ - bufSize_);
+        if (memcpy_s(buffer_ + tail_, bufSize_ - tail_, str, bufSize_ - tail_) != EOK) {
+            return -1;
+        }
+        if (memcpy_s(buffer_, bufSize_, str + bufSize_ - tail_, len + tail_ - bufSize_) != EOK) {
+            return -1;
+        }
     }
     // update buffer status
     tail_ += len;
@@ -208,7 +220,7 @@ int RingBuffer::Put(const std::string& str)
     if (str.empty()) {
         return -1;
     }
-    int len = str.length();
+    std::size_t len = str.length();
     if (len == 0) {
         return 0;
     }
@@ -222,11 +234,17 @@ int RingBuffer::Put(const std::string& str)
     }
     if (tail_ + len < bufSize_) {
         // continuous free space
-        memcpy_s(buffer_ + tail_, len, str.c_str(), len);
+        if (memcpy_s(buffer_ + tail_, bufSize_ - tail_, str.c_str(), len) != EOK) {
+            return -1;
+        }
     } else {
         // splitted free space
-        memcpy_s(buffer_ + tail_, bufSize_ - tail_, str.c_str(), bufSize_ - tail_);
-        memcpy_s(buffer_, len + tail_ - bufSize_, str.c_str() + bufSize_ - tail_, len + tail_ - bufSize_);
+        if (memcpy_s(buffer_ + tail_, bufSize_ - tail_, str.c_str(), bufSize_ - tail_) != EOK) {
+            return -1;
+        }
+        if (memcpy_s(buffer_, bufSize_, str.c_str() + bufSize_ - tail_, len + tail_ - bufSize_) != EOK) {
+            return -1;
+        }
     }
     // update buffer status
     tail_ += len;
@@ -282,11 +300,23 @@ int RingBuffer::Resize()
     auto dataSize = DataSize();
     if (head_ + dataSize > bufSize_) {
         // data splitted
-        memcpy_s(newBuf, bufSize_ - head_, buffer_ + head_, bufSize_ - head_);
-        memcpy_s(newBuf + bufSize_ - head_, dataSize + head_ - bufSize_, buffer_, dataSize + head_ - bufSize_);
+        if (memcpy_s(newBuf, expandedSize, buffer_ + head_, bufSize_ - head_) != EOK) {
+            delete[] newBuf;
+            return -1;
+        }
+        if (memcpy_s(newBuf + bufSize_ - head_,
+                     expandedSize - (bufSize_ - head_),
+                     buffer_,
+                     dataSize - (bufSize_ - head_)) != EOK) {
+            delete[] newBuf;
+            return -1;
+        }
     } else {
         // continuous data
-        memcpy_s(newBuf, dataSize, buffer_ + head_, dataSize);
+        if (memcpy_s(newBuf, expandedSize, buffer_ + head_, dataSize) != EOK) {
+            delete[] newBuf;
+            return -1;
+        }
     }
     // update buffer status
     delete[] buffer_;

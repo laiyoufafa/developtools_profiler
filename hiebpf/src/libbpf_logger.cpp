@@ -23,6 +23,8 @@
 #include "libbpf_logger.h"
 #include "hhlog.h"
 
+static constexpr int FILE_MODE = 0644;
+
 std::unique_ptr<LIBBPFLogger> LIBBPFLogger::MakeUnique(const std::string& logFile, int logLevel)
 {
     std::unique_ptr<LIBBPFLogger> logger {new(std::nothrow) LIBBPFLogger {logLevel}};
@@ -67,7 +69,7 @@ int LIBBPFLogger::OpenLogFile(const std::string& logFile)
         return -1;
     }
     fileName = "/data/local/tmp/" + fileName;
-    fd_ = open(fileName.c_str(), O_WRONLY | O_CREAT);
+    fd_ = open(fileName.c_str(), O_WRONLY | O_CREAT, FILE_MODE);
     if (fd_ < 0) {
         return -1;
     }

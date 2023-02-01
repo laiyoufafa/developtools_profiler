@@ -352,7 +352,7 @@ private:
     struct hiebpf_bpf *skel_ {};
     OHOS::Developtools::Hiebpf::MapsInfo mapsInfo_;
     OHOS::Developtools::Hiebpf::ElfSymbolInfo elfSymbolInfo_;
-    uint32_t ustackMapFd_ = 0;
+    int32_t ustackMapFd_ = 0;
     bool hasUStackMapFd_ = false;
 };
 #endif

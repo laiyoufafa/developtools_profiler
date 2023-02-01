@@ -60,18 +60,21 @@ public:
         va_list args;
         va_start(args, format);
         auto ftime = GetFormatTime();
-        int nbytes = ftime.length();
+        std::size_t nbytes = ftime.length();
         if (nbytes == 0 or nbytes >= MAX_HHLOG_SIZE) {
             return -1;
         }
         char buffer[MAX_HHLOG_SIZE];
-        memcpy_s(buffer, nbytes, ftime.c_str(), nbytes);
-        int ret = vsnprintf(buffer + nbytes, sizeof(buffer) - nbytes, format, args);
+        if (memcpy_s(buffer, sizeof(buffer), ftime.c_str(), nbytes) != EOK) {
+            return -1;
+        }
+        int ret = vsnprintf_s(buffer + nbytes, sizeof(buffer) - nbytes,
+                              sizeof(buffer) - nbytes - 1, format, args);
         va_end(args);
         if (ret < 0) {
             return -1;
         }
-        nbytes += ret;
+        nbytes += static_cast<std::size_t>(ret);
         if (nbytes >= MAX_HHLOG_SIZE) {
             return -1;
         }
@@ -117,7 +120,7 @@ private:
         (HHLogger::GetInstance().GetLogLevel() <= HHLOG_##level)) {         \
         const char prefix[] {" [" #level "] %s %d %s: %s"};                 \
         char buffer[HHLogger::MAX_FORMAT_SIZE];                             \
-        sprintf(buffer, prefix, __FILE__, __LINE__, __FUNCTION__, format);  \
+        snprintf_s(buffer, sizeof(buffer), sizeof(buffer) -1, prefix, __FILE__, __LINE__, __FUNCTION__, format);  \
         HHLogger::GetInstance().PutLog(buffer, ##__VA_ARGS__);              \
     }                                                                       \
 }

@@ -424,11 +424,11 @@ int check_current_pid(const int32_t pid, const int32_t tgid)
     bpf_probe_read_kernel(&tracer_pid, sizeof(int32_t), tracer_pid_ptr);
     int32_t curr_pid = pid;
     if (curr_pid < 0) {
-        curr_pid = bpf_get_current_pid_tgid();
+        curr_pid = (int32_t)bpf_get_current_pid_tgid();
     }
     int32_t curr_tgid = tgid;
     if (curr_tgid < 0) {
-        curr_tgid = (bpf_get_current_pid_tgid() >> 32);
+        curr_tgid = (int32_t)(bpf_get_current_pid_tgid() >> 32);
     }
     if (curr_pid == tracer_pid || curr_tgid == tracer_pid) {
         // currrent process is not a target process
@@ -480,7 +480,7 @@ int get_mountpoint_by_inode(char *filename, int len, const struct inode *host)
             BPFLOGD(BPF_TRUE, "failed to read dentry name from kernel stack buffer");
             break;
         }
-        pos += name_len;
+        pos += (size_t)name_len;
         filename[pos - 1] = '/';
         mnt = BPF_CORE_READ(mnt, mnt_parent);
     }
@@ -538,7 +538,7 @@ int get_filename_by_inode(char *filename, const size_t len, const struct inode *
             BPFLOGD(BPF_TRUE, "failed to read dentry name from kernel stack buffer");
             break;
         }
-        pos += name_len;
+        pos += (size_t)name_len;
         filename[pos - 1] = '/';
         struct dentry *temp_dentry = BPF_CORE_READ(curr_dentry, d_parent);
         if (temp_dentry == curr_dentry || temp_dentry == NULL) {
@@ -660,7 +660,7 @@ int emit_strtrace_event(u64 stime, u32 type, const void *addr, u32 stracer)
         bpf_ringbuf_discard(cmplt_event, BPF_RB_NO_WAKEUP);
         return -1;
     }
-    cmplt_event->len = err;
+    cmplt_event->len = (__u32)err;
     bpf_ringbuf_submit(cmplt_event, BPF_RB_FORCE_WAKEUP);
     return 0;
 }

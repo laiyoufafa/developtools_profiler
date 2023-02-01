@@ -26,6 +26,7 @@ constexpr int ROUND_COUNT = 1000;
 constexpr int BUF_SIZE = 512;
 const std::string FILE_NAME = "/data/local/tmp/hiebpf.txt";
 const std::string HIEBPF_FILE_NAME = "/data/local/tmp/hiebpf.data";
+constexpr int FILE_MODE = 0644;
 } // namespace
 
 namespace OHOS {
@@ -73,10 +74,10 @@ HWTEST_F(BpfControllerTest, Normal, TestSize.Level1)
     sleep(1);
 
     // create fs/bio data
-    int fd = open(FILE_NAME.c_str(), O_RDWR | O_CREAT);
+    int fd = open(FILE_NAME.c_str(), O_RDWR | O_CREAT, FILE_MODE);
     ASSERT_GT(fd, 0);
     char buf[BUF_SIZE] = {0};
-    memset_s(buf, sizeof(buf), '1', sizeof(buf));
+    ASSERT_TRUE(memset_s(buf, sizeof(buf), '1', sizeof(buf)) == EOK);
     off_t offset = 0;
     for (int i = 0; i < ROUND_COUNT; i++) {
         pwrite(fd, buf, sizeof(buf), offset);

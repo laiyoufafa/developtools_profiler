@@ -29,6 +29,7 @@ namespace {
 constexpr int32_t BUFFER_SIZE = 1 * 1024 * 1024;
 const std::string READ_FILE_NAME = "/data/local/tmp/hiebpfreadtest.txt";
 const std::string WRITE_FILE_NAME = "/data/local/tmp/hiebpfwritetest.txt";
+constexpr int FILE_MODE = 0777;
 } // namespace
 
 namespace OHOS {
@@ -173,7 +174,7 @@ HWTEST_F(RingbufferTest, Capacity, TestSize.Level1)
  */
 HWTEST_F(RingbufferTest, ReadAndWrite, TestSize.Level1)
 {
-    int readFd = open(READ_FILE_NAME.c_str(), O_CREAT | O_RDWR);
+    int readFd = open(READ_FILE_NAME.c_str(), O_CREAT | O_RDWR, FILE_MODE);
     ASSERT_GT(readFd, 0);
     std::string testStr = "this is hiebpf test file";
     for (int i = testStr.size(); i < RingBuffer::BufferSize::DEFAULT_SIZE - 1; i++) {
@@ -183,7 +184,7 @@ HWTEST_F(RingbufferTest, ReadAndWrite, TestSize.Level1)
     EXPECT_EQ(bytes, testStr.size());
     close(readFd);
 
-    readFd = open(READ_FILE_NAME.c_str(), O_CREAT | O_RDWR);
+    readFd = open(READ_FILE_NAME.c_str(), O_CREAT | O_RDWR, FILE_MODE);
     ASSERT_GT(readFd, 0);
     constexpr enum RingBuffer::MemAlignShift memAlign {RingBuffer::MemAlignShift::B_ALIGN_SHIFT};
     auto ringBuffer = std::make_unique<RingBuffer>(1, memAlign);
@@ -200,7 +201,7 @@ HWTEST_F(RingbufferTest, ReadAndWrite, TestSize.Level1)
     EXPECT_EQ(len, expectBytes);
     close(readFd);
 
-    int writeFd = open(WRITE_FILE_NAME.c_str(), O_CREAT | O_RDWR);
+    int writeFd = open(WRITE_FILE_NAME.c_str(), O_CREAT | O_RDWR, FILE_MODE);
     ASSERT_GT(writeFd, 0);
 
     ret = ringBuffer->Write(-1, 1);
@@ -210,13 +211,13 @@ HWTEST_F(RingbufferTest, ReadAndWrite, TestSize.Level1)
     close(writeFd);
 
     // The data length is greater than the buffer size, need to splitte read.
-    readFd = open(READ_FILE_NAME.c_str(), O_CREAT | O_RDWR);
+    readFd = open(READ_FILE_NAME.c_str(), O_CREAT | O_RDWR, FILE_MODE);
     ASSERT_GT(readFd, 0);
     len = ringBuffer->Read(readFd, bytes);
     EXPECT_EQ(len, bytes);
     close(readFd);
 
-    writeFd = open(WRITE_FILE_NAME.c_str(), O_CREAT | O_RDWR);
+    writeFd = open(WRITE_FILE_NAME.c_str(), O_CREAT | O_RDWR, FILE_MODE);
     ASSERT_GT(writeFd, 0);
     ret = ringBuffer->Write(writeFd, len);
     EXPECT_EQ(ret, len);
@@ -245,7 +246,7 @@ HWTEST_F(RingbufferTest, PutAndWriteChar, TestSize.Level1)
     EXPECT_EQ(len, testStr.size());
     EXPECT_EQ(ringBuffer->tail_, testStr.size());
 
-    int writeFd = open(WRITE_FILE_NAME.c_str(), O_CREAT | O_RDWR);
+    int writeFd = open(WRITE_FILE_NAME.c_str(), O_CREAT | O_RDWR, FILE_MODE);
     ASSERT_GT(writeFd, 0);
 
     ret = ringBuffer->Write(-1, 1);
@@ -276,7 +277,7 @@ HWTEST_F(RingbufferTest, PutAndWriteStr, TestSize.Level1)
     auto len = ringBuffer->Put(testStr);
     EXPECT_EQ(len, testStr.size());
 
-    int writeFd = open(WRITE_FILE_NAME.c_str(), O_CREAT | O_RDWR);
+    int writeFd = open(WRITE_FILE_NAME.c_str(), O_CREAT | O_RDWR, FILE_MODE);
     ASSERT_GT(writeFd, 0);
 
     ret = ringBuffer->Write(-1, 1);
@@ -399,7 +400,7 @@ HWTEST_F(RingbufferTest, Peek, TestSize.Level1)
     EXPECT_EQ(len, 1);
     const int size = RingBuffer::BufferSize::DEFAULT_SIZE - 1;
     char buff[size + 1];
-    memset_s(buff, size + 1, 0 , size + 1);
+    (void)memset_s(buff, size + 1, 0 , size + 1);
     ret = ringBuffer->Get(buff, size);
     EXPECT_STRNE(buff, "");
     EXPECT_EQ(ret, size);
@@ -443,7 +444,7 @@ HWTEST_F(RingbufferTest, Resize, TestSize.Level1)
     ret = ringBuffer->Put(putStr.c_str());
     EXPECT_EQ(ret, putStr.size());
     char buff[size + 1];
-    memset_s(buff, size + 1, 0 , size + 1);
+    (void)memset_s(buff, size + 1, 0 , size + 1);
     ret = ringBuffer->Get(buff, size);
     EXPECT_EQ(ret, size);
     EXPECT_STREQ(buff, destStr.c_str());

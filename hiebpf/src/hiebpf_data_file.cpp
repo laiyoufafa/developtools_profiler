@@ -19,6 +19,7 @@
 
 #include "kernel_symbol_info.h"
 
+
 std::shared_ptr<HiebpfDataFile> HiebpfDataFile::MakeShared(
     const std::string& cmd,
     const std::string& filename,
@@ -54,7 +55,7 @@ void* HiebpfDataFile::Reserve(const std::size_t size)
     }
     char* buffer = (char *)mapAddr_;
     buffer += offset_;
-    memset(buffer, 0, size);
+    (void)memset_s(buffer, size, 0, size);
     uint32_t *tracer = (uint32_t *) buffer;
     (*tracer) = BADTRACE;
     uint32_t *len = tracer + 1;
@@ -67,8 +68,8 @@ void HiebpfDataFile::Discard(void *data)
 {
     if (data) {
         int64_t interval = static_cast<int64_t>((__u64)data) - ((__u64)mapAddr_);
-        if (0 <= interval and interval < length_) {
-            uint32_t *tracer = (uint32_t *) data;
+        if (0 <= interval and static_cast<uint64_t>(interval) < length_) {
+            uint32_t *tracer = static_cast<uint32_t*>(data);
             (*tracer) = BADTRACE;
         }
     }
@@ -86,7 +87,10 @@ void HiebpfDataFile::WriteKernelSymbol()
     (*type) = KERNEL_SYM;
     uint32_t *len = type + 1;
     (*len) = bufSize;
-    memcpy_s(tmp + sizeof(uint32_t) * 2, bufSize, buf.data(), bufSize);
+    if (memcpy_s(tmp + sizeof(uint32_t) * 2, bufSize, buf.data(), bufSize) != EOK) {
+        HHLOGE(true, "failed to memcpy");
+        return;
+    }
 }
 
 void HiebpfDataFile::Submit(void *data)
