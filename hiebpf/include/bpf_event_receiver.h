@@ -38,7 +38,7 @@
 #define MAX_TRACER_NAME_LEN 8
 #define MAX_TYPE_NAME_LEN   16
 #define MAX_BUSY_LOOPS      1000
-#define PADDING(nbytes)     char reserve_[nbytes];
+#define PADDING(nbytes)     char reserve_[nbytes]
 
 struct FixedFSTraceTLVItem {
     __u32 tracer_;
@@ -133,7 +133,6 @@ public:
         if (skel == nullptr) {
             return nullptr;
         }
-
         std::shared_ptr<BPFEventReceiver> obj {new(std::nothrow) BPFEventReceiver {file, skel}};
         if (obj == nullptr) {
             return nullptr;
@@ -229,7 +228,7 @@ private:
 
     int ConvertFSTraceArgsToArray(__u64 *args, const struct fstrace_start_event_t *start_event)
     {
-        int (*fn) (__u64*, const struct fstrace_start_event_t *) = gArgsConverterTable[start_event->type];
+        int (*fn) (__u64*, const struct fstrace_start_event_t *) = g_argsConverterTable[start_event->type];
         if (fn) {
             return fn(args, start_event);
         }
@@ -276,9 +275,7 @@ private:
 
     inline BPFEventReceiver(
         const std::weak_ptr<HiebpfDataFile> &file,
-        struct hiebpf_bpf* skel):
-        file_ {file},
-        skel_ {skel}
+        struct hiebpf_bpf* skel) : file_ {file}, skel_ {skel}
     {}
 
     inline void NotifyOne()

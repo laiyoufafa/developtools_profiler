@@ -36,10 +36,10 @@ void KernelSymbolInfo::GetSymbol(const std::string &line, SymbolItem &symbol)
 }
 
 void KernelSymbolInfo::GetBinary(const std::vector<SymbolItem> &symbolItems,
-                             uint64_t vaddrStart,
-                             uint64_t vaddrEnd,
-                             uint32_t strTabLen,
-                             std::vector<uint8_t> &buf)
+                                 uint64_t vaddrStart,
+                                 uint64_t vaddrEnd,
+                                 uint32_t strTabLen,
+                                 std::vector<uint8_t> &buf)
 {
     // (value + size + nameOffset)
     uint32_t symTabLen = (sizeof(uint64_t) + sizeof(uint32_t) + sizeof(uint32_t)) *

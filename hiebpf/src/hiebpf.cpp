@@ -47,7 +47,8 @@ HIEBPF_DEFINE_array(pids, uint32_t, "pids of target process to trace");
 HIEBPF_DEFINE_string(bpf_log_level, "NONE", "lowest level of BPF programs logs to print");
 HIEBPF_DEFINE_string(bpf_log_file, "/data/local/tmp/bpf.log", "the file used to save BPF program logs");
 HIEBPF_DEFINE_string(libbpf_log_level, "NONE", "lowest level of libbpf internal error messages to print");
-HIEBPF_DEFINE_string(libbpf_log_file, "/data/local/tmp/libbpf.log", "the file used to save libbpf internal error messages");
+HIEBPF_DEFINE_string(libbpf_log_file, "/data/local/tmp/libbpf.log",
+                    "the file used to save libbpf internal error messages");
 HIEBPF_DEFINE_string(hhlog_level, "NONE", "lowest level of HHLog to print");
 HIEBPF_DEFINE_string(hhlog_file, "/data/local/tmp/hhlog.txt", "the file used to save HHLog");
 HIEBPF_DEFINE_bool(start, false, "setup and start hiebpf server to trace");
@@ -79,7 +80,7 @@ static void HandleIpcMessage(const void *data, size_t size)
     HiebpfIpcCommand cmd = *((HiebpfIpcCommand*)data);
     if (cmd == HiebpfIpcCommand::CMD_STOP) {
         g_interrupted = true;
-        if(bpfController != nullptr) {
+        if (bpfController != nullptr) {
             bpfController->Stop();
         }
         cmd = HiebpfIpcCommand::RET_OK;
@@ -109,7 +110,8 @@ static bool SendIpcCommand(OHOS::Developtools::Hiebpf::IpcUnixSocketClient &clie
     if (!client.RecvMessage(buf, size, timeout)) {
         HHLOGE(true, "recv reply failed\n");
         return false;
-    } if (size == 0) { // timeout
+    }
+    if (size == 0) { // timeout
         HHLOGE(true, "recv reply timeout(%dms)\n", timeout);
         return false;
     } else if (size != sizeof(HiebpfIpcCommand)) {
@@ -236,7 +238,7 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-    if(g_interrupted){
+    if (g_interrupted) {
         return 0;
     }
 
@@ -316,7 +318,7 @@ static inline int GetBPFLogLevelFromFlag()
 
 static inline int GetLIBBPFLogLevelFromFlag()
 {
-     if (FLAGS_libbpf_log_level.compare("DEBUG") == 0 or
+    if (FLAGS_libbpf_log_level.compare("DEBUG") == 0 or
         FLAGS_libbpf_log_level.compare("debug") == 0) {
         return LIBBPF_DEBUG;
     }

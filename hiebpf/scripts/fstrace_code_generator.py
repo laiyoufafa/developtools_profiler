@@ -15,6 +15,9 @@
 
 import sys
 
+MIN_DECL_LIST_LEN = 2
+
+
 def handle_macro(decl_str):
     '''
     # Function:
@@ -40,17 +43,11 @@ def handle_macro(decl_str):
     var_name = var_name[:-1]
     var_name = var_name.strip()
     expansion = "u64, " + var_name
-    '''
-    # expansion = "u32, "
-    # if sys.byteorder == 'little':
-    #     expansion += var_name + "_lo, u32, " + var_name + "_hi"
-    # else:
-    #     expansion += var_name + "_hi, u32, " + var_name + "_lo"
-    '''
     left = decl_str[:start]
     right = decl_str[start + macro_str_len:]
     decl_str = left + expansion + right
     return decl_str
+
 
 def get_decl_str(inf):
     '''
@@ -76,6 +73,7 @@ def get_decl_str(inf):
                 break
         decl_str = decl_str[1:-1]
     return handle_macro(decl_str)
+
 
 def get_decl_list(decl_str):
     '''
@@ -105,7 +103,7 @@ def get_decl_list(decl_str):
     decl_list = decl_list + args_list
     return decl_list
 
-MIN_DECL_LIST_LEN = 2
+
 def get_args_list(decl_list):
     '''
     # Function:
@@ -121,6 +119,7 @@ def get_args_list(decl_list):
         print("failed to get arguments list from %s" % decl_list)
         return []
     return decl_list[MIN_DECL_LIST_LEN - 1:]
+
 
 def gen_kprobe_sec(decl_list):
     '''
@@ -141,6 +140,7 @@ def gen_kprobe_sec(decl_list):
     probe_str = probe_str + syscall + '")\n'
     return probe_str
 
+
 def gen_kretprobe_sec(decl_list):
     '''
     # Function:
@@ -159,6 +159,7 @@ def gen_kretprobe_sec(decl_list):
     syscall = decl_list[syscall_fn_index]
     probe_str = probe_str + syscall + '")\n'
     return probe_str
+
 
 def gen_kprobe_decl(decl_list):
     '''
@@ -185,12 +186,12 @@ def gen_kprobe_decl(decl_list):
     while index < len(decl_list):
         if count >= max_nr_args:
             break
-        prog_decl += ", " + decl_list[index - 1] + " "
-        prog_decl += decl_list[index]
+        prog_decl = '%s, %s %s' % (prog_decl, decl_list[index - 1], decl_list[index])
         index += 2
         count += 1
     prog_decl += ")"
     return prog_decl
+
 
 def gen_kretprobe_decl(decl_list):
     '''
@@ -241,7 +242,7 @@ TAIL_COMMON_KPROBE_CODE = R'''
         BPFLOGE(BPF_TRUE, "failed to store fstrace start event");
         return -1;
     }
-	return 0;
+    return 0;
 }
 '''
 
@@ -267,6 +268,7 @@ HIEBPF_TYPES_HEAD = R'''
 
 HIEBPF_TYPES_TAIL = '#endif'
 
+
 def get_args_type(decl_list):
     '''
     # Function:
@@ -285,6 +287,7 @@ def get_args_type(decl_list):
     args_type_str = "struct sys_" + fn_name + "_args_t"
     return args_type_str
 
+
 def get_arg_variable_name(decl_list):
     '''
     # Function
@@ -300,6 +303,7 @@ def get_arg_variable_name(decl_list):
         return ""
     args_type_index = 1
     return decl_list[args_type_index] + "_args"
+
 
 def get_arg_member_index(decl_list):
     '''
@@ -325,6 +329,7 @@ def get_arg_member_index(decl_list):
         index += 2
         count += 1
     return member_index_list
+
 
 def gen_kprobe_code(decl_list):
     '''
@@ -363,6 +368,7 @@ def gen_kprobe_code(decl_list):
     code_str += var_decl_str + assignment_code_str
     return code_str
 
+
 def gen_kretprobe_code(decl_list):
     '''
     # Function:
@@ -379,6 +385,7 @@ def gen_kretprobe_code(decl_list):
     fn_name = decl_list[2]
     tracer = "FSTRACE"
     return "    return emit_event(ctx, retval, " + tracer + ");"
+
 
 def underscore_int_types(arg_type):
     # underscore u8
@@ -410,11 +417,12 @@ def underscore_int_types(arg_type):
             arg_type_list[index] = "__s64"
             break
     arg_type = arg_type_list[0]
-    for index ,arg_item in enumerate(arg_type_list):
+    for index, arg_item in enumerate(arg_type_list):
         if index == 0:
             continue
-        arg_type += " " + arg_type_list[index]
+        arg_type = "%s %s" % (arg_type_list[index])
     return arg_type
+
 
 def gen_struct_str(args_list):
     '''
@@ -458,6 +466,7 @@ def gen_struct_str(args_list):
     result = result + "};\n"
     return result
 
+
 def output_fstrace_code(fstrace_progs_file, fstrace_types_file, fstrace_targets_file):
     with open(fstrace_progs_file, 'a') as progs_output_file:
         progs_output_file.write(HEAD_BPF_PROG_CODE)
@@ -484,19 +493,6 @@ def output_fstrace_code(fstrace_progs_file, fstrace_types_file, fstrace_targets_
                     args_list = get_args_list(decl_list)
                     type_def_str = gen_struct_str(args_list)
                     fn_name = args_list[0]
-                    '''
-                    # # check if declaration list need to be revised
-                    # compat_arg = type_def_str.find('compat')
-                    # compat_fun = fn_name.find('compat')
-                    # if (compat_fun == -1) and (compat_arg != -1):
-                    #     # this is the compact version which differs from the normal version,
-                    #     # the declaration list has to be revised
-                    #     fn_name = "compat_" + fn_name
-                    #     decl_list[2] = fn_name
-                    #     # re-generate arguments list and arguments definition string
-                    #     args_list = get_args_list(decl_list)
-                    #     type_def_str = gen_struct_str(args_list)
-                    '''
                     # save arguments type definitions
                     if type_def_str not in type_defs_set:
                         type_defs_set.add(type_def_str)

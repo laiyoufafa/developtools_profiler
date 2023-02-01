@@ -157,7 +157,7 @@ enum TracerType:__u32 {
     BADTRACE,
 };
 
-enum LIBBPFLogLevel:int{
+enum LIBBPFLogLevel:int {
     LIBBPF_NONE = -10,
     LIBBPF_FATAL,
     LIBBPF_ERROR,

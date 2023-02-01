@@ -30,10 +30,10 @@ enum ITEM_TYPE {
 };
 
 enum CLOCK_TYPE {
-  RealTime,
-  BootTime,
-  Monotonic,
-  MonotonicRaw,
+    RealTime,
+    BootTime,
+    Monotonic,
+    MonotonicRaw,
 };
 
 // event type
@@ -71,8 +71,6 @@ struct EbpfHeader {
 
 struct SysOpenArgs {
     char fileName[];
-    //uint32_t flags;
-    //uint32_t mode;
 };
 
 struct SysCloseArgs {
@@ -95,20 +93,10 @@ struct ItemEventFs {
     uint16_t nrUserIPs;
     uint16_t type;
     uint64_t args[ARGS_ARRAY_SIZE] = {0};
-    //uint32_t userIpsLen = 0;
     uint64_t* userIPs;
     uint16_t commLen;
     char* comm;
-
     uint16_t argStrTotalLen;
-
-    /*union SysArgs {
-      SysOpenArgs sysOpenArgs;
-      SysCloseArgs sysCloseArgs;
-      SysReadWriteArgs sysReadWriteArgs;
-    };
-
-    SysArgs sysArgs;*/
 };
 
 struct ItemEventMem {

@@ -19,10 +19,10 @@
 #include <sys/uio.h>
 #include <securec.h>
 #include <cstring>
-
-RingBuffer::RingBuffer(const std::size_t bufSize, const enum MemAlignShift shift):
-    bufSize_ {bufSize},
-    alignShift_ {shift}
+#include <iostream>
+RingBuffer::RingBuffer(const std::size_t bufSize, const enum MemAlignShift shift)
+    : bufSize_ {bufSize},
+      alignShift_ {shift}
 {
     if (bufSize_ <= DEFAULT_SIZE) {
         bufSize_ = DEFAULT_SIZE;
@@ -240,28 +240,24 @@ char* RingBuffer::Allocate(std::size_t bufSize)
 {
     char *newBuffer {nullptr};
     switch (alignShift_) {
-        case B_ALIGN_SHIFT:
-        {
+        case B_ALIGN_SHIFT: {
             bufSize = (bufSize >> B_ALIGN_SHIFT);
             newBuffer = new(std::nothrow) char[bufSize];
             break;
         }
-        case H_ALIGN_SHIFT:
-        {
+        case H_ALIGN_SHIFT: {
             bufSize = (bufSize >> H_ALIGN_SHIFT);
             uint16_t *temp = new(std::nothrow) uint16_t[bufSize];
             newBuffer = (char *) temp;
             break;
         }
-        case W_ALIGN_SHIFT:
-        {
+        case W_ALIGN_SHIFT: {
             bufSize = (bufSize >> W_ALIGN_SHIFT);
             uint32_t *temp = new(std::nothrow) uint32_t[bufSize];
             newBuffer = (char *) temp;
             break;
         }
-        case D_ALIGN_SHIFT:
-        {
+        case D_ALIGN_SHIFT: {
             bufSize = (bufSize >> D_ALIGN_SHIFT);
             uint64_t *temp = new(std::nothrow) uint64_t[bufSize];
             newBuffer = (char *) temp;

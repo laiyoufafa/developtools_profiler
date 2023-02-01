@@ -22,53 +22,53 @@
 
 struct sys_openat2_args_t {
     int dfd;
-    const char __user * filename;
-    struct open_how * how;
+    const char __user* filename;
+    struct open_how* how;
 };
 
 struct sys_read_args_t {
     unsigned int fd;
-    char __user * buf;
+    char __user* buf;
     size_t count;
 };
 
 struct sys_write_args_t {
     unsigned int fd;
-    const char __user * buf;
+    const char __user* buf;
     size_t count;
 };
 
 struct sys_pread64_args_t {
     unsigned int fd;
-    char __user * buf;
+    char __user* buf;
     size_t count;
     loff_t pos;
 };
 
 struct sys_pwrite64_args_t {
     unsigned int fd;
-    const char __user * buf;
+    const char __user* buf;
     size_t count;
     loff_t pos;
 };
 
 struct sys_readv_args_t {
     unsigned long fd;
-    const struct iovec __user * vec;
+    const struct iovec __user* vec;
     unsigned long vlen;
     rwf_t flags;
 };
 
 struct sys_writev_args_t {
     unsigned long fd;
-    const struct iovec __user * vec;
+    const struct iovec __user* vec;
     unsigned long vlen;
     rwf_t flags;
 };
 
 struct sys_preadv_args_t {
     unsigned long fd;
-    const struct iovec __user * vec;
+    const struct iovec __user* vec;
     unsigned long vlen;
     loff_t pos;
     rwf_t flags;
@@ -76,14 +76,14 @@ struct sys_preadv_args_t {
 
 struct sys_pwritev_args_t {
     unsigned long fd;
-    const struct iovec __user * vec;
+    const struct iovec __user* vec;
     unsigned long vlen;
     loff_t pos;
     rwf_t flags;
 };
 
 struct sys_close_args_t {
-    struct files_struct * files;
+    struct files_struct* files;
     unsigned fd;
 };
 

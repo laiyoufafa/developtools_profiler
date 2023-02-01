@@ -11,6 +11,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#ifndef EBPF_STD_TYPE_H
+#define EBPF_STD_TYPE_H
 
 namespace OHOS {
 namespace EBPF_TOOLS {
@@ -96,7 +98,7 @@ struct EventStr {
     uint64_t start = 0;
     uint32_t srcTracer = 0;
     uint32_t srcType = 0;
-    uint32_t strLen	= 0;
+    uint32_t strLen = 0;
     uint32_t padding = 0;
     std::string fileName;
 }__attribute__((packed));
@@ -145,7 +147,7 @@ struct Elf32_Sym {
 
 struct Elf64_Sym {
     uint32_t st_name;
-    unsigned char	st_info;
+    unsigned char st_info;
     unsigned char st_other;
     uint16_t st_shndx;
     uint64_t st_value;
@@ -153,3 +155,5 @@ struct Elf64_Sym {
 }__attribute__((packed));
 } // EBPF_TOOLS
 } // OHOS
+
+#endif // EBPF_STD_TYPE_H

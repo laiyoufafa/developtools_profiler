@@ -42,7 +42,7 @@ int BPF_KPROBE(do_sys_openat2_entry, int dfd, const char __user * filename, stru
         BPFLOGE(BPF_TRUE, "failed to store fstrace start event");
         return -1;
     }
-	return 0;
+    return 0;
 }
 
 SEC("kretprobe/do_sys_openat2")
@@ -81,7 +81,7 @@ int BPF_KPROBE(ksys_read_entry, unsigned int fd, char __user * buf, size_t count
         BPFLOGE(BPF_TRUE, "failed to store fstrace start event");
         return -1;
     }
-	return 0;
+    return 0;
 }
 
 SEC("kretprobe/ksys_read")
@@ -120,7 +120,7 @@ int BPF_KPROBE(ksys_write_entry, unsigned int fd, const char __user * buf, size_
         BPFLOGE(BPF_TRUE, "failed to store fstrace start event");
         return -1;
     }
-	return 0;
+    return 0;
 }
 
 SEC("kretprobe/ksys_write")
@@ -160,7 +160,7 @@ int BPF_KPROBE(ksys_pread64_entry, unsigned int fd, char __user * buf, size_t co
         BPFLOGE(BPF_TRUE, "failed to store fstrace start event");
         return -1;
     }
-	return 0;
+    return 0;
 }
 
 SEC("kretprobe/ksys_pread64")
@@ -200,7 +200,7 @@ int BPF_KPROBE(ksys_pwrite64_entry, unsigned int fd, const char __user * buf, si
         BPFLOGE(BPF_TRUE, "failed to store fstrace start event");
         return -1;
     }
-	return 0;
+    return 0;
 }
 
 SEC("kretprobe/ksys_pwrite64")
@@ -240,7 +240,7 @@ int BPF_KPROBE(do_readv_entry, unsigned long fd, const struct iovec __user * vec
         BPFLOGE(BPF_TRUE, "failed to store fstrace start event");
         return -1;
     }
-	return 0;
+    return 0;
 }
 
 SEC("kretprobe/do_readv")
@@ -280,7 +280,7 @@ int BPF_KPROBE(do_writev_entry, unsigned long fd, const struct iovec __user * ve
         BPFLOGE(BPF_TRUE, "failed to store fstrace start event");
         return -1;
     }
-	return 0;
+    return 0;
 }
 
 SEC("kretprobe/do_writev")
@@ -294,7 +294,9 @@ int BPF_KRETPROBE(do_writev_exit, int64_t retval)
 }
 
 SEC("kprobe/do_preadv")
-int BPF_KPROBE(do_preadv_entry, unsigned long fd, const struct iovec __user * vec, unsigned long vlen, loff_t pos, rwf_t flags)
+int BPF_KPROBE(do_preadv_entry,
+               unsigned long fd, const struct iovec __user * vec,
+               unsigned long vlen, loff_t pos, rwf_t flags)
 {
     if (check_current_pid(-1, -1) != 0) {
         // not any one of target processes, skip it
@@ -321,7 +323,7 @@ int BPF_KPROBE(do_preadv_entry, unsigned long fd, const struct iovec __user * ve
         BPFLOGE(BPF_TRUE, "failed to store fstrace start event");
         return -1;
     }
-	return 0;
+    return 0;
 }
 
 SEC("kretprobe/do_preadv")
@@ -335,7 +337,9 @@ int BPF_KRETPROBE(do_preadv_exit, int64_t retval)
 }
 
 SEC("kprobe/do_pwritev")
-int BPF_KPROBE(do_pwritev_entry, unsigned long fd, const struct iovec __user * vec, unsigned long vlen, loff_t pos, rwf_t flags)
+int BPF_KPROBE(do_pwritev_entry,
+               unsigned long fd, const struct iovec __user * vec,
+               unsigned long vlen, loff_t pos, rwf_t flags)
 {
     if (check_current_pid(-1, -1) != 0) {
         // not any one of target processes, skip it
@@ -362,7 +366,7 @@ int BPF_KPROBE(do_pwritev_entry, unsigned long fd, const struct iovec __user * v
         BPFLOGE(BPF_TRUE, "failed to store fstrace start event");
         return -1;
     }
-	return 0;
+    return 0;
 }
 
 SEC("kretprobe/do_pwritev")
@@ -400,7 +404,7 @@ int BPF_KPROBE(__close_fd_entry, struct files_struct * files, unsigned fd)
         BPFLOGE(BPF_TRUE, "failed to store fstrace start event");
         return -1;
     }
-	return 0;
+    return 0;
 }
 
 SEC("kretprobe/__close_fd")
@@ -413,5 +417,3 @@ int BPF_KRETPROBE(__close_fd_exit, int64_t retval)
     return emit_event(ctx, retval, FSTRACE);
 }
 /*************************** fstrace BPF progs END ******************************/
-
-

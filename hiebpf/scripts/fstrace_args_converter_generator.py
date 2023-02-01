@@ -116,7 +116,7 @@ def output_converter_code(fstrace_types_file, converters_file):
         converter_table_code = (
             "using ConverterType = int (*)" +
             " (__u64*, const struct fstrace_start_event_t *);\n")
-        converter_table_code += ("ConverterType gArgsConverterTable["+str(nr_converters)+"] = {" +
+        converter_table_code += ("ConverterType g_argsConverterTable["+str(nr_converters)+"] = {" +
             "\n    nullptr")
         for fn_ptr in converter_table:
             converter_table_code += ",\n    " + fn_ptr
