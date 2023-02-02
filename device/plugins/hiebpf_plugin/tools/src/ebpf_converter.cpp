@@ -448,7 +448,10 @@ std::pair<std::string, std::vector<std::string>> EbpfConverter::GetSymbolInfo(ui
                 std::cout << "copy symTab failed" << std::endl;
                 return std::pair<std::string, std::vector<std::string>>();
             }
-            if (vaddr >= sym.st_value && vaddr <= sym.st_value + sym.st_size && (sym.st_info & STT_FUNC) && sym.st_value != 0) {
+            if (vaddr >= sym.st_value &&
+                vaddr <= sym.st_value + sym.st_size &&
+                (sym.st_info & STT_FUNC) &&
+                sym.st_value != 0) {
                 char *ret = abi::__cxa_demangle(symItem->second.strTab + sym.st_name, nullptr, nullptr, nullptr);
                 ret == nullptr ? symbolInfos.second.push_back(std::string(symItem->second.strTab + sym.st_name))
                     : symbolInfos.second.push_back(std::string(ret));

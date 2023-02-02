@@ -589,7 +589,7 @@ uint64_t BPFController::GetSymOffset(const std::string &path, const std::string 
     while (stepLength < sym->secSize_) {
         int ret = memcpy_s(&st_name, sizeof(uint32_t), symData + stepLength, sizeof(uint32_t));
         if (ret != EOK) {
-            HHLOGD(true, "failed to memcpy symData");
+            HHLOGE(true, "failed to memcpy symData");
             return 0;
         }
         auto name = const_cast<uint8_t*>(strData + st_name);
@@ -598,7 +598,7 @@ uint64_t BPFController::GetSymOffset(const std::string &path, const std::string 
             int32_t valueSize = valueOffset == SYM_64_VALUE_OFFSET ? sizeof(uint64_t) : sizeof(uint32_t);
             ret = memcpy_s(&vaddr, sizeof(uint64_t), symData + stepLength + valueOffset, valueSize);
             if (ret != EOK) {
-                HHLOGD(true, "failed to memcpy symData");
+                HHLOGE(true, "failed to memcpy symData");
                 return 0;
             }
             break;

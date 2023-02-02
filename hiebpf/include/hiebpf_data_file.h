@@ -103,7 +103,7 @@ private:
     inline int ExtendFile(const std::size_t mapPos, const std::size_t mapLength)
     {
         if (ftruncate(fd_, mapPos + mapLength) != 0) {
-            HHLOGD(true, "failed to extend data file");
+            HHLOGE(true, "failed to extend data file");
             return -1;
         }
         return 0;
@@ -115,11 +115,11 @@ private:
         header.cmdLen_ = hiebpfCmd_.length() + 1;
         if (strncpy_s(header.cmd_, header.TOTAL_HEAD_SIZE - header.FIXED_HEAD_SIZE,
                       hiebpfCmd_.c_str(), hiebpfCmd_.length() + 1) != EOK) {
-            HHLOGD(true, "failed to copy string");
+            HHLOGE(true, "failed to copy string");
             return -1;
         }
         if (memcpy_s(mapAddr_, length_, &header, sizeof(header)) != EOK) {
-            HHLOGD(true, "failed to memcpy_s");
+            HHLOGE(true, "failed to memcpy_s");
             return -1;
         }
         offset_ += sizeof(header);

@@ -296,7 +296,7 @@ int RingBuffer::Resize()
     if (newBuf == nullptr) {
         return -1;
     }
-    //copy data to the new buffer
+    // copy data to the new buffer
     auto dataSize = DataSize();
     if (head_ + dataSize > bufSize_) {
         // data splitted
