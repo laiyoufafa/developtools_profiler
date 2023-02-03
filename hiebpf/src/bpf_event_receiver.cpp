@@ -204,7 +204,7 @@ void BPFEventReceiver::WriteEventMaps(uint32_t pid)
         mapItem->fileNameLen = item.fileName_.size() + 1;
         char* tmp = (char*)dest;
         char* fileName = tmp + sizeof(FixedMapTLVItem);
-        (void)memcpy_s(fileName, mapItem->fileNameLen, item.fileName_.c_str(), mapItem->fileNameLen);
+        (void)strncpy_s(fileName, mapItem->fileNameLen, item.fileName_.c_str(), item.fileName_.size());
         file->Submit(dest);
         WriteSymbolInfo(item.fileName_);
     }
@@ -237,21 +237,19 @@ void BPFEventReceiver::WriteSymbolInfo(const std::string &fileName)
         sym->fileNameLen = symbolInfo.fileName_.size() + 1;
         sym->symEntLen = symbolInfo.symEntSize_;
         char* tmp = (char*)dest;
-        char* strTab = tmp + sizeof(FixedSymbolTLVItem);
-        size -= sizeof(FixedSymbolTLVItem);
-        if (memcpy_s(strTab, size, symbolInfo.strTable_.data(), sym->strTabLen) != EOK) {
+        size_t pos = 0;
+        pos += sizeof(FixedSymbolTLVItem);
+        if (memcpy_s(tmp + pos, size - pos, symbolInfo.strTable_.data(), sym->strTabLen) != EOK) {
             HHLOGE(true, "memcpy_s failed");
             return;
         }
-        size -= sym->strTabLen;
-        char* symTab = tmp + sizeof(FixedSymbolTLVItem) + symbolInfo.strTable_.size();
-        if (memcpy_s(symTab, size, symbolInfo.symTable_.data(), sym->symTabLen) != EOK) {
+        pos += sym->strTabLen;
+        if (memcpy_s(tmp + pos, size - pos, symbolInfo.symTable_.data(), sym->symTabLen) != EOK) {
             HHLOGE(true, "memcpy_s failed");
             return;
         }
-        size -= sym->symTabLen;
-        char* fileName = tmp + sizeof(FixedSymbolTLVItem) + symbolInfo.strTable_.size() + symbolInfo.symTable_.size();
-        if (memcpy_s(fileName, size, symbolInfo.fileName_.c_str(), sym->fileNameLen) != EOK) {
+        pos += sym->symTabLen;
+        if (memcpy_s(tmp + pos, size - pos, symbolInfo.fileName_.c_str(), sym->fileNameLen) != EOK) {
             HHLOGE(true, "memcpy_s failed");
             return;
         }
