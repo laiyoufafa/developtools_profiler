@@ -91,7 +91,7 @@ std::unique_ptr<BPFController> BPFController::MakeUnique(const BPFConfig& config
         HHLOGD(true, "failed to verify config");
         return nullptr;
     }
-    HHLOGI(true,"BPFConfig verified");
+    HHLOGI(true, "BPFConfig verified");
 
     if (bpfctlr->SetUpBPF() != 0) {
         HHLOGD(true, "failed to set up BPF");
@@ -165,7 +165,7 @@ int BPFController::VerifyConfigurations()
 
 int BPFController::SetUpBPF()
 {
-    if (ConfigLIBBPFLogger() != 0 ) {
+    if (ConfigLIBBPFLogger() != 0) {
         HHLOGD(true, "failed to configure LIBBPF logger");
         return -1;
     }
@@ -393,7 +393,7 @@ static inline int InitBPFLogLevel(const int fd, const __u32 level)
 
 static inline int InitMaxStackDepth(const int fd, const __u32 depth)
 {
-    constexpr __u32 depthidx {MAX_STACK_DEPTH_INDEX}; 
+    constexpr __u32 depthidx {MAX_STACK_DEPTH_INDEX};
     int err = bpf_map_update_elem(fd, &depthidx, &depth, BPF_ANY);
     if (err) {
         HHLOGD(true, "failed to set max stack depth in config_var_map");
@@ -492,7 +492,8 @@ inline int BPFController::ConfigBPFLogger()
         HHLOGD(true, "bpf log level is NONE!");
         return 0;
     }
-#if defined(BPF_LOGGER_DEBUG) || defined(BPF_LOGGER_INFO) || defined(BPF_LOGGER_WARN) || defined(BPF_LOGGER_ERROR) || defined(BPF_LOGGER_FATAL)
+#if defined(BPF_LOGGER_DEBUG) || defined(BPF_LOGGER_INFO) || defined(BPF_LOGGER_WARN) ||    \
+    defined(BPF_LOGGER_ERROR) || defined(BPF_LOGGER_FATAL)
     bpfLogReader_ = BPFLogReader::MakeUnique(config_.BPFLogFile_);
     if (bpfLogReader_ == nullptr) {
         HHLOGD(true, "failed to initialize BPFLogReader");
@@ -674,7 +675,8 @@ int BPFController::ConfigureBPF()
 
 int BPFController::Start()
 {
-#if defined(BPF_LOGGER_DEBUG) || defined(BPF_LOGGER_INFO) || defined(BPF_LOGGER_WARN) || defined(BPF_LOGGER_ERROR) || defined(BPF_LOGGER_FATAL)
+#if defined(BPF_LOGGER_DEBUG) || defined(BPF_LOGGER_INFO) || defined(BPF_LOGGER_WARN) ||    \
+    defined(BPF_LOGGER_ERROR) || defined(BPF_LOGGER_FATAL)
     if (StartBPFLogReader() != 0) {
         HHLOGD(true, "failed to start BPF log reader");
         return -1;
@@ -738,7 +740,7 @@ int BPFController::HandleEvent(void *ctx, void *data, size_t dataSize)
 
     // move data and notify receiver
     int ret = receiver->Put(data, dataSize);
-    HHLOGE((ret < 0),"event lost: failed to move data to receiver"); // try other receivers ?
+    HHLOGE((ret < 0), "event lost: failed to move data to receiver"); // try other receivers ?
     HHLOGF(
         (0 <= ret and ret < static_cast<int>(dataSize)),
         "incomplete data movement: this should never happen");
@@ -1011,7 +1013,7 @@ int BPFController::DumpBIOTraceEvent(BPFController *bpfctlr, void *data, size_t 
     return 0;
 }
 
-int BPFController::DumpSTRTraceEvent(/* BPFController *bpfctlr, */void *data, size_t dataSize)
+int BPFController::DumpSTRTraceEvent(void *data, size_t dataSize)
 {
     if (dataSize != sizeof(strtrace_cmplt_event_t)) {
         std::cout << "DumpSTRTraceEvent ERROR: size dismatch:"
@@ -1051,7 +1053,7 @@ int BPFController::DumpEvent(void *ctx, void *data, size_t dataSize)
             case FSTRACE: return DumpFSTraceEvent(bpfctlr, data, dataSize);
             case PFTRACE: return DumpPFTraceEvent(bpfctlr, data, dataSize);
             case BIOTRACE: return DumpBIOTraceEvent(bpfctlr, data, dataSize);
-            case STRTRACE: return DumpSTRTraceEvent(/* bpfctlr, */data, dataSize);
+            case STRTRACE: return DumpSTRTraceEvent(data, dataSize);
         }
         std::cout << "DumpEvent ERROR: bad tracer type = " << (*tracer) << std::endl;
     }

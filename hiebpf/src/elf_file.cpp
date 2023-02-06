@@ -22,7 +22,6 @@ namespace Hiebpf {
 ElfFile::ElfFile(const std::string &filename)
 {
     fd_ = open(filename.c_str(), O_RDONLY);
-
     if (fd_ != -1) {
         struct stat sb;
         if (fstat(fd_, &sb) == -1) {
@@ -194,7 +193,6 @@ bool ElfFile::ParseSecNamesStr()
         HHLOGE(true, "Error in ElfFile::ParseSecNamesStr(): new secNamesBuf failed");
         return false;
     }
-    //(void)memset_s(secNamesBuf, secSize, '\0', secSize);
     ret = ReadFile(secNamesBuf, secSize);
     if (ret != static_cast<int64_t>(secSize)) {
         delete[] secNamesBuf;

@@ -141,7 +141,7 @@ int HiebpfDataFile::RemapFile(const std::size_t size)
 
     size_t extendLength = length_;
     while (remapOff + size > extendLength) {
-       extendLength += length_;
+        extendLength += length_;
     }
 
     if (ExtendFile(remapPos, extendLength) != 0) {

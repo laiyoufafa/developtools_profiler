@@ -284,7 +284,6 @@ void EbpfConverter::SymbolInfoParsing()
             << "  fileName: " << info.fileName << '\n'
             << "  strTabAddr: 0x" << std::hex << record_[info.fileName].strTabAddr << std::dec << '\n'
             << "  symTabAddr: 0x" << std::hex << record_[info.fileName].symTabAddr << std::dec << '\n';
-
 }
 
 void EbpfConverter::EventMemParsing()

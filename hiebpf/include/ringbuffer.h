@@ -126,7 +126,7 @@ private:
     int Resize();
     char* Allocate(std::size_t bufSize);
 
-    enum BufferSize:std::size_t{
+    enum BufferSize:std::size_t {
         DEFAULT_SIZE = (1 << 8),
     };
     char *buffer_ {nullptr};

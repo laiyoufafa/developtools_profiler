@@ -107,7 +107,7 @@ static int CloseArgsConverter(__u64* args, const struct fstrace_start_event_t* s
 }
 
 using ConverterType = int (*) (__u64*, const struct fstrace_start_event_t *);
-ConverterType gArgsConverterTable[11] = {
+ConverterType g_argsConverterTable[11] = {
     nullptr,
     &Openat2ArgsConverter,
     &ReadArgsConverter,

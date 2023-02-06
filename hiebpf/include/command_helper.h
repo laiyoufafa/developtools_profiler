@@ -33,7 +33,7 @@ private:
     CommandHelper() = default;
     void DoHelp(const std::string& help);
 
-    enum ArgNames:int{
+    enum ArgNames:int {
         ARG_NONG = 0,
         ARG_HELP,
         ARG_EXCLUDE_TRACER,

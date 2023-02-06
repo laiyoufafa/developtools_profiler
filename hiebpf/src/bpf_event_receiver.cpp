@@ -27,7 +27,7 @@ void BPFEventReceiver::DoWork()
     }
     if (buf_->GetDataSize() == 0) {
         std::unique_lock lk {mtx_};
-        cond_.wait(lk, [this]()->bool{return this->stop_ || this->buf_->GetDataSize();});
+        cond_.wait(lk, [this]()->bool {return this->stop_ || this->buf_->GetDataSize();});
         if (stop_) {
             return;
         }
@@ -74,7 +74,7 @@ void BPFEventReceiver::ReceiveFSTraceEvent()
     struct fstrace_cmplt_event_t cmplt_event {};
     size_t dataSize = buf_->Get((char*)&cmplt_event, sizeof(cmplt_event));
     if (dataSize != sizeof(cmplt_event)) {
-        HHLOGE(true,"imcomplete fstrace event data receiveed");
+        HHLOGE(true, "imcomplete fstrace event data receiveed");
         return;
     }
     WriteEventMaps(cmplt_event.tgid);
@@ -424,8 +424,7 @@ int BPFEventReceiver::EncodeSTRTraceEvent(
                 ReverseStr(start, end - 1);
                 if (*end != '\0') {
                     start = end + 1;
-                }
-                else {
+                } else {
                     start = end;
                 }
             }

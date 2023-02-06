@@ -105,13 +105,13 @@ static int32_t HiebpfSessionStart(const uint8_t* configData, uint32_t configSize
     }
     HiebpfConfig config;
     if (config.ParseFromArray(configData, configSize) <= 0) {
-        HILOG_ERROR(LOG_CORE,"Parameter parsing failed");
+        HILOG_ERROR(LOG_CORE, "Parameter parsing failed");
         return RET_ERR;
     }
 
     size_t defaultSize = sizeof(g_pluginModule.outFileName);
     if (sizeof(config.outfile_name().c_str()) > defaultSize - 1) {
-        HILOG_ERROR(LOG_CORE,"The out file path more than %zu bytes", defaultSize);
+        HILOG_ERROR(LOG_CORE, "The out file path more than %zu bytes", defaultSize);
         return RET_ERR;
     }
     std::string ret = config.cmd_line();

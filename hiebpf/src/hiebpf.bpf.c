@@ -22,9 +22,9 @@
 #include "bpf_log_writer.h"
 
 #ifndef VM_FAULT_ERROR
-#define VM_FAULT_ERROR (VM_FAULT_OOM | VM_FAULT_SIGBUS |	\
-			VM_FAULT_SIGSEGV | VM_FAULT_HWPOISON |	\
-			VM_FAULT_HWPOISON_LARGE | VM_FAULT_FALLBACK)
+#define VM_FAULT_ERROR (VM_FAULT_OOM | VM_FAULT_SIGBUS |    \
+            VM_FAULT_SIGSEGV | VM_FAULT_HWPOISON |    \
+            VM_FAULT_HWPOISON_LARGE | VM_FAULT_FALLBACK)
 #endif
 
 extern int LINUX_KERNEL_VERSION __kconfig;
@@ -71,9 +71,9 @@ struct {
     /* Since execution of syscalls of the same process never cross over,
      * we can simply use pid as the identifier of the start of a syscall
      */
-	__uint(type, BPF_MAP_TYPE_HASH);
-	__uint(key_size, sizeof(u64));
-	__uint(value_size, sizeof(struct start_event_t));
+    __uint(type, BPF_MAP_TYPE_HASH);
+    __uint(key_size, sizeof(u64));
+    __uint(value_size, sizeof(struct start_event_t));
     __uint(max_entries, MAX_START_EVENTS_NUM);
 } start_event_map SEC(".maps");
 
@@ -188,7 +188,7 @@ int emit_fstrace_event(void* ctx, int64_t retval)
         }
     }
 
-	// send out the complete event data to perf event buffer
+    // send out the complete event data to perf event buffer
     bpf_ringbuf_submit(cmplt_event, BPF_RB_FORCE_WAKEUP);
     return 0;
 }
@@ -275,8 +275,7 @@ static __always_inline
 int handle_return_value(struct pftrace_cmplt_event_t* cmplt_event, long long retval)
 {
     switch (read_modify_update_current_type(0)) {
-        case PF_PAGE_CACHE_HIT:
-        {
+        case PF_PAGE_CACHE_HIT: {
             struct file *fpin = (struct file *) retval;
             if (fpin == NULL) {
                 cmplt_event->size = 0;
@@ -290,8 +289,7 @@ int handle_return_value(struct pftrace_cmplt_event_t* cmplt_event, long long ret
         case PF_SWAP_FROM_DISK:
         case PF_ZERO_FILL_PAGE:
         case PF_FAKE_ZERO_PAGE:
-        case PF_COPY_ON_WRITE:
-        {
+        case PF_COPY_ON_WRITE: {
             vm_fault_t vmf_flags = (vm_fault_t) retval;
             if (vmf_flags & VM_FAULT_ERROR) {
                 cmplt_event->size = 0;
@@ -397,19 +395,19 @@ static __always_inline
 int is_target_process(const char* target_comm, const size_t comm_size)
 {
     char curr_comm[MAX_COMM_LEN] = "\0";
-	long retval = bpf_get_current_comm(curr_comm, sizeof(curr_comm));
-	if (retval == 0) {
+    long retval = bpf_get_current_comm(curr_comm, sizeof(curr_comm));
+    if (retval == 0) {
         size_t min_comm = comm_size < sizeof(curr_comm) ? comm_size : sizeof(curr_comm);
-		for (size_t j = 0; j <= min_comm; ++j) {
-			if (j == min_comm) {
-				char fmt[] = "current comm is %s\n";
-				bpf_trace_printk(fmt, sizeof(fmt), curr_comm);
-				return 0;
-			}
-			if (target_comm[j] != curr_comm[j]) {
-				break;
-			}
-		}
+        for (size_t j = 0; j <= min_comm; ++j) {
+            if (j == min_comm) {
+                char fmt[] = "current comm is %s\n";
+                bpf_trace_printk(fmt, sizeof(fmt), curr_comm);
+                return 0;
+            }
+            if (target_comm[j] != curr_comm[j]) {
+                break;
+            }
+        }
     }
     return -1;
 }
@@ -672,8 +670,7 @@ u32 get_biotrace_event_type_by_flags(unsigned int cmd_flags)
         if ((cmd_flags & REQ_OP_MASK) == REQ_OP_READ) {
             return BIO_METADATA_READ;
         }
-        if ((cmd_flags & REQ_OP_MASK) == REQ_OP_WRITE)
-        {
+        if ((cmd_flags & REQ_OP_MASK) == REQ_OP_WRITE) {
             return BIO_METADATA_WRITE;
         }
         return 0;
