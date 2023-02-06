@@ -249,7 +249,7 @@ void BPFEventReceiver::WriteSymbolInfo(const std::string &fileName)
             return;
         }
         pos += sym->symTabLen;
-        if (memcpy_s(tmp + pos, size - pos, symbolInfo.fileName_.c_str(), sym->fileNameLen) != EOK) {
+        if (memcpy_s(tmp + pos, size - pos, symbolInfo.fileName_.c_str(), symbolInfo.fileName_.size()) != EOK) {
             HHLOGE(true, "memcpy_s failed");
             return;
         }
