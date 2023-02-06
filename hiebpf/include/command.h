@@ -60,7 +60,7 @@ private:
     bool helpFlag_ = false;
     BPFConfig bpfConfig;
     std::unique_ptr<BPFController> bpfControllerPtr_;
-    //event type
+    // event type
     std::vector<std::string> events_;
     int clockId_ = CLOCK_TYPE::BootTime;
     int duration_ = 1000;

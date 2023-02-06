@@ -77,10 +77,18 @@ public:
         }
         if (head_ + len > bufSize_) {
             // data splitted
-            memcpy_s(dest, bufSize_ - head_, buffer_ + head_, bufSize_ - head_);
-            memcpy_s(dest + bufSize_ - head_, len + head_ - bufSize_, buffer_, len + head_ - bufSize_);
+            int ret = memcpy_s(dest, len, buffer_ + head_, bufSize_ - head_);
+            if (ret != EOK) {
+                return -1;
+            }
+            ret = memcpy_s(dest + bufSize_ - head_, len + head_ - bufSize_, buffer_, len + head_ - bufSize_);
+            if (ret != EOK) {
+                return -1;
+            }
         } else {
-            memcpy_s(dest, len, buffer_ + head_, len);
+            if (memcpy_s(dest, len, buffer_ + head_, len) != EOK) {
+                return -1;
+            }
         }
         return 0;
     }

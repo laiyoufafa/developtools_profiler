@@ -19,6 +19,7 @@
 
 #include "kernel_symbol_info.h"
 
+
 std::shared_ptr<HiebpfDataFile> HiebpfDataFile::MakeShared(
     const std::string& cmd,
     const std::string& filename,
@@ -26,15 +27,15 @@ std::shared_ptr<HiebpfDataFile> HiebpfDataFile::MakeShared(
 {
     std::shared_ptr<HiebpfDataFile> obj {new(std::nothrow) HiebpfDataFile {cmd, filename, pages}};
     if (obj == nullptr) {
-        HHLOGD(true, "failed to make HiebpfDataFile");
+        HHLOGE(true, "failed to make HiebpfDataFile");
         return nullptr;
     }
     if (obj->OpenFile() != 0) {
-        HHLOGD(true, "failed to open hiebpf data file");
+        HHLOGE(true, "failed to open hiebpf data file");
         return nullptr;
     }
     if (obj->MapFile() != 0) {
-        HHLOGD(true, "failed to map hiebpf data file into memory");
+        HHLOGE(true, "failed to map hiebpf data file into memory");
         return nullptr;
     }
     return obj;
@@ -54,7 +55,7 @@ void* HiebpfDataFile::Reserve(const std::size_t size)
     }
     char* buffer = (char *)mapAddr_;
     buffer += offset_;
-    memset(buffer, 0, size);
+    (void)memset_s(buffer, size, 0, size);
     uint32_t *tracer = (uint32_t *) buffer;
     (*tracer) = BADTRACE;
     uint32_t *len = tracer + 1;
@@ -67,8 +68,8 @@ void HiebpfDataFile::Discard(void *data)
 {
     if (data) {
         int64_t interval = static_cast<int64_t>((__u64)data) - ((__u64)mapAddr_);
-        if (0 <= interval and interval < length_) {
-            uint32_t *tracer = (uint32_t *) data;
+        if (0 <= interval and static_cast<uint64_t>(interval) < length_) {
+            uint32_t *tracer = static_cast<uint32_t*>(data);
             (*tracer) = BADTRACE;
         }
     }
@@ -86,7 +87,10 @@ void HiebpfDataFile::WriteKernelSymbol()
     (*type) = KERNEL_SYM;
     uint32_t *len = type + 1;
     (*len) = bufSize;
-    memcpy_s(tmp + sizeof(uint32_t) * 2, bufSize, buf.data(), bufSize);
+    if (memcpy_s(tmp + sizeof(uint32_t) * 2, bufSize, buf.data(), bufSize) != EOK) {
+        HHLOGE(true, "failed to memcpy");
+        return;
+    }
 }
 
 void HiebpfDataFile::Submit(void *data)
@@ -103,7 +107,7 @@ void HiebpfDataFile::Submit(void *data)
 int HiebpfDataFile::MapFile()
 {
     if (ExtendFile(mapPos_, length_) != 0) {
-        HHLOGD(true, "failed to extend data file from %u with %u bytes", mapPos_, length_);
+        HHLOGE(true, "failed to extend data file from %u with %u bytes", mapPos_, length_);
         return -1;
     }
     HHLOGI(true, "done extending the data file");
@@ -113,13 +117,13 @@ int HiebpfDataFile::MapFile()
         PROT_WRITE | PROT_READ, MAP_SHARED | MAP_POPULATE,
         fd_, mapPos_);
     if (mapAddr_ == MAP_FAILED) {
-        HHLOGD(true, "mmap() failed: %s", strerror(errno));
+        HHLOGE(true, "mmap() failed: %s", strerror(errno));
         return -1;
     }
     HHLOGI(true, "done mem mapping hiebpf data file, mapping address = %p", mapAddr_);
     // hiebpf data file header
     if (WriteFileHeader() != 0) {
-        HHLOGD(true, "failed to write hiebpf data file header");
+        HHLOGE(true, "failed to write hiebpf data file header");
         return -1;
     }
     HHLOGI(true, "done writing hiebpf data file header");
@@ -141,7 +145,7 @@ int HiebpfDataFile::RemapFile(const std::size_t size)
     }
 
     if (ExtendFile(remapPos, extendLength) != 0) {
-        HHLOGD(true, "failed to extend file from %u with %u bytes", remapPos, length_);
+        HHLOGE(true, "failed to extend file from %u with %u bytes", remapPos, length_);
         return -1;
     }
     HHLOGI(true, "done extending the data file");
@@ -150,7 +154,7 @@ int HiebpfDataFile::RemapFile(const std::size_t size)
         PROT_WRITE | PROT_READ, MAP_SHARED | MAP_POPULATE,
         fd_, remapPos);
     if (mapAddr_ == MAP_FAILED) {
-        HHLOGD(true, "failed to remap data file from %u to %u", mapPos_, remapPos);
+        HHLOGE(true, "failed to remap data file from %u to %u", mapPos_, remapPos);
         return -1;
     }
     HHLOGI(true, "done remapping data file from %u, to %u", mapPos_, remapPos);

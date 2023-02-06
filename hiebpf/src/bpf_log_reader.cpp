@@ -22,6 +22,8 @@
 
 #include "bpf_log_reader.h"
 
+static constexpr int FILE_MODE = 0644;
+
 BPFLogReader::~BPFLogReader()
 {
     Stop();
@@ -96,7 +98,7 @@ int BPFLogReader::OpenLogFile(const std::string& logFile)
     if (fileName.length() == 0) {
         return -1;
     }
-    ofd_ = open(fileName.c_str(), O_WRONLY | O_CREAT);
+    ofd_ = open(fileName.c_str(), O_WRONLY | O_CREAT, FILE_MODE);
     if (ofd_ < 0) {
         return -1;
     }

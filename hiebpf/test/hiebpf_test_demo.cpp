@@ -33,7 +33,7 @@ namespace {
 constexpr int ARGC_NUM_MUST = 3;
 constexpr int ARGC_WRITE_READ_TIMES = 2;
 constexpr int BUF_SIZE = 512;
-
+constexpr int FILE_MODE = 0644;
 std::string DEFAULT_PATH("./");
 
 class Timer {
@@ -69,7 +69,7 @@ private:
 static int g_sleepUs = 0;
 void CallStack1(const char * filename)
 {
-    int fd = open(filename, O_RDWR|O_CREAT|O_TRUNC, 0644);
+    int fd = open(filename, O_RDWR|O_CREAT|O_TRUNC, FILE_MODE);
     if (fd < 0) {
         printf("NOTE Open file err: %s!\n", filename);
         return ;

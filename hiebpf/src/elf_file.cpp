@@ -115,6 +115,9 @@ bool ElfFile::ParsePrgHeaders()
     size_t numPhdrs = ehdr_->phdrNumEnts_;
     uint64_t phdrOffset = ehdr_->phdrOffset_;
     int64_t ret = lseek(fd_, phdrOffset, SEEK_SET);
+    if (ret != static_cast<int64_t>(phdrOffset)) {
+        return false;
+    }
     char *phdrsBuf = new (std::nothrow) char[phdrSize * numPhdrs];
     if (phdrsBuf == nullptr) {
         HHLOGE(true, "Error in ELF::ElfFile::ParsePrgHeaders(): new failed");
@@ -163,6 +166,8 @@ bool ElfFile::ParseSecNamesStr()
 
     ret = ReadFile(shdrBuf, shdrSize);
     if (ret != static_cast<int64_t>(shdrSize)) {
+        delete[] shdrBuf;
+        shdrBuf = nullptr;
         return false;
     }
     const std::string secName {".shstrtab"};
@@ -217,6 +222,8 @@ bool ElfFile::ParseSecHeaders()
 
     ret = ReadFile(shdrsBuf, shdrSize * numShdrs);
     if (ret != static_cast<int64_t>(shdrSize * numShdrs)) {
+        delete[] shdrsBuf;
+        shdrsBuf = nullptr;
         return false;
     }
 

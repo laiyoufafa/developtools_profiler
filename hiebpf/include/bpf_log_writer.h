@@ -19,7 +19,7 @@
 #include "bpf_log.h"
 #include "fstrace_types.h"
 
-#define __BPFLOG(level, expression, format, ...) {                                          \
+#define BPFLOG(level, expression, format, ...) {                                          \
     u32 bpf_log_level_index = BPF_LOG_LEVEL_INDEX;                                          \
     u32* bpf_log_level_ptr = bpf_map_lookup_elem(&config_var_map, &bpf_log_level_index);    \
     if (bpf_log_level_ptr) {                                                                \
@@ -36,39 +36,39 @@
 }
 
 #ifdef BPF_LOGGER_DEBUG
-#define BPFLOGD(expression, format, ...) __BPFLOG(BPF_LOG_DEBUG, expression, format, ##__VA_ARGS__)
-#define BPFLOGI(expression, format, ...) __BPFLOG(BPF_LOG_INFO, expression, format, ##__VA_ARGS__)
-#define BPFLOGW(expression, format, ...) __BPFLOG(BPF_LOG_WARN, expression, format, ##__VA_ARGS__)
-#define BPFLOGE(expression, format, ...) __BPFLOG(BPF_LOG_ERROR, expression, format, ##__VA_ARGS__)
-#define BPFLOGF(expression, format, ...) __BPFLOG(BPF_LOG_FATAL, expression, format, ##__VA_ARGS__)
+#define BPFLOGD(expression, format, ...) BPFLOG(BPF_LOG_DEBUG, expression, format, ##__VA_ARGS__)
+#define BPFLOGI(expression, format, ...) BPFLOG(BPF_LOG_INFO, expression, format, ##__VA_ARGS__)
+#define BPFLOGW(expression, format, ...) BPFLOG(BPF_LOG_WARN, expression, format, ##__VA_ARGS__)
+#define BPFLOGE(expression, format, ...) BPFLOG(BPF_LOG_ERROR, expression, format, ##__VA_ARGS__)
+#define BPFLOGF(expression, format, ...) BPFLOG(BPF_LOG_FATAL, expression, format, ##__VA_ARGS__)
 
 #elif defined(BPF_LOGGER_INFO)
 #define BPFLOGD(expression, format, ...) {}
-#define BPFLOGI(expression, format, ...) __BPFLOG(BPF_LOG_INFO, expression, format, ##__VA_ARGS__)
-#define BPFLOGW(expression, format, ...) __BPFLOG(BPF_LOG_WARN, expression, format, ##__VA_ARGS__)
-#define BPFLOGE(expression, format, ...) __BPFLOG(BPF_LOG_ERROR, expression, format, ##__VA_ARGS__)
-#define BPFLOGF(expression, format, ...) __BPFLOG(BPF_LOG_FATAL, expression, format, ##__VA_ARGS__)
+#define BPFLOGI(expression, format, ...) BPFLOG(BPF_LOG_INFO, expression, format, ##__VA_ARGS__)
+#define BPFLOGW(expression, format, ...) BPFLOG(BPF_LOG_WARN, expression, format, ##__VA_ARGS__)
+#define BPFLOGE(expression, format, ...) BPFLOG(BPF_LOG_ERROR, expression, format, ##__VA_ARGS__)
+#define BPFLOGF(expression, format, ...) BPFLOG(BPF_LOG_FATAL, expression, format, ##__VA_ARGS__)
 
 #elif defined(BPF_LOGGER_WARN)
 #define BPFLOGD(expression, format, ...) {}
 #define BPFLOGI(expression, format, ...) {}
-#define BPFLOGW(expression, format, ...) __BPFLOG(BPF_LOG_WARN, expression, format, ##__VA_ARGS__)
-#define BPFLOGE(expression, format, ...) __BPFLOG(BPF_LOG_ERROR, expression, format, ##__VA_ARGS__)
-#define BPFLOGF(expression, format, ...) __BPFLOG(BPF_LOG_FATAL, expression, format, ##__VA_ARGS__)
+#define BPFLOGW(expression, format, ...) BPFLOG(BPF_LOG_WARN, expression, format, ##__VA_ARGS__)
+#define BPFLOGE(expression, format, ...) BPFLOG(BPF_LOG_ERROR, expression, format, ##__VA_ARGS__)
+#define BPFLOGF(expression, format, ...) BPFLOG(BPF_LOG_FATAL, expression, format, ##__VA_ARGS__)
 
 #elif defined(BPF_LOGGER_ERROR)
 #define BPFLOGD(expression, format, ...) {}
 #define BPFLOGI(expression, format, ...) {}
 #define BPFLOGW(expression, format, ...) {}
-#define BPFLOGE(expression, format, ...) __BPFLOG(BPF_LOG_ERROR, expression, format, ##__VA_ARGS__)
-#define BPFLOGF(expression, format, ...) __BPFLOG(BPF_LOG_FATAL, expression, format, ##__VA_ARGS__)
+#define BPFLOGE(expression, format, ...) BPFLOG(BPF_LOG_ERROR, expression, format, ##__VA_ARGS__)
+#define BPFLOGF(expression, format, ...) BPFLOG(BPF_LOG_FATAL, expression, format, ##__VA_ARGS__)
 
 #elif defined(BPF_LOGGER_FATAL)
 #define BPFLOGD(expression, format, ...) {}
 #define BPFLOGI(expression, format, ...) {}
 #define BPFLOGW(expression, format, ...) {}
 #define BPFLOGE(expression, format, ...) {}
-#define BPFLOGF(expression, format, ...) __BPFLOG(BPF_LOG_FATAL, expression, format, ##__VA_ARGS__)
+#define BPFLOGF(expression, format, ...) BPFLOG(BPF_LOG_FATAL, expression, format, ##__VA_ARGS__)
 
 #else
 #define BPFLOGD(expression, format, ...) {}

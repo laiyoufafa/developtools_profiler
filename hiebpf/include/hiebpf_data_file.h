@@ -87,22 +87,23 @@ private:
         long pageSize = sysconf(_SC_PAGE_SIZE);
         HHLOGI(true, "page size of the current OS: %u bytes", pageSize);
         if (pageSize > 0) {
-            pageSize_ = pageSize;
-            length_ = pageSize * pages;
+            pageSize_ = static_cast<size_t>(pageSize);
+            length_ = static_cast<size_t>(pageSize * pages);
         }
         HHLOGI(true, "mmap length = %u", length_);
     }
 
     inline int OpenFile()
     {
-        fd_ = open(filename_.c_str(), O_RDWR | O_CREAT, S_IRWXU | S_IRWXG | S_IRWXO);
+        constexpr int FILE_MODE = 0644;
+        fd_ = open(filename_.c_str(), O_RDWR | O_CREAT, FILE_MODE);
         return (fd_ < 0) ? -1 : 0;
     }
 
     inline int ExtendFile(const std::size_t mapPos, const std::size_t mapLength)
     {
         if (ftruncate(fd_, mapPos + mapLength) != 0) {
-            HHLOGD(true, "failed to extend data file");
+            HHLOGE(true, "failed to extend data file");
             return -1;
         }
         return 0;
@@ -112,9 +113,15 @@ private:
     {
         struct DataFileHeader header {};
         header.cmdLen_ = hiebpfCmd_.length() + 1;
-        strncpy_s(header.cmd_, header.TOTAL_HEAD_SIZE - header.FIXED_HEAD_SIZE,
-                  hiebpfCmd_.c_str(), hiebpfCmd_.length() + 1);
-        memcpy_s(mapAddr_, sizeof(header), &header, sizeof(header));
+        if (strncpy_s(header.cmd_, header.TOTAL_HEAD_SIZE - header.FIXED_HEAD_SIZE,
+                      hiebpfCmd_.c_str(), hiebpfCmd_.length() + 1) != EOK) {
+            HHLOGE(true, "failed to copy string");
+            return -1;
+        }
+        if (memcpy_s(mapAddr_, length_, &header, sizeof(header)) != EOK) {
+            HHLOGE(true, "failed to memcpy_s");
+            return -1;
+        }
         offset_ += sizeof(header);
         return 0;
     }

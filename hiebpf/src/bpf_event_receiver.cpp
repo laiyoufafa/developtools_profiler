@@ -72,7 +72,7 @@ void BPFEventReceiver::DoWork()
 void BPFEventReceiver::ReceiveFSTraceEvent()
 {
     struct fstrace_cmplt_event_t cmplt_event {};
-    int dataSize = buf_->Get((char*)&cmplt_event, sizeof(cmplt_event));
+    size_t dataSize = buf_->Get((char*)&cmplt_event, sizeof(cmplt_event));
     if (dataSize != sizeof(cmplt_event)) {
         HHLOGE(true, "imcomplete fstrace event data receiveed");
         return;
@@ -192,7 +192,7 @@ void BPFEventReceiver::WriteEventMaps(uint32_t pid)
         void *dest = file->Reserve(size);
         if (dest == nullptr) {
             HHLOGE(true, "failed to reserve space for strtrace event tlv item");
-            return;
+            continue;
         }
         FixedMapTLVItem *mapItem = (FixedMapTLVItem *)dest;
         mapItem->type = MAPSTRACE;
@@ -204,8 +204,7 @@ void BPFEventReceiver::WriteEventMaps(uint32_t pid)
         mapItem->fileNameLen = item.fileName_.size() + 1;
         char* tmp = (char*)dest;
         char* fileName = tmp + sizeof(FixedMapTLVItem);
-        memset(fileName, 0, mapItem->fileNameLen);
-        memcpy_s(fileName, mapItem->fileNameLen, item.fileName_.c_str(), mapItem->fileNameLen);
+        (void)strncpy_s(fileName, mapItem->fileNameLen, item.fileName_.c_str(), item.fileName_.size());
         file->Submit(dest);
         WriteSymbolInfo(item.fileName_);
     }
@@ -224,6 +223,10 @@ void BPFEventReceiver::WriteSymbolInfo(const std::string &fileName)
         size_t size = sizeof(FixedSymbolTLVItem) + symbolInfo.strTable_.size() + symbolInfo.symTable_.size()
             + symbolInfo.fileName_.size() + 1;
         void *dest = file->Reserve(size);
+        if (dest == nullptr) {
+            HHLOGE(true, "file reserve failed");
+            return;
+        }
         FixedSymbolTLVItem *sym = (FixedSymbolTLVItem *)dest;
         sym->type = SYMBOLTRACE;
         sym->len = size - sizeof(uint32_t) * 2;
@@ -234,15 +237,22 @@ void BPFEventReceiver::WriteSymbolInfo(const std::string &fileName)
         sym->fileNameLen = symbolInfo.fileName_.size() + 1;
         sym->symEntLen = symbolInfo.symEntSize_;
         char* tmp = (char*)dest;
-        char* strTab = tmp + sizeof(FixedSymbolTLVItem);
-        memset(strTab, 0, sym->strTabLen);
-        memcpy_s(strTab, sym->strTabLen, symbolInfo.strTable_.data(), sym->strTabLen);
-        char* symTab = tmp + sizeof(FixedSymbolTLVItem) + symbolInfo.strTable_.size();
-        memset(symTab, 0, sym->symTabLen);
-        memcpy_s(symTab, sym->symTabLen, symbolInfo.symTable_.data(), sym->symTabLen);
-        char* fileName = tmp + sizeof(FixedSymbolTLVItem) + symbolInfo.strTable_.size() + symbolInfo.symTable_.size();
-        memset(fileName, 0, sym->fileNameLen);
-        memcpy_s(fileName, sym->fileNameLen, symbolInfo.fileName_.c_str(), sym->fileNameLen);
+        size_t pos = 0;
+        pos += sizeof(FixedSymbolTLVItem);
+        if (memcpy_s(tmp + pos, size - pos, symbolInfo.strTable_.data(), sym->strTabLen) != EOK) {
+            HHLOGE(true, "memcpy_s failed");
+            return;
+        }
+        pos += sym->strTabLen;
+        if (memcpy_s(tmp + pos, size - pos, symbolInfo.symTable_.data(), sym->symTabLen) != EOK) {
+            HHLOGE(true, "memcpy_s failed");
+            return;
+        }
+        pos += sym->symTabLen;
+        if (memcpy_s(tmp + pos, size - pos, symbolInfo.fileName_.c_str(), symbolInfo.fileName_.size()) != EOK) {
+            HHLOGE(true, "memcpy_s failed");
+            return;
+        }
         file->Submit(dest);
     }
     elfSymbolInfo_.CacheFileName(fileName);
@@ -277,26 +287,27 @@ int BPFEventReceiver::EncodeFSTraceEvent(
     item->itemLen_ = itemLen - sizeof(uint32_t) * 2;
     item->pid_ = cmplt_event->tgid;
     item->tid_ = cmplt_event->pid;
-    strncpy_s(
-        item->tracerName_,
-        MAX_TRACER_NAME_LEN,
-        gTracerTable[FSTRACE].c_str(),
-        gTracerTable[FSTRACE].size());
+    if (strncpy_s(item->tracerName_, MAX_TRACER_NAME_LEN,
+                  gTracerTable[FSTRACE].c_str(), gTracerTable[FSTRACE].size()) != EOK) {
+        HHLOGE(true, "failed to copy fstrace tracer name");
+        return -1;
+    }
     item->stime_ = cmplt_event->start_event.stime;
     item->ctime_ = cmplt_event->ctime;
     item->retval_ = cmplt_event->retval;
     item->nips_ = static_cast<uint16_t>(cmplt_event->nips);
     item->type_ = static_cast<uint16_t>(cmplt_event->start_event.type);
-    strncpy_s(
-        item->typeName_,
-        MAX_TYPE_NAME_LEN,
-        gFSTraceTypeTable[item->type_].c_str(),
-        gFSTraceTypeTable[item->type_].size());
+    if (strncpy_s(item->typeName_, MAX_TYPE_NAME_LEN,
+                  gFSTraceTypeTable[item->type_].c_str(),
+                  gFSTraceTypeTable[item->type_].size() != EOK)) {
+        HHLOGE(true, "failed to copy fstrace type name");
+        return -1;
+    }
     if (ConvertFSTraceArgsToArray(item->args_, &cmplt_event->start_event) != 0) {
         HHLOGE(true, "failed to convert fstrace event args");
         return -1;
     }
-    memcpy_s(item->comm_, MAX_COMM_LEN, cmplt_event->comm, MAX_COMM_LEN);
+    (void)memcpy_s(item->comm_, MAX_COMM_LEN, cmplt_event->comm, MAX_COMM_LEN);
     if (cmplt_event->nips and cmplt_event->ustack_id >= 0) {
         char* tmp = (char*) tlvItem;
         __u64 *ips = (__u64 *) (tmp + sizeof(struct FixedFSTraceTLVItem));
@@ -317,23 +328,25 @@ int BPFEventReceiver::EncodePFTraceEvent(
     item->itemLen_ = itemLen - sizeof(uint32_t) * 2;
     item->pid_ = cmplt_event->tgid;
     item->tid_ = cmplt_event->pid;
-    strncpy_s(
-        item->tracerName_,
-        MAX_TRACER_NAME_LEN,
-        gTracerTable[PFTRACE].c_str(),
-        gTracerTable[PFTRACE].size());
+    if (strncpy_s(item->tracerName_, MAX_TRACER_NAME_LEN,
+                  gTracerTable[PFTRACE].c_str(), gTracerTable[PFTRACE].size() != EOK)) {
+        HHLOGE(true, "failed to copy pftrace tracer name");
+        return -1;
+    }
     item->stime_ = cmplt_event->start_event.stime;
     item->ctime_ = cmplt_event->ctime;
     item->addr_ = cmplt_event->start_event.addr;
     item->size_ = cmplt_event->size;
     item->nips_ = static_cast<uint16_t>(cmplt_event->nips);
     item->type_ = static_cast<uint16_t>(cmplt_event->start_event.type);
-    strncpy_s(
-        item->typeName_,
-        MAX_TYPE_NAME_LEN,
-        gPFTraceTypeTable[item->type_].c_str(),
-        gPFTraceTypeTable[item->type_].size());
-    memcpy_s(item->comm_, MAX_COMM_LEN, cmplt_event->comm, MAX_COMM_LEN);
+    if (strncpy_s(item->typeName_,
+                  MAX_TYPE_NAME_LEN,
+                  gPFTraceTypeTable[item->type_].c_str(),
+                  gPFTraceTypeTable[item->type_].size()) != EOK) {
+        HHLOGE(true, "failed to copy pftrace type name");
+        return -1;
+    }
+    (void)memcpy_s(item->comm_, MAX_COMM_LEN, cmplt_event->comm, MAX_COMM_LEN);
     if (cmplt_event->nips and cmplt_event->ustack_id >= 0) {
         char* tmp = (char*) tlvItem;
         __u64 *ips = (__u64 *) (tmp + sizeof(struct FixedPFTraceTLVItem));
@@ -354,7 +367,7 @@ int BPFEventReceiver::EncodeBIOTraceEvent(
     item->itemLen_ = itemLen - sizeof(uint32_t) * 2;
     item->pid_ = cmplt_event->start_event.tgid;
     item->tid_ = cmplt_event->start_event.pid;
-    memcpy_s(item->comm_, MAX_COMM_LEN, cmplt_event->start_event.comm, MAX_COMM_LEN);
+    (void)memcpy_s(item->comm_, MAX_COMM_LEN, cmplt_event->start_event.comm, MAX_COMM_LEN);
     item->stime_ = cmplt_event->start_event.stime;
     item->ctime_ = cmplt_event->ctime;
     item->prio_ = cmplt_event->prio;
@@ -362,11 +375,13 @@ int BPFEventReceiver::EncodeBIOTraceEvent(
     item->blkcnt_ = cmplt_event->blkcnt;
     item->nips_ = cmplt_event->nips;
     item->type_ = cmplt_event->start_event.type;
-    strncpy_s(
-        item->typeName_,
-        MAX_TYPE_NAME_LEN,
-        gBIOTraceTypeTable[item->type_].c_str(),
-        gBIOTraceTypeTable[item->type_].size());
+    if (strncpy_s(item->typeName_,
+                  MAX_TYPE_NAME_LEN,
+                  gBIOTraceTypeTable[item->type_].c_str(),
+                  gBIOTraceTypeTable[item->type_].size()) != EOK) {
+        HHLOGE(true, "failed to copy BIOstrace type name");
+        return -1;
+    }
     if (cmplt_event->nips and cmplt_event->start_event.ustack_id >= 0) {
         char* tmp = (char*) tlvItem;
         __u64 *ips = (__u64 *) (tmp + sizeof(struct FixedBIOTraceTLVItem));
@@ -394,7 +409,10 @@ int BPFEventReceiver::EncodeSTRTraceEvent(
     if (item->strLen_ and item->strLen_ <= MAX_FILENAME_LEN) {
         char *filename = (char*) tlvItem;
         filename += sizeof(struct FixedSTRTraceTLVItem);
-        strncpy_s(filename, MAX_FILENAME_LEN, cmplt_event->filename, item->strLen_);
+        if (strncpy_s(filename, MAX_FILENAME_LEN, cmplt_event->filename, item->strLen_) != EOK) {
+            HHLOGE(true, "failed to copy cmplt_event file name");
+            return -1;
+        }
         if (item->srcTracer_ == BIOTRACE || (item->srcTracer_ == FSTRACE && item->srcType_ == SYS_CLOSE)) {
             ReverseStr(filename, filename + item->strLen_ - 2);
             char* start = filename;
@@ -439,7 +457,10 @@ int BPFEventReceiver::ReadCallChain(
         GetUStackMapFd();
         hasUStackMapFd_ = true;
     }
-    memset(ips, 0, nips);
+    if (memset_s(ips, nips * sizeof(__u64), 0, nips * sizeof(__u64)) != EOK) {
+        HHLOGE(true, "memset_s failed");
+        return -1;
+    }
     int err = bpf_map_lookup_elem(ustackMapFd_, &ustack_id, ips);
     if (err) {
         HHLOGE(true, "lookup user callchain ips error: %s", strerror(-err));

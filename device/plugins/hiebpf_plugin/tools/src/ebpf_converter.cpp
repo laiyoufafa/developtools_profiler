@@ -22,6 +22,7 @@
 #include <iostream>
 #include <unistd.h>
 #include <memory>
+#include <securec.h>
 
 #define CHK(expr) \
     do { \
@@ -63,7 +64,7 @@ void EbpfConverter::StartParsing()
         return;
     }
     char magic[HEADER_MAGIC + 1];
-    memset(magic, 0, sizeof(magic));
+    (void)memset_s(magic, sizeof(magic), 0, sizeof(magic));
     CHK(Read(reinterpret_cast<void*>(&magic), sizeof(magic) - 1));
     outData_ << "magic: " << magic << '\n';
     HeaderDataItem header = {};
@@ -139,7 +140,7 @@ void EbpfConverter::StartParsing()
 
 bool EbpfConverter::Read(void* buffer, size_t size)
 {
-    size_t ret = read(fd_, buffer, size);
+    ssize_t ret = read(fd_, buffer, size);
     if (ret <= 0) {
         close(fd_);
         fd_ = -1;
@@ -204,7 +205,7 @@ void EbpfConverter::EventMapsParsing()
     EventMaps maps = {};
     CHK(Read(reinterpret_cast<void*>(&maps), EVENT_MAPS_FIXED_SIZE));
     char fileName[maps.fileNameLen + 1];
-    memset(fileName, 0, sizeof(fileName));
+    (void)memset_s(fileName, sizeof(fileName), 0, sizeof(fileName));
     if (maps.fileNameLen > 0) {
         CHK(Read(reinterpret_cast<void*>(fileName), sizeof(fileName) - 1));
         maps.fileName = fileName;
@@ -238,19 +239,31 @@ void EbpfConverter::SymbolInfoParsing()
     CHK(Read(reinterpret_cast<void*>(&info), EVENT_SYM_FIXED_SIZE));
 
     info.strTab = new char[info.strTabLen + 1];
-    memset(info.strTab, 0, info.strTabLen + 1);
+    if (memset_s(info.strTab, info.strTabLen + 1, 0, info.strTabLen + 1) != EOK) {
+        std::cout << "memset string table failed" << std::endl;
+        return;
+    }
     if (info.strTabLen > 0) {
-        strAddr = lseek(fd_, 0, SEEK_CUR);
+        auto ret = lseek(fd_, 0, SEEK_CUR);
+        if (ret >= 0) {
+            strAddr = (uint64_t)ret;
+        }
         CHK(Read(reinterpret_cast<void*>(info.strTab), info.strTabLen));
     }
     info.symTab = new char[info.symTabLen + 1];
-    memset(info.symTab, 0, info.symTabLen + 1);
+    if (memset_s(info.symTab, info.symTabLen + 1, 0, info.symTabLen + 1) != EOK) {
+        std::cout << "memset symbol table failed" << std::endl;
+        return;
+    }
     if (info.symTabLen > 0) {
-        symAddr = lseek(fd_, 0, SEEK_CUR);
+        auto ret = lseek(fd_, 0, SEEK_CUR);
+        if (ret >= 0) {
+            symAddr = (uint64_t)ret;
+        }
         CHK(Read(reinterpret_cast<void*>(info.symTab), info.symTabLen));
     }
     char fileName[info.fileNameSize + 1];
-    memset(fileName, 0, sizeof(fileName));
+    (void)memset_s(fileName, sizeof(fileName), 0, sizeof(fileName));
     if (info.fileNameSize > 0) {
         CHK(Read(reinterpret_cast<void*>(&fileName), sizeof(fileName) - 1));
         info.fileName = fileName;
@@ -325,7 +338,7 @@ void EbpfConverter::EventStrParsing()
         str.fileName = fileName;
     }
     str_.push_back(str);
-    int32_t newPos = str.len - 32 - str.strLen;
+    int32_t newPos = static_cast<int32_t>(str.len - 32 - str.strLen);
     fileSize_ = lseek(fd_, lseek(fd_, 0, SEEK_CUR) + newPos, SEEK_SET);
 
     outData_ << "\nEventStr:\n"
@@ -414,7 +427,10 @@ std::pair<std::string, std::vector<std::string>> EbpfConverter::GetSymbolInfo(ui
         uint32_t count = 0;
         while (count < symItem->second.symTabLen) {
             Elf64_Sym sym;
-            memcpy(&sym, symItem->second.symTab + count, SYM_ENT_LEN_64);
+            if (memcpy_s(&sym, sizeof(sym), symItem->second.symTab + count, SYM_ENT_LEN_64) != EOK) {
+                std::cout << "copy symTab failed" << std::endl;
+                return std::pair<std::string, std::vector<std::string>>();
+            }
             if (vaddr >= sym.st_value && vaddr <= sym.st_value + sym.st_size && (sym.st_info & STT_FUNC) && sym.st_value != 0) {
                 char *ret = abi::__cxa_demangle((char *)(symItem->second.strTab + sym.st_name),
                                                 nullptr, nullptr, nullptr);
@@ -427,8 +443,10 @@ std::pair<std::string, std::vector<std::string>> EbpfConverter::GetSymbolInfo(ui
         uint32_t count = 0;
         while (count < symItem->second.symTabLen) {
             Elf32_Sym sym;
-            memset(&sym, 0, sizeof(sym));
-            memcpy(&sym, symItem->second.strTab + count, SYM_ENT_LEN_32);
+            if (memcpy_s(&sym, sizeof(sym), symItem->second.strTab + count, SYM_ENT_LEN_32) != EOK) {
+                std::cout << "copy symTab failed" << std::endl;
+                return std::pair<std::string, std::vector<std::string>>();
+            }
             if (vaddr >= sym.st_value &&
                 vaddr <= sym.st_value + sym.st_size &&
                 (sym.st_info & STT_FUNC) &&

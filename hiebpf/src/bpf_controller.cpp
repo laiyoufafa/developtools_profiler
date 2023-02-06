@@ -70,7 +70,7 @@ BPFController::~BPFController()
         skel_ = nullptr;
     }
 
-    for (int k = 0; k < receivers_.size(); ++k) {
+    for (size_t k = 0; k < receivers_.size(); ++k) {
         receivers_[k]->Stop();
     }
     if (bpfLogReader_) {
@@ -146,17 +146,17 @@ int BPFController::VerifyConfigurations()
     }
     HHLOGI(true, "VerifySelectEventGroups() done");
     if (VerifyDumpEvents(config_.dumpEvents_) != 0) {
-        HHLOGD(true, "VerifyDumpEvents() failed: dump events = %d", config_.dumpEvents_);
+        HHLOGD(true, "VerifyDumpEvents() failed: dump events = %u", config_.dumpEvents_);
         return -1;
     }
     HHLOGI(true, "VerifyDumpEents() done");
     if (VerifyTraceDuration(config_.traceDuration_) != 0) {
-        HHLOGD(true, "VerifyTraceDuration() failed: duration = %d", config_.traceDuration_);
+        HHLOGD(true, "VerifyTraceDuration() failed: duration = %u", config_.traceDuration_);
         return -1;
     }
     HHLOGI(true, "VerifyTraceDuration() done");
     if (VerifyMaxStackDepth(config_.maxStackDepth_) != 0) {
-        HHLOGD(true, "VerifyMaxStackDepth() failed: max stack depth = %d", config_.maxStackDepth_);
+        HHLOGD(true, "VerifyMaxStackDepth() failed: max stack depth = %u", config_.maxStackDepth_);
         return -1;
     }
     HHLOGI(true, "VerifyMaxStackDepth() done");
@@ -588,12 +588,20 @@ uint64_t BPFController::GetSymOffset(const std::string &path, const std::string 
     uint64_t stepLength = 0;
     uint64_t vaddr = 0;
     while (stepLength < sym->secSize_) {
-        memcpy_s(&st_name, sizeof(uint32_t), symData + stepLength, sizeof(uint32_t));
+        int ret = memcpy_s(&st_name, sizeof(uint32_t), symData + stepLength, sizeof(uint32_t));
+        if (ret != EOK) {
+            HHLOGE(true, "failed to memcpy symData");
+            return 0;
+        }
         auto name = const_cast<uint8_t*>(strData + st_name);
-        if (std::string(reinterpret_cast<char*>(name)).compare(symbol) == 0) {
+        if (name != nullptr && std::string(reinterpret_cast<char*>(name)).compare(symbol) == 0) {
             int32_t valueOffset = sym->secEntrySize_ == sizeof(Elf64_Sym) ? SYM_64_VALUE_OFFSET : SYM_32_VALUE_OFFSET;
             int32_t valueSize = valueOffset == SYM_64_VALUE_OFFSET ? sizeof(uint64_t) : sizeof(uint32_t);
-            memcpy_s(&vaddr, valueSize, symData + stepLength + valueOffset, valueSize);
+            ret = memcpy_s(&vaddr, sizeof(uint64_t), symData + stepLength + valueOffset, valueSize);
+            if (ret != EOK) {
+                HHLOGE(true, "failed to memcpy symData");
+                return 0;
+            }
             break;
         }
         stepLength += sym->secEntrySize_;
@@ -696,12 +704,12 @@ int BPFController::Start()
             break;
         }
         if (std::chrono::steady_clock::now() >= endTime) {
-            printf("timeout(%ds), hiebpf exit\n", config_.traceDuration_);
+            printf("timeout(%us), hiebpf exit\n", config_.traceDuration_);
             break;
         }
     }
     // receivers_ must stop after BPFEventLoopOnce();
-    for (int k = 0; k < receivers_.size(); ++k) {
+    for (size_t k = 0; k < receivers_.size(); ++k) {
         receivers_[k]->Stop();
     }
     if (bpfLogReader_) {
@@ -861,7 +869,7 @@ static int DumpTypeAndArgs(const struct fstrace_cmplt_event_t &cmplt_event)
 int BPFController::DumpCallChain(BPFController *bpfctlr, const __u32 nips, const int64_t ustack_id)
 {
     if (nips and ustack_id >= 0 and  bpfctlr->ips_) {
-        memset(bpfctlr->ips_, 0, bpfctlr->config_.maxStackDepth_);
+        (void)memset_s(bpfctlr->ips_, bpfctlr->config_.maxStackDepth_, 0, bpfctlr->config_.maxStackDepth_);
         const __u32 ustack_map_index {FSTRACE_STACK_TRACE_INDEX};
         __u32 ustack_map_id;
         int err = bpf_map_lookup_elem(
@@ -890,15 +898,18 @@ int BPFController::DumpCallChain(BPFController *bpfctlr, const __u32 nips, const
 
 int BPFController::DumpFSTraceEvent(BPFController *bpfctlr, void *data, size_t dataSize)
 {
-    if (dataSize != sizeof(struct fstrace_cmplt_event_t)) {
+    if (dataSize != sizeof(fstrace_cmplt_event_t)) {
         std::cout << "DumpFSTraceEvent ERROR: size dismatch:"
                   << " data size = " << dataSize
-                  << " fstrace event size = " << sizeof(struct fstrace_cmplt_event_t)
+                  << " fstrace event size = " << sizeof(fstrace_cmplt_event_t)
                   << std::endl;
         return -1;
     }
     struct fstrace_cmplt_event_t cmplt_event {};
-    memcpy_s(&cmplt_event, dataSize, data, dataSize);
+    if (memcpy_s(&cmplt_event, sizeof(fstrace_cmplt_event_t), data, dataSize) != EOK) {
+        std::cout << "failed to copy data to fstrace_cmplt_event_t" << std::endl;
+        return -1;
+    }
     std::cout << "\nFSTrace Event:"
               << "\ndata size:      " << dataSize;
     DumpTypeAndArgs(cmplt_event);
@@ -919,15 +930,18 @@ int BPFController::DumpFSTraceEvent(BPFController *bpfctlr, void *data, size_t d
 
 int BPFController::DumpPFTraceEvent(BPFController *bpfctlr, void *data, size_t dataSize)
 {
-    if (dataSize != sizeof(struct pftrace_cmplt_event_t)) {
+    if (dataSize != sizeof(pftrace_cmplt_event_t)) {
         std::cout << "DumpPFTraceEvent ERROR: size dismatch:"
                   << " data size = " << dataSize
-                  << " pftrace event size = " << sizeof(struct pftrace_cmplt_event_t)
+                  << " pftrace event size = " << sizeof(pftrace_cmplt_event_t)
                   << std::endl;
         return -1;
     }
     struct pftrace_cmplt_event_t cmplt_event {};
-    memcpy_s(&cmplt_event, dataSize, data, dataSize);
+    if (memcpy_s(&cmplt_event, sizeof(pftrace_cmplt_event_t), data, dataSize) != EOK) {
+        std::cout << "failed to copy data to pftrace_cmplt_event_t" << std::endl;
+        return -1;
+    }
     std::cout << "PFTrace Event:"
               << "\ndata size:      " << dataSize
               << "\nevent type:     ";
@@ -958,15 +972,18 @@ int BPFController::DumpPFTraceEvent(BPFController *bpfctlr, void *data, size_t d
 
 int BPFController::DumpBIOTraceEvent(BPFController *bpfctlr, void *data, size_t dataSize)
 {
-    if (dataSize != sizeof(struct biotrace_cmplt_event_t)) {
+    if (dataSize != sizeof(biotrace_cmplt_event_t)) {
         std::cout << "DumpBIOTraceEvent ERROR: size dismatch:"
                   << " data size = " << dataSize
-                  << " biotrace event size = " << sizeof(struct biotrace_cmplt_event_t)
+                  << " biotrace event size = " << sizeof(biotrace_cmplt_event_t)
                   << std::endl;
         return -1;
     }
     struct biotrace_cmplt_event_t cmplt_event {};
-    memcpy_s(&cmplt_event, dataSize, data, dataSize);
+    if (memcpy_s(&cmplt_event, sizeof(biotrace_cmplt_event_t), data, dataSize) != EOK) {
+        std::cout << "failed to copy data to biotrace_cmplt_event_t" << std::endl;
+        return -1;
+    }
     std::cout << "BIOTrace Event:"
               << "\ndata size:      " << dataSize
               << "\nevent type:     ";
@@ -998,15 +1015,18 @@ int BPFController::DumpBIOTraceEvent(BPFController *bpfctlr, void *data, size_t 
 
 int BPFController::DumpSTRTraceEvent(void *data, size_t dataSize)
 {
-    if (dataSize != sizeof(struct strtrace_cmplt_event_t)) {
+    if (dataSize != sizeof(strtrace_cmplt_event_t)) {
         std::cout << "DumpSTRTraceEvent ERROR: size dismatch:"
                   << " data size = " << dataSize
-                  << " strtrace event size = " << sizeof(struct strtrace_cmplt_event_t)
+                  << " strtrace event size = " << sizeof(strtrace_cmplt_event_t)
                   << std::endl;
         return -1;
     }
     struct strtrace_cmplt_event_t cmplt_event {};
-    memcpy_s(&cmplt_event, dataSize, data, dataSize);
+    if (memcpy_s(&cmplt_event, sizeof(strtrace_cmplt_event_t), data, dataSize) != EOK) {
+        std::cout << "failed to copy data to strtrace_cmplt_event_t" << std::endl;
+        return -1;
+    }
     std::cout << "STRTrace Event:"
               << "\ndata size:      " << dataSize
               << "\ntracer:         " << cmplt_event.start_event.stracer

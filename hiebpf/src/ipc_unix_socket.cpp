@@ -213,7 +213,7 @@ bool IpcUnixSocketClient::RecvMessage(void *buf, size_t &size, uint32_t timeout)
 
     int recvSize = recv(sockFd_, buf, size, 0);
     if (recvSize > 0) {
-        size = recvSize;
+        size = static_cast<size_t>(recvSize);
         return true;
     } else if (recvSize == 0) {
         HHLOGE(true, "recv failed, peer has closed");

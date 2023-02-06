@@ -171,7 +171,7 @@ static int GetFlagName(
     }
     argLen -= prefix;
 
-    //short argument
+    // short argument
     constexpr int shortFlagLen {1};
     if (prefix == shortFlagLen and argLen == shortFlagLen) {
         flagName = std::string(argStr + prefix, argLen);
