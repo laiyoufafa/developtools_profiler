@@ -40,7 +40,7 @@ EXPORT_API void* ohos_malloc_hook_memalign(size_t, size_t);
 EXPORT_API size_t ohos_malloc_hook_malloc_usable_size(void*);
 EXPORT_API void* ohos_malloc_hook_mmap(void*, size_t, int, int, int, off_t);
 EXPORT_API int ohos_malloc_hook_munmap(void*, size_t);
-EXPORT_API void ohos_malloc_hook_memtag(void* addr, size_t size, char* tag, size_t tagLen);
+EXPORT_API void ohos_malloc_hook_memtrace(void*, size_t, const char*, size_t);
 EXPORT_API bool ohos_set_filter_size(size_t size, void* ret);
 
 #ifdef __cplusplus
