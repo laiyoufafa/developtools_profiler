@@ -14,7 +14,7 @@
 import("//build/ohos.gni")
 import("ts.gni")
 if (use_wasm) {
-  import("//gn/wasm.gni")
+  import("../gn/wasm.gni")
 }
 if (use_wasm) {
   ohos_source_set("trace_streamer_dubai_builtin") {
@@ -23,6 +23,8 @@ if (use_wasm) {
     deps = []
     public_deps = []
   }
+  subsystem_name = "${OHOS_PROFILER_SUBSYS_NAME}"
+  part_name = "${OHOS_PROFILER_PART_NAME}"
 }
 ohos_source_set("lib") {
   sources = [ "main.cpp" ]
@@ -54,6 +56,8 @@ ohos_source_set("lib") {
     include_dirs += []
   }
   public_deps = []
+  subsystem_name = "${OHOS_PROFILER_SUBSYS_NAME}"
+  part_name = "${OHOS_PROFILER_PART_NAME}"
 }
 ohos_source_set("trace_streamer_sdk") {
   sources = [
@@ -158,6 +162,8 @@ ohos_source_set("trace_streamer_sdk") {
     ]
   }
   public_deps = []
+  subsystem_name = "${OHOS_PROFILER_SUBSYS_NAME}"
+  part_name = "${OHOS_PROFILER_PART_NAME}"
 }
 if (use_wasm) {
   wasm_lib("trace_streamer_dubai_builtin_wasm") {

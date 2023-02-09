@@ -37,4 +37,6 @@ ohos_source_set("base") {
       "--coverage",
     ]
   }
+  subsystem_name = "${OHOS_PROFILER_SUBSYS_NAME}"
+  part_name = "${OHOS_PROFILER_PART_NAME}"
 }

@@ -31,4 +31,6 @@ ohos_source_set("sdk_plugin") {
   ]
 
   public_deps = []
+  subsystem_name = "${OHOS_PROFILER_SUBSYS_NAME}"
+  part_name = "${OHOS_PROFILER_PART_NAME}"
 }
