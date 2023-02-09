@@ -22,9 +22,9 @@ if (use_wasm) {
     include_dirs = []
     deps = []
     public_deps = []
+    subsystem_name = "${OHOS_PROFILER_SUBSYS_NAME}"
+    part_name = "${OHOS_PROFILER_PART_NAME}"
   }
-  subsystem_name = "${OHOS_PROFILER_SUBSYS_NAME}"
-  part_name = "${OHOS_PROFILER_PART_NAME}"
 }
 ohos_source_set("lib") {
   sources = [ "main.cpp" ]
