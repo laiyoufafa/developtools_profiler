@@ -27,7 +27,7 @@ if (target == "sdkdemotest") {
       "//third_party/protobuf:protobuf_lite",
       "//third_party/sqlite:sqlite",
     ]
-    include_dirs = [ 
+    include_dirs = [
       "../base",
       "../sdk",
       "..",
