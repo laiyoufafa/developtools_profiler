@@ -14,11 +14,13 @@
 # limitations under the License
 
 CWD=$(pwd)
-BASE_DIR=${CWD}"/../.."${1#\/}
-DEST_DIR=${CWD}"/../.."${2#\/}
+BPFTOOL_DIR=${1}
+BASE_DIR=${2}
+DEST_DIR=${3}
 
-echo ${BASE_DIR}
-echo ${DEST_DIR}
+echo "BPFTOOL_DIR:"${BPFTOOL_DIR}
+echo "BASE_DIR:"${BASE_DIR}
+echo "DEST_DIR:"${DEST_DIR}
 
 if [[ ! -d "${BASE_DIR}" ]]
 then
@@ -51,7 +53,7 @@ do
         echo "current skeleton name: "${SKEL_NAME}
         SKEL_PATH=${DEST_DIR}"/"${SKEL_NAME}
         echo "current skeleton path: "${SKEL_PATH}
-        ../../prebuilts/develop_tools/bpftool/bin/bpftool gen skeleton ${OBJ_PATH} > ${SKEL_PATH}
+        ${BPFTOOL_DIR} gen skeleton ${OBJ_PATH} > ${SKEL_PATH}
         if [ ! -s "${SKEL_PATH}" ]
         then
             echo ${SKEL_PATH}" is empty"
