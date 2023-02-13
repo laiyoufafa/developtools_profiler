@@ -116,11 +116,10 @@ bool FtraceParser::SetupEvent(const std::string& type, const std::string& name)
     return true;
 }
 
-bool FtraceParser::GetEventFormat(uint32_t id, EventFormat& format)
+bool FtraceParser::IsEventIdExist(uint32_t id)
 {
     auto iter = eventDict_.find(id);
     if (iter != eventDict_.end()) {
-        format = iter->second;
         return true;
     }
     return false;
@@ -653,20 +652,19 @@ bool FtraceParser::ParseDataRecord(const FtraceEventHeader& eventHeader, FtraceC
     CHECK_TRUE(ReadInc(&cur_, evEnd, &evId, sizeof(evId)), false, "read event ID failed!");
 
     uint32_t eventId = evId;
-    EventFormat format = {};
-    if (!GetEventFormat(eventId, format)) {
+    if (!IsEventIdExist(eventId)) {
         HILOG_DEBUG(LOG_CORE, "event with id %u we not interested!", eventId);
         cur_ = evEnd;
         return true;
     }
-    HILOG_DEBUG(LOG_CORE, "ParseDataRecord: eventId = %u, name = %s", eventId, format.eventName.c_str());
+    HILOG_DEBUG(LOG_CORE, "ParseDataRecord: eventId = %u, name = %s", eventId, eventDict_[eventId].eventName.c_str());
 
-    if (SubEventParser::GetInstance().IsSupport(format.eventId)) {
+    if (SubEventParser::GetInstance().IsSupport(eventId)) {
         auto ftraceEvent = cpuMsg.add_event();
         ftraceEvent->set_timestamp(timestamp_);
-        ParseFtraceEvent(*ftraceEvent, evStart, evtSize, format);
+        ParseFtraceEvent(*ftraceEvent, evStart, evtSize, eventDict_[eventId]);
     } else {
-        HILOG_DEBUG(LOG_CORE, "event %u %s not supported!", format.eventId, format.eventName.c_str());
+        HILOG_DEBUG(LOG_CORE, "event %u %s not supported!", eventId, eventDict_[eventId].eventName.c_str());
     }
     cur_ = evEnd;
     return true;
@@ -732,12 +730,11 @@ bool FtraceParser::ParseFtraceCommonFields(FtraceEvent& ftraceEvent,
     CHECK_TRUE(IsValidIndex(index.flags), false, "flags index %d invalid!", index.flags);
     CHECK_TRUE(IsValidIndex(index.preemt), false, "preemt index %d invalid!", index.preemt);
 
-    auto fields = format.commonFields;
     auto commonFields = ftraceEvent.mutable_common_fields();
-    commonFields->set_pid(FtraceFieldParser::ParseIntField<int32_t>(fields, index.pid, data, dataSize));
-    commonFields->set_type(FtraceFieldParser::ParseIntField<uint32_t>(fields, index.type, data, dataSize));
-    commonFields->set_flags(FtraceFieldParser::ParseIntField<uint32_t>(fields, index.flags, data, dataSize));
-    commonFields->set_preempt_count(FtraceFieldParser::ParseIntField<uint32_t>(fields, index.preemt, data, dataSize));
+    commonFields->set_pid(FtraceFieldParser::ParseIntField<int32_t>(format.commonFields, index.pid, data, dataSize));
+    commonFields->set_type(FtraceFieldParser::ParseIntField<uint32_t>(format.commonFields, index.type, data, dataSize));
+    commonFields->set_flags(FtraceFieldParser::ParseIntField<uint32_t>(format.commonFields, index.flags, data, dataSize));
+    commonFields->set_preempt_count(FtraceFieldParser::ParseIntField<uint32_t>(format.commonFields, index.preemt, data, dataSize));
     return true;
 }
 
