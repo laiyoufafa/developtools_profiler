@@ -43,7 +43,6 @@ public:
     void SetDebugOn(bool value);
 
 private:
-    bool FtraceParser::IsEventIdExist(uint32_t id);
 
     int GetHeaderPageCommitSize(void);
     bool ParseHeaderPageFormat(const std::string& formatDesc);
