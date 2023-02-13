@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-CWD=$(pwd)
 BPFTOOL_DIR=${1}
 BASE_DIR=${2}
 DEST_DIR=${3}
