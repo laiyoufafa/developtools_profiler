@@ -29,6 +29,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
+#include <sys/stat.h>
 
 #include "application_info.h"
 #include "bundle_mgr_proxy.h"
@@ -63,7 +64,13 @@ bool IsProcessRunning()
     }
 
     std::string fileName = DEFAULT_PATH + processName + ".pid";
-    int fd = open(fileName.c_str(), O_WRONLY | O_CREAT, static_cast<mode_t>(0640));
+    int fd = 0;
+    if (getuid() == 0) { // 0: 0 is root mode
+        umask(S_IWOTH);
+        fd = open(fileName.c_str(), O_WRONLY | O_CREAT, static_cast<mode_t>(0664)); // 0664: rw-rw-r--
+    } else {
+        fd = open(fileName.c_str(), O_WRONLY | O_CREAT, static_cast<mode_t>(0640)); // 0640: rw-r-----
+    }
     if (fd < 0) {
         const int bufSize = 256;
         char buf[bufSize] = {0};
