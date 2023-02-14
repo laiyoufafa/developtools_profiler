@@ -65,12 +65,6 @@ bool IsProcessRunning()
 
     std::string fileName = DEFAULT_PATH + processName + ".pid";
     int fd = 0;
-    if (getuid() == 0) { // 0: 0 is root mode
-        umask(S_IWOTH);
-        fd = open(fileName.c_str(), O_WRONLY | O_CREAT, static_cast<mode_t>(0664));
-    } else {
-        fd = open(fileName.c_str(), O_WRONLY | O_CREAT, static_cast<mode_t>(0640));
-    }
     if (fd < 0) {
         const int bufSize = 256;
         char buf[bufSize] = {0};
