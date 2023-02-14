@@ -43,7 +43,6 @@ public:
     void SetDebugOn(bool value);
 
 private:
-    bool GetEventFormat(uint32_t id, EventFormat& format);
 
     int GetHeaderPageCommitSize(void);
     bool ParseHeaderPageFormat(const std::string& formatDesc);
