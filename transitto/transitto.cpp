@@ -194,7 +194,7 @@ int main(int argc, char* argv[])
     munmap(app, sizeof(AppInfo));
 
     if (uid < 0) {
-        OHOS::HiviewDFX::HiLog::Error(TRANS_LOG_LABLE, "get.", ret);
+        OHOS::HiviewDFX::HiLog::Error(TRANS_LOG_LABLE, "uid is %{public}d.", uid);
         return -1;
     }
 
@@ -215,13 +215,13 @@ int main(int argc, char* argv[])
     }
 
     OHOS::HiviewDFX::HiLog::Info(TRANS_LOG_LABLE, "start change selinux context.");
-    int pid = -1;
-    if (!GetProcessPid(bundleName, pid) || pid < 0) {
+    int appPid = -1;
+    if (!GetProcessPid(bundleName, appPid) || appPid < 0) {
         OHOS::HiviewDFX::HiLog::Error(TRANS_LOG_LABLE, "fail to get pid, errno is %{public}d.", errno);
         return -1;
     }
 
-    string procPath = "/proc/" + to_string(pid) + "/attr/current";
+    string procPath = "/proc/" + to_string(appPid) + "/attr/current";
     string seContext = ReadFileToString(procPath);
     if (seContext.empty()) {
         OHOS::HiviewDFX::HiLog::Error(TRANS_LOG_LABLE,
