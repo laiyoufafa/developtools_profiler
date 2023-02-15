@@ -23,8 +23,8 @@
 #include <unistd.h>
 #include <memory>
 #include <securec.h>
-#include <limits.h>
-#include <stdlib.h>
+#include <climits>
+#include <cstdlib>
 #include <libgen.h>
 
 #define CHK(expr) \
@@ -69,10 +69,6 @@ void EbpfConverter::StartParsing()
         return;
     }
 #endif
-    if (access(realInputPath, R_OK) != 0) {
-        std::cout << "the input file path is invalid" << std::endl;
-        return;
-    }
     fd_ = open(realInputPath, O_RDONLY);
     if (fd_ == -1) {
         std::cout << "open " << inputPath_ << " failed" << std::endl;

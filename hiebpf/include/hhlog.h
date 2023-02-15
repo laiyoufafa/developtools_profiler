@@ -120,7 +120,8 @@ private:
         (HHLogger::GetInstance().GetLogLevel() <= HHLOG_##level)) {         \
         const char prefix[] {" [" #level "] %s %d %s: %s"};                 \
         char buffer[HHLogger::MAX_FORMAT_SIZE];                             \
-        (void)snprintf_s(buffer, sizeof(buffer), sizeof(buffer) -1, prefix, __FILE__, __LINE__, __FUNCTION__, format);  \
+        (void)snprintf_s(buffer, sizeof(buffer), sizeof(buffer) -1,
+                         prefix, __FILE__, __LINE__, __FUNCTION__, format);  \
         HHLogger::GetInstance().PutLog(buffer, ##__VA_ARGS__);              \
     }                                                                       \
 }
