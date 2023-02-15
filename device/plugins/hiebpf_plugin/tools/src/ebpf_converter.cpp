@@ -57,19 +57,11 @@ EbpfConverter::EbpfConverter(const std::string& inputPath, const std::string& ou
 
 void EbpfConverter::StartParsing()
 {
-    char realInputPath[PATH_MAX + 1] = {0};
-#if is_mingw
-    if (_fullpath(realInputPath, inputPath_.c_str(), PATH_MAX) == nullptr) {
-        std::cout << "inputpath is invalid" << realInputPath<<std::endl;
+    if (access(inputPath_.c_str(), R_OK) != 0) {
+        std::cout << "the input file path is invalid" << std::endl;
         return;
     }
-#else
-    if ((inputPath_.length() >= PATH_MAX) || (realpath(inputPath_.c_str(), realInputPath) == nullptr)) {
-        std::cout << "inputpath is invalid" << std::endl;
-        return;
-    }
-#endif
-    fd_ = open(realInputPath, O_RDONLY);
+    fd_ = open(inputPath_.c_str(), O_RDONLY);
     if (fd_ == -1) {
         std::cout << "open " << inputPath_ << " failed" << std::endl;
         return;
@@ -89,20 +81,7 @@ void EbpfConverter::StartParsing()
         outData_ << "\ncmdline: " << cmdline << '\n';
     }
     fileSize_ = lseek(fd_, header.headSize, SEEK_SET);
-    int pos = outputPath_.rfind('/');
-    std::string outputDir = outputPath_.substr(0, pos);
-    char realoutputDir[PATH_MAX + 1] = {0};
-#if is_mingw
-    if (_fullpath(realoutputDir, outputDir.c_str(), PATH_MAX) == nullptr) {
-        std::cout << "outputpath is invalid" << std::endl;
-        return;
-    }
-#else
-    if ((outputPath_.length() >= PATH_MAX) || (realpath(outputDir.c_str(), realoutputDir) == nullptr)) {
-        std::cout << "outputpath is invalid"  << std::endl;
-        return;
-    }
-#endif
+
     FILE *file = fopen(outputPath_.c_str(), "w");
     if (file == nullptr) {
         std::cout << "create " << outputPath_ << " failed" << std::endl;
