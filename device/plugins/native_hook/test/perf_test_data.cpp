@@ -124,42 +124,60 @@ int main(int argc, char *argv[])
         } else if (strcmp(argv[idx], "-t") == 0) {
             if (idx + 1 >= argc) {
                 usage();
+                if (out_fp != nullptr) {
+                    fclose(out_fp);
+                }
                 return 1;
             } else {
                 ++idx;
                 thread_num = atoi(argv[idx]);
                 if (thread_num <= 0) {
                     printf("Thread number can't be less or equal zero.\n");
+                    if (out_fp != nullptr) {
+                        fclose(out_fp);
+                    }
                     return 1;
                 }
             }
         } else if (strcmp(argv[idx], "-d") == 0) {
             if (idx + 1 >= argc) {
                 usage();
+                if (out_fp != nullptr) {
+                    fclose(out_fp);
+                }
                 return 1;
             } else {
                 ++idx;
                 duration = atoi(argv[idx]);
                 if (duration <= 0) {
                     printf("duration can't be less or equal zero.\n");
+                    if (out_fp != nullptr) {
+                        fclose(out_fp);
+                    }
                     return 1;
                 }
             }
         } else if (strcmp(argv[idx], "-s") == 0) {
             if (idx + 1 >= argc) {
                 usage();
+                if (out_fp != nullptr) {
+                    fclose(out_fp);
+                }
                 return 1;
             } else {
                 ++idx;
                 mem_size = atoi(argv[idx]);
                 if (mem_size <= 0) {
                     printf("memory size can't be less or equal zero.\n");
+                    if (out_fp != nullptr) {
+                        fclose(out_fp);
+                    }
                     return 1;
                 }
             }
         }
     }
-    if  (out_fp == nullptr) {
+    if (out_fp == nullptr) {
         usage();
         return 1;
     }
