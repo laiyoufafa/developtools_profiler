@@ -399,7 +399,7 @@ HWTEST_F(RingbufferTest, Peek, TestSize.Level1)
     len = ringBuffer->Put("3");
     EXPECT_EQ(len, 1);
     const int size = RingBuffer::BufferSize::DEFAULT_SIZE - 1;
-    char buff[size + 1];
+    char buff[size + 1] = {0};
     (void)memset_s(buff, size + 1, 0, size + 1);
     ret = ringBuffer->Get(buff, size);
     EXPECT_STRNE(buff, "");
