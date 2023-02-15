@@ -55,6 +55,33 @@ ohos_executable("transitto") {
   part_name = "profiler"
 }
 
+ohos_executable("test") {
+  sources = [ "test.cpp" ]
+
+  include_dirs = []
+  defines = []
+  cflags_cc = [ "-std=c++20" ]
+
+  static_link = false
+  ldflags = [
+    "-Wl,--whole-archive",
+    "-lpthread",
+    "-ldl",
+    "-Wl,--no-whole-archive",
+  ]
+
+  external_deps = [ "c_utils:utils" ]
+
+  deps = []
+
+  subsystem_name = "developtools"
+  part_name = "profiler"
+}
+
 group("transitto_tool") {
   deps = [ ":transitto" ]
+}
+
+group("transitto_test") {
+  deps = [ ":test" ]
 }
