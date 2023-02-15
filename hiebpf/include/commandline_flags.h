@@ -253,7 +253,7 @@ static int GetNextFlag(
     return 0;
 }
 
-static inline int ParseBoolFlag(const std::string& flag, const std::string& valStr)
+static int ParseBoolFlag(const std::string& flag, const std::string& valStr)
 {
     bool *val = (bool*) flags_[flag].addr_;
     if (valStr.compare("false") == 0) {
@@ -271,7 +271,7 @@ static inline int ParseBoolFlag(const std::string& flag, const std::string& valS
 
 // we will not handle any exceptions thrown by std::stoi() series functions, we should
 // just let exceptions abort the process.
-static inline int ParseInt8Flag(const std::string& flag, const std::string& valStr)
+static int ParseInt8Flag(const std::string& flag, const std::string& valStr)
 {
     char* pos = nullptr;
     long int tmpVal = strtol(valStr.c_str(), &pos, 10);
@@ -286,7 +286,7 @@ static inline int ParseInt8Flag(const std::string& flag, const std::string& valS
     return 0;
 }
 
-static inline int ParseInt16Flag(const std::string& flag, const std::string& valStr)
+static int ParseInt16Flag(const std::string& flag, const std::string& valStr)
 {
     char* pos = nullptr;
     long int tmpVal = strtol(valStr.c_str(), &pos, 10);
@@ -301,7 +301,7 @@ static inline int ParseInt16Flag(const std::string& flag, const std::string& val
     return 0;
 }
 
-static inline int ParseInt32Flag(const std::string& flag, const std::string& valStr)
+static int ParseInt32Flag(const std::string& flag, const std::string& valStr)
 {
     char* pos = nullptr;
     long int tmpVal = strtol(valStr.c_str(), &pos, 10);
@@ -316,7 +316,7 @@ static inline int ParseInt32Flag(const std::string& flag, const std::string& val
     return 0;
 }
 
-static inline int ParseInt64Flag(const std::string& flag, const std::string& valStr)
+static int ParseInt64Flag(const std::string& flag, const std::string& valStr)
 {
     char* pos = nullptr;
     long int tmpVal = strtol(valStr.c_str(), &pos, 10);
@@ -331,7 +331,7 @@ static inline int ParseInt64Flag(const std::string& flag, const std::string& val
     return 0;
 }
 
-static inline int ParseUint8Flag(const std::string& flag, const std::string& valStr)
+static int ParseUint8Flag(const std::string& flag, const std::string& valStr)
 {
     char* pos = nullptr;
     unsigned long long int tmpVal = strtoull(valStr.c_str(), &pos, 10);
@@ -346,7 +346,7 @@ static inline int ParseUint8Flag(const std::string& flag, const std::string& val
     return 0;
 }
 
-static inline int ParseUint16Flag(const std::string& flag, const std::string& valStr)
+static int ParseUint16Flag(const std::string& flag, const std::string& valStr)
 {
     char* pos = nullptr;
     unsigned long long int tmpVal = strtoull(valStr.c_str(), &pos, 10);
@@ -361,7 +361,7 @@ static inline int ParseUint16Flag(const std::string& flag, const std::string& va
     return 0;
 }
 
-static inline int ParseUint32Flag(const std::string& flag, const std::string& valStr)
+static int ParseUint32Flag(const std::string& flag, const std::string& valStr)
 {
     char* pos = nullptr;
     unsigned long long int tmpVal = strtoull(valStr.c_str(), &pos, 10);
@@ -376,7 +376,7 @@ static inline int ParseUint32Flag(const std::string& flag, const std::string& va
     return 0;
 }
 
-static inline int ParseUint64Flag(const std::string& flag, const std::string& valStr)
+static int ParseUint64Flag(const std::string& flag, const std::string& valStr)
 {
     char* pos = nullptr;
     unsigned long long int tmpVal = strtoull(valStr.c_str(), &pos, 10);
@@ -391,7 +391,7 @@ static inline int ParseUint64Flag(const std::string& flag, const std::string& va
     return 0;
 }
 
-static inline int ParseDoubleFlag(const std::string& flag, const std::string& valStr)
+static int ParseDoubleFlag(const std::string& flag, const std::string& valStr)
 {
     char* pos = nullptr;
     double tmpVal = strtod(valStr.c_str(), &pos);
@@ -406,14 +406,14 @@ static inline int ParseDoubleFlag(const std::string& flag, const std::string& va
     return 0;
 }
 
-static inline int ParseStringFlag(const std::string& flag, const std::string& valStr)
+static int ParseStringFlag(const std::string& flag, const std::string& valStr)
 {
     std::string* val = (std::string*) flags_[flag].addr_;
     *val = valStr;
     return 0;
 }
 
-static inline int ParseBoolArrayFlag(const std::string& flag, const std::string& valStr)
+static int ParseBoolArrayFlag(const std::string& flag, const std::string& valStr)
 {
     std::vector<bool>* val = (std::vector<bool>*) flags_[flag].addr_;
     for (std::size_t start = 0, end = 0; end <= valStr.length(); ++end) {
@@ -440,7 +440,7 @@ static inline int ParseBoolArrayFlag(const std::string& flag, const std::string&
     return 0;
 }
 
-static inline int ParseInt8ArrayFlag(const std::string& flag, const std::string& valStr)
+static int ParseInt8ArrayFlag(const std::string& flag, const std::string& valStr)
 {
     std::vector<int8_t>* val = (std::vector<int8_t>*) flags_[flag].addr_;
     for (std::size_t start = 0, end = 0; end <= valStr.length(); ++end) {
@@ -466,7 +466,7 @@ static inline int ParseInt8ArrayFlag(const std::string& flag, const std::string&
     return 0;
 }
 
-static inline int ParseInt16ArrayFlag(const std::string& flag, const std::string& valStr)
+static int ParseInt16ArrayFlag(const std::string& flag, const std::string& valStr)
 {
     std::vector<int16_t>* val = (std::vector<int16_t>*) flags_[flag].addr_;
     for (std::size_t start = 0, end = 0; end <= valStr.length(); ++end) {
@@ -492,7 +492,7 @@ static inline int ParseInt16ArrayFlag(const std::string& flag, const std::string
     return 0;
 }
 
-static inline int ParseInt32ArrayFlag(const std::string& flag, const std::string& valStr)
+static int ParseInt32ArrayFlag(const std::string& flag, const std::string& valStr)
 {
     std::vector<int32_t>* val = (std::vector<int32_t>*) flags_[flag].addr_;
     for (std::size_t start = 0, end = 0; end <= valStr.length(); ++end) {
@@ -518,7 +518,7 @@ static inline int ParseInt32ArrayFlag(const std::string& flag, const std::string
     return 0;
 }
 
-static inline int ParseInt64ArrayFlag(const std::string& flag, const std::string& valStr)
+static int ParseInt64ArrayFlag(const std::string& flag, const std::string& valStr)
 {
     std::vector<int64_t>* val = (std::vector<int64_t>*) flags_[flag].addr_;
     for (std::size_t start = 0, end = 0; end <= valStr.length(); ++end) {
@@ -544,7 +544,7 @@ static inline int ParseInt64ArrayFlag(const std::string& flag, const std::string
     return 0;
 }
 
-static inline int ParseUint8ArrayFlag(const std::string& flag, const std::string& valStr)
+static int ParseUint8ArrayFlag(const std::string& flag, const std::string& valStr)
 {
     std::vector<uint8_t>* val = (std::vector<uint8_t>*) flags_[flag].addr_;
     for (std::size_t start = 0, end = 0; end <= valStr.length(); ++end) {
@@ -570,7 +570,7 @@ static inline int ParseUint8ArrayFlag(const std::string& flag, const std::string
     return 0;
 }
 
-static inline int ParseUint16ArrayFlag(const std::string& flag, const std::string& valStr)
+static int ParseUint16ArrayFlag(const std::string& flag, const std::string& valStr)
 {
     std::vector<uint16_t>* val = (std::vector<uint16_t>*) flags_[flag].addr_;
     for (std::size_t start = 0, end = 0; end <= valStr.length(); ++end) {
@@ -596,7 +596,7 @@ static inline int ParseUint16ArrayFlag(const std::string& flag, const std::strin
     return 0;
 }
 
-static inline int ParseUint32ArrayFlag(const std::string& flag, const std::string& valStr)
+static int ParseUint32ArrayFlag(const std::string& flag, const std::string& valStr)
 {
     std::vector<uint32_t>* val = (std::vector<uint32_t>*) flags_[flag].addr_;
     for (std::size_t start = 0, end = 0; end <= valStr.length(); ++end) {
@@ -622,7 +622,7 @@ static inline int ParseUint32ArrayFlag(const std::string& flag, const std::strin
     return 0;
 }
 
-static inline int ParseUint64ArrayFlag(const std::string& flag, const std::string& valStr)
+static int ParseUint64ArrayFlag(const std::string& flag, const std::string& valStr)
 {
     std::vector<uint64_t>* val = (std::vector<uint64_t>*) flags_[flag].addr_;
     for (std::size_t start = 0, end = 0; end <= valStr.length(); ++end) {
@@ -648,7 +648,7 @@ static inline int ParseUint64ArrayFlag(const std::string& flag, const std::strin
     return 0;
 }
 
-static inline int ParseDoubleArrayFlag(const std::string& flag, const std::string& valStr)
+static int ParseDoubleArrayFlag(const std::string& flag, const std::string& valStr)
 {
     std::vector<double>* val = (std::vector<double>*) flags_[flag].addr_;
     for (std::size_t start = 0, end = 0; end <= valStr.length(); ++end) {
