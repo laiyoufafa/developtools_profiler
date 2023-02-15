@@ -166,7 +166,7 @@ private:
 #define HHLOGE(expression, format, ...) {}
 #define HHLOGF(expression, format, ...) HHLOG(FATAL, expression, format, ##__VA_ARGS__)
 
-#else 
+#else
 
 #define HHLOGD(expression, format, ...) {}
 #define HHLOGI(expression, format, ...) {}

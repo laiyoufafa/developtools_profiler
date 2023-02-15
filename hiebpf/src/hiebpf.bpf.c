@@ -233,7 +233,7 @@ int read_modify_update_page_fault_stats(u32 type, u32 duration)
     }
     u32 tot_duration = stat.tot_duration + duration;
     u32 avg_duration = tot_duration / (stat.count + 1);
-    stat.dev_duration = (duration * duration + stat.count * stat.dev_duration 
+    stat.dev_duration = (duration * duration + stat.count * stat.dev_duration
                         + stat.tot_duration * stat.avg_duration - tot_duration * avg_duration)
                         / (stat.count + 1);
     ++stat.count;
@@ -370,7 +370,8 @@ int emit_pftrace_event(void* ctx, int64_t retval)
         }
     }
 
-    if (read_modify_update_page_fault_stats(cmplt_event->start_event.type, cmplt_event->ctime - cmplt_event->start_event.stime) != 0) {
+    if (read_modify_update_page_fault_stats(cmplt_event->start_event.type,
+                                            cmplt_event->ctime - cmplt_event->start_event.stime) != 0) {
         BPFLOGD(BPF_TRUE, "pftrace event discarded: failed to update pftrace stats");
         bpf_ringbuf_discard(cmplt_event, BPF_RB_NO_WAKEUP);
         return -1;
@@ -679,8 +680,7 @@ u32 get_biotrace_event_type_by_flags(unsigned int cmd_flags)
         if ((cmd_flags & REQ_OP_MASK) == REQ_OP_READ) {
             return BIO_PAGE_IN;
         }
-        if ((cmd_flags & REQ_OP_MASK) == REQ_OP_WRITE)
-        {
+        if ((cmd_flags & REQ_OP_MASK) == REQ_OP_WRITE) {
             return BIO_PAGE_OUT;
         }
         return 0;
@@ -688,8 +688,7 @@ u32 get_biotrace_event_type_by_flags(unsigned int cmd_flags)
     if ((cmd_flags & REQ_OP_MASK) == REQ_OP_READ) {
         return BIO_DATA_READ;
     }
-    if ((cmd_flags & REQ_OP_MASK) == REQ_OP_WRITE)
-    {
+    if ((cmd_flags & REQ_OP_MASK) == REQ_OP_WRITE) {
         return BIO_DATA_WRITE;
     }
     return 0;

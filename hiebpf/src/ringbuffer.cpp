@@ -28,31 +28,27 @@ RingBuffer::RingBuffer(const std::size_t bufSize, const enum MemAlignShift shift
         bufSize_ = DEFAULT_SIZE;
     }
     switch (shift) {
-        case B_ALIGN_SHIFT:
-        {
+        case B_ALIGN_SHIFT: {
             bufSize_ = (bufSize_ >> B_ALIGN_SHIFT);
             buffer_ = new(std::nothrow) char[bufSize_];
             bufSize_ = (bufSize_ << B_ALIGN_SHIFT);
             break;
         }
-        case H_ALIGN_SHIFT:
-        {
+        case H_ALIGN_SHIFT: {
             bufSize_ = (bufSize_ >> H_ALIGN_SHIFT);
             uint16_t *temp = new(std::nothrow) uint16_t[bufSize_];
             buffer_ = (char *) temp;
             bufSize_ = (bufSize_ << H_ALIGN_SHIFT);
             break;
         }
-        case W_ALIGN_SHIFT:
-        {
+        case W_ALIGN_SHIFT: {
             bufSize_ = (bufSize_ >> W_ALIGN_SHIFT);
             uint32_t *temp = new(std::nothrow) uint32_t[bufSize_];
             buffer_ = (char *) temp;
             bufSize_ = (bufSize_ << W_ALIGN_SHIFT);
             break;
         }
-        case D_ALIGN_SHIFT:
-        {
+        case D_ALIGN_SHIFT: {
             bufSize_ = (bufSize_ >> D_ALIGN_SHIFT);
             uint64_t *temp = new(std::nothrow) uint64_t[bufSize_];
             buffer_ = (char *) temp;

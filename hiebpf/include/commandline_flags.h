@@ -107,7 +107,7 @@ public:
             } else if (std::is_same<T, std::vector<int64_t>>::value) {
                 metaFlag.type_ = FlagTypes::FT_int64_array;
             } else if (std::is_same<T, std::vector<uint8_t>>::value) {
-                metaFlag.type_ = FlagTypes::FT_uint8_array;;
+                metaFlag.type_ = FlagTypes::FT_uint8_array;
             } else if (std::is_same<T, std::vector<uint16_t>>::value) {
                 metaFlag.type_ = FlagTypes::FT_uint16_array;
             } else if (std::is_same<T, std::vector<uint32_t>>::value) {

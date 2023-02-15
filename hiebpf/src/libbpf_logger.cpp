@@ -31,7 +31,8 @@ std::unique_ptr<LIBBPFLogger> LIBBPFLogger::MakeUnique(const std::string& logFil
     if (logger == nullptr) {
         return nullptr;
     }
-#if defined(BPF_LOGGER_DEBUG) || defined(BPF_LOGGER_INFO) || defined(BPF_LOGGER_WARN) || defined(BPF_LOGGER_ERROR) || defined(BPF_LOGGER_FATAL)
+#if defined(BPF_LOGGER_DEBUG) || defined(BPF_LOGGER_INFO) || defined(BPF_LOGGER_WARN) ||   \
+    defined(BPF_LOGGER_ERROR) || defined(BPF_LOGGER_FATAL)
     if (logger->OpenLogFile(logFile) != 0) {
         return nullptr;
     }
@@ -45,7 +46,8 @@ int LIBBPFLogger::Printf(int logLevel, const char* format, va_list args)
     if (logLevel > logLevel_) {
         return 0;
     }
-#if defined(BPF_LOGGER_DEBUG) || defined(BPF_LOGGER_INFO) || defined(BPF_LOGGER_WARN) || defined(BPF_LOGGER_ERROR) || defined(BPF_LOGGER_FATAL)
+#if defined(BPF_LOGGER_DEBUG) || defined(BPF_LOGGER_INFO) || defined(BPF_LOGGER_WARN) ||   \
+    defined(BPF_LOGGER_ERROR) || defined(BPF_LOGGER_FATAL)
     return vdprintf(fd_, format, args);
 #endif
     return 0;
