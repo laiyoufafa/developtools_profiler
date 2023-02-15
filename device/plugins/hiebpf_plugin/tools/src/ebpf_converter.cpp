@@ -23,6 +23,9 @@
 #include <unistd.h>
 #include <memory>
 #include <securec.h>
+#include <limits.h>
+#include <stdlib.h>
+#include <libgen.h>
 
 #define CHK(expr) \
     do { \
@@ -54,11 +57,23 @@ EbpfConverter::EbpfConverter(const std::string& inputPath, const std::string& ou
 
 void EbpfConverter::StartParsing()
 {
-    if (access(inputPath_.c_str(), R_OK) != 0) {
+    char realInputPath[PATH_MAX + 1] = {0};
+#if is_mingw
+    if (_fullpath(realInputPath, inputPath_.c_str(), PATH_MAX) == nullptr) {
+        std::cout << "inputpath is invalid" << realInputPath<<std::endl;
+        return;
+    }
+#else
+    if ((inputPath_.length() >= PATH_MAX) || (realpath(inputPath_.c_str(), realInputPath) == nullptr)) {
+        std::cout << "inputpath is invalid" << std::endl;
+        return;
+    }
+#endif
+    if (access(realInputPath, R_OK) != 0) {
         std::cout << "the input file path is invalid" << std::endl;
         return;
     }
-    fd_ = open(inputPath_.c_str(), O_RDONLY);
+    fd_ = open(realInputPath, O_RDONLY);
     if (fd_ == -1) {
         std::cout << "open " << inputPath_ << " failed" << std::endl;
         return;
@@ -78,7 +93,20 @@ void EbpfConverter::StartParsing()
         outData_ << "\ncmdline: " << cmdline << '\n';
     }
     fileSize_ = lseek(fd_, header.headSize, SEEK_SET);
-
+    int pos = outputPath_.rfind('/');
+    std::string outputDir = outputPath_.substr(0, pos);
+    char realoutputDir[PATH_MAX + 1] = {0};
+#if is_mingw
+    if (_fullpath(realoutputDir, outputDir.c_str(), PATH_MAX) == nullptr) {
+        std::cout << "outputpath is invalid" << std::endl;
+        return;
+    }
+#else
+    if ((outputPath_.length() >= PATH_MAX) || (realpath(outputDir.c_str(), realoutputDir) == nullptr)) {
+        std::cout << "outputpath is invalid"  << std::endl;
+        return;
+    }
+#endif
     FILE *file = fopen(outputPath_.c_str(), "w");
     if (file == nullptr) {
         std::cout << "create " << outputPath_ << " failed" << std::endl;
@@ -91,27 +119,27 @@ void EbpfConverter::StartParsing()
             break;
         }
         switch (type) {
-            case 0: {
+            case MAPSTRACE: {
                 EventMapsParsing();
                 break;
             }
-            case 1: {
+            case SYMBOLTRACE: {
                 SymbolInfoParsing();
                 break;
             }
-            case 2: {
+            case FSTRACE: {
                 EventFsParsing();
                 break;
             }
-            case 3: {
+            case PFTRACE: {
                 EventMemParsing();
                 break;
             }
-            case 4: {
+            case BIOTRACE: {
                 EventBIOParsing();
                 break;
             }
-            case 5: {
+            case STRTRACE: {
                 EventStrParsing();
                 break;
             }
@@ -431,7 +459,10 @@ std::pair<std::string, std::vector<std::string>> EbpfConverter::GetSymbolInfo(ui
                 std::cout << "copy symTab failed" << std::endl;
                 return std::pair<std::string, std::vector<std::string>>();
             }
-            if (vaddr >= sym.st_value && vaddr <= sym.st_value + sym.st_size && (sym.st_info & STT_FUNC) && sym.st_value != 0) {
+            if (vaddr >= sym.st_value &&
+                vaddr <= sym.st_value + sym.st_size &&
+                (sym.st_info & STT_FUNC) &&
+                sym.st_value != 0) {
                 char *ret = abi::__cxa_demangle((char *)(symItem->second.strTab + sym.st_name),
                                                 nullptr, nullptr, nullptr);
                 ret == nullptr ? symbolInfos.second.push_back(std::string(symItem->second.strTab + sym.st_name))
