@@ -235,7 +235,7 @@ int main(int argc, char* argv[])
     }
     OHOS::HiviewDFX::HiLog::Info(TRANS_LOG_LABLE, "change selinux context successfully.");
 
-    OHOS::HiviewDFX::HiLog::Info(TRANS_LOG_LABLE, "start set env, app baseDir is %{public}s.", app->codePath.c_str());
+    OHOS::HiviewDFX::HiLog::Info(TRANS_LOG_LABLE, "start set env, app baseDir is %{public}s.", codePath.c_str());
     if (chdir(codePath.c_str()) == -1) {
         OHOS::HiviewDFX::HiLog::Error(TRANS_LOG_LABLE,
             "fail to chdir, path is %{public}s, errno %{public}d.", codePath.c_str(), errno);
