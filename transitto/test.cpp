@@ -29,6 +29,6 @@ int main(int argc, char* argv[])
 
     cout << "begin to sleep 100s" << endl;
     fflush(stdout);
-    sleep(100);
+    sleep(100); // 100 : 100s
     return 0;
 }

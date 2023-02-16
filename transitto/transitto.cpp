@@ -49,15 +49,15 @@ struct AppInfo {
     char codePath[BUFFER_SIZE];
 };
 
-bool GetProcessPid(std::string& processName, int& pid)
+bool GetProcessPid(const std::string& processName, int& pid)
 {
     DIR* dir = opendir("/proc");
     if (dir == nullptr) {
         return false;
     }
     struct dirent* ptr;
-    constexpr int INVALID_PID = -1;
-    int pidValue = INVALID_PID;
+    int invalidPid = -1;
+    int pidValue = invalidPid;
     while ((ptr = readdir(dir)) != nullptr) {
         if ((strcmp(ptr->d_name, ".") == 0) || (strcmp(ptr->d_name, "..") == 0)) {
             continue;
@@ -95,10 +95,10 @@ bool GetProcessPid(std::string& processName, int& pid)
         }
     }
     closedir(dir);
-    if (pidValue != INVALID_PID) {
+    if (pidValue != invalidPid) {
         pid = pidValue;
     }
-    return pidValue != INVALID_PID;
+    return pidValue != invalidPid;
 }
 
 std::string ReadFileToString(const std::string& fileName)
@@ -138,7 +138,6 @@ bool GetApplicationInfo(const string& bundleName, OHOS::AppExecFwk::ApplicationI
         return false;
     }
 
-    
     OHOS::HiviewDFX::HiLog::Info(TRANS_LOG_LABLE, "start to get ApplicationInfo");
     // 0: GET_BASIC_APPLICATION_INFO
     if (!bundleMgrProxy->GetApplicationInfo(bundleName, 0, OHOS::AppExecFwk::Constants::ANY_USERID, appInfo)) {
@@ -218,10 +217,10 @@ int main(int argc, char* argv[])
         cout << "argc is empty, usage is 'transitto <debugable bundleName> <commond>'" << endl;
         return -1;
     }
-
+ 
     int oldUid = getuid();
-    // 0, root, 2000 shell, 20000000 20002000 container root shell
-    if (oldUid != 0 && oldUid != 2000 && oldUid != 20000000 && oldUid != 20002000) {
+    // 0, root, 2000 shell
+    if (oldUid != 0 && oldUid != 2000) {
         cout << "only root or shell can run this object, uid is " << oldUid << endl;
         return -1;
     }
@@ -241,7 +240,7 @@ int main(int argc, char* argv[])
         if (GetApplicationInfo(bundleName, appInfo)) {
             app->uid = appInfo.uid;
             app->debug = appInfo.debug;
-            int ret = memcpy_s(app->codePath, CODE_PATH_LEN - 1, appInfo.codePath.c_str(), appInfo.codePath.size());
+            int ret = memcpy_s(app->codePath, BUFFER_SIZE - 1, appInfo.codePath.c_str(), appInfo.codePath.size());
             if (ret != EOK) {
                 OHOS::HiviewDFX::HiLog::Error(TRANS_LOG_LABLE, "mencpy appinfo fail, ret is %{public}d.", ret);
             }
@@ -256,7 +255,7 @@ int main(int argc, char* argv[])
     string codePath = app->codePath;
     munmap(app, sizeof(AppInfo));
 
-    if (uid < 0 || !debug || !ChangeUidGid(uid, uid) || !SetSelinux(bundleName)) {
+    if (uid < 0 || !debug || !ChangeUidGid(uid,  ) || !SetSelinux(bundleName)) {
         OHOS::HiviewDFX::HiLog::Error(TRANS_LOG_LABLE, "uid is %{public}d.", uid);
         return -1;
     }
