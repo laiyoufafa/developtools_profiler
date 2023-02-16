@@ -22,6 +22,7 @@
 #include <ctime>
 #include <csignal>
 #include <atomic>
+#include <memory>
 
 namespace {
 struct PerfData {
@@ -100,10 +101,10 @@ void usage()
     printf("Usage: perf_test_data <-o output_file_name> [-t thread_num[] [-d duration] [-s mem_size]\n");
 }
 
-void CloseFd(FILE* fd)
+void FileClose(FILE* fp)
 {
-    if (fd != nullptr) {
-        fclose(fd);
+    if (fp != nullptr) {
+        fclose(fp);
     }
 }
 
@@ -114,8 +115,7 @@ int main(int argc, char *argv[])
     int thread_num = 1;
     duration = g_duration;
     mem_size = g_memSize;
-    FILE *out_fp = nullptr;
-
+    std::unique_ptr<FILE, void (*)(FILE*)> out_fp(nullptr, nullptr);
     for (int idx = 1; idx < argc; ++idx) {
         if (strcmp(argv[idx], "-o") == 0) {
             if (idx + 1 >= argc) {
@@ -123,7 +123,7 @@ int main(int argc, char *argv[])
                 return 1;
             } else {
                 ++idx;
-                out_fp = fopen(argv[idx], "w");
+                out_fp = std::unique_ptr<FILE, void (*)(FILE*)>(fopen(argv[idx], "w"), FileClose);
                 if (out_fp == nullptr) {
                     printf("File '%s' can't be opened.\n", argv[idx]);
                     return 1;
@@ -132,42 +132,36 @@ int main(int argc, char *argv[])
         } else if (strcmp(argv[idx], "-t") == 0) {
             if (idx + 1 >= argc) {
                 usage();
-                CloseFd(out_fp);
                 return 1;
             } else {
                 ++idx;
                 thread_num = atoi(argv[idx]);
                 if (thread_num <= 0) {
                     printf("Thread number can't be less or equal zero.\n");
-                    CloseFd(out_fp);
                     return 1;
                 }
             }
         } else if (strcmp(argv[idx], "-d") == 0) {
             if (idx + 1 >= argc) {
                 usage();
-                CloseFd(out_fp);
                 return 1;
             } else {
                 ++idx;
                 duration = atoi(argv[idx]);
                 if (duration <= 0) {
                     printf("duration can't be less or equal zero.\n");
-                    CloseFd(out_fp);
                     return 1;
                 }
             }
         } else if (strcmp(argv[idx], "-s") == 0) {
             if (idx + 1 >= argc) {
                 usage();
-                CloseFd(out_fp);
                 return 1;
             } else {
                 ++idx;
                 mem_size = atoi(argv[idx]);
                 if (mem_size <= 0) {
                     printf("memory size can't be less or equal zero.\n");
-                    CloseFd(out_fp);
                     return 1;
                 }
             }
@@ -183,14 +177,14 @@ int main(int argc, char *argv[])
     int idxSituation;
     int idxSituationMax = 2;
     int pid = static_cast<int>(getpid());
-    PRINTF_DATA(out_fp, "PID: %d, file: %d.nativehook\n", pid, pid);
-    PRINTF_DATA(out_fp, "Thread number: %d, duration: %d seconds, memory size: %d bytes\n", thread_num, duration,
+    PRINTF_DATA(out_fp.get(), "PID: %d, file: %d.nativehook\n", pid, pid);
+    PRINTF_DATA(out_fp.get(), "Thread number: %d, duration: %d seconds, memory size: %d bytes\n", thread_num, duration,
                 mem_size);
     for (idxSituation = 0; idxSituation < idxSituationMax; ++idxSituation) {
         if (idxSituation == 0) {
-            PRINTF_DATA(out_fp, "No hook situation\n");
+            PRINTF_DATA(out_fp.get(), "No hook situation\n");
         } else {
-            PRINTF_DATA(out_fp, "\nWith hook situation\n");
+            PRINTF_DATA(out_fp.get(), "\nWith hook situation\n");
             raise(nInstallMallocHookSignal);
         }
         int idx;
@@ -209,10 +203,7 @@ int main(int argc, char *argv[])
             pthread_join(thr_array[idx], nullptr);
         }
         long long total_times = times.load(std::memory_order_relaxed);
-        PRINTF_DATA(out_fp, "The total times(malloc/free): %lld\n", total_times);
-    }
-    if (fclose(out_fp) != 0) {
-        printf("fclose failed.\n");
+        PRINTF_DATA(out_fp.get(), "The total times(malloc/free): %lld\n", total_times);
     }
     free(thr_array);
     printf("Exit\n");
