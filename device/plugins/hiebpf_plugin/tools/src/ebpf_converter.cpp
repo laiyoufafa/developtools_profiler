@@ -91,27 +91,27 @@ void EbpfConverter::StartParsing()
             break;
         }
         switch (type) {
-            case 0: {
+            case MAPSTRACE: {
                 EventMapsParsing();
                 break;
             }
-            case 1: {
+            case SYMBOLTRACE: {
                 SymbolInfoParsing();
                 break;
             }
-            case 2: {
+            case FSTRACE: {
                 EventFsParsing();
                 break;
             }
-            case 3: {
+            case PFTRACE: {
                 EventMemParsing();
                 break;
             }
-            case 4: {
+            case BIOTRACE: {
                 EventBIOParsing();
                 break;
             }
-            case 5: {
+            case STRTRACE: {
                 EventStrParsing();
                 break;
             }
@@ -431,7 +431,10 @@ std::pair<std::string, std::vector<std::string>> EbpfConverter::GetSymbolInfo(ui
                 std::cout << "copy symTab failed" << std::endl;
                 return std::pair<std::string, std::vector<std::string>>();
             }
-            if (vaddr >= sym.st_value && vaddr <= sym.st_value + sym.st_size && (sym.st_info & STT_FUNC) && sym.st_value != 0) {
+            if (vaddr >= sym.st_value &&
+                vaddr <= sym.st_value + sym.st_size &&
+                (sym.st_info & STT_FUNC) &&
+                sym.st_value != 0) {
                 char *ret = abi::__cxa_demangle((char *)(symItem->second.strTab + sym.st_name),
                                                 nullptr, nullptr, nullptr);
                 ret == nullptr ? symbolInfos.second.push_back(std::string(symItem->second.strTab + sym.st_name))

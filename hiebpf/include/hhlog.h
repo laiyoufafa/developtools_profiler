@@ -114,48 +114,49 @@ private:
     std::thread logSaver_;
 };
 
-#define __HHLOG(level, expression, format, ...) {                           \
+#define HHLOG(level, expression, format, ...) {                           \
     if ((expression) and                                                    \
         (!HHLogger::GetInstance().IsStopped()) and                          \
         (HHLogger::GetInstance().GetLogLevel() <= HHLOG_##level)) {         \
         const char prefix[] {" [" #level "] %s %d %s: %s"};                 \
         char buffer[HHLogger::MAX_FORMAT_SIZE];                             \
-        snprintf_s(buffer, sizeof(buffer), sizeof(buffer) -1, prefix, __FILE__, __LINE__, __FUNCTION__, format);  \
+        (void)snprintf_s(buffer, sizeof(buffer), sizeof(buffer) -1,         \
+                         prefix, __FILE__, __LINE__, __FUNCTION__, format);  \
         HHLogger::GetInstance().PutLog(buffer, ##__VA_ARGS__);              \
     }                                                                       \
 }
 
 #if defined(HH_LOGGER_DEBUG)
 
-#define HHLOGD(expression, format, ...) __HHLOG(DEBUG, expression, format, ##__VA_ARGS__)
-#define HHLOGI(expression, format, ...) __HHLOG(INFO, expression, format, ##__VA_ARGS__)
-#define HHLOGW(expression, format, ...) __HHLOG(WARN, expression, format, ##__VA_ARGS__)
-#define HHLOGE(expression, format, ...) __HHLOG(ERROR, expression, format, ##__VA_ARGS__)
-#define HHLOGF(expression, format, ...) __HHLOG(FATAL, expression, format, ##__VA_ARGS__)
+#define HHLOGD(expression, format, ...) HHLOG(DEBUG, expression, format, ##__VA_ARGS__)
+#define HHLOGI(expression, format, ...) HHLOG(INFO, expression, format, ##__VA_ARGS__)
+#define HHLOGW(expression, format, ...) HHLOG(WARN, expression, format, ##__VA_ARGS__)
+#define HHLOGE(expression, format, ...) HHLOG(ERROR, expression, format, ##__VA_ARGS__)
+#define HHLOGF(expression, format, ...) HHLOG(FATAL, expression, format, ##__VA_ARGS__)
 
 #elif defined(HH_LOGGER_INFO)
 
 #define HHLOGD(expression, format, ...) {}
-#define HHLOGI(expression, format, ...) __HHLOG(INFO, expression, format, ##__VA_ARGS__)
-#define HHLOGW(expression, format, ...) __HHLOG(WARN, expression, format, ##__VA_ARGS__)
-#define HHLOGE(expression, format, ...) __HHLOG(ERROR, expression, format, ##__VA_ARGS__)
-#define HHLOGF(expression, format, ...) __HHLOG(FATAL, expression, format, ##__VA_ARGS__)
+#define HHLOGI(expression, format, ...) HHLOG(INFO, expression, format, ##__VA_ARGS__)
+#define HHLOGW(expression, format, ...) HHLOG(WARN, expression, format, ##__VA_ARGS__)
+#define HHLOGE(expression, format, ...) HHLOG(ERROR, expression, format, ##__VA_ARGS__)
+#define HHLOGF(expression, format, ...) HHLOG(FATAL, expression, format, ##__VA_ARGS__)
 
 #elif defined(HH_LOGGER_WARN)
 
 #define HHLOGD(expression, format, ...) {}
 #define HHLOGI(expression, format, ...) {}
-#define HHLOGW(expression, format, ...) __HHLOG(WARN, expression, format, ##__VA_ARGS__)
-#define HHLOGE(expression, format, ...) __HHLOG(ERROR, expression, format, ##__VA_ARGS__)
-#define HHLOGF(expression, format, ...) __HHLOG(FATAL, expression, format, ##__VA_ARGS__)
+#define HHLOGW(expression, format, ...) HHLOG(WARN, expression, format, ##__VA_ARGS__)
+#define HHLOGE(expression, format, ...) HHLOG(ERROR, expression, format, ##__VA_ARGS__)
+#define HHLOGF(expression, format, ...) HHLOG(FATAL, expression, format, ##__VA_ARGS__)
 
 #elif defined(HH_LOGGER_ERROR)
 
 #define HHLOGD(expression, format, ...) {}
 #define HHLOGI(expression, format, ...) {}
 #define HHLOGW(expression, format, ...) {}
-#define HHLOGE(expression, format, ...) __HHLOG(ERROR, expression, format, ##__VA_ARGS__)
-#define HHLOGF(expression, format, ...) __HHLOG(FATAL, expression, format, ##__VA_ARGS__)
+#define HHLOGE(expression, format, ...) HHLOG(ERROR, expression, format, ##__VA_ARGS__)
+#define HHLOGF(expression, format, ...) HHLOG(FATAL, expression, format, ##__VA_ARGS__)
 
 #elif defined(HH_LOGGER_FATAL)
 
@@ -163,9 +164,9 @@ private:
 #define HHLOGI(expression, format, ...) {}
 #define HHLOGW(expression, format, ...) {}
 #define HHLOGE(expression, format, ...) {}
-#define HHLOGF(expression, format, ...) __HHLOG(FATAL, expression, format, ##__VA_ARGS__)
+#define HHLOGF(expression, format, ...) HHLOG(FATAL, expression, format, ##__VA_ARGS__)
 
-#else 
+#else
 
 #define HHLOGD(expression, format, ...) {}
 #define HHLOGI(expression, format, ...) {}

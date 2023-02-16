@@ -116,8 +116,9 @@ bool ElfSymbolInfo::GetSymbolTable(const std::string &fileName, ElfSymbolTable &
 
 uint32_t ElfSymbolInfo::GetBinary(const ElfSymbolTable &symbolTable, std::vector<uint8_t> &buf)
 {
+    // strTabLen+symTabLen+fileNameLen
     uint32_t fixLen = sizeof(symbolTable.textVaddr_) + sizeof(symbolTable.textOffset_) +
-                      sizeof(uint32_t) + sizeof(uint32_t) + sizeof(uint32_t) + sizeof(uint32_t); // strTabLen+symTabLen+fileNameLen
+                      sizeof(uint32_t) + sizeof(uint32_t) + sizeof(uint32_t) + sizeof(uint32_t);
     uint32_t len = fixLen + symbolTable.strTable_.size() + symbolTable.symTable_.size() +
                    symbolTable.fileName_.size() + 1;
     buf.resize(len);

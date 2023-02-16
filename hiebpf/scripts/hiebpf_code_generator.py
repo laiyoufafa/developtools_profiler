@@ -53,7 +53,7 @@ if __name__ == '__main__':
         '--overwrite',
     ]
     opts, args = getopt.getopt(sys.argv[1:], '', opt_list)
-    for opt,val in opts:
+    for opt, val in opts:
         if opt == opt_names[0]:
             FSTRACE_PROGS_FILE = val
         if opt == opt_names[1]:

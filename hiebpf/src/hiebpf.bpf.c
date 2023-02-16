@@ -233,7 +233,7 @@ int read_modify_update_page_fault_stats(u32 type, u32 duration)
     }
     u32 tot_duration = stat.tot_duration + duration;
     u32 avg_duration = tot_duration / (stat.count + 1);
-    stat.dev_duration = (duration * duration + stat.count * stat.dev_duration 
+    stat.dev_duration = (duration * duration + stat.count * stat.dev_duration
                         + stat.tot_duration * stat.avg_duration - tot_duration * avg_duration)
                         / (stat.count + 1);
     ++stat.count;
@@ -370,7 +370,8 @@ int emit_pftrace_event(void* ctx, int64_t retval)
         }
     }
 
-    if (read_modify_update_page_fault_stats(cmplt_event->start_event.type, cmplt_event->ctime - cmplt_event->start_event.stime) != 0) {
+    if (read_modify_update_page_fault_stats(cmplt_event->start_event.type,
+                                            cmplt_event->ctime - cmplt_event->start_event.stime) != 0) {
         BPFLOGD(BPF_TRUE, "pftrace event discarded: failed to update pftrace stats");
         bpf_ringbuf_discard(cmplt_event, BPF_RB_NO_WAKEUP);
         return -1;
@@ -460,7 +461,7 @@ int check_current_pid(const int32_t pid, const int32_t tgid)
 }
 
 static __always_inline
-int get_mountpoint_by_inode(char *filename, int len, const struct inode *host)
+size_t get_mountpoint_by_inode(char *filename, int len, const struct inode *host)
 {
     struct list_head *mountsHead = BPF_CORE_READ(host, i_sb, s_mounts.next);
     struct mount *mnt = NULL;
@@ -526,17 +527,17 @@ int get_filename_by_inode(char *filename, const size_t len, const struct inode *
         if (err || curr_dentry == NULL) {
             break;
         }
-        int name_len = BPF_CORE_READ(curr_dentry, d_name.len);
+        unsigned int name_len = BPF_CORE_READ(curr_dentry, d_name.len);
         const u8 *name = BPF_CORE_READ(curr_dentry, d_name.name);
         if (name_len <= 1) {
             break;
         }
-        name_len = bpf_probe_read_kernel_str(filename + pos, MAX_DENTRY_NAME_LEN, name);
-        if (name_len <= 1) {
+        int dentry_name_len = bpf_probe_read_kernel_str(filename + pos, MAX_DENTRY_NAME_LEN, name);
+        if (dentry_name_len <= 1) {
             BPFLOGD(BPF_TRUE, "failed to read dentry name from kernel stack buffer");
             break;
         }
-        pos += (size_t)name_len;
+        pos += (size_t)dentry_name_len;
         filename[pos - 1] = '/';
         struct dentry *temp_dentry = BPF_CORE_READ(curr_dentry, d_parent);
         if (temp_dentry == curr_dentry || temp_dentry == NULL) {
@@ -679,8 +680,7 @@ u32 get_biotrace_event_type_by_flags(unsigned int cmd_flags)
         if ((cmd_flags & REQ_OP_MASK) == REQ_OP_READ) {
             return BIO_PAGE_IN;
         }
-        if ((cmd_flags & REQ_OP_MASK) == REQ_OP_WRITE)
-        {
+        if ((cmd_flags & REQ_OP_MASK) == REQ_OP_WRITE) {
             return BIO_PAGE_OUT;
         }
         return 0;
@@ -688,8 +688,7 @@ u32 get_biotrace_event_type_by_flags(unsigned int cmd_flags)
     if ((cmd_flags & REQ_OP_MASK) == REQ_OP_READ) {
         return BIO_DATA_READ;
     }
-    if ((cmd_flags & REQ_OP_MASK) == REQ_OP_WRITE)
-    {
+    if ((cmd_flags & REQ_OP_MASK) == REQ_OP_WRITE) {
         return BIO_DATA_WRITE;
     }
     return 0;

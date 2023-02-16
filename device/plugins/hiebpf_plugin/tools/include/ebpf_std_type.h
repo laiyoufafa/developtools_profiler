@@ -153,6 +153,18 @@ struct Elf64_Sym {
     uint64_t st_value;
     uint64_t st_size;
 }__attribute__((packed));
+
+enum TracerType:int {
+    MAPSTRACE = 0,
+    SYMBOLTRACE,
+    FSTRACE,
+    PFTRACE,
+    BIOTRACE,
+    STRTRACE,
+    DLOPEN_TRACE,
+    KERNEL_SYM = 0x10001,
+    BADTRACE,
+};
 } // EBPF_TOOLS
 } // OHOS
 

@@ -34,11 +34,13 @@ def get_type_def(file):
             break
     return type_def_lines
 
+
 def get_args_name(type_def_lines):
     startline = type_def_lines[0]
     splitted_startline = startline.split(' ')
     type_name = splitted_startline[1]
     return type_name[4:-2]
+
 
 def get_converter_name(type_def_lines):
     startline = type_def_lines[0]
@@ -55,6 +57,8 @@ def get_converter_name(type_def_lines):
 
 BAD_MEMBER = "bad nr"
 VOID_MEMBER = "void"
+
+
 def get_argmember_name(type_def_lines, nr_member):
     max_nr_members = len(type_def_lines) - 2
     max_nr_members_limit = 4
@@ -73,6 +77,8 @@ def get_argmember_name(type_def_lines, nr_member):
     return member_name
 
 converter_table = []
+
+
 def generate_converter(type_def_lines):
     fn_name = get_converter_name(type_def_lines)
     fn_decl = ("static int " + fn_name +
@@ -86,9 +92,9 @@ def generate_converter(type_def_lines):
         if member_name == BAD_MEMBER:
             break
         if member_name == VOID_MEMBER:
-            expression_line = ("    args["+str(nr)+"] = 0xFFFFFFFFFFFFFFFF;\n")
+            expression_line = ("    args[" + str(nr) + "] = 0xFFFFFFFFFFFFFFFF;\n")
         else:
-            expression_line = ("    args["+str(nr)+"] = (__u64) " +
+            expression_line = ("    args[" + str(nr) + "] = (__u64) " +
                                "start_event->" + arg_name + "." + member_name + ";\n")
         expressions += expression_line
     converter = fn_decl + "{\n" + expressions + "    return 0;\n}\n\n"
@@ -100,6 +106,7 @@ CONVERTER_FILE_HEAD = '''
 
 
 '''
+
 
 def output_converter_code(fstrace_types_file, converters_file):
     nr_converters = 1
@@ -116,7 +123,7 @@ def output_converter_code(fstrace_types_file, converters_file):
         converter_table_code = (
             "using ConverterType = int (*)" +
             " (__u64*, const struct fstrace_start_event_t *);\n")
-        converter_table_code += ("ConverterType g_argsConverterTable["+str(nr_converters)+"] = {" +
+        converter_table_code += ("ConverterType g_argsConverterTable[" + str(nr_converters) + "] = {" +
             "\n    nullptr")
         for fn_ptr in converter_table:
             converter_table_code += ",\n    " + fn_ptr
