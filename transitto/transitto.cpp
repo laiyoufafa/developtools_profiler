@@ -255,7 +255,7 @@ int main(int argc, char* argv[])
     string codePath = app->codePath;
     munmap(app, sizeof(AppInfo));
 
-    if (uid < 0 || !debug || !ChangeUidGid(uid,  ) || !SetSelinux(bundleName)) {
+    if (uid < 0 || !debug || !ChangeUidGid(uid, uid) || !SetSelinux(bundleName)) {
         OHOS::HiviewDFX::HiLog::Error(TRANS_LOG_LABLE, "uid is %{public}d.", uid);
         return -1;
     }
