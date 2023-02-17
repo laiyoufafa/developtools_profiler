@@ -286,7 +286,8 @@ private:
     int GetTotalSwappedOutPss();
     void ReviseStatsData();
 
-    bool ReadVmemareasFile(const std::string& path, ProcessMemoryInfo& processinfo, bool isReportApp, bool isReportSmaps);
+    bool ReadVmemareasFile(const std::string& path, ProcessMemoryInfo& processinfo, bool isReportApp,
+                           bool isReportSmaps);
     bool ParseMapHead(std::string& line, MapPiecesInfo& head, SmapsHeadInfo& smapsHeadInfo);
     bool SetMapAddrInfo(std::string& line, MapPiecesInfo& head);
     bool GetMemUsageField(std::string& line, MemUsageInfo& memusage);
