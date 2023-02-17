@@ -47,7 +47,7 @@ bool SmapsStats::ParseMaps(int pid, ProcessMemoryInfo& processinfo, bool isRepor
 }
 
 bool SmapsStats::ReadVmemareasFile(const std::string& path, ProcessMemoryInfo& processinfo, bool isReportApp,
-                                    bool isReportSmaps)
+                                   bool isReportSmaps)
 {
     SmapsInfo* smapsInfo = nullptr;
     bool findMapHead = false;
@@ -94,7 +94,6 @@ bool SmapsStats::ReadVmemareasFile(const std::string& path, ProcessMemoryInfo& p
                 smapsInfo->set_reside(static_cast<double>(memusage.rss) / memusage.vss * PERCENT);
             }
         }
-
         if (isReportApp) {
             CollectVmemAreasData(mappic, memusage, prevEnd, prevHeap);
         }
@@ -102,7 +101,6 @@ bool SmapsStats::ReadVmemareasFile(const std::string& path, ProcessMemoryInfo& p
         lastline_ = false;
     } while (!input.eof());
     input.close();
-
     return true;
 }
 
