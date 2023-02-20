@@ -226,16 +226,17 @@ void Help()
             "transitto <debugable bundleName> <commond>\n" << endl;
 }
 
-bool CheckValid(int argc, const char** argv)
+bool CheckValid(int argc, char** argv)
 {
     if (argc <= 1) {
         cout << "argc is empty" << endl;
-        help();
+        Help();
         return false;
     }
 
-    if (argc == 2 && (argv[1] == "-h" || argv[1] == "--help")) {
-        help();
+    string secCom = argv[1];
+    if (argc == 2 && (secCom == "-h" || secCom == "--help")) {
+        Help();
         return false;
     }
  
@@ -243,7 +244,7 @@ bool CheckValid(int argc, const char** argv)
     // 0, root, 2000 shell
     if (oldUid != 0 && oldUid != 2000) {
         cout << "only root or shell can run this object" << endl;
-        help();
+        Help();
         return false;
     }
     return true;
@@ -267,10 +268,10 @@ int main(int argc, char* argv[])
     int pid = fork(); // for security_bounded_transition single thread
     if (pid == 0) {
         OHOS::AppExecFwk::ApplicationInfo appInfo {};
-        if (GetApplicationInfo(bundleName, appInfo)) { 
+        if (GetApplicationInfo(bundleName, appInfo)) {
             app->uid = appInfo.uid;
             app->debug = appInfo.debug;
-            int ret = strcpy_s(app->codePath, BUFFER_SIZE - 1, appIn fo.codePath.c_str());
+            int ret = strcpy_s(app->codePath, BUFFER_SIZE, appInfo.codePath.c_str());
             if (ret != EOK) {
                 OHOS::HiviewDFX::HiLog::Error(TRANS_LOG_LABLE, "copy appinfo path fail, ret is %{public}d.", ret);
             }
