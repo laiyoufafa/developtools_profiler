@@ -191,7 +191,7 @@ bool SetSelinux(const string& bundleName, const string& cmd)
     OHOS::HiviewDFX::HiLog::Info(TRANS_LOG_LABLE, "start change selinux context.");
     string seContext;
 
-    if (cmd.find("lldb-server") != string::nops) {
+    if (cmd.find("lldb-server") != string::npos) {
         seContext = "u:r:transitto_hap:s0";
     }
 
