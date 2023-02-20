@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -40,7 +40,7 @@
 
 using namespace std;
 
-constexpr OHOS::HiviewDFX::HiLogLabel TRANS_LOG_LABLE = { LOG_CORE, 0xD002D0C, "TRANSITTO"};
+constexpr OHOS::HiviewDFX::HiLogLabel TRANS_LOG_LABLE = { LOG_CORE, 0xD002D0C, "TRANSITTO" };
 constexpr int BUFFER_SIZE = 1024;
 
 struct AppInfo {
@@ -118,7 +118,7 @@ std::string ReadFileToString(const std::string& fileName)
 bool GetApplicationInfo(const string& bundleName, OHOS::AppExecFwk::ApplicationInfo& appInfo)
 {
     OHOS::sptr<OHOS::ISystemAbilityManager> systemAbilityManager =
-    OHOS::SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+        OHOS::SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     if (systemAbilityManager == nullptr) {
         OHOS::HiviewDFX::HiLog::Error(TRANS_LOG_LABLE, "fail to get system abilityManger.");
         return false;
@@ -144,7 +144,7 @@ bool GetApplicationInfo(const string& bundleName, OHOS::AppExecFwk::ApplicationI
         OHOS::HiviewDFX::HiLog::Error(TRANS_LOG_LABLE, "fail to get application info.");
         return false;
     }
-    OHOS::HiviewDFX::HiLog::Error(TRANS_LOG_LABLE, "get ApplicationInfo success uid is %{public}d.", appInfo.uid);
+    OHOS::HiviewDFX::HiLog::Info(TRANS_LOG_LABLE, "get ApplicationInfo success uid is %{private}d.", appInfo.uid);
     return true;
 }
 
@@ -186,21 +186,29 @@ void InitEnv(const string& codePath, int uid)
     return;
 }
 
-bool SetSelinux(const string& bundleName)
+bool SetSelinux(const string& bundleName, const string& cmd)
 {
     OHOS::HiviewDFX::HiLog::Info(TRANS_LOG_LABLE, "start change selinux context.");
-    int appPid = -1;
-    if (!GetProcessPid(bundleName, appPid) || appPid < 0) {
-        OHOS::HiviewDFX::HiLog::Error(TRANS_LOG_LABLE, "fail to get pid, errno is %{public}d.", errno);
-        return false;
+    string seContext;
+
+    if (cmd.find("lldb-server") != string::nops) {
+        seContext = "u:r:transitto_hap:s0";
     }
 
-    string procPath = "/proc/" + to_string(appPid) + "/attr/current";
-    string seContext = ReadFileToString(procPath);
     if (seContext.empty()) {
-        OHOS::HiviewDFX::HiLog::Error(TRANS_LOG_LABLE,
-            "fail to get selinux context, procPath is %{public}s, errno is %{public}d.", procPath.c_str(), errno);
-        return false;
+        int appPid = -1;
+        if (!GetProcessPid(bundleName, appPid) || appPid < 0) {
+            OHOS::HiviewDFX::HiLog::Error(TRANS_LOG_LABLE, "fail to get pid, errno is %{public}d.", errno);
+            return false;
+        }
+
+        string procPath = "/proc/" + to_string(appPid) + "/attr/current";
+        seContext = ReadFileToString(procPath);
+        if (seContext.empty()) {
+            OHOS::HiviewDFX::HiLog::Error(TRANS_LOG_LABLE,
+                "fail to get selinux context, procPath is %{public}s, errno is %{public}d.", procPath.c_str(), errno);
+            return false;
+        }
     }
 
     if (setcon(seContext.c_str()) != 0) {
@@ -211,17 +219,34 @@ bool SetSelinux(const string& bundleName)
     return true;
 }
 
-int main(int argc, char* argv[])
+void Help()
+{
+    cout << "\ntransitto is a debugable tool. your commond can transit to the domain of debugable bundle.\n"
+            "usage:\n"
+            "transitto <debugable bundleName> <commond>\n" << endl;
+}
+
+bool CheckValid(int argc, const char** argv)
 {
     if (argc <= 1) {
-        cout << "argc is empty, usage is 'transitto <debugable bundleName> <commond>'" << endl;
-        return -1;
+        cout << "argc is empty" << endl;
+        help();
+        return false;
     }
  
     int oldUid = getuid();
     // 0, root, 2000 shell
     if (oldUid != 0 && oldUid != 2000) {
-        cout << "only root or shell can run this object, uid is " << oldUid << endl;
+        cout << "only root or shell can run this object" << endl;
+        help();
+        return false;
+    }
+    return true;
+}
+
+int main(int argc, char* argv[])
+{
+    if (!CheckValid(argc, argv)) {
         return -1;
     }
 
@@ -237,12 +262,12 @@ int main(int argc, char* argv[])
     int pid = fork(); // for security_bounded_transition single thread
     if (pid == 0) {
         OHOS::AppExecFwk::ApplicationInfo appInfo {};
-        if (GetApplicationInfo(bundleName, appInfo)) {
+        if (GetApplicationInfo(bundleName, appInfo)) { 
             app->uid = appInfo.uid;
             app->debug = appInfo.debug;
-            int ret = memcpy_s(app->codePath, BUFFER_SIZE - 1, appInfo.codePath.c_str(), appInfo.codePath.size());
+            int ret = strcpy_s(app->codePath, BUFFER_SIZE - 1, appIn fo.codePath.c_str());
             if (ret != EOK) {
-                OHOS::HiviewDFX::HiLog::Error(TRANS_LOG_LABLE, "mencpy appinfo fail, ret is %{public}d.", ret);
+                OHOS::HiviewDFX::HiLog::Error(TRANS_LOG_LABLE, "copy appinfo path fail, ret is %{public}d.", ret);
             }
         }
         _exit(0);
@@ -255,7 +280,8 @@ int main(int argc, char* argv[])
     string codePath = app->codePath;
     munmap(app, sizeof(AppInfo));
 
-    if (uid < 0 || !debug || !ChangeUidGid(uid, uid) || !SetSelinux(bundleName)) {
+    string commod = (argc > 2) ? argv[2] : ""; // 2 com
+    if (uid < 0 || !debug || !ChangeUidGid(uid, uid) || !SetSelinux(bundleName, commod)) {
         OHOS::HiviewDFX::HiLog::Error(TRANS_LOG_LABLE, "uid is %{public}d.", uid);
         return -1;
     }
@@ -266,5 +292,7 @@ int main(int argc, char* argv[])
             "fail to execvp, com is %{public}s, errno %{public}d.", argv[2], errno); // 2: offset
         return -1;
     }
+
+    execlp("/system/bin/sh", "sh", nullptr);
     return 0;
 }

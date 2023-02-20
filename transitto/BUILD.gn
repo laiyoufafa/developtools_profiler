@@ -1,4 +1,4 @@
-# Copyright (C) 2021 Huawei Device Co., Ltd.
+# Copyright (C) 2023 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -55,14 +55,13 @@ ohos_executable("transitto") {
   part_name = "profiler"
 }
 
-ohos_executable("test") {
-  sources = [ "test.cpp" ]
+ohos_executable("transitto_test") {
+  sources = [ "transitto_test.cpp" ]
 
   include_dirs = []
   defines = []
   cflags_cc = [ "-std=c++20" ]
 
-  static_link = false
   ldflags = [
     "-Wl,--whole-archive",
     "-lpthread",
@@ -83,5 +82,5 @@ group("transitto_tool") {
 }
 
 group("transitto_test") {
-  deps = [ ":test" ]
+  deps = [ ":transitto_test" ]
 }
