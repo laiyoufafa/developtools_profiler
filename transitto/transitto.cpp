@@ -233,6 +233,11 @@ bool CheckValid(int argc, const char** argv)
         help();
         return false;
     }
+
+    if (argc == 2 && (argv[1] == "-h" || argv[1] == "--help")) {
+        help();
+        return false;
+    }
  
     int oldUid = getuid();
     // 0, root, 2000 shell
