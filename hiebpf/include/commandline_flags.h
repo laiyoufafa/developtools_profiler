@@ -674,7 +674,7 @@ static int ParseDoubleArrayFlag(const std::string& flag, const std::string& valS
     return 0;
 }
 
-static inline int ParseStringArrayFlag(const std::string& flag, const std::string& valStr)
+static int ParseStringArrayFlag(const std::string& flag, const std::string& valStr)
 {
     std::vector<std::string>* val = (std::vector<std::string>*) flags_[flag].addr_;
     for (std::size_t start = 0, end = 0; end <= valStr.length(); ++end) {
