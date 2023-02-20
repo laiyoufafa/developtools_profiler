@@ -81,6 +81,6 @@ group("transitto_tool") {
   deps = [ ":transitto" ]
 }
 
-group("transitto_test") {
+group("transitto_tool_test") {
   deps = [ ":transitto_test" ]
 }
