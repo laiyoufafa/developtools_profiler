@@ -287,9 +287,9 @@ void StackPreprocess::SetHookData(RawStackPtr rawStack,
             mmapEvent->set_addr((uint64_t)rawStack->stackConext.addr);
             mmapEvent->set_size(static_cast<uint64_t>(rawStack->stackConext.mallocSize));
             std::string name = rawStack->stackConext.tname;
-            if (!name.empty() && name == "ArkJs") {
+            if (name == "ArkJs") {
                 mmapEvent->set_type("ArkJsGlobalHandle");
-            } else {
+            } else if (!name.empty()) {
                 mmapEvent->set_thread_name_id(GetThreadIdx(name, batchNativeHookData));
             }
             for (; idx < callsFrames.size(); ++idx) {
@@ -303,9 +303,9 @@ void StackPreprocess::SetHookData(RawStackPtr rawStack,
             munmapEvent->set_addr((uint64_t)rawStack->stackConext.addr);
             munmapEvent->set_size(static_cast<uint64_t>(rawStack->stackConext.mallocSize));
             std::string name = rawStack->stackConext.tname;
-            if (!name.empty() && name == "ArkJs") {
+            if (name == "ArkJs") {
                 munmapEvent->set_type("ArkJsGlobalHandle");
-            } else {
+            } else if (!name.empty()) {
                 munmapEvent->set_thread_name_id(GetThreadIdx(name, batchNativeHookData));
             }
             for (; idx < callsFrames.size(); ++idx) {
