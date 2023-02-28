@@ -25,7 +25,6 @@
 class PluginService;
 
 class PluginSession;
-class ResultDemuxer;
 class TraceFileWriter;
 class ProfilerDataRepeater;
 class PluginSessionManager;
@@ -96,9 +95,8 @@ private:
         std::vector<std::string> pluginNames;
         std::vector<BufferConfig> bufferConfigs;
         std::vector<ProfilerPluginConfig> pluginConfigs;
-        std::shared_ptr<ProfilerDataRepeater> dataRepeater;
-        std::shared_ptr<TraceFileWriter> traceFileWriter;
-        std::shared_ptr<ResultDemuxer> resultDemuxer;
+        std::shared_ptr<ProfilerDataRepeater> dataRepeater {nullptr};
+        std::shared_ptr<TraceFileWriter> traceFileWriter {nullptr};
 
         SessionContext() = default;
         ~SessionContext();
