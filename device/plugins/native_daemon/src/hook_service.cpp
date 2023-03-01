@@ -18,6 +18,7 @@
 #include <cinttypes>
 #include <unistd.h>
 
+#include "common.h"
 #include "logging.h"
 #include "parameter.h"
 #include "socket_context.h"
@@ -72,6 +73,10 @@ bool HookService::ProtocolProc(SocketContext &context, uint32_t pnum, const int8
         pid_ = static_cast<int>(peerConfig);
     } else if (peerConfig != (uint64_t)pid_) {
         HILOG_ERROR(LOG_CORE, "ProtocolProc receive peerConfig:%" PRIu64 " not expected", peerConfig);
+        return false;
+    }
+    if (getuid() != 0 && !COMMON::CheckApplicationPermission(pid_, "")) {
+        HILOG_ERROR(LOG_CORE, "Application debug permisson denied!");
         return false;
     }
     HILOG_DEBUG(LOG_CORE, "ProtocolProc, receive message from hook client, and send hook config to process %d", pid_);

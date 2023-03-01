@@ -35,4 +35,5 @@ message NativeHookConfig {
     bool fp_unwind = 15;
     bool blocked = 16;
     bool record_accurately = 17;
+    bool startup_mode = 18;
 }
