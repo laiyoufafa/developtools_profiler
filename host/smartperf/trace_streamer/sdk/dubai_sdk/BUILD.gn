@@ -14,7 +14,7 @@
 import("//build/ohos.gni")
 import("ts.gni")
 if (use_wasm) {
-  import("//gn/wasm.gni")
+  import("../../wasm.gni")
 }
 if (use_wasm) {
   ohos_source_set("trace_streamer_dubai_builtin") {

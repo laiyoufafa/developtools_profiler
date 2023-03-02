@@ -14,7 +14,7 @@
 import("//build/ohos.gni")
 import("ts.gni")
 if (use_wasm) {
-  import("//gn/wasm.gni")
+  import("../../gn/wasm.gni")
 }
 if (use_wasm) {
   ohos_source_set("trace_streamer_sdk_builtin") {
@@ -22,6 +22,9 @@ if (use_wasm) {
     include_dirs = []
     deps = []
     public_deps = []
+
+    subsystem_name = "ostest"
+    part_name = "smart_perf_host"
   }
 }
 ohos_source_set("lib") {
@@ -54,6 +57,9 @@ ohos_source_set("lib") {
     include_dirs += []
   }
   public_deps = []
+
+  subsystem_name = "ostest"
+  part_name = "smart_perf_host"
 }
 ohos_source_set("trace_streamer_sdk") {
   sources = [
@@ -158,6 +164,9 @@ ohos_source_set("trace_streamer_sdk") {
     ]
   }
   public_deps = []
+
+  subsystem_name = "ostest"
+  part_name = "smart_perf_host"
 }
 if (use_wasm) {
   wasm_lib("trace_streamer_sdk_builtin_wasm") {

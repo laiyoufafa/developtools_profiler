@@ -31,4 +31,7 @@ ohos_source_set("sdk_plugin") {
   ]
 
   public_deps = []
+
+  subsystem_name = "ostest"
+  part_name = "smart_perf_host"
 }

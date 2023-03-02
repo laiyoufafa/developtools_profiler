@@ -23,4 +23,7 @@ ohos_source_set("ibase") {
   public_deps = []
   deps = []
   sources += [ "/usr/x86_64-w64-mingw32/include/windows.h" ]
+
+  subsystem_name = "ostest"
+  part_name = "smart_perf_host"
 }
