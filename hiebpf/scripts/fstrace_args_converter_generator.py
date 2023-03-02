@@ -50,8 +50,8 @@ def get_converter_name(type_def_lines):
     splitted_type_name = splitted_type_name[1:-1]
     converter_name = ""
     for item in splitted_type_name:
-        converter_name += item.capitalize()
-    converter_name += "Converter"
+        converter_name.join(item.capitalize())
+    converter_name.join("Converter")
     return converter_name
 
 
@@ -81,8 +81,7 @@ converter_table = []
 
 def generate_converter(type_def_lines):
     fn_name = get_converter_name(type_def_lines)
-    fn_decl = ("static int " + fn_name +
-               "(__u64* args, const struct fstrace_start_event_t* start_event)\n")
+    fn_decl = "static int {}(__u64* args, const struct fstrace_start_event_t* start_event)\n".format(fn_name)
     max_nr_args = 4
     expressions = ""
     for nr in range(max_nr_args):
@@ -92,12 +91,11 @@ def generate_converter(type_def_lines):
         if member_name == BAD_MEMBER:
             break
         if member_name == VOID_MEMBER:
-            expression_line = ("    args[" + str(nr) + "] = 0xFFFFFFFFFFFFFFFF;\n")
+            expression_line = "    args[{}] = 0xFFFFFFFFFFFFFFFF;\n".format(str(nr))
         else:
-            expression_line = ("    args[" + str(nr) + "] = (__u64) " +
-                               "start_event->" + arg_name + "." + member_name + ";\n")
-        expressions += expression_line
-    converter = fn_decl + "{\n" + expressions + "    return 0;\n}\n\n"
+            expression_line = "    args[{}] = (__u64) start_event->{}.{};\n".format(str(nr), arg_name, member_name)
+        expressions.join(expression_line)
+    converter = "{}{\n{}    return 0;\n}\n\n".format(fn_decl, expressions)
     converter_table.append(("&" + fn_name))
     return converter
 
@@ -121,13 +119,11 @@ def output_converter_code(fstrace_types_file, converters_file):
                 outf.write(converter)
                 nr_converters = nr_converters + 1
         converter_table_code = (
-            "using ConverterType = int (*)" +
-            " (__u64*, const struct fstrace_start_event_t *);\n")
-        converter_table_code += ("ConverterType g_argsConverterTable[" + str(nr_converters) + "] = {" +
-            "\n    nullptr")
+            "using ConverterType = int (*) (__u64*, const struct fstrace_start_event_t *);\n")
+        converter_table_code.join("ConverterType g_argsConverterTable[{}] = {\n    nullptr".format(str(nr_converters)))
         for fn_ptr in converter_table:
-            converter_table_code += ",\n    " + fn_ptr
-        converter_table_code += "\n};\n"
+            converter_table_code.join(",\n    {}".format(fn_ptr))
+        converter_table_code.join("\n};\n")
         outf.write(converter_table_code)
 
 if __name__ == '__main__':
