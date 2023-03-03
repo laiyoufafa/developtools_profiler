@@ -50,8 +50,8 @@ def get_converter_name(type_def_lines):
     splitted_type_name = splitted_type_name[1:-1]
     converter_name = ""
     for item in splitted_type_name:
-        converter_name.join(item.capitalize())
-    converter_name.join("Converter")
+        converter_name = "{}{}".format(converter_name, item.capitalize()
+    converter_name = "{}Converter".format(converter_name)
     return converter_name
 
 
@@ -120,10 +120,10 @@ def output_converter_code(fstrace_types_file, converters_file):
                 nr_converters = nr_converters + 1
         converter_table_code = (
             "using ConverterType = int (*) (__u64*, const struct fstrace_start_event_t *);\n")
-        converter_table_code.join("ConverterType g_argsConverterTable[{}] = {\n    nullptr".format(str(nr_converters)))
+        converter_table_code = "{}ConverterType g_argsConverterTable[{}] = {\n    nullptr".format(converter_table_code, str(nr_converters))
         for fn_ptr in converter_table:
-            converter_table_code.join(",\n    {}".format(fn_ptr))
-        converter_table_code.join("\n};\n")
+            converter_table_code = "{},\n    {}".format(converter_table_code, fn_ptr)
+        converter_table_code = "%s\n};\n" % (converter_table_code)
         outf.write(converter_table_code)
 
 if __name__ == '__main__':
