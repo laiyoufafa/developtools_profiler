@@ -68,7 +68,7 @@ def get_decl_str(inf):
         while True:
             line = inf.readline()
             line = line.strip()
-            decl_str.join(line)
+            decl_str = "{}{}".format(decl_str,line)
             if (decl_str[-1] == '"'):
                 break
         decl_str = decl_str[1:-1]
@@ -100,7 +100,7 @@ def get_decl_list(decl_str):
     args_list = [args_item.strip() for args_item in args_list]
     decl_list = []
     decl_list.append(probe_entry)
-    decl_list.join(args_list)
+    decl_list = decl_list + args_list
     return decl_list
 
 
@@ -137,7 +137,7 @@ def gen_kprobe_sec(decl_list):
     probe_str = '\nSEC("kprobe/'
     syscall_fn_index = 0
     syscall = decl_list[syscall_fn_index]
-    probe_str.join('{}")\n'.format(syscall))
+    probe_str = '{}{}")\n'.format(probe_str, syscall)
     return probe_str
 
 
@@ -157,7 +157,7 @@ def gen_kretprobe_sec(decl_list):
     probe_str = '\nSEC("kretprobe/'
     syscall_fn_index = 0
     syscall = decl_list[syscall_fn_index]
-    probe_str.join('{}")\n'.format(syscall))
+    probe_str = '{}{}")\n'.format(probe_str, syscall)
     return probe_str
 
 
@@ -179,7 +179,7 @@ def gen_kprobe_decl(decl_list):
     prog_decl = "int BPF_KPROBE("
     syscall_fn_index = 0
     prog_name = "{}_entry".format(decl_list[syscall_fn_index])
-    prog_decl.join(prog_name)
+    prog_decl = "{}{}".format(prog_decl, prog_name)
     index = MIN_DECL_LIST_LEN + 1
     count = 0
     max_nr_args = 5
@@ -189,7 +189,7 @@ def gen_kprobe_decl(decl_list):
         prog_decl = '%s, %s %s' % (prog_decl, decl_list[index - 1], decl_list[index])
         index += 2
         count += 1
-    prog_decl.join(")")
+    prog_decl = "{})".format(prog_decl)
     return prog_decl
 
 
@@ -211,7 +211,7 @@ def gen_kretprobe_decl(decl_list):
     prog_decl = "int BPF_KRETPROBE("
     syscall_fn_index = 0
     prog_name = "{}_exit".format(decl_list[syscall_fn_index])
-    prog_decl.join("{}, int64_t retval)".format(prog_name))
+    prog_decl = "{}{}, int64_t retval)".format(prog_decl, prog_name)
     return prog_decl
 
 HEAD_BPF_PROG_CODE = (
@@ -362,10 +362,10 @@ def gen_kprobe_code(decl_list):
         member_name = decl_list[index]
         assignment_str = "{}args->{} = {};\n".format(indent, member_name, member_name)
         if member_name == "filename":
-            assignment_str.join("{}emit_strtrace_event(fs_se->stime, fs_se->type, filename, FSTRACE);\n".format(indent))
-        assignment_code_str.join(assignment_str)
+            assignment_str = "{}{}emit_strtrace_event(fs_se->stime, fs_se->type, filename, FSTRACE);\n".format(assignment_str, indent)
+        assignment_code_str = "{}{}".format(assignment_code_str, assignment_str)
         count += 1
-    code_str.join("{}{}".format(var_decl_str, assignment_code_str))
+    code_str = "{}{}{}".format(code_str, var_decl_str, assignment_code_str)
     return code_str
 
 
@@ -420,7 +420,7 @@ def underscore_int_types(arg_type):
     for index, arg_item in enumerate(arg_type_list):
         if index == 0:
             continue
-        arg_type = "%s %s" % (arg_type_list[index])
+        arg_type = "%s %s" % (arg_type, arg_type_list[index])
     return arg_type
 
 
@@ -452,8 +452,8 @@ def gen_struct_str(args_list):
     while index < length:
         if index == 0:
             fn_name = args_list[index]
-            fn_name = "sys_{}_args_t {\n".format(fn_name)
-            result.join(fn_name)
+            fn_name = "sys_%s_args_t {\n" % (fn_name)
+            result = "{}{}".format(result, fn_name)
             index = index + 1
         else:
             arg_type = underscore_int_types(args_list[index])
@@ -462,8 +462,8 @@ def gen_struct_str(args_list):
                 return ""
             arg_name = args_list[index]
             index = index + 1
-            result.join("    {} {};\n".format(arg_type, arg_name))
-    result.join("};\n")
+            result = "{}    {} {};\n".format(result, arg_type, arg_name)
+    result = "%s};\n" % (result)
     return result
 
 
@@ -504,7 +504,7 @@ def output_fstrace_code(fstrace_progs_file, fstrace_types_file, fstrace_targets_
                             type_def_lines_reduced.append("};\n")
                         type_def_str_reduced = ""
                         for type_def_line in type_def_lines_reduced:
-                            type_def_str_reduced.join("{}\n".format(type_def_line))
+                            type_def_str_reduced = "{}{}\n".format(type_def_str_reduced, type_def_line)
                         args_output_file.write(type_def_str_reduced)
                         start_event_def  = "{}        struct sys_{}_args_t {}_args;\n".format(start_event_def, fn_name, fn_name)
                         if count == 1:
@@ -512,7 +512,7 @@ def output_fstrace_code(fstrace_progs_file, fstrace_types_file, fstrace_targets_
                             count = 0
                         else:
                             arg_type = "SYS_{}".format(fn_name.upper())
-                        arg_types_enum_def.join("    {},\n".format(arg_type)
+                        arg_types_enum_def = "{}    {},\n".format(arg_types_enum_def, arg_type)
 
                     # generate kprobe prog
                     kprobe_sec = gen_kprobe_sec(decl_list)
@@ -537,8 +537,8 @@ def output_fstrace_code(fstrace_progs_file, fstrace_types_file, fstrace_targets_
                     progs_output_file.write(HEAD_COMMON_KRETPROBE_CODE)
                     progs_output_file.write(kretprobe_code)
                     progs_output_file.write(TAIL_COMMON_KRETPROBE_CODE)
-            start_event_def.join(start_event_def_end)
-            arg_types_enum_def.join(arg_types_enum_def_end)
+            start_event_def = "{}{}".format(start_event_def, start_event_def_end)
+            arg_types_enum_def = "{}{}".format(arg_types_enum_def, arg_types_enum_def_end)
             args_output_file.write(start_event_def)
             args_output_file.write(arg_types_enum_def)
             args_output_file.write(HIEBPF_TYPES_TAIL)
