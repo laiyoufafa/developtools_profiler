@@ -60,8 +60,8 @@ config("user_common_config") {
 config("kern_common_config") {
   cflags = [
     "-target",
-    "-g",
     "bpf",
+    "-g",
     "-fno-stack-protector",
   ]
   defines = [ "__aarch64__" ]
