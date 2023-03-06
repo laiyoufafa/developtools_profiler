@@ -46,6 +46,7 @@ config("common_config") {
 
 config("user_common_config") {
   cflags = [
+    "-g",
     "-Wno-unknown-attributes",
     "-Wno-bitwise-op-parentheses",
     "-Wno-shift-op-parentheses",
@@ -59,6 +60,7 @@ config("user_common_config") {
 config("kern_common_config") {
   cflags = [
     "-target",
+    "-g",
     "bpf",
     "-fno-stack-protector",
   ]
