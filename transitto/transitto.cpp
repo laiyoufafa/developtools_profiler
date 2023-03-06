@@ -186,30 +186,10 @@ void InitEnv(const string& codePath, int uid)
     return;
 }
 
-bool SetSelinux(const string& bundleName, const string& cmd)
+bool SetSelinux()
 {
     OHOS::HiviewDFX::HiLog::Info(TRANS_LOG_LABLE, "start change selinux context.");
-    string seContext;
-
-    if (cmd.find("lldb") != string::npos) {
-        seContext = "u:r:transitto_hap:s0";
-    }
-
-    if (seContext.empty()) {
-        int appPid = -1;
-        if (!GetProcessPid(bundleName, appPid) || appPid < 0) {
-            OHOS::HiviewDFX::HiLog::Error(TRANS_LOG_LABLE, "fail to get pid, errno is %{public}d.", errno);
-            return false;
-        }
-
-        string procPath = "/proc/" + to_string(appPid) + "/attr/current";
-        seContext = ReadFileToString(procPath);
-        if (seContext.empty()) {
-            OHOS::HiviewDFX::HiLog::Error(TRANS_LOG_LABLE,
-                "fail to get selinux context, procPath is %{public}s, errno is %{public}d.", procPath.c_str(), errno);
-            return false;
-        }
-    }
+    string seContext = "u:r:transitto_hap:s0";
 
     if (setcon(seContext.c_str()) != 0) {
         OHOS::HiviewDFX::HiLog::Error(TRANS_LOG_LABLE, "fail to set selinux context, errno is %{public}d.", errno);
@@ -287,7 +267,8 @@ int main(int argc, char* argv[])
     munmap(app, sizeof(AppInfo));
 
     string commod = (argc > 2) ? argv[2] : ""; // 2 com
-    if (uid < 0 || !debug || !ChangeUidGid(uid, uid) || !SetSelinux(bundleName, commod)) {
+    // normal_hap uid = 200000 * usrid + bundleid % 200000, userid is 100 or 0(shared)
+    if (uid <= 20000000 || !debug || !ChangeUidGid(uid, uid) || !SetSelinux()) {
         OHOS::HiviewDFX::HiLog::Error(TRANS_LOG_LABLE, "uid is %{public}d.", uid);
         return -1;
     }
