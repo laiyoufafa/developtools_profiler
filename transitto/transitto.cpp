@@ -201,9 +201,9 @@ bool SetSelinux()
 
 void Help()
 {
-    cout << "\ntransitto is a debugable tool. your commond can transit to the domain of debugable bundle.\n"
+    cout << "\ntransitto is a debuggable tool. your command can transit to the domain of debuggable bundle.\n"
             "usage:\n"
-            "transitto <debugable bundleName> <commond>\n" << endl;
+            "transitto <debuggable bundleName> <command>\n" << endl;
 }
 
 bool CheckValid(int argc, char** argv)

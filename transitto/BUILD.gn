@@ -24,7 +24,6 @@ ohos_executable("transitto") {
   defines = []
   cflags_cc = [ "-std=c++20" ]
 
-  static_link = false
   ldflags = [
     "-Wl,--whole-archive",
     "-lpthread",
