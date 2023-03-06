@@ -16,7 +16,7 @@ patch='patch'
 sed='sed'
 cp='cp'
 case "$OSTYPE" in
-  msys*)    patch='patch.exe' sed='sed.exe' cp="copy" ;;
+  msys*)    patch='patch.exe' sed='sed.exe' cp="cp" ;;
   darwin*)  out='../../out/macx' ;;
   linux*)   out='../../out/linux'  ;;
   *)        echo "other: $OSTYPE" ;;

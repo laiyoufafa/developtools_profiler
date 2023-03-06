@@ -246,10 +246,9 @@ self.onmessage = async (e: MessageEvent) => {
 }
 
 function createView(sql: string) {
-    let enc = new TextEncoder();
-    let sqlPtr = Module._malloc(sql.length);
-    Module.HEAPU8.set(enc.encode(sql), sqlPtr);
-    let res = Module._TraceStreamerSqlOperate(sqlPtr, sql.length);
+    let array = enc.encode(sql);
+    Module.HEAPU8.set(array, reqBufferAddr);
+    let res = Module._TraceStreamerSqlOperateEx(array.length);
     return res;
 }
 
