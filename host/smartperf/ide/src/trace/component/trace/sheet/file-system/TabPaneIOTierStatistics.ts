@@ -22,6 +22,7 @@ import {
 import {Utils} from "../../base/Utils.js";
 import {LitProgressBar} from "../../../../../base-ui/progress-bar/LitProgressBar.js";
 import {TabPaneFilter} from "../TabPaneFilter.js";
+import {SpSystemTrace} from "../../../SpSystemTrace.js";
 
 @element('tabpane-io-tier-statistics')
 export class TabPaneIOTierStatistics extends BaseElement {
@@ -80,6 +81,7 @@ export class TabPaneIOTierStatistics extends BaseElement {
     }
 
     getInitData(item:any,nameTitle:any = "pname",subtitle:any = null){
+        if (nameTitle == "path") {item.path = item.path != null ? SpSystemTrace.DATA_DICT.get(parseInt(item.path)) : "-"}
         return {
             ...item,
             title : item[nameTitle]+(subtitle?("("+item[subtitle]+")"):""),
@@ -168,7 +170,7 @@ export class TabPaneIOTierStatistics extends BaseElement {
                     let data = this.getInitData(spt!,"pname","pid")
                     data.path = {tier:node.tier,pid:data.pid,path:null,value:"All-"+node.title+"-"+data.title}
                     data.children.forEach((e:any)=>{
-                        e.path = {tier:node.tier,pid:data.pid,path:e.pid,value:"All-"+node.title+"-"+data.title+"-"+e.title}
+                        e.path = {tier:node.tier,pid:data.pid,path:e.path,value:"All-"+node.title+"-"+data.title+"-"+e.title}
                     })
                     sp!.children.push(data);
                 }

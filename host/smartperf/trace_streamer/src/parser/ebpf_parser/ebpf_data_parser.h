@@ -32,7 +32,7 @@ public:
     void Finish();
 
 private:
-    bool Init(const std::deque<uint8_t>& dequeBuffer, uint64_t size);
+    bool Init(const std::deque<uint8_t> dequeBuffer, uint64_t size);
     std::unique_ptr<EbpfDataReader> reader_;
     uint64_t ebpfAllEventStartTime_ = std::numeric_limits<uint64_t>::max();
     uint64_t ebpfAllEventEndTime_ = 0;

@@ -20,6 +20,7 @@ import {getTabBoxChildData} from "../../../../database/SqlLite.js";
 import {Utils} from "../../base/Utils.js";
 import {SpSystemTrace} from "../../../SpSystemTrace.js";
 import {SPTChild} from "../../../../bean/StateProcessThread.js";
+import {TraceRow} from "../../base/TraceRow.js";
 
 @element('tabpane-box-child')
 export class TabPaneBoxChild extends BaseElement {
@@ -71,6 +72,7 @@ export class TabPaneBoxChild extends BaseElement {
             if (result.length != null && result.length > 0) {
                 result.map((e) => {
                     e.startTime = Utils.getTimeString(e.startNs)
+                    e.absoluteTime = ((window as any).recordStartNS + e.startNs)/1000000000
                     e.state = Utils.getEndState(e.state)!
                     e.prior = e.priority == undefined || e.priority == null ? "-" : e.priority + ""
                     e.core = e.cpu == undefined || e.cpu == null ? "-" : "CPU" + e.cpu
@@ -99,6 +101,8 @@ export class TabPaneBoxChild extends BaseElement {
                 if (!(spt.end_ts < val.leftNs || spt.start_ts > val.rightNs) && b1 && b2 && b3) {
                     let sptChild = new SPTChild();
                     sptChild.startTime = Utils.getTimeString(spt.start_ts)
+                    sptChild.absoluteTime = ((window as any).recordStartNS + spt.start_ts)/1000000000
+                    sptChild.startNs = spt.start_ts
                     sptChild.state = Utils.getEndState(spt.state)!
                     sptChild.prior = spt.priority == undefined || spt.priority == null ? "-" : spt.priority + ""
                     sptChild.core = spt.cpu == undefined || spt.cpu == null ? "-" : "CPU" + spt.cpu
@@ -122,7 +126,9 @@ export class TabPaneBoxChild extends BaseElement {
         </style>
         <label id="time-range" style="width: 100%;height: 20px;text-align: end;font-size: 10pt;margin-bottom: 5px">Selected range:0.0 ms</label>
         <lit-table id="tb-cpu-thread" style="height: auto">
-            <lit-table-column order width="20%" title="Start Time" data-index="startTime" key="startTime" align="flex-start" order >
+            <lit-table-column order width="15%" title="StartTime(Relative)" data-index="startTime" key="startTime" align="flex-start" order >
+            </lit-table-column>
+            <lit-table-column order width="15%" title="StartTime(Absolute)" data-index="absoluteTime" key="absoluteTime" align="flex-start" order >
             </lit-table-column>
             <lit-table-column order width="20%" title="Process" data-index="processName" key="processName" align="flex-start" order >
             </lit-table-column>

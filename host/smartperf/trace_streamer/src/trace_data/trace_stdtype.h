@@ -189,6 +189,7 @@ public:
                             uint64_t priority);
     void SetDuration(size_t index, uint64_t duration);
     void Update(uint64_t index, uint64_t ts, uint64_t state, uint64_t pior);
+    void UpdateArg(uint64_t index, uint32_t argsetId);
 
     const std::deque<uint64_t>& EndStatesData() const
     {
@@ -198,6 +199,11 @@ public:
     const std::deque<uint64_t>& PriorityData() const
     {
         return priority_;
+    }
+
+    const std::deque<uint32_t>& ArgSetData() const
+    {
+        return argSets_;
     }
     const std::deque<uint64_t>& TsEndData() const
     {
@@ -226,6 +232,7 @@ private:
     std::deque<uint64_t> tsEnds_ = {};
     std::deque<uint64_t> endStates_ = {};
     std::deque<uint64_t> priority_ = {};
+    std::deque<uint32_t> argSets_ = {};
 };
 
 class CallStack : public CacheBase, public CpuCacheBase {
@@ -792,8 +799,7 @@ public:
     void UpdateSymbolIdToNameMap(uint64_t originSymbolId, uint64_t symbolId);
     void UpdateSymbolId();
     void UpdateFileId(std::map<uint32_t, uint64_t>& filePathIdToFilePathName);
-    void GetCallIdToLastLibId(const std::set<DataIndex>& invalidLibs,
-                              std::map<uint64_t, uint64_t>& callIdToLastCallerPathIndex);
+    void UpdateVaddrs(std::deque<std::string>& vaddrs);
     const std::deque<uint64_t>& CallChainIds() const;
     const std::deque<uint64_t>& Depths() const;
     const std::deque<uint64_t>& Ips() const;
@@ -802,6 +808,7 @@ public:
     const std::deque<DataIndex>& FilePaths() const;
     const std::deque<uint64_t>& Offsets() const;
     const std::deque<uint64_t>& SymbolOffsets() const;
+    const std::deque<std::string>& Vaddrs() const;
     size_t Size() const
     {
         return callChainIds_.size();
@@ -816,6 +823,7 @@ public:
         filePaths_.clear();
         offsets_.clear();
         symbolOffsets_.clear();
+        vaddrs_.clear();
     }
 
 private:
@@ -827,6 +835,7 @@ private:
     std::deque<DataIndex> filePaths_ = {};
     std::deque<uint64_t> offsets_ = {};
     std::deque<uint64_t> symbolOffsets_ = {};
+    std::deque<std::string> vaddrs_ = {};
     std::map<uint32_t, uint64_t> symbolIdToSymbolName_ = {};
     DataIndex libcFilePathIndex_ = INVALID_UINT64;
     DataIndex muslFilePathIndex_ = INVALID_UINT64;
@@ -1059,6 +1068,8 @@ public:
 private:
     std::hash<std::string_view> hashFun;
     std::mutex mutex_;
+    const int8_t SPASCII_START = 0;
+    const int8_t SPASCII_END = 32;
 };
 class NetDetailData : public CacheBase {
 public:
@@ -1590,6 +1601,25 @@ private:
     std::deque<int32_t> streamAlls_ = {};
     uint32_t rowCounts_ = 0;
 };
+class TraceConfigData : public CacheBase {
+public:
+    void AppendNewData(std::string traceSource, std::string key, std::string value);
+    const std::deque<std::string>& TraceSource() const;
+    const std::deque<std::string>& Key() const;
+    const std::deque<std::string>& Value() const;
+    void Clear() override
+    {
+        CacheBase::Clear();
+        traceSource_.clear();
+        key_.clear();
+        value_.clear();
+    }
+private:
+    std::deque<std::string> traceSource_ = {};
+    std::deque<std::string> key_ = {};
+    std::deque<std::string> value_ = {};
+    uint32_t rowCounts_ = 0;
+};
 class SmapsData : public CacheBase {
 public:
     void AppendNewData(uint64_t timeStamp,
@@ -1618,7 +1648,6 @@ public:
     void Clear() override
     {
         CacheBase::Clear();
-        timeStamps_.clear();
         startAddrs_.clear();
         endAddrs_.clear();
         dirtys_.clear();
@@ -1631,7 +1660,6 @@ public:
         pathIds_.clear();
     }
 private:
-    std::deque<uint64_t> timeStamps_ = {};
     std::deque<std::string> startAddrs_ = {};
     std::deque<std::string> endAddrs_ = {};
     std::deque<uint64_t> dirtys_ = {};

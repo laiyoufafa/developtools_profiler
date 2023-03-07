@@ -791,25 +791,15 @@
 
     <p class="fontColor">单选CPU使用情况数据，单击方法会在选中的方法外层加上深色边框，能够突出当前选中色块，弹出层中会展示当前CPU上的进程名，线程名，开始时间和运行时长，线程运行状态等信息<br>
         <img alt="GitHub Logo" src="../figures/cpuclick.jpg"></p>
-    <h3 class="mume-header fontColor">3.FPS数据</h3>
 
-    <p class="fontColor">FPS是帧率的显示，每秒产生画面的个数<br>
-        <img alt="GitHub Logo" src="../figures/fps.jpg"></p>
-    <h4 class="mume-header fontColor">3.1FPS的框选功能</h4>
-
-    <p class="fontColor">可以对fps的数据进行框选，框选后在最下方的弹出层中会展示框选时间区间内的统计表格,主要显示了time(时间)，FPS(帧率)<br>
-        <img alt="GitHub Logo" src="../figures/fpsselect.jpg"></p>
-    <h4 class="mume-header fontColor">3.2.FPS的鼠标悬浮功能</h4>
-    <p class="fontColor">鼠标移动到帧率的柱状图上，悬浮框会显示当前时间的FPS的值<br>
-        <img alt="GitHub Logo" src="../figures/fpstip.jpg"></p>
-    <h3 class="mume-header fontColor">4.进程,线程和方法数据</h3>
+    <h3 class="mume-header fontColor">3.进程,线程和方法数据</h3>
 
     <p class="fontColor">下图是进程数据，左边部分展示进程名称和id<br>
         <img alt="GitHub Logo" src="../figures/process.jpg"><br>
         点击进程名前面向下箭头可以展开对应的线程进行查看，展开后的线程如下图，如果存在堆内存占用情况，就会显示在第一行，如果出现两个名字和id一样的线程，则第一个为线程的使用情况，第二为线程内的方法栈调用情况<br>
         <img alt="GitHub Logo" src="../figures/threadinfo.jpg"></p>
     <h4 class="mume-heade fontColor">
-        4.1进程,线程和方法数据的框选功能</h4>
+        3.1进程,线程和方法数据的框选功能</h4>
 
     <p class="fontColor">可以对线程的数据进行框选，框选后在最下方的弹出层中会展示框选数据的统计表格，包含线程运行状态，线程调用栈的统计情况。当框选的数据中同时存在线程运行状态和线程调用栈数据，下方的弹出层中就会出现多个tab选项，可以进行切换</p>
     <p class="fontColor">下图是线程运行状态框选统计信息,包括进程名，进程号，线程名，线程号，线程状态，状态持续时间，平均持续时间，该线程状态发生的次数<br>
@@ -817,7 +807,7 @@
     <p class="fontColor">下图是线程调用栈框选统计信息,包括方法名，持续时间，平均持续时间，调用的次数<br>
         <img alt="GitHub Logo" src="../figures/callstackselect.jpg"></p>
     <h4 class="mume-header fontColor">
-        4.2进程,线程和方法数据的单选功能</h4>
+        3.2进程,线程和方法数据的单选功能</h4>
 
     <p class="fontColor">单选线程的state数据时，会展示当前选中线程的状态数据，开始时间和持续时长，线程状态，所在进程名称、<br>
         <img alt="GitHub Logo" src="../figures/threadclick.jpg"><br>
@@ -825,32 +815,32 @@
         <img alt="GitHub Logo" src="../figures/callstackclick.jpg"></p>
 
     <h4 class="mume-header fontColor">
-        4.3.线程的跳转功能</h4>
+        3.3.线程的跳转功能</h4>
     <p class="fontColor">点击画红框处的带箭头的标志，会从CPU的线程概览视图跳转到线程的详情视图，同时从线程的详情视图也能跳转到CPU的线程概览视图<br>
         <img alt="GitHub Logo" src="../figures/jumpthread.jpg"><br>
-    <h3 class="mume-header fontColor">5.trace的其他功能</h3>
+    <h3 class="mume-header fontColor">4.trace的其他功能</h3>
     <h4 class="mume-header fontColor">
-        5.1.小旗标志的功能</h4>
+        4.1.小旗标志的功能</h4>
     <p class="fontColor">将选中数据的时间点通过小旗的方式在时间轴上展示，直观的展示选中数据的时间<br>
         <img alt="GitHub Logo" src="../figures/flag.jpg"><br>
         在下方输入空输入文字:我是trace,可以给小旗打备注<br>
         <img alt="GitHub Logo" src="../figures/flaginput.jpg"><br>
     <h4 class="mume-header fontColor">
-        5.2.收藏置顶功能</h4>
+        4.2.收藏置顶功能</h4>
     <p class="fontColor">鼠标移动到某个页签，会出现星形的标志，点击该星形，可以将该行收藏置顶<br>
         <img alt="GitHub Logo" src="../figures/stars.jpg"><br>
     <h4 class="mume-header fontColor">
-        5.3.勾选功能</h4>
+        4.3.勾选功能</h4>
     <p class="fontColor">框选某一区域，该区域左边会出现CheckBox的复选框。选中的区域的复选框会出现打勾的状态。可以取消勾选，也可以重新勾选<br>
         <img alt="GitHub Logo" src="../figures/checkbox.jpg"><br>
     <h4 class="mume-header fontColor">
-        5.4.搜索功能</h4>
+        4.4.搜索功能</h4>
     <p class="fontColor">在搜索框中，可以输入线程，线程号等搜索自己想要的信息,搜索完成会高亮显示<br>
         <img alt="GitHub Logo" src="../figures/search.jpg"><br>
     <p class="fontColor">在搜索框中输入调用栈的方法名，会跳转到对应的调用栈<br>
         <img alt="GitHub Logo" src="../figures/searchcallstack.jpg"><br>
     <h4 class="mume-header fontColor">
-        5.5.M键测量功能</h4>
+        4.5.M键测量功能</h4>
     <p class="fontColor">放大trace中的色块,选中色块,键盘按下M，会出现像尺子一样的形状<br>
         <img alt="GitHub Logo" src="../figures/M.jpg"><br>
 </div>

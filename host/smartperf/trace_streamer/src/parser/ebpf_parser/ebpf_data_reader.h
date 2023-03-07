@@ -42,22 +42,27 @@ public:
     const DoubleMap<const ElfEventFixedHeader*, uint64_t, const uint8_t*>& GetElfAddrAndStartValueToSymAddr() const;
     const std::map<DataIndex, const ElfEventFixedHeader*>& GetElfPathIndexToElfAddr() const;
     QuatraMap<uint32_t, uint32_t, uint32_t, uint64_t, DataIndex>& GetTracerEventToStrIndexMap();
-
+    SymbolAndFilePathIndex GetSymbolNameIndexFromElfSym(uint64_t ip);
 private:
     bool ReadEbpfData();
     bool InitEbpfHeader();
     bool ReadItemEventMaps(const uint8_t* buffer, uint32_t size);
     bool ReadItemSymbolInfo(const uint8_t* buffer, uint32_t size);
+    bool ReaItemKernelSymbolInfo(const uint8_t* buffer, uint32_t size);
     bool ReadItemEventFs(const uint8_t* buffer, uint32_t size);
     bool ReadItemEventPagedMemory(const uint8_t* buffer, uint32_t size);
     bool ReadItemEventBIO(const uint8_t* buffer, uint32_t size);
     bool ReadItemEventStr(const uint8_t* buffer, uint32_t size);
     void UpdateElfAddrAndStValueToSymAddrMap(const ElfEventFixedHeader* elfAddr, uint32_t size);
+    void ReadKernelSymAddrMap(const KernelSymbolInfoHeader* elfAddr, uint32_t size);
     void UpdateElfPathIndexToElfAddrMap(const ElfEventFixedHeader* elfAddr, uint32_t size);
 #if WITH_EBPF_HELP
     void UpdateEbpfElfSymbolTable(const ElfEventFixedHeader* elfAddr, uint32_t size);
 #endif
-
+public:
+    uint64_t maxKernelAddr_ = 0;
+    uint64_t minKernelAddr_ = std::numeric_limits<uint64_t>::max();
+private:
     std::unique_ptr<uint8_t[]> buffer_;
     uint64_t bufferSize_ = 0;
     uint64_t unresolvedLen_ = 0;
@@ -73,6 +78,13 @@ private:
     DoubleMap<uint32_t, uint64_t, const MapsFixedHeader*> pidAndStartAddrToMapsAddr_;
     DoubleMap<const ElfEventFixedHeader*, uint64_t, const uint8_t*> elfAddrAndStValueToSymAddr_;
     QuatraMap<uint32_t, uint32_t, uint32_t, uint64_t, DataIndex> tracerEventToStrIndex_;
+    DataIndex kernelFilePath_;
+    struct AddrDesc {
+        uint64_t size = 0;
+        DataIndex name = 0;
+    };
+    std::map <uint64_t, AddrDesc> kernelSymbolMap_ = {};
+    const uint32_t MAX_SYMBOL_LENGTH = 32;
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

@@ -17,7 +17,7 @@ import {Graph} from "./Graph.js";
 import {Rect} from "./Rect.js";
 import {ns2s, TimerShaftElement} from "../TimerShaftElement.js";
 import {ColorUtils} from "../base/ColorUtils.js";
-import {CpuStruct} from "../../../bean/CpuStruct.js";
+import {CpuStruct} from "../../../database/ui-worker/ProcedureWorkerCPU.js";
 
 const markPadding = 5;
 
@@ -456,6 +456,7 @@ export class RangeRuler extends Graph {
             this.animaStartTime = dat.getTime();
             this.keyboardKeyPressMap[this.pressedKeys[this.pressedKeys.length - 1]]?.bind(this)();
         }
+        this.isPress = true;
     }
 
     keyPressW() {
@@ -559,6 +560,7 @@ export class RangeRuler extends Graph {
                 this.pressedKeys.splice(number, 1);
             }
         }
+        this.isPress = false;
     }
 
 

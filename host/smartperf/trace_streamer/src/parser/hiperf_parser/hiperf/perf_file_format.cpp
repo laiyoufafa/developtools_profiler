@@ -145,7 +145,7 @@ bool PerfFileSection::Read(char *buf, size_t size)
         return false;
     } else if (offset_ + size > maxSize_) {
         HLOGE("read out of size!!! offset_ %zu size %zu max %zu", offset_, size, maxSize_);
-        if (memset_s(buf, size, 0, size) != EOK) { // make sure the content return is 0 when failed
+        if (memset_s(buf, size, 0, size) != 0) { // make sure the content return is 0 when failed
             HLOGE("memset_s failed in PerfFileSection::Read");
             return false;
         }
@@ -227,13 +227,13 @@ PerfFileSectionSymbolsFiles::PerfFileSectionSymbolsFiles(FEATURE id, const char 
     Init(buf, size);
     uint32_t symbolFileNumber = 0;
     if (!Read(symbolFileNumber)) {
-        HLOGE(" symbolFileNumber read failed");
+        HLOGE("symbolFileNumber read failed");
         return;
     } else if (symbolFileNumber > MAX_SYMBOLS_FILE_NUMBER) {
-        HLOGE(" symbolFileNumber %u too large", symbolFileNumber);
-        return;
+        HLOGE("symbolFileNumber %u too large, only parse %zu symbolFile\n", symbolFileNumber, MAX_SYMBOLS_FILE_NUMBER);
+        symbolFileNumber = MAX_SYMBOLS_FILE_NUMBER;
     } else {
-        HLOGV(" symbolFileNumber %u", symbolFileNumber);
+        HLOGV("symbolFileNumber %u", symbolFileNumber);
     }
 
     for (uint32_t i = symbolFileNumber; i > 0; i--) {

@@ -66,9 +66,9 @@ class ProcedurePool {
     maxThreadNumber: number = 1
     works: Array<ProcedureThread> = []
     timelineChange: ((a: any) => void) | undefined | null = null;
-    cpusLen = ProcedurePool.build('cpu', 8);
-    freqLen = ProcedurePool.build('freq', 2);
-    processLen = ProcedurePool.build('process', 8);
+    cpusLen = ProcedurePool.build('cpu', 0);
+    freqLen = ProcedurePool.build('freq', 0);
+    processLen = ProcedurePool.build('process', 0);
     logicDataLen = ProcedurePool.build('logic', 2);
     names = [...this.cpusLen, ...this.processLen, ...this.freqLen];
     logicDataHandles = [...this.logicDataLen]

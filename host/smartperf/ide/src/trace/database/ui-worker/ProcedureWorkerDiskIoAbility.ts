@@ -15,16 +15,57 @@
 
 import { ColorUtils } from "../../component/trace/base/ColorUtils.js";
 import {
-    BaseStruct,
+    BaseStruct, dataFilterHandler,
     drawFlagLine,
     drawLines,
     drawLoading,
-    drawSelection, drawWakeUp,
+    drawSelection, drawWakeUp, isFrameContainPoint,
     ns2x, Render,
     RequestMessage
 } from "./ProcedureWorkerCommon.js";
+import {TraceRow} from "../../component/trace/base/TraceRow.js";
 
 export class DiskIoAbilityRender extends Render{
+    renderMainThread(req: {
+        context: CanvasRenderingContext2D,
+        useCache: boolean,
+        type: string,
+        maxDiskRate:number,
+        maxDiskRateName:string
+    }, row: TraceRow<DiskAbilityMonitorStruct>) {
+        let list = row.dataList;
+        let filter = row.dataListCache;
+        dataFilterHandler(list,filter,{
+            startKey: "startNS",
+            durKey: "dur",
+            startNS: TraceRow.range?.startNS ?? 0,
+            endNS: TraceRow.range?.endNS ?? 0,
+            totalNS: TraceRow.range?.totalNS ?? 0,
+            frame: row.frame,
+            paddingTop: 5,
+            useCache: req.useCache || !(TraceRow.range?.refresh ?? false)
+        })
+        req.context.beginPath();
+        let find = false;
+        for (let re of filter) {
+            DiskAbilityMonitorStruct.draw(req.context, re,req.maxDiskRate,row.isHover)
+            if (row.isHover && re.frame  && isFrameContainPoint(re.frame, row.hoverX, row.hoverY)) {
+                DiskAbilityMonitorStruct.hoverDiskAbilityStruct = re;
+                find = true;
+            }
+        }
+        if (!find && row.isHover) DiskAbilityMonitorStruct.hoverDiskAbilityStruct = undefined;
+        req.context.closePath();
+        let textMetrics = req.context.measureText(req.maxDiskRateName);
+        req.context.globalAlpha = 0.8
+        req.context.fillStyle = "#f0f0f0"
+        req.context.fillRect(0, 5, textMetrics.width + 8, 18)
+        req.context.globalAlpha = 1
+        req.context.fillStyle = "#333"
+        req.context.textBaseline = "middle"
+        req.context.fillText(req.maxDiskRateName, 4, 5 + 9)
+    }
+
     render(req: RequestMessage, list: Array<any>, filter: Array<any>) {
         if (req.lazyRefresh) {
             diskIoAbility(list, filter, req.startNS, req.endNS, req.totalNS, req.frame, req.useCache || !req.range.refresh);
@@ -54,7 +95,7 @@ export class DiskIoAbilityRender extends Render{
             }
             DiskAbilityMonitorStruct.selectDiskAbilityStruct = req.params.selectDiskAbilityStruct;
             for (let re of filter) {
-                DiskAbilityMonitorStruct.draw(req.context, re, maxDiskRate)
+                DiskAbilityMonitorStruct.draw(req.context, re, maxDiskRate,true)
             }
             drawSelection(req.context, req.params);
             req.context.closePath();
@@ -122,13 +163,13 @@ export class DiskAbilityMonitorStruct extends BaseStruct {
     startNS: number | undefined
     dur: number | undefined //自补充，数据库没有返回
 
-    static draw(context2D: CanvasRenderingContext2D, data: DiskAbilityMonitorStruct, maxDiskRate: number) {
+    static draw(context2D: CanvasRenderingContext2D, data: DiskAbilityMonitorStruct, maxDiskRate: number,isHover:boolean) {
         if (data.frame) {
             let width = data.frame.width || 0;
             let index = 2;
             context2D.fillStyle = ColorUtils.colorForTid(index)
             context2D.strokeStyle = ColorUtils.colorForTid(index)
-            if (data.startNS === DiskAbilityMonitorStruct.hoverDiskAbilityStruct?.startNS) {
+            if (data.startNS === DiskAbilityMonitorStruct.hoverDiskAbilityStruct?.startNS && isHover) {
                 context2D.lineWidth = 1;
                 context2D.globalAlpha = 0.6;
                 let drawHeight: number = Math.floor(((data.value || 0) * (data.frame.height || 0) * 1.0) / maxDiskRate);

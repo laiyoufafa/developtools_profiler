@@ -870,7 +870,11 @@ void HtraceMemParser::ParseVMemInfo(const MemoryData& tracePacket, uint64_t time
 }
 void HtraceMemParser::Finish()
 {
-    traceDataCache_->MixTraceTime(GetPluginStartTime(), GetPluginEndTime());
+    if (traceDataCache_->traceStartTime_ == INVALID_UINT64 || traceDataCache_->traceEndTime_ == 0) {
+        traceDataCache_->MixTraceTime(GetPluginStartTime(), GetPluginEndTime());
+    } else {
+        TS_LOGI("mem data time is not updated, maybe this trace file has other data");
+    }
 }
 } // namespace TraceStreamer
 } // namespace SysTuning

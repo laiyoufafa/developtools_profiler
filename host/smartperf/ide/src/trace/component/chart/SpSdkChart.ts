@@ -15,8 +15,7 @@
 
 import {SpSystemTrace} from "../SpSystemTrace.js";
 import {TraceRow} from "../trace/base/TraceRow.js";
-import {CounterStruct, SdkSliceStruct} from "../../bean/SdkStruct.js";
-import {procedurePool} from "../../database/Procedure.js";
+
 import {BaseStruct} from "../../bean/BaseStruct.js";
 import {
     queryCounterMax,
@@ -25,9 +24,14 @@ import {
     querySdkSliceData,
     queryStartTime,
 } from "../../database/SqlLite.js";
+import {CounterStruct, SdkCounterRender} from "../../database/ui-worker/ProduceWorkerSdkCounter.js";
+import {renders} from "../../database/ui-worker/ProcedureWorker.js";
+import {SdkSliceRender, SdkSliceStruct} from "../../database/ui-worker/ProduceWorkerSdkSlice.js";
+import {EmptyRender} from "../../database/ui-worker/ProcedureWorkerCPU.js";
 
 export class SpSdkChart {
     private trace: SpSystemTrace;
+    private pluginName = "dubai-plugin"
 
     constructor(trace: SpSystemTrace) {
         this.trace = trace;
@@ -38,11 +42,11 @@ export class SpSdkChart {
         let keys = map.keys();
         for (let key of keys) {
             let table = []
-            let configStr = map.get(key);
-            if (configStr != undefined) {
+            let configObj: any = map.get(key);
+            if (configObj != undefined) {
+                let configStr = configObj.jsonConfig;
                 let json = JSON.parse(configStr);
                 let tableConfig = json.tableConfig
-                let setting = json.settingConfig
                 if (tableConfig != null) {
                     let showTypes = tableConfig.showType;
                     for (let i = 0; i < showTypes.length; i++) {
@@ -59,14 +63,32 @@ export class SpSdkChart {
                                 chartSql: chartSql,
                                 maxSql: maxValue,
                                 type: "counter",
-                                name: setting.name
+                                name: configObj.disPlayName,
+                                pluginName: configObj.pluginName
                             })
                         } else if (type == "slice") {
                             let chartSql = this.createSliceSql(startTime, showType.tableName, showType.columns, "where" +
                                 " slice_id = $column_id and (start_ts - " + startTime + ") between $startNS and $endNS;");
                             let innerTable = showType.inner;
-                            let countSql = this.createSql(startTime, innerTable.tableName, innerTable.columns);
-                            table.push({countSql: countSql, chartSql: chartSql, type: "slice", name: setting.name})
+                            let countSql;
+                            let countOtherSql = "";
+                            if (configObj.pluginName == this.pluginName) {
+                                countSql = this.createSql(startTime, innerTable.tableName, innerTable.columns, "where slice_name like $suffix");
+                                countOtherSql = this.createSql(startTime, innerTable.tableName, innerTable.columns, "" +
+                                    "where slice_name not like '%_cpu' and slice_name not like '%_display' and slice_name not like '%_gpu'" +
+                                    "and slice_name not like '%_System_idle' and slice_name not like '%_wifi_data' " +
+                                    "and slice_name not like '%_sensor' and slice_name not like '%_audio' ");
+                            } else {
+                                countSql = this.createSql(startTime, innerTable.tableName, innerTable.columns);
+                            }
+                            table.push({
+                                countSql: countSql,
+                                chartSql: chartSql,
+                                type: "slice",
+                                name: configObj.disPlayName,
+                                pluginName: configObj.pluginName,
+                                countOtherSql: countOtherSql
+                            })
                         }
                     }
                     tablesMap.set(key, table);
@@ -162,8 +184,26 @@ export class SpSdkChart {
                         for (let i = 0; i < result.length; i++) {
                             await this.initCounter(nodeRow, i, result[i], sqlMap, componentId);
                         }
+                    } else if (sqlMap.type == 'slice' && sqlMap.pluginName == this.pluginName) {
+                        let suffixList = ["cpu", "display", "gpu", "System_idle", "wifi_data", "sensor", "audio"];
+                        for (let i = 0; i < suffixList.length; i++) {
+                            let result = await querySdkCount(sqlMap.countSql, componentId, {$suffix: "%" +suffixList[i]});
+                            if (result.length > 0) {
+                                let groupNodeRow = await this.initSecondaryRow(nodeRow, i, suffixList[i]);
+                                for (let i = 0; i < result.length; i++) {
+                                    await this.initSlice(groupNodeRow, i, result[i], sqlMap, componentId);
+                                }
+                            }
+                        }
+                        let result = await querySdkCount(sqlMap.countOtherSql, componentId);
+                        if (result.length > 0) {
+                            let groupNodeRow = await this.initSecondaryRow(nodeRow, 7, "other");
+                            for (let i = 0; i < result.length; i++) {
+                                await this.initSlice(groupNodeRow, i, result[i], sqlMap, componentId);
+                            }
+                        }
                     } else if (sqlMap.type == "slice") {
-                        let result = await querySdkCount(sqlMap.countSql, componentId);
+                        let result = await querySdkCount(sqlMap.countSql, componentId, {});
                         for (let i = 0; i < result.length; i++) {
                             await this.initSlice(nodeRow, i, result[i], sqlMap, componentId);
                         }
@@ -173,59 +213,8 @@ export class SpSdkChart {
         }
     }
 
-    private initNodeRow = (index: number, name: string) => {
-        let traceRow = new TraceRow<BaseStruct>({
-            canvasNumber: 1,
-            alpha: false,
-            contextId: '2d',
-            isOffScreen: SpSystemTrace.isCanvasOffScreen
-        });
-        traceRow.rowId = `Sdk-${index}`
-        traceRow.rowParentId = '';
-        traceRow.folder = true;
-        traceRow.name = `Sdk ${name}`;
-        traceRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
-        traceRow.selectChangeHandler = this.trace.selectChangeHandler;
-        traceRow.supplier = () => new Promise<Array<any>>((resolve) => resolve([]));
-        traceRow.onThreadHandler = (useCache) => {
-            procedurePool.submitWithName(`process0`, `nodeGroup`, {
-                    list: traceRow.must ? traceRow.dataList : undefined,
-                    offscreen: traceRow.must ? traceRow.offscreen[0] : undefined,
-                    xs: TraceRow.range?.xs,
-                    dpr: traceRow.dpr,
-                    isHover: traceRow.isHover,
-                    hoverX: traceRow.hoverX,
-                    hoverY: traceRow.hoverY,
-                    flagMoveInfo: this.trace.hoverFlag,
-                    flagSelectedInfo: this.trace.selectFlag,
-                    canvasWidth: traceRow.canvasWidth,
-                    canvasHeight: traceRow.canvasHeight,
-                    isRangeSelect: traceRow.rangeSelect,
-                    rangeSelectObject: TraceRow.rangeSelectObject,
-                    useCache: useCache,
-                    lineColor: traceRow.getLineColor(),
-                    startNS: TraceRow.range?.startNS || 0,
-                    endNS: TraceRow.range?.endNS || 0,
-                    totalNS: TraceRow.range?.totalNS || 0,
-                    slicesTime: TraceRow.range?.slicesTime,
-                    range: TraceRow.range,
-                    frame: traceRow.frame,
-                }, traceRow.must && traceRow.args.isOffScreen ? traceRow.offscreen[0] : undefined, (res: any, hover: any) => {
-                    traceRow.must = false;
-                }
-            )
-        }
-        this.trace.rowsEL?.appendChild(traceRow)
-        return traceRow;
-    }
-
     private initCounter = async (nodeRow: TraceRow<BaseStruct>, index: number, result: any, sqlMap: any, componentId: number) => {
-        let traceRow = new TraceRow<CounterStruct>({
-            canvasNumber: 1,
-            alpha: false,
-            contextId: '2d',
-            isOffScreen: SpSystemTrace.isCanvasOffScreen
-        });
+        let traceRow = TraceRow.skeleton<CounterStruct>();
         traceRow.rowParentId = `Sdk-${componentId}`
         traceRow.rowHidden = !nodeRow.expansion
         traceRow.rowId = result.counter_id + "-" + componentId
@@ -238,60 +227,101 @@ export class SpSdkChart {
         traceRow.setAttribute('children', '');
         traceRow.name = `${result.counter_name}`;
         traceRow.supplier = () => querySdkCounterData(sqlMap.chartSql, result.counter_id, componentId)
+        traceRow.focusHandler = () => {
+            this.trace?.displayTip(traceRow, CounterStruct.hoverCounterStruct, `<span>${CounterStruct.hoverCounterStruct?.value?.toFixed(2)}</span>`)
+        }
         let maxList = await queryCounterMax(sqlMap.maxSql, result.counter_id, componentId);
         let maxCounter = maxList[0].max_value;
         traceRow.onThreadHandler = (useCache) => {
-            procedurePool.submitWithName(`process${index % 8}`, `sdkCounter${index}`, {
-                    list: traceRow.must ? traceRow.dataList : undefined,
-                    offscreen: traceRow.must ? traceRow.offscreen[0] : undefined,
-                    xs: TraceRow.range?.xs,
-                    dpr: traceRow.dpr,
-                    isHover: traceRow.isHover,
-                    hoverX: traceRow.hoverX,
-                    hoverY: traceRow.hoverY,
-                    flagMoveInfo: this.trace.hoverFlag,
-                    flagSelectedInfo: this.trace.selectFlag,
-                    canvasWidth: traceRow.canvasWidth,
-                    canvasHeight: traceRow.canvasHeight,
-                    hoverCounterStruct: CounterStruct.hoverCounterStruct,
-                    selectCounterStruct: CounterStruct.selectCounterStruct,
-                    isRangeSelect: traceRow.rangeSelect,
-                    rangeSelectObject: TraceRow.rangeSelectObject,
-                    maxCounter: maxCounter + "",
-                    maxCounterName: maxCounter + "",
+            let context = traceRow.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
+            traceRow.canvasSave(context);
+            (renders[TraceRow.ROW_TYPE_SDK_COUNTER] as SdkCounterRender).renderMainThread(
+                {
+                    context: context,
                     useCache: useCache,
-                    lineColor: traceRow.getLineColor(),
-                    startNS: TraceRow.range?.startNS || 0,
-                    endNS: TraceRow.range?.endNS || 0,
-                    totalNS: TraceRow.range?.totalNS || 0,
-                    slicesTime: TraceRow.range?.slicesTime,
-                    range: TraceRow.range,
-                    frame: traceRow.frame,
-                }, traceRow.must && traceRow.args.isOffScreen ? traceRow.offscreen[0] : undefined, (res: any, hover: any) => {
-                    traceRow.must = false;
-                    if (traceRow.args.isOffScreen == true) {
-                        if (traceRow.isHover) {
-                            CounterStruct.hoverCounterStruct = hover;
-                            this.trace.visibleRows.filter(it => it.rowType === TraceRow.ROW_TYPE_SDK_COUNTER && it.name !== traceRow.name).forEach(it => it.draw(true));
-                        }
-                        return;
-                    }
-                }
-            )
+                    type: `sdk-counter-${index}`,
+                    maxName: `${maxCounter}`,
+                    maxValue: maxCounter
+                },
+                traceRow
+            );
+            traceRow.canvasRestore(context);
         }
         this.trace.rowsEL?.appendChild(traceRow)
     }
 
+    private initNodeRow = (index: number, name: string) => {
+        let folder = TraceRow.skeleton();
+        folder.rowId = `Sdk-${index}`;
+        folder.index = index;
+        folder.rowType = TraceRow.ROW_TYPE_SDK
+        folder.rowParentId = '';
+        folder.style.height = '40px'
+        folder.folder = true;
+        folder.name = `${name}`;
+        folder.favoriteChangeHandler = this.trace.favoriteChangeHandler;
+        folder.selectChangeHandler = this.trace.selectChangeHandler;
+        folder.supplier = () => new Promise<Array<any>>((resolve) => resolve([]));
+        folder.onThreadHandler = (useCache) => {
+            folder.canvasSave(this.trace.canvasPanelCtx!);
+            if (folder.expansion) {
+                this.trace.canvasPanelCtx?.clearRect(0, 0, folder.frame.width, folder.frame.height);
+            } else {
+                (renders["empty"] as EmptyRender).renderMainThread(
+                    {
+                        context: this.trace.canvasPanelCtx,
+                        useCache: useCache,
+                        type: ``,
+                    },
+                    folder,
+                );
+            }
+            folder.canvasRestore(this.trace.canvasPanelCtx!);
+        }
+        this.trace.rowsEL?.appendChild(folder)
+        return folder;
+    }
+
+    private initSecondaryRow = async (nodeRow: TraceRow<BaseStruct>, index: number, name: string) => {
+        let folder = TraceRow.skeleton();
+        folder.rowId = `Sdk-${name}-${index}`;
+        folder.index = index;
+        folder.rowType = TraceRow.ROW_TYPE_SDK
+        folder.rowParentId = nodeRow.rowId;
+        folder.rowHidden = !nodeRow.expansion
+        folder.style.height = '40px'
+        folder.folder = true;
+        folder.folderPaddingLeft = 30;
+        folder.name = `${name}`;
+        folder.favoriteChangeHandler = this.trace.favoriteChangeHandler;
+        folder.selectChangeHandler = this.trace.selectChangeHandler;
+        folder.supplier = () => new Promise<Array<any>>((resolve) => resolve([]));
+        folder.onThreadHandler = (useCache) => {
+            folder.canvasSave(this.trace.canvasPanelCtx!);
+            if (folder.expansion) {
+                this.trace.canvasPanelCtx?.clearRect(0, 0, folder.frame.width, folder.frame.height);
+            } else {
+                (renders["empty"] as EmptyRender).renderMainThread(
+                    {
+                        context: this.trace.canvasPanelCtx,
+                        useCache: useCache,
+                        type: ``,
+                    },
+                    folder,
+                );
+            }
+            folder.canvasRestore(this.trace.canvasPanelCtx!);
+        }
+        this.trace.rowsEL?.appendChild(folder)
+        return folder;
+    }
+
+
     private initSlice = async (nodeRow: TraceRow<BaseStruct>, index: number, result: any, sqlMap: any, componentId: number) => {
-        let traceRow = new TraceRow<SdkSliceStruct>({
-            canvasNumber: 1,
-            alpha: false,
-            contextId: '2d',
-            isOffScreen: SpSystemTrace.isCanvasOffScreen
-        });
+        let traceRow = TraceRow.skeleton<SdkSliceStruct>()
         traceRow.rowType = TraceRow.ROW_TYPE_SDK_SLICE
         traceRow.rowHidden = !nodeRow.expansion
-        traceRow.rowParentId = `Sdk-${componentId}`
+        traceRow.rowParentId = nodeRow.rowId
         traceRow.folderPaddingLeft = 30;
         traceRow.style.height = '40px'
         traceRow.style.width = `100%`;
@@ -301,40 +331,23 @@ export class SpSdkChart {
         traceRow.selectChangeHandler = this.trace.selectChangeHandler;
         traceRow.rowId = result.slice_id + "-" + componentId
         traceRow.supplier = () => querySdkSliceData(sqlMap.chartSql, result.slice_id, TraceRow.range?.startNS || 0, TraceRow.range?.endNS || 0, componentId)
-        traceRow.onThreadHandler = ((useCache: boolean, buf: ArrayBuffer | undefined | null) => {
-            procedurePool.submitWithName(`process${index % 8}`, `sdkSlice${index}`, {
-                list: traceRow.must ? traceRow.dataList : undefined,
-                offscreen: !traceRow.isTransferCanvas ? traceRow.offscreen[0] : undefined,//是否离屏
-                dpr: traceRow.dpr,//屏幕dpr值
-                xs: TraceRow.range?.xs,//线条坐标信息
-                isHover: traceRow.isHover,
-                flagMoveInfo: this.trace.hoverFlag,
-                flagSelectedInfo: this.trace.selectFlag,
-                hoverX: traceRow.hoverX,
-                hoverY: traceRow.hoverY,
-                canvasWidth: traceRow.canvasWidth,
-                canvasHeight: traceRow.canvasHeight,
-                hoverSdkSliceStruct: SdkSliceStruct.hoverSdkSliceStruct,
-                selectSdkSliceStruct: SdkSliceStruct.selectSdkSliceStruct,
-                isRangeSelect: traceRow.rangeSelect,
-                rangeSelectObject: TraceRow.rangeSelectObject,
-                useCache: useCache,
-                lineColor: traceRow.getLineColor(),
-                startNS: TraceRow.range?.startNS || 0,
-                endNS: TraceRow.range?.endNS || 0,
-                totalNS: TraceRow.range?.totalNS || 0,
-                slicesTime: TraceRow.range?.slicesTime,
-                range: TraceRow.range,
-                frame: traceRow.frame
-            }, traceRow.getTransferArray(), (res: any, hover: any) => {
-                traceRow.must = false;
-                if (traceRow.isHover) {
-                    SdkSliceStruct.hoverSdkSliceStruct = hover;
-                    if (TraceRow.range) TraceRow.range.refresh = false;
-                    this.trace.visibleRows.filter(it => it.rowType === TraceRow.ROW_TYPE_SDK_SLICE && it.name !== traceRow.name).forEach(it => it.draw(true));
-                }
-            })
-            traceRow.isTransferCanvas = true;
+        traceRow.focusHandler = () => {
+            this.trace?.displayTip(traceRow, SdkSliceStruct.hoverSdkSliceStruct, `<span>${SdkSliceStruct.hoverSdkSliceStruct?.value}</span>`)
+        }
+        traceRow.onThreadHandler = ((useCache: boolean) => {
+            let context = traceRow.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
+            traceRow.canvasSave(context);
+            (renders[TraceRow.ROW_TYPE_SDK_SLICE] as SdkSliceRender).renderMainThread(
+                {
+                    context: context,
+                    useCache: useCache,
+                    type: `sdk-slice-${index}`,
+                    maxName: "",
+                    maxValue: 0
+                },
+                traceRow
+            );
+            traceRow.canvasRestore(context);
         })
         this.trace.rowsEL?.appendChild(traceRow)
     }

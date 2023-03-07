@@ -24,8 +24,25 @@ import {
     RequestMessage
 } from "./ProcedureWorkerCommon.js";
 import {CpuStruct} from "./ProcedureWorkerCPU.js";
+import {TraceRow} from "../../component/trace/base/TraceRow.js";
 
-export class ProcessRender extends Render{
+export class ProcessRender extends Render {
+    renderMainThread(req: any, row: TraceRow<ProcessStruct>) {
+        let list = row.dataList;
+        let filter = row.dataListCache;
+        proc(list, filter, TraceRow.range!.startNS, TraceRow.range!.endNS, TraceRow.range!.totalNS, row.frame, req.useCache || !(TraceRow.range!.refresh));
+        req.context.beginPath();
+        let path = new Path2D();
+        let miniHeight: number = 0;
+        miniHeight = Math.round((row.frame.height - (CpuStruct.cpuCount * 2)) / CpuStruct.cpuCount)
+        req.context.fillStyle = ColorUtils.colorForTid(req.pid || 0)
+        for (let re of filter) {
+            ProcessStruct.draw(req.context, path, re, miniHeight);
+        }
+        req.context.fill(path);
+        req.context.closePath();
+    }
+
     render(req: RequestMessage, list: Array<any>, filter: Array<any>) {
         if (req.lazyRefresh) {
             proc(list, filter, req.startNS, req.endNS, req.totalNS, req.frame, req.useCache || !req.range.refresh);

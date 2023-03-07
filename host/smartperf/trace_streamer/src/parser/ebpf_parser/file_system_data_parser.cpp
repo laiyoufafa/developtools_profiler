@@ -104,13 +104,11 @@ void FileSystemDataParser::ParseFileSystemEvent()
         auto fd = GetFileDescriptor(fsFixedHeadrAddr, type);
         // get file path
         uint64_t filePathId = INVALID_UINT64;
-        if (fsFixedHeadrAddr->type == SYS_OPENAT2 || fsFixedHeadrAddr->type == SYS_CLOSE) {
-            filePathId =
-                tracerEventToStrIndexMap.Find(ITEM_EVENT_FS, fsFixedHeadrAddr->type, itid, fsFixedHeadrAddr->startTime);
-            if (filePathId != INVALID_UINT64) {
-                tracerEventToStrIndexMap.Erase(ITEM_EVENT_FS, fsFixedHeadrAddr->type, itid,
-                                               fsFixedHeadrAddr->startTime);
-            }
+        filePathId =
+            tracerEventToStrIndexMap.Find(ITEM_EVENT_FS, fsFixedHeadrAddr->type, itid, fsFixedHeadrAddr->startTime);
+        if (filePathId != INVALID_UINT64) {
+            tracerEventToStrIndexMap.Erase(ITEM_EVENT_FS, fsFixedHeadrAddr->type, itid,
+                                            fsFixedHeadrAddr->startTime);
         }
 
         // get read or writ size

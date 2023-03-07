@@ -45,7 +45,7 @@ int32_t HtraceHisyseventParser::JGetData(json& jMessage,
             if (find(eventsAccordingAppNames.begin(), eventsAccordingAppNames.end(), i.value()) ==
                 eventsAccordingAppNames.end()) {
                 streamFilters_->statFilter_->IncreaseStat(TRACE_HISYSEVENT, STAT_EVENT_NOTMATCH);
-                std::cout << "find comming" << std::endl;
+                TS_LOGW("event source:%s not supported for hisysevent", i.value().c_str());
                 return -1;
             }
             jData.eventSource = i.value();
@@ -142,7 +142,11 @@ void HtraceHisyseventParser::CommonDataParser(JsonData jData, DataIndex eventSou
 }
 void HtraceHisyseventParser::Finish()
 {
-    traceDataCache_->MixTraceTime(GetPluginStartTime(), GetPluginEndTime());
+    if (GetPluginStartTime() != GetPluginEndTime()) {
+        traceDataCache_->MixTraceTime(GetPluginStartTime(), GetPluginEndTime());
+    } else {
+        TS_LOGI("hisysevent time is not updated, maybe this trace file only has one piece of hisysevent data");
+    }
     TS_LOGI("--------Parse end--------");
 }
 
@@ -180,7 +184,6 @@ void HtraceHisyseventParser::Parse(HisyseventInfo& tracePacket, uint64_t ts)
         std::vector<size_t> noArrayIndex = {};
         std::vector<size_t> arrayIndex = {};
         if (JGetData(jMessage, jData, maxArraySize, noArrayIndex, arrayIndex) < 0) {
-            TS_LOGI("Json data acquisition failed");
             continue;
         }
         uint64_t serial = tracePacket.info(i).id();
@@ -196,6 +199,12 @@ void HtraceHisyseventParser::Parse(HisyseventInfo& tracePacket, uint64_t ts)
             CommonDataParser(jData, eventSourceIndex, serial);
         }
     }
+}
+void HtraceHisyseventParser::Parse(HisyseventConfig& tracePacket, uint64_t ts)
+{
+    streamFilters_->hiSysEventMeasureFilter_->AppendNewValue("message", tracePacket.msg());
+    streamFilters_->hiSysEventMeasureFilter_->AppendNewValue("process_name", tracePacket.process_name());
+    return;
 }
 } // namespace TraceStreamer
 } // namespace SysTuning

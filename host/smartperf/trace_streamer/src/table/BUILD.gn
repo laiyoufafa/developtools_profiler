@@ -102,6 +102,8 @@ ohos_source_set("table") {
     "thread_filter_table.cpp",
     "thread_state_table.cpp",
     "thread_table.cpp",
+    "trace_config_table.cpp",
+    "trace_config_table.h",
   ]
 
   include_dirs = [
@@ -124,8 +126,8 @@ ohos_source_set("table") {
       "-ftest-coverage",
       "--coverage",
     ]
-    if (is_macx && is_test) {
-      cflags += [ "-D UT_MAC" ]
+    if (is_test) {
+      cflags += [ "-D IS_UT" ]
     }
   }
   if (with_perf) {

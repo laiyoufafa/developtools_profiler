@@ -41,6 +41,7 @@ enum EBPF_DATA_TYPE {
     ITEM_EVENT_VM,
     ITEM_EVENT_BIO,
     ITEM_EVENT_STR,
+    ITEM_EVENT_KENEL_SYMBOL_INFO = 0x10001,
 };
 
 struct EbpfTypeAndLength {
@@ -131,6 +132,21 @@ struct StrEventFixedHeader {
     uint32_t srcType = 0;
     uint32_t strLen = 0;
     uint32_t padding = 0;
+} __attribute__((packed));
+
+struct KernelSymbolInfoHeader {
+    uint64_t vaddrStart = 0;
+    uint64_t vaddrEnd = 0;
+    uint32_t symTabLen = 0;
+    uint32_t strTabLen = 0;
+    // char* symTab = 0; // this is following the struct
+    // char* strTab = 0; // the symbols will follow the symTab
+} __attribute__((packed));
+
+struct KernelSymItem {
+    uint64_t value = 0;
+    uint32_t size = 0;
+    uint32_t nameOffset = 0;
 } __attribute__((packed));
 
 // EBPF clock relation

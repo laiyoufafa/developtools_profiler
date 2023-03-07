@@ -41,6 +41,7 @@ export class SPTChild {
     state: string = ""
     startNs: number = 0
     startTime: string = ""
+    absoluteTime:number = 0
     duration: number = 0
     cpu: number | undefined = undefined
     core: string = ""

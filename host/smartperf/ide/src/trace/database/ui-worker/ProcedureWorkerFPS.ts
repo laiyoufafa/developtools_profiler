@@ -17,13 +17,44 @@ import {
     BaseStruct, drawFlagLine,
     drawLines,
     drawLoading,
-    drawSelection, drawWakeUp,
+    drawSelection, drawWakeUp, isFrameContainPoint,
     ns2x,
     Rect, Render,
     RequestMessage
 } from "./ProcedureWorkerCommon.js";
+import {TraceRow} from "../../component/trace/base/TraceRow.js";
 
 export class FpsRender extends Render{
+    renderMainThread(req: {
+        context: CanvasRenderingContext2D,
+        useCache: boolean,
+        type: string,
+    }, row: TraceRow<FpsStruct>) {
+        let list = row.dataList;
+        let filter = row.dataListCache;
+        fps(list, filter, TraceRow.range!.startNS, TraceRow.range!.endNS, TraceRow.range!.totalNS, row.frame, req.useCache || !(TraceRow.range!.refresh));
+        req.context.beginPath();
+        let find = false;
+        for (let re of filter) {
+            FpsStruct.draw(req.context, re)
+            if (row.isHover && re.frame  && isFrameContainPoint(re.frame, row.hoverX, row.hoverY)) {
+                FpsStruct.hoverFpsStruct = re;
+                find = true;
+            }
+        }
+        if (!find && row.isHover) FpsStruct.hoverFpsStruct = undefined;
+        req.context.closePath();
+        let maxFps = FpsStruct.maxFps + "FPS"
+        let textMetrics = req.context.measureText(maxFps);
+        req.context.globalAlpha = 0.8
+        req.context.fillStyle = "#f0f0f0"
+        req.context.fillRect(0, 5, textMetrics.width + 8, 18)
+        req.context.globalAlpha = 1
+        req.context.fillStyle = "#333"
+        req.context.textBaseline = "middle"
+        req.context.fillText(maxFps, 4, 5 + 9);
+    }
+
     render(req: RequestMessage, list: Array<any>, filter: Array<any>) {
         if (req.lazyRefresh) {
             fps(list, filter, req.startNS, req.endNS, req.totalNS, req.frame, req.useCache || !req.range.refresh);

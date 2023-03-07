@@ -250,6 +250,10 @@ const SysEventMeasureData& TraceDataCacheReader::GetConstSyseventMeasureData() c
 {
     return sysEventMeasureData_;
 }
+const TraceConfigData& TraceDataCacheReader::GetConstTraceConfigData() const
+{
+    return traceConfigData_;
+}
 const DeviceStateData& TraceDataCacheReader::GetConstDeviceStateData() const
 {
     return deviceStateData_;

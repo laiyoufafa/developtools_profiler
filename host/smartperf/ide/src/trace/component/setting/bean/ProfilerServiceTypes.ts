@@ -81,7 +81,7 @@ export interface CreateSessionRequest {
 
 export interface ProfilerPluginConfig<T> {
     pluginName: string;
-    sampleInterval: number;
+    sampleInterval?: number;
     configData: T;
 }
 
@@ -857,6 +857,7 @@ export interface NativeHookConfig {
     mallocFreeMatchingCnt: number,
     stringCompressed: boolean
     fpUnwind: boolean
+    blocked: boolean
 }
 
 export interface FpsConfig {
@@ -898,4 +899,5 @@ export interface HiperfPluginConfig {
 
 export interface HiSystemEventConfig {
     msg:string;
+    processName:string
 }

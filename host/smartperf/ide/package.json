@@ -18,7 +18,8 @@
       "!<rootDir>/dist/trace/database/uuidv4.min.js",
       "!<rootDir>/dist/trace/database/worker.sql-wasm.js",
       "!<rootDir>/dist/trace/database/worker.sql-wasm-debug.js",
-      "!<rootDir>/dist/trace/database/trace_streamer_builtin.js"
+      "!<rootDir>/dist/trace/database/trace_streamer_builtin.js",
+      "!<rootDir>/dist/trace/database/trace_streamer_sdk_builtin.js"
     ],
     "globals": {
       "useWb": true

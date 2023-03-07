@@ -50,6 +50,10 @@ export class TabpaneFilesystemCalltree extends BaseElement {
     private currentSelection:SelectionParam|undefined
 
     set data(val: SelectionParam | any) {
+        if(val == this.currentSelection){
+            return;
+        }
+        this.searchValue = "";
         this.currentSelection = val
         this.modal!.style.display = 'none';
         this.tbl!.style.visibility = "visible";
@@ -454,7 +458,7 @@ export class TabpaneFilesystemCalltree extends BaseElement {
         let list = filterData.dataMining.concat(filterData.dataLibrary);
         args.push({
             funcName: "getCallChainsBySampleIds",
-            funcArgs: [isTopDown]
+            funcArgs: [isTopDown,"fileSystem"]
         })
         this.tbr!.recycleDataSource = []
         if (isHideSystemLibrary) {
@@ -519,7 +523,7 @@ export class TabpaneFilesystemCalltree extends BaseElement {
         this.loadingList.push(1)
         this.progressEL!.loading = true
         this.loadingPage.style.visibility = "visible"
-        procedurePool.submitWithName("logic0","fileSystem-action",args,undefined,(results:any)=>{
+        procedurePool.submitWithName("logic0","fileSystem-action", {args,callType:"fileSystem"},undefined,(results:any)=>{
             handler(results)
             this.loadingList.splice(0,1)
             if(this.loadingList.length == 0) {

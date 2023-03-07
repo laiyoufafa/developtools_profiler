@@ -121,12 +121,16 @@ export class SpSdkConfig extends BaseElement {
             let configName = configVal![i].getAttribute("configName")
             let type = configVal![i].getAttribute("type");
             if(type == 'enum'){
-                gpuConfig[configName!] = configVal![i].getAttribute("value")
-            } else if(type == 'number' || type == 'integer'){
+                let enumValue = configVal![i].getAttribute("value")
+                if (enumValue != undefined && enumValue != "undefined") {
+                    gpuConfig[configName!] = enumValue
+                }
+            } else if(type == 'number' || type == 'integer' || type == 'num'){
                 // @ts-ignore
                 gpuConfig[configName!] = Number(configVal![i].value)
             } else if(type == 'boolean' ){
-                gpuConfig[configName!] = Boolean(configVal![i].getAttribute("value"))
+                let attribute = configVal![i].getAttribute("value");
+                gpuConfig[configName!] = attribute == "true";
             } else {
                 // @ts-ignore
                 gpuConfig[configName!] = configVal![i].value
@@ -158,7 +162,7 @@ export class SpSdkConfig extends BaseElement {
                         )
                     }
                 }
-            );
+            ).catch(err => {});
             if (this.worker == null) {
                 this.worker = new Worker("trace/database/ConfigWorker.js");
             }
@@ -179,7 +183,7 @@ export class SpSdkConfig extends BaseElement {
         })
         this.selectConfig = this.shadowRoot?.querySelector<LitAllocationSelect>('lit-allocation-select');
         let inputDiv = this.selectConfig?.shadowRoot?.querySelector('.multipleSelect') as HTMLDivElement
-        let input = this.selectConfig?.shadowRoot?.querySelector<HTMLInputElement>('#input')
+        let input = this.selectConfig?.shadowRoot?.querySelector<HTMLInputElement>('#singleInput')
         if (input) {
             input.readOnly = true
             inputDiv.addEventListener('inputClick', () => {
@@ -242,7 +246,7 @@ export class SpSdkConfig extends BaseElement {
                         numberInput.value = this.configList.configuration[key].default;
                     }
                     numberInput.setAttribute("configName",key)
-                    numberInput.setAttribute("type",this.configList.configuration[key].type)
+                    numberInput.setAttribute("type", "num")
                     numberInput.oninput = (ev) => {
                         let inputValue = this.checkFloatInput(numberInput.value)
                         numberInput.value = inputValue
@@ -310,9 +314,10 @@ export class SpSdkConfig extends BaseElement {
     }
 
     checkFloatInput(value: string): string {
-        let inputValue = value.replace(/[^\-\d.]|\-{2,}/g, '')
+        let inputValue = value.replace(/[^\d.]/g, "")
             .replace(/^\.|^0+(\d)/g, '')
             .replace(/(\.\d+)\.|(-)\.|(\d+|\.)-/g, '$1')
+            .replace(/(-?\d{9})\d*/, '$1');
         return inputValue.replace(/\.{2,}|-(0){2,}|(-)0+(\d+)/g, '.')
     }
 

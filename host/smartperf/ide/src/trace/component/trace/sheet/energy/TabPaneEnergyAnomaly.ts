@@ -21,13 +21,14 @@ import {
     queryAnomalyDetailedData
 } from "../../../../database/SqlLite.js";
 import {SelectionParam} from "../../../../bean/BoxSelection.js";
-import {EnergyAnomalyStruct} from "../../../../bean/EnergyStruct.js";
+import {EnergyAnomalyStruct} from "../../../../database/ui-worker/ProcedureWorkerEnergyAnomaly.js";
 
 @element('tabpane-anomaly-details')
 export class TabPaneEnergyAnomaly extends BaseElement {
     private tbl: LitTable | null | undefined;
     private tableObserver: MutationObserver | undefined
-
+    private static KEY_INDEX: number = 2;
+    private static VALUE_INDEX: number = 3;
     set data(selection: SelectionParam) {
         let div: HTMLElement | null | undefined = this?.shadowRoot?.querySelector("#anomaly-details");
         let htmlText = "";
@@ -37,8 +38,8 @@ export class TabPaneEnergyAnomaly extends BaseElement {
                 for(let index = 0;index < bean.length;index++){
                     let findAppNameIndex = -1;
                     let values = Object.values(bean[index]);
-                    if(values[3]){
-                        let apps = values[3].split(',');
+                    if(values[TabPaneEnergyAnomaly.VALUE_INDEX]){
+                        let apps = values[TabPaneEnergyAnomaly.VALUE_INDEX].split(',');
                         for(let appIndex = 0;appIndex < apps.length;appIndex++){
                             if(apps.indexOf(SpHiSysEventChart.app_name) != -1){
                                 findAppNameIndex = apps.indexOf(SpHiSysEventChart.app_name);
@@ -46,7 +47,7 @@ export class TabPaneEnergyAnomaly extends BaseElement {
                                 break;
                             }
                         }
-                        if(values[2] == 'APPNAME'){
+                        if(values[TabPaneEnergyAnomaly.KEY_INDEX] == 'APPNAME'){
                             //ts+eventName : appNameIndex
                             filterAppMap.set(values[0] + values[1], findAppNameIndex);
                         }
@@ -68,19 +69,21 @@ export class TabPaneEnergyAnomaly extends BaseElement {
                             "<tr><td colspan=\"5\" style='font-weight: 700;font-size: 14px'>"+values[1]+"</td></tr>";
                     }
                     if(set.has(Object.values(bean[index])[0])){
-                        let appValues = values[3].split(',');
-                        htmlText += "<tr><td style='font-weight: 400;font-size: 14px;opacity:0.9;width:150px;'>"+values[2]
+                        let appValues = values[TabPaneEnergyAnomaly.VALUE_INDEX].split(',');
+                        htmlText += "<tr><td style='font-weight: 400;font-size: 14px;opacity:0.9;width:150px;'>"+values[TabPaneEnergyAnomaly.KEY_INDEX]
                             +"</td><td style='font-weight: 400;font-size: 14px;opacity:0.6;width:250px;'>"+
-                            (findAppNameIndex >= 0 ? appValues.length > 1 ? appValues[findAppNameIndex] : values[3] : values[3])
+                            (findAppNameIndex >= 0 ? appValues.length > 1 ? appValues[findAppNameIndex] : values[TabPaneEnergyAnomaly.VALUE_INDEX] : values[TabPaneEnergyAnomaly.VALUE_INDEX])
+                            + TabPaneEnergyAnomaly.getUnit(values[TabPaneEnergyAnomaly.KEY_INDEX])
                             +"</td><td style='width:100px'></td>";
                     }
                     if(index + 1 < bean.length){
                         let nextValues = Object.values(bean[index + 1]);
-                        let appValues = nextValues[3].split(',');
+                        let appValues = nextValues[TabPaneEnergyAnomaly.VALUE_INDEX].split(',');
                         if(set.has(nextValues[0])){
-                            htmlText += "<td style='font-weight: 400;font-size: 14px;opacity:0.9;width:150px;'>" + nextValues[2]
+                            htmlText += "<td style='font-weight: 400;font-size: 14px;opacity:0.9;width:150px;'>" + nextValues[TabPaneEnergyAnomaly.KEY_INDEX]
                                 + "</td><td style='font-weight: 400;font-size: 14px;opacity:0.6;width:250px;'>" +
-                                (findAppNameIndex >= 0 ? appValues.length > 1 ? appValues[findAppNameIndex] : nextValues[3] : nextValues[3])
+                                (findAppNameIndex >= 0 ? appValues.length > 1 ? appValues[findAppNameIndex] : nextValues[TabPaneEnergyAnomaly.VALUE_INDEX] : nextValues[TabPaneEnergyAnomaly.VALUE_INDEX])
+                                + TabPaneEnergyAnomaly.getUnit(nextValues[TabPaneEnergyAnomaly.KEY_INDEX])
                                 +"</td></tr>";
                         } else {
                             htmlText += "</tr>";
@@ -93,6 +96,17 @@ export class TabPaneEnergyAnomaly extends BaseElement {
                 div!.innerHTML = htmlText;
             })
         }
+    }
+
+     static getUnit(value: any) {
+        if(value == "DURATION"){
+            return " ms";
+        } else if(value == "ENERGY" || value == "BGENERGY" || value == "BATTERY_GAS_GUAGE"){
+            return " mAh";
+        } else if(value == "BGUSAGE"){
+            return " s";
+        }
+        return "";
     }
 
     /**

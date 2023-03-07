@@ -16,7 +16,7 @@
 import {SpSystemTrace} from "../SpSystemTrace.js";
 import {
     getAsyncEvents,
-    getFunDataByTid,
+    getFunDataByTid, getMaxDepthByTid,
     queryEventCountMap,
     queryProcess,
     queryProcessAsyncFunc,
@@ -31,12 +31,11 @@ import {
 import {Utils} from "../trace/base/Utils.js";
 import {info} from "../../../log/Log.js";
 import {TraceRow} from "../trace/base/TraceRow.js";
-import {ProcessStruct} from "../../bean/ProcessStruct.js";
-import {procedurePool} from "../../database/Procedure.js";
-import {CpuStruct} from "../../bean/CpuStruct.js";
-import {FuncStruct} from "../../bean/FuncStruct.js";
-import {ProcessMemStruct} from "../../bean/ProcessMemStruct.js";
-import {ThreadStruct} from "../../bean/ThreadStruct.js";
+import {renders} from "../../database/ui-worker/ProcedureWorker.js";
+import {ProcessRender, ProcessStruct} from "../../database/ui-worker/ProcedureWorkerProcess.js";
+import {ThreadRender, ThreadStruct} from "../../database/ui-worker/ProcedureWorkerThread.js";
+import {FuncRender, FuncStruct} from "../../database/ui-worker/ProcedureWorkerFunc.js";
+import {MemRender, ProcessMemStruct} from "../../database/ui-worker/ProcedureWorkerMem.js";
 
 export class SpProcessChart {
     private trace: SpSystemTrace;
@@ -48,6 +47,7 @@ export class SpProcessChart {
     private processThreadDataCountMap: Map<number, number> = new Map();
     private processFuncDataCountMap: Map<number, number> = new Map();
     private processMemDataCountMap: Map<number, number> = new Map();
+    private threadFuncMaxDepthMap: Map<number, number> = new Map();
 
     constructor(trace: SpSystemTrace) {
         this.trace = trace;
@@ -60,6 +60,10 @@ export class SpProcessChart {
     }
 
     async init() {
+        let threadFuncMaxDepthArray = await getMaxDepthByTid();
+        threadFuncMaxDepthArray.forEach((it)=>{
+            this.threadFuncMaxDepthMap.set(it.tid,it.maxDepth)
+        })
         let pidCountArray = await queryProcessContentCount();
         pidCountArray.forEach(it => {
             this.processThreadDataCountMap.set(it.pid, it.switch_count);
@@ -78,6 +82,7 @@ export class SpProcessChart {
             return pre;
         }, {});
         this.processThreads = Utils.removeDuplicates(queryProcessThreadResult, queryProcessThreadsByTableResult, "tid")
+
         info("The amount of initialized process threads data is : ", this.processThreads!.length)
         if (this.eventCountMap["print"] == 0 &&
             this.eventCountMap["tracing_mark_write"] == 0 &&
@@ -96,48 +101,33 @@ export class SpProcessChart {
                 (this.processMemDataCountMap.get(it.pid) || 0) == 0) {
                 continue;
             }
-            let processRow = new TraceRow<ProcessStruct>({
-                canvasNumber: 1, alpha: false, contextId: "2d", isOffScreen: true, skeleton: false
-            });
+            let processRow =  TraceRow.skeleton<ProcessStruct>();
             processRow.rowId = `${it.pid}`
             processRow.index = i;
             processRow.rowType = TraceRow.ROW_TYPE_PROCESS
             processRow.rowParentId = '';
+            processRow.style.height = "40px";
             processRow.folder = true;
             processRow.name = `${it.processName || "Process"} ${it.pid}`;
             processRow.supplier = () => queryProcessData(it.pid || -1, 0, TraceRow.range?.totalNS || 0);
             processRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
             processRow.selectChangeHandler = this.trace.selectChangeHandler;
             processRow.onThreadHandler = (useCache) => {
-                procedurePool.submitWithName(`process${(processRow.index) % procedurePool.processLen.length}`, `process ${processRow.index} ${it.processName}`, {
-                    list: processRow.must ? processRow.dataList : undefined,
-                    offscreen: !processRow.isTransferCanvas ? processRow.offscreen[0] : undefined,
-                    pid: it.pid,
-                    xs: TraceRow.range?.xs,
-                    dpr: processRow.dpr,
-                    isHover: processRow.isHover,
-                    flagMoveInfo: this.trace.hoverFlag,
-                    flagSelectedInfo: this.trace.selectFlag,
-                    hoverX: processRow.hoverX,
-                    hoverY: processRow.hoverY,
-                    canvasWidth: processRow.canvasWidth,
-                    canvasHeight: processRow.canvasHeight,
-                    isRangeSelect: processRow.rangeSelect,
-                    rangeSelectObject: TraceRow.rangeSelectObject,
-                    wakeupBean: CpuStruct.wakeupBean,
-                    cpuCount: CpuStruct.cpuCount,
-                    useCache: useCache,
-                    lineColor: processRow.getLineColor(),
-                    startNS: TraceRow.range?.startNS || 0,
-                    endNS: TraceRow.range?.endNS || 0,
-                    totalNS: TraceRow.range?.totalNS || 0,
-                    slicesTime: TraceRow.range?.slicesTime,
-                    range: TraceRow.range,
-                    frame: processRow.frame
-                }, !processRow.isTransferCanvas ? processRow.offscreen[0] : undefined, () => {
-                    processRow.must = false;
-                })
-                processRow.isTransferCanvas = true;
+                processRow.canvasSave(this.trace.canvasPanelCtx!);
+                if(processRow.expansion){
+                    this.trace.canvasPanelCtx?.clearRect(0, 0, processRow.frame.width, processRow.frame.height);
+                }else{
+                    (renders["process"] as ProcessRender).renderMainThread(
+                        {
+                            context: this.trace.canvasPanelCtx,
+                            pid: it.pid,
+                            useCache: useCache,
+                            type: `process ${processRow.index} ${it.processName}`,
+                        },
+                        processRow,
+                    );
+                }
+                processRow.canvasRestore(this.trace.canvasPanelCtx!);
             }
             this.trace.rowsEL?.appendChild(processRow)
             /**
@@ -160,35 +150,22 @@ export class SpProcessChart {
                     }
                     asyncFunctions.forEach((it, i) => {
                         if (it.dur == -1) {
-                            it.dur = TraceRow.range?.endNS || 0 - it.startTs;
+                            it.dur = (TraceRow.range?.endNS || 0) - it.startTs;
+                            it.flag = "Did not end"
                         }
                         createDepth(0, i);
                     });
-                    const groupedBy: Array<any> = [];
-                    for (let i = 0; i < asyncFunctions.length; i++) {
-                        if (groupedBy[asyncFunctions[i].depth || 0]) {
-                            groupedBy[asyncFunctions[i].depth || 0].push(asyncFunctions[i]);
-                        } else {
-                            groupedBy[asyncFunctions[i].depth || 0] = [asyncFunctions[i]];
-                        }
-                    }
                     let max = Math.max(...asyncFunctions.map(it => it.depth || 0)) + 1
                     let maxHeight = max * 20;
-                    let funcRow = new TraceRow<FuncStruct>({
-                        canvasNumber: max,
-                        alpha: false,
-                        contextId: '2d',
-                        isOffScreen: SpSystemTrace.isCanvasOffScreen,
-                        skeleton: false
-                    });
+                    let funcRow = TraceRow.skeleton<FuncStruct>();
                     funcRow.rowId = `${asyncFunctions[0].funName}-${it.pid}`
                     funcRow.asyncFuncName = asyncFunctions[0].funName;
                     funcRow.asyncFuncNamePID = it.pid;
                     funcRow.rowType = TraceRow.ROW_TYPE_FUNC
                     funcRow.rowParentId = `${it.pid}`
                     funcRow.rowHidden = !processRow.expansion
-                    // funcRow.checkType = threadRow.checkType;
                     funcRow.style.width = `100%`;
+                    funcRow.style.height = `${maxHeight}px`
                     funcRow.setAttribute("height", `${maxHeight}`);
                     funcRow.name = `${asyncFunctions[0].funName}`;
                     funcRow.setAttribute('children', '')
@@ -196,54 +173,17 @@ export class SpProcessChart {
                     funcRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
                     funcRow.selectChangeHandler = this.trace.selectChangeHandler;
                     funcRow.onThreadHandler = (useCache) => {
-                        let asy = async (useCache: boolean) => {
-                            let scrollTop = this.trace.rowsEL?.scrollTop || 0;
-                            let scrollHeight = this.trace.rowsEL?.clientHeight || 0;
-                            let promises: Array<any> = [];
-                            for (let k = 0; k < groupedBy.length; k++) {
-                                let top = funcRow.offsetTop - (this.trace.rowsEL?.offsetTop || 0) - scrollTop + funcRow.canvas[k].offsetTop;
-                                let isLive = ((top + funcRow.canvas[k].clientHeight >= 0) && (top < scrollHeight)) || funcRow.collect
-                                let promise = await procedurePool.submitWithNamePromise(`cpu${k % procedurePool.cpusLen.length}`, `func-${asyncFunctions[0].funName}-${it.pid}-${k}`, {
-                                    isLive: isLive,
-                                    list: funcRow.must ? groupedBy[k] : undefined,
-                                    offscreen: !funcRow.isTransferCanvas ? funcRow.offscreen[k] : undefined,//是否离屏
-                                    dpr: funcRow.dpr,//屏幕dpr值
-                                    xs: TraceRow.range?.xs,//线条坐标信息
-                                    isHover: funcRow.isHover,
-                                    flagMoveInfo: this.trace.hoverFlag,
-                                    flagSelectedInfo: this.trace.selectFlag,
-                                    hoverX: funcRow.hoverX,
-                                    hoverY: funcRow.hoverY,
-                                    depth: k,
-                                    canvasWidth: funcRow.canvasWidth,
-                                    canvasHeight: funcRow.canvasHeight,
-                                    maxHeight: maxHeight,
-                                    hoverFuncStruct: FuncStruct.hoverFuncStruct,
-                                    selectFuncStruct: FuncStruct.selectFuncStruct,
-                                    wakeupBean: CpuStruct.wakeupBean,
-                                    isRangeSelect: funcRow.rangeSelect,
-                                    rangeSelectObject: TraceRow.rangeSelectObject,
-                                    useCache: useCache,
-                                    lineColor: funcRow.getLineColor(),
-                                    startNS: TraceRow.range?.startNS || 0,
-                                    endNS: TraceRow.range?.endNS || 0,
-                                    totalNS: TraceRow.range?.totalNS || 0,
-                                    slicesTime: TraceRow.range?.slicesTime,
-                                    range: TraceRow.range,
-                                    frame: funcRow.frame
-                                }, !funcRow.isTransferCanvas ? funcRow.offscreen[k] : undefined)
-                                if (funcRow.isHover && promise.hover) {
-                                    FuncStruct.hoverFuncStruct = promise.hover;
-                                }
-                                promises.push(promise);
-                            }
-                            if (funcRow.isHover && promises.every(it => !it.hover)) {
-                                FuncStruct.hoverFuncStruct = undefined;
-                            }
-                            funcRow.must = false;
-                            funcRow.isTransferCanvas = true;
-                        }
-                        asy(useCache).then()
+                        let context = funcRow.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
+                        funcRow.canvasSave(context);
+                        (renders["func"] as FuncRender).renderMainThread(
+                            {
+                                context: context,
+                                useCache: useCache,
+                                type: `func-${asyncFunctions[0].funName}-${it.pid}`,
+                            },
+                            funcRow
+                        );
+                        funcRow.canvasRestore(context);
                     }
                     this.trace.rowsEL?.appendChild(funcRow);
                 }
@@ -254,9 +194,7 @@ export class SpProcessChart {
              */
             let processMem = this.processMem.filter(mem => mem.pid === it.pid);
             processMem.forEach(mem => {
-                let row = new TraceRow<ProcessMemStruct>(
-                    {canvasNumber: 1, alpha: false, contextId: "2d", isOffScreen: true, skeleton: false}
-                );
+                let row = TraceRow.skeleton<ProcessMemStruct>();
                 row.rowId = `${mem.trackId}`
                 row.rowType = TraceRow.ROW_TYPE_MEM
                 row.rowParentId = `${it.pid}`
@@ -267,6 +205,9 @@ export class SpProcessChart {
                 row.setAttribute('children', '');
                 row.favoriteChangeHandler = this.trace.favoriteChangeHandler;
                 row.selectChangeHandler = this.trace.selectChangeHandler;
+                row.focusHandler = ()=>{
+                    this.trace.displayTip(row, ProcessMemStruct.hoverProcessMemStruct, `<span>${ProcessMemStruct.hoverProcessMemStruct?.value||""}</span>`);
+                }
                 row.supplier = () => queryProcessMemData(mem.trackId).then(res => {
                     let maxValue = Math.max(...res.map(it => it.value || 0))
                     for (let j = 0; j < res.length; j++) {
@@ -285,38 +226,17 @@ export class SpProcessChart {
                     return res
                 });
                 row.onThreadHandler = (useCache) => {
-                    procedurePool.submitWithName(`cpu${mem.trackId % procedurePool.cpusLen.length}`, `mem ${mem.trackId} ${mem.trackName}`, {
-                        list: row.must ? row.dataList : undefined,
-                        offscreen: !row.isTransferCanvas ? row.offscreen[0] : undefined,//是否离屏
-                        dpr: row.dpr,//屏幕dpr值
-                        xs: TraceRow.range?.xs,//线条坐标信息
-                        isHover: row.isHover,
-                        flagMoveInfo: this.trace.hoverFlag,
-                        flagSelectedInfo: this.trace.selectFlag,
-                        hoverX: row.hoverX,
-                        hoverY: row.hoverY,
-                        canvasWidth: row.canvasWidth,
-                        canvasHeight: row.canvasHeight,
-                        wakeupBean: CpuStruct.wakeupBean,
-                        isRangeSelect: row.rangeSelect,
-                        rangeSelectObject: TraceRow.rangeSelectObject,
-                        useCache: useCache,
-                        lineColor: row.getLineColor(),
-                        startNS: TraceRow.range?.startNS || 0,
-                        endNS: TraceRow.range?.endNS || 0,
-                        totalNS: TraceRow.range?.totalNS || 0,
-                        slicesTime: TraceRow.range?.slicesTime,
-                        hoverProcessMemStruct: ProcessMemStruct.hoverProcessMemStruct,
-                        range: TraceRow.range,
-                        frame: row.frame
-                    }, row.getTransferArray(), (res: any, hover: any) => {
-                        row.must = false;
-                        if (row.isHover) {
-                            ProcessMemStruct.hoverProcessMemStruct = hover;
-                        }
-                        return;
-                    });
-                    row.isTransferCanvas = true;
+                    let context = row.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
+                    row.canvasSave(context);
+                    (renders["mem"] as MemRender).renderMainThread(
+                        {
+                            context: context,
+                            useCache: useCache,
+                            type: `mem ${mem.trackId} ${mem.trackName}`,
+                        },
+                        row
+                    );
+                    row.canvasRestore(context);
                 }
                 this.trace.rowsEL?.appendChild(row)
             });
@@ -326,27 +246,59 @@ export class SpProcessChart {
             let threads = this.processThreads.filter(thread => thread.pid === it.pid && thread.tid != 0);
             for (let j = 0; j < threads.length; j++) {
                 let thread = threads[j];
-                let threadRow = new TraceRow<ThreadStruct>({
-                    canvasNumber: 1,
-                    alpha: false,
-                    contextId: "2d",
-                    isOffScreen: true,
-                    skeleton: false
-                });
+                let threadRow = TraceRow.skeleton<ThreadStruct>();
                 threadRow.rowId = `${thread.tid}`
                 threadRow.rowType = TraceRow.ROW_TYPE_THREAD
                 threadRow.rowParentId = `${it.pid}`
                 threadRow.rowHidden = !processRow.expansion
                 threadRow.index = j
                 threadRow.style.height = '30px'
-                threadRow.setAttribute("height", `30`);
                 threadRow.style.width = `100%`;
                 threadRow.name = `${thread.threadName || 'Thread'} ${thread.tid}`;
                 threadRow.setAttribute('children', '')
                 threadRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
                 threadRow.selectChangeHandler = this.trace.selectChangeHandler;
-                threadRow.supplier = () => queryThreadData(thread.tid || 0).then(res => {
-                    getFunDataByTid(thread.tid || 0).then((funs: Array<FuncStruct>) => {
+                threadRow.supplier = () => queryThreadData(thread.tid || 0).then(res=>{
+                    if (res.length <= 0) {
+                        threadRow.rowDiscard = true;
+                        this.trace.refreshCanvas(true)
+                    }
+                    return res;
+                })
+                threadRow.focusHandler = ev => {
+                }
+                threadRow.onThreadHandler = (useCache) => {
+                    let context = threadRow.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
+                    threadRow.canvasSave(context);
+                    (renders["thread"] as ThreadRender).renderMainThread(
+                        {
+                            context: context,
+                            useCache: useCache,
+                            type: `thread ${thread.tid} ${thread.threadName}`,
+                        },
+                        threadRow
+                    );
+                    threadRow.canvasRestore(context);
+                }
+                if (threadRow.rowId == threadRow.rowParentId) {
+                    this.insertAfter(threadRow, processRow)
+                } else {
+                    this.trace.rowsEL?.appendChild(threadRow)
+                }
+                if(this.threadFuncMaxDepthMap.get(thread.tid!)!=undefined){
+                    let max = this.threadFuncMaxDepthMap.get(thread.tid!)||1;
+                    let maxHeight = max * 20;
+                    let funcRow = TraceRow.skeleton<FuncStruct>();
+                    funcRow.rowId = `${thread.tid}`
+                    funcRow.rowType = TraceRow.ROW_TYPE_FUNC
+                    funcRow.rowParentId = `${it.pid}`
+                    funcRow.rowHidden = !processRow.expansion
+                    funcRow.checkType = threadRow.checkType;
+                    funcRow.style.width = `100%`;
+                    funcRow.style.height = `${maxHeight}px`;
+                    funcRow.name = `${thread.threadName || 'Thread'} ${thread.tid}`;
+                    funcRow.setAttribute('children', '')
+                    funcRow.supplier = () => getFunDataByTid(thread.tid || 0).then((funs: Array<FuncStruct>)=>{
                         if (funs.length > 0) {
                             let isBinder = (data: FuncStruct): boolean => {
                                 return data.funName != null && (
@@ -360,147 +312,34 @@ export class SpProcessChart {
                                 } else {
                                     if (fun.dur == -1) {
                                         fun.dur = (TraceRow.range?.totalNS || 0) - (fun.startTs || 0);
+                                        fun.flag = "Did not end";
                                     }
                                 }
                             })
-                            const groupedBy: Array<any> = [];
-                            for (let i = 0; i < funs.length; i++) {
-                                if (groupedBy[funs[i].depth || 0]) {
-                                    groupedBy[funs[i].depth || 0].push(funs[i]);
-                                } else {
-                                    groupedBy[funs[i].depth || 0] = [funs[i]];
-                                }
-                            }
-                            let max = Math.max(...funs.map(it => it.depth || 0)) + 1
-                            let maxHeight = max * 20;
-                            let funcRow = new TraceRow<FuncStruct>({
-                                canvasNumber: max,
-                                alpha: false,
-                                contextId: '2d',
-                                isOffScreen: SpSystemTrace.isCanvasOffScreen,
-                                skeleton: false
-                            });
-                            funcRow.rowId = `${thread.tid}`
-                            funcRow.rowType = TraceRow.ROW_TYPE_FUNC
-                            funcRow.rowParentId = `${it.pid}`
-                            funcRow.rowHidden = !processRow.expansion
-                            funcRow.checkType = threadRow.checkType;
-                            funcRow.style.width = `100%`;
-                            funcRow.setAttribute("height", `${maxHeight}`);
-                            funcRow.name = `${thread.threadName || 'Thread'} ${thread.tid}`;
-                            funcRow.setAttribute('children', '')
-                            funcRow.supplier = () => new Promise((resolve) => resolve(funs))
-                            funcRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
-                            funcRow.selectChangeHandler = this.trace.selectChangeHandler;
-                            funcRow.onThreadHandler = (useCache) => {
-                                let asy = async (useCache: boolean) => {
-                                    let scrollTop = this.trace.rowsEL?.scrollTop || 0;
-                                    let scrollHeight = this.trace.rowsEL?.clientHeight || 0;
-                                    let promises: Array<any> = [];
-                                    for (let k = 0; k < groupedBy.length; k++) {
-                                        let top = funcRow.offsetTop - (this.trace.rowsEL?.offsetTop || 0) - scrollTop + funcRow.canvas[k].offsetTop;
-                                        let isLive = ((top + funcRow.canvas[k].clientHeight >= 0) && (top < scrollHeight)) || funcRow.collect
-                                        let promise = await procedurePool.submitWithNamePromise(`cpu${k % procedurePool.cpusLen.length}`, `func${thread.tid}${k}${thread.threadName}`, {
-                                            isLive: isLive,
-                                            list: funcRow.must ? groupedBy[k] : undefined,
-                                            offscreen: !funcRow.isTransferCanvas ? funcRow.offscreen[k] : undefined,//是否离屏
-                                            dpr: funcRow.dpr,//屏幕dpr值
-                                            xs: TraceRow.range?.xs,//线条坐标信息
-                                            isHover: funcRow.isHover,
-                                            flagMoveInfo: this.trace.hoverFlag,
-                                            flagSelectedInfo: this.trace.selectFlag,
-                                            hoverX: funcRow.hoverX,
-                                            hoverY: funcRow.hoverY,
-                                            depth: k,
-                                            canvasWidth: funcRow.canvasWidth,
-                                            canvasHeight: funcRow.canvasHeight,
-                                            maxHeight: maxHeight,
-                                            hoverFuncStruct: FuncStruct.hoverFuncStruct,
-                                            selectFuncStruct: FuncStruct.selectFuncStruct,
-                                            wakeupBean: CpuStruct.wakeupBean,
-                                            isRangeSelect: funcRow.rangeSelect,
-                                            rangeSelectObject: TraceRow.rangeSelectObject,
-                                            useCache: useCache,
-                                            lineColor: funcRow.getLineColor(),
-                                            startNS: TraceRow.range?.startNS || 0,
-                                            endNS: TraceRow.range?.endNS || 0,
-                                            totalNS: TraceRow.range?.totalNS || 0,
-                                            slicesTime: TraceRow.range?.slicesTime,
-                                            range: TraceRow.range,
-                                            frame: funcRow.frame
-                                        }, !funcRow.isTransferCanvas ? funcRow.offscreen[k] : undefined);
-                                        if (funcRow.isHover && promise.hover) {
-                                            FuncStruct.hoverFuncStruct = promise.hover;
-                                        }
-                                        promises.push(promise);
-                                    }
-                                    if (funcRow.isHover && promises.every(it => !it.hover)) {
-                                        FuncStruct.hoverFuncStruct = undefined;
-                                    }
-                                    funcRow.must = false;
-                                    funcRow.isTransferCanvas = true;
-                                }
-                                asy(useCache).then();
-                            }
-                            this.insertAfter(funcRow, threadRow)
-                            this.trace.observer.observe(funcRow)
-                            funcRow.draw();
-                            if (threadRow.onComplete) {
-                                threadRow.onComplete()
-                            }
-                            this.trace.getVisibleRows();//function 由于后插入dom，所以需要重新获取可见行
+                        }else{
+                            funcRow.rowDiscard = true;
+                            this.trace.refreshCanvas(true)
                         }
+                        return funs
                     })
-                    if ((res instanceof ArrayBuffer && res.byteLength <= 0) || (res.length <= 0)) {
-                        threadRow.rowDiscard = true;
+                    funcRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
+                    funcRow.selectChangeHandler = this.trace.selectChangeHandler;
+                    funcRow.onThreadHandler = (useCache) => {
+                        let context = funcRow.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
+                        funcRow.canvasSave(context);
+                        (renders["func"] as FuncRender).renderMainThread(
+                            {
+                                context: context,
+                                useCache: useCache,
+                                type: `func${thread.tid}${thread.threadName}`,
+                            },
+                            funcRow
+                        );
+                        funcRow.canvasRestore(context);
                     }
-                    return res;
-                })
-                threadRow.onThreadHandler = (useCache) => {
-                    procedurePool.submitWithName(`process${(threadRow.index) % procedurePool.processLen.length}`, `thread ${thread.tid} ${thread.threadName}`, {
-                        list: threadRow.must ? threadRow.dataList : undefined,
-                        offscreen: !threadRow.isTransferCanvas ? threadRow.offscreen[0] : undefined,//是否离屏
-                        dpr: threadRow.dpr,//屏幕dpr值
-                        xs: TraceRow.range?.xs,//线条坐标信息
-                        isHover: threadRow.isHover,
-                        flagMoveInfo: this.trace.hoverFlag,
-                        flagSelectedInfo: this.trace.selectFlag,
-                        hoverX: threadRow.hoverX,
-                        hoverY: threadRow.hoverY,
-                        canvasWidth: threadRow.canvasWidth,
-                        canvasHeight: threadRow.canvasHeight,
-                        hoverThreadStruct: ThreadStruct.hoverThreadStruct,
-                        selectThreadStruct: ThreadStruct.selectThreadStruct,
-                        wakeupBean: CpuStruct.wakeupBean,
-                        isRangeSelect: threadRow.rangeSelect,
-                        rangeSelectObject: TraceRow.rangeSelectObject,
-                        useCache: useCache,
-                        lineColor: threadRow.getLineColor(),
-                        startNS: TraceRow.range?.startNS || 0,
-                        endNS: TraceRow.range?.endNS || 0,
-                        totalNS: TraceRow.range?.totalNS || 0,
-                        slicesTime: TraceRow.range?.slicesTime,
-                        range: TraceRow.range,
-                        frame: threadRow.frame
-                    }, !threadRow.isTransferCanvas ? threadRow.offscreen[0] : undefined, (res: any, hover: any) => {
-                        threadRow.must = false;
-                        if (threadRow.args.isOffScreen == true) {
-                            if (threadRow.isHover) {
-                                ThreadStruct.hoverThreadStruct = hover;
-                                // this.visibleRows.filter(it => it.rowType === TraceRow.ROW_TYPE_CPU && it.name !== traceRow.name).forEach(it => it.draw());
-                            }
-                            return;
-                        }
-                    })
-                    threadRow.isTransferCanvas = true;
-                }
-                if (threadRow.rowId == threadRow.rowParentId) {
-                    this.insertAfter(threadRow, processRow)
-                } else {
-                    this.trace.rowsEL?.appendChild(threadRow)
+                    this.insertAfter(funcRow, threadRow)
                 }
             }
-
         }
         let durTime = new Date().getTime() - time;
         info('The time to load the Process data is: ', durTime)

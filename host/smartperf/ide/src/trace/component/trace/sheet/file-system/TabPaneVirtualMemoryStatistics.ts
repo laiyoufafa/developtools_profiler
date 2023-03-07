@@ -84,7 +84,7 @@ export class TabPaneVirtualMemoryStatistics extends BaseElement {
         new ResizeObserver((entries) => {
             if (this.parentElement!.clientHeight != 0) {
                 // @ts-ignore
-                this.tbl!.shadowRoot!.querySelector(".table").style.height = (this.parentElement!.clientHeight - 10 -31) + "px"
+                this.tbl!.shadowRoot!.querySelector(".table").style.height = (this.parentElement!.clientHeight - 10 -32) + "px"
                 this.tbl!.reMeauseHeight()
                 this.loadingPage.style.height = (this.parentElement!.clientHeight - 24) + "px"
             }

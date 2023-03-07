@@ -23,6 +23,7 @@
 #include "diskio_plugin_result.pb.h"
 #include "hidump_plugin_result.pb.h"
 #include "hilog_plugin_result.pb.h"
+#include "hisysevent_plugin_config.pb.h"
 #include "hisysevent_plugin_result.pb.h"
 #include "memory_plugin_result.pb.h"
 #include "native_hook_result.pb.h"
@@ -88,6 +89,7 @@ struct HtraceDataSegment {
     DiskioData diskIOInfo;
     ProcessData processInfo;
     HisyseventInfo hisyseventInfo;
+    HisyseventConfig hisyseventConfig;
     uint64_t timeStamp;
     std::unique_ptr<TracePluginResult> traceData;
     BuiltinClocks clockId;
@@ -99,17 +101,17 @@ class TracePoint {
 public:
     TracePoint() {}
     TracePoint(const TracePoint& point)
+    : phase_(point.phase_),
+      tgid_(point.tgid_),
+      name_(point.name_),
+      value_(point.value_),
+      categoryGroup_(point.categoryGroup_),
+      chainId_(point.chainId_),
+      spanId_(point.spanId_),
+      parentSpanId_(point.parentSpanId_),
+      flag_(point.flag_),
+      args_(point.args_)
     {
-        phase_ = point.phase_;
-        tgid_ = point.tgid_;
-        name_ = point.name_;
-        value_ = point.value_;
-        categoryGroup_ = point.categoryGroup_;
-        chainId_ = point.chainId_;
-        spanId_ = point.spanId_;
-        parentSpanId_ = point.parentSpanId_;
-        flag_ = point.flag_;
-        args_ = point.args_;
     }
     void operator=(const TracePoint& point)
     {

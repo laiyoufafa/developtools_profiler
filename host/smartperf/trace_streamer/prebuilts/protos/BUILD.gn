@@ -112,6 +112,7 @@ source_set("ts_proto_data_cpp") {
     "$native_hook_dir/native_hook_result.pb.cc",
     "${cpu_data_dir}/cpu_plugin_result.pb.cc",
     "${diskio_data_dir}/diskio_plugin_result.pb.cc",
+    "${hisysevent_data_dir}/hisysevent_plugin_config.pb.cc",
     "${hisysevent_data_dir}/hisysevent_plugin_result.pb.cc",
     "${network_data_dir}/network_plugin_result.pb.cc",
     "${process_data_dir}/process_plugin_result.pb.cc",

@@ -25,7 +25,7 @@ export interface matchingUsbDevice {
 }
 
 export class UsbTransmissionChannel implements TransmissionInterface {
-    private readonly _device: USBDevice;
+    private _device: USBDevice | null;
     private readonly endpointIn: number;
     private readonly endpointOut: number;
     private readonly interfaceNumber: number;
@@ -43,7 +43,7 @@ export class UsbTransmissionChannel implements TransmissionInterface {
      * @param writeData writeData
      */
     async writeData(writeData: ArrayBuffer) {
-        await this._device.transferOut(this.endpointOut, writeData);
+        await this._device?.transferOut(this.endpointOut, writeData);
     }
 
     /**
@@ -52,8 +52,8 @@ export class UsbTransmissionChannel implements TransmissionInterface {
      * @param length
      */
     async readData(length: number): Promise<DataView> {
-        const result = await this._device.transferIn(this.endpointOut, length);
-        if (result.data) {
+        const result = await this._device?.transferIn(this.endpointOut, length);
+        if (result?.data) {
             return result.data;
         } else {
             return Promise.resolve(new DataView(new ArrayBuffer(0)));
@@ -64,10 +64,9 @@ export class UsbTransmissionChannel implements TransmissionInterface {
      * Close the device connection
      */
     async close(): Promise<void> {
-        if (await HdcDeviceManager.getDeviceBySerialNumber(this.interfaceNumber.toString())) {
-            await this._device.releaseInterface(this.interfaceNumber)
-            await this._device.close();
-        }
+        await this._device?.releaseInterface(this.interfaceNumber)
+        await this._device?.close();
+        this._device = null;
     }
 
     /**

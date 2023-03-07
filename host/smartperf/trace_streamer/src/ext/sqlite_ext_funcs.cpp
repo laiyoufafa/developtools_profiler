@@ -208,7 +208,6 @@ public:
 void BuildJson(sqlite3_context* ctx, int argc, sqlite3_value** argv)
 {
     const int PAIR_ARGS_SIZE = 2;
-    const auto* fn_ctx = static_cast<const JsonBuild*>(sqlite3_user_data(ctx));
     if (argc % PAIR_ARGS_SIZE != 0) {
         TS_LOGI("BuildJson arg number error");
         sqlite3_result_error(ctx, "BuildJson arg number error", -1);

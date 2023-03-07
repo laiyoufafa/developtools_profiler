@@ -52,6 +52,7 @@ private:
     bool BinderTractionLockedEvent(const MessageLite& event) const;
     bool BinderTractionUnLockEvent(const MessageLite& event) const;
     bool SchedSwitchEvent(const MessageLite& event);
+    bool SchedBlockReasonEvent(const MessageLite& event);
     bool ProcessExitEvent(const MessageLite& event) const;
     bool ProcessFreeEvent(const MessageLite& event) const;
     bool TaskRenameEvent(const MessageLite& event) const;
@@ -120,6 +121,8 @@ private:
     uint64_t lastOverwrite_ = 0;
     uint64_t ftraceStartTime_ = std::numeric_limits<uint64_t>::max();
     uint64_t ftraceEndTime_ = 0;
+    uint64_t ftraceOriginStartTime_ = std::numeric_limits<uint64_t>::max();
+    uint64_t ftraceOriginEndTime_ = 0;
     std::vector<std::unique_ptr<EventInfo>> eventList_ = {};
     const DataIndex signalGenerateId_ = traceDataCache_->GetDataIndex("signal_generate");
     const DataIndex signalDeliverId_ = traceDataCache_->GetDataIndex("signal_deliver");

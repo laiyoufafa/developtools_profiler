@@ -23,7 +23,8 @@ export class LitButton extends BaseElement {
 
 
     static get observedAttributes() {
-        return ["text", "back", "icon", "height", "width", "color", "font_size", "border", "padding", "justify_content", "border_radius","margin_icon"]
+        return ["text", "back", "icon", "height", "width", "color", "font_size", "border", "padding", "justify_content",
+            "border_radius", "margin_icon", "opacity"]
     }
 
     get text() {
@@ -95,8 +96,12 @@ export class LitButton extends BaseElement {
         this.setAttribute("border_radius", borderRadius)
     }
 
-    set margin_icon(value: string){
+    set margin_icon(value: string) {
         this.litIcon?.setAttribute("margin_icon", value);
+    }
+
+    set opacity(value: string) {
+        this.litIcon?.setAttribute("opacity", value);
     }
 
 
@@ -203,6 +208,9 @@ export class LitButton extends BaseElement {
                 break;
             case "margin_icon":
                 this.litIcon!.style.margin = value;
+                break;
+            case "opacity":
+                this.button!.style.opacity = value;
                 break;
         }
     }

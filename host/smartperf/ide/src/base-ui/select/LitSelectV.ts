@@ -23,8 +23,11 @@ export class LitSelectV extends BaseElement {
     customItem: Array<string> = [];
     private focused: any;
     private inputElement: any;
+    private searchInputElement: any;
     private iconElement: any;
     private options: HTMLDivElement | undefined;
+    private body: HTMLDivElement | undefined;
+
     private valueStr: string = '';
 
     static get observedAttributes() {
@@ -114,7 +117,7 @@ export class LitSelectV extends BaseElement {
     dataSource(value: Array<string>, valueStr: string) {
         this.options!.innerHTML = '';
         if (value.length > 0) {
-            this.options!.style.display = "block"
+            this.body!.style.display = "block"
             this.valueStr = valueStr;
             this.itemValue = value;
             if (valueStr != "") {
@@ -133,7 +136,7 @@ export class LitSelectV extends BaseElement {
                 this.initOptions()
             }
         } else {
-            this.options!.style.display = "none"
+            this.body!.style.display = "none"
         }
         if (this.title == 'Event List') {
             let inputElement = this.shadowRoot?.querySelector('input') as HTMLInputElement;
@@ -148,6 +151,7 @@ export class LitSelectV extends BaseElement {
                 if (this.showItems.indexOf(item) > -1 || this.all) {
                     option.setAttribute("selected", "")
                 }
+                option.className = 'option';
                 option.setAttribute('value', item);
                 option.textContent = item;
                 this.options!.appendChild(option);
@@ -158,8 +162,10 @@ export class LitSelectV extends BaseElement {
     initElements(): void {
         this.tabIndex = 0;
         this.focused = false;
-        this.inputElement = this.shadowRoot!.querySelector('input') as HTMLInputElement;
-        this.options = this.shadowRoot!.querySelector('.body') as HTMLDivElement;
+        this.inputElement = this.shadowRoot!.querySelector('#select-input') as HTMLInputElement;
+        this.searchInputElement = this.shadowRoot!.querySelector('#search-input') as HTMLInputElement;
+        this.body = this.shadowRoot!.querySelector('.body') as HTMLDivElement;
+        this.options = this.shadowRoot!.querySelector('.body-opt') as HTMLDivElement;
         this.iconElement = this.shadowRoot!.querySelector('.icon');
         this.onclick = (ev: any) => {
             if (this.focused === false) {
@@ -168,6 +174,16 @@ export class LitSelectV extends BaseElement {
                 this.focused = false;
             }
         }
+        this.searchInputElement?.addEventListener('keyup', () => {
+            let options = [...this.shadowRoot!.querySelectorAll<LitSelectOption>('.option')]
+            options.filter((a: LitSelectOption) => {
+                if (a.textContent!.indexOf(this.searchInputElement!.value) <= -1) {
+                    a.style.display = "none";
+                } else {
+                    a.style.display = "flex";
+                }
+            });
+        })
 
         this.onmouseout = this.onblur = ev => {
             this.focused = false;
@@ -237,7 +253,7 @@ export class LitSelectV extends BaseElement {
             width: 100%;
         }
         .body{
-            max-height: 256px;
+            max-height: 286px;
             position: absolute;
             bottom: 100%;
             z-index: 99;
@@ -249,10 +265,28 @@ export class LitSelectV extends BaseElement {
             visibility: hidden;
             opacity: 0;
             transform-origin: bottom center;
+            box-shadow: 0 5px 15px 0px #00000033;
             display: block;
             flex-direction: column;
-            box-shadow: 0 5px 15px 0px #00000033;
-            border-radius: 2px;
+            border-radius: 10px;
+        }
+        .body-select {
+           margin-top: 3px;
+           background-color: var(--dark-background4,#fff);
+           width: 100%;
+           border-bottom: none;
+        }
+        #search-input {
+          border: none;
+          outline: none;
+        }
+        .body-opt{
+            border-top: none;
+            max-height: 256px;
+            background-color: var(--dark-background4,#fff);
+            width: 100%;
+            border-bottom-left-radius: 10px;
+            border-bottom-right-radius: 10px;
             overflow: auto;
         }
         .body-bottom{
@@ -321,16 +355,38 @@ export class LitSelectV extends BaseElement {
         .icon{
             display: flex;
         }
+        #search-input{
+           margin-left: 15px;
+        }
+        /*Define the height, width and background of the scroll bar*/
+        ::-webkit-scrollbar
+        {
+          width: 8px;
+          border-radius: 10px;
+          background-color: var(--dark-background3,#FFFFFF);
+        }
 
+        /*define slider*/
+        ::-webkit-scrollbar-thumb
+        {
+          border-radius: 6px;
+          background-color: var(--dark-background7,rgba(0,0,0,0.1));
+        }
+        
         </style>
         <div class="root noSelect" tabindex="0" hidefocus="true">
-            <input placeholder="${this.placeholder}" tabindex="0" readonly="readonly">
+            <input id="select-input" placeholder="${this.placeholder}" tabindex="0" readonly="readonly">
             <lit-icon class="icon" name='down' color="#c3c3c3"></lit-icon>
         </div>
         <div class="body">
-            <slot></slot>
-            <slot name="footer"></slot>
-        </div>
+            <div class="body-select">
+             <input id="search-input" placeholder="Search">
+           </div>
+            <div class="body-opt">
+               <slot></slot>
+               <slot name="footer"></slot>
+            </div>
+        </div>     
         `
     }
 

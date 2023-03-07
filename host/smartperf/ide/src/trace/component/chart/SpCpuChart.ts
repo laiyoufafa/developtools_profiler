@@ -14,14 +14,16 @@
  */
 
 import {SpSystemTrace} from "../SpSystemTrace.js";
-import {queryCpuData, queryCpuMax} from "../../database/SqlLite.js";
-import {info} from "../../../log/Log.js";
-import {CpuStruct} from "../../bean/CpuStruct.js";
+import {queryCpuData, queryCpuMax, threadPool} from "../../database/SqlLite.js";
+import {info, trace} from "../../../log/Log.js";
 import {TraceRow} from "../trace/base/TraceRow.js";
 import {procedurePool} from "../../database/Procedure.js";
+import {CpuRender, CpuStruct} from "../../database/ui-worker/ProcedureWorkerCPU.js";
+import {renders} from "../../database/ui-worker/ProcedureWorker.js";
 
 export class SpCpuChart {
     private trace: SpSystemTrace;
+
     constructor(trace: SpSystemTrace) {
         this.trace = trace;
     }
@@ -35,7 +37,7 @@ export class SpCpuChart {
             CpuStruct.cpuCount = cpuMax + 1;
             for (let i1 = 0; i1 < CpuStruct.cpuCount; i1++) {
                 const cpuId = i1;
-                let traceRow = new TraceRow<CpuStruct>();
+                let traceRow = TraceRow.skeleton<CpuStruct>();
                 traceRow.rowId = `${cpuId}`
                 traceRow.rowType = TraceRow.ROW_TYPE_CPU
                 traceRow.rowParentId = ''
@@ -44,41 +46,21 @@ export class SpCpuChart {
                 traceRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
                 traceRow.selectChangeHandler = this.trace.selectChangeHandler;
                 traceRow.supplier = () => queryCpuData(cpuId, TraceRow.range?.startNS || 0, TraceRow.range?.endNS || 0)
+                traceRow.focusHandler = () => {
+                    this.trace?.displayTip(traceRow,CpuStruct.hoverCpuStruct,`<span>P：${CpuStruct.hoverCpuStruct?.processName || "Process"} [${CpuStruct.hoverCpuStruct?.processId}]</span><span>T：${CpuStruct.hoverCpuStruct?.name} [${CpuStruct.hoverCpuStruct?.tid}] [Prio:${CpuStruct.hoverCpuStruct?.priority || 0}]</span>`);
+                }
                 traceRow.onThreadHandler = ((useCache: boolean, buf: ArrayBuffer | undefined | null) => {
-                    procedurePool.submitWithName(`cpu${cpuId % procedurePool.cpusLen.length}`, `cpu-data-${cpuId}`, {
-                        list: traceRow.must ? traceRow.dataList : undefined,
-                        offscreen: !traceRow.isTransferCanvas ? traceRow.offscreen[0] : undefined,//是否离屏
-                        dpr: traceRow.dpr,//屏幕dpr值
-                        xs: TraceRow.range?.xs,//线条坐标信息
-                        isHover: traceRow.isHover,
-                        flagMoveInfo: this.trace.hoverFlag,
-                        flagSelectedInfo: this.trace.selectFlag,
-                        hoverX: traceRow.hoverX,
-                        hoverY: traceRow.hoverY,
-                        canvasWidth: traceRow.canvasWidth,
-                        canvasHeight: traceRow.canvasHeight,
-                        hoverCpuStruct: CpuStruct.hoverCpuStruct,
-                        selectCpuStruct: CpuStruct.selectCpuStruct,
-                        wakeupBean: CpuStruct.wakeupBean,
-                        isRangeSelect: traceRow.rangeSelect,
-                        rangeSelectObject: TraceRow.rangeSelectObject,
-                        useCache: useCache,
-                        lineColor: traceRow.getLineColor(),
-                        startNS: TraceRow.range?.startNS || 0,
-                        endNS: TraceRow.range?.endNS || 0,
-                        totalNS: TraceRow.range?.totalNS || 0,
-                        slicesTime: TraceRow.range?.slicesTime,
-                        range: TraceRow.range,
-                        frame: traceRow.frame
-                    }, traceRow.getTransferArray(), (res: any, hover: any) => {
-                        traceRow.must = false;
-                        if (traceRow.isHover) {
-                            CpuStruct.hoverCpuStruct = hover;
-                            if (TraceRow.range) TraceRow.range.refresh = false;
-                            this.trace.visibleRows.filter(it => it.rowType === TraceRow.ROW_TYPE_CPU && it.name !== traceRow.name).forEach(it => it.draw(true));
-                        }
-                    })
-                    traceRow.isTransferCanvas = true;
+                    let context = traceRow.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
+                    traceRow.canvasSave(context);
+                    (renders["cpu-data"] as CpuRender).renderMainThread(
+                        {
+                            context: context,
+                            useCache: useCache,
+                            type: `cpu-data-${i1}`,
+                        },
+                        traceRow
+                    );
+                    traceRow.canvasRestore(context);
                 })
                 this.trace.rowsEL?.appendChild(traceRow);
 
@@ -92,7 +74,7 @@ export class SpCpuChart {
         let time = new Date().getTime();
         SpSystemTrace.SPT_DATA = [];
         progress("StateProcessThread", 93);
-        procedurePool.submitWithName("logic1","spt-init",{},undefined,(res:any)=>{
+        procedurePool.submitWithName("logic1", "spt-init", {}, undefined, (res: any) => {
             SpSystemTrace.SPT_DATA = Array.from(res);
         })
         let durTime = new Date().getTime() - time;

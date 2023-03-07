@@ -21,17 +21,47 @@ import {
     drawWakeUp, ns2x, PerfRender, Render,
     RequestMessage
 } from "./ProcedureWorkerCommon.js";
-import {FileSysChartStruct} from "./ProcedureWorkerFileSystem.js";
-import {FuncStruct} from "./ProcedureWorkerFunc.js";
-import {SpFreqChart} from "../../component/chart/SpFreqChart.js";
+import {TraceRow} from "../../component/trace/base/TraceRow.js";
+import {ColorUtils} from "../../component/trace/base/ColorUtils.js";
+import {convertJSON} from "../logic-worker/ProcedureLogicWorkerCommon.js";
 
-export class CpuStateRender extends PerfRender{
-    render(req:RequestMessage,list:Array<any>,filter:Array<any>,dataList2:Array<any>){
+export class CpuStateRender extends PerfRender {
+
+    renderMainThread(req: { useCache: boolean; context: CanvasRenderingContext2D; type: string; cpu: number }, row: TraceRow<CpuStateStruct>) {
+        let list = row.dataList = convertJSON(row.dataList);
+        let filter = row.dataListCache;
+        let chartColor = ColorUtils.colorForTid(req.cpu);
+        if(list && row.dataList2.length == 0){
+            row.dataList2 = this.getList(list,TraceRow.range!.endNS,req.cpu)
+        }
+        this.cpuState(list, row.dataList2, req.type!, filter, req.cpu, TraceRow.range!.startNS, TraceRow.range!.endNS, TraceRow.range!.totalNS, row.frame, req.useCache || !TraceRow.range!.refresh);
+        req.context.beginPath();
+        req.context.font = "11px sans-serif";
+        req.context.fillStyle = chartColor;
+        req.context.strokeStyle = chartColor;
+        req.context.globalAlpha = 0.6;
+        let path = new Path2D();
+        let find = false;
+        let offset = 3;
+        for (let re of filter) {
+            CpuStateStruct.draw(req.context, path, re);
+            if (row.isHover) {
+                if (re.frame && row.hoverX >= re.frame.x - offset && row.hoverX <= re.frame.x + re.frame.width + offset) {
+                    CpuStateStruct.hoverStateStruct = re;
+                    find = true;
+                }
+            }
+        }
+        if (!find && row.isHover) CpuStateStruct.hoverStateStruct = undefined;
+        req.context.fill(path);
+    }
+
+    render(req: RequestMessage, list: Array<any>, filter: Array<any>, dataList2: Array<any>) {
         if (req.lazyRefresh) {
-            this.cpuState(list,dataList2,req.type!, filter,req.params.cpu,req.startNS, req.endNS, req.totalNS, req.frame, req.useCache || !req.range.refresh);
+            this.cpuState(list, dataList2, req.type!, filter, req.params.cpu, req.startNS, req.endNS, req.totalNS, req.frame, req.useCache || !req.range.refresh);
         } else {
             if (!req.useCache) {
-                this.cpuState(list,dataList2,req.type!, filter,req.params.cpu,req.startNS, req.endNS, req.totalNS, req.frame, false);
+                this.cpuState(list, dataList2, req.type!, filter, req.params.cpu, req.startNS, req.endNS, req.totalNS, req.frame, false);
             }
         }
         CpuStateStruct.hoverStateStruct = undefined;
@@ -58,7 +88,7 @@ export class CpuStateRender extends PerfRender{
             req.context.globalAlpha = 0.6;
             let path = new Path2D();
             for (let re of filter) {
-                CpuStateStruct.draw(req.context, path,re);
+                CpuStateStruct.draw(req.context, path, re);
             }
             req.context.fill(path);
             drawSelection(req.context, req.params);
@@ -74,7 +104,7 @@ export class CpuStateRender extends PerfRender{
         self.postMessage(msg);
     }
 
-    cpuState(arr: Array<any>, arr2: any, type: string,res: Array<any>, cpu:number,startNS: number, endNS: number, totalNS: number, frame: any,use:boolean) {
+    cpuState(arr: Array<any>, arr2: Array<any>, type: string, res: Array<any>, cpu: number, startNS: number, endNS: number, totalNS: number, frame: any, use: boolean) {
         if (use && res.length > 0) {
             for (let i = 0, len = res.length; i < len; i++) {
                 if ((res[i].startTs || 0) + (res[i].dur || 0) >= startNS && (res[i].startTs || 0) <= endNS) {
@@ -87,29 +117,56 @@ export class CpuStateRender extends PerfRender{
         }
         res.length = 0;
         if (arr) {
-            let list: Array<any> = [];
-            if (arr2[type] && arr2[type].length > 0) {
-                list = arr2[type];
-            } else {
-                list = this.getList(arr,endNS,cpu);
-                arr2[type] = list;
+            let list: Array<any> = arr2;
+            res.length = 0;
+            let pns = (endNS - startNS) / frame.width;//每个像素多少ns
+            let y = frame.y + 5;
+            let height = frame.height - 10;
+            let left = 0, right = 0;
+            for (let i = 0, j = list.length - 1, ib = true, jb = true; i < list.length, j >= 0; i++, j--) {
+                if (list[j].startTs <= endNS && jb) {
+                    right = j;
+                    jb = false;
+                }
+                if (list[i].startTs + list[i].dur >= startNS && ib) {
+                    left = i;
+                    ib = false;
+                }
+                if (!ib && !jb) {
+                    break;
+                }
             }
-            let groups = list.filter(it => (it.startTs || 0) + (it.dur || 0) >= startNS && (it.startTs || 0) <= endNS).map(it => {
-                CpuStateStruct.setFrame(it, 5, startNS, endNS, totalNS, frame)
-                return it;
-            }).reduce((pre, current, index, arr) => {
-                (pre[`${current.frame.x}`] = pre[`${current.frame.x}`] || []).push(current);
-                return pre;
-            }, {});
-            Reflect.ownKeys(groups).map((kv => {
-                res.push(groups[kv].sort((a: any, b: any) => b.frame.width - a.frame.width)[0]);
-                res.push(groups[kv].sort((a: any, b: any) => b.frame.height - a.frame.height)[0]);
-            }));
+            let slice = list.slice(left, right + 1);
+            let sum = 0;
+            for (let i = 0; i < slice.length; i++) {
+                if (!slice[i].frame) {
+                    slice[i].frame = {};
+                    slice[i].frame.y = y;
+                    slice[i].frame.height = height;
+                }
+                if (slice[i].dur >= pns) {
+                    slice[i].v = true;
+                    CpuStateStruct.setFrame(slice[i], 5, startNS, endNS, totalNS, frame)
+                } else {
+                    if (i > 0) {
+                        let c = slice[i].startTs - slice[i - 1].startTs - slice[i - 1].dur
+                        if (c < pns && sum < pns) {
+                            sum += c + slice[i - 1].dur;
+                            slice[i].v = false;
+                        } else {
+                            slice[i].v = true;
+                            CpuStateStruct.setFrame(slice[i], 5, startNS, endNS, totalNS, frame)
+                            sum = 0;
+                        }
+                    }
+                }
+            }
+            res.push(...slice.filter(it => it.v));
         }
     }
 
-    getList(arr:Array<any>,endNS:number,cpu:number):Array<any>{
-        let heights = [4,12,21,30]
+    getList(arr: Array<any>, endNS: number, cpu: number): Array<any> {
+        let heights = [4, 12, 21, 30]
         for (let i = 0, len = arr.length; i < len; i++) {
             let it = arr[i];
             it.height = heights[it.value]
@@ -122,18 +179,19 @@ export class CpuStateRender extends PerfRender{
         }
         return arr;
     }
+
 }
 
 export class CpuStateStruct extends BaseStruct {
-    static hoverStateStruct:any;
-    static selectStateStruct:any;
+    static hoverStateStruct: CpuStateStruct | undefined;
+    static selectStateStruct: CpuStateStruct | undefined;
     dur: number | undefined
     value: string | undefined
     startTs: number | undefined
     height: number | undefined
-    cpu:number | undefined
+    cpu: number | undefined
 
-    static draw(ctx: CanvasRenderingContext2D,path:Path2D,data: CpuStateStruct) {
+    static draw(ctx: CanvasRenderingContext2D, path: Path2D, data: CpuStateStruct) {
         if (data.frame) {
             if (data.startTs === CpuStateStruct.hoverStateStruct?.startTs || data.startTs === CpuStateStruct.selectStateStruct?.startTs) {
                 path.rect(data.frame.x, 35 - (data.height || 0), data.frame.width, data.height || 0)
@@ -150,14 +208,29 @@ export class CpuStateStruct extends BaseStruct {
                 ctx.lineWidth = 1;
                 ctx.globalAlpha = 0.6;
                 ctx.fillRect(data.frame.x, 35 - (data.height || 0), data.frame.width, data.height || 0)
-            }else{
+            } else {
                 ctx.globalAlpha = 0.6;
                 path.rect(data.frame.x, 35 - (data.height || 0), data.frame.width, data.height || 0)
             }
         }
     }
 
-    static setFrame(node: any, padding: number, startNS: number, endNS: number,totalNS:number, frame: any) {
+    static setCpuFrame(node: any, pns: number, startNS: number, endNS: number, frame: any) {
+        if ((node.startTime || 0) < startNS) {
+            node.frame.x = 0;
+        } else {
+            node.frame.x = Math.floor(((node.startTs || 0) - startNS) / pns);
+        }
+        if ((node.startTime || 0) + (node.dur || 0) > endNS) {
+            node.frame.width = frame.width - node.frame.x;
+        } else {
+            node.frame.width = Math.ceil(((node.startTs || 0) + (node.dur || 0) - startNS) / pns - node.frame.x);
+        }
+        if (node.frame.width < 1) {
+            node.frame.width = 1;
+        }
+    }
+    static setFrame(node: any, padding: number, startNS: number, endNS: number, totalNS: number, frame: any) {
         let x1: number, x2: number;
         if ((node.startTs || 0) < startNS) {
             x1 = 0;

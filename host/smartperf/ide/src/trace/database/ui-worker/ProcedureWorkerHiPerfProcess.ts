@@ -23,15 +23,45 @@ import {
     RequestMessage
 } from "./ProcedureWorkerCommon.js";
 import {HiPerfCpuStruct} from "./ProcedureWorkerHiPerfCPU.js";
+import {TraceRow} from "../../component/trace/base/TraceRow.js";
 
 export class HiperfProcessRender  extends PerfRender{
+
+    renderMainThread(req: any,row:TraceRow<HiPerfProcessStruct>) {
+        let list= row.dataList;
+        let filter = row.dataListCache;
+        let groupBy10MS = req.scale > 30_000_000;
+        if(list && row.dataList2.length == 0 ){
+            row.dataList2 = HiPerfProcessStruct.groupBy10MS(list, req.intervalPerf);
+        }
+        hiPerfProcess(list,row.dataList2, filter, TraceRow.range?.startNS ??0, TraceRow.range?.endNS??0, TraceRow.range?.totalNS??0, row.frame, groupBy10MS, req.intervalPerf, req.useCache || (TraceRow.range?.refresh ?? false));
+        req.context.beginPath();
+        req.context.fillStyle = ColorUtils.FUNC_COLOR[0];
+        req.context.strokeStyle = ColorUtils.FUNC_COLOR[0];
+        let path = new Path2D();
+        let offset = groupBy10MS ? 0 : 3;
+        let find = false;
+        for (let re of filter) {
+            HiPerfProcessStruct.draw(req.context, path, re, groupBy10MS);
+            if (row.isHover) {
+                if (re.frame && row.hoverX >= re.frame.x - offset && row.hoverX <= re.frame.x + re.frame.width + offset) {//&& req.hoverY >= re.frame.y && req.hoverY <= re.frame.y + re.frame.height
+                    HiPerfProcessStruct.hoverStruct = re;
+                    find = true;
+                }
+            }
+        }
+        if (!find && row.isHover) HiPerfProcessStruct.hoverStruct = undefined;
+        groupBy10MS ? req.context.fill(path) : req.context.stroke(path);
+        req.context.closePath();
+    }
+
     render(req: RequestMessage, list: Array<any>, filter: Array<any>, dataList2: Array<any>) {
         let groupBy10MS = req.scale > 100_000_000;
         if (req.lazyRefresh) {
-            hiPerfProcess(list, filter, req.startNS, req.endNS, req.totalNS, req.frame, groupBy10MS, req.intervalPerf, req.useCache || !req.range.refresh);
+            hiPerfProcess(list, dataList2,filter, req.startNS, req.endNS, req.totalNS, req.frame, groupBy10MS, req.intervalPerf, req.useCache || !req.range.refresh);
         } else {
             if (!req.useCache) {
-                hiPerfProcess(list, filter, req.startNS, req.endNS, req.totalNS, req.frame, groupBy10MS, req.intervalPerf, false);
+                hiPerfProcess(list,dataList2, filter, req.startNS, req.endNS, req.totalNS, req.frame, groupBy10MS, req.intervalPerf, false);
             }
         }
         if (req.canvas) {
@@ -77,7 +107,7 @@ export class HiperfProcessRender  extends PerfRender{
     }
 }
 
-export function hiPerfProcess(arr: Array<any>, res: Array<any>, startNS: number, endNS: number, totalNS: number, frame: any, groupBy10MS: boolean, intervalPerf: number, use: boolean) {
+export function hiPerfProcess(arr: Array<any>,arr2: Array<any>, res: Array<any>, startNS: number, endNS: number, totalNS: number, frame: any, groupBy10MS: boolean, intervalPerf: number, use: boolean) {
     if (use && res.length > 0) {
         let pns = (endNS - startNS) / frame.width;
         let y = frame.y;
@@ -98,7 +128,7 @@ export function hiPerfProcess(arr: Array<any>, res: Array<any>, startNS: number,
     }
     res.length = 0;
     if (arr) {
-        let list = groupBy10MS ? HiPerfProcessStruct.groupBy10MS(arr, intervalPerf) : arr;
+        let list = groupBy10MS ? arr2 : arr;
         let pns = (endNS - startNS) / frame.width;
         let y = frame.y;
         for (let i = 0, len = list.length; i < len; i++) {

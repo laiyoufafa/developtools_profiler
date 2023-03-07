@@ -390,7 +390,7 @@ void Report::OutputStdHead(ReportEventConfigItem &config, bool diffMode)
         displayKeyNames_.insert(displayKeyNames_.begin(), "count");
     }
 
-    unsigned int remainingWidth = consoleWidth_;
+    int remainingWidth = consoleWidth_;
     // sort key head
     for (auto &keyName : displayKeyNames_) {
         auto &key = reportKeyMap_.at(keyName);

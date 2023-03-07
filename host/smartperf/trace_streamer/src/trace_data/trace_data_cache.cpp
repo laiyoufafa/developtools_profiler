@@ -39,6 +39,7 @@
 #include "file_system_sample_table.h"
 #include "filter_table.h"
 #include "hidump_table.h"
+#include "trace_config_table.h"
 #include "instants_table.h"
 #include "irq_table.h"
 #include "live_process_table.h"
@@ -142,6 +143,7 @@ void TraceDataCache::InitDB()
 #endif
     TableBase::TableDeclare<AppnameTable>(*db_, this, "app_name");
     TableBase::TableDeclare<SysEventMeasureTable>(*db_, this, "hisys_event_measure");
+    TableBase::TableDeclare<TraceConfigTable>(*db_, this, "trace_config");
     TableBase::TableDeclare<DeviceStateTable>(*db_, this, "device_state");
     TableBase::TableDeclare<SmapsTable>(*db_, this, "smaps");
     TableBase::TableDeclare<BioLatencySampleTable>(*db_, this, "bio_latency_sample");
@@ -212,6 +214,7 @@ void TraceDataCache::InitDB()
     TableBase::TableDeclare<AppnameTable>(*db_, this, "_app_name");
     TableBase::TableDeclare<SysEventMeasureTable>(*db_, this, "_hisys_event_measure");
     TableBase::TableDeclare<DeviceStateTable>(*db_, this, "_device_state");
+    TableBase::TableDeclare<TraceConfigTable>(*db_, this, "_trace_config");
 #if WITH_PERF
     TableBase::TableDeclare<PerfReportTable>(*db_, this, "_perf_report");
     TableBase::TableDeclare<PerfSampleTable>(*db_, this, "_perf_sample");

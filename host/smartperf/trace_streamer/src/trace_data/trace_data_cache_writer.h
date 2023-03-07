@@ -86,6 +86,7 @@ public:
     AppNames* GetAppNamesData();
     SysEventMeasureData* GetSyseventMeasureData();
     DeviceStateData* GetDeviceStateData();
+    TraceConfigData* GetTraceConfigData();
     SmapsData* GetSmapsData();
     BioLatencySampleData* GetBioLatencySampleData();
     ClockSnapshotData* GetClockSnapshotData();

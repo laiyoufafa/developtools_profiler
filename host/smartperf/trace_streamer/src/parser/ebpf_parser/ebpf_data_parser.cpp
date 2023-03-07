@@ -32,7 +32,7 @@ EbpfDataParser::~EbpfDataParser()
             static_cast<unsigned long long>(ebpfAllEventEndTime_));
 }
 
-bool EbpfDataParser::Init(const std::deque<uint8_t>& dequeBuffer, uint64_t size)
+bool EbpfDataParser::Init(const std::deque<uint8_t> dequeBuffer, uint64_t size)
 {
     streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_EBPF, STAT_EVENT_RECEIVED);
     if (!reader_->InitEbpfData(dequeBuffer, size)) {
@@ -74,6 +74,8 @@ void EbpfDataParser::Finish()
     // Update trace_range when there is only ebpf data in the trace file
     if (traceDataCache_->traceStartTime_ == INVALID_UINT64 || traceDataCache_->traceEndTime_ == 0) {
         traceDataCache_->MixTraceTime(ebpfAllEventStartTime_, ebpfAllEventEndTime_);
+    } else {
+        TS_LOGI("EBPF data time is not updated, maybe this trace file has other data");
     }
 }
 } // namespace TraceStreamer

@@ -17,9 +17,15 @@ declare_args() {
     cc = "/usr/bin/clang"
     cxx = "/usr/bin/clang++"
     pic = "-fPIC"
+    rebuild_string = ""
+    extra_asmflags = ""
+    asm = "/usr/bin/clang"
   } else if (target_os == "windows") {
     cc = "gcc.exe"
     cxx = "g++.exe"
+    rebuild_string = ""
+    extra_asmflags = ""
+    asm = "gcc.exe"
     pic = ""
   }
   if (use_wasm == true) {
@@ -145,6 +151,14 @@ toolchain("gcc_like") {
         "{{source_out_dir}}/{{target_output_name}}.{{source_name_part}}.o"
     outputs = [ outputfiles ]
     description = "step: compile {{source}}"
+  }
+  tool("asm") {
+    depfile = "{{output}}.d"
+    command = "$asm -o {{output}} -MMD -MF $depfile ${rebuild_string}{{defines}} {{include_dirs}} {{asmflags}}${extra_asmflags} -c {{source}}"
+    depsformat = "gcc"
+    outputfiles =
+        "{{source_out_dir}}/{{target_output_name}}.{{source_name_part}}.o"
+    outputs = [ outputfiles ]
   }
   tool("alink") {
     rspfile = "{{output}}.rsp"  # this must be defined

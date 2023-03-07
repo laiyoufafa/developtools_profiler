@@ -15,16 +15,58 @@
 
 import { ColorUtils } from "../../component/trace/base/ColorUtils.js";
 import {
-    BaseStruct,
+    BaseStruct, dataFilterHandler,
     drawFlagLine,
     drawLines,
     drawLoading,
-    drawSelection, drawWakeUp,
+    drawSelection, drawWakeUp, isFrameContainPoint,
     ns2x, Render,
     RequestMessage
 } from "./ProcedureWorkerCommon.js";
+import {TraceRow} from "../../component/trace/base/TraceRow.js";
 
 export class MemoryAbilityRender extends Render{
+    renderMainThread(req: {
+        context: CanvasRenderingContext2D,
+        useCache: boolean,
+        type: string,
+        maxMemoryByte:number,
+        maxMemoryByteName:string,
+
+    }, row: TraceRow<MemoryAbilityMonitorStruct>) {
+        let list = row.dataList;
+        let filter = row.dataListCache;
+        dataFilterHandler(list,filter,{
+            startKey: "startNS",
+            durKey: "dur",
+            startNS: TraceRow.range?.startNS ?? 0,
+            endNS: TraceRow.range?.endNS ?? 0,
+            totalNS: TraceRow.range?.totalNS ?? 0,
+            frame: row.frame,
+            paddingTop: 5,
+            useCache: req.useCache || !(TraceRow.range?.refresh ?? false)
+        })
+        req.context.beginPath();
+        let find = false;
+        for (let re of filter) {
+            MemoryAbilityMonitorStruct.draw(req.context, re ,req.maxMemoryByte ,row.isHover)
+            if (row.isHover && re.frame  && isFrameContainPoint(re.frame, row.hoverX, row.hoverY)) {
+                MemoryAbilityMonitorStruct.hoverMemoryAbilityStruct = re;
+                find = true;
+            }
+        }
+        if (!find && row.isHover) MemoryAbilityMonitorStruct.hoverMemoryAbilityStruct = undefined;
+        req.context.closePath();
+        let textMetrics = req.context.measureText(req.maxMemoryByteName);
+        req.context.globalAlpha = 0.8
+        req.context.fillStyle = "#f0f0f0"
+        req.context.fillRect(0, 5, textMetrics.width + 8, 18)
+        req.context.globalAlpha = 1
+        req.context.fillStyle = "#333"
+        req.context.textBaseline = "middle"
+        req.context.fillText(req.maxMemoryByteName, 4, 5 + 9)
+    }
+
     render(req: RequestMessage, list: Array<any>, filter: Array<any>) {
         if (req.lazyRefresh) {
             memoryAbility(list, filter, req.startNS, req.endNS, req.totalNS, req.frame, req.useCache || !req.range.refresh);
@@ -54,7 +96,7 @@ export class MemoryAbilityRender extends Render{
             }
             MemoryAbilityMonitorStruct.selectMemoryAbilityStruct = req.params.selectMemoryAbilityStruct;
             for (let re of filter) {
-                MemoryAbilityMonitorStruct.draw(req.context, re)
+                MemoryAbilityMonitorStruct.draw(req.context, re ,MemoryAbilityMonitorStruct.maxMemoryByte,true)
             }
             drawSelection(req.context, req.params);
             req.context.closePath();
@@ -123,16 +165,16 @@ export class MemoryAbilityMonitorStruct extends BaseStruct {
     startNS: number | undefined
     dur: number | undefined
 
-    static draw(context2D: CanvasRenderingContext2D, data: MemoryAbilityMonitorStruct) {
+    static draw(context2D: CanvasRenderingContext2D, data: MemoryAbilityMonitorStruct,maxMemoryByte:number,isHover:boolean) {
         if (data.frame) {
             let width = data.frame.width || 0;
             let index = 2;
             context2D.fillStyle = ColorUtils.colorForTid(index)
             context2D.strokeStyle = ColorUtils.colorForTid(index)
-            if (data.startNS === MemoryAbilityMonitorStruct.hoverMemoryAbilityStruct?.startNS) {
+            if (data.startNS === MemoryAbilityMonitorStruct.hoverMemoryAbilityStruct?.startNS && isHover) {
                 context2D.lineWidth = 1;
                 context2D.globalAlpha = 0.6;
-                let drawHeight: number = Math.floor(((data.value || 0) * (data.frame.height || 0) * 1.0) / MemoryAbilityMonitorStruct.maxMemoryByte);
+                let drawHeight: number = Math.floor(((data.value || 0) * (data.frame.height || 0) * 1.0) / maxMemoryByte);
                 context2D.fillRect(data.frame.x, data.frame.y + data.frame.height - drawHeight + 4, width, drawHeight)
                 context2D.beginPath()
                 context2D.arc(data.frame.x, data.frame.y + data.frame.height - drawHeight + 4, 3, 0, 2 * Math.PI, true)
@@ -147,7 +189,7 @@ export class MemoryAbilityMonitorStruct extends BaseStruct {
             } else {
                 context2D.globalAlpha = 0.6;
                 context2D.lineWidth = 1;
-                let drawHeight: number = Math.floor(((data.value || 0) * (data.frame.height || 0)) / MemoryAbilityMonitorStruct.maxMemoryByte);
+                let drawHeight: number = Math.floor(((data.value || 0) * (data.frame.height || 0)) / maxMemoryByte);
                 context2D.fillRect(data.frame.x, data.frame.y + data.frame.height - drawHeight + 4, width, drawHeight)
             }
         }

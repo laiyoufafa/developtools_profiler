@@ -517,6 +517,7 @@ private:
             }
             readFd_ =
                 std::unique_ptr<FILE, decltype(&fclose)>(fp, &fclose);
+            fclose(fp);
             return;
         }
 #else

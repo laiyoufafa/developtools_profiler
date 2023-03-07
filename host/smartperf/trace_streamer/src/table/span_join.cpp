@@ -356,7 +356,7 @@ SpanJoin::Cursor::Cursor(const TraceDataCache* dataCache, SpanJoin* table)
     : TableBase::Cursor(dataCache, table, 0),
       tableFirst_(table, &table->tableFirstDesc_, dataCache_->db_),
       tableSecond_(table, &table->tableSecondDesc_, dataCache_->db_),
-      table_(table)
+      spanTable_(table)
 {
 }
 
@@ -402,7 +402,7 @@ bool SpanJoin::Cursor::IsFindSpan()
 
 SpanJoin::CaclSpan* SpanJoin::Cursor::FindQueryResult()
 {
-    if (!table_->isSamepartitioning_) {
+    if (!spanTable_->isSamepartitioning_) {
         return nullptr;
     }
 
@@ -436,7 +436,7 @@ int SpanJoin::Cursor::Column(int column) const
             break;
         }
         default: {
-            const auto ColumnInfo = table_->mTableColumnInfo_[column];
+            const auto ColumnInfo = spanTable_->mTableColumnInfo_[column];
             if (ColumnInfo.tableDesc == tableFirst_.desc_) {
                 tableFirst_.setResult(context_, ColumnInfo.colIdx);
             } else {

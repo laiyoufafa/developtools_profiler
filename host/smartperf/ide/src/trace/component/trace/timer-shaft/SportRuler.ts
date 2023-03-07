@@ -217,8 +217,8 @@ export class SportRuler extends Graph {
             this.c.beginPath();
             this.c.fillStyle = color;
             this.c.strokeStyle = color;
-            this.c.moveTo(x - 2, 142);
-            this.c.lineTo(x + 2, 142);
+            this.c.moveTo(x - 3, 141);
+            this.c.lineTo(x + 3, 141);
             this.c.lineTo(x, 145);
             this.c.fill()
             this.c.closePath()

@@ -75,19 +75,92 @@ void HtraceNativeHookParser::FinishParseNativeHookData()
         return;
     }
     traceDataCache_->GetNativeHookData()->UpdateMemMapSubType();
+    // update function name index
     traceDataCache_->GetNativeHookFrameData()->UpdateSymbolId();
+    // update file path index
     traceDataCache_->GetNativeHookFrameData()->UpdateFileId(filePathIdToFilePathName_);
-    std::map<uint64_t, uint64_t> callIdToLastCallerPathIndex;
-    traceDataCache_->GetNativeHookFrameData()->GetCallIdToLastLibId(invalidLibPathIndexs_,
-                                                                    callIdToLastCallerPathIndex);
-    if (callIdToLastCallerPathIndex.size()) {
-        traceDataCache_->GetNativeHookData()->UpdateLastCallerPathIndexs(callIdToLastCallerPathIndex);
+    // update instractions vaddr
+    GetNativeHookFrameVaddrs();
+    traceDataCache_->GetNativeHookFrameData()->UpdateVaddrs(vaddrs_);
+    // update last lib id
+    GetCallIdToLastLibId();
+    if (callIdToLastCallerPathIndex_.size()) {
+        traceDataCache_->GetNativeHookData()->UpdateLastCallerPathIndexs(callIdToLastCallerPathIndex_);
     }
 
     UpdateThreadNameWithNativeHookData();
     tsNativeHookQueue_.clear();
     threadNameIdToThreadName_.clear();
     itidToThreadNameId_.clear();
+    callIdToLastCallerPathIndex_.clear();
+    functionNameIndexToVaddr_.clear();
+    vaddrs_.clear();
+}
+void HtraceNativeHookParser::GetCallIdToLastLibId()
+{
+    auto size = static_cast<int64_t>(traceDataCache_->GetNativeHookFrameData()->Size());
+    uint32_t lastCallChainId = INVALID_UINT32;
+    bool foundLast = false;
+    for (auto i = size - 1; i > -1; i--) {
+        auto callChainId = traceDataCache_->GetNativeHookFrameData()->CallChainIds()[i];
+        if (callChainId == lastCallChainId) {
+            if (foundLast) {
+                continue;
+            }
+        }
+        if (callChainId != lastCallChainId) {
+            lastCallChainId = callChainId;
+            foundLast = false;
+        }
+        auto filePathIndex = traceDataCache_->GetNativeHookFrameData()->FilePaths()[i];
+        if (!traceDataCache_->GetNativeHookFrameData()->Depths()[i]) {
+            callIdToLastCallerPathIndex_.insert(std::make_pair(callChainId, filePathIndex));
+            foundLast = true;
+            continue;
+        }
+
+        auto lower = std::lower_bound(invalidLibPathIndexs_.begin(), invalidLibPathIndexs_.end(), filePathIndex);
+        if (lower == invalidLibPathIndexs_.end() || *lower != filePathIndex) { // found
+            auto filePath = traceDataCache_->dataDict_.GetDataFromDict(filePathIndex);
+            auto ret = filePath.find("libc++_shared.so");
+            if (ret == filePath.npos) {
+                callIdToLastCallerPathIndex_.insert(std::make_pair(callChainId, filePathIndex));
+                foundLast = true;
+            }
+        }
+    }
+}
+
+void HtraceNativeHookParser::GetNativeHookFrameVaddrs()
+{
+    auto size = traceDataCache_->GetNativeHookFrameData()->Size();
+    // Traverse every piece of native_hook frame data
+    for (auto i = 0; i < size; i++) {
+        auto symbolOffset = traceDataCache_->GetNativeHookFrameData()->SymbolOffsets()[i];
+        // When the symbol offset is not 0, vaddr=offset+symbol offset
+        if (symbolOffset) {
+            auto fileOffset = traceDataCache_->GetNativeHookFrameData()->Offsets()[i];
+            auto vaddr = base::Uint64ToHexText(fileOffset + symbolOffset);
+            vaddrs_.emplace_back(vaddr);
+            continue;
+        }
+        // When the symbol offset is 0, vaddr takes the string after the plus sign in the function name
+        auto functionNameIndex = traceDataCache_->GetNativeHookFrameData()->SymbolNames()[i];
+        std::string vaddr = "";
+        auto itor = functionNameIndexToVaddr_.find(functionNameIndex);
+        if (itor == functionNameIndexToVaddr_.end()) {
+             auto functionName = traceDataCache_->dataDict_.GetDataFromDict(functionNameIndex);
+             auto pos = functionName.rfind("+");
+             if (pos != functionName.npos && pos != functionName.length() - 1) {
+                 vaddr = functionName.substr(++pos);
+             }
+             // Vaddr keeps "" when lookup failed
+             functionNameIndexToVaddr_.emplace(std::make_pair(functionNameIndex, vaddr));
+        } else {
+            vaddr = itor->second;
+        }
+        vaddrs_.emplace_back(vaddr);
+    }
 }
 void HtraceNativeHookParser::ParseAllocEvent(uint64_t newTimeStamp, const NativeHookData* nativeHookData)
 {
@@ -211,9 +284,8 @@ void HtraceNativeHookParser::ParseThreadEvent(const NativeHookData* nativeHookDa
 void HtraceNativeHookParser::ParseNativeHookData(const uint64_t timeStamp, const NativeHookData* nativeHookData)
 {
     auto eventCase = nativeHookData->event_case();
-    uint64_t newTimeStamp = 0;
     if (eventCase >= NativeHookData::kAllocEvent && eventCase <= NativeHookData::kMunmapEvent) {
-        newTimeStamp = streamFilters_->clockFilter_->ToPrimaryTraceTime(TS_CLOCK_REALTIME, timeStamp);
+        uint64_t newTimeStamp = streamFilters_->clockFilter_->ToPrimaryTraceTime(TS_CLOCK_REALTIME, timeStamp);
         UpdatePluginTimeRange(TS_CLOCK_REALTIME, timeStamp, newTimeStamp);
         switch (eventCase) {
             case NativeHookData::kAllocEvent:

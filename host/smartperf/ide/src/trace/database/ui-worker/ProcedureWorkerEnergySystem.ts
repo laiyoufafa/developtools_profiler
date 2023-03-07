@@ -17,13 +17,64 @@ import {
     BaseStruct,
     drawFlagLine, drawLines,
     drawLoading,
-    drawSelection,
+    drawSelection, isFrameContainPoint,
     ns2x,
     Render,
     RequestMessage
 } from "./ProcedureWorkerCommon.js";
+import {TraceRow} from "../../component/trace/base/TraceRow.js";
 
 export class EnergySystemRender extends Render {
+    renderMainThread(req: { useCache: boolean; context: CanvasRenderingContext2D; type: string;}, row: TraceRow<EnergySystemStruct>) {
+        let list = row.dataList
+        let filter = row.dataListCache;
+        system(list, filter,TraceRow.range!.startNS, TraceRow.range!.endNS, TraceRow.range!.totalNS, row.frame,req.useCache || !TraceRow.range!.refresh)
+        req.context.beginPath();
+        let find = false;
+        let a: any = {}
+        for (let i = 0; i < filter.length; i++) {
+            let re = filter[i]
+
+            EnergySystemStruct.draw(req.context, re)
+            if (row.isHover && re.frame  && isFrameContainPoint(re.frame, row.hoverX, row.hoverY)) {
+                EnergySystemStruct.hoverEnergySystemStruct = re;
+                if (re.type == 0) {
+                    if (re.count != undefined) {
+                        a.workScheduler = re.count
+                    } else {
+                        a.workScheduler = "0"
+                    }
+                }
+                if (re.type == 1) {
+                    if (re.count != undefined) {
+                        a.power = re.count + ""
+                    } else {
+                        a.power = "0"
+                    }
+                }
+
+                if (re.type == 2) {
+                    if (re.count != undefined) {
+                        a.location = re.count + ""
+                    } else {
+                        a.location = "0"
+                    }
+                }
+                find = true;
+            }
+        }
+        if (!find && row.isHover) EnergySystemStruct.hoverEnergySystemStruct = undefined;
+        if (EnergySystemStruct.hoverEnergySystemStruct) {
+            EnergySystemStruct.hoverEnergySystemStruct!.workScheduler = a.workScheduler == undefined ? "0" : a.workScheduler
+            EnergySystemStruct.hoverEnergySystemStruct!.power = a.power == undefined ? "0" : a.power
+            EnergySystemStruct.hoverEnergySystemStruct!.location = a.location == undefined ? "0" : a.location
+        }
+        let spApplication = document.getElementsByTagName("sp-application")[0];
+        let isDark = spApplication.hasAttribute("dark");
+        drawLegend(req, isDark);
+        req.context.closePath();
+    }
+
     render(req: RequestMessage, list: Array<any>, filter: Array<any>) {
         if (req.lazyRefresh) {
             system(list, filter, req.startNS, req.endNS, req.totalNS, req.frame, req.useCache || !req.range.refresh);
@@ -42,32 +93,40 @@ export class EnergySystemRender extends Render {
             req.context.beginPath();
             EnergySystemStruct.hoverEnergySystemStruct = undefined;
             if (req.isHover) {
-                let resultList: any[] = []
+                let a: any = {}
                 for (let re of filter) {
                     if (re.frame && req.hoverX >= re.frame.x && req.hoverX <= re.frame.x + re.frame.width) {
                         EnergySystemStruct.hoverEnergySystemStruct = re;
-                        if (resultList.indexOf(re.type) === -1) {
-                            resultList.push(re.type)
+                        if (re.type == 0) {
+                            if (re.count != undefined) {
+                                a.workScheduler = re.count
+                            } else {
+                                a.workScheduler = "0"
+                            }
+                        }
+                        if (re.type == 1) {
+                            if (re.count != undefined) {
+                                a.power = re.count + ""
+                            } else {
+                                a.power = "0"
+                            }
+                        }
+
+                        if (re.type == 2) {
+                            if (re.count != undefined) {
+                                a.location = re.count + ""
+                            } else {
+                                a.location = "0"
+                            }
                         }
                     }
                 }
                 if (EnergySystemStruct.hoverEnergySystemStruct) {
-                    if (resultList.indexOf(0) > -1) {
-                        EnergySystemStruct.hoverEnergySystemStruct.workScheduler = "survive"
-                    } else {
-                        EnergySystemStruct.hoverEnergySystemStruct.workScheduler = "dead"
-                    }
-                    if (resultList.indexOf(1) > -1) {
-                        EnergySystemStruct.hoverEnergySystemStruct.power = "survive"
-                    } else {
-                        EnergySystemStruct.hoverEnergySystemStruct.power = "dead"
-                    }
-                    if (resultList.indexOf(2) > -1) {
-                        EnergySystemStruct.hoverEnergySystemStruct.location = "survive"
-                    } else {
-                        EnergySystemStruct.hoverEnergySystemStruct.location = "dead"
-                    }
+                    EnergySystemStruct.hoverEnergySystemStruct!.workScheduler = a.workScheduler == undefined ? "0" : a.workScheduler
+                    EnergySystemStruct.hoverEnergySystemStruct!.power = a.power == undefined ? "0" : a.power
+                    EnergySystemStruct.hoverEnergySystemStruct!.location = a.location == undefined ? "0" : a.location
                 }
+
             }
             EnergySystemStruct.selectEnergySystemStruct = req.params.selectEnergySystemStruct;
             for (let re of filter) {
@@ -88,27 +147,30 @@ export class EnergySystemRender extends Render {
     }
 }
 
-export function drawLegend(req: RequestMessage) {
+export function drawLegend(req: RequestMessage | any, isDark?: boolean) {
     let textList = ["WORKSCHEDULER", "POWER_RUNNINGLOCK", "LOCATION"]
     for (let index = 0; index < textList.length; index++) {
         let text = req.context.measureText(textList[index]);
         req.context.fillStyle = EnergySystemStruct.getColor(index);
+        let canvasEndX = req.context.canvas.clientWidth - EnergySystemStruct.OFFSET_WIDTH;
+        let textColor = isDark ? "#FFFFFF" : "#333";
         if (textList[index] == "WORKSCHEDULER") {
-            req.context.fillRect(req.context.canvas.width - (EnergySystemStruct.itemNumber * 120), 12, 8, 8);
+            req.context.fillRect(canvasEndX - (EnergySystemStruct.itemNumber * 120), 12, 8, 8);
             req.context.globalAlpha = 1
             req.context.textBaseline = "middle"
-            req.context.fillStyle = "#333"
-            req.context.fillText(textList[index], req.context.canvas.width - (EnergySystemStruct.itemNumber * 120) + 10, 18)
-            EnergySystemStruct.currentTextWidth = req.context.canvas.width - (EnergySystemStruct.itemNumber * 120) + 40 + text.width
+            req.context.fillStyle = textColor;
+            req.context.fillText(textList[index], canvasEndX - (EnergySystemStruct.itemNumber * 120) + 10, 18)
+            EnergySystemStruct.currentTextWidth = canvasEndX - (EnergySystemStruct.itemNumber * 120) + 40 + text.width
         } else {
             req.context.fillRect(EnergySystemStruct.currentTextWidth, 12, 8, 8);
             req.context.globalAlpha = 1
-            req.context.fillStyle = "#333"
+            req.context.fillStyle = textColor;
             req.context.textBaseline = "middle"
             req.context.fillText(textList[index], EnergySystemStruct.currentTextWidth + 12, 18);
             EnergySystemStruct.currentTextWidth = EnergySystemStruct.currentTextWidth + 40 + text.width
         }
     }
+    req.context.fillStyle = "#333";
 }
 
 export function system(list: Array<any>, res: Array<any>, startNS: number, endNS: number, totalNS: number, frame: any, use: boolean) {
@@ -125,11 +187,24 @@ export function system(list: Array<any>, res: Array<any>, startNS: number, endNS
     }
     res.length = 0;
     if (list) {
-        for (let index = 0; index < list.length; index++) {
-            let item = list[index];
-            if ((item.startNs || 0) + (item.dur || 0) > (startNS || 0) && (item.startNs || 0) < (endNS || 0)) {
-                EnergySystemStruct.setSystemFrame(list[index], 10, startNS || 0, endNS || 0, totalNS || 0, frame)
-                res.push(item)
+        for (let i = 0; i < 3; i++) {
+            let arr = list[i];
+            if (arr) {
+                for (let index = 0; index < arr.length; index++) {
+                    let item = arr[index];
+                    if (index === arr.length - 1) {
+                        item.dur = (endNS || 0) - (item.startNs || 0)
+                    } else {
+                        item.dur = (arr[index + 1].startNs || 0) - (item.startNs || 0)
+                    }
+                    if (item.count == 0) {
+                        item.dur = 0
+                    }
+                    if ((item.startNs || 0) + (item.dur || 0) > (startNS || 0) && (item.startNs || 0) < (endNS || 0)) {
+                        EnergySystemStruct.setSystemFrame(item, 10, startNS || 0, endNS || 0, totalNS || 0, frame)
+                        res.push(item)
+                    }
+                }
             }
         }
     }
@@ -140,9 +215,11 @@ export class EnergySystemStruct extends BaseStruct {
     static selectEnergySystemStruct: EnergySystemStruct | undefined;
     static itemNumber: number = 3
     static currentTextWidth: number = 0
+    static OFFSET_WIDTH: number = 266
     type: number | undefined
     startNs: number | undefined
     dur: number | undefined
+    count: number | undefined
     workScheduler: string | undefined
     power: string | undefined
     location: string | undefined

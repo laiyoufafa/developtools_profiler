@@ -15,22 +15,28 @@
 
 import {SpSystemTrace} from "../SpSystemTrace.js";
 import {
-    queryAnomalyData, queryHisystemEventExits, queryMaxStateValue, queryPowerData, querySmapsExits,
-    queryStateData, querySyseventAppName,
-    querySystemData
+    queryAnomalyData,
+    queryConfigSysEventAppName,
+    queryHisystemEventExits,
+    queryMaxStateValue,
+    queryPowerData,
+    queryStateData,
+    queryStateInitValue,
+    querySyseventAppName,
+    querySystemLocationData,
+    querySystemLockData,
+    querySystemSchedulerData
 } from "../../database/SqlLite.js";
 import {info} from "../../../log/Log.js";
 import {TraceRow} from "../trace/base/TraceRow.js";
-import {procedurePool} from "../../database/Procedure.js";
-import {Utils} from "../trace/base/Utils.js";
-import {
-    EnergyAnomalyStruct,
-    EnergyPowerStruct,
-    EnergyStateStruct,
-    EnergySystemStruct
-} from "../../bean/EnergyStruct.js";
 import {BaseStruct} from "../../bean/BaseStruct.js";
 import {LitPopover} from "../../../base-ui/popover/LitPopoverV.js";
+import {EnergyAnomalyRender, EnergyAnomalyStruct} from "../../database/ui-worker/ProcedureWorkerEnergyAnomaly.js";
+import {EnergySystemStruct, EnergySystemRender} from "../../database/ui-worker/ProcedureWorkerEnergySystem.js";
+import {EnergyPowerStruct, EnergyPowerRender} from "../../database/ui-worker/ProcedureWorkerEnergyPower.js";
+import {EnergyStateStruct, EnergyStateRender} from "../../database/ui-worker/ProcedureWorkerEnergyState.js";
+import {renders} from "../../database/ui-worker/ProcedureWorker.js";
+import {EmptyRender} from "../../database/ui-worker/ProcedureWorkerCPU.js";
 
 export class SpHiSysEventChart {
     static app_name: string | null
@@ -52,16 +58,24 @@ export class SpHiSysEventChart {
     }
 
     private initEnergyRow = async () => {
+        SpHiSysEventChart.app_name = '';
         let appNameFromTable = await querySyseventAppName();
-        if (appNameFromTable.length > 0) {
+        let configAppName = await queryConfigSysEventAppName();
+        if (configAppName.length > 0 && appNameFromTable.length > 0) {
+            let name = configAppName[0].process_name
+            if (name != null) {
+                let filterList = appNameFromTable.filter(appNameFromTableElement => {
+                    return appNameFromTableElement.string_value?.trim() == name;
+                })
+                if (filterList.length > 0) {
+                    SpHiSysEventChart.app_name = name
+                }
+            }
+        }
+        if (appNameFromTable.length > 0 &&  SpHiSysEventChart.app_name == "") {
             SpHiSysEventChart.app_name = appNameFromTable[0].string_value;
         }
-        this.energyTraceRow = new TraceRow<BaseStruct>({
-            canvasNumber: 1,
-            alpha: false,
-            contextId: '2d',
-            isOffScreen: SpSystemTrace.isCanvasOffScreen
-        });
+        this.energyTraceRow = TraceRow.skeleton<any>();
         let radioList;
         let appNameList = this.energyTraceRow?.shadowRoot!.querySelector<LitPopover>("#appNameList");
         let addFlag = false;
@@ -95,7 +109,8 @@ export class SpHiSysEventChart {
                         }
                         // @ts-ignore
                         appNameList!.visible = false
-                        this.energyTraceRow?.click()
+                        TraceRow.range!.refresh = true
+                        this.trace.refreshCanvas(false)
                     }
                 }
                 addFlag = true;
@@ -106,48 +121,32 @@ export class SpHiSysEventChart {
         this.energyTraceRow.rowParentId = '';
         this.energyTraceRow.folder = true;
         this.energyTraceRow.name = 'Energy';
+        this.energyTraceRow.style.height = '40px'
         this.energyTraceRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
         this.energyTraceRow.selectChangeHandler = this.trace.selectChangeHandler;
         this.energyTraceRow.supplier = () => new Promise<Array<any>>((resolve) => resolve([]));
         this.energyTraceRow.onThreadHandler = (useCache) => {
-            procedurePool.submitWithName(`cpu0`, `energy-Group`, {
-                    list: this.energyTraceRow!.must ? this.energyTraceRow!.dataList : undefined,
-                    offscreen: this.energyTraceRow!.must ? this.energyTraceRow!.offscreen[0] : undefined,
-                    xs: TraceRow.range?.xs,
-                    dpr: this.energyTraceRow!.dpr,
-                    isHover: this.energyTraceRow!.isHover,
-                    hoverX: this.energyTraceRow!.hoverX,
-                    hoverY: this.energyTraceRow!.hoverY,
-                    flagMoveInfo: this.trace.hoverFlag,
-                    flagSelectedInfo: this.trace.selectFlag,
-                    canvasWidth: this.energyTraceRow!.canvasWidth,
-                    canvasHeight: this.energyTraceRow!.canvasHeight,
-                    isRangeSelect: this.energyTraceRow!.rangeSelect,
-                    rangeSelectObject: TraceRow.rangeSelectObject,
-                    useCache: useCache,
-                    lineColor: this.energyTraceRow!.getLineColor(),
-                    startNS: TraceRow.range?.startNS || 0,
-                    endNS: TraceRow.range?.endNS || 0,
-                    totalNS: TraceRow.range?.totalNS || 0,
-                    slicesTime: TraceRow.range?.slicesTime,
-                    range: TraceRow.range,
-                    frame: this.energyTraceRow!.frame,
-                }, this.energyTraceRow!.must && this.energyTraceRow!.args.isOffScreen ? this.energyTraceRow!.offscreen[0] : undefined, (res: any, hover: any) => {
-                    this.energyTraceRow!.must = false;
-                }
-            )
+            this.energyTraceRow?.canvasSave(this.trace.canvasPanelCtx!);
+            if(this.energyTraceRow!.expansion){
+                this.trace.canvasPanelCtx?.clearRect(0, 0, this.energyTraceRow!.frame.width, this.energyTraceRow!.frame.height);
+            } else {
+                (renders["empty"] as EmptyRender).renderMainThread(
+                    {
+                        context: this.trace.canvasPanelCtx,
+                        useCache: useCache,
+                        type: ``,
+                    },
+                    this.energyTraceRow!,
+                );
+            }
+            this.energyTraceRow?.canvasRestore(this.trace.canvasPanelCtx!);
         }
         this.trace.rowsEL?.appendChild(this.energyTraceRow!)
     }
 
     private initAnomaly = async () => {
         let time = new Date().getTime()
-        let anomalyTraceRow = new TraceRow<EnergyAnomalyStruct>({
-            canvasNumber: 1,
-            alpha: false,
-            contextId: '2d',
-            isOffScreen: SpSystemTrace.isCanvasOffScreen
-        });
+        let anomalyTraceRow = TraceRow.skeleton<EnergyAnomalyStruct>();
         anomalyTraceRow.rowParentId = `energy`
         anomalyTraceRow.rowHidden = true
         anomalyTraceRow.rowId = "energy-anomaly"
@@ -159,45 +158,25 @@ export class SpHiSysEventChart {
         element!.style.height = `55px`;
         anomalyTraceRow.style.width = `100%`;
         anomalyTraceRow.setAttribute('children', '');
-        anomalyTraceRow.name = "Anomaly";
+        anomalyTraceRow.name = "Anomaly Event";
         anomalyTraceRow.supplier = () => queryAnomalyData()
+        anomalyTraceRow.focusHandler = ()=>{
+            this.trace?.displayTip(anomalyTraceRow, EnergyAnomalyStruct.hoverEnergyAnomalyStruct, `<span>AnomalyName:${EnergyAnomalyStruct.hoverEnergyAnomalyStruct?.eventName||""}</span>`);
+        }
         anomalyTraceRow.onThreadHandler = (useCache) => {
-            procedurePool.submitWithName(`cpu0`, `energyAnomaly`, {
-                    list: anomalyTraceRow.must ? anomalyTraceRow.dataList : undefined,
-                    offscreen: anomalyTraceRow.must ? anomalyTraceRow.offscreen[0] : undefined,
-                    xs: TraceRow.range?.xs,
-                    dpr: anomalyTraceRow.dpr,
-                    isHover: anomalyTraceRow.isHover,
-                    hoverX: anomalyTraceRow.hoverX,
-                    hoverY: anomalyTraceRow.hoverY,
-                    flagMoveInfo: this.trace.hoverFlag,
-                    flagSelectedInfo: this.trace.selectFlag,
-                    canvasWidth: anomalyTraceRow.canvasWidth,
-                    canvasHeight: anomalyTraceRow.canvasHeight,
-                    hoverEnergyAnomalyStruct: EnergyAnomalyStruct.hoverEnergyAnomalyStruct,
-                    selectEnergyAnomalyStruct: EnergyAnomalyStruct.selectEnergyAnomalyStruct,
-                    isRangeSelect: anomalyTraceRow.rangeSelect,
-                    rangeSelectObject: TraceRow.rangeSelectObject,
-                    appName: SpHiSysEventChart.app_name,
+            let context = anomalyTraceRow.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
+            anomalyTraceRow.canvasSave( context);
+            (renders["energyAnomaly"] as EnergyAnomalyRender).renderMainThread(
+                {
+                    context: context,
                     useCache: useCache,
-                    lineColor: anomalyTraceRow.getLineColor(),
-                    startNS: TraceRow.range?.startNS || 0,
-                    endNS: TraceRow.range?.endNS || 0,
-                    totalNS: TraceRow.range?.totalNS || 0,
-                    slicesTime: TraceRow.range?.slicesTime,
-                    range: TraceRow.range,
-                    frame: anomalyTraceRow.frame,
-                }, anomalyTraceRow.must && anomalyTraceRow.args.isOffScreen ? anomalyTraceRow.offscreen[0] : undefined, (res: any, hover: any) => {
-                    anomalyTraceRow.must = false;
-                    if (anomalyTraceRow.args.isOffScreen == true) {
-                        if (anomalyTraceRow.isHover) {
-                            EnergyAnomalyStruct.hoverEnergyAnomalyStruct = hover;
-                            this.trace.visibleRows.filter(it => it.rowType === TraceRow.ROW_TYPE_ANOMALY_ENERGY && it.name !== anomalyTraceRow.name).forEach(it => it.draw(true));
-                        }
-                        return;
-                    }
-                }
-            )
+                    type: `energyAnomaly`,
+                    appName:SpHiSysEventChart.app_name||"",
+                    canvasWidth:this.trace.canvasPanel?.width||0
+                },
+                anomalyTraceRow
+            );
+            anomalyTraceRow.canvasRestore( context);
         }
         this.trace.rowsEL?.appendChild(anomalyTraceRow)
         let durTime = new Date().getTime() - time;
@@ -206,12 +185,7 @@ export class SpHiSysEventChart {
 
     private initSystem = async () => {
         let time = new Date().getTime()
-        let systemTraceRow = new TraceRow<EnergySystemStruct>({
-            canvasNumber: 1,
-            alpha: false,
-            contextId: '2d',
-            isOffScreen: SpSystemTrace.isCanvasOffScreen
-        });
+        let systemTraceRow = TraceRow.skeleton<EnergySystemStruct>();
         systemTraceRow.rowParentId = `energy`
         systemTraceRow.rowHidden = true
         systemTraceRow.rowId = "energy-system"
@@ -223,46 +197,29 @@ export class SpHiSysEventChart {
         element!.style.height = `90px`;
         systemTraceRow.style.width = `100%`;
         systemTraceRow.setAttribute('children', '');
-        systemTraceRow.name = "System";
-        systemTraceRow.supplier = () => querySystemData().then(result => {
+        systemTraceRow.name = "System Event";
+        systemTraceRow.supplier = () => Promise.all([querySystemLocationData(), querySystemLockData(), querySystemSchedulerData()]).then(result => {
             return this.getSystemData(result)
         })
+        systemTraceRow.focusHandler = ()=>{
+            this.trace?.displayTip(systemTraceRow, EnergySystemStruct.hoverEnergySystemStruct, `<div style="width: 250px">
+                                <div style="display: flex"><div style="width: 75%;text-align: left">WORKSCHEDULER: </div><div style="width: 20%;text-align: left">${EnergySystemStruct.hoverEnergySystemStruct?.workScheduler! || 0}</div></div>
+                                <div style="display: flex"><div style="width: 75%;text-align: left">POWER_RUNNINGLOCK: </div><div style="width: 20%;text-align: left">${EnergySystemStruct.hoverEnergySystemStruct?.power! || 0}</div></div>
+                                <div style="display: flex"><div style="width: 75%;text-align: left">LOCATION: </div><div style="width: 20%;text-align: left">${EnergySystemStruct.hoverEnergySystemStruct?.location! || 0}</div></div>
+                            </div>`);
+        }
         systemTraceRow.onThreadHandler = (useCache) => {
-            procedurePool.submitWithName(`cpu1`, `energySystem`, {
-                    list: systemTraceRow.must ? systemTraceRow.dataList : undefined,
-                    offscreen: systemTraceRow.must ? systemTraceRow.offscreen[0] : undefined,
-                    xs: TraceRow.range?.xs,
-                    dpr: systemTraceRow.dpr,
-                    isHover: systemTraceRow.isHover,
-                    hoverX: systemTraceRow.hoverX,
-                    hoverY: systemTraceRow.hoverY,
-                    flagMoveInfo: this.trace.hoverFlag,
-                    flagSelectedInfo: this.trace.selectFlag,
-                    canvasWidth: systemTraceRow.canvasWidth,
-                    canvasHeight: systemTraceRow.canvasHeight,
-                    hoverEnergySystemStruct: EnergySystemStruct.hoverEnergySystemStruct,
-                    selectEnergySystemStruct: EnergySystemStruct.selectEnergySystemStruct,
-                    isRangeSelect: systemTraceRow.rangeSelect,
-                    rangeSelectObject: TraceRow.rangeSelectObject,
+            let context = systemTraceRow.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
+            systemTraceRow.canvasSave( context);
+            (renders["energySystem"] as EnergySystemRender).renderMainThread(
+                {
+                    context: context,
                     useCache: useCache,
-                    lineColor: systemTraceRow.getLineColor(),
-                    startNS: TraceRow.range?.startNS || 0,
-                    endNS: TraceRow.range?.endNS || 0,
-                    totalNS: TraceRow.range?.totalNS || 0,
-                    slicesTime: TraceRow.range?.slicesTime,
-                    range: TraceRow.range,
-                    frame: systemTraceRow.frame,
-                }, systemTraceRow.must && systemTraceRow.args.isOffScreen ? systemTraceRow.offscreen[0] : undefined, (res: any, hover: any) => {
-                    systemTraceRow.must = false;
-                    if (systemTraceRow.args.isOffScreen == true) {
-                        if (systemTraceRow.isHover) {
-                            EnergySystemStruct.hoverEnergySystemStruct = hover;
-                            this.trace.visibleRows.filter(it => it.rowType === TraceRow.ROW_TYPE_SYSTEM_ENERGY && it.name !== systemTraceRow.name).forEach(it => it.draw(true));
-                        }
-                        return;
-                    }
-                }
-            )
+                    type: `energySystem`,
+                },
+                systemTraceRow
+            );
+            systemTraceRow.canvasRestore( context);
         }
         this.trace.rowsEL?.appendChild(systemTraceRow)
         let durTime = new Date().getTime() - time;
@@ -270,82 +227,142 @@ export class SpHiSysEventChart {
     }
 
     getSystemData(result: any): Promise<any> {
-        let systemDataList:any = new Array();
-        let map = new Map();
-        result.forEach((item: any) => {
-            if (item.eventName == "WORK_ADD") {
-                let systemData = this.getEnergySystemStruct(item.ts, 0);
-                map.set(item.eventName, systemData);
-            }
-            if (item.eventName == "WORK_STOP" || item.eventName == "WORK_REMOVE") {
-                let systemData = map.get("WORK_ADD");
-                this.setEnergySystemStructDur(systemDataList, systemData, 0, item.ts);
-                if(item.eventName == "WORK_REMOVE"){
-                    map.delete("WORK_ADD")
-                }
-            }
-            if (item.eventName == "POWER_RUNNINGLOCK" && item.Value.endsWith("ADD")) {
-                let systemData = this.getEnergySystemStruct(item.ts, 1);
-                map.set(item.eventName, systemData);
-            }
-            if (item.eventName == "POWER_RUNNINGLOCK" && item.Value.endsWith("REMOVE")) {
-                let systemData = map.get("POWER_RUNNINGLOCK");
-                this.setEnergySystemStructDur(systemDataList, systemData, 1, item.ts);
-                map.delete("POWER_RUNNINGLOCK");
-            }
-            if (item.eventName == "GNSS_STATE" && item.Value.startsWith("start")) {
-                let systemData = this.getEnergySystemStruct(item.ts, 2);
-                map.set(item.eventName, systemData);
-            }
-            if (item.eventName == "GNSS_STATE" && item.Value.endsWith("stop")) {
-                let systemData = map.get("GNSS_STATE");
-                this.setEnergySystemStructDur(systemDataList, systemData, 2, item.ts);
-                map.delete("GNSS_STATE");
-            }
-        })
-        if (map.size > 0) {
-            for (let item of map.values()) {
-                systemDataList.push(item);
-            }
-            map.clear();
+        let systemDataList: any = {};
+        if(result.length == 0){
+            return Promise.resolve([]);
         }
+        systemDataList[0] = this.handleLockData(result)
+        systemDataList[1] = this.handleLocationData(result)
+        systemDataList[2] = this.handleWorkData(result);
         return systemDataList
     }
 
-    private getEnergySystemStruct (startNs: number, type: number): EnergySystemStruct{
-        let systemData = new EnergySystemStruct();
-        systemData.startNs = startNs;
-        // @ts-ignore
-        systemData.dur = window.recordEndNS;
-        systemData.type = type;
-        return systemData;
+    private handleLocationData(result: Array<Array<any>>){
+        let locationIndex = -1;
+        let locationCount = 0;
+        let locationData: any[] = [];
+        result[0].forEach((item: any) => {
+            let da: any = {}
+            if (item.Value == "stop") {
+                if (locationIndex == -1) {
+                    da.startNs = 0
+                    da.count = 1
+                } else {
+                    da.startNs = item.ts
+                    locationCount--;
+                    da.count = locationCount
+                }
+                da.state = "stop"
+            } else {
+                da.startNs = item.ts
+                locationCount++;
+                da.count = locationCount
+                da.state = "start"
+            }
+            locationIndex = 0
+            da.type = 2
+            locationData.push(da)
+        })
+        return locationData
     }
 
-    private getEnergySystemStructDur (ts: number, type: number): EnergySystemStruct{
-        let systemData = new EnergySystemStruct();
-        systemData.startNs = 0;
-        systemData.dur = ts - 0;
-        systemData.type = type;
-        return systemData;
+    private handleLockData(result: Array<Array<any>>){
+        let lockCount = 0
+        let tokedIds: Array<string> = []
+        let lockData: any[] = []
+        result[1].forEach((item: any) => {
+            let running: any = {}
+            let split = item.Value.split(",");
+            if (item.Value.indexOf("ADD") > -1) {
+                running.startNs = item.ts
+                lockCount++;
+                running.count = lockCount
+                running.token = split[0].split("=")[1]
+                running.type = 1
+                tokedIds.push(running.token)
+                lockData.push(running)
+            } else {
+                running.startNs = item.ts
+                let toked = split[0].split("=")[1];
+                let number = tokedIds.indexOf(toked);
+                if(number > -1){
+                    lockCount--;
+                    running.count = lockCount
+                    running.token = split[0].split("=")[1]
+                    running.type = 1
+                    lockData.push(running)
+                    delete tokedIds[number]
+                }
+            }
+        })
+
+        return lockData
     }
 
-    private setEnergySystemStructDur(systemDataList: any, systemData: EnergySystemStruct, type: number, ts: number){
-        if (systemData) {
-            systemData.dur = ts - systemData.startNs!;
-        } else {
-            systemData = this.getEnergySystemStructDur(ts, type);
+    private handleWorkData(result: Array<Array<any>>) {
+        let workDataArray = result[2];
+        let workCountMap: Map<string, number> = new Map<string, number>();
+        let nameIdMap: Map<string, Array<any>> = new Map<string, []>();
+        let workData: any[] = []
+        for (let i = 0; i < workDataArray.length; i++) {
+            let dd: any = {}
+            let item = workDataArray[i];
+            let keys = item.appKey.split(",");
+            let values = item.Value.split(",")
+            for (let j = 0; j < keys.length; j++) {
+                let key = keys[j]
+                switch (key) {
+                    case "NAME":
+                        dd.appName = values[j]
+                        break;
+                    case "WORKID":
+                        dd.workId = values[j]
+                        break;
+                }
+            }
+            if (item.eventName == "WORK_START") {
+                let nameIdList = nameIdMap.get(dd.appName);
+                let workCount = 0;
+                if (nameIdList == undefined) {
+                    workCount = 1;
+                    nameIdMap.set(dd.appName, [dd.workId])
+                } else {
+                    nameIdList.push(dd.workId)
+                    workCount = nameIdList.length;
+                }
+                let count = workCountMap.get(dd.appName)
+                if (count == undefined) {
+                    workCountMap.set(dd.appName, 1);
+                } else {
+                    workCountMap.set(dd.appName, count + 1);
+                }
+                dd.startNs = item.ts
+                dd.count = workCount;
+                dd.type = 0
+                workData.push(dd)
+            } else if (item.eventName == "WORK_STOP") {
+                let nameIdList: any = nameIdMap.get(dd.appName);
+                let index =  nameIdList.indexOf(dd.workId);
+                if (nameIdList != undefined &&  index> -1) {
+                    delete nameIdList[index];
+                    let workCount = workCountMap.get(dd.appName)
+                    if (workCount != undefined) {
+                        workCount = workCount - 1;
+                        workCountMap.set(dd.appName, workCount)
+                        dd.startNs = item.startNS;
+                        dd.count = workCount;
+                        dd.type = 0
+                        workData.push(dd)
+                    }
+                }
+            }
         }
-        systemDataList.push(systemData);
+        return workData
     }
 
     private initPower = async () => {
         let time = new Date().getTime();
-        let powerTraceRow = new TraceRow<EnergyPowerStruct>({
-            canvasNumber: 1,
-            alpha: true,
-            contextId: '2d',
-            isOffScreen: SpSystemTrace.isCanvasOffScreen
-        });
+        let powerTraceRow = TraceRow.skeleton<EnergyPowerStruct>();
         powerTraceRow.rowParentId = `energy`
         powerTraceRow.rowHidden = true
         powerTraceRow.rowId = "energy-power"
@@ -361,43 +378,32 @@ export class SpHiSysEventChart {
         powerTraceRow.supplier = () => queryPowerData().then(items => {
             return this.getPowerData(items)
         })
+        powerTraceRow.focusHandler = ()=>{
+            this.trace?.displayTip(powerTraceRow, EnergyPowerStruct.hoverEnergyPowerStruct, `<div style="width: 120px">
+                            <div style="display: flex"><div style="width: 80%;text-align: left">CPU: </div><div style="width: 20%;text-align: left">${EnergyPowerStruct.hoverEnergyPowerStruct?.cpu! || 0}</div></div>
+                            <div style="display: flex"><div style="width: 80%;text-align: left">location: </div><div style="width: 20%;text-align: left">${EnergyPowerStruct.hoverEnergyPowerStruct?.location! || 0}</div></div>
+                            <div style="display: flex"><div style="width: 80%;text-align: left">GPU: </div><div style="width: 20%;text-align: left">${EnergyPowerStruct.hoverEnergyPowerStruct?.gpu! || 0}</div></div>
+                            <div style="display: flex"><div style="width: 80%;text-align: left">display: </div><div style="width: 20%;text-align: left">${EnergyPowerStruct.hoverEnergyPowerStruct?.display! || 0}</div></div>
+                            <div style="display: flex"><div style="width: 80%;text-align: left">camera: </div><div style="width: 20%;text-align: left">${EnergyPowerStruct.hoverEnergyPowerStruct?.camera! || 0}</div></div>
+                            <div style="display: flex"><div style="width: 80%;text-align: left">bluetooth: </div><div style="width: 20%;text-align: left">${EnergyPowerStruct.hoverEnergyPowerStruct?.bluetooth! || 0}</div></div>
+                            <div style="display: flex"><div style="width: 80%;text-align: left">flashlight: </div><div style="width: 20%;text-align: left">${EnergyPowerStruct.hoverEnergyPowerStruct?.flashlight! || 0}</div></div>
+                            <div style="display: flex"><div style="width: 80%;text-align: left">audio: </div><div style="width: 20%;text-align: left">${EnergyPowerStruct.hoverEnergyPowerStruct?.audio! || 0}</div></div>
+                            <div style="display: flex"><div style="width: 80%;text-align: left">wifiScan: </div><div style="width: 20%;text-align: left">${EnergyPowerStruct.hoverEnergyPowerStruct?.wifiscan! || 0}</div></div>
+                        </div>`);
+        }
         powerTraceRow.onThreadHandler = (useCache) => {
-            procedurePool.submitWithName(`cpu2`, `energyPower`, {
-                    list: powerTraceRow.must ? powerTraceRow.dataList : undefined,
-                    offscreen: powerTraceRow.must ? powerTraceRow.offscreen[0] : undefined,
-                    xs: TraceRow.range?.xs,
-                    dpr: powerTraceRow.dpr,
-                    isHover: powerTraceRow.isHover,
-                    hoverX: powerTraceRow.hoverX,
-                    hoverY: powerTraceRow.hoverY,
-                    flagMoveInfo: this.trace.hoverFlag,
-                    flagSelectedInfo: this.trace.selectFlag,
-                    canvasWidth: powerTraceRow.canvasWidth,
-                    canvasHeight: powerTraceRow.canvasHeight,
-                    hoverEnergyPowerStruct: EnergyPowerStruct.hoverEnergyPowerStruct,
-                    selectEnergyPowerStruct: EnergyPowerStruct.selectEnergyPowerStruct,
-                    isRangeSelect: powerTraceRow.rangeSelect,
-                    rangeSelectObject: TraceRow.rangeSelectObject,
-                    maxPowerName: SpHiSysEventChart.app_name,
+            let context = powerTraceRow.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
+            powerTraceRow.canvasSave( context);
+            (renders["energyPower"] as EnergyPowerRender).renderMainThread(
+                {
+                    context: context,
                     useCache: useCache,
-                    lineColor: powerTraceRow.getLineColor(),
-                    startNS: TraceRow.range?.startNS || 0,
-                    endNS: TraceRow.range?.endNS || 0,
-                    totalNS: TraceRow.range?.totalNS || 0,
-                    slicesTime: TraceRow.range?.slicesTime,
-                    range: TraceRow.range,
-                    frame: powerTraceRow.frame,
-                }, powerTraceRow.must && powerTraceRow.args.isOffScreen ? powerTraceRow.offscreen[0] : undefined, (res: any, hover: any) => {
-                    powerTraceRow.must = false;
-                    if (powerTraceRow.args.isOffScreen == true) {
-                        if (powerTraceRow.isHover) {
-                            EnergyPowerStruct.hoverEnergyPowerStruct = hover;
-                            this.trace.visibleRows.filter(it => it.rowType === TraceRow.ROW_TYPE_POWER_ENERGY && it.name !== powerTraceRow.name).forEach(it => it.draw(true));
-                        }
-                        return;
-                    }
-                }
-            )
+                    type: `energyPower`,
+                    appName:SpHiSysEventChart.app_name||""
+                },
+                powerTraceRow
+            );
+            powerTraceRow.canvasRestore( context);
         }
         this.trace.rowsEL?.appendChild(powerTraceRow)
         let durTime = new Date().getTime() - time;
@@ -459,10 +465,11 @@ export class SpHiSysEventChart {
 
     private initState = async () => {
         let time = new Date().getTime();
-        let stateList = ["Brightness nit", "Signal Level", "Wifi Event Received", "Audio Stream Change",
+        let stateList = ["Brightness Nit", "Signal Level", "Wifi Event Received", "Audio Stream Change",
             "Audio Volume Change", "Wifi State", "Bluetooth Br Switch State", "Location Switch State", "Sensor State"]
         let stateName = ["BRIGHTNESS_NIT", "SIGNAL_LEVEL", "WIFI_EVENT_RECEIVED", "AUDIO_STREAM_CHANGE",
             "AUDIO_VOLUME_CHANGE", "WIFI_STATE", "BLUETOOTH_BR_SWITCH_STATE", "LOCATION_SWITCH_STATE", "SENSOR_STATE"]
+        let initValueList = ["brightness", "nocolumn", "nocolumn", "nocolumn", "nocolumn", "wifi", "bt_state", "location", "nocolumn"]
 
         for (let index = 0; index < stateList.length; index++) {
             let maxStateData = await queryMaxStateValue(stateName[index])
@@ -470,19 +477,14 @@ export class SpHiSysEventChart {
                 continue;
             }
             let maxStateTotal = maxStateData[0].maxValue.toString()
-            if (maxStateData[0].type.toLocaleLowerCase().includes("state") || maxStateData[0].type.toLocaleLowerCase().includes("sensor")) {
+            if (maxStateData[0].type.toLocaleLowerCase().includes("state") &&　maxStateData[0].type.toLocaleLowerCase()　!= ("bluetooth_br_switch_state")) {
                 if (maxStateData[0].maxValue == 0) {
                     maxStateTotal = "enable"
                 } else {
                     maxStateTotal = "disable"
                 }
             }
-            let stateTraceRow = new TraceRow<EnergyStateStruct>({
-                canvasNumber: 1,
-                alpha: false,
-                contextId: '2d',
-                isOffScreen: SpSystemTrace.isCanvasOffScreen
-            });
+            let stateTraceRow = TraceRow.skeleton<EnergyStateStruct>();
             stateTraceRow.rowParentId = `energy`
             stateTraceRow.rowHidden = true
             stateTraceRow.rowId = "energy-state"
@@ -493,45 +495,36 @@ export class SpHiSysEventChart {
             stateTraceRow.style.width = `100%`;
             stateTraceRow.setAttribute('children', '');
             stateTraceRow.name = `${stateList[index]}`
-            stateTraceRow.supplier = () => queryStateData(stateName[index])
-            stateTraceRow.onThreadHandler = (useCache) => {
-                procedurePool.submitWithName(`cpu${stateList.length % (index + 1)}`, `energyState${index}`, {
-                        list: stateTraceRow.must ? stateTraceRow.dataList : undefined,
-                        offscreen: stateTraceRow.must ? stateTraceRow.offscreen[0] : undefined,
-                        xs: TraceRow.range?.xs,
-                        dpr: stateTraceRow.dpr,
-                        isHover: stateTraceRow.isHover,
-                        hoverX: stateTraceRow.hoverX,
-                        hoverY: stateTraceRow.hoverY,
-                        flagMoveInfo: this.trace.hoverFlag,
-                        flagSelectedInfo: this.trace.selectFlag,
-                        canvasWidth: stateTraceRow.canvasWidth,
-                        canvasHeight: stateTraceRow.canvasHeight,
-                        hoverEnergyStateStruct: EnergyStateStruct.hoverEnergyStateStruct,
-                        selectEnergyStateStruct: EnergyStateStruct.selectEnergyStateStruct,
-                        isRangeSelect: stateTraceRow.rangeSelect,
-                        rangeSelectObject: TraceRow.rangeSelectObject,
-                        maxState: maxStateData[0].maxValue,
-                        maxStateName: maxStateTotal.toString(),
-                        useCache: useCache,
-                        lineColor: stateTraceRow.getLineColor(),
-                        startNS: TraceRow.range?.startNS || 0,
-                        endNS: TraceRow.range?.endNS || 0,
-                        totalNS: TraceRow.range?.totalNS || 0,
-                        slicesTime: TraceRow.range?.slicesTime,
-                        range: TraceRow.range,
-                        frame: stateTraceRow.frame,
-                    }, stateTraceRow.must && stateTraceRow.args.isOffScreen ? stateTraceRow.offscreen[0] : undefined, (res: any, hover: any) => {
-                        stateTraceRow.must = false;
-                        if (stateTraceRow.args.isOffScreen == true) {
-                            if (stateTraceRow.isHover) {
-                                EnergyStateStruct.hoverEnergyStateStruct = hover;
-                                this.trace.visibleRows.filter(it => it.rowType === TraceRow.ROW_TYPE_STATE_ENERGY && it.name !== stateTraceRow.name).forEach(it => it.draw(true));
-                            }
-                            return;
-                        }
+            stateTraceRow.supplier = () => Promise.all([queryStateInitValue(stateName[index], initValueList[index]), queryStateData(stateName[index])]).then(result => {
+                let stateInitValue = initValueList[index] == "nocolumn" ? [] : result[0];
+                return stateInitValue.concat(result[1]);
+            })
+            stateTraceRow.focusHandler = ()=>{
+                let tip = "";
+                if (EnergyStateStruct.hoverEnergyStateStruct?.type!.toLocaleLowerCase().includes("state")) {
+                    tip = `<span>Switch Status: ${EnergyStateStruct.hoverEnergyStateStruct?.value == 1 ? 'disable' : 'enable'}</span>`
+                    if (EnergyStateStruct.hoverEnergyStateStruct?.type!.toLocaleLowerCase() == "bluetooth_br_switch_state") {
+                        tip = `<span>${SpHiSysEventChart.getBlueToothState(EnergyStateStruct.hoverEnergyStateStruct?.value)}</span>`
                     }
-                )
+                } else {
+                    tip = `<span>value: ${EnergyStateStruct.hoverEnergyStateStruct?.value || 0}</span>`
+                }
+                this.trace?.displayTip(stateTraceRow, EnergyStateStruct.hoverEnergyStateStruct, tip);
+            }
+            stateTraceRow.onThreadHandler = (useCache) => {
+                let context = stateTraceRow.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
+                stateTraceRow.canvasSave( context);
+                (renders["energyState"] as EnergyStateRender).renderMainThread(
+                    {
+                        context: context,
+                        useCache: useCache,
+                        type: `energyState${index}`,
+                        maxState: maxStateData[0].maxValue,
+                        maxStateName: maxStateData[0].type.toLocaleLowerCase()　== ("bluetooth_br_switch_state")? "-1" : maxStateTotal.toString()
+                    },
+                    stateTraceRow
+                );
+                stateTraceRow.canvasRestore( context);
             }
             this.trace.rowsEL?.appendChild(stateTraceRow)
             let durTime = new Date().getTime() - time;
@@ -539,4 +532,18 @@ export class SpHiSysEventChart {
         }
     }
 
+    public static getBlueToothState(num: number | undefined): string{
+        switch (num) {
+            case 0:
+                return "STATE_TURNING_ON";
+            case 1:
+                return "STATE_TURN_ON";
+            case 2:
+                return "STATE_TURNING_OFF";
+            case 3:
+                return "STATE_TURN_OFF";
+            default:
+                return "UNKNOWN_STATE";
+        }
+    }
 }

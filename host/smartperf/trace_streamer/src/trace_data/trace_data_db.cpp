@@ -133,6 +133,10 @@ void TraceDataDB::Prepare()
         ExecuteSql(exportSql);
     }
 #endif
+    ExecuteSql(
+        "update thread set ipid = \
+        (select id from process where \
+        thread.tid = process.pid) where thread.ipid is null;");
     std::string createArgsView =
         "create view args_view AS select A.argset, V2.data as keyName, A.id, D.desc, (case when "
         "A.datatype==1 then V.data else A.value end) as strValue from args as A left join data_type as D on "

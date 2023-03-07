@@ -48,6 +48,7 @@ public:
 private:
     using FuncCall = std::function<bool(const ArgsMap& args, const BytraceLine line)>;
     bool SchedSwitchEvent(const ArgsMap& args, const BytraceLine& line) const;
+    bool BlockedReason(const ArgsMap& args, const BytraceLine& line) const;
     bool TaskRenameEvent(const ArgsMap& args, const BytraceLine& line) const;
     bool TaskNewtaskEvent(const ArgsMap& args, const BytraceLine& line) const;
     bool TracingMarkWriteOrPrintEvent(const ArgsMap& args, const BytraceLine& line);
@@ -80,6 +81,7 @@ private:
 
     std::map<std::string, FuncCall> eventToFunctionMap_ = {};
     const unsigned int MIN_SCHED_SWITCH_ARGS_COUNT = 6;
+    const unsigned int MIN_BLOCKED_REASON_ARGS_COUNT = 3;
     const unsigned int MIN_SCHED_WAKEUP_ARGS_COUNT = 2;
     const unsigned int MIN_TASK_RENAME_ARGS_COUNT = 2;
     const unsigned int MIN_SCHED_WAKING_ARGS_COUNT = 4;

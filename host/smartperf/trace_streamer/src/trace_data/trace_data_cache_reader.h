@@ -87,6 +87,7 @@ public:
 #endif
     const AppNames& GetConstAppNamesData() const;
     const SysEventMeasureData& GetConstSyseventMeasureData() const;
+    const TraceConfigData& GetConstTraceConfigData() const;
     const SmapsData& GetConstSmapsData() const;
     const BioLatencySampleData& GetConstBioLatencySampleData() const;
     const ClockSnapshotData& GetConstClockSnapshotData() const;

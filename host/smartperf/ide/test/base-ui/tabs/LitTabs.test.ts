@@ -153,7 +153,7 @@ describe('LitSwitch Test', ()=>{
             justify-content: center;
             align-items: center;
             /*padding: 6px 0px 6px 12px;*/
-            padding: 0px 6px;
+            padding-left: 12px;
             font-size: .9rem;
             font-weight: normal;
             cursor: pointer;
@@ -191,6 +191,7 @@ describe('LitSwitch Test', ()=>{
             display: flex;
             position: relative;
             height: 38px;
+            z-index: 3;
             /*justify-content: center;*/
             /*align-items: center;*/
         }
@@ -209,6 +210,7 @@ describe('LitSwitch Test', ()=>{
             /*overflow: -moz-scrollbars-none; */
             /*-ms-overflow-style: none;*/
             /*transition: all 0.3s;*/
+            
             position: absolute;
             overflow: auto;
             height: 850px;
@@ -216,6 +218,9 @@ describe('LitSwitch Test', ()=>{
             transform-origin: left top;
             overflow-x: hidden;
             width: 38px;
+            
+            cursor: row-resize;
+            user-select: none;
         }
         :host([position='top']) .tab-nav,
         :host([position='top-left']) .tab-nav{
@@ -226,7 +231,7 @@ describe('LitSwitch Test', ()=>{
             user-select: none;
             margin-top: 6px;
             margin-left: 5px;
-
+            
             transform: translateY(-38px) rotateZ(90deg) rotateX(180deg) translateY(38px);
             transform-origin: left bottom;
             flex-wrap: nowrap;

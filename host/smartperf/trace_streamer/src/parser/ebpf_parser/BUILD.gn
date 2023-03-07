@@ -55,7 +55,10 @@ ohos_source_set("ebpf_parser_src") {
     "//third_party/sqlite/include",
   ]
   if (is_win || is_macx) {
-    include_dirs += [ "//third_party/perf_include/linux" ]
+    include_dirs += [
+      "//third_party/perf_include/linux",
+      "//third_party/perf_include/musl",
+    ]
   }
 
   if (enable_ts_utest && !use_wasm) {
@@ -68,8 +71,8 @@ ohos_source_set("ebpf_parser_src") {
       "-ftest-coverage",
       "--coverage",
     ]
-    if (is_macx && is_test) {
-      cflags += [ "-D UT_MAC" ]
+    if (is_test) {
+      cflags += [ "-D IS_UT" ]
     }
   }
 }

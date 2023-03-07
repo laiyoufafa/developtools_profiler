@@ -100,6 +100,7 @@ describe('TabPanePowerBattery Test', () => {
                 display: flex;
                 height: auto;
                 overflow-y: auto;
+                margin-top: 1.2em;
             }
             .battery-canvas{
                 width: 50%;
@@ -116,9 +117,6 @@ describe('TabPanePowerBattery Test', () => {
             }
         </style>
         <div style=\\"width: 100%;height: auto;position: relative\\">
-            <div class=\\"current-static\\">
-                <h2 id=\\"batteryTitle\\"></h2>
-            </div>
             <div class=\\"bottom-scroll-area\\">
                 <div class=\\"battery-canvas\\">
                     <lit-table id=\\"tb-power-battery-energy\\" no-head style=\\"height: auto\\">

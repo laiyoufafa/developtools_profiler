@@ -42,7 +42,7 @@ export class TabPaneFrequencySample extends BaseElement {
         this.loadingPage.style.visibility = "visible"
         this.selectionParam = val;
         // @ts-ignore
-        this.tbl!.shadowRoot!.querySelector(".table").style.height = (this.parentElement!.clientHeight - 25) + "px"
+        this.tbl!.shadowRoot?.querySelector(".table").style.height = (this.parentElement!.clientHeight - 25) + "px"
         this.queryDataByDB(val)
     }
 
@@ -89,7 +89,10 @@ export class TabPaneFrequencySample extends BaseElement {
             })
 
             let dataList:Array<any> = [];
-            sampleMap.forEach(a=>{a.timeStr = Utils.getProbablyTime(a.time);dataList.push(a);});
+            sampleMap.forEach(a=>{
+                a.timeStr = Utils.getProbablyTime(a.time);
+                dataList.push(a);
+            });
             this.source = dataList;
             this.sortTable(this.sortKey,this.sortType)
         })

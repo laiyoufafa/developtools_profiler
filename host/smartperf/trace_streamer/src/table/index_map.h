@@ -261,7 +261,7 @@ public:
     }
     void Remove(TableRowId row)
     {
-        std::remove(rowIndex_.begin(), rowIndex_.end(), row);
+        (void)std::remove(rowIndex_.begin(), rowIndex_.end(), row);
     }
     void Set(TableRowId start, TableRowId end)
     {

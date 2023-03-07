@@ -25,8 +25,8 @@ import {
     IoCompletionTimes, VirtualMemoryEvent,
     VM_TYPE_MAP
 } from "../../../../database/logic-worker/ProcedureLogicWorkerFileSystem.js";
-import {TabPaneFilter} from "../TabPaneFilter.js";
-import {getTabVirtualMemoryType} from "../../../../database/SqlLite.js";
+import {FilterData, TabPaneFilter} from "../TabPaneFilter.js";
+import {getTabIoCompletionTimesType, getTabVirtualMemoryType} from "../../../../database/SqlLite.js";
 
 @element('tabpane-io-completiontimes')
 export class TabPaneIoCompletionTimes extends BaseElement {
@@ -96,23 +96,33 @@ export class TabPaneIoCompletionTimes extends BaseElement {
             // @ts-ignore
             this.sortTable(evt.detail.key,evt.detail.sort)
         })
+        this.shadowRoot?.querySelector<TabPaneFilter>("#filter")!.getFilterData((data: FilterData) => {
+            let index = parseInt(data.firstSelect||"0");
+            if(index > this.defaultNativeTypes.length -1){
+                this.filterTypeData(this.statsticsSelection[index - this.defaultNativeTypes.length])
+            }else {
+                this.filterTypeData(undefined)
+            }
+            this.tbl!.recycleDataSource = this.source
+        })
     }
 
     async initFilterTypes(val: SelectionParam){
         let filter = this.shadowRoot?.querySelector<TabPaneFilter>("#filter")
-        let typeKeys = await getTabVirtualMemoryType(val.leftNs,val.rightNs);
+        let typeKeys = await getTabIoCompletionTimesType(val.leftNs,val.rightNs);
         this.defaultNativeTypes = ["All"]
+        this.statsticsSelection = []
         typeKeys.forEach((item)=>{
             // @ts-ignore
-            this.defaultNativeTypes.push(VM_TYPE_MAP[item.type+""])
+            this.defaultNativeTypes.push(item.tier+"")
         })
         this.native_type = [...this.defaultNativeTypes]
-        filter!.setSelectList([...this.defaultNativeTypes],null,"Operation Type")
+        filter!.setSelectList([...this.defaultNativeTypes],null,"Tier")
         filter!.firstSelect = "0"
     }
 
     async fromStastics(val: SelectionParam | any) {
-        if(val.fileSystemVMData == undefined){
+        if(val.fileSystemIoData == undefined){
             return
         }
         this.tblData!.recycleDataSource = []
@@ -121,25 +131,25 @@ export class TabPaneIoCompletionTimes extends BaseElement {
         if (this.currentSelection != val) {
             await this.initFilterTypes(val)
         }
-        let typeIndexOf = this.native_type.indexOf(val.fileSystemVMData.path.value);
+        let typeIndexOf = this.native_type.indexOf(val.fileSystemIoData.path.value);
         if(typeIndexOf == -1){
-            this.statsticsSelection.push(val.fileSystemVMData.path)
-            this.native_type.push(val.fileSystemVMData.path.value)
+            this.statsticsSelection.push(val.fileSystemIoData.path)
+            this.native_type.push(val.fileSystemIoData.path.value)
             typeIndexOf = this.native_type.length - 1
         }
         if (this.currentSelection != val) {
             this.currentSelection = val
-            filter!.setSelectList(this.native_type, null,"Operation Type")
+            filter!.setSelectList(this.native_type, null,"Tier")
             filter!.firstSelect = typeIndexOf + ""
             this.queryData(val)
         }else {
             if(typeIndexOf == parseInt(filter!.firstSelect)){
                 return
             }
-            filter!.setSelectList(this.native_type, null,"Operation Type")
+            filter!.setSelectList(this.native_type, null,"Tier")
             filter!.firstSelect = typeIndexOf + ""
-            this.filterTypeData(val?.fileSystemVMData?.path||undefined)
-            val.fileSystemVMData = undefined
+            this.filterTypeData(val?.fileSystemIoData?.path||undefined)
+            val.fileSystemIoData = undefined
             this.tbl!.recycleDataSource = this.source
         }
     }
@@ -151,11 +161,11 @@ export class TabPaneIoCompletionTimes extends BaseElement {
         this.source = [];
         this.queryDataSource = [];
         procedurePool.submitWithName("logic0","fileSystem-queryIOEvents",
-            {leftNs:val.leftNs,rightNs:val.rightNs,typeArr:val.fileSystemType},undefined,(res:any)=>{
+            {leftNs:val.leftNs,rightNs:val.rightNs,diskIOipids:val.diskIOipids},undefined,(res:any)=>{
                 this.source = this.source.concat(res.data)
                 this.queryDataSource = this.queryDataSource.concat(res.data)
-                this.filterTypeData(val?.fileSystemVMData?.path||undefined)
-                val.fileSystemVMData = undefined
+                this.filterTypeData(val?.fileSystemIoData?.path||undefined)
+                val.fileSystemIoData = undefined
                 res.data = null;
                 if(!res.isSending){
                     this.tbl!.recycleDataSource = this.source;
@@ -169,40 +179,38 @@ export class TabPaneIoCompletionTimes extends BaseElement {
     }
 
     filterTypeData(pathData:any){
-        // let filter = this.shadowRoot?.querySelector<TabPaneFilter>("#filter")
-        // let firstSelect = filter!.firstSelect;
-        // let tier = -1;
-        // let path = -1;
-        // let pid = -1;
-        // if(parseInt(firstSelect) <= this.defaultNativeTypes.length - 1){
-        //     let typeEntry = Object.entries(DISKIO_TYPE_MAP).find((entry)=>{
-        //         return entry[1] == this.defaultNativeTypes[parseInt(firstSelect)]
-        //     })
-        //     type = typeEntry?parseInt(typeEntry[0]):0
-        // }else if(pathData!=undefined){
-        //     type = parseInt(pathData.type);
-        //     tid = pathData.tid||-1;
-        //     pid = pathData.pid||-1;
-        // }else if(pathData==undefined){
-        //     return
-        // }
-        // let isTidFilter = false;
-        // let isPidFilter = false;
-        // let isTypeFilter = false;
-        // this.source = this.queryDataSource.filter((item)=>{
-        //     if(tid == -1){
-        //         isTidFilter = true
-        //     }else {
-        //         isTidFilter = item.tid == tid
-        //     }
-        //     if(pid == -1){
-        //         isPidFilter = true
-        //     }else{
-        //         isPidFilter = item.pid == pid
-        //     }
-        //     isTypeFilter = type == 0 || item.type == type;
-        //     return isTidFilter&&isPidFilter&&isTypeFilter
-        // })
+        let filter = this.shadowRoot?.querySelector<TabPaneFilter>("#filter")
+        let firstSelect = filter!.firstSelect;
+        let tier = -1;
+        let path = "";
+        let pid = -1;
+        if(parseInt(firstSelect) <= this.defaultNativeTypes.length - 1){
+            let index = parseInt(firstSelect);
+            tier = index == 0?-1:parseInt(this.defaultNativeTypes[index])
+        }else if(pathData!=undefined){
+            tier = parseInt(pathData.tier);
+            path = pathData.path||"";
+            pid = pathData.pid||-1;
+        }else if(pathData==undefined){
+            return
+        }
+        let isTierFilter = false;
+        let isPidFilter = false;
+        let isPathFilter = false;
+        this.source = this.queryDataSource.filter((item)=>{
+            if(tier == -1){
+                isTierFilter = true
+            }else {
+                isTierFilter = item.tier == tier
+            }
+            if(pid == -1){
+                isPidFilter = true
+            }else{
+                isPidFilter = item.pid == pid
+            }
+            isPathFilter = path == "" || item.path == path;
+            return isTierFilter&&isPidFilter&&isPathFilter
+        })
     }
 
     sortTable(key: string,type:number){
@@ -244,6 +252,26 @@ export class TabPaneIoCompletionTimes extends BaseElement {
                         return 0;
                     } else {
                         return type === 2 ? -1 : 1;
+                    }
+                }else if(key == "operation"){
+                    if (a.operation > b.operation) {
+                        return type === 2 ? 1 : -1;
+                    } else if (a.operation == b.operation)  {
+                        return 0;
+                    } else {
+                        return type === 2 ? -1 : 1;
+                    }
+                }else if(key == "sizeStr"){
+                    if(type == 1){
+                        return a.size - b.size ;
+                    }else{
+                        return b.size - a.size ;
+                    }
+                }else if(key == "tier"){
+                    if(type == 1){
+                        return a.tier - b.tier ;
+                    }else{
+                        return b.tier - a.tier ;
                     }
                 }else {
                     return 0;
@@ -296,11 +324,11 @@ export class TabPaneIoCompletionTimes extends BaseElement {
                             <lit-table-column width="200px" title="Process" data-index="process" key="process" align="flex-start" order></lit-table-column>
                             <lit-table-column width="200px" title="Latency per 4KB" data-index="durPer4kStr" key="durPer4kStr" align="flex-start" order></lit-table-column>
                             <lit-table-column width="200px" title="Thread" data-index="thread" key="thread" align="flex-start" order></lit-table-column>
-                            <lit-table-column width="200px" title="Operation" data-index="operation" key="operation" align="flex-start" ></lit-table-column>
-                            <lit-table-column width="200px" title="Bytes" data-index="sizeStr" key="sizeStr" align="flex-start" ></lit-table-column>
+                            <lit-table-column width="200px" title="Operation" data-index="operation" key="operation" align="flex-start" order></lit-table-column>
+                            <lit-table-column width="200px" title="Bytes" data-index="sizeStr" key="sizeStr" align="flex-start" order></lit-table-column>
                             <lit-table-column width="280px" title="Path" data-index="path" key="path" align="flex-start" ></lit-table-column>
                             <lit-table-column width="200px" title="Block number" data-index="blockNumber" key="blockNumber" align="flex-start" ></lit-table-column>
-                            <lit-table-column width="240px" title="Tier" data-index="tier" key="tier" align="flex-start" ></lit-table-column>
+                            <lit-table-column width="240px" title="Tier" data-index="tier" key="tier" align="flex-start" order></lit-table-column>
                             <lit-table-column width="600px" title="Backtrace" data-index="backtrace" key="backtrace" align="flex-start" >
                                 <template>
                                     <div>
@@ -327,7 +355,7 @@ export class TabPaneIoCompletionTimes extends BaseElement {
                 </lit-slicer>
             </div>
             <lit-progress-bar class="progress"></lit-progress-bar>
-            <tab-pane-filter id="filter"></tab-pane-filter>
+            <tab-pane-filter id="filter" first></tab-pane-filter>
             <div class="loading"></div>
         </div>
 `;

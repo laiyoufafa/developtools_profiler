@@ -18,7 +18,7 @@
 namespace SysTuning {
 namespace TraceStreamer {
 namespace {
-enum Index { ID = 0, CALLCHAIN_ID, DEPTH, SYMBOL_ID, FILE_ID, OFFSET, SYMBOL_OFFSET };
+enum Index { ID = 0, CALLCHAIN_ID, DEPTH, SYMBOL_ID, FILE_ID, OFFSET, SYMBOL_OFFSET, VADDR };
 }
 NativeHookFrameTable::NativeHookFrameTable(const TraceDataCache* dataCache) : TableBase(dataCache)
 {
@@ -29,6 +29,7 @@ NativeHookFrameTable::NativeHookFrameTable(const TraceDataCache* dataCache) : Ta
     tableColumn_.push_back(TableBase::ColumnInfo("file_id", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("offset", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("symbol_offset", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("vaddr", "TEXT"));
     tablePriKey_.push_back("id");
 }
 
@@ -208,6 +209,13 @@ int NativeHookFrameTable::Cursor::Column(int column) const
         }
         case SYMBOL_OFFSET: {
             sqlite3_result_int64(context_, static_cast<int64_t>(nativeHookFrameInfoObj_.SymbolOffsets()[CurrentRow()]));
+            break;
+        }
+        case VADDR: {
+            if (!nativeHookFrameInfoObj_.Vaddrs()[CurrentRow()].empty()) {
+                sqlite3_result_text(context_, nativeHookFrameInfoObj_.Vaddrs()[CurrentRow()].c_str(), STR_DEFAULT_LEN,
+                                    nullptr);
+            }
             break;
         }
         default:

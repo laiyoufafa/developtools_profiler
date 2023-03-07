@@ -48,7 +48,7 @@ export class SpFileSystem extends BaseElement {
             this.setAttribute("startRecord", "");
             this.selectProcess!.removeAttribute("readonly");
         } else {
-            if(!this.startFileSystem && !this.startVirtualMemory) {
+            if (!this.startFileSystem && !this.startVirtualMemory && !this.startIo) {
                 this.removeAttribute("startRecord")
                 this.disable();
                 this.selectProcess!.setAttribute("readonly", "readonly")
@@ -103,6 +103,7 @@ export class SpFileSystem extends BaseElement {
         let configVal = this.shadowRoot?.querySelectorAll<HTMLElement>(".config");
         let systemConfig: SystemConfig = {
             process: "",
+            unWindLevel: 0
         };
         configVal!.forEach(value => {
             switch (value.title) {
@@ -121,6 +122,11 @@ export class SpFileSystem extends BaseElement {
                         }
                     }
                     break;
+                case "Max Unwind Level":
+                    let maxUnwindLevel = value as HTMLInputElement
+                    if (maxUnwindLevel.value != "") {
+                        systemConfig.unWindLevel = Number(maxUnwindLevel.value);
+                    }
             }
         });
         return systemConfig;
@@ -202,7 +208,7 @@ export class SpFileSystem extends BaseElement {
                             }
                         })
                     }
-                    if (config.title == "Start Virtual Memory Record") {
+                    if (config.title == "Start Page Fault Record") {
                         switch1.addEventListener("change", (event: any) => {
                             let detail = event.detail;
                             if (detail.checked) {
@@ -212,15 +218,34 @@ export class SpFileSystem extends BaseElement {
                             }
                         })
                     }
+                    if (config.title == "Start BIO Latency Record") {
+                        switch1.addEventListener("change", (event: any) => {
+                            let detail = event.detail;
+                            if (detail.checked) {
+                                this.startIo = true;
+                            } else {
+                                this.startIo = false;
+                            }
+                        })
+                    }
                     headDiv.appendChild(switch1);
                     break;
                 default:
                     break;
-        }
+            }
             configList!.appendChild(div);
         });
         this.processInput = this.shadowRoot?.querySelector<LitSelectV>("lit-select-v[title='Process']");
         this.maximum = this.shadowRoot?.querySelector<HTMLInputElement>("input[title='Max Unwind Level']");
+        this.maximum?.addEventListener('keyup', (eve:Event) => {
+            this.maximum!.value = this.maximum!.value.replace(/\D/g,'')
+            if (this.maximum!.value != '') {
+                let mun = parseInt(this.maximum!.value)
+                if (mun > 64 || mun < 0) {
+                    this.maximum!.value = '10'
+                }
+            }
+        })
         this.selectProcess = this.processInput!.shadowRoot?.querySelector("input") as HTMLInputElement;
         let processData: Array<string> = []
         this.selectProcess!.addEventListener('mousedown', ev => {
@@ -228,6 +253,7 @@ export class SpFileSystem extends BaseElement {
                 this.processInput!.dataSource([], '')
             }
         })
+
         this.selectProcess!.addEventListener('mouseup', () => {
             if (SpRecordTrace.serialNumber == '') {
                 this.processInput?.dataSource([], 'ALL-Process')
@@ -248,7 +274,7 @@ export class SpFileSystem extends BaseElement {
                                 processData.push(processName + "(" + processId + ")")
                             }
                         }
-                        if(processData.length > 0 && this.startRecord){
+                        if (processData.length > 0 && this.startRecord) {
                             this.processInput!.setAttribute("readonly", "readonly")
                         }
                         this.processInput?.dataSource(processData, 'ALL-Process')
@@ -272,7 +298,7 @@ export class SpFileSystem extends BaseElement {
                                         }
                                     }
                                 }
-                                if(processData.length > 0 && this.startRecord){
+                                if (processData.length > 0 && this.startRecord) {
                                     this.selectProcess!.setAttribute("readonly", "readonly")
                                 }
                                 this.processInput?.dataSource(processData, 'ALL-Process')
@@ -295,7 +321,7 @@ export class SpFileSystem extends BaseElement {
     private disable() {
         let configVal = this.shadowRoot?.querySelectorAll<HTMLElement>(".config");
         configVal!.forEach(configVal1 => {
-            if (configVal1.title == "Start FileSystem Record" || configVal1.title == "Start Virtual Memory Record") {
+            if (configVal1.title == "Start FileSystem Record" || configVal1.title == "Start Page Fault Record" || configVal1.title == "Start BIO Latency Record") {
             } else {
                 configVal1.setAttribute("disabled", '')
             }
@@ -312,7 +338,14 @@ export class SpFileSystem extends BaseElement {
                 value: false
             },
             {
-                title: "Start Virtual Memory Record",
+                title: "Start Page Fault Record",
+                des: "",
+                hidden: false,
+                type: "switch",
+                value: false
+            },
+            {
+                title: "Start BIO Latency Record",
                 des: "",
                 hidden: false,
                 type: "switch",
@@ -326,6 +359,13 @@ export class SpFileSystem extends BaseElement {
                 selectArray: [
                     ""
                 ]
+            },
+            {
+                title: "Max Unwind Level",
+                des: "",
+                hidden: false,
+                type: "input",
+                value: "10"
             }
         ]
     }
@@ -425,4 +465,5 @@ export class SpFileSystem extends BaseElement {
 
 export interface SystemConfig {
     process: string;
+    unWindLevel: number
 }

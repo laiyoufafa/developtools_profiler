@@ -107,6 +107,11 @@ DataIndex EbpfBase::GetSymbolNameIndexFromSymVaddr(const ElfEventFixedHeader* el
 SymbolAndFilePathIndex EbpfBase::GetSymbolNameIndexFromElfSym(uint32_t pid, uint64_t ip)
 {
     SymbolAndFilePathIndex symbolAndFilePathIndex(false);
+    if (ip <= reader_->maxKernelAddr_ && ip >= reader_->minKernelAddr_) {
+        symbolAndFilePathIndex = reader_->GetSymbolNameIndexFromElfSym(ip);
+        pidAndIpToSymbolAndFilePathIndex_.Insert(pid, ip, symbolAndFilePathIndex);
+        return symbolAndFilePathIndex;
+    }
 
     auto& pidAndStartAddrToMapsAddr = reader_->GetPidAndStartAddrToMapsAddr();
     auto startToMapsAddr = pidAndStartAddrToMapsAddr.Find(pid);

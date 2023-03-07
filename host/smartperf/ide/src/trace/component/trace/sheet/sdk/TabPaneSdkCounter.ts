@@ -29,9 +29,10 @@ export class TabPaneSdkCounter extends BaseElement {
     private keyList: Array<string> | undefined;
     private statDataArray: any = []
     private columnMap: any = {}
-    private sqlMap: any = {}
+    private sqlMap: Map<number, any> = new Map<number, any>();
 
     set data(val: SelectionParam | any) {
+        this.range!.textContent = "Selected range: " + ((val.rightNs - val.leftNs) / 1000000.0).toFixed(5) + " ms";
         this.queryDataByDB(val)
     }
 
@@ -60,17 +61,18 @@ export class TabPaneSdkCounter extends BaseElement {
             let startTime = res[0].start_ts;
             this.parseJson(SpSystemTrace.SDK_CONFIG_MAP);
             let counters: Array<string> = []
-            let componentId: number = 0
+            let componentId: number = -1
             for (let index = 0; index < val.sdkCounterIds.length; index++) {
                 let values = val.sdkCounterIds[index].split("-")
                 let value = values[0];
-                componentId = values[1];
+                componentId = Number(values[1]);
                 counters.push(value)
             }
-            let sql = this.sqlMap.TabCounterLeftData
+            let sqlObj = this.sqlMap.get(componentId)
+            let sql = sqlObj.TabCounterLeftData
             getTabSdkCounterLeftData(sql, val.leftNs + startTime, counters, componentId).then(res => {
                 let leftTime = res[res.length - 1].max_value - startTime
-                let sql = this.sqlMap.TabCounterData
+                let sql = sqlObj.TabCounterData
                 getTabSdkCounterData(sql, startTime, leftTime, val.rightNs, counters, componentId).then(item => {
                     this.keyList = [];
                     this.tbl!.innerHTML = ''
@@ -133,11 +135,11 @@ export class TabPaneSdkCounter extends BaseElement {
     }
 
     parseJson(map: Map<number, string>): string {
-        let tablesMap = new Map();
         let keys = map.keys();
         for (let key of keys) {
-            let configStr = map.get(key);
-            if (configStr != undefined) {
+            let configObj: any = map.get(key);
+            if (configObj != undefined) {
+                let configStr = configObj.jsonConfig;
                 let json = JSON.parse(configStr);
                 let tableConfig = json.tableConfig
                 if (tableConfig != null) {
@@ -155,9 +157,9 @@ export class TabPaneSdkCounter extends BaseElement {
                             }
                             let leftSql = "select max(ts) as max_value,counter_id from " + showType.tableName + " where ts <= $leftNs and counter_id in" +
                                 " ($counters) group by counter_id order by max_value desc";
-                            this.sqlMap["TabCounterData"] = selectSql.substring(0, selectSql.length - 1) + " from " + showType.tableName +
+                            let tabCounterDataSql = selectSql.substring(0, selectSql.length - 1) + " from " + showType.tableName +
                                 " where counter_id in ($counters) and (ts - $startTime) between $leftNs and $rightNs";
-                            this.sqlMap["TabCounterLeftData"] = leftSql
+                            this.sqlMap.set(key, {TabCounterData: tabCounterDataSql, TabCounterLeftData: leftSql})
                         }
                     }
                 }
@@ -218,10 +220,14 @@ export class TabPaneSdkCounter extends BaseElement {
 
     sortByColumn(detail: any) {
         // @ts-ignore
-        function compare(property, sort) {
+        function compare(property, sort, type) {
             return function (a: SelectionData, b: SelectionData) {
                 if (a.process == " " || b.process == " ") {
                     return 0;
+                }
+                if (type === 'number') {
+                    // @ts-ignore
+                    return sort === 2 ? parseFloat(b[property]) - parseFloat(a[property]) : parseFloat(a[property]) - parseFloat(b[property]);
                 }
                 // @ts-ignore
                 if (b[property] > a[property]) {
@@ -236,8 +242,11 @@ export class TabPaneSdkCounter extends BaseElement {
             }
         }
 
-        // @ts-ignore
-        this.statDataArray.sort(compare(detail.key, detail.sort))
+        if (detail.key.indexOf("name") != -1) {
+            this.statDataArray.sort(compare(detail.key, detail.sort, 'string'))
+        } else {
+            this.statDataArray.sort(compare(detail.key, detail.sort, 'number'))
+        }
         this.tbl!.recycleDataSource = this.statDataArray;
     }
 }

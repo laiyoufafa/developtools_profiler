@@ -121,7 +121,7 @@ self.onmessage = async (e: MessageEvent) => {
         let fn = Module.addFunction(callback, "viii");
         reqBufferAddr = Module._Initialize(fn, REQ_BUF_SIZE);
         let wasmConfigStr = e.data.wasmConfig
-        if (wasmConfigStr != "") {
+        if (wasmConfigStr != "" && wasmConfigStr.indexOf("WasmFiles") != -1) {
             let wasmConfig = JSON.parse(wasmConfigStr);
             let wasmConfigs = wasmConfig.WasmFiles
             let itemArray = wasmConfigs.map((item:any) => {return item.componentId + ";" + item.pluginName})
@@ -147,10 +147,15 @@ self.onmessage = async (e: MessageEvent) => {
                     if (model == null && config.componentId == componentID) {
                         importScripts(config.wasmJsName)
                         let thirdMode = initThirdWASM(config.wasmName)
+                        let configPluginName = config.pluginName
+                        let pluginNamePtr = thirdMode._malloc(configPluginName.length);
+                        let pluginNameUintArray = enc.encode(configPluginName);
+                        thirdMode.HEAPU8.set(pluginNameUintArray, pluginNamePtr);
+                        thirdMode._TraceStreamer_In_PluginName(pluginNamePtr, configPluginName.length)
                         let thirdQueryDataCallBack = (heapPtr: number, size: number, isEnd: number, isConfig: number) => {
                             if (isConfig == 1) {
                                 let out: Uint8Array = thirdMode.HEAPU8.slice(heapPtr, heapPtr + size);
-                                thirdJsonResult.set(componentID, dec.decode(out))
+                                thirdJsonResult.set(componentID,{jsonConfig: dec.decode(out), disPlayName : config.disPlayName, pluginName: config.pluginName})
                             } else  {
                                 let out: Uint8Array = thirdMode.HEAPU8.slice(heapPtr, heapPtr + size);
                                 bufferSlice.push(out);
@@ -230,14 +235,20 @@ self.onmessage = async (e: MessageEvent) => {
         let jsonArray = convertJSON();
         // @ts-ignore
         self.postMessage({id: e.data.id, action: e.data.action, results: jsonArray});
+    } else if(e.data.action == "init-port"){
+        let port = e.ports[0];
+        port.onmessage = (me)=>{
+            query(me.data.action, me.data.sql, me.data.params);
+            let msg = {id: me.data.id,action:me.data.action, results: arr.buffer}
+            port.postMessage(msg, [arr.buffer]);
+        }
     }
 }
 
 function createView(sql: string) {
-    let enc = new TextEncoder();
-    let sqlPtr = Module._malloc(sql.length);
-    Module.HEAPU8.set(enc.encode(sql), sqlPtr);
-    let res = Module._TraceStreamerSqlOperate(sqlPtr, sql.length);
+    let array = enc.encode(sql);
+    Module.HEAPU8.set(array, reqBufferAddr);
+    let res = Module._TraceStreamerSqlOperateEx(array.length);
     return res;
 }
 
@@ -276,7 +287,9 @@ function querySdk(name: string, sql: string, params: any, action: string) {
     let commentId = action.substring(action.lastIndexOf("-") + 1)
     let key = Number(commentId)
     let wasm = thirdWasmMap.get(key);
-    let wasmModel = wasm.model
-    wasmModel.HEAPU8.set(sqlUintArray, wasm.bufferAddr);
-    wasmModel._TraceStreamerSqlQueryEx(sqlUintArray.length);
+    if (wasm != undefined) {
+        let wasmModel = wasm.model
+        wasmModel.HEAPU8.set(sqlUintArray, wasm.bufferAddr);
+        wasmModel._TraceStreamerSqlQueryEx(sqlUintArray.length);
+    }
 }

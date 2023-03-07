@@ -14,8 +14,9 @@
  */
 
 import {ns2s, Rect, Render, RequestMessage} from "./ProcedureWorkerCommon.js";
-import {CpuStruct} from "../../bean/CpuStruct.js";
 import {ColorUtils} from "../../component/trace/base/ColorUtils.js";
+import { TraceRow } from "../../component/trace/base/TraceRow.js";
+import {CpuStruct} from "./ProcedureWorkerCPU.js";
 
 //绘制时间轴
 let timeRuler: TimeRuler | undefined;
@@ -25,6 +26,8 @@ let offsetTop: number = 0;
 let offsetLeft: number = 0;
 
 export class TimelineRender extends Render{
+    renderMainThread(req: any, row: TraceRow<any>) {
+    }
     render(req: RequestMessage, list: Array<any>, filter: Array<any>){
         timeline(req.canvas, req.context, req.startNS, req.endNS, req.totalNS, req.frame,
             req.params.keyPressCode, req.params.keyUpCode,

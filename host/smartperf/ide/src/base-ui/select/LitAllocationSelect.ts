@@ -193,7 +193,7 @@ export class LitAllocationSelect extends BaseElement {
         </style>
         <div class="multipleSelect" tabindex="0">
             <div class="multipleRoot" id="select" style="width:100%">
-            <input id="input" placeholder="${this.placeholder}"/>
+            <input id="singleInput" placeholder="${this.placeholder}"/>
         </div>
             <lit-icon class="icon" name='down' color="#c3c3c3"></lit-icon>
         </div>

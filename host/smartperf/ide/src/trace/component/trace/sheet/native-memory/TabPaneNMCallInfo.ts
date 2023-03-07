@@ -376,7 +376,7 @@ export class TabPaneNMCallInfo extends BaseElement {
             <lit-slicer style="width:100%">
                 <div style="width: 65%">
                     <lit-table id="tb-native-callinfo" style="height: auto" tree>
-                        <lit-table-column width="60%" title="Symbol Name" data-index="title" key="title"  align="flex-start">
+                        <lit-table-column width="60%" title="Symbol Name" data-index="symbolName" key="symbolName"  align="flex-start">
                         </lit-table-column>
                         <lit-table-column width="1fr" title="Size" data-index="heapSizeStr" key="heapSizeStr"  align="flex-start" order>
                         </lit-table-column>
@@ -403,7 +403,7 @@ export class TabPaneNMCallInfo extends BaseElement {
                             <img src="img/function.png" size="20" v-if=" type == 0 ">
                         </template>
                     </lit-table-column>
-                    <lit-table-column width="1fr" title="" data-index="title" key="title"  align="flex-start">
+                    <lit-table-column width="1fr" title="" data-index="symbolName" key="symbolName"  align="flex-start">
                     </lit-table-column>
                 </lit-table>
                 </lit-slicer>

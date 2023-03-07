@@ -235,10 +235,9 @@ int TraceStreamerSelector::UpdateTraceRangeTime(uint8_t* data, int len)
 {
     std::string traceRangeStr;
     memcpy(&traceRangeStr, data, len);
-    int pos;
     int size = traceRangeStr.size();
     std::vector<string> vTraceRangeStr;
-    for (int i = 0; i < size; i++) {
+    for (int i = 0, pos = 0; i < size; i++) {
         pos = traceRangeStr.find(";", i);
         if (pos == std::string::npos) {
             break;

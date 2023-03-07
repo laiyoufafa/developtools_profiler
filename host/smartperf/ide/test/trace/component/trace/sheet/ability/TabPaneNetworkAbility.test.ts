@@ -14,17 +14,74 @@
  */
 //@ts-ignore
 import {TabPaneNetworkAbility} from "../../../../../../dist/trace/component/trace/sheet/ability/TabPaneNetworkAbility.js";
+import "../../../../../../dist/trace/component/trace/sheet/ability/TabPaneNetworkAbility.js";
+
 window.ResizeObserver = window.ResizeObserver || jest.fn().mockImplementation(()=>({
     disconnect: jest.fn(),
     observe: jest.fn(),
     unobserve: jest.fn(),
 }))
 
-describe('TabPaneNetworkAbility Test', ()=>{
+const sqlit = require("../../../../../../dist/trace/database/SqlLite.js")
+jest.mock("../../../../../../dist/trace/database/SqlLite.js");
 
+describe('TabPaneNetworkAbility Test', ()=>{
     let tabPaneNetworkAbility = new TabPaneNetworkAbility();
+    let tabNetworkAbilityData = sqlit.getTabNetworkAbilityData;
+
+    tabNetworkAbilityData.mockResolvedValue([{
+        startTime: 1000,
+        duration: 200,
+        dataReceived: 100.00,
+        dataReceivedSec: 100.00,
+        dataSend: 200.00,
+        dataSendSec: 100.00,
+        packetsIn: 100.00,
+        packetsInSec: 100.00,
+        packetsOut: 200.00,
+        packetsOutSec: 100.00
+    }])
+
+    tabPaneNetworkAbility.data = {
+        cpus: [],
+        threadIds: [],
+        trackIds: [],
+        funTids: [],
+        heapIds: [],
+        nativeMemory: [],
+        cpuAbilityIds: [],
+        memoryAbilityIds: [],
+        diskAbilityIds: [],
+        networkAbilityIds: [],
+        leftNs: 0,
+        rightNs: 1000,
+        hasFps: false,
+        statisticsSelectData: undefined,
+        perfSampleIds: [],
+        perfCpus: [],
+        perfProcess: [],
+        perfThread: [],
+        perfAll: false,
+        systemEnergy: [0, 1, 2],
+        powerEnergy: [0, 1, 2],
+        anomalyEnergy: [0, 1, 2]
+    }
+
     it('TabPaneNetworkAbilityTest01',()=>{
         tabPaneNetworkAbility.queryResult.length = 1;
+        let queryResult = [{
+            startTimeStr: "s",
+            durationStr: "s",
+            dataReceivedStr: "s",
+            dataReceivedSecStr: "s",
+            dataSendSecStr: "s",
+            dataSendStr: "s",
+            packetsIn: "s",
+            packetsOut: "s",
+            packetsOutSec: "s"
+        }]
+        tabPaneNetworkAbility.search = jest.fn(()=>"s")
+        tabPaneNetworkAbility.queryResult = jest.fn(()=>queryResult)
         expect(tabPaneNetworkAbility.filterData()).toBeUndefined();
     });
 
@@ -85,7 +142,7 @@ describe('TabPaneNetworkAbility Test', ()=>{
         })).toBeUndefined();
     });
 
-    it('TabPaneNetworkAbilityTest010 ', function () {
+    it('TabPaneNetworkAbilityTest10 ', function () {
         expect(tabPaneNetworkAbility.sortByColumn({
             key:'dataSendStr',
         })).toBeUndefined();

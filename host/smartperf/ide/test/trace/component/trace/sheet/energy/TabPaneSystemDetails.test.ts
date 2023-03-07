@@ -17,6 +17,11 @@
 import {TabPaneSystemDetails} from "../../../../../../dist/trace/component/trace/sheet/energy/TabPaneSystemDetails.js"
 import "../../../../../../dist/trace/component/trace/sheet/energy/TabPaneSystemDetails.js"
 
+import {querySysLocationDetailsData, querySysLockDetailsData} from "../../../../../../src/trace/database/SqlLite.js";
+// @ts-ignore
+import {SpHiSysEventChart} from "../../../../../../dist/trace/component/chart/SpHiSysEventChart.js";
+import "../../../../../../dist/trace/component/chart/SpHiSysEventChart.js";
+
 window.ResizeObserver = window.ResizeObserver ||
     jest.fn().mockImplementation(() => ({
         disconnect: jest.fn(),
@@ -29,40 +34,98 @@ jest.mock("../../../../../../dist/trace/database/SqlLite.js");
 describe('TabPanePowerBattery Test', () => {
     it('TabPaneSystemDetailsTest01', function () {
         let tabPaneSystemDetails = new TabPaneSystemDetails();
-        let MockSystemDetailsData = sqlit.querySystemDetailsData;
-        let systemDetails = [
+        tabPaneSystemDetails.tbl = jest.fn(()=>true)
+        tabPaneSystemDetails.detailsTbl = jest.fn(() => true)
+        tabPaneSystemDetails.tbl!.recycleDataSource = jest.fn(() => [])
+        tabPaneSystemDetails.detailsTbl!.recycleDataSource = jest.fn(() => [])
+        let MockquerySystemWorkData = sqlit.querySystemWorkData;
+        SpHiSysEventChart.app_name = "111"
+
+        let querySystemWorkData = [
+            {
+                ts: 0,
+                eventName: "WORK_ADD",
+                appKey: "workid",
+                appValue: "1"
+            }, {
+                ts: 1005938319,
+                eventName: "WORK_ADD",
+                appKey: "name",
+                appValue: "nnnn"
+            },{
+                ts: 3005938319,
+                eventName: "WORK_START",
+                appKey: "workid",
+                appValue: "1"
+            },{
+                ts: 3005938319,
+                eventName: "WORK_START",
+                appKey: "name",
+                appValue: "nnnn"
+            }, {
+                ts: 5005938319,
+                eventName: "WORK_STOP",
+                appKey: "workid",
+                appValue: "1"
+            }, {
+                ts: 5005938319,
+                eventName: "WORK_STOP",
+                appKey: "name",
+                appValue: "nnnn"
+            }]
+        MockquerySystemWorkData.mockResolvedValue(querySystemWorkData);
+
+        let MockLockData = sqlit.querySysLockDetailsData;
+        let lockDetails = [
             {
                 ts: 1005938319,
-                eventName: "WORK_ADD",
-                appKey: "UID",
-                appValue: "20010016"
+                eventName: "POWER_RUNNINGLOCK",
+                appKey: "tag",
+                appValue: "DUBAI_TAG_RUNNINGLOCK_ADD"
             }, {
                 ts: 1005938319,
-                eventName: "WORK_ADD",
-                appKey: "TYPE",
-                appValue: "1"
-            },{
-                ts: 3005933657,
                 eventName: "POWER_RUNNINGLOCK",
-                appKey: "UID",
-                appValue: "1001"
+                appKey: "message",
+                appValue: "token=123"
             }, {
                 ts: 3005933657,
                 eventName: "POWER_RUNNINGLOCK",
-                appKey: "TAG",
+                appKey: "tag",
                 appValue: "DUBAI_TAG_RUNNINGLOCK_REMOVE"
-            },{
-                ts: 3005938319,
-                eventName: "WORK_START",
-                appKey: "UID",
-                appValue: "20010016"
             }, {
-                ts: 3005938319,
-                eventName: "WORK_START",
-                appKey: "TYPE",
-                appValue: "1"
+                ts: 3005933657,
+                eventName: "POWER_RUNNINGLOCK",
+                appKey: "message",
+                appValue: "token=123"
             }]
-        MockSystemDetailsData.mockResolvedValue(systemDetails)
+        MockLockData.mockResolvedValue(lockDetails)
+
+        let MockLocationData = sqlit.querySysLocationDetailsData;
+        let locationDetails = [
+            {
+                ts: 1005938319,
+                eventName: "GNSS_STATE",
+                appKey: "state",
+                appValue: "start"
+            }, {
+                ts: 1005938319,
+                eventName: "GNSS_STATE",
+                appKey: "pid",
+                appValue: "11"
+            },
+            {
+                ts: 3005933657,
+                eventName: "GNSS_STATE",
+                appKey: "state",
+                appValue: "stop"
+            }, {
+                ts: 3005933657,
+                eventName: "GNSS_STATE",
+                appKey: "pid",
+                appValue: "11"
+            }]
+        MockLocationData.mockResolvedValue(locationDetails)
+
         let tabPaneSystemDetailsData = {
             cpus: [],
             threadIds: [],
@@ -75,7 +138,7 @@ describe('TabPanePowerBattery Test', () => {
             diskAbilityIds: [],
             networkAbilityIds: [],
             leftNs: 0,
-            rightNs: 1000,
+            rightNs: 300000000000,
             hasFps: false,
             statisticsSelectData: undefined,
             perfSampleIds: [],
@@ -93,9 +156,17 @@ describe('TabPanePowerBattery Test', () => {
     })
 
     it('TabPaneSystemDetailsTest02', function () {
-        let tabPaneSystemDetails = new TabPaneSystemDetails();
-        let MockSystemDetailsData = sqlit.querySystemDetailsData;
-        MockSystemDetailsData.mockResolvedValue([])
+        let tabPaneSystem = new TabPaneSystemDetails();
+        tabPaneSystem.tbl = jest.fn(()=>true)
+        tabPaneSystem.detailsTbl = jest.fn(() => true)
+        tabPaneSystem.tbl!.recycleDataSource = jest.fn(() => [])
+        tabPaneSystem.detailsTbl!.recycleDataSource = jest.fn(() => [])
+        let MockSystemWorkData = sqlit.querySystemWorkData;
+        MockSystemWorkData.mockResolvedValue([])
+        let MockSystemLockData = sqlit.querySysLockDetailsData;
+        MockSystemLockData.mockResolvedValue([])
+        let MockSystemLocationData = sqlit.querySysLocationDetailsData;
+        MockSystemLocationData.mockResolvedValue([])
         let tabPaneSystemDetailsData = {
             cpus: [],
             threadIds: [],
@@ -121,12 +192,16 @@ describe('TabPanePowerBattery Test', () => {
             anomalyEnergy: [0, 1, 2]
         }
 
-        tabPaneSystemDetails.data = tabPaneSystemDetailsData
-        expect(tabPaneSystemDetails.data).toBeUndefined()
+        tabPaneSystem.data = tabPaneSystemDetailsData
+        expect(tabPaneSystem.data).toBeUndefined()
     })
 
     it('TabPaneSystemDetailsTest03', function () {
         let tabPaneSystemDetails = new TabPaneSystemDetails();
+        tabPaneSystemDetails.tbl = jest.fn(()=>true)
+        tabPaneSystemDetails.detailsTbl = jest.fn(() => true)
+        tabPaneSystemDetails.tbl!.recycleDataSource = jest.fn(() => [])
+        tabPaneSystemDetails.detailsTbl!.recycleDataSource = jest.fn(() => [])
         let data = {
             ts: 0,
             eventName: "Event Name",
@@ -148,6 +223,10 @@ describe('TabPanePowerBattery Test', () => {
 
     it('TabPaneSystemDetailsTest04', function () {
         let tabPaneSystemDetails = new TabPaneSystemDetails();
+        tabPaneSystemDetails.tbl = jest.fn(()=>true)
+        tabPaneSystemDetails.detailsTbl = jest.fn(() => true)
+        tabPaneSystemDetails.tbl!.recycleDataSource = jest.fn(() => [])
+        tabPaneSystemDetails.detailsTbl!.recycleDataSource = jest.fn(() => [])
         let data = {
             ts: 0,
             eventName: "GNSS_STATE",
@@ -169,6 +248,10 @@ describe('TabPanePowerBattery Test', () => {
 
     it('TabPaneSystemDetailsTest05', function () {
         let tabPaneSystemDetails = new TabPaneSystemDetails();
+        tabPaneSystemDetails.tbl = jest.fn(()=>true)
+        tabPaneSystemDetails.detailsTbl = jest.fn(() => true)
+        tabPaneSystemDetails.tbl!.recycleDataSource = jest.fn(() => [])
+        tabPaneSystemDetails.detailsTbl!.recycleDataSource = jest.fn(() => [])
         let data = {
             ts: 0,
             eventName: "POWER_RUNNINGLOCK",
@@ -189,6 +272,10 @@ describe('TabPanePowerBattery Test', () => {
 
     it('TabPaneSystemDetailsTest06', function () {
         let tabPaneSystemDetails = new TabPaneSystemDetails();
+        tabPaneSystemDetails.tbl = jest.fn(()=>true)
+        tabPaneSystemDetails.detailsTbl = jest.fn(() => true)
+        tabPaneSystemDetails.tbl!.recycleDataSource = jest.fn(() => [])
+        tabPaneSystemDetails.detailsTbl!.recycleDataSource = jest.fn(() => [])
         let data = {
             ts: 0,
             eventName: "POWER",
@@ -206,6 +293,97 @@ describe('TabPanePowerBattery Test', () => {
         }
 
         expect(tabPaneSystemDetails.convertData(data)).toBeUndefined()
+    })
+
+    it('TabPaneSystemDetailsTest08', function () {
+        let tabPaneSystemDetails = new TabPaneSystemDetails();
+        let cc = [
+            {
+                ts: -14000,
+                workId: 44,
+                name: SpHiSysEventChart.app_name,
+                eventName: "WORK_ADD"
+            }, {
+                ts: 10000,
+                workId: 11,
+                name: SpHiSysEventChart.app_name,
+                eventName: "WORK_START"
+            }, {
+                ts: 12000,
+                workId: 22,
+                name: SpHiSysEventChart.app_name,
+                eventName: "WORK_ADD"
+            }, {
+                ts: 14000,
+                workId: 44,
+                name: SpHiSysEventChart.app_name,
+                eventName: "WORK_START"
+            }, {
+                ts: 20000,
+                workId: 11,
+                name: SpHiSysEventChart.app_name,
+                eventName: "WORK_STOP"
+            }, {
+                ts: 22000,
+                workId: 22,
+                name: SpHiSysEventChart.app_name,
+                eventName: "WORK_START"
+            }, {
+                ts: 30000,
+                workId: 11,
+                name: SpHiSysEventChart.app_name,
+                eventName: "WORK_START"
+            }, {
+                ts: 32000,
+                workId: 22,
+                name: SpHiSysEventChart.app_name,
+                eventName: "WORK_STOP"
+            }, {
+                ts: 40000,
+                workId: 11,
+                name: SpHiSysEventChart.app_name,
+                eventName: "WORK_STOP"
+            }, {
+                ts: 42000,
+                workId: 22,
+                name: SpHiSysEventChart.app_name,
+                eventName: "WORK_START"
+            }, {
+                ts: 50000,
+                workId: 11,
+                name: SpHiSysEventChart.app_name,
+                eventName: "WORK_START"
+            }, {
+                ts: 52000,
+                workId: 22,
+                name: SpHiSysEventChart.app_name,
+                eventName: "WORK_STOP"
+            }, {
+                ts: 60000,
+                workId: 11,
+                name: SpHiSysEventChart.app_name,
+                eventName: "WORK_STOP"
+            }, {
+                ts: 62000,
+                workId: 22,
+                name: SpHiSysEventChart.app_name,
+                eventName: "WORK_REMOVE"
+            }, {
+                ts: 64000,
+                workId: 44,
+                name: SpHiSysEventChart.app_name,
+                eventName: "WORK_STOP"
+            }, {
+                ts: 70000,
+                workId: 11,
+                name: SpHiSysEventChart.app_name,
+                eventName: "WORK_REMOVE"
+            }
+        ]
+        tabPaneSystemDetails.getConvertData = jest.fn(() => cc)
+        let systemWorkData = tabPaneSystemDetails.getSystemWorkData();
+
+        expect(systemWorkData).toStrictEqual([])
     })
     
     it('TabPaneSystemDetailsTest07', function () {

@@ -14,23 +14,27 @@
  */
 
 import {BaseElement, element} from "../../../../base-ui/BaseElement.js";
-import {CpuStruct} from "../../../bean/CpuStruct.js";
 import {LitTable} from "../../../../base-ui/table/lit-table.js";
 import "../../../../base-ui/table/lit-table-column.js";
 
 import {
-    queryBinderArgsByArgset, queryBinderByArgsId, queryBinderBySliceId,
+    queryBinderArgsByArgset, queryBinderByArgsId, queryBinderBySliceId, queryThreadStateArgs,
     queryThreadWakeUp,
     queryThreadWakeUpFrom,
     queryWakeUpFromThread_WakeThread,
     queryWakeUpFromThread_WakeTime,
 } from "../../../database/SqlLite.js";
 import {WakeupBean} from "../../../bean/WakeupBean.js";
-import {ThreadStruct} from "../../../bean/ThreadStruct.js";
-import {ProcessMemStruct} from "../../../bean/ProcessMemStruct.js";
-import {FuncStruct} from "../../../bean/FuncStruct.js";
 import {SpApplication} from "../../../SpApplication.js";
 import {TraceRow} from "../base/TraceRow.js";
+import { CpuStruct } from "../../../database/ui-worker/ProcedureWorkerCPU.js";
+import { ThreadStruct } from "../../../database/ui-worker/ProcedureWorkerThread.js";
+import { FuncStruct } from "../../../database/ui-worker/ProcedureWorkerFunc.js";
+import { ProcessMemStruct } from "../../../database/ui-worker/ProcedureWorkerMem.js";
+import {ClockStruct} from "../../../database/ui-worker/ProcedureWorkerClock.js";
+import {ColorUtils} from "../base/ColorUtils.js";
+import {IrqStruct} from "../../../database/ui-worker/ProcedureWorkerIrq.js";
+import {BinderArgBean} from "../../../bean/BinderArgBean.js";
 
 const STATUS_MAP: any = {
     D: "Uninterruptible Sleep",
@@ -132,7 +136,8 @@ export class TabPaneCurrentSelection extends BaseElement {
         }
 
         list.push({name: 'CmdLine', value: `${data.processCmdLine}`})
-        list.push({name: 'StartTime', value: getTimeString(data.startTime || 0)})
+        list.push({name: 'StartTime(Relative)', value: getTimeString(data.startTime || 0)})
+        list.push({name: 'StartTime(Absolute)', value: ((data.startTime||0) + (window as any).recordStartNS)/1000000000})
         list.push({name: 'Duration', value: getTimeString(data.dur || 0)})
         list.push({name: 'Prio', value: data.priority || 0})
         list.push({name: 'End State', value: state})
@@ -278,6 +283,24 @@ export class TabPaneCurrentSelection extends BaseElement {
         }
     }
 
+    setClockData(data: ClockStruct) {//时钟信息
+        this.initCanvas()
+        let rightTitle: HTMLElement | null | undefined = this?.shadowRoot?.querySelector("#rightTitle");
+        if (rightTitle) {
+            rightTitle.style.visibility = "hidden"
+        }
+        let leftTitle: HTMLElement | null | undefined = this?.shadowRoot?.querySelector("#leftTitle");
+        if (leftTitle) {
+            leftTitle.innerText = "Counter Details"
+        }
+        let list: any[] = []
+        list.push({name: 'Start time', value: getTimeString(data.startNS || 0)})
+        list.push({name: 'Value', value: ColorUtils.formatNumberComma(data.value||0)})
+        // list.push({name: 'Delta', value: ColorUtils.formatNumberComma(data.delta||0)})
+        list.push({name: 'Duration', value: getTimeString(data.dur || 0)})
+        this.tbl!.dataSource = list
+    }
+
     setMemData(data: ProcessMemStruct) {//时钟信息
         this.initCanvas()
         let leftTitle: HTMLElement | null | undefined = this?.shadowRoot?.querySelector("#leftTitle");
@@ -290,6 +313,31 @@ export class TabPaneCurrentSelection extends BaseElement {
         list.push({name: 'Delta', value: data.delta})
         list.push({name: 'Duration', value: getTimeString(data.duration || 0)})
         this.tbl!.dataSource = list
+
+    }
+
+    setIrqData(data:IrqStruct){
+        this.initCanvas()
+        let rightTitle: HTMLElement | null | undefined = this?.shadowRoot?.querySelector("#rightTitle");
+        if (rightTitle) {
+            rightTitle.style.visibility = "hidden"
+        }
+        let leftTitle: HTMLElement | null | undefined = this?.shadowRoot?.querySelector("#leftTitle");
+        if (leftTitle) {
+            leftTitle.innerText = "Counter Details"
+        }
+        let list: any[] = []
+        list.push({name: 'Start time', value: getTimeString(data.startNS || 0)})
+        list.push({name: 'Name', value: data.name})
+        list.push({name: 'Duration', value: getTimeString(data.dur || 0)})
+        queryBinderArgsByArgset(data.argSetId||0).then((argsBinderRes)=>{
+            if(argsBinderRes.length > 0){
+                argsBinderRes.forEach((item) => {
+                    list.push({name: item.keyName, value: item.strValue})
+                })
+            }
+            this.tbl!.dataSource = list
+        })
 
     }
 
@@ -335,9 +383,10 @@ export class TabPaneCurrentSelection extends BaseElement {
         let cpu = new CpuStruct();
         cpu.id = data.id;
         cpu.startTime = data.startTime;
-        Promise.all([this.queryThreadWakeUpFromData(data.id!,data.startTime!,data.dur!),this.queryThreadWakeUpData(data.id!,data.startTime!,data.dur!)]).then((result)=>{
+        Promise.all([this.queryThreadWakeUpFromData(data.id!,data.startTime!,data.dur!),this.queryThreadWakeUpData(data.id!,data.startTime!,data.dur!),this.queryThreadStateDArgs(data)]).then((result)=>{
             let fromBean = result[0]
             let wakeUps = result[1];
+            let args = result[2]
             if(fromBean != null && fromBean != undefined && fromBean.pid != 0 && fromBean.tid != 0){
                 list.push({
                     name: 'wakeup from tid', value: `<div style="margin-left: 5px;white-space: nowrap;display: flex;align-items: center">
@@ -347,14 +396,19 @@ export class TabPaneCurrentSelection extends BaseElement {
                 })
             }
             if(wakeUps != null){
-                for (let key in wakeUps) {
+                wakeUps.map((e) => {
                     list.push({
                         name: 'wakeup tid', value: `<div style="margin-left: 5px;white-space: nowrap;display: flex;align-items: center">
-            <div style="white-space:pre-wrap">${wakeUps[key].tid}</div>
-            <lit-icon style="cursor:pointer;transform: scaleX(-1);margin-left: 5px" id="wakeup-${key}" class="wakeup-click" name="select" color="#7fa1e7" size="20"></lit-icon>
+            <div style="white-space:pre-wrap">${e.tid}</div>
+            <lit-icon style="cursor:pointer;transform: scaleX(-1);margin-left: 5px" id="wakeup-${e.tid}" class="wakeup-click" name="select" color="#7fa1e7" size="20"></lit-icon>
             </div>`
                     })
-                }
+                })
+            }
+            if(args.length > 0){
+                args.forEach((arg)=>{
+                    list.push({name: arg.keyName, value: arg.strValue})
+                })
             }
             this.tbl!.dataSource = list
             this.tbl?.shadowRoot?.querySelector("#state-click")?.addEventListener("click", () => {
@@ -374,10 +428,9 @@ export class TabPaneCurrentSelection extends BaseElement {
                }
             })
             if(wakeUps){
-                for (let key in wakeUps) {
-                    this.tbl?.shadowRoot?.querySelector(`#wakeup-${key}`)?.addEventListener("click", (e) => {
+                wakeUps.map((up) => {
+                    this.tbl?.shadowRoot?.querySelector(`#wakeup-${up.tid}`)?.addEventListener("click", (e) => {
                         //点击跳转，唤醒和被唤醒的 线程
-                        let up = wakeUps[key];
                         if(up && scrollWakeUp != undefined){
                             scrollWakeUp({
                                 tid: up.tid,
@@ -386,10 +439,20 @@ export class TabPaneCurrentSelection extends BaseElement {
                             })
                         }
                     })
-                }
+                })
             }
         })
     }
+
+    async queryThreadStateDArgs(data:ThreadStruct) {
+        let list:Array<BinderArgBean> =[]
+        if (data.state == 'D'||data.state == 'DK') {
+            let startTime = (window as any).recordStartNS + data.startTime!
+            list = await queryThreadStateArgs(startTime,data.state)
+        }
+        return list
+    }
+
 
     /**
      * 查询出 线程被唤醒的 线程信息
@@ -546,7 +609,7 @@ export class TabPaneCurrentSelection extends BaseElement {
         s = str.replace(/&/g,"&amp;")
         s = s.replace(/</g,"&lt;")
         s = s.replace(/>/g,"&gt;")
-        s = s.replace(/ /g,"&nbsp;")
+        // s = s.replace(/ /g,"&nbsp;")
         s = s.replace(/\'/g,"&#39;")
         s = s.replace(/\"/g,"&#quat;")
         // s = s.replace(/(/g,"&amp;")

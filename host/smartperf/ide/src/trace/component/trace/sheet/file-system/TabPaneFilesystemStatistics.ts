@@ -95,7 +95,7 @@ export class TabPaneFileStatistics extends BaseElement {
         this.loadingList.push(1)
         this.progressEL!.loading = true
         this.loadingPage.style.visibility = "visible";
-        getTabPaneFilesystemStatistics(val.leftNs + val.recordStartNs,val.rightNs + val.recordStartNs).then(result => {
+        getTabPaneFilesystemStatistics(val.leftNs + val.recordStartNs,val.rightNs + val.recordStartNs,val.fileSystemType).then(result => {
             this.loadingList.splice(0,1)
             if(this.loadingList.length == 0) {
                 this.progressEL!.loading = false

@@ -29,6 +29,8 @@ export class SpHelp extends BaseElement {
     set dark(dark: boolean) {
         if (dark) {
             this.setAttribute("dark", '' + dark);
+        } else {
+            this.removeAttribute("dark")
         }
         this.appContent!.innerHTML = "<object type=\"text/html\" data="
             + "/application/doc/quickstart_hiprofiler_cmd.html?"
@@ -128,6 +130,33 @@ export class SpHelp extends BaseElement {
                             that.appContent!.innerHTML =
                                 "<object type=\"text/html\" data="
                                 + "/application/doc/memory_fetching.html?"
+                                + that.dark
+                                + " width=\"100%\" height=\"100%\"></object>"
+                        }
+                    },
+                    {
+                        title: "Bio抓取和展示说明", icon: "", clickHandler: function (item: MenuItem) {
+                            that.appContent!.innerHTML =
+                                "<object type=\"text/html\" data="
+                                + "/application/doc/bio_record.html?"
+                                + that.dark
+                                + " width=\"100%\" height=\"100%\"></object>"
+                        }
+                    },
+                    {
+                        title: "进程smaps抓取和展示说明", icon: "", clickHandler: function (item: MenuItem) {
+                            that.appContent!.innerHTML =
+                                "<object type=\"text/html\" data="
+                                + "/application/doc/smaps.html?"
+                                + that.dark
+                                + " width=\"100%\" height=\"100%\"></object>"
+                        }
+                    },
+                    {
+                        title: "HiSystemEvent抓取和展示说明", icon: "", clickHandler: function (item: MenuItem) {
+                            that.appContent!.innerHTML =
+                                "<object type=\"text/html\" data="
+                                + "/application/doc/hiSystemEvent.html?"
                                 + that.dark
                                 + " width=\"100%\" height=\"100%\"></object>"
                         }

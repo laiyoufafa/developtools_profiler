@@ -57,8 +57,6 @@ export class TabPaneVirtualMemoryEvents extends BaseElement {
         this.tblData?.shadowRoot.querySelector(".table").style.height = (this.parentElement.clientHeight - 20 - 31) + "px"
         this.tbl!.recycleDataSource = [];
         this.tblData!.recycleDataSource = [];
-
-
     }
 
     connectedCallback() {
@@ -196,7 +194,7 @@ export class TabPaneVirtualMemoryEvents extends BaseElement {
             })
             type = typeEntry?parseInt(typeEntry[0]):0
         }else if(pathData!=undefined){
-            type = parseInt(pathData.type);
+            type = parseInt(pathData.type||0);
             tid = pathData.tid||-1;
             pid = pathData.pid||-1;
         }else if(pathData==undefined){

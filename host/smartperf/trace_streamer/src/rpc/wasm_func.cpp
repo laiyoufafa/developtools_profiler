@@ -61,7 +61,7 @@ EMSCRIPTEN_KEEPALIVE uint8_t* TraceStreamer_Set_ThirdParty_DataDealer(SendDataCa
     return g_sendDataBuf;
 }
 
-int TraceStreamer_Plugin_Out_Filter(const char* pluginData, int len, const std::string componentName)
+int TraceStreamer_Plugin_Out_Filter(const char* pluginData, int len, const std::string& componentName)
 {
     std::map<int, std::string>::iterator itor = g_wasmTraceStreamer.g_thirdPartyConfig.begin();
     int componentId = 0;

@@ -14,19 +14,14 @@
  */
 
 import './sql-wasm.js'
-import {CpuStruct} from "../bean/CpuStruct.js";
-import {CpuFreqStruct} from "../bean/CpuFreqStruct.js";
-import {ThreadStruct} from "../bean/ThreadStruct.js";
-import {ProcessMemStruct} from "../bean/ProcessMemStruct.js";
+
 import {Counter, Fps, SelectionData} from "../bean/BoxSelection.js";
-import {FuncStruct} from "../bean/FuncStruct.js";
 import {WakeUpTimeBean} from "../bean/WakeUpTimeBean.js";
 import {WakeupBean} from "../bean/WakeupBean.js";
 import {BinderArgBean} from "../bean/BinderArgBean.js";
-import {FpsStruct} from "../bean/FpsStruct.js";
 import {SPT, SPTChild} from "../bean/StateProcessThread.js";
 import {CpuUsage, Freq} from "../bean/CpuUsage.js";
-import {HeapTreeDataBean} from "../bean/HeapTreeDataBean.js";
+
 import {
     NativeEvent,
     NativeEventHeap,
@@ -42,10 +37,7 @@ import {
     SystemDiskIOSummary,
     SystemNetworkSummary
 } from "../bean/AbilityMonitor.js";
-import {NetworkAbilityMonitorStruct} from "../bean/NetworkAbilityMonitorStruct.js";
-import {DiskAbilityMonitorStruct} from "../bean/DiskAbilityMonitorStruct.js";
-import {MemoryAbilityMonitorStruct} from "../bean/MemoryAbilityMonitorStruct.js";
-import {CpuAbilityMonitorStruct} from "../bean/CpuAbilityMonitorStruct.js";
+
 import {
     PerfCall,
     PerfCallChain,
@@ -56,20 +48,48 @@ import {
     PerfThread
 } from "../bean/PerfProfile.js";
 import {SearchFuncBean} from "../bean/SearchFuncBean.js";
-import {info} from "../../log/Log.js";
-import {CounterStruct, SdkSliceStruct} from "../bean/SdkStruct.js";
 import {CounterSummary, SdkSliceSummary} from "../bean/SdkSummary.js";
-import {
-    EnergyAnomalyStruct,
-    EnergyPowerStruct,
-    EnergyStateStruct,
-    EnergySystemStruct,
-    PowerBatteryEnergy,
-    PowerDetailsEnergy, SystemDetailsEnergy
-} from "../bean/EnergyStruct.js";
 import {Smaps} from "../bean/SmapsStruct.js";
 import {CpuFreqRowLimit} from "../component/chart/SpFreqChart.js";
 import {CpuFreqLimitsStruct} from "./ui-worker/ProcedureWorkerCpuFreqLimits.js";
+import {CpuStruct} from "./ui-worker/ProcedureWorkerCPU.js";
+import {CpuFreqStruct} from './ui-worker/ProcedureWorkerFreq.js';
+import { ThreadStruct } from './ui-worker/ProcedureWorkerThread.js';
+import { FuncStruct } from './ui-worker/ProcedureWorkerFunc.js';
+import { ProcessMemStruct } from './ui-worker/ProcedureWorkerMem.js';
+import { HeapTreeDataBean } from './logic-worker/ProcedureLogicWorkerNativeNemory.js';
+import {FpsStruct} from "./ui-worker/ProcedureWorkerFPS.js";
+import {CpuAbilityMonitorStruct} from "./ui-worker/ProcedureWorkerCpuAbility.js";
+import {MemoryAbilityMonitorStruct} from "./ui-worker/ProcedureWorkerMemoryAbility.js";
+import {DiskAbilityMonitorStruct} from "./ui-worker/ProcedureWorkerDiskIoAbility.js";
+import {NetworkAbilityMonitorStruct} from "./ui-worker/ProcedureWorkerNetworkAbility.js";
+import {EnergyAnomalyStruct} from "./ui-worker/ProcedureWorkerEnergyAnomaly.js";
+import {EnergyStateStruct} from "./ui-worker/ProcedureWorkerEnergyState.js";
+import {CounterStruct} from "./ui-worker/ProduceWorkerSdkCounter.js";
+import {SdkSliceStruct} from "./ui-worker/ProduceWorkerSdkSlice.js";
+import {SystemDetailsEnergy} from "../bean/EnergyStruct.js";
+import {ClockStruct} from "./ui-worker/ProcedureWorkerClock.js";
+import {IrqStruct} from "./ui-worker/ProcedureWorkerIrq.js";
+
+class DataWorkerThread extends Worker {
+    taskMap: any = {};
+    uuid(): string {
+        // @ts-ignore
+        return ([1e7] + -1e3 + -4e3 + -8e3 + -1e11)
+            .replace(/[018]/g, (c: any) => (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16));
+    }
+    //发送方法名 参数 回调
+    queryFunc(action: string, args: any, handler: Function) {
+        let id = this.uuid();
+        this.taskMap[id] = handler
+        let msg = {
+            id: id,
+            action: action,
+            args: args,
+        }
+        this.postMessage(msg);
+    }
+}
 
 class DbThread extends Worker {
     busy: boolean = false;
@@ -124,8 +144,11 @@ export class DbPool {
     works: Array<DbThread> = [];
     progress: Function | undefined | null;
     num = Math.floor(Math.random() * 10 + 1) + 20;
+    cutDownTimer:any|undefined;
+    dataWorker: DataWorkerThread | undefined | null;
     init = async (type: string, threadBuild: (() => DbThread) | undefined = undefined) => { // wasm | server | sqlite
         await this.close();
+        const { port1, port2 } = new MessageChannel();
         if (type === "wasm") {
             this.maxThreadNumber = 1;
         } else if (type === "server") {
@@ -159,7 +182,11 @@ export class DbPool {
                         Reflect.deleteProperty(thread.taskMap, event.data.id);
                     } else if (Reflect.has(event.data, 'ready')) {
                         this.progress!("database opened", this.num + event.data.index)
+                        this.progressTimer(this.num + event.data.index,this.progress!)
                     } else if (Reflect.has(event.data, 'init')) {
+                        if(this.cutDownTimer!=undefined){
+                            clearInterval(this.cutDownTimer);
+                        }
                         this.progress!("database ready", 40)
                         let fun = thread.taskMap[event.data.id];
                         if (fun) {
@@ -221,6 +248,7 @@ export class DbPool {
     }
 
     close = async () => {
+        clearInterval(this.cutDownTimer);
         for (let i = 0; i < this.works.length; i++) {
             let thread = this.works[i];
             thread.terminate();
@@ -238,6 +266,25 @@ export class DbPool {
             thread = this.works[Math.floor(Math.random() * this.works.length)]
             thread.queryFunc(name, sql, args, handler, action)
         }
+    }
+
+    //new method replace submit() method
+    submitTask(action:string,args:any,handler:Function){
+        this.dataWorker?.queryFunc(action, args, handler);
+    }
+
+    progressTimer(num:number,progress:Function){
+        let currentNum = num;
+        clearInterval(this.cutDownTimer);
+        this.cutDownTimer = setInterval(()=>{
+            currentNum += Math.floor(Math.random() * 3)
+            if(currentNum >= 50){
+                progress("database opened",40);
+                clearInterval(this.cutDownTimer);
+            }else {
+                progress("database opened",currentNum);
+            }
+        },Math.floor(Math.random() * 2500 + 1000))
     }
 }
 
@@ -385,6 +432,16 @@ export const getFunDataByTid = (tid: number): Promise<Array<FuncStruct>> =>
 from thread A,trace_range D
 left join callstack C on A.id = C.callid
 where startTs not null and c.cookie is null and tid = $tid`, {$tid: tid})
+
+export const getMaxDepthByTid = (): Promise<Array<any>> =>
+    query("getMaxDepthByTid", `
+    select
+tid,
+    MAX(c.depth + 1) as maxDepth
+from thread A
+left join callstack C on A.id = C.callid
+where c.ts not null and c.cookie is null group by tid`, {})
+
 
 export const getStatesProcessThreadDataByRange = (leftNs: number, rightNs: number): Promise<Array<SPT>> =>
     query<SPT>("getStatesProcessThreadDataByRange", `
@@ -952,6 +1009,10 @@ from thread_state AS B
          left join process AS IP on IP.id = A.ipid
 where B.tid = $tid;`, {$tid: tid})
 
+export const queryThreadStateArgs = (startDur:number,endState:string): Promise<Array<BinderArgBean>> =>
+    query("queryThreadStateArgs",` select args_view.* from args_view,
+     (select arg_setid from sched_slice where end_state = $endState and ts + dur = $startDur limit 1) s on s.arg_setid = argset`, {$startDur: startDur,$endState:endState})
+
 export const queryWakeUpThread_Desc = (): Promise<Array<any>> =>
     query("queryWakeUpThread_Desc", `This is the interval from when the task became eligible to run
 (e.g.because of notifying a wait queue it was a suspended on) to when it started running.`)
@@ -1138,6 +1199,8 @@ export const queryNativeHookEventTid = (leftNs: number, rightNs: number, types: 
       (A.start_ts - B.start_ts) as startTs,
       (A.end_ts - B.start_ts) as endTs,
       tid,
+      sub_type_id as subTypeId,
+      ifnull(last_lib_id,0) as lastLibId,
       t.name as threadName
     from
       native_hook A,
@@ -1194,25 +1257,57 @@ export const queryAllHookData = (rightNs: number): Promise<Array<NativeHookSampl
     and
       n.start_ts between t.start_ts and ${rightNs} + t.start_ts`, {$rightNs: rightNs})
 
-
+export const queryNativeHookResponseTypes = (leftNs: number, rightNs: number, types: Array<string>): Promise<Array<any>> =>
+    query("queryNativeHookResponseTypes", `
+        select last_lib_id as lastLibId,data_dict.data as value from 
+        native_hook A ,trace_range B
+        left join data_dict on A.last_lib_id = data_dict.id 
+        where
+        A.start_ts - B.start_ts
+        between ${leftNs} and ${rightNs} and A.event_type in (${types.join(",")})
+        group by last_lib_id;
+    `,{$leftNs: leftNs, $rightNs: rightNs, $types: types})
 /**
  * HiPerf
  */
-export const queryHiPerfEventList = (): Promise<Array<any>> => query("queryHiPerfEventList", `select id,report_value from perf_report where report_type='config_name'`, {},"exec-buf")
-export const queryHiPerfEventListData = (eventTypeId:number): Promise<Array<any>> => query("queryHiPerfEventListData", `
-    select s.*,(s.timestamp_trace-t.start_ts) startNS from perf_sample s,trace_range t where event_type_id=${eventTypeId} and s.thread_id != 0;
-`, {$eventTypeId:eventTypeId},"exec-buf")
-export const queryHiPerfEventData = (eventTypeId:number,cpu:number): Promise<Array<any>> => query("queryHiPerfEventList", `
-    select s.*,(s.timestamp_trace-t.start_ts) startNS from perf_sample s,trace_range t where event_type_id=${eventTypeId} and cpu_id=${cpu} and s.thread_id != 0;
-`, {$eventTypeId:eventTypeId,$cpu:cpu},"exec-buf")
+export const queryHiPerfEventList = (): Promise<Array<any>> =>
+    query("queryHiPerfEventList", `select id,report_value from perf_report where report_type='config_name'`, {})
+export const queryHiPerfEventListData = (eventTypeId:number): Promise<Array<any>> =>
+    query("queryHiPerfEventListData", `
+        select s.callchain_id,
+               (s.timestamp_trace-t.start_ts) startNS 
+        from perf_sample s,trace_range t 
+        where 
+            event_type_id=${eventTypeId} 
+            and s.thread_id != 0;
+`, {$eventTypeId:eventTypeId})
+export const queryHiPerfEventData = (eventTypeId:number,cpu:number): Promise<Array<any>> =>
+    query("queryHiPerfEventList", `
+    select s.callchain_id,
+        (s.timestamp_trace-t.start_ts) startNS 
+    from perf_sample s,trace_range t 
+    where
+        event_type_id=${eventTypeId} 
+        and cpu_id=${cpu} 
+        and s.thread_id != 0;
+`, {$eventTypeId:eventTypeId,$cpu:cpu})
 export const queryHiPerfCpuData = (cpu: number): Promise<Array<any>> =>
-    query("queryHiPerfCpuData", `select s.*,(s.timestamp_trace-t.start_ts) startNS from perf_sample s,trace_range t where cpu_id=${cpu} and s.thread_id != 0;`, {$cpu: cpu},"exec-buf")
+    query("queryHiPerfCpuData", `
+    select s.callchain_id,
+        (s.timestamp_trace-t.start_ts) startNS 
+    from perf_sample s,trace_range t 
+    where 
+        cpu_id=${cpu} 
+        and s.thread_id != 0;`, {$cpu: cpu})
 export const queryHiPerfCpuMergeData = (): Promise<Array<any>> =>
-    query("queryHiPerfCpuData", `select s.*,(s.timestamp_trace-t.start_ts) startNS from perf_sample s,trace_range t where s.thread_id != 0;`, {},"exec-buf")
+    query("queryHiPerfCpuData",
+        `select s.callchain_id,(s.timestamp_trace-t.start_ts) startNS from perf_sample s,trace_range t where s.thread_id != 0;`, {})
 export const queryHiPerfCpuMergeData2 = (): Promise<Array<any>> =>
-    query("queryHiPerfCpuData2", `select s.*,(s.timestamp_trace-t.start_ts) startNS from perf_sample s,trace_range t where s.thread_id != 0;`, {})
+    query("queryHiPerfCpuData2",
+        `select distinct cpu_id from perf_sample where thread_id != 0 order by cpu_id desc;`, {})
 
-export const queryHiPerfProcessData = (pid: number): Promise<Array<any>> => query("queryHiPerfProcessData", `SELECT sp.*,
+export const queryHiPerfProcessData = (pid: number): Promise<Array<any>> => query("queryHiPerfProcessData", `
+SELECT sp.callchain_id,
        th.thread_name,
        th.thread_id                     tid,
        th.process_id                    pid,
@@ -1220,9 +1315,10 @@ export const queryHiPerfProcessData = (pid: number): Promise<Array<any>> => quer
 from perf_sample sp,
      trace_range tr
          left join perf_thread th on th.thread_id = sp.thread_id
-where pid = ${pid} and sp.thread_id != 0;;`, {$pid: pid},"exec-buf")
+where pid = ${pid} and sp.thread_id != 0;`, {$pid: pid})
 
-export const queryHiPerfThreadData = (tid: number): Promise<Array<any>> => query("queryHiPerfThreadData", `SELECT sp.*,
+export const queryHiPerfThreadData = (tid: number): Promise<Array<any>> => query("queryHiPerfThreadData", `
+SELECT sp.callchain_id,
        th.thread_name,
        th.thread_id                     tid,
        th.process_id                    pid,
@@ -1230,7 +1326,7 @@ export const queryHiPerfThreadData = (tid: number): Promise<Array<any>> => query
 from perf_sample sp,
      trace_range tr
          left join perf_thread th on th.thread_id = sp.thread_id
-where tid = ${tid} and sp.thread_id != 0;`, {$tid: tid},"exec-buf")
+where tid = ${tid} and sp.thread_id != 0;`, {$tid: tid})
 
 export const querySelectTraceStats = (): Promise<Array<{
     event_name: string
@@ -1984,7 +2080,7 @@ export const queryCPuAbilityMaxData = (): Promise<Array<any>> =>
 
 export const querySearchFunc = (search:string):Promise<Array<SearchFuncBean>> =>
     query("querySearchFunc",`
-   select c.id,c.name as funName,c.ts - r.start_ts as startTime,c.dur,c.depth,t.tid,t.name as threadName
+   select c.cookie,c.id,c.name as funName,c.ts - r.start_ts as startTime,c.dur,c.depth,t.tid,t.name as threadName
    ,p.pid ,'func' as type from callstack c left join thread t on c.callid = t.id left join process p on t.ipid = p.id 
    left join trace_range r 
    where c.name like '%${search}%' and startTime > 0;
@@ -2063,7 +2159,7 @@ export const getTabPaneFilesystemStatisticsAll = (leftNs: number, rightNs: numbe
     and end_ts <= $rightNs;
 `, {$leftNs:leftNs,$rightNs:rightNs});
 
-export const getTabPaneFilesystemStatistics = (leftNs: number, rightNs: number): Promise<Array<any>> =>
+export const getTabPaneFilesystemStatistics = (leftNs: number, rightNs: number,types:number[]): Promise<Array<any>> =>
     query("getTabPaneFilesystemStatistics", `
     select p.pid,
        ifnull(p.name,'Process') as name,
@@ -2080,6 +2176,7 @@ export const getTabPaneFilesystemStatistics = (leftNs: number, rightNs: number):
     from file_system_sample as f left join process as p on f.ipid=p.ipid
     where end_ts >= $leftNs
     and end_ts <= $rightNs
+    and f.type in (${types.join(",")})
     group by f.type,f.ipid
     order by f.type;
 `, {$leftNs:leftNs,$rightNs:rightNs});
@@ -2098,7 +2195,7 @@ export const getTabPaneVirtualMemoryStatisticsData = (leftNs: number, rightNs: n
        min(dur) as minDuration,
        max(dur) as maxDuration,
        avg(dur) as avgDuration
-    from virtual_memory_sample as f left join process as p on f.ipid=p.ipid left join thread as t on f.itid=t.itid
+    from paged_memory_sample as f left join process as p on f.ipid=p.ipid left join thread as t on f.itid=t.itid
     where f.end_ts >= $leftNs
     and f.end_ts <= $rightNs
     group by f.type,f.ipid,f.itid
@@ -2108,24 +2205,24 @@ export const getTabPaneVirtualMemoryStatisticsData = (leftNs: number, rightNs: n
 export const getTabPaneIOTierStatisticsData = (leftNs: number, rightNs: number, diskIOipids:Array<number>): Promise<Array<any>> =>{
     let str = "";
     if (diskIOipids.length > 0) {
-        str = ` and f.ipid in (${diskIOipids.join(",")})`;
+        str = ` and i.ipid in (${diskIOipids.join(",")})`;
     }
     return query("getTabPaneIOTierStatisticsData", `
     select p.pid,
        ifnull(p.name,'Process') as pname,
        i.tier,
        i.ipid,
-       path,
+       path_id as path,
        count(i.ipid) as count,
        sum(latency_dur) as allDuration,
        min(latency_dur) as minDuration,
        max(latency_dur) as maxDuration,
        avg(latency_dur) as avgDuration
-    from io_latency_sample as i left join process as p on i.ipid=p.ipid
-    where i.start_ts >= $leftNs
+    from bio_latency_sample as i left join process as p on i.ipid=p.ipid
+    where i.start_ts+latency_dur >= $leftNs
     and i.start_ts+latency_dur <= $rightNs
     ${str}
-    group by i.tier,i.ipid,i.path
+    group by i.tier,i.ipid,i.path_id
     order by i.tier;
 `, {$leftNs:leftNs,$rightNs:rightNs})
 };
@@ -2161,10 +2258,10 @@ export const hasFileSysData = () : Promise<Array<any>> =>
     select 
         fsCount,
         vmCount,
-         0 as ioCount from
-        (select count(1) as fsCount from file_system_sample)
-        ,(select count(1) as vmCount from virtual_memory_sample)
-        --,(select count(1) as ioCount from io_latency_sample);
+        ioCount from
+        (select count(1) as fsCount from file_system_sample s,trace_range t where (s.start_ts between t.start_ts and t.end_ts) or (s.end_ts between t.start_ts and t.end_ts) )
+        ,(select count(1) as vmCount from paged_memory_sample s,trace_range t where (s.start_ts between t.start_ts and t.end_ts) or (s.end_ts between t.start_ts and t.end_ts) )
+        ,(select count(1) as ioCount from bio_latency_sample s,trace_range t where (s.start_ts between t.start_ts and t.end_ts) or (s.end_ts between t.start_ts and t.end_ts) );
     `,{})
 
 export const getFileSysChartDataByType = (type:number) : Promise<Array<any>> =>
@@ -2174,7 +2271,7 @@ export const getFileSysChartDataByType = (type:number) : Promise<Array<any>> =>
        (A.end_ts - B.start_ts) as endNS,
        dur
     from file_system_sample A,trace_range B
-    where type = $type and startNS > 0;`,{$type:type},"exec-buf")
+    where type = $type and startNS > 0;`,{$type:type},"exec")
 
 export const getFileSysVirtualMemoryChartData = () : Promise<Array<any>> =>
     query("getFileSysVirtualMemoryChartData",`
@@ -2182,14 +2279,14 @@ export const getFileSysVirtualMemoryChartData = () : Promise<Array<any>> =>
        (A.start_ts -B.start_ts) as startNS,
        (A.end_ts - B.start_ts) as endNS,
        dur as dur
-    from virtual_memory_sample A,trace_range B
+    from paged_memory_sample A,trace_range B
     where startNS > 0
-    order by A.start_ts;`,{},"exec-buf")
+    order by A.start_ts;`,{},"exec")
 
 export const getDiskIOProcess = () : Promise<Array<any>> =>
     query("getDiskIOProcess",`
     select name,B.ipid,pid
-    from (select distinct ipid from io_latency_sample) A
+    from (select distinct ipid from bio_latency_sample A,trace_range B where A.start_ts between B.start_ts and B.end_ts) A
     left join process B on A.ipid = B.ipid;`,{})
 
 export const getDiskIOLatencyChartDataByProcess = (all:boolean,ipid:number,typeArr:Array<number>) : Promise<Array<any>> =>
@@ -2198,13 +2295,13 @@ export const getDiskIOLatencyChartDataByProcess = (all:boolean,ipid:number,typeA
        (A.start_ts -B.start_ts) as startNS,
        (A.start_ts - B.start_ts + A.latency_dur) as endNS,
        latency_dur as dur
-    from io_latency_sample A,trace_range B
+    from bio_latency_sample A,trace_range B
     where type in (${typeArr.join(",")}) and startNS > 0
         ${ all ? '' : 'and ipid = ' + ipid }
-    order by A.start_ts;`,{},"exec-buf")
+    order by A.start_ts;`,{},"exec")
 
-export const querySdkCount = (sql:string, componentId:number ): Promise<Array<any>> =>
-    query("querySdkCount", sql,{},"exec-sdk-" + componentId)
+export const querySdkCount = (sql:string, componentId:number, args?: any): Promise<Array<any>> =>
+    query("querySdkCount", sql,args,"exec-sdk-" + componentId)
 
 export const querySdkCounterData = (sql:string, counter_id:number, componentId:number): Promise<Array<CounterStruct>> =>
     query("querySdkCounterData", sql,{$counter_id:counter_id}, "exec-sdk-" + componentId)
@@ -2250,15 +2347,15 @@ export const queryAnomalyData = (): Promise<Array<EnergyAnomalyStruct>> =>
       left join data_dict as D2 on D2.id=APP.app_key
       where D.data in ('ANOMALY_SCREEN_OFF_ENERGY','ANOMALY_KERNEL_WAKELOCK','ANOMALY_CPU_HIGH_FREQUENCY','ANOMALY_WAKEUP')
      or (D.data in ('ANOMALY_RUNNINGLOCK','ANORMALY_APP_ENERGY','ANOMALY_GNSS_ENERGY','ANOMALY_CPU_ENERGY','ANOMALY_ALARM_WAKEUP') and D2.data in ("APPNAME")) 
-      group by S.ts,D.data`)
+      group by S.serial,D.data`)
 
-export const querySystemData = (): Promise<Array<{
+export const querySystemLocationData = (): Promise<Array<{
     startNs: string
     eventName: string
     type: string
     state: string
 }>> =>
-    query("querySystemData", `SELECT
+    query("querySystemLocationData", `SELECT
         ( S.ts - TR.start_ts ) AS ts,
         D.data AS eventName,
         D2.data AS appKey,
@@ -2270,16 +2367,59 @@ export const querySystemData = (): Promise<Array<{
         LEFT JOIN app_name AS APP ON APP.id = S.key_id
         LEFT JOIN data_dict AS D2 ON D2.id = APP.app_key 
         WHERE
-        ( D.data = 'POWER_RUNNINGLOCK' AND D2.data = 'TAG' ) 
-        OR ( D.data = 'GNSS_STATE' AND D2.data = 'STATE' ) 
-        OR ( D.data IN ( 'WORK_REMOVE', 'WORK_STOP', 'WORK_ADD' ) AND D2.data = 'TYPE' ) 
+        D.data = 'GNSS_STATE' AND D2.data = 'STATE'
         GROUP BY
-        S.ts,
+        S.serial,
         APP.app_key,
         D.data,
         D2.data;`)
 
-export const querySystemDetailsData = (leftNs: number, rightNs: number): Promise<Array<SystemDetailsEnergy>> =>
+
+export const querySystemLockData = (): Promise<Array<{
+    startNs: string
+    eventName: string
+    type: string
+    state: string
+}>> =>
+    query("querySystemLockData", `SELECT
+        ( S.ts - TR.start_ts ) AS ts,
+        D.data AS eventName,
+        D2.data AS appKey,
+        group_concat(( CASE WHEN S.type == 1 THEN S.string_value ELSE S.int_value END ), ',' ) AS Value 
+        FROM
+        trace_range AS TR,
+        hisys_event_measure AS S
+        LEFT JOIN data_dict AS D ON D.id = S.name_id
+        LEFT JOIN app_name AS APP ON APP.id = S.key_id
+        LEFT JOIN data_dict AS D2 ON D2.id = APP.app_key 
+        WHERE
+        ( D.data = 'POWER_RUNNINGLOCK' AND D2.data in ('TAG','MESSAGE')) 
+        GROUP BY
+        S.serial;`)
+
+export const querySystemSchedulerData = (): Promise<Array<{
+    startNs: string
+    eventName: string
+    appKey: string
+    Value: string
+}>> =>
+    query("querySystemSchedulerData", `SELECT
+        ( S.ts - TR.start_ts ) AS startNs,
+        D.data AS eventName,
+        group_concat(D2.data, ',') AS appKey,
+        group_concat( ( CASE WHEN S.type == 1 THEN S.string_value ELSE S.int_value END ), ',' ) AS Value 
+        FROM
+        trace_range AS TR,
+        hisys_event_measure AS S
+        LEFT JOIN data_dict AS D ON D.id = S.name_id
+        LEFT JOIN app_name AS APP ON APP.id = S.key_id
+        LEFT JOIN data_dict AS D2 ON D2.id = APP.app_key 
+        WHERE
+        D.data IN ( 'WORK_REMOVE', 'WORK_STOP', 'WORK_ADD' ) AND D2.data in ('NAME','TYPE','WORKID') 
+        GROUP BY
+        S.serial;`)
+
+export const querySystemDetailsData = (rightNs: number, eventName: string): Promise<Array<SystemDetailsEnergy>> =>
     query("querySystemDetailsData", `SELECT
         ( S.ts - TR.start_ts ) AS ts,
         D.data AS eventName,
@@ -2292,16 +2432,38 @@ export const querySystemDetailsData = (leftNs: number, rightNs: number): Promise
         LEFT JOIN app_name AS APP ON APP.id = S.key_id
         LEFT JOIN data_dict AS D2 ON D2.id = APP.app_key 
         WHERE
-        D.data in ('POWER_RUNNINGLOCK', 'GNSS_STATE', 'WORK_REMOVE', 'WORK_STOP', 'WORK_ADD', 'WORK_START') 
+        D.data in ($eventName) 
         and 
         D2.data in ('UID', 'TYPE', 'WORKID', 'NAME', 'INTERVAL', 'TAG', 'STATE', 'STACK', 'APPNAME', 'MESSAGE', 'PID', 'LOG_LEVEL')
-        and (S.ts - TR.start_ts) >= $leftNS
         and (S.ts - TR.start_ts) <= $rightNS
         GROUP BY
-        S.ts,
+        S.serial,
         APP.app_key,
         D.data,
-        D2.data;`, {$leftNS: leftNs, $rightNS: rightNs})
+        D2.data;`, {$rightNS: rightNs, $eventName: eventName})
+
+export const querySystemWorkData = (rightNs: number): Promise<Array<SystemDetailsEnergy>> =>
+    query("querySystemWorkData", `SELECT
+        ( S.ts - TR.start_ts ) AS ts,
+        D.data AS eventName,
+        D2.data AS appKey,
+        group_concat( ( CASE WHEN S.type == 1 THEN S.string_value ELSE S.int_value END ), ',' ) AS appValue 
+        FROM
+        trace_range AS TR,
+        hisys_event_measure AS S
+        LEFT JOIN data_dict AS D ON D.id = S.name_id
+        LEFT JOIN app_name AS APP ON APP.id = S.key_id
+        LEFT JOIN data_dict AS D2 ON D2.id = APP.app_key 
+        WHERE
+        D.data in ("WORK_REMOVE", "WORK_STOP", "WORK_ADD", "WORK_START") 
+        and 
+        D2.data in ('UID', 'TYPE', 'WORKID', 'NAME', 'INTERVAL', 'TAG', 'STATE', 'STACK', 'APPNAME', 'MESSAGE', 'PID', 'LOG_LEVEL')
+        and (S.ts - TR.start_ts) <= $rightNS
+        GROUP BY
+        S.serial,
+        APP.app_key,
+        D.data,
+        D2.data;`, {$rightNS: rightNs})
 
 export const queryMaxPowerValue = (appName: string): Promise<Array<{
     maxValue: number
@@ -2341,7 +2503,7 @@ export const queryPowerData = (): Promise<Array<{
         and 
         D2.data in ('BACKGROUND_ENERGY','FOREGROUND_ENERGY','SCREEN_ON_ENERGY','SCREEN_OFF_ENERGY','ENERGY','APPNAME')
         GROUP BY
-        S.ts,
+        S.serial,
         APP.app_key,
         D.data,
         D2.data 
@@ -2370,7 +2532,7 @@ export const getTabPowerDetailsData = (leftNs: number, rightNs: number): Promise
         and 
         D2.data in ('APPNAME')
         GROUP BY
-        S.ts,
+        S.serial,
         APP.app_key,
         D.data,
         D2.data
@@ -2397,7 +2559,7 @@ export const getTabPowerDetailsData = (leftNs: number, rightNs: number): Promise
         (S.ts - TR.start_ts) >= $leftNS
         and (S.ts - TR.start_ts) <= $rightNS
         GROUP BY
-        S.ts,
+        S.serial,
         APP.app_key,
         D.data,
         D2.data 
@@ -2432,7 +2594,7 @@ export const getTabPowerBatteryData = (rightNs: number): Promise<Array<{
       D2.id=APP.app_key
       where 
       D.data = 'POWER_IDE_BATTERY'
-      and D2.data in ('GAS_GAUGE','CHARGE','SCREEN','LEVEL','CURRENT','CAPACITY')
+      and D2.data in ('GAS_GAUGE','CHARGE','SCREEN','LEVEL','CURRENT','CAPACITY','UID')
       and (S.ts - TR.start_ts) >= 0
       and (S.ts - TR.start_ts) <= $rightNS 
       group by APP.app_key,D.data,D2.data;`, {$rightNS: rightNs})
@@ -2464,7 +2626,7 @@ export const queryStateData = (eventName: string): Promise<Array<EnergyStateStru
   left join data_dict as D2 on D2.id=APP.app_key
   where (case when 'SENSOR_STATE'==$eventName then D.data like '%SENSOR%' else D.data = $eventName end)
   and D2.data in ('BRIGHTNESS','STATE','VALUE','LEVEL','VOLUME','OPER_TYPE','VOLUME')
-  group by S.ts,APP.app_key,D.data,D2.data;`, {$eventName: eventName})
+  group by S.serial,APP.app_key,D.data,D2.data;`, {$eventName: eventName})
 
 export const querySyseventAppName = (): Promise<Array<{
     string_value: string | null
@@ -2491,7 +2653,7 @@ export const queryAnomalyDetailedData = (leftNs: number, rightNs: number): Promi
   and D2.data in ('APPNAME')
   and (S.ts - TR.start_ts) >= $leftNS
    and (S.ts - TR.start_ts) <= $rightNS 
-  group by S.ts,APP.app_key,D.data,D2.data
+  group by S.serial,APP.app_key,D.data,D2.data
   union 
   select
   S.ts,
@@ -2507,7 +2669,7 @@ export const queryAnomalyDetailedData = (leftNs: number, rightNs: number): Promi
   and D2.data not in ('pid_','tid_','type_','tz_','uid_','domain_', 'id_', 'level_', 'info_', 'tag_', 'APPNAME')
   and (S.ts - TR.start_ts) >= $leftNS
    and (S.ts - TR.start_ts) <= $rightNS 
-  group by S.ts,APP.app_key,D.data,D2.data;`, {$leftNS: leftNs, $rightNS: rightNs})
+  group by S.serial,APP.app_key,D.data,D2.data;`, {$leftNS: leftNs, $rightNS: rightNs})
 
 export const querySmapsExits = (): Promise<Array<any>> =>
     query("querySmapsExits", `select 
@@ -2546,8 +2708,13 @@ export const getTabSmapsData = (leftNs: number, rightNs: number): Promise<Array<
 
 export const getTabVirtualMemoryType = (startTime: number, endTime: number): Promise<Array<string>> =>
     query("getTabVirtualMemoryType", `
-    SELECT type from virtual_memory_sample s,trace_range t
+    SELECT type from paged_memory_sample s,trace_range t
      WHERE s.end_ts between $startTime + t.start_ts and $endTime + t.start_ts group by type`, {$startTime : startTime,$endTime:endTime},"exec")
+
+export const getTabIoCompletionTimesType = (startTime: number, endTime: number): Promise<Array<string>> =>
+    query("getTabIoCompletionTimesType", `
+    SELECT tier from bio_latency_sample s,trace_range t
+     WHERE s.start_ts + s.latency_dur between $startTime + t.start_ts and $endTime + t.start_ts group by tier`, {$startTime : startTime,$endTime:endTime},"exec")
 
 export const getCpuLimitFreqId = (): Promise<Array<CpuFreqRowLimit>> =>
     query("getCpuMaxMinFreqId", `
@@ -2572,3 +2739,133 @@ export const queryHisystemEventExits = (): Promise<Array<any>> =>
       where s.event_name = 'trace_hisys_event' 
       and s.stat_type ='received' and s.count > 0`)
 
+export const queryEbpfSamplesCount = (startTime: number, endTime: number,ipids:number[]): Promise<Array<any>> =>
+    query("queryEbpfSamplesCount", `
+    select
+fsCount,
+    vmCount from
+(select count(1) as fsCount from file_system_sample s,trace_range t where s.end_ts between $startTime + t.start_ts and $endTime + t.start_ts ${ipids.length>0?`and s.ipid in (${ipids.join(",")})`:""})
+,(select count(1) as vmCount from paged_memory_sample s,trace_range t where s.end_ts between $startTime + t.start_ts and $endTime + t.start_ts ${ipids.length>0?`and s.ipid in (${ipids.join(",")})`:""});
+`, {$startTime : startTime,$endTime : endTime});
+
+export const querySysLockDetailsData = (rightNs: number, eventName: string): Promise<Array<SystemDetailsEnergy>> =>
+    query("querySysLockDetailsData", `SELECT
+        ( S.ts - TR.start_ts ) AS ts,
+        D.data AS eventName,
+        D2.data AS appKey,
+        group_concat( ( CASE WHEN S.type == 1 THEN S.string_value ELSE S.int_value END ), ',' ) AS appValue 
+        FROM
+        trace_range AS TR,
+        hisys_event_measure AS S
+        LEFT JOIN data_dict AS D ON D.id = S.name_id
+        LEFT JOIN app_name AS APP ON APP.id = S.key_id
+        LEFT JOIN data_dict AS D2 ON D2.id = APP.app_key 
+        WHERE
+        D.data in ($eventName) 
+        and 
+        D2.data in ('UID', 'TYPE', 'WORKID', 'NAME', 'INTERVAL', 'TAG', 'STATE', 'STACK', 'APPNAME', 'MESSAGE', 'PID', 'LOG_LEVEL')
+        and (S.ts - TR.start_ts) <= $rightNS
+        GROUP BY
+        S.serial,
+        APP.app_key,
+        D.data,
+        D2.data;`, {$rightNS: rightNs, $eventName: eventName})
+
+
+export const queryStateInitValue = (eventName: string, keyName: string): Promise<Array<EnergyStateStruct>> =>
+    query("queryStateInitValue", `select
+  0 as startNs,
+  $eventName as type,
+  '' as appKey,
+  (case $keyName
+  when 'brightness' then device_state.brightness
+  when 'wifi' then device_state.wifi
+  when 'bt_state' then device_state.bt_state
+  when 'location' then device_state.location
+  else 0 end) as value
+  from device_state;`, {$eventName: eventName, $keyName: keyName})
+
+export const querySysLocationDetailsData = (rightNs: number, eventName: string): Promise<Array<SystemDetailsEnergy>> =>
+    query("querySysLocationDetailsData", `SELECT
+        ( S.ts - TR.start_ts ) AS ts,
+        D.data AS eventName,
+        D2.data AS appKey,
+        group_concat( ( CASE WHEN S.type == 1 THEN S.string_value ELSE S.int_value END ), ',' ) AS appValue 
+        FROM
+        trace_range AS TR,
+        hisys_event_measure AS S
+        LEFT JOIN data_dict AS D ON D.id = S.name_id
+        LEFT JOIN app_name AS APP ON APP.id = S.key_id
+        LEFT JOIN data_dict AS D2 ON D2.id = APP.app_key 
+        WHERE
+        D.data in ($eventName) 
+        and 
+        D2.data in ('UID', 'TYPE', 'WORKID', 'NAME', 'INTERVAL', 'TAG', 'STATE', 'STACK', 'APPNAME', 'MESSAGE', 'PID', 'LOG_LEVEL')
+        and (S.ts - TR.start_ts) <= $rightNS
+        GROUP BY
+        S.serial,
+        APP.app_key,
+        D.data,
+        D2.data;`, {$rightNS: rightNs, $eventName: eventName})
+export const queryNativeMemoryRealTime = (): Promise<Array<any>> =>
+    query("queryNativeMemoryRealTime",`select cs.ts,cs.clock_name from datasource_clockid dc left join clock_snapshot cs on dc.clock_id = cs.clock_id where data_source_name = 'memory-plugin' or data_source_name = 'nativehook'
+`,{})
+
+export const queryBootTime = (): Promise<Array<any>> =>
+    query("queryBootTime",`select ts,clock_name from clock_snapshot where clock_name = 'boottime'
+`,{})
+
+export const queryConfigSysEventAppName = (): Promise<Array<{
+    process_name: string
+}>> =>
+    query("queryConfigSysEventAppName", `
+    SELECT value from trace_config where trace_source = 'hisys_event' and key = 'process_name'`)
+
+export const queryClockData = (): Promise<Array<{
+    name:string,num:number,srcname:string
+}>> =>
+    query("queryClockData", `
+    with freq as(
+    select measure.filter_id, measure.ts, measure.type, measure.value , clock_event_filter.name from clock_event_filter
+    left join measure
+    where  clock_event_filter.type = 'clock_set_rate' and clock_event_filter.id = measure.filter_id
+    order by measure.ts
+),state as (
+    select filter_id, ts, endts, endts-ts as dur, type, value,name from
+    (select measure.filter_id, measure.ts, lead(ts, 1, null) over( order by measure.ts) endts, measure.type, measure.value,clock_event_filter.name from clock_event_filter,trace_range
+    left join measure
+    where clock_event_filter.type != 'clock_set_rate' and clock_event_filter.id = measure.filter_id
+    order by measure.ts)
+),count_freq as (
+    select COUNT(*) num,name srcname from freq group by name
+),count_state as (
+    select COUNT(*) num,name srcname from state group by name
+)
+select count_freq.srcname||' Frequency' as name,* from count_freq union select count_state.srcname||' State' as name,* from count_state order by name`)
+
+export const queryClockFrequency = (clockName:string): Promise<Array<ClockStruct>> =>
+    query("queryClockFrequency",`with freq as (  select measure.filter_id, measure.ts, measure.type, measure.value from clock_event_filter
+left join measure
+where clock_event_filter.name = $clockName and clock_event_filter.type = 'clock_set_rate' and clock_event_filter.id = measure.filter_id
+order by measure.ts)
+select freq.filter_id as filterId,freq.ts - r.start_ts as startNS,freq.type,freq.value from freq,trace_range r order by startNS`, {$clockName: clockName})
+
+export const queryClockState = (clockName:string): Promise<Array<ClockStruct>> =>
+    query("queryClockState",`with state as (
+select filter_id, ts, endts, endts-ts as dur, type, value from
+(select measure.filter_id, measure.ts, lead(ts, 1, null) over( order by measure.ts) endts, measure.type, measure.value from clock_event_filter,trace_range
+left join measure
+where clock_event_filter.name = $clockName and clock_event_filter.type != 'clock_set_rate' and clock_event_filter.id = measure.filter_id
+order by measure.ts))
+select s.filter_id as filterId,s.ts-r.start_ts as startNS,s.type,s.value,s.dur from state s,trace_range r`, {$clockName: clockName})
+
+export const queryScreenState = (): Promise<Array<ClockStruct>> =>
+    query("queryScreenState",`select m.type, m.ts-r.start_ts as startNS, value, filter_id  as filterId from measure m,trace_range r where filter_id in (select id from process_measure_filter where name = 'ScreenState')  order by startNS;
+`)
+
+export const queryIrqList = (): Promise<Array<{name:string,cpu:number}>> =>
+    query("queryIrqList",`select cat as name,callid as cpu from irq group by cat,callid`)
+
+export const queryIrqData = (callid:number,cat:string): Promise<Array<IrqStruct>> =>
+    query("queryIrqData",`select i.ts - t.start_ts as startNS,i.dur,i.name,i.depth,argsetid as argSetId,i.id from irq i,
+trace_range t where i.callid = $callid and i.cat = $cat`,{$callid: callid,$cat: cat})

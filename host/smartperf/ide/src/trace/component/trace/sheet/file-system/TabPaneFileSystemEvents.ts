@@ -38,8 +38,11 @@ export class TabPaneFileSystemEvents extends BaseElement {
     private currentSelection: SelectionParam | undefined | null
     private filterEventType: string = "0";
     private filterProcess: string = "0";
+    private filterPath: string = "0"
     private eventList:string[] | null |undefined;
     private processList:string[] | null |undefined;
+    private pathList:string[] | null |undefined;
+
 
     set data(val: SelectionParam | null | undefined) {
         if (val == this.currentSelection) {
@@ -50,6 +53,12 @@ export class TabPaneFileSystemEvents extends BaseElement {
         this.tbl?.shadowRoot.querySelector(".table").style.height = (this.parentElement.clientHeight - 20 - 31) + "px"
         // @ts-ignore
         this.tblData?.shadowRoot.querySelector(".table").style.height = (this.parentElement.clientHeight - 20 - 31) + "px"
+        this.filterEventType = "0"
+        this.filterProcess = "0";
+        this.queryData(val)
+    }
+
+    queryData(val: SelectionParam | null | undefined){
         this.tbl!.recycleDataSource = [];
         this.tblData!.recycleDataSource = [];
         if (val) {
@@ -62,39 +71,54 @@ export class TabPaneFileSystemEvents extends BaseElement {
                     this.source = this.source.concat(res.data)
                     res.data = null;
                     if(!res.isSending){
-                        this.tbl!.recycleDataSource = this.source;
-                        this.filterSource = this.source;
                         this.setProcessFilter();
+                        this.filterData()
                         this.loadingList.splice(0,1)
                         if(this.loadingList.length == 0) {
                             this.progressEL!.loading = false
                             this.loadingPage.style.visibility = "hidden"
                         }
                     }
-            })
+                })
         }
     }
 
     setProcessFilter(){
         this.processList = ["All Process"];
+        this.pathList = ["All Path"]
         this.source.map(it => {
             if(this.processList!.findIndex(a => a === it.process) == -1){
                 this.processList!.push(it.process);
             }
+            if(this.pathList!.findIndex(a => a === it.path) == -1){
+                this.pathList!.push(it.path)
+            }
         })
-        this.filter!.setSelectList(this.eventList,this.processList,"","");
-        this.filter!.firstSelect = "0";
-        this.filter!.secondSelect = "0";
+        this.filter!.setSelectList(this.eventList,this.processList,"","",this.pathList,"");
+        if(this.filterProcess == "-1"){
+            this.filterProcess = this.processList.indexOf(`${this.currentSelection?.fileSystemFsData.name}[${this.currentSelection?.fileSystemFsData.pid}]`) + ""
+        }
+        this.filter!.firstSelect = this.filterEventType;
+        this.filter!.secondSelect = this.filterProcess;
+        this.filter!.thirdSelect = this.filterPath
     }
 
     filterData(){
         let pfv = parseInt(this.filterProcess)
-        if(this.filterEventType == "0"){
-            this.filterSource = pfv === 0 ? this.source :  this.source.filter((it) => it.process === this.processList![pfv]);
-        }else{
-            let eventType = parseInt(this.filterEventType) - 1
-            this.filterSource = this.source.filter((it) => it.type == eventType && ( pfv === 0 ? true : it.process === this.processList![pfv]));
-        }
+        let pathIndex = parseInt(this.filterPath)
+        let eventType = parseInt(this.filterEventType) - 1
+        this.filterSource = this.source.filter((it) => {
+            let pathFilter = true
+            let eventFilter = it.type == eventType||eventType == -1;
+            let processFilter = true
+            if(this.filterPath != "0"){
+                pathFilter = it.path == this.pathList![pathIndex]
+            }
+            if(this.filterProcess != "0"){
+                processFilter = it.process == this.processList![pfv]
+            }
+            return pathFilter&&eventFilter&&processFilter
+        })
         this.tblData!.recycleDataSource = [];
         this.sortTable(this.sortKey,this.sortType);
     }
@@ -129,13 +153,44 @@ export class TabPaneFileSystemEvents extends BaseElement {
         this.filter = this.shadowRoot?.querySelector<TabPaneFilter>("#filter");
         this.eventList = ['All Event','All Open Event','All Close Event','All Read Event','All Write Event'];
         this.processList = ['All Process'];
-        this.filter!.setSelectList(this.eventList,this.processList,"","");
+        this.pathList = ["All Path"];
+        this.filter!.setSelectList(this.eventList,this.processList,"","",this.pathList,"");
         this.filter!.firstSelect = "0";
         this.filter!.getFilterData((data: FilterData) => {
             this.filterEventType = data.firstSelect || "0";
             this.filterProcess = data.secondSelect || "0";
+            this.filterPath = data.thirdSelect || "0";
             this.filterData();
         })
+    }
+
+    fromStastics(val: SelectionParam | any) {
+        if(val.fileSystemFsData == undefined){
+            return
+        }
+        if(val.fileSystemFsData.title == "All"){
+            this.filterEventType = "0";
+            this.filterProcess = "0";
+        } else if(val.fileSystemFsData.pid == undefined){
+            this.filterEventType = "" + (val.fileSystemFsData.type+1);
+            this.filterProcess = "0";
+        } else {
+            this.filterEventType = "" + (val.fileSystemFsData.type+1);
+            this.filterProcess = "-1";
+        }
+        this.filterPath = "0"
+        if(this.currentSelection == val){
+            if(this.filterProcess == "-1"){
+                this.filterProcess = this.processList?.indexOf(`${val.fileSystemFsData.name}[${val.fileSystemFsData.pid}]`) + "";
+            }
+            this.filter!.firstSelect = this.filterEventType
+            this.filter!.secondSelect = this.filterProcess
+            this.filter!.thirdSelect = this.filterPath
+            this.filterData()
+        } else {
+            this.currentSelection = val
+            this.queryData(val)
+        }
     }
 
     connectedCallback() {
@@ -195,7 +250,21 @@ export class TabPaneFileSystemEvents extends BaseElement {
                     } else {
                         return type === 2 ? -1 : 1;
                     }
-                } else{
+                } else if(key == "fd"){
+                    if(type == 1){
+                        return (a.fd||0) - (b.fd||0) ;
+                    }else{
+                        return (b.fd||0) - (a.fd||0) ;
+                    }
+                } else if(key == "path"){
+                    if (a.path > b.path) {
+                        return type === 2 ? 1 : -1;
+                    } else if (a.path == b.path)  {
+                        return 0;
+                    } else {
+                        return type === 2 ? -1 : 1;
+                    }
+                }else{
                     return 0;
                 }
             })
@@ -246,6 +315,8 @@ export class TabPaneFileSystemEvents extends BaseElement {
                             <lit-table-column width="240px" title="Process" data-index="process" key="process" align="flex-start" order></lit-table-column>
                             <lit-table-column width="240px" title="Thread" data-index="thread" key="thread" align="flex-start" order></lit-table-column>
                             <lit-table-column width="120px" title="Type" data-index="typeStr" key="typeStr" align="flex-start" order></lit-table-column>
+                            <lit-table-column width="120px" title="File Descriptor" data-index="fd" key="fd" align="flex-start" order></lit-table-column>
+                            <lit-table-column width="160px" title="File Path" data-index="path" key="path" align="flex-start" order></lit-table-column>
                             <lit-table-column width="160px" title="First Argument" data-index="firstArg" key="firstArg" align="flex-start" ></lit-table-column>
                             <lit-table-column width="160px" title="Second Argument" data-index="secondArg" key="secondArg" align="flex-start" ></lit-table-column>
                             <lit-table-column width="160px" title="Third Argument" data-index="thirdArg" key="thirdArg" align="flex-start" ></lit-table-column>

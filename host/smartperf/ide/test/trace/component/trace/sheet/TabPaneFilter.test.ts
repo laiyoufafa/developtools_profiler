@@ -74,6 +74,7 @@ describe('TabPaneFilter Test', () => {
             background: var(--dark-background4,#F2F2F2);
             border-top: 1px solid var(--dark-border1,#c9d0da);display: flex;align-items: center;z-index: 2;
             margin-left: -10px;
+            width: calc(100% + 20px);
         }
 
         .chosen-single {

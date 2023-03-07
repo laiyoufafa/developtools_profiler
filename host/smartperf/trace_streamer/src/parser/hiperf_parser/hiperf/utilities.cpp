@@ -38,7 +38,7 @@ const char *MemoryHold::HoldStringView(std::string_view view)
 std::string CanonicalizeSpecPath(const char* src)
 {
     if (src == nullptr || strlen(src) >= PATH_MAX) {
-        fprintf(stderr, "Error: CanonicalizeSpecPath %s failed", src);
+        fprintf(stderr, "Error: CanonicalizeSpecPath failed, src is NULL");
         return "";
     }
     char resolvedPath[PATH_MAX] = { 0 };

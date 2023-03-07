@@ -37,7 +37,7 @@ export class TabPaneContextSwitch extends BaseElement {
         }
         this.selectionParam = val;
         // @ts-ignore
-        this.tbl?.shadowRoot.querySelector(".table").style.height = (this.parentElement.clientHeight - 45) + "px"
+        this.tbl?.shadowRoot?.querySelector(".table").style.height = (this.parentElement.clientHeight - 45) + "px"
         this.range!.textContent = "Selected range: " + parseFloat(((val.rightNs - val.leftNs) / 1000000.0).toFixed(5)) + " ms"
         if (this.loadDataInCache) {
             this.getDataBySPT(val.leftNs,val.rightNs,SpSystemTrace.SPT_DATA)

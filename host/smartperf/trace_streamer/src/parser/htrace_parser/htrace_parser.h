@@ -39,7 +39,7 @@
 #include "htrace_symbols_detail_parser.h"
 #include "log.h"
 #include "parser_base.h"
-#if defined WITH_PERF
+#if WITH_PERF
 #include "perf_data_parser.h"
 #endif
 #include "string_help.h"
@@ -50,7 +50,7 @@
 namespace SysTuning {
 namespace TraceStreamer {
 using namespace SysTuning::base;
-#if defined WITH_PERF
+#if WITH_PERF
 using namespace OHOS::Developtools::HiPerf;
 #endif
 class HtraceParser : public ParserBase {
@@ -75,6 +75,7 @@ private:
     void ParseDiskIO(const ProfilerPluginData& pluginData, HtraceDataSegment &dataSeg);
     void ParseProcess(const ProfilerPluginData& pluginData, HtraceDataSegment &dataSeg);
     void ParseHisysevent(const ProfilerPluginData& pluginData, HtraceDataSegment &dataSeg);
+    void ParseHisyseventConfig(const ProfilerPluginData& pluginData, HtraceDataSegment &dataSeg);
     void ParseThread();
     int GetNextSegment();
     void FilterThread();

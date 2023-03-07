@@ -35,10 +35,9 @@ bool PrintEventParser::ParsePrintEvent(const std::string& comm, uint64_t ts, uin
     if (point.tgid_) {
         streamFilters_->processFilter_->GetOrCreateInternalPid(ts, point.tgid_);
     }
-    uint32_t index = 0;
     switch (point.phase_) {
         case 'B': {
-            index = streamFilters_->sliceFilter_->BeginSlice(comm, ts, pid, point.tgid_, INVALID_DATAINDEX,
+            uint32_t index = streamFilters_->sliceFilter_->BeginSlice(comm, ts, pid, point.tgid_, INVALID_DATAINDEX,
                                                              traceDataCache_->GetDataIndex(point.name_));
             if (index != INVALID_UINT32) {
                 // add distributed data

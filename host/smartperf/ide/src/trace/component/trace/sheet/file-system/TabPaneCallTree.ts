@@ -48,6 +48,10 @@ export class TabPaneCallTree extends BaseElement {
     private flameChartMode:ChartMode = ChartMode.Duration
 
     set data(val: SelectionParam | any) {
+        if(val == this.currentSelection){
+            return;
+        }
+        this.searchValue = "";
         this.initModeAndAction()
         this.currentSelection = val
         this.tbl!.style.visibility = "visible";
@@ -83,9 +87,6 @@ export class TabPaneCallTree extends BaseElement {
         if(this.hasAttribute("flame-mode")){
             let mode = this.getAttribute("flame-mode")
             switch (mode){
-                case "Call":
-                    this.flameChartMode = ChartMode.Call
-                    break;
                 case "Byte":
                     this.flameChartMode = ChartMode.Byte
                     break;
@@ -471,7 +472,7 @@ export class TabPaneCallTree extends BaseElement {
         let list = filterData.dataMining.concat(filterData.dataLibrary);
         args.push({
             funcName: "getCallChainsBySampleIds",
-            funcArgs: [isTopDown]
+            funcArgs: [isTopDown,this.queryFuncName]
         })
         this.tbr!.recycleDataSource = []
         if (isHideSystemLibrary) {
@@ -536,7 +537,7 @@ export class TabPaneCallTree extends BaseElement {
         this.loadingList.push(1)
         this.progressEL!.loading = true
         this.loadingPage.style.visibility = "visible"
-        procedurePool.submitWithName("logic0",this.procedureAction,args,undefined,(results:any)=>{
+        procedurePool.submitWithName("logic0",this.procedureAction, {args,callType:this.queryFuncName},undefined,(results:any)=>{
             handler(results)
             this.loadingList.splice(0,1)
             if(this.loadingList.length == 0) {

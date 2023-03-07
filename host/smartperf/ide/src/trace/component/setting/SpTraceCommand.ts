@@ -58,7 +58,7 @@ export class SpTraceCommand extends BaseElement {
 
     codeCopyEvent = (event: any) => {
         this.codeHl?.select();
-        navigator.clipboard.writeText(this.codeHl?.textContent!).then(() => {})
+        document.execCommand('copy');
     }
 
     textSelectEvent = (event: any) => {
@@ -106,6 +106,7 @@ export class SpTraceCommand extends BaseElement {
             position: relative;
             top: 56px;
             right: 40px;
+            cursor:pointer;
         }
 
         #copy-button{
@@ -151,7 +152,7 @@ export class SpTraceCommand extends BaseElement {
         }
         
         #stop-button{
-            display: none;
+           display: none;
            border-radius: 15px;
            background-color: #0A59F7;
            width: 120px;
@@ -163,6 +164,8 @@ export class SpTraceCommand extends BaseElement {
            line-height: 20px;
            margin-left: 80%;
            border: 1px solid #FFFFFF;
+           opacity: 0.6;
+           cursor:pointer;
         }
         
         :host([show]) #stop-button {

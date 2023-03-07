@@ -13,33 +13,16 @@
  * limitations under the License.
  */
 
-import {CpuStruct} from "../../../bean/CpuStruct.js";
+
+import {CpuStruct} from "../../../database/ui-worker/ProcedureWorkerCPU.js";
 
 export class ColorUtils {
     public static GREY_COLOR: string = "#f0f0f0"
 
     public static MD_PALETTE: Array<string> = [
-        "#00bdd6",
-        "#86C8F0",
-        "#94B5F4",
-        "#66BDF1",
-        "#7AD7E6",
-        "#509B8D",
-        "#42B7A4",
-        "#67B898",
-        "#7EC6BB",
-        "#9AD9D1",
-        "#7786C9",
-        "#6ABAE5",
-        "#5E8BE2",
-        "#7786C9",
-        "#E97978",
-        "#E69553",
-    ];
-    public static FUNC_COLOR: Array<string> = [
-        "#00bdd6",
         "#9785D3",
         "#A27F7E",
+        "#00bdd6",
         "#94B5F4",
         "#B282F6",
         "#E97978",
@@ -51,7 +34,22 @@ export class ColorUtils {
         "#E69553",
         "#7EC6BB",
         "#C6D9F2",
-        "#DAD154",
+    ];
+    public static FUNC_COLOR: Array<string> = [
+        "#9785D3",
+        "#A27F7E",
+        "#00bdd6",
+        "#94B5F4",
+        "#B282F6",
+        "#E97978",
+        "#7AD7E6",
+        "#A1C38A",
+        "#DB8E86",
+        "#42B7A4",
+        "#AACEA0",
+        "#E69553",
+        "#7EC6BB",
+        "#C6D9F2",
     ];
 
     public static hash(str: string, max: number): number {
@@ -82,12 +80,14 @@ export class ColorUtils {
     }
 
     public static formatNumberComma(str: number): string {
-        let l = str.toString().split("").reverse();
+        if(str === undefined||str === null) return "";
+        let unit = str>=0?'':'-'
+        let l = Math.abs(str).toString().split("").reverse();
         let t: string = "";
         for (let i = 0; i < l.length; i++) {
             t += l[i] + ((i + 1) % 3 == 0 && (i + 1) != l.length ? "," : "");
         }
-        return t.split("").reverse().join("")
+        return unit+t.split("").reverse().join("")
     }
 
     public static hashFunc(str: string, depth: number, max: number): number {

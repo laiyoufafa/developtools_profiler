@@ -91,8 +91,12 @@ export class SpQuerySQL extends BaseElement {
             })
             copyResult += "\n"
         }
-        navigator.clipboard.writeText(copyResult).then(()=>{
-        })
+        let textarea = document.createElement('textarea');
+        document.body.appendChild(textarea);
+        textarea.textContent = copyResult
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
     }
 
     selectEventListener = (event: any) => {
@@ -497,12 +501,14 @@ export class SpQuerySQL extends BaseElement {
         
         #copy-button{
            margin-right: 10%;
-           cursor:pointer
+           cursor:pointer;
+           opacity: 0.6;
         }
         
         #close-button{
            margin-right: 5%;
-           cursor:pointer
+           cursor:pointer;
+           opacity: 0.6;
         }
         
         .button-option{

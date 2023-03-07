@@ -25,7 +25,8 @@ export class TabPaneFreq extends BaseElement {
     set data(freq:any) {
         if(freq){
             this.tbl!.dataSource = [{
-                startNS:Utils.getTimeString(freq.startNS),
+                startNS:Utils.getTimeString(freq.startNS >=0?freq.startNS:0),
+                absoluteTime:(freq.startNS + (window as any).recordStartNS)/1000000000,
                 dur:Utils.getProbablyTime(freq.dur),
                 freq:`${ColorUtils.formatNumberComma(freq.value!)} kHz`,
                 cpu:`Cpu ${freq.cpu}`
@@ -58,7 +59,9 @@ export class TabPaneFreq extends BaseElement {
         }
         </style>
         <lit-table id="tb-freq" style="height: auto">
-            <lit-table-column width="1fr" title="StartTime" data-index="startNS" key="startNS" align="flex-start">
+            <lit-table-column width="1fr" title="StartTime(Relative)" data-index="startNS" key="startNS" align="flex-start">
+            </lit-table-column>
+            <lit-table-column width="1fr" title="StartTime(Absolute)" data-index="absoluteTime" key="absoluteTime" align="flex-start">
             </lit-table-column>
             <lit-table-column width="1fr" title="Duration" data-index="dur" key="dur" align="flex-start" >
             </lit-table-column>

@@ -59,7 +59,7 @@ export class SpRecordSetting extends BaseElement {
             info("maxDur  is : ", this.durationNumber!.getAttribute("percent"))
             return Number(this.durationNumber!.getAttribute("percent"));
         }
-        return 50
+        return 30
     }
 
     resetValue(): void{
@@ -191,13 +191,13 @@ export class SpRecordSetting extends BaseElement {
         this.maxDurationSliders.sliderStyle = {
             minRange: 10,
             maxRange: 3600,
-            defaultValue: '00:00:50',
+            defaultValue: '00:00:30',
             resultUnit: "h:m:s",
             stepSize: 1,
             lineColor: "var(--dark-color4,#61CFBE)",
             buttonColor: "#999999"
         }
-        this.lastDurationValue = '00:00:50'
+        this.lastDurationValue = '00:00:30'
         let durationParentElement = this.maxDurationSliders!.parentNode as Element;
         let durationInput = this.shadowRoot?.querySelector('.max_duration_result') as HTMLInputElement;
         durationInput.value = this.maxDurationSliders.sliderStyle.defaultValue;
@@ -216,7 +216,7 @@ export class SpRecordSetting extends BaseElement {
             let regExpMatchArray = durationInput.value.trim();
             if (regExpMatchArray == '') {
                 durationInput.style.color = 'red';
-                durationParentElement.setAttribute('percent', '50');
+                durationParentElement.setAttribute('percent', '30');
                 return
             }
             let regExpMatch = durationInput.value.trim().match(`^\\d{1,2}\\:\\d{1,2}\\:\\d{1,2}$`);
@@ -227,7 +227,7 @@ export class SpRecordSetting extends BaseElement {
                     resultDuration > this.maxDurationSliders!.sliderStyle.maxRange ||
                     resultDuration < this.maxDurationSliders!.sliderStyle.minRange) {
                     durationInput.style.color = 'red';
-                    durationParentElement.setAttribute('percent', '50');
+                    durationParentElement.setAttribute('percent', '30');
                 } else {
                     durationInput.style.color = 'var(--dark-color1,#000000)';
                     durationInput.parentElement!.style.backgroundColor = "var(--dark-background5,#F2F2F2)";
@@ -248,7 +248,7 @@ export class SpRecordSetting extends BaseElement {
                 }
             } else {
                 durationInput.style.color = 'red';
-                durationParentElement.setAttribute('percent', '50');
+                durationParentElement.setAttribute('percent', '30');
             }
         })
 
@@ -442,7 +442,7 @@ export class SpRecordSetting extends BaseElement {
             <lit-slider id="max-duration" defaultColor="var(--dark-color4,#61CFBE)" open dir="right">
             </lit-slider>
             <div class='resultValue'>
-                <input class="max_duration_result" type="text" value = '00:00:50' >
+                <input class="max_duration_result" type="text" value = '00:00:30' >
                 <span style="text-align: center; margin: 8px 8px 8px 0"> h:m:s </span>
             </div>
             

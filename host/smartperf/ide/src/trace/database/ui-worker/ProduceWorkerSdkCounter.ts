@@ -19,13 +19,47 @@ import {
     drawLines,
     drawLoading,
     drawSelection,
-    drawWakeUp,
+    drawWakeUp, isFrameContainPoint,
     ns2x,
     Render,
     RequestMessage
 } from "./ProcedureWorkerCommon.js";
+import {TraceRow} from "../../component/trace/base/TraceRow.js";
 
 export class SdkCounterRender extends Render {
+    renderMainThread(req: {
+        context: CanvasRenderingContext2D,
+        useCache: boolean,
+        type: string,
+        maxName:string,
+        maxValue:number
+    }, row : TraceRow<CounterStruct>) {
+        let list= row.dataList;
+        let filter = row.dataListCache;
+        let maxCounter = req.maxValue;
+        let maxCounterName = req.maxName;
+        this.counter(list, filter, TraceRow.range?.startNS ?? 0, TraceRow.range?.endNS ?? 0, TraceRow.range?.totalNS ?? 0, row.frame,req.useCache || (TraceRow.range?.refresh ?? false));
+        req.context.beginPath();
+        let find = false;
+        for (let re of filter) {
+            if (row.isHover && re.frame && isFrameContainPoint(re.frame,row.hoverX,row.hoverY)) {//&& req.hoverY >= re.frame.y && req.hoverY <= re.frame.y + re.frame.height
+                CounterStruct.hoverCounterStruct = re;
+                find = true;
+            }
+            CounterStruct.draw(req.context, re, maxCounter)
+        }
+        if(!find && row.isHover) CounterStruct.hoverCounterStruct = undefined;
+        req.context.closePath();
+        let textMetrics = req.context.measureText(maxCounterName);
+        req.context.globalAlpha = 0.8
+        req.context.fillStyle = "#f0f0f0"
+        req.context.fillRect(0, 5, textMetrics.width + 8, 18)
+        req.context.globalAlpha = 1
+        req.context.fillStyle = "#333"
+        req.context.textBaseline = "middle"
+        req.context.fillText(maxCounterName, 4, 5 + 9)
+    }
+
     render(req: RequestMessage, list: Array<any>, filter: Array<any>) {
         if (req.lazyRefresh) {
             this.counter(list, filter, req.startNS, req.endNS, req.totalNS, req.frame, req.useCache || !req.range.refresh);

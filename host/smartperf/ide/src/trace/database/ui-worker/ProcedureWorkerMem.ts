@@ -14,17 +14,38 @@
  */
 
 import { ColorUtils } from "../../component/trace/base/ColorUtils.js";
+import { TraceRow } from "../../component/trace/base/TraceRow.js";
 import {
     BaseStruct,
     drawFlagLine,
     drawLines,
     drawLoading,
-    drawSelection, drawWakeUp,
+    drawSelection, drawWakeUp, isFrameContainPoint,
     ns2x, PerfRender, Render,
     RequestMessage
 } from "./ProcedureWorkerCommon.js";
+import {CpuStruct} from "./ProcedureWorkerCPU.js";
 
 export class MemRender extends Render{
+    renderMainThread(req: { useCache: boolean; context: CanvasRenderingContext2D; type: string }, row: TraceRow<ProcessMemStruct>) {
+        let list = row.dataList;
+        let filter = row.dataListCache;
+        mem(list, filter, TraceRow.range!.startNS, TraceRow.range!.endNS, TraceRow.range!.totalNS, row.frame, req.useCache || !TraceRow.range!.refresh);
+        req.context.beginPath();
+        let find = false;
+        for (let re of filter) {
+            ProcessMemStruct.draw(req.context, re);
+            if(row.isHover){
+                if (re.frame  && isFrameContainPoint(re.frame, row.hoverX, row.hoverY)) {
+                    ProcessMemStruct.hoverProcessMemStruct = re;
+                    find = true;
+                }
+            }
+        }
+        if (!find && row.isHover) ProcessMemStruct.hoverProcessMemStruct = undefined;
+        req.context.closePath();
+    }
+
     render(req: RequestMessage, list: Array<any>, filter: Array<any>) {
         if (req.lazyRefresh) {
             mem(list, filter, req.startNS, req.endNS, req.totalNS, req.frame, req.useCache || !req.range.refresh);
@@ -68,6 +89,8 @@ export class MemRender extends Render{
             hover: ProcessMemStruct.hoverProcessMemStruct
         });
     }
+
+
 }
 
 function setMemFrame(node: any, padding: number, startNS: number, endNS: number, totalNS: number, frame: any) {

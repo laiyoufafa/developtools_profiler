@@ -546,7 +546,8 @@ group by callchain_id,s.thread_id,thread_state,process_id) p`
     resetAllNode(data: PerfCallChainMerageData[]) {
         this.clearSearchNode()
         data.forEach((process) => {
-            process.searchShow = true
+            process.searchShow = true;
+            process.isSearch = false
         })
         this.resetNewAllNode(data)
         if (this.searchValue != "") {
@@ -584,12 +585,14 @@ group by callchain_id,s.thread_id,thread_state,process_id) p`
             if ((node.symbol&&node.symbol.includes(search)) || parentSearch) {
                 node.searchShow = true
                 let parentNode = node.currentTreeParentNode
+                node.isSearch = (node.symbol!=undefined&&node.symbol.includes(search))
                 while (parentNode != undefined && !parentNode.searchShow) {
                     parentNode.searchShow = true
                     parentNode = parentNode.currentTreeParentNode
                 }
             } else {
                 node.searchShow = false
+                node.isSearch = false
             }
             if (node.children.length > 0) {
                 this.findSearchNode(node.children, search, node.searchShow)
@@ -600,6 +603,7 @@ group by callchain_id,s.thread_id,thread_state,process_id) p`
     clearSearchNode() {
         this.currentTreeList.forEach((node) => {
             node.searchShow = true
+            node.isSearch = false
         })
     }
 
@@ -775,7 +779,7 @@ export class PerfCallChainMerageData extends ChartStruct {
     vaddrInFile: number = 0;
     isSelected: boolean = false;
     searchShow: boolean = true;
-
+    isSearch: boolean = false;
     set parentNode(data: PerfCallChainMerageData | undefined) {
         this.currentTreeParentNode = data;
         this.#parentNode = data;

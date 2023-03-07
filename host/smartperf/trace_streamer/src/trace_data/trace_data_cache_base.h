@@ -120,6 +120,7 @@ public:
     AppNames appNames_;
     SysEventMeasureData sysEventMeasureData_;
     DeviceStateData deviceStateData_;
+    TraceConfigData traceConfigData_;
     SmapsData smapsData_;
     BioLatencySampleData bioLatencySampleData_;
     ClockSnapshotData clockSnapshotData_;

@@ -33,6 +33,7 @@ enum SupportedTraceEventType {
     TRACE_EVENT_BINDER_TRANSACTION_LOCKED,
     TRACE_EVENT_BINDER_TRANSACTION_UNLOCK,
     TRACE_EVENT_SCHED_SWITCH,
+    TRACE_EVENT_SCHED_BLOCKED_REASON,
     TRACE_EVENT_TASK_RENAME,
     TRACE_EVENT_TASK_NEWTASK,
     TRACE_EVENT_TRACING_MARK_WRITE,
@@ -182,6 +183,7 @@ private:
     const std::string TRACE_ACTION_BINDER_TRANSACTION = "binder_transaction";
     const std::string TRACE_ACTION_BINDER_TRANSACTION_RECEIVED = "binder_transaction_received";
     const std::string TRACE_ACTION_SCHED_SWITCH = "sched_switch";
+    const std::string TRACE_ACTION_SCHED_BLOCKED_REASON = "sched_blocked_reason";
     const std::string TRACE_ACTION_TASK_RENAME = "task_rename";
     const std::string TRACE_ACTION_TASK_NEWTASK = "task_newtask";
     const std::string TRACE_ACTION_TRACING_MARK_WRITE = "tracing_mark_write";

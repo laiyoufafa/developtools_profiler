@@ -22,6 +22,7 @@
 #include "htrace_event_parser.h"
 #include "htrace_plugin_time_parser.h"
 #include "native_hook_result.pb.h"
+#include "numerical_to_string.h"
 #include "quatra_map.h"
 #include "trace_streamer_config.h"
 #include "trace_streamer_filters.h"
@@ -68,6 +69,8 @@ private:
     void ParseFileEvent(const NativeHookData* nativeHookData);
     void ParseSymbolEvent(const NativeHookData* nativeHookData);
     void ParseThreadEvent(const NativeHookData* nativeHookData);
+    void GetCallIdToLastLibId();
+    void GetNativeHookFrameVaddrs();
     uint64_t callChainId_ = 0;
     DoubleMap<uint32_t, uint64_t, uint64_t> addrToAllocEventRow_;
     DoubleMap<uint32_t, uint64_t, uint64_t> addrToMmapEventRow_;
@@ -79,6 +82,9 @@ private:
     QuatraMap<uint64_t, uint64_t, uint64_t, uint64_t, uint64_t> frameToFrameId_;
     std::set<DataIndex> invalidLibPathIndexs_ = {};
     std::map<uint32_t, uint64_t> filePathIdToFilePathName_ = {};
+    std::map<uint64_t, uint64_t> callIdToLastCallerPathIndex_ = {};
+    std::map<uint64_t, std::string> functionNameIndexToVaddr_ = {};
+    std::deque<std::string> vaddrs_ = {};
     const size_t MAX_CACHE_SIZE = 200000;
 };
 } // namespace TraceStreamer

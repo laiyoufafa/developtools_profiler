@@ -53,7 +53,9 @@ config("default") {
     "-Wformat",
     "-Wno-unused-variable",
   ]
-
+  if (is_debug && is_win) {
+    ldflags = [ "-fstack-protector" ]
+  }
   if (is_linux || is_macx) {
     cflags += [
       "-Wa,--noexecstack",
@@ -66,7 +68,8 @@ config("default") {
         "-fstack-protector-strong",
         "-fstack-protector-all",
         "-D_FORTIFY_SOURCE=2 -O2",
-        "-D SUPPORTTHREAD",  # if support thread
+
+        # "-D SUPPORTTHREAD",  # if support thread
 
         # "-D HAVE_ELF_H",
         "-D target_cpu_x64",
@@ -87,6 +90,7 @@ config("default") {
     if (use_wasm) {
       cflags += [
         "-D IS_WASM",
+        "-D GOOGLE_PROTOBUF_NO_RDTSC",
 
         #  "-D HAVE_LIBUNWIND",
         "-D target_cpu_x64",

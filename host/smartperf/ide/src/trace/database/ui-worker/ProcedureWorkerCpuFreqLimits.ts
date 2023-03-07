@@ -17,14 +17,47 @@ import {
     BaseStruct, drawFlagLine,
     drawLines,
     drawLoading,
-    drawSelection, drawWakeUp,
+    drawSelection, drawWakeUp, isFrameContainPoint,
     ns2x,
     Render,
     RequestMessage
 } from "./ProcedureWorkerCommon.js";
 import {ColorUtils} from "../../component/trace/base/ColorUtils.js";
+import { TraceRow } from "../../component/trace/base/TraceRow.js";
+import {convertJSON} from "../logic-worker/ProcedureLogicWorkerCommon.js";
 
 export class CpuFreqLimitRender extends Render{
+    renderMainThread(req: { useCache: boolean; context: CanvasRenderingContext2D; cpu: number; type: string;maxFreq:number;maxFreqName:string }, row: TraceRow<CpuFreqLimitsStruct>) {
+        let list = row.dataList = convertJSON(row.dataList);
+        let filter = row.dataListCache;
+        let chartColor = ColorUtils.colorForTid(req.cpu);
+        freqLimits(list, filter, TraceRow.range!.startNS, TraceRow.range!.endNS, TraceRow.range!.totalNS, row.frame, req.useCache || !TraceRow.range!.refresh);
+        req.context.beginPath();
+        let maxFreq = req.maxFreq;
+        let maxFreqName = req.maxFreqName;
+        if (row.isHover) {
+            for (let re of filter) {
+                if (re.frame  && isFrameContainPoint(re.frame, row.hoverX, row.hoverY)) {
+                    CpuFreqLimitsStruct.hoverCpuFreqLimitsStruct = re;
+                    break;
+                }
+            }
+        }
+        for (let re of filter) {
+            CpuFreqLimitsStruct.draw(req.context, re,maxFreq)
+        }
+        req.context.closePath();
+        let s = maxFreqName
+        let textMetrics = req.context.measureText(s);
+        req.context.globalAlpha = 0.8
+        req.context.fillStyle = "#f0f0f0"
+        req.context.fillRect(0, 5, textMetrics.width + 8, 18)
+        req.context.globalAlpha = 1
+        req.context.fillStyle = "#333"
+        req.context.textBaseline = "middle"
+        req.context.fillText(s, 4, 5 + 9)
+    }
+
     render(req: RequestMessage, list: Array<any>, filter: Array<any>) {
         if (req.lazyRefresh) {
             freqLimits(list, filter, req.startNS, req.endNS, req.totalNS, req.frame, req.useCache || !req.range.refresh);
@@ -80,6 +113,7 @@ export class CpuFreqLimitRender extends Render{
             hover: CpuFreqLimitsStruct.hoverCpuFreqLimitsStruct
         });
     }
+
 }
 
 export function freqLimits(list: Array<any>, res: Array<any>, startNS: number, endNS: number, totalNS: number, frame: any, use: boolean) {

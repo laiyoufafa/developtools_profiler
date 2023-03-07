@@ -129,16 +129,15 @@ void BinderFilter::ReceiveTraction(int64_t ts, uint32_t pid, uint64_t transactio
         // Add dest args
         uint64_t transSliceId = INVALID_UINT64;
         uint32_t argSetId = INVALID_UINT32;
-        std::tie(transSliceId, argSetId) = streamFilters_->sliceFilter_->AddArgs(transNeedReply_[transactionId],
-                                                                                 binderCatalogId_, transSliceId_, args);
+        std::tie(transSliceId, argSetId) = streamFilters_->sliceFilter_->AddArgs(transNeedReply_[transactionId], binderCatalogId_,
+                                                                  transSliceId_, args);
 
         // remeber dest slice-id to the argset from "SendTraction" TAG-1
         ArgsSet replyDestInserter;
         if (IsValidUint32(transSliceId)) {
             replyDestInserter.AppendArg(destSliceId_, BASE_DATA_TYPE_INT, transSliceId);
         }
-        std::tie(transSliceId, argSetId) = streamFilters_->sliceFilter_->AddArgs(pid,
-                                                                                 binderCatalogId_, replyId_, replyDestInserter);
+        std::tie(transSliceId, argSetId) = streamFilters_->sliceFilter_->AddArgs(pid, binderCatalogId_, replyId_, replyDestInserter);
         traceDataCache_->GetInternalSlicesData()->SetArgSetId(transSliceId, argSetId);
         transNeedReply_.erase(transactionId);
         return;

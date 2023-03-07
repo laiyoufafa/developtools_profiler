@@ -46,6 +46,8 @@ import {TraceRow} from "./component/trace/base/TraceRow.js";
 
 @element('sp-application')
 export class SpApplication extends BaseElement {
+    private static loadingProgress:number = 0;
+    private static progressStep:number = 2;
     static skinChange: Function | null | undefined = null;
     static skinChange2: Function | null | undefined = null;
     skinChangeArray: Array<Function> = [];
@@ -392,7 +394,7 @@ export class SpApplication extends BaseElement {
                 let list = spSystemTrace!.searchCPU(value);
                 spSystemTrace!.searchFunction(list, value).then((mixedResults) => {
                     if(litSearch.searchValue != ""){
-                        litSearch.list = mixedResults
+                        litSearch.list = spSystemTrace!.searchSdk(mixedResults,value)
                     }
                 })
             } else {
@@ -578,9 +580,10 @@ export class SpApplication extends BaseElement {
                         if (that.vs) {
                             loadPath = `http://${window.location.host.split(':')[0]}:${window.location.port}`
                         }
+                        SpApplication.loadingProgress = 0;
+                        SpApplication.progressStep = 3;
                         spSystemTrace!.loadDatabaseUrl(loadPath + res, (command: string, percent: number) => {
-                            info("setPercent ：" + command + "percent :" + percent);
-                            litSearch.setPercent(command + '  ', percent);
+                            setProgress(command)
                         }, (res) => {
                             info("loadDatabaseUrl success");
                             litSearch.setPercent("", 101);
@@ -595,6 +598,22 @@ export class SpApplication extends BaseElement {
                     spInfoAndStats.initInfoAndStatsData();
                 })
             })
+        }
+
+        function setProgress(command: string){
+            if(command == "database ready" && SpApplication.loadingProgress < 50){
+                SpApplication.progressStep = 6
+            }
+            if(command == "process" && SpApplication.loadingProgress < 92){
+                SpApplication.loadingProgress = 92 + Math.round(Math.random() * SpApplication.progressStep)
+            }else{
+                SpApplication.loadingProgress += Math.round(Math.random() * SpApplication.progressStep + Math.random())
+            }
+            if(SpApplication.loadingProgress > 99){
+                SpApplication.loadingProgress = 99
+            }
+            info("setPercent ：" + command + "percent :" + SpApplication.loadingProgress);
+            litSearch.setPercent(command + '  ', SpApplication.loadingProgress);
         }
 
         function handleWasmMode(ev: any, showFileName: string, fileSize: string, fileName: string) {
@@ -680,9 +699,10 @@ export class SpApplication extends BaseElement {
                     if (that.vs) {
                         wasmUrl = `http://${window.location.host.split(':')[0]}:${window.location.port}/wasm.json`
                     }
+                    SpApplication.loadingProgress = 0;
+                    SpApplication.progressStep = 3;
                     spSystemTrace!.loadDatabaseArrayBuffer(this.result as ArrayBuffer, wasmUrl,(command: string, percent: number) => {
-                        info("setPercent ：" + command + "percent :" + percent);
-                        litSearch.setPercent(command + '  ', percent);
+                        setProgress(command)
                     }, (res) => {
                         if (res.status) {
                             info("loadDatabaseArrayBuffer success");
@@ -773,9 +793,10 @@ export class SpApplication extends BaseElement {
                         let reader = new FileReader();
                         reader.readAsArrayBuffer(ev as any)
                         reader.onloadend = function (ev) {
+                            SpApplication.loadingProgress = 0;
+                            SpApplication.progressStep = 3;
                             spSystemTrace!.loadDatabaseArrayBuffer(this.result as ArrayBuffer, "",(command: string, percent: number) => {
-                                info("setPercent ：" + command + "percent :" + percent);
-                                litSearch.setPercent(command + '  ', percent);
+                                setProgress(command)
                             }, () => {
                                 litSearch.setPercent("", 101);
                                 progressEL.loading = false;
@@ -898,8 +919,38 @@ export class SpApplication extends BaseElement {
                 }
             }
         }, {passive: false});
+
+        let urlParams = this.getUrlParams(window.location.href);
+        if(urlParams && urlParams.trace && urlParams.link){
+            litSearch.clear();
+            showContent(spSystemTrace!)
+            that.search = true
+            progressEL.loading = true
+            let path = urlParams.trace as string
+            let fileName = path.split("/").reverse()[0]
+            let showFileName = fileName.lastIndexOf('.') == -1 ? fileName : fileName.substring(0, fileName.lastIndexOf('.'))
+            TraceRow.rangeSelectObject = undefined;
+            fetch(urlParams.trace).then(res => {
+                res.arrayBuffer().then(arrayBuf => {
+                    let fileSize =  (arrayBuf.byteLength / 1048576).toFixed(1)
+                    postLog(fileName, fileSize)
+                    document.title = `${showFileName} (${fileSize}M)`
+                    info("Parse trace using wasm mode ")
+                    handleWasmMode( new File([arrayBuf],fileName), showFileName, fileSize, fileName);
+                })
+            })
+        }
     }
 
+    private getUrlParams(url:string) {
+        const _url = url || window.location.href;
+        const _urlParams = _url.match(/([?&])(.+?=[^&]+)/igm);
+        return _urlParams ? _urlParams.reduce((a:any, b) => {
+            const value = b.slice(1).split('=');
+            a[`${value[0]}`] = decodeURIComponent(value[1])
+            return a;
+        }, {}) : {};
+    }
 
     private download(mainMenu: LitMainMenu, fileName: string, isServer: boolean, dbName?: string) {
         let a = document.createElement("a");

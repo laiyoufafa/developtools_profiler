@@ -42,18 +42,18 @@ void ThreadState::SetDuration(TableRowId index, InternalTime dur)
 {
     durations_[index] = dur;
 }
-
 void DataDict::Finish()
 {
     std::string::size_type pos(0);
     for (auto i = 0; i < dataDict_.size(); i++) {
+        if (dataDict_[i].empty()) {
+            continue;
+        }
         while ((pos = dataDict_[i].find("\"")) != std::string::npos) {
             dataDict_[i].replace(pos, 1, "\'");
         }
-        if (dataDict_[i].find("ispreproc") != std::string::npos) {
-            TS_LOGI("xx");
-        }
-        while (dataDict_[i].back() >= '\001' && dataDict_[i].back() <= '\007') {
+        while ((dataDict_[i].back() >= SPASCII_START && dataDict_[i].back() <= SPASCII_END) ||
+               dataDict_[i].back() == '\r') {
             dataDict_[i].pop_back();
         }
     }
@@ -105,6 +105,7 @@ size_t SchedSlice::AppendSchedSlice(uint64_t ts,
     internalTids_.emplace_back(internalTid);
     endStates_.emplace_back(endState);
     priority_.emplace_back(priority);
+    argSets_.emplace_back(INVALID_UINT32);
     return Size() - 1;
 }
 
@@ -121,6 +122,10 @@ void SchedSlice::Update(uint64_t index, uint64_t ts, uint64_t state, uint64_t pi
     priority_[index] = pior;
 }
 
+void SchedSlice::UpdateArg(uint64_t index, uint32_t argsetId)
+{
+    argSets_[index] = argsetId;
+}
 size_t CallStack::AppendInternalAsyncSlice(uint64_t startT,
                                            uint64_t durationNs,
                                            InternalTid internalTid,
@@ -213,7 +218,7 @@ void CallStack::SetDuration(size_t index, uint64_t timestamp)
 
 void CallStack::SetIrqDurAndArg(size_t index, uint64_t timestamp, uint32_t argSetId)
 {
-    SetTimeStamp(index, timestamp);
+    SetDuration(index, timestamp);
     argSet_[index] = argSetId;
 }
 void CallStack::SetTimeStamp(size_t index, uint64_t timestamp)
@@ -605,30 +610,9 @@ void NativeHookFrame::UpdateFileId(std::map<uint32_t, uint64_t>& filePathIdToFil
         }
     }
 }
-void NativeHookFrame::GetCallIdToLastLibId(const std::set<DataIndex>& invalidLibs,
-                                           std::map<uint64_t, uint64_t>& callIdToLastCallerPathIndex)
+void NativeHookFrame::UpdateVaddrs(std::deque<std::string>& vaddrs)
 {
-    uint64_t lastLibId = INVALID_UINT64;
-    auto size = static_cast<int64_t>(Size());
-    uint32_t lastCallChainId = INVALID_UINT32;
-    bool foundLast = false;
-    for (auto i = size - 1; i > -1; i--) {
-        auto callChainId = callChainIds_[i];
-        if (callChainId == lastCallChainId) {
-            if (foundLast) {
-                continue;
-            }
-        }
-        if (callChainId != lastCallChainId) {
-            lastCallChainId = callChainId;
-            foundLast = false;
-        }
-        auto lower = std::lower_bound(invalidLibs.begin(), invalidLibs.end(), filePaths_[i]);
-        if (lower == invalidLibs.end() || *lower != filePaths_[i]) { // found
-            callIdToLastCallerPathIndex.insert(std::make_pair(callChainIds_[i], filePaths_[i]));
-            foundLast = true;
-        }
-    }
+    vaddrs_.assign(vaddrs.begin(), vaddrs.end());
 }
 const std::deque<uint64_t>& NativeHookFrame::CallChainIds() const
 {
@@ -661,6 +645,10 @@ const std::deque<uint64_t>& NativeHookFrame::Offsets() const
 const std::deque<uint64_t>& NativeHookFrame::SymbolOffsets() const
 {
     return symbolOffsets_;
+}
+const std::deque<std::string>& NativeHookFrame::Vaddrs() const
+{
+    return vaddrs_;
 }
 
 size_t Hidump::AppendNewHidumpInfo(uint64_t timestamp, uint32_t fps)
@@ -1770,6 +1758,26 @@ const std::deque<int32_t>& DeviceStateData::StreamAll() const
 {
     return streamAlls_;
 }
+void TraceConfigData::AppendNewData(std::string traceSource, std::string key, std::string value)
+{
+    traceSource_.emplace_back(traceSource);
+    key_.emplace_back(key);
+    value_.emplace_back(value);
+    ids_.push_back(rowCounts_);
+    rowCounts_++;
+}
+const std::deque<std::string>& TraceConfigData::TraceSource() const
+{
+    return traceSource_;
+}
+const std::deque<std::string>& TraceConfigData::Key() const
+{
+    return key_;
+}
+const std::deque<std::string>& TraceConfigData::Value() const
+{
+    return value_;
+}
 void SmapsData::AppendNewData(uint64_t timeStamp,
                               std::string startAddr,
                               std::string endAddr,
@@ -1917,19 +1925,27 @@ const std::deque<uint64_t>& BioLatencySampleData::DurPer4k() const
     return durPer4ks_;
 }
 DataSourceClockIdData::DataSourceClockIdData()
+    : dataSource2PluginNameMap_({{DATA_SOURCE_TYPE_TRACE, "ftrace-plugin"},
+                                 {DATA_SOURCE_TYPE_MEM, "memory-plugin"},
+                                 {DATA_SOURCE_TYPE_HILOG, "hilog-plugin"},
+                                 {DATA_SOURCE_TYPE_ALLOCATION, "nativehook"},
+                                 {DATA_SOURCE_TYPE_FPS, "hidump-plugin"},
+                                 {DATA_SOURCE_TYPE_NETWORK, "network-plugin"},
+                                 {DATA_SOURCE_TYPE_DISKIO, "diskio-plugin"},
+                                 {DATA_SOURCE_TYPE_CPU, "cpu-plugin"},
+                                 {DATA_SOURCE_TYPE_PROCESS, "process-plugin"},
+                                 {DATA_SOURCE_TYPE_HISYSEVENT, "hisysevent-plugin"}}),
+      dataSource2ClockIdMap_({{DATA_SOURCE_TYPE_TRACE, TS_CLOCK_UNKNOW},
+                              {DATA_SOURCE_TYPE_MEM, TS_CLOCK_UNKNOW},
+                              {DATA_SOURCE_TYPE_HILOG, TS_CLOCK_UNKNOW},
+                              {DATA_SOURCE_TYPE_ALLOCATION, TS_CLOCK_UNKNOW},
+                              {DATA_SOURCE_TYPE_FPS, TS_CLOCK_UNKNOW},
+                              {DATA_SOURCE_TYPE_NETWORK, TS_CLOCK_UNKNOW},
+                              {DATA_SOURCE_TYPE_DISKIO, TS_CLOCK_UNKNOW},
+                              {DATA_SOURCE_TYPE_CPU, TS_CLOCK_UNKNOW},
+                              {DATA_SOURCE_TYPE_PROCESS, TS_CLOCK_UNKNOW},
+                              {DATA_SOURCE_TYPE_HISYSEVENT, TS_CLOCK_UNKNOW}})
 {
-    dataSource2PluginNameMap_ = {
-        {DATA_SOURCE_TYPE_TRACE, "ftrace-plugin"},    {DATA_SOURCE_TYPE_MEM, "memory-plugin"},
-        {DATA_SOURCE_TYPE_HILOG, "hilog-plugin"},     {DATA_SOURCE_TYPE_ALLOCATION, "nativehook"},
-        {DATA_SOURCE_TYPE_FPS, "hidump-plugin"},      {DATA_SOURCE_TYPE_NETWORK, "network-plugin"},
-        {DATA_SOURCE_TYPE_DISKIO, "diskio-plugin"},   {DATA_SOURCE_TYPE_CPU, "cpu-plugin"},
-        {DATA_SOURCE_TYPE_PROCESS, "process-plugin"}, {DATA_SOURCE_TYPE_HISYSEVENT, "hisysevent-plugin"}};
-    dataSource2ClockIdMap_ = {
-        {DATA_SOURCE_TYPE_TRACE, TS_CLOCK_UNKNOW},   {DATA_SOURCE_TYPE_MEM, TS_CLOCK_UNKNOW},
-        {DATA_SOURCE_TYPE_HILOG, TS_CLOCK_UNKNOW},   {DATA_SOURCE_TYPE_ALLOCATION, TS_CLOCK_UNKNOW},
-        {DATA_SOURCE_TYPE_FPS, TS_CLOCK_UNKNOW},     {DATA_SOURCE_TYPE_NETWORK, TS_CLOCK_UNKNOW},
-        {DATA_SOURCE_TYPE_DISKIO, TS_CLOCK_UNKNOW},  {DATA_SOURCE_TYPE_CPU, TS_CLOCK_UNKNOW},
-        {DATA_SOURCE_TYPE_PROCESS, TS_CLOCK_UNKNOW}, {DATA_SOURCE_TYPE_HISYSEVENT, TS_CLOCK_UNKNOW}};
 }
 
 void DataSourceClockIdData::Finish()

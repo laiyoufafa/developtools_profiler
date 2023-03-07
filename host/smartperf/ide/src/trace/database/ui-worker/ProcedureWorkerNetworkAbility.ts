@@ -15,100 +15,62 @@
 
 import { ColorUtils } from "../../component/trace/base/ColorUtils.js";
 import {
-    BaseStruct,
+    BaseStruct, dataFilterHandler,
     drawFlagLine,
     drawLines,
     drawLoading,
-    drawSelection, drawWakeUp,
+    drawSelection, drawWakeUp, isFrameContainPoint,
     ns2x, Render,
     RequestMessage
 } from "./ProcedureWorkerCommon.js";
+import {TraceRow} from "../../component/trace/base/TraceRow.js";
 export class NetworkAbilityRender extends Render{
-    render(req: RequestMessage, list: Array<any>, filter: Array<any>) {
-        if (req.lazyRefresh) {
-            networkAbility(list, filter, req.startNS, req.endNS, req.totalNS, req.frame, req.useCache || !req.range.refresh)
-        } else {
-            if (!req.useCache) {
-                networkAbility(list, filter, req.startNS, req.endNS, req.totalNS, req.frame, false)
-            }
-        }
-        if (req.canvas) {
-            req.context.clearRect(0, 0, req.frame.width, req.frame.height);
-            let arr = filter;
-            if (arr.length > 0 && !req.range.refresh && !req.useCache && req.lazyRefresh) {
-                drawLoading(req.context, req.startNS, req.endNS, req.totalNS, req.frame, arr[0].startNS, arr[arr.length - 1].startNS + arr[arr.length - 1].dur)
-            }
-            req.context.beginPath();
-            let maxNetworkRate = req.params.maxNetworkRate;
-            let maxNetworkRateName = req.params.maxNetworkRateName;
-            drawLines(req.context, req.xs, req.frame.height, req.lineColor)
-            NetworkAbilityMonitorStruct.hoverNetworkAbilityStruct = undefined;
-            if (req.isHover) {
-                for (let re of filter) {
-                    if (re.frame && req.hoverX >= re.frame.x && req.hoverX <= re.frame.x + re.frame.width && req.hoverY >= re.frame.y && req.hoverY <= re.frame.y + re.frame.height) {
-                        NetworkAbilityMonitorStruct.hoverNetworkAbilityStruct = re;
-                        break;
-                    }
-                }
-            }
-            NetworkAbilityMonitorStruct.selectNetworkAbilityStruct = req.params.selectNetworkAbilityStruct;
-            for (let re of filter) {
-                NetworkAbilityMonitorStruct.draw(req.context, re, maxNetworkRate)
-            }
-            drawSelection(req.context, req.params);
-            req.context.closePath();
-            let textMetrics = req.context.measureText(maxNetworkRateName);
-            req.context.globalAlpha = 0.8
-            req.context.fillStyle = "#f0f0f0"
-            req.context.fillRect(0, 5, textMetrics.width + 8, 18)
-            req.context.globalAlpha = 1
-            req.context.fillStyle = "#333"
-            req.context.textBaseline = "middle"
-            req.context.fillText(maxNetworkRateName, 4, 5 + 9)
-            drawWakeUp(req.context, req.wakeupBean, req.startNS, req.endNS, req.totalNS, req.frame);
-            drawFlagLine(req.context, req.flagMoveInfo, req.flagSelectedInfo, req.startNS, req.endNS, req.totalNS, req.frame, req.slicesTime);
-        }
-        // @ts-ignore
-        self.postMessage({
-            id: req.id,
-            type: req.type,
-            results: req.canvas ? undefined : filter,
-            hover: NetworkAbilityMonitorStruct.hoverNetworkAbilityStruct
-        });
-    }
-}
-export function networkAbility(list: Array<any>, res: Array<any>, startNS: number, endNS: number, totalNS: number, frame: any, use: boolean) {
-    if (use && res.length > 0) {
-        for (let i = 0; i < res.length; i++) {
-            let item = res[i];
-            if ((item.startNS || 0) + (item.dur || 0) > (startNS || 0) && (item.startNS || 0) < (endNS || 0)) {
-                NetworkAbilityMonitorStruct.setNetworkFrame(item, 5, startNS || 0, endNS || 0, totalNS || 0, frame)
-            } else {
-                item.frame = null;
-            }
-        }
-        return;
-    }
-    res.length = 0;
-    if (list) {
-        for (let index = 0; index < list.length; index++) {
-            let item = list[index];
-            if (index === list.length - 1) {
-                item.dur = (endNS || 0) - (item.startNS || 0)
-            } else {
-                item.dur = (list[index + 1].startNS || 0) - (item.startNS || 0)
-            }
-            if ((item.startNS || 0) + (item.dur || 0) > (startNS || 0) && (item.startNS || 0) < (endNS || 0)) {
-                NetworkAbilityMonitorStruct.setNetworkFrame(list[index], 5, startNS || 0, endNS || 0, totalNS || 0, frame)
-                if (index > 0 && ((list[index - 1].frame?.x || 0) == (list[index].frame?.x || 0) && (list[index - 1].frame?.width || 0) == (list[index].frame?.width || 0))) {
 
-                } else {
-                    res.push(item)
-                }
+    renderMainThread(req: {
+        context: CanvasRenderingContext2D,
+        useCache: boolean,
+        type: string,
+        maxNetworkRate:number,
+        maxNetworkRateName:string
+    }, row: TraceRow<NetworkAbilityMonitorStruct>) {
+        let list = row.dataList;
+        let filter = row.dataListCache;
+        dataFilterHandler(list,filter,{
+            startKey: "startNS",
+            durKey: "dur",
+            startNS: TraceRow.range?.startNS ?? 0,
+            endNS: TraceRow.range?.endNS ?? 0,
+            totalNS: TraceRow.range?.totalNS ?? 0,
+            frame: row.frame,
+            paddingTop: 5,
+            useCache: req.useCache || !(TraceRow.range?.refresh ?? false)
+        })
+        req.context.beginPath();
+        let find = false;
+        for (let re of filter) {
+            NetworkAbilityMonitorStruct.draw(req.context, re,req.maxNetworkRate,row.isHover)
+            if (row.isHover && re.frame  && isFrameContainPoint(re.frame, row.hoverX, row.hoverY)) {
+                NetworkAbilityMonitorStruct.hoverNetworkAbilityStruct = re;
+                find = true;
             }
         }
+        if (!find && row.isHover) NetworkAbilityMonitorStruct.hoverNetworkAbilityStruct = undefined;
+        req.context.closePath();
+        let textMetrics = req.context.measureText(req.maxNetworkRateName);
+        req.context.globalAlpha = 0.8
+        req.context.fillStyle = "#f0f0f0"
+        req.context.fillRect(0, 5, textMetrics.width + 8, 18)
+        req.context.globalAlpha = 1
+        req.context.fillStyle = "#333"
+        req.context.textBaseline = "middle"
+        req.context.fillText(req.maxNetworkRateName, 4, 5 + 9)
+    }
+
+    render(req: RequestMessage, list: Array<any>, filter: Array<any>) {
+
     }
 }
+
 
 export class NetworkAbilityMonitorStruct extends BaseStruct {
     static maxNetworkRate: number = 0
@@ -118,13 +80,13 @@ export class NetworkAbilityMonitorStruct extends BaseStruct {
     value: number | undefined
     startNS: number | undefined
 
-    static draw(context2D: CanvasRenderingContext2D, data: NetworkAbilityMonitorStruct, maxNetworkRate: number) {
+    static draw(context2D: CanvasRenderingContext2D, data: NetworkAbilityMonitorStruct, maxNetworkRate: number,isHover:boolean) {
         if (data.frame) {
             let width = data.frame.width || 0;
             let index = 2;
             context2D.fillStyle = ColorUtils.colorForTid(index)
             context2D.strokeStyle = ColorUtils.colorForTid(index)
-            if (data.startNS === NetworkAbilityMonitorStruct.hoverNetworkAbilityStruct?.startNS) {
+            if (data.startNS === NetworkAbilityMonitorStruct.hoverNetworkAbilityStruct?.startNS && isHover) {
                 context2D.lineWidth = 1;
                 context2D.globalAlpha = 0.6;
                 let drawHeight: number = Math.floor(((data.value || 0) * (data.frame.height || 0) * 1.0) / maxNetworkRate);
@@ -148,28 +110,5 @@ export class NetworkAbilityMonitorStruct extends BaseStruct {
         }
         context2D.globalAlpha = 1.0;
         context2D.lineWidth = 1;
-    }
-
-    static setNetworkFrame(node: any, padding: number, startNS: number, endNS: number, totalNS: number, frame: any) {
-        let startPointX: number, endPointX: number
-
-        if ((node.startNS || 0) < startNS) {
-            startPointX = 0
-        } else {
-            startPointX = ns2x((node.startNS || 0), startNS, endNS, totalNS, frame);
-        }
-        if ((node.startNS || 0) + (node.dur || 0) > endNS) {
-            endPointX = frame.width;
-        } else {
-            endPointX = ns2x((node.startNS || 0) + (node.dur || 0), startNS, endNS, totalNS, frame);
-        }
-        let frameWidth: number = endPointX - startPointX <= 1 ? 1 : endPointX - startPointX;
-        if (!node.frame) {
-            node.frame = {};
-        }
-        node.frame.x = Math.floor(startPointX);
-        node.frame.y = frame.y + padding;
-        node.frame.width = Math.ceil(frameWidth);
-        node.frame.height = Math.floor(frame.height - padding * 2);
     }
 }

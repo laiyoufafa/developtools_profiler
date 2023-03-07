@@ -17,10 +17,10 @@
 #define RPC_WASM_FUNC_H
 
 #include <cstdio>
-#ifndef UT_MAC
+#ifndef IS_UT
 #include <emscripten.h>
 #endif
-#ifdef UT_MAC
+#ifdef IS_UT
 #define EMSCRIPTEN_KEEPALIVE __attribute__((used))
 
 #ifdef __wasm__
@@ -43,7 +43,7 @@ int TraceStreamerSqlOperateEx(int sqlLen);
 int TraceStreamerReset();
 int TraceStreamerSqlQuery(const uint8_t* sql, int sqlLen, uint8_t* out, int outLen);
 int TraceStreamer_Plugin_Out_SendData(const char* pluginData, int len, int componentId);
-int TraceStreamer_Plugin_Out_Filter(const char* pluginData, int len, const std::string componentName);
+int TraceStreamer_Plugin_Out_Filter(const char* pluginData, int len, const std::string& componentName);
 
 int TraceStreamerSqlQueryEx(int sqlLen);
 int TraceStreamerCancel();

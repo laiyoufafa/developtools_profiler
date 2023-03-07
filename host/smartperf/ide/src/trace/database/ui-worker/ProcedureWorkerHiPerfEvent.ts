@@ -22,9 +22,49 @@ import {
     drawSelection, PerfRender,
     RequestMessage
 } from "./ProcedureWorkerCommon.js";
-
+import {TraceRow} from "../../component/trace/base/TraceRow.js";
 
 export class HiperfEventRender  extends PerfRender{
+
+    renderMainThread(req: any,row:TraceRow<HiPerfEventStruct>) {
+        let list= row.dataList;
+        let list2= row.dataList2;
+        let filter = row.dataListCache;
+        let groupBy10MS = req.scale > 30_000_000;
+        if(list && row.dataList2.length ==0){
+            row.dataList2 =  HiPerfEventStruct.groupBy10MS(list, req.intervalPerf,req.type);
+        }
+        HiPerfEvent(list, list2, req.type!, filter, TraceRow.range?.startNS ??0, TraceRow.range?.endNS??0, TraceRow.range?.totalNS??0, row.frame, groupBy10MS, req.intervalPerf, req.useCache || (TraceRow.range?.refresh ?? false));
+        req.context.beginPath();
+        req.context.fillStyle = ColorUtils.FUNC_COLOR[0];
+        req.context.strokeStyle = ColorUtils.FUNC_COLOR[0];
+        let offset = groupBy10MS ? 0 : 3;
+        let path = new Path2D();
+        let find = false;
+        for (let re of filter) {
+            HiPerfEventStruct.draw(req.context, path, re, groupBy10MS);
+            if(row.isHover){
+                if (re.frame && row.hoverX >= re.frame.x - offset && row.hoverX <= re.frame.x + re.frame.width + offset) {//&& req.hoverY >= re.frame.y && req.hoverY <= re.frame.y + re.frame.height
+                    HiPerfEventStruct.hoverStruct = re;
+                    find = true;
+                }
+            }
+        }
+        if (!find && row.isHover) HiPerfEventStruct.hoverStruct = undefined;
+        groupBy10MS ? req.context.fill(path) : req.context.stroke(path);
+        let maxEvent = HiPerfEventStruct.maxEvent!.get(req.type!) || 0;
+        let textMetrics = req.context.measureText(maxEvent);
+        req.context.globalAlpha = 0.8
+        req.context.fillStyle = "#f0f0f0"
+        req.context.fillRect(0, 5, textMetrics.width + 8, 18)
+        req.context.globalAlpha = 1
+        req.context.fillStyle = "#333"
+        req.context.textBaseline = "middle"
+        req.context.fillText(maxEvent, 4, 5 + 9);
+        req.context.stroke();
+        req.context.closePath();
+    }
+
     render(req: RequestMessage, list: Array<any>, filter: Array<any>, dataList2: Array<any>) {
         let groupBy10MS = req.scale > 100_000_000;
         if (req.lazyRefresh) {
@@ -107,36 +147,33 @@ export function HiPerfEvent(arr: Array<any>, arr2: any, type: string, res: Array
     }
     res.length = 0;
     if (arr) {
-        let list: Array<any>;
-        if (groupBy10MS) {
-            if (arr2[type] && arr2[type].length > 0) {
-                list = arr2[type];
-            } else {
-                list = HiPerfEventStruct.groupBy10MS(arr, intervalPerf, type);
-                arr2[type] = list;
-            }
-        } else {
-            HiPerfEventStruct.groupBy10MS(arr, intervalPerf, type);
-            list = arr;
-        }
+        let list: Array<any> = groupBy10MS ? arr2 : arr;
         let pns = (endNS - startNS) / frame.width;
         let y = frame.y;
-
-        let groups = list.filter(it => (it.startNS || 0) + (it.dur || 0) > startNS && (it.startNS || 0) < endNS).map(it => {
-            if (!it.frame) {
-                it.frame = {};
-                it.frame.y = y;
-            }
-            it.frame.height = it.height;
-            HiPerfEventStruct.setFrame(it, pns, startNS, endNS, frame);
-            return it;
-        }).reduce((pre, current, index, arr) => {
-            if (!pre[`${current.frame.x}`]) {
-                pre[`${current.frame.x}`] = [];
-                pre[`${current.frame.x}`].push(current);
-                if (groupBy10MS) {
-                    res.push(current);
-                } else {
+        let filter = list.filter(it => (it.startNS || 0) + (it.dur || 0) > startNS && (it.startNS || 0) < endNS)
+        if(groupBy10MS){
+            filter.map(it => {
+                if (!it.frame) {
+                    it.frame = {};
+                    it.frame.y = y;
+                }
+                it.frame.height = it.height;
+                HiPerfEventStruct.setFrame(it, pns, startNS, endNS, frame);
+                res.push(it)
+            })
+        }else{
+            filter.map(it => {
+                if (!it.frame) {
+                    it.frame = {};
+                    it.frame.y = y;
+                }
+                it.frame.height = it.height;
+                HiPerfEventStruct.setFrame(it, pns, startNS, endNS, frame);
+                return it;
+            }).reduce((pre, current) => {
+                if (!pre[`${current.frame.x}`]) {
+                    pre[`${current.frame.x}`] = [];
+                    pre[`${current.frame.x}`].push(current);
                     if (res.length == 0) {
                         res.push(current);
                     }
@@ -144,9 +181,9 @@ export function HiPerfEvent(arr: Array<any>, arr2: any, type: string, res: Array
                         res.push(current);
                     }
                 }
-            }
-            return pre;
-        }, {});
+                return pre;
+            }, {});
+        }
     }
 }
 

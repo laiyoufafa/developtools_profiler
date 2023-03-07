@@ -52,6 +52,8 @@ BytraceEventParser::BytraceEventParser(TraceDataCache* dataCache, const TraceStr
     eventToFunctionMap_ = {
         {config_.eventNameMap_.at(TRACE_EVENT_SCHED_SWITCH),
          bind(&BytraceEventParser::SchedSwitchEvent, this, std::placeholders::_1, std::placeholders::_2)},
+        {config_.eventNameMap_.at(TRACE_EVENT_SCHED_BLOCKED_REASON),
+         bind(&BytraceEventParser::BlockedReason, this, std::placeholders::_1, std::placeholders::_2)},
         {config_.eventNameMap_.at(TRACE_EVENT_TASK_RENAME),
          bind(&BytraceEventParser::TaskRenameEvent, this, std::placeholders::_1, std::placeholders::_2)},
         {config_.eventNameMap_.at(TRACE_EVENT_TASK_NEWTASK),
@@ -128,7 +130,7 @@ bool BytraceEventParser::SchedSwitchEvent(const ArgsMap& args, const BytraceLine
     auto nextPrioValue = base::StrToInt32(args.at("next_prio"));
     auto prevPidValue = base::StrToUInt32(args.at("prev_pid"));
     auto nextPidValue = base::StrToUInt32(args.at("next_pid"));
-    if (!(!prevCommStr.empty() && prevPidValue.has_value() && prevPrioValue.has_value() && nextPidValue.has_value() &&
+    if (!(prevPidValue.has_value() && prevPrioValue.has_value() && nextPidValue.has_value() &&
           nextPrioValue.has_value())) {
         TS_LOGD("Failed to parse sched_switch event");
         streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_SCHED_SWITCH, STAT_EVENT_DATA_INVALID);
@@ -149,8 +151,12 @@ bool BytraceEventParser::SchedSwitchEvent(const ArgsMap& args, const BytraceLine
         nextInternalTid = streamFilters_->processFilter_->UpdateOrCreateThread(line.ts, nextPidValue.value());
     }
     if (streamFilters_->processFilter_->isThreadNameEmpty(prevPidValue.value())) {
-        uprevtid =
-            streamFilters_->processFilter_->UpdateOrCreateThreadWithName(line.ts, prevPidValue.value(), prevCommStr);
+        if (!prevCommStr.empty()) {
+            uprevtid = streamFilters_->processFilter_->UpdateOrCreateThreadWithName(line.ts, prevPidValue.value(),
+                                                                                    prevCommStr);
+        } else {
+            uprevtid = streamFilters_->processFilter_->UpdateOrCreateThread(line.ts, prevPidValue.value());
+        }
     } else {
         uprevtid = streamFilters_->processFilter_->UpdateOrCreateThread(line.ts, prevPidValue.value());
     }
@@ -158,6 +164,30 @@ bool BytraceEventParser::SchedSwitchEvent(const ArgsMap& args, const BytraceLine
                                                   static_cast<uint64_t>(prevPrioValue.value()), prevState,
                                                   nextInternalTid, static_cast<uint64_t>(nextPrioValue.value()));
     streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_SCHED_SWITCH, STAT_EVENT_RECEIVED);
+    return true;
+}
+bool BytraceEventParser::BlockedReason(const ArgsMap& args, const BytraceLine& line) const
+{
+    if (args.empty() || args.size() < MIN_BLOCKED_REASON_ARGS_COUNT) {
+        TS_LOGD("Failed to parse blocked_reason event, no args or args size < %d", MIN_BLOCKED_REASON_ARGS_COUNT);
+        streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_SCHED_BLOCKED_REASON, STAT_EVENT_DATA_INVALID);
+        return false;
+    }
+    auto tid = base::StrToInt32(args.at("pid"));
+    auto iowait = base::StrToInt32(args.at("iowait"));
+    auto caller = traceDataCache_->GetDataIndex(std::string_view(args.at("caller")));
+    if (!(tid.has_value() && iowait.has_value())) {
+        TS_LOGD("Failed to parse blocked_reason event");
+        streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_SCHED_BLOCKED_REASON, STAT_EVENT_DATA_INVALID);
+        return false;
+    }
+    auto iTid = streamFilters_->processFilter_->UpdateOrCreateThread(line.ts, tid.value());
+
+    if (streamFilters_->cpuFilter_->InsertBlockedReasonEvent(line.ts, line.cpu, iTid, iowait.value(), caller)) {
+        streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_SCHED_BLOCKED_REASON, STAT_EVENT_RECEIVED);
+    } else {
+        streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_SCHED_BLOCKED_REASON, STAT_EVENT_NOTMATCH);
+    }
     return true;
 }
 

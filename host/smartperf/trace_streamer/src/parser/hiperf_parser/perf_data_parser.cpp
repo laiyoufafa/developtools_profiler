@@ -19,14 +19,14 @@
 namespace SysTuning {
 namespace TraceStreamer {
 PerfDataParser::PerfDataParser(TraceDataCache* dataCache, const TraceStreamerFilters* ctx)
-    : HtracePluginTimeParser(dataCache, ctx), frameToCallChainId_(INVALID_UINT64)
+    : HtracePluginTimeParser(dataCache, ctx), frameToCallChainId_(INVALID_UINT64),
+    configNameIndex_(traceDataCache_->dataDict_.GetStringIndex("config_name")),
+    workloaderIndex_(traceDataCache_->dataDict_.GetStringIndex("workload_cmd")),
+    cmdlineIndex_(traceDataCache_->dataDict_.GetStringIndex("cmdline")),
+    runingStateIndex_(traceDataCache_->dataDict_.GetStringIndex("Running")),
+    suspendStatIndex_(traceDataCache_->dataDict_.GetStringIndex("Suspend")),
+    unkonwnStateIndex_(traceDataCache_->dataDict_.GetStringIndex("-"))
 {
-    configNameIndex_ = traceDataCache_->dataDict_.GetStringIndex("config_name");
-    workloaderIndex_ = traceDataCache_->dataDict_.GetStringIndex("workload_cmd");
-    cmdlineIndex_ = traceDataCache_->dataDict_.GetStringIndex("cmdline");
-    runingStateIndex_ = traceDataCache_->dataDict_.GetStringIndex("Running");
-    suspendStatIndex_ = traceDataCache_->dataDict_.GetStringIndex("Suspend");
-    unkonwnStateIndex_ = traceDataCache_->dataDict_.GetStringIndex("-");
 }
 void PerfDataParser::InitPerfDataAndLoad(const std::deque<uint8_t> dequeBuffer, uint64_t size)
 {
@@ -283,6 +283,8 @@ void PerfDataParser::Finish()
     // Update trace_range when there is only perf data in the trace file
     if (traceDataCache_->traceStartTime_ == INVALID_UINT64 || traceDataCache_->traceEndTime_ == 0) {
         traceDataCache_->MixTraceTime(GetPluginStartTime(), GetPluginEndTime());
+    } else {
+        TS_LOGI("perfData time is not updated, maybe this trace file has other data");
     }
     frameToCallChainId_.Clear();
 }

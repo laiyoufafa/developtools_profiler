@@ -13,19 +13,25 @@
  * limitations under the License.
  */
 
+import {SpNativeMemoryChart} from "../../component/chart/SpNativeMemoryChart.js";
+
 export class ChartStruct {
     depth: number = 0;
     symbol: string = '';
+    lib: string = '';
+    addr: string = '';
     size: number = 0;
     count: number = 0;
     dur:number = 0;
     parent: ChartStruct | undefined;
     children: Array<ChartStruct> = [];
+    isSearch: boolean = false;
 }
 
 export class Msg{
     tag:string = "";
     index:number = 0;
+    isSending:boolean = false;
     data:Array<any> = [];
 }
 
@@ -195,6 +201,7 @@ class MerageBeanDataSplit{
         this.clearSearchNode(currentTreeList)
         data.forEach((process) => {
             process.searchShow = true
+            process.isSearch = false
         })
         this.resetNewAllNode(data,currentTreeList)
         if (searchValue != "") {
@@ -231,6 +238,7 @@ class MerageBeanDataSplit{
         data.forEach((node) => {
             if ((node.symbolName!=undefined&&node.symbolName.includes(search)) || parentSearch) {
                 node.searchShow = true
+                node.isSearch = (node.symbolName!=undefined&&node.symbolName.includes(search))
                 let parentNode = node.currentTreeParentNode
                 while (parentNode != undefined && !parentNode.searchShow) {
                     parentNode.searchShow = true
@@ -238,6 +246,7 @@ class MerageBeanDataSplit{
                 }
             } else {
                 node.searchShow = false
+                node.isSearch = false
             }
             if (node.children.length > 0) {
                 this.findSearchNode(node.children, search, node.searchShow)
@@ -248,6 +257,7 @@ class MerageBeanDataSplit{
     clearSearchNode(currentTreeList:any[]) {
         currentTreeList.forEach((node) => {
             node.searchShow = true
+            node.isSearch = false
         })
     }
 
@@ -296,11 +306,11 @@ const PAGE_SIZE:number = 50_0000;
 export let postMessage = (id: any, action: string, results: Array<any>) => {
     if(results.length > PAGE_SIZE){
         let pageCount = Math.ceil( results.length / PAGE_SIZE)
-        for (let i = 0; i < pageCount; i++) {
+        for (let i = 1; i <= pageCount; i++) {
             let tag = "start";
-            if(i== 0){
+            if(i== 1){
                 tag = "start"
-            }else if(i == pageCount - 1){
+            }else if(i == pageCount){
                 tag = "end"
             }else{
                 tag = "sending"
@@ -308,19 +318,23 @@ export let postMessage = (id: any, action: string, results: Array<any>) => {
             let msg = new Msg();
             msg.tag = tag;
             msg.index = i;
+            msg.isSending = tag != "end";
             msg.data = pagination(i,PAGE_SIZE,results);
-            self.postMessage({id: id, action: action, isSending:msg.tag != "end",results: msg})
+            self.postMessage({id: id, action: action, isSending : msg.tag != "end",results: msg})
         }
+        results.length = 0;
     }else{
         let msg = new Msg();
         msg.tag = "end";
         msg.index = 0;
+        msg.isSending = false;
         msg.data = results;
         self.postMessage({id: id, action: action,results: msg})
+        results.length = 0;
     }
 }
 
-export let convertJSON = (arr:ArrayBuffer)=>{
+export let convertJSON = (arr:ArrayBuffer|Array<any>)=>{
     if(arr instanceof ArrayBuffer) {
         let str = dec.decode(arr);
         let jsonArray = [];
@@ -454,4 +468,27 @@ export function timeMsFormat2p(ns: number) {
         res = "0s";
     }
     return res
+}
+
+export function  formatRealDate(date:Date,fmt:string) {
+    let obj = {
+        "M+": date.getMonth() + 1,
+        "d+": date.getDate(),
+        "h+": date.getHours(),
+        "m+": date.getMinutes(),
+        "s+": date.getSeconds(),
+        "q+": Math.floor((date.getMonth() + 3) / 3),
+        "S": date.getMilliseconds()
+    };
+    if (/(y+)/.test(fmt)) fmt = fmt.replace(RegExp.$1, (date.getFullYear() + "").substr(4 - RegExp.$1.length));
+    for (let key in obj){
+        if (new RegExp("(" + key + ")").test(fmt)) { // @ts-ignore
+            fmt = fmt.replace(RegExp.$1, (RegExp.$1.length == 1) ? (obj[key]) : (("00" + obj[key]).substr(("" + obj[key]).length)));
+        }
+    }
+    return fmt;
+}
+
+export function formatRealDateMs(timeNs:number){
+   return formatRealDate(new Date((timeNs)/1000000),"MM-dd hh:mm:ss.S")
 }

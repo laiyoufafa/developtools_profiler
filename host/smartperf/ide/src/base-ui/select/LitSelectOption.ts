@@ -70,7 +70,7 @@ export class LitSelectOption extends BaseElement {
             display: none;
         }
         </style>
-        <div style="height: 16px;width: 16px" class="selected-box">
+        <div class="selected-box">
             <lit-icon class="selected" name="check"></lit-icon>
         </div>
         <slot></slot>

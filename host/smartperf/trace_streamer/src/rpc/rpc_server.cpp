@@ -65,10 +65,9 @@ int RpcServer::TraceStreamer_Init_ThirdParty_Config(const uint8_t* data, int len
     TS_LOGE("TraceStreamer_Init_ThirdParty_Config is comming!");
     std::string thirdPartyConfig = reinterpret_cast<const char*>(data);
     TS_LOGE("thirdPartyConfig = %s", thirdPartyConfig.c_str());
-    int pos;
     int size = thirdPartyConfig.size();
     std::vector<std::string> vTraceRangeStr;
-    for (int i = 0; i < size; i++) {
+    for (int i = 0, pos = 0; i < size; i++) {
         pos = thirdPartyConfig.find(";", i);
         if (pos == std::string::npos) {
             break;

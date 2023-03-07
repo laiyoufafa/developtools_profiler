@@ -74,6 +74,15 @@ function checkEnvironment() {
     if (goVersion == "" || nodeVersion == "" || tscVersion == "") {
         return false;
     }
+    let traceStreamer = path.normalize(path.join(__dirname, "/bin"));
+    if (!checkDirExist(traceStreamer + "/trace_streamer_builtin.js")) {
+        log.error(traceStreamer + "/trace_streamer_builtin.js" + " Must exist")
+        return false;
+    }
+    if (!checkDirExist(traceStreamer + "/trace_streamer_builtin.wasm")) {
+        log.error(traceStreamer + "/trace_streamer_builtin.wasm" + " Must exist")
+        return false;
+    }
     return true;
 }
 
@@ -145,7 +154,7 @@ function main() {
         cpFile(traceStreamer + "/trace_streamer_builtin.wasm", rootPath + outDir + "/trace/database/trace_streamer_builtin.wasm")
         if (sdkWams.length > 0) {
             sdkWams.forEach(fileName => {
-                cpFile(traceStreamer + "/" + fileName, rootPath + outDir + "/trace/database/"+ fileName)
+                cpFile(traceStreamer + "/" + fileName, rootPath + outDir + "/trace/database/" + fileName)
             })
         }
     } else {

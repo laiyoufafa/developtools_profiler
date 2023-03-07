@@ -39,12 +39,15 @@ export class TabPaneNMemory extends BaseElement {
     private queryResult: Array<NativeHookStatistics> = []
     private filterAllocationType: string = "0"
     private filterNativeType: string = "0"
+    private filterResponseType: number = -1
+    private filterResponseSelect: string = "0"
     private currentSelection: SelectionParam | undefined
     private rowSelectData: any = undefined;
     private sortColumn: string = '';
     private sortType: number = 0;
     private leftNs:number = 0;
     private rightNs:number = 0;
+    private responseTypes:any[] = []
 
     set data(val: SelectionParam | any) {
         if (val == this.currentSelection) {
@@ -92,6 +95,7 @@ export class TabPaneNMemory extends BaseElement {
         args.set("data",this.queryResult);
         args.set("filterAllocType",this.filterAllocationType);
         args.set("filterEventType",this.filterNativeType);
+        args.set("filterResponseType",this.filterResponseType);
         args.set("leftNs",val.leftNs);
         args.set("rightNs",val.rightNs);
         let selections:Array<any> = [];
@@ -132,7 +136,17 @@ export class TabPaneNMemory extends BaseElement {
     fromStastics(val: SelectionParam | any) {
         let filter = this.shadowRoot?.querySelector<TabPaneFilter>("#filter")
         if (this.currentSelection != val) {
-            this.initFilterTypes()
+            this.initFilterTypes(()=>{
+                this.currentSelection = val
+                filter!.setSelectList(null, this.native_type,"Allocation Lifespan"
+                    ,"Allocation Type",this.responseTypes.map((item:any)=>{
+                        return item.value
+                    }))
+                filter!.secondSelect = typeIndexOf + ""
+                filter!.thirdSelect = this.filterResponseSelect
+                this.filterNativeType = typeIndexOf + ""
+                this.queryData(val)
+            })
         }
         let typeIndexOf = this.native_type.indexOf(val.statisticsSelectData.memoryTap);
         if (this.statsticsSelection.indexOf(val.statisticsSelectData) == -1 && typeIndexOf == -1) {
@@ -145,34 +159,47 @@ export class TabPaneNMemory extends BaseElement {
                 this.statsticsSelection[index] = val.statisticsSelectData;
             }
         }
-        if (this.currentSelection != val) {
-            this.currentSelection = val
-            filter!.setSelectList(null, this.native_type)
-            filter!.secondSelect = typeIndexOf + ""
-            this.filterNativeType = typeIndexOf + ""
-            this.queryData(val)
-        } else {
+        if (this.currentSelection == val) {
             this.tblData!.recycleDataSource = [];
             this.rowSelectData = undefined
-            filter!.setSelectList(null, this.native_type)
+            filter!.setSelectList(null, this.native_type,"Allocation Lifespan"
+                ,"Allocation Type",this.responseTypes.map((item:any)=>{
+                    return item.value
+                }))
             filter!.secondSelect = typeIndexOf + ""
+            filter!.thirdSelect = this.filterResponseSelect
             this.filterNativeType = typeIndexOf + ""
             //直接将当前数据过滤即可
             this.getDataByNativeMemoryWorker(val)
         }
     }
 
-    initFilterTypes() {
+    initFilterTypes(initCallback?:()=>void) {
         let filter = this.shadowRoot?.querySelector<TabPaneFilter>("#filter")
         this.queryResult = []
         this.native_type = [...this.defaultNativeTypes]
         this.statsticsSelection = []
-        filter!.setSelectList(null, [...this.defaultNativeTypes])
-        filter!.firstSelect = "0"
-        filter!.secondSelect = "0"
-        this.filterAllocationType = "0"
-        this.filterNativeType = "0"
-        this.rowSelectData = undefined
+        procedurePool.submitWithName("logic1","native-memory-get-responseType",{},undefined,(res:any)=>{
+            filter!.setSelectList(null, this.native_type,"Allocation Lifespan"
+                ,"Allocation Type",res.map((item:any)=>{
+                return item.value
+            }))
+            filter!.setFilterModuleSelect("#first-select","width","150px")
+            filter!.setFilterModuleSelect("#second-select","width","150px")
+            filter!.setFilterModuleSelect("#third-select","width","150px")
+            this.responseTypes = res;
+            filter!.firstSelect = "0"
+            filter!.secondSelect = "0"
+            filter!.thirdSelect = "0"
+            this.filterResponseSelect = "0"
+            this.filterAllocationType = "0"
+            this.filterNativeType = "0"
+            this.filterResponseType = -1;
+            this.rowSelectData = undefined
+            if(initCallback){
+                initCallback()
+            }
+        })
     }
 
     initElements(): void {
@@ -192,6 +219,7 @@ export class TabPaneNMemory extends BaseElement {
             this.sortByColumn(evt.detail.key,evt.detail.sort)
         });
         let filter = this.shadowRoot?.querySelector<TabPaneFilter>("#filter")
+
         this.shadowRoot?.querySelector<TabPaneFilter>("#filter")!.getFilterData((data: FilterData) => {
             if (data.mark) {
                 document.dispatchEvent(new CustomEvent('triangle-flag', {
@@ -231,6 +259,11 @@ export class TabPaneNMemory extends BaseElement {
             } else {
                 this.filterAllocationType = data.firstSelect || "0"
                 this.filterNativeType = data.secondSelect || "0"
+                this.filterResponseSelect = data.thirdSelect || "0"
+                let thirdIndex = parseInt(data.thirdSelect||"0")
+                if(this.responseTypes.length > thirdIndex){
+                    this.filterResponseType = this.responseTypes[thirdIndex].key == undefined?-1:this.responseTypes[thirdIndex].key
+                }
                 this.getDataByNativeMemoryWorker(this.currentSelection)
             }
         })

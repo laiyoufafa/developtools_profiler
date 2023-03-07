@@ -192,7 +192,7 @@ export class TabPaneFileSystemDescTimeSlice extends BaseElement {
                             <lit-table-column width="200px" title="Open Duration" data-index="durStr" key="surStr" align="flex-start" order></lit-table-column>
                             <lit-table-column width="200px" title="Process" data-index="process" key="process" align="flex-start" order></lit-table-column>
                             <lit-table-column width="160px" title="File Descriptor" data-index="fd" key="fd" align="flex-start" order></lit-table-column>
-<!--                            <lit-table-column width="300px" title="Path" data-index="path" key="path" align="flex-start" ></lit-table-column>-->
+                            <lit-table-column width="300px" title="Path" data-index="path" key="path" align="flex-start" ></lit-table-column>
                             <lit-table-column width="600px" title="Backtrace" data-index="backtrace" key="backtrace" align="flex-start" >
                                 <template>
                                     <div>

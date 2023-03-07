@@ -5,7 +5,7 @@ TraceStreamer是一个trace数据解析程序，可以将一个trace文本文件
 TraceStreamer工具可以2种方式使用  
 1. 可以将系统离线trace文件解析并转为db，此工具支持基于文本的trace和基于proto的trace。  
 2. TraceStreamer工具还可以WebAssembly的方式在浏览器中运行，提供相关接口给js文件调用。  
-<br>
+
 ### 导出db模式
 在导出db模式下，通过下面的指令：
 ```
@@ -27,7 +27,7 @@ TraceStreamer工具可以2种方式使用
 可以使用sqliteexport或DB Browser for SQLite工具加载生成的db，通过查看stat表，可以浏览当前数据一共有多少类数据，各类数据都收到多少条，数据是否正常等情况。在meta表会记录数据库导出时的一些系统信息，比如导入和导出的文件全路径，解析时间等信息。  
 meta表可以选择不导出，在导出时添加 -nm选项即可。  
 更多db文件的介绍，可以参考[des_tables.md](des_tables.md)。
-<br>
+
 ### 内置浏览器模式
 TraceStreamer可以WebAssembly方式在浏览器中运行，相关接口在wasm模式下生成的trace_streamer_builtin.js文件中，js可以使用的接口如下使用如下接口访问trace_streamer:
 ```
@@ -119,12 +119,12 @@ EMSCRIPTEN_KEEPALIVE int TraceStreamer_Init_ThirdParty_Config(int dataLen)
 通过```./trace_streamer -i```
 查看支持的事件列表。  
 支持的事件列表参见[SupportEventList.md](des_support_event.md)。
-<br><br>
+
 ## TraceStreamer重要概念介绍
 ### 进程和线程标识符
 在通用操作系统中，进程号（pid/tgid）和线程号（tid）可能会被重复用于标识不同的进程或者线程。所以在trace数据源中，进程号（pid）和线程号（tid）也可能被重用。
 TraceStreamer在解析数据过程中，使用ipid(internal pid)唯一标识进程， itid(internal tid)唯一标识线程。
-<br>
+
 ### 计量器
 用来记录系统中各种随时间连续变化的数值。例如： CPU的频率， 内存的使用量， 界面刷新频率。
 #### 举例
@@ -132,7 +132,7 @@ CPU频率：
 ![GitHub Logo](../figures/cpu_frequency.png)  
 内存占用：  
 ![GitHub Logo](../figures/mem_usage.png)
-<br>
+
 ### 过滤器
 TraceStreamer设计过程中使用了流式处理的思想，数据从入口进入以后，就像进入一条河流，从上游流向下游，在河道中央有很多过滤器，每种过滤器会将流过的数据中自己关注的内容吸附捕捉到。最终，每个过滤器都拥有了大量同类型的数据，而且这些数据都是按时间序列排列的。TraceStreamer使用filterid来标识同一种用途的数据，可以方便在UI中绘制。   
 ![GitHub Logo](../figures/filters.png)

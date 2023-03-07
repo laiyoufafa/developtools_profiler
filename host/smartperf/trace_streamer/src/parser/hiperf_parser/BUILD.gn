@@ -18,6 +18,7 @@ ohos_source_set("hiperf_parser_src") {
   include_dirs = [
     "hiperf/linux",
     "hiperf/kernel",
+    "hiperf/include/linux",
     ".",
     "../../base",
     "../../cfg",
@@ -33,8 +34,7 @@ ohos_source_set("hiperf_parser_src") {
     "${OHOS_PROTO_GEN}/types/plugins/memory_data",
     "//third_party/protobuf/src",
     "//third_party/perf_include",
-    "//third_party/perf_include/linux",
-    "//third_party/perf_include/include",
+    "//third_party/perf_include/libbpf",
   ]
   include_dirs += [ "//third_party/libunwind/include" ]
 
@@ -48,8 +48,8 @@ ohos_source_set("hiperf_parser_src") {
       "-ftest-coverage",
       "--coverage",
     ]
-    if (is_macx && is_test) {
-      cflags += [ "-D UT_MAC" ]
+    if (is_test) {
+      cflags += [ "-D IS_UT" ]
     }
   }
 }

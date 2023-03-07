@@ -41,7 +41,7 @@ export class TabPaneCounterSample extends BaseElement {
         this.loadingPage.style.visibility = "visible"
         this.selectionParam = val;
         // @ts-ignore
-        this.tbl!.shadowRoot!.querySelector(".table").style.height = (this.parentElement!.clientHeight - 25) + "px"
+        this.tbl!.shadowRoot?.querySelector(".table").style.height = (this.parentElement!.clientHeight - 25) + "px"
         this.queryDataByDB(val)
     }
 

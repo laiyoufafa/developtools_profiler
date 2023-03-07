@@ -329,46 +329,46 @@ let temp_get_tab_slices = `create table temp_get_tab_slices as
 `;
 
 let createProcessNoId = `
-insert into process(id,ipid,type, pid, name, start_ts) SELECT null,null,'process' as type,tid as pid,t.name,t.start_ts from thread t where ipid is null and tid != 0;
-update process set id  =  ROWID - 1,ipid = ROWID - 1 where id is null;
-update thread set ipid = (select id from process where  thread.tid = process.pid) where thread.ipid is null;
+    insert into process(id,ipid,type, pid, name, start_ts) SELECT null,null,'process' as type,tid as pid,t.name,t.start_ts from thread t where ipid is null and tid != 0;
+    update process set id  =  ROWID - 1,ipid = ROWID - 1 where id is null;
+    update thread set ipid = (select id from process where  thread.tid = process.pid) where thread.ipid is null;
 `
 let temp_create_cpu_freq_view = `CREATE VIEW cpu_freq_view AS SELECT B.cpu, A.ts, LEAD(A.ts, 1, (SELECT end_ts FROM trace_range)) OVER (PARTITION BY A.filter_id ORDER BY ts) AS end_ts,LEAD(A.ts, 1, (SELECT end_ts FROM trace_range)) OVER (PARTITION BY A.filter_id ORDER BY ts) - ts AS dur,value AS freq FROM measure AS A, cpu_measure_filter AS B WHERE B.name = 'cpu_frequency' AND A.filter_id = B.id`;
 let temp_create_virtual_table = `CREATE VIRTUAL table result USING SPAN_JOIN(cpu_freq_view partitioned cpu, sched_slice partitioned cpu)`;
 
 let queryThreadWakeUpFrom = `
-select TB.tid,TB.name as thread,TA.cpu,(TA.ts - TR.start_ts) as ts,TC.pid,TC.name as process
-from
-(select ts as wakeTs,wakeup_from as wakeupFromTid from instant,trace_range
-where name = 'sched_wakeup'
-and ref = $itid
-and ts > start_ts + $startTime
-and ts < start_ts + $startTime + $dur
-order by ts) TW
-left join thread_state TA on TW.wakeupFromTid = TA.itid and TA.ts < TW.wakeTs and TA.ts + TA.dur >= TW.wakeTs
-left join thread TB on TA.itid = TB.id
-left join process TC on TB.ipid = TC.id
-left join trace_range TR
-where TB.ipid not null
-limit 1;
+    select TB.tid,TB.name as thread,TA.cpu,(TA.ts - TR.start_ts) as ts,TC.pid,TC.name as process
+    from
+    (select ts as wakeTs,wakeup_from as wakeupFromTid from instant,trace_range
+        where name = 'sched_wakeup'
+        and ref = $itid
+        and ts > start_ts + $startTime
+        and ts < start_ts + $startTime + $dur
+        order by ts) TW
+    left join thread_state TA on TW.wakeupFromTid = TA.itid and TA.ts < TW.wakeTs and TA.ts + TA.dur >= TW.wakeTs
+    left join thread TB on TA.itid = TB.id
+    left join process TC on TB.ipid = TC.id
+    left join trace_range TR
+    where TB.ipid not null
+    limit 1;
 `;
 
 let queryThreadWakeUp = `
-select TB.tid,TB.name as thread,min(TA.ts - TR.start_ts) as ts,TC.pid,TC.name as process
-from
-(select min(ts) as wakeTs,ref as itid from instant,trace_range
-where name = 'sched_wakeup'
-and wakeup_from = $itid
-and ts > start_ts + $startTime
-and ts < start_ts + $startTime + $dur
-group by ref
-) TW
-left join thread_state TA on TW.itid = TA.itid and TA.ts > TW.wakeTs
-left join thread TB on TA.itid = TB.id
-left join process TC on TB.ipid = TC.id
-left join trace_range TR
-where TB.ipid not null
-group by TB.tid, TB.name,TC.pid, TC.name;
+    select TB.tid,TB.name as thread,min(TA.ts - TR.start_ts) as ts,TC.pid,TC.name as process
+    from
+        (select min(ts) as wakeTs,ref as itid from instant,trace_range
+        where name = 'sched_wakeup'
+        and wakeup_from = $itid
+        and ts > start_ts + $startTime
+        and ts < start_ts + $startTime + $dur
+        group by ref
+    ) TW
+    left join thread_state TA on TW.itid = TA.itid and TA.ts > TW.wakeTs
+    left join thread TB on TA.itid = TB.id
+    left join process TC on TB.ipid = TC.id
+    left join trace_range TR
+    where TB.ipid not null
+    group by TB.tid, TB.name,TC.pid, TC.name;
 `;
 
 let delete_callstack_binder_data = `DELETE FROM callstack WHERE dur<-1 or name = 'binder transaction async' or name = 'binder async rcv';`;

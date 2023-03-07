@@ -14,7 +14,9 @@
  */
 
 #include "cpu_filter.h"
+#include "args_filter.h"
 #include "process_filter.h"
+#include "trace_streamer_filters.h"
 
 namespace SysTuning {
 namespace TraceStreamer {
@@ -29,13 +31,19 @@ void CpuFilter::InsertSwitchEvent(uint64_t ts,
                                   uint64_t nextPior)
 {
     auto index = traceDataCache_->GetSchedSliceData()->AppendSchedSlice(ts, 0, cpu, nextPid, 0, nextPior);
-
     auto prevTidOnCpu = cpuToRowSched_.find(cpu);
     if (prevTidOnCpu != cpuToRowSched_.end()) {
-        traceDataCache_->GetSchedSliceData()->Update(prevTidOnCpu->second, ts, prevState, prevPior);
-        cpuToRowSched_.at(cpu) = index;
+        if (prevState == TASK_UNINTERRUPTIBLE || prevState == TASK_DK) {
+            if (!pidToSchedSliceRow.count(prevPid)) {
+                pidToSchedSliceRow.insert(std::make_pair(prevPid, prevTidOnCpu->second.row));
+            } else {
+                pidToSchedSliceRow.at(prevPid) = prevTidOnCpu->second.row;
+            }
+        }
+        traceDataCache_->GetSchedSliceData()->Update(prevTidOnCpu->second.row, ts, prevState, prevPior);
+        cpuToRowSched_.at(cpu).row = index;
     } else {
-        cpuToRowSched_.insert(std::make_pair(cpu, index));
+        cpuToRowSched_.insert(std::make_pair(cpu, RowPos{nextPid, index}));
     }
 
     if (nextPid) {
@@ -69,6 +77,25 @@ void CpuFilter::InsertSwitchEvent(uint64_t ts,
                                                                              prevPid, prevState);
         RemberInternalTidInStateTable(prevPid, temp, prevState);
     }
+}
+
+bool CpuFilter::InsertBlockedReasonEvent(uint64_t ts, uint64_t cpu, uint64_t iTid, bool iowait, DataIndex caller)
+{
+    if (!pidToSchedSliceRow.count(iTid)) {
+        return false;
+    }
+    auto row = pidToSchedSliceRow.at(iTid);
+    // ArgSet
+    auto delay = ts - traceDataCache_->GetSchedSliceData()->TimeStamData()[row] + traceDataCache_->GetSchedSliceData()->DursData()[row];
+    ArgsSet args;
+    args.AppendArg(ioWait_, BASE_DATA_TYPE_INT, iowait);
+    args.AppendArg(caller_, BASE_DATA_TYPE_STRING, caller);
+    args.AppendArg(delay_, BASE_DATA_TYPE_INT, delay);
+    auto argSetId = streamFilters_->argsFilter_->NewArgs(args);
+
+    traceDataCache_->GetSchedSliceData()->UpdateArg(row, argSetId);
+    pidToSchedSliceRow.erase(iTid);
+    return true;
 }
 bool CpuFilter::InsertProcessExitEvent(uint64_t ts, uint64_t cpu, uint64_t pid)
 {
@@ -128,10 +155,6 @@ void CpuFilter::Finish() const
         traceDataCache_->GetSchedSliceData()->AppendInternalPid(
             traceDataCache_->GetThreadData(slice.InternalTidsData()[i])->internalPid_);
     }
-    traceDataCache_->OperateDatabase(
-        "update thread set ipid = \
-        (select id from process where \
-        thread.tid = process.pid) where thread.ipid is null;");
 }
 void CpuFilter::Clear()
 {

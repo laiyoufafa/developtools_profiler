@@ -18,13 +18,43 @@ import {
     drawFlagLine,
     drawLines,
     drawLoading,
-    drawSelection,
+    drawSelection, isFrameContainPoint,
     ns2x,
     Render,
     RequestMessage
 } from "./ProcedureWorkerCommon.js";
+import {TraceRow} from "../../component/trace/base/TraceRow.js";
 
 export class EnergyStateRender extends Render {
+
+    renderMainThread(req: { useCache: boolean; context: CanvasRenderingContext2D; type: string;maxState:number; maxStateName:string;}, row: TraceRow<EnergyStateStruct>) {
+        let list = row.dataList
+        let filter = row.dataListCache;
+        state(list, filter,TraceRow.range!.startNS, TraceRow.range!.endNS, TraceRow.range!.totalNS, row.frame,req.useCache || !TraceRow.range!.refresh)
+        req.context.beginPath();
+        let find = false;
+        for (let i = 0; i < filter.length; i++) {
+            let re = filter[i]
+            EnergyStateStruct.draw(req.context, re,req.maxState,req.maxStateName)
+            if (row.isHover && re.frame  && isFrameContainPoint(re.frame, row.hoverX, row.hoverY)) {
+                EnergyStateStruct.hoverEnergyStateStruct = re;
+                find = true;
+            }
+        }
+        if (!find && row.isHover) EnergyStateStruct.hoverEnergyStateStruct = undefined;
+        if (req.maxStateName != "enable" && req.maxStateName != "disable" && req.maxStateName != "-1") {
+            let s = req.maxStateName
+            let textMetrics = req.context.measureText(s);
+            req.context.globalAlpha = 1.0
+            req.context.fillStyle = "#f0f0f0"
+            req.context.fillRect(0, 5, textMetrics.width + 8, 18)
+            req.context.fillStyle = "#333"
+            req.context.textBaseline = "middle"
+            req.context.fillText(s, 4, 5 + 9)
+        }
+        req.context.closePath();
+    }
+
     render(req: RequestMessage, list: Array<any>, filter: Array<any>) {
         if (req.lazyRefresh) {
             state(list, filter, req.startNS, req.endNS, req.totalNS, req.frame, req.useCache || !req.range.refresh);
@@ -56,11 +86,11 @@ export class EnergyStateRender extends Render {
             }
             EnergyStateStruct.selectEnergyStateStruct = req.params.selectEnergyStateStruct;
             for (let re of filter) {
-                EnergyStateStruct.draw(req.context, re)
+                EnergyStateStruct.draw(req.context, re,0,"")
             }
             drawSelection(req.context, req.params);
             req.context.closePath();
-            if (EnergyStateStruct.maxStateName != "enable" && EnergyStateStruct.maxStateName != "disable") {
+            if (EnergyStateStruct.maxStateName != "enable" && EnergyStateStruct.maxStateName != "disable" && EnergyStateStruct.maxStateName != "-1") {
                 let s = EnergyStateStruct.maxStateName
                 let textMetrics = req.context.measureText(s);
                 req.context.globalAlpha = 1.0
@@ -134,7 +164,7 @@ export class EnergyStateStruct extends BaseStruct {
     deviceState: number | undefined
     deviceType: number | undefined
 
-    static draw(context2D: CanvasRenderingContext2D, data: EnergyStateStruct) {
+    static draw(context2D: CanvasRenderingContext2D, data: EnergyStateStruct,maxState:number,maxStateName:string) {
         if (data.frame) {
             let width = data.frame.width || 0;
             let drawColor = this.setDrawColor(data.type!);
@@ -142,8 +172,8 @@ export class EnergyStateStruct extends BaseStruct {
             context2D.strokeStyle = drawColor;
             context2D.globalAlpha = 1.0;
             context2D.lineWidth = 1;
-            let drawHeight: number = Math.floor(((data.value || 0) * (data.frame.height || 0)) / EnergyStateStruct.maxState);
-            if (EnergyStateStruct.maxStateName === "enable" || EnergyStateStruct.maxStateName === "disable") {
+            let drawHeight: number = Math.floor(((data.value || 0) * (data.frame.height || 0)) / maxState);
+            if (maxStateName === "enable" || maxStateName === "disable") {
                 if (data.value == 0) {
                     drawHeight = data.frame.height;
                     context2D.fillRect(data.frame.x, data.frame.y + 4, width, data.frame.height)

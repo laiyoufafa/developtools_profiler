@@ -107,6 +107,13 @@ describe('spFpsChart Test', () => {
 
     let queryCpuMaxFreqMock = sqlit.queryCpuMaxFreq;
     queryCpuMaxFreqMock.mockResolvedValue([{maxFreq: 100}])
+
+    let MockgetCpuLimitFreqId = sqlit.getCpuLimitFreqId
+    MockgetCpuLimitFreqId.mockResolvedValue([{cpu: 1,maxFilterId:9 , minFilterId: 1}])
+
+    let MockgetCpuLimitFreqMax =  sqlit.getCpuLimitFreqMax
+    MockgetCpuLimitFreqMax.mockResolvedValue([{maxValue: 100,filterId:9}])
+
     it('spFpsChart01', function () {
         expect(spFpsChart.init()).toBeDefined();
     });

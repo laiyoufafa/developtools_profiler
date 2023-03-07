@@ -25,7 +25,9 @@ EbpfDataReader::EbpfDataReader(TraceDataCache* dataCache, const TraceStreamerFil
     : EventParserBase(dataCache, filter),
       pidAndStartAddrToMapsAddr_(nullptr),
       elfAddrAndStValueToSymAddr_(nullptr),
-      tracerEventToStrIndex_(INVALID_UINT64)
+      tracerEventToStrIndex_(INVALID_UINT64),
+      kernelFilePath_(traceDataCache_->GetDataIndex("/proc/kallsyms")),
+      ebpfDataHeader_(reinterpret_cast<EbpfDataHeader*>(startAddr_))
 {
 }
 bool EbpfDataReader::InitEbpfData(const std::deque<uint8_t>& dequeBuffer, uint64_t size)
@@ -68,9 +70,8 @@ bool EbpfDataReader::InitEbpfHeader()
 
 bool EbpfDataReader::ReadEbpfData()
 {
-    EbpfTypeAndLength* dataTitle;
     while (unresolvedLen_ > EBPF_TITLE_SIZE) {
-        dataTitle = reinterpret_cast<EbpfTypeAndLength*>(startAddr_);
+        EbpfTypeAndLength* dataTitle = reinterpret_cast<EbpfTypeAndLength*>(startAddr_);
         startAddr_ += EBPF_TITLE_SIZE;
         unresolvedLen_ -= EBPF_TITLE_SIZE;
         if (dataTitle->length > unresolvedLen_) {
@@ -106,6 +107,10 @@ bool EbpfDataReader::ReadEbpfData()
             }
             case ITEM_EVENT_STR: {
                 ret = ReadItemEventStr(startAddr_, dataTitle->length);
+                break;
+            }
+            case ITEM_EVENT_KENEL_SYMBOL_INFO: {
+                ret = ReaItemKernelSymbolInfo(startAddr_, dataTitle->length);
                 break;
             }
             default:
@@ -169,6 +174,30 @@ void EbpfDataReader::UpdateElfAddrAndStValueToSymAddrMap(const ElfEventFixedHead
                                                    reinterpret_cast<const uint8_t*>(symAddr));
             }
         }
+    }
+}
+void EbpfDataReader::ReadKernelSymAddrMap(const KernelSymbolInfoHeader* elfAddr, uint32_t size)
+{
+    if (size < sizeof(KernelSymbolInfoHeader) + elfAddr->symTabLen + elfAddr->strTabLen) {
+        TS_LOGE("elf addr size error!!!, size is:%u and the symTabLen is:%u, strTabLen is:%u", size, elfAddr->symTabLen,
+                elfAddr->strTabLen);
+        return;
+    }
+    auto symTabLen = elfAddr->symTabLen;
+    auto sysItemSize = symTabLen / sizeof(KernelSymItem);
+    auto start = reinterpret_cast<const KernelSymItem*>(elfAddr + 1);
+    auto strTab = reinterpret_cast<const char*>(start + sysItemSize);
+    maxKernelAddr_ = elfAddr->vaddrEnd;
+    minKernelAddr_ = elfAddr->vaddrStart;
+    char strName[MAX_SYMBOL_LENGTH];
+    for (auto i = 0; i < sysItemSize; i++) {
+        memset_s(strName, MAX_SYMBOL_LENGTH, 0, MAX_SYMBOL_LENGTH);
+        auto item = start + i;
+        if (strncpy_s(strName, MAX_SYMBOL_LENGTH, strTab + item->nameOffset, MAX_SYMBOL_LENGTH) < 0) {
+            TS_LOGE("get kernel symbol name error");
+        }
+        AddrDesc desc{item->size, traceDataCache_->dataDict_.GetStringIndex(std::string(strName))};
+        kernelSymbolMap_.insert(std::make_pair(item->value, desc));
     }
 }
 
@@ -243,6 +272,16 @@ bool EbpfDataReader::ReadItemSymbolInfo(const uint8_t* buffer, uint32_t size)
     return true;
 }
 
+bool EbpfDataReader::ReaItemKernelSymbolInfo(const uint8_t* buffer, uint32_t size)
+{
+    if (size < sizeof(KernelSymbolInfoHeader)) {
+        TS_LOGE("get symbol addr failed!!!");
+        return false;
+    }
+    auto elfAddr = reinterpret_cast<const KernelSymbolInfoHeader*>(buffer);
+    ReadKernelSymAddrMap(elfAddr, size);
+    return true;
+}
 bool EbpfDataReader::ReadItemEventFs(const uint8_t* buffer, uint32_t size)
 {
     if (size < sizeof(FsFixedHeader)) {
@@ -287,7 +326,7 @@ bool EbpfDataReader::ReadItemEventStr(const uint8_t* buffer, uint32_t size)
         streamFilters_->processFilter_->GetOrCreateThreadWithPid(strFixedHeaderAddr->tid, strFixedHeaderAddr->pid);
     auto strAddr = const_cast<char*>(reinterpret_cast<const char*>(strFixedHeaderAddr + 1));
     if ((strFixedHeaderAddr->strLen > size - sizeof(StrEventFixedHeader)) || !strFixedHeaderAddr->strLen) {
-        TS_LOGE("invalid str event, strEventFixedHeader = %d, strlen = %d, size = %d",
+        TS_LOGE("invalid str event, strEventFixedHeader = %u, strlen = %d, size = %d",
                 sizeof(StrEventFixedHeader), strFixedHeaderAddr->strLen, size);
         return true;
     }
@@ -303,6 +342,27 @@ QuatraMap<uint32_t, uint32_t, uint32_t, uint64_t, DataIndex>& EbpfDataReader::Ge
     return tracerEventToStrIndex_;
 }
 
+SymbolAndFilePathIndex EbpfDataReader::GetSymbolNameIndexFromElfSym(uint64_t ip)
+{
+    SymbolAndFilePathIndex symbolAndFilePathIndex(false);
+    auto end = kernelSymbolMap_.upper_bound(ip);
+    auto length = std::distance(kernelSymbolMap_.begin(), end);
+    if (length > 0) {
+        end--;
+        if (ip < end->first + end->second.size) {
+            symbolAndFilePathIndex.flag = true;
+            symbolAndFilePathIndex.symbolIndex = end->second.name;
+            symbolAndFilePathIndex.filePathIndex = kernelFilePath_;
+            // TS_LOGD("ok for ip:%lu, kernelip:%lu, size:%lu", ip, end->first, end->second.size);
+        } else {
+            TS_LOGD("failed for ip:%lu, kernelip:%lu, size:%lu", ip, end->first, end->second.size);
+        }
+    }
+    if (!symbolAndFilePathIndex.flag) {
+        TS_LOGD("failed for ip:%lu", ip);
+    }
+    return symbolAndFilePathIndex;
+}
 const DoubleMap<uint32_t, uint64_t, const MapsFixedHeader*>& EbpfDataReader::GetPidAndStartAddrToMapsAddr() const
 {
     return pidAndStartAddrToMapsAddr_;

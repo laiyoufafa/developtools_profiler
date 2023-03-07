@@ -30,6 +30,7 @@ export class EnergySystemStruct extends BaseStruct {
     type: number | undefined
     startNs: number | undefined
     dur: number | undefined
+    count: number | undefined
     workScheduler: string | undefined
     power: string | undefined
     location: string | undefined

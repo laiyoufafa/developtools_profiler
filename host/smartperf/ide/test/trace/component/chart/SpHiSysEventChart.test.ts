@@ -24,6 +24,11 @@ import {SpSystemTrace} from "../../../../dist/trace/component/SpSystemTrace.js";
 import "../../../../dist/trace/component/SpSystemTrace.js";
 // @ts-ignore
 import {LitPopover} from "../../../../dist/base-ui/popover/LitPopoverV.js";
+import {
+    querySystemLocationData,
+    querySystemLockData,
+    querySystemSchedulerData
+} from "../../../../src/trace/database/SqlLite.js";
 
 window.ResizeObserver = window.ResizeObserver ||
     jest.fn().mockImplementation(() => ({
@@ -61,12 +66,12 @@ describe('SpHiSysEventChart Test', () => {
         {
             startNS: 5999127353,
             eventName: "POWER_IDE_AUDIO",
-            appkey: "APPNAME",
+            appKey: "APPNAME",
             eventValue: "com.example.himusicdemo,com.example.himusicdemo_js,com.example.himusicdemo_app",
         }, {
             startNS: 5999127353,
             eventName: "POWER_IDE_AUDIO",
-            appkey: "BACKGROUND_ENERGY",
+            appKey: "BACKGROUND_ENERGY",
             eventValue: "854,258,141",
         }
     ]
@@ -81,21 +86,53 @@ describe('SpHiSysEventChart Test', () => {
     }]
     sysEventAppName.mockResolvedValue(appName)
 
-    let systemData = sqlite.querySystemData;
-    let sys = [
+    let querySystemLocationData = sqlite.querySystemLocationData;
+    let querySystemLockData = sqlite.querySystemLockData;
+    let querySystemSchedulerData = sqlite.querySystemSchedulerData;
+    let location = [
         {
             ts: 1005938319,
-            eventName: "WORK_ADD",
-            appkey: "TYPE",
+            eventName: "GNSS_STATE",
+            appKey: "TYPE",
+            Value: "1",
+        }, {
+            ts: 3005933657,
+            eventName: "GNSS_STATE",
+            appKey: "TAG",
+            Value: "2",
+        }
+    ]
+
+    let lock = [
+        {
+            ts: 1005938319,
+            eventName: "POWER_RUNNINGLOCK",
+            appKey: "TYPE",
             Value: "1",
         }, {
             ts: 3005933657,
             eventName: "POWER_RUNNINGLOCK",
-            appkey: "TAG",
-            Value: "DUBAI_TAG_RUNNINGLOCK_REMOVE",
+            appKey: "TAG",
+            Value: "2",
         }
     ]
-    systemData.mockResolvedValue(sys)
+
+    let work = [
+        {
+            ts: 1005938319,
+            eventName: "WORK_ADD",
+            appKey: "TYPE",
+            Value: "1",
+        }, {
+            ts: 3005933657,
+            eventName: "WORK_STOP",
+            appKey: "TAG",
+            Value: "2",
+        }
+    ]
+    querySystemLocationData.mockResolvedValue(location);
+    querySystemLockData.mockResolvedValue(lock);
+    querySystemSchedulerData.mockResolvedValue(work);
 
     it('spHiSysEventChartTest01', function () {
         spHiSysEventChart.init();
@@ -106,61 +143,55 @@ describe('SpHiSysEventChart Test', () => {
         let result = [
             {
                 ts: 1005938319,
-                eventName: "WORK_ADD",
-                appkey: "TYPE",
+                eventName: "WORK_START",
+                appKey: "TYPE",
                 Value: "1",
             }, {
                 ts: 3005933657,
                 eventName: "POWER_RUNNINGLOCK",
-                appkey: "TAG",
+                appKey: "TAG,",
                 Value: "DUBAI_TAG_RUNNINGLOCK_REMOVE",
             }, {
                 ts: 4005938319,
                 eventName: "GNSS_STATE",
-                appkey: "STATE",
+                appKey: "STATE",
                 Value: "stop",
             }, {
                 ts: 5005933657,
                 eventName: "POWER_RUNNINGLOCK",
-                appkey: "TAG",
+                appKey: "TAG",
                 Value: "DUBAI_TAG_RUNNINGLOCK_ADD",
             }, {
                 ts: 6005938319,
                 eventName: "GNSS_STATE",
-                appkey: "STATE",
+                appKey: "STATE",
                 Value: "start",
             }, {
                 ts: 9005938319,
                 eventName: "WORK_STOP",
-                appkey: "TYPE",
+                appKey: "TYPE",
                 Value: "1",
             }, {
                 ts: 10005938319,
                 eventName: "WORK_REMOVE",
-                appkey: "TYPE",
+                appKey: "TYPE",
                 Value: "1",
             }
         ]
-        expect(spHiSysEventChart.getSystemData(result)).toEqual([{
-            "dur": 3005933657,
-            "isHover": false,
-            "startNs": 0,
-            "type": 1
-        }, {"dur": 4005938319, "isHover": false, "startNs": 0, "type": 2}, {
-            "dur": 9000000000,
-            "isHover": false,
-            "startNs": 1005938319,
-            "type": 0
-        }, {"dur": 9000000000, "isHover": false, "startNs": 1005938319, "type": 0}, {
-            "dur": undefined,
-            "isHover": false,
-            "startNs": 5005933657,
-            "type": 1
-        }, {"dur": undefined, "isHover": false, "startNs": 6005938319, "type": 2}]);
+        expect(spHiSysEventChart.getSystemData([result, result, result])).toEqual({"0": [{"count": 1, "startNs": 5005933657, "token": undefined, "type": 1},
+                {"count": 0, "startNs": 6005938319, "token": undefined, "type": 1}],
+            "1": [{"count": 1, "startNs": 1005938319, "state": "start", "type": 2},
+                {"count": 2, "startNs": 3005933657, "state": "start", "type": 2},
+                {"count": 1, "startNs": 4005938319, "state": "stop", "type": 2},
+                {"count": 2, "startNs": 5005933657, "state": "start", "type": 2},
+                {"count": 3, "startNs": 6005938319, "state": "start", "type": 2},
+                {"count": 4, "startNs": 9005938319, "state": "start", "type": 2},
+                {"count": 5, "startNs": 10005938319, "state": "start", "type": 2}],
+            "2": [{"count": 1, "startNs": 1005938319, "type": 0}, {"count": 0, "startNs": undefined, "type": 0}]});
     });
 
     it('spHiSysEventChartTest03', function () {
-        expect(spHiSysEventChart.getSystemData([])).toEqual([]);
+        expect(spHiSysEventChart.getSystemData([]).length).toBeUndefined();
     });
 
     it('spHiSysEventChartTest04', function () {
@@ -168,32 +199,32 @@ describe('SpHiSysEventChart Test', () => {
             {
                 startNS: 5999127353,
                 eventName: "POWER_IDE_AUDIO",
-                appkey: "APPNAME",
+                appKey: "APPNAME",
                 eventValue: "com.example.himusicdemo,com.example.himusicdemo_js,com.example.himusicdemo_app",
             }, {
                 startNS: 5999127353,
                 eventName: "POWER_IDE_AUDIO",
-                appkey: "BACKGROUND_ENERGY",
+                appKey: "BACKGROUND_ENERGY",
                 eventValue: "854,258,141",
             }, {
                 startNS: 5999127353,
                 eventName: "POWER_IDE_BLUETOOTH",
-                appkey: "APPNAME",
+                appKey: "APPNAME",
                 eventValue: "com.ohos.settings,bt_switch,bt_switch_js,bt_switch_app",
             }, {
                 startNS: 5999127353,
                 eventName: "POWER_IDE_BLUETOOTH",
-                appkey: "BACKGROUND_ENERGY",
+                appKey: "BACKGROUND_ENERGY",
                 eventValue: "76,12,43,431",
             }, {
                 startNS: 5999127388,
                 eventName: "POWER_IDE_CAMERA",
-                appkey: "APPNAME",
+                appKey: "APPNAME",
                 eventValue: "com.ohos.camera,com.ohos.camera_app,com.ohos.camera_js,com.ohos.camera_ts",
             }, {
                 startNS: 5999127388,
                 eventName: "POWER_IDE_CAMERA",
-                appkey: "BACKGROUND_ENERGY",
+                appKey: "BACKGROUND_ENERGY",
                 eventValue: "375,475,255,963",
             }
         ]

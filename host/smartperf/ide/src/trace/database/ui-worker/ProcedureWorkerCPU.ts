@@ -13,18 +13,23 @@
  * limitations under the License.
  */
 
-import { ColorUtils } from "../../component/trace/base/ColorUtils.js";
+import {ColorUtils} from "../../component/trace/base/ColorUtils.js";
 import {
-    BaseStruct,
+    BaseStruct, dataFilterHandler,
     drawFlagLine,
     drawLines,
     drawLoading,
     drawSelection, drawWakeUp, Render,
     RequestMessage
 } from "./ProcedureWorkerCommon.js";
+import {TraceRow} from "../../component/trace/base/TraceRow.js";
 
-export class EmptyRender extends Render{
-    render(req: RequestMessage, list: Array<any>, filter: Array<any>){
+export class EmptyRender extends Render {
+    renderMainThread(req: any, row: TraceRow<any>) {
+        req.context.beginPath();
+        req.context.closePath();
+    }
+    render(req: RequestMessage, list: Array<any>, filter: Array<any>) {
         if (req.canvas) {
             req.context.clearRect(0, 0, req.frame.width, req.frame.height);
             req.context.beginPath();
@@ -44,7 +49,34 @@ export class EmptyRender extends Render{
 }
 
 export class CpuRender {
-    render(req:RequestMessage,list:Array<any>,filter:Array<any>){
+    renderMainThread(req: {
+        context: CanvasRenderingContext2D,
+        useCache: boolean,
+        type: string,
+    }, row: TraceRow<CpuStruct>) {
+        let list = row.dataList;
+        let filter = row.dataListCache;
+        dataFilterHandler(list,filter,{
+            startKey: "startTime",
+            durKey: "dur",
+            startNS: TraceRow.range?.startNS ?? 0,
+            endNS: TraceRow.range?.endNS ?? 0,
+            totalNS: TraceRow.range?.totalNS ?? 0,
+            frame: row.frame,
+            paddingTop: 5,
+            useCache: req.useCache || !(TraceRow.range?.refresh ?? false)
+        })
+        req.context.beginPath();
+        req.context.font = "11px sans-serif";
+        filter.forEach((re)=>{
+            CpuStruct.draw(req.context, re);
+        })
+        req.context.closePath();
+        let currentCpu = parseInt(req.type!.replace("cpu-data-", ""));
+        drawWakeUp(req.context, CpuStruct.wakeupBean, TraceRow.range!.startNS, TraceRow.range!.endNS, TraceRow.range!.totalNS, row.frame, req.type == `cpu-data-${CpuStruct.selectCpuStruct?.cpu || 0}` ? CpuStruct.selectCpuStruct : undefined, currentCpu);
+    }
+
+    render(req: RequestMessage, list: Array<any>, filter: Array<any>) {
         if (req.lazyRefresh) {
             this.cpu(list, filter, req.startNS, req.endNS, req.totalNS, req.frame, req.useCache || !req.range.refresh);
         } else {
@@ -91,8 +123,8 @@ export class CpuRender {
         });
     }
 
-    cpu(list: Array<any>, res: Array<any>, startNS: number, endNS: number, totalNS: number, frame: any,use:boolean) {
-        if(use && res.length > 0){
+    cpu(list: Array<any>, res: Array<any>, startNS: number, endNS: number, totalNS: number, frame: any, use: boolean) {
+        if (use && res.length > 0) {
             let pns = (endNS - startNS) / frame.width;
             let y = frame.y + 5;
             let height = frame.height - 10;
@@ -105,71 +137,58 @@ export class CpuRender {
                         res[i].frame.height = height;
                     }
                     CpuStruct.setCpuFrame(res[i], pns, startNS, endNS, frame)
-                }else{
+                } else {
                     res[i].frame = null;
                 }
             }
             return;
         }
-        res.length = 0;
         if (list) {
-            let pns = (endNS - startNS) / frame.width;
+            res.length = 0;
+            let pns = (endNS - startNS) / frame.width;//每个像素多少ns
             let y = frame.y + 5;
             let height = frame.height - 10;
-            for (let i = 0, len = list.length; i < len; i++) {
-                let it = list[i];
-                if ((it.startTime || 0) + (it.dur || 0) > startNS && (it.startTime || 0) < endNS) {
-                    if (!it.frame) {
-                        it.frame = {};
-                        it.frame.y = y;
-                        it.frame.height = height;
-                    }
-                    CpuStruct.setCpuFrame(it, pns, startNS, endNS, frame)
-                    if (i > 0 && ((list[i - 1].frame?.x || 0) == (it.frame?.x || 0) && ((list[i - 1].frame?.width || 0) == (it.frame?.width || 0)))) {
-
-                    } else {
-                        res.push(it)
-                    }
-                }else{
-                    it.frame = null;
+            let left = 0, right = 0;
+            for (let i = 0, j = list.length - 1, ib = true, jb = true; i < list.length, j >= 0; i++, j--) {
+                if (list[j].startTime <= endNS && jb) {
+                    right = j;
+                    jb = false;
+                }
+                if (list[i].startTime + list[i].dur >= startNS && ib) {
+                    left = i;
+                    ib = false;
+                }
+                if (!ib && !jb) {
+                    break;
                 }
             }
-        }
-    }
-}
-
-
-let dec = new TextDecoder();
-function rtCpu(buf: ArrayBuffer | null | undefined, res: Array<any>, startNS: number, endNS: number, totalNS: number, frame: any) {
-    if (buf) {
-        res.length=0;
-        let pns = (endNS - startNS) / frame.width;
-        let y = frame.y + 5;
-        let height = frame.height - 10;
-        let str = dec.decode(buf);
-        str = str.substring(str.indexOf("\n") + 1);
-        let parse = JSON.parse(str);
-        let columns = parse.columns;
-        let values = parse.values;
-        for (let i = 0; i < values.length; i++) {
-            let obj: any = {}
-            for (let j = 0; j < columns.length; j++) {
-                obj[columns[j]] = values[i][j]
+            let slice = list.slice(left, right + 1);
+            let sum = 0;
+            for (let i = 0; i < slice.length; i++) {
+                if (!slice[i].frame) {
+                    slice[i].frame = {};
+                    slice[i].frame.y = y;
+                    slice[i].frame.height = height;
+                }
+                if (slice[i].dur >= pns) {
+                    slice[i].v = true;
+                    CpuStruct.setCpuFrame(slice[i], pns, startNS, endNS, frame)
+                } else {
+                    if (i > 0) {
+                        let c = slice[i].startTime - slice[i - 1].startTime - slice[i - 1].dur
+                        if (c < pns && sum < pns) {
+                            sum += c + slice[i - 1].dur;
+                            slice[i].v = false;
+                        } else {
+                            slice[i].v = true;
+                            CpuStruct.setCpuFrame(slice[i], pns, startNS, endNS, frame)
+                            sum = 0;
+                        }
+                    }
+                }
             }
-            obj.frame = {
-                // x: obj.x1,
-                y: frame.y + 5,
-                // width: obj.x2 - obj.x1 > 0 ? obj.x2 - obj.x1 : 1,
-                height: frame.height - 10,
-            }
-            CpuStruct.setCpuFrame(obj, pns, startNS, endNS, frame)
-            res.push(obj);
+            res.push(...slice.filter(it => it.v));
         }
-    }else{
-        let pns = (endNS - startNS) / frame.width;
-        res.forEach(it=>{
-            CpuStruct.setCpuFrame(it, pns, startNS, endNS, frame)
-        })
     }
 }
 
@@ -177,6 +196,7 @@ export class CpuStruct extends BaseStruct {
     static cpuCount: number = 1 //最大cpu数量
     static hoverCpuStruct: CpuStruct | undefined;
     static selectCpuStruct: CpuStruct | undefined;
+    static wakeupBean: WakeupBean | null | undefined = null;
     cpu: number | undefined
     dur: number | undefined
     end_state: string | undefined
@@ -190,6 +210,7 @@ export class CpuStruct extends BaseStruct {
     startTime: number | undefined
     tid: number | undefined
     type: string | undefined
+    v: boolean = false
 
     static draw(ctx: CanvasRenderingContext2D, data: CpuStruct) {
         if (data.frame) {
@@ -197,7 +218,7 @@ export class CpuStruct extends BaseStruct {
             if (data.tid === CpuStruct.hoverCpuStruct?.tid || !CpuStruct.hoverCpuStruct) {
                 ctx.globalAlpha = 1
                 ctx.fillStyle = ColorUtils.colorForTid((data.processId || 0) > 0 ? (data.processId || 0) : (data.tid || 0))
-            } else if(data.processId === CpuStruct.hoverCpuStruct?.processId ){
+            } else if (data.processId === CpuStruct.hoverCpuStruct?.processId) {
                 ctx.globalAlpha = 0.6
                 ctx.fillStyle = ColorUtils.colorForTid((data.processId || 0) > 0 ? (data.processId || 0) : (data.tid || 0))
             } else {
@@ -208,7 +229,7 @@ export class CpuStruct extends BaseStruct {
             ctx.globalAlpha = 1
             if (width > textPadding * 2) {
                 let process = `${(data.processName || "Process")} [${data.processId}]`
-                let thread = `${data.name || "Thread"} [${data.tid}] [Prio:${data.priority||0}]`
+                let thread = `${data.name || "Thread"} [${data.tid}] [Prio:${data.priority || 0}]`
                 let processMeasure = ctx.measureText(process);
                 let threadMeasure = ctx.measureText(thread);
                 let processCharWidth = Math.round(processMeasure.width / process.length)
@@ -263,15 +284,11 @@ export class CpuStruct extends BaseStruct {
     }
 
     static equals(d1: CpuStruct, d2: CpuStruct): boolean {
-        if (d1 && d2 && d1.cpu == d2.cpu &&
+        return d1 && d2 && d1.cpu == d2.cpu &&
             d1.tid == d2.tid &&
             d1.processId == d2.processId &&
             d1.startTime == d2.startTime &&
-            d1.dur == d2.dur) {
-            return true;
-        } else {
-            return false;
-        }
+            d1.dur == d2.dur;
     }
 }
 

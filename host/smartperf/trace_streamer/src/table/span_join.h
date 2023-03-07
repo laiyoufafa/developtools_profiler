@@ -118,7 +118,7 @@ public:
         CaclSpan tableFirst_;
         CaclSpan tableSecond_;
         CaclSpan* queryNext_ = nullptr;
-        SpanJoin* table_;
+        SpanJoin* spanTable_;
     };
 
 public:

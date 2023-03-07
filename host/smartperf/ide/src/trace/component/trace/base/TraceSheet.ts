@@ -15,23 +15,25 @@
 
 import {BaseElement, element} from "../../../../base-ui/BaseElement.js";
 import {LitTabs} from "../../../../base-ui/tabs/lit-tabs.js";
-import {CpuStruct} from "../../../bean/CpuStruct.js";
 import {LitTabpane} from "../../../../base-ui/tabs/lit-tabpane.js";
 import {BoxJumpParam, SelectionParam} from "../../../bean/BoxSelection.js";
 import {TabPaneCurrentSelection} from "../sheet/TabPaneCurrentSelection.js";
-import {FuncStruct} from "../../../bean/FuncStruct.js";
-import {ProcessMemStruct} from "../../../bean/ProcessMemStruct.js";
-import {ThreadStruct} from "../../../bean/ThreadStruct.js";
 import {TabPaneFlag} from "../timer-shaft/TabPaneFlag.js";
 import {Flag} from "../timer-shaft/Flag.js";
 import {WakeupBean} from "../../../bean/WakeupBean.js";
 import {LitIcon} from "../../../../base-ui/icon/LitIcon.js";
-import {CpuFreqStruct} from "../../../bean/CpuFreqStruct.js";
 import {tabConfig} from "./TraceSheetConfig.js";
 import {TabPaneBoxChild} from "../sheet/cpu/TabPaneBoxChild.js";
-import {CpuStateStruct} from "../../../database/ui-worker/ProcedureWorkerCpuState.js";
 import {SpFreqChart} from "../../chart/SpFreqChart.js";
+import { CpuStruct } from "../../../database/ui-worker/ProcedureWorkerCPU.js";
+import { CpuFreqStruct } from "../../../database/ui-worker/ProcedureWorkerFreq.js";
 import {CpuFreqLimitsStruct} from "../../../database/ui-worker/ProcedureWorkerCpuFreqLimits.js";
+import { ThreadStruct } from "../../../database/ui-worker/ProcedureWorkerThread.js";
+import { FuncStruct } from "../../../database/ui-worker/ProcedureWorkerFunc.js";
+import { ProcessMemStruct } from "../../../database/ui-worker/ProcedureWorkerMem.js";
+import {CpuStateStruct} from "../../../database/ui-worker/ProcedureWorkerCpuState.js";
+import {ClockStruct} from "../../../database/ui-worker/ProcedureWorkerClock.js";
+import {IrqStruct} from "../../../database/ui-worker/ProcedureWorkerIrq.js";
 
 
 @element("trace-sheet")
@@ -113,6 +115,22 @@ export class TraceSheet extends BaseElement {
                 (pane.children.item(0) as any)!.fromStastics(this.selection)
             }
         });
+        this.getComponentByID<any>("box-io-tier-statistics")!.addEventListener("row-click", (e: any) => {
+            this.selection!.fileSystemIoData = {path:e.detail.path}
+            let pane = this.getPaneByID("box-io-events");
+            this.litTabs?.activeByKey(pane.key);
+            if (e.detail.path) {
+                (pane.children.item(0) as any)!.fromStastics(this.selection)
+            }
+        });
+        this.getComponentByID<any>("box-file-system-statistics")!.addEventListener("row-click", (e: any) => {
+            this.selection!.fileSystemFsData = e.detail.data
+            let pane = this.getPaneByID("box-file-system-event");
+            this.litTabs?.activeByKey(pane.key);
+            if (e.detail.data) {
+                (pane.children.item(0) as any)!.fromStastics(this.selection)
+            }
+        });
     }
 
     connectedCallback() {
@@ -122,6 +140,8 @@ export class TraceSheet extends BaseElement {
         let search: HTMLDivElement | undefined | null = document.querySelector("body > sp-application")?.shadowRoot?.querySelector("div > div.search-container")
         let timerShaft: HTMLDivElement | undefined | null = this.parentElement?.querySelector(".timer-shaft")
         let spacer: HTMLDivElement | undefined | null = this.parentElement?.querySelector(".spacer")
+        let rowsPaneEL: HTMLDivElement | undefined | null = this.parentElement?.querySelector(".rows-pane")
+
         let borderTop: number = 1;
         let initialHeight = {tabs: `calc(30vh + 39px)`, node: "30vh"};
         this.nav!.onmousedown = (event) => {
@@ -132,7 +152,11 @@ export class TraceSheet extends BaseElement {
             document.onmousemove = function (event) {
                 let moveY: number = preHeight - (event.pageY - preY)
                 litTabpane!.forEach((node: HTMLDivElement) => {
-                    if (navRoot!.offsetHeight <= moveY && (search!.offsetHeight + timerShaft!.offsetHeight + borderTop + spacer!.offsetHeight) <= (window.innerHeight - moveY)) {
+                    if(spacer!.offsetHeight > rowsPaneEL!.offsetHeight){
+                        tabs!.style.height = moveY + "px"
+                        node!.style.height = (moveY - navRoot!.offsetHeight) + "px"
+                        tabsPackUp!.name = "down"
+                    }else if (navRoot!.offsetHeight <= moveY && (search!.offsetHeight + timerShaft!.offsetHeight + borderTop + spacer!.offsetHeight) <= (window.innerHeight - moveY)) {
                         tabs!.style.height = moveY + "px"
                         node!.style.height = (moveY - navRoot!.offsetHeight) + "px"
                         tabsPackUp!.name = "down"
@@ -217,13 +241,18 @@ export class TraceSheet extends BaseElement {
         this.displayTab<TabPaneCurrentSelection>("current-selection").setThreadData(data, scrollCallback, scrollWakeUp)
     displayMemData = (data: ProcessMemStruct) =>
         this.displayTab<TabPaneCurrentSelection>("current-selection").setMemData(data);
+    displayClockData = (data: ClockStruct) =>
+        this.displayTab<TabPaneCurrentSelection>("current-selection").setClockData(data);
+    displayIrqData = (data: IrqStruct) =>
+        this.displayTab<TabPaneCurrentSelection>("current-selection").setIrqData(data);
+
     displayFuncData = (data: FuncStruct, scrollCallback: Function) =>
         this.displayTab<TabPaneCurrentSelection>("current-selection").setFunctionData(data, scrollCallback);
     displayCpuData = (data: CpuStruct, callback: ((data: WakeupBean | null) => void) | undefined = undefined, scrollCallback?: (data: CpuStruct) => void) =>
         this.displayTab<TabPaneCurrentSelection>("current-selection").setCpuData(data, callback, scrollCallback);
     displayFlagData = (flagObj: Flag) => this.displayTab<TabPaneFlag>("box-flag").setFlagObj(flagObj);
     displayFreqData = () => this.displayTab<TabPaneCurrentSelection>("box-freq").data = CpuFreqStruct.selectCpuFreqStruct;
-    displayCpuStateData = () => this.displayTab<TabPaneCurrentSelection>("cpu-state-click").data = SpFreqChart.selectStateStruct;
+    displayCpuStateData = () => this.displayTab<TabPaneCurrentSelection>("cpu-state-click").data = CpuStateStruct.selectStateStruct;
     displayFreqLimitData = () => this.displayTab<TabPaneCurrentSelection>("box-freq-limit").data = CpuFreqLimitsStruct.selectCpuFreqLimitsStruct;
 
     rangeSelect(selection: SelectionParam): boolean {

@@ -14,16 +14,65 @@
  */
 
 import {
-    BaseStruct,
+    BaseStruct, dataFilterHandler,
     drawFlagLine,
     drawLines,
-    drawSelection,
+    drawSelection, isFrameContainPoint,
     ns2x,
     Render,
     RequestMessage
 } from "./ProcedureWorkerCommon.js";
+import {TraceRow} from "../../component/trace/base/TraceRow.js";
+import {CpuAbilityMonitorStruct} from "./ProcedureWorkerCpuAbility.js";
 
 export class SmapsRender extends Render {
+    renderMainThread(req: {
+        context: CanvasRenderingContext2D,
+        useCache: boolean,
+        type: string,
+        rowName:string,
+        maxValue:number
+    }, row: TraceRow<SmapsStruct>) {
+        let list = row.dataList;
+        let filter = row.dataListCache;
+        dataFilterHandler(list,filter,{
+            startKey: "startNS",
+            durKey: "dur",
+            startNS: TraceRow.range?.startNS ?? 0,
+            endNS: TraceRow.range?.endNS ?? 0,
+            totalNS: TraceRow.range?.totalNS ?? 0,
+            frame: row.frame,
+            paddingTop: 5,
+            useCache: req.useCache || !(TraceRow.range?.refresh ?? false)
+        })
+        req.context.beginPath();
+        let drawColor = "#0A59F7"
+        if (req.rowName != undefined) {
+            switch (req.rowName) {
+                case "dirty":
+                    drawColor = "#0A59F7";
+                    break;
+                case "swapper":
+                    drawColor = "#46B1E3";
+                    break;
+                case "resident_size":
+                    drawColor = "#564AF7";
+                    break;
+            }
+        }
+        let find = false;
+        for (let re of filter) {
+            SmapsStruct.draw(req.context, re,req.maxValue,drawColor,row.isHover)
+            if (row.isHover && re.frame  && isFrameContainPoint(re.frame, row.hoverX, row.hoverY)) {
+                SmapsStruct.hoverSmapsStruct = re;
+                find = true;
+            }
+        }
+        if (!find && row.isHover) SmapsStruct.hoverSmapsStruct = undefined;
+
+        req.context.closePath();
+    }
+
     render(req: RequestMessage, list: Array<any>, filter: Array<any>) {
         if (req.lazyRefresh) {
             smaps(list, filter, req.startNS, req.endNS, req.totalNS, req.frame, req.useCache || !req.range.refresh);
@@ -67,7 +116,7 @@ export class SmapsRender extends Render {
             }
             SmapsStruct.selectSmapsStruct = req.params.selectSmapsStruct;
             for (let re of filter) {
-                SmapsStruct.draw(req.context, re, maxValue, drawColor)
+                SmapsStruct.draw(req.context, re, maxValue, drawColor,true)
             }
             drawSelection(req.context, req.params);
             req.context.closePath();
@@ -125,12 +174,12 @@ export class SmapsStruct extends BaseStruct {
     startNS: number | undefined
     dur: number | undefined
 
-    static draw(context2D: CanvasRenderingContext2D, data: SmapsStruct, maxValue: number, drawColor: string) {
+    static draw(context2D: CanvasRenderingContext2D, data: SmapsStruct, maxValue: number, drawColor: string,isHover:boolean) {
         if (data.frame) {
             let width = data.frame.width || 0;
             context2D.fillStyle = drawColor
             context2D.strokeStyle = drawColor
-            if (data.startNS === SmapsStruct.hoverSmapsStruct?.startNS) {
+            if (data.startNS === SmapsStruct.hoverSmapsStruct?.startNS&&isHover) {
                 context2D.lineWidth = 1;
                 let drawHeight: number = Math.floor(((data.value || 0) * (data.frame.height || 0) * 1.0) / maxValue);
                 context2D.fillRect(data.frame.x, data.frame.y + data.frame.height - drawHeight + 4, width, drawHeight)

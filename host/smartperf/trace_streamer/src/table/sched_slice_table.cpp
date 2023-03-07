@@ -20,7 +20,7 @@
 namespace SysTuning {
 namespace TraceStreamer {
 namespace {
-enum Index { ID = 0, TYPE, TS, DUR, TS_END, CPU, INTERNAL_TID, INTERNAL_PID, END_STATE, PRIORITY };
+enum Index { ID = 0, TYPE, TS, DUR, TS_END, CPU, INTERNAL_TID, INTERNAL_PID, END_STATE, PRIORITY, ARGSETID };
 }
 SchedSliceTable::SchedSliceTable(const TraceDataCache* dataCache) : TableBase(dataCache)
 {
@@ -34,6 +34,7 @@ SchedSliceTable::SchedSliceTable(const TraceDataCache* dataCache) : TableBase(da
     tableColumn_.push_back(TableBase::ColumnInfo("ipid", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("end_state", "TEXT"));
     tableColumn_.push_back(TableBase::ColumnInfo("priority", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("arg_setid", "INTEGER"));
     tablePriKey_.push_back("id");
 }
 
@@ -254,6 +255,13 @@ int SchedSliceTable::Cursor::Column(int col) const
         case PRIORITY:
             sqlite3_result_int64(context_, static_cast<sqlite3_int64>(schedSliceObj_.PriorityData()[CurrentRow()]));
             break;
+        case ARGSETID: {
+            const uint32_t& argSetId = schedSliceObj_.ArgSetData()[CurrentRow()];
+            if (argSetId != INVALID_UINT32) {
+                sqlite3_result_int(context_, argSetId);
+            }
+            break;
+        }
         default:
             TS_LOGF("Unregistered column : %d", col);
             break;

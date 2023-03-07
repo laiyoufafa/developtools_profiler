@@ -13,85 +13,45 @@
  * limitations under the License.
  */
 
-import { ColorUtils } from "../../component/trace/base/ColorUtils.js";
+import {ColorUtils} from "../../component/trace/base/ColorUtils.js";
+import {TraceRow} from "../../component/trace/base/TraceRow.js";
 import {
     BaseStruct,
-    drawFlagLine,
-    drawLines,
-    drawLoading,
-    drawSelection, drawWakeUp,
+    isFrameContainPoint,
     ns2x,
     Rect, Render,
     RequestMessage
 } from "./ProcedureWorkerCommon.js";
 
-export class FuncRender extends Render{
-    render(req: RequestMessage, list: Array<any>, filter: Array<any>) {
-        if (!req.params.isLive) {
-            self.postMessage({
-                id: req.id,
-                type: req.type,
-                results: req.canvas ? undefined : filter,
-                hover: undefined
-            });
-            return;
-        }
-        if (req.lazyRefresh) {
-            func(list, filter, req.startNS, req.endNS, req.totalNS, req.frame, req.useCache || !req.range.refresh);
-        } else {
-            if (!req.useCache) {
-                func(list, filter, req.startNS, req.endNS, req.totalNS, req.frame, false);
-            }
-        }
-        if (req.canvas) {
-            if (req.canvas.height == 150) {
-                req.canvas.width = req.frame.width;
-                req.canvas.height = req.params.maxHeight;
-                req.context.scale(req.params.dpr, req.params.dpr);
-            }
-            // req.canvasList[type]!.width = frame.width;
-            // req.canvasList[type]!.height = frame.height;
-            req.context.clearRect(0, 0, req.frame.width, req.frame.height);
-            let arr = filter;
-            if (arr.length > 0 && !req.range.refresh && !req.useCache && req.lazyRefresh) {
-                drawLoading(req.context, req.startNS, req.endNS, req.totalNS, req.frame, arr[0].startTs, arr[arr.length - 1].startTs + arr[arr.length - 1].dur)
-            }
-            req.context.beginPath();
-            drawLines(req.context, req.xs, req.frame.height, req.lineColor)
-            FuncStruct.hoverFuncStruct = undefined;
-            if (req.isHover) {
-                for (let re of filter) {
-                    if (re.dur == 0 || re.dur == null || re.dur == undefined) {
-                        if (re.frame && req.hoverX >= re.frame.x - 5 && req.hoverX <= re.frame.x + 5 && req.hoverY >= re.frame.y + (re.depth * 20) && req.hoverY <= re.frame.y + re.frame.height + (re.depth * 20)) {
-                            FuncStruct.hoverFuncStruct = re;
-                            break;
-                        }
-                    } else {
-                        if (re.frame && req.hoverX >= re.frame.x && req.hoverX <= re.frame.x + re.frame.width && req.hoverY >= re.frame.y + (re.depth * 20) && req.hoverY <= re.frame.y + re.frame.height + (re.depth * 20)) {
-                            FuncStruct.hoverFuncStruct = re;
-                            break;
-                        }
+export class FuncRender extends Render {
+    renderMainThread(req: { useCache: boolean; context: CanvasRenderingContext2D; type: string }, row: TraceRow<FuncStruct>) {
+        let list = row.dataList;
+        let filter = row.dataListCache;
+        func(list, filter, TraceRow.range!.startNS, TraceRow.range!.endNS, TraceRow.range!.totalNS, row.frame, req.useCache || !TraceRow.range!.refresh);
+        req.context.beginPath();
+        let find = false;
+        for (let re of filter) {
+            FuncStruct.draw(req.context, re)
+            if(row.isHover){
+                if (re.dur == 0 || re.dur == null || re.dur == undefined) {
+                    if (re.frame && row.hoverX >= re.frame.x - 5 && row.hoverX <= re.frame.x + 5 && row.hoverY >= re.frame.y && row.hoverY <= re.frame.y + re.frame.height) {
+                        FuncStruct.hoverFuncStruct = re;
+                        find = true;
+                    }
+                } else {
+                    if (re.frame  && isFrameContainPoint(re.frame, row.hoverX, row.hoverY)) {
+                        FuncStruct.hoverFuncStruct = re;
+                        find = true;
                     }
                 }
-            } else {
-                FuncStruct.hoverFuncStruct = req.params.hoverFuncStruct;
             }
-            FuncStruct.selectFuncStruct = req.params.selectFuncStruct;
-            for (let re of filter) {
-                FuncStruct.draw(req.context, re, req.totalNS)
-            }
-            drawSelection(req.context, req.params);
-            drawWakeUp(req.context, req.wakeupBean, req.startNS, req.endNS, req.totalNS, req.frame);
-            req.context.closePath();
-            drawFlagLine(req.context, req.flagMoveInfo, req.flagSelectedInfo, req.startNS, req.endNS, req.totalNS, req.frame, req.slicesTime);
         }
-        // @ts-ignore
-        self.postMessage({
-            id: req.id,
-            type: req.type,
-            results: req.canvas ? undefined : filter,
-            hover: FuncStruct.hoverFuncStruct
-        });
+        if (!find && row.isHover) FuncStruct.hoverFuncStruct = undefined;
+        req.context.closePath();
+    }
+
+    render(req: RequestMessage, list: Array<any>, filter: Array<any>) {
+
     }
 }
 
@@ -108,11 +68,11 @@ export function func(list: Array<any>, res: Array<any>, startNS: number, endNS: 
     }
     res.length = 0;
     if (list) {
-        let groups = list.filter(it => (it.startTs || 0) + (it.dur || 0) >= startNS && (it.startTs || 0) <= endNS).map(it => {
+        let groups = list.filter(it => (it.startTs ?? 0) + (it.dur ?? 0) >= startNS && (it.startTs ?? 0) <= endNS).map(it => {
             FuncStruct.setFuncFrame(it, 0, startNS, endNS, totalNS, frame)
             return it;
         }).reduce((pre, current, index, arr) => {
-            (pre[`${current.frame.x}`] = pre[`${current.frame.x}`] || []).push(current);
+            (pre[`${current.frame.x}-${current.depth}`] = pre[`${current.frame.x}-${current.depth}`] || []).push(current);
             return pre;
         }, {});
         Reflect.ownKeys(groups).map((kv => {
@@ -128,6 +88,7 @@ export class FuncStruct extends BaseStruct {
     argsetid: number | undefined // 53161
     depth: number | undefined // 0
     dur: number | undefined // 570000
+    flag: string | undefined // 570000
     funName: string | undefined //"binder transaction"
     id: number | undefined // 92749
     is_main_thread: number | undefined // 0
@@ -153,29 +114,25 @@ export class FuncStruct extends BaseStruct {
         if (!node.frame) {
             node.frame = {};
         }
-        let getV: number = x2 - x1 <= 1 ? 1 : x2 - x1;
+        let getV: number = x2 - x1 < 1 ? 1 : x2 - x1;
         node.frame.x = Math.floor(x1);
-        node.frame.y = 0;
-        node.frame.width = Math.floor(getV);
+        node.frame.y = node.depth * 20;
+        node.frame.width = Math.ceil(getV);
         node.frame.height = 20;
     }
 
-    static getInt(data: FuncStruct): number {
-        let str = data.funName || "";
-        let sum = 0;
-        for (let i = 0; i < str.length; i++) {
-            sum += str.charCodeAt(i)
-        }
-        return (sum + (data?.depth || 0)) % ColorUtils.FUNC_COLOR.length;
-    }
 
-    static draw(ctx: CanvasRenderingContext2D, data: FuncStruct, totalNS: number) {
+    static draw(ctx: CanvasRenderingContext2D, data: FuncStruct) {
         if (data.frame) {
             let isBinder = FuncStruct.isBinder(data);
             if (data.dur == undefined || data.dur == null || data.dur == 0) {
             } else {
+                ctx.globalAlpha = 1;
                 ctx.fillStyle = ColorUtils.FUNC_COLOR[ColorUtils.hashFunc(data.funName || '', 0, ColorUtils.FUNC_COLOR.length)];//data.depth ||
                 let miniHeight = 20
+                if(FuncStruct.hoverFuncStruct&&data.funName == FuncStruct.hoverFuncStruct.funName){
+                    ctx.globalAlpha = 0.7;
+                }
                 ctx.fillRect(data.frame.x, data.frame.y, data.frame.width, miniHeight - padding * 2)
                 if (data.frame.width > 10) {
                     ctx.fillStyle = "#fff"
@@ -216,8 +173,21 @@ export class FuncStruct extends BaseStruct {
     static isBinder(data: FuncStruct): boolean {
         if (data.funName != null &&
             (
-                data.funName.toLowerCase().startsWith("binder transaction async")
+                data.funName.toLowerCase().startsWith("binder transaction")
                 || data.funName.toLowerCase().startsWith("binder async")
+                || data.funName.toLowerCase().startsWith("binder reply")
+            )
+        ) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    static isBinderAsync(data: FuncStruct): boolean {
+        if (data.funName != null &&
+            (
+                data.funName.toLowerCase().includes("async")
             )
         ) {
             return true;

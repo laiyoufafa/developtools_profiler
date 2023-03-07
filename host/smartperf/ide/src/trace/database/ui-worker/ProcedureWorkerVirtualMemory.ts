@@ -19,12 +19,32 @@ import {
     drawFlagLine,
     drawLines,
     drawLoading,
-    drawSelection, drawWakeUp,
+    drawSelection, drawWakeUp, isFrameContainPoint,
     ns2x, Render,
     RequestMessage
 } from "./ProcedureWorkerCommon.js";
+import {TraceRow} from "../../component/trace/base/TraceRow.js";
 
 export class VirtualMemoryRender extends Render {
+    renderMainThread(req: {
+        context: CanvasRenderingContext2D,
+        useCache: boolean,
+        type: string,
+    }, row:TraceRow<VirtualMemoryStruct>) {
+        mem(row.dataList, row.dataListCache, TraceRow.range?.startNS || 0, TraceRow.range?.endNS || 0, TraceRow.range?.totalNS || 0, row.frame, req.useCache || (TraceRow.range?.refresh ?? false));
+        req.context.beginPath();
+        let find = false;
+        for (let re of row.dataListCache) {
+            if (row.isHover && re.frame && isFrameContainPoint(re.frame,row.hoverX,row.hoverY)) {
+                VirtualMemoryStruct.hoverStruct = re;
+                find = true;
+            }
+            VirtualMemoryStruct.draw(req.context, re)
+        }
+        if(!find && row.isHover) VirtualMemoryStruct.hoverStruct = undefined;
+        req.context.closePath();
+    }
+
     render(req: RequestMessage, list: Array<any>, filter: Array<any>) {
         if (req.lazyRefresh) {
             mem(list, filter, req.startNS, req.endNS, req.totalNS, req.frame, req.useCache || !req.range.refresh);
@@ -134,10 +154,10 @@ export class VirtualMemoryStruct extends BaseStruct {
             let width = data.frame.width || 0;
             ctx.fillStyle = ColorUtils.colorForTid(data.maxValue || 0)
             ctx.strokeStyle = ColorUtils.colorForTid(data.maxValue || 0)
-            if (data.startTime === VirtualMemoryStruct.hoverStruct?.startTime && data.filterID == VirtualMemoryStruct.hoverStruct?.filterID) {
+            if (data === VirtualMemoryStruct.hoverStruct) {
                 ctx.lineWidth = 1;
                 ctx.globalAlpha = 0.6;
-                let drawHeight: number = Math.floor(((data.value || 0) * (data.frame.height || 0) * 1.0) / (data.maxValue || 0));
+                let drawHeight: number = Math.floor(((data.value || 0) * (data.frame.height || 0) * 1.0) / (data.maxValue || 1));
                 ctx.fillRect(data.frame.x, data.frame.y + data.frame.height - drawHeight, width, drawHeight)
                 ctx.beginPath()
                 ctx.arc(data.frame.x, data.frame.y + data.frame.height - drawHeight, 3, 0, 2 * Math.PI, true)

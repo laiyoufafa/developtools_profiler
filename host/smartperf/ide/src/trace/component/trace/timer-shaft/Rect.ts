@@ -56,6 +56,14 @@ export class Rect {
         }
     }
 
+    static getIntersect(r1: DOMRect|Rect, rect: DOMRect|Rect):Rect {
+        let maxX = Math.max(r1.x,rect.x)
+        let maxY = Math.max(r1.y,rect.y)
+        let width = Math.abs(Math.min(r1.x + r1.width,rect.x + rect.width) - Math.max(r1.x,rect.x) )
+        let height = Math.abs(Math.min(r1.y + r1.height,rect.y + rect.height) - Math.max(r1.y,rect.y) )
+        return new Rect(maxX, maxY, width, height)
+    }
+
     contains(x: number, y: number): boolean {
         return this.x <= x && x <= this.x + this.width && this.y <= y && y <= this.y + this.height;
     }

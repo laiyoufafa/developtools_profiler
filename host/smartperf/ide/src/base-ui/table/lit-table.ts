@@ -49,6 +49,7 @@ export class LitTable extends HTMLElement {
             display: grid;
             grid-template-columns: repeat(1,1fr);
             width: 100%;
+            font-weight: 500;
             flex:1;
         }
         .tr{
@@ -58,12 +59,17 @@ export class LitTable extends HTMLElement {
         }
         .tr:nth-of-type(even){
         }
-
         .tr{
             background-color: var(--dark-background,#FFFFFF);
         }
         .tr:hover{
             background-color: var(--dark-background6,#DEEDFF);
+        }
+        .tr[selected]{
+            background-color: var(--dark-background6,#DEEDFF);
+        }
+        .tr[high-light]{
+            font-weight: 600;
         }
         .td{
             box-sizing: border-box;
@@ -79,9 +85,6 @@ export class LitTable extends HTMLElement {
             overflow: hidden; 
             text-overflow: ellipsis; 
             white-space: nowrap;
-        }
-        .tr[selected]{
-            background-color: var(--dark-background6,#DEEDFF);
         }
         .td-order{
         }
@@ -137,7 +140,11 @@ export class LitTable extends HTMLElement {
             display:flex;
             align-items:center;
             white-space: nowrap;
+            font-weight: 500;
             cursor: pointer;
+        }
+        .tree-first-body[high-light]{
+            font-weight: 600;
         }
         .tree-first-body:hover{
             background-color: var(--dark-background6,#DEEDFF); /*antd #fafafa 42b983*/
@@ -999,6 +1006,7 @@ export class LitTable extends HTMLElement {
                     let indexOf = this.currentTreeDivList.indexOf(td);
                     this.dispatchRowClickEvent(rowData, [(this.treeElement?.children[indexOf] as HTMLElement), newTableElement])
                 }
+                this.setHighLight(rowData.data.isSearch,td)
                 this.treeElement!.style.width = column.getAttribute('width')
                 this.treeElement?.append(td)
                 this.currentTreeDivList.push(td)
@@ -1028,6 +1036,7 @@ export class LitTable extends HTMLElement {
         newTableElement.style.top = '0px'
         newTableElement.style.left = '0px'
         newTableElement.style.cursor = 'pointer'
+        this.setHighLight(rowData.data.isSearch,newTableElement)
         newTableElement.onmouseenter = () => {
             if ((newTableElement as any).data.isSelected) return;
             let indexOf = this.currentRecycleList.indexOf(newTableElement);
@@ -1199,12 +1208,14 @@ export class LitTable extends HTMLElement {
             return
         }
         let childIndex = -1
+        this.setHighLight(rowObject.data.isSearch,element);
         element.childNodes.forEach((child) => {
             if (child.nodeType != 1) return
             childIndex++;
             let idx = firstElement != undefined ? childIndex + 1 : childIndex;
             if (firstElement != undefined && childIndex == 0) {
-                (firstElement as any).data = rowObject.data
+                this.setHighLight(rowObject.data.isSearch,firstElement);
+                (firstElement as any).data = rowObject.data;
                 if ((this.columns![0] as any).template) {
                     firstElement.innerHTML = (this.columns![0] as any).template.render(rowObject.data).content.cloneNode(true).innerHTML
                 } else {
@@ -1388,5 +1399,13 @@ export class LitTable extends HTMLElement {
             return name.toString().replace("<","&lt;").replace(">","&gt;")
         }
         return ""
+    }
+
+    setHighLight(isSearch:boolean,element:any){
+        if(isSearch){
+            element.setAttribute("high-light","")
+        }else {
+            element.removeAttribute("high-light")
+        }
     }
 }

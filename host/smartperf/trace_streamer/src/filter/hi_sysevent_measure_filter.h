@@ -44,6 +44,7 @@ public:
                              int32_t type,
                              double numericValue,
                              DataIndex strValue);
+    void AppendNewValue(std::string msg, std::string processName);
     void AppendNewValue(int32_t brightnessState,
                         int32_t btState,
                         int32_t locationState,

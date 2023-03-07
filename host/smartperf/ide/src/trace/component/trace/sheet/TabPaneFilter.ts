@@ -25,6 +25,7 @@ export interface FilterData {
     inputValue: string,
     firstSelect: string | null | undefined,
     secondSelect: string | null | undefined,
+    thirdSelect: string | null | undefined,
     mark: boolean | null | undefined,
     icon: string | null,
     type: string,
@@ -41,6 +42,7 @@ export class TabPaneFilter extends BaseElement {
     private filterInputEL: HTMLInputElement | null | undefined;
     private firstSelectEL: HTMLSelectElement | null | undefined;
     private secondSelectEL: HTMLSelectElement | null | undefined;
+    private thirdSelectEL: HTMLSelectElement | null | undefined;
     private markButtonEL: HTMLButtonElement | null | undefined;
     private iconEL: LitIcon | null | undefined;
     private statisticsName: HTMLDivElement | null | undefined;
@@ -60,6 +62,7 @@ export class TabPaneFilter extends BaseElement {
             inputValue: this.filterInputEL!.value,
             firstSelect: this.firstSelectEL?.value,
             secondSelect: this.secondSelectEL?.value,
+            thirdSelect: this.thirdSelectEL?.value,
             mark: false,
             icon: this.icon,
             ...data
@@ -184,6 +187,14 @@ export class TabPaneFilter extends BaseElement {
         return this.filterInputEL!.value
     }
 
+    set thirdSelect(value: string) {
+        this.thirdSelectEL!.value = value;
+    }
+
+    get thirdSelect() {
+        return this.thirdSelectEL?.value || ""
+    }
+
     get inputPlaceholder() {
         return this.getAttribute("inputPlaceholder") || "Detail Filter";
     }
@@ -224,6 +235,10 @@ export class TabPaneFilter extends BaseElement {
         }
     }
 
+    setFilterModuleSelect(module:string,styleName:any,value:any){
+        this.shadowRoot!.querySelector<HTMLDivElement>(module)!.style[styleName] = value
+    }
+
     getCallTreeData(getCallTree: (v: any) => void) {
         this.getCallTree = getCallTree
     }
@@ -242,8 +257,8 @@ export class TabPaneFilter extends BaseElement {
 
     setSelectList(firstList: Array<any> | null | undefined = ["All Allocations", "Created & Existing", "Created & Destroyed"],
                   secondList: Array<any> | null | undefined = ["All Heap & Anonymous VM", "All Heap", "All Anonymous VM"],
-                  firstTitle = "Allocation Lifespan",secondTitle = "Allocation Type") {
-        if (!firstList && !secondList) return;
+                  firstTitle = "Allocation Lifespan",secondTitle = "Allocation Type",thirdList:Array<any> | null | undefined = null,thirdTitle = "Responsible Library") {
+        // if (!firstList && !secondList) return;
         let sLE = this.shadowRoot?.querySelector("#load")
         let html = ``;
         if (firstList) {
@@ -266,13 +281,39 @@ export class TabPaneFilter extends BaseElement {
             })
             html += `</lit-select>`
         }
+        let thtml = "";
+        thtml += `<lit-select show-search style="display: ${thirdList?"inline-flex":"none"}" default-value="" id="third-select" class="spacing" placeholder="please choose">`
+        if (thirdList) {
+            if(thirdTitle != ""){
+                thtml += `<lit-select-option  value="${thirdTitle}" disabled>${thirdTitle}</lit-select-option>`
+            }
+            thirdList!.forEach((a, b) => {
+                thtml += `<lit-select-option value="${b}">${a}</lit-select-option>`
+            })
+        }
+        thtml += `</lit-select>`
+
+        if (!firstList && !secondList) {
+            this.thirdSelectEL!.outerHTML = thtml;
+            this.thirdSelectEL = this.shadowRoot?.querySelector("#third-select")
+            this.thirdSelectEL!.onchange = (e) => {
+                if (this.getFilter) {
+                    this.getFilter(this.filterData("thirdSelect"))
+                }
+            }
+            return;
+        }
+
         if (!firstList) {
             this.secondSelectEL!.outerHTML = html;
         } else if (!secondList) {
             this.firstSelectEL!.outerHTML = html;
         } else {
-            sLE!.innerHTML = html;
+            sLE!.innerHTML = html + thtml;
         }
+        this.thirdSelectEL = this.shadowRoot?.querySelector("#third-select")
+        this.thirdSelectEL!.outerHTML = thtml;
+        this.thirdSelectEL = this.shadowRoot?.querySelector("#third-select")
 
         this.firstSelectEL = this.shadowRoot?.querySelector("#first-select")
         this.secondSelectEL = this.shadowRoot?.querySelector("#second-select")
@@ -285,6 +326,12 @@ export class TabPaneFilter extends BaseElement {
         this.secondSelectEL!.onchange = (e) => {
             if (this.getFilter) {
                 this.getFilter(this.filterData("secondSelect"))
+            }
+        }
+        this.thirdSelectEL!.onchange = (e) => {
+
+            if (this.getFilter) {
+                this.getFilter(this.filterData("thirdSelect"))
             }
         }
     }
@@ -542,7 +589,12 @@ export class TabPaneFilter extends BaseElement {
                 color: var(--dark-color,#aab2bd);
             }
         .describe{
-        font-size: 0.8rem;
+            /*display: inline-block*/
+            font-size: 0.8rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            min-width: 50px;
         }
 
         #mark{
@@ -693,6 +745,9 @@ export class TabPaneFilter extends BaseElement {
         :host(:not([sort])) .sort{
             display: none;
         }
+        .popover{
+            display: flex;
+        }
 </style>
     <lit-icon name="statistics" class="spacing" id="icon" size="16"></lit-icon>
     <span class="describe left-text spacing">Input Filter</span>
@@ -746,7 +801,7 @@ export class TabPaneFilter extends BaseElement {
         </lit-popover>
         <div class="sort">
             <lit-icon name="swap" class="spacing" size="16"></lit-icon>
-            <div style="margin-left: 5px" class="statistics-name">Statistics by Thread</div>
+            <div style="margin-left: 5px" class="describe statistics-name">Statistics by Thread</div>
         </div>
         `;
     }

@@ -27,14 +27,14 @@ namespace SysTuning {
 namespace TraceStreamer {
 BytraceParser::BytraceParser(TraceDataCache* dataCache, const TraceStreamerFilters* filters)
     : ParserBase(filters),
-      eventParser_(std::make_unique<BytraceEventParser>(dataCache, filters))
-{
+      eventParser_(std::make_unique<BytraceEventParser>(dataCache, filters)),
 #ifdef SUPPORTTHREAD
-    supportThread_ = true;
-    dataSegArray_ = std::make_unique<DataSegment[]>(MAX_SEG_ARRAY_SIZE);
+      supportThread_(true),
+      dataSegArray_(std::make_unique<DataSegment[]>(MAX_SEG_ARRAY_SIZE))
 #else
-    dataSegArray_ = std::make_unique<DataSegment[]>(1);
+      dataSegArray_(std::make_unique<DataSegment[]>(1))
 #endif
+{
 }
 
 BytraceParser::~BytraceParser() = default;
@@ -114,6 +114,7 @@ int32_t BytraceParser::JGetData(json& jMessage,
             jData.eventSource = i.value();
             if (find(eventsAccordingAppNames.begin(), eventsAccordingAppNames.end(), jData.eventSource) ==
                 eventsAccordingAppNames.end()) {
+                TS_LOGW("event source:%s not supported for hisysevent", jData.eventSource.c_str());
                 return -1;
             }
             continue;

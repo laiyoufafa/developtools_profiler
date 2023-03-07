@@ -35,7 +35,6 @@ void HtraceSymbolsDetailParser::Parse(const TracePluginResult* tracePacket)
     }
     for (int i = 0; i < tracePacket->symbols_detail_size(); i++) {
         auto symbol = const_cast<TracePluginResult*>(tracePacket)->mutable_symbols_detail(i);
-        TS_LOGD("symbol_name:%s, symbol_addr:%lu", symbol->symbol_name().c_str(), symbol->symbol_addr());
         // symbol
         streamFilters_->symbolsFilter_->RegisterFunc(symbol->symbol_addr(),
                                                      traceDataCache_->GetDataIndex(symbol->symbol_name()));

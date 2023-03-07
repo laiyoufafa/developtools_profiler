@@ -16,10 +16,9 @@
 import {SpSystemTrace} from "../SpSystemTrace.js";
 import {getFps} from "../../database/SqlLite.js";
 import {TraceRow} from "../trace/base/TraceRow.js";
-import {FpsStruct} from "../../bean/FpsStruct.js";
-import {procedurePool} from "../../database/Procedure.js";
-import {CpuStruct} from "../../bean/CpuStruct.js";
 import {info} from "../../../log/Log.js";
+import {renders} from "../../database/ui-worker/ProcedureWorker.js";
+import {FpsRender, FpsStruct} from "../../database/ui-worker/ProcedureWorkerFPS.js";
 
 export class SpFpsChart {
     private trace: SpSystemTrace;
@@ -34,7 +33,7 @@ export class SpFpsChart {
             return;
         }
         let startTime = new Date().getTime();
-        let fpsRow = new TraceRow<FpsStruct>({canvasNumber: 1, alpha: true, contextId: '2d', isOffScreen: true});
+        let fpsRow = TraceRow.skeleton<FpsStruct>();
         fpsRow.rowId = `fps`
         fpsRow.rowType = TraceRow.ROW_TYPE_FPS
         fpsRow.rowParentId = ''
@@ -44,42 +43,26 @@ export class SpFpsChart {
         fpsRow.supplier = () => new Promise<Array<any>>((resolve, reject) => resolve(res));
         fpsRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
         fpsRow.selectChangeHandler = this.trace.selectChangeHandler;
+        fpsRow.focusHandler = ev => {
+            let tip = "";
+            if (FpsStruct.hoverFpsStruct) {
+                tip = `<span>${FpsStruct.hoverFpsStruct.fps || 0}</span> `
+            }
+            this.trace?.displayTip(fpsRow,FpsStruct.hoverFpsStruct,tip)
+        }
+
         fpsRow.onThreadHandler = (useCache) => {
-            procedurePool.submitWithName(`process0`, `fps0`, {
-                list: fpsRow.must ? fpsRow.dataList : undefined,
-                offscreen: !fpsRow.isTransferCanvas ? fpsRow.offscreen[0] : undefined,
-                xs: TraceRow.range?.xs,
-                dpr: fpsRow.dpr,
-                isHover: fpsRow.isHover,
-                flagMoveInfo: this.trace.hoverFlag,
-                flagSelectedInfo: this.trace.selectFlag,
-                hoverX: fpsRow.hoverX,
-                hoverY: fpsRow.hoverY,
-                hoverFpsStruct: FpsStruct.hoverFpsStruct,
-                canvasWidth: fpsRow.canvasWidth,
-                canvasHeight: fpsRow.canvasHeight,
-                wakeupBean: CpuStruct.wakeupBean,
-                isRangeSelect: fpsRow.rangeSelect,
-                rangeSelectObject: TraceRow.rangeSelectObject,
-                useCache: useCache,
-                lineColor: fpsRow.getLineColor(),
-                startNS: TraceRow.range?.startNS || 0,
-                endNS: TraceRow.range?.endNS || 0,
-                totalNS: TraceRow.range?.totalNS || 0,
-                slicesTime: TraceRow.range?.slicesTime,
-                range: TraceRow.range,
-                frame: fpsRow.frame
-            }, !fpsRow.isTransferCanvas ? fpsRow.offscreen[0] : undefined, (res: any, hover: any) => {
-                fpsRow.must = false;
-                if (fpsRow.args.isOffScreen == true) {
-                    if (fpsRow.isHover) {
-                        FpsStruct.hoverFpsStruct = hover;
-                        this.trace.visibleRows.filter(it => it.rowType === TraceRow.ROW_TYPE_FPS && it.name !== fpsRow.name).forEach(it => it.draw(true));
-                    }
-                    return;
-                }
-            });
-            fpsRow.isTransferCanvas = true;
+            let context = fpsRow.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
+            fpsRow.canvasSave( context);
+            (renders["fps"] as FpsRender).renderMainThread(
+                {
+                    context: context,
+                    useCache: useCache,
+                    type: `fps0`,
+                },
+                fpsRow
+            );
+            fpsRow.canvasRestore( context);
         }
         this.trace.rowsEL?.appendChild(fpsRow)
         let durTime = new Date().getTime() - startTime;

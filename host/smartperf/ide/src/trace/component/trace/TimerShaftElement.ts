@@ -21,7 +21,6 @@ import {SportRuler} from "./timer-shaft/SportRuler.js";
 import {procedurePool} from "../../database/Procedure.js";
 import {Flag} from "./timer-shaft/Flag.js";
 import {info} from "../../../log/Log.js";
-import {TraceRow} from "./base/TraceRow.js";
 
 //随机生成十六位进制颜色
 export function randomRgbColor() {
@@ -78,6 +77,7 @@ export class TimerShaftElement extends BaseElement {
     public timeTotalEL: HTMLSpanElement | null | undefined
     public timeOffsetEL: HTMLSpanElement | null | undefined
     public loadComplete: boolean = false
+    public collecBtn:HTMLElement | null | undefined
     rangeChangeHandler: ((timeRange: TimeRange) => void) | undefined = undefined
     flagChangeHandler: ((hoverFlag: Flag | undefined | null, selectFlag: Flag | undefined | null) => void) | undefined = undefined
     flagClickHandler: ((flag: Flag | undefined | null) => void) | undefined = undefined
@@ -165,6 +165,7 @@ export class TimerShaftElement extends BaseElement {
         this.totalEL = this.shadowRoot?.querySelector('.total')
         this.timeTotalEL = this.shadowRoot?.querySelector('.time-total')
         this.timeOffsetEL = this.shadowRoot?.querySelector('.time-offset')
+        this.collecBtn = this.shadowRoot?.querySelector('.time-collect')
         procedurePool.timelineChange = (a: any) => {
             this.rangeChangeHandler?.(a);
         }
@@ -293,6 +294,10 @@ export class TimerShaftElement extends BaseElement {
 
     firstRender = true;
 
+    lineColor(){
+        return window.getComputedStyle(this.canvas!, null).getPropertyValue("color");
+    }
+
     render() {
         this.dpr = window.devicePixelRatio||1;
         if (this.ctx) {
@@ -347,6 +352,14 @@ export class TimerShaftElement extends BaseElement {
         this._sportRuler?.setSlicesMark(startTime, endTime)
     }
 
+    displayCollect(showCollect: boolean){
+        if(showCollect){
+            this.collecBtn!.style.visibility = 'visible'
+        }else {
+            this.collecBtn!.style.visibility = 'hidden'
+        }
+    }
+
     initHtml(): string {
         return `
         <style>
@@ -354,7 +367,7 @@ export class TimerShaftElement extends BaseElement {
             box-sizing: border-box;
             display: flex;
             width: 100%;
-            height: 147px;
+            height: 148px;
             border-bottom: 1px solid var(--dark-background,#dadada);
             border-top: 1px solid var(--dark-background,#dadada);
         }
@@ -390,9 +403,21 @@ export class TimerShaftElement extends BaseElement {
             padding: 2px 6px;
             display: flex;justify-content: space-between;
             user-select: none;
+            position: relative;
         }
         .time-total::after{
             content: " +";
+        }
+        .time-collect{
+            position:absolute;
+            right:5px;
+            bottom:5px;
+            color: #5291FF;
+            visibility: hidden;
+            display: flex;
+        }
+        .time-collect[close] > .time-collect-arrow{
+            transform: rotateZ(-180deg);
         }
 
         </style>
@@ -402,6 +427,9 @@ export class TimerShaftElement extends BaseElement {
                 <div class="time-div">
                     <span class="time-total">10</span>
                     <span class="time-offset">0</span>
+                    <div class="time-collect">
+                        <lit-icon class="time-collect-arrow" name="caret-down" size="17"></lit-icon>
+                    </div>
                 </div>
             </div>
             <canvas class="panel"></canvas>

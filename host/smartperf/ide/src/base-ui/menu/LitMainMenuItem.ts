@@ -102,7 +102,6 @@ export class LitMainMenuItem extends BaseElement {
                 user-select: none;
                 display: flex;
                 font-family: Helvetica;
-                opacity: 0.6;
                 font-size: 14px;
                 color: var(--dark-color,rgba(0,0,0,0.6));
                 text-align: left;
@@ -113,7 +112,7 @@ export class LitMainMenuItem extends BaseElement {
             }
             :host(:not([disabled]):hover){
                 display: flex;
-                background-color: var(--dark-background8,#0A59F7);
+                background-color: var(--dark-background8,#6C9BFA);
                 color: #FFFFFF;
                 cursor: pointer;
             }
@@ -158,7 +157,7 @@ export class LitMainMenuItem extends BaseElement {
             }
             
             :host([back]) {
-                background-color: var(--dark-background8,#0A59F7);
+                background-color: var(--dark-background8,#6C9BFA);
             } 
             
         </style>

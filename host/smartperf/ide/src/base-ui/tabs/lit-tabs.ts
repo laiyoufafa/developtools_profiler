@@ -85,6 +85,7 @@ export class LitTabs extends HTMLElement {
             display: flex;
             position: relative;
             height: 38px;
+            z-index: auto;
             /*justify-content: center;*/
             /*align-items: center;*/
         }

@@ -169,7 +169,7 @@ int CallStack::FindUnwindTable(SymbolsFile *symbolsFile, const MemMapItem &mmap,
     // find use dso name as key
     if (dynFileMap.find(symbolsFile->filePath_) == dynFileMap.end()) {
         unw_dyn_info_t newdi;
-        if (memset_s(&newdi, sizeof(unw_dyn_info_t), 0, sizeof(unw_dyn_info_t)) != EOK) {
+        if (memset_s(&newdi, sizeof(unw_dyn_info_t), 0, sizeof(unw_dyn_info_t)) != 0) {
             HLOGE("memset_s() failed");
             return -UNW_EUNSPEC;
         }

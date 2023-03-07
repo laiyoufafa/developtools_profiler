@@ -72,9 +72,16 @@ if [ "$#" -ne "0" ];then
     if [ "$1" == "sdkdemo" ];then
         target='sdkdemo'
     fi
+    if [ "$1" == "dubaisdk" ];then
+        target='dubaisdk'
+    fi
     if [ "$1" == "sdkdemotest" ];then
         target='sdkdemotest'
     fi
+fi
+if [ $target == "wasm" ] && [ $target_os == "windows" ];then
+    echo "!!!build wasm on winows will occur unknown error, strongly suggest you build wasm on linux(Ubuntu)"
+    exit
 fi
 if [ "$#" -eq "2" ];then
     if [ "$1" != 'trace' ] && [ "$1" != "linux" ] && [ "$1" != "windows" ] && [ "$1" != "macx" ] && [ "$1" != "trace_streamer" ] && [ "$1" != "wasm" ] && [ "$1" != "test" ] && [ "$1" != "fuzz" ] && [ "$1" != "protoc" ];then
@@ -130,17 +137,17 @@ if [ ! -d "prebuilts/$gn_path" ];then
 fi
 if [ ! -f "prebuilts/$gn_path/gn" ];then
 	echo "you may get gn for $target_os and place it in prebuilts/$target_os"
-	echo "the file can be get at https://gitee.com/su_fu/public_tools/raw/master/gn/$target_os/gn, you need to download it manually"
-    #wget https://gitee.com/su_fu/public_tools/raw/master/gn/$target_os/gn
+	echo "the file can be get at https://gitee.com/su_ze1688/public_tools/raw/master/gn/$target_os/gn, you need to download it manually"
+    #wget https://gitee.com/su_ze1688/public_tools/raw/master/gn/$target_os/gn
     #mv gn prebuilts/$target_os/
     #chmod +x prebuilts/$target_os/gn
 	exit
 fi
 if [ ! -f "prebuilts/$gn_path/ninja" ];then
 	echo "you may get ninja for $target_os and place it in prebuilts/$target_os"
-	ehco "the file can be get at https://gitee.com/su_fu/public_tools/raw/master/gn/$target_os/ninja, you need to download it manually"
-    #wget "https://gitee.com/su_fu/public_tools/raw/master/gn/$target_os/ninja"
-	#wget https://gitee.com/su_fu/public_tools/raw/master/gn/$target_os/ninja
+	ehco "the file can be get at https://gitee.com/su_ze1688/public_tools/raw/master/gn/$target_os/ninja, you need to download it manually"
+    #wget "https://gitee.com/su_ze1688/public_tools/raw/master/gn/$target_os/ninja"
+	#wget https://gitee.com/su_ze1688/public_tools/raw/master/gn/$target_os/ninja
     #mv ninja prebuilts/$target_os/
     #chmod +x prebuilts/$target_os/*
 	exit
@@ -165,5 +172,8 @@ else
     mkdir -p out/windows
     touch out/windows/trace_streamer.exe
     prebuilts/$gn_path/$ninja -C out/"$target_dir""$ext"
+    if [ $target_dir == 'protoc' ];then
+        mv out/"$target_dir""$ext"/$target_dir out/$target_os/
+    fi
    # prebuilts/$gn_path/ninja -C out/"$target_os""$ext"
 fi

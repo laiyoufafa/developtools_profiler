@@ -448,5 +448,6 @@ message FtraceEvent {
         WritebackWriteInodeFormat writeback_write_inode_format = 3224;
         WritebackWriteInodeStartFormat writeback_write_inode_start_format = 3225;
         WritebackWrittenFormat writeback_written_format = 3226;
+        SchedBlockedReasonFormat sched_blocked_reason_format = 4002;
     }
 }

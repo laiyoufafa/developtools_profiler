@@ -690,7 +690,7 @@ export class SpRecordPerf extends BaseElement {
                 des: "Set the clock id to use for the various time fields in the perf_event_type records",
                 hidden: true,
                 type: "select",
-                selectArray: ["realtime", "monotonic", "monotonic_raw", "boottime", "perf"]
+                selectArray: ["monotonic","realtime", "monotonic_raw", "boottime", "perf"]
             },
         ]
     }

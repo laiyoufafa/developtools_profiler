@@ -32,7 +32,7 @@ export class TabPaneMemoryAbility extends BaseElement {
 
     set data(val: SelectionParam | any) {
         // @ts-ignore
-        this.tbl?.shadowRoot.querySelector(".table").style.height = (this.parentElement.clientHeight - 45) + "px"
+        this.tbl?.shadowRoot?.querySelector(".table").style.height = (this.parentElement.clientHeight - 45) + "px"
         this.queryDataByDB(val)
     }
 
@@ -189,7 +189,9 @@ export class TabPaneMemoryAbility extends BaseElement {
         });
         if (this.tbl) {
             let th = this.tbl.shadowRoot?.querySelector<HTMLDivElement>(".th")
-            th!.style.gridColumnGap = "5px";
+            if(th){
+                th.style.gridColumnGap = "5px";
+            }
         }
     }
 

@@ -72,14 +72,13 @@ export class TabPanePowerBattery extends BaseElement {
                     }
                 }
             })
-            list.push({name: 'gasGauge', value: powerData["POWER_IDE_BATTERY"].gas_gauge})
-            list.push({name: 'charge', value: powerData["POWER_IDE_BATTERY"].charge})
-            list.push({name: 'screen', value: powerData["POWER_IDE_BATTERY"].screen})
-            list.push({name: 'level', value: powerData["POWER_IDE_BATTERY"].level})
-            list.push({name: 'current', value: powerData["POWER_IDE_BATTERY"].current})
-            list.push({name: 'capacity', value: powerData["POWER_IDE_BATTERY"].capacity})
-            list.push({name: 'uid', value: powerData["POWER_IDE_BATTERY"].uid})
-            list.push({name: 'appName', value: SpHiSysEventChart.app_name!})
+            list.push({name: 'Gas Gauge', value: powerData["POWER_IDE_BATTERY"].gas_gauge + " mAh"})
+            list.push({name: 'Charge', value: powerData["POWER_IDE_BATTERY"].charge})
+            list.push({name: 'Screen', value: powerData["POWER_IDE_BATTERY"].screen})
+            list.push({name: 'Level', value: powerData["POWER_IDE_BATTERY"].level + " %"})
+            list.push({name: 'Current', value: powerData["POWER_IDE_BATTERY"].current+ " mA"} )
+            list.push({name: 'Capacity', value: powerData["POWER_IDE_BATTERY"].capacity + " mAh"})
+            list.push({name: 'APP Name', value: SpHiSysEventChart.app_name!})
             if (list.length > 0) {
                 this.tbl!.recycleDataSource = list
             } else {

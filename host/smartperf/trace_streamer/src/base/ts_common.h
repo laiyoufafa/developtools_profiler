@@ -113,6 +113,7 @@ enum DataSourceType {
     DATA_SOURCE_TYPE_CPU,
     DATA_SOURCE_TYPE_PROCESS,
     DATA_SOURCE_TYPE_HISYSEVENT,
+    DATA_SOURCE_TYPE_HISYSEVENT_CONFIG
 };
 using DataIndex = uint64_t;
 using TableRowId = int32_t;

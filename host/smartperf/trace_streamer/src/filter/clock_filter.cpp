@@ -79,15 +79,19 @@ void ClockFilter::AddClockSnapshot(const std::vector<SnapShot>& snapShot)
 {
     ClockId srcId, desId;
     const int theDataBeforeLast = 2;
-    for (srcId = 0; srcId < snapShot.size() - 1; srcId++) {
+    for (srcId = 0; srcId < snapShot.size() - 1; ++srcId) {
         ClockId srcClockId = snapShot[srcId].clockId;
         uint64_t srcTs = snapShot[srcId].ts;
-        traceDataCache_->GetClockSnapshotData()->AppendNewSnapshot(srcClockId, srcTs, dataCache_->GetConstStatAndInfo().clockid2ClockNameMap_.at(static_cast<BuiltinClocks>(srcClockId)));
-        for (desId = srcId + 1; desId < snapShot.size(); desId++) {
+        traceDataCache_->GetClockSnapshotData()->AppendNewSnapshot(
+            srcClockId, srcTs,
+            dataCache_->GetConstStatAndInfo().clockid2ClockNameMap_.at(static_cast<BuiltinClocks>(srcClockId)));
+        for (desId = srcId + 1; desId < snapShot.size(); ++desId) {
             ClockId desClockId = snapShot[desId].clockId;
             uint64_t desTs = snapShot[desId].ts;
             if ((srcId == snapShot.size() - theDataBeforeLast) and (desId == snapShot.size() - 1)) {
-                traceDataCache_->GetClockSnapshotData()->AppendNewSnapshot(desClockId, desTs, dataCache_->GetConstStatAndInfo().clockid2ClockNameMap_.at(static_cast<BuiltinClocks>(desClockId)));
+                traceDataCache_->GetClockSnapshotData()->AppendNewSnapshot(
+                    desClockId, desTs,
+                    dataCache_->GetConstStatAndInfo().clockid2ClockNameMap_.at(static_cast<BuiltinClocks>(desClockId)));
             }
             AddConvertClockMap(srcClockId, desClockId, srcTs, desTs);
             AddConvertClockMap(desClockId, srcClockId, desTs, srcTs);

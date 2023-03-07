@@ -17,7 +17,7 @@ import "../../../../../base-ui/table/lit-table-column.js";
 import {BaseElement, element} from "../../../../../base-ui/BaseElement.js";
 import {LitTable} from "../../../../../base-ui/table/lit-table.js";
 import {SelectionParam} from "../../../../bean/BoxSelection.js";
-import {query, queryAllHookData, queryNativeHookSnapshotTypes} from "../../../../database/SqlLite.js";
+import { queryAllHookData, queryNativeHookSnapshotTypes} from "../../../../database/SqlLite.js";
 import {
     NativeHookCallInfo,
     NativeHookSampleQueryInfo,
@@ -29,6 +29,11 @@ import "../TabPaneFilter.js"
 import {FilterData, TabPaneFilter} from "../TabPaneFilter.js";
 import "../../../../../base-ui/slicer/lit-slicer.js";
 import {procedurePool} from "../../../../database/Procedure.js";
+import {
+    formatRealDateMs,
+    getTimeString
+} from "../../../../database/logic-worker/ProcedureLogicWorkerCommon.js";
+import {SpNativeMemoryChart} from "../../../chart/SpNativeMemoryChart.js";
 
 @element('tabpane-native-sample')
 export class TabPaneNMSampleList extends BaseElement {
@@ -85,7 +90,7 @@ export class TabPaneNMSampleList extends BaseElement {
         let rootSample = new NativeHookSamplerInfo()
         rootSample.snapshot = "Snapshot" + this.numberToWord(this.source.length + 1)
         rootSample.startTs = data.startTs
-        rootSample.timestamp = Utils.getTimeString(data.startTs)
+        rootSample.timestamp = SpNativeMemoryChart.REAL_TIME_DIF == 0?getTimeString(data.startTs):formatRealDateMs(data.startTs + SpNativeMemoryChart.REAL_TIME_DIF);
         rootSample.eventId = data.eventId
         rootSample.threadId = data.threadId
         rootSample.threadName = data.threadName
@@ -106,7 +111,7 @@ export class TabPaneNMSampleList extends BaseElement {
             childSample.growth = Utils.getByteWithUnit(merageSample.growth)
             childSample.totalGrowth = childSample.growth
             childSample.startTs = merageSample.startTs
-            childSample.timestamp = Utils.getTimeString(merageSample.startTs);
+            childSample.timestamp = SpNativeMemoryChart.REAL_TIME_DIF == 0?getTimeString(merageSample.startTs):formatRealDateMs((merageSample.startTs + SpNativeMemoryChart.REAL_TIME_DIF));
             childSample.threadId = merageSample.threadId;
             childSample.threadName = merageSample.threadName;
             (childSample as any).existing = ""

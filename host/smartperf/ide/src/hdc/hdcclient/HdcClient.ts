@@ -80,8 +80,11 @@ export class HdcClient implements DataListener {
     }
 
     public async disconnect(): Promise<void> {
-        await this.transmissionChannel.close();
-        this.readDataProcessing.stopReadData();
+        try {
+            await this.transmissionChannel.close();
+            this.readDataProcessing.stopReadData();
+        } catch (e) {
+        }
     }
 
     public bindStream(channel: number, hdcStream: HdcStream) {

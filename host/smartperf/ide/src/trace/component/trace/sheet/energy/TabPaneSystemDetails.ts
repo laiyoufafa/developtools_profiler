@@ -17,7 +17,11 @@ import {SystemDetailsEnergy} from "../../../../bean/EnergyStruct.js";
 import {BaseElement, element} from "../../../../../base-ui/BaseElement.js";
 import {LitTable} from "../../../../../base-ui/table/lit-table.js";
 import {SelectionParam} from "../../../../bean/BoxSelection.js";
-import {querySystemDetailsData} from "../../../../database/SqlLite.js";
+import {
+    querySysLocationDetailsData, querySysLockDetailsData,
+    querySystemWorkData
+} from "../../../../database/SqlLite.js";
+import {SpHiSysEventChart} from "../../../chart/SpHiSysEventChart.js";
 
 @element('tabpane-system-details')
 export class TabPaneSystemDetails extends BaseElement {
@@ -101,20 +105,30 @@ export class TabPaneSystemDetails extends BaseElement {
     }
 
     queryDataByDB(val: SelectionParam | any) {
-        querySystemDetailsData(val.leftNs, val.rightNs).then(result => {
-            let itemList = []
-            let it: any = {}
-            result.forEach((item: any) => {
-                if (it[item.ts + item.eventName] == undefined) {
-                    it[item.ts + item.eventName] = {}
-                    it[item.ts + item.eventName]["ts"] = item.ts
-                    it[item.ts + item.eventName]["eventName"] = item.eventName
-                } else {
-                    it[item.ts + item.eventName][item.appKey.toLocaleLowerCase()] = item.appValue
-                }
+        Promise.all([querySystemWorkData(val.rightNs), querySysLockDetailsData(val.rightNs, "POWER_RUNNINGLOCK"), querySysLocationDetailsData(val.rightNs, "GNSS_STATE")]).then(result => {
+            let itemList: Array<any> = []
+            let systemWorkData = this.getSystemWorkData(result[0], val.leftNs, val.rightNs);
+            if (systemWorkData.length > 0) {
+                systemWorkData.forEach(item => {
+                    itemList.push(item)
+                })
+            }
+            let systemLockData = this.getSystemLockData(result[1], val.leftNs);
+            if (systemLockData.length > 0) {
+                systemLockData.forEach(item => {
+                    itemList.push(item)
+                })
+            }
+            let systemLocationData = this.getSystemLocationData(result[2], val.leftNs);
+            if (systemLocationData.length > 0) {
+                systemLocationData.forEach(item => {
+                    itemList.push(item)
+                })
+            }
+            itemList.sort((leftData: any, rightData: any) => {
+                return leftData.ts - rightData.ts
             })
             this.eventSource = []
-            let value = Object.values(it);
             this.eventSource.push({
                 ts: "Time",
                 interval: 0,
@@ -130,7 +144,8 @@ export class TabPaneSystemDetails extends BaseElement {
                 log_level: "",
                 eventName: "Event Name"
             })
-            this.tbl!.recycleDataSource = this.eventSource.concat(value)
+
+            this.tbl!.recycleDataSource = this.eventSource.concat(itemList)
             this.detailsTbl!.recycleDataSource = []
             this.boxDetails!.style.width = "100%"
             this.tbl?.shadowRoot?.querySelectorAll<HTMLDivElement>(".td").forEach(td => {
@@ -144,6 +159,165 @@ export class TabPaneSystemDetails extends BaseElement {
                 }
             })
         })
+    }
+
+    private getSystemWorkData(data: Array<any>, leftNs: number, rightNs: number) {
+        let values = this.getConvertData(data)
+        let lifeCycleData: Array<any> = []
+        let watchIndex: Array<string> = []
+        for (let index = 0; index < values.length; index++) {
+            let filterData: any = values[index];
+            if (filterData.name == SpHiSysEventChart.app_name) {
+                if (filterData.eventName.indexOf("WORK_ADD") > -1) {
+                    watchIndex.push(filterData.workId)
+                    let number = watchIndex.indexOf(filterData.workId)
+                    lifeCycleData[number] = {
+                        startData: {},
+                        endData: {},
+                        rangeData: []
+                    }
+                    lifeCycleData[number].startData = filterData
+                    let virtualEndData = JSON.parse(JSON.stringify(filterData))
+                    virtualEndData.ts = rightNs
+                    virtualEndData.eventName = "WORK_REMOVE"
+                    lifeCycleData[number].endData = virtualEndData
+                } else if (filterData.eventName.indexOf("WORK_REMOVE") > -1) {
+                    let number = watchIndex.indexOf(filterData.workId);
+                    if (number > -1) {
+                        lifeCycleData[number].endData = filterData
+                        watchIndex[number] = number + filterData.ts
+                    }
+                } else {
+                    let number = watchIndex.indexOf(filterData.workId);
+                    if (number > -1) {
+                        lifeCycleData[number].rangeData.push(filterData)
+                        let virtualEndData = JSON.parse(JSON.stringify(filterData))
+                        virtualEndData.ts = rightNs
+                        virtualEndData.eventName = "WORK_REMOVE"
+                        lifeCycleData[number].endData = virtualEndData
+                    } else {
+                        if (filterData.eventName.indexOf("WORK_START") > -1) {
+                            lifeCycleData.push({
+                                startData: {},
+                                endData: {},
+                                rangeData: []
+                            })
+                            watchIndex.push(filterData.workId)
+                            number = watchIndex.indexOf(filterData.workId);
+                            let virtualData = JSON.parse(JSON.stringify(filterData))
+                            if (filterData.ts > 0) {
+                                virtualData.ts = 0
+                            } else {
+                                virtualData.ts = filterData.ts - 1
+                            }
+                            virtualData.eventName = "WORK_ADD"
+                            lifeCycleData[number].startData = virtualData
+                            lifeCycleData[number].rangeData.push(filterData)
+                            let virtualEndData = JSON.parse(JSON.stringify(filterData))
+                            virtualEndData.ts = rightNs
+                            virtualEndData.eventName = "WORK_REMOVE"
+                            lifeCycleData[number].endData = virtualEndData
+                        }
+                    }
+                }
+            }
+        }
+        let resultData: Array<any> = []
+        lifeCycleData.forEach((life: any) => {
+            if (life.endData.ts >= leftNs) {
+                let midData = life.rangeData;
+                midData.forEach((rang: any, index: number) => {
+                    if (rang.eventName.indexOf("WORK_STOP") > -1 && rang.ts >= leftNs) {
+                        resultData.push(life.startData)
+                        if (index - 1 >= 0 && midData[index - 1].eventName.indexOf("WORK_START") > -1) {
+                            resultData.push(midData[index - 1])
+                        }
+                        resultData.push(rang)
+                    }
+                })
+            }
+        })
+        return resultData
+    }
+
+    private getSystemLocationData(data: Array<any>, leftNs: number) {
+        let values = this.getConvertData(data)
+        let fillMap: Map<any, any> = new Map<any, any>()
+        let leftMap: Map<any, any> = new Map<any, any>()
+        let watchIndex: Array<string> = []
+        for (let index = 0; index < values.length; index++) {
+            let filterData: any = values[index];
+            if (filterData.state.indexOf("start") > -1) {
+                leftMap.set(filterData.pid, filterData)
+                watchIndex.push(filterData.pid)
+            } else {
+                let i = watchIndex.indexOf(filterData.pid);
+                if (i > -1) {
+                    fillMap.set(leftMap.get(filterData.pid), filterData)
+                    delete watchIndex[i]
+                    leftMap.delete(filterData.pid)
+                }
+            }
+        }
+
+        let locationData: Array<any> = []
+        fillMap.forEach((value, key) => {
+            if (value.ts >= leftNs) {
+                locationData.push(key)
+                locationData.push(value)
+            }
+        })
+        leftMap.forEach((value, key) => {
+            locationData.push(value)
+        })
+        return locationData
+    }
+
+    private getSystemLockData(data: Array<any>, leftNs: number) {
+        let values = this.getConvertData(data)
+        let watchIndex: Array<string> = []
+        let fillMap: Map<any, any> = new Map<any, any>()
+        let leftMap: Map<any, any> = new Map<any, any>()
+        for (let index = 0; index < values.length; index++) {
+            let filterData: any = values[index];
+            if (filterData.tag.indexOf("ADD") > -1) {
+                leftMap.set(filterData.message, filterData)
+                watchIndex.push(filterData.message)
+            } else {
+                let i = watchIndex.indexOf(filterData.message);
+                if (i > -1) {
+                    fillMap.set(leftMap.get(filterData.message), filterData)
+                    delete watchIndex[i]
+                    leftMap.delete(filterData.message)
+                }
+            }
+        }
+        let lockData: Array<any> = []
+        fillMap.forEach((value, key) => {
+            if (value.ts >= leftNs) {
+                lockData.push(key)
+                lockData.push(value)
+            }
+        })
+        leftMap.forEach((value, key) => {
+            lockData.push(value)
+        })
+        return lockData
+    }
+
+    private getConvertData(data: Array<any>) {
+        let it: any = {}
+        data.forEach((item: any) => {
+            if (it[item.ts + item.eventName] == undefined) {
+                it[item.ts + item.eventName] = {}
+                it[item.ts + item.eventName]["ts"] = item.ts
+                it[item.ts + item.eventName]["eventName"] = item.eventName
+                it[item.ts + item.eventName][item.appKey.toLocaleLowerCase()] = item.appValue
+            } else {
+                it[item.ts + item.eventName][item.appKey.toLocaleLowerCase()] = item.appValue
+            }
+        })
+        return Object.values(it);
     }
 
     initHtml(): string {

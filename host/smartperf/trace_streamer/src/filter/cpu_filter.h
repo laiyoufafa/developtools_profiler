@@ -45,6 +45,7 @@ public:
                            uint64_t prevState,
                            uint64_t nextPid,
                            uint64_t nextPior);
+    bool InsertBlockedReasonEvent(uint64_t ts, uint64_t cpu, uint64_t iTid, bool iowait, DataIndex caller);
     void InsertWakeupEvent(uint64_t ts, uint64_t internalTid);
     bool InsertProcessExitEvent(uint64_t ts, uint64_t cpu, uint64_t pid);
     bool InsertProcessFreeEvent(uint64_t ts, uint64_t pid);
@@ -56,13 +57,22 @@ private:
     uint64_t RowOfInternalTidInStateTable(uint64_t uid) const;
     uint64_t StateOfInternalTidInStateTable(uint64_t uid) const;
     std::map<uint64_t, uint64_t> cpuToRowThreadState_ = {};
-    std::map<uint64_t, uint64_t> cpuToRowSched_ = {};
+    typedef struct {
+        uint64_t iTid;
+        uint64_t row;
+    } RowPos;
+    std::map<uint64_t, RowPos> cpuToRowSched_ = {};
+
     std::map<uint64_t, uint64_t> lastWakeUpMsg_ = {};
+    std::map<uint64_t, uint64_t> pidToSchedSliceRow = {};
     struct TPthread {
         uint64_t row_;
         uint64_t state_;
     };
     std::map<uint64_t, TPthread> internalTidToRowThreadState_ = {};
+    const DataIndex ioWait_ = traceDataCache_->GetDataIndex("iowait");
+    const DataIndex caller_ = traceDataCache_->GetDataIndex("caller");
+    const DataIndex delay_ = traceDataCache_->GetDataIndex("delay");
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

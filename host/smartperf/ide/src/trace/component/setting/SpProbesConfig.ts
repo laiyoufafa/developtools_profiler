@@ -23,11 +23,13 @@ import {info, log} from "../../../log/Log.js";
 export class SpProbesConfig extends BaseElement {
     private traceConfigList: Array<checkDesBean> | undefined
     private memoryConfigList: Array<checkDesBean> | undefined
+    private abilityConfigList: Array<checkDesBean> | undefined
     private hitraceConfigList: Array<any> | undefined;
     private hitrace: SpCheckDesBox | undefined
 
     private _traceConfig: HTMLElement | undefined;
     private _memoryConfig: HTMLElement | undefined | null;
+    private _abilityConfig: HTMLElement | undefined | null;
 
     get traceConfig() {
         let selectedTrace = this._traceConfig?.querySelectorAll<SpCheckDesBox>(`check-des-box[checked]`) || [];
@@ -50,6 +52,11 @@ export class SpProbesConfig extends BaseElement {
         }
         log("memoryConfig size is :" + values.length)
         return values
+    }
+
+    get recordAbility() {
+        let selectedMemory = this._abilityConfig?.querySelectorAll<SpCheckDesBox>(`check-des-box[checked]`) as NodeListOf<SpCheckDesBox>
+        return selectedMemory.length > 0
     }
 
     get traceEvents() {
@@ -77,26 +84,16 @@ export class SpProbesConfig extends BaseElement {
 
     initElements(): void {
         this.traceConfigList = [
-            {value: 'Scheduling details', isSelect: false, des: "enables high-detailed tracking of scheduling events"},
+            {value: 'Scheduling details', isSelect: true, des: "enables high-detailed tracking of scheduling events"},
             {
-                value: "CPU Frequency and idle states", isSelect: false,
+                value: "CPU Frequency and idle states", isSelect: true,
                 des: "Records cpu frequency and idle state change viaftrace"
             },
             {
                 value: "Advanced ftrace config", isSelect: false,
-                des: "Enable individual events and tune the kernel-tracng(ftrace) module."
+                des: "Enable individual events and tune the kernel-tracing(ftrace) module."
                     + "The events enabled here are in addition to those from"
                     + " enabled by other probes."
-            },
-            {
-                value: "AbilityMonitor",
-                isSelect: false,
-                des: "Tracks the AbilityMonitor"
-            },
-            {
-                value: "HiSystemEvent",
-                isSelect: false,
-                des: "Tracks the HiSystemEvent"
             }]
         this._traceConfig = this.shadowRoot?.querySelector(".trace-config") as HTMLElement
         this.traceConfigList.forEach(configBean => {
@@ -129,16 +126,48 @@ export class SpProbesConfig extends BaseElement {
             })
             this._memoryConfig?.appendChild(checkDesBox)
         })
-        this.hitraceConfigList = ["ability", "ace", "app", "ark", "binder", "disk", "distributeddatamgr"
-            , "dsoftbus", "freq", "graphic", "i2c", "idle", "irq", "mdfs", "memory", "memreclaim", "misc", "mmc",
-            "msdp", "multimodalinput", "notification", "ohos", "pagecache", "regulators", "rpc", "sched", "sensors", "sync"
-            , "window", "workq", "zaudio", "zcamera", "zimage", "zmedia"]
+      this.abilityConfigList = [
+        {
+          value: "AbilityMonitor",
+          isSelect: false,
+          des: "Tracks the AbilityMonitor"
+        }
+      ]
+      this._abilityConfig = this.shadowRoot?.querySelector(".ability-config")
+      this.abilityConfigList.forEach(configBean => {
+        let checkDesBox = new SpCheckDesBox();
+        checkDesBox.value = configBean.value;
+        checkDesBox.checked = configBean.isSelect;
+        checkDesBox.des = configBean.des;
+        checkDesBox.addEventListener("onchange", (ev: any) => {
+          this.dispatchEvent(new CustomEvent('addProbe', {}));
+        })
+        this._abilityConfig?.appendChild(checkDesBox)
+      })
+
+      this.hitraceConfigList = [
+        {value: 'ability', isSelect: true}, {value: 'accesscontrol', isSelect: false}, {value: 'accessibility', isSelect: false},{value: 'account', isSelect: false},
+        {value: 'ace', isSelect: true}, {value: 'app', isSelect: true},{value: 'ark', isSelect: true},{value: 'binder', isSelect: true},
+        {value: 'daudio', isSelect: false},{value: 'dcamera', isSelect: false},{value: 'devicemanager', isSelect: false}, {value: 'deviceprofile', isSelect: false},
+        {value: 'dhfwk', isSelect: false},{value: 'dinput', isSelect: false},{value: 'disk', isSelect: true},{value: 'dlpcre', isSelect: false},
+        {value: 'dsched', isSelect: false}, {value: 'dscreen', isSelect: false},{value: 'dslm', isSelect: false},{value: 'dsoftbus', isSelect: false},
+        {value: 'filemanagement', isSelect: false},{value: 'freq', isSelect: true},{value: 'graphic', isSelect: true}, {value: 'gresource', isSelect: false},
+        {value: 'huks', isSelect: false},{value: 'i2c', isSelect: false}, {value: 'idle', isSelect: true},{value: 'irq', isSelect: true},
+        {value: 'load', isSelect: false}, {value: 'mdfs', isSelect: false},{value: 'memreclaim', isSelect: true},{value: 'misc', isSelect: false},
+        {value: 'mmc', isSelect: true},{value: 'msdp', isSelect: false},{value: 'multimodalinput', isSelect: true},{value: 'net', isSelect: false},
+        {value: 'notification', isSelect: false},{value: 'nweb', isSelect: false},{value: 'ohos', isSelect: true},{value: 'pagecache', isSelect: true},
+        {value: 'power', isSelect: false},{value: 'regulators', isSelect: false},{value: 'rpc', isSelect: true},{value: 'samgr', isSelect: false},
+        {value: 'sched', isSelect: true},{value: 'sensors', isSelect: false},{value: 'sync', isSelect: true},{value: 'ufs', isSelect: false},
+        {value: 'useriam', isSelect: false},{value: 'window', isSelect: true},{value: 'workq', isSelect: true},{value: 'zaudio', isSelect: true},
+        {value: 'zcamera', isSelect: true},{value: 'zimage', isSelect: true},{value: 'zmedia', isSelect: true}
+      ]
         this.hitrace = this.shadowRoot?.getElementById("hitrace") as SpCheckDesBox
         let parent = this.shadowRoot?.querySelector('.user-events') as Element
-        this.hitraceConfigList?.forEach(value => {
+        this.hitraceConfigList?.forEach((hitraceConfig:any) => {
             let litCheckBox = new LitCheckBox();
             litCheckBox.setAttribute("name", "userEvents")
-            litCheckBox.value = value;
+            litCheckBox.value = hitraceConfig.value;
+            litCheckBox.checked = hitraceConfig.isSelect;
             litCheckBox.addEventListener("change", (ev: any) => {
                 let detail = ev.detail;
                 if (this.hitrace?.checked == false) {
@@ -195,13 +224,24 @@ export class SpProbesConfig extends BaseElement {
         }
 
         .trace-config{
-           display: grid;
-           grid-template-columns: repeat(2, 1fr);
+           display: flex;
+           flex-direction: column;
+           width: 50%;
            gap: 10px;
            margin-bottom: 20px;
         }
 
         .memory-config{
+           display: grid;
+           grid-template-columns: repeat(2, 1fr);
+           border-style: solid none none none;
+           border-color: #D5D5D5;
+           padding-top: 15px;
+           margin-top: 15px;
+           gap: 10px;
+        }
+        
+        .ability-config{
            display: grid;
            grid-template-columns: repeat(2, 1fr);
            border-style: solid none none none;
@@ -242,7 +282,7 @@ export class SpProbesConfig extends BaseElement {
                 <div>
                     <div class="trace-config"></div>
                     <div class="span-col-2" id="hitrace-cat">
-                      <check-des-box id="hitrace" value ="Hitrace categories" des="Enables C++ codebase annotations (HTRACE_BEGIN() / os.Trace())">
+                      <check-des-box id="hitrace" checked="true" value ="Hitrace categories" des="Enables C++ codebase annotations (HTRACE_BEGIN() / os.Trace())">
                       </check-des-box>
                       <div class="user-events">
                           <slot></slot>
@@ -252,6 +292,11 @@ export class SpProbesConfig extends BaseElement {
                 <div class="memory-config">
                     <div class="span-col-2">
                       <span>Memory Config</span>
+                    </div>
+                </div>
+                <div class="ability-config">
+                    <div class="span-col-2">
+                      <span>Ability Config</span>
                     </div>
                 </div>
             </div>

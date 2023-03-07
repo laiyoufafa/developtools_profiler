@@ -15,10 +15,10 @@
 
 import {SpSystemTrace} from "../SpSystemTrace.js";
 import {TraceRow} from "../trace/base/TraceRow.js";
-import {procedurePool} from "../../database/Procedure.js";
-import {queryVirtualMemory, queryVirtualMemoryData} from "../../database/SqlLite.js";
-import {CpuStruct} from "../../bean/CpuStruct.js";
-import {VirtualMemoryStruct} from "../../database/ui-worker/ProcedureWorkerVirtualMemory.js";
+import { queryVirtualMemory, queryVirtualMemoryData} from "../../database/SqlLite.js";
+import {VirtualMemoryRender, VirtualMemoryStruct} from "../../database/ui-worker/ProcedureWorkerVirtualMemory.js";
+import {renders} from "../../database/ui-worker/ProcedureWorker.js";
+import {EmptyRender} from "../../database/ui-worker/ProcedureWorkerCPU.js";
 
 export class SpVirtualMemChart {
     private trace: SpSystemTrace;
@@ -32,49 +32,44 @@ export class SpVirtualMemChart {
         if(array.length==0){
             return;
         }
-        let folder = new TraceRow({
-            canvasNumber: 1,
-            alpha: false,
-            contextId: '2d',
-            isOffScreen: SpSystemTrace.isCanvasOffScreen
-        });
+        let folder = TraceRow.skeleton()
         folder.rowId = `VirtualMemory`;
         folder.index = 0;
         folder.rowType = TraceRow.ROW_TYPE_VIRTUAL_MEMORY_GROUP
         folder.rowParentId = '';
         folder.folder = true;
         folder.name = `Virtual Memory`;
-        folder.supplier = () => new Promise<Array<any>>((resolve) => resolve([]));
+        folder.style.height = '40px'
         folder.favoriteChangeHandler = this.trace.favoriteChangeHandler;
         folder.selectChangeHandler = this.trace.selectChangeHandler;
+        folder.supplier = () => new Promise<Array<any>>((resolve) => resolve([]));
         folder.onThreadHandler = (useCache) => {
-            procedurePool.submitWithName(`process${folder.index}`, `virtual-memory-folder`, folder.buildArgs({
-                flagMoveInfo: this.trace.hoverFlag,
-                flagSelectedInfo: this.trace.selectFlag,
-                useCache: useCache,
-                scale: TraceRow.range?.scale || 50,
-            }), !folder.isTransferCanvas ? folder.offscreen[0] : undefined, (res: any) => {
-                folder.must = false;
-            })
-            folder.isTransferCanvas = true;
+            folder.canvasSave(this.trace.canvasPanelCtx!);
+            if(folder.expansion){
+                this.trace.canvasPanelCtx?.clearRect(0, 0, folder.frame.width, folder.frame.height);
+            } else {
+                (renders["empty"] as EmptyRender).renderMainThread(
+                    {
+                        context: this.trace.canvasPanelCtx,
+                        useCache: useCache,
+                        type: ``,
+                    },
+                    folder,
+                );
+            }
+            folder.canvasRestore(this.trace.canvasPanelCtx!);
         }
         this.trace.rowsEL?.appendChild(folder)
         array.forEach((it,idx)=> this.initVirtualMemoryRow(folder, it.id, it.name, idx))
     }
 
     initVirtualMemoryRow(folder:TraceRow<any>,id:number,name:string,idx:number) {
-        let row = new TraceRow<any>({
-            canvasNumber: 1,
-            alpha: false,
-            contextId: '2d',
-            isOffScreen: SpSystemTrace.isCanvasOffScreen
-        });
+        let row = TraceRow.skeleton<VirtualMemoryStruct>()
         row.rowId = `${id}`
         row.rowType = TraceRow.ROW_TYPE_VIRTUAL_MEMORY
         row.rowParentId = folder.rowId
         row.rowHidden = !folder.expansion
         row.style.height = '40px'
-        row.style.width = `100%`;
         row.name = `${name.substring(16)}`;
         row.setAttribute('children', '');
         row.favoriteChangeHandler = this.trace.favoriteChangeHandler;
@@ -96,21 +91,19 @@ export class SpVirtualMemChart {
             }
             return res
         });
+        row.focusHandler = () =>{ this.trace?.displayTip(row,VirtualMemoryStruct.hoverStruct,`<span>value:${VirtualMemoryStruct.hoverStruct?.value}</span>`) }
         row.onThreadHandler = (useCache) => {
-            procedurePool.submitWithName(`cpu${idx % procedurePool.cpusLen.length}`, `virtual-memory-cell-${id}`, row.buildArgs({
-                flagMoveInfo: this.trace.hoverFlag,
-                flagSelectedInfo: this.trace.selectFlag,
-                wakeupBean: CpuStruct.wakeupBean,
-                useCache: useCache,
-                hoverStruct: VirtualMemoryStruct.hoverStruct,
-            }), row.getTransferArray(), (res: any, hover: any) => {
-                row.must = false;
-                if (row.isHover) {
-                    VirtualMemoryStruct.hoverStruct = hover;
-                }
-                return;
-            });
-            row.isTransferCanvas = true;
+            let context = row.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
+            row.canvasSave(context);
+            (renders["virtual-memory-cell"] as VirtualMemoryRender).renderMainThread(
+                {
+                    context: context,
+                    useCache: useCache,
+                    type: `virtual-memory-cell-${id}`,
+                },
+                row
+            );
+            row.canvasRestore(context);
         }
         this.trace.rowsEL?.appendChild(row)
     }

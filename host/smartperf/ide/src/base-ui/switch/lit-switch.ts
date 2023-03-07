@@ -65,14 +65,14 @@ export default class LitSwitch extends BaseElement {
             -webkit-tap-highlight-color: transparent;
         }
         #name{
-            cursor:pointer;
-            display:flex;
-            width:2.4em;
-            height:1.2em;
-            padding:.125em;
-            border-radius:1.2em;
+            transition:0.31s width,0.31s height,0.31s background-color;
+            width:2.41em;
+            height:1.21em;
             background: #3391FF;
-            transition:.3s width,.3s height,.3s background-color;
+            display:flex;
+            padding:0.124em;
+            border-radius:1.21em;
+            cursor:pointer;
         }
         
         :host(:not([checked])) #name {

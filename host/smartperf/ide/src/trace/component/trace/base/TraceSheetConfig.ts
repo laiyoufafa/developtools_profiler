@@ -29,7 +29,6 @@ import {TabPaneFps} from "../sheet/fps/TabPaneFps.js";
 import {TabPaneFlag} from "../timer-shaft/TabPaneFlag.js";
 import {TabPaneBoxChild} from "../sheet/cpu/TabPaneBoxChild.js";
 import {TabPaneNMStatstics} from "../sheet/native-memory/TabPaneNMStatstics.js";
-import {TabPaneNMCallInfo} from "../sheet/native-memory/TabPaneNMCallInfo.js";
 import {TabPaneNMemory} from "../sheet/native-memory/TabPaneNMemory.js";
 import {TabPaneNMSampleList} from "../sheet/native-memory/TabPaneNMSampleList.js";
 import {TabpanePerfProfile} from "../sheet/hiperf/TabPerfProfile.js";
@@ -64,6 +63,9 @@ import {TabPaneSmapsStatistics} from "../sheet/smaps/TabPaneSmapsStatistics.js";
 import {TabPaneSmapsRecord} from "../sheet/smaps/TabPaneSmapsRecord.js";
 import {TabPaneFreqLimit} from "../sheet/freq/TabPaneFreqLimit.js";
 import {TabPaneCpuFreqLimits} from "../sheet/freq/TabPaneCpuFreqLimits.js";
+import {TabpaneNMCalltree} from "../sheet/native-memory/TabPaneNMCallTree.js";
+import {TabPaneClockCounter} from "../sheet/clock/TabPaneClockCounter.js";
+import {TabPaneIrqCounter} from "../sheet/irq/TabPaneIrqCounter.js";
 
 export let tabConfig: any = {
     "current-selection": {
@@ -118,6 +120,14 @@ export let tabConfig: any = {
         title: "Counters", type: TabPaneCounter,
         require: (param: SelectionParam) => (param.processTrackIds.length > 0 || param.virtualTrackIds.length > 0),
     },
+    "box-clock-counters": {
+        title: "Clock Counters", type: TabPaneClockCounter,
+        require: (param: SelectionParam) => (param.clockMapData.size > 0),
+    },
+    "box-irq-counters": {
+        title: "Irq Counters", type: TabPaneIrqCounter,
+        require: (param: SelectionParam) => (param.irqMapData.size > 0),
+    },
     "box-fps": {
         title: "FPS", type: TabPaneFps,
         require: (param: SelectionParam) => param.hasFps,
@@ -132,10 +142,14 @@ export let tabConfig: any = {
         title: "Statistics", type: TabPaneNMStatstics,
         require: (param: SelectionParam) => param.nativeMemory.length > 0,
     },
-    "box-native-callinfo": {
-        title: "Call Info", type: TabPaneNMCallInfo,
+    "box-native-calltree": {
+        title: "Call Info", type: TabpaneNMCalltree,
         require: (param: SelectionParam) => param.nativeMemory.length > 0,
     },
+    // "box-native-callinfo": {
+    //     title: "Call Info", type: TabPaneNMCallInfo,
+    //     require: (param: SelectionParam) => param.nativeMemory.length > 0,
+    // },
     "box-native-memory": {
         title: "Native Memory", type: TabPaneNMemory,
         require: (param: SelectionParam) => param.nativeMemory.length > 0,
@@ -176,26 +190,6 @@ export let tabConfig: any = {
         title: "System Network Summary", type: TabPaneNetworkAbility,
         require: (param: SelectionParam) => param.networkAbilityIds.length > 0,
     },
-    "box-file-system-statistics": {
-        title: "Filesystem statistics", type: TabPaneFileStatistics,
-        require: (param: SelectionParam) => param.fileSystemType.length > 0,
-    },
-    "box-file-system-calltree": {
-        title: "Filesystem Calltree", type: TabpaneFilesystemCalltree,
-        require: (param: SelectionParam) => param.fileSystemType.length > 0,
-    },
-    "box-file-system-event": {
-        title: "Filesystem Events", type: TabPaneFileSystemEvents,
-        require: (param: SelectionParam) => param.fileSystemType.length > 0,
-    },
-    "box-file-system-desc-history": {
-        title: "File Descriptor History", type: TabPaneFileSystemDescHistory,
-        require: (param: SelectionParam) => param.fileSystemType.length > 0,
-    },
-    "box-file-system-desc-time-slice": {
-        title: "File Descriptor Time Slice", type: TabPaneFileSystemDescTimeSlice,
-        require: (param: SelectionParam) => param.fileSystemType.length > 0,
-    },
     "box-sdk-slice-child": {
         title: "Sdk Slice", type: TabPaneSdkSlice,
         require: (param: SelectionParam) => param.sdkSliceIds.length > 0,
@@ -232,8 +226,36 @@ export let tabConfig: any = {
         title: "Power Details", type: TabPanePowerDetails,
         require: (param: SelectionParam) => param.powerEnergy.length > 0,
     },
+    "box-file-system-statistics": {
+        title: "Filesystem statistics", type: TabPaneFileStatistics,
+        require: (param: SelectionParam) => param.fileSystemType.length > 0,
+    },
+    "box-file-system-calltree": {
+        title: "Filesystem Calltree", type: TabpaneFilesystemCalltree,
+        require: (param: SelectionParam) => param.fileSystemType.length > 0||param.fsCount > 0,
+    },
+    "box-file-system-event": {
+        title: "Filesystem Events", type: TabPaneFileSystemEvents,
+        require: (param: SelectionParam) => param.fileSystemType.length > 0,
+    },
+    "box-file-system-desc-history": {
+        title: "File Descriptor History", type: TabPaneFileSystemDescHistory,
+        require: (param: SelectionParam) => param.fileSystemType.length > 0,
+    },
+    "box-file-system-desc-time-slice": {
+        title: "File Descriptor Time Slice", type: TabPaneFileSystemDescTimeSlice,
+        require: (param: SelectionParam) => param.fileSystemType.length > 0,
+    },
     "box-virtual-memory-statistics": {
-        title: "Virtual Memory Statistics", type: TabPaneVirtualMemoryStatistics,
+        title: "Page Fault Statistics", type: TabPaneVirtualMemoryStatistics,
+        require: (param: SelectionParam) => param.fileSysVirtualMemory,
+    },
+    "box-vm-calltree": {
+        title: "Page Fault CallTree", type: TabPaneVMCallTree,
+        require: (param: SelectionParam) => param.fileSysVirtualMemory||param.vmCount > 0,
+    },
+    "box-vm-events": {
+        title: "Page Fault Events", type: TabPaneVirtualMemoryEvents,
         require: (param: SelectionParam) => param.fileSysVirtualMemory,
     },
     "box-io-tier-statistics": {
@@ -242,19 +264,11 @@ export let tabConfig: any = {
     },
     "box-io-calltree": {
         title: "Disk I/O Latency Calltree", type: TabPaneIOCallTree,
-        require: (param: SelectionParam) => param.diskIOLatency,
+        require: (param: SelectionParam) => param.diskIOLatency||param.diskIOipids.length > 0,
     },
     "box-io-events": {
         title: "Trace Completion Times", type: TabPaneIoCompletionTimes,
         require: (param: SelectionParam) => param.diskIOLatency,
-    },
-    "box-vm-calltree": {
-        title: "Virtual Memory CallTree", type: TabPaneVMCallTree,
-        require: (param: SelectionParam) => param.fileSysVirtualMemory,
-    },
-    "box-vm-events": {
-        title: "Virtual Memory Events", type: TabPaneVirtualMemoryEvents,
-        require: (param: SelectionParam) => param.fileSysVirtualMemory,
     },
     "box-smaps-statistics": {
         title: "VM Tracker Statistics", type: TabPaneSmapsStatistics,

@@ -261,6 +261,8 @@ export class SpMetrics extends BaseElement {
             font-weight: 400;
             border:0 solid;
             margin-left: 2%;
+            opacity: 0.6;
+            cursor:pointer;
         }
 
         .response{

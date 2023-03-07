@@ -14,9 +14,10 @@
  */
 
 import {CpuStruct, WakeupBean} from "./ProcedureWorkerCPU.js";
+import {TraceRow} from "../../component/trace/base/TraceRow.js";
 
 export abstract class Render {
-    abstract render(req: RequestMessage, list: Array<any>, filter: Array<any>): void;
+    abstract renderMainThread(req: any, row: TraceRow<any>): void;
 }
 
 export abstract class PerfRender {
@@ -46,7 +47,7 @@ export class RequestMessage {
     slicesTime: { startTime: number | null, endTime: number | null, color: string | null } | undefined;
     range: any;
     scale: any;
-    chartColor:any;
+    chartColor: any;
     canvasWidth: any;
     canvasHeight: any;
     useCache: any;
@@ -74,6 +75,124 @@ export function ns2s(ns: number): string {
         res = ns.toFixed(1) + " s";
     }
     return res;
+}
+
+export function isFrameContainPoint(frame: Rect, x: number, y: number): boolean {
+    return x >= frame.x && x <= frame.x + frame.width && y >= frame.y && y <= frame.y + frame.height
+}
+
+class FilterConfig {
+    startNS: number = 0;
+    endNS: number = 0;
+    totalNS: number = 0;
+    frame: any = null;
+    useCache: boolean = false;
+    startKey: string = "startNS";
+    durKey: string = "dur";
+    paddingTop: number = 0;
+}
+
+export function fillCacheData(filterData: Array<any>, condition: FilterConfig): boolean {
+    if (condition.useCache && filterData.length > 0) {
+        let pns = (condition.endNS - condition.startNS) / condition.frame.width;
+        let y = condition.frame.y + condition.paddingTop;
+        let height = condition.frame.height - condition.paddingTop * 2;
+        for (let i = 0, len = filterData.length; i < len; i++) {
+            let it = filterData[i];
+            if ((it[condition.startKey] || 0) + (it[condition.durKey] || 0) > condition.startNS && (it[condition.startKey] || 0) < condition.endNS) {
+                if (!filterData[i].frame) {
+                    filterData[i].frame = {};
+                    filterData[i].frame.y = y;
+                    filterData[i].frame.height = height;
+                }
+                setNodeFrame(filterData[i], pns, condition.startNS, condition.endNS, condition.frame, condition.startKey, condition.durKey)
+            } else {
+                filterData[i].frame = null;
+            }
+        }
+        return true;
+    }
+    return false;
+}
+
+export function findRange(fullData: Array<any>, condition: FilterConfig): Array<any> {
+    let left = 0, right = 0;
+    for (let i = 0, j = fullData.length - 1, ib = true, jb = true; i < fullData.length, j >= 0; i++, j--) {
+        if (fullData[j][condition.startKey] <= condition.endNS && jb) {
+            right = j;
+            jb = false;
+        }
+        if (fullData[i][condition.startKey] + fullData[i][condition.durKey] >= condition.startNS && ib) {
+            left = i;
+            ib = false;
+        }
+        if (!ib && !jb) {
+            break;
+        }
+    }
+    let slice = fullData.slice(left, right + 1);
+    return slice;
+}
+
+export function dataFilterHandler(fullData: Array<any>, filterData: Array<any>, condition: FilterConfig) {
+    if (fillCacheData(filterData, condition)) return;
+    if (fullData) {
+        filterData.length = 0;
+        let pns = (condition.endNS - condition.startNS) / condition.frame.width;//每个像素多少ns
+        let y = condition.frame.y + condition.paddingTop;
+        let height = condition.frame.height - condition.paddingTop * 2;
+        let slice = findRange(fullData, condition);
+        let sum = 0;
+        for (let i = 0; i < slice.length; i++) {
+            if (!slice[i].frame) {
+                slice[i].frame = {};
+                slice[i].frame.y = y;
+                slice[i].frame.height = height;
+            }
+            if (i === slice.length - 1) {
+                if (!(slice[i][condition.durKey])) {
+                    slice[i][condition.durKey] = (condition.endNS || 0) - (slice[i][condition.startKey] || 0)
+                }
+            } else {
+                if (!(slice[i][condition.durKey])) {
+                    slice[i][condition.durKey] = (slice[i + 1][condition.startKey] || 0) - (slice[i][condition.startKey] || 0)
+                }
+            }
+            if (slice[i][condition.durKey] >= pns || slice.length < 100) {
+                slice[i].v = true;
+                setNodeFrame(slice[i], pns, condition.startNS, condition.endNS, condition.frame, condition.startKey, condition.durKey)
+            } else {
+                if (i > 0) {
+                    let c = slice[i][condition.startKey] - slice[i - 1][condition.startKey] - slice[i - 1][condition.durKey]
+                    if (c < pns && sum < pns) {
+                        sum += c + slice[i - 1][condition.durKey];
+                        slice[i].v = false;
+                    } else {
+                        slice[i].v = true;
+                        setNodeFrame(slice[i], pns, condition.startNS, condition.endNS, condition.frame, condition.startKey, condition.durKey)
+                        sum = 0;
+                    }
+                }
+            }
+        }
+        filterData.push(...slice.filter(it => it.v));
+    }
+}
+
+function setNodeFrame(node: any, pns: number, startNS: number, endNS: number, frame: any, startKey: string, durKey: string) {
+    if ((node[startKey] || 0) < startNS) {
+        node.frame.x = 0;
+    } else {
+        node.frame.x = Math.floor(((node[startKey] || 0) - startNS) / pns);
+    }
+    if ((node[startKey] || 0) + (node[durKey] || 0) > endNS) {
+        node.frame.width = frame.width - node.frame.x;
+    } else {
+        node.frame.width = Math.ceil(((node[startKey] || 0) + (node[durKey] || 0) - startNS) / pns - node.frame.x);
+    }
+    if (node.frame.width < 1) {
+        node.frame.width = 1;
+    }
 }
 
 export function ns2x(ns: number, startNS: number, endNS: number, duration: number, rect: any) {
@@ -195,7 +314,7 @@ export function drawLines(ctx: CanvasRenderingContext2D, xs: Array<any>, height:
     }
 }
 
-export function drawFlagLine(ctx: any, hoverFlag: any, selectFlag: any, startNS: number, endNS: number, totalNS: number, frame: any, slicesTime: { startTime: number | null, endTime: number | null, color: string | null } | undefined) {
+export function drawFlagLine(ctx: any, hoverFlag: any, selectFlag: any, startNS: number, endNS: number, totalNS: number, frame: any, slicesTime: { startTime: number | null | undefined, endTime: number | null | undefined, color: string | null | undefined } | undefined) {
     if (ctx) {
         if (hoverFlag) {
             ctx.beginPath();
@@ -232,6 +351,43 @@ export function drawFlagLine(ctx: any, hoverFlag: any, selectFlag: any, startNS:
     }
 }
 
+export function drawFlagLineSegment(ctx: any, hoverFlag: any, selectFlag: any, frame: any) {
+    if (ctx) {
+        if (hoverFlag) {
+            ctx.beginPath();
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = hoverFlag?.color || "#dadada";
+            ctx.moveTo(Math.floor(hoverFlag.x), 0)
+            ctx.lineTo(Math.floor(hoverFlag.x), frame.height)
+            ctx.stroke();
+            ctx.closePath();
+        }
+        if (selectFlag) {
+            ctx.beginPath();
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = selectFlag?.color || "#dadada";
+            selectFlag.x = ns2x(selectFlag.time, TraceRow.range!.startNS, TraceRow.range!.endNS, TraceRow.range!.totalNS, frame);
+            ctx.moveTo(Math.floor(selectFlag.x), 0)
+            ctx.lineTo(Math.floor(selectFlag.x), frame.height)
+            ctx.stroke();
+            ctx.closePath();
+        }
+        if (TraceRow.range!.slicesTime && TraceRow.range!.slicesTime.startTime && TraceRow.range!.slicesTime.endTime) {
+            ctx.beginPath();
+            ctx.lineWidth = 1;
+            ctx.strokeStyle = TraceRow.range!.slicesTime.color || "#dadada";
+            let x1 = ns2x(TraceRow.range!.slicesTime.startTime, TraceRow.range!.startNS, TraceRow.range!.endNS, TraceRow.range!.totalNS, frame);
+            let x2 = ns2x(TraceRow.range!.slicesTime.endTime, TraceRow.range!.startNS, TraceRow.range!.endNS, TraceRow.range!.totalNS, frame);
+            ctx.moveTo(Math.floor(x1), 0)
+            ctx.lineTo(Math.floor(x1), frame.height)
+            ctx.moveTo(Math.floor(x2), 0)
+            ctx.lineTo(Math.floor(x2), frame.height)
+            ctx.stroke();
+            ctx.closePath();
+        }
+    }
+}
+
 export function drawSelection(context: any, params: any) {
     if (params.isRangeSelect && params.rangeSelectObject) {
         params.rangeSelectObject!.startX = Math.floor(ns2x(params.rangeSelectObject!.startNS!, params.startNS, params.endNS, params.totalNS, params.frame));
@@ -240,6 +396,20 @@ export function drawSelection(context: any, params: any) {
             context.globalAlpha = 0.5
             context.fillStyle = "#666666"
             context.fillRect(params.rangeSelectObject!.startX!, params.frame.y, params.rangeSelectObject!.endX! - params.rangeSelectObject!.startX!, params.frame.height)
+            context.globalAlpha = 1
+        }
+    }
+}
+
+// draw range select
+export function drawSelectionRange(context: any, params: TraceRow<any>) {
+    if (params.rangeSelect && TraceRow.rangeSelectObject) {
+        TraceRow.rangeSelectObject!.startX = Math.floor(ns2x(TraceRow.rangeSelectObject!.startNS!, TraceRow.range?.startNS ?? 0, TraceRow.range?.endNS ?? 0, TraceRow.range?.totalNS ?? 0, params.frame));
+        TraceRow.rangeSelectObject!.endX = Math.floor(ns2x(TraceRow.rangeSelectObject!.endNS!, TraceRow.range?.startNS ?? 0, TraceRow.range?.endNS ?? 0, TraceRow.range?.totalNS ?? 0, params.frame));
+        if (context) {
+            context.globalAlpha = 0.5
+            context.fillStyle = "#666666"
+            context.fillRect(TraceRow.rangeSelectObject!.startX!, params.frame.y, TraceRow.rangeSelectObject!.endX! - TraceRow.rangeSelectObject!.startX!, params.frame.height)
             context.globalAlpha = 1
         }
     }

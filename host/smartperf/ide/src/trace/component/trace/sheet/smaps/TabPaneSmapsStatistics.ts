@@ -94,15 +94,23 @@ export class TabPaneSmapsStatistics extends BaseElement {
 
     }
 
+    private calculatePercentage(divisor: number, dividend: number) {
+        if (dividend == 0) {
+            return 0
+        } else {
+            return (divisor / dividend) * 100
+        }
+    }
+
     private handleSmapsTreeObj(smapsTreeObj: SmapsTreeObj, sumRss: number) {
-        smapsTreeObj.rsspro = (smapsTreeObj.rss / sumRss) * 100
+        smapsTreeObj.rsspro = this.calculatePercentage(smapsTreeObj.rss, sumRss)
         smapsTreeObj.rssproStr = smapsTreeObj.rsspro.toFixed(2) + "%"
         smapsTreeObj.regStr = smapsTreeObj.reg + ""
         smapsTreeObj.rssStr = Utils.getBinaryByteWithUnit(smapsTreeObj.rss * 1024)
         smapsTreeObj.dirtyStr = Utils.getBinaryByteWithUnit(smapsTreeObj.dirty * 1024)
         smapsTreeObj.swapperStr = Utils.getBinaryByteWithUnit(smapsTreeObj.swapper * 1024)
         smapsTreeObj.sizeStr = Utils.getBinaryByteWithUnit(smapsTreeObj.size * 1024)
-        smapsTreeObj.respro = smapsTreeObj.rss / smapsTreeObj.size * 100
+        smapsTreeObj.respro = this.calculatePercentage(smapsTreeObj.rss, smapsTreeObj.size)
         smapsTreeObj.pssStr = Utils.getBinaryByteWithUnit(smapsTreeObj.pss * 1024)
         smapsTreeObj.resproStr = smapsTreeObj.respro.toFixed(2) + "%"
     }
@@ -113,7 +121,7 @@ export class TabPaneSmapsStatistics extends BaseElement {
         let obj = new SmapsTreeObj(id + "", parentId, type);
         obj.path = smaps.path
         obj.rss = smaps.rss
-        obj.rsspro = (smaps.rss / sumRss) * 100
+        obj.rsspro = this.calculatePercentage(smaps.rss, sumRss)
         obj.rssproStr = obj.rsspro.toFixed(2) + "%"
         obj.rssStr = Utils.getBinaryByteWithUnit(smaps.rss * 1024)
         obj.dirty = smaps.dirty
@@ -144,7 +152,7 @@ export class TabPaneSmapsStatistics extends BaseElement {
         let obj = new SmapsTreeObj(id + "", parentId, type);
         obj.path = smaps.path
         obj.rss = smaps.rss
-        obj.rsspro = (smaps.rss / sumRss) * 100
+        obj.rsspro = this.calculatePercentage(smaps.rss, sumRss)
         obj.rssproStr = obj.rsspro.toFixed(2) + "%"
         obj.rssStr = Utils.getBinaryByteWithUnit(smaps.rss * 1024)
         obj.dirty = smaps.dirty

@@ -19,12 +19,35 @@ import {
     drawFlagLine,
     drawLines,
     drawLoading,
-    drawSelection,
+    drawSelection, isFrameContainPoint,
     PerfRender,
     RequestMessage
 } from "./ProcedureWorkerCommon.js";
+import {TraceRow} from "../../component/trace/base/TraceRow.js";
 
 export class EnergyAnomalyRender extends PerfRender {
+    renderMainThread(req: { useCache: boolean; context: CanvasRenderingContext2D; type: string; appName:string;canvasWidth:number}, row: TraceRow<EnergyAnomalyStruct>) {
+        let list = row.dataList
+        let filter = row.dataListCache;
+        anomaly(list, filter,TraceRow.range!.startNS, TraceRow.range!.endNS, TraceRow.range!.totalNS, row.frame, req.appName,req.useCache || !TraceRow.range!.refresh)
+        req.context.beginPath();
+        let find = false;
+        let spApplication = document.getElementsByTagName("sp-application")[0];
+        let isDark = spApplication.hasAttribute("dark");
+        drawLegend(req, isDark);
+        for (let re of filter) {
+            EnergyAnomalyStruct.draw(req.context, re)
+            if (row.isHover && re.frame  && isFrameContainPoint(re.frame, row.hoverX, row.hoverY)) {
+                EnergyAnomalyStruct.hoverEnergyAnomalyStruct = re;
+                find = true;
+            }
+        }
+        if (!find && row.isHover) EnergyAnomalyStruct.hoverEnergyAnomalyStruct = undefined;
+        req.context.fillStyle = ColorUtils.FUNC_COLOR[0]
+        req.context.strokeStyle = ColorUtils.FUNC_COLOR[0];
+        req.context.closePath();
+    }
+
     render(req: RequestMessage, list: Array<any>, filter: Array<any>,dataList2:Array<any>){
         if (req.lazyRefresh) {
             anomaly(list, filter, req.startNS, req.endNS, req.totalNS, req.frame, req.params.appName, req.useCache || !req.range.refresh);
@@ -57,26 +80,10 @@ export class EnergyAnomalyRender extends PerfRender {
             EnergyAnomalyStruct.selectEnergyAnomalyStruct = req.params.selectEnergyAnomalyStruct;
             req.context.fillStyle = ColorUtils.FUNC_COLOR[0]
             req.context.strokeStyle = ColorUtils.FUNC_COLOR[0];
-            let path = new Path2D();
             for (let re of filter) {
-                EnergyAnomalyStruct.draw(req.context, path, re);
+                EnergyAnomalyStruct.draw(req.context, re);
             }
-            req.context.fillStyle = "#E64566";
-            req.context.strokeStyle = "#E64566";
-            req.context.fillRect(req.canvas.width - 290, 12, 8, 8);
-            req.context.globalAlpha = 1
-            req.context.fillStyle = "#333"
-            req.context.textBaseline = "middle"
-            req.context.fillText("System Abnormality", req.canvas.width - 225, 18)
-            req.context.stroke(path);
-            req.context.fillStyle = "#FFC880";
-            req.context.strokeStyle = "#FFC880";
-            req.context.fillRect(req.canvas.width - 145, 12, 8, 8);
-            req.context.globalAlpha = 1
-            req.context.fillStyle = "#333"
-            req.context.textBaseline = "middle"
-            req.context.fillText("Application Abnormality", req.canvas.width - 70, 18)
-            req.context.stroke(path);
+            drawLegend(req);
             drawSelection(req.context, req.params);
             req.context.closePath();
             drawFlagLine(req.context, req.flagMoveInfo, req.flagSelectedInfo, req.startNS, req.endNS, req.totalNS, req.frame, req.slicesTime);
@@ -89,6 +96,38 @@ export class EnergyAnomalyRender extends PerfRender {
             hover: EnergyAnomalyStruct.hoverEnergyAnomalyStruct
         });
     }
+}
+
+export function drawLegend(req: any, isDark?: boolean) {
+    req.context.font = "12px Arial";
+    let text = req.context.measureText("System Abnormality");
+    req.context.fillStyle = "#E64566";
+    req.context.strokeStyle = "#E64566";
+    let textColor = isDark ? "#FFFFFF" : "#333";
+    let canvasEndX = req.context.canvas.clientWidth - EnergyAnomalyStruct.OFFSET_WIDTH;
+    let rectPadding: number;
+    let textPadding: number;
+    let textMargin: number;
+    let currentTextWidth: number;
+    let lastTextMargin: number;
+    rectPadding = 280;
+    textPadding = 270;
+    textMargin = 250;
+    currentTextWidth = canvasEndX - textMargin + text.width;
+    lastTextMargin = currentTextWidth + 12;
+    req!.context.fillRect((canvasEndX - rectPadding), 12, 8, 8);
+    req.context.globalAlpha = 1
+    req.context.fillStyle = textColor;
+    req.context.textBaseline = "middle"
+    req.context.fillText("System Abnormality", canvasEndX - textPadding, 18);
+    req.context.fillStyle = "#FFC880";
+    req.context.strokeStyle = "#FFC880";
+    req.context.fillRect(currentTextWidth, 12, 8, 8);
+    req.context.globalAlpha = 1
+    req.context.fillStyle = textColor;
+    req.context.textBaseline = "middle"
+    req.context.fillText("Application Abnormality", lastTextMargin, 18);
+    req.context.fillStyle = "#333";
 }
 
 export function anomaly(arr: Array<any>, res: Array<any>, startNS: number, endNS: number, totalNS: number, frame: any, appName: string | undefined, use: boolean) {
@@ -124,7 +163,7 @@ export function anomaly(arr: Array<any>, res: Array<any>, startNS: number, endNS
             item.frame.height = item.height;
             if ((item.startNS + 50000) > (startNS || 0) && (item.startNS || 0) < (endNS || 0)) {
                 EnergyAnomalyStruct.setAnomalyFrame(item, pns, startNS || 0, endNS || 0, frame)
-                if ((item.appKey === "APPNAME" && item.Value.indexOf(appName) >= 0)) {
+                if ((item.appKey === "APPNAME" && item.Value.split(",").indexOf(appName) >= 0)) {
                     res.push(item)
                 }
                 if (item.appKey != "APPNAME") {
@@ -140,21 +179,22 @@ export class EnergyAnomalyStruct extends BaseStruct {
     static selectEnergyAnomalyStruct: EnergyAnomalyStruct | undefined;
     static SYSTEM_EXCEPTION = new Set(["ANOMALY_SCREEN_OFF_ENERGY", "ANOMALY_ALARM_WAKEUP",
         "ANOMALY_KERNEL_WAKELOCK", "ANOMALY_CPU_HIGH_FREQUENCY", "ANOMALY_WAKEUP"]);
+    static OFFSET_WIDTH: number = 266
     type: number | undefined
     startNS: number | undefined
     height: number | undefined
     eventName: string | undefined
 
-    static draw(ctx: CanvasRenderingContext2D, path: Path2D, data: EnergyAnomalyStruct) {
+    static draw(ctx: CanvasRenderingContext2D, data: EnergyAnomalyStruct) {
         if (data.frame) {
-            EnergyAnomalyStruct.drawRoundRectPath(ctx, data.frame.x - 7, 20 - 7, 14, data)
+            EnergyAnomalyStruct.drawRoundRectPath(ctx, data.frame.x - 7, 20 - 7, 12, data)
         }
 
     }
 
-    static drawRoundRectPath(ctx: CanvasRenderingContext2D, x: number, y: number, width: number, data: EnergyAnomalyStruct) {
+    static drawRoundRectPath(ctx: CanvasRenderingContext2D, x: number, y: number, radius: number, data: EnergyAnomalyStruct) {
         ctx.beginPath();
-        ctx.arc(x + 7, y + 22, 3, 0, Math.PI * 2);
+        ctx.arc(x + 7, y + 22, radius, 0, Math.PI * 2);
         ctx.closePath();
         let color = "";
         if(EnergyAnomalyStruct.SYSTEM_EXCEPTION.has(<string>data.eventName)){
@@ -165,10 +205,6 @@ export class EnergyAnomalyStruct extends BaseStruct {
         // 填充背景颜色
         ctx.fillStyle = color;
         ctx.fill();
-        // 填充边框颜色
-        ctx.lineWidth = width;
-        ctx.lineCap = 'round'
-        ctx.strokeStyle = color
         ctx.stroke();
         // 填充文字颜色
         ctx.font = "12px Arial";
@@ -192,6 +228,7 @@ export class EnergyAnomalyStruct extends BaseStruct {
             node.frame.width = 1;
         }
     }
+
 }
 
 

@@ -100,7 +100,7 @@ describe('SpMetrics Test', () => {
             border-radius: 16px;
             padding: 5px 10px 5px 10px;
             -webkit-appearance: none;
-            background: url('img/down.png') no-repeat 98% center;
+            background: url('img/down.png') no-repeat 98% center var(--dark-background3,#FFFFFF);
         }
 
         button{
@@ -116,6 +116,7 @@ describe('SpMetrics Test', () => {
             font-weight: 400;
             border:0 solid;
             margin-left: 2%;
+            opacity: 0.6;
         }
 
         .response{

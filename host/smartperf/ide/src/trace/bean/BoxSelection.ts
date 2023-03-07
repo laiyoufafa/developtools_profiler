@@ -14,6 +14,8 @@
  */
 
 import {CpuFreqLimitsStruct} from "../database/ui-worker/ProcedureWorkerCpuFreqLimits.js";
+import {ClockStruct} from "../database/ui-worker/ProcedureWorkerClock.js";
+import {IrqStruct} from "../database/ui-worker/ProcedureWorkerIrq.js";
 
 export class SelectionParam {
     recordStartNs:number = 0
@@ -21,10 +23,14 @@ export class SelectionParam {
     rightNs: number = 0;
     hasFps: boolean = false;
     statisticsSelectData: any = undefined
-    fileSystemVMData: any = undefined
+    fileSystemVMData: any = undefined;
+    fileSystemIoData: any = undefined;
+    fileSystemFsData: any = undefined;
     perfAll: boolean = false;
     fileSysVirtualMemory: boolean = false;
     diskIOLatency:boolean = false;
+    fsCount:number = 0;
+    vmCount:number = 0;
 
     cpus: Array<number> = [];
     cpuStateFilterIds: Array<number> = [];
@@ -33,6 +39,8 @@ export class SelectionParam {
     threadIds: Array<number> = [];
     processTrackIds: Array<number> = [];
     virtualTrackIds: Array<number> = [];
+    clockMapData: Map<string,Array<ClockStruct>> = new Map<string, Array<ClockStruct>>()
+    irqMapData: Map<string,Array<IrqStruct>> = new Map<string,Array<IrqStruct>>()
     funTids: Array<number> = [];
     funAsync: Array<{name:string,pid:number}> = [];
     heapIds: Array<number> = [];
@@ -49,10 +57,13 @@ export class SelectionParam {
     sdkCounterIds: Array<string> = [];
     sdkSliceIds: Array<string> = [];
     diskIOipids:Array<number> = [];
+    diskIOReadIds:Array<number> = []
+    diskIOWriteIds:Array<number> = []
     systemEnergy: Array<string> = []
     powerEnergy: Array<string> = []
     anomalyEnergy: Array<string> = []
     smapsType:Array<string> = [];
+    promiseList:Array<Promise<any>> = []
 }
 
 export class BoxJumpParam {
@@ -70,6 +81,7 @@ export class SelectionData {
     thread: string = ""
     tid: string = ""
     wallDuration: number = 0
+    wallDurationFormat:string = ""
     avgDuration: string = ""
     occurrences: number = 0
     state: string = ""

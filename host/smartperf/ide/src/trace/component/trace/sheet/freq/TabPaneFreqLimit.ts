@@ -25,7 +25,8 @@ export class TabPaneFreqLimit extends BaseElement {
     set data(freq:any) {
         if(freq){
             this.tbl!.dataSource = [{
-                startNs:Utils.getTimeString(freq.startNs),
+                startNs:Utils.getTimeString(freq.startNs >=0?freq.startNs:0),
+                absoluteTime:(freq.startNs + (window as any).recordStartNS)/1000000000,
                 dur:Utils.getProbablyTime(freq.dur),
                 maxFreq:`${ColorUtils.formatNumberComma(freq.max!)} kHz`,
                 minFreq:`${ColorUtils.formatNumberComma(freq.min!)} kHz`,
@@ -59,7 +60,9 @@ export class TabPaneFreqLimit extends BaseElement {
         }
         </style>
         <lit-table id="tb-freq" style="height: auto">
-            <lit-table-column width="1fr" title="StartTime" data-index="startNs" key="startNs" align="flex-start">
+            <lit-table-column width="1fr" title="StartTime(Relative)" data-index="startNs" key="startNs" align="flex-start">
+            </lit-table-column>
+            <lit-table-column width="1fr" title="StartTime(Absolute)" data-index="absoluteTime" key="absoluteTime" align="flex-start">
             </lit-table-column>
             <lit-table-column width="1fr" title="Duration" data-index="dur" key="dur" align="flex-start" >
             </lit-table-column>

@@ -49,6 +49,8 @@ HtraceEventParser::HtraceEventParser(TraceDataCache* dataCache, const TraceStrea
                             std::bind(&HtraceEventParser::BinderTractionUnLockEvent, this, std::placeholders::_1)},
                            {config_.eventNameMap_.at(TRACE_EVENT_SCHED_SWITCH),
                             std::bind(&HtraceEventParser::SchedSwitchEvent, this, std::placeholders::_1)},
+                           {config_.eventNameMap_.at(TRACE_EVENT_SCHED_BLOCKED_REASON),
+                            std::bind(&HtraceEventParser::SchedBlockReasonEvent, this, std::placeholders::_1)},
                            {config_.eventNameMap_.at(TRACE_EVENT_TASK_RENAME),
                             std::bind(&HtraceEventParser::TaskRenameEvent, this, std::placeholders::_1)},
                            {config_.eventNameMap_.at(TRACE_EVENT_TASK_NEWTASK),
@@ -113,6 +115,8 @@ HtraceEventParser::~HtraceEventParser()
     TS_LOGI("process count:%u", static_cast<unsigned int>(pids_.size()));
     TS_LOGI("ftrace ts MIN:%llu, MAX:%llu", static_cast<unsigned long long>(ftraceStartTime_),
             static_cast<unsigned long long>(ftraceEndTime_));
+    TS_LOGI("ftrace origin ts MIN:%llu, MAX:%llu", static_cast<unsigned long long>(ftraceOriginStartTime_),
+            static_cast<unsigned long long>(ftraceOriginEndTime_));
 }
 void HtraceEventParser::ParseDataItem(const FtraceCpuDetailMsg* cpuDetail, BuiltinClocks clock)
 {
@@ -136,9 +140,11 @@ void HtraceEventParser::ParseDataItem(const FtraceCpuDetailMsg* cpuDetail, Built
         auto event = cpuDetail->event(i);
         eventTimestamp_ = event.timestamp();
         comm_ = event.comm();
+        ftraceOriginStartTime_ = std::min(ftraceOriginStartTime_, eventTimestamp_);
+        ftraceOriginEndTime_ = std::max(ftraceOriginEndTime_, eventTimestamp_);
+        eventTimestamp_ = streamFilters_->clockFilter_->ToPrimaryTraceTime(clock, eventTimestamp_);
         ftraceStartTime_ = std::min(ftraceStartTime_, eventTimestamp_);
         ftraceEndTime_ = std::max(ftraceEndTime_, eventTimestamp_);
-        eventTimestamp_ = streamFilters_->clockFilter_->ToPrimaryTraceTime(clock, eventTimestamp_);
         traceDataCache_->UpdateTraceTime(eventTimestamp_);
         if (event.tgid() != INVALID_INT32) {
             eventPid_ = event.tgid();
@@ -171,7 +177,9 @@ void HtraceEventParser::DealEvent(const FtraceEvent& event)
                                                                        event.comm());
     if (event.has_sched_switch_format()) {
         InvokeFunc(TRACE_EVENT_SCHED_SWITCH, event.sched_switch_format());
-    } else if (event.has_task_rename_format()) {
+    } else if (event.has_sched_blocked_reason_format()) {
+        InvokeFunc(TRACE_EVENT_SCHED_BLOCKED_REASON, event.sched_blocked_reason_format());
+    }  else if (event.has_task_rename_format()) {
         InvokeFunc(TRACE_EVENT_TASK_RENAME, event.task_rename_format());
     } else if (event.has_task_newtask_format()) {
         InvokeFunc(TRACE_EVENT_TASK_NEWTASK, event.task_newtask_format());
@@ -243,7 +251,6 @@ void HtraceEventParser::DealEvent(const FtraceEvent& event)
         InvokeFunc(TRACE_EVENT_SIGNAL_DELIVER, event.signal_deliver_format());
     } else {
         streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_OTHER, STAT_EVENT_NOTSUPPORTED);
-        TS_LOGD("has_rpc_socket_shutdown_format\n");
     }
 }
 bool HtraceEventParser::BinderTractionAllocBufEvent(const MessageLite& event) const
@@ -303,7 +310,6 @@ bool HtraceEventParser::BinderTractionUnLockEvent(const MessageLite& event) cons
     streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_BINDER_TRANSACTION_UNLOCK, STAT_EVENT_RECEIVED);
     const auto msg = static_cast<const BinderUnlockFormat&>(event);
     std::string tag = msg.tag();
-    TS_LOGD("tag:%s", tag.c_str());
     streamFilters_->binderFilter_->TractionUnlock(eventTimestamp_, eventTid_, tag);
     return true;
 }
@@ -332,6 +338,20 @@ bool HtraceEventParser::SchedSwitchEvent(const MessageLite& event)
     streamFilters_->cpuFilter_->InsertSwitchEvent(eventTimestamp_, eventCpu_, uprevtid,
                                                   static_cast<uint64_t>(prevPrioValue), prevState, nextInternalTid,
                                                   static_cast<uint64_t>(nextPrioValue));
+    return true;
+}
+bool HtraceEventParser::SchedBlockReasonEvent(const MessageLite& event)
+{
+    streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_SCHED_BLOCKED_REASON, STAT_EVENT_RECEIVED);
+    const auto msg = static_cast<const SchedBlockedReasonFormat&>(event);
+    uint32_t pid = msg.pid();
+    uint32_t ioWait = msg.io_wait();
+    auto caller = traceDataCache_->GetDataIndex(
+        std::string_view("0x" + SysTuning::base::number(msg.caller(), SysTuning::base::INTEGER_RADIX_TYPE_HEX)));
+    auto itid = streamFilters_->processFilter_->UpdateOrCreateThread(eventTimestamp_, pid);
+    if (!streamFilters_->cpuFilter_->InsertBlockedReasonEvent(eventTimestamp_, eventCpu_, itid, ioWait, caller)) {
+        streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_SCHED_BLOCKED_REASON, STAT_EVENT_NOTMATCH);
+    }
     return true;
 }
 bool HtraceEventParser::ProcessExitEvent(const MessageLite& event) const

@@ -40,8 +40,8 @@ ohos_source_set("trace_data") {
       "-ftest-coverage",
       "--coverage",
     ]
-    if (is_macx && is_test) {
-      cflags += [ "-D UT_MAC" ]
+    if (is_test) {
+      cflags += [ "-D IS_UT" ]
     }
   }
   include_dirs = [

@@ -17,9 +17,10 @@ import {SpSystemTrace} from "../SpSystemTrace.js";
 import {querySmapsData, querySmapsDataMax, querySmapsExits} from "../../database/SqlLite.js";
 import {TraceRow} from "../trace/base/TraceRow.js";
 import {BaseStruct} from "../../bean/BaseStruct.js";
-import {procedurePool} from "../../database/Procedure.js";
-import {CounterStruct} from "../../bean/SdkStruct.js";
-import {SmapsShowStruct} from "../../bean/SmapsShowStruct.js";
+import {renders} from "../../database/ui-worker/ProcedureWorker.js";
+import {SmapsRender, SmapsStruct} from "../../database/ui-worker/ProcedureWorkerSmaps.js";
+import {Utils} from "../trace/base/Utils.js";
+import {EmptyRender} from "../../database/ui-worker/ProcedureWorkerCPU.js";
 
 export class SmpsChart {
     private trace: SpSystemTrace;
@@ -39,54 +40,38 @@ export class SmpsChart {
     }
 
     private initSmapsRow = () => {
-        let smapsRow = new TraceRow<any>();
+        let smapsRow = TraceRow.skeleton<any>();
         smapsRow.rowId = `smapsRow`
         smapsRow.rowType = TraceRow.ROW_TYPE_SMAPS
         smapsRow.rowParentId = '';
+        smapsRow.style.height = '40px'
         smapsRow.folder = true;
         smapsRow.name = 'VM Tracker';
         smapsRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
         smapsRow.selectChangeHandler = this.trace.selectChangeHandler;
         smapsRow.supplier = () => new Promise<Array<any>>((resolve) => resolve([]));
         smapsRow.onThreadHandler = (useCache) => {
-            procedurePool.submitWithName(`cpu0`, `smaps`, {
-                    list: smapsRow.must ? smapsRow.dataList : undefined,
-                    offscreen: smapsRow.must ? smapsRow.offscreen[0] : undefined,
-                    xs: TraceRow.range?.xs,
-                    dpr: smapsRow.dpr,
-                    isHover: smapsRow.isHover,
-                    hoverX: smapsRow.hoverX,
-                    hoverY: smapsRow.hoverY,
-                    flagMoveInfo: this.trace.hoverFlag,
-                    flagSelectedInfo: this.trace.selectFlag,
-                    canvasWidth: smapsRow.canvasWidth,
-                    canvasHeight: smapsRow.canvasHeight,
-                    isRangeSelect: smapsRow.rangeSelect,
-                    rangeSelectObject: TraceRow.rangeSelectObject,
-                    useCache: useCache,
-                    lineColor: smapsRow.getLineColor(),
-                    startNS: TraceRow.range?.startNS || 0,
-                    endNS: TraceRow.range?.endNS || 0,
-                    totalNS: TraceRow.range?.totalNS || 0,
-                    slicesTime: TraceRow.range?.slicesTime,
-                    range: TraceRow.range,
-                    frame: smapsRow.frame,
-                }, smapsRow.must && smapsRow.args.isOffScreen ? smapsRow.offscreen[0] : undefined, (res: any, hover: any) => {
-                    smapsRow.must = false;
-                }
-            )
+            smapsRow.canvasSave(this.trace.canvasPanelCtx!);
+            if(smapsRow.expansion){
+                this.trace.canvasPanelCtx?.clearRect(0, 0, smapsRow.frame.width, smapsRow.frame.height);
+            } else {
+                (renders["empty"] as EmptyRender).renderMainThread(
+                    {
+                        context: this.trace.canvasPanelCtx,
+                        useCache: useCache,
+                        type: ``,
+                    },
+                    smapsRow,
+                );
+            }
+            smapsRow.canvasRestore(this.trace.canvasPanelCtx!);
         }
         this.trace.rowsEL?.appendChild(smapsRow)
         return smapsRow;
     }
 
     private initRows = async (nodeRow: TraceRow<BaseStruct>, rowName:string ) => {
-        let traceRow = new TraceRow<CounterStruct>({
-            canvasNumber: 1,
-            alpha: false,
-            contextId: '2d',
-            isOffScreen: SpSystemTrace.isCanvasOffScreen
-        });
+        let traceRow = TraceRow.skeleton<SmapsStruct>();
         traceRow.rowParentId = `smapsRow`
         traceRow.rowHidden = !nodeRow.expansion
         traceRow.rowId = rowName
@@ -108,45 +93,23 @@ export class SmpsChart {
         traceRow.supplier = () => querySmapsData(columnName)
         let maxList = await querySmapsDataMax(columnName);
         let maxValue = maxList[0].max_value;
+        traceRow.focusHandler = (ev)=>{
+            this.trace?.displayTip(traceRow, SmapsStruct.hoverSmapsStruct, `<span>${Utils.getBinaryByteWithUnit((SmapsStruct.hoverSmapsStruct?.value||0) * 1024)}</span>`);
+        };
         traceRow.onThreadHandler = (useCache) => {
-            procedurePool.submitWithName(`process0`, `smaps-${rowName}`, {
-                    list: traceRow.must ? traceRow.dataList : undefined,
-                    offscreen: traceRow.must ? traceRow.offscreen[0] : undefined,
-                    xs: TraceRow.range?.xs,
-                    dpr: traceRow.dpr,
-                    isHover: traceRow.isHover,
-                    hoverX: traceRow.hoverX,
-                    hoverY: traceRow.hoverY,
-                    flagMoveInfo: this.trace.hoverFlag,
-                    flagSelectedInfo: this.trace.selectFlag,
-                    canvasWidth: traceRow.canvasWidth,
-                    canvasHeight: traceRow.canvasHeight,
-                    hoverCounterStruct: SmapsShowStruct.hoverStruct,
-                    selectCounterStruct: SmapsShowStruct.selectStruct,
-                    isRangeSelect: traceRow.rangeSelect,
-                    rangeSelectObject: TraceRow.rangeSelectObject,
-                    maxValue: maxValue,
-                    maxValueName: maxValue + "",
-                    rowName: columnName,
+            let context = traceRow.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
+            traceRow.canvasSave( context);
+            (renders["smaps"] as SmapsRender).renderMainThread(
+                {
+                    context: context,
                     useCache: useCache,
-                    lineColor: traceRow.getLineColor(),
-                    startNS: TraceRow.range?.startNS || 0,
-                    endNS: TraceRow.range?.endNS || 0,
-                    totalNS: TraceRow.range?.totalNS || 0,
-                    slicesTime: TraceRow.range?.slicesTime,
-                    range: TraceRow.range,
-                    frame: traceRow.frame,
-                }, traceRow.must && traceRow.args.isOffScreen ? traceRow.offscreen[0] : undefined, (res: any, hover: any) => {
-                    traceRow.must = false;
-                    if (traceRow.args.isOffScreen == true) {
-                        if (traceRow.isHover) {
-                            SmapsShowStruct.hoverStruct = hover;
-                            this.trace.visibleRows.filter(it => it.rowType === TraceRow.ROW_TYPE_SMAPS && it.name !== traceRow.name).forEach(it => it.draw(true));
-                        }
-                        return;
-                    }
-                }
-            )
+                    type: `smaps`,
+                    rowName: columnName,
+                    maxValue:maxValue
+                },
+                traceRow
+            );
+            traceRow.canvasRestore( context);
         }
         this.trace.rowsEL?.appendChild(traceRow)
     }

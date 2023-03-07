@@ -86,6 +86,7 @@ if (target == "test") {
       "//third_party/protobuf/src",
       "//third_party/json-master/include",
       "//third_party/json-master/include/nlohmann",
+      "//third_party/perf_include/musl",
       "${OHOS_PROTO_GEN}",
       "${OHOS_FTRACE_PROTO_DIR}",
       "${OHOS_MEMORY_PROTO_DIR}",
@@ -121,7 +122,7 @@ if (target == "test") {
       "-mllvm",
       "-limited-coverage-experimental=true",
       "-fno-use-cxa-atexit",
-      "-DUT_MAC",
+      "-DIS_UT",
     ]
     if (is_macx) {
       lib_dirs = [ "/usr/local/opt/llvm/lib" ]

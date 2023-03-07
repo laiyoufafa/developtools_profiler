@@ -61,8 +61,9 @@ ohos_source_set("lib") {
   if (with_perf) {
     include_dirs += [
       "parser/hiperf_parser",
-      "parser/hiperf_parser/hiperf/linux",
       "parser/hiperf_parser/hiperf/include",
+      "parser/hiperf_parser/hiperf/include/linux",
+      "//third_party/perf_include",
     ]
   }
   public_deps = []
@@ -142,9 +143,9 @@ ohos_source_set("trace_streamer_source") {
       "parser/hiperf_parser/hiperf/linux",
       "parser/hiperf_parser/hiperf/kernel",
       "parser/hiperf_parser/hiperf/include",
-      "//third_party/perf_include",
-      "//third_party/perf_include/linux",
-      "//third_party/perf_include/include",
+      "parser/hiperf_parser/hiperf/include/linux",
+      "//third_party/perf_include/libbpf",
+      "//third_party/perf_include/musl",
     ]
   }
   deps = [
@@ -177,8 +178,8 @@ ohos_source_set("trace_streamer_source") {
       "-ftest-coverage",
       "--coverage",
     ]
-    if (is_macx && is_test) {
-      cflags += [ "-D UT_MAC" ]
+    if (is_test) {
+      cflags += [ "-D IS_UT" ]
     }
   }
   public_deps = []

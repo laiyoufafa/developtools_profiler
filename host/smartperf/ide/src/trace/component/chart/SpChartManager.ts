@@ -33,6 +33,8 @@ import {procedurePool} from "../../database/Procedure.js";
 import {SpSdkChart} from "./SpSdkChart.js";
 import {SpHiSysEventChart} from "./SpHiSysEventChart.js";
 import {SmpsChart} from "./SmpsChart.js";
+import {SpClockChart} from "./SpClockChart.js";
+import {SpIrqChart} from "./SpIrqChart.js";
 
 export class SpChartManager {
     private trace: SpSystemTrace;
@@ -48,6 +50,9 @@ export class SpChartManager {
     private sdkChart: SpSdkChart;
     private hiSyseventChart: SpHiSysEventChart;
     private smpsChart:SmpsChart;
+    private clockChart: SpClockChart;
+    private irqChart: SpIrqChart;
+
 
     constructor(trace: SpSystemTrace) {
         this.trace = trace;
@@ -63,6 +68,8 @@ export class SpChartManager {
         this.sdkChart = new SpSdkChart(trace);
         this.hiSyseventChart = new SpHiSysEventChart(trace);
         this.smpsChart = new SmpsChart(trace);
+        this.clockChart = new SpClockChart(trace);
+        this.irqChart = new SpIrqChart(trace)
     }
 
     async init(progress:Function){
@@ -76,7 +83,7 @@ export class SpChartManager {
         progress("cpu", 70);
         await this.cpu.init();
         info("cpu Data initialized")
-        progress("process", 73);
+        progress("process/thread state", 73);
         await this.cpu.initProcessThreadStateData(progress);
         info("ProcessThreadState Data initialized")
         progress("cpu rate", 75);
@@ -84,6 +91,10 @@ export class SpChartManager {
         info("Cpu Rate Data initialized")
         progress("cpu freq", 80);
         await this.freq.init();
+        progress("Clock init", 82);
+        await this.clockChart.init();
+        progress("Irq init", 84);
+        await this.irqChart.init();
         info("Cpu Freq Data initialized")
         await this.virtualMemChart.init();
         progress("fps", 85);

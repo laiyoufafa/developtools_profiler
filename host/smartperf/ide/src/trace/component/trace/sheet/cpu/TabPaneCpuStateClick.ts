@@ -15,9 +15,6 @@
 
 import {BaseElement, element} from "../../../../../base-ui/BaseElement.js";
 import {LitTable} from "../../../../../base-ui/table/lit-table.js";
-import {SelectionParam} from "../../../../bean/BoxSelection.js";
-import {ColorUtils} from "../../base/ColorUtils.js";
-import {CpuFreqStruct} from "../../../../bean/CpuFreqStruct.js";
 import {Utils} from "../../base/Utils.js";
 
 @element('tabpane-cpu-state-click')
@@ -28,6 +25,7 @@ export class TabPaneCpuStateClick extends BaseElement {
         if(val){
             this.tbl!.dataSource = [{
                 startNS:Utils.getTimeString(val.startTs),
+                absoluteTime:(val.startTs + (window as any).recordStartNS)/1000000000,
                 dur:Utils.getProbablyTime(val.dur),
                 state:val.value,
                 cpu:`Cpu ${val.cpu}`
@@ -60,7 +58,9 @@ export class TabPaneCpuStateClick extends BaseElement {
         }
         </style>
         <lit-table id="tb-freq" style="height: auto">
-            <lit-table-column width="1fr" title="StartTime" data-index="startNS" key="startNS" align="flex-start">
+            <lit-table-column width="1fr" title="StartTime(Relative)" data-index="startNS" key="startNS" align="flex-start">
+            </lit-table-column>
+            <lit-table-column width="1fr" title="StartTime(Absolute)" data-index="absoluteTime" key="absoluteTime" align="flex-start">
             </lit-table-column>
             <lit-table-column width="1fr" title="Duration" data-index="dur" key="dur" align="flex-start" >
             </lit-table-column>

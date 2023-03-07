@@ -14,96 +14,47 @@
  */
 
 import {
-    BaseStruct, drawFlagLine,
-    drawLines,
-    drawLoading,
-    drawSelection, drawWakeUp,
-    ns2x,
+    BaseStruct, dataFilterHandler,
+    isFrameContainPoint,
     Rect, Render,
     RequestMessage
 } from "./ProcedureWorkerCommon.js";
-export class ThreadRender extends Render{
+import {TraceRow} from "../../component/trace/base/TraceRow.js";
+
+export class ThreadRender extends Render {
+    renderMainThread(req: {
+        context: CanvasRenderingContext2D,
+        useCache: boolean,
+        type: string,
+    }, row: TraceRow<ThreadStruct>) {
+        let list = row.dataList;
+        let filter = row.dataListCache;
+        // thread(list, filter, TraceRow.range!.startNS, TraceRow.range!.endNS, TraceRow.range!.totalNS, row.frame, req.useCache || !(TraceRow.range!.refresh));
+        dataFilterHandler(list,filter,{
+            startKey: "startTime",
+            durKey: "dur",
+            startNS: TraceRow.range?.startNS ?? 0,
+            endNS: TraceRow.range?.endNS ?? 0,
+            totalNS: TraceRow.range?.totalNS ?? 0,
+            frame: row.frame,
+            paddingTop: 5,
+            useCache: req.useCache || !(TraceRow.range?.refresh ?? false)
+        })
+        req.context.beginPath();
+        for (let re of filter) {
+            ThreadStruct.draw(req.context, re)
+            if (row.isHover && re.frame && isFrameContainPoint(re.frame!,row.hoverX,row.hoverY)) {
+                ThreadStruct.hoverThreadStruct = re;
+            }
+        }
+        req.context.closePath();
+    }
+
     render(req: RequestMessage, list: Array<any>, filter: Array<any>) {
-        if (req.lazyRefresh) {
-            thread(list, filter, req.startNS, req.endNS, req.totalNS, req.frame, req.useCache || !req.range.refresh);
-        } else {
-            if (!req.useCache) {
-                thread(list, filter, req.startNS, req.endNS, req.totalNS, req.frame, false);
-            }
-        }
-        if (req.canvas) {
-            req.context.clearRect(0, 0, req.frame.width, req.frame.height);
-            let arr = filter;
-            if (arr.length > 0 && !req.range.refresh && !req.useCache && req.lazyRefresh) {
-                drawLoading(req.context, req.startNS, req.endNS, req.totalNS, req.frame, arr[0].startTime, arr[arr.length - 1].startTime + arr[arr.length - 1].dur)
-            }
-            req.context.beginPath();
-            drawLines(req.context, req.xs, req.frame.height, req.lineColor)
-            ThreadStruct.hoverThreadStruct = undefined;
-            if (req.isHover) {
-                for (let re of filter) {
-                    if (re.frame && req.hoverX >= re.frame.x && req.hoverX <= re.frame.x + re.frame.width && req.hoverY >= re.frame.y && req.hoverY <= re.frame.y + re.frame.height) {
-                        ThreadStruct.hoverThreadStruct = re;
-                        break;
-                    }
-                }
-            } else {
-                ThreadStruct.hoverThreadStruct = req.params.hoverThreadStruct;
-            }
-            ThreadStruct.selectThreadStruct = req.params.selectThreadStruct;
-            for (let re of filter) {
-                ThreadStruct.draw(req.context, re)
-            }
-            drawSelection(req.context, req.params);
-            drawWakeUp(req.context, req.wakeupBean, req.startNS, req.endNS, req.totalNS, req.frame);
-            req.context.closePath();
-            drawFlagLine(req.context, req.flagMoveInfo, req.flagSelectedInfo, req.startNS, req.endNS, req.totalNS, req.frame, req.slicesTime);
-        }
-        // @ts-ignore
-        self.postMessage({
-            id: req.id,
-            type: req.type,
-            results: req.canvas ? undefined : filter,
-            hover: ThreadStruct.hoverThreadStruct
-        });
+
     }
 }
-export function thread(list: Array<any>, res: Array<any>, startNS: number, endNS: number, totalNS: number, frame: any,use:boolean) {
-    if(use && res.length > 0){
-        for (let i = 0; i < res.length; i++) {
-            let it = res[i];
-            if((it.startTime || 0) + (it.dur || 0) > startNS && (it.startTime || 0) < endNS){
-                ThreadStruct.setThreadFrame(it, 5, startNS, endNS, totalNS, frame)
-            }else{
-                it.frame = null;
-            }
-        }
-        return;
-    }
-    res.length = 0;
-    if (list) {
-        let groups = list.filter(it => (it.startTime || 0) + (it.dur || 0) > startNS && (it.startTime || 0) < endNS).map(it => {
-            ThreadStruct.setThreadFrame(it, 5, startNS, endNS, totalNS, frame)
-            return it;
-        }).reduce((pre, current, index, arr) => {
-            (pre[`${current.frame.x}`] = pre[`${current.frame.x}`] || []).push(current);
-            return pre;
-        }, {});
-        Reflect.ownKeys(groups).map((kv => {
-            let arr = (groups[kv].sort((a: any, b: any) => b.frame.width - a.frame.width));
-            if (arr.length > 1) {
-                let idx = arr.findIndex((it: any) => it.state != "S")
-                if (idx != -1) {
-                    res.push(arr[idx]);
-                } else {
-                    res.push(arr[0]);
-                }
-            } else {
-                res.push(arr[0]);
-            }
-        }));
-    }
-}
+
 
 const padding = 3;
 
@@ -150,29 +101,6 @@ export class ThreadStruct extends BaseStruct {
     start_ts: number | undefined // null
     state: string | undefined // "S"
     type: string | undefined // "thread"
-
-    static setThreadFrame(node: any, padding: number, startNS: number, endNS: number, totalNS: number, frame: any) {
-        let x1: number;
-        let x2: number;
-        if ((node.startTime || 0) < startNS) {
-            x1 = 0;
-        } else {
-            x1 = ns2x((node.startTime || 0), startNS, endNS, totalNS, frame);
-        }
-        if ((node.startTime || 0) + (node.dur || 0) > endNS) {
-            x2 = frame.width;
-        } else {
-            x2 = ns2x((node.startTime || 0) + (node.dur || 0), startNS, endNS, totalNS, frame);
-        }
-        let getV: number = x2 - x1 <= 1 ? 1 : x2 - x1;
-        if (!node.frame) {
-            node.frame = {};
-        }
-        node.frame.x = Math.floor(x1);
-        node.frame.y = frame.y + padding;
-        node.frame.width = Math.ceil(getV);
-        node.frame.height = 30 - padding * 2;
-    }
 
     static draw(ctx: CanvasRenderingContext2D, data: ThreadStruct) {
         if (data.frame) {

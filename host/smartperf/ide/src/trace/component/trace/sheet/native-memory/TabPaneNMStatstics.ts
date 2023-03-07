@@ -17,6 +17,7 @@ import {BaseElement, element} from "../../../../../base-ui/BaseElement.js";
 import {LitTable} from "../../../../../base-ui/table/lit-table.js";
 import {SelectionParam} from "../../../../bean/BoxSelection.js";
 import {
+    queryNativeHookResponseTypes,
     queryNativeHookStatistics,
     queryNativeHookStatisticsMalloc,
     queryNativeHookStatisticsSubType
@@ -26,6 +27,7 @@ import {Utils} from "../../base/Utils.js";
 import {SpSystemTrace} from "../../../SpSystemTrace.js";
 import "../TabProgressBar.js"
 import {SpNativeMemoryChart} from "../../../chart/SpNativeMemoryChart.js";
+import {procedurePool} from "../../../../database/Procedure.js";
 
 @element('tabpane-native-statistics')
 export class TabPaneNMStatstics extends BaseElement {
@@ -46,6 +48,7 @@ export class TabPaneNMStatstics extends BaseElement {
         SpNativeMemoryChart.EVENT_HEAP.map((heap) => {
             this.allMax += heap.sumHeapSize;
         });
+        this.initResponseTypeList(val)
         // @ts-ignore
         this.tbl?.shadowRoot.querySelector(".table").style.height = (this.parentElement.clientHeight - 20) + "px"
         // @ts-ignore
@@ -124,6 +127,24 @@ export class TabPaneNMStatstics extends BaseElement {
                 data.existingValue = [data.existing, data.totalBytes, this.allMax];
                 arr.push(data);
             }
+        })
+    }
+
+    initResponseTypeList(val: SelectionParam | any){
+        let types: Array<string> = []
+        if (val.nativeMemory.indexOf("All Heap & Anonymous VM") != -1) {
+            types.push("'AllocEvent'");
+            types.push("'MmapEvent'");
+        } else {
+            if (val.nativeMemory.indexOf("All Heap") != -1) {
+                types.push("'AllocEvent'");
+            }
+            if (val.nativeMemory.indexOf("All Anonymous VM") != -1) {
+                types.push("'MmapEvent'");
+            }
+        }
+        queryNativeHookResponseTypes(val.leftNs, val.rightNs,types).then((res)=>{
+            procedurePool.submitWithName("logic1","native-memory-init-responseType",res,undefined,()=>{})
         })
     }
 

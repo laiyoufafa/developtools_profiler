@@ -24,8 +24,6 @@ ohos_source_set("hiperf_src") {
     "elf_file.cpp",
     "elf_header.cpp",
     "elf_symbol.cpp",
-
-    # "hashlist.hpp",
     "hashlist.h",
     "option.cpp",
     "perf_event_record.cpp",
@@ -57,11 +55,12 @@ ohos_source_set("hiperf_src") {
     "../../../include",
     "../../../",
     "../../../trace_streamer",
-    "//third_party/perf_include",
-    "//third_party/perf_include/linux",
-    "//third_party/perf_include/include",
+    "include",
+    "include/linux",
   ]
   include_dirs += [
+    "//third_party/perf_include/libbpf",
+    "//third_party/perf_include/musl",
     "//third_party/libunwind/include",
     "//third_party/libunwind/src",
     "//third_party/libunwind/include/tdep-x86_64",

@@ -57,6 +57,10 @@ export class TabpanePerfProfile extends BaseElement {
     private isCurrentIsTopDown:boolean = true
 
     set data(val: SelectionParam | any) {
+        if(val == this.currentSelection){
+            return;
+        }
+        this.searchValue = "";
         this.currentSelection = val
         this.modal!.style.display = 'none';
         this.tbl!.style.visibility = "visible";

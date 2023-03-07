@@ -27,6 +27,7 @@ import "../../../../base-ui/popover/LitPopoverV.js"
 import {LitPopover} from "../../../../base-ui/popover/LitPopoverV.js";
 import {info} from "../../../../log/Log.js";
 import {ColorUtils} from "./ColorUtils.js";
+import {drawSelectionRange} from "../../../database/ui-worker/ProcedureWorkerCommon.js";
 
 export class RangeSelectStruct {
     startX: number | undefined
@@ -76,6 +77,10 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     static ROW_TYPE_POWER_ENERGY = "power-energy"
     static ROW_TYPE_STATE_ENERGY = "state-energy"
     static ROW_TYPE_SMAPS = "smaps"
+    static ROW_TYPE_CLOCK_GROUP = "clock-group"
+    static ROW_TYPE_CLOCK = "clock"
+    static ROW_TYPE_IRQ_GROUP = "irq-group"
+    static ROW_TYPE_IRQ = "irq"
     static range: TimeRange | undefined | null;
     static rangeSelectObject: RangeSelectStruct | undefined
     public obj: TraceRowObject<any> | undefined | null;
@@ -87,7 +92,9 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     public isTransferCanvas = false;
     onComplete: Function | undefined;
     isComplete: boolean = false;
-    public dataList: undefined | Array<T>;
+    public dataList: Array<T> = [];
+    public dataList2: Array<T> = [];
+    public dataListCache: Array<T> = [];
     public describeEl: HTMLElement | null | undefined;
     public canvas: Array<HTMLCanvasElement> = [];
     public canvasContainer: HTMLDivElement | null | undefined;
@@ -116,6 +123,8 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     static isUserInteraction: boolean;
     asyncFuncName: string | undefined | null;
     asyncFuncNamePID: number | undefined | null;
+    translateY: number = 0;//single canvas offsetY;
+    focusHandler?: (ev: MouseEvent) => void | undefined;
 
     constructor(args: { canvasNumber: number, alpha: boolean, contextId: string, isOffScreen: boolean, skeleton?: boolean } = {
         canvasNumber: 1, alpha: false, contextId: "2d", isOffScreen: true, skeleton: false
@@ -126,11 +135,11 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
         this.initElements();
     }
 
-   static skeleton<T extends BaseStruct>(): TraceRow<T> {
-        let tr= new TraceRow<T>({
+    static skeleton<T extends BaseStruct>(): TraceRow<T> {
+        let tr = new TraceRow<T>({
             alpha: false, canvasNumber: 0, contextId: "", isOffScreen: false, skeleton: true
         });
-        tr.isTransferCanvas=true;
+        tr.isTransferCanvas = true;
         return tr;
     }
 
@@ -186,7 +195,6 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
             this.setAttribute("sleeping", "")
         } else {
             this.removeAttribute("sleeping")
-            this.draw();
         }
     }
 
@@ -277,17 +285,12 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     }
 
     get frame(): Rect | any {
-        let cHeight = 0;
-        this.canvas.forEach(it => {
-            cHeight += (it?.clientHeight || 40);
-        })
-        if(cHeight == 0) cHeight = 40;
         if (this._frame) {
             this._frame.width = (this.parentElement?.clientWidth || 0) - 248 - SpSystemTrace.scrollViewWidth;
-            this._frame.height = cHeight;
+            this._frame.height = this.clientHeight ;
             return this._frame;
         } else {
-            this._frame = new Rect(0, 0, (this.parentElement?.clientWidth || 0) - 248 - SpSystemTrace.scrollViewWidth, cHeight);
+            this._frame = new Rect(0, 0, (this.parentElement?.clientWidth || 0) - 248 - SpSystemTrace.scrollViewWidth, this.clientHeight || 40);
             return this._frame;
         }
     }
@@ -412,7 +415,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
         } else if (this.rowType == TraceRow.ROW_TYPE_THREAD) {
             tempHeight = 30;
         } else if (this.rowType == TraceRow.ROW_TYPE_SYSTEM_ENERGY) {
-            tempHeight = 90;
+            tempHeight = 80;
         } else if (this.rowType == TraceRow.ROW_TYPE_POWER_ENERGY) {
             tempHeight = 200;
         } else if (this.rowType == TraceRow.ROW_TYPE_ANOMALY_ENERGY) {
@@ -544,31 +547,16 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
         this.collectEL!.onclick = (e) => {
             this.collect = !this.collect;
             if (this.collect) {
-                this.describeEl!.draggable = true;
+                this.describeEl!.draggable = false;
             } else {
                 this.describeEl!.draggable = false;
             }
-            let spacer = this.parentElement!.previousElementSibling! as HTMLDivElement;
-            if (this.collect) {
-                let nodeList = this.parentElement!.querySelectorAll<TraceRow<any>>(`trace-row[collect-type]`);
-                if (nodeList.length == 1) collectList = [];
-                collectList.push(this);
-                spacer.style.height = `${spacer.offsetHeight + this.offsetHeight!}px`;
-            } else {
-                collectList.splice(collectList.findIndex((it) => it === this), 1);
-                spacer.style.height = `${spacer.offsetHeight - this.offsetHeight!}px`;
-                let parent = this.parentElement!.querySelector<TraceRow<any>>(`trace-row[row-id='${this.rowParentId}']`);
-                if (parent) {
-                    this.rowHidden = !parent.expansion;
+            document.dispatchEvent(new CustomEvent("collect",{
+                detail:{
+                    type:e.type,
+                    row:this
                 }
-            }
-            collectList.forEach((it, i) => {
-                if (i == 0) {
-                    it.style.top = `${spacer.offsetTop + 48}px`;
-                } else {
-                    it.style.top = `${collectList[i - 1].offsetTop + collectList[i - 1].offsetHeight}px`;
-                }
-            })
+            }))
             this.favoriteChangeHandler?.(this)
         }
         if (!this.args["skeleton"]) {
@@ -613,24 +601,27 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
             this.selectChangeHandler?.([...this.parentElement!.querySelectorAll<TraceRow<any>>("trace-row[check-type='2']")])
             return;
         }
-        let checkList = this.parentElement?.querySelectorAll<TraceRow<any>>(`trace-row[row-parent-id='${this.folder ? this.rowId : this.rowParentId}'][check-type="2"]`)
-        let unselectedList = this.parentElement?.querySelectorAll<TraceRow<any>>(`trace-row[row-parent-id='${this.folder ? this.rowId : this.rowParentId}'][check-type="0"]`)
+        let checkList = this.parentElement!.parentElement!.querySelectorAll<TraceRow<any>>(`trace-row[row-parent-id='${this.folder ? this.rowId : this.rowParentId}'][check-type="2"]`)
+        let unselectedList = this.parentElement!.parentElement!.querySelectorAll<TraceRow<any>>(`trace-row[row-parent-id='${this.folder ? this.rowId : this.rowParentId}'][check-type="0"]`)
         let parentRow = this.parentElement?.querySelector<TraceRow<any>>(`trace-row[row-id='${this.folder ? this.rowId : this.rowParentId}'][folder]`)
         let parentCheck: LitCheckBox | null | undefined = parentRow?.shadowRoot?.querySelector(".lit-check-box")
-
-        if (unselectedList!.length == 0) {
-            parentRow!.setAttribute("check-type", "2")
-            parentCheck!.checked = true
-            parentCheck!.indeterminate = false;
+        if (unselectedList?.length == 0) {
+            parentRow?.setAttribute("check-type", "2")
+            if(parentCheck){
+                parentCheck!.checked = true
+                parentCheck!.indeterminate = false;
+            }
             checkList?.forEach((it) => {
                 it.checkType = "2";
                 it.rangeSelect = true;
                 it.draw()
             })
         } else {
-            parentRow!.setAttribute("check-type", "1")
-            parentCheck!.checked = false
-            parentCheck!.indeterminate = true;
+            parentRow?.setAttribute("check-type", "1")
+            if(parentCheck){
+                parentCheck!.checked = false
+                parentCheck!.indeterminate = true;
+            }
             checkList?.forEach((it) => {
                 it.checkType = "2";
                 it.rangeSelect = true;
@@ -643,17 +634,19 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
             })
         }
 
-        if (checkList!.length == 0) {
-            parentRow!.setAttribute("check-type", "0")
-            parentCheck!.checked = false
-            parentCheck!.indeterminate = false;
+        if (checkList?.length == 0) {
+            parentRow?.setAttribute("check-type", "0")
+            if(parentCheck) {
+                parentCheck!.checked = false
+                parentCheck!.indeterminate = false;
+            }
             unselectedList?.forEach((it) => {
                 it.checkType = "0";
                 it.rangeSelect = false;
                 it.draw()
             })
         }
-        this.selectChangeHandler?.([...this.parentElement!.querySelectorAll<TraceRow<any>>("trace-row[check-type='2']")])
+        this.selectChangeHandler?.([...this.parentElement!.parentElement!.querySelectorAll<TraceRow<any>>("trace-row[check-type='2']")])
     }
 
     onMouseHover(x: number, y: number, tip: boolean = true): T | undefined | null {
@@ -670,7 +663,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
         }
         if (this.tipEL) {
             this.tipEL.style.display = 'flex';
-            if (x + this.tipEL.clientWidth > (this.canvas[0]!.clientWidth || 0)) {
+            if (x + this.tipEL.clientWidth > (this.canvasContainer!.clientWidth || 0)) {
                 this.tipEL.style.transform = `translateX(${x - this.tipEL.clientWidth - 1}px)`;
             } else {
                 this.tipEL.style.transform = `translateX(${x}px)`;
@@ -721,10 +714,25 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
                 }
             }
         } else {
-            if (this.onThreadHandler && this.dataList) {
-                this.onThreadHandler!(useCache, null);
+            if (!this.hasAttribute("row-hidden")) {
+                if (this.onThreadHandler && this.dataList) {
+                    this.onThreadHandler!(useCache, null);
+                }
             }
         }
+    }
+
+    canvasSave(ctx: CanvasRenderingContext2D) {
+        ctx.save();
+        ctx.translate(0, this.translateY);
+        const clipRect = new Path2D();
+        clipRect.rect(0, 0, this.frame.width, this.frame.height);
+        ctx.clip(clipRect);
+    }
+
+    canvasRestore(ctx: CanvasRenderingContext2D) {
+        drawSelectionRange(ctx, this);
+        ctx.restore();
     }
 
     clearCanvas(ctx: CanvasRenderingContext2D) {
@@ -834,6 +842,25 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
         }
     }
 
+    focusContain(e: MouseEvent): boolean {
+        let _y = (e.currentTarget as HTMLElement).getBoundingClientRect().y;
+        let myRect = this.getBoundingClientRect();
+        let x = e.offsetX;
+        let y = e.offsetY + _y;
+        if (x >= myRect.x && x <= myRect.x + myRect.width && y >= myRect.y && y <= myRect.y + myRect.height) {
+            this.hoverX = x - this.describeEl!.clientWidth;
+            this.hoverY = y - myRect.y;
+            this.isHover = true;
+            return true;
+        } else {
+            this.isHover = false;
+            if (this.tipEL) {
+                this.tipEL.style.display = 'none';
+            }
+            return false;
+        }
+    }
+
     initHtml(): string {
         return `
         <style>
@@ -842,7 +869,8 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
         }
         :host(:not([row-hidden])){
             box-sizing: border-box;
-            display: block;
+            display: flex;
+            flex-direction: column;
             width: 100%;
             height: min-content;
         }
@@ -851,12 +879,13 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
             display: none;
         }
         .root{
-            height: 40px;
+            height: 100%;
             width: 100%;
             display: grid;
             grid-template-rows: 100%;
             grid-template-columns: 248px 1fr;
             border-bottom: 1px solid var(--dark-border1,#dadada);
+            border-right: 15px solid var(--dark-border1,#ffffff);
             box-sizing: border-box;
         }
         .root .drag{
@@ -874,7 +903,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
         .describe{
             box-sizing: border-box;
             border-right: 1px solid var(--dark-border1,#c9d0da);
-            background-color: transparent;
+            background-color: var(--dark-background5,#ffffff);
             align-items: center;
             position: relative;
         }
@@ -889,23 +918,6 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
             width: 100%;
             position: relative;
             pointer-events: none;
-        }
-        .tip{
-            position:absolute;
-            top: 0;
-            left: 0;
-            height: 100%;
-            background-color: white;
-            border: 1px solid #f9f9f9;
-            width: auto;
-            font-size: 8px;
-            color: #50809e;
-            flex-direction: column;
-            justify-content: center;
-            align-items: flex-start;
-            padding: 2px 10px;
-            display: none;
-            user-select: none;
         }
         .name{
             color: var(--dark-color1,#4b5766);
@@ -962,6 +974,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
         }
         :host([expansion]) .describe{
             border-right: 0px;
+            background-color: var(--bark-expansion,#0C65D1);
         }
         :host([expansion]:not(sleeping)) .panel-container{
             display: none;
@@ -1006,11 +1019,11 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
             display: none;
         }
         :host([collect-type]) {
-            position:fixed;
-            z-index:1000;
+            /*position:fixed;*/
+            /*z-index:1000;*/
         }
         :host(:not([collect-type])) {
-            position:static;
+            /*position:static;*/
         }
         :host([collect-type]) .collect{
             display: block;
@@ -1086,12 +1099,6 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
                     <lit-icon name="setting" size="17" id="setting"></lit-icon>
                 </lit-popover>
                 <lit-check-box class="lit-check-box"></lit-check-box>
-            </div>
-            <div class="panel-container">
-                <div class="tip">
-                    P:process [1573]<br>
-                    T:Thread [675]
-                </div>
             </div>
         </div>
         `;

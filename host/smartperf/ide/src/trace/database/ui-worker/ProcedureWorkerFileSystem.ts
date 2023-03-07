@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 
-import { ColorUtils } from "../../component/trace/base/ColorUtils.js";
 import {
     BaseStruct,
     drawFlagLine,
@@ -22,8 +21,47 @@ import {
     drawSelection, PerfRender,
     RequestMessage
 } from "./ProcedureWorkerCommon.js";
+import {TraceRow} from "../../component/trace/base/TraceRow.js";
 
 export class FileSystemRender extends PerfRender{
+    renderMainThread(req:  {
+        context: CanvasRenderingContext2D,
+        useCache: boolean,
+        type: string,
+        chartColor:string
+    }, row:TraceRow<FileSysChartStruct>){
+        let list= row.dataList;
+        let filter = row.dataListCache;
+        let groupBy10MS = (TraceRow.range?.scale || 50) > 40_000_000;
+        let isDiskIO :boolean = req.type.includes("disk-io");
+        if(list && row.dataList2.length == 0){
+            row.dataList2 = isDiskIO ? FileSysChartStruct.groupBy10MSWithMaxLatency(list) : FileSysChartStruct.groupBy10MSWithCount(list);
+        }
+        fileSysChart(list, row.dataList2, req.type, filter,TraceRow.range?.startNS ?? 0, TraceRow.range?.endNS ?? 0, TraceRow.range?.totalNS ?? 0, row.frame, groupBy10MS,isDiskIO,req.useCache || (TraceRow.range?.refresh ?? false));
+        req.context.beginPath();
+        let find = false;
+        let hoverRect:FileSysChartStruct|undefined = undefined;
+        for (let re of filter) {
+            if (row.isHover && re.frame && row.hoverX >= re.frame.x  && row.hoverX <= re.frame.x + re.frame.width) {//&& req.hoverY >= re.frame.y && req.hoverY <= re.frame.y + re.frame.height
+                if(hoverRect == undefined || re.size! > hoverRect.size!){
+                    hoverRect = re;
+                    find = true;
+                }
+            }
+            if(re.frame && re.frame!.x > row.hoverX + 3 ){
+                break;
+            }
+        }
+        if(hoverRect){
+            FileSysChartStruct.hoverFileSysStruct = hoverRect;
+        }
+        for (let re of filter) {
+            FileSysChartStruct.draw(req.context, re,req.chartColor);
+        }
+        if(!find && row.isHover) FileSysChartStruct.hoverFileSysStruct = undefined;
+        req.context.closePath();
+    }
+
     render(req: RequestMessage, list: Array<any>, filter: Array<any>,dataList2:Array<any>){
         let groupBy10MS = req.scale > 20_000_000;
         let isDiskIO :boolean = req.type!.includes("disk-io");
@@ -56,13 +94,9 @@ export class FileSystemRender extends PerfRender{
                     }
                 }
             }
-            req.context.fillStyle = req.chartColor ?? ColorUtils.MD_PALETTE[0];
-            req.context.strokeStyle = req.chartColor ?? ColorUtils.MD_PALETTE[0];
-            let path = new Path2D();
             for (let re of filter) {
-                FileSysChartStruct.draw(req.context, path, re, groupBy10MS);
+                FileSysChartStruct.draw(req.context, re,req.chartColor);
             }
-            req.context.fill(path);
             drawSelection(req.context, req.params);
             req.context.closePath();
             drawFlagLine(req.context, req.flagMoveInfo, req.flagSelectedInfo, req.startNS, req.endNS, req.totalNS, req.frame, req.slicesTime);
@@ -77,7 +111,7 @@ export class FileSystemRender extends PerfRender{
     }
 }
 
-export function fileSysChart(arr: Array<any>, arr2: any, type: string, res: Array<any>, startNS: number, endNS: number, totalNS: number, frame: any, groupBy10MS: boolean, isDiskIO:boolean,use: boolean) {
+export function fileSysChart(arr: Array<any>, arr2: Array<any>, type: string, res: Array<any>, startNS: number, endNS: number, totalNS: number, frame: any, groupBy10MS: boolean, isDiskIO:boolean,use: boolean) {
     if (use && res.length > 0 ) {//&& !groupBy10MS
         let pns = (endNS - startNS) / frame.width;
         let y = frame.y;
@@ -102,13 +136,7 @@ export function fileSysChart(arr: Array<any>, arr2: any, type: string, res: Arra
         let pns = (endNS - startNS) / frame.width;
         let y = frame.y;
         if(groupBy10MS){
-            if (arr2[type] && arr2[type].length > 0) {
-                list = arr2[type];
-            } else {
-                list = isDiskIO ? FileSysChartStruct.groupBy10MSWithMaxLatency(arr) : FileSysChartStruct.groupBy10MSWithCount(arr);
-                arr2[type] = list;
-            }
-            list = list.filter(it => (it.startNS || 0) + (it.dur || 0) > startNS && (it.startNS || 0) < endNS);
+            list = arr2.filter(it => (it.startNS || 0) + (it.dur || 0) > startNS && (it.startNS || 0) < endNS);
             let groups = list.map(it => {
                 if (!it.frame) {
                     it.frame = {};
@@ -127,7 +155,7 @@ export function fileSysChart(arr: Array<any>, arr2: any, type: string, res: Arra
             }));
         }else{
             let filter = arr.filter(it => (it.startNS || 0) + (it.dur || 0) > startNS && (it.startNS || 0) < endNS);
-            list = FileSysChartStruct.computeHeightNoGroup(filter,totalNS);
+            list = isDiskIO ? FileSysChartStruct.computeHeightNoGroupLatency(filter,totalNS) : FileSysChartStruct.computeHeightNoGroup(filter,totalNS);
             list.map(it => {
                 if (!it.frame) {
                     it.frame = {};
@@ -142,6 +170,7 @@ export function fileSysChart(arr: Array<any>, arr2: any, type: string, res: Arra
 }
 
 export class FileSysChartStruct extends BaseStruct {
+    static hoverFileSysStruct: FileSysChartStruct | undefined;
     startNS: number | undefined;
     endNS: number | undefined;
     dur: number | undefined;
@@ -149,10 +178,11 @@ export class FileSysChartStruct extends BaseStruct {
     height: number | undefined;
     group10Ms: boolean | undefined;
 
-    static draw(ctx: CanvasRenderingContext2D, path: Path2D, data: FileSysChartStruct, groupBy10MS: boolean) {
+    static draw(ctx: CanvasRenderingContext2D, data: FileSysChartStruct,chartColor:string) {
         if (data.frame) {
-            let width = data.frame.width;
-            path.rect(data.frame.x, 40 - (data.height || 0), width, data.height || 0)
+            ctx.fillStyle = chartColor;
+            ctx.strokeStyle = chartColor;
+            ctx.fillRect(data.frame.x, 40 - (data.height || 0), data.frame.width, data.height || 0)
         }
     }
 
@@ -235,10 +265,35 @@ export class FileSysChartStruct extends BaseStruct {
                 dur: 1_000_000_0,
                 group10Ms:true,
                 size:obj[aKey].length,
-                height: height,
+                height: height < 1 ? 1 : height,
             })
         }
         return arr;
+    }
+
+    static computeHeightNoGroupLatency(array:Array<any>,totalNS:number):Array<any>{
+        if(array.length > 0){
+            let max = 0;
+            let arr:Array<any> = [];
+            for (let io of array) {
+                let ioItem = {
+                    startNS: io.startNS,
+                    dur: io.endNS > totalNS ? totalNS - io.startNS : io.endNS - io.startNS,
+                    size:io.dur,
+                    group10Ms:false,
+                    height: 0
+                };
+                max = max > ioItem.size ? max : ioItem.size;
+                arr.push(ioItem)
+            }
+            arr.map(it => {
+                let height =  Math.floor(it.size / max * 36);
+                it.height = height < 1 ? 1 : height;
+            })
+            return arr;
+        }else{
+            return [];
+        }
     }
 
     static groupBy10MSWithMaxLatency(array: Array<any>): Array<any> {
@@ -272,7 +327,7 @@ export class FileSysChartStruct extends BaseStruct {
                 dur: 1_000_000_0,
                 group10Ms:true,
                 size:obj[aKey][0].dur,
-                height: height,
+                height: height < 1 ? 1 : height,
             })
         }
         return arr;

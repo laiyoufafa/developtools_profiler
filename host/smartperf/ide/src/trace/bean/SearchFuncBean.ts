@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+import exp from "constants";
+
 export class SearchFuncBean {
     depth: number | undefined // 0
     dur: number | undefined // 570000
@@ -27,6 +29,16 @@ export class SearchFuncBean {
 export class SearchThreadProcessBean {
     type: string | undefined
     rowId:string | undefined | null
+    name:string | undefined
+    rowType:string | undefined | null
+    rowParentId:string | undefined | null
+}
+
+export class SearchSdkBean {
+    type: string | undefined
+    rowId:string | undefined | null
+    startTime: number | undefined
+    dur: number | undefined
     name:string | undefined
     rowType:string | undefined | null
     rowParentId:string | undefined | null

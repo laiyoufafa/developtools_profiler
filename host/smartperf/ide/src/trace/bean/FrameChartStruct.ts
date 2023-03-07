@@ -16,30 +16,40 @@
 import { SpApplication } from "../SpApplication.js";
 import { BaseStruct } from "./BaseStruct.js";
 import { Rect } from "../component/trace/timer-shaft/Rect.js";
-import { info } from "../../log/Log.js";
+import { info, warn } from "../../log/Log.js";
 
 const padding: number = 1;
+const lightBlue = {
+    r: 82,
+    g: 145,
+    b: 255,
+    a: 0.9
+};
 
 export class ChartStruct extends BaseStruct {
     static hoverFuncStruct: ChartStruct | undefined;
     static selectFuncStruct: ChartStruct | undefined;
     static lastSelectFuncStruct: ChartStruct | undefined;
     needShow = false;
+    isDraw = false;
     depth: number = 0;
     symbol: string = '';
+    lib: string = '';
     size: number = 0;
     count: number = 0;
     dur: number = 0;
-    type: ChartMode = ChartMode.Call;
     parent: ChartStruct | undefined;
     children: Array<ChartStruct> = [];
+    percent: number = 0;
+    addr: string = "";
+    isSearch: boolean = false;
 }
 
+
 export enum ChartMode {
-    Call,
-    Byte,
-    Count,
-    Duration,
+    Byte, // Native Memory
+    Count, // Perf
+    Duration, // eBpf
 }
 
 export function setFuncFrame(node: ChartStruct, canvas_frame: Rect, total: number, mode: ChartMode) {
@@ -66,7 +76,7 @@ export function setFuncFrame(node: ChartStruct, canvas_frame: Rect, total: numbe
                 node.frame!.width = Math.floor(node.dur / total * canvas_frame.width);
                 break;
             default:
-                info('not match ChartMode');
+                warn('not match ChartMode');
         }
         node.frame!.y = node.parent.frame!.y + 20;
         node.frame!.height = 20;
@@ -80,19 +90,20 @@ export function setFuncFrame(node: ChartStruct, canvas_frame: Rect, total: numbe
  * @param data rect which is need draw
  * @param percent function size or count / total size or count
  */
-export function draw(ctx: CanvasRenderingContext2D, data: ChartStruct, percent: number) {
+export function draw(ctx: CanvasRenderingContext2D, data: ChartStruct) {
     let spApplication = <SpApplication>document.getElementsByTagName("sp-application")[0]
     if (data.frame) {
         // draw rect
         let miniHeight = 20;
         if (isSelected(data)) {
-            ctx.fillStyle = `rgba(${82}, ${145}, ${255}, 0.9)`;
+            ctx.fillStyle = `rgba(${lightBlue.r}, ${lightBlue.g}, ${lightBlue.b}, ${lightBlue.a})`;
         } else {
-            let color = getHeatColor(percent);
+            let color = getHeatColor(data.percent);
             ctx.fillStyle = `rgba(${color.r}, ${color.g}, ${color.b}, 0.9)`;
         }
         ctx.fillRect(data.frame.x, data.frame.y, data.frame.width, miniHeight - padding * 2);
         //draw border
+        ctx.lineWidth = 0.4;
         if (isHover(data)) {
             if (spApplication.dark) {
                 ctx.strokeStyle = "#fff";
@@ -105,24 +116,28 @@ export function draw(ctx: CanvasRenderingContext2D, data: ChartStruct, percent: 
             } else {
                 ctx.strokeStyle = "#fff";
             }
+            if (data.isSearch) {
+                ctx.strokeStyle = `rgb(${lightBlue.r}, ${lightBlue.g}, ${lightBlue.b})`;
+                ctx.lineWidth = 1;
+            }
         }
-        ctx.lineWidth = 0.4;
         ctx.strokeRect(data.frame.x, data.frame.y, data.frame.width, miniHeight - padding * 2);
 
         //draw symbol name
         if (data.frame.width > 10) {
-            if (percent > 0.6 || isSelected(data)) {
+            if (data.percent > 0.6 || isSelected(data)) {
                 ctx.fillStyle = "#fff";
             } else {
                 ctx.fillStyle = "#000";
             }
             drawString(ctx, data.symbol || '', 5, data.frame);
         }
+        data.isDraw = true;
     }
 }
 
 /**
- * get framechart color by percent
+ * get frame chart color by percent
  * @param widthPercentage proportion of function
  * @returns rbg
  */

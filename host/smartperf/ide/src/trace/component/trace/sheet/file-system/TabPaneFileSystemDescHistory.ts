@@ -36,9 +36,11 @@ export class TabPaneFileSystemDescHistory extends BaseElement {
     private sortType: number = 0;
     private filterEventType: string = "0";
     private filterProcess: string = "0";
+    private filterPath: string = "0"
     private currentSelection: SelectionParam | undefined | null
     private eventList:string[] | null |undefined;
     private processList:string[] | null |undefined;
+    private pathList:string[] | null |undefined;
 
     set data(val: SelectionParam | null | undefined) {
         if (val == this.currentSelection) {
@@ -76,27 +78,44 @@ export class TabPaneFileSystemDescHistory extends BaseElement {
 
     setProcessFilter(){
         this.processList = ["All Process"];
+        this.pathList = ["All Path"]
         this.source.map(it => {
             if(this.processList!.findIndex(a => a === it.process) == -1){
                 this.processList!.push(it.process);
             }
+            if(this.pathList!.findIndex(a => a === it.path) == -1){
+                this.pathList!.push(it.path)
+            }
         })
-        this.filter!.setSelectList(this.eventList,this.processList,"","");
+        this.filter!.setSelectList(this.eventList,this.processList,"","",this.pathList,"");
         this.filter!.firstSelect = "0";
         this.filter!.secondSelect = "0";
+        this.filter!.thirdSelect = "0";
+        this.filterProcess = "0"
+        this.filterPath = "0"
+        this.filterEventType = "0"
     }
 
     filterData(){
         let pfv = parseInt(this.filterProcess)
-        if(this.filterEventType == "0"){
-            this.filterSource = pfv === 0 ? this.source :  this.source.filter((it) => it.process === this.processList![pfv]);
-        }else if(this.filterEventType == "1"){
-            this.filterSource = this.source.filter((it) => it.type == 0 && ( pfv === 0 ? true : it.process === this.processList![pfv]));
-        }else if(this.filterEventType == "2"){
-            this.filterSource = this.source.filter((it) => it.type == 1 && ( pfv === 0 ? true : it.process === this.processList![pfv]));
-        }else{
-            this.filterSource = pfv === 0 ? this.source :  this.source.filter((it) => it.process === this.processList![pfv]);
-        }
+        let pathIndex = parseInt(this.filterPath)
+        this.filterSource = this.source.filter((it) => {
+            let pathFilter = true
+            let eventFilter = true
+            let processFilter = true
+            if(this.filterPath != "0"){
+                pathFilter = it.path == this.pathList![pathIndex]
+            }
+            if(this.filterEventType == "1"){
+                eventFilter = it.type == 0
+            }else if(this.filterEventType == "2"){
+                eventFilter = it.type == 1
+            }
+            if(this.filterProcess != "0"){
+                processFilter = it.process == this.processList![pfv]
+            }
+            return pathFilter&&eventFilter&&processFilter
+        })
         this.tblData!.recycleDataSource = [];
         this.sortTable(this.sortKey,this.sortType);
     }
@@ -131,11 +150,13 @@ export class TabPaneFileSystemDescHistory extends BaseElement {
         this.filter = this.shadowRoot?.querySelector<TabPaneFilter>("#filter");
         this.eventList = ['All FD Event','All Open Event','All Close Event'];
         this.processList = ['All Process'];
-        this.filter!.setSelectList(this.eventList,this.processList,"","");
+        this.pathList = ["All Path"]
+        this.filter!.setSelectList(this.eventList,this.processList,"","",this.pathList,"");
         this.filter!.firstSelect = "0";
         this.filter!.getFilterData((data: FilterData) => {
             this.filterEventType = data.firstSelect || "0";
             this.filterProcess = data.secondSelect || "0";
+            this.filterPath = data.thirdSelect || "0";
             this.filterData();
         })
     }
@@ -246,7 +267,7 @@ export class TabPaneFileSystemDescHistory extends BaseElement {
                             <lit-table-column width="200px" title="Process" data-index="process" key="process" align="flex-start" order></lit-table-column>
                             <lit-table-column width="120px" title="Type" data-index="typeStr" key="typeStr" align="flex-start" order></lit-table-column>
                             <lit-table-column width="160px" title="File Descriptor" data-index="fd" key="fd" align="flex-start" order></lit-table-column>
-<!--                            <lit-table-column width="300px" title="Path" data-index="path" key="path" align="flex-start" ></lit-table-column>-->
+                            <lit-table-column width="300px" title="Path" data-index="path" key="path" align="flex-start" ></lit-table-column>
                             <lit-table-column width="600px" title="Backtrace" data-index="backtrace" key="backtrace" align="flex-start" >
                                 <template>
                                     <div>

@@ -19,13 +19,41 @@ import {
     drawLines,
     drawLoading,
     drawSelection,
-    drawWakeUp,
+    drawWakeUp, isFrameContainPoint,
     ns2x,
     Render,
     RequestMessage
 } from "./ProcedureWorkerCommon.js";
+import {TraceRow} from "../../component/trace/base/TraceRow.js";
+import {CounterStruct} from "./ProduceWorkerSdkCounter.js";
 
 export class SdkSliceRender extends Render {
+    renderMainThread(req: {
+        context: CanvasRenderingContext2D,
+        useCache: boolean,
+        type: string,
+        maxName:string,
+        maxValue:number
+    }, row : TraceRow<SdkSliceStruct>) {
+        let list= row.dataList;
+        let filter = row.dataListCache;
+        SdkSliceStruct.maxSdkSlice = req.maxValue;
+        SdkSliceStruct.maxSdkSliceName = req.maxName;
+        this.sdkSlice(list, filter, TraceRow.range?.startNS ?? 0, TraceRow.range?.endNS ?? 0, TraceRow.range?.totalNS ?? 0, row.frame,req.useCache || (TraceRow.range?.refresh ?? false));
+        req.context.beginPath();
+        let find = false;
+        for (let re of filter) {
+            if (row.isHover && re.frame && isFrameContainPoint(re.frame,row.hoverX,row.hoverY)) {//&& req.hoverY >= re.frame.y && req.hoverY <= re.frame.y + re.frame.height
+                SdkSliceStruct.hoverSdkSliceStruct = re;
+                find = true;
+            }
+            SdkSliceStruct.draw(req.context, re)
+
+        }
+        if(!find && row.isHover) SdkSliceStruct.hoverSdkSliceStruct = undefined;
+        req.context.closePath();
+    }
+
     render(req: RequestMessage, list: Array<any>, filter: Array<any>) {
         if (req.lazyRefresh) {
             this.sdkSlice(list, filter, req.startNS, req.endNS, req.totalNS, req.frame, req.useCache || !req.range.refresh);
@@ -92,6 +120,9 @@ export class SdkSliceRender extends Render {
         if (list) {
             for (let index = 0; index < list.length; index++) {
                 let item = list[index];
+                if (item.start_ts >= startNS && item.end_ts == 0) {
+                    item.end_ts = endNS;
+                }
                 if ((item.end_ts || 0) > (startNS || 0) && (item.start_ts || 0) < (endNS || 0)) {
                     SdkSliceStruct.setSdkSliceFrame(list[index], 5, startNS || 0, endNS || 0, totalNS || 0, frame)
                     if (index > 0 && ((list[index - 1].frame?.x || 0) == (list[index].frame?.x || 0) && (list[index - 1].frame?.width || 0) == (list[index].frame?.width || 0))) {
@@ -125,7 +156,7 @@ export class SdkSliceStruct extends BaseStruct {
             ctx.strokeStyle = "#6DC0DC"
             if (data.start_ts === SdkSliceStruct.hoverSdkSliceStruct?.start_ts) {
                 ctx.lineWidth = 1;
-                ctx.fillRect(data.frame.x, data.frame.y + 4, width, data.frame.height)
+                ctx.fillRect(data.frame.x, data.frame.y + 4, width, data.frame.height - 10)
                 ctx.beginPath()
                 ctx.arc(data.frame.x, data.frame.y + 4, 3, 0, 2 * Math.PI, true)
                 ctx.fill()
@@ -138,7 +169,7 @@ export class SdkSliceStruct extends BaseStruct {
                 ctx.stroke();
             } else {
                 ctx.lineWidth = 1;
-                ctx.fillRect(data.frame.x, data.frame.y + 4, width, data.frame.height)
+                ctx.fillRect(data.frame.x, data.frame.y + 4, width, data.frame.height - 10)
             }
         }
     }

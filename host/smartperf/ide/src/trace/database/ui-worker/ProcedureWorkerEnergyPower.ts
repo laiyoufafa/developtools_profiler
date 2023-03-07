@@ -17,13 +17,48 @@ import {
     BaseStruct,
     drawFlagLine, drawLines,
     drawLoading,
-    drawSelection,
+    drawSelection, isFrameContainPoint,
     ns2x,
     Render,
     RequestMessage
 } from "./ProcedureWorkerCommon.js";
+import {TraceRow} from "../../component/trace/base/TraceRow.js";
 
 export class EnergyPowerRender extends Render {
+
+    renderMainThread(req: { useCache: boolean; context: CanvasRenderingContext2D; type: string; appName:string;}, row: TraceRow<EnergyPowerStruct>) {
+        let list = row.dataList
+        let filter = row.dataListCache;
+        power(list, filter,TraceRow.range!.startNS, TraceRow.range!.endNS, TraceRow.range!.totalNS, row.frame,req.useCache || !TraceRow.range!.refresh, req.appName)
+        req.context.beginPath();
+        let find = false;
+        for (let i = 0; i < filter.length; i++) {
+            let re = filter[i]
+            EnergyPowerStruct.draw(req,i, re,row)
+            if (row.isHover && re.frame  && isFrameContainPoint(re.frame, row.hoverX, row.hoverY)) {
+                EnergyPowerStruct.hoverEnergyPowerStruct = re;
+                find = true;
+            }
+        }
+        if (!find && row.isHover) EnergyPowerStruct.hoverEnergyPowerStruct = undefined;
+        TraceRow.range!.refresh = true
+        if (EnergyPowerStruct.maxPower != 0) {
+            let s = EnergyPowerStruct.maxPower + "mAs"
+            let textMetrics = req.context.measureText(s);
+            req.context.globalAlpha = 1.0
+            req.context.fillStyle = "#f0f0f0"
+            req.context.fillRect(0, 5, textMetrics.width + 8, 18)
+            req.context.globalAlpha = 1
+            req.context.fillStyle = "#333"
+            req.context.textBaseline = "middle"
+            req.context.fillText(s, 4, 5 + 9)
+        }
+        req.context.closePath();
+        let spApplication = document.getElementsByTagName("sp-application")[0];
+        let isDark = spApplication.hasAttribute("dark");
+        drawLegend(req, isDark);
+    }
+
     render(req: RequestMessage, list: Array<any>, filter: Array<any>) {
         if (req.lazyRefresh) {
             power(list, filter, req.startNS, req.endNS, req.totalNS, req.frame, req.useCache
@@ -53,13 +88,13 @@ export class EnergyPowerRender extends Render {
             }
             EnergyPowerStruct.selectEnergyPowerStruct = req.params.selectEnergyPowerStruct;
             for (let index = 0; index < filter.length; index++) {
-                EnergyPowerStruct.draw(req, index, filter[index])
+                // EnergyPowerStruct.draw(req, index, filter[index])
             }
             req.context.stroke();
             drawSelection(req.context, req.params);
             req.context.closePath();
             if (EnergyPowerStruct.maxPower != 0) {
-                let s = EnergyPowerStruct.maxPower.toString()
+                let s = EnergyPowerStruct.maxPower + "mAs"
                 let textMetrics = req.context.measureText(s);
                 req.context.globalAlpha = 1.0
                 req.context.fillStyle = "#f0f0f0"
@@ -83,28 +118,31 @@ export class EnergyPowerRender extends Render {
     }
 }
 
-export function drawLegend(req: RequestMessage){
+export function drawLegend(req: any, isDark?: boolean){
     let textList = ["CPU", "LOCATION", "GPU", "DISPLAY", "CAMERA", "BLUETOOTH", "FLASHLIGHT", "AUDIO", "WIFISCAN"]
     for (let index = 0; index < textList.length; index++) {
         let text = req.context.measureText(textList[index]);
         req.context.fillStyle = EnergyPowerStruct.getHistogramColor(textList[index]);
         req.context.globalAlpha = 1
+        let canvasEndX = req.context.canvas.clientWidth - EnergyPowerStruct.OFFSET_WIDTH;
+        let textColor = isDark ? "#FFFFFF" : "#333";
         if(index == 0){
-            req!.context.fillRect(req.canvas.width - (EnergyPowerStruct.powerItemNumber * 80), 12, 8, 8);
+            req!.context.fillRect(canvasEndX - (EnergyPowerStruct.powerItemNumber * 80), 12, 8, 8);
             req.context.globalAlpha = 1
-            req.context.fillStyle = "#333"
+            req.context.fillStyle = textColor;
             req.context.textBaseline = "middle"
-            req.context.fillText(textList[index], req.canvas.width - (EnergyPowerStruct.powerItemNumber * 80) + 10, 18)
-            EnergyPowerStruct.currentTextWidth = req.canvas.width - (EnergyPowerStruct.powerItemNumber * 80) + 40 + text.width
+            req.context.fillText(textList[index], canvasEndX - (EnergyPowerStruct.powerItemNumber * 80) + 10, 18)
+            EnergyPowerStruct.currentTextWidth = canvasEndX - (EnergyPowerStruct.powerItemNumber * 80) + 40 + text.width
         } else {
             req!.context.fillRect(EnergyPowerStruct.currentTextWidth, 12, 8, 8);
             req.context.globalAlpha = 1
-            req.context.fillStyle = "#333"
+            req.context.fillStyle = textColor;
             req.context.textBaseline = "middle"
             req!.context.fillText(textList[index], EnergyPowerStruct.currentTextWidth + 12, 18);
             EnergyPowerStruct.currentTextWidth = EnergyPowerStruct.currentTextWidth + 40 + text.width
         }
     }
+    req.context.fillStyle = "#333";
 }
 
 export function power(list: Array<any>, res: Array<any>, startNS: number, endNS: number, totalNS: number,
@@ -182,6 +220,7 @@ export class EnergyPowerStruct extends BaseStruct {
     static appName: string | undefined
     static hoverEnergyPowerStruct: EnergyPowerStruct | undefined;
     static selectEnergyPowerStruct: EnergyPowerStruct | undefined;
+    static OFFSET_WIDTH: number = 266
     name: string | undefined
     ts: number = 0
     cpu: number = 0
@@ -194,36 +233,39 @@ export class EnergyPowerStruct extends BaseStruct {
     audio: number = 0
     wifiscan: number = 0
 
-    static draw(req: RequestMessage, index: number, data: EnergyPowerStruct) {
+    static draw(req: any, index: number, data: EnergyPowerStruct,row:TraceRow<EnergyPowerStruct>) {
         if (data.frame) {
             let width = data.frame.width || 0;
             req!.context.globalAlpha = 1.0;
             req!.context.lineWidth = 1;
             this.currentTextWidth = 0
-            let cpuHeight = this.drawHistogram(req, data, -1, data.cpu!, "CPU");
-            let locationHeight = this.drawHistogram(req, data, cpuHeight, data.location!, "LOCATION");
+            let cpuHeight = this.drawHistogram(req, data, -1, data.cpu!, "CPU", row.frame);
+            let locationHeight = this.drawHistogram(req, data, cpuHeight, data.location!, "LOCATION", row.frame);
             let gpuHeight = this.drawHistogram(req, data, cpuHeight - locationHeight, data.gpu!,
-                "GPU");
+                "GPU", row.frame);
             let displayHeight = this.drawHistogram(req, data,
-                cpuHeight - locationHeight - gpuHeight, data.display!, "DISPLAY");
+                cpuHeight - locationHeight - gpuHeight, data.display!, "DISPLAY", row.frame);
             let cameraHeight = this.drawHistogram(req, data, cpuHeight - locationHeight - gpuHeight -
-                displayHeight, data.camera!, "CAMERA");
+                displayHeight, data.camera!, "CAMERA", row.frame);
             let bluetoothHeight = this.drawHistogram(req, data, cpuHeight - locationHeight - gpuHeight -
-                displayHeight - cameraHeight, data.bluetooth!, "BLUETOOTH");
+                displayHeight - cameraHeight, data.bluetooth!, "BLUETOOTH", row.frame);
             let flashlightHeight = this.drawHistogram(req, data, cpuHeight - locationHeight - gpuHeight -
-                displayHeight - cameraHeight - bluetoothHeight, data.flashlight!, "FLASHLIGHT");
+                displayHeight - cameraHeight - bluetoothHeight, data.flashlight!, "FLASHLIGHT", row.frame);
             let audioHeight = this.drawHistogram(req, data, cpuHeight - locationHeight - gpuHeight -
                 displayHeight - cameraHeight - bluetoothHeight - flashlightHeight, data.audio!,
-                "AUDIO");
+                "AUDIO", row.frame);
             let wifiHeight = this.drawHistogram(req, data, cpuHeight - locationHeight - gpuHeight -
                 displayHeight - cameraHeight - bluetoothHeight - flashlightHeight - audioHeight, data.wifiscan!,
-                "WIFISCAN");
-            let maxPointY = this.drawPolyline(req, index, data)
+                "WIFISCAN", row.frame);
+            let maxPointY = this.drawPolyline(req, index, data, row.frame, wifiHeight)
             if (data.ts === EnergyPowerStruct.hoverEnergyPowerStruct?.ts) {
+                let endPointX = ns2x(((data.ts || 0) + 500000000), TraceRow.range!.startNS, TraceRow.range!.endNS, TraceRow.range!.totalNS, row.frame);
+                let startPointX = ns2x(((data.ts || 0) - 500000000), TraceRow.range!.startNS, TraceRow.range!.endNS, TraceRow.range!.totalNS, row.frame);
+                let frameWidth = endPointX - startPointX <= 1 ? 1 : endPointX - startPointX;
                 req.context.globalAlpha = 1
                 req!.context.lineWidth = 2;
                 req.context.fillStyle = "#333"
-                req!.context.strokeRect(data.frame!.x, maxPointY, data.frame!.width, req.canvas.width - maxPointY);
+                req!.context.strokeRect(startPointX, maxPointY, frameWidth, req.context.canvas.width - maxPointY);
             }
         }
         req!.context.globalAlpha = 1.0;
@@ -231,27 +273,36 @@ export class EnergyPowerStruct extends BaseStruct {
     }
 
     static drawHistogram(req: RequestMessage, data: EnergyPowerStruct, height: number, itemValue: number,
-                         textItem: string): number {
+                         textItem: string,rowFrame:any): number {
+        let endPointX = ns2x(((data.ts || 0) + 500000000), TraceRow.range!.startNS, TraceRow.range!.endNS, TraceRow.range!.totalNS, rowFrame);
+        let startPointX = ns2x(((data.ts || 0) - 500000000), TraceRow.range!.startNS, TraceRow.range!.endNS, TraceRow.range!.totalNS, rowFrame);
+        let frameWidth = endPointX - startPointX <= 1 ? 1 : endPointX - startPointX;
         let histogramColor = this.getHistogramColor(textItem);
         req!.context.fillStyle = histogramColor;
         req!.context.strokeStyle = histogramColor;
         let dataHeight: number = Math.floor(((itemValue || 0) * (this.rowHeight - 40)) /
             EnergyPowerStruct.maxPower);
+        if (itemValue != 0 && dataHeight < 15) {
+            dataHeight = 15
+        }
         let drawStartY = 0;
 
         if (height == -1) {
             drawStartY = data.frame!.y + this.rowHeight - dataHeight + 4;
-            req!.context.fillRect(data.frame!.x, drawStartY, data.frame!.width, dataHeight);
+            req!.context.fillRect(startPointX, drawStartY, frameWidth, dataHeight);
             return drawStartY;
         } else {
             drawStartY = height - dataHeight;
-            req!.context.fillRect(data.frame!.x, drawStartY, data.frame!.width, dataHeight);
+            req!.context.fillRect(startPointX, drawStartY, frameWidth, dataHeight);
+            if(textItem == 'WIFISCAN'){
+                return drawStartY;
+            }
             return dataHeight;
         }
     }
 
-    static drawPolyline(req: RequestMessage, index: number, data: EnergyPowerStruct) {
-        let pointX = ns2x(((data.ts || 0) + 500000000), req.startNS, req.endNS, req.totalNS, req.frame);
+    static drawPolyline(req: RequestMessage, index: number, data: EnergyPowerStruct, rowFrame:any, totalHeight: number) {
+        let pointX = ns2x((data.ts || 0), TraceRow.range!.startNS, TraceRow.range!.endNS, TraceRow.range!.totalNS, rowFrame);
         let maxHeight = (data.cpu || 0) + (data.location || 0) + (data.gpu || 0) + (data.display || 0) + (data.camera
             || 0) + (data.bluetooth || 0) + (data.flashlight || 0) + (data.audio || 0) + (data.wifiscan || 0)
         let drawHeight: number = Math.floor(((maxHeight || 0) * (this.rowHeight - 40)) /
@@ -262,17 +313,17 @@ export class EnergyPowerStruct extends BaseStruct {
 
         if (index == 0) {
             req.context.beginPath()
-            req.context.arc(pointX, drawY, 4, 0, 2 * Math.PI)
+            req.context.arc(pointX, totalHeight, 4, 0, 2 * Math.PI)
             req.context.fill()
-            req.context.moveTo(pointX, drawY)
+            req.context.moveTo(pointX, totalHeight)
         } else {
-            req.context.lineTo(pointX, drawY);
+            req.context.lineTo(pointX, totalHeight);
             req.context.stroke();
             req.context.beginPath()
-            req.context.arc(pointX, drawY, 4, 0, 2 * Math.PI)
+            req.context.arc(pointX, totalHeight, 4, 0, 2 * Math.PI)
             req.context.fill()
         }
-        return drawY
+        return totalHeight
     }
 
     static setPowerFrame(node: any, padding: number, startNS: number, endNS: number, totalNS: number, frame: any) {
@@ -281,12 +332,12 @@ export class EnergyPowerStruct extends BaseStruct {
         if ((node.ts || 0) < startNS) {
             startPointX = 0
         } else {
-            startPointX = ns2x((node.ts || 0), startNS, endNS, totalNS, frame);
+            startPointX = ns2x(((node.ts || 0) - 500000000), startNS, endNS, totalNS, frame);
         }
-        if ((node.ts + 1000000000) > endNS) {
+        if ((node.ts + 500000000) > endNS) {
             endPointX = frame.width;
         } else {
-            endPointX = ns2x((node.ts + 1000000000), startNS, endNS, totalNS, frame);
+            endPointX = ns2x((node.ts + 500000000), startNS, endNS, totalNS, frame);
         }
         let frameWidth = endPointX - startPointX <= 1 ? 1 : endPointX - startPointX;
         if (!node.frame) {

@@ -29,7 +29,7 @@
         /* Inline code */
         :not(pre) > code[class*="font-"] {
             white-space: normal;
-            background: #fcf8f8;
+            background: #f5f5f1;
             padding: 1px .2em;
             border-radius: 1px .3em;
         }
@@ -750,6 +750,17 @@
     <p><img src="../figures/hdc/Device.jpg" alt="GitHub Logo"></p>
     <p class="fontColor">点击Probes config,如选择抓取Scheduling details</p>
     <p><img src="../figures/hdc/Schedulingdetails.jpg" alt="GitHub Logo"></p>
+    <p class="fontColor">抓取项说明：</p>
+    <ul class="fontColor">
+        <li>Scheduling details:线程切换事件,暂停恢复方法,线程唤醒事件,进程退出和销毁处理,新建线程处理方法,线程重命名处理方法</li>
+        <li>CPU Frequency and idle states:CPU频率信息和CPU空闲状态</li>
+        <li>Advanced ftrace config:线程切换事件,暂停恢复方法,线程唤醒事件,进程退出和销毁处理,新建线程处理方法,线程重命名处理方法,IRQ事件,时钟频率处理方法,Binder事件,线程调用堆栈开始和结束的处理</li>
+        <li>AbilityMonitor:进程的CPU,内存,磁盘,网络使用情况</li>
+        <li>Kernel meminfo:内核内存</li>
+        <li>Virtual memory stats:系统虚拟内存</li>
+        <li>Hitrace categories:Bytrace的抓取项,各解释项说明如下图：</li>
+    </ul>
+    <p><img src="../figures/hdc/bytacedescription.jpg" alt="GitHub Logo"></p>
     <p class="fontColor">再点击Record setting,在output file path输入文件名hiprofiler_data_example.htrace,拖动滚动条设置buffer size大小是64M,抓取时长是50s</p>
     <p><img src="../figures/hdc/examplerecord.jpg" alt="GitHub Logo"></p>
     <p class="fontColor">点击Trace command,就会根据上面的配置生成抓取命令,点击Record</p>

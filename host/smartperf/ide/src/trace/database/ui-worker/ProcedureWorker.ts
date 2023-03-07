@@ -24,7 +24,6 @@ import {ThreadRender} from "./ProcedureWorkerThread.js";
 import {FuncRender} from "./ProcedureWorkerFunc.js";
 import {FpsRender} from "./ProcedureWorkerFPS.js";
 import {HeapRender, NativeMemoryRender} from "./ProcedureWorkerHeap.js";
-import {TimelineRender} from "./ProcedureWorkerTimeline.js";
 import {CpuAbilityRender} from "./ProcedureWorkerCpuAbility.js";
 import {MemoryAbilityRender} from "./ProcedureWorkerMemoryAbility.js";
 import {DiskIoAbilityRender} from "./ProcedureWorkerDiskIoAbility.js";
@@ -46,19 +45,22 @@ import {EnergyPowerRender} from "./ProcedureWorkerEnergyPower.js";
 import {EnergyStateRender} from "./ProcedureWorkerEnergyState.js";
 import {SmapsRender} from "./ProcedureWorkerSmaps.js";
 import {CpuFreqLimitRender} from "./ProcedureWorkerCpuFreqLimits.js";
+import {ClockRender} from "./ProcedureWorkerClock.js";
+import {IrqRender} from "./ProcedureWorkerIrq.js";
 
 let dataList: any = {}
 let dataList2: any = {}
 let dataFilter: any = {}
 let canvasList: any = {}
 let contextList: any = {}
-let renders: any = {
-    "timeline": new TimelineRender(),
+export let renders: any = {
+    // "timeline": new TimelineRender(),
     "cpu-data": new CpuRender(),
     "cpu-state": new CpuStateRender(),
     "cpu-limit-freq": new CpuFreqLimitRender(),
     "fps": new FpsRender(),
     "freq": new FreqRender(),
+    "empty": new EmptyRender(),
     "virtual-memory-folder": new EmptyRender(),
     "virtual-memory-cell": new VirtualMemoryRender(),
     "file-system-group": new EmptyRender(),
@@ -80,13 +82,15 @@ let renders: any = {
     "monitorMemory": new MemoryAbilityRender(),
     "monitorDiskIo": new DiskIoAbilityRender(),
     "monitorNetwork": new NetworkAbilityRender(),
-    "sdkSlice": new SdkSliceRender(),
-    "sdkCounter": new SdkCounterRender(),
+    "sdk-slice": new SdkSliceRender(),
+    "sdk-counter": new SdkCounterRender(),
     "energyAnomaly": new EnergyAnomalyRender(),
     "energySystem": new EnergySystemRender(),
     "energyPower": new EnergyPowerRender(),
     "energyState": new EnergyStateRender(),
     "smaps": new SmapsRender(),
+    "clock":new ClockRender(),
+    "irq":new IrqRender()
 };
 
 function match(type: string, req: RequestMessage) {

@@ -12,11 +12,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 set -e
+protoc='protoc'
+proto_dir='.'
+case "$OSTYPE" in
+  msys*)    out='../../out/windows' protoc='protoc.exe' proto_dir=$( cd "$(dirname "${BASH_SOURCE[0]}")" && pwd) ;;
+  darwin*)  out='../../out/macx' proto_dir=$( cd "$(dirname "${BASH_SOURCE[0]}")" && pwd) ;;
+  linux*)   out='../../out/linux'  proto_dir=$( cd "$(dirname "${BASH_SOURCE[0]}")" && pwd) ;;
+  *)        echo "other: $OSTYPE" ;;
+esac
+echo $proto_dir
 SOURCE="${BASH_SOURCE[0]}"
 cd $(dirname ${SOURCE})
+if [ ! -f $out/$protoc ];then
+    echo "no $out/$protoc found, you need to run \"./build.sh protoc\" at root folder, and copy protoc.exe to $out/$protoc"
+    exit
+fi
 echo "begin to generate proto based files"
 SOURCE=$(dirname ${SOURCE})
-proto_dir="."
 services_dir="$proto_dir/services"
 # kernel_version="5.10.79_aarch64"
 kernel_version="."
@@ -65,10 +77,6 @@ proto_array=("${services_dir}/common_types.proto"
     "$ftrace_data_dir/timer.proto"
     "$ftrace_data_dir/raw_syscalls.proto"
     "$ftrace_data_dir/rcu.proto"
-    # "$ftrace_data_dir/mmc.proto"
-    # "$ftrace_data_dir/f2fs.proto"
-    # "$ftrace_data_dir/gpu_mem.proto"
-    # "$ftrace_data_dir/regulator.proto"
     "$memory_data_dir/memory_plugin_common.proto"
     "$memory_data_dir/memory_plugin_config.proto"
     "$memory_data_dir/memory_plugin_result.proto"
@@ -79,16 +87,18 @@ proto_array=("${services_dir}/common_types.proto"
     "$network_data_dir/network_plugin_result.proto"
     "$cpu_data_dir/cpu_plugin_result.proto"
     "$diskio_data_dir/diskio_plugin_result.proto"
+    "$hisysevent_data_dir/hisysevent_plugin_config.proto"
     "$process_data_dir/process_plugin_result.proto"
     "$hisysevent_data_dir/hisysevent_plugin_result.proto")
 
-export LD_LIBRARY_PATH=../../out/linux
+export LD_LIBRARY_PATH=$out
 for ((i = 0; i < ${#proto_array[@]}; i ++))
 do
    newpath=$(dirname ${proto_array[$i]})
-   newpath=${newpath:2}
+   tailpath='\'${newpath#$proto_dir}
+   newpath=${tailpath:2}
    cppout=../../third_party/protogen/$newpath
    mkdir -p $cppout
-   ../../out/linux/protoc --proto_path=$memory_data_dir:$native_hook_dir:$hidump_data_dir:$hilog_data_dir:$ftrace_data_dir:$services_dir:$network_data_dir:$cpu_data_dir:$diskio_data_dir:$process_data_dir:$hisysevent_data_dir --cpp_out=$cppout ${proto_array[$i]}
+   $out/$protoc --proto_path=$memory_data_dir:$native_hook_dir:$hidump_data_dir:$hilog_data_dir:$ftrace_data_dir:$services_dir:$network_data_dir:$cpu_data_dir:$diskio_data_dir:$process_data_dir:$hisysevent_data_dir --cpp_out=$cppout ${proto_array[$i]}
 done
 echo "generate proto based files over"

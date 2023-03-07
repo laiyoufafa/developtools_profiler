@@ -26,8 +26,8 @@ describe('ProcedureWorkerEnergySystem Test', () => {
             height: 100
         }
         let dataList = new Array();
-        dataList.push({startNS: 0, dur: 10, length: 1, frame: {x: 0, y: 9, width: 10, height: 10}})
-        dataList.push({startNS: 1, dur: 2, length: 1})
+        dataList.push({startNs: 0, dur: 10, length: 1, frame: {x: 0, y: 9, width: 10, height: 10}})
+        dataList.push({startNs: 1, dur: 2, length: 1})
         system(dataList, [{length: 1}], 1, 3, 2, frame, true)
     });
 
@@ -38,10 +38,15 @@ describe('ProcedureWorkerEnergySystem Test', () => {
             width: 100,
             height: 100
         }
+
+        let aa: any = []
         let dataList = new Array();
-        dataList.push({startNS: 0, dur: 10, length: 1, frame: {x: 0, y: 9, width: 10, height: 10}})
-        dataList.push({startNS: 1, dur: 2, length: 1})
-        system(dataList, [{length: 0}], 1, 3, 2, frame, false)
+        dataList.push({startNs: 0, dur: 10, frame: {x: 0, y: 9, width: 10, height: 10}});
+        dataList.push({startNs: 1, dur: 2})
+        aa[0] = dataList
+        aa[1] = dataList
+        aa[2] = dataList
+        system(aa , [], 1, 3, 2, frame, false)
     });
 
     it('ProcedureWorkerEnergyStateTest04', function () {

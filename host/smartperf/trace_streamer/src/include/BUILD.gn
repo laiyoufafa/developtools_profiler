@@ -16,6 +16,7 @@ ohos_source_set("ibase") {
     "codec_cov.h",
     "file.h",
     "log.h",
+    "numerical_to_string.h",
     "parting_string.h",
     "string_to_numerical.h",
   ]
