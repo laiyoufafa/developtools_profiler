@@ -57,7 +57,7 @@ def get_decl_str(inf):
     #   @inf: input file
     # Return:
     #   Declaration string of system call, e.g.
-    #   do_sys_openat2(open, int, dfd, const char __user *, filename, struct open_how *, how)
+    #   do_sys_openat2(open, int, dfd, const char __user*, filename, struct open_how *, how)
     '''
     decl_str = inf.readline()
     if decl_str == "":
@@ -81,10 +81,10 @@ def get_decl_list(decl_str):
     #   Split declaration string into list
     # Arguments:
     #   @decl_str: system call declaration string, e.g.
-    #       do_sys_openat2(open, int, dfd, const char __user *, filename, struct open_how *, how)
+    #       do_sys_openat2(open, int, dfd, const char __user*, filename, struct open_how *, how)
     # Return:
     #   Declaration list, e.g.
-    #   ['do_sys_openat2', 'open', 'int', 'dfd', 'const char __user *', 'filename', 'struct open_how *', 'how']
+    #   ['do_sys_openat2', 'open', 'int', 'dfd', 'const char __user*', 'filename', 'struct open_how *', 'how']
     '''
     decl_list = decl_str.split('(')
     if len(decl_list) < 2:
@@ -110,10 +110,10 @@ def get_args_list(decl_list):
     #   Truncate the prefix and system call entry name from the declaration list
     # Arguments:
     #   @decl_list: Declaration list, e.g.
-    #       ['do_sys_openat2', 'open', 'int', 'dfd', 'const char __user *', 'filename', 'struct open_how *', 'how']
+    #       ['do_sys_openat2', 'open', 'int', 'dfd', 'const char __user*', 'filename', 'struct open_how *', 'how']
     # Return:
     #   Arguments list of system call, e.g.
-    #       ['open', 'int', 'dfd', 'const char __user *', 'filename', 'struct open_how *', 'how']
+    #       ['open', 'int', 'dfd', 'const char __user*', 'filename', 'struct open_how *', 'how']
     '''
     if len(decl_list) < MIN_DECL_LIST_LEN:
         print("failed to get arguments list from %s" % decl_list)
@@ -127,7 +127,7 @@ def gen_kprobe_sec(decl_list):
     #   Generate the kprobe prog type declaration, e.g. SEC("kprobe/__arm64_sys_open")
     # Arguments:
     #   @decl_list: Declaration list, e.g.
-    #       ['do_sys_openat2', 'open', 'int', 'dfd', 'const char __user *', 'filename', 'struct open_how *', 'how']
+    #       ['do_sys_openat2', 'open', 'int', 'dfd', 'const char __user*', 'filename', 'struct open_how *', 'how']
     # Return:
     #   kprobe prog type declaration, e.g. SEC("kprobe/do_sys_openat2")
     '''
@@ -147,7 +147,7 @@ def gen_kretprobe_sec(decl_list):
     #   Generate the kretprobe prog type declaration, e.g. SEC("kretprobe/__arm64_sys_open")
     # Arguments:
     #   @decl_list: Declaration list, e.g.
-    #       ['do_sys_openat2', 'open', 'int', 'dfd', 'const char __user *', 'filename', 'struct open_how *', 'how']
+    #       ['do_sys_openat2', 'open', 'int', 'dfd', 'const char __user*', 'filename', 'struct open_how *', 'how']
     # Return:
     #   kretprobe prog type declaration, e.g. SEC("kretprobe/do_sys_openat2")
     '''
@@ -168,10 +168,10 @@ def gen_kprobe_decl(decl_list):
     #   int BPF_KPROBE(do_sys_openat2_entry, int dfd, const char* filename, struct open_how* how)
     # Arguments:
     #   @decl_list: Declaration list, e.g.
-    #       ['do_sys_openat2', 'open', 'int', 'dfd', 'const char __user *', 'filename', 'struct open_how *', 'how']
+    #       ['do_sys_openat2', 'open', 'int', 'dfd', 'const char __user*', 'filename', 'struct open_how *', 'how']
     # Return:
     #   kprobe prog declaration, e.g.
-    #   int BPF_KPROBE(do_sys_openat2_entry, int dfd, const char __user *filename, struct open_how *how)
+    #   int BPF_KPROBE(do_sys_openat2_entry, int dfd, const char __user* filename, struct open_how *how)
     '''
     if len(decl_list) < MIN_DECL_LIST_LEN:
         print("failed to generate kprobe prog declaration from %s" % decl_list)
@@ -200,7 +200,7 @@ def gen_kretprobe_decl(decl_list):
     #   int BPF_KRETPROBE(__arm64_sys_open_exit, long long ret)
     # Arguments:
     #   @decl_list: Declaration list, e.g.
-    #       ['do_sys_openat2', 'open', 'int', 'dfd', 'const char __user *', 'filename', 'struct open_how *', 'how']
+    #       ['do_sys_openat2', 'open', 'int', 'dfd', 'const char __user*', 'filename', 'struct open_how *', 'how']
     # Return:
     #   kretprobe prog declaration, e.g.
     #   int BPF_KRETPROBE(do_sys_openat2_exit, long long ret)
@@ -275,7 +275,7 @@ def get_args_type(decl_list):
     #   Get the arguments struct type, e.g. struct sys_pidfd_open_args_t
     # Arguments:
     #   @decl_list: Declaration list, e.g.
-    #       ['do_sys_openat2', 'open', 'int', 'dfd', 'const char __user *', 'filename', 'struct open_how *', 'how']
+    #       ['do_sys_openat2', 'open', 'int', 'dfd', 'const char __user*', 'filename', 'struct open_how *', 'how']
     # Return:
     #   arguments struct type, e.g. struct sys_open_args_t
     '''
@@ -294,7 +294,7 @@ def get_arg_variable_name(decl_list):
     #   Get the arguments struct type instance name, e.g. pidfd_open_args
     # Arguments:
     #   @decl_list: Declaration list, e.g.
-    #       ['do_sys_openat2', 'open', 'int', 'dfd', 'const char __user *', 'filename', 'struct open_how *', 'how']
+    #       ['do_sys_openat2', 'open', 'int', 'dfd', 'const char __user*', 'filename', 'struct open_how *', 'how']
     # Return:
     #   the arguments struct type instance name, e.g. open_args
     '''
@@ -311,7 +311,7 @@ def get_arg_member_index(decl_list):
     #   Get the member name list of arguments type
     # Arguments:
     #    @decl_list: Declaration list, e.g.
-    #       ['do_sys_openat2', 'open', 'int', 'dfd', 'const char __user *', 'filename', 'struct open_how *', 'how']
+    #       ['do_sys_openat2', 'open', 'int', 'dfd', 'const char __user*', 'filename', 'struct open_how *', 'how']
     # Return:
     #   member name list of arguments type, e.g. ['pid', 'flags']
     '''
@@ -337,7 +337,7 @@ def gen_kprobe_code(decl_list):
     #   Generate system call specific code of BPF kprobe prog
     # Arguments:
     #   @decl_list: Declaration list, e.g.
-    #      ['do_sys_openat2', 'open', 'int', 'dfd', 'const char __user *', 'filename', 'struct open_how *', 'how']
+    #      ['do_sys_openat2', 'open', 'int', 'dfd', 'const char __user*', 'filename', 'struct open_how *', 'how']
     # Return:
     # system call specific code string of BPF kprobe prog
     '''
@@ -429,7 +429,7 @@ def gen_struct_str(args_list):
     # Function:
     #   Generate arguments type struct, e.g.
     #   struct sys_open_args_t {
-    #       const char __user * filename;
+    #       const char __user* filename;
     #       int flags;
     #       umode_t mode;
     #   }
@@ -439,7 +439,7 @@ def gen_struct_str(args_list):
     # Return:
     #   arguments type struct, e.g.
     #   struct sys_open_args_t {
-    #       const char __user * filename;
+    #       const char __user* filename;
     #       int flags;
     #       umode_t mode;
     #   }
