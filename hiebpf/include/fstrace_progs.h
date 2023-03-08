@@ -16,7 +16,7 @@
 /* This line is generated to truncate the original file */
 /************************** fstrace BPF progs BEGIN *****************************/
 SEC("kprobe/do_sys_openat2")
-int BPF_KPROBE(do_sys_openat2_entry, int dfd, const char __user * filename, struct open_how * how)
+int BPF_KPROBE(do_sys_openat2_entry, int dfd, const char __user* filename, struct open_how* how)
 {
     if (check_current_pid(-1, -1) != 0) {
         // not any one of target processes, skip it
@@ -56,7 +56,7 @@ int BPF_KRETPROBE(do_sys_openat2_exit, int64_t retval)
 }
 
 SEC("kprobe/ksys_read")
-int BPF_KPROBE(ksys_read_entry, unsigned int fd, char __user * buf, size_t count)
+int BPF_KPROBE(ksys_read_entry, unsigned int fd, char __user* buf, size_t count)
 {
     if (check_current_pid(-1, -1) != 0) {
         // not any one of target processes, skip it
@@ -95,7 +95,7 @@ int BPF_KRETPROBE(ksys_read_exit, int64_t retval)
 }
 
 SEC("kprobe/ksys_write")
-int BPF_KPROBE(ksys_write_entry, unsigned int fd, const char __user * buf, size_t count)
+int BPF_KPROBE(ksys_write_entry, unsigned int fd, const char __user* buf, size_t count)
 {
     if (check_current_pid(-1, -1) != 0) {
         // not any one of target processes, skip it
@@ -134,7 +134,7 @@ int BPF_KRETPROBE(ksys_write_exit, int64_t retval)
 }
 
 SEC("kprobe/ksys_pread64")
-int BPF_KPROBE(ksys_pread64_entry, unsigned int fd, char __user * buf, size_t count, loff_t pos)
+int BPF_KPROBE(ksys_pread64_entry, unsigned int fd, char __user* buf, size_t count, loff_t pos)
 {
     if (check_current_pid(-1, -1) != 0) {
         // not any one of target processes, skip it
@@ -174,7 +174,7 @@ int BPF_KRETPROBE(ksys_pread64_exit, int64_t retval)
 }
 
 SEC("kprobe/ksys_pwrite64")
-int BPF_KPROBE(ksys_pwrite64_entry, unsigned int fd, const char __user * buf, size_t count, loff_t pos)
+int BPF_KPROBE(ksys_pwrite64_entry, unsigned int fd, const char __user* buf, size_t count, loff_t pos)
 {
     if (check_current_pid(-1, -1) != 0) {
         // not any one of target processes, skip it
@@ -214,7 +214,7 @@ int BPF_KRETPROBE(ksys_pwrite64_exit, int64_t retval)
 }
 
 SEC("kprobe/do_readv")
-int BPF_KPROBE(do_readv_entry, unsigned long fd, const struct iovec __user * vec, unsigned long vlen, rwf_t flags)
+int BPF_KPROBE(do_readv_entry, unsigned long fd, const struct iovec __user* vec, unsigned long vlen, rwf_t flags)
 {
     if (check_current_pid(-1, -1) != 0) {
         // not any one of target processes, skip it
@@ -254,7 +254,7 @@ int BPF_KRETPROBE(do_readv_exit, int64_t retval)
 }
 
 SEC("kprobe/do_writev")
-int BPF_KPROBE(do_writev_entry, unsigned long fd, const struct iovec __user * vec, unsigned long vlen, rwf_t flags)
+int BPF_KPROBE(do_writev_entry, unsigned long fd, const struct iovec __user* vec, unsigned long vlen, rwf_t flags)
 {
     if (check_current_pid(-1, -1) != 0) {
         // not any one of target processes, skip it
@@ -295,7 +295,7 @@ int BPF_KRETPROBE(do_writev_exit, int64_t retval)
 
 SEC("kprobe/do_preadv")
 int BPF_KPROBE(do_preadv_entry,
-               unsigned long fd, const struct iovec __user * vec,
+               unsigned long fd, const struct iovec __user* vec,
                unsigned long vlen, loff_t pos, rwf_t flags)
 {
     if (check_current_pid(-1, -1) != 0) {
@@ -338,7 +338,7 @@ int BPF_KRETPROBE(do_preadv_exit, int64_t retval)
 
 SEC("kprobe/do_pwritev")
 int BPF_KPROBE(do_pwritev_entry,
-               unsigned long fd, const struct iovec __user * vec,
+               unsigned long fd, const struct iovec __user* vec,
                unsigned long vlen, loff_t pos, rwf_t flags)
 {
     if (check_current_pid(-1, -1) != 0) {
@@ -380,7 +380,7 @@ int BPF_KRETPROBE(do_pwritev_exit, int64_t retval)
 }
 
 SEC("kprobe/__close_fd")
-int BPF_KPROBE(__close_fd_entry, struct files_struct * files, unsigned fd)
+int BPF_KPROBE(__close_fd_entry, struct files_struct* files, unsigned fd)
 {
     if (check_current_pid(-1, -1) != 0) {
         // not any one of target processes, skip it
