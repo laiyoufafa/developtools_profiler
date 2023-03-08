@@ -68,7 +68,7 @@ def get_decl_str(inf):
         while True:
             line = inf.readline()
             line = line.strip()
-            decl_str = "{}{}".format(decl_str,line)
+            decl_str = "{}{}".format(decl_str, line)
             if (decl_str[-1] == '"'):
                 break
         decl_str = decl_str[1:-1]
