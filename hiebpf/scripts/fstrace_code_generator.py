@@ -506,7 +506,8 @@ def output_fstrace_code(fstrace_progs_file, fstrace_types_file, fstrace_targets_
                         for type_def_line in type_def_lines_reduced:
                             type_def_str_reduced = "{}{}\n".format(type_def_str_reduced, type_def_line)
                         args_output_file.write(type_def_str_reduced)
-                        start_event_def  = "{}        struct sys_{}_args_t {}_args;\n".format(start_event_def, fn_name, fn_name)
+                        start_event_def  = "{}        struct sys_{}_args_t {}_args;\n".format(start_event_def,
+                                                                                              fn_name, fn_name)
                         if count == 1:
                             arg_type = "SYS_{} = 1".format(fn_name.upper())
                             count = 0
