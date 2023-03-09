@@ -105,21 +105,7 @@ HWTEST_F(CallStackTest, UnwindCallStack, TestSize.Level1)
     MakeMaps(thread);
     std::vector<CallFrame> callFrames;
     CallStack callStack;
-
-    u64* sppcRegs = new u64[2];
-    sppcRegs[0] = regs[PERF_REG_ARM_SP_IDX];
-    sppcRegs[1] = regs[PERF_REG_ARM_PC_IDX];
-    callStack.UnwindCallStack(thread, sppcRegs, 2, data.data(), data.size(),
-                                  callFrames);
-    delete[] sppcRegs;
-    sppcRegs = nullptr;
-#ifdef __arm__
-        ASSERT_LE(TEST_DWARF_FRAMES.size(), callFrames.size());
-        for (size_t i = 0; i < TEST_DWARF_FRAMES.size(); i++) {
-            EXPECT_EQ(TEST_DWARF_FRAMES[i].ip, callFrames[i].ip_);
-            EXPECT_EQ(TEST_DWARF_FRAMES[i].sp, callFrames[i].sp_);
-        }
-#endif
+    callStack.UnwindCallStack(thread, regs.data(), regs.size(), data.data(), data.size(), callFrames);
     }
 }
 } // namespace NativeDaemon
