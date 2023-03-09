@@ -231,26 +231,21 @@ void* hook_malloc(void* (*fn)(size_t), size_t size)
         stackSize = 0;
 #endif
     } else {
-        uint64_t* regs = reinterpret_cast<uint64_t*>(&(rawdata.regs));
+        unsigned long* regs = reinterpret_cast<unsigned long*>(&(rawdata.regs));
+        unw_context_t context;
+        unw_getcontext(&context);
 #if defined(__arm__)
-        asm volatile(
-            "mov r3, r13\n"
-            "mov r4, r15\n"
-            "stmia %[base], {r3-r4}\n"
-            : [ base ] "+r"(regs)
-            :
-            : "r3", "r4", "memory");
+        if (memcpy_s(regs, sizeof(rawdata.regs), reinterpret_cast<char*>(context.regs),
+                     sizeof(context.regs)) != EOK) {
+            HILOG_ERROR(LOG_CORE, "memcpy_s regs failed");
+        }
 #elif defined(__aarch64__)
-        asm volatile(
-            "1:\n"
-            "stp x28, x29, [%[base], #224]\n"
-            "str x30, [%[base], #240]\n"
-            "mov x12, sp\n"
-            "adr x13, 1b\n"
-            "stp x12, x13, [%[base], #248]\n"
-            : [ base ] "+r"(regs)
-            :
-            : "x12", "x13", "memory");
+        if (memcpy_s(regs, sizeof(rawdata.regs), reinterpret_cast<char*>(context.uc_mcontext.regs),
+                     sizeof(context.uc_mcontext.regs)) != EOK) {
+            HILOG_ERROR(LOG_CORE, "memcpy_s regs failed");
+        }
+        regs[RegisterGetSP(buildArchType)] = context.uc_mcontext.sp;
+        regs[RegisterGetIP(buildArchType)] = context.uc_mcontext.pc;
 #endif
         stackptr = reinterpret_cast<const char*>(regs[RegisterGetSP(buildArchType)]);
         GetRuntimeStackEnd(stackptr, &stackendptr, g_hookPid, GetCurThreadId());  // stack end pointer
@@ -325,26 +320,21 @@ void* hook_calloc(void* (*fn)(size_t, size_t), size_t number, size_t size)
         stackSize = 0;
 #endif
     } else {
-        uint64_t* regs = reinterpret_cast<uint64_t*>(&(rawdata.regs));
+        unsigned long* regs = reinterpret_cast<unsigned long*>(&(rawdata.regs));
+        unw_context_t context;
+        unw_getcontext(&context);
 #if defined(__arm__)
-        asm volatile(
-            "mov r3, r13\n"
-            "mov r4, r15\n"
-            "stmia %[base], {r3-r4}\n"
-            : [ base ] "+r"(regs)
-            :
-            : "r3", "r4", "memory");
+        if (memcpy_s(regs, sizeof(rawdata.regs), reinterpret_cast<char*>(context.regs),
+                     sizeof(context.regs)) != EOK) {
+            HILOG_ERROR(LOG_CORE, "memcpy_s regs failed");
+        }
 #elif defined(__aarch64__)
-        asm volatile(
-            "1:\n"
-            "stp x28, x29, [%[base], #224]\n"
-            "str x30, [%[base], #240]\n"
-            "mov x12, sp\n"
-            "adr x13, 1b\n"
-            "stp x12, x13, [%[base], #248]\n"
-            : [ base ] "+r"(regs)
-            :
-            : "x12", "x13", "memory");
+        if (memcpy_s(regs, sizeof(rawdata.regs), reinterpret_cast<char*>(context.uc_mcontext.regs),
+                     sizeof(context.uc_mcontext.regs)) != EOK) {
+            HILOG_ERROR(LOG_CORE, "memcpy_s regs failed");
+        }
+        regs[RegisterGetSP(buildArchType)] = context.uc_mcontext.sp;
+        regs[RegisterGetIP(buildArchType)] = context.uc_mcontext.pc;
 #endif
         stackptr = reinterpret_cast<const char*>(regs[RegisterGetSP(buildArchType)]);
         GetRuntimeStackEnd(stackptr, &stackendptr, g_hookPid, GetCurThreadId());  // stack end pointer
@@ -413,26 +403,21 @@ void* hook_realloc(void* (*fn)(void*, size_t), void* ptr, size_t size)
         }
 #endif
     } else {
-        uint64_t* regs = reinterpret_cast<uint64_t*>(&(rawdata.regs));
+        unsigned long* regs = reinterpret_cast<unsigned long*>(&(rawdata.regs));
+        unw_context_t context;
+        unw_getcontext(&context);
 #if defined(__arm__)
-        asm volatile(
-            "mov r3, r13\n"
-            "mov r4, r15\n"
-            "stmia %[base], {r3-r4}\n"
-            : [ base ] "+r"(regs)
-            :
-            : "r3", "r4", "memory");
+        if (memcpy_s(regs, sizeof(rawdata.regs), reinterpret_cast<char*>(context.regs),
+                     sizeof(context.regs)) != EOK) {
+            HILOG_ERROR(LOG_CORE, "memcpy_s regs failed");
+        }
 #elif defined(__aarch64__)
-        asm volatile(
-            "1:\n"
-            "stp x28, x29, [%[base], #224]\n"
-            "str x30, [%[base], #240]\n"
-            "mov x12, sp\n"
-            "adr x13, 1b\n"
-            "stp x12, x13, [%[base], #248]\n"
-            : [ base ] "+r"(regs)
-            :
-            : "x12", "x13", "memory");
+        if (memcpy_s(regs, sizeof(rawdata.regs), reinterpret_cast<char*>(context.uc_mcontext.regs),
+                     sizeof(context.uc_mcontext.regs)) != EOK) {
+            HILOG_ERROR(LOG_CORE, "memcpy_s regs failed");
+        }
+        regs[RegisterGetSP(buildArchType)] = context.uc_mcontext.sp;
+        regs[RegisterGetIP(buildArchType)] = context.uc_mcontext.pc;
 #endif
         stackptr = reinterpret_cast<const char*>(regs[RegisterGetSP(buildArchType)]);
         GetRuntimeStackEnd(stackptr, &stackendptr, g_hookPid, GetCurThreadId());  // stack end pointer
@@ -514,26 +499,21 @@ void hook_free(void (*free_func)(void*), void* p)
             stackSize = 0;
 #endif
         } else {
-            uint64_t* regs = reinterpret_cast<uint64_t*>(&(rawdata.regs));
+            unsigned long* regs = reinterpret_cast<unsigned long*>(&(rawdata.regs));
+            unw_context_t context;
+            unw_getcontext(&context);
 #if defined(__arm__)
-            asm volatile(
-                "mov r3, r13\n"
-                "mov r4, r15\n"
-                "stmia %[base], {r3-r4}\n"
-                : [ base ] "+r"(regs)
-                :
-                : "r3", "r4", "memory");
+            if (memcpy_s(regs, sizeof(rawdata.regs), reinterpret_cast<char*>(context.regs),
+                         sizeof(context.regs)) != EOK) {
+                HILOG_ERROR(LOG_CORE, "memcpy_s regs failed");
+            }
 #elif defined(__aarch64__)
-            asm volatile(
-                "1:\n"
-                "stp x28, x29, [%[base], #224]\n"
-                "str x30, [%[base], #240]\n"
-                "mov x12, sp\n"
-                "adr x13, 1b\n"
-                "stp x12, x13, [%[base], #248]\n"
-                : [ base ] "+r"(regs)
-                :
-                : "x12", "x13", "memory");
+            if (memcpy_s(regs, sizeof(rawdata.regs), reinterpret_cast<char*>(context.uc_mcontext.regs),
+                         sizeof(context.uc_mcontext.regs)) != EOK) {
+                HILOG_ERROR(LOG_CORE, "memcpy_s regs failed");
+            }
+            regs[RegisterGetSP(buildArchType)] = context.uc_mcontext.sp;
+            regs[RegisterGetIP(buildArchType)] = context.uc_mcontext.pc;
 #endif
             stackptr = reinterpret_cast<const char*>(regs[RegisterGetSP(buildArchType)]);
             GetRuntimeStackEnd(stackptr, &stackendptr, g_hookPid, GetCurThreadId());  // stack end pointer
@@ -586,26 +566,21 @@ void* hook_mmap(void*(*fn)(void*, size_t, int, int, int, off_t),
         stackSize = 0;
 #endif
     } else {
-        uint64_t* regs = reinterpret_cast<uint64_t*>(&(rawdata.regs));
+        unsigned long* regs = reinterpret_cast<unsigned long*>(&(rawdata.regs));
+        unw_context_t context;
+        unw_getcontext(&context);
 #if defined(__arm__)
-        asm volatile(
-            "mov r3, r13\n"
-            "mov r4, r15\n"
-            "stmia %[base], {r3-r4}\n"
-            : [ base ] "+r"(regs)
-            :
-            : "r3", "r4", "memory");
+        if (memcpy_s(regs, sizeof(rawdata.regs), reinterpret_cast<char*>(context.regs),
+                     sizeof(context.regs)) != EOK) {
+            HILOG_ERROR(LOG_CORE, "memcpy_s regs failed");
+        }
 #elif defined(__aarch64__)
-        asm volatile(
-            "1:\n"
-            "stp x28, x29, [%[base], #224]\n"
-            "str x30, [%[base], #240]\n"
-            "mov x12, sp\n"
-            "adr x13, 1b\n"
-            "stp x12, x13, [%[base], #248]\n"
-            : [ base ] "+r"(regs)
-            :
-            : "x12", "x13", "memory");
+        if (memcpy_s(regs, sizeof(rawdata.regs), reinterpret_cast<char*>(context.uc_mcontext.regs),
+                     sizeof(context.uc_mcontext.regs)) != EOK) {
+            HILOG_ERROR(LOG_CORE, "memcpy_s regs failed");
+        }
+        regs[RegisterGetSP(buildArchType)] = context.uc_mcontext.sp;
+        regs[RegisterGetIP(buildArchType)] = context.uc_mcontext.pc;
 #endif
         stackptr = reinterpret_cast<const char*>(regs[RegisterGetSP(buildArchType)]);
         GetRuntimeStackEnd(stackptr, &stackendptr, g_hookPid, GetCurThreadId());  // stack end pointer
@@ -657,26 +632,21 @@ int hook_munmap(int(*fn)(void*, size_t), void* addr, size_t length)
             stackSize = 0;
 #endif
         } else {
-            uint64_t* regs = reinterpret_cast<uint64_t*>(&(rawdata.regs));
+            unsigned long* regs = reinterpret_cast<unsigned long*>(&(rawdata.regs));
+            unw_context_t context;
+            unw_getcontext(&context);
 #if defined(__arm__)
-            asm volatile(
-                "mov r3, r13\n"
-                "mov r4, r15\n"
-                "stmia %[base], {r3-r4}\n"
-                : [ base ] "+r"(regs)
-                :
-                : "r3", "r4", "memory");
+            if (memcpy_s(regs, sizeof(rawdata.regs), reinterpret_cast<char*>(context.regs),
+                         sizeof(context.regs)) != EOK) {
+                HILOG_ERROR(LOG_CORE, "memcpy_s regs failed");
+            }
 #elif defined(__aarch64__)
-            asm volatile(
-                "1:\n"
-                "stp x28, x29, [%[base], #224]\n"
-                "str x30, [%[base], #240]\n"
-                "mov x12, sp\n"
-                "adr x13, 1b\n"
-                "stp x12, x13, [%[base], #248]\n"
-                : [ base ] "+r"(regs)
-                :
-                : "x12", "x13", "memory");
+            if (memcpy_s(regs, sizeof(rawdata.regs), reinterpret_cast<char*>(context.uc_mcontext.regs),
+                         sizeof(context.uc_mcontext.regs)) != EOK) {
+                HILOG_ERROR(LOG_CORE, "memcpy_s regs failed");
+            }
+            regs[RegisterGetSP(buildArchType)] = context.uc_mcontext.sp;
+            regs[RegisterGetIP(buildArchType)] = context.uc_mcontext.pc;
 #endif
             stackptr = reinterpret_cast<const char*>(regs[RegisterGetSP(buildArchType)]);
             GetRuntimeStackEnd(stackptr, &stackendptr, g_hookPid, GetCurThreadId());  // stack end pointer
@@ -761,26 +731,21 @@ void hook_memtrace(void* addr, size_t size, const char* tag, bool isUsing)
         stackSize = 0;
 #endif
     } else {
-        uint64_t* regs = reinterpret_cast<uint64_t*>(&(rawdata.regs));
+        unsigned long* regs = reinterpret_cast<unsigned long*>(&(rawdata.regs));
+        unw_context_t context;
+        unw_getcontext(&context);
 #if defined(__arm__)
-        asm volatile(
-            "mov r3, r13\n"
-            "mov r4, r15\n"
-            "stmia %[base], {r3-r4}\n"
-            : [ base ] "+r"(regs)
-            :
-            : "r3", "r4", "memory");
+        if (memcpy_s(regs, sizeof(rawdata.regs), reinterpret_cast<char*>(context.regs),
+                     sizeof(context.regs)) != EOK) {
+            HILOG_ERROR(LOG_CORE, "memcpy_s regs failed");
+        }
 #elif defined(__aarch64__)
-        asm volatile(
-            "1:\n"
-            "stp x28, x29, [%[base], #224]\n"
-            "str x30, [%[base], #240]\n"
-            "mov x12, sp\n"
-            "adr x13, 1b\n"
-            "stp x12, x13, [%[base], #248]\n"
-            : [ base ] "+r"(regs)
-            :
-            : "x12", "x13", "memory");
+        if (memcpy_s(regs, sizeof(rawdata.regs), reinterpret_cast<char*>(context.uc_mcontext.regs),
+                     sizeof(context.uc_mcontext.regs)) != EOK) {
+            HILOG_ERROR(LOG_CORE, "memcpy_s regs failed");
+        }
+        regs[RegisterGetSP(buildArchType)] = context.uc_mcontext.sp;
+        regs[RegisterGetIP(buildArchType)] = context.uc_mcontext.pc;
 #endif
         stackptr = reinterpret_cast<const char*>(regs[RegisterGetSP(buildArchType)]);
         GetRuntimeStackEnd(stackptr, &stackendptr, g_hookPid, GetCurThreadId());  // stack end pointer
