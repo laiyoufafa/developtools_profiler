@@ -42,10 +42,10 @@ def handle_macro(decl_str):
     var_name = macro_list[1]
     var_name = var_name[:-1]
     var_name = var_name.strip()
-    expansion = "u64, " + var_name
+    expansion = "u64, {}".format(var_name)
     left = decl_str[:start]
     right = decl_str[start + macro_str_len:]
-    decl_str = left + expansion + right
+    decl_str = "{}{}{}".format(left, expansion, right)
     return decl_str
 
 
@@ -57,7 +57,7 @@ def get_decl_str(inf):
     #   @inf: input file
     # Return:
     #   Declaration string of system call, e.g.
-    #   do_sys_openat2(open, int, dfd, const char __user *, filename, struct open_how *, how)
+    #   do_sys_openat2(open, int, dfd, const char __user*, filename, struct open_how *, how)
     '''
     decl_str = inf.readline()
     if decl_str == "":
@@ -68,7 +68,7 @@ def get_decl_str(inf):
         while True:
             line = inf.readline()
             line = line.strip()
-            decl_str += line
+            decl_str = "{}{}".format(decl_str, line)
             if (decl_str[-1] == '"'):
                 break
         decl_str = decl_str[1:-1]
@@ -81,10 +81,10 @@ def get_decl_list(decl_str):
     #   Split declaration string into list
     # Arguments:
     #   @decl_str: system call declaration string, e.g.
-    #       do_sys_openat2(open, int, dfd, const char __user *, filename, struct open_how *, how)
+    #       do_sys_openat2(open, int, dfd, const char __user*, filename, struct open_how *, how)
     # Return:
     #   Declaration list, e.g.
-    #   ['do_sys_openat2', 'open', 'int', 'dfd', 'const char __user *', 'filename', 'struct open_how *', 'how']
+    #   ['do_sys_openat2', 'open', 'int', 'dfd', 'const char __user*', 'filename', 'struct open_how *', 'how']
     '''
     decl_list = decl_str.split('(')
     if len(decl_list) < 2:
@@ -110,10 +110,10 @@ def get_args_list(decl_list):
     #   Truncate the prefix and system call entry name from the declaration list
     # Arguments:
     #   @decl_list: Declaration list, e.g.
-    #       ['do_sys_openat2', 'open', 'int', 'dfd', 'const char __user *', 'filename', 'struct open_how *', 'how']
+    #       ['do_sys_openat2', 'open', 'int', 'dfd', 'const char __user*', 'filename', 'struct open_how *', 'how']
     # Return:
     #   Arguments list of system call, e.g.
-    #       ['open', 'int', 'dfd', 'const char __user *', 'filename', 'struct open_how *', 'how']
+    #       ['open', 'int', 'dfd', 'const char __user*', 'filename', 'struct open_how *', 'how']
     '''
     if len(decl_list) < MIN_DECL_LIST_LEN:
         print("failed to get arguments list from %s" % decl_list)
@@ -127,7 +127,7 @@ def gen_kprobe_sec(decl_list):
     #   Generate the kprobe prog type declaration, e.g. SEC("kprobe/__arm64_sys_open")
     # Arguments:
     #   @decl_list: Declaration list, e.g.
-    #       ['do_sys_openat2', 'open', 'int', 'dfd', 'const char __user *', 'filename', 'struct open_how *', 'how']
+    #       ['do_sys_openat2', 'open', 'int', 'dfd', 'const char __user*', 'filename', 'struct open_how *', 'how']
     # Return:
     #   kprobe prog type declaration, e.g. SEC("kprobe/do_sys_openat2")
     '''
@@ -137,7 +137,7 @@ def gen_kprobe_sec(decl_list):
     probe_str = '\nSEC("kprobe/'
     syscall_fn_index = 0
     syscall = decl_list[syscall_fn_index]
-    probe_str = probe_str + syscall + '")\n'
+    probe_str = '{}{}")\n'.format(probe_str, syscall)
     return probe_str
 
 
@@ -147,7 +147,7 @@ def gen_kretprobe_sec(decl_list):
     #   Generate the kretprobe prog type declaration, e.g. SEC("kretprobe/__arm64_sys_open")
     # Arguments:
     #   @decl_list: Declaration list, e.g.
-    #       ['do_sys_openat2', 'open', 'int', 'dfd', 'const char __user *', 'filename', 'struct open_how *', 'how']
+    #       ['do_sys_openat2', 'open', 'int', 'dfd', 'const char __user*', 'filename', 'struct open_how *', 'how']
     # Return:
     #   kretprobe prog type declaration, e.g. SEC("kretprobe/do_sys_openat2")
     '''
@@ -157,7 +157,7 @@ def gen_kretprobe_sec(decl_list):
     probe_str = '\nSEC("kretprobe/'
     syscall_fn_index = 0
     syscall = decl_list[syscall_fn_index]
-    probe_str = probe_str + syscall + '")\n'
+    probe_str = '{}{}")\n'.format(probe_str, syscall)
     return probe_str
 
 
@@ -168,18 +168,18 @@ def gen_kprobe_decl(decl_list):
     #   int BPF_KPROBE(do_sys_openat2_entry, int dfd, const char* filename, struct open_how* how)
     # Arguments:
     #   @decl_list: Declaration list, e.g.
-    #       ['do_sys_openat2', 'open', 'int', 'dfd', 'const char __user *', 'filename', 'struct open_how *', 'how']
+    #       ['do_sys_openat2', 'open', 'int', 'dfd', 'const char __user*', 'filename', 'struct open_how *', 'how']
     # Return:
     #   kprobe prog declaration, e.g.
-    #   int BPF_KPROBE(do_sys_openat2_entry, int dfd, const char __user *filename, struct open_how *how)
+    #   int BPF_KPROBE(do_sys_openat2_entry, int dfd, const char __user* filename, struct open_how *how)
     '''
     if len(decl_list) < MIN_DECL_LIST_LEN:
         print("failed to generate kprobe prog declaration from %s" % decl_list)
         return ""
     prog_decl = "int BPF_KPROBE("
     syscall_fn_index = 0
-    prog_name = decl_list[syscall_fn_index] + "_entry"
-    prog_decl += prog_name
+    prog_name = "{}_entry".format(decl_list[syscall_fn_index])
+    prog_decl = "{}{}".format(prog_decl, prog_name)
     index = MIN_DECL_LIST_LEN + 1
     count = 0
     max_nr_args = 5
@@ -189,7 +189,7 @@ def gen_kprobe_decl(decl_list):
         prog_decl = '%s, %s %s' % (prog_decl, decl_list[index - 1], decl_list[index])
         index += 2
         count += 1
-    prog_decl += ")"
+    prog_decl = "{})".format(prog_decl)
     return prog_decl
 
 
@@ -200,7 +200,7 @@ def gen_kretprobe_decl(decl_list):
     #   int BPF_KRETPROBE(__arm64_sys_open_exit, long long ret)
     # Arguments:
     #   @decl_list: Declaration list, e.g.
-    #       ['do_sys_openat2', 'open', 'int', 'dfd', 'const char __user *', 'filename', 'struct open_how *', 'how']
+    #       ['do_sys_openat2', 'open', 'int', 'dfd', 'const char __user*', 'filename', 'struct open_how *', 'how']
     # Return:
     #   kretprobe prog declaration, e.g.
     #   int BPF_KRETPROBE(do_sys_openat2_exit, long long ret)
@@ -210,8 +210,8 @@ def gen_kretprobe_decl(decl_list):
         return ""
     prog_decl = "int BPF_KRETPROBE("
     syscall_fn_index = 0
-    prog_name = decl_list[syscall_fn_index] + "_exit"
-    prog_decl += prog_name + ", int64_t retval)"
+    prog_name = "{}_exit".format(decl_list[syscall_fn_index])
+    prog_decl = "{}{}, int64_t retval)".format(prog_decl, prog_name)
     return prog_decl
 
 HEAD_BPF_PROG_CODE = (
@@ -275,7 +275,7 @@ def get_args_type(decl_list):
     #   Get the arguments struct type, e.g. struct sys_pidfd_open_args_t
     # Arguments:
     #   @decl_list: Declaration list, e.g.
-    #       ['do_sys_openat2', 'open', 'int', 'dfd', 'const char __user *', 'filename', 'struct open_how *', 'how']
+    #       ['do_sys_openat2', 'open', 'int', 'dfd', 'const char __user*', 'filename', 'struct open_how *', 'how']
     # Return:
     #   arguments struct type, e.g. struct sys_open_args_t
     '''
@@ -284,7 +284,7 @@ def get_args_type(decl_list):
         return ""
     args_type_index = 1
     fn_name = decl_list[args_type_index]
-    args_type_str = "struct sys_" + fn_name + "_args_t"
+    args_type_str = "struct sys_{}_args_t".format(fn_name)
     return args_type_str
 
 
@@ -294,7 +294,7 @@ def get_arg_variable_name(decl_list):
     #   Get the arguments struct type instance name, e.g. pidfd_open_args
     # Arguments:
     #   @decl_list: Declaration list, e.g.
-    #       ['do_sys_openat2', 'open', 'int', 'dfd', 'const char __user *', 'filename', 'struct open_how *', 'how']
+    #       ['do_sys_openat2', 'open', 'int', 'dfd', 'const char __user*', 'filename', 'struct open_how *', 'how']
     # Return:
     #   the arguments struct type instance name, e.g. open_args
     '''
@@ -302,7 +302,7 @@ def get_arg_variable_name(decl_list):
         print("failed to get arguments variable name from %s" % decl_list)
         return ""
     args_type_index = 1
-    return decl_list[args_type_index] + "_args"
+    return "{}_args".format(decl_list[args_type_index])
 
 
 def get_arg_member_index(decl_list):
@@ -311,7 +311,7 @@ def get_arg_member_index(decl_list):
     #   Get the member name list of arguments type
     # Arguments:
     #    @decl_list: Declaration list, e.g.
-    #       ['do_sys_openat2', 'open', 'int', 'dfd', 'const char __user *', 'filename', 'struct open_how *', 'how']
+    #       ['do_sys_openat2', 'open', 'int', 'dfd', 'const char __user*', 'filename', 'struct open_how *', 'how']
     # Return:
     #   member name list of arguments type, e.g. ['pid', 'flags']
     '''
@@ -337,7 +337,7 @@ def gen_kprobe_code(decl_list):
     #   Generate system call specific code of BPF kprobe prog
     # Arguments:
     #   @decl_list: Declaration list, e.g.
-    #      ['do_sys_openat2', 'open', 'int', 'dfd', 'const char __user *', 'filename', 'struct open_how *', 'how']
+    #      ['do_sys_openat2', 'open', 'int', 'dfd', 'const char __user*', 'filename', 'struct open_how *', 'how']
     # Return:
     # system call specific code string of BPF kprobe prog
     '''
@@ -349,9 +349,9 @@ def gen_kprobe_code(decl_list):
     if args_var_name == "":
         return ""
     args_type_index = 1
-    event_type = "SYS_" + decl_list[args_type_index].upper()
-    code_str = "    fs_se->type = " + event_type + ";\n"
-    var_decl_str = indent + args_type + "* args = &fs_se->" + args_var_name + ";\n"
+    event_type = "SYS_{}".format(decl_list[args_type_index].upper())
+    code_str = "    fs_se->type = {};\n".format(event_type)
+    var_decl_str = "{}{}* args = &fs_se->{};\n".format(indent, args_type, args_var_name)
     member_index_list = get_arg_member_index(decl_list)
     assignment_code_str = ""
     count = 0
@@ -360,12 +360,12 @@ def gen_kprobe_code(decl_list):
         if count >= max_nr_args:
             break
         member_name = decl_list[index]
-        assignment_str = indent + "args->" + member_name + " = " + member_name + ";\n"
+        assignment_str = "{}args->{} = {};\n".format(indent, member_name, member_name)
         if member_name == "filename":
-            assignment_str += indent + "emit_strtrace_event(fs_se->stime, fs_se->type, filename, FSTRACE);\n"
-        assignment_code_str += assignment_str
+            assignment_str = "{}{}emit_strtrace_event(fs_se->stime, fs_se->type, filename, FSTRACE);\n".format(assignment_str, indent)
+        assignment_code_str = "{}{}".format(assignment_code_str, assignment_str)
         count += 1
-    code_str += var_decl_str + assignment_code_str
+    code_str = "{}{}{}".format(code_str, var_decl_str, assignment_code_str)
     return code_str
 
 
@@ -384,7 +384,7 @@ def gen_kretprobe_code(decl_list):
         return ""
     fn_name = decl_list[2]
     tracer = "FSTRACE"
-    return "    return emit_event(ctx, retval, " + tracer + ");"
+    return "    return emit_event(ctx, retval, {});".format(tracer)
 
 
 def underscore_int_types(arg_type):
@@ -420,7 +420,7 @@ def underscore_int_types(arg_type):
     for index, arg_item in enumerate(arg_type_list):
         if index == 0:
             continue
-        arg_type = "%s %s" % (arg_type_list[index])
+        arg_type = "%s %s" % (arg_type, arg_type_list[index])
     return arg_type
 
 
@@ -429,7 +429,7 @@ def gen_struct_str(args_list):
     # Function:
     #   Generate arguments type struct, e.g.
     #   struct sys_open_args_t {
-    #       const char __user * filename;
+    #       const char __user* filename;
     #       int flags;
     #       umode_t mode;
     #   }
@@ -439,7 +439,7 @@ def gen_struct_str(args_list):
     # Return:
     #   arguments type struct, e.g.
     #   struct sys_open_args_t {
-    #       const char __user * filename;
+    #       const char __user* filename;
     #       int flags;
     #       umode_t mode;
     #   }
@@ -452,8 +452,8 @@ def gen_struct_str(args_list):
     while index < length:
         if index == 0:
             fn_name = args_list[index]
-            fn_name = "sys_" + fn_name + "_args_t {\n"
-            result = result + fn_name
+            fn_name = "sys_%s_args_t {\n" % (fn_name)
+            result = "{}{}".format(result, fn_name)
             index = index + 1
         else:
             arg_type = underscore_int_types(args_list[index])
@@ -462,8 +462,8 @@ def gen_struct_str(args_list):
                 return ""
             arg_name = args_list[index]
             index = index + 1
-            result = result + "    " + arg_type + " " + arg_name + ";\n"
-    result = result + "};\n"
+            result = "{}    {} {};\n".format(result, arg_type, arg_name)
+    result = "%s};\n" % (result)
     return result
 
 
@@ -504,16 +504,16 @@ def output_fstrace_code(fstrace_progs_file, fstrace_types_file, fstrace_targets_
                             type_def_lines_reduced.append("};\n")
                         type_def_str_reduced = ""
                         for type_def_line in type_def_lines_reduced:
-                            type_def_str_reduced += type_def_line + "\n"
+                            type_def_str_reduced = "{}{}\n".format(type_def_str_reduced, type_def_line)
                         args_output_file.write(type_def_str_reduced)
-                        start_event_def  = (start_event_def + "        struct sys_" +
-                                            fn_name + "_args_t " + fn_name + "_args;\n")
+                        start_event_def  = "{}        struct sys_{}_args_t {}_args;\n".format(start_event_def,
+                                                                                              fn_name, fn_name)
                         if count == 1:
-                            arg_type = "SYS_" + fn_name.upper() + " = 1"
+                            arg_type = "SYS_{} = 1".format(fn_name.upper())
                             count = 0
                         else:
-                            arg_type = "SYS_" + fn_name.upper()
-                        arg_types_enum_def += "    " + arg_type + ",\n"
+                            arg_type = "SYS_{}".format(fn_name.upper())
+                        arg_types_enum_def = "{}    {},\n".format(arg_types_enum_def, arg_type)
 
                     # generate kprobe prog
                     kprobe_sec = gen_kprobe_sec(decl_list)
@@ -538,8 +538,8 @@ def output_fstrace_code(fstrace_progs_file, fstrace_types_file, fstrace_targets_
                     progs_output_file.write(HEAD_COMMON_KRETPROBE_CODE)
                     progs_output_file.write(kretprobe_code)
                     progs_output_file.write(TAIL_COMMON_KRETPROBE_CODE)
-            start_event_def += start_event_def_end
-            arg_types_enum_def += arg_types_enum_def_end
+            start_event_def = "{}{}".format(start_event_def, start_event_def_end)
+            arg_types_enum_def = "{}{}".format(arg_types_enum_def, arg_types_enum_def_end)
             args_output_file.write(start_event_def)
             args_output_file.write(arg_types_enum_def)
             args_output_file.write(HIEBPF_TYPES_TAIL)
