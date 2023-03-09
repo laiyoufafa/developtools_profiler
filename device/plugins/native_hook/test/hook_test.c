@@ -25,7 +25,7 @@
 #include <time.h>
 #include <unistd.h>
 #ifdef HOOK_ENABLE
-#include "memory_tag.h"
+#include "memory_trace.h"
 #endif
 #include "securec.h"
 #pragma clang optimize off
@@ -268,7 +268,7 @@ char* CreateMmap(void)
     char* pMap = (char*)mmap(0, PAGE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, g_fd, 0);
 #ifdef HOOK_ENABLE
     char *tag = "memtesttag";
-    MEM_TYPESET(pMap, PAGE_SIZE, tag, strlen(tag)+1);
+    memtrace(pMap, PAGE_SIZE, tag, true);
 #endif
     if (pMap == MAP_FAILED) {
         printf("mmap fail\n");

@@ -741,6 +741,73 @@ int hook_prctl(int(*fn)(int, ...),
     return ret;
 }
 
+void hook_memtrace(void* addr, size_t size, const char* tag, bool isUsing)
+{
+    if (IsPidChanged()) {
+        return;
+    }
+    int stackSize = 0;
+    StackRawData rawdata = {{{0}}};
+    const char* stackptr = nullptr;
+    const char* stackendptr = nullptr;
+    clock_gettime(CLOCK_REALTIME, &rawdata.ts);
+
+    if (g_ClientConfig.fpunwind_) {
+#ifdef __aarch64__
+        stackptr = reinterpret_cast<const char*>(__builtin_frame_address(0));
+        GetRuntimeStackEnd(stackptr, &stackendptr, g_hookPid, GetCurThreadId());  // stack end pointer
+        stackSize = stackendptr - stackptr;
+        FpUnwind(g_ClientConfig.maxStackDepth_, rawdata.ip, stackSize);
+        stackSize = 0;
+#endif
+    } else {
+        uint64_t* regs = reinterpret_cast<uint64_t*>(&(rawdata.regs));
+#if defined(__arm__)
+        asm volatile(
+            "mov r3, r13\n"
+            "mov r4, r15\n"
+            "stmia %[base], {r3-r4}\n"
+            : [ base ] "+r"(regs)
+            :
+            : "r3", "r4", "memory");
+#elif defined(__aarch64__)
+        asm volatile(
+            "1:\n"
+            "stp x28, x29, [%[base], #224]\n"
+            "str x30, [%[base], #240]\n"
+            "mov x12, sp\n"
+            "adr x13, 1b\n"
+            "stp x12, x13, [%[base], #248]\n"
+            : [ base ] "+r"(regs)
+            :
+            : "x12", "x13", "memory");
+#endif
+        stackptr = reinterpret_cast<const char*>(regs[RegisterGetSP(buildArchType)]);
+        GetRuntimeStackEnd(stackptr, &stackendptr, g_hookPid, GetCurThreadId());  // stack end pointer
+        stackSize = stackendptr - stackptr;
+    }
+    rawdata.type = isUsing ? MMAP_MSG : MUNMAP_MSG;
+    rawdata.pid = static_cast<uint32_t>(g_hookPid);
+    rawdata.tid = static_cast<uint32_t>(GetCurThreadId());
+    rawdata.mallocSize = size;
+    rawdata.addr = addr;
+    if (strcpy_s(rawdata.tname, sizeof(rawdata.tname) / sizeof(rawdata.tname[0]), tag) != EOK) {
+        HILOG_ERROR(LOG_CORE, "strcpy_s tag failed!");
+    }
+    rawdata.tname[sizeof(rawdata.tname) - 1] = '\0';
+
+    std::unique_lock<std::recursive_timed_mutex> lck(g_ClientMutex, std::defer_lock);
+    std::chrono::time_point<std::chrono::steady_clock> timeout =
+        std::chrono::steady_clock::now() + std::chrono::milliseconds(TIMEOUT_MSEC);
+    if (!lck.try_lock_until(timeout)) {
+        HILOG_ERROR(LOG_CORE, "lock failed!");
+        return;
+    }
+    if (g_hookClient != nullptr) {
+        g_hookClient->SendStackWithPayload(&rawdata, sizeof(rawdata), stackptr, stackSize);
+    }
+}
+
 bool ohos_malloc_hook_initialize(const MallocDispatchType*malloc_dispatch, bool*, const char*)
 {
     g_dispatch.store(malloc_dispatch);
@@ -839,35 +906,10 @@ int ohos_malloc_hook_munmap(void* addr, size_t length)
     return ret;
 }
 
-void ohos_malloc_hook_memtag(void* addr, size_t size, char* tag, size_t tagLen)
+void ohos_malloc_hook_memtrace(void* addr, size_t size, const char* tag, bool isUsing)
 {
     __set_hook_flag(false);
-    if (IsPidChanged()) {
-        return;
-    }
-    StackRawData rawdata = {{{0}}};
-    clock_gettime(CLOCK_REALTIME, &rawdata.ts);
-    rawdata.type = MEMORY_TAG;
-    rawdata.pid = getpid();
-    rawdata.tid = static_cast<uint32_t>(GetCurThreadId());
-    rawdata.mallocSize = size;
-    rawdata.addr = addr;
-
-    if (memcpy_s(rawdata.tname, sizeof(rawdata.tname), tag, tagLen) != EOK) {
-        HILOG_ERROR(LOG_CORE, "memcpy_s tag failed");
-    }
-    rawdata.tname[sizeof(rawdata.tname) - 1] = '\0';
-
-    std::unique_lock<std::recursive_timed_mutex> lck(g_ClientMutex, std::defer_lock);
-    std::chrono::time_point<std::chrono::steady_clock> timeout =
-        std::chrono::steady_clock::now() + std::chrono::milliseconds(TIMEOUT_MSEC);
-    if (!lck.try_lock_until(timeout)) {
-        HILOG_ERROR(LOG_CORE, "lock failed!");
-        return;
-    }
-    if (g_hookClient != nullptr) {
-        g_hookClient->SendStack(&rawdata, sizeof(rawdata));
-    }
+    hook_memtrace(addr, size, tag, isUsing);
     __set_hook_flag(true);
 }
 
