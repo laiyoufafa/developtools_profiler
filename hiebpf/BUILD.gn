@@ -70,6 +70,9 @@ config("kern_common_config") {
 
 ohos_source_set("hiebpf.bpf") {
   remove_configs = [ "//build/config/coverage:default_coverage" ]
+  if (use_libfuzzer) {
+    remove_configs += [ "//build/config/sanitizers:default_sanitizer_flags" ]
+  }
   sources = [ "./src/hiebpf.bpf.c" ]
   configs = [
     ":common_config",
