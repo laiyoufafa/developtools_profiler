@@ -362,7 +362,8 @@ def gen_kprobe_code(decl_list):
         member_name = decl_list[index]
         assignment_str = "{}args->{} = {};\n".format(indent, member_name, member_name)
         if member_name == "filename":
-            assignment_str = "{}{}emit_strtrace_event(fs_se->stime, fs_se->type, filename, FSTRACE);\n".format(assignment_str, indent)
+            assignment_str = "{}{}emit_strtrace_event(fs_se->stime, fs_se->type, filename, FSTRACE);\n".format(
+                assignment_str, indent)
         assignment_code_str = "{}{}".format(assignment_code_str, assignment_str)
         count += 1
     code_str = "{}{}{}".format(code_str, var_decl_str, assignment_code_str)
