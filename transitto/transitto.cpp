@@ -145,7 +145,7 @@ static bool CheckValid(int argc, char** argv)
         return false;
     }
  
-    int oldUid = getuid();
+    uid_t oldUid = getuid();
     // 0, root, 2000 shell
     if (oldUid != 0 && oldUid != 2000) {
         cout << "only root or shell can run this object" << endl;
