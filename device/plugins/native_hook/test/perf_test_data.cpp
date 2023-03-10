@@ -115,7 +115,7 @@ int main(int argc, char *argv[])
     int thread_num = 1;
     duration = g_duration;
     mem_size = g_memSize;
-    std::unique_ptr<FILE, void (*)(FILE*)> out_fp(nullptr, nullptr);
+    std::unique_ptr<FILE, void (*)(FILE*)> outFp(nullptr, nullptr);
     for (int idx = 1; idx < argc; ++idx) {
         if (strcmp(argv[idx], "-o") == 0) {
             if (idx + 1 >= argc) {
@@ -123,8 +123,8 @@ int main(int argc, char *argv[])
                 return 1;
             } else {
                 ++idx;
-                out_fp = std::unique_ptr<FILE, void (*)(FILE*)>(fopen(argv[idx], "w"), FileClose);
-                if (out_fp == nullptr) {
+                outFp = std::unique_ptr<FILE, void (*)(FILE*)>(fopen(argv[idx], "w"), FileClose);
+                if (outFp == nullptr) {
                     printf("File '%s' can't be opened.\n", argv[idx]);
                     return 1;
                 }
@@ -167,7 +167,7 @@ int main(int argc, char *argv[])
             }
         }
     }
-    if (out_fp == nullptr) {
+    if (outFp == nullptr) {
         usage();
         return 1;
     }
@@ -177,14 +177,14 @@ int main(int argc, char *argv[])
     int idxSituation;
     int idxSituationMax = 2;
     int pid = static_cast<int>(getpid());
-    PRINTF_DATA(out_fp.get(), "PID: %d, file: %d.nativehook\n", pid, pid);
-    PRINTF_DATA(out_fp.get(), "Thread number: %d, duration: %d seconds, memory size: %d bytes\n", thread_num, duration,
+    PRINTF_DATA(outFp.get(), "PID: %d, file: %d.nativehook\n", pid, pid);
+    PRINTF_DATA(outFp.get(), "Thread number: %d, duration: %d seconds, memory size: %d bytes\n", thread_num, duration,
                 mem_size);
     for (idxSituation = 0; idxSituation < idxSituationMax; ++idxSituation) {
         if (idxSituation == 0) {
-            PRINTF_DATA(out_fp.get(), "No hook situation\n");
+            PRINTF_DATA(outFp.get(), "No hook situation\n");
         } else {
-            PRINTF_DATA(out_fp.get(), "\nWith hook situation\n");
+            PRINTF_DATA(outFp.get(), "\nWith hook situation\n");
             raise(nInstallMallocHookSignal);
         }
         int idx;
@@ -203,7 +203,7 @@ int main(int argc, char *argv[])
             pthread_join(thr_array[idx], nullptr);
         }
         long long total_times = times.load(std::memory_order_relaxed);
-        PRINTF_DATA(out_fp.get(), "The total times(malloc/free): %lld\n", total_times);
+        PRINTF_DATA(outFp.get(), "The total times(malloc/free): %lld\n", total_times);
     }
     free(thr_array);
     printf("Exit\n");

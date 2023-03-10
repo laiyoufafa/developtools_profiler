@@ -44,7 +44,7 @@ using namespace std;
 
 constexpr OHOS::HiviewDFX::HiLogLabel TRANS_LOG_LABLE = { LOG_CORE, 0xD002D0C, "TRANSITTO" };
 
-bool GetApplicationInfo(const string& bundleName, int& uid)
+static bool GetApplicationInfo(const string& bundleName, int& uid)
 {
     OHOS::sptr<OHOS::ISystemAbilityManager> systemAbilityManager =
         OHOS::SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
@@ -78,7 +78,7 @@ bool GetApplicationInfo(const string& bundleName, int& uid)
     return true;
 }
 
-bool ChangeUidGid(int uid, int gid)
+static bool ChangeUidGid(int uid, int gid)
 {
     OHOS::HiviewDFX::HiLog::Info(TRANS_LOG_LABLE, "start change uid gid.");
     if (setresgid(gid, gid, gid) < 0) {
@@ -93,7 +93,7 @@ bool ChangeUidGid(int uid, int gid)
     return true;
 }
 
-void InitEnv(int uid)
+static void InitEnv(int uid)
 {
     OHOS::HiviewDFX::HiLog::Info(TRANS_LOG_LABLE, "start set env.");
 
@@ -110,7 +110,7 @@ void InitEnv(int uid)
     return;
 }
 
-bool SetSelinux()
+static bool SetSelinux()
 {
     OHOS::HiviewDFX::HiLog::Info(TRANS_LOG_LABLE, "start change selinux context.");
     string seContext = "u:r:transitto_hap:s0";
@@ -124,14 +124,14 @@ bool SetSelinux()
     return true;
 }
 
-void Help()
+static void Help()
 {
     cout << "\ntransitto is a debuggable tool. your command can transit to the domain of debuggable bundle.\n"
             "usage:\n"
             "transitto <debuggable bundleName> <command>\n" << endl;
 }
 
-bool CheckValid(int argc, char** argv)
+static bool CheckValid(int argc, char** argv)
 {
     if (argc <= 1) {
         cout << "argc is empty" << endl;
@@ -145,7 +145,7 @@ bool CheckValid(int argc, char** argv)
         return false;
     }
  
-    int oldUid = getuid();
+    uid_t oldUid = getuid();
     // 0, root, 2000 shell
     if (oldUid != 0 && oldUid != 2000) {
         cout << "only root or shell can run this object" << endl;
