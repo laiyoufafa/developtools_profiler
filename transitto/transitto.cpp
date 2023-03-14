@@ -185,7 +185,7 @@ int main(int argc, char* argv[])
 
     string commod = (argc > 2) ? argv[2] : ""; // 2 com
     // normal_hap uid = 200000 * usrid + bundleid % 200000, userid is 100 or 0(shared)
-    if (uid <= 20000000 || !ChangeUidGid(uid, uid) || !SetSelinux()) { // 20000000 is uid for specific version
+    if (uid <= 20000000 || !ChangeUidGid(uid, uid) || !SetSelinux()) { // 20000000 is uid offset
         OHOS::HiviewDFX::HiLog::Error(TRANS_LOG_LABLE, "uid is %{public}d.", uid);
         return -1;
     }
