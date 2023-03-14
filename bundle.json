@@ -5,7 +5,7 @@
   "license": "Apache License 2.0",
   "publishAs": "code-segment",
   "segment": {
-    "destPath": "developtools/profiler/device"
+    "destPath": "developtools/profiler"
   },
   "dirs": {},
   "scripts": {},
