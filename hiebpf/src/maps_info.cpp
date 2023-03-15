@@ -30,7 +30,7 @@ void MapsInfo::GetMaps(uint32_t pid, std::vector<MapsItem> &mapsItems)
     mapsItems.clear();
     std::string mapPath = "/proc/" + std::to_string(pid) + "/maps";
     std::string mapContent = ReadFileToString(mapPath);
-    if (mapContent.size() <= 0) {
+    if (mapContent.empty()) {
         HHLOGE(true, "%s no content", mapPath.c_str());
         return;
     }

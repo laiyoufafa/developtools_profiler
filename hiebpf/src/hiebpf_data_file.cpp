@@ -53,10 +53,10 @@ void* HiebpfDataFile::Reserve(const std::size_t size)
     if (mapAddr_ == nullptr) {
         return nullptr;
     }
-    char* buffer = (char *)mapAddr_;
+    char* buffer = static_cast<char *>(mapAddr_);
     buffer += offset_;
     (void)memset_s(buffer, size, 0, size);
-    uint32_t *tracer = (uint32_t *) buffer;
+    uint32_t *tracer = static_cast<uint32_t *>(buffer);
     (*tracer) = BADTRACE;
     uint32_t *len = tracer + 1;
     (*len) = size - sizeof(uint32_t) * 2;
@@ -79,7 +79,7 @@ void HiebpfDataFile::WriteKernelSymbol()
 {
     std::vector<uint8_t> buf;
     uint32_t bufSize = OHOS::Developtools::Hiebpf::KernelSymbolInfo::GetSymbolData(buf);
-    char *tmp = (char *)Reserve(bufSize + sizeof(uint32_t) * 2);
+    char *tmp = static_cast<char *>(Reserve(bufSize + sizeof(uint32_t) * 2));
     if (tmp == nullptr) {
         return;
     }
@@ -97,9 +97,9 @@ void HiebpfDataFile::Submit(void *data)
 {
     __u64 addr = (__u64) data;
     addr &= ~(pageSize_ - 1);
-    __u32 *len = (__u32 *) data;
+    __u32 *len = static_cast<__u32 *>(data);
     ++len;
-    int ret = msync((void*)addr, *len, MS_ASYNC);
+    int ret = msync(static_cast<void*>(addr), *len, MS_ASYNC);
     HHLOGF(ret == -1, "failed msync data item at %p with %u bytes", data, *len);
     return;
 }
