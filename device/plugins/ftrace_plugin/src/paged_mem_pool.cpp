@@ -60,13 +60,13 @@ void* PagedMemPool::Allocate()
     block = mmap(nullptr, blockSize_, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
     CHECK_NOTNULL(block, nullptr, "mmap failed, %d", errno);
     blockSet_.insert(block);
-    HILOG_INFO(LOG_CORE, "PagedMemPool::Allocate %zuB block %p done!", blockSize_, block);
+    HILOG_INFO(LOG_CORE, "PagedMemPool::Allocate %zuB block done!", blockSize_);
     return block;
 }
 
 bool PagedMemPool::Recycle(void* block)
 {
-    CHECK_TRUE(Valid(block), false, "block %p not Allocate returned!", block);
+    CHECK_TRUE(Valid(block), false, "block not Allocate returned!");
 
     if (freeList_.size() < maxCacheSize_) {
         freeList_.push_back(block);

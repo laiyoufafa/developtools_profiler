@@ -301,7 +301,9 @@ bool HookManager::DestroyPluginSession(const std::vector<uint32_t>& pluginIds)
     // stop event poller
     if (eventPoller_) {
         HILOG_ERROR(LOG_CORE, "eventPoller_ unset!");
-        eventPoller_->RemoveFileDescriptor(eventNotifier_->GetFd());
+        if (eventNotifier_ != nullptr) {
+            eventPoller_->RemoveFileDescriptor(eventNotifier_->GetFd());
+        }
         eventPoller_->Stop();
         eventPoller_->Finalize();
         eventPoller_ = nullptr;
