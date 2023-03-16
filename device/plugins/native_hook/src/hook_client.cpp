@@ -55,6 +55,8 @@ static std::unordered_set<void*> g_mallocIgnoreSet;
 constexpr int PID_STR_SIZE = 4;
 constexpr int STATUS_LINE_SIZE = 512;
 constexpr int PID_NAMESPACE_ID = 1; // 1: pid is 1 after pid namespace used
+constexpr int FD_PATH_LENGTH = 64;
+constexpr int FILE_NAME_LENGTH = 128;
 static bool g_isPidChanged = false;
 const MallocDispatchType* GetDispatch()
 {
@@ -592,7 +594,25 @@ void* hook_mmap(void*(*fn)(void*, size_t, int, int, int, off_t),
     rawdata.tid = static_cast<uint32_t>(GetCurThreadId());
     rawdata.mallocSize = length;
     rawdata.addr = ret;
-    prctl(PR_GET_NAME, rawdata.tname);
+    if (fd < 0) {
+        prctl(PR_GET_NAME, rawdata.tname);
+    } else {
+        char path[FD_PATH_LENGTH] = {0};
+        char fileName[FILE_NAME_LENGTH] = {0};
+        (void)snprintf_s(path, FD_PATH_LENGTH, FD_PATH_LENGTH - 1, "/proc/self/fd/%d", fd);
+        ssize_t len = readlink(path, fileName, sizeof(fileName) - 1);
+        if (len != -1) {
+            fileName[len] = '\0';
+            char* p = strrchr(fileName, '/');
+            if (p != nullptr) {
+                (void)strncpy_s(rawdata.tname, MAX_THREAD_NAME, &fileName[p - fileName], MAX_THREAD_NAME - 1);
+            } else {
+                (void)strncpy_s(rawdata.tname, MAX_THREAD_NAME, fileName, MAX_THREAD_NAME - 1);
+            }
+        } else {
+            HILOG_ERROR(LOG_CORE, "Set mmap fd linked file name failed!");
+        }
+    }
 
     std::unique_lock<std::recursive_timed_mutex> lck(g_ClientMutex, std::defer_lock);
     std::chrono::time_point<std::chrono::steady_clock> timeout =
@@ -876,6 +896,15 @@ void ohos_malloc_hook_memtrace(void* addr, size_t size, const char* tag, bool is
     __set_hook_flag(false);
     hook_memtrace(addr, size, tag, isUsing);
     __set_hook_flag(true);
+}
+
+int  ohos_malloc_hook_prctl(int option, unsigned long arg2, unsigned long arg3,
+                            unsigned long arg4, unsigned long arg5)
+{
+    __set_hook_flag(false);
+    int ret = hook_prctl((GetDispatch()->prctl), option, arg2, arg3, arg4, arg5);
+    __set_hook_flag(true);
+    return ret;
 }
 
 bool ohos_set_filter_size(size_t size, void* ret)

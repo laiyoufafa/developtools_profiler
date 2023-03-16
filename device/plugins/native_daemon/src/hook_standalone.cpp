@@ -57,6 +57,9 @@ void writeFrames(StackRawData *data, const std::vector<CallFrame>& callsFrames)
     } else if (data->type == MUNMAP_MSG) {
         fprintf(g_fpHookFile.get(), "munmap;%" PRId64 ";%ld;0x%" PRIx64 ";%zu\n",
                 (int64_t)data->ts.tv_sec, data->ts.tv_nsec, (uint64_t)data->addr, data->mallocSize);
+    }  else if (data->type == PR_SET_VMA_MSG) {
+        fprintf(g_fpHookFile.get(), "prctl;%" PRId64 ";%ld;0x%" PRIx64 ";%zu;%s\n",
+                (int64_t)data->ts.tv_sec, data->ts.tv_nsec, (uint64_t)data->addr, data->mallocSize, data->tname);
     } else {
         return;
     }
