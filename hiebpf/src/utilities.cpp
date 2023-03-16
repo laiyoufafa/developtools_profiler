@@ -34,7 +34,7 @@ std::string ReadFileToString(const std::string &fileName)
     return content;
 }
 
-std::vector<std::string> StringSplit(std::string source, std::string split)
+std::vector<std::string> StringSplit(std::string& source, std::string& split)
 {
     std::vector<std::string> result;
 

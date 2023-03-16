@@ -127,7 +127,7 @@ void* thread_func_cpp(void* param)
 
         CallStack0(name.c_str());
         idx++;
-        printf("%2u: Thread %ld file(%s) open,write,read,close %d times\n", threadNo, tid, name.c_str(), idx);
+        printf("%2d: Thread %ld file(%s) open,write,read,close %u times\n", threadNo, tid, name.c_str(), idx);
     }
 
     return nullptr;
