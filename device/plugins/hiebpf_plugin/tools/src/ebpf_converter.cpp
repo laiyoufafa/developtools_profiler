@@ -128,8 +128,8 @@ void EbpfConverter::StartParsing()
     fd_ = -1;
     fileSize_ = 0;
     std::cout << "Data read successfully, output..." << std::endl;
-
-    if (fwrite(outData_.str().c_str(), 1, outData_.str().size(), file) < 0) {
+    size_t len = outData_.str().size();
+    if (fwrite(outData_.str().c_str(), 1, len, file) != len) {
         std::cout << "write data failed" << std::endl;
         fclose(file);
         return;
@@ -402,7 +402,7 @@ std::pair<std::string, std::vector<std::string>> EbpfConverter::GetSymbolInfo(ui
     std::string fileName;
     uint64_t start = 0;
     uint32_t offset = 0;
-    std::any_of(mapIter->second.begin(), mapIter->second.end(), [&](EventMaps &maps) {
+    std::any_of(mapIter->second.begin(), mapIter->second.end(), [&](const EventMaps &maps) {
         if (ip >= maps.start && ip <= maps.end) {
             fileName = maps.fileName;
             start = maps.start;
@@ -435,7 +435,7 @@ std::pair<std::string, std::vector<std::string>> EbpfConverter::GetSymbolInfo(ui
                 vaddr <= sym.st_value + sym.st_size &&
                 (sym.st_info & STT_FUNC) &&
                 sym.st_value != 0) {
-                char *ret = abi::__cxa_demangle((char *)(symItem->second.strTab + sym.st_name),
+                char *ret = abi::__cxa_demangle(static_cast<char *>(symItem->second.strTab + sym.st_name),
                                                 nullptr, nullptr, nullptr);
                 ret == nullptr ? symbolInfos.second.push_back(std::string(symItem->second.strTab + sym.st_name))
                     : symbolInfos.second.push_back(std::string(ret));

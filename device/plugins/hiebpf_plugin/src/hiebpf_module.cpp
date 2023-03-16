@@ -33,7 +33,7 @@ std::string HIEBPF_COMMAND = "hiebpf";
 bool g_releaseResources = false;
 volatile pid_t g_childPid = -1;
 
-std::vector<std::string> StringSplit(std::string source, std::string split)
+std::vector<std::string> StringSplit(std::string source, const std::string split)
 {
     size_t pos = 0;
     std::vector<std::string> result;
