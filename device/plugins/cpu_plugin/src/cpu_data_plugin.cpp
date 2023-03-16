@@ -341,9 +341,9 @@ void CpuDataPlugin::SetCpuFrequency(CpuCoreUsageInfo& cpuCore, int32_t coreNum)
         maxFreqIndex_ = GetMaxCpuFrequencyIndex();
     }
     std::string fileName = freqPath_ + "/cpu" + std::to_string(coreNum) + FREQUENCY_CUR_PATH;
-    int32_t curFrequency = GetCpuFrequency(fileName) / CPU_FREQUENCY_KHZ;
-    int32_t maxFrequency = maxFrequencyVec_[coreNum] / CPU_FREQUENCY_KHZ;
-    int32_t minFrequency = minFrequencyVec_[coreNum] / CPU_FREQUENCY_KHZ;
+    int32_t curFrequency = GetCpuFrequency(fileName);
+    int32_t maxFrequency = maxFrequencyVec_[coreNum];
+    int32_t minFrequency = minFrequencyVec_[coreNum];
 
     if (coreNum == maxFreqIndex_) {
         cpuCore.set_is_little_core(false);
