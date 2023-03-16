@@ -36,7 +36,6 @@ const std::string FREQUENCY_PATH = "/sys/devices/system/cpu";
 const std::string FREQUENCY_MIN_PATH = "/cpufreq/cpuinfo_min_freq";
 const std::string FREQUENCY_MAX_PATH = "/cpufreq/cpuinfo_max_freq";
 const std::string FREQUENCY_CUR_PATH = "/cpufreq/cpuinfo_cur_freq";
-constexpr int CPU_FREQUENCY_KHZ = 1000;
 } // namespace
 
 CpuDataPlugin::CpuDataPlugin()
