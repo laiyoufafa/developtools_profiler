@@ -300,7 +300,7 @@ Status ProfilerService::CreateSession(ServerContext* context,
             sessionConfig.single_file_max_size_mb());
         CHECK_POINTER_NOTNULL(traceWriter, "alloc TraceFileWriter failed!");
         resultDemuxer->SetTraceWriter(traceWriter);
-        for (int i = 0; i < pluginConfigs.size(); i++) {
+        for (std::vector<ProfilerPluginConfig>::size_type i = 0; i < pluginConfigs.size(); i++) {
             ProfilerPluginData pluginData;
             pluginData.set_name(pluginConfigs[i].name() + "_config");
             pluginData.set_data(pluginConfigs[i].config_data());
