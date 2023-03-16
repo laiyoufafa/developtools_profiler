@@ -60,6 +60,10 @@ void* user_thread(void* param)
         }
         clock_gettime(CLOCK_REALTIME, &begin_time_malloc);
         char* mem = (char *)malloc(mem_size);
+        if (mem == nullptr) {
+            printf("Error: malloc mem memory failed.\n");
+            return nullptr;
+        }
         clock_gettime(CLOCK_REALTIME, &end_time_malloc);
         std::atomic_fetch_add_explicit(
             &malloc_total_time,
