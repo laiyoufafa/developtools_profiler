@@ -14,13 +14,11 @@
  */
 #include <thread>
 namespace OHOS {
-namespace SmartPerf{
-
+namespace SmartPerf {
 class StartUpDelay {
 public:
     StartUpDelay();
     ~StartUpDelay();
-
     void GetTrace(std::string sessionID, std::string traceName);
     std::thread ThreadGetTrace(std::string sessionID, std::string traceName);
     void GetLayout();
