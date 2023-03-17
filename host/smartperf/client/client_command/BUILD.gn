@@ -14,7 +14,8 @@
 import("//build/ohos.gni")
 import("../../../../build/config.gni")
 
-## Build so {{{
+sp_root = "//developtools/profiler/host/smartperf/client/client_command"
+
 config("config") {
   visibility = [ ":*" ]
 
@@ -46,9 +47,14 @@ ohos_executable("SP_daemon") {
     "sp_profiler_factory.cpp",
     "sp_server_socket.cpp",
     "sp_utils.cpp",
+    "editor_command.cpp",
+    "parse_trace.cpp",
+    "startup_delay.cpp",
+    "parse_click_complete_trace.cpp",
+    "parse_click_response_trace.cpp",
   ]
   include_dirs = [
-    "//developtools/profiler/host/smartperf/client/client_command/include",
+    "${sp_root}/include",
     "//commonlibrary/c_utils/base/include",
   ]
   configs = [ ":config" ]
@@ -57,4 +63,4 @@ ohos_executable("SP_daemon") {
   part_name = "${OHOS_PROFILER_PART_NAME}"
   external_deps = [ "c_utils:utils" ]
 }
-## Build so }}}
+

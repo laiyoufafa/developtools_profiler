@@ -12,16 +12,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "include/smartperf_command.h"
-#include "include/editor_command.h"
-int main(int argc, char *argv[])
-{
-    if(argc > 1 && strcmp(argv[1], "-editor") == 0) 
-    {    
-        OHOS::SmartPerf::EditorCommand cmd(argc, argv);
-        return 0;
-    }
-    OHOS::SmartPerf::SmartPerfCommand cmd(argc, argv);
-    std::cout << cmd.ExecCommand() << std::endl;
-    return 0;
+
+#ifndef EDITOR_COMMAND_H
+#define EDITOR_COMMAND_H
+
+namespace OHOS {
+namespace SmartPerf {
+class EditorCommand {
+public:
+    const int threeParamMore = 3;
+    EditorCommand(int argc, char *argv[]);
+    ~EditorCommand() {};
+    float coldStart(char *argv[]);
+    float hotStart(char *argv[]);
+    float completeTime(char *argv[]);
+    float responseTime(char *argv[]);
+};
 }
+}
+#endif // SMARTPERF_COMMAND_H
