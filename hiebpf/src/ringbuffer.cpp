@@ -37,21 +37,21 @@ RingBuffer::RingBuffer(const std::size_t bufSize, const enum MemAlignShift shift
         case H_ALIGN_SHIFT: {
             bufSize_ = (bufSize_ >> H_ALIGN_SHIFT);
             uint16_t *temp = new(std::nothrow) uint16_t[bufSize_];
-            buffer_ = static_cast<char *>(temp);
+            buffer_ = reinterpret_cast<char *>(temp);
             bufSize_ = (bufSize_ << H_ALIGN_SHIFT);
             break;
         }
         case W_ALIGN_SHIFT: {
             bufSize_ = (bufSize_ >> W_ALIGN_SHIFT);
             uint32_t *temp = new(std::nothrow) uint32_t[bufSize_];
-            buffer_ = static_cast<char *>(temp);
+            buffer_ = reinterpret_cast<char *>(temp);
             bufSize_ = (bufSize_ << W_ALIGN_SHIFT);
             break;
         }
         case D_ALIGN_SHIFT: {
             bufSize_ = (bufSize_ >> D_ALIGN_SHIFT);
             uint64_t *temp = new(std::nothrow) uint64_t[bufSize_];
-            buffer_ = static_cast<char *>(temp);
+            buffer_ = reinterpret_cast<char *>(temp);
             bufSize_ = (bufSize_ << D_ALIGN_SHIFT);
             break;
         }
@@ -262,19 +262,19 @@ char* RingBuffer::Allocate(std::size_t bufSize)
         case H_ALIGN_SHIFT: {
             bufSize = (bufSize >> H_ALIGN_SHIFT);
             uint16_t *temp = new(std::nothrow) uint16_t[bufSize];
-            newBuffer = static_cast<char *>(temp);
+            newBuffer = reinterpret_cast<char *>(temp);
             break;
         }
         case W_ALIGN_SHIFT: {
             bufSize = (bufSize >> W_ALIGN_SHIFT);
             uint32_t *temp = new(std::nothrow) uint32_t[bufSize];
-            newBuffer = static_cast<char *>(temp);
+            newBuffer = reinterpret_cast<char *>(temp);
             break;
         }
         case D_ALIGN_SHIFT: {
             bufSize = (bufSize >> D_ALIGN_SHIFT);
             uint64_t *temp = new(std::nothrow) uint64_t[bufSize];
-            newBuffer = static_cast<char *>(temp);
+            newBuffer = reinterpret_cast<char *>(temp);
             break;
         }
     }

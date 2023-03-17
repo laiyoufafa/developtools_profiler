@@ -56,7 +56,7 @@ void* HiebpfDataFile::Reserve(const std::size_t size)
     char* buffer = static_cast<char *>(mapAddr_);
     buffer += offset_;
     (void)memset_s(buffer, size, 0, size);
-    uint32_t *tracer = static_cast<uint32_t *>(buffer);
+    uint32_t *tracer = reinterpret_cast<uint32_t *>(buffer);
     (*tracer) = BADTRACE;
     uint32_t *len = tracer + 1;
     (*len) = size - sizeof(uint32_t) * 2;
@@ -99,7 +99,7 @@ void HiebpfDataFile::Submit(void *data)
     addr &= ~(pageSize_ - 1);
     __u32 *len = static_cast<__u32 *>(data);
     ++len;
-    int ret = msync(static_cast<void*>(addr), *len, MS_ASYNC);
+    int ret = msync(reinterpret_cast<void*>(addr), *len, MS_ASYNC);
     HHLOGF(ret == -1, "failed msync data item at %p with %u bytes", data, *len);
     return;
 }
