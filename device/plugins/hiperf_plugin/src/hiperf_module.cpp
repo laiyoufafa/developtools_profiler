@@ -147,7 +147,7 @@ int HiperfPluginSessionStop(void)
 
 int HiperfRegisterWriterStruct(const WriterStruct* writer)
 {
-    HILOG_INFO(LOG_CORE, "%s:writer %p", __func__, writer);
+    HILOG_INFO(LOG_CORE, "%s:writer", __func__);
     return 0;
 }
 

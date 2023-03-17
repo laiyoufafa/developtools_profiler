@@ -60,6 +60,10 @@ void* user_thread(void* param)
         }
         clock_gettime(CLOCK_REALTIME, &begin_time_malloc);
         char* mem = (char *)malloc(mem_size);
+        if (mem == nullptr) {
+            printf("Error: malloc mem memory failed.\n");
+            return nullptr;
+        }
         clock_gettime(CLOCK_REALTIME, &end_time_malloc);
         std::atomic_fetch_add_explicit(
             &malloc_total_time,
@@ -76,7 +80,9 @@ void* user_thread(void* param)
             printf("\n");
         }
         clock_gettime(CLOCK_REALTIME, &begin_time_free);
-        free(mem);
+        if (mem != nullptr) {
+            free(mem);
+        }
         clock_gettime(CLOCK_REALTIME, &end_time_free);
         std::atomic_fetch_add_explicit(
             &free_total_time,
@@ -174,6 +180,10 @@ int main(int argc, char *argv[])
 
     thread_data.resize(thread_num);
     pthread_t* thr_array = (pthread_t*)malloc(sizeof(pthread_t) * thread_num);
+    if (thr_array == nullptr) {
+        printf("malloc thr_array memory failed.\n");
+        return 1;
+    }
     int idxSituation;
     int idxSituationMax = 2;
     int pid = static_cast<int>(getpid());
@@ -205,6 +215,8 @@ int main(int argc, char *argv[])
         long long total_times = times.load(std::memory_order_relaxed);
         PRINTF_DATA(outFp.get(), "The total times(malloc/free): %lld\n", total_times);
     }
-    free(thr_array);
+    if (thr_array != nullptr) {
+        free(thr_array);
+    }
     printf("Exit\n");
 }

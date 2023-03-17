@@ -56,7 +56,7 @@ bool FtraceFieldParser::ReadData(const uint8_t start[], const uint8_t end[], voi
     }
 
     if (memcpy_s(out, size, start, size) != EOK) {
-        HILOG_ERROR(LOG_CORE, "copy %zu byte to memory region [%p, %p) FAILED!", size, start, end);
+        HILOG_ERROR(LOG_CORE, "copy %zu byte to memory FAILED!", size);
         return false;
     }
     return true;

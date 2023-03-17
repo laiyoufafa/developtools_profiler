@@ -64,7 +64,7 @@ bool ReadInc(uint8_t* start[], uint8_t end[], void* outData, size_t outSize)
         return false;
     }
     if (memcpy_s(outData, outSize, *start, outSize) != EOK) {
-        HILOG_ERROR(LOG_CORE, "read %zu bytes from memory region [%p, %p) FAILED", outSize, *start, end);
+        HILOG_ERROR(LOG_CORE, "read %zu bytes from memory FAILED", outSize);
         return false;
     }
     *start += outSize;
