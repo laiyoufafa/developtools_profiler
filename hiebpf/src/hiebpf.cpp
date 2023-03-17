@@ -213,6 +213,8 @@ int main(int argc, char* argv[])
             printf("fork failed. %d:%s\n", errno, strerror(errno));
             return -1;
         } else if (pid == 0) { // child process
+            int32_t nullFd = open("/dev/null", O_WRONLY);
+            (void)dup2(nullFd, STDOUT_FILENO); // redirect stdout to /dev/null
             g_ipcServer.SetHandleCallback(HandleIpcMessage);
             if (!g_ipcServer.Start()) {
                 HHLOGE(true, "ipc server start failed");

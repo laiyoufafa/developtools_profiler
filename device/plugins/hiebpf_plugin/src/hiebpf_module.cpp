@@ -29,68 +29,22 @@ constexpr uint32_t MAX_BUFFER_SIZE = 4 * 1024 * 1024;
 std::mutex taskMutex;
 constexpr int32_t RET_OK = 0;
 constexpr int32_t RET_ERR = -1;
-std::string HIEBPF_COMMAND = "hiebpf";
 bool g_releaseResources = false;
-volatile pid_t g_childPid = -1;
-
-std::vector<std::string> StringSplit(std::string source, const std::string& split)
-{
-    size_t pos = 0;
-    std::vector<std::string> result;
-
-    // find
-    if (!split.empty()) {
-        while ((pos = source.find(split)) != std::string::npos) {
-            // split
-            std::string token = source.substr(0, pos);
-            if (!token.empty()) {
-                result.push_back(token);
-            }
-            source.erase(0, pos + split.length());
-        }
-    }
-    // add last token
-    if (!source.empty()) {
-        result.push_back(source);
-    }
-    return result;
-}
 
 void RunCmd(std::string& cmd)
 {
-    auto splitCmd = StringSplit(cmd, " ");
-    if (splitCmd[0].compare("hiebpf") == 0) {
-        splitCmd[0] = "/bin/hiebpf";
-    } else {
-        HILOG_ERROR(LOG_CORE, "hiebpf-plugin command line parameter is incorrect cmd: %s", cmd.c_str());
+    std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd.c_str(), "r"), pclose);
+    if (pipe == nullptr) {
+        HILOG_ERROR(LOG_CORE, "HiebpfPlugin::RunCmd: create popen FAILED!");
         return;
     }
-
-    pid_t pid = fork();
-    if (pid == 0) {
-        int32_t fd = open("/dev/null", O_WRONLY);
-        dup2(fd, STDOUT_FILENO);
-        std::vector<char*> argv(splitCmd.size() + 1, nullptr);
-        for (size_t i = 0, cmdSize = splitCmd.size(); i < cmdSize; i++) {
-            argv[i] = const_cast<char*>(splitCmd[i].data());
-        }
-
-        if (execve(argv[0], &argv[0], nullptr) == -1) {
-            HILOG_INFO(LOG_CORE, "execve failed {%s:%s}",  __func__, strerror(errno));
-            exit(EXIT_FAILURE);
-        }
+    constexpr uint32_t readBufferSize = 4096;
+    std::array<char, readBufferSize> buffer;
+    std::string result;
+    while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
+        result += buffer.data();
     }
-    g_childPid = pid;
-
-    int stat = 0;
-    while (waitpid(g_childPid, &stat, 0) == -1) {
-        if (errno == EINTR) {
-            continue;
-        } else {
-            HILOG_INFO(LOG_CORE, "%s: success!%s.", __func__, strerror(errno));
-            return;
-        }
-    }
+    HILOG_INFO(LOG_CORE, "HiebpfPlugin::run command result: %s", result.c_str());
 }
 } // namespace
 
