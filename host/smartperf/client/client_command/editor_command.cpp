@@ -26,24 +26,25 @@ namespace SmartPerf {
 EditorCommand::EditorCommand(int argc, char *argv[])
 {
     int TYPE = 2;
-    if (argc >= threeParamMore){  
-        float time = 0.0;
-        if(strcmp(argv[TYPE], "coldStart") == 0)
-        {  
-            time = SmartPerf::EditorCommand::coldStart(argv);
-        }
-        else if (strcmp(argv[TYPE], "hotStart") == 0)
-        {
-            time = SmartPerf::EditorCommand::hotStart(argv);
-        }
-        else if (strcmp(argv[TYPE], "responseTime") == 0)
-        {    
-            time = SmartPerf::EditorCommand::responseTime(argv);
-        }else if (strcmp(argv[TYPE], "completeTime") == 0)
-        {
-            time = SmartPerf::EditorCommand::completeTime(argv);
-        }
-        std::cout << "time:" << time << std::endl;
+    if (argc >= threeParamMore)
+    {
+            float time = 0.0;
+            if(strcmp(argv[TYPE], "coldStart") == 0)
+            {
+                time = SmartPerf::EditorCommand::coldStart(argv);
+            }
+            else if (strcmp(argv[TYPE], "hotStart") == 0)
+            {
+                time = SmartPerf::EditorCommand::hotStart(argv);
+            }
+            else if (strcmp(argv[TYPE], "responseTime") == 0)
+            {
+                time = SmartPerf::EditorCommand::responseTime(argv);
+            }else if (strcmp(argv[TYPE], "completeTime") == 0)
+            {
+                time = SmartPerf::EditorCommand::completeTime(argv);
+            }
+            std::cout << "time:" << time << std::endl;
     }
 }
 float EditorCommand::responseTime(char *argv[])
@@ -80,7 +81,7 @@ float EditorCommand::coldStart(char *argv[])
         std::thread thGetTrace = sd.ThreadGetTrace("coldStart", traceName);
         thGetTrace.join();
         float time = parseTrace.parse_trace_cold(traceName, argv[3]);
-        return time;           
+        return time;
 }
 float EditorCommand::hotStart(char *argv[])
 {
@@ -92,7 +93,7 @@ float EditorCommand::hotStart(char *argv[])
         std::thread thGetTrace = sd.ThreadGetTrace("hotStart", traceName);
         thGetTrace.join();
         float time = parseTrace.parse_trace_hot(traceName, argv[3]);
-        return time;         
+        return time;
 }
 }
 }

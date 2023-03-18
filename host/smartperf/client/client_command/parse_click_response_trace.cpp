@@ -34,28 +34,28 @@ namespace OHOS {
             std::string::size_type doComposition;
             int subNum = 5;
             int CONVERSION = 1000;
-            infile.open(fileNamePath);   
+            infile.open(fileNamePath);
             if (infile.fail()) 
             {
                 std::cout << "File " << "open fail" << std::endl;
                 return 0;
             }
             else {
-                while (getline(infile, line)) 
-                {         
-                    appPid = SmartPerf::ParseClickResponseTrace::getPid(line, "pid",appPid);
-                    startTime = SmartPerf::ParseClickResponseTrace::getStartTime(line, startTime);              
+                while (getline(infile, line))
+                {
+                    appPid = SmartPerf::ParseClickResponseTrace::getPid(line, "pid", appPid);
+                    startTime = SmartPerf::ParseClickResponseTrace::getStartTime(line, startTime);
                     doComposition = line.find("H:RSMainThread::DoComposition");
                     if (doComposition != std::string::npos)
-                        {        
+                        {
                             int position1 = line.find("....");
-                            int position2 = line.find(":");                 
+                            int position2 = line.find(":");
                             endTime = line.substr(position1 + subNum, position2 - position1 - subNum);
-                            if (std::stof(startTime) != 0 )
+                            if (std::stof(startTime) != 0)
                             {
                                 break;
-                            }                        
-                        }   
+                            }
+                        }
                 }
                 completeTime = SmartPerf::ParseClickResponseTrace::getTime(startTime, endTime);
             }
@@ -67,13 +67,13 @@ namespace OHOS {
                 float displayTime = 0.032;
                 float subNum = 2;
                 int point = endTime.find(".");
-                if (point != -1) 
+                if (point != -1)
                 {
                     endTime = endTime.substr(point - subNum);
                     startTime = startTime.substr(point - subNum);
                 }
-                if (std::stof(endTime) == 0 || std::stof(startTime) == 0) 
-                {            
+                if (std::stof(endTime) == 0 || std::stof(startTime) == 0)
+                {
                 }
                 else
                 {
@@ -81,7 +81,8 @@ namespace OHOS {
                 }
                 return completeTime;
         }
-        std::string  ParseClickResponseTrace::getPid(std::string line, std::string strPackgeName, std::string appPidBefore){
+        std::string  ParseClickResponseTrace::getPid(std::string line, std::string strPackgeName, std::string appPidBefore)
+        {
             std::string::size_type positionPackgeName;
             std::string::size_type positionAppspawn;
             int subNum = 4;
@@ -93,7 +94,7 @@ namespace OHOS {
             {
                     positionPackgeName = line.find("task_newtask: pid=");
                     positionAppspawn = line.find("comm=appspawn");
-                    if(positionPackgeName != std::string::npos && positionAppspawn != std::string::npos ) 
+                    if(positionPackgeName != std::string::npos && positionAppspawn != std::string::npos )
                     {
                             int position1 = line.find("pid=");
                             int position2 = line.find(" comm=appspawn");
@@ -103,14 +104,14 @@ namespace OHOS {
                     {
                         appPid = appPidBefore;
                     }
-            }else{
+            }else
+            {
                     positionPackgeName = line.find(strPackgeName);
                     if (positionPackgeName != std::string::npos) {
                         int position1 = line.find(strPackgeName);
                         int position2 = line.find(" prio");
                         appPid = line.substr(position1 + strPackgeName.length(), position2 - position1 - strPackgeName.length());
-                        appPidnum++;
-                        
+                        appPidnum++;                      
                     }else
                     {
                         appPid = appPidBefore;
@@ -127,7 +128,7 @@ namespace OHOS {
             int touchNum = 3;
             std::string startTime;
             touchEventDisPos = line.find("H:touchEventDispatch");
-            mTouchEventDisPos = line.find("H:TouchEventDispatch");  
+            mTouchEventDisPos = line.find("H:TouchEventDispatch");
             if (mTouchEventDisPos != std::string::npos || touchEventDisPos != std::string::npos)
                 {
                     if(flagTouch <= touchNum)
@@ -136,7 +137,7 @@ namespace OHOS {
                     int position2 = line.find(":");
                     startTime = line.substr(position1 + subNum, position2 - position1 - subNum);
                     flagTime = "0";
-                    flagTouch++;             
+                    flagTouch++;
                     }else
                     {
                         startTime = startTimeBefore;

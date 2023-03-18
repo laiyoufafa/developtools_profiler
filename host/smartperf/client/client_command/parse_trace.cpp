@@ -23,15 +23,15 @@
 #include "include/parse_trace.h"
 #include "include/sp_utils.h"
 
-namespace OHOS{
+namespace OHOS {
     namespace SmartPerf { 
         float ParseTrace::parse_trace_cold(std::string fileNamePath, std::string packageName)
-         {
+        {
             int CONVERSION = 1000;
             float code = -1;
             code = SmartPerf::ParseTrace::parse_codeTrace(fileNamePath);
             return code * CONVERSION;
-        }  
+        }
         float ParseTrace::parse_trace_hot(std::string fileNamePath, std::string packageName)
         {
             int CONVERSION = 1000;
@@ -39,7 +39,7 @@ namespace OHOS{
             code = SmartPerf::ParseTrace::parse_hotTrace(fileNamePath);
             return code * CONVERSION;
         }
-        float ParseTrace::parse_codeTrace(std::string fileNamePath) 
+        float ParseTrace::parse_codeTrace(std::string fileNamePath)
         {
             std::string line;
             std::ifstream infile;
@@ -51,37 +51,37 @@ namespace OHOS{
             infile.open(fileNamePath);
             std::string::size_type tracingMarkWrite;
             int subNum = 5;
-            float codeTime = -1;   
-            if (infile.fail()) 
+            float codeTime = -1;
+            if (infile.fail())
             {
                 std::cout << "File " << "open fail" << std::endl;
                 return 0;
             }
             else {
-                while (getline(infile, line)) 
+                while (getline(infile, line))
                 {         
-                    appPid=SmartPerf::ParseTrace::getPid(line, "pid",appPid);
-                    startTime=SmartPerf::ParseTrace::getStartTime(line, startTime);              
-                    tracingMarkWrite=line.find("tracing_mark_write: E|"+appPid);
+                    appPid = SmartPerf::ParseTrace::getPid(line, "pid", appPid);
+                    startTime = SmartPerf::ParseTrace::getStartTime(line, startTime);
+                    tracingMarkWrite = line.find("tracing_mark_write: E|"+ appPid);
                     if (tracingMarkWrite != std::string::npos)
                         {      
                             int position1 = line.find("....");
-                            int position2 = line.find(":");                 
+                            int position2 = line.find(":");
                             endTime = line.substr(position1 + subNum, position2 - position1 - subNum);
                             if (std::stof(endTime) - std::stof(endTimeFlag) < interval)
                             {
                                 endTimeFlag = endTime;
                             }else
                             {
-                                if (std::stof(endTimeFlag) !=0 && std::stof(startTime) !=0 && std::stof(endTime) - std::stof(startTime) > interval)
+                                if (std::stof(endTimeFlag) != 0 && std::stof(startTime) != 0 && std::stof(endTime) - std::stof(startTime) > interval)
                                 {
                                     break;
                                 }else
                                 {
                                     endTimeFlag = endTime;
-                                }       
+                                }
                             }
-                        }   
+                        }
                 }
                 codeTime = SmartPerf::ParseTrace::getTime(startTime, endTime);
             }
@@ -99,31 +99,31 @@ namespace OHOS{
             std::string::size_type doComposition;
             int subNum = 5;
             float interval = 0.3;
-            infile.open(fileNamePath);   
-            float codeTime = -1;  
-            if (infile.fail()) 
+            infile.open(fileNamePath);
+            float codeTime = -1;
+            if (infile.fail())
             {
                 std::cout << "File " << "open fail" << std::endl;
                 return 0;
             }
-            else 
+            else
             {
-                while (getline(infile, line)) 
-                {         
-                    appPid=SmartPerf::ParseTrace::getPid(line, "pid",appPid);
-                    startTime=SmartPerf::ParseTrace::getStartTime(line, startTime);              
+                while (getline(infile, line))
+                {
+                    appPid=SmartPerf::ParseTrace::getPid(line, "pid", appPid);
+                    startTime=SmartPerf::ParseTrace::getStartTime(line, startTime);
                     doComposition = line.find("H:RSMainThread::DoComposition");
                     if (doComposition != std::string::npos)
                     {      
                         int position1 = line.find("....");
-                        int position2 = line.find(":");                 
+                        int position2 = line.find(":");
                         endTime = line.substr(position1 + subNum, position2 - position1 - subNum);
                         if (std::stof(endTime) - std::stof(endTimeFlag) < interval)
                         {
                             endTimeFlag = endTime;
-                        }else 
+                        }else
                         {
-                            if (std::stof(endTimeFlag) ==0 )
+                            if (std::stof(endTimeFlag) == 0)
                             {
                                 endTimeFlag = endTime;
                             }else
@@ -131,9 +131,9 @@ namespace OHOS{
                                 break;
                             }
                         }
-                    }                      
+                    }
                 }
-                codeTime = SmartPerf::ParseTrace::getTime(startTime,endTime);
+                codeTime = SmartPerf::ParseTrace::getTime(startTime, endTime);
             }
             infile.close();
             return codeTime;
@@ -143,16 +143,16 @@ namespace OHOS{
                 float displayTime = 0.040;
                 float subNum = 2;
                 int point = endTime.find(".");
-                float codeTime = -1;  
-                if (point != -1) 
+                float codeTime = -1;
+                if (point != -1)
                 {
                     endTime = endTime.substr(point - subNum);
                     startTime = startTime.substr(point - subNum);
                 }
-                if (std::stof(endTime) == 0 || std::stof(startTime) == 0) 
-                {            
+                if (std::stof(endTime) == 0 || std::stof(startTime) == 0)
+                {
                 }
-                else 
+                else
                 {
                     codeTime = std::stof(endTime) - std::stof(startTime) + displayTime;
                 }
@@ -171,7 +171,7 @@ namespace OHOS{
             {
                     positionPackgeName = line.find("task_newtask: pid=");
                     positionAppspawn = line.find("comm=appspawn");
-                    if(positionPackgeName != std::string::npos && positionAppspawn != std::string::npos ) 
+                    if(positionPackgeName != std::string::npos && positionAppspawn != std::string::npos )
                     {
                             int position1 = line.find("pid=");
                             int position2 = line.find(" comm=appspawn");
@@ -206,7 +206,7 @@ namespace OHOS{
             int touchNum = 3;
             std::string startTime;
             touchEventDisPos = line.find("H:touchEventDispatch");
-            mTouchEventDisPos = line.find("H:TouchEventDispatch");         
+            mTouchEventDisPos = line.find("H:TouchEventDispatch");
             if (mTouchEventDisPos != std::string::npos || touchEventDisPos != std::string::npos)
                 {
                     if(flagTouch <= touchNum){
@@ -217,10 +217,10 @@ namespace OHOS{
                     flagTouch++;
                     }else
                     {
-                      startTime = startTimeBefore;
+                    startTime = startTimeBefore;
                     }
                 }
             return startTime;
-        }       
+        }
     }
 }

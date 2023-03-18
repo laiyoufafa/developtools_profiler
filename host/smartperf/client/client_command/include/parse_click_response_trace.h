@@ -18,8 +18,8 @@
 #include <string>
 #include <vector>
 
-namespace OHOS{
-    namespace SmartPerf{
+namespace OHOS {
+    namespace SmartPerf {
         class ParseClickResponseTrace
         {
             public:

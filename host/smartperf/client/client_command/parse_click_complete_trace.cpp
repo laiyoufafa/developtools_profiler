@@ -23,8 +23,8 @@
 #include "include/parse_click_complete_trace.h"
 #include "include/sp_utils.h"
 namespace OHOS {
-    namespace SmartPerf{
-        float ParseClickCompleteTrace::parse_click_complete_trace(std::string fileNamePath, std::string packageName) 
+    namespace SmartPerf {
+        float ParseClickCompleteTrace::parse_click_complete_trace(std::string fileNamePath, std::string packageName)
         {
             std::string line;
             std::ifstream infile;
@@ -36,22 +36,23 @@ namespace OHOS {
             int subNum = 5;
             float interval = 0.3;
             int CONVERSION = 1000;
-            infile.open(fileNamePath);   
-            if (infile.fail()) 
+            infile.open(fileNamePath);
+            if (infile.fail())
             {
                 std::cout << "File " << "open fail" << std::endl;
                 return 0;
             }
-            else {
-                while (getline(infile, line)) 
-                {         
-                    appPid=SmartPerf::ParseClickCompleteTrace::getPid(line, "pid",appPid);
-                    startTime=SmartPerf::ParseClickCompleteTrace::getStartTime(line, startTime);
-                    doComposition=line.find("H:RSMainThread::DoComposition");
+            else 
+            {
+                while (getline(infile, line))
+                {
+                    appPid = SmartPerf::ParseClickCompleteTrace::getPid(line, "pid", appPid);
+                    startTime = SmartPerf::ParseClickCompleteTrace::getStartTime(line, startTime);
+                    doComposition = line.find("H:RSMainThread::DoComposition");
                     if (doComposition != std::string::npos)
-                        {      
+                        {
                             int position1 = line.find("....");
-                            int position2 = line.find(":");                 
+                            int position2 = line.find(":");
                             endTime = line.substr(position1 + subNum, position2 - position1 - subNum);
                             if (std::stof(endTime) - std::stof(endTimeFlag) < interval)
                             {
@@ -61,11 +62,12 @@ namespace OHOS {
                                     if (std::stof(endTimeFlag) != 0 && std::stof(startTime) != 0 && std::stof(endTime) - std::stof(startTime) > interval)
                                     {
                                         break;
-                                    }else{
+                                    }else
+                                    {
                                         endTimeFlag = endTime;
-                                    }                                                                                   
+                                    }
                             }
-                        }             
+                        }
                 }
                 completeTime = SmartPerf::ParseClickCompleteTrace::getTime(startTime, endTime);
             }
@@ -77,15 +79,15 @@ namespace OHOS {
                 float displayTime = 0.032;
                 float subNum = 2 ;
                 int point = endTime.find(".");
-                if (point != -1) 
+                if (point != -1)
                 {
                     endTime = endTime.substr(point - subNum);
                     startTime = startTime.substr(point - subNum);
                 }
-                if (std::stof(endTime) == 0 || std::stof(startTime) == 0) 
-                {            
+                if (std::stof(endTime) == 0 || std::stof(startTime) == 0)
+                {
                 }
-                else 
+                else
                 {
                     completeTime = std::stof(endTime) - std::stof(startTime) + displayTime;
                 }
@@ -99,11 +101,11 @@ namespace OHOS {
             int packageNameNumSize = 5;
             std::string appPid;
             if(appPidnum == 0){
-            if(strPackgeName.length()<packageNameNumSize)
+            if(strPackgeName.length() < packageNameNumSize)
             {
                     positionPackgeName = line.find("task_newtask: pid=");
                     positionAppspawn = line.find("comm=appspawn");
-                    if(positionPackgeName != std::string::npos && positionAppspawn != std::string::npos ) 
+                    if(positionPackgeName != std::string::npos && positionAppspawn != std::string::npos )
                     {
                             int position1 = line.find("pid=");
                             int position2 = line.find(" comm=appspawn");
@@ -121,7 +123,7 @@ namespace OHOS {
                         int position1 = line.find(strPackgeName);
                         int position2 = line.find(" prio");
                         appPid = line.substr(position1 + strPackgeName.length(), position2 - position1 - strPackgeName.length());
-                        appPidnum++;              
+                        appPidnum++;
                     } else
                     {
                         appPid = appPidBefore;
@@ -130,7 +132,7 @@ namespace OHOS {
             }
             return appPid;
         }
-        std::string  ParseClickCompleteTrace::getStartTime(std::string line,std::string startTimeBefore)
+        std::string  ParseClickCompleteTrace::getStartTime(std::string line, std::string startTimeBefore)
         {
             std::string::size_type mTouchEventDisPos;
             std::string::size_type touchEventDisPos;
@@ -138,16 +140,18 @@ namespace OHOS {
             int subNum = 5;
             int touchNum = 3;
             touchEventDisPos = line.find("H:touchEventDispatch");
-            mTouchEventDisPos = line.find("H:TouchEventDispatch");         
+            mTouchEventDisPos = line.find("H:TouchEventDispatch"); 
             if (mTouchEventDisPos != std::string::npos || touchEventDisPos != std::string::npos)
-                {               
-                    if(flagTouch <= touchNum){
+                {
+                    if(flagTouch <= touchNum)
+                    {
                     int position1 = line.find("....");
                     int position2 = line.find(":");
                     startTime = line.substr(position1 + subNum, position2 - position1 - subNum);
                     flagTime = "0";
                     flagTouch++;
-                    }else{
+                    }else
+                    {
                         startTime = startTimeBefore;
                     }
                 }

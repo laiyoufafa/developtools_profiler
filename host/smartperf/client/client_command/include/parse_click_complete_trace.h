@@ -18,7 +18,7 @@
 #include <string>
 #include <vector>
 
-namespace OHOS{
+namespace OHOS {
     namespace SmartPerf {
         class ParseClickCompleteTrace
         {
