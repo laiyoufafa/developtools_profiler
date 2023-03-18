@@ -26,9 +26,6 @@ public:
     void ChangeToBackground();
     void KillCurApp(std::string curPkgName);
     std::vector<std::string> GetPidByPkg(std::string curPkgName);
-    void InitXY2(std::string curAppName, std::string fileName);
-    std::string pointXY = "0 0";
 };
-
 }
 }

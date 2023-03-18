@@ -24,7 +24,7 @@
 #include "include/sp_utils.h"
 
 namespace OHOS {
-    namespace SmartPerf { 
+    namespace SmartPerf {
         float ParseTrace::ParseTraceCold(std::string fileNamePath, std::string packageName)
         {
             int conversion = 1000;
@@ -55,8 +55,7 @@ namespace OHOS {
             if (infile.fail()) {
                 std::cout << "File " << "open fail" << std::endl;
                 return 0;
-            }
-            else {
+            } else {
                 while (getline(infile, line)) {
                 appPid = SmartPerf::ParseTrace::GetPid(line, "pid", appPid);
                 startTime = SmartPerf::ParseTrace::GetStartTime(line, startTime);
@@ -68,14 +67,13 @@ namespace OHOS {
                         int endNum = std::stof(endTime);
                         int startNum = std::stof(startTime);
                         int endFlagNum = std::stof(endTimeFlag);
-                        if (endNum- endFlagNum < interval) {
+                        int timeNum = endNum- endFlagNum;
+                        if (timeNum < interval) {
                             endTimeFlag = endTime;
-                        }
-                        else {
-                            if (endFlagNum != 0 && startNum != 0 && endNum - startNum > interval) {
+                        } else {
+                            if (endFlagNum != 0 && startNum != 0 && timeNum > interval) {
                                 break;
-                            }
-                            else {
+                            } else {
                                 endTimeFlag = endTime;
                             }
                         }
@@ -102,24 +100,22 @@ namespace OHOS {
             if (infile.fail()) {
                 std::cout << "File " << "open fail" << std::endl;
                 return 0;
-            }
-            else {
+            } else {
                 while (getline(infile, line)) {
                     appPid=SmartPerf::ParseTrace::GetPid(line, "pid", appPid);
                     startTime=SmartPerf::ParseTrace::GetStartTime(line, startTime);
                     doComposition = line.find("H:RSMainThread::DoComposition");
-                    if (doComposition != std::string::npos) {      
+                    if (doComposition != std::string::npos) {
                         int position1 = line.find("....");
                         int position2 = line.find(":");
                         endTime = line.substr(position1 + subNum, position2 - position1 - subNum);
-                        if (std::stof(endTime) - std::stof(endTimeFlag) < interval) {
+                        int timeNum = std::stof(endTime) - std::stof(endTimeFlag);
+                        if (timeNum < interval) {
                             endTimeFlag = endTime;
-                        }
-                        else {
+                        } else {
                             if (std::stof(endTimeFlag) == 0) {
                                 endTimeFlag = endTime;
-                            }
-                            else {
+                            } else {
                                 break;
                             }
                         }
@@ -141,8 +137,7 @@ namespace OHOS {
                 startTime = startTime.substr(point - subNum);
             }
             if (std::stof(endTime) == 0 || std::stof(startTime) == 0) {
-            }
-            else {
+            } else {
                 codeTime = std::stof(endTime) - std::stof(startTime) + displayTime;
             }
             return codeTime;
@@ -163,20 +158,17 @@ namespace OHOS {
                         int position2 = line.find(" comm=appspawn");
                         appPid = line.substr(position1 + subNum, position2 - position1 - subNum);
                         appPidnum++;
-                    }
-                    else {
+                    } else {
                         appPid = appPidBefore;
                     }
-                }
-                else {
+                } else {
                     positionPackgeName = line.find(strPackgeName);
                     if (positionPackgeName != std::string::npos) {
                         int p1 = line.find(strPackgeName);
                         int p2 = line.find(" prio");
                         appPid = line.substr(p1 + strPackgeName.length(), p2 - p1 - strPackgeName.length());
                         appPidnum++;
-                    }
-                    else {
+                    } else {
                         appPid = appPidBefore;
                     }
                 }
@@ -199,8 +191,7 @@ namespace OHOS {
                 startTime = line.substr(position1 + subNum, position2 - position1 - subNum);
                 flagTime = "0";
                 flagTouch++;
-                }
-                else {
+                } else {
                 startTime = startTimeBefore;
                 }
             }

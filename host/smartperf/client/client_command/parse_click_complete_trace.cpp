@@ -25,9 +25,21 @@
 namespace OHOS {
     namespace SmartPerf {
         float ParseClickCompleteTrace::ParseCompleteTrace(std::string fileNamePath, std::string packageName)
+        {    
+            int conversion = 1000;
+            infile.open(fileNamePath);
+            if (infile.fail()) {
+                std::cout << "File " << "open fail" << std::endl;
+                return 0;
+            } else {
+                completeTime = SmartPerf::ParseClickCompleteTrace::GetLineTime();
+            }  
+            infile.close();
+            return completeTime * conversion;
+        }
+        float ParseClickCompleteTrace::GetLineTime()
         {
             std::string line;
-            std::ifstream infile;
             std::string startTime = "0";
             std::string endTime = "0";
             std::string endTimeFlag = "0";
@@ -35,43 +47,34 @@ namespace OHOS {
             std::string::size_type doComposition;
             int subNum = 5;
             float interval = 0.3;
-            int conversion = 1000;
-            infile.open(fileNamePath);
-            if (infile.fail()) {
-                std::cout << "File " << "open fail" << std::endl;
-                return 0;
-            }
-            else {
-                while (getline(infile, line)) {
-                    appPid = SmartPerf::ParseClickCompleteTrace::GetPid(line, "pid", appPid);
-                    startTime = SmartPerf::ParseClickCompleteTrace::GetStartTime(line, startTime);
-                    doComposition = line.find("H:RSMainThread::DoComposition");
-                    if (doComposition != std::string::npos) {
-                        int position1 = line.find("....");
-                        int position2 = line.find(":");
-                        endTime = line.substr(position1 + subNum, position2 - position1 - subNum);
-                        int endNum = std::stof(endTime);
-                        int endFlagNum = std::stof(endTimeFlag);
-                        int startNum = std::stof(startTime);
-                        if (endNum - endFlagNum < interval) {
+            while (getline(infile, line)) {
+                appPid = SmartPerf::ParseClickCompleteTrace::GetPid(line, "pid", appPid);
+                startTime = SmartPerf::ParseClickCompleteTrace::GetStartTime(line, startTime);
+                doComposition = line.find("H:RSMainThread::DoComposition");
+                if (doComposition != std::string::npos) {
+                    int position1 = line.find("....");
+                    int position2 = line.find(":");
+                    endTime = line.substr(position1 + subNum, position2 - position1 - subNum);
+                    int endNum = std::stof(endTime);
+                    int endFlagNum = std::stof(endTimeFlag);
+                    int startNum = std::stof(startTime);
+                    int timeNum = endNum - endFlagNum;
+                    if (timeNum < interval) {
+                        endTimeFlag = endTime;
+                    } else {
+                        if (endFlagNum != 0 && startNum != 0 && timeNum > interval) {
+                            break;
+                        } else {
                             endTimeFlag = endTime;
-                        }
-                        else {
-                            if (endFlagNum != 0 && startNum != 0 && endNum - startNum > interval)
-                            {
-                                break;
-                            }
-                            else {
-                                endTimeFlag = endTime;
-                            }
                         }
                     }
                 }
-                completeTime = SmartPerf::ParseClickCompleteTrace::GetTime(startTime, endTime);
             }
-            infile.close();
-            return completeTime * conversion;
+            completeTime = SmartPerf::ParseClickCompleteTrace::GetTime(startTime, endTime);
+            return completeTime;
         }
+
+
         float  ParseClickCompleteTrace::GetTime(std::string startTime, std::string endTime)
         {
             float displayTime = 0.032;
@@ -82,8 +85,7 @@ namespace OHOS {
                 startTime = startTime.substr(point - subNum);
             }
             if (std::stof(endTime) == 0 || std::stof(startTime) == 0) {
-            }
-            else {
+            } else {
                 completeTime = std::stof(endTime) - std::stof(startTime) + displayTime;
             }
             return completeTime;
@@ -99,25 +101,22 @@ namespace OHOS {
             if (packgeName.length() < packageNameNumSize) {
                 positionPackgeName = line.find("task_newtask: pid=");
                 positionAppspawn = line.find("comm=appspawn");
-                if (positionPackgeName != std::string::npos && positionAppspawn != std::string::npos ) {
+                if (positionPackgeName != std::string::npos && positionAppspawn != std::string::npos) {
                     int position1 = line.find("pid=");
                     int position2 = line.find(" comm=appspawn");
                     appPid = line.substr(position1 + subNum, position2 - position1 - subNum);
                     appPidnum++;
-                }
-                else {
+                } else {
                     appPid = pidBefore;
                 }
-            }
-            else {
+            } else {
                 positionPackgeName = line.find(packgeName);
                 if (positionPackgeName != std::string::npos) {
                     int p1 = line.find(packgeName);
                     int p2 = line.find(" prio");
                     appPid = line.substr(p1 + packgeName.length(), p2 - p1 - packgeName.length());
                     appPidnum++;
-                }
-                else {
+                } else {
                     appPid = pidBefore;
                 }
             }
@@ -140,8 +139,7 @@ namespace OHOS {
                     startTime = line.substr(position1 + subNum, position2 - position1 - subNum);
                     flagTime = "0";
                     flagTouch++;
-                } 
-                else {
+                } else {
                     startTime = startTimeBefore;
                 }
             }

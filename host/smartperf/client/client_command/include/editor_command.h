@@ -21,12 +21,12 @@ namespace SmartPerf {
 class EditorCommand {
 public:
     const int threeParamMore = 3;
-    EditorCommand(int argc, char *argv[]);
+    EditorCommand(int argc, std::vector<std::string> v);
     ~EditorCommand() {};
-    float ColdStart(char *argv[]);
-    float HotStart(char *argv[]);
-    float CompleteTime(char *argv[]);
-    float ResponseTime(char *argv[]);
+    float ColdStart(std::vector<std::string> v);
+    float HotStart(std::vector<std::string> v);
+    float CompleteTime(std::vector<std::string> v);
+    float ResponseTime(std::vector<std::string> v);
 };
 }
 }

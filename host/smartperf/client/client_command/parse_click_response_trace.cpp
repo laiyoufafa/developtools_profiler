@@ -25,38 +25,42 @@
 namespace OHOS {
     namespace SmartPerf {
         float ParseClickResponseTrace::ParseResponseTrace(std::string fileNamePath, std::string packageName)
-        {
-            std::string line;
-            std::ifstream infile;
-            std::string startTime = "0";
-            std::string endTime = "0";
-            std::string appPid = "0";
-            std::string::size_type doComposition;
-            int subNum = 5;
+        {      
             int conversion = 1000;
             infile.open(fileNamePath);
             if (infile.fail()) {
                 std::cout << "File " << "open fail" << std::endl;
                 return 0;
-            }
-            else {
-                while (getline(infile, line)) {
-                    appPid = SmartPerf::ParseClickResponseTrace::GetPid(line, "pid", appPid);
-                    startTime = SmartPerf::ParseClickResponseTrace::GetStartTime(line, startTime);
-                    doComposition = line.find("H:RSMainThread::DoComposition");
-                    if (doComposition != std::string::npos) {
-                        int position1 = line.find("....");
-                        int position2 = line.find(":");
-                        endTime = line.substr(position1 + subNum, position2 - position1 - subNum);
-                        if (std::stof(startTime) != 0) {
-                            break;
-                        }
-                    }
-                }
-                completeTime = SmartPerf::ParseClickResponseTrace::GetTime(startTime, endTime);
+            } else {
+                completeTime = SmartPerf::ParseClickResponseTrace::GetLineTime();
             }
             infile.close();
             return completeTime * conversion;
+        }
+        float ParseClickResponseTrace::GetLineTime()
+        {
+            std::string line;
+            std::string startTime = "0";
+            std::string endTime = "0";
+            std::string appPid = "0";
+            std::string::size_type doComposition;
+            int subNum = 5;
+            while (getline(infile, line)) {
+                appPid = SmartPerf::ParseClickResponseTrace::GetPid(line, "pid", appPid);
+                startTime = SmartPerf::ParseClickResponseTrace::GetStartTime(line, startTime);
+                doComposition = line.find("H:RSMainThread::DoComposition");
+                if (doComposition != std::string::npos) {
+                    int position1 = line.find("....");
+                    int position2 = line.find(":");
+                    endTime = line.substr(position1 + subNum, position2 - position1 - subNum);
+                    int startNum = std::stof(startTime);
+                    if (startNum != 0) {
+                        break;
+                    }
+                }
+            }
+            completeTime = SmartPerf::ParseClickResponseTrace::GetTime(startTime, endTime);
+            return completeTime;
         }
         float  ParseClickResponseTrace::GetTime(std::string startTime, std::string endTime)
         {
@@ -68,8 +72,7 @@ namespace OHOS {
                     startTime = startTime.substr(point - subNum);
                 }
                 if (std::stof(endTime) == 0 || std::stof(startTime) == 0) {
-                }
-                else {
+                } else {
                     completeTime = std::stof(endTime) - std::stof(startTime) + displayTime;
                 }
                 return completeTime;
@@ -85,13 +88,12 @@ namespace OHOS {
             if (packgeName.length() < packageNameNumSize) {
                 positionPackgeName = line.find("task_newtask: pid=");
                 positionAppspawn = line.find("comm=appspawn");
-                if (positionPackgeName != std::string::npos && positionAppspawn != std::string::npos ) {
+                if (positionPackgeName != std::string::npos && positionAppspawn != std::string::npos) {
                     int position1 = line.find("pid=");
                     int position2 = line.find(" comm=appspawn");
                     appPid = line.substr(position1 + subNum, position2 - position1 - subNum);
                     appPidnum++;
-                }
-                else {
+                } else {
                     appPid = pidBefore;
                 }
             }
@@ -102,8 +104,7 @@ namespace OHOS {
                     int p2 = line.find(" prio");
                     appPid = line.substr(p1 + packgeName.length(), p2 - p1 - packgeName.length());
                     appPidnum++;
-                }
-                else {
+                } else {
                     appPid = pidBefore;
                 }
             }
@@ -126,8 +127,7 @@ namespace OHOS {
                 startTime = line.substr(position1 + subNum, position2 - position1 - subNum);
                 flagTime = "0";
                 flagTouch++;
-                }
-                else {
+                } else {
                     startTime = startTimeBefore;
                 }
                 }
