@@ -16,8 +16,7 @@
 #include "include/editor_command.h"
 int main(int argc, char *argv[])
 {
-    if(argc > 1 && strcmp(argv[1], "-editor") == 0)
-    {
+    if (argc > 1 && strcmp(argv[1], "-editor") == 0) {
         OHOS::SmartPerf::EditorCommand cmd(argc, argv);
         return 0;
     }

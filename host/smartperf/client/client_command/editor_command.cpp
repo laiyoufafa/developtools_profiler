@@ -25,75 +25,71 @@ namespace OHOS {
 namespace SmartPerf {
 EditorCommand::EditorCommand(int argc, char *argv[])
 {
-    int TYPE = 2;
-    if (argc >= threeParamMore)
-    {
-            float time = 0.0;
-            if(strcmp(argv[TYPE], "coldStart") == 0)
-            {
-                time = SmartPerf::EditorCommand::coldStart(argv);
-            }
-            else if (strcmp(argv[TYPE], "hotStart") == 0)
-            {
-                time = SmartPerf::EditorCommand::hotStart(argv);
-            }
-            else if (strcmp(argv[TYPE], "responseTime") == 0)
-            {
-                time = SmartPerf::EditorCommand::responseTime(argv);
-            }else if (strcmp(argv[TYPE], "completeTime") == 0)
-            {
-                time = SmartPerf::EditorCommand::completeTime(argv);
-            }
-            std::cout << "time:" << time << std::endl;
+    int type = 2;
+    if (argc >= threeParamMore) {
+        float time = 0.0;
+        if (strcmp(argv[type], "coldStart") == 0) {
+            time = SmartPerf::EditorCommand::ColdStart(argv);
+        }
+        else if (strcmp(argv[type], "hotStart") == 0) {
+            time = SmartPerf::EditorCommand::HotStart(argv);
+        }
+        else if (strcmp(argv[type], "responseTime") == 0) {
+            time = SmartPerf::EditorCommand::ResponseTime(argv);
+        } 
+        else if (strcmp(argv[type], "completeTime") == 0) {
+            time = SmartPerf::EditorCommand::CompleteTime(argv);
+        }
+        std::cout << "time:" << time << std::endl;
     }
 }
-float EditorCommand::responseTime(char *argv[])
+float EditorCommand::ResponseTime(char *argv[])
 {
-        OHOS::SmartPerf::ParseClickResponseTrace pcrt;
-        OHOS::SmartPerf::StartUpDelay sd;
-        std::string cmdResult;
-        SPUtils::LoadCmd("rm -rfv /data/local/tmp/*.ftrace", cmdResult);
-        std::string traceName = std::string("/data/local/tmp/") + std::string("sp_trace_") + "response" + ".ftrace";
-        std::thread thGetTrace = sd.ThreadGetTrace("response", traceName);
-        thGetTrace.join();
-        float time = pcrt.parse_click_response_trace(traceName, argv[3]);
-        return time;
+    OHOS::SmartPerf::ParseClickResponseTrace pcrt;
+    OHOS::SmartPerf::StartUpDelay sd;
+    std::string cmdResult;
+    SPUtils::LoadCmd("rm -rfv /data/local/tmp/*.ftrace", cmdResult);
+    std::string traceName = std::string("/data/local/tmp/") + std::string("sp_trace_") + "response" + ".ftrace";
+    std::thread thGetTrace = sd.ThreadGetTrace("response", traceName);
+    thGetTrace.join();
+    float time = pcrt.ParseResponseTrace(traceName, argv[3]);
+    return time;
 }
-float EditorCommand::completeTime(char *argv[])
+float EditorCommand::CompleteTime(char *argv[])
 {
-        OHOS::SmartPerf::StartUpDelay sd;
-        OHOS::SmartPerf::ParseClickCompleteTrace pcct;
-        std::string cmdResult;
-        SPUtils::LoadCmd("rm -rfv /data/local/tmp/*.ftrace", cmdResult);
-        std::string traceName = std::string("/data/local/tmp/") + std::string("sp_trace_") + "complete" + ".ftrace";
-        std::thread thGetTrace = sd.ThreadGetTrace("complete", traceName);
-        thGetTrace.join();
-        float time = pcct.parse_click_complete_trace(traceName, argv[3]);
-        return time;
+    OHOS::SmartPerf::StartUpDelay sd;
+    OHOS::SmartPerf::ParseClickCompleteTrace pcct;
+    std::string cmdResult;
+    SPUtils::LoadCmd("rm -rfv /data/local/tmp/*.ftrace", cmdResult);
+    std::string traceName = std::string("/data/local/tmp/") + std::string("sp_trace_") + "complete" + ".ftrace";
+    std::thread thGetTrace = sd.ThreadGetTrace("complete", traceName);
+    thGetTrace.join();
+    float time = pcct.ParseCompleteTrace(traceName, argv[3]);
+    return time;
 }
-float EditorCommand::coldStart(char *argv[])
+float EditorCommand::ColdStart(char *argv[])
 {
-        OHOS::SmartPerf::StartUpDelay sd;
-        OHOS::SmartPerf::ParseTrace parseTrace;
-        std::string cmdResult;
-        SPUtils::LoadCmd("rm -rfv /data/local/tmp/*.ftrace", cmdResult);
-        std::string traceName = std::string("/data/local/tmp/") + std::string("sp_trace_") + "coldStart" + ".ftrace";
-        std::thread thGetTrace = sd.ThreadGetTrace("coldStart", traceName);
-        thGetTrace.join();
-        float time = parseTrace.parse_trace_cold(traceName, argv[3]);
-        return time;
+    OHOS::SmartPerf::StartUpDelay sd;
+    OHOS::SmartPerf::ParseTrace parseTrace;
+    std::string cmdResult;
+    SPUtils::LoadCmd("rm -rfv /data/local/tmp/*.ftrace", cmdResult);
+    std::string traceName = std::string("/data/local/tmp/") + std::string("sp_trace_") + "coldStart" + ".ftrace";
+    std::thread thGetTrace = sd.ThreadGetTrace("coldStart", traceName);
+    thGetTrace.join();
+    float time = parseTrace.ParseTraceCold(traceName, argv[3]);
+    return time;
 }
-float EditorCommand::hotStart(char *argv[])
+float EditorCommand::HotStart(char *argv[])
 {
-        OHOS::SmartPerf::StartUpDelay sd;
-        OHOS::SmartPerf::ParseTrace parseTrace;
-        std::string cmdResult;
-        SPUtils::LoadCmd("rm -rfv /data/local/tmp/*.ftrace", cmdResult);
-        std::string traceName = std::string("/data/local/tmp/") + std::string("sp_trace_") + "hotStart" + ".ftrace";
-        std::thread thGetTrace = sd.ThreadGetTrace("hotStart", traceName);
-        thGetTrace.join();
-        float time = parseTrace.parse_trace_hot(traceName, argv[3]);
-        return time;
+    OHOS::SmartPerf::StartUpDelay sd;
+    OHOS::SmartPerf::ParseTrace parseTrace;
+    std::string cmdResult;
+    SPUtils::LoadCmd("rm -rfv /data/local/tmp/*.ftrace", cmdResult);
+    std::string traceName = std::string("/data/local/tmp/") + std::string("sp_trace_") + "hotStart" + ".ftrace";
+    std::thread thGetTrace = sd.ThreadGetTrace("hotStart", traceName);
+    thGetTrace.join();
+    float time = parseTrace.ParseTraceHot(traceName, argv[3]);
+    return time;
 }
 }
 }

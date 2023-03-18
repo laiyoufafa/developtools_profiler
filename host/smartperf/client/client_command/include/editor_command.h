@@ -23,10 +23,10 @@ public:
     const int threeParamMore = 3;
     EditorCommand(int argc, char *argv[]);
     ~EditorCommand() {};
-    float coldStart(char *argv[]);
-    float hotStart(char *argv[]);
-    float completeTime(char *argv[]);
-    float responseTime(char *argv[]);
+    float ColdStart(char *argv[]);
+    float HotStart(char *argv[]);
+    float CompleteTime(char *argv[]);
+    float ResponseTime(char *argv[]);
 };
 }
 }
