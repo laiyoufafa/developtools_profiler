@@ -56,21 +56,18 @@ namespace OHOS {
                 return 0;
             } else {
                 while (getline(infile, line)) {
-                appPid = SmartPerf::ParseTrace::GetPid(line, "pid", appPid);
-                startTime = SmartPerf::ParseTrace::GetStartTime(line, startTime);
-                tracingMarkWrite = line.find("tracing_mark_write: E|"+ appPid);
+                    appPid = SmartPerf::ParseTrace::GetPid(line, "pid", appPid);
+                    startTime = SmartPerf::ParseTrace::GetStartTime(line, startTime);
+                    tracingMarkWrite = line.find("tracing_mark_write: E|"+ appPid);
                     if (tracingMarkWrite != std::string::npos) {
-                        int position1 = line.find("....");
-                        int position2 = line.find(":");
-                        endTime = line.substr(position1 + subNum, position2 - position1 - subNum);
-                        int endNum = std::stof(endTime);
-                        int startNum = std::stof(startTime);
-                        int endFlagNum = std::stof(endTimeFlag);
-                        int timeNum = endNum - endFlagNum;
-                        if (timeNum < interval) {
+                        int p1 = line.find("....");
+                        int p2 = line.find(":");
+                        endTime = line.substr(p1 + subNum, p2 - p1 - subNum);
+                        if (std::stof(endTime) - std::stof(endTimeFlag) < interval) {
                             endTimeFlag = endTime;
                         } else {
-                            if (endFlagNum != 0 && startNum != 0 && timeNum > interval) {
+                            if (std::stof(endTimeFlag) != 0 && std::stof(startTime) != 0 && std::stof(endTime) - std::stof(startTime) > interval)
+                            {
                                 break;
                             } else {
                                 endTimeFlag = endTime;
@@ -108,13 +105,17 @@ namespace OHOS {
                         int position2 = line.find(":");
                         endTime = line.substr(position1 + subNum, position2 - position1 - subNum);
                         int timeNum = std::stof(endTime) - std::stof(endTimeFlag);
+                        int endFlagNum = std::stof(endTimeFlag);
+                        int startNum = std::stof(startTime);
                         if (timeNum < interval) {
                             endTimeFlag = endTime;
                         } else {
                             if (std::stof(endTimeFlag) == 0) {
                                 endTimeFlag = endTime;
-                            } else {
+                            } else if (endFlagNum != 0 && startNum != 0 && timeNum > interval) {
                                 break;
+                            } else {
+                                endTimeFlag = endTime;
                             }
                         }
                     }
@@ -170,6 +171,8 @@ namespace OHOS {
                         appPid = appPidBefore;
                     }
                 }
+            } else {
+                appPid = appPidBefore;
             }
             return appPid;
         }

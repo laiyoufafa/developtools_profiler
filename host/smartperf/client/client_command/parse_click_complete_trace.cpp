@@ -116,7 +116,7 @@ namespace OHOS {
             }
             return appPid;
         }
-        std::string  ParseClickCompleteTrace::GetStartTime(std::string line, std::string startTimeBefore) 
+        std::string  ParseClickCompleteTrace::GetStartTime(std::string line, std::string startTimeBefore)
         {
             std::string::size_type mTouchEventDisPos;
             std::string::size_type touchEventDisPos;
