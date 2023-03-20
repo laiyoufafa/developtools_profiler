@@ -49,6 +49,7 @@ namespace OHOS {
             float interval = 0.3;
             infile.open(fileNamePath);
             std::string::size_type tracingMarkWrite;
+            std::string::size_type fourPoint;
             int subNum = 5;
             float codeTime = -1;
             if (infile.fail()) {
@@ -59,17 +60,17 @@ namespace OHOS {
                     appPid = SmartPerf::ParseTrace::GetPid(line, "pid", appPid);
                     startTime = SmartPerf::ParseTrace::GetStartTime(line, startTime);
                     tracingMarkWrite = line.find("tracing_mark_write: E|"+ appPid);
-                    if (tracingMarkWrite != std::string::npos) {
+                    fourPoint = line.find("....");
+                    if (tracingMarkWrite != std::string::npos && fourPoint != std::string::npos) {
                         int p1 = line.find("....");
                         int p2 = line.find(":");
                         endTime = line.substr(p1 + subNum, p2 - p1 - subNum);
                         if (std::stof(endTime) - std::stof(endTimeFlag) < interval) {
                             endTimeFlag = endTime;
                         } else {
-                            int timeNum = std::stof(endTime) - std::stof(endTimeFlag);
                             int endFlagNum = std::stof(endTimeFlag);
                             int startNum = std::stof(startTime);
-                            if (endFlagNum != 0 && startNum != 0 && timeNum > interval) {
+                            if (endFlagNum != 0 && startNum != 0 && std::stof(endTime) - std::stof(endTimeFlag) > interval) {
                                 break;
                             } else {
                                 endTimeFlag = endTime;
