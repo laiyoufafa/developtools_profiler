@@ -24,9 +24,9 @@
 #include "include/sp_utils.h"
 namespace OHOS {
     namespace SmartPerf {
-        float ParseClickCompleteTrace::ParseCompleteTrace(std::string fileNamePath, std::string packageName) {
+        float ParseClickCompleteTrace::ParseCompleteTrace(std::string fileNamePath, std::string packageName)
+        {
             std::string line;
-            std::ifstream infile;
             std::string startTime = "0";
             std::string endTime = "0";
             std::string endTimeFlag = "0";
@@ -68,7 +68,8 @@ namespace OHOS {
             infile.close();
             return completeTime * conversion;
         }
-        float  ParseClickCompleteTrace::GetTime(std::string startTime, std::string endTime) {
+        float  ParseClickCompleteTrace::GetTime(std::string startTime, std::string endTime)
+        {
             float displayTime = 0.032;
             float subNum = 2 ;
             int point = endTime.find(".");
@@ -82,7 +83,8 @@ namespace OHOS {
             }
             return completeTime;
         }
-        std::string  ParseClickCompleteTrace::GetPid(std::string line, std::string packgeName, std::string pidBefore) {
+        std::string  ParseClickCompleteTrace::GetPid(std::string line, std::string packgeName, std::string pidBefore)
+        {
             std::string::size_type positionPackgeName;
             std::string::size_type positionAppspawn;
             int subNum = 4;
@@ -114,7 +116,7 @@ namespace OHOS {
             }
             return appPid;
         }
-        std::string  ParseClickCompleteTrace::GetStartTime(std::string line, std::string startTimeBefore)
+        std::string  ParseClickCompleteTrace::GetStartTime(std::string line, std::string startTimeBefore) 
         {
             std::string::size_type mTouchEventDisPos;
             std::string::size_type touchEventDisPos;
