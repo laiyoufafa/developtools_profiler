@@ -66,8 +66,10 @@ namespace OHOS {
                         if (std::stof(endTime) - std::stof(endTimeFlag) < interval) {
                             endTimeFlag = endTime;
                         } else {
-                            if (std::stof(endTimeFlag) != 0 && std::stof(startTime) != 0 && std::stof(endTime) - std::stof(startTime) > interval)
-                            {
+                            int timeNum = std::stof(endTime) - std::stof(endTimeFlag);
+                            int endFlagNum = std::stof(endTimeFlag);
+                            int startNum = std::stof(startTime);
+                            if (endFlagNum != 0 && startNum != 0 && timeNum > interval) {
                                 break;
                             } else {
                                 endTimeFlag = endTime;
