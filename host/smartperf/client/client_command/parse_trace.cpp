@@ -25,22 +25,19 @@
 
 namespace OHOS {
     namespace SmartPerf {
-        float ParseTrace::ParseTraceCold(std::string fileNamePath, std::string packageName)
-        {
+        float ParseTrace::ParseTraceCold(std::string fileNamePath, std::string packageName) {
             int conversion = 1000;
             float code = -1;
             code = SmartPerf::ParseTrace::ParseCodeTrace(fileNamePath);
             return code * conversion;
         }
-        float ParseTrace::ParseTraceHot(std::string fileNamePath, std::string packageName)
-        {
+        float ParseTrace::ParseTraceHot(std::string fileNamePath, std::string packageName) {
             int conversion = 1000;
             float code = -1;
             code = SmartPerf::ParseTrace::ParseHotTrace(fileNamePath);
             return code * conversion;
         }
-        float ParseTrace::ParseCodeTrace(std::string fileNamePath)
-        {
+        float ParseTrace::ParseCodeTrace(std::string fileNamePath) {
             std::string line;
             std::ifstream infile;
             std::string startTime = "0";
@@ -84,8 +81,7 @@ namespace OHOS {
             infile.close();
             return codeTime;
         }
-        float ParseTrace::ParseHotTrace(std::string fileNamePath)
-        {
+        float ParseTrace::ParseHotTrace(std::string fileNamePath) {
             std::string line;
             std::ifstream infile;
             std::string startTime = "0";
@@ -126,8 +122,7 @@ namespace OHOS {
             infile.close();
             return codeTime;
         }
-        float  ParseTrace::GetTime(std::string startTime, std::string endTime)
-        {
+        float  ParseTrace::GetTime(std::string startTime, std::string endTime) {
             float displayTime = 0.040;
             float subNum = 2;
             int point = endTime.find(".");
@@ -142,8 +137,7 @@ namespace OHOS {
             }
             return codeTime;
         }
-        std::string  ParseTrace::GetPid(std::string line, std::string strPackgeName, std::string appPidBefore)
-        {
+        std::string  ParseTrace::GetPid(std::string line, std::string strPackgeName, std::string appPidBefore) {
             std::string::size_type positionPackgeName;
             std::string::size_type positionAppspawn;
             int subNum = 4;
@@ -175,8 +169,7 @@ namespace OHOS {
             }
             return appPid;
         }
-        std::string  ParseTrace::GetStartTime(std::string line, std::string startTimeBefore)
-        {
+        std::string  ParseTrace::GetStartTime(std::string line, std::string startTimeBefore) {
             std::string::size_type mTouchEventDisPos;
             std::string::size_type touchEventDisPos;
             int subNum = 5;
@@ -191,9 +184,11 @@ namespace OHOS {
                 startTime = line.substr(position1 + subNum, position2 - position1 - subNum);
                 flagTime = "0";
                 flagTouch++;
-                } else {
+                }else {
                 startTime = startTimeBefore;
                 }
+            } else {
+                startTime = startTimeBefore;
             }
             return startTime;
         }

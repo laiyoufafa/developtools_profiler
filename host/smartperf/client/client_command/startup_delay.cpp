@@ -28,7 +28,7 @@ void StartUpDelay::GetTrace(std::string sessionId, std::string traceName)
 {
     std::string result;
     std::string cmdString{"bytrace -t 5 -b 20480 --overwrite idle ace app ohos ability graphic "};
-    std::string cmdStringEnd{"sched freq irq sync workq pagecache multimodalinput > "};
+    std::string cmdStringEnd{"sched freq irq sync workq binder pagecache multimodalinput > "};
     SPUtils::LoadCmd(cmdString + cmdStringEnd + traceName, result);
 }
 std::thread StartUpDelay::ThreadGetTrace(std::string sessionId, std::string traceName)

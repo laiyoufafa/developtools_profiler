@@ -24,22 +24,9 @@
 #include "include/sp_utils.h"
 namespace OHOS {
     namespace SmartPerf {
-        float ParseClickCompleteTrace::ParseCompleteTrace(std::string fileNamePath, std::string packageName)
-        {    
-            int conversion = 1000;
-            infile.open(fileNamePath);
-            if (infile.fail()) {
-                std::cout << "File " << "open fail" << std::endl;
-                return 0;
-            } else {
-                completeTime = SmartPerf::ParseClickCompleteTrace::GetLineTime();
-            }  
-            infile.close();
-            return completeTime * conversion;
-        }
-        float ParseClickCompleteTrace::GetLineTime()
-        {
+        float ParseClickCompleteTrace::ParseCompleteTrace(std::string fileNamePath, std::string packageName) {
             std::string line;
+            std::ifstream infile;
             std::string startTime = "0";
             std::string endTime = "0";
             std::string endTimeFlag = "0";
@@ -47,36 +34,41 @@ namespace OHOS {
             std::string::size_type doComposition;
             int subNum = 5;
             float interval = 0.3;
-            while (getline(infile, line)) {
-                appPid = SmartPerf::ParseClickCompleteTrace::GetPid(line, "pid", appPid);
-                startTime = SmartPerf::ParseClickCompleteTrace::GetStartTime(line, startTime);
-                doComposition = line.find("H:RSMainThread::DoComposition");
-                if (doComposition != std::string::npos) {
-                    int position1 = line.find("....");
-                    int position2 = line.find(":");
-                    endTime = line.substr(position1 + subNum, position2 - position1 - subNum);
-                    int endNum = std::stof(endTime);
-                    int endFlagNum = std::stof(endTimeFlag);
-                    int startNum = std::stof(startTime);
-                    int timeNum = endNum - endFlagNum;
-                    if (timeNum < interval) {
-                        endTimeFlag = endTime;
-                    } else {
-                        if (endFlagNum != 0 && startNum != 0 && timeNum > interval) {
-                            break;
-                        } else {
+            int conversion = 1000;
+            infile.open(fileNamePath);
+            if (infile.fail()) {
+                std::cout << "File " << "open fail" << std::endl;
+                return 0;
+            } else {
+                while (getline(infile, line)) {
+                    appPid = SmartPerf::ParseClickCompleteTrace::GetPid(line, "pid", appPid);
+                    startTime = SmartPerf::ParseClickCompleteTrace::GetStartTime(line, startTime);
+                    doComposition = line.find("H:RSMainThread::DoComposition");
+                    if (doComposition != std::string::npos) {
+                        int position1 = line.find("....");
+                        int position2 = line.find(":");
+                        endTime = line.substr(position1 + subNum, position2 - position1 - subNum);
+                        int endNum = std::stof(endTime);
+                        int endFlagNum = std::stof(endTimeFlag);
+                        int startNum = std::stof(startTime);
+                        int timeNum = endNum - endFlagNum;
+                        if (timeNum < interval) {
                             endTimeFlag = endTime;
+                        } else {
+                            if (endFlagNum != 0 && startNum != 0 && timeNum > interval) {
+                                break;
+                            } else {
+                                endTimeFlag = endTime;
+                            }
                         }
                     }
                 }
+                completeTime = SmartPerf::ParseClickCompleteTrace::GetTime(startTime, endTime);
             }
-            completeTime = SmartPerf::ParseClickCompleteTrace::GetTime(startTime, endTime);
-            return completeTime;
+            infile.close();
+            return completeTime * conversion;
         }
-
-
-        float  ParseClickCompleteTrace::GetTime(std::string startTime, std::string endTime)
-        {
+        float  ParseClickCompleteTrace::GetTime(std::string startTime, std::string endTime) {
             float displayTime = 0.032;
             float subNum = 2 ;
             int point = endTime.find(".");
@@ -90,8 +82,7 @@ namespace OHOS {
             }
             return completeTime;
         }
-        std::string  ParseClickCompleteTrace::GetPid(std::string line, std::string packgeName, std::string pidBefore)
-        {
+        std::string  ParseClickCompleteTrace::GetPid(std::string line, std::string packgeName, std::string pidBefore) {
             std::string::size_type positionPackgeName;
             std::string::size_type positionAppspawn;
             int subNum = 4;
@@ -142,6 +133,8 @@ namespace OHOS {
                 } else {
                     startTime = startTimeBefore;
                 }
+            } else {
+                startTime = startTimeBefore;
             }
             return startTime;
         }

@@ -17,11 +17,11 @@
 int main(int argc, char *argv[])
 {
     if (argc > 1 && strcmp(argv[1], "-editor") == 0) {
-        std::vector<string> v;
+        std::vector<std::string> v;
         for (int i = 0; i < argc; i++) {
             v.push_back(argv[i]);
         }
-        OHOS::SmartPerf::EditorCommand cmd(argc, v);
+        OHOS::SmartPerf::EditorCommand cmd(argc, argv);
         return 0;
     }
     OHOS::SmartPerf::SmartPerfCommand cmd(argc, argv);

@@ -25,14 +25,14 @@ namespace OHOS {
                 float ParseResponseTrace(std::string fileNamePath, std::string packageName);
                 float GetTime(std::string startTime, std::string endTime);
                 std::string GetPid(std::string line, std::string packgeName, std::string pidBefore);
-                std::string GetStartTime(std::string line, std::string startTimeBefore);
+                std::string GetStartTime(std::string line, std::string &startTimeBefore);
                 float GetLineTime();
             private:
                 std::string flagTime = "0";
                 int flagTouch = 0;
                 int appPidnum = 0;
                 float completeTime = -1;
-                std::ifstream infile; 
+                std::ifstream infile;
         };
     }
 }

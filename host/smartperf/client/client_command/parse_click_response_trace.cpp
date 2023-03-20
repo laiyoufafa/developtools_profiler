@@ -24,8 +24,7 @@
 #include "include/sp_utils.h"
 namespace OHOS {
     namespace SmartPerf {
-        float ParseClickResponseTrace::ParseResponseTrace(std::string fileNamePath, std::string packageName)
-        {      
+        float ParseClickResponseTrace::ParseResponseTrace(std::string fileNamePath, std::string packageName) {
             int conversion = 1000;
             infile.open(fileNamePath);
             if (infile.fail()) {
@@ -37,8 +36,7 @@ namespace OHOS {
             infile.close();
             return completeTime * conversion;
         }
-        float ParseClickResponseTrace::GetLineTime()
-        {
+        float ParseClickResponseTrace::GetLineTime() {
             std::string line;
             std::string startTime = "0";
             std::string endTime = "0";
@@ -53,8 +51,8 @@ namespace OHOS {
                     int position1 = line.find("....");
                     int position2 = line.find(":");
                     endTime = line.substr(position1 + subNum, position2 - position1 - subNum);
-                    int startNum = std::stof(startTime);
-                    if (startNum != 0) {
+                    if (std::stof(startTime) == 0) {
+                    } else{
                         break;
                     }
                 }
@@ -62,8 +60,7 @@ namespace OHOS {
             completeTime = SmartPerf::ParseClickResponseTrace::GetTime(startTime, endTime);
             return completeTime;
         }
-        float  ParseClickResponseTrace::GetTime(std::string startTime, std::string endTime)
-        {
+        float  ParseClickResponseTrace::GetTime(std::string startTime, std::string endTime) {
                 float displayTime = 0.032;
                 float subNum = 2;
                 int point = endTime.find(".");
@@ -77,8 +74,7 @@ namespace OHOS {
                 }
                 return completeTime;
         }
-        std::string  ParseClickResponseTrace::GetPid(std::string line, std::string packgeName, std::string pidBefore)
-        {
+        std::string  ParseClickResponseTrace::GetPid(std::string line, std::string packgeName, std::string pidBefore) {
             std::string::size_type positionPackgeName;
             std::string::size_type positionAppspawn;
             int subNum = 4;
@@ -96,8 +92,7 @@ namespace OHOS {
                 } else {
                     appPid = pidBefore;
                 }
-            }
-            else {
+            } else {
                 positionPackgeName = line.find(packgeName);
                 if (positionPackgeName != std::string::npos) {
                     int p1 = line.find(packgeName);
@@ -111,8 +106,7 @@ namespace OHOS {
             }
             return appPid;
         }
-        std::string  ParseClickResponseTrace::GetStartTime(std::string line, std::string startTimeBefore)
-        {
+        std::string  ParseClickResponseTrace::GetStartTime(std::string line, std::string &startTimeBefore) {
             std::string::size_type mTouchEventDisPos;
             std::string::size_type touchEventDisPos;
             int subNum = 5;
@@ -121,6 +115,7 @@ namespace OHOS {
             touchEventDisPos = line.find("H:touchEventDispatch");
             mTouchEventDisPos = line.find("H:TouchEventDispatch");
             if (mTouchEventDisPos != std::string::npos || touchEventDisPos != std::string::npos) {
+                std::cout << "flagTouch" <<  flagTouch<<std::endl;
                 if (flagTouch <= touchNum) {
                 int position1 = line.find("....");
                 int position2 = line.find(":");
@@ -130,7 +125,9 @@ namespace OHOS {
                 } else {
                     startTime = startTimeBefore;
                 }
-                }
+            } else {
+                startTime = startTimeBefore;
+            }
             return startTime;
         }
     }

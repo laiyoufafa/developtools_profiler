@@ -29,6 +29,7 @@ public:
     std::string GetPid(std::string line, std::string strPackgeName, std::string appPidBefore);
     std::string GetStartTime(std::string line, std::string startTimeBefore);
 private:
+    std::ifstream infile;
     std::string flagTime = "0";
     int flagTouch = 0;
     int appPidnum = 0;
