@@ -310,7 +310,7 @@ int BPFEventReceiver::EncodeFSTraceEvent(
     (void)memcpy_s(item->comm_, MAX_COMM_LEN, cmplt_event->comm, MAX_COMM_LEN);
     if (cmplt_event->nips and cmplt_event->ustack_id >= 0) {
         char* tmp = static_cast<char*>(tlvItem);
-        __u64 *ips = static_cast<__u64 *>(tmp + sizeof(struct FixedFSTraceTLVItem));
+        __u64 *ips = reinterpret_cast<__u64 *>(tmp + sizeof(struct FixedFSTraceTLVItem));
         if (ReadCallChain(cmplt_event->nips, cmplt_event->ustack_id, ips) != 0) {
             return -1;
         }
@@ -349,7 +349,7 @@ int BPFEventReceiver::EncodePFTraceEvent(
     (void)memcpy_s(item->comm_, MAX_COMM_LEN, cmplt_event->comm, MAX_COMM_LEN);
     if (cmplt_event->nips and cmplt_event->ustack_id >= 0) {
         char* tmp = static_cast<char*>(tlvItem);
-        __u64 *ips = static_cast<__u64 *>(tmp + sizeof(struct FixedPFTraceTLVItem));
+        __u64 *ips = reinterpret_cast<__u64 *>(tmp + sizeof(struct FixedPFTraceTLVItem));
         if (ReadCallChain(cmplt_event->nips, cmplt_event->ustack_id, ips) != 0) {
             return -1;
         }
@@ -384,7 +384,7 @@ int BPFEventReceiver::EncodeBIOTraceEvent(
     }
     if (cmplt_event->nips and cmplt_event->start_event.ustack_id >= 0) {
         char *tmp = static_cast<char *>(tlvItem);
-        __u64 *ips = static_cast<__u64 *>(tmp + sizeof(struct FixedBIOTraceTLVItem));
+        __u64 *ips = reinterpret_cast<__u64 *>(tmp + sizeof(struct FixedBIOTraceTLVItem));
         if (ReadCallChain(cmplt_event->nips, cmplt_event->start_event.ustack_id, ips) != 0) {
             return -1;
         }
