@@ -15,13 +15,7 @@ import("//build/ohos.gni")
 import("../../base/config.gni")
 
 config("cflags_config") {
-  cflags = [
-    "-Wno-sign-compare",
-    "-Wno-unused-parameter",
-    "-Wno-shift-count-overflow",
-    "-Wno-missing-braces",
-    "-O3",
-  ]
+  cflags = [ "-O3" ]
 }
 
 config("hook_config") {
