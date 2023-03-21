@@ -92,6 +92,14 @@ public:
         return stop_.load();
     }
 
+    inline void LogSaver()
+    {
+        if (logLevel_ == HHLOG_NONE) {
+            return;
+        }
+        logSaver_ = std::thread(&HHLogger::SaveLog, this);
+    }
+
     enum SizeConsts:std::size_t {
         RING_BUF_SIZE = 4096,
         MAX_FORMAT_SIZE = 512,

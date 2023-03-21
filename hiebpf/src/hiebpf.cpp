@@ -230,7 +230,7 @@ int main(int argc, char* argv[])
             return 0;
         }
     }
-
+    HHLogger::GetInstance().LogSaver();
     // start BPFController
     bpfController = BPFController::MakeUnique(GenBPFConfigFromFlags(cmd));
     if (bpfController == nullptr) {
