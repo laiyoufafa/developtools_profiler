@@ -126,14 +126,9 @@ struct FixedSymbolTLVItem {
 
 class BPFEventReceiver {
 public:
-    static inline std::shared_ptr<BPFEventReceiver> MakeShared(
-        const std::weak_ptr<HiebpfDataFile> &file,
-        struct hiebpf_bpf *skel)
+    static inline std::shared_ptr<BPFEventReceiver> MakeShared(const std::weak_ptr<HiebpfDataFile> &file)
     {
-        if (skel == nullptr) {
-            return nullptr;
-        }
-        std::shared_ptr<BPFEventReceiver> obj {new(std::nothrow) BPFEventReceiver {file, skel}};
+        std::shared_ptr<BPFEventReceiver> obj {new(std::nothrow) BPFEventReceiver {file}};
         if (obj == nullptr) {
             return nullptr;
         }
@@ -151,7 +146,6 @@ public:
         if (workLoop_.joinable()) {
             workLoop_.join();
         }
-        close(ustackMapFd_);
     }
 
     inline int Put(void *data, const size_t dataSize)
@@ -204,7 +198,6 @@ private:
     void WriteSymbolInfo(const std::string &fileName);
     void ReverseStr(char* left, char* right);
     void DiscardEvent();
-    void GetUStackMapFd();
     int EncodeFSTraceEvent(
         const struct fstrace_cmplt_event_t *cmplt_event,
         void* tlvItem,
@@ -221,11 +214,6 @@ private:
         const struct strtrace_cmplt_event_t *cmplt_event,
         void* tlvItem,
         const size_t itemLen);
-    int ReadCallChain(
-        const __u32 nips,
-        const int32_t ustack_id,
-        __u64 *ips);
-
     int ConvertFSTraceArgsToArray(__u64 *args, const struct fstrace_start_event_t *start_event)
     {
         int (*fn) (__u64*, const struct fstrace_start_event_t *) = g_argsConverterTable[start_event->type];
@@ -273,10 +261,7 @@ private:
         }
     }
 
-    inline BPFEventReceiver(
-        const std::weak_ptr<HiebpfDataFile> &file,
-        struct hiebpf_bpf* skel) : file_ {file}, skel_ {skel}
-    {}
+    inline BPFEventReceiver(const std::weak_ptr<HiebpfDataFile> &file) : file_ {file} {}
 
     inline void NotifyOne()
     {
@@ -346,10 +331,7 @@ private:
     std::thread workLoop_ {};
     std::unique_ptr<RingBuffer> buf_ {nullptr};
     std::weak_ptr<HiebpfDataFile> file_ {};
-    struct hiebpf_bpf *skel_ {};
     OHOS::Developtools::Hiebpf::MapsInfo mapsInfo_;
     OHOS::Developtools::Hiebpf::ElfSymbolInfo elfSymbolInfo_;
-    int32_t ustackMapFd_ = 0;
-    bool hasUStackMapFd_ = false;
 };
 #endif

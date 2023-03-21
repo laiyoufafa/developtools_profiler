@@ -30,7 +30,7 @@ struct fstrace_cmplt_event_t {
     char comm[MAX_COMM_LEN];
     int32_t retval;
     __u32 nips;
-    int64_t ustack_id;
+    __u64 ips[MAX_STACK_LIMIT];
 };
 /******************************* fstrace types END *******************************/
 
@@ -64,7 +64,7 @@ struct pftrace_cmplt_event_t {
     char comm[MAX_COMM_LEN];
     __u32 size;     // number pf pages operated, generally either is 1 or 0
     __u32 nips;
-    int64_t ustack_id;
+    __u64 ips[MAX_STACK_LIMIT];
 };
 
 struct pf_stat_t {
@@ -92,7 +92,6 @@ struct biotrace_start_event_t {
     __u32 type;
     __u32 pid;
     __u64 stime;
-    int64_t ustack_id;
     __u32 tgid;
     __u32 size;
     char comm[MAX_COMM_LEN];
@@ -105,6 +104,7 @@ struct biotrace_cmplt_event_t {
     __u64 blkcnt;
     __u32 prio;
     __u32 nips;
+    __u64 ips[MAX_STACK_LIMIT];
 };
 /******************************* biotrace types END *******************************/
 

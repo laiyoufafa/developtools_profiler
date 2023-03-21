@@ -202,16 +202,12 @@ int BPFController::SetUpBPF()
         return -1;
     }
     HHLOGI(true, "make HiebpfDataFile done");
-    if (DisableBPFProgsByEvents() != 0) {
-        HHLOGD(true, "failed to load BPF objects");
-        return -1;
+    skel_->rodata->g_stack_limit = config_.maxStackDepth_;
+    err = hiebpf_bpf__load(skel_);
+    if (err) {
+        HHLOGD(true, "failed to load BPF skeleton: %s", strerror(-err));
+        return err;
     }
-    HHLOGI(true, "disable unselected BPF progs done");
-    if (LoadBPF() != 0) {
-        HHLOGD(true, "failed to load BPF program");
-        return -1;
-    }
-    HHLOGI(true, "BPF skeleton loaded");
     if (ConfigureBPF() != 0) {
         HHLOGD(true, "failed to configure BPF");
         return -1;
@@ -281,79 +277,6 @@ int BPFController::FilterProgByEvents()
     return 0;
 }
 
-int BPFController::DisableBPFProgsByEvents()
-{
-    // this is way too complex, implement it later.
-    return 0;
-}
-
-int BPFController::LoadBPF()
-{
-    // bpf verifier need to know inner map definition during load time.
-    // create dummy inner map before load and close after load.
-    int dummy_ustack_map_fd = bpf_map_create(
-        BPF_MAP_TYPE_STACK_TRACE,
-        "dummy_ustack_map",
-        sizeof(__u32),
-        sizeof(__u64) * config_.maxStackDepth_,
-        MAX_STACK_TRACE_ENTRIES,
-        nullptr);
-    if (dummy_ustack_map_fd < 0) {
-        HHLOGD(true, "failed to create ustack map");
-        return -1;
-    }
-    HHLOGI(true, "done creating dummy ustack map with fd = %d", dummy_ustack_map_fd);
-    int err = bpf_map__set_inner_map_fd(skel_->maps.ustack_maps_array, dummy_ustack_map_fd);
-    if (err) {
-        HHLOGD(
-            true, "failed to set dummy ustack map with fd = %d: %s",
-            dummy_ustack_map_fd, strerror(-err));
-        close(dummy_ustack_map_fd);
-        return -1;
-    }
-    HHLOGI(true, "done setting dummy ustack map with fd = %d", dummy_ustack_map_fd);
-
-    err = hiebpf_bpf__load(skel_);
-    if (err) {
-        HHLOGD(true, "failed to load BPF skeleton: %s", strerror(-err));
-        return err;
-    }
-    HHLOGI(true, "BPF skeleton loaded");
-
-    close(dummy_ustack_map_fd);
-    return 0;
-}
-
-int BPFController::CreateStackTraceMap()
-{
-    int ustack_map_fd = bpf_map_create(
-        BPF_MAP_TYPE_STACK_TRACE,
-        "ustack_map",
-        sizeof(__u32),
-        sizeof(__u64) * config_.maxStackDepth_,
-        MAX_STACK_TRACE_ENTRIES,
-        nullptr);
-    if (ustack_map_fd < 0) {
-        HHLOGD(true, "failed to create ustack map");
-        return -1;
-    }
-    HHLOGI(true, "done creating ustack map");
-    __u32 ustack_map_index {0};
-    int err = bpf_map_update_elem(
-        bpf_map__fd(skel_->maps.ustack_maps_array),
-        &ustack_map_index,
-        &ustack_map_fd,
-        BPF_ANY);
-    if (err) {
-        HHLOGD(true, "failed to update ustack maps array: %s", strerror(-err));
-        close(ustack_map_fd);
-        return -1;
-    }
-    HHLOGI(true, "done updating ustack maps array");
-    close(ustack_map_fd);
-    return 0;
-}
-
 static int InitTracerPid(const int fd, bool excludeTracer)
 {
     int32_t pid = -1;
@@ -386,17 +309,6 @@ static inline int InitBPFLogLevel(const int fd, const __u32 level)
     int err = bpf_map_update_elem(fd, &levelidx, &level, BPF_ANY);
     if (err) {
         HHLOGD(true, "failed to set bpf log level in config_var_map");
-        return -1;
-    }
-    return 0;
-}
-
-static inline int InitMaxStackDepth(const int fd, const __u32 depth)
-{
-    constexpr __u32 depthidx {MAX_STACK_DEPTH_INDEX};
-    int err = bpf_map_update_elem(fd, &depthidx, &depth, BPF_ANY);
-    if (err) {
-        HHLOGD(true, "failed to set max stack depth in config_var_map");
         return -1;
     }
     return 0;
@@ -435,11 +347,6 @@ int BPFController::InitBPFVariables() const
         return -1;
     }
     HHLOGI(true, "InitBPFLogLevel() done");
-    if (InitMaxStackDepth(fd, config_.maxStackDepth_) != 0) {
-        HHLOGD(true, "failed to init max stack depth in config_var_map");
-        return -1;
-    }
-    HHLOGI(true, "InitMaxStackDepth() done");
     if (InitUnwindFlag(fd, config_.unwindStack_) != 0) {
         HHLOGD(true, "failed to init unwind stack flag in config_var_map");
         return -1;
@@ -535,7 +442,7 @@ int BPFController::ConfigReceivers()
             config_.pipelines_ = MIN_PIPELINES_LIMIT;
         }
         for (__u32 cnt = config_.pipelines_; cnt != 0; --cnt) {
-            receivers_.push_back(BPFEventReceiver::MakeShared(dataFile_, skel_));
+            receivers_.push_back(BPFEventReceiver::MakeShared(dataFile_));
         }
         if (receivers_.size() != config_.pipelines_) {
             HHLOGD(true, "failed to make BPF event receivers");
@@ -661,15 +568,10 @@ int BPFController::ConfigureBPF()
         return -1;
     }
     HHLOGI(true, "ConfigReceivers() done");
-    if (CreateStackTraceMap() != 0) {
-        HHLOGD(true, "failed to create ustack map");
-        return -1;
-    }
     if (ConfigDlopenBPFProg() != 0) {
         HHLOGD(true, "failed to configure user BPF prog");
         return -1;
     }
-    HHLOGI(true, "CreateStackTraceMap() done");
     return 0;
 }
 
@@ -866,36 +768,6 @@ static int DumpTypeAndArgs(const struct fstrace_cmplt_event_t &cmplt_event)
     return -1;
 }
 
-int BPFController::DumpCallChain(BPFController *bpfctlr, const __u32 nips, const int64_t ustack_id)
-{
-    if (nips and ustack_id >= 0 and  bpfctlr->ips_) {
-        (void)memset_s(bpfctlr->ips_, bpfctlr->config_.maxStackDepth_, 0, bpfctlr->config_.maxStackDepth_);
-        const __u32 ustack_map_index {FSTRACE_STACK_TRACE_INDEX};
-        __u32 ustack_map_id;
-        int err = bpf_map_lookup_elem(
-            bpf_map__fd(bpfctlr->skel_->maps.ustack_maps_array),
-            &ustack_map_index,
-            &ustack_map_id);
-        if (err) {
-            std::cout << "\nlookup ustack strace map id error: " << strerror(-err) << std::endl;
-            return -1;
-        }
-        int32_t ustack_map_fd = bpf_map_get_fd_by_id(ustack_map_id);
-        err = bpf_map_lookup_elem(ustack_map_fd, &ustack_id, bpfctlr->ips_);
-        if (err) {
-            std::cout << "\nlookup user callchain ips error: " << strerror(-err) << std::endl;
-            return -1;
-        }
-        for (__u32 cnt = 0; cnt < nips; ++cnt) {
-            if (bpfctlr->ips_[cnt] == 0) {
-                break;
-            }
-            std::cout << "\n    " << bpfctlr->ips_[cnt];
-        }
-    }
-    return 0;
-}
-
 int BPFController::DumpFSTraceEvent(BPFController *bpfctlr, void *data, size_t dataSize)
 {
     if (dataSize != sizeof(fstrace_cmplt_event_t)) {
@@ -920,10 +792,11 @@ int BPFController::DumpFSTraceEvent(BPFController *bpfctlr, void *data, size_t d
               << "\ntgid:           " << cmplt_event.tgid
               << "\ncomm:           " << cmplt_event.comm
               << "\nips:            " << cmplt_event.nips
-              << "\nustack id:      " << cmplt_event.ustack_id
               << "\nips:"
               << std::setw(16) << std::hex;
-    DumpCallChain(bpfctlr, cmplt_event.nips, cmplt_event.ustack_id);
+    for (int i = 0; i < cmplt_event.nips; ++i) {
+        std::cout << "\n    " << cmplt_event.ips[i];
+    }
     std::cout << std::dec << std::endl;
     return 0;
 }
@@ -963,9 +836,10 @@ int BPFController::DumpPFTraceEvent(BPFController *bpfctlr, void *data, size_t d
               << "\ntgid:           " << cmplt_event.tgid
               << "\ncomm:           " << cmplt_event.comm
               << "\nips:            " << cmplt_event.nips
-              << "\nustack id:      " << cmplt_event.ustack_id
               << std::setw(16) << std::hex;
-    DumpCallChain(bpfctlr, cmplt_event.nips, cmplt_event.ustack_id);
+    for (int i = 0; i < cmplt_event.nips; ++i) {
+        std::cout << "\n    " << cmplt_event.ips[i];
+    }
     std::cout << std::dec << std::endl;
     return 0;
 }
@@ -1006,9 +880,10 @@ int BPFController::DumpBIOTraceEvent(BPFController *bpfctlr, void *data, size_t 
               << "\nsize:           " << cmplt_event.start_event.size
               << "\nblkcnt:         " << cmplt_event.blkcnt
               << "\nips:            " << cmplt_event.nips
-              << "\nustack id:      " << cmplt_event.start_event.ustack_id
               << std::setw(16) << std::hex;
-    DumpCallChain(bpfctlr, cmplt_event.nips, cmplt_event.start_event.ustack_id);
+    for (int i = 0; i < cmplt_event.nips; ++i) {
+        std::cout << "\n    " << cmplt_event.ips[i];
+    }
     std::cout << std::dec << std::endl;
     return 0;
 }

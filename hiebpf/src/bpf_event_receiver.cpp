@@ -125,7 +125,6 @@ void BPFEventReceiver::ReceiveBIOTraceEvent()
 {
     struct biotrace_cmplt_event_t cmplt_event {};
     buf_->Get((char*)&cmplt_event, sizeof(cmplt_event));
-    WriteEventMaps(cmplt_event.start_event.pid);
     auto file = file_.lock();
     if (file == nullptr) {
         HHLOGE(true, "failed to receive biotrace event: hiebpf data file closed");
@@ -308,10 +307,10 @@ int BPFEventReceiver::EncodeFSTraceEvent(
         return -1;
     }
     (void)memcpy_s(item->comm_, MAX_COMM_LEN, cmplt_event->comm, MAX_COMM_LEN);
-    if (cmplt_event->nips and cmplt_event->ustack_id >= 0) {
-        char* tmp = static_cast<char*>(tlvItem);
-        __u64 *ips = static_cast<__u64 *>(tmp + sizeof(struct FixedFSTraceTLVItem));
-        if (ReadCallChain(cmplt_event->nips, cmplt_event->ustack_id, ips) != 0) {
+    if (item->nips_ != 0) {
+        int ret = memcpy_s((__u64*)((char*)item + sizeof(struct FixedFSTraceTLVItem)),
+                           item->nips_ * sizeof(__u64), cmplt_event->ips, item->nips_ * sizeof(__u64));
+        if (ret != EOK) {
             return -1;
         }
     }
@@ -347,10 +346,10 @@ int BPFEventReceiver::EncodePFTraceEvent(
         return -1;
     }
     (void)memcpy_s(item->comm_, MAX_COMM_LEN, cmplt_event->comm, MAX_COMM_LEN);
-    if (cmplt_event->nips and cmplt_event->ustack_id >= 0) {
-        char* tmp = static_cast<char*>(tlvItem);
-        __u64 *ips = static_cast<__u64 *>(tmp + sizeof(struct FixedPFTraceTLVItem));
-        if (ReadCallChain(cmplt_event->nips, cmplt_event->ustack_id, ips) != 0) {
+    if (item->nips_ != 0) {
+        int ret = memcpy_s((__u64*)((char*)item + sizeof(struct FixedPFTraceTLVItem)),
+                           item->nips_ * sizeof(__u64), cmplt_event->ips, item->nips_ * sizeof(__u64));
+        if (ret != EOK) {
             return -1;
         }
     }
@@ -382,10 +381,10 @@ int BPFEventReceiver::EncodeBIOTraceEvent(
         HHLOGE(true, "failed to copy BIOstrace type name");
         return -1;
     }
-    if (cmplt_event->nips and cmplt_event->start_event.ustack_id >= 0) {
-        char *tmp = static_cast<char *>(tlvItem);
-        __u64 *ips = static_cast<__u64 *>(tmp + sizeof(struct FixedBIOTraceTLVItem));
-        if (ReadCallChain(cmplt_event->nips, cmplt_event->start_event.ustack_id, ips) != 0) {
+    if (item->nips_ != 0) {
+        int ret = memcpy_s((__u64*)((char*)item + sizeof(struct FixedBIOTraceTLVItem)),
+                           item->nips_ * sizeof(__u64), cmplt_event->ips, item->nips_ * sizeof(__u64));
+        if (ret != EOK) {
             return -1;
         }
     }
@@ -429,42 +428,6 @@ int BPFEventReceiver::EncodeSTRTraceEvent(
                 }
             }
         }
-    }
-    return 0;
-}
-
-void BPFEventReceiver::GetUStackMapFd()
-{
-    const __u32 ustack_map_index {FSTRACE_STACK_TRACE_INDEX};
-    __u32 ustack_map_id;
-    int err = bpf_map_lookup_elem(
-        bpf_map__fd(skel_->maps.ustack_maps_array),
-        &ustack_map_index,
-        &ustack_map_id);
-    if (err) {
-        HHLOGE(true, "lookup ustack strace map id error: %s", strerror(-err));
-        return;
-    }
-    ustackMapFd_ = bpf_map_get_fd_by_id(ustack_map_id);
-}
-
-int BPFEventReceiver::ReadCallChain(
-    const __u32 nips,
-    const int32_t ustack_id,
-    __u64 *ips)
-{
-    if (!hasUStackMapFd_) {
-        GetUStackMapFd();
-        hasUStackMapFd_ = true;
-    }
-    if (memset_s(ips, nips * sizeof(__u64), 0, nips * sizeof(__u64)) != EOK) {
-        HHLOGE(true, "memset_s failed");
-        return -1;
-    }
-    int err = bpf_map_lookup_elem(ustackMapFd_, &ustack_id, ips);
-    if (err) {
-        HHLOGE(true, "lookup user callchain ips error: %s", strerror(-err));
-        return -1;
     }
     return 0;
 }
