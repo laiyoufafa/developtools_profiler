@@ -653,8 +653,8 @@ static int DumpOpenat2Args(const struct fstrace_cmplt_event_t &cmplt_event)
 {
     std::cout << "\nArgs:";
     std::cout << "\n    dfd = " << cmplt_event.start_event.openat2_args.dfd;
-    std::cout << "\n    filename = " << static_cast<void*>(cmplt_event.start_event.openat2_args.filename);
-    std::cout << "\n    how = " << static_cast<void*>(cmplt_event.start_event.openat2_args.how);
+    std::cout << "\n    filename = " << cmplt_event.start_event.openat2_args.filename;
+    std::cout << "\n    how = " << cmplt_event.start_event.openat2_args.how;
     return 0;
 }
 
@@ -662,7 +662,7 @@ static int DumpReadvArgs(const struct fstrace_cmplt_event_t &cmplt_event)
 {
     std::cout << "\nArgs:";
     std::cout << "\n    fd = " << cmplt_event.start_event.readv_args.fd;
-    std::cout << "\n    vec = " << static_cast<void*>(cmplt_event.start_event.readv_args.vec);
+    std::cout << "\n    vec = " << cmplt_event.start_event.readv_args.vec;
     std::cout << "\n    vlen = " << cmplt_event.start_event.readv_args.vlen;
     std::cout << "\n    flags = " << cmplt_event.start_event.readv_args.flags;
     return 0;
@@ -672,7 +672,7 @@ static int DumpPreadvArgs(const struct fstrace_cmplt_event_t &cmplt_event)
 {
     std::cout << "\nArgs:";
     std::cout << "\n    fd = " << cmplt_event.start_event.preadv_args.fd;
-    std::cout << "\n    vec = " << static_cast<void*>(cmplt_event.start_event.preadv_args.vec);
+    std::cout << "\n    vec = " << cmplt_event.start_event.preadv_args.vec;
     std::cout << "\n    vlen = " << cmplt_event.start_event.preadv_args.vlen;
     std::cout << "\n    pos = " << cmplt_event.start_event.preadv_args.pos;
     std::cout << "\n    flags = " << cmplt_event.start_event.preadv_args.flags;
@@ -683,7 +683,7 @@ static int DumpReadArgs(const struct fstrace_cmplt_event_t &cmplt_event)
 {
     std::cout << "\nArgs:";
     std::cout << "\n    fd = " << cmplt_event.start_event.read_args.fd;
-    std::cout << "\n    buf = " << static_cast<void*>(cmplt_event.start_event.read_args.buf);
+    std::cout << "\n    buf = " << cmplt_event.start_event.read_args.buf;
     std::cout << "\n    count = " << cmplt_event.start_event.read_args.count;
     return 0;
 }
@@ -692,7 +692,7 @@ static int DumpPread64Args(const struct fstrace_cmplt_event_t &cmplt_event)
 {
     std::cout << "\nArgs:";
     std::cout << "\n    fd = " << cmplt_event.start_event.pread64_args.fd;
-    std::cout << "\n    buf = " << static_cast<void*>(cmplt_event.start_event.pread64_args.buf);
+    std::cout << "\n    buf = " << cmplt_event.start_event.pread64_args.buf;
     std::cout << "\n    count = " << cmplt_event.start_event.pread64_args.count;
     std::cout << "\n    pos = " << cmplt_event.start_event.pread64_args.pos;
     return 0;
@@ -702,7 +702,7 @@ static int DumpWritevArgs(const struct fstrace_cmplt_event_t &cmplt_event)
 {
     std::cout << "\nArgs:";
     std::cout << "\n    fd = " << cmplt_event.start_event.writev_args.fd;
-    std::cout << "\n    vec = " << static_cast<void*>(cmplt_event.start_event.writev_args.vec);
+    std::cout << "\n    vec = " << cmplt_event.start_event.writev_args.vec;
     std::cout << "\n    vlen = " << cmplt_event.start_event.writev_args.vlen;
     std::cout << "\n    flags = " << cmplt_event.start_event.writev_args.flags;
     return 0;
@@ -712,7 +712,7 @@ static int DumpPwritevArgs(const struct fstrace_cmplt_event_t &cmplt_event)
 {
     std::cout << "\nArgs:";
     std::cout << "\n    fd = " << cmplt_event.start_event.pwritev_args.fd;
-    std::cout << "\n    vec = " << static_cast<void*>(cmplt_event.start_event.pwritev_args.vec);
+    std::cout << "\n    vec = " << cmplt_event.start_event.pwritev_args.vec;
     std::cout << "\n    vlen = " << cmplt_event.start_event.pwritev_args.vlen;
     std::cout << "\n    pos = " << cmplt_event.start_event.pwritev_args.pos;
     std::cout << "\n    flags = " << cmplt_event.start_event.pwritev_args.flags;
@@ -723,7 +723,7 @@ static int DumpWriteArgs(const struct fstrace_cmplt_event_t &cmplt_event)
 {
     std::cout << "\nArgs:";
     std::cout << "\n    fd = " << cmplt_event.start_event.write_args.fd;
-    std::cout << "\n    buf = " << static_cast<void*>(cmplt_event.start_event.write_args.buf);
+    std::cout << "\n    buf = " << cmplt_event.start_event.write_args.buf;
     std::cout << "\n    count = " << cmplt_event.start_event.write_args.count;
     return 0;
 }
@@ -732,7 +732,7 @@ static int DumpPwrite64Args(const struct fstrace_cmplt_event_t &cmplt_event)
 {
     std::cout << "\nArgs:";
     std::cout << "\n    fd = " << cmplt_event.start_event.pwrite64_args.fd;
-    std::cout << "\n    buf = " << static_cast<void*>(cmplt_event.start_event.pwrite64_args.buf);
+    std::cout << "\n    buf = " << cmplt_event.start_event.pwrite64_args.buf;
     std::cout << "\n    count = " << cmplt_event.start_event.pwrite64_args.count;
     std::cout << "\n    pos = " << cmplt_event.start_event.pwrite64_args.pos;
     return 0;

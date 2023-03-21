@@ -120,6 +120,7 @@ void EbpfConverter::StartParsing()
                 close(fd_);
                 fd_ = -1;
                 fileSize_ = 0;
+                fclose(file);
                 return;
             }
         }

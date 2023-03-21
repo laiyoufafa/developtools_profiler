@@ -78,7 +78,7 @@ static void HandleIpcMessage(const void *data, size_t size)
         return;
     }
 
-    HiebpfIpcCommand cmd = *(static_cast<HiebpfIpcCommand*>(data));
+    HiebpfIpcCommand cmd = *(const_cast<HiebpfIpcCommand*>(reinterpret_cast<const HiebpfIpcCommand*>(data)));
     if (cmd == HiebpfIpcCommand::CMD_STOP) {
         g_interrupted = true;
         if (bpfController != nullptr) {
@@ -119,7 +119,7 @@ static bool SendIpcCommand(OHOS::Developtools::Hiebpf::IpcUnixSocketClient &clie
         HHLOGE(true, "recv reply size error(%zu)\n", size);
         return false;
     }
-    HiebpfIpcCommand reply = *(static_cast<HiebpfIpcCommand*>(buf));
+    HiebpfIpcCommand reply = *(reinterpret_cast<HiebpfIpcCommand*>(buf));
     if (reply != HiebpfIpcCommand::RET_OK) {
         HHLOGE(true, "recv unknown reply: 0x%x\n", reply);
         return false;

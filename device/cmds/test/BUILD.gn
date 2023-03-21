@@ -66,6 +66,7 @@ ohos_unittest("hiprofiler_cmd_ut") {
   configs = [ ":module_private_config" ]
   subsystem_name = "${OHOS_PROFILER_SUBSYS_NAME}"
   part_name = "${OHOS_PROFILER_PART_NAME}"
+  defines = [ "OPENSSL_SUPPRESS_DEPRECATED" ]
 }
 
 group("unittest") {
