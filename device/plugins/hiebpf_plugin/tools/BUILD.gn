@@ -1,4 +1,3 @@
-# THIS FILE IS GENERATE BY {}, PLEASE DON'T EDIT IT!
 # Copyright (C) 2022 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -37,9 +36,7 @@ config("ebpf_converter_inner_config") {
     "-mllvm",
     "-limited-coverage-experimental=true",
     "-fno-use-cxa-atexit",
-    "-Wno-unused-variable",
     "-Wno-inconsistent-dllimport",
-    "-Wno-unused-parameter",
   ]
 }
 

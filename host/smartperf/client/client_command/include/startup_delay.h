@@ -12,19 +12,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "include/smartperf_command.h"
-#include "include/editor_command.h"
-int main(int argc, char *argv[])
-{
-    if (argc > 1 && strcmp(argv[1], "-editor") == 0) {
-        std::vector<std::string> v;
-        for (int i = 0; i < argc; i++) {
-            v.push_back(argv[i]);
-        }
-        OHOS::SmartPerf::EditorCommand cmd(argc, argv);
-        return 0;
-    }
-    OHOS::SmartPerf::SmartPerfCommand cmd(argc, argv);
-    std::cout << cmd.ExecCommand() << std::endl;
-    return 0;
+#include <thread>
+namespace OHOS {
+namespace SmartPerf {
+class StartUpDelay {
+public:
+    StartUpDelay();
+    ~StartUpDelay();
+    void GetTrace(std::string sessionID, std::string traceName);
+    std::thread ThreadGetTrace(std::string sessionID, std::string traceName);
+    void GetLayout();
+    std::thread ThreadGetLayout();
+    void ChangeToBackground();
+    void KillCurApp(std::string curPkgName);
+    std::vector<std::string> GetPidByPkg(std::string curPkgName);
+};
+}
 }
