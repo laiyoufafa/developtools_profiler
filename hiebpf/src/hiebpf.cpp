@@ -37,6 +37,7 @@
 #include "ipc_unix_socket.h"
 
 HIEBPF_DEFINE_string(help, "none", "specify what help message to print");
+HIEBPF_DEFINE_string(output_file, "/data/local/tmp/hiebpf.data", "the file used to save hiebpf data");
 HIEBPF_DEFINE_bool(exclude_tracer, true, "the flag indicates whether to trace the tracer itself or not");
 HIEBPF_DEFINE_uint32(dump_events, 0, "maximum number of events to print instead of save into file");
 HIEBPF_DEFINE_bool(unwind_stack, true, "whether enable unwinding or not");
@@ -229,7 +230,7 @@ int main(int argc, char* argv[])
             return 0;
         }
     }
-
+    HHLogger::GetInstance().LogSaver();
     // start BPFController
     bpfController = BPFController::MakeUnique(GenBPFConfigFromFlags(cmd));
     if (bpfController == nullptr) {
@@ -387,6 +388,6 @@ static inline BPFConfig GenBPFConfigFromFlags(const std::string &cmd)
     config.LIBBPFLogLevel_ = GetLIBBPFLogLevelFromFlag();
     config.BPFLogFile_ = FLAGS_bpf_log_file;
     config.LIBBPFLogFile_ = FLAGS_libbpf_log_file;
-
+    config.outputFile_ = FLAGS_output_file;
     return config;
 }

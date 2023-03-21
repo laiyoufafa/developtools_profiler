@@ -50,6 +50,8 @@ void CommandHelper::DoHelp(const std::string& help)
 {
     if (help.compare(SUPPORTED_ARGS[ARG_HELP]) == 0) {
         std::cout << helpHelp_ << std::endl;
+    } else if (help.compare(SUPPORTED_ARGS[ARG_OUTPUT_FILE]) == 0) {
+        std::cout << outputFileHelp_ << std::endl;
     } else if (help.compare(SUPPORTED_ARGS[ARG_EXCLUDE_TRACER]) == 0) {
         std::cout << excludeTracerHelp_ << std::endl;
     } else if (help.compare(SUPPORTED_ARGS[ARG_MAX_STACK_DEPTH]) == 0) {

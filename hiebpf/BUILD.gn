@@ -63,6 +63,7 @@ config("kern_common_config") {
     "bpf",
     "-g",
     "-fno-stack-protector",
+    "-fno-data-sections",
   ]
   defines = [ "__aarch64__" ]
   include_dirs = []

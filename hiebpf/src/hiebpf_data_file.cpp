@@ -139,9 +139,9 @@ int HiebpfDataFile::RemapFile(const std::size_t size)
     std::size_t remapPos = curPos & ~(pageSize_ - 1);
     std::size_t remapOff = curPos - remapPos;
 
-    size_t extendLength = length_;
+    size_t extendLength = DEFAULT_MMAP_LENGTH;
     while (remapOff + size > extendLength) {
-        extendLength += length_;
+        extendLength += DEFAULT_MMAP_LENGTH;
     }
 
     if (ExtendFile(remapPos, extendLength) != 0) {
@@ -160,5 +160,6 @@ int HiebpfDataFile::RemapFile(const std::size_t size)
     HHLOGI(true, "done remapping data file from %u, to %u", mapPos_, remapPos);
     mapPos_ = remapPos;
     offset_ = remapOff;
+    length_ = extendLength;
     return 0;
 }

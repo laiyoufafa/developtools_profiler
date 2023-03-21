@@ -28,6 +28,7 @@
 #endif
 
 extern int LINUX_KERNEL_VERSION __kconfig;
+const volatile unsigned int g_stack_limit = 0;
 
 // global configuration data
 // const volatile int tracer_pid = -1;
@@ -91,12 +92,6 @@ struct {
     __uint(max_entries, BPF_RINGBUF_SIZE);
 } bpf_ringbuf_map SEC(".maps");
 
-struct {
-    __uint(type, BPF_MAP_TYPE_ARRAY_OF_MAPS);
-    __uint(key_size, sizeof(u32));
-    __uint(value_size, sizeof(u32));
-    __uint(max_entries, NUM_STACK_TRACE_MAPS);
-} ustack_maps_array SEC(".maps");
 /********************************* BPF maps END *************************************/
 
 /******************************** inline funcs BEGIN ********************************/
@@ -111,19 +106,6 @@ int unwind_stack()
         BPFLOGW(BPF_TRUE, "failed to read unwind configuration");
     }
     return unwind;
-}
-
-static __always_inline
-u32 get_max_stack_depth()
-{
-    u32 index = MAX_STACK_DEPTH_INDEX;
-    const u32 *max_stack_depth_ptr = bpf_map_lookup_elem(&config_var_map, &index);
-    u32 max_stack_depth = 0;
-    int err = bpf_probe_read_kernel(&max_stack_depth, sizeof(u32), max_stack_depth_ptr);
-    if (err) {
-        BPFLOGW(BPF_TRUE, "failed to read max stack depth");
-    }
-    return max_stack_depth;
 }
 
 static __always_inline
@@ -161,8 +143,6 @@ int emit_fstrace_event(void* ctx, int64_t retval)
     cmplt_event->uid = bpf_get_current_uid_gid();
     cmplt_event->gid = (bpf_get_current_uid_gid() >> 32);
     cmplt_event->retval = retval;
-    cmplt_event->nips = 0;
-    cmplt_event->ustack_id = -1;
     err = bpf_get_current_comm(cmplt_event->comm, MAX_COMM_LEN);
     if (err) {
         BPFLOGD(BPF_TRUE, "fstrace event discarded: failed to get process command");
@@ -172,20 +152,8 @@ int emit_fstrace_event(void* ctx, int64_t retval)
 
     // get user callchain
     if (unwind_stack()) {
-        cmplt_event->nips = get_max_stack_depth();
-        const u32 ustack_map_key = FSTRACE_STACK_TRACE_INDEX;
-        void *ustack_map_ptr = bpf_map_lookup_elem(&ustack_maps_array, &ustack_map_key);
-        if (ustack_map_ptr == NULL) {
-            BPFLOGD(BPF_TRUE, "fstrace event discarded: failed to lookup ustack map");
-            bpf_ringbuf_discard(cmplt_event, BPF_RB_NO_WAKEUP);
-            return -1;
-        }
-        cmplt_event->ustack_id = (int64_t) bpf_get_stackid(ctx, ustack_map_ptr, USER_STACKID_FLAGS);
-        if (cmplt_event->ustack_id < 0) {
-            BPFLOGD(BPF_TRUE, "fstrace event discarded: failed to unwind user callchain");
-            bpf_ringbuf_discard(cmplt_event, BPF_RB_NO_WAKEUP);
-            return -1;
-        }
+        cmplt_event->nips =
+            bpf_get_stack(ctx, cmplt_event->ips, g_stack_limit * sizeof(u64), BPF_F_USER_STACK) / sizeof(u64);
     }
 
     // send out the complete event data to perf event buffer
@@ -336,8 +304,6 @@ int emit_pftrace_event(void* ctx, int64_t retval)
     cmplt_event->tgid = (pid_tgid >> 32);
     cmplt_event->uid = bpf_get_current_uid_gid();
     cmplt_event->gid = (bpf_get_current_uid_gid() >> 32);
-    cmplt_event->nips = 0;
-    cmplt_event->ustack_id = -1;
     err = bpf_get_current_comm(cmplt_event->comm, MAX_COMM_LEN);
     if (err < 0) {
         BPFLOGD(BPF_TRUE, "pftrace event discarded: failed to get process command");
@@ -353,21 +319,8 @@ int emit_pftrace_event(void* ctx, int64_t retval)
 
     // get user callchain
     if (unwind_stack()) {
-        cmplt_event->nips = get_max_stack_depth();
-        const u32 ustack_map_key = PFTRACE_STACK_TRACE_INDEX;
-        void *ustack_map_ptr = bpf_map_lookup_elem(&ustack_maps_array, &ustack_map_key);
-        if (ustack_map_ptr == NULL) {
-            BPFLOGD(BPF_TRUE, "pftrace event discarded: failed to lookup ustack map");
-            bpf_ringbuf_discard(cmplt_event, BPF_RB_NO_WAKEUP);
-            return -1;
-        }
-        cmplt_event->ustack_id = (int64_t) bpf_get_stackid(ctx, ustack_map_ptr, USER_STACKID_FLAGS);
-        if (cmplt_event->ustack_id < 0) {
-            BPFLOGD(BPF_TRUE, "pftrace event discarded: failed to unwind user callchain");
-            cmplt_event->nips = 0;
-        } else {
-            cmplt_event->nips = MAX_STACK_DEPTH;
-        }
+        cmplt_event->nips =
+            bpf_get_stack(ctx, cmplt_event->ips, g_stack_limit * sizeof(u64), BPF_F_USER_STACK) / sizeof(u64);
     }
 
     if (read_modify_update_page_fault_stats(cmplt_event->start_event.type,
@@ -829,15 +782,7 @@ int BPF_PROG(blk_update_request, struct request *rq)
     cmplt_event->prio = BPF_CORE_READ(rq, bio, bi_ioprio);
     cmplt_event->blkcnt = BPF_CORE_READ(rq, bio, bi_iter.bi_sector);
     if (unwind_stack()) {
-        cmplt_event->nips = get_max_stack_depth();
-        const u32 ustack_map_key = BIOTRACE_STACK_TRACE_INDEX;
-        void *ustack_map_ptr = bpf_map_lookup_elem(&ustack_maps_array, &ustack_map_key);
-        if (ustack_map_ptr == NULL) {
-            BPFLOGD(BPF_TRUE, "biotrace event discarded: failed to lookup ustack map");
-            bpf_ringbuf_discard(cmplt_event, BPF_RB_NO_WAKEUP);
-            return 0;
-        }
-        cmplt_event->start_event.ustack_id = (int64_t)bpf_get_stackid(ctx, ustack_map_ptr, 0);
+        cmplt_event->nips = bpf_get_stack(ctx, cmplt_event->ips, g_stack_limit * sizeof(u64), 0) / sizeof(u64);
     }
     bpf_ringbuf_submit(cmplt_event, BPF_RB_FORCE_WAKEUP);
     return 0;

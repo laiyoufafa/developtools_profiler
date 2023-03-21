@@ -82,8 +82,6 @@ int HHLogger::Start(const int logLevel, const std::string& logFile)
     if (InitLogger(logLevel, logFile) != 0) {
         return -1;
     }
-
-    logSaver_ = std::thread(&HHLogger::SaveLog, this);
 #endif
     return 0;
 }

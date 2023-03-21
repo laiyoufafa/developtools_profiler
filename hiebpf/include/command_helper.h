@@ -36,6 +36,7 @@ private:
     enum ArgNames:int {
         ARG_NONG = 0,
         ARG_HELP,
+        ARG_OUTPUT_FILE,
         ARG_EXCLUDE_TRACER,
         ARG_MAX_STACK_DEPTH,
         ARG_DURATION,
@@ -57,6 +58,7 @@ private:
     const std::array<const std::string, NR_SUPPORTED_ARGS> SUPPORTED_ARGS {
         "none",
         "help",
+        "output_file",
         "exclude_tracer",
         "max_stack_depth",
         "duration",
@@ -84,6 +86,8 @@ private:
         "    --help <arg>:\n"
         "        show help message of the specified argument, '--help help' shows the\n"
         "        current message\n"
+        "    --output_file <filepath>:\n"
+        "        the file used to save hiebpf data. default: /data/local/tmp/hiebpf.data\n"
         "    --exclude_tracer <true|false>:\n"
         "        controlls exclude to trace the command itself. default: true\n"
         "    --dump_events <val>:\n"
@@ -115,7 +119,9 @@ private:
         "    --stop <true|false>:\n"
         "        whether stop hiebpf server. default: false\n"
     };
-
+    const std::string outputFileHelp_ {
+        "argument usage:\n"
+        "    --output_file <filepath>: the file used to save hiebpf data. default:/data/local/tmp/hiebpf.data\n"};
     const std::string excludeTracerHelp_ {
         "argument usage:\n"
         "    --exclude_tracer <true|false>: exclude to trace the command itself. default: true\n"};

@@ -68,9 +68,14 @@ static int32_t HiebpfSessionStart(const uint8_t* configData, uint32_t configSize
         HILOG_ERROR(LOG_CORE, "The out file path more than %zu bytes", defaultSize);
         return RET_ERR;
     }
-    std::string ret = config.cmd_line();
-    ret += " --start true";
-    RunCmd(ret);
+    int32_t ret = strncpy_s(g_pluginModule.outFileName, defaultSize, config.outfile_name().c_str(), defaultSize - 1);
+    if (ret != EOK) {
+        HILOG_ERROR(LOG_CORE, "strncpy_s error! outfile is %s", config.outfile_name().c_str());
+        return RET_ERR;
+    }
+    std::string cmd = config.cmd_line();
+    cmd += " --start true --output_file " + config.outfile_name();
+    RunCmd(cmd);
     HILOG_DEBUG(LOG_CORE, "leave");
     return RET_OK;
 }
