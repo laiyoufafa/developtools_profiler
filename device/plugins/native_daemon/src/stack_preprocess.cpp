@@ -303,9 +303,7 @@ void StackPreprocess::SetHookData(RawStackPtr rawStack,
             munmapEvent->set_addr((uint64_t)rawStack->stackConext.addr);
             munmapEvent->set_size(static_cast<uint64_t>(rawStack->stackConext.mallocSize));
             std::string name = rawStack->stackConext.tname;
-            if (name == "ArkJs") {
-                munmapEvent->set_type("ArkJsGlobalHandle");
-            } else if (!name.empty()) {
+            if (!name.empty()) {
                 munmapEvent->set_thread_name_id(GetThreadIdx(name, batchNativeHookData));
             }
             for (; idx < callsFrames.size(); ++idx) {

@@ -756,10 +756,14 @@ void hook_memtrace(void* addr, size_t size, const char* tag, bool isUsing)
     rawdata.tid = static_cast<uint32_t>(GetCurThreadId());
     rawdata.mallocSize = size;
     rawdata.addr = addr;
-    if (strcpy_s(rawdata.tname, sizeof(rawdata.tname) / sizeof(rawdata.tname[0]), tag) != EOK) {
-        HILOG_ERROR(LOG_CORE, "strcpy_s tag failed!");
+    if (isUsing) {
+        if (strcpy_s(rawdata.tname, MAX_THREAD_NAME, tag) != EOK) {
+            HILOG_ERROR(LOG_CORE, "strcpy_s tag failed!");
+        }
+        rawdata.tname[sizeof(rawdata.tname) - 1] = '\0';
+    } else {
+        prctl(PR_GET_NAME, rawdata.tname);
     }
-    rawdata.tname[sizeof(rawdata.tname) - 1] = '\0';
 
     std::unique_lock<std::recursive_timed_mutex> lck(g_ClientMutex, std::defer_lock);
     std::chrono::time_point<std::chrono::steady_clock> timeout =
