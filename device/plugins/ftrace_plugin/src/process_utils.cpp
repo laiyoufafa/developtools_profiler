@@ -29,7 +29,6 @@
 namespace {
 constexpr int RD = 0;
 constexpr int WR = 1;
-constexpr int INVALID_FD = -1;
 } // namespace
 
 struct PipedSigHandler {

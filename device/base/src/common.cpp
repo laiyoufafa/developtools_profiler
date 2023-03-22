@@ -324,7 +324,7 @@ bool CheckApplicationPermission(int pid, const std::string& processName)
             HILOG_ERROR(LOG_CORE, "Get process name by pid failed!");
             return false;
         }
-        bundleName.resize(strlen(bundleName.c_str());
+        bundleName.resize(strlen(bundleName.c_str()));
     } else {
         bundleName = processName;
     }
