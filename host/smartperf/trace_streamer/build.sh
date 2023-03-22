@@ -79,7 +79,7 @@ if [ "$#" -ne "0" ];then
         target='sdkdemotest'
     fi
 fi
-if [ $target == "wasm" ] && [ $target_os == "windows" ];then
+if [ "$target" == "wasm" ] && [ "$target_os" == "windows" ];then
     echo "!!!build wasm on winows will occur unknown error, strongly suggest you build wasm on linux(Ubuntu)"
     exit
 fi

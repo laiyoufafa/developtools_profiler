@@ -23,7 +23,7 @@ esac
 echo $proto_dir
 SOURCE="${BASH_SOURCE[0]}"
 cd $(dirname ${SOURCE})
-if [ ! -f $out/$protoc ];then
+if [ ! -f "$out"/"$protoc" ];then
     echo "no $out/$protoc found, you need to run \"./build.sh protoc\" at root folder, and copy protoc.exe to $out/$protoc"
     exit
 fi
