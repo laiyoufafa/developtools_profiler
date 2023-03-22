@@ -58,7 +58,7 @@ inline uint64_t GetTimestampIncrements(uint64_t ext)
     return ext << TS_EXT_SHIFT;
 }
 
-bool ReadInc(uint8_t* start[], uint8_t end[], void* outData, size_t outSize)
+bool ReadInc(uint8_t* start[], const uint8_t end[], void* outData, size_t outSize)
 {
     if ((end - *start) < static_cast<ptrdiff_t>(outSize)) {
         return false;

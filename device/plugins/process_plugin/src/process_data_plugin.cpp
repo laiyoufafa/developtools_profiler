@@ -582,7 +582,7 @@ bool ProcessDataPlugin::WritePssData(int pid, PssInfo* protoc)
         getline(input, line);
         line += '\n';
         std::string::size_type pos = 0u;
-        if ((pos = line.find("Pss:", pos)) != std::string::npos) {
+        if (line.find("Pss:", pos) != std::string::npos) {
             char* pTmp = const_cast<char*>(line.c_str());
             uint64_t num;
             CHECK_TRUE(GetValidValue(pTmp, num), false, "%s: FindFirstNum failed", __func__);

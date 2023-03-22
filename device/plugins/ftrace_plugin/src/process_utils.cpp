@@ -136,21 +136,18 @@ static bool ExecuteProcess(const std::string& bin,
     int errFd = nullFd;
     CHECK_TRUE(inFd >= 0, false, "open /dev/null failed, %d", errno);
     CHECK_TRUE(dup2(inFd, STDIN_FILENO) != -1, false, "dup nullFD to stdin failed, %d", errno);
-    inFd = INVALID_FD; // for static check warning
 
     // redirect outFd to stdout
     if (out2pipe) {
         outFd = pipeFd;
     }
     CHECK_TRUE(dup2(outFd, STDOUT_FILENO) != -1, false, "dup fd %d to stdout failed, %d", outFd, errno);
-    outFd = INVALID_FD; // for static check warning
 
     // redirect errFd to stderr
     if (err2pipe) {
         errFd = pipeFd;
     }
     CHECK_TRUE(dup2(errFd, STDERR_FILENO) != -1, false, "dup fd %d to stderr failed, %d", errFd, errno);
-    errFd = INVALID_FD; // for static check warning
 
     CHECK_TRUE(close(nullFd) != -1, false, "close nullFd failed, %d", errno);
     CHECK_TRUE(close(pipeFd) != -1, false, "close pipeFd failed, %d", errno);
