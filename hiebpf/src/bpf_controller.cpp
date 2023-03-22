@@ -794,7 +794,7 @@ int BPFController::DumpFSTraceEvent(BPFController *bpfctlr, void *data, size_t d
               << "\nips:            " << cmplt_event.nips
               << "\nips:"
               << std::setw(16) << std::hex;
-    for (int i = 0; i < cmplt_event.nips; ++i) {
+    for (uint32_t i = 0; i < cmplt_event.nips; ++i) {
         std::cout << "\n    " << cmplt_event.ips[i];
     }
     std::cout << std::dec << std::endl;
@@ -837,7 +837,7 @@ int BPFController::DumpPFTraceEvent(BPFController *bpfctlr, void *data, size_t d
               << "\ncomm:           " << cmplt_event.comm
               << "\nips:            " << cmplt_event.nips
               << std::setw(16) << std::hex;
-    for (int i = 0; i < cmplt_event.nips; ++i) {
+    for (uint32_t i = 0; i < cmplt_event.nips; ++i) {
         std::cout << "\n    " << cmplt_event.ips[i];
     }
     std::cout << std::dec << std::endl;
@@ -881,7 +881,7 @@ int BPFController::DumpBIOTraceEvent(BPFController *bpfctlr, void *data, size_t 
               << "\nblkcnt:         " << cmplt_event.blkcnt
               << "\nips:            " << cmplt_event.nips
               << std::setw(16) << std::hex;
-    for (int i = 0; i < cmplt_event.nips; ++i) {
+    for (uint32_t i = 0; i < cmplt_event.nips; ++i) {
         std::cout << "\n    " << cmplt_event.ips[i];
     }
     std::cout << std::dec << std::endl;
