@@ -172,7 +172,7 @@ else
     mkdir -p out/windows
     touch out/windows/trace_streamer.exe
     prebuilts/$gn_path/$ninja -C out/"$target_dir""$ext"
-    if [ $target_dir == 'protoc' ];then
+    if [ "$target_dir" == 'protoc' ];then
         mv out/"$target_dir""$ext"/$target_dir out/$target_os/
     fi
    # prebuilts/$gn_path/ninja -C out/"$target_os""$ext"
