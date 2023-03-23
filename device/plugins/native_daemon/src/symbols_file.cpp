@@ -612,7 +612,7 @@ private:
             const unsigned char *data = elfFile->GetSectionData(shdr->secIndex_);
 
             if (sh_name == nullptr || data == nullptr) {
-                HLOGE("name sh_name or data get failed.");
+                HLOGE("sh_name or data get failed.");
                 return false;
             }
 
