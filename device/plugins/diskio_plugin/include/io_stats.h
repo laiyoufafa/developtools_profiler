@@ -16,6 +16,7 @@
 #ifndef IO_STATS_H
 #define IO_STATS_H
 
+#include <deque>
 #include <array>
 #include <cinttypes>
 #include <cstdio>
