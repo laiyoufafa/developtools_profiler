@@ -651,7 +651,7 @@ private:
             const char *sh_name = elfFile->GetStrPtr(elfFile->ehdr_->shdrStrTabIdx_, shdr->nameIndex_);
             const unsigned char *data = elfFile->GetSectionData(shdr->secIndex_);
 
-            CHECK_NOTNULL(sh_name, false, "name sh_name get failed.");
+            CHECK_NOTNULL(sh_name, false, "sh_name get failed.");
             CHECK_NOTNULL(data, false, "data get failed.");
 
             HLOGVVV("shdr name '%s' vaddr 0x%" PRIx64 " offset 0x%" PRIx64 " size 0x%" PRIx64

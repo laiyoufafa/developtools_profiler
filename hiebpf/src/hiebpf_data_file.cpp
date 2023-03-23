@@ -120,7 +120,7 @@ int HiebpfDataFile::MapFile()
         HHLOGE(true, "mmap() failed: %s", strerror(errno));
         return -1;
     }
-    HHLOGI(true, "done mem mapping hiebpf data file, mapping address");
+    HHLOGI(true, "done mem mapping hiebpf data file");
     // hiebpf data file header
     if (WriteFileHeader() != 0) {
         HHLOGE(true, "failed to write hiebpf data file header");
