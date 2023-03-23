@@ -284,10 +284,9 @@ int CallStack::AccessMem([[maybe_unused]] unw_addr_space_t as, unw_word_t addr,
     if (addr < unwindInfoPtr->callStack.stackPoint_ or
         addr + sizeof(unw_word_t) >= unwindInfoPtr->callStack.stackEnd_) {
         if (ReadVirtualThreadMemory(*unwindInfoPtr, addr, valuePoint)) {
-            HLOGM("access_mem addr %p get val 0x%" UNW_WORD_PFLAG ", from mmap",
-                  reinterpret_cast<void *>(addr), *valuePoint);
+            HLOGM("access_mem addr get val 0x%" UNW_WORD_PFLAG ", from mmap", *valuePoint);
         } else {
-            HLOGW("access_mem addr %p failed, from mmap, ", reinterpret_cast<void *>(addr));
+            HLOGW("access_mem addr failed, from mmap, ");
             HLOGW("stack range 0x%" PRIx64 " -  0x%" PRIx64 "(0x%" PRIx64 ")",
                   unwindInfoPtr->callStack.stackPoint_, unwindInfoPtr->callStack.stackEnd_,
                   unwindInfoPtr->callStack.stackEnd_ - unwindInfoPtr->callStack.stackPoint_);
@@ -296,8 +295,7 @@ int CallStack::AccessMem([[maybe_unused]] unw_addr_space_t as, unw_word_t addr,
     } else {
         stackOffset = addr - unwindInfoPtr->callStack.stackPoint_;
         *valuePoint = *(unw_word_t *)&unwindInfoPtr->callStack.stack_[stackOffset];
-        HLOGM("access_mem addr %p val %" UNW_WORD_PFLAG ", from stack offset %zu",
-              reinterpret_cast<void *>(addr), *valuePoint, stackOffset);
+        HLOGM("access_mem addr val %" UNW_WORD_PFLAG ", from stack offset %zu", *valuePoint, stackOffset);
     }
 
     return UNW_ESUCCESS;

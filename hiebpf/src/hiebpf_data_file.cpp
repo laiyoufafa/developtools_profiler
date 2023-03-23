@@ -100,7 +100,7 @@ void HiebpfDataFile::Submit(void *data)
     __u32 *len = static_cast<__u32 *>(data);
     ++len;
     int ret = msync(reinterpret_cast<void*>(addr), *len, MS_ASYNC);
-    HHLOGF(ret == -1, "failed msync data item at %p with %u bytes", data, *len);
+    HHLOGF(ret == -1, "failed msync data item with %u bytes", *len);
     return;
 }
 
@@ -120,7 +120,7 @@ int HiebpfDataFile::MapFile()
         HHLOGE(true, "mmap() failed: %s", strerror(errno));
         return -1;
     }
-    HHLOGI(true, "done mem mapping hiebpf data file, mapping address = %p", mapAddr_);
+    HHLOGI(true, "done mem mapping hiebpf data file");
     // hiebpf data file header
     if (WriteFileHeader() != 0) {
         HHLOGE(true, "failed to write hiebpf data file header");

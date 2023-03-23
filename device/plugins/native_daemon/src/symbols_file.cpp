@@ -166,7 +166,7 @@ public:
     {
         if (mmap_ != MMAP_FAILED) {
             if (munmap(mmap_, mmapSize_) != 0) {
-                HLOGE("munmap failed with %p", munmap);
+                HLOGE("munmap failed");
             }
         }
     }
@@ -612,7 +612,7 @@ private:
             const unsigned char *data = elfFile->GetSectionData(shdr->secIndex_);
 
             if (sh_name == nullptr || data == nullptr) {
-                HLOGE("name %p or data %p get failed.", sh_name, data);
+                HLOGE("sh_name or data get failed.");
                 return false;
             }
 
@@ -651,8 +651,8 @@ private:
             const char *sh_name = elfFile->GetStrPtr(elfFile->ehdr_->shdrStrTabIdx_, shdr->nameIndex_);
             const unsigned char *data = elfFile->GetSectionData(shdr->secIndex_);
 
-            CHECK_NOTNULL(sh_name, false, "name %p get failed.", sh_name);
-            CHECK_NOTNULL(data, false, "data %p get failed.", data);
+            CHECK_NOTNULL(sh_name, false, "sh_name get failed.");
+            CHECK_NOTNULL(data, false, "data get failed.");
 
             HLOGVVV("shdr name '%s' vaddr 0x%" PRIx64 " offset 0x%" PRIx64 " size 0x%" PRIx64
                     " type 0x%" PRIx64 "(%s) index %u link 0x%u entry 0x%" PRIx64 "",

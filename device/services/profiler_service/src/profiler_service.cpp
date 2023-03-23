@@ -383,7 +383,7 @@ bool ProfilerService::RemoveSessionContext(uint32_t sessionId)
     auto it = sessionContext_.find(sessionId);
     if (it != sessionContext_.end()) {
         auto ptr = it->second;
-        HILOG_INFO(LOG_CORE, "DelCtx %p use_count: %ld", ptr.get(), ptr.use_count());
+        HILOG_INFO(LOG_CORE, "DelCtx use_count: %ld", ptr.use_count());
         sessionContext_.erase(it);
         return true;
     }
