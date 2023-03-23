@@ -254,7 +254,7 @@ public:
                 }
             }
         }
-        HLOGE("string not found sh_link %u st_name %d, mmap_ is %p", sh_link, st_name, mmap_);
+        HLOGE("string not found sh_link %u st_name %d", sh_link, st_name);
         return nullptr;
     }
 
