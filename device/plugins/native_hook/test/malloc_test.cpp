@@ -256,7 +256,7 @@ static void* ThreadFuncC(void* param)
 // 打开文件到内存中
 static int OpenFile(const char* fileName)
 {
-    int fd = open(fileName, O_RDWR | O_CREAT, (mode_t)0777);
+    int fd = open(fileName, O_RDWR | O_CREAT, (mode_t)0644); // 0644 rw-r--r--
     if (fd == -1) {
         printf("can not open the file\n");
         return -1;
