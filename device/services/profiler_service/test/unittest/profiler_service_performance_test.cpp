@@ -870,6 +870,7 @@ HWTEST_F(ProfilerServicePerformanceTest, DFX_DFR_Hiprofiler_0020, Function | Med
     // 开启活跃进程获取数据
     int cpuActivePid = -1;
     StartActiveProcess(cpuActivePid);
+    sleep(1);//睡眠一秒确保子进程开始工作
     uint32_t sessionId2;
     EXPECT_TRUE(CreatePluginSession(sessionId2, cpuActivePid));
     EXPECT_TRUE(KeepPluginSession(ROUND_COUNT, sessionId2));
