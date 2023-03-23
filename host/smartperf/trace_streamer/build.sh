@@ -79,7 +79,7 @@ if [ "$#" -ne "0" ];then
         target='sdkdemotest'
     fi
 fi
-if [ $target == "wasm" ] && [ $target_os == "windows" ];then
+if [ "$target" == "wasm" ] && [ "$target_os" == "windows" ];then
     echo "!!!build wasm on winows will occur unknown error, strongly suggest you build wasm on linux(Ubuntu)"
     exit
 fi
@@ -172,7 +172,7 @@ else
     mkdir -p out/windows
     touch out/windows/trace_streamer.exe
     prebuilts/$gn_path/$ninja -C out/"$target_dir""$ext"
-    if [ $target_dir == 'protoc' ];then
+    if [ "$target_dir" == 'protoc' ];then
         mv out/"$target_dir""$ext"/$target_dir out/$target_os/
     fi
    # prebuilts/$gn_path/ninja -C out/"$target_os""$ext"
