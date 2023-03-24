@@ -34,7 +34,7 @@ namespace OHOS {
                 std::cout << "File " << "open fail" << std::endl;
                 return 0;
             } else {
-               code = SmartPerf::ParseTrace::ParseCodeTrace(fileNamePath);
+                code = SmartPerf::ParseTrace::ParseCodeTrace(fileNamePath);
             }
             infile.close();
             return code * conversion;
@@ -49,7 +49,7 @@ namespace OHOS {
                 std::cout << "File " << "open fail" << std::endl;
                 return 0;
             } else {
-               code = SmartPerf::ParseTrace::ParseHotTrace(fileNamePath);
+                code = SmartPerf::ParseTrace::ParseHotTrace(fileNamePath);
             }
             infile.close();
             return code * conversion;
@@ -126,19 +126,19 @@ namespace OHOS {
             codeTime = SmartPerf::ParseTrace::GetTime(startTime, endTime);
             return codeTime;
         }
-        float ParseTrace::GetTime(std::string startTime, std::string endTime)
+        float ParseTrace::GetTime(std::string start, std::string end)
         {
-            size_t point = endTime.find(".");
+            size_t point = end.find(".");
             float codeTime = -1;
             if (point != -1) {
                 size_t subNum = 2;
-                endTime = endTime.substr(point - subNum);
-                startTime = startTime.substr(point - subNum);
+                end = end.substr(point - subNum);
+                start = start.substr(point - subNum);
             }
-            if (std::stof(endTime) == 0 || std::stof(startTime) == 0) {
+            if (std::stof(end) == 0 || std::stof(start) == 0) {
             } else {
                 float displayTime = 0.040;
-                codeTime = std::stof(endTime) - std::stof(startTime) + displayTime;
+                codeTime = std::stof(end) - std::stof(start) + displayTime;
             }
             return codeTime;
         }
@@ -146,7 +146,6 @@ namespace OHOS {
         {
             std::string::size_type positionPackgeName;
             std::string::size_type positionAppspawn;
-            std::string appPid;
             if (appPidnum == 0) {
                 size_t packageNameNumSize = 5;
                 if (strPackgeName.length() < packageNameNumSize) {
@@ -181,7 +180,6 @@ namespace OHOS {
         {
             std::string::size_type mTouchEventDisPos;
             std::string::size_type touchEventDisPos;
-            std::string startTime;
             touchEventDisPos = line.find("H:touchEventDispatch");
             mTouchEventDisPos = line.find("H:TouchEventDispatch");
             if (mTouchEventDisPos != std::string::npos || touchEventDisPos != std::string::npos) {

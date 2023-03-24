@@ -20,11 +20,11 @@ namespace OHOS {
 namespace SmartPerf {
 class ParseTrace {
 public:
-    float ParseTraceCold(std::string fileNamePath,std::string packageName);
+    float ParseTraceCold(std::string fileNamePath, std::string packageName);
     float ParseTraceHot(std::string fileNamePath, std::string packageName);
     float ParseCodeTrace(std::string fileNamePath);
     float ParseHotTrace(std::string fileNamePath);
-    static float GetTime(std::string startTime, std::string endTime);
+    static float GetTime(std::string start, std::string end);
     std::string GetPid(std::string line, const std::string strPackgeName, const std::string appPidBefore);
     std::string GetStartTime(std::string line, const std::string startTimeBefore);
 private:

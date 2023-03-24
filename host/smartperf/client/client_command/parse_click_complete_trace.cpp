@@ -72,7 +72,7 @@ namespace OHOS {
             completeTime = SmartPerf::ParseClickCompleteTrace::GetTime(endTime);
             return completeTime;
         }
-        float  ParseClickCompleteTrace::GetTime( std::string endTime)
+        float ParseClickCompleteTrace::GetTime(std::string endTime)
         {
             size_t point = endTime.find(".");
             if (point != -1) {
