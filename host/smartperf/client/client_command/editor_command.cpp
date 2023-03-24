@@ -30,10 +30,9 @@ EditorCommand::EditorCommand(int argc, std::vector<std::string> v)
         float time = 0.0;
         if (v[type] == "coldStart") {
             time = SmartPerf::EditorCommand::ColdStart(v);
-        }
-        else if (v[type] == "hotStart") {
+        } else if (v[type] == "hotStart") {
             time = SmartPerf::EditorCommand::HotStart(v);
-        }else if (v[type] == "responseTime") {
+        } else if (v[type] == "responseTime") {
             time = SmartPerf::EditorCommand::ResponseTime(v);
         } else if (v[type] == "completeTime") {
             time = SmartPerf::EditorCommand::CompleteTime(v);
@@ -63,13 +62,13 @@ float EditorCommand::CompleteTime(std::vector<std::string> v)
     std::thread thGetTrace = sd.ThreadGetTrace("complete", traceName);
     thGetTrace.join();
     float time = pcct.ParseCompleteTrace(traceName);
-    return time; 
+    return time;
 }
 float EditorCommand::ColdStart(std::vector<std::string> v)
 {
     OHOS::SmartPerf::StartUpDelay sd;
     OHOS::SmartPerf::ParseTrace parseTrace;
-    std::string cmdResult;  
+    std::string cmdResult;
     SPUtils::LoadCmd("rm -rfv /data/local/tmp/*.ftrace", cmdResult);
     std::string traceName = std::string("/data/local/tmp/") + std::string("sp_trace_") + "coldStart" + ".ftrace";
     std::thread thGetTrace = sd.ThreadGetTrace("coldStart", traceName);

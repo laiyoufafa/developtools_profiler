@@ -69,10 +69,10 @@ namespace OHOS {
                     }
                 }
             }
-            completeTime = SmartPerf::ParseClickCompleteTrace::GetTime(startTime, endTime);
+            completeTime = SmartPerf::ParseClickCompleteTrace::GetTime(endTime);
             return completeTime;
         }
-        float  ParseClickCompleteTrace::GetTime(std::string startTime, std::string endTime)
+        float  ParseClickCompleteTrace::GetTime( std::string endTime)
         {
             size_t point = endTime.find(".");
             if (point != -1) {
@@ -87,13 +87,12 @@ namespace OHOS {
             }
             return completeTime;
         }
-        std::string  ParseClickCompleteTrace::GetPid(std::string line, const std::string packgeName, const std::string pidBefore)
+        std::string  ParseClickCompleteTrace::GetPid(std::string line, const std::string pn, const std::string pb)
         {
             size_t packageNameNumSize = 5;
-            std::string appPid;
             if (appPidnum == 0) {
                 std::string::size_type positionPackgeName;
-                if (packgeName.length() < packageNameNumSize) {
+                if (pn.length() < packageNameNumSize) {
                     std::string::size_type positionAppspawn;
                     positionPackgeName = line.find("task_newtask: pid=");
                     positionAppspawn = line.find("comm=appspawn");
@@ -104,17 +103,17 @@ namespace OHOS {
                         appPid = line.substr(position1 + subNum, position2 - position1 - subNum);
                         appPidnum++;
                     } else {
-                        appPid = pidBefore;
+                        appPid = pb;
                     }
                 } else {
-                    positionPackgeName = line.find(packgeName);
+                    positionPackgeName = line.find(pn);
                     if (positionPackgeName != std::string::npos) {
-                        size_t p1 = line.find(packgeName);
+                        size_t p1 = line.find(pn);
                         size_t p2 = line.find(" prio");
-                        appPid = line.substr(p1 + packgeName.length(), p2 - p1 - packgeName.length());
+                        appPid = line.substr(p1 + pn.length(), p2 - p1 - pn.length());
                         appPidnum++;
                     } else {
-                        appPid = pidBefore;
+                        appPid = pb;
                     }
                 }
             }
@@ -124,7 +123,6 @@ namespace OHOS {
         {
             std::string::size_type mTouchEventDisPos;
             std::string::size_type touchEventDisPos;
-            std::string startTime;  
             touchEventDisPos = line.find("H:touchEventDispatch");
             mTouchEventDisPos = line.find("H:TouchEventDispatch");
             if (mTouchEventDisPos != std::string::npos || touchEventDisPos != std::string::npos) {

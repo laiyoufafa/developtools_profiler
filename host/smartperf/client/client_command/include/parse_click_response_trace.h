@@ -22,7 +22,7 @@ namespace OHOS {
             public:
                 float ParseResponseTrace(std::string fileNamePath, std::string packageName);
                 float GetTime(std::string startTime, std::string endTime);
-                std::string GetPid(std::string line, const std::string packgeName, const std::string pidBefore);
+                std::string GetPid(std::string line, const std::string pn, const std::string pb);
                 std::string GetStartTime(std::string line, const std::string startTimeBefore);
                 float GetLineTime();
             private:
