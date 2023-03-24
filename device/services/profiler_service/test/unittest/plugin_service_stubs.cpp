@@ -302,3 +302,8 @@ bool PluginService::RemovePluginInfo(const PluginInfo& pluginInfo)
     HILOG_DEBUG(LOG_CORE, "RemovePluginInfo for %s done!", pluginName.c_str());
     return true;
 }
+
+void PluginService::SetTraceWriter(const TraceFileWriterPtr& traceWriter)
+{
+    traceWriter_ = traceWriter;
+}

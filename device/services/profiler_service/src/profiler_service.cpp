@@ -24,7 +24,6 @@
 #include "plugin_session_manager.h"
 #include "profiler_capability_manager.h"
 #include "profiler_data_repeater.h"
-#include "result_demuxer.h"
 #include "schedule_task_manager.h"
 #include "trace_file_writer.h"
 
@@ -136,9 +135,7 @@ bool ProfilerService::SessionContext::StartPluginSessions()
         dataRepeater->Reset();
     }
 
-    // start demuxer take result thread
-    if (resultDemuxer != nullptr && sessionConfig.session_mode() == ProfilerSessionConfig::OFFLINE) {
-        resultDemuxer->StartTakeResults(); // start write file thread
+    if (sessionConfig.session_mode() == ProfilerSessionConfig::OFFLINE) {
         uint32_t sampleDuration = sessionConfig.sample_duration();
         if (sampleDuration > 0) {
             offlineTask = "stop-session-" + std::to_string(id);
@@ -174,12 +171,11 @@ bool ProfilerService::SessionContext::StopPluginSessions()
     // stop each plugin sessions
     service->pluginSessionManager_->StopPluginSessions(pluginNames);
 
-    // stop demuxer take result thread
-    if (resultDemuxer && sessionConfig.session_mode() == ProfilerSessionConfig::OFFLINE) {
+    if (sessionConfig.session_mode() == ProfilerSessionConfig::OFFLINE) {
         if (offlineTask.size() > 0) {
             ScheduleTaskManager::GetInstance().UnscheduleTask(offlineTask);
         }
-        resultDemuxer->StopTakeResults(); // stop write file thread
+        traceFileWriter->Finish();
     }
 
     // make sure FetchData thread exit
@@ -242,6 +238,7 @@ Status ProfilerService::CreateSession(ServerContext* context,
 
     // check buffer configs
     ProfilerSessionConfig sessionConfig = request->session_config();
+    pluginService_->SetProfilerSessionConfig(sessionConfig);
     const int nBuffers = sessionConfig.buffers_size();
     CHECK_EXPRESSION_TRUE(nBuffers == 0 || nBuffers == 1 || nBuffers == nConfigs, "buffers config invalid!");
     // copy plugin configs from request
@@ -283,23 +280,16 @@ Status ProfilerService::CreateSession(ServerContext* context,
                    [](ProfilerPluginConfig& config) { return config.name(); });
     std::sort(pluginNames.begin(), pluginNames.end());
 
-    // create ProfilerDataRepeater
-    auto dataRepeater = std::make_shared<ProfilerDataRepeater>(DEFAULT_REPEATER_BUFFER_SIZE);
-    CHECK_POINTER_NOTNULL(dataRepeater, "alloc ProfilerDataRepeater failed!");
-
-    // create ResultDemuxer
-    auto resultDemuxer = std::make_shared<ResultDemuxer>(dataRepeater, pluginSessionManager_);
-    CHECK_POINTER_NOTNULL(resultDemuxer, "alloc ResultDemuxer failed!");
-
     // create TraceFileWriter for offline mode
     TraceFileWriterPtr traceWriter;
+    std::shared_ptr<ProfilerDataRepeater> dataRepeater = nullptr;
     if (sessionConfig.session_mode() == ProfilerSessionConfig::OFFLINE) {
         auto resultFile = sessionConfig.result_file();
         CHECK_EXPRESSION_TRUE(resultFile.size() > 0, "result_file empty!");
         traceWriter = std::make_shared<TraceFileWriter>(resultFile, sessionConfig.split_file(),
             sessionConfig.single_file_max_size_mb());
         CHECK_POINTER_NOTNULL(traceWriter, "alloc TraceFileWriter failed!");
-        resultDemuxer->SetTraceWriter(traceWriter);
+        pluginService_->SetTraceWriter(traceWriter);
         for (std::vector<ProfilerPluginConfig>::size_type i = 0; i < pluginConfigs.size(); i++) {
             ProfilerPluginData pluginData;
             pluginData.set_name(pluginConfigs[i].name() + "_config");
@@ -311,6 +301,9 @@ Status ProfilerService::CreateSession(ServerContext* context,
             traceWriter->SetPluginConfig(msgData.data(), msgData.size());
         }
         traceWriter->Flush();
+    } else {
+        dataRepeater = std::make_shared<ProfilerDataRepeater>(DEFAULT_REPEATER_BUFFER_SIZE);
+        CHECK_POINTER_NOTNULL(dataRepeater, "alloc ProfilerDataRepeater failed!");
     }
 
     // create session context
@@ -319,9 +312,12 @@ Status ProfilerService::CreateSession(ServerContext* context,
 
     // fill fields of SessionContext
     ctx->service = this;
-    ctx->dataRepeater = dataRepeater;
-    ctx->resultDemuxer = resultDemuxer;
-    ctx->traceFileWriter = traceWriter;
+    if (dataRepeater != nullptr) {
+        ctx->dataRepeater = dataRepeater;
+    }
+    if (traceWriter != nullptr) {
+        ctx->traceFileWriter = traceWriter;
+    }
     ctx->sessionConfig = sessionConfig;
     ctx->pluginNames = std::move(pluginNames);
     ctx->pluginConfigs = std::move(pluginConfigs);
@@ -350,7 +346,6 @@ Status ProfilerService::CreateSession(ServerContext* context,
     response->set_status(0);
     response->set_session_id(sessionId);
 
-    pluginService_->SetProfilerSessionConfig(sessionConfig);
     HILOG_INFO(LOG_CORE, "CreateSession %d %u done!", request->request_id(), sessionId);
     return Status::OK;
 }

@@ -37,7 +37,6 @@ ohos_unittest("profiler_service_ut") {
     "unittest/profiler_data_repeater_test.cpp",
     "unittest/profiler_service_performance_test.cpp",
     "unittest/profiler_service_test.cpp",
-    "unittest/result_demuxer_test.cpp",
     "unittest/trace_file_reader_test.cpp",
     "unittest/trace_file_writer_test.cpp",
   ]

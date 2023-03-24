@@ -50,6 +50,7 @@ private:
     bool stopResult_ = true;
     bool addResult_ = true;
     bool removeResult_ = true;
+    TraceFileWriterPtr traceWriter_ = nullptr;
 };
 #endif
 

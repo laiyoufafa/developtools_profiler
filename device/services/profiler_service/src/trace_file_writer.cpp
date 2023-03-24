@@ -126,6 +126,12 @@ bool TraceFileWriter::WriteHeader()
 
 long TraceFileWriter::Write(const void* data, size_t size)
 {
+    if (isSplitFile_ && !isStop_) {
+        if (IsSplitFile(size)) {
+            return -1;
+        }
+    }
+
     uint32_t dataLen = size;
     CHECK_TRUE(stream_.is_open(), 0, "binary file %s not open or open failed!", path_.c_str());
 

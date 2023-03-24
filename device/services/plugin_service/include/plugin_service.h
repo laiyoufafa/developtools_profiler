@@ -31,6 +31,7 @@
 #include "plugin_service_types.pb.h"
 #include "profiler_service_types.pb.h"
 #include "service_entry.h"
+#include "trace_file_writer.h"
 
 class PluginServiceImpl;
 class ProfilerDataRepeater;
@@ -101,12 +102,14 @@ public:
     void SetProfilerSessionConfig(const ProfilerSessionConfig& profilerSessionConfig);
 
     std::pair<uint32_t, PluginContextPtr> GetPluginContext(const std::string& pluginName);
+    void SetTraceWriter(const TraceFileWriterPtr& traceWriter);
 
 private:
     bool StartService(const std::string& unixSocketName);
 
     SemaphorePtr GetSemaphore(uint32_t) const;
-    void ReadShareMemory(PluginContext&);
+    void ReadShareMemoryOffline(PluginContext&);
+    void ReadShareMemoryOnline(PluginContext&);
     PluginContextPtr GetPluginContextById(uint32_t id);
 
     bool RemovePluginSessionCtx(const std::string& pluginName);
@@ -123,6 +126,8 @@ private:
     std::unique_ptr<EpollEventPoller> eventPoller_;
     PluginSessionManagerPtr pluginSessionManager_;
     ProfilerSessionConfig profilerSessionConfig_;
+    TraceFileWriterPtr traceWriter_ = nullptr;
+    uint32_t dataFlushSize_ = 0;
 };
 
 #endif // PLUGIN_SERVICE_H

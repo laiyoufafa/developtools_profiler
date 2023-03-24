@@ -32,6 +32,8 @@
 namespace {
 const int PAGE_BYTES = 4096;
 const int DEFAULT_EVENT_POLLING_INTERVAL = 5000;
+constexpr uint32_t FLUSH_BASELINE = (1U << 21); // need to flush data size with offline mode
+constexpr uint32_t STOP_BASELINE = (1U << 22); // need to stop take data size with offline mode
 } // namespace
 
 PluginService::PluginService()
@@ -138,7 +140,13 @@ bool PluginService::CreatePluginSession(const ProfilerPluginConfig& pluginConfig
     pluginCtx->context->SendFileDescriptor(smb->GetfileDescriptor());
     pluginCtx->context->SendFileDescriptor(notifier->GetFd());
 
-    eventPoller_->AddFileDescriptor(notifier->GetFd(), std::bind(&PluginService::ReadShareMemory, this, *pluginCtx));
+    if (profilerSessionConfig_.session_mode() == ProfilerSessionConfig::OFFLINE) {
+        eventPoller_->AddFileDescriptor(notifier->GetFd(),
+            std::bind(&PluginService::ReadShareMemoryOffline, this, *pluginCtx));
+    } else if (profilerSessionConfig_.session_mode() == ProfilerSessionConfig::ONLINE) {
+        eventPoller_->AddFileDescriptor(notifier->GetFd(),
+            std::bind(&PluginService::ReadShareMemoryOnline, this, *pluginCtx));
+    }
     HILOG_DEBUG(LOG_CORE, "CreatePluginSession %s done, shmem fd = %d", pluginName.c_str(), smb->GetfileDescriptor());
     return true;
 }
@@ -209,7 +217,11 @@ bool PluginService::StopPluginSession(const std::string& pluginName)
     }
 
     if (!profilerSessionConfig_.discard_cache_data()) {
-        ReadShareMemory(*pluginCtx);
+        if (profilerSessionConfig_.session_mode() == ProfilerSessionConfig::OFFLINE) {
+            ReadShareMemoryOffline(*pluginCtx);
+        } else if (profilerSessionConfig_.session_mode() == ProfilerSessionConfig::ONLINE) {
+            ReadShareMemoryOnline(*pluginCtx);
+        }
     }
     HILOG_DEBUG(LOG_CORE, "StopPluginSession %s done!", pluginName.c_str());
     return true;
@@ -393,12 +405,53 @@ bool PluginService::RemovePluginInfo(const PluginInfo& pluginInfo)
     return true;
 }
 
-void PluginService::ReadShareMemory(PluginContext& context)
+void PluginService::ReadShareMemoryOffline(PluginContext& context)
+{
+    CHECK_NOTNULL(context.shareMemoryBlock, NO_RETVAL, "smb of %s is null!", context.path.c_str());
+    CHECK_NOTNULL(traceWriter_, NO_RETVAL, "traceWriter_ is null!");
+    if (context.eventNotifier) {
+        context.eventNotifier->Take();
+    }
+
+    uint32_t stopTakeDataSize = 0;
+    while (true) {
+        int retval = 0;
+        bool ret = context.shareMemoryBlock->TakeData([&](const int8_t data[], uint32_t size) -> bool {
+            retval = traceWriter_->Write(data, size);
+            CHECK_TRUE(retval != -1, false, "need to splite file");
+            CHECK_TRUE(retval > 0, false, "write %d bytes failed!", size);
+            return true;
+        });
+
+        if (retval == -1) {
+            HILOG_DEBUG(LOG_CORE, "need to clear share memory block and report the basic data");
+            pluginSessionManager_->RefreshPluginSession();
+            break;
+        }
+
+        dataFlushSize_ += retval;
+        stopTakeDataSize += retval;
+        if (stopTakeDataSize > STOP_BASELINE) {
+            traceWriter_->Flush();
+            break;
+        } else if (dataFlushSize_ > FLUSH_BASELINE) {
+            traceWriter_->Flush();
+            dataFlushSize_ = 0;
+        }
+
+        if (!ret) { // no data to read
+            break;
+        }
+    }
+}
+
+void PluginService::ReadShareMemoryOnline(PluginContext& context)
 {
     CHECK_NOTNULL(context.shareMemoryBlock, NO_RETVAL, "smb of %s is null!", context.path.c_str());
     if (context.eventNotifier) {
         context.eventNotifier->Take();
     }
+
     while (true) {
         auto pluginData = std::make_shared<ProfilerPluginData>();
         bool ret = context.shareMemoryBlock->TakeData([&](const int8_t data[], uint32_t size) -> bool {
@@ -473,4 +526,9 @@ uint32_t PluginService::GetPluginIdByName(std::string name)
         return 0;
     }
     return nameIndex_[name];
+}
+
+void PluginService::SetTraceWriter(const TraceFileWriterPtr& traceWriter)
+{
+    traceWriter_ = traceWriter;
 }
