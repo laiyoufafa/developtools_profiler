@@ -289,6 +289,9 @@ void StackPreprocess::SetHookData(RawStackPtr rawStack,
             std::string name = rawStack->stackConext.tname;
             if (name == "ArkJs") {
                 mmapEvent->set_type("ArkJsGlobalHandle");
+            } else if (name.find("/") != std::string::npos) {
+                name.erase(0, 1); // remove first '/'
+                mmapEvent->set_type("FilePage:" + name);
             } else if (!name.empty()) {
                 mmapEvent->set_thread_name_id(GetThreadIdx(name, batchNativeHookData));
             }
@@ -310,6 +313,12 @@ void StackPreprocess::SetHookData(RawStackPtr rawStack,
                 Frame* frame = munmapEvent->add_frame_info();
                 SetFrameInfo(*frame, callsFrames[idx], batchNativeHookData);
             }
+        } else if (rawStack->stackConext.type == PR_SET_VMA_MSG) {
+            MemTagEvent* tagEvent = hookData->mutable_tag_event();
+            std::string name = "Anonymous:";
+            tagEvent->set_tag(name + rawStack->stackConext.tname);
+            tagEvent->set_size(rawStack->stackConext.mallocSize);
+            tagEvent->set_addr((uint64_t)rawStack->stackConext.addr);
         }
 }
 
@@ -334,8 +343,8 @@ void StackPreprocess::writeFrames(RawStackPtr rawStack, const std::vector<CallFr
 {
     CHECK_TRUE(fpHookData_.get() != nullptr, NO_RETVAL, "fpHookData_ is nullptr, please check file_name(%s)",
         hookConfig_.file_name().c_str());
-    if (rawStack->stackConext.type == MEMORY_TAG) {
-        fprintf(fpHookData_.get(), "memtag;%u;%u;%" PRId64 ";%ld;0x%" PRIx64 ":tag:%s\n",
+    if (rawStack->stackConext.type == PR_SET_VMA_MSG) {
+        fprintf(fpHookData_.get(), "prctl;%u;%u;%" PRId64 ";%ld;0x%" PRIx64 ":tag:%s\n",
             rawStack->stackConext.pid, rawStack->stackConext.tid,
             (int64_t)rawStack->stackConext.ts.tv_sec, rawStack->stackConext.ts.tv_nsec,
             (uint64_t)rawStack->stackConext.addr, rawStack->stackConext.tname);
