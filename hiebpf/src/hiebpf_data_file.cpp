@@ -83,7 +83,7 @@ void HiebpfDataFile::WriteKernelSymbol()
     if (tmp == nullptr) {
         return;
     }
-    uint32_t *type = (uint32_t *)tmp;
+    uint32_t *type = reinterpret_cast<uint32_t *>(tmp);
     (*type) = KERNEL_SYM;
     uint32_t *len = type + 1;
     (*len) = bufSize;

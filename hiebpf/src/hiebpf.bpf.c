@@ -340,9 +340,10 @@ int emit_event(void* ctx, int64_t retval, u32 tracer)
     switch (tracer) {
         case FSTRACE:   return emit_fstrace_event(ctx, retval);
         case PFTRACE:   return emit_pftrace_event(ctx, retval);
+        default:
+            BPFLOGD(BPF_TRUE, "unkonwn event source with id = %d", tracer);
+            return -1;
     }
-    BPFLOGD(BPF_TRUE, "unkonwn event source with id = %d", tracer);
-    return -1;
 }
 
 static __always_inline

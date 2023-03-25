@@ -49,8 +49,9 @@ int LIBBPFLogger::Printf(int logLevel, const char* format, va_list args)
 #if defined(BPF_LOGGER_DEBUG) || defined(BPF_LOGGER_INFO) || defined(BPF_LOGGER_WARN) ||   \
     defined(BPF_LOGGER_ERROR) || defined(BPF_LOGGER_FATAL)
     return vdprintf(fd_, format, args);
-#endif
+#else
     return 0;
+#endif
 }
 
 int LIBBPFLogger::OpenLogFile(const std::string& logFile)
