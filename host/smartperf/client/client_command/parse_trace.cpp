@@ -178,10 +178,8 @@ namespace OHOS {
         }
         std::string  ParseTrace::GetStartTime(std::string line, const std::string startTimeBefore)
         {
-            std::string::size_type mTouchEventDisPos;
-            std::string::size_type touchEventDisPos;
-            touchEventDisPos = line.find("H:touchEventDispatch");
-            mTouchEventDisPos = line.find("H:TouchEventDispatch");
+            std::string::size_type touchEventDisPos = line.find("H:touchEventDispatch");
+            std::string::size_type mTouchEventDisPos = line.find("H:TouchEventDispatch");
             if (mTouchEventDisPos != std::string::npos || touchEventDisPos != std::string::npos) {
                 size_t touchNum = 3;
                 if (flagTouch <= touchNum) {
