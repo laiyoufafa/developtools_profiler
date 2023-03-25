@@ -733,7 +733,7 @@ int hook_prctl(int(*fn)(int, ...),
 
 void hook_memtrace(void* addr, size_t size, const char* tag, bool isUsing)
 {
-    if (IsPidChanged()) {
+    if (!g_ClientConfig.memtraceEnable || IsPidChanged()) {
         return;
     }
     int stackSize = 0;

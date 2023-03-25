@@ -42,6 +42,7 @@ enum {
     MUNMAPMSGSTACK = (1u << 3),
     FPUNWIND = (1u << 4),
     BLOCKED = (1u << 5),
+    MEMTRACE_ENABLE = (1u << 6),
 };
 
 enum {
@@ -76,6 +77,7 @@ typedef struct {
     uint8_t maxStackDepth_;
     bool fpunwind_;
     bool isBlocked;
+    bool memtraceEnable;
 } ClientConfig;
 
 #endif // HOOK_SERVICE_H

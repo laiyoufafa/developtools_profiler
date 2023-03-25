@@ -95,6 +95,9 @@ bool HookSocketClient::ProtocolProc(SocketContext &context, uint32_t pnum, const
     if ((mask & BLOCKED) != 0) {
         config_->isBlocked = true;
     }
+    if ((mask & MEMTRACE_ENABLE) != 0) {
+        config_->memtraceEnable = true;
+    }
     HILOG_INFO(LOG_CORE, "%s: mallocDisable = %d mmapDisable = %d", __func__,
         config_->mallocDisable_, config_->mmapDisable_);
     HILOG_INFO(LOG_CORE, "%s: freeStackData = %d munmapStackData = %d", __func__,
