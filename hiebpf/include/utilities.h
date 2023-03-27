@@ -33,7 +33,7 @@ const std::string EMPTY_STRING = "";
 #endif
 
 std::string ReadFileToString(const std::string &fileName);
-std::vector<std::string> StringSplit(std::string source, std::string &split = ",");
+std::vector<std::string> StringSplit(std::string source, const std::string &split);
 bool StringEndsWith(const std::string &string, const std::string &with);
 } // namespace Hiebpf
 } // namespace Developtools
