@@ -413,7 +413,7 @@ void PluginService::ReadShareMemoryOffline(PluginContext& context)
         context.eventNotifier->Take();
     }
 
-    uint32_t stopTakeDataSize = 0;
+    int stopTakeDataSize = 0;
     while (true) {
         int retval = 0;
         bool ret = context.shareMemoryBlock->TakeData([&](const int8_t data[], uint32_t size) -> bool {

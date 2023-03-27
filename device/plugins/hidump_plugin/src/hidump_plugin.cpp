@@ -32,7 +32,7 @@ const int SLEEP_TIME = 50;
 const int BUF_MAX_LEN = 64;
 const int MS_PER_S = 1000;
 const int US_PER_S = 1000000;
-const char *FPS_FORMAT = "GP_daemon_fps 31104000";
+const char *g_fpsFormat = "GP_daemon_fps 31104000";
 
 static pid_t volatile g_child;
 const int READ = 0;
@@ -69,12 +69,12 @@ int HidumpPlugin::Start(const uint8_t* configData, uint32_t configSize)
         return -1;
     }
 
-    fp_ = std::unique_ptr<FILE, int (*)(FILE*)>(CustomPopen(FPS_FORMAT, "r"), CustomPclose);
+    fp_ = std::unique_ptr<FILE, int (*)(FILE*)>(CustomPopen(g_fpsFormat, "r"), CustomPclose);
     if (fp_.get() == nullptr) {
         const int bufSize = 256;
         char buf[bufSize] = {0};
         strerror_r(errno, buf, bufSize);
-        HILOG_ERROR(LOG_CORE, "HidumpPlugin: CustomPopen(%s) Failed, errno(%d:%s)", FPS_FORMAT, errno, buf);
+        HILOG_ERROR(LOG_CORE, "HidumpPlugin: CustomPopen(%s) Failed, errno(%d:%s)", g_fpsFormat, errno, buf);
         return -1;
     }
     CHECK_NOTNULL(resultWriter_, -1, "HidumpPlugin: Writer is no set!");
