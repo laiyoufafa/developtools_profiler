@@ -295,7 +295,11 @@ bool ElfFile::ParseSymNamesStr()
     const auto &shdr = shdrs_[secName];
     uint64_t secOffset = shdr->fileOffset_;
     uint64_t secSize = shdr->secSize_;
-    (void)lseek(fd_, secOffset, SEEK_SET);
+    int64_t ret = lseek(fd_, secOffset, SEEK_SET);
+    if (ret < 0) {
+        HLOGE("Error in ElfFile::ParsesymNamesStr(): lseek failed");
+        return false;
+    }
     char *secBuf = new (std::nothrow) char[secSize];
     if (secBuf == nullptr) {
         HLOGE("Error in ElfFile::ParsesymNamesStr(): new failed");
@@ -304,7 +308,7 @@ bool ElfFile::ParseSymNamesStr()
     if (memset_s(secBuf, secSize, '\0', secSize) != EOK) {
         HLOGE("memset failed");
     }
-    int64_t ret = ReadFile(secBuf, secSize);
+    ret = ReadFile(secBuf, secSize);
     HLOG_ASSERT(ret == static_cast<int64_t>(secSize));
     symNamesStr_ = std::string(secBuf, secSize);
     if (symNamesStr_ == "") {

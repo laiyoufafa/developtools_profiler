@@ -308,8 +308,9 @@ int BPFEventReceiver::EncodeFSTraceEvent(
     }
     (void)memcpy_s(item->comm_, MAX_COMM_LEN, cmplt_event->comm, MAX_COMM_LEN);
     if (item->nips_ != 0) {
-        int ret = memcpy_s((__u64*)((char*)item + sizeof(struct FixedFSTraceTLVItem)),
-                           item->nips_ * sizeof(__u64), cmplt_event->ips, item->nips_ * sizeof(__u64));
+        int ret = memcpy_s(reinterpret_cast<__u64*>((reinterpret_cast<char *>(item) +
+                           sizeof(struct FixedFSTraceTLVItem))), item->nips_ * sizeof(__u64),
+                           cmplt_event->ips, item->nips_ * sizeof(__u64));
         if (ret != EOK) {
             return -1;
         }
@@ -347,8 +348,9 @@ int BPFEventReceiver::EncodePFTraceEvent(
     }
     (void)memcpy_s(item->comm_, MAX_COMM_LEN, cmplt_event->comm, MAX_COMM_LEN);
     if (item->nips_ != 0) {
-        int ret = memcpy_s((__u64*)((char*)item + sizeof(struct FixedPFTraceTLVItem)),
-                           item->nips_ * sizeof(__u64), cmplt_event->ips, item->nips_ * sizeof(__u64));
+        int ret = memcpy_s(reinterpret_cast<__u64*>((reinterpret_cast<char *>(item) +
+                           sizeof(struct FixedPFTraceTLVItem))), item->nips_ * sizeof(__u64),
+                           cmplt_event->ips, item->nips_ * sizeof(__u64));
         if (ret != EOK) {
             return -1;
         }
@@ -382,8 +384,9 @@ int BPFEventReceiver::EncodeBIOTraceEvent(
         return -1;
     }
     if (item->nips_ != 0) {
-        int ret = memcpy_s((__u64*)((char*)item + sizeof(struct FixedBIOTraceTLVItem)),
-                           item->nips_ * sizeof(__u64), cmplt_event->ips, item->nips_ * sizeof(__u64));
+        int ret = memcpy_s(reinterpret_cast<__u64*>((reinterpret_cast<char *>(item) +
+                           sizeof(struct FixedBIOTraceTLVItem))), item->nips_ * sizeof(__u64),
+                           cmplt_event->ips, item->nips_ * sizeof(__u64));
         if (ret != EOK) {
             return -1;
         }

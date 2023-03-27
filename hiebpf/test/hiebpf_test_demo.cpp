@@ -57,7 +57,7 @@ public:
     }
 
 protected:
-    TimePoint Now()
+    static TimePoint Now()
     {
         return Clock::now();
     }
