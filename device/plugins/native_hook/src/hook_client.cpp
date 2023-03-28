@@ -686,7 +686,7 @@ void hook_memtrace(void* addr, size_t size, const char* tag, bool isUsing)
     if (!g_ClientConfig.memtraceEnable || IsPidChanged()) {
         return;
     }
-	std::shared_ptr<HookSocketClient> tempClient = g_hookClient;
+    std::shared_ptr<HookSocketClient> tempClient = g_hookClient;
     int stackSize = 0;
     StackRawData rawdata = {{{0}}};
     const char* stackptr = nullptr;
