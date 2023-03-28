@@ -413,7 +413,7 @@ void PluginService::ReadShareMemoryOffline(PluginContext& context)
         context.eventNotifier->Take();
     }
 
-    int stopTakeDataSize = 0;
+    uint32_t stopTakeDataSize = 0;
     while (true) {
         int retval = 0;
         bool ret = context.shareMemoryBlock->TakeData([&](const int8_t data[], uint32_t size) -> bool {
@@ -430,7 +430,7 @@ void PluginService::ReadShareMemoryOffline(PluginContext& context)
         }
 
         dataFlushSize_ += retval;
-        stopTakeDataSize += retval;
+        stopTakeDataSize += static_cast<uint32_t>(retval);
         if (stopTakeDataSize > STOP_BASELINE) {
             traceWriter_->Flush();
             break;
