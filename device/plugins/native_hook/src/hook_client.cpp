@@ -701,7 +701,7 @@ int hook_prctl(int(*fn)(int, ...),
     if (fn) {
         ret = fn(option, arg2, arg3, arg4, arg5);
     }
-    if (IsPidChanged()) {
+    if (reinterpret_cast<char*>(arg5) == nullptr || IsPidChanged()) {
         return ret;
     }
     if (option == PR_SET_VMA && arg2 == PR_SET_VMA_ANON_NAME) {
