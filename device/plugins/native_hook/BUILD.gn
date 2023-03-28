@@ -20,6 +20,7 @@ config("hook_config") {
     "HAVE_LIBUNWIND=1",
     "HIPERF_DEBUG",
     "CONFIG_NO_HILOG",
+    "PERFORMANCE_DEBUG",
   ]
   defines += [ "target_cpu_${target_cpu}" ]
   if (!is_asan) {

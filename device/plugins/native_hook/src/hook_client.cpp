@@ -218,6 +218,7 @@ void* hook_malloc(void* (*fn)(size_t), size_t size)
     struct timespec start = {};
     clock_gettime(CLOCK_REALTIME, &start);
 #endif
+    std::shared_ptr<HookSocketClient> tempClient = g_hookClient;
     StackRawData rawdata = {{{0}}};
     const char* stackptr = nullptr;
     const char* stackendptr = nullptr;
@@ -259,16 +260,8 @@ void* hook_malloc(void* (*fn)(size_t), size_t size)
     rawdata.mallocSize = size;
     rawdata.addr = ret;
     prctl(PR_GET_NAME, rawdata.tname);
-    std::unique_lock<std::recursive_timed_mutex> lck(g_ClientMutex, std::defer_lock);
-    std::chrono::time_point<std::chrono::steady_clock> timeout =
-        std::chrono::steady_clock::now() + std::chrono::milliseconds(TIMEOUT_MSEC);
-    if (!lck.try_lock_until(timeout)) {
-        HILOG_ERROR(LOG_CORE, "lock hook_malloc failed!");
-        return ret;
-    }
-
-    if (g_hookClient != nullptr) {
-        g_hookClient->SendStackWithPayload(&rawdata, sizeof(rawdata), stackptr, stackSize);
+    if (g_hookClient != nullptr && tempClient != nullptr) {
+        tempClient->SendStackWithPayload(&rawdata, sizeof(rawdata), stackptr, stackSize);
     }
     g_mallocTimes++;
 #ifdef PERFORMANCE_DEBUG
@@ -306,7 +299,7 @@ void* hook_calloc(void* (*fn)(size_t, size_t), size_t number, size_t size)
     if (!ohos_set_filter_size(number * size, pRet)) {
         return pRet;
     }
-
+    std::shared_ptr<HookSocketClient> tempClient = g_hookClient;
     StackRawData rawdata = {{{0}}};
     const char* stackptr = nullptr;
     const char* stackendptr = nullptr;
@@ -348,16 +341,8 @@ void* hook_calloc(void* (*fn)(size_t, size_t), size_t number, size_t size)
     rawdata.mallocSize = number * size;
     rawdata.addr = pRet;
     prctl(PR_GET_NAME, rawdata.tname);
-    std::unique_lock<std::recursive_timed_mutex> lck(g_ClientMutex, std::defer_lock);
-    std::chrono::time_point<std::chrono::steady_clock> timeout =
-        std::chrono::steady_clock::now() + std::chrono::milliseconds(TIMEOUT_MSEC);
-    if (!lck.try_lock_until(timeout)) {
-        HILOG_ERROR(LOG_CORE, "lock hook_calloc failed!");
-        return pRet;
-    }
-
-    if (g_hookClient != nullptr) {
-        g_hookClient->SendStackWithPayload(&rawdata, sizeof(rawdata), stackptr, stackSize);
+    if (g_hookClient != nullptr && tempClient != nullptr) {
+        tempClient->SendStackWithPayload(&rawdata, sizeof(rawdata), stackptr, stackSize);
     }
     g_mallocTimes++;
     return pRet;
@@ -384,7 +369,7 @@ void* hook_realloc(void* (*fn)(void*, size_t), void* ptr, size_t size)
     if (!ohos_set_filter_size(size, pRet)) {
         return pRet;
     }
-
+    std::shared_ptr<HookSocketClient> tempClient = g_hookClient;
     StackRawData rawdata = {{{0}}};
     StackRawData freeData = {{{0}}};
     const char* stackptr = nullptr;
@@ -435,15 +420,7 @@ void* hook_realloc(void* (*fn)(void*, size_t), void* ptr, size_t size)
     rawdata.mallocSize = size;
     rawdata.addr = pRet;
     prctl(PR_GET_NAME, rawdata.tname);
-    std::unique_lock<std::recursive_timed_mutex> lck(g_ClientMutex, std::defer_lock);
-    std::chrono::time_point<std::chrono::steady_clock> timeout =
-        std::chrono::steady_clock::now() + std::chrono::milliseconds(TIMEOUT_MSEC);
-    if (!lck.try_lock_until(timeout)) {
-        HILOG_ERROR(LOG_CORE, "lock hook_realloc failed!");
-        return pRet;
-    }
-
-    if (g_hookClient != nullptr) {
+    if (g_hookClient != nullptr && tempClient != nullptr) {
         freeData.type = FREE_MSG;
         freeData.pid = rawdata.pid;
         freeData.tid = rawdata.tid;
@@ -452,8 +429,8 @@ void* hook_realloc(void* (*fn)(void*, size_t), void* ptr, size_t size)
         freeData.ts = rawdata.ts;
         (void)memcpy_s(freeData.tname, sizeof(freeData.tname) / sizeof(char),
                        rawdata.tname, sizeof(rawdata.tname) / sizeof(char));
-        g_hookClient->SendStackWithPayload(&freeData, sizeof(freeData), nullptr, 0); // 0: Don't unwind the freeData
-        g_hookClient->SendStackWithPayload(&rawdata, sizeof(rawdata), stackptr, stackSize);
+        tempClient->SendStackWithPayload(&freeData, sizeof(freeData), nullptr, 0); // 0: Don't unwind the freeData
+        tempClient->SendStackWithPayload(&rawdata, sizeof(rawdata), stackptr, stackSize);
     }
     g_mallocTimes++;
     return pRet;
@@ -485,6 +462,7 @@ void hook_free(void (*free_func)(void*), void* p)
             return;
         }
     }
+    std::shared_ptr<HookSocketClient> tempClient = g_hookClient;
     StackRawData rawdata = {{{0}}};
     const char* stackptr = nullptr;
     const char* stackendptr = nullptr;
@@ -529,17 +507,8 @@ void hook_free(void (*free_func)(void*), void* p)
     rawdata.mallocSize = 0;
     rawdata.addr = p;
     prctl(PR_GET_NAME, rawdata.tname);
-
-    std::unique_lock<std::recursive_timed_mutex> lck(g_ClientMutex, std::defer_lock);
-    std::chrono::time_point<std::chrono::steady_clock> timeout =
-        std::chrono::steady_clock::now() + std::chrono::milliseconds(TIMEOUT_MSEC);
-    if (!lck.try_lock_until(timeout)) {
-        HILOG_ERROR(LOG_CORE, "lock hook_free failed!");
-        return;
-    }
-
-    if (g_hookClient != nullptr) {
-        g_hookClient->SendStackWithPayload(&rawdata, sizeof(rawdata), stackptr, stackSize);
+    if (g_hookClient != nullptr && tempClient != nullptr) {
+        tempClient->SendStackWithPayload(&rawdata, sizeof(rawdata), stackptr, stackSize);
     }
 }
 
@@ -553,6 +522,7 @@ void* hook_mmap(void*(*fn)(void*, size_t, int, int, int, off_t),
     if (g_ClientConfig.mmapDisable_ || IsPidChanged()) {
         return ret;
     }
+    std::shared_ptr<HookSocketClient> tempClient = g_hookClient;
     StackRawData rawdata = {{{0}}};
     const char* stackptr = nullptr;
     const char* stackendptr = nullptr;
@@ -614,15 +584,8 @@ void* hook_mmap(void*(*fn)(void*, size_t, int, int, int, off_t),
         }
     }
 
-    std::unique_lock<std::recursive_timed_mutex> lck(g_ClientMutex, std::defer_lock);
-    std::chrono::time_point<std::chrono::steady_clock> timeout =
-        std::chrono::steady_clock::now() + std::chrono::milliseconds(TIMEOUT_MSEC);
-    if (!lck.try_lock_until(timeout)) {
-        HILOG_ERROR(LOG_CORE, "lock hook_mmap failed!");
-        return ret;
-    }
-    if (g_hookClient != nullptr) {
-        g_hookClient->SendStackWithPayload(&rawdata, sizeof(rawdata), stackptr, stackSize);
+    if (g_hookClient != nullptr && tempClient != nullptr) {
+        tempClient->SendStackWithPayload(&rawdata, sizeof(rawdata), stackptr, stackSize);
     }
     return ret;
 }
@@ -637,6 +600,7 @@ int hook_munmap(int(*fn)(void*, size_t), void* addr, size_t length)
         return ret;
     }
     int stackSize = 0;
+    std::shared_ptr<HookSocketClient> tempClient = g_hookClient;
     StackRawData rawdata = {{{0}}};
     const char* stackptr = nullptr;
     const char* stackendptr = nullptr;
@@ -680,16 +644,8 @@ int hook_munmap(int(*fn)(void*, size_t), void* addr, size_t length)
     rawdata.mallocSize = length;
     rawdata.addr = addr;
     prctl(PR_GET_NAME, rawdata.tname);
-
-    std::unique_lock<std::recursive_timed_mutex> lck(g_ClientMutex, std::defer_lock);
-    std::chrono::time_point<std::chrono::steady_clock> timeout =
-        std::chrono::steady_clock::now() + std::chrono::milliseconds(TIMEOUT_MSEC);
-    if (!lck.try_lock_until(timeout)) {
-        HILOG_ERROR(LOG_CORE, "lock hook_munmap failed!");
-        return ret;
-    }
-    if (g_hookClient != nullptr) {
-        g_hookClient->SendStackWithPayload(&rawdata, sizeof(rawdata), stackptr, stackSize);
+    if (g_hookClient != nullptr && tempClient != nullptr) {
+        tempClient->SendStackWithPayload(&rawdata, sizeof(rawdata), stackptr, stackSize);
     }
     return ret;
 }
@@ -704,6 +660,7 @@ int hook_prctl(int(*fn)(int, ...),
     if (reinterpret_cast<char*>(arg5) == nullptr || IsPidChanged()) {
         return ret;
     }
+    std::shared_ptr<HookSocketClient> tempClient = g_hookClient;
     if (option == PR_SET_VMA && arg2 == PR_SET_VMA_ANON_NAME) {
         StackRawData rawdata = {{{0}}};
         clock_gettime(CLOCK_REALTIME, &rawdata.ts);
@@ -717,15 +674,8 @@ int hook_prctl(int(*fn)(int, ...),
             HILOG_ERROR(LOG_CORE, "memcpy_s tag failed");
         }
         rawdata.tname[sizeof(rawdata.tname) - 1] = '\0';
-        std::unique_lock<std::recursive_timed_mutex> lck(g_ClientMutex, std::defer_lock);
-        std::chrono::time_point<std::chrono::steady_clock> timeout =
-        std::chrono::steady_clock::now() + std::chrono::milliseconds(TIMEOUT_MSEC);
-        if (!lck.try_lock_until(timeout)) {
-            HILOG_ERROR(LOG_CORE, "lock failed!");
-            return ret;
-        }
-        if (g_hookClient != nullptr) {
-            g_hookClient->SendStack(&rawdata, sizeof(rawdata));
+        if (g_hookClient != nullptr && tempClient != nullptr) {
+            tempClient->SendStack(&rawdata, sizeof(rawdata));
         }
     }
     return ret;
@@ -736,6 +686,7 @@ void hook_memtrace(void* addr, size_t size, const char* tag, bool isUsing)
     if (!g_ClientConfig.memtraceEnable || IsPidChanged()) {
         return;
     }
+	std::shared_ptr<HookSocketClient> tempClient = g_hookClient;
     int stackSize = 0;
     StackRawData rawdata = {{{0}}};
     const char* stackptr = nullptr;
@@ -785,15 +736,8 @@ void hook_memtrace(void* addr, size_t size, const char* tag, bool isUsing)
         prctl(PR_GET_NAME, rawdata.tname);
     }
 
-    std::unique_lock<std::recursive_timed_mutex> lck(g_ClientMutex, std::defer_lock);
-    std::chrono::time_point<std::chrono::steady_clock> timeout =
-        std::chrono::steady_clock::now() + std::chrono::milliseconds(TIMEOUT_MSEC);
-    if (!lck.try_lock_until(timeout)) {
-        HILOG_ERROR(LOG_CORE, "lock failed!");
-        return;
-    }
-    if (g_hookClient != nullptr) {
-        g_hookClient->SendStackWithPayload(&rawdata, sizeof(rawdata), stackptr, stackSize);
+    if (g_hookClient != nullptr && tempClient != nullptr) {
+        tempClient->SendStackWithPayload(&rawdata, sizeof(rawdata), stackptr, stackSize);
     }
 }
 
