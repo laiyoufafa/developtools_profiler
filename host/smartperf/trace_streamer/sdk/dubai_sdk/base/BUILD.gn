@@ -14,6 +14,8 @@
 import("//build/ohos.gni")
 import("../ts.gni")
 ohos_source_set("base") {
+  subsystem_name = "trace_streamer"
+  part_name = "sdk_dubai"
   deps = []
   public_deps = [ "../include:ibase" ]
   include_dirs = [ "../include" ]
@@ -37,7 +39,4 @@ ohos_source_set("base") {
       "--coverage",
     ]
   }
-
-  subsystem_name = "ostest"
-  part_name = "smart_perf_host"
 }

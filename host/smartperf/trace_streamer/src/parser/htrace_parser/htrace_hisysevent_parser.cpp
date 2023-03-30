@@ -45,7 +45,7 @@ int32_t HtraceHisyseventParser::JGetData(json& jMessage,
             if (find(eventsAccordingAppNames.begin(), eventsAccordingAppNames.end(), i.value()) ==
                 eventsAccordingAppNames.end()) {
                 streamFilters_->statFilter_->IncreaseStat(TRACE_HISYSEVENT, STAT_EVENT_NOTMATCH);
-                TS_LOGW("event source:%s not supported for hisysevent", i.value().c_str());
+                TS_LOGW("event source:%s not supported for hisysevent", std::string(i.value()).c_str());
                 return -1;
             }
             jData.eventSource = i.value();

@@ -15,6 +15,8 @@
 
 import {CpuStruct, WakeupBean} from "./ProcedureWorkerCPU.js";
 import {TraceRow} from "../../component/trace/base/TraceRow.js";
+import {TimerShaftElement} from "../../component/trace/TimerShaftElement";
+import {TimeRange} from "../../component/trace/timer-shaft/RangeRuler";
 
 export abstract class Render {
     abstract renderMainThread(req: any, row: TraceRow<any>): void;
@@ -209,6 +211,23 @@ export function ns2x(ns: number, startNS: number, endNS: number, duration: numbe
     return xSize;
 }
 
+export function ns2xByTimeShaft(ns: number, tse: TimerShaftElement) {
+    let startNS = tse.getRange()!.startNS;
+    let endNS = tse.getRange()!.endNS;
+    let duration = tse.getRange()!.totalNS;
+    if (endNS == 0) {
+        endNS = duration
+    }
+    let width = tse.getBoundingClientRect().width - 258;
+    let xSize: number = (ns - startNS) * width / (endNS - startNS);
+    if (xSize < 0) {
+        xSize = 0;
+    } else if (xSize > width) {
+        xSize = width;
+    }
+    return xSize;
+}
+
 export class Rect {
     x: number = 0
     y: number = 0
@@ -290,20 +309,43 @@ export class Rect {
 export class Point {
     x: number = 0
     y: number = 0
+    isRight: boolean = true;
 
-    constructor(x: number, y: number) {
+    constructor(x: number, y: number, isRight: boolean = true) {
         this.x = x;
         this.y = y;
+        this.isRight = isRight;
+    }
+}
+
+export class PairPoint {
+    x: number = 0
+    ns: number = 0
+    y: number = 0
+    offsetY: number = 0;
+    rowEL: TraceRow<any>
+    isRight: boolean = true;
+
+
+    constructor(rowEL: TraceRow<any>, x: number, y: number, ns: number, offsetY:number, isRight: boolean) {
+        this.rowEL = rowEL;
+        this.x = x;
+        this.y = y;
+        this.ns = ns;
+        this.offsetY =offsetY
+        this.isRight = isRight
     }
 }
 
 export class BaseStruct {
+    translateY: number | undefined
     frame: Rect | undefined
     isHover: boolean = false;
 }
 
 export function drawLines(ctx: CanvasRenderingContext2D, xs: Array<any>, height: number, lineColor: string) {
     if (ctx) {
+        ctx.beginPath()
         ctx.lineWidth = 1;
         ctx.strokeStyle = lineColor || "#dadada";
         xs?.forEach(it => {
@@ -311,6 +353,7 @@ export function drawLines(ctx: CanvasRenderingContext2D, xs: Array<any>, height:
             ctx.lineTo(Math.floor(it), height)
         })
         ctx.stroke();
+        ctx.closePath()
     }
 }
 
@@ -469,6 +512,77 @@ export function drawWakeUp(context: CanvasRenderingContext2D | any, wake: Wakeup
         context.stroke();
         context.closePath();
     }
+}
+
+const wid = 5;
+const linkLineColor = "#ff0000";
+export function drawLinkLines(context: CanvasRenderingContext2D, nodes: Point[][], tm: TimerShaftElement) {
+    let percentage = (tm.getRange()!.totalNS - Math.abs(tm.getRange()!.endNS - tm.getRange()!.startNS)) / tm.getRange()!.totalNS
+    let maxWidth = tm.getBoundingClientRect().width - 248
+    nodes.forEach(it => {
+        let start = it[0].x > it[1].x ? it[1] : it[0];
+        let end = it[0].x > it[1].x ? it[0] : it[1];
+        if (start && end) {
+            if (start.x <= 0 && end.x <= 0) {
+                return;
+            }
+            if (start.x >= maxWidth && end.x >= maxWidth) {
+                return;
+            }
+            context.beginPath();
+            context.lineWidth = 2;
+            context.fillStyle = linkLineColor;
+            context.strokeStyle = linkLineColor;
+            let x0, y0, x1, x2, y1, y2, x3, y3;
+            x0 = (start.x ?? 0);
+            y0 = (start.y ?? 0);
+            x3 = end.x ?? 0
+            y3 = (end.y ?? 0)
+            if(end.isRight){
+                x2 = x3 - 100 * percentage
+            } else {
+                x2 = x3 + 100 * percentage
+            }
+            y2 = y3 - 40 * percentage
+            if(start.isRight){
+                x1 = x0 - 100 * percentage
+            } else {
+                x1 = x0 + 100 * percentage
+            }
+            y1 = y0 + 40 * percentage
+            //向右箭头终点在x轴正向有偏移
+            if(!start.isRight){
+                x0 -= 5;
+            }
+            context.moveTo(x0, y0)
+            //箭头向左还是向右
+            if(start.isRight){
+                context.lineTo(x0 - wid, y0 + wid)
+                context.moveTo(x0, y0)
+                context.lineTo(x0 - wid, y0 - wid)
+            } else {
+                context.lineTo(x0 + wid, y0 + wid)
+                context.moveTo(x0, y0)
+                context.lineTo(x0 + wid, y0 - wid)
+            }
+            context.moveTo(x0, y0)
+            context.bezierCurveTo(x1, y1, x2, y2, x3, y3)
+            context.moveTo(x3, y3)
+            //箭头向左还是向右
+            if(end.isRight){
+                context.lineTo(x3 - wid, y3 + wid)
+                context.moveTo(x3, y3)
+                context.lineTo(x3 - wid, y3 - wid)
+            }else {
+                context.lineTo(x3 + wid, y3 + wid)
+                context.moveTo(x3, y3)
+                context.lineTo(x3 + wid, y3 - wid)
+            }
+            context.moveTo(x3, y3)
+            context.stroke();
+            context.closePath();
+        }
+    })
 }
 
 export function drawLoading(ctx: CanvasRenderingContext2D, startNS: number, endNS: number, totalNS: number, frame: any, left: number, right: number) {

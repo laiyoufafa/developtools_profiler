@@ -19,7 +19,7 @@
 namespace SysTuning {
 namespace TraceStreamer {
 PerfDataParser::PerfDataParser(TraceDataCache* dataCache, const TraceStreamerFilters* ctx)
-    : HtracePluginTimeParser(dataCache, ctx), frameToCallChainId_(INVALID_UINT64),
+    : HtracePluginTimeParser(dataCache, ctx), frameToCallChainId_(INVALID_UINT32),
     configNameIndex_(traceDataCache_->dataDict_.GetStringIndex("config_name")),
     workloaderIndex_(traceDataCache_->dataDict_.GetStringIndex("workload_cmd")),
     cmdlineIndex_(traceDataCache_->dataDict_.GetStringIndex("cmdline")),
@@ -199,11 +199,11 @@ bool PerfDataParser::RecordCallBack(std::unique_ptr<PerfEventRecord> record)
     return true;
 }
 
-uint64_t PerfDataParser::UpdatePerfCallChainData(std::unique_ptr<PerfRecordSample>& sample)
+uint32_t PerfDataParser::UpdatePerfCallChainData(std::unique_ptr<PerfRecordSample>& sample)
 {
     uint64_t depth = 0;
     bool callStackNotExist = false;
-    uint64_t callChainId = INVALID_UINT64;
+    uint32_t callChainId = INVALID_UINT32;
     std::vector<std::unique_ptr<CallStackTemp>> callStackTemp = {};
     // Filter callstack unuse data
     for (auto frame = sample->callFrames_.rbegin(); frame != sample->callFrames_.rend(); ++frame) {
@@ -226,8 +226,8 @@ uint64_t PerfDataParser::UpdatePerfCallChainData(std::unique_ptr<PerfRecordSampl
     for (auto itor = callStackTemp.begin(); itor != callStackTemp.end(); itor++) {
         auto callstack = itor->get();
         auto ret = frameToCallChainId_.Find(callstack->fileId_, callstack->symbolId_, callstack->depth_, size);
-        if (ret != INVALID_UINT64) { // find it
-            if (callChainId == INVALID_UINT64) {
+        if (ret != INVALID_UINT32) { // find it
+            if (callChainId == INVALID_UINT32) {
                 callChainId = ret;
             } else if (callChainId != ret) {
                 callStackNotExist = true;
@@ -253,7 +253,7 @@ uint64_t PerfDataParser::UpdatePerfCallChainData(std::unique_ptr<PerfRecordSampl
     return callChainId;
 }
 
-void PerfDataParser::UpdatePerfSampleData(uint64_t callChainId, std::unique_ptr<PerfRecordSample>& sample)
+void PerfDataParser::UpdatePerfSampleData(uint32_t callChainId, std::unique_ptr<PerfRecordSample>& sample)
 {
     auto perfSampleData = traceDataCache_->GetPerfSampleData();
     uint64_t newTimeStamp = 0;

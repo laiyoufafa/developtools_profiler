@@ -193,19 +193,23 @@ int BioLatencySampleTable::Cursor::Column(int column) const
             sqlite3_result_int64(context_, static_cast<int32_t>(bioLatencySampleObj_.IdsData()[CurrentRow()]));
             break;
         case CALLCHAIN_ID:
-            sqlite3_result_int64(context_, static_cast<int64_t>(bioLatencySampleObj_.CallChainIds()[CurrentRow()]));
+            if (bioLatencySampleObj_.CallChainIds()[CurrentRow()] != INVALID_UINT32) {
+                sqlite3_result_int64(context_, static_cast<int64_t>(bioLatencySampleObj_.CallChainIds()[CurrentRow()]));
+            } else {
+                sqlite3_result_int64(context_, static_cast<int64_t>(INVALID_CALL_CHAIN_ID));
+            }
             break;
         case TYPE:
             sqlite3_result_int64(context_, static_cast<int64_t>(bioLatencySampleObj_.Types()[CurrentRow()]));
             break;
         case IPID: {
-            if (bioLatencySampleObj_.Ipids()[CurrentRow()] != INVALID_UINT64) {
+            if (bioLatencySampleObj_.Ipids()[CurrentRow()] != INVALID_UINT32) {
                 sqlite3_result_int64(context_, static_cast<int64_t>(bioLatencySampleObj_.Ipids()[CurrentRow()]));
             }
             break;
         }
         case ITID: {
-            if (bioLatencySampleObj_.Itids()[CurrentRow()] != INVALID_UINT64) {
+            if (bioLatencySampleObj_.Itids()[CurrentRow()] != INVALID_UINT32) {
                 sqlite3_result_int64(context_, static_cast<int64_t>(bioLatencySampleObj_.Itids()[CurrentRow()]));
             }
             break;

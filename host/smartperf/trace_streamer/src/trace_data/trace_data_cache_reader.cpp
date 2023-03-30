@@ -156,7 +156,10 @@ const NativeHookFrame& TraceDataCacheReader::GetConstNativeHookFrameData() const
 {
     return nativeHookFrameData_;
 }
-
+const NativeHookStatistic& TraceDataCacheReader::GetConstNativeHookStatisticData() const
+{
+    return nativeHookStatisticData_;
+}
 const Hidump& TraceDataCacheReader::GetConstHidumpData() const
 {
     return hidumpData_;
@@ -275,6 +278,18 @@ const ClockSnapshotData& TraceDataCacheReader::GetConstClockSnapshotData() const
 const DataSourceClockIdData& TraceDataCacheReader::GetConstDataSourceClockIdData() const
 {
     return dataSourceClockIdData_;
+}
+const FrameSlice& TraceDataCacheReader::GetConstFameSliceData() const
+{
+    return frameSliceData_;
+}
+const FrameMaps& TraceDataCacheReader::GetConstFameMapsData() const
+{
+    return frameMapsData_;
+}
+const GPUSlice& TraceDataCacheReader::GetConstGPUSliceData() const
+{
+    return gpuSliceData_;
 }
 } // namespace TraceStreamer
 } // namespace SysTuning

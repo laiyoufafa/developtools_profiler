@@ -57,7 +57,7 @@ action("agent_data_cpp_gen") {
   deps = [ "${OHOS_PROFILER_3RDPARTY_PROTOBUF_DIR}:protoc(${host_toolchain})" ]
 }
 
-ohos_source_set("agent_data_cpp") {
+source_set("agent_data_cpp") {
   deps = [ ":agent_data_cpp_gen" ]
   public_deps = [
     "${OHOS_PROFILER_3RDPARTY_PROTOBUF_DIR}:protobuf",

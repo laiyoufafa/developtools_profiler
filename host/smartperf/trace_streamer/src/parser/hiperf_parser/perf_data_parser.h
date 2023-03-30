@@ -48,13 +48,13 @@ private:
     void UpdateSymbolAndFilesData();
     void UpdateClockType();
     bool RecordCallBack(std::unique_ptr<PerfEventRecord> record);
-    void UpdatePerfSampleData(uint64_t callChainId, std::unique_ptr<PerfRecordSample>& sample);
-    uint64_t UpdatePerfCallChainData(std::unique_ptr<PerfRecordSample>& sample);
+    void UpdatePerfSampleData(uint32_t callChainId, std::unique_ptr<PerfRecordSample>& sample);
+    uint32_t UpdatePerfCallChainData(std::unique_ptr<PerfRecordSample>& sample);
 
     class CallStackTemp {
     public:
         CallStackTemp() {}
-        CallStackTemp(uint32_t depth, uint64_t vaddr, uint64_t fileId, uint64_t symbolId)
+        CallStackTemp(uint32_t depth, uint64_t vaddr, uint64_t fileId, uint32_t symbolId)
             : depth_(depth), vaddrInFile_(vaddr), fileId_(fileId), symbolId_(symbolId)
         {
         }
@@ -62,9 +62,9 @@ private:
         uint32_t depth_ = 0;
         uint64_t vaddrInFile_ = 0;
         uint64_t fileId_ = 0;
-        uint64_t symbolId_ = 0;
+        uint32_t symbolId_ = 0;
     };
-    uint64_t callChainId_ = 0;
+    uint32_t callChainId_ = 0;
     std::unique_ptr<PerfFileReader> recordDataReader_ = nullptr;
     const std::string cpuOffEventName_ = "sched:sched_switch";
     const std::string wakingEventName_ = "sched:sched_waking";
@@ -96,7 +96,7 @@ private:
         {PERF_CLOCK_BOOTTIME, TS_CLOCK_BOOTTIME}
     };
     std::map<uint64_t, uint64_t> fileDataDictIdToFileId_ = {};
-    QuatraMap<uint64_t, uint64_t, uint64_t, uint64_t, uint64_t> frameToCallChainId_;
+    QuatraMap<uint64_t, uint64_t, uint64_t, uint64_t, uint32_t> frameToCallChainId_;
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

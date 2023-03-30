@@ -17,6 +17,7 @@ import {LitTableColumn} from "./lit-table-column.js";
 import {element} from "../BaseElement.js";
 import "../utils/Template.js"
 import {TableRowObject} from "./TableRowObject.js";
+import {ExcelFormater} from "../utils/ExcelFormater.js";
 
 @element('lit-table')
 export class LitTable extends HTMLElement {
@@ -49,6 +50,7 @@ export class LitTable extends HTMLElement {
             display: grid;
             grid-template-columns: repeat(1,1fr);
             width: 100%;
+            position: relative;
             font-weight: 500;
             flex:1;
         }
@@ -207,19 +209,30 @@ export class LitTable extends HTMLElement {
             background-color: var(--dark-background6,#DEEDFF);
         }
         .export{
-            width:30px;
-            height:30px;
+            height:40px;
+            width: 40px;
             cursor:pointer;
+            display:none;
             color:var(--dark-background6,#262626);
+            border-radius:40px;
+            border: 1px solid var(--dark-background6,#262626);
             box-sizing: border-box;
-            position:fixed;
-            right:30px;
-            bottom:15px;
+            position:absolute;
+            right:40px;
+            bottom:30px;
+            z-index: 9999999;
+        }
+        :host([download]) .export{
+            display: flex;
+            align-items:center;
+            justify-content:center;
         }
         </style>
 
         <slot id="slot" style="display: none"></slot>
         <slot name="head"></slot>
+        <div class="export"><lit-icon size="25" name="download" ></lit-icon></div>
+       
         <div class="table" style="overflow-x:auto;">
             <div class="thead"></div>
             <div class="tbody">
@@ -231,7 +244,19 @@ export class LitTable extends HTMLElement {
     }
 
     static get observedAttributes() {
-        return ['scroll-y', 'selectable', 'no-head', 'grid-line', 'defaultOrderColumn']
+        return ['scroll-y', 'selectable', 'no-head', 'grid-line', 'defaultOrderColumn','download']
+    }
+
+    get download() {
+        return this.hasAttribute('download');
+    }
+
+    set download(value) {
+        if (value) {
+            this.setAttribute('download', '');
+        } else {
+            this.removeAttribute('download');
+        }
     }
 
     get selectable() {
@@ -313,11 +338,15 @@ export class LitTable extends HTMLElement {
     }
 
     exportData() {
-        let formatData: any[] = this.formatExportData(this.ds)
-        let link = document.createElement('a')
-        link.download = new Date().getTime() + '.json'
-        link.href = 'data:text/plain,' + JSON.stringify(formatData, null, 4)
-        link.click()
+        let date = new Date();
+        let list = [
+            {
+                columns:this.columns as any[],
+                tables:this.ds,
+                sheetName:date.getTime()+""
+            }
+        ]
+        ExcelFormater.testExport(list,date.getTime()+"")
     }
 
     formatExportData(dataSource: any[]): any[] {
@@ -346,6 +375,42 @@ export class LitTable extends HTMLElement {
         })
     }
 
+    formatExportCsvData(dataSource: any[]): string{
+        if (dataSource == undefined || dataSource.length == 0) {
+            return ""
+        }
+        if (this.columns == undefined) {
+            return ""
+        }
+        let str = ""
+        str+=this.columns!.map((column) => {
+            let dataIndex = column.getAttribute('data-index')
+            let columnName = column.getAttribute('title')
+            if (columnName == "") {
+                columnName = dataIndex
+            }
+            return columnName
+        }).join(",")
+        str+=this.recursionExportTableData(this.columns,dataSource)
+        return str
+    }
+
+    recursionExportTableData(columns:any[],dataSource: any[]):string{
+        let concatStr = "\r\n"
+        dataSource.forEach((item,index)=>{
+            concatStr+=columns.map((column)=>{
+                let dataIndex = column.getAttribute('data-index')
+                return `"${item[dataIndex]||''}"    `
+            }).join(",")
+            if(item.children!=undefined){
+                concatStr+=this.recursionExportTableData(columns,item.children)
+            }
+            if(index!=dataSource.length -1){
+                concatStr+="\r\n"
+            }
+        })
+        return concatStr
+    }
 
     //当 custom element首次被插入文档DOM时，被调用。
     connectedCallback() {
@@ -356,6 +421,7 @@ export class LitTable extends HTMLElement {
         this.tbodyElement = this.shadowRoot?.querySelector('.body');
         this.tableColumns = this.querySelectorAll<LitTableColumn>('lit-table-column');
         this.colCount = this.tableColumns!.length;
+        this.dataExportInit()
         this.tableElement?.addEventListener("copy",(e)=>{
             // @ts-ignore
             let clipboardData = e.clipboardData || window.clipboardData;
@@ -443,24 +509,24 @@ export class LitTable extends HTMLElement {
                                 let NS = "http://www.w3.org/2000/svg";
                                 let upSvg: any = document.createElementNS(NS, "svg");
                                 let upPath: any = document.createElementNS(NS, "path");
-                                upSvg.setAttribute('fill', 'var(--dark-color1,#212121)');
+                                upSvg.setAttribute('fill', 'let(--dark-color1,#212121)');
                                 upSvg.setAttribute('viewBox', '0 0 1024 1024');
-                                upSvg.setAttribute('stroke', 'var(--dark-color1,#212121)');
+                                upSvg.setAttribute('stroke', 'let(--dark-color1,#212121)');
                                 upSvg.classList.add('up-svg');
                                 upPath.setAttribute("d", "M858.9 689L530.5 308.2c-9.4-10.9-27.5-10.9-37 0L165.1 689c-12.2 14.2-1.2 35 18.5 35h656.8c19.7 0 30.7-20.8 18.5-35z");
                                 upSvg.appendChild(upPath);
                                 let downSvg: any = document.createElementNS(NS, "svg");
                                 let downPath: any = document.createElementNS(NS, "path");
-                                downSvg.setAttribute('fill', 'var(--dark-color1,#212121)');
+                                downSvg.setAttribute('fill', 'let(--dark-color1,#212121)');
                                 downSvg.setAttribute('viewBox', '0 0 1024 1024');
-                                downSvg.setAttribute('stroke', 'var(--dark-color1,#212121)');
+                                downSvg.setAttribute('stroke', 'let(--dark-color1,#212121)');
                                 downSvg.classList.add('down-svg');
                                 downPath.setAttribute("d", "M840.4 300H183.6c-19.7 0-30.7 20.8-18.5 35l328.4 380.8c9.4 10.9 27.5 10.9 37 0L858.9 335c12.2-14.2 1.2-35-18.5-35z");
                                 downSvg.appendChild(downPath)
                                 if (i == 0) {
                                     h.sortType = 0; // 默认以第一列 降序排序 作为默认排序
-                                    upSvg.setAttribute('fill', 'var(--dark-color1,#212121)');
-                                    downSvg.setAttribute('fill', 'var(--dark-color1,#212121)');
+                                    upSvg.setAttribute('fill', 'let(--dark-color1,#212121)');
+                                    downSvg.setAttribute('fill', 'let(--dark-color1,#212121)');
                                 }
                                 upSvg.style.display = 'none';
                                 downSvg.style.display = 'none';
@@ -468,7 +534,7 @@ export class LitTable extends HTMLElement {
                                 h.appendChild(downSvg);
                                 h.onclick = () => {
                                     this?.shadowRoot?.querySelectorAll('.td-order svg').forEach((it: any) => {
-                                        it.setAttribute('fill', 'var(--dark-color1,#212121)');
+                                        it.setAttribute('fill', 'let(--dark-color1,#212121)');
                                         it.sortType = 0;
                                         it.style.display = 'none';
                                     })
@@ -481,20 +547,20 @@ export class LitTable extends HTMLElement {
                                     }
                                     switch (h.sortType) {
                                         case 1:
-                                            upSvg.setAttribute('fill', 'var(--dark-color1,#212121)');
-                                            downSvg.setAttribute('fill', 'var(--dark-color1,#212121)');
+                                            upSvg.setAttribute('fill', 'let(--dark-color1,#212121)');
+                                            downSvg.setAttribute('fill', 'let(--dark-color1,#212121)');
                                             upSvg.style.display = 'block';
                                             downSvg.style.display = 'none';
                                             break;
                                         case 2:
-                                            upSvg.setAttribute('fill', 'var(--dark-color1,#212121)');
-                                            downSvg.setAttribute('fill', 'var(--dark-color1,#212121)');
+                                            upSvg.setAttribute('fill', 'let(--dark-color1,#212121)');
+                                            downSvg.setAttribute('fill', 'let(--dark-color1,#212121)');
                                             upSvg.style.display = 'none';
                                             downSvg.style.display = 'block';
                                             break;
                                         default:
-                                            upSvg.setAttribute('fill', "var(--dark-color1,#212121)");
-                                            downSvg.setAttribute('fill', "var(--dark-color1,#212121)");
+                                            upSvg.setAttribute('fill', "let(--dark-color1,#212121)");
+                                            downSvg.setAttribute('fill', "let(--dark-color1,#212121)");
                                             upSvg.style.display = 'none';
                                             downSvg.style.display = 'none';
                                             break;

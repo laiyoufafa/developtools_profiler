@@ -144,10 +144,10 @@ int PerfThreadTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value**
                 FilterId(c.op, argv[i]);
                 break;
             case THREAD_ID:
-                indexMap_->MixRange(c.op, static_cast<uint64_t>(sqlite3_value_int64(argv[i])), perfThreadObj_.Tids());
+                indexMap_->MixRange(c.op, static_cast<uint32_t>(sqlite3_value_int64(argv[i])), perfThreadObj_.Tids());
                 break;
             case PROCESS_ID:
-                indexMap_->MixRange(c.op, static_cast<uint64_t>(sqlite3_value_int64(argv[i])), perfThreadObj_.Pids());
+                indexMap_->MixRange(c.op, static_cast<uint32_t>(sqlite3_value_int64(argv[i])), perfThreadObj_.Pids());
                 break;
             default:
                 break;

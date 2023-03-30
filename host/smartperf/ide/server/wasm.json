@@ -13,8 +13,8 @@
       "componentId": 1,
       "pluginName": "dubai-plugin",
       "sampleInterval": 5000,
-      "wasmJsName": "trace_streamer_sdk_builtin.js",
-      "wasmName": "trace_streamer_sdk_builtin_wasm"
+      "wasmJsName": "trace_streamer_dubai_builtin.js",
+      "wasmName": "trace_streamer_dubai_builtin_wasm"
     }
   ]
 }

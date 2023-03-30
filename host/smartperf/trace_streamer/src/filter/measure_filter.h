@@ -74,6 +74,7 @@ private:
     const DataIndex clkSetRateDataIndex_ = traceDataCache_->GetDataIndex("clk_set_rate");
     const DataIndex clkEnableDataIndex_ = traceDataCache_->GetDataIndex("clk_enable");
     const DataIndex clkDisableDataIndex_ = traceDataCache_->GetDataIndex("clk_disable");
+    std::map<uint32_t, uint32_t> filterIdToRow_ = {};
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

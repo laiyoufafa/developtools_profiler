@@ -24,4 +24,19 @@ message NativeHookConfig {
     int32 filter_size = 4;
     int32 smb_pages = 5;
     int32 max_stack_depth = 6;
+    string process_name = 7;
+    bool malloc_disable = 8;
+    bool mmap_disable = 9;
+    bool free_stack_report = 10;
+    bool munmap_stack_report = 11;
+    uint32 malloc_free_matching_interval = 12;
+    uint32 malloc_free_matching_cnt = 13;
+    bool string_compressed = 14;
+    bool fp_unwind = 15;
+    bool blocked = 16;
+    bool record_accurately = 17;
+    bool offline_symbolization = 18;
+    bool record_statistics = 19;
+    bool callframe_compressed = 20;
+    uint32 statistics_interval = 21;
 }

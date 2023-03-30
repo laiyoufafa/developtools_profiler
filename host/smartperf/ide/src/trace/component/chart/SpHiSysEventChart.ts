@@ -76,7 +76,6 @@ export class SpHiSysEventChart {
             SpHiSysEventChart.app_name = appNameFromTable[0].string_value;
         }
         this.energyTraceRow = TraceRow.skeleton<any>();
-        let radioList;
         let appNameList = this.energyTraceRow?.shadowRoot!.querySelector<LitPopover>("#appNameList");
         let addFlag = false;
         appNameList?.addEventListener('click', () => {
@@ -89,33 +88,27 @@ export class SpHiSysEventChart {
                     // @ts-ignore
                     let formatAppName = "appName" + index;
                     div.setAttribute("id", formatAppName);
-                    div.innerHTML = "<input class='radio'  name='processoption' " + (index == 0 ? "checked" : "") + " type='radio'" +
-                        " app_name=" + formatAppName + " value= " + appName + ">" + appName;
+                    let inputId = "appName" + index + 1;
+                    div.innerHTML = "<input class='radio'  name='processoption' " + (index == 0 ? "checked" : "") + " type='radio'" + "id=" +inputId+
+                        " app_name=" + formatAppName + " value= " + appName + "> <label for="+ inputId +">" + appName + "</label>";
                     itemDiv!.append(div);
-                    this.energyTraceRow!.shadowRoot!.querySelector<HTMLDivElement>("#" + formatAppName)!.onclick = (e: any) => {
-                        this.energyTraceRow?.shadowRoot!.querySelectorAll<HTMLInputElement>('input[type=radio][name=processoption]')!.forEach(item => {
-                            if (item.checked) {
-                                SpHiSysEventChart.app_name = item.getAttribute("value");
-                            }
-                        })
-                        radioList = this.energyTraceRow?.shadowRoot!.querySelectorAll<HTMLInputElement>("input[type=radio][name=processoption]");
-                        if (radioList != undefined) {
-                            for (let index = 0; index < radioList.length; index++) {
-                                if (e.path[0].id == radioList[index]!.getAttribute("app_name")) {
-                                    SpHiSysEventChart.app_name = radioList[index]!.getAttribute("value");
-                                    radioList[index]!.checked = true;
-                                }
+                    let appList = this.energyTraceRow?.shadowRoot!.querySelectorAll<HTMLInputElement>('input[type=radio][name=processoption]')
+                    appList!.forEach(appName => [
+                        appName.onclick= (e:MouseEvent) => {
+                            if (appName.checked) {
+                                SpHiSysEventChart.app_name = appName.getAttribute("value");
+                                TraceRow.range!.refresh = true
+                                // @ts-ignore
+                                appNameList!.visible = false
+                                this.trace.refreshCanvas(false)
                             }
                         }
-                        // @ts-ignore
-                        appNameList!.visible = false
-                        TraceRow.range!.refresh = true
-                        this.trace.refreshCanvas(false)
-                    }
+                    ])
                 }
                 addFlag = true;
             }
         })
+
         this.energyTraceRow.rowId = `energy`
         this.energyTraceRow.rowType = TraceRow.ROW_TYPE_ENERGY
         this.energyTraceRow.rowParentId = '';

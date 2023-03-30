@@ -84,7 +84,8 @@ private:
         DataIndex name = 0;
     };
     std::map <uint64_t, AddrDesc> kernelSymbolMap_ = {};
-    const uint32_t MAX_SYMBOL_LENGTH = 32;
+    static const uint32_t MAX_SYMBOL_LENGTH = 256;
+    char strSymbolName_[MAX_SYMBOL_LENGTH] = {0};
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

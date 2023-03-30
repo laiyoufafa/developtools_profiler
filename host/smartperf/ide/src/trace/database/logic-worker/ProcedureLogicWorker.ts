@@ -19,7 +19,7 @@ import {ProcedureLogicWorkerNativeMemory} from "./ProcedureLogicWorkerNativeNemo
 import {ProcedureLogicWorkerFileSystem} from "./ProcedureLogicWorkerFileSystem.js";
 import {ProcedureLogicWorkerSPT} from "./ProcedureLogicWorkerSPT.js";
 import {ProcedureLogicWorkerCpuState} from "./ProcedureLogicWorkerCpuState.js";
-
+import {ProcedureLogicWorkerSchedulingAnalysis} from "./ProcedureLogicWorkerSchedulingAnalysis.js";
 
 let logicWorker: any = {
     "perf":new ProcedureLogicWorkerPerf(),
@@ -27,6 +27,7 @@ let logicWorker: any = {
     "fileSystem":new ProcedureLogicWorkerFileSystem(),
     "CpuState":new ProcedureLogicWorkerCpuState(),
     "spt":new ProcedureLogicWorkerSPT(),
+    "scheduling":new ProcedureLogicWorkerSchedulingAnalysis()
 }
 
 function match(req:any) {

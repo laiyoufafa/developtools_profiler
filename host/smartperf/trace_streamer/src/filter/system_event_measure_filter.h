@@ -51,6 +51,7 @@ private:
     const DataIndex sysMemoryFilterId_ = traceDataCache_->GetDataIndex("sys_memory_filter");
     const DataIndex sysVMemoryFilterId_ = traceDataCache_->GetDataIndex("sys_virtual_memory_filter");
     const DataIndex sysEventSourceFilterId_ = traceDataCache_->GetDataIndex("sys_event_source_filter");
+    std::map<uint32_t, uint32_t> filterIdToRow_ = {};
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

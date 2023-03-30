@@ -18,7 +18,13 @@ import {LitTable} from "../../../../base-ui/table/lit-table.js";
 import "../../../../base-ui/table/lit-table-column.js";
 
 import {
-    queryBinderArgsByArgset, queryBinderByArgsId, queryBinderBySliceId, queryThreadStateArgs,
+    queryBinderArgsByArgset,
+    queryBinderByArgsId,
+    queryBinderBySliceId,
+    queryFlowsData,
+    queryGpuDur,
+    queryPrecedingData,
+    queryThreadStateArgs,
     queryThreadWakeUp,
     queryThreadWakeUpFrom,
     queryWakeUpFromThread_WakeThread,
@@ -35,6 +41,8 @@ import {ClockStruct} from "../../../database/ui-worker/ProcedureWorkerClock.js";
 import {ColorUtils} from "../base/ColorUtils.js";
 import {IrqStruct} from "../../../database/ui-worker/ProcedureWorkerIrq.js";
 import {BinderArgBean} from "../../../bean/BinderArgBean.js";
+import {JankStruct} from "../../../database/ui-worker/ProcedureWorkerJank.js";
+import {LitIcon} from "../../../../base-ui/icon/LitIcon.js";
 
 const STATUS_MAP: any = {
     D: "Uninterruptible Sleep",
@@ -317,7 +325,7 @@ export class TabPaneCurrentSelection extends BaseElement {
     }
 
     setIrqData(data:IrqStruct){
-        this.initCanvas()
+        this.initCanvas();
         let rightTitle: HTMLElement | null | undefined = this?.shadowRoot?.querySelector("#rightTitle");
         if (rightTitle) {
             rightTitle.style.visibility = "hidden"
@@ -407,6 +415,9 @@ export class TabPaneCurrentSelection extends BaseElement {
             }
             if(args.length > 0){
                 args.forEach((arg)=>{
+                    if(arg.keyName === 'iowait' && state === 'Uninterruptible Sleep'){
+                        list[2].value = `Uninterruptible Sleep (non-IO)`
+                    }
                     list.push({name: arg.keyName, value: arg.strValue})
                 })
             }
@@ -442,6 +453,220 @@ export class TabPaneCurrentSelection extends BaseElement {
                 })
             }
         })
+    }
+
+    setJankData(data: JankStruct, callback: ((data: Array<any>) => void) | undefined = undefined, scrollCallback: ((d: any) => void) | undefined) {//线程信息
+        this.initCanvas();
+        let leftTitle: HTMLElement | null | undefined = this?.shadowRoot?.querySelector("#leftTitle");
+        let rightTitle: HTMLElement | null | undefined = this?.shadowRoot?.querySelector("#rightTitle");
+        if (rightTitle) {
+            rightTitle.style.visibility = "hidden"
+        }
+        if (leftTitle) {
+            leftTitle.innerText = "Slice Details"
+        }
+        let list: any[] = [];
+        list.push({name: 'Name', value: data.name});
+        list.push({name: 'StartTime', value: getTimeString(data.ts || 0)})
+        list.push({name: 'Absolute Time', value: ((window as any).recordStartNS + data.ts) / 1000000000})
+        list.push({name: 'Duration', value: data.dur ? getTimeString(data.dur) : ' '});
+        if (data.frame_type != 'frameTime') {
+            list.push({name: 'Process', value: data.cmdline + ' ' + data.pid});
+        }
+        if (data.type == '0') {
+            if (data.jank_tag) {
+                if (data.frame_type === 'render_service') {
+                    list.push({name: 'Jank Type', value: 'RenderService Deadline Missed'});
+                } else if (data.frame_type === 'app') {
+                    list.push({name: 'Jank Type', value: 'APP Deadline Missed'});
+                } else if (data.frame_type === 'frameTime') {
+                    list.push({name: 'Jank Type', value: 'Deadline Missed'});
+                }
+            } else {
+                list.push({name: 'Jank Type', value: 'NONE'});
+            }
+            let jankJumperList = new Array<JankTreeNode>()
+            if (data.frame_type === 'render_service') {
+                queryGpuDur(data.id!).then(it => {
+                    if(it.length > 0){
+                        list.push({
+                            name: `<div>Gpu Duration</div>`,
+                            value: getTimeString(it[0].gpu_dur)
+                        })
+                    }
+                })
+                if (data.src_slice) {
+                    queryFlowsData(data.src_slice!.split(',')).then(it => {
+                        if (it.length > 0) {
+                            list.push({
+                                name: `<div style="padding:5px 0px 5px 0px;">FrameTimeLine flows</div>`,
+                                value: ""
+                            })
+                            it.forEach((a: any) => {
+                                let appNode = new JankTreeNode(a.name, a.pid, 'app');
+                                let timeLineNode = new JankTreeNode(a.name, a.pid, 'frameTime');
+                                appNode.children.push(timeLineNode)
+                                jankJumperList.push(appNode)
+                                list.push({
+                                    name: `<div>Slice</div>`,
+                                    value: a.cmdline + ' [' + a.name + ']' + `<lit-icon  class="jank_cla" style="display: inline-flex;cursor: pointer;transform: scaleX(-1);margin-left: 5px" id="actual frameTime" slice_name="${a.name}" pid="${a.pid}" name="select" color="#7fa1e7" size="20"></lit-icon>`
+                                })
+                            })
+                            list.push({name: `<div style="padding:5px 0px 5px 0px;">Following flows</div>`, value: ""})
+                            it.forEach((a: any) => {
+                                list.push({
+                                    name: `<div>Slice</div>`,
+                                    value: a.cmdline + ' [' + a.name + ']' + `<lit-icon class="jank_cla" style="display: inline-flex;cursor:pointer;transform: scaleX(-1);margin-left: 5px" id="${a.type}-${a.pid}" slice_name="${a.name}"  pid="${a.pid}" name="select" color="#7fa1e7" size="20"></lit-icon>`
+                                })
+                            })
+                            this.tbl!.dataSource = list;
+                            let all = this.tbl?.shadowRoot?.querySelectorAll(`.jank_cla`);
+                            all!.forEach(a => {
+                                a.addEventListener("click", (e) => {
+                                    if (scrollCallback) {
+                                        scrollCallback({
+                                            rowId: a.id,
+                                            "name": a.getAttribute('slice_name'),
+                                            "pid": a.getAttribute("pid")
+                                        })
+                                    }
+                                })
+                            })
+                            if (callback) {
+                                callback(jankJumperList)
+                            }
+                        }
+                    })
+                } else {
+                    this.tbl!.dataSource = list;
+                }
+            } else if (data.frame_type === 'app') {
+                list.push({name: `<div style="padding:5px 0px 5px 0px;">FrameTimeLine flows</div>`, value: ""})
+                list.push({
+                    name: `<div>Slice</div>`,
+                    value: data.cmdline + ' [' + data.name + ']' + `<lit-icon  class="jank_cla" style="display: inline-flex;cursor:pointer;transform: scaleX(-1);margin-left: 5px" id="actual frameTime"  slice_name="${data.name}"  pid="${data.pid}" name="select" color="#7fa1e7" size="20"></lit-icon>`
+                })
+                let timeLineNode = new JankTreeNode(data.name!, data.pid!, 'frameTime');
+                jankJumperList.push(timeLineNode)
+                if (data.dst_slice) {
+                    queryPrecedingData(data.dst_slice).then(it => {
+                        if (it.length > 0) {
+                            list.push({name: `<div style="padding:5px 0px 5px 0px;">Preceding flows</div>`, value: ""})
+                            it.forEach((a: any) => {
+                                let rsNode = new JankTreeNode(a.name, a.pid, 'render_service');
+                                jankJumperList.push(rsNode)
+                                list.push({
+                                    name: `<div>Slice</div>`,
+                                    value: a.cmdline + ' [' + a.name + ']' + `<lit-icon class="jank_cla" style="display: inline-flex;cursor:pointer;transform: scaleX(-1);margin-left: 5px" id="${a.type}-${a.pid}" slice_name="${a.name}" pid="${a.pid}" name="select" color="#7fa1e7" size="20"></lit-icon>`
+                                })
+
+                            })
+                            this.tbl!.dataSource = list;
+                            let all = this.tbl?.shadowRoot?.querySelectorAll(`.jank_cla`);
+                            all!.forEach(a => {
+                                a.addEventListener("click", (e) => {
+                                    if (scrollCallback) {
+                                        scrollCallback({
+                                            rowId: a.id,
+                                            "name": a.getAttribute('slice_name'),
+                                            "pid": a.getAttribute("pid")
+                                        })
+                                    }
+                                })
+                            })
+                            if (callback) {
+                                callback(jankJumperList)
+                            }
+                        }
+                    })
+                } else {
+                    this.tbl!.dataSource = list;
+                    let all = this.tbl?.shadowRoot?.querySelectorAll(`.jank_cla`);
+                    all!.forEach(a => {
+                        a.addEventListener("click", (e) => {
+                            if (scrollCallback) {
+                                scrollCallback({
+                                    rowId: a.id,
+                                    "name": a.getAttribute('slice_name'),
+                                    "pid": a.getAttribute("pid")
+                                })
+                            }
+                        })
+                    })
+                    if (callback) {
+                        callback(jankJumperList)
+                    }
+                }
+            } else if (data.frame_type === 'frameTime') {
+                queryGpuDur(data.id!).then(it => {
+                    if (it.length > 0) {
+                        list.push({
+                            name: `<div>Gpu Duration</div>`,
+                            value: getTimeString(it[0].gpu_dur)
+                        })
+                    }
+                    if (data.name) {
+                        list.push({name: `<div style="padding:5px 0px 5px 0px;">App Frame</div>`, value: ""})
+                        list.push({
+                            name: `<div>Process</div>`,
+                            value: data.name + " " + data.pid
+                        })
+                        list.push({
+                            name: `<div>start time</div>`,
+                            value: getTimeString(data.ts || 0)
+                        })
+                        list.push({
+                            name: `<div>end time</div>`,
+                            value: getTimeString(data.dur || 0)
+                        })
+                    }
+                    if (data.rs_name) {
+                        list.push({name: `<div style="padding:5px 0px 5px 0px;">RenderService Frame</div>`, value: ""})
+                        list.push({
+                            name: `<div>Process</div>`,
+                            value: data.rs_name + " " + data.rs_pid
+                        })
+                        list.push({
+                            name: `<div>start time</div>`,
+                            value: getTimeString(data.rs_ts || 0)
+                        })
+                        list.push({
+                            name: `<div>end time</div>`,
+                            value: getTimeString((data.rs_ts! + data.rs_dur!) || 0)
+                        })
+                    }
+                    list.push({name: `<div style="padding:5px 0px 5px 0px;">Following</div>`, value: ""})
+                    list.push({
+                        name: `<div>Slice</div>`,
+                        value: data.cmdline + ' [' + data.name + ']' + `<lit-icon class="jank_cla" style="display: inline-flex;cursor:pointer;transform: scaleX(-1);margin-left: 5px" id="${data.type}-${data.pid}" slice_name="${data.name}"  pid="${data.pid}" name="select" color="#7fa1e7" size="20"></lit-icon>`
+                    })
+                    let appNode = new JankTreeNode(data.name!, data.pid!, 'app');
+                    let rsNode = new JankTreeNode(data.rs_vsync!, data.rs_pid!, 'render_service');
+                    appNode.children.push(rsNode)
+                    jankJumperList.push(appNode)
+                    this.tbl!.dataSource = list;
+                    let all = this.tbl?.shadowRoot?.querySelectorAll<LitIcon>(`.jank_cla`);
+                    all!.forEach(a => {
+                        a!.addEventListener("click", (e) => {
+                            if (scrollCallback) {
+                                scrollCallback({
+                                    rowId: a.id,
+                                    "name": a.getAttribute('slice_name'),
+                                    "pid": a.getAttribute("pid")
+                                })
+                            }
+                        })
+                    })
+                    if (callback) {
+                        callback(jankJumperList)
+                    }
+                })
+
+            }
+        } else {
+            this.tbl!.dataSource = list;
+        }
+
     }
 
     async queryThreadStateDArgs(data:ThreadStruct) {
@@ -498,7 +723,7 @@ export class TabPaneCurrentSelection extends BaseElement {
      * @param data
      */
     async queryThreadWakeUpFromData(itid: number, startTime: number,dur:number) : Promise<WakeupBean|undefined> {
-        let wakeUps = await queryThreadWakeUpFrom(itid, startTime,dur)
+        let wakeUps = await queryThreadWakeUpFrom(itid, startTime + (window as any).recordStartNS,dur)
         if (wakeUps != undefined && wakeUps.length > 0) {
             return wakeUps[0];
         }
@@ -689,4 +914,20 @@ export class TabPaneCurrentSelection extends BaseElement {
         </div>
         `;
     }
+}
+
+export class JankTreeNode {
+    name: string = "";
+    pid: number = -1;
+    frame_type: string = "";
+    type: number = 0;
+
+    constructor(name: string, pid: number, frame_type: string) {
+        this.name = name;
+        this.pid = pid;
+        this.frame_type = frame_type;
+    }
+
+    children: Array<JankTreeNode> = [];
+
 }

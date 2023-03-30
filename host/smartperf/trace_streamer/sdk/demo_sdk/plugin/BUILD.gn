@@ -14,6 +14,8 @@
 import("//build/ohos.gni")
 OHOS_PROTO_GEN = "//third_party/protogen"
 ohos_source_set("sdk_plugin") {
+  subsystem_name = "trace_streamer"
+  part_name = "sdk_sdk_plugin"
   sources = [
     "sdk_plugin_data_parser.cpp",
     "sdk_plugin_data_parser.h",

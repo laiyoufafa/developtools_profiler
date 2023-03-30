@@ -12,9 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import {SpNativeMemoryChart} from "../../component/chart/SpNativeMemoryChart.js";
-
+ 
 export class ChartStruct {
     depth: number = 0;
     symbol: string = '';
@@ -333,7 +331,11 @@ export let postMessage = (id: any, action: string, results: Array<any>) => {
         results.length = 0;
     }
 }
-
+let translateJsonString = (str: string): string => {
+    return str  //   .padding
+        .replace(/[\t|\r|\n]/g, "")
+        .replace(/\\/g, "\\\\")
+}
 export let convertJSON = (arr:ArrayBuffer|Array<any>)=>{
     if(arr instanceof ArrayBuffer) {
         let str = dec.decode(arr);
@@ -341,7 +343,7 @@ export let convertJSON = (arr:ArrayBuffer|Array<any>)=>{
         str = str.substring(str.indexOf("\n") + 1);
         if (!str) {
         } else {
-            let parse = JSON.parse(str);
+            let parse = JSON.parse(translateJsonString(str));
             let columns = parse.columns;
             let values = parse.values;
             for (let i = 0; i < values.length; i++) {

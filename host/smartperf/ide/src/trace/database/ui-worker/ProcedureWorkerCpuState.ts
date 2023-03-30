@@ -171,11 +171,6 @@ export class CpuStateRender extends PerfRender {
             let it = arr[i];
             it.height = heights[it.value]
             it.cpu = cpu;
-            if (i === arr.length - 1) {
-                it.dur = (endNS || 0) - (it.startTs || 0)
-            } else {
-                it.dur = (arr[i + 1].startTs || 0) - (it.startTs || 0)
-            }
         }
         return arr;
     }

@@ -166,9 +166,8 @@ export class TimerShaftElement extends BaseElement {
         this.timeTotalEL = this.shadowRoot?.querySelector('.time-total')
         this.timeOffsetEL = this.shadowRoot?.querySelector('.time-offset')
         this.collecBtn = this.shadowRoot?.querySelector('.time-collect')
-        procedurePool.timelineChange = (a: any) => {
-            this.rangeChangeHandler?.(a);
-        }
+        procedurePool.timelineChange = (a: any) => this.rangeChangeHandler?.(a)
+        window.subscribe(window.SmartEvent.UI.TimeRange,(b)=> this.setRangeNS(b.startNS, b.endNS))
     }
 
     connectedCallback() {
@@ -354,9 +353,9 @@ export class TimerShaftElement extends BaseElement {
 
     displayCollect(showCollect: boolean){
         if(showCollect){
-            this.collecBtn!.style.visibility = 'visible'
+            this.collecBtn!.style.display = 'flex'
         }else {
-            this.collecBtn!.style.visibility = 'hidden'
+            this.collecBtn!.style.display = 'none'
         }
     }
 
@@ -413,8 +412,7 @@ export class TimerShaftElement extends BaseElement {
             right:5px;
             bottom:5px;
             color: #5291FF;
-            visibility: hidden;
-            display: flex;
+            display: none;
         }
         .time-collect[close] > .time-collect-arrow{
             transform: rotateZ(-180deg);

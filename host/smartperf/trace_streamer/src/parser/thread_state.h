@@ -17,13 +17,27 @@
 #define BYTRACE_THREAD_STATES_H
 
 #include <map>
-#include "common_types.h"
 #include "log.h"
 
 namespace SysTuning {
 namespace TraceStreamer {
 enum Direction { NEED_GO = 0, NEED_CONTINUE, NEED_BREAK };
-
+enum Stat : uint32_t {
+    RUNNABLE = 0,
+    INTERRUPTABLESLEEP = 1,
+    UNINTERRUPTIBLESLEEP = 2,
+    STOPPED = 4,
+    TRACED = 8, // the process is being debug
+    EXITDEAD = 16,
+    EXITZOMBIE = 32,
+    TASKDEAD = 64,
+    WAKEKILL = 128,
+    WAKING = 256,
+    PARKED = 512,
+    NOLOAD = 1024,
+    TASKNEW = 2048,
+    VALID = 0X8000,
+};
 class ThreadState {
 public:
     explicit ThreadState(const std::string& stateStr);
@@ -37,7 +51,6 @@ public:
     {
         return invalid_;
     }
-
 private:
     void SetStat(Stat value)
     {

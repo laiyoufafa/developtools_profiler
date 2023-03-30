@@ -14,6 +14,7 @@
  */
 
 #include "thread_state_table.h"
+#include "thread_state.h"
 
 #include <cmath>
 
@@ -205,8 +206,8 @@ int ThreadStateTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value*
                 break;
             case STATE:
                 indexMapBack->MixRange(c.op,
-                                       dataCache_->GetConstDataIndex(
-                                           std::string(reinterpret_cast<const char*>(sqlite3_value_text(argv[i])))),
+                                       static_cast<DataIndex>(dataCache_->GetThreadStateValue(
+                                           std::string(reinterpret_cast<const char*>(sqlite3_value_text(argv[i]))))),
                                        threadStateObj_.StatesData());
                 break;
             default:
@@ -246,9 +247,7 @@ int ThreadStateTable::Cursor::Column(int col) const
             sqlite3_result_int64(context_, static_cast<sqlite3_int64>(threadStateObj_.TimeStamsData()[CurrentRow()]));
             break;
         case DUR:
-            if (static_cast<sqlite3_int64>(threadStateObj_.DursData()[CurrentRow()]) != INVALID_TIME) {
-                sqlite3_result_int64(context_, static_cast<sqlite3_int64>(threadStateObj_.DursData()[CurrentRow()]));
-            }
+            sqlite3_result_int64(context_, static_cast<sqlite3_int64>(threadStateObj_.DursData()[CurrentRow()]));
             break;
         case CPU:
             if (threadStateObj_.CpusData()[CurrentRow()] != INVALID_CPU) {

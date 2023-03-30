@@ -14,13 +14,13 @@
  */
 #include "string_help.h"
 #include <cstdio>
-#include <string>
 #include <memory.h>
+#include <string>
 #include <vector>
 namespace SysTuning {
 namespace base {
-#define UNUSED(expr)  \
-    do {              \
+#define UNUSED(expr)             \
+    do {                         \
         static_cast<void>(expr); \
     } while (0)
 int memcpy_s(void* dest, uint32_t destSize, const void* src, size_t srcSize)
@@ -47,7 +47,8 @@ int sscanf_s(const char* buffer, const char* format, ...)
 
 int strncpy_s(char* strDest, size_t destMax, const char* strSrc, size_t count)
 {
-    return memcpy_s(strDest, destMax, strSrc, count);
+    (void*)strncpy(strDest, strSrc, destMax);
+    return destMax;
 }
 #endif
 void* memset_s(void* dest, size_t destSize, int ch, size_t n)

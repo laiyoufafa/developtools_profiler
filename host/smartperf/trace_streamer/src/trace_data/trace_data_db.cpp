@@ -69,7 +69,33 @@ void TraceDataDB::EnableMetaTable(bool enabled)
 {
     exportMetaTable_ = enabled;
 }
-int TraceDataDB::ExportDatabase(const std::string& outputName)
+
+void TraceDataDB::SendDatabase(ResultCallBack resultCallBack)
+{
+    int fd(base::OpenFile(wasmDBName_, O_RDWR, 0600));
+    if (!fd) {
+        TS_LOGD("Failed to open file: %s", wasmDBName_.c_str());
+        return;
+    }
+
+    while (true) {
+        uint8_t data[DATABASE_BASE];
+        auto size = base::Read(fd, data, DATABASE_BASE);
+        if (size == 0) {
+            resultCallBack(std::string((char*)data, size), SEND_FINISH);
+            break;
+        } else if (size < 0) {
+            TS_LOGD("Reading trace file failed (errno: %d, %s)", errno, strerror(errno));
+            break;
+        }
+        resultCallBack(std::string((char*)data, DATABASE_BASE), SEND_CONTINUE);
+    }
+    close(fd);
+    remove(wasmDBName_.c_str());
+    wasmDBName_.clear();
+}
+
+int TraceDataDB::ExportDatabase(const std::string& outputName, ResultCallBack resultCallBack)
 {
     {
         int fd(base::OpenFile(outputName, O_CREAT | O_RDWR, 0600));
@@ -119,8 +145,14 @@ int TraceDataDB::ExportDatabase(const std::string& outputName)
     ExecuteSql(updateProcessName);
     std::string detachSql("DETACH DATABASE systuning_export");
     ExecuteSql(detachSql);
+
+    if (resultCallBack != nullptr) {
+        wasmDBName_ = outputName;
+        SendDatabase(resultCallBack);
+    }
     return 0;
 }
+
 void TraceDataDB::Prepare()
 {
     if (pared_) {

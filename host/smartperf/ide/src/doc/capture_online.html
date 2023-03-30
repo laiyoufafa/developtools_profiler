@@ -1,12 +1,13 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>在线抓取trace说明</title>
-    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>capture_online</title>
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-        code[class*="font-"],
-        pre[class*="font-"] {
+        code[class*="smartperf-"],
+        pre[class*="smartperf-"] {
             color: #333333;
             background: none;
             font-family: Helvetica;
@@ -16,188 +17,204 @@
             -moz-tab-size: 9;
             -o-tab-size: 9;
             tab-size: 8;
+            -webkit-hyphens: none;
+            -moz-hyphens: none;
+            -ms-hyphens: none;
+            hyphens: none;
         }
 
         /* Code blocks */
-        pre[class*="font-"] {
-            border-radius: 3px;
-            background: #fcf8f8;
-            padding: 1px .8em;
+        pre[class*="smartperf-"] {
+            padding: .9em;
             overflow: auto;
+            border-radius: 2px;
+            background: #f5f5f4;
         }
 
         /* Inline code */
-        :not(pre) > code[class*="font-"] {
+        :not(pre) > code[class*="smartperf-"] {
             white-space: normal;
-            background: #f5f5f1;
+            background: #fcf8f8;
             padding: 1px .2em;
             border-radius: 1px .3em;
         }
 
-        .nothing.cpps,
-        .nothing.qutee {
+        .tk.comment,
+        .tk.blockquote {
             color: #8c918c;
         }
 
-        .nothing.cdata {
+        .tk.cdata {
             color: #183898;
         }
 
-        .nothing.doctype,
-        .nothing.punctuation,
-        .nothing.variable,
-        .nothing.macro.property {
+        .tk.doctype,
+        .tk.punctuation,
+        .tk.variable,
+        .tk.macro.property {
             color: #424242;
         }
 
-        .nothing.operator,
-        .nothing.important,
-        .nothing.keyword,
-        .nothing.rule,
-        .nothing.builtin {
+        .tk.operator,
+        .tk.important,
+        .tk.keyword,
+        .tk.rule,
+        .tk.builtin {
             color: #b71d65;
         }
 
-        .nothing.string,
-        .nothing.url,
-        .nothing.regex,
-        .nothing.attr-value {
+        .tk.string,
+        .tk.url,
+        .tk.regex,
+        .tk.attr-value {
             color: #16338d;
         }
 
-        .nothing.property,
-        .nothing.number,
-        .nothing.boolean,
-        .nothing.entity,
-        .nothing.atrule,
-        .nothing.constant,
-        .nothing.symbol,
-        .nothing.command,
-        .nothing.code {
+        .tk.property,
+        .tk.number,
+        .tk.boolean,
+        .tk.entity,
+        .tk.atrule,
+        .tk.constant,
+        .tk.symbol,
+        .tk.command,
+        .tk.code {
             color: #037aa2;
         }
 
-        .nothing.tag,
-        .nothing.selector,
-        .nothing.prolog {
+        .tk.tag,
+        .tk.selector,
+        .tk.prolog {
             color: #69ad62;
         }
 
-        .nothing.function,
-        .nothing.namespace,
-        .nothing.pseudo-element,
-        .nothing.class,
-        .nothing.class-name,
-        .nothing.pseudo-class,
-        .nothing.id,
-        .nothing.url-reference .nothing.variable,
-        .nothing.attr-name {
+        .tk.function,
+        .tk.namespace,
+        .tk.pseudo-element,
+        .tk.class,
+        .tk.class-name,
+        .tk.pseudo-class,
+        .tk.id,
+        .tk.url-reference .tk.variable,
+        .tk.attr-name {
             color: #775d9d;
         }
 
-        .nothing.entity {
+        .tk.entity {
             cursor: help;
         }
 
-        .nothing.title,
-        .nothing.title .nothing.punctuation {
-            font-weight: bolder;
+        .tk.title,
+        .tk.title .tk.punctuation {
+            font-weight: bold;
             color: #1a3773;
         }
 
-        .nothing.list {
+        .tk.list {
             color: #f56940;
         }
 
-        .nothing.inserted {
-            background-color: #efffef;
+        .tk.inserted {
+            background-color: #eaffea;
             color: #509b2f;
         }
 
-        .nothing.deleted {
+        .tk.deleted {
             background-color: #fae1e1;
             color: #ad2d06;
         }
 
-        .nothing.bold {
+        .tk.bold {
             font-weight: bolder;
         }
 
-        .nothing.italic {
+        .tk.italic {
             font-style: normal;
         }
 
 
         /* JSON */
-        .font-json .nothing.property {
+        .smartperf-json .tk.property {
             color: #19358c;
         }
 
-        .font-markup .nothing.tag .nothing.punctuation {
+        .smartperf-markup .tk.tag .tk.punctuation {
             color: #2c2b2b;
         }
 
         /* CSS */
-        code.font-css,
-        .font-css .nothing.function {
+        code.smartperf-css,
+        .smartperf-css .tk.function {
             color: #047ca4;
         }
 
         /* YAML */
-        .font-yaml .nothing.atrule {
+        .smartperf-yaml .tk.atrule {
             color: #609b5a;
         }
 
-        code.font-yaml {
+        code.smartperf-yaml {
             color: #153491;
         }
 
         /* Ruby */
-        .font-ruby .nothing.function {
+        .smartperf-ruby .tk.function {
             color: #3f3e3e;
         }
 
         /* Markdown */
-        .font-markdown .nothing.url {
+        .smartperf-markdown .tk.url {
             color: #6e5298;
         }
 
         /* Makefile */
-        .font-makefile .nothing.symbol {
+        .smartperf-makefile .tk.symbol {
             color: #6c5393;
         }
 
-        .font-makefile .nothing.variable {
+        .smartperf-makefile .tk.variable {
             color: #183488;
         }
 
-        .font-makefile .nothing.builtin {
+        .smartperf-makefile .tk.builtin {
             color: #027ba4;
         }
 
         /* Bash */
-        .font-bash .nothing.keyword {
+        .smartperf-bash .tk.keyword {
             color: #027fa9;
         }
 
         /* highlight */
-        pre[ddline] {
+        pre[dl] {
             position: relative;
             padding: 1em 1px 1px .9em;
         }
 
-
-        pre[ddline] .line-highlight-wrapper {
+        pre[dl] .line-highlight-wrapper {
             position: absolute;
-            left: 1px;
-            display: block;
             top: 1px;
-            width: 99%;
+            left: 1px;
             background-color: transparent;
+            display: block;
+            width: 99%;
         }
 
-        pre[ddline] .line-highlight:before,
-        pre[ddline] .line-highlight[data-end]:after {
+        pre[dl] .line-highlight {
+            position: absolute;
+            left: 1px;
+            right: 1px;
+            padding: inherit;
+            margin-top: 0.9em;
+            background: hsla(25, 21%, 50%, .08);
+            background: linear-gradient(to right, hsla(24, 20%, 50%, .1) 70%, hsla(24, 20%, 50%, 0));
+            pointer-events: none;
+            line-height: inherit;
+            white-space: pre;
+        }
+
+        pre[dl] .line-highlight:before,
+        pre[dl] .line-highlight[data-end]:after {
             content: attr(data-start);
             position: absolute;
             text-shadow: none;
@@ -213,252 +230,252 @@
             box-shadow: 1px 2px #fdf6f6;
         }
 
-        pre[ddline] .line-highlight[data-end]:after {
+        pre[dl] .line-highlight[data-end]:after {
             content: attr(data-end);
             top: auto;
             bottom: .5em;
         }
 
-        body {
-            box-sizing: border-box;
-            font-family: auto;
-            font-size: 14px;
-            line-height: 1.7;
-            color: #383737;
+        html body {
+            line-height: 1.6;
+            font-size: 16px;
+            color: #333333;
+            overflow: initial;
             background-color: #FFFFFF;
-            word-wrap: break-word
+            word-wrap: break-word;
+            font-family: Helvetica;
+            box-sizing: border-box;
         }
 
-        body > :first-child {
-            margin-top: 1px
+        html body > :first-child {
+            margin-top: 0px
         }
 
-        body h1, body h2, body h3, body h4, body h5, body h6 {
-            line-height: 1.3;
-            margin-top: 1.1em;
-            margin-bottom: 17px;
-            color: #000000
+        html body h1, html body h2, html body h3, html body h4, html body h5, html body h6 {
+            margin-top: 1em;
+            margin-bottom: 16px;
+            color: #000000;
+            line-height: 1.2;
         }
 
-        body h1 {
-            font-size: 2.3em;
-            font-weight: 310;
-            padding-bottom: .2em
+        html body h1 {
+            font-weight: 300;
+            font-size: 2.25em;
+            padding-bottom: .3em
         }
 
-        body h2 {
-            font-size: 1.76em;
+        html body h2 {
             font-weight: 410;
+            font-size: 1.74em;
             padding-bottom: .2em
         }
 
-        body h3 {
-            font-size: 1.52em;
-            font-weight: 510
+        html body h3 {
+            font-size: 1.6em;
+            font-weight: 501
         }
 
-        body h4 {
+        html body h4 {
             font-size: 1.26em;
-            font-weight: 610
+            font-weight: 601
         }
 
-        body h5 {
+        html body h5 {
             font-size: 1.2em;
-            font-weight: 610
+            font-weight: 601
         }
 
-        body h6 {
-            font-size: 1.1em;
-            font-weight: 610
+        html body h6 {
+            font-size: 0.9em;
+            font-weight: 601
         }
 
-        body h1, body h2, body h3, body h4, body h5 {
-            font-weight: 610
+        html body h1, html body h2, html body h3, html body h4, html body h5 {
+            font-weight: 601
         }
 
-        body h5 {
-            font-size: 1em
+        html body h5 {
+            font-size: 0.9em
         }
 
-        body h6 {
-            color: #777676
+        html body h6 {
+            color: #5c5c5c
         }
 
-        body strong {
-            color: #100f0f
+        html body strong {
+            color: #090909
         }
 
-        body del {
-            color: #6c6c6c
+        html body del {
+            color: #525252
         }
 
-        body a:not([href]) {
-            color: #6c6c6c;
+        html body a:not([href]) {
+            color: inherit;
+            text-decoration: none
         }
 
-        body a {
-            color: #0480be;
+        html body a {
+            color: #0192da;
+            text-decoration: none
         }
 
-        body a:hover {
-            color: #05a1ef;
+        html body a:hover {
+            color: #029dea;
+            text-decoration: none
         }
 
-        body img {
+        html body img {
             max-width: 99%
         }
 
-        body > p {
+        html body > p {
             margin-top: 1px;
-            margin-bottom: 17px;
+            margin-bottom: 15px;
             word-wrap: break-word
         }
 
-        body > ul, body > ol {
-            margin-bottom: 17px
+        html body > ul, html body > ol {
+            margin-bottom: 15px
         }
 
-        body ul, body ol {
-            padding-left: 3em
+        html body ul, html body ol {
+            padding-left: 1.9em
         }
 
-        body ul.no-list, body ol.no-list {
-            padding: 1px;
+        html body ul.no-list, html body ol.no-list {
+            padding: 0px;
             list-style-type: none
         }
 
-        body ul ul, body ul ol, body ol ol, body ol ul {
+        html body ul ul, html body ul ol, html body ol ol, html body ol ul {
             margin-top: 1px;
             margin-bottom: 1px
         }
 
-        body li {
+        html body li {
             margin-bottom: 1px
         }
 
-        body li.task-list-item {
+        html body li.task-list-item {
             list-style: none
         }
 
-        body li > p {
+        html body li > p {
             margin-top: 1px;
             margin-bottom: 1px
         }
 
-        body .task-list-item-checkbox {
-            margin: 1px .3em .26em -1.7em;
+        html body .task-list-item-checkbox {
+            margin: 0 .3em .24em -1.7em;
             vertical-align: middle
         }
 
-        body .task-list-item-checkbox:hover {
+        html body .task-list-item-checkbox:hover {
             cursor: pointer
         }
 
-        body qutee {
-            margin: 17px 1px;
+        html body blockquote {
+            padding: 0.1px 15px 0 0.1px;
             font-size: inherit;
-            padding: 1px 16px;
-            color: #706f6f;
-            background-color: #fdfcfc;
-            border-left: 4px solid #e5e3e3
+            color: #5c5c5c;
+            margin: 16px 0.1px 0 0.1px;
+            border-left: 3px solid #cbc9c9;
+            background-color: #e8e6e6;
         }
 
-        body qutee > :first-child {
-            margin-top: 1px
+        html body blockquote > :first-child {
+            margin-top: 0.2px
         }
 
-        body qutee > :last-child {
-            margin-bottom: 1px
+        html body blockquote > :last-child {
+            margin-bottom: 0.1px;
         }
 
-        body hr {
+        html body hr {
             height: 5px;
-            margin: 34px 1px;
-            background-color: #d6d6d6;
-            border: 1px none
+            background-color: #cbcaca;
+            margin: 32px 0 0.1px 0;
+            border: 0 none;
         }
 
-        body table {
-            margin: 11px 1px 15px 1px;
-            border-collapse: collapse;
-            border-spacing: 1px;
-            display: block;
-            width: 99%;
+        html body table {
             overflow: auto;
-            word-break: normal;
-            word-break: keep-all
+            border-collapse: collapse;
+            margin: 15px 0.1px 20px 0.1px;
+            border-spacing: 0;
         }
 
-        body table th {
+        html body table th {
             font-weight: bold;
             color: #000000
         }
 
-        body table td, body table th {
-            border: 2px solid #e5e4e4;
-            padding: 7px 14px
+        html body table td, html body table th {
+            border: 1px solid #d6d6d6;
+            padding: 2px 14px
         }
 
-        body dl {
-            padding: 1px
+        html body dl {
+            padding: 0px
         }
 
-        body dl dt {
-            padding: 1px;
-            margin-top: 17px;
-            font-size: 0.99em;
+        html body dl dt {
+            padding: 0px;
+            margin-top: 15px;
+            font-size: 0.9em;
             font-style: italic;
             font-weight: bold
         }
 
-        body dl dd {
-            padding: 1px 17px;
+        html body dl dd {
+            padding: 0px 17px;
             margin-bottom: 17px
         }
 
-        body code {
-            font-family: auto;
-            font-size: .86em;
+        html body code {
+            font-family: Menlo, Monaco, Consolas, 'Courier New', monospace;
+            font-size: .86em !important;
             color: #000000;
             background-color: #f0f0f0;
-            border-radius: 3px;
-            padding: .2em 0
+            border-radius: 4px;
+            padding: .3em 0px
         }
 
-        body code::before, body code::after {
+        html body code::before, html body code::after {
             letter-spacing: -0.1em;
             content: "\00a0"
         }
 
-        body pre > code {
+        html body pre > code {
             padding: 1px;
-            margin: 1px;
-            font-size: .85em !important;
+            margin: 0px;
+            font-size: .86em !important;
             word-break: normal;
             white-space: pre;
             background: transparent;
-            border: 1px
+            border: 0px
         }
 
-        body .highlight {
+        html body .highlight {
             margin-bottom: 17px
         }
 
-        body .highlight pre, body pre {
-            padding: .9em;
+        html body .highlight pre, html body pre {
+            padding: 0.9em;
             overflow: auto;
             font-size: .86em !important;
-            line-height: 1.55;
-            border: #d5d1d1;
-            border-radius: 2px
+            line-height: 1.46;
+            border: #d6d6d6;
+            border-radius: 4px
         }
 
-        body .highlight pre {
-            margin-bottom: 1px;
+        html body .highlight pre {
+            margin-bottom: 0px;
             word-break: normal
         }
 
-        body pre code, body pre tt {
+        html body pre code, html body pre tt {
             display: inline;
             max-width: initial;
             padding: 1px;
@@ -470,80 +487,83 @@
             border: 1px
         }
 
-        body pre code:before, body pre tt:before, body pre code:after, body pre tt:after {
+        html body pre code:before, html body pre tt:before, html body pre code:after, html body pre tt:after {
             content: normal
         }
 
-        body p, body qutee, body ul, body ol, body dl, body pre {
+        html body p, html body blockquote, html body ul, html body ol, html body dl, html body pre {
             margin-top: 1px;
             margin-bottom: 17px
         }
 
-        body kbd {
+        html body kbd {
             color: #000000;
-            border: 2px solid #d6d6d6;
-            border-bottom: 1px solid #c7c7c7;
-            padding: 3px 3px;
+            border: 3px solid #d6d6d6;
+            border-bottom: 3px solid #c7c7c7;
+            padding: 3px 5px;
             background-color: #f0f0f0;
-            border-radius: 4px
+            border-radius: 2px
         }
 
         @media print {
-            body {
-                background-color: #f8f5f5
+            html body {
+                background-color: #ffffff
             }
 
-            body h1, body h2, body h3, body h4, body h5, body h6 {
+            html body h1, html body h2, html body h3, html body h4, html body h5, html body h6 {
                 color: #000000;
                 page-break-after: avoid
             }
 
-            body qutee {
-                color: #5d5c5c
+            html body blockquote {
+                color: #5c5c53
             }
 
-            body table {
+            html body pre {
+                page-break-inside: avoid
+            }
+
+            html body table {
                 display: table
             }
 
-
-            body img {
+            html body img {
                 display: block;
                 max-width: 99%;
-                max-height: 100%
+                max-height: 99%
             }
 
-            body pre, body code {
+            html body pre, html body code {
                 word-wrap: break-word;
                 white-space: pre
             }
         }
 
-        .mp {
+        .smartperf-preview {
             width: 99%;
             height: 99%;
             box-sizing: border-box
         }
 
-        .mp .pagebreak, .mp .newpage {
+        .smartperf-preview .pagebreak, .smartperf-preview .newpage {
             page-break-before: always
         }
 
-        .mp pre.line-numbers {
+        .smartperf-preview pre.line-numbers {
             position: relative;
-            padding-left: 3.8em;
+            padding-left: 3.7em;
             counter-reset: linenumber
         }
 
-        .mp pre.line-numbers > code {
+        .smartperf-preview pre.line-numbers > code {
             position: relative
         }
 
-        .mp pre.line-numbers .line-numbers-rows {
+        .smartperf-preview pre.line-numbers .line-numbers-rows {
             position: absolute;
             pointer-events: none;
-            top: 1em;
-            font-size: 100%;
+            top: 0.9em;
+            font-size: 99%;
             left: 1px;
             width: 3em;
             letter-spacing: -1px;
@@ -554,13 +574,13 @@
             user-select: none
         }
 
-        .mp pre.line-numbers .line-numbers-rows > span {
+        .smartperf-preview pre.line-numbers .line-numbers-rows > span {
             pointer-events: none;
             display: block;
             counter-increment: linenumber
         }
 
-        .mp pre.line-numbers .line-numbers-rows > span:before {
+        .smartperf-preview pre.line-numbers .line-numbers-rows > span:before {
             content: counter(linenumber);
             color: #999;
             display: block;
@@ -568,19 +588,19 @@
             text-align: right
         }
 
-        .mp .mathjax-exps .MathJax_Display {
+        .smartperf-preview .mathjax-exps .MathJax_Display {
             text-align: center !important
         }
 
-        .mp:not([for="preview"]) .code-chunk .btn-group {
+        .smartperf-preview:not([for="preview"]) .code-chunk .btn-group {
             display: none
         }
 
-        .mp:not([for="preview"]) .code-chunk .status {
+        .smartperf-preview:not([for="preview"]) .code-chunk .status {
             display: none
         }
 
-        .mp:not([for="preview"]) .code-chunk .output-div {
+        .smartperf-preview:not([for="preview"]) .code-chunk .output-div {
             margin-bottom: 16px
         }
 
@@ -589,18 +609,18 @@
         }
 
         .scrollbar-style::-webkit-scrollbar-track {
-            border-radius: 10px;
+            border-radius: 9px;
             background-color: transparent
         }
 
         .scrollbar-style::-webkit-scrollbar-thumb {
-            border-radius: 5px;
+            border-radius: 6px;
             background-color: rgba(150, 150, 150, 1);
             border: 4px solid rgba(150, 150, 150, 1);
             background-clip: content-box
         }
 
-        body[for="html-export"]:not([dpm]) {
+        html body[for="html-export"]:not([dpm]) {
             position: relative;
             width: 99%;
             height: 99%;
@@ -611,166 +631,177 @@
             overflow: auto
         }
 
-        body[for="html-export"]:not([dpm]) .mp {
+        html body[for="html-export"]:not([dpm]) .smartperf-preview {
             position: relative;
             top: 1px
         }
 
         @media screen and (min-width: 914px) {
-            body[for="html-export"]:not([dpm]) .mp {
+            html body[for="html-export"]:not([dpm]) .smartperf-preview {
                 padding: 2em calc(50% - 458px + 2em)
             }
         }
 
         @media screen and (max-width: 914px) {
-            body[for="html-export"]:not([dpm]) .mp {
+            html body[for="html-export"]:not([dpm]) .smartperf-preview {
                 padding: 1.9em
             }
         }
 
         @media screen and (max-width: 450px) {
-            body[for="html-export"]:not([dpm]) .mp {
-                font-size: 14px !important;
+            html body[for="html-export"]:not([dpm]) .smartperf-preview {
+                font-size: 15px !important;
                 padding: 1.1em
             }
         }
 
         @media print {
-            body[for="html-export"]:not([dpm]) #sidebar-toc-btn {
+            html body[for="html-export"]:not([dpm]) #sidebar-toc-btn {
                 display: none
             }
         }
 
-        body[for="html-export"]:not([dpm]) #sidebar-toc-btn {
+        html body[for="html-export"]:not([dpm]) #sidebar-toc-btn {
             position: fixed;
-            bottom: 8px;
-            left: 8px;
+            bottom: 9px;
+            left: 9px;
             font-size: 28px;
             cursor: pointer;
             color: inherit;
             z-index: 99;
-            width: 32px;
+            width: 31px;
             text-align: center;
-            opacity: .4
+            opacity: .5
         }
 
-        body[for="html-export"]:not([dpm])[jsst] #sidebar-toc-btn {
+        html body[for="html-export"]:not([dpm])[hsst] #sidebar-toc-btn {
             opacity: 1
         }
 
-        body[for="html-export"]:not([dpm])[jsst] .md-sidebar-toc {
+        html body[for="html-export"]:not([dpm])[hsst] .md-sidebar-toc {
             position: fixed;
             top: 1px;
             left: 1px;
             width: 300px;
             height: 99%;
-            padding: 2px 48px 1px;
+            padding: 32px 0 48px 0;
             font-size: 14px;
-            box-shadow: 1px 1px 4px rgba(150, 150, 150, 1.33);
+            box-shadow: 1px 1px 4px rgba(150, 150, 150, 0.33);
             box-sizing: border-box;
             overflow: auto;
             background-color: inherit
         }
 
-        body[for="html-export"]:not([dpm])[jsst] .md-sidebar-toc::-webkit-scrollbar {
+        html body[for="html-export"]:not([dpm])[hsst] .md-sidebar-toc::-webkit-scrollbar {
             width: 9px
         }
 
-        body[for="html-export"]:not([dpm])[jsst] .md-sidebar-toc::-webkit-scrollbar-track {
+        html body[for="html-export"]:not([dpm])[hsst] .md-sidebar-toc::-webkit-scrollbar-track {
             border-radius: 11px;
             background-color: transparent
         }
 
-        body[for="html-export"]:not([dpm])[jsst] .md-sidebar-toc::-webkit-scrollbar-thumb {
+        html body[for="html-export"]:not([dpm])[hsst] .md-sidebar-toc::-webkit-scrollbar-thumb {
             border-radius: 6px;
-            background-color: rgba(151, 151, 151, .62);
-            border: 4px solid rgba(151, 151, 151, .62);
+            background-color: rgba(150, 150, 150, 0.66);
+            border: 3px solid rgba(150, 150, 150, 0.66);
             background-clip: content-box
         }
 
-        body[for="html-export"]:not([dpm])[jsst] .md-sidebar-toc a {
+        html body[for="html-export"]:not([dpm])[hsst] .md-sidebar-toc a {
             text-decoration: none
         }
 
-        body[for="html-export"]:not([dpm])[jsst] .md-sidebar-toc ul {
+        html body[for="html-export"]:not([dpm])[hsst] .md-sidebar-toc ul {
             padding: 1px 1.7em;
             margin-top: .9em
         }
 
-        body[for="html-export"]:not([dpm])[jsst] .md-sidebar-toc li {
+        html body[for="html-export"]:not([dpm])[hsst] .md-sidebar-toc li {
             margin-bottom: .8em
         }
 
-        body[for="html-export"]:not([dpm])[jsst] .md-sidebar-toc ul {
+        html body[for="html-export"]:not([dpm])[hsst] .md-sidebar-toc ul {
             list-style-type: none
         }
 
-        body[for="html-export"]:not([dpm])[jsst] .mp {
-            left: 310px;
-            width: calc(100% - 310px);
-            padding: 2em calc(50% - 458px - 151px);
+        html body[for="html-export"]:not([dpm])[hsst] .smartperf-preview {
+            left: 301px;
+            width: calc(100% - 300px);
+            padding: 2em calc(50% - 457px - 150px);
             margin: 1px;
             box-sizing: border-box
         }
 
         @media screen and (max-width: 1274px) {
-            body[for="html-export"]:not([dpm])[jsst] .mp {
+            html body[for="html-export"]:not([dpm])[hsst] .smartperf-preview {
                 padding: 1.9em
             }
         }
 
         @media screen and (max-width: 450px) {
-            body[for="html-export"]:not([dpm])[jsst] .mp {
+            html body[for="html-export"]:not([dpm])[hsst] .smartperf-preview {
                 width: 99%
             }
         }
 
-        body[for="html-export"]:not([dpm]):not([jsst]) .mp {
-            left: 51%;
+        html body[for="html-export"]:not([dpm]):not([hsst]) .smartperf-preview {
+            left: 50%;
             transform: translateX(-50%)
         }
 
-        body[for="html-export"]:not([dpm]):not([jsst]) .md-sidebar-toc {
+        html body[for="html-export"]:not([dpm]):not([hsst]) .md-sidebar-toc {
             display: none
         }
+
+
     </style>
 </head>
 <body for="html-export" id="body">
-<div class="mume mp  ">
-    <h1 class="mume-header fontColor">在线抓取trace说明</h1>
-    <h2 class="mume-header fontColor">1.界面配置说明</h2>
-    <p><img src="../figures/hdc/hdc.jpg" alt="GitHub Logo"></p>
-    <p class="fontColor">说明：</p>
+<div class="smartperf smartperf-preview  ">
+    <h1 class="mume-header fontColor">web端抓取trace指导</h1>
+
+    <h2 class="mume-header fontColor">界面配置说明</h2>
+
+    <p class="fontColor"><img src="../figures/hdc/hdc.jpg" alt="GitHub Logo"><br>
+        说明：</p>
     <ul class="fontColor">
         <li>Record:trace抓取按钮</li>
         <li>Add HDC Device:连接设备</li>
     </ul>
-    <h2 class="mume-header fontColor">2.trace文件的在线抓取</h2>
-    <p class="fontColor">点击Add HDC Device在弹出的框里选择HDC-配对,点击连接,连接设备</p>
-    <p><img src="../figures/hdc/Device.jpg" alt="GitHub Logo"></p>
-    <p class="fontColor">点击Probes config,如选择抓取Scheduling details</p>
-    <p><img src="../figures/hdc/Schedulingdetails.jpg" alt="GitHub Logo"></p>
-    <p class="fontColor">抓取项说明：</p>
+    <h2 class="mume-header fontColor">trace文件的在线抓取</h2>
+
+    <p class="fontColor">点击Add HDC Device在弹出的框里选择HDC-配对，点击连接，连接设备。<br>
+        <img src="../figures/hdc/Device.jpg" alt="GitHub Logo"><br>
+        点击Probes config，如选择抓取Scheduling details。<br>
+        <img src="../figures/hdc/Schedulingdetails.jpg" alt="GitHub Logo"><br>
+        抓取项说明：</p>
     <ul class="fontColor">
-        <li>Scheduling details:线程切换事件,暂停恢复方法,线程唤醒事件,进程退出和销毁处理,新建线程处理方法,线程重命名处理方法</li>
+        <li>Scheduling
+            details:线程切换事件，暂停恢复方法，线程唤醒事件，进程退出和销毁处理，新建线程处理方法，线程重命名处理方法
+        </li>
         <li>CPU Frequency and idle states:CPU频率信息和CPU空闲状态</li>
-        <li>Advanced ftrace config:线程切换事件,暂停恢复方法,线程唤醒事件,进程退出和销毁处理,新建线程处理方法,线程重命名处理方法,IRQ事件,时钟频率处理方法,Binder事件,线程调用堆栈开始和结束的处理</li>
-        <li>AbilityMonitor:进程的CPU,内存,磁盘,网络使用情况</li>
+        <li>Advanced ftrace
+            config:线程切换事件，暂停恢复方法，线程唤醒事件，进程退出和销毁处理，新建线程处理方法，线程重命名处理方法，IRQ事件，时钟频率处理方法，Binder事件，线程调用堆栈开始和结束的处理
+        </li>
+        <li>AbilityMonitor:进程的CPU，内存，磁盘，网络使用情况</li>
         <li>Kernel meminfo:内核内存</li>
         <li>Virtual memory stats:系统虚拟内存</li>
-        <li>Hitrace categories:Bytrace的抓取项,各解释项说明如下图：</li>
+        <li>Hitrace categories:Bytrace的抓取项，各解释项说明如下图：<br>
+            <img src="../figures/hdc/bytacedescription.jpg" alt="GitHub Logo"></li>
     </ul>
-    <p><img src="../figures/hdc/bytacedescription.jpg" alt="GitHub Logo"></p>
-    <p class="fontColor">再点击Record setting,在output file path输入文件名hiprofiler_data_example.htrace,拖动滚动条设置buffer size大小是64M,抓取时长是50s</p>
-    <p><img src="../figures/hdc/examplerecord.jpg" alt="GitHub Logo"></p>
-    <p class="fontColor">点击Trace command,就会根据上面的配置生成抓取命令,点击Record</p>
-    <p><img src="../figures/hdc/record.jpg" alt="GitHub Logo"></p>
-    <p class="fontColor">抓取过程中,上方会给出提示正在抓取,并显示出抓取时长</p>
-    <p><img src="../figures/hdc/hdctracing.jpg" alt="GitHub Logo"></p>
-    <p class="fontColor">抓取完成后,界面会自动加载展示trace文件</p>
-    <p><img src="../figures/hdc/hdcfile.jpg" alt="GitHub Logo"></p>
+    <p class="fontColor">再点击Record setting，在output file path输入文件名hiprofiler_data_example.htrace，拖动滚动条设置buffer
+        size大小是64M，抓取时长是50s。<br>
+        <img src="../figures/hdc/examplerecord.jpg" alt="GitHub Logo"><br>
+        点击Trace command，就会根据上面的配置生成抓取命令，点击Record。<br>
+        <img src="../figures/hdc/record.jpg" alt="GitHub Logo"><br>
+        抓取过程中，上方会给出提示正在抓取，并显示出抓取时长。<br>
+        <img src="../figures/hdc/hdctracing.jpg" alt="GitHub Logo"><br>
+        抓取完成后，界面会自动加载展示trace文件。<br>
+        <img src="../figures/hdc/hdcfile.jpg" alt="GitHub Logo"></p>
+
 </div>
-<script type="text/javascript">
+<script>
     window.onload = (() => {
         let isDark = window.location.search;
         if (isDark.indexOf("?") != -1) {
@@ -782,8 +813,13 @@
             for (let i = 0; i < header.length; i++) {
                 header[i].style.color = '#fff';
             }
+            let lightBackGround = document.getElementsByClassName('light')
+            for (let i = 0; i < lightBackGround.length; i++) {
+                lightBackGround[i].style.backgroundColor = '#32373F'
+            }
         }
     })
 </script>
+
 </body>
 </html>

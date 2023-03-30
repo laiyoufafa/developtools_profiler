@@ -106,7 +106,7 @@ HWTEST_F(EbpfFileSystemTest, ParseFileSystemWithTypeOpen, TestSize.Level1)
     parser->Finish();
     EXPECT_TRUE(parser->reader_->ebpfDataHeader_->header.clock == EBPF_CLOCK_BOOTTIME);
     auto callChainId = stream_.traceDataCache_->GetConstFileSystemSample().CallChainIds()[0];
-    EXPECT_EQ(callChainId, INVALID_UINT64);
+    EXPECT_EQ(callChainId, INVALID_UINT32);
     auto type = stream_.traceDataCache_->GetConstFileSystemSample().Types()[0];
     EXPECT_EQ(type, OPEN);
     auto startTs = stream_.traceDataCache_->GetConstFileSystemSample().StartTs()[0];
@@ -187,7 +187,7 @@ HWTEST_F(EbpfFileSystemTest, ParseFileSystemWithTypeClose, TestSize.Level1)
     parser->Finish();
     EXPECT_TRUE(parser->reader_->ebpfDataHeader_->header.clock == EBPF_CLOCK_BOOTTIME);
     auto callChainId = stream_.traceDataCache_->GetConstFileSystemSample().CallChainIds()[0];
-    EXPECT_EQ(callChainId, INVALID_UINT64);
+    EXPECT_EQ(callChainId, INVALID_UINT32);
     auto type = stream_.traceDataCache_->GetConstFileSystemSample().Types()[0];
     EXPECT_EQ(type, CLOSE);
     auto startTs = stream_.traceDataCache_->GetConstFileSystemSample().StartTs()[0];
@@ -269,7 +269,7 @@ HWTEST_F(EbpfFileSystemTest, ParseFileSystemWithTypeRead, TestSize.Level1)
     parser->Finish();
     EXPECT_TRUE(parser->reader_->ebpfDataHeader_->header.clock == EBPF_CLOCK_BOOTTIME);
     auto callChainId = stream_.traceDataCache_->GetConstFileSystemSample().CallChainIds()[0];
-    EXPECT_EQ(callChainId, INVALID_UINT64);
+    EXPECT_EQ(callChainId, INVALID_UINT32);
     auto type = stream_.traceDataCache_->GetConstFileSystemSample().Types()[0];
     EXPECT_EQ(type, READ);
     auto startTs = stream_.traceDataCache_->GetConstFileSystemSample().StartTs()[0];
@@ -350,7 +350,7 @@ HWTEST_F(EbpfFileSystemTest, ParseFileSystemWithTypeWrite, TestSize.Level1)
     parser->Finish();
     EXPECT_TRUE(parser->reader_->ebpfDataHeader_->header.clock == EBPF_CLOCK_BOOTTIME);
     auto callChainId = stream_.traceDataCache_->GetConstFileSystemSample().CallChainIds()[0];
-    EXPECT_EQ(callChainId, INVALID_UINT64);
+    EXPECT_EQ(callChainId, INVALID_UINT32);
     auto type = stream_.traceDataCache_->GetConstFileSystemSample().Types()[0];
     EXPECT_EQ(type, WRITE);
     auto startTs = stream_.traceDataCache_->GetConstFileSystemSample().StartTs()[0];

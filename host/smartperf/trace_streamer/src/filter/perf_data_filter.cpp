@@ -37,7 +37,7 @@ size_t PerfDataFilter::AppendPerfFiles(uint64_t fileId, uint32_t serial, DataInd
 }
 
 size_t PerfDataFilter::AppendPerfCallChain(uint64_t sampleId,
-                                           uint64_t callChainId,
+                                           uint32_t callChainId,
                                            uint64_t vaddrInFile,
                                            uint64_t fileId,
                                            uint64_t symbolId)

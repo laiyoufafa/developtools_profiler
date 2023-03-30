@@ -31,7 +31,7 @@ void IrqFilter::IrqHandlerEntry(int64_t ts, uint32_t cpu, DataIndex nameId)
 {
     streamFilters_->sliceFilter_->IrqHandlerEntry(ts, cpu, irqCatalog_, nameId);
 }
-void IrqFilter::IrqHandlerExit(int64_t ts, uint32_t cpu, uint32_t ret)
+void IrqFilter::IrqHandlerExit(int64_t ts, uint32_t cpu, uint32_t irq, uint32_t ret)
 {
     DataIndex irqRet = INVALID_DATAINDEX;
     if (ret == 1) {
@@ -41,7 +41,17 @@ void IrqFilter::IrqHandlerExit(int64_t ts, uint32_t cpu, uint32_t ret)
     }
     ArgsSet args;
     args.AppendArg(irqRet_, BASE_DATA_TYPE_STRING, irqRet);
+    args.AppendArg(irq_, BASE_DATA_TYPE_INT, irq);
     streamFilters_->sliceFilter_->IrqHandlerExit(ts, cpu, args);
+}
+
+void IrqFilter::IpiHandlerEntry(int64_t ts, uint32_t cpu, DataIndex nameId)
+{
+    streamFilters_->sliceFilter_->IpiHandlerEntry(ts, cpu, ipiCatalog_, nameId);
+}
+void IrqFilter::IpiHandlerExit(int64_t ts, uint32_t cpu)
+{
+    streamFilters_->sliceFilter_->IpiHandlerExit(ts, cpu);
 }
 void IrqFilter::SoftIrqEntry(int64_t ts, uint32_t cpu, uint32_t vec)
 {
@@ -58,6 +68,7 @@ void IrqFilter::SoftIrqExit(int64_t ts, uint32_t cpu, uint32_t vec)
     }
     ArgsSet args;
     args.AppendArg(irqRet_, BASE_DATA_TYPE_STRING, irqActionNameIds_[vec]);
+    args.AppendArg(irqVec_, BASE_DATA_TYPE_INT, vec);
     streamFilters_->sliceFilter_->SoftIrqExit(ts, cpu, args);
     return;
 }

@@ -53,13 +53,22 @@ public:
     {
         metaData_.SetTraceDuration((traceEndTime_ - traceStartTime_) / SEC_TO_NS);
     }
+    uint64_t GetThreadStateValue(const std::string& status) const
+    {
+        if (threadStatus2Value_.count(status)) {
+            return threadStatus2Value_.at(status);
+        }
+        return INVALID_UINT64;
+    }
     DataIndex GetDataIndex(std::string_view str);
     DataIndex GetConstDataIndex(std::string_view str) const;
     std::map<uint64_t, std::string> statusString_ = {
         {TASK_RUNNABLE, "R"},    {TASK_INTERRUPTIBLE, "S"}, {TASK_UNINTERRUPTIBLE, "D"}, {TASK_RUNNING, "Running"},
         {TASK_INTERRUPTED, "I"}, {TASK_TRACED, "T"},        {TASK_EXIT_DEAD, "X"},       {TASK_ZOMBIE, "Z"},
-        {TASK_KILLED, "I"},      {TASK_WAKEKILL, "R"},      {TASK_INVALID, "U"},         {TASK_CLONE, "I"},
-        {TASK_DK, "DK"},         {TASK_TRACED_KILL, "TK"},  {TASK_FOREGROUND, "R+"},     {TASK_MAX, "S"}};
+        {TASK_KILLED, "I"},      {TASK_WAKEKILL, "R"},      {TASK_PARKED, "P"},          {TASK_INVALID, "U"},
+        {TASK_CLONE, "I"},       {TASK_DK, "DK"},           {TASK_TRACED_KILL, "TK"},    {TASK_FOREGROUND, "R+"},
+        {TASK_MAX, "S"}};
+    std::map<std::string, uint64_t> threadStatus2Value_ = {};
     uint64_t traceStartTime_ = std::numeric_limits<uint64_t>::max();
     uint64_t traceEndTime_ = 0;
 
@@ -82,6 +91,7 @@ public:
     LogInfo hilogData_;
     NativeHook nativeHookData_;
     NativeHookFrame nativeHookFrameData_;
+    NativeHookStatistic nativeHookStatisticData_;
     Hidump hidumpData_;
     PerfSample perfSample_;
     PerfCallChain perfCallChain_;
@@ -125,6 +135,9 @@ public:
     BioLatencySampleData bioLatencySampleData_;
     ClockSnapshotData clockSnapshotData_;
     DataSourceClockIdData dataSourceClockIdData_;
+    FrameSlice frameSliceData_;
+    FrameMaps frameMapsData_;
+    GPUSlice gpuSliceData_;
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

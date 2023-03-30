@@ -53,6 +53,7 @@ export class CpuRender {
         context: CanvasRenderingContext2D,
         useCache: boolean,
         type: string,
+        translateY:number,
     }, row: TraceRow<CpuStruct>) {
         let list = row.dataList;
         let filter = row.dataListCache;
@@ -69,14 +70,15 @@ export class CpuRender {
         req.context.beginPath();
         req.context.font = "11px sans-serif";
         filter.forEach((re)=>{
-            CpuStruct.draw(req.context, re);
+            re.translateY = req.translateY;
+            CpuStruct.draw(req.context, re,req.translateY);
         })
         req.context.closePath();
         let currentCpu = parseInt(req.type!.replace("cpu-data-", ""));
         drawWakeUp(req.context, CpuStruct.wakeupBean, TraceRow.range!.startNS, TraceRow.range!.endNS, TraceRow.range!.totalNS, row.frame, req.type == `cpu-data-${CpuStruct.selectCpuStruct?.cpu || 0}` ? CpuStruct.selectCpuStruct : undefined, currentCpu);
     }
 
-    render(req: RequestMessage, list: Array<any>, filter: Array<any>) {
+    render(req: RequestMessage, list: Array<any>, filter: Array<any>,translateY:number,) {
         if (req.lazyRefresh) {
             this.cpu(list, filter, req.startNS, req.endNS, req.totalNS, req.frame, req.useCache || !req.range.refresh);
         } else {
@@ -106,7 +108,7 @@ export class CpuRender {
             CpuStruct.selectCpuStruct = req.params.selectCpuStruct;
             req.context.font = "11px sans-serif";
             for (let re of filter) {
-                CpuStruct.draw(req.context, re);
+                CpuStruct.draw(req.context, re,translateY);
             }
             drawSelection(req.context, req.params);
             req.context.closePath();
@@ -211,8 +213,8 @@ export class CpuStruct extends BaseStruct {
     tid: number | undefined
     type: string | undefined
     v: boolean = false
-
-    static draw(ctx: CanvasRenderingContext2D, data: CpuStruct) {
+    nofinish:boolean = false
+    static draw(ctx: CanvasRenderingContext2D, data: CpuStruct,translateY:number) {
         if (data.frame) {
             let width = data.frame.width || 0;
             if (data.tid === CpuStruct.hoverCpuStruct?.tid || !CpuStruct.hoverCpuStruct) {
@@ -258,6 +260,17 @@ export class CpuStruct extends BaseStruct {
                     ctx.textBaseline = "top";
                     ctx.fillText(thread.substring(0, chatNum - 4) + '...', x1, y + 2, width - textPadding * 2)
                 }
+            }
+            if(data.nofinish){
+                ctx.fillStyle = "#FFFFFF"
+                let ruptureWidth = 4;
+                let ruptureNode = 8;
+                ctx.moveTo(data.frame.x+data.frame.width-1, data.frame.y)
+                for (let i = 1; i <=ruptureNode; i++) {
+                    ctx.lineTo(data.frame.x+data.frame.width-1-(i%2==0?0:ruptureWidth), data.frame.y+(data.frame.height/ruptureNode*i));
+                }
+                ctx.closePath()
+                ctx.fill()
             }
             if (CpuStruct.selectCpuStruct && CpuStruct.equals(CpuStruct.selectCpuStruct, data)) {
                 ctx.strokeStyle = '#232c5d'

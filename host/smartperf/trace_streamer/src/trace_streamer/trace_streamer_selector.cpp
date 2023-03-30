@@ -24,11 +24,16 @@
 #include "cpu_filter.h"
 #include "file.h"
 #include "filter_filter.h"
+#include "frame_filter.h"
 #include "hi_sysevent_measure_filter.h"
 #include "irq_filter.h"
 #include "measure_filter.h"
 #include "parser/bytrace_parser/bytrace_parser.h"
+#if IS_PBREADER
+#include "parser/htrace_pbreader_parser/htrace_parser.h"
+#else
 #include "parser/htrace_parser/htrace_parser.h"
+#endif
 #if WITH_PERF
 #include "perf_data_filter.h"
 #endif
@@ -115,6 +120,7 @@ void TraceStreamerSelector::InitFilter()
     streamFilters_->binderFilter_ = std::make_unique<BinderFilter>(traceDataCache_.get(), streamFilters_.get());
     streamFilters_->argsFilter_ = std::make_unique<ArgsFilter>(traceDataCache_.get(), streamFilters_.get());
     streamFilters_->irqFilter_ = std::make_unique<IrqFilter>(traceDataCache_.get(), streamFilters_.get());
+    streamFilters_->frameFilter_ = std::make_unique<FrameFilter>(traceDataCache_.get(), streamFilters_.get());
     streamFilters_->clockRateFilter_ =
         std::make_unique<MeasureFilter>(traceDataCache_.get(), streamFilters_.get(), E_CLOCK_RATE_FILTER);
     streamFilters_->clockEnableFilter_ =
@@ -204,11 +210,13 @@ void TraceStreamerSelector::SetCleanMode(bool cleanMode)
 {
     g_cleanMode = true;
 }
-int TraceStreamerSelector::ExportDatabase(const std::string& outputName) const
+
+int TraceStreamerSelector::ExportDatabase(const std::string& outputName, TraceDataDB::ResultCallBack resultCallBack)
 {
     traceDataCache_->UpdateTraceRange();
-    return traceDataCache_->ExportDatabase(outputName);
+    return traceDataCache_->ExportDatabase(outputName, resultCallBack);
 }
+
 void TraceStreamerSelector::Clear()
 {
     traceDataCache_->Prepare();

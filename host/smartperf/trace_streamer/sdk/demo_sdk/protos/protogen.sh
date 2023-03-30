@@ -30,6 +30,6 @@ do
    newpath=${newpath:2}
    cppout=../../third_party/protogen/$newpath
    mkdir -p $cppout
-   ../../out/linux/protoc --proto_path=$mock_data_dir --cpp_out=$cppout ${proto_array[$i]}
+   ../../../out/linux/protoc --proto_path=$mock_data_dir --cpp_out=$cppout ${proto_array[$i]}
 done
 echo "generate proto based files over"

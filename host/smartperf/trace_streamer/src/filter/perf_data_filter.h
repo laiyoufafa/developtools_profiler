@@ -34,7 +34,7 @@ public:
 public:
     size_t AppendPerfFiles(uint64_t fileId, uint32_t serial, DataIndex symbols, DataIndex filePath);
     size_t AppendPerfCallChain(uint64_t sampleId,
-                               uint64_t callChainId,
+                               uint32_t callChainId,
                                uint64_t vaddrInFile,
                                uint64_t fileId,
                                uint64_t symbolId);

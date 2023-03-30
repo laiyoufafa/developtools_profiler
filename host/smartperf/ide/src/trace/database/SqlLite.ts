@@ -323,7 +323,7 @@ export const queryProcessByTable = (): Promise<Array<{
     FROM
       process where pid != 0`)
 
-export const queryProcessAsyncFunc = ():Promise<Array<any>> => query("queryProcessAsyncFunc",`
+export const queryProcessAsyncFunc = (_funName?:string):Promise<Array<any>> => query("queryProcessAsyncFunc",`
 select tid,
     P.pid,
     A.name as threadName,
@@ -340,7 +340,9 @@ select tid,
 from thread A,trace_range D
 left join callstack C on A.id = C.callid
 left join process P on P.id = A.ipid
-where startTs not null and cookie not null ;`, {})
+where startTs not null and cookie not null ${_funName?'funName=$funName':''};`, {
+    funName:_funName
+})
 
 export const queryTotalTime = (): Promise<Array<{ total: number ,recordStartNS:number,recordEndNS:number}>> =>
     query("queryTotalTime", `
@@ -792,6 +794,27 @@ export const getTabThreadStates = (tIds: Array<number>, leftNS: number, rightNS:
     order by
       wallDuration desc;`, {$leftNS: leftNS, $rightNS: rightNS})
 
+export const getTabThreadStatesCpu = (tIds: Array<number>, leftNS: number, rightNS: number): Promise<Array<any>> =>{
+    let sql = `
+select IP.name                                         as process,
+       B.pid,
+       A.name                                          as thread,
+       B.tid,
+       B.cpu,
+       sum( min(${rightNS},(B.ts - TR.start_ts + B.dur)) - max(${leftNS},B.ts - TR.start_ts)) wallDuration
+from thread_state as B
+left join trace_range as TR
+left join thread as A on A.tid = B.tid
+left join process AS IP on IP.pid = B.pid
+where cpu notnull
+    and B.tid in (${tIds.join(",")})
+    and not ((B.ts - TR.start_ts + ifnull(B.dur,0) < ${leftNS}) or (B.ts - TR.start_ts > ${rightNS}))
+group by B.tid, B.pid, B.cpu,process,thread;`
+    return query<SelectionData>("getTabThreadStatesCpu", sql, {$leftNS: leftNS, $rightNS: rightNS})
+
+}
+
+
 export const queryBinderArgsByArgset = (argset: number): Promise<Array<BinderArgBean>> =>
     query("queryBinderArgsByArgset", `
     select
@@ -848,6 +871,7 @@ export const queryCpuFreqData = (cpu: number): Promise<Array<CpuFreqStruct>> =>
     select
       cpu,
       value,
+      ifnull(dur,tb.end_ts - c.ts) dur,
       ts-tb.start_ts as startNS
     from
       measure c,
@@ -873,12 +897,20 @@ export const queryCpuMax = (): Promise<Array<any>> =>
       cpu
     desc limit 1;`)
 
+export const queryCpuCount = (): Promise<Array<any>> =>
+    query("queryCpuCount", `
+   select max(cpuCount) cpuCount from
+(select ifnull((max(cpu) + 1),0) cpuCount  from cpu_measure_filter where name in ('cpu_frequency','cpu_idle')
+ union all
+ select ifnull((max(callid)+1),0) cpuCount from irq
+) A;`)
+
 export const queryCpuStateFilter = ():Promise<Array<any>> =>
     query("queryCpuStateFilter",`select cpu,id as filterId from cpu_measure_filter where name = 'cpu_idle' order by cpu;`,{})
 
 export const queryCpuState = (cpuFilterId:number) :Promise<Array<any>> =>
     query('queryCpuState',`
-        select (A.ts - B.start_ts) as startTs,
+        select (A.ts - B.start_ts) as startTs,ifnull(dur,B.end_ts - A.ts) dur,
             value
         from measure A,trace_range B
         where filter_id = $filterId;`,{$filterId:cpuFilterId},"exec-buf")
@@ -961,6 +993,9 @@ export const queryProcessMemData = (trackId: number): Promise<Array<ProcessMemSt
     where
       filter_id = $id;`, {$id: trackId})
 
+export const queryThreads = (): Promise<Array<any>> =>
+    query("queryThreads", `select id,tid,(ifnull(name,'Thread') || '(' || tid || ')') name from thread where id != 0;`)
+
 export const queryDataDICT = (): Promise<Array<any>> =>
     query("queryDataDICT", `select * from data_dict;`)
 export const queryProcessContentCount = ():Promise<Array<any>> =>
@@ -1029,18 +1064,22 @@ where TA.itid = (select itid from raw where name = 'sched_waking' and ts = $wake
     and TA.ts + Ta.dur >= $wakets`, {$wakets: wakets})
 
 /*-------------------------------------------------------------------------------------*/
-export const queryWakeUpFromThread_WakeTime = (itid: number, startTime: number): Promise<Array<WakeUpTimeBean>> =>
-    query("queryWakeUpFromThread_WakeTime", `select * from
+export const queryWakeUpFromThread_WakeTime = (itid: number, startTime: number): Promise<Array<WakeUpTimeBean>> => {
+        let sql_waking = `
+select * from
     ( select ts as wakeTs,start_ts as startTs from instant,trace_range
        where name = 'sched_waking'
-       and ref = $itid
-       and ts < start_ts + $startTime
+       and ref = ${itid}
+       and ts < start_ts + ${startTime}
        order by ts desc limit 1) TA
        left join
     (select ts as preRow from sched_slice,trace_range
-       where itid = $itid
-       and ts < start_ts + $startTime
-       order by ts desc limit 1) TB`, {$itid: itid, $startTime: startTime})
+       where itid = ${itid}
+       and ts < start_ts + ${startTime}
+       order by ts desc limit 1) TB
+        `
+        return query("queryWakeUpFromThread_WakeTime",sql_waking,{})
+    }
 /*-------------------------------------------------------------------------------------*/
 
 export const queryThreadWakeUp = (itid: number, startTime: number,dur:number): Promise<Array<WakeupBean>> =>
@@ -1060,20 +1099,18 @@ where TA.ts > TW.wakeTs
 group by TA.tid,TA.pid;
     `, {$itid: itid, $startTime: startTime,$dur:dur})
 
-export const queryThreadWakeUpFrom = (itid: number, startTime: number,dur:number): Promise<Array<WakeupBean>> =>
-    query("queryThreadWakeUpFrom", `
-select TA.tid,TA.cpu,(TA.ts - TR.start_ts) as ts,TA.pid
-from
-  (select ts as wakeTs,wakeup_from as wakeupFromTid from instant,trace_range
-       where name = 'sched_wakeup'
-       and ref = $itid
-       and ts > start_ts + $startTime
-       and ts < start_ts + $startTime + $dur) TW
-left join thread_state TA on TW.wakeupFromTid = TA.itid
-left join trace_range TR
-where TA.ts < TW.wakeTs and TA.ts + TA.dur >= TW.wakeTs
-limit 1;
-    `, {$itid: itid, $startTime: startTime,$dur:dur})
+
+export const queryThreadWakeUpFrom = (itid: number, startTime: number,dur:number): Promise<Array<WakeupBean>> =>{
+    let sql = `
+select (A.ts - B.start_ts) as ts,tid,pid,cpu,dur from thread_state A,trace_range B
+where state = 'Running'
+and itid = (select wakeup_from from instant where ts = ${startTime} and ref = ${itid} limit 1)
+and ts < ${startTime}
+order by ts desc limit 1
+    `
+    console.log(sql)
+    return query("queryThreadWakeUpFrom",sql,{})
+}
 /*-------------------------------------------------------------------------------------*/
 
 export const queryHeapGroupByEvent = (): Promise<Array<NativeEventHeap>> =>
@@ -2864,8 +2901,197 @@ export const queryScreenState = (): Promise<Array<ClockStruct>> =>
 `)
 
 export const queryIrqList = (): Promise<Array<{name:string,cpu:number}>> =>
-    query("queryIrqList",`select cat as name,callid as cpu from irq group by cat,callid`)
+    query("queryIrqList",`select cat as name,callid as cpu from irq where cat!= 'ipi' group by cat,callid`)
 
 export const queryIrqData = (callid:number,cat:string): Promise<Array<IrqStruct>> =>
     query("queryIrqData",`select i.ts - t.start_ts as startNS,i.dur,i.name,i.depth,argsetid as argSetId,i.id from irq i,
 trace_range t where i.callid = $callid and i.cat = $cat`,{$callid: callid,$cat: cat})
+
+export const queryAllJankProcess = (): Promise<Array<{
+    pid: number
+}>> =>
+    query("queryAllJankProcess", `
+        SELECT DISTINCT p.pid
+        FROM frame_slice AS a
+        LEFT JOIN process AS p ON a.ipid = p.ipid
+        `)
+
+export const queryAllExpectedData = (): Promise<Array<any>> =>
+    query("queryAllExpectedData", `
+        SELECT
+            a.id,
+            (a.ts - TR.start_ts) AS ts,
+            a.vsync as name,
+            a.type,
+            a.dur,
+            p.pid,
+            p.name as cmdline
+        FROM frame_slice AS a, trace_range AS TR
+             LEFT JOIN process AS p ON a.ipid = p.ipid
+        WHERE a.type = 1
+        ORDER BY a.ipid,ts;`)
+
+export const queryAllActualData = (): Promise<Array<any>> =>
+    query("queryAllActualData", `
+        SELECT 
+               a.id,
+               (a.ts - TR.start_ts) AS ts,
+               a.vsync AS name,
+               a.type,
+               a.dur,
+               a.src AS src_slice,
+               a.flag AS jank_tag,
+               a.dst AS dst_slice,
+               p.pid,
+               p.name AS cmdline,
+               (case when p.name like '%render_service' then 'render_service' else 'app' end) as frame_type
+        FROM frame_slice AS a, trace_range AS TR
+                 LEFT JOIN process AS p ON a.ipid = p.ipid
+        WHERE a.type = 0
+          AND a.flag <> 2
+        ORDER BY a.ipid, ts;`)
+
+export const queryActualFrameDate = (): Promise<Array<any>> =>
+    query("queryActualFrameDate", `
+        SELECT
+               sf.id,
+               'frameTime' as frame_type,
+               fs.ipid,
+               fs.vsync as name,
+               fs.dur as app_dur,
+               (sf.ts + sf.dur - fs.ts) as dur,
+               (fs.ts - TR.start_ts) AS ts,
+               fs.type,
+               (case when (sf.flag == 1 or fs.flag == 1 ) then true else false end) as jank_tag,
+               pro.pid,
+               pro.name as cmdline,
+               (sf.ts - TR.start_ts) AS rs_ts,
+               sf.vsync AS rs_vsync,
+               sf.dur AS rs_dur,
+               sf.ipid AS rs_ipid,
+               proc.pid AS rs_pid,
+               proc.name AS rs_name
+        FROM frame_slice AS fs
+                 LEFT JOIN process AS pro ON pro.id = fs.ipid
+                 LEFT JOIN frame_slice AS sf ON fs.dst = sf.id
+                 LEFT JOIN process AS proc ON proc.id = sf.ipid
+                 LEFT JOIN trace_range TR
+        WHERE fs.dst IS NOT NULL
+          AND fs.type = 0
+          AND fs.flag <> 2
+        UNION
+        SELECT
+               -1 as id,
+               'frameTime' as frame_type,
+               fs.ipid,
+               fs.vsync  as name,
+               fs.dur as app_dur,
+               fs.dur,
+               (fs.ts - TR.start_ts) AS ts,
+               fs.type,
+               fs.flag as jank_tag,
+               pro.pid,
+               pro.name as cmdline,
+               NULL AS rs_ts,
+               NULL AS rs_vsync,
+               NULL AS rs_dur,
+               NULL AS rs_ipid,
+               NULL AS rs_pid,
+               NULL AS rs_name
+        FROM frame_slice AS fs
+                 LEFT JOIN process AS pro ON pro.id = fs.ipid
+                 LEFT JOIN trace_range TR
+        WHERE fs.dst IS NULL
+          AND pro.name NOT LIKE '%render_service%'
+          AND fs.type = 0
+          AND fs.flag <> 2
+        ORDER BY ts;`)
+
+export const queryExpectedFrameDate = (): Promise<Array<any>> =>
+    query("queryExpectedFrameDate", `
+        SELECT
+               sf.id,
+               'frameTime' as frame_type,
+               fs.ipid,
+               fs.vsync as name,
+               fs.dur as app_dur,
+               (sf.ts + sf.dur - fs.ts) as dur,
+               (fs.ts - TR.start_ts) AS ts,
+               fs.type,
+               fs.flag,
+               pro.pid,
+               pro.name as cmdline,
+               (sf.ts - TR.start_ts) AS rs_ts,
+               sf.vsync AS rs_vsync,
+               sf.dur AS rs_dur,
+               sf.ipid AS rs_ipid,
+               proc.pid AS rs_pid,
+               proc.name AS rs_name
+        FROM frame_slice AS fs
+                 LEFT JOIN process AS pro ON pro.id = fs.ipid
+                 LEFT JOIN frame_slice AS sf ON fs.dst = sf.id
+                 LEFT JOIN process AS proc ON proc.id = sf.ipid
+                 LEFT JOIN trace_range TR
+        WHERE fs.dst IS NOT NULL
+          AND fs.type = 1
+        UNION
+        SELECT
+                -1 as id,
+               'frameTime' as frame_type,
+               fs.ipid,
+               fs.vsync  as name,
+               fs.dur as app_dur,
+               fs.dur,
+               (fs.ts - TR.start_ts) AS ts,
+               fs.type,
+               fs.flag,
+               pro.pid,
+               pro.name as cmdline,
+               NULL AS rs_ts,
+               NULL AS rs_vsync,
+               NULL AS rs_dur,
+               NULL AS rs_ipid,
+               NULL AS rs_pid,
+               NULL AS rs_name
+        FROM frame_slice AS fs
+                 LEFT JOIN process AS pro ON pro.id = fs.ipid
+                 LEFT JOIN trace_range TR
+        WHERE fs.dst IS NULL
+          AND pro.name NOT LIKE '%render_service%'
+          AND fs.type = 1
+        ORDER BY ts;`)
+
+export const queryFlowsData = (src_slice: Array<string>): Promise<Array<any>> =>
+    query("queryFlowsData", `
+        SELECT a.vsync AS name,
+               p.pid,
+               p.name  AS cmdline,
+               a.type
+        FROM frame_slice AS a
+                 LEFT JOIN process AS p ON a.ipid = p.ipid
+        WHERE a.type = 0
+          AND a.id IN (${src_slice.join(",")});`)
+
+export const queryPrecedingData = (dst_slice: string): Promise<Array<any>> =>
+    query("queryFlowsData", `
+        SELECT a.vsync AS name,
+               p.pid,
+               p.name  AS cmdline,
+               a.type
+        FROM frame_slice AS a
+                 LEFT JOIN process AS p ON a.ipid = p.ipid
+        WHERE a.type = 0
+          AND a.id = $dst_slice;`, {$dst_slice: dst_slice})
+
+export const queryFrameTimeData = (): Promise<Array<any>> =>
+    query("queryFrameTimeData", `
+        SELECT DISTINCT p.pid
+        FROM frame_slice AS a
+            LEFT JOIN process AS p
+            ON a.ipid = p.ipid;`)
+
+export const queryGpuDur = (id: number): Promise<any> =>
+    query("queryGpuDur", `
+        SELECT dur AS gpu_dur
+        FROM gpu_slice 
+        WHERE frame_row = $id;`, {$id: id})

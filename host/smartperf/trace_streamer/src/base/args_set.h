@@ -16,9 +16,9 @@
 #ifndef SRC_TRACE_BASE_ARGS_SET_H
 #define SRC_TRACE_BASE_ARGS_SET_H
 
+#include "ts_common.h"
 #include <limits>
 #include <string>
-#include "ts_common.h"
 namespace SysTuning {
 namespace TraceStreamer {
 class ArgsSet {

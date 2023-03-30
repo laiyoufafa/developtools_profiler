@@ -44,7 +44,7 @@ public:
     void FilterAllEventsTemp();
     void FilterAllEvents();
     void BeginFilterEvents(EventInfo* event);
-    void Clear() const;
+    void Clear();
 private:
     using FuncCall = std::function<bool(const ArgsMap& args, const BytraceLine line)>;
     bool SchedSwitchEvent(const ArgsMap& args, const BytraceLine& line) const;

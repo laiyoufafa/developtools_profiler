@@ -19,6 +19,7 @@
 #include <functional>
 #include <list>
 #include <string>
+#include <vector>
 
 extern "C" {
 #include "sqlite3.h"
@@ -28,6 +29,7 @@ namespace SysTuning {
 namespace TraceStreamer {
 const int SEND_CONTINUE = 0;
 const int SEND_FINISH = 1;
+constexpr int32_t DATABASE_BASE = (1U << 20);
 class TraceDataDB {
 public:
     TraceDataDB();
@@ -38,10 +40,10 @@ public:
     void Prepare();
 
 public:
-    int ExportDatabase(const std::string& outputName);
+    using ResultCallBack = std::function<void(const std::string /* json result */, int)>;
+    int ExportDatabase(const std::string& outputName, ResultCallBack resultCallBack = nullptr);
     int SearchData();
     int OperateDatabase(const std::string& sql);
-    using ResultCallBack = std::function<void(const std::string /* json result */, int)>;
     int SearchDatabase(const std::string& sql, ResultCallBack resultCallBack);
     int SearchDatabase(const std::string& sql, uint8_t* out, int outLen);
     void SetCancel(bool cancel);
@@ -57,12 +59,14 @@ public:
 
 private:
     void ExecuteSql(const std::string_view& sql);
+    void SendDatabase(ResultCallBack resultCallBack);
     static void GetRowString(sqlite3_stmt* stmt, int colCount, std::string& rowStr);
     int SearchDatabase(const std::string& sql, bool print);
     std::list<std::string> internalTables_ = {};
     bool exportMetaTable_ = true;
     bool pared_ = false;
     bool cancelQuery_ = false;
+    std::string wasmDBName_;
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

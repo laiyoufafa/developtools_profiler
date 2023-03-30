@@ -14,6 +14,8 @@
 import("//build/ohos.gni")
 import("../ts.gni")
 ohos_source_set("base") {
+  subsystem_name = "trace_streamer"
+  part_name = "sdk_base"
   deps = []
   public_deps = [ "../include:ibase" ]
   include_dirs = [ "../include" ]

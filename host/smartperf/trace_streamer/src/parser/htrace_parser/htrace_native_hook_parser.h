@@ -58,7 +58,7 @@ private:
     void UpdateMap(std::unordered_map<T1, T2>& sourceMap, T1 key, T2 value);
     void MaybeParseNativeHookData();
     void ParseNativeHookData(const uint64_t timeStamp, const NativeHookData* nativeHookData);
-    uint64_t ParseNativeHookFrame(const RepeatedPtrField<::Frame>& repeatedFrame);
+    uint32_t ParseNativeHookFrame(const RepeatedPtrField<::Frame>& repeatedFrame);
     void MaybeUpdateCurrentSizeDur(uint64_t row, uint64_t timeStamp, bool isMalloc);
     void UpdateThreadNameWithNativeHookData() const;
     void ParseAllocEvent(uint64_t newTimeStamp, const NativeHookData* nativeHookData);
@@ -71,7 +71,7 @@ private:
     void ParseThreadEvent(const NativeHookData* nativeHookData);
     void GetCallIdToLastLibId();
     void GetNativeHookFrameVaddrs();
-    uint64_t callChainId_ = 0;
+    uint32_t callChainId_ = 0;
     DoubleMap<uint32_t, uint64_t, uint64_t> addrToAllocEventRow_;
     DoubleMap<uint32_t, uint64_t, uint64_t> addrToMmapEventRow_;
     uint64_t lastMallocEventRaw_ = INVALID_UINT64;
@@ -79,10 +79,10 @@ private:
     std::multimap<uint64_t, std::unique_ptr<NativeHookData>> tsNativeHookQueue_ = {};
     std::unordered_map<uint32_t, uint64_t> threadNameIdToThreadName_ = {};
     std::unordered_map<uint32_t, uint32_t> itidToThreadNameId_ = {};
-    QuatraMap<uint64_t, uint64_t, uint64_t, uint64_t, uint64_t> frameToFrameId_;
+    QuatraMap<uint64_t, uint64_t, uint64_t, uint64_t, uint32_t> frameToFrameId_;
     std::set<DataIndex> invalidLibPathIndexs_ = {};
     std::map<uint32_t, uint64_t> filePathIdToFilePathName_ = {};
-    std::map<uint64_t, uint64_t> callIdToLastCallerPathIndex_ = {};
+    std::map<uint32_t, uint64_t> callIdToLastCallerPathIndex_ = {};
     std::map<uint64_t, std::string> functionNameIndexToVaddr_ = {};
     std::deque<std::string> vaddrs_ = {};
     const size_t MAX_CACHE_SIZE = 200000;

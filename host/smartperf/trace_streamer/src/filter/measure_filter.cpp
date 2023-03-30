@@ -35,7 +35,14 @@ bool MeasureFilter::AppendNewMeasureData(uint64_t internalTid, DataIndex nameInd
     if (filterType_ == E_PROCESS_MEASURE_FILTER) {
         traceDataCache_->GetProcessMeasureData()->AppendMeasureData(0, timestamp, value, filterId);
     } else {
-        traceDataCache_->GetMeasureData()->AppendMeasureData(0, timestamp, value, filterId);
+        auto row = traceDataCache_->GetMeasureData()->AppendMeasureData(0, timestamp, value, filterId);
+         //if the filterId ever exists
+        if (filterIdToRow_.count(filterId)) {
+            traceDataCache_->GetMeasureData()->SetDur(filterIdToRow_.at(filterId), timestamp);
+            filterIdToRow_.at(filterId) = row;
+        } else {
+            filterIdToRow_.insert(std::make_pair(filterId, row));
+        }
     }
     return value != 0;
 }

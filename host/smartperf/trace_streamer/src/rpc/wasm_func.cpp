@@ -29,6 +29,9 @@ SendDataCallBack g_sendData = nullptr;
 uint8_t* g_sendDataBuf;
 uint32_t g_sendDataBufSize;
 
+using ExportDBCallback = void (*)(const char* data, uint32_t len, int finish);
+ExportDBCallback g_dbCallback;
+
 void ResultCallback(const std::string& jsonResult, int finish)
 {
     g_reply(jsonResult.data(), jsonResult.size(), finish);
@@ -142,6 +145,17 @@ EMSCRIPTEN_KEEPALIVE int TraceStreamerCancel()
 {
     g_wasmTraceStreamer.CancelSqlQuery();
     return 0;
+}
+
+void ExportDatabaseCallback(const std::string& jsonResult, int finish)
+{
+    g_dbCallback(jsonResult.data(), jsonResult.size(), finish);
+}
+
+EMSCRIPTEN_KEEPALIVE int WasmExportDatabase(ExportDBCallback fun)
+{
+    g_dbCallback = fun;
+    return g_wasmTraceStreamer.WasmExportDatabase(&ExportDatabaseCallback);
 }
 } // extern "C"
 } // namespace TraceStreamer

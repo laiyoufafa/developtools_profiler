@@ -23,7 +23,7 @@ esac
 echo $proto_dir
 SOURCE="${BASH_SOURCE[0]}"
 cd $(dirname ${SOURCE})
-if [ ! -f "$out"/"$protoc" ];then
+if [ ! -f "$out/$protoc" ];then
     echo "no $out/$protoc found, you need to run \"./build.sh protoc\" at root folder, and copy protoc.exe to $out/$protoc"
     exit
 fi
@@ -42,6 +42,7 @@ cpu_data_dir="$proto_dir/types/plugins/cpu_data"
 diskio_data_dir="$proto_dir/types/plugins/diskio_data"
 process_data_dir="$proto_dir/types/plugins/process_data"
 hisysevent_data_dir="$proto_dir/types/plugins/hisysevent_data"
+test_data_dir="$proto_dir/types/plugins/test_data"
 proto_array=("${services_dir}/common_types.proto"
     "$ftrace_data_dir/trace_plugin_result.proto"
     "$ftrace_data_dir/ftrace_event.proto"
@@ -89,7 +90,8 @@ proto_array=("${services_dir}/common_types.proto"
     "$diskio_data_dir/diskio_plugin_result.proto"
     "$hisysevent_data_dir/hisysevent_plugin_config.proto"
     "$process_data_dir/process_plugin_result.proto"
-    "$hisysevent_data_dir/hisysevent_plugin_result.proto")
+    "$hisysevent_data_dir/hisysevent_plugin_result.proto"
+    "$test_data_dir/test.proto")
 
 export LD_LIBRARY_PATH=$out
 for ((i = 0; i < ${#proto_array[@]}; i ++))
@@ -99,6 +101,7 @@ do
    newpath=${tailpath:2}
    cppout=../../third_party/protogen/$newpath
    mkdir -p $cppout
-   $out/$protoc --proto_path=$memory_data_dir:$native_hook_dir:$hidump_data_dir:$hilog_data_dir:$ftrace_data_dir:$services_dir:$network_data_dir:$cpu_data_dir:$diskio_data_dir:$process_data_dir:$hisysevent_data_dir --cpp_out=$cppout ${proto_array[$i]}
+   $out/$protoc --proto_path=$memory_data_dir:$native_hook_dir:$hidump_data_dir:$hilog_data_dir:$ftrace_data_dir:$services_dir:$network_data_dir:$cpu_data_dir:$diskio_data_dir:$process_data_dir:$hisysevent_data_dir:$test_data_dir --cpp_out=$cppout ${proto_array[$i]}
+#   $out/$protoc --proto_path=$memory_data_dir:$native_hook_dir:$hidump_data_dir:$hilog_data_dir:$ftrace_data_dir:$services_dir:$network_data_dir:$cpu_data_dir:$diskio_data_dir:$process_data_dir:$hisysevent_data_dir:$test_data_dir --plugin=protoc-gen-plugin=$out/protoreader_plugin --plugin_out=wrapper_namespace=ProtoReader:$cppout ${proto_array[$i]}
 done
 echo "generate proto based files over"

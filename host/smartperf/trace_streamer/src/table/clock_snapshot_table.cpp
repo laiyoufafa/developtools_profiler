@@ -48,7 +48,6 @@ ClockSnapShotTable::Cursor::~Cursor() {}
 
 int ClockSnapShotTable::Cursor::Column(int column) const
 {
-    // printf("row:%d\n", CurrentRow());
     switch (column) {
         case ID:
             sqlite3_result_int64(context_, CurrentRow());

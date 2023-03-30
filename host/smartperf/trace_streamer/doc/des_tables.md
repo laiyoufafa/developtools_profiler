@@ -73,6 +73,9 @@ TraceStreamer可以将trace数据源转化为易于理解和使用的数据库�
 |data_type             |  通用的      |    -              |辅助表                 |
 |file_system_callstack |    -         |    -              |ebpf文件系统           |
 |file_system_sample    |    -         |    -              |ebpf文件系统           |
+|frame_maps    |    -         |ftrace-plugin              |帧渲染数据，app到RS的映射           |
+|frame_slice    |    -         |ftrace-plugin              |帧渲染数据           |
+|gpu_slice    |    -         |ftrace-plugin              |gpu渲染时长           |
 |hidump                |    -         |hidump-plugin      |FPS数据                |
 |hisys_event_measure   |    -         |hisysevent-plugin  |JSON数据源             |
 |instant               |    -         |ftrace-plugin      |waking和wakeup事件     |
@@ -155,6 +158,7 @@ perf_thread：此表记录hiperf采集到的进程和线程数据。
 perf_sample：此表中记录Hiperf工具的采样信息。sample_id唯一表识一次采样记录，与perf_callchain表中的sample_id字段相关联。thread_id为线程号。与perf_thread表中的thread_id字段相关联。event_type_id为当前采样的事件类型id，与perf_report表中的id字段相关联。  
 perf_callchain：此表格记录的是调用栈信息。  
 Perf_files：此表格主要存放着获取到的函数符号表和文件信息。file_id唯一表识一个文件，与perf_callchain表中的file_id字段相关联。  
+
 ![GitHub Logo](../figures/perf.png) 
 ### 查询举例
 - 已知同步后的时间戳为28463134340470，查询采样数据  
@@ -175,6 +179,20 @@ Perf_files：此表格主要存放着获取到的函数符号表和文件信息�
 查询所有采样对应的事件类型  
 ```select A.*, B.report_value from perf_sample as A, perf_report as B where A.event_type_id = B.id```
 
+### 帧渲染表之间的关系图
+frame_slice: 记录RS(RenderService)和应用的帧渲染。  
+gpu_slice: 记录RS的帧对应的gpu渲染时长。  
+frame_maps:记录应用到RS的帧的映射关系。  
+![GitHub Logo](../figures/frames.jpg) 
+### 查询示例
+已知进程，查询进程对应的实际渲染帧
+```select * from frame_slice where ipid = 1```
+
+已知进程的实际渲染帧的dst为12，求其对应的RS进程的渲染帧
+```select * from frame_slice where id = 12 ```
+
+已知RS的渲染帧在frame_slice中所在行是14，求其对应的GPU渲染时长
+```select * from gpu_slice where frame_row = 14```
 ## TraceStreamer输出数据库表格详细介绍
 ### app_name表
 #### 表结构
@@ -581,6 +599,7 @@ Context：日志内容
 |----          |----      |
 |type          |TEXT      |
 |ts            |INT       |
+|dur           |INT       |
 |value         |INT       |
 |filter_id     |INT       |
 #### 表描述
@@ -588,6 +607,7 @@ Context：日志内容
 #### 关键字段描述
 type：固定字段（measure）  
 ts：事件时间  
+dur：该值持续的时长  
 value：数值  
 filter_id：对应filter表中的ID
 
@@ -1145,7 +1165,52 @@ clock_name：时钟号对应的时钟名字
 data_source_name：数据源的名称，和数据源的插件名保持一致
 clock_id：时钟号，对应clock_snapshot中的时钟号  
 这个表是用来告诉IDE，不同的事件源的事件，原始时钟号是多少，在数据库中保存的事件，通常是转换为boottime后的时间，但有些情况下，IDE仍然需要知道原始的时钟号是怎样的 
-
+### frame_slice表
+### 表结构
+| Columns Name | SQL TYPE |
+|----          |----      |
+|ts      |INT       |
+|vsync      |INT       |
+|ipid      |INT       |
+|itid      |INT       |
+|callstack_row      |INT       |
+|dur      |INT       |
+|src      |TEXT       |
+|dst      |INT       |
+|type      |INT       |
+|flag      |INT       |
+#### 表描述
+应用的实际渲染帧和期望渲染帧的开始时间，持续时长，以及RenderService和App之间的关联关系。
+#### 关键字段描述
+callstack_row：该帧数据对应着callstack表的调用栈所在的行数 
+dur：该帧渲染时长（当数据不完整时，改行数据为空）  
+src：该帧是被哪一帧（该表中对应的行数）触发的，有多个值时，用逗号分割  
+dst：该帧对应的渲染帧是哪一行  
+type: 0 说明该行数据是实际渲染帧， 1 说明该行数据是期望渲染帧  
+flag: -1时，为不完整的数据或期望渲染帧，0 实际渲染帧不卡帧， 1 实际渲染帧卡帧， 2 数据不需要绘制（没有frameNum信息）
+### frame_maps表
+### 表结构
+| Columns Name | SQL TYPE |
+|----          |----      |
+|ts      |INT       |
+|src_row      |INT       |
+|dst_row      |INT       |
+#### 表描述
+该表记录了app到RenderService的帧的映射关系，同frame_slice表中的src映射到dst的关系。
+#### 关键字段描述
+src_row：frame_slice表中app的帧所在的行  
+dst_row：frame_slice表中RenderService的帧所在的行 
+### gpu_slice表
+### 表结构
+| Columns Name | SQL TYPE |
+|----          |----      |
+|frame_row      |INT       |
+|dur      |INT       |
+#### 表描述
+该表记录了每一帧数据在GPU上的渲染时长。
+#### 关键字段描述
+frame_row：frame_slice表中渲染帧所在的行  
+dur：帧渲染时长 
 ### trace_range表
 #### 表结构
 | Columns Name | SQL TYPE |

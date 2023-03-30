@@ -35,6 +35,8 @@ uint8_t* g_reqBuf;
 uint32_t g_reqBufferSize;
 uint8_t* g_traceRangeBuf;
 uint32_t g_traceRangeSize;
+uint8_t* g_PluginNameBuf;
+uint32_t g_PluginNameSize;
 
 void QueryResultCallback(const std::string& jsonResult, int finish, int isConfig)
 {
@@ -56,10 +58,24 @@ EMSCRIPTEN_KEEPALIVE uint8_t* Init(QueryResultCallbackFunction queryResultCallba
 }
 
 // Get PluginName
+EMSCRIPTEN_KEEPALIVE uint8_t* InitPluginName(uint32_t reqBufferSize)
+{
+    g_PluginNameBuf = new uint8_t[reqBufferSize];
+    g_PluginNameSize = reqBufferSize;
+    return g_PluginNameBuf;
+}
+
+// @deprecated recommand to use TraceStreamerGetPluginNameEx api
 EMSCRIPTEN_KEEPALIVE int TraceStreamer_In_PluginName(const uint8_t* pluginName, int len)
 {
-    g_wasmTraceStreamer.ts_->sdkDataParser_->GetPluginName(pluginName, len);
+    std::string pluginNameStr(reinterpret_cast<const char*>(pluginName), len);
+    g_wasmTraceStreamer.ts_->sdkDataParser_->GetPluginName(pluginNameStr);
     return 0;
+}
+
+EMSCRIPTEN_KEEPALIVE int TraceStreamerGetPluginNameEx(int pluginLen)
+{
+    return g_wasmTraceStreamer.WasmGetPluginNameWithCallback(g_PluginNameBuf, pluginLen);
 }
 
 EMSCRIPTEN_KEEPALIVE uint8_t* InitTraceRange(TraceRangeCallbackFunction traceRangeCallbackFunction,
@@ -92,6 +108,13 @@ EMSCRIPTEN_KEEPALIVE int TraceStreamer_In_JsonConfig()
 EMSCRIPTEN_KEEPALIVE int TraceStreamerSqlOperate(const uint8_t* sql, int sqlLen)
 {
     if (g_wasmTraceStreamer.SqlOperate(sql, sqlLen, nullptr)) {
+        return 0;
+    }
+    return -1;
+}
+EMSCRIPTEN_KEEPALIVE int TraceStreamerSqlOperateEx(int sqlLen)
+{
+    if (g_wasmTraceStreamer.SqlOperate(g_reqBuf, sqlLen, nullptr)) {
         return 0;
     }
     return -1;

@@ -422,7 +422,6 @@ const PerfFileSection *PerfFileReader::GetFeatureSection(FEATURE feature) const
 {
     HLOGV("enter");
     for (auto const &it : perfFileSections_) {
-        HLOGV("perfFileSections %p", it.get());
         if (it->featureId_ == feature) {
             return it.get();
         }

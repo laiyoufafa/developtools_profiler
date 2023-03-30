@@ -1,867 +1,894 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <title>compile_smartperf</title>
-    <meta charset="utf-8">
-    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 
     <style>
-       code[class*="font-"],
-        pre[class*="font-"] {
-            text-align: left;
+        code[class*="smartperf-"],
+        pre[class*="smartperf-"] {
             color: #333333;
             background: none;
-            word-spacing: normal;
+            font-family: Helvetica;
+            line-height: 1.6;
+            text-align: left;
             white-space: pre;
-            word-break: normal;
-            word-wrap: normal;
-            line-height: 1.5;
+            -moz-tab-size: 9;
+            -o-tab-size: 9;
+            tab-size: 8;
+            -webkit-hyphens: none;
             -moz-hyphens: none;
             -ms-hyphens: none;
-            -o-tab-size: 8;
-            tab-size: 8;
-            -moz-tab-size: 8;
-            -webkit-hyphens: none;
             hyphens: none;
-            font-family: Consolas, "Liberation Mono", Menlo, Courier, monospace;
         }
 
-        pre[class*="font-"] {
-            border-radius: 3px;
-            background: #F5F5F5;
-            padding: 0.8em;
+        /* Code blocks */
+        pre[class*="smartperf-"] {
+            padding: .9em;
             overflow: auto;
+            border-radius: 2px;
+            background: #f5f5f4;
         }
 
-        :not(pre) > code[class*="font-"] {
+        /* Inline code */
+        :not(pre) > code[class*="smartperf-"] {
             white-space: normal;
-            background: #F5F5F5;
-            padding: 0.2em;
-            border-radius: 0.3em;
+            background: #fcf8f8;
+            padding: 1px .2em;
+            border-radius: 1px .3em;
         }
 
-
-        .temporary.cdata {
-            color: #183690;
+        .tk.comment,
+        .tk.blockquote {
+            color: #8c918c;
         }
 
-        .temporary.comment,
-        .temporary.blockquote {
-            color: #969897;
+        .tk.cdata {
+            color: #183898;
         }
 
-        .temporary.doctype,
-        .temporary.punctuation,
-        .temporary.variable,
-        .temporary.macro.property {
-            color: #333333;
+        .tk.doctype,
+        .tk.punctuation,
+        .tk.variable,
+        .tk.macro.property {
+            color: #424242;
         }
 
-
-        .temporary.string,
-        .temporary.url,
-        .temporary.regex,
-        .temporary.attr-value {
-            color: #183690;
+        .tk.operator,
+        .tk.important,
+        .tk.keyword,
+        .tk.rule,
+        .tk.builtin {
+            color: #b71d65;
         }
 
-        .temporary.operator,
-        .temporary.important,
-        .temporary.keyword,
-        .temporary.rule,
-        .temporary.builtin {
-            color: #a71d5c;
+        .tk.string,
+        .tk.url,
+        .tk.regex,
+        .tk.attr-value {
+            color: #16338d;
         }
 
-        .temporary.atrule,
-        .temporary.constant,
-        .temporary.symbol,
-        .temporary.command,
-        .temporary.property,
-        .temporary.number,
-        .temporary.boolean,
-        .temporary.entity,
-        .temporary.code {
-            color: #0086b2;
+        .tk.property,
+        .tk.number,
+        .tk.boolean,
+        .tk.entity,
+        .tk.atrule,
+        .tk.constant,
+        .tk.symbol,
+        .tk.command,
+        .tk.code {
+            color: #037aa2;
         }
 
-        .temporary.tag,
-        .temporary.selector,
-        .temporary.prolog {
-            color: #63a35e;
+        .tk.tag,
+        .tk.selector,
+        .tk.prolog {
+            color: #69ad62;
         }
 
-        .temporary.entity {
+        .tk.function,
+        .tk.namespace,
+        .tk.pseudo-element,
+        .tk.class,
+        .tk.class-name,
+        .tk.pseudo-class,
+        .tk.id,
+        .tk.url-reference .tk.variable,
+        .tk.attr-name {
+            color: #775d9d;
+        }
+
+        .tk.entity {
             cursor: help;
         }
 
-        .temporary.title,
-        .temporary.title .temporary.punctuation {
+        .tk.title,
+        .tk.title .tk.punctuation {
             font-weight: bold;
-            color: #1d3e89;
+            color: #1a3773;
         }
 
-        .temporary.list {
-            color: #ed6a48;
+        .tk.list {
+            color: #f56940;
         }
 
-        .temporary.function,
-        .temporary.namespace,
-        .temporary.pseudo-element,
-        .temporary.class,
-        .temporary.class-name,
-        .temporary.pseudo-class,
-        .temporary.id,
-        .temporary.url-reference .temporary.variable,
-        .temporary.attr-name {
-            color: #795da2;
+        .tk.inserted {
+            background-color: #eaffea;
+            color: #509b2f;
         }
 
-        .temporary.inserted {
-            color: #55a535;
-            background-color: #eaffee;
+        .tk.deleted {
+            background-color: #fae1e1;
+            color: #ad2d06;
         }
 
-        .temporary.bold {
-            font-weight: bold;
+        .tk.bold {
+            font-weight: bolder;
         }
 
-        .temporary.deleted {
-            color: #bd2c08;
-            background-color: #ffecea;
+        .tk.italic {
+            font-style: normal;
         }
 
-        .font-json .temporary.property {
-            color: #183690;
+
+        /* JSON */
+        .smartperf-json .tk.property {
+            color: #19358c;
         }
 
-        .temporary.italic {
-            font-style: italic;
+        .smartperf-markup .tk.tag .tk.punctuation {
+            color: #2c2b2b;
         }
 
-        .font-markup .temporary.tag .temporary.punctuation {
-            color: #333333;
+        /* CSS */
+        code.smartperf-css,
+        .smartperf-css .tk.function {
+            color: #047ca4;
         }
 
-        .font-yaml .temporary.atrule {
-            color: #63a35a;
+        /* YAML */
+        .smartperf-yaml .tk.atrule {
+            color: #609b5a;
         }
 
-        code.font-css,
-        .font-css .temporary.function {
-            color: #0086b8;
+        code.smartperf-yaml {
+            color: #153491;
         }
 
-        code.font-yaml {
-            color: #183690;
+        /* Ruby */
+        .smartperf-ruby .tk.function {
+            color: #3f3e3e;
         }
 
-        .font-ruby .temporary.function {
-            color: #333333;
+        /* Markdown */
+        .smartperf-markdown .tk.url {
+            color: #6e5298;
         }
 
-        .font-markdown .temporary.url {
-            color: #795da2;
+        /* Makefile */
+        .smartperf-makefile .tk.symbol {
+            color: #6c5393;
         }
 
-        .font-makefile .temporary.variable {
-            color: #183690;
+        .smartperf-makefile .tk.variable {
+            color: #183488;
         }
 
-        .font-makefile .temporary.builtin {
-            color: #0086b3;
+        .smartperf-makefile .tk.builtin {
+            color: #027ba4;
         }
 
-        .font-makefile .temporary.symbol {
-            color: #795da2;
+        /* Bash */
+        .smartperf-bash .tk.keyword {
+            color: #027fa9;
         }
 
-        .font-bash .temporary.keyword {
-            color: #0086b3;
-        }
-
-        pre[data-wire] {
-            padding: 1em 0 1em 2em;
+        /* highlight */
+        pre[dl] {
             position: relative;
+            padding: 1em 1px 1px .9em;
         }
 
-        pre[data-wire] .line-highlight-wrapper {
+        pre[dl] .line-highlight-wrapper {
+            position: absolute;
+            top: 1px;
+            left: 1px;
             background-color: transparent;
-            top: 2px;
-            left: 2px;
             display: block;
-            width: 100%;
-            position: absolute;
+            width: 99%;
         }
 
-        pre[data-wire] .line-highlight {
+        pre[dl] .line-highlight {
             position: absolute;
-            left: 2px;
-            right: 2px;
+            left: 1px;
+            right: 1px;
+            padding: inherit;
+            margin-top: 0.9em;
+            background: hsla(25, 21%, 50%, .08);
+            background: linear-gradient(to right, hsla(24, 20%, 50%, .1) 70%, hsla(24, 20%, 50%, 0));
             pointer-events: none;
-            margin-top: 3em;
-            background: hsla(25, 10%, 55%,.06);
-            background: linear-gradient(to right, hsla(25, 10%, 40%,.2) 80%, hsla(23, 24%, 52%,0));
             line-height: inherit;
             white-space: pre;
         }
 
-        pre[data-wire] .line-highlight:before,
-        pre[data-wire] .line-highlight[data-end]:after {
+        pre[dl] .line-highlight:before,
+        pre[dl] .line-highlight[data-end]:after {
             content: attr(data-start);
             position: absolute;
-            background-color: hsla(22, 25%, 54%,.5);
-            min-width: 2em;
-            padding: 0 .6em;
-            top: 0.5em;
-            left: 0.4em;
-            color: hsl(22, 23%, 90%);
-            vertical-align: 0.3em;
-            border-radius: 10px;
             text-shadow: none;
-            box-shadow: 0 2px white;
-            font: bold 60%/1.6 sans-serif;
+            top: .3em;
+            left: .7em;
+            min-width: .9em;
+            padding: 1px .6em;
+            background-color: hsla(24, 20%, 47%, 0.4);
+            color: hsl(20, 11%, 95%);
             text-align: center;
+            vertical-align: .2em;
+            border-radius: 10000px;
+            box-shadow: 1px 2px #fdf6f6;
         }
 
-        pre[data-wire] .line-highlight[data-end]:after {
-            bottom: 0.6em;
+        pre[dl] .line-highlight[data-end]:after {
             content: attr(data-end);
             top: auto;
+            bottom: .5em;
         }
 
-       body > :first-child {
-           margin-top: 0;
-       }
-
-        body {
-            font-family: "Helvetica Neue", Helvetica, "Segoe UI", Arial, freesans, sans-serif;
+        html body {
             line-height: 1.6;
-            color: #333333;
-            background-color: #FFFFFF;
             font-size: 16px;
+            color: #333333;
             overflow: initial;
+            background-color: #FFFFFF;
             word-wrap: break-word;
+            font-family: Helvetica;
             box-sizing: border-box;
         }
 
-        body h1, body h2, body h3, body h4, body h5{
-            line-height: 1.2;
-            margin-bottom: 16px;
-            margin-top: 1em;
-            color: #000000;
+        html body > :first-child {
+            margin-top: 0px
         }
 
-        body h1 {
+        html body h1, html body h2, html body h3, html body h4, html body h5, html body h6 {
+            margin-top: 1em;
+            margin-bottom: 16px;
+            color: #000000;
+            line-height: 1.2;
+        }
+
+        html body h1 {
             font-weight: 300;
             font-size: 2.25em;
-            padding-bottom: 0.3em
+            padding-bottom: .3em
         }
 
-        body h2 {
-            font-weight: 400;
-            padding-bottom: 0.3em;
-            font-size: 1.75em;
+        html body h2 {
+            font-weight: 410;
+            font-size: 1.74em;
+            padding-bottom: .2em
         }
 
-        body h3 {
-            font-weight: 500;
-            font-size: 1.5em;
+        html body h3 {
+            font-size: 1.6em;
+            font-weight: 501
         }
 
-        body h4 {
-            font-weight: 600;
-            font-size: 1.25em;
+        html body h4 {
+            font-size: 1.26em;
+            font-weight: 601
         }
 
-        body h5 {
-            font-weight: 600;
-            font-size: 1.1em;
+        html body h5 {
+            font-size: 1.2em;
+            font-weight: 601
         }
 
-       body strong {
-           color: #000000;
-       }
-
-        body h1, body h2, body h3, body h4, body h5 {
-            font-weight: 600;
+        html body h6 {
+            font-size: 0.9em;
+            font-weight: 601
         }
 
-        body del {
-            color: #5c5c5c;
+        html body h1, html body h2, html body h3, html body h4, html body h5 {
+            font-weight: 601
         }
 
-        body a:not([href]) {
-            text-decoration: none;
+        html body h5 {
+            font-size: 0.9em
+        }
+
+        html body h6 {
+            color: #5c5c5c
+        }
+
+        html body strong {
+            color: #090909
+        }
+
+        html body del {
+            color: #525252
+        }
+
+        html body a:not([href]) {
             color: inherit;
+            text-decoration: none
         }
 
-        body a {
-            text-decoration: none;
-            color: #08c;
+        html body a {
+            color: #0192da;
+            text-decoration: none
         }
 
-        body a:hover {
-            color: #00a3f5;
-            text-decoration: none;
+        html body a:hover {
+            color: #029dea;
+            text-decoration: none
         }
 
-       body > p {
-           margin-bottom: 16px;
-           margin-top: 0;
-           word-wrap: break-word;
-       }
-
-        body img {
-            max-width: 100%;
+        html body img {
+            max-width: 99%
         }
 
-        body > ul, body > ol {
-            margin-bottom: 16px;
+        html body > p {
+            margin-top: 1px;
+            margin-bottom: 15px;
+            word-wrap: break-word
         }
 
-        body ul, body ol {
-            padding-left: 2em;
+        html body > ul, html body > ol {
+            margin-bottom: 15px
         }
 
-        body ul ul, body ul ol, body ol ol, body ol ul {
-            margin-top: 0;
-            margin-bottom: 0;
+        html body ul, html body ol {
+            padding-left: 1.9em
         }
 
-       body ul.no-list, body ol.no-list {
-           padding: 0;
-           list-style-type: none;
-       }
-
-       body li.task-list-item {
-           list-style: none;
-       }
-
-        body li {
-            margin-bottom: 0;
+        html body ul.no-list, html body ol.no-list {
+            padding: 0px;
+            list-style-type: none
         }
 
-       body .task-list-item-checkbox {
-           vertical-align: middle;
-           margin: 0 .2em .25em -1.8em;
-       }
-
-        body li > p {
-            margin-bottom: 0;
-            margin-top: 0;
+        html body ul ul, html body ul ol, html body ol ol, html body ol ul {
+            margin-top: 1px;
+            margin-bottom: 1px
         }
 
-        body .task-list-item-checkbox:hover {
-            cursor: pointer;
+        html body li {
+            margin-bottom: 1px
         }
 
-        body blockquote {
-            color: #5c5c5c;
-            margin: 16px 0 0 0;
+        html body li.task-list-item {
+            list-style: none
+        }
+
+        html body li > p {
+            margin-top: 1px;
+            margin-bottom: 1px
+        }
+
+        html body .task-list-item-checkbox {
+            margin: 0 .3em .24em -1.7em;
+            vertical-align: middle
+        }
+
+        html body .task-list-item-checkbox:hover {
+            cursor: pointer
+        }
+
+        html body blockquote {
+            padding: 0.1px 15px 0 0.1px;
             font-size: inherit;
-            padding: 0 15px;
-            background-color: #f0f0f0;
-            border-left: 4px solid #d6d6d6;
+            color: #5c5c5c;
+            margin: 16px 0.1px 0 0.1px;
+            border-left: 3px solid #cbc9c9;
+            background-color: #e8e6e6;
         }
 
-        body blockquote > :first-child {
-            margin-top: 0;
+        html body blockquote > :first-child {
+            margin-top: 0.2px
         }
 
-        body blockquote > :last-child {
-            margin-bottom: 0;
+        html body blockquote > :last-child {
+            margin-bottom: 0.1px;
         }
 
-        body hr {
-            margin: 32px 0 0 0;
-            height: 4px;
+        html body hr {
+            height: 5px;
+            background-color: #cbcaca;
+            margin: 32px 0 0.1px 0;
             border: 0 none;
-            background-color: #d6d6d6;
         }
 
-        body table {
-            display: block;
-            width: 100%;
-            margin: 10px 0 15px 0;
-            border-collapse: collapse;
-            border-spacing: 0;
-            word-break: normal;
+        html body table {
             overflow: auto;
-            word-break: keep-all;
+            border-collapse: collapse;
+            margin: 15px 0.1px 20px 0.1px;
+            border-spacing: 0;
         }
 
-        body table th {
+        html body table th {
             font-weight: bold;
-            color: #000000;
+            color: #000000
         }
 
-        body table td, body table th {
-            padding: 6px 13px 0 0;
+        html body table td, html body table th {
             border: 1px solid #d6d6d6;
+            padding: 2px 14px
         }
 
-        body dl {
-            padding: 0;
+        html body dl {
+            padding: 0px
         }
 
-       body dl dd {
-           padding: 0 16px 0 0;
-           margin-bottom: 16px;
-       }
-
-        body dl dt {
-            margin-top: 16px;
-            font-size: 1em;
-            padding: 0;
+        html body dl dt {
+            padding: 0px;
+            margin-top: 15px;
+            font-size: 0.9em;
             font-style: italic;
-            font-weight: bold;
+            font-weight: bold
         }
 
-        body code {
-            color: #000000;
+        html body dl dd {
+            padding: 0px 17px;
+            margin-bottom: 17px
+        }
+
+        html body code {
             font-family: Menlo, Monaco, Consolas, 'Courier New', monospace;
-            font-size: .85em !important;
+            font-size: .86em !important;
+            color: #000000;
             background-color: #f0f0f0;
-            padding: 0.2em 0 0 0;
-            border-radius: 3px;
+            border-radius: 4px;
+            padding: .3em 0px
         }
 
-        body code::before, body code::after {
-            content: "\00a0";
-            letter-spacing: -0.2em;
+        html body code::before, html body code::after {
+            letter-spacing: -0.1em;
+            content: "\00a0"
         }
 
-        body pre > code {
-            font-size: .85em !important;
-            padding: 0;
-            margin: 0;
-            background: transparent;
+        html body pre > code {
+            padding: 1px;
+            margin: 0px;
+            font-size: .86em !important;
             word-break: normal;
             white-space: pre;
-            border: 0;
+            background: transparent;
+            border: 0px
         }
 
-        body .highlight {
-            margin-bottom: 16px;
+        html body .highlight {
+            margin-bottom: 17px
         }
 
-        body .highlight pre, body pre {
-            border: #d6d6d6;
-            font-size: 0.85em !important;
-            line-height: 1.45;
-            border-radius: 3px;
-            padding: 1em;
+        html body .highlight pre, html body pre {
+            padding: 0.9em;
             overflow: auto;
+            font-size: .86em !important;
+            line-height: 1.46;
+            border: #d6d6d6;
+            border-radius: 4px
         }
 
-        body .highlight pre {
-            word-break: normal;
-            margin-bottom: 0;
+        html body .highlight pre {
+            margin-bottom: 0px;
+            word-break: normal
         }
 
-        body pre code, body pre tt {
-            background-color: transparent;
-            padding: 0;
-            margin: 0;
+        html body pre code, html body pre tt {
             display: inline;
             max-width: initial;
+            padding: 1px;
+            margin: 1px;
             overflow: initial;
             line-height: inherit;
             word-wrap: normal;
-            border: 0;
+            background-color: transparent;
+            border: 1px
         }
 
-        body pre code:before, body pre tt:before, body pre code:after, body pre tt:after {
-            content: normal;
+        html body pre code:before, html body pre tt:before, html body pre code:after, html body pre tt:after {
+            content: normal
         }
 
-        body p, body blockquote, body ul, body ol, body dl, body pre {
-            margin-top: 0;
-            margin-bottom: 16px;
+        html body p, html body blockquote, html body ul, html body ol, html body dl, html body pre {
+            margin-top: 1px;
+            margin-bottom: 17px
         }
 
-        body kbd {
-            border: 1px solid #d6d6d6;
-            border-bottom: 2px solid #c7c7c7;
-            padding: 2px 4px;
-            background-color: #f0f0f0;
-            border-radius: 3px;
+        html body kbd {
             color: #000000;
+            border: 3px solid #d6d6d6;
+            border-bottom: 3px solid #c7c7c7;
+            padding: 3px 5px;
+            background-color: #f0f0f0;
+            border-radius: 2px
         }
 
         @media print {
-            body {
-                background-color: #FFFFFF;
+            html body {
+                background-color: #ffffff
             }
 
-            body h1, body h2, body h3, body h4, body h5{
-                page-break-after: avoid;
+            html body h1, html body h2, html body h3, html body h4, html body h5, html body h6 {
                 color: #000000;
+                page-break-after: avoid
             }
 
-            body blockquote {
-                color: #5c5c5c;
+            html body blockquote {
+                color: #5c5c53
             }
 
-            body pre {
-                page-break-inside: avoid;
+            html body pre {
+                page-break-inside: avoid
             }
 
-            body table {
-                display: table;
+            html body table {
+                display: table
             }
 
-            body img {
+            html body img {
                 display: block;
-                max-width: 100%;
-                max-height: 100%;
+                max-width: 99%;
+                max-height: 99%
             }
 
-            body pre, body code {
-                white-space: pre;
+            html body pre, html body code {
                 word-wrap: break-word;
+                white-space: pre
             }
         }
 
-        .md-preview {
-            width: 100%;
-            height: 100%;
-            box-sizing: border-box;
+        .smartperf-preview {
+            width: 99%;
+            height: 99%;
+            box-sizing: border-box
         }
 
-        .md-preview, .md-preview {
-            page-break-before: always;
+        .smartperf-preview .pagebreak, .smartperf-preview .newpage {
+            page-break-before: always
         }
 
-        .md-preview pre.figure-numbers {
+        .smartperf-preview pre.line-numbers {
             position: relative;
-            padding-left: 3.8em;
-            counter-reset: linenumber;
+            padding-left: 3.7em;
+            counter-reset: linenumber
         }
 
-        .md-preview pre.figure-numbers > code {
-            position: relative;
+        .smartperf-preview pre.line-numbers > code {
+            position: relative
         }
 
-        .md-preview pre.figure-numbers .figure-numbers-rows {
-            top: 1em;
-            font-size: 100%;
-            left: 0;
-            width: 3em;
+        .smartperf-preview pre.line-numbers .line-numbers-rows {
             position: absolute;
             pointer-events: none;
+            top: 0.9em;
+            font-size: 99%;
+            left: 1px;
+            width: 3em;
             letter-spacing: -1px;
             border-right: 1px solid #999;
             -webkit-user-select: none;
-            user-select: none;
             -moz-user-select: none;
             -ms-user-select: none;
+            user-select: none
         }
 
-       .md-preview pre.figure-numbers .figure-numbers-rows > span:before {
-           content: counter(linenumber);
-           color: #999999;
-           display: block;
-           text-align: right;
-           padding-right: 0.8em;
-       }
-
-        .md-preview pre.figure-numbers .figure-numbers-rows > span {
-            display: block;
+        .smartperf-preview pre.line-numbers .line-numbers-rows > span {
             pointer-events: none;
-            counter-increment: linenumber;
+            display: block;
+            counter-increment: linenumber
         }
 
-        .md-preview:not([for="preview"]) .code-block .btn-group {
-            display: none;
+        .smartperf-preview pre.line-numbers .line-numbers-rows > span:before {
+            content: counter(linenumber);
+            color: #999;
+            display: block;
+            padding-right: .79em;
+            text-align: right
         }
 
-        .md-preview:not([for="preview"]) .code-block .status {
-            display: none;
+        .smartperf-preview .mathjax-exps .MathJax_Display {
+            text-align: center !important
         }
 
-        .md-preview:not([for="preview"]) .code-block .output-div {
-            margin-bottom: 16px;
+        .smartperf-preview:not([for="preview"]) .code-chunk .btn-group {
+            display: none
         }
 
-        .scrollbar-type::-webkit-scrollbar {
-            width: 8px;
+        .smartperf-preview:not([for="preview"]) .code-chunk .status {
+            display: none
         }
 
-        .scrollbar-type::-webkit-scrollbar-track {
-            background-color: transparent;
-            border-radius: 10px;
+        .smartperf-preview:not([for="preview"]) .code-chunk .output-div {
+            margin-bottom: 16px
         }
 
-        .scrollbar-type::-webkit-scrollbar-thumb {
-            border-radius: 5px;
-            border: 4px solid rgba(150, 150, 150, 0.66);
-            background-clip: content-box;
-            background-color: rgba(150, 150, 150, 0.66);
+        .scrollbar-style::-webkit-scrollbar {
+            width: 8px
         }
 
-        body[for="native-export"]:not([data-display-mode]) {
+        .scrollbar-style::-webkit-scrollbar-track {
+            border-radius: 9px;
+            background-color: transparent
+        }
+
+        .scrollbar-style::-webkit-scrollbar-thumb {
+            border-radius: 6px;
+            background-color: rgba(150, 150, 150, 1);
+            border: 4px solid rgba(150, 150, 150, 1);
+            background-clip: content-box
+        }
+
+        html body[for="html-export"]:not([dpm]) {
             position: relative;
-            top: 0;
-            left: 0;
-            margin: 0;
-            padding: 0;
-            overflow: auto;
-            width: 100%;
-            height: 100%;
+            width: 99%;
+            height: 99%;
+            top: 1px;
+            left: 1px;
+            margin: 1px;
+            padding: 1px;
+            overflow: auto
         }
 
-        body[for="native-export"]:not([data-display-mode]) .md-preview {
+        html body[for="html-export"]:not([dpm]) .smartperf-preview {
             position: relative;
-            top: 0;
+            top: 1px
         }
-
-
-       @media screen and (max-width: 450px) {
-           body[for="native-export"]:not([data-display-mode]) .md-preview {
-               font-size: 14px !important;
-               padding: 1em;
-           }
-       }
-
-       @media print {
-           body[for="native-export"]:not([data-display-mode]) #sidebarButton {
-               display: none;
-           }
-       }
 
         @media screen and (min-width: 914px) {
-            body[for="native-export"]:not([data-display-mode]) .md-preview {
-                padding: 2em calc(50% - 457px + 2em);
+            html body[for="html-export"]:not([dpm]) .smartperf-preview {
+                padding: 2em calc(50% - 458px + 2em)
             }
         }
 
         @media screen and (max-width: 914px) {
-            body[for="native-export"]:not([data-display-mode]) .md-preview {
-                padding: 2em;
+            html body[for="html-export"]:not([dpm]) .smartperf-preview {
+                padding: 1.9em
             }
-        }
-
-        body[for="native-export"]:not([data-display-mode]) #sidebarButton {
-            position: fixed;
-            bottom: 8px;
-            left: 8px;
-            font-size: 28px;
-            cursor: pointer;
-            color: inherit;
-            text-align: center;
-            opacity: 0.4;
-            z-index: 99;
-            width: 32px;
-        }
-
-        body[for="native-export"]:not([data-display-mode])[sidebarToc] #sidebarButton {
-            opacity: 1;
-        }
-
-        body[for="native-export"]:not([data-display-mode])[sidebarToc] .md-sidebar-toc {
-            position: fixed;
-            top: 0;
-            left: 0;
-            padding: 32px 0 48px 0;
-            width: 300px;
-            height: 100%;
-            font-size: 14px;
-            box-shadow: 0 0 4px rgba(150, 150, 150, 0.33);
-            box-sizing: border-box;
-            overflow: auto;
-            background-color: inherit;
-        }
-
-        body[for="native-export"]:not([data-display-mode])[sidebarToc] .md-sidebar-toc::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        body[for="native-export"]:not([data-display-mode])[sidebarToc] .md-sidebar-toc::-webkit-scrollbar-track {
-            background-color: transparent;
-            border-radius: 10px;
-        }
-
-        body[for="native-export"]:not([data-display-mode])[sidebarToc] .md-sidebar-toc::-webkit-scrollbar-thumb {
-            background-color: rgba(150, 150, 150, 0.66);
-            border-radius: 5px;
-            border: 4px solid rgba(150, 150, 150, 0.66);
-            background-clip: content-box;
-        }
-
-        body[for="native-export"]:not([data-display-mode])[sidebarToc] .md-sidebar-toc a {
-            text-decoration: none;
-        }
-
-       body[for="native-export"]:not([data-display-mode])[sidebarToc] .md-sidebar-toc li {
-           margin-bottom: 0.8em;
-       }
-
-        body[for="native-export"]:not([data-display-mode])[sidebarToc] .md-sidebar-toc ul {
-            margin-top: 0.8em;
-            padding: 0 1.6em 0 0;
-        }
-
-        body[for="native-export"]:not([data-display-mode])[sidebarToc] .md-sidebar-toc ul {
-            list-style-type: none;
-        }
-
-        body[for="native-export"]:not([data-display-mode])[sidebarToc] .md-preview {
-            padding: 2em calc(50% - 457px - 150px);
-            margin: 0;
-            box-sizing: border-box;
-            left: 300px;
-            width: calc(100% - 300px);
         }
 
         @media screen and (max-width: 450px) {
-            body[for="native-export"]:not([data-display-mode])[sidebarToc] .md-preview {
-                width: 100%;
+            html body[for="html-export"]:not([dpm]) .smartperf-preview {
+                font-size: 15px !important;
+                padding: 1.1em
             }
         }
 
-       @media screen and (max-width: 1274px) {
-           body[for="native-export"]:not([data-display-mode])[sidebarToc] .md-preview {
-               padding: 2em;
-           }
-       }
+        @media print {
+            html body[for="html-export"]:not([dpm]) #sidebar-toc-btn {
+                display: none
+            }
+        }
 
-        body[for="native-export"]:not([data-display-mode]):not([sidebarToc]) .md-preview {
-            transform: translateX(-50%);
+        html body[for="html-export"]:not([dpm]) #sidebar-toc-btn {
+            position: fixed;
+            bottom: 9px;
+            left: 9px;
+            font-size: 28px;
+            cursor: pointer;
+            color: inherit;
+            z-index: 99;
+            width: 31px;
+            text-align: center;
+            opacity: .5
+        }
+
+        html body[for="html-export"]:not([dpm])[hsst] #sidebar-toc-btn {
+            opacity: 1
+        }
+
+        html body[for="html-export"]:not([dpm])[hsst] .md-sidebar-toc {
+            position: fixed;
+            top: 1px;
+            left: 1px;
+            width: 300px;
+            height: 99%;
+            padding: 32px 0 48px 0;
+            font-size: 14px;
+            box-shadow: 1px 1px 4px rgba(150, 150, 150, 0.33);
+            box-sizing: border-box;
+            overflow: auto;
+            background-color: inherit
+        }
+
+        html body[for="html-export"]:not([dpm])[hsst] .md-sidebar-toc::-webkit-scrollbar {
+            width: 9px
+        }
+
+        html body[for="html-export"]:not([dpm])[hsst] .md-sidebar-toc::-webkit-scrollbar-track {
+            border-radius: 11px;
+            background-color: transparent
+        }
+
+        html body[for="html-export"]:not([dpm])[hsst] .md-sidebar-toc::-webkit-scrollbar-thumb {
+            border-radius: 6px;
+            background-color: rgba(150, 150, 150, 0.66);
+            border: 3px solid rgba(150, 150, 150, 0.66);
+            background-clip: content-box
+        }
+
+        html body[for="html-export"]:not([dpm])[hsst] .md-sidebar-toc a {
+            text-decoration: none
+        }
+
+        html body[for="html-export"]:not([dpm])[hsst] .md-sidebar-toc ul {
+            padding: 1px 1.7em;
+            margin-top: .9em
+        }
+
+        html body[for="html-export"]:not([dpm])[hsst] .md-sidebar-toc li {
+            margin-bottom: .8em
+        }
+
+        html body[for="html-export"]:not([dpm])[hsst] .md-sidebar-toc ul {
+            list-style-type: none
+        }
+
+        html body[for="html-export"]:not([dpm])[hsst] .smartperf-preview {
+            left: 301px;
+            width: calc(100% - 300px);
+            padding: 2em calc(50% - 457px - 150px);
+            margin: 1px;
+            box-sizing: border-box
+        }
+
+        @media screen and (max-width: 1274px) {
+            html body[for="html-export"]:not([dpm])[hsst] .smartperf-preview {
+                padding: 1.9em
+            }
+        }
+
+        @media screen and (max-width: 450px) {
+            html body[for="html-export"]:not([dpm])[hsst] .smartperf-preview {
+                width: 99%
+            }
+        }
+
+        html body[for="html-export"]:not([dpm]):not([hsst]) .smartperf-preview {
             left: 50%;
+            transform: translateX(-50%)
         }
 
-        body[for="native-export"]:not([data-display-mode]):not([sidebarToc]) .md-sidebar-toc {
-            display: none;
+        html body[for="html-export"]:not([dpm]):not([hsst]) .md-sidebar-toc {
+            display: none
         }
+
+
     </style>
 </head>
-<body for="native-export" id="body">
-<div class="mume md-preview  ">
-    <h1 class="mume-header fontColor" >SmartPerf 编译指导</h1>
+<body for="html-export" id="body">
+<div class="smartperf smartperf-preview  ">
+    <h1 class="mume-header fontColor">SmartPerf 编译部署指导文档</h1>
 
-    <h2 class="mume-header fontColor">1. 编译环境搭建:</h2>
+    <h2 class="mume-header fontColor">编译环境搭建</h2>
 
-    <pre class="font-text fontColor light">  注意:在linux编译环境安装时以root或者其他 sudo 用户身份运行下面的命令
-</pre>
-    <h3 class="mume-header fontColor" >1.1 node 环境安装:</h3>
+    <p class="fontColor">注意:在linux编译环境安装时以root或者其他 sudo 用户身份运行下面的命令。</p>
+    <h3 class="mume-header fontColor">node 环境安装</h3>
 
-    <h5 class="mume-header fontColor">
-        1.1.1 下载Node js安装包(windows推荐, linux跳过此步骤)</h5>
+    <h5 class="mume-header fontColor">下载Node js安装包(windows推荐， linux跳过此步骤)</h5>
 
-    <pre class="font-text fontColor light">       从网站 下载node js安装包 https://nodejs.org/en/download/current/
-</pre>
-    <h5 class="mume-header fontColor">1.1.2 安装nodejs.</h5>
+    <p class="fontColor">从网站下载node js安装包 <a href="https://nodejs.org/en/download/current/%E3%80%82">https://nodejs.org/en/download/current/。</a>
+    </p>
+    <h5 class="mume-header fontColor">安装nodejs</h5>
 
     <ul class="fontColor">
-        <li>ubuntu 20.04 与Debian 11系统中, 直接用apt-get安装,命令如下:</li>
-    </ul>
-    <pre class="font- light" data-info data-role="codeBlock"><code class="fontColor">  先切换到 root用户下 sudo su
-    apt-get update 
-    apt-get install nodejs npm
-</code></pre>
-    <ul class="fontColor">
-        <li>centos 系统中 使用yum 安装，命令如下：</li>
-    </ul>
-    <pre class="font- light" data-info data-role="codeBlock"><code class="fontColor">  先切换到 root用户下 sudo su
-    sudo yum -y install nodejs npm 
-</code></pre>
-    <ul class="fontColor">
-        <li>
-            <p>windows系统中, 用安装包一路next即可:</p>
-        </li>
-        <li>
-            <p>安装完成后运行检查是否安装成功:</p>
+        <li>ubuntu 20.04 与Debian 11系统中，直接用apt-get安装，先切换到 root用户下，命令如下(node 版本 &gt;= 16.15.1 npm 版本
+            &gt;= 8.13.2)
         </li>
     </ul>
-    <pre class="font- light" data-info data-role="codeBlock"><code class="fontColor">  node -v
-  npm -v
+    <pre data-role="codeBlock" data-info="" class="fontColor light smartperf-"><code class="fontColor">        sudo su
+        apt-get update 
+        apt-get install nodejs npm
 </code></pre>
-    <p class="fontColor">出现版本号就代表安装成功了.</p>
-    <h5 class="mume-header fontColor">1.1.3 安装tsc typeScript 编译器</h5>
-
+    <p class="fontColor"><img src="../figures/deploy/install_node.png" alt=""></p>
     <ul class="fontColor">
-        <li>直接使用npm 安装运行命令:</li>
+        <li>centos 系统中使用yum安装，先切换到root用户下，命令如下：</li>
     </ul>
-    <pre class="font- light" data-info data-role="codeBlock"><code class="fontColor">npm install -g typescript
-
-备注：如果安装失败可以更换npm源,再次尝试.
-    tsc -v
+    <pre data-role="codeBlock" data-info="" class="fontColor light smartperf-"><code class="fontColor">        sudo su 
+        sudo yum -y install nodejs npm 
 </code></pre>
-    <h3 class="mume-header fontColor">1.2 go 编译环境安装:
-    </h3>
-
-    <ul class="fontColor">
-        <li>ubuntu 环境下直接使用apt安装:</li>
-    </ul>
-    <pre class="font- light" data-info data-role="codeBlock"><code class="fontColor">   apt-get install golang-go
-</code></pre>
-    <ul class="fontColor">
-        <li>centos 系统中 使用yum 安装，命令如下：</li>
-    </ul>
-    <pre class="font- light" data-info data-role="codeBlock"><code class="fontColor">先切换到 root用户下 sudo su
-
-  sudo yum -y install go 
-</code></pre>
+    <p class="fontColor"><img src="../figures/deploy/yum_install_node.png" alt=""></p>
     <ul class="fontColor">
         <li>
-            <p>windows 系统请自行下载安装包并完成安装。</p>
+            <p class="fontColor">windows系统中， 用安装包一路next即可</p>
         </li>
         <li>
-            <p>安装完成后 命令行运行验证是否安装成功：</p>
+            <p class="fontColor">安装完成后运行检查是否安装成功</p>
         </li>
     </ul>
-    <pre class="font- light" data-info data-role="codeBlock"><code class="fontColor">    go version
+    <pre data-role="codeBlock" data-info="" class="fontColor light smartperf-"><code class="fontColor">        node -v 
+        npm -v
 </code></pre>
-    <h2 class="mume-header fontColor" >2.
-        项目编译:</h2>
+    <p class="fontColor"><img src="../figures/deploy/check_version.png" alt=""></p>
+    <p class="fontColor">出现版本号就代表安装成功了。</p>
+    <h5 class="mume-header fontColor">更换npm源</h5>
 
-    <h4 class="mume-header fontColor"
-       >2.1 先下载sql.js的二进制包,:
-    </h4>
+    <pre data-role="codeBlock" data-info="" class="fontColor light smartperf-"><code class="fontColor">        npm config set registry http://registry.npmmirror.com
+</code></pre>
+    <h5 class="mume-header fontColor">安装tsc typeScript 编译器</h5>
 
-    <pre class="font-text light fontColor">	从如下 https://github.com/sql-js/sql.js/releases/download/v1.6.2/sqljs-all.zip 获取到sql.js的二进制包.
-	将压缩包解压后, 将文件放置到项目third-party 目录下.
-</pre>
-    <h4 class="mume-header fontColor"
-        >
-        2.2 先编译获取trace_streamer 的二进制包:</h4>
+    <p class="fontColor">直接使用npm 安装运行命令</p>
+    <pre data-role="codeBlock" data-info="" class="fontColor light smartperf-"><code class="fontColor">        npm install -g typescript
+        tsc -v
+</code></pre>
+    <p class="fontColor">验证安装完成:<br>
+        <img src="../figures/deploy/install_tsc.png" alt=""></p>
+    <h3 class="mume-header fontColor">go 编译环境安装</h3>
 
-    <pre class="font-text light fontColor">参照:smartperf/trace_streamer/compile_trace_streamer.md 编译出wasm 、linux、Windows版本的二进制文件
-   将获取到二进制文件放入到项目bin目录下,如果项目目录中无bin目录 先创建bin目录.
-   然后将trace_streamer的二进制文件放入bin目录中.
-</pre>
-    <h4 class="mume-header fontColor"
-    >
-        2.3 代码编译(依赖于上面node环境 和 go环境)</h4>
+    <ul class="fontColor">
+        <li>ubuntu 环境下直接使用apt安装，以root用户执行(go 版本 &gt;= 1.13.8 )</li>
+    </ul>
+    <pre data-role="codeBlock" data-info="" class="fontColor light smartperf-"><code class="fontColor">        apt-get install golang-go
+</code></pre>
+    <p class="fontColor"><img src="../figures/deploy/install_golang.png" alt=""></p>
+    <ul class="fontColor">
+        <li>centos系统中使用yum安装，先切换到root用户下，命令如下：</li>
+    </ul>
+    <pre data-role="codeBlock" data-info="" class="fontColor light smartperf-"><code class="fontColor">        sudo su
+        sudo yum -y install go 
+</code></pre>
+    <p class="fontColor"><img src="../figures/deploy/yum_install_go.png" alt=""></p>
+    <ul class="fontColor">
+        <li>
+            <p class="fontColor">windows 系统下 从 <a
+                    href="https://golang.google.cn/dl/">https://golang.google.cn/dl/</a> 下载安装包， 一路next 完成 安装即可
+            </p>
+        </li>
+        <li>
+            <p class="fontColor">安装完成后 命令行运行验证是否安装成功</p>
+        </li>
+    </ul>
+    <pre data-role="codeBlock" data-info="" class="fontColor light smartperf-"><code class="fontColor">        go version 
+</code></pre>
+    <h2 class="mume-header fontColor">项目编译</h2>
 
-    <pre class="font-text fontColor light">        1) 在项目目录安装项目依赖:
-            npm install
-        2) 在项目目录下运行命令:
-            npm run compile 
-编译成功后会有main 可执行文件生成
-</pre>
-    <h2 class="mume-header fontColor" >3.
-        项目部署:
-    </h2>
+    <h4 class="mume-header fontColor">先下载sql.js的二进制包</h4>
 
-    <pre class="font-text fontColor light">      1. linux 版本部署需要给trace_stream程序赋予执行权限:
-          cd dist/bin 目录下,执行 chmod +x trace_streamer_*
+    <p class="fontColor">从如下 <a href="https://github.com/sql-js/sql.js/releases/download/v1.6.2/sqljs-all.zip">https://github.com/sql-js/sql.js/releases/download/v1.6.2/sqljs-all.zip</a>
+        获取到sql.js的二进制包。<br>
+        将压缩包解压后， 将文件放置到项目third-party 目录下。</p>
+    <p class="fontColor"><img src="../figures/deploy/third_party.png" alt=""></p>
+    <h4 class="mume-header fontColor">先编译获取trace_streamer 的二进制包</h4>
 
-       直接运行 ./main 可执行程序,完成项目的部署;
-</pre>
-    <h2 class="fontColor">4. 访问项目:</h2>
-    <pre class="font-text fontColor light">     在浏览器上打开 https://[部署机器ip地址]:9000/application/
-   !!! 注意一定是https.
+    <p class="fontColor">参照:smartperf/trace_streamer/compile_trace_streamer.md 编译出wasm、linux、Windows版本的二进制文件。<br>
+        将获取到二进制文件放入到项目bin目录下，如果项目目录中无bin目录 先创建bin目录。<br>
+        然后将trace_streamer的二进制文件放入bin目录中。</p>
+    <p class="fontColor"><img src="../figures/deploy/put_bin.png" alt=""><br>
+        <img src="../figures/deploy/bin_files.png" alt=""></p>
+    <h4 class="mume-header fontColor">代码编译(依赖于上面node环境 和 go环境)</h4>
 
-   备注：如果未出现如图所示网页.而是显示 无法访问此网站
-        可以在window cmd 里执行telnet [部署机器ip地址] 9000
-        如果显示端口连接失败 可能是防火墙未对9000 端口放开即可
-</pre>
+    <p class="fontColor">在项目目录安装项目依赖:</p>
+    <pre data-role="codeBlock" data-info="" class="fontColor light smartperf-"><code class="fontColor">        npm install 
+</code></pre>
+    <p class="fontColor">在项目目录下运行命令:</p>
+    <pre data-role="codeBlock" data-info="" class="fontColor light smartperf-"><code class="fontColor">        npm run compile 
+</code></pre>
+    <p class="fontColor"><img src="../figures/deploy/compile.png" alt=""><br>
+        编译成功后会有main 可执行文件生成。</p>
+    <h2 class="mume-header fontColor">项目部署</h2>
+
+    <p class="fontColor">linux 版本部署需要给trace_stream程序赋予执行权限:<br>
+        cd dist/bin 目录下，执行</p>
+    <pre data-role="codeBlock" data-info="" class="fontColor light smartperf-"><code class="fontColor">        chmod +x trace_streamer_*
+</code></pre>
+    <p class="fontColor"><img src="../figures/deploy/chomd+x.png" alt=""></p>
+    <p class="fontColor">直接运行 ./main 可执行程序，完成项目的部署。<br>
+        <img src="../figures/deploy/run_main.png" alt=""></p>
+    <h2>访问项目</h2>
+    <p class="fontColor">在浏览器上打开 https://[部署机器ip地址]:9000/application/<br>
+        !!! 注意一定是https。</p>
+    <p class="fontColor"><img src="../figures/deploy/visit_website.png" alt=""></p>
+    <p class="fontColor">备注：如果未出现如图所示网页.而是显示 无法访问此网站。<br>
+        可以在window cmd 里执行telnet [部署机器ip地址] 9000。<br>
+        如果显示端口连接失败 可能是防火墙未对9000 端口放开即可。</p>
 
 </div>
-<script type="text/javascript">
+
+
+<script>
     window.onload = (() => {
         let isDark = window.location.search;
         if (isDark.indexOf("?") != -1) {
@@ -880,5 +907,6 @@
         }
     })
 </script>
+
 </body>
 </html>

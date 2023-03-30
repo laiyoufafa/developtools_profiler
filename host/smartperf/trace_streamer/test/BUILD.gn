@@ -15,7 +15,7 @@ import("//build/ohos.gni")
 import("//build/test.gni")
 import("test_ts.gni")
 
-if (target == "test") {
+if (is_test) {
   ohos_unittest("trace_streamer_ut") {
     sources = [
       "unittest/binder_filter_test.cpp",
@@ -46,8 +46,8 @@ if (target == "test") {
       "unittest/measure_filter_test.cpp",
       "unittest/native_hook_parser_test.cpp",
       "unittest/paged_memory_parser_test.cpp",
-      "unittest/parser_test.cpp",
       "unittest/process_filter_test.cpp",
+      "unittest/proto_reader_test.cpp",
       "unittest/rpc_server_test.cpp",
       "unittest/slice_filter_test.cpp",
       "unittest/smaps_parser_test.cpp",
@@ -55,6 +55,13 @@ if (target == "test") {
       "unittest/table_test.cpp",
       "unittest/wasm_func_test.cpp",
     ]
+    if (is_test) {
+      if (!is_pbreader) {
+        sources += [ "unittest/parser_test.cpp" ]
+      } else {
+        sources += [ "unittest/parser_pbreader_test.cpp" ]
+      }
+    }
     deps = [
       "../src:trace_streamer_source",
       "//prebuilts/protos:ts_proto_data_cpp",
@@ -64,6 +71,16 @@ if (target == "test") {
       "//third_party/protobuf:protobuf_lite",
       "//third_party/sqlite:sqlite",
     ]
+    if (is_test) {
+      if (!is_pbreader) {
+        deps += [ "../src/parser/htrace_parser:htrace_parser" ]
+      } else {
+        deps += [
+          "../src/parser/htrace_pbreader_parser:htrace_pbreader_parser",
+          "../src/proto_reader:proto_reader",
+        ]
+      }
+    }
     include_dirs = [
       "../src",
       "../src/trace_data",
@@ -76,14 +93,14 @@ if (target == "test") {
       "../src/parser/bytrace_parser",
       "../src/parser",
       "../src/cfg",
-      "../src/parser/htrace_parser",
-      "../src/parser/htrace_parser/htrace_event_parser",
-      "../src/parser/htrace_parser/htrace_cpu_parser",
       "../src/parser/ebpf_parser",
+      "../src/proto_reader",
+      "../src/proto_reader/include",
       "../prebuilts/emsdk/emsdk/emscripten/system/include",
       "..",
       "//third_party/googletest/googletest/include/gtest",
       "//third_party/protobuf/src",
+      "//third_party/protobuf/src/google/protobuf",
       "//third_party/json-master/include",
       "//third_party/json-master/include/nlohmann",
       "//third_party/perf_include/musl",
@@ -98,7 +115,26 @@ if (target == "test") {
       "${OHOS_CPUDATA_PROTO_DIR}",
       "${OHOS_PROCESS_PROTO_DIR}",
       "${OHOS_SERVICE_PROTO_DIR}",
+      "${OHOS_TEST_PROTO_DIR}",
     ]
+    if (is_test) {
+      if (!is_pbreader) {
+        include_dirs += [
+          "../src/parser/htrace_parser",
+          "../src/parser/htrace_parser/htrace_event_parser",
+          "../src/parser/htrace_parser/htrace_cpu_parser",
+        ]
+      } else {
+        include_dirs += [
+          "../src/parser/htrace_pbreader_parser",
+          "../src/parser/htrace_pbreader_parser/htrace_event_parser",
+          "../src/parser/htrace_pbreader_parser/htrace_cpu_parser",
+          "../src/proto_reader",
+          "../src/proto_reader/include",
+        ]
+      }
+    }
+
     cflags = [
       "-Wno-inconsistent-missing-override",
       "-Dprivate=public",  #allow test code access private members
@@ -132,7 +168,7 @@ if (target == "test") {
 }
 
 # this is the dest for ohos.build
-if (target == "test") {
+if (is_test) {
   group("unittest") {
     testonly = true
     deps = [ ":trace_streamer_ut" ]

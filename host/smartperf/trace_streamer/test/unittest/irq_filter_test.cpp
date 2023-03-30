@@ -93,7 +93,7 @@ HWTEST_F(IrqFilterTest, IrqHandlerExitTestEmpty, TestSize.Level1)
     int64_t ts1 = 100;
     uint32_t cpu1 = 1;
     uint32_t ret = 1; // 1 for handled, else for unhandled
-    streamFilters_.irqFilter_->IrqHandlerExit(ts1, cpu1, ret); // IrqHandlerExit
+    streamFilters_.irqFilter_->IrqHandlerExit(ts1, cpu1, ret, ret); // IrqHandlerExit
     EXPECT_TRUE(traceDataCache_.GetConstIrqData().Size() == 0);
     // TRACE_EVENT_IRQ_HANDLER_EXIT STAT_EVENT_NOTMATCH
     auto eventCount =
@@ -115,7 +115,7 @@ HWTEST_F(IrqFilterTest, IrqHandlerEnterAndExitTest, TestSize.Level1)
     streamFilters_.irqFilter_->IrqHandlerEntry(ts1, cpu1, nameId1); // IrqHandlerEntry
     EXPECT_TRUE(traceDataCache_.GetConstIrqData().Size() == 1);
     uint32_t irqRet = 1; // 1 for handled, else for unhandled
-    streamFilters_.irqFilter_->IrqHandlerExit(ts1, cpu1, irqRet); // IrqHandlerExit
+    streamFilters_.irqFilter_->IrqHandlerExit(ts1, cpu1, irqRet, irqRet); // IrqHandlerExit
     EXPECT_TRUE(traceDataCache_.GetConstIrqData().Size() == 1);
     EXPECT_TRUE(traceDataCache_.GetConstIrqData().ArgSetIdsData()[0] == 0);
     EXPECT_TRUE(traceDataCache_.GetConstIrqData().ArgSetIdsData()[0] == 0);
@@ -142,13 +142,13 @@ HWTEST_F(IrqFilterTest, IrqHandlerDoubleEnterAndExitTest, TestSize.Level1)
     uint32_t ret = 1; // 1 for handled, else for unhandled
     cpu1 = 2;
     ts1 = 150;
-    streamFilters_.irqFilter_->IrqHandlerExit(ts1, cpu1, ret); // IrqHandlerExit
+    streamFilters_.irqFilter_->IrqHandlerExit(ts1, cpu1, ret, ret); // IrqHandlerExit
     EXPECT_TRUE(traceDataCache_.GetConstIrqData().Size() == 1);
     EXPECT_TRUE(traceDataCache_.GetConstStatAndInfo().GetValue(TRACE_EVENT_IRQ_HANDLER_EXIT,
                                                                         STAT_EVENT_NOTMATCH) == 1);
     cpu1 = 1;
     ts1 = 200;
-    streamFilters_.irqFilter_->IrqHandlerExit(ts1, cpu1, ret); // IrqHandlerExit
+    streamFilters_.irqFilter_->IrqHandlerExit(ts1, cpu1, ret, ret); // IrqHandlerExit
     EXPECT_TRUE(traceDataCache_.GetConstIrqData().Size() == 1);
     EXPECT_TRUE(traceDataCache_.GetConstIrqData().ArgSetIdsData()[0] == 0);
 }
@@ -168,7 +168,7 @@ HWTEST_F(IrqFilterTest, IrqHandlerTripleEnterAndExitTest, TestSize.Level1)
     EXPECT_TRUE(traceDataCache_.GetConstIrqData().Size() == 1);
     uint32_t ret = 1; // 1 for handled, else for unhandled
     ts1 = 150;
-    streamFilters_.irqFilter_->IrqHandlerExit(ts1, cpu1, ret); // IrqHandlerExit
+    streamFilters_.irqFilter_->IrqHandlerExit(ts1, cpu1, ret, ret); // IrqHandlerExit
     EXPECT_TRUE(traceDataCache_.GetConstIrqData().Size() == 1);
     // check args
     EXPECT_TRUE(traceDataCache_.GetConstIrqData().ArgSetIdsData()[0] == 0);
@@ -180,7 +180,7 @@ HWTEST_F(IrqFilterTest, IrqHandlerTripleEnterAndExitTest, TestSize.Level1)
     EXPECT_TRUE(traceDataCache_.GetConstIrqData().Size() == 2);
     ret = 1; // 1 for handled, else for unhandled
     ts1 = 250;
-    streamFilters_.irqFilter_->IrqHandlerExit(ts1, cpu1, ret);
+    streamFilters_.irqFilter_->IrqHandlerExit(ts1, cpu1, ret, ret);
     EXPECT_TRUE(traceDataCache_.GetConstIrqData().Size() == 2);
     // check args
     EXPECT_TRUE(traceDataCache_.GetConstIrqData().ArgSetIdsData()[1] == 1);

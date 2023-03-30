@@ -14,8 +14,8 @@
  */
 
 import {SpSystemTrace} from "../SpSystemTrace.js";
-import {queryCpuData, queryCpuMax, threadPool} from "../../database/SqlLite.js";
-import {info, trace} from "../../../log/Log.js";
+import {queryCpuCount, queryCpuData, queryCpuMax} from "../../database/SqlLite.js";
+import {info} from "../../../log/Log.js";
 import {TraceRow} from "../trace/base/TraceRow.js";
 import {procedurePool} from "../../database/Procedure.js";
 import {CpuRender, CpuStruct} from "../../database/ui-worker/ProcedureWorkerCPU.js";
@@ -31,6 +31,12 @@ export class SpCpuChart {
     async init() {
         let CpuStartTime = new Date().getTime();
         let array = await queryCpuMax();
+        let cpuCountResult = await queryCpuCount();
+        if(cpuCountResult && cpuCountResult.length > 0 && cpuCountResult[0]){
+            (window as any).cpuCount = cpuCountResult[0].cpuCount;
+        }else{
+            (window as any).cpuCount = 0;
+        }
         info("Cpu trace row data size is: ", array.length)
         if (array && array.length > 0 && array[0]) {
             let cpuMax = array[0].cpu
@@ -45,7 +51,22 @@ export class SpCpuChart {
                 traceRow.name = `Cpu ${cpuId}`
                 traceRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
                 traceRow.selectChangeHandler = this.trace.selectChangeHandler;
-                traceRow.supplier = () => queryCpuData(cpuId, TraceRow.range?.startNS || 0, TraceRow.range?.endNS || 0)
+                traceRow.supplier = () => queryCpuData(cpuId, TraceRow.range?.startNS || 0, TraceRow.range?.endNS || 0).then(res=>{
+                    res.forEach((it,i,arr)=>{
+                        if(i!==arr.length-1){
+                            if (it.startTime!+it.dur!>arr[i+1]!.startTime!||it.dur==-1){
+                                it.dur = arr[i+1]!.startTime!-it.startTime!;
+                                it.nofinish = true;
+                            }
+                        }else {
+                            if (it.dur==-1){
+                                it.dur = TraceRow.range!.endNS-it.startTime!;
+                                it.nofinish = true;
+                            }
+                        }
+                    })
+                    return res;
+                })
                 traceRow.focusHandler = () => {
                     this.trace?.displayTip(traceRow,CpuStruct.hoverCpuStruct,`<span>P：${CpuStruct.hoverCpuStruct?.processName || "Process"} [${CpuStruct.hoverCpuStruct?.processId}]</span><span>T：${CpuStruct.hoverCpuStruct?.name} [${CpuStruct.hoverCpuStruct?.tid}] [Prio:${CpuStruct.hoverCpuStruct?.priority || 0}]</span>`);
                 }
@@ -57,6 +78,7 @@ export class SpCpuChart {
                             context: context,
                             useCache: useCache,
                             type: `cpu-data-${i1}`,
+                            translateY:traceRow.translateY,
                         },
                         traceRow
                     );
@@ -80,4 +102,35 @@ export class SpCpuChart {
         let durTime = new Date().getTime() - time;
         info('The time to load the first ProcessThreadState data is: ', durTime)
     }
+
+    initCpuIdle0Data = async (progress: Function) => {
+        let time = new Date().getTime();
+        progress("CPU Idle", 94);
+        procedurePool.submitWithName("logic1", "scheduling-getCpuIdle0", { endTs:(window as any).recordEndNS,total:(window as any).totalNS}, undefined, (res: any) => {
+
+        })
+        let durTime = new Date().getTime() - time;
+        info('The time to load the first CPU Idle0 data is: ', durTime)
+    }
+
+    initSchedulingPTData = async (progress: Function) => {
+        let time = new Date().getTime();
+        progress("CPU Idle", 94);
+        procedurePool.submitWithName("logic1", "scheduling-getProcessAndThread", {}, undefined, (res: any) => {
+
+        })
+        let durTime = new Date().getTime() - time;
+        info('The time to load the first CPU Idle0 data is: ', durTime)
+    }
+
+    initSchedulingFreqData = async (progress: Function) => {
+        let time = new Date().getTime();
+        progress("CPU Scheduling Freq", 94);
+        procedurePool.submitWithName("logic1", "scheduling-initFreqData", {}, undefined, (res: any) => {
+
+        })
+        let durTime = new Date().getTime() - time;
+        info('The time to load the first CPU Idle0 data is: ', durTime)
+    }
+
 }

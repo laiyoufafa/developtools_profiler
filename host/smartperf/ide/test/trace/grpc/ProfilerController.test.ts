@@ -38,9 +38,6 @@ describe('HiProfilerClient Test', ()=>{
         expect(profilerController.host).toBeTruthy();
     });
 
-    // it('ProfilerClientTest05', function () {
-    //     expect(profilerController.host).toBe(true);
-    // });
 
     it('ProfilerClientTest06', function () {
         profilerController.loadSettings = jest.fn(()=>true)

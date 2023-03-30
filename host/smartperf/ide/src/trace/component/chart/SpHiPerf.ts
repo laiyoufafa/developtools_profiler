@@ -78,7 +78,6 @@ export class SpHiPerf {
             await this.initFolder();
             await this.initCpuMerge();
             await this.initCpu();
-            // await this.initReport();
             await this.initProcess();
         }
         info("HiPerf Data initialized")

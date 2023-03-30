@@ -11,23 +11,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import("//build/ohos.gni")
+import("../../build/ohos.gni")
 import("ts.gni")
 if (use_wasm) {
   import("../../gn/wasm.gni")
 }
 if (use_wasm) {
   ohos_source_set("trace_streamer_sdk_builtin") {
+    subsystem_name = "trace_streamer"
+    part_name = "trace_streamer_sdk_builtin"
     sources = []
     include_dirs = []
     deps = []
     public_deps = []
-
-    subsystem_name = "ostest"
-    part_name = "smart_perf_host"
   }
 }
 ohos_source_set("lib") {
+  subsystem_name = "trace_streamer"
+  part_name = "lib"
   sources = [ "main.cpp" ]
   deps = [
     ":trace_streamer_sdk",
@@ -57,11 +58,10 @@ ohos_source_set("lib") {
     include_dirs += []
   }
   public_deps = []
-
-  subsystem_name = "ostest"
-  part_name = "smart_perf_host"
 }
 ohos_source_set("trace_streamer_sdk") {
+  subsystem_name = "trace_streamer"
+  part_name = "trace_streamer_sdk"
   sources = [
     "filter/clock_filter.cpp",
     "filter/clock_filter.h",
@@ -152,10 +152,12 @@ ohos_source_set("trace_streamer_sdk") {
       "sdk/wasm_func.h",
     ]
   }
+  cflags = [ "-std=c++17" ]
   if (enable_ts_utest && !use_wasm) {
     cflags = [
       "-fprofile-arcs",
       "-ftest-coverage",
+      "-std=c++17",
     ]
     ldflags = [
       "-fprofile-arcs",
@@ -164,9 +166,6 @@ ohos_source_set("trace_streamer_sdk") {
     ]
   }
   public_deps = []
-
-  subsystem_name = "ostest"
-  part_name = "smart_perf_host"
 }
 if (use_wasm) {
   wasm_lib("trace_streamer_sdk_builtin_wasm") {

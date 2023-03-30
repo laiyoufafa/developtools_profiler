@@ -80,10 +80,13 @@ export class ClockStruct extends BaseStruct {
             let width = data.frame.width || 0;
             ctx.fillStyle = ColorUtils.colorForTid(ClockStruct.index)
             ctx.strokeStyle = ColorUtils.colorForTid(ClockStruct.index)
-            if (data.startNS === ClockStruct.hoverClockStruct?.startNS || data.startNS === ClockStruct.selectClockStruct?.startNS) {
+            let drawHeight: number = Math.floor(((data.value || 0) * (data.frame.height || 0) * 1.0) / maxValue);
+            if(drawHeight === 0){
+                drawHeight = 1;
+            }
+            if ( data.startNS === ClockStruct.hoverClockStruct?.startNS || data.startNS === ClockStruct.selectClockStruct?.startNS) {
                 ctx.lineWidth = 1;
                 ctx.globalAlpha = 0.6;
-                let drawHeight: number = Math.floor(((data.value || 0) * (data.frame.height || 0) * 1.0) / maxValue);
                 ctx.fillRect(data.frame.x, data.frame.y + data.frame.height - drawHeight, width, drawHeight)
                 ctx.beginPath()
                 ctx.arc(data.frame.x, data.frame.y + data.frame.height - drawHeight, 3, 0, 2 * Math.PI, true)
@@ -98,7 +101,6 @@ export class ClockStruct extends BaseStruct {
             } else {
                 ctx.globalAlpha = 0.6;
                 ctx.lineWidth = 1;
-                let drawHeight: number = Math.floor(((data.value || 0) * (data.frame.height || 0)) / maxValue);
                 ctx.fillRect(data.frame.x, data.frame.y + data.frame.height - drawHeight, width, drawHeight)
             }
         }

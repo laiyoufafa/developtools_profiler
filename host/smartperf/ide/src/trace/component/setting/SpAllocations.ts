@@ -134,7 +134,7 @@ export class SpAllocations extends BaseElement {
                         } else {
                             sp.search = true;
                             litSearch.clear();
-                            litSearch.setPercent("please kill other hdc-server! ", -1);
+                            litSearch.setPercent("please kill other hdc-server! ", -2);
                         }
                     })
                 }

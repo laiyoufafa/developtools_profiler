@@ -24,7 +24,9 @@ const outDir = "dist"
 
 const sdkWams = [
     "trace_streamer_sdk_builtin.js",
-    "trace_streamer_sdk_builtin.wasm"
+    "trace_streamer_sdk_builtin.wasm",
+    "trace_streamer_dubai_builtin.js",
+    "trace_streamer_dubai_builtin.wasm"
 ]
 
 const staticPath = [

@@ -15,6 +15,8 @@ import("//build/ohos.gni")
 
 import("//src/ts.gni")
 ohos_source_set("table") {
+  subsystem_name = "trace_streamer"
+  part_name = "table"
   sources = [
     "appname_table.cpp",
     "appname_table.h",
@@ -49,6 +51,12 @@ ohos_source_set("table") {
     "filter_constraints.cpp",
     "filter_table.cpp",
     "filter_table.h",
+    "frame_maps_table.cpp",
+    "frame_maps_table.h",
+    "frame_slice_table.cpp",
+    "frame_slice_table.h",
+    "gpu_slice_table.cpp",
+    "gpu_slice_table.h",
     "hidump_table.cpp",
     "hidump_table.h",
     "index_map.cpp",
@@ -68,6 +76,8 @@ ohos_source_set("table") {
     "meta_table.h",
     "native_hook_frame_table.cpp",
     "native_hook_frame_table.h",
+    "native_hook_statistic_table.cpp",
+    "native_hook_statistic_table.h",
     "native_hook_table.cpp",
     "native_hook_table.h",
     "network_table.cpp",
@@ -109,6 +119,7 @@ ohos_source_set("table") {
   include_dirs = [
     "//third_party/sqlite/include",
     "//src/base",
+    "../parser",
     "//src/trace_data",
     "//src/include",
     "//src",

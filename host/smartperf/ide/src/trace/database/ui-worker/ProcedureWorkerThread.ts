@@ -26,6 +26,7 @@ export class ThreadRender extends Render {
         context: CanvasRenderingContext2D,
         useCache: boolean,
         type: string,
+        translateY:number
     }, row: TraceRow<ThreadStruct>) {
         let list = row.dataList;
         let filter = row.dataListCache;
@@ -42,6 +43,7 @@ export class ThreadRender extends Render {
         })
         req.context.beginPath();
         for (let re of filter) {
+            re.translateY = req.translateY;
             ThreadStruct.draw(req.context, re)
             if (row.isHover && re.frame && isFrameContainPoint(re.frame!,row.hoverX,row.hoverY)) {
                 ThreadStruct.hoverThreadStruct = re;

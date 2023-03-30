@@ -72,6 +72,7 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
                     });
                     break;
                 case "native-memory-queryCallchainsSamples":
+                    this.searchValue = "";
                     if (data.params.list) {
                         let callchainsSamples = convertJSON(data.params.list) || [];
                         this.queryAllCallchainsSamples = callchainsSamples;
@@ -611,15 +612,17 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
             totalCount += sample.count||1
             let callChains = this.createThreadSample(sample)
             let topIndex = isTopDown ? 0 : (callChains.length - 1);
-            let root = this.currentTreeMapData[sample.tid + "-" + (callChains[topIndex].symbolId||"")+"-"+(callChains[topIndex].fileId||"")];
-            if (root == undefined) {
-                root = new NativeHookCallInfo()
-                this.currentTreeMapData[sample.tid + "-" + (callChains[topIndex].symbolId||"")+"-"+(callChains[topIndex].fileId||"")] = root
-                this.currentTreeList.push(root)
-            }
-            NativeHookCallInfo.merageCallChainSample(root,callChains[topIndex],sample)
-            if(callChains.length > 1){
-                this.merageChildrenByIndex(root,callChains,topIndex,sample,isTopDown)
+            if(callChains.length > 0){
+                let root = this.currentTreeMapData[sample.tid + "-" + (callChains[topIndex].symbolId||"")+"-"+(callChains[topIndex].fileId||"")];
+                if (root == undefined) {
+                    root = new NativeHookCallInfo()
+                    this.currentTreeMapData[sample.tid + "-" + (callChains[topIndex].symbolId||"")+"-"+(callChains[topIndex].fileId||"")] = root
+                    this.currentTreeList.push(root)
+                }
+                NativeHookCallInfo.merageCallChainSample(root,callChains[topIndex],sample)
+                if(callChains.length > 1){
+                    this.merageChildrenByIndex(root,callChains,topIndex,sample,isTopDown)
+                }
             }
         })
         let rootMerageMap: any = {}

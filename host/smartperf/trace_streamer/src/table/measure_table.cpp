@@ -19,12 +19,13 @@
 namespace SysTuning {
 namespace TraceStreamer {
 namespace {
-enum Index { TYPE = 0, TS, VALUE, FILTER_ID };
+enum Index { TYPE = 0, TS, DUR, VALUE, FILTER_ID };
 }
 MeasureTable::MeasureTable(const TraceDataCache* dataCache) : TableBase(dataCache)
 {
     tableColumn_.push_back(TableBase::ColumnInfo("type", "TEXT"));
     tableColumn_.push_back(TableBase::ColumnInfo("ts", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("dur", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("value", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("filter_id", "INTEGER"));
     tablePriKey_.push_back("ts");
@@ -184,13 +185,17 @@ int MeasureTable::Cursor::Filter(const FilterConstraints& fc, sqlite3_value** ar
 
 int MeasureTable::Cursor::Column(int column) const
 {
-    // printf("row:%d\n", CurrentRow());
     switch (column) {
         case TYPE:
             sqlite3_result_text(context_, "measure", STR_DEFAULT_LEN, nullptr);
             break;
         case TS:
             sqlite3_result_int64(context_, static_cast<int64_t>(measureObj.TimeStamData()[CurrentRow()]));
+            break;
+        case DUR:
+            if (measureObj.DursData()[CurrentRow()] != INVALID_UINT64) {
+                sqlite3_result_int64(context_, static_cast<int64_t>(measureObj.DursData()[CurrentRow()]));
+            }
             break;
         case VALUE:
             sqlite3_result_int64(context_, static_cast<int64_t>(measureObj.ValuesData()[CurrentRow()]));

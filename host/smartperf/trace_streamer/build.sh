@@ -15,26 +15,26 @@ set -e
 PARAMS=$*
 echo $PARAMS
 echo "begin to check input"
-target_os='linux'
-target_dir='linux'
-gn_path='linux'
-is_debug='false'
-is_clean='false'
-target='trace_streamer'
-gn='gn'
-ninja='ninja'
+target_os="linux"
+target_dir="linux"
+gn_path="linux"
+is_debug="false"
+is_clean="false"
+target="trace_streamer"
+gn="gn"
+ninja="ninja"
 case "$OSTYPE" in
   solaris*) echo "SOLARIS" ;;
-  darwin*)  gn_path='macx' target_os='macx' ;;
-  linux*)   gn_path='linux' target_os='linux'  ;;
+  darwin*)  gn_path="macx" target_os="macx" ;;
+  linux*)   gn_path="linux" target_os="linux"  ;;
   bsd*)     echo "is bsd os" ;;
-  msys*)    gn_path='windows' target_os='windows' gn='gn.exe' ninja='ninja.exe'  ;;
+  msys*)    gn_path="windows" target_os="windows" gn="gn.exe" ninja="ninja.exe"  ;;
   *)        echo "unknown: $OSTYPE" ;;
 esac
 usage="Usage: $basename $0 wasm/test/fuzz/protoc debug/release/clean"
 
 
-if [ "$1" == 'windows' ];then
+if [ "$1" == "windows" ];then
     echo "gn only support linux and wasm build currently"
     if [ ! -d "out/windows" ];then
         mkdir out/windows
@@ -58,25 +58,37 @@ if [ "$#" -ne "0" ];then
                 tar -zxvf prebuilts/emsdk.tar.gz -C prebuilts/
             fi
         fi
-        target='wasm'
+        target="wasm"
     fi
     if [ "$1" == "test" ];then
-        target='test'
+        target="test"
+    fi
+    if [ "$1" == "testpb" ];then
+        target="testpb"
+    fi
+    if [ "$1" == "wasmpb" ];then
+        target="wasmpb"
     fi
     if [ "$1" == "fuzz" ];then
-        target='fuzz'
+        target="fuzz"
     fi
     if [ "$1" == "protoc" ];then
-        target='protoc'
+        target="protoc"
     fi
     if [ "$1" == "sdkdemo" ];then
-        target='sdkdemo'
+        target="sdkdemo"
+    fi
+    if [ "$1" == "pbreader" ];then
+        target="pbreader"
     fi
     if [ "$1" == "dubaisdk" ];then
-        target='dubaisdk'
+        target="dubaisdk"
     fi
     if [ "$1" == "sdkdemotest" ];then
-        target='sdkdemotest'
+        target="sdkdemotest"
+    fi
+    if [ "$1" == "spb" ];then
+        target="spb"
     fi
 fi
 if [ "$target" == "wasm" ] && [ "$target_os" == "windows" ];then
@@ -84,7 +96,7 @@ if [ "$target" == "wasm" ] && [ "$target_os" == "windows" ];then
     exit
 fi
 if [ "$#" -eq "2" ];then
-    if [ "$1" != 'trace' ] && [ "$1" != "linux" ] && [ "$1" != "windows" ] && [ "$1" != "macx" ] && [ "$1" != "trace_streamer" ] && [ "$1" != "wasm" ] && [ "$1" != "test" ] && [ "$1" != "fuzz" ] && [ "$1" != "protoc" ];then
+    if [ "$1" != "trace" ] && ["$1" != "pbreader" ] && [ "$1" != "linux" ] && [ "$1" != "windows" ] && [ "$1" != "macx" ] && [ "$1" != "trace_streamer" ] && [ "$1" != "wasm" ] && [ "$1" != "test" ] && [ "$1" != "fuzz" ] && [ "$1" != "protoc" ];then
 	echo "failed"
     echo "$usage"
 	exit
@@ -99,11 +111,11 @@ if [ "$#" -eq "2" ];then
     fi
     fi
     if [ "$2" == "debug" ];then
-	is_debug='true'
+	is_debug="true"
     elif [ "$2" == "clean" ];then
-	is_clean='true'
+	is_clean="true"
     else
-	is_debug='false'
+	is_debug="false"
     fi
     echo "platform is $target_os"
     echo "isdebug: $is_debug"
@@ -118,7 +130,7 @@ else
 fi
 echo "gen ..."
 ext=""
-if [ "$is_debug" != 'false' ];then
+if [ "$is_debug" != "false" ];then
        	ext="_debug"
 fi
 #exec "protogen.sh"
@@ -130,7 +142,6 @@ echo ""
 echo "if you are compiling first time, or your proto has changed, you need to run ./src/protos/protogen.sh"
 echo ""
 echo ""
-echo
 #./src/protos/protogen.sh
 if [ ! -d "prebuilts/$gn_path" ];then
     mkdir prebuilts/$gn_path
@@ -153,17 +164,21 @@ if [ ! -f "prebuilts/$gn_path/ninja" ];then
 	exit
 fi
 echo "$is_clean"
-if [ $target == 'test' ] || [ $target == 'fuzz' ] || [ $target='wasm' ] || [ $target='sdkdemo' ] || [ $target='sdkdemotest' ];then
+if [ "$target" == "test" ] || [ "$target" == "fuzz" ] || [ "$target"="wasm" ] || [ "$target"="wasmpb" ] || [ "$target"="sdkdemo" ] || [ "$target"="sdkdemotest" ];then
     target_dir=$target
 else
     target_dir=$target_os
 fi
-if [ $target == 'trace_streamer' ] || [ $target == 'trace' ];then
+if [ "$target" == "trace_streamer" ] || [ "$target" == "trace" ] || [ "$target" == "spb" ]|| [ "$target" == "pbreader" ];then
     target_dir=$target_os
 fi
+if [ "$target" == "testpb" ]; then
+    target_dir="test"
+fi
 echo "target_dir:" $target_dir
+echo "target:" $target
 # exit
-if [ "$is_clean" == 'true'  ];then
+if [ "$is_clean" == "true"  ];then
     prebuilts/$gn_path/$gn gen out/"$target_dir""$ext" --clean
     prebuilts/$gn_path/$ninja -C out/"$target_dir""$ext" -t clean
 else
@@ -172,8 +187,10 @@ else
     mkdir -p out/windows
     touch out/windows/trace_streamer.exe
     prebuilts/$gn_path/$ninja -C out/"$target_dir""$ext"
-    if [ "$target_dir" == 'protoc' ];then
+    if [ "$target_dir" == "protoc" ];then
+        if [ ! -d "out/$target_os" ];then
+            mkdir -p "out/$target_os"
+        fi
         mv out/"$target_dir""$ext"/$target_dir out/$target_os/
     fi
-   # prebuilts/$gn_path/ninja -C out/"$target_os""$ext"
 fi

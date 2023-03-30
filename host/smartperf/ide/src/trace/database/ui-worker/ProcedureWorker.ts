@@ -47,6 +47,7 @@ import {SmapsRender} from "./ProcedureWorkerSmaps.js";
 import {CpuFreqLimitRender} from "./ProcedureWorkerCpuFreqLimits.js";
 import {ClockRender} from "./ProcedureWorkerClock.js";
 import {IrqRender} from "./ProcedureWorkerIrq.js";
+import {JankRender} from "./ProcedureWorkerJank.js";
 
 let dataList: any = {}
 let dataList2: any = {}
@@ -54,7 +55,6 @@ let dataFilter: any = {}
 let canvasList: any = {}
 let contextList: any = {}
 export let renders: any = {
-    // "timeline": new TimelineRender(),
     "cpu-data": new CpuRender(),
     "cpu-state": new CpuStateRender(),
     "cpu-limit-freq": new CpuFreqLimitRender(),
@@ -90,7 +90,8 @@ export let renders: any = {
     "energyState": new EnergyStateRender(),
     "smaps": new SmapsRender(),
     "clock":new ClockRender(),
-    "irq":new IrqRender()
+    "irq":new IrqRender(),
+    "jank": new JankRender(),
 };
 
 function match(type: string, req: RequestMessage) {
@@ -112,7 +113,7 @@ let convertJSON = (arr: any) => {
         str = str.substring(str.indexOf("\n") + 1);
         if (!str) {
         } else {
-            let parse = JSON.parse(str);
+            let parse = JSON.parse(translateJsonString(str));
             let columns = parse.columns;
             let values = parse.values;
             for (let i = 0; i < values.length; i++) {

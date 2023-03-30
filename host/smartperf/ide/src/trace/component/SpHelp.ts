@@ -55,9 +55,18 @@ export class SpHelp extends BaseElement {
                 describe: '',
                 children: [
                     {
-                        title: "快速抓取trace说明", icon: "", clickHandler: function (item: MenuItem) {
+                        title: "设备端抓取trace指导", icon: "", clickHandler: function (item: MenuItem) {
                             that.appContent!.innerHTML =
                                 "<object type=\"text/html\" data=" + "/application/doc/quickstart_hiprofiler_cmd.html?"
+                                + that.dark
+                                + " width=\"100%\" height=\"100%\"></object>"
+                        }
+                    },
+                    {
+                        title: "web端抓取trace指导", icon: "", clickHandler: function (item: MenuItem) {
+                            that.appContent!.innerHTML =
+                                "<object type=\"text/html\" data="
+                                + "/application/doc/capture_online.html?"
                                 + that.dark
                                 + " width=\"100%\" height=\"100%\"></object>"
                         }
@@ -90,7 +99,7 @@ export class SpHelp extends BaseElement {
                         }
                     },
                     {
-                        title: "Perf的抓取和展示说明", icon: "", clickHandler: function (item: MenuItem) {
+                        title: "HiPerf的抓取和展示说明", icon: "", clickHandler: function (item: MenuItem) {
                             that.appContent!.innerHTML =
                                 "<object type=\"text/html\" data="
                                 + "/application/doc/perf.html?"
@@ -103,15 +112,6 @@ export class SpHelp extends BaseElement {
                             that.appContent!.innerHTML =
                                 "<object type=\"text/html\" data="
                                 + "/application/doc/des_metris_support.html?"
-                                + that.dark
-                                + " width=\"100%\" height=\"100%\"></object>"
-                        }
-                    },
-                    {
-                        title: "在线抓取trace说明", icon: "", clickHandler: function (item: MenuItem) {
-                            that.appContent!.innerHTML =
-                                "<object type=\"text/html\" data="
-                                + "/application/doc/capture_online.html?"
                                 + that.dark
                                 + " width=\"100%\" height=\"100%\"></object>"
                         }
@@ -157,6 +157,15 @@ export class SpHelp extends BaseElement {
                             that.appContent!.innerHTML =
                                 "<object type=\"text/html\" data="
                                 + "/application/doc/hiSystemEvent.html?"
+                                + that.dark
+                                + " width=\"100%\" height=\"100%\"></object>"
+                        }
+                    },
+                    {
+                        title: "sdk抓取和展示说明", icon: "", clickHandler: function (item: MenuItem) {
+                            that.appContent!.innerHTML =
+                                "<object type=\"text/html\" data="
+                                + "/application/doc/sdk_capture_display.html?"
                                 + that.dark
                                 + " width=\"100%\" height=\"100%\"></object>"
                         }

@@ -20,6 +20,7 @@ import '../../../../base-ui/icon/LitIcon.js'
 import {LitIcon} from "../../../../base-ui/icon/LitIcon.js";
 import "../../../../base-ui/popover/LitPopoverV.js"
 import {LitCheckBox} from "../../../../base-ui/checkbox/LitCheckBox.js";
+import {LitSelect} from "../../../../base-ui/select/LitSelect";
 
 export interface FilterData {
     inputValue: string,
@@ -42,7 +43,7 @@ export class TabPaneFilter extends BaseElement {
     private filterInputEL: HTMLInputElement | null | undefined;
     private firstSelectEL: HTMLSelectElement | null | undefined;
     private secondSelectEL: HTMLSelectElement | null | undefined;
-    private thirdSelectEL: HTMLSelectElement | null | undefined;
+    private thirdSelectEL: LitSelect | null | undefined;
     private markButtonEL: HTMLButtonElement | null | undefined;
     private iconEL: LitIcon | null | undefined;
     private statisticsName: HTMLDivElement | null | undefined;
