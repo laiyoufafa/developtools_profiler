@@ -155,7 +155,7 @@ void ReadShareMemory(uint64_t duration, const std::string& performance_filename)
                 total_time += (end_time.tv_sec - begin_time.tv_sec) * 1000000000LLU +
                     (end_time.tv_nsec - begin_time.tv_nsec);
                 ++times;
-                if (end_time.tv_sec - first_time.tv_sec >= duration) {
+                if (end_time.tv_sec - first_time.tv_sec >= static_cast<long>(duration)) {
                     end_flag = true;
                     FILE *fp = fopen(performance_filename.c_str(), "a");
                     if (fp) {
